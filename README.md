@@ -14,6 +14,8 @@ blockchain state machines. More directly, it is based on the
 offical cosmos-sdk (both the
 [0.8 release](https://github.com/cosmos/cosmos-sdk/tree/v0.8.0) as well as the
 future [0.9 release aka sdk2](https://github.com/cosmos/cosmos-sdk/tree/sdk2)).
+As in much of the initial code was copied from those two branches
+(I was the main author of 0.8 cosmos-sdk as well....).
 
 While both of those are extremely powerful and flexible and contain
 advanced features, there have a steep learning curve for novice users.
