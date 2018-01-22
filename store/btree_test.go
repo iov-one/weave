@@ -139,10 +139,45 @@ func TestBTreeCacheConflicts(t *testing.T) {
 	}
 }
 
+// TestSliceIterator makes sure the basic slice iterator works
+func TestSliceIterator(t *testing.T) {
+	const Size = 10
+
+	ks := randKeys(Size, 8)
+	vs := randKeys(Size, 40)
+
+	models := make([]Model, Size)
+	for i := 0; i < Size; i++ {
+		models[i].Key = ks[i]
+		models[i].Value = vs[i]
+	}
+
+	// make sure proper iteration works
+	for iter, i := NewSliceIterator(models), 0; iter.Valid(); iter.Next() {
+		assert.True(t, i < Size)
+		assert.Equal(t, ks[i], iter.Key())
+		assert.Equal(t, vs[i], iter.Value())
+		i++
+	}
+
+	// iterator is invalid after close
+	trash := NewSliceIterator(models)
+	assert.True(t, trash.Valid())
+	trash.Close()
+	assert.False(t, trash.Valid())
+}
+
+// TestBTreeCacheBasicIterator makes sure the basic iterator
+// works
+func TestBTreeCacheBasicIterator(t *testing.T) {
+
+}
+
 // TestBTreeCacheIterator tests iterating over ranges that
 // span both the parent and child caches, combining different
 // values, overwrites, and deletes
 func TestBTreeCacheIterator(t *testing.T) {
+
 }
 
 // randKeys returns a slice of count keys, all of length
