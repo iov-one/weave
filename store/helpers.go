@@ -1,5 +1,7 @@
 package store
 
+import "fmt"
+
 ////////////////////////////////////////////////
 // Slice -> Iterator
 
@@ -7,6 +9,14 @@ package store
 type Model struct {
 	Key   []byte
 	Value []byte
+}
+
+// pair is test helper.. make public??
+func pair(key, value []byte) Model {
+	return Model{
+		Key:   key,
+		Value: value,
+	}
 }
 
 // SliceIterator wraps an Iterator over a slice of models
@@ -115,6 +125,34 @@ type op struct {
 	value []byte // only for set
 }
 
+func (o op) apply(out SetDeleter) {
+	switch o.kind {
+	case setKind:
+		out.Set(o.key, o.value)
+	case delKind:
+		out.Delete(o.key)
+	default:
+		panic(fmt.Sprintf("Unknown kind: %d", o.kind))
+	}
+}
+
+// setOp is a helper to create a set operation
+func setOp(key, value []byte) op {
+	return op{
+		kind:  setKind,
+		key:   key,
+		value: value,
+	}
+}
+
+// delOp is a helper to create a del operation
+func delOp(key []byte) op {
+	return op{
+		kind: delKind,
+		key:  key,
+	}
+}
+
 // NonAtomicBatch just piles up ops and executes them later
 // on the underlying store. Can be used when there is no better
 // option (for in-memory stores).
@@ -157,12 +195,7 @@ func (b *NonAtomicBatch) Delete(key []byte) {
 // Write writes all the ops to the underlying store and resets
 func (b *NonAtomicBatch) Write() {
 	for _, op := range b.ops {
-		switch op.kind {
-		case setKind:
-			b.out.Set(op.key, op.value)
-		case delKind:
-			b.out.Delete(op.key)
-		}
+		op.apply(b.out)
 	}
 	b.ops = nil
 }

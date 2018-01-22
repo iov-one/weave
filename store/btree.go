@@ -57,7 +57,7 @@ func (b BTreeCacheWrap) CacheWrap() KVCacheWrap {
 }
 
 // NewBatch returns a non-atomic batch that eventually may write to
-// our batch
+// our cachewrap
 func (b BTreeCacheWrap) NewBatch() Batch {
 	return NewNonAtomicBatch(b)
 }
@@ -103,7 +103,17 @@ func (b BTreeCacheWrap) Get(key []byte) []byte {
 
 // Has reads from btree if there, else backing store
 func (b BTreeCacheWrap) Has(key []byte) bool {
-	// TODO: btree
+	res := b.bt.Get(bkey{key})
+	if res != nil {
+		switch res.(type) {
+		case setItem:
+			return true
+		case deletedItem:
+			return false
+		default:
+			panic(fmt.Sprintf("Unknown item in btree: %#v", res))
+		}
+	}
 	return b.back.Has(key)
 }
 
