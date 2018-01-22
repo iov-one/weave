@@ -32,6 +32,16 @@ type KVStore interface {
 	// Start must be greater than end, or the Iterator is invalid.
 	// CONTRACT: No writes may happen within a domain while an iterator exists over it.
 	ReverseIterator(start, end []byte) Iterator
+
+	// NewBatch returns a batch that can write multiple ops atomically
+	NewBatch() Batch
+}
+
+// Batch can write multiple ops atomically to an underlying KVStore
+type Batch interface {
+	Set(key, value []byte) // CONTRACT: key, value readonly []byte
+	Delete(key []byte)     // CONTRACT: key readonly []byte
+	Write()
 }
 
 /*

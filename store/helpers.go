@@ -92,3 +92,77 @@ func (e EmptyKVStore) Iterator(start, end []byte) Iterator {
 func (e EmptyKVStore) ReverseIterator(start, end []byte) Iterator {
 	return NewSliceIterator(nil)
 }
+
+// NewBatch returns a batch that can write to this tree later
+func (e EmptyKVStore) NewBatch() Batch {
+	return NewNonAtomicBatch(e)
+}
+
+////////////////////////////////////////////////////
+// Non-atomic batch (dummy implementation)
+
+type opKind int32
+
+const (
+	setKind opKind = iota + 1
+	delKind
+)
+
+// op is either set or delete
+type op struct {
+	kind  opKind
+	key   []byte
+	value []byte // only for set
+}
+
+// NonAtomicBatch just piles up ops and executes them later
+// on the underlying store. Can be used when there is no better
+// option (for in-memory stores).
+//
+// NOTE: Never use this for KVStores that are persistent
+type NonAtomicBatch struct {
+	store KVStore
+	ops   []op
+}
+
+var _ Batch = (*NonAtomicBatch)(nil)
+
+// NewNonAtomicBatch creates an empty batch to be later writen
+// to the KVStore
+func NewNonAtomicBatch(store KVStore) *NonAtomicBatch {
+	return &NonAtomicBatch{
+		store: store,
+	}
+}
+
+// Set adds a set operation to the batch
+func (b *NonAtomicBatch) Set(key, value []byte) {
+	set := op{
+		kind: setKind,
+		key:  key,
+		value, value,
+	}
+	b.ops = append(b.ops, set)
+}
+
+// Delete adds a delete operation to the batch
+func (b *NonAtomicBatch) Delete(key []byte) {
+	del := op{
+		kind: delKind,
+		key:  key,
+	}
+	b.ops = append(b.ops, del)
+}
+
+// Write writes all the ops to the underlying store and resets
+func (b *NonAtomicBatch) Write() {
+	for _, op := range b.ops {
+		switch op.kind {
+		case setKind:
+			b.store.Set(op.key, op.value)
+		case delKind:
+			b.store.Delete(op.key)
+		}
+	}
+	b.ops = nil
+}

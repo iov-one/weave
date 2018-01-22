@@ -8,6 +8,7 @@ import "github.com/confio/weave"
 
 type KVStore = weave.KVStore
 type Iterator = weave.Iterator
+type Batch = weave.Batch
 type CacheableKVStore = weave.CacheableKVStore
 type KVCacheWrap = weave.KVCacheWrap
 type CommitKVStore = weave.CommitKVStore
