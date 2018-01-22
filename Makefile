@@ -1,5 +1,9 @@
 .PHONY: all install test cover deps glide
 
+GIT_COMMIT := $(shell git rev-parse --short HEAD)
+BUILD_FLAGS := -ldflags "-X github.com/confio/weave.GitCommit=$(GIT_COMMIT)"
+
+
 # dont use `` in the makefile for windows compatibility
 NOVENDOR := $(shell glide novendor)
 
@@ -11,11 +15,12 @@ all: deps install test
 
 install:
 	# TODO: install cmd later... now just compile important dirs
-	go install .
+	go install $(BUILD_FLAGS) .
 
 test:
 	go test $(NOVENDOR)
 
+# TODO: test all packages... names on each
 cover:
 	go test -covermode=$(MODE) -coverprofile=coverage/$(MODE).out .
 	go tool cover -html=coverage/$(MODE).out -o=coverage/$(MODE).html
