@@ -6,6 +6,9 @@ import:
   version: ~0.9.0
   subpackages:
   - types
+- package: github.com/google/btree
+  # has not been updated since 2016, avoid surprises....
+  version: 316fb6d3f031ae8f4d457c6c5186b9e3ded70435
 testImport:
 - package: github.com/stretchr/testify
   version: ^1.2.0

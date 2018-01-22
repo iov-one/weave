@@ -121,26 +121,26 @@ type op struct {
 //
 // NOTE: Never use this for KVStores that are persistent
 type NonAtomicBatch struct {
-	store KVStore
-	ops   []op
+	out SetDeleter
+	ops []op
 }
 
 var _ Batch = (*NonAtomicBatch)(nil)
 
 // NewNonAtomicBatch creates an empty batch to be later writen
 // to the KVStore
-func NewNonAtomicBatch(store KVStore) *NonAtomicBatch {
+func NewNonAtomicBatch(out SetDeleter) *NonAtomicBatch {
 	return &NonAtomicBatch{
-		store: store,
+		out: out,
 	}
 }
 
 // Set adds a set operation to the batch
 func (b *NonAtomicBatch) Set(key, value []byte) {
 	set := op{
-		kind: setKind,
-		key:  key,
-		value, value,
+		kind:  setKind,
+		key:   key,
+		value: value,
 	}
 	b.ops = append(b.ops, set)
 }
@@ -159,9 +159,9 @@ func (b *NonAtomicBatch) Write() {
 	for _, op := range b.ops {
 		switch op.kind {
 		case setKind:
-			b.store.Set(op.key, op.value)
+			b.out.Set(op.key, op.value)
 		case delKind:
-			b.store.Delete(op.key)
+			b.out.Delete(op.key)
 		}
 	}
 	b.ops = nil

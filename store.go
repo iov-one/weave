@@ -5,42 +5,47 @@ package weave
 //
 // KVStore/Iterator are the basic objects to use in all code
 
-// KVStore is a simple interface to get/set data
-//
-// For simplicity, we require all backing stores to implement this
-// interface. They *may* implement other methods as well, but
-// at least these are required.
-type KVStore interface {
+// ReadOnlyKVStore is a simple interface to query data.
+type ReadOnlyKVStore interface {
 	// Get returns nil iff key doesn't exist. Panics on nil key.
 	Get(key []byte) []byte
 
 	// Has checks if a key exists. Panics on nil key.
 	Has(key []byte) bool
 
-	// Set sets the key. Panics on nil key.
-	Set(key, value []byte)
-
-	// Delete deletes the key. Panics on nil key.
-	Delete(key []byte)
-
 	// Iterator over a domain of keys in ascending order. End is exclusive.
 	// Start must be less than end, or the Iterator is invalid.
 	// CONTRACT: No writes may happen within a domain while an iterator exists over it.
 	Iterator(start, end []byte) Iterator
 
-	// Iterator over a domain of keys in descending order. End is exclusive.
+	// ReverseIterator over a domain of keys in descending order. End is exclusive.
 	// Start must be greater than end, or the Iterator is invalid.
 	// CONTRACT: No writes may happen within a domain while an iterator exists over it.
 	ReverseIterator(start, end []byte) Iterator
+}
 
+// SetDeleter is a minimal interface for writing,
+// Unifying KVStore and Batch
+type SetDeleter interface {
+	Set(key, value []byte) // CONTRACT: key, value readonly []byte
+	Delete(key []byte)     // CONTRACT: key readonly []byte
+}
+
+// KVStore is a simple interface to get/set data
+//
+// For simplicity, we require all backing stores to implement this
+// interface. They *may* implement other methods as well, but
+// at least these are required.
+type KVStore interface {
+	ReadOnlyKVStore
+	SetDeleter
 	// NewBatch returns a batch that can write multiple ops atomically
 	NewBatch() Batch
 }
 
 // Batch can write multiple ops atomically to an underlying KVStore
 type Batch interface {
-	Set(key, value []byte) // CONTRACT: key, value readonly []byte
-	Delete(key []byte)     // CONTRACT: key readonly []byte
+	SetDeleter
 	Write()
 }
 

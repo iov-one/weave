@@ -1,5 +1,5 @@
-hash: ca92fcbf4317ae5473256c5fe6c12a2eea1d4d186fd356b5047d0cbd2f971579
-updated: 2018-01-21T22:37:28.830351+01:00
+hash: e86e3c22ac4287ca5bad2a3cbecf49bb797e5c8c0a68a85092e07e0ead703b34
+updated: 2018-01-22T16:41:34.605426+01:00
 imports:
 - name: github.com/go-kit/kit
   version: e2b298466b32c7cd5579a9b9b07e968fc9d9452c
@@ -9,12 +9,6 @@ imports:
   - log/term
 - name: github.com/go-logfmt/logfmt
   version: 390ab7935ee28ec6b286364bba9b4dd6410cb3d5
-- name: github.com/go-playground/locales
-  version: 1e5f1161c6416a5ff48840eb8724a394e48cc534
-  subpackages:
-  - currency
-- name: github.com/go-playground/universal-translator
-  version: 71201497bace774495daed26a3874fd339e0b538
 - name: github.com/go-stack/stack
   version: 817915b46b97fd7bb80e8ab6b69f01a53ac3eebf
 - name: github.com/gogo/protobuf
@@ -34,6 +28,8 @@ imports:
   - ptypes/any
   - ptypes/duration
   - ptypes/timestamp
+- name: github.com/google/btree
+  version: 316fb6d3f031ae8f4d457c6c5186b9e3ded70435
 - name: github.com/kr/logfmt
   version: b84e30acd515aadc4b783ad4ff83aff3299bdfe0
 - name: github.com/pkg/errors
@@ -47,7 +43,7 @@ imports:
   subpackages:
   - data
 - name: github.com/tendermint/tmlibs
-  version: d836ee056db0e454ab33b0f17c03308bcce92c48
+  version: 1afc0340069d38e71f137bc9e4fa4fadf12f76df
   subpackages:
   - common
   - db
@@ -97,8 +93,6 @@ imports:
   - status
   - tap
   - transport
-- name: gopkg.in/go-playground/validator.v9
-  version: a021b2ec9a8a8bb970f3f15bc42617cb520e8a64
 testImports:
 - name: github.com/davecgh/go-spew
   version: 04cdfd42973bb9c8589fd6a731800cf222fde1a9
