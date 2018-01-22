@@ -7,6 +7,11 @@ import (
 	"github.com/google/btree"
 )
 
+const (
+	// DefaultFreeListSize is the size we hold for free node in btree
+	DefaultFreeListSize = btree.DefaultFreeListSize
+)
+
 // BTreeCacheable adds a simple btree-based CacheWrap
 // strategy to a KVStore
 type BTreeCacheable struct {
@@ -20,7 +25,7 @@ var _ CacheableKVStore = BTreeCacheable{}
 func (b BTreeCacheable) CacheWrap() KVCacheWrap {
 	// TODO: reuse FreeList between multiple cache wraps....
 	// We create/destroy a lot per tx when processing a block
-	return NewBTreeCacheWrap(b.KVStore, b.KVStore.NewBatch())
+	return NewBTreeCacheWrap(b.KVStore, b.NewBatch(), nil)
 }
 
 ///////////////////////////////////////////////
@@ -29,6 +34,7 @@ func (b BTreeCacheable) CacheWrap() KVCacheWrap {
 // BTreeCacheWrap places a btree cache over a KVStore
 type BTreeCacheWrap struct {
 	bt    *btree.BTree
+	free  *btree.FreeList
 	back  ReadOnlyKVStore
 	batch Batch
 }
@@ -38,9 +44,18 @@ var _ KVCacheWrap = BTreeCacheWrap{}
 // NewBTreeCacheWrap initializes a BTree to cache around this
 // kv store. Use ReadOnlyKVStore to emphasize that all writes
 // must go through the Batch.
-func NewBTreeCacheWrap(kv ReadOnlyKVStore, batch Batch) BTreeCacheWrap {
+//
+// free may be nil, but set to an existing list to reuse it
+// for memory savings
+func NewBTreeCacheWrap(kv ReadOnlyKVStore, batch Batch,
+	free *btree.FreeList) BTreeCacheWrap {
+
+	if free == nil {
+		free = btree.NewFreeList(DefaultFreeListSize)
+	}
 	return BTreeCacheWrap{
-		bt:    btree.New(2),
+		bt:    btree.NewWithFreeList(2, free),
+		free:  free,
 		back:  kv,
 		batch: batch,
 	}
@@ -53,7 +68,7 @@ func NewBTreeCacheWrap(kv ReadOnlyKVStore, batch Batch) BTreeCacheWrap {
 func (b BTreeCacheWrap) CacheWrap() KVCacheWrap {
 	// TODO: reuse FreeList between multiple cache wraps....
 	// We create/destroy a lot per tx when processing a block
-	return NewBTreeCacheWrap(b, b.NewBatch())
+	return NewBTreeCacheWrap(b, b.NewBatch(), b.free)
 }
 
 // NewBatch returns a non-atomic batch that eventually may write to
@@ -63,14 +78,21 @@ func (b BTreeCacheWrap) NewBatch() Batch {
 }
 
 // Write syncs with the underlying store.
+// And then cleans up
 func (b BTreeCacheWrap) Write() {
 	b.batch.Write()
+	b.Discard()
 }
 
 // Discard invalidates this CacheWrap and releases all data
 //
 // TODO: currently noop....leave it to the garbage collector
 func (b BTreeCacheWrap) Discard() {
+	// clean up the btree -> freelist
+	for stop := false; !stop; {
+		rem := b.bt.DeleteMin()
+		stop = (rem == nil)
+	}
 }
 
 // Set writes to the BTree and to the batch

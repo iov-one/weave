@@ -50,6 +50,30 @@ func TestBTreeCacheGetSet(t *testing.T) {
 	assert.Equal(t, v2, base.Get(k2))
 	assert.True(t, base.Has(k))
 	assert.True(t, base.Has(k2))
+
+	// we can discard one
+	k3, v3 := []byte("Bayern"), []byte("Munich")
+	c2 := base.CacheWrap()
+	assert.Equal(t, v, c2.Get(k))
+	assert.Equal(t, v2, c2.Get(k2))
+	c2.Set(k3, v3)
+	c2.Discard()
+
+	// and commit another
+	c3 := base.CacheWrap()
+	assert.Equal(t, v, c3.Get(k))
+	assert.Equal(t, v2, c3.Get(k2))
+	c3.Delete(k)
+	c3.Write()
+
+	// make sure it commits proper
+	assert.Nil(t, base.Get(k))
+	assert.Equal(t, v2, base.Get(k2))
+	assert.Nil(t, base.Get(k3))
+
+	// and to test devnull....
+	base.Write()
+	assert.Nil(t, devnull.Get(k2))
 }
 
 // TestBTreeCacheConflicts checks that we can handle
