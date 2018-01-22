@@ -9,7 +9,7 @@ NOVENDOR := $(shell go list ./...)
 
 # MODE=count records heat map in test coverage
 # MODE=set just records which lines were hit by one test
-MODE ?= count
+MODE ?= set
 
 all: deps install test
 
@@ -23,7 +23,8 @@ test:
 # TODO: test all packages... names on each
 cover:
 	@ #Note: 19 is the length of "github.com/confio/" prefix
-	for pkg in $(NOVENDOR); do \
+	@ for pkg in $(NOVENDOR); do \
+	    echo "Coverage on" $$pkg; \
         file=`echo $$pkg | cut -c 19- | tr / _`; \
 		go test -covermode=$(MODE) -coverprofile=coverage/$$file.out $$pkg; \
 		go tool cover -html=coverage/$$file.out -o=coverage/$$file.html; \

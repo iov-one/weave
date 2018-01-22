@@ -20,7 +20,7 @@ const (
 var (
 	errDecoding            = fmt.Errorf("Error decoding input")
 	errTooLarge            = fmt.Errorf("Input size too large")
-	errUnknownTxType       = fmt.Errorf("Tx type unknown - wrong chain?")
+	errUnknownTxType       = fmt.Errorf("Tx type unknown")
 	errUnauthorized        = fmt.Errorf("Unauthorized")
 	errMissingSignature    = fmt.Errorf("Signature missing")
 	errInvalidSignature    = fmt.Errorf("Signature invalid")

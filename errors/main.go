@@ -86,10 +86,7 @@ func (t tmerror) ABCILog() string {
 }
 
 func (t tmerror) Cause() error {
-	if c, ok := t.stackTracer.(causer); ok {
-		return c.Cause()
-	}
-	return t.stackTracer
+	return errors.Cause(t.stackTracer)
 }
 
 var (
@@ -114,8 +111,8 @@ type causer interface {
 func (t tmerror) Format(s fmt.State, verb rune) {
 	// special case also show all info
 	if verb == 'v' && s.Flag('+') {
-		fmt.Fprintf(s, "%+v\n", t.stackTracer)
+		fmt.Fprintf(s, "%+v", t.stackTracer)
 	}
 	// always print the normal error
-	fmt.Fprintf(s, "(%d) %s\n", t.code, t.log)
+	fmt.Fprintf(s, "(%d) %s", t.code, t.ABCILog())
 }
