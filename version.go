@@ -2,11 +2,12 @@ package weave
 
 import "fmt"
 
-const Maj = "0"
-const Min = "1"
-const Fix = "0"
+// Note: update VersionTest when changing the version
+const Maj = 0
+const Min = 1
+const Fix = 0
 
-// add a suffix (-dev, -alpha, -beta, etc) if not tagged release
+// Suffix used when not a tagged release (eg. -dev, -alpha, -beta, etc)
 const Suffix = "-dev"
 
 // version is private to avoid modifications
