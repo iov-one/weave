@@ -11,9 +11,15 @@ type KeyHash []byte
 // must be validated by the Handlers. All authentication
 // information is in the wrapping Tx.
 type Msg interface {
-	// Return the message type. This is used to locate the proper handler.
+	// Return the message path.
+	// This is used by the Router to locate the proper Handler.
+	// Msg should be created alongside the Handler that corresponds to them.
+	//
+	// Multiple types may have the same value, and will end up at the
+	// same Handler.
+	//
 	// Must be alphanumeric [0-9A-Za-z_\-]+
-	Type() string
+	Path() string
 
 	// ValidateBasic does a simple validation check that
 	// doesn't require access to any other information.
