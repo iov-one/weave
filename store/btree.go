@@ -142,7 +142,10 @@ func (b BTreeCacheWrap) Has(key []byte) bool {
 // Iterator over a domain of keys in ascending order.
 // Combines results from btree and backing store
 func (b BTreeCacheWrap) Iterator(start, end []byte) Iterator {
-	iter := new(itemIter)
+	// take the backing iterator for start
+	parentIter := b.back.Iterator(start, end)
+	iter := newItemIter(parentIter)
+
 	if start == nil && end == nil {
 		b.bt.Ascend(iter.insert)
 	} else if start == nil { // end != nil
@@ -152,10 +155,7 @@ func (b BTreeCacheWrap) Iterator(start, end []byte) Iterator {
 	} else { // both != nil
 		b.bt.AscendRange(bkey{start}, bkey{end}, iter.insert)
 	}
-	iter.init()
-
-	// TODO: combine with backing iterator
-	// iter = iter.Combine(b.back.Iterator(start, end))
+	iter.skipAllDeleted()
 
 	return iter
 }
@@ -163,7 +163,10 @@ func (b BTreeCacheWrap) Iterator(start, end []byte) Iterator {
 // ReverseIterator over a domain of keys in descending order.
 // Combines results from btree and backing store
 func (b BTreeCacheWrap) ReverseIterator(start, end []byte) Iterator {
-	iter := new(itemIter)
+	// take the backing iterator for start
+	parentIter := b.back.ReverseIterator(start, end)
+	iter := newItemIter(parentIter)
+
 	if start == nil && end == nil {
 		b.bt.Descend(iter.insert)
 	} else if start == nil { // end != nil
@@ -173,10 +176,7 @@ func (b BTreeCacheWrap) ReverseIterator(start, end []byte) Iterator {
 	} else { // both != nil
 		b.bt.DescendRange(bkeyLess{end}, bkeyLess{start}, iter.insert)
 	}
-	iter.init()
-
-	// TODO: combine with backing iterator
-	// iter = iter.Combine(b.back.ReverseIterator(start, end))
+	iter.skipAllDeleted()
 
 	return iter
 }
@@ -256,41 +256,57 @@ func (k bkeyLess) Less(item btree.Item) bool {
 type itemIter struct {
 	data []btree.Item
 	idx  int
+	// if we are iterating in a cache-wrap (and who isn't),
+	// we need to combine this iterator with the parent
+	parent Iterator
 }
 
 var _ Iterator = (*itemIter)(nil)
 
-// TODO: remove? or useful later????
-// you can create it fixed like this
-// func newItemIter(items []btree.Item) *itemIter {
-// 	iter := &itemIter{
-// 		data: items,
-// 	}
-// 	iter.init()
-// 	return iter
-// }
+// source marks where the current item comes from
+type source int32
+
+const (
+	us source = iota
+	parent
+	both
+	none
+)
+
+// combine joins our results with those of the parent,
+// taking into consideration overwrites and deletes...
+func newItemIter(parent Iterator) *itemIter {
+	return &itemIter{
+		parent: parent,
+	}
+}
 
 // insert is designed as a callback to add items from the btree.
 // Example Usage (to get an iterator over all items on the tree):
 //
-//  iter := new(itemIter)
+//  iter := newItemIter(parentIter)
 //  tree.Ascend(iter.insert)
-//  iter.init()
+//  iter.skipAllDeleted()
 func (i *itemIter) insert(item btree.Item) bool {
 	i.data = append(i.data, item)
 	return true
 }
 
-// init removes all deleted item at the head (TODO: remove later?)
-func (i *itemIter) init() {
-	if i.isDeleted() {
-		i.Next()
-	}
+// makes sure the parent is non-nil before checking if it is valid
+func (i *itemIter) parentValid() bool {
+	return (i.parent != nil) && i.parent.Valid()
 }
+
+// makes sure the parent is non-nil before checking if it is valid
+func (i *itemIter) weValid() bool {
+	return (i.idx < len(i.data))
+}
+
+//------- public facing interface ------
 
 // Valid implements Iterator and returns true iff it can be read
 func (i *itemIter) Valid() bool {
-	return i.idx < len(i.data)
+	return i.weValid() || i.parentValid()
 }
 
 // Next moves the iterator to the next sequential key in the database, as
@@ -298,12 +314,74 @@ func (i *itemIter) Valid() bool {
 //
 // If Valid returns false, this method will panic.
 func (i *itemIter) Next() {
-	i.assertValid()
-	i.idx++
-	// keep advancing over all deleted entries
-	if i.isDeleted() {
-		i.Next()
+	// advance either us, parent, or both
+	switch i.firstKey() {
+	case us:
+		i.idx++
+	case parent:
+		i.parent.Next()
+	case both:
+		i.idx++
+		i.parent.Next()
+	default:
+		panic("Advanced past the end!")
 	}
+
+	// keep advancing over all deleted entries
+	i.skipAllDeleted()
+}
+
+// Key returns the key of the cursor.
+func (i *itemIter) Key() (key []byte) {
+	switch i.firstKey() {
+	case us, both:
+		return i.get().Key()
+	case parent:
+		return i.parent.Key()
+	default: //none
+		panic("Advanced past the end!")
+	}
+}
+
+// Value returns the value of the cursor.
+func (i *itemIter) Value() (value []byte) {
+	switch i.firstKey() {
+	case us, both:
+		return i.get().(setItem).value
+	case parent:
+		return i.parent.Value()
+	default: // none
+		panic("Advanced past the end!")
+	}
+}
+
+// Close releases the Iterator.
+func (i *itemIter) Close() {
+	i.data = nil
+}
+
+// skipAllDeleted loops and skips any number of deleted items
+func (i *itemIter) skipAllDeleted() {
+	for i.skipDeleted() {
+	}
+}
+
+// skipDeleted jumps over all elements we can safely fast forward
+// return true if skipped, so we can skip again
+func (i *itemIter) skipDeleted() bool {
+	src := i.firstKey()
+	if src == us || src == both {
+		// if our next is deleted, advance...
+		if _, ok := i.get().(deletedItem); ok {
+			i.idx++
+			// if parent had the same key, advance parent as well
+			if src == both {
+				i.parent.Next()
+			}
+			return true
+		}
+	}
+	return false
 }
 
 // isDeleted is true if the next item was marked deleted
@@ -316,28 +394,39 @@ func (i *itemIter) isDeleted() bool {
 }
 
 func (i *itemIter) assertValid() {
-	if i.idx >= len(i.data) {
-		panic("Passed end of slice")
+	if !i.Valid() {
+		panic("Passed end of iterator")
 	}
 }
 
-// value pulls out the setItem we point to
-func (i *itemIter) value() setItem {
-	i.assertValid()
-	return i.data[i.idx].(setItem)
+// get requires this is valid, gets what we are pointing at
+func (i *itemIter) get() keyer {
+	return i.data[i.idx].(keyer)
 }
 
-// Key returns the key of the cursor.
-func (i *itemIter) Key() (key []byte) {
-	return i.value().key
-}
+// firstKey selects the iterator with the lowest key is any
+func (i *itemIter) firstKey() source {
+	// if only one or none is valid, it is clear which to use
+	if !i.parentValid() {
+		if !i.weValid() {
+			return none
+		}
+		return us
+	} else if !i.weValid() {
+		return parent
+	}
 
-// Value returns the value of the cursor.
-func (i *itemIter) Value() (value []byte) {
-	return i.value().value
-}
+	// both are valid... compare keys....
+	parKey := i.parent.Key()
+	usKey := i.get().Key()
 
-// Close releases the Iterator.
-func (i *itemIter) Close() {
-	i.data = nil
+	// let's see which one to do....
+	cmp := bytes.Compare(parKey, usKey)
+	if cmp < 0 {
+		return parent
+	} else if cmp > 0 {
+		return us
+	} else {
+		return both
+	}
 }

@@ -249,7 +249,60 @@ func reverse(models []Model) []Model {
 // span both the parent and child caches, combining different
 // values, overwrites, and deletes
 func TestBTreeCacheIterator(t *testing.T) {
+	const Size = 30
+	const DeleteCount = 10 // add later
+	const TotalSize = Size + DeleteCount
 
+	devnull := BTreeCacheable{EmptyKVStore{}}
+	base := devnull.CacheWrap()
+
+	// set up data in base
+	parentModels := make([]Model, TotalSize)
+	for i := 0; i < TotalSize; i++ {
+		parentModels[i].Key = randBytes(8)
+		parentModels[i].Value = randBytes(40)
+	}
+	// add the first half to base
+	for i := 0; i < TotalSize; i++ {
+		base.Set(parentModels[i].Key, parentModels[i].Value)
+	}
+	// delete the first section...
+	for i := 0; i < DeleteCount; i++ {
+		base.Delete(parentModels[i].Key)
+	}
+	// store parent only models in order
+	parentModels = parentModels[DeleteCount:TotalSize]
+	// and sort parents... this is our expected results
+	sort.Slice(parentModels, func(i, j int) bool {
+		return bytes.Compare(parentModels[i].Key, parentModels[j].Key) < 0
+	})
+
+	// set up a child btree
+	child := base.CacheWrap()
+	childModels := make([]Model, TotalSize)
+	for i := 0; i < TotalSize; i++ {
+		childModels[i].Key = randBytes(8)
+		childModels[i].Value = randBytes(40)
+	}
+	for i := 0; i < TotalSize; i++ {
+		child.Set(childModels[i].Key, childModels[i].Value)
+	}
+	// delete the first section...
+	for i := 0; i < DeleteCount; i++ {
+		child.Delete(childModels[i].Key)
+	}
+
+	// combine what was left of the parent, with non-deleted of child
+	models := append(parentModels, childModels[DeleteCount:]...)
+	// and sort... this is our expected results
+	sort.Slice(models, func(i, j int) bool {
+		return bytes.Compare(models[i].Key, models[j].Key) < 0
+	})
+
+	// iterate over everything in parent
+	verifyIterator(t, parentModels, base.Iterator(nil, nil))
+	// iterate over everything in child and parent together
+	verifyIterator(t, models, child.Iterator(nil, nil))
 }
 
 // randKeys returns a slice of count keys, all of length

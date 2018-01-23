@@ -24,8 +24,8 @@ test:
 cover:
 	@ #Note: 19 is the length of "github.com/confio/" prefix
 	@ for pkg in $(NOVENDOR); do \
-	    echo "Coverage on" $$pkg; \
         file=`echo $$pkg | cut -c 19- | tr / _`; \
+	    echo "Coverage on" $$pkg "as" $$file; \
 		go test -covermode=$(MODE) -coverprofile=coverage/$$file.out $$pkg; \
 		go tool cover -html=coverage/$$file.out -o=coverage/$$file.html; \
 		go tool cover -func=coverage/$$file.out; \
