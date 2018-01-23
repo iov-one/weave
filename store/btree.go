@@ -143,12 +143,18 @@ func (b BTreeCacheWrap) Has(key []byte) bool {
 // Combines results from btree and backing store
 func (b BTreeCacheWrap) Iterator(start, end []byte) Iterator {
 	iter := new(itemIter)
-	// TODO: use AscendRange, etc. properly
-	b.bt.Ascend(iter.insert)
-
+	if start == nil && end == nil {
+		b.bt.Ascend(iter.insert)
+	} else if start == nil { // end != nil
+		b.bt.AscendLessThan(bkey{end}, iter.insert)
+	} else if end == nil { // start != nil
+		b.bt.AscendGreaterOrEqual(bkey{start}, iter.insert)
+	} else { // both != nil
+		b.bt.AscendRange(bkey{start}, bkey{end}, iter.insert)
+	}
 	iter.init()
 
-	// TODO: combine with last
+	// TODO: combine with backing iterator
 	// iter = iter.Combine(b.back.Iterator(start, end))
 
 	return iter
@@ -157,8 +163,22 @@ func (b BTreeCacheWrap) Iterator(start, end []byte) Iterator {
 // ReverseIterator over a domain of keys in descending order.
 // Combines results from btree and backing store
 func (b BTreeCacheWrap) ReverseIterator(start, end []byte) Iterator {
-	// TODO: btree
-	return b.back.ReverseIterator(start, end)
+	iter := new(itemIter)
+	if start == nil && end == nil {
+		b.bt.Descend(iter.insert)
+	} else if start == nil { // end != nil
+		b.bt.DescendLessOrEqual(bkeyLess{end}, iter.insert)
+	} else if end == nil { // start != nil
+		b.bt.DescendGreaterThan(bkeyLess{start}, iter.insert)
+	} else { // both != nil
+		b.bt.DescendRange(bkeyLess{end}, bkeyLess{start}, iter.insert)
+	}
+	iter.init()
+
+	// TODO: combine with backing iterator
+	// iter = iter.Combine(b.back.ReverseIterator(start, end))
+
+	return iter
 }
 
 /////////////////////////////////////////////////////////
@@ -208,6 +228,27 @@ func newSetItem(key, value []byte) setItem {
 	return setItem{bkey{key}, value}
 }
 
+// bkeyLess is used to change how ranges are matched....
+// use as a key, so exact match is just above this, anything below is below
+type bkeyLess struct {
+	key []byte
+}
+
+var _ keyer = bkeyLess{}
+var _ btree.Item = bkeyLess{}
+
+func (k bkeyLess) Key() []byte {
+	return k.key
+}
+
+// Less returns true iff second argument is greater than first
+//
+// panics if the item to compare doesn't implement keyer.
+func (k bkeyLess) Less(item btree.Item) bool {
+	cmp := item.(keyer).Key()
+	return bytes.Compare(k.key, cmp) <= 0
+}
+
 ///////////////////////////////////////////////////////
 // From Items to Iterator
 
@@ -219,14 +260,15 @@ type itemIter struct {
 
 var _ Iterator = (*itemIter)(nil)
 
+// TODO: remove? or useful later????
 // you can create it fixed like this
-func newItemIter(items []btree.Item) *itemIter {
-	iter := &itemIter{
-		data: items,
-	}
-	iter.init()
-	return iter
-}
+// func newItemIter(items []btree.Item) *itemIter {
+// 	iter := &itemIter{
+// 		data: items,
+// 	}
+// 	iter.init()
+// 	return iter
+// }
 
 // insert is designed as a callback to add items from the btree.
 // Example Usage (to get an iterator over all items on the tree):

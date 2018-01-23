@@ -200,19 +200,49 @@ func TestBTreeCacheBasicIterator(t *testing.T) {
 		return bytes.Compare(models[i].Key, models[j].Key) < 0
 	})
 
+	// iterate over everything
 	verifyIterator(t, models, base.Iterator(nil, nil))
+	// iterate with lower end defined
+	verifyIterator(t, models[10:], base.Iterator(models[10].Key, nil))
+	// iterate with upper end defined
+	verifyIterator(t, models[:Size-8], base.Iterator(nil, models[Size-8].Key))
+	// iterate with both ends defined
+	verifyIterator(t, models[17:28], base.Iterator(models[17].Key, models[28].Key))
+
+	// and now in reverse....
+	verifyIterator(t, reverse(models), base.ReverseIterator(nil, nil))
+	// iterate with lower end defined
+	verifyIterator(t, reverse(models[34:]),
+		base.ReverseIterator(models[34].Key, nil))
+	// iterate with upper end defined
+	verifyIterator(t, reverse(models[:19]),
+		base.ReverseIterator(nil, models[19].Key))
+	// iterate with both ends defined
+	verifyIterator(t, reverse(models[6:26]),
+		base.ReverseIterator(models[6].Key, models[26].Key))
+
 }
 
 func verifyIterator(t *testing.T, models []Model, iter Iterator) {
 	// make sure proper iteration works
 	for i := 0; i < len(models); i++ {
-		require.True(t, iter.Valid())
-		assert.Equal(t, models[i].Key, iter.Key())
-		assert.Equal(t, models[i].Value, iter.Value())
+		require.True(t, iter.Valid(), "%d", i)
+		assert.Equal(t, models[i].Key, iter.Key(), "%d", i)
+		assert.Equal(t, models[i].Value, iter.Value(), "%d", i)
 		iter.Next()
 	}
 	assert.False(t, iter.Valid())
 	iter.Close()
+}
+
+// reverse returns a copy of the slice with elements in reverse order
+func reverse(models []Model) []Model {
+	max := len(models)
+	res := make([]Model, max)
+	for i := 0; i < max; i++ {
+		res[i] = models[max-1-i]
+	}
+	return res
 }
 
 // TestBTreeCacheIterator tests iterating over ranges that
