@@ -1,46 +1,76 @@
 package app
 
 import (
+	"fmt"
 	"regexp"
 
 	"github.com/confio/weave"
 )
 
-var isRoute = regexp.MustCompile(`^[a-zA-Z0-9_]+$`).MatchString
+// DefaultRouterSize preallocates this much space to hold routes
+const DefaultRouterSize = 10
 
-type Router interface {
-	AddRoute(r string, h weave.Handler)
-	Route(path string) (h weave.Handler)
+// isPath is the RegExp to ensure the routes make sense
+var isPath = regexp.MustCompile(`^[a-zA-Z0-9_]+$`).MatchString
+
+// Router allows us to register many handlers with different
+// paths and then direct each message to the proper handler.
+//
+// Minimal interface modeled after net/http.ServeMux
+//
+// TODO: look for better trie routers that handle patterns...
+type Router struct {
+	routes map[string]weave.Handler
 }
 
-type route struct {
-	r string
-	h weave.Handler
-}
-
-type router struct {
-	routes []route
-}
-
+// NewRouter initializes a router with no routes
 func NewRouter() Router {
-	return &router{
-		routes: make([]route, 0),
+	return Router{
+		routes: make(map[string]weave.Handler, DefaultRouterSize),
 	}
 }
 
-func (rtr *router) AddRoute(r string, h weave.Handler) {
-	if !isRoute(r) {
-		panic("route expressions can only contain alphanumeric characters or underscore")
+// Handle adds a new Handler for the given path.
+// panics if another Handler was already registered
+func (r Router) Handle(path string, h weave.Handler) {
+	if !isPath(path) {
+		panic(fmt.Sprintf("Invalid path: %s", path))
 	}
-	rtr.routes = append(rtr.routes, route{r, h})
+	if _, ok := r.routes[path]; ok {
+		panic(fmt.Sprintf("Re-registering route: %s", path))
+	}
+	r.routes[path] = h
 }
 
-// TODO handle expressive matches.
-func (rtr *router) Route(path string) (h weave.Handler) {
-	for _, route := range rtr.routes {
-		if route.r == path {
-			return route.h
-		}
+// Handler returns the registered Handler for this path.
+// If no path is found, returns a noSuchPath Handler
+// Always returns a non-nil Handler
+func (r Router) Handler(path string) weave.Handler {
+	h, ok := r.routes[path]
+	if !ok {
+		return noSuchPathHandler{path}
 	}
-	return nil
+	return h
+}
+
+//-------------------- error handler ---------------
+
+type noSuchPathHandler struct {
+	path string
+}
+
+var _ weave.Handler = noSuchPathHandler{}
+
+// Check always returns ErrNoSuchPath
+func (h noSuchPathHandler) Check(ctx weave.Context, store weave.KVStore,
+	tx weave.Tx) (weave.CheckResult, error) {
+
+	return weave.CheckResult{}, ErrNoSuchPath(h.path)
+}
+
+// Deliver always returns ErrNoSuchPath
+func (h noSuchPathHandler) Deliver(ctx weave.Context, store weave.KVStore,
+	tx weave.Tx) (weave.DeliverResult, error) {
+
+	return weave.DeliverResult{}, ErrNoSuchPath(h.path)
 }
