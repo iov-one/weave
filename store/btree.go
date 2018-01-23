@@ -142,8 +142,16 @@ func (b BTreeCacheWrap) Has(key []byte) bool {
 // Iterator over a domain of keys in ascending order.
 // Combines results from btree and backing store
 func (b BTreeCacheWrap) Iterator(start, end []byte) Iterator {
-	// TODO: btree
-	return b.back.Iterator(start, end)
+	iter := new(itemIter)
+	// TODO: use AscendRange, etc. properly
+	b.bt.Ascend(iter.insert)
+
+	iter.init()
+
+	// TODO: combine with last
+	// iter = iter.Combine(b.back.Iterator(start, end))
+
+	return iter
 }
 
 // ReverseIterator over a domain of keys in descending order.
@@ -198,4 +206,96 @@ type setItem struct {
 
 func newSetItem(key, value []byte) setItem {
 	return setItem{bkey{key}, value}
+}
+
+///////////////////////////////////////////////////////
+// From Items to Iterator
+
+// TODO: add support for Combine (deleting those below)
+type itemIter struct {
+	data []btree.Item
+	idx  int
+}
+
+var _ Iterator = (*itemIter)(nil)
+
+// you can create it fixed like this
+func newItemIter(items []btree.Item) *itemIter {
+	iter := &itemIter{
+		data: items,
+	}
+	iter.init()
+	return iter
+}
+
+// insert is designed as a callback to add items from the btree.
+// Example Usage (to get an iterator over all items on the tree):
+//
+//  iter := new(itemIter)
+//  tree.Ascend(iter.insert)
+//  iter.init()
+func (i *itemIter) insert(item btree.Item) bool {
+	i.data = append(i.data, item)
+	return true
+}
+
+// init removes all deleted item at the head (TODO: remove later?)
+func (i *itemIter) init() {
+	if i.isDeleted() {
+		i.Next()
+	}
+}
+
+// Valid implements Iterator and returns true iff it can be read
+func (i *itemIter) Valid() bool {
+	return i.idx < len(i.data)
+}
+
+// Next moves the iterator to the next sequential key in the database, as
+// defined by order of iteration.
+//
+// If Valid returns false, this method will panic.
+func (i *itemIter) Next() {
+	i.assertValid()
+	i.idx++
+	// keep advancing over all deleted entries
+	if i.isDeleted() {
+		i.Next()
+	}
+}
+
+// isDeleted is true if the next item was marked deleted
+func (i *itemIter) isDeleted() bool {
+	if !i.Valid() {
+		return false
+	}
+	_, ok := i.data[i.idx].(deletedItem)
+	return ok
+}
+
+func (i *itemIter) assertValid() {
+	if i.idx >= len(i.data) {
+		panic("Passed end of slice")
+	}
+}
+
+// value pulls out the setItem we point to
+func (i *itemIter) value() setItem {
+	i.assertValid()
+	return i.data[i.idx].(setItem)
+}
+
+// Key returns the key of the cursor.
+func (i *itemIter) Key() (key []byte) {
+	return i.value().key
+}
+
+// Value returns the value of the cursor.
+func (i *itemIter) Value() (value []byte) {
+	return i.value().value
+}
+
+// Close releases the Iterator.
+func (i *itemIter) Close() {
+	i.data = nil
 }

@@ -1,10 +1,13 @@
 package store
 
 import (
+	"bytes"
 	"crypto/rand"
+	"sort"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 // TestBTreeCacheGetSet does basic sanity checks on our cache
@@ -168,9 +171,48 @@ func TestSliceIterator(t *testing.T) {
 }
 
 // TestBTreeCacheBasicIterator makes sure the basic iterator
-// works
+// works. Includes random deletes, but not nested iterators.
 func TestBTreeCacheBasicIterator(t *testing.T) {
+	const Size = 50
+	const DeleteCount = 20
+	const TotalSize = Size + DeleteCount
 
+	models := make([]Model, TotalSize)
+	for i := 0; i < TotalSize; i++ {
+		models[i].Key = randBytes(8)
+		models[i].Value = randBytes(40)
+	}
+
+	devnull := BTreeCacheable{EmptyKVStore{}}
+	base := devnull.CacheWrap()
+	// add them all to the cache
+	for i := 0; i < TotalSize; i++ {
+		base.Set(models[i].Key, models[i].Value)
+	}
+	// delete the first chunk
+	for i := 0; i < DeleteCount; i++ {
+		base.Delete(models[i].Key)
+	}
+	models = models[DeleteCount:]
+
+	// sort all remaining key/value pairs... this is our expected results
+	sort.Slice(models, func(i, j int) bool {
+		return bytes.Compare(models[i].Key, models[j].Key) < 0
+	})
+
+	verifyIterator(t, models, base.Iterator(nil, nil))
+}
+
+func verifyIterator(t *testing.T, models []Model, iter Iterator) {
+	// make sure proper iteration works
+	for i := 0; i < len(models); i++ {
+		require.True(t, iter.Valid())
+		assert.Equal(t, models[i].Key, iter.Key())
+		assert.Equal(t, models[i].Value, iter.Value())
+		iter.Next()
+	}
+	assert.False(t, iter.Valid())
+	iter.Close()
 }
 
 // TestBTreeCacheIterator tests iterating over ranges that
