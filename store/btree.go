@@ -384,21 +384,6 @@ func (i *itemIter) skipDeleted() bool {
 	return false
 }
 
-// isDeleted is true if the next item was marked deleted
-func (i *itemIter) isDeleted() bool {
-	if !i.Valid() {
-		return false
-	}
-	_, ok := i.data[i.idx].(deletedItem)
-	return ok
-}
-
-func (i *itemIter) assertValid() {
-	if !i.Valid() {
-		panic("Passed end of iterator")
-	}
-}
-
 // get requires this is valid, gets what we are pointing at
 func (i *itemIter) get() keyer {
 	return i.data[i.idx].(keyer)
