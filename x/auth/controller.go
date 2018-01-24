@@ -30,21 +30,36 @@ func VerifySignatures(ctx weave.Context, store weave.KVStore,
 	}
 
 	bz := tx.GetSignBytes()
+	signers := make([]weave.KeyHash, 0, len(sigs))
 	for _, sig := range sigs {
-		// load account to get pubkey and nonce
+		// load account
+		key := sig.KeyHash
+		if key == nil {
+			key = sig.PubKey.Address()
+		}
+		user := GetOrCreateUser(store, NewUserKey(key))
+
+		// set the pubkey if not yet set
+		if user.HasPubKey() {
+			user.SetPubKey(sig.PubKey)
+		}
 
 		// verify signature matches (and set pubkey if needed)
-		if !sig.PubKey.VerifyBytes(bz, sig.Signature) {
+		if !user.PubKey().VerifyBytes(bz, sig.Signature) {
 			return ctx, errors.ErrInvalidSignature()
 		}
 
 		// verify nonce is proper (and increment)
+		err := user.CheckAndIncrementSequence(sig.Sequence)
+		if err != nil {
+			return ctx, err
+		}
 
 		// save account changes
+		user.Save()
 
-		// add to the context we will return
+		signers = append(signers, key)
 	}
 
-	return ctx, nil
-
+	return withSigners(ctx, signers), nil
 }

@@ -154,13 +154,18 @@ func (u *User) Delete() {
 	u.store.Delete(u.key)
 }
 
-// GetPubKey checks the current pubkey for this account
-func (u User) GetPubKey() crypto.PubKey {
+// PubKey checks the current pubkey for this account
+func (u User) PubKey() crypto.PubKey {
 	return u.data.PubKey
 }
 
-// GetSequence checks the current sequence for this account
-func (u User) GetSequence() int64 {
+// HasPubKey returns true iff the pubkey has been set
+func (u User) HasPubKey() bool {
+	return !u.data.PubKey.Empty()
+}
+
+// Sequence checks the current sequence for this account
+func (u User) Sequence() int64 {
 	return u.data.Sequence
 }
 
@@ -183,7 +188,7 @@ func (u User) CheckAndIncrementSequence(check int64) error {
 // Otherwise, we don't control
 // (although we could verify the hash, we leave that to the controller)
 func (u User) SetPubKey(pubKey crypto.PubKey) {
-	if !u.data.PubKey.Empty() {
+	if u.HasPubKey() {
 		panic("Cannot change pubkey for a user")
 	}
 	u.data.PubKey = pubKey
