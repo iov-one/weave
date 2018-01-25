@@ -153,6 +153,24 @@ func delOp(key []byte) op {
 	}
 }
 
+//---------------- helpers -------------
+
+func makeSetOps(ms []Model) []op {
+	res := make([]op, len(ms))
+	for i, m := range ms {
+		res[i] = setOp(m.Key, m.Value)
+	}
+	return res
+}
+
+func makeDelOps(ms []Model) []op {
+	res := make([]op, len(ms))
+	for i, m := range ms {
+		res[i] = delOp(m.Key)
+	}
+	return res
+}
+
 // NonAtomicBatch just piles up ops and executes them later
 // on the underlying store. Can be used when there is no better
 // option (for in-memory stores).

@@ -3,6 +3,7 @@ package store
 import (
 	"bytes"
 	"crypto/rand"
+	"fmt"
 	"sort"
 	"testing"
 
@@ -10,17 +11,28 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// TestBTreeCacheGetSet does basic sanity checks on our cache
+// makeBase returns the base layer
 //
-// Other tests should handle deletes, setting same value,
-// iterating over ranges, and general fuzzing
-func TestBTreeCacheGetSet(t *testing.T) {
+// If you want to test a different kvstore implementation
+// you can copy most of these tests and change makeBase.
+// Once that passes, customize and extend as you wish
+func makeBase() CacheableKVStore {
 	// devnull is a black hole... just to keep our types proper
 	devnull := BTreeCacheable{EmptyKVStore{}}
 
 	// base is the root of our data, we can layer on top and
 	// all queries should work
 	base := devnull.CacheWrap()
+
+	return base
+}
+
+// TestBTreeCacheGetSet does basic sanity checks on our cache
+//
+// Other tests should handle deletes, setting same value,
+// iterating over ranges, and general fuzzing
+func TestBTreeCacheGetSet(t *testing.T) {
+	base := makeBase()
 
 	// make sure the btree is empty at start but returns results
 	// that are writen to it
@@ -73,18 +85,11 @@ func TestBTreeCacheGetSet(t *testing.T) {
 	assert.Nil(t, base.Get(k))
 	assert.Equal(t, v2, base.Get(k2))
 	assert.Nil(t, base.Get(k3))
-
-	// and to test devnull....
-	base.Write()
-	assert.Nil(t, devnull.Get(k2))
 }
 
 // TestBTreeCacheConflicts checks that we can handle
 // overwriting values and deleting underlying values
 func TestBTreeCacheConflicts(t *testing.T) {
-	// devnull is a black hole... just to keep our types proper
-	devnull := BTreeCacheable{EmptyKVStore{}}
-
 	// make 10 keys and 20 values....
 	ks := randKeys(10, 16)
 	vs := randKeys(20, 40)
@@ -105,7 +110,7 @@ func TestBTreeCacheConflicts(t *testing.T) {
 	}
 
 	for i, tc := range cases {
-		parent := devnull.CacheWrap()
+		parent := makeBase()
 		for _, op := range tc.parentOps {
 			op.apply(parent)
 		}
@@ -175,60 +180,141 @@ func TestSliceIterator(t *testing.T) {
 func TestBTreeCacheBasicIterator(t *testing.T) {
 	const Size = 50
 	const DeleteCount = 20
-	const TotalSize = Size + DeleteCount
 
-	models := make([]Model, TotalSize)
-	for i := 0; i < TotalSize; i++ {
-		models[i].Key = randBytes(8)
-		models[i].Value = randBytes(40)
+	toSet := randModels(Size, 8, 40)
+	toDel := randModels(DeleteCount, 8, 40)
+	expect := sortModels(toSet)
+	ops := append(
+		makeSetOps(toSet),
+		makeDelOps(toDel)...)
+
+	parentSet := randModels(Size, 8, 40)
+	parentDel := randModels(DeleteCount, 8, 40)
+	parentOps := append(
+		makeSetOps(parentSet),
+		makeDelOps(parentDel)...)
+
+	both := sortModels(append(toSet, parentSet...))
+
+	cases := [...]iterCase{
+		// just write to a child with empty parent
+		0: {
+			pre:   nil,
+			child: ops,
+			queries: []rangeQuery{
+				{nil, nil, false, expect},
+				{expect[10].Key, nil, false, expect[10:]},
+				{nil, expect[Size-8].Key, false, expect[:Size-8]},
+				{expect[17].Key, expect[28].Key, false, expect[17:28]},
+
+				{nil, nil, true, reverse(expect)},
+				{expect[34].Key, nil, true, reverse(expect[34:])},
+				{nil, expect[19].Key, true, reverse(expect[:19])},
+				{expect[6].Key, expect[26].Key, true, reverse(expect[6:26])},
+			},
+		},
+		// iterator combines child and parent
+		1: {
+			pre:   parentOps,
+			child: ops,
+			queries: []rangeQuery{
+				{nil, nil, false, both},
+				{both[10].Key, nil, false, both[10:]},
+				{nil, both[Size-8].Key, false, both[:Size-8]},
+				{both[17].Key, both[28].Key, false, both[17:28]},
+
+				{nil, nil, true, reverse(both)},
+				{both[34].Key, nil, true, reverse(both[34:])},
+				{nil, both[19].Key, true, reverse(both[:19])},
+				{both[6].Key, both[26].Key, true, reverse(both[6:26])},
+			},
+		},
 	}
 
-	devnull := BTreeCacheable{EmptyKVStore{}}
-	base := devnull.CacheWrap()
-	// add them all to the cache
-	for i := 0; i < TotalSize; i++ {
-		base.Set(models[i].Key, models[i].Value)
+	for i, tc := range cases {
+		msg := fmt.Sprintf("BTreeCacheBasicIterator: %d", i)
+		base := makeBase()
+		tc.verify(t, base, msg)
 	}
-	// delete the first chunk
-	for i := 0; i < DeleteCount; i++ {
-		base.Delete(models[i].Key)
-	}
-	models = models[DeleteCount:]
-
-	// sort all remaining key/value pairs... this is our expected results
-	sort.Slice(models, func(i, j int) bool {
-		return bytes.Compare(models[i].Key, models[j].Key) < 0
-	})
-
-	// iterate over everything
-	verifyIterator(t, models, base.Iterator(nil, nil))
-	// iterate with lower end defined
-	verifyIterator(t, models[10:], base.Iterator(models[10].Key, nil))
-	// iterate with upper end defined
-	verifyIterator(t, models[:Size-8], base.Iterator(nil, models[Size-8].Key))
-	// iterate with both ends defined
-	verifyIterator(t, models[17:28], base.Iterator(models[17].Key, models[28].Key))
-
-	// and now in reverse....
-	verifyIterator(t, reverse(models), base.ReverseIterator(nil, nil))
-	// iterate with lower end defined
-	verifyIterator(t, reverse(models[34:]),
-		base.ReverseIterator(models[34].Key, nil))
-	// iterate with upper end defined
-	verifyIterator(t, reverse(models[:19]),
-		base.ReverseIterator(nil, models[19].Key))
-	// iterate with both ends defined
-	verifyIterator(t, reverse(models[6:26]),
-		base.ReverseIterator(models[6].Key, models[26].Key))
-
 }
 
-func verifyIterator(t *testing.T, models []Model, iter Iterator) {
+//--------------------- lots of helpers ------------------
+
+func randBytes(length int) []byte {
+	res := make([]byte, length)
+	rand.Read(res)
+	return res
+}
+
+// randKeys returns a slice of count keys, all of a given size
+func randKeys(count, size int) [][]byte {
+	res := make([][]byte, count)
+	for i := 0; i < count; i++ {
+		res[i] = randBytes(size)
+	}
+	return res
+}
+
+// randModels produces a random set of models
+func randModels(count, keySize, valueSize int) []Model {
+	models := make([]Model, count)
+	for i := 0; i < count; i++ {
+		models[i].Key = randBytes(keySize)
+		models[i].Value = randBytes(valueSize)
+	}
+	return models
+}
+
+////////////////////////////////////////////////////
+// helper methods to check queries
+
+// iterCase is a test case for iteration
+type iterCase struct {
+	pre     []op
+	child   []op
+	queries []rangeQuery
+}
+
+func (i iterCase) verify(t *testing.T, base CacheableKVStore, msg string) {
+	for _, op := range i.pre {
+		op.apply(base)
+	}
+
+	child := base.CacheWrap()
+	for _, op := range i.child {
+		op.apply(base)
+	}
+
+	for j, q := range i.queries {
+		jmsg := fmt.Sprintf("%s (%d)", msg, j)
+		q.check(t, child, jmsg)
+	}
+}
+
+// range query checks the results of iteration
+type rangeQuery struct {
+	start    []byte
+	end      []byte
+	reverse  bool
+	expected []Model
+}
+
+func (q rangeQuery) check(t *testing.T, store KVStore, msg string) {
+	var iter Iterator
+	if q.reverse {
+		iter = store.ReverseIterator(q.start, q.end)
+	} else {
+		iter = store.Iterator(q.start, q.end)
+	}
+	verifyIterator(t, q.expected, iter, msg)
+}
+
+func verifyIterator(t *testing.T, models []Model, iter Iterator, msg string) {
 	// make sure proper iteration works
 	for i := 0; i < len(models); i++ {
-		require.True(t, iter.Valid(), "%d", i)
-		assert.Equal(t, models[i].Key, iter.Key(), "%d", i)
-		assert.Equal(t, models[i].Value, iter.Value(), "%d", i)
+		require.True(t, iter.Valid(), msg)
+		assert.Equal(t, models[i].Key, iter.Key(), msg)
+		assert.Equal(t, models[i].Value, iter.Value(), msg)
 		iter.Next()
 	}
 	assert.False(t, iter.Valid())
@@ -245,77 +331,13 @@ func reverse(models []Model) []Model {
 	return res
 }
 
-// TestBTreeCacheIterator tests iterating over ranges that
-// span both the parent and child caches, combining different
-// values, overwrites, and deletes
-func TestBTreeCacheIterator(t *testing.T) {
-	const Size = 30
-	const DeleteCount = 10 // add later
-	const TotalSize = Size + DeleteCount
-
-	devnull := BTreeCacheable{EmptyKVStore{}}
-	base := devnull.CacheWrap()
-
-	// set up data in base
-	parentModels := make([]Model, TotalSize)
-	for i := 0; i < TotalSize; i++ {
-		parentModels[i].Key = randBytes(8)
-		parentModels[i].Value = randBytes(40)
-	}
-	// add the first half to base
-	for i := 0; i < TotalSize; i++ {
-		base.Set(parentModels[i].Key, parentModels[i].Value)
-	}
-	// delete the first section...
-	for i := 0; i < DeleteCount; i++ {
-		base.Delete(parentModels[i].Key)
-	}
-	// store parent only models in order
-	parentModels = parentModels[DeleteCount:TotalSize]
-	// and sort parents... this is our expected results
-	sort.Slice(parentModels, func(i, j int) bool {
-		return bytes.Compare(parentModels[i].Key, parentModels[j].Key) < 0
+// sortModels returns a copy of the models sorted by key
+func sortModels(models []Model) []Model {
+	res := make([]Model, len(models))
+	copy(res, models)
+	// sort by key
+	sort.Slice(res, func(i, j int) bool {
+		return bytes.Compare(res[i].Key, res[j].Key) < 0
 	})
-
-	// set up a child btree
-	child := base.CacheWrap()
-	childModels := make([]Model, TotalSize)
-	for i := 0; i < TotalSize; i++ {
-		childModels[i].Key = randBytes(8)
-		childModels[i].Value = randBytes(40)
-	}
-	for i := 0; i < TotalSize; i++ {
-		child.Set(childModels[i].Key, childModels[i].Value)
-	}
-	// delete the first section...
-	for i := 0; i < DeleteCount; i++ {
-		child.Delete(childModels[i].Key)
-	}
-
-	// combine what was left of the parent, with non-deleted of child
-	models := append(parentModels, childModels[DeleteCount:]...)
-	// and sort... this is our expected results
-	sort.Slice(models, func(i, j int) bool {
-		return bytes.Compare(models[i].Key, models[j].Key) < 0
-	})
-
-	// iterate over everything in parent
-	verifyIterator(t, parentModels, base.Iterator(nil, nil))
-	// iterate over everything in child and parent together
-	verifyIterator(t, models, child.Iterator(nil, nil))
-}
-
-// randKeys returns a slice of count keys, all of length
-func randKeys(count, length int) [][]byte {
-	res := make([][]byte, count)
-	for i := 0; i < count; i++ {
-		res[i] = randBytes(length)
-	}
-	return res
-}
-
-func randBytes(length int) []byte {
-	res := make([]byte, length)
-	rand.Read(res)
 	return res
 }
