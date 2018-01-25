@@ -1,16 +1,26 @@
-hash: e86e3c22ac4287ca5bad2a3cbecf49bb797e5c8c0a68a85092e07e0ead703b34
-updated: 2018-01-22T16:41:34.605426+01:00
+hash: e1014da99936b019ee80ce7d21cbd5557116b51ba6e36a2a3bfcb852d63e4ce9
+updated: 2018-01-25T20:47:21.632768762+01:00
 imports:
+- name: github.com/btcsuite/btcd
+  version: c7588cbf7690cd9f047a28efa2dcd8f2435a4e5e
+  subpackages:
+  - btcec
 - name: github.com/go-kit/kit
-  version: e2b298466b32c7cd5579a9b9b07e968fc9d9452c
+  version: d67bb4c202e3b91377d1079b110a6c9ce23ab2f8
   subpackages:
   - log
   - log/level
   - log/term
 - name: github.com/go-logfmt/logfmt
   version: 390ab7935ee28ec6b286364bba9b4dd6410cb3d5
+- name: github.com/go-playground/locales
+  version: 1e5f1161c6416a5ff48840eb8724a394e48cc534
+  subpackages:
+  - currency
+- name: github.com/go-playground/universal-translator
+  version: 71201497bace774495daed26a3874fd339e0b538
 - name: github.com/go-stack/stack
-  version: 817915b46b97fd7bb80e8ab6b69f01a53ac3eebf
+  version: 100eb0c0a9c5b306ca2fb4f165df21d80ada4b82
 - name: github.com/gogo/protobuf
   version: 342cbe0a04158f6dcb03ca0079991a51a4248c02
   subpackages:
@@ -21,40 +31,72 @@ imports:
   - sortkeys
   - types
 - name: github.com/golang/protobuf
-  version: 1e59b77b52bf8e4b449a57e6f79f21226d571845
+  version: 1643683e1b54a9e88ad26d98f81400c8c9d9f4f9
   subpackages:
   - proto
   - ptypes
   - ptypes/any
   - ptypes/duration
   - ptypes/timestamp
+- name: github.com/golang/snappy
+  version: 553a641470496b2327abcac10b36396bd98e45c9
 - name: github.com/google/btree
   version: 316fb6d3f031ae8f4d457c6c5186b9e3ded70435
+- name: github.com/jmhodges/levigo
+  version: c42d9e0ca023e2198120196f842701bb4c55d7b9
 - name: github.com/kr/logfmt
   version: b84e30acd515aadc4b783ad4ff83aff3299bdfe0
 - name: github.com/pkg/errors
   version: 645ef00459ed84a119197bfb8d8205042c6df63d
+- name: github.com/syndtr/goleveldb
+  version: 8c81ea47d4c41a385645e133e15510fc6a2a74b4
+  subpackages:
+  - leveldb
+  - leveldb/cache
+  - leveldb/comparer
+  - leveldb/errors
+  - leveldb/filter
+  - leveldb/iterator
+  - leveldb/journal
+  - leveldb/memdb
+  - leveldb/opt
+  - leveldb/storage
+  - leveldb/table
+  - leveldb/util
 - name: github.com/tendermint/abci
   version: 5d5ea6869b91cadb55dbc4211ad7b326f053a33e
   subpackages:
   - types
+- name: github.com/tendermint/ed25519
+  version: d8387025d2b9d158cf4efb07e7ebf814bcce2057
+  subpackages:
+  - edwards25519
+  - extra25519
+- name: github.com/tendermint/go-crypto
+  version: b4f04f196cd719660e43b91202cd60d9a95b1837
 - name: github.com/tendermint/go-wire
   version: 27be46e25124ddf775e23317a83647ce62a93f6b
   subpackages:
   - data
+- name: github.com/tendermint/iavl
+  version: 594cc0c062a7174475f0ab654384038d77067917
 - name: github.com/tendermint/tmlibs
-  version: 1afc0340069d38e71f137bc9e4fa4fadf12f76df
+  version: b854baa1fce7101c90b1d301b3359bb412f981c0
   subpackages:
   - common
   - db
   - log
-  - process
 - name: golang.org/x/crypto
-  version: edd5e9b0879d13ee6970a50153d85b8fec9f7686
+  version: c7af5bf2638a1164f2eb5467c39c6cffbd13a02e
   subpackages:
+  - nacl/secretbox
+  - openpgp/armor
+  - openpgp/errors
+  - poly1305
   - ripemd160
+  - salsa20/salsa
 - name: golang.org/x/net
-  version: 5ccada7d0a7ba9aeb5d3aca8d3501b4c2a509fec
+  version: cd69bc3fc700721b709c3a59e16e24c67b58f6ff
   subpackages:
   - context
   - http2
@@ -71,7 +113,7 @@ imports:
   - unicode/bidi
   - unicode/norm
 - name: google.golang.org/genproto
-  version: a8101f21cf983e773d0c1133ebc5424792003214
+  version: f676e0f3ac6395ff1a529ae59a6670878a8371a6
   subpackages:
   - googleapis/rpc/status
 - name: google.golang.org/grpc
@@ -93,9 +135,11 @@ imports:
   - status
   - tap
   - transport
+- name: gopkg.in/go-playground/validator.v9
+  version: 6d8c18553ea1ac493d049edd6f102f52e618f085
 testImports:
 - name: github.com/davecgh/go-spew
-  version: 04cdfd42973bb9c8589fd6a731800cf222fde1a9
+  version: 6d212800a42e8ab5c146b8ace3490ee17e5225f9
   subpackages:
   - spew
 - name: github.com/pmezard/go-difflib
@@ -106,3 +150,4 @@ testImports:
   version: b91bfb9ebec76498946beb6af7c0230c7cc7ba6c
   subpackages:
   - assert
+  - require
