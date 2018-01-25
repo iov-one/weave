@@ -155,7 +155,7 @@ func delOp(key []byte) op {
 
 //---------------- helpers -------------
 
-func makeSetOps(ms []Model) []op {
+func makeSetOps(ms ...Model) []op {
 	res := make([]op, len(ms))
 	for i, m := range ms {
 		res[i] = setOp(m.Key, m.Value)
@@ -163,7 +163,7 @@ func makeSetOps(ms []Model) []op {
 	return res
 }
 
-func makeDelOps(ms []Model) []op {
+func makeDelOps(ms ...Model) []op {
 	res := make([]op, len(ms))
 	for i, m := range ms {
 		res[i] = delOp(m.Key)

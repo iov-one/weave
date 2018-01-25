@@ -175,9 +175,9 @@ func TestSliceIterator(t *testing.T) {
 	assert.False(t, trash.Valid())
 }
 
-// TestBTreeCacheBasicIterator makes sure the basic iterator
+// TestFuzzBTreeCacheIterator makes sure the basic iterator
 // works. Includes random deletes, but not nested iterators.
-func TestBTreeCacheBasicIterator(t *testing.T) {
+func TestFuzzBTreeCacheIterator(t *testing.T) {
 	const Size = 50
 	const DeleteCount = 20
 
@@ -185,14 +185,14 @@ func TestBTreeCacheBasicIterator(t *testing.T) {
 	toDel := randModels(DeleteCount, 8, 40)
 	expect := sortModels(toSet)
 	ops := append(
-		makeSetOps(toSet),
-		makeDelOps(toDel)...)
+		makeSetOps(toSet...),
+		makeDelOps(toDel...)...)
 
 	parentSet := randModels(Size, 8, 40)
 	parentDel := randModels(DeleteCount, 8, 40)
 	parentOps := append(
-		makeSetOps(parentSet),
-		makeDelOps(parentDel)...)
+		makeSetOps(parentSet...),
+		makeDelOps(parentDel...)...)
 
 	both := sortModels(append(toSet, parentSet...))
 
@@ -202,11 +202,13 @@ func TestBTreeCacheBasicIterator(t *testing.T) {
 			pre:   nil,
 			child: ops,
 			queries: []rangeQuery{
+				// forward: no, start, finish, both limits
 				{nil, nil, false, expect},
 				{expect[10].Key, nil, false, expect[10:]},
 				{nil, expect[Size-8].Key, false, expect[:Size-8]},
 				{expect[17].Key, expect[28].Key, false, expect[17:28]},
 
+				// reverse: no, start, finish, both limits
 				{nil, nil, true, reverse(expect)},
 				{expect[34].Key, nil, true, reverse(expect[34:])},
 				{nil, expect[19].Key, true, reverse(expect[:19])},
@@ -218,11 +220,13 @@ func TestBTreeCacheBasicIterator(t *testing.T) {
 			pre:   parentOps,
 			child: ops,
 			queries: []rangeQuery{
+				// forward: no, start, finish, both limits
 				{nil, nil, false, both},
 				{both[10].Key, nil, false, both[10:]},
 				{nil, both[Size-8].Key, false, both[:Size-8]},
 				{both[17].Key, both[28].Key, false, both[17:28]},
 
+				// reverse: no, start, finish, both limits
 				{nil, nil, true, reverse(both)},
 				{both[34].Key, nil, true, reverse(both[34:])},
 				{nil, both[19].Key, true, reverse(both[:19])},
@@ -232,7 +236,70 @@ func TestBTreeCacheBasicIterator(t *testing.T) {
 	}
 
 	for i, tc := range cases {
-		msg := fmt.Sprintf("BTreeCacheBasicIterator: %d", i)
+		msg := fmt.Sprintf("FuzzBTreeCacheIterator: %d", i)
+		base := makeBase()
+		tc.verify(t, base, msg)
+	}
+}
+
+// TestConflictBTreeCacheIterator makes sure the basic iterator
+// works. Includes random deletes, but not nested iterators.
+func TestConflictBTreeCacheIterator(t *testing.T) {
+	const Size = 50
+	const DeleteCount = 20
+
+	ms := randModels(6, 20, 100)
+	a, a2, b, b2, c, d := ms[0], ms[1], ms[2], ms[3], ms[4], ms[5]
+	// a2, b2 have same keys, different values
+	a2.Key = a.Key
+	b2.Key = b.Key
+
+	// toSet := randModels(Size, 8, 40)
+	// toDel := randModels(DeleteCount, 8, 40)
+	// expect := sortModels(toSet)
+	// ops := append(
+	// 	makeSetOps(toSet),
+	// 	makeDelOps(toDel)...)
+
+	// parentSet := randModels(Size, 8, 40)
+	// parentDel := randModels(DeleteCount, 8, 40)
+	// parentOps := append(
+	// 	makeSetOps(parentSet),
+	// 	makeDelOps(parentDel)...)
+
+	// both := sortModels(append(toSet, parentSet...))
+
+	expect0 := sortModels([]Model{a2, b2, c, d})
+	expect1 := []Model{c}
+
+	cases := [...]iterCase{
+		// overwrite data should show child data
+		0: {
+			pre:   makeSetOps(a, b, c),
+			child: makeSetOps(a2, b2, d),
+			queries: []rangeQuery{
+				// query for the values in child
+				{nil, nil, false, expect0},
+				{expect0[1].Key, expect0[3].Key, false, expect0[1:3]},
+
+				{nil, nil, true, reverse(expect0)},
+			},
+		},
+		// overwrite data should show child data
+		1: {
+			pre:   makeSetOps(a, c, d),
+			child: makeDelOps(a, b, d),
+			queries: []rangeQuery{
+				// query all should find just one, skip delete
+				{nil, nil, false, expect1},
+				// query cuts off at actual value, should be empty
+				{nil, c.Key, false, nil},
+			},
+		},
+	}
+
+	for i, tc := range cases {
+		msg := fmt.Sprintf("ConflictBTreeCacheIterator: %d", i)
 		base := makeBase()
 		tc.verify(t, base, msg)
 	}
