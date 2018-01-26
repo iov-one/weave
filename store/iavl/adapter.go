@@ -7,9 +7,16 @@ import (
 	"github.com/confio/weave/store"
 )
 
+// TODO: make these configurable?
+const (
+	DefaultCacheSize int    = 10000
+	DefaultHistory   uint64 = 20
+)
+
 // CommitStore manages a iavl committed state
 type CommitStore struct {
-	tree *iavl.VersionedTree
+	tree       *iavl.VersionedTree
+	numHistory uint64
 }
 
 var _ store.CommitKVStore = CommitStore{}
@@ -23,21 +30,16 @@ func NewCommitStore(path, name string) CommitStore {
 		panic(err)
 	}
 
-	// numHistory := int64(100)
-	// mainLoader := store.NewIAVLStoreLoader(db, cacheSize, numHistory)
-
-	cacheSize := 10000
-	tree := iavl.NewVersionedTree(cacheSize, db)
+	tree := iavl.NewVersionedTree(DefaultCacheSize, db)
 	tree.Load()
-	return CommitStore{tree}
+	return CommitStore{tree, DefaultHistory}
 }
 
 // MockCommitStore creates a new in-memory store for testing
 func MockCommitStore() CommitStore {
 	var db dbm.DB = dbm.NewMemDB()
-	cacheSize := 10000
-	tree := iavl.NewVersionedTree(cacheSize, db)
-	return CommitStore{tree}
+	tree := iavl.NewVersionedTree(DefaultCacheSize, db)
+	return CommitStore{tree, DefaultHistory}
 }
 
 // Get returns the value at last committed state
@@ -55,6 +57,13 @@ func (s CommitStore) Commit() store.CommitID {
 	if err != nil {
 		panic(err)
 	}
+
+	// Potentially release an old version of history
+	if s.numHistory > 0 && (s.numHistory < version) {
+		toRelease := version - s.numHistory
+		s.tree.DeleteVersion(toRelease)
+	}
+
 	return store.CommitID{
 		Version: int64(version),
 		Hash:    hash,

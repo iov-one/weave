@@ -162,6 +162,82 @@ func TestCacheConflicts(t *testing.T) {
 	}
 }
 
+// TestCommitOverwrite checks that we commit properly
+// and can add/overwrite/query in the next adapter
+func TestCommitOverwrite(t *testing.T) {
+	// make 10 keys and 20 values....
+	ks := randKeys(10, 16)
+	vs := randKeys(20, 40)
+
+	cases := [...]struct {
+		parentOps     []Op
+		childOps      []Op
+		parentQueries []Model // Key is what we query, Value is what we espect
+		childQueries  []Model // Key is what we query, Value is what we espect
+	}{
+		// overwrite one, delete another, add a third
+		0: {
+			[]Op{store.SetOp(ks[1], vs[1]), store.SetOp(ks[2], vs[2])},
+			[]Op{store.SetOp(ks[1], vs[11]), store.SetOp(ks[3], vs[7]), store.DelOp(ks[2])},
+			[]Model{store.Pair(ks[1], vs[1]), store.Pair(ks[2], vs[2]), store.Pair(ks[3], nil)},
+			[]Model{store.Pair(ks[1], vs[11]), store.Pair(ks[2], nil), store.Pair(ks[3], vs[7])},
+		},
+	}
+
+	for i, tc := range cases {
+		commit, close := makeCommitStore()
+		// only one to trigger a cleanup
+		commit.numHistory = 1
+
+		parent := commit.CacheWrap()
+		for _, op := range tc.parentOps {
+			op.Apply(parent)
+		}
+		// write data to backing store
+		parent.Write()
+		id := commit.Commit()
+		assert.Equal(t, int64(1), id.Version)
+
+		// child also comes from commit
+		child := commit.CacheWrap()
+		for _, op := range tc.childOps {
+			op.Apply(child)
+		}
+
+		// and a side-cache wrap to see they are in parallel
+		side := commit.CacheWrap()
+
+		// now check that side gets unmodified parent state
+		for j, q := range tc.parentQueries {
+			res := side.Get(q.Key)
+			assert.Equal(t, q.Value, res, "%d / %d", i, j)
+			has := side.Has(q.Key)
+			assert.Equal(t, q.Value != nil, has, "%d / %d", i, j)
+		}
+
+		// the child shows changes
+		for j, q := range tc.childQueries {
+			res := child.Get(q.Key)
+			assert.Equal(t, q.Value, res, "%d / %d", i, j)
+			has := child.Has(q.Key)
+			assert.Equal(t, q.Value != nil, has, "%d / %d", i, j)
+		}
+
+		// write child to parent and make sure it also shows proper data
+		child.Write()
+		for j, q := range tc.childQueries {
+			res := side.Get(q.Key)
+			assert.Equal(t, q.Value, res, "%d / %d", i, j)
+			has := side.Has(q.Key)
+			assert.Equal(t, q.Value != nil, has, "%d / %d", i, j)
+		}
+		id = commit.Commit()
+		assert.Equal(t, int64(2), id.Version)
+
+		close()
+	}
+}
+
 // TestFuzzCacheIterator makes sure the basic iterator
 // works. Includes random deletes, but not nested iterators.
 func TestFuzzCacheIterator(t *testing.T) {
