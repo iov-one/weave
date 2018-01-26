@@ -105,3 +105,11 @@ func GetLogger(ctx Context) log.Logger {
 	}
 	return val
 }
+
+// WithLogInfo accepts keyvalue pairs, and returns another
+// context like this, after passing all the keyvals to the
+// Logger
+func WithLogInfo(ctx Context, keyvals ...interface{}) Context {
+	logger := GetLogger(ctx).With(keyvals...)
+	return WithLogger(ctx, logger)
+}

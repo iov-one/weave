@@ -27,3 +27,9 @@ type Decorator interface {
 	Check(ctx Context, store KVStore, tx Tx, next Checker) (CheckResult, error)
 	Deliver(ctx Context, store KVStore, tx Tx, next Deliverer) (DeliverResult, error)
 }
+
+// Ticker is a method that is called the beginning of every block,
+// which can be used to perform periodic or delayed tasks
+type Ticker interface {
+	Tick(ctx Context, store KVStore) (TickResult, error)
+}

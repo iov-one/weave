@@ -80,6 +80,11 @@ func (c CheckResult) ToABCI() abci.ResponseCheckTx {
 	}
 }
 
+// TickResult allows the Ticker to modify the validator set
+type TickResult struct {
+	Diff []*abci.Validator
+}
+
 //---------- type safe error converters --------
 
 // DeliverTxError converts any error into a abci.ResponseDeliverTx,
