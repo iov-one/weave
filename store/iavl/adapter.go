@@ -31,8 +31,9 @@ func NewCommitStore(path, name string) CommitStore {
 	}
 
 	tree := iavl.NewVersionedTree(DefaultCacheSize, db)
-	tree.Load()
-	return CommitStore{tree, DefaultHistory}
+	commit := CommitStore{tree, DefaultHistory}
+	commit.LoadLatestVersion()
+	return commit
 }
 
 // MockCommitStore creates a new in-memory store for testing

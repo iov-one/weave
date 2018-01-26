@@ -189,14 +189,19 @@ func TestCommitOverwrite(t *testing.T) {
 		// only one to trigger a cleanup
 		commit.numHistory = 1
 
+		id := commit.LatestVersion()
+		assert.Equal(t, int64(0), id.Version)
+		assert.Empty(t, id.Hash)
+
 		parent := commit.CacheWrap()
 		for _, op := range tc.parentOps {
 			op.Apply(parent)
 		}
 		// write data to backing store
 		parent.Write()
-		id := commit.Commit()
+		id = commit.Commit()
 		assert.Equal(t, int64(1), id.Version)
+		assert.NotEmpty(t, id.Hash)
 
 		// child also comes from commit
 		child := commit.CacheWrap()
