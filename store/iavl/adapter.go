@@ -66,7 +66,8 @@ func (s CommitStore) LatestVersion() store.CommitID {
 // to rollback writes here, without throwing away the CommitStore
 // and re-loading from disk.
 func (s CommitStore) Adapter() store.CacheableKVStore {
-	return store.BTreeCacheable{adapter{s.tree.Tree()}}
+	var kv store.KVStore = adapter{s.tree.Tree()}
+	return store.BTreeCacheable{kv}
 }
 
 // CacheWrap wraps the Adapter with a cache, so it may be writen
@@ -122,7 +123,7 @@ func (a adapter) Iterator(start, end []byte) store.Iterator {
 	add := func(key []byte, value []byte) bool {
 		m := store.Model{Key: key, Value: value}
 		res = append(res, m)
-		return true
+		return false
 	}
 	a.tree.IterateRange(start, end, true, add)
 	return store.NewSliceIterator(res)
@@ -136,7 +137,7 @@ func (a adapter) ReverseIterator(start, end []byte) store.Iterator {
 	add := func(key []byte, value []byte) bool {
 		m := store.Model{Key: key, Value: value}
 		res = append(res, m)
-		return true
+		return false
 	}
 	a.tree.IterateRange(start, end, false, add)
 	return store.NewSliceIterator(res)

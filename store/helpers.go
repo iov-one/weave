@@ -11,8 +11,8 @@ type Model struct {
 	Value []byte
 }
 
-// pair is test helper.. make public??
-func pair(key, value []byte) Model {
+// Pair constructs a model from a key-value pair
+func Pair(key, value []byte) Model {
 	return Model{
 		Key:   key,
 		Value: value,
@@ -118,14 +118,14 @@ const (
 	delKind
 )
 
-// op is either set or delete
-type op struct {
+// Op is either set or delete
+type Op struct {
 	kind  opKind
 	key   []byte
 	value []byte // only for set
 }
 
-func (o op) apply(out SetDeleter) {
+func (o Op) Apply(out SetDeleter) {
 	switch o.kind {
 	case setKind:
 		out.Set(o.key, o.value)
@@ -136,39 +136,21 @@ func (o op) apply(out SetDeleter) {
 	}
 }
 
-// setOp is a helper to create a set operation
-func setOp(key, value []byte) op {
-	return op{
+// SetOp is a helper to create a set operation
+func SetOp(key, value []byte) Op {
+	return Op{
 		kind:  setKind,
 		key:   key,
 		value: value,
 	}
 }
 
-// delOp is a helper to create a del operation
-func delOp(key []byte) op {
-	return op{
+// DelOp is a helper to create a del operation
+func DelOp(key []byte) Op {
+	return Op{
 		kind: delKind,
 		key:  key,
 	}
-}
-
-//---------------- helpers -------------
-
-func makeSetOps(ms ...Model) []op {
-	res := make([]op, len(ms))
-	for i, m := range ms {
-		res[i] = setOp(m.Key, m.Value)
-	}
-	return res
-}
-
-func makeDelOps(ms ...Model) []op {
-	res := make([]op, len(ms))
-	for i, m := range ms {
-		res[i] = delOp(m.Key)
-	}
-	return res
 }
 
 // NonAtomicBatch just piles up ops and executes them later
@@ -178,7 +160,7 @@ func makeDelOps(ms ...Model) []op {
 // NOTE: Never use this for KVStores that are persistent
 type NonAtomicBatch struct {
 	out SetDeleter
-	ops []op
+	ops []Op
 }
 
 var _ Batch = (*NonAtomicBatch)(nil)
@@ -193,7 +175,7 @@ func NewNonAtomicBatch(out SetDeleter) *NonAtomicBatch {
 
 // Set adds a set operation to the batch
 func (b *NonAtomicBatch) Set(key, value []byte) {
-	set := op{
+	set := Op{
 		kind:  setKind,
 		key:   key,
 		value: value,
@@ -203,7 +185,7 @@ func (b *NonAtomicBatch) Set(key, value []byte) {
 
 // Delete adds a delete operation to the batch
 func (b *NonAtomicBatch) Delete(key []byte) {
-	del := op{
+	del := Op{
 		kind: delKind,
 		key:  key,
 	}
@@ -212,8 +194,8 @@ func (b *NonAtomicBatch) Delete(key []byte) {
 
 // Write writes all the ops to the underlying store and resets
 func (b *NonAtomicBatch) Write() {
-	for _, op := range b.ops {
-		op.apply(b.out)
+	for _, Op := range b.ops {
+		Op.Apply(b.out)
 	}
 	b.ops = nil
 }
