@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package auth;
+
+message PubKey {
+    enum Type {
+        ED25519 = 0;
+        SECP256K1 = 1;
+    }
+    Type type = 1;
+    bytes data = 2;
+}
+
+// UserData just stores the data and is used for serialization.
+//
+// Note: This should not be created from outside the module,
+// User is the entry point you want
+message UserData {
+  PubKey pub_key = 1;
+  int64 sequence = 2;
+}

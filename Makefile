@@ -16,6 +16,9 @@ all: deps install test
 install:
 	# TODO: install cmd later... now just compile important dirs
 	go install $(BUILD_FLAGS) .
+	go install $(BUILD_FLAGS) ./app
+	go install $(BUILD_FLAGS) ./store
+	go install $(BUILD_FLAGS) ./x/...
 
 test:
 	go test $(NOVENDOR)
@@ -38,7 +41,7 @@ glide:
 	@go get github.com/tendermint/glide
 
 protoc:
-	protoc --gogoslick_out=. x/auth/*.proto
+	protoc --gogofaster_out=. x/auth/*.proto
 
 ### cross-platform check for installing protoc ###
 
@@ -62,9 +65,12 @@ endif
 	@ rm -rf protoc3
 
 tools: /usr/local/bin/protoc deps
+	# install all tools from our vendored dependencies
 	@go install ./vendor/github.com/gogo/protobuf/proto
 	@go install ./vendor/github.com/gogo/protobuf/gogoproto
+	# we only need one probably, choose wisely...
 	@go install ./vendor/github.com/gogo/protobuf/protoc-gen-gogofast
+	@go install ./vendor/github.com/gogo/protobuf/protoc-gen-gogofaster
 	@go install ./vendor/github.com/gogo/protobuf/protoc-gen-gogoslick
 	# these are for custom extensions
 	@ # @go install ./vendor/github.com/gogo/protobuf/proto
