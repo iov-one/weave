@@ -16,8 +16,8 @@ var _ store.CommitKVStore = CommitStore{}
 
 // NewCommitStore creates a new store with disk backing
 func NewCommitStore(dir string) CommitStore {
-	// TODO: make this db
-	var db dbm.DB
+	// TODO: make this db on disk
+	var db dbm.DB = dbm.NewMemDB()
 	cacheSize := 10000
 	tree := iavl.NewVersionedTree(cacheSize, db)
 	return CommitStore{tree}
@@ -59,14 +59,20 @@ func (s CommitStore) LatestVersion() store.CommitID {
 	}
 }
 
-// CacheWrap gives us a savepoint to perform actions
-// TODO: add Batch to atomic writes and efficiency
-// invisibly inside this CacheWrap???
+// Adapter returns a wrapped version of the tree.
+//
+// Data writen here is stored in the tip of the version tree,
+// and will be writen to disk on Commit. There is no way
+// to rollback writes here, without throwing away the CommitStore
+// and re-loading from disk.
+func (s CommitStore) Adapter() store.CacheableKVStore {
+	return store.BTreeCacheable{adapter{s.tree.Tree()}}
+}
+
+// CacheWrap wraps the Adapter with a cache, so it may be writen
+// or discarded as needed.
 func (s CommitStore) CacheWrap() store.KVCacheWrap {
-	return Cache{
-		parent: s,
-		tree:   s.tree.Tree(),
-	}
+	return s.Adapter().CacheWrap()
 }
 
 // func (b *Bonsai) GetVersionedWithProof(key []byte, version int64) ([]byte, iavl.KeyProof, error) {
@@ -75,77 +81,63 @@ func (s CommitStore) CacheWrap() store.KVCacheWrap {
 
 // TODO: create batch and reader and wrap the rest in btree...
 
-// Cache is a working cache on top of this tree
-type Cache struct {
-	parent CommitStore
-	tree   *iavl.Tree
+// adapter converts the working iavl.Tree to match these interfaces
+type adapter struct {
+	tree *iavl.Tree
 }
 
-var _ store.KVCacheWrap = Cache{}
+var _ store.KVStore = adapter{}
 
 // Get returns nil iff key doesn't exist. Panics on nil key.
-func (c Cache) Get(key []byte) []byte {
-	_, val := c.tree.Get(key)
+func (a adapter) Get(key []byte) []byte {
+	_, val := a.tree.Get(key)
 	return val
 }
 
 // Has checks if a key exists. Panics on nil key.
-func (c Cache) Has(key []byte) bool {
-	return c.tree.Has(key)
+func (a adapter) Has(key []byte) bool {
+	return a.tree.Has(key)
 }
 
 // Set adds a new value
-func (c Cache) Set(key, value []byte) {
-	c.tree.Set(key, value)
+func (a adapter) Set(key, value []byte) {
+	a.tree.Set(key, value)
 }
 
 // Delete removes from the tree
-func (c Cache) Delete(key []byte) {
-	c.tree.Remove(key)
+func (a adapter) Delete(key []byte) {
+	a.tree.Remove(key)
 }
 
 // NewBatch returns a batch that can write multiple ops atomically
-func (c Cache) NewBatch() store.Batch {
-	return store.NewNonAtomicBatch(c)
+func (a adapter) NewBatch() store.Batch {
+	return store.NewNonAtomicBatch(a)
 }
-
-// CacheWrap wraps us once again, with btree
-func (c Cache) CacheWrap() store.KVCacheWrap {
-	return store.NewBTreeCacheWrap(c, c.NewBatch(), nil)
-}
-
-// Write syncs with the underlying store.
-func (c Cache) Write() {
-	c.parent.Commit()
-}
-
-// Discard is a no-op... just garbage collect
-func (c Cache) Discard() {}
 
 // Iterator over a domain of keys in ascending order. End is exclusive.
 // Start must be less than end, or the Iterator is invalid.
 // CONTRACT: No writes may happen within a domain while an iterator exists over it.
-func (c Cache) Iterator(start, end []byte) store.Iterator {
+func (a adapter) Iterator(start, end []byte) store.Iterator {
 	var res []store.Model
 	add := func(key []byte, value []byte) bool {
 		m := store.Model{Key: key, Value: value}
 		res = append(res, m)
 		return true
 	}
-	c.tree.IterateRange(start, end, true, add)
+	a.tree.IterateRange(start, end, true, add)
 	return store.NewSliceIterator(res)
 }
 
 // ReverseIterator over a domain of keys in descending order. End is exclusive.
 // Start must be greater than end, or the Iterator is invalid.
 // CONTRACT: No writes may happen within a domain while an iterator exists over it.
-func (c Cache) ReverseIterator(start, end []byte) store.Iterator {
+func (a adapter) ReverseIterator(start, end []byte) store.Iterator {
 	var res []store.Model
 	add := func(key []byte, value []byte) bool {
 		m := store.Model{Key: key, Value: value}
 		res = append(res, m)
 		return true
 	}
-	c.tree.IterateRange(start, end, false, add)
+	a.tree.IterateRange(start, end, false, add)
 	return store.NewSliceIterator(res)
 }
