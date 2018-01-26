@@ -32,7 +32,7 @@ var userPrefix = []byte("user:")
 
 // NewUserKey constructs the user key from a key hash,
 // by appending a prefix.
-func NewUserKey(keyHash weave.KeyHash) UserKey {
+func NewUserKey(keyHash weave.Address) UserKey {
 	bz := append(userPrefix, keyHash...)
 	return UserKey(bz)
 }

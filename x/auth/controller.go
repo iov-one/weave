@@ -30,10 +30,10 @@ func VerifySignatures(ctx weave.Context, store weave.KVStore,
 	}
 
 	bz := tx.GetSignBytes()
-	signers := make([]weave.KeyHash, 0, len(sigs))
+	signers := make([]weave.Address, 0, len(sigs))
 	for _, sig := range sigs {
 		// load account
-		key := sig.KeyHash
+		key := sig.Address
 		if key == nil {
 			key = sig.PubKey.Address()
 		}

@@ -11,7 +11,6 @@ func TestUserModel(t *testing.T) {
 	kv := store.MockKVStore()
 
 	key := NewUserKey([]byte("foo"))
-	// key2 := NewUserKey([]byte("bar"))
 
 	// load fail
 	user := GetUser(kv, key)

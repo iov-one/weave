@@ -1,5 +1,5 @@
-hash: 71a3ce76ad9ebb605da15d0ea82c9b12d8367c609e2bc6237576a80f793eb18b
-updated: 2018-01-26T20:43:20.401677+01:00
+hash: 7755c21332236006a39ac2e172ed45d865109f758ba46158c2035aaa8d7dcbd1
+updated: 2018-01-27T00:14:34.470178+01:00
 imports:
 - name: github.com/btcsuite/btcd
   version: c7588cbf7690cd9f047a28efa2dcd8f2435a4e5e
@@ -89,6 +89,7 @@ imports:
 - name: golang.org/x/crypto
   version: c7af5bf2638a1164f2eb5467c39c6cffbd13a02e
   subpackages:
+  - blake2s
   - nacl/secretbox
   - openpgp/armor
   - openpgp/errors

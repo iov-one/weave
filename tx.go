@@ -1,10 +1,31 @@
 package weave
 
-import crypto "github.com/tendermint/go-crypto"
+import (
+	"crypto/sha256"
+	// "golang.org/x/crypto/blake2b"
 
-// KeyHash represents a collision-free, one-way digest
-// of a public key that can be used to identify a signer
-type KeyHash []byte
+	crypto "github.com/tendermint/go-crypto"
+)
+
+var (
+	// AddressLength is the length of all addresses
+	// You can modify it in init() before any addresses are calculated,
+	// but it must not change during the lifetime of the kvstore
+	AddressLength = 20
+)
+
+// Address represents a collision-free, one-way digest
+// of data (usually a public key) that can be used to identify a signer
+//
+// It will be of size AddressLength
+type Address []byte
+
+// NewAddress hashes and truncates into the proper size
+func NewAddress(data []byte) Address {
+	// h := blake2b.Sum256(data)
+	h := sha256.Sum256(data)
+	return h[:AddressLength]
+}
 
 // Msg is message for the blockchain to take an action
 // (Make a state transition). It is just the request, and
@@ -49,13 +70,13 @@ type Tx interface {
 type TxDecoder func(txBytes []byte) (Tx, error)
 
 // StdSignature represents the signature, the identity of the signer
-// (either the PubKey or the KeyHash), and a sequence number to
+// (either the PubKey or the Address), and a sequence number to
 // prevent replay attacks.
 // A given signer must submit transactions with the sequence number
 // increasing by 1 each time (starting at 0)
 type StdSignature struct {
 	PubKey    crypto.PubKey // required iff Sequence == 0
-	KeyHash   KeyHash       // required iff PubKey is not present
+	Address   Address       // required iff PubKey is not present
 	Signature crypto.Signature
 	Sequence  int64
 }
