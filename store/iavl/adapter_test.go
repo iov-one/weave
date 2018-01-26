@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"crypto/rand"
 	"fmt"
+	"io/ioutil"
+	"os"
 	"sort"
 	"testing"
 
@@ -21,18 +23,28 @@ type Op = store.Op
 // If you want to test a different kvstore implementation
 // you can copy most of these tests and change makeBase.
 // Once that passes, customize and extend as you wish
-func makeBase() store.CacheableKVStore {
-	commit := NewCommitStore("/tmp")
-	commit.LoadLatestVersion()
-	return commit.Adapter()
+func makeBase() (store.CacheableKVStore, func()) {
+	commit, close := makeCommitStore()
+	return commit.Adapter(), close
 }
 
-// TestBTreeCacheGetSet does basic sanity checks on our cache
+func makeCommitStore() (CommitStore, func()) {
+	tmpDir, err := ioutil.TempDir("/tmp", "iavl-adapter-")
+	if err != nil {
+		panic(err)
+	}
+	close := func() { os.RemoveAll(tmpDir) }
+	commit := NewCommitStore(tmpDir, "base")
+	return commit, close
+}
+
+// TestCacheGetSet does basic sanity checks on our cache
 //
 // Other tests should handle deletes, setting same value,
 // iterating over ranges, and general fuzzing
-func TestBTreeCacheGetSet(t *testing.T) {
-	base := makeBase()
+func TestCacheGetSet(t *testing.T) {
+	base, close := makeBase()
+	defer close()
 
 	// make sure the btree is empty at start but returns results
 	// that are writen to it
@@ -87,9 +99,9 @@ func TestBTreeCacheGetSet(t *testing.T) {
 	assert.Nil(t, base.Get(k3))
 }
 
-// TestBTreeCacheConflicts checks that we can handle
+// TestCacheConflicts checks that we can handle
 // overwriting values and deleting underlying values
-func TestBTreeCacheConflicts(t *testing.T) {
+func TestCacheConflicts(t *testing.T) {
 	// make 10 keys and 20 values....
 	ks := randKeys(10, 16)
 	vs := randKeys(20, 40)
@@ -110,7 +122,8 @@ func TestBTreeCacheConflicts(t *testing.T) {
 	}
 
 	for i, tc := range cases {
-		parent := makeBase()
+		parent, close := makeBase()
+
 		for _, op := range tc.parentOps {
 			op.Apply(parent)
 		}
@@ -144,12 +157,14 @@ func TestBTreeCacheConflicts(t *testing.T) {
 			has := parent.Has(q.Key)
 			assert.Equal(t, q.Value != nil, has, "%d / %d", i, j)
 		}
+
+		close()
 	}
 }
 
-// TestFuzzBTreeCacheIterator makes sure the basic iterator
+// TestFuzzCacheIterator makes sure the basic iterator
 // works. Includes random deletes, but not nested iterators.
-func TestFuzzBTreeCacheIterator(t *testing.T) {
+func TestFuzzCacheIterator(t *testing.T) {
 	const Size = 50
 	const DeleteCount = 20
 
@@ -208,15 +223,18 @@ func TestFuzzBTreeCacheIterator(t *testing.T) {
 	}
 
 	for i, tc := range cases {
-		msg := fmt.Sprintf("FuzzBTreeCacheIterator: %d", i)
-		base := makeBase()
-		tc.verify(t, base, msg)
+		func() {
+			msg := fmt.Sprintf("FuzzCacheIterator: %d", i)
+			base, close := makeBase()
+			defer close()
+			tc.verify(t, base, msg)
+		}()
 	}
 }
 
-// TestConflictBTreeCacheIterator makes sure the basic iterator
+// TestConflictCacheIterator makes sure the basic iterator
 // works. Includes random deletes, but not nested iterators.
-func TestConflictBTreeCacheIterator(t *testing.T) {
+func TestConflictCacheIterator(t *testing.T) {
 	const Size = 50
 	const DeleteCount = 20
 
@@ -306,9 +324,12 @@ func TestConflictBTreeCacheIterator(t *testing.T) {
 	}
 
 	for i, tc := range cases {
-		msg := fmt.Sprintf("ConflictBTreeCacheIterator: %d", i)
-		base := makeBase()
-		tc.verify(t, base, msg)
+		func() {
+			msg := fmt.Sprintf("FuzzCacheIterator: %d", i)
+			base, close := makeBase()
+			defer close()
+			tc.verify(t, base, msg)
+		}()
 	}
 }
 

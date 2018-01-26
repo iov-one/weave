@@ -15,8 +15,25 @@ type CommitStore struct {
 var _ store.CommitKVStore = CommitStore{}
 
 // NewCommitStore creates a new store with disk backing
-func NewCommitStore(dir string) CommitStore {
-	// TODO: make this db on disk
+func NewCommitStore(path, name string) CommitStore {
+	// Create the underlying leveldb datastore which will
+	// persist the Merkle tree inner & leaf nodes.
+	db, err := dbm.NewGoLevelDB(name, path)
+	if err != nil {
+		panic(err)
+	}
+
+	// numHistory := int64(100)
+	// mainLoader := store.NewIAVLStoreLoader(db, cacheSize, numHistory)
+
+	cacheSize := 10000
+	tree := iavl.NewVersionedTree(cacheSize, db)
+	tree.Load()
+	return CommitStore{tree}
+}
+
+// MockCommitStore creates a new in-memory store for testing
+func MockCommitStore() CommitStore {
 	var db dbm.DB = dbm.NewMemDB()
 	cacheSize := 10000
 	tree := iavl.NewVersionedTree(cacheSize, db)
