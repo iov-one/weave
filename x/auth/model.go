@@ -56,8 +56,8 @@ func (u UserData) Validate() error {
 }
 
 // Empty returns true iff no data is here
-func (p PubKey) Empty() bool {
-	return len(p.Data) == 0
+func (p *PubKey) Empty() bool {
+	return len(p.GetData()) == 0
 }
 
 // ToCrypto casts this serialized pubkey as a usable crypto.PubKey
@@ -160,9 +160,9 @@ func (u *User) Save() {
 
 // Delete removes the current user id from the backing store
 // panics if key is missing
-func (u *User) Delete() {
-	u.store.Delete(u.key)
-}
+// func (u *User) Delete() {
+// 	u.store.Delete(u.key)
+// }
 
 // PubKey checks the current pubkey for this account
 func (u User) PubKey() crypto.PubKey {
@@ -171,7 +171,7 @@ func (u User) PubKey() crypto.PubKey {
 
 // HasPubKey returns true iff the pubkey has been set
 func (u User) HasPubKey() bool {
-	return !u.data.PubKey.Empty()
+	return !u.data.GetPubKey().Empty()
 }
 
 // Sequence checks the current sequence for this account
@@ -183,7 +183,7 @@ func (u User) Sequence() int64 {
 // matches the expected value.
 // If so, it will increase the sequence by one and return nil
 // If not, it will not change the sequence, but return an error
-func (u User) CheckAndIncrementSequence(check int64) error {
+func (u *User) CheckAndIncrementSequence(check int64) error {
 	if u.data.Sequence != check {
 		// TODO: ErrInvalidSequence
 		return fmt.Errorf("Invalid sequence number %d (actual %d)",
@@ -197,7 +197,7 @@ func (u User) CheckAndIncrementSequence(check int64) error {
 // It is illegal to reset an already set key
 // Otherwise, we don't control
 // (although we could verify the hash, we leave that to the controller)
-func (u User) SetPubKey(pubKey crypto.PubKey) {
+func (u *User) SetPubKey(pubKey crypto.PubKey) {
 	if u.HasPubKey() {
 		panic("Cannot change pubkey for a user")
 	}
