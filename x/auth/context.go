@@ -21,8 +21,8 @@ func withSigners(ctx weave.Context, signers []weave.Address) weave.Context {
 	return context.WithValue(ctx, contextKeySigners, signers)
 }
 
-// GetSigners returns who signed the current Context
-// may be empty
+// GetSigners returns who signed the current Context.
+// May be empty
 func GetSigners(ctx weave.Context) []weave.Address {
 	// (val, ok) form to return nil instead of panic if unset
 	val, _ := ctx.Value(contextKeySigners).([]weave.Address)
@@ -31,4 +31,5 @@ func GetSigners(ctx weave.Context) []weave.Address {
 	return val
 }
 
+// Note that we expect this to be exported
 var _ weave.AuthFunc = GetSigners
