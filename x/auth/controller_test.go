@@ -142,7 +142,6 @@ func TestVerifyTxSignatures(t *testing.T) {
 		assert.Equal(t, addr, signers[0])
 		assert.Equal(t, addr2, signers[1])
 	}
-
 }
 
 //----- mock objects for testing...
