@@ -28,6 +28,13 @@ func (b BTreeCacheable) CacheWrap() KVCacheWrap {
 	return NewBTreeCacheWrap(b.KVStore, b.NewBatch(), nil)
 }
 
+// MemStore returns a simple implementation useful for tests.
+// There is no persistence here....
+func MemStore() CacheableKVStore {
+	e := EmptyKVStore{}
+	return NewBTreeCacheWrap(e, e.NewBatch(), nil)
+}
+
 ///////////////////////////////////////////////
 // Actual CacheWrap implementation
 

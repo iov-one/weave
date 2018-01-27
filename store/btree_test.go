@@ -17,14 +17,7 @@ import (
 // you can copy most of these tests and change makeBase.
 // Once that passes, customize and extend as you wish
 func makeBase() CacheableKVStore {
-	// devnull is a black hole... just to keep our types proper
-	devnull := BTreeCacheable{EmptyKVStore{}}
-
-	// base is the root of our data, we can layer on top and
-	// all queries should work
-	base := devnull.CacheWrap()
-
-	return base
+	return MemStore()
 }
 
 // TestBTreeCacheGetSet does basic sanity checks on our cache
