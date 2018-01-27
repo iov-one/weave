@@ -11,7 +11,7 @@ import (
 )
 
 func TestUserModel(t *testing.T) {
-	kv := store.MockKVStore()
+	kv := store.MemStore()
 
 	key := NewUserKey([]byte("foo"))
 

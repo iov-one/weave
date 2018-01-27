@@ -41,7 +41,6 @@ func VerifyTxSignatures(store weave.KVStore, tx SignedTx,
 	}
 
 	return signers, nil
-	// return withSigners(ctx, signers), nil
 }
 
 // VerifySignature checks one signature against signbytes,
@@ -56,7 +55,7 @@ func VerifySignature(store weave.KVStore, sig StdSignature,
 	}
 	user := GetOrCreateUser(store, NewUserKey(key))
 
-	if user.HasPubKey() {
+	if !user.HasPubKey() {
 		if sig.PubKey.Empty() {
 			// TODO: better error
 			return nil, errors.ErrInternal("Must set pubkey on first sign")
