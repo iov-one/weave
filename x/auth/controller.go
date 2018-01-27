@@ -22,7 +22,7 @@ import (
 // returns error on bad signature and
 // returns a modified context with auth info on success
 func VerifySignatures(ctx weave.Context, store weave.KVStore,
-	tx weave.Tx) (weave.Context, error) {
+	tx SignedTx) (weave.Context, error) {
 
 	sigs := tx.GetSignatures()
 	if len(sigs) == 0 {
@@ -30,8 +30,12 @@ func VerifySignatures(ctx weave.Context, store weave.KVStore,
 	}
 
 	bz := tx.GetSignBytes()
+	chainID := weave.GetChainID(ctx)
+
 	signers := make([]weave.Address, 0, len(sigs))
 	for _, sig := range sigs {
+		// TODO: separate into own function (verify one sig)
+
 		// load account
 		key := sig.Address
 		if key == nil {
@@ -45,7 +49,9 @@ func VerifySignatures(ctx weave.Context, store weave.KVStore,
 		}
 
 		// verify signature matches (and set pubkey if needed)
-		if !user.PubKey().VerifyBytes(bz, sig.Signature) {
+		// appending the nonce for this signature
+		toSign := BuildSignBytes(bz, chainID, sig.Sequence)
+		if !user.PubKey().VerifyBytes(toSign, sig.Signature) {
 			return ctx, errors.ErrInvalidSignature()
 		}
 
@@ -63,3 +69,11 @@ func VerifySignatures(ctx weave.Context, store weave.KVStore,
 
 	return withSigners(ctx, signers), nil
 }
+
+// BuildSignBytes combines all info on the actual tx before signing
+func BuildSignBytes(signBytes []byte, chainID string, nonce int64) []byte {
+	// TODO: nonce
+	return append(signBytes, []byte(chainID)...)
+}
+
+// TODO: helpers to create a signature

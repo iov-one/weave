@@ -3,8 +3,6 @@ package weave
 import (
 	"crypto/sha256"
 	// "golang.org/x/crypto/blake2b"
-
-	crypto "github.com/tendermint/go-crypto"
 )
 
 var (
@@ -13,6 +11,41 @@ var (
 	// but it must not change during the lifetime of the kvstore
 	AddressLength = 20
 )
+
+// Msg is message for the blockchain to take an action
+// (Make a state transition). It is just the request, and
+// must be validated by the Handlers. All authentication
+// information is in the wrapping Tx.
+type Msg interface {
+	Persistent
+
+	// Return the message path.
+	// This is used by the Router to locate the proper Handler.
+	// Msg should be created alongside the Handler that corresponds to them.
+	//
+	// Multiple types may have the same value, and will end up at the
+	// same Handler.
+	//
+	// Must be alphanumeric [0-9A-Za-z_\-]+
+	Path() string
+}
+
+// Tx represent the data sent from the user to the chain.
+// It includes the actual message, along with information needed
+// to authenticate the sender (cryptographic signatures),
+// and anything else needed to pass through middleware.
+//
+// Each Application must define their own tx type, which
+// embeds all the middlewares that we wish to use.
+// auth.SignedTx and token.FeeTx are common interfaces that
+// many apps will wish to support.
+type Tx interface {
+	// GetMsg returns the action we wish to communicate
+	GetMsg() Msg
+}
+
+// TxDecoder can parse bytes into a Tx
+type TxDecoder func(txBytes []byte) (Tx, error)
 
 // Address represents a collision-free, one-way digest
 // of data (usually a public key) that can be used to identify a signer
@@ -27,66 +60,51 @@ func NewAddress(data []byte) Address {
 	return h[:AddressLength]
 }
 
-// Msg is message for the blockchain to take an action
-// (Make a state transition). It is just the request, and
-// must be validated by the Handlers. All authentication
-// information is in the wrapping Tx.
-type Msg interface {
-	// Return the message path.
-	// This is used by the Router to locate the proper Handler.
-	// Msg should be created alongside the Handler that corresponds to them.
-	//
-	// Multiple types may have the same value, and will end up at the
-	// same Handler.
-	//
-	// Must be alphanumeric [0-9A-Za-z_\-]+
-	Path() string
-
-	// ValidateBasic does a simple validation check that
-	// doesn't require access to any other information.
-	ValidateBasic() error
+// ObjAddress takes the address of an object
+func ObjAddress(obj Marshaller) (Address, error) {
+	bz, err := obj.Marshal()
+	if err != nil {
+		return nil, err
+	}
+	return NewAddress(bz), nil
 }
 
-// Tx represent the data sent from the user to the chain.
-// It includes the actual message, along with information needed
-// to authenticate the sender (cryptographic signatures),
-// and anything else needed to pass through middleware.
+// MustObjAddress is like ObjAddress, but panics instead of returning
+// errors. Only use when you control the obj being passed in.
+func MustObjAddress(obj Marshaller) Address {
+	res, err := ObjAddress(obj)
+	if err != nil {
+		panic(err)
+	}
+	return res
+}
+
+// AuthFunc is a function we can use to extract authentication info
+// from the context. This should be passed into the constructor of
+// handlers, so we can plug in another authentication system,
+// rather than hardcoding x/auth for all extensions.
+type AuthFunc func(Context) []Address
+
+//--------------- serialization stuff ---------------------
+
+// Marshaller is anything that can be represented in binary
 //
-// A Tx implementation *may* need to support other methods,
-// like GetFee, to satisfy a fee-checker.
-type Tx interface {
-	// GetMsg returns the action we wish to communicate
-	GetMsg() Msg
-
-	// GetSignBytes returns the canonical byte representation of the Msg.
-	// Helpful to store original, unparsed bytes here
-	GetSignBytes() []byte
-
-	// Signatures returns the signature of signers who signed the Msg.
-	GetSignatures() []StdSignature
+// Marshall may validate the data before serializing it and
+// unless you previously validated the struct,
+// errors should be expected.
+type Marshaller interface {
+	Marshal() ([]byte, error)
 }
 
-// TxDecoder can parse bytes into a Tx
-type TxDecoder func(txBytes []byte) (Tx, error)
-
-// StdSignature represents the signature, the identity of the signer
-// (either the PubKey or the Address), and a sequence number to
-// prevent replay attacks.
-// A given signer must submit transactions with the sequence number
-// increasing by 1 each time (starting at 0)
-type StdSignature struct {
-	PubKey    crypto.PubKey // required iff Sequence == 0
-	Address   Address       // required iff PubKey is not present
-	Signature crypto.Signature
-	Sequence  int64
+// Persistent supports Marshal and Unmarshal
+//
+// This is separated from Marshal, as this almost always requires
+// a pointer, and functions that only need to marshal bytes can
+// use the Marshaller interface to access non-pointers.
+//
+// As with Marshaller, this may do internal validation on the data
+// and errors should be expected.
+type Persistent interface {
+	Marshaller
+	Unmarshal([]byte) error
 }
-
-// var _ Tx = (*StdTx)(nil)
-
-// type StdTx struct {
-// 	Msg
-// 	Signatures []StdSignature
-// }
-
-// func (tx StdTx) GetFeePayer() crypto.Address   { return tx.Signatures[0].PubKey.Address() }
-// func (tx StdTx) GetSignatures() []StdSignature { return tx.Signatures }

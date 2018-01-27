@@ -30,3 +30,5 @@ func GetSigners(ctx weave.Context) []weave.Address {
 	// the signers here
 	return val
 }
+
+var _ weave.AuthFunc = GetSigners
