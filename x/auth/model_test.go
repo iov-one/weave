@@ -3,8 +3,11 @@ package auth
 import (
 	"testing"
 
-	"github.com/confio/weave/store"
 	"github.com/stretchr/testify/assert"
+
+	crypto "github.com/tendermint/go-crypto"
+
+	"github.com/confio/weave/store"
 )
 
 func TestUserModel(t *testing.T) {
@@ -33,13 +36,20 @@ func TestUserModel(t *testing.T) {
 	assert.Error(t, user.data.Validate())
 	assert.Panics(t, func() { user.Save() })
 
-	// todo: set pubkey
+	// set pubkey
+	priv := crypto.GenPrivKeyEd25519()
+	pub := priv.PubKey()
+	user.SetPubKey(pub)
+	assert.NoError(t, user.data.Validate())
+	// cannot set pubkey a second time....
+	assert.Panics(t, func() { user.SetPubKey(pub) })
 
 	// save
-	// user.Save()
+	user.Save()
 
-	// // load success
-	// user2 := GetUser(kv, key)
-	// assert.NotNil(t, user2)
-	// assert.Equal(t, int64(2), user2.Sequence())
+	// load success
+	user2 := GetUser(kv, key)
+	assert.NotNil(t, user2)
+	assert.Equal(t, int64(2), user2.Sequence())
+	assert.Equal(t, pub, user2.PubKey())
 }

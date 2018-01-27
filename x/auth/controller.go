@@ -19,35 +19,33 @@ import (
 // Controller should contain package-level functions, not
 // objects with state, to make it easy to call from other extensions.
 
-// VerifySignatures checks all the signatures on the tx, which must have
-// at least one.
+// VerifyTxSignatures checks all the signatures on the tx,
+// which must have at least one.
 //
-// returns error on bad signature and
-// returns a modified context with auth info on success
-func VerifySignatures(ctx weave.Context, store weave.KVStore,
-	tx SignedTx) (weave.Context, error) {
+// returns list of signer addresses (possibly empty),
+// or error if any signature is invalid
+func VerifyTxSignatures(store weave.KVStore, tx SignedTx,
+	chainID string) ([]weave.Address, error) {
 
 	bz := tx.GetSignBytes()
-	chainID := weave.GetChainID(ctx)
-
 	sigs := tx.GetSignatures()
-	if len(sigs) == 0 {
-		return nil, errors.ErrMissingSignature()
-	}
 
 	signers := make([]weave.Address, 0, len(sigs))
 	for _, sig := range sigs {
 		// TODO: separate into own function (verify one sig)
 		signer, err := VerifySignature(store, sig, bz, chainID)
 		if err != nil {
-			return ctx, err
+			return nil, err
 		}
 		signers = append(signers, signer)
 	}
 
-	return withSigners(ctx, signers), nil
+	return signers, nil
+	// return withSigners(ctx, signers), nil
 }
 
+// VerifySignature checks one signature against signbytes,
+// check chain and updates state in the store
 func VerifySignature(store weave.KVStore, sig StdSignature,
 	signBytes []byte, chainID string) (weave.Address, error) {
 
@@ -101,12 +99,12 @@ func BuildSignBytesTx(tx SignedTx, chainID string, seq int64) []byte {
 }
 
 // SignTx creates a signature for the given tx
-func SignTx(key crypto.PrivKey, tx SignedTx, chainID string,
+func SignTx(signer Signer, tx SignedTx, chainID string,
 	seq int64) StdSignature {
 
 	signBytes := BuildSignBytesTx(tx, chainID, seq)
-	sig := key.Sign(signBytes)
-	pub := key.PubKey()
+	sig := signer.Sign(signBytes)
+	pub := signer.PubKey()
 
 	res := StdSignature{
 		Signature: sig,
@@ -120,4 +118,10 @@ func SignTx(key crypto.PrivKey, tx SignedTx, chainID string,
 	}
 
 	return res
+}
+
+// Signer is a generalization of a privkey
+type Signer interface {
+	Sign([]byte) crypto.Signature
+	PubKey() crypto.PubKey
 }

@@ -31,8 +31,8 @@ func NewDecorator() Decorator {
 	}
 }
 
-// SigsNotRequired allows us to pass along items with no signatures
-func (d Decorator) SigsNotRequired() Decorator {
+// AllowMissingSigs allows us to pass along items with no signatures
+func (d Decorator) AllowMissingSigs() Decorator {
 	d.allowMissingSigs = true
 	return d
 }
@@ -41,18 +41,19 @@ func (d Decorator) SigsNotRequired() Decorator {
 func (d Decorator) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx,
 	next weave.Checker) (res weave.CheckResult, err error) {
 
-	stx, ok := tx.(SignedTx)
-	if !ok {
-		if d.allowMissingSigs {
-			return next.Check(ctx, store, tx)
-		}
+	var signers []weave.Address
+	if stx, ok := tx.(SignedTx); ok {
+		chainID := weave.GetChainID(ctx)
+		signers, err = VerifyTxSignatures(store, stx, chainID)
+	}
+	if err != nil {
+		return res, err
+	}
+	if len(signers) == 0 && !d.allowMissingSigs {
 		return res, errors.ErrMissingSignature()
 	}
 
-	ctx, err = VerifySignatures(ctx, store, stx)
-	if err != nil && !(d.allowMissingSigs && errors.IsMissingSignatureErr(err)) {
-		return
-	}
+	ctx = withSigners(ctx, signers)
 	return next.Check(ctx, store, tx)
 }
 
@@ -60,17 +61,18 @@ func (d Decorator) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx,
 func (d Decorator) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx,
 	next weave.Deliverer) (res weave.DeliverResult, err error) {
 
-	stx, ok := tx.(SignedTx)
-	if !ok {
-		if d.allowMissingSigs {
-			return next.Deliver(ctx, store, tx)
-		}
+	var signers []weave.Address
+	if stx, ok := tx.(SignedTx); ok {
+		chainID := weave.GetChainID(ctx)
+		signers, err = VerifyTxSignatures(store, stx, chainID)
+	}
+	if err != nil {
+		return res, err
+	}
+	if len(signers) == 0 && !d.allowMissingSigs {
 		return res, errors.ErrMissingSignature()
 	}
 
-	ctx, err = VerifySignatures(ctx, store, stx)
-	if err != nil && !(d.allowMissingSigs && errors.IsMissingSignatureErr(err)) {
-		return
-	}
+	ctx = withSigners(ctx, signers)
 	return next.Deliver(ctx, store, tx)
 }

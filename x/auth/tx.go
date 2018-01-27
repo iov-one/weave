@@ -33,13 +33,3 @@ type StdSignature struct {
 	Signature crypto.Signature
 	Sequence  int64
 }
-
-// var _ Tx = (*StdTx)(nil)
-
-// type StdTx struct {
-//  Msg
-//  Signatures []StdSignature
-// }
-
-// func (tx StdTx) GetFeePayer() crypto.Address   { return tx.Signatures[0].PubKey.Address() }
-// func (tx StdTx) GetSignatures() []StdSignature { return tx.Signatures }

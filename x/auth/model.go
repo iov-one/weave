@@ -76,8 +76,9 @@ func (p PubKey) ToCrypto() crypto.PubKey {
 	}
 }
 
-// SetCrypto parses a crypto.PubKey into our codec format
-func (p *PubKey) SetCrypto(c crypto.PubKey) {
+// FromCrypto parses a crypto.PubKey into our codec format
+func FromCrypto(c crypto.PubKey) *PubKey {
+	p := new(PubKey)
 	switch t := c.Unwrap().(type) {
 	case crypto.PubKeyEd25519:
 		p.Type = PubKey_ED25519
@@ -88,6 +89,7 @@ func (p *PubKey) SetCrypto(c crypto.PubKey) {
 	default:
 		panic(fmt.Sprintf("unknown type: %#v", c.Unwrap()))
 	}
+	return p
 }
 
 //------------------ High-Level ------------------------
@@ -201,7 +203,7 @@ func (u *User) SetPubKey(pubKey crypto.PubKey) {
 	if u.HasPubKey() {
 		panic("Cannot change pubkey for a user")
 	}
-	u.data.PubKey.SetCrypto(pubKey)
+	u.data.PubKey = FromCrypto(pubKey)
 }
 
 //--------------- Ideas for the future???? ----------
