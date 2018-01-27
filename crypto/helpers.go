@@ -16,19 +16,19 @@ type Signer interface {
 // enforce that all of the one-ofs implement some interfaces
 
 // Unwrap unwraps a PublicKey struct into a PubKey interface
-func (p *PublicKey) Unwrap() PubKey {
+func (p PublicKey) Unwrap() PubKey {
 	pub := p.GetPub()
-	if p == nil {
+	if pub == nil {
 		return nil
 	}
 	return pub.(PubKey)
 }
 
 // Unwrap unwraps a PrivateKey struct into a Signer interface
-func (p *PrivateKey) Unwrap() Signer {
-	pub := p.GetPriv()
-	if p == nil {
+func (p PrivateKey) Unwrap() Signer {
+	priv := p.GetPriv()
+	if priv == nil {
 		return nil
 	}
-	return pub.(Signer)
+	return priv.(Signer)
 }

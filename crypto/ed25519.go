@@ -33,7 +33,7 @@ func (p *PrivateKey_Ed25519) Sign(message []byte) Signature {
 // PublicKey returns the corresponding PublicKey
 func (p *PrivateKey_Ed25519) PublicKey() PublicKey {
 	privateKey := ed25519.PrivateKey(p.Ed25519)
-	pub := privateKey.Public().([]byte)
+	pub := privateKey.Public().(ed25519.PublicKey)
 	return PublicKey{
 		Pub: &PublicKey_Ed25519{
 			Ed25519: pub,
