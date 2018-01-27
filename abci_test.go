@@ -12,7 +12,7 @@ import (
 	"github.com/confio/weave/errors"
 )
 
-func TestCreateResult(t *testing.T) {
+func TestCreateErrorResult(t *testing.T) {
 	assert := assert.New(t)
 
 	cases := []struct {
@@ -41,4 +41,21 @@ func TestCreateResult(t *testing.T) {
 		assert.Equal(tc.msg, cres.Log, i)
 		assert.Equal(tc.code, cres.Code, i)
 	}
+}
+
+func TestCreateResults(t *testing.T) {
+	d, msg := []byte{1, 3, 4}, "got it"
+	dres := weave.DeliverResult{Data: d, Log: msg}
+	ad := dres.ToABCI()
+	assert.EqualValues(t, d, ad.Data)
+	assert.Equal(t, msg, ad.Log)
+	assert.Empty(t, ad.Tags)
+
+	c, gas := "aok", int64(12345)
+	cres := weave.NewCheck(gas, c)
+	ac := cres.ToABCI()
+	assert.Equal(t, c, ac.Log)
+	assert.Equal(t, gas, ac.Gas)
+	assert.Equal(t, int64(0), ac.Fee)
+	assert.Empty(t, ac.Data)
 }

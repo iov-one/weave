@@ -48,10 +48,6 @@ func (cs *commitStore) Commit() weave.CommitID {
 
 	// write the store to disk
 	res := cs.committed.Commit()
-	// // TODO: release an old version
-	// if version > s.historySize {
-	//   s.committed.Tree.DeleteVersion(uint64(version - s.historySize))
-	// }
 
 	// set up new caches
 	cs.deliver = cs.committed.CacheWrap()

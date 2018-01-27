@@ -5,6 +5,7 @@ import (
 	"regexp"
 
 	"github.com/confio/weave"
+	"github.com/confio/weave/errors"
 )
 
 // DefaultRouterSize preallocates this much space to hold routes
@@ -12,6 +13,22 @@ const DefaultRouterSize = 10
 
 // isPath is the RegExp to ensure the routes make sense
 var isPath = regexp.MustCompile(`^[a-zA-Z0-9_]+$`).MatchString
+
+// CodeNoSuchPath is an ABCI Response Codes
+// Base SDK reserves 0 ~ 99. App uses 10 ~ 19
+const CodeNoSuchPath uint32 = 10
+
+var errNoSuchPath = fmt.Errorf("Path not registered")
+
+// ErrNoSuchPath constructs an error when router doesn't know the path
+func ErrNoSuchPath(path string) error {
+	return errors.WithLog(path, errNoSuchPath, CodeNoSuchPath)
+}
+
+// IsNoSuchPathErr checks if this is an unknown route error
+func IsNoSuchPathErr(err error) bool {
+	return errors.IsSameError(errNoSuchPath, err)
+}
 
 // Router allows us to register many handlers with different
 // paths and then direct each message to the proper handler.

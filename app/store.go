@@ -77,6 +77,23 @@ func (s *StoreApp) Logger() log.Logger {
 	return s.logger
 }
 
+// BlockContext returns the block context for public use
+func (s *StoreApp) BlockContext() weave.Context {
+	return s.blockContext
+}
+
+// DeliverStore returns the current DeliverTx cache for methods
+func (s *StoreApp) DeliverStore() weave.CacheableKVStore {
+	return s.store.deliver
+}
+
+// CheckStore returns the current CheckTx cache for methods
+func (s *StoreApp) CheckStore() weave.CacheableKVStore {
+	return s.store.check
+}
+
+//----------------------- ABCI ---------------------
+
 // Info implements abci.Application. It returns the height and hash,
 // as well as the abci name and version.
 //
@@ -177,7 +194,11 @@ func (s *StoreApp) InitChain(req abci.RequestInitChain) (res abci.ResponseInitCh
 // BeginBlock implements ABCI
 // Sets up blockContext
 func (s *StoreApp) BeginBlock(req abci.RequestBeginBlock) (res abci.ResponseBeginBlock) {
-	// TODO: set context
+	// set the begin block context
+	ctx := weave.WithHeader(s.baseContext, *req.Header)
+	ctx = weave.WithHeight(ctx, req.Header.GetHeight())
+	s.blockContext = ctx
+
 	return
 }
 
@@ -212,33 +233,3 @@ func pubKeyIndex(val *abci.Validator, list []*abci.Validator) int {
 	}
 	return -1
 }
-
-// func loadState(dbName string, cacheSize int, historySize int64) (*sm.State, error) {
-// 	// memory backed case, just for testing
-// 	if dbName == "" {
-// 		tree := iavl.NewVersionedTree(0, dbm.NewMemDB())
-// 		return sm.NewState(tree, historySize), nil
-// 	}
-
-// 	// Expand the path fully
-// 	dbPath, err := filepath.Abs(dbName)
-// 	if err != nil {
-// 		return nil, errors.ErrInternal("Invalid Database Name")
-// 	}
-
-// 	// Some external calls accidently add a ".db", which is now removed
-// 	dbPath = strings.TrimSuffix(dbPath, path.Ext(dbPath))
-
-// 	// Split the database name into it's components (dir, name)
-// 	dir := path.Dir(dbPath)
-// 	name := path.Base(dbPath)
-
-// 	// Open database called "dir/name.db", if it doesn't exist it will be created
-// 	db := dbm.NewDB(name, dbm.LevelDBBackendStr, dir)
-// 	tree := iavl.NewVersionedTree(cacheSize, db)
-// 	if err = tree.Load(); err != nil {
-// 		return nil, errors.ErrInternal("Loading tree: " + err.Error())
-// 	}
-
-// 	return sm.NewState(tree, historySize), nil
-// }
