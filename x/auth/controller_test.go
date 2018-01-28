@@ -43,8 +43,9 @@ func TestSignBytes(t *testing.T) {
 
 func TestVerifySignature(t *testing.T) {
 	kv := store.MemStore()
-	priv := crypto.GenPrivKeyEd25519()
-	addr := priv.PubKey().Address()
+	priv := crypto.GenPrivKeyEd25519().Unwrap()
+	pub := priv.PublicKey()
+	addr := pub.Unwrap().Address()
 
 	chainID := "emo"
 	bz := []byte("my special valentine")
@@ -91,10 +92,10 @@ func TestVerifySignature(t *testing.T) {
 func TestVerifyTxSignatures(t *testing.T) {
 	kv := store.MemStore()
 
-	priv := crypto.GenPrivKeyEd25519()
-	addr := weave.Address(priv.PubKey().Address())
-	priv2 := crypto.GenPrivKeyEd25519()
-	addr2 := weave.Address(priv2.PubKey().Address())
+	priv := crypto.GenPrivKeyEd25519().Unwrap()
+	addr := weave.Address(priv.PublicKey().Unwrap().Address())
+	priv2 := crypto.GenPrivKeyEd25519().Unwrap()
+	addr2 := weave.Address(priv2.PublicKey().Unwrap().Address())
 
 	chainID := "hot"
 	bz := []byte("ice cream")
@@ -117,12 +118,12 @@ func TestVerifyTxSignatures(t *testing.T) {
 	assert.Empty(t, signers)
 
 	// bad signers
-	tx.Signatures = []StdSignature{badSig}
+	tx.Signatures = []*StdSignature{badSig}
 	signers, err = VerifyTxSignatures(kv, tx, chainID)
 	assert.Error(t, err)
 
 	// some signers
-	tx.Signatures = []StdSignature{sig}
+	tx.Signatures = []*StdSignature{sig}
 	signers, err = VerifyTxSignatures(kv, tx, chainID)
 	assert.NoError(t, err)
 	if assert.Equal(t, 1, len(signers)) {
@@ -130,12 +131,12 @@ func TestVerifyTxSignatures(t *testing.T) {
 	}
 
 	// one signature as replay is blocked
-	tx.Signatures = []StdSignature{sig, sig2}
+	tx.Signatures = []*StdSignature{sig, sig2}
 	signers, err = VerifyTxSignatures(kv, tx, chainID)
 	assert.Error(t, err)
 
 	// now increment seq and it passes
-	tx.Signatures = []StdSignature{sig1, sig2}
+	tx.Signatures = []*StdSignature{sig1, sig2}
 	signers, err = VerifyTxSignatures(kv, tx, chainID)
 	assert.NoError(t, err)
 	if assert.Equal(t, 2, len(signers)) {
@@ -148,7 +149,7 @@ func TestVerifyTxSignatures(t *testing.T) {
 
 type StdTx struct {
 	Msg        *StdMsg
-	Signatures []StdSignature
+	Signatures []*StdSignature
 }
 
 var _ SignedTx = (*StdTx)(nil)
@@ -158,7 +159,7 @@ func (tx StdTx) GetMsg() weave.Msg {
 	return tx.Msg
 }
 
-func (tx StdTx) GetSignatures() []StdSignature {
+func (tx StdTx) GetSignatures() []*StdSignature {
 	return tx.Signatures
 }
 

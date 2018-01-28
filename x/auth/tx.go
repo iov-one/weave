@@ -1,6 +1,9 @@
 package auth
 
-import "fmt"
+import (
+	"bytes"
+	"fmt"
+)
 
 // SignedTx represents a transaction that contains signatures,
 // which can be verified by the auth.Decorator
@@ -31,9 +34,17 @@ func (s *StdSignature) Validate() error {
 		// TODO: ErrInvalidSignature
 		return fmt.Errorf("PubKey or Address is required")
 	}
+	if s.PubKey != nil && s.Address != nil {
+		if !bytes.Equal(s.Address, s.PubKey.Unwrap().Address()) {
+			// TODO: ErrInvalidSignature
+			return fmt.Errorf("PubKey and Address do not match")
+		}
+	}
+
 	if s.Signature == nil {
 		// TODO: ErrInvalidSignature
 		return fmt.Errorf("Signature is missing")
 	}
+
 	return nil
 }

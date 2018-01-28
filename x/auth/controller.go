@@ -2,6 +2,7 @@ package auth
 
 import (
 	"encoding/binary"
+	"fmt"
 
 	"github.com/confio/weave"
 	"github.com/confio/weave/crypto"
@@ -55,18 +56,28 @@ func VerifySignature(store weave.KVStore, sig *StdSignature,
 	}
 
 	// load account
+	pub := sig.PubKey
 	key := sig.Address
 	if key == nil {
-		key = sig.PubKey.Unwrap().Address()
+		key = pub.Unwrap().Address()
 	}
 	user := GetOrCreateUser(store, NewUserKey(key))
 
-	if sig.Sequence == 0 {
-		user.SetPubKey(sig.PubKey)
+	// make sure we get the key from the store if not from the sig
+	if pub == nil {
+		pub = user.PubKey()
+		if pub == nil {
+			// TODO: better code
+			return nil, fmt.Errorf("Missing public key")
+		}
+	}
+
+	if !user.HasPubKey() {
+		user.SetPubKey(pub)
 	}
 
 	toSign := BuildSignBytes(signBytes, chainID, sig.Sequence)
-	if !user.PubKey().Unwrap().Verify(toSign, sig.Signature) {
+	if !pub.Unwrap().Verify(toSign, sig.Signature) {
 		return nil, errors.ErrInvalidSignature()
 	}
 
@@ -101,13 +112,13 @@ func BuildSignBytesTx(tx SignedTx, chainID string, seq int64) []byte {
 
 // SignTx creates a signature for the given tx
 func SignTx(signer crypto.Signer, tx SignedTx, chainID string,
-	seq int64) StdSignature {
+	seq int64) *StdSignature {
 
 	signBytes := BuildSignBytesTx(tx, chainID, seq)
 	sig := signer.Sign(signBytes)
 	pub := signer.PublicKey()
 
-	res := StdSignature{
+	res := &StdSignature{
 		Signature: sig,
 		Sequence:  seq,
 	}

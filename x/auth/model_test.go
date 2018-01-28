@@ -36,8 +36,8 @@ func TestUserModel(t *testing.T) {
 	assert.Panics(t, func() { user.Save() })
 
 	// set pubkey
-	priv := crypto.GenPrivKeyEd25519()
-	pub := priv.PubKey()
+	priv := crypto.GenPrivKeyEd25519().Unwrap()
+	pub := priv.PublicKey()
 	user.SetPubKey(pub)
 	assert.NoError(t, user.data.Validate())
 	// cannot set pubkey a second time....

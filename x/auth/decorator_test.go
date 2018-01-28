@@ -20,8 +20,8 @@ func TestDecorator(t *testing.T) {
 	chainID := "deco"
 	ctx := weave.WithChainID(context.Background(), chainID)
 
-	priv := crypto.GenPrivKeyEd25519()
-	addr := []weave.Address{priv.PubKey().Address()}
+	priv := crypto.GenPrivKeyEd25519().Unwrap()
+	addr := []weave.Address{priv.PublicKey().Unwrap().Address()}
 
 	bz := []byte("art")
 	tx := &StdTx{Msg: &StdMsg{bz}}
@@ -44,7 +44,7 @@ func TestDecorator(t *testing.T) {
 		assert.Error(t, err, "%d", i)
 
 		// test with one
-		tx.Signatures = []StdSignature{sig}
+		tx.Signatures = []*StdSignature{sig}
 		err = fn(d, tx)
 		assert.NoError(t, err, "%d", i)
 		assert.Equal(t, addr, signers.Signers)
@@ -61,7 +61,7 @@ func TestDecorator(t *testing.T) {
 		assert.Equal(t, []weave.Address{}, signers.Signers)
 
 		// test allowing, with next sequence
-		tx.Signatures = []StdSignature{sig1}
+		tx.Signatures = []*StdSignature{sig1}
 		err = fn(ad, tx)
 		assert.NoError(t, err, "%d", i)
 		assert.Equal(t, addr, signers.Signers)
