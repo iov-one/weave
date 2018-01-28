@@ -85,6 +85,32 @@ func MustObjAddress(obj Marshaller) Address {
 // rather than hardcoding x/auth for all extensions.
 type AuthFunc func(Context) []Address
 
+func MultiAuth(fns ...AuthFunc) AuthFunc {
+	return func(ctx Context) (res []Address) {
+		for _, fn := range fns {
+			add := fn(ctx)
+			if len(add) > 0 {
+				res = append(res, add...)
+			}
+		}
+		return res
+	}
+}
+
+// HasAllSigners returns true if all elements in required are
+// also in signed.
+func HasAllSigners(required []Address, signed []Address) bool {
+	return HasNSigners(len(required), required, signed)
+}
+
+// HasNSigners returns true if at least n elements in requested are
+// also in signed.
+// Useful for threshold conditions (1 of 3, 3 of 5, etc...)
+func HasNSigners(n int, requested []Address, signed []Address) bool {
+	// TODO: Implement when needed
+	return false
+}
+
 //--------------- serialization stuff ---------------------
 
 // Marshaller is anything that can be represented in binary
