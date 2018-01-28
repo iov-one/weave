@@ -134,3 +134,20 @@ type Persistent interface {
 	Marshaller
 	Unmarshal([]byte) error
 }
+
+// MustMarshal will succeed or panic
+func MustMarshal(obj Marshaller) []byte {
+	bz, err := obj.Marshal()
+	if err != nil {
+		panic(err)
+	}
+	return bz
+}
+
+// MustUnmarshal will succeed or panic
+func MustUnmarshal(obj Persistent, bz []byte) {
+	err := obj.Unmarshal(bz)
+	if err != nil {
+		panic(err)
+	}
+}

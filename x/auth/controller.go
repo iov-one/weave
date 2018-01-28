@@ -4,8 +4,8 @@ import (
 	"encoding/binary"
 
 	"github.com/confio/weave"
+	"github.com/confio/weave/crypto"
 	"github.com/confio/weave/errors"
-	crypto "github.com/tendermint/go-crypto"
 )
 
 //----------------- Controller ------------------
@@ -45,30 +45,32 @@ func VerifyTxSignatures(store weave.KVStore, tx SignedTx,
 
 // VerifySignature checks one signature against signbytes,
 // check chain and updates state in the store
-func VerifySignature(store weave.KVStore, sig StdSignature,
+func VerifySignature(store weave.KVStore, sig *StdSignature,
 	signBytes []byte, chainID string) (weave.Address, error) {
+
+	// we guarantee sequence makes sense and pubkey or address is there
+	err := sig.Validate()
+	if err != nil {
+		return nil, err
+	}
 
 	// load account
 	key := sig.Address
 	if key == nil {
-		key = sig.PubKey.Address()
+		key = sig.PubKey.Unwrap().Address()
 	}
 	user := GetOrCreateUser(store, NewUserKey(key))
 
-	if !user.HasPubKey() {
-		if sig.PubKey.Empty() {
-			// TODO: better error
-			return nil, errors.ErrInternal("Must set pubkey on first sign")
-		}
+	if sig.Sequence == 0 {
 		user.SetPubKey(sig.PubKey)
 	}
 
 	toSign := BuildSignBytes(signBytes, chainID, sig.Sequence)
-	if !user.PubKey().VerifyBytes(toSign, sig.Signature) {
+	if !user.PubKey().Unwrap().Verify(toSign, sig.Signature) {
 		return nil, errors.ErrInvalidSignature()
 	}
 
-	err := user.CheckAndIncrementSequence(sig.Sequence)
+	err = user.CheckAndIncrementSequence(sig.Sequence)
 	if err != nil {
 		return nil, err
 	}
@@ -98,12 +100,12 @@ func BuildSignBytesTx(tx SignedTx, chainID string, seq int64) []byte {
 }
 
 // SignTx creates a signature for the given tx
-func SignTx(signer Signer, tx SignedTx, chainID string,
+func SignTx(signer crypto.Signer, tx SignedTx, chainID string,
 	seq int64) StdSignature {
 
 	signBytes := BuildSignBytesTx(tx, chainID, seq)
 	sig := signer.Sign(signBytes)
-	pub := signer.PubKey()
+	pub := signer.PublicKey()
 
 	res := StdSignature{
 		Signature: sig,
@@ -113,14 +115,8 @@ func SignTx(signer Signer, tx SignedTx, chainID string,
 	if seq == 0 {
 		res.PubKey = pub
 	} else {
-		res.Address = pub.Address()
+		res.Address = pub.Unwrap().Address()
 	}
 
 	return res
-}
-
-// Signer is a generalization of a privkey
-type Signer interface {
-	Sign([]byte) crypto.Signature
-	PubKey() crypto.PubKey
 }

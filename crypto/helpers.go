@@ -1,15 +1,18 @@
 package crypto
 
+import "github.com/confio/weave"
+
 // PubKey represents a crypto public key we use
 type PubKey interface {
-	Verify(message []byte, sig Signature) bool
+	Verify(message []byte, sig *Signature) bool
+	Address() weave.Address
 }
 
 // Signer is the functionality we use from a private key
 // No serializing to support hardware devices as well.
 type Signer interface {
-	Sign(message []byte) Signature
-	PublicKey() PublicKey
+	Sign(message []byte) *Signature
+	PublicKey() *PublicKey
 }
 
 //-------- unwrappers --------

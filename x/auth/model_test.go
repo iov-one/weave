@@ -5,8 +5,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	crypto "github.com/tendermint/go-crypto"
-
+	"github.com/confio/weave/crypto"
 	"github.com/confio/weave/store"
 )
 
