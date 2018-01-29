@@ -7,7 +7,7 @@ import (
 
 var _ PubKey = (*PublicKey_Ed25519)(nil)
 
-// Verify verifies the signatures
+// Verify verifies the signature was created with this message and public key
 func (p *PublicKey_Ed25519) Verify(message []byte, sig *Signature) bool {
 	edsig, ok := sig.GetSig().(*Signature_Ed25519)
 	if !ok {
@@ -49,12 +49,12 @@ func (p *PrivateKey_Ed25519) PublicKey() *PublicKey {
 
 // GenPrivKeyEd25519 returns a random new private key
 // (TODO: look at sources of randomness, other than default crypto/rand)
-func GenPrivKeyEd25519() PrivateKey {
+func GenPrivKeyEd25519() *PrivateKey {
 	_, priv, err := ed25519.GenerateKey(nil)
 	if err != nil {
 		panic(err)
 	}
-	return PrivateKey{
+	return &PrivateKey{
 		Priv: &PrivateKey_Ed25519{
 			Ed25519: priv,
 		},

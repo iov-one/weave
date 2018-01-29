@@ -43,9 +43,9 @@ func TestSignBytes(t *testing.T) {
 
 func TestVerifySignature(t *testing.T) {
 	kv := store.MemStore()
-	priv := crypto.GenPrivKeyEd25519().Unwrap()
+	priv := crypto.GenPrivKeyEd25519()
 	pub := priv.PublicKey()
-	addr := pub.Unwrap().Address()
+	addr := pub.Address()
 
 	chainID := "emo"
 	bz := []byte("my special valentine")
@@ -92,10 +92,10 @@ func TestVerifySignature(t *testing.T) {
 func TestVerifyTxSignatures(t *testing.T) {
 	kv := store.MemStore()
 
-	priv := crypto.GenPrivKeyEd25519().Unwrap()
-	addr := weave.Address(priv.PublicKey().Unwrap().Address())
-	priv2 := crypto.GenPrivKeyEd25519().Unwrap()
-	addr2 := weave.Address(priv2.PublicKey().Unwrap().Address())
+	priv := crypto.GenPrivKeyEd25519()
+	addr := weave.Address(priv.PublicKey().Address())
+	priv2 := crypto.GenPrivKeyEd25519()
+	addr2 := weave.Address(priv2.PublicKey().Address())
 
 	chainID := "hot"
 	bz := []byte("ice cream")

@@ -7,8 +7,8 @@ import (
 )
 
 func TestEd25519Signing(t *testing.T) {
-	private := GenPrivKeyEd25519().Unwrap()
-	public := private.PublicKey().Unwrap()
+	private := GenPrivKeyEd25519()
+	public := private.PublicKey()
 
 	msg := []byte("foobar")
 	msg2 := []byte("dingbooms")

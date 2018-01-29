@@ -59,7 +59,7 @@ func VerifySignature(store weave.KVStore, sig *StdSignature,
 	pub := sig.PubKey
 	key := sig.Address
 	if key == nil {
-		key = pub.Unwrap().Address()
+		key = pub.Address()
 	}
 	user := GetOrCreateUser(store, NewUserKey(key))
 
@@ -77,7 +77,7 @@ func VerifySignature(store weave.KVStore, sig *StdSignature,
 	}
 
 	toSign := BuildSignBytes(signBytes, chainID, sig.Sequence)
-	if !pub.Unwrap().Verify(toSign, sig.Signature) {
+	if !pub.Verify(toSign, sig.Signature) {
 		return nil, errors.ErrInvalidSignature()
 	}
 
@@ -126,7 +126,7 @@ func SignTx(signer crypto.Signer, tx SignedTx, chainID string,
 	if seq == 0 {
 		res.PubKey = pub
 	} else {
-		res.Address = pub.Unwrap().Address()
+		res.Address = pub.Address()
 	}
 
 	return res

@@ -20,8 +20,8 @@ func TestDecorator(t *testing.T) {
 	chainID := "deco"
 	ctx := weave.WithChainID(context.Background(), chainID)
 
-	priv := crypto.GenPrivKeyEd25519().Unwrap()
-	addr := []weave.Address{priv.PublicKey().Unwrap().Address()}
+	priv := crypto.GenPrivKeyEd25519()
+	addr := []weave.Address{priv.PublicKey().Address()}
 
 	bz := []byte("art")
 	tx := &StdTx{Msg: &StdMsg{bz}}

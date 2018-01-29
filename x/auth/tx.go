@@ -35,7 +35,7 @@ func (s *StdSignature) Validate() error {
 		return fmt.Errorf("PubKey or Address is required")
 	}
 	if s.PubKey != nil && s.Address != nil {
-		if !bytes.Equal(s.Address, s.PubKey.Unwrap().Address()) {
+		if !bytes.Equal(s.Address, s.PubKey.Address()) {
 			// TODO: ErrInvalidSignature
 			return fmt.Errorf("PubKey and Address do not match")
 		}
