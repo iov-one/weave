@@ -5,8 +5,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	crypto "github.com/tendermint/go-crypto"
-
+	"github.com/confio/weave/crypto"
 	"github.com/confio/weave/store"
 )
 
@@ -38,7 +37,7 @@ func TestUserModel(t *testing.T) {
 
 	// set pubkey
 	priv := crypto.GenPrivKeyEd25519()
-	pub := priv.PubKey()
+	pub := priv.PublicKey()
 	user.SetPubKey(pub)
 	assert.NoError(t, user.data.Validate())
 	// cannot set pubkey a second time....

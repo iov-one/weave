@@ -1,8 +1,8 @@
 package auth
 
 import (
-	"github.com/confio/weave"
-	crypto "github.com/tendermint/go-crypto"
+	"bytes"
+	"fmt"
 )
 
 // SignedTx represents a transaction that contains signatures,
@@ -16,20 +16,35 @@ type SignedTx interface {
 	GetSignBytes() []byte
 
 	// Signatures returns the signature of signers who signed the Msg.
-	GetSignatures() []StdSignature
+	GetSignatures() []*StdSignature
 }
 
-// StdSignature represents the signature, the identity of the signer
-// (either the PubKey or the Address), and a sequence number to
-// prevent replay attacks.
-//
-// A given signer must submit transactions with the sequence number
-// increasing by 1 each time (starting at 0)
-type StdSignature struct {
-	// PubKey required if Sequence == 0
-	PubKey crypto.PubKey
-	// Address required if PubKey is not present
-	Address   weave.Address
-	Signature crypto.Signature
-	Sequence  int64
+// Validate ensures the StdSignature meets basic standards
+func (s *StdSignature) Validate() error {
+	seq := s.GetSequence()
+	if seq < 0 {
+		// TODO: ErrInvalidSequence
+		return fmt.Errorf("Sequence is negative")
+	}
+	if seq == 0 && s.PubKey == nil {
+		// TODO: ErrInvalidSignature
+		return fmt.Errorf("PubKey missing for sequence 0")
+	}
+	if s.PubKey == nil && s.Address == nil {
+		// TODO: ErrInvalidSignature
+		return fmt.Errorf("PubKey or Address is required")
+	}
+	if s.PubKey != nil && s.Address != nil {
+		if !bytes.Equal(s.Address, s.PubKey.Address()) {
+			// TODO: ErrInvalidSignature
+			return fmt.Errorf("PubKey and Address do not match")
+		}
+	}
+
+	if s.Signature == nil {
+		// TODO: ErrInvalidSignature
+		return fmt.Errorf("Signature is missing")
+	}
+
+	return nil
 }

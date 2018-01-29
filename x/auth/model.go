@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/confio/weave"
-	crypto "github.com/tendermint/go-crypto"
+	"github.com/confio/weave/crypto"
 )
 
 //----------------- Model ------------------
@@ -32,8 +32,8 @@ var userPrefix = []byte("user:")
 
 // NewUserKey constructs the user key from a key hash,
 // by appending a prefix.
-func NewUserKey(keyHash weave.Address) UserKey {
-	bz := append(userPrefix, keyHash...)
+func NewUserKey(addr weave.Address) UserKey {
+	bz := append(userPrefix, addr...)
 	return UserKey(bz)
 }
 
@@ -48,48 +48,11 @@ func (u UserData) Validate() error {
 		// TODO: ErrInvalidSequence
 		return fmt.Errorf("Sequence is negative")
 	}
-	if u.Sequence > 0 && u.PubKey.Empty() {
+	if u.Sequence > 0 && u.PubKey == nil {
 		// TODO: ErrInvalidSequence
 		return fmt.Errorf("Positive Sequence must have a PubKey")
 	}
 	return nil
-}
-
-// Empty returns true iff no data is here
-func (p *PubKey) Empty() bool {
-	return len(p.GetData()) == 0
-}
-
-// ToCrypto casts this serialized pubkey as a usable crypto.PubKey
-func (p PubKey) ToCrypto() crypto.PubKey {
-	switch p.Type {
-	case PubKey_ED25519:
-		var res crypto.PubKeyEd25519
-		copy(res[:], p.Data)
-		return res.Wrap()
-	case PubKey_SECP256K1:
-		var res crypto.PubKeySecp256k1
-		copy(res[:], p.Data)
-		return res.Wrap()
-	default:
-		panic(fmt.Sprintf("unknown type: %d", p.Type))
-	}
-}
-
-// FromCrypto parses a crypto.PubKey into our codec format
-func FromCrypto(c crypto.PubKey) *PubKey {
-	p := new(PubKey)
-	switch t := c.Unwrap().(type) {
-	case crypto.PubKeyEd25519:
-		p.Type = PubKey_ED25519
-		p.Data = t[:]
-	case crypto.PubKeySecp256k1:
-		p.Type = PubKey_SECP256K1
-		p.Data = t[:]
-	default:
-		panic(fmt.Sprintf("unknown type: %#v", c.Unwrap()))
-	}
-	return p
 }
 
 //------------------ High-Level ------------------------
@@ -115,11 +78,7 @@ func GetUser(store weave.KVStore, key UserKey) *User {
 	}
 
 	var data UserData
-	// TODO: MustUnmarshal
-	err := data.Unmarshal(bz)
-	if err != nil {
-		panic(err)
-	}
+	weave.MustUnmarshal(&data, bz)
 
 	return &User{
 		store: store,
@@ -167,13 +126,13 @@ func (u *User) Save() {
 // }
 
 // PubKey checks the current pubkey for this account
-func (u User) PubKey() crypto.PubKey {
-	return u.data.PubKey.ToCrypto()
+func (u User) PubKey() *crypto.PublicKey {
+	return u.data.GetPubKey()
 }
 
 // HasPubKey returns true iff the pubkey has been set
 func (u User) HasPubKey() bool {
-	return !u.data.GetPubKey().Empty()
+	return u.data.GetPubKey() != nil
 }
 
 // Sequence checks the current sequence for this account
@@ -199,22 +158,9 @@ func (u *User) CheckAndIncrementSequence(check int64) error {
 // It is illegal to reset an already set key
 // Otherwise, we don't control
 // (although we could verify the hash, we leave that to the controller)
-func (u *User) SetPubKey(pubKey crypto.PubKey) {
+func (u *User) SetPubKey(pubKey *crypto.PublicKey) {
 	if u.HasPubKey() {
 		panic("Cannot change pubkey for a user")
 	}
-	u.data.PubKey = FromCrypto(pubKey)
+	u.data.PubKey = pubKey
 }
-
-//--------------- Ideas for the future???? ----------
-
-// WithStore makes a copy of this User with a different backing store.
-// This can be used if we modify an item, then pass it down over
-// a savepoint. If the savepoint commits, the new value will have been
-// saved. If it fails, we can save the original user.
-//
-// However, this may all be over complex, and just let the caller save
-// the data first, then the callee can call if needed. Do we really
-// pass objects over savepoint boundaries often or at all???
-// func (u *User)WithStore(store weave.KVStore) *User {
-// }
