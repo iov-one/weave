@@ -9,7 +9,7 @@
 Confio Weave is a framework for quickly building your custom
 [ABCI application](https://github.com/tendermint/abci)
 to run a blockchain on top of the best-of-class
-BFT Proof-of-stake [Tendermint consensus engine](https://github.com/tendermint/tendermint).
+BFT Proof-of-stake [Tendermint consensus engine](https://tendermint.com).
 It provides much commonly used functionality that can
 quickly be imported in your custom chain, as well as a
 simple framework for adding the custom functionality unique
@@ -25,7 +25,7 @@ offical cosmos-sdk, both the
 future [0.9 rewrite](https://github.com/cosmos/cosmos-sdk/tree/develop). Naturally, as I was the main author of 0.8.
 
 While both of those are extremely powerful and flexible
-and contain advanced features, there have a steep learning
+and contain advanced features, they have a steep learning
 curve for novice users. Thus, this library aims to favor
 simplicity over power when there is a choice. If you hit
 limitations in the design of this library (such as
@@ -37,7 +37,7 @@ On the other hand, if you want to try out tendermint, or have a
 design that doesn't require an advanced setup, you should try
 this library and give feedback, especially on ease-of-use.
 The end goal is to make blockchain development almost as
-productive as web development (in golang), but providing
+productive as web development (in golang), by providing
 defaults and best practices for many choices, while allowing
 extreme flexibility in business logic and data modelling.
 

@@ -1,11 +1,12 @@
-Design
-======
+-------------------
+Confio Weave Design
+-------------------
 
 This document is an attempt to orient you in the wild
-world of application development with Weave.
+world of application development with Confio Weave.
 
 Determinism
------------
+===========
 
 The big key to blockchain development is determinism.
 Two binaries with the same state must **ALWAYS** produce
@@ -26,11 +27,11 @@ The summary is that everything is executed sequentially and
 deterministically, and thus we require extremely fast
 transaction processing to enable high throughput. Aim for
 1-2 ms per transaction, including committing to disk at
-the end of the block. Thus, attention to performance is also
+the end of the block. Thus, attention to performance is
 very important.
 
 ABCI
-----
+====
 
 To understand this design, you should first understand
 what an ABCI application is and how that level blockchain
@@ -47,52 +48,55 @@ The main messages that you need to be concerned with are:
 * Validation - CheckTx
 
   Before including a transaction, or gossiping it to peers,
-  every node will call ABCI:CheckTx to check if it is valid.
+  every node will call ``CheckTx`` to check if it is valid.
   This should be a best-attempt filter, we may reject
   transactions that are included in the block, but this
   should eliminate much spam
 
 * Execution of Blocks
 
-  After a block is written to the chain, we call a number of
-  transactions to process it.
+  After a block is written to the chain, the tendermint
+  engine makes a number of calls to process it. These
+  are our hooks to make any *writes* to the datastore.
 
   * BeginBlock
 
-  BeginBlock provides the new header and block height.
-  You can also use this as a hook to trigger any
-  delayed tasks that will execute at a given height.
-  (``Ticker``)
+    BeginBlock provides the new header and block height.
+    You can also use this as a hook to trigger any
+    delayed tasks that will execute at a given height.
+    (see ``Ticker`` below)
 
   * DeliverTx - once per transaction
 
-  DeliverTx is passed the raw bytes, just like CheckTx,
-  but it is expected to process the transactions and write
-  the state changes to the key-value store.
+    DeliverTx is passed the raw bytes, just like CheckTx,
+    but it is expected to process the transactions and write
+    the state changes to the key-value store. This is
+    the most important call to trigger any state change.
 
   * EndBlock
 
-  After all transactions have been processed, EndBlock is
-  a place to communicate any configuration changes the
-  application wishes to make on the tendermint engine.
-  This can be changes to the validator set, to sign the
-  next block, or changes to the consensus parameters,
-  like max block size, max numbers of transactions per block,
-  etc.
+    After all transactions have been processed, EndBlock is
+    a place to communicate any configuration changes the
+    application wishes to make on the tendermint engine.
+    This can be changes to the validator set that signs the
+    next block, or changes to the consensus parameters,
+    like max block size, max numbers of transactions per
+    block, etc.
 
   * Commit
 
-  After all results are returned, a Commit message is sent
-  to flush all data to disk. This is an atomic operation, and
-  after a crash, the state should be that after executing
-  block ``H`` entirely, or block ``H+1`` entirely, never somewhere in between (or else you are punished by
-  rebuilding the blockchain state by replaying the
-  whole chain...)
+    After all results are returned, a Commit message is sent
+    to flush all data to disk. This is an atomic operation,
+    and after a crash, the state should be that after
+    executing block ``H`` entirely, or block ``H+1``
+    entirely, never somewhere in between (or else you are
+    punished by rebuilding the blockchain state by
+    replaying the entire chain from genesis...)
 
 * Query
 
-  A client wishes to see the state without running the entire
-  chain.  To do so, they may query arbitrary keys in the
+  A client also wishes to *read* the state.
+  To do so, they may query arbitrary keys in the
   datastore, and get the current value stored there. They may
   also fix a recent height to query, so they can guarantee to
   get a consistent snapshot between mutliple queries even if
@@ -110,10 +114,57 @@ The main messages that you need to be concerned with are:
   If you are interested, you can read more about `using
   validating light clients with tendermint <https://blog.cosmos.network/light-clients-in-tendermint-consensus-1237cfbda104>`__
 
-Weave's Model
--------------
+Flow of Transactions
+====================
 
 Weave implements the complexity of the ABCI interface
 for you and only exposes a few key points for you to add
-your custom logic.
+your custom logic. We provide you a `default merklized
+key value store <https://github.com/confio/weave/blob/master/store/iavl/adapter.go>`__ to store all the data, which exposes
+a simple interface, similar to LevelDB.
 
+When you create a `new BaseApp
+<https://github.com/confio/weave/blob/master/app/base.go#L25-L33>`__, you must provide:
+
+* a merkelized data store (default provided)
+* a txdecoder to parse the incoming transaction bytes
+* a handler that processes ``CheckTx`` and ``DeliverTx`` (like ``http.Handler``)
+* and optionally a ``Ticker`` that is called every ``BeginBlock`` if you have repeated tasks.
+
+The merkelized data store automatically supports ``Querys``
+(with proofs), and the initial handshake to sync with
+tendermint on startup.
+
+Transactions
+------------
+
+Explain how to parse transactions, recommended process
+with protobuf.
+
+Handler
+-------
+
+* Decorators/Middleware
+* Router
+* Transaction Handlers
+* Difference of CheckTx/DeliverTx
+
+Ticker
+------
+
+This is provided to handle delayed tasks.
+For example, at height 100, you can trigger a task
+"send 100 coins to Bob at height 200 if there is no
+proof of lying before then".
+
+Explain more
+
+Merkle Store
+============
+
+A key value store with `merkle proofs <https://en.wikipedia.org/wiki/Merkle_tree>`__.
+
+The two most widely known examples in go are:
+
+* `Tendermint IAVL <https://github.com/tendermint/iavl>`__
+* `Ethereum Patricia Trie <https://github.com/ethereum/wiki/wiki/Patricia-Tree>`__
