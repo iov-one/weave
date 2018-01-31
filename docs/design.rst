@@ -1,0 +1,119 @@
+Design
+======
+
+This document is an attempt to orient you in the wild
+world of application development with Weave.
+
+Determinism
+-----------
+
+The big key to blockchain development is determinism.
+Two binaries with the same state must **ALWAYS** produce
+the same result when passed a given transaction. This
+seems obvious, but this also occurs when the transactions
+are replayed weeks, months, or years by a new version,
+attempting to replay the blockchain.
+
+* You cannot relay on walltime (just the timestamp in the header)
+* No usage of floating point math
+* No random numbers!
+* No network calls (especially external APIs)!
+* No concurrency (unless you **really** know what you are doing)
+* JSON encoding in the storage is questionable, as the key order may change with newer JSON libraries.
+* Etc....
+
+The summary is that everything is executed sequentially and
+deterministically, and thus we require extremely fast
+transaction processing to enable high throughput. Aim for
+1-2 ms per transaction, including committing to disk at
+the end of the block. Thus, attention to performance is also
+very important.
+
+ABCI
+----
+
+To understand this design, you should first understand
+what an ABCI application is and how that level blockchain
+abstraction works. There is a `deeper reference <https://tendermint.readthedocs.io/en/master/app-development.html>`__
+to the ABCI protocol, but in short, an ABCI application
+is a state machine that responds to messages sent from one
+client (the tendermint consensus engine). It is run in
+parallel on every node, and they must all run the same
+set of transactions (what was included in the blocks),
+and then verify they have the same result (merkle root).
+
+The main messages that you need to be concerned with are:
+
+* Validation - CheckTx
+
+  Before including a transaction, or gossiping it to peers,
+  every node will call ABCI:CheckTx to check if it is valid.
+  This should be a best-attempt filter, we may reject
+  transactions that are included in the block, but this
+  should eliminate much spam
+
+* Execution of Blocks
+
+  After a block is written to the chain, we call a number of
+  transactions to process it.
+
+  * BeginBlock
+
+  BeginBlock provides the new header and block height.
+  You can also use this as a hook to trigger any
+  delayed tasks that will execute at a given height.
+  (``Ticker``)
+
+  * DeliverTx - once per transaction
+
+  DeliverTx is passed the raw bytes, just like CheckTx,
+  but it is expected to process the transactions and write
+  the state changes to the key-value store.
+
+  * EndBlock
+
+  After all transactions have been processed, EndBlock is
+  a place to communicate any configuration changes the
+  application wishes to make on the tendermint engine.
+  This can be changes to the validator set, to sign the
+  next block, or changes to the consensus parameters,
+  like max block size, max numbers of transactions per block,
+  etc.
+
+  * Commit
+
+  After all results are returned, a Commit message is sent
+  to flush all data to disk. This is an atomic operation, and
+  after a crash, the state should be that after executing
+  block ``H`` entirely, or block ``H+1`` entirely, never somewhere in between (or else you are punished by
+  rebuilding the blockchain state by replaying the
+  whole chain...)
+
+* Query
+
+  A client wishes to see the state without running the entire
+  chain.  To do so, they may query arbitrary keys in the
+  datastore, and get the current value stored there. They may
+  also fix a recent height to query, so they can guarantee to
+  get a consistent snapshot between mutliple queries even if
+  a block was committed in the meantime.
+
+  A client may also request that the node returns a merkle
+  proof for the key-value pair. This proof is a series of
+  hashes, and produces a unique root hash after passing the
+  key-value pair through the list. If this root hash matches
+  the ``AppHash`` stored in a blockheader, we know that this
+  value was agreed upon by consensus, and we can trust this
+  is the true value of the chain, regardless of whether we
+  trust the node we connect to.
+
+  If you are interested, you can read more about `using
+  validating light clients with tendermint <https://blog.cosmos.network/light-clients-in-tendermint-consensus-1237cfbda104>`__
+
+Weave's Model
+-------------
+
+Weave implements the complexity of the ABCI interface
+for you and only exposes a few key points for you to add
+your custom logic.
+
