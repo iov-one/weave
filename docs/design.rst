@@ -114,6 +114,43 @@ The main messages that you need to be concerned with are:
   If you are interested, you can read more about `using
   validating light clients with tendermint <https://blog.cosmos.network/light-clients-in-tendermint-consensus-1237cfbda104>`__
 
+Persistence
+===========
+
+All data structures that go over the wire (passed on any
+external interface, or saved to the key value store),
+must be able to be serialized and deserialized. An
+application may have any custom binary format it wants,
+and to support this flexibility, we provide a ``Persistent``
+interface to handle marshaling similar to the
+``encoding/json`` library.
+
+.. code:: golang
+
+    type Persistent interface {
+        Marshal() ([]byte, error)
+        Unmarshal([]byte) error
+    }
+
+Note that Marshal can work with a struct, while Unmarshal
+(almost) always requires a pointer to work properly.
+You may define these two functions for every persistent
+data structure in your code, using any codec you want.
+However, for simplicity and cross-language parsing
+on the client size, we recommend to define ``.proto``
+files and compile them with protobuf.
+
+`gogo protobuf <github.com/gogo/protobuf>`__ will autogenerate
+Marshal and Unmarshal functions requiring no reflection.
+See the `Makefile <../Makefile>`__ for ``tools`` and
+``protoc`` which show how to automate installing the
+protobuf compiler and compiling the files.
+
+However, if you have another favorite codec, feel free to
+use that. Or mix and match. Each struct can use it's own
+Marshaller.
+
+
 Flow of Transactions
 ====================
 
@@ -138,16 +175,66 @@ tendermint on startup.
 Transactions
 ------------
 
-Explain how to parse transactions, recommended process
-with protobuf.
+A transaction must be `Persistent <#Persistence>`__ and
+contain the message we wish to process, as well as an
+envelope. It implements the minimal ``Tx`` interface,
+and can also implement a number of additional
+interfaces to be compatible with the particular middleware
+stack in use in your application. For example, supporting
+the ``x/auth/Decorator`` or the ``x/coin/FeeDecorator``
+require a Tx that fulfills interfaces to expose the signer
+or the fee information.
+
+Once the transaction has been processed by the middleware
+stack, we can call ``GetMsg()`` to extract the actual
+message with the action we wish to perform.
 
 Handler
 -------
 
-* Decorators/Middleware
-* Router
-* Transaction Handlers
-* Difference of CheckTx/DeliverTx
+As mentioned above, we pass every ``Tx`` through a middleware
+stack to perform standard processing and checks on all
+transactions. However, only the ``Tx`` is validated, we need
+to pass the underlying message to the specific code to handle
+this action.
+
+We do so by taking inspiration from standard http Routers.
+Every message object must implement ``Path()`` , which
+returns a string used by the ``Router`` in order
+to find the proper ``Handler``. The ``Handler`` is
+then responsible for processing any message type that
+is registered with it.
+
+.. code:: golang
+
+type Handler interface {
+    Check(ctx Context, store KVStore, tx Tx) (CheckResult, error)
+    Deliver(ctx Context, store KVStore, tx Tx) (DeliverResult, error)
+}
+
+The ``Handler`` is provided with the key-value store
+for reading/writing, the context containing scope
+information set by the various middlewares, as well as
+the complete ``Tx`` struct. Typically, the Handler
+will just want to ``GetMsg()`` and cast the ``Msg``
+to the expected type, before processing it.
+
+Although the syntax of Check and Deliver is very similar,
+the actual semantics is quite different, especially
+in the case of handlers. (Middleware may want to perform
+similar checks in both cases). ``Check`` only needs to
+investigate if it is likely valid (signed by the proper
+accounts), and then return the estimated "cost" of
+executing the ``Msg`` relative to other ``Msgs``. It does
+not need to execute the code.
+
+In turn, Deliver actually executes the expected actions
+based on the information stored in the ``Msg`` and the
+current state in the KVStore. ``Context`` should be used
+to validate and possibly reject transactions, but outside
+of querying the block height if needed, really should not
+have any influence in the actual data writen to the
+data store.
 
 Ticker
 ------
@@ -157,7 +244,12 @@ For example, at height 100, you can trigger a task
 "send 100 coins to Bob at height 200 if there is no
 proof of lying before then".
 
-Explain more
+This is called at the beginning of every block, before
+executing the transactions. It must be deterministic and
+only triggered by actions identically on all nodes,
+meaning triggered by querying for certain conditions in the
+merkle store. We plan to provide some utilities to help
+store and execute these delayed tasks.
 
 Merkle Store
 ============
@@ -168,3 +260,31 @@ The two most widely known examples in go are:
 
 * `Tendermint IAVL <https://github.com/tendermint/iavl>`__
 * `Ethereum Patricia Trie <https://github.com/ethereum/wiki/wiki/Patricia-Tree>`__
+
+We require an interface similar to LevelDB, with
+Get/Set/Delete, as well as an Iterator over a range of keys.
+In the future, we aim to build wrappers on top of this
+basic interface to provide functionality more akin to
+Redis or even some sort of secondary indexes like a RDBMS.
+
+The reason we cannot use a more powerful engine as a backing
+is the need for merkle proofs. We use these for two reasons.
+The first is that after executing a block of transactions,
+all nodes check the merkle root of their new state and come
+to consensus on that. If there is no consensus on the new
+state, the blockchain will halt until this is resolved
+(either many malicous nodes, or a very buggy code).
+Merkle roots, allow a quick, incremental update of a
+hash of a very large data store.
+
+The other reason we use merkle proofs, is to be able to prove
+the internal state to light clients, which may be able to
+follow and prove all the headers, but unable or unwilling
+to execute every transaction. If a node gives me a value
+for a given key, that data is only as trustable as the node
+itself. However, if the node can provide a merkle proof from
+that key-value pair to a root hash, and that root hash is
+included in a trusted header, signed by the super majority
+of the validators, then the response is a trustable as the
+chain itself, regardless of whether the node we communicate
+is trustworthy or not.
