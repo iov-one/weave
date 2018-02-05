@@ -19,6 +19,17 @@ const (
 	minFrac        = -maxFrac
 )
 
+// NewCoin creates a new coin object
+func NewCoin(integer int32, fractional int32,
+	currencyCode string) Coin {
+
+	return Coin{
+		Integer:      integer,
+		Fractional:   fractional,
+		CurrencyCode: currencyCode,
+	}
+}
+
 // Add combines two coins.
 // Returns error if they are of different
 // currencies, or if the combination would cause
@@ -71,16 +82,27 @@ func (c Coin) Compare(o Coin) int {
 	return 0
 }
 
-// Equal returns true if all fields are identical
-func (c Coin) Equal(o Coin) bool {
+// Equals returns true if all fields are identical
+func (c Coin) Equals(o Coin) bool {
 	return c.CurrencyCode == o.CurrencyCode &&
 		c.Integer == o.Integer &&
 		c.Fractional == o.Fractional
 }
 
-// IsZero returns true if all fields are identical
+// IsZero returns true amounts are 0
 func (c Coin) IsZero() bool {
 	return c.Integer == 0 && c.Fractional == 0
+}
+
+// IsPositive returns true if the value is greater than 0
+func (c Coin) IsPositive() bool {
+	return c.Integer > 0 ||
+		(c.Integer == 0 && c.Fractional > 0)
+}
+
+// IsNonNegative returns true if the value is 0 or higher
+func (c Coin) IsNonNegative() bool {
+	return c.Integer >= 0 && c.Fractional >= 0
 }
 
 // SameType returns true if they have the same currency
@@ -148,34 +170,58 @@ func (c Coin) normalize() (Coin, error) {
 	return c, nil
 }
 
-//--------------------- Wallet -------------------------
+//--------------------- Set -------------------------
 
-// NewWallet creates a wallet containing all given coins.
+// NewSet creates a Set containing all given coins.
 // It will sort them and combine duplicates to produce
 // a normalized form regardless of input.
-func NewWallet(cs ...Coin) Wallet {
+func NewSet(cs ...Coin) Set {
 	// TODO
-	return Wallet{}
+	return Set{}
 }
 
-// Add will return a new wallet, similar to w, but
+// Add will return a new Set, similar to s, but
 // with the new coin.
 // If the currency was
-func (w Wallet) Add(c Coin) Wallet {
+func (s Set) Add(c Coin) Set {
 	// TODO
-	return w
+	return s
 }
 
-// Combine will create a new wallet adding all the coins
-// of w and o together.
-func (w Wallet) Combine(o Wallet) Wallet {
+// Combine will create a new Set adding all the coins
+// of s and o together.
+func (s Set) Combine(o Set) Set {
 	// TODO
-	return w
+	return s
+}
+
+// IsEmpty returns if nothing is in the set
+func (s Set) IsEmpty() bool {
+	return len(s.Coins) == 0
+}
+
+// IsPositive returns true there is at least one coin
+// and all coins are positive
+func (s Set) IsPositive() bool {
+	return !s.IsEmpty() && s.IsNonNegative()
+}
+
+// IsNonNegative returns true if all coins are positive,
+// but also accepts an empty set
+func (s Set) IsNonNegative() bool {
+	for _, c := range s.Coins {
+		if !c.IsPositive() {
+			return false
+		}
+	}
+	return true
 }
 
 // Validate requires that all coins are in alphabetical
 // order and that each coin is valid in it's own right
-func (w Wallet) Validate() error {
+//
+// Zero amounts should not be present
+func (s Set) Validate() error {
 	// TODO
 	return nil
 }

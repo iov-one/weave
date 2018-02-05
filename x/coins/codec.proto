@@ -22,8 +22,8 @@ message Coin {
     string currency_code = 3;
 }
 
-// Wallet may contain Coin of many different currencies.
+// Set may contain Coin of many different currencies.
 // It handles adding and subtracting sets of currencies.
-message Wallet {
+message Set {
     repeated Coin coins = 1;
 }
