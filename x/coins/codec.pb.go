@@ -10,6 +10,8 @@
 	It has these top-level messages:
 		Coin
 		Set
+		SendMsg
+		FeeInfo
 */
 package coins
 
@@ -94,9 +96,80 @@ func (m *Set) GetCoins() []*Coin {
 	return nil
 }
 
+// SendMsg is a request to move these coins from the given
+// source to the given destination address.
+// note is an optional message, like reference code
+type SendMsg struct {
+	Src    []byte `protobuf:"bytes,1,opt,name=src,proto3" json:"src,omitempty"`
+	Dest   []byte `protobuf:"bytes,2,opt,name=dest,proto3" json:"dest,omitempty"`
+	Amount *Coin  `protobuf:"bytes,3,opt,name=amount" json:"amount,omitempty"`
+	Note   string `protobuf:"bytes,4,opt,name=note,proto3" json:"note,omitempty"`
+}
+
+func (m *SendMsg) Reset()                    { *m = SendMsg{} }
+func (m *SendMsg) String() string            { return proto.CompactTextString(m) }
+func (*SendMsg) ProtoMessage()               {}
+func (*SendMsg) Descriptor() ([]byte, []int) { return fileDescriptorCodec, []int{2} }
+
+func (m *SendMsg) GetSrc() []byte {
+	if m != nil {
+		return m.Src
+	}
+	return nil
+}
+
+func (m *SendMsg) GetDest() []byte {
+	if m != nil {
+		return m.Dest
+	}
+	return nil
+}
+
+func (m *SendMsg) GetAmount() *Coin {
+	if m != nil {
+		return m.Amount
+	}
+	return nil
+}
+
+func (m *SendMsg) GetNote() string {
+	if m != nil {
+		return m.Note
+	}
+	return ""
+}
+
+// FeeInfo records who pays what fees to have this
+// message processed
+type FeeInfo struct {
+	Payer []byte `protobuf:"bytes,1,opt,name=payer,proto3" json:"payer,omitempty"`
+	Fees  *Coin  `protobuf:"bytes,2,opt,name=fees" json:"fees,omitempty"`
+}
+
+func (m *FeeInfo) Reset()                    { *m = FeeInfo{} }
+func (m *FeeInfo) String() string            { return proto.CompactTextString(m) }
+func (*FeeInfo) ProtoMessage()               {}
+func (*FeeInfo) Descriptor() ([]byte, []int) { return fileDescriptorCodec, []int{3} }
+
+func (m *FeeInfo) GetPayer() []byte {
+	if m != nil {
+		return m.Payer
+	}
+	return nil
+}
+
+func (m *FeeInfo) GetFees() *Coin {
+	if m != nil {
+		return m.Fees
+	}
+	return nil
+}
+
 func init() {
 	proto.RegisterType((*Coin)(nil), "coins.Coin")
 	proto.RegisterType((*Set)(nil), "coins.Set")
+	proto.RegisterType((*SendMsg)(nil), "coins.SendMsg")
+	proto.RegisterType((*FeeInfo)(nil), "coins.FeeInfo")
 }
 func (m *Coin) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
@@ -162,6 +235,86 @@ func (m *Set) MarshalTo(dAtA []byte) (int, error) {
 	return i, nil
 }
 
+func (m *SendMsg) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalTo(dAtA)
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *SendMsg) MarshalTo(dAtA []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	if len(m.Src) > 0 {
+		dAtA[i] = 0xa
+		i++
+		i = encodeVarintCodec(dAtA, i, uint64(len(m.Src)))
+		i += copy(dAtA[i:], m.Src)
+	}
+	if len(m.Dest) > 0 {
+		dAtA[i] = 0x12
+		i++
+		i = encodeVarintCodec(dAtA, i, uint64(len(m.Dest)))
+		i += copy(dAtA[i:], m.Dest)
+	}
+	if m.Amount != nil {
+		dAtA[i] = 0x1a
+		i++
+		i = encodeVarintCodec(dAtA, i, uint64(m.Amount.Size()))
+		n1, err := m.Amount.MarshalTo(dAtA[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += n1
+	}
+	if len(m.Note) > 0 {
+		dAtA[i] = 0x22
+		i++
+		i = encodeVarintCodec(dAtA, i, uint64(len(m.Note)))
+		i += copy(dAtA[i:], m.Note)
+	}
+	return i, nil
+}
+
+func (m *FeeInfo) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalTo(dAtA)
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *FeeInfo) MarshalTo(dAtA []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	if len(m.Payer) > 0 {
+		dAtA[i] = 0xa
+		i++
+		i = encodeVarintCodec(dAtA, i, uint64(len(m.Payer)))
+		i += copy(dAtA[i:], m.Payer)
+	}
+	if m.Fees != nil {
+		dAtA[i] = 0x12
+		i++
+		i = encodeVarintCodec(dAtA, i, uint64(m.Fees.Size()))
+		n2, err := m.Fees.MarshalTo(dAtA[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += n2
+	}
+	return i, nil
+}
+
 func encodeVarintCodec(dAtA []byte, offset int, v uint64) int {
 	for v >= 1<<7 {
 		dAtA[offset] = uint8(v&0x7f | 0x80)
@@ -195,6 +348,42 @@ func (m *Set) Size() (n int) {
 			l = e.Size()
 			n += 1 + l + sovCodec(uint64(l))
 		}
+	}
+	return n
+}
+
+func (m *SendMsg) Size() (n int) {
+	var l int
+	_ = l
+	l = len(m.Src)
+	if l > 0 {
+		n += 1 + l + sovCodec(uint64(l))
+	}
+	l = len(m.Dest)
+	if l > 0 {
+		n += 1 + l + sovCodec(uint64(l))
+	}
+	if m.Amount != nil {
+		l = m.Amount.Size()
+		n += 1 + l + sovCodec(uint64(l))
+	}
+	l = len(m.Note)
+	if l > 0 {
+		n += 1 + l + sovCodec(uint64(l))
+	}
+	return n
+}
+
+func (m *FeeInfo) Size() (n int) {
+	var l int
+	_ = l
+	l = len(m.Payer)
+	if l > 0 {
+		n += 1 + l + sovCodec(uint64(l))
+	}
+	if m.Fees != nil {
+		l = m.Fees.Size()
+		n += 1 + l + sovCodec(uint64(l))
 	}
 	return n
 }
@@ -410,6 +599,294 @@ func (m *Set) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+func (m *SendMsg) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowCodec
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= (uint64(b) & 0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: SendMsg: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: SendMsg: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Src", wireType)
+			}
+			var byteLen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				byteLen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if byteLen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + byteLen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Src = append(m.Src[:0], dAtA[iNdEx:postIndex]...)
+			if m.Src == nil {
+				m.Src = []byte{}
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Dest", wireType)
+			}
+			var byteLen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				byteLen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if byteLen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + byteLen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Dest = append(m.Dest[:0], dAtA[iNdEx:postIndex]...)
+			if m.Dest == nil {
+				m.Dest = []byte{}
+			}
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Amount", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + msglen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Amount == nil {
+				m.Amount = &Coin{}
+			}
+			if err := m.Amount.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Note", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= (uint64(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Note = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipCodec(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *FeeInfo) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowCodec
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= (uint64(b) & 0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: FeeInfo: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: FeeInfo: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Payer", wireType)
+			}
+			var byteLen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				byteLen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if byteLen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + byteLen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Payer = append(m.Payer[:0], dAtA[iNdEx:postIndex]...)
+			if m.Payer == nil {
+				m.Payer = []byte{}
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Fees", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + msglen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Fees == nil {
+				m.Fees = &Coin{}
+			}
+			if err := m.Fees.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipCodec(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
 func skipCodec(dAtA []byte) (n int, err error) {
 	l := len(dAtA)
 	iNdEx := 0
@@ -518,17 +995,22 @@ var (
 func init() { proto.RegisterFile("x/coins/codec.proto", fileDescriptorCodec) }
 
 var fileDescriptorCodec = []byte{
-	// 179 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x12, 0xae, 0xd0, 0x4f, 0xce,
-	0xcf, 0xcc, 0x2b, 0xd6, 0x4f, 0xce, 0x4f, 0x49, 0x4d, 0xd6, 0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17,
-	0x62, 0x05, 0x0b, 0x29, 0xa5, 0x72, 0xb1, 0x38, 0xe7, 0x67, 0xe6, 0x09, 0x49, 0x70, 0xb1, 0x67,
-	0xe6, 0x95, 0xa4, 0xa6, 0xa7, 0x16, 0x49, 0x30, 0x2a, 0x30, 0x6a, 0xb0, 0x06, 0xc1, 0xb8, 0x42,
-	0x72, 0x5c, 0x5c, 0x69, 0x45, 0x89, 0xc9, 0x25, 0x99, 0xf9, 0x79, 0x89, 0x39, 0x12, 0x4c, 0x60,
-	0x49, 0x24, 0x11, 0x21, 0x65, 0x2e, 0xde, 0xe4, 0xd2, 0xa2, 0xa2, 0xd4, 0xbc, 0xe4, 0xca, 0x78,
-	0x90, 0x05, 0x12, 0xcc, 0x0a, 0x8c, 0x1a, 0x9c, 0x41, 0x3c, 0x30, 0x41, 0xe7, 0xfc, 0x94, 0x54,
-	0x25, 0x0d, 0x2e, 0xe6, 0xe0, 0xd4, 0x12, 0x21, 0x45, 0x2e, 0x88, 0xb5, 0x12, 0x8c, 0x0a, 0xcc,
-	0x1a, 0xdc, 0x46, 0xdc, 0x7a, 0x60, 0x9e, 0x1e, 0xc8, 0x05, 0x41, 0x10, 0x19, 0x27, 0x81, 0x13,
-	0x8f, 0xe4, 0x18, 0x2f, 0x3c, 0x92, 0x63, 0x7c, 0xf0, 0x48, 0x8e, 0x71, 0xc2, 0x63, 0x39, 0x86,
-	0x24, 0x36, 0xb0, 0x83, 0x8d, 0x01, 0x01, 0x00, 0x00, 0xff, 0xff, 0x60, 0x9a, 0x26, 0x2b, 0xc7,
-	0x00, 0x00, 0x00,
+	// 271 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x5c, 0x90, 0x4f, 0x4a, 0xc3, 0x40,
+	0x14, 0xc6, 0x1d, 0x93, 0x34, 0xf8, 0x1a, 0xa1, 0x3c, 0x5d, 0xcc, 0x2a, 0xc6, 0x74, 0x93, 0x55,
+	0x0a, 0x7a, 0x01, 0xb1, 0x20, 0xb8, 0x70, 0x33, 0x3d, 0x80, 0xc4, 0xc9, 0x4b, 0x0d, 0xe8, 0x4c,
+	0x99, 0x4c, 0xc1, 0xde, 0xc2, 0x63, 0xb9, 0xf4, 0x08, 0x12, 0x2f, 0x22, 0x79, 0x4d, 0x41, 0xba,
+	0xfb, 0xfe, 0x90, 0xf7, 0xfd, 0x32, 0x70, 0xf1, 0xb1, 0xd0, 0xb6, 0x35, 0xdd, 0x42, 0xdb, 0x9a,
+	0x74, 0xb9, 0x71, 0xd6, 0x5b, 0x8c, 0x38, 0xca, 0x09, 0xc2, 0xa5, 0x6d, 0x0d, 0x4a, 0x88, 0x5b,
+	0xe3, 0x69, 0x4d, 0x4e, 0x8a, 0x4c, 0x14, 0x91, 0x3a, 0x58, 0x4c, 0x01, 0x1a, 0x57, 0x69, 0xdf,
+	0x5a, 0x53, 0xbd, 0xc9, 0x53, 0x2e, 0xff, 0x25, 0x38, 0x87, 0x73, 0xbd, 0x75, 0x8e, 0x8c, 0xde,
+	0x3d, 0x0f, 0x03, 0x32, 0xc8, 0x44, 0x71, 0xa6, 0x92, 0x43, 0xb8, 0xb4, 0x35, 0xe5, 0x05, 0x04,
+	0x2b, 0xf2, 0x78, 0x0d, 0xfb, 0x59, 0x29, 0xb2, 0xa0, 0x98, 0xde, 0x4c, 0x4b, 0x76, 0xe5, 0x40,
+	0xa0, 0x46, 0xa0, 0x57, 0x88, 0x57, 0x64, 0xea, 0xa7, 0x6e, 0x8d, 0x33, 0x08, 0x3a, 0xa7, 0x99,
+	0x27, 0x51, 0x83, 0x44, 0x84, 0xb0, 0xa6, 0xce, 0x33, 0x45, 0xa2, 0x58, 0xe3, 0x1c, 0x26, 0xd5,
+	0xbb, 0xdd, 0x1a, 0xcf, 0xc3, 0x47, 0x47, 0xc7, 0x6a, 0xf8, 0xd0, 0x58, 0x4f, 0x32, 0x64, 0x36,
+	0xd6, 0xf9, 0x1d, 0xc4, 0x0f, 0x44, 0x8f, 0xa6, 0xb1, 0x78, 0x09, 0xd1, 0xa6, 0xda, 0x8d, 0xff,
+	0x9e, 0xa8, 0xbd, 0xc1, 0x2b, 0x08, 0x1b, 0xa2, 0x8e, 0xd7, 0x8e, 0xee, 0x72, 0x71, 0x3f, 0xfb,
+	0xea, 0x53, 0xf1, 0xdd, 0xa7, 0xe2, 0xa7, 0x4f, 0xc5, 0xe7, 0x6f, 0x7a, 0xf2, 0x32, 0xe1, 0xc7,
+	0xbd, 0xfd, 0x0b, 0x00, 0x00, 0xff, 0xff, 0x3e, 0x0f, 0xab, 0x06, 0x73, 0x01, 0x00, 0x00,
 }
