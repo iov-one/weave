@@ -90,6 +90,11 @@ func (c Coin) Equals(o Coin) bool {
 		c.Fractional == o.Fractional
 }
 
+// NoCoin returns true on null or zero amount
+func NoCoin(c *Coin) bool {
+	return c == nil || c.IsZero()
+}
+
 // IsZero returns true amounts are 0
 func (c Coin) IsZero() bool {
 	return c.Integer == 0 && c.Fractional == 0

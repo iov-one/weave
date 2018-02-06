@@ -72,3 +72,15 @@ func (f *FeeInfo) DefaultPayer(addr []byte) *FeeInfo {
 		Fees:  f.GetFees(),
 	}
 }
+
+// Validate makes sure that this is sensible
+func (f *FeeInfo) Validate() error {
+	if !f.GetFees().IsNonNegative() {
+		return fmt.Errorf("Fees may not be negative")
+	}
+	l := weave.AddressLength
+	if len(f.GetPayer()) != l {
+		return fmt.Errorf("Payer address must be %d bytes", l)
+	}
+	return nil
+}

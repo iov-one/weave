@@ -97,10 +97,24 @@ func MultiAuth(fns ...AuthFunc) AuthFunc {
 	}
 }
 
+// MainSigner returns the first signed if any, otherwise nil
+func MainSigner(ctx Context, fn AuthFunc) Address {
+	auth := fn(ctx)
+	if len(auth) == 0 {
+		return nil
+	}
+	return auth[0]
+}
+
 // HasAllSigners returns true if all elements in required are
 // also in signed.
 func HasAllSigners(required []Address, signed []Address) bool {
 	return HasNSigners(len(required), required, signed)
+}
+
+// HasSigner returns true if this address has signed
+func HasSigner(required Address, signed []Address) bool {
+	return HasNSigners(1, []Address{required}, signed)
 }
 
 // HasNSigners returns true if at least n elements in requested are
