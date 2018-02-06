@@ -209,7 +209,19 @@ func NewSet(cs ...Coin) (Set, error) {
 			return Set{}, err
 		}
 	}
+	if err := s.Validate(); err != nil {
+		return Set{}, err
+	}
 	return s, nil
+}
+
+// mustNewSet has one return value for tests...
+func mustNewSet(cs ...Coin) Set {
+	s, err := NewSet(cs...)
+	if err != nil {
+		panic(err)
+	}
+	return s
 }
 
 // Clone returns a copy that can be safely modified
@@ -344,6 +356,11 @@ func (s Set) Equals(o Set) bool {
 		}
 	}
 	return true
+}
+
+// Count returns the number of unique currencies in the Set
+func (s Set) Count() int {
+	return len(s.Coins)
 }
 
 // Validate requires that all coins are in alphabetical
