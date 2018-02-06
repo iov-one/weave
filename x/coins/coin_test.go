@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 type cmp int
@@ -185,10 +186,85 @@ func TestAddCoin(t *testing.T) {
 	}
 }
 
-func TestValidSet(t *testing.T) {
+func TestMakeSet(t *testing.T) {
+	cases := []struct {
+		inputs   []Coin
+		isEmpty  bool
+		isNonNeg bool
+		has      []Coin // <= the wallet
+		dontHave []Coin // > or outside the wallet
+	}{
+		// empty
+		{
+			nil,
+			true,
+			true,
+			nil,
+			[]Coin{NewCoin(0, 0, "")},
+		},
+		// ignore 0
+		{
+			[]Coin{NewCoin(0, 0, "FOO")},
+			true,
+			true,
+			nil,
+			[]Coin{NewCoin(0, 0, "FOO")},
+		},
+		// simple
+		{
+			[]Coin{NewCoin(40, 0, "FUD")},
+			false,
+			true,
+			[]Coin{NewCoin(10, 0, "FUD"), NewCoin(40, 0, "FUD")},
+			[]Coin{NewCoin(40, 1, "FUD"), NewCoin(40, 0, "FUN")},
+		},
+		// out of order, with negative
+		{
+			[]Coin{NewCoin(-20, -3, "FIN"), NewCoin(40, 5, "BON")},
+			false,
+			false,
+			[]Coin{NewCoin(40, 4, "BON"), NewCoin(-30, 0, "FIN")},
+			[]Coin{NewCoin(40, 6, "BON"), NewCoin(-20, 0, "FIN")},
+		},
+		// combine and remove
+		{
+			[]Coin{NewCoin(-123, -456, "BOO"), NewCoin(123, 456, "BOO")},
+			true,
+			true,
+			nil,
+			[]Coin{NewCoin(0, 0, "BOO")},
+		},
+		// safely combine
+		{
+			[]Coin{NewCoin(12, 0, "ADA"), NewCoin(-123, -456, "BOO"), NewCoin(124, 756, "BOO")},
+			false,
+			true,
+			[]Coin{NewCoin(12, 0, "ADA"), NewCoin(1, 300, "BOO")},
+			[]Coin{NewCoin(13, 0, "ADA"), NewCoin(1, 400, "BOO")},
+		},
+	}
 
+	for idx, tc := range cases {
+		i := strconv.Itoa(idx)
+
+		s, err := NewSet(tc.inputs...)
+		require.NoError(t, err, i)
+		assert.NoError(t, s.Validate(), i)
+		assert.Equal(t, tc.isEmpty, s.IsEmpty(), i)
+		assert.Equal(t, tc.isNonNeg, s.IsNonNegative(), i)
+
+		for _, h := range tc.has {
+			assert.True(t, s.Contains(h), i)
+		}
+		for _, d := range tc.dontHave {
+			assert.False(t, s.Contains(d), i)
+		}
+	}
 }
 
+// TODO: Test Combine, Equals
+
+// Test Add/Remove
 func TestAddSet(t *testing.T) {
 
 }

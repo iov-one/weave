@@ -113,7 +113,7 @@ func (c Coin) IsGTE(o Coin) bool {
 		return false
 	}
 	if (c.Integer == o.Integer) &&
-		(c.Fractional < o.Integer) {
+		(c.Fractional < o.Fractional) {
 		return false
 	}
 	return true
@@ -198,15 +198,18 @@ func (c Coin) normalize() (Coin, error) {
 // NewSet creates a Set containing all given coins.
 // It will sort them and combine duplicates to produce
 // a normalized form regardless of input.
-func NewSet(cs ...Coin) Set {
+func NewSet(cs ...Coin) (Set, error) {
 	// Maybe more efficient...
 	s := Set{
 		Coins: make([]*Coin, 0),
 	}
 	for _, c := range cs {
-		s.Add(c)
+		err := s.Add(c)
+		if err != nil {
+			return Set{}, err
+		}
 	}
-	return s
+	return s, nil
 }
 
 // Clone returns a copy that can be safely modified
@@ -221,7 +224,12 @@ func (s Set) Clone() Set {
 }
 
 // Add modifies the set, to increase the holdings by c
-func (s Set) Add(c Coin) error {
+func (s *Set) Add(c Coin) error {
+	// We ignore zero values
+	if c.IsZero() {
+		return nil
+	}
+
 	has, i := s.findCoin(c.CurrencyCode)
 	// add to existing coin
 	if has != nil {
@@ -229,7 +237,12 @@ func (s Set) Add(c Coin) error {
 		if err != nil {
 			return err
 		}
-		// TODO: if the result is zero, remove this currency
+		// if the result is zero, remove this currency
+		if sum.IsZero() {
+			s.Coins = append(s.Coins[:i], s.Coins[i+1:]...)
+			return nil
+		}
+		// otherwise, set to new value
 		s.Coins[i] = &sum
 		return nil
 	}
@@ -248,7 +261,7 @@ func (s Set) Add(c Coin) error {
 
 // Subtract modifies the set, to decrease the holdings by c.
 // The resulting set may have negative amounts
-func (s Set) Subtract(c Coin) error {
+func (s *Set) Subtract(c Coin) error {
 	return s.Add(c.Negative())
 }
 
