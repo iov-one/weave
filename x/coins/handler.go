@@ -4,22 +4,27 @@ import (
 	"fmt"
 
 	"github.com/confio/weave"
+	"github.com/confio/weave/errors"
 )
 
-// RegisterRoutes will register all handlers in
-// this package
-func RegisterRoutes(r weave.Registry) {
-	r.Handle(pathSendMsg, NewSendHandler())
+// RegisterRoutes will instantiate and register
+// all handlers in this package
+func RegisterRoutes(r weave.Registry, auth weave.AuthFunc) {
+	r.Handle(pathSendMsg, NewSendHandler(auth))
 }
 
 // SendHandler will handle sending coins
-type SendHandler struct{}
+type SendHandler struct {
+	auth weave.AuthFunc
+}
 
 var _ weave.Handler = SendHandler{}
 
 // NewSendHandler creates a handler for SendMsg
-func NewSendHandler() SendHandler {
-	return SendHandler{}
+func NewSendHandler(auth weave.AuthFunc) SendHandler {
+	return SendHandler{
+		auth: auth,
+	}
 }
 
 // Check just verifies it is properly formed and returns
@@ -36,6 +41,11 @@ func (h SendHandler) Check(ctx weave.Context, store weave.KVStore,
 	err := msg.Validate()
 	if err != nil {
 		return res, err
+	}
+
+	// make sure we have permission from the sender
+	if !weave.HasSigner(msg.Src, h.auth(ctx)) {
+		return res, errors.ErrUnauthorized()
 	}
 
 	// return cost
@@ -57,6 +67,11 @@ func (h SendHandler) Deliver(ctx weave.Context, store weave.KVStore,
 	err := msg.Validate()
 	if err != nil {
 		return res, err
+	}
+
+	// make sure we have permission from the sender
+	if !weave.HasSigner(msg.Src, h.auth(ctx)) {
+		return res, errors.ErrUnauthorized()
 	}
 
 	// move the money....
