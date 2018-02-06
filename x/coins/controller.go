@@ -29,11 +29,12 @@ func MoveCoins(store weave.KVStore, src weave.Address,
 	}
 
 	recipient := GetOrCreateWallet(store, NewKey(dest))
-	sender.Subtract(amount)
-	recipient.Add(amount)
-
-	// make sure it didn't overflow
-	if err := recipient.Validate(); err != nil {
+	err := sender.Subtract(amount)
+	if err != nil {
+		return err
+	}
+	err = recipient.Add(amount)
+	if err != nil {
 		return err
 	}
 
@@ -52,10 +53,8 @@ func IssueCoins(store weave.KVStore, dest weave.Address,
 	amount Coin) error {
 
 	recipient := GetOrCreateWallet(store, NewKey(dest))
-	recipient.Add(amount)
-
-	// make sure it didn't overflow
-	if err := recipient.Validate(); err != nil {
+	err := recipient.Add(amount)
+	if err != nil {
 		return err
 	}
 

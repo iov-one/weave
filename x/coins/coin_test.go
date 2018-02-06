@@ -111,6 +111,12 @@ func TestValidCoin(t *testing.T) {
 			NewCoin(0, -100, "DIN"),
 			true,
 		},
+		{
+			NewCoin(maxInt, fracUnit+4, "DIN"),
+			false,
+			Coin{},
+			false,
+		},
 	}
 
 	for idx, tc := range cases {
