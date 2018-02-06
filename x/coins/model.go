@@ -31,7 +31,7 @@ func NewKey(addr weave.Address) Key {
 type Wallet struct {
 	store weave.KVStore
 	key   Key
-	set   Set
+	Set
 }
 
 // GetWallet loads this Wallet if present, or returns nil if missing
@@ -47,7 +47,7 @@ func GetWallet(store weave.KVStore, key Key) *Wallet {
 	return &Wallet{
 		store: store,
 		key:   key,
-		set:   data,
+		Set:   data,
 	}
 }
 
@@ -59,7 +59,7 @@ func GetOrCreateWallet(store weave.KVStore, key Key) *Wallet {
 		res = &Wallet{
 			store: store,
 			key:   key,
-			set:   Set{},
+			Set:   Set{},
 		}
 	}
 	return res
@@ -68,6 +68,6 @@ func GetOrCreateWallet(store weave.KVStore, key Key) *Wallet {
 // Save writes the current Wallet state to the backing store
 // panics if invalid state
 func (u *Wallet) Save() {
-	value := weave.MustMarshalValid(&u.set)
+	value := weave.MustMarshalValid(&u.Set)
 	u.store.Set(u.key, value)
 }
