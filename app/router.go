@@ -40,6 +40,8 @@ type Router struct {
 	routes map[string]weave.Handler
 }
 
+var _ weave.Registry = Router{}
+
 // NewRouter initializes a router with no routes
 func NewRouter() Router {
 	return Router{

@@ -10,8 +10,9 @@ import (
 var _ weave.Msg = (*SendMsg)(nil)
 
 const (
-	pathSendMsg = "coins/send"
-	maxNoteSize = 250
+	pathSendMsg       = "coins/send"
+	maxNoteSize int   = 250
+	sendTxCost  int64 = 100
 )
 
 // Path returns the routing path for this message
