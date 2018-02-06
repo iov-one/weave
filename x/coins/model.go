@@ -68,17 +68,6 @@ func GetOrCreateWallet(store weave.KVStore, key Key) *Wallet {
 // Save writes the current Wallet state to the backing store
 // panics if invalid state
 func (u *Wallet) Save() {
-	// TODO: MustValidate
-	err := u.set.Validate()
-	if err != nil {
-		panic(err)
-	}
-
-	// TODO: MustMarshal
-	value, err := u.set.Marshal()
-	if err != nil {
-		panic(err)
-	}
-
+	value := weave.MustMarshalValid(&u.set)
 	u.store.Set(u.key, value)
 }

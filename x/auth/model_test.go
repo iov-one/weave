@@ -12,7 +12,7 @@ import (
 func TestUserModel(t *testing.T) {
 	kv := store.MemStore()
 
-	key := NewUserKey([]byte("foo"))
+	key := NewKey([]byte("foo"))
 
 	// load fail
 	user := GetUser(kv, key)

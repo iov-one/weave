@@ -61,7 +61,7 @@ func VerifySignature(store weave.KVStore, sig *StdSignature,
 	if key == nil {
 		key = pub.Address()
 	}
-	user := GetOrCreateUser(store, NewUserKey(key))
+	user := GetOrCreateUser(store, NewKey(key))
 
 	// make sure we get the key from the store if not from the sig
 	if pub == nil {

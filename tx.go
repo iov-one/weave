@@ -151,3 +151,31 @@ func MustUnmarshal(obj Persistent, bz []byte) {
 		panic(err)
 	}
 }
+
+//-------------------- Validation ---------
+
+// Validater is any struct that can be validated.
+// Not the same as a Validator, which votes on the blocks.
+type Validater interface {
+	Validate() error
+}
+
+// MustValidate panics if the object is not valid
+func MustValidate(obj Validater) {
+	err := obj.Validate()
+	if err != nil {
+		panic(err)
+	}
+}
+
+type MarshalValidater interface {
+	Marshaller
+	Validater
+}
+
+// MustMarshalValid marshals the object, but panics
+// if the object is not valid or has trouble marshalling
+func MustMarshalValid(obj MarshalValidater) []byte {
+	MustValidate(obj)
+	return MustMarshal(obj)
+}
