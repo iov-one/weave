@@ -42,6 +42,23 @@ func HasErrorCode(err error, code uint32) bool {
 	return code == CodeInternalErr
 }
 
+// NormalizePanic converts a panic into a proper error
+func NormalizePanic(p interface{}) error {
+	if err, isErr := p.(error); isErr {
+		return Wrap(err)
+	}
+	msg := fmt.Sprintf("%v", p)
+	return ErrInternal(msg)
+}
+
+// Recover takes a pointer to the returned error,
+// and sets it upon panic
+func Recover(err *error) {
+	if r := recover(); r != nil {
+		*err = NormalizePanic(r)
+	}
+}
+
 func ErrUnknownTxType(tx interface{}) error {
 	msg := fmt.Sprintf("%T", tx)
 	return WithLog(msg, errUnknownTxType, CodeUnknownRequest)

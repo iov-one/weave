@@ -4,8 +4,10 @@ import (
 	"context"
 	"testing"
 
-	"github.com/confio/weave"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/confio/weave"
+	"github.com/confio/weave/x/utils"
 )
 
 func TestChain(t *testing.T) {
@@ -16,8 +18,8 @@ func TestChain(t *testing.T) {
 
 	stack := ChainDecorators(
 		c1,
-		NewLogging(),
-		NewRecovery(),
+		utils.NewLogging(),
+		utils.NewRecovery(),
 		c2,
 		panicAtHeightDecorator{6},
 		c3,
