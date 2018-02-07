@@ -15,6 +15,7 @@ const (
 	CodeInsufficientFunds        = 33
 	CodeInvalidAmount            = 34
 	CodeInvalidMemo              = 35
+	CodeEmptyAccount             = 36
 )
 
 var (
@@ -22,10 +23,11 @@ var (
 	errOutOfRange        = fmt.Errorf("Overflow coin range")
 	errMismatchedSign    = fmt.Errorf("Mismatched sign")
 	errInvalidWallet     = fmt.Errorf("Invalid wallet")
-	errInsufficientFees  = fmt.Errorf("Insufficient Fees")
-	errInsufficientFunds = fmt.Errorf("Insufficient Funds")
-	errInvalidAmount     = fmt.Errorf("Invalid Amount")
-	errInvalidMemo       = fmt.Errorf("Invalid Memo")
+	errInsufficientFees  = fmt.Errorf("Insufficient fees")
+	errInsufficientFunds = fmt.Errorf("Insufficient funds")
+	errInvalidAmount     = fmt.Errorf("Invalid amount")
+	errInvalidMemo       = fmt.Errorf("Invalid memo")
+	errEmptyAccount      = fmt.Errorf("Account empty")
 )
 
 // ErrInvalidCurrency takes one or two currencies
@@ -86,4 +88,12 @@ func ErrInvalidMemo(reason string) error {
 }
 func IsInvalidMemoErr(err error) bool {
 	return errors.IsSameError(errInvalidMemo, err)
+}
+
+func ErrEmptyAccount(addr []byte) error {
+	msg := fmt.Sprintf("%X", addr)
+	return errors.WithLog(msg, errEmptyAccount, CodeEmptyAccount)
+}
+func IsEmptyAccountErr(err error) bool {
+	return errors.IsSameError(errEmptyAccount, err)
 }

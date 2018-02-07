@@ -31,7 +31,7 @@ func (m mockTx) GetMsg() weave.Msg {
 	return m.msg
 }
 
-func TestHandler(t *testing.T) {
+func TestSend(t *testing.T) {
 	foo := NewCoin(100, 0, "FOO")
 	addr := weave.NewAddress([]byte{1, 2, 3})
 	addr2 := weave.NewAddress([]byte{4, 5, 6})
@@ -53,15 +53,15 @@ func TestHandler(t *testing.T) {
 			errors.IsUnauthorizedErr,
 			errors.IsUnauthorizedErr,
 		},
-		// no sender
+		// sender has no account
 		4: {
 			[]weave.Address{addr},
 			nil,
 			&SendMsg{Amount: &foo, Src: addr, Dest: addr2},
 			noErr, // we don't check funds
-			errors.IsUnrecognizedAddressErr,
+			IsEmptyAccountErr,
 		},
-		// broke sender
+		// sender too poor
 		5: {
 			[]weave.Address{addr},
 			[]Wallet{{

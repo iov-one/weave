@@ -138,10 +138,10 @@ func (d FeeDecorator) extractFee(ctx weave.Context, tx weave.Tx) (*FeeInfo, erro
 	if cmp.CurrencyCode == "" {
 		cmp.CurrencyCode = fee.CurrencyCode
 	}
-	if !fee.SameType(d.minFee) {
+	if !fee.SameType(cmp) {
 		return nil, ErrInvalidCurrency("fee", fee.CurrencyCode)
 	}
-	if !fee.IsGTE(d.minFee) {
+	if !fee.IsGTE(cmp) {
 		return nil, ErrInsufficientFees(*fee)
 	}
 	return finfo, nil

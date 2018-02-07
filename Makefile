@@ -35,7 +35,6 @@ cover:
 	    echo "Coverage on" $$pkg "as" $$file; \
 		go test -covermode=$(MODE) -coverprofile=coverage/$$file.out $$pkg; \
 		go tool cover -html=coverage/$$file.out -o=coverage/$$file.html; \
-		go tool cover -func=coverage/$$file.out; \
 	done
 
 deps: glide

@@ -2,7 +2,6 @@ package coins
 
 import (
 	"github.com/confio/weave"
-	"github.com/confio/weave/errors"
 )
 
 // MoveCoins moves the given amount from src to dest.
@@ -17,7 +16,7 @@ func MoveCoins(store weave.KVStore, src weave.Address,
 
 	sender := GetWallet(store, NewKey(src))
 	if sender == nil {
-		return errors.ErrUnrecognizedAddress(src)
+		return ErrEmptyAccount(src)
 	}
 
 	if !sender.Contains(amount) {
