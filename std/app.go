@@ -10,6 +10,7 @@ as your project grows.
 package std
 
 import (
+	"context"
 	"fmt"
 	"path/filepath"
 	"strings"
@@ -50,6 +51,23 @@ func Stack(minFee coins.Coin) weave.Handler {
 	authFn := AuthFunc()
 	return Chain(minFee, authFn).
 		WithHandler(Router(authFn))
+}
+
+// Application constructs a basic ABCI application with
+// the given arguments. If you are not sure what to use
+// for the Handler, just use Stack().
+func Application(name string, h weave.Handler,
+	tx weave.TxDecoder, dbPath string) (app.BaseApp, error) {
+
+	ctx := context.Background()
+	// ctx = context.WithValue(ctx, "app", name)
+	kv, err := CommitKVStore(dbPath)
+	if err != nil {
+		return app.BaseApp{}, err
+	}
+	store := app.NewStoreApp(name, kv, ctx)
+	base := app.NewBaseApp(store, tx, h, nil)
+	return base, nil
 }
 
 // CommitKVStore returns an initialized KVStore that persists

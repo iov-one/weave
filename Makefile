@@ -15,10 +15,14 @@ all: deps install test
 
 install:
 	# TODO: install cmd later... now just compile important dirs
-	go install $(BUILD_FLAGS) .
-	go install $(BUILD_FLAGS) ./app
-	go install $(BUILD_FLAGS) ./store
-	go install $(BUILD_FLAGS) ./x/...
+	# go install $(BUILD_FLAGS) ./cmd/...
+	go install .
+	go install ./app
+	go install ./crypto
+	go install ./errors
+	go install ./store
+	go install ./x/...
+	go install ./std
 
 test:
 	go test $(NOVENDOR)
