@@ -42,7 +42,7 @@ func HasErrorCode(err error, code uint32) bool {
 	return code == CodeInternalErr
 }
 
-func ErrUnknownTxType(tx interface{}) TMError {
+func ErrUnknownTxType(tx interface{}) error {
 	msg := fmt.Sprintf("%T", tx)
 	return WithLog(msg, errUnknownTxType, CodeUnknownRequest)
 }
@@ -50,7 +50,7 @@ func IsUnknownTxTypeErr(err error) bool {
 	return IsSameError(errUnknownTxType, err)
 }
 
-func ErrUnrecognizedAddress(addr string) TMError {
+func ErrUnrecognizedAddress(addr string) error {
 	return WithLog(addr, errUnrecognizedAddress, CodeUnrecognizedAddress)
 }
 func IsUnrecognizedAddressErr(err error) bool {
@@ -59,7 +59,7 @@ func IsUnrecognizedAddressErr(err error) bool {
 
 // ErrInternal is a generic error code when we cannot return any more
 // useful info
-func ErrInternal(msg string) TMError {
+func ErrInternal(msg string) error {
 	return New(msg, CodeInternalErr)
 }
 
@@ -69,7 +69,7 @@ func IsInternalErr(err error) bool {
 }
 
 // ErrDecoding is generic when we cannot parse the transaction input
-func ErrDecoding() TMError {
+func ErrDecoding() error {
 	return WithCode(errDecoding, CodeTxParseError)
 }
 func IsDecodingErr(err error) bool {
@@ -77,7 +77,7 @@ func IsDecodingErr(err error) bool {
 }
 
 // ErrTooLarge is a specific decode error when we pass the max tx size
-func ErrTooLarge() TMError {
+func ErrTooLarge() error {
 	return WithCode(errTooLarge, CodeTxParseError)
 }
 func IsTooLargeErr(err error) bool {
@@ -86,7 +86,7 @@ func IsTooLargeErr(err error) bool {
 
 // ErrUnauthorized is a generic denial.
 // You can use a more specific cause if you wish, such as ErrInvalidSignature
-func ErrUnauthorized() TMError {
+func ErrUnauthorized() error {
 	return WithCode(errUnauthorized, CodeUnauthorized)
 }
 
@@ -96,7 +96,7 @@ func IsUnauthorizedErr(err error) bool {
 	return HasErrorCode(err, CodeUnauthorized)
 }
 
-func ErrMissingSignature() TMError {
+func ErrMissingSignature() error {
 	return WithCode(errMissingSignature, CodeUnauthorized)
 }
 func IsMissingSignatureErr(err error) bool {
@@ -104,7 +104,7 @@ func IsMissingSignatureErr(err error) bool {
 }
 
 // ErrInvalidSignature is when the
-func ErrInvalidSignature() TMError {
+func ErrInvalidSignature() error {
 	return WithCode(errInvalidSignature, CodeUnauthorized)
 }
 func IsInvalidSignatureErr(err error) bool {

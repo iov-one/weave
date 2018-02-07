@@ -54,8 +54,8 @@ func WithHeader(ctx Context, header abci.Header) Context {
 
 // GetHeader returns the current block header
 // ok is false if no header set in this Context
-func GetHeader(ctx Context) (val abci.Header, ok bool) {
-	val, ok = ctx.Value(contextKeyHeader).(abci.Header)
+func GetHeader(ctx Context) (abci.Header, bool) {
+	val, ok := ctx.Value(contextKeyHeader).(abci.Header)
 	return val, ok
 }
 
@@ -70,8 +70,8 @@ func WithHeight(ctx Context, height int64) Context {
 
 // GetHeight returns the current block height
 // ok is false if no height set in this Context
-func GetHeight(ctx Context) (val int64, ok bool) {
-	val, ok = ctx.Value(contextKeyHeight).(int64)
+func GetHeight(ctx Context) (int64, bool) {
+	val, ok := ctx.Value(contextKeyHeight).(int64)
 	return val, ok
 }
 

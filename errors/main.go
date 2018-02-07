@@ -16,7 +16,7 @@ type TMError interface {
 // New creates an error with the given message and a stacktrace,
 // and sets the code and log,
 // overriding the state if err was already TMError
-func New(log string, code uint32) TMError {
+func New(log string, code uint32) error {
 	// create a new error with stack trace and attach a code
 	st := errors.New(log).(stackTracer)
 	return tmerror{
