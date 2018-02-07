@@ -1,9 +1,8 @@
 package coins
 
 import (
-	"fmt"
-
 	"github.com/confio/weave"
+	"github.com/confio/weave/errors"
 )
 
 // Ensure we implement the Msg interface
@@ -23,17 +22,17 @@ func (SendMsg) Path() string {
 // Validate makes sure that this is sensible
 func (s *SendMsg) Validate() error {
 	if !s.GetAmount().IsPositive() {
-		return fmt.Errorf("SendMsg must have positive amount")
+		return ErrInvalidAmount("Non-positive SendMsg")
 	}
 	l := weave.AddressLength
 	if len(s.GetSrc()) != l {
-		return fmt.Errorf("Source address must be %d bytes", l)
+		return errors.ErrUnrecognizedAddress(s.GetSrc())
 	}
 	if len(s.GetDest()) != l {
-		return fmt.Errorf("Destination address must be %d bytes", l)
+		return errors.ErrUnrecognizedAddress(s.GetDest())
 	}
 	if len(s.GetNote()) > maxNoteSize {
-		return fmt.Errorf("Note more than %d characters", maxNoteSize)
+		return ErrInvalidMemo("Note too long")
 	}
 	return nil
 }
@@ -76,11 +75,11 @@ func (f *FeeInfo) DefaultPayer(addr []byte) *FeeInfo {
 // Validate makes sure that this is sensible
 func (f *FeeInfo) Validate() error {
 	if !f.GetFees().IsNonNegative() {
-		return fmt.Errorf("Fees may not be negative")
+		return ErrInvalidAmount("Negative fees")
 	}
 	l := weave.AddressLength
 	if len(f.GetPayer()) != l {
-		return fmt.Errorf("Payer address must be %d bytes", l)
+		return errors.ErrUnrecognizedAddress(f.GetPayer())
 	}
 	return nil
 }

@@ -74,7 +74,7 @@ func TestLog(t *testing.T) {
 		{WithLog("Special", ErrUnauthorized(), CodeInternalErr), IsInternalErr, "(1) Special: Unauthorized"},
 
 		// verify some standard message types with prefixes
-		{ErrUnrecognizedAddress("john_123"), IsUnrecognizedAddressErr, "(5) john_123: Unrecognized Address"},
+		{ErrUnrecognizedAddress([]byte{0, 0x12, 0x77}), IsUnrecognizedAddressErr, "(5) 001277: Unrecognized Address"},
 		{ErrUnknownTxType("john_123"), IsUnknownTxTypeErr, "(4) string: Tx type unknown"},
 		{ErrUnknownTxType(t), IsUnknownTxTypeErr, "(4) *testing.T: Tx type unknown"},
 	}

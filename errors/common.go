@@ -11,10 +11,10 @@ import (
 // Base SDK reserves 0 ~ 99.
 const (
 	CodeInternalErr         uint32 = 1
-	CodeTxParseError        uint32 = 2
-	CodeUnauthorized        uint32 = 3
-	CodeUnknownRequest      uint32 = 4
-	CodeUnrecognizedAddress uint32 = 5
+	CodeTxParseError               = 2
+	CodeUnauthorized               = 3
+	CodeUnknownRequest             = 4
+	CodeUnrecognizedAddress        = 5
 )
 
 var (
@@ -50,8 +50,12 @@ func IsUnknownTxTypeErr(err error) bool {
 	return IsSameError(errUnknownTxType, err)
 }
 
-func ErrUnrecognizedAddress(addr string) error {
-	return WithLog(addr, errUnrecognizedAddress, CodeUnrecognizedAddress)
+func ErrUnrecognizedAddress(addr []byte) error {
+	msg := "(nil)"
+	if len(addr) > 0 {
+		msg = fmt.Sprintf("%X", addr)
+	}
+	return WithLog(msg, errUnrecognizedAddress, CodeUnrecognizedAddress)
 }
 func IsUnrecognizedAddressErr(err error) bool {
 	return IsSameError(errUnrecognizedAddress, err)

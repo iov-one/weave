@@ -1,8 +1,6 @@
 package coins
 
 import (
-	"fmt"
-
 	"github.com/confio/weave"
 	"github.com/confio/weave/errors"
 )
@@ -126,7 +124,7 @@ func (d FeeDecorator) extractFee(ctx weave.Context, tx weave.Tx) (*FeeInfo, erro
 		if d.minFee.IsZero() {
 			return finfo, nil
 		}
-		return nil, fmt.Errorf("No fees provided")
+		return nil, ErrInsufficientFees(Coin{})
 	}
 
 	// make sure it is a valid fee (non-negative, going somewhere)
@@ -141,11 +139,10 @@ func (d FeeDecorator) extractFee(ctx weave.Context, tx weave.Tx) (*FeeInfo, erro
 		cmp.CurrencyCode = fee.CurrencyCode
 	}
 	if !fee.SameType(d.minFee) {
-		return nil, fmt.Errorf("Wrong fee currency: %s", fee.CurrencyCode)
+		return nil, ErrInvalidCurrency("fee", fee.CurrencyCode)
 	}
 	if !fee.IsGTE(d.minFee) {
-		// TODO: ErrInsufficientFees()
-		return nil, fmt.Errorf("Inssuficient fees")
+		return nil, ErrInsufficientFees(*fee)
 	}
 	return finfo, nil
 }

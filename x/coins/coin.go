@@ -1,7 +1,6 @@
 package coins
 
 import (
-	"fmt"
 	"regexp"
 	"strings"
 )
@@ -40,8 +39,7 @@ func NewCoin(integer int32, fractional int32,
 //   c.Add(o.Negative())
 func (c Coin) Add(o Coin) (Coin, error) {
 	if !c.SameType(o) {
-		err := fmt.Errorf("Adding mismatched currencies: %s, %s",
-			c.CurrencyCode, o.CurrencyCode)
+		err := ErrInvalidCurrency(c.CurrencyCode, o.CurrencyCode)
 		return Coin{}, err
 	}
 	c.Integer += o.Integer
@@ -144,22 +142,18 @@ func (c *Coin) Clone() *Coin {
 // logic
 func (c Coin) Validate() error {
 	if !isCC(c.CurrencyCode) {
-		// TODO: ErrInvalidCoin
-		return fmt.Errorf("Invalid currency code: %s", c.CurrencyCode)
+		return ErrInvalidCurrency(c.CurrencyCode)
 	}
 	if c.Integer < minInt || c.Integer > maxInt {
-		// TODO: ErrInvalidCoin
-		return fmt.Errorf("Integer component out of range: %v", c)
+		return ErrOutOfRange(c)
 	}
 	if c.Fractional < minFrac || c.Fractional > maxFrac {
-		// TODO: ErrInvalidCoin
-		return fmt.Errorf("Fractional component out of range: %v", c)
+		return ErrOutOfRange(c)
 	}
 	// make sure signs match
 	if c.Integer != 0 && c.Fractional != 0 &&
 		((c.Integer > 0) != (c.Fractional > 0)) {
-		// TODO: ErrInvalidCoin
-		return fmt.Errorf("Integer and Fractional have different signs: %v", c)
+		return ErrMismatchedSign(c)
 	}
 
 	return nil
@@ -192,8 +186,7 @@ func (c Coin) normalize() (Coin, error) {
 
 	// return error if integer is out of range
 	if c.Integer < minInt || c.Integer > maxInt {
-		err := fmt.Errorf("Integer component out of range: %v", c)
-		return Coin{}, err
+		return Coin{}, ErrOutOfRange(c)
 	}
 	return c, nil
 }
@@ -379,10 +372,10 @@ func (s Set) Validate() error {
 			return err
 		}
 		if c.IsZero() {
-			return fmt.Errorf("Zero values should not be in Set")
+			return ErrInvalidWallet("Zero coins")
 		}
 		if c.CurrencyCode < last {
-			return fmt.Errorf("Currency codes not in sorted order")
+			return ErrInvalidWallet("Not sorted")
 		}
 		last = c.CurrencyCode
 	}

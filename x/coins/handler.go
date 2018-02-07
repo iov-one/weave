@@ -1,8 +1,6 @@
 package coins
 
 import (
-	"fmt"
-
 	"github.com/confio/weave"
 	"github.com/confio/weave/errors"
 )
@@ -36,7 +34,7 @@ func (h SendHandler) Check(ctx weave.Context, store weave.KVStore,
 	var res weave.CheckResult
 	msg, ok := tx.GetMsg().(*SendMsg)
 	if !ok {
-		return res, fmt.Errorf("Expected *SendMsg, got %v", tx.GetMsg())
+		return res, errors.ErrUnknownTxType(tx.GetMsg())
 	}
 	err := msg.Validate()
 	if err != nil {
@@ -62,7 +60,7 @@ func (h SendHandler) Deliver(ctx weave.Context, store weave.KVStore,
 	var res weave.DeliverResult
 	msg, ok := tx.GetMsg().(*SendMsg)
 	if !ok {
-		return res, fmt.Errorf("Expected *SendMsg, got %v", tx.GetMsg())
+		return res, errors.ErrUnknownTxType(tx.GetMsg())
 	}
 	err := msg.Validate()
 	if err != nil {

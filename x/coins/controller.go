@@ -1,9 +1,8 @@
 package coins
 
 import (
-	"fmt"
-
 	"github.com/confio/weave"
+	"github.com/confio/weave/errors"
 )
 
 // MoveCoins moves the given amount from src to dest.
@@ -13,19 +12,16 @@ func MoveCoins(store weave.KVStore, src weave.Address,
 	dest weave.Address, amount Coin) error {
 
 	if !amount.IsPositive() {
-		// TODO: better error
-		return fmt.Errorf("MoveCoins must be positive")
+		return ErrInvalidAmount("Non-positive SendMsg")
 	}
 
 	sender := GetWallet(store, NewKey(src))
 	if sender == nil {
-		// TODO: better error
-		return fmt.Errorf("Sender does not exist")
+		return errors.ErrUnrecognizedAddress(src)
 	}
 
 	if !sender.Contains(amount) {
-		// TODO: better error
-		return fmt.Errorf("Sender does not have enough coins")
+		return ErrInsufficientFunds()
 	}
 
 	recipient := GetOrCreateWallet(store, NewKey(dest))
