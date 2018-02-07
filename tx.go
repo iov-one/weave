@@ -1,7 +1,9 @@
 package weave
 
 import (
+	"bytes"
 	"crypto/sha256"
+	"fmt"
 	// "golang.org/x/crypto/blake2b"
 )
 
@@ -114,7 +116,15 @@ func HasAllSigners(required []Address, signed []Address) bool {
 
 // HasSigner returns true if this address has signed
 func HasSigner(required Address, signed []Address) bool {
-	return HasNSigners(1, []Address{required}, signed)
+	// simplest....
+	for _, signer := range signed {
+		fmt.Printf("- %x\n+ %x\n", signer, required)
+		if bytes.Equal(required, signer) {
+			fmt.Printf("= match")
+			return true
+		}
+	}
+	return false
 }
 
 // HasNSigners returns true if at least n elements in requested are

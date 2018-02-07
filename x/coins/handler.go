@@ -68,6 +68,8 @@ func (h SendHandler) Deliver(ctx weave.Context, store weave.KVStore,
 	}
 
 	// make sure we have permission from the sender
+	// fmt.Printf("signers: %v\n", h.auth(ctx))
+	// fmt.Printf("src: %v\n", msg.Src)
 	if !weave.HasSigner(msg.Src, h.auth(ctx)) {
 		return res, errors.ErrUnauthorized()
 	}
