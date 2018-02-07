@@ -56,6 +56,7 @@ func TestVerifySignature(t *testing.T) {
 	sig1 := SignTx(priv, tx, chainID, 1)
 	sig2 := SignTx(priv, tx, chainID, 2)
 	sig13 := SignTx(priv, tx, chainID, 13)
+	empty := new(StdSignature)
 
 	// signing should be deterministic
 	sig2a := SignTx(priv, tx, chainID, 2)
@@ -64,6 +65,17 @@ func TestVerifySignature(t *testing.T) {
 	// the first one must have a signature in the store
 	_, err := VerifySignature(kv, sig1, bz, chainID)
 	assert.Error(t, err)
+
+	// empty sig
+	_, err = VerifySignature(kv, empty, bz, chainID)
+	assert.Error(t, err)
+	assert.True(t, IsInvalidSignatureErr(err))
+	// pubkey address mismatch
+	sig0x := SignTx(priv, tx, chainID, 0)
+	sig0x.Address = weave.NewAddress([]byte("foo"))
+	_, err = VerifySignature(kv, sig0x, bz, chainID)
+	assert.Error(t, err)
+	assert.True(t, IsInvalidSignatureErr(err))
 
 	// must start with 0
 	sign, err := VerifySignature(kv, sig0, bz, chainID)
@@ -77,8 +89,10 @@ func TestVerifySignature(t *testing.T) {
 	// jumping and replays are a no-no
 	_, err = VerifySignature(kv, sig1, bz, chainID)
 	assert.Error(t, err)
+	assert.True(t, IsInvalidSequenceErr(err))
 	_, err = VerifySignature(kv, sig13, bz, chainID)
 	assert.Error(t, err)
+	assert.True(t, IsInvalidSequenceErr(err))
 
 	// different chain doesn't match
 	_, err = VerifySignature(kv, sig2, bz, "metal")

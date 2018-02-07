@@ -21,8 +21,12 @@ func (SendMsg) Path() string {
 
 // Validate makes sure that this is sensible
 func (s *SendMsg) Validate() error {
-	if !s.GetAmount().IsPositive() {
+	amt := s.GetAmount()
+	if NoCoin(amt) || !amt.IsPositive() {
 		return ErrInvalidAmount("Non-positive SendMsg")
+	}
+	if err := amt.Validate(); err != nil {
+		return err
 	}
 	l := weave.AddressLength
 	if len(s.GetSrc()) != l {
@@ -72,9 +76,20 @@ func (f *FeeInfo) DefaultPayer(addr []byte) *FeeInfo {
 	}
 }
 
-// Validate makes sure that this is sensible
+// Validate makes sure that this is sensible.
+// Note that fee must be present, even if 0
 func (f *FeeInfo) Validate() error {
-	if !f.GetFees().IsNonNegative() {
+	if f == nil {
+		return errors.ErrUnrecognizedAddress(nil)
+	}
+	fee := f.GetFees()
+	if fee == nil {
+		return ErrInvalidAmount("Fees nil")
+	}
+	if err := fee.Validate(); err != nil {
+		return err
+	}
+	if !fee.IsNonNegative() {
 		return ErrInvalidAmount("Negative fees")
 	}
 	l := weave.AddressLength
