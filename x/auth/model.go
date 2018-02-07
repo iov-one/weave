@@ -1,8 +1,6 @@
 package auth
 
 import (
-	"fmt"
-
 	"github.com/confio/weave"
 	"github.com/confio/weave/crypto"
 )
@@ -44,13 +42,12 @@ func NewKey(addr weave.Address) Key {
 //
 // Returns an explanation if the data is invalid
 func (u UserData) Validate() error {
-	if u.Sequence < 0 {
-		// TODO: ErrInvalidSequence
-		return fmt.Errorf("Sequence is negative")
+	seq := u.Sequence
+	if seq < 0 {
+		return ErrInvalidSequence("Seq(%d)", seq)
 	}
-	if u.Sequence > 0 && u.PubKey == nil {
-		// TODO: ErrInvalidSequence
-		return fmt.Errorf("Positive Sequence must have a PubKey")
+	if seq > 0 && u.PubKey == nil {
+		return ErrInvalidSequence("Seq(%d) needs PubKey", seq)
 	}
 	return nil
 }
@@ -129,9 +126,7 @@ func (u User) Sequence() int64 {
 // If not, it will not change the sequence, but return an error
 func (u *User) CheckAndIncrementSequence(check int64) error {
 	if u.data.Sequence != check {
-		// TODO: ErrInvalidSequence
-		return fmt.Errorf("Invalid sequence number %d (actual %d)",
-			check, u.data.Sequence)
+		return ErrInvalidSequence("Mismatch %d != %d", check, u.data.Sequence)
 	}
 	u.data.Sequence++
 	return nil
