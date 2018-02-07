@@ -41,6 +41,7 @@ type Router struct {
 }
 
 var _ weave.Registry = Router{}
+var _ weave.Handler = Router{}
 
 // NewRouter initializes a router with no routes
 func NewRouter() Router {
@@ -70,6 +71,24 @@ func (r Router) Handler(path string) weave.Handler {
 		return noSuchPathHandler{path}
 	}
 	return h
+}
+
+// Check dispatches to the proper handler based on path
+func (r Router) Check(ctx weave.Context, store weave.KVStore,
+	tx weave.Tx) (weave.CheckResult, error) {
+
+	path := tx.GetMsg().Path()
+	h := r.Handler(path)
+	return h.Check(ctx, store, tx)
+}
+
+// Deliver dispatches to the proper handler based on path
+func (r Router) Deliver(ctx weave.Context, store weave.KVStore,
+	tx weave.Tx) (weave.DeliverResult, error) {
+
+	path := tx.GetMsg().Path()
+	h := r.Handler(path)
+	return h.Deliver(ctx, store, tx)
 }
 
 //-------------------- error handler ---------------

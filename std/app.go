@@ -1,0 +1,76 @@
+/*
+Package std contains standard implementations of a number
+of components.
+
+It is a good place to get started buuilding your first app,
+and to see how to wire together the various components.
+You can then replace them with custom implementations,
+as your project grows.
+*/
+package std
+
+import (
+	"fmt"
+	"path/filepath"
+	"strings"
+
+	"github.com/confio/weave"
+	"github.com/confio/weave/app"
+	"github.com/confio/weave/store/iavl"
+	"github.com/confio/weave/x/auth"
+	"github.com/confio/weave/x/coins"
+)
+
+// AuthFunc returns the typical authentication,
+// just using public key signatures
+func AuthFunc() weave.AuthFunc {
+	return auth.GetSigners
+}
+
+// Chain returns a chain of decorators, to handle authentication,
+// fees, logging, and recovery
+func Chain(minFee coins.Coin, authFn weave.AuthFunc) app.Decorators {
+	return app.ChainDecorators(
+		auth.NewDecorator(),
+		coins.NewFeeDecorator(authFn, minFee),
+	)
+}
+
+// Router returns a default router, only dispatching to the
+// coins.SendMsg
+func Router(authFn weave.AuthFunc) app.Router {
+	r := app.NewRouter()
+	coins.RegisterRoutes(r, authFn)
+	return r
+}
+
+// Stack wires up a standard router with a standard decorator
+// chain. This can be passed into BaseApp.
+func Stack(minFee coins.Coin) weave.Handler {
+	authFn := AuthFunc()
+	return Chain(minFee, authFn).
+		WithHandler(Router(authFn))
+}
+
+// CommitKVStore returns an initialized KVStore that persists
+// the data to the named path.
+func CommitKVStore(dbPath string) (weave.CommitKVStore, error) {
+	// memory backed case, just for testing
+	if dbPath == "" {
+		return iavl.MockCommitStore(), nil
+	}
+
+	// Expand the path fully
+	path, err := filepath.Abs(dbPath)
+	if err != nil {
+		return nil, fmt.Errorf("Invalid Database Name: %s", path)
+	}
+
+	// Some external calls accidently add a ".db", which is now removed
+	path = strings.TrimSuffix(path, filepath.Ext(path))
+
+	// Split the database name into it's components (dir, name)
+	dir := filepath.Dir(path)
+	name := filepath.Base(path)
+	return iavl.NewCommitStore(dir, name), nil
+}
