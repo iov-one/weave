@@ -19,6 +19,8 @@ package weave
 
 import (
 	"context"
+	"fmt"
+	"regexp"
 
 	abci "github.com/tendermint/abci/types"
 	"github.com/tendermint/tmlibs/log"
@@ -37,6 +39,9 @@ var (
 	// Default logger is used for all context that have not
 	// set anything themselves
 	DefaultLogger = log.NewNopLogger()
+
+	// isValidChainID is the RegExp to ensure valid chain IDs
+	isValidChainID = regexp.MustCompile(`^[a-z0-9_\-]{6,14}$`).MatchString
 )
 
 // Context is just an alias for the standard implementation.
@@ -80,6 +85,9 @@ func GetHeight(ctx Context) (int64, bool) {
 func WithChainID(ctx Context, chainID string) Context {
 	if ctx.Value(contextKeyChainID) != nil {
 		panic("Chain ID already set")
+	}
+	if !isValidChainID(chainID) {
+		panic(fmt.Sprintf("Invalid chain ID: %s", chainID))
 	}
 	return context.WithValue(ctx, contextKeyChainID, chainID)
 }

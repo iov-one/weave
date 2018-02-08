@@ -17,7 +17,7 @@ func TestDecorator(t *testing.T) {
 	checkKv := kv.CacheWrap()
 	signers := new(SigCheckHandler)
 	d := NewDecorator()
-	chainID := "deco"
+	chainID := "deco-rate"
 	ctx := weave.WithChainID(context.Background(), chainID)
 
 	priv := crypto.GenPrivKeyEd25519()

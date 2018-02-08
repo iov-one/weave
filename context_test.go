@@ -46,3 +46,20 @@ func TestContext(t *testing.T) {
 
 	// TODO: test header context!
 }
+
+func TestChainID(t *testing.T) {
+	cases := []struct {
+		chainID string
+		valid   bool
+	}{
+		{"", false},
+		{"foo", false},
+		{"special", true},
+		{"wish-you-88", true},
+		{"way-way-too-long", false},
+	}
+
+	for _, tc := range cases {
+		assert.Equal(t, tc.valid, isValidChainID(tc.chainID), tc.chainID)
+	}
+}
