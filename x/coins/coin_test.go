@@ -16,6 +16,49 @@ const (
 	pos      = 1
 )
 
+func TestIssuer(t *testing.T) {
+	cases := []struct {
+		a        Coin
+		id       string
+		b        Coin
+		sameType bool
+	}{
+		{NewCoin(1, 2, "FOO"), "FOO", NewCoin(12, 0, "FOO"), true},
+		{NewCoin(1, 2, "BAR"), "BAR", NewCoin(12, 0, "FOO"), false},
+		{
+			NewCoin(1, 2, "FOO").WithIssuer("chain1"),
+			"chain1/FOO",
+			NewCoin(12, 0, "FOO"),
+			false,
+		},
+		{
+			NewCoin(1, 2, "FOO"),
+			"FOO",
+			NewCoin(12, 0, "FOO").WithIssuer("chain1"),
+			false,
+		},
+		{
+			NewCoin(1, 2, "FOO").WithIssuer("chain1"),
+			"chain1/FOO",
+			NewCoin(12, 0, "FOO").WithIssuer("chain1"),
+			true,
+		},
+		{
+			NewCoin(1, 2, "WIN").WithIssuer("my-chain").Negative(),
+			"my-chain/WIN",
+			NewCoin(12, 0, "WIN").WithIssuer("my-chain"),
+			true,
+		},
+	}
+
+	for idx, tc := range cases {
+		i := strconv.Itoa(idx)
+
+		assert.Equal(t, tc.id, tc.a.ID(), i)
+		assert.Equal(t, tc.sameType, tc.a.SameType(tc.b), i)
+	}
+}
+
 func TestCompareCoin(t *testing.T) {
 
 	cases := []struct {
@@ -81,24 +124,28 @@ func TestValidCoin(t *testing.T) {
 		normalized      Coin
 		normalizedValid bool
 	}{
+		// interger and fraction with same sign
 		{
 			NewCoin(4, -123456789, "FOO"),
 			false,
 			NewCoin(3, 876543211, "FOO"),
 			true,
 		},
+		// invalid coin id
 		{
 			NewCoin(1, 0, "eth2"),
 			false,
 			NewCoin(1, 0, "eth2"),
 			false,
 		},
+		// make sure issuer is maintained throughout
 		{
-			NewCoin(2, -1500500500, "ABC"),
+			NewCoin(2, -1500500500, "ABC").WithIssuer("my-chain"),
 			false,
-			NewCoin(0, 499499500, "ABC"),
+			NewCoin(0, 499499500, "ABC").WithIssuer("my-chain"),
 			true,
 		},
+		// from negative to positive rollover
 		{
 			NewCoin(-1, 1777888111, "ABC"),
 			false,
@@ -163,11 +210,32 @@ func TestAddCoin(t *testing.T) {
 			Coin{},
 			true,
 		},
+		// wrong issuer
+		{
+			NewCoin(1, 2, "FOO").WithIssuer("chain-1"),
+			NewCoin(2, 3, "FOO"),
+			Coin{},
+			true,
+		},
+		// negative hold issuer
+		{
+			NewCoin(7, 5000, "DEF").WithIssuer("lucky7"),
+			NewCoin(5, 5000, "DEF").WithIssuer("lucky7").Negative(),
+			NewCoin(2, 0, "DEF").WithIssuer("lucky7"),
+			false,
+		},
 		// normal math
 		{
 			NewCoin(7, 5000, "ABC"),
 			NewCoin(-4, -12000, "ABC"),
 			NewCoin(2, 999993000, "ABC"),
+			false,
+		},
+		// normal math with issuer
+		{
+			NewCoin(7, 5000, "ABC").WithIssuer("chain-1"),
+			NewCoin(-4, -12000, "ABC").WithIssuer("chain-1"),
+			NewCoin(2, 999993000, "ABC").WithIssuer("chain-1"),
 			false,
 		},
 		// overflow
@@ -228,6 +296,15 @@ func TestMakeSet(t *testing.T) {
 			true,
 			[]Coin{NewCoin(10, 0, "FUD"), NewCoin(40, 0, "FUD")},
 			[]Coin{NewCoin(40, 1, "FUD"), NewCoin(40, 0, "FUN")},
+			false,
+		},
+		// simple with issuer
+		{
+			[]Coin{NewCoin(40, 0, "FUD").WithIssuer("johnny")},
+			false,
+			true,
+			[]Coin{NewCoin(37, 0, "FUD").WithIssuer("johnny")},
+			[]Coin{NewCoin(10, 0, "FUD")},
 			false,
 		},
 		// out of order, with negative

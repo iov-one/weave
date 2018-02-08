@@ -30,6 +30,23 @@ func NewCoin(integer int32, fractional int32,
 	}
 }
 
+// WithIssuer sets the Issuer on a coin.
+// Returns new coin, so this can be chained on constructor
+func (c Coin) WithIssuer(issuer string) Coin {
+	c.Issuer = issuer
+	return c
+}
+
+// ID returns a unique identifier.
+// If issuer is empty, then just the CurrencyCode.
+// If issuer is present, then <Issuer>/<CurrencyCode>
+func (c Coin) ID() string {
+	if c.Issuer == "" {
+		return c.CurrencyCode
+	}
+	return c.Issuer + "/" + c.CurrencyCode
+}
+
 // Add combines two coins.
 // Returns error if they are of different
 // currencies, or if the combination would cause
@@ -52,6 +69,7 @@ func (c Coin) Add(o Coin) (Coin, error) {
 func (c Coin) Negative() Coin {
 	return Coin{
 		CurrencyCode: c.CurrencyCode,
+		Issuer:       c.Issuer,
 		Integer:      -1 * c.Integer,
 		Fractional:   -1 * c.Fractional,
 	}
@@ -124,12 +142,14 @@ func (c Coin) IsGTE(o Coin) bool {
 
 // SameType returns true if they have the same currency
 func (c Coin) SameType(o Coin) bool {
-	return c.CurrencyCode == o.CurrencyCode
+	return c.CurrencyCode == o.CurrencyCode &&
+		c.Issuer == o.Issuer
 }
 
 // Clone provides an independent copy of a coin pointer
 func (c *Coin) Clone() *Coin {
 	return &Coin{
+		Issuer:       c.Issuer,
 		CurrencyCode: c.CurrencyCode,
 		Integer:      c.Integer,
 		Fractional:   c.Fractional,
