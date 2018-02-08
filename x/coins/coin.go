@@ -127,7 +127,8 @@ func (c Coin) IsNonNegative() bool {
 }
 
 // IsGTE returns true if c is same type and at least
-// as large as o
+// as large as o.
+// It assumes they were already normalized.
 func (c Coin) IsGTE(o Coin) bool {
 	if !c.SameType(o) || c.Integer < o.Integer {
 		return false
