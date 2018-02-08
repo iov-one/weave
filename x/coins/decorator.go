@@ -61,7 +61,7 @@ func (d FeeDecorator) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx,
 
 	// if nothing returned, but no error, just move along
 	fee := finfo.GetFees()
-	if NoCoin(fee) {
+	if IsEmpty(fee) {
 		return next.Check(ctx, store, tx)
 	}
 
@@ -94,7 +94,7 @@ func (d FeeDecorator) Deliver(ctx weave.Context, store weave.KVStore, tx weave.T
 
 	// if nothing returned, but no error, just move along
 	fee := finfo.GetFees()
-	if NoCoin(fee) {
+	if IsEmpty(fee) {
 		return next.Deliver(ctx, store, tx)
 	}
 
@@ -120,7 +120,7 @@ func (d FeeDecorator) extractFee(ctx weave.Context, tx weave.Tx) (*FeeInfo, erro
 	}
 
 	fee := finfo.GetFees()
-	if NoCoin(fee) {
+	if IsEmpty(fee) {
 		if d.minFee.IsZero() {
 			return finfo, nil
 		}
