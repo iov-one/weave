@@ -1,4 +1,4 @@
-.PHONY: all install test cover deps glide tools protoc
+.PHONY: all install build test cover deps glide tools protoc
 
 GIT_COMMIT := $(shell git rev-parse --short HEAD)
 BUILD_FLAGS := -ldflags "-X github.com/confio/weave.GitCommit=$(GIT_COMMIT)"
@@ -11,21 +11,18 @@ NOVENDOR := $(shell go list ./...)
 # MODE=set just records which lines were hit by one test
 MODE ?= set
 
-all: deps install test
+all: deps build test
 
 install:
-	# TODO: install cmd later... now just compile important dirs
-	# go install $(BUILD_FLAGS) ./cmd/...
-	go install .
-	go install ./app
-	go install ./crypto
-	go install ./errors
-	go install ./store
-	go install ./x/...
-	go install ./std
+	# Nothing to see here yet
+	go install $(BUILD_FLAGS) ./cmd/...
+
+# This is to make sure it all compiles
+build:
+	go build ./...
 
 test:
-	go test $(NOVENDOR)
+	go test ./...
 
 # TODO: test all packages... names on each
 cover:
