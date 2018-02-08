@@ -20,6 +20,7 @@ import (
 	"github.com/confio/weave/store/iavl"
 	"github.com/confio/weave/x/auth"
 	"github.com/confio/weave/x/coins"
+	"github.com/confio/weave/x/utils"
 )
 
 // AuthFunc returns the typical authentication,
@@ -32,8 +33,15 @@ func AuthFunc() weave.AuthFunc {
 // fees, logging, and recovery
 func Chain(minFee coins.Coin, authFn weave.AuthFunc) app.Decorators {
 	return app.ChainDecorators(
+		utils.NewLogging(),
+		utils.NewRecovery(),
+		// on CheckTx, bad tx don't affect state
+		utils.NewSavepoint().OnCheck(),
 		auth.NewDecorator(),
 		coins.NewFeeDecorator(authFn, minFee),
+		// on DeliverTx, bad tx will increment nonce and take fee
+		// even if the message fails
+		utils.NewSavepoint().OnDeliver(),
 	)
 }
 
