@@ -41,11 +41,21 @@ func TestValidateSendMsg(t *testing.T) {
 	good2.Dest = []byte{1, 2, 3}
 	assert.Error(t, good2.Validate())
 
+	// test memo length
 	good3 := noSrc.DefaultSource(addr3)
 	assert.NoError(t, good3.Validate())
-	good3.Note = "kfjuhewiufhgqwegf"
+	good3.Memo = "kfjuhewiufhgqwegf"
 	assert.NoError(t, good3.Validate())
-	good3.Note = strings.Repeat("foo", 300)
+	good3.Memo = strings.Repeat("foo", 300)
+	err = good3.Validate()
+	assert.Error(t, err)
+	assert.True(t, IsInvalidMemoErr(err))
+
+	// test ref length
+	good3.Memo = "short"
+	good3.Ref = []byte{1, 2, 3, 4, 5}
+	assert.NoError(t, good3.Validate())
+	good3.Ref = make([]byte, 68)
 	err = good3.Validate()
 	assert.Error(t, err)
 	assert.True(t, IsInvalidMemoErr(err))

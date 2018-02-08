@@ -30,12 +30,16 @@ message Set {
 
 // SendMsg is a request to move these coins from the given
 // source to the given destination address.
-// note is an optional message, like reference code
+// memo is an optional human-readable message
+// ref is optional binary data, that can refer to another eg. tx hash
 message SendMsg {
     bytes src = 1;
     bytes dest = 2;
     Coin amount = 3;
-    string note = 4;
+    // max length 128 character
+    string memo = 4;
+    // max length 64 bytes
+    bytes ref = 5;
 }
 
 // FeeInfo records who pays what fees to have this

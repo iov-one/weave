@@ -10,8 +10,10 @@ var _ weave.Msg = (*SendMsg)(nil)
 
 const (
 	pathSendMsg       = "coins/send"
-	maxNoteSize int   = 250
 	sendTxCost  int64 = 100
+
+	maxMemoSize int = 128
+	maxRefSize  int = 64
 )
 
 // Path returns the routing path for this message
@@ -35,8 +37,11 @@ func (s *SendMsg) Validate() error {
 	if len(s.GetDest()) != l {
 		return errors.ErrUnrecognizedAddress(s.GetDest())
 	}
-	if len(s.GetNote()) > maxNoteSize {
-		return ErrInvalidMemo("Note too long")
+	if len(s.GetMemo()) > maxMemoSize {
+		return ErrInvalidMemo("Memo too long")
+	}
+	if len(s.GetRef()) > maxRefSize {
+		return ErrInvalidMemo("Ref too long")
 	}
 	return nil
 }
@@ -52,7 +57,8 @@ func (s *SendMsg) DefaultSource(addr []byte) *SendMsg {
 		Src:    addr,
 		Dest:   s.GetDest(),
 		Amount: s.GetAmount(),
-		Note:   s.GetNote(),
+		Memo:   s.GetMemo(),
+		Ref:    s.GetRef(),
 	}
 }
 
