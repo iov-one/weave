@@ -47,7 +47,11 @@ func (p *PublicKey) Verify(message []byte, sig *Signature) bool {
 
 // Address hashes the public key into a weave address
 func (p *PublicKey) Address() weave.Address {
-	return p.unwrap().Address()
+	in := p.unwrap()
+	if in == nil {
+		return nil
+	}
+	return in.Address()
 }
 
 var _ Signer = (*PrivateKey)(nil)

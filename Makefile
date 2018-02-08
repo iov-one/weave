@@ -1,4 +1,4 @@
-.PHONY: all install test cover deps glide tools protoc
+.PHONY: all install build test cover deps glide tools protoc
 
 GIT_COMMIT := $(shell git rev-parse --short HEAD)
 BUILD_FLAGS := -ldflags "-X github.com/confio/weave.GitCommit=$(GIT_COMMIT)"
@@ -11,17 +11,18 @@ NOVENDOR := $(shell go list ./...)
 # MODE=set just records which lines were hit by one test
 MODE ?= set
 
-all: deps install test
+all: deps build test
 
 install:
-	# TODO: install cmd later... now just compile important dirs
-	go install $(BUILD_FLAGS) .
-	go install $(BUILD_FLAGS) ./app
-	go install $(BUILD_FLAGS) ./store
-	go install $(BUILD_FLAGS) ./x/...
+	# Nothing to see here yet
+	go install $(BUILD_FLAGS) ./cmd/...
+
+# This is to make sure it all compiles
+build:
+	go build ./...
 
 test:
-	go test $(NOVENDOR)
+	go test ./...
 
 # TODO: test all packages... names on each
 cover:
@@ -31,7 +32,6 @@ cover:
 	    echo "Coverage on" $$pkg "as" $$file; \
 		go test -covermode=$(MODE) -coverprofile=coverage/$$file.out $$pkg; \
 		go tool cover -html=coverage/$$file.out -o=coverage/$$file.html; \
-		go tool cover -func=coverage/$$file.out; \
 	done
 
 deps: glide
@@ -43,6 +43,7 @@ glide:
 protoc:
 	protoc --gogofaster_out=. -I=. -I=$$GOPATH/src x/auth/*.proto
 	protoc --gogofaster_out=. crypto/*.proto
+	protoc --gogofaster_out=. x/coins/*.proto
 	@ # protoc -I=. -I=vendor --gogo_out=. crypto/*.proto
 
 ### cross-platform check for installing protoc ###

@@ -1,6 +1,7 @@
 package weave
 
 import (
+	"bytes"
 	"crypto/sha256"
 	// "golang.org/x/crypto/blake2b"
 )
@@ -97,10 +98,30 @@ func MultiAuth(fns ...AuthFunc) AuthFunc {
 	}
 }
 
+// MainSigner returns the first signed if any, otherwise nil
+func MainSigner(ctx Context, fn AuthFunc) Address {
+	auth := fn(ctx)
+	if len(auth) == 0 {
+		return nil
+	}
+	return auth[0]
+}
+
 // HasAllSigners returns true if all elements in required are
 // also in signed.
 func HasAllSigners(required []Address, signed []Address) bool {
 	return HasNSigners(len(required), required, signed)
+}
+
+// HasSigner returns true if this address has signed
+func HasSigner(required Address, signed []Address) bool {
+	// simplest....
+	for _, signer := range signed {
+		if bytes.Equal(required, signer) {
+			return true
+		}
+	}
+	return false
 }
 
 // HasNSigners returns true if at least n elements in requested are
@@ -150,4 +171,32 @@ func MustUnmarshal(obj Persistent, bz []byte) {
 	if err != nil {
 		panic(err)
 	}
+}
+
+//-------------------- Validation ---------
+
+// Validater is any struct that can be validated.
+// Not the same as a Validator, which votes on the blocks.
+type Validater interface {
+	Validate() error
+}
+
+// MustValidate panics if the object is not valid
+func MustValidate(obj Validater) {
+	err := obj.Validate()
+	if err != nil {
+		panic(err)
+	}
+}
+
+type MarshalValidater interface {
+	Marshaller
+	Validater
+}
+
+// MustMarshalValid marshals the object, but panics
+// if the object is not valid or has trouble marshalling
+func MustMarshalValid(obj MarshalValidater) []byte {
+	MustValidate(obj)
+	return MustMarshal(obj)
 }

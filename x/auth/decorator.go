@@ -39,15 +39,18 @@ func (d Decorator) AllowMissingSigs() Decorator {
 
 // Check verifies signatures before calling down the stack
 func (d Decorator) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx,
-	next weave.Checker) (res weave.CheckResult, err error) {
+	next weave.Checker) (weave.CheckResult, error) {
 
+	var res weave.CheckResult
+	var err error
 	var signers []weave.Address
+
 	if stx, ok := tx.(SignedTx); ok {
 		chainID := weave.GetChainID(ctx)
 		signers, err = VerifyTxSignatures(store, stx, chainID)
-	}
-	if err != nil {
-		return res, err
+		if err != nil {
+			return res, err
+		}
 	}
 	if len(signers) == 0 && !d.allowMissingSigs {
 		return res, errors.ErrMissingSignature()
@@ -59,15 +62,17 @@ func (d Decorator) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx,
 
 // Deliver verifies signatures before calling down the stack
 func (d Decorator) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx,
-	next weave.Deliverer) (res weave.DeliverResult, err error) {
+	next weave.Deliverer) (weave.DeliverResult, error) {
 
+	var res weave.DeliverResult
+	var err error
 	var signers []weave.Address
 	if stx, ok := tx.(SignedTx); ok {
 		chainID := weave.GetChainID(ctx)
 		signers, err = VerifyTxSignatures(store, stx, chainID)
-	}
-	if err != nil {
-		return res, err
+		if err != nil {
+			return res, err
+		}
 	}
 	if len(signers) == 0 && !d.allowMissingSigs {
 		return res, errors.ErrMissingSignature()

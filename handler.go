@@ -33,3 +33,9 @@ type Decorator interface {
 type Ticker interface {
 	Tick(ctx Context, store KVStore) (TickResult, error)
 }
+
+// Registry is an interface to register your handler,
+// the setup side of a Router
+type Registry interface {
+	Handle(path string, h Handler)
+}

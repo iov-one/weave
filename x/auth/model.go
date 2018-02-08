@@ -1,8 +1,6 @@
 package auth
 
 import (
-	"fmt"
-
 	"github.com/confio/weave"
 	"github.com/confio/weave/crypto"
 )
@@ -21,20 +19,20 @@ import (
 
 //---- Key
 
-// UserKey is the primary key we use to distinguish users
+// Key is the primary key we use to distinguish users
 // This should be []byte, in order to index with our KVStore.
 // Any structure to these bytes should be defined by the constructor.
 //
 // Question: allow objects with a Marshal method???
-type UserKey []byte
+type Key []byte
 
 var userPrefix = []byte("user:")
 
-// NewUserKey constructs the user key from a key hash,
+// NewKey constructs the user key from a key hash,
 // by appending a prefix.
-func NewUserKey(addr weave.Address) UserKey {
+func NewKey(addr weave.Address) Key {
 	bz := append(userPrefix, addr...)
-	return UserKey(bz)
+	return Key(bz)
 }
 
 //---- Data
@@ -44,13 +42,12 @@ func NewUserKey(addr weave.Address) UserKey {
 //
 // Returns an explanation if the data is invalid
 func (u UserData) Validate() error {
-	if u.Sequence < 0 {
-		// TODO: ErrInvalidSequence
-		return fmt.Errorf("Sequence is negative")
+	seq := u.Sequence
+	if seq < 0 {
+		return ErrInvalidSequence("Seq(%d)", seq)
 	}
-	if u.Sequence > 0 && u.PubKey == nil {
-		// TODO: ErrInvalidSequence
-		return fmt.Errorf("Positive Sequence must have a PubKey")
+	if seq > 0 && u.PubKey == nil {
+		return ErrInvalidSequence("Seq(%d) needs PubKey", seq)
 	}
 	return nil
 }
@@ -66,12 +63,12 @@ func (u UserData) Validate() error {
 // from, to know how to save itself.
 type User struct {
 	store weave.KVStore
-	key   UserKey
+	key   Key
 	data  UserData
 }
 
 // GetUser loads this user if present, or returns nil if missing
-func GetUser(store weave.KVStore, key UserKey) *User {
+func GetUser(store weave.KVStore, key Key) *User {
 	bz := store.Get(key)
 	if bz == nil {
 		return nil
@@ -89,7 +86,7 @@ func GetUser(store weave.KVStore, key UserKey) *User {
 
 // GetOrCreateUser loads this user if present,
 // or initializes a new user with this key if not present.
-func GetOrCreateUser(store weave.KVStore, key UserKey) *User {
+func GetOrCreateUser(store weave.KVStore, key Key) *User {
 	res := GetUser(store, key)
 	if res == nil {
 		res = &User{
@@ -104,26 +101,9 @@ func GetOrCreateUser(store weave.KVStore, key UserKey) *User {
 // Save writes the current user state to the backing store
 // panics if invalid state
 func (u *User) Save() {
-	// TODO: MustValidate
-	err := u.data.Validate()
-	if err != nil {
-		panic(err)
-	}
-
-	// TODO: MustMarshal
-	value, err := u.data.Marshal()
-	if err != nil {
-		panic(err)
-	}
-
+	value := weave.MustMarshalValid(&u.data)
 	u.store.Set(u.key, value)
 }
-
-// Delete removes the current user id from the backing store
-// panics if key is missing
-// func (u *User) Delete() {
-// 	u.store.Delete(u.key)
-// }
 
 // PubKey checks the current pubkey for this account
 func (u User) PubKey() *crypto.PublicKey {
@@ -146,9 +126,7 @@ func (u User) Sequence() int64 {
 // If not, it will not change the sequence, but return an error
 func (u *User) CheckAndIncrementSequence(check int64) error {
 	if u.data.Sequence != check {
-		// TODO: ErrInvalidSequence
-		return fmt.Errorf("Invalid sequence number %d (actual %d)",
-			check, u.data.Sequence)
+		return ErrInvalidSequence("Mismatch %d != %d", check, u.data.Sequence)
 	}
 	u.data.Sequence++
 	return nil

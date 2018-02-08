@@ -2,7 +2,8 @@ package auth
 
 import (
 	"bytes"
-	"fmt"
+
+	"github.com/confio/weave/errors"
 )
 
 // SignedTx represents a transaction that contains signatures,
@@ -23,27 +24,22 @@ type SignedTx interface {
 func (s *StdSignature) Validate() error {
 	seq := s.GetSequence()
 	if seq < 0 {
-		// TODO: ErrInvalidSequence
-		return fmt.Errorf("Sequence is negative")
+		return ErrInvalidSequence("Negative")
 	}
 	if seq == 0 && s.PubKey == nil {
-		// TODO: ErrInvalidSignature
-		return fmt.Errorf("PubKey missing for sequence 0")
+		return ErrMissingPubKey()
 	}
 	if s.PubKey == nil && s.Address == nil {
-		// TODO: ErrInvalidSignature
-		return fmt.Errorf("PubKey or Address is required")
+		return ErrMissingPubKey()
 	}
 	if s.PubKey != nil && s.Address != nil {
 		if !bytes.Equal(s.Address, s.PubKey.Address()) {
-			// TODO: ErrInvalidSignature
-			return fmt.Errorf("PubKey and Address do not match")
+			return ErrPubKeyAddressMismatch()
 		}
 	}
 
 	if s.Signature == nil {
-		// TODO: ErrInvalidSignature
-		return fmt.Errorf("Signature is missing")
+		return errors.ErrMissingSignature()
 	}
 
 	return nil

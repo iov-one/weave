@@ -2,7 +2,6 @@ package auth
 
 import (
 	"encoding/binary"
-	"fmt"
 
 	"github.com/confio/weave"
 	"github.com/confio/weave/crypto"
@@ -61,14 +60,13 @@ func VerifySignature(store weave.KVStore, sig *StdSignature,
 	if key == nil {
 		key = pub.Address()
 	}
-	user := GetOrCreateUser(store, NewUserKey(key))
+	user := GetOrCreateUser(store, NewKey(key))
 
 	// make sure we get the key from the store if not from the sig
 	if pub == nil {
 		pub = user.PubKey()
 		if pub == nil {
-			// TODO: better code
-			return nil, fmt.Errorf("Missing public key")
+			return nil, ErrMissingPubKey()
 		}
 	}
 
