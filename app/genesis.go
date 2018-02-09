@@ -11,8 +11,8 @@ import (
 
 // Genesis file format, designed to be overlayed with tendermint genesis
 type Genesis struct {
-	ChainID    string  `json:"chain_id"`
-	AppOptions Options `json:"app_options"`
+	ChainID    string        `json:"chain_id"`
+	AppOptions weave.Options `json:"app_options"`
 }
 
 // loadGenesis tries to load a given file into a Genesis struct
@@ -30,24 +30,6 @@ func loadGenesis(filePath string) (Genesis, error) {
 		return gen, errors.Wrap(err, "unmarshaling genesis file")
 	}
 	return gen, nil
-}
-
-// Options are the app options
-// Each extension can look up it's key and parse the json as desired
-type Options map[string]json.RawMessage
-
-var _ weave.Options = Options{}
-
-// ReadOptions reads the values stored under a given key,
-// and parses the json into the given obj.
-// Returns an error if it cannot parse.
-// Noop and no error if key is missing
-func (o Options) ReadOptions(key string, obj interface{}) error {
-	msg := o[key]
-	if len(msg) == 0 {
-		return nil
-	}
-	return json.Unmarshal([]byte(msg), obj)
 }
 
 //------ init state -----

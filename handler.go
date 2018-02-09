@@ -1,5 +1,10 @@
 package weave
 
+import (
+	"encoding/json"
+	"fmt"
+)
+
 // Handler is a core engine that can process a few specific messages
 // This could represent "coin transfer", or "bonding stake to a validator"
 type Handler interface {
@@ -40,10 +45,21 @@ type Registry interface {
 	Handle(path string, h Handler)
 }
 
-// Options loads the options stored under key into the
-// given interface using reflection
-type Options interface {
-	ReadOptions(key string, v interface{}) error
+// Options are the app options
+// Each extension can look up it's key and parse the json as desired
+type Options map[string]json.RawMessage
+
+// ReadOptions reads the values stored under a given key,
+// and parses the json into the given obj.
+// Returns an error if it cannot parse.
+// Noop and no error if key is missing
+func (o Options) ReadOptions(key string, obj interface{}) error {
+	msg := o[key]
+	if len(msg) == 0 {
+		fmt.Println("nothing")
+		return nil
+	}
+	return json.Unmarshal(msg, obj)
 }
 
 // InitStater implementations are used to initialize
