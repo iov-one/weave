@@ -42,7 +42,7 @@ func (s *Set) Add(c Coin) error {
 		return nil
 	}
 
-	has, i := s.findCoin(c.CurrencyCode)
+	has, i := s.findCoin(c.ID())
 	// add to existing coin
 	if has != nil {
 		sum, err := has.Add(c)
@@ -94,7 +94,7 @@ func (s Set) Combine(o Set) (Set, error) {
 // coin in the Set. If it returns true, then:
 //   s.Remove(c).IsNonNegative() == true
 func (s Set) Contains(c Coin) bool {
-	has, _ := s.findCoin(c.CurrencyCode)
+	has, _ := s.findCoin(c.ID())
 	if has == nil {
 		return false
 	}
@@ -108,9 +108,9 @@ func (s Set) Contains(c Coin) bool {
 // index is where it was. If there was no match, then
 // result is nil, and index is where it should be
 // (which may be between 0 and len(s.Coins)).
-func (s Set) findCoin(cur string) (*Coin, int) {
+func (s Set) findCoin(id string) (*Coin, int) {
 	for i, c := range s.Coins {
-		switch strings.Compare(cur, c.CurrencyCode) {
+		switch strings.Compare(id, c.ID()) {
 		case -1:
 			return nil, i
 		case 0:

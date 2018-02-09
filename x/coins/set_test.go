@@ -73,6 +73,23 @@ func TestMakeSet(t *testing.T) {
 			[]Coin{NewCoin(40, 6, "BON"), NewCoin(-20, 0, "FIN")},
 			false,
 		},
+		// out of order, with different issuers
+		{
+			[]Coin{
+				NewCoin(200, 0, "FIN").WithIssuer("chain-2"),
+				NewCoin(100, 0, "FIN").WithIssuer("chain-1"),
+			},
+			false,
+			true,
+			// make sure both match
+			[]Coin{
+				NewCoin(100, 0, "FIN").WithIssuer("chain-1"),
+				NewCoin(200, 0, "FIN").WithIssuer("chain-2"),
+			},
+			// don't combine the two issuers
+			[]Coin{NewCoin(200, 0, "FIN").WithIssuer("chain-1")},
+			false,
+		},
 		// combine and remove
 		{
 			[]Coin{NewCoin(-123, -456, "BOO"), NewCoin(123, 456, "BOO")},
