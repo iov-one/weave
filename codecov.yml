@@ -16,8 +16,12 @@ coverage:
     changes: false
 
 comment:
-  layout: "header, diff"
   behavior: default  # update if exists else create new
+#  layout: "header, diff"
+  layout: "reach, diff, flags, files"
+  require_changes: true
+  require_base: no        # [yes :: must have a base report to post]
+  require_head: no       # [yes :: must have a head report to post]
 
 ignore:
   - "docs"
