@@ -40,6 +40,27 @@ func (TestHelpers) PanicHandler(err error) weave.Handler {
 	return panicHandler{err}
 }
 
+// WriteHandler will write the given key/value pair to the KVStore,
+// and return the error (use nil for success)
+func (TestHelpers) WriteHandler(key, value []byte, err error) weave.Handler {
+	return writeHandler{
+		key:   key,
+		value: value,
+		err:   err,
+	}
+}
+
+// WriteDecorator will write the given key/value pair to the KVStore,
+// either before or after calling down the stack.
+// Returns (res, err) from child handler untouched
+func (TestHelpers) WriteDecorator(key, value []byte, after bool) weave.Decorator {
+	return writeDecorator{
+		key:   key,
+		value: value,
+		after: after,
+	}
+}
+
 // CountingDecorator keeps track of number of times called.
 // 2x per call, 1x per call with panic inside
 type CountingDecorator interface {
@@ -191,4 +212,65 @@ func (p panicHandler) Deliver(ctx weave.Context, store weave.KVStore,
 	tx weave.Tx) (weave.DeliverResult, error) {
 
 	panic(p.err)
+}
+
+//----------------- writers --------
+
+// writeHandler writes the key, value pair and returns the error (may be nil)
+type writeHandler struct {
+	key   []byte
+	value []byte
+	err   error
+}
+
+var _ weave.Handler = writeHandler{}
+
+func (h writeHandler) Check(ctx weave.Context, store weave.KVStore,
+	tx weave.Tx) (weave.CheckResult, error) {
+
+	store.Set(h.key, h.value)
+	return weave.CheckResult{}, h.err
+}
+
+func (h writeHandler) Deliver(ctx weave.Context, store weave.KVStore,
+	tx weave.Tx) (weave.DeliverResult, error) {
+
+	store.Set(h.key, h.value)
+	return weave.DeliverResult{}, h.err
+}
+
+// writeDecorator writes the key, value pair.
+// either before or after calling the handlers
+type writeDecorator struct {
+	key   []byte
+	value []byte
+	after bool
+}
+
+var _ weave.Decorator = writeDecorator{}
+
+func (d writeDecorator) Check(ctx weave.Context, store weave.KVStore,
+	tx weave.Tx, next weave.Checker) (weave.CheckResult, error) {
+
+	if !d.after {
+		store.Set(d.key, d.value)
+	}
+	res, err := next.Check(ctx, store, tx)
+	if d.after {
+		store.Set(d.key, d.value)
+	}
+	return res, err
+}
+
+func (d writeDecorator) Deliver(ctx weave.Context, store weave.KVStore,
+	tx weave.Tx, next weave.Deliverer) (weave.DeliverResult, error) {
+
+	if !d.after {
+		store.Set(d.key, d.value)
+	}
+	res, err := next.Deliver(ctx, store, tx)
+	if d.after {
+		store.Set(d.key, d.value)
+	}
+	return res, err
 }
