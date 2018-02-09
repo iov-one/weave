@@ -25,11 +25,10 @@ type StoreApp struct {
 	// Database state (committed, check, deliver....)
 	store *commitStore
 
-	// Note: Handler, Ticker is other struct
-
 	// TODO: how to load the chainID?
 	// For now assume it is passed in
 	// info  *sm.ChainState ???
+	chainID string
 
 	// cached validator changes from DeliverTx
 	pending []*abci.Validator
@@ -60,6 +59,40 @@ func NewStoreApp(name string, store weave.CommitKVStore, baseContext weave.Conte
 	height, _ := s.store.CommitInfo()
 	s.blockContext = weave.WithHeight(s.baseContext, height)
 	return s
+}
+
+// GetChainID returns the current chainID
+func (s *StoreApp) GetChainID() string {
+	return s.chainID
+}
+
+// LoadGenesis should be called once the first time the chain starts.
+// After initialization, if there is no chain ID, you can safely call this
+// The caller is responsible for passing in the initialization method.
+//
+// Example code for main.go:
+//
+//   if s.chainID == "" {
+//     genesisFile := path.Join(rootDir, "genesis.json")
+//     err := s.LoadGenesis(genesisFile, init)
+//     if err != nil {
+//       panic(err)
+//     }
+//   }
+func (s *StoreApp) LoadGenesis(filePath string, init weave.InitStater) error {
+	if s.chainID != "" {
+		return fmt.Errorf("Genesis file previously loaded for chain: %s", s.chainID)
+	}
+	gen, err := loadGenesis(filePath)
+	if err != nil {
+		return err
+	}
+
+	// set the chainID from the genesis file
+	// TODO: save it
+	s.chainID = gen.ChainID
+
+	return init.InitState(gen.AppOptions, s.DeliverStore())
 }
 
 // WithLogger sets the logger on the StoreApp and returns it,

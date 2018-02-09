@@ -39,3 +39,15 @@ type Ticker interface {
 type Registry interface {
 	Handle(path string, h Handler)
 }
+
+// Options loads the options stored under key into the
+// given interface using reflection
+type Options interface {
+	ReadOptions(key string, v interface{}) error
+}
+
+// InitStater implementations are used to initialize
+// extensions from genesis file contents
+type InitStater interface {
+	InitState(Options, KVStore) error
+}
