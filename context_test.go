@@ -60,6 +60,6 @@ func TestChainID(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		assert.Equal(t, tc.valid, isValidChainID(tc.chainID), tc.chainID)
+		assert.Equal(t, tc.valid, IsValidChainID(tc.chainID), tc.chainID)
 	}
 }

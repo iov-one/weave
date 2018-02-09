@@ -25,9 +25,8 @@ type StoreApp struct {
 	// Database state (committed, check, deliver....)
 	store *commitStore
 
-	// TODO: how to load the chainID?
-	// For now assume it is passed in
-	// info  *sm.ChainState ???
+	// chainID is loaded from db in initialization
+	// saved once in LoadGenesis
 	chainID string
 
 	// cached validator changes from DeliverTx
@@ -55,7 +54,13 @@ func NewStoreApp(name string, store weave.CommitKVStore, baseContext weave.Conte
 	}
 	s = s.WithLogger(log.NewNopLogger())
 
-	// TODO: set chain id
+	// load the chainID from the db
+	s.chainID = loadChainID(s.DeliverStore())
+	if s.chainID != "" {
+		s.baseContext = weave.WithChainID(s.baseContext, s.chainID)
+	}
+
+	// get the most recent height
 	height, _ := s.store.CommitInfo()
 	s.blockContext = weave.WithHeight(s.baseContext, height)
 	return s
@@ -89,8 +94,13 @@ func (s *StoreApp) LoadGenesis(filePath string, init weave.InitStater) error {
 	}
 
 	// set the chainID from the genesis file
-	// TODO: save it
 	s.chainID = gen.ChainID
+	err = saveChainID(s.DeliverStore(), s.chainID)
+	if err != nil {
+		return err
+	}
+	// and update the context
+	s.baseContext = weave.WithChainID(s.baseContext, s.chainID)
 
 	return init.InitState(gen.AppOptions, s.DeliverStore())
 }
