@@ -1,10 +1,61 @@
-package app
+package utils
 
 import "github.com/confio/weave"
 
+//--------------- expose helpers -----
+
+// TestHelpers returns helper objects for tests,
+// encapsulated in one object to be easily imported in other packages
+type TestHelpers struct{}
+
+// CountingDecorator passes tx along, and counts how many times it was called.
+// Adds one on input down, one on output up,
+// to differentiate panic from error
+func (TestHelpers) CountingDecorator() CountingDecorator {
+	return &countingDecorator{}
+}
+
+// Counting handler returns success and counts times called
+func (TestHelpers) CountingHandler() CountingHandler {
+	return &countingHandler{}
+}
+
+// ErrorDecorator always returns the given error when called
+func (TestHelpers) ErrorDecorator(err error) weave.Decorator {
+	return errorDecorator{err}
+}
+
+// ErrorHandler always returns the given error when called
+func (TestHelpers) ErrorHandler(err error) weave.Handler {
+	return errorHandler{err}
+}
+
+// PanicAtHeightDecorator will panic if ctx.height >= h
+func (TestHelpers) PanicAtHeightDecorator(h int64) weave.Decorator {
+	return panicAtHeightDecorator{h}
+}
+
+// PanicHandler always pancis with the given error when called
+func (TestHelpers) PanicHandler(err error) weave.Handler {
+	return panicHandler{err}
+}
+
+// CountingDecorator keeps track of number of times called.
+// 2x per call, 1x per call with panic inside
+type CountingDecorator interface {
+	GetCount() int
+	weave.Decorator
+}
+
+// CountingHandler keeps track of number of times called.
+// 1x per call
+type CountingHandler interface {
+	GetCount() int
+	weave.Handler
+}
+
 //-------------- counting -------------------------
 
-// countingDecorator checks if it is called, once down, once out
 type countingDecorator struct {
 	called int
 }
@@ -29,7 +80,11 @@ func (c *countingDecorator) Deliver(ctx weave.Context, store weave.KVStore,
 	return res, err
 }
 
-// countingHandler checks if it is called
+func (c *countingDecorator) GetCount() int {
+	return c.called
+}
+
+// countingHandler counts how many times it was called
 type countingHandler struct {
 	called int
 }
@@ -48,6 +103,10 @@ func (c *countingHandler) Deliver(ctx weave.Context, store weave.KVStore,
 
 	c.called++
 	return weave.DeliverResult{}, nil
+}
+
+func (c *countingHandler) GetCount() int {
+	return c.called
 }
 
 //----------- errors ------------
