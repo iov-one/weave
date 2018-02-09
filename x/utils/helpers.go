@@ -181,14 +181,14 @@ type panicHandler struct {
 
 var _ weave.Handler = panicHandler{}
 
-func (panicHandler) Check(ctx weave.Context, store weave.KVStore,
+func (p panicHandler) Check(ctx weave.Context, store weave.KVStore,
 	tx weave.Tx) (weave.CheckResult, error) {
 
-	panic("fire alarm!!!")
+	panic(p.err)
 }
 
-func (panicHandler) Deliver(ctx weave.Context, store weave.KVStore,
+func (p panicHandler) Deliver(ctx weave.Context, store weave.KVStore,
 	tx weave.Tx) (weave.DeliverResult, error) {
 
-	panic("fire alarm!!!")
+	panic(p.err)
 }
