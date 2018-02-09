@@ -38,9 +38,10 @@ func (b BaseApp) DeliverTx(txBytes []byte) abci.ResponseDeliverTx {
 		return weave.DeliverTxError(err)
 	}
 
+	// ignore error here, allow it to be logged
 	ctx := weave.WithLogInfo(b.BlockContext(),
 		"call", "deliver_tx",
-		"path", tx.GetMsg().Path())
+		"path", weave.GetPath(tx))
 
 	res, err := b.handler.Deliver(ctx, b.DeliverStore(), tx)
 	return weave.DeliverOrError(res, err)
@@ -55,7 +56,7 @@ func (b BaseApp) CheckTx(txBytes []byte) abci.ResponseCheckTx {
 
 	ctx := weave.WithLogInfo(b.BlockContext(),
 		"call", "check_tx",
-		"path", tx.GetMsg().Path())
+		"path", weave.GetPath(tx))
 
 	res, err := b.handler.Check(ctx, b.CheckStore(), tx)
 	return weave.CheckOrError(res, err)

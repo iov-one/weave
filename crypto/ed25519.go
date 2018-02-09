@@ -26,14 +26,15 @@ func (p *PublicKey_Ed25519) Address() weave.Address {
 var _ Signer = (*PrivateKey_Ed25519)(nil)
 
 // Sign returns a matching signature for this private key
-func (p *PrivateKey_Ed25519) Sign(message []byte) *Signature {
+func (p *PrivateKey_Ed25519) Sign(message []byte) (*Signature, error) {
 	privateKey := ed25519.PrivateKey(p.Ed25519)
 	bz := ed25519.Sign(privateKey, message)
-	return &Signature{
+	sig := &Signature{
 		Sig: &Signature_Ed25519{
 			Ed25519: bz,
 		},
 	}
+	return sig, nil
 }
 
 // PublicKey returns the corresponding PublicKey

@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/confio/weave"
 	"github.com/confio/weave/crypto"
@@ -22,22 +23,33 @@ func TestSignBytes(t *testing.T) {
 	res, err := msg.Marshal()
 	assert.NoError(t, err)
 	assert.Equal(t, bz, res)
-	assert.Equal(t, msg, tx.GetMsg())
-	assert.Equal(t, bz, tx.GetSignBytes())
-	assert.Equal(t, bz2, tx2.GetSignBytes())
+	tm, err := tx.GetMsg()
+	assert.NoError(t, err)
+	assert.Equal(t, msg, tm)
+	tbz, err := tx.GetSignBytes()
+	assert.NoError(t, err)
+	assert.Equal(t, bz, tbz)
+	tbz2, err := tx2.GetSignBytes()
+	assert.NoError(t, err)
+	assert.Equal(t, bz2, tbz2)
 
 	// make sure sign bytes match tx
-	c1 := BuildSignBytesTx(tx, "foo", 17)
-	c1a := BuildSignBytes(bz, "foo", 17)
+	c1, err := BuildSignBytesTx(tx, "foo", 17)
+	require.NoError(t, err)
+	c1a, err := BuildSignBytes(bz, "foo", 17)
+	require.NoError(t, err)
 	assert.Equal(t, c1, c1a)
 	assert.NotEqual(t, bz, c1)
 
 	// make sure sign bytes change on tx, chain_id and seq
-	ct := BuildSignBytes(bz2, "foo", 17)
+	ct, err := BuildSignBytes(bz2, "foo", 17)
+	require.NoError(t, err)
 	assert.NotEqual(t, c1, ct)
-	c2 := BuildSignBytes(bz, "food", 17)
+	c2, err := BuildSignBytes(bz, "food", 17)
+	require.NoError(t, err)
 	assert.NotEqual(t, c1, c2)
-	c3 := BuildSignBytes(bz, "foo", 18)
+	c3, err := BuildSignBytes(bz, "foo", 18)
+	require.NoError(t, err)
 	assert.NotEqual(t, c1, c3)
 }
 
@@ -52,18 +64,23 @@ func TestVerifySignature(t *testing.T) {
 	msg := &StdMsg{bz}
 	tx := &StdTx{Msg: msg}
 
-	sig0 := SignTx(priv, tx, chainID, 0)
-	sig1 := SignTx(priv, tx, chainID, 1)
-	sig2 := SignTx(priv, tx, chainID, 2)
-	sig13 := SignTx(priv, tx, chainID, 13)
+	sig0, err := SignTx(priv, tx, chainID, 0)
+	require.Nil(t, err)
+	sig1, err := SignTx(priv, tx, chainID, 1)
+	require.Nil(t, err)
+	sig2, err := SignTx(priv, tx, chainID, 2)
+	require.Nil(t, err)
+	sig13, err := SignTx(priv, tx, chainID, 13)
+	require.Nil(t, err)
 	empty := new(StdSignature)
 
 	// signing should be deterministic
-	sig2a := SignTx(priv, tx, chainID, 2)
+	sig2a, err := SignTx(priv, tx, chainID, 2)
+	require.Nil(t, err)
 	assert.Equal(t, sig2, sig2a)
 
 	// the first one must have a signature in the store
-	_, err := VerifySignature(kv, sig1, bz, chainID)
+	_, err = VerifySignature(kv, sig1, bz, chainID)
 	assert.Error(t, err)
 
 	// empty sig
@@ -71,7 +88,8 @@ func TestVerifySignature(t *testing.T) {
 	assert.Error(t, err)
 	assert.True(t, IsInvalidSignatureErr(err))
 	// pubkey address mismatch
-	sig0x := SignTx(priv, tx, chainID, 0)
+	sig0x, err := SignTx(priv, tx, chainID, 0)
+	require.Nil(t, err)
 	sig0x.Address = weave.NewAddress([]byte("foo"))
 	_, err = VerifySignature(kv, sig0x, bz, chainID)
 	assert.Error(t, err)
@@ -116,15 +134,23 @@ func TestVerifyTxSignatures(t *testing.T) {
 	msg := &StdMsg{bz}
 	tx := &StdTx{Msg: msg}
 	tx2 := &StdTx{Msg: &StdMsg{[]byte(chainID)}}
-	assert.NotEqual(t, tx.GetSignBytes(), tx2.GetSignBytes())
+	tbz, err := tx.GetSignBytes()
+	require.NoError(t, err)
+	tbz2, err := tx2.GetSignBytes()
+	require.NoError(t, err)
+	assert.NotEqual(t, tbz, tbz2)
 
 	// two sigs from the first key
-	sig := SignTx(priv, tx, chainID, 0)
-	sig1 := SignTx(priv, tx, chainID, 1)
+	sig, err := SignTx(priv, tx, chainID, 0)
+	require.NoError(t, err)
+	sig1, err := SignTx(priv, tx, chainID, 1)
+	require.NoError(t, err)
 	// one from the second
-	sig2 := SignTx(priv2, tx, chainID, 0)
+	sig2, err := SignTx(priv2, tx, chainID, 0)
+	require.NoError(t, err)
 	// and a signature of wrong info
-	badSig := SignTx(priv, tx2, chainID, 0)
+	badSig, err := SignTx(priv, tx2, chainID, 0)
+	require.NoError(t, err)
 
 	// no signers
 	signers, err := VerifyTxSignatures(kv, tx, chainID)
@@ -169,21 +195,21 @@ type StdTx struct {
 var _ SignedTx = (*StdTx)(nil)
 var _ weave.Tx = (*StdTx)(nil)
 
-func (tx StdTx) GetMsg() weave.Msg {
-	return tx.Msg
+func (tx StdTx) GetMsg() (weave.Msg, error) {
+	return tx.Msg, nil
 }
 
 func (tx StdTx) GetSignatures() []*StdSignature {
 	return tx.Signatures
 }
 
-func (tx StdTx) GetSignBytes() []byte {
+func (tx StdTx) GetSignBytes() ([]byte, error) {
+	// marshal self w/o sigs
 	s := tx.Signatures
 	tx.Signatures = nil
-	// TODO: marshall self w/o sigs
-	bz, _ := tx.Msg.Marshal()
+	bz, err := tx.Msg.Marshal()
 	tx.Signatures = s
-	return bz
+	return bz, err
 }
 
 var _ weave.Msg = (*StdMsg)(nil)

@@ -27,7 +27,10 @@ import (
 func VerifyTxSignatures(store weave.KVStore, tx SignedTx,
 	chainID string) ([]weave.Address, error) {
 
-	bz := tx.GetSignBytes()
+	bz, err := tx.GetSignBytes()
+	if err != nil {
+		return nil, err
+	}
 	sigs := tx.GetSignatures()
 
 	signers := make([]weave.Address, 0, len(sigs))
@@ -74,7 +77,11 @@ func VerifySignature(store weave.KVStore, sig *StdSignature,
 		user.SetPubKey(pub)
 	}
 
-	toSign := BuildSignBytes(signBytes, chainID, sig.Sequence)
+	toSign, err := BuildSignBytes(signBytes, chainID, sig.Sequence)
+	if err != nil {
+		return nil, err
+	}
+
 	if !pub.Verify(toSign, sig.Signature) {
 		return nil, errors.ErrInvalidSignature()
 	}
@@ -89,7 +96,12 @@ func VerifySignature(store weave.KVStore, sig *StdSignature,
 }
 
 // BuildSignBytes combines all info on the actual tx before signing
-func BuildSignBytes(signBytes []byte, chainID string, seq int64) []byte {
+func BuildSignBytes(signBytes []byte, chainID string, seq int64) ([]byte, error) {
+	if seq < 0 {
+		return nil, ErrInvalidSequence("negative")
+	}
+	// TODO: also check chainID??
+
 	// encode nonce as 8 byte, big-endian
 	nonce := make([]byte, 8)
 	binary.BigEndian.PutUint64(nonce, uint64(seq))
@@ -99,21 +111,31 @@ func BuildSignBytes(signBytes []byte, chainID string, seq int64) []byte {
 	output = append(output, signBytes...)
 	output = append(output, []byte(chainID)...)
 	output = append(output, nonce...)
-	return output
+	return output, nil
 }
 
 // BuildSignBytesTx calculates the sign bytes given a tx
-func BuildSignBytesTx(tx SignedTx, chainID string, seq int64) []byte {
-	signBytes := tx.GetSignBytes()
+func BuildSignBytesTx(tx SignedTx, chainID string, seq int64) ([]byte, error) {
+	signBytes, err := tx.GetSignBytes()
+	if err != nil {
+		return nil, err
+	}
 	return BuildSignBytes(signBytes, chainID, seq)
 }
 
 // SignTx creates a signature for the given tx
 func SignTx(signer crypto.Signer, tx SignedTx, chainID string,
-	seq int64) *StdSignature {
+	seq int64) (*StdSignature, error) {
 
-	signBytes := BuildSignBytesTx(tx, chainID, seq)
-	sig := signer.Sign(signBytes)
+	signBytes, err := BuildSignBytesTx(tx, chainID, seq)
+	if err != nil {
+		return nil, err
+	}
+
+	sig, err := signer.Sign(signBytes)
+	if err != nil {
+		return nil, err
+	}
 	pub := signer.PublicKey()
 
 	res := &StdSignature{
@@ -127,5 +149,5 @@ func SignTx(signer crypto.Signer, tx SignedTx, chainID string,
 		res.Address = pub.Address()
 	}
 
-	return res
+	return res, nil
 }

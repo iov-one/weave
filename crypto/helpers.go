@@ -11,7 +11,7 @@ type PubKey interface {
 // Signer is the functionality we use from a private key
 // No serializing to support hardware devices as well.
 type Signer interface {
-	Sign(message []byte) *Signature
+	Sign(message []byte) (*Signature, error)
 	PublicKey() *PublicKey
 }
 
@@ -57,7 +57,7 @@ func (p *PublicKey) Address() weave.Address {
 var _ Signer = (*PrivateKey)(nil)
 
 // Sign returns a matching signature for this private key
-func (p *PrivateKey) Sign(message []byte) *Signature {
+func (p *PrivateKey) Sign(message []byte) (*Signature, error) {
 	return p.unwrap().Sign(message)
 }
 

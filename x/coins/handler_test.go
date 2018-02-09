@@ -28,8 +28,8 @@ type mockTx struct {
 
 var _ weave.Tx = mockTx{}
 
-func (m mockTx) GetMsg() weave.Msg {
-	return m.msg
+func (m mockTx) GetMsg() (weave.Msg, error) {
+	return m.msg, nil
 }
 
 func TestSend(t *testing.T) {
