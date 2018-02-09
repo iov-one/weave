@@ -99,7 +99,7 @@ The main messages that you need to be concerned with are:
   To do so, they may query arbitrary keys in the
   datastore, and get the current value stored there. They may
   also fix a recent height to query, so they can guarantee to
-  get a consistent snapshot between mutliple queries even if
+  get a consistent snapshot between multiple queries even if
   a block was committed in the meantime.
 
   A client may also request that the node returns a merkle

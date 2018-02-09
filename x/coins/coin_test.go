@@ -1,7 +1,7 @@
 package coins
 
 import (
-	"strconv"
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -51,10 +51,10 @@ func TestIssuer(t *testing.T) {
 	}
 
 	for idx, tc := range cases {
-		i := strconv.Itoa(idx)
-
-		assert.Equal(t, tc.id, tc.a.ID(), i)
-		assert.Equal(t, tc.sameType, tc.a.SameType(tc.b), i)
+		t.Run(fmt.Sprintf("case-%d", idx), func(t *testing.T) {
+			assert.Equal(t, tc.id, tc.a.ID())
+			assert.Equal(t, tc.sameType, tc.a.SameType(tc.b))
+		})
 	}
 }
 
@@ -98,21 +98,21 @@ func TestCompareCoin(t *testing.T) {
 	}
 
 	for idx, tc := range cases {
-		i := strconv.Itoa(idx)
+		t.Run(fmt.Sprintf("case-%d", idx), func(t *testing.T) {
+			// make sure both show proper results
+			assert.Equal(t, tc.a.IsZero(), tc.aState == zero)
+			assert.Equal(t, tc.a.IsPositive(), tc.aState == pos)
+			assert.Equal(t, !tc.a.IsNonNegative(), tc.aState == neg)
 
-		// make sure both show proper results
-		assert.Equal(t, tc.a.IsZero(), tc.aState == zero, i)
-		assert.Equal(t, tc.a.IsPositive(), tc.aState == pos, i)
-		assert.Equal(t, !tc.a.IsNonNegative(), tc.aState == neg, i)
+			assert.Equal(t, tc.b.IsZero(), tc.bState == zero)
+			assert.Equal(t, tc.b.IsPositive(), tc.bState == pos)
+			assert.Equal(t, !tc.b.IsNonNegative(), tc.bState == neg)
 
-		assert.Equal(t, tc.b.IsZero(), tc.bState == zero, i)
-		assert.Equal(t, tc.b.IsPositive(), tc.bState == pos, i)
-		assert.Equal(t, !tc.b.IsNonNegative(), tc.bState == neg, i)
+			// make sure compare is correct
+			assert.Equal(t, tc.a.Compare(tc.b), tc.expect)
 
-		// make sure compare is correct
-		assert.Equal(t, tc.a.Compare(tc.b), tc.expect, i)
-
-		assert.True(t, tc.a.SameType(tc.b), i)
+			assert.True(t, tc.a.SameType(tc.b))
+		})
 	}
 }
 
@@ -166,30 +166,31 @@ func TestValidCoin(t *testing.T) {
 	}
 
 	for idx, tc := range cases {
-		i := strconv.Itoa(idx)
+		t.Run(fmt.Sprintf("case-%d", idx), func(t *testing.T) {
 
-		// Validate this one
-		err := tc.coin.Validate()
-		// normalize and check if there are still errors
-		nrm, nerr := tc.coin.normalize()
-		if nerr == nil {
-			nerr = nrm.Validate()
-		}
+			// Validate this one
+			err := tc.coin.Validate()
+			// normalize and check if there are still errors
+			nrm, nerr := tc.coin.normalize()
+			if nerr == nil {
+				nerr = nrm.Validate()
+			}
 
-		if tc.valid {
-			assert.NoError(t, err, i)
-		} else {
-			assert.Error(t, err, i)
-		}
+			if tc.valid {
+				assert.NoError(t, err)
+			} else {
+				assert.Error(t, err)
+			}
 
-		assert.Equal(t, tc.normalized, nrm, i)
-		assert.True(t, tc.normalized.Equals(nrm), i)
+			assert.Equal(t, tc.normalized, nrm)
+			assert.True(t, tc.normalized.Equals(nrm))
 
-		if tc.normalizedValid {
-			assert.NoError(t, nerr, i)
-		} else {
-			assert.Error(t, nerr, i)
-		}
+			if tc.normalizedValid {
+				assert.NoError(t, nerr)
+			} else {
+				assert.Error(t, nerr)
+			}
+		})
 	}
 }
 
@@ -247,14 +248,14 @@ func TestAddCoin(t *testing.T) {
 	}
 
 	for idx, tc := range cases {
-		i := strconv.Itoa(idx)
-
-		c, err := tc.a.Add(tc.b)
-		if tc.bad {
-			assert.Error(t, err, i)
-		} else {
-			assert.NoError(t, err, i)
-			assert.Equal(t, tc.res, c, i)
-		}
+		t.Run(fmt.Sprintf("case-%d", idx), func(t *testing.T) {
+			c, err := tc.a.Add(tc.b)
+			if tc.bad {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, tc.res, c)
+			}
+		})
 	}
 }

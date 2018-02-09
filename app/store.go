@@ -14,7 +14,7 @@ import (
 // StoreApp contains a data store and all info needed
 // to perform queries and handshakes.
 //
-// It should be embeded in another struct for CheckTx,
+// It should be embedded in another struct for CheckTx,
 // DeliverTx and initializing state from the genesis.
 type StoreApp struct {
 	logger log.Logger

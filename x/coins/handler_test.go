@@ -1,6 +1,7 @@
 package coins
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/confio/weave"
@@ -86,20 +87,22 @@ func TestSend(t *testing.T) {
 	}
 
 	for i, tc := range cases {
-		auth := auther{tc.signers}.GetSigners
-		h := NewSendHandler(auth)
+		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
+			auth := auther{tc.signers}.GetSigners
+			h := NewSendHandler(auth)
 
-		kv := store.MemStore()
-		for _, wallet := range tc.initState {
-			wallet.store = kv
-			wallet.Save()
-		}
+			kv := store.MemStore()
+			for _, wallet := range tc.initState {
+				wallet.store = kv
+				wallet.Save()
+			}
 
-		tx := mockTx{tc.msg}
+			tx := mockTx{tc.msg}
 
-		_, err := h.Check(nil, kv, tx)
-		assert.True(t, tc.expectCheck(err), "%d: %+v", i, err)
-		_, err = h.Deliver(nil, kv, tx)
-		assert.True(t, tc.expectDeliver(err), "%d: %+v", i, err)
+			_, err := h.Check(nil, kv, tx)
+			assert.True(t, tc.expectCheck(err), "%+v", err)
+			_, err = h.Deliver(nil, kv, tx)
+			assert.True(t, tc.expectDeliver(err), "%+v", err)
+		})
 	}
 }

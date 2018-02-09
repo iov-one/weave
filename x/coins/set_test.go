@@ -1,7 +1,7 @@
 package coins
 
 import (
-	"strconv"
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -132,25 +132,25 @@ func TestMakeSet(t *testing.T) {
 	}
 
 	for idx, tc := range cases {
-		i := strconv.Itoa(idx)
+		t.Run(fmt.Sprintf("case-%d", idx), func(t *testing.T) {
+			s, err := NewSet(tc.inputs...)
+			if tc.isErr {
+				assert.Error(t, err)
+				return
+			}
 
-		s, err := NewSet(tc.inputs...)
-		if tc.isErr {
-			assert.Error(t, err, i)
-			continue
-		}
+			require.NoError(t, err)
+			assert.NoError(t, s.Validate())
+			assert.Equal(t, tc.isEmpty, s.IsEmpty())
+			assert.Equal(t, tc.isNonNeg, s.IsNonNegative())
 
-		require.NoError(t, err, i)
-		assert.NoError(t, s.Validate(), i)
-		assert.Equal(t, tc.isEmpty, s.IsEmpty(), i)
-		assert.Equal(t, tc.isNonNeg, s.IsNonNegative(), i)
-
-		for _, h := range tc.has {
-			assert.True(t, s.Contains(h), i)
-		}
-		for _, d := range tc.dontHave {
-			assert.False(t, s.Contains(d), i)
-		}
+			for _, h := range tc.has {
+				assert.True(t, s.Contains(h))
+			}
+			for _, d := range tc.dontHave {
+				assert.False(t, s.Contains(d))
+			}
+		})
 	}
 }
 
@@ -190,27 +190,28 @@ func TestCombine(t *testing.T) {
 	}
 
 	for idx, tc := range cases {
-		i := strconv.Itoa(idx)
+		t.Run(fmt.Sprintf("case-%d", idx), func(t *testing.T) {
 
-		ac := tc.a.Count()
-		bc := tc.b.Count()
+			ac := tc.a.Count()
+			bc := tc.b.Count()
 
-		res, err := tc.a.Combine(tc.b)
-		// don't modify original sets
-		assert.Equal(t, ac, tc.a.Count(), i)
-		assert.Equal(t, bc, tc.b.Count(), i)
-		if tc.isErr {
-			assert.Error(t, err, i)
-		} else {
-			require.NoError(t, err, i)
-			assert.NoError(t, res.Validate(), i)
-			assert.True(t, tc.comb.Equals(res), i)
+			res, err := tc.a.Combine(tc.b)
+			// don't modify original sets
+			assert.Equal(t, ac, tc.a.Count())
+			assert.Equal(t, bc, tc.b.Count())
+			if tc.isErr {
+				assert.Error(t, err)
+				return
+			}
+			require.NoError(t, err)
+			assert.NoError(t, res.Validate())
+			assert.True(t, tc.comb.Equals(res))
 			// result should only be the same as an input
 			// if the other input was empty
 			assert.Equal(t, tc.a.IsEmpty(),
-				tc.b.Equals(res), i)
+				tc.b.Equals(res))
 			assert.Equal(t, tc.b.IsEmpty(),
-				tc.a.Equals(res), i)
-		}
+				tc.a.Equals(res))
+		})
 	}
 }
