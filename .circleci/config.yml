@@ -1,0 +1,40 @@
+version: 2
+jobs:
+  build:
+    working_directory: /go/src/github.com/confio/weave
+    docker:
+      - image: golang:latest
+    environment:
+      TEST_RESULTS: /tmp/test-results
+
+    steps:
+      - checkout
+      - run: mkdir -p $TEST_RESULTS
+
+      - run:
+          name: Install glide
+          command: go get -u github.com/Masterminds/glide
+
+      - run:
+          name: Resolve dependencies
+          command: make deps
+
+      - run:
+          name: Run unit tests
+          command: |
+            make test | tee ${TEST_RESULTS}/go-test.out
+
+      - run:
+          name: Run coverage report
+          command: make cover
+
+      - run:
+          name: Build
+          command: make build
+
+      - store_artifacts:
+          path: /tmp/test-results
+          destination: test-output
+
+      - store_test_results:
+          path: ./coverage
