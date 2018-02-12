@@ -1,11 +1,10 @@
 package app
 
 import (
-	"time"
-
 	abci "github.com/tendermint/abci/types"
 
 	"github.com/confio/weave"
+	"github.com/confio/weave/errors"
 )
 
 // TODO: what about the init state stuff.... where does that go????
@@ -39,9 +38,10 @@ func (b BaseApp) DeliverTx(txBytes []byte) abci.ResponseDeliverTx {
 		return weave.DeliverTxError(err)
 	}
 
+	// ignore error here, allow it to be logged
 	ctx := weave.WithLogInfo(b.BlockContext(),
 		"call", "deliver_tx",
-		"path", tx.GetMsg().Path())
+		"path", weave.GetPath(tx))
 
 	res, err := b.handler.Deliver(ctx, b.DeliverStore(), tx)
 	return weave.DeliverOrError(res, err)
@@ -56,7 +56,7 @@ func (b BaseApp) CheckTx(txBytes []byte) abci.ResponseCheckTx {
 
 	ctx := weave.WithLogInfo(b.BlockContext(),
 		"call", "check_tx",
-		"path", tx.GetMsg().Path())
+		"path", weave.GetPath(tx))
 
 	res, err := b.handler.Check(ctx, b.CheckStore(), tx)
 	return weave.CheckOrError(res, err)
@@ -71,11 +71,11 @@ func (b BaseApp) BeginBlock(req abci.RequestBeginBlock) (
 
 	// call the ticker, if set
 	if b.ticker != nil {
-		start := time.Now()
+		// start := time.Now()
 		// Add info to the logger
 		ctx := weave.WithLogInfo(b.BlockContext(), "call", "begin_block")
 		res, err := b.ticker.Tick(ctx, b.DeliverStore())
-		logDuration(ctx, start, "Ticker", err, false)
+		// logDuration(ctx, start, "Ticker", err, false)
 		if err != nil {
 			panic(err)
 		}
@@ -86,11 +86,7 @@ func (b BaseApp) BeginBlock(req abci.RequestBeginBlock) (
 
 // loadTx calls the decoder, and capture any panics
 func (b BaseApp) loadTx(txBytes []byte) (tx weave.Tx, err error) {
-	defer func() {
-		if r := recover(); r != nil {
-			err = normalizePanic(r)
-		}
-	}()
+	defer errors.Recover(&err)
 	tx, err = b.decoder(txBytes)
 	return
 }

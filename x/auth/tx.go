@@ -14,7 +14,7 @@ type SignedTx interface {
 	// serialization.
 	//
 	// Helpful to store original, unparsed bytes here, just in case.
-	GetSignBytes() []byte
+	GetSignBytes() ([]byte, error)
 
 	// Signatures returns the signature of signers who signed the Msg.
 	GetSignatures() []*StdSignature

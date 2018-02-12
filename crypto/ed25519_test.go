@@ -15,8 +15,10 @@ func TestEd25519Signing(t *testing.T) {
 	msg := []byte("foobar")
 	msg2 := []byte("dingbooms")
 
-	sig := private.Sign(msg)
-	sig2 := private.Sign(msg2)
+	sig, err := private.Sign(msg)
+	require.NoError(t, err)
+	sig2, err := private.Sign(msg2)
+	require.NoError(t, err)
 
 	bz, err := sig.Marshal()
 	assert.NoError(t, err)

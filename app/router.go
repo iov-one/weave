@@ -77,7 +77,11 @@ func (r Router) Handler(path string) weave.Handler {
 func (r Router) Check(ctx weave.Context, store weave.KVStore,
 	tx weave.Tx) (weave.CheckResult, error) {
 
-	path := tx.GetMsg().Path()
+	msg, _ := tx.GetMsg()
+	if msg == nil {
+		return weave.CheckResult{}, errors.ErrDecoding()
+	}
+	path := msg.Path()
 	h := r.Handler(path)
 	return h.Check(ctx, store, tx)
 }
@@ -86,7 +90,11 @@ func (r Router) Check(ctx weave.Context, store weave.KVStore,
 func (r Router) Deliver(ctx weave.Context, store weave.KVStore,
 	tx weave.Tx) (weave.DeliverResult, error) {
 
-	path := tx.GetMsg().Path()
+	msg, _ := tx.GetMsg()
+	if msg == nil {
+		return weave.DeliverResult{}, errors.ErrDecoding()
+	}
+	path := msg.Path()
 	h := r.Handler(path)
 	return h.Deliver(ctx, store, tx)
 }

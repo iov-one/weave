@@ -1,4 +1,4 @@
-package app
+package utils
 
 import (
 	"time"
@@ -16,24 +16,24 @@ func NewLogging() Logging {
 	return Logging{}
 }
 
-// Check logs error -> info, info -> debug
+// Check logs error -> info, success -> debug
 func (r Logging) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx,
-	next weave.Checker) (res weave.CheckResult, err error) {
+	next weave.Checker) (weave.CheckResult, error) {
 
 	start := time.Now()
-	res, err = next.Check(ctx, store, tx)
+	res, err := next.Check(ctx, store, tx)
 	logDuration(ctx, start, res.Log, err, true)
-	return
+	return res, err
 }
 
-// Deliver turns panics into normal errors
+// Deliver logs error -> error, success -> info
 func (r Logging) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx,
-	next weave.Deliverer) (res weave.DeliverResult, err error) {
+	next weave.Deliverer) (weave.DeliverResult, error) {
 
 	start := time.Now()
-	res, err = next.Deliver(ctx, store, tx)
+	res, err := next.Deliver(ctx, store, tx)
 	logDuration(ctx, start, res.Log, err, false)
-	return
+	return res, err
 }
 
 // logDuration writes information about the time and result

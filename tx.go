@@ -42,7 +42,16 @@ type Msg interface {
 // many apps will wish to support.
 type Tx interface {
 	// GetMsg returns the action we wish to communicate
-	GetMsg() Msg
+	GetMsg() (Msg, error)
+}
+
+// GetPath returns the path of the message, or (missing) if no message
+func GetPath(tx Tx) string {
+	msg, err := tx.GetMsg()
+	if err == nil && msg != nil {
+		return msg.Path()
+	}
+	return "(missing)"
 }
 
 // TxDecoder can parse bytes into a Tx

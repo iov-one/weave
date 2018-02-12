@@ -32,11 +32,16 @@ func (h SendHandler) Check(ctx weave.Context, store weave.KVStore,
 
 	// ensure type and validate...
 	var res weave.CheckResult
-	msg, ok := tx.GetMsg().(*SendMsg)
-	if !ok {
-		return res, errors.ErrUnknownTxType(tx.GetMsg())
+	rmsg, err := tx.GetMsg()
+	if err != nil {
+		return res, err
 	}
-	err := msg.Validate()
+	msg, ok := rmsg.(*SendMsg)
+	if !ok {
+		return res, errors.ErrUnknownTxType(rmsg)
+	}
+
+	err = msg.Validate()
 	if err != nil {
 		return res, err
 	}
@@ -58,11 +63,16 @@ func (h SendHandler) Deliver(ctx weave.Context, store weave.KVStore,
 
 	// ensure type and validate...
 	var res weave.DeliverResult
-	msg, ok := tx.GetMsg().(*SendMsg)
-	if !ok {
-		return res, errors.ErrUnknownTxType(tx.GetMsg())
+	rmsg, err := tx.GetMsg()
+	if err != nil {
+		return res, err
 	}
-	err := msg.Validate()
+	msg, ok := rmsg.(*SendMsg)
+	if !ok {
+		return res, errors.ErrUnknownTxType(rmsg)
+	}
+
+	err = msg.Validate()
 	if err != nil {
 		return res, err
 	}

@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/confio/weave"
 	"github.com/confio/weave/crypto"
@@ -25,8 +26,10 @@ func TestDecorator(t *testing.T) {
 
 	bz := []byte("art")
 	tx := &StdTx{Msg: &StdMsg{bz}}
-	sig := SignTx(priv, tx, chainID, 0)
-	sig1 := SignTx(priv, tx, chainID, 1)
+	sig, err := SignTx(priv, tx, chainID, 0)
+	require.NoError(t, err)
+	sig1, err := SignTx(priv, tx, chainID, 1)
+	require.NoError(t, err)
 
 	deliver := func(dec weave.Decorator, my weave.Tx) error {
 		_, err := dec.Deliver(ctx, kv, my, signers)

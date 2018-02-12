@@ -17,8 +17,8 @@ type feeTx struct {
 var _ weave.Tx = feeTx{}
 var _ FeeTx = feeTx{}
 
-func (feeTx) GetMsg() weave.Msg {
-	return nil
+func (feeTx) GetMsg() (weave.Msg, error) {
+	return nil, nil
 }
 
 func (f feeTx) GetFees() *FeeInfo {
