@@ -10,7 +10,7 @@ const optKey = "coins"
 // GenesisAccount is used to parse the json from genesis file
 // TODO: address in hex, not base64???
 type GenesisAccount struct {
-	Address []byte `json:"address"`
+	Address weave.Address `json:"address"`
 	Set
 }
 

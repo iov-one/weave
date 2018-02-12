@@ -2,7 +2,6 @@ package weave
 
 import (
 	"encoding/json"
-	"fmt"
 )
 
 // Handler is a core engine that can process a few specific messages
@@ -56,7 +55,6 @@ type Options map[string]json.RawMessage
 func (o Options) ReadOptions(key string, obj interface{}) error {
 	msg := o[key]
 	if len(msg) == 0 {
-		fmt.Println("nothing")
 		return nil
 	}
 	return json.Unmarshal(msg, obj)

@@ -14,11 +14,20 @@ import (
 func TestInitState(t *testing.T) {
 	// test data
 	addr := []byte("12345678901234567890")
-	coins := mustNewSet(NewCoin(100, 5, "ATM"))
+	coins := mustNewSet(NewCoin(100, 5, "ATM"), NewCoin(50, 0, "ETH").WithIssuer("chain-1"))
 	accts := []GenesisAccount{{Address: addr, Set: coins}}
 
 	bz, err := json.Marshal(accts)
 	require.NoError(t, err)
+
+	// hardcode
+	bz2 := []byte(`[{"address":"0102030405060708090021222324252627282930",
+                "coins":[{"integer":50,
+                "fractional":1234567,
+                "currency_code":"FOO"
+              }]}]`)
+	coins2 := mustNewSet(NewCoin(50, 1234567, "FOO"))
+	addr2 := []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 0x21, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27, 0x28, 0x29, 0x30}
 
 	cases := [...]struct {
 		opts    weave.Options
@@ -29,10 +38,13 @@ func TestInitState(t *testing.T) {
 		// no prob if no data
 		0: {weave.Options{}, false, nil, Set{}},
 		1: {weave.Options{"foo": []byte(`"bar"`)}, false, nil, Set{}},
+		// bad format
+		2: {weave.Options{"foo": []byte(`[{"address": "1234"}]`)}, false, nil, Set{}},
 		// bad address
-		2: {weave.Options{"coins": []byte(`[{"address": "1234"}]`)}, true, nil, Set{}},
+		3: {weave.Options{"coins": []byte(`[{"coins": 123}]`)}, true, nil, Set{}},
 		// get a real account
-		3: {weave.Options{"coins": bz}, false, addr, coins},
+		4: {weave.Options{"coins": bz}, false, addr, coins},
+		5: {weave.Options{"coins": bz2}, false, addr2, coins2},
 	}
 
 	init := Initializer{}
