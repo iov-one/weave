@@ -52,7 +52,7 @@ func TestInitState(t *testing.T) {
 	for i, tc := range cases {
 		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
 			kv := store.MemStore()
-			err := init.InitState(tc.opts, kv)
+			err := init.FromGenesis(tc.opts, kv)
 			if tc.isError {
 				require.Error(t, err)
 			} else {

@@ -18,11 +18,11 @@ type GenesisAccount struct {
 // the genesis file
 type Initializer struct{}
 
-var _ weave.InitStater = Initializer{}
+var _ weave.Initializer = Initializer{}
 
-// InitState will parse initial account info from genesis
+// FromGenesis will parse initial account info from genesis
 // and save it to the database
-func (Initializer) InitState(opts weave.Options, kv weave.KVStore) error {
+func (Initializer) FromGenesis(opts weave.Options, kv weave.KVStore) error {
 	accts := []GenesisAccount{}
 	err := opts.ReadOptions(optKey, &accts)
 	for _, acct := range accts {

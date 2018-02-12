@@ -60,8 +60,8 @@ func (o Options) ReadOptions(key string, obj interface{}) error {
 	return json.Unmarshal(msg, obj)
 }
 
-// InitStater implementations are used to initialize
+// Initializer implementations are used to initialize
 // extensions from genesis file contents
-type InitStater interface {
-	InitState(Options, KVStore) error
+type Initializer interface {
+	FromGenesis(Options, KVStore) error
 }

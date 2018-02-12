@@ -34,20 +34,20 @@ func loadGenesis(filePath string) (Genesis, error) {
 
 //------ init state -----
 
-// ChainInitState lets you initialize many extensions with one function
-func ChainInitState(inits ...weave.InitStater) weave.InitStater {
-	return chainInitState{inits}
+// ChainInitializers lets you initialize many extensions with one function
+func ChainInitializers(inits ...weave.Initializer) weave.Initializer {
+	return chainInitializer{inits}
 }
 
-type chainInitState struct {
-	inits []weave.InitStater
+type chainInitializer struct {
+	inits []weave.Initializer
 }
 
-// InitState will pass opts to all InitStaters in the list,
+// FromGenesis will pass opts to all Initializers in the list,
 // aborting at the first error.
-func (c chainInitState) InitState(opts weave.Options, kv weave.KVStore) error {
+func (c chainInitializer) FromGenesis(opts weave.Options, kv weave.KVStore) error {
 	for _, i := range c.inits {
-		err := i.InitState(opts, kv)
+		err := i.FromGenesis(opts, kv)
 		if err != nil {
 			return err
 		}

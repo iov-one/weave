@@ -84,7 +84,7 @@ func (s *StoreApp) GetChainID() string {
 //       panic(err)
 //     }
 //   }
-func (s *StoreApp) LoadGenesis(filePath string, init weave.InitStater) error {
+func (s *StoreApp) LoadGenesis(filePath string, init weave.Initializer) error {
 	if s.chainID != "" {
 		return fmt.Errorf("Genesis file previously loaded for chain: %s", s.chainID)
 	}
@@ -102,7 +102,7 @@ func (s *StoreApp) LoadGenesis(filePath string, init weave.InitStater) error {
 	// and update the context
 	s.baseContext = weave.WithChainID(s.baseContext, s.chainID)
 
-	return init.InitState(gen.AppOptions, s.DeliverStore())
+	return init.FromGenesis(gen.AppOptions, s.DeliverStore())
 }
 
 // WithLogger sets the logger on the StoreApp and returns it,
