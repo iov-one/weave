@@ -1,0 +1,6 @@
+{
+    "chain_id": "super-chain-22",
+    "app_options": {
+        "dummy": 3456
+    }
+}
