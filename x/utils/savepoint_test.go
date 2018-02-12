@@ -83,24 +83,6 @@ func TestSavepoint(t *testing.T) {
 			[][]byte{ok, nk},
 			nil,
 		},
-		// we can write multiple times, if savepoint not used
-		6: {
-			help.WriteDecorator([]byte{1}, []byte{2}, true),
-			help.WriteHandler(nk, nv, derr),
-			false,
-			true,
-			[][]byte{ok, nk, []byte{1}},
-			nil,
-		},
-		// we can write multiple times, if savepoint not used
-		7: {
-			help.WriteDecorator([]byte{1}, []byte{2}, false),
-			help.WriteHandler(nk, nv, nil),
-			true,
-			false,
-			[][]byte{ok, nk, []byte{1}},
-			nil,
-		},
 	}
 
 	for i, tc := range cases {
