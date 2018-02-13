@@ -33,8 +33,9 @@ jobs:
           command: make build
 
       - store_artifacts:
-          path: /tmp/test-results
-          destination: test-output
-
-      - store_test_results:
           path: ./coverage
+          destination: coverage
+
+      - store_artifacts:
+          path: /tmp/test-results
+          destination: test-results
