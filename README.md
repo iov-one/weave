@@ -1,5 +1,5 @@
 # Confio Weave
-
+[![Build Status circleCI](https://circleci.com/gh/confio/weave.png?style=shield&circle-token=4a0ef9d48e00e82022cc6750ba63b2fd6d75343c)](https://circleci.com/gh/confio/weave)
 [![API Reference](https://godoc.org/github.com/confio/weave?status.svg
 )](https://godoc.org/github.com/confio/weave)
 [![license](https://img.shields.io/github/license/confio/weave.svg)](https://github.com/confio/weave/blob/master/LICENSE)
