@@ -10,9 +10,9 @@ type DB struct {
 	kv weave.KVStore
 }
 
-// Table is a prefixed subspace of the DB
+// Bucket is a prefixed subspace of the DB
 // proto defines the default Model, all elements of this type
-type Table struct {
+type Bucket struct {
 	name  string
 	proto Creator
 }
@@ -24,32 +24,32 @@ type Creator interface {
 }
 
 // Get one element
-func (t Table) Get(db DB, key Keyed) (Model, error) {
+func (t Bucket) Get(db DB, key Keyed) (Model, error) {
 	// TODO
 	return nil, nil
 }
 
 // Save will write a model, it must be of the same type as proto
-func (t Table) Save(db DB, model Model) error {
+func (t Bucket) Save(db DB, model Model) error {
 	return nil
 }
 
-//--- TODO: Table ----
+//--- TODO: Bucket ----
 //
 // Composite primary index (valigator, ) - One or List
 //  -> Special by type
 // Secondary index (eg. ByName) - One or List
 //  -> How to store this?
 //
-// table:<table>:<key> -> Model
-// index:<table>:<name>:<key> -> primary key
+// table:<bucket>:<key> -> Model
+// index:<bucket>:<name>:<key> -> primary key
 //
 // Write query functions for each specific type, but these are all
 // one-liners that just delegate and type-cast
 
 //--- TODO: Sequence ----
 //
-// Set up an incremental counter, set up for one table
+// Set up an incremental counter, set up for one bucket
 // TODO: LastVal?
 
 // Sequence maintains a counter/auto-generate a number of
@@ -63,7 +63,7 @@ func (s *Sequence) NextVal(db DB) []byte {
 
 }
 
-// Model is what is stored in the Table
+// Model is what is stored in the bucket
 // Key is joined with the prefix to set the full key
 // Value is the data stored
 //
@@ -87,30 +87,30 @@ func demo() {
 	addr := weave.NewAddress([]byte("foo"))
 
 	// TODO: wrap with strongly typed wrapper that exposed *BlogPost instead of Model)
-	table := SequentialTable{
+	bucket := SequentialBucket{
 		sequence: "blog",
-		table: Table{
+		bucket: Bucket{
 			name:  "blogs",
 			proto: BlogPost{Title: "Hello, world"},
 		},
 	}.WithDB(db)
 
-	var first *BlogPost = table.Create()
+	var first *BlogPost = bucket.Create()
 	first.Author = addr
 	first.Body = "This is my first post"
-	table.Save(first)
+	bucket.Save(first)
 
-	second := table.Create()
+	second := bucket.Create()
 	second.Author = addr
 	second.Title = "Some special text"
-	table.Save(second)
+	bucket.Save(second)
 
 	// load by one specific key
-	load := table.Get(second.Key())
+	load := bucket.Get(second.Key())
 	assert.Equal(load.Title, "Some special text")
 
 	// iterate over composite primary key
-	mine := table.ByAddress(addr)
+	mine := bucket.ByAddress(addr)
 	assert.True(mine.Valid())
 	assert.Equal(first, mine.Value())
 	mine.Next()
@@ -120,13 +120,13 @@ func demo() {
 	assert.False(mine.Valid())
 
 	// TODO: secondary index by Title (StartsWith)
-	es := table.WithTitlePrefix("S")
+	es := bucket.WithTitlePrefix("S")
 	assert.Equal(1, len(es.AsList()))
 
-	alpha := table.ByTitle()
+	alpha := bucket.ByTitle()
 	assert.Equal(2, len(alpha.AsList()))
 
-	answer := table.WithTitleBetween("No", "Yes")
+	answer := bucket.WithTitleBetween("No", "Yes")
 	assert.True(answer.Valid())
 	assert.Equal(second, answer.Value())
 	answer.Next()
