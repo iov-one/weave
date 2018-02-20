@@ -82,9 +82,7 @@ func (t tmerror) ABCICode() uint32 {
 }
 
 func (t tmerror) ABCILog() string {
-	// TODO: remove this for production....
-	return fmt.Sprintf("%+v", t.stackTracer)
-	// return t.log
+	return t.log
 }
 
 func (t tmerror) Cause() error {

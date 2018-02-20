@@ -116,4 +116,21 @@ func TestApp(t *testing.T) {
 	require.Equal(t, 2, len(acct2.Coins))
 	assert.Equal(t, int32(48000), acct2.Coins[0].Integer)
 	assert.Equal(t, int32(1234), acct2.Coins[1].Integer)
+
+	// make sure money arrived safely
+	key2 := coins.NewKey(addr2)
+	query2 := abci.RequestQuery{
+		Path: "/key",
+		Data: key2,
+	}
+	qres2 := app.Query(query2)
+	require.Equal(t, uint32(0), qres2.Code, "%#v", qres2)
+	// parse it and check it is not empty
+	var acct3 coins.Set
+	err = acct3.Unmarshal(qres2.Value)
+	require.NoError(t, err)
+	require.Equal(t, 1, len(acct3.Coins))
+	assert.Equal(t, int32(2000), acct3.Coins[0].Integer)
+	assert.Equal(t, "ETH", acct3.Coins[0].CurrencyCode)
+
 }
