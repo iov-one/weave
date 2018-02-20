@@ -15,6 +15,7 @@ const (
 	CodeUnauthorized               = 3
 	CodeUnknownRequest             = 4
 	CodeUnrecognizedAddress        = 5
+	CodeInvalidChainID             = 6
 )
 
 var (
@@ -25,6 +26,8 @@ var (
 	errMissingSignature    = fmt.Errorf("Signature missing")
 	errInvalidSignature    = fmt.Errorf("Signature invalid")
 	errUnrecognizedAddress = fmt.Errorf("Unrecognized Address")
+	errInvalidChainID      = fmt.Errorf("Invalid ChainID")
+	errModifyChainID       = fmt.Errorf("Cannot modify ChainID")
 )
 
 // IsSameError returns true if these errors have the same root cause.
@@ -130,4 +133,21 @@ func ErrInvalidSignature() error {
 }
 func IsInvalidSignatureErr(err error) bool {
 	return IsSameError(errInvalidSignature, err)
+}
+
+// ErrInvalidChainID is when the chainID is the wrong format
+func ErrInvalidChainID(chainID string) error {
+	return WithLog(chainID, errInvalidChainID, CodeInvalidChainID)
+}
+func IsInvalidChainIDErr(err error) bool {
+	return IsSameError(errInvalidChainID, err)
+}
+
+// ErrModifyChainID is when someone tries to change the chainID
+// after genesis
+func ErrModifyChainID() error {
+	return WithCode(errModifyChainID, CodeInvalidChainID)
+}
+func IsModifyChainIDErr(err error) bool {
+	return IsSameError(errModifyChainID, err)
 }

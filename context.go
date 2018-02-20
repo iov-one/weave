@@ -40,8 +40,8 @@ var (
 	// set anything themselves
 	DefaultLogger = log.NewNopLogger()
 
-	// isValidChainID is the RegExp to ensure valid chain IDs
-	isValidChainID = regexp.MustCompile(`^[a-z0-9_\-]{6,14}$`).MatchString
+	// IsValidChainID is the RegExp to ensure valid chain IDs
+	IsValidChainID = regexp.MustCompile(`^[a-z0-9_\-]{6,14}$`).MatchString
 )
 
 // Context is just an alias for the standard implementation.
@@ -86,7 +86,7 @@ func WithChainID(ctx Context, chainID string) Context {
 	if ctx.Value(contextKeyChainID) != nil {
 		panic("Chain ID already set")
 	}
-	if !isValidChainID(chainID) {
+	if !IsValidChainID(chainID) {
 		panic(fmt.Sprintf("Invalid chain ID: %s", chainID))
 	}
 	return context.WithValue(ctx, contextKeyChainID, chainID)

@@ -63,6 +63,15 @@ type TxDecoder func(txBytes []byte) (Tx, error)
 // It will be of size AddressLength
 type Address []byte
 
+func (a Address) MarshalJSON() ([]byte, error) {
+	return marshalHex(a)
+}
+
+func (a *Address) UnmarshalJSON(src []byte) error {
+	dst := (*[]byte)(a)
+	return unmarshalHex(src, dst)
+}
+
 // NewAddress hashes and truncates into the proper size
 func NewAddress(data []byte) Address {
 	// h := blake2b.Sum256(data)
