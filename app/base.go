@@ -26,6 +26,7 @@ func NewBaseApp(store *StoreApp, decoder weave.TxDecoder,
 
 	return BaseApp{
 		StoreApp: store,
+		decoder:  decoder,
 		handler:  handler,
 		ticker:   ticker,
 	}
