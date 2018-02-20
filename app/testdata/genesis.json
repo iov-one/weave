@@ -1,6 +1,6 @@
 {
     "chain_id": "test-chain-67",
-    "app_options": {
+    "app_state": {
         "dummy": "secret",
         "foo": "bar"
     }

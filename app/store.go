@@ -87,6 +87,12 @@ func (s *StoreApp) WithGenesis(genesisFile string) *StoreApp {
 	return s
 }
 
+// WithInit is used to set the init function we call
+func (s *StoreApp) WithInit(init weave.Initializer) *StoreApp {
+	s.initializer = init
+	return s
+}
+
 // parseGenesis is called from InitChain, the first time the chain
 // starts, and not on restarts.
 //
@@ -112,7 +118,7 @@ func (s *StoreApp) parseGenesis(data []byte, init weave.Initializer) error {
 	// and update the context
 	s.baseContext = weave.WithChainID(s.baseContext, s.chainID)
 
-	return init.FromGenesis(gen.AppOptions, s.DeliverStore())
+	return init.FromGenesis(gen.AppState, s.DeliverStore())
 }
 
 // WithLogger sets the logger on the StoreApp and returns it,
