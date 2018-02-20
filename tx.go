@@ -69,7 +69,7 @@ func (a Address) MarshalJSON() ([]byte, error) {
 
 func (a *Address) UnmarshalJSON(src []byte) error {
 	dst := (*[]byte)(a)
-	return unmarshalHex(dst, src)
+	return unmarshalHex(src, dst)
 }
 
 // NewAddress hashes and truncates into the proper size

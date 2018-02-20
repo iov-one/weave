@@ -8,15 +8,20 @@ import (
 	"github.com/pkg/errors"
 )
 
-func unmarshalHex(dst *[]byte, src []byte) (err error) {
+func unmarshalHex(bz []byte, out *[]byte) (err error) {
 	var s string
-	err = json.Unmarshal(src, &s)
+	err = json.Unmarshal(bz, &s)
 	if err != nil {
 		return errors.Wrap(err, "parse string")
 	}
 	// and interpret that string as hex
-	*dst, err = hex.DecodeString(s)
-	return err
+	val, err := hex.DecodeString(s)
+	if err != nil {
+		return err
+	}
+	// only update object on success
+	*out = val
+	return nil
 }
 
 func marshalHex(bytes []byte) ([]byte, error) {

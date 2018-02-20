@@ -2,11 +2,10 @@ package app
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 
 	"github.com/confio/weave"
-	"github.com/pkg/errors"
+	"github.com/confio/weave/errors"
 )
 
 // Genesis file format, designed to be overlayed with tendermint genesis
@@ -21,13 +20,13 @@ func loadGenesis(filePath string) (Genesis, error) {
 
 	bytes, err := ioutil.ReadFile(filePath)
 	if err != nil {
-		return gen, errors.Wrap(err, "loading genesis file")
+		return gen, errors.Wrap(err)
 	}
 
 	// the basecoin genesis go-wire/data :)
 	err = json.Unmarshal(bytes, &gen)
 	if err != nil {
-		return gen, errors.Wrap(err, "unmarshaling genesis file")
+		return gen, errors.WithCode(err, errors.CodeTxParseError)
 	}
 	return gen, nil
 }
@@ -57,7 +56,8 @@ func (c chainInitializer) FromGenesis(opts weave.Options, kv weave.KVStore) erro
 
 //------- storing chainID ---------
 
-const chainIDKey = "internal/chainID"
+// _wv: is a prefix for weave internal data
+const chainIDKey = "_wv:chainID"
 
 // loadChainID returns the chain id stored if any
 func loadChainID(kv weave.KVStore) string {
@@ -69,11 +69,11 @@ func loadChainID(kv weave.KVStore) string {
 // Returns error if already set, or invalid name
 func saveChainID(kv weave.KVStore, chainID string) error {
 	if !weave.IsValidChainID(chainID) {
-		return fmt.Errorf("Invalid chainID: %s", chainID)
+		return errors.ErrInvalidChainID(chainID)
 	}
 	k := []byte(chainIDKey)
 	if kv.Has(k) {
-		return fmt.Errorf("ChainID already set")
+		return errors.ErrModifyChainID()
 	}
 	kv.Set(k, []byte(chainID))
 	return nil
