@@ -5,9 +5,11 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+	abci "github.com/tendermint/abci/types"
+
 	"github.com/confio/weave"
 	"github.com/confio/weave/store/iavl"
-	"github.com/stretchr/testify/assert"
 )
 
 const dummyKey = "dummy"
@@ -52,28 +54,23 @@ func TestParseGenesis(t *testing.T) {
 
 	for i, tc := range cases {
 		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
-			// this just parses
-			gen, err := loadGenesis(tc.file)
-			if tc.parseError {
-				assert.Error(t, err)
-			} else {
-				assert.NoError(t, err)
-			}
-			assert.Equal(t, tc.expectChain, gen.ChainID)
-
 			// this calls the whole stack
 			c := new(countInit)
 			init := ChainInitializers(dummyInit{}, c)
 			assert.Equal(t, 0, c.called)
 			store := NewStoreApp("foo", iavl.MockCommitStore(), context.Background())
+			// TODO: expose this better
+			store.WithGenesis(tc.file)
+			store.initializer = init
 			assert.Equal(t, store.GetChainID(), "")
 
-			err = store.LoadGenesis(tc.file, init)
-			if tc.initErr {
-				assert.Error(t, err)
-			} else {
-				assert.NoError(t, err)
+			// panics on error :(
+			if tc.parseError || tc.initErr {
+				assert.Panics(t, func() { store.InitChain(abci.RequestInitChain{}) })
+				return
 			}
+			// anythign else, we should get empty success
+			store.InitChain(abci.RequestInitChain{})
 			assert.Equal(t, tc.expectChain, store.GetChainID())
 			assert.Equal(t, tc.expectCalled, c.called)
 			val := store.DeliverStore().Get([]byte(dummyKey))

@@ -1,9 +1,6 @@
 package app
 
 import (
-	"encoding/json"
-	"io/ioutil"
-
 	"github.com/confio/weave"
 	"github.com/confio/weave/errors"
 )
@@ -12,23 +9,6 @@ import (
 type Genesis struct {
 	ChainID    string        `json:"chain_id"`
 	AppOptions weave.Options `json:"app_options"`
-}
-
-// loadGenesis tries to load a given file into a Genesis struct
-func loadGenesis(filePath string) (Genesis, error) {
-	var gen Genesis
-
-	bytes, err := ioutil.ReadFile(filePath)
-	if err != nil {
-		return gen, errors.Wrap(err)
-	}
-
-	// the basecoin genesis go-wire/data :)
-	err = json.Unmarshal(bytes, &gen)
-	if err != nil {
-		return gen, errors.WithCode(err, errors.CodeTxParseError)
-	}
-	return gen, nil
 }
 
 //------ init state -----

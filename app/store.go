@@ -2,7 +2,9 @@ package app
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 
 	abci "github.com/tendermint/abci/types"
 	"github.com/tendermint/tmlibs/log"
@@ -25,8 +27,11 @@ type StoreApp struct {
 	// Database state (committed, check, deliver....)
 	store *commitStore
 
+	// Code to initialize from a genesis file
+	initializer weave.Initializer
+
 	// chainID is loaded from db in initialization
-	// saved once in LoadGenesis
+	// saved once in parseGenesis
 	chainID string
 
 	// cached validator changes from DeliverTx
@@ -39,6 +44,10 @@ type StoreApp struct {
 	// blockContext contains context info that is valid for the
 	// current block (eg. height, header), reset on BeginBlock
 	blockContext weave.Context
+
+	// genesisFile (temporary) is used to store the file
+	// to read from on InitChain
+	genesisFile string
 }
 
 // NewStoreApp initializes this app into a ready state with some defaults
@@ -71,26 +80,27 @@ func (s *StoreApp) GetChainID() string {
 	return s.chainID
 }
 
-// LoadGenesis should be called once the first time the chain starts.
-// After initialization, if there is no chain ID, you can safely call this
-// The caller is responsible for passing in the initialization method.
+// WithGenesis is used to set the genesis file we read
+// initial state from, until it is sent from tendermint
+func (s *StoreApp) WithGenesis(genesisFile string) *StoreApp {
+	s.genesisFile = genesisFile
+	return s
+}
+
+// parseGenesis is called from InitChain, the first time the chain
+// starts, and not on restarts.
 //
-// Example code for main.go:
-//
-//   if s.chainID == "" {
-//     genesisFile := path.Join(rootDir, "genesis.json")
-//     err := s.LoadGenesis(genesisFile, init)
-//     if err != nil {
-//       panic(err)
-//     }
-//   }
-func (s *StoreApp) LoadGenesis(filePath string, init weave.Initializer) error {
+// It currently take bytes from local genesis file, soon, it will
+// receive genesis bytes from tendermint
+func (s *StoreApp) parseGenesis(data []byte, init weave.Initializer) error {
 	if s.chainID != "" {
 		return fmt.Errorf("Genesis file previously loaded for chain: %s", s.chainID)
 	}
-	gen, err := loadGenesis(filePath)
+
+	var gen Genesis
+	err := json.Unmarshal(data, &gen)
 	if err != nil {
-		return err
+		return errors.WithCode(err, errors.CodeTxParseError)
 	}
 
 	// set the chainID from the genesis file
@@ -229,9 +239,34 @@ func (s *StoreApp) Commit() (res abci.ResponseCommit) {
 }
 
 // InitChain implements ABCI
-// TODO: set chainID, validators, something else???
+// TODO: store the original validators somewhere
+// Note: in tendermint 0.17, the genesis file is passed
+// in here, we should use this to trigger reading the genesis now
 func (s *StoreApp) InitChain(req abci.RequestInitChain) (res abci.ResponseInitChain) {
-	return
+	bz, err := ioutil.ReadFile(s.genesisFile)
+	if err != nil {
+		// I'm sorry Alex, but there is no other way :(
+		// https://github.com/tendermint/abci/issues/165#issuecomment-353704015
+		// "Regarding errors in general, for messages that don't take
+		//  user input like Flush, Info, InitChain, BeginBlock, EndBlock,
+		// and Commit.... There is no way to handle these errors gracefully,
+		// so we might as well panic."
+		panic(err)
+	}
+
+	return s.InitChainWithGenesis(req, bz)
+}
+
+// InitChainWithGenesis mocks out what we want for tendermint 0.17
+func (s *StoreApp) InitChainWithGenesis(req abci.RequestInitChain,
+	data []byte) abci.ResponseInitChain {
+
+	err := s.parseGenesis(data, s.initializer)
+	if err != nil {
+		// I know, read above...
+		panic(err)
+	}
+	return abci.ResponseInitChain{}
 }
 
 // BeginBlock implements ABCI
