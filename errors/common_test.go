@@ -82,7 +82,7 @@ func TestLog(t *testing.T) {
 	for i, tc := range cases {
 		assert.True(t, tc.check(tc.err), "%d", i)
 		// make sure we have a nice error message with code
-		msg := fmt.Sprintf("%v", tc.err)
+		msg := fmt.Sprintf("%s", tc.err)
 		assert.Equal(t, tc.log, msg, "%d", i)
 		// make sure we also get stack dumps....
 		stack := fmt.Sprintf("%+v", tc.err)

@@ -2,7 +2,7 @@ package weave_test
 
 import (
 	"fmt"
-	"strconv"
+	"strings"
 	"testing"
 
 	pkerr "github.com/pkg/errors"
@@ -28,18 +28,25 @@ func TestCreateErrorResult(t *testing.T) {
 		{errors.ErrDecoding(), errors.ErrDecoding().Error(), errors.CodeTxParseError},
 	}
 
-	for idx, tc := range cases {
-		i := strconv.Itoa(idx)
+	for i, tc := range cases {
+		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
 
-		dres := weave.DeliverTxError(tc.err)
-		assert.True(dres.IsErr(), i)
-		assert.Equal(tc.msg, dres.Log, i)
-		assert.Equal(tc.code, dres.Code, i)
+			dres := weave.DeliverTxError(tc.err)
+			assert.True(dres.IsErr())
+			// This is if we want minimal logs in the future....
+			// assert.Equal(tc.msg, dres.Log)
+			assert.True(strings.HasPrefix(dres.Log, tc.msg))
+			assert.Contains(dres.Log, "github.com/confio/weave")
+			assert.Equal(tc.code, dres.Code)
 
-		cres := weave.CheckTxError(tc.err)
-		assert.True(cres.IsErr(), i)
-		assert.Equal(tc.msg, cres.Log, i)
-		assert.Equal(tc.code, cres.Code, i)
+			cres := weave.CheckTxError(tc.err)
+			assert.True(cres.IsErr())
+			// This is if we want minimal logs in the future....
+			// assert.Equal(tc.msg, cres.Log)
+			assert.True(strings.HasPrefix(cres.Log, tc.msg))
+			assert.Contains(cres.Log, "github.com/confio/weave")
+			assert.Equal(tc.code, cres.Code)
+		})
 	}
 }
 

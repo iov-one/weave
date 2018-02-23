@@ -7,8 +7,8 @@ import (
 
 // Genesis file format, designed to be overlayed with tendermint genesis
 type Genesis struct {
-	ChainID    string        `json:"chain_id"`
-	AppOptions weave.Options `json:"app_options"`
+	ChainID  string        `json:"chain_id"`
+	AppState weave.Options `json:"app_state"`
 }
 
 //------ init state -----

@@ -1,6 +1,8 @@
 package weave
 
 import (
+	"fmt"
+
 	abci "github.com/tendermint/abci/types"
 	"github.com/tendermint/go-wire/data"
 
@@ -94,7 +96,8 @@ func DeliverTxError(err error) abci.ResponseDeliverTx {
 	tm := errors.Wrap(err)
 	return abci.ResponseDeliverTx{
 		Code: tm.ABCICode(),
-		Log:  tm.ABCILog(),
+		Log:  fmt.Sprintf("%+v", tm),
+		// Log:  tm.ABCILog(),
 	}
 }
 
@@ -105,6 +108,7 @@ func CheckTxError(err error) abci.ResponseCheckTx {
 	tm := errors.Wrap(err)
 	return abci.ResponseCheckTx{
 		Code: tm.ABCICode(),
-		Log:  tm.ABCILog(),
+		Log:  fmt.Sprintf("%+v", tm),
+		// Log:  tm.ABCILog(),
 	}
 }
