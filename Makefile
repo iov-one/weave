@@ -14,7 +14,6 @@ MODE ?= set
 all: deps build test
 
 install:
-	# Nothing to see here yet
 	go install $(BUILD_FLAGS) ./cmd/...
 
 # This is to make sure it all compiles
