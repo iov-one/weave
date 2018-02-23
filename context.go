@@ -41,7 +41,7 @@ var (
 	DefaultLogger = log.NewNopLogger()
 
 	// IsValidChainID is the RegExp to ensure valid chain IDs
-	IsValidChainID = regexp.MustCompile(`^[a-z0-9_\-]{6,14}$`).MatchString
+	IsValidChainID = regexp.MustCompile(`^[a-zA-Z0-9_\-]{6,20}$`).MatchString
 )
 
 // Context is just an alias for the standard implementation.
