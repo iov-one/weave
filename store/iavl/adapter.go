@@ -9,14 +9,14 @@ import (
 
 // TODO: make these configurable?
 const (
-	DefaultCacheSize int    = 10000
-	DefaultHistory   uint64 = 20
+	DefaultCacheSize int   = 10000
+	DefaultHistory   int64 = 20
 )
 
 // CommitStore manages a iavl committed state
 type CommitStore struct {
 	tree       *iavl.VersionedTree
-	numHistory uint64
+	numHistory int64
 }
 
 var _ store.CommitKVStore = CommitStore{}
@@ -30,7 +30,7 @@ func NewCommitStore(path, name string) CommitStore {
 		panic(err)
 	}
 
-	tree := iavl.NewVersionedTree(DefaultCacheSize, db)
+	tree := iavl.NewVersionedTree(db, DefaultCacheSize)
 	commit := CommitStore{tree, DefaultHistory}
 	commit.LoadLatestVersion()
 	return commit
@@ -39,22 +39,21 @@ func NewCommitStore(path, name string) CommitStore {
 // MockCommitStore creates a new in-memory store for testing
 func MockCommitStore() CommitStore {
 	var db dbm.DB = dbm.NewMemDB()
-	tree := iavl.NewVersionedTree(DefaultCacheSize, db)
+	tree := iavl.NewVersionedTree(db, DefaultCacheSize)
 	return CommitStore{tree, DefaultHistory}
 }
 
 // Get returns the value at last committed state
 // returns nil iff key doesn't exist. Panics on nil key.
 func (s CommitStore) Get(key []byte) []byte {
-	version := s.tree.LatestVersion()
+	version := int64(s.tree.Version())
 	_, val := s.tree.GetVersioned(key, version)
 	return val
 }
 
 // Commit the next version to disk, and returns info
 func (s CommitStore) Commit() store.CommitID {
-	version := s.tree.LatestVersion() + 1
-	hash, err := s.tree.SaveVersion(version)
+	hash, version, err := s.tree.SaveVersion()
 	if err != nil {
 		panic(err)
 	}
@@ -81,7 +80,7 @@ func (s CommitStore) LoadLatestVersion() error {
 // LatestVersion returns info on the latest version saved to disk
 func (s CommitStore) LatestVersion() store.CommitID {
 	return store.CommitID{
-		Version: int64(s.tree.LatestVersion()),
+		Version: int64(s.tree.Version()),
 		Hash:    s.tree.Hash(),
 	}
 }

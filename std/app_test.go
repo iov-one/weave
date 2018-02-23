@@ -44,7 +44,7 @@ func TestApp(t *testing.T) {
 	// Commit first block, make sure non-nil hash
 	app.InitChainWithGenesis(abci.RequestInitChain{}, []byte(genesis))
 	header := abci.Header{Height: 1}
-	app.BeginBlock(abci.RequestBeginBlock{Header: &header})
+	app.BeginBlock(abci.RequestBeginBlock{Header: header})
 	app.EndBlock(abci.RequestEndBlock{})
 	cres := app.Commit()
 	block1 := cres.Data
@@ -92,7 +92,7 @@ func TestApp(t *testing.T) {
 
 	// Submit to the chain
 	header = abci.Header{Height: 2}
-	app.BeginBlock(abci.RequestBeginBlock{Header: &header})
+	app.BeginBlock(abci.RequestBeginBlock{Header: header})
 	// check and deliver must pass
 	chres := app.CheckTx(txBytes)
 	require.Equal(t, uint32(0), chres.Code, chres.Log)

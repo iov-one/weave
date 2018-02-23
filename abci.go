@@ -5,6 +5,7 @@ import (
 
 	abci "github.com/tendermint/abci/types"
 	"github.com/tendermint/go-wire/data"
+	"github.com/tendermint/tmlibs/common"
 
 	"github.com/confio/weave/errors"
 )
@@ -38,8 +39,8 @@ func CheckOrError(result CheckResult, err error) abci.ResponseCheckTx {
 type DeliverResult struct {
 	Data    data.Bytes
 	Log     string
-	Diff    []*abci.Validator
-	Tags    []*abci.KVPair
+	Diff    []abci.Validator
+	Tags    []common.KVPair
 	GasUsed int64 // unused
 }
 
@@ -75,16 +76,16 @@ func NewCheck(gasAllocated int64, log string) CheckResult {
 // ToABCI converts our internal type into an abci response
 func (c CheckResult) ToABCI() abci.ResponseCheckTx {
 	return abci.ResponseCheckTx{
-		Data: c.Data,
-		Log:  c.Log,
-		Gas:  c.GasAllocated,
-		Fee:  c.GasPayment,
+		Data:      c.Data,
+		Log:       c.Log,
+		GasWanted: c.GasAllocated,
+		Fee:       common.KI64Pair{Value: c.GasPayment},
 	}
 }
 
 // TickResult allows the Ticker to modify the validator set
 type TickResult struct {
-	Diff []*abci.Validator
+	Diff []abci.Validator
 }
 
 //---------- type safe error converters --------
