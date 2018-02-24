@@ -65,10 +65,10 @@ to load the proper sequence. When calculating the address
 for a given public key (eg. to request payment), we
 do the following:
 
-```
-address := sha256("pubk:" || fingerprint)
-fingerprint := sha256(public_key_bytes)
-```
+::
+
+    address := sha256("pubk:" || fingerprint)
+    fingerprint := sha256(public_key_bytes)
 
 Where ``||`` means concatenate, and ``public_key_bytes``
 are the raw bytes of the public key.
@@ -76,6 +76,8 @@ are the raw bytes of the public key.
 Question: do we include the curve/algorithm the public key belongs
 to in the fingerprint calculation? Is there any theoretical
 collision here? How do we specify the type?
+
+Questions: The sequence number (one/account, one/tx... define this well)
 
 Authorization
 =============
