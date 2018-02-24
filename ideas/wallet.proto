@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package ideas;
+
+// Coin is simplest ppossible token representation
+message Coin {
+    int64 amount = 1;
+    string currency_code = 2;
+}
+
+// Wallet contains coins of many currencies
+message Wallet {
+    repeated Coin coins = 1;
+}
+
