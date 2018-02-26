@@ -5,9 +5,6 @@ import (
 	"io/ioutil"
 	"path/filepath"
 
-	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
-
 	"github.com/tendermint/tmlibs/log"
 
 	"github.com/confio/weave"
@@ -23,16 +20,21 @@ const (
 // The application can pass in a function to generate
 // proper options. And may want to use GenerateCoinKey
 // to create default account(s).
-func InitCmd(gen GenOptions, logger log.Logger) *cobra.Command {
-	cmd := initCmd{
-		gen:    gen,
-		logger: logger,
+func InitCmd(gen GenOptions, logger log.Logger, home string, args []string) error {
+	// no app_options, leave like tendermint
+	if gen == nil {
+		return nil
 	}
-	return &cobra.Command{
-		Use:   "init",
-		Short: "Initialize genesis files",
-		RunE:  cmd.run,
+
+	// Now, we want to add the custom app_options
+	options, err := gen(args)
+	if err != nil {
+		return err
 	}
+
+	// And add them to the genesis file
+	genFile := filepath.Join(home, "config", "genesis.json")
+	return addGenesisOptions(genFile, options)
 }
 
 // GenOptions can parse command-line and flag to
@@ -49,29 +51,6 @@ func GenerateCoinKey() (weave.Address, string, error) {
 	privKey := crypto.GenPrivKeyEd25519()
 	addr := privKey.PublicKey().Address()
 	return addr, "TODO: add a recovery phrase", nil
-}
-
-type initCmd struct {
-	gen    GenOptions
-	logger log.Logger
-}
-
-func (c initCmd) run(cmd *cobra.Command, args []string) error {
-	// no app_options, leave like tendermint
-	if c.gen == nil {
-		return nil
-	}
-
-	// Now, we want to add the custom app_options
-	options, err := c.gen(args)
-	if err != nil {
-		return err
-	}
-
-	// And add them to the genesis file
-	home := viper.GetString("home")
-	genFile := filepath.Join(home, "config", "genesis.json")
-	return addGenesisOptions(genFile, options)
 }
 
 // genesisDoc involves some tendermint-specific structures we don't

@@ -1,12 +1,11 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"os"
+	"path/filepath"
 
-	"github.com/spf13/cobra"
-
-	"github.com/tendermint/tmlibs/cli"
 	"github.com/tendermint/tmlibs/log"
 
 	"github.com/confio/weave"
@@ -14,32 +13,54 @@ import (
 	"github.com/confio/weave/std"
 )
 
-// rootCmd is the entry point for this binary
 var (
-	rootCmd = &cobra.Command{
-		Use:   "mycoind",
-		Short: "MyCoin Tendermint Node",
-	}
-
-	versionCmd = &cobra.Command{
-		Use:   "version",
-		Short: "Print the app version",
-		Run:   func(_ *cobra.Command, _ []string) { fmt.Println(weave.Version()) },
-	}
+	flagHome = "home"
+	varHome  *string
 )
+
+func init() {
+	defaultHome := filepath.Join(os.ExpandEnv("$HOME"), ".mycoind")
+	varHome = flag.String(flagHome, defaultHome, "directory to store files under")
+}
+
+func helpMessage() {
+	fmt.Println("mycoind")
+	fmt.Println("         MyCoin ABCI Application")
+	fmt.Println("")
+	fmt.Println("help     Print this message")
+	fmt.Println("init     Initialize app options in genesis file")
+	fmt.Println("start    Run the abci server")
+	fmt.Println("version  Print the app version")
+	fmt.Println("")
+	flag.PrintDefaults()
+}
 
 func main() {
 	logger := log.NewTMLogger(log.NewSyncWriter(os.Stdout)).
 		With("module", "mycoin")
 
-	rootCmd.AddCommand(
-		server.InitCmd(std.GenInitOptions, logger),
-		server.StartCmd(std.GenerateApp, logger),
-		versionCmd,
-	)
+	flag.Parse()
+	if flag.NArg() == 0 {
+		fmt.Println("Missing command:")
+		helpMessage()
+		os.Exit(1)
+	}
 
-	// prepare and add flags
-	rootDir := os.ExpandEnv("$HOME/.mycoind")
-	executor := cli.PrepareBaseCmd(rootCmd, "MY", rootDir)
-	executor.Execute()
+	cmd := flag.Arg(0)
+	rest := flag.Args()[1:]
+
+	switch cmd {
+	case "help":
+		helpMessage()
+	case "init":
+		server.InitCmd(std.GenInitOptions, logger, *varHome, rest)
+	case "start":
+		server.StartCmd(std.GenerateApp, logger, *varHome, rest)
+	case "version":
+		fmt.Println(weave.Version())
+	default:
+		fmt.Printf("Unknown command: %s\n", cmd)
+		helpMessage()
+		os.Exit(1)
+	}
 }

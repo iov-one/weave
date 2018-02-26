@@ -8,7 +8,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -18,45 +17,47 @@ import (
 )
 
 func TestStartStandAlone(t *testing.T) {
-	defer setupViper(t)()
+	home := setupConfig(t)
+	defer os.RemoveAll(home)
 
 	logger := log.NewNopLogger()
-	initCmd := InitCmd(std.GenInitOptions, logger)
-	err := initCmd.RunE(nil, nil)
+
+	err := InitCmd(std.GenInitOptions, logger, home, nil)
 	require.NoError(t, err)
 
 	// set up app and start up
-	viper.Set(flagAddress, "localhost:11122")
-	startCmd := StartCmd(std.GenerateApp, logger)
+	args := []string{"-bind", "localhost:11122"}
+	runStart := func() error {
+		return StartCmd(std.GenerateApp, logger, home, args)
+	}
 	timeout := time.Duration(3) * time.Second
-	runStart := func() error { return startCmd.RunE(nil, nil) }
 	err = runOrTimeout(runStart, timeout)
 	require.NoError(t, err)
 }
 
 func TestStartWithTendermint(t *testing.T) {
-	defer setupViper(t)()
+	home := setupConfig(t)
+	defer os.RemoveAll(home)
 
 	const runTime = 5     // how many seconds to run both processes
 	const startupTime = 2 // how many seconds to let tendermint startup
 
 	logger := log.NewTMLogger(log.NewSyncWriter(os.Stdout)).
 		With("module", "test-cmd")
-	initCmd := InitCmd(std.GenInitOptions, logger)
-	err := initCmd.RunE(nil, nil)
+	err := InitCmd(std.GenInitOptions, logger, home, nil)
 	require.NoError(t, err)
 
 	// start up tendermint process in the background...
 	// this will block 2 seconds and ensure tendermint lives
 	// at least 3 seconds after we run StartCmd
-	home := viper.GetString("home")
 	runTendermint(t, home, startupTime, runTime)
 
 	// set up app and start up
-	viper.Set(flagAddress, "localhost:46658")
-	startCmd := StartCmd(std.GenerateApp, logger)
+	args := []string{"-bind", "localhost:46658"}
+	runStart := func() error {
+		return StartCmd(std.GenerateApp, logger, home, args)
+	}
 	timeout := time.Duration(runTime+1) * time.Second
-	runStart := func() error { return startCmd.RunE(nil, nil) }
 	err = runOrTimeout(runStart, timeout)
 	require.NoError(t, err)
 
