@@ -2,7 +2,6 @@ package server
 
 import (
 	"fmt"
-	"os"
 	"testing"
 	"time"
 
@@ -16,7 +15,7 @@ import (
 )
 
 func TestStartStandAlone(t *testing.T) {
-	defer setupViper()()
+	defer setupViper(t)()
 
 	logger := log.NewNopLogger()
 	initCmd := InitCmd(std.GenInitOptions, logger)
@@ -24,7 +23,6 @@ func TestStartStandAlone(t *testing.T) {
 	require.NoError(t, err)
 
 	// set up app and start up
-	viper.Set(flagWithTendermint, false)
 	viper.Set(flagAddress, "localhost:11122")
 	startCmd := StartCmd(std.GenerateApp, logger)
 	timeout := time.Duration(3) * time.Second
@@ -33,24 +31,24 @@ func TestStartStandAlone(t *testing.T) {
 	require.NoError(t, err)
 }
 
-func TestStartWithTendermint(t *testing.T) {
-	defer setupViper()()
+// func TestStartWithTendermint(t *testing.T) {
+// 	defer setupViper(t)()
 
-	logger := log.NewTMLogger(log.NewSyncWriter(os.Stdout)).
-		With("module", "test-cmd")
-		// logger := log.NewNopLogger()
-	initCmd := InitCmd(std.GenInitOptions, logger)
-	err := initCmd.RunE(nil, nil)
-	require.NoError(t, err)
+// 	logger := log.NewTMLogger(log.NewSyncWriter(os.Stdout)).
+// 		With("module", "test-cmd")
+// 		// logger := log.NewNopLogger()
+// 	initCmd := InitCmd(std.GenInitOptions, logger)
+// 	err := initCmd.RunE(nil, nil)
+// 	require.NoError(t, err)
 
-	// set up app and start up
-	viper.Set(flagWithTendermint, true)
-	startCmd := StartCmd(std.GenerateApp, logger)
-	timeout := time.Duration(3) * time.Second
+// 	// set up app and start up
+// 	viper.Set(flagWithTendermint, true)
+// 	startCmd := StartCmd(std.GenerateApp, logger)
+// 	timeout := time.Duration(3) * time.Second
 
-	err = runOrTimeout(startCmd, timeout)
-	require.NoError(t, err)
-}
+// 	err = runOrTimeout(startCmd, timeout)
+// 	require.NoError(t, err)
+// }
 
 func runOrTimeout(cmd *cobra.Command, timeout time.Duration) error {
 	done := make(chan error)

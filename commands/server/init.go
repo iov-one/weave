@@ -2,20 +2,20 @@ package server
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
-	"os"
+	"path/filepath"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 
-	tcmd "github.com/tendermint/tendermint/cmd/tendermint/commands"
-	cfg "github.com/tendermint/tendermint/config"
-	tmtypes "github.com/tendermint/tendermint/types"
-	cmn "github.com/tendermint/tmlibs/common"
 	"github.com/tendermint/tmlibs/log"
 
 	"github.com/confio/weave"
 	"github.com/confio/weave/crypto"
+)
+
+const (
+	appStateKey = "app_state"
 )
 
 // InitCmd will initialize all files for tendermint,
@@ -57,17 +57,6 @@ type initCmd struct {
 }
 
 func (c initCmd) run(cmd *cobra.Command, args []string) error {
-	// Run the basic tendermint initialization,
-	// set up a default genesis with no app_options
-	config, err := tcmd.ParseConfig()
-	if err != nil {
-		return err
-	}
-	err = c.initTendermintFiles(config)
-	if err != nil {
-		return err
-	}
-
 	// no app_options, leave like tendermint
 	if c.gen == nil {
 		return nil
@@ -80,55 +69,15 @@ func (c initCmd) run(cmd *cobra.Command, args []string) error {
 	}
 
 	// And add them to the genesis file
-	genFile := config.GenesisFile()
+	home := viper.GetString("home")
+	genFile := filepath.Join(home, "config", "genesis.json")
 	return addGenesisOptions(genFile, options)
 }
 
-// This was copied from tendermint/cmd/tendermint/commands/init.go
-// so we could pass in the config and the logger.
-func (c initCmd) initTendermintFiles(config *cfg.Config) error {
-	// private validator
-	privValFile := config.PrivValidatorFile()
-	var privValidator *tmtypes.PrivValidatorFS
-	if fileExists(privValFile) {
-		privValidator = tmtypes.LoadPrivValidatorFS(privValFile)
-		c.logger.Info("Found private validator", "path", privValFile)
-	} else {
-		privValidator = tmtypes.GenPrivValidatorFS(privValFile)
-		privValidator.Save()
-		c.logger.Info("Generated private validator", "path", privValFile)
-	}
-
-	// genesis file
-	genFile := config.GenesisFile()
-	if fileExists(genFile) {
-		c.logger.Info("Found genesis file", "path", genFile)
-	} else {
-		genDoc := tmtypes.GenesisDoc{
-			ChainID: fmt.Sprintf("test-chain-%v", cmn.RandStr(6)),
-		}
-		genDoc.Validators = []tmtypes.GenesisValidator{{
-			PubKey: privValidator.GetPubKey(),
-			Power:  10,
-		}}
-
-		if err := genDoc.SaveAs(genFile); err != nil {
-			return err
-		}
-		c.logger.Info("Generated genesis file", "path", genFile)
-	}
-	return nil
-}
-
-func fileExists(filePath string) bool {
-	_, err := os.Stat(filePath)
-	return !os.IsNotExist(err)
-}
-
-// GenesisDoc involves some tendermint-specific structures we don't
+// genesisDoc involves some tendermint-specific structures we don't
 // want to parse, so we just grab it into a raw object format,
 // so we can add one line.
-type GenesisDoc map[string]json.RawMessage
+type genesisDoc map[string]json.RawMessage
 
 func addGenesisOptions(filename string, options json.RawMessage) error {
 	bz, err := ioutil.ReadFile(filename)
@@ -136,13 +85,13 @@ func addGenesisOptions(filename string, options json.RawMessage) error {
 		return err
 	}
 
-	var doc GenesisDoc
+	var doc genesisDoc
 	err = json.Unmarshal(bz, &doc)
 	if err != nil {
 		return err
 	}
 
-	doc["app_state"] = options
+	doc[appStateKey] = options
 	out, err := json.MarshalIndent(doc, "", "  ")
 	if err != nil {
 		return err
