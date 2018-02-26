@@ -35,6 +35,11 @@ cover:
 
 deps: glide
 	@glide install
+	@ #install tendermint binary for testing
+	go get -u github.com/tendermint/tendermint/cmd/tendermint
+	@ # Use this if the above fails
+	@ # @go get -u github.com/tendermint/tendermint
+	@ # cd ../../tendermint/tendermint && make get_vendor_deps && make install
 
 glide:
 	@go get github.com/tendermint/glide

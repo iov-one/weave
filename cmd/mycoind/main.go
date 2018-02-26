@@ -35,7 +35,6 @@ func main() {
 	rootCmd.AddCommand(
 		server.InitCmd(std.GenInitOptions, logger),
 		server.StartCmd(std.GenerateApp, logger),
-		server.UnsafeResetAllCmd(logger),
 		versionCmd,
 	)
 
