@@ -17,6 +17,10 @@ import (
 )
 
 func TestStartStandAlone(t *testing.T) {
+	if testing.Short() {
+		t.Skip("Skipping ABCI stand-alone test")
+	}
+
 	home := setupConfig(t)
 	defer os.RemoveAll(home)
 
