@@ -1,4 +1,4 @@
-package coins
+package x
 
 import (
 	"regexp"
@@ -10,12 +10,13 @@ import (
 var isCC = regexp.MustCompile(`^[A-Z]{3,4}$`).MatchString
 
 const (
-	maxInt int32 = 999999999 // 10^9-1
-	minInt       = -maxInt
+	MaxInt int32 = 999999999 // 10^9-1
+	MinInt       = -MaxInt
 
-	fracUnit int32 = 1000000000 // fractional units = 10^9
-	maxFrac        = fracUnit - 1
-	minFrac        = -maxFrac
+	// FracUnits is the smallest numbers we divide by
+	FracUnit int32 = 1000000000 // fractional units = 10^9
+	MaxFrac        = FracUnit - 1
+	MinFrac        = -MaxFrac
 )
 
 // NewCoin creates a new coin object
@@ -164,10 +165,10 @@ func (c Coin) Validate() error {
 	if !isCC(c.CurrencyCode) {
 		return ErrInvalidCurrency(c.CurrencyCode)
 	}
-	if c.Integer < minInt || c.Integer > maxInt {
+	if c.Integer < MinInt || c.Integer > MaxInt {
 		return ErrOutOfRange(c)
 	}
-	if c.Fractional < minFrac || c.Fractional > maxFrac {
+	if c.Fractional < MinFrac || c.Fractional > MaxFrac {
 		return ErrOutOfRange(c)
 	}
 	// make sure signs match
@@ -186,26 +187,26 @@ func (c Coin) Validate() error {
 // returns an error
 func (c Coin) normalize() (Coin, error) {
 	// keep fraction in range
-	for c.Fractional < minFrac {
+	for c.Fractional < MinFrac {
 		c.Integer--
-		c.Fractional += fracUnit
+		c.Fractional += FracUnit
 	}
-	for c.Fractional > maxFrac {
+	for c.Fractional > MaxFrac {
 		c.Integer++
-		c.Fractional -= fracUnit
+		c.Fractional -= FracUnit
 	}
 
 	// make sure the signs correspond
 	if (c.Integer > 0) && (c.Fractional < 0) {
 		c.Integer--
-		c.Fractional += fracUnit
+		c.Fractional += FracUnit
 	} else if (c.Integer < 0) && (c.Fractional > 0) {
 		c.Integer++
-		c.Fractional -= fracUnit
+		c.Fractional -= FracUnit
 	}
 
 	// return error if integer is out of range
-	if c.Integer < minInt || c.Integer > maxInt {
+	if c.Integer < MinInt || c.Integer > MaxInt {
 		return Coin{}, ErrOutOfRange(c)
 	}
 	return c, nil

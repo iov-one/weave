@@ -1,4 +1,4 @@
-package coins
+package x
 
 import (
 	"fmt"
@@ -8,16 +8,16 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// mustNewSet has one return value for tests...
-func mustNewSet(cs ...Coin) Set {
-	s, err := NewSet(cs...)
+// mustCombineCoins has one return value for tests...
+func mustCombineCoins(cs ...Coin) Coins {
+	s, err := CombineCoins(cs...)
 	if err != nil {
 		panic(err)
 	}
 	return s
 }
 
-func TestMakeSet(t *testing.T) {
+func TestMakeCoins(t *testing.T) {
 	// TODO: verify constructor checks well for errors
 
 	cases := []struct {
@@ -116,16 +116,16 @@ func TestMakeSet(t *testing.T) {
 		},
 		// verify invalid input values -> error
 		{
-			[]Coin{NewCoin(maxInt+3, 2, "AND")},
+			[]Coin{NewCoin(MaxInt+3, 2, "AND")},
 			false, false, nil, nil,
 			true,
 		},
 		// if we can combine invalid inputs, then acceptable?
 		{
-			[]Coin{NewCoin(maxInt+3, 2, "AND"), NewCoin(-10, 0, "AND")},
+			[]Coin{NewCoin(MaxInt+3, 2, "AND"), NewCoin(-10, 0, "AND")},
 			false,
 			true,
-			[]Coin{NewCoin(maxInt-8, 0, "AND")},
+			[]Coin{NewCoin(MaxInt-8, 0, "AND")},
 			nil,
 			false,
 		},
@@ -133,7 +133,7 @@ func TestMakeSet(t *testing.T) {
 
 	for idx, tc := range cases {
 		t.Run(fmt.Sprintf("case-%d", idx), func(t *testing.T) {
-			s, err := NewSet(tc.inputs...)
+			s, err := CombineCoins(tc.inputs...)
 			if tc.isErr {
 				assert.Error(t, err)
 				return
@@ -158,33 +158,33 @@ func TestMakeSet(t *testing.T) {
 // and thereby checks add
 func TestCombine(t *testing.T) {
 	cases := []struct {
-		a, b  Set
-		comb  Set
+		a, b  Coins
+		comb  Coins
 		isErr bool
 	}{
 		// empty
 		{
-			mustNewSet(), mustNewSet(), mustNewSet(), false,
+			mustCombineCoins(), mustCombineCoins(), mustCombineCoins(), false,
 		},
 		// one plus one
 		{
-			mustNewSet(NewCoin(maxInt, 5, "ABC")),
-			mustNewSet(NewCoin(-maxInt, -4, "ABC")),
-			mustNewSet(NewCoin(0, 1, "ABC")),
+			mustCombineCoins(NewCoin(MaxInt, 5, "ABC")),
+			mustCombineCoins(NewCoin(-MaxInt, -4, "ABC")),
+			mustCombineCoins(NewCoin(0, 1, "ABC")),
 			false,
 		},
 		// multiple
 		{
-			mustNewSet(NewCoin(7, 8, "FOO"), NewCoin(8, 9, "BAR")),
-			mustNewSet(NewCoin(5, 4, "APE"), NewCoin(2, 1, "FOO")),
-			mustNewSet(NewCoin(5, 4, "APE"), NewCoin(8, 9, "BAR"), NewCoin(9, 9, "FOO")),
+			mustCombineCoins(NewCoin(7, 8, "FOO"), NewCoin(8, 9, "BAR")),
+			mustCombineCoins(NewCoin(5, 4, "APE"), NewCoin(2, 1, "FOO")),
+			mustCombineCoins(NewCoin(5, 4, "APE"), NewCoin(8, 9, "BAR"), NewCoin(9, 9, "FOO")),
 			false,
 		},
 		// overflows
 		{
-			mustNewSet(NewCoin(maxInt, 0, "ADA")),
-			mustNewSet(NewCoin(2, 0, "ADA")),
-			Set{},
+			mustCombineCoins(NewCoin(MaxInt, 0, "ADA")),
+			mustCombineCoins(NewCoin(2, 0, "ADA")),
+			Coins{},
 			true,
 		},
 	}
@@ -196,7 +196,7 @@ func TestCombine(t *testing.T) {
 			bc := tc.b.Count()
 
 			res, err := tc.a.Combine(tc.b)
-			// don't modify original sets
+			// don't modify original Coinss
 			assert.Equal(t, ac, tc.a.Count())
 			assert.Equal(t, bc, tc.b.Count())
 			if tc.isErr {

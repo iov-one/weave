@@ -3,6 +3,7 @@ package coins
 import (
 	"github.com/confio/weave"
 	"github.com/confio/weave/errors"
+	"github.com/confio/weave/x"
 )
 
 // Ensure we implement the Msg interface
@@ -24,7 +25,7 @@ func (SendMsg) Path() string {
 // Validate makes sure that this is sensible
 func (s *SendMsg) Validate() error {
 	amt := s.GetAmount()
-	if IsEmpty(amt) || !amt.IsPositive() {
+	if x.IsEmpty(amt) || !amt.IsPositive() {
 		return ErrInvalidAmount("Non-positive SendMsg")
 	}
 	if err := amt.Validate(); err != nil {

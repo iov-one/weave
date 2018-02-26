@@ -12,6 +12,7 @@ import (
 
 	"github.com/confio/weave/app"
 	"github.com/confio/weave/crypto"
+	"github.com/confio/weave/x"
 	"github.com/confio/weave/x/auth"
 	"github.com/confio/weave/x/coins"
 )
@@ -75,7 +76,7 @@ func TestApp(t *testing.T) {
 	msg := &coins.SendMsg{
 		Src:  addr,
 		Dest: addr2,
-		Amount: &coins.Coin{
+		Amount: &x.Coin{
 			Integer:      2000,
 			CurrencyCode: "ETH",
 		},

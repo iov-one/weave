@@ -7,6 +7,7 @@ import (
 	"github.com/confio/weave"
 	"github.com/confio/weave/errors"
 	"github.com/confio/weave/store"
+	"github.com/confio/weave/x"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -41,7 +42,7 @@ func (m *mockTx) Unmarshal([]byte) error {
 }
 
 func TestSend(t *testing.T) {
-	foo := NewCoin(100, 0, "FOO")
+	foo := x.NewCoin(100, 0, "FOO")
 	addr := weave.NewAddress([]byte{1, 2, 3})
 	addr2 := weave.NewAddress([]byte{4, 5, 6})
 
@@ -75,7 +76,7 @@ func TestSend(t *testing.T) {
 			[]weave.Address{addr},
 			[]Wallet{{
 				key: NewKey(addr),
-				Set: mustNewSet(NewCoin(300, 0, "SOME")),
+				Set: Set{mustCombineCoins(x.NewCoin(300, 0, "SOME"))},
 			}},
 			&SendMsg{Amount: &foo, Src: addr, Dest: addr2},
 			noErr, // we don't check funds
@@ -86,7 +87,7 @@ func TestSend(t *testing.T) {
 			[]weave.Address{addr},
 			[]Wallet{{
 				key: NewKey(addr),
-				Set: mustNewSet(foo),
+				Set: Set{mustCombineCoins(foo)},
 			}},
 			&SendMsg{Amount: &foo, Src: addr, Dest: addr2},
 			noErr,

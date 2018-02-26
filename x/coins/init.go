@@ -25,6 +25,9 @@ var _ weave.Initializer = Initializer{}
 func (Initializer) FromGenesis(opts weave.Options, kv weave.KVStore) error {
 	accts := []GenesisAccount{}
 	err := opts.ReadOptions(optKey, &accts)
+	if err != nil {
+		return err
+	}
 	for _, acct := range accts {
 		// try to load up into a valid address
 		if len(acct.Address) != weave.AddressLength {
@@ -36,10 +39,11 @@ func (Initializer) FromGenesis(opts weave.Options, kv weave.KVStore) error {
 		if err := acct.Set.Validate(); err != nil {
 			return err
 		}
-		recipient.Set, err = Set{}.Combine(acct.Set)
+		clean, err := acct.Set.Normalize()
 		if err != nil {
 			return err
 		}
+		recipient.Set = clean
 
 		// save set up account
 		recipient.Save()

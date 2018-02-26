@@ -49,8 +49,9 @@ glide:
 
 protoc:
 	protoc --gogofaster_out=. crypto/*.proto
+	protoc --gogofaster_out=. x/*.proto
 	protoc --gogofaster_out=. -I=. -I=$$GOPATH/src x/auth/*.proto
-	protoc --gogofaster_out=. x/coins/*.proto
+	protoc --gogofaster_out=. -I=. -I=$$GOPATH/src x/coins/*.proto
 	protoc --gogofaster_out=. -I=. -I=$$GOPATH/src std/*.proto
 	@ # protoc -I=. -I=vendor --gogo_out=. crypto/*.proto
 

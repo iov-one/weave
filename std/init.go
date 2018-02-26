@@ -11,6 +11,7 @@ import (
 
 	"github.com/confio/weave"
 	"github.com/confio/weave/crypto"
+	"github.com/confio/weave/x"
 	"github.com/confio/weave/x/coins"
 )
 
@@ -56,7 +57,7 @@ func GenInitOptions(args []string) (json.RawMessage, error) {
 
 // GenerateApp is used to create a stub for server/start.go command
 func GenerateApp(dbPath string, logger log.Logger) (abci.Application, error) {
-	stack := Stack(coins.Coin{})
+	stack := Stack(x.Coin{})
 	app, err := Application("mycoin", stack, TxDecoder, dbPath)
 	if err != nil {
 		return nil, err

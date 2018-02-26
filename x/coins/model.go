@@ -32,7 +32,7 @@ func NewKey(addr weave.Address) Key {
 type Wallet struct {
 	store weave.KVStore
 	key   Key
-	Set
+	Set   Set
 }
 
 // GetWallet loads this Wallet if present, or returns nil if missing
@@ -71,4 +71,43 @@ func GetOrCreateWallet(store weave.KVStore, key Key) *Wallet {
 func (u *Wallet) Save() {
 	value := x.MustMarshalValid(&u.Set)
 	u.store.Set(u.key, value)
+}
+
+// Coins returns the coins stored in the wallet
+func (u Wallet) Coins() x.Coins {
+	return x.Coins(u.Set.Coins)
+}
+
+// Add modifies the wallet to add Coin c
+func (u *Wallet) Add(c x.Coin) error {
+	cs, err := u.Coins().Add(c)
+	if err != nil {
+		return err
+	}
+	u.Set.Coins = cs
+	return nil
+}
+
+// Subtract modifies the wallet to remove Coin c
+func (u *Wallet) Subtract(c x.Coin) error {
+	return u.Add(c.Negative())
+}
+
+// Validate requires that all coins are in alphabetical
+func (s Set) Validate() error {
+	return x.Coins(s.Coins).Validate()
+}
+
+// Normalize combines the coins to make sure they are sorted
+// and rounded off, with no duplicates or 0 values.
+func (s Set) Normalize() (Set, error) {
+	ins := make([]x.Coin, len(s.GetCoins()))
+	for i, c := range s.GetCoins() {
+		ins[i] = *c
+	}
+	coins, err := x.CombineCoins(ins...)
+	if err != nil {
+		return Set{}, err
+	}
+	return Set{Coins: coins}, nil
 }

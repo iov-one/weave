@@ -8,7 +8,6 @@
 		x/coins/codec.proto
 
 	It has these top-level messages:
-		Coin
 		Set
 		SendMsg
 		FeeInfo
@@ -18,6 +17,7 @@ package coins
 import proto "github.com/gogo/protobuf/proto"
 import fmt "fmt"
 import math "math"
+import x "github.com/confio/weave/x"
 
 import io "io"
 
@@ -32,75 +32,18 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
 
-// Coin can hold any amount between -1 billion and +1 billion
-// at steps of 10^-9. It is a fixed-point decimal
-// representation and uses integers to avoid rounding
-// associated with floats.
-//
-// Every code has a denomination, which is just a
-//
-// If you want anything more complex, you should write your
-// own type, possibly borrowing from this code.
-type Coin struct {
-	// Whole coins, -10^9 < integer < 10^9
-	Integer int32 `protobuf:"varint,1,opt,name=integer,proto3" json:"integer,omitempty"`
-	// Billionth of coins. 0 <= abs(fractional) < 10^9
-	// If fractional != 0, must have same sign as integer
-	Fractional int32 `protobuf:"varint,2,opt,name=fractional,proto3" json:"fractional,omitempty"`
-	// CurrencyCode is 3-4 upper-case letters and
-	// all Coins of the same currency can be combined
-	CurrencyCode string `protobuf:"bytes,3,opt,name=currency_code,json=currencyCode,proto3" json:"currency_code,omitempty"`
-	// Issuer is optional string, maybe chain_id? maybe custodian name?
-	// can be empty. tokens are only fungible if CurrencyCode and
-	// Issuer both match.
-	Issuer string `protobuf:"bytes,4,opt,name=issuer,proto3" json:"issuer,omitempty"`
-}
-
-func (m *Coin) Reset()                    { *m = Coin{} }
-func (m *Coin) String() string            { return proto.CompactTextString(m) }
-func (*Coin) ProtoMessage()               {}
-func (*Coin) Descriptor() ([]byte, []int) { return fileDescriptorCodec, []int{0} }
-
-func (m *Coin) GetInteger() int32 {
-	if m != nil {
-		return m.Integer
-	}
-	return 0
-}
-
-func (m *Coin) GetFractional() int32 {
-	if m != nil {
-		return m.Fractional
-	}
-	return 0
-}
-
-func (m *Coin) GetCurrencyCode() string {
-	if m != nil {
-		return m.CurrencyCode
-	}
-	return ""
-}
-
-func (m *Coin) GetIssuer() string {
-	if m != nil {
-		return m.Issuer
-	}
-	return ""
-}
-
 // Set may contain Coin of many different currencies.
 // It handles adding and subtracting sets of currencies.
 type Set struct {
-	Coins []*Coin `protobuf:"bytes,1,rep,name=coins" json:"coins,omitempty"`
+	Coins []*x.Coin `protobuf:"bytes,1,rep,name=coins" json:"coins,omitempty"`
 }
 
 func (m *Set) Reset()                    { *m = Set{} }
 func (m *Set) String() string            { return proto.CompactTextString(m) }
 func (*Set) ProtoMessage()               {}
-func (*Set) Descriptor() ([]byte, []int) { return fileDescriptorCodec, []int{1} }
+func (*Set) Descriptor() ([]byte, []int) { return fileDescriptorCodec, []int{0} }
 
-func (m *Set) GetCoins() []*Coin {
+func (m *Set) GetCoins() []*x.Coin {
 	if m != nil {
 		return m.Coins
 	}
@@ -110,11 +53,12 @@ func (m *Set) GetCoins() []*Coin {
 // SendMsg is a request to move these coins from the given
 // source to the given destination address.
 // memo is an optional human-readable message
-// ref is optional binary data, that can refer to another eg. tx hash
+// ref is optional binary data, that can refer to another
+// eg. tx hash
 type SendMsg struct {
-	Src    []byte `protobuf:"bytes,1,opt,name=src,proto3" json:"src,omitempty"`
-	Dest   []byte `protobuf:"bytes,2,opt,name=dest,proto3" json:"dest,omitempty"`
-	Amount *Coin  `protobuf:"bytes,3,opt,name=amount" json:"amount,omitempty"`
+	Src    []byte  `protobuf:"bytes,1,opt,name=src,proto3" json:"src,omitempty"`
+	Dest   []byte  `protobuf:"bytes,2,opt,name=dest,proto3" json:"dest,omitempty"`
+	Amount *x.Coin `protobuf:"bytes,3,opt,name=amount" json:"amount,omitempty"`
 	// max length 128 character
 	Memo string `protobuf:"bytes,4,opt,name=memo,proto3" json:"memo,omitempty"`
 	// max length 64 bytes
@@ -124,7 +68,7 @@ type SendMsg struct {
 func (m *SendMsg) Reset()                    { *m = SendMsg{} }
 func (m *SendMsg) String() string            { return proto.CompactTextString(m) }
 func (*SendMsg) ProtoMessage()               {}
-func (*SendMsg) Descriptor() ([]byte, []int) { return fileDescriptorCodec, []int{2} }
+func (*SendMsg) Descriptor() ([]byte, []int) { return fileDescriptorCodec, []int{1} }
 
 func (m *SendMsg) GetSrc() []byte {
 	if m != nil {
@@ -140,7 +84,7 @@ func (m *SendMsg) GetDest() []byte {
 	return nil
 }
 
-func (m *SendMsg) GetAmount() *Coin {
+func (m *SendMsg) GetAmount() *x.Coin {
 	if m != nil {
 		return m.Amount
 	}
@@ -164,14 +108,14 @@ func (m *SendMsg) GetRef() []byte {
 // FeeInfo records who pays what fees to have this
 // message processed
 type FeeInfo struct {
-	Payer []byte `protobuf:"bytes,1,opt,name=payer,proto3" json:"payer,omitempty"`
-	Fees  *Coin  `protobuf:"bytes,2,opt,name=fees" json:"fees,omitempty"`
+	Payer []byte  `protobuf:"bytes,1,opt,name=payer,proto3" json:"payer,omitempty"`
+	Fees  *x.Coin `protobuf:"bytes,2,opt,name=fees" json:"fees,omitempty"`
 }
 
 func (m *FeeInfo) Reset()                    { *m = FeeInfo{} }
 func (m *FeeInfo) String() string            { return proto.CompactTextString(m) }
 func (*FeeInfo) ProtoMessage()               {}
-func (*FeeInfo) Descriptor() ([]byte, []int) { return fileDescriptorCodec, []int{3} }
+func (*FeeInfo) Descriptor() ([]byte, []int) { return fileDescriptorCodec, []int{2} }
 
 func (m *FeeInfo) GetPayer() []byte {
 	if m != nil {
@@ -180,7 +124,7 @@ func (m *FeeInfo) GetPayer() []byte {
 	return nil
 }
 
-func (m *FeeInfo) GetFees() *Coin {
+func (m *FeeInfo) GetFees() *x.Coin {
 	if m != nil {
 		return m.Fees
 	}
@@ -188,51 +132,10 @@ func (m *FeeInfo) GetFees() *Coin {
 }
 
 func init() {
-	proto.RegisterType((*Coin)(nil), "coins.Coin")
 	proto.RegisterType((*Set)(nil), "coins.Set")
 	proto.RegisterType((*SendMsg)(nil), "coins.SendMsg")
 	proto.RegisterType((*FeeInfo)(nil), "coins.FeeInfo")
 }
-func (m *Coin) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalTo(dAtA)
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *Coin) MarshalTo(dAtA []byte) (int, error) {
-	var i int
-	_ = i
-	var l int
-	_ = l
-	if m.Integer != 0 {
-		dAtA[i] = 0x8
-		i++
-		i = encodeVarintCodec(dAtA, i, uint64(m.Integer))
-	}
-	if m.Fractional != 0 {
-		dAtA[i] = 0x10
-		i++
-		i = encodeVarintCodec(dAtA, i, uint64(m.Fractional))
-	}
-	if len(m.CurrencyCode) > 0 {
-		dAtA[i] = 0x1a
-		i++
-		i = encodeVarintCodec(dAtA, i, uint64(len(m.CurrencyCode)))
-		i += copy(dAtA[i:], m.CurrencyCode)
-	}
-	if len(m.Issuer) > 0 {
-		dAtA[i] = 0x22
-		i++
-		i = encodeVarintCodec(dAtA, i, uint64(len(m.Issuer)))
-		i += copy(dAtA[i:], m.Issuer)
-	}
-	return i, nil
-}
-
 func (m *Set) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
@@ -358,26 +261,6 @@ func encodeVarintCodec(dAtA []byte, offset int, v uint64) int {
 	dAtA[offset] = uint8(v)
 	return offset + 1
 }
-func (m *Coin) Size() (n int) {
-	var l int
-	_ = l
-	if m.Integer != 0 {
-		n += 1 + sovCodec(uint64(m.Integer))
-	}
-	if m.Fractional != 0 {
-		n += 1 + sovCodec(uint64(m.Fractional))
-	}
-	l = len(m.CurrencyCode)
-	if l > 0 {
-		n += 1 + l + sovCodec(uint64(l))
-	}
-	l = len(m.Issuer)
-	if l > 0 {
-		n += 1 + l + sovCodec(uint64(l))
-	}
-	return n
-}
-
 func (m *Set) Size() (n int) {
 	var l int
 	_ = l
@@ -443,152 +326,6 @@ func sovCodec(x uint64) (n int) {
 func sozCodec(x uint64) (n int) {
 	return sovCodec(uint64((x << 1) ^ uint64((int64(x) >> 63))))
 }
-func (m *Coin) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowCodec
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: Coin: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: Coin: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Integer", wireType)
-			}
-			m.Integer = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowCodec
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.Integer |= (int32(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		case 2:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Fractional", wireType)
-			}
-			m.Fractional = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowCodec
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.Fractional |= (int32(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		case 3:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field CurrencyCode", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowCodec
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= (uint64(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthCodec
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.CurrencyCode = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 4:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Issuer", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowCodec
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= (uint64(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthCodec
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Issuer = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipCodec(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if skippy < 0 {
-				return ErrInvalidLengthCodec
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
 func (m *Set) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -644,7 +381,7 @@ func (m *Set) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Coins = append(m.Coins, &Coin{})
+			m.Coins = append(m.Coins, &x.Coin{})
 			if err := m.Coins[len(m.Coins)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
@@ -788,7 +525,7 @@ func (m *SendMsg) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.Amount == nil {
-				m.Amount = &Coin{}
+				m.Amount = &x.Coin{}
 			}
 			if err := m.Amount.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -962,7 +699,7 @@ func (m *FeeInfo) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.Fees == nil {
-				m.Fees = &Coin{}
+				m.Fees = &x.Coin{}
 			}
 			if err := m.Fees.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -1097,24 +834,21 @@ var (
 func init() { proto.RegisterFile("x/coins/codec.proto", fileDescriptorCodec) }
 
 var fileDescriptorCodec = []byte{
-	// 295 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x5c, 0x91, 0xc1, 0x4a, 0xf3, 0x40,
-	0x14, 0x85, 0xff, 0xf9, 0x93, 0xb4, 0x78, 0x1b, 0xa1, 0x5c, 0x45, 0x66, 0x15, 0x6b, 0xbb, 0xc9,
-	0xaa, 0x05, 0x7d, 0x01, 0xb1, 0x20, 0xb8, 0x70, 0x33, 0x7d, 0x00, 0x89, 0x93, 0x9b, 0x12, 0xb0,
-	0x33, 0x65, 0x66, 0x0a, 0x56, 0xf0, 0x1d, 0x7c, 0x2c, 0x97, 0x3e, 0x82, 0xc4, 0x17, 0x91, 0xdc,
-	0xa4, 0x20, 0xdd, 0xdd, 0x73, 0x0e, 0x39, 0xe7, 0x23, 0x03, 0x67, 0xaf, 0x0b, 0x6d, 0x6b, 0xe3,
-	0x17, 0xda, 0x96, 0xa4, 0xe7, 0x5b, 0x67, 0x83, 0xc5, 0x84, 0xad, 0xe9, 0x3b, 0xc4, 0x4b, 0x5b,
-	0x1b, 0x94, 0x30, 0xac, 0x4d, 0xa0, 0x35, 0x39, 0x29, 0x26, 0x22, 0x4f, 0xd4, 0x41, 0x62, 0x06,
-	0x50, 0xb9, 0x42, 0x87, 0xda, 0x9a, 0xe2, 0x45, 0xfe, 0xe7, 0xf0, 0x8f, 0x83, 0x33, 0x38, 0xd5,
-	0x3b, 0xe7, 0xc8, 0xe8, 0xfd, 0x53, 0x3b, 0x20, 0xa3, 0x89, 0xc8, 0x4f, 0x54, 0x7a, 0x30, 0x97,
-	0xb6, 0x24, 0xbc, 0x80, 0x41, 0xed, 0xfd, 0x8e, 0x9c, 0x8c, 0x39, 0xed, 0xd5, 0x34, 0x87, 0x68,
-	0x45, 0x01, 0xaf, 0xa0, 0xc3, 0x91, 0x62, 0x12, 0xe5, 0xa3, 0xeb, 0xd1, 0x9c, 0xd5, 0xbc, 0x25,
-	0x53, 0x3d, 0xe8, 0x1b, 0x0c, 0x57, 0x64, 0xca, 0x47, 0xbf, 0xc6, 0x31, 0x44, 0xde, 0x69, 0xe6,
-	0x4c, 0x55, 0x7b, 0x22, 0x42, 0x5c, 0x92, 0x0f, 0x4c, 0x97, 0x2a, 0xbe, 0x71, 0x06, 0x83, 0x62,
-	0x63, 0x77, 0x26, 0x30, 0xd0, 0x51, 0x69, 0x1f, 0xb5, 0x1f, 0x6e, 0x68, 0x63, 0x7b, 0x2a, 0xbe,
-	0xdb, 0x7a, 0x47, 0x95, 0x4c, 0xba, 0x7a, 0x47, 0xd5, 0xf4, 0x16, 0x86, 0xf7, 0x44, 0x0f, 0xa6,
-	0xb2, 0x78, 0x0e, 0xc9, 0xb6, 0xd8, 0xf7, 0x7f, 0x29, 0x55, 0x9d, 0xc0, 0x4b, 0x88, 0x2b, 0x22,
-	0xcf, 0xfb, 0x47, 0x4b, 0x1c, 0xdc, 0x8d, 0x3f, 0x9b, 0x4c, 0x7c, 0x35, 0x99, 0xf8, 0x6e, 0x32,
-	0xf1, 0xf1, 0x93, 0xfd, 0x7b, 0x1e, 0xf0, 0x33, 0xdc, 0xfc, 0x06, 0x00, 0x00, 0xff, 0xff, 0x78,
-	0xbc, 0xcb, 0x8c, 0x9d, 0x01, 0x00, 0x00,
+	// 251 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x4c, 0x8f, 0x41, 0x4e, 0x84, 0x30,
+	0x14, 0x86, 0xad, 0xc0, 0x10, 0x9f, 0x2e, 0x26, 0xd5, 0x45, 0xa3, 0x11, 0x09, 0xd1, 0x84, 0x15,
+	0x24, 0xba, 0x75, 0xa5, 0x89, 0x89, 0x0b, 0x37, 0xcc, 0x09, 0x98, 0xf2, 0x3a, 0xb2, 0xa0, 0x6f,
+	0xd2, 0x76, 0x46, 0xbc, 0x85, 0xc7, 0x72, 0xe9, 0x11, 0x0c, 0x5e, 0xc4, 0x50, 0x66, 0xc1, 0xee,
+	0xef, 0x97, 0xfe, 0xff, 0x97, 0x07, 0xe7, 0x7d, 0x29, 0xa9, 0xd5, 0xb6, 0x94, 0xd4, 0xa0, 0x2c,
+	0xb6, 0x86, 0x1c, 0xf1, 0xc8, 0xa3, 0xcb, 0xbb, 0x4d, 0xeb, 0xde, 0x77, 0xeb, 0x42, 0x52, 0x57,
+	0x4a, 0xd2, 0xaa, 0xa5, 0xf2, 0x03, 0xeb, 0x3d, 0x96, 0xfd, 0xfc, 0x77, 0x76, 0x0b, 0xc1, 0x0a,
+	0x1d, 0xbf, 0x86, 0xa9, 0x26, 0x58, 0x1a, 0xe4, 0xa7, 0xf7, 0x71, 0xd1, 0x17, 0xcf, 0xd4, 0xea,
+	0x6a, 0xa2, 0xd9, 0x1e, 0xe2, 0x15, 0xea, 0xe6, 0xcd, 0x6e, 0xf8, 0x12, 0x02, 0x6b, 0xa4, 0x60,
+	0x29, 0xcb, 0xcf, 0xaa, 0x31, 0x72, 0x0e, 0x61, 0x83, 0xd6, 0x89, 0x63, 0x8f, 0x7c, 0xe6, 0x37,
+	0xb0, 0xa8, 0x3b, 0xda, 0x69, 0x27, 0x82, 0x94, 0xcd, 0x07, 0x0f, 0x78, 0x2c, 0x75, 0xd8, 0x91,
+	0x08, 0x53, 0x96, 0x9f, 0x54, 0x3e, 0x8f, 0xd3, 0x06, 0x95, 0x88, 0xa6, 0x69, 0x83, 0x2a, 0x7b,
+	0x84, 0xf8, 0x05, 0xf1, 0x55, 0x2b, 0xe2, 0x17, 0x10, 0x6d, 0xeb, 0x4f, 0x34, 0x07, 0xf3, 0xf4,
+	0xe0, 0x57, 0x10, 0x2a, 0x44, 0xeb, 0xdd, 0x33, 0x8b, 0x87, 0x4f, 0xcb, 0xef, 0x21, 0x61, 0x3f,
+	0x43, 0xc2, 0x7e, 0x87, 0x84, 0x7d, 0xfd, 0x25, 0x47, 0xeb, 0x85, 0x3f, 0xfa, 0xe1, 0x3f, 0x00,
+	0x00, 0xff, 0xff, 0xb3, 0xe0, 0x1f, 0x0c, 0x39, 0x01, 0x00, 0x00,
 }

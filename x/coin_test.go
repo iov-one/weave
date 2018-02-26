@@ -1,4 +1,4 @@
-package coins
+package x
 
 import (
 	"fmt"
@@ -158,7 +158,7 @@ func TestValidCoin(t *testing.T) {
 			true,
 		},
 		{
-			NewCoin(maxInt, fracUnit+4, "DIN"),
+			NewCoin(MaxInt, FracUnit+4, "DIN"),
 			false,
 			Coin{},
 			false,

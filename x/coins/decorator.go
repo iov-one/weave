@@ -26,7 +26,7 @@ var (
 //
 // It uses auth to verify the sender
 type FeeDecorator struct {
-	minFee    Coin
+	minFee    x.Coin
 	auth      x.AuthFunc
 	collector weave.Address
 }
@@ -36,7 +36,7 @@ var _ weave.Decorator = FeeDecorator{}
 // NewFeeDecorator returns a FeeDecorator with the given
 // minimum fee, and all collected fees going to a
 // default address.
-func NewFeeDecorator(auth x.AuthFunc, min Coin) FeeDecorator {
+func NewFeeDecorator(auth x.AuthFunc, min x.Coin) FeeDecorator {
 	return FeeDecorator{
 		auth:      auth,
 		minFee:    min,
@@ -62,7 +62,7 @@ func (d FeeDecorator) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx,
 
 	// if nothing returned, but no error, just move along
 	fee := finfo.GetFees()
-	if IsEmpty(fee) {
+	if x.IsEmpty(fee) {
 		return next.Check(ctx, store, tx)
 	}
 
@@ -95,7 +95,7 @@ func (d FeeDecorator) Deliver(ctx weave.Context, store weave.KVStore, tx weave.T
 
 	// if nothing returned, but no error, just move along
 	fee := finfo.GetFees()
-	if IsEmpty(fee) {
+	if x.IsEmpty(fee) {
 		return next.Deliver(ctx, store, tx)
 	}
 
@@ -121,11 +121,11 @@ func (d FeeDecorator) extractFee(ctx weave.Context, tx weave.Tx) (*FeeInfo, erro
 	}
 
 	fee := finfo.GetFees()
-	if IsEmpty(fee) {
+	if x.IsEmpty(fee) {
 		if d.minFee.IsZero() {
 			return finfo, nil
 		}
-		return nil, ErrInsufficientFees(Coin{})
+		return nil, ErrInsufficientFees(x.Coin{})
 	}
 
 	// make sure it is a valid fee (non-negative, going somewhere)
@@ -140,7 +140,7 @@ func (d FeeDecorator) extractFee(ctx weave.Context, tx weave.Tx) (*FeeInfo, erro
 		cmp.CurrencyCode = fee.CurrencyCode
 	}
 	if !fee.SameType(cmp) {
-		return nil, ErrInvalidCurrency("fee", fee.CurrencyCode)
+		return nil, x.ErrInvalidCurrency("fee", fee.CurrencyCode)
 	}
 	if !fee.IsGTE(cmp) {
 		return nil, ErrInsufficientFees(*fee)
@@ -150,8 +150,8 @@ func (d FeeDecorator) extractFee(ctx weave.Context, tx weave.Tx) (*FeeInfo, erro
 
 // toPayment calculates how much we prioritize the tx
 // one point per fractional unit
-func toPayment(fee Coin) int64 {
+func toPayment(fee x.Coin) int64 {
 	base := int64(fee.Fractional)
-	base += int64(fee.Integer) * int64(fracUnit)
+	base += int64(fee.Integer) * int64(x.FracUnit)
 	return base
 }

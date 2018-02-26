@@ -32,7 +32,7 @@ func AuthFunc() x.AuthFunc {
 
 // Chain returns a chain of decorators, to handle authentication,
 // fees, logging, and recovery
-func Chain(minFee coins.Coin, authFn x.AuthFunc) app.Decorators {
+func Chain(minFee x.Coin, authFn x.AuthFunc) app.Decorators {
 	return app.ChainDecorators(
 		utils.NewLogging(),
 		utils.NewRecovery(),
@@ -56,7 +56,7 @@ func Router(authFn x.AuthFunc) app.Router {
 
 // Stack wires up a standard router with a standard decorator
 // chain. This can be passed into BaseApp.
-func Stack(minFee coins.Coin) weave.Handler {
+func Stack(minFee x.Coin) weave.Handler {
 	authFn := AuthFunc()
 	return Chain(minFee, authFn).
 		WithHandler(Router(authFn))
