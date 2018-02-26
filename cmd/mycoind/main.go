@@ -25,14 +25,16 @@ func init() {
 
 func helpMessage() {
 	fmt.Println("mycoind")
-	fmt.Println("         MyCoin ABCI Application")
+	fmt.Println("        MyCoin ABCI Application")
 	fmt.Println("")
-	fmt.Println("help     Print this message")
-	fmt.Println("init     Initialize app options in genesis file")
-	fmt.Println("start    Run the abci server")
-	fmt.Println("version  Print the app version")
-	fmt.Println("")
-	flag.PrintDefaults()
+	fmt.Println("help    Print this message")
+	fmt.Println("init    Initialize app options in genesis file")
+	fmt.Println("start   Run the abci server")
+	fmt.Println("version Print the app version")
+	fmt.Println(`
+  -home string
+        directory to store files under (default "/home/ethan/.mycoind")`)
+	// flag.PrintDefaults()
 }
 
 func main() {
