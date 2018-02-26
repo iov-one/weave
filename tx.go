@@ -1,7 +1,6 @@
 package weave
 
 import (
-	"bytes"
 	"crypto/sha256"
 	// "golang.org/x/crypto/blake2b"
 )
@@ -96,58 +95,6 @@ func MustObjAddress(obj Marshaller) Address {
 		panic(err)
 	}
 	return res
-}
-
-// AuthFunc is a function we can use to extract authentication info
-// from the context. This should be passed into the constructor of
-// handlers, so we can plug in another authentication system,
-// rather than hardcoding x/auth for all extensions.
-type AuthFunc func(Context) []Address
-
-func MultiAuth(fns ...AuthFunc) AuthFunc {
-	return func(ctx Context) (res []Address) {
-		for _, fn := range fns {
-			add := fn(ctx)
-			if len(add) > 0 {
-				res = append(res, add...)
-			}
-		}
-		return res
-	}
-}
-
-// MainSigner returns the first signed if any, otherwise nil
-func MainSigner(ctx Context, fn AuthFunc) Address {
-	auth := fn(ctx)
-	if len(auth) == 0 {
-		return nil
-	}
-	return auth[0]
-}
-
-// HasAllSigners returns true if all elements in required are
-// also in signed.
-func HasAllSigners(required []Address, signed []Address) bool {
-	return HasNSigners(len(required), required, signed)
-}
-
-// HasSigner returns true if this address has signed
-func HasSigner(required Address, signed []Address) bool {
-	// simplest....
-	for _, signer := range signed {
-		if bytes.Equal(required, signer) {
-			return true
-		}
-	}
-	return false
-}
-
-// HasNSigners returns true if at least n elements in requested are
-// also in signed.
-// Useful for threshold conditions (1 of 3, 3 of 5, etc...)
-func HasNSigners(n int, requested []Address, signed []Address) bool {
-	// TODO: Implement when needed
-	return false
 }
 
 //--------------- serialization stuff ---------------------

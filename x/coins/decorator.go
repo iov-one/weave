@@ -3,6 +3,7 @@ package coins
 import (
 	"github.com/confio/weave"
 	"github.com/confio/weave/errors"
+	"github.com/confio/weave/x"
 )
 
 var (
@@ -26,7 +27,7 @@ var (
 // It uses auth to verify the sender
 type FeeDecorator struct {
 	minFee    Coin
-	auth      weave.AuthFunc
+	auth      x.AuthFunc
 	collector weave.Address
 }
 
@@ -35,7 +36,7 @@ var _ weave.Decorator = FeeDecorator{}
 // NewFeeDecorator returns a FeeDecorator with the given
 // minimum fee, and all collected fees going to a
 // default address.
-func NewFeeDecorator(auth weave.AuthFunc, min Coin) FeeDecorator {
+func NewFeeDecorator(auth x.AuthFunc, min Coin) FeeDecorator {
 	return FeeDecorator{
 		auth:      auth,
 		minFee:    min,
@@ -66,7 +67,7 @@ func (d FeeDecorator) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx,
 	}
 
 	// verify we have access to the money
-	if !weave.HasSigner(finfo.Payer, d.auth(ctx)) {
+	if !x.HasSigner(finfo.Payer, d.auth(ctx)) {
 		return res, errors.ErrUnauthorized()
 	}
 	// and have enough
@@ -99,7 +100,7 @@ func (d FeeDecorator) Deliver(ctx weave.Context, store weave.KVStore, tx weave.T
 	}
 
 	// verify we have access to the money
-	if !weave.HasSigner(finfo.Payer, d.auth(ctx)) {
+	if !x.HasSigner(finfo.Payer, d.auth(ctx)) {
 		return res, errors.ErrUnauthorized()
 	}
 	// and subtract it from the account
@@ -115,7 +116,7 @@ func (d FeeDecorator) extractFee(ctx weave.Context, tx weave.Tx) (*FeeInfo, erro
 	var finfo *FeeInfo
 	ftx, ok := tx.(FeeTx)
 	if ok {
-		payer := weave.MainSigner(ctx, d.auth)
+		payer := x.MainSigner(ctx, d.auth)
 		finfo = ftx.GetFees().DefaultPayer(payer)
 	}
 

@@ -18,6 +18,7 @@ import (
 	"github.com/confio/weave"
 	"github.com/confio/weave/app"
 	"github.com/confio/weave/store/iavl"
+	"github.com/confio/weave/x"
 	"github.com/confio/weave/x/auth"
 	"github.com/confio/weave/x/coins"
 	"github.com/confio/weave/x/utils"
@@ -25,13 +26,13 @@ import (
 
 // AuthFunc returns the typical authentication,
 // just using public key signatures
-func AuthFunc() weave.AuthFunc {
+func AuthFunc() x.AuthFunc {
 	return auth.GetSigners
 }
 
 // Chain returns a chain of decorators, to handle authentication,
 // fees, logging, and recovery
-func Chain(minFee coins.Coin, authFn weave.AuthFunc) app.Decorators {
+func Chain(minFee coins.Coin, authFn x.AuthFunc) app.Decorators {
 	return app.ChainDecorators(
 		utils.NewLogging(),
 		utils.NewRecovery(),
@@ -47,7 +48,7 @@ func Chain(minFee coins.Coin, authFn weave.AuthFunc) app.Decorators {
 
 // Router returns a default router, only dispatching to the
 // coins.SendMsg
-func Router(authFn weave.AuthFunc) app.Router {
+func Router(authFn x.AuthFunc) app.Router {
 	r := app.NewRouter()
 	coins.RegisterRoutes(r, authFn)
 	return r

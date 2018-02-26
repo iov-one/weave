@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/confio/weave"
+	"github.com/confio/weave/x"
 )
 
 //------------------- Context --------
@@ -32,4 +33,4 @@ func GetSigners(ctx weave.Context) []weave.Address {
 }
 
 // Note that we expect this to be exported
-var _ weave.AuthFunc = GetSigners
+var _ x.AuthFunc = GetSigners
