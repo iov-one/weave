@@ -36,6 +36,9 @@ func IsNoSuchPathErr(err error) bool {
 // Minimal interface modeled after net/http.ServeMux
 //
 // TODO: look for better trie routers that handle patterns...
+// maybe take code from here?
+// https://github.com/julienschmidt/httprouter
+// https://github.com/julienschmidt/httprouter/blob/master/tree.go
 type Router struct {
 	routes map[string]weave.Handler
 }

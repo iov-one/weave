@@ -62,7 +62,7 @@ func TestCreateResults(t *testing.T) {
 	cres := weave.NewCheck(gas, c)
 	ac := cres.ToABCI()
 	assert.Equal(t, c, ac.Log)
-	assert.Equal(t, gas, ac.Gas)
-	assert.Equal(t, int64(0), ac.Fee)
+	assert.Equal(t, gas, ac.GasWanted)
+	assert.Equal(t, int64(0), ac.Fee.Value)
 	assert.Empty(t, ac.Data)
 }

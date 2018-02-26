@@ -8,7 +8,9 @@ import (
 	"github.com/stretchr/testify/require"
 
 	abci "github.com/tendermint/abci/types"
+	"github.com/tendermint/tmlibs/log"
 
+	"github.com/confio/weave/app"
 	"github.com/confio/weave/crypto"
 	"github.com/confio/weave/x/auth"
 	"github.com/confio/weave/x/coins"
@@ -17,9 +19,9 @@ import (
 func TestApp(t *testing.T) {
 	// no minimum fee, in-memory data-store
 	chainID := "test-net-22"
-	stack := Stack(coins.Coin{})
-	app, err := Application("demo", stack, TxDecoder, "")
+	abciApp, err := GenerateApp("", log.NewNopLogger())
 	require.NoError(t, err)
+	app := abciApp.(app.BaseApp)
 
 	// let's set up a genesis file with some cash
 	pk := crypto.GenPrivKeyEd25519()
@@ -39,12 +41,11 @@ func TestApp(t *testing.T) {
             }]
         }
     }`, chainID, addr)
-	app.StoreApp.WithInit(coins.Initializer{})
 
 	// Commit first block, make sure non-nil hash
 	app.InitChainWithGenesis(abci.RequestInitChain{}, []byte(genesis))
 	header := abci.Header{Height: 1}
-	app.BeginBlock(abci.RequestBeginBlock{Header: &header})
+	app.BeginBlock(abci.RequestBeginBlock{Header: header})
 	app.EndBlock(abci.RequestEndBlock{})
 	cres := app.Commit()
 	block1 := cres.Data
@@ -92,7 +93,7 @@ func TestApp(t *testing.T) {
 
 	// Submit to the chain
 	header = abci.Header{Height: 2}
-	app.BeginBlock(abci.RequestBeginBlock{Header: &header})
+	app.BeginBlock(abci.RequestBeginBlock{Header: header})
 	// check and deliver must pass
 	chres := app.CheckTx(txBytes)
 	require.Equal(t, uint32(0), chres.Code, chres.Log)

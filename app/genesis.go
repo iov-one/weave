@@ -2,7 +2,6 @@ package app
 
 import (
 	"github.com/confio/weave"
-	"github.com/confio/weave/errors"
 )
 
 // Genesis file format, designed to be overlayed with tendermint genesis
@@ -31,30 +30,5 @@ func (c chainInitializer) FromGenesis(opts weave.Options, kv weave.KVStore) erro
 			return err
 		}
 	}
-	return nil
-}
-
-//------- storing chainID ---------
-
-// _wv: is a prefix for weave internal data
-const chainIDKey = "_wv:chainID"
-
-// loadChainID returns the chain id stored if any
-func loadChainID(kv weave.KVStore) string {
-	v := kv.Get([]byte(chainIDKey))
-	return string(v)
-}
-
-// saveChainID stores a chain id in the kv store.
-// Returns error if already set, or invalid name
-func saveChainID(kv weave.KVStore, chainID string) error {
-	if !weave.IsValidChainID(chainID) {
-		return errors.ErrInvalidChainID(chainID)
-	}
-	k := []byte(chainIDKey)
-	if kv.Has(k) {
-		return errors.ErrModifyChainID()
-	}
-	kv.Set(k, []byte(chainID))
 	return nil
 }

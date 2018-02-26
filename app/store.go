@@ -35,7 +35,7 @@ type StoreApp struct {
 	chainID string
 
 	// cached validator changes from DeliverTx
-	pending []*abci.Validator
+	pending []abci.Validator
 
 	// baseContext contains context info that is valid for
 	// lifetime of this app (eg. chainID)
@@ -237,10 +237,6 @@ func (s *StoreApp) Commit() (res abci.ResponseCommit) {
 		"hash", fmt.Sprintf("%X", commitID.Hash),
 	)
 
-	// TODO: needed???
-	// if s.state.Size() == 0 {
-	// 	return abci.ResponseCommit{Log: "Empty hash for empty tree"}
-	// }
 	return abci.ResponseCommit{Data: commitID.Hash}
 }
 
@@ -279,7 +275,7 @@ func (s *StoreApp) InitChainWithGenesis(req abci.RequestInitChain,
 // Sets up blockContext
 func (s *StoreApp) BeginBlock(req abci.RequestBeginBlock) (res abci.ResponseBeginBlock) {
 	// set the begin block context
-	ctx := weave.WithHeader(s.baseContext, *req.Header)
+	ctx := weave.WithHeader(s.baseContext, req.Header)
 	ctx = weave.WithHeight(ctx, req.Header.GetHeight())
 	s.blockContext = ctx
 
@@ -296,7 +292,7 @@ func (s *StoreApp) EndBlock(_ abci.RequestEndBlock) (res abci.ResponseEndBlock) 
 
 // AddValChange is meant to be called by apps on DeliverTx
 // results, this is added to the cache for the endblock changeset
-func (s *StoreApp) AddValChange(diffs []*abci.Validator) {
+func (s *StoreApp) AddValChange(diffs []abci.Validator) {
 	// ensures multiple updates for one validator are combined into one slot
 	for _, d := range diffs {
 		idx := pubKeyIndex(d, s.pending)
@@ -309,7 +305,7 @@ func (s *StoreApp) AddValChange(diffs []*abci.Validator) {
 }
 
 // return index of list with validator of same PubKey, or -1 if no match
-func pubKeyIndex(val *abci.Validator, list []*abci.Validator) int {
+func pubKeyIndex(val abci.Validator, list []abci.Validator) int {
 	for i, v := range list {
 		if bytes.Equal(val.PubKey, v.PubKey) {
 			return i

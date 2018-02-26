@@ -7,8 +7,6 @@ import (
 	"github.com/confio/weave/errors"
 )
 
-// TODO: what about the init state stuff.... where does that go????
-
 // BaseApp adds DeliverTx, CheckTx, and BeginBlock
 // handlers to the storage and query functionality of StoreApp
 type BaseApp struct {

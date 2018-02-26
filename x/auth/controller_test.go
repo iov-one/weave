@@ -34,21 +34,22 @@ func TestSignBytes(t *testing.T) {
 	assert.Equal(t, bz2, tbz2)
 
 	// make sure sign bytes match tx
-	c1, err := BuildSignBytesTx(tx, "foo", 17)
+	chainID := "test-sign-bytes"
+	c1, err := BuildSignBytesTx(tx, chainID, 17)
 	require.NoError(t, err)
-	c1a, err := BuildSignBytes(bz, "foo", 17)
+	c1a, err := BuildSignBytes(bz, chainID, 17)
 	require.NoError(t, err)
 	assert.Equal(t, c1, c1a)
 	assert.NotEqual(t, bz, c1)
 
 	// make sure sign bytes change on tx, chain_id and seq
-	ct, err := BuildSignBytes(bz2, "foo", 17)
+	ct, err := BuildSignBytes(bz2, chainID, 17)
 	require.NoError(t, err)
 	assert.NotEqual(t, c1, ct)
-	c2, err := BuildSignBytes(bz, "food", 17)
+	c2, err := BuildSignBytes(bz, chainID+"2", 17)
 	require.NoError(t, err)
 	assert.NotEqual(t, c1, c2)
-	c3, err := BuildSignBytes(bz, "foo", 18)
+	c3, err := BuildSignBytes(bz, chainID, 18)
 	require.NoError(t, err)
 	assert.NotEqual(t, c1, c3)
 }
@@ -59,7 +60,7 @@ func TestVerifySignature(t *testing.T) {
 	pub := priv.PublicKey()
 	addr := pub.Address()
 
-	chainID := "emo"
+	chainID := "emo-music-2345"
 	bz := []byte("my special valentine")
 	msg := &StdMsg{bz}
 	tx := &StdTx{Msg: msg}
@@ -129,7 +130,7 @@ func TestVerifyTxSignatures(t *testing.T) {
 	priv2 := crypto.GenPrivKeyEd25519()
 	addr2 := weave.Address(priv2.PublicKey().Address())
 
-	chainID := "hot"
+	chainID := "hot_summer_days"
 	bz := []byte("ice cream")
 	msg := &StdMsg{bz}
 	tx := &StdTx{Msg: msg}

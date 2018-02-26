@@ -14,7 +14,6 @@ MODE ?= set
 all: deps build test
 
 install:
-	# Nothing to see here yet
 	go install $(BUILD_FLAGS) ./cmd/...
 
 # This is to make sure it all compiles
@@ -24,7 +23,10 @@ build:
 test:
 	go test -race ./...
 
-# TODO: test all packages... names on each
+# Test fast
+tf:
+	go test -short ./...
+
 cover:
 	@ #Note: 19 is the length of "github.com/confio/" prefix
 	@ for pkg in $(NOVENDOR); do \
@@ -36,6 +38,11 @@ cover:
 
 deps: glide
 	@glide install
+	@ #install tendermint binary for testing
+	go get -u github.com/tendermint/tendermint/cmd/tendermint
+	@ # Use this if the above fails
+	@ # @go get -u github.com/tendermint/tendermint
+	@ # cd ../../tendermint/tendermint && make get_vendor_deps && make install
 
 glide:
 	@go get github.com/tendermint/glide

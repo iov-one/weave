@@ -61,7 +61,7 @@ func TestParseGenesis(t *testing.T) {
 			store := NewStoreApp("foo", iavl.MockCommitStore(), context.Background())
 			// TODO: expose this better
 			store.WithGenesis(tc.file)
-			store.initializer = init
+			store.WithInit(init)
 			assert.Equal(t, store.GetChainID(), "")
 
 			// panics on error :(

@@ -55,8 +55,9 @@ func TestChainID(t *testing.T) {
 		{"", false},
 		{"foo", false},
 		{"special", true},
-		{"wish-you-88", true},
-		{"way-way-too-long", false},
+		{"wish-YOU-88", true},
+		{"invalid;;chars", false},
+		{"this-chain-id-is-way-too-long", false},
 	}
 
 	for _, tc := range cases {

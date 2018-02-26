@@ -2,6 +2,7 @@ package app
 
 import (
 	"github.com/confio/weave"
+	"github.com/confio/weave/errors"
 )
 
 // commitStore is an internal type to handle loading from a
@@ -15,14 +16,11 @@ type commitStore struct {
 
 // newCommitStore loads the CommitKVStore from disk or panics
 // Sets up the deliver and check caches
-//
-// TODO: where is chain?????
 func newCommitStore(store weave.CommitKVStore) *commitStore {
 	err := store.LoadLatestVersion()
 	if err != nil {
 		panic(err)
 	}
-	// TODO: get chain ID???? or from where????
 	return &commitStore{
 		committed: store,
 		deliver:   store.CacheWrap(),
@@ -53,4 +51,29 @@ func (cs *commitStore) Commit() weave.CommitID {
 	cs.deliver = cs.committed.CacheWrap()
 	cs.check = cs.committed.CacheWrap()
 	return res
+}
+
+//------- storing chainID ---------
+
+// _wv: is a prefix for weave internal data
+const chainIDKey = "_wv:chainID"
+
+// loadChainID returns the chain id stored if any
+func loadChainID(kv weave.KVStore) string {
+	v := kv.Get([]byte(chainIDKey))
+	return string(v)
+}
+
+// saveChainID stores a chain id in the kv store.
+// Returns error if already set, or invalid name
+func saveChainID(kv weave.KVStore, chainID string) error {
+	if !weave.IsValidChainID(chainID) {
+		return errors.ErrInvalidChainID(chainID)
+	}
+	k := []byte(chainIDKey)
+	if kv.Has(k) {
+		return errors.ErrModifyChainID()
+	}
+	kv.Set(k, []byte(chainID))
+	return nil
 }
