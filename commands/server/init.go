@@ -6,9 +6,6 @@ import (
 	"path/filepath"
 
 	"github.com/tendermint/tmlibs/log"
-
-	"github.com/confio/weave"
-	"github.com/confio/weave/crypto"
 )
 
 const (
@@ -41,17 +38,6 @@ func InitCmd(gen GenOptions, logger log.Logger, home string, args []string) erro
 // generate default app_options for the genesis file.
 // This is application-specific
 type GenOptions func(args []string) (json.RawMessage, error)
-
-// GenerateCoinKey returns the address of a public key,
-// along with the secret phrase to recover the private key.
-// You can give coins to this address and return the recovery
-// phrase to the user to access them.
-func GenerateCoinKey() (weave.Address, string, error) {
-	// TODO: we need to generate BIP39 recovery phrases in crypto
-	privKey := crypto.GenPrivKeyEd25519()
-	addr := privKey.PublicKey().Address()
-	return addr, "TODO: add a recovery phrase", nil
-}
 
 // genesisDoc involves some tendermint-specific structures we don't
 // want to parse, so we just grab it into a raw object format,

@@ -12,24 +12,26 @@ import (
 	"github.com/tendermint/tmlibs/log"
 )
 
-var (
-	startFlags *flag.FlagSet
-	flagBind   = "bind"
-	addr       *string
+const (
+	flagBind = "bind"
 )
 
-func init() {
-	startFlags = flag.NewFlagSet("start", flag.ExitOnError)
-	addr = startFlags.String(flagBind, "tcp://localhost:46658", "address server listens on")
+func parseBind(args []string) (string, error) {
+	// parse flagBind and return the result
+	var addr string
+	startFlags := flag.NewFlagSet("start", flag.ExitOnError)
+	startFlags.StringVar(&addr, flagBind, "tcp://localhost:46658", "address server listens on")
+	err := startFlags.Parse(args)
+	return addr, err
 }
 
-// appGenerator lets us lazily initialize app, using home dir
-// and other flags (?) to start
-type appGenerator func(string, log.Logger) (abci.Application, error)
+// AppGenerator lets us lazily initialize app, using home dir
+// and logger potentially initialized with other flags
+type AppGenerator func(string, log.Logger) (abci.Application, error)
 
 // StartCmd initializes the application, and
-func StartCmd(gen appGenerator, logger log.Logger, home string, args []string) error {
-	err := startFlags.Parse(args)
+func StartCmd(gen AppGenerator, logger log.Logger, home string, args []string) error {
+	addr, err := parseBind(args)
 	if err != nil {
 		return err
 	}
@@ -40,9 +42,9 @@ func StartCmd(gen appGenerator, logger log.Logger, home string, args []string) e
 		return err
 	}
 
-	logger.Info("Starting ABCI app", "bind", *addr)
+	logger.Info("Starting ABCI app", "bind", addr)
 
-	svr, err := server.NewServer(*addr, "socket", app)
+	svr, err := server.NewServer(addr, "socket", app)
 	if err != nil {
 		return errors.Errorf("Error creating listener: %v\n", err)
 	}

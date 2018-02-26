@@ -1,6 +1,7 @@
 package std
 
 import (
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"path/filepath"
@@ -8,15 +9,34 @@ import (
 	abci "github.com/tendermint/abci/types"
 	"github.com/tendermint/tmlibs/log"
 
+	"github.com/confio/weave"
+	"github.com/confio/weave/crypto"
 	"github.com/confio/weave/x/coins"
 )
 
 // GenInitOptions will produce some basic options for one rich
 // account, to use for dev mode
+//
+// You can set
 func GenInitOptions(args []string) (json.RawMessage, error) {
-	// TODO: make these configurable
 	code := "MYC"
-	addr := "0102030405060708090021222324252627282930"
+	if len(args) > 0 {
+		code = args[0]
+	}
+
+	var addr string
+	if len(args) > 1 {
+		addr = args[1]
+	} else {
+		// if no address provided, auto-generate one
+		// and print out a recovery phrase
+		bz, phrase, err := GenerateCoinKey()
+		if err != nil {
+			return nil, err
+		}
+		addr = hex.EncodeToString(bz)
+		fmt.Println(phrase)
+	}
 
 	opts := fmt.Sprintf(`{
     "accounts": [
@@ -50,4 +70,15 @@ func GenerateApp(dbPath string, logger log.Logger) (abci.Application, error) {
 	// set the logger and return
 	app.WithLogger(logger)
 	return app, nil
+}
+
+// GenerateCoinKey returns the address of a public key,
+// along with the secret phrase to recover the private key.
+// You can give coins to this address and return the recovery
+// phrase to the user to access them.
+func GenerateCoinKey() (weave.Address, string, error) {
+	// XXX: we need to generate BIP39 recovery phrases in crypto
+	privKey := crypto.GenPrivKeyEd25519()
+	addr := privKey.PublicKey().Address()
+	return addr, "TODO: add a recovery phrase", nil
 }

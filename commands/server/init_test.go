@@ -22,7 +22,8 @@ func TestInit(t *testing.T) {
 	defer os.RemoveAll(home)
 
 	logger := log.NewNopLogger()
-	err := InitCmd(std.GenInitOptions, logger, home, nil)
+	args := []string{"ETH", "ABCD123456789000DEADBEEF00ABCD123456789000"}
+	err := InitCmd(std.GenInitOptions, logger, home, args)
 	require.NoError(t, err)
 
 	// make sure we set proper data
@@ -38,6 +39,7 @@ func TestInit(t *testing.T) {
 		doc["chain_id"])
 	assert.NotEmpty(t, doc["validators"])
 	assert.NotEmpty(t, doc[appStateKey])
+	assert.Contains(t, string(doc[appStateKey]), `"currency_code": "ETH"`)
 }
 
 // setupConfig creates a homedir to run inside,

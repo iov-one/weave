@@ -30,12 +30,16 @@ func TestStartStandAlone(t *testing.T) {
 	runStart := func() error {
 		return StartCmd(std.GenerateApp, logger, home, args)
 	}
-	timeout := time.Duration(3) * time.Second
+	timeout := time.Duration(2) * time.Second
 	err = runOrTimeout(runStart, timeout)
 	require.NoError(t, err)
 }
 
 func TestStartWithTendermint(t *testing.T) {
+	if testing.Short() {
+		t.Skip("Skipping Tendermint integration test")
+	}
+
 	home := setupConfig(t)
 	defer os.RemoveAll(home)
 
@@ -100,8 +104,8 @@ func runTendermint(t *testing.T, home string, startupDelay, timeout int64) {
 		fmt.Println(">>> Running tendermint...")
 
 		// log tendermint output for verbose debugging....
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stdout
+		// cmd.Stdout = os.Stdout
+		// cmd.Stderr = os.Stdout
 
 		// run it
 		err := cmd.Start()

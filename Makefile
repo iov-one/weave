@@ -23,7 +23,10 @@ build:
 test:
 	go test -race ./...
 
-# TODO: test all packages... names on each
+test_fast:
+	go test -short ./...
+
+
 cover:
 	@ #Note: 19 is the length of "github.com/confio/" prefix
 	@ for pkg in $(NOVENDOR); do \
