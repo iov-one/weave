@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -211,6 +212,14 @@ func (tx StdTx) GetSignBytes() ([]byte, error) {
 	bz, err := tx.Msg.Marshal()
 	tx.Signatures = s
 	return bz, err
+}
+
+func (tx StdTx) Marshal() ([]byte, error) {
+	return nil, errors.New("TODO: not implemented")
+}
+
+func (tx *StdTx) Unmarshal([]byte) error {
+	return errors.New("TODO: not implemented")
 }
 
 var _ weave.Msg = (*StdMsg)(nil)

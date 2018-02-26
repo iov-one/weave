@@ -26,10 +26,18 @@ type mockTx struct {
 	msg weave.Msg
 }
 
-var _ weave.Tx = mockTx{}
+var _ weave.Tx = (*mockTx)(nil)
 
 func (m mockTx) GetMsg() (weave.Msg, error) {
 	return m.msg, nil
+}
+
+func (m mockTx) Marshal() ([]byte, error) {
+	return nil, errors.ErrInternal("TODO: not implemented")
+}
+
+func (m *mockTx) Unmarshal([]byte) error {
+	return errors.ErrInternal("TODO: not implemented")
 }
 
 func TestSend(t *testing.T) {
@@ -97,7 +105,7 @@ func TestSend(t *testing.T) {
 				wallet.Save()
 			}
 
-			tx := mockTx{tc.msg}
+			tx := &mockTx{tc.msg}
 
 			_, err := h.Check(nil, kv, tx)
 			assert.True(t, tc.expectCheck(err), "%+v", err)

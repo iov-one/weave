@@ -1,31 +1,11 @@
 package x
 
+import "github.com/confio/weave"
+
 //--------------- serialization stuff ---------------------
 
-// Marshaller is anything that can be represented in binary
-//
-// Marshall may validate the data before serializing it and
-// unless you previously validated the struct,
-// errors should be expected.
-type Marshaller interface {
-	Marshal() ([]byte, error)
-}
-
-// Persistent supports Marshal and Unmarshal
-//
-// This is separated from Marshal, as this almost always requires
-// a pointer, and functions that only need to marshal bytes can
-// use the Marshaller interface to access non-pointers.
-//
-// As with Marshaller, this may do internal validation on the data
-// and errors should be expected.
-type Persistent interface {
-	Marshaller
-	Unmarshal([]byte) error
-}
-
 // MustMarshal will succeed or panic
-func MustMarshal(obj Marshaller) []byte {
+func MustMarshal(obj weave.Marshaller) []byte {
 	bz, err := obj.Marshal()
 	if err != nil {
 		panic(err)
@@ -34,7 +14,7 @@ func MustMarshal(obj Marshaller) []byte {
 }
 
 // MustUnmarshal will succeed or panic
-func MustUnmarshal(obj Persistent, bz []byte) {
+func MustUnmarshal(obj weave.Persistent, bz []byte) {
 	err := obj.Unmarshal(bz)
 	if err != nil {
 		panic(err)
@@ -60,13 +40,25 @@ func MustValidate(obj Validater) {
 // MarshalValidater is something that can be validated and
 // serialized
 type MarshalValidater interface {
-	Marshaller
+	weave.Marshaller
 	Validater
+}
+
+// MarshalValid validates the object, then marshals
+func MarshalValid(obj MarshalValidater) ([]byte, error) {
+	err := obj.Validate()
+	if err != nil {
+		return nil, err
+	}
+	return obj.Marshal()
 }
 
 // MustMarshalValid marshals the object, but panics
 // if the object is not valid or has trouble marshalling
 func MustMarshalValid(obj MarshalValidater) []byte {
-	MustValidate(obj)
-	return MustMarshal(obj)
+	bz, err := MarshalValid(obj)
+	if err != nil {
+		panic(err)
+	}
+	return bz
 }

@@ -2,6 +2,7 @@ package coins
 
 import (
 	"github.com/confio/weave"
+	"github.com/confio/weave/x"
 )
 
 //---- Key
@@ -42,7 +43,7 @@ func GetWallet(store weave.KVStore, key Key) *Wallet {
 	}
 
 	var data Set
-	weave.MustUnmarshal(&data, bz)
+	x.MustUnmarshal(&data, bz)
 
 	return &Wallet{
 		store: store,
@@ -68,6 +69,6 @@ func GetOrCreateWallet(store weave.KVStore, key Key) *Wallet {
 // Save writes the current Wallet state to the backing store
 // panics if invalid state
 func (u *Wallet) Save() {
-	value := weave.MustMarshalValid(&u.Set)
+	value := x.MustMarshalValid(&u.Set)
 	u.store.Set(u.key, value)
 }

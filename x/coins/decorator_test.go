@@ -14,7 +14,7 @@ type feeTx struct {
 	info *FeeInfo
 }
 
-var _ weave.Tx = feeTx{}
+var _ weave.Tx = (*feeTx)(nil)
 var _ FeeTx = feeTx{}
 
 func (feeTx) GetMsg() (weave.Msg, error) {
@@ -23,6 +23,14 @@ func (feeTx) GetMsg() (weave.Msg, error) {
 
 func (f feeTx) GetFees() *FeeInfo {
 	return f.info
+}
+
+func (f feeTx) Marshal() ([]byte, error) {
+	return nil, errors.ErrInternal("TODO: not implemented")
+}
+
+func (f *feeTx) Unmarshal([]byte) error {
+	return errors.ErrInternal("TODO: not implemented")
 }
 
 type okHandler struct{}
@@ -128,7 +136,7 @@ func TestFees(t *testing.T) {
 				wallet.Save()
 			}
 
-			tx := feeTx{tc.fee}
+			tx := &feeTx{tc.fee}
 
 			_, err := h.Check(nil, kv, tx, okHandler{})
 			assert.True(t, tc.expect(err), "%+v", err)

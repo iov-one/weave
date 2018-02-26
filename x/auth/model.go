@@ -3,6 +3,7 @@ package auth
 import (
 	"github.com/confio/weave"
 	"github.com/confio/weave/crypto"
+	"github.com/confio/weave/x"
 )
 
 //----------------- Model ------------------
@@ -75,7 +76,7 @@ func GetUser(store weave.KVStore, key Key) *User {
 	}
 
 	var data UserData
-	weave.MustUnmarshal(&data, bz)
+	x.MustUnmarshal(&data, bz)
 
 	return &User{
 		store: store,
@@ -101,7 +102,7 @@ func GetOrCreateUser(store weave.KVStore, key Key) *User {
 // Save writes the current user state to the backing store
 // panics if invalid state
 func (u *User) Save() {
-	value := weave.MustMarshalValid(&u.data)
+	value := x.MustMarshalValid(&u.data)
 	u.store.Set(u.key, value)
 }
 
