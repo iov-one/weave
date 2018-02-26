@@ -4,7 +4,7 @@ import "fmt"
 
 // Note: update VersionTest when changing the version
 const Maj = 0
-const Min = 1
+const Min = 2
 const Fix = 0
 
 // Suffix used when not a tagged release (eg. -dev, -alpha, -beta, etc)
