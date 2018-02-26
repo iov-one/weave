@@ -8,7 +8,7 @@ import (
 const optKey = "coins"
 
 // GenesisAccount is used to parse the json from genesis file
-// TODO: address in hex, not base64???
+// use weave.Address, so address in hex, not base64
 type GenesisAccount struct {
 	Address weave.Address `json:"address"`
 	Set

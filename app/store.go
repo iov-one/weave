@@ -237,10 +237,6 @@ func (s *StoreApp) Commit() (res abci.ResponseCommit) {
 		"hash", fmt.Sprintf("%X", commitID.Hash),
 	)
 
-	// TODO: needed???
-	// if s.state.Size() == 0 {
-	// 	return abci.ResponseCommit{Log: "Empty hash for empty tree"}
-	// }
 	return abci.ResponseCommit{Data: commitID.Hash}
 }
 

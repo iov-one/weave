@@ -100,7 +100,9 @@ func BuildSignBytes(signBytes []byte, chainID string, seq int64) ([]byte, error)
 	if seq < 0 {
 		return nil, ErrInvalidSequence("negative")
 	}
-	// TODO: also check chainID??
+	if !weave.IsValidChainID(chainID) {
+		return nil, errors.ErrInvalidChainID(chainID)
+	}
 
 	// encode nonce as 8 byte, big-endian
 	nonce := make([]byte, 8)

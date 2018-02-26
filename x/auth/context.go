@@ -26,7 +26,7 @@ func withSigners(ctx weave.Context, signers []weave.Address) weave.Context {
 func GetSigners(ctx weave.Context) []weave.Address {
 	// (val, ok) form to return nil instead of panic if unset
 	val, _ := ctx.Value(contextKeySigners).([]weave.Address)
-	// TODO: if we are paranoid about our own code, we would deep-copy
+	// if we were paranoid about our own code, we would deep-copy
 	// the signers here
 	return val
 }

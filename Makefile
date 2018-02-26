@@ -23,9 +23,9 @@ build:
 test:
 	go test -race ./...
 
-test_fast:
+# Test fast
+tf:
 	go test -short ./...
-
 
 cover:
 	@ #Note: 19 is the length of "github.com/confio/" prefix
