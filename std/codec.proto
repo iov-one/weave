@@ -2,18 +2,18 @@ syntax = "proto3";
 
 package std;
 
-import "github.com/confio/weave/x/coins/codec.proto";
+import "github.com/confio/weave/x/cash/codec.proto";
 import "github.com/confio/weave/x/sigs/codec.proto";
 
 // Tx contains the message
 message Tx {
   // msg is a sum type over all allowed messages on this chain.
   oneof sum{
-    coins.SendMsg send_msg = 1;
+    cash.SendMsg send_msg = 1;
     // space here to allow many more....
   }
   // fee info, autogenerates GetFees()
-  coins.FeeInfo fees = 20;
+  cash.FeeInfo fees = 20;
   // signatures, autogenerates GetSignatures()
   repeated sigs.StdSignature signatures = 21;
 }

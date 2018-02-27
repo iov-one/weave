@@ -1,4 +1,4 @@
-package coins
+package cash
 
 import (
 	"testing"

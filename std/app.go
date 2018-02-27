@@ -19,7 +19,7 @@ import (
 	"github.com/confio/weave/app"
 	"github.com/confio/weave/store/iavl"
 	"github.com/confio/weave/x"
-	"github.com/confio/weave/x/coins"
+	"github.com/confio/weave/x/cash"
 	"github.com/confio/weave/x/sigs"
 	"github.com/confio/weave/x/utils"
 )
@@ -39,7 +39,7 @@ func Chain(minFee x.Coin, authFn x.Authenticator) app.Decorators {
 		// on CheckTx, bad tx don't affect state
 		utils.NewSavepoint().OnCheck(),
 		sigs.NewDecorator(),
-		coins.NewFeeDecorator(authFn, minFee),
+		cash.NewFeeDecorator(authFn, minFee),
 		// on DeliverTx, bad tx will increment nonce and take fee
 		// even if the message fails
 		utils.NewSavepoint().OnDeliver(),
@@ -47,10 +47,10 @@ func Chain(minFee x.Coin, authFn x.Authenticator) app.Decorators {
 }
 
 // Router returns a default router, only dispatching to the
-// coins.SendMsg
+// cash.SendMsg
 func Router(authFn x.Authenticator) app.Router {
 	r := app.NewRouter()
-	coins.RegisterRoutes(r, authFn)
+	cash.RegisterRoutes(r, authFn)
 	return r
 }
 

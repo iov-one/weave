@@ -12,7 +12,7 @@ import (
 	"github.com/confio/weave"
 	"github.com/confio/weave/crypto"
 	"github.com/confio/weave/x"
-	"github.com/confio/weave/x/coins"
+	"github.com/confio/weave/x/cash"
 )
 
 // GenInitOptions will produce some basic options for one rich
@@ -62,7 +62,7 @@ func GenerateApp(dbPath string, logger log.Logger) (abci.Application, error) {
 	if err != nil {
 		return nil, err
 	}
-	app.WithInit(coins.Initializer{})
+	app.WithInit(cash.Initializer{})
 
 	// guess the location of the genesis file
 	genesisPath := filepath.Join(dbPath, "config", "genesis.json")

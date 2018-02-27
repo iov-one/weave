@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package coins;
+package cash;
 
 import "github.com/confio/weave/x/codec.proto";
 

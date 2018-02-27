@@ -13,7 +13,7 @@ import (
 	"github.com/confio/weave/app"
 	"github.com/confio/weave/crypto"
 	"github.com/confio/weave/x"
-	"github.com/confio/weave/x/coins"
+	"github.com/confio/weave/x/cash"
 	"github.com/confio/weave/x/sigs"
 )
 
@@ -54,7 +54,7 @@ func TestApp(t *testing.T) {
 	assert.Equal(t, chainID, app.GetChainID())
 
 	// Query for my balance
-	key := coins.NewKey(addr)
+	key := cash.NewKey(addr)
 	query := abci.RequestQuery{
 		Path: "/key",
 		Data: key,
@@ -63,7 +63,7 @@ func TestApp(t *testing.T) {
 	require.Equal(t, uint32(0), qres.Code, "%#v", qres)
 	assert.NotEmpty(t, qres.Value)
 	// parse it and check it is not empty
-	var acct coins.Set
+	var acct cash.Set
 	err = acct.Unmarshal(qres.Value)
 	require.NoError(t, err)
 	require.Equal(t, 2, len(acct.Coins))
@@ -73,7 +73,7 @@ func TestApp(t *testing.T) {
 	// build and sign a transaction
 	pk2 := crypto.GenPrivKeyEd25519()
 	addr2 := pk2.PublicKey().Address()
-	msg := &coins.SendMsg{
+	msg := &cash.SendMsg{
 		Src:  addr,
 		Dest: addr2,
 		Amount: &x.Coin{
@@ -112,7 +112,7 @@ func TestApp(t *testing.T) {
 	require.Equal(t, uint32(0), qres.Code, "%#v", qres)
 	assert.NotEmpty(t, qres.Value)
 	// parse it and check it is not empty
-	var acct2 coins.Set
+	var acct2 cash.Set
 	err = acct2.Unmarshal(qres.Value)
 	require.NoError(t, err)
 	require.Equal(t, 2, len(acct2.Coins))
@@ -120,7 +120,7 @@ func TestApp(t *testing.T) {
 	assert.Equal(t, int32(1234), acct2.Coins[1].Integer)
 
 	// make sure money arrived safely
-	key2 := coins.NewKey(addr2)
+	key2 := cash.NewKey(addr2)
 	query2 := abci.RequestQuery{
 		Path: "/key",
 		Data: key2,
@@ -128,7 +128,7 @@ func TestApp(t *testing.T) {
 	qres2 := app.Query(query2)
 	require.Equal(t, uint32(0), qres2.Code, "%#v", qres2)
 	// parse it and check it is not empty
-	var acct3 coins.Set
+	var acct3 cash.Set
 	err = acct3.Unmarshal(qres2.Value)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(acct3.Coins))
