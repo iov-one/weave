@@ -3,7 +3,7 @@ syntax = "proto3";
 package std;
 
 import "github.com/confio/weave/x/coins/codec.proto";
-import "github.com/confio/weave/x/auth/codec.proto";
+import "github.com/confio/weave/x/sigs/codec.proto";
 
 // Tx contains the message
 message Tx {
@@ -15,5 +15,5 @@ message Tx {
   // fee info, autogenerates GetFees()
   coins.FeeInfo fees = 20;
   // signatures, autogenerates GetSignatures()
-  repeated auth.StdSignature signatures = 21;
+  repeated sigs.StdSignature signatures = 21;
 }

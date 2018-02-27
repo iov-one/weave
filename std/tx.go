@@ -3,8 +3,8 @@ package std
 import (
 	"github.com/confio/weave"
 	"github.com/confio/weave/errors"
-	"github.com/confio/weave/x/auth"
 	"github.com/confio/weave/x/coins"
+	"github.com/confio/weave/x/sigs"
 )
 
 // TxDecoder creates a Tx and unmarshals bytes into it
@@ -20,7 +20,7 @@ func TxDecoder(bz []byte) (weave.Tx, error) {
 // make sure tx fulfills all interfaces
 var _ weave.Tx = (*Tx)(nil)
 var _ coins.FeeTx = (*Tx)(nil)
-var _ auth.SignedTx = (*Tx)(nil)
+var _ sigs.SignedTx = (*Tx)(nil)
 
 // GetMsg switches over all types defined in the protobuf file
 func (tx *Tx) GetMsg() (weave.Msg, error) {

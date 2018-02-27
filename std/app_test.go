@@ -13,8 +13,8 @@ import (
 	"github.com/confio/weave/app"
 	"github.com/confio/weave/crypto"
 	"github.com/confio/weave/x"
-	"github.com/confio/weave/x/auth"
 	"github.com/confio/weave/x/coins"
+	"github.com/confio/weave/x/sigs"
 )
 
 func TestApp(t *testing.T) {
@@ -85,9 +85,9 @@ func TestApp(t *testing.T) {
 	tx := &Tx{
 		Sum: &Tx_SendMsg{msg},
 	}
-	sig, err := auth.SignTx(pk, tx, chainID, 0)
+	sig, err := sigs.SignTx(pk, tx, chainID, 0)
 	require.NoError(t, err)
-	tx.Signatures = []*auth.StdSignature{sig}
+	tx.Signatures = []*sigs.StdSignature{sig}
 	txBytes, err := tx.Marshal()
 	require.NoError(t, err)
 	require.NotEmpty(t, txBytes)

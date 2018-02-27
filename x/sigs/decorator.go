@@ -3,7 +3,7 @@ Package auth provides basic authentication
 middleware to verify the signatures on the transaction,
 and maintain nonces for replay protection.
 */
-package auth
+package sigs
 
 import (
 	"github.com/confio/weave"

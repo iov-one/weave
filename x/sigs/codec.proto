@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package auth;
+package sigs;
 
 import "github.com/confio/weave/crypto/models.proto";
 

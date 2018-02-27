@@ -19,15 +19,15 @@ import (
 	"github.com/confio/weave/app"
 	"github.com/confio/weave/store/iavl"
 	"github.com/confio/weave/x"
-	"github.com/confio/weave/x/auth"
 	"github.com/confio/weave/x/coins"
+	"github.com/confio/weave/x/sigs"
 	"github.com/confio/weave/x/utils"
 )
 
 // Authenticator returns the typical authentication,
 // just using public key signatures
 func Authenticator() x.Authenticator {
-	return auth.Authenticate{}
+	return sigs.Authenticate{}
 }
 
 // Chain returns a chain of decorators, to handle authentication,
@@ -38,7 +38,7 @@ func Chain(minFee x.Coin, authFn x.Authenticator) app.Decorators {
 		utils.NewRecovery(),
 		// on CheckTx, bad tx don't affect state
 		utils.NewSavepoint().OnCheck(),
-		auth.NewDecorator(),
+		sigs.NewDecorator(),
 		coins.NewFeeDecorator(authFn, minFee),
 		// on DeliverTx, bad tx will increment nonce and take fee
 		// even if the message fails
