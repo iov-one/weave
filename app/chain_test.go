@@ -7,11 +7,12 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/confio/weave"
+	"github.com/confio/weave/x"
 	"github.com/confio/weave/x/utils"
 )
 
 func TestChain(t *testing.T) {
-	var help utils.TestHelpers
+	var help x.TestHelpers
 	c1 := help.CountingDecorator()
 	c2 := help.CountingDecorator()
 	c3 := help.CountingDecorator()

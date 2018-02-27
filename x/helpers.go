@@ -1,4 +1,4 @@
-package utils
+package x
 
 import "github.com/confio/weave"
 
@@ -15,7 +15,7 @@ func (TestHelpers) CountingDecorator() CountingDecorator {
 	return &countingDecorator{}
 }
 
-// Counting handler returns success and counts times called
+// CountingHandler returns success and counts times called
 func (TestHelpers) CountingHandler() CountingHandler {
 	return &countingHandler{}
 }
