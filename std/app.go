@@ -24,15 +24,15 @@ import (
 	"github.com/confio/weave/x/utils"
 )
 
-// AuthFunc returns the typical authentication,
+// Authenticator returns the typical authentication,
 // just using public key signatures
-func AuthFunc() x.AuthFunc {
-	return auth.GetSigners
+func Authenticator() x.Authenticator {
+	return auth.Authenticate{}
 }
 
 // Chain returns a chain of decorators, to handle authentication,
 // fees, logging, and recovery
-func Chain(minFee x.Coin, authFn x.AuthFunc) app.Decorators {
+func Chain(minFee x.Coin, authFn x.Authenticator) app.Decorators {
 	return app.ChainDecorators(
 		utils.NewLogging(),
 		utils.NewRecovery(),
@@ -48,7 +48,7 @@ func Chain(minFee x.Coin, authFn x.AuthFunc) app.Decorators {
 
 // Router returns a default router, only dispatching to the
 // coins.SendMsg
-func Router(authFn x.AuthFunc) app.Router {
+func Router(authFn x.Authenticator) app.Router {
 	r := app.NewRouter()
 	coins.RegisterRoutes(r, authFn)
 	return r
@@ -57,7 +57,7 @@ func Router(authFn x.AuthFunc) app.Router {
 // Stack wires up a standard router with a standard decorator
 // chain. This can be passed into BaseApp.
 func Stack(minFee x.Coin) weave.Handler {
-	authFn := AuthFunc()
+	authFn := Authenticator()
 	return Chain(minFee, authFn).
 		WithHandler(Router(authFn))
 }

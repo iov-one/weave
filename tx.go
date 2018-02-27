@@ -1,6 +1,7 @@
 package weave
 
 import (
+	"bytes"
 	"crypto/sha256"
 	// "golang.org/x/crypto/blake2b"
 )
@@ -85,6 +86,10 @@ type TxDecoder func(txBytes []byte) (Tx, error)
 //
 // It will be of size AddressLength
 type Address []byte
+
+func (a Address) Equals(b Address) bool {
+	return bytes.Equal(a, b)
+}
 
 func (a Address) MarshalJSON() ([]byte, error) {
 	return marshalHex(a)

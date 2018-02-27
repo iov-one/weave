@@ -22,9 +22,13 @@ func withSigners(ctx weave.Context, signers []weave.Address) weave.Context {
 	return context.WithValue(ctx, contextKeySigners, signers)
 }
 
-// GetSigners returns who signed the current Context.
+type Authenticate struct{}
+
+var _ x.Authenticator = Authenticate{}
+
+// GetPermissions returns who signed the current Context.
 // May be empty
-func GetSigners(ctx weave.Context) []weave.Address {
+func (a Authenticate) GetPermissions(ctx weave.Context) []weave.Address {
 	// (val, ok) form to return nil instead of panic if unset
 	val, _ := ctx.Value(contextKeySigners).([]weave.Address)
 	// if we were paranoid about our own code, we would deep-copy
@@ -32,5 +36,14 @@ func GetSigners(ctx weave.Context) []weave.Address {
 	return val
 }
 
-// Note that we expect this to be exported
-var _ x.AuthFunc = GetSigners
+// HasPermission returns who signed the current Context.
+// May be empty
+func (a Authenticate) HasPermission(ctx weave.Context, addr weave.Address) bool {
+	signers := a.GetPermissions(ctx)
+	for _, s := range signers {
+		if addr.Equals(s) {
+			return true
+		}
+	}
+	return false
+}

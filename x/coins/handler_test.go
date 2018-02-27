@@ -19,8 +19,19 @@ type auther struct {
 	signers []weave.Address
 }
 
-func (a auther) GetSigners(weave.Context) []weave.Address {
+var _ x.Authenticator = auther{}
+
+func (a auther) GetPermissions(weave.Context) []weave.Address {
 	return a.signers
+}
+
+func (a auther) HasPermission(ctx weave.Context, addr weave.Address) bool {
+	for _, s := range a.signers {
+		if addr.Equals(s) {
+			return true
+		}
+	}
+	return false
 }
 
 type mockTx struct {
@@ -97,7 +108,7 @@ func TestSend(t *testing.T) {
 
 	for i, tc := range cases {
 		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
-			auth := auther{tc.signers}.GetSigners
+			auth := auther{tc.signers}
 			h := NewSendHandler(auth)
 
 			kv := store.MemStore()

@@ -8,19 +8,19 @@ import (
 
 // RegisterRoutes will instantiate and register
 // all handlers in this package
-func RegisterRoutes(r weave.Registry, auth x.AuthFunc) {
+func RegisterRoutes(r weave.Registry, auth x.Authenticator) {
 	r.Handle(pathSendMsg, NewSendHandler(auth))
 }
 
 // SendHandler will handle sending coins
 type SendHandler struct {
-	auth x.AuthFunc
+	auth x.Authenticator
 }
 
 var _ weave.Handler = SendHandler{}
 
 // NewSendHandler creates a handler for SendMsg
-func NewSendHandler(auth x.AuthFunc) SendHandler {
+func NewSendHandler(auth x.Authenticator) SendHandler {
 	return SendHandler{
 		auth: auth,
 	}
@@ -48,7 +48,7 @@ func (h SendHandler) Check(ctx weave.Context, store weave.KVStore,
 	}
 
 	// make sure we have permission from the sender
-	if !x.HasSigner(msg.Src, h.auth(ctx)) {
+	if !h.auth.HasPermission(ctx, msg.Src) {
 		return res, errors.ErrUnauthorized()
 	}
 
@@ -79,7 +79,7 @@ func (h SendHandler) Deliver(ctx weave.Context, store weave.KVStore,
 	}
 
 	// make sure we have permission from the sender
-	if !x.HasSigner(msg.Src, h.auth(ctx)) {
+	if !h.auth.HasPermission(ctx, msg.Src) {
 		return res, errors.ErrUnauthorized()
 	}
 

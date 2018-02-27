@@ -83,12 +83,12 @@ var _ weave.Handler = (*SigCheckHandler)(nil)
 
 func (s *SigCheckHandler) Check(ctx weave.Context, store weave.KVStore,
 	tx weave.Tx) (res weave.CheckResult, err error) {
-	s.Signers = GetSigners(ctx)
+	s.Signers = Authenticate{}.GetPermissions(ctx)
 	return
 }
 
 func (s *SigCheckHandler) Deliver(ctx weave.Context, store weave.KVStore,
 	tx weave.Tx) (res weave.DeliverResult, err error) {
-	s.Signers = GetSigners(ctx)
+	s.Signers = Authenticate{}.GetPermissions(ctx)
 	return
 }

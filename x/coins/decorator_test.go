@@ -128,7 +128,7 @@ func TestFees(t *testing.T) {
 
 	for i, tc := range cases {
 		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
-			auth := auther{tc.signers}.GetSigners
+			auth := auther{tc.signers}
 			h := NewFeeDecorator(auth, tc.min).WithCollector(addr3)
 
 			kv := store.MemStore()
