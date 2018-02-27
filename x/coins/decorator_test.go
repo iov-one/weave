@@ -49,6 +49,8 @@ func (okHandler) Deliver(weave.Context, weave.KVStore,
 }
 
 func TestFees(t *testing.T) {
+	var helpers x.TestHelpers
+
 	cash := x.NewCoin(50, 0, "FOO")
 	min := x.NewCoin(0, 1234, "FOO")
 	addr := weave.NewAddress([]byte{1, 2, 3})
@@ -128,7 +130,7 @@ func TestFees(t *testing.T) {
 
 	for i, tc := range cases {
 		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
-			auth := auther{tc.signers}
+			auth := helpers.Authenticate(tc.signers...)
 			h := NewFeeDecorator(auth, tc.min).WithCollector(addr3)
 
 			kv := store.MemStore()

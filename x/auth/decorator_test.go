@@ -25,7 +25,7 @@ func TestDecorator(t *testing.T) {
 	addr := []weave.Address{priv.PublicKey().Address()}
 
 	bz := []byte("art")
-	tx := &StdTx{Msg: &StdMsg{bz}}
+	tx := NewStdTx(bz)
 	sig, err := SignTx(priv, tx, chainID, 0)
 	require.NoError(t, err)
 	sig1, err := SignTx(priv, tx, chainID, 1)

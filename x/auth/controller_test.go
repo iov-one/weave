@@ -1,7 +1,6 @@
 package auth
 
 import (
-	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -10,23 +9,17 @@ import (
 	"github.com/confio/weave"
 	"github.com/confio/weave/crypto"
 	"github.com/confio/weave/store"
+	"github.com/confio/weave/x"
 )
 
 func TestSignBytes(t *testing.T) {
 	bz := []byte("foobar")
-	msg := &StdMsg{bz}
-	tx := &StdTx{Msg: msg}
+	tx := NewStdTx(bz)
 
 	bz2 := []byte("blast")
-	tx2 := &StdTx{Msg: &StdMsg{bz2}}
+	tx2 := NewStdTx(bz2)
 
 	// make sure the values out are sensible
-	res, err := msg.Marshal()
-	assert.NoError(t, err)
-	assert.Equal(t, bz, res)
-	tm, err := tx.GetMsg()
-	assert.NoError(t, err)
-	assert.Equal(t, msg, tm)
 	tbz, err := tx.GetSignBytes()
 	assert.NoError(t, err)
 	assert.Equal(t, bz, tbz)
@@ -63,8 +56,7 @@ func TestVerifySignature(t *testing.T) {
 
 	chainID := "emo-music-2345"
 	bz := []byte("my special valentine")
-	msg := &StdMsg{bz}
-	tx := &StdTx{Msg: msg}
+	tx := NewStdTx(bz)
 
 	sig0, err := SignTx(priv, tx, chainID, 0)
 	require.Nil(t, err)
@@ -133,9 +125,8 @@ func TestVerifyTxSignatures(t *testing.T) {
 
 	chainID := "hot_summer_days"
 	bz := []byte("ice cream")
-	msg := &StdMsg{bz}
-	tx := &StdTx{Msg: msg}
-	tx2 := &StdTx{Msg: &StdMsg{[]byte(chainID)}}
+	tx := NewStdTx(bz)
+	tx2 := NewStdTx([]byte(chainID))
 	tbz, err := tx.GetSignBytes()
 	require.NoError(t, err)
 	tbz2, err := tx2.GetSignBytes()
@@ -190,15 +181,18 @@ func TestVerifyTxSignatures(t *testing.T) {
 //----- mock objects for testing...
 
 type StdTx struct {
-	Msg        *StdMsg
+	weave.Tx
 	Signatures []*StdSignature
 }
 
 var _ SignedTx = (*StdTx)(nil)
 var _ weave.Tx = (*StdTx)(nil)
 
-func (tx StdTx) GetMsg() (weave.Msg, error) {
-	return tx.Msg, nil
+func NewStdTx(payload []byte) *StdTx {
+	var helpers x.TestHelpers
+	msg := helpers.MockMsg(payload)
+	tx := helpers.MockTx(msg)
+	return &StdTx{Tx: tx}
 }
 
 func (tx StdTx) GetSignatures() []*StdSignature {
@@ -209,34 +203,15 @@ func (tx StdTx) GetSignBytes() ([]byte, error) {
 	// marshal self w/o sigs
 	s := tx.Signatures
 	tx.Signatures = nil
-	bz, err := tx.Msg.Marshal()
-	tx.Signatures = s
-	return bz, err
-}
+	defer func() { tx.Signatures = s }()
 
-func (tx StdTx) Marshal() ([]byte, error) {
-	return nil, errors.New("TODO: not implemented")
-}
-
-func (tx *StdTx) Unmarshal([]byte) error {
-	return errors.New("TODO: not implemented")
-}
-
-var _ weave.Msg = (*StdMsg)(nil)
-
-type StdMsg struct {
-	data []byte
-}
-
-func (s StdMsg) Marshal() ([]byte, error) {
-	return s.data, nil
-}
-
-func (s *StdMsg) Unmarshal(bz []byte) error {
-	s.data = bz
-	return nil
-}
-
-func (s StdMsg) Path() string {
-	return "std"
+	msg, err := tx.GetMsg()
+	if err != nil {
+		return nil, err
+	}
+	bz, err := msg.Marshal()
+	if err != nil {
+		return nil, err
+	}
+	return bz, nil
 }

@@ -1,6 +1,9 @@
 package x
 
-import "github.com/confio/weave"
+import (
+	"github.com/confio/weave"
+	"github.com/confio/weave/crypto"
+)
 
 //--------------- expose helpers -----
 
@@ -61,6 +64,29 @@ func (TestHelpers) WriteDecorator(key, value []byte, after bool) weave.Decorator
 	}
 }
 
+// MakeKey returns a random PrivateKey and the associated address
+func (TestHelpers) MakeKey() (crypto.Signer, weave.Address) {
+	priv := crypto.GenPrivKeyEd25519()
+	addr := priv.PublicKey().Address()
+	return priv, addr
+}
+
+// MockMsg returns a weave.Msg object holding these bytes
+func (TestHelpers) MockMsg(bz []byte) weave.Msg {
+	return &mockMsg{bz}
+}
+
+// MockTx returns a minimal weave.Tx object holding this Msg
+func (TestHelpers) MockTx(msg weave.Msg) weave.Tx {
+	return &mockTx{msg}
+}
+
+// Authenticate returns an Authenticator that gives permissions
+// to the given addresses
+func (TestHelpers) Authenticate(addrs ...weave.Address) Authenticator {
+	return auther{addrs}
+}
+
 // CountingDecorator keeps track of number of times called.
 // 2x per call, 1x per call with panic inside
 type CountingDecorator interface {
@@ -73,6 +99,75 @@ type CountingDecorator interface {
 type CountingHandler interface {
 	GetCount() int
 	weave.Handler
+}
+
+//--------------- tx and msg -----------------------
+
+//------ msg
+type mockMsg struct {
+	data []byte
+}
+
+var _ weave.Msg = (*mockMsg)(nil)
+
+func (m mockMsg) Marshal() ([]byte, error) {
+	return m.data, nil
+}
+
+func (m *mockMsg) Unmarshal(bz []byte) error {
+	m.data = bz
+	return nil
+}
+
+func (m mockMsg) Path() string {
+	return "mock"
+}
+
+//------ tx
+type mockTx struct {
+	msg weave.Msg
+}
+
+var _ weave.Tx = (*mockTx)(nil)
+
+func (m mockTx) GetMsg() (weave.Msg, error) {
+	return m.msg, nil
+}
+
+func (m mockTx) Marshal() ([]byte, error) {
+	return m.msg.Marshal()
+}
+
+func (m *mockTx) Unmarshal(bz []byte) error {
+	return m.msg.Unmarshal(bz)
+}
+
+// res, err := msg.Marshal()
+// assert.NoError(t, err)
+// assert.Equal(t, bz, res)
+// tm, err := tx.GetMsg()
+// assert.NoError(t, err)
+// assert.Equal(t, msg, tm)
+
+//------ auth
+
+type auther struct {
+	signers []weave.Address
+}
+
+var _ Authenticator = auther{}
+
+func (a auther) GetPermissions(weave.Context) []weave.Address {
+	return a.signers
+}
+
+func (a auther) HasPermission(ctx weave.Context, addr weave.Address) bool {
+	for _, s := range a.signers {
+		if addr.Equals(s) {
+			return true
+		}
+	}
+	return false
 }
 
 //-------------- counting -------------------------

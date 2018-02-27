@@ -3,8 +3,6 @@ package coins
 import (
 	"testing"
 
-	"github.com/confio/weave"
-	"github.com/confio/weave/crypto"
 	"github.com/confio/weave/store"
 	"github.com/confio/weave/x"
 	"github.com/stretchr/testify/assert"
@@ -12,9 +10,11 @@ import (
 )
 
 func TestIssueCoins(t *testing.T) {
+	var helpers x.TestHelpers
+
 	kv := store.MemStore()
-	addr := makeAddress()
-	addr2 := makeAddress()
+	_, addr := helpers.MakeKey()
+	_, addr2 := helpers.MakeKey()
 
 	plus := x.NewCoin(500, 1000, "FOO")
 	minus := x.NewCoin(-400, -600, "FOO")
@@ -72,10 +72,12 @@ func TestIssueCoins(t *testing.T) {
 }
 
 func TestMoveCoins(t *testing.T) {
+	var helpers x.TestHelpers
+
 	kv := store.MemStore()
-	addr := makeAddress()
-	addr2 := makeAddress()
-	addr3 := makeAddress()
+	_, addr := helpers.MakeKey()
+	_, addr2 := helpers.MakeKey()
+	_, addr3 := helpers.MakeKey()
 	k, k2, k3 := NewKey(addr), NewKey(addr2), NewKey(addr3)
 
 	cc := "MONY"
@@ -126,10 +128,4 @@ func TestMoveCoins(t *testing.T) {
 	assert.True(t, w3.Coins().Contains(send))
 
 	// TODO: check overflow?
-}
-
-func makeAddress() weave.Address {
-	priv := crypto.GenPrivKeyEd25519()
-	pub := priv.PublicKey()
-	return pub.Address()
 }
