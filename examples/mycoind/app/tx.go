@@ -1,4 +1,4 @@
-package std
+package app
 
 import (
 	"github.com/confio/weave"

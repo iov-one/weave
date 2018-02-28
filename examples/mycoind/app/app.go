@@ -7,7 +7,7 @@ and to see how to wire together the various components.
 You can then replace them with custom implementations,
 as your project grows.
 */
-package std
+package app
 
 import (
 	"context"

@@ -14,7 +14,7 @@ MODE ?= set
 all: deps build test
 
 install:
-	go install $(BUILD_FLAGS) ./cmd/...
+	go install $(BUILD_FLAGS) ./examples/mycoind
 
 # This is to make sure it all compiles
 build:
@@ -52,7 +52,7 @@ protoc:
 	protoc --gogofaster_out=. x/*.proto
 	protoc --gogofaster_out=. -I=. -I=$$GOPATH/src x/cash/*.proto
 	protoc --gogofaster_out=. -I=. -I=$$GOPATH/src x/sigs/*.proto
-	protoc --gogofaster_out=. -I=. -I=$$GOPATH/src std/*.proto
+	protoc --gogofaster_out=. -I=. -I=$$GOPATH/src examples/mycoind/app/*.proto
 	@ # protoc -I=. -I=vendor --gogo_out=. crypto/*.proto
 
 ### cross-platform check for installing protoc ###

@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package std;
+package app;
 
 import "github.com/confio/weave/x/cash/codec.proto";
 import "github.com/confio/weave/x/sigs/codec.proto";

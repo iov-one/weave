@@ -10,7 +10,7 @@ import (
 
 	"github.com/confio/weave"
 	"github.com/confio/weave/commands/server"
-	"github.com/confio/weave/std"
+	"github.com/confio/weave/examples/mycoind/app"
 )
 
 var (
@@ -55,9 +55,9 @@ func main() {
 	case "help":
 		helpMessage()
 	case "init":
-		server.InitCmd(std.GenInitOptions, logger, *varHome, rest)
+		server.InitCmd(app.GenInitOptions, logger, *varHome, rest)
 	case "start":
-		server.StartCmd(std.GenerateApp, logger, *varHome, rest)
+		server.StartCmd(app.GenerateApp, logger, *varHome, rest)
 	case "version":
 		fmt.Println(weave.Version())
 	default:

@@ -1,4 +1,4 @@
-package std
+package app
 
 import (
 	"encoding/hex"

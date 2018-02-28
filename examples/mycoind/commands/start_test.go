@@ -1,4 +1,4 @@
-package server
+package commands
 
 import (
 	"fmt"
@@ -13,7 +13,8 @@ import (
 
 	"github.com/tendermint/tmlibs/log"
 
-	"github.com/confio/weave/std"
+	"github.com/confio/weave/commands/server"
+	"github.com/confio/weave/examples/mycoind/app"
 )
 
 func TestStartStandAlone(t *testing.T) {
@@ -26,13 +27,13 @@ func TestStartStandAlone(t *testing.T) {
 
 	logger := log.NewNopLogger()
 
-	err := InitCmd(std.GenInitOptions, logger, home, nil)
+	err := server.InitCmd(app.GenInitOptions, logger, home, nil)
 	require.NoError(t, err)
 
 	// set up app and start up
 	args := []string{"-bind", "localhost:11122"}
 	runStart := func() error {
-		return StartCmd(std.GenerateApp, logger, home, args)
+		return server.StartCmd(app.GenerateApp, logger, home, args)
 	}
 	timeout := time.Duration(2) * time.Second
 	err = runOrTimeout(runStart, timeout)
@@ -52,7 +53,7 @@ func TestStartWithTendermint(t *testing.T) {
 
 	logger := log.NewTMLogger(log.NewSyncWriter(os.Stdout)).
 		With("module", "test-cmd")
-	err := InitCmd(std.GenInitOptions, logger, home, nil)
+	err := server.InitCmd(app.GenInitOptions, logger, home, nil)
 	require.NoError(t, err)
 
 	// start up tendermint process in the background...
@@ -63,7 +64,7 @@ func TestStartWithTendermint(t *testing.T) {
 	// set up app and start up
 	args := []string{"-bind", "localhost:46658"}
 	runStart := func() error {
-		return StartCmd(std.GenerateApp, logger, home, args)
+		return server.StartCmd(app.GenerateApp, logger, home, args)
 	}
 	timeout := time.Duration(runTime+1) * time.Second
 	err = runOrTimeout(runStart, timeout)

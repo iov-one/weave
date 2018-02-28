@@ -1,4 +1,4 @@
-package server
+package commands
 
 import (
 	"encoding/json"
@@ -14,7 +14,8 @@ import (
 
 	"github.com/tendermint/tmlibs/log"
 
-	"github.com/confio/weave/std"
+	"github.com/confio/weave/commands/server"
+	"github.com/confio/weave/examples/mycoind/app"
 )
 
 func TestInit(t *testing.T) {
@@ -23,13 +24,13 @@ func TestInit(t *testing.T) {
 
 	logger := log.NewNopLogger()
 	args := []string{"ETH", "ABCD123456789000DEADBEEF00ABCD123456789000"}
-	err := InitCmd(std.GenInitOptions, logger, home, args)
+	err := server.InitCmd(app.GenInitOptions, logger, home, args)
 	require.NoError(t, err)
 
 	// make sure we set proper data
 	genFile := filepath.Join(home, "config", "genesis.json")
 
-	var doc genesisDoc
+	var doc server.GenesisDoc
 	bz, err := ioutil.ReadFile(genFile)
 	require.NoError(t, err)
 	err = json.Unmarshal(bz, &doc)
@@ -38,8 +39,8 @@ func TestInit(t *testing.T) {
 	assert.EqualValues(t, []byte(`"test-chain-LgVOZ0"`),
 		doc["chain_id"])
 	assert.NotEmpty(t, doc["validators"])
-	assert.NotEmpty(t, doc[appStateKey])
-	assert.Contains(t, string(doc[appStateKey]), `"currency_code": "ETH"`)
+	assert.NotEmpty(t, doc[server.AppStateKey])
+	assert.Contains(t, string(doc[server.AppStateKey]), `"currency_code": "ETH"`)
 }
 
 // setupConfig creates a homedir to run inside,
