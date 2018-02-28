@@ -40,7 +40,7 @@ func GenInitOptions(args []string) (json.RawMessage, error) {
 	}
 
 	opts := fmt.Sprintf(`{
-    "accounts": [
+    "cash": [
       {
         "address": "%s",
         "coins": [
@@ -56,8 +56,9 @@ func GenInitOptions(args []string) (json.RawMessage, error) {
 }
 
 // GenerateApp is used to create a stub for server/start.go command
-func GenerateApp(dbPath string, logger log.Logger) (abci.Application, error) {
+func GenerateApp(home string, logger log.Logger) (abci.Application, error) {
 	stack := Stack(x.Coin{})
+	dbPath := filepath.Join(home, "abci.db")
 	app, err := Application("mycoin", stack, TxDecoder, dbPath)
 	if err != nil {
 		return nil, err
@@ -65,7 +66,7 @@ func GenerateApp(dbPath string, logger log.Logger) (abci.Application, error) {
 	app.WithInit(cash.Initializer{})
 
 	// guess the location of the genesis file
-	genesisPath := filepath.Join(dbPath, "config", "genesis.json")
+	genesisPath := filepath.Join(home, "config", "genesis.json")
 	app.WithGenesis(genesisPath)
 
 	// set the logger and return

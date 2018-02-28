@@ -5,7 +5,7 @@ import (
 	"github.com/confio/weave/errors"
 )
 
-const optKey = "coins"
+const optKey = "cash"
 
 // GenesisAccount is used to parse the json from genesis file
 // use weave.Address, so address in hex, not base64

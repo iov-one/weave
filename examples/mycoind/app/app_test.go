@@ -30,7 +30,7 @@ func TestApp(t *testing.T) {
 	genesis := fmt.Sprintf(`{
         "chain_id": "%s",
         "app_state": {
-            "coins": [{
+            "cash": [{
                 "address": "%X",
                 "coins": [{
                     "integer": 50000,

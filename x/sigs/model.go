@@ -27,7 +27,7 @@ import (
 // Question: allow objects with a Marshal method???
 type Key []byte
 
-var userPrefix = []byte("user:")
+var userPrefix = []byte("sigs:")
 
 // NewKey constructs the user key from a key hash,
 // by appending a prefix.

@@ -14,7 +14,7 @@ import (
 // Question: allow objects with a Marshal method???
 type Key []byte
 
-var walletPrefix = []byte("wallet:")
+var walletPrefix = []byte("cash:")
 
 // NewKey constructs the coin key from a key hash,
 // by appending a prefix.

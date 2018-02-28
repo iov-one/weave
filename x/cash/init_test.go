@@ -42,10 +42,10 @@ func TestInitState(t *testing.T) {
 		// bad format
 		2: {weave.Options{"foo": []byte(`[{"address": "1234"}]`)}, false, nil, Set{}},
 		// bad address
-		3: {weave.Options{"coins": []byte(`[{"coins": 123}]`)}, true, nil, Set{}},
+		3: {weave.Options{"cash": []byte(`[{"coins": 123}]`)}, true, nil, Set{}},
 		// get a real account
-		4: {weave.Options{"coins": bz}, false, addr, coins},
-		5: {weave.Options{"coins": bz2}, false, addr2, coins2},
+		4: {weave.Options{"cash": bz}, false, addr, coins},
+		5: {weave.Options{"cash": bz2}, false, addr2, coins2},
 	}
 
 	init := Initializer{}
