@@ -5,13 +5,15 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"github.com/confio/weave"
 	"github.com/confio/weave/store"
-	"github.com/stretchr/testify/assert"
+	"github.com/confio/weave/x"
 )
 
 func TestSavepoint(t *testing.T) {
-	var help TestHelpers
+	var help x.TestHelpers
 
 	// always write ok, ov before calling functions
 	ok, ov := []byte("demo"), []byte("data")

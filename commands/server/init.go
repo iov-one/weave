@@ -9,7 +9,9 @@ import (
 )
 
 const (
-	appStateKey = "app_state"
+	// AppStateKey is the key in the json json where all info
+	// on initializing the app can be found
+	AppStateKey = "app_state"
 )
 
 // InitCmd will initialize all files for tendermint,
@@ -39,10 +41,10 @@ func InitCmd(gen GenOptions, logger log.Logger, home string, args []string) erro
 // This is application-specific
 type GenOptions func(args []string) (json.RawMessage, error)
 
-// genesisDoc involves some tendermint-specific structures we don't
+// GenesisDoc involves some tendermint-specific structures we don't
 // want to parse, so we just grab it into a raw object format,
 // so we can add one line.
-type genesisDoc map[string]json.RawMessage
+type GenesisDoc map[string]json.RawMessage
 
 func addGenesisOptions(filename string, options json.RawMessage) error {
 	bz, err := ioutil.ReadFile(filename)
@@ -50,13 +52,13 @@ func addGenesisOptions(filename string, options json.RawMessage) error {
 		return err
 	}
 
-	var doc genesisDoc
+	var doc GenesisDoc
 	err = json.Unmarshal(bz, &doc)
 	if err != nil {
 		return err
 	}
 
-	doc[appStateKey] = options
+	doc[AppStateKey] = options
 	out, err := json.MarshalIndent(doc, "", "  ")
 	if err != nil {
 		return err

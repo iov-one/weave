@@ -6,11 +6,11 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/confio/weave/x/utils"
+	"github.com/confio/weave/x"
 )
 
 func TestRouter(t *testing.T) {
-	var help utils.TestHelpers
+	var help x.TestHelpers
 
 	r := NewRouter()
 	good, bad, missing := "good", "bad", "missing"

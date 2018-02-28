@@ -1,8 +1,6 @@
 .PHONY: all install build test cover deps glide tools protoc
 
-GIT_COMMIT := $(shell git rev-parse --short HEAD)
-BUILD_FLAGS := -ldflags "-X github.com/confio/weave.GitCommit=$(GIT_COMMIT)"
-
+EXAMPLES := "examples/mycoind"
 
 # dont use `` in the makefile for windows compatibility
 NOVENDOR := $(shell go list ./...)
@@ -14,7 +12,7 @@ MODE ?= set
 all: deps build test
 
 install:
-	go install $(BUILD_FLAGS) ./cmd/...
+	for ex in $(EXAMPLES); do cd $$ex && make install; done
 
 # This is to make sure it all compiles
 build:
@@ -38,21 +36,17 @@ cover:
 
 deps: glide
 	@glide install
-	@ #install tendermint binary for testing
-	go get -u github.com/tendermint/tendermint/cmd/tendermint
-	@ # Use this if the above fails
-	@ # @go get -u github.com/tendermint/tendermint
-	@ # cd ../../tendermint/tendermint && make get_vendor_deps && make install
+	for ex in $(EXAMPLES); do cd $$ex && make deps; done
 
 glide:
 	@go get github.com/tendermint/glide
 
 protoc:
 	protoc --gogofaster_out=. crypto/*.proto
-	protoc --gogofaster_out=. -I=. -I=$$GOPATH/src x/auth/*.proto
-	protoc --gogofaster_out=. x/coins/*.proto
-	protoc --gogofaster_out=. -I=. -I=$$GOPATH/src std/*.proto
-	@ # protoc -I=. -I=vendor --gogo_out=. crypto/*.proto
+	protoc --gogofaster_out=. x/*.proto
+	protoc --gogofaster_out=. -I=. -I=$$GOPATH/src x/cash/*.proto
+	protoc --gogofaster_out=. -I=. -I=$$GOPATH/src x/sigs/*.proto
+	for ex in $(EXAMPLES); do cd $$ex && make protoc; done
 
 ### cross-platform check for installing protoc ###
 
