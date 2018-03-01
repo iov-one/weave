@@ -9,6 +9,7 @@ import (
 	"github.com/tendermint/tmlibs/log"
 
 	"github.com/confio/weave"
+	"github.com/confio/weave/commands"
 	"github.com/confio/weave/commands/server"
 	"github.com/confio/weave/examples/mycoind/app"
 )
@@ -51,17 +52,24 @@ func main() {
 	cmd := flag.Arg(0)
 	rest := flag.Args()[1:]
 
+	var err error
 	switch cmd {
 	case "help":
 		helpMessage()
 	case "init":
-		server.InitCmd(app.GenInitOptions, logger, *varHome, rest)
+		err = server.InitCmd(app.GenInitOptions, logger, *varHome, rest)
 	case "start":
-		server.StartCmd(app.GenerateApp, logger, *varHome, rest)
+		err = server.StartCmd(app.GenerateApp, logger, *varHome, rest)
+	case "testgen":
+		err = commands.TestGenCmd(app.Examples(), rest)
 	case "version":
 		fmt.Println(weave.Version())
 	default:
-		fmt.Printf("Unknown command: %s\n", cmd)
+		err = fmt.Errorf("unknown command: %s", cmd)
+	}
+
+	if err != nil {
+		fmt.Printf("Error: %+v\n\n", err)
 		helpMessage()
 		os.Exit(1)
 	}
