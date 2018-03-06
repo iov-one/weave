@@ -20,10 +20,10 @@ message UserData {
 // A given signer must submit transactions with the sequence number
 // increasing by 1 each time (starting at 0)
 message StdSignature {
-    int64 Sequence = 1;
+    int64 sequence = 1;
     // PubKey required if Sequence == 0
-    crypto.PublicKey PubKey = 2;
+    crypto.PublicKey pub_key = 2;
     // Address required if PubKey is not present
-    bytes Address = 3;
-    crypto.Signature Signature = 4;
+    bytes address = 3;
+    crypto.Signature signature = 4;
 }
