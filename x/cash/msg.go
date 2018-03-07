@@ -10,7 +10,7 @@ import (
 var _ weave.Msg = (*SendMsg)(nil)
 
 const (
-	pathSendMsg       = "coins/send"
+	pathSendMsg       = "cash/send"
 	sendTxCost  int64 = 100
 
 	maxMemoSize int = 128

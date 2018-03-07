@@ -14,5 +14,4 @@ func TestVersion(t *testing.T) {
 
 	weave.GitCommit = "12345678"
 	assert.Equal(t, "v0.2.0-dev 12345678", weave.Version())
-
 }

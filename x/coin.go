@@ -6,8 +6,8 @@ import (
 
 //-------------- Coin -----------------------
 
-// isCC is the RegExp to ensure valid currency codes
-var isCC = regexp.MustCompile(`^[A-Z]{3,4}$`).MatchString
+// IsCC is the RegExp to ensure valid currency codes
+var IsCC = regexp.MustCompile(`^[A-Z]{3,4}$`).MatchString
 
 const (
 	MaxInt int32 = 999999999 // 10^9-1
@@ -162,7 +162,7 @@ func (c *Coin) Clone() *Coin {
 // so you may want to make other checks in your business
 // logic
 func (c Coin) Validate() error {
-	if !isCC(c.CurrencyCode) {
+	if !IsCC(c.CurrencyCode) {
 		return ErrInvalidCurrency(c.CurrencyCode)
 	}
 	if c.Integer < MinInt || c.Integer > MaxInt {
