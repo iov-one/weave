@@ -1,0 +1,9 @@
+syntax = "proto3";
+
+package orm;
+
+// MultiRef contains a list of references to pks
+message MultiRef {
+    repeated bytes refs = 1;
+}
+
