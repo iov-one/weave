@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+package namecoin;
+
+import "github.com/confio/weave/x/codec.proto";
+
+// Wallet has a name and a set of coins
+message Wallet {
+    repeated x.Coin coins = 1;
+    string name = 2;
+}
+
+// Token contains information about a registered currency
+message Token {
+    string ticker = 1;
+    string name = 2;
+    int32 sig_figs = 3;
+}
+
+// Use: x.SendMsg, x.FeeInfo???
+
+// NewTickerMsg will register a new ticker.
+// This must not conflict with any existing ticker,
+// and should be limited to privledged users.
+message NewTickerMsg {
+    string ticker = 1;
+    string name = 2;
+    int32 sig_figs = 3;
+}
