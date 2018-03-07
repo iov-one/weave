@@ -64,12 +64,13 @@ func (b Bucket) Get(db weave.KVStore, key []byte) (Object, error) {
 		return nil, nil
 	}
 
-	proto := b.proto.Clone()
-	err := proto.Value().Unmarshal(bz)
+	obj := b.proto.Clone()
+	err := obj.Value().Unmarshal(bz)
 	if err != nil {
 		return nil, err
 	}
-	return proto, nil
+	obj.SetKey(key)
+	return obj, nil
 }
 
 // Save will write a model, it must be of the same type as proto

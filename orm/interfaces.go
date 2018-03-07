@@ -22,6 +22,7 @@ type Object interface {
 // Keyed is anything that can identify itself
 type Keyed interface {
 	Key() []byte
+	SetKey([]byte)
 }
 
 // Cloneable will create a new object that can be loaded into
