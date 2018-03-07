@@ -1,0 +1,44 @@
+package namecoin
+
+import (
+	"regexp"
+
+	"github.com/confio/weave"
+	"github.com/confio/weave/x"
+)
+
+// Ensure we implement the Msg interface
+var _ weave.Msg = (*NewTickerMsg)(nil)
+
+const (
+	pathNewTickerMsg       = "namecoin/ticker"
+	newTickerCost    int64 = 100
+
+	minSigFigs = 0
+	maxSigFigs = 9
+)
+
+var (
+	// IsTokenName limits the human-readable names of the tokens,
+	// subset of ASCII to avoid unicode tricks.
+	IsTokenName = regexp.MustCompile(`^[A-Za-z0-9 \-_:]{3,32}$`).MatchString
+)
+
+// Path returns the routing path for this message
+func (NewTickerMsg) Path() string {
+	return pathNewTickerMsg
+}
+
+// Validate makes sure that this is sensible
+func (t *NewTickerMsg) Validate() error {
+	if !x.IsCC(t.Ticker) {
+		return x.ErrInvalidCurrency(t.Ticker)
+	}
+	if !IsTokenName(t.Name) {
+		return ErrInvalidTokenName(t.Name)
+	}
+	if t.SigFigs < minSigFigs || t.SigFigs > maxSigFigs {
+		return ErrInvalidSigFigs(t.SigFigs)
+	}
+	return nil
+}
