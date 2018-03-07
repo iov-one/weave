@@ -1,4 +1,4 @@
-package ideas
+package orm
 
 import (
 	"encoding/binary"
@@ -9,11 +9,13 @@ import (
 var seqPrefix = []byte("_s:")
 
 // Sequence maintains a counter/auto-generate a number of
-// keys, they may be sequential or pseudo-random
+// keys, they may be sequential or pseudo-random,
+// but must be deterministic.
 type Sequence struct {
 	id []byte
 }
 
+// NewSequence creates a sequence with this id
 func NewSequence(id []byte) Sequence {
 	return Sequence{
 		id: id,

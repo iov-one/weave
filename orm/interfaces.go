@@ -1,7 +1,8 @@
-package ideas
+package orm
 
 import (
 	"github.com/confio/weave"
+	"github.com/confio/weave/x"
 )
 
 // Object is what is stored in the bucket
@@ -11,24 +12,27 @@ import (
 // this can be light wrapper around a protobuf-defined type
 type Object interface {
 	Keyed
-	Value() weave.Persistent
-
+	Cloneable
 	// Validate returns error if the object is not in a valid
 	// state to save to the db (eg. field missing, out of range, ...)
-	Validate() error
+	x.Validater
+	Value() weave.Persistent
 }
 
 // Keyed is anything that can identify itself
 type Keyed interface {
-	GetKey() []byte
-}
-
-// SetKeyer allows you to optionally change the key
-type SetKeyer interface {
-	SetKey([]byte)
+	Key() []byte
 }
 
 // Cloneable will create a new object that can be loaded into
 type Cloneable interface {
 	Clone() Object
+}
+
+// CloneableData is an intelligent Value that can be embedded
+// in a simple object to handle much of the details.
+type CloneableData interface {
+	x.Validater
+	weave.Persistent
+	Copy() CloneableData
 }
