@@ -117,6 +117,15 @@ func (i Index) move(db weave.KVStore, prev Object, save Object) error {
 		return nil
 	}
 
+	// check unique constraint before removing
+	if i.unique {
+		k := append(i.id, newKey...)
+		val := db.Get(k)
+		if val != nil {
+			return errors.Errorf("Duplicate violates unique constraint on index %s", i.name)
+		}
+	}
+
 	err = i.remove(db, oldKey, prev.Key())
 	if err != nil {
 		return err

@@ -85,6 +85,8 @@ func TestBucketStore(t *testing.T) {
 		10: {count2, k2, addN(99, 1), false},
 		11: {count2, k, isEmpty, false},
 		12: {count2, k2, isEmpty, true},
+		// make sure negaitves cannot be stored
+		13: {count, k2, addN(17, -20), true},
 	}
 
 	db := store.MemStore()
