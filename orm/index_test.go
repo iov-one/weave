@@ -115,7 +115,3 @@ func TestCounterIndex(t *testing.T) {
 	}
 
 }
-
-func TestCounterIndexUnique(t *testing.T) {
-
-}

@@ -19,6 +19,7 @@ import (
 	"regexp"
 
 	"github.com/confio/weave"
+	"github.com/pkg/errors"
 )
 
 const (
@@ -39,8 +40,10 @@ var (
 // Bucket is a prefixed subspace of the DB
 // proto defines the default Model, all elements of this type
 type Bucket struct {
-	prefix []byte
-	proto  Cloneable
+	name    string
+	prefix  []byte
+	proto   Cloneable
+	indexes map[string]Index
 }
 
 // NewBucket creates a bucket to store data
@@ -49,9 +52,9 @@ func NewBucket(name string, proto Cloneable) Bucket {
 		panic(fmt.Sprintf("Illegal bucket: %s", name))
 	}
 
-	prefix := append([]byte(name), ':')
 	return Bucket{
-		prefix: prefix,
+		name:   name,
+		prefix: append([]byte(name), ':'),
 		proto:  proto,
 	}
 }
@@ -84,9 +87,44 @@ func (b Bucket) Save(db weave.KVStore, model Object) error {
 	if err != nil {
 		return err
 	}
+	err = b.updateIndexes(db, model.Key(), model)
+	if err != nil {
+		return err
+	}
 
+	// now save this one
 	dbkey := append(b.prefix, model.Key()...)
 	db.Set(dbkey, bz)
+	return nil
+}
+
+// Delete will remove the value at a key
+func (b Bucket) Delete(db weave.KVStore, key []byte) error {
+	err := b.updateIndexes(db, key, nil)
+	if err != nil {
+		return err
+	}
+
+	// now save this one
+	dbkey := append(b.prefix, key...)
+	db.Delete(dbkey)
+	return nil
+}
+
+func (b Bucket) updateIndexes(db weave.KVStore, key []byte, model Object) error {
+	// update all indexes
+	if len(b.indexes) > 0 {
+		prev, err := b.Get(db, key)
+		if err != nil {
+			return err
+		}
+		for _, idx := range b.indexes {
+			err = idx.Update(db, prev, model)
+			if err != nil {
+				return err
+			}
+		}
+	}
 	return nil
 }
 
@@ -94,4 +132,67 @@ func (b Bucket) Save(db weave.KVStore, model Object) error {
 func (b Bucket) Sequence(name string) Sequence {
 	id := append(b.prefix, []byte(name)...)
 	return NewSequence(id)
+}
+
+// WithIndex returns a copy of this bucket with given index,
+// panics if it an index with that name is already registered.
+//
+// Designed to be chained.
+func (b Bucket) WithIndex(name string, indexer Indexer, unique bool) Bucket {
+	// no duplicate indexes! (panic on init)
+	if _, ok := b.indexes[name]; ok {
+		panic(fmt.Sprintf("Index %s registered twice", name))
+	}
+
+	iname := b.name + "_" + name
+	add := NewIndex(iname, indexer, unique)
+	indexes := make(map[string]Index, len(b.indexes)+1)
+	for n, i := range b.indexes {
+		indexes[n] = i
+	}
+	indexes[name] = add
+	b.indexes = indexes
+	return b
+}
+
+// GetIndexed querys the named index for the given key
+func (b Bucket) GetIndexed(db weave.KVStore, name string, key []byte) ([]Object, error) {
+	idx, ok := b.indexes[name]
+	if !ok {
+		return nil, errors.Errorf("No such index: %s", name)
+	}
+	refs, err := idx.GetAt(db, key)
+	if err != nil {
+		return nil, err
+	}
+	return b.readRefs(db, refs)
+}
+
+// GetIndexedLike querys the named index with the given pattern
+func (b Bucket) GetIndexedLike(db weave.KVStore, name string, pattern Object) ([]Object, error) {
+	idx, ok := b.indexes[name]
+	if !ok {
+		return nil, errors.Errorf("No such index: %s", name)
+	}
+	refs, err := idx.GetLike(db, pattern)
+	if err != nil {
+		return nil, err
+	}
+	return b.readRefs(db, refs)
+}
+
+func (b Bucket) readRefs(db weave.KVStore, refs [][]byte) ([]Object, error) {
+	if len(refs) == 0 {
+		return nil, nil
+	}
+
+	var err error
+	objs := make([]Object, len(refs))
+	for i, key := range refs {
+		objs[i], err = b.Get(db, key)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return objs, nil
 }

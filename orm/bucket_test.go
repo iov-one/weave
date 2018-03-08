@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/confio/weave"
 	"github.com/confio/weave/store"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
@@ -153,4 +154,137 @@ func TestBucketSequence(t *testing.T) {
 		})
 	}
 
+}
+
+// countByte is another index we can use
+func countByte(obj Object) ([]byte, error) {
+	if obj == nil {
+		return nil, errors.New("Cannot take index of nil")
+	}
+	cntr, ok := obj.Value().(*Counter)
+	if !ok {
+		return nil, errors.New("Can only take index of Counter")
+	}
+	// last 8 bits...
+	return []byte{byte(cntr.Count % 256)}, nil
+}
+
+// query will query either by pattern or key
+// verifies that the proper results are returned
+type query struct {
+	index   string
+	like    Object
+	at      []byte
+	res     []Object
+	isError bool
+}
+
+func (q query) check(t *testing.T, b Bucket, db weave.KVStore) {
+	var res []Object
+	var err error
+	if q.like != nil {
+		res, err = b.GetIndexedLike(db, q.index, q.like)
+	} else {
+		res, err = b.GetIndexed(db, q.index, q.at)
+	}
+	if q.isError {
+		require.Error(t, err)
+	} else {
+		require.NoError(t, err)
+		assert.EqualValues(t, q.res, res)
+	}
+}
+
+// Make sure secondary indexes work
+func TestBucketIndex(t *testing.T) {
+	// make some buckets for testing
+	const uniq, mini = "uniq", "mini"
+
+	bucket := NewBucket("special", NewSimpleObj(nil, new(Counter))).
+		WithIndex(uniq, count, true).
+		WithIndex(mini, countByte, false)
+
+	a, b, c := []byte("a"), []byte("b"), []byte("c")
+	oa := NewSimpleObj(a, NewCounter(5))
+	oa2 := NewSimpleObj(a, NewCounter(245))
+	ob := NewSimpleObj(b, NewCounter(256+5))
+	ob2 := NewSimpleObj(b, NewCounter(245))
+	oc := NewSimpleObj(c, NewCounter(512+245))
+
+	cases := []struct {
+		bucket    Bucket
+		save      []Object
+		saveError bool
+		remove    [][]byte
+		queries   []query
+	}{
+		// insert one object enters into both indexes
+		0: {
+			bucket, []Object{oa}, false, nil,
+			[]query{
+				{uniq, oa, nil, []Object{oa}, false},
+				{mini, oa, nil, []Object{oa}, false},
+				{"foo", oa, nil, nil, true},
+			},
+		},
+		// add a second object and move one
+		1: {
+			bucket, []Object{oa, ob, oa2}, false, nil,
+			[]query{
+				{uniq, oa, nil, nil, false},
+				{uniq, oa2, nil, []Object{oa2}, false},
+				{uniq, ob, nil, []Object{ob}, false},
+				{mini, nil, []byte{5}, []Object{ob}, false},
+				{mini, nil, []byte{245}, []Object{oa2}, false},
+			},
+		},
+		// prevent a conflicting save
+		2: {
+			bucket, []Object{oa2, ob2}, true, nil, nil,
+		},
+		// update properly on delete as well
+		3: {
+			bucket, []Object{oa, ob2, oc}, false, [][]byte{b},
+			[]query{
+				{uniq, oa, nil, []Object{oa}, false},
+				{uniq, ob2, nil, nil, false},
+				{uniq, oc, nil, []Object{oc}, false},
+				{mini, nil, []byte{5}, []Object{oa}, false},
+				{mini, nil, []byte{245}, []Object{oc}, false},
+			},
+		},
+	}
+
+	for i, tc := range cases {
+		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
+			db := store.MemStore()
+			b := tc.bucket
+
+			// add all initial objects and enforce
+			// error or no error
+			hasErr := false
+			for _, s := range tc.save {
+				err := b.Save(db, s)
+				if !tc.saveError {
+					require.NoError(t, err)
+				} else if err != nil {
+					hasErr = true
+				}
+			}
+			if tc.saveError {
+				require.True(t, hasErr)
+				return
+			}
+
+			// remove any if desired
+			for _, rem := range tc.remove {
+				err := b.Delete(db, rem)
+				require.NoError(t, err)
+			}
+
+			for _, q := range tc.queries {
+				q.check(t, b, db)
+			}
+		})
+	}
 }
