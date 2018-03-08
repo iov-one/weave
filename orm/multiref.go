@@ -96,3 +96,25 @@ func (m *MultiRef) Validate() error {
 	}
 	return nil
 }
+
+//------------- counter code ----------------------
+
+var _ CloneableData = (*Counter)(nil)
+
+// NewCounter returns an initialized counter
+func NewCounter(count int64) *Counter {
+	return &Counter{Count: count}
+}
+
+// Copy produces another counter with the same data
+func (c *Counter) Copy() CloneableData {
+	return &Counter{Count: c.Count}
+}
+
+// Validate returns error on negative numbers
+func (c *Counter) Validate() error {
+	if c.Count < 0 {
+		return errors.New("Negative counter")
+	}
+	return nil
+}

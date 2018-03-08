@@ -27,7 +27,7 @@ const (
 )
 
 var (
-	isBucketName = regexp.MustCompile(`^[A-Za-z]{4}$`).MatchString
+	isBucketName = regexp.MustCompile(`^[a-z_]{3,8}$`).MatchString
 )
 
 // Bucket is a generic holder that stores data as well

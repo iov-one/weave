@@ -9,6 +9,7 @@ It is generated from these files:
 
 It has these top-level messages:
 	MultiRef
+	Counter
 */
 package orm
 
@@ -46,8 +47,26 @@ func (m *MultiRef) GetRefs() [][]byte {
 	return nil
 }
 
+// Counter could be used for sequence, but mainly just for test
+type Counter struct {
+	Count int64 `protobuf:"varint,1,opt,name=count,proto3" json:"count,omitempty"`
+}
+
+func (m *Counter) Reset()                    { *m = Counter{} }
+func (m *Counter) String() string            { return proto.CompactTextString(m) }
+func (*Counter) ProtoMessage()               {}
+func (*Counter) Descriptor() ([]byte, []int) { return fileDescriptorCodec, []int{1} }
+
+func (m *Counter) GetCount() int64 {
+	if m != nil {
+		return m.Count
+	}
+	return 0
+}
+
 func init() {
 	proto.RegisterType((*MultiRef)(nil), "orm.MultiRef")
+	proto.RegisterType((*Counter)(nil), "orm.Counter")
 }
 func (m *MultiRef) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
@@ -75,6 +94,29 @@ func (m *MultiRef) MarshalTo(dAtA []byte) (int, error) {
 	return i, nil
 }
 
+func (m *Counter) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalTo(dAtA)
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *Counter) MarshalTo(dAtA []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	if m.Count != 0 {
+		dAtA[i] = 0x8
+		i++
+		i = encodeVarintCodec(dAtA, i, uint64(m.Count))
+	}
+	return i, nil
+}
+
 func encodeVarintCodec(dAtA []byte, offset int, v uint64) int {
 	for v >= 1<<7 {
 		dAtA[offset] = uint8(v&0x7f | 0x80)
@@ -92,6 +134,15 @@ func (m *MultiRef) Size() (n int) {
 			l = len(b)
 			n += 1 + l + sovCodec(uint64(l))
 		}
+	}
+	return n
+}
+
+func (m *Counter) Size() (n int) {
+	var l int
+	_ = l
+	if m.Count != 0 {
+		n += 1 + sovCodec(uint64(m.Count))
 	}
 	return n
 }
@@ -167,6 +218,75 @@ func (m *MultiRef) Unmarshal(dAtA []byte) error {
 			m.Refs = append(m.Refs, make([]byte, postIndex-iNdEx))
 			copy(m.Refs[len(m.Refs)-1], dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipCodec(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *Counter) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowCodec
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= (uint64(b) & 0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: Counter: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: Counter: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Count", wireType)
+			}
+			m.Count = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Count |= (int64(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
 		default:
 			iNdEx = preIndex
 			skippy, err := skipCodec(dAtA[iNdEx:])
@@ -296,12 +416,13 @@ var (
 func init() { proto.RegisterFile("orm/codec.proto", fileDescriptorCodec) }
 
 var fileDescriptorCodec = []byte{
-	// 99 bytes of a gzipped FileDescriptorProto
+	// 125 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0xe2, 0xcf, 0x2f, 0xca, 0xd5,
 	0x4f, 0xce, 0x4f, 0x49, 0x4d, 0xd6, 0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17, 0x62, 0xce, 0x2f, 0xca,
 	0x55, 0x92, 0xe3, 0xe2, 0xf0, 0x2d, 0xcd, 0x29, 0xc9, 0x0c, 0x4a, 0x4d, 0x13, 0x12, 0xe2, 0x62,
-	0x29, 0x4a, 0x4d, 0x2b, 0x96, 0x60, 0x54, 0x60, 0xd6, 0xe0, 0x09, 0x02, 0xb3, 0x9d, 0x04, 0x4e,
-	0x3c, 0x92, 0x63, 0xbc, 0xf0, 0x48, 0x8e, 0xf1, 0xc1, 0x23, 0x39, 0xc6, 0x09, 0x8f, 0xe5, 0x18,
-	0x92, 0xd8, 0xc0, 0xba, 0x8d, 0x01, 0x01, 0x00, 0x00, 0xff, 0xff, 0x79, 0x3e, 0x98, 0x5f, 0x50,
-	0x00, 0x00, 0x00,
+	0x29, 0x4a, 0x4d, 0x2b, 0x96, 0x60, 0x54, 0x60, 0xd6, 0xe0, 0x09, 0x02, 0xb3, 0x95, 0xe4, 0xb9,
+	0xd8, 0x9d, 0xf3, 0x4b, 0xf3, 0x4a, 0x52, 0x8b, 0x84, 0x44, 0xb8, 0x58, 0x93, 0x41, 0x4c, 0x09,
+	0x46, 0x05, 0x46, 0x0d, 0xe6, 0x20, 0x08, 0xc7, 0x49, 0xe0, 0xc4, 0x23, 0x39, 0xc6, 0x0b, 0x8f,
+	0xe4, 0x18, 0x1f, 0x3c, 0x92, 0x63, 0x9c, 0xf0, 0x58, 0x8e, 0x21, 0x89, 0x0d, 0x6c, 0xbc, 0x31,
+	0x20, 0x00, 0x00, 0xff, 0xff, 0xa8, 0xc3, 0x7c, 0x5d, 0x71, 0x00, 0x00, 0x00,
 }

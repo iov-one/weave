@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/confio/weave"
 	"github.com/confio/weave/store"
 	"github.com/stretchr/testify/assert"
 )
@@ -29,10 +30,7 @@ func TestSequence(t *testing.T) {
 			s := NewSequence(tc.id)
 			_, orig := s.curVal(db)
 
-			var val int64
-			for i := int64(0); i < tc.increments; i++ {
-				val = s.NextInt(db)
-			}
+			val := incrementN(s, db, tc.increments)
 			// expect the final value to be this
 			expect := tc.init + tc.increments
 			assert.Equal(t, expect, val)
@@ -43,4 +41,12 @@ func TestSequence(t *testing.T) {
 			assert.Equal(t, 1, bytes.Compare(last, orig))
 		})
 	}
+}
+
+func incrementN(s Sequence, db weave.KVStore, n int64) int64 {
+	var val int64
+	for i := int64(0); i < n; i++ {
+		val = s.NextInt(db)
+	}
+	return val
 }
