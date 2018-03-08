@@ -59,9 +59,14 @@ func NewBucket(name string, proto Cloneable) Bucket {
 	}
 }
 
+// DBKey is the full key we store in the db, including prefix
+func (b Bucket) DBKey(key []byte) []byte {
+	return append(b.prefix, key...)
+}
+
 // Get one element
 func (b Bucket) Get(db weave.KVStore, key []byte) (Object, error) {
-	dbkey := append(b.prefix, key...)
+	dbkey := b.DBKey(key)
 	bz := db.Get(dbkey)
 	if bz == nil {
 		return nil, nil
@@ -106,7 +111,7 @@ func (b Bucket) Delete(db weave.KVStore, key []byte) error {
 	}
 
 	// now save this one
-	dbkey := append(b.prefix, key...)
+	dbkey := b.DBKey(key)
 	db.Delete(dbkey)
 	return nil
 }

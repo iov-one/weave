@@ -54,7 +54,7 @@ func TestApp(t *testing.T) {
 	assert.Equal(t, chainID, app.GetChainID())
 
 	// Query for my balance
-	key := cash.NewKey(addr)
+	key := cash.NewBucket().DBKey(addr)
 	query := abci.RequestQuery{
 		Path: "/key",
 		Data: key,
@@ -120,7 +120,7 @@ func TestApp(t *testing.T) {
 	assert.Equal(t, int32(1234), acct2.Coins[1].Integer)
 
 	// make sure money arrived safely
-	key2 := cash.NewKey(addr2)
+	key2 := cash.NewBucket().DBKey(addr2)
 	query2 := abci.RequestQuery{
 		Path: "/key",
 		Data: key2,
