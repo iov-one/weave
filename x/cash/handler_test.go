@@ -9,6 +9,7 @@ import (
 	"github.com/confio/weave/store"
 	"github.com/confio/weave/x"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 type checkErr func(error) bool
@@ -19,12 +20,14 @@ func TestSend(t *testing.T) {
 	var helpers x.TestHelpers
 
 	foo := x.NewCoin(100, 0, "FOO")
+	some := x.NewCoin(300, 0, "SOME")
+
 	addr := weave.NewAddress([]byte{1, 2, 3})
 	addr2 := weave.NewAddress([]byte{4, 5, 6})
 
-	cases := [...]struct {
+	cases := []struct {
 		signers       []weave.Address
-		initState     []Wallet // just key and set (store can be nil)
+		initState     []*Wallet
 		msg           weave.Msg
 		expectCheck   checkErr
 		expectDeliver checkErr
@@ -50,10 +53,7 @@ func TestSend(t *testing.T) {
 		// sender too poor
 		5: {
 			[]weave.Address{addr},
-			[]Wallet{{
-				key: NewKey(addr),
-				Set: Set{mustCombineCoins(x.NewCoin(300, 0, "SOME"))},
-			}},
+			[]*Wallet{NewWallet(addr, &some)},
 			&SendMsg{Amount: &foo, Src: addr, Dest: addr2},
 			noErr, // we don't check funds
 			IsInsufficientFundsErr,
@@ -61,10 +61,7 @@ func TestSend(t *testing.T) {
 		// sender got cash
 		6: {
 			[]weave.Address{addr},
-			[]Wallet{{
-				key: NewKey(addr),
-				Set: Set{mustCombineCoins(foo)},
-			}},
+			[]*Wallet{NewWallet(addr, &foo)},
 			&SendMsg{Amount: &foo, Src: addr, Dest: addr2},
 			noErr,
 			noErr,
@@ -77,9 +74,10 @@ func TestSend(t *testing.T) {
 			h := NewSendHandler(auth)
 
 			kv := store.MemStore()
+			bucket := NewBucket()
 			for _, wallet := range tc.initState {
-				wallet.store = kv
-				wallet.Save()
+				err := bucket.Save(kv, wallet)
+				require.NoError(t, err)
 			}
 
 			tx := helpers.MockTx(tc.msg)

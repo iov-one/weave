@@ -11,11 +11,17 @@ import (
 func MoveCoins(store weave.KVStore, src weave.Address,
 	dest weave.Address, amount x.Coin) error {
 
+	// TODO: we don't create this every function call....
+	bucket := NewBucket()
+
 	if !amount.IsPositive() {
 		return ErrInvalidAmount("Non-positive SendMsg")
 	}
 
-	sender := GetWallet(store, NewKey(src))
+	sender, err := bucket.Get(store, src)
+	if err != nil {
+		return err
+	}
 	if sender == nil {
 		return ErrEmptyAccount(src)
 	}
@@ -24,8 +30,11 @@ func MoveCoins(store weave.KVStore, src weave.Address,
 		return ErrInsufficientFunds()
 	}
 
-	recipient := GetOrCreateWallet(store, NewKey(dest))
-	err := sender.Subtract(amount)
+	recipient, err := bucket.GetOrCreate(store, dest)
+	if err != nil {
+		return err
+	}
+	err = sender.Subtract(amount)
 	if err != nil {
 		return err
 	}
@@ -35,9 +44,11 @@ func MoveCoins(store weave.KVStore, src weave.Address,
 	}
 
 	// save them and return
-	sender.Save()
-	recipient.Save()
-	return nil
+	err = bucket.Save(store, sender)
+	if err != nil {
+		return err
+	}
+	return bucket.Save(store, recipient)
 }
 
 // IssueCoins attempts to add the given amount of coins to
@@ -48,12 +59,16 @@ func MoveCoins(store weave.KVStore, src weave.Address,
 func IssueCoins(store weave.KVStore, dest weave.Address,
 	amount x.Coin) error {
 
-	recipient := GetOrCreateWallet(store, NewKey(dest))
-	err := recipient.Add(amount)
+	bucket := NewBucket()
+
+	recipient, err := bucket.GetOrCreate(store, dest)
+	if err != nil {
+		return err
+	}
+	err = recipient.Add(amount)
 	if err != nil {
 		return err
 	}
 
-	recipient.Save()
-	return nil
+	return bucket.Save(store, recipient)
 }

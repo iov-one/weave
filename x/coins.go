@@ -10,7 +10,10 @@ type Coins []*Coin
 // CombineCoins creates a Coins containing all given coins.
 // It will sort them and combine duplicates to produce
 // a normalized form regardless of input.
+//
+// TODO: deprecate in favor of `Coins.Combine()`
 func CombineCoins(cs ...Coin) (Coins, error) {
+	// (Coins)(nil).Combine(cs)???
 	// Maybe more efficient...
 	var err error
 	coins := make(Coins, 0)
@@ -28,6 +31,9 @@ func CombineCoins(cs ...Coin) (Coins, error) {
 
 // Clone returns a copy that can be safely modified
 func (cs Coins) Clone() Coins {
+	if cs == nil {
+		return nil
+	}
 	res := make([]*Coin, len(cs))
 	for i, c := range cs {
 		res[i] = c.Clone()
