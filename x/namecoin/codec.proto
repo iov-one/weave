@@ -12,7 +12,6 @@ message Wallet {
 
 // Token contains information about a registered currency
 message Token {
-    string ticker = 1;
     string name = 2;
     int32 sig_figs = 3;
 }

@@ -42,7 +42,8 @@ glide:
 	@go get github.com/Masterminds/glide
 
 protoc:
-	protoc --gogofaster_out=. -I=. -I=$$GOPATH/src x/namecoin/*.proto
+	protoc --gogofaster_out=. -I=. -I=./vendor x/namecoin/*.proto
+	# protoc --gogofaster_out=. -I=. -I=$$GOPATH/src x/namecoin/*.proto
 
 ### cross-platform check for installing protoc ###
 

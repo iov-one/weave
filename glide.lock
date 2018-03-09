@@ -1,8 +1,8 @@
-hash: 9d32b7e474ca3a1218fddfc3c0d1040ec79bb376f2a47ec99f530638506f2e18
-updated: 2018-03-07T12:04:00.396245+01:00
+hash: 30532db96cfe7d654d129f00bc42a0b7088f6eac2f98ed5cacb48db833ced8a8
+updated: 2018-03-09T17:57:21.714122274+01:00
 imports:
 - name: github.com/confio/weave
-  version: 94368afa5e130b40cc25a8105593159432f0097f
+  version: a70759b5cb3747e5aada064127ded5a1698532cd
   subpackages:
   - app
   - crypto
