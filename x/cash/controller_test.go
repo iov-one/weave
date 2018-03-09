@@ -27,6 +27,8 @@ func TestIssueCoins(t *testing.T) {
 	_, addr := helpers.MakeKey()
 	_, addr2 := helpers.MakeKey()
 
+	controller := NewController(NewBucket())
+
 	plus := x.NewCoin(500, 1000, "FOO")
 	minus := x.NewCoin(-400, -600, "FOO")
 	total := x.NewCoin(100, 400, "FOO")
@@ -36,7 +38,7 @@ func TestIssueCoins(t *testing.T) {
 	assert.Nil(t, getWallet(kv, addr2))
 
 	// issue positive
-	err := IssueCoins(kv, addr, plus)
+	err := controller.IssueCoins(kv, addr, plus)
 	require.NoError(t, err)
 	w := getWallet(kv, addr)
 	require.NotNil(t, w)
@@ -46,7 +48,7 @@ func TestIssueCoins(t *testing.T) {
 	assert.Nil(t, getWallet(kv, addr2))
 
 	// issue negative
-	err = IssueCoins(kv, addr, minus)
+	err = controller.IssueCoins(kv, addr, minus)
 	require.NoError(t, err)
 	w = getWallet(kv, addr)
 	require.NotNil(t, w)
@@ -56,7 +58,7 @@ func TestIssueCoins(t *testing.T) {
 	assert.Nil(t, getWallet(kv, addr2))
 
 	// issue to other wallet
-	err = IssueCoins(kv, addr2, other)
+	err = controller.IssueCoins(kv, addr2, other)
 	require.NoError(t, err)
 	w = getWallet(kv, addr)
 	require.NotNil(t, w)
@@ -68,14 +70,14 @@ func TestIssueCoins(t *testing.T) {
 	assert.True(t, w2.Contains(other))
 
 	// set to zero is fine
-	err = IssueCoins(kv, addr2, other.Negative())
+	err = controller.IssueCoins(kv, addr2, other.Negative())
 	require.NoError(t, err)
 	w2 = getWallet(kv, addr2)
 	require.NotNil(t, w2)
 	assert.True(t, w2.IsEmpty())
 
 	// overflow is rejected
-	err = IssueCoins(kv, addr, x.NewCoin(x.MaxInt, 0, "FOO"))
+	err = controller.IssueCoins(kv, addr, x.NewCoin(x.MaxInt, 0, "FOO"))
 	assert.Error(t, err)
 	w = getWallet(kv, addr)
 	require.NotNil(t, w)
@@ -90,19 +92,21 @@ func TestMoveCoins(t *testing.T) {
 	_, addr2 := helpers.MakeKey()
 	_, addr3 := helpers.MakeKey()
 
+	controller := NewController(NewBucket())
+
 	cc := "MONY"
 	bank := x.NewCoin(50000, 0, cc)
 	send := x.NewCoin(300, 0, cc)
 
 	// can't send empty
-	err := MoveCoins(kv, addr, addr2, send)
+	err := controller.MoveCoins(kv, addr, addr2, send)
 	require.Error(t, err)
 	// so we issue money
-	err = IssueCoins(kv, addr, bank)
+	err = controller.IssueCoins(kv, addr, bank)
 	require.NoError(t, err)
 
 	// proper move
-	err = MoveCoins(kv, addr, addr2, send)
+	err = controller.MoveCoins(kv, addr, addr2, send)
 	require.NoError(t, err)
 	w := getWallet(kv, addr)
 	require.NotNil(t, w)
@@ -114,23 +118,23 @@ func TestMoveCoins(t *testing.T) {
 	require.Nil(t, w3)
 
 	// cannot send negative, zero
-	err = MoveCoins(kv, addr2, addr3, send.Negative())
+	err = controller.MoveCoins(kv, addr2, addr3, send.Negative())
 	assert.Error(t, err)
-	err = MoveCoins(kv, addr2, addr3, x.NewCoin(0, 0, cc))
+	err = controller.MoveCoins(kv, addr2, addr3, x.NewCoin(0, 0, cc))
 	assert.Error(t, err)
 	w2 = getWallet(kv, addr2)
 	assert.True(t, w2.Contains(send))
 
 	// cannot send too much or no currency
-	err = MoveCoins(kv, addr2, addr3, bank)
+	err = controller.MoveCoins(kv, addr2, addr3, bank)
 	assert.Error(t, err)
-	err = MoveCoins(kv, addr2, addr3, x.NewCoin(5, 0, "BAD"))
+	err = controller.MoveCoins(kv, addr2, addr3, x.NewCoin(5, 0, "BAD"))
 	assert.Error(t, err)
 	w2 = getWallet(kv, addr2)
 	assert.True(t, w2.Contains(send))
 
 	// send all coins
-	err = MoveCoins(kv, addr2, addr3, send)
+	err = controller.MoveCoins(kv, addr2, addr3, send)
 	assert.NoError(t, err)
 	w2 = getWallet(kv, addr2)
 	assert.True(t, w2.IsEmpty())

@@ -27,8 +27,9 @@ var (
 // It uses auth to verify the sender
 type FeeDecorator struct {
 	minFee    x.Coin
-	auth      x.Authenticator
 	collector weave.Address
+	auth      x.Authenticator
+	control   Controller
 }
 
 var _ weave.Decorator = FeeDecorator{}
@@ -36,9 +37,11 @@ var _ weave.Decorator = FeeDecorator{}
 // NewFeeDecorator returns a FeeDecorator with the given
 // minimum fee, and all collected fees going to a
 // default address.
-func NewFeeDecorator(auth x.Authenticator, min x.Coin) FeeDecorator {
+func NewFeeDecorator(auth x.Authenticator, control Controller,
+	min x.Coin) FeeDecorator {
 	return FeeDecorator{
 		auth:      auth,
+		control:   control,
 		minFee:    min,
 		collector: defaultCollector,
 	}
@@ -71,7 +74,7 @@ func (d FeeDecorator) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx,
 		return res, errors.ErrUnauthorized()
 	}
 	// and have enough
-	err = MoveCoins(store, finfo.Payer, d.collector, *fee)
+	err = d.control.MoveCoins(store, finfo.Payer, d.collector, *fee)
 	if err != nil {
 		return res, err
 	}
@@ -104,7 +107,7 @@ func (d FeeDecorator) Deliver(ctx weave.Context, store weave.KVStore, tx weave.T
 		return res, errors.ErrUnauthorized()
 	}
 	// and subtract it from the account
-	err = MoveCoins(store, finfo.Payer, d.collector, *fee)
+	err = d.control.MoveCoins(store, finfo.Payer, d.collector, *fee)
 	if err != nil {
 		return res, err
 	}

@@ -3,6 +3,7 @@ package cash
 import (
 	"github.com/confio/weave"
 	"github.com/confio/weave/orm"
+	"github.com/confio/weave/store"
 	"github.com/confio/weave/x"
 )
 
@@ -104,6 +105,8 @@ type Bucket struct {
 	orm.Bucket
 }
 
+var _ WalletBucket = Bucket{}
+
 // NewBucket initializes a cash.Bucket with default name
 func NewBucket() Bucket {
 	return Bucket{
@@ -119,4 +122,31 @@ func (b Bucket) GetOrCreate(db weave.KVStore, key weave.Address) (orm.Object, er
 		obj = NewWallet(key)
 	}
 	return obj, err
+}
+
+// WalletBucket is what we expect to be able to do with wallets
+// The object it returns must support AsSet (only checked runtime :()
+type WalletBucket interface {
+	GetOrCreate(db weave.KVStore, key weave.Address) (orm.Object, error)
+	Get(db weave.KVStore, key []byte) (orm.Object, error)
+	Save(db weave.KVStore, obj orm.Object) error
+}
+
+// ValidateWalletBucket makes sure that it supports AsSet
+// objects, unfortunately this check is done runtime....
+//
+// panics on error (meant as a sanity check in init)
+func ValidateWalletBucket(bucket WalletBucket) {
+	// runtime type-check the bucket....
+	db := store.MemStore()
+	key := weave.NewAddress([]byte("foo"))
+	obj, err := bucket.GetOrCreate(db, key)
+	if err != nil {
+		panic(err)
+	}
+	if obj == nil || obj.Value() == nil {
+		panic("doensn't create anything")
+	}
+	// this panics if bad type
+	AsSet(obj)
 }
