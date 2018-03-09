@@ -4,6 +4,7 @@ import (
 	"github.com/confio/weave"
 	"github.com/confio/weave/orm"
 	"github.com/confio/weave/x"
+	"github.com/confio/weave/x/cash"
 )
 
 const (
@@ -16,21 +17,24 @@ const (
 //--- Wallet
 
 var _ orm.CloneableData = (*Wallet)(nil)
+var _ cash.Coinage = (*Wallet)(nil)
 
-func (w *Wallet) xcoins() x.Coins {
-	return x.Coins(w.GetCoins())
+// SetCoins lets us modify the wallet
+// and satisfy Coinage to be compatible with x/cash
+func (w *Wallet) SetCoins(coins []*x.Coin) {
+	w.Coins = coins
 }
 
 // Validate requires that all coins are in alphabetical
 func (w *Wallet) Validate() error {
-	return w.xcoins().Validate()
+	return cash.XCoins(w).Validate()
 }
 
 // Copy makes a new set with the same coins
 func (w *Wallet) Copy() orm.CloneableData {
 	return &Wallet{
 		Name:  w.Name,
-		Coins: w.xcoins().Clone(),
+		Coins: cash.XCoins(w).Clone(),
 	}
 }
 
@@ -54,6 +58,8 @@ func NewWallet(key weave.Address) orm.Object {
 type WalletBucket struct {
 	orm.Bucket
 }
+
+var _ cash.WalletBucket = WalletBucket{}
 
 // NewWalletBucket initializes a WalletBucket
 // and sets up a unique index by name

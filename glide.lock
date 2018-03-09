@@ -1,12 +1,13 @@
 hash: 30532db96cfe7d654d129f00bc42a0b7088f6eac2f98ed5cacb48db833ced8a8
-updated: 2018-03-09T17:57:21.714122274+01:00
+updated: 2018-03-09T20:01:24.279904105+01:00
 imports:
 - name: github.com/confio/weave
-  version: a70759b5cb3747e5aada064127ded5a1698532cd
+  version: e41839af060bd1201d0dacd495cff2754d1dccc4
   subpackages:
   - app
   - crypto
   - errors
+  - orm
   - store
   - store/iavl
   - x
@@ -39,6 +40,8 @@ imports:
   - ptypes/any
   - ptypes/duration
   - ptypes/timestamp
+- name: github.com/google/btree
+  version: 316fb6d3f031ae8f4d457c6c5186b9e3ded70435
 - name: github.com/kr/logfmt
   version: b84e30acd515aadc4b783ad4ff83aff3299bdfe0
 - name: github.com/pkg/errors
