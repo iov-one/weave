@@ -28,25 +28,20 @@ func (Initializer) FromGenesis(opts weave.Options, kv weave.KVStore) error {
 	if err != nil {
 		return err
 	}
+	bucket := NewBucket()
 	for _, acct := range accts {
 		// try to load up into a valid address
 		if len(acct.Address) != weave.AddressLength {
 			return errors.ErrUnrecognizedAddress(acct.Address)
 		}
-		recipient := GetOrCreateWallet(kv, NewKey(acct.Address))
-
-		// validate the coins are proper and add them
-		if err := acct.Set.Validate(); err != nil {
-			return err
-		}
-		clean, err := acct.Set.Normalize()
+		wallet, err := WalletWith(acct.Address, acct.Set.Coins...)
 		if err != nil {
 			return err
 		}
-		recipient.Set = clean
-
-		// save set up account
-		recipient.Save()
+		err = bucket.Save(kv, wallet)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }

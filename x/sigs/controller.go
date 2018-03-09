@@ -6,6 +6,7 @@ import (
 	"github.com/confio/weave"
 	"github.com/confio/weave/crypto"
 	"github.com/confio/weave/errors"
+	"github.com/confio/weave/orm"
 )
 
 //----------------- Controller ------------------
@@ -48,7 +49,7 @@ func VerifyTxSignatures(store weave.KVStore, tx SignedTx,
 
 // VerifySignature checks one signature against signbytes,
 // check chain and updates state in the store
-func VerifySignature(store weave.KVStore, sig *StdSignature,
+func VerifySignature(db weave.KVStore, sig *StdSignature,
 	signBytes []byte, chainID string) (weave.Address, error) {
 
 	// we guarantee sequence makes sense and pubkey or address is there
@@ -57,24 +58,20 @@ func VerifySignature(store weave.KVStore, sig *StdSignature,
 		return nil, err
 	}
 
+	bucket := NewBucket()
+
 	// load account
-	pub := sig.PubKey
-	key := sig.Address
-	if key == nil {
-		key = pub.Address()
+	var obj orm.Object
+	if sig.PubKey != nil {
+		obj, err = bucket.GetOrCreate(db, sig.PubKey)
+	} else if sig.Address != nil {
+		obj, err = bucket.Get(db, sig.Address)
 	}
-	user := GetOrCreateUser(store, NewKey(key))
-
-	// make sure we get the key from the store if not from the sig
-	if pub == nil {
-		pub = user.PubKey()
-		if pub == nil {
-			return nil, ErrMissingPubKey()
-		}
+	if err != nil {
+		return nil, err
 	}
-
-	if !user.HasPubKey() {
-		user.SetPubKey(pub)
+	if obj == nil {
+		return nil, errors.ErrUnrecognizedAddress(sig.Address)
 	}
 
 	toSign, err := BuildSignBytes(signBytes, chainID, sig.Sequence)
@@ -82,7 +79,8 @@ func VerifySignature(store weave.KVStore, sig *StdSignature,
 		return nil, err
 	}
 
-	if !pub.Verify(toSign, sig.Signature) {
+	user := AsUser(obj)
+	if !user.PubKey.Verify(toSign, sig.Signature) {
 		return nil, errors.ErrInvalidSignature()
 	}
 
@@ -90,9 +88,11 @@ func VerifySignature(store weave.KVStore, sig *StdSignature,
 	if err != nil {
 		return nil, err
 	}
-
-	user.Save()
-	return key, nil
+	err = bucket.Save(db, obj)
+	if err != nil {
+		return nil, err
+	}
+	return obj.Key(), nil
 }
 
 // BuildSignBytes combines all info on the actual tx before signing

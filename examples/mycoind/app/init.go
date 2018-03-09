@@ -57,8 +57,13 @@ func GenInitOptions(args []string) (json.RawMessage, error) {
 
 // GenerateApp is used to create a stub for server/start.go command
 func GenerateApp(home string, logger log.Logger) (abci.Application, error) {
+	// db goes in a subdir, but "" -> "" for memdb
+	var dbPath string
+	if home != "" {
+		dbPath = filepath.Join(home, "abci.db")
+	}
+
 	stack := Stack(x.Coin{})
-	dbPath := filepath.Join(home, "abci.db")
 	app, err := Application("mycoin", stack, TxDecoder, dbPath)
 	if err != nil {
 		return nil, err

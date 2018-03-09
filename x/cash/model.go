@@ -2,112 +2,121 @@ package cash
 
 import (
 	"github.com/confio/weave"
+	"github.com/confio/weave/orm"
 	"github.com/confio/weave/x"
 )
 
-//---- Key
+// BucketName is where we store the balances
+const BucketName = "cash"
 
-// Key is the primary key we use to distinguish users
-// This should be []byte, in order to index with our KVStore.
-// Any structure to these bytes should be defined by the constructor.
-//
-// Question: allow objects with a Marshal method???
-type Key []byte
+//---- Set
 
-var walletPrefix = []byte("cash:")
+var _ orm.CloneableData = (*Set)(nil)
 
-// NewKey constructs the coin key from a key hash,
-// by appending a prefix.
-func NewKey(addr weave.Address) Key {
-	bz := append(walletPrefix, addr...)
-	return Key(bz)
+func (s *Set) xcoins() x.Coins {
+	return x.Coins(s.GetCoins())
 }
 
-//------------------ High-Level ------------------------
-
-// Wallet is the actual object that we want to pass around
-// in our code. It contains a set of coins, as well as
-// logic to handle loading and saving the data to/from the
-// persistent store, and helpers to manipulate state.
-type Wallet struct {
-	store weave.KVStore
-	key   Key
-	Set   Set
+// Validate requires that all coins are in alphabetical
+func (s *Set) Validate() error {
+	return s.xcoins().Validate()
 }
 
-// GetWallet loads this Wallet if present, or returns nil if missing
-func GetWallet(store weave.KVStore, key Key) *Wallet {
-	bz := store.Get(key)
-	if bz == nil {
+// Copy makes a new set with the same coins
+func (s *Set) Copy() orm.CloneableData {
+	return &Set{
+		Coins: s.xcoins().Clone(),
+	}
+}
+
+// AsSet will safely type-cast any value from Bucket to a Set
+func AsSet(obj orm.Object) *Set {
+	if obj == nil || obj.Value() == nil {
 		return nil
 	}
-
-	var data Set
-	x.MustUnmarshal(&data, bz)
-
-	return &Wallet{
-		store: store,
-		key:   key,
-		Set:   data,
-	}
+	return obj.Value().(*Set)
 }
 
-// GetOrCreateWallet loads this Wallet if present,
-// or initializes a new Wallet with this key if not present.
-func GetOrCreateWallet(store weave.KVStore, key Key) *Wallet {
-	res := GetWallet(store, key)
-	if res == nil {
-		res = &Wallet{
-			store: store,
-			key:   key,
-			Set:   Set{},
-		}
-	}
-	return res
+//------ expose x.Coins methods
+
+// Contains returns true if there is at least that much
+// coin in the Set
+func (s Set) Contains(c x.Coin) bool {
+	return s.xcoins().Contains(c)
 }
 
-// Save writes the current Wallet state to the backing store
-// panics if invalid state
-func (u *Wallet) Save() {
-	value := x.MustMarshalValid(&u.Set)
-	u.store.Set(u.key, value)
+// IsEmpty checks if no coins in the set
+func (s Set) IsEmpty() bool {
+	return s.xcoins().IsEmpty()
 }
 
-// Coins returns the coins stored in the wallet
-func (u Wallet) Coins() x.Coins {
-	return x.Coins(u.Set.Coins)
+// Equals checks if the coins are the same
+func (s Set) Equals(coins x.Coins) bool {
+	return s.xcoins().Equals(coins)
 }
 
 // Add modifies the wallet to add Coin c
-func (u *Wallet) Add(c x.Coin) error {
-	cs, err := u.Coins().Add(c)
+func (s *Set) Add(c x.Coin) error {
+	cs, err := s.xcoins().Add(c)
 	if err != nil {
 		return err
 	}
-	u.Set.Coins = cs
+	s.Coins = cs
 	return nil
 }
 
 // Subtract modifies the wallet to remove Coin c
-func (u *Wallet) Subtract(c x.Coin) error {
-	return u.Add(c.Negative())
+func (s *Set) Subtract(c x.Coin) error {
+	return s.Add(c.Negative())
 }
 
-// Validate requires that all coins are in alphabetical
-func (s Set) Validate() error {
-	return x.Coins(s.Coins).Validate()
-}
-
-// Normalize combines the coins to make sure they are sorted
+// Concat combines the coins to make sure they are sorted
 // and rounded off, with no duplicates or 0 values.
-func (s Set) Normalize() (Set, error) {
-	ins := make([]x.Coin, len(s.GetCoins()))
-	for i, c := range s.GetCoins() {
-		ins[i] = *c
-	}
-	coins, err := x.CombineCoins(ins...)
+func (s *Set) Concat(coins x.Coins) error {
+	joint, err := s.xcoins().Combine(coins)
 	if err != nil {
-		return Set{}, err
+		return err
 	}
-	return Set{Coins: coins}, nil
+	s.Coins = joint
+	return nil
+}
+
+// NewWallet creates an empty wallet with this address
+// serves as an object for the bucket
+func NewWallet(key weave.Address) orm.Object {
+	return orm.NewSimpleObj(key, new(Set))
+}
+
+// WalletWith creates an wallet with a balance
+func WalletWith(key weave.Address, coins ...*x.Coin) (orm.Object, error) {
+	obj := NewWallet(key)
+	err := AsSet(obj).Concat(coins)
+	if err != nil {
+		return nil, err
+	}
+	return obj, nil
+}
+
+//--- cash.Bucket - type-safe bucket
+
+// Bucket is a type-safe wrapper around orm.Bucket
+type Bucket struct {
+	orm.Bucket
+}
+
+// NewBucket initializes a cash.Bucket with default name
+func NewBucket() Bucket {
+	return Bucket{
+		Bucket: orm.NewBucket(BucketName, NewWallet(nil)),
+	}
+}
+
+// GetOrCreate will return the object if found, or create one
+// if not.
+func (b Bucket) GetOrCreate(db weave.KVStore, key weave.Address) (orm.Object, error) {
+	obj, err := b.Get(db, key)
+	if err == nil && obj == nil {
+		obj = NewWallet(key)
+	}
+	return obj, err
 }

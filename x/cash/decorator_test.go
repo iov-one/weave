@@ -6,9 +6,11 @@ import (
 
 	"github.com/confio/weave"
 	"github.com/confio/weave/errors"
+	"github.com/confio/weave/orm"
 	"github.com/confio/weave/store"
 	"github.com/confio/weave/x"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 type feeTx struct {
@@ -48,6 +50,13 @@ func (okHandler) Deliver(weave.Context, weave.KVStore,
 	return weave.DeliverResult{}, nil
 }
 
+func must(obj orm.Object, err error) orm.Object {
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
 func TestFees(t *testing.T) {
 	var helpers x.TestHelpers
 
@@ -57,9 +66,9 @@ func TestFees(t *testing.T) {
 	addr2 := weave.NewAddress([]byte{3, 4, 5})
 	addr3 := weave.NewAddress([]byte{0xAB})
 
-	cases := [...]struct {
+	cases := []struct {
 		signers   []weave.Address
-		initState []Wallet // just key and set (store can be nil)
+		initState []orm.Object
 		fee       *FeeInfo
 		min       x.Coin
 		expect    checkErr
@@ -81,7 +90,7 @@ func TestFees(t *testing.T) {
 		// signer can cover min, but not pledge
 		4: {
 			[]weave.Address{addr},
-			[]Wallet{{key: NewKey(addr), Set: Set{mustCombineCoins(min)}}},
+			[]orm.Object{must(WalletWith(addr, &min))},
 			&FeeInfo{Fees: &cash},
 			min,
 			IsInsufficientFundsErr,
@@ -89,7 +98,7 @@ func TestFees(t *testing.T) {
 		// all proper
 		5: {
 			[]weave.Address{addr},
-			[]Wallet{{key: NewKey(addr), Set: Set{mustCombineCoins(cash)}}},
+			[]orm.Object{must(WalletWith(addr, &cash))},
 			&FeeInfo{Fees: &min},
 			min,
 			noErr,
@@ -97,7 +106,7 @@ func TestFees(t *testing.T) {
 		// trying to pay from wrong account
 		6: {
 			[]weave.Address{addr},
-			[]Wallet{{key: NewKey(addr2), Set: Set{mustCombineCoins(cash)}}},
+			[]orm.Object{must(WalletWith(addr2, &cash))},
 			&FeeInfo{Payer: addr2, Fees: &min},
 			min,
 			errors.IsUnauthorizedErr,
@@ -105,7 +114,7 @@ func TestFees(t *testing.T) {
 		// can pay in any fee
 		7: {
 			[]weave.Address{addr},
-			[]Wallet{{key: NewKey(addr), Set: Set{mustCombineCoins(cash)}}},
+			[]orm.Object{must(WalletWith(addr, &cash))},
 			&FeeInfo{Fees: &min},
 			x.NewCoin(0, 1000, ""),
 			noErr,
@@ -113,7 +122,7 @@ func TestFees(t *testing.T) {
 		// wrong currency checked
 		8: {
 			[]weave.Address{addr},
-			[]Wallet{{key: NewKey(addr), Set: Set{mustCombineCoins(cash)}}},
+			[]orm.Object{must(WalletWith(addr, &cash))},
 			&FeeInfo{Fees: &min},
 			x.NewCoin(0, 1000, "NOT"),
 			x.IsInvalidCurrencyErr,
@@ -121,7 +130,7 @@ func TestFees(t *testing.T) {
 		// has the cash, but didn't offer enough fees
 		9: {
 			[]weave.Address{addr},
-			[]Wallet{{key: NewKey(addr), Set: Set{mustCombineCoins(cash)}}},
+			[]orm.Object{must(WalletWith(addr, &cash))},
 			&FeeInfo{Fees: &min},
 			x.NewCoin(0, 45000, "FOO"),
 			IsInsufficientFeesErr,
@@ -134,9 +143,10 @@ func TestFees(t *testing.T) {
 			h := NewFeeDecorator(auth, tc.min).WithCollector(addr3)
 
 			kv := store.MemStore()
+			bucket := NewBucket()
 			for _, wallet := range tc.initState {
-				wallet.store = kv
-				wallet.Save()
+				err := bucket.Save(kv, wallet)
+				require.NoError(t, err)
 			}
 
 			tx := &feeTx{tc.fee}

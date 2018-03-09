@@ -53,6 +53,7 @@ func TestInitState(t *testing.T) {
 	for i, tc := range cases {
 		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
 			kv := store.MemStore()
+			bucket := NewBucket()
 			err := init.FromGenesis(tc.opts, kv)
 			if tc.isError {
 				require.Error(t, err)
@@ -61,9 +62,10 @@ func TestInitState(t *testing.T) {
 			}
 
 			if tc.acct != nil {
-				acct := GetWallet(kv, NewKey(tc.acct))
+				acct, err := bucket.Get(kv, tc.acct)
+				require.NoError(t, err)
 				if assert.NotNil(t, acct) {
-					assert.Equal(t, tc.wallet, acct.Set)
+					assert.EqualValues(t, tc.wallet.Coins, AsSet(acct).Coins)
 				}
 			}
 		})

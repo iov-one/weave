@@ -3,11 +3,22 @@ package cash
 import (
 	"testing"
 
-	"github.com/confio/weave/store"
-	"github.com/confio/weave/x"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/confio/weave"
+	"github.com/confio/weave/store"
+	"github.com/confio/weave/x"
 )
+
+func getWallet(kv weave.KVStore, addr weave.Address) *Set {
+	bucket := NewBucket()
+	res, err := bucket.Get(kv, addr)
+	if err != nil {
+		panic(err) // testing only
+	}
+	return AsSet(res)
+}
 
 func TestIssueCoins(t *testing.T) {
 	var helpers x.TestHelpers
@@ -21,54 +32,54 @@ func TestIssueCoins(t *testing.T) {
 	total := x.NewCoin(100, 400, "FOO")
 	other := x.NewCoin(1, 0, "DING")
 
-	assert.Nil(t, GetWallet(kv, NewKey(addr)))
-	assert.Nil(t, GetWallet(kv, NewKey(addr2)))
+	assert.Nil(t, getWallet(kv, addr))
+	assert.Nil(t, getWallet(kv, addr2))
 
 	// issue positive
 	err := IssueCoins(kv, addr, plus)
 	require.NoError(t, err)
-	w := GetWallet(kv, NewKey(addr))
+	w := getWallet(kv, addr)
 	require.NotNil(t, w)
-	assert.True(t, w.Coins().Contains(plus), "%#v", w.Coins())
-	assert.True(t, w.Coins().Contains(total))
-	assert.False(t, w.Coins().Contains(other))
-	assert.Nil(t, GetWallet(kv, NewKey(addr2)))
+	assert.True(t, w.Contains(plus), "%#v", w.Coins)
+	assert.True(t, w.Contains(total))
+	assert.False(t, w.Contains(other))
+	assert.Nil(t, getWallet(kv, addr2))
 
 	// issue negative
 	err = IssueCoins(kv, addr, minus)
 	require.NoError(t, err)
-	w = GetWallet(kv, NewKey(addr))
+	w = getWallet(kv, addr)
 	require.NotNil(t, w)
-	assert.False(t, w.Coins().Contains(plus))
-	assert.True(t, w.Coins().Contains(total))
-	assert.False(t, w.Coins().Contains(other))
-	assert.Nil(t, GetWallet(kv, NewKey(addr2)))
+	assert.False(t, w.Contains(plus))
+	assert.True(t, w.Contains(total))
+	assert.False(t, w.Contains(other))
+	assert.Nil(t, getWallet(kv, addr2))
 
 	// issue to other wallet
 	err = IssueCoins(kv, addr2, other)
 	require.NoError(t, err)
-	w = GetWallet(kv, NewKey(addr))
+	w = getWallet(kv, addr)
 	require.NotNil(t, w)
-	assert.True(t, w.Coins().Contains(total))
-	assert.False(t, w.Coins().Contains(other))
-	w2 := GetWallet(kv, NewKey(addr2))
+	assert.True(t, w.Contains(total))
+	assert.False(t, w.Contains(other))
+	w2 := getWallet(kv, addr2)
 	require.NotNil(t, w2)
-	assert.False(t, w2.Coins().Contains(total))
-	assert.True(t, w2.Coins().Contains(other))
+	assert.False(t, w2.Contains(total))
+	assert.True(t, w2.Contains(other))
 
 	// set to zero is fine
 	err = IssueCoins(kv, addr2, other.Negative())
 	require.NoError(t, err)
-	w2 = GetWallet(kv, NewKey(addr2))
+	w2 = getWallet(kv, addr2)
 	require.NotNil(t, w2)
-	assert.True(t, w2.Coins().IsEmpty())
+	assert.True(t, w2.IsEmpty())
 
 	// overflow is rejected
 	err = IssueCoins(kv, addr, x.NewCoin(x.MaxInt, 0, "FOO"))
 	assert.Error(t, err)
-	w = GetWallet(kv, NewKey(addr))
+	w = getWallet(kv, addr)
 	require.NotNil(t, w)
-	assert.True(t, w.Coins().Equals(mustCombineCoins(total)))
+	assert.True(t, w.Equals(mustCombineCoins(total)))
 }
 
 func TestMoveCoins(t *testing.T) {
@@ -78,7 +89,6 @@ func TestMoveCoins(t *testing.T) {
 	_, addr := helpers.MakeKey()
 	_, addr2 := helpers.MakeKey()
 	_, addr3 := helpers.MakeKey()
-	k, k2, k3 := NewKey(addr), NewKey(addr2), NewKey(addr3)
 
 	cc := "MONY"
 	bank := x.NewCoin(50000, 0, cc)
@@ -94,13 +104,13 @@ func TestMoveCoins(t *testing.T) {
 	// proper move
 	err = MoveCoins(kv, addr, addr2, send)
 	require.NoError(t, err)
-	w := GetWallet(kv, k)
+	w := getWallet(kv, addr)
 	require.NotNil(t, w)
-	assert.True(t, w.Coins().Contains(x.NewCoin(49700, 0, cc)))
-	w2 := GetWallet(kv, k2)
+	assert.True(t, w.Contains(x.NewCoin(49700, 0, cc)))
+	w2 := getWallet(kv, addr2)
 	require.NotNil(t, w2)
-	assert.True(t, w2.Coins().Contains(send))
-	w3 := GetWallet(kv, k3)
+	assert.True(t, w2.Contains(send))
+	w3 := getWallet(kv, addr3)
 	require.Nil(t, w3)
 
 	// cannot send negative, zero
@@ -108,24 +118,24 @@ func TestMoveCoins(t *testing.T) {
 	assert.Error(t, err)
 	err = MoveCoins(kv, addr2, addr3, x.NewCoin(0, 0, cc))
 	assert.Error(t, err)
-	w2 = GetWallet(kv, k2)
-	assert.True(t, w2.Coins().Contains(send))
+	w2 = getWallet(kv, addr2)
+	assert.True(t, w2.Contains(send))
 
 	// cannot send too much or no currency
 	err = MoveCoins(kv, addr2, addr3, bank)
 	assert.Error(t, err)
 	err = MoveCoins(kv, addr2, addr3, x.NewCoin(5, 0, "BAD"))
 	assert.Error(t, err)
-	w2 = GetWallet(kv, k2)
-	assert.True(t, w2.Coins().Contains(send))
+	w2 = getWallet(kv, addr2)
+	assert.True(t, w2.Contains(send))
 
 	// send all coins
 	err = MoveCoins(kv, addr2, addr3, send)
 	assert.NoError(t, err)
-	w2 = GetWallet(kv, k2)
-	assert.True(t, w2.Coins().IsEmpty())
-	w3 = GetWallet(kv, k3)
-	assert.True(t, w3.Coins().Contains(send))
+	w2 = getWallet(kv, addr2)
+	assert.True(t, w2.IsEmpty())
+	w3 = getWallet(kv, addr3)
+	assert.True(t, w3.Contains(send))
 
 	// TODO: check overflow?
 }
