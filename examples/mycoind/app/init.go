@@ -45,8 +45,8 @@ func GenInitOptions(args []string) (json.RawMessage, error) {
         "address": "%s",
         "coins": [
           {
-            "integer": 123456789,
-            "currency_code": "%s"
+            "whole": 123456789,
+            "ticker": "%s"
           }
         ]
       }

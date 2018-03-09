@@ -10,23 +10,27 @@ import (
 var IsCC = regexp.MustCompile(`^[A-Z]{3,4}$`).MatchString
 
 const (
-	MaxInt int32 = 999999999 // 10^9-1
-	MinInt       = -MaxInt
+	// MaxInt is the largest whole value we accept
+	MaxInt int64 = 999999999999999 // 10^15-1
+	// MinInt is the lowest whole value we accept
+	MinInt = -MaxInt
 
-	// FracUnits is the smallest numbers we divide by
+	// FracUnit is the smallest numbers we divide by
 	FracUnit int32 = 1000000000 // fractional units = 10^9
-	MaxFrac        = FracUnit - 1
-	MinFrac        = -MaxFrac
+	// MaxFrac is the highest possible fractional value
+	MaxFrac = FracUnit - 1
+	// MinFrac is the lowest possible fractional value
+	MinFrac = -MaxFrac
 )
 
 // NewCoin creates a new coin object
-func NewCoin(integer int32, fractional int32,
-	currencyCode string) Coin {
+func NewCoin(whole int64, fractional int32,
+	ticker string) Coin {
 
 	return Coin{
-		Integer:      integer,
-		Fractional:   fractional,
-		CurrencyCode: currencyCode,
+		Whole:      whole,
+		Fractional: fractional,
+		Ticker:     ticker,
 	}
 }
 
@@ -38,13 +42,13 @@ func (c Coin) WithIssuer(issuer string) Coin {
 }
 
 // ID returns a unique identifier.
-// If issuer is empty, then just the CurrencyCode.
-// If issuer is present, then <Issuer>/<CurrencyCode>
+// If issuer is empty, then just the Ticker.
+// If issuer is present, then <Issuer>/<Ticker>
 func (c Coin) ID() string {
 	if c.Issuer == "" {
-		return c.CurrencyCode
+		return c.Ticker
 	}
-	return c.Issuer + "/" + c.CurrencyCode
+	return c.Issuer + "/" + c.Ticker
 }
 
 // Add combines two coins.
@@ -56,10 +60,10 @@ func (c Coin) ID() string {
 //   c.Add(o.Negative())
 func (c Coin) Add(o Coin) (Coin, error) {
 	if !c.SameType(o) {
-		err := ErrInvalidCurrency(c.CurrencyCode, o.CurrencyCode)
+		err := ErrInvalidCurrency(c.Ticker, o.Ticker)
 		return Coin{}, err
 	}
-	c.Integer += o.Integer
+	c.Whole += o.Whole
 	c.Fractional += o.Fractional
 	return c.normalize()
 }
@@ -68,10 +72,10 @@ func (c Coin) Add(o Coin) (Coin, error) {
 //   c.Add(c.Negative()).IsZero() == true
 func (c Coin) Negative() Coin {
 	return Coin{
-		CurrencyCode: c.CurrencyCode,
-		Issuer:       c.Issuer,
-		Integer:      -1 * c.Integer,
-		Fractional:   -1 * c.Fractional,
+		Ticker:     c.Ticker,
+		Issuer:     c.Issuer,
+		Whole:      -1 * c.Whole,
+		Fractional: -1 * c.Fractional,
 	}
 }
 
@@ -82,10 +86,10 @@ func (c Coin) Negative() Coin {
 //
 // Returns 1 if c is larger, -1 if o is larger, 0 if equal
 func (c Coin) Compare(o Coin) int {
-	if c.Integer > o.Integer {
+	if c.Whole > o.Whole {
 		return 1
 	}
-	if c.Integer < o.Integer {
+	if c.Whole < o.Whole {
 		return -1
 	}
 	// same integer, compare fractional
@@ -101,8 +105,8 @@ func (c Coin) Compare(o Coin) int {
 
 // Equals returns true if all fields are identical
 func (c Coin) Equals(o Coin) bool {
-	return c.CurrencyCode == o.CurrencyCode &&
-		c.Integer == o.Integer &&
+	return c.Ticker == o.Ticker &&
+		c.Whole == o.Whole &&
 		c.Fractional == o.Fractional
 }
 
@@ -113,28 +117,28 @@ func IsEmpty(c *Coin) bool {
 
 // IsZero returns true amounts are 0
 func (c Coin) IsZero() bool {
-	return c.Integer == 0 && c.Fractional == 0
+	return c.Whole == 0 && c.Fractional == 0
 }
 
 // IsPositive returns true if the value is greater than 0
 func (c Coin) IsPositive() bool {
-	return c.Integer > 0 ||
-		(c.Integer == 0 && c.Fractional > 0)
+	return c.Whole > 0 ||
+		(c.Whole == 0 && c.Fractional > 0)
 }
 
 // IsNonNegative returns true if the value is 0 or higher
 func (c Coin) IsNonNegative() bool {
-	return c.Integer >= 0 && c.Fractional >= 0
+	return c.Whole >= 0 && c.Fractional >= 0
 }
 
 // IsGTE returns true if c is same type and at least
 // as large as o.
 // It assumes they were already normalized.
 func (c Coin) IsGTE(o Coin) bool {
-	if !c.SameType(o) || c.Integer < o.Integer {
+	if !c.SameType(o) || c.Whole < o.Whole {
 		return false
 	}
-	if (c.Integer == o.Integer) &&
+	if (c.Whole == o.Whole) &&
 		(c.Fractional < o.Fractional) {
 		return false
 	}
@@ -143,17 +147,17 @@ func (c Coin) IsGTE(o Coin) bool {
 
 // SameType returns true if they have the same currency
 func (c Coin) SameType(o Coin) bool {
-	return c.CurrencyCode == o.CurrencyCode &&
+	return c.Ticker == o.Ticker &&
 		c.Issuer == o.Issuer
 }
 
 // Clone provides an independent copy of a coin pointer
 func (c *Coin) Clone() *Coin {
 	return &Coin{
-		Issuer:       c.Issuer,
-		CurrencyCode: c.CurrencyCode,
-		Integer:      c.Integer,
-		Fractional:   c.Fractional,
+		Issuer:     c.Issuer,
+		Ticker:     c.Ticker,
+		Whole:      c.Whole,
+		Fractional: c.Fractional,
 	}
 }
 
@@ -162,18 +166,18 @@ func (c *Coin) Clone() *Coin {
 // so you may want to make other checks in your business
 // logic
 func (c Coin) Validate() error {
-	if !IsCC(c.CurrencyCode) {
-		return ErrInvalidCurrency(c.CurrencyCode)
+	if !IsCC(c.Ticker) {
+		return ErrInvalidCurrency(c.Ticker)
 	}
-	if c.Integer < MinInt || c.Integer > MaxInt {
+	if c.Whole < MinInt || c.Whole > MaxInt {
 		return ErrOutOfRange(c)
 	}
 	if c.Fractional < MinFrac || c.Fractional > MaxFrac {
 		return ErrOutOfRange(c)
 	}
 	// make sure signs match
-	if c.Integer != 0 && c.Fractional != 0 &&
-		((c.Integer > 0) != (c.Fractional > 0)) {
+	if c.Whole != 0 && c.Fractional != 0 &&
+		((c.Whole > 0) != (c.Fractional > 0)) {
 		return ErrMismatchedSign(c)
 	}
 
@@ -188,25 +192,25 @@ func (c Coin) Validate() error {
 func (c Coin) normalize() (Coin, error) {
 	// keep fraction in range
 	for c.Fractional < MinFrac {
-		c.Integer--
+		c.Whole--
 		c.Fractional += FracUnit
 	}
 	for c.Fractional > MaxFrac {
-		c.Integer++
+		c.Whole++
 		c.Fractional -= FracUnit
 	}
 
 	// make sure the signs correspond
-	if (c.Integer > 0) && (c.Fractional < 0) {
-		c.Integer--
+	if (c.Whole > 0) && (c.Fractional < 0) {
+		c.Whole--
 		c.Fractional += FracUnit
-	} else if (c.Integer < 0) && (c.Fractional > 0) {
-		c.Integer++
+	} else if (c.Whole < 0) && (c.Fractional > 0) {
+		c.Whole++
 		c.Fractional -= FracUnit
 	}
 
 	// return error if integer is out of range
-	if c.Integer < MinInt || c.Integer > MaxInt {
+	if c.Whole < MinInt || c.Whole > MaxInt {
 		return Coin{}, ErrOutOfRange(c)
 	}
 	return c, nil

@@ -39,16 +39,16 @@ const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
 // If you want anything more complex, you should write your
 // own type, possibly borrowing from this code.
 type Coin struct {
-	// Whole coins, -10^9 < integer < 10^9
-	Integer int32 `protobuf:"varint,1,opt,name=integer,proto3" json:"integer,omitempty"`
+	// Whole coins, -10^15 < integer < 10^15
+	Whole int64 `protobuf:"varint,1,opt,name=whole,proto3" json:"whole,omitempty"`
 	// Billionth of coins. 0 <= abs(fractional) < 10^9
 	// If fractional != 0, must have same sign as integer
 	Fractional int32 `protobuf:"varint,2,opt,name=fractional,proto3" json:"fractional,omitempty"`
-	// CurrencyCode is 3-4 upper-case letters and
+	// Ticker is 3-4 upper-case letters and
 	// all Coins of the same currency can be combined
-	CurrencyCode string `protobuf:"bytes,3,opt,name=currency_code,json=currencyCode,proto3" json:"currency_code,omitempty"`
+	Ticker string `protobuf:"bytes,3,opt,name=ticker,proto3" json:"ticker,omitempty"`
 	// Issuer is optional string, maybe chain_id? maybe custodian name?
-	// can be empty. tokens are only fungible if CurrencyCode and
+	// can be empty. tokens are only fungible if Ticker and
 	// Issuer both match.
 	Issuer string `protobuf:"bytes,4,opt,name=issuer,proto3" json:"issuer,omitempty"`
 }
@@ -58,9 +58,9 @@ func (m *Coin) String() string            { return proto.CompactTextString(m) }
 func (*Coin) ProtoMessage()               {}
 func (*Coin) Descriptor() ([]byte, []int) { return fileDescriptorCodec, []int{0} }
 
-func (m *Coin) GetInteger() int32 {
+func (m *Coin) GetWhole() int64 {
 	if m != nil {
-		return m.Integer
+		return m.Whole
 	}
 	return 0
 }
@@ -72,9 +72,9 @@ func (m *Coin) GetFractional() int32 {
 	return 0
 }
 
-func (m *Coin) GetCurrencyCode() string {
+func (m *Coin) GetTicker() string {
 	if m != nil {
-		return m.CurrencyCode
+		return m.Ticker
 	}
 	return ""
 }
@@ -104,21 +104,21 @@ func (m *Coin) MarshalTo(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
-	if m.Integer != 0 {
+	if m.Whole != 0 {
 		dAtA[i] = 0x8
 		i++
-		i = encodeVarintCodec(dAtA, i, uint64(m.Integer))
+		i = encodeVarintCodec(dAtA, i, uint64(m.Whole))
 	}
 	if m.Fractional != 0 {
 		dAtA[i] = 0x10
 		i++
 		i = encodeVarintCodec(dAtA, i, uint64(m.Fractional))
 	}
-	if len(m.CurrencyCode) > 0 {
+	if len(m.Ticker) > 0 {
 		dAtA[i] = 0x1a
 		i++
-		i = encodeVarintCodec(dAtA, i, uint64(len(m.CurrencyCode)))
-		i += copy(dAtA[i:], m.CurrencyCode)
+		i = encodeVarintCodec(dAtA, i, uint64(len(m.Ticker)))
+		i += copy(dAtA[i:], m.Ticker)
 	}
 	if len(m.Issuer) > 0 {
 		dAtA[i] = 0x22
@@ -141,13 +141,13 @@ func encodeVarintCodec(dAtA []byte, offset int, v uint64) int {
 func (m *Coin) Size() (n int) {
 	var l int
 	_ = l
-	if m.Integer != 0 {
-		n += 1 + sovCodec(uint64(m.Integer))
+	if m.Whole != 0 {
+		n += 1 + sovCodec(uint64(m.Whole))
 	}
 	if m.Fractional != 0 {
 		n += 1 + sovCodec(uint64(m.Fractional))
 	}
-	l = len(m.CurrencyCode)
+	l = len(m.Ticker)
 	if l > 0 {
 		n += 1 + l + sovCodec(uint64(l))
 	}
@@ -202,9 +202,9 @@ func (m *Coin) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Integer", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Whole", wireType)
 			}
-			m.Integer = 0
+			m.Whole = 0
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowCodec
@@ -214,7 +214,7 @@ func (m *Coin) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.Integer |= (int32(b) & 0x7F) << shift
+				m.Whole |= (int64(b) & 0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -240,7 +240,7 @@ func (m *Coin) Unmarshal(dAtA []byte) error {
 			}
 		case 3:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field CurrencyCode", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Ticker", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -265,7 +265,7 @@ func (m *Coin) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.CurrencyCode = string(dAtA[iNdEx:postIndex])
+			m.Ticker = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 4:
 			if wireType != 2 {
@@ -425,15 +425,15 @@ var (
 func init() { proto.RegisterFile("x/codec.proto", fileDescriptorCodec) }
 
 var fileDescriptorCodec = []byte{
-	// 159 bytes of a gzipped FileDescriptorProto
+	// 147 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0xe2, 0xad, 0xd0, 0x4f, 0xce,
-	0x4f, 0x49, 0x4d, 0xd6, 0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17, 0x62, 0xac, 0x50, 0xaa, 0xe5, 0x62,
-	0x71, 0xce, 0xcf, 0xcc, 0x13, 0x92, 0xe0, 0x62, 0xcf, 0xcc, 0x2b, 0x49, 0x4d, 0x4f, 0x2d, 0x92,
-	0x60, 0x54, 0x60, 0xd4, 0x60, 0x0d, 0x82, 0x71, 0x85, 0xe4, 0xb8, 0xb8, 0xd2, 0x8a, 0x12, 0x93,
-	0x4b, 0x32, 0xf3, 0xf3, 0x12, 0x73, 0x24, 0x98, 0xc0, 0x92, 0x48, 0x22, 0x42, 0xca, 0x5c, 0xbc,
-	0xc9, 0xa5, 0x45, 0x45, 0xa9, 0x79, 0xc9, 0x95, 0xf1, 0x20, 0xc3, 0x25, 0x98, 0x15, 0x18, 0x35,
-	0x38, 0x83, 0x78, 0x60, 0x82, 0xce, 0xf9, 0x29, 0xa9, 0x42, 0x62, 0x5c, 0x6c, 0x99, 0xc5, 0xc5,
-	0xa5, 0xa9, 0x45, 0x12, 0x2c, 0x60, 0x59, 0x28, 0xcf, 0x49, 0xe0, 0xc4, 0x23, 0x39, 0xc6, 0x0b,
-	0x8f, 0xe4, 0x18, 0x1f, 0x3c, 0x92, 0x63, 0x9c, 0xf0, 0x58, 0x8e, 0x21, 0x89, 0x0d, 0xec, 0x34,
-	0x63, 0x40, 0x00, 0x00, 0x00, 0xff, 0xff, 0x71, 0x7e, 0x70, 0x85, 0xab, 0x00, 0x00, 0x00,
+	0x4f, 0x49, 0x4d, 0xd6, 0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17, 0x62, 0xac, 0x50, 0xca, 0xe1, 0x62,
+	0x71, 0xce, 0xcf, 0xcc, 0x13, 0x12, 0xe1, 0x62, 0x2d, 0xcf, 0xc8, 0xcf, 0x49, 0x95, 0x60, 0x54,
+	0x60, 0xd4, 0x60, 0x0e, 0x82, 0x70, 0x84, 0xe4, 0xb8, 0xb8, 0xd2, 0x8a, 0x12, 0x93, 0x4b, 0x32,
+	0xf3, 0xf3, 0x12, 0x73, 0x24, 0x98, 0x14, 0x18, 0x35, 0x58, 0x83, 0x90, 0x44, 0x84, 0xc4, 0xb8,
+	0xd8, 0x4a, 0x32, 0x93, 0xb3, 0x53, 0x8b, 0x24, 0x98, 0x15, 0x18, 0x35, 0x38, 0x83, 0xa0, 0x3c,
+	0x90, 0x78, 0x66, 0x71, 0x71, 0x69, 0x6a, 0x91, 0x04, 0x0b, 0x44, 0x1c, 0xc2, 0x73, 0x12, 0x38,
+	0xf1, 0x48, 0x8e, 0xf1, 0xc2, 0x23, 0x39, 0xc6, 0x07, 0x8f, 0xe4, 0x18, 0x27, 0x3c, 0x96, 0x63,
+	0x48, 0x62, 0x03, 0xbb, 0xc4, 0x18, 0x10, 0x00, 0x00, 0xff, 0xff, 0xa9, 0x90, 0x86, 0x49, 0x9a,
+	0x00, 0x00, 0x00,
 }

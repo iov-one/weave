@@ -136,11 +136,11 @@ func (d FeeDecorator) extractFee(ctx weave.Context, tx weave.Tx) (*FeeInfo, erro
 
 	cmp := d.minFee
 	// minimum has no currency -> accept everything
-	if cmp.CurrencyCode == "" {
-		cmp.CurrencyCode = fee.CurrencyCode
+	if cmp.Ticker == "" {
+		cmp.Ticker = fee.Ticker
 	}
 	if !fee.SameType(cmp) {
-		return nil, x.ErrInvalidCurrency("fee", fee.CurrencyCode)
+		return nil, x.ErrInvalidCurrency("fee", fee.Ticker)
 	}
 	if !fee.IsGTE(cmp) {
 		return nil, ErrInsufficientFees(*fee)
@@ -152,6 +152,6 @@ func (d FeeDecorator) extractFee(ctx weave.Context, tx weave.Tx) (*FeeInfo, erro
 // one point per fractional unit
 func toPayment(fee x.Coin) int64 {
 	base := int64(fee.Fractional)
-	base += int64(fee.Integer) * int64(x.FracUnit)
+	base += int64(fee.Whole) * int64(x.FracUnit)
 	return base
 }

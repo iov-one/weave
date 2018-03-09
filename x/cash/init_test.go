@@ -23,9 +23,9 @@ func TestInitState(t *testing.T) {
 
 	// hardcode
 	bz2 := []byte(`[{"address":"0102030405060708090021222324252627282930",
-                "coins":[{"integer":50,
+                "coins":[{"whole":50,
                 "fractional":1234567,
-                "currency_code":"FOO"
+                "ticker":"FOO"
               }]}]`)
 	coins2 := Set{mustCombineCoins(x.NewCoin(50, 1234567, "FOO"))}
 	addr2 := []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 0x21, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27, 0x28, 0x29, 0x30}
