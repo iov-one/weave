@@ -34,8 +34,7 @@ func (Initializer) FromGenesis(opts weave.Options, kv weave.KVStore) error {
 		if len(acct.Address) != weave.AddressLength {
 			return errors.ErrUnrecognizedAddress(acct.Address)
 		}
-		wallet := NewWallet(acct.Address)
-		err := wallet.Concat(acct.Set.Coins)
+		wallet, err := WalletWith(acct.Address, acct.Set.Coins...)
 		if err != nil {
 			return err
 		}

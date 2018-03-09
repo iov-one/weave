@@ -57,18 +57,12 @@ func (o *SimpleObj) SetKey(key []byte) {
 
 // Clone will make a copy of this object
 func (o *SimpleObj) Clone() Object {
-	res := new(SimpleObj)
-
-	// copy key if possible
+	res := &SimpleObj{
+		value: o.value.Copy(),
+	}
+	// only copy key if non-nil
 	if len(o.key) > 0 {
-		res.key = make([]byte, len(o.key))
-		copy(res.key, o.key)
+		res.key = append([]byte(nil), o.key...)
 	}
-
-	// copy value if present
-	if o.value != nil {
-		res.value = o.value.Copy()
-	}
-
 	return res
 }

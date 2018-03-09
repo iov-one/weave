@@ -26,7 +26,7 @@ func MoveCoins(store weave.KVStore, src weave.Address,
 		return ErrEmptyAccount(src)
 	}
 
-	if !sender.Coins().Contains(amount) {
+	if !AsSet(sender).Contains(amount) {
 		return ErrInsufficientFunds()
 	}
 
@@ -34,11 +34,11 @@ func MoveCoins(store weave.KVStore, src weave.Address,
 	if err != nil {
 		return err
 	}
-	err = sender.Subtract(amount)
+	err = AsSet(sender).Subtract(amount)
 	if err != nil {
 		return err
 	}
-	err = recipient.Add(amount)
+	err = AsSet(recipient).Add(amount)
 	if err != nil {
 		return err
 	}
@@ -65,7 +65,7 @@ func IssueCoins(store weave.KVStore, dest weave.Address,
 	if err != nil {
 		return err
 	}
-	err = recipient.Add(amount)
+	err = AsSet(recipient).Add(amount)
 	if err != nil {
 		return err
 	}

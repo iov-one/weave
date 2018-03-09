@@ -1,8 +1,6 @@
 package cash
 
 import (
-	"errors"
-
 	"github.com/confio/weave"
 	"github.com/confio/weave/orm"
 	"github.com/confio/weave/x"
@@ -13,110 +11,88 @@ const BucketName = "cash"
 
 //---- Set
 
+func (s *Set) xcoins() x.Coins {
+	return x.Coins(s.GetCoins())
+}
+
 // Validate requires that all coins are in alphabetical
 func (s *Set) Validate() error {
-	return x.Coins(s.GetCoins()).Validate()
+	return s.xcoins().Validate()
 }
 
 // Copy makes a new set with the same coins
-func (s *Set) Copy() *Set {
+func (s *Set) Copy() orm.CloneableData {
 	return &Set{
-		Coins: x.Coins(s.GetCoins()).Clone(),
+		Coins: s.xcoins().Clone(),
 	}
 }
 
-//--- Wallet (Set object, wallet + key)
-
-// Wallet is the actual object that we want to pass around
-// in our code. It contains a set of coins, as well as the
-// address. It is connected to the Bucket to easily manipulate
-// state.
-//
-// Wallet is a type-safe wrapper around orm.SimpleObj
-type Wallet struct {
-	key   []byte
-	value *Set
-}
-
-// NewWallet creates an empty wallet with this address
-func NewWallet(key weave.Address, coins ...*x.Coin) *Wallet {
-	res := &Wallet{key, new(Set)}
-	if coins != nil {
-		err := res.Concat(coins)
-		if err != nil {
-			panic(err)
-		}
+// AsSet will safely type-cast any value from Bucket to a Set
+func AsSet(obj orm.Object) *Set {
+	if obj == nil || obj.Value() == nil {
+		return nil
 	}
-	return res
+	return obj.Value().(*Set)
 }
 
-// Value gets the value stored in the object
-func (w Wallet) Value() weave.Persistent {
-	return w.value
+//------ expose x.Coins methods
+
+// Contains returns true if there is at least that much
+// coin in the Set
+func (s Set) Contains(c x.Coin) bool {
+	return s.xcoins().Contains(c)
 }
 
-// Key returns the key to store the object under
-func (w Wallet) Key() []byte {
-	return w.key
+// IsEmpty checks if no coins in the set
+func (s Set) IsEmpty() bool {
+	return s.xcoins().IsEmpty()
 }
 
-// Validate makes sure the fields aren't empty.
-// And delegates to the value validator if present
-func (w Wallet) Validate() error {
-	if len(w.key) == 0 {
-		return errors.New("Missing key")
-	}
-	return w.value.Validate()
-}
-
-// SetKey may be used to update a simple obj key
-func (w *Wallet) SetKey(key []byte) {
-	w.key = key
-}
-
-// Clone will make a copy of this object
-func (w *Wallet) Clone() orm.Object {
-	res := &Wallet{
-		value: w.value.Copy(),
-	}
-	// only copy key if non-nil
-	if len(w.key) > 0 {
-		res.key = append([]byte(nil), w.key...)
-	}
-	return res
-}
-
-// Coins returns the coins stored in the wallet
-func (w Wallet) Coins() x.Coins {
-	return x.Coins(w.value.GetCoins())
+// Equals checks if the coins are the same
+func (s Set) Equals(coins x.Coins) bool {
+	return s.xcoins().Equals(coins)
 }
 
 // Add modifies the wallet to add Coin c
-func (w *Wallet) Add(c x.Coin) error {
-	cs, err := w.Coins().Add(c)
+func (s *Set) Add(c x.Coin) error {
+	cs, err := s.xcoins().Add(c)
 	if err != nil {
 		return err
 	}
-	w.value.Coins = cs
+	s.Coins = cs
 	return nil
 }
 
 // Subtract modifies the wallet to remove Coin c
-func (w *Wallet) Subtract(c x.Coin) error {
-	return w.Add(c.Negative())
+func (s *Set) Subtract(c x.Coin) error {
+	return s.Add(c.Negative())
 }
 
 // Concat combines the coins to make sure they are sorted
 // and rounded off, with no duplicates or 0 values.
-//
-// TODO: can we make this simpler??? join with copy
-func (w *Wallet) Concat(coins x.Coins) error {
-	joint, err := w.Coins().Combine(coins)
+func (s *Set) Concat(coins x.Coins) error {
+	joint, err := s.xcoins().Combine(coins)
 	if err != nil {
 		return err
 	}
-	w.value.Coins = joint
+	s.Coins = joint
 	return nil
+}
+
+// NewWallet creates an empty wallet with this address
+// serves as an object for the bucket
+func NewWallet(key weave.Address) orm.Object {
+	return orm.NewSimpleObj(key, new(Set))
+}
+
+// WalletWith creates an wallet with a balance
+func WalletWith(key weave.Address, coins ...*x.Coin) (orm.Object, error) {
+	obj := NewWallet(key)
+	err := AsSet(obj).Concat(coins)
+	if err != nil {
+		return nil, err
+	}
+	return obj, nil
 }
 
 //--- cash.Bucket - type-safe bucket
@@ -133,28 +109,12 @@ func NewBucket() Bucket {
 	}
 }
 
-func (b Bucket) Get(db weave.KVStore, key weave.Address) (*Wallet, error) {
-	obj, err := b.Bucket.Get(db, key)
-	if err != nil {
-		return nil, err
+// GetOrCreate will return the object if found, or create one
+// if not.
+func (b Bucket) GetOrCreate(db weave.KVStore, key weave.Address) (orm.Object, error) {
+	obj, err := b.Get(db, key)
+	if err == nil && obj == nil {
+		obj = NewWallet(key)
 	}
-	if obj == nil {
-		return nil, nil
-	}
-	return obj.(*Wallet), nil
-}
-
-func (b Bucket) Save(db weave.KVStore, value *Wallet) error {
-	return b.Bucket.Save(db, value)
-}
-
-func (b Bucket) GetOrCreate(db weave.KVStore, key weave.Address) (*Wallet, error) {
-	wallet, err := b.Get(db, key)
-	if err != nil {
-		return nil, err
-	}
-	if wallet == nil {
-		wallet = NewWallet(key)
-	}
-	return wallet, nil
+	return obj, err
 }

@@ -6,6 +6,7 @@ import (
 
 	"github.com/confio/weave"
 	"github.com/confio/weave/errors"
+	"github.com/confio/weave/orm"
 	"github.com/confio/weave/store"
 	"github.com/confio/weave/x"
 	"github.com/stretchr/testify/assert"
@@ -27,7 +28,7 @@ func TestSend(t *testing.T) {
 
 	cases := []struct {
 		signers       []weave.Address
-		initState     []*Wallet
+		initState     []orm.Object
 		msg           weave.Msg
 		expectCheck   checkErr
 		expectDeliver checkErr
@@ -53,7 +54,7 @@ func TestSend(t *testing.T) {
 		// sender too poor
 		5: {
 			[]weave.Address{addr},
-			[]*Wallet{NewWallet(addr, &some)},
+			[]orm.Object{must(WalletWith(addr, &some))},
 			&SendMsg{Amount: &foo, Src: addr, Dest: addr2},
 			noErr, // we don't check funds
 			IsInsufficientFundsErr,
@@ -61,7 +62,7 @@ func TestSend(t *testing.T) {
 		// sender got cash
 		6: {
 			[]weave.Address{addr},
-			[]*Wallet{NewWallet(addr, &foo)},
+			[]orm.Object{must(WalletWith(addr, &foo))},
 			&SendMsg{Amount: &foo, Src: addr, Dest: addr2},
 			noErr,
 			noErr,

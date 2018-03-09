@@ -65,7 +65,7 @@ func TestInitState(t *testing.T) {
 				acct, err := bucket.Get(kv, tc.acct)
 				require.NoError(t, err)
 				if assert.NotNil(t, acct) {
-					assert.EqualValues(t, tc.wallet.Coins, acct.Coins())
+					assert.EqualValues(t, tc.wallet.Coins, AsSet(acct).Coins)
 				}
 			}
 		})
