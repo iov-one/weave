@@ -35,7 +35,7 @@ func multiRefFromStrings(strs ...string) (*MultiRef, error) {
 func (m *MultiRef) Add(ref []byte) error {
 	i, found := m.findRef(ref)
 	if found {
-		return errors.New("Ref already in set")
+		return ErrRemoveUnregistered()
 	}
 	// append to end
 	if i == len(m.Refs) {
@@ -54,7 +54,7 @@ func (m *MultiRef) Add(ref []byte) error {
 func (m *MultiRef) Remove(ref []byte) error {
 	i, found := m.findRef(ref)
 	if !found {
-		return errors.New("Ref not in set")
+		return ErrRemoveUnregistered()
 	}
 	// splice it out
 	m.Refs = append(m.Refs[:i], m.Refs[i+1:]...)
@@ -92,7 +92,7 @@ func (m *MultiRef) Copy() CloneableData {
 // Validate just returns an error if empty
 func (m *MultiRef) Validate() error {
 	if len(m.GetRefs()) == 0 {
-		return errors.New("No References")
+		return ErrNoRefs()
 	}
 	return nil
 }

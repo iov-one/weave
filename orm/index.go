@@ -3,8 +3,6 @@ package orm
 import (
 	"bytes"
 
-	"github.com/pkg/errors"
-
 	"github.com/confio/weave"
 )
 
@@ -50,7 +48,7 @@ func (i Index) Update(db weave.KVStore, prev Object, save Object) error {
 	sw := s{prev == nil, save == nil}
 	switch sw {
 	case s{true, true}:
-		return errors.New("update requires at least one non-nil object")
+		return ErrUpdateNil()
 	case s{true, false}:
 		key, err := i.index(save)
 		if err != nil {
@@ -66,7 +64,7 @@ func (i Index) Update(db weave.KVStore, prev Object, save Object) error {
 	case s{false, false}:
 		return i.move(db, prev, save)
 	}
-	return errors.New("You have violated the rules of boolean logic")
+	return ErrBoolean()
 }
 
 // GetLike calculates the index for the given pattern, and
@@ -100,8 +98,7 @@ func (i Index) GetAt(db weave.KVStore, index []byte) ([][]byte, error) {
 func (i Index) move(db weave.KVStore, prev Object, save Object) error {
 	// if the primary key is not equal, we have a problem
 	if !bytes.Equal(prev.Key(), save.Key()) {
-		// TODO: do we want to handle this????
-		return errors.New("Can only update Index for objects with same primary key")
+		return ErrModifiedPK()
 	}
 
 	// if the keys don't change, then
@@ -122,7 +119,7 @@ func (i Index) move(db weave.KVStore, prev Object, save Object) error {
 		k := append(i.id, newKey...)
 		val := db.Get(k)
 		if val != nil {
-			return errors.Errorf("Duplicate violates unique constraint on index %s", i.name)
+			return ErrUniqueConstraint(i.name)
 		}
 	}
 
@@ -137,12 +134,12 @@ func (i Index) remove(db weave.KVStore, index []byte, pk []byte) error {
 	key := append(i.id, index...)
 	cur := db.Get(key)
 	if cur == nil {
-		return errors.New("Try to remove at empty index")
+		return ErrRemoveUnregistered()
 	}
 	if i.unique {
 		// if something else was here, don't delete
 		if !bytes.Equal(cur, pk) {
-			return errors.New("Can't remove reference to other object")
+			return ErrRemoveUnregistered()
 		}
 		db.Delete(key)
 		return nil
@@ -178,7 +175,7 @@ func (i Index) insert(db weave.KVStore, index []byte, pk []byte) error {
 
 	if i.unique {
 		if cur != nil {
-			return errors.Errorf("Duplicate violates unique constraint on index %s", i.name)
+			return ErrUniqueConstraint(i.name)
 		}
 		db.Set(key, pk)
 		return nil

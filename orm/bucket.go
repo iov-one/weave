@@ -19,7 +19,6 @@ import (
 	"regexp"
 
 	"github.com/confio/weave"
-	"github.com/pkg/errors"
 )
 
 const (
@@ -164,7 +163,7 @@ func (b Bucket) WithIndex(name string, indexer Indexer, unique bool) Bucket {
 func (b Bucket) GetIndexed(db weave.KVStore, name string, key []byte) ([]Object, error) {
 	idx, ok := b.indexes[name]
 	if !ok {
-		return nil, errors.Errorf("No such index: %s", name)
+		return nil, ErrInvalidIndex(name)
 	}
 	refs, err := idx.GetAt(db, key)
 	if err != nil {
@@ -177,7 +176,7 @@ func (b Bucket) GetIndexed(db weave.KVStore, name string, key []byte) ([]Object,
 func (b Bucket) GetIndexedLike(db weave.KVStore, name string, pattern Object) ([]Object, error) {
 	idx, ok := b.indexes[name]
 	if !ok {
-		return nil, errors.Errorf("No such index: %s", name)
+		return nil, ErrInvalidIndex(name)
 	}
 	refs, err := idx.GetLike(db, pattern)
 	if err != nil {

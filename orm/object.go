@@ -1,8 +1,6 @@
 package orm
 
 import (
-	"errors"
-
 	"github.com/confio/weave"
 	"github.com/confio/weave/x"
 )
@@ -40,12 +38,10 @@ func (o SimpleObj) Key() []byte {
 // And delegates to the value validator if present
 func (o SimpleObj) Validate() error {
 	if len(o.key) == 0 {
-		// TODO: some standard errors.
-		// TODO: enforce length here???
-		return errors.New("Missing key")
+		return ErrMissingKey()
 	}
 	if o.value == nil {
-		return errors.New("Missing value")
+		return ErrMissingValue()
 	}
 	return o.value.Validate()
 }
