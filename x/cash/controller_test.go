@@ -11,13 +11,13 @@ import (
 	"github.com/confio/weave/x"
 )
 
-func getWallet(kv weave.KVStore, addr weave.Address) *Set {
+func getWallet(kv weave.KVStore, addr weave.Address) x.Coins {
 	bucket := NewBucket()
 	res, err := bucket.Get(kv, addr)
 	if err != nil {
 		panic(err) // testing only
 	}
-	return AsSet(res)
+	return AsCoins(res)
 }
 
 func TestIssueCoins(t *testing.T) {
@@ -42,7 +42,7 @@ func TestIssueCoins(t *testing.T) {
 	require.NoError(t, err)
 	w := getWallet(kv, addr)
 	require.NotNil(t, w)
-	assert.True(t, w.Contains(plus), "%#v", w.Coins)
+	assert.True(t, w.Contains(plus), "%#v", w)
 	assert.True(t, w.Contains(total))
 	assert.False(t, w.Contains(other))
 	assert.Nil(t, getWallet(kv, addr2))
@@ -72,8 +72,12 @@ func TestIssueCoins(t *testing.T) {
 	// set to zero is fine
 	err = controller.IssueCoins(kv, addr2, other.Negative())
 	require.NoError(t, err)
+	// object is stored in db
+	res, err := controller.bucket.Get(kv, addr2)
+	require.NoError(t, err)
+	require.NotNil(t, res)
+	// but coins are empty
 	w2 = getWallet(kv, addr2)
-	require.NotNil(t, w2)
 	assert.True(t, w2.IsEmpty())
 
 	// overflow is rejected

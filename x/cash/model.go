@@ -13,74 +13,85 @@ const BucketName = "cash"
 //---- Set
 
 var _ orm.CloneableData = (*Set)(nil)
-
-func (s *Set) xcoins() x.Coins {
-	return x.Coins(s.GetCoins())
-}
+var _ Coinage = (*Set)(nil)
 
 // Validate requires that all coins are in alphabetical
 func (s *Set) Validate() error {
-	return s.xcoins().Validate()
+	return XCoins(s).Validate()
 }
 
 // Copy makes a new set with the same coins
 func (s *Set) Copy() orm.CloneableData {
 	return &Set{
-		Coins: s.xcoins().Clone(),
+		Coins: XCoins(s).Clone(),
 	}
 }
 
-// AsSet will safely type-cast any value from Bucket to a Set
-func AsSet(obj orm.Object) *Set {
+// SetCoins allows us to modify the Set
+func (s *Set) SetCoins(coins []*x.Coin) {
+	s.Coins = coins
+}
+
+//------ generic Coinage functionality
+
+// Coinage is any model that allows getting and setting coins,
+// Below functions work on these models
+// (oh, how I long for default implementations for interface,
+// like rust traits)
+type Coinage interface {
+	GetCoins() []*x.Coin
+	SetCoins([]*x.Coin)
+}
+
+// XCoins returns the stored coins cast properly
+func XCoins(c Coinage) x.Coins {
+	if c == nil {
+		return nil
+	}
+	return x.Coins(c.GetCoins())
+}
+
+// AsCoinage will safely type-cast any value from Bucket to Coinage
+func AsCoinage(obj orm.Object) Coinage {
 	if obj == nil || obj.Value() == nil {
 		return nil
 	}
-	return obj.Value().(*Set)
+	return obj.Value().(Coinage)
 }
 
-//------ expose x.Coins methods
-
-// Contains returns true if there is at least that much
-// coin in the Set
-func (s Set) Contains(c x.Coin) bool {
-	return s.xcoins().Contains(c)
+// AsCoins will extract XCoins from any object
+func AsCoins(obj orm.Object) x.Coins {
+	c := AsCoinage(obj)
+	return XCoins(c)
 }
 
-// IsEmpty checks if no coins in the set
-func (s Set) IsEmpty() bool {
-	return s.xcoins().IsEmpty()
-}
-
-// Equals checks if the coins are the same
-func (s Set) Equals(coins x.Coins) bool {
-	return s.xcoins().Equals(coins)
-}
-
-// Add modifies the wallet to add Coin c
-func (s *Set) Add(c x.Coin) error {
-	cs, err := s.xcoins().Add(c)
+// Add modifies the coinage to add Coin c
+func Add(cng Coinage, c x.Coin) error {
+	cs, err := XCoins(cng).Add(c)
 	if err != nil {
 		return err
 	}
-	s.Coins = cs
+	cng.SetCoins(cs)
 	return nil
 }
 
-// Subtract modifies the wallet to remove Coin c
-func (s *Set) Subtract(c x.Coin) error {
-	return s.Add(c.Negative())
+// Subtract modifies the coinage to remove Coin c
+func Subtract(cng Coinage, c x.Coin) error {
+	return Add(cng, c.Negative())
 }
 
 // Concat combines the coins to make sure they are sorted
 // and rounded off, with no duplicates or 0 values.
-func (s *Set) Concat(coins x.Coins) error {
-	joint, err := s.xcoins().Combine(coins)
+func Concat(cng Coinage, coins x.Coins) error {
+	joint, err := XCoins(cng).Combine(coins)
 	if err != nil {
 		return err
 	}
-	s.Coins = joint
+	cng.SetCoins(joint)
 	return nil
 }
+
+//------ NewWallet wraps Set into an object for the Bucket
 
 // NewWallet creates an empty wallet with this address
 // serves as an object for the bucket
@@ -91,7 +102,7 @@ func NewWallet(key weave.Address) orm.Object {
 // WalletWith creates an wallet with a balance
 func WalletWith(key weave.Address, coins ...*x.Coin) (orm.Object, error) {
 	obj := NewWallet(key)
-	err := AsSet(obj).Concat(coins)
+	err := Concat(AsCoinage(obj), coins)
 	if err != nil {
 		return nil, err
 	}
@@ -132,7 +143,7 @@ type WalletBucket interface {
 	Save(db weave.KVStore, obj orm.Object) error
 }
 
-// ValidateWalletBucket makes sure that it supports AsSet
+// ValidateWalletBucket makes sure that it supports AsCoinage
 // objects, unfortunately this check is done runtime....
 //
 // panics on error (meant as a sanity check in init)
@@ -148,5 +159,5 @@ func ValidateWalletBucket(bucket WalletBucket) {
 		panic("doensn't create anything")
 	}
 	// this panics if bad type
-	AsSet(obj)
+	AsCoinage(obj)
 }
