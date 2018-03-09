@@ -11,6 +11,8 @@ const BucketName = "cash"
 
 //---- Set
 
+var _ orm.CloneableData = (*Set)(nil)
+
 func (s *Set) xcoins() x.Coins {
 	return x.Coins(s.GetCoins())
 }

@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/confio/weave/crypto"
 	"github.com/confio/weave/store"
@@ -12,43 +13,59 @@ import (
 func TestUserModel(t *testing.T) {
 	kv := store.MemStore()
 
-	key := NewKey([]byte("foo"))
+	bucket := NewBucket()
+	pub := crypto.GenPrivKeyEd25519().PublicKey()
+	addr := pub.Address()
 
 	// load fail
-	user := GetUser(kv, key)
-	assert.Nil(t, user)
+	obj, err := bucket.Get(kv, addr)
+	require.NoError(t, err)
+	assert.Nil(t, obj)
 
 	// create
-	user = GetOrCreateUser(kv, key)
-	assert.NotNil(t, user)
-	assert.False(t, user.HasPubKey())
-	assert.Equal(t, int64(0), user.Sequence())
+	obj, err = bucket.GetOrCreate(kv, pub)
+	require.NoError(t, err)
+	assert.NotNil(t, obj)
+	assert.NoError(t, obj.Validate())
+	user := AsUser(obj)
+	assert.NotNil(t, user.PubKey)
+	assert.Equal(t, int64(0), user.Sequence)
 
-	// set
+	// set sequence
 	assert.Error(t, user.CheckAndIncrementSequence(5))
 	assert.NoError(t, user.CheckAndIncrementSequence(0))
 	assert.Error(t, user.CheckAndIncrementSequence(0))
 	assert.NoError(t, user.CheckAndIncrementSequence(1))
-	assert.Equal(t, int64(2), user.Sequence())
+	assert.Equal(t, int64(2), user.Sequence)
 
+	// save and load
+	err = bucket.Save(kv, obj)
+	require.NoError(t, err)
+	// load success
+	obj2, err := bucket.Get(kv, addr)
+	assert.NotNil(t, obj2)
+	user2 := AsUser(obj2)
+	assert.Equal(t, int64(2), user2.Sequence)
+	assert.Equal(t, pub, user2.PubKey)
+}
+
+func TestUserValidation(t *testing.T) {
 	// fails with unset pubkey
-	assert.Error(t, user.data.Validate())
-	assert.Panics(t, func() { user.Save() })
+	obj := NewUser(nil)
+	assert.Error(t, obj.Validate())
 
 	// set pubkey
-	priv := crypto.GenPrivKeyEd25519()
-	pub := priv.PublicKey()
-	user.SetPubKey(pub)
-	assert.NoError(t, user.data.Validate())
+	pub := crypto.GenPrivKeyEd25519().PublicKey()
+	AsUser(obj).SetPubKey(pub)
+	assert.Error(t, obj.Validate()) // missing key
+	obj.SetKey(pub.Address())
+	assert.NoError(t, obj.Validate()) // now complete
 	// cannot set pubkey a second time....
-	assert.Panics(t, func() { user.SetPubKey(pub) })
+	assert.Panics(t, func() { AsUser(obj).SetPubKey(pub) })
 
-	// save
-	user.Save()
-
-	// load success
-	user2 := GetUser(kv, key)
-	assert.NotNil(t, user2)
-	assert.Equal(t, int64(2), user2.Sequence())
-	assert.Equal(t, pub, user2.PubKey())
+	// make sure negative sequence throw error
+	AsUser(obj).Sequence = -30
+	assert.Error(t, obj.Validate())
+	AsUser(obj).Sequence = 17
+	assert.NoError(t, obj.Validate())
 }
