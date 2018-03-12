@@ -89,3 +89,10 @@ func (b TokenBucket) GetOrCreate(db weave.KVStore, ticker string) (orm.Object, e
 func (b TokenBucket) Get(db weave.KVStore, ticker string) (orm.Object, error) {
 	return b.Bucket.Get(db, []byte(ticker))
 }
+
+// TickerBucket can save and query Tokens (or anything with tickers...)
+type TickerBucket interface {
+	GetOrCreate(db weave.KVStore, ticker string) (orm.Object, error)
+	Get(db weave.KVStore, ticker string) (orm.Object, error)
+	Save(db weave.KVStore, obj orm.Object) error
+}

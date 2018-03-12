@@ -9,13 +9,13 @@ import (
 )
 
 // Ensure we implement the Msg interface
-var _ weave.Msg = (*NewTickerMsg)(nil)
+var _ weave.Msg = (*NewTokenMsg)(nil)
 
 const (
-	pathNewTickerMsg       = "namecoin/ticker"
+	pathNewTokenMsg       = "namecoin/ticker"
 	pathSetNameMsg         = "namecoin/set_name"
 	setNameCost      int64 = 50
-	newTickerCost    int64 = 100
+	newTokenCost    int64 = 100
 
 	minSigFigs = 0
 	maxSigFigs = 9
@@ -30,12 +30,12 @@ var (
 )
 
 // Path returns the routing path for this message
-func (NewTickerMsg) Path() string {
-	return pathNewTickerMsg
+func (NewTokenMsg) Path() string {
+	return pathNewTokenMsg
 }
 
 // Validate makes sure that this is sensible
-func (t *NewTickerMsg) Validate() error {
+func (t *NewTokenMsg) Validate() error {
 	if !x.IsCC(t.Ticker) {
 		return x.ErrInvalidCurrency(t.Ticker)
 	}

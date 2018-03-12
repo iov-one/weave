@@ -16,10 +16,10 @@ message Token {
     int32 sig_figs = 3;
 }
 
-// NewTickerMsg will register a new ticker.
+// NewTokenMsg will register a new token.
 // This must not conflict with any existing ticker,
 // and should be limited to privledged users.
-message NewTickerMsg {
+message NewTokenMsg {
     string ticker = 1;
     string name = 2;
     int32 sig_figs = 3;

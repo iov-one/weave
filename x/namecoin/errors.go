@@ -17,6 +17,7 @@ const (
 
 var (
 	errInvalidTokenName  = fmt.Errorf("Invalid token name")
+	errDuplicateToken    = fmt.Errorf("Token with that ticker already exists")
 	errInvalidSigFigs    = fmt.Errorf("Invalid significant figures")
 	errInvalidIndex      = fmt.Errorf("Cannot calculate index")
 	errInvalidWalletName = fmt.Errorf("Invalid name for a wallet")
@@ -25,6 +26,9 @@ var (
 
 func ErrInvalidTokenName(name string) error {
 	return errors.WithLog(name, errInvalidTokenName, CodeInvalidToken)
+}
+func ErrDuplicateToken(name string) error {
+	return errors.WithLog(name, errDuplicateToken, CodeInvalidToken)
 }
 func ErrInvalidSigFigs(figs int32) error {
 	msg := fmt.Sprintf("%d", figs)
