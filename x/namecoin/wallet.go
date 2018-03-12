@@ -28,6 +28,9 @@ func (w *Wallet) SetCoins(coins []*x.Coin) {
 
 // Validate requires that all coins are in alphabetical
 func (w *Wallet) Validate() error {
+	if !IsWalletName(w.Name) {
+		return ErrInvalidWalletName(w.Name)
+	}
 	return cash.XCoins(w).Validate()
 }
 
@@ -71,6 +74,22 @@ func AsNamed(obj orm.Object) Named {
 // serves as an object for the bucket
 func NewWallet(key weave.Address) orm.Object {
 	return orm.NewSimpleObj(key, new(Wallet))
+}
+
+// WalletWith creates an wallet with a balance
+func WalletWith(key weave.Address, name string, coins ...*x.Coin) (orm.Object, error) {
+	obj := NewWallet(key)
+	err := cash.Concat(cash.AsCoinage(obj), coins)
+	if err != nil {
+		return nil, err
+	}
+	if name != "" {
+		err := AsNamed(obj).SetName(name)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return obj, nil
 }
 
 //--- WalletBucket - handles tokens
