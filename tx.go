@@ -3,6 +3,8 @@ package weave
 import (
 	"bytes"
 	"crypto/sha256"
+	"encoding/hex"
+	"strings"
 	// "golang.org/x/crypto/blake2b"
 )
 
@@ -98,6 +100,13 @@ func (a Address) MarshalJSON() ([]byte, error) {
 func (a *Address) UnmarshalJSON(src []byte) error {
 	dst := (*[]byte)(a)
 	return unmarshalHex(src, dst)
+}
+
+func (a Address) ToString() string {
+	if len(a) == 0 {
+		return "(nil)"
+	}
+	return strings.ToUpper(hex.EncodeToString(a))
 }
 
 // NewAddress hashes and truncates into the proper size

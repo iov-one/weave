@@ -87,11 +87,3 @@ func ErrUpdateNil() error {
 func ErrBoolean() error {
 	return errors.WithCode(errBoolean, CodeProgrammer)
 }
-
-// func ErrEmptyAccount(addr []byte) error {
-//     msg := fmt.Sprintf("%X", addr)
-//     return errors.WithLog(msg, errEmptyAccount, CodeEmptyAccount)
-// }
-// func IsEmptyAccountErr(err error) bool {
-//     return errors.IsSameError(errEmptyAccount, err)
-// }
