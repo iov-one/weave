@@ -13,6 +13,8 @@ const (
 	CodeInvalidToken  = 1000
 	CodeInvalidIndex  = 1001
 	CodeInvalidWallet = 1002
+
+	CodeInvalidObject = 1100 // TODO: move into weave
 )
 
 var (
@@ -23,7 +25,14 @@ var (
 	errInvalidWalletName = fmt.Errorf("Invalid name for a wallet")
 	errChangeWalletName  = fmt.Errorf("Wallet already has a name")
 	errNoSuchWallet      = fmt.Errorf("No wallet exists with this address")
+
+	errInvalidObject = fmt.Errorf("Wrong object type for this bucket")
 )
+
+func ErrInvalidObject(obj interface{}) error {
+	msg := fmt.Sprintf("%T", obj)
+	return errors.WithLog(msg, errInvalidObject, CodeInvalidObject)
+}
 
 func ErrInvalidTokenName(name string) error {
 	return errors.WithLog(name, errInvalidTokenName, CodeInvalidToken)

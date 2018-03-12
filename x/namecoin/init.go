@@ -2,6 +2,7 @@ package namecoin
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/confio/weave"
 	"github.com/confio/weave/errors"
@@ -16,7 +17,7 @@ const (
 // use weave.Address, so address in hex, not base64
 type GenesisAccount struct {
 	Address weave.Address `json:"address"`
-	Wallet
+	*Wallet
 }
 
 // GenesisToken is used to describe a token in the genesis account
@@ -24,6 +25,15 @@ type GenesisToken struct {
 	Ticker  string `json: "ticker"`
 	Name    string `json:"name"`
 	SigFigs int32  `json:"sig_figs"`
+}
+
+// ToGenesisToken converts internal structs to genesis file format
+func ToGenesisToken(ticker string, token *Token) GenesisToken {
+	return GenesisToken{
+		Ticker:  ticker,
+		Name:    token.GetName(),
+		SigFigs: token.GetSigFigs(),
+	}
 }
 
 // Initializer fulfils the InitStater interface to load data from
@@ -76,8 +86,9 @@ func setWallets(db weave.KVStore, gens []GenesisAccount) error {
 }
 
 func setTokens(db weave.KVStore, gens []GenesisToken) error {
-	bucket := NewWalletBucket()
+	bucket := NewTokenBucket()
 	for _, gen := range gens {
+		fmt.Println("Saving " + gen.Ticker)
 		token := NewToken(gen.Ticker, gen.Name, gen.SigFigs)
 		err := bucket.Save(db, token)
 		if err != nil {
@@ -94,7 +105,7 @@ func BuildGenesis(wallets []GenesisAccount,
 	opts := make(weave.Options, 2)
 
 	if len(wallets) > 0 {
-		walletBz, err := json.Marshal(wallets)
+		walletBz, err := json.MarshalIndent(wallets, "", "  ")
 		if err != nil {
 			return nil, err
 		}
@@ -102,7 +113,7 @@ func BuildGenesis(wallets []GenesisAccount,
 	}
 
 	if len(tokens) > 0 {
-		tokenBz, err := json.Marshal(tokens)
+		tokenBz, err := json.MarshalIndent(tokens, "", "  ")
 		if err != nil {
 			return nil, err
 		}

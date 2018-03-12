@@ -134,6 +134,14 @@ func (b WalletBucket) GetByName(db weave.KVStore, name string) (orm.Object, erro
 	return objs[0], nil
 }
 
+// Save enforces the proper type
+func (b WalletBucket) Save(db weave.KVStore, obj orm.Object) error {
+	if _, ok := obj.Value().(*Wallet); !ok {
+		return ErrInvalidObject(obj.Value())
+	}
+	return b.Bucket.Save(db, obj)
+}
+
 // simple indexer for Wallet name
 func nameIndex(obj orm.Object) ([]byte, error) {
 	if obj == nil {

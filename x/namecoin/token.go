@@ -1,6 +1,8 @@
 package namecoin
 
 import (
+	"fmt"
+
 	"github.com/confio/weave"
 	"github.com/confio/weave/orm"
 )
@@ -88,6 +90,15 @@ func (b TokenBucket) GetOrCreate(db weave.KVStore, ticker string) (orm.Object, e
 // Get takes the token name and converts it to a byte key
 func (b TokenBucket) Get(db weave.KVStore, ticker string) (orm.Object, error) {
 	return b.Bucket.Get(db, []byte(ticker))
+}
+
+// Save enforces the proper type
+func (b TokenBucket) Save(db weave.KVStore, obj orm.Object) error {
+	if _, ok := obj.Value().(*Token); !ok {
+		return ErrInvalidObject(obj.Value())
+	}
+	fmt.Printf("Saving at: %s\n", string(obj.Key()))
+	return b.Bucket.Save(db, obj)
 }
 
 // TickerBucket can save and query Tokens (or anything with tickers...)
