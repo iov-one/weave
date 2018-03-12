@@ -22,6 +22,7 @@ var (
 	errInvalidIndex      = fmt.Errorf("Cannot calculate index")
 	errInvalidWalletName = fmt.Errorf("Invalid name for a wallet")
 	errChangeWalletName  = fmt.Errorf("Wallet already has a name")
+	errNoSuchWallet      = fmt.Errorf("No wallet exists with this address")
 )
 
 func ErrInvalidTokenName(name string) error {
@@ -50,6 +51,10 @@ func ErrChangeWalletName() error {
 }
 func ErrInvalidWalletName(name string) error {
 	return errors.WithLog(name, errInvalidWalletName, CodeInvalidWallet)
+}
+func ErrNoSuchWallet(addr []byte) error {
+	name := fmt.Sprintf("%s", addr)
+	return errors.WithLog(name, errNoSuchWallet, CodeInvalidWallet)
 }
 func IsInvalidWallet(err error) bool {
 	return errors.HasErrorCode(err, CodeInvalidWallet)

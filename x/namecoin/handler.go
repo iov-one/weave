@@ -35,18 +35,19 @@ func NewTokenHandler(auth x.Authenticator, issuer weave.Address) weave.Handler {
 // NewSetNameHandler creates a handler that lets you set the
 // name on a wallet one time.
 func NewSetNameHandler(auth x.Authenticator, bucket NamedBucket) weave.Handler {
-	// TODO
-	return nil
+	return SetNameHandler{
+		auth:   auth,
+		bucket: bucket,
+	}
 }
 
 // RegisterRoutes will instantiate and register
 // all handlers in this package
 func RegisterRoutes(r weave.Registry, auth x.Authenticator, issuer weave.Address) {
 	pathSend := cash.SendMsg{}.Path()
-	bucket := NewWalletBucket()
 	r.Handle(pathSend, NewSendHandler(auth))
 	r.Handle(pathNewTokenMsg, NewTokenHandler(auth, issuer))
-	r.Handle(pathSetNameMsg, NewSetNameHandler(auth, bucket))
+	r.Handle(pathSetNameMsg, NewSetNameHandler(auth, NewWalletBucket()))
 }
 
 // TokenHandler will handle creating new tokens
@@ -120,6 +121,77 @@ func (h TokenHandler) validate(ctx weave.Context, db weave.KVStore,
 	// make sure we have permission if the issuer is set
 	if h.issuer != nil && !h.auth.HasPermission(ctx, h.issuer) {
 		return nil, errors.ErrUnauthorized()
+	}
+	return msg, nil
+}
+
+// SetNameHandler will set a name for objects in this bucket
+type SetNameHandler struct {
+	auth   x.Authenticator
+	bucket NamedBucket
+}
+
+var _ weave.Handler = SetNameHandler{}
+
+// Check just verifies it is properly formed and returns
+// the cost of executing it
+func (h SetNameHandler) Check(ctx weave.Context, db weave.KVStore,
+	tx weave.Tx) (weave.CheckResult, error) {
+	var res weave.CheckResult
+	_, err := h.validate(ctx, db, tx)
+	if err != nil {
+		return res, err
+	}
+
+	// return cost
+	res.GasAllocated += setNameCost
+	return res, nil
+}
+
+// Deliver moves the tokens from sender to receiver if
+// all preconditions are met
+func (h SetNameHandler) Deliver(ctx weave.Context, db weave.KVStore,
+	tx weave.Tx) (weave.DeliverResult, error) {
+	var res weave.DeliverResult
+	msg, err := h.validate(ctx, db, tx)
+	if err != nil {
+		return res, err
+	}
+
+	// set the token
+	obj, err := h.bucket.Get(db, msg.Address)
+	if err != nil {
+		return res, err
+	}
+	if obj == nil {
+		return res, ErrNoSuchWallet(msg.Address)
+	}
+	named := AsNamed(obj)
+	err = named.SetName(msg.Name)
+	if err != nil {
+		return res, err
+	}
+
+	err = h.bucket.Save(db, obj)
+	return res, err
+}
+
+// validate does all common pre-processing between Check and Deliver
+func (h SetNameHandler) validate(ctx weave.Context, db weave.KVStore,
+	tx weave.Tx) (*SetWalletNameMsg, error) {
+
+	rmsg, err := tx.GetMsg()
+	if err != nil {
+		return nil, err
+	}
+	msg, ok := rmsg.(*SetWalletNameMsg)
+	if !ok {
+		return nil, errors.ErrUnknownTxType(rmsg)
+	}
+
+	err = msg.Validate()
+	if err != nil {
+		return nil, err
 	}
 	return msg, nil
 }
