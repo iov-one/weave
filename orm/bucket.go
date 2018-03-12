@@ -59,8 +59,22 @@ func NewBucket(name string, proto Cloneable) Bucket {
 }
 
 // DBKey is the full key we store in the db, including prefix
+// We copy into a new array rather than use append, as we don't
+// want consequetive calls to overwrite the same byte array.
 func (b Bucket) DBKey(key []byte) []byte {
-	return append(b.prefix, key...)
+	// Long story: annoying bug... storing with keys "ABC" and "LED"
+	// would overwrite each other, also for queries.... huh?
+	// turns out name was 4 char,
+	// append([]byte(name), ':') in NewBucket would allocate with
+	// capacity 8, using 5.
+	// append(b.prefix, key...) would just append to this slice and
+	// return b.prefix. The next call would do the same an overwrite it.
+	// 3 hours and some dlv-ing later, new code here...
+	l := len(b.prefix)
+	out := make([]byte, l+len(key))
+	copy(out, b.prefix)
+	copy(out[l:], key)
+	return out
 }
 
 // Get one element
@@ -97,8 +111,7 @@ func (b Bucket) Save(db weave.KVStore, model Object) error {
 	}
 
 	// now save this one
-	dbkey := append(b.prefix, model.Key()...)
-	db.Set(dbkey, bz)
+	db.Set(b.DBKey(model.Key()), bz)
 	return nil
 }
 
@@ -134,7 +147,7 @@ func (b Bucket) updateIndexes(db weave.KVStore, key []byte, model Object) error 
 
 // Sequence returns a Sequence by name
 func (b Bucket) Sequence(name string) Sequence {
-	id := append(b.prefix, []byte(name)...)
+	id := b.DBKey([]byte(name))
 	return NewSequence(id)
 }
 
