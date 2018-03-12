@@ -28,8 +28,9 @@ func (w *Wallet) SetCoins(coins []*x.Coin) {
 
 // Validate requires that all coins are in alphabetical
 func (w *Wallet) Validate() error {
-	if !IsWalletName(w.Name) {
-		return ErrInvalidWalletName(w.Name)
+	name := w.GetName()
+	if name != "" && !IsWalletName(name) {
+		return ErrInvalidWalletName(name)
 	}
 	return cash.XCoins(w).Validate()
 }
