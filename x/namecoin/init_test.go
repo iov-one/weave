@@ -48,7 +48,21 @@ func TestInitState(t *testing.T) {
 	opts2, err := BuildGenesis(
 		[]GenesisAccount{{Address: addr2, Wallet: wallet2}},
 		[]GenesisToken{ToGenesisToken(ticker2, token2), ToGenesisToken(ticker2a, token2a)})
-	fmt.Println(string(opts2[optToken]))
+	require.NoError(t, err)
+
+	// invalid wallet
+	badCoin := x.NewCoin(100, -5000, "ATM")
+	walletBad := &Wallet{Coins: []*x.Coin{&badCoin}}
+	opts3, err := BuildGenesis(
+		[]GenesisAccount{{Address: addr2, Wallet: walletBad}},
+		[]GenesisToken{ToGenesisToken(ticker2, token2)})
+	require.NoError(t, err)
+
+	// invalid token
+	tickerBad := "LONGER"
+	opts4, err := BuildGenesis(
+		[]GenesisAccount{{Address: addr2, Wallet: wallet2}},
+		[]GenesisToken{ToGenesisToken(tickerBad, token2)})
 	require.NoError(t, err)
 
 	cases := []struct {
@@ -68,7 +82,9 @@ func TestInitState(t *testing.T) {
 			[]string{ticker2, ticker2a},
 			[]*Token{token2, token2a}},
 		// hand-built invalid coins
+		3: {opts3, true, nil, nil, nil, nil},
 		// hand-built invalid tickers
+		4: {opts4, true, nil, nil, nil, nil},
 	}
 
 	init := Initializer{}

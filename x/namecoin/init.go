@@ -2,7 +2,6 @@ package namecoin
 
 import (
 	"encoding/json"
-	"fmt"
 
 	"github.com/confio/weave"
 	"github.com/confio/weave/errors"
@@ -88,7 +87,6 @@ func setWallets(db weave.KVStore, gens []GenesisAccount) error {
 func setTokens(db weave.KVStore, gens []GenesisToken) error {
 	bucket := NewTokenBucket()
 	for _, gen := range gens {
-		fmt.Println("Saving " + gen.Ticker)
 		token := NewToken(gen.Ticker, gen.Name, gen.SigFigs)
 		err := bucket.Save(db, token)
 		if err != nil {

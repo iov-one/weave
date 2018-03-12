@@ -1,10 +1,9 @@
 package namecoin
 
 import (
-	"fmt"
-
 	"github.com/confio/weave"
 	"github.com/confio/weave/orm"
+	"github.com/confio/weave/x"
 )
 
 const (
@@ -74,6 +73,7 @@ func NewTokenBucket() TokenBucket {
 	return TokenBucket{
 		Bucket: orm.NewBucket(BucketNameToken,
 			NewToken("", "", DefaultSigFigs)),
+		// orm.NewSimpleObj(nil, &Token{SigFigs: DefaultSigFigs})),
 	}
 }
 
@@ -97,7 +97,10 @@ func (b TokenBucket) Save(db weave.KVStore, obj orm.Object) error {
 	if _, ok := obj.Value().(*Token); !ok {
 		return ErrInvalidObject(obj.Value())
 	}
-	fmt.Printf("Saving at: %s\n", string(obj.Key()))
+	name := string(obj.Key())
+	if !x.IsCC(name) {
+		return ErrInvalidTokenName(name)
+	}
 	return b.Bucket.Save(db, obj)
 }
 
