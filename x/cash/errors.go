@@ -3,6 +3,7 @@ package cash
 import (
 	"fmt"
 
+	"github.com/confio/weave"
 	"github.com/confio/weave/errors"
 	"github.com/confio/weave/x"
 )
@@ -10,11 +11,11 @@ import (
 // ABCI Response Codes
 // x/coins reserves 30 ~ 39.
 const (
-	CodeInsufficientFees  = 32
-	CodeInsufficientFunds = 33
-	CodeInvalidAmount     = 34
-	CodeInvalidMemo       = 35
-	CodeEmptyAccount      = 36
+	CodeInsufficientFees  uint32 = 32
+	CodeInsufficientFunds        = 33
+	CodeInvalidAmount            = 34
+	CodeInvalidMemo              = 35
+	CodeEmptyAccount             = 36
 )
 
 var (
@@ -54,9 +55,8 @@ func IsInvalidMemoErr(err error) bool {
 	return errors.IsSameError(errInvalidMemo, err)
 }
 
-func ErrEmptyAccount(addr []byte) error {
-	msg := fmt.Sprintf("%X", addr)
-	return errors.WithLog(msg, errEmptyAccount, CodeEmptyAccount)
+func ErrEmptyAccount(addr weave.Address) error {
+	return errors.WithLog(addr.ToString(), errEmptyAccount, CodeEmptyAccount)
 }
 func IsEmptyAccountErr(err error) bool {
 	return errors.IsSameError(errEmptyAccount, err)

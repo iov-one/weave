@@ -40,7 +40,7 @@ func TestInit(t *testing.T) {
 		doc["chain_id"])
 	assert.NotEmpty(t, doc["validators"])
 	assert.NotEmpty(t, doc[server.AppStateKey])
-	assert.Contains(t, string(doc[server.AppStateKey]), `"currency_code": "ETH"`)
+	assert.Contains(t, string(doc[server.AppStateKey]), `"ticker": "ETH"`)
 }
 
 // setupConfig creates a homedir to run inside,

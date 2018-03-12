@@ -72,7 +72,8 @@ func TestSend(t *testing.T) {
 	for i, tc := range cases {
 		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
 			auth := helpers.Authenticate(tc.signers...)
-			h := NewSendHandler(auth)
+			controller := NewController(NewBucket())
+			h := NewSendHandler(auth, controller)
 
 			kv := store.MemStore()
 			bucket := NewBucket()

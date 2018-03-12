@@ -240,8 +240,8 @@ func TestAddCoin(t *testing.T) {
 		},
 		// overflow
 		{
-			NewCoin(500500500, 0, "SEE"),
-			NewCoin(500500500, 0, "SEE"),
+			NewCoin(500500500123456, 0, "SEE"),
+			NewCoin(500500500123456, 0, "SEE"),
 			Coin{},
 			true,
 		},

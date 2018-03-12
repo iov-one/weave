@@ -30,6 +30,11 @@ func Authenticator() x.Authenticator {
 	return sigs.Authenticate{}
 }
 
+// CashControl returns a controller for cash functions
+func CashControl() cash.Controller {
+	return cash.NewController(cash.NewBucket())
+}
+
 // Chain returns a chain of decorators, to handle authentication,
 // fees, logging, and recovery
 func Chain(minFee x.Coin, authFn x.Authenticator) app.Decorators {
@@ -39,7 +44,7 @@ func Chain(minFee x.Coin, authFn x.Authenticator) app.Decorators {
 		// on CheckTx, bad tx don't affect state
 		utils.NewSavepoint().OnCheck(),
 		sigs.NewDecorator(),
-		cash.NewFeeDecorator(authFn, minFee),
+		cash.NewFeeDecorator(authFn, CashControl(), minFee),
 		// on DeliverTx, bad tx will increment nonce and take fee
 		// even if the message fails
 		utils.NewSavepoint().OnDeliver(),
@@ -50,7 +55,7 @@ func Chain(minFee x.Coin, authFn x.Authenticator) app.Decorators {
 // cash.SendMsg
 func Router(authFn x.Authenticator) app.Router {
 	r := app.NewRouter()
-	cash.RegisterRoutes(r, authFn)
+	cash.RegisterRoutes(r, authFn, CashControl())
 	return r
 }
 

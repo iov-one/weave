@@ -140,7 +140,9 @@ func TestFees(t *testing.T) {
 	for i, tc := range cases {
 		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
 			auth := helpers.Authenticate(tc.signers...)
-			h := NewFeeDecorator(auth, tc.min).WithCollector(addr3)
+			controller := NewController(NewBucket())
+			h := NewFeeDecorator(auth, controller, tc.min).
+				WithCollector(addr3)
 
 			kv := store.MemStore()
 			bucket := NewBucket()

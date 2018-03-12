@@ -33,11 +33,11 @@ func TestApp(t *testing.T) {
             "cash": [{
                 "address": "%X",
                 "coins": [{
-                    "integer": 50000,
-                    "currency_code": "ETH"
+                    "whole": 50000,
+                    "ticker": "ETH"
                     }, {
-                    "integer": 1234,
-                    "currency_code": "FRNK"
+                    "whole": 1234,
+                    "ticker": "FRNK"
                 }]
             }]
         }
@@ -67,8 +67,8 @@ func TestApp(t *testing.T) {
 	err = acct.Unmarshal(qres.Value)
 	require.NoError(t, err)
 	require.Equal(t, 2, len(acct.Coins))
-	assert.Equal(t, int32(50000), acct.Coins[0].Integer)
-	assert.Equal(t, "FRNK", acct.Coins[1].CurrencyCode)
+	assert.Equal(t, int64(50000), acct.Coins[0].Whole)
+	assert.Equal(t, "FRNK", acct.Coins[1].Ticker)
 
 	// build and sign a transaction
 	pk2 := crypto.GenPrivKeyEd25519()
@@ -77,8 +77,8 @@ func TestApp(t *testing.T) {
 		Src:  addr,
 		Dest: addr2,
 		Amount: &x.Coin{
-			Integer:      2000,
-			CurrencyCode: "ETH",
+			Whole:  2000,
+			Ticker: "ETH",
 		},
 		Memo: "Have a great trip!",
 	}
@@ -116,8 +116,8 @@ func TestApp(t *testing.T) {
 	err = acct2.Unmarshal(qres.Value)
 	require.NoError(t, err)
 	require.Equal(t, 2, len(acct2.Coins))
-	assert.Equal(t, int32(48000), acct2.Coins[0].Integer)
-	assert.Equal(t, int32(1234), acct2.Coins[1].Integer)
+	assert.Equal(t, int64(48000), acct2.Coins[0].Whole)
+	assert.Equal(t, int64(1234), acct2.Coins[1].Whole)
 
 	// make sure money arrived safely
 	key2 := cash.NewBucket().DBKey(addr2)
@@ -132,7 +132,7 @@ func TestApp(t *testing.T) {
 	err = acct3.Unmarshal(qres2.Value)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(acct3.Coins))
-	assert.Equal(t, int32(2000), acct3.Coins[0].Integer)
-	assert.Equal(t, "ETH", acct3.Coins[0].CurrencyCode)
+	assert.Equal(t, int64(2000), acct3.Coins[0].Whole)
+	assert.Equal(t, "ETH", acct3.Coins[0].Ticker)
 
 }

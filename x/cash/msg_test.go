@@ -113,7 +113,7 @@ func TestValidateFeeTx(t *testing.T) {
 
 	zero := &FeeInfo{
 		Payer: addr2,
-		Fees:  &x.Coin{CurrencyCode: "BAR"},
+		Fees:  &x.Coin{Ticker: "BAR"},
 	}
 	assert.NoError(t, zero.Validate())
 

@@ -25,7 +25,7 @@ func TestGenInitOptions(t *testing.T) {
 			val, err := GenInitOptions(tc.args)
 			require.NoError(t, err)
 
-			cc := fmt.Sprintf(`"currency_code": "%s"`, tc.cur)
+			cc := fmt.Sprintf(`"ticker": "%s"`, tc.cur)
 			assert.Contains(t, string(val), cc)
 
 			ca := fmt.Sprintf(`"address": "%s"`, tc.addr)
