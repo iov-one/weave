@@ -16,7 +16,7 @@ const (
 	MinInt = -MaxInt
 
 	// FracUnit is the smallest numbers we divide by
-	FracUnit int32 = 1000000000 // fractional units = 10^9
+	FracUnit int64 = 1000000000 // fractional units = 10^9
 	// MaxFrac is the highest possible fractional value
 	MaxFrac = FracUnit - 1
 	// MinFrac is the lowest possible fractional value
@@ -24,7 +24,7 @@ const (
 )
 
 // NewCoin creates a new coin object
-func NewCoin(whole int64, fractional int32,
+func NewCoin(whole int64, fractional int64,
 	ticker string) Coin {
 
 	return Coin{

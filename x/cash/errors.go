@@ -10,11 +10,11 @@ import (
 // ABCI Response Codes
 // x/coins reserves 30 ~ 39.
 const (
-	CodeInsufficientFees  = 32
-	CodeInsufficientFunds = 33
-	CodeInvalidAmount     = 34
-	CodeInvalidMemo       = 35
-	CodeEmptyAccount      = 36
+	CodeInsufficientFees  uint32 = 32
+	CodeInsufficientFunds        = 33
+	CodeInvalidAmount            = 34
+	CodeInvalidMemo              = 35
+	CodeEmptyAccount             = 36
 )
 
 var (

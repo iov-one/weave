@@ -16,7 +16,7 @@ message Coin {
     int64 whole = 1;
     // Billionth of coins. 0 <= abs(fractional) < 10^9
     // If fractional != 0, must have same sign as integer
-    int32 fractional = 2;
+    int64 fractional = 2;
     // Ticker is 3-4 upper-case letters and
     // all Coins of the same currency can be combined
     string ticker = 3;
