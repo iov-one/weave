@@ -11,7 +11,11 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func saveAllTokens(b TokenBucket, db weave.KVStore, objs []orm.Object) error {
+type saver interface {
+	Save(weave.KVStore, orm.Object) error
+}
+
+func saveAll(b saver, db weave.KVStore, objs []orm.Object) error {
 	for _, obj := range objs {
 		err := b.Save(db, obj)
 		if err != nil {
@@ -53,39 +57,28 @@ func TestTokenBucket(t *testing.T) {
 			},
 			false,
 			[]string{"ABC", "LED"},
-			[]*Token{&Token{"Michael", 5}, &Token{"Zeppelin", 4}},
-		},
-		// cannot double-create tokens
-		7: {
-			[]orm.Object{
-				NewToken("ABC", "Michael", 5),
-				NewToken("ABC", "Jackson", 8),
-			},
-			true, nil, nil,
+			[]*Token{&Token{"Jackson", 5}, &Token{"Zeppelin", 4}},
 		},
 	}
 
 	for i, tc := range cases {
-		if i == 5 {
-			t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
-				db := store.MemStore()
-				err := saveAllTokens(bucket, db, tc.set)
-				if tc.setError {
-					require.Error(t, err)
-					return
-				}
+		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
+			db := store.MemStore()
+			err := saveAll(bucket, db, tc.set)
+			if tc.setError {
+				require.Error(t, err)
+				return
+			}
+			require.NoError(t, err)
+
+			for j, q := range tc.queries {
+				token, err := bucket.Get(db, q)
 				require.NoError(t, err)
-
-				for j, q := range tc.queries {
-					token, err := bucket.Get(db, q)
-					require.NoError(t, err)
-					if token != nil {
-						assert.EqualValues(t, q, AsTicker(token))
-					}
-					assert.EqualValues(t, tc.expected[j], AsToken(token), q)
+				if token != nil {
+					assert.EqualValues(t, q, AsTicker(token))
 				}
-			})
-		}
-
+				assert.EqualValues(t, tc.expected[j], AsToken(token), q)
+			}
+		})
 	}
 }
