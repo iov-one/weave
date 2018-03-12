@@ -11,6 +11,7 @@
 		Wallet
 		Token
 		NewTickerMsg
+		SetWalletNameMsg
 */
 package namecoin
 
@@ -117,10 +118,37 @@ func (m *NewTickerMsg) GetSigFigs() int32 {
 	return 0
 }
 
+// SetWalletNameMsg will set the name on an existing
+// wallet. Can only be performed if the wallet name is empty.
+type SetWalletNameMsg struct {
+	Address []byte `protobuf:"bytes,1,opt,name=address,proto3" json:"address,omitempty"`
+	Name    string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+}
+
+func (m *SetWalletNameMsg) Reset()                    { *m = SetWalletNameMsg{} }
+func (m *SetWalletNameMsg) String() string            { return proto.CompactTextString(m) }
+func (*SetWalletNameMsg) ProtoMessage()               {}
+func (*SetWalletNameMsg) Descriptor() ([]byte, []int) { return fileDescriptorCodec, []int{3} }
+
+func (m *SetWalletNameMsg) GetAddress() []byte {
+	if m != nil {
+		return m.Address
+	}
+	return nil
+}
+
+func (m *SetWalletNameMsg) GetName() string {
+	if m != nil {
+		return m.Name
+	}
+	return ""
+}
+
 func init() {
 	proto.RegisterType((*Wallet)(nil), "namecoin.Wallet")
 	proto.RegisterType((*Token)(nil), "namecoin.Token")
 	proto.RegisterType((*NewTickerMsg)(nil), "namecoin.NewTickerMsg")
+	proto.RegisterType((*SetWalletNameMsg)(nil), "namecoin.SetWalletNameMsg")
 }
 func (m *Wallet) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
@@ -222,6 +250,36 @@ func (m *NewTickerMsg) MarshalTo(dAtA []byte) (int, error) {
 	return i, nil
 }
 
+func (m *SetWalletNameMsg) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalTo(dAtA)
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *SetWalletNameMsg) MarshalTo(dAtA []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	if len(m.Address) > 0 {
+		dAtA[i] = 0xa
+		i++
+		i = encodeVarintCodec(dAtA, i, uint64(len(m.Address)))
+		i += copy(dAtA[i:], m.Address)
+	}
+	if len(m.Name) > 0 {
+		dAtA[i] = 0x12
+		i++
+		i = encodeVarintCodec(dAtA, i, uint64(len(m.Name)))
+		i += copy(dAtA[i:], m.Name)
+	}
+	return i, nil
+}
+
 func encodeVarintCodec(dAtA []byte, offset int, v uint64) int {
 	for v >= 1<<7 {
 		dAtA[offset] = uint8(v&0x7f | 0x80)
@@ -273,6 +331,20 @@ func (m *NewTickerMsg) Size() (n int) {
 	}
 	if m.SigFigs != 0 {
 		n += 1 + sovCodec(uint64(m.SigFigs))
+	}
+	return n
+}
+
+func (m *SetWalletNameMsg) Size() (n int) {
+	var l int
+	_ = l
+	l = len(m.Address)
+	if l > 0 {
+		n += 1 + l + sovCodec(uint64(l))
+	}
+	l = len(m.Name)
+	if l > 0 {
+		n += 1 + l + sovCodec(uint64(l))
 	}
 	return n
 }
@@ -625,6 +697,116 @@ func (m *NewTickerMsg) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+func (m *SetWalletNameMsg) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowCodec
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= (uint64(b) & 0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: SetWalletNameMsg: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: SetWalletNameMsg: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Address", wireType)
+			}
+			var byteLen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				byteLen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if byteLen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + byteLen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Address = append(m.Address[:0], dAtA[iNdEx:postIndex]...)
+			if m.Address == nil {
+				m.Address = []byte{}
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Name", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= (uint64(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Name = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipCodec(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
 func skipCodec(dAtA []byte) (n int, err error) {
 	l := len(dAtA)
 	iNdEx := 0
@@ -733,7 +915,7 @@ var (
 func init() { proto.RegisterFile("x/namecoin/codec.proto", fileDescriptorCodec) }
 
 var fileDescriptorCodec = []byte{
-	// 224 bytes of a gzipped FileDescriptorProto
+	// 257 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x12, 0xab, 0xd0, 0xcf, 0x4b,
 	0xcc, 0x4d, 0x4d, 0xce, 0xcf, 0xcc, 0xd3, 0x4f, 0xce, 0x4f, 0x49, 0x4d, 0xd6, 0x2b, 0x28, 0xca,
 	0x2f, 0xc9, 0x17, 0xe2, 0x80, 0x89, 0x4a, 0xa9, 0xa6, 0x67, 0x96, 0x64, 0x94, 0x26, 0xe9, 0x25,
@@ -745,7 +927,10 @@ var fileDescriptorCodec = []byte{
 	0x0a, 0x49, 0x72, 0x71, 0x14, 0x67, 0xa6, 0xc7, 0xa7, 0x65, 0xa6, 0x17, 0x4b, 0x30, 0x2b, 0x30,
 	0x6a, 0xb0, 0x06, 0xb1, 0x17, 0x67, 0xa6, 0xbb, 0x65, 0xa6, 0x17, 0x2b, 0x85, 0x72, 0xf1, 0xf8,
 	0xa5, 0x96, 0x87, 0x64, 0x26, 0x67, 0xa7, 0x16, 0xf9, 0x16, 0xa7, 0x0b, 0x89, 0x71, 0xb1, 0x95,
-	0x80, 0x39, 0x12, 0x8c, 0x60, 0x03, 0xa0, 0x3c, 0x12, 0x8d, 0x75, 0x12, 0x38, 0xf1, 0x48, 0x8e,
-	0xf1, 0xc2, 0x23, 0x39, 0xc6, 0x07, 0x8f, 0xe4, 0x18, 0x27, 0x3c, 0x96, 0x63, 0x48, 0x62, 0x03,
-	0x7b, 0xd2, 0x18, 0x10, 0x00, 0x00, 0xff, 0xff, 0xb9, 0x53, 0xd4, 0xa0, 0x2f, 0x01, 0x00, 0x00,
+	0x80, 0x39, 0x12, 0x8c, 0x60, 0x03, 0xa0, 0x3c, 0x52, 0x8d, 0x75, 0xe0, 0x12, 0x08, 0x4e, 0x2d,
+	0x81, 0x78, 0xc7, 0x2f, 0x31, 0x37, 0x15, 0x64, 0xb4, 0x04, 0x17, 0x7b, 0x62, 0x4a, 0x4a, 0x51,
+	0x6a, 0x71, 0x31, 0xd8, 0x6c, 0x9e, 0x20, 0x18, 0x17, 0x9b, 0xe1, 0x4e, 0x02, 0x27, 0x1e, 0xc9,
+	0x31, 0x5e, 0x78, 0x24, 0xc7, 0xf8, 0xe0, 0x91, 0x1c, 0xe3, 0x84, 0xc7, 0x72, 0x0c, 0x49, 0x6c,
+	0xe0, 0x60, 0x32, 0x06, 0x04, 0x00, 0x00, 0xff, 0xff, 0xc5, 0x82, 0xbf, 0x7a, 0x71, 0x01, 0x00,
+	0x00,
 }

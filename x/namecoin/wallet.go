@@ -18,6 +18,7 @@ const (
 
 var _ orm.CloneableData = (*Wallet)(nil)
 var _ cash.Coinage = (*Wallet)(nil)
+var _ Named = (*Wallet)(nil)
 
 // SetCoins lets us modify the wallet
 // and satisfy Coinage to be compatible with x/cash
@@ -38,12 +39,32 @@ func (w *Wallet) Copy() orm.CloneableData {
 	}
 }
 
+// SetName verifies the name is valid and sets it on the wallet
+func (w *Wallet) SetName(name string) error {
+	if w.Name != "" {
+		return ErrChangeWalletName()
+	}
+	if !IsWalletName(name) {
+		return ErrInvalidWalletName(name)
+	}
+	w.Name = name
+	return nil
+}
+
 // AsWallet safely extracts a Wallet value from the object
 func AsWallet(obj orm.Object) *Wallet {
 	if obj == nil || obj.Value() == nil {
 		return nil
 	}
 	return obj.Value().(*Wallet)
+}
+
+// AsNamed returns an object that has can get/set names
+func AsNamed(obj orm.Object) Named {
+	if obj == nil || obj.Value() == nil {
+		return nil
+	}
+	return obj.Value().(Named)
 }
 
 // NewWallet creates an empty wallet with this address
@@ -104,4 +125,20 @@ func nameIndex(obj orm.Object) ([]byte, error) {
 	}
 	// big-endian encoded int64
 	return []byte(wallet.Name), nil
+}
+
+// Named is any object that allows getting/setting a string name
+// the object should be able to validate if SetName is a valid
+type Named interface {
+	GetName() string
+	SetName(string) error
+}
+
+// NamedBucket is a bucket that can handle object with Get/SetName
+// The object it returns must support AsNamed (only checked runtime :()
+type NamedBucket interface {
+	GetOrCreate(db weave.KVStore, key weave.Address) (orm.Object, error)
+	Get(db weave.KVStore, key []byte) (orm.Object, error)
+	GetByName(db weave.KVStore, name string) (orm.Object, error)
+	Save(db weave.KVStore, obj orm.Object) error
 }

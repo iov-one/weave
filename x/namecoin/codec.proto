@@ -16,8 +16,6 @@ message Token {
     int32 sig_figs = 3;
 }
 
-// Use: x.SendMsg, x.FeeInfo???
-
 // NewTickerMsg will register a new ticker.
 // This must not conflict with any existing ticker,
 // and should be limited to privledged users.
@@ -25,4 +23,11 @@ message NewTickerMsg {
     string ticker = 1;
     string name = 2;
     int32 sig_figs = 3;
+}
+
+// SetWalletNameMsg will set the name on an existing
+// wallet. Can only be performed if the wallet name is empty.
+message SetWalletNameMsg {
+    bytes address = 1;
+    string name = 2;
 }

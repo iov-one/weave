@@ -10,14 +10,17 @@ import (
 // bov takes 1000-1100
 // namecoin takes 1000-1010
 const (
-	CodeInvalidToken = 1000
-	CodeInvalidIndex = 1001
+	CodeInvalidToken  = 1000
+	CodeInvalidIndex  = 1001
+	CodeInvalidWallet = 1002
 )
 
 var (
-	errInvalidTokenName = fmt.Errorf("Invalid token name")
-	errInvalidSigFigs   = fmt.Errorf("Invalid significant figures")
-	errInvalidIndex     = fmt.Errorf("Cannot calculate index")
+	errInvalidTokenName  = fmt.Errorf("Invalid token name")
+	errInvalidSigFigs    = fmt.Errorf("Invalid significant figures")
+	errInvalidIndex      = fmt.Errorf("Cannot calculate index")
+	errInvalidWalletName = fmt.Errorf("Invalid name for a wallet")
+	errChangeWalletName  = fmt.Errorf("Wallet already has a name")
 )
 
 func ErrInvalidTokenName(name string) error {
@@ -36,4 +39,14 @@ func ErrInvalidIndex(reason string) error {
 }
 func IsInvalidIndex(err error) bool {
 	return errors.HasErrorCode(err, CodeInvalidIndex)
+}
+
+func ErrChangeWalletName() error {
+	return errors.WithCode(errChangeWalletName, CodeInvalidWallet)
+}
+func ErrInvalidWalletName(name string) error {
+	return errors.WithLog(name, errInvalidWalletName, CodeInvalidWallet)
+}
+func IsInvalidWallet(err error) bool {
+	return errors.HasErrorCode(err, CodeInvalidWallet)
 }
