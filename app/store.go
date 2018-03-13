@@ -177,7 +177,29 @@ func (s *StoreApp) SetOption(res abci.RequestSetOption) abci.ResponseSetOption {
 	return abci.ResponseSetOption{Log: "Not Implemented"}
 }
 
-// Query - ABCI
+/*
+Query gets data from the app store.
+A query request has the following elements:
+* Path - the type of query
+* Data - what to query, interpretted based on Path
+* Height - the block height to query (if 0 most recent)
+* Prove - if true, also return a proof
+
+We support the following paths:
+* /key
+  - Data is the raw bytes of a key in the kv store
+  - Result.Value is raw data stored under that key
+* /prefix
+  - Data is a Prefix Query (prefix plus limit)
+  - Result.Key is a MultiKey (list of keys, plus metadata)
+  - Result.Value is a MultiValue (list of values)
+* /range
+  - Data is a Range Query (start, end, reverse, limit)
+  - Result.Key is a MultiKey
+  - Result.Value is a MultiValue
+
+We must also clarify proof format
+*/
 func (s *StoreApp) Query(reqQuery abci.RequestQuery) (resQuery abci.ResponseQuery) {
 	if len(reqQuery.Data) == 0 {
 		resQuery.Log = "Query cannot be zero length"
@@ -205,7 +227,7 @@ func (s *StoreApp) Query(reqQuery abci.RequestQuery) (resQuery abci.ResponseQuer
 	resQuery.Height = height
 
 	switch reqQuery.Path {
-	case "/store", "/key": // Get by key
+	case "/key": // Get by key
 		key := reqQuery.Data // Data holds the key bytes
 		resQuery.Key = key
 		// TODO: support proofs
