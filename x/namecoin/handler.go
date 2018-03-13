@@ -193,5 +193,11 @@ func (h SetNameHandler) validate(ctx weave.Context, db weave.KVStore,
 	if err != nil {
 		return nil, err
 	}
+
+	// only wallet owner can set the name
+	if !h.auth.HasPermission(ctx, msg.Address) {
+		return nil, errors.ErrUnauthorized()
+	}
+
 	return msg, nil
 }

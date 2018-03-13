@@ -72,3 +72,11 @@ func (s *SetWalletNameMsg) Validate() error {
 	}
 	return nil
 }
+
+// BuildSetNameMsg is a compact constructor for *SetWalletNameMsg
+func BuildSetNameMsg(addr weave.Address, name string) *SetWalletNameMsg {
+	return &SetWalletNameMsg{
+		Address: addr,
+		Name:    name,
+	}
+}
