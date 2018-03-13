@@ -14,7 +14,7 @@ func TestGenInitOptions(t *testing.T) {
 		cur  string
 		addr string
 	}{
-		{nil, "MYC", ""},
+		{nil, "IOV", ""},
 		{[]string{"ONE"}, "ONE", ""},
 		{[]string{"TWO", "1234567890"}, "TWO", "1234567890"},
 		{[]string{"THR", "5238975983695", "FOO"}, "THR", "5238975983695"},

@@ -1,8 +1,8 @@
 hash: d35772924e48cc4f51b83ab182875a2c622fbf6c61a9f061bf74d0b751bc40be
-updated: 2018-03-13T15:57:30.288377525+01:00
+updated: 2018-03-13T20:02:13.611303268+01:00
 imports:
 - name: github.com/confio/weave
-  version: b740ad949de3b4890c6b4b87880394dd743f1f80
+  version: fdca81b5f0fdf9572243e30fb573dc94304b08ad
   subpackages:
   - app
   - crypto
@@ -12,6 +12,8 @@ imports:
   - store/iavl
   - x
   - x/cash
+  - x/sigs
+  - x/utils
 - name: github.com/go-kit/kit
   version: 4dc7be5d2d12881735283bcab7352178e190fc71
   subpackages:
@@ -40,12 +42,31 @@ imports:
   - ptypes/any
   - ptypes/duration
   - ptypes/timestamp
+- name: github.com/golang/snappy
+  version: 553a641470496b2327abcac10b36396bd98e45c9
 - name: github.com/google/btree
   version: 316fb6d3f031ae8f4d457c6c5186b9e3ded70435
+- name: github.com/jmhodges/levigo
+  version: c42d9e0ca023e2198120196f842701bb4c55d7b9
 - name: github.com/kr/logfmt
   version: b84e30acd515aadc4b783ad4ff83aff3299bdfe0
 - name: github.com/pkg/errors
   version: 645ef00459ed84a119197bfb8d8205042c6df63d
+- name: github.com/syndtr/goleveldb
+  version: 34011bf325bce385408353a30b101fe5e923eb6e
+  subpackages:
+  - leveldb
+  - leveldb/cache
+  - leveldb/comparer
+  - leveldb/errors
+  - leveldb/filter
+  - leveldb/iterator
+  - leveldb/journal
+  - leveldb/memdb
+  - leveldb/opt
+  - leveldb/storage
+  - leveldb/table
+  - leveldb/util
 - name: github.com/tendermint/abci
   version: 68592f4d8ee34e97db94b7a7976b1309efdb7eb9
   subpackages:
@@ -54,6 +75,8 @@ imports:
   version: b6fc872b42d41158a60307db4da051dd6f179415
   subpackages:
   - data
+- name: github.com/tendermint/iavl
+  version: 669ff61054a14c4542dbd657ab438800d5630e45
 - name: github.com/tendermint/tmlibs
   version: 1b9b5652a199ab0be2e781393fb275b66377309d
   subpackages:
@@ -61,7 +84,7 @@ imports:
   - db
   - log
 - name: golang.org/x/crypto
-  version: 182114d582623c1caa54f73de9c7224e23a48487
+  version: 13931e22f9e72ea58bb73048bc752b48c6d4d4ac
   subpackages:
   - ed25519
   - ed25519/internal/edwards25519
@@ -108,7 +131,7 @@ imports:
   - transport
 testImports:
 - name: github.com/davecgh/go-spew
-  version: 8991bc29aa16c548c550c7ff78260e27b9ab7c73
+  version: ecdeabc65495df2dec95d7c4a4c3e021903035e5
   subpackages:
   - spew
 - name: github.com/pmezard/go-difflib
