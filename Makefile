@@ -2,6 +2,7 @@
 
 GIT_COMMIT := $(shell git rev-parse --short HEAD)
 BUILD_FLAGS := -ldflags "-X github.com/iov-one/bov-core.GitCommit=$(GIT_COMMIT)"
+TENDERMINT := ${GOBIN}/tendermint
 
 # dont use `` in the makefile for windows compatibility
 NOVENDOR := $(shell go list ./...)
@@ -35,12 +36,19 @@ cover:
 		go tool cover -html=coverage/$$file.out -o=coverage/$$file.html; \
 	done
 
-deps: glide
-	@glide mirror set https://github.com/tendermint/go-wire https://github.com/ethanfrey/go-wire
+deps: glide $(TENDERMINT)
 	@glide install
 
 glide:
 	@go get github.com/Masterminds/glide
+	@glide mirror set https://github.com/tendermint/go-wire https://github.com/ethanfrey/go-wire
+
+$(TENDERMINT):
+	@ #install tendermint binary for testing
+	@ #go get -u github.com/tendermint/tendermint/cmd/tendermint
+	@ # Use this if the above fails
+	go get -u -d github.com/tendermint/tendermint || true
+	cd $$GOPATH/src/github.com/tendermint/tendermint && make get_vendor_deps && make install
 
 protoc:
 	protoc --gogofaster_out=. -I=. -I=./vendor x/namecoin/*.proto
