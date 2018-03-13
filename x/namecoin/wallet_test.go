@@ -54,54 +54,73 @@ func TestWalletBucket(t *testing.T) {
 	bob := &Wallet{Name: "bobby", Coins: coins2}
 
 	cases := []struct {
-		set      []orm.Object
-		setError bool
-		queries  []weave.Address
-		expected []*Wallet
+		set           []orm.Object
+		setError      bool
+		queries       []weave.Address
+		expected      []*Wallet
+		queryNames    []string
+		expectedNames []*Wallet
 	}{
 		// empty
-		0: {nil, false, []weave.Address{addr}, []*Wallet{nil}},
+		0: {nil, false,
+			[]weave.Address{addr}, []*Wallet{nil},
+			[]string{"alice"}, []*Wallet{nil},
+		},
 		// reject wrong type
-		1: {[]orm.Object{NewToken("ERC", "Special", 8)}, true, nil, nil},
+		1: {[]orm.Object{NewToken("ERC", "Special", 8)}, true,
+			nil, nil,
+			nil, nil},
 		// reject invalid wallets - no address
-		2: {[]orm.Object{NewWallet(nil)}, true, nil, nil},
+		2: {[]orm.Object{NewWallet(nil)}, true,
+			nil, nil,
+			nil, nil},
 		// allow empty wallet
-		3: {[]orm.Object{NewWallet(addr)}, false, []weave.Address{addr}, []*Wallet{&Wallet{}}},
+		3: {[]orm.Object{NewWallet(addr)}, false,
+			[]weave.Address{addr}, []*Wallet{&Wallet{}},
+			[]string{"alice"}, []*Wallet{nil},
+		},
 		// invalid name
 		4: {
 			[]orm.Object{orm.NewSimpleObj(addr,
 				&Wallet{Name: "yo", Coins: coins})},
-			true, nil, nil},
+			true,
+			nil, nil,
+			nil, nil,
+		},
 		// valid
 		5: {
 			[]orm.Object{orm.NewSimpleObj(addr, alice)},
 			false,
-			[]weave.Address{addr, addr2},
-			[]*Wallet{alice, nil}},
+			[]weave.Address{addr, addr2}, []*Wallet{alice, nil},
+			[]string{"alice", "bob"}, []*Wallet{alice, nil},
+		},
 		// multiple entries
 		6: {
 			[]orm.Object{
 				orm.NewSimpleObj(addr, alice),
 				orm.NewSimpleObj(addr2, bob)},
 			false,
-			[]weave.Address{addr, addr2},
-			[]*Wallet{alice, bob}},
+			[]weave.Address{addr, addr2}, []*Wallet{alice, bob},
+			[]string{"alice", "bobby"}, []*Wallet{alice, bob},
+		},
 		// update one entry with new coins
 		7: {
 			[]orm.Object{
 				orm.NewSimpleObj(addr, alice),
 				orm.NewSimpleObj(addr, alice2)},
 			false,
-			[]weave.Address{addr, addr2},
-			[]*Wallet{alice2, nil}},
+			[]weave.Address{addr, addr2}, []*Wallet{alice2, nil},
+			[]string{"alice"}, []*Wallet{alice2},
+		},
 		// same name on two wallets fails
 		8: {
 			[]orm.Object{
 				orm.NewSimpleObj(addr, alice),
 				orm.NewSimpleObj(addr2, alice2)},
 			true,
-			[]weave.Address{addr, addr2},
-			[]*Wallet{nil, nil}},
+			nil, nil,
+			nil, nil,
+		},
 		// TODO: not enforced in bucket, but in handler (SetName)
 		// is that enough or should be make this test pass??
 		// // update one entry with new name fails
@@ -132,6 +151,16 @@ func TestWalletBucket(t *testing.T) {
 				}
 				assert.EqualValues(t, tc.expected[j], AsWallet(obj), "%x", q)
 			}
+
+			for j, q := range tc.queryNames {
+				obj, err := bucket.GetByName(db, q)
+				require.NoError(t, err)
+				if obj != nil {
+					assert.EqualValues(t, q, AsNamed(obj).GetName())
+				}
+				assert.EqualValues(t, tc.expectedNames[j], AsWallet(obj), q)
+			}
+
 		})
 	}
 }
