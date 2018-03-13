@@ -43,10 +43,15 @@ func TestValidateWalletBucket(t *testing.T) {
 func TestWalletBucket(t *testing.T) {
 	bucket := NewWalletBucket()
 	addr := weave.NewAddress([]byte{1, 2, 3, 4})
+	addr2 := weave.NewAddress([]byte{7, 8, 9, 0})
 
 	coin := x.NewCoin(100, 0, "RTC")
 	coins := []*x.Coin{&coin}
+	coin2 := x.NewCoin(532, 235, "LRN")
+	coins2 := []*x.Coin{&coin2, &coin}
 	alice := &Wallet{Name: "alice", Coins: coins}
+	alice2 := &Wallet{Name: "alice", Coins: coins2}
+	bob := &Wallet{Name: "bobby", Coins: coins2}
 
 	cases := []struct {
 		set      []orm.Object
@@ -65,36 +70,48 @@ func TestWalletBucket(t *testing.T) {
 		// invalid name
 		4: {
 			[]orm.Object{orm.NewSimpleObj(addr,
-				&Wallet{Name: "(YB)nu2(*^%", Coins: coins})},
+				&Wallet{Name: "yo", Coins: coins})},
 			true, nil, nil},
 		// valid
 		5: {
 			[]orm.Object{orm.NewSimpleObj(addr, alice)},
-			false, []weave.Address{addr}, []*Wallet{alice}},
-		// // query works fine with one or two tokens
-		// 5: {
-		// 	[]orm.Object{NewToken("ABC", "Michael", 5)},
-		// 	false,
-		// 	[]string{"ABC", "LED"},
-		// 	[]*Token{&Token{"Michael", 5}, nil},
-		// },
-		// 6: {
+			false,
+			[]weave.Address{addr, addr2},
+			[]*Wallet{alice, nil}},
+		// multiple entries
+		6: {
+			[]orm.Object{
+				orm.NewSimpleObj(addr, alice),
+				orm.NewSimpleObj(addr2, bob)},
+			false,
+			[]weave.Address{addr, addr2},
+			[]*Wallet{alice, bob}},
+		// update one entry with new coins
+		7: {
+			[]orm.Object{
+				orm.NewSimpleObj(addr, alice),
+				orm.NewSimpleObj(addr, alice2)},
+			false,
+			[]weave.Address{addr, addr2},
+			[]*Wallet{alice2, nil}},
+		// same name on two wallets fails
+		8: {
+			[]orm.Object{
+				orm.NewSimpleObj(addr, alice),
+				orm.NewSimpleObj(addr2, alice2)},
+			true,
+			[]weave.Address{addr, addr2},
+			[]*Wallet{nil, nil}},
+		// TODO: not enforced in bucket, but in handler (SetName)
+		// is that enough or should be make this test pass??
+		// // update one entry with new name fails
+		// 9: {
 		// 	[]orm.Object{
-		// 		NewToken("ABC", "Jackson", 5),
-		// 		NewToken("LED", "Zeppelin", 4),
-		// 	},
-		// 	false,
-		// 	[]string{"ABC", "LED"},
-		// 	[]*Token{&Token{"Michael", 5}, &Token{"Zeppelin", 4}},
-		// },
-		// // cannot double-create tokens
-		// 7: {
-		// 	[]orm.Object{
-		// 		NewToken("ABC", "Michael", 5),
-		// 		NewToken("ABC", "Jackson", 8),
-		// 	},
-		// 	true, nil, nil,
-		// },
+		// 		orm.NewSimpleObj(addr, alice),
+		// 		orm.NewSimpleObj(addr, bob)},
+		// 	true,
+		// 	[]weave.Address{addr, addr2},
+		// 	[]*Wallet{nil, nil}},
 	}
 
 	for i, tc := range cases {
