@@ -44,7 +44,8 @@ glide:
 
 protoc:
 	protoc --gogofaster_out=. -I=. -I=./vendor x/namecoin/*.proto
-	# protoc --gogofaster_out=. -I=. -I=$$GOPATH/src x/namecoin/*.proto
+	@ # $$GOPATH/src go we can import namecoin .proto
+	protoc --gogofaster_out=. -I=. -I=./vendor -I=$$GOPATH/src app/*.proto
 
 ### cross-platform check for installing protoc ###
 

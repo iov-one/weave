@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package app;
+
+import "github.com/confio/weave/x/cash/codec.proto";
+import "github.com/confio/weave/x/sigs/codec.proto";
+
+import "github.com/iov-one/bov-core/x/namecoin/codec.proto";
+
+// Tx contains the message
+message Tx {
+  // msg is a sum type over all allowed messages on this chain.
+  oneof sum{
+    cash.SendMsg send_msg = 1;
+    namecoin.NewTokenMsg new_token_msg = 2;
+    namecoin.SetWalletNameMsg set_name_msg = 3;
+    // space here to allow many more....
+  }
+  // fee info, autogenerates GetFees()
+  cash.FeeInfo fees = 20;
+  // signatures, autogenerates GetSignatures()
+  repeated sigs.StdSignature signatures = 21;
+}
