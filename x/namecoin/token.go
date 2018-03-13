@@ -77,15 +77,16 @@ func NewTokenBucket() TokenBucket {
 	}
 }
 
-// GetOrCreate will return the token if found, or create one
-// with the given name otherwise.
-func (b TokenBucket) GetOrCreate(db weave.KVStore, ticker string) (orm.Object, error) {
-	obj, err := b.Get(db, ticker)
-	if err == nil && obj == nil {
-		obj = NewToken(ticker, "", DefaultSigFigs)
-	}
-	return obj, err
-}
+// TODO: remove??? On afterthought, this is probably never needed
+// // GetOrCreate will return the token if found, or create one
+// // with the given name otherwise.
+// func (b TokenBucket) GetOrCreate(db weave.KVStore, ticker string) (orm.Object, error) {
+// 	obj, err := b.Get(db, ticker)
+// 	if err == nil && obj == nil {
+// 		obj = NewToken(ticker, "", DefaultSigFigs)
+// 	}
+// 	return obj, err
+// }
 
 // Get takes the token name and converts it to a byte key
 func (b TokenBucket) Get(db weave.KVStore, ticker string) (orm.Object, error) {
@@ -106,7 +107,7 @@ func (b TokenBucket) Save(db weave.KVStore, obj orm.Object) error {
 
 // TickerBucket can save and query Tokens (or anything with tickers...)
 type TickerBucket interface {
-	GetOrCreate(db weave.KVStore, ticker string) (orm.Object, error)
+	// GetOrCreate(db weave.KVStore, ticker string) (orm.Object, error)
 	Get(db weave.KVStore, ticker string) (orm.Object, error)
 	Save(db weave.KVStore, obj orm.Object) error
 }
