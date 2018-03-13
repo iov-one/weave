@@ -13,8 +13,8 @@ var _ weave.Msg = (*NewTokenMsg)(nil)
 
 const (
 	pathNewTokenMsg       = "namecoin/ticker"
-	pathSetNameMsg         = "namecoin/set_name"
-	setNameCost      int64 = 50
+	pathSetNameMsg        = "namecoin/set_name"
+	setNameCost     int64 = 50
 	newTokenCost    int64 = 100
 
 	minSigFigs = 0
@@ -46,6 +46,15 @@ func (t *NewTokenMsg) Validate() error {
 		return ErrInvalidSigFigs(t.SigFigs)
 	}
 	return nil
+}
+
+// BuildTokenMsg is a compact constructor for *NewTokenMsg
+func BuildTokenMsg(ticker, name string, sigFigs int32) *NewTokenMsg {
+	return &NewTokenMsg{
+		Ticker:  ticker,
+		Name:    name,
+		SigFigs: sigFigs,
+	}
 }
 
 // Path returns the routing path for this message

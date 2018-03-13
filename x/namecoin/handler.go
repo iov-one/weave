@@ -84,19 +84,9 @@ func (h TokenHandler) Deliver(ctx weave.Context, db weave.KVStore,
 		return res, err
 	}
 
-	// set the token
-	obj, err := h.bucket.GetOrCreate(db, msg.Ticker)
-	if err != nil {
-		return res, err
-	}
-	if obj != nil {
-		return res, ErrDuplicateToken(msg.Ticker)
-	}
-	token := AsToken(obj)
-	token.SigFigs = msg.SigFigs // TODO: defaults???
-	token.Name = msg.Name
-
-	err = h.bucket.Save(db, obj)
+	// make the token
+	token := NewToken(msg.Ticker, msg.Name, msg.SigFigs)
+	err = h.bucket.Save(db, token)
 	return res, err
 }
 
@@ -122,6 +112,16 @@ func (h TokenHandler) validate(ctx weave.Context, db weave.KVStore,
 	if h.issuer != nil && !h.auth.HasPermission(ctx, h.issuer) {
 		return nil, errors.ErrUnauthorized()
 	}
+
+	// make sure no token there yet
+	obj, err := h.bucket.Get(db, msg.Ticker)
+	if err != nil {
+		return nil, err
+	}
+	if obj != nil {
+		return nil, ErrDuplicateToken(msg.Ticker)
+	}
+
 	return msg, nil
 }
 
