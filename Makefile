@@ -36,6 +36,7 @@ cover:
 	done
 
 deps: glide
+	@glide mirror set https://github.com/tendermint/go-wire https://github.com/ethanfrey/go-wire
 	@glide install
 
 glide:
