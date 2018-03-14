@@ -2,6 +2,7 @@ package orm
 
 import (
 	"bytes"
+	"sort"
 
 	"github.com/pkg/errors"
 )
@@ -59,6 +60,16 @@ func (m *MultiRef) Remove(ref []byte) error {
 	// splice it out
 	m.Refs = append(m.Refs[:i], m.Refs[i+1:]...)
 	return nil
+}
+
+// Concat returns a new MultiRef with the combined
+// content of the other two
+func (m *MultiRef) Concat(o *MultiRef) *MultiRef {
+	refs := append(m.Refs, o.Refs...)
+	sort.Slice(refs, func(i, j int) bool {
+		return bytes.Compare(refs[i], refs[j]) == -1
+	})
+	return &MultiRef{Refs: refs}
 }
 
 // returns (index, found) where found is true if

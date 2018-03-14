@@ -89,7 +89,7 @@ func (b Bucket) Query(db weave.ReadOnlyKVStore, mod string,
 		prefix := b.DBKey(data)
 		return queryPrefix(db, prefix), nil
 	default:
-		return nil, errors.New("no implemented: " + mod)
+		return nil, errors.New("not implemented: " + mod)
 	}
 }
 
@@ -197,7 +197,7 @@ func (b Bucket) WithIndex(name string, indexer Indexer, unique bool) Bucket {
 	}
 
 	iname := b.name + "_" + name
-	add := NewIndex(iname, indexer, unique)
+	add := NewIndex(iname, indexer, unique, b.DBKey)
 	indexes := make(map[string]Index, len(b.indexes)+1)
 	for n, i := range b.indexes {
 		indexes[n] = i

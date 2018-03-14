@@ -21,43 +21,21 @@ type Index struct {
 	id     []byte
 	unique bool
 	index  Indexer
+	dbkey  func([]byte) []byte
 }
 
 var _ weave.QueryHandler = Index{}
 
 // NewIndex constructs an index
-func NewIndex(name string, indexer Indexer, unique bool) Index {
+func NewIndex(name string, indexer Indexer, unique bool,
+	dbkey func([]byte) []byte) Index {
 	// TODO: index name must be [a-z_]
 	return Index{
 		name:   name,
 		id:     append(indPrefix, []byte(name+":")...),
 		index:  indexer,
 		unique: unique,
-	}
-}
-
-// Query handles queries from the QueryRouter
-func (i Index) Query(db weave.ReadOnlyKVStore, mod string,
-	data []byte) ([]weave.Model, error) {
-
-	switch mod {
-	case weave.KeyQueryMod:
-		keys, err := i.GetAt(db, data)
-		if err != nil {
-			return nil, err
-		}
-		res := make([]weave.Model, len(keys))
-		for i, key := range keys {
-			res[i] = weave.Model{
-				Key:   key,
-				Value: db.Get(key),
-			}
-		}
-		return res, nil
-	case weave.PrefixQueryMod:
-		return nil, errors.New("prefix not yet implemented")
-	default:
-		return nil, errors.New("no implemented: " + mod)
+		dbkey:  dbkey,
 	}
 }
 
@@ -121,6 +99,65 @@ func (i Index) GetAt(db weave.ReadOnlyKVStore, index []byte) ([][]byte, error) {
 		return nil, err
 	}
 	return data.GetRefs(), nil
+}
+
+// GetPrefix returns all references that have an index that
+// begins with a given prefix
+func (i Index) GetPrefix(db weave.ReadOnlyKVStore, prefix []byte) ([][]byte, error) {
+	dbPrefix := append(i.id, prefix...)
+	itr := db.Iterator(prefixRange(dbPrefix))
+	data := new(MultiRef)
+
+	for ; itr.Valid(); itr.Next() {
+		if i.unique {
+			data.Add(itr.Value())
+		} else {
+			tmp := new(MultiRef)
+			err := tmp.Unmarshal(itr.Value())
+			if err != nil {
+				return nil, err
+			}
+			data = data.Concat(tmp)
+		}
+	}
+
+	return data.GetRefs(), nil
+}
+
+// Query handles queries from the QueryRouter
+func (i Index) Query(db weave.ReadOnlyKVStore, mod string,
+	data []byte) ([]weave.Model, error) {
+
+	switch mod {
+	case weave.KeyQueryMod:
+		refs, err := i.GetAt(db, data)
+		if err != nil {
+			return nil, err
+		}
+		return i.loadRefs(db, refs), nil
+	case weave.PrefixQueryMod:
+		refs, err := i.GetPrefix(db, data)
+		if err != nil {
+			return nil, err
+		}
+		return i.loadRefs(db, refs), nil
+	default:
+		return nil, errors.New("no implemented: " + mod)
+	}
+}
+
+func (i Index) loadRefs(db weave.ReadOnlyKVStore,
+	refs [][]byte) []weave.Model {
+
+	res := make([]weave.Model, len(refs))
+	for j, ref := range refs {
+		key := i.dbkey(ref)
+		res[j] = weave.Model{
+			Key:   key,
+			Value: db.Get(key),
+		}
+	}
+	return res
 }
 
 func (i Index) move(db weave.KVStore, prev Object, save Object) error {

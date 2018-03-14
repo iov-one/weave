@@ -24,8 +24,8 @@ func count(obj Object) ([]byte, error) {
 }
 
 func TestCounterIndex(t *testing.T) {
-	multi := NewIndex("likes", count, false)
-	uniq := NewIndex("magic", count, true)
+	multi := NewIndex("likes", count, false, nil)
+	uniq := NewIndex("magic", count, true, nil)
 
 	// some keys to use
 	k1 := []byte("abc")
