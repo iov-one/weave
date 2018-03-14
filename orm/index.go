@@ -3,6 +3,7 @@ package orm
 import (
 	"bytes"
 	"errors"
+	"fmt"
 
 	"github.com/confio/weave"
 )
@@ -21,22 +22,36 @@ type Index struct {
 	id     []byte
 	unique bool
 	index  Indexer
-	dbkey  func([]byte) []byte
+	refKey func([]byte) []byte
 }
 
 var _ weave.QueryHandler = Index{}
 
 // NewIndex constructs an index
+// Indexer calculcates the index for an object
+// unique enforces a unique constraint on the index
+// refKey calculates the absolute dbkey for a ref
 func NewIndex(name string, indexer Indexer, unique bool,
-	dbkey func([]byte) []byte) Index {
+	refKey func([]byte) []byte) Index {
 	// TODO: index name must be [a-z_]
 	return Index{
 		name:   name,
 		id:     append(indPrefix, []byte(name+":")...),
 		index:  indexer,
 		unique: unique,
-		dbkey:  dbkey,
+		refKey: refKey,
 	}
+}
+
+// IndexKey is the full key we store in the db, including prefix
+// We copy into a new array rather than use append, as we don't
+// want consequetive calls to overwrite the same byte array.
+func (i Index) IndexKey(key []byte) []byte {
+	l := len(i.id)
+	out := make([]byte, l+len(key))
+	copy(out, i.id)
+	copy(out[l:], key)
+	return out
 }
 
 // Update handles updating the reference to the object in
@@ -85,7 +100,7 @@ func (i Index) GetLike(db weave.ReadOnlyKVStore, pattern Object) ([][]byte, erro
 
 // GetAt returns a list of all pk at that index (may be empty), or an error
 func (i Index) GetAt(db weave.ReadOnlyKVStore, index []byte) ([][]byte, error) {
-	key := append(i.id, index...)
+	key := i.IndexKey(index)
 	val := db.Get(key)
 	if val == nil {
 		return nil, nil
@@ -104,7 +119,7 @@ func (i Index) GetAt(db weave.ReadOnlyKVStore, index []byte) ([][]byte, error) {
 // GetPrefix returns all references that have an index that
 // begins with a given prefix
 func (i Index) GetPrefix(db weave.ReadOnlyKVStore, prefix []byte) ([][]byte, error) {
-	dbPrefix := append(i.id, prefix...)
+	dbPrefix := i.IndexKey(prefix)
 	itr := db.Iterator(prefixRange(dbPrefix))
 	data := new(MultiRef)
 
@@ -131,6 +146,7 @@ func (i Index) Query(db weave.ReadOnlyKVStore, mod string,
 	switch mod {
 	case weave.KeyQueryMod:
 		refs, err := i.GetAt(db, data)
+		fmt.Printf("%x => %d\n", data, len(refs))
 		if err != nil {
 			return nil, err
 		}
@@ -149,9 +165,12 @@ func (i Index) Query(db weave.ReadOnlyKVStore, mod string,
 func (i Index) loadRefs(db weave.ReadOnlyKVStore,
 	refs [][]byte) []weave.Model {
 
+	if len(refs) == 0 {
+		return nil
+	}
 	res := make([]weave.Model, len(refs))
 	for j, ref := range refs {
-		key := i.dbkey(ref)
+		key := i.refKey(ref)
 		res[j] = weave.Model{
 			Key:   key,
 			Value: db.Get(key),
@@ -181,7 +200,7 @@ func (i Index) move(db weave.KVStore, prev Object, save Object) error {
 
 	// check unique constraint before removing
 	if i.unique {
-		k := append(i.id, newKey...)
+		k := i.IndexKey(newKey)
 		val := db.Get(k)
 		if val != nil {
 			return ErrUniqueConstraint(i.name)
@@ -196,7 +215,7 @@ func (i Index) move(db weave.KVStore, prev Object, save Object) error {
 }
 
 func (i Index) remove(db weave.KVStore, index []byte, pk []byte) error {
-	key := append(i.id, index...)
+	key := i.IndexKey(index)
 	cur := db.Get(key)
 	if cur == nil {
 		return ErrRemoveUnregistered()
@@ -235,7 +254,7 @@ func (i Index) remove(db weave.KVStore, index []byte, pk []byte) error {
 }
 
 func (i Index) insert(db weave.KVStore, index []byte, pk []byte) error {
-	key := append(i.id, index...)
+	key := i.IndexKey(index)
 	cur := db.Get(key)
 
 	if i.unique {

@@ -83,6 +83,10 @@ func (b Bucket) Query(db weave.ReadOnlyKVStore, mod string,
 	case weave.KeyQueryMod:
 		key := b.DBKey(data)
 		value := db.Get(key)
+		// return nothing on miss
+		if value == nil {
+			return nil, nil
+		}
 		res := []weave.Model{{Key: key, Value: value}}
 		return res, nil
 	case weave.PrefixQueryMod:

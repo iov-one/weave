@@ -63,13 +63,21 @@ func (m *MultiRef) Remove(ref []byte) error {
 }
 
 // Concat returns a new MultiRef with the combined
-// content of the other two
+// content of the other two.
+//
+// Note: we use this to combine index queries,
+// so the result maintains original order, not sorted
+// like other MultiRef should.
 func (m *MultiRef) Concat(o *MultiRef) *MultiRef {
 	refs := append(m.Refs, o.Refs...)
-	sort.Slice(refs, func(i, j int) bool {
-		return bytes.Compare(refs[i], refs[j]) == -1
-	})
 	return &MultiRef{Refs: refs}
+}
+
+// Sort will make sure everything is in order
+func (m *MultiRef) Sort() {
+	sort.Slice(m.Refs, func(i, j int) bool {
+		return bytes.Compare(m.Refs[i], m.Refs[j]) == -1
+	})
 }
 
 // returns (index, found) where found is true if
