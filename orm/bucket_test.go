@@ -304,12 +304,15 @@ func toModel(t *testing.T, bucket Bucket, obj Object) weave.Model {
 func TestBucketQuery(t *testing.T) {
 	// make some buckets for testing
 	const mini = "mini"
+	const uniq = "uniq"
 	const name = "special"
 	const bPath = "/special"
 	const iPath = "/special/mini"
+	const uiPath = "/special/uniq"
 
 	// create a bucket with secondary index
 	bucket := NewBucket("spec", NewSimpleObj(nil, new(Counter))).
+		WithIndex(uniq, count, true).
 		WithIndex(mini, countByte, false)
 
 	// set up a router, using different name for bucket
@@ -396,9 +399,17 @@ func TestBucketQuery(t *testing.T) {
 		10: {
 			iPath, "prefix", e77, false, false, nil,
 		},
-		// prefix index - all (in order of index)
+		// prefix index - all (in order of index, last byte)
 		11: {
 			iPath, "prefix", nil, false, false, []weave.Model{dbc, dba, dbb},
+		},
+		// unique index - hit
+		12: {
+			uiPath, "", encodeSequence(256 + 5), false, false, []weave.Model{dbb},
+		},
+		// unique prefix index - all (in order of index, full count)
+		13: {
+			uiPath, "prefix", nil, false, false, []weave.Model{dbc, dba, dbb},
 		},
 	}
 

@@ -3,7 +3,6 @@ package orm
 import (
 	"bytes"
 	"errors"
-	"fmt"
 
 	"github.com/confio/weave"
 )
@@ -121,22 +120,22 @@ func (i Index) GetAt(db weave.ReadOnlyKVStore, index []byte) ([][]byte, error) {
 func (i Index) GetPrefix(db weave.ReadOnlyKVStore, prefix []byte) ([][]byte, error) {
 	dbPrefix := i.IndexKey(prefix)
 	itr := db.Iterator(prefixRange(dbPrefix))
-	data := new(MultiRef)
+	var data [][]byte
 
 	for ; itr.Valid(); itr.Next() {
 		if i.unique {
-			data.Add(itr.Value())
+			data = append(data, itr.Value())
 		} else {
 			tmp := new(MultiRef)
 			err := tmp.Unmarshal(itr.Value())
 			if err != nil {
 				return nil, err
 			}
-			data = data.Concat(tmp)
+			data = append(data, tmp.Refs...)
 		}
 	}
 
-	return data.GetRefs(), nil
+	return data, nil
 }
 
 // Query handles queries from the QueryRouter
@@ -146,7 +145,6 @@ func (i Index) Query(db weave.ReadOnlyKVStore, mod string,
 	switch mod {
 	case weave.KeyQueryMod:
 		refs, err := i.GetAt(db, data)
-		fmt.Printf("%x => %d\n", data, len(refs))
 		if err != nil {
 			return nil, err
 		}
