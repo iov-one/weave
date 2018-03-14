@@ -43,6 +43,7 @@ glide:
 	@go get github.com/tendermint/glide
 
 protoc:
+	protoc --gogofaster_out=. app/*.proto
 	protoc --gogofaster_out=. crypto/*.proto
 	protoc --gogofaster_out=. orm/*.proto
 	protoc --gogofaster_out=. x/*.proto
