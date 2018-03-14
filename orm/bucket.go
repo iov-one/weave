@@ -86,7 +86,8 @@ func (b Bucket) Query(db weave.ReadOnlyKVStore, mod string,
 		res := []weave.Model{{Key: key, Value: value}}
 		return res, nil
 	case weave.PrefixQueryMod:
-		return nil, errors.New("prefix not yet implemented")
+		prefix := b.DBKey(data)
+		return queryPrefix(db, prefix), nil
 	default:
 		return nil, errors.New("no implemented: " + mod)
 	}
