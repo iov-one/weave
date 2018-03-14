@@ -42,3 +42,22 @@ func JoinResults(keys, values *ResultSet) ([]weave.Model, error) {
 	}
 	return mods, nil
 }
+
+// UnmarshalOneResult will parse a resultset, and
+// it if is not empty, unmarshal the first result into o
+func UnmarshalOneResult(bz []byte, o weave.Persistent) error {
+	// get the resultset
+	var res ResultSet
+	err := res.Unmarshal(bz)
+	if err != nil {
+		return err
+	}
+
+	// no results, do nothing
+	if len(res.Refs) == 0 {
+		return nil
+	}
+
+	err = o.Unmarshal(res.Refs[0])
+	return err
+}

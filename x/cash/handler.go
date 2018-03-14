@@ -14,6 +14,11 @@ func RegisterRoutes(r weave.Registry, auth x.Authenticator,
 	r.Handle(pathSendMsg, NewSendHandler(auth, control))
 }
 
+// RegisterQuery will register this bucket as "/wallets"
+func RegisterQuery(qr weave.QueryRouter) {
+	NewBucket().Register("wallets", qr)
+}
+
 // SendHandler will handle sending coins
 type SendHandler struct {
 	auth    x.Authenticator

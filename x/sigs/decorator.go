@@ -10,6 +10,11 @@ import (
 	"github.com/confio/weave/errors"
 )
 
+// RegisterQuery will register this bucket as "/auth"
+func RegisterQuery(qr weave.QueryRouter) {
+	NewBucket().Register("auth", qr)
+}
+
 //----------------- Decorator ----------------
 //
 // This is just a binding from the functionality into the

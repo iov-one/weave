@@ -17,6 +17,7 @@ import (
 
 	"github.com/confio/weave"
 	"github.com/confio/weave/app"
+	"github.com/confio/weave/orm"
 	"github.com/confio/weave/store/iavl"
 	"github.com/confio/weave/x"
 	"github.com/confio/weave/x/cash"
@@ -59,6 +60,18 @@ func Router(authFn x.Authenticator) app.Router {
 	return r
 }
 
+// QueryRouter returns a default query router,
+// allowing access to "/wallets", "/auth", and "/"
+func QueryRouter() weave.QueryRouter {
+	r := weave.NewQueryRouter()
+	r.RegisterAll(
+		cash.RegisterQuery,
+		sigs.RegisterQuery,
+		orm.RegisterQuery,
+	)
+	return r
+}
+
 // Stack wires up a standard router with a standard decorator
 // chain. This can be passed into BaseApp.
 func Stack(minFee x.Coin) weave.Handler {
@@ -79,7 +92,7 @@ func Application(name string, h weave.Handler,
 	if err != nil {
 		return app.BaseApp{}, err
 	}
-	store := app.NewStoreApp(name, kv, ctx)
+	store := app.NewStoreApp(name, kv, QueryRouter(), ctx)
 	base := app.NewBaseApp(store, tx, h, nil)
 	return base, nil
 }

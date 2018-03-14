@@ -59,22 +59,14 @@ type StoreApp struct {
 // panics if unable to properly load the state from the given store
 // TODO: is this correct? nothing else to do really....
 func NewStoreApp(name string, store weave.CommitKVStore,
-	baseContext weave.Context) *StoreApp {
+	queryRouter weave.QueryRouter, baseContext weave.Context) *StoreApp {
 	s := &StoreApp{
 		name: name,
 		// note: panics if trouble initializing from store
 		store:       newCommitStore(store),
+		queryRouter: queryRouter,
 		baseContext: baseContext,
 	}
-	// func NewStoreApp(name string, store weave.CommitKVStore,
-	//     queryRouter weave.QueryRouter, baseContext weave.Context) *StoreApp {
-	//     s := &StoreApp{
-	//         name: name,
-	//         // note: panics if trouble initializing from store
-	//         store:       newCommitStore(store),
-	//         queryRouter: queryRouter,
-	//         baseContext: baseContext,
-	//     }
 	s = s.WithLogger(log.NewNopLogger())
 
 	// load the chainID from the db
@@ -199,20 +191,14 @@ A query request has the following elements:
 * Height - the block height to query (if 0 most recent)
 * Prove - if true, also return a proof
 
-We support the following paths:
-* /key
-  - Data is the raw bytes of a key in the kv store
-  - Result.Value is raw data stored under that key
-* /prefix
-  - Data is a Prefix Query (prefix plus limit)
-  - Result.Key is a MultiKey (list of keys, plus metadata)
-  - Result.Value is a MultiValue (list of values)
-* /range
-  - Data is a Range Query (start, end, reverse, limit)
-  - Result.Key is a MultiKey
-  - Result.Value is a MultiValue
+Path may be "/", "/<bucket>", or "/<bucket>/<index>"
+It may be followed by "?prefix" to make a prefix query.
+Soon we will support "?range" for powerful range queries
 
-We must also clarify proof format
+Key and Value in Results are always serialized ResultSet
+objects, able to support 0 to N values. They must be the
+same size. This makes things a little more difficult for
+simple queries, but provides a consistent interface.
 */
 func (s *StoreApp) Query(reqQuery abci.RequestQuery) (resQuery abci.ResponseQuery) {
 

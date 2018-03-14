@@ -2,6 +2,13 @@ package orm
 
 import "github.com/confio/weave"
 
+// RegisterQuery will register a root query (literal keys)
+// under "/"
+func RegisterQuery(qr weave.QueryRouter) {
+	// this never writes, just used to query unprefixed keys
+	Bucket{}.Register("", qr)
+}
+
 // consumeIterator will read all remaining data into an
 // array and close the iterator
 func consumeIterator(itr weave.Iterator) []weave.Model {
