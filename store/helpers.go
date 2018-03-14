@@ -5,20 +5,6 @@ import "fmt"
 ////////////////////////////////////////////////
 // Slice -> Iterator
 
-// Model groups together key and value to help build Iterators
-type Model struct {
-	Key   []byte
-	Value []byte
-}
-
-// Pair constructs a model from a key-value pair
-func Pair(key, value []byte) Model {
-	return Model{
-		Key:   key,
-		Value: value,
-	}
-}
-
 // SliceIterator wraps an Iterator over a slice of models
 //
 // TODO: make this private and only expose Iterator interface????

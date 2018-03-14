@@ -15,6 +15,7 @@ For inspiration, look at [storm](https://github.com/asdine/storm) built on top o
 package orm
 
 import (
+	"errors"
 	"fmt"
 	"regexp"
 
@@ -45,6 +46,8 @@ type Bucket struct {
 	indexes map[string]Index
 }
 
+var _ weave.QueryHandler = Bucket{}
+
 // NewBucket creates a bucket to store data
 func NewBucket(name string, proto Cloneable) Bucket {
 	if !isBucketName(name) {
@@ -55,6 +58,37 @@ func NewBucket(name string, proto Cloneable) Bucket {
 		name:   name,
 		prefix: append([]byte(name), ':'),
 		proto:  proto,
+	}
+}
+
+// Register registers this Bucket and all indexes.
+// You can define a name here for queries, which is
+// different than the bucket name used to prefix the data
+func (b Bucket) Register(name string, r weave.QueryRouter) {
+	if name == "" {
+		name = b.name
+	}
+	root := "/" + name
+	r.Register(root, b)
+	for name, idx := range b.indexes {
+		r.Register(root+"/"+name, idx)
+	}
+}
+
+// Query handles queries from the QueryRouter
+func (b Bucket) Query(db weave.ReadOnlyKVStore, mod string,
+	data []byte) ([]weave.Model, error) {
+
+	switch mod {
+	case weave.KeyQueryMod:
+		key := b.DBKey(data)
+		value := db.Get(key)
+		res := []weave.Model{{Key: key, Value: value}}
+		return res, nil
+	case weave.PrefixQueryMod:
+		return nil, errors.New("prefix not yet implemented")
+	default:
+		return nil, errors.New("no implemented: " + mod)
 	}
 }
 
@@ -78,7 +112,7 @@ func (b Bucket) DBKey(key []byte) []byte {
 }
 
 // Get one element
-func (b Bucket) Get(db weave.KVStore, key []byte) (Object, error) {
+func (b Bucket) Get(db weave.ReadOnlyKVStore, key []byte) (Object, error) {
 	dbkey := b.DBKey(key)
 	bz := db.Get(dbkey)
 	if bz == nil {
@@ -173,7 +207,7 @@ func (b Bucket) WithIndex(name string, indexer Indexer, unique bool) Bucket {
 }
 
 // GetIndexed querys the named index for the given key
-func (b Bucket) GetIndexed(db weave.KVStore, name string, key []byte) ([]Object, error) {
+func (b Bucket) GetIndexed(db weave.ReadOnlyKVStore, name string, key []byte) ([]Object, error) {
 	idx, ok := b.indexes[name]
 	if !ok {
 		return nil, ErrInvalidIndex(name)
@@ -186,7 +220,7 @@ func (b Bucket) GetIndexed(db weave.KVStore, name string, key []byte) ([]Object,
 }
 
 // GetIndexedLike querys the named index with the given pattern
-func (b Bucket) GetIndexedLike(db weave.KVStore, name string, pattern Object) ([]Object, error) {
+func (b Bucket) GetIndexedLike(db weave.ReadOnlyKVStore, name string, pattern Object) ([]Object, error) {
 	idx, ok := b.indexes[name]
 	if !ok {
 		return nil, ErrInvalidIndex(name)
@@ -198,7 +232,7 @@ func (b Bucket) GetIndexedLike(db weave.KVStore, name string, pattern Object) ([
 	return b.readRefs(db, refs)
 }
 
-func (b Bucket) readRefs(db weave.KVStore, refs [][]byte) ([]Object, error) {
+func (b Bucket) readRefs(db weave.ReadOnlyKVStore, refs [][]byte) ([]Object, error) {
 	if len(refs) == 0 {
 		return nil, nil
 	}

@@ -2,6 +2,7 @@ package orm
 
 import (
 	"bytes"
+	"errors"
 
 	"github.com/confio/weave"
 )
@@ -22,6 +23,8 @@ type Index struct {
 	index  Indexer
 }
 
+var _ weave.QueryHandler = Index{}
+
 // NewIndex constructs an index
 func NewIndex(name string, indexer Indexer, unique bool) Index {
 	// TODO: index name must be [a-z_]
@@ -30,6 +33,31 @@ func NewIndex(name string, indexer Indexer, unique bool) Index {
 		id:     append(indPrefix, []byte(name+":")...),
 		index:  indexer,
 		unique: unique,
+	}
+}
+
+// Query handles queries from the QueryRouter
+func (i Index) Query(db weave.ReadOnlyKVStore, mod string,
+	data []byte) ([]weave.Model, error) {
+
+	switch mod {
+	case weave.KeyQueryMod:
+		keys, err := i.GetAt(db, data)
+		if err != nil {
+			return nil, err
+		}
+		res := make([]weave.Model, len(keys))
+		for i, key := range keys {
+			res[i] = weave.Model{
+				Key:   key,
+				Value: db.Get(key),
+			}
+		}
+		return res, nil
+	case weave.PrefixQueryMod:
+		return nil, errors.New("prefix not yet implemented")
+	default:
+		return nil, errors.New("no implemented: " + mod)
 	}
 }
 
@@ -69,7 +97,7 @@ func (i Index) Update(db weave.KVStore, prev Object, save Object) error {
 
 // GetLike calculates the index for the given pattern, and
 // returns a list of all pk that match (may be empty), or an error
-func (i Index) GetLike(db weave.KVStore, pattern Object) ([][]byte, error) {
+func (i Index) GetLike(db weave.ReadOnlyKVStore, pattern Object) ([][]byte, error) {
 	index, err := i.index(pattern)
 	if err != nil {
 		return nil, err
@@ -78,7 +106,7 @@ func (i Index) GetLike(db weave.KVStore, pattern Object) ([][]byte, error) {
 }
 
 // GetAt returns a list of all pk at that index (may be empty), or an error
-func (i Index) GetAt(db weave.KVStore, index []byte) ([][]byte, error) {
+func (i Index) GetAt(db weave.ReadOnlyKVStore, index []byte) ([][]byte, error) {
 	key := append(i.id, index...)
 	val := db.Get(key)
 	if val == nil {

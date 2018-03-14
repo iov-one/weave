@@ -15,3 +15,7 @@ type CacheableKVStore = weave.CacheableKVStore
 type KVCacheWrap = weave.KVCacheWrap
 type CommitKVStore = weave.CommitKVStore
 type CommitID = weave.CommitID
+
+type Model = weave.Model
+
+var Pair = weave.Pair
