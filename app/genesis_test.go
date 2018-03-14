@@ -58,7 +58,8 @@ func TestParseGenesis(t *testing.T) {
 			c := new(countInit)
 			init := ChainInitializers(dummyInit{}, c)
 			assert.Equal(t, 0, c.called)
-			store := NewStoreApp("foo", iavl.MockCommitStore(), context.Background())
+			store := NewStoreApp("foo", iavl.MockCommitStore(),
+				weave.NewQueryRouter(), context.Background())
 			// TODO: expose this better
 			store.WithGenesis(tc.file)
 			store.WithInit(init)

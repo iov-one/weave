@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+package sigs;
+
+import "github.com/confio/weave/crypto/models.proto";
+
+// UserData just stores the data and is used for serialization.
+//
+// Note: This should not be created from outside the module,
+// User is the entry point you want
+message UserData {
+  crypto.PublicKey pub_key = 1;
+  int64 sequence = 2;
+}
+
+// StdSignature represents the signature, the identity of the signer
+// (either the PubKey or the Address), and a sequence number to
+// prevent replay attacks.
+//
+// A given signer must submit transactions with the sequence number
+// increasing by 1 each time (starting at 0)
+message StdSignature {
+    int64 sequence = 1;
+    // PubKey required if Sequence == 0
+    crypto.PublicKey pub_key = 2;
+    // Address required if PubKey is not present
+    bytes address = 3;
+    crypto.Signature signature = 4;
+}

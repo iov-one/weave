@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"strings"
 
 	abci "github.com/tendermint/abci/types"
 	"github.com/tendermint/tmlibs/log"
@@ -30,6 +31,9 @@ type StoreApp struct {
 	// Code to initialize from a genesis file
 	initializer weave.Initializer
 
+	// How to handle queries
+	queryRouter weave.QueryRouter
+
 	// chainID is loaded from db in initialization
 	// saved once in parseGenesis
 	chainID string
@@ -54,11 +58,13 @@ type StoreApp struct {
 //
 // panics if unable to properly load the state from the given store
 // TODO: is this correct? nothing else to do really....
-func NewStoreApp(name string, store weave.CommitKVStore, baseContext weave.Context) *StoreApp {
+func NewStoreApp(name string, store weave.CommitKVStore,
+	queryRouter weave.QueryRouter, baseContext weave.Context) *StoreApp {
 	s := &StoreApp{
 		name: name,
 		// note: panics if trouble initializing from store
 		store:       newCommitStore(store),
+		queryRouter: queryRouter,
 		baseContext: baseContext,
 	}
 	s = s.WithLogger(log.NewNopLogger())
@@ -177,23 +183,37 @@ func (s *StoreApp) SetOption(res abci.RequestSetOption) abci.ResponseSetOption {
 	return abci.ResponseSetOption{Log: "Not Implemented"}
 }
 
-// Query - ABCI
+/*
+Query gets data from the app store.
+A query request has the following elements:
+* Path - the type of query
+* Data - what to query, interpretted based on Path
+* Height - the block height to query (if 0 most recent)
+* Prove - if true, also return a proof
+
+Path may be "/", "/<bucket>", or "/<bucket>/<index>"
+It may be followed by "?prefix" to make a prefix query.
+Soon we will support "?range" for powerful range queries
+
+Key and Value in Results are always serialized ResultSet
+objects, able to support 0 to N values. They must be the
+same size. This makes things a little more difficult for
+simple queries, but provides a consistent interface.
+*/
 func (s *StoreApp) Query(reqQuery abci.RequestQuery) (resQuery abci.ResponseQuery) {
-	if len(reqQuery.Data) == 0 {
-		resQuery.Log = "Query cannot be zero length"
+
+	// find the handler
+	path, mod := splitPath(reqQuery.Path)
+	qh := s.queryRouter.Handler(path)
+	if qh == nil {
 		resQuery.Code = errors.CodeUnknownRequest
+		resQuery.Log = fmt.Sprintf("Unexpected Query path: %v", reqQuery.Path)
 		return
 	}
 
-	// TODO: support historical queries
-
+	// TODO: support historical queries by getting old read-only
 	// height := reqQuery.Height
 	// if height == 0 {
-	// 	// TODO: once the rpc actually passes in non-zero
-	// 	// heights we can use to query right after a tx
-	// 	// we must retrun most recent, even if apphash
-	// 	// is not yet in the blockchain
-
 	// 	withProof := s.CommittedHeight() - 1
 	// 	if tree.Tree.VersionExists(uint64(withProof)) {
 	// 		height = withProof
@@ -203,29 +223,55 @@ func (s *StoreApp) Query(reqQuery abci.RequestQuery) (resQuery abci.ResponseQuer
 	// }
 	height, _ := s.store.CommitInfo()
 	resQuery.Height = height
+	// TODO: better version handling!
+	db := s.store.committed.CacheWrap()
 
-	switch reqQuery.Path {
-	case "/store", "/key": // Get by key
-		key := reqQuery.Data // Data holds the key bytes
-		resQuery.Key = key
-		// TODO: support proofs
-
-		// if reqQuery.Prove {
-		// 	value, proof, err := tree.GetVersionedWithProof(key, height)
-		// 	if err != nil {
-		// 		resQuery.Log = err.Error()
-		// 		break
-		// 	}
-		// 	resQuery.Value = value
-		// 	resQuery.Proof = proof.Bytes()
-		// } else {
-		value := s.store.committed.Get(key)
-		resQuery.Value = value
-	default:
-		resQuery.Code = errors.CodeUnknownRequest
-		resQuery.Log = fmt.Sprintf("Unexpected Query path: %v", reqQuery.Path)
+	// make the query
+	models, err := qh.Query(db, mod, reqQuery.Data)
+	if err != nil {
+		return queryError(err)
 	}
-	return
+
+	// set the info as ResultSets....
+	resQuery.Key, err = ResultsFromKeys(models).Marshal()
+	if err != nil {
+		return queryError(err)
+	}
+	resQuery.Value, err = ResultsFromValues(models).Marshal()
+	if err != nil {
+		return queryError(err)
+	}
+
+	// TODO: support proofs given this info....
+	// if reqQuery.Prove {
+	//  value, proof, err := tree.GetVersionedWithProof(key, height)
+	//  if err != nil {
+	//      resQuery.Log = err.Error()
+	//      break
+	//  }
+	//  resQuery.Value = value
+	//  resQuery.Proof = proof.Bytes()
+
+	return resQuery
+}
+
+// splitPath splits out the real path along with the query
+// modifier (everything after the ?)
+func splitPath(path string) (string, string) {
+	var mod string
+	chunks := strings.SplitN(path, "?", 2)
+	if len(chunks) == 2 {
+		path = chunks[0]
+		mod = chunks[1]
+	}
+	return path, mod
+}
+
+func queryError(err error) abci.ResponseQuery {
+	return abci.ResponseQuery{
+		Log:  err.Error(),
+		Code: errors.CodeInternalErr,
+	}
 }
 
 // Commit implements abci.Application

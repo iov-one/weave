@@ -3,6 +3,8 @@ package weave
 import (
 	"bytes"
 	"crypto/sha256"
+	"encoding/hex"
+	"strings"
 	// "golang.org/x/crypto/blake2b"
 )
 
@@ -31,6 +33,28 @@ type Msg interface {
 	Path() string
 }
 
+// Marshaller is anything that can be represented in binary
+//
+// Marshall may validate the data before serializing it and
+// unless you previously validated the struct,
+// errors should be expected.
+type Marshaller interface {
+	Marshal() ([]byte, error)
+}
+
+// Persistent supports Marshal and Unmarshal
+//
+// This is separated from Marshal, as this almost always requires
+// a pointer, and functions that only need to marshal bytes can
+// use the Marshaller interface to access non-pointers.
+//
+// As with Marshaller, this may do internal validation on the data
+// and errors should be expected.
+type Persistent interface {
+	Marshaller
+	Unmarshal([]byte) error
+}
+
 // Tx represent the data sent from the user to the chain.
 // It includes the actual message, along with information needed
 // to authenticate the sender (cryptographic signatures),
@@ -41,6 +65,8 @@ type Msg interface {
 // auth.SignedTx and token.FeeTx are common interfaces that
 // many apps will wish to support.
 type Tx interface {
+	Persistent
+
 	// GetMsg returns the action we wish to communicate
 	GetMsg() (Msg, error)
 }
@@ -63,6 +89,10 @@ type TxDecoder func(txBytes []byte) (Tx, error)
 // It will be of size AddressLength
 type Address []byte
 
+func (a Address) Equals(b Address) bool {
+	return bytes.Equal(a, b)
+}
+
 func (a Address) MarshalJSON() ([]byte, error) {
 	return marshalHex(a)
 }
@@ -70,6 +100,13 @@ func (a Address) MarshalJSON() ([]byte, error) {
 func (a *Address) UnmarshalJSON(src []byte) error {
 	dst := (*[]byte)(a)
 	return unmarshalHex(src, dst)
+}
+
+func (a Address) ToString() string {
+	if len(a) == 0 {
+		return "(nil)"
+	}
+	return strings.ToUpper(hex.EncodeToString(a))
 }
 
 // NewAddress hashes and truncates into the proper size
@@ -96,125 +133,4 @@ func MustObjAddress(obj Marshaller) Address {
 		panic(err)
 	}
 	return res
-}
-
-// AuthFunc is a function we can use to extract authentication info
-// from the context. This should be passed into the constructor of
-// handlers, so we can plug in another authentication system,
-// rather than hardcoding x/auth for all extensions.
-type AuthFunc func(Context) []Address
-
-func MultiAuth(fns ...AuthFunc) AuthFunc {
-	return func(ctx Context) (res []Address) {
-		for _, fn := range fns {
-			add := fn(ctx)
-			if len(add) > 0 {
-				res = append(res, add...)
-			}
-		}
-		return res
-	}
-}
-
-// MainSigner returns the first signed if any, otherwise nil
-func MainSigner(ctx Context, fn AuthFunc) Address {
-	auth := fn(ctx)
-	if len(auth) == 0 {
-		return nil
-	}
-	return auth[0]
-}
-
-// HasAllSigners returns true if all elements in required are
-// also in signed.
-func HasAllSigners(required []Address, signed []Address) bool {
-	return HasNSigners(len(required), required, signed)
-}
-
-// HasSigner returns true if this address has signed
-func HasSigner(required Address, signed []Address) bool {
-	// simplest....
-	for _, signer := range signed {
-		if bytes.Equal(required, signer) {
-			return true
-		}
-	}
-	return false
-}
-
-// HasNSigners returns true if at least n elements in requested are
-// also in signed.
-// Useful for threshold conditions (1 of 3, 3 of 5, etc...)
-func HasNSigners(n int, requested []Address, signed []Address) bool {
-	// TODO: Implement when needed
-	return false
-}
-
-//--------------- serialization stuff ---------------------
-
-// Marshaller is anything that can be represented in binary
-//
-// Marshall may validate the data before serializing it and
-// unless you previously validated the struct,
-// errors should be expected.
-type Marshaller interface {
-	Marshal() ([]byte, error)
-}
-
-// Persistent supports Marshal and Unmarshal
-//
-// This is separated from Marshal, as this almost always requires
-// a pointer, and functions that only need to marshal bytes can
-// use the Marshaller interface to access non-pointers.
-//
-// As with Marshaller, this may do internal validation on the data
-// and errors should be expected.
-type Persistent interface {
-	Marshaller
-	Unmarshal([]byte) error
-}
-
-// MustMarshal will succeed or panic
-func MustMarshal(obj Marshaller) []byte {
-	bz, err := obj.Marshal()
-	if err != nil {
-		panic(err)
-	}
-	return bz
-}
-
-// MustUnmarshal will succeed or panic
-func MustUnmarshal(obj Persistent, bz []byte) {
-	err := obj.Unmarshal(bz)
-	if err != nil {
-		panic(err)
-	}
-}
-
-//-------------------- Validation ---------
-
-// Validater is any struct that can be validated.
-// Not the same as a Validator, which votes on the blocks.
-type Validater interface {
-	Validate() error
-}
-
-// MustValidate panics if the object is not valid
-func MustValidate(obj Validater) {
-	err := obj.Validate()
-	if err != nil {
-		panic(err)
-	}
-}
-
-type MarshalValidater interface {
-	Marshaller
-	Validater
-}
-
-// MustMarshalValid marshals the object, but panics
-// if the object is not valid or has trouble marshalling
-func MustMarshalValid(obj MarshalValidater) []byte {
-	MustValidate(obj)
-	return MustMarshal(obj)
 }

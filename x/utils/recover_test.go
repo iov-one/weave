@@ -8,10 +8,11 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/confio/weave/store"
+	"github.com/confio/weave/x"
 )
 
 func TestRecovery(t *testing.T) {
-	var help TestHelpers
+	var help x.TestHelpers
 
 	pan := help.PanicHandler(fmt.Errorf("boom"))
 	r := NewRecovery()

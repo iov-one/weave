@@ -207,10 +207,10 @@ is registered with it.
 
 .. code:: golang
 
-type Handler interface {
-    Check(ctx Context, store KVStore, tx Tx) (CheckResult, error)
-    Deliver(ctx Context, store KVStore, tx Tx) (DeliverResult, error)
-}
+    type Handler interface {
+        Check(ctx Context, store KVStore, tx Tx) (CheckResult, error)
+        Deliver(ctx Context, store KVStore, tx Tx) (DeliverResult, error)
+    }
 
 The ``Handler`` is provided with the key-value store
 for reading/writing, the context containing scope
