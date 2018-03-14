@@ -136,4 +136,24 @@ func TestApp(t *testing.T) {
 	assert.Equal(t, int64(2000), acct3.Coins[0].Whole)
 	assert.Equal(t, "ETH", acct3.Coins[0].Ticker)
 
+	// make sure other paths also get this value....
+	query3 := abci.RequestQuery{
+		Path: "/wallets",
+		Data: addr2,
+	}
+	qres3 := myApp.Query(query3)
+	require.Equal(t, uint32(0), qres3.Code, "%#v", qres3)
+	assert.Equal(t, qres2.Key, qres3.Key)
+	assert.Equal(t, qres2.Value, qres3.Value)
+
+	// make sure other paths also get this value....
+	query4 := abci.RequestQuery{
+		Path: "/wallets?prefix",
+		Data: addr2[:15],
+	}
+	qres4 := myApp.Query(query4)
+	require.Equal(t, uint32(0), qres4.Code, "%#v", qres4)
+	assert.Equal(t, qres2.Key, qres4.Key)
+	assert.Equal(t, qres2.Value, qres4.Value)
+
 }
