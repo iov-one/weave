@@ -10,8 +10,8 @@ import (
 
 func TestVersion(t *testing.T) {
 	weave.GitCommit = ""
-	assert.Equal(t, "v0.2.0-dev", weave.Version())
+	assert.Equal(t, "v0.2.0", weave.Version())
 
 	weave.GitCommit = "12345678"
-	assert.Equal(t, "v0.2.0-dev 12345678", weave.Version())
+	assert.Equal(t, "v0.2.0 12345678", weave.Version())
 }
