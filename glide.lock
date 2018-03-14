@@ -1,5 +1,5 @@
-hash: 4e2d812f089ae63bf0f4b3eeae96ff8b322b0b3bba0d58301c481ecf2fed8adb
-updated: 2018-02-26T18:17:34.160708234+01:00
+hash: cefb05b00bf08ca6c3c40579c6c46fc611c24b6e37ca13bbaf1cf8850ce017ef
+updated: 2018-03-13T19:59:36.85516907+01:00
 imports:
 - name: github.com/go-kit/kit
   version: 4dc7be5d2d12881735283bcab7352178e190fc71
@@ -21,7 +21,7 @@ imports:
   - sortkeys
   - types
 - name: github.com/golang/protobuf
-  version: 925541529c1fa6821df4e44ce2723319eb2be768
+  version: bbd03ef6da3a115852eaf24c8a1c46aeb39aa175
   subpackages:
   - proto
   - ptypes
@@ -63,7 +63,7 @@ imports:
   subpackages:
   - data
 - name: github.com/tendermint/iavl
-  version: 39de8f0b4ee758fdd5bb3a9afc6dd9bf42c04785
+  version: 669ff61054a14c4542dbd657ab438800d5630e45
 - name: github.com/tendermint/tmlibs
   version: 1b9b5652a199ab0be2e781393fb275b66377309d
   subpackages:
@@ -71,14 +71,14 @@ imports:
   - db
   - log
 - name: golang.org/x/crypto
-  version: 1875d0a70c90e57f11972aefd42276df65e895b9
+  version: 13931e22f9e72ea58bb73048bc752b48c6d4d4ac
   subpackages:
   - blake2s
   - ed25519
   - ed25519/internal/edwards25519
   - ripemd160
 - name: golang.org/x/net
-  version: 2fb46b16b8dda405028c50f7c7f0f9dd1fa6bfb1
+  version: 803fdb99c0f72e493c28ef2099d250a9c989d8ff
   subpackages:
   - context
   - http2
@@ -88,14 +88,14 @@ imports:
   - lex/httplex
   - trace
 - name: golang.org/x/text
-  version: e19ae1496984b1c655b8044a65c0300a3c878dd3
+  version: b7ef84aaf62aa3e70962625c80a571ae7c17cb40
   subpackages:
   - secure/bidirule
   - transform
   - unicode/bidi
   - unicode/norm
 - name: google.golang.org/genproto
-  version: 4eb30f4778eed4c258ba66527a0d4f9ec8a36c45
+  version: df60624c1e9b9d2973e889c7a1cff73155da81c4
   subpackages:
   - googleapis/rpc/status
 - name: google.golang.org/grpc
@@ -119,7 +119,7 @@ imports:
   - transport
 testImports:
 - name: github.com/davecgh/go-spew
-  version: 346938d642f2ec3594ed81d874461961cd0faa76
+  version: ecdeabc65495df2dec95d7c4a4c3e021903035e5
   subpackages:
   - spew
 - name: github.com/pmezard/go-difflib

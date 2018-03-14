@@ -35,6 +35,7 @@ cover:
 	done
 
 deps: glide
+	@glide mirror set https://github.com/tendermint/go-wire https://github.com/ethanfrey/go-wire
 	@glide install
 	for ex in $(EXAMPLES); do cd $$ex && make deps; done
 
@@ -42,6 +43,7 @@ glide:
 	@go get github.com/tendermint/glide
 
 protoc:
+	protoc --gogofaster_out=. app/*.proto
 	protoc --gogofaster_out=. crypto/*.proto
 	protoc --gogofaster_out=. orm/*.proto
 	protoc --gogofaster_out=. x/*.proto

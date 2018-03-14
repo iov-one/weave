@@ -6,10 +6,12 @@ jobs:
       - image: golang:latest
     environment:
       TEST_RESULTS: /tmp/test-results
+      GLIDE_HOME: /go/.glide
 
     steps:
       - checkout
       - run: mkdir -p $TEST_RESULTS
+      - run: mkdir -p $GLIDE_HOME
 
       - run:
           name: Install glide

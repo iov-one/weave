@@ -139,7 +139,7 @@ func (b Bucket) GetOrCreate(db weave.KVStore, key weave.Address) (orm.Object, er
 // The object it returns must support AsSet (only checked runtime :()
 type WalletBucket interface {
 	GetOrCreate(db weave.KVStore, key weave.Address) (orm.Object, error)
-	Get(db weave.KVStore, key []byte) (orm.Object, error)
+	Get(db weave.ReadOnlyKVStore, key []byte) (orm.Object, error)
 	Save(db weave.KVStore, obj orm.Object) error
 }
 

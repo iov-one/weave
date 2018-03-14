@@ -166,7 +166,11 @@ func countByte(obj Object) ([]byte, error) {
 		return nil, errors.New("Can only take index of Counter")
 	}
 	// last 8 bits...
-	return []byte{byte(cntr.Count % 256)}, nil
+	return bc(cntr.Count), nil
+}
+
+func bc(i int64) []byte {
+	return []byte{byte(i % 256)}
 }
 
 // query will query either by pattern or key
@@ -285,6 +289,147 @@ func TestBucketIndex(t *testing.T) {
 			for _, q := range tc.queries {
 				q.check(t, b, db)
 			}
+		})
+	}
+}
+
+func toModel(t *testing.T, bucket Bucket, obj Object) weave.Model {
+	dbkey := bucket.DBKey(obj.Key())
+	val, err := obj.Value().Marshal()
+	require.NoError(t, err)
+	return weave.Model{Key: dbkey, Value: val}
+}
+
+// Check query interface works, also with embedded indexes
+func TestBucketQuery(t *testing.T) {
+	// make some buckets for testing
+	const mini = "mini"
+	const uniq = "uniq"
+	const name = "special"
+	const bPath = "/special"
+	const iPath = "/special/mini"
+	const uiPath = "/special/uniq"
+
+	// create a bucket with secondary index
+	bucket := NewBucket("spec", NewSimpleObj(nil, new(Counter))).
+		WithIndex(uniq, count, true).
+		WithIndex(mini, countByte, false)
+
+	// set up a router, using different name for bucket
+	qr := weave.NewQueryRouter()
+	bucket.Register(name, qr)
+
+	// store some data here for init
+	db := store.MemStore()
+	a, b, c := []byte("aa"), []byte("aab"), []byte("caac")
+	oa := NewSimpleObj(a, NewCounter(5))
+	ob := NewSimpleObj(b, NewCounter(256+5))
+	oc := NewSimpleObj(c, NewCounter(2))
+	err := bucket.Save(db, oa)
+	require.NoError(t, err)
+	err = bucket.Save(db, ob)
+	require.NoError(t, err)
+	err = bucket.Save(db, oc)
+	require.NoError(t, err)
+
+	// these are the expected models with absolute keys
+	// and serialized data
+	dba := toModel(t, bucket, oa)
+	dbb := toModel(t, bucket, ob)
+	dbc := toModel(t, bucket, oc)
+	require.Equal(t, []byte("spec:aa"), dba.Key)
+	require.NotEqual(t, dba.Value, dbb.Value)
+
+	// these are query strings for index
+	e5 := bc(5)
+	e2 := bc(2)
+	e77 := bc(77)
+
+	cases := []struct {
+		path           string
+		mod            string
+		data           []byte
+		missingHandler bool
+		isError        bool
+		expected       []weave.Model
+	}{
+		// bad path
+		0: {
+			bPath + "/", "", a, true, true, nil,
+		},
+		// bad mod
+		1: {
+			bPath, "foo", a, false, true, nil,
+		},
+		// simple query - hit
+		2: {
+			bPath, "", a, false, false, []weave.Model{dba},
+		},
+		// simple query - miss
+		3: {
+			bPath, "", []byte("a"), false, false, nil,
+		},
+		// prefix query - multi hit
+		4: {
+			bPath, "prefix", []byte("a"), false, false,
+			[]weave.Model{dba, dbb},
+		},
+		// prefix query - miss
+		5: {
+			bPath, "prefix", []byte("cc"), false, false, nil,
+		},
+		// prefix query - all
+		6: {
+			bPath, "prefix", nil, false, false,
+			[]weave.Model{dba, dbb, dbc},
+		},
+		// simple index - miss
+		7: {
+			iPath, "", e77, false, false, nil,
+		},
+		// simple index - single hit
+		8: {
+			iPath, "", e5, false, false, []weave.Model{dba, dbb},
+		},
+		// simple index - multi
+		9: {
+			iPath, "", e2, false, false, []weave.Model{dbc},
+		},
+		// prefix index - miss
+		10: {
+			iPath, "prefix", e77, false, false, nil,
+		},
+		// prefix index - all (in order of index, last byte)
+		11: {
+			iPath, "prefix", nil, false, false, []weave.Model{dbc, dba, dbb},
+		},
+		// unique index - hit
+		12: {
+			uiPath, "", encodeSequence(256 + 5), false, false, []weave.Model{dbb},
+		},
+		// unique prefix index - all (in order of index, full count)
+		13: {
+			uiPath, "prefix", nil, false, false, []weave.Model{dbc, dba, dbb},
+		},
+	}
+
+	for i, tc := range cases {
+		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
+			qh := qr.Handler(tc.path)
+			if tc.missingHandler {
+				require.Nil(t, qh)
+				return
+			}
+			require.NotNil(t, qh)
+
+			res, err := qh.Query(db, tc.mod, tc.data)
+			if tc.isError {
+				assert.Error(t, err)
+				return
+			}
+
+			assert.NoError(t, err)
+			assert.EqualValues(t, tc.expected, res)
 		})
 	}
 }

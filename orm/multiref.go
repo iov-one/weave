@@ -2,6 +2,7 @@ package orm
 
 import (
 	"bytes"
+	"sort"
 
 	"github.com/pkg/errors"
 )
@@ -59,6 +60,13 @@ func (m *MultiRef) Remove(ref []byte) error {
 	// splice it out
 	m.Refs = append(m.Refs[:i], m.Refs[i+1:]...)
 	return nil
+}
+
+// Sort will make sure everything is in order
+func (m *MultiRef) Sort() {
+	sort.Slice(m.Refs, func(i, j int) bool {
+		return bytes.Compare(m.Refs[i], m.Refs[j]) == -1
+	})
 }
 
 // returns (index, found) where found is true if

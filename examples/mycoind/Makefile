@@ -2,6 +2,7 @@
 
 GIT_COMMIT := $(shell git rev-parse --short HEAD)
 BUILD_FLAGS := -ldflags "-X github.com/confio/weave.GitCommit=$(GIT_COMMIT)"
+TENDERMINT := ${GOBIN}/tendermint
 
 install:
 	go install $(BUILD_FLAGS) .
@@ -11,7 +12,9 @@ protoc:
 
 # this is extra dependencies related to our example
 # (integration tests)
-deps:
+deps: $(TENDERMINT)
+
+$(TENDERMINT):
 	@ #install tendermint binary for testing
 	@ #go get -u github.com/tendermint/tendermint/cmd/tendermint
 	@ # Use this if the above fails

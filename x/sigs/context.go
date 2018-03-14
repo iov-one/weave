@@ -36,8 +36,8 @@ func (a Authenticate) GetPermissions(ctx weave.Context) []weave.Address {
 	return val
 }
 
-// HasPermission returns who signed the current Context.
-// May be empty
+// HasPermission returns true if the given address
+// had signed in the current Context.
 func (a Authenticate) HasPermission(ctx weave.Context, addr weave.Address) bool {
 	signers := a.GetPermissions(ctx)
 	for _, s := range signers {
