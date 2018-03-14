@@ -1,10 +1,12 @@
-hash: d35772924e48cc4f51b83ab182875a2c622fbf6c61a9f061bf74d0b751bc40be
-updated: 2018-03-13T20:02:13.611303268+01:00
+hash: f226e644a3c0e8321075b40437dfbcc818d038cd0015f4e6ebc13ab70ad49fac
+updated: 2018-03-14T23:13:58.221537375+01:00
 imports:
 - name: github.com/confio/weave
-  version: fdca81b5f0fdf9572243e30fb573dc94304b08ad
+  version: 2cc298170d5698049a46a889d10dd582a88ada56
   subpackages:
   - app
+  - commands
+  - commands/server
   - crypto
   - errors
   - orm
@@ -70,6 +72,7 @@ imports:
 - name: github.com/tendermint/abci
   version: 68592f4d8ee34e97db94b7a7976b1309efdb7eb9
   subpackages:
+  - server
   - types
 - name: github.com/tendermint/go-wire
   version: b6fc872b42d41158a60307db4da051dd6f179415

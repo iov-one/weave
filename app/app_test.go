@@ -23,7 +23,7 @@ func TestApp(t *testing.T) {
 	chainID := "test-net-22"
 	abciApp, err := GenerateApp("", log.NewNopLogger())
 	require.NoError(t, err)
-	app := abciApp.(app.BaseApp)
+	myApp := abciApp.(app.BaseApp)
 
 	// let's set up a genesis file with some cash
 	pk := crypto.GenPrivKeyEd25519()
@@ -55,27 +55,27 @@ func TestApp(t *testing.T) {
     }`, chainID, addr)
 
 	// Commit first block, make sure non-nil hash
-	app.InitChainWithGenesis(abci.RequestInitChain{}, []byte(genesis))
+	myApp.InitChainWithGenesis(abci.RequestInitChain{}, []byte(genesis))
 	header := abci.Header{Height: 1}
-	app.BeginBlock(abci.RequestBeginBlock{Header: header})
-	app.EndBlock(abci.RequestEndBlock{})
-	cres := app.Commit()
+	myApp.BeginBlock(abci.RequestBeginBlock{Header: header})
+	myApp.EndBlock(abci.RequestEndBlock{})
+	cres := myApp.Commit()
 	block1 := cres.Data
 	assert.NotEmpty(t, block1)
-	assert.Equal(t, chainID, app.GetChainID())
+	assert.Equal(t, chainID, myApp.GetChainID())
 
 	// Query for my balance
 	key := namecoin.NewWalletBucket().DBKey(addr)
 	query := abci.RequestQuery{
-		Path: "/key",
+		Path: "/",
 		Data: key,
 	}
-	qres := app.Query(query)
+	qres := myApp.Query(query)
 	require.Equal(t, uint32(0), qres.Code, "%#v", qres)
 	assert.NotEmpty(t, qres.Value)
 	// parse it and check it is not empty
 	var acct namecoin.Wallet
-	err = acct.Unmarshal(qres.Value)
+    err = app.UnmarshalOneResult(qres.Value, &acct)
 	require.NoError(t, err)
 	require.Equal(t, 2, len(acct.Coins))
 	assert.Equal(t, "demote", acct.Name)
@@ -106,26 +106,26 @@ func TestApp(t *testing.T) {
 
 	// Submit to the chain
 	header = abci.Header{Height: 2}
-	app.BeginBlock(abci.RequestBeginBlock{Header: header})
+	myApp.BeginBlock(abci.RequestBeginBlock{Header: header})
 	// check and deliver must pass
-	chres := app.CheckTx(txBytes)
+	chres := myApp.CheckTx(txBytes)
 	require.Equal(t, uint32(0), chres.Code, chres.Log)
-	dres := app.DeliverTx(txBytes)
+	dres := myApp.DeliverTx(txBytes)
 	require.Equal(t, uint32(0), dres.Code, dres.Log)
-	app.EndBlock(abci.RequestEndBlock{})
+	myApp.EndBlock(abci.RequestEndBlock{})
 	// commit should produce a different hash
-	cres = app.Commit()
+	cres = myApp.Commit()
 	block2 := cres.Data
 	assert.NotEmpty(t, block2)
 	assert.NotEqual(t, block1, block2)
 
 	// Query for new balances (same query, new state)
-	qres = app.Query(query)
+	qres = myApp.Query(query)
 	require.Equal(t, uint32(0), qres.Code, "%#v", qres)
 	assert.NotEmpty(t, qres.Value)
 	// parse it and check it is not empty
 	var acct2 namecoin.Wallet
-	err = acct2.Unmarshal(qres.Value)
+    err = app.UnmarshalOneResult(qres.Value, &acct2)
 	require.NoError(t, err)
 	assert.Equal(t, "demote", acct2.Name)
 	require.Equal(t, 2, len(acct2.Coins))
@@ -135,17 +135,72 @@ func TestApp(t *testing.T) {
 	// make sure money arrived safely
 	key2 := namecoin.NewWalletBucket().DBKey(addr2)
 	query2 := abci.RequestQuery{
-		Path: "/key",
+		Path: "/",
 		Data: key2,
 	}
-	qres2 := app.Query(query2)
+	qres2 := myApp.Query(query2)
 	require.Equal(t, uint32(0), qres2.Code, "%#v", qres2)
 	// parse it and check it is not empty
 	var acct3 namecoin.Wallet
-	err = acct3.Unmarshal(qres2.Value)
+    err = app.UnmarshalOneResult(qres2.Value, &acct3)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(acct3.Coins))
 	assert.Equal(t, int64(2000), acct3.Coins[0].Whole)
 	assert.Equal(t, "ETH", acct3.Coins[0].Ticker)
 
+    // make sure other paths also get this value....
+    query3 := abci.RequestQuery{
+        Path: "/wallets",
+        Data: addr2,
+    }
+    qres3 := myApp.Query(query3)
+    require.Equal(t, uint32(0), qres3.Code, "%#v", qres3)
+    assert.Equal(t, qres2.Key, qres3.Key)
+    assert.Equal(t, qres2.Value, qres3.Value)
+
+    // make sure other paths also get this value....
+    query4 := abci.RequestQuery{
+        Path: "/wallets?prefix",
+        Data: addr2[:15],
+    }
+    qres4 := myApp.Query(query4)
+    require.Equal(t, uint32(0), qres4.Code, "%#v", qres4)
+    assert.Equal(t, qres2.Key, qres4.Key)
+    assert.Equal(t, qres2.Value, qres4.Value)
+
+    // and we can query by name (sender account)
+    query5 := abci.RequestQuery{
+        Path: "/wallets/name",
+        Data: []byte("demote"),
+    }
+    qres5 := myApp.Query(query5)
+    require.Equal(t, uint32(0), qres5.Code, "%#v", qres5)
+    assert.Equal(t, qres.Key, qres5.Key)
+    assert.Equal(t, qres.Value, qres5.Value)
+
+    // get a token
+    tquery := abci.RequestQuery{
+        Path: "/tokens",
+        Data: []byte("ETH"),
+    }
+    var toke namecoin.Token
+    tres := myApp.Query(tquery)
+    err = app.UnmarshalOneResult(tres.Value, &toke)
+    require.NoError(t, err)
+    assert.Equal(t, int32(9), toke.SigFigs)
+    assert.Equal(t, "Smells like ethereum", toke.Name)
+
+    // get all tokens
+    aquery := abci.RequestQuery{
+        Path: "/tokens?prefix",
+    }
+    ares := myApp.Query(aquery)
+    var set app.ResultSet
+    err = set.Unmarshal(ares.Value)
+    require.NoError(t, err)
+    assert.Equal(t, 2, len(set.Refs))
+    err = toke.Unmarshal(set.Refs[1])
+    require.NoError(t, err)
+    assert.Equal(t, int32(3), toke.SigFigs)
+    assert.Equal(t, "Frankie", toke.Name)
 }

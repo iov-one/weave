@@ -101,6 +101,7 @@ type WalletBucket struct {
 }
 
 var _ cash.WalletBucket = WalletBucket{}
+var _ NamedBucket = WalletBucket{}
 
 // NewWalletBucket initializes a WalletBucket
 // and sets up a unique index by name
@@ -166,7 +167,7 @@ type Named interface {
 // The object it returns must support AsNamed (only checked runtime :()
 type NamedBucket interface {
 	GetOrCreate(db weave.KVStore, key weave.Address) (orm.Object, error)
-	Get(db weave.KVStore, key []byte) (orm.Object, error)
+	Get(db weave.ReadOnlyKVStore, key []byte) (orm.Object, error)
 	GetByName(db weave.KVStore, name string) (orm.Object, error)
 	Save(db weave.KVStore, obj orm.Object) error
 }

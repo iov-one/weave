@@ -50,6 +50,13 @@ func RegisterRoutes(r weave.Registry, auth x.Authenticator, issuer weave.Address
 	r.Handle(pathSetNameMsg, NewSetNameHandler(auth, NewWalletBucket()))
 }
 
+// RegisterQuery will register wallets as "/wallets"
+// and tokens as "/tokens"
+func RegisterQuery(qr weave.QueryRouter) {
+    NewWalletBucket().Register("wallets", qr)
+    NewTokenBucket().Register("tokens", qr)
+}
+
 // TokenHandler will handle creating new tokens
 type TokenHandler struct {
 	auth   x.Authenticator
