@@ -29,7 +29,7 @@ func ResultsFromValues(models []weave.Model) *ResultSet {
 // JoinResults inverts ResultsFromKeys and ResultsFromValues
 // and makes then a consistent whole again
 func JoinResults(keys, values *ResultSet) ([]weave.Model, error) {
-	kref, vref := keys.Refs, values.Refs
+	kref, vref := keys.Results, values.Results
 	if len(kref) != len(vref) {
 		return nil, errors.New("Mismatches result set size")
 	}
@@ -54,10 +54,10 @@ func UnmarshalOneResult(bz []byte, o weave.Persistent) error {
 	}
 
 	// no results, do nothing
-	if len(res.Refs) == 0 {
+	if len(res.Results) == 0 {
 		return nil
 	}
 
-	err = o.Unmarshal(res.Refs[0])
+	err = o.Unmarshal(res.Results[0])
 	return err
 }

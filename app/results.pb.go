@@ -31,7 +31,7 @@ const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
 
 // ResultSet contains a list of keys or values
 type ResultSet struct {
-	Refs [][]byte `protobuf:"bytes,1,rep,name=refs" json:"refs,omitempty"`
+	Results [][]byte `protobuf:"bytes,1,rep,name=results" json:"results,omitempty"`
 }
 
 func (m *ResultSet) Reset()                    { *m = ResultSet{} }
@@ -39,9 +39,9 @@ func (m *ResultSet) String() string            { return proto.CompactTextString(
 func (*ResultSet) ProtoMessage()               {}
 func (*ResultSet) Descriptor() ([]byte, []int) { return fileDescriptorResults, []int{0} }
 
-func (m *ResultSet) GetRefs() [][]byte {
+func (m *ResultSet) GetResults() [][]byte {
 	if m != nil {
-		return m.Refs
+		return m.Results
 	}
 	return nil
 }
@@ -64,8 +64,8 @@ func (m *ResultSet) MarshalTo(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
-	if len(m.Refs) > 0 {
-		for _, b := range m.Refs {
+	if len(m.Results) > 0 {
+		for _, b := range m.Results {
 			dAtA[i] = 0xa
 			i++
 			i = encodeVarintResults(dAtA, i, uint64(len(b)))
@@ -87,8 +87,8 @@ func encodeVarintResults(dAtA []byte, offset int, v uint64) int {
 func (m *ResultSet) Size() (n int) {
 	var l int
 	_ = l
-	if len(m.Refs) > 0 {
-		for _, b := range m.Refs {
+	if len(m.Results) > 0 {
+		for _, b := range m.Results {
 			l = len(b)
 			n += 1 + l + sovResults(uint64(l))
 		}
@@ -140,7 +140,7 @@ func (m *ResultSet) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Refs", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Results", wireType)
 			}
 			var byteLen int
 			for shift := uint(0); ; shift += 7 {
@@ -164,8 +164,8 @@ func (m *ResultSet) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Refs = append(m.Refs, make([]byte, postIndex-iNdEx))
-			copy(m.Refs[len(m.Refs)-1], dAtA[iNdEx:postIndex])
+			m.Results = append(m.Results, make([]byte, postIndex-iNdEx))
+			copy(m.Results[len(m.Results)-1], dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
@@ -296,12 +296,12 @@ var (
 func init() { proto.RegisterFile("app/results.proto", fileDescriptorResults) }
 
 var fileDescriptorResults = []byte{
-	// 99 bytes of a gzipped FileDescriptorProto
+	// 97 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x12, 0x4c, 0x2c, 0x28, 0xd0,
 	0x2f, 0x4a, 0x2d, 0x2e, 0xcd, 0x29, 0x29, 0xd6, 0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17, 0x62, 0x4e,
-	0x2c, 0x28, 0x50, 0x92, 0xe7, 0xe2, 0x0c, 0x02, 0x8b, 0x06, 0xa7, 0x96, 0x08, 0x09, 0x71, 0xb1,
-	0x14, 0xa5, 0xa6, 0x15, 0x4b, 0x30, 0x2a, 0x30, 0x6b, 0xf0, 0x04, 0x81, 0xd9, 0x4e, 0x02, 0x27,
-	0x1e, 0xc9, 0x31, 0x5e, 0x78, 0x24, 0xc7, 0xf8, 0xe0, 0x91, 0x1c, 0xe3, 0x84, 0xc7, 0x72, 0x0c,
-	0x49, 0x6c, 0x60, 0xed, 0xc6, 0x80, 0x00, 0x00, 0x00, 0xff, 0xff, 0x89, 0xf4, 0xf0, 0x08, 0x53,
-	0x00, 0x00, 0x00,
+	0x2c, 0x28, 0x50, 0x52, 0xe5, 0xe2, 0x0c, 0x02, 0x8b, 0x06, 0xa7, 0x96, 0x08, 0x49, 0x70, 0xb1,
+	0x43, 0x95, 0x48, 0x30, 0x2a, 0x30, 0x6b, 0xf0, 0x04, 0xc1, 0xb8, 0x4e, 0x02, 0x27, 0x1e, 0xc9,
+	0x31, 0x5e, 0x78, 0x24, 0xc7, 0xf8, 0xe0, 0x91, 0x1c, 0xe3, 0x84, 0xc7, 0x72, 0x0c, 0x49, 0x6c,
+	0x60, 0x43, 0x8c, 0x01, 0x01, 0x00, 0x00, 0xff, 0xff, 0x87, 0x7d, 0x95, 0x87, 0x59, 0x00, 0x00,
+	0x00,
 }

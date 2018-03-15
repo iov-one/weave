@@ -4,5 +4,5 @@ package app;
 
 // ResultSet contains a list of keys or values
 message ResultSet {
-    repeated bytes refs = 1;
+    repeated bytes results = 1;
 }
