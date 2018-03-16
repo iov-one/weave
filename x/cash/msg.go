@@ -32,10 +32,10 @@ func (s *SendMsg) Validate() error {
 		return err
 	}
 	if err := weave.Address(s.Src).Validate(); err != nil {
-        return err
+		return err
 	}
-    if err := weave.Address(s.Dest).Validate(); err != nil {
-        return err
+	if err := weave.Address(s.Dest).Validate(); err != nil {
+		return err
 	}
 	if len(s.GetMemo()) > maxMemoSize {
 		return ErrInvalidMemo("Memo too long")
@@ -98,8 +98,5 @@ func (f *FeeInfo) Validate() error {
 	if !fee.IsNonNegative() {
 		return ErrInvalidAmount("Negative fees")
 	}
-    if err := weave.Address(f.Payer).Validate(); err != nil {
-        return err
-    }
-	return nil
+	return weave.Address(f.Payer).Validate()
 }

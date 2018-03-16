@@ -12,8 +12,8 @@ import (
 func Examples() []commands.Example {
 	wallet := &cash.Set{
 		Coins: []*x.Coin{
-			&x.Coin{Whole: 50000, Ticker: "ETH"},
-			&x.Coin{Whole: 150, Fractional: 567000, Ticker: "BTC"},
+			{Whole: 50000, Ticker: "ETH"},
+			{Whole: 150, Fractional: 567000, Ticker: "BTC"},
 		},
 	}
 

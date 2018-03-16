@@ -9,7 +9,7 @@ import (
 	"github.com/gogo/protobuf/proto"
 )
 
-// Example will be writen out to a file, .json and .bin
+// Example will be written out to a file, .json and .bin
 // Filename should have no path and no extension
 type Example struct {
 	Filename string

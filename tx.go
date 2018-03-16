@@ -6,7 +6,7 @@ import (
 	"encoding/hex"
 	"strings"
 
-    "github.com/confio/weave/errors"
+	"github.com/confio/weave/errors"
 	// "golang.org/x/crypto/blake2b"
 )
 
@@ -119,11 +119,11 @@ func (a Address) ToString() string {
 }
 
 // Validate returns an error if the address is not the valid size
-func (a Address)Validate() error {
-    if len(a) != AddressLength {
-        return errors.ErrUnrecognizedAddress(a)
-    }
-    return nil
+func (a Address) Validate() error {
+	if len(a) != AddressLength {
+		return errors.ErrUnrecognizedAddress(a)
+	}
+	return nil
 }
 
 // NewAddress hashes and truncates into the proper size

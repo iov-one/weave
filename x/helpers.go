@@ -84,7 +84,7 @@ func (TestHelpers) MockTx(msg weave.Msg) weave.Tx {
 // Authenticate returns an Authenticator that gives permissions
 // to the given addresses
 func (TestHelpers) Authenticate(addrs ...weave.Address) Authenticator {
-	return auther{addrs}
+	return mockAuth{addrs}
 }
 
 // CountingDecorator keeps track of number of times called.
@@ -151,17 +151,17 @@ func (m *mockTx) Unmarshal(bz []byte) error {
 
 //------ auth
 
-type auther struct {
+type mockAuth struct {
 	signers []weave.Address
 }
 
-var _ Authenticator = auther{}
+var _ Authenticator = mockAuth{}
 
-func (a auther) GetPermissions(weave.Context) []weave.Address {
+func (a mockAuth) GetPermissions(weave.Context) []weave.Address {
 	return a.signers
 }
 
-func (a auther) HasPermission(ctx weave.Context, addr weave.Address) bool {
+func (a mockAuth) HasPermission(ctx weave.Context, addr weave.Address) bool {
 	for _, s := range a.signers {
 		if addr.Equals(s) {
 			return true

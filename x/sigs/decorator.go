@@ -1,5 +1,5 @@
 /*
-Package auth provides basic authentication
+Package sigs provides basic authentication
 middleware to verify the signatures on the transaction,
 and maintain nonces for replay protection.
 */

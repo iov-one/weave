@@ -28,7 +28,7 @@ func TestSavepoint(t *testing.T) {
 		check   bool // whether to call Check or Deliver
 		isError bool // true iff we expect errors
 
-		written  [][]byte // keys to find
+		written [][]byte // keys to find
 		missing [][]byte // keys not to find
 	}{
 		// savepoint disactivated, returns error, both written

@@ -22,6 +22,8 @@ func withSigners(ctx weave.Context, signers []weave.Address) weave.Context {
 	return context.WithValue(ctx, contextKeySigners, signers)
 }
 
+// Authenticate implements x.Authenticator and provides
+// authentication based on public-key signatures.
 type Authenticate struct{}
 
 var _ x.Authenticator = Authenticate{}

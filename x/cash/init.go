@@ -29,9 +29,9 @@ func (Initializer) FromGenesis(opts weave.Options, kv weave.KVStore) error {
 	}
 	bucket := NewBucket()
 	for _, acct := range accts {
-        if err := acct.Address.Validate(); err != nil {
-            return err
-        }
+		if err := acct.Address.Validate(); err != nil {
+			return err
+		}
 		wallet, err := WalletWith(acct.Address, acct.Set.Coins...)
 		if err != nil {
 			return err

@@ -5,9 +5,13 @@ import (
 )
 
 const (
-	KeyQueryMod    = ""
+	// KeyQueryMod means to query for exact match (key)
+	KeyQueryMod = ""
+	// PrefixQueryMod means to query for anything with this prefix
 	PrefixQueryMod = "prefix"
-	RangeQueryMod  = "range" // TODO: implement
+	// RangeQueryMod means to expect complex range query
+	// TODO: implement
+	RangeQueryMod = "range"
 )
 
 // Model groups together key and value to return

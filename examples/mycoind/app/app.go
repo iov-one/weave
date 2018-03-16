@@ -1,5 +1,5 @@
 /*
-Package std contains standard implementations of a number
+Package app contains standard implementations of a number
 of components.
 
 It is a good place to get started buuilding your first app,

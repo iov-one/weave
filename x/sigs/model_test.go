@@ -43,6 +43,7 @@ func TestUserModel(t *testing.T) {
 	require.NoError(t, err)
 	// load success
 	obj2, err := bucket.Get(kv, addr)
+	require.NoError(t, err)
 	assert.NotNil(t, obj2)
 	user2 := AsUser(obj2)
 	assert.Equal(t, int64(2), user2.Sequence)

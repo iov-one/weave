@@ -1,5 +1,5 @@
 /*
-package orm provides an easy to use db wrapper
+Package orm provides an easy to use db wrapper
 
 Break state space into prefixed sections called Buckets.
 * Each bucket contains only one type of object.
