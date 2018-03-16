@@ -99,10 +99,10 @@ type Iterator interface {
 // need this functionality
 
 /*
-  CacheableKVStore is a KVStore that supports CacheWrapping
+CacheableKVStore is a KVStore that supports CacheWrapping
 
-  CacheWrap() should not return a Committer, since Commit() on
-  cache-wraps make no sense.
+CacheWrap() should not return a Committer, since Commit() on
+cache-wraps make no sense.
 */
 type CacheableKVStore interface {
 	KVStore
@@ -130,6 +130,12 @@ type KVCacheWrap interface {
 // These reflect stores that can persist state to disk, load on
 // start up, and maintain some history
 
+// CommitKVStore is a root store that can make atomic commits
+// to disk. We modify it in batch by getting a CacheWrap()
+// and then Write(). Commit() will persist all changes to disk
+//
+// This store should also be able to return merkle proofs for
+// any committed state.
 type CommitKVStore interface {
 	// Get returns the value at last committed state
 	// returns nil iff key doesn't exist. Panics on nil key.

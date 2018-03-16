@@ -62,14 +62,19 @@ func Recover(err *error) {
 	}
 }
 
+// ErrUnknownTxType creates an error for unexpected transaction objects
 func ErrUnknownTxType(tx interface{}) error {
 	msg := fmt.Sprintf("%T", tx)
 	return WithLog(msg, errUnknownTxType, CodeUnknownRequest)
 }
+// IsUnknownTxTypeErr returns true if an error was created with
+// ErrUnknownTxType
 func IsUnknownTxTypeErr(err error) bool {
 	return IsSameError(errUnknownTxType, err)
 }
 
+// ErrUnrecognizedAddress may be used for empty addresses, or
+// badly formatted addresses
 func ErrUnrecognizedAddress(addr []byte) error {
 	msg := "(nil)"
 	if len(addr) > 0 {
@@ -77,6 +82,8 @@ func ErrUnrecognizedAddress(addr []byte) error {
 	}
 	return WithLog(msg, errUnrecognizedAddress, CodeUnrecognizedAddress)
 }
+// IsUnrecognizedAddressErr returns true iff an error was created
+// with ErrUnrecognizedAddress
 func IsUnrecognizedAddressErr(err error) bool {
 	return IsSameError(errUnrecognizedAddress, err)
 }
@@ -87,7 +94,7 @@ func ErrInternal(msg string) error {
 	return New(msg, CodeInternalErr)
 }
 
-// IsInternalErr matches any error that is not classified
+// IsInternalErr returns true for any error that is not classified
 func IsInternalErr(err error) bool {
 	return HasErrorCode(err, CodeInternalErr)
 }
@@ -96,6 +103,7 @@ func IsInternalErr(err error) bool {
 func ErrDecoding() error {
 	return WithCode(errDecoding, CodeTxParseError)
 }
+// IsDecodingErr returns true for any error with a ParseError code
 func IsDecodingErr(err error) bool {
 	return HasErrorCode(err, CodeTxParseError)
 }
@@ -104,6 +112,8 @@ func IsDecodingErr(err error) bool {
 func ErrTooLarge() error {
 	return WithCode(errTooLarge, CodeTxParseError)
 }
+// IsTooLargeErr returns true iff an error was created
+// with ErrTooLarge
 func IsTooLargeErr(err error) bool {
 	return IsSameError(errTooLarge, err)
 }
@@ -119,18 +129,23 @@ func ErrUnauthorized() error {
 func IsUnauthorizedErr(err error) bool {
 	return HasErrorCode(err, CodeUnauthorized)
 }
-
+// ErrMissingSignature is returned when no signature is present
 func ErrMissingSignature() error {
 	return WithCode(errMissingSignature, CodeUnauthorized)
 }
+// IsMissingSignatureErr returns true iff an error was created
+// with ErrMissingSignature
 func IsMissingSignatureErr(err error) bool {
 	return IsSameError(errMissingSignature, err)
 }
 
-// ErrInvalidSignature is when the
+// ErrInvalidSignature is when the signature doesn't match
+// (bad key, bad nonce, bad chainID)
 func ErrInvalidSignature() error {
 	return WithCode(errInvalidSignature, CodeUnauthorized)
 }
+// IsInvalidSignatureErr returns true iff an error was created
+// with ErrInvalidSignature
 func IsInvalidSignatureErr(err error) bool {
 	return IsSameError(errInvalidSignature, err)
 }
@@ -139,6 +154,8 @@ func IsInvalidSignatureErr(err error) bool {
 func ErrInvalidChainID(chainID string) error {
 	return WithLog(chainID, errInvalidChainID, CodeInvalidChainID)
 }
+// IsInvalidChainIDErr returns true iff an error was created
+// with ErrInvalidChainID
 func IsInvalidChainIDErr(err error) bool {
 	return IsSameError(errInvalidChainID, err)
 }
@@ -148,6 +165,8 @@ func IsInvalidChainIDErr(err error) bool {
 func ErrModifyChainID() error {
 	return WithCode(errModifyChainID, CodeInvalidChainID)
 }
+// IsModifyChainIDErr returns true iff an error was created
+// with ErrModifyChainID
 func IsModifyChainIDErr(err error) bool {
 	return IsSameError(errModifyChainID, err)
 }

@@ -1,4 +1,9 @@
 /*
+Package weave defines all common interfaces to weave
+together the various subpackages, as well as
+implementations of some of the simpler components
+(when interfaces would be too much overhead).
+
 We pass context through context.Context between
 app, middleware, and handlers. To do so, weave defines
 some common keys to store info, such as block height and
@@ -36,7 +41,7 @@ const (
 )
 
 var (
-	// Default logger is used for all context that have not
+	// DefaultLogger is used for all context that have not
 	// set anything themselves
 	DefaultLogger = log.NewNopLogger()
 
@@ -100,7 +105,7 @@ func GetChainID(ctx Context) string {
 
 // WithLogger sets the logger for this Context
 func WithLogger(ctx Context, logger log.Logger) Context {
-	// Logger can be overriden below... no problem
+	// Logger can be overridden below... no problem
 	return context.WithValue(ctx, contextKeyLogger, logger)
 }
 

@@ -21,7 +21,7 @@ type BTreeCacheable struct {
 var _ CacheableKVStore = BTreeCacheable{}
 
 // CacheWrap returns a BTreeCacheWrap that can be later
-// writen to this store, or rolled back
+// written to this store, or rolled back
 func (b BTreeCacheable) CacheWrap() KVCacheWrap {
 	// TODO: reuse FreeList between multiple cache wraps....
 	// We create/destroy a lot per tx when processing a block

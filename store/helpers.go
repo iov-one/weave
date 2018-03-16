@@ -111,6 +111,7 @@ type Op struct {
 	value []byte // only for set
 }
 
+// Apply performs the stored operation on a writeable store
 func (o Op) Apply(out SetDeleter) {
 	switch o.kind {
 	case setKind:
@@ -151,7 +152,7 @@ type NonAtomicBatch struct {
 
 var _ Batch = (*NonAtomicBatch)(nil)
 
-// NewNonAtomicBatch creates an empty batch to be later writen
+// NewNonAtomicBatch creates an empty batch to be later written
 // to the KVStore
 func NewNonAtomicBatch(out SetDeleter) *NonAtomicBatch {
 	return &NonAtomicBatch{

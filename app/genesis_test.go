@@ -70,7 +70,7 @@ func TestParseGenesis(t *testing.T) {
 				assert.Panics(t, func() { store.InitChain(abci.RequestInitChain{}) })
 				return
 			}
-			// anythign else, we should get empty success
+			// anything else, we should get empty success
 			store.InitChain(abci.RequestInitChain{})
 			assert.Equal(t, tc.expectChain, store.GetChainID())
 			assert.Equal(t, tc.expectCalled, c.called)

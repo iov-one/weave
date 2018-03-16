@@ -31,12 +31,11 @@ func (s *SendMsg) Validate() error {
 	if err := amt.Validate(); err != nil {
 		return err
 	}
-	l := weave.AddressLength
-	if len(s.GetSrc()) != l {
-		return errors.ErrUnrecognizedAddress(s.GetSrc())
+	if err := weave.Address(s.Src).Validate(); err != nil {
+        return err
 	}
-	if len(s.GetDest()) != l {
-		return errors.ErrUnrecognizedAddress(s.GetDest())
+    if err := weave.Address(s.Dest).Validate(); err != nil {
+        return err
 	}
 	if len(s.GetMemo()) > maxMemoSize {
 		return ErrInvalidMemo("Memo too long")
@@ -99,9 +98,8 @@ func (f *FeeInfo) Validate() error {
 	if !fee.IsNonNegative() {
 		return ErrInvalidAmount("Negative fees")
 	}
-	l := weave.AddressLength
-	if len(f.GetPayer()) != l {
-		return errors.ErrUnrecognizedAddress(f.GetPayer())
-	}
+    if err := weave.Address(f.Payer).Validate(); err != nil {
+        return err
+    }
 	return nil
 }

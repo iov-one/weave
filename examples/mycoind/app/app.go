@@ -111,7 +111,7 @@ func CommitKVStore(dbPath string) (weave.CommitKVStore, error) {
 		return nil, fmt.Errorf("Invalid Database Name: %s", path)
 	}
 
-	// Some external calls accidently add a ".db", which is now removed
+	// Some external calls accidentally add a ".db", which is now removed
 	path = strings.TrimSuffix(path, filepath.Ext(path))
 
 	// Split the database name into it's components (dir, name)

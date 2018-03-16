@@ -5,6 +5,8 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"strings"
+
+    "github.com/confio/weave/errors"
 	// "golang.org/x/crypto/blake2b"
 )
 
@@ -89,24 +91,39 @@ type TxDecoder func(txBytes []byte) (Tx, error)
 // It will be of size AddressLength
 type Address []byte
 
+// Equals checks if two addresses are the same
 func (a Address) Equals(b Address) bool {
 	return bytes.Equal(a, b)
 }
 
+// MarshalJSON provides a hex representation for JSON,
+// to override the standard base64 []byte encoding
 func (a Address) MarshalJSON() ([]byte, error) {
 	return marshalHex(a)
 }
 
+// UnmarshalJSON parses JSON in hex representation,
+// to override the standard base64 []byte encoding
 func (a *Address) UnmarshalJSON(src []byte) error {
 	dst := (*[]byte)(a)
 	return unmarshalHex(src, dst)
 }
 
+// ToString returns a human readable string.
+// Currently hex, may move to bech32
 func (a Address) ToString() string {
 	if len(a) == 0 {
 		return "(nil)"
 	}
 	return strings.ToUpper(hex.EncodeToString(a))
+}
+
+// Validate returns an error if the address is not the valid size
+func (a Address)Validate() error {
+    if len(a) != AddressLength {
+        return errors.ErrUnrecognizedAddress(a)
+    }
+    return nil
 }
 
 // NewAddress hashes and truncates into the proper size

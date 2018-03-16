@@ -2,7 +2,6 @@ package cash
 
 import (
 	"github.com/confio/weave"
-	"github.com/confio/weave/errors"
 )
 
 const optKey = "cash"
@@ -30,10 +29,9 @@ func (Initializer) FromGenesis(opts weave.Options, kv weave.KVStore) error {
 	}
 	bucket := NewBucket()
 	for _, acct := range accts {
-		// try to load up into a valid address
-		if len(acct.Address) != weave.AddressLength {
-			return errors.ErrUnrecognizedAddress(acct.Address)
-		}
+        if err := acct.Address.Validate(); err != nil {
+            return err
+        }
 		wallet, err := WalletWith(acct.Address, acct.Set.Coins...)
 		if err != nil {
 			return err

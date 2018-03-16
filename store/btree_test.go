@@ -28,7 +28,7 @@ func TestBTreeCacheGetSet(t *testing.T) {
 	base := makeBase()
 
 	// make sure the btree is empty at start but returns results
-	// that are writen to it
+	// that are written to it
 	k, v := []byte("french"), []byte("fry")
 	assert.Nil(t, base.Get(k))
 	assert.False(t, base.Has(k))

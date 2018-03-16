@@ -87,8 +87,8 @@ func (s CommitStore) LatestVersion() store.CommitID {
 
 // Adapter returns a wrapped version of the tree.
 //
-// Data writen here is stored in the tip of the version tree,
-// and will be writen to disk on Commit. There is no way
+// Data written here is stored in the tip of the version tree,
+// and will be written to disk on Commit. There is no way
 // to rollback writes here, without throwing away the CommitStore
 // and re-loading from disk.
 func (s CommitStore) Adapter() store.CacheableKVStore {
@@ -96,7 +96,7 @@ func (s CommitStore) Adapter() store.CacheableKVStore {
 	return store.BTreeCacheable{kv}
 }
 
-// CacheWrap wraps the Adapter with a cache, so it may be writen
+// CacheWrap wraps the Adapter with a cache, so it may be written
 // or discarded as needed.
 func (s CommitStore) CacheWrap() store.KVCacheWrap {
 	return s.Adapter().CacheWrap()

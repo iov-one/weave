@@ -18,7 +18,7 @@ type Checker interface {
 	Check(ctx Context, store KVStore, tx Tx) (CheckResult, error)
 }
 
-// Checker is a subset of Handler to execute a transaction.
+// Deliverer is a subset of Handler to execute a transaction.
 // It is its own interface to allow better type controls in the next
 // arguments in Decorator
 type Deliverer interface {

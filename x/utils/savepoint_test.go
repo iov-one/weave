@@ -28,10 +28,10 @@ func TestSavepoint(t *testing.T) {
 		check   bool // whether to call Check or Deliver
 		isError bool // true iff we expect errors
 
-		writen  [][]byte // keys to find
+		written  [][]byte // keys to find
 		missing [][]byte // keys not to find
 	}{
-		// savepoint disactivated, returns error, both writen
+		// savepoint disactivated, returns error, both written
 		0: {
 			NewSavepoint(),
 			help.WriteHandler(nk, nv, derr),
@@ -40,7 +40,7 @@ func TestSavepoint(t *testing.T) {
 			[][]byte{ok, nk},
 			nil,
 		},
-		// savepoint activated, returns error, one writen
+		// savepoint activated, returns error, one written
 		1: {
 			NewSavepoint().OnCheck(),
 			help.WriteHandler(nk, nv, derr),
@@ -49,7 +49,7 @@ func TestSavepoint(t *testing.T) {
 			[][]byte{ok},
 			[][]byte{nk},
 		},
-		// savepoint activated for deliver, returns error, one writen
+		// savepoint activated for deliver, returns error, one written
 		2: {
 			NewSavepoint().OnDeliver(),
 			help.WriteHandler(nk, nv, derr),
@@ -106,7 +106,7 @@ func TestSavepoint(t *testing.T) {
 				assert.NoError(t, err)
 			}
 
-			for _, k := range tc.writen {
+			for _, k := range tc.written {
 				assert.True(t, kv.Has(k), "%x", k)
 			}
 			for _, k := range tc.missing {
