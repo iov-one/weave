@@ -2,7 +2,6 @@ package weave_test
 
 import (
 	"fmt"
-	"strings"
 	"testing"
 
 	pkerr "github.com/pkg/errors"
@@ -13,8 +12,6 @@ import (
 )
 
 func TestCreateErrorResult(t *testing.T) {
-	assert := assert.New(t)
-
 	cases := []struct {
 		err  error
 		msg  string
@@ -32,20 +29,20 @@ func TestCreateErrorResult(t *testing.T) {
 		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
 
 			dres := weave.DeliverTxError(tc.err)
-			assert.True(dres.IsErr())
+			assert.True(t, dres.IsErr())
 			// This is if we want minimal logs in the future....
 			// assert.Equal(tc.msg, dres.Log)
-			assert.True(strings.HasPrefix(dres.Log, tc.msg))
-			assert.Contains(dres.Log, "github.com/confio/weave")
-			assert.Equal(tc.code, dres.Code)
+			assert.Contains(t, dres.Log, tc.msg)
+			assert.Contains(t, dres.Log, "confio/weave/abci")
+			assert.Equal(t, tc.code, dres.Code)
 
 			cres := weave.CheckTxError(tc.err)
-			assert.True(cres.IsErr())
+			assert.True(t, cres.IsErr())
 			// This is if we want minimal logs in the future....
 			// assert.Equal(tc.msg, cres.Log)
-			assert.True(strings.HasPrefix(cres.Log, tc.msg))
-			assert.Contains(cres.Log, "github.com/confio/weave")
-			assert.Equal(tc.code, cres.Code)
+			assert.Contains(t, cres.Log, tc.msg)
+			assert.Contains(t, cres.Log, "confio/weave/abci")
+			assert.Equal(t, tc.code, cres.Code)
 		})
 	}
 }

@@ -98,7 +98,7 @@ func (t tmerror) Stacktrace() errors.StackTrace {
 	st := t.stackTracer.StackTrace()
 	// trim our internal parts here
 	// manual error creation, or runtime for caught panics
-	for matchesFile(st[0], "/confio/weave/errors/", "/runtime/") {
+	for matchesFile(st[0], "weave/errors/common.go", "weave/errors/main.go", "/runtime/") {
 		st = st[1:]
 	}
 	// trim out outer wrappers (runtime)
