@@ -41,7 +41,6 @@ deps: glide $(TENDERMINT)
 
 glide:
 	@go get github.com/Masterminds/glide
-	@glide mirror set https://github.com/tendermint/go-wire https://github.com/ethanfrey/go-wire
 
 $(TENDERMINT):
 	@ #install tendermint binary for testing
