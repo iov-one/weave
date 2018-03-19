@@ -97,7 +97,8 @@ func DeliverTxError(err error) abci.ResponseDeliverTx {
 	tm := errors.Wrap(err)
 	return abci.ResponseDeliverTx{
 		Code: tm.ABCICode(),
-		Log:  fmt.Sprintf("%+v", tm),
+		// TODO: reduce debugging info like with Check?
+		Log: fmt.Sprintf("%+v", tm),
 		// Log:  tm.ABCILog(),
 	}
 }
@@ -109,7 +110,8 @@ func CheckTxError(err error) abci.ResponseCheckTx {
 	tm := errors.Wrap(err)
 	return abci.ResponseCheckTx{
 		Code: tm.ABCICode(),
-		Log:  fmt.Sprintf("%+v", tm),
+		// just minimal trace here, don't spam with full stack
+		Log: fmt.Sprintf("%v", tm),
 		// Log:  tm.ABCILog(),
 	}
 }

@@ -80,15 +80,26 @@ func TestLog(t *testing.T) {
 	}
 
 	for i, tc := range cases {
-		assert.True(t, tc.check(tc.err), "%d", i)
-		// make sure we have a nice error message with code
-		msg := fmt.Sprintf("%s", tc.err)
-		assert.Equal(t, tc.log, msg, "%d", i)
-		// make sure we also get stack dumps....
-		stack := fmt.Sprintf("%+v", tc.err)
-		withCode := "github.com/confio/weave/errors.WithCode\n"
-		thisTest := "github.com/confio/weave/errors.TestLog\n"
-		assert.True(t, strings.Contains(stack, withCode), "%d", i)
-		assert.True(t, strings.Contains(stack, thisTest), "%d", i)
+		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
+
+			assert.True(t, tc.check(tc.err))
+
+			// make sure we have a nice error message with code
+			msg := fmt.Sprintf("%s", tc.err)
+			assert.Equal(t, tc.log, msg)
+
+			// make sure we have a nice error message with code
+			middle := fmt.Sprintf("%v", tc.err)
+			assert.Contains(t, middle, tc.log)
+			assert.Contains(t, middle, "common_test.go")
+
+			// make sure we also get stack dumps....
+			stack := fmt.Sprintf("%+v", tc.err)
+			// we should trim off unneeded stuff
+			withCode := "github.com/confio/weave/errors.WithCode\n"
+			thisTest := "github.com/confio/weave/errors.TestLog\n"
+			assert.False(t, strings.Contains(stack, withCode))
+			assert.True(t, strings.Contains(stack, thisTest))
+		})
 	}
 }
