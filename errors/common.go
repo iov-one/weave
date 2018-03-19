@@ -49,7 +49,7 @@ func NormalizePanic(p interface{}) error {
 	if err, isErr := p.(error); isErr {
 		return Wrap(err)
 	}
-	msg := fmt.Sprintf("%v", p)
+	msg := fmt.Sprintf("panic: %v", p)
 	return ErrInternal(msg)
 }
 

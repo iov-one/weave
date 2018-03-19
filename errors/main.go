@@ -2,6 +2,9 @@ package errors
 
 import (
 	"fmt"
+	"io"
+	"runtime"
+	"strings"
 
 	"github.com/pkg/errors"
 )
@@ -89,6 +92,26 @@ func (t tmerror) Cause() error {
 	return errors.Cause(t.stackTracer)
 }
 
+// Stacktrace trims off the redundant lines at top and bottom
+// of the stack
+func (t tmerror) Stacktrace() errors.StackTrace {
+	st := t.stackTracer.StackTrace()
+	// trim our internal parts here
+	// manual error creation, or runtime for caught panics
+	for matchesFile(st[0], "/confio/weave/errors/", "/runtime/") {
+		st = st[1:]
+	}
+	// trim out outer wrappers (runtime)
+	for l := len(st) - 1; matchesFile(st[l], "/runtime/"); l-- {
+		st = st[:l]
+	}
+	return st
+}
+
+func (t tmerror) Error() string {
+	return t.stackTracer.Error()
+}
+
 var (
 	_ causer  = tmerror{}
 	_ error   = tmerror{}
@@ -106,13 +129,50 @@ type causer interface {
 	Cause() error
 }
 
-// Format handles "%+v" to expose the full stack trace
-// concept from pkg/errors
+func matchesFile(f errors.Frame, substrs ...string) bool {
+	file, _ := fileLine(f)
+	for _, sub := range substrs {
+		if strings.Contains(file, sub) {
+			return true
+		}
+	}
+	return false
+}
+
+func fileLine(f errors.Frame) (string, int) {
+	pc := uintptr(f) - 1
+	fn := runtime.FuncForPC(pc)
+	if fn == nil {
+		return "unknown", 0
+	}
+	return fn.FileLine(pc)
+}
+
+func writeSimpleFrame(s io.Writer, f errors.Frame) {
+	file, line := fileLine(f)
+	// cut file at "github.com/"
+	// TODO: generalize better for other hosts?
+	chunks := strings.SplitN(file, "github.com/", 2)
+	if len(chunks) == 2 {
+		file = chunks[1]
+	}
+	fmt.Fprintf(s, " [%s:%d]", file, line)
+}
+
+// Format works like pkg/errors, with additions.
+// %s is just the error message
+// %+v is the full stack trace
+// %v appends a compressed [filename:line] where the error
+//    was created
 func (t tmerror) Format(s fmt.State, verb rune) {
-	// special case also show all info
+	// %+v shows all lines,
 	if verb == 'v' && s.Flag('+') {
-		fmt.Fprintf(s, "%+v", t.stackTracer)
+		fmt.Fprintf(s, "%+v\n", t.Stacktrace())
 	}
 	// always print the normal error
 	fmt.Fprintf(s, "(%d) %s", t.code, t.ABCILog())
+	// %v just the first
+	if verb == 'v' && !s.Flag('+') {
+		writeSimpleFrame(s, t.Stacktrace()[0])
+	}
 }
