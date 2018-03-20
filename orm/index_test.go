@@ -113,5 +113,94 @@ func TestCounterIndex(t *testing.T) {
 			}
 		})
 	}
+}
+
+// simple indexer for MultiRef
+// return first value (if any), or nil
+func first(obj Object) ([]byte, error) {
+	if obj == nil {
+		return nil, errors.New("Cannot take index of nil")
+	}
+	multi, ok := obj.Value().(*MultiRef)
+	if !ok {
+		return nil, errors.New("Can only take index of MultiRef")
+	}
+	if len(multi.Refs) == 0 {
+		return nil, nil
+	}
+	return multi.Refs[0], nil
+}
+
+func makeRefObj(key []byte, values ...[]byte) Object {
+	value := &MultiRef{
+		Refs: values,
+	}
+	return NewSimpleObj(key, value)
+}
+
+func checkNil(t *testing.T, objs ...Object) {
+	for _, obj := range objs {
+		bz, err := first(obj)
+		require.NoError(t, err)
+		require.Equal(t, 0, len(bz))
+	}
+}
+
+// TestNullableIndex ensures we don't write indexes for nil values
+// is that all wanted??
+func TestNullableIndex(t *testing.T) {
+	uniq := NewIndex("no-null", first, true, nil)
+
+	// some keys to use
+	k1 := []byte("abc")
+	k2 := []byte("def")
+	k3 := []byte("xyz")
+	v1 := []byte("foo")
+	v2 := []byte("bar")
+
+	// o1 and o3 conflict
+	o1 := makeRefObj(k1, v1, v2)
+	o1a := makeRefObj(k1, v1)
+	o2 := makeRefObj(k2, v2, v1)
+	o3 := makeRefObj(k3, v1)
+
+	// no nils should conflict
+	n1 := makeRefObj(k1)
+	n2 := makeRefObj(k2, []byte{}, v1)
+	n3 := makeRefObj(k3, nil, v1)
+	checkNil(t, n1, n2, n3)
+
+	cases := []struct {
+		setup      []Object // insert these first before test
+		prev, next Object   // check for error
+		isError    bool     // check insert result
+	}{
+		// make sure test works with non-nil objects
+		0: {[]Object{o1}, nil, o2, false},
+		1: {[]Object{o1, o2}, nil, o3, true},
+		2: {[]Object{o1, o2}, o1, o1a, false},
+		// make sure nil doens't cause conflicts
+		3: {[]Object{}, nil, n1, false},
+		4: {[]Object{n1}, nil, n2, false},
+		5: {[]Object{n1}, nil, n3, false},
+		6: {[]Object{o1, n1, o2}, nil, n2, false},
+	}
+
+	for i, tc := range cases {
+		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
+			db := store.MemStore()
+			for _, init := range tc.setup {
+				err := uniq.Update(db, nil, init)
+				require.NoError(t, err)
+			}
+
+			err := uniq.Update(db, tc.prev, tc.next)
+			if tc.isError {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+			}
+		})
+	}
 
 }
