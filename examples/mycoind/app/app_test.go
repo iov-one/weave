@@ -108,20 +108,21 @@ func TestApp(t *testing.T) {
 	// ensure 3 keys with proper values
 	if assert.Equal(t, 3, len(dres.Tags), "%#v", dres.Tags) {
 		// three keys we expect, in order
-		var keys = make([][]byte, 3)
-		keys[0] = append([]byte("cash:"), addr...)
-		keys[1] = append([]byte("cash:"), addr2...)
-		keys[2] = append([]byte("sigs:"), addr...)
+		keys := [][]byte{[]byte("cash"), []byte("cash"), []byte("sigs")}
+		vals := make([][]byte, 3)
+		vals[0] = []byte(addr.ToString())
+		vals[1] = []byte(addr2.ToString())
+		vals[2] = []byte(addr.ToString())
 		if bytes.Compare(addr2, addr) < 0 {
-			keys[0], keys[1] = keys[1], keys[0]
+			vals[0], vals[1] = vals[1], vals[0]
 		}
 		// make sure the DeliverResult matches expections
 		assert.Equal(t, dres.Tags[0].Key, keys[0])
 		assert.Equal(t, dres.Tags[1].Key, keys[1])
 		assert.Equal(t, dres.Tags[2].Key, keys[2])
-		assert.Equal(t, dres.Tags[0].Value, []byte("s"))
-		assert.Equal(t, dres.Tags[1].Value, []byte("s"))
-		assert.Equal(t, dres.Tags[2].Value, []byte("s"))
+		assert.Equal(t, dres.Tags[0].Value, vals[0])
+		assert.Equal(t, dres.Tags[1].Value, vals[1])
+		assert.Equal(t, dres.Tags[2].Value, vals[2])
 	}
 
 	// TODO

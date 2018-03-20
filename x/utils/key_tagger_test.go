@@ -17,11 +17,14 @@ func TestKeyTagger(t *testing.T) {
 	var help x.TestHelpers
 
 	// always write ok, ov before calling functions
-	ok, ov := []byte("demo"), []byte("data")
+	ok, ov := []byte("foo:demo"), []byte("data")
 	// some key, value to try to write
 	nk, nv := []byte{1, 2, 3}, []byte{4, 5, 6}
 	// a default error if desired
 	derr := fmt.Errorf("something went wrong")
+
+	otag, oval := []byte("foo"), []byte("64656D6F")   // hex(demo)
+	ntag, nval := []byte("unknown"), []byte("010203") // hex(demo)
 
 	cases := [...]struct {
 		handler weave.Handler
@@ -42,16 +45,16 @@ func TestKeyTagger(t *testing.T) {
 		1: {
 			help.WriteHandler(nk, nv, nil),
 			false,
-			common.KVPairs{{Key: nk, Value: recordSet}},
+			common.KVPairs{{Key: ntag, Value: nval}},
 			nk,
 			nv,
 		},
 		// write multiple values (sorted order)
 		2: {
-			help.Wrap(help.WriteDecorator(ok, ov, false),
+			help.Wrap(help.WriteDecorator(ok, ov, true),
 				help.WriteHandler(nk, nv, nil)),
 			false,
-			common.KVPairs{{Key: nk, Value: recordSet}, {Key: ok, Value: recordSet}},
+			common.KVPairs{{Key: otag, Value: oval}, {Key: ntag, Value: nval}},
 			nk,
 			nv,
 		},
@@ -69,7 +72,7 @@ func TestKeyTagger(t *testing.T) {
 			help.Wrap(NewSavepoint().OnDeliver(),
 				help.WriteHandler(nk, nv, nil)),
 			false,
-			common.KVPairs{{Key: nk, Value: recordSet}},
+			common.KVPairs{{Key: ntag, Value: nval}},
 			nk,
 			nv,
 		},
@@ -78,7 +81,8 @@ func TestKeyTagger(t *testing.T) {
 			help.Wrap(help.WriteDecorator(ok, ov, false),
 				help.TagHandler(nk, nv, nil)),
 			false,
-			common.KVPairs{{Key: nk, Value: nv}, {Key: ok, Value: recordSet}},
+			// note that the nk, nv set explicitly are not modified
+			common.KVPairs{{Key: nk, Value: nv}, {Key: otag, Value: oval}},
 			nk,
 			nil,
 		},
@@ -87,7 +91,7 @@ func TestKeyTagger(t *testing.T) {
 			help.Wrap(help.WriteDecorator(ok, ov, false),
 				help.TagHandler(nk, nv, derr)),
 			true,
-			common.KVPairs{{Key: nk, Value: recordSet}},
+			common.KVPairs{{Key: nk, Value: nv}},
 			nk,
 			nil,
 		},
@@ -95,9 +99,6 @@ func TestKeyTagger(t *testing.T) {
 	}
 
 	for i, tc := range cases {
-		if i != 4 {
-			continue
-		}
 		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
 			ctx := context.Background()
 			db := store.MemStore()

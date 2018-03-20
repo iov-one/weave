@@ -1,9 +1,5 @@
 package store
 
-import (
-	"fmt"
-)
-
 // Recorder interface is implemented by anything returned from
 // NewRecordingStore
 type Recorder interface {
@@ -19,13 +15,11 @@ type Recorder interface {
 func NewRecordingStore(db KVStore) KVStore {
 	changes := make(map[string][]byte)
 	if cached, ok := db.(CacheableKVStore); ok {
-		fmt.Println("use cache")
 		return &cacheableRecordingStore{
 			CacheableKVStore: cached,
 			changes:          changes,
 		}
 	}
-	fmt.Println("no cache")
 	return &recordingStore{
 		KVStore: db,
 		changes: changes,
@@ -54,7 +48,6 @@ func (r *recordingStore) KVPairs() map[string][]byte {
 //
 // TODO: record new value???
 func (r *recordingStore) Set(key, value []byte) {
-	fmt.Printf("non-cache tag: %x\n", key)
 	r.changes[string(key)] = value
 	r.KVStore.Set(key, value)
 }
@@ -96,7 +89,6 @@ func (r *cacheableRecordingStore) KVPairs() map[string][]byte {
 //
 // TODO: record new value???
 func (r *cacheableRecordingStore) Set(key, value []byte) {
-	fmt.Printf("cache tag: %x\n", key)
 	r.changes[string(key)] = value
 	r.CacheableKVStore.Set(key, value)
 }
@@ -132,7 +124,6 @@ type recorderBatch struct {
 var _ Batch = (*recorderBatch)(nil)
 
 func (r *recorderBatch) Set(key, value []byte) {
-	fmt.Printf("batch tag: %x\n", key)
 	r.changes[string(key)] = value
 	r.b.Set(key, value)
 }

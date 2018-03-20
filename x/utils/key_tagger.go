@@ -1,6 +1,9 @@
 package utils
 
 import (
+	"encoding/hex"
+	"strings"
+
 	"github.com/tendermint/tmlibs/common"
 
 	"github.com/confio/weave"
@@ -9,7 +12,10 @@ import (
 
 // KeyTagger is a decorate that records all Set/Delete
 // operations performed by it's children and adds all those keys
-// as DeliverTx tags
+// as DeliverTx tags.
+//
+// Tags are added as Key=<bucket name>, Value=<hex of remainder>,
+// like Key=cash, Value=00CAFE00
 type KeyTagger struct{}
 
 var _ weave.Decorator = KeyTagger{}
@@ -40,11 +46,6 @@ func (KeyTagger) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx,
 	return res, nil
 }
 
-var (
-	recordSet    = []byte("s")
-	recordDelete = []byte("d")
-)
-
 // kvPairs will get the kvpairs from an underlying store if possible
 // use this, so we can use interface for recordingStore
 func kvPairs(db weave.KVStore) common.KVPairs {
@@ -63,14 +64,19 @@ func changesToTags(changes map[string][]byte) common.KVPairs {
 		return nil
 	}
 	res := make(common.KVPairs, 0, l)
-	for k, v := range changes {
-		tag := recordSet
-		if v == nil {
-			tag = recordDelete
+	for k := range changes {
+		var bucket, key string
+		parsed := strings.SplitN(k, ":", 2)
+		if len(parsed) == 1 {
+			bucket = "unknown"
+			key = strings.ToUpper(hex.EncodeToString([]byte(k)))
+		} else {
+			bucket = parsed[0]
+			key = strings.ToUpper(hex.EncodeToString([]byte(parsed[1])))
 		}
 		pair := common.KVPair{
-			Key:   []byte(k),
-			Value: tag,
+			Key:   []byte(bucket),
+			Value: []byte(key),
 		}
 		res = append(res, pair)
 	}
