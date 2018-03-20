@@ -64,8 +64,17 @@ func TestKeyTagger(t *testing.T) {
 			nk,
 			nil,
 		},
-		// combine with other tags from the Handler
+		// savepoint keeps writes on success
 		4: {
+			help.Wrap(NewSavepoint().OnDeliver(),
+				help.WriteHandler(nk, nv, nil)),
+			false,
+			common.KVPairs{{Key: nk, Value: recordSet}},
+			nk,
+			nv,
+		},
+		// combine with other tags from the Handler
+		5: {
 			help.Wrap(help.WriteDecorator(ok, ov, false),
 				help.TagHandler(nk, nv, nil)),
 			false,
@@ -74,7 +83,7 @@ func TestKeyTagger(t *testing.T) {
 			nil,
 		},
 		// on error don't add tags, but leave original ones
-		5: {
+		6: {
 			help.Wrap(help.WriteDecorator(ok, ov, false),
 				help.TagHandler(nk, nv, derr)),
 			true,
@@ -86,6 +95,9 @@ func TestKeyTagger(t *testing.T) {
 	}
 
 	for i, tc := range cases {
+		if i != 4 {
+			continue
+		}
 		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
 			ctx := context.Background()
 			db := store.MemStore()
