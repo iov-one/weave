@@ -1,6 +1,7 @@
 package app
 
 import (
+	"bytes"
 	"fmt"
 	"testing"
 
@@ -75,7 +76,7 @@ func TestApp(t *testing.T) {
 	assert.NotEmpty(t, qres.Value)
 	// parse it and check it is not empty
 	var acct namecoin.Wallet
-    err = app.UnmarshalOneResult(qres.Value, &acct)
+	err = app.UnmarshalOneResult(qres.Value, &acct)
 	require.NoError(t, err)
 	require.Equal(t, 2, len(acct.Coins))
 	assert.Equal(t, "demote", acct.Name)
@@ -112,6 +113,27 @@ func TestApp(t *testing.T) {
 	require.Equal(t, uint32(0), chres.Code, chres.Log)
 	dres := myApp.DeliverTx(txBytes)
 	require.Equal(t, uint32(0), dres.Code, dres.Log)
+
+	// ensure 3 keys with proper values
+	if assert.Equal(t, 3, len(dres.Tags), "%#v", dres.Tags) {
+		// three keys we expect, in order
+		var keys = make([][]byte, 3)
+		keys[0] = append([]byte("sigs:"), addr...)
+		keys[1] = append([]byte("wllt:"), addr...)
+		keys[2] = append([]byte("wllt:"), addr2...)
+		if bytes.Compare(addr2, addr) < 0 {
+			keys[1], keys[2] = keys[2], keys[1]
+		}
+		// make sure the DeliverResult matches expections
+		assert.Equal(t, dres.Tags[0].Key, keys[0], "%x", dres.Tags[0])
+		assert.Equal(t, dres.Tags[1].Key, keys[1], "%x", dres.Tags[1])
+		assert.Equal(t, dres.Tags[2].Key, keys[2], "%x", dres.Tags[2])
+		assert.Equal(t, dres.Tags[0].Value, []byte("s"))
+		assert.Equal(t, dres.Tags[1].Value, []byte("s"))
+		assert.Equal(t, dres.Tags[2].Value, []byte("s"))
+	}
+
+	// make sure commit is proper
 	myApp.EndBlock(abci.RequestEndBlock{})
 	// commit should produce a different hash
 	cres = myApp.Commit()
@@ -125,7 +147,7 @@ func TestApp(t *testing.T) {
 	assert.NotEmpty(t, qres.Value)
 	// parse it and check it is not empty
 	var acct2 namecoin.Wallet
-    err = app.UnmarshalOneResult(qres.Value, &acct2)
+	err = app.UnmarshalOneResult(qres.Value, &acct2)
 	require.NoError(t, err)
 	assert.Equal(t, "demote", acct2.Name)
 	require.Equal(t, 2, len(acct2.Coins))
@@ -142,65 +164,65 @@ func TestApp(t *testing.T) {
 	require.Equal(t, uint32(0), qres2.Code, "%#v", qres2)
 	// parse it and check it is not empty
 	var acct3 namecoin.Wallet
-    err = app.UnmarshalOneResult(qres2.Value, &acct3)
+	err = app.UnmarshalOneResult(qres2.Value, &acct3)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(acct3.Coins))
 	assert.Equal(t, int64(2000), acct3.Coins[0].Whole)
 	assert.Equal(t, "ETH", acct3.Coins[0].Ticker)
 
-    // make sure other paths also get this value....
-    query3 := abci.RequestQuery{
-        Path: "/wallets",
-        Data: addr2,
-    }
-    qres3 := myApp.Query(query3)
-    require.Equal(t, uint32(0), qres3.Code, "%#v", qres3)
-    assert.Equal(t, qres2.Key, qres3.Key)
-    assert.Equal(t, qres2.Value, qres3.Value)
+	// make sure other paths also get this value....
+	query3 := abci.RequestQuery{
+		Path: "/wallets",
+		Data: addr2,
+	}
+	qres3 := myApp.Query(query3)
+	require.Equal(t, uint32(0), qres3.Code, "%#v", qres3)
+	assert.Equal(t, qres2.Key, qres3.Key)
+	assert.Equal(t, qres2.Value, qres3.Value)
 
-    // make sure other paths also get this value....
-    query4 := abci.RequestQuery{
-        Path: "/wallets?prefix",
-        Data: addr2[:15],
-    }
-    qres4 := myApp.Query(query4)
-    require.Equal(t, uint32(0), qres4.Code, "%#v", qres4)
-    assert.Equal(t, qres2.Key, qres4.Key)
-    assert.Equal(t, qres2.Value, qres4.Value)
+	// make sure other paths also get this value....
+	query4 := abci.RequestQuery{
+		Path: "/wallets?prefix",
+		Data: addr2[:15],
+	}
+	qres4 := myApp.Query(query4)
+	require.Equal(t, uint32(0), qres4.Code, "%#v", qres4)
+	assert.Equal(t, qres2.Key, qres4.Key)
+	assert.Equal(t, qres2.Value, qres4.Value)
 
-    // and we can query by name (sender account)
-    query5 := abci.RequestQuery{
-        Path: "/wallets/name",
-        Data: []byte("demote"),
-    }
-    qres5 := myApp.Query(query5)
-    require.Equal(t, uint32(0), qres5.Code, "%#v", qres5)
-    assert.Equal(t, qres.Key, qres5.Key)
-    assert.Equal(t, qres.Value, qres5.Value)
+	// and we can query by name (sender account)
+	query5 := abci.RequestQuery{
+		Path: "/wallets/name",
+		Data: []byte("demote"),
+	}
+	qres5 := myApp.Query(query5)
+	require.Equal(t, uint32(0), qres5.Code, "%#v", qres5)
+	assert.Equal(t, qres.Key, qres5.Key)
+	assert.Equal(t, qres.Value, qres5.Value)
 
-    // get a token
-    tquery := abci.RequestQuery{
-        Path: "/tokens",
-        Data: []byte("ETH"),
-    }
-    var toke namecoin.Token
-    tres := myApp.Query(tquery)
-    err = app.UnmarshalOneResult(tres.Value, &toke)
-    require.NoError(t, err)
-    assert.Equal(t, int32(9), toke.SigFigs)
-    assert.Equal(t, "Smells like ethereum", toke.Name)
+	// get a token
+	tquery := abci.RequestQuery{
+		Path: "/tokens",
+		Data: []byte("ETH"),
+	}
+	var toke namecoin.Token
+	tres := myApp.Query(tquery)
+	err = app.UnmarshalOneResult(tres.Value, &toke)
+	require.NoError(t, err)
+	assert.Equal(t, int32(9), toke.SigFigs)
+	assert.Equal(t, "Smells like ethereum", toke.Name)
 
-    // get all tokens
-    aquery := abci.RequestQuery{
-        Path: "/tokens?prefix",
-    }
-    ares := myApp.Query(aquery)
-    var set app.ResultSet
-    err = set.Unmarshal(ares.Value)
-    require.NoError(t, err)
-    assert.Equal(t, 2, len(set.Refs))
-    err = toke.Unmarshal(set.Refs[1])
-    require.NoError(t, err)
-    assert.Equal(t, int32(3), toke.SigFigs)
-    assert.Equal(t, "Frankie", toke.Name)
+	// get all tokens
+	aquery := abci.RequestQuery{
+		Path: "/tokens?prefix",
+	}
+	ares := myApp.Query(aquery)
+	var set app.ResultSet
+	err = set.Unmarshal(ares.Value)
+	require.NoError(t, err)
+	assert.Equal(t, 2, len(set.Results))
+	err = toke.Unmarshal(set.Results[1])
+	require.NoError(t, err)
+	assert.Equal(t, int32(3), toke.SigFigs)
+	assert.Equal(t, "Frankie", toke.Name)
 }

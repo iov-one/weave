@@ -17,8 +17,8 @@ import (
 
 	"github.com/confio/weave"
 	"github.com/confio/weave/app"
-    "github.com/confio/weave/orm"
-    "github.com/confio/weave/store/iavl"
+	"github.com/confio/weave/orm"
+	"github.com/confio/weave/store/iavl"
 	"github.com/confio/weave/x"
 	"github.com/confio/weave/x/sigs"
 	"github.com/confio/weave/x/utils"
@@ -38,6 +38,7 @@ func Chain(minFee x.Coin, authFn x.Authenticator) app.Decorators {
 	return app.ChainDecorators(
 		utils.NewLogging(),
 		utils.NewRecovery(),
+		utils.NewKeyTagger(),
 		// on CheckTx, bad tx don't affect state
 		utils.NewSavepoint().OnCheck(),
 		sigs.NewDecorator(),
@@ -59,13 +60,13 @@ func Router(authFn x.Authenticator, issuer weave.Address) app.Router {
 // QueryRouter returns a default query router,
 // allowing access to "/wallets", "/auth", and "/"
 func QueryRouter() weave.QueryRouter {
-    r := weave.NewQueryRouter()
-    r.RegisterAll(
-        namecoin.RegisterQuery,
-        sigs.RegisterQuery,
-        orm.RegisterQuery,
-    )
-    return r
+	r := weave.NewQueryRouter()
+	r.RegisterAll(
+		namecoin.RegisterQuery,
+		sigs.RegisterQuery,
+		orm.RegisterQuery,
+	)
+	return r
 }
 
 // Stack wires up a standard router with a standard decorator
