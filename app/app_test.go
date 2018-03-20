@@ -34,7 +34,7 @@ func TestApp(t *testing.T) {
         "app_state": {
             "wallets": [{
                 "name": "demote",
-                "address": "%X",
+                "address": "%s",
                 "coins": [{
                     "whole": 50000,
                     "ticker": "ETH"
@@ -117,20 +117,21 @@ func TestApp(t *testing.T) {
 	// ensure 3 keys with proper values
 	if assert.Equal(t, 3, len(dres.Tags), "%#v", dres.Tags) {
 		// three keys we expect, in order
-		var keys = make([][]byte, 3)
-		keys[0] = append([]byte("sigs:"), addr...)
-		keys[1] = append([]byte("wllt:"), addr...)
-		keys[2] = append([]byte("wllt:"), addr2...)
+		keys := [][]byte{[]byte("sigs"), []byte("wllt"), []byte("wllt")}
+		vals := make([][]byte, 3)
+		vals[0] = []byte(addr.String())
+		vals[1] = []byte(addr.String())
+		vals[2] = []byte(addr2.String())
 		if bytes.Compare(addr2, addr) < 0 {
-			keys[1], keys[2] = keys[2], keys[1]
+			vals[1], vals[2] = vals[2], vals[1]
 		}
 		// make sure the DeliverResult matches expections
-		assert.Equal(t, dres.Tags[0].Key, keys[0], "%x", dres.Tags[0])
-		assert.Equal(t, dres.Tags[1].Key, keys[1], "%x", dres.Tags[1])
-		assert.Equal(t, dres.Tags[2].Key, keys[2], "%x", dres.Tags[2])
-		assert.Equal(t, dres.Tags[0].Value, []byte("s"))
-		assert.Equal(t, dres.Tags[1].Value, []byte("s"))
-		assert.Equal(t, dres.Tags[2].Value, []byte("s"))
+		assert.Equal(t, dres.Tags[0].Key, keys[0])
+		assert.Equal(t, dres.Tags[1].Key, keys[1])
+		assert.Equal(t, dres.Tags[2].Key, keys[2])
+		assert.Equal(t, dres.Tags[0].Value, vals[0])
+		assert.Equal(t, dres.Tags[1].Value, vals[1])
+		assert.Equal(t, dres.Tags[2].Value, vals[2])
 	}
 
 	// make sure commit is proper
