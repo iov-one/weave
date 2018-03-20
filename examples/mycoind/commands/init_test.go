@@ -36,7 +36,7 @@ func TestInit(t *testing.T) {
 	err = json.Unmarshal(bz, &doc)
 	require.NoError(t, err)
 	// keep old values, and add our values
-	assert.EqualValues(t, []byte(`"test-chain-LgVOZ0"`),
+	assert.EqualValues(t, []byte(`"test-chain-tspYJj"`),
 		doc["chain_id"])
 	assert.NotEmpty(t, doc["validators"])
 	assert.NotEmpty(t, doc[server.AppStateKey])
