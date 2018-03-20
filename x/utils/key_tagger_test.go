@@ -17,7 +17,7 @@ func TestKeyTagger(t *testing.T) {
 	var help x.TestHelpers
 
 	// always write ok, ov before calling functions
-	// ok, ov := []byte("demo"), []byte("data")
+	ok, ov := []byte("demo"), []byte("data")
 	// some key, value to try to write
 	nk, nv := []byte{1, 2, 3}, []byte{4, 5, 6}
 	// a default error if desired
@@ -29,13 +29,14 @@ func TestKeyTagger(t *testing.T) {
 		tags    common.KVPairs
 		k, v    []byte
 	}{
-		// return error with no tags
+		// return error doesn't add tags
 		0: {
 			help.WriteHandler(nk, nv, derr),
 			true,
 			nil,
-			nil,
-			nil,
+			// note that these were writen as we had no SavePoint
+			nk,
+			nv,
 		},
 		// with success records tags
 		1: {
@@ -45,10 +46,43 @@ func TestKeyTagger(t *testing.T) {
 			nk,
 			nv,
 		},
-		// TODO:
-		//  - write multiple values (sorted order)
-		//  - overwrite value (set/delete)
-
+		// write multiple values (sorted order)
+		2: {
+			help.Wrap(help.WriteDecorator(ok, ov, false),
+				help.WriteHandler(nk, nv, nil)),
+			false,
+			common.KVPairs{{Key: nk, Value: recordSet}, {Key: ok, Value: recordSet}},
+			nk,
+			nv,
+		},
+		// savepoint must revert any writes
+		3: {
+			help.Wrap(NewSavepoint().OnDeliver(),
+				help.WriteHandler(nk, nv, derr)),
+			true,
+			nil,
+			nk,
+			nil,
+		},
+		// combine with other tags from the Handler
+		4: {
+			help.Wrap(help.WriteDecorator(ok, ov, false),
+				help.TagHandler(nk, nv, nil)),
+			false,
+			common.KVPairs{{Key: nk, Value: nv}, {Key: ok, Value: recordSet}},
+			nk,
+			nil,
+		},
+		// on error don't add tags, but leave original ones
+		5: {
+			help.Wrap(help.WriteDecorator(ok, ov, false),
+				help.TagHandler(nk, nv, derr)),
+			true,
+			common.KVPairs{{Key: nk, Value: recordSet}},
+			nk,
+			nil,
+		},
+		// TODO: also check delete
 	}
 
 	for i, tc := range cases {
@@ -70,13 +104,13 @@ func TestKeyTagger(t *testing.T) {
 			res, err := tagger.Deliver(ctx, db, nil, tc.handler)
 			if tc.isError {
 				assert.Error(t, err)
-				return
+			} else {
+				assert.NoError(t, err)
+				// tags are set properly
+				assert.EqualValues(t, tc.tags, res.Tags)
 			}
 
-			assert.NoError(t, err)
-			// tags are set properly
-			assert.EqualValues(t, tc.tags, res.Tags)
-			// data is also writen to underlying db
+			// optionally check if data was writen to underlying db
 			if tc.k != nil {
 				v := db.Get(tc.k)
 				assert.EqualValues(t, tc.v, v)

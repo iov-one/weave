@@ -3,6 +3,7 @@ package x
 import (
 	"github.com/confio/weave"
 	"github.com/confio/weave/crypto"
+	"github.com/tendermint/tmlibs/common"
 )
 
 //--------------- expose helpers -----
@@ -61,6 +62,26 @@ func (TestHelpers) WriteDecorator(key, value []byte, after bool) weave.Decorator
 		key:   key,
 		value: value,
 		after: after,
+	}
+}
+
+// TagHandler writes a tag to DeliverResult and returns error of nil
+// returns error, but doens't write any tags on CheckTx
+func (TestHelpers) TagHandler(key, value []byte, err error) weave.Handler {
+	return tagHandler{
+		key:   key,
+		value: value,
+		err:   err,
+	}
+}
+
+// Wrap wraps the handler with one decorator and returns it
+// as a single handler.
+// Minimal version of ChainDecorators for test cases
+func (TestHelpers) Wrap(d weave.Decorator, h weave.Handler) weave.Handler {
+	return wrappedHandler{
+		d: d,
+		h: h,
 	}
 }
 
@@ -368,4 +389,46 @@ func (d writeDecorator) Deliver(ctx weave.Context, store weave.KVStore,
 		store.Set(d.key, d.value)
 	}
 	return res, err
+}
+
+//----------------- misc --------
+
+// tagHandler writes the key, value pair and returns the error (may be nil)
+type tagHandler struct {
+	key   []byte
+	value []byte
+	err   error
+}
+
+var _ weave.Handler = tagHandler{}
+
+func (h tagHandler) Check(ctx weave.Context, store weave.KVStore,
+	tx weave.Tx) (weave.CheckResult, error) {
+	return weave.CheckResult{}, h.err
+}
+
+func (h tagHandler) Deliver(ctx weave.Context, store weave.KVStore,
+	tx weave.Tx) (weave.DeliverResult, error) {
+
+	tags := common.KVPairs{{Key: h.key, Value: h.value}}
+	return weave.DeliverResult{Tags: tags}, h.err
+}
+
+type wrappedHandler struct {
+	d weave.Decorator
+	h weave.Handler
+}
+
+var _ weave.Handler = wrappedHandler{}
+
+func (w wrappedHandler) Check(ctx weave.Context, store weave.KVStore,
+	tx weave.Tx) (weave.CheckResult, error) {
+
+	return w.d.Check(ctx, store, tx, w.h)
+}
+
+func (w wrappedHandler) Deliver(ctx weave.Context, store weave.KVStore,
+	tx weave.Tx) (weave.DeliverResult, error) {
+
+	return w.d.Deliver(ctx, store, tx, w.h)
 }

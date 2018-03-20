@@ -35,8 +35,22 @@ func (KeyTagger) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx,
 		return res, err
 	}
 
-	res.Tags = append(res.Tags, record.KVPairs()...)
+	res.Tags = append(res.Tags, kvPairs(record)...)
 	return res, nil
+}
+
+type kvpairer interface {
+	KVPairs() common.KVPairs
+}
+
+// kvPairs will get the kvpairs from an underlying store if possible
+// use this, so we can use interface for recordingStore
+func kvPairs(db weave.KVStore) common.KVPairs {
+	r, ok := db.(kvpairer)
+	if !ok {
+		return nil
+	}
+	return r.KVPairs()
 }
 
 var (
@@ -55,7 +69,9 @@ var _ weave.KVStore = (*recordingStore)(nil)
 
 // newRecordingStore initializes a recording store wrapping this
 // base store
-func newRecordingStore(db weave.KVStore) *recordingStore {
+//
+// TODO: return CacheableKVStore if possible
+func newRecordingStore(db weave.KVStore) weave.KVStore {
 	return &recordingStore{
 		KVStore: db,
 		changes: make(map[string][]byte),
