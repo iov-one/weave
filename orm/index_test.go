@@ -166,6 +166,7 @@ func TestNullableIndex(t *testing.T) {
 
 	// no nils should conflict
 	n1 := makeRefObj(k1)
+	n1a := makeRefObj(k1, []byte{}, v2)
 	n2 := makeRefObj(k2, []byte{}, v1)
 	n3 := makeRefObj(k3, nil, v1)
 	checkNil(t, n1, n2, n3)
@@ -184,6 +185,8 @@ func TestNullableIndex(t *testing.T) {
 		4: {[]Object{n1}, nil, n2, false},
 		5: {[]Object{n1}, nil, n3, false},
 		6: {[]Object{o1, n1, o2}, nil, n2, false},
+		// also with move....
+		7: {[]Object{n1, n2}, n1, n1a, false},
 	}
 
 	for i, tc := range cases {

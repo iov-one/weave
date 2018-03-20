@@ -197,7 +197,7 @@ func (i Index) move(db weave.KVStore, prev Object, save Object) error {
 	}
 
 	// check unique constraint before removing
-	if i.unique {
+	if i.unique && len(oldKey) != 0 {
 		k := i.IndexKey(newKey)
 		val := db.Get(k)
 		if val != nil {
@@ -213,6 +213,11 @@ func (i Index) move(db weave.KVStore, prev Object, save Object) error {
 }
 
 func (i Index) remove(db weave.KVStore, index []byte, pk []byte) error {
+	// don't deal with empty keys
+	if len(index) == 0 {
+		return nil
+	}
+
 	key := i.IndexKey(index)
 	cur := db.Get(key)
 	if cur == nil {
@@ -252,6 +257,11 @@ func (i Index) remove(db weave.KVStore, index []byte, pk []byte) error {
 }
 
 func (i Index) insert(db weave.KVStore, index []byte, pk []byte) error {
+	// don't deal with empty keys
+	if len(index) == 0 {
+		return nil
+	}
+
 	key := i.IndexKey(index)
 	cur := db.Get(key)
 
