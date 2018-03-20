@@ -1,6 +1,7 @@
 package app
 
 import (
+	"bytes"
 	"fmt"
 	"testing"
 
@@ -62,6 +63,9 @@ func TestApp(t *testing.T) {
 	qres := myApp.Query(query)
 	require.Equal(t, uint32(0), qres.Code, "%#v", qres)
 	assert.NotEmpty(t, qres.Value)
+	// the original key will be embedded in a result set
+	// this should add two bytes to it
+	assert.Equal(t, len(key)+2, len(qres.Key), "%x", qres.Key)
 	// unpack the ResultSet
 	// parse it and check it is not empty
 	var acct cash.Set
@@ -101,6 +105,28 @@ func TestApp(t *testing.T) {
 	require.Equal(t, uint32(0), chres.Code, chres.Log)
 	dres := myApp.DeliverTx(txBytes)
 	require.Equal(t, uint32(0), dres.Code, dres.Log)
+	// ensure 3 keys with proper values
+	if assert.Equal(t, 3, len(dres.Tags), "%#v", dres.Tags) {
+		// three keys we expect, in order
+		var keys = make([][]byte, 3)
+		keys[0] = append([]byte("cash:"), addr...)
+		keys[1] = append([]byte("cash:"), addr2...)
+		keys[2] = append([]byte("sigs:"), addr...)
+		if bytes.Compare(addr2, addr) < 0 {
+			keys[0], keys[1] = keys[1], keys[0]
+		}
+		// make sure the DeliverResult matches expections
+		assert.Equal(t, dres.Tags[0].Key, keys[0])
+		assert.Equal(t, dres.Tags[1].Key, keys[1])
+		assert.Equal(t, dres.Tags[2].Key, keys[2])
+		assert.Equal(t, dres.Tags[0].Value, []byte("s"))
+		assert.Equal(t, dres.Tags[1].Value, []byte("s"))
+		assert.Equal(t, dres.Tags[2].Value, []byte("s"))
+	}
+
+	// TODO
+
+	// Make sure commit is proper
 	myApp.EndBlock(abci.RequestEndBlock{})
 	// commit should produce a different hash
 	cres = myApp.Commit()
