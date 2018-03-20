@@ -1,7 +1,6 @@
 package app
 
 import (
-	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"path/filepath"
@@ -35,7 +34,7 @@ func GenInitOptions(args []string) (json.RawMessage, error) {
 		if err != nil {
 			return nil, err
 		}
-		addr = hex.EncodeToString(bz)
+		addr = bz.String()
 		fmt.Println(phrase)
 	}
 

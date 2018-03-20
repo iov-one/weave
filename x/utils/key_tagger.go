@@ -1,7 +1,7 @@
 package utils
 
 import (
-	"encoding/hex"
+	"fmt"
 	"strings"
 
 	"github.com/tendermint/tmlibs/common"
@@ -69,10 +69,10 @@ func changesToTags(changes map[string][]byte) common.KVPairs {
 		parsed := strings.SplitN(k, ":", 2)
 		if len(parsed) == 1 {
 			bucket = "unknown"
-			key = strings.ToUpper(hex.EncodeToString([]byte(k)))
+			key = fmt.Sprintf("%X", k)
 		} else {
 			bucket = parsed[0]
-			key = strings.ToUpper(hex.EncodeToString([]byte(parsed[1])))
+			key = fmt.Sprintf("%X", parsed[1])
 		}
 		pair := common.KVPair{
 			Key:   []byte(bucket),

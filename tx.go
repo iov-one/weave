@@ -109,9 +109,9 @@ func (a *Address) UnmarshalJSON(src []byte) error {
 	return unmarshalHex(src, dst)
 }
 
-// ToString returns a human readable string.
+// String returns a human readable string.
 // Currently hex, may move to bech32
-func (a Address) ToString() string {
+func (a Address) String() string {
 	if len(a) == 0 {
 		return "(nil)"
 	}

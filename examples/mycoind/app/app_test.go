@@ -32,7 +32,7 @@ func TestApp(t *testing.T) {
         "chain_id": "%s",
         "app_state": {
             "cash": [{
-                "address": "%X",
+                "address": "%s",
                 "coins": [{
                     "whole": 50000,
                     "ticker": "ETH"
@@ -110,9 +110,9 @@ func TestApp(t *testing.T) {
 		// three keys we expect, in order
 		keys := [][]byte{[]byte("cash"), []byte("cash"), []byte("sigs")}
 		vals := make([][]byte, 3)
-		vals[0] = []byte(addr.ToString())
-		vals[1] = []byte(addr2.ToString())
-		vals[2] = []byte(addr.ToString())
+		vals[0] = []byte(addr.String())
+		vals[1] = []byte(addr2.String())
+		vals[2] = []byte(addr.String())
 		if bytes.Compare(addr2, addr) < 0 {
 			vals[0], vals[1] = vals[1], vals[0]
 		}
