@@ -58,6 +58,28 @@ var (
 	recordDelete = []byte("d")
 )
 
+// newRecordingStore initializes a recording store wrapping this
+// base store, using cached alternative if possible
+//
+// We need to expose this optional functionality through the interface
+// wrapper so downstream components (like Savepoint) can use reflection
+// to CacheWrap.
+func newRecordingStore(db weave.KVStore) weave.KVStore {
+	changes := make(map[string][]byte)
+	if cached, ok := db.(weave.CacheableKVStore); ok {
+		return &cacheableRecordingStore{
+			CacheableKVStore: cached,
+			changes:          changes,
+		}
+	}
+	return &recordingStore{
+		KVStore: db,
+		changes: changes,
+	}
+}
+
+//------- non-cached recording store
+
 // recordingStore wraps a normal KVStore and records any change operations
 type recordingStore struct {
 	weave.KVStore
@@ -67,35 +89,11 @@ type recordingStore struct {
 
 var _ weave.KVStore = (*recordingStore)(nil)
 
-// newRecordingStore initializes a recording store wrapping this
-// base store
-//
-// TODO: return CacheableKVStore if possible
-func newRecordingStore(db weave.KVStore) weave.KVStore {
-	return &recordingStore{
-		KVStore: db,
-		changes: make(map[string][]byte),
-	}
-}
-
 // KVPairs returns the content of changes as KVPairs
 // Key is the merkle store key that changes.
 // Value is "s" or "d" for set or delete.
 func (r *recordingStore) KVPairs() common.KVPairs {
-	l := len(r.changes)
-	if l == 0 {
-		return nil
-	}
-	res := make(common.KVPairs, 0, l)
-	for k, v := range r.changes {
-		pair := common.KVPair{
-			Key:   []byte(k),
-			Value: v,
-		}
-		res = append(res, pair)
-	}
-	res.Sort()
-	return res
+	return changesToTags(r.changes)
 }
 
 // Set records the changes while performing
@@ -110,4 +108,56 @@ func (r *recordingStore) Set(key, value []byte) {
 func (r *recordingStore) Delete(key []byte) {
 	r.changes[string(key)] = recordDelete
 	r.KVStore.Delete(key)
+}
+
+//------- cached recording store
+
+// cacheableRecordingStore wraps a CacheableKVStore
+// and records any change operations
+type cacheableRecordingStore struct {
+	weave.CacheableKVStore
+	// changes is a map from key to (recordSet|recordDelete)
+	changes map[string][]byte
+}
+
+var _ weave.CacheableKVStore = (*cacheableRecordingStore)(nil)
+
+// KVPairs returns the content of changes as KVPairs
+// Key is the merkle store key that changes.
+// Value is "s" or "d" for set or delete.
+func (r *cacheableRecordingStore) KVPairs() common.KVPairs {
+	return changesToTags(r.changes)
+}
+
+// Set records the changes while performing
+//
+// TODO: record new value???
+func (r *cacheableRecordingStore) Set(key, value []byte) {
+	r.changes[string(key)] = recordSet
+	r.CacheableKVStore.Set(key, value)
+}
+
+// Delete records the changes while performing
+func (r *cacheableRecordingStore) Delete(key []byte) {
+	r.changes[string(key)] = recordDelete
+	r.CacheableKVStore.Delete(key)
+}
+
+//----- helpers ---
+
+func changesToTags(changes map[string][]byte) common.KVPairs {
+	l := len(changes)
+	if l == 0 {
+		return nil
+	}
+	res := make(common.KVPairs, 0, l)
+	for k, v := range changes {
+		pair := common.KVPair{
+			Key:   []byte(k),
+			Value: v,
+		}
+		res = append(res, pair)
+	}
+	res.Sort()
+	return res
 }
