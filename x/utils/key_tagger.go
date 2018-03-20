@@ -65,14 +65,12 @@ func newRecordingStore(db weave.KVStore) *recordingStore {
 // KVPairs returns the content of changes as KVPairs
 // Key is the merkle store key that changes.
 // Value is "s" or "d" for set or delete.
-//
-// TODO: return new value???
-func (r *recordingStore) KVPairs() []common.KVPair {
+func (r *recordingStore) KVPairs() common.KVPairs {
 	l := len(r.changes)
 	if l == 0 {
 		return nil
 	}
-	res := make([]common.KVPair, 0, l)
+	res := make(common.KVPairs, 0, l)
 	for k, v := range r.changes {
 		pair := common.KVPair{
 			Key:   []byte(k),
@@ -80,10 +78,13 @@ func (r *recordingStore) KVPairs() []common.KVPair {
 		}
 		res = append(res, pair)
 	}
+	res.Sort()
 	return res
 }
 
 // Set records the changes while performing
+//
+// TODO: record new value???
 func (r *recordingStore) Set(key, value []byte) {
 	r.changes[string(key)] = recordSet
 	r.KVStore.Set(key, value)
