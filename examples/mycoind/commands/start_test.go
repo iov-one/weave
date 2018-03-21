@@ -53,7 +53,7 @@ func TestStartWithTendermint(t *testing.T) {
 
 	logger := log.NewTMLogger(log.NewSyncWriter(os.Stdout)).
 		With("module", "test-cmd")
-	err := server.InitCmd(app.GenInitOptions, logger, home, nil)
+	err := server.InitCmd(app.GenInitOptions, logger, home, []string{"-all=f"})
 	require.NoError(t, err)
 
 	// start up tendermint process in the background...

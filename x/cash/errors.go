@@ -56,7 +56,7 @@ func IsInvalidMemoErr(err error) bool {
 }
 
 func ErrEmptyAccount(addr weave.Address) error {
-	return errors.WithLog(addr.ToString(), errEmptyAccount, CodeEmptyAccount)
+	return errors.WithLog(addr.String(), errEmptyAccount, CodeEmptyAccount)
 }
 func IsEmptyAccountErr(err error) bool {
 	return errors.IsSameError(errEmptyAccount, err)

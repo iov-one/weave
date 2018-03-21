@@ -42,6 +42,7 @@ func Chain(minFee x.Coin, authFn x.Authenticator) app.Decorators {
 	return app.ChainDecorators(
 		utils.NewLogging(),
 		utils.NewRecovery(),
+		utils.NewKeyTagger(),
 		// on CheckTx, bad tx don't affect state
 		utils.NewSavepoint().OnCheck(),
 		sigs.NewDecorator(),
