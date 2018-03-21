@@ -38,6 +38,10 @@ func (tx *Tx) GetMsg() (weave.Msg, error) {
 	switch t := sum.(type) {
 	case *Tx_SendMsg:
 		return t.SendMsg, nil
+	case *Tx_SetNameMsg:
+		return t.SetNameMsg, nil
+	case *Tx_NewTokenMsg:
+		return t.NewTokenMsg, nil
 	}
 
 	// we must have covered it above
