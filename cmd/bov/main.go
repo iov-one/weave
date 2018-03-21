@@ -8,10 +8,10 @@ import (
 
 	"github.com/tendermint/tmlibs/log"
 
-	"github.com/confio/weave"
 	"github.com/confio/weave/commands"
 	"github.com/confio/weave/commands/server"
 
+	bov "github.com/iov-one/bov-core"
 	"github.com/iov-one/bov-core/app"
 )
 
@@ -65,7 +65,7 @@ func main() {
 	case "testgen":
 		err = commands.TestGenCmd(app.Examples(), rest)
 	case "version":
-		fmt.Println(weave.Version())
+		fmt.Println(bov.Version())
 	default:
 		err = fmt.Errorf("unknown command: %s", cmd)
 	}

@@ -8,7 +8,7 @@ const Min = 1
 const Fix = 0
 
 // Suffix used when not a tagged release (eg. -dev, -alpha, -beta, etc)
-const Suffix = "-dev"
+const Suffix = ""
 
 // version is private to avoid modifications
 var version = fmt.Sprintf("v%d.%d.%d%s", Maj, Min, Fix, Suffix)

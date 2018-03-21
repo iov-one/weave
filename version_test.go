@@ -10,8 +10,8 @@ import (
 
 func TestVersion(t *testing.T) {
 	bov.GitCommit = ""
-	assert.Equal(t, "v0.1.0-dev", bov.Version())
+	assert.Equal(t, "v0.1.0", bov.Version())
 
 	bov.GitCommit = "12345678"
-	assert.Equal(t, "v0.1.0-dev 12345678", bov.Version())
+	assert.Equal(t, "v0.1.0 12345678", bov.Version())
 }
