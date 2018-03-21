@@ -9,7 +9,7 @@ const Maj = 0
 const Min = 2
 
 // Fix is the patch number (updated on bugfix releases)
-const Fix = 0
+const Fix = 1
 
 // Suffix used when not a tagged release (eg. -dev, -alpha, -beta, etc)
 const Suffix = ""
