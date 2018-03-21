@@ -10,8 +10,10 @@ Blockchain of value reference implementation
 
 If you have vagrant installed, the simplest way to get going is:
 
-```
+```bash
 vagrant up
+# set ADDRESS to a key you can sign with....
+vagrant ssh -c "bov init IOV $ADDRESS"
 vagrant ssh -c "sudo service bov start && sudo service tendermint start"
 curl localhost:46657/status
 ```
@@ -30,7 +32,7 @@ If you want a custom init file (and who doesn't?), before starting
 tendermint, run `vagrant ssh` and edit `.bov/config/genesis.json`.
 If you already started it, you must:
 
-```
+```bash
 sudo service tendermint stop
 sudo service bov stop
 rm -rf .bov/data
@@ -51,7 +53,7 @@ so, feel free to add a PR.
 
 If you have golang locally and want to modify the code:
 
-```
+```bash
 # this installs all vendor dependencies, as well as the
 # tendermint binary
 make deps
