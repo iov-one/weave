@@ -184,4 +184,18 @@ func TestApp(t *testing.T) {
 	require.Equal(t, 2, len(acct2.Coins))
 	assert.Equal(t, int64(48000), acct2.Coins[0].Whole)
 	assert.Equal(t, int64(1234), acct2.Coins[1].Whole)
+
+	// try another send
+	testSendTx(t, myApp, 3, 100, "FRNK", pk, addr2, 1)
+	// and commit the block
+	hash3 := testCommit(t, myApp, 3)
+	assert.NotEqual(t, hash2, hash3)
+
+	var second cash.Set
+	testQuery(t, myApp, "/wallets", addr2, &second)
+	require.Equal(t, 2, len(second.Coins))
+	assert.Equal(t, int64(2000), second.Coins[0].Whole)
+	assert.Equal(t, "ETH", second.Coins[0].Ticker)
+	assert.Equal(t, int64(100), second.Coins[1].Whole)
+	assert.Equal(t, "FRNK", second.Coins[1].Ticker)
 }
