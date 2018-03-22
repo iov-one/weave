@@ -33,6 +33,7 @@ cover:
 		go test -covermode=$(MODE) -coverprofile=coverage/$$file.out $$pkg; \
 		go tool cover -html=coverage/$$file.out -o=coverage/$$file.html; \
 	done
+	cat coverage/*.out > coverage/coverage.txt
 
 deps: glide
 	@glide mirror set https://github.com/tendermint/go-wire https://github.com/ethanfrey/go-wire

@@ -22,6 +22,10 @@ jobs:
           command: make deps
 
       - run:
+          name: Build
+          command: make build
+
+      - run:
           name: Run unit tests
           command: |
             make test | tee ${TEST_RESULTS}/go-test.out
@@ -31,8 +35,8 @@ jobs:
           command: make cover
 
       - run:
-          name: Build
-          command: make build
+          name: Upload to codecov
+          command: ./coverage/upload.sh
 
       - store_artifacts:
           path: ./coverage
