@@ -33,6 +33,15 @@ cover:
 		go test -covermode=$(MODE) -coverprofile=coverage/$$file.out $$pkg; \
 		go tool cover -html=coverage/$$file.out -o=coverage/$$file.html; \
 	done
+	@ # most of the tests in the app package are in examples/mycoind/app...
+	@ go test -covermode=$(MODE) \
+	 	-coverpkg=github.com/confio/weave/app,github.com/confio/weave/examples/mycoind/app \
+		-coverprofile=coverage/weave_examples_mycoind_app.out \
+		github.com/confio/weave/examples/mycoind/app
+	@ go test -covermode=$(MODE) \
+	 	-coverpkg=github.com/confio/weave/commands/server \
+		-coverprofile=coverage/weave_commands_server.out \
+		github.com/confio/weave/examples/mycoind/commands
 	cat coverage/*.out > coverage/coverage.txt
 
 deps: glide

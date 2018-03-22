@@ -110,7 +110,7 @@ func TestVerifySignature(t *testing.T) {
 	_, err = VerifySignature(kv, sig2, bz, "metal")
 	assert.Error(t, err)
 	// doesn't match on different address in sig
-	sig2.Address[0] = 42
+	copy(sig2.Address, []byte{42, 17, 99})
 	_, err = VerifySignature(kv, sig2, bz, chainID)
 	assert.Error(t, err)
 }
