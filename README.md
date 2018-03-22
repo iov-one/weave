@@ -1,10 +1,11 @@
 # Confio Weave
 [![Build Status circleCI](https://circleci.com/gh/confio/weave.png?style=shield&circle-token=4a0ef9d48e00e82022cc6750ba63b2fd6d75343c)](https://circleci.com/gh/confio/weave)
+[![codecov](https://codecov.io/gh/confio/weave/branch/master/graph/badge.svg)](https://codecov.io/gh/confio/weave/branch/master)
+[![LoC](https://tokei.rs/b1/github/confio/weave)](https://github.com/confio/weave)
+[![Go Report Card](https://goreportcard.com/badge/github.com/confio/weave)](https://goreportcard.com/report/github.com/confio/weave)
 [![API Reference](https://godoc.org/github.com/confio/weave?status.svg
 )](https://godoc.org/github.com/confio/weave)
 [![license](https://img.shields.io/github/license/confio/weave.svg)](https://github.com/confio/weave/blob/master/LICENSE)
-[![LoC](https://tokei.rs/b1/github/confio/weave)](https://github.com/confio/weave)
-[![Go Report Card](https://goreportcard.com/badge/github.com/confio/weave)](https://goreportcard.com/report/github.com/confio/weave)
 
 Confio Weave is a framework for quickly building your custom
 [ABCI application](https://github.com/tendermint/abci)
