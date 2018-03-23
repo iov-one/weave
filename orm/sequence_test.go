@@ -14,20 +14,20 @@ func TestSequence(t *testing.T) {
 	db := store.MemStore()
 
 	cases := []struct {
-		id         []byte
-		init       int64
-		increments int64
+		bucket, name string
+		init         int64
+		increments   int64
 	}{
-		0: {[]byte{17}, 0, 22},
-		1: {[]byte{17, 22}, 0, 11},
-		2: {[]byte{17}, 22, 18},
-		3: {[]byte{12}, 0, 77},
-		4: {[]byte{17, 22}, 11, 248},
+		0: {"a", "bc", 0, 22},
+		1: {"ab", "c", 0, 11},
+		2: {"a", "bc", 22, 18},
+		3: {"", "abc", 0, 77},
+		4: {"ab", "c", 11, 248},
 	}
 
 	for i, tc := range cases {
 		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
-			s := NewSequence(tc.id)
+			s := NewSequence(tc.bucket, tc.name)
 			_, orig := s.curVal(db)
 
 			val := incrementN(s, db, tc.increments)

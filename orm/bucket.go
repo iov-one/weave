@@ -186,8 +186,7 @@ func (b Bucket) updateIndexes(db weave.KVStore, key []byte, model Object) error 
 
 // Sequence returns a Sequence by name
 func (b Bucket) Sequence(name string) Sequence {
-	id := b.DBKey([]byte(name))
-	return NewSequence(id)
+	return NewSequence(b.name, name)
 }
 
 // WithIndex returns a copy of this bucket with given index,

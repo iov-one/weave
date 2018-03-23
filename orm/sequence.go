@@ -6,7 +6,7 @@ import (
 	"github.com/confio/weave"
 )
 
-var seqPrefix = []byte("_s:")
+var seqPrefix = []byte("_s.")
 
 // Sequence maintains a counter, and generates a
 // series of keys. Each key is greater than the last,
@@ -16,9 +16,12 @@ type Sequence struct {
 }
 
 // NewSequence creates a sequence with this id
-func NewSequence(id []byte) Sequence {
+// Form _s.<bucket>:<name>
+// KeyTagger uses _s.<bucket> as key
+func NewSequence(bucket, name string) Sequence {
+	suffix := bucket + ":" + name
 	return Sequence{
-		id: id,
+		id: append(seqPrefix, suffix...),
 	}
 }
 

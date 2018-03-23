@@ -7,7 +7,7 @@ import (
 	"github.com/confio/weave"
 )
 
-var indPrefix = []byte("_i:")
+var indPrefix = []byte("_i.")
 
 // Indexer calculates the secondary index key for a given object
 type Indexer func(Object) ([]byte, error)
