@@ -1,7 +1,7 @@
 .PHONY: install protoc deps
 
-GIT_COMMIT := $(shell git rev-parse --short HEAD)
-BUILD_FLAGS := -ldflags "-X github.com/confio/weave.GitCommit=$(GIT_COMMIT)"
+GIT_VERSION := $(shell git describe --tags)
+BUILD_FLAGS := -ldflags "-X github.com/confio/weave.Version=$(GIT_VERSION)"
 TENDERMINT := ${GOBIN}/tendermint
 
 install:
