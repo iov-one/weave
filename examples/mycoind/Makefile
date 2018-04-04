@@ -5,6 +5,8 @@ BUILD_FLAGS := -ldflags "-X github.com/confio/weave.Version=$(GIT_VERSION)"
 TENDERMINT := ${GOBIN}/tendermint
 BUILDOUT ?= mycoind
 
+TM_VERSION := v0.17.1
+
 install:
 	go install $(BUILD_FLAGS) .
 
@@ -20,7 +22,8 @@ deps: $(TENDERMINT)
 
 $(TENDERMINT):
 	@ #install tendermint binary for testing
-	@ #go get -u github.com/tendermint/tendermint/cmd/tendermint
-	@ # Use this if the above fails
-	go get -u -d github.com/tendermint/tendermint || true
-	cd $$GOPATH/src/github.com/tendermint/tendermint && make get_vendor_deps && make install
+	go get github.com/golang/dep/cmd/dep
+	cd $$GOPATH/src/github.com/tendermint/tendermint && \
+		git checkout $(TM_VERSION) && \
+		make ensure_deps && make install && \
+		git checkout -
