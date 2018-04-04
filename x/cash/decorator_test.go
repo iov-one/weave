@@ -141,8 +141,11 @@ func TestFees(t *testing.T) {
 		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
 			auth := helpers.Authenticate(tc.signers...)
 			controller := NewController(NewBucket())
-			h := NewFeeDecorator(auth, controller, tc.min).
-				WithCollector(addr3)
+			base := &Config{
+				MinFee:    &tc.min,
+				Collector: addr3,
+			}
+			h := NewFeeDecorator(auth, controller, base)
 
 			kv := store.MemStore()
 			bucket := NewBucket()

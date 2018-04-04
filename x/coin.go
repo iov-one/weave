@@ -169,6 +169,20 @@ func (c Coin) Validate() error {
 	if !IsCC(c.Ticker) {
 		return ErrInvalidCurrency(c.Ticker)
 	}
+	return c.validateValue()
+}
+
+// ValidOrEmpty enforces a valid value, accepts a valid
+// ticker or ""
+func (c Coin) ValidOrEmpty() error {
+	if c.Ticker != "" && !IsCC(c.Ticker) {
+		return ErrInvalidCurrency(c.Ticker)
+	}
+	return c.validateValue()
+}
+
+// validateValue just checks the value of the coin and not the ticker
+func (c Coin) validateValue() error {
 	if c.Whole < MinInt || c.Whole > MaxInt {
 		return ErrOutOfRange(c)
 	}
@@ -180,7 +194,6 @@ func (c Coin) Validate() error {
 		((c.Whole > 0) != (c.Fractional > 0)) {
 		return ErrMismatchedSign(c)
 	}
-
 	return nil
 }
 

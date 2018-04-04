@@ -39,6 +39,7 @@ func CashControl() cash.Controller {
 // Chain returns a chain of decorators, to handle authentication,
 // fees, logging, and recovery
 func Chain(minFee x.Coin, authFn x.Authenticator) app.Decorators {
+	feeCfg := cash.DefaultConfig(&minFee)
 	return app.ChainDecorators(
 		utils.NewLogging(),
 		utils.NewRecovery(),
@@ -46,7 +47,7 @@ func Chain(minFee x.Coin, authFn x.Authenticator) app.Decorators {
 		// on CheckTx, bad tx don't affect state
 		utils.NewSavepoint().OnCheck(),
 		sigs.NewDecorator(),
-		cash.NewFeeDecorator(authFn, CashControl(), minFee),
+		cash.NewFeeDecorator(authFn, CashControl(), feeCfg),
 		// on DeliverTx, bad tx will increment nonce and take fee
 		// even if the message fails
 		utils.NewSavepoint().OnDeliver(),
