@@ -6,9 +6,7 @@ import (
 	"github.com/confio/weave/x"
 )
 
-var (
-	defaultCollector = weave.NewAddress([]byte("no-fees-here"))
-)
+var defaultCollector = weave.NewAddress([]byte("no-fees-here"))
 
 //----------------- FeeDecorator ----------------
 //

@@ -31,3 +31,9 @@ message FeeInfo {
     bytes payer = 1;
     x.Coin fees = 2;
 }
+
+// Config stores the configuration option for fees handling
+message Config {
+    bytes collector = 1;
+    x.Coin minFee = 2;
+}
