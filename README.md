@@ -5,6 +5,7 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/confio/weave)](https://goreportcard.com/report/github.com/confio/weave)
 [![API Reference](https://godoc.org/github.com/confio/weave?status.svg
 )](https://godoc.org/github.com/confio/weave)
+[![ReadTheDocs](https://readthedocs.org/projects/confio-weave/badge/?version=latest)](http://confio-weave.readthedocs.io/en/latest/)
 [![license](https://img.shields.io/github/license/confio/weave.svg)](https://github.com/confio/weave/blob/master/LICENSE)
 
 Confio Weave is a framework for quickly building your custom
