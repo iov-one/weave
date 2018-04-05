@@ -1,6 +1,8 @@
-----------------
-Extension Design
-----------------
+----------------------
+Extension Design (WIP)
+----------------------
+
+**State: Proposal**
 
 This is a basic set of information on how to design an extension.
 

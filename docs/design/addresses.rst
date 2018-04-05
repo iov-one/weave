@@ -1,6 +1,8 @@
----------------------------
-Addresses and Authorization
----------------------------
+---------------------------------
+Addresses and Authorization (WIP)
+---------------------------------
+
+**State: Proposal**
 
 When controlling the execution of a transaction, there are
 two things to consider, authentication and authorization.

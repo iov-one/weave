@@ -3,3 +3,6 @@ coverage/*.html
 coverage/*.out
 coverage.txt
 *.db
+
+# sphinx / readthedocs
+_build
