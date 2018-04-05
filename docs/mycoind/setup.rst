@@ -34,9 +34,7 @@ and you must add the default install directory to your `PATH`.
     # these two lines should be in .bashrc or similar
     export GOPATH=$HOME/go
     export PATH=$PATH:$GOPATH/bin
-
     # this will properly place the code in $HOME/go/src/github.com/confio/weave
-    # don't place it somewhere else
     go get github.com/confio/weave
 
 

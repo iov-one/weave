@@ -13,11 +13,11 @@ read the `ABCI Overview <http://tendermint.readthedocs.io/en/master/introduction
 and ideally through to the bottom of the page. The end result
 is that we have three programs communicating:
 
-.. code-block::
+::
 
-    +---------+            +------------+                   +----------+
-    | mycoind | <- ABCI -> | Tendermint |  <- websocket ->  | weave-js |
-    +---------+            +------------+                   +----------+
+    +---------+            +------------+                    +----------+
+    | mycoind  | <- ABCI -> | Tendermint   |  <- websocket ->  | weave-js  |
+    +---------+            +------------+                    +----------+
 
 ``mycoind`` and ``tendermint`` run on the same computer and communicate via
 a binary protocol over localhost or a unix socket. Together they form
@@ -50,7 +50,6 @@ the most recent version of confio/weave and build both
     cd $GOPATH/src/github.com/confio/weave
     make deps
     make install
-
     # test it built properly
     tendermint version
     # 0.17.1-6f995699
@@ -60,7 +59,10 @@ the most recent version of confio/weave and build both
 Those were the most recent versions as of the time of the writing,
 your code should be a similar version. If you have an old version
 of the code, you may have to delete it to force go to rebuild:
-``rm `which tendermint` ``.
+
+.. code:: console
+
+    rm `which tendermint`
 
 
 

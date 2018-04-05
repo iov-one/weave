@@ -47,6 +47,7 @@ example to understand the tooling
 
    mycoind/setup.rst
    mycoind/installation.rst
+   mycoind/query.rst
 
 
 Weave Architecture
