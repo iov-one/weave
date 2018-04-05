@@ -24,7 +24,7 @@ is a fault tolerant form of
 `state machine replication <https://en.wikipedia.org/wiki/State_machine_replication#Ordering_Inputs>`__ .
 
 In any case, the point is that given a node knows a block is
-valid (more on that in `consensus <./consensus.rst>`__), it can
+valid (more on that in `consensus <./consensus.html>`__), it can
 cryptographically prove it has the valid history of that block,
 and then replay that sequence of blocks to reproduce the current state.
 Many nodes performing this simultaneously create a

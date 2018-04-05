@@ -42,7 +42,12 @@ multi-currency wallet. This is the basis on which many
 other applications can build and the simplest useful
 example to understand the tooling
 
-**TODO**
+.. toctree::
+   :maxdepth: 2
+
+   mycoind/setup.rst
+   mycoind/installation.rst
+
 
 Weave Architecture
 ------------------
