@@ -24,13 +24,15 @@ Any changes to the message will invalidate the signature and no
 information is leaked to allow a malicious actor to impersonate
 that client with a different message.
 
-If you want to go deeper than what you can find on wikipedia and
-google, I highly recommend buying a copy of ``Serious Cryptography``
-by Jean-Philippe Aumasson.
-
-Main public key algorithms to know:
+Main Algorithms
+---------------
 
 * RSA - the gold standard from 1977-2014, still secure and the most widely supported. not used for blockchains as signatures are 1-4KB
 * secp256k1 - elliptic curve used in bitcoin and ethereum, signatures at 65-67 bytes
 * ed25519 - popularized with libsodium and most standardized elliptic curve, signatures at 64 bytes
 * bn256 - maybe the next curve... used by `zcash <https://blog.z.cash/new-snark-curve/>`__ for pairing cryptography and `dfinity <https://medium.com/on-the-origin-of-smart-contract-platforms/on-the-origin-of-dfinity-526b4222eb4c#02dd>`__ for BLS threshold signatures. in other words, they can do crazy magic math on this particular curve.
+
+If you want to go deeper than what you can find on wikipedia and
+google, I highly recommend buying a copy of ``Serious Cryptography``
+by Jean-Philippe Aumasson.
+

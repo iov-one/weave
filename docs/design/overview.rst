@@ -125,7 +125,7 @@ and to support this flexibility, we provide a ``Persistent``
 interface to handle marshaling similar to the
 ``encoding/json`` library.
 
-.. code:: golang
+.. code-block:: go
 
     type Persistent interface {
         Marshal() ([]byte, error)
@@ -205,7 +205,7 @@ to find the proper ``Handler``. The ``Handler`` is
 then responsible for processing any message type that
 is registered with it.
 
-.. code:: golang
+.. code-block:: go
 
     type Handler interface {
         Check(ctx Context, store KVStore, tx Tx) (CheckResult, error)

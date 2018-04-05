@@ -9,6 +9,9 @@ the entire history from any block back to the genesis.
 A block is a set of transactions, along with this link,
 and some optional metadata that varies depending on the blockchain.
 
+Immutable Event Log
+-------------------
+
 If you are coming from working on typical databases, you can think
 of the  blockchain as an immutable
 `transaction log <https://en.wikipedia.org/wiki/Transaction_log>`__ .
@@ -20,7 +23,7 @@ Maybe you have a more theoretical background and recognize that a blockchain
 is a fault tolerant form of
 `state machine replication <https://en.wikipedia.org/wiki/State_machine_replication#Ordering_Inputs>`__ .
 
-In any case, the point is that given a client knows a block is
+In any case, the point is that given a node knows a block is
 valid (more on that in `consensus <./consensus.rst>`__), it can
 cryptographically prove it has the valid history of that block,
 and then replay that sequence of blocks to reproduce the current state.
@@ -40,6 +43,9 @@ hack than any bank (bitcoin hacks involve grabbing someone's wallet,
 not manipulating the blockchain). This was a true marvel of vision and
 engineering and laid the stage for all future development, and many other
 projects tried to fork bitcoin to create a custom blockchain.
+
+General Purpose Computer
+------------------------
 
 Ethereum pioneered the second generation of blockchain, where they
 realized that we didn't have to limit ourselves to handling payments,
@@ -61,6 +67,9 @@ in many areas, we it also provided some
 of how `hard it is to write secure contracts <https://medium.com/chain-cloud-company-blog/parity-multisig-hack-again-b46771eaa838>`__ .
 As it became more popular, it also showed a popular application
 can `overload the capacity of the network <https://dealbreaker.com/2017/12/ethereum-the-crypto-network-that-will-transform-everything-struggles-to-handle-digital-beanie-babies/>`__ .
+
+Next Generation
+---------------
 
 Since that time, many groups are working on "next generation" solutions
 that take the learnings of Ethereum and attempt to build a highly scalable

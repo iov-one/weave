@@ -21,9 +21,9 @@ Blockchain Basics
 
 Some background material to help you get oriented with the
 concepts behind blockchains in general and tendermint/weave
-in particular. Many of these are quite complex and just
-briefly summarized. A basic understanding of these concepts
-is important so the rest of the documents make sense.
+in particular. You can go through the mycoin tutorial without
+reading this, but it is quite helpful to have a basic
+understanding of these concepts before trying to build on weave.
 
 .. toctree::
    :maxdepth: 2
@@ -70,10 +70,3 @@ application built on top of mycoind.
 
 **TODO**
 
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
