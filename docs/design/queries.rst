@@ -14,7 +14,7 @@ bytes.
 ABCI Format
 ===========
 
-.. code:: golang
+.. code-block:: go
 
     type RequestQuery struct {
         Data   []byte  // also known as "key"
@@ -33,7 +33,7 @@ query a given key in the merkle tree. However, if you wish to query
 the account balance, you will have to know how we define the account
 keys internally.
 
-.. code:: golang
+.. code-block:: go
 
     type ResponseQuery struct {
         Code uint32
@@ -139,7 +139,7 @@ The ``app.StoreApp.Query`` method can use a lookup from ``Path``
 to handler. It will strip of the modifier (if any first), and
 call into a handler like:
 
-.. code:: golang
+.. code-block:: go
 
     type QueryHandler interface {
         Query(modifier string, data []byte) Iterator
