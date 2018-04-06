@@ -16,13 +16,33 @@ quickly be imported in your custom chain, as well as a
 simple framework for adding the custom functionality unique
 to your project.
 
+Mycoin Tutorial
+-----------------
+
+Weave comes with a simple cryptocurrency application,
+``mycoin`` showing how to set up and use a blockchain with a
+multi-currency wallet. This is the basis on which many
+other applications can build and the simplest useful
+example to understand the tooling. For all those who like
+learning by doing, this will help you understand the power
+of the framework
+
+.. toctree::
+   :maxdepth: 2
+
+   mycoind/setup.rst
+   mycoind/installation.rst
+   mycoind/keys.rst
+   mycoind/query.rst
+   mycoind/tx.rst
+   mycoind/events.rst
+
 Blockchain Basics
 -----------------
 
 Some background material to help you get oriented with the
 concepts behind blockchains in general and tendermint/weave
-in particular. You can go through the mycoin tutorial without
-reading this, but it is quite helpful to have a basic
+in particular. It is quite helpful to have a basic
 understanding of these concepts before trying to build on weave.
 
 .. toctree::
@@ -33,22 +53,23 @@ understanding of these concepts before trying to build on weave.
    basics/authentication.rst
    basics/state.rst
 
-Mycoin Tutorial
------------------
+Frontend Development
+--------------------
 
-Weave comes with a simple cryptocurrency application,
-``mycoin`` showing how to set up and use a blockchain with a
-multi-currency wallet. This is the basis on which many
-other applications can build and the simplest useful
-example to understand the tooling
+Weave-js is not just a cli tool, it is a javascript library
+meant to be imported by web/electron/react native apps to
+rapidly develop user interfaces for your blockchain application,
+similar to how web3 empowers ethereum development. Here we go
+through the basics of building a user interface for mycoind.
 
 .. toctree::
    :maxdepth: 2
 
-   mycoind/setup.rst
-   mycoind/installation.rst
-   mycoind/query.rst
-
+   ui/setup.rst
+   ui/query.rst
+   ui/keys.rst
+   ui/tx.rst
+   ui/events.rst
 
 Weave Architecture
 ------------------
@@ -68,11 +89,14 @@ and the various components you will use
    design/addresses.rst
 
 
-Coding Tutorial
----------------
+Backend Development
+-------------------
 
 A step by step example of writing your first
 application built on top of mycoind.
+This is all about writing go code that runs as an ABCI app.
+We will write a new extension and compile an application
+that builds upon ``mycoind``.
 
 **TODO**
 
