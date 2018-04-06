@@ -32,7 +32,10 @@ of the framework
 
    mycoind/setup.rst
    mycoind/installation.rst
+   mycoind/keys.rst
    mycoind/query.rst
+   mycoind/tx.rst
+   mycoind/events.rst
 
 Blockchain Basics
 -----------------
