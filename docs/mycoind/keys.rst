@@ -9,11 +9,13 @@ from the given database. You can also do this programmatically.
 It will read/write from any
 `levelup <https://www.npmjs.com/package/levelup>`__
 compatible storage, so we can use
-`leveldb <https://www.npmjs.com/package/leveldown>`__ in the cli,
+`leveldown <https://www.npmjs.com/package/leveldown>`__ in the cli,
 `memdown <https://www.npmjs.com/package/memdown>`__ in test cases,
 and `level.js <https://github.com/level/level.js>`__ in the browser,
 and `asyncstorage <https://github.com/tradle/asyncstorage-down>`__
 for react-native.
+
+``yarn cli demo-keys.db``
 
 .. code:: javascript
 
