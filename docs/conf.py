@@ -22,8 +22,8 @@ def setup(app):
 
 # -- Project information -----------------------------------------------------
 
-project = u'Confio Weave'
-copyright = u'2018, Ethan Frey'
+project = u'Weave'
+copyright = u'2018, Confio ÜO'
 author = u'Ethan Frey'
 
 # The short X.Y version
@@ -107,7 +107,7 @@ html_static_path = ['_static']
 # -- Options for HTMLHelp output ---------------------------------------------
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'ConfioWeavedoc'
+htmlhelp_basename = 'Weavedoc'
 
 
 # -- Options for LaTeX output ------------------------------------------------
@@ -134,7 +134,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'ConfioWeave.tex', u'Confio Weave Documentation',
+    (master_doc, 'Weave.tex', u'Confio Weave Documentation',
      u'Ethan Frey', 'manual'),
 ]
 
@@ -144,7 +144,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'confioweave', u'Confio Weave Documentation',
+    (master_doc, 'weave', u'Confio Weave Documentation',
      [author], 1)
 ]
 
@@ -155,9 +155,9 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'ConfioWeave', u'Confio Weave Documentation',
-     author, 'ConfioWeave', 'One line description of project.',
-     'Miscellaneous'),
+    (master_doc, 'Weave', u'Confio Weave Documentation',
+     author, 'Weave', 'Framework for tendermint ABCI apps',
+     'Blockchain'),
 ]
 
 
