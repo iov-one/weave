@@ -9,21 +9,24 @@
 }
 
 .wy-nav-content, .wy-nav-content-wrap {
+    background-color: #ffffff;
     background-image: url("../img/paper.png");
 }
 
 .wy-nav-content-wrap {
-    background-color: rgba(200, 200, 200, .3);
+    background-color: rgba(120, 120, 120, .2);
 }
 
 .wy-nav-side {
     background-color: rgba(8, 2, 8, 1);
-    background-image: url("../img/cross-scratches.png");
+    background-image: url("../img/concrete-wall.png");
+    /*background-image: url("../img/cross-scratches.png");*/
 }
 
 .wy-side-nav-search {
     background-color: #0e59f0;
-    background-image: url("../img/cross-scratches.png");
+    background-image: url("../img/concrete-wall.png");
+    /*background-image: url("../img/cross-scratches.png");*/
 }
 
 .wy-side-nav-search div.version {
