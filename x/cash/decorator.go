@@ -6,9 +6,7 @@ import (
 	"github.com/confio/weave/x"
 )
 
-var (
-	defaultCollector = weave.NewAddress([]byte("no-fees-here"))
-)
+var defaultCollector = weave.NewAddress([]byte("no-fees-here"))
 
 //----------------- FeeDecorator ----------------
 //
@@ -26,10 +24,10 @@ var (
 //
 // It uses auth to verify the sender
 type FeeDecorator struct {
-	minFee    x.Coin
-	collector weave.Address
-	auth      x.Authenticator
-	control   Controller
+	auth    x.Authenticator
+	control Controller
+	// exposes MinFee() and Collector()
+	*Configure
 }
 
 var _ weave.Decorator = FeeDecorator{}
@@ -38,27 +36,23 @@ var _ weave.Decorator = FeeDecorator{}
 // minimum fee, and all collected fees going to a
 // default address.
 func NewFeeDecorator(auth x.Authenticator, control Controller,
-	min x.Coin) FeeDecorator {
+	base *Config) FeeDecorator {
+	if base == nil {
+		base = DefaultConfig(nil)
+	}
 	return FeeDecorator{
 		auth:      auth,
 		control:   control,
-		minFee:    min,
-		collector: defaultCollector,
+		Configure: NewConfigure("cash_fee", base),
 	}
 }
 
-// WithCollector allows you to set the collector in app setup
-func (d FeeDecorator) WithCollector(addr weave.Address) FeeDecorator {
-	d.collector = addr
-	return d
-}
-
 // Check verifies and deducts fees before calling down the stack
-func (d FeeDecorator) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx,
+func (d FeeDecorator) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx,
 	next weave.Checker) (weave.CheckResult, error) {
 
 	var res weave.CheckResult
-	finfo, err := d.extractFee(ctx, tx)
+	finfo, err := d.extractFee(ctx, db, tx)
 	if err != nil {
 		return res, err
 	}
@@ -66,7 +60,7 @@ func (d FeeDecorator) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx,
 	// if nothing returned, but no error, just move along
 	fee := finfo.GetFees()
 	if x.IsEmpty(fee) {
-		return next.Check(ctx, store, tx)
+		return next.Check(ctx, db, tx)
 	}
 
 	// verify we have access to the money
@@ -74,24 +68,24 @@ func (d FeeDecorator) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx,
 		return res, errors.ErrUnauthorized()
 	}
 	// and have enough
-	err = d.control.MoveCoins(store, finfo.Payer, d.collector, *fee)
+	err = d.control.MoveCoins(db, finfo.Payer, d.Collector(db), *fee)
 	if err != nil {
 		return res, err
 	}
 
 	// now update the importance...
 	paid := toPayment(*fee)
-	res, err = next.Check(ctx, store, tx)
+	res, err = next.Check(ctx, db, tx)
 	res.GasPayment += paid
 	return res, err
 }
 
 // Deliver verifies and deducts fees before calling down the stack
-func (d FeeDecorator) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx,
+func (d FeeDecorator) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx,
 	next weave.Deliverer) (weave.DeliverResult, error) {
 
 	var res weave.DeliverResult
-	finfo, err := d.extractFee(ctx, tx)
+	finfo, err := d.extractFee(ctx, db, tx)
 	if err != nil {
 		return res, err
 	}
@@ -99,7 +93,7 @@ func (d FeeDecorator) Deliver(ctx weave.Context, store weave.KVStore, tx weave.T
 	// if nothing returned, but no error, just move along
 	fee := finfo.GetFees()
 	if x.IsEmpty(fee) {
-		return next.Deliver(ctx, store, tx)
+		return next.Deliver(ctx, db, tx)
 	}
 
 	// verify we have access to the money
@@ -107,15 +101,15 @@ func (d FeeDecorator) Deliver(ctx weave.Context, store weave.KVStore, tx weave.T
 		return res, errors.ErrUnauthorized()
 	}
 	// and subtract it from the account
-	err = d.control.MoveCoins(store, finfo.Payer, d.collector, *fee)
+	err = d.control.MoveCoins(db, finfo.Payer, d.Collector(db), *fee)
 	if err != nil {
 		return res, err
 	}
 
-	return next.Deliver(ctx, store, tx)
+	return next.Deliver(ctx, db, tx)
 }
 
-func (d FeeDecorator) extractFee(ctx weave.Context, tx weave.Tx) (*FeeInfo, error) {
+func (d FeeDecorator) extractFee(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*FeeInfo, error) {
 	var finfo *FeeInfo
 	ftx, ok := tx.(FeeTx)
 	if ok {
@@ -125,7 +119,7 @@ func (d FeeDecorator) extractFee(ctx weave.Context, tx weave.Tx) (*FeeInfo, erro
 
 	fee := finfo.GetFees()
 	if x.IsEmpty(fee) {
-		if d.minFee.IsZero() {
+		if d.MinFee(db).IsZero() {
 			return finfo, nil
 		}
 		return nil, ErrInsufficientFees(x.Coin{})
@@ -137,7 +131,7 @@ func (d FeeDecorator) extractFee(ctx weave.Context, tx weave.Tx) (*FeeInfo, erro
 		return nil, err
 	}
 
-	cmp := d.minFee
+	cmp := d.MinFee(db)
 	// minimum has no currency -> accept everything
 	if cmp.Ticker == "" {
 		cmp.Ticker = fee.Ticker
