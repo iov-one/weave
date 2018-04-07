@@ -45,7 +45,6 @@ cover:
 	cat coverage/*.out > coverage/coverage.txt
 
 deps: glide
-	@glide mirror set https://github.com/tendermint/go-wire https://github.com/ethanfrey/go-wire
 	@glide install
 	for ex in $(EXAMPLES); do cd $$ex && make deps; done
 
