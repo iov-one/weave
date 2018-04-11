@@ -156,7 +156,7 @@ And each extension and type may have different interpretations
 of the data.
 
 If we enforce simple text for extension and type, we could
-encode it as ``printf("%s/%s/%x", extension, type, data)``.
+encode it as ``sprintf("%s/%s/%s", extension, type, data)``.
 This is longer than the 20 bytes often used for addresses, and
 maybe we could hash it first, but then we loose information.
 I can envision a user wanting to know if an account is controlled
@@ -169,45 +169,46 @@ by a hash preimage (which you must reveal), not your private key
 Addresses
 =========
 
-
-
 We started with a simple address function, which was the first
 20 bytes of the sha256 hash of a public key. However, this
-left no room for smart contracts. Thus, we propose a simple
-modification to this, promoting smart contracts to a first
-class citizen: the first 20 bytes of the sha256 hash of
-any key in the merkle store.
+left no room for other authentication mechanisms, and it
+wasn't even clear how we could differentiate between ed25519
+and secp256k1 signatures. However, the usecase was clear:
+a short identifier that was uniquely tied to an authentication
+condition, but *did not reveal* that condition.
 
-If the extension that is responsible for that key determines
-that the tx matches the requirements stored in this key, then
-this address is authorized for this transaction. Thus, the
-public key check is a special case. The ``pubk`` extension
-verifies signatures and checks sequence numbers to prevent
-replays. The public key and current sequence are stored
-under a key in the database, and that key is the source
-of the address.
-
-Since this is the most common address type, it should be
-well-specified for external users. The pattern we use in
-the standard modules is that all signatures must either
-contain the public key, or the sha256 hash of the public
-key (fingerprint). The sequence is stored in the merkle
-tree under ``pubk:<fingerprint>``. When verifying the
-signature and sequence number, we calculate the fingerprint
-to load the proper sequence. When calculating the address
-for a given public key (eg. to request payment), we
-do the following:
+We can redefine address to be the hash of a "permission",
+not just public key bytes, and then we keep this functionality
+while generalizing what a permission is.
 
 ::
 
-    address := sha256("pubk:" || fingerprint)
-    fingerprint := sha256(public_key_bytes)
+    permission := sprintf("%s/%s/%s", extension, type, data)
+    address := sha256(permission)[:20]
 
-Where ``||`` means concatenate, and ``public_key_bytes``
-are the raw bytes of the public key.
+The questions is when and how to use each one. Any field that can
+declare an owner must decide if those bytes represent a permission
+of an address. The Authenticator can store Permissions in the
+Context, and then allow clients to check for matches either
+by permission or by address. But where to use which one???
+Here are some rough guidelines:
 
-Question: do we include the curve/algorithm the public key belongs
-to in the fingerprint calculation? Is there any theoretical
-collision here? How do we specify the type?
+1. If we really need to save 20 bytes, use an *Address*. (But few places need that micro-optimization)
+2. If we want visibility of control, use *Permission* (multi-sig solutions, arbiters, etc)
+3. If you want to obscure control (until first use), use *Address*
+4. Everything else, at your discression, just make sure it is compatible.
 
-Questions: The sequence number (one/account, one/tx... define this well)
+I guess it is up to the extension developer, but I would generally
+use Permissions for anything stored in the value and Address for
+fields that appear in the key, unless there is a reason otherwise.
+
+**Cash**: Key is Address
+
+**Sigs**: Key is PublicKey (data section of Permission). We
+construct a permission from it, then can compute the address.
+
+**Escrow**: All participants are defined by Permission
+
+I would love to hear opinions on where to use each type.
+What are your ideas?
+`Add it in github <https://github.com/confio/weave/issues/new>`__
