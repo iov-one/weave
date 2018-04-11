@@ -1,8 +1,6 @@
----------------------------------
-Addresses and Authorization (WIP)
----------------------------------
-
-**State: Proposal**
+---------------------------
+Addresses and Authorization
+---------------------------
 
 When controlling the execution of a transaction, there are
 two things to consider, authentication and authorization.
@@ -23,13 +21,62 @@ this public key for this transaction.
 
 However, Ethereum devs are used to the concept of permissions
 not just being tied to a signature, but potentially a smart
-contract. We should allow something similar. For example, we
-could have a **role** middleware, that keeps a varying group
-of public keys that can perform some action, as well as a
-threshold number to sign. A wallet may be owned by this **role**,
-and the members may be modified (on-chain) without modifying
-the owning address. We wish to support such behavior seemlessly,
-allowing general permissioning.
+contract. We will allow something similar, but we don't need
+to be as general, as we also don't have the same general
+"anyone can call anything" architecture, nor do we run
+untrusted code.
+
+We use multiple middlewares to check for various conditions on
+the transaction and add the authentication information to the
+``Context``. The basic example, ``x/sigs.Middleware``, checks
+if the Tx has signatures, and if so validates them.
+
+.. literalinclude:: ../../x/sigs/tx.go
+    :language: go
+    :linenos:
+    :lines: 9-21
+
+It stores the matching permissions in the context under a secret
+key, and exposes an ``Authenticator`` that can be used to read
+this information.
+
+.. literalinclude:: ../../x/sigs/context.go
+    :language: go
+    :linenos:
+    :lines: 13-39
+
+And finally, when we create a module that needs to read
+authentication info, we can pass in the handler, so it can use
+check authentication info from this middleware.
+
+.. literalinclude:: ../../x/cash/handler.go
+    :language: go
+    :linenos:
+    :lines: 30-36
+
+Note that this means, we don't let anyone authenticate anything,
+but rather define which modules can authenticate a transaction
+for which handler.
+
+Extending Authentication
+------------------------
+
+This system isn't tied to public key signatures, and weave was
+designed to allow any algorithm that grants rights to function
+the same. For example, if we want to design a HTLC, we could
+add an optional "Preimage" to the transaction. We add a middleware
+that hashes this preimage, and then grants the permission
+of something like ``preimage/<hash of preimage>``. This is stored
+in the context and the modules exports an Authenticator that allows
+access to this.
+
+// TODO: MultiAuth
+
+// TODO: Crypto-conditions
+
+Addresses
+=========
+
 
 Currently, most objects are "owned" (ie. modifiable) by an address,
 which is generally assumed to be the hash of a public key.
@@ -37,8 +84,6 @@ However, if we extend our concept of addresses to encompass
 on-chain code as well, we gain a large amount of expressive power
 and flexibility in our auth framework.
 
-Addresses
-=========
 
 We started with a simple address function, which was the first
 20 bytes of the sha256 hash of a public key. However, this
