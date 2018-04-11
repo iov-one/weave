@@ -77,7 +77,7 @@ is ``MulitAuth``, to combine them:
 
 .. literalinclude:: ../../x/auth.go
     :language: go
-    :lines: 16-26
+    :lines: 18-28
 
 Crypto-Conditions
 -----------------
