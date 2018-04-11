@@ -18,15 +18,16 @@ const (
 )
 
 var (
-	errDecoding            = fmt.Errorf("Error decoding input")
-	errTooLarge            = fmt.Errorf("Input size too large")
-	errUnknownTxType       = fmt.Errorf("Tx type unknown")
-	errUnauthorized        = fmt.Errorf("Unauthorized")
-	errMissingSignature    = fmt.Errorf("Signature missing")
-	errInvalidSignature    = fmt.Errorf("Signature invalid")
-	errUnrecognizedAddress = fmt.Errorf("Unrecognized Address")
-	errInvalidChainID      = fmt.Errorf("Invalid ChainID")
-	errModifyChainID       = fmt.Errorf("Cannot modify ChainID")
+	errDecoding               = fmt.Errorf("Error decoding input")
+	errTooLarge               = fmt.Errorf("Input size too large")
+	errUnknownTxType          = fmt.Errorf("Tx type unknown")
+	errUnauthorized           = fmt.Errorf("Unauthorized")
+	errMissingSignature       = fmt.Errorf("Signature missing")
+	errInvalidSignature       = fmt.Errorf("Signature invalid")
+	errUnrecognizedAddress    = fmt.Errorf("Unrecognized Address")
+	errUnrecognizedPermission = fmt.Errorf("Unrecognized Permission")
+	errInvalidChainID         = fmt.Errorf("Invalid ChainID")
+	errModifyChainID          = fmt.Errorf("Cannot modify ChainID")
 )
 
 // IsSameError returns true if these errors have the same root cause.
@@ -87,6 +88,16 @@ func ErrUnrecognizedAddress(addr []byte) error {
 // with ErrUnrecognizedAddress
 func IsUnrecognizedAddressErr(err error) bool {
 	return IsSameError(errUnrecognizedAddress, err)
+}
+
+// ErrUnrecognizedPermission is used for anything that is not
+// the proper format
+func ErrUnrecognizedPermission(perm []byte) error {
+	msg := "(nil)"
+	if len(perm) > 0 {
+		msg = fmt.Sprintf("%X", perm)
+	}
+	return WithLog(msg, errUnrecognizedPermission, CodeUnrecognizedAddress)
 }
 
 // ErrInternal is a generic error code when we cannot return any more
