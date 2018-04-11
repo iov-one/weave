@@ -49,7 +49,7 @@ deps: glide
 	for ex in $(EXAMPLES); do cd $$ex && make deps; done
 
 glide:
-	@go get github.com/tendermint/glide
+	@go get github.com/Masterminds/glide
 
 protoc:
 	protoc --gogofaster_out=. app/*.proto

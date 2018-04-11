@@ -23,7 +23,7 @@ deps: $(TENDERMINT)
 $(TENDERMINT):
 	@ #install tendermint binary for testing
 	go get github.com/golang/dep/cmd/dep
-	go get -d github.com/tendermint/tendermint || true
+	go get -d github.com/tendermint/tendermint/...
 	cd $$GOPATH/src/github.com/tendermint/tendermint && \
 		git checkout $(TM_VERSION) && \
 		make ensure_deps && make install && \
