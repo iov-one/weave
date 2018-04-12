@@ -23,11 +23,11 @@ func TestSend(t *testing.T) {
 	foo := x.NewCoin(100, 0, "FOO")
 	some := x.NewCoin(300, 0, "SOME")
 
-	addr := weave.NewAddress([]byte{1, 2, 3})
-	addr2 := weave.NewAddress([]byte{4, 5, 6})
+	perm := weave.NewPermission("sig", "ed25519", []byte{1, 2, 3})
+	perm2 := weave.NewPermission("sig", "ed25519", []byte{4, 5, 6})
 
 	cases := []struct {
-		signers       []weave.Address
+		signers       []weave.Permission
 		initState     []orm.Object
 		msg           weave.Msg
 		expectCheck   checkErr
@@ -39,31 +39,31 @@ func TestSend(t *testing.T) {
 		3: {
 			nil,
 			nil,
-			&SendMsg{Amount: &foo, Src: addr, Dest: addr2},
+			&SendMsg{Amount: &foo, Src: perm.Address(), Dest: perm2.Address()},
 			errors.IsUnauthorizedErr,
 			errors.IsUnauthorizedErr,
 		},
 		// sender has no account
 		4: {
-			[]weave.Address{addr},
+			[]weave.Permission{perm},
 			nil,
-			&SendMsg{Amount: &foo, Src: addr, Dest: addr2},
+			&SendMsg{Amount: &foo, Src: perm.Address(), Dest: perm2.Address()},
 			noErr, // we don't check funds
 			IsEmptyAccountErr,
 		},
 		// sender too poor
 		5: {
-			[]weave.Address{addr},
-			[]orm.Object{must(WalletWith(addr, &some))},
-			&SendMsg{Amount: &foo, Src: addr, Dest: addr2},
+			[]weave.Permission{perm},
+			[]orm.Object{must(WalletWith(perm.Address(), &some))},
+			&SendMsg{Amount: &foo, Src: perm.Address(), Dest: perm2.Address()},
 			noErr, // we don't check funds
 			IsInsufficientFundsErr,
 		},
 		// sender got cash
 		6: {
-			[]weave.Address{addr},
-			[]orm.Object{must(WalletWith(addr, &foo))},
-			&SendMsg{Amount: &foo, Src: addr, Dest: addr2},
+			[]weave.Permission{perm},
+			[]orm.Object{must(WalletWith(perm.Address(), &foo))},
+			&SendMsg{Amount: &foo, Src: perm.Address(), Dest: perm2.Address()},
 			noErr,
 			noErr,
 		},

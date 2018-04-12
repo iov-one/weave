@@ -15,7 +15,7 @@ func TestUserModel(t *testing.T) {
 
 	bucket := NewBucket()
 	pub := crypto.GenPrivKeyEd25519().PublicKey()
-	addr := pub.Address()
+	addr := pub.Permission().Address()
 
 	// load fail
 	obj, err := bucket.Get(kv, addr)
@@ -59,7 +59,7 @@ func TestUserValidation(t *testing.T) {
 	pub := crypto.GenPrivKeyEd25519().PublicKey()
 	AsUser(obj).SetPubKey(pub)
 	assert.Error(t, obj.Validate()) // missing key
-	obj.SetKey(pub.Address())
+	obj.SetKey(pub.Permission().Address())
 	assert.NoError(t, obj.Validate()) // now complete
 	// cannot set pubkey a second time....
 	assert.Panics(t, func() { AsUser(obj).SetPubKey(pub) })

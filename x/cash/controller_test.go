@@ -24,8 +24,10 @@ func TestIssueCoins(t *testing.T) {
 	var helpers x.TestHelpers
 
 	kv := store.MemStore()
-	_, addr := helpers.MakeKey()
-	_, addr2 := helpers.MakeKey()
+	_, perm := helpers.MakeKey()
+	_, perm2 := helpers.MakeKey()
+	addr := perm.Address()
+	addr2 := perm2.Address()
 
 	controller := NewController(NewBucket())
 
@@ -92,9 +94,12 @@ func TestMoveCoins(t *testing.T) {
 	var helpers x.TestHelpers
 
 	kv := store.MemStore()
-	_, addr := helpers.MakeKey()
-	_, addr2 := helpers.MakeKey()
-	_, addr3 := helpers.MakeKey()
+	_, perm := helpers.MakeKey()
+	_, perm2 := helpers.MakeKey()
+	_, perm3 := helpers.MakeKey()
+	addr := perm.Address()
+	addr2 := perm2.Address()
+	addr3 := perm3.Address()
 
 	controller := NewController(NewBucket())
 

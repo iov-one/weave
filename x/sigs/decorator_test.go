@@ -22,7 +22,7 @@ func TestDecorator(t *testing.T) {
 	ctx := weave.WithChainID(context.Background(), chainID)
 
 	priv := crypto.GenPrivKeyEd25519()
-	addr := []weave.Address{priv.PublicKey().Address()}
+	perms := []weave.Permission{priv.PublicKey().Permission()}
 
 	bz := []byte("art")
 	tx := NewStdTx(bz)
@@ -50,7 +50,7 @@ func TestDecorator(t *testing.T) {
 		tx.Signatures = []*StdSignature{sig}
 		err = fn(d, tx)
 		assert.NoError(t, err, "%d", i)
-		assert.Equal(t, addr, signers.Signers)
+		assert.Equal(t, perms, signers.Signers)
 
 		// test with replay
 		err = fn(d, tx)
@@ -61,13 +61,13 @@ func TestDecorator(t *testing.T) {
 		tx.Signatures = nil
 		err = fn(ad, tx)
 		assert.NoError(t, err, "%d", i)
-		assert.Equal(t, []weave.Address{}, signers.Signers)
+		assert.Equal(t, []weave.Permission{}, signers.Signers)
 
 		// test allowing, with next sequence
 		tx.Signatures = []*StdSignature{sig1}
 		err = fn(ad, tx)
 		assert.NoError(t, err, "%d", i)
-		assert.Equal(t, addr, signers.Signers)
+		assert.Equal(t, perms, signers.Signers)
 	}
 
 }
@@ -76,7 +76,7 @@ func TestDecorator(t *testing.T) {
 
 // SigCheckHandler stores the seen signers on each call
 type SigCheckHandler struct {
-	Signers []weave.Address
+	Signers []weave.Permission
 }
 
 var _ weave.Handler = (*SigCheckHandler)(nil)

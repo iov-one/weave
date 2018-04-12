@@ -17,10 +17,10 @@ func TestAuth(t *testing.T) {
 
 	cases := []struct {
 		auth       Authenticator
-		mainSigner weave.Address
-		has        weave.Address
-		notHave    weave.Address
-		all        []weave.Address
+		mainSigner weave.Permission
+		has        weave.Permission
+		notHave    weave.Permission
+		all        []weave.Permission
 	}{
 		0: {
 			helper.Authenticate(),
@@ -34,7 +34,7 @@ func TestAuth(t *testing.T) {
 			a,
 			a,
 			b,
-			[]weave.Address{a},
+			[]weave.Permission{a},
 		},
 		{
 			ChainAuth(
@@ -43,7 +43,7 @@ func TestAuth(t *testing.T) {
 			b,
 			b,
 			c,
-			[]weave.Address{b, a},
+			[]weave.Permission{b, a},
 		},
 	}
 
@@ -52,17 +52,17 @@ func TestAuth(t *testing.T) {
 		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
 			assert.Equal(t, tc.mainSigner, MainSigner(ctx, tc.auth))
 			if tc.has != nil {
-				assert.True(t, tc.auth.HasPermission(ctx, tc.has))
+				assert.True(t, tc.auth.HasAddress(ctx, tc.has.Address()))
 			}
-			assert.False(t, tc.auth.HasPermission(ctx, tc.notHave))
+			assert.False(t, tc.auth.HasAddress(ctx, tc.notHave.Address()))
 
 			all := tc.auth.GetPermissions(ctx)
 			assert.Equal(t, tc.all, all)
-			assert.True(t, HasAllSigners(ctx, tc.auth, all))
-			assert.False(t, HasAllSigners(ctx, tc.auth, append(all, tc.notHave)))
+			assert.True(t, HasAllPermissions(ctx, tc.auth, all))
+			assert.False(t, HasAllPermissions(ctx, tc.auth, append(all, tc.notHave)))
 			if len(all) > 0 {
-				assert.True(t, HasNSigners(ctx, tc.auth, all, len(all)-1))
-				assert.False(t, HasNSigners(ctx, tc.auth, all, len(all)+1))
+				assert.True(t, HasNPermissions(ctx, tc.auth, all, len(all)-1))
+				assert.False(t, HasNPermissions(ctx, tc.auth, all, len(all)+1))
 			}
 		})
 	}
