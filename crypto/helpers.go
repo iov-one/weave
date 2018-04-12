@@ -52,14 +52,17 @@ func (p *PublicKey) Verify(message []byte, sig *Signature) bool {
 
 // Permission generates a Permission object to represent a valid
 // signature.
-//    p.Permission().Address()
-// will return an Address if needed.
 func (p *PublicKey) Permission() weave.Permission {
 	in := p.unwrap()
 	if in == nil {
 		return nil
 	}
 	return in.Permission()
+}
+
+// Address is a convenience method to get the Permission then take Address
+func (p *PublicKey) Address() weave.Address {
+	return p.Permission().Address()
 }
 
 var _ Signer = (*PrivateKey)(nil)

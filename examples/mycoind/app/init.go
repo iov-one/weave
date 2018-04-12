@@ -85,6 +85,6 @@ func GenerateApp(home string, logger log.Logger) (abci.Application, error) {
 func GenerateCoinKey() (weave.Address, string, error) {
 	// XXX: we need to generate BIP39 recovery phrases in crypto
 	privKey := crypto.GenPrivKeyEd25519()
-	addr := privKey.PublicKey().Permission().Address()
+	addr := privKey.PublicKey().Address()
 	return addr, "TODO: add a recovery phrase", nil
 }

@@ -73,7 +73,7 @@ func NewUser(pubKey *crypto.PublicKey) orm.Object {
 	var key weave.Address
 	value := &UserData{PubKey: pubKey}
 	if pubKey != nil {
-		key = pubKey.Permission().Address()
+		key = pubKey.Address()
 	}
 	return orm.NewSimpleObj(key, value)
 }
@@ -96,7 +96,7 @@ func NewBucket() Bucket {
 func (b Bucket) GetOrCreate(db weave.KVStore,
 	pubKey *crypto.PublicKey) (orm.Object, error) {
 
-	obj, err := b.Get(db, pubKey.Permission().Address())
+	obj, err := b.Get(db, pubKey.Address())
 	if err == nil && obj == nil {
 		obj = NewUser(pubKey)
 	}

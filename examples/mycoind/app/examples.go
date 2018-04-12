@@ -24,12 +24,12 @@ func Examples() []commands.Example {
 		Sequence: 17,
 	}
 
-	dst := crypto.GenPrivKeyEd25519().PublicKey().Permission().Address()
+	dst := crypto.GenPrivKeyEd25519().PublicKey().Address()
 	amt := x.NewCoin(250, 0, "ETH")
 	msg := &cash.SendMsg{
 		Amount: &amt,
 		Dest:   dst,
-		Src:    pub.Permission().Address(),
+		Src:    pub.Address(),
 		Memo:   "Test payment",
 	}
 

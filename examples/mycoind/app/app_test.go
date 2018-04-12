@@ -63,7 +63,7 @@ func testSendTx(t *testing.T, myApp app.BaseApp, h int64,
 	sender *crypto.PrivateKey, rcpt weave.Address, seq int64) abci.ResponseDeliverTx {
 
 	msg := &cash.SendMsg{
-		Src:  sender.PublicKey().Permission().Address(),
+		Src:  sender.PublicKey().Address(),
 		Dest: rcpt,
 		Amount: &x.Coin{
 			Whole:  amount,
@@ -101,7 +101,7 @@ func TestApp(t *testing.T) {
 
 	// let's set up a genesis file with some cash
 	pk := crypto.GenPrivKeyEd25519()
-	addr := pk.PublicKey().Permission().Address()
+	addr := pk.PublicKey().Address()
 	genesis := fmt.Sprintf(`{
         "chain_id": "%s",
         "app_state": {
@@ -130,7 +130,7 @@ func TestApp(t *testing.T) {
 
 	// build and sign a transaction
 	pk2 := crypto.GenPrivKeyEd25519()
-	addr2 := pk2.PublicKey().Permission().Address()
+	addr2 := pk2.PublicKey().Address()
 	dres := testSendTx(t, myApp, 2, 2000, "ETH", pk, addr2, 0)
 	// and commit the block
 	hash2 := testCommit(t, myApp, 2)

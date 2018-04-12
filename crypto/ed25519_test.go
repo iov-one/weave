@@ -42,7 +42,7 @@ func TestEd25519Address(t *testing.T) {
 	assert.NoError(t, pub2.Permission().Validate())
 	assert.NotEqual(t, pub.Permission(), pub2.Permission())
 	assert.Nil(t, empty.Permission())
-	assert.Nil(t, empty.Permission().Address())
+	assert.Nil(t, empty.Address())
 
 	bz, err := pub.Marshal()
 	require.Nil(t, err)
