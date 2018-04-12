@@ -43,8 +43,8 @@ func (p Permission) Parse() (string, string, []byte, error) {
 	return string(chunks[1]), string(chunks[2]), chunks[3], nil
 }
 
-// Hash will convert a Permission into an Address
-func (p Permission) Hash() Address {
+// Address will convert a Permission into an Address
+func (p Permission) Address() Address {
 	return NewAddress(p)
 }
 

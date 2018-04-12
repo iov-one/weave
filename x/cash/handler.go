@@ -57,7 +57,7 @@ func (h SendHandler) Check(ctx weave.Context, store weave.KVStore,
 	}
 
 	// make sure we have permission from the sender
-	if !h.auth.HasPermission(ctx, msg.Src) {
+	if !h.auth.HasAddress(ctx, msg.Src) {
 		return res, errors.ErrUnauthorized()
 	}
 
@@ -88,7 +88,7 @@ func (h SendHandler) Deliver(ctx weave.Context, store weave.KVStore,
 	}
 
 	// make sure we have permission from the sender
-	if !h.auth.HasPermission(ctx, msg.Src) {
+	if !h.auth.HasAddress(ctx, msg.Src) {
 		return res, errors.ErrUnauthorized()
 	}
 

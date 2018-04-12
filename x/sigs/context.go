@@ -44,7 +44,7 @@ func (a Authenticate) GetPermissions(ctx weave.Context) []weave.Permission {
 func (a Authenticate) HasAddress(ctx weave.Context, addr weave.Address) bool {
 	signers := a.GetPermissions(ctx)
 	for _, s := range signers {
-		if addr.Equals(s.Hash()) {
+		if addr.Equals(s.Address()) {
 			return true
 		}
 	}

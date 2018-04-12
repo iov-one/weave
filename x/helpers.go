@@ -184,7 +184,7 @@ func (a mockAuth) GetPermissions(weave.Context) []weave.Permission {
 
 func (a mockAuth) HasAddress(ctx weave.Context, addr weave.Address) bool {
 	for _, s := range a.signers {
-		if addr.Equals(s.Hash()) {
+		if addr.Equals(s.Address()) {
 			return true
 		}
 	}

@@ -58,7 +58,7 @@ func GetAddresses(ctx weave.Context, auth Authenticator) []weave.Address {
 	}
 	addrs := make([]weave.Address, len(perms))
 	for i, p := range perms {
-		addrs[i] = p.Hash()
+		addrs[i] = p.Address()
 	}
 	return addrs
 }
