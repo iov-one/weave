@@ -83,16 +83,7 @@ func VerifySignature(db weave.KVStore, sig *StdSignature,
 	if err != nil {
 		return nil, err
 	}
-	return obj.Key(), nil
-}
-
-// PubKeyToPermission constructs a permission to represent
-// a signature by this public key
-func PubKeyToPermission(pk *crypto.PublicKey) weave.Permission {
-	// TODO: make this more general, other types
-	typ := "ed25519"
-	data := pk.GetEd25519()
-	return weave.NewPermission(extensionName, typ, data)
+	return user.PubKey.Permission(), nil
 }
 
 // BuildSignBytes combines all info on the actual tx before signing

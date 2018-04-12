@@ -14,7 +14,6 @@ type contextKey int // local to the auth module
 
 const (
 	contextKeySigners contextKey = iota
-	extensionName                = "sigs"
 )
 
 // withSigners is a private method, as only this module

@@ -86,9 +86,9 @@ func (TestHelpers) Wrap(d weave.Decorator, h weave.Handler) weave.Handler {
 }
 
 // MakeKey returns a random PrivateKey and the associated address
-func (TestHelpers) MakeKey() (crypto.Signer, weave.Address) {
+func (TestHelpers) MakeKey() (crypto.Signer, weave.Permission) {
 	priv := crypto.GenPrivKeyEd25519()
-	addr := priv.PublicKey().Address()
+	addr := priv.PublicKey().Permission()
 	return priv, addr
 }
 

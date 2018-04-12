@@ -18,9 +18,9 @@ func (p *PublicKey_Ed25519) Verify(message []byte, sig *Signature) bool {
 	return ed25519.Verify(publicKey, message, edsig.Ed25519)
 }
 
-// Address hashes the public key into a weave address
-func (p *PublicKey_Ed25519) Address() weave.Address {
-	return weave.NewAddress(p.Ed25519)
+// Permission encodes the public key into a weave permission
+func (p *PublicKey_Ed25519) Permission() weave.Permission {
+	return weave.NewPermission(ExtensionName, "ed25519", p.Ed25519)
 }
 
 var _ Signer = (*PrivateKey_Ed25519)(nil)
