@@ -123,9 +123,9 @@ func TestPermission(t *testing.T) {
 
 			// doesn't match arbitrary other permission
 			assert.False(t, tc.perm.Equals(other))
-			addr := tc.perm.Hash()
+			addr := tc.perm.Address()
 			assert.NoError(t, addr.Validate())
-			assert.NotEqual(t, addr, other.Hash())
+			assert.NotEqual(t, addr, other.Address())
 
 			// make sure we get expected string
 			assert.Equal(t, tc.serial, tc.perm.String())

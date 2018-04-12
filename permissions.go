@@ -115,6 +115,9 @@ func (a Address) Validate() error {
 
 // NewAddress hashes and truncates into the proper size
 func NewAddress(data []byte) Address {
+	if data == nil {
+		return nil
+	}
 	// h := blake2b.Sum256(data)
 	h := sha256.Sum256(data)
 	return h[:AddressLength]
