@@ -34,11 +34,13 @@ func TestSendHandler(t *testing.T) {
 	foo := x.NewCoin(100, 0, "FOO")
 	some := x.NewCoin(300, 0, "SOME")
 
-	addr := weave.NewAddress([]byte{1, 2, 3})
-	addr2 := weave.NewAddress([]byte{4, 5, 6})
+	perm := weave.NewPermission("sig", "ed25519", []byte{1, 2, 3})
+	perm2 := weave.NewPermission("sig", "ed25519", []byte{4, 5, 6})
+	addr := perm.Address()
+	addr2 := perm2.Address()
 
 	cases := []struct {
-		signers       []weave.Address
+		signers       []weave.Permission
 		initState     []orm.Object
 		msg           weave.Msg
 		expectCheck   checkErr
@@ -56,7 +58,7 @@ func TestSendHandler(t *testing.T) {
 		},
 		// sender has no account
 		4: {
-			[]weave.Address{addr},
+			[]weave.Permission{perm},
 			nil,
 			&cash.SendMsg{Amount: &foo, Src: addr, Dest: addr2},
 			noErr, // we don't check funds
@@ -64,7 +66,7 @@ func TestSendHandler(t *testing.T) {
 		},
 		// sender too poor
 		5: {
-			[]weave.Address{addr},
+			[]weave.Permission{perm},
 			[]orm.Object{mo(WalletWith(addr, "", &some))},
 			&cash.SendMsg{Amount: &foo, Src: addr, Dest: addr2},
 			noErr, // we don't check funds
@@ -72,7 +74,7 @@ func TestSendHandler(t *testing.T) {
 		},
 		// fool and his money are soon parted....
 		6: {
-			[]weave.Address{addr},
+			[]weave.Permission{perm},
 			[]orm.Object{mo(WalletWith(addr, "fool", &foo))},
 			&cash.SendMsg{Amount: &foo, Src: addr, Dest: addr2},
 			noErr,
@@ -106,9 +108,11 @@ func TestSendHandler(t *testing.T) {
 func TestNewTokenHandler(t *testing.T) {
 	var helpers x.TestHelpers
 
-	addr := weave.NewAddress([]byte{1, 2, 3})
-	addr2 := weave.NewAddress([]byte{4, 5, 6})
-	addr3 := weave.NewAddress([]byte{7, 8, 9})
+	_, perm := helpers.MakeKey()
+	_, perm2 := helpers.MakeKey()
+	_, perm3 := helpers.MakeKey()
+	addr := perm.Address()
+	addr2 := perm2.Address()
 
 	ticker := "GOOD"
 	msg := BuildTokenMsg(ticker, "my good token", 6)
@@ -116,7 +120,7 @@ func TestNewTokenHandler(t *testing.T) {
 
 	// TODO: add queries to verify
 	cases := []struct {
-		signers       []weave.Address
+		signers       []weave.Permission
 		issuer        weave.Address
 		initState     []orm.Object
 		msg           weave.Msg
@@ -148,10 +152,10 @@ func TestNewTokenHandler(t *testing.T) {
 		// not enough permissions
 		7: {nil, addr, nil, msg,
 			errors.IsUnauthorizedErr, errors.IsUnauthorizedErr, "", nil},
-		8: {[]weave.Address{addr2, addr3}, addr, nil, msg,
+		8: {[]weave.Permission{perm2, perm3}, addr, nil, msg,
 			errors.IsUnauthorizedErr, errors.IsUnauthorizedErr, "", nil},
 		// now have permission
-		9: {[]weave.Address{addr2, addr3}, addr2, nil, msg,
+		9: {[]weave.Permission{perm2, perm3}, addr2, nil, msg,
 			noErr, noErr, ticker, added},
 	}
 
@@ -188,9 +192,10 @@ func TestNewTokenHandler(t *testing.T) {
 func TestSetNameHandler(t *testing.T) {
 	var helpers x.TestHelpers
 
-	addr := weave.NewAddress([]byte{1, 2, 3})
-	addr2 := weave.NewAddress([]byte{4, 5, 6})
-	// addr3 := weave.NewAddress([]byte{7, 8, 9})
+	_, perm := helpers.MakeKey()
+	_, perm2 := helpers.MakeKey()
+	addr := perm.Address()
+	addr2 := perm2.Address()
 
 	coin := x.NewCoin(100, 0, "FOO")
 	name := "carl"
@@ -202,7 +207,7 @@ func TestSetNameHandler(t *testing.T) {
 	dupUser := mo(WalletWith(addr2, name, &coin))
 
 	cases := []struct {
-		signer        weave.Address
+		signer        weave.Permission
 		initState     []orm.Object
 		msg           weave.Msg
 		expectCheck   checkErr
@@ -223,18 +228,18 @@ func TestSetNameHandler(t *testing.T) {
 		3: {nil, []orm.Object{newUser}, msg,
 			errors.IsUnauthorizedErr, errors.IsUnauthorizedErr, nil, nil},
 		// no account to change - only checked deliver
-		4: {addr, nil, msg,
+		4: {perm, nil, msg,
 			noErr, IsInvalidWallet, nil, nil},
-		5: {addr2, []orm.Object{newUser}, msg,
+		5: {perm2, []orm.Object{newUser}, msg,
 			errors.IsUnauthorizedErr, errors.IsUnauthorizedErr, nil, nil},
 		// yes, we changed it!
-		6: {addr, []orm.Object{newUser}, msg,
+		6: {perm, []orm.Object{newUser}, msg,
 			noErr, noErr, addr, setUser},
 		// cannot change already set - only checked deliver?
-		7: {addr, []orm.Object{setUser}, msg,
+		7: {perm, []orm.Object{setUser}, msg,
 			noErr, IsInvalidWallet, nil, nil},
 		// cannot create conflict - only checked deliver?
-		8: {addr, []orm.Object{newUser, dupUser}, msg,
+		8: {perm, []orm.Object{newUser, dupUser}, msg,
 			noErr, orm.IsUniqueConstraintErr, nil, nil},
 	}
 

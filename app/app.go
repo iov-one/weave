@@ -23,7 +23,7 @@ import (
 	"github.com/confio/weave/x/sigs"
 	"github.com/confio/weave/x/utils"
 
-	"github.com/iov-one/bov-core/x/namecoin"
+	"github.com/iov-one/bcp-demo/x/namecoin"
 )
 
 // Authenticator returns the typical authentication,

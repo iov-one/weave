@@ -10,9 +10,9 @@
 mkdir -p ${GOPATH}/bin
 if [ -d /vagrant ]; then
     mkdir -p ${GOPATH}/src/github.com/iov-one
-    ln -s /vagrant ${GOPATH}/src/github.com/iov-one/bov-core
+    ln -s /vagrant ${GOPATH}/src/github.com/iov-one/bcp-demo
 else
-    go get github.com/iov-one/bov-core
+    go get github.com/iov-one/bcp-demo
 fi
 
-cd ${GOPATH}/src/github.com/iov-one/bov-core && make deps && make install
+cd ${GOPATH}/src/github.com/iov-one/bcp-demo && make deps && make install

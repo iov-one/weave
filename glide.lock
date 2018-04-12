@@ -1,8 +1,8 @@
-hash: 2a722703052e4b025c640611e40a732c9f8a540d4a29e6ec838d6fdc8450cec9
-updated: 2018-03-21T20:59:35.107096103+01:00
+hash: 4158c5dfb9f065ca6da07873e0028cc7dd2ad9eb50bb5669c5f47a0016b7a33f
+updated: 2018-04-16T14:56:13.080709865+02:00
 imports:
 - name: github.com/confio/weave
-  version: 3e03144c40ad45cd8288ad20a27d3fd46ac410ec
+  version: 9b2a887bb7cb6f79690a2f384efac3a00697c0b5
   subpackages:
   - app
   - commands
@@ -37,7 +37,7 @@ imports:
   - sortkeys
   - types
 - name: github.com/golang/protobuf
-  version: bbd03ef6da3a115852eaf24c8a1c46aeb39aa175
+  version: e09c5db296004fbe3f74490e84dcd62c3c5ddb1b
   subpackages:
   - proto
   - ptypes
@@ -55,7 +55,7 @@ imports:
 - name: github.com/pkg/errors
   version: 645ef00459ed84a119197bfb8d8205042c6df63d
 - name: github.com/syndtr/goleveldb
-  version: 34011bf325bce385408353a30b101fe5e923eb6e
+  version: 714f901b98fdb3aa954b4193d8cbd64a28d80cad
   subpackages:
   - leveldb
   - leveldb/cache
@@ -87,13 +87,13 @@ imports:
   - db
   - log
 - name: golang.org/x/crypto
-  version: 13931e22f9e72ea58bb73048bc752b48c6d4d4ac
+  version: d6449816ce06963d9d136eee5a56fca5b0616e7e
   subpackages:
   - ed25519
   - ed25519/internal/edwards25519
   - ripemd160
 - name: golang.org/x/net
-  version: 803fdb99c0f72e493c28ef2099d250a9c989d8ff
+  version: 500e7a4f953ddaf55d316b4d3adc516aa0379622
   subpackages:
   - context
   - http2
@@ -103,14 +103,14 @@ imports:
   - lex/httplex
   - trace
 - name: golang.org/x/text
-  version: b7ef84aaf62aa3e70962625c80a571ae7c17cb40
+  version: 7922cc490dd5a7dbaa7fd5d6196b49db59ac042f
   subpackages:
   - secure/bidirule
   - transform
   - unicode/bidi
   - unicode/norm
 - name: google.golang.org/genproto
-  version: df60624c1e9b9d2973e889c7a1cff73155da81c4
+  version: 7fd901a49ba6a7f87732eb344f6e3c5b19d1b200
   subpackages:
   - googleapis/rpc/status
 - name: google.golang.org/grpc
@@ -134,7 +134,7 @@ imports:
   - transport
 testImports:
 - name: github.com/davecgh/go-spew
-  version: ecdeabc65495df2dec95d7c4a4c3e021903035e5
+  version: 8991bc29aa16c548c550c7ff78260e27b9ab7c73
   subpackages:
   - spew
 - name: github.com/pmezard/go-difflib

@@ -16,7 +16,7 @@ import (
 
 	"github.com/confio/weave/commands/server"
 
-	"github.com/iov-one/bov-core/app"
+	"github.com/iov-one/bcp-demo/app"
 )
 
 func TestInit(t *testing.T) {

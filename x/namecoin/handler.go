@@ -53,8 +53,8 @@ func RegisterRoutes(r weave.Registry, auth x.Authenticator, issuer weave.Address
 // RegisterQuery will register wallets as "/wallets"
 // and tokens as "/tokens"
 func RegisterQuery(qr weave.QueryRouter) {
-    NewWalletBucket().Register("wallets", qr)
-    NewTokenBucket().Register("tokens", qr)
+	NewWalletBucket().Register("wallets", qr)
+	NewTokenBucket().Register("tokens", qr)
 }
 
 // TokenHandler will handle creating new tokens
@@ -116,7 +116,7 @@ func (h TokenHandler) validate(ctx weave.Context, db weave.KVStore,
 	}
 
 	// make sure we have permission if the issuer is set
-	if h.issuer != nil && !h.auth.HasPermission(ctx, h.issuer) {
+	if h.issuer != nil && !h.auth.HasAddress(ctx, h.issuer) {
 		return nil, errors.ErrUnauthorized()
 	}
 
@@ -202,7 +202,7 @@ func (h SetNameHandler) validate(ctx weave.Context, db weave.KVStore,
 	}
 
 	// only wallet owner can set the name
-	if !h.auth.HasPermission(ctx, msg.Address) {
+	if !h.auth.HasAddress(ctx, msg.Address) {
 		return nil, errors.ErrUnauthorized()
 	}
 

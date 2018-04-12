@@ -11,8 +11,8 @@ import (
 	"github.com/confio/weave/commands"
 	"github.com/confio/weave/commands/server"
 
-	bov "github.com/iov-one/bov-core"
-	"github.com/iov-one/bov-core/app"
+	bov "github.com/iov-one/bcp-demo"
+	"github.com/iov-one/bcp-demo/app"
 )
 
 var (

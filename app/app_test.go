@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/iov-one/bov-core/x/namecoin"
+	"github.com/iov-one/bcp-demo/x/namecoin"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 

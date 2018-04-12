@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"github.com/iov-one/bov-core/x/namecoin"
+	"github.com/iov-one/bcp-demo/x/namecoin"
 	abci "github.com/tendermint/abci/types"
 	"github.com/tendermint/tmlibs/log"
 

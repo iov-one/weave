@@ -7,7 +7,7 @@ import (
 	"github.com/confio/weave/x/cash"
 	"github.com/confio/weave/x/sigs"
 
-	"github.com/iov-one/bov-core/x/namecoin"
+	"github.com/iov-one/bcp-demo/x/namecoin"
 )
 
 // Examples generates some example structs to dump out with testgen

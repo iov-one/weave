@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	bov "github.com/iov-one/bov-core"
+	bov "github.com/iov-one/bcp-demo"
 )
 
 func TestVersion(t *testing.T) {
