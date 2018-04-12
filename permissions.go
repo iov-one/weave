@@ -59,7 +59,7 @@ func (a Permission) Equals(b Permission) bool {
 func (p Permission) String() string {
 	ext, typ, data, err := p.Parse()
 	if err != nil {
-		return fmt.Sprintf("Invalid Permission: %x", []byte(p))
+		return fmt.Sprintf("Invalid Permission: %X", []byte(p))
 	}
 	return fmt.Sprintf("%s/%s/%X", ext, typ, data)
 }

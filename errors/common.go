@@ -100,6 +100,12 @@ func ErrUnrecognizedPermission(perm []byte) error {
 	return WithLog(msg, errUnrecognizedPermission, CodeUnrecognizedAddress)
 }
 
+// IsUnrecognizedPermissionErr returns true iff an error was created
+// with ErrUnrecognizedPermission
+func IsUnrecognizedPermissionErr(err error) bool {
+	return IsSameError(errUnrecognizedPermission, err)
+}
+
 // ErrInternal is a generic error code when we cannot return any more
 // useful info
 func ErrInternal(msg string) error {

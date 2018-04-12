@@ -132,3 +132,14 @@ func TestPermission(t *testing.T) {
 		})
 	}
 }
+
+func TestEmpty(t *testing.T) {
+	var addr Address
+	var perm Permission
+	badPerm := Permission{0xFA, 0xDE}
+
+	assert.Equal(t, "(nil)", addr.String())
+	assert.Nil(t, perm.Address())
+	assert.Equal(t, "Invalid Permission: FADE", badPerm.String())
+	assert.Equal(t, "Invalid Permission: ", perm.String())
+}
