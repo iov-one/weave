@@ -3,6 +3,7 @@ package escrow
 import (
 	"github.com/confio/weave"
 	"github.com/confio/weave/x"
+	"github.com/confio/weave/x/cash"
 )
 
 const (
@@ -100,11 +101,12 @@ func validatePermissions(perms ...weave.Permission) error {
 	return nil
 }
 
-func validateAmount(amount []*x.Coin) error {
-	// TODO: validate list of amounts... ugh []*x.Coin, not []x.Coin....
-	return nil
-	//   amt := s.GetAmount()
-	// if x.IsEmpty(amt) || !amt.IsPositive() {
-	//   return ErrInvalidAmount("Non-positive SendMsg")
-	// }
+func validateAmount(amount x.Coins) error {
+	// we enforce this is positive
+	positive := amount.IsPositive()
+	if !positive {
+		return cash.ErrInvalidAmount("Non-positive SendMsg")
+	}
+	// then make sure these are properly formatted coins
+	return amount.Validate()
 }

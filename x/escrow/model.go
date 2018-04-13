@@ -59,6 +59,12 @@ func AsEscrow(obj orm.Object) *Escrow {
 	return obj.Value().(*Escrow)
 }
 
+// Permission calculates the address of an escrow given
+// the key
+func Permission(key []byte) weave.Permission {
+	return weave.NewPermission("escrow", "seq", key)
+}
+
 // NewEscrow generates a new Escrow object
 // TODO: auto-generate sequence
 // func NewEscrow(ticker, name string, sigFigs int32) orm.Object {
