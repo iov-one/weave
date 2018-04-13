@@ -66,6 +66,10 @@ func (m *CreateEscrowMsg) Validate() error {
 
 // Validate makes sure that this is sensible
 func (m *ReleaseEscrowMsg) Validate() error {
+	err := validateEscrowID(m.EscrowId)
+	if err != nil {
+		return err
+	}
 	if m.Amount == nil {
 		return nil
 	}
@@ -74,12 +78,16 @@ func (m *ReleaseEscrowMsg) Validate() error {
 
 // Validate always returns true for no data
 func (m *ReturnEscrowMsg) Validate() error {
-	return nil
+	return validateEscrowID(m.EscrowId)
 }
 
 // Validate makes sure any included items are valid permissions
 // and there is at least one change
 func (m *UpdateEscrowPartiesMsg) Validate() error {
+	err := validateEscrowID(m.EscrowId)
+	if err != nil {
+		return err
+	}
 	if m.Arbiter == nil &&
 		m.Sender == nil &&
 		m.Recipient == nil {
@@ -109,4 +117,11 @@ func validateAmount(amount x.Coins) error {
 	}
 	// then make sure these are properly formatted coins
 	return amount.Validate()
+}
+
+func validateEscrowID(id []byte) error {
+	if len(id) != 8 {
+		return ErrInvalidEscrowID(id)
+	}
+	return nil
 }

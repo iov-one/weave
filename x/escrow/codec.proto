@@ -45,12 +45,15 @@ message CreateEscrowMsg {
 // If amount not provided, defaults to entire escrow,
 // May be a subset of the current balance.
 message ReleaseEscrowMsg {
-   repeated x.Coin amount = 1;
+    bytes escrow_id = 1;
+    repeated x.Coin amount = 2;
 }
 
 // ReturnEscrowMsg returns the content to the sender.
 // Must be authorized by the sender or an expired timeout
-message ReturnEscrowMsg {}
+message ReturnEscrowMsg {
+    bytes escrow_id = 1;
+}
 
 // UpdateEscrowPartiesMsg changes any of the parties of the escrow:
 // sender, arbiter, recipient. This must be authorized by the current
@@ -58,7 +61,8 @@ message ReturnEscrowMsg {}
 //
 // Represents delegating responsibility
 message UpdateEscrowPartiesMsg {
-    bytes sender = 1;
-    bytes arbiter = 2;
-    bytes recipient = 3;
+    bytes escrow_id = 1;
+    bytes sender = 2;
+    bytes arbiter = 3;
+    bytes recipient = 4;
 }

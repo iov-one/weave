@@ -13,6 +13,7 @@ const (
 	CodeMissingPermission = 1010
 	CodeInvalidPermission = 1011
 	CodeInvalidMetadata   = 1012
+	CodeNoEscrow          = 1013
 
 	// CodeInvalidIndex  = 1001
 	// CodeInvalidWallet = 1002
@@ -24,8 +25,11 @@ var (
 	errMissingRecipient      = fmt.Errorf("Missing Recipient")
 	errMissingAllPermissions = fmt.Errorf("Missing All Permissions")
 
-	errInvalidMemo    = fmt.Errorf("Memo field too long")
-	errInvalidTimeout = fmt.Errorf("Invalid Timeout")
+	errInvalidMemo     = fmt.Errorf("Memo field too long")
+	errInvalidTimeout  = fmt.Errorf("Invalid Timeout")
+	errInvalidEscrowID = fmt.Errorf("Invalid Escrow ID")
+
+	errNoSuchEscrow = fmt.Errorf("No Escrow with this ID")
 
 	// errInvalidIndex      = fmt.Errorf("Cannot calculate index")
 	// errInvalidWalletName = fmt.Errorf("Invalid name for a wallet")
@@ -62,4 +66,19 @@ func ErrInvalidMemo(memo string) error {
 func ErrInvalidTimeout(timeout int64) error {
 	msg := fmt.Sprintf("%d", timeout)
 	return errors.WithLog(msg, errInvalidTimeout, CodeInvalidMetadata)
+}
+func ErrInvalidEscrowID(id []byte) error {
+	msg := "(nil)"
+	if len(id) > 0 {
+		msg = fmt.Sprintf("%X", id)
+	}
+	return errors.WithLog(msg, errInvalidEscrowID, CodeInvalidMetadata)
+}
+
+func ErrNoSuchEscrow(id []byte) error {
+	msg := fmt.Sprintf("%X", id)
+	return errors.WithLog(msg, errNoSuchEscrow, CodeNoEscrow)
+}
+func IsNoSuchEscrowErr(err error) bool {
+	return errors.HasErrorCode(err, CodeNoEscrow)
 }
