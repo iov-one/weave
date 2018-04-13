@@ -1,8 +1,6 @@
 package escrow
 
 import (
-	"errors"
-
 	"github.com/confio/weave"
 	"github.com/confio/weave/orm"
 )
@@ -19,22 +17,21 @@ var _ orm.CloneableData = (*Escrow)(nil)
 // Validate ensures the escrow is valid
 func (e *Escrow) Validate() error {
 	if e.Sender == nil {
-		return errors.New("TODO: missing sender")
+		return ErrMissingSender()
 	}
 	// Copied from CreateEscrowMsg.Validate
 	// TODO: code reuse???
 	if e.Arbiter == nil {
-		return errors.New("TODO: missing arbiter")
+		return ErrMissingArbiter()
 	}
 	if e.Recipient == nil {
-		return errors.New("TODO: missing recipient")
+		return ErrMissingRecipient()
 	}
 	if e.Timeout <= 0 {
-		return errors.New("TODO: invalid timeout")
+		return ErrInvalidTimeout(e.Timeout)
 	}
 	if len(e.Memo) > maxMemoSize {
-		return errors.New("TODO: invalid memo")
-		// return ErrInvalidMemo("Memo too long")
+		return ErrInvalidMemo(e.Memo)
 	}
 	if err := validateAmount(e.Amount); err != nil {
 		return err
@@ -77,6 +74,7 @@ func AsEscrow(obj orm.Object) *Escrow {
 // Bucket is a type-safe wrapper around orm.Bucket
 type Bucket struct {
 	orm.Bucket
+	idSeq orm.Sequence
 }
 
 // NewBucket initializes a Bucket with default name
@@ -84,29 +82,20 @@ type Bucket struct {
 // inherit Get and Save from orm.Bucket
 // add Create
 func NewBucket() Bucket {
+	bucket := orm.NewBucket(BucketName,
+		orm.NewSimpleObj(nil, new(Escrow)))
 	return Bucket{
-		Bucket: orm.NewBucket(BucketName,
-			orm.NewSimpleObj(nil, new(Escrow))),
+		Bucket: bucket,
+		idSeq:  bucket.Sequence(SequenceName),
 	}
+	// TODO: add indexes
 }
-
-// TODO: remove??? On afterthought, this is probably never needed
-// // GetOrCreate will return the token if found, or create one
-// // with the given name otherwise.
-// func (b Bucket) GetOrCreate(db weave.KVStore, ticker string) (orm.Object, error) {
-//  obj, err := b.Get(db, ticker)
-//  if err == nil && obj == nil {
-//      obj = NewToken(ticker, "", DefaultSigFigs)
-//  }
-//  return obj, err
-// }
 
 // Create will calculate the next sequence number and then
 // store the escrow there.
 // Saves the object and returns it (to inspect the ID)
 func (b Bucket) Create(db weave.KVStore, escrow *Escrow) (orm.Object, error) {
-	seq := b.Bucket.Sequence(SequenceName)
-	key := seq.NextVal(db)
+	key := b.idSeq.NextVal(db)
 	obj := orm.NewSimpleObj(key, escrow)
 	err := b.Bucket.Save(db, obj)
 	if err != nil {

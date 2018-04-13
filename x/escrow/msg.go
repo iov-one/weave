@@ -1,8 +1,6 @@
 package escrow
 
 import (
-	"errors"
-
 	"github.com/confio/weave"
 	"github.com/confio/weave/x"
 )
@@ -48,17 +46,16 @@ func (UpdateEscrowPartiesMsg) Path() string {
 // Validate makes sure that this is sensible
 func (m *CreateEscrowMsg) Validate() error {
 	if m.Arbiter == nil {
-		return errors.New("TODO: missing arbiter")
+		return ErrMissingArbiter()
 	}
 	if m.Recipient == nil {
-		return errors.New("TODO: missing recipient")
+		return ErrMissingRecipient()
 	}
 	if m.Timeout <= 0 {
-		return errors.New("TODO: invalid timeout")
+		return ErrInvalidTimeout(m.Timeout)
 	}
 	if len(m.Memo) > maxMemoSize {
-		return errors.New("TODO: invalid memo")
-		// return ErrInvalidMemo("Memo too long")
+		return ErrInvalidMemo(m.Memo)
 	}
 	if err := validateAmount(m.Amount); err != nil {
 		return err
@@ -85,7 +82,7 @@ func (m *UpdateEscrowPartiesMsg) Validate() error {
 	if m.Arbiter == nil &&
 		m.Sender == nil &&
 		m.Recipient == nil {
-		return errors.New("TODO: no parties included")
+		return ErrMissingAllPermissions()
 	}
 	return validatePermissions(m.Arbiter, m.Sender, m.Recipient)
 }
