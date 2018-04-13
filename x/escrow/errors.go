@@ -74,6 +74,9 @@ func ErrInvalidEscrowID(id []byte) error {
 	}
 	return errors.WithLog(msg, errInvalidEscrowID, CodeInvalidMetadata)
 }
+func IsInvalidMetadataErr(err error) bool {
+	return errors.HasErrorCode(err, CodeInvalidMetadata)
+}
 
 func ErrNoSuchEscrow(id []byte) error {
 	msg := fmt.Sprintf("%X", id)
