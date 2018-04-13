@@ -17,7 +17,8 @@ var (
 	// but it must not change during the lifetime of the kvstore
 	AddressLength = 20
 
-	perm = regexp.MustCompile(`^([a-zA-Z0-9_\-]{3,8})/([a-zA-Z0-9_\-]{3,8})/(.+)$`)
+	// it must have (?s) flags, otherwise it errors when last section contains 0x20 (newline)
+	perm = regexp.MustCompile(`(?s)^([a-zA-Z0-9_\-]{3,8})/([a-zA-Z0-9_\-]{3,8})/(.+)$`)
 )
 
 // Permission is a specially formatted array, containing

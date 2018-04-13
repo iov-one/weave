@@ -1,6 +1,7 @@
 package weave
 
 import (
+	"encoding/hex"
 	"fmt"
 	"testing"
 
@@ -65,6 +66,10 @@ func TestAddress(t *testing.T) {
 
 func TestPermission(t *testing.T) {
 	other := NewPermission("some", "such", []byte("data"))
+	failure, err := hex.DecodeString("736967732F656432353531392F16E290A51B2B136C2C213884D03B8BAE483D6133F0A3D110FED3890E0A5A4E18")
+	require.NoError(t, err)
+	data, err := hex.DecodeString("16E290A51B2B136C2C213884D03B8BAE483D6133F0A3D110FED3890E0A5A4E18")
+	require.NoError(t, err)
 
 	cases := []struct {
 		perm    Permission
@@ -99,6 +104,16 @@ func TestPermission(t *testing.T) {
 			"W1N",
 			[]byte{0xCA, 0xFE},
 			"help/W1N/CAFE",
+		},
+		// some weird failure from random test case
+		// turns out to do with 0xa (newline) character in data
+		{
+			failure,
+			false,
+			"sigs",
+			"ed25519",
+			data,
+			"sigs/ed25519/16E290A51B2B136C2C213884D03B8BAE483D6133F0A3D110FED3890E0A5A4E18",
 		},
 	}
 
