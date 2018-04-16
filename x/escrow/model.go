@@ -3,6 +3,7 @@ package escrow
 import (
 	"github.com/confio/weave"
 	"github.com/confio/weave/orm"
+	"github.com/confio/weave/x"
 )
 
 const (
@@ -57,6 +58,20 @@ func AsEscrow(obj orm.Object) *Escrow {
 		return nil
 	}
 	return obj.Value().(*Escrow)
+}
+
+// NewEscrow creates an escrow orm.Object
+func NewEscrow(id []byte, sender, arb, rcpt weave.Permission,
+	amount x.Coins, timeout int64, memo string) orm.Object {
+	esc := &Escrow{
+		Sender:    sender,
+		Arbiter:   arb,
+		Recipient: rcpt,
+		Amount:    amount,
+		Timeout:   timeout,
+		Memo:      memo,
+	}
+	return orm.NewSimpleObj(id, esc)
 }
 
 // Permission calculates the address of an escrow given

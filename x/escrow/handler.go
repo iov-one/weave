@@ -28,6 +28,11 @@ func RegisterRoutes(r weave.Registry, auth x.Authenticator,
 	// r.Handle(pathUpdateEscrowPartiesMsg, UpdateEscrowPartiesHandler{auth, bucket})
 }
 
+// RegisterQuery will register this bucket as "/wallets"
+func RegisterQuery(qr weave.QueryRouter) {
+	NewBucket().Register("escrow", qr)
+}
+
 //---- create
 
 // CreateEscrowHandler will set a name for objects in this bucket
