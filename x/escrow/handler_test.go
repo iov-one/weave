@@ -34,13 +34,13 @@ func (a action) tx() weave.Tx {
 func (a action) ctx() weave.Context {
 	ctx := context.Background()
 	ctx = weave.WithHeight(ctx, a.height)
-	return Authenticator().SetPermissions(ctx, a.perms)
+	return authenticator().SetPermissions(ctx, a.perms...)
 }
 
-// Authenticator returns a default for all tests...
+// authenticator returns a default for all tests...
 // clean this up?
-func Authenticator() ctxAuther {
-	return ctxAuther{authKey}
+func authenticator() x.CtxAuther {
+	return x.TestHelpers{}.CtxAuth(authKey)
 }
 
 // how to do a query... TODO: abstract this??
@@ -51,10 +51,11 @@ type query struct {
 	data     []byte
 	isError  bool
 	expected []orm.Object
+	bucket   orm.Bucket
 }
 
 func (q query) check(t *testing.T, db weave.ReadOnlyKVStore,
-	qr weave.QueryRouter) {
+	qr weave.QueryRouter, msg ...interface{}) {
 
 	h := qr.Handler(q.path)
 	require.NotNil(t, h)
@@ -66,9 +67,14 @@ func (q query) check(t *testing.T, db weave.ReadOnlyKVStore,
 	require.NoError(t, err)
 	if assert.Equal(t, len(q.expected), len(mods)) {
 		for i, ex := range q.expected {
-			should, err := objToModel(ex)
+			// make sure keys match
+			key := q.bucket.DBKey(ex.Key())
+			assert.Equal(t, key, mods[i].Key)
+
+			// parse out value
+			got, err := q.bucket.Parse(nil, mods[i].Value)
 			require.NoError(t, err)
-			assert.Equal(t, should, mods[i])
+			assert.EqualValues(t, ex.Value(), got.Value(), msg...)
 		}
 	}
 }
@@ -88,30 +94,11 @@ func objToModel(obj orm.Object) (weave.Model, error) {
 	return weave.Model{key, bz}, err
 }
 
-//--- todo: move this to x/helpers.go
-
-type ctxAuther struct {
-	key interface{}
-}
-
-var _ x.Authenticator = ctxAuther{}
-
-func (a ctxAuther) SetPermissions(ctx weave.Context, perms []weave.Permission) weave.Context {
-	return context.WithValue(ctx, a.key, perms)
-}
-
-func (a ctxAuther) GetPermissions(ctx weave.Context) []weave.Permission {
-	val, _ := ctx.Value(a.key).([]weave.Permission)
-	return val
-}
-
-func (a ctxAuther) HasAddress(ctx weave.Context, addr weave.Address) bool {
-	for _, s := range a.GetPermissions(ctx) {
-		if addr.Equals(s.Address()) {
-			return true
-		}
+func mo(obj orm.Object, err error) orm.Object {
+	if err != nil {
+		panic(err)
 	}
-	return false
+	return obj
 }
 
 // TestHandler runs a number of scenario of tx to make
@@ -127,11 +114,23 @@ func TestHandler(t *testing.T) {
 
 	// good
 	plus := mustCombineCoins(x.NewCoin(100, 0, "FOO"))
+	some := mustCombineCoins(x.NewCoin(32, 0, "FOO"))
+	// TODO: add coins.Negative...
+	minus := some.Clone()
+	for _, m := range minus {
+		m.Whole *= -1
+		m.Fractional *= -1
+	}
+	remain, err := plus.Combine(minus)
+	require.NoError(t, err)
 
 	id := func(i int64) []byte {
 		bz := make([]byte, 8)
 		binary.BigEndian.PutUint64(bz, uint64(i))
 		return bz
+	}
+	eaddr := func(i int64) weave.Address {
+		return Permission(id(i)).Address()
 	}
 
 	cases := []struct {
@@ -147,7 +146,7 @@ func TestHandler(t *testing.T) {
 		// otherwise, a series of queries...
 		queries []query
 	}{
-		// simplest test, sending money we have
+		// simplest test, sending money we have creates an escrow
 		0: {
 			a.Address(),
 			plus,
@@ -164,20 +163,136 @@ func TestHandler(t *testing.T) {
 				height: 1000,
 			},
 			false,
-			// verify escrow is stored
-			[]query{{
-				"/escrow", "", id(1), false,
-				[]orm.Object{
-					NewEscrow(id(1), a, b, c, plus, 12345, ""),
+			[]query{
+				// verify escrow is stored
+				{
+					"/escrows", "", id(1), false,
+					[]orm.Object{
+						NewEscrow(id(1), a, b, c, plus, 12345, ""),
+					},
+					NewBucket().Bucket,
 				},
-			}},
+				// cash deducted from sender
+				{"/wallets", "", a.Address(), false,
+					[]orm.Object{
+						cash.NewWallet(a.Address()),
+					},
+					cash.NewBucket().Bucket,
+				},
+				// and added to escrow
+				{"/wallets", "", eaddr(1), false,
+					[]orm.Object{
+						mo(cash.WalletWith(eaddr(1), plus...)),
+					},
+					cash.NewBucket().Bucket,
+				},
+			},
+		},
+		// partial send, default sender taken from permissions
+		1: {
+			a.Address(),
+			plus,
+			nil, // no prep, just one action
+			action{
+				perms: []weave.Permission{a},
+				msg: &CreateEscrowMsg{
+					// defaults to sender!
+					Arbiter:   b,
+					Recipient: c,
+					Amount:    some,
+					Timeout:   777,
+				},
+				height: 123,
+			},
+			false,
+			[]query{
+				// verify escrow is stored
+				{
+					"/escrows", "", id(1), false,
+					[]orm.Object{
+						NewEscrow(id(1), a, b, c, some, 777, ""),
+					},
+					NewBucket().Bucket,
+				},
+				// cash deducted from sender
+				{"/wallets", "", a.Address(), false,
+					[]orm.Object{
+						mo(cash.WalletWith(a.Address(), remain...)),
+					},
+					cash.NewBucket().Bucket,
+				},
+				// and added to escrow
+				{"/wallets", "", eaddr(1), false,
+					[]orm.Object{
+						mo(cash.WalletWith(eaddr(1), some...)),
+					},
+					cash.NewBucket().Bucket,
+				},
+			},
+		},
+		// cannot send money we don't have
+		2: {
+			a.Address(),
+			some,
+			nil, // no prep, just one action
+			action{
+				perms: []weave.Permission{a},
+				msg: &CreateEscrowMsg{
+					// defaults to sender!
+					Arbiter:   b,
+					Recipient: c,
+					Amount:    plus,
+					Timeout:   12345,
+				},
+				height: 123,
+			},
+			true,
+			nil,
+		},
+		// cannot send money from other account
+		3: {
+			a.Address(),
+			plus,
+			nil, // no prep, just one action
+			action{
+				perms: []weave.Permission{b},
+				msg: &CreateEscrowMsg{
+					Sender:    a,
+					Arbiter:   b,
+					Recipient: c,
+					Amount:    some,
+					Timeout:   12345,
+				},
+				height: 123,
+			},
+			true,
+			nil,
+		},
+		// cannot set timeout in the past
+		4: {
+			a.Address(),
+			plus,
+			nil, // no prep, just one action
+			action{
+				perms: []weave.Permission{a},
+				msg: &CreateEscrowMsg{
+					// defaults to sender!
+					Arbiter:   b,
+					Recipient: c,
+					Amount:    plus,
+					Timeout:   123,
+				},
+				height: 888,
+			},
+			true,
+			nil,
 		},
 	}
 
 	bank := cash.NewBucket()
 	ctrl := cash.NewController(bank)
-	auth := Authenticator()
-	// TODO: create handler objects
+	auth := authenticator()
+	// create handler objects and query objects
 	h := app.NewRouter()
 	RegisterRoutes(h, auth, ctrl)
 	qr := weave.NewQueryRouter()
@@ -200,6 +315,7 @@ func TestHandler(t *testing.T) {
 				_, err = h.Check(p.ctx(), cache, p.tx())
 				require.NoError(t, err, "%d", j)
 			}
+			cache.Discard()
 
 			// do delivertx
 			for j, p := range tc.prep {
@@ -214,8 +330,8 @@ func TestHandler(t *testing.T) {
 			require.NoError(t, err)
 
 			// run through all queries
-			for _, q := range tc.queries {
-				q.check(t, db, qr)
+			for k, q := range tc.queries {
+				q.check(t, db, qr, "%d", k)
 			}
 		})
 	}

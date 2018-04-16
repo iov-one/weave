@@ -30,7 +30,7 @@ func RegisterRoutes(r weave.Registry, auth x.Authenticator,
 
 // RegisterQuery will register this bucket as "/wallets"
 func RegisterQuery(qr weave.QueryRouter) {
-	NewBucket().Register("escrow", qr)
+	NewBucket().Register("escrows", qr)
 }
 
 //---- create
@@ -69,9 +69,15 @@ func (h CreateEscrowHandler) Deliver(ctx weave.Context, db weave.KVStore,
 		return res, err
 	}
 
+	// apply a default for sender
+	sender := weave.Permission(msg.Sender)
+	if sender == nil {
+		sender = x.MainSigner(ctx, h.auth)
+	}
+
 	// create an escrow object
 	escrow := &Escrow{
-		Sender:    msg.Sender,
+		Sender:    sender,
 		Arbiter:   msg.Arbiter,
 		Recipient: msg.Recipient,
 		Amount:    msg.Amount,
@@ -85,9 +91,9 @@ func (h CreateEscrowHandler) Deliver(ctx weave.Context, db weave.KVStore,
 
 	// move the money to this object
 	dest := Permission(obj.Key()).Address()
-	sender := weave.Permission(msg.Sender).Address()
+	sendAddr := sender.Address()
 	for _, c := range escrow.Amount {
-		err := h.cash.MoveCoins(db, sender, dest, *c)
+		err := h.cash.MoveCoins(db, sendAddr, dest, *c)
 		if err != nil {
 			// this will rollback the half-finished tx
 			return res, err
@@ -117,10 +123,18 @@ func (h CreateEscrowHandler) validate(ctx weave.Context, db weave.KVStore,
 		return nil, err
 	}
 
-	// sender must authorize this
-	sender := weave.Permission(msg.Sender).Address()
-	if !h.auth.HasAddress(ctx, sender) {
-		return nil, errors.ErrUnauthorized()
+	// verify that timeout is in the future
+	height, _ := weave.GetHeight(ctx)
+	if msg.Timeout <= height {
+		return nil, ErrInvalidTimeout(msg.Timeout)
+	}
+
+	// sender must authorize this (if not set, defaults to MainSigner)
+	if msg.Sender != nil {
+		sender := weave.Permission(msg.Sender).Address()
+		if !h.auth.HasAddress(ctx, sender) {
+			return nil, errors.ErrUnauthorized()
+		}
 	}
 
 	// TODO: check balance? or just error on deliver?
