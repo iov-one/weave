@@ -53,21 +53,25 @@ For more details on the design goals, see the
 
 ## Instructions
 
-How to build and run a simple app:
+First, make sure you have
+[set up the requirements](https://weave.readthedocs.io/en/latest/mycoind/setup.html).
+If you have a solid go and node developer setup, you may skip this,
+but good to go through it to be sure.
+
+Once you are set up, you should be able to run something
+like the following to compile both `mycoind` (sample app)
+and `tendermint` (a [BFT consensus engine](https://tendermint.com)):
 
 ```
-# this installs all vendor dependencies, as well as the
-# tendermint binary
+go get github.com/confio/weave
+cd $GOPATH/src/github.com/confio/weave
 make deps
 make install
-
-# initialize an app
-tendermint init --home $HOME/.mycoind
-mycoind init  # adds app-specific options
-
-# run the app
-tendermint node --home $HOME/.mycoind > /tmp/tendermint.log &
-mycoind start
+# test it built properly
+tendermint version
+# 0.17.1-6f995699
+mycoind version
+# v0.2.1-21-g35d9c08
 ```
 
 Note that this app relies on a separate tendermint process
@@ -75,3 +79,6 @@ to drive it. It is helpful to first read a primer on
 [tendermint](https://tendermint.readthedocs.io/en/master/introduction.html)
 as well as the documentation on the
 [tendermint cli commands](https://tendermint.readthedocs.io/en/master/using-tendermint.html).
+
+Once it compiles, I highly suggest going through the
+[tutorials on readthedocs](https://weave.readthedocs.io/en/latest/index.html#mycoin-tutorial)

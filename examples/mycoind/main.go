@@ -33,6 +33,7 @@ func helpMessage() {
 	fmt.Println("help    Print this message")
 	fmt.Println("init    Initialize app options in genesis file")
 	fmt.Println("start   Run the abci server")
+	fmt.Println("testgen Generate protobuf/json files for test cases")
 	fmt.Println("version Print the app version")
 	fmt.Println(`
   -home string
