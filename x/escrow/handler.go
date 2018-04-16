@@ -183,7 +183,7 @@ func (h ReleaseEscrowHandler) Deliver(ctx weave.Context, db weave.KVStore,
 	request := x.Coins(msg.Amount)
 	available := x.Coins(escrow.Amount)
 	if len(request) == 0 {
-		request = available.Clone()
+		request = available
 
 		// TODO: add functionality to compare two sets
 		// } else if !available.Contains(request) {
@@ -200,7 +200,11 @@ func (h ReleaseEscrowHandler) Deliver(ctx weave.Context, db weave.KVStore,
 			// this will rollback the half-finished tx
 			return res, err
 		}
-		available.Subtract(*c)
+		// remove coin from remaining balance
+		available, err = available.Subtract(*c)
+		if err != nil {
+			return res, err
+		}
 	}
 
 	// if there is something left, just update the balance...
@@ -246,10 +250,17 @@ func (h ReleaseEscrowHandler) validate(ctx weave.Context, db weave.KVStore,
 	if escrow == nil {
 		return nil, nil, ErrNoSuchEscrow(msg.EscrowId)
 	}
+
 	// arbiter must authorize this
 	arbiter := weave.Permission(escrow.Arbiter).Address()
 	if !h.auth.HasAddress(ctx, arbiter) {
 		return nil, nil, errors.ErrUnauthorized()
+	}
+
+	// timeout must not have expired
+	height, _ := weave.GetHeight(ctx)
+	if escrow.Timeout < height {
+		return nil, nil, ErrEscrowExpired(escrow.Timeout)
 	}
 
 	return msg, obj, nil

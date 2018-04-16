@@ -65,7 +65,7 @@ func (q query) check(t *testing.T, db weave.ReadOnlyKVStore,
 		return
 	}
 	require.NoError(t, err)
-	if assert.Equal(t, len(q.expected), len(mods)) {
+	if assert.Equal(t, len(q.expected), len(mods), msg...) {
 		for i, ex := range q.expected {
 			// make sure keys match
 			key := q.bucket.DBKey(ex.Key())
@@ -113,7 +113,7 @@ func TestHandler(t *testing.T) {
 	_, c := helpers.MakeKey()
 
 	// good
-	plus := mustCombineCoins(x.NewCoin(100, 0, "FOO"))
+	all := mustCombineCoins(x.NewCoin(100, 0, "FOO"))
 	some := mustCombineCoins(x.NewCoin(32, 0, "FOO"))
 	// TODO: add coins.Negative...
 	minus := some.Clone()
@@ -121,7 +121,7 @@ func TestHandler(t *testing.T) {
 		m.Whole *= -1
 		m.Fractional *= -1
 	}
-	remain, err := plus.Combine(minus)
+	remain, err := all.Combine(minus)
 	require.NoError(t, err)
 
 	id := func(i int64) []byte {
@@ -149,7 +149,7 @@ func TestHandler(t *testing.T) {
 		// simplest test, sending money we have creates an escrow
 		0: {
 			a.Address(),
-			plus,
+			all,
 			nil, // no prep, just one action
 			action{
 				perms: []weave.Permission{a},
@@ -157,7 +157,7 @@ func TestHandler(t *testing.T) {
 					Sender:    a,
 					Arbiter:   b,
 					Recipient: c,
-					Amount:    plus,
+					Amount:    all,
 					Timeout:   12345,
 				},
 				height: 1000,
@@ -168,7 +168,7 @@ func TestHandler(t *testing.T) {
 				{
 					"/escrows", "", id(1), false,
 					[]orm.Object{
-						NewEscrow(id(1), a, b, c, plus, 12345, ""),
+						NewEscrow(id(1), a, b, c, all, 12345, ""),
 					},
 					NewBucket().Bucket,
 				},
@@ -182,7 +182,7 @@ func TestHandler(t *testing.T) {
 				// and added to escrow
 				{"/wallets", "", eaddr(1), false,
 					[]orm.Object{
-						mo(cash.WalletWith(eaddr(1), plus...)),
+						mo(cash.WalletWith(eaddr(1), all...)),
 					},
 					cash.NewBucket().Bucket,
 				},
@@ -191,7 +191,7 @@ func TestHandler(t *testing.T) {
 		// partial send, default sender taken from permissions
 		1: {
 			a.Address(),
-			plus,
+			all,
 			nil, // no prep, just one action
 			action{
 				perms: []weave.Permission{a},
@@ -213,6 +213,10 @@ func TestHandler(t *testing.T) {
 						NewEscrow(id(1), a, b, c, some, 777, ""),
 					},
 					NewBucket().Bucket,
+				},
+				// others id are empty
+				{
+					"/escrows", "", id(2), false, nil, orm.Bucket{},
 				},
 				// cash deducted from sender
 				{"/wallets", "", a.Address(), false,
@@ -241,7 +245,7 @@ func TestHandler(t *testing.T) {
 					// defaults to sender!
 					Arbiter:   b,
 					Recipient: c,
-					Amount:    plus,
+					Amount:    all,
 					Timeout:   12345,
 				},
 				height: 123,
@@ -252,7 +256,7 @@ func TestHandler(t *testing.T) {
 		// cannot send money from other account
 		3: {
 			a.Address(),
-			plus,
+			all,
 			nil, // no prep, just one action
 			action{
 				perms: []weave.Permission{b},
@@ -271,7 +275,7 @@ func TestHandler(t *testing.T) {
 		// cannot set timeout in the past
 		4: {
 			a.Address(),
-			plus,
+			all,
 			nil, // no prep, just one action
 			action{
 				perms: []weave.Permission{a},
@@ -279,10 +283,168 @@ func TestHandler(t *testing.T) {
 					// defaults to sender!
 					Arbiter:   b,
 					Recipient: c,
-					Amount:    plus,
+					Amount:    all,
 					Timeout:   123,
 				},
 				height: 888,
+			},
+			true,
+			nil,
+		},
+		// recipient cannot release
+		5: {
+			a.Address(),
+			all,
+			[]action{{
+				perms: []weave.Permission{a},
+				msg: &CreateEscrowMsg{
+					Sender:    a,
+					Arbiter:   b,
+					Recipient: c,
+					Amount:    all,
+					Timeout:   12345,
+				},
+				height: 1000,
+			}},
+			action{
+				perms: []weave.Permission{c},
+				msg: &ReleaseEscrowMsg{
+					EscrowId: id(1),
+				},
+				height: 2000,
+			},
+			true,
+			nil,
+		},
+		// arbiter can successfully release all
+		6: {
+			a.Address(),
+			all,
+			[]action{{
+				perms: []weave.Permission{a},
+				msg: &CreateEscrowMsg{
+					Sender:    a,
+					Arbiter:   b,
+					Recipient: c,
+					Amount:    all,
+					Timeout:   12345,
+				},
+				height: 1000,
+			}},
+			action{
+				perms: []weave.Permission{b},
+				msg: &ReleaseEscrowMsg{
+					EscrowId: id(1),
+				},
+				height: 2000,
+			},
+			false,
+			[]query{
+				// verify escrow is deleted
+				{
+					"/escrows", "", id(1), false, nil, orm.Bucket{},
+				},
+				// escrow is empty
+				{"/wallets", "", eaddr(1), false,
+					[]orm.Object{
+						cash.NewWallet(eaddr(1)),
+					},
+					cash.NewBucket().Bucket,
+				},
+				// sender is broke
+				{"/wallets", "", a.Address(), false,
+					[]orm.Object{
+						cash.NewWallet(a.Address()),
+					},
+					cash.NewBucket().Bucket,
+				},
+				// recipient has cash
+				{"/wallets", "", c.Address(), false,
+					[]orm.Object{
+						mo(cash.WalletWith(c.Address(), all...)),
+					},
+					cash.NewBucket().Bucket,
+				},
+			},
+		},
+		// arbiter can successfully release part
+		7: {
+			a.Address(),
+			all,
+			[]action{{
+				perms: []weave.Permission{a},
+				msg: &CreateEscrowMsg{
+					Sender:    a,
+					Arbiter:   b,
+					Recipient: c,
+					Amount:    all,
+					Timeout:   12345,
+					Memo:      "hello",
+				},
+				height: 1000,
+			}},
+			action{
+				perms: []weave.Permission{b},
+				msg: &ReleaseEscrowMsg{
+					EscrowId: id(1),
+					Amount:   some,
+				},
+				height: 2000,
+			},
+			false,
+			[]query{
+				// verify escrow balance is updated
+				{
+					"/escrows", "", id(1), false,
+					[]orm.Object{
+						NewEscrow(id(1), a, b, c, remain, 12345, "hello"),
+					},
+					NewBucket().Bucket,
+				},
+				// escrow is reduced
+				{"/wallets", "", eaddr(1), false,
+					[]orm.Object{
+						mo(cash.WalletWith(eaddr(1), remain...)),
+					},
+					cash.NewBucket().Bucket,
+				},
+				// sender is broke
+				{"/wallets", "", a.Address(), false,
+					[]orm.Object{
+						cash.NewWallet(a.Address()),
+					},
+					cash.NewBucket().Bucket,
+				},
+				// recipient has some money
+				{"/wallets", "", c.Address(), false,
+					[]orm.Object{
+						mo(cash.WalletWith(c.Address(), some...)),
+					},
+					cash.NewBucket().Bucket,
+				},
+			},
+		},
+		// cannot release after timeout
+		8: {
+			a.Address(),
+			all,
+			[]action{{
+				perms: []weave.Permission{a},
+				msg: &CreateEscrowMsg{
+					Sender:    a,
+					Arbiter:   b,
+					Recipient: c,
+					Amount:    all,
+					Timeout:   1234,
+				},
+				height: 1000,
+			}},
+			action{
+				perms: []weave.Permission{b},
+				msg: &ReleaseEscrowMsg{
+					EscrowId: id(1),
+				},
+				height: 2000,
 			},
 			true,
 			nil,

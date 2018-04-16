@@ -10,10 +10,11 @@ import (
 // bov takes 1000-1100
 // escrow takes 1010-1020
 const (
-	CodeMissingPermission = 1010
-	CodeInvalidPermission = 1011
-	CodeInvalidMetadata   = 1012
-	CodeNoEscrow          = 1013
+	CodeNoEscrow          = 1010
+	CodeMissingPermission = 1011
+	CodeInvalidPermission = 1012
+	CodeInvalidMetadata   = 1013
+	CodeInvalidHeight     = 1014
 
 	// CodeInvalidIndex  = 1001
 	// CodeInvalidWallet = 1002
@@ -30,6 +31,9 @@ var (
 	errInvalidEscrowID = fmt.Errorf("Invalid Escrow ID")
 
 	errNoSuchEscrow = fmt.Errorf("No Escrow with this ID")
+
+	errEscrowExpired    = fmt.Errorf("Escrow already expired")
+	errEscrowNotExpired = fmt.Errorf("Escrow not yet expired")
 
 	// errInvalidIndex      = fmt.Errorf("Cannot calculate index")
 	// errInvalidWalletName = fmt.Errorf("Invalid name for a wallet")
@@ -84,4 +88,13 @@ func ErrNoSuchEscrow(id []byte) error {
 }
 func IsNoSuchEscrowErr(err error) bool {
 	return errors.HasErrorCode(err, CodeNoEscrow)
+}
+
+func ErrEscrowExpired(timeout int64) error {
+	msg := fmt.Sprintf("%d", timeout)
+	return errors.WithLog(msg, errEscrowExpired, CodeInvalidHeight)
+}
+func ErrEscrowNotExpired(timeout int64) error {
+	msg := fmt.Sprintf("%d", timeout)
+	return errors.WithLog(msg, errEscrowNotExpired, CodeInvalidHeight)
 }
