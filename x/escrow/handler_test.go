@@ -111,6 +111,8 @@ func TestHandler(t *testing.T) {
 	_, a := helpers.MakeKey()
 	_, b := helpers.MakeKey()
 	_, c := helpers.MakeKey()
+	// d is just an observer, no role in escrow
+	_, d := helpers.MakeKey()
 
 	// good
 	all := mustCombineCoins(x.NewCoin(100, 0, "FOO"))
@@ -445,6 +447,75 @@ func TestHandler(t *testing.T) {
 					EscrowId: id(1),
 				},
 				height: 2000,
+			},
+			true,
+			nil,
+		},
+		// successful return after expired (can be done by anyone)
+		9: {
+			a.Address(),
+			all,
+			[]action{{
+				perms: []weave.Permission{a},
+				msg: &CreateEscrowMsg{
+					Sender:    a,
+					Arbiter:   b,
+					Recipient: c,
+					Amount:    some,
+					Timeout:   12345,
+				},
+				height: 1000,
+			}},
+			action{
+				perms: []weave.Permission{d},
+				msg: &ReturnEscrowMsg{
+					EscrowId: id(1),
+				},
+				height: 12346,
+			},
+			false,
+			[]query{
+				// verify escrow is deleted
+				{
+					"/escrows", "", id(1), false, nil, orm.Bucket{},
+				},
+				// escrow is empty
+				{"/wallets", "", eaddr(1), false,
+					[]orm.Object{
+						cash.NewWallet(eaddr(1)),
+					},
+					cash.NewBucket().Bucket,
+				},
+				// sender recover all his money
+				{"/wallets", "", a.Address(), false,
+					[]orm.Object{
+						mo(cash.WalletWith(a.Address(), all...)),
+					},
+					cash.NewBucket().Bucket,
+				},
+			},
+		},
+		// cannot return before timeout
+		10: {
+			a.Address(),
+			all,
+			[]action{{
+				perms: []weave.Permission{a},
+				msg: &CreateEscrowMsg{
+					Sender:    a,
+					Arbiter:   b,
+					Recipient: c,
+					Amount:    all,
+					Timeout:   1234,
+				},
+				height: 1000,
+			}},
+			action{
+				perms: []weave.Permission{b},
+				msg: &ReturnEscrowMsg{
+					EscrowId: id(1),
+				},
+				height: 1233,
 			},
 			true,
 			nil,
