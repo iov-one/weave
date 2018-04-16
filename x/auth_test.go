@@ -15,7 +15,11 @@ func TestAuth(t *testing.T) {
 	_, b := helper.MakeKey()
 	_, c := helper.MakeKey()
 
+	ctx1 := helper.CtxAuth("foo")
+	ctx2 := helper.CtxAuth("bar")
+
 	cases := []struct {
+		ctx        weave.Context
 		auth       Authenticator
 		mainSigner weave.Permission
 		has        weave.Permission
@@ -23,6 +27,7 @@ func TestAuth(t *testing.T) {
 		all        []weave.Permission
 	}{
 		0: {
+			context.Background(),
 			helper.Authenticate(),
 			nil,
 			nil,
@@ -30,6 +35,7 @@ func TestAuth(t *testing.T) {
 			nil,
 		},
 		{
+			context.Background(),
 			helper.Authenticate(a),
 			a,
 			a,
@@ -37,6 +43,7 @@ func TestAuth(t *testing.T) {
 			[]weave.Permission{a},
 		},
 		{
+			context.Background(),
 			ChainAuth(
 				helper.Authenticate(b),
 				helper.Authenticate(a)),
@@ -45,11 +52,29 @@ func TestAuth(t *testing.T) {
 			c,
 			[]weave.Permission{b, a},
 		},
+		// ctxAuth checks what is set by same key
+		{
+			ctx1.SetPermissions(context.Background(), a, b),
+			ctx1,
+			a,
+			b,
+			c,
+			[]weave.Permission{a, b},
+		},
+		// ctxAuth with different key sees nothing
+		{
+			ctx1.SetPermissions(context.Background(), a, b),
+			ctx2,
+			nil,
+			nil,
+			a,
+			nil,
+		},
 	}
 
-	ctx := context.Background()
 	for i, tc := range cases {
 		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
+			ctx := tc.ctx
 			assert.Equal(t, tc.mainSigner, MainSigner(ctx, tc.auth))
 			if tc.has != nil {
 				assert.True(t, tc.auth.HasAddress(ctx, tc.has.Address()))

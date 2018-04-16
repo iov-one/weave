@@ -123,9 +123,18 @@ func (b Bucket) Get(db weave.ReadOnlyKVStore, key []byte) (Object, error) {
 	if bz == nil {
 		return nil, nil
 	}
+	return b.Parse(key, bz)
+}
 
+// Parse takes a key and value data (weave.Model) and
+// reconstructs the data this Bucket would return.
+//
+// Used internally as part of Get.
+// It is exposed mainly as a test helper, but can work for
+// any code that wants to parse
+func (b Bucket) Parse(key, value []byte) (Object, error) {
 	obj := b.proto.Clone()
-	err := obj.Value().Unmarshal(bz)
+	err := obj.Value().Unmarshal(value)
 	if err != nil {
 		return nil, err
 	}

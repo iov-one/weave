@@ -1,6 +1,8 @@
 package x
 
 import (
+	"context"
+
 	"github.com/confio/weave"
 	"github.com/confio/weave/crypto"
 	"github.com/tendermint/tmlibs/common"
@@ -108,6 +110,12 @@ func (TestHelpers) Authenticate(perms ...weave.Permission) Authenticator {
 	return mockAuth{perms}
 }
 
+// CtxAuth returns an authenticator that uses the context
+// getting and setting with the given key
+func (TestHelpers) CtxAuth(key interface{}) CtxAuther {
+	return CtxAuther{key}
+}
+
 // CountingDecorator keeps track of number of times called.
 // 2x per call, 1x per call with panic inside
 type CountingDecorator interface {
@@ -163,14 +171,7 @@ func (m *mockTx) Unmarshal(bz []byte) error {
 	return m.msg.Unmarshal(bz)
 }
 
-// res, err := msg.Marshal()
-// assert.NoError(t, err)
-// assert.Equal(t, bz, res)
-// tm, err := tx.GetMsg()
-// assert.NoError(t, err)
-// assert.Equal(t, msg, tm)
-
-//------ auth
+//------ static auth (added in constructor)
 
 type mockAuth struct {
 	signers []weave.Permission
@@ -184,6 +185,36 @@ func (a mockAuth) GetPermissions(weave.Context) []weave.Permission {
 
 func (a mockAuth) HasAddress(ctx weave.Context, addr weave.Address) bool {
 	for _, s := range a.signers {
+		if addr.Equals(s.Address()) {
+			return true
+		}
+	}
+	return false
+}
+
+//----- dynamic auth (based on ctx)
+
+// CtxAuther gets/sets permissions on the given context key
+type CtxAuther struct {
+	key interface{}
+}
+
+var _ Authenticator = CtxAuther{}
+
+// SetPermissions returns a context with the given permissions set
+func (a CtxAuther) SetPermissions(ctx weave.Context, perms ...weave.Permission) weave.Context {
+	return context.WithValue(ctx, a.key, perms)
+}
+
+// GetPermissions returns permissions previously set on this context
+func (a CtxAuther) GetPermissions(ctx weave.Context) []weave.Permission {
+	val, _ := ctx.Value(a.key).([]weave.Permission)
+	return val
+}
+
+// HasAddress returns true iff this address is in GetPermissions
+func (a CtxAuther) HasAddress(ctx weave.Context, addr weave.Address) bool {
+	for _, s := range a.GetPermissions(ctx) {
 		if addr.Equals(s.Address()) {
 			return true
 		}
