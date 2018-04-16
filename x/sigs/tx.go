@@ -1,8 +1,6 @@
 package sigs
 
 import (
-	"bytes"
-
 	"github.com/confio/weave/errors"
 )
 
@@ -26,18 +24,9 @@ func (s *StdSignature) Validate() error {
 	if seq < 0 {
 		return ErrInvalidSequence("Negative")
 	}
-	if seq == 0 && s.PubKey == nil {
+	if s.PubKey == nil {
 		return ErrMissingPubKey()
 	}
-	if s.PubKey == nil && s.Address == nil {
-		return ErrMissingPubKey()
-	}
-	if s.PubKey != nil && s.Address != nil {
-		if !bytes.Equal(s.Address, s.PubKey.Address()) {
-			return ErrPubKeyAddressMismatch()
-		}
-	}
-
 	if s.Signature == nil {
 		return errors.ErrMissingSignature()
 	}

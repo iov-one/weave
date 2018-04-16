@@ -1,21 +1,6 @@
 package weave
 
-import (
-	"bytes"
-	"crypto/sha256"
-	"encoding/hex"
-	"strings"
-
-	"github.com/confio/weave/errors"
-	// "golang.org/x/crypto/blake2b"
-)
-
-var (
-	// AddressLength is the length of all addresses
-	// You can modify it in init() before any addresses are calculated,
-	// but it must not change during the lifetime of the kvstore
-	AddressLength = 20
-)
+// "golang.org/x/crypto/blake2b"
 
 // Msg is message for the blockchain to take an action
 // (Make a state transition). It is just the request, and
@@ -84,70 +69,3 @@ func GetPath(tx Tx) string {
 
 // TxDecoder can parse bytes into a Tx
 type TxDecoder func(txBytes []byte) (Tx, error)
-
-// Address represents a collision-free, one-way digest
-// of data (usually a public key) that can be used to identify a signer
-//
-// It will be of size AddressLength
-type Address []byte
-
-// Equals checks if two addresses are the same
-func (a Address) Equals(b Address) bool {
-	return bytes.Equal(a, b)
-}
-
-// MarshalJSON provides a hex representation for JSON,
-// to override the standard base64 []byte encoding
-func (a Address) MarshalJSON() ([]byte, error) {
-	return marshalHex(a)
-}
-
-// UnmarshalJSON parses JSON in hex representation,
-// to override the standard base64 []byte encoding
-func (a *Address) UnmarshalJSON(src []byte) error {
-	dst := (*[]byte)(a)
-	return unmarshalHex(src, dst)
-}
-
-// String returns a human readable string.
-// Currently hex, may move to bech32
-func (a Address) String() string {
-	if len(a) == 0 {
-		return "(nil)"
-	}
-	return strings.ToUpper(hex.EncodeToString(a))
-}
-
-// Validate returns an error if the address is not the valid size
-func (a Address) Validate() error {
-	if len(a) != AddressLength {
-		return errors.ErrUnrecognizedAddress(a)
-	}
-	return nil
-}
-
-// NewAddress hashes and truncates into the proper size
-func NewAddress(data []byte) Address {
-	// h := blake2b.Sum256(data)
-	h := sha256.Sum256(data)
-	return h[:AddressLength]
-}
-
-// ObjAddress takes the address of an object
-func ObjAddress(obj Marshaller) (Address, error) {
-	bz, err := obj.Marshal()
-	if err != nil {
-		return nil, err
-	}
-	return NewAddress(bz), nil
-}
-
-// MustObjAddress is like ObjAddress, but panics instead of returning
-// errors. Only use when you control the obj being passed in.
-func MustObjAddress(obj Marshaller) Address {
-	res, err := ObjAddress(obj)
-	if err != nil {
-		panic(err)
-	}
-	return res
-}

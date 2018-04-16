@@ -52,7 +52,7 @@ func TestVerifySignature(t *testing.T) {
 	kv := store.MemStore()
 	priv := crypto.GenPrivKeyEd25519()
 	pub := priv.PublicKey()
-	addr := pub.Address()
+	perm := pub.Permission()
 
 	chainID := "emo-music-2345"
 	bz := []byte("my special valentine")
@@ -81,22 +81,15 @@ func TestVerifySignature(t *testing.T) {
 	_, err = VerifySignature(kv, empty, bz, chainID)
 	assert.Error(t, err)
 	assert.True(t, IsInvalidSignatureErr(err))
-	// pubkey address mismatch
-	sig0x, err := SignTx(priv, tx, chainID, 0)
-	require.Nil(t, err)
-	sig0x.Address = weave.NewAddress([]byte("foo"))
-	_, err = VerifySignature(kv, sig0x, bz, chainID)
-	assert.Error(t, err)
-	assert.True(t, IsInvalidSignatureErr(err))
 
 	// must start with 0
 	sign, err := VerifySignature(kv, sig0, bz, chainID)
 	assert.NoError(t, err)
-	assert.Equal(t, weave.Address(addr), sign)
+	assert.Equal(t, perm, sign)
 	// we can advance one (store in kvstore)
 	sign, err = VerifySignature(kv, sig1, bz, chainID)
 	assert.NoError(t, err)
-	assert.Equal(t, weave.Address(addr), sign)
+	assert.Equal(t, perm, sign)
 
 	// jumping and replays are a no-no
 	_, err = VerifySignature(kv, sig1, bz, chainID)
@@ -109,8 +102,8 @@ func TestVerifySignature(t *testing.T) {
 	// different chain doesn't match
 	_, err = VerifySignature(kv, sig2, bz, "metal")
 	assert.Error(t, err)
-	// doesn't match on different address in sig
-	copy(sig2.Address, []byte{42, 17, 99})
+	// doesn't match on bad sig
+	copy(sig2.Signature.GetEd25519(), []byte{42, 17, 99})
 	_, err = VerifySignature(kv, sig2, bz, chainID)
 	assert.Error(t, err)
 }
@@ -119,9 +112,9 @@ func TestVerifyTxSignatures(t *testing.T) {
 	kv := store.MemStore()
 
 	priv := crypto.GenPrivKeyEd25519()
-	addr := weave.Address(priv.PublicKey().Address())
+	addr := priv.PublicKey().Permission()
 	priv2 := crypto.GenPrivKeyEd25519()
-	addr2 := weave.Address(priv2.PublicKey().Address())
+	addr2 := priv2.PublicKey().Permission()
 
 	chainID := "hot_summer_days"
 	bz := []byte("ice cream")

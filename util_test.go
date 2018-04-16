@@ -1,6 +1,7 @@
 package weave
 
 import (
+	"encoding/hex"
 	"fmt"
 	"testing"
 
@@ -41,30 +42,15 @@ func TestHex(t *testing.T) {
 	}
 }
 
-type obj struct {
-	bz []byte
-}
-
-// Marshal can return bz or error
-func (a obj) Marshal() ([]byte, error) {
-	if len(a.bz) < 2 {
-		return nil, fmt.Errorf("Too short")
-	}
-	return a.bz, nil
-}
-
 func TestAddress(t *testing.T) {
 	bad := Address{1, 3, 5}
 	assert.Error(t, bad.Validate())
 
 	// creating address
 	bz := []byte("bling")
-	one := &obj{bz}
 	addr := NewAddress(bz)
 	assert.NoError(t, addr.Validate())
-	addr2 := MustObjAddress(one)
-	assert.NoError(t, addr2.Validate())
-	assert.True(t, addr.Equals(addr2))
+	assert.False(t, addr.Equals(bz))
 	assert.False(t, addr.Equals(bad))
 
 	// marshalling
@@ -76,8 +62,99 @@ func TestAddress(t *testing.T) {
 	err = addr3.UnmarshalJSON(ser)
 	require.NoError(t, err)
 	assert.True(t, addr.Equals(addr3))
+}
 
-	// bad address
-	two := &obj{}
-	assert.Panics(t, func() { MustObjAddress(two) })
+func TestPermission(t *testing.T) {
+	other := NewPermission("some", "such", []byte("data"))
+	failure, err := hex.DecodeString("736967732F656432353531392F16E290A51B2B136C2C213884D03B8BAE483D6133F0A3D110FED3890E0A5A4E18")
+	require.NoError(t, err)
+	data, err := hex.DecodeString("16E290A51B2B136C2C213884D03B8BAE483D6133F0A3D110FED3890E0A5A4E18")
+	require.NoError(t, err)
+
+	cases := []struct {
+		perm    Permission
+		isError bool
+		ext     string
+		typ     string
+		data    []byte
+		serial  string
+	}{
+		// bad format
+		{
+			[]byte("fo6/ds2qa"), true, "", "", nil, "",
+		},
+		// bad format
+		{
+			NewPermission("a.b", "dfr", []byte{34}), true, "", "", nil, "",
+		},
+		// good format
+		{
+			[]byte("Foo/B4r/BZZ"),
+			false,
+			"Foo",
+			"B4r",
+			[]byte("BZZ"),
+			"Foo/B4r/425A5A",
+		},
+		// non-ascii data
+		{
+			NewPermission("help", "W1N", []byte{0xCA, 0xFE}),
+			false,
+			"help",
+			"W1N",
+			[]byte{0xCA, 0xFE},
+			"help/W1N/CAFE",
+		},
+		// some weird failure from random test case
+		// turns out to do with 0xa (newline) character in data
+		{
+			failure,
+			false,
+			"sigs",
+			"ed25519",
+			data,
+			"sigs/ed25519/16E290A51B2B136C2C213884D03B8BAE483D6133F0A3D110FED3890E0A5A4E18",
+		},
+	}
+
+	for i, tc := range cases {
+		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
+			ext, typ, data, err := tc.perm.Parse()
+			if tc.isError {
+				require.Error(t, err)
+				require.Error(t, tc.perm.Validate())
+				return
+			}
+			// make sure parse matches
+			require.NoError(t, err)
+			require.NoError(t, tc.perm.Validate())
+			assert.Equal(t, tc.ext, ext)
+			assert.Equal(t, tc.typ, typ)
+			assert.Equal(t, tc.data, data)
+
+			// equal should pass with proper bytes
+			cp := NewPermission(ext, typ, data)
+			assert.True(t, tc.perm.Equals(cp))
+
+			// doesn't match arbitrary other permission
+			assert.False(t, tc.perm.Equals(other))
+			addr := tc.perm.Address()
+			assert.NoError(t, addr.Validate())
+			assert.NotEqual(t, addr, other.Address())
+
+			// make sure we get expected string
+			assert.Equal(t, tc.serial, tc.perm.String())
+		})
+	}
+}
+
+func TestEmpty(t *testing.T) {
+	var addr Address
+	var perm Permission
+	badPerm := Permission{0xFA, 0xDE}
+
+	assert.Equal(t, "(nil)", addr.String())
+	assert.Nil(t, perm.Address())
+	assert.Equal(t, "Invalid Permission: FADE", badPerm.String())
+	assert.Equal(t, "Invalid Permission: ", perm.String())
 }

@@ -70,7 +70,7 @@ func (d FeeDecorator) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx,
 	}
 
 	// verify we have access to the money
-	if !d.auth.HasPermission(ctx, finfo.Payer) {
+	if !d.auth.HasAddress(ctx, finfo.Payer) {
 		return res, errors.ErrUnauthorized()
 	}
 	// and have enough
@@ -103,7 +103,7 @@ func (d FeeDecorator) Deliver(ctx weave.Context, store weave.KVStore, tx weave.T
 	}
 
 	// verify we have access to the money
-	if !d.auth.HasPermission(ctx, finfo.Payer) {
+	if !d.auth.HasAddress(ctx, finfo.Payer) {
 		return res, errors.ErrUnauthorized()
 	}
 	// and subtract it from the account
@@ -119,7 +119,7 @@ func (d FeeDecorator) extractFee(ctx weave.Context, tx weave.Tx) (*FeeInfo, erro
 	var finfo *FeeInfo
 	ftx, ok := tx.(FeeTx)
 	if ok {
-		payer := x.MainSigner(ctx, d.auth)
+		payer := x.MainSigner(ctx, d.auth).Address()
 		finfo = ftx.GetFees().DefaultPayer(payer)
 	}
 

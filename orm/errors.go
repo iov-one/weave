@@ -13,13 +13,15 @@ const (
 	CodeDuplicate           = 11
 	CodeMissing             = 12
 	CodeInvalidModification = 13
+	CodeInvalidObject       = 14
 	CodeProgrammer          = 15
 )
 
 var (
 	// errInsufficientFees  = fmt.Errorf("Insufficient fees")
 	// errInsufficientFunds = fmt.Errorf("Insufficient funds")
-	errInvalidIndex = fmt.Errorf("No such index")
+	errInvalidIndex  = fmt.Errorf("No such index")
+	errInvalidObject = fmt.Errorf("Wrong object type for this bucket")
 
 	errUniqueConstraint = fmt.Errorf("Duplicate violates unique constraint on index")
 	errRefInSet         = fmt.Errorf("Ref already in set")
@@ -34,6 +36,11 @@ var (
 	errUpdateNil = fmt.Errorf("update requires at least one non-nil object")
 	errBoolean   = fmt.Errorf("You have violated the rules of boolean logic")
 )
+
+func ErrInvalidObject(obj interface{}) error {
+	msg := fmt.Sprintf("%T", obj)
+	return errors.WithLog(msg, errInvalidObject, CodeInvalidObject)
+}
 
 func ErrInvalidIndex(reason string) error {
 	return errors.WithLog(reason, errInvalidIndex, CodeInvalidIndex)

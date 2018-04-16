@@ -86,9 +86,9 @@ func (TestHelpers) Wrap(d weave.Decorator, h weave.Handler) weave.Handler {
 }
 
 // MakeKey returns a random PrivateKey and the associated address
-func (TestHelpers) MakeKey() (crypto.Signer, weave.Address) {
+func (TestHelpers) MakeKey() (crypto.Signer, weave.Permission) {
 	priv := crypto.GenPrivKeyEd25519()
-	addr := priv.PublicKey().Address()
+	addr := priv.PublicKey().Permission()
 	return priv, addr
 }
 
@@ -104,8 +104,8 @@ func (TestHelpers) MockTx(msg weave.Msg) weave.Tx {
 
 // Authenticate returns an Authenticator that gives permissions
 // to the given addresses
-func (TestHelpers) Authenticate(addrs ...weave.Address) Authenticator {
-	return mockAuth{addrs}
+func (TestHelpers) Authenticate(perms ...weave.Permission) Authenticator {
+	return mockAuth{perms}
 }
 
 // CountingDecorator keeps track of number of times called.
@@ -173,18 +173,18 @@ func (m *mockTx) Unmarshal(bz []byte) error {
 //------ auth
 
 type mockAuth struct {
-	signers []weave.Address
+	signers []weave.Permission
 }
 
 var _ Authenticator = mockAuth{}
 
-func (a mockAuth) GetPermissions(weave.Context) []weave.Address {
+func (a mockAuth) GetPermissions(weave.Context) []weave.Permission {
 	return a.signers
 }
 
-func (a mockAuth) HasPermission(ctx weave.Context, addr weave.Address) bool {
+func (a mockAuth) HasAddress(ctx weave.Context, addr weave.Address) bool {
 	for _, s := range a.signers {
-		if addr.Equals(s) {
+		if addr.Equals(s.Address()) {
 			return true
 		}
 	}

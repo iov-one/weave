@@ -3,7 +3,6 @@ package crypto
 import (
 	"testing"
 
-	"github.com/confio/weave"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -39,9 +38,10 @@ func TestEd25519Address(t *testing.T) {
 	pub2 := GenPrivKeyEd25519().PublicKey()
 	empty := PublicKey{}
 
-	assert.Equal(t, weave.AddressLength, len(pub.Address()))
-	assert.Equal(t, weave.AddressLength, len(pub2.Address()))
-	assert.NotEqual(t, pub.Address(), pub2.Address())
+	assert.NoError(t, pub.Permission().Validate())
+	assert.NoError(t, pub2.Permission().Validate())
+	assert.NotEqual(t, pub.Permission(), pub2.Permission())
+	assert.Nil(t, empty.Permission())
 	assert.Nil(t, empty.Address())
 
 	bz, err := pub.Marshal()
@@ -49,5 +49,5 @@ func TestEd25519Address(t *testing.T) {
 	var read PublicKey
 	err = read.Unmarshal(bz)
 	require.Nil(t, err)
-	assert.Equal(t, read.Address(), pub.Address())
+	assert.Equal(t, read.Permission(), pub.Permission())
 }

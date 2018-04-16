@@ -84,9 +84,9 @@ and the various components you will use
    :maxdepth: 2
 
    design/overview.rst
+   design/permissions.rst
    design/queries.rst
    design/extensions.rst
-   design/addresses.rst
 
 
 Backend Development

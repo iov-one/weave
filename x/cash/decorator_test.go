@@ -62,12 +62,12 @@ func TestFees(t *testing.T) {
 
 	cash := x.NewCoin(50, 0, "FOO")
 	min := x.NewCoin(0, 1234, "FOO")
-	addr := weave.NewAddress([]byte{1, 2, 3})
-	addr2 := weave.NewAddress([]byte{3, 4, 5})
-	addr3 := weave.NewAddress([]byte{0xAB})
+	perm := weave.NewPermission("sigs", "ed25519", []byte{1, 2, 3})
+	perm2 := weave.NewPermission("sigs", "ed25519", []byte{3, 4, 5})
+	perm3 := weave.NewPermission("custom", "type", []byte{0xAB})
 
 	cases := []struct {
-		signers   []weave.Address
+		signers   []weave.Permission
 		initState []orm.Object
 		fee       *FeeInfo
 		min       x.Coin
@@ -81,7 +81,7 @@ func TestFees(t *testing.T) {
 		2: {nil, nil, &FeeInfo{Fees: &min}, min, errors.IsUnrecognizedAddressErr},
 		// use default signer, but not enough money
 		3: {
-			[]weave.Address{addr},
+			[]weave.Permission{perm},
 			nil,
 			&FeeInfo{Fees: &min},
 			min,
@@ -89,48 +89,48 @@ func TestFees(t *testing.T) {
 		},
 		// signer can cover min, but not pledge
 		4: {
-			[]weave.Address{addr},
-			[]orm.Object{must(WalletWith(addr, &min))},
+			[]weave.Permission{perm},
+			[]orm.Object{must(WalletWith(perm.Address(), &min))},
 			&FeeInfo{Fees: &cash},
 			min,
 			IsInsufficientFundsErr,
 		},
 		// all proper
 		5: {
-			[]weave.Address{addr},
-			[]orm.Object{must(WalletWith(addr, &cash))},
+			[]weave.Permission{perm},
+			[]orm.Object{must(WalletWith(perm.Address(), &cash))},
 			&FeeInfo{Fees: &min},
 			min,
 			noErr,
 		},
 		// trying to pay from wrong account
 		6: {
-			[]weave.Address{addr},
-			[]orm.Object{must(WalletWith(addr2, &cash))},
-			&FeeInfo{Payer: addr2, Fees: &min},
+			[]weave.Permission{perm},
+			[]orm.Object{must(WalletWith(perm2.Address(), &cash))},
+			&FeeInfo{Payer: perm2.Address(), Fees: &min},
 			min,
 			errors.IsUnauthorizedErr,
 		},
 		// can pay in any fee
 		7: {
-			[]weave.Address{addr},
-			[]orm.Object{must(WalletWith(addr, &cash))},
+			[]weave.Permission{perm},
+			[]orm.Object{must(WalletWith(perm.Address(), &cash))},
 			&FeeInfo{Fees: &min},
 			x.NewCoin(0, 1000, ""),
 			noErr,
 		},
 		// wrong currency checked
 		8: {
-			[]weave.Address{addr},
-			[]orm.Object{must(WalletWith(addr, &cash))},
+			[]weave.Permission{perm},
+			[]orm.Object{must(WalletWith(perm.Address(), &cash))},
 			&FeeInfo{Fees: &min},
 			x.NewCoin(0, 1000, "NOT"),
 			x.IsInvalidCurrencyErr,
 		},
 		// has the cash, but didn't offer enough fees
 		9: {
-			[]weave.Address{addr},
-			[]orm.Object{must(WalletWith(addr, &cash))},
+			[]weave.Permission{perm},
+			[]orm.Object{must(WalletWith(perm.Address(), &cash))},
 			&FeeInfo{Fees: &min},
 			x.NewCoin(0, 45000, "FOO"),
 			IsInsufficientFeesErr,
@@ -142,7 +142,7 @@ func TestFees(t *testing.T) {
 			auth := helpers.Authenticate(tc.signers...)
 			controller := NewController(NewBucket())
 			h := NewFeeDecorator(auth, controller, tc.min).
-				WithCollector(addr3)
+				WithCollector(perm3.Address())
 
 			kv := store.MemStore()
 			bucket := NewBucket()

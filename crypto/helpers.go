@@ -1,11 +1,16 @@
 package crypto
 
-import "github.com/confio/weave"
+import (
+	"github.com/confio/weave"
+)
+
+// ExtensionName is used for the Permissions we get from signatures
+const ExtensionName = "sigs"
 
 // PubKey represents a crypto public key we use
 type PubKey interface {
 	Verify(message []byte, sig *Signature) bool
-	Address() weave.Address
+	Permission() weave.Permission
 }
 
 // Signer is the functionality we use from a private key
@@ -45,13 +50,19 @@ func (p *PublicKey) Verify(message []byte, sig *Signature) bool {
 	return p.unwrap().Verify(message, sig)
 }
 
-// Address hashes the public key into a weave address
-func (p *PublicKey) Address() weave.Address {
+// Permission generates a Permission object to represent a valid
+// signature.
+func (p *PublicKey) Permission() weave.Permission {
 	in := p.unwrap()
 	if in == nil {
 		return nil
 	}
-	return in.Address()
+	return in.Permission()
+}
+
+// Address is a convenience method to get the Permission then take Address
+func (p *PublicKey) Address() weave.Address {
+	return p.Permission().Address()
 }
 
 var _ Signer = (*PrivateKey)(nil)

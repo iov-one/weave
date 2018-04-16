@@ -6,7 +6,6 @@ import (
 	"github.com/confio/weave"
 	"github.com/confio/weave/crypto"
 	"github.com/confio/weave/errors"
-	"github.com/confio/weave/orm"
 )
 
 //----------------- Controller ------------------
@@ -26,7 +25,7 @@ import (
 // returns list of signer addresses (possibly empty),
 // or error if any signature is invalid
 func VerifyTxSignatures(store weave.KVStore, tx SignedTx,
-	chainID string) ([]weave.Address, error) {
+	chainID string) ([]weave.Permission, error) {
 
 	bz, err := tx.GetSignBytes()
 	if err != nil {
@@ -34,7 +33,7 @@ func VerifyTxSignatures(store weave.KVStore, tx SignedTx,
 	}
 	sigs := tx.GetSignatures()
 
-	signers := make([]weave.Address, 0, len(sigs))
+	signers := make([]weave.Permission, 0, len(sigs))
 	for _, sig := range sigs {
 		// TODO: separate into own function (verify one sig)
 		signer, err := VerifySignature(store, sig, bz, chainID)
@@ -50,7 +49,7 @@ func VerifyTxSignatures(store weave.KVStore, tx SignedTx,
 // VerifySignature checks one signature against signbytes,
 // check chain and updates state in the store
 func VerifySignature(db weave.KVStore, sig *StdSignature,
-	signBytes []byte, chainID string) (weave.Address, error) {
+	signBytes []byte, chainID string) (weave.Permission, error) {
 
 	// we guarantee sequence makes sense and pubkey or address is there
 	err := sig.Validate()
@@ -61,17 +60,9 @@ func VerifySignature(db weave.KVStore, sig *StdSignature,
 	bucket := NewBucket()
 
 	// load account
-	var obj orm.Object
-	if sig.PubKey != nil {
-		obj, err = bucket.GetOrCreate(db, sig.PubKey)
-	} else if sig.Address != nil {
-		obj, err = bucket.Get(db, sig.Address)
-	}
+	obj, err := bucket.GetOrCreate(db, sig.PubKey)
 	if err != nil {
 		return nil, err
-	}
-	if obj == nil {
-		return nil, errors.ErrUnrecognizedAddress(sig.Address)
 	}
 
 	toSign, err := BuildSignBytes(signBytes, chainID, sig.Sequence)
@@ -92,7 +83,7 @@ func VerifySignature(db weave.KVStore, sig *StdSignature,
 	if err != nil {
 		return nil, err
 	}
-	return obj.Key(), nil
+	return user.PubKey.Permission(), nil
 }
 
 // BuildSignBytes combines all info on the actual tx before signing
@@ -141,14 +132,9 @@ func SignTx(signer crypto.Signer, tx SignedTx, chainID string,
 	pub := signer.PublicKey()
 
 	res := &StdSignature{
+		PubKey:    pub,
 		Signature: sig,
 		Sequence:  seq,
-	}
-
-	if seq == 0 {
-		res.PubKey = pub
-	} else {
-		res.Address = pub.Address()
 	}
 
 	return res, nil
