@@ -3,6 +3,7 @@
 GIT_COMMIT := $(shell git rev-parse --short HEAD)
 BUILD_FLAGS := -ldflags "-X github.com/iov-one/bov-core.GitCommit=$(GIT_COMMIT)"
 TENDERMINT := ${GOBIN}/tendermint
+GOPATH ?= $$HOME/go
 
 TM_VERSION := v0.17.1
 
@@ -47,15 +48,15 @@ glide:
 $(TENDERMINT):
 	go get github.com/golang/dep/cmd/dep
 	go get -d github.com/tendermint/tendermint/...
-	cd $$GOPATH/src/github.com/tendermint/tendermint && \
+	cd $(GOPATH)/src/github.com/tendermint/tendermint && \
 		git checkout $(TM_VERSION) && \
 		make ensure_deps && make install && \
 		git checkout -
 
 protoc:
 	protoc --gogofaster_out=. -I=. -I=./vendor x/namecoin/*.proto
-	@ # $$GOPATH/src go we can import namecoin .proto
-	protoc --gogofaster_out=. -I=. -I=./vendor -I=$$GOPATH/src app/*.proto
+	@ # $(GOPATH)/src go we can import namecoin .proto
+	protoc --gogofaster_out=. -I=. -I=./vendor -I=$(GOPATH)/src app/*.proto
 
 ### cross-platform check for installing protoc ###
 
