@@ -1,11 +1,6 @@
 /*
-Package std contains standard implementations of a number
-of components.
-
-It is a good place to get started buuilding your first app,
-and to see how to wire together the various components.
-You can then replace them with custom implementations,
-as your project grows.
+Package app links together all the various components
+to construct a bcp-demo app.
 */
 package app
 

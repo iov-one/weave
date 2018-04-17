@@ -199,6 +199,34 @@ func TestHandler(t *testing.T) {
 					},
 					NewBucket().Bucket,
 				},
+				// make sure sender index works
+				{
+					"/escrows/sender", "", a, false,
+					[]orm.Object{
+						NewEscrow(id(1), a, b, c, some, 777, ""),
+					},
+					NewBucket().Bucket,
+				},
+				// make sure recipient index works
+				{
+					"/escrows/recipient", "", b, false,
+					[]orm.Object{
+						NewEscrow(id(1), a, b, c, some, 777, ""),
+					},
+					NewBucket().Bucket,
+				},
+				// make sure arbiter index works
+				{
+					"/escrows/arbiter", "", c, false,
+					[]orm.Object{
+						NewEscrow(id(1), a, b, c, some, 777, ""),
+					},
+					NewBucket().Bucket,
+				},
+				// make sure wrong query misses
+				{
+					"/escrows/arbiter", "", b, false, nil, NewBucket().Bucket,
+				},
 				// others id are empty
 				{
 					"/escrows", "", id(2), false, nil, orm.Bucket{},

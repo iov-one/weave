@@ -1,6 +1,8 @@
 package escrow
 
 import (
+	"errors"
+
 	"github.com/confio/weave"
 	"github.com/confio/weave/orm"
 	"github.com/confio/weave/x"
@@ -104,12 +106,51 @@ type Bucket struct {
 // add Create
 func NewBucket() Bucket {
 	bucket := orm.NewBucket(BucketName,
-		orm.NewSimpleObj(nil, new(Escrow)))
+		orm.NewSimpleObj(nil, new(Escrow))).
+		WithIndex("sender", idxSender, false).
+		WithIndex("recipient", idxRecipient, false).
+		WithIndex("arbiter", idxArbiter, false)
+
 	return Bucket{
 		Bucket: bucket,
 		idSeq:  bucket.Sequence(SequenceName),
 	}
 	// TODO: add indexes
+}
+
+func getEscrow(obj orm.Object) (*Escrow, error) {
+	if obj == nil {
+		return nil, errors.New("Cannot take index of nil")
+	}
+	esc, ok := obj.Value().(*Escrow)
+	if !ok {
+		return nil, errors.New("Can only take index of Escrow")
+	}
+	return esc, nil
+}
+
+func idxSender(obj orm.Object) ([]byte, error) {
+	esc, err := getEscrow(obj)
+	if err != nil {
+		return nil, err
+	}
+	return esc.Sender, nil
+}
+
+func idxRecipient(obj orm.Object) ([]byte, error) {
+	esc, err := getEscrow(obj)
+	if err != nil {
+		return nil, err
+	}
+	return esc.Recipient, nil
+}
+
+func idxArbiter(obj orm.Object) ([]byte, error) {
+	esc, err := getEscrow(obj)
+	if err != nil {
+		return nil, err
+	}
+	return esc.Arbiter, nil
 }
 
 // Create will calculate the next sequence number and then
