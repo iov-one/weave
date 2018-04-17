@@ -44,6 +44,19 @@ func (UpdateEscrowPartiesMsg) Path() string {
 
 //--------- Validation --------
 
+// NewCreateMsg is a helper to quickly build a create escrow message
+func NewCreateMsg(send, rcpt, arb weave.Permission,
+	amount x.Coins, timeout int64, memo string) *CreateEscrowMsg {
+	return &CreateEscrowMsg{
+		Sender:    send,
+		Recipient: rcpt,
+		Arbiter:   arb,
+		Amount:    amount,
+		Timeout:   timeout,
+		Memo:      memo,
+	}
+}
+
 // Validate makes sure that this is sensible
 func (m *CreateEscrowMsg) Validate() error {
 	if m.Arbiter == nil {

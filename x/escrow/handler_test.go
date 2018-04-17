@@ -12,6 +12,7 @@ import (
 	"github.com/confio/weave/store"
 	"github.com/confio/weave/x"
 	"github.com/confio/weave/x/cash"
+	"github.com/iov-one/bcp-demo/x/hashlock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -117,14 +118,7 @@ func TestHandler(t *testing.T) {
 	// good
 	all := mustCombineCoins(x.NewCoin(100, 0, "FOO"))
 	some := mustCombineCoins(x.NewCoin(32, 0, "FOO"))
-	// TODO: add coins.Negative...
-	minus := some.Clone()
-	for _, m := range minus {
-		m.Whole *= -1
-		m.Fractional *= -1
-	}
-	remain, err := all.Combine(minus)
-	require.NoError(t, err)
+	remain := MustMinusCoins(t, all, some)
 
 	id := func(i int64) []byte {
 		bz := make([]byte, 8)
@@ -568,4 +562,186 @@ func TestHandler(t *testing.T) {
 			}
 		})
 	}
+}
+
+// MinusCoins returns a-b
+func MinusCoins(a, b x.Coins) (x.Coins, error) {
+	// TODO: add coins.Negative...
+	minus := b.Clone()
+	for _, m := range minus {
+		m.Whole *= -1
+		m.Fractional *= -1
+	}
+	return a.Combine(minus)
+}
+
+func MustMinusCoins(t *testing.T, a, b x.Coins) x.Coins {
+	remain, err := MinusCoins(a, b)
+	require.NoError(t, err)
+	return remain
+}
+
+func MustAddCoins(t *testing.T, a, b x.Coins) x.Coins {
+	res, err := a.Combine(b)
+	require.NoError(t, err)
+	return res
+}
+
+// TestAtomicSwap combines hash and escrow to perform
+// atomic swap...
+//
+// we tested timeout above, this is just about claiming
+func TestAtomicSwap(t *testing.T) {
+	var helpers x.TestHelpers
+
+	// a and b want to do a swap
+	_, a := helpers.MakeKey()
+	_, b := helpers.MakeKey()
+	// c is just an observer, no role in escrow
+	_, c := helpers.MakeKey()
+
+	foo := mustCombineCoins(x.NewCoin(500, 0, "FOO"))
+	lilFoo := mustCombineCoins(x.NewCoin(77, 0, "FOO"))
+	leftFoo := MustMinusCoins(t, foo, lilFoo)
+	bar := mustCombineCoins(x.NewCoin(1100, 0, "BAR"))
+	lilBar := mustCombineCoins(x.NewCoin(250, 0, "BAR"))
+	leftBar := MustMinusCoins(t, bar, lilBar)
+
+	cases := []struct {
+		// initial values
+		aInit, bInit x.Coins
+		// amount we wish to swap
+		aSwap, bSwap x.Coins
+		// arbiter, same on both
+		arbiter weave.Permission
+		// preimage used in claim
+		preimage []byte
+		// does the release cause an error?
+		isError        bool
+		aFinal, bFinal x.Coins
+	}{
+		// bad preimage
+		0: {
+			foo, bar,
+			lilFoo, lilBar,
+			hashlock.PreimagePermission([]byte{1, 2, 3}),
+			[]byte("foo"),
+			true,
+			// money stayed in escrow
+			leftFoo,
+			leftBar,
+		},
+		// good preimage
+		1: {
+			foo, bar,
+			lilFoo, lilBar,
+			hashlock.PreimagePermission([]byte{7, 8, 9}),
+			[]byte{7, 8, 9},
+			false,
+			// the coins were properly released
+			MustAddCoins(t, leftFoo, lilBar),
+			MustAddCoins(t, leftBar, lilFoo),
+		},
+	}
+
+	bank := cash.NewBucket()
+	ctrl := cash.NewController(bank)
+
+	setBalance := func(t *testing.T, db weave.KVStore, addr weave.Address, coins x.Coins) {
+		acct, err := cash.WalletWith(addr, coins...)
+		require.NoError(t, err)
+		err = bank.Save(db, acct)
+		require.NoError(t, err)
+	}
+	checkBalance := func(t *testing.T, db weave.KVStore, addr weave.Address) x.Coins {
+		acct, err := bank.Get(db, addr)
+		require.NoError(t, err)
+		coins := cash.AsCoins(acct)
+		return coins
+	}
+
+	// use both context auth and hashlock auth
+	auth := x.ChainAuth(authenticator(), hashlock.Authenticate{})
+	setAuth := authenticator().SetPermissions
+
+	// route the escrow commands, and wrap with the hashlock
+	// middleware
+	r := app.NewRouter()
+	RegisterRoutes(r, auth, ctrl)
+	h := helpers.Wrap(hashlock.NewDecorator(), r)
+
+	timeout := int64(1000)
+	ctx := weave.WithHeight(context.Background(), 500)
+	for i, tc := range cases {
+		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
+			// start with the balance
+			db := store.MemStore()
+			setBalance(t, db, a.Address(), tc.aInit)
+			setBalance(t, db, b.Address(), tc.bInit)
+
+			// make sure this works at all....
+			abal := checkBalance(t, db, a.Address())
+			require.Equal(t, tc.aInit, abal)
+			bbal := checkBalance(t, db, b.Address())
+			require.Equal(t, tc.bInit, bbal)
+
+			// create the offer
+			one := NewCreateMsg(a, b, tc.arbiter, tc.aSwap, timeout, "")
+			aCtx := setAuth(ctx, a)
+			res, err := h.Deliver(aCtx, db, helpers.MockTx(one))
+			require.NoError(t, err)
+			esc1 := res.Data
+
+			// this is the response
+			two := NewCreateMsg(b, a, tc.arbiter, tc.bSwap, timeout, "")
+			bCtx := setAuth(ctx, b)
+			res, err = h.Deliver(bCtx, db, helpers.MockTx(two))
+			require.NoError(t, err)
+			esc2 := res.Data
+
+			// now try to execute them, c with hashlock....
+			resCtx := setAuth(ctx, c)
+			resTx1 := PreimageTx{
+				Tx:       helpers.MockTx(&ReleaseEscrowMsg{EscrowId: esc1}),
+				Preimage: tc.preimage,
+			}
+			_, err = h.Deliver(resCtx, db, resTx1)
+			if tc.isError {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+			}
+			resTx2 := PreimageTx{
+				Tx:       helpers.MockTx(&ReleaseEscrowMsg{EscrowId: esc2}),
+				Preimage: tc.preimage,
+			}
+			_, err = h.Deliver(resCtx, db, resTx2)
+			if tc.isError {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+			}
+
+			// make sure final balance is proper....
+			abal = checkBalance(t, db, a.Address())
+			require.Equal(t, tc.aFinal, abal)
+			bbal = checkBalance(t, db, b.Address())
+			require.Equal(t, tc.bFinal, bbal)
+		})
+	}
+}
+
+// --- cut and paste from hashlock/decorator_test.go :(
+
+// PreimageTx fulfills the HashKeyTx interface to satisfy the decorator
+type PreimageTx struct {
+	weave.Tx
+	Preimage []byte
+}
+
+var _ hashlock.HashKeyTx = PreimageTx{}
+var _ weave.Tx = PreimageTx{}
+
+func (p PreimageTx) GetPreimage() []byte {
+	return p.Preimage
 }
