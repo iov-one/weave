@@ -25,7 +25,7 @@ func RegisterRoutes(r weave.Registry, auth x.Authenticator,
 	r.Handle(pathCreateEscrowMsg, CreateEscrowHandler{auth, bucket, control})
 	r.Handle(pathReleaseEscrowMsg, ReleaseEscrowHandler{auth, bucket, control})
 	r.Handle(pathReturnEscrowMsg, ReturnEscrowHandler{auth, bucket, control})
-	// r.Handle(pathUpdateEscrowPartiesMsg, UpdateEscrowPartiesHandler{auth, bucket})
+	r.Handle(pathUpdateEscrowPartiesMsg, UpdateEscrowHandler{auth, bucket})
 }
 
 // RegisterQuery will register this bucket as "/wallets"
@@ -317,7 +317,7 @@ func (h ReturnEscrowHandler) Deliver(ctx weave.Context, db weave.KVStore,
 	// now remove the finished escrow
 	err = h.bucket.Delete(db, obj.Key())
 
-	// returns error if Save/Delete failed
+	// returns error if Delete failed
 	return res, err
 }
 
@@ -356,4 +356,115 @@ func (h ReturnEscrowHandler) validate(ctx weave.Context, db weave.KVStore,
 	}
 
 	return obj, nil
+}
+
+//---- update
+
+// UpdateEscrowHandler will set a name for objects in this bucket
+type UpdateEscrowHandler struct {
+	auth   x.Authenticator
+	bucket Bucket
+}
+
+var _ weave.Handler = UpdateEscrowHandler{}
+
+// Check just verifies it is properly formed and returns
+// the cost of executing it
+func (h UpdateEscrowHandler) Check(ctx weave.Context, db weave.KVStore,
+	tx weave.Tx) (weave.CheckResult, error) {
+	var res weave.CheckResult
+	_, _, err := h.validate(ctx, db, tx)
+	if err != nil {
+		return res, err
+	}
+
+	// return cost
+	res.GasAllocated += updateEscrowCost
+	return res, nil
+}
+
+// Deliver moves the tokens from sender to receiver if
+// all preconditions are met
+func (h UpdateEscrowHandler) Deliver(ctx weave.Context, db weave.KVStore,
+	tx weave.Tx) (weave.DeliverResult, error) {
+	var res weave.DeliverResult
+	msg, obj, err := h.validate(ctx, db, tx)
+	if err != nil {
+		return res, err
+	}
+	escrow := AsEscrow(obj)
+
+	// update the escrow with message values
+	if msg.Sender != nil {
+		escrow.Sender = msg.Sender
+	}
+	if msg.Recipient != nil {
+		escrow.Recipient = msg.Recipient
+	}
+	if msg.Arbiter != nil {
+		escrow.Arbiter = msg.Arbiter
+	}
+
+	// save the updated escrow
+	err = h.bucket.Save(db, obj)
+
+	// returns error if Save failed
+	return res, err
+}
+
+// validate does all common pre-processing between Check and Deliver
+func (h UpdateEscrowHandler) validate(ctx weave.Context, db weave.KVStore,
+	tx weave.Tx) (*UpdateEscrowPartiesMsg, orm.Object, error) {
+
+	rmsg, err := tx.GetMsg()
+	if err != nil {
+		return nil, nil, err
+	}
+	msg, ok := rmsg.(*UpdateEscrowPartiesMsg)
+	if !ok {
+		return nil, nil, errors.ErrUnknownTxType(rmsg)
+	}
+
+	err = msg.Validate()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	// load escrow
+	obj, err := h.bucket.Get(db, msg.EscrowId)
+	if err != nil {
+		return nil, nil, err
+	}
+	escrow := AsEscrow(obj)
+	if escrow == nil {
+		return nil, nil, ErrNoSuchEscrow(msg.EscrowId)
+	}
+
+	// timeout must not have expired
+	height, _ := weave.GetHeight(ctx)
+	if height > escrow.Timeout {
+		return nil, nil, ErrEscrowExpired(escrow.Timeout)
+	}
+
+	// we must have the permission for the items we want to change
+	if msg.Sender != nil {
+		sender := weave.Permission(escrow.Sender).Address()
+		if !h.auth.HasAddress(ctx, sender) {
+			return nil, nil, errors.ErrUnauthorized()
+		}
+	}
+	if msg.Recipient != nil {
+		rcpt := weave.Permission(escrow.Recipient).Address()
+		if !h.auth.HasAddress(ctx, rcpt) {
+			return nil, nil, errors.ErrUnauthorized()
+		}
+	}
+	if msg.Arbiter != nil {
+		arbiter := weave.Permission(escrow.Arbiter).Address()
+		if !h.auth.HasAddress(ctx, arbiter) {
+			return nil, nil, errors.ErrUnauthorized()
+		}
+	}
+
+	return msg, obj, nil
 }

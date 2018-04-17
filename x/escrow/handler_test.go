@@ -450,6 +450,126 @@ func TestHandler(t *testing.T) {
 			true,
 			nil,
 		},
+		// we update the arbiter and sender, and then make sure
+		// the new actors are used
+		11: {
+			a.Address(),
+			all,
+			[]action{{
+				perms: []weave.Permission{a},
+				// defaults to sender!
+				msg:    NewCreateMsg(a, b, c, some, 12345, ""),
+				height: 123,
+			}, {
+				perms: []weave.Permission{c},
+				// c hands off to d
+				msg: &UpdateEscrowPartiesMsg{
+					EscrowId: id(1),
+					Arbiter:  d,
+				},
+				height: 200,
+			}},
+			action{
+				// new arbiter can resolve
+				perms: []weave.Permission{d},
+				msg: &ReleaseEscrowMsg{
+					EscrowId: id(1),
+				},
+				height: 400,
+			},
+			false,
+			[]query{
+				// verify escrow is deleted (resolved)
+				{
+					"/escrows", "", id(1), false, nil, orm.Bucket{},
+				},
+				// cash deducted from sender
+				{"/wallets", "", a.Address(), false,
+					[]orm.Object{
+						mo(cash.WalletWith(a.Address(), remain...)),
+					},
+					cash.NewBucket().Bucket,
+				},
+				// and added to recipint
+				{"/wallets", "", b.Address(), false,
+					[]orm.Object{
+						mo(cash.WalletWith(b.Address(), some...)),
+					},
+					cash.NewBucket().Bucket,
+				},
+			},
+		},
+		// after update, original arbiter cannot resolve
+		12: {
+			a.Address(),
+			all,
+			[]action{{
+				perms: []weave.Permission{a},
+				// defaults to sender!
+				msg:    NewCreateMsg(a, b, c, some, 12345, ""),
+				height: 123,
+			}, {
+				perms: []weave.Permission{c},
+				// c hands off to d
+				msg: &UpdateEscrowPartiesMsg{
+					EscrowId: id(1),
+					Arbiter:  d,
+				},
+				height: 200,
+			}},
+			action{
+				// original arbiter can no longer resolve
+				perms: []weave.Permission{c},
+				msg: &ReleaseEscrowMsg{
+					EscrowId: id(1),
+				},
+				height: 400,
+			},
+			true,
+			nil,
+		},
+		// cannot update without proper permissions
+		13: {
+			a.Address(),
+			all,
+			[]action{{
+				perms: []weave.Permission{a},
+				// defaults to sender!
+				msg:    NewCreateMsg(a, b, c, some, 12345, ""),
+				height: 123,
+			}},
+			action{
+				perms: []weave.Permission{a},
+				msg: &UpdateEscrowPartiesMsg{
+					EscrowId: id(1),
+					Arbiter:  a,
+				},
+				height: 200,
+			},
+			true,
+			nil,
+		},
+		// cannot update parties after timeout
+		14: {
+			a.Address(),
+			all,
+			[]action{{
+				perms: []weave.Permission{a},
+				// defaults to sender!
+				msg:    NewCreateMsg(a, b, c, some, 12345, ""),
+				height: 123,
+			}},
+			action{
+				perms: []weave.Permission{c},
+				msg: &UpdateEscrowPartiesMsg{
+					EscrowId: id(1),
+					Arbiter:  d,
+				},
+				height: 20000,
+			},
+			true,
+			nil,
+		},
 	}
 
 	bank := cash.NewBucket()
@@ -472,25 +592,24 @@ func TestHandler(t *testing.T) {
 			err = bank.Save(db, acct)
 			require.NoError(t, err)
 
-			// try checktx...
-			cache := db.CacheWrap()
-			for j, p := range tc.prep {
-				_, err = h.Check(p.ctx(), cache, p.tx())
-				require.NoError(t, err, "%d", j)
-			}
-			cache.Discard()
-
 			// do delivertx
 			for j, p := range tc.prep {
+				// try check
+				cache := db.CacheWrap()
+				_, err = h.Check(p.ctx(), cache, p.tx())
+				require.NoError(t, err, "%d", j)
+				cache.Discard()
+
+				// then perform
 				_, err = h.Deliver(p.ctx(), db, p.tx())
 				require.NoError(t, err, "%d", j)
 			}
 			_, err = h.Deliver(tc.do.ctx(), db, tc.do.tx())
 			if tc.isError {
 				require.Error(t, err)
-				return
+			} else {
+				require.NoError(t, err)
 			}
-			require.NoError(t, err)
 
 			// run through all queries
 			for k, q := range tc.queries {
