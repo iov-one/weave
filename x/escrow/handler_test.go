@@ -148,14 +148,8 @@ func TestHandler(t *testing.T) {
 			all,
 			nil, // no prep, just one action
 			action{
-				perms: []weave.Permission{a},
-				msg: &CreateEscrowMsg{
-					Sender:    a,
-					Arbiter:   b,
-					Recipient: c,
-					Amount:    all,
-					Timeout:   12345,
-				},
+				perms:  []weave.Permission{a},
+				msg:    NewCreateMsg(a, b, c, all, 12345, ""),
 				height: 1000,
 			},
 			false,
@@ -191,13 +185,8 @@ func TestHandler(t *testing.T) {
 			nil, // no prep, just one action
 			action{
 				perms: []weave.Permission{a},
-				msg: &CreateEscrowMsg{
-					// defaults to sender!
-					Arbiter:   b,
-					Recipient: c,
-					Amount:    some,
-					Timeout:   777,
-				},
+				// defaults to sender!
+				msg:    NewCreateMsg(nil, b, c, some, 777, ""),
 				height: 123,
 			},
 			false,
@@ -237,13 +226,8 @@ func TestHandler(t *testing.T) {
 			nil, // no prep, just one action
 			action{
 				perms: []weave.Permission{a},
-				msg: &CreateEscrowMsg{
-					// defaults to sender!
-					Arbiter:   b,
-					Recipient: c,
-					Amount:    all,
-					Timeout:   12345,
-				},
+				// defaults to sender!
+				msg:    NewCreateMsg(nil, b, c, all, 12345, ""),
 				height: 123,
 			},
 			true,
@@ -255,14 +239,8 @@ func TestHandler(t *testing.T) {
 			all,
 			nil, // no prep, just one action
 			action{
-				perms: []weave.Permission{b},
-				msg: &CreateEscrowMsg{
-					Sender:    a,
-					Arbiter:   b,
-					Recipient: c,
-					Amount:    some,
-					Timeout:   12345,
-				},
+				perms:  []weave.Permission{b},
+				msg:    NewCreateMsg(a, b, c, some, 12345, ""),
 				height: 123,
 			},
 			true,
@@ -275,13 +253,8 @@ func TestHandler(t *testing.T) {
 			nil, // no prep, just one action
 			action{
 				perms: []weave.Permission{a},
-				msg: &CreateEscrowMsg{
-					// defaults to sender!
-					Arbiter:   b,
-					Recipient: c,
-					Amount:    all,
-					Timeout:   123,
-				},
+				// defaults to sender!
+				msg:    NewCreateMsg(nil, b, c, all, 123, ""),
 				height: 888,
 			},
 			true,
@@ -292,18 +265,12 @@ func TestHandler(t *testing.T) {
 			a.Address(),
 			all,
 			[]action{{
-				perms: []weave.Permission{a},
-				msg: &CreateEscrowMsg{
-					Sender:    a,
-					Arbiter:   b,
-					Recipient: c,
-					Amount:    all,
-					Timeout:   12345,
-				},
+				perms:  []weave.Permission{a},
+				msg:    NewCreateMsg(a, b, c, all, 12345, ""),
 				height: 1000,
 			}},
 			action{
-				perms: []weave.Permission{c},
+				perms: []weave.Permission{b},
 				msg: &ReleaseEscrowMsg{
 					EscrowId: id(1),
 				},
@@ -317,18 +284,12 @@ func TestHandler(t *testing.T) {
 			a.Address(),
 			all,
 			[]action{{
-				perms: []weave.Permission{a},
-				msg: &CreateEscrowMsg{
-					Sender:    a,
-					Arbiter:   b,
-					Recipient: c,
-					Amount:    all,
-					Timeout:   12345,
-				},
+				perms:  []weave.Permission{a},
+				msg:    NewCreateMsg(a, b, c, all, 12345, ""),
 				height: 1000,
 			}},
 			action{
-				perms: []weave.Permission{b},
+				perms: []weave.Permission{c},
 				msg: &ReleaseEscrowMsg{
 					EscrowId: id(1),
 				},
@@ -355,9 +316,9 @@ func TestHandler(t *testing.T) {
 					cash.NewBucket().Bucket,
 				},
 				// recipient has cash
-				{"/wallets", "", c.Address(), false,
+				{"/wallets", "", b.Address(), false,
 					[]orm.Object{
-						mo(cash.WalletWith(c.Address(), all...)),
+						mo(cash.WalletWith(b.Address(), all...)),
 					},
 					cash.NewBucket().Bucket,
 				},
@@ -368,19 +329,12 @@ func TestHandler(t *testing.T) {
 			a.Address(),
 			all,
 			[]action{{
-				perms: []weave.Permission{a},
-				msg: &CreateEscrowMsg{
-					Sender:    a,
-					Arbiter:   b,
-					Recipient: c,
-					Amount:    all,
-					Timeout:   12345,
-					Memo:      "hello",
-				},
+				perms:  []weave.Permission{a},
+				msg:    NewCreateMsg(a, b, c, all, 12345, "hello"),
 				height: 1000,
 			}},
 			action{
-				perms: []weave.Permission{b},
+				perms: []weave.Permission{c},
 				msg: &ReleaseEscrowMsg{
 					EscrowId: id(1),
 					Amount:   some,
@@ -412,9 +366,9 @@ func TestHandler(t *testing.T) {
 					cash.NewBucket().Bucket,
 				},
 				// recipient has some money
-				{"/wallets", "", c.Address(), false,
+				{"/wallets", "", b.Address(), false,
 					[]orm.Object{
-						mo(cash.WalletWith(c.Address(), some...)),
+						mo(cash.WalletWith(b.Address(), some...)),
 					},
 					cash.NewBucket().Bucket,
 				},
@@ -425,18 +379,12 @@ func TestHandler(t *testing.T) {
 			a.Address(),
 			all,
 			[]action{{
-				perms: []weave.Permission{a},
-				msg: &CreateEscrowMsg{
-					Sender:    a,
-					Arbiter:   b,
-					Recipient: c,
-					Amount:    all,
-					Timeout:   1234,
-				},
+				perms:  []weave.Permission{a},
+				msg:    NewCreateMsg(a, b, c, all, 1234, ""),
 				height: 1000,
 			}},
 			action{
-				perms: []weave.Permission{b},
+				perms: []weave.Permission{c},
 				msg: &ReleaseEscrowMsg{
 					EscrowId: id(1),
 				},
@@ -450,14 +398,8 @@ func TestHandler(t *testing.T) {
 			a.Address(),
 			all,
 			[]action{{
-				perms: []weave.Permission{a},
-				msg: &CreateEscrowMsg{
-					Sender:    a,
-					Arbiter:   b,
-					Recipient: c,
-					Amount:    some,
-					Timeout:   12345,
-				},
+				perms:  []weave.Permission{a},
+				msg:    NewCreateMsg(a, b, c, some, 12345, ""),
 				height: 1000,
 			}},
 			action{
@@ -494,18 +436,12 @@ func TestHandler(t *testing.T) {
 			a.Address(),
 			all,
 			[]action{{
-				perms: []weave.Permission{a},
-				msg: &CreateEscrowMsg{
-					Sender:    a,
-					Arbiter:   b,
-					Recipient: c,
-					Amount:    all,
-					Timeout:   1234,
-				},
+				perms:  []weave.Permission{a},
+				msg:    NewCreateMsg(a, b, c, all, 1234, ""),
 				height: 1000,
 			}},
 			action{
-				perms: []weave.Permission{b},
+				perms: []weave.Permission{a},
 				msg: &ReturnEscrowMsg{
 					EscrowId: id(1),
 				},

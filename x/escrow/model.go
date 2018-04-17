@@ -61,7 +61,7 @@ func AsEscrow(obj orm.Object) *Escrow {
 }
 
 // NewEscrow creates an escrow orm.Object
-func NewEscrow(id []byte, sender, arb, rcpt weave.Permission,
+func NewEscrow(id []byte, sender, rcpt, arb weave.Permission,
 	amount x.Coins, timeout int64, memo string) orm.Object {
 	esc := &Escrow{
 		Sender:    sender,
