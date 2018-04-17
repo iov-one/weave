@@ -5,6 +5,8 @@ import (
 	"github.com/confio/weave/errors"
 	"github.com/confio/weave/x/cash"
 	"github.com/confio/weave/x/sigs"
+
+	"github.com/iov-one/bcp-demo/x/hashlock"
 )
 
 //-------------------------------
@@ -26,6 +28,7 @@ func TxDecoder(bz []byte) (weave.Tx, error) {
 var _ weave.Tx = (*Tx)(nil)
 var _ cash.FeeTx = (*Tx)(nil)
 var _ sigs.SignedTx = (*Tx)(nil)
+var _ hashlock.HashKeyTx = (*Tx)(nil)
 
 // GetMsg switches over all types defined in the protobuf file
 func (tx *Tx) GetMsg() (weave.Msg, error) {
