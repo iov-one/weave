@@ -30,7 +30,7 @@ Usage:
 */
 func parseIndex(args []string) (bool, string, []string, error) {
 	// parse flagIndexAll, flagIndexTags and return the result
-	indexFlags := flag.NewFlagSet("start", flag.ExitOnError)
+	indexFlags := flag.NewFlagSet("init", flag.ExitOnError)
 	tags := indexFlags.String(flagIndexTags, "", "comma-separated list of tags to index")
 	all := indexFlags.Bool(flagIndexAll, true, "")
 	err := indexFlags.Parse(args)
