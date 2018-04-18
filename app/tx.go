@@ -45,6 +45,14 @@ func (tx *Tx) GetMsg() (weave.Msg, error) {
 		return t.SetNameMsg, nil
 	case *Tx_NewTokenMsg:
 		return t.NewTokenMsg, nil
+	case *Tx_CreateEscrowMsg:
+		return t.CreateEscrowMsg, nil
+	case *Tx_ReleaseEscrowMsg:
+		return t.ReleaseEscrowMsg, nil
+	case *Tx_ReturnEscrowMsg:
+		return t.ReturnEscrowMsg, nil
+	case *Tx_UpdateEscrowMsg:
+		return t.UpdateEscrowMsg, nil
 	}
 
 	// we must have covered it above
