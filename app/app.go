@@ -1,11 +1,6 @@
 /*
-Package std contains standard implementations of a number
-of components.
-
-It is a good place to get started buuilding your first app,
-and to see how to wire together the various components.
-You can then replace them with custom implementations,
-as your project grows.
+Package app links together all the various components
+to construct a bcp-demo app.
 */
 package app
 
@@ -23,13 +18,15 @@ import (
 	"github.com/confio/weave/x/sigs"
 	"github.com/confio/weave/x/utils"
 
+	"github.com/iov-one/bcp-demo/x/escrow"
+	"github.com/iov-one/bcp-demo/x/hashlock"
 	"github.com/iov-one/bcp-demo/x/namecoin"
 )
 
 // Authenticator returns the typical authentication,
 // just using public key signatures
 func Authenticator() x.Authenticator {
-	return sigs.Authenticate{}
+	return x.ChainAuth(sigs.Authenticate{}, hashlock.Authenticate{})
 }
 
 // Chain returns a chain of decorators, to handle authentication,
@@ -43,6 +40,8 @@ func Chain(minFee x.Coin, authFn x.Authenticator) app.Decorators {
 		utils.NewSavepoint().OnCheck(),
 		sigs.NewDecorator(),
 		namecoin.NewFeeDecorator(authFn, minFee),
+		// cannot pay for fee with hashlock...
+		hashlock.NewDecorator(),
 		// on DeliverTx, bad tx will increment nonce and take fee
 		// even if the message fails
 		utils.NewSavepoint().OnDeliver(),
@@ -54,14 +53,18 @@ func Chain(minFee x.Coin, authFn x.Authenticator) app.Decorators {
 func Router(authFn x.Authenticator, issuer weave.Address) app.Router {
 	r := app.NewRouter()
 	namecoin.RegisterRoutes(r, authFn, issuer)
+	// we use the namecoin wallet handler
+	// TODO: move to cash upon refactor
+	escrow.RegisterRoutes(r, authFn, namecoin.NewController())
 	return r
 }
 
 // QueryRouter returns a default query router,
-// allowing access to "/wallets", "/auth", and "/"
+// allowing access to "/wallets", "/auth", "/", and "/escrows"
 func QueryRouter() weave.QueryRouter {
 	r := weave.NewQueryRouter()
 	r.RegisterAll(
+		escrow.RegisterQuery,
 		namecoin.RegisterQuery,
 		sigs.RegisterQuery,
 		orm.RegisterQuery,

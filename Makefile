@@ -6,6 +6,7 @@ TENDERMINT := ${GOBIN}/tendermint
 GOPATH ?= $$HOME/go
 
 TM_VERSION := v0.17.1
+BUILDOUT ?= bov
 
 # dont use `` in the makefile for windows compatibility
 NOVENDOR := $(shell go list ./...)
@@ -19,9 +20,8 @@ all: deps build test
 install:
 	go install $(BUILD_FLAGS) ./cmd/bov
 
-# This is to make sure it all compiles
 build:
-	go build ./...
+	go build $(BUILD_FLAGS) -o $(BUILDOUT) ./cmd/bov
 
 test:
 	go test -race ./...
@@ -55,6 +55,7 @@ $(TENDERMINT):
 
 protoc:
 	protoc --gogofaster_out=. -I=. -I=./vendor x/namecoin/*.proto
+	protoc --gogofaster_out=. -I=. -I=./vendor x/escrow/*.proto
 	@ # $(GOPATH)/src go we can import namecoin .proto
 	protoc --gogofaster_out=. -I=. -I=./vendor -I=$(GOPATH)/src app/*.proto
 
