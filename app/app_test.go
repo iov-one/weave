@@ -117,21 +117,23 @@ func TestApp(t *testing.T) {
 	// ensure 3 keys with proper values
 	if assert.Equal(t, 3, len(dres.Tags), "%#v", dres.Tags) {
 		// three keys we expect, in order
-		keys := [][]byte{[]byte("sigs"), []byte("wllt"), []byte("wllt")}
-		vals := make([][]byte, 3)
-		vals[0] = []byte(addr.String())
-		vals[1] = []byte(addr.String())
-		vals[2] = []byte(addr2.String())
+		keys := make([][]byte, 3)
+		vals := [][]byte{[]byte("s"), []byte("s"), []byte("s")}
+		hexWllt := []byte("776C6C743A")
+		hexSigs := []byte("736967733A")
+		keys[0] = append(hexSigs, []byte(addr.String())...)
+		keys[1] = append(hexWllt, []byte(addr.String())...)
+		keys[2] = append(hexWllt, []byte(addr2.String())...)
 		if bytes.Compare(addr2, addr) < 0 {
-			vals[1], vals[2] = vals[2], vals[1]
+			keys[1], keys[2] = keys[2], keys[1]
 		}
 		// make sure the DeliverResult matches expections
-		assert.Equal(t, dres.Tags[0].Key, keys[0])
-		assert.Equal(t, dres.Tags[1].Key, keys[1])
-		assert.Equal(t, dres.Tags[2].Key, keys[2])
-		assert.Equal(t, dres.Tags[0].Value, vals[0])
-		assert.Equal(t, dres.Tags[1].Value, vals[1])
-		assert.Equal(t, dres.Tags[2].Value, vals[2])
+		assert.Equal(t, keys[0], dres.Tags[0].Key)
+		assert.Equal(t, keys[1], dres.Tags[1].Key)
+		assert.Equal(t, keys[2], dres.Tags[2].Key)
+		assert.Equal(t, vals[0], dres.Tags[0].Value)
+		assert.Equal(t, vals[1], dres.Tags[1].Value)
+		assert.Equal(t, vals[2], dres.Tags[2].Value)
 	}
 
 	// make sure commit is proper
