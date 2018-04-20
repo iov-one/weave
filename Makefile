@@ -1,4 +1,4 @@
-.PHONY: all install build test cover deps glide tools protoc
+.PHONY: all install build test cover deps tools prototools protoc
 
 EXAMPLES := "examples/mycoind"
 
@@ -45,12 +45,13 @@ cover:
 		github.com/confio/weave/examples/mycoind/commands
 	cat coverage/*.out > coverage/coverage.txt
 
-deps: glide
-	@glide install
+deps: tools
+	@rm -rf vendor/
+	@dep ensure
 	for ex in $(EXAMPLES); do cd $$ex && make deps; done
 
-glide:
-	@go get github.com/Masterminds/glide
+tools:
+	@go get github.com/golang/dep/cmd/dep
 
 protoc:
 	protoc --gogofaster_out=. app/*.proto
@@ -82,7 +83,7 @@ endif
 	@ sudo chown -R `whoami` /usr/local/include/google
 	@ rm -rf protoc3
 
-tools: /usr/local/bin/protoc deps
+prototools: /usr/local/bin/protoc deps
 	# install all tools from our vendored dependencies
 	@go install ./vendor/github.com/gogo/protobuf/proto
 	@go install ./vendor/github.com/gogo/protobuf/gogoproto
