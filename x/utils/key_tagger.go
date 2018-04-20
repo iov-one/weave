@@ -1,7 +1,7 @@
 package utils
 
 import (
-	"fmt"
+	"encoding/hex"
 	"strings"
 
 	"github.com/tendermint/tmlibs/common"
@@ -14,8 +14,13 @@ import (
 // operations performed by it's children and adds all those keys
 // as DeliverTx tags.
 //
-// Tags are added as Key=<bucket name>, Value=<hex of remainder>,
-// like Key=cash, Value=00CAFE00
+// Tags is the hex encoded key, value is "s" (for set) or
+// "d" (for delete)
+//
+// Desired behavior, impossible as tendermint will collapse
+// multiple tags with same key:
+//   Tags are added as Key=<bucket name>, Value=<hex of remainder>,
+//   like Key=cash, Value=00CAFE00
 type KeyTagger struct{}
 
 var _ weave.Decorator = KeyTagger{}
@@ -64,19 +69,15 @@ func changesToTags(changes map[string][]byte) common.KVPairs {
 		return nil
 	}
 	res := make(common.KVPairs, 0, l)
-	for k := range changes {
-		var bucket, key string
-		parsed := strings.SplitN(k, ":", 2)
-		if len(parsed) == 1 {
-			bucket = "unknown"
-			key = fmt.Sprintf("%X", k)
-		} else {
-			bucket = parsed[0]
-			key = fmt.Sprintf("%X", parsed[1])
+	for k, v := range changes {
+		key := strings.ToUpper(hex.EncodeToString([]byte(k)))
+		value := []byte{'s'}
+		if v == nil {
+			value = []byte{'d'}
 		}
 		pair := common.KVPair{
-			Key:   []byte(bucket),
-			Value: []byte(key),
+			Key:   []byte(key),
+			Value: value,
 		}
 		res = append(res, pair)
 	}
