@@ -19,12 +19,12 @@ func TestKeyTagger(t *testing.T) {
 	// always write ok, ov before calling functions
 	ok, ov := []byte("foo:demo"), []byte("data")
 	// some key, value to try to write
-	nk, nv := []byte{1, 2, 3}, []byte{4, 5, 6}
+	nk, nv := []byte{1, 0xab, 3}, []byte{4, 5, 6}
 	// a default error if desired
 	derr := fmt.Errorf("something went wrong")
 
-	otag, oval := []byte("foo"), []byte("64656D6F")   // hex(demo)
-	ntag, nval := []byte("unknown"), []byte("010203") // hex(demo)
+	otag, oval := []byte("666F6F3A64656D6F"), []byte("s") // "foo:demo" as upper-case hex
+	ntag, nval := []byte("01AB03"), []byte("s")
 
 	cases := [...]struct {
 		handler weave.Handler
@@ -54,7 +54,7 @@ func TestKeyTagger(t *testing.T) {
 			help.Wrap(help.WriteDecorator(ok, ov, true),
 				help.WriteHandler(nk, nv, nil)),
 			false,
-			common.KVPairs{{Key: otag, Value: oval}, {Key: ntag, Value: nval}},
+			common.KVPairs{{Key: ntag, Value: nval}, {Key: otag, Value: oval}},
 			nk,
 			nv,
 		},
