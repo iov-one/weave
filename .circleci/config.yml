@@ -6,17 +6,15 @@ jobs:
       - image: golang:latest
     environment:
       TEST_RESULTS: /tmp/test-results
-      GLIDE_HOME: /go/.glide
       GOPATH: /go
 
     steps:
       - checkout
       - run: mkdir -p $TEST_RESULTS
-      - run: mkdir -p $GLIDE_HOME
 
       - run:
-          name: Install glide
-          command: go get -u github.com/Masterminds/glide
+          name: Get tools
+          command: make tools
 
       - run:
           name: Resolve dependencies
