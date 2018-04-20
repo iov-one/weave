@@ -1,4 +1,4 @@
-.PHONY: all install build test cover deps glide tools protoc
+.PHONY: all install build test cover deps tools prototools protoc
 
 GIT_COMMIT := $(shell git rev-parse --short HEAD)
 BUILD_FLAGS := -ldflags "-X github.com/iov-one/bov-core.GitCommit=$(GIT_COMMIT)"
@@ -39,14 +39,14 @@ cover:
 		go tool cover -html=coverage/$$file.out -o=coverage/$$file.html; \
 	done
 
-deps: glide $(TENDERMINT)
-	@glide install
+deps: tools $(TENDERMINT)
+	@rm -rf vendor/
+	@dep ensure
 
-glide:
-	@go get github.com/Masterminds/glide
+tools:
+	@go get github.com/golang/dep/cmd/dep
 
 $(TENDERMINT):
-	go get github.com/golang/dep/cmd/dep
 	go get -d github.com/tendermint/tendermint/...
 	cd $(GOPATH)/src/github.com/tendermint/tendermint && \
 		git checkout $(TM_VERSION) && \
@@ -80,7 +80,7 @@ endif
 	@ sudo chown -R `whoami` /usr/local/include/google
 	@ rm -rf protoc3
 
-tools: /usr/local/bin/protoc deps
+prototools: /usr/local/bin/protoc deps
 	# install all tools from our vendored dependencies
 	@go install ./vendor/github.com/gogo/protobuf/proto
 	@go install ./vendor/github.com/gogo/protobuf/gogoproto
