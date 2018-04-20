@@ -1,12 +1,12 @@
 .PHONY: all install build test cover deps tools prototools protoc
 
-GIT_COMMIT := $(shell git rev-parse --short HEAD)
-BUILD_FLAGS := -ldflags "-X github.com/iov-one/bov-core.GitCommit=$(GIT_COMMIT)"
+GIT_VERSION := $(shell git describe --tags)
+BUILD_FLAGS := -ldflags "-X github.com/iov-one/bov-core.Version=$(GIT_VERSION)"
 TENDERMINT := ${GOBIN}/tendermint
+BUILDOUT ?= bov
 GOPATH ?= $$HOME/go
 
 TM_VERSION := v0.17.1
-BUILDOUT ?= bov
 
 # dont use `` in the makefile for windows compatibility
 NOVENDOR := $(shell go list ./...)

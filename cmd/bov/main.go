@@ -65,7 +65,7 @@ func main() {
 	case "testgen":
 		err = commands.TestGenCmd(app.Examples(), rest)
 	case "version":
-		fmt.Println(bov.Version())
+		fmt.Println(bov.Version)
 	default:
 		err = fmt.Errorf("unknown command: %s", cmd)
 	}
