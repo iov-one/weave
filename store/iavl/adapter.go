@@ -74,7 +74,8 @@ func (s CommitStore) Commit() store.CommitID {
 // If there was a crash during the last commit, it is guaranteed
 // to return a stable state, even if older.
 func (s CommitStore) LoadLatestVersion() error {
-	return s.tree.Load()
+	_, err := s.tree.Load()
+	return err
 }
 
 // LatestVersion returns info on the latest version saved to disk
