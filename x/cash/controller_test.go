@@ -209,8 +209,15 @@ func TestMoveCoins(t *testing.T) {
 				{addr2, false, []x.Coin{bank}, nil},
 			},
 		},
+		// send to self
+		{
+			issue: issueCmd{addr, rem, false},
+			move:  moveCmd{addr, addr, send, false},
+			check: []checkCmd{
+				{addr, false, []x.Coin{send, rem}, []x.Coin{bank}},
+			},
+		},
 		// TODO: check overflow
-		// TODO: send to self
 	}
 
 	for i, tc := range cases {
