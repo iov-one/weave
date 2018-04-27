@@ -21,6 +21,26 @@ func getWallet(kv weave.KVStore, addr weave.Address) x.Coins {
 	return AsCoins(res)
 }
 
+type issueCmd struct {
+	addr   weave.Address
+	amount x.Coin
+	isErr  bool
+}
+
+type moveCmd struct {
+	sender weave.Address
+	rcpt   weave.Address
+	amount x.Coin
+	isErr  bool
+}
+
+type checkCmd struct {
+	addr       weave.Address
+	isNil      bool
+	contains   []x.Coin
+	notContain []x.Coin
+}
+
 func TestIssueCoins(t *testing.T) {
 	var helpers x.TestHelpers
 
@@ -35,19 +55,6 @@ func TestIssueCoins(t *testing.T) {
 	minus := x.NewCoin(-400, -600, "FOO")
 	total := x.NewCoin(100, 400, "FOO")
 	other := x.NewCoin(1, 0, "DING")
-
-	type issueCmd struct {
-		addr   weave.Address
-		amount x.Coin
-		isErr  bool
-	}
-
-	type checkCmd struct {
-		addr       weave.Address
-		isNil      bool
-		contains   []x.Coin
-		notContain []x.Coin
-	}
 
 	cases := []struct {
 		issue []issueCmd
@@ -132,7 +139,6 @@ func TestIssueCoins(t *testing.T) {
 func TestMoveCoins(t *testing.T) {
 	var helpers x.TestHelpers
 
-	kv := store.MemStore()
 	_, perm := helpers.MakeKey()
 	_, perm2 := helpers.MakeKey()
 	_, perm3 := helpers.MakeKey()
@@ -145,49 +151,100 @@ func TestMoveCoins(t *testing.T) {
 	cc := "MONY"
 	bank := x.NewCoin(50000, 0, cc)
 	send := x.NewCoin(300, 0, cc)
+	rem := x.NewCoin(49700, 0, cc)
 
-	// can't send empty
-	err := controller.MoveCoins(kv, addr, addr2, send)
-	require.Error(t, err)
-	// so we issue money
-	err = controller.IssueCoins(kv, addr, bank)
-	require.NoError(t, err)
+	cases := []struct {
+		issue issueCmd
+		move  moveCmd
+		check []checkCmd
+	}{
+		// cannot move money that you don't have
+		{
+			issue: issueCmd{addr3, bank, false},
+			move:  moveCmd{addr, addr2, send, true},
+			check: []checkCmd{
+				{addr2, true, nil, nil},
+				{addr3, false, []x.Coin{bank}, nil},
+			},
+		},
+		// simple send
+		{
+			issue: issueCmd{addr, bank, false},
+			move:  moveCmd{addr, addr2, send, false},
+			check: []checkCmd{
+				{addr, false, []x.Coin{rem}, []x.Coin{bank}},
+				{addr2, false, []x.Coin{send}, []x.Coin{bank}},
+			},
+		},
+		// cannot send negative
+		{
+			issue: issueCmd{addr, bank, false},
+			move:  moveCmd{addr, addr2, send.Negative(), true},
+			check: nil,
+		},
+		// cannot send more than you have
+		{
+			issue: issueCmd{addr, rem, false},
+			move:  moveCmd{addr, addr2, bank, true},
+			check: nil,
+		},
+		// cannot send zero
+		{
+			issue: issueCmd{addr, bank, false},
+			move:  moveCmd{addr, addr2, x.NewCoin(0, 0, cc), true},
+			check: nil,
+		},
+		// cannot send wrong currency
+		{
+			issue: issueCmd{addr, bank, false},
+			move:  moveCmd{addr, addr2, x.NewCoin(500, 0, "BAD"), true},
+			check: nil,
+		},
+		// send everything
+		{
+			issue: issueCmd{addr, bank, false},
+			move:  moveCmd{addr, addr2, bank, false},
+			check: []checkCmd{
+				{addr, true, nil, nil},
+				{addr2, false, []x.Coin{bank}, nil},
+			},
+		},
+		// TODO: check overflow
+		// TODO: send to self
+	}
 
-	// proper move
-	err = controller.MoveCoins(kv, addr, addr2, send)
-	require.NoError(t, err)
-	w := getWallet(kv, addr)
-	require.NotNil(t, w)
-	assert.True(t, w.Contains(x.NewCoin(49700, 0, cc)))
-	w2 := getWallet(kv, addr2)
-	require.NotNil(t, w2)
-	assert.True(t, w2.Contains(send))
-	w3 := getWallet(kv, addr3)
-	require.Nil(t, w3)
+	for i, tc := range cases {
+		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
+			kv := store.MemStore()
 
-	// cannot send negative, zero
-	err = controller.MoveCoins(kv, addr2, addr3, send.Negative())
-	assert.Error(t, err)
-	err = controller.MoveCoins(kv, addr2, addr3, x.NewCoin(0, 0, cc))
-	assert.Error(t, err)
-	w2 = getWallet(kv, addr2)
-	assert.True(t, w2.Contains(send))
+			err := controller.IssueCoins(kv, tc.issue.addr, tc.issue.amount)
+			if tc.issue.isErr {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+			}
 
-	// cannot send too much or no currency
-	err = controller.MoveCoins(kv, addr2, addr3, bank)
-	assert.Error(t, err)
-	err = controller.MoveCoins(kv, addr2, addr3, x.NewCoin(5, 0, "BAD"))
-	assert.Error(t, err)
-	w2 = getWallet(kv, addr2)
-	assert.True(t, w2.Contains(send))
+			err = controller.MoveCoins(kv, tc.move.sender, tc.move.rcpt, tc.move.amount)
+			if tc.move.isErr {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+			}
 
-	// send all coins
-	err = controller.MoveCoins(kv, addr2, addr3, send)
-	assert.NoError(t, err)
-	w2 = getWallet(kv, addr2)
-	assert.True(t, w2.IsEmpty())
-	w3 = getWallet(kv, addr3)
-	assert.True(t, w3.Contains(send))
-
-	// TODO: check overflow?
+			for j, check := range tc.check {
+				w := getWallet(kv, check.addr)
+				if check.isNil {
+					require.Nil(t, w, "%d", j)
+				} else {
+					require.NotNil(t, w, "%d", j)
+					for k, has := range check.contains {
+						assert.True(t, w.Contains(has), "%d/%d: %#v", j, k, w)
+					}
+					for k, not := range check.notContain {
+						assert.False(t, w.Contains(not), "%d/%d: %#v", j, k, w)
+					}
+				}
+			}
+		})
+	}
 }
