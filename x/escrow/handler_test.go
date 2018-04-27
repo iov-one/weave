@@ -598,6 +598,57 @@ func TestHandler(t *testing.T) {
 			true,
 			nil,
 		},
+		// cannot claim escrow twice
+		15: {
+			a.Address(),
+			all,
+			[]action{{
+				perms:  []weave.Permission{a},
+				msg:    NewCreateMsg(a, b, c, all, 12345, ""),
+				height: 1000,
+			}, {
+				perms: []weave.Permission{c},
+				msg: &ReleaseEscrowMsg{
+					EscrowId: id(1),
+				},
+				height: 2000,
+			}},
+			action{
+				perms: []weave.Permission{c},
+				msg: &ReleaseEscrowMsg{
+					EscrowId: id(1),
+				},
+				height: 2000,
+			},
+			true,
+			[]query{
+				// verify escrow is deleted
+				{
+					"/escrows", "", id(1), false, nil, orm.Bucket{},
+				},
+				// escrow is empty
+				{"/wallets", "", eaddr(1), false,
+					[]orm.Object{
+						cash.NewWallet(eaddr(1)),
+					},
+					cash.NewBucket().Bucket,
+				},
+				// sender is broke
+				{"/wallets", "", a.Address(), false,
+					[]orm.Object{
+						cash.NewWallet(a.Address()),
+					},
+					cash.NewBucket().Bucket,
+				},
+				// recipient has cash
+				{"/wallets", "", b.Address(), false,
+					[]orm.Object{
+						mo(cash.WalletWith(b.Address(), all...)),
+					},
+					cash.NewBucket().Bucket,
+				},
+			},
+		},
 	}
 
 	bank := cash.NewBucket()
