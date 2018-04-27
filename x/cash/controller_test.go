@@ -1,6 +1,7 @@
 package cash
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -23,7 +24,6 @@ func getWallet(kv weave.KVStore, addr weave.Address) x.Coins {
 func TestIssueCoins(t *testing.T) {
 	var helpers x.TestHelpers
 
-	kv := store.MemStore()
 	_, perm := helpers.MakeKey()
 	_, perm2 := helpers.MakeKey()
 	addr := perm.Address()
@@ -36,58 +36,97 @@ func TestIssueCoins(t *testing.T) {
 	total := x.NewCoin(100, 400, "FOO")
 	other := x.NewCoin(1, 0, "DING")
 
-	assert.Nil(t, getWallet(kv, addr))
-	assert.Nil(t, getWallet(kv, addr2))
+	type issueCmd struct {
+		addr   weave.Address
+		amount x.Coin
+		isErr  bool
+	}
 
-	// issue positive
-	err := controller.IssueCoins(kv, addr, plus)
-	require.NoError(t, err)
-	w := getWallet(kv, addr)
-	require.NotNil(t, w)
-	assert.True(t, w.Contains(plus), "%#v", w)
-	assert.True(t, w.Contains(total))
-	assert.False(t, w.Contains(other))
-	assert.Nil(t, getWallet(kv, addr2))
+	type checkCmd struct {
+		addr       weave.Address
+		isNil      bool
+		contains   []x.Coin
+		notContain []x.Coin
+	}
 
-	// issue negative
-	err = controller.IssueCoins(kv, addr, minus)
-	require.NoError(t, err)
-	w = getWallet(kv, addr)
-	require.NotNil(t, w)
-	assert.False(t, w.Contains(plus))
-	assert.True(t, w.Contains(total))
-	assert.False(t, w.Contains(other))
-	assert.Nil(t, getWallet(kv, addr2))
+	cases := []struct {
+		issue []issueCmd
+		check []checkCmd
+	}{
+		// issue positive
+		{
+			issue: []issueCmd{{addr, plus, false}},
+			check: []checkCmd{
+				{addr, false, []x.Coin{plus, total}, []x.Coin{other}},
+				{addr2, true, nil, nil},
+			},
+		},
+		// second issue negative
+		{
+			issue: []issueCmd{{addr, plus, false}, {addr, minus, false}},
+			check: []checkCmd{
+				{addr, false, []x.Coin{total}, []x.Coin{plus, other}},
+				{addr2, true, nil, nil},
+			},
+		},
+		// issue to two chains
+		{
+			issue: []issueCmd{{addr, total, false}, {addr2, other, false}},
+			check: []checkCmd{
+				{addr, false, []x.Coin{total}, []x.Coin{plus, other}},
+				{addr2, false, []x.Coin{other}, []x.Coin{plus, total}},
+			},
+		},
+		// set back to zero
+		{
+			issue: []issueCmd{{addr2, other, false}, {addr2, other.Negative(), false}},
+			check: []checkCmd{
+				{addr, true, nil, nil},
+				{addr2, true, nil, nil},
+			},
+		},
+		// set back to zero
+		{
+			issue: []issueCmd{
+				{addr, total, false},
+				{addr, x.NewCoin(x.MaxInt, 0, "FOO"), true}},
+			check: []checkCmd{
+				{addr, false, []x.Coin{total}, []x.Coin{plus, other}},
+				{addr2, true, nil, nil},
+			},
+		},
+	}
 
-	// issue to other wallet
-	err = controller.IssueCoins(kv, addr2, other)
-	require.NoError(t, err)
-	w = getWallet(kv, addr)
-	require.NotNil(t, w)
-	assert.True(t, w.Contains(total))
-	assert.False(t, w.Contains(other))
-	w2 := getWallet(kv, addr2)
-	require.NotNil(t, w2)
-	assert.False(t, w2.Contains(total))
-	assert.True(t, w2.Contains(other))
+	for i, tc := range cases {
+		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
+			kv := store.MemStore()
 
-	// set to zero is fine
-	err = controller.IssueCoins(kv, addr2, other.Negative())
-	require.NoError(t, err)
-	// object is stored in db
-	res, err := controller.bucket.Get(kv, addr2)
-	require.NoError(t, err)
-	require.NotNil(t, res)
-	// but coins are empty
-	w2 = getWallet(kv, addr2)
-	assert.True(t, w2.IsEmpty())
+			for j, issue := range tc.issue {
+				err := controller.IssueCoins(kv, issue.addr, issue.amount)
+				if issue.isErr {
+					require.Error(t, err, "%d", j)
+				} else {
+					require.NoError(t, err, "%d", j)
+				}
+			}
 
-	// overflow is rejected
-	err = controller.IssueCoins(kv, addr, x.NewCoin(x.MaxInt, 0, "FOO"))
-	assert.Error(t, err)
-	w = getWallet(kv, addr)
-	require.NotNil(t, w)
-	assert.True(t, w.Equals(mustCombineCoins(total)))
+			for j, check := range tc.check {
+				w := getWallet(kv, check.addr)
+				if check.isNil {
+					require.Nil(t, w, "%d", j)
+				} else {
+					require.NotNil(t, w, "%d", j)
+					for k, has := range check.contains {
+						assert.True(t, w.Contains(has), "%d/%d: %#v", j, k, w)
+					}
+					for k, not := range check.notContain {
+						assert.False(t, w.Contains(not), "%d/%d: %#v", j, k, w)
+					}
+				}
+			}
+		})
+	}
+
 }
 
 func TestMoveCoins(t *testing.T) {
