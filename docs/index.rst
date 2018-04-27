@@ -53,23 +53,19 @@ understanding of these concepts before trying to build on weave.
    basics/authentication.rst
    basics/state.rst
 
-Frontend Development
---------------------
+Deployment
+----------
 
-Weave-js is not just a cli tool, it is a javascript library
-meant to be imported by web/electron/react native apps to
-rapidly develop user interfaces for your blockchain application,
-similar to how web3 empowers ethereum development. Here we go
-through the basics of building a user interface for mycoind.
+A brief introduction into how to deploy a blockchain app.
+Once you compile the code, hwo do you run it?
 
 .. toctree::
    :maxdepth: 2
 
-   ui/setup.rst
-   ui/query.rst
-   ui/keys.rst
-   ui/tx.rst
-   ui/events.rst
+   deployment/configuration.rst
+   deployment/validators.rst
+   deployment/tooling.rst
+
 
 Weave Architecture
 ------------------
