@@ -38,6 +38,7 @@ func (c BaseController) MoveCoins(store weave.KVStore,
 		return ErrInvalidAmount("Non-positive SendMsg")
 	}
 
+	// load sender, subtract funds, and save
 	sender, err := c.bucket.Get(store, src)
 	if err != nil {
 		return err
@@ -45,26 +46,24 @@ func (c BaseController) MoveCoins(store weave.KVStore,
 	if sender == nil {
 		return ErrEmptyAccount(src)
 	}
-
 	if !AsCoins(sender).Contains(amount) {
 		return ErrInsufficientFunds()
-	}
-
-	recipient, err := c.bucket.GetOrCreate(store, dest)
-	if err != nil {
-		return err
 	}
 	err = Subtract(AsCoinage(sender), amount)
 	if err != nil {
 		return err
 	}
-	err = Add(AsCoinage(recipient), amount)
+	err = c.bucket.Save(store, sender)
 	if err != nil {
 		return err
 	}
 
-	// save them and return
-	err = c.bucket.Save(store, sender)
+	// load/create recipient, add funds, save
+	recipient, err := c.bucket.GetOrCreate(store, dest)
+	if err != nil {
+		return err
+	}
+	err = Add(AsCoinage(recipient), amount)
 	if err != nil {
 		return err
 	}
