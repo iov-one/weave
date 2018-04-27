@@ -2,6 +2,7 @@
 
 
 [[projects]]
+  branch = "master"
   name = "github.com/confio/weave"
   packages = [
     ".",
@@ -18,8 +19,7 @@
     "x/sigs",
     "x/utils"
   ]
-  revision = "a2a944ec7af38b85dda6f54e9f9b6db3596b5bd4"
-  version = "v0.3.0"
+  revision = "278f1b417c9f1a7c1323ef832f499e28acaa2325"
 
 [[projects]]
   name = "github.com/davecgh/go-spew"
@@ -257,6 +257,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "2765679954ade0dedaad75ebca6c1bf5633eaefe1e52952d09cc0263500a7285"
+  inputs-digest = "8fb1143ca2ce4cad072c7beaae7d0ad27ba97adb1b12d92e102ec25d11336210"
   solver-name = "gps-cdcl"
   solver-version = 1
