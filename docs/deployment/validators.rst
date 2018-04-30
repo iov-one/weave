@@ -14,7 +14,7 @@ Static Validators
 -----------------
 
 In the simplest setup, every node can generate a private key with
-`tendermint init`. Note that this is stored as a clear-text file
+``tendermint init``. Note that this is stored as a clear-text file
 on the harddrive, so the machine should be well locked-down,
 and file permissions double-checked. This file not only contains
 the private key itself, but also information on the last block
@@ -25,17 +25,17 @@ Every validator can find their validator public key, which is
 different than the public keys / addresses that are assigned tokens,
 via:
 
-```bash
-cat ~/.mycoind/config/priv_validator.json | jq .pub_key
-```
+.. code-block:: console
+
+  cat ~/.mycoind/config/priv_validator.json | jq .pub_key
 
 If you still have the default genesis file from `tendermint init`,
 this public key should match the one validator registered for this
 blockchain, so it can mint blocks all by itself.
 
-```bash
-cat ~/.mycoind/config/genesis.json | jq .validators
-```
+.. code-block:: console
+
+  cat ~/.mycoind/config/genesis.json | jq .validators
 
 In a multi-node network, all validators would have to generate their
 validator key separately, then share the public keys, and forge
@@ -52,7 +52,7 @@ gather these keys.
 
 Note that this liveness requirement means that after initializing
 the genesis and starting up tendermint on every node, they must
-set proper `--p2p.seeds` in order to connect all the nodes and
+set proper ``--p2p.seeds`` in order to connect all the nodes and
 get enough signatures gathered to mint the first block.
 
 HSMs
@@ -68,9 +68,13 @@ people use the Ledger Nano hardware wallet for cryptocurrencies.
 This is under active development, but please check the following
 repos to see the current state:
 
-* `Signatory <https://github.com/tendermint/signatory>`__ provides a rust api exposing many curves to sign with
-* `YubiHSM <https://github.com/tendermint/yubihsm-rs>`__ provides bindings to a YubiKey HSM
-* `KMS <https://github.com/tendermint/kms>`__ is a work in progress to connect these crates via sockets to a tendermint node.
+- `Signatory <https://github.com/tendermint/signatory>`__
+  provides a rust api exposing many curves to sign with
+- `YubiHSM <https://github.com/tendermint/yubihsm-rs>`__
+  provides bindings to a YubiKey HSM
+- `KMS <https://github.com/tendermint/kms>`__
+  is a work in progress to connect these crates via sockets
+  to a tendermint node.
 
 It is too early now to try this technology, but it should be ready
 for cosmos mainnet launch, and anyone building on weave should
@@ -87,21 +91,20 @@ set at the end of every block. Weave-based applications can take
 advantage of this and implement any algorithm they want to
 select the validators, such as:
 
-* `PoA <https://github.com/confio/weave/issues/32>`__ where a set
-of keys (held by clients) can appoint the validators. This allows
-them to bring up and down machines, but the authority of the chain
-rests in a fixed group of individuals.
-* ``PoS`` or proof-of-stake, where any individual can bond some of
-their tokens to an escrow for the right to select a validator.
-Each  validator has a voting power proportional to how much is
-staked. These staked tokens also receive some share of the block
-rewards as compensantion for the work and risk.
-* ``DPoS`` where users can either bond tokens to their own
-validator, or "delegate" their tokens to a validator run by
-someone else. Everyone gets some share of the block rewards, but
-the people running the validator nodes typically take a
-commission on the delegated rewards, as they must perform real
-work.
+- `PoA <https://github.com/confio/weave/issues/32>`__
+  where a set of keys (held by clients) can appoint the validators.
+  This allows them to bring up and down machines, but the authority
+  of the chain rests in a fixed group of individuals.
+- ``PoS`` or proof-of-stake, where any individual can bond some of
+  their tokens to an escrow for the right to select a validator.
+  Each  validator has a voting power proportional to how much is
+  staked. These staked tokens also receive some share of the block
+  rewards as compensantion for the work and risk.
+- ``DPoS`` where users can either bond tokens to their own
+  validator, or "delegate" their tokens to a validator run by
+  someone else. Everyone gets some share of the block rewards, but
+  the people running the validator nodes typically take a
+  commission on the delegated rewards, as they must perform real work.
 
 For each of these general approaches there is a wide range
 of tuning of incentives and punishments in order to acheive
