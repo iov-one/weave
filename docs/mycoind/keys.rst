@@ -17,6 +17,8 @@ for react-native.
 
 ``yarn cli demo-keys.db``
 
+The underlying code for this command:
+
 .. code:: javascript
 
     const weave = require("weave");
