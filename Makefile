@@ -1,7 +1,7 @@
 .PHONY: all install build test cover deps tools prototools protoc
 
 GIT_VERSION := $(shell git describe --tags)
-BUILD_FLAGS := -ldflags "-X github.com/iov-one/bov-core.Version=$(GIT_VERSION)"
+BUILD_FLAGS := -ldflags "-X github.com/iov-one/bcp-demo.Version=$(GIT_VERSION)"
 TENDERMINT := ${GOBIN}/tendermint
 BUILDOUT ?= bov
 GOPATH ?= $$HOME/go
