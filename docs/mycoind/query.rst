@@ -34,8 +34,9 @@ Under the hood, this builds a query in the proper format to send
 to the blockchain, then parses the response. The response is a
 key-value pair, and we can extract the address from the key
 (by removing the ``cash:`` prefix), and parse the value into
-the actual balance as a protobuf object. We can look what this
-helper function actually does....
+the actual balance as a protobuf object. 
+
+We can look at what this helper function actually does:
 
 .. code:: javascript
 
