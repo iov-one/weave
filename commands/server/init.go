@@ -18,11 +18,13 @@ import (
 const (
 	// AppStateKey is the key in the json json where all info
 	// on initializing the app can be found
-	AppStateKey    = "app_state"
-	GenesisTimeKey = "genesis_time"
-	flagIndexAll   = "all"
-	flagIndexTags  = "tags"
-	flagForce      = "f"
+	AppStateKey             = "app_state"
+	DirConfig               = "config"
+	GenesisTimeKey          = "genesis_time"
+	ErrorAlreadyInitialised = "the application has already been initialised, use %s flag to override"
+	FlagForce               = "f"
+	flagIndexAll            = "all"
+	flagIndexTags           = "tags"
 )
 
 /*
@@ -36,7 +38,7 @@ func parseIndex(args []string) (bool, bool, string, []string, error) {
 	indexFlags := flag.NewFlagSet("init", flag.ExitOnError)
 	tags := indexFlags.String(flagIndexTags, "", "comma-separated list of tags to index")
 	all := indexFlags.Bool(flagIndexAll, true, "")
-	force := indexFlags.Bool(flagForce, false, "")
+	force := indexFlags.Bool(FlagForce, false, "")
 	err := indexFlags.Parse(args)
 	return *all, *force, *tags, indexFlags.Args(), err
 }
@@ -47,8 +49,8 @@ func parseIndex(args []string) (bool, bool, string, []string, error) {
 // proper options. And may want to use GenerateCoinKey
 // to create default account(s).
 func InitCmd(gen GenOptions, logger log.Logger, home string, args []string) error {
-	genFile := filepath.Join(home, "config", "genesis.json")
-	confFile := filepath.Join(home, "config", "config.toml")
+	genFile := filepath.Join(home, DirConfig, "genesis.json")
+	confFile := filepath.Join(home, DirConfig, "config.toml")
 
 	all, force, tags, args, err := parseIndex(args)
 	if err != nil {
@@ -103,7 +105,7 @@ func addGenesisOptions(filename string, options json.RawMessage, force bool) err
 
 	v, ok := doc[AppStateKey]
 	if !force && ok && len(v) > 0 {
-		return fmt.Errorf("the application has already been initialised, use %s flag to override", flagForce)
+		return fmt.Errorf(ErrorAlreadyInitialised, FlagForce)
 	}
 
 	timeJson, _ := time.Now().MarshalJSON()
@@ -132,11 +134,6 @@ var (
 //   index_all_tags = <all>
 //   index_tags = <tags>
 func setTxIndex(config string, all bool, tags string, force bool) error {
-	_, err := os.Stat(config)
-	if !force && os.IsExist(err) {
-		return fmt.Errorf("config already exists, use %s flag to override", flagForce)
-	}
-
 	f, err := os.Open(config)
 	if err != nil {
 		return errors.WithStack(err)

@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -40,7 +41,16 @@ func TestInit(t *testing.T) {
 		doc["chain_id"])
 	assert.NotEmpty(t, doc["validators"])
 	assert.NotEmpty(t, doc[server.AppStateKey])
+
+	gTime := time.Time{}
+	err = gTime.UnmarshalJSON(doc[server.GenesisTimeKey])
+	require.NoError(t, err)
+	assert.True(t, gTime.After(time.Now().Add(-10*time.Minute)))
+
 	assert.Contains(t, string(doc[server.AppStateKey]), `"ticker": "ETH"`)
+
+	err = server.InitCmd(app.GenInitOptions, logger, home, args)
+	assert.EqualValues(t, fmt.Errorf(server.ErrorAlreadyInitialised, server.FlagForce), err)
 }
 
 // setupConfig creates a homedir to run inside,
@@ -58,7 +68,7 @@ func setupConfig(t *testing.T) string {
 
 func copyConfigFiles(rootDir string) error {
 	// make the output dir
-	outDir := filepath.Join(rootDir, "config")
+	outDir := filepath.Join(rootDir, server.DirConfig)
 	err := os.Mkdir(outDir, 0755)
 	if err != nil {
 		return err
