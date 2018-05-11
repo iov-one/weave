@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/pkg/errors"
 	"github.com/tendermint/tmlibs/log"
@@ -17,9 +18,13 @@ import (
 const (
 	// AppStateKey is the key in the json json where all info
 	// on initializing the app can be found
-	AppStateKey   = "app_state"
-	flagIndexAll  = "all"
-	flagIndexTags = "tags"
+	AppStateKey             = "app_state"
+	DirConfig               = "config"
+	GenesisTimeKey          = "genesis_time"
+	ErrorAlreadyInitialised = "the application has already been initialised, use %s flag to override"
+	FlagForce               = "f"
+	flagIndexAll            = "all"
+	flagIndexTags           = "tags"
 )
 
 /*
@@ -28,13 +33,14 @@ Usage:
   xxx init -all=f  // no index
   xxx init -tags=foo,bar // index only foo and bar
 */
-func parseIndex(args []string) (bool, string, []string, error) {
+func parseIndex(args []string) (bool, bool, string, []string, error) {
 	// parse flagIndexAll, flagIndexTags and return the result
 	indexFlags := flag.NewFlagSet("init", flag.ExitOnError)
 	tags := indexFlags.String(flagIndexTags, "", "comma-separated list of tags to index")
 	all := indexFlags.Bool(flagIndexAll, true, "")
+	force := indexFlags.Bool(FlagForce, false, "")
 	err := indexFlags.Parse(args)
-	return *all, *tags, indexFlags.Args(), err
+	return *all, *force, *tags, indexFlags.Args(), err
 }
 
 // InitCmd will initialize all files for tendermint,
@@ -43,14 +49,14 @@ func parseIndex(args []string) (bool, string, []string, error) {
 // proper options. And may want to use GenerateCoinKey
 // to create default account(s).
 func InitCmd(gen GenOptions, logger log.Logger, home string, args []string) error {
-	genFile := filepath.Join(home, "config", "genesis.json")
-	confFile := filepath.Join(home, "config", "config.toml")
+	genFile := filepath.Join(home, DirConfig, "genesis.json")
+	confFile := filepath.Join(home, DirConfig, "config.toml")
 
-	all, tags, args, err := parseIndex(args)
+	all, force, tags, args, err := parseIndex(args)
 	if err != nil {
 		return err
 	}
-	err = setTxIndex(confFile, all, tags)
+	err = setTxIndex(confFile, all, tags, force)
 	if err != nil {
 		return err
 	}
@@ -67,7 +73,12 @@ func InitCmd(gen GenOptions, logger log.Logger, home string, args []string) erro
 	}
 
 	// And add them to the genesis file
-	return addGenesisOptions(genFile, options)
+	err = addGenesisOptions(genFile, options, force)
+	if err == nil {
+		fmt.Println("The application has been succesfully initialised.")
+	}
+
+	return err
 }
 
 // GenOptions can parse command-line and flag to
@@ -80,7 +91,7 @@ type GenOptions func(args []string) (json.RawMessage, error)
 // so we can add one line.
 type GenesisDoc map[string]json.RawMessage
 
-func addGenesisOptions(filename string, options json.RawMessage) error {
+func addGenesisOptions(filename string, options json.RawMessage, force bool) error {
 	bz, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return err
@@ -92,7 +103,16 @@ func addGenesisOptions(filename string, options json.RawMessage) error {
 		return err
 	}
 
+	v, ok := doc[AppStateKey]
+	if !force && ok && len(v) > 0 {
+		return fmt.Errorf(ErrorAlreadyInitialised, FlagForce)
+	}
+
+	timeJson, _ := time.Now().MarshalJSON()
+
 	doc[AppStateKey] = options
+	doc[GenesisTimeKey] = timeJson
+
 	out, err := json.MarshalIndent(doc, "", "  ")
 	if err != nil {
 		return err
@@ -113,7 +133,7 @@ var (
 //   indexer = "kv"
 //   index_all_tags = <all>
 //   index_tags = <tags>
-func setTxIndex(config string, all bool, tags string) error {
+func setTxIndex(config string, all bool, tags string, force bool) error {
 	f, err := os.Open(config)
 	if err != nil {
 		return errors.WithStack(err)
