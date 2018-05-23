@@ -48,7 +48,7 @@ func (d Decorator) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx,
 
 	var res weave.CheckResult
 	var err error
-	var signers []weave.Permission
+	var signers []weave.Condition
 
 	if stx, ok := tx.(SignedTx); ok {
 		chainID := weave.GetChainID(ctx)
@@ -71,7 +71,7 @@ func (d Decorator) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx,
 
 	var res weave.DeliverResult
 	var err error
-	var signers []weave.Permission
+	var signers []weave.Condition
 	if stx, ok := tx.(SignedTx); ok {
 		chainID := weave.GetChainID(ctx)
 		signers, err = VerifyTxSignatures(store, stx, chainID)

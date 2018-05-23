@@ -62,12 +62,12 @@ func TestFees(t *testing.T) {
 
 	cash := x.NewCoin(50, 0, "FOO")
 	min := x.NewCoin(0, 1234, "FOO")
-	perm := weave.NewPermission("sigs", "ed25519", []byte{1, 2, 3})
-	perm2 := weave.NewPermission("sigs", "ed25519", []byte{3, 4, 5})
-	perm3 := weave.NewPermission("custom", "type", []byte{0xAB})
+	perm := weave.NewCondition("sigs", "ed25519", []byte{1, 2, 3})
+	perm2 := weave.NewCondition("sigs", "ed25519", []byte{3, 4, 5})
+	perm3 := weave.NewCondition("custom", "type", []byte{0xAB})
 
 	cases := []struct {
-		signers   []weave.Permission
+		signers   []weave.Condition
 		initState []orm.Object
 		fee       *FeeInfo
 		min       x.Coin
@@ -81,7 +81,7 @@ func TestFees(t *testing.T) {
 		2: {nil, nil, &FeeInfo{Fees: &min}, min, errors.IsUnrecognizedAddressErr},
 		// use default signer, but not enough money
 		3: {
-			[]weave.Permission{perm},
+			[]weave.Condition{perm},
 			nil,
 			&FeeInfo{Fees: &min},
 			min,
@@ -89,7 +89,7 @@ func TestFees(t *testing.T) {
 		},
 		// signer can cover min, but not pledge
 		4: {
-			[]weave.Permission{perm},
+			[]weave.Condition{perm},
 			[]orm.Object{must(WalletWith(perm.Address(), &min))},
 			&FeeInfo{Fees: &cash},
 			min,
@@ -97,7 +97,7 @@ func TestFees(t *testing.T) {
 		},
 		// all proper
 		5: {
-			[]weave.Permission{perm},
+			[]weave.Condition{perm},
 			[]orm.Object{must(WalletWith(perm.Address(), &cash))},
 			&FeeInfo{Fees: &min},
 			min,
@@ -105,7 +105,7 @@ func TestFees(t *testing.T) {
 		},
 		// trying to pay from wrong account
 		6: {
-			[]weave.Permission{perm},
+			[]weave.Condition{perm},
 			[]orm.Object{must(WalletWith(perm2.Address(), &cash))},
 			&FeeInfo{Payer: perm2.Address(), Fees: &min},
 			min,
@@ -113,7 +113,7 @@ func TestFees(t *testing.T) {
 		},
 		// can pay in any fee
 		7: {
-			[]weave.Permission{perm},
+			[]weave.Condition{perm},
 			[]orm.Object{must(WalletWith(perm.Address(), &cash))},
 			&FeeInfo{Fees: &min},
 			x.NewCoin(0, 1000, ""),
@@ -121,7 +121,7 @@ func TestFees(t *testing.T) {
 		},
 		// wrong currency checked
 		8: {
-			[]weave.Permission{perm},
+			[]weave.Condition{perm},
 			[]orm.Object{must(WalletWith(perm.Address(), &cash))},
 			&FeeInfo{Fees: &min},
 			x.NewCoin(0, 1000, "NOT"),
@@ -129,7 +129,7 @@ func TestFees(t *testing.T) {
 		},
 		// has the cash, but didn't offer enough fees
 		9: {
-			[]weave.Permission{perm},
+			[]weave.Condition{perm},
 			[]orm.Object{must(WalletWith(perm.Address(), &cash))},
 			&FeeInfo{Fees: &min},
 			x.NewCoin(0, 45000, "FOO"),

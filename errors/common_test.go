@@ -75,7 +75,7 @@ func TestLog(t *testing.T) {
 
 		// verify some standard message types with prefixes
 		{ErrUnrecognizedAddress([]byte{0, 0x12, 0x77}), IsUnrecognizedAddressErr, "(5) 001277: Unrecognized Address"},
-		{ErrUnrecognizedPermission([]byte{0xF0, 0x0D, 0xCA, 0xFE}), IsUnrecognizedPermissionErr, "(5) F00DCAFE: Unrecognized Permission"},
+		{ErrUnrecognizedCondition([]byte{0xF0, 0x0D, 0xCA, 0xFE}), IsUnrecognizedConditionErr, "(5) F00DCAFE: Unrecognized Condition"},
 		{ErrUnknownTxType("john_123"), IsUnknownTxTypeErr, "(4) string: Tx type unknown"},
 		{ErrUnknownTxType(t), IsUnknownTxTypeErr, "(4) *testing.T: Tx type unknown"},
 	}
