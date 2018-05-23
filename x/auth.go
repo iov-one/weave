@@ -9,9 +9,7 @@ import (
 // handlers, so we can plug in another authentication system,
 // rather than hardcoding x/auth for all extensions.
 type Authenticator interface {
-	// We add GetAddresses as a helper function
 	GetPermissions(weave.Context) []weave.Permission
-	// HasPermission is easy to compute with this
 	HasAddress(weave.Context, weave.Address) bool
 }
 
@@ -53,9 +51,6 @@ func (m MultiAuth) HasAddress(ctx weave.Context, addr weave.Address) bool {
 // GetAddresses wraps the GetPermissions method of any Authenticator
 func GetAddresses(ctx weave.Context, auth Authenticator) []weave.Address {
 	perms := auth.GetPermissions(ctx)
-	if len(perms) == 0 {
-		return nil
-	}
 	addrs := make([]weave.Address, len(perms))
 	for i, p := range perms {
 		addrs[i] = p.Address()
@@ -98,7 +93,7 @@ func HasNPermissions(ctx weave.Context, auth Authenticator, requested []weave.Pe
 		return true
 	}
 	perms := auth.GetPermissions(ctx)
-	// TODO: optimize this with sort from N^2 to N*log N (?)
+	// NOTE: optimize this with sort from N^2 to N*log N (?)
 	// low-prio, as N is always small, better that it works
 	for _, perm := range requested {
 		if hasPerm(perms, perm) {

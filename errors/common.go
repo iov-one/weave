@@ -1,6 +1,7 @@
 package errors
 
 import (
+	stderrors "errors"
 	"fmt"
 
 	"github.com/pkg/errors"
@@ -18,16 +19,16 @@ const (
 )
 
 var (
-	errDecoding               = fmt.Errorf("Error decoding input")
-	errTooLarge               = fmt.Errorf("Input size too large")
-	errUnknownTxType          = fmt.Errorf("Tx type unknown")
-	errUnauthorized           = fmt.Errorf("Unauthorized")
-	errMissingSignature       = fmt.Errorf("Signature missing")
-	errInvalidSignature       = fmt.Errorf("Signature invalid")
-	errUnrecognizedAddress    = fmt.Errorf("Unrecognized Address")
-	errUnrecognizedPermission = fmt.Errorf("Unrecognized Permission")
-	errInvalidChainID         = fmt.Errorf("Invalid ChainID")
-	errModifyChainID          = fmt.Errorf("Cannot modify ChainID")
+	errDecoding               = stderrors.New("Error decoding input")
+	errTooLarge               = stderrors.New("Input size too large")
+	errUnknownTxType          = stderrors.New("Tx type unknown")
+	errUnauthorized           = stderrors.New("Unauthorized")
+	errMissingSignature       = stderrors.New("Signature missing")
+	errInvalidSignature       = stderrors.New("Signature invalid")
+	errUnrecognizedAddress    = stderrors.New("Unrecognized Address")
+	errUnrecognizedPermission = stderrors.New("Unrecognized Permission")
+	errInvalidChainID         = stderrors.New("Invalid ChainID")
+	errModifyChainID          = stderrors.New("Cannot modify ChainID")
 )
 
 // IsSameError returns true if these errors have the same root cause.
