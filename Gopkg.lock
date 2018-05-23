@@ -2,7 +2,7 @@
 
 
 [[projects]]
-  branch = "master"
+  branch = "alpes-permission-review"
   name = "github.com/confio/weave"
   packages = [
     ".",
@@ -19,7 +19,7 @@
     "x/sigs",
     "x/utils"
   ]
-  revision = "278f1b417c9f1a7c1323ef832f499e28acaa2325"
+  revision = "28a68fcaff08083b52c6c406cfe4f637d6a389b6"
 
 [[projects]]
   name = "github.com/davecgh/go-spew"
@@ -257,6 +257,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "8fb1143ca2ce4cad072c7beaae7d0ad27ba97adb1b12d92e102ec25d11336210"
+  inputs-digest = "6167e255a45311ba9ed16648515292d2ea0d3082846061afeed8fe61d3223a1e"
   solver-name = "gps-cdcl"
   solver-version = 1

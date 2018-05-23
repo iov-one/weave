@@ -22,7 +22,7 @@ import (
 const authKey = "auth"
 
 type action struct {
-	perms  []weave.Permission
+	perms  []weave.Condition
 	msg    weave.Msg
 	height int64 // block height, for timeout
 }
@@ -35,7 +35,7 @@ func (a action) tx() weave.Tx {
 func (a action) ctx() weave.Context {
 	ctx := context.Background()
 	ctx = weave.WithHeight(ctx, a.height)
-	return authenticator().SetPermissions(ctx, a.perms...)
+	return authenticator().SetConditions(ctx, a.perms...)
 }
 
 // authenticator returns a default for all tests...
@@ -126,7 +126,7 @@ func TestHandler(t *testing.T) {
 		return bz
 	}
 	eaddr := func(i int64) weave.Address {
-		return Permission(id(i)).Address()
+		return Condition(id(i)).Address()
 	}
 
 	cases := []struct {
@@ -148,7 +148,7 @@ func TestHandler(t *testing.T) {
 			all,
 			nil, // no prep, just one action
 			action{
-				perms:  []weave.Permission{a},
+				perms:  []weave.Condition{a},
 				msg:    NewCreateMsg(a, b, c, all, 12345, ""),
 				height: 1000,
 			},
@@ -184,7 +184,7 @@ func TestHandler(t *testing.T) {
 			all,
 			nil, // no prep, just one action
 			action{
-				perms: []weave.Permission{a},
+				perms: []weave.Condition{a},
 				// defaults to sender!
 				msg:    NewCreateMsg(nil, b, c, some, 777, ""),
 				height: 123,
@@ -253,7 +253,7 @@ func TestHandler(t *testing.T) {
 			some,
 			nil, // no prep, just one action
 			action{
-				perms: []weave.Permission{a},
+				perms: []weave.Condition{a},
 				// defaults to sender!
 				msg:    NewCreateMsg(nil, b, c, all, 12345, ""),
 				height: 123,
@@ -267,7 +267,7 @@ func TestHandler(t *testing.T) {
 			all,
 			nil, // no prep, just one action
 			action{
-				perms:  []weave.Permission{b},
+				perms:  []weave.Condition{b},
 				msg:    NewCreateMsg(a, b, c, some, 12345, ""),
 				height: 123,
 			},
@@ -280,7 +280,7 @@ func TestHandler(t *testing.T) {
 			all,
 			nil, // no prep, just one action
 			action{
-				perms: []weave.Permission{a},
+				perms: []weave.Condition{a},
 				// defaults to sender!
 				msg:    NewCreateMsg(nil, b, c, all, 123, ""),
 				height: 888,
@@ -293,12 +293,12 @@ func TestHandler(t *testing.T) {
 			a.Address(),
 			all,
 			[]action{{
-				perms:  []weave.Permission{a},
+				perms:  []weave.Condition{a},
 				msg:    NewCreateMsg(a, b, c, all, 12345, ""),
 				height: 1000,
 			}},
 			action{
-				perms: []weave.Permission{b},
+				perms: []weave.Condition{b},
 				msg: &ReleaseEscrowMsg{
 					EscrowId: id(1),
 				},
@@ -312,12 +312,12 @@ func TestHandler(t *testing.T) {
 			a.Address(),
 			all,
 			[]action{{
-				perms:  []weave.Permission{a},
+				perms:  []weave.Condition{a},
 				msg:    NewCreateMsg(a, b, c, all, 12345, ""),
 				height: 1000,
 			}},
 			action{
-				perms: []weave.Permission{c},
+				perms: []weave.Condition{c},
 				msg: &ReleaseEscrowMsg{
 					EscrowId: id(1),
 				},
@@ -357,12 +357,12 @@ func TestHandler(t *testing.T) {
 			a.Address(),
 			all,
 			[]action{{
-				perms:  []weave.Permission{a},
+				perms:  []weave.Condition{a},
 				msg:    NewCreateMsg(a, b, c, all, 12345, "hello"),
 				height: 1000,
 			}},
 			action{
-				perms: []weave.Permission{c},
+				perms: []weave.Condition{c},
 				msg: &ReleaseEscrowMsg{
 					EscrowId: id(1),
 					Amount:   some,
@@ -407,12 +407,12 @@ func TestHandler(t *testing.T) {
 			a.Address(),
 			all,
 			[]action{{
-				perms:  []weave.Permission{a},
+				perms:  []weave.Condition{a},
 				msg:    NewCreateMsg(a, b, c, all, 1234, ""),
 				height: 1000,
 			}},
 			action{
-				perms: []weave.Permission{c},
+				perms: []weave.Condition{c},
 				msg: &ReleaseEscrowMsg{
 					EscrowId: id(1),
 				},
@@ -426,12 +426,12 @@ func TestHandler(t *testing.T) {
 			a.Address(),
 			all,
 			[]action{{
-				perms:  []weave.Permission{a},
+				perms:  []weave.Condition{a},
 				msg:    NewCreateMsg(a, b, c, some, 12345, ""),
 				height: 1000,
 			}},
 			action{
-				perms: []weave.Permission{d},
+				perms: []weave.Condition{d},
 				msg: &ReturnEscrowMsg{
 					EscrowId: id(1),
 				},
@@ -464,12 +464,12 @@ func TestHandler(t *testing.T) {
 			a.Address(),
 			all,
 			[]action{{
-				perms:  []weave.Permission{a},
+				perms:  []weave.Condition{a},
 				msg:    NewCreateMsg(a, b, c, all, 1234, ""),
 				height: 1000,
 			}},
 			action{
-				perms: []weave.Permission{a},
+				perms: []weave.Condition{a},
 				msg: &ReturnEscrowMsg{
 					EscrowId: id(1),
 				},
@@ -484,12 +484,12 @@ func TestHandler(t *testing.T) {
 			a.Address(),
 			all,
 			[]action{{
-				perms: []weave.Permission{a},
+				perms: []weave.Condition{a},
 				// defaults to sender!
 				msg:    NewCreateMsg(a, b, c, some, 12345, ""),
 				height: 123,
 			}, {
-				perms: []weave.Permission{c},
+				perms: []weave.Condition{c},
 				// c hands off to d
 				msg: &UpdateEscrowPartiesMsg{
 					EscrowId: id(1),
@@ -499,7 +499,7 @@ func TestHandler(t *testing.T) {
 			}},
 			action{
 				// new arbiter can resolve
-				perms: []weave.Permission{d},
+				perms: []weave.Condition{d},
 				msg: &ReleaseEscrowMsg{
 					EscrowId: id(1),
 				},
@@ -532,12 +532,12 @@ func TestHandler(t *testing.T) {
 			a.Address(),
 			all,
 			[]action{{
-				perms: []weave.Permission{a},
+				perms: []weave.Condition{a},
 				// defaults to sender!
 				msg:    NewCreateMsg(a, b, c, some, 12345, ""),
 				height: 123,
 			}, {
-				perms: []weave.Permission{c},
+				perms: []weave.Condition{c},
 				// c hands off to d
 				msg: &UpdateEscrowPartiesMsg{
 					EscrowId: id(1),
@@ -547,7 +547,7 @@ func TestHandler(t *testing.T) {
 			}},
 			action{
 				// original arbiter can no longer resolve
-				perms: []weave.Permission{c},
+				perms: []weave.Condition{c},
 				msg: &ReleaseEscrowMsg{
 					EscrowId: id(1),
 				},
@@ -561,13 +561,13 @@ func TestHandler(t *testing.T) {
 			a.Address(),
 			all,
 			[]action{{
-				perms: []weave.Permission{a},
+				perms: []weave.Condition{a},
 				// defaults to sender!
 				msg:    NewCreateMsg(a, b, c, some, 12345, ""),
 				height: 123,
 			}},
 			action{
-				perms: []weave.Permission{a},
+				perms: []weave.Condition{a},
 				msg: &UpdateEscrowPartiesMsg{
 					EscrowId: id(1),
 					Arbiter:  a,
@@ -582,13 +582,13 @@ func TestHandler(t *testing.T) {
 			a.Address(),
 			all,
 			[]action{{
-				perms: []weave.Permission{a},
+				perms: []weave.Condition{a},
 				// defaults to sender!
 				msg:    NewCreateMsg(a, b, c, some, 12345, ""),
 				height: 123,
 			}},
 			action{
-				perms: []weave.Permission{c},
+				perms: []weave.Condition{c},
 				msg: &UpdateEscrowPartiesMsg{
 					EscrowId: id(1),
 					Arbiter:  d,
@@ -603,18 +603,18 @@ func TestHandler(t *testing.T) {
 			a.Address(),
 			all,
 			[]action{{
-				perms:  []weave.Permission{a},
+				perms:  []weave.Condition{a},
 				msg:    NewCreateMsg(a, b, c, all, 12345, ""),
 				height: 1000,
 			}, {
-				perms: []weave.Permission{c},
+				perms: []weave.Condition{c},
 				msg: &ReleaseEscrowMsg{
 					EscrowId: id(1),
 				},
 				height: 2000,
 			}},
 			action{
-				perms: []weave.Permission{c},
+				perms: []weave.Condition{c},
 				msg: &ReleaseEscrowMsg{
 					EscrowId: id(1),
 				},
@@ -747,7 +747,7 @@ func TestAtomicSwap(t *testing.T) {
 		// amount we wish to swap
 		aSwap, bSwap x.Coins
 		// arbiter, same on both
-		arbiter weave.Permission
+		arbiter weave.Condition
 		// preimage used in claim
 		preimage []byte
 		// does the release cause an error?
@@ -758,7 +758,7 @@ func TestAtomicSwap(t *testing.T) {
 		0: {
 			foo, bar,
 			lilFoo, lilBar,
-			hashlock.PreimagePermission([]byte{1, 2, 3}),
+			hashlock.PreimageCondition([]byte{1, 2, 3}),
 			[]byte("foo"),
 			true,
 			// money stayed in escrow
@@ -769,7 +769,7 @@ func TestAtomicSwap(t *testing.T) {
 		1: {
 			foo, bar,
 			lilFoo, lilBar,
-			hashlock.PreimagePermission([]byte{7, 8, 9}),
+			hashlock.PreimageCondition([]byte{7, 8, 9}),
 			[]byte{7, 8, 9},
 			false,
 			// the coins were properly released
@@ -796,7 +796,7 @@ func TestAtomicSwap(t *testing.T) {
 
 	// use both context auth and hashlock auth
 	auth := x.ChainAuth(authenticator(), hashlock.Authenticate{})
-	setAuth := authenticator().SetPermissions
+	setAuth := authenticator().SetConditions
 
 	// route the escrow commands, and wrap with the hashlock
 	// middleware

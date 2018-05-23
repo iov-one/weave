@@ -34,13 +34,13 @@ func TestSendHandler(t *testing.T) {
 	foo := x.NewCoin(100, 0, "FOO")
 	some := x.NewCoin(300, 0, "SOME")
 
-	perm := weave.NewPermission("sig", "ed25519", []byte{1, 2, 3})
-	perm2 := weave.NewPermission("sig", "ed25519", []byte{4, 5, 6})
+	perm := weave.NewCondition("sig", "ed25519", []byte{1, 2, 3})
+	perm2 := weave.NewCondition("sig", "ed25519", []byte{4, 5, 6})
 	addr := perm.Address()
 	addr2 := perm2.Address()
 
 	cases := []struct {
-		signers       []weave.Permission
+		signers       []weave.Condition
 		initState     []orm.Object
 		msg           weave.Msg
 		expectCheck   checkErr
@@ -58,7 +58,7 @@ func TestSendHandler(t *testing.T) {
 		},
 		// sender has no account
 		4: {
-			[]weave.Permission{perm},
+			[]weave.Condition{perm},
 			nil,
 			&cash.SendMsg{Amount: &foo, Src: addr, Dest: addr2},
 			noErr, // we don't check funds
@@ -66,7 +66,7 @@ func TestSendHandler(t *testing.T) {
 		},
 		// sender too poor
 		5: {
-			[]weave.Permission{perm},
+			[]weave.Condition{perm},
 			[]orm.Object{mo(WalletWith(addr, "", &some))},
 			&cash.SendMsg{Amount: &foo, Src: addr, Dest: addr2},
 			noErr, // we don't check funds
@@ -74,7 +74,7 @@ func TestSendHandler(t *testing.T) {
 		},
 		// fool and his money are soon parted....
 		6: {
-			[]weave.Permission{perm},
+			[]weave.Condition{perm},
 			[]orm.Object{mo(WalletWith(addr, "fool", &foo))},
 			&cash.SendMsg{Amount: &foo, Src: addr, Dest: addr2},
 			noErr,
@@ -120,7 +120,7 @@ func TestNewTokenHandler(t *testing.T) {
 
 	// TODO: add queries to verify
 	cases := []struct {
-		signers       []weave.Permission
+		signers       []weave.Condition
 		issuer        weave.Address
 		initState     []orm.Object
 		msg           weave.Msg
@@ -152,10 +152,10 @@ func TestNewTokenHandler(t *testing.T) {
 		// not enough permissions
 		7: {nil, addr, nil, msg,
 			errors.IsUnauthorizedErr, errors.IsUnauthorizedErr, "", nil},
-		8: {[]weave.Permission{perm2, perm3}, addr, nil, msg,
+		8: {[]weave.Condition{perm2, perm3}, addr, nil, msg,
 			errors.IsUnauthorizedErr, errors.IsUnauthorizedErr, "", nil},
 		// now have permission
-		9: {[]weave.Permission{perm2, perm3}, addr2, nil, msg,
+		9: {[]weave.Condition{perm2, perm3}, addr2, nil, msg,
 			noErr, noErr, ticker, added},
 	}
 
@@ -207,7 +207,7 @@ func TestSetNameHandler(t *testing.T) {
 	dupUser := mo(WalletWith(addr2, name, &coin))
 
 	cases := []struct {
-		signer        weave.Permission
+		signer        weave.Condition
 		initState     []orm.Object
 		msg           weave.Msg
 		expectCheck   checkErr

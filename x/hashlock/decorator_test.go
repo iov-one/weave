@@ -30,7 +30,7 @@ func TestDecorator(t *testing.T) {
 
 	cases := []struct {
 		tx    weave.Tx
-		perms []weave.Permission
+		perms []weave.Condition
 	}{
 		// doesn't support hashlock interface
 		{helpers.MockTx(helpers.MockMsg([]byte{1, 2, 3})), nil},
@@ -38,7 +38,7 @@ func TestDecorator(t *testing.T) {
 		{hashTx([]byte("john"), nil), nil},
 		// Hash a preimage
 		{hashTx([]byte("foo"), []byte("bar")),
-			[]weave.Permission{PreimagePermission([]byte("bar"))}},
+			[]weave.Condition{PreimageCondition([]byte("bar"))}},
 	}
 
 	for i, tc := range cases {
@@ -58,20 +58,20 @@ func TestDecorator(t *testing.T) {
 
 // HashCheckHandler stores the seen permissions on each call
 type HashCheckHandler struct {
-	Perms []weave.Permission
+	Perms []weave.Condition
 }
 
 var _ weave.Handler = (*HashCheckHandler)(nil)
 
 func (s *HashCheckHandler) Check(ctx weave.Context, store weave.KVStore,
 	tx weave.Tx) (res weave.CheckResult, err error) {
-	s.Perms = Authenticate{}.GetPermissions(ctx)
+	s.Perms = Authenticate{}.GetConditions(ctx)
 	return
 }
 
 func (s *HashCheckHandler) Deliver(ctx weave.Context, store weave.KVStore,
 	tx weave.Tx) (res weave.DeliverResult, err error) {
-	s.Perms = Authenticate{}.GetPermissions(ctx)
+	s.Perms = Authenticate{}.GetConditions(ctx)
 	return
 }
 

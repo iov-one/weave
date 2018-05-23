@@ -27,7 +27,7 @@
 
 [[constraint]]
   name = "github.com/confio/weave"
-  branch = "master"
+  branch = "alpes-permission-review"
 
 [[constraint]]
   name = "github.com/gogo/protobuf"

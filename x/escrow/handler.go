@@ -70,7 +70,7 @@ func (h CreateEscrowHandler) Deliver(ctx weave.Context, db weave.KVStore,
 	}
 
 	// apply a default for sender
-	sender := weave.Permission(msg.Sender)
+	sender := weave.Condition(msg.Sender)
 	if sender == nil {
 		sender = x.MainSigner(ctx, h.auth)
 	}
@@ -90,7 +90,7 @@ func (h CreateEscrowHandler) Deliver(ctx weave.Context, db weave.KVStore,
 	}
 
 	// move the money to this object
-	dest := Permission(obj.Key()).Address()
+	dest := Condition(obj.Key()).Address()
 	sendAddr := sender.Address()
 	for _, c := range escrow.Amount {
 		err := h.cash.MoveCoins(db, sendAddr, dest, *c)
@@ -131,7 +131,7 @@ func (h CreateEscrowHandler) validate(ctx weave.Context, db weave.KVStore,
 
 	// sender must authorize this (if not set, defaults to MainSigner)
 	if msg.Sender != nil {
-		sender := weave.Permission(msg.Sender).Address()
+		sender := weave.Condition(msg.Sender).Address()
 		if !h.auth.HasAddress(ctx, sender) {
 			return nil, errors.ErrUnauthorized()
 		}
@@ -192,8 +192,8 @@ func (h ReleaseEscrowHandler) Deliver(ctx weave.Context, db weave.KVStore,
 	}
 
 	// move the money from escrow to recipient
-	sender := Permission(obj.Key()).Address()
-	dest := weave.Permission(escrow.Recipient).Address()
+	sender := Condition(obj.Key()).Address()
+	dest := weave.Condition(escrow.Recipient).Address()
 	for _, c := range request {
 		err := h.cash.MoveCoins(db, sender, dest, *c)
 		if err != nil {
@@ -252,7 +252,7 @@ func (h ReleaseEscrowHandler) validate(ctx weave.Context, db weave.KVStore,
 	}
 
 	// arbiter must authorize this
-	arbiter := weave.Permission(escrow.Arbiter).Address()
+	arbiter := weave.Condition(escrow.Arbiter).Address()
 	if !h.auth.HasAddress(ctx, arbiter) {
 		return nil, nil, errors.ErrUnauthorized()
 	}
@@ -304,8 +304,8 @@ func (h ReturnEscrowHandler) Deliver(ctx weave.Context, db weave.KVStore,
 	escrow := AsEscrow(obj)
 
 	// move the money from escrow to recipient
-	sender := Permission(obj.Key()).Address()
-	dest := weave.Permission(escrow.Sender).Address()
+	sender := Condition(obj.Key()).Address()
+	dest := weave.Condition(escrow.Sender).Address()
 	for _, c := range escrow.Amount {
 		err := h.cash.MoveCoins(db, sender, dest, *c)
 		if err != nil {
@@ -448,19 +448,19 @@ func (h UpdateEscrowHandler) validate(ctx weave.Context, db weave.KVStore,
 
 	// we must have the permission for the items we want to change
 	if msg.Sender != nil {
-		sender := weave.Permission(escrow.Sender).Address()
+		sender := weave.Condition(escrow.Sender).Address()
 		if !h.auth.HasAddress(ctx, sender) {
 			return nil, nil, errors.ErrUnauthorized()
 		}
 	}
 	if msg.Recipient != nil {
-		rcpt := weave.Permission(escrow.Recipient).Address()
+		rcpt := weave.Condition(escrow.Recipient).Address()
 		if !h.auth.HasAddress(ctx, rcpt) {
 			return nil, nil, errors.ErrUnauthorized()
 		}
 	}
 	if msg.Arbiter != nil {
-		arbiter := weave.Permission(escrow.Arbiter).Address()
+		arbiter := weave.Condition(escrow.Arbiter).Address()
 		if !h.auth.HasAddress(ctx, arbiter) {
 			return nil, nil, errors.ErrUnauthorized()
 		}
