@@ -19,7 +19,7 @@ if the signature validates against a known public key, and
 after checking nonces for replay protection, can authenticate
 this public key for this transaction.
 
-However, Ethereum devs are used to the concept of permissions
+However, Ethereum devs are used to the concept of authority
 not just being tied to a signature, but potentially a smart
 contract. We will allow something similar, but we don't need
 to be as general, as we also don't have the same general
@@ -33,9 +33,9 @@ if the Tx has signatures, and if so validates them.
 
 .. literalinclude:: ../../x/sigs/tx.go
     :language: go
-    :lines: 9-21
+    :lines: 7-19
 
-It stores the matching permissions in the context under a secret
+It stores the matching conditions in the context under a secret
 key, and exposes an ``Authenticator`` that can be used to read
 this information.
 
@@ -62,14 +62,14 @@ This system may look to complicated for just checking public key signatures, but
 multiple authentication schemes. For example, if we want to
 design HTLC, we could add an optional "Preimage" to the
 Tx structure. We add a "Hasher" middleware that hashes
-this preimage, and then grants the permission of something like
+this preimage, and then grants the condition of something like
 ``preimage/<hash of preimage>``. This is stored in the context
 and the "Hasher" exports an Authenticator that allows
 access to this.
 
 Once we build this "Hasher" extension, we can import it
 into any other handler, to add the potential for hash preimages,
-not just public key signatures, to trigger certain actions.
+not just public key signatures, to grant certain permissions.
 For some handlers this is not useful, so we can select it for
 each handler. Of course, we don't want either/or, we often want
 to support **both** authentication schemes. For this, there
@@ -77,7 +77,7 @@ is ``MulitAuth``, to combine them:
 
 .. literalinclude:: ../../x/auth.go
     :language: go
-    :lines: 18-28
+    :lines: 16-26
 
 Crypto-Conditions
 -----------------
@@ -98,8 +98,8 @@ in a boolean circuit is powerful. eg.
 We could use this to provide a very simple DSL for
 defining multi-sig wallets, recovery phrases, etc.
 
-Permissions
-===========
+Conditions
+==========
 
 *Authentication* defines who is requesting this transaction
 and is added to the context as part of the middleware stack.
@@ -107,13 +107,19 @@ I will refer to the set of Authentications on a transaction as
 the "requester", which may be made of signatures, preimages,
 or other objects.
 
-*Authorization* happens in a handler, and after it decides that
-the are sufficient to execute this transaction. This is a
-comparison of the "requester" with the required permissions
+*Authorization* happens in a handler, where it decides if
+the transaction can execute this transaction. It determines
+if the transaction fulfills the necessary *conditions* to
+assume the required *permission* to execute the action.
 
-*Permissions* are a way to capture which conditions a transaction
-must fulfill to be able to execute an action. They must be
-serializable and can be stored along with an object.
+*Permission* is the right to perform a specific type of action,
+like send tokens from an account, or release an escrow. These
+permissions can be assigned to an individual, but more general
+to a "Condition"
+
+*Conditions* define what checks a transaction must fulfill to be
+able to access a given permission. They must be serializable and
+can be stored along with an object.
 
 The simplest example is "who can transfer money out of an account".
 In many blockchains, they hash the public key and use that
@@ -121,36 +127,35 @@ to form an "address". Then this address is used as a primary key
 to an account balance. A user can send tokens to any address,
 and if I have signed with a public key, which hashes to the
 "address" of this account, then I can authorize payments out of
-the account. In Ethereum, smart contracts also have addresses and
-can be the owner of tokens, not just signatures.
+the account. In this case, the signature is *authentication*,
+we must have *transfer permission* on this account, and the
+*condition* is the presence of a signature with a public key
+that hashes to the account's address.
 
-In this case, we can speak of a "transfer" permission on the
-account. However, there doesn't have to be one permission for
-an object. For example, an escrow may have a sender, a recipient,
-and an arbiter. We could say sender and arbiter both have
-permission to send the escrow to the recipient. The arbiter has
-permission to return the escrow to the sender. And the recipient
-has permission to update the recipient address. That is three
-different permissions on one object, that can be checked based
-on which action we are performing. And the "address" (primary
-key) of the escrow object doesn't map to any of those three
-permissions. (Otherwise, how can I create two escrows at once).
+In Ethereum, smart contracts also have addresses and can be
+used as a condition, not just signatures. So, we can imagine
+a variety of different conditions that can be required, not
+just signatures. A hash preimage, the majority of votes
+in an election, or presence of a merkle proof could be evaluated
+by various middlewares and used as *conditions* to assume
+given *permissions*. And one object / account could have
+multiple different permissions.
 
 **TODO** Add scopes? More ideas?
 
 Serialization
 -------------
 
-Now we have a clear understanding of what permissions are
-in this context, and that there may be different permissions
+Now we have a clear understanding of what conditions are
+in this context, and that there may be different conditions
 on one object, we need to consider how to store them in the
-database. A permission can be considered a tuple of
+database. A condition can be considered a tuple of
 ``(extension, type, data)``, for example a ed25519 public key
 signature could be represented as ``("sigs", "ed25519", <addr>)``
 and a sha256 hashlock could be ``("hash", "sha256", <hash>)``.
 
-Note that the "data" doesn't need to reveal what the data that
-will match this permission, but needs to be calculated from
+Note that the "data" doesn't need to reveal what the data is that
+will match this condition, but needs to be calculated from
 it (eg. addr is first 20 bytes of a hash of the public key).
 And each extension and type may have different interpretations
 of the data.
@@ -177,37 +182,37 @@ and secp256k1 signatures. However, the usecase was clear:
 a short identifier that was uniquely tied to an authentication
 condition, but *did not reveal* that condition.
 
-We can redefine address to be the hash of a "permission",
+We can redefine address to be the hash of a "condition",
 not just public key bytes, and then we keep this functionality
-while generalizing what a permission is.
+while generalizing what a condition is.
 
 ::
 
-    permission := sprintf("%s/%s/%s", extension, type, data)
-    address := sha256(permission)[:20]
+    condition := sprintf("%s/%s/%s", extension, type, data)
+    address := sha256(condition)[:20]
 
 The questions is when and how to use each one. Any field that can
-declare an owner must decide if those bytes represent a permission
-of an address. The Authenticator can store Permissions in the
-Context, and then allow clients to check for matches either
-by permission or by address. But where to use which one???
+declare an owner must decide if those bytes represent a condition
+or an address. The Authenticator can store fulfilled Conditions
+in the Context, and then allow clients to check for matches either
+by condition or by address. But where to use which one???
 Here are some rough guidelines:
 
 1. If we really need to save 20 bytes, use an *Address*. (But few places need that micro-optimization)
-2. If we want visibility of control, use *Permission* (multi-sig solutions, arbiters, etc)
+2. If we want visibility of control, use *Condition* (multi-sig solutions, arbiters, etc)
 3. If you want to obscure control (until first use), use *Address*
 4. Everything else, at your discression, just make sure it is compatible.
 
 I guess it is up to the extension developer, but I would generally
-use Permissions for anything stored in the value and Address for
+use Conditions for anything stored in the value and Address for
 fields that appear in the key, unless there is a reason otherwise.
 
 **Cash**: Key is Address
 
-**Sigs**: Key is PublicKey (data section of Permission). We
-construct a permission from it, then can compute the address.
+**Sigs**: Key is PublicKey (data section of Condition). We
+construct a condition from it, then can compute the address.
 
-**Escrow**: All participants are defined by Permission
+**Escrow**: All participants are defined by Conditions
 
 I would love to hear opinions on where to use each type.
 What are your ideas?
