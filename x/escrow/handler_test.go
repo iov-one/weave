@@ -17,6 +17,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const Timeout = 12345
+
 // TestHandler runs a number of scenario of tx to make
 // sure they work as expected.
 //
@@ -62,18 +64,14 @@ func TestHandler(t *testing.T) {
 			a.Address(),
 			all,
 			nil, // no prep, just one action
-			action{
-				perms:  []weave.Condition{a},
-				msg:    NewCreateMsg(a, b, c, all, 12345, ""),
-				height: 1000,
-			},
+			createAction(a, b, c, all, ""),
 			false,
 			[]query{
 				// verify escrow is stored
 				{
 					"/escrows", "", id(1), false,
 					[]orm.Object{
-						NewEscrow(id(1), a, b, c, all, 12345, ""),
+						NewEscrow(id(1), a, b, c, all, Timeout, ""),
 					},
 					NewBucket().Bucket,
 				},
@@ -98,19 +96,14 @@ func TestHandler(t *testing.T) {
 			a.Address(),
 			all,
 			nil, // no prep, just one action
-			action{
-				perms: []weave.Condition{a},
-				// defaults to sender!
-				msg:    NewCreateMsg(nil, b, c, some, 777, ""),
-				height: 123,
-			},
+			createAction(a, b, c, some, ""),
 			false,
 			[]query{
 				// verify escrow is stored
 				{
 					"/escrows", "", id(1), false,
 					[]orm.Object{
-						NewEscrow(id(1), a, b, c, some, 777, ""),
+						NewEscrow(id(1), a, b, c, some, Timeout, ""),
 					},
 					NewBucket().Bucket,
 				},
@@ -118,7 +111,7 @@ func TestHandler(t *testing.T) {
 				{
 					"/escrows/sender", "", a, false,
 					[]orm.Object{
-						NewEscrow(id(1), a, b, c, some, 777, ""),
+						NewEscrow(id(1), a, b, c, some, Timeout, ""),
 					},
 					NewBucket().Bucket,
 				},
@@ -126,7 +119,7 @@ func TestHandler(t *testing.T) {
 				{
 					"/escrows/recipient", "", b, false,
 					[]orm.Object{
-						NewEscrow(id(1), a, b, c, some, 777, ""),
+						NewEscrow(id(1), a, b, c, some, Timeout, ""),
 					},
 					NewBucket().Bucket,
 				},
@@ -134,7 +127,7 @@ func TestHandler(t *testing.T) {
 				{
 					"/escrows/arbiter", "", c, false,
 					[]orm.Object{
-						NewEscrow(id(1), a, b, c, some, 777, ""),
+						NewEscrow(id(1), a, b, c, some, Timeout, ""),
 					},
 					NewBucket().Bucket,
 				},
@@ -167,12 +160,7 @@ func TestHandler(t *testing.T) {
 			a.Address(),
 			some,
 			nil, // no prep, just one action
-			action{
-				perms: []weave.Condition{a},
-				// defaults to sender!
-				msg:    NewCreateMsg(nil, b, c, all, 12345, ""),
-				height: 123,
-			},
+			createAction(a, b, c, all, ""),
 			true,
 			nil,
 		},
@@ -182,6 +170,7 @@ func TestHandler(t *testing.T) {
 			all,
 			nil, // no prep, just one action
 			action{
+				// note permission is not the sender!
 				perms:  []weave.Condition{b},
 				msg:    NewCreateMsg(a, b, c, some, 12345, ""),
 				height: 123,
@@ -207,11 +196,7 @@ func TestHandler(t *testing.T) {
 		5: {
 			a.Address(),
 			all,
-			[]action{{
-				perms:  []weave.Condition{a},
-				msg:    NewCreateMsg(a, b, c, all, 12345, ""),
-				height: 1000,
-			}},
+			[]action{createAction(a, b, c, all, "")},
 			action{
 				perms: []weave.Condition{c},
 				msg: &ReleaseEscrowMsg{
@@ -252,11 +237,7 @@ func TestHandler(t *testing.T) {
 		6: {
 			a.Address(),
 			all,
-			[]action{{
-				perms:  []weave.Condition{a},
-				msg:    NewCreateMsg(a, b, c, all, 12345, "hello"),
-				height: 1000,
-			}},
+			[]action{createAction(a, b, c, all, "hello")},
 			action{
 				perms: []weave.Condition{a},
 				msg: &ReleaseEscrowMsg{
@@ -302,11 +283,7 @@ func TestHandler(t *testing.T) {
 		7: {
 			a.Address(),
 			all,
-			[]action{{
-				perms:  []weave.Condition{a},
-				msg:    NewCreateMsg(a, b, c, all, 12345, ""),
-				height: 1000,
-			}},
+			[]action{createAction(a, b, c, all, "")},
 			action{
 				perms: []weave.Condition{b},
 				msg: &ReleaseEscrowMsg{
@@ -321,17 +298,13 @@ func TestHandler(t *testing.T) {
 		8: {
 			a.Address(),
 			all,
-			[]action{{
-				perms:  []weave.Condition{a},
-				msg:    NewCreateMsg(a, b, c, all, 1234, ""),
-				height: 1000,
-			}},
+			[]action{createAction(a, b, c, all, "")},
 			action{
 				perms: []weave.Condition{c},
 				msg: &ReleaseEscrowMsg{
 					EscrowId: id(1),
 				},
-				height: 2000,
+				height: Timeout + 1,
 			},
 			true,
 			nil,
@@ -340,17 +313,13 @@ func TestHandler(t *testing.T) {
 		9: {
 			a.Address(),
 			all,
-			[]action{{
-				perms:  []weave.Condition{a},
-				msg:    NewCreateMsg(a, b, c, some, 12345, ""),
-				height: 1000,
-			}},
+			[]action{createAction(a, b, c, all, "")},
 			action{
 				perms: []weave.Condition{a},
 				msg: &ReturnEscrowMsg{
 					EscrowId: id(1),
 				},
-				height: 12346,
+				height: Timeout + 1,
 			},
 			false,
 			[]query{
@@ -382,17 +351,13 @@ func TestHandler(t *testing.T) {
 		10: {
 			a.Address(),
 			all,
-			[]action{{
-				perms:  []weave.Condition{a},
-				msg:    NewCreateMsg(a, b, c, all, 1234, ""),
-				height: 1000,
-			}},
+			[]action{createAction(a, b, c, all, "")},
 			action{
 				perms: []weave.Condition{a},
 				msg: &ReturnEscrowMsg{
 					EscrowId: id(1),
 				},
-				height: 1233,
+				height: Timeout - 1,
 			},
 			true,
 			nil,
@@ -402,27 +367,23 @@ func TestHandler(t *testing.T) {
 		11: {
 			a.Address(),
 			all,
-			[]action{{
-				perms: []weave.Condition{a},
-				// defaults to sender!
-				msg:    NewCreateMsg(a, b, c, some, 12345, ""),
-				height: 123,
-			}, {
-				perms: []weave.Condition{c},
-				// c hands off to d
-				msg: &UpdateEscrowPartiesMsg{
-					EscrowId: id(1),
-					Arbiter:  d,
-				},
-				height: 200,
-			}},
+			[]action{createAction(a, b, c, some, ""),
+				{
+					perms: []weave.Condition{c},
+					// c hands off to d
+					msg: &UpdateEscrowPartiesMsg{
+						EscrowId: id(1),
+						Arbiter:  d,
+					},
+					height: 2000,
+				}},
 			action{
 				// new arbiter can resolve
 				perms: []weave.Condition{d},
 				msg: &ReleaseEscrowMsg{
 					EscrowId: id(1),
 				},
-				height: 400,
+				height: 4000,
 			},
 			false,
 			[]query{
@@ -450,20 +411,16 @@ func TestHandler(t *testing.T) {
 		12: {
 			a.Address(),
 			all,
-			[]action{{
-				perms: []weave.Condition{a},
-				// defaults to sender!
-				msg:    NewCreateMsg(a, b, c, some, 12345, ""),
-				height: 123,
-			}, {
-				perms: []weave.Condition{c},
-				// c hands off to d
-				msg: &UpdateEscrowPartiesMsg{
-					EscrowId: id(1),
-					Arbiter:  d,
-				},
-				height: 200,
-			}},
+			[]action{createAction(a, b, c, some, ""),
+				{
+					perms: []weave.Condition{c},
+					// c hands off to d
+					msg: &UpdateEscrowPartiesMsg{
+						EscrowId: id(1),
+						Arbiter:  d,
+					},
+					height: 200,
+				}},
 			action{
 				// original arbiter can no longer resolve
 				perms: []weave.Condition{c},
@@ -480,19 +437,14 @@ func TestHandler(t *testing.T) {
 		13: {
 			a.Address(),
 			all,
-			[]action{{
-				perms: []weave.Condition{a},
-				// defaults to sender!
-				msg:    NewCreateMsg(a, b, c, some, 12345, ""),
-				height: 123,
-			}},
+			[]action{createAction(a, b, c, some, "")},
 			action{
 				perms: []weave.Condition{a},
 				msg: &UpdateEscrowPartiesMsg{
 					EscrowId: id(1),
 					Arbiter:  a,
 				},
-				height: 200,
+				height: 2000,
 			},
 			true,
 			nil,
@@ -501,19 +453,14 @@ func TestHandler(t *testing.T) {
 		14: {
 			a.Address(),
 			all,
-			[]action{{
-				perms: []weave.Condition{a},
-				// defaults to sender!
-				msg:    NewCreateMsg(a, b, c, some, 12345, ""),
-				height: 123,
-			}},
+			[]action{createAction(a, b, c, some, "")},
 			action{
 				perms: []weave.Condition{a},
 				msg: &UpdateEscrowPartiesMsg{
 					EscrowId: id(1),
 					Sender:   d,
 				},
-				height: 20000,
+				height: Timeout + 100,
 			},
 			true,
 			nil,
@@ -522,23 +469,21 @@ func TestHandler(t *testing.T) {
 		15: {
 			a.Address(),
 			all,
-			[]action{{
-				perms:  []weave.Condition{a},
-				msg:    NewCreateMsg(a, b, c, all, 12345, ""),
-				height: 1000,
-			}, {
-				perms: []weave.Condition{c},
-				msg: &ReleaseEscrowMsg{
-					EscrowId: id(1),
-				},
-				height: 2000,
-			}},
+			[]action{
+				createAction(a, b, c, all, ""),
+				{
+					perms: []weave.Condition{c},
+					msg: &ReleaseEscrowMsg{
+						EscrowId: id(1),
+					},
+					height: 2000,
+				}},
 			action{
 				perms: []weave.Condition{c},
 				msg: &ReleaseEscrowMsg{
 					EscrowId: id(1),
 				},
-				height: 2000,
+				height: 2050,
 			},
 			true,
 			[]query{
@@ -616,6 +561,15 @@ func TestHandler(t *testing.T) {
 				q.check(t, db, qr, "%d", k)
 			}
 		})
+	}
+}
+
+// createAction is a default action at height 1000, timeout 12345
+func createAction(sender, rcpt, arbiter weave.Condition, amount x.Coins, memo string) action {
+	return action{
+		perms:  []weave.Condition{sender},
+		msg:    NewCreateMsg(sender, rcpt, arbiter, amount, Timeout, memo),
+		height: 1000,
 	}
 }
 
