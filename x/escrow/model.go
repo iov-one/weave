@@ -54,7 +54,9 @@ func (e *Escrow) Copy() orm.CloneableData {
 	}
 }
 
-// AsEscrow safely extracts a Escrow value from the object
+// AsEscrow extracts an *Escrow value or nil from the object
+// Must be called on a Bucket result that is an *Escrow,
+// will panic on bad type.
 func AsEscrow(obj orm.Object) *Escrow {
 	if obj == nil || obj.Value() == nil {
 		return nil

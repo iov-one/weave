@@ -18,15 +18,7 @@ func NewDecorator() Decorator {
 func (d Decorator) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx,
 	next weave.Checker) (weave.CheckResult, error) {
 
-	// If the Tx supports this functionality, and there is a preimage
-	// present, then add this permission to the context
-	if hk, ok := tx.(HashKeyTx); ok {
-		preimage := hk.GetPreimage()
-		if preimage != nil {
-			ctx = withPreimage(ctx, preimage)
-		}
-	}
-
+	ctx = d.withPreimage(ctx, tx)
 	return next.Check(ctx, store, tx)
 }
 
@@ -34,14 +26,19 @@ func (d Decorator) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx,
 func (d Decorator) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx,
 	next weave.Deliverer) (weave.DeliverResult, error) {
 
-	// If the Tx supports this functionality, and there is a preimage
-	// present, then add this permission to the context
+	ctx = d.withPreimage(ctx, tx)
+	return next.Deliver(ctx, store, tx)
+}
+
+// withPreimage adds the hash preimage condition to the context
+// if the Tx supports this functionality, and there is a preimage
+// present
+func (d Decorator) withPreimage(ctx weave.Context, tx weave.Tx) weave.Context {
 	if hk, ok := tx.(HashKeyTx); ok {
 		preimage := hk.GetPreimage()
 		if preimage != nil {
 			ctx = withPreimage(ctx, preimage)
 		}
 	}
-
-	return next.Deliver(ctx, store, tx)
+	return ctx
 }

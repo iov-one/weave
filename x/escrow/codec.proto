@@ -19,6 +19,7 @@ message Escrow {
     // amount may contain multiple token types
     repeated x.Coin amount = 4;
     // if unreleased before timeout, will return to sender
+    // timeout stored here is absolute block height
     int64 timeout = 5;
     // max length 128 character
     string memo = 6;
