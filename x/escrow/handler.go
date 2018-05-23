@@ -247,9 +247,9 @@ func (h ReleaseEscrowHandler) validate(ctx weave.Context, db weave.KVStore,
 		return nil, nil, err
 	}
 
-	// arbiter must authorize this
-	arbiter := weave.Condition(escrow.Arbiter).Address()
-	if !h.auth.HasAddress(ctx, arbiter) {
+	// arbiter or sender must authorize this
+	if !x.HasNConditions(ctx, h.auth,
+		[]weave.Condition{escrow.Arbiter, escrow.Sender}, 1) {
 		return nil, nil, errors.ErrUnauthorized()
 	}
 
