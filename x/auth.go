@@ -9,7 +9,10 @@ import (
 // handlers, so we can plug in another authentication system,
 // rather than hardcoding x/auth for all extensions.
 type Authenticator interface {
+	// GetConditions reveals all Conditions fulfilled,
+	// you may want GetAddresses helper
 	GetConditions(weave.Context) []weave.Condition
+	// HasAddress checks if any condition matches this address
 	HasAddress(weave.Context, weave.Address) bool
 }
 
