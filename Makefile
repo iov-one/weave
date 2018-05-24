@@ -2,6 +2,7 @@
 
 GIT_VERSION := $(shell git describe --tags)
 BUILD_FLAGS := -ldflags "-X github.com/iov-one/bcp-demo.Version=$(GIT_VERSION)"
+DOCKER_BUILD_FLAGS := -a -installsuffix cgo
 TENDERMINT := ${GOBIN}/tendermint
 BUILDOUT ?= bov
 GOPATH ?= $$HOME/go
@@ -22,6 +23,11 @@ install:
 
 build:
 	go build $(BUILD_FLAGS) -o $(BUILDOUT) ./cmd/bov
+
+docker-build:
+	GOARCH=amd64 CGO_ENABLED=0 GOOS=linux go build $(BUILD_FLAGS) $(DOCKER_BUILD_FLAGS) -o $(BUILDOUT) ./cmd/bov
+	docker build . -t "iov1/bov:$(GIT_VERSION)"
+	rm -rf $(BUILDOUT)
 
 test:
 	go test -race ./...
