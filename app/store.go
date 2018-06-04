@@ -92,13 +92,6 @@ func (s *StoreApp) GetChainID() string {
 	return s.chainID
 }
 
-// WithGenesis is used to set the genesis file we read
-// initial state from, until it is sent from tendermint
-func (s *StoreApp) WithGenesis(genesisFile string) *StoreApp {
-	s.genesisFile = genesisFile
-	return s
-}
-
 // WithInit is used to set the init function we call
 func (s *StoreApp) WithInit(init weave.Initializer) *StoreApp {
 	s.initializer = init
@@ -299,12 +292,11 @@ func (s *StoreApp) Commit() (res abci.ResponseCommit) {
 // Note: in tendermint 0.17, the genesis file is passed
 // in here, we should use this to trigger reading the genesis now
 func (s *StoreApp) InitChain(req abci.RequestInitChain) (res abci.ResponseInitChain) {
-	return s.InitChainWithGenesis(req)
+	return s.InitChainWithAppState(req)
 }
 
-// InitChainWithGenesis mocks out what we want for tendermint 0.17
-func (s *StoreApp) InitChainWithGenesis(req abci.RequestInitChain) abci.ResponseInitChain {
-
+// InitChainWithAppState mocks out what we want for tendermint 0.17
+func (s *StoreApp) InitChainWithAppState(req abci.RequestInitChain) abci.ResponseInitChain {
 	err := s.parseAppState(req.AppStateBytes, s.initializer)
 	if err != nil {
 		// Read comment on type header

@@ -19,18 +19,29 @@ import (
 	"github.com/confio/weave/x/sigs"
 )
 
-func testInitChain(t *testing.T, myApp app.BaseApp, genesis []byte, chainID string) {
+func testInitChain(t *testing.T, myApp app.BaseApp, addr string) {
 	// initialize chain
+	appState := fmt.Sprintf(`{
+            "cash": [{
+                "address": "%s",
+                "coins": [{
+                    "whole": 50000,
+                    "ticker": "ETH"
+                    }, {
+                    "whole": 1234,
+                    "ticker": "FRNK"
+                }]
+            }]}`, addr)
 	assert.Equal(t, "", myApp.GetChainID())
-	myApp.InitChainWithGenesis(abci.RequestInitChain{}, genesis)
-	assert.Equal(t, chainID, myApp.GetChainID())
+	myApp.InitChainWithAppState(abci.RequestInitChain{AppStateBytes: []byte(appState)})
 }
 
 // testCommit will commit at height h and return new hash
-func testCommit(t *testing.T, myApp app.BaseApp, h int64) []byte {
+func testCommit(t *testing.T, myApp app.BaseApp, h int64, chainId string) []byte {
 	// Commit first block, make sure non-nil hash
-	header := abci.Header{Height: h}
+	header := abci.Header{Height: h, ChainID: chainId}
 	myApp.BeginBlock(abci.RequestBeginBlock{Header: header})
+	assert.Equal(t, chainId, myApp.GetChainID())
 	myApp.EndBlock(abci.RequestEndBlock{})
 	cres := myApp.Commit()
 	hash := cres.Data
@@ -102,24 +113,9 @@ func TestApp(t *testing.T) {
 	// let's set up a genesis file with some cash
 	pk := crypto.GenPrivKeyEd25519()
 	addr := pk.PublicKey().Address()
-	genesis := fmt.Sprintf(`{
-        "chain_id": "%s",
-        "app_state": {
-            "cash": [{
-                "address": "%s",
-                "coins": [{
-                    "whole": 50000,
-                    "ticker": "ETH"
-                    }, {
-                    "whole": 1234,
-                    "ticker": "FRNK"
-                }]
-            }]
-        }
-    }`, chainID, addr)
 
-	testInitChain(t, myApp, []byte(genesis), chainID)
-	hash1 := testCommit(t, myApp, 1)
+	testInitChain(t, myApp, addr.String())
+	hash1 := testCommit(t, myApp, 1, chainID)
 
 	var acct cash.Set
 	key := cash.NewBucket().DBKey(addr)
@@ -133,7 +129,7 @@ func TestApp(t *testing.T) {
 	addr2 := pk2.PublicKey().Address()
 	dres := testSendTx(t, myApp, 2, 2000, "ETH", pk, addr2, 0)
 	// and commit the block
-	hash2 := testCommit(t, myApp, 2)
+	hash2 := testCommit(t, myApp, 2, chainID)
 	assert.NotEqual(t, hash1, hash2)
 
 	// ensure 3 keys with proper values
@@ -190,7 +186,7 @@ func TestApp(t *testing.T) {
 	// try another send
 	testSendTx(t, myApp, 3, 100, "FRNK", pk, addr2, 1)
 	// and commit the block
-	hash3 := testCommit(t, myApp, 3)
+	hash3 := testCommit(t, myApp, 3, chainID)
 	assert.NotEqual(t, hash2, hash3)
 
 	var second cash.Set
