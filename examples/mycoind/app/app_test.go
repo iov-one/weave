@@ -33,7 +33,7 @@ func testInitChain(t *testing.T, myApp app.BaseApp, addr string) {
                 }]
             }]}`, addr)
 	assert.Equal(t, "", myApp.GetChainID())
-	myApp.InitChainWithAppState(abci.RequestInitChain{AppStateBytes: []byte(appState)})
+	myApp.InitChain(abci.RequestInitChain{AppStateBytes: []byte(appState)})
 }
 
 // testCommit will commit at height h and return new hash

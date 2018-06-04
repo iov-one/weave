@@ -292,11 +292,6 @@ func (s *StoreApp) Commit() (res abci.ResponseCommit) {
 // Note: in tendermint 0.17, the genesis file is passed
 // in here, we should use this to trigger reading the genesis now
 func (s *StoreApp) InitChain(req abci.RequestInitChain) (res abci.ResponseInitChain) {
-	return s.InitChainWithAppState(req)
-}
-
-// InitChainWithAppState mocks out what we want for tendermint 0.17
-func (s *StoreApp) InitChainWithAppState(req abci.RequestInitChain) abci.ResponseInitChain {
 	err := s.parseAppState(req.AppStateBytes, s.initializer)
 	if err != nil {
 		// Read comment on type header
@@ -309,20 +304,18 @@ func (s *StoreApp) InitChainWithAppState(req abci.RequestInitChain) abci.Respons
 // BeginBlock implements ABCI
 // Sets up blockContext
 func (s *StoreApp) BeginBlock(req abci.RequestBeginBlock) (res abci.ResponseBeginBlock) {
+	if s.chainID == "" {
+		err := s.storeChainID(req.Header.ChainID)
+		if err != nil {
+			// Read comment on type header
+			panic(err)
+		}
+	}
+
 	// set the begin block context
 	ctx := weave.WithHeader(s.baseContext, req.Header)
 	ctx = weave.WithHeight(ctx, req.Header.GetHeight())
 	s.blockContext = ctx
-
-	if s.chainID != "" {
-		return
-	}
-
-	err := s.storeChainID(req.Header.ChainID)
-	if err != nil {
-		// Read comment on type header
-		panic(err)
-	}
 
 	return
 }
