@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"strings"
 
 	abci "github.com/tendermint/abci/types"
@@ -19,6 +18,13 @@ import (
 //
 // It should be embedded in another struct for CheckTx,
 // DeliverTx and initializing state from the genesis.
+// Errors on ABCI steps handled as panics
+// I'm sorry Alex, but there is no other way :(
+// https://github.com/tendermint/abci/issues/165#issuecomment-353704015
+// "Regarding errors in general, for messages that don't take
+//  user input like Flush, Info, InitChain, BeginBlock, EndBlock,
+// and Commit.... There is no way to handle these errors gracefully,
+// so we might as well panic."
 type StoreApp struct {
 	logger log.Logger
 
@@ -99,32 +105,34 @@ func (s *StoreApp) WithInit(init weave.Initializer) *StoreApp {
 	return s
 }
 
-// parseGenesis is called from InitChain, the first time the chain
+// parseAppState is called from InitChain, the first time the chain
 // starts, and not on restarts.
-//
-// It currently take bytes from local genesis file, soon, it will
-// receive genesis bytes from tendermint
-func (s *StoreApp) parseGenesis(data []byte, init weave.Initializer) error {
+func (s *StoreApp) parseAppState(data []byte, init weave.Initializer) error {
 	if s.chainID != "" {
-		return fmt.Errorf("Genesis file previously loaded for chain: %s", s.chainID)
+		return fmt.Errorf("appState previously loaded for chain: %s", s.chainID)
 	}
 
-	var gen Genesis
-	err := json.Unmarshal(data, &gen)
+	var appState weave.Options
+	err := json.Unmarshal(data, &appState)
 	if err != nil {
 		return errors.WithCode(err, errors.CodeTxParseError)
 	}
 
-	// set the chainID from the genesis file
-	s.chainID = gen.ChainID
-	err = saveChainID(s.DeliverStore(), s.chainID)
+	return init.FromGenesis(appState, s.DeliverStore())
+}
+
+// store chainID and update context
+func (s *StoreApp) storeChainID(chainId string) error {
+	// set the chainID
+	s.chainID = chainId
+	err := saveChainID(s.DeliverStore(), s.chainID)
 	if err != nil {
 		return err
 	}
 	// and update the context
 	s.baseContext = weave.WithChainID(s.baseContext, s.chainID)
 
-	return init.FromGenesis(gen.AppState, s.DeliverStore())
+	return nil
 }
 
 // WithLogger sets the logger on the StoreApp and returns it,
@@ -291,29 +299,18 @@ func (s *StoreApp) Commit() (res abci.ResponseCommit) {
 // Note: in tendermint 0.17, the genesis file is passed
 // in here, we should use this to trigger reading the genesis now
 func (s *StoreApp) InitChain(req abci.RequestInitChain) (res abci.ResponseInitChain) {
-	bz, err := ioutil.ReadFile(s.genesisFile)
-	if err != nil {
-		// I'm sorry Alex, but there is no other way :(
-		// https://github.com/tendermint/abci/issues/165#issuecomment-353704015
-		// "Regarding errors in general, for messages that don't take
-		//  user input like Flush, Info, InitChain, BeginBlock, EndBlock,
-		// and Commit.... There is no way to handle these errors gracefully,
-		// so we might as well panic."
-		panic(err)
-	}
-
-	return s.InitChainWithGenesis(req, bz)
+	return s.InitChainWithGenesis(req)
 }
 
 // InitChainWithGenesis mocks out what we want for tendermint 0.17
-func (s *StoreApp) InitChainWithGenesis(req abci.RequestInitChain,
-	data []byte) abci.ResponseInitChain {
+func (s *StoreApp) InitChainWithGenesis(req abci.RequestInitChain) abci.ResponseInitChain {
 
-	err := s.parseGenesis(data, s.initializer)
+	err := s.parseAppState(req.AppStateBytes, s.initializer)
 	if err != nil {
-		// I know, read above...
+		// Read comment on type header
 		panic(err)
 	}
+
 	return abci.ResponseInitChain{}
 }
 
@@ -324,6 +321,16 @@ func (s *StoreApp) BeginBlock(req abci.RequestBeginBlock) (res abci.ResponseBegi
 	ctx := weave.WithHeader(s.baseContext, req.Header)
 	ctx = weave.WithHeight(ctx, req.Header.GetHeight())
 	s.blockContext = ctx
+
+	if s.chainID != "" {
+		return
+	}
+
+	err := s.storeChainID(req.Header.ChainID)
+	if err != nil {
+		// Read comment on type header
+		panic(err)
+	}
 
 	return
 }
