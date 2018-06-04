@@ -6,7 +6,7 @@ TENDERMINT := ${GOBIN}/tendermint
 BUILDOUT ?= mycoind
 GOPATH ?= $$HOME/go
 
-TM_VERSION := v0.17.1
+TM_VERSION := v0.19.7
 
 install:
 	go install $(BUILD_FLAGS) .

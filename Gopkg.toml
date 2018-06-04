@@ -43,19 +43,15 @@
 
 [[constraint]]
   name = "github.com/tendermint/abci"
-  version = "0.10.0"
-
-[[constraint]]
-  name = "github.com/tendermint/go-wire"
-  version = "0.7.3"
+  version = "~0.10.3"
 
 [[constraint]]
   name = "github.com/tendermint/iavl"
-  version = "0.7.0"
+  version = "v0.8.0-rc0"
 
 [[constraint]]
   name = "github.com/tendermint/tmlibs"
-  version = "0.7.0"
+  version = "~0.8.3-rc0"
 
 [prune]
   go-tests = true
