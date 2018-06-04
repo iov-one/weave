@@ -4,12 +4,6 @@ import (
 	"github.com/confio/weave"
 )
 
-// Genesis file format, designed to be overlayed with tendermint genesis
-type Genesis struct {
-	ChainID  string        `json:"chain_id"`
-	AppState weave.Options `json:"app_state"`
-}
-
 //------ init state -----
 
 // ChainInitializers lets you initialize many extensions with one function
