@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	abci "github.com/tendermint/abci/types"
-	"github.com/tendermint/go-wire/data"
 	"github.com/tendermint/tmlibs/common"
 
 	"github.com/confio/weave/errors"
@@ -37,7 +36,7 @@ func CheckOrError(result CheckResult, err error) abci.ResponseCheckTx {
 // DeliverResult captures any non-error abci result
 // to make sure people use error for error cases
 type DeliverResult struct {
-	Data    data.Bytes
+	Data    []byte
 	Log     string
 	Diff    []abci.Validator
 	Tags    []common.KVPair
@@ -56,7 +55,7 @@ func (d DeliverResult) ToABCI() abci.ResponseDeliverTx {
 // CheckResult captures any non-error abci result
 // to make sure people use error for error cases
 type CheckResult struct {
-	Data data.Bytes
+	Data []byte
 	Log  string
 	// GasAllocated is the maximum units of work we allow this tx to perform
 	GasAllocated int64
