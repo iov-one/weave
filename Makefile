@@ -7,7 +7,7 @@ TENDERMINT := ${GOBIN}/tendermint
 BUILDOUT ?= bov
 GOPATH ?= $$HOME/go
 
-TM_VERSION := v0.17.1
+TM_VERSION := v0.19.7
 
 # dont use `` in the makefile for windows compatibility
 NOVENDOR := $(shell go list ./...)
