@@ -25,7 +25,7 @@ import (
 // returns list of signer addresses (possibly empty),
 // or error if any signature is invalid
 func VerifyTxSignatures(store weave.KVStore, tx SignedTx,
-	chainID string) ([]weave.Permission, error) {
+	chainID string) ([]weave.Condition, error) {
 
 	bz, err := tx.GetSignBytes()
 	if err != nil {
@@ -33,7 +33,7 @@ func VerifyTxSignatures(store weave.KVStore, tx SignedTx,
 	}
 	sigs := tx.GetSignatures()
 
-	signers := make([]weave.Permission, 0, len(sigs))
+	signers := make([]weave.Condition, 0, len(sigs))
 	for _, sig := range sigs {
 		// TODO: separate into own function (verify one sig)
 		signer, err := VerifySignature(store, sig, bz, chainID)
@@ -49,7 +49,7 @@ func VerifyTxSignatures(store weave.KVStore, tx SignedTx,
 // VerifySignature checks one signature against signbytes,
 // check chain and updates state in the store
 func VerifySignature(db weave.KVStore, sig *StdSignature,
-	signBytes []byte, chainID string) (weave.Permission, error) {
+	signBytes []byte, chainID string) (weave.Condition, error) {
 
 	// we guarantee sequence makes sense and pubkey or address is there
 	err := sig.Validate()
@@ -83,7 +83,7 @@ func VerifySignature(db weave.KVStore, sig *StdSignature,
 	if err != nil {
 		return nil, err
 	}
-	return user.PubKey.Permission(), nil
+	return user.PubKey.Condition(), nil
 }
 
 // BuildSignBytes combines all info on the actual tx before signing

@@ -1,7 +1,5 @@
 package weave
 
-// "golang.org/x/crypto/blake2b"
-
 // Msg is message for the blockchain to take an action
 // (Make a state transition). It is just the request, and
 // must be validated by the Handlers. All authentication

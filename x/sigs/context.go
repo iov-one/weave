@@ -18,7 +18,7 @@ const (
 
 // withSigners is a private method, as only this module
 // can add a signer
-func withSigners(ctx weave.Context, signers []weave.Permission) weave.Context {
+func withSigners(ctx weave.Context, signers []weave.Condition) weave.Context {
 	return context.WithValue(ctx, contextKeySigners, signers)
 }
 
@@ -28,11 +28,11 @@ type Authenticate struct{}
 
 var _ x.Authenticator = Authenticate{}
 
-// GetPermissions returns who signed the current Context.
+// GetConditions returns who signed the current Context.
 // May be empty
-func (a Authenticate) GetPermissions(ctx weave.Context) []weave.Permission {
+func (a Authenticate) GetConditions(ctx weave.Context) []weave.Condition {
 	// (val, ok) form to return nil instead of panic if unset
-	val, _ := ctx.Value(contextKeySigners).([]weave.Permission)
+	val, _ := ctx.Value(contextKeySigners).([]weave.Condition)
 	// if we were paranoid about our own code, we would deep-copy
 	// the signers here
 	return val
@@ -41,7 +41,7 @@ func (a Authenticate) GetPermissions(ctx weave.Context) []weave.Permission {
 // HasAddress returns true if the given address
 // had signed in the current Context.
 func (a Authenticate) HasAddress(ctx weave.Context, addr weave.Address) bool {
-	signers := a.GetPermissions(ctx)
+	signers := a.GetConditions(ctx)
 	for _, s := range signers {
 		if addr.Equals(s.Address()) {
 			return true

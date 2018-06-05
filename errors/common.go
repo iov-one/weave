@@ -1,6 +1,7 @@
 package errors
 
 import (
+	stderrors "errors"
 	"fmt"
 
 	"github.com/pkg/errors"
@@ -18,16 +19,16 @@ const (
 )
 
 var (
-	errDecoding               = fmt.Errorf("Error decoding input")
-	errTooLarge               = fmt.Errorf("Input size too large")
-	errUnknownTxType          = fmt.Errorf("Tx type unknown")
-	errUnauthorized           = fmt.Errorf("Unauthorized")
-	errMissingSignature       = fmt.Errorf("Signature missing")
-	errInvalidSignature       = fmt.Errorf("Signature invalid")
-	errUnrecognizedAddress    = fmt.Errorf("Unrecognized Address")
-	errUnrecognizedPermission = fmt.Errorf("Unrecognized Permission")
-	errInvalidChainID         = fmt.Errorf("Invalid ChainID")
-	errModifyChainID          = fmt.Errorf("Cannot modify ChainID")
+	errDecoding              = stderrors.New("Error decoding input")
+	errTooLarge              = stderrors.New("Input size too large")
+	errUnknownTxType         = stderrors.New("Tx type unknown")
+	errUnauthorized          = stderrors.New("Unauthorized")
+	errMissingSignature      = stderrors.New("Signature missing")
+	errInvalidSignature      = stderrors.New("Signature invalid")
+	errUnrecognizedAddress   = stderrors.New("Unrecognized Address")
+	errUnrecognizedCondition = stderrors.New("Unrecognized Condition")
+	errInvalidChainID        = stderrors.New("Invalid ChainID")
+	errModifyChainID         = stderrors.New("Cannot modify ChainID")
 )
 
 // IsSameError returns true if these errors have the same root cause.
@@ -90,20 +91,20 @@ func IsUnrecognizedAddressErr(err error) bool {
 	return IsSameError(errUnrecognizedAddress, err)
 }
 
-// ErrUnrecognizedPermission is used for anything that is not
+// ErrUnrecognizedCondition is used for anything that is not
 // the proper format
-func ErrUnrecognizedPermission(perm []byte) error {
+func ErrUnrecognizedCondition(cond []byte) error {
 	msg := "(nil)"
-	if len(perm) > 0 {
-		msg = fmt.Sprintf("%X", perm)
+	if len(cond) > 0 {
+		msg = fmt.Sprintf("%X", cond)
 	}
-	return WithLog(msg, errUnrecognizedPermission, CodeUnrecognizedAddress)
+	return WithLog(msg, errUnrecognizedCondition, CodeUnrecognizedAddress)
 }
 
-// IsUnrecognizedPermissionErr returns true iff an error was created
-// with ErrUnrecognizedPermission
-func IsUnrecognizedPermissionErr(err error) bool {
-	return IsSameError(errUnrecognizedPermission, err)
+// IsUnrecognizedConditionErr returns true iff an error was created
+// with ErrUnrecognizedCondition
+func IsUnrecognizedConditionErr(err error) bool {
+	return IsSameError(errUnrecognizedCondition, err)
 }
 
 // ErrInternal is a generic error code when we cannot return any more

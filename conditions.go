@@ -21,60 +21,60 @@ var (
 	perm = regexp.MustCompile(`(?s)^([a-zA-Z0-9_\-]{3,8})/([a-zA-Z0-9_\-]{3,8})/(.+)$`)
 )
 
-// Permission is a specially formatted array, containing
+// Condition is a specially formatted array, containing
 // information on who can authorize an action.
 // It is of the format:
 //
 //   sprintf("%s/%s/%s", extension, type, data)
-type Permission []byte
+type Condition []byte
 
-func NewPermission(ext, typ string, data []byte) Permission {
+func NewCondition(ext, typ string, data []byte) Condition {
 	pre := fmt.Sprintf("%s/%s/", ext, typ)
 	return append([]byte(pre), data...)
 }
 
-// Parse will extract the sections from the Permission bytes
+// Parse will extract the sections from the Condition bytes
 // and verify it is properly formatted
-func (p Permission) Parse() (string, string, []byte, error) {
-	chunks := perm.FindSubmatch(p)
+func (c Condition) Parse() (string, string, []byte, error) {
+	chunks := perm.FindSubmatch(c)
 	if len(chunks) == 0 {
-		return "", "", nil, errors.ErrUnrecognizedPermission(p)
+		return "", "", nil, errors.ErrUnrecognizedCondition(c)
 	}
 	// returns [all, match1, match2, match3]
 	return string(chunks[1]), string(chunks[2]), chunks[3], nil
 }
 
-// Address will convert a Permission into an Address
-func (p Permission) Address() Address {
-	return NewAddress(p)
+// Address will convert a Condition into an Address
+func (c Condition) Address() Address {
+	return NewAddress(c)
 }
 
 // Equals checks if two permissions are the same
-func (a Permission) Equals(b Permission) bool {
+func (a Condition) Equals(b Condition) bool {
 	return bytes.Equal(a, b)
 }
 
 // String returns a human readable string.
 // We keep the extension and type in ascii and
 // hex-encode the binary data
-func (p Permission) String() string {
-	ext, typ, data, err := p.Parse()
+func (c Condition) String() string {
+	ext, typ, data, err := c.Parse()
 	if err != nil {
-		return fmt.Sprintf("Invalid Permission: %X", []byte(p))
+		return fmt.Sprintf("Invalid Condition: %X", []byte(c))
 	}
 	return fmt.Sprintf("%s/%s/%X", ext, typ, data)
 }
 
-// Validate returns an error if the Permission is not the proper format
-func (p Permission) Validate() error {
-	if !perm.Match(p) {
-		return errors.ErrUnrecognizedPermission(p)
+// Validate returns an error if the Condition is not the proper format
+func (c Condition) Validate() error {
+	if !perm.Match(c) {
+		return errors.ErrUnrecognizedCondition(c)
 	}
 	return nil
 }
 
 // Address represents a collision-free, one-way digest
-// of a permission
+// of a Condition
 //
 // It will be of size AddressLength
 type Address []byte

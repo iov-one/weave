@@ -21,10 +21,10 @@ func TestAuth(t *testing.T) {
 	cases := []struct {
 		ctx        weave.Context
 		auth       Authenticator
-		mainSigner weave.Permission
-		has        weave.Permission
-		notHave    weave.Permission
-		all        []weave.Permission
+		mainSigner weave.Condition
+		has        weave.Condition
+		notHave    weave.Condition
+		all        []weave.Condition
 	}{
 		0: {
 			context.Background(),
@@ -40,7 +40,7 @@ func TestAuth(t *testing.T) {
 			a,
 			a,
 			b,
-			[]weave.Permission{a},
+			[]weave.Condition{a},
 		},
 		{
 			context.Background(),
@@ -50,20 +50,20 @@ func TestAuth(t *testing.T) {
 			b,
 			b,
 			c,
-			[]weave.Permission{b, a},
+			[]weave.Condition{b, a},
 		},
 		// ctxAuth checks what is set by same key
 		{
-			ctx1.SetPermissions(context.Background(), a, b),
+			ctx1.SetConditions(context.Background(), a, b),
 			ctx1,
 			a,
 			b,
 			c,
-			[]weave.Permission{a, b},
+			[]weave.Condition{a, b},
 		},
 		// ctxAuth with different key sees nothing
 		{
-			ctx1.SetPermissions(context.Background(), a, b),
+			ctx1.SetConditions(context.Background(), a, b),
 			ctx2,
 			nil,
 			nil,
@@ -81,13 +81,13 @@ func TestAuth(t *testing.T) {
 			}
 			assert.False(t, tc.auth.HasAddress(ctx, tc.notHave.Address()))
 
-			all := tc.auth.GetPermissions(ctx)
+			all := tc.auth.GetConditions(ctx)
 			assert.Equal(t, tc.all, all)
-			assert.True(t, HasAllPermissions(ctx, tc.auth, all))
-			assert.False(t, HasAllPermissions(ctx, tc.auth, append(all, tc.notHave)))
+			assert.True(t, HasAllConditions(ctx, tc.auth, all))
+			assert.False(t, HasAllConditions(ctx, tc.auth, append(all, tc.notHave)))
 			if len(all) > 0 {
-				assert.True(t, HasNPermissions(ctx, tc.auth, all, len(all)-1))
-				assert.False(t, HasNPermissions(ctx, tc.auth, all, len(all)+1))
+				assert.True(t, HasNConditions(ctx, tc.auth, all, len(all)-1))
+				assert.False(t, HasNConditions(ctx, tc.auth, all, len(all)+1))
 			}
 		})
 	}

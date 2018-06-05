@@ -22,7 +22,7 @@ func TestDecorator(t *testing.T) {
 	ctx := weave.WithChainID(context.Background(), chainID)
 
 	priv := crypto.GenPrivKeyEd25519()
-	perms := []weave.Permission{priv.PublicKey().Permission()}
+	perms := []weave.Condition{priv.PublicKey().Condition()}
 
 	bz := []byte("art")
 	tx := NewStdTx(bz)
@@ -61,7 +61,7 @@ func TestDecorator(t *testing.T) {
 		tx.Signatures = nil
 		err = fn(ad, tx)
 		assert.NoError(t, err, "%d", i)
-		assert.Equal(t, []weave.Permission{}, signers.Signers)
+		assert.Equal(t, []weave.Condition{}, signers.Signers)
 
 		// test allowing, with next sequence
 		tx.Signatures = []*StdSignature{sig1}
@@ -76,19 +76,19 @@ func TestDecorator(t *testing.T) {
 
 // SigCheckHandler stores the seen signers on each call
 type SigCheckHandler struct {
-	Signers []weave.Permission
+	Signers []weave.Condition
 }
 
 var _ weave.Handler = (*SigCheckHandler)(nil)
 
 func (s *SigCheckHandler) Check(ctx weave.Context, store weave.KVStore,
 	tx weave.Tx) (res weave.CheckResult, err error) {
-	s.Signers = Authenticate{}.GetPermissions(ctx)
+	s.Signers = Authenticate{}.GetConditions(ctx)
 	return
 }
 
 func (s *SigCheckHandler) Deliver(ctx weave.Context, store weave.KVStore,
 	tx weave.Tx) (res weave.DeliverResult, err error) {
-	s.Signers = Authenticate{}.GetPermissions(ctx)
+	s.Signers = Authenticate{}.GetConditions(ctx)
 	return
 }

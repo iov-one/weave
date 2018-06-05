@@ -4,13 +4,13 @@ import (
 	"github.com/confio/weave"
 )
 
-// ExtensionName is used for the Permissions we get from signatures
+// ExtensionName is used for the Conditions we get from signatures
 const ExtensionName = "sigs"
 
 // PubKey represents a crypto public key we use
 type PubKey interface {
 	Verify(message []byte, sig *Signature) bool
-	Permission() weave.Permission
+	Condition() weave.Condition
 }
 
 // Signer is the functionality we use from a private key
@@ -50,19 +50,19 @@ func (p *PublicKey) Verify(message []byte, sig *Signature) bool {
 	return p.unwrap().Verify(message, sig)
 }
 
-// Permission generates a Permission object to represent a valid
+// Condition generates a Condition object to represent a valid
 // signature.
-func (p *PublicKey) Permission() weave.Permission {
+func (p *PublicKey) Condition() weave.Condition {
 	in := p.unwrap()
 	if in == nil {
 		return nil
 	}
-	return in.Permission()
+	return in.Condition()
 }
 
-// Address is a convenience method to get the Permission then take Address
+// Address is a convenience method to get the Condition then take Address
 func (p *PublicKey) Address() weave.Address {
-	return p.Permission().Address()
+	return p.Condition().Address()
 }
 
 var _ Signer = (*PrivateKey)(nil)

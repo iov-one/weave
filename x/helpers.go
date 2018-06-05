@@ -88,9 +88,9 @@ func (TestHelpers) Wrap(d weave.Decorator, h weave.Handler) weave.Handler {
 }
 
 // MakeKey returns a random PrivateKey and the associated address
-func (TestHelpers) MakeKey() (crypto.Signer, weave.Permission) {
+func (TestHelpers) MakeKey() (crypto.Signer, weave.Condition) {
 	priv := crypto.GenPrivKeyEd25519()
-	addr := priv.PublicKey().Permission()
+	addr := priv.PublicKey().Condition()
 	return priv, addr
 }
 
@@ -106,7 +106,7 @@ func (TestHelpers) MockTx(msg weave.Msg) weave.Tx {
 
 // Authenticate returns an Authenticator that gives permissions
 // to the given addresses
-func (TestHelpers) Authenticate(perms ...weave.Permission) Authenticator {
+func (TestHelpers) Authenticate(perms ...weave.Condition) Authenticator {
 	return mockAuth{perms}
 }
 
@@ -174,12 +174,12 @@ func (m *mockTx) Unmarshal(bz []byte) error {
 //------ static auth (added in constructor)
 
 type mockAuth struct {
-	signers []weave.Permission
+	signers []weave.Condition
 }
 
 var _ Authenticator = mockAuth{}
 
-func (a mockAuth) GetPermissions(weave.Context) []weave.Permission {
+func (a mockAuth) GetConditions(weave.Context) []weave.Condition {
 	return a.signers
 }
 
@@ -201,20 +201,20 @@ type CtxAuther struct {
 
 var _ Authenticator = CtxAuther{}
 
-// SetPermissions returns a context with the given permissions set
-func (a CtxAuther) SetPermissions(ctx weave.Context, perms ...weave.Permission) weave.Context {
+// SetConditions returns a context with the given permissions set
+func (a CtxAuther) SetConditions(ctx weave.Context, perms ...weave.Condition) weave.Context {
 	return context.WithValue(ctx, a.key, perms)
 }
 
-// GetPermissions returns permissions previously set on this context
-func (a CtxAuther) GetPermissions(ctx weave.Context) []weave.Permission {
-	val, _ := ctx.Value(a.key).([]weave.Permission)
+// GetConditions returns permissions previously set on this context
+func (a CtxAuther) GetConditions(ctx weave.Context) []weave.Condition {
+	val, _ := ctx.Value(a.key).([]weave.Condition)
 	return val
 }
 
-// HasAddress returns true iff this address is in GetPermissions
+// HasAddress returns true iff this address is in GetConditions
 func (a CtxAuther) HasAddress(ctx weave.Context, addr weave.Address) bool {
-	for _, s := range a.GetPermissions(ctx) {
+	for _, s := range a.GetConditions(ctx) {
 		if addr.Equals(s.Address()) {
 			return true
 		}

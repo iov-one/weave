@@ -52,7 +52,7 @@ func TestVerifySignature(t *testing.T) {
 	kv := store.MemStore()
 	priv := crypto.GenPrivKeyEd25519()
 	pub := priv.PublicKey()
-	perm := pub.Permission()
+	perm := pub.Condition()
 
 	chainID := "emo-music-2345"
 	bz := []byte("my special valentine")
@@ -112,9 +112,9 @@ func TestVerifyTxSignatures(t *testing.T) {
 	kv := store.MemStore()
 
 	priv := crypto.GenPrivKeyEd25519()
-	addr := priv.PublicKey().Permission()
+	addr := priv.PublicKey().Condition()
 	priv2 := crypto.GenPrivKeyEd25519()
-	addr2 := priv2.PublicKey().Permission()
+	addr2 := priv2.PublicKey().Condition()
 
 	chainID := "hot_summer_days"
 	bz := []byte("ice cream")

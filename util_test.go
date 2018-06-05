@@ -64,15 +64,15 @@ func TestAddress(t *testing.T) {
 	assert.True(t, addr.Equals(addr3))
 }
 
-func TestPermission(t *testing.T) {
-	other := NewPermission("some", "such", []byte("data"))
+func TestCondition(t *testing.T) {
+	other := NewCondition("some", "such", []byte("data"))
 	failure, err := hex.DecodeString("736967732F656432353531392F16E290A51B2B136C2C213884D03B8BAE483D6133F0A3D110FED3890E0A5A4E18")
 	require.NoError(t, err)
 	data, err := hex.DecodeString("16E290A51B2B136C2C213884D03B8BAE483D6133F0A3D110FED3890E0A5A4E18")
 	require.NoError(t, err)
 
 	cases := []struct {
-		perm    Permission
+		perm    Condition
 		isError bool
 		ext     string
 		typ     string
@@ -85,7 +85,7 @@ func TestPermission(t *testing.T) {
 		},
 		// bad format
 		{
-			NewPermission("a.b", "dfr", []byte{34}), true, "", "", nil, "",
+			NewCondition("a.b", "dfr", []byte{34}), true, "", "", nil, "",
 		},
 		// good format
 		{
@@ -98,7 +98,7 @@ func TestPermission(t *testing.T) {
 		},
 		// non-ascii data
 		{
-			NewPermission("help", "W1N", []byte{0xCA, 0xFE}),
+			NewCondition("help", "W1N", []byte{0xCA, 0xFE}),
 			false,
 			"help",
 			"W1N",
@@ -133,7 +133,7 @@ func TestPermission(t *testing.T) {
 			assert.Equal(t, tc.data, data)
 
 			// equal should pass with proper bytes
-			cp := NewPermission(ext, typ, data)
+			cp := NewCondition(ext, typ, data)
 			assert.True(t, tc.perm.Equals(cp))
 
 			// doesn't match arbitrary other permission
@@ -150,11 +150,11 @@ func TestPermission(t *testing.T) {
 
 func TestEmpty(t *testing.T) {
 	var addr Address
-	var perm Permission
-	badPerm := Permission{0xFA, 0xDE}
+	var perm Condition
+	badPerm := Condition{0xFA, 0xDE}
 
 	assert.Equal(t, "(nil)", addr.String())
 	assert.Nil(t, perm.Address())
-	assert.Equal(t, "Invalid Permission: FADE", badPerm.String())
-	assert.Equal(t, "Invalid Permission: ", perm.String())
+	assert.Equal(t, "Invalid Condition: FADE", badPerm.String())
+	assert.Equal(t, "Invalid Condition: ", perm.String())
 }
