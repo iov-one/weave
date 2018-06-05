@@ -39,7 +39,7 @@ func (e *Escrow) Validate() error {
 	if err := validateAmount(e.Amount); err != nil {
 		return err
 	}
-	return validatePermissions(e.Arbiter, e.Sender, e.Recipient)
+	return validateConditions(e.Arbiter, e.Sender, e.Recipient)
 }
 
 // Copy makes a new set with the same coins
@@ -54,7 +54,9 @@ func (e *Escrow) Copy() orm.CloneableData {
 	}
 }
 
-// AsEscrow safely extracts a Escrow value from the object
+// AsEscrow extracts an *Escrow value or nil from the object
+// Must be called on a Bucket result that is an *Escrow,
+// will panic on bad type.
 func AsEscrow(obj orm.Object) *Escrow {
 	if obj == nil || obj.Value() == nil {
 		return nil
@@ -63,7 +65,7 @@ func AsEscrow(obj orm.Object) *Escrow {
 }
 
 // NewEscrow creates an escrow orm.Object
-func NewEscrow(id []byte, sender, rcpt, arb weave.Permission,
+func NewEscrow(id []byte, sender, rcpt, arb weave.Condition,
 	amount x.Coins, timeout int64, memo string) orm.Object {
 	esc := &Escrow{
 		Sender:    sender,
@@ -76,10 +78,10 @@ func NewEscrow(id []byte, sender, rcpt, arb weave.Permission,
 	return orm.NewSimpleObj(id, esc)
 }
 
-// Permission calculates the address of an escrow given
+// Condition calculates the address of an escrow given
 // the key
-func Permission(key []byte) weave.Permission {
-	return weave.NewPermission("escrow", "seq", key)
+func Condition(key []byte) weave.Condition {
+	return weave.NewCondition("escrow", "seq", key)
 }
 
 // NewEscrow generates a new Escrow object

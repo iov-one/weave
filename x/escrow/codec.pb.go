@@ -42,7 +42,7 @@ const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
 // Note that if the arbiter is a Hashlock permission, we have
 // an HTLC ;)
 type Escrow struct {
-	// Sender, Arbiter, Recipient are all weave.Permission
+	// Sender, Arbiter, Recipient are all weave.Condition
 	Sender    []byte `protobuf:"bytes,1,opt,name=sender,proto3" json:"sender,omitempty"`
 	Arbiter   []byte `protobuf:"bytes,2,opt,name=arbiter,proto3" json:"arbiter,omitempty"`
 	Recipient []byte `protobuf:"bytes,3,opt,name=recipient,proto3" json:"recipient,omitempty"`
@@ -105,7 +105,7 @@ func (m *Escrow) GetMemo() string {
 // If sender is not defined, it defaults to the first signer
 // The rest must be defined
 type CreateEscrowMsg struct {
-	// Sender, Arbiter, Recipient are all weave.Permission
+	// Sender, Arbiter, Recipient are all weave.Condition
 	Sender    []byte `protobuf:"bytes,1,opt,name=sender,proto3" json:"sender,omitempty"`
 	Arbiter   []byte `protobuf:"bytes,2,opt,name=arbiter,proto3" json:"arbiter,omitempty"`
 	Recipient []byte `protobuf:"bytes,3,opt,name=recipient,proto3" json:"recipient,omitempty"`

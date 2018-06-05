@@ -45,7 +45,7 @@ func (UpdateEscrowPartiesMsg) Path() string {
 //--------- Validation --------
 
 // NewCreateMsg is a helper to quickly build a create escrow message
-func NewCreateMsg(send, rcpt, arb weave.Permission,
+func NewCreateMsg(send, rcpt, arb weave.Condition,
 	amount x.Coins, timeout int64, memo string) *CreateEscrowMsg {
 	return &CreateEscrowMsg{
 		Sender:    send,
@@ -74,7 +74,7 @@ func (m *CreateEscrowMsg) Validate() error {
 	if err := validateAmount(m.Amount); err != nil {
 		return err
 	}
-	return validatePermissions(m.Arbiter, m.Sender, m.Recipient)
+	return validateConditions(m.Arbiter, m.Sender, m.Recipient)
 }
 
 // Validate makes sure that this is sensible
@@ -104,14 +104,14 @@ func (m *UpdateEscrowPartiesMsg) Validate() error {
 	if m.Arbiter == nil &&
 		m.Sender == nil &&
 		m.Recipient == nil {
-		return ErrMissingAllPermissions()
+		return ErrMissingAllConditions()
 	}
-	return validatePermissions(m.Arbiter, m.Sender, m.Recipient)
+	return validateConditions(m.Arbiter, m.Sender, m.Recipient)
 }
 
-// validatePermissions returns an error if any permission doesn't validate
+// validateConditions returns an error if any permission doesn't validate
 // nil is considered valid here
-func validatePermissions(perms ...weave.Permission) error {
+func validateConditions(perms ...weave.Condition) error {
 	for _, p := range perms {
 		if p != nil {
 			if err := p.Validate(); err != nil {

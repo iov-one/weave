@@ -79,10 +79,6 @@ func GenerateApp(home string, logger log.Logger) (abci.Application, error) {
 	}
 	app.WithInit(namecoin.Initializer{})
 
-	// guess the location of the genesis file
-	genesisPath := filepath.Join(home, "config", "genesis.json")
-	app.WithGenesis(genesisPath)
-
 	// set the logger and return
 	app.WithLogger(logger)
 	return app, nil

@@ -17,90 +17,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// specific helpers for this test
-
-const authKey = "auth"
-
-type action struct {
-	perms  []weave.Permission
-	msg    weave.Msg
-	height int64 // block height, for timeout
-}
-
-func (a action) tx() weave.Tx {
-	var helpers x.TestHelpers
-	return helpers.MockTx(a.msg)
-}
-
-func (a action) ctx() weave.Context {
-	ctx := context.Background()
-	ctx = weave.WithHeight(ctx, a.height)
-	return authenticator().SetPermissions(ctx, a.perms...)
-}
-
-// authenticator returns a default for all tests...
-// clean this up?
-func authenticator() x.CtxAuther {
-	return x.TestHelpers{}.CtxAuth(authKey)
-}
-
-// how to do a query... TODO: abstract this??
-
-type query struct {
-	path     string
-	mod      string
-	data     []byte
-	isError  bool
-	expected []orm.Object
-	bucket   orm.Bucket
-}
-
-func (q query) check(t *testing.T, db weave.ReadOnlyKVStore,
-	qr weave.QueryRouter, msg ...interface{}) {
-
-	h := qr.Handler(q.path)
-	require.NotNil(t, h)
-	mods, err := h.Query(db, q.mod, q.data)
-	if q.isError {
-		require.Error(t, err)
-		return
-	}
-	require.NoError(t, err)
-	if assert.Equal(t, len(q.expected), len(mods), msg...) {
-		for i, ex := range q.expected {
-			// make sure keys match
-			key := q.bucket.DBKey(ex.Key())
-			assert.Equal(t, key, mods[i].Key)
-
-			// parse out value
-			got, err := q.bucket.Parse(nil, mods[i].Value)
-			require.NoError(t, err)
-			assert.EqualValues(t, ex.Value(), got.Value(), msg...)
-		}
-	}
-}
-
-// for test, panics if cannot convert to model....
-func objToModel(obj orm.Object) (weave.Model, error) {
-	// ugh, we need the full on length...
-	key := obj.Key()
-	val := obj.Value()
-	// this is soo ugly....
-	if _, ok := val.(*Escrow); ok {
-		key = NewBucket().DBKey(key)
-	} else if _, ok := val.(*cash.Set); ok {
-		key = cash.NewBucket().DBKey(key)
-	}
-	bz, err := val.Marshal()
-	return weave.Model{key, bz}, err
-}
-
-func mo(obj orm.Object, err error) orm.Object {
-	if err != nil {
-		panic(err)
-	}
-	return obj
-}
+const Timeout = 12345
 
 // TestHandler runs a number of scenario of tx to make
 // sure they work as expected.
@@ -125,8 +42,8 @@ func TestHandler(t *testing.T) {
 		binary.BigEndian.PutUint64(bz, uint64(i))
 		return bz
 	}
-	eaddr := func(i int64) weave.Address {
-		return Permission(id(i)).Address()
+	escrowAddr := func(i int64) weave.Address {
+		return Condition(id(i)).Address()
 	}
 
 	cases := []struct {
@@ -147,18 +64,14 @@ func TestHandler(t *testing.T) {
 			a.Address(),
 			all,
 			nil, // no prep, just one action
-			action{
-				perms:  []weave.Permission{a},
-				msg:    NewCreateMsg(a, b, c, all, 12345, ""),
-				height: 1000,
-			},
+			createAction(a, b, c, all, ""),
 			false,
 			[]query{
 				// verify escrow is stored
 				{
 					"/escrows", "", id(1), false,
 					[]orm.Object{
-						NewEscrow(id(1), a, b, c, all, 12345, ""),
+						NewEscrow(id(1), a, b, c, all, Timeout, ""),
 					},
 					NewBucket().Bucket,
 				},
@@ -170,9 +83,9 @@ func TestHandler(t *testing.T) {
 					cash.NewBucket().Bucket,
 				},
 				// and added to escrow
-				{"/wallets", "", eaddr(1), false,
+				{"/wallets", "", escrowAddr(1), false,
 					[]orm.Object{
-						mo(cash.WalletWith(eaddr(1), all...)),
+						mo(cash.WalletWith(escrowAddr(1), all...)),
 					},
 					cash.NewBucket().Bucket,
 				},
@@ -183,19 +96,14 @@ func TestHandler(t *testing.T) {
 			a.Address(),
 			all,
 			nil, // no prep, just one action
-			action{
-				perms: []weave.Permission{a},
-				// defaults to sender!
-				msg:    NewCreateMsg(nil, b, c, some, 777, ""),
-				height: 123,
-			},
+			createAction(a, b, c, some, ""),
 			false,
 			[]query{
 				// verify escrow is stored
 				{
 					"/escrows", "", id(1), false,
 					[]orm.Object{
-						NewEscrow(id(1), a, b, c, some, 777, ""),
+						NewEscrow(id(1), a, b, c, some, Timeout, ""),
 					},
 					NewBucket().Bucket,
 				},
@@ -203,7 +111,7 @@ func TestHandler(t *testing.T) {
 				{
 					"/escrows/sender", "", a, false,
 					[]orm.Object{
-						NewEscrow(id(1), a, b, c, some, 777, ""),
+						NewEscrow(id(1), a, b, c, some, Timeout, ""),
 					},
 					NewBucket().Bucket,
 				},
@@ -211,7 +119,7 @@ func TestHandler(t *testing.T) {
 				{
 					"/escrows/recipient", "", b, false,
 					[]orm.Object{
-						NewEscrow(id(1), a, b, c, some, 777, ""),
+						NewEscrow(id(1), a, b, c, some, Timeout, ""),
 					},
 					NewBucket().Bucket,
 				},
@@ -219,7 +127,7 @@ func TestHandler(t *testing.T) {
 				{
 					"/escrows/arbiter", "", c, false,
 					[]orm.Object{
-						NewEscrow(id(1), a, b, c, some, 777, ""),
+						NewEscrow(id(1), a, b, c, some, Timeout, ""),
 					},
 					NewBucket().Bucket,
 				},
@@ -239,9 +147,9 @@ func TestHandler(t *testing.T) {
 					cash.NewBucket().Bucket,
 				},
 				// and added to escrow
-				{"/wallets", "", eaddr(1), false,
+				{"/wallets", "", escrowAddr(1), false,
 					[]orm.Object{
-						mo(cash.WalletWith(eaddr(1), some...)),
+						mo(cash.WalletWith(escrowAddr(1), some...)),
 					},
 					cash.NewBucket().Bucket,
 				},
@@ -252,12 +160,7 @@ func TestHandler(t *testing.T) {
 			a.Address(),
 			some,
 			nil, // no prep, just one action
-			action{
-				perms: []weave.Permission{a},
-				// defaults to sender!
-				msg:    NewCreateMsg(nil, b, c, all, 12345, ""),
-				height: 123,
-			},
+			createAction(a, b, c, all, ""),
 			true,
 			nil,
 		},
@@ -267,7 +170,8 @@ func TestHandler(t *testing.T) {
 			all,
 			nil, // no prep, just one action
 			action{
-				perms:  []weave.Permission{b},
+				// note permission is not the sender!
+				perms:  []weave.Condition{b},
 				msg:    NewCreateMsg(a, b, c, some, 12345, ""),
 				height: 123,
 			},
@@ -280,7 +184,7 @@ func TestHandler(t *testing.T) {
 			all,
 			nil, // no prep, just one action
 			action{
-				perms: []weave.Permission{a},
+				perms: []weave.Condition{a},
 				// defaults to sender!
 				msg:    NewCreateMsg(nil, b, c, all, 123, ""),
 				height: 888,
@@ -288,36 +192,13 @@ func TestHandler(t *testing.T) {
 			true,
 			nil,
 		},
-		// recipient cannot release
+		// arbiter can successfully release all
 		5: {
 			a.Address(),
 			all,
-			[]action{{
-				perms:  []weave.Permission{a},
-				msg:    NewCreateMsg(a, b, c, all, 12345, ""),
-				height: 1000,
-			}},
+			[]action{createAction(a, b, c, all, "")},
 			action{
-				perms: []weave.Permission{b},
-				msg: &ReleaseEscrowMsg{
-					EscrowId: id(1),
-				},
-				height: 2000,
-			},
-			true,
-			nil,
-		},
-		// arbiter can successfully release all
-		6: {
-			a.Address(),
-			all,
-			[]action{{
-				perms:  []weave.Permission{a},
-				msg:    NewCreateMsg(a, b, c, all, 12345, ""),
-				height: 1000,
-			}},
-			action{
-				perms: []weave.Permission{c},
+				perms: []weave.Condition{c},
 				msg: &ReleaseEscrowMsg{
 					EscrowId: id(1),
 				},
@@ -330,9 +211,9 @@ func TestHandler(t *testing.T) {
 					"/escrows", "", id(1), false, nil, orm.Bucket{},
 				},
 				// escrow is empty
-				{"/wallets", "", eaddr(1), false,
+				{"/wallets", "", escrowAddr(1), false,
 					[]orm.Object{
-						cash.NewWallet(eaddr(1)),
+						cash.NewWallet(escrowAddr(1)),
 					},
 					cash.NewBucket().Bucket,
 				},
@@ -352,17 +233,13 @@ func TestHandler(t *testing.T) {
 				},
 			},
 		},
-		// arbiter can successfully release part
-		7: {
+		// sender can successfully release part
+		6: {
 			a.Address(),
 			all,
-			[]action{{
-				perms:  []weave.Permission{a},
-				msg:    NewCreateMsg(a, b, c, all, 12345, "hello"),
-				height: 1000,
-			}},
+			[]action{createAction(a, b, c, all, "hello")},
 			action{
-				perms: []weave.Permission{c},
+				perms: []weave.Condition{a},
 				msg: &ReleaseEscrowMsg{
 					EscrowId: id(1),
 					Amount:   some,
@@ -380,9 +257,9 @@ func TestHandler(t *testing.T) {
 					NewBucket().Bucket,
 				},
 				// escrow is reduced
-				{"/wallets", "", eaddr(1), false,
+				{"/wallets", "", escrowAddr(1), false,
 					[]orm.Object{
-						mo(cash.WalletWith(eaddr(1), remain...)),
+						mo(cash.WalletWith(escrowAddr(1), remain...)),
 					},
 					cash.NewBucket().Bucket,
 				},
@@ -402,17 +279,13 @@ func TestHandler(t *testing.T) {
 				},
 			},
 		},
-		// cannot release after timeout
-		8: {
+		// recipient cannot release
+		7: {
 			a.Address(),
 			all,
-			[]action{{
-				perms:  []weave.Permission{a},
-				msg:    NewCreateMsg(a, b, c, all, 1234, ""),
-				height: 1000,
-			}},
+			[]action{createAction(a, b, c, all, "")},
 			action{
-				perms: []weave.Permission{c},
+				perms: []weave.Condition{b},
 				msg: &ReleaseEscrowMsg{
 					EscrowId: id(1),
 				},
@@ -421,21 +294,32 @@ func TestHandler(t *testing.T) {
 			true,
 			nil,
 		},
+		// cannot release after timeout
+		8: {
+			a.Address(),
+			all,
+			[]action{createAction(a, b, c, all, "")},
+			action{
+				perms: []weave.Condition{c},
+				msg: &ReleaseEscrowMsg{
+					EscrowId: id(1),
+				},
+				height: Timeout + 1,
+			},
+			true,
+			nil,
+		},
 		// successful return after expired (can be done by anyone)
 		9: {
 			a.Address(),
 			all,
-			[]action{{
-				perms:  []weave.Permission{a},
-				msg:    NewCreateMsg(a, b, c, some, 12345, ""),
-				height: 1000,
-			}},
+			[]action{createAction(a, b, c, all, "")},
 			action{
-				perms: []weave.Permission{d},
+				perms: []weave.Condition{a},
 				msg: &ReturnEscrowMsg{
 					EscrowId: id(1),
 				},
-				height: 12346,
+				height: Timeout + 1,
 			},
 			false,
 			[]query{
@@ -444,9 +328,9 @@ func TestHandler(t *testing.T) {
 					"/escrows", "", id(1), false, nil, orm.Bucket{},
 				},
 				// escrow is empty
-				{"/wallets", "", eaddr(1), false,
+				{"/wallets", "", escrowAddr(1), false,
 					[]orm.Object{
-						cash.NewWallet(eaddr(1)),
+						cash.NewWallet(escrowAddr(1)),
 					},
 					cash.NewBucket().Bucket,
 				},
@@ -457,53 +341,49 @@ func TestHandler(t *testing.T) {
 					},
 					cash.NewBucket().Bucket,
 				},
+				// recipient doesn't get paid
+				{"/wallets", "", b.Address(), false, nil,
+					cash.NewBucket().Bucket,
+				},
 			},
 		},
 		// cannot return before timeout
 		10: {
 			a.Address(),
 			all,
-			[]action{{
-				perms:  []weave.Permission{a},
-				msg:    NewCreateMsg(a, b, c, all, 1234, ""),
-				height: 1000,
-			}},
+			[]action{createAction(a, b, c, all, "")},
 			action{
-				perms: []weave.Permission{a},
+				perms: []weave.Condition{a},
 				msg: &ReturnEscrowMsg{
 					EscrowId: id(1),
 				},
-				height: 1233,
+				height: Timeout - 1,
 			},
 			true,
 			nil,
 		},
-		// we update the arbiter and sender, and then make sure
+		// we update the arbiter and then make sure
 		// the new actors are used
 		11: {
 			a.Address(),
 			all,
-			[]action{{
-				perms: []weave.Permission{a},
-				// defaults to sender!
-				msg:    NewCreateMsg(a, b, c, some, 12345, ""),
-				height: 123,
-			}, {
-				perms: []weave.Permission{c},
-				// c hands off to d
-				msg: &UpdateEscrowPartiesMsg{
-					EscrowId: id(1),
-					Arbiter:  d,
-				},
-				height: 200,
-			}},
+			[]action{createAction(a, b, c, some, ""),
+				{
+					perms: []weave.Condition{c},
+					// c hands off to d
+					msg: &UpdateEscrowPartiesMsg{
+						EscrowId: id(1),
+						Arbiter:  d,
+					},
+					height: 2000,
+				}},
 			action{
 				// new arbiter can resolve
-				perms: []weave.Permission{d},
+				perms: []weave.Condition{d},
 				msg: &ReleaseEscrowMsg{
 					EscrowId: id(1),
 				},
-				height: 400,
+				height: 4000,
 			},
 			false,
 			[]query{
@@ -518,7 +398,7 @@ func TestHandler(t *testing.T) {
 					},
 					cash.NewBucket().Bucket,
 				},
-				// and added to recipint
+				// and added to recipient
 				{"/wallets", "", b.Address(), false,
 					[]orm.Object{
 						mo(cash.WalletWith(b.Address(), some...)),
@@ -531,23 +411,19 @@ func TestHandler(t *testing.T) {
 		12: {
 			a.Address(),
 			all,
-			[]action{{
-				perms: []weave.Permission{a},
-				// defaults to sender!
-				msg:    NewCreateMsg(a, b, c, some, 12345, ""),
-				height: 123,
-			}, {
-				perms: []weave.Permission{c},
-				// c hands off to d
-				msg: &UpdateEscrowPartiesMsg{
-					EscrowId: id(1),
-					Arbiter:  d,
-				},
-				height: 200,
-			}},
+			[]action{createAction(a, b, c, some, ""),
+				{
+					perms: []weave.Condition{c},
+					// c hands off to d
+					msg: &UpdateEscrowPartiesMsg{
+						EscrowId: id(1),
+						Arbiter:  d,
+					},
+					height: 200,
+				}},
 			action{
 				// original arbiter can no longer resolve
-				perms: []weave.Permission{c},
+				perms: []weave.Condition{c},
 				msg: &ReleaseEscrowMsg{
 					EscrowId: id(1),
 				},
@@ -556,23 +432,19 @@ func TestHandler(t *testing.T) {
 			true,
 			nil,
 		},
+		// TODO: duplicate the above
 		// cannot update without proper permissions
 		13: {
 			a.Address(),
 			all,
-			[]action{{
-				perms: []weave.Permission{a},
-				// defaults to sender!
-				msg:    NewCreateMsg(a, b, c, some, 12345, ""),
-				height: 123,
-			}},
+			[]action{createAction(a, b, c, some, "")},
 			action{
-				perms: []weave.Permission{a},
+				perms: []weave.Condition{a},
 				msg: &UpdateEscrowPartiesMsg{
 					EscrowId: id(1),
 					Arbiter:  a,
 				},
-				height: 200,
+				height: 2000,
 			},
 			true,
 			nil,
@@ -581,19 +453,14 @@ func TestHandler(t *testing.T) {
 		14: {
 			a.Address(),
 			all,
-			[]action{{
-				perms: []weave.Permission{a},
-				// defaults to sender!
-				msg:    NewCreateMsg(a, b, c, some, 12345, ""),
-				height: 123,
-			}},
+			[]action{createAction(a, b, c, some, "")},
 			action{
-				perms: []weave.Permission{c},
+				perms: []weave.Condition{a},
 				msg: &UpdateEscrowPartiesMsg{
 					EscrowId: id(1),
-					Arbiter:  d,
+					Sender:   d,
 				},
-				height: 20000,
+				height: Timeout + 100,
 			},
 			true,
 			nil,
@@ -602,23 +469,21 @@ func TestHandler(t *testing.T) {
 		15: {
 			a.Address(),
 			all,
-			[]action{{
-				perms:  []weave.Permission{a},
-				msg:    NewCreateMsg(a, b, c, all, 12345, ""),
-				height: 1000,
-			}, {
-				perms: []weave.Permission{c},
-				msg: &ReleaseEscrowMsg{
-					EscrowId: id(1),
-				},
-				height: 2000,
-			}},
+			[]action{
+				createAction(a, b, c, all, ""),
+				{
+					perms: []weave.Condition{c},
+					msg: &ReleaseEscrowMsg{
+						EscrowId: id(1),
+					},
+					height: 2000,
+				}},
 			action{
-				perms: []weave.Permission{c},
+				perms: []weave.Condition{c},
 				msg: &ReleaseEscrowMsg{
 					EscrowId: id(1),
 				},
-				height: 2000,
+				height: 2050,
 			},
 			true,
 			[]query{
@@ -627,9 +492,9 @@ func TestHandler(t *testing.T) {
 					"/escrows", "", id(1), false, nil, orm.Bucket{},
 				},
 				// escrow is empty
-				{"/wallets", "", eaddr(1), false,
+				{"/wallets", "", escrowAddr(1), false,
 					[]orm.Object{
-						cash.NewWallet(eaddr(1)),
+						cash.NewWallet(escrowAddr(1)),
 					},
 					cash.NewBucket().Bucket,
 				},
@@ -649,6 +514,7 @@ func TestHandler(t *testing.T) {
 				},
 			},
 		},
+		// TODO: multiple coins
 	}
 
 	bank := cash.NewBucket()
@@ -695,6 +561,15 @@ func TestHandler(t *testing.T) {
 				q.check(t, db, qr, "%d", k)
 			}
 		})
+	}
+}
+
+// createAction is a default action at height 1000, timeout 12345
+func createAction(sender, rcpt, arbiter weave.Condition, amount x.Coins, memo string) action {
+	return action{
+		perms:  []weave.Condition{sender},
+		msg:    NewCreateMsg(sender, rcpt, arbiter, amount, Timeout, memo),
+		height: 1000,
 	}
 }
 
@@ -747,34 +622,34 @@ func TestAtomicSwap(t *testing.T) {
 		// amount we wish to swap
 		aSwap, bSwap x.Coins
 		// arbiter, same on both
-		arbiter weave.Permission
+		arbiter weave.Condition
 		// preimage used in claim
 		preimage []byte
 		// does the release cause an error?
 		isError        bool
 		aFinal, bFinal x.Coins
 	}{
-		// bad preimage
+		// good preimage
 		0: {
 			foo, bar,
 			lilFoo, lilBar,
-			hashlock.PreimagePermission([]byte{1, 2, 3}),
-			[]byte("foo"),
-			true,
-			// money stayed in escrow
-			leftFoo,
-			leftBar,
-		},
-		// good preimage
-		1: {
-			foo, bar,
-			lilFoo, lilBar,
-			hashlock.PreimagePermission([]byte{7, 8, 9}),
+			hashlock.PreimageCondition([]byte{7, 8, 9}),
 			[]byte{7, 8, 9},
 			false,
 			// the coins were properly released
 			MustAddCoins(t, leftFoo, lilBar),
 			MustAddCoins(t, leftBar, lilFoo),
+		},
+		// bad preimage
+		1: {
+			foo, bar,
+			lilFoo, lilBar,
+			hashlock.PreimageCondition([]byte{1, 2, 3}),
+			[]byte("foo"),
+			true,
+			// money stayed in escrow
+			leftFoo,
+			leftBar,
 		},
 	}
 
@@ -796,7 +671,7 @@ func TestAtomicSwap(t *testing.T) {
 
 	// use both context auth and hashlock auth
 	auth := x.ChainAuth(authenticator(), hashlock.Authenticate{})
-	setAuth := authenticator().SetPermissions
+	setAuth := authenticator().SetConditions
 
 	// route the escrow commands, and wrap with the hashlock
 	// middleware
@@ -878,4 +753,92 @@ var _ weave.Tx = PreimageTx{}
 
 func (p PreimageTx) GetPreimage() []byte {
 	return p.Preimage
+}
+
+//-------------------------------------------------
+// specific helpers for these tests
+
+const authKey = "auth"
+
+type action struct {
+	perms  []weave.Condition
+	msg    weave.Msg
+	height int64 // block height, for timeout
+}
+
+func (a action) tx() weave.Tx {
+	var helpers x.TestHelpers
+	return helpers.MockTx(a.msg)
+}
+
+func (a action) ctx() weave.Context {
+	ctx := context.Background()
+	ctx = weave.WithHeight(ctx, a.height)
+	return authenticator().SetConditions(ctx, a.perms...)
+}
+
+// authenticator returns a default for all tests...
+// clean this up?
+func authenticator() x.CtxAuther {
+	return x.TestHelpers{}.CtxAuth(authKey)
+}
+
+// how to do a query... TODO: abstract this??
+
+type query struct {
+	path     string
+	mod      string
+	data     []byte
+	isError  bool
+	expected []orm.Object
+	bucket   orm.Bucket
+}
+
+func (q query) check(t *testing.T, db weave.ReadOnlyKVStore,
+	qr weave.QueryRouter, msg ...interface{}) {
+
+	h := qr.Handler(q.path)
+	require.NotNil(t, h)
+	mods, err := h.Query(db, q.mod, q.data)
+	if q.isError {
+		require.Error(t, err)
+		return
+	}
+	require.NoError(t, err)
+	if assert.Equal(t, len(q.expected), len(mods), msg...) {
+		for i, ex := range q.expected {
+			// make sure keys match
+			key := q.bucket.DBKey(ex.Key())
+			assert.Equal(t, key, mods[i].Key)
+
+			// parse out value
+			got, err := q.bucket.Parse(nil, mods[i].Value)
+			require.NoError(t, err)
+			assert.EqualValues(t, ex.Value(), got.Value(), msg...)
+		}
+	}
+}
+
+// for test, panics if cannot convert to model....
+func objToModel(obj orm.Object) (weave.Model, error) {
+	// ugh, we need the full on length...
+	key := obj.Key()
+	val := obj.Value()
+	// this is soo ugly....
+	if _, ok := val.(*Escrow); ok {
+		key = NewBucket().DBKey(key)
+	} else if _, ok := val.(*cash.Set); ok {
+		key = cash.NewBucket().DBKey(key)
+	}
+	bz, err := val.Marshal()
+	return weave.Model{key, bz}, err
+}
+
+// mo = must object... takes (Object, error) result and
+// convert to Object or panic
+func mo(obj orm.Object, err error) orm.Object {
+	if err != nil {
+		panic(err)
+	}
+	return obj
 }

@@ -11,8 +11,8 @@ import (
 // escrow takes 1010-1020
 const (
 	CodeNoEscrow          = 1010
-	CodeMissingPermission = 1011
-	CodeInvalidPermission = 1012
+	CodeMissingCondition = 1011
+	CodeInvalidCondition = 1012
 	CodeInvalidMetadata   = 1013
 	CodeInvalidHeight     = 1014
 
@@ -24,7 +24,7 @@ var (
 	errMissingArbiter        = fmt.Errorf("Missing Arbiter")
 	errMissingSender         = fmt.Errorf("Missing Sender")
 	errMissingRecipient      = fmt.Errorf("Missing Recipient")
-	errMissingAllPermissions = fmt.Errorf("Missing All Permissions")
+	errMissingAllConditions = fmt.Errorf("Missing All Conditions")
 
 	errInvalidMemo     = fmt.Errorf("Memo field too long")
 	errInvalidTimeout  = fmt.Errorf("Invalid Timeout")
@@ -42,26 +42,26 @@ var (
 )
 
 func ErrMissingArbiter() error {
-	return errors.WithCode(errMissingArbiter, CodeMissingPermission)
+	return errors.WithCode(errMissingArbiter, CodeMissingCondition)
 }
 func ErrMissingSender() error {
-	return errors.WithCode(errMissingSender, CodeMissingPermission)
+	return errors.WithCode(errMissingSender, CodeMissingCondition)
 }
 func ErrMissingRecipient() error {
-	return errors.WithCode(errMissingRecipient, CodeMissingPermission)
+	return errors.WithCode(errMissingRecipient, CodeMissingCondition)
 }
-func ErrMissingAllPermissions() error {
-	return errors.WithCode(errMissingAllPermissions, CodeMissingPermission)
+func ErrMissingAllConditions() error {
+	return errors.WithCode(errMissingAllConditions, CodeMissingCondition)
 }
-func IsMissingPermissionErr(err error) bool {
-	return errors.HasErrorCode(err, CodeMissingPermission)
+func IsMissingConditionErr(err error) bool {
+	return errors.HasErrorCode(err, CodeMissingCondition)
 }
 
-func ErrInvalidPermission(perm []byte) error {
-	return errors.ErrUnrecognizedPermission(perm)
+func ErrInvalidCondition(perm []byte) error {
+	return errors.ErrUnrecognizedCondition(perm)
 }
-func IsInvalidPermissionErr(err error) bool {
-	return errors.IsUnrecognizedPermissionErr(err)
+func IsInvalidConditionErr(err error) bool {
+	return errors.IsUnrecognizedConditionErr(err)
 }
 
 func ErrInvalidMemo(memo string) error {

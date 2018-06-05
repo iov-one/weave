@@ -14,8 +14,8 @@ type HashKeyTx interface {
 	GetPreimage() []byte
 }
 
-// PreimagePermission calculates a sha256 hash and then
-func PreimagePermission(preimage []byte) weave.Permission {
+// PreimageCondition calculates a sha256 hash and then
+func PreimageCondition(preimage []byte) weave.Condition {
 	h := sha256.Sum256(preimage)
-	return weave.NewPermission("hash", "sha256", h[:])
+	return weave.NewCondition("hash", "sha256", h[:])
 }

@@ -29,35 +29,32 @@ func TestApp(t *testing.T) {
 	// let's set up a genesis file with some cash
 	pk := crypto.GenPrivKeyEd25519()
 	addr := pk.PublicKey().Address()
-	genesis := fmt.Sprintf(`{
-        "chain_id": "%s",
-        "app_state": {
-            "wallets": [{
-                "name": "demote",
-                "address": "%s",
-                "coins": [{
-                    "whole": 50000,
-                    "ticker": "ETH"
-                    }, {
-                    "whole": 1234,
-                    "ticker": "FRNK"
-                }]
-            }],
-            "tokens": [{
-                "ticker": "ETH",
-                "name": "Smells like ethereum",
-                "sig_figs": 9
-            },{
-                "ticker": "FRNK",
-                "name": "Frankie",
-                "sig_figs": 3
+	appState := fmt.Sprintf(`{
+        "wallets": [{
+            "name": "demote",
+            "address": "%s",
+            "coins": [{
+                "whole": 50000,
+                "ticker": "ETH"
+                }, {
+                "whole": 1234,
+                "ticker": "FRNK"
             }]
-        }
-    }`, chainID, addr)
+        }],
+        "tokens": [{
+            "ticker": "ETH",
+            "name": "Smells like ethereum",
+            "sig_figs": 9
+        },{
+            "ticker": "FRNK",
+            "name": "Frankie",
+            "sig_figs": 3
+        }]
+    }`, addr)
 
 	// Commit first block, make sure non-nil hash
-	myApp.InitChainWithGenesis(abci.RequestInitChain{}, []byte(genesis))
-	header := abci.Header{Height: 1}
+	myApp.InitChain(abci.RequestInitChain{AppStateBytes: []byte(appState)})
+	header := abci.Header{Height: 1, ChainID: chainID}
 	myApp.BeginBlock(abci.RequestBeginBlock{Header: header})
 	myApp.EndBlock(abci.RequestEndBlock{})
 	cres := myApp.Commit()

@@ -30,9 +30,9 @@ func TestCreateEscrowMsg(t *testing.T) {
 	// good
 	_, a := helpers.MakeKey()
 	_, b := helpers.MakeKey()
-	c := weave.NewPermission("monkey", "gelato", []byte("berry"))
+	c := weave.NewCondition("monkey", "gelato", []byte("berry"))
 	// invalid
-	d := weave.Permission("foobar")
+	d := weave.Condition("foobar")
 
 	// good
 	plus := mustCombineCoins(x.NewCoin(100, 0, "FOO"))
@@ -46,7 +46,7 @@ func TestCreateEscrowMsg(t *testing.T) {
 		check checkErr
 	}{
 		// nothing
-		0: {new(CreateEscrowMsg), IsMissingPermissionErr},
+		0: {new(CreateEscrowMsg), IsMissingConditionErr},
 		// proper
 		1: {
 			&CreateEscrowMsg{
@@ -77,7 +77,7 @@ func TestCreateEscrowMsg(t *testing.T) {
 				Amount:    plus,
 				Timeout:   52,
 			},
-			IsInvalidPermissionErr,
+			IsInvalidConditionErr,
 		},
 		// negative amount
 		4: {
@@ -263,9 +263,9 @@ func TestUpdateEscrowMsg(t *testing.T) {
 	// good
 	_, a := helpers.MakeKey()
 	_, b := helpers.MakeKey()
-	c := weave.NewPermission("monkey", "gelato", []byte("berry"))
+	c := weave.NewCondition("monkey", "gelato", []byte("berry"))
 	// invalid
-	d := weave.Permission("foobar")
+	d := weave.Condition("foobar")
 
 	cases := []struct {
 		msg   *UpdateEscrowPartiesMsg
@@ -286,7 +286,7 @@ func TestUpdateEscrowMsg(t *testing.T) {
 			&UpdateEscrowPartiesMsg{
 				EscrowId: escrow,
 			},
-			IsMissingPermissionErr,
+			IsMissingConditionErr,
 		},
 		// invalid escrow, proper permissions
 		3: {
@@ -311,7 +311,7 @@ func TestUpdateEscrowMsg(t *testing.T) {
 				EscrowId: escrow,
 				Arbiter:  d,
 			},
-			IsInvalidPermissionErr,
+			IsInvalidConditionErr,
 		},
 	}
 
