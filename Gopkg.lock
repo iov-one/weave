@@ -18,8 +18,8 @@
     "x/sigs",
     "x/utils"
   ]
-  revision = "ac1cf04ea790e0025eca432ae3ac36d1e5e42be4"
-  version = "v0.4.0"
+  revision = "9f4484ee27803d393aa2b16a0a649d307c588dbd"
+  version = "v0.4.1"
 
 [[projects]]
   name = "github.com/davecgh/go-spew"

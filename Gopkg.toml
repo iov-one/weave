@@ -45,6 +45,9 @@
   name = "github.com/tendermint/tmlibs"
   version = "~0.8.4"
 
+[[constraint]]
+  name = "github.com/confio/weave"
+  version = "~0.4.1"
 
 [prune]
   go-tests = true
