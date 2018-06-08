@@ -26,10 +26,6 @@
 
 
 [[constraint]]
-  name = "github.com/confio/weave"
-  version = "0.4.0"
-
-[[constraint]]
   name = "github.com/gogo/protobuf"
   version = "1.0.0"
 
@@ -37,22 +33,21 @@
   name = "github.com/stretchr/testify"
   version = "1.2.1"
 
-[[override]]
+[[constraint]]
   name = "github.com/tendermint/abci"
-  version = "0.10.0"
-
-[[override]]
-  name = "github.com/tendermint/go-wire"
-  version = "0.7.3"
+  version = "~0.10.3"
 
 [[override]]
   name = "github.com/tendermint/iavl"
-  version = "0.7.0"
+  version = "v0.8.0-rc0"
 
-[[override]]
+[[constraint]]
   name = "github.com/tendermint/tmlibs"
-  version = "0.7.0"
+  version = "~0.8.4"
 
+[[constraint]]
+  name = "github.com/confio/weave"
+  version = "~0.4.1"
 
 [prune]
   go-tests = true
