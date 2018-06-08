@@ -155,8 +155,8 @@
     "db",
     "log"
   ]
-  revision = "d970af87248a4e162590300dbb74e102183a417d"
-  version = "v0.8.3"
+  revision = "692f1d86a6e2c0efa698fd1e4541b68c74ffaf38"
+  version = "v0.8.4"
 
 [[projects]]
   name = "golang.org/x/crypto"
@@ -235,6 +235,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "27eb81b4fc7eba1cab1a8c794e4837e23939782d5532b019679774e2d107ed6d"
+  inputs-digest = "695a09083673639de4282dc40aa879e9f39c81f645b55c92121303fff8e912f8"
   solver-name = "gps-cdcl"
   solver-version = 1

@@ -6,7 +6,7 @@ TENDERMINT := ${GOBIN}/tendermint
 BUILDOUT ?= mycoind
 GOPATH ?= $$HOME/go
 
-TM_VERSION := v0.19.7
+TM_VERSION := v0.19.9
 
 install:
 	go install $(BUILD_FLAGS) .
@@ -27,4 +27,5 @@ $(TENDERMINT):
 	cd $(GOPATH)/src/github.com/tendermint/tendermint && \
 		git checkout $(TM_VERSION) && \
 		make ensure_deps && make install && \
+		git checkout . && \
 		git checkout -
