@@ -7,7 +7,7 @@ TENDERMINT := ${GOBIN}/tendermint
 BUILDOUT ?= bov
 GOPATH ?= $$HOME/go
 
-TM_VERSION := v0.19.7
+TM_VERSION := v0.19.9
 
 # dont use `` in the makefile for windows compatibility
 NOVENDOR := $(shell go list ./...)
@@ -57,6 +57,7 @@ $(TENDERMINT):
 	cd $(GOPATH)/src/github.com/tendermint/tendermint && \
 		git checkout $(TM_VERSION) && \
 		make ensure_deps && make install && \
+		git checkout . && \
 		git checkout -
 
 protoc:
