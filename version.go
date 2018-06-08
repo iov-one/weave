@@ -4,10 +4,10 @@ package weave
 const Maj = 0
 
 // Min is the minor version number (updated on minor releases)
-const Min = 3
+const Min = 4
 
 // Fix is the patch number (updated on bugfix releases)
-const Fix = 0
+const Fix = 1
 
 // Version should be set by build flags: `git describe --tags`
 var Version = "please set in makefile"
