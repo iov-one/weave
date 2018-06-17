@@ -96,3 +96,15 @@ that builds upon ``mycoind``.
 
 **TODO**
 
+.. toctree::
+   :maxdepth: 2
+
+   development/protobuf.rst
+   development/datamodel.rst
+   development/messages.rst
+   development/handler.rst
+   development/queries.rst
+   development/init.rst
+   development/integration.rst
+   development/advanced.rst
+
