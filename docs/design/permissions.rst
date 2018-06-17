@@ -63,7 +63,7 @@ multiple authentication schemes. For example, if we want to
 design HTLC, we could add an optional "Preimage" to the
 Tx structure. We add a "Hasher" middleware that hashes
 this preimage, and then grants the condition of something like
-``preimage/<hash of preimage>``. This is stored in the context
+``hash/sha256/<hash of preimage>``. This is stored in the context
 and the "Hasher" exports an Authenticator that allows
 access to this.
 
