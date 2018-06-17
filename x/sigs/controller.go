@@ -8,6 +8,10 @@ import (
 	"github.com/confio/weave/errors"
 )
 
+// SignCodeV1 is the current way to prefix the bytes we use to build
+// a signature
+var SignCodeV1 = []byte{0, 0xCA, 0xFE, 0}
+
 //----------------- Controller ------------------
 //
 // Place actual business logic here.
@@ -86,7 +90,15 @@ func VerifySignature(db weave.KVStore, sig *StdSignature,
 	return user.PubKey.Condition(), nil
 }
 
-// BuildSignBytes combines all info on the actual tx before signing
+/*
+BuildSignBytes combines all info on the actual tx before signing
+
+As specified in https://github.com/confio/weave/issues/70,
+we use the following format:
+
+version | len(chainID) | chainID      | nonce             | signBytes
+4bytes  | uint8        | ascii string | int64 (bigendian) | serialized transaction
+*/
 func BuildSignBytes(signBytes []byte, chainID string, seq int64) ([]byte, error) {
 	if seq < 0 {
 		return nil, ErrInvalidSequence("negative")
@@ -100,10 +112,12 @@ func BuildSignBytes(signBytes []byte, chainID string, seq int64) ([]byte, error)
 	binary.BigEndian.PutUint64(nonce, uint64(seq))
 
 	// concatentate everything
-	output := make([]byte, 0, len(signBytes)+len(chainID)+8)
-	output = append(output, signBytes...)
+	output := make([]byte, 0, len(signBytes)+len(chainID)+8+4+1)
+	output = append(output, []byte(SignCodeV1)...)
+	output = append(output, uint8(len(chainID)))
 	output = append(output, []byte(chainID)...)
 	output = append(output, nonce...)
+	output = append(output, signBytes...)
 	return output, nil
 }
 
