@@ -112,7 +112,7 @@ func BuildSignBytes(signBytes []byte, chainID string, seq int64) ([]byte, error)
 	binary.BigEndian.PutUint64(nonce, uint64(seq))
 
 	// concatentate everything
-	output := make([]byte, 0, len(signBytes)+len(chainID)+8+4+1)
+	output := make([]byte, 0, 4+1+len(chainID)+8+len(signBytes))
 	output = append(output, []byte(SignCodeV1)...)
 	output = append(output, uint8(len(chainID)))
 	output = append(output, []byte(chainID)...)
