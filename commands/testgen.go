@@ -7,6 +7,8 @@ import (
 	"path/filepath"
 
 	"github.com/gogo/protobuf/proto"
+
+	"github.com/confio/weave/x/sigs"
 )
 
 // Example will be written out to a file, .json and .bin
@@ -49,6 +51,18 @@ func TestGenCmd(examples []Example, args []string) error {
 		err = ioutil.WriteFile(pbFile, pb, 0644)
 		if err != nil {
 			return err
+		}
+
+		if tx, ok := ex.Obj.(sigs.SignedTx); ok {
+			signed, err := sigs.BuildSignBytesTx(tx, "test-123", 17)
+			if err != nil {
+				return err
+			}
+			sigFile := filepath.Join(outdir, ex.Filename+".signbytes")
+			err = ioutil.WriteFile(sigFile, signed, 0644)
+			if err != nil {
+				return err
+			}
 		}
 	}
 	return nil
