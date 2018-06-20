@@ -100,7 +100,7 @@ func (s *StoreApp) WithInit(init weave.Initializer) *StoreApp {
 
 // parseAppState is called from InitChain, the first time the chain
 // starts, and not on restarts.
-func (s *StoreApp) parseAppState(data []byte, init weave.Initializer) error {
+func (s *StoreApp) parseAppState(data []byte, chainID string, init weave.Initializer) error {
 	if s.chainID != "" {
 		return fmt.Errorf("appState previously loaded for chain: %s", s.chainID)
 	}
@@ -109,6 +109,11 @@ func (s *StoreApp) parseAppState(data []byte, init weave.Initializer) error {
 	err := json.Unmarshal(data, &appState)
 	if err != nil {
 		return errors.WithCode(err, errors.CodeTxParseError)
+	}
+
+	err = s.storeChainID(chainID)
+	if err != nil {
+		return err
 	}
 
 	return init.FromGenesis(appState, s.DeliverStore())
@@ -292,7 +297,7 @@ func (s *StoreApp) Commit() (res abci.ResponseCommit) {
 // Note: in tendermint 0.17, the genesis file is passed
 // in here, we should use this to trigger reading the genesis now
 func (s *StoreApp) InitChain(req abci.RequestInitChain) (res abci.ResponseInitChain) {
-	err := s.parseAppState(req.AppStateBytes, s.initializer)
+	err := s.parseAppState(req.AppStateBytes, req.ChainId, s.initializer)
 	if err != nil {
 		// Read comment on type header
 		panic(err)
@@ -304,14 +309,6 @@ func (s *StoreApp) InitChain(req abci.RequestInitChain) (res abci.ResponseInitCh
 // BeginBlock implements ABCI
 // Sets up blockContext
 func (s *StoreApp) BeginBlock(req abci.RequestBeginBlock) (res abci.ResponseBeginBlock) {
-	if s.chainID == "" {
-		err := s.storeChainID(req.Header.ChainID)
-		if err != nil {
-			// Read comment on type header
-			panic(err)
-		}
-	}
-
 	// set the begin block context
 	ctx := weave.WithHeader(s.baseContext, req.Header)
 	ctx = weave.WithHeight(ctx, req.Header.GetHeight())
@@ -345,7 +342,7 @@ func (s *StoreApp) AddValChange(diffs []abci.Validator) {
 // return index of list with validator of same PubKey, or -1 if no match
 func pubKeyIndex(val abci.Validator, list []abci.Validator) int {
 	for i, v := range list {
-		if bytes.Equal(val.PubKey, v.PubKey) {
+		if bytes.Equal(val.PubKey.Data, v.PubKey.Data) && val.PubKey.Type == v.PubKey.Type {
 			return i
 		}
 	}
