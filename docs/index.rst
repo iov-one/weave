@@ -88,13 +88,19 @@ and the various components you will use
 Backend Development Tutorial
 ----------------------------
 
-A step by step example of writing your first
-application built on top of mycoind.
-This is all about writing go code that runs as an ABCI app.
-We will write a new extension and compile an application
-that builds upon ``mycoind``.
+To make this theory more tangible, we will build a sample
+application alongside this tutorial, to demonstrate dealing
+with real-world constraints. The application is located in the
+[examples/tutorial package](https://github.com/confio/weave/tree/master/examples/tutorial)
+in the weave repository, but it is designed to be self-contained
+and could just as easily live in an external repo that imported
+weave.
 
-**TODO**
+In this tutorial, you will learn how to serialize and model
+you data strucutres, define messages and handlers, expose
+queries, and read initial configuration from the genesis file.
+You will be able to build a new extension and tie it together
+with other extensions into a complete blockchain application.
 
 .. toctree::
    :maxdepth: 2
