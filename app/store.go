@@ -296,6 +296,7 @@ func (s *StoreApp) Commit() (res abci.ResponseCommit) {
 // TODO: store the original validators somewhere
 // Note: in tendermint 0.17, the genesis file is passed
 // in here, we should use this to trigger reading the genesis now
+// TODO: investigate validators and consensusParams in response
 func (s *StoreApp) InitChain(req abci.RequestInitChain) (res abci.ResponseInitChain) {
 	err := s.parseAppState(req.AppStateBytes, req.ChainId, s.initializer)
 	if err != nil {
@@ -308,6 +309,7 @@ func (s *StoreApp) InitChain(req abci.RequestInitChain) (res abci.ResponseInitCh
 
 // BeginBlock implements ABCI
 // Sets up blockContext
+// TODO: investigate response tags as of 0.11 abci
 func (s *StoreApp) BeginBlock(req abci.RequestBeginBlock) (res abci.ResponseBeginBlock) {
 	// set the begin block context
 	ctx := weave.WithHeader(s.baseContext, req.Header)
@@ -319,6 +321,7 @@ func (s *StoreApp) BeginBlock(req abci.RequestBeginBlock) (res abci.ResponseBegi
 
 // EndBlock - ABCI
 // Returns a list of all validator changes made in this block
+// TODO: investigate response tags as of 0.11 abci
 func (s *StoreApp) EndBlock(_ abci.RequestEndBlock) (res abci.ResponseEndBlock) {
 	res.ValidatorUpdates = s.pending
 	s.pending = nil
