@@ -23,7 +23,7 @@ So forget complex types with methods now and just focus on
 the actual data structure. The `x/codec.proto <https://github.com/confio/weave/blob/master/x/codec.proto>`_ file defines the Coin type rather simply,
 once you remove the comments, this is all that is left:
 
-::
+.. code:: proto
 
     syntax = "proto3";
 
@@ -163,7 +163,7 @@ interface and let us write code like this:
 This is fine, but what happens when I want to add custom logic to
 my ``Coin`` struct, perhaps adding validation logic, or code
 to add two coins? Luckily for us, go allows you two write methods
-for your structs in _any file in the same package_. That means that
+for your structs in *any file in the same package*. That means that
 we can just inherit the struct definition and all the serialization
 logic and just append the methods we care about.
 `coin.go <https://github.com/confio/weave/blob/master/x/coin.go>`_
