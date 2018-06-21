@@ -85,8 +85,8 @@ and the various components you will use
    design/extensions.rst
 
 
-Backend Development
--------------------
+Backend Development Tutorial
+----------------------------
 
 A step by step example of writing your first
 application built on top of mycoind.
@@ -99,12 +99,12 @@ that builds upon ``mycoind``.
 .. toctree::
    :maxdepth: 2
 
-   development/protobuf.rst
-   development/datamodel.rst
-   development/messages.rst
-   development/handler.rst
-   development/queries.rst
-   development/init.rst
-   development/integration.rst
-   development/advanced.rst
+   tutorial/protobuf.rst
+   tutorial/datamodel.rst
+   tutorial/messages.rst
+   tutorial/handler.rst
+   tutorial/queries.rst
+   tutorial/init.rst
+   tutorial/integration.rst
+   tutorial/advanced.rst
 
