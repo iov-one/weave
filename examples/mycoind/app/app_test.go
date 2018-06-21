@@ -20,6 +20,7 @@ import (
 )
 
 func testInitChain(t *testing.T, myApp app.BaseApp, addr string) {
+	chainID := "test-net-22"
 	// initialize chain
 	appState := fmt.Sprintf(`{
             "cash": [{
@@ -33,15 +34,16 @@ func testInitChain(t *testing.T, myApp app.BaseApp, addr string) {
                 }]
             }]}`, addr)
 	assert.Equal(t, "", myApp.GetChainID())
-	myApp.InitChain(abci.RequestInitChain{AppStateBytes: []byte(appState)})
+	myApp.InitChain(abci.RequestInitChain{AppStateBytes: []byte(appState), ChainId: chainID})
+	assert.Equal(t, chainID, myApp.GetChainID())
+
 }
 
 // testCommit will commit at height h and return new hash
-func testCommit(t *testing.T, myApp app.BaseApp, h int64, chainId string) []byte {
+func testCommit(t *testing.T, myApp app.BaseApp, h int64) []byte {
 	// Commit first block, make sure non-nil hash
-	header := abci.Header{Height: h, ChainID: chainId}
+	header := abci.Header{Height: h}
 	myApp.BeginBlock(abci.RequestBeginBlock{Header: header})
-	assert.Equal(t, chainId, myApp.GetChainID())
 	myApp.EndBlock(abci.RequestEndBlock{})
 	cres := myApp.Commit()
 	hash := cres.Data
@@ -105,7 +107,6 @@ func testSendTx(t *testing.T, myApp app.BaseApp, h int64,
 
 func TestApp(t *testing.T) {
 	// no minimum fee, in-memory data-store
-	chainID := "test-net-22"
 	abciApp, err := GenerateApp("", log.NewNopLogger())
 	require.NoError(t, err)
 	myApp := abciApp.(app.BaseApp)
@@ -115,7 +116,7 @@ func TestApp(t *testing.T) {
 	addr := pk.PublicKey().Address()
 
 	testInitChain(t, myApp, addr.String())
-	hash1 := testCommit(t, myApp, 1, chainID)
+	hash1 := testCommit(t, myApp, 1)
 
 	var acct cash.Set
 	key := cash.NewBucket().DBKey(addr)
@@ -129,7 +130,7 @@ func TestApp(t *testing.T) {
 	addr2 := pk2.PublicKey().Address()
 	dres := testSendTx(t, myApp, 2, 2000, "ETH", pk, addr2, 0)
 	// and commit the block
-	hash2 := testCommit(t, myApp, 2, chainID)
+	hash2 := testCommit(t, myApp, 2)
 	assert.NotEqual(t, hash1, hash2)
 
 	// ensure 3 keys with proper values
@@ -186,7 +187,7 @@ func TestApp(t *testing.T) {
 	// try another send
 	testSendTx(t, myApp, 3, 100, "FRNK", pk, addr2, 1)
 	// and commit the block
-	hash3 := testCommit(t, myApp, 3, chainID)
+	hash3 := testCommit(t, myApp, 3)
 	assert.NotEqual(t, hash2, hash3)
 
 	var second cash.Set

@@ -130,8 +130,8 @@
     "server",
     "types"
   ]
-  revision = "78a8905690ef54f9d57e3b2b0ee7ad3a04ef3f1f"
-  version = "v0.10.3"
+  revision = "ebee2fe114020aa49c70bbbae50b7079fc7e7b90"
+  version = "v0.11.0"
 
 [[projects]]
   name = "github.com/tendermint/go-amino"
@@ -235,6 +235,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "695a09083673639de4282dc40aa879e9f39c81f645b55c92121303fff8e912f8"
+  inputs-digest = "e8aa7bb3994b19c14c7b614701e2675517523a6806a2f9f4813387a0665c51b5"
   solver-name = "gps-cdcl"
   solver-version = 1
