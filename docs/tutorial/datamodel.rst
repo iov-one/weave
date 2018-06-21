@@ -75,6 +75,19 @@ Key: Use `(author address)` as primary key.
     :language: proto
     :lines: 22-25
 
+Compile Protobuf
+----------------
+
+We add the compilation steps into our [Makefile](https://github.com/confio/weave/blob/master/examples/tutorial/Makefile):
+
+.. literalinclude:: ../../examples/tutorial/Makefile
+    :language: Makefile
+    :lines: 3-4
+
+Now we run ``make protoc`` to generate the golang objects. (You
+will have to add and run the `prototools` section if you are
+using your own repo, we inherit that from root weave Makefile).
+
 Using Buckets
 --------------
 
