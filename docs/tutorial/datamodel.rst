@@ -234,13 +234,51 @@ resorting to string comparisons.
 Custom Bucket
 ~~~~~~~~~~~~~
 
+We want to enforce the data consistency on the buckets. All
+data is validated before saving, but we also need to make sure
+that all data is the proper type of object before saving.
+Unfortunately, this is quite difficult to do compile-time
+without generic, so a typical apporach is to embed the
+`orm.Bucket <>`_
+in another struct and just force validation of the object type
+runtime before save.
+
+.. literalinclude:: ../../examples/tutorial/x/blog/models.go
+    :language: go
+    :lines: 101-128
 
 Secondary Indexes
 ------------------
 
-**TODO**
+Sometimes we need another index for the data. Generally, we
+will look up a post from the blog it belongs to and it's
+index in the blog. But what if we want to list all posts by
+one author over all blogs? For this, we need to add a secondary
+index on the posts to query by author. This is a typical case
+and weave provides nice support for this functionality.
+
+.. literalinclude:: ../../examples/tutorial/x/blog/models.go
+    :language: go
+    :lines: 141-165
+
+We add a indexing method to take any object, enforce the type
+to be a proper Post, then extract the index we want. This
+can be a field, or any deterministic transformation of
+one (or multiple) fields. The output of the index becomes a
+key in another query. Bucket provides a simple
+`method to query by index <https://godoc.org/github.com/confio/weave/orm#Bucket.GetIndexed>`_. You can query by name like:
+
+.. code:: go
+
+    posts, err := bucket.GetIndexed(db, "author", address)
+
+This will return a (possibly empty) list of Objects
+(keys and values) that have an author index matching the query.
 
 Sequences
 ---------
 
-**TODO**
+You can also add an auto-incrementing sequence to a bucket.
+That isn't so important in this case, but if you are curious
+how to use it, take a look at the
+`escrow bucket in bcp-demo <https://github.com/iov-one/bcp-demo/blob/master/x/escrow/model.go#L99-L122>`_.
