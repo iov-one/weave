@@ -10,10 +10,10 @@ validity hashes and proofs. This is exposed to the application
 as a basic key-value store, which also allows in-order
 iteration over the keys. On top of this, we have built some
 tools like secondary indexes and sequences, in a similar
-manner to show
-[storm adds a orm](https://github.com/asdine/storm#simple-crud-system)
+manner to how
+`storm adds a orm <https://github.com/asdine/storm#simple-crud-system>`_
 on top of
-[boltdb's kv store](https://github.com/boltdb/bolt#using-buckets).
+`boltdb's kv store <https://github.com/boltdb/bolt#using-buckets>`_.
 We have avoided struct tags and tried to type as strictly as
 we can (without using generics).
 
@@ -41,7 +41,8 @@ Select Primary Keys
 -------------------
 
 Some of this data belongs in the primary key, the rest in the value.
-Weave introduces the concept of an [Object](https://github.com/confio/weave/blob/master/orm/interfaces.go#L8-L21)
+Weave introduces the concept of an
+`Object <https://github.com/confio/weave/blob/master/orm/interfaces.go#L8-L21>`_
 which contains a Key (`[]byte`) and Value (`Persistent` struct).
 It can be cloned and validated. When we query we will receive
 this object, so we can place some critical information in the Key
@@ -49,12 +50,13 @@ and expect it to always be present.
 
 The primary key must be a unique identifier and it should be the
 main way we want to access the data. Let's break down the four
-models above into keys and [protobuf models](https://github.com/confio/weave/blob/master/examples/tutorial/x/blog/state.proto):
+models above into keys and
+`protobuf models <https://github.com/confio/weave/blob/master/examples/tutorial/x/blog/state.proto>`_:
 
 Blog
 ~~~~
 
-Key: Use the unique name `(slug)` as the primary key.
+Key: Use the unique name ``(slug)`` as the primary key.
 
 .. literalinclude:: ../../examples/tutorial/x/blog/state.proto
     :language: proto
@@ -63,7 +65,7 @@ Key: Use the unique name `(slug)` as the primary key.
 Post
 ~~~~
 
-Key: Use `(blog slug, index)` as composite primary key. This allows
+Key: Use ``(blog slug, index)`` as composite primary key. This allows
 us to guarantee uniqueness and efficiently paginate through all
 posts on a given blog.
 
@@ -74,7 +76,7 @@ posts on a given blog.
 Profile
 ~~~~~~~
 
-Key: Use `(author address)` as primary key.
+Key: Use ``(author address)`` as primary key.
 
 .. literalinclude:: ../../examples/tutorial/x/blog/state.proto
     :language: proto
@@ -90,18 +92,18 @@ We add the compilation steps into our [Makefile](https://github.com/confio/weave
     :lines: 3-4
 
 Now we run ``make protoc`` to generate the
-[golang objects](https://github.com/confio/weave/blob/master/examples/tutorial/x/blog/state.pb.go).
-(You will have to add and run the `prototools` section if you are
+`golang objects <https://github.com/confio/weave/blob/master/examples/tutorial/x/blog/state.pb.go>`_.
+(You will have to add and run the ``prototools`` section if you are
 using your own repo, we inherit that from root weave Makefile).
 
 Using Buckets
 --------------
 
 When running your handlers, you get access to the root
-[KVStore](https://godoc.org/github.com/confio/weave#KVStore),
+`KVStore <https://godoc.org/github.com/confio/weave#KVStore>`_,
 which is an abstraction level similar to boltdb or leveldb.
 An extenstion can opt-in to using one or more
-[Buckets](https://godoc.org/github.com/confio/weave/orm#Bucket)
+`Buckets <https://godoc.org/github.com/confio/weave/orm#Bucket>`_
 to store the data. Buckets offer the following advantages:
 
 * Isolation between extensions (each Bucket has a unique prefix that is transparently prepended to the keys)
@@ -114,7 +116,7 @@ well as the features, please use Buckets in your app, unless you
 have a very good reason not to (and know what you are doing).
 
 To do so, you will have to wrap your state data structures into
-[Objects](https://godoc.org/github.com/confio/weave/orm#Object).
+`Objects <https://godoc.org/github.com/confio/weave/orm#Object>`_.
 The simplest way is to use ``SimpleObj``:
 
 .. literalinclude:: ../../orm/object.go
@@ -122,7 +124,7 @@ The simplest way is to use ``SimpleObj``:
     :lines: 14-17
 
 And extend your protobuf objects to implement
-[CloneableData](https://godoc.org/github.com/confio/weave/orm#CloneableData):
+`CloneableData <https://godoc.org/github.com/confio/weave/orm#CloneableData>`_:
 
 .. literalinclude:: ../../orm/interfaces.go
     :language: golang
@@ -130,7 +132,7 @@ And extend your protobuf objects to implement
 
 This basically consists of adding `Copy()` and `Validate()`
 to the objects in ``state.pb.go``. Just create a
-[models.go](https://github.com/confio/weave/blob/master/examples/tutorial/x/blog/models.go)
+`models.go <https://github.com/confio/weave/blob/master/examples/tutorial/x/blog/models.go>`_
 file and add extra methods to the auto-generated structs.
 If we don't care about validation, this can be as simple as:
 

@@ -91,7 +91,7 @@ Backend Development Tutorial
 To make this theory more tangible, we will build a sample
 application alongside this tutorial, to demonstrate dealing
 with real-world constraints. The application is located in the
-[examples/tutorial package](https://github.com/confio/weave/tree/master/examples/tutorial)
+`examples/tutorial package <https://github.com/confio/weave/tree/master/examples/tutorial>`_
 in the weave repository, but it is designed to be self-contained
 and could just as easily live in an external repo that imported
 weave.
