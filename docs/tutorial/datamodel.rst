@@ -165,11 +165,69 @@ Anyone who has spent much time dealing with production
 applications knows how "invalid data" can start creeping in
 without a strict database schema, this is what we do in code.
 
+We can do some basic checks and return an error if none of them
+pass:
 
+.. literalinclude:: ../../examples/tutorial/x/blog/models.go
+    :language: golang
+    :lines: 16-28
 
 Errors
 ~~~~~~
 
+What is with these ``ErrXYZ()`` calls you may think? Well, we
+could return a "normal" error like ``errors.New("fail")``,
+but we wanted two more features. First of all, it helps
+debugging enormously to have a stack trace of where the error
+originally occured. For this we use
+`pkg/errors <https://github.com/pkg/errors>`_
+that attaches a stacktrace to the error that can optionally
+be printed later with a ``Printf("%+v", err)``.
+We also want to return a unique abci error code, which may be
+interpretted by client applications, either programmatically
+or to provide translations of the error message client side.
+
+For these reasons, weave provides some utility methods
+and common error types in the
+`errors <https://godoc.org/github.com/confio/weave/errors>`_
+package. The ABCI Code attached to the error is then
+`returned in the DeliverTx Result <https://github.com/confio/weave/blob/master/abci.go#L92-L104>`_.
+
+Every package can define it's own custom error types and
+error codes, generally in a file called
+`errors.go <https://github.com/confio/weave/blob/master/examples/tutorial/x/blog/errors.go>`_. The key elements are:
+
+.. code:: golang
+
+    // ABCI Response Codes
+    // tutorial reserves 400 ~ 420.
+    const (
+        CodeInvalidText    uint32 = 400
+    )
+
+    var (
+        errTitleTooLong       = fmt.Errorf("Title is too long")
+        errInvalidAuthorCount = fmt.Errorf("Invalid number of blog authors")
+    )
+
+    // Error code with no arguments, check on code not particular type
+    func ErrTitleTooLong() error {
+        return errors.WithCode(errTitleTooLong, CodeInvalidText)
+    }
+    func IsInvalidTextError(err error) bool {
+        return errors.HasErrorCode(err, CodeInvalidText)
+    }
+
+    // You can also prepend a variable message using WithLog
+    func ErrInvalidAuthorCount(count int) error {
+        msg := fmt.Sprintf("authors=%d", count)
+        return errors.WithLog(msg, errInvalidAuthorCount, CodeInvalidAuthor)
+    }
+
+Take a deeper look at the file and if you start using that pattern
+you will see the nicer debug messages, usable error codes, and
+the ability to check the type of error in your test code without
+resorting to string comparisons.
 
 Custom Bucket
 ~~~~~~~~~~~~~
