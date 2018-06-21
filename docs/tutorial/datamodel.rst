@@ -92,7 +92,7 @@ We add the compilation steps into our [Makefile](https://github.com/confio/weave
     :lines: 3-4
 
 Now we run ``make protoc`` to generate the
-`golang objects <https://github.com/confio/weave/blob/master/examples/tutorial/x/blog/state.pb.go>`_.
+`go objects <https://github.com/confio/weave/blob/master/examples/tutorial/x/blog/state.pb.go>`_.
 (You will have to add and run the ``prototools`` section if you are
 using your own repo, we inherit that from root weave Makefile).
 
@@ -120,14 +120,14 @@ To do so, you will have to wrap your state data structures into
 The simplest way is to use ``SimpleObj``:
 
 .. literalinclude:: ../../orm/object.go
-    :language: golang
+    :language: go
     :lines: 14-17
 
 And extend your protobuf objects to implement
 `CloneableData <https://godoc.org/github.com/confio/weave/orm#CloneableData>`_:
 
 .. literalinclude:: ../../orm/interfaces.go
-    :language: golang
+    :language: go
     :lines: 35-39
 
 This basically consists of adding `Copy()` and `Validate()`
@@ -136,7 +136,7 @@ to the objects in ``state.pb.go``. Just create a
 file and add extra methods to the auto-generated structs.
 If we don't care about validation, this can be as simple as:
 
-.. code:: golang
+.. code:: go
 
     // enforce that Post fulfils desired interface compile-time
     var _ orm.CloneableData = (*Post)(nil)
@@ -171,7 +171,7 @@ We can do some basic checks and return an error if none of them
 pass:
 
 .. literalinclude:: ../../examples/tutorial/x/blog/models.go
-    :language: golang
+    :language: go
     :lines: 16-28
 
 Errors
@@ -199,7 +199,7 @@ Every package can define it's own custom error types and
 error codes, generally in a file called
 `errors.go <https://github.com/confio/weave/blob/master/examples/tutorial/x/blog/errors.go>`_. The key elements are:
 
-.. code:: golang
+.. code:: go
 
     // ABCI Response Codes
     // tutorial reserves 400 ~ 420.
