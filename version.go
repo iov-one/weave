@@ -4,7 +4,7 @@ package bov
 const Maj = 0
 
 // Min is the minor version number (updated on minor releases)
-const Min = 3
+const Min = 5
 
 // Fix is the patch number (updated on bugfix releases)
 const Fix = 0
