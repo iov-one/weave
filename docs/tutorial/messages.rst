@@ -85,7 +85,7 @@ based on the type:
 
 .. literalinclude:: ../../examples/tutorial/x/blog/msgs.go
     :language: go
-    :lines: 9-10,25,32-38
+    :lines: 9-10,25-26,32-38
 
 Validation
 ----------
@@ -106,4 +106,4 @@ of acceptable values as it is runtime security.
 
 .. literalinclude:: ../../examples/tutorial/x/blog/msgs.go
     :language: go
-    :lines: 27-30,40-61
+    :lines: 27-31,40-61
