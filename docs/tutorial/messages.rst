@@ -72,14 +72,20 @@ In the blog example, we can imagine:
 * Create Profile
 * Modify Profile (which may be merged with above)
 
-We can create a protobuf message for each of these types:
+We can create a protobuf message for
+`each of these types <https://github.com/confio/weave/blob/master/examples/tutorial/x/blog/messages.proto>`_:
 
-.. literal-include
+.. literalinclude:: ../../examples/tutorial/x/blog/messages.proto
+    :language: proto
+    :lines: 5-13
 
-And then add a ``Path`` method that returns a constant based on
-the type:
+And then add a ``Path`` method that
+`returns a constant <https://github.com/confio/weave/blob/master/examples/tutorial/x/blog/msgs.go>`_
+based on the type:
 
-.. literal-include
+.. literalinclude:: ../../examples/tutorial/x/blog/msgs.go
+    :language: go
+    :lines: 9-10,25,32-38
 
 Validation
 ----------
@@ -98,8 +104,6 @@ The validation on Messages should be a lot more thorough and well
 tested than the validation on data models, which is as much documentation
 of acceptable values as it is runtime security.
 
-**TODO**
-
-* Messages vs. Transactions, what is the distinction?
-* Defining message types - needed data, non-maleability
-* Validation of Messages
+.. literalinclude:: ../../examples/tutorial/x/blog/msgs.go
+    :language: go
+    :lines: 27-30,40-61

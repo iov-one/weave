@@ -17,7 +17,7 @@ const (
 var (
 	errTitleTooLong       = fmt.Errorf("Title is too long")
 	errTextTooLong        = fmt.Errorf("Text is too long")
-	errNameTooLong        = fmt.Errorf("Name is too long")
+	errInvalidName        = fmt.Errorf("Name is too long")
 	errDescriptionTooLong = fmt.Errorf("Description is too long")
 
 	errNoAuthor           = fmt.Errorf("No author for post")
@@ -33,8 +33,8 @@ func ErrTitleTooLong() error {
 func ErrTextTooLong() error {
 	return errors.WithCode(errTextTooLong, CodeInvalidText)
 }
-func ErrNameTooLong() error {
-	return errors.WithCode(errNameTooLong, CodeInvalidText)
+func ErrInvalidName() error {
+	return errors.WithCode(errInvalidName, CodeInvalidText)
 }
 func ErrDescriptionTooLong() error {
 	return errors.WithCode(errDescriptionTooLong, CodeInvalidText)

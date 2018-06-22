@@ -9,12 +9,6 @@ import (
 
 //----- Blog -------
 
-const MaxAuthors = 10
-const MaxTitleLength = 100
-const MaxTextLength = 20 * 1000
-const MaxNameLength = 30
-const MaxDescriptionLength = 280
-
 // enforce that Blog fulfils desired interface compile-time
 var _ orm.CloneableData = (*Blog)(nil)
 
@@ -84,7 +78,7 @@ var _ orm.CloneableData = (*Profile)(nil)
 // Validate enforces limits of text and title size
 func (p *Profile) Validate() error {
 	if len(p.Name) > MaxNameLength {
-		return ErrNameTooLong()
+		return ErrInvalidName()
 	}
 	if len(p.Description) > MaxDescriptionLength {
 		return ErrDescriptionTooLong()

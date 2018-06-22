@@ -172,7 +172,7 @@ pass:
 
 .. literalinclude:: ../../examples/tutorial/x/blog/models.go
     :language: go
-    :lines: 16-28
+    :lines: 15-27
 
 Errors
 ~~~~~~
@@ -239,13 +239,13 @@ data is validated before saving, but we also need to make sure
 that all data is the proper type of object before saving.
 Unfortunately, this is quite difficult to do compile-time
 without generic, so a typical apporach is to embed the
-`orm.Bucket <>`_
+`orm.Bucket <https://godoc.org/github.com/confio/weave/orm#Bucket>`_
 in another struct and just force validation of the object type
 runtime before save.
 
 .. literalinclude:: ../../examples/tutorial/x/blog/models.go
     :language: go
-    :lines: 101-128
+    :lines: 99-124
 
 Secondary Indexes
 ------------------
@@ -259,7 +259,7 @@ and weave provides nice support for this functionality.
 
 .. literalinclude:: ../../examples/tutorial/x/blog/models.go
     :language: go
-    :lines: 141-165
+    :lines: 139-159
 
 We add a indexing method to take any object, enforce the type
 to be a proper Post, then extract the index we want. This
