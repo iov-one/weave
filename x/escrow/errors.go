@@ -10,20 +10,20 @@ import (
 // bov takes 1000-1100
 // escrow takes 1010-1020
 const (
-	CodeNoEscrow          = 1010
+	CodeNoEscrow         = 1010
 	CodeMissingCondition = 1011
 	CodeInvalidCondition = 1012
-	CodeInvalidMetadata   = 1013
-	CodeInvalidHeight     = 1014
+	CodeInvalidMetadata  = 1013
+	CodeInvalidHeight    = 1014
 
 	// CodeInvalidIndex  = 1001
 	// CodeInvalidWallet = 1002
 )
 
 var (
-	errMissingArbiter        = fmt.Errorf("Missing Arbiter")
-	errMissingSender         = fmt.Errorf("Missing Sender")
-	errMissingRecipient      = fmt.Errorf("Missing Recipient")
+	errMissingArbiter       = fmt.Errorf("Missing Arbiter")
+	errMissingSender        = fmt.Errorf("Missing Sender")
+	errMissingRecipient     = fmt.Errorf("Missing Recipient")
 	errMissingAllConditions = fmt.Errorf("Missing All Conditions")
 
 	errInvalidMemo     = fmt.Errorf("Memo field too long")
