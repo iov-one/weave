@@ -53,8 +53,8 @@ func TestApp(t *testing.T) {
     }`, addr)
 
 	// Commit first block, make sure non-nil hash
-	myApp.InitChain(abci.RequestInitChain{AppStateBytes: []byte(appState)})
-	header := abci.Header{Height: 1, ChainID: chainID}
+	myApp.InitChain(abci.RequestInitChain{AppStateBytes: []byte(appState), ChainId: chainID})
+	header := abci.Header{Height: 1}
 	myApp.BeginBlock(abci.RequestBeginBlock{Header: header})
 	myApp.EndBlock(abci.RequestEndBlock{})
 	cres := myApp.Commit()

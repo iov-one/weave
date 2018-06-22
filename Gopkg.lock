@@ -18,8 +18,8 @@
     "x/sigs",
     "x/utils"
   ]
-  revision = "9f4484ee27803d393aa2b16a0a649d307c588dbd"
-  version = "v0.4.1"
+  revision = "e7e10bf6479245cdd91f9aa9c83e00a07de90ba3"
+  version = "v0.5.0"
 
 [[projects]]
   name = "github.com/davecgh/go-spew"
@@ -150,8 +150,8 @@
     "server",
     "types"
   ]
-  revision = "78a8905690ef54f9d57e3b2b0ee7ad3a04ef3f1f"
-  version = "v0.10.3"
+  revision = "ebee2fe114020aa49c70bbbae50b7079fc7e7b90"
+  version = "v0.11.0"
 
 [[projects]]
   name = "github.com/tendermint/go-amino"
@@ -256,6 +256,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "b25cd3f9e4b81e7f0c2a2a7eb43ac1d7dc766d43e3a99fca083d830a35ce4390"
+  inputs-digest = "7aa8462c8dbd76bd81c0a3cb2483dfc7e46d258cfb141a0c97a35a32424088fd"
   solver-name = "gps-cdcl"
   solver-version = 1
