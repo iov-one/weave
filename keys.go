@@ -12,14 +12,22 @@ import (
 // KeyPerm is the file permissions for saved private keys
 const KeyPerm = 0600
 
+type PrivateKey = crypto.PrivateKey
+
+// GenPrivateKey creates a new random key.
+// Alias to simplify usage.
+func GenPrivateKey() *PrivateKey {
+	return crypto.GenPrivKeyEd25519()
+}
+
 // DecodePrivateKey reads a hex string created by EncodePrivateKey
 // and returns the original PrivateKey
-func DecodePrivateKey(hexKey string) (*crypto.PrivateKey, error) {
+func DecodePrivateKey(hexKey string) (*PrivateKey, error) {
 	data, err := hex.DecodeString(hexKey)
 	if err != nil {
 		return nil, err
 	}
-	var key crypto.PrivateKey
+	var key PrivateKey
 	err = key.Unmarshal(data)
 	if err != nil {
 		return nil, err
@@ -29,7 +37,7 @@ func DecodePrivateKey(hexKey string) (*crypto.PrivateKey, error) {
 
 // EncodePrivateKey stores the private key as a hex string
 // that can be saved and later loaded
-func EncodePrivateKey(key *crypto.PrivateKey) (string, error) {
+func EncodePrivateKey(key *PrivateKey) (string, error) {
 	data, err := key.Marshal()
 	if err != nil {
 		return "", err
@@ -39,7 +47,7 @@ func EncodePrivateKey(key *crypto.PrivateKey) (string, error) {
 
 // LoadPrivateKey will load a private key from a file,
 // Which was previously writen by SavePrivateKey
-func LoadPrivateKey(filename string) (*crypto.PrivateKey, error) {
+func LoadPrivateKey(filename string) (*PrivateKey, error) {
 	f, err := os.Open(filename)
 	if err != nil {
 		return nil, err
@@ -55,7 +63,7 @@ func LoadPrivateKey(filename string) (*crypto.PrivateKey, error) {
 
 // SavePrivateKey will encode the privatekey in hex and write to
 // the named file. It will refuse to overwrite a file
-func SavePrivateKey(key *crypto.PrivateKey, filename string) error {
+func SavePrivateKey(key *PrivateKey, filename string) error {
 	// don't overwrite some keys here...
 	_, err := os.Stat(filename)
 	if !os.IsNotExist(err) {
@@ -66,7 +74,7 @@ func SavePrivateKey(key *crypto.PrivateKey, filename string) error {
 
 // ForceSavePrivateKey is like SavePrivateKey,
 // except it will overwrite any file already present.
-func ForceSavePrivateKey(key *crypto.PrivateKey, filename string) error {
+func ForceSavePrivateKey(key *PrivateKey, filename string) error {
 	hexKey, err := EncodePrivateKey(key)
 	if err != nil {
 		return err
