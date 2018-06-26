@@ -4,6 +4,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/tendermint/tendermint/rpc/client"
+	ctypes "github.com/tendermint/tendermint/rpc/core/types"
 
 	"github.com/confio/weave"
 	"github.com/confio/weave/app"
@@ -70,6 +71,56 @@ func (b *BcpClient) AbciQuery(path string, data []byte) (AbciResponse, error) {
 
 	out.Models, err = app.JoinResults(&keys, &vals)
 	return out, err
+}
+
+// BroadcastTxResponse is the result of submitting a transaction
+type BroadcastTxResponse struct {
+	Error    error                           // not-nil if there was an error sending
+	Response *ctypes.ResultBroadcastTxCommit // not-nil if we got response from node
+}
+
+// IsError returns the error for failure if it failed,
+// or null if it succeeded
+func (b BroadcastTxResponse) IsError() error {
+	if b.Error != nil {
+		return b.Error
+	}
+	if b.Response.CheckTx.IsErr() {
+		ctx := b.Response.CheckTx
+		return errors.Errorf("CheckTx error: (%d) %s", ctx.Code, ctx.Log)
+	}
+	if b.Response.DeliverTx.IsErr() {
+		dtx := b.Response.DeliverTx
+		return errors.Errorf("CheckTx error: (%d) %s", dtx.Code, dtx.Log)
+	}
+	return nil
+}
+
+// BroadcastTx serializes a signed transaction and writes to the
+// blockchain. It returns a channel that will receive
+// one success or error response before closing.
+//
+// TODO: Right now, this blocks until Commit, improve
+// this to allow feedback for loadtesting
+func (b *BcpClient) BroadcastTx(tx weave.Tx) <-chan BroadcastTxResponse {
+	out := make(chan BroadcastTxResponse, 1)
+
+	data, err := tx.Marshal()
+	if err != nil {
+		out <- BroadcastTxResponse{Error: err}
+		close(out)
+		return out
+	}
+
+	// TODO: make this async, maybe adjust return value
+	res, err := b.conn.BroadcastTxCommit(data)
+	msg := BroadcastTxResponse{
+		Error:    err,
+		Response: res,
+	}
+	out <- msg
+	close(out)
+	return out
 }
 
 //************* app-specific data structures **********//
