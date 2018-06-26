@@ -23,9 +23,15 @@ ABCI Format
         Prove  bool
     }
 
-The request uses ``Height`` to select which tree to query and ``Prove``
-to determine if we should also return merkle proofs for the
-response. The actual data that we wish to read is declared in ``Path``
+The request uses ``Height`` to select which block height to query and
+``Prove`` to determine if we should also return merkle proofs for the
+response. Note that "block height to query" is shorthand for "query the
+state produced after executing all transactions included in all blocks
+up to *and including* ``Height``". For various reasons internal to
+tendermint, the root hash of this state is included as ``AppHash``
+in the block at ``Height+1``.
+
+The actual data that we wish to read is declared in ``Path``
 and ``Data``. ``Path`` defines what kind of query this is, much like the
 path in an http get request. ``Data`` is an arbitrary argument. In
 the typical case, ``Path = /key`` and ``Data = <key bytes>`` to directly
@@ -52,8 +58,8 @@ non-zero only when there is an error in processing the query.
 info. ``Index`` *may* be the location of this key in the merkle tree,
 but that is not well defined.
 
-Now to the important ones. ``Height``, as above, the the version of
-the tree we queried and is always set, even if the query had 0 to
+Now to the important ones. ``Height``, as above, the the block height
+of the tree we queried and is always set, even if the query had 0 to
 request "most recent". ``Key`` is the key of the merkle tree we got,
 ``Value`` is the value stored at that key (may be empty if there
 is no value), and ``Proof`` is a merkle proof in an undefined format.
@@ -107,7 +113,9 @@ Path: ``/wallets?range``, Data: ``complex type to be defined``:
 
 Note that if we have a numeric index, the range query could be
 easily be used to generate ``<``, ``<=``, ``>``, ``>=``, and
-``BETWEEN`` queries over those values.
+``BETWEEN`` queries over those values. Range is currently
+not implemented as of weave v0.4.1, but will be added as
+soon as there is a clear use case.
 
 Weave Response Types
 ====================
@@ -152,6 +160,12 @@ another method ``RegisterQueries``.
 
 Proofs
 ======
+
+**Proofs are not yet implemented as of weave v0.4.1**
+This is both due to prioritization of other features,
+and also as we wish to provide a solid proof format that is
+useful for IBC as well, and watching cosmos-sdk development
+so we can maintain some compatibility.
 
 As a primative to build up proofs, we define a generic ``ProofPath``
 data type that contains a merkle proof from a ``key:value`` pair to

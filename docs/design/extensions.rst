@@ -1,73 +1,82 @@
-----------------------
-Extension Design (WIP)
-----------------------
+----------------
+Extension Design
+----------------
 
-**State: Proposal**
+`Confio weave <https://github.com/confio/weave>`_ doesn't just
+produce a ``mycoind`` executable, but was designed from the
+group up to be extremely flexible for many common use cases.
+One can easily extend the functionality of ``mycoind``
+by adding more *extensions* on top of it, like
+`bcp-demo <https://github.com/iov-one/bcp-demo>`_
+or you can chose not to import any of the modules of
+mycoind and just use the building blocks to build an
+entirely different system (like utxo chain).
 
-This is a basic set of information on how to design an extension.
+Note that even pieces as fundamental as
+`signature valdation <https://github.com/confio/weave/tree/master/x/sigs>`_
+or `isolating failed transactions <https://github.com/confio/weave/tree/blob/x/utils/savepoint.go>`_ are implemented as importable modules and wired up
+together when you `construct the application <https://github.com/confio/weave/tree/blob/examples/mycoind/app/app.go#L39-54>`_.
 
-External Interface (Transactions)
-=================================
+Extension Functionality
+=======================
 
-Define a set of transactions that the module supports.
-These should be generic as well, so another module may
-support the same external calls, even with a very
-different implementation.
+Most code to extend the basic framework is packaged as *extensions* and
+stored in packages under the `x` directory. One can ignore all code
+under `x` and still build a complete weave-compatible application,
+these are just some pieces that many chains would like to reuse.
+You can import these extensions, or write you own, with the same
+power and functionality.
 
-**TODO**
+When you write a weave-based application (covered in the next section),
+you will likely want to create a few new extensions to add new
+functionality tied into why your chain is unique. What types of
+behavior can you customize?
 
-Internal Calls
-==============
+* Handler - process transactions, maintain local state, control state transitions. Sending coins is an example of a Handler
+* Decorator (aka Middleware) - do some pre-processing and update the context with information to influence eventual Handler. Signature validation is an example of a Decorator.
+* Initer - Provide a function to initialize the data store based on a section of the app_state in the genesis file
+* Handle ABCI calls - ``app.BaseApp`` implements ``abci.Application`` and you
+can wrap it with a pure ABCI Middleware to do things like record timing information on the ``Commit`` or ``Info`` calls, without forking the code.
 
-Extensions need to call between each other, to trigger actions
-in other "smart contracts", or query other state. This can be
-done by importing them directly and linking them directly,
-which is simple but rigid. Instead, we recommend to encapsulate
-all internal calls we wish to make in an interface, which should
-be passed in the constructor of the handler. And exporting
-an object with methods that expose all functions we wish to
-provide to other extensions.
+App Framework
+=============
 
-When composing the application (in the main loop), we can
-wire the extensions together as needed, while allowing the
-compiler to verify that all needed functionality is properly
-provided. A middleground between static-compile time resolution,
-and dynamic run-time resolution.
+If ``weave`` allows you to customize everything, what does it provide?
 
-**TODO** (This is like Controller???)
+**ORM** - the ``orm`` package wraps up the merkle tree, provable kv-store provided by `tendermint iavl <https://github.com/tendermint/iavl>`_ and adds convenient features on top, like ``CacheWrap`` to isolate read/writes of a transaction before deciding to Write or Discard, and provides type-safe data storage and secondary indexes if you write to an ``orm.Bucket``. In fact, even if you want to build your own framework from scratch, take a look about using ``orm`` and ``iavl`` together to provide storage
 
-Persistent Models
-=================
+**ABCI Adapter** the ``app`` package builds on top of the ``orm`` to
+provide default implementations for many of the abci calls, and parses
+the other ones to allow us to handle requests easier with internal functions.
+One one hand, it adapts the format, so we can do things like locally
+return changes to the validator set during ``DeliverTx`` (when we calculate
+it), but return the final change on ``EndBlock`` (when tendermint
+expects the response). It also handles routing transactions and queries
+to various modules rather than one monolith. This package demonstrates
+where most of the main interfaces are used for.
 
-We suggest to create a ``.proto`` file defining the ``Msg`` structure
-for any messages that this extension supports, as well as all data
-structures that are supposed to be persisted in the merkle store.
+**Handlers and Decorators** A *Handler* defines what actions to perform
+in response to a transaction in either CheckTx or DeliverTx. The ``app``
+package also allows us to ``ChainDecorators`` and register multiple
+``Handlers`` on a ``Router`` to separate processing logic based
+on the contents of the transaction.
 
-**TODO: talk about ORM**
+**Error Handling** The ``errors`` package provides some nice helpers
+to produce error return values that conform to both ``pkg/errors``
+(allowing a full stack trace in testing or deployment using
+``fmt.Printf("%+v", err)``), as well as maintaining an ABCI error code
+to be returned on the result. We can pass around typical ``error``
+objects in the code, which work well with debugging, logging,
+and the ABCI interface.
 
-Wiring it up
-============
-
-We have 4 ways to connect this logic to the framework:
-
-Handler, Decorator (Context), Ticker, Init
-
-**TODO**
-
-Flexible Composition
-====================
-
-How to connect them together?
-
-We discussed a `flexible auth framework <./extensions.rst>`.
-Here are some thoughts on how to flexibly tie together.
-
-Using interfaces and inheritance... Allowing extensions to demand
-functionality for what they link to, but not restricting the
-implementation. This is a pattern that can be layered upon
-the description in "Internal Calls" to allows for even more
-flexibility in system composition.
-
-**TODO: with examples**
-
-
+**Serialization Standard** Weave defines simple
+`Marshaller <https://github.com/confio/weave/blob/master/tx.go#L21-L28>`_ and
+`Persistent <https://github.com/confio/weave/blob/master/tx.go#L30-L41>`_ interface standards. These interfaces are automatically
+implemented by any code autogenerated by protoc from protobuf files.
+This allows us to easily define serialization in an efficient and
+extremely portable manner (protobuf has support in every major
+language and platform). However, the interfaces don't force protobuf
+and you can define these two methods on any object to provide
+a custom serialization format as desired. This should allow interoperability
+with the Application and Handler code with any serialization library
+you wish to use.
