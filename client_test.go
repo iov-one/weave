@@ -36,7 +36,7 @@ func TestMainSetup(t *testing.T) {
 	assert.True(t, status.SyncInfo.LatestBlockHeight > 4)
 }
 
-func TestWalletQueries(t *testing.T) {
+func TestWalletQuery(t *testing.T) {
 	missing := GenPrivateKey().PublicKey().Address()
 
 	conn := client.NewLocal(node)
@@ -60,6 +60,32 @@ func TestWalletQueries(t *testing.T) {
 	assert.True(t, wallet.Height > 4)
 	// ensure the key matches
 	assert.EqualValues(t, money, wallet.Address)
+	// check the wallet
+	assert.Equal(t, "faucet", wallet.Wallet.Name)
+	require.Equal(t, 1, len(wallet.Wallet.Coins))
+	coin := wallet.Wallet.Coins[0]
+	assert.Equal(t, initBalance.Whole, coin.Whole)
+	assert.Equal(t, initBalance.Ticker, coin.Ticker)
+}
+
+func TestWalletNameQuery(t *testing.T) {
+	conn := client.NewLocal(node)
+	bcp := NewClient(conn)
+
+	// missing account returns nothing
+	wallet, err := bcp.GetWalletByName("nobody")
+	assert.NoError(t, err)
+	assert.Nil(t, wallet)
+
+	// genesis account returns something
+	wallet, err = bcp.GetWalletByName("faucet")
+	assert.NoError(t, err)
+	require.NotNil(t, wallet)
+	// make sure we get some reasonable height
+	assert.True(t, wallet.Height > 4)
+	// ensure the key matches
+	assert.EqualValues(t, faucet.PublicKey().Address(),
+		wallet.Address)
 	// check the wallet
 	assert.Equal(t, "faucet", wallet.Wallet.Name)
 	require.Equal(t, 1, len(wallet.Wallet.Coins))
