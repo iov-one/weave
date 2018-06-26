@@ -25,6 +25,55 @@ func NewClient(conn client.Client) *BcpClient {
 	}
 }
 
+//************ generic (weave) functionality *************//
+
+// AbciResponse contains a query result:
+// a (possibly empty) list of key-value pairs, and the height
+// at which it queried
+type AbciResponse struct {
+	// a list of key/value pairs
+	Models []weave.Model
+	Height int64
+}
+
+// AbciQuery calls abci query on tendermint rpc,
+// verifies if it is an error or empty, and if there is
+// data pulls out the ResultSets from keys and values into
+// a useful AbciResponse struct
+func (b *BcpClient) AbciQuery(path string, data []byte) (AbciResponse, error) {
+	var out AbciResponse
+
+	q, err := b.conn.ABCIQuery(path, data)
+	if err != nil {
+		return out, err
+	}
+	resp := q.Response
+	if resp.IsErr() {
+		return out, errors.Errorf("(%d): %s", resp.Code, resp.Log)
+	}
+	out.Height = resp.Height
+
+	if len(resp.Key) == 0 {
+		return out, nil
+	}
+
+	// assume there is data, parse the result sets
+	var keys, vals app.ResultSet
+	err = keys.Unmarshal(resp.Key)
+	if err != nil {
+		return out, err
+	}
+	err = vals.Unmarshal(resp.Value)
+	if err != nil {
+		return out, err
+	}
+
+	out.Models, err = app.JoinResults(&keys, &vals)
+	return out, err
+}
+
+//************* app-specific data structures **********//
+
 // WalletResponse is a response on a query for a wallet
 type WalletResponse struct {
 	Address weave.Address
@@ -42,15 +91,15 @@ func (b *BcpClient) GetWallet(addr weave.Address) (*WalletResponse, error) {
 		return nil, errors.WithMessage(err, "Invalid Address")
 	}
 
-	resp, err := b.abciQuery("/wallets", addr)
+	resp, err := b.AbciQuery("/wallets", addr)
 	if err != nil {
 		return nil, err
 	}
-	if len(resp.models) == 0 { // empty list or nil
+	if len(resp.Models) == 0 { // empty list or nil
 		return nil, nil // no wallet
 	}
 	// assume only one result
-	model := resp.models[0]
+	model := resp.Models[0]
 
 	// make sure the return value is expected
 	acct := walletKeyToAddr(model.Key)
@@ -59,7 +108,7 @@ func (b *BcpClient) GetWallet(addr weave.Address) (*WalletResponse, error) {
 	}
 	out := WalletResponse{
 		Address: acct,
-		Height:  resp.height,
+		Height:  resp.Height,
 	}
 
 	// parse the value as wallet bytes
@@ -73,15 +122,15 @@ func (b *BcpClient) GetWallet(addr weave.Address) (*WalletResponse, error) {
 // GetWalletByName will return a wallet given the wallet name
 func (b *BcpClient) GetWalletByName(name string) (*WalletResponse, error) {
 	// query by secondary index on name
-	resp, err := b.abciQuery("/wallets/name", []byte(name))
+	resp, err := b.AbciQuery("/wallets/name", []byte(name))
 	if err != nil {
 		return nil, err
 	}
-	if len(resp.models) == 0 { // empty list or nil
+	if len(resp.Models) == 0 { // empty list or nil
 		return nil, nil // no wallet
 	}
 	// assume only one result
-	model := resp.models[0]
+	model := resp.Models[0]
 
 	// make sure the return value is expected
 	acct := walletKeyToAddr(model.Key)
@@ -91,7 +140,7 @@ func (b *BcpClient) GetWalletByName(name string) (*WalletResponse, error) {
 	}
 	out := WalletResponse{
 		Address: acct,
-		Height:  resp.height,
+		Height:  resp.Height,
 	}
 
 	// TODO: double parse this into result set???
@@ -127,15 +176,15 @@ func (b *BcpClient) GetUser(addr weave.Address) (*UserResponse, error) {
 		return nil, errors.WithMessage(err, "Invalid Address")
 	}
 
-	resp, err := b.abciQuery("/auth", addr)
+	resp, err := b.AbciQuery("/auth", addr)
 	if err != nil {
 		return nil, err
 	}
-	if len(resp.models) == 0 { // empty list or nil
+	if len(resp.Models) == 0 { // empty list or nil
 		return nil, nil // no wallet
 	}
 	// assume only one result
-	model := resp.models[0]
+	model := resp.Models[0]
 
 	// make sure the return value is expected
 	acct := userKeyToAddr(model.Key)
@@ -144,7 +193,7 @@ func (b *BcpClient) GetUser(addr weave.Address) (*UserResponse, error) {
 	}
 	out := UserResponse{
 		Address: acct,
-		Height:  resp.height,
+		Height:  resp.Height,
 	}
 
 	// parse the value as wallet bytes
@@ -158,42 +207,4 @@ func (b *BcpClient) GetUser(addr weave.Address) (*UserResponse, error) {
 // key is the address prefixed with "sigs:"
 func userKeyToAddr(key []byte) weave.Address {
 	return key[5:]
-}
-
-type abciResponse struct {
-	// a list of key/value pairs
-	models []weave.Model
-	height int64
-}
-
-func (b *BcpClient) abciQuery(path string, data []byte) (abciResponse, error) {
-	var out abciResponse
-
-	q, err := b.conn.ABCIQuery(path, data)
-	if err != nil {
-		return out, err
-	}
-	resp := q.Response
-	if resp.IsErr() {
-		return out, errors.Errorf("(%d): %s", resp.Code, resp.Log)
-	}
-	out.height = resp.Height
-
-	if len(resp.Key) == 0 {
-		return out, nil
-	}
-
-	// assume there is data, parse the result sets
-	var keys, vals app.ResultSet
-	err = keys.Unmarshal(resp.Key)
-	if err != nil {
-		return out, err
-	}
-	err = vals.Unmarshal(resp.Value)
-	if err != nil {
-		return out, err
-	}
-
-	out.models, err = app.JoinResults(&keys, &vals)
-	return out, err
 }
