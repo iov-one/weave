@@ -87,7 +87,6 @@ func initGenesis(filename string, addr weave.Address) error {
             "sig_figs": 9
         }]
     }`, addr, string(token), initBalance.Ticker)
-	fmt.Println(appState)
 	doc.AppStateJSON = []byte(appState)
 
 	// save file

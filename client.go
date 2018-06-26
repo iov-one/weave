@@ -6,6 +6,7 @@ import (
 	"github.com/tendermint/tendermint/rpc/client"
 
 	"github.com/confio/weave"
+	"github.com/confio/weave/app"
 	"github.com/confio/weave/x/sigs"
 	"github.com/iov-one/bcp-demo/x/namecoin"
 )
@@ -45,12 +46,14 @@ func (b *BcpClient) GetWallet(addr weave.Address) (*WalletResponse, error) {
 	if err != nil {
 		return nil, err
 	}
-	if len(resp.value) == 0 { // []byte{} or nil
+	if len(resp.models) == 0 { // empty list or nil
 		return nil, nil // no wallet
 	}
+	// assume only one result
+	model := resp.models[0]
 
 	// make sure the return value is expected
-	acct := walletKeyToAddr(resp.key)
+	acct := walletKeyToAddr(model.Key)
 	if !addr.Equals(acct) {
 		return nil, errors.Errorf("Mismatch. Queried %s, returned %s", addr, acct)
 	}
@@ -60,7 +63,7 @@ func (b *BcpClient) GetWallet(addr weave.Address) (*WalletResponse, error) {
 	}
 
 	// parse the value as wallet bytes
-	err = out.Wallet.Unmarshal(resp.value)
+	err = out.Wallet.Unmarshal(model.Value)
 	if err != nil {
 		return nil, err
 	}
@@ -74,12 +77,14 @@ func (b *BcpClient) GetWalletByName(name string) (*WalletResponse, error) {
 	if err != nil {
 		return nil, err
 	}
-	if len(resp.value) == 0 { // []byte{} or nil
+	if len(resp.models) == 0 { // empty list or nil
 		return nil, nil // no wallet
 	}
+	// assume only one result
+	model := resp.models[0]
 
 	// make sure the return value is expected
-	acct := walletKeyToAddr(resp.key)
+	acct := walletKeyToAddr(model.Key)
 	err = acct.Validate()
 	if err != nil {
 		return nil, errors.WithMessage(err, "Returned invalid Address")
@@ -92,14 +97,14 @@ func (b *BcpClient) GetWalletByName(name string) (*WalletResponse, error) {
 	// TODO: double parse this into result set???
 
 	// parse the value as wallet bytes
-	err = out.Wallet.Unmarshal(resp.value)
+	err = out.Wallet.Unmarshal(model.Value)
 	if err != nil {
 		return nil, err
 	}
 	return &out, nil
 }
 
-// key is the address prefixed with "wllt:"
+// key is the address prefixed with "wallet:"
 func walletKeyToAddr(key []byte) weave.Address {
 	return key[5:]
 }
@@ -126,12 +131,14 @@ func (b *BcpClient) GetUser(addr weave.Address) (*UserResponse, error) {
 	if err != nil {
 		return nil, err
 	}
-	if len(resp.value) == 0 { // []byte{} or nil
+	if len(resp.models) == 0 { // empty list or nil
 		return nil, nil // no wallet
 	}
+	// assume only one result
+	model := resp.models[0]
 
 	// make sure the return value is expected
-	acct := userKeyToAddr(resp.key)
+	acct := userKeyToAddr(model.Key)
 	if !addr.Equals(acct) {
 		return nil, errors.Errorf("Mismatch. Queried %s, returned %s", addr, acct)
 	}
@@ -141,7 +148,7 @@ func (b *BcpClient) GetUser(addr weave.Address) (*UserResponse, error) {
 	}
 
 	// parse the value as wallet bytes
-	err = out.UserData.Unmarshal(resp.value)
+	err = out.UserData.Unmarshal(model.Value)
 	if err != nil {
 		return nil, err
 	}
@@ -154,8 +161,8 @@ func userKeyToAddr(key []byte) weave.Address {
 }
 
 type abciResponse struct {
-	key    []byte
-	value  []byte
+	// a list of key/value pairs
+	models []weave.Model
 	height int64
 }
 
@@ -170,9 +177,23 @@ func (b *BcpClient) abciQuery(path string, data []byte) (abciResponse, error) {
 	if resp.IsErr() {
 		return out, errors.Errorf("(%d): %s", resp.Code, resp.Log)
 	}
-
-	out.key = resp.Key
-	out.value = resp.Value
 	out.height = resp.Height
-	return out, nil
+
+	if len(resp.Key) == 0 {
+		return out, nil
+	}
+
+	// assume there is data, parse the result sets
+	var keys, vals app.ResultSet
+	err = keys.Unmarshal(resp.Key)
+	if err != nil {
+		return out, err
+	}
+	err = vals.Unmarshal(resp.Value)
+	if err != nil {
+		return out, err
+	}
+
+	out.models, err = app.JoinResults(&keys, &vals)
+	return out, err
 }
