@@ -50,7 +50,7 @@ func TestInit(t *testing.T) {
 	assert.Contains(t, string(doc[server.AppStateKey]), `"ticker": "ETH"`)
 
 	err = server.InitCmd(app.GenInitOptions, logger, home, args)
-	assert.EqualValues(t, fmt.Errorf(server.ErrorAlreadyInitialised, server.FlagForce), err)
+	assert.EqualValues(t, fmt.Errorf(server.ErrorAlreadyInitialised, server.FlagForce, server.FlagIgnore), err)
 }
 
 // setupConfig creates a homedir to run inside,
