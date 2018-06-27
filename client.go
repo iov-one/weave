@@ -26,6 +26,46 @@ func NewClient(conn client.Client) *BcpClient {
 	}
 }
 
+type Nonce struct {
+	client    *BcpClient
+	addr      weave.Address
+	nonce     int64
+	fromQuery bool
+}
+
+func NewNonce(client *BcpClient, addr weave.Address) *Nonce {
+	return &Nonce{client: client, addr: addr}
+}
+
+// Query always queries the blockchain for the next nonce
+func (n *Nonce) Query() (int64, error) {
+	user, err := n.client.GetUser(n.addr)
+	if err != nil {
+		return 0, err
+	}
+	if user != nil {
+		n.nonce = user.UserData.Sequence
+	} else {
+		n.nonce = 0 // new account starts at 0
+	}
+	n.fromQuery = true
+	return n.nonce, nil
+}
+
+// Next will use a cached value if present, otherwise Query
+// It will always increment by 1, assuming last nonce
+// was properly used. This is designed for cases where
+// you want to rapidly generate many tranasactions without
+// querying the blockchain each time
+func (n *Nonce) Next() (int64, error) {
+	if !n.fromQuery && n.nonce == 0 {
+		return n.Query()
+	}
+	n.nonce++
+	n.fromQuery = false
+	return n.nonce, nil
+}
+
 //************ generic (weave) functionality *************//
 
 // AbciResponse contains a query result:

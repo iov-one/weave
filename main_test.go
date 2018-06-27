@@ -31,6 +31,10 @@ var logger = log.NewNopLogger() // log.NewTMLogger()
 var node *nm.Node
 var faucet *PrivateKey
 
+func getChainID() string {
+	return rpctest.GetConfig().ChainID()
+}
+
 func TestMain(m *testing.M) {
 	faucet = GenPrivateKey()
 
