@@ -137,19 +137,27 @@ func (b BroadcastTxResponse) IsError() error {
 }
 
 // BroadcastTx serializes a signed transaction and writes to the
-// blockchain. It returns a channel that will receive
-// one success or error response before closing.
+// blockchain. It returns when the tx is committed to the
+// blockchain.
 //
-// TODO: Right now, this blocks until Commit, improve
-// this to allow feedback for loadtesting
-func (b *BcpClient) BroadcastTx(tx weave.Tx) <-chan BroadcastTxResponse {
+// If you want high-performance, parallel sending, use BroadcastTxAsync
+func (b *BcpClient) BroadcastTx(tx weave.Tx) BroadcastTxResponse {
 	out := make(chan BroadcastTxResponse, 1)
+	go b.BroadcastTxAsync(tx, out)
+	res := <-out
+	return res
+}
+
+// BroadcastTxAsync can be run in a goroutine and will output
+// the result or error to the given channel.
+// Useful if you want to send many tx in parallel
+func (b *BcpClient) BroadcastTxAsync(tx weave.Tx, out chan<- BroadcastTxResponse) {
+	defer close(out)
 
 	data, err := tx.Marshal()
 	if err != nil {
 		out <- BroadcastTxResponse{Error: err}
-		close(out)
-		return out
+		return
 	}
 
 	// TODO: make this async, maybe adjust return value
@@ -159,8 +167,6 @@ func (b *BcpClient) BroadcastTx(tx weave.Tx) <-chan BroadcastTxResponse {
 		Response: res,
 	}
 	out <- msg
-	close(out)
-	return out
 }
 
 //************* app-specific data structures **********//

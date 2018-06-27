@@ -139,7 +139,7 @@ func TestSendMoney(t *testing.T) {
 	SignTx(tx, faucet, chainID, n)
 
 	// now post it
-	res := <-bcp.BroadcastTx(tx)
+	res := bcp.BroadcastTx(tx)
 	require.NoError(t, res.IsError())
 
 	// verify nonce incremented on chain
