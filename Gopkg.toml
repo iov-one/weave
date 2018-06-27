@@ -47,7 +47,7 @@
 
 [[constraint]]
   name = "github.com/confio/weave"
-  version = "~0.5.0"
+  version = "~0.5.1"
 
 [prune]
   go-tests = true
