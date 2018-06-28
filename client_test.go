@@ -9,7 +9,6 @@ import (
 
 	"github.com/tendermint/tendermint/rpc/client"
 	rpctest "github.com/tendermint/tendermint/rpc/test"
-	tmtypes "github.com/tendermint/tendermint/types"
 
 	"github.com/confio/weave/x"
 )
@@ -161,7 +160,7 @@ func TestSendMoney(t *testing.T) {
 }
 
 func TestSubscribeHeaders(t *testing.T) {
-	headers := make(chan interface{}, 4)
+	headers := make(chan *Header, 4)
 
 	conn := client.NewLocal(node)
 	bcp := NewClient(conn)
@@ -170,21 +169,16 @@ func TestSubscribeHeaders(t *testing.T) {
 	require.NoError(t, err)
 
 	// get two headers and cancel
-	data := <-headers
-	data2 := <-headers
+	h := <-headers
+	h2 := <-headers
 	cancel()
 
-	evt, ok := data.(tmtypes.EventDataNewBlockHeader)
-	require.True(t, ok)
-	evt2, ok := data2.(tmtypes.EventDataNewBlockHeader)
-	require.True(t, ok)
-
-	assert.NotNil(t, evt.Header)
-	assert.NotNil(t, evt2.Header)
-	assert.NotEmpty(t, evt.Header.ChainID)
-	assert.NotEmpty(t, evt.Header.Height)
-	assert.Equal(t, evt.Header.ChainID, evt2.Header.ChainID)
-	assert.Equal(t, evt.Header.Height+1, evt2.Header.Height)
+	assert.NotNil(t, h)
+	assert.NotNil(t, h2)
+	assert.NotEmpty(t, h.ChainID)
+	assert.NotEmpty(t, h.Height)
+	assert.Equal(t, h.ChainID, h2.ChainID)
+	assert.Equal(t, h.Height+1, h2.Height)
 
 	// nothing else should be produced, let's wait 100ms to be sure
 	timer := time.After(100 * time.Millisecond)

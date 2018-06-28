@@ -5,6 +5,7 @@ import (
 
 	"github.com/pkg/errors"
 
+	tmpubsub "github.com/tendermint/tendermint/libs/pubsub"
 	"github.com/tendermint/tendermint/rpc/client"
 	ctypes "github.com/tendermint/tendermint/rpc/core/types"
 	tmtypes "github.com/tendermint/tendermint/types"
@@ -14,6 +15,9 @@ import (
 	"github.com/confio/weave/x/sigs"
 	"github.com/iov-one/bcp-demo/x/namecoin"
 )
+
+// Header is a type alias to make API cleaner
+type Header = tmtypes.Header
 
 // BcpClient is a tendermint client wrapped to provide
 // simple access to the data structures used in bcp-demo
@@ -178,13 +182,37 @@ func (b *BcpClient) BroadcastTxAsync(tx weave.Tx, out chan<- BroadcastTxResponse
 	out <- msg
 }
 
-// SubscribeHeaders will set a subscription and write every
-// block header to the out channel. If there is no error,
+// SubscribeHeaders queries for headers and starts a goroutine
+// to typecase the events into Headers. Returns a cancel
+// function. If you don't want the automatic goroutine, use
+// Subscribe(tmtypes.EventQueryNewBlockHeader, out)
+func (b *BcpClient) SubscribeHeaders(out chan<- *Header) (func(), error) {
+	query := tmtypes.EventQueryNewBlockHeader
+	pipe := make(chan interface{}, 1)
+	cancel, err := b.Subscribe(query, pipe)
+	if err != nil {
+		return nil, err
+	}
+	go func() {
+		for msg := range pipe {
+			evt, ok := msg.(tmtypes.EventDataNewBlockHeader)
+			if !ok {
+				// TODO: something else?
+				panic("Unexpected event type")
+			}
+			out <- evt.Header
+		}
+		close(out)
+	}()
+	return cancel, nil
+}
+
+// Subscribe will take an arbitrary query and push all events to
+// the given channel. If there is no error,
 // returns a cancel function that can be called to cancel
 // the subscription
-func (b *BcpClient) SubscribeHeaders(out chan<- interface{}) (func(), error) {
+func (b *BcpClient) Subscribe(query tmpubsub.Query, out chan<- interface{}) (func(), error) {
 	ctx := context.Background()
-	query := tmtypes.EventQueryNewBlockHeader
 	err := b.conn.Subscribe(ctx, b.subscriber, query, out)
 	if err != nil {
 		return nil, err
