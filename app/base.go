@@ -44,7 +44,7 @@ func (b BaseApp) DeliverTx(txBytes []byte) abci.ResponseDeliverTx {
 
 	res, err := b.handler.Deliver(ctx, b.DeliverStore(), tx)
 	if err == nil {
-		b.pending = res.Diff
+		b.AddValChange(res.Diff)
 	}
 	return weave.DeliverOrError(res, err)
 }
