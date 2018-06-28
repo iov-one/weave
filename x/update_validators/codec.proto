@@ -22,3 +22,8 @@ message PubKey {
 message SetValidators {
 	repeated Validator validators = 1;
 }
+
+// Accounts is a list of accounts allowed to update validators
+message Accounts {
+	repeated bytes addresses = 1;
+}
