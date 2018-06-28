@@ -18,6 +18,17 @@ type WeaveAccounts struct {
 	Addresses []weave.Address `json:"addresses"`
 }
 
+func (wa WeaveAccounts) Validate() error {
+	for _, v := range wa.Addresses {
+		err := v.Validate()
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func AsWeaveAccounts(a *Accounts) WeaveAccounts {
 	addrs := make([]weave.Address, len(a.Addresses))
 	for k, v := range a.Addresses {
@@ -48,14 +59,7 @@ func (m *Accounts) Copy() orm.CloneableData {
 }
 
 func (m *Accounts) Validate() error {
-	for _, v := range AsWeaveAccounts(m).Addresses {
-		err := v.Validate()
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
+	return AsWeaveAccounts(m).Validate()
 }
 
 func NewBucket() orm.Bucket {

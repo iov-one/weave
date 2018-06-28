@@ -21,16 +21,18 @@ func (Initializer) FromGenesis(opts weave.Options, kv weave.KVStore) error {
 		return err
 	}
 	bucket := NewBucket()
-	for _, addr := range accounts.Addresses {
-		if err := addr.Validate(); err != nil {
-			return err
-		}
-		wallet := AccountsWith(accounts)
 
-		err := bucket.Save(kv, wallet)
-		if err != nil {
-			return err
-		}
+	err = accounts.Validate()
+	if err != nil {
+		return err
 	}
+
+	accts := AccountsWith(accounts)
+
+	err = bucket.Save(kv, accts)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
