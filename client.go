@@ -152,8 +152,6 @@ func (b *BcpClient) BroadcastTx(tx weave.Tx) BroadcastTxResponse {
 // the result or error to the given channel.
 // Useful if you want to send many tx in parallel
 func (b *BcpClient) BroadcastTxAsync(tx weave.Tx, out chan<- BroadcastTxResponse) {
-	defer close(out)
-
 	data, err := tx.Marshal()
 	if err != nil {
 		out <- BroadcastTxResponse{Error: err}
