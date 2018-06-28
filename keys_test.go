@@ -60,17 +60,17 @@ func TestSaveLoad(t *testing.T) {
 	private2 := GenPrivateKey()
 
 	// Save and load key
-	err = SavePrivateKey(private, filename)
+	err = SavePrivateKey(private, filename, false)
 	require.NoError(t, err)
 	loaded, err := LoadPrivateKey(filename)
 	require.NoError(t, err)
 	assert.Equal(t, private, loaded)
 
 	// try to over-write, but fails
-	err = SavePrivateKey(private2, filename)
+	err = SavePrivateKey(private2, filename, false)
 	assert.Error(t, err)
 	// can write to other location...
-	err = SavePrivateKey(private2, filename2)
+	err = SavePrivateKey(private2, filename2, false)
 	require.NoError(t, err)
 
 	// both keys stored separately
@@ -82,7 +82,7 @@ func TestSaveLoad(t *testing.T) {
 	assert.Equal(t, private2, loaded2)
 
 	// force over-write works
-	err = ForceSavePrivateKey(private2, filename)
+	err = SavePrivateKey(private2, filename, true)
 	assert.NoError(t, err)
 	loaded, err = LoadPrivateKey(filename)
 	require.NoError(t, err)

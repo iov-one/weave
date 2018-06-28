@@ -48,13 +48,7 @@ func EncodePrivateKey(key *PrivateKey) (string, error) {
 // LoadPrivateKey will load a private key from a file,
 // Which was previously writen by SavePrivateKey
 func LoadPrivateKey(filename string) (*PrivateKey, error) {
-	f, err := os.Open(filename)
-	if err != nil {
-		return nil, err
-	}
-	defer f.Close()
-
-	raw, err := ioutil.ReadAll(f)
+	raw, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return nil, err
 	}
@@ -63,18 +57,15 @@ func LoadPrivateKey(filename string) (*PrivateKey, error) {
 
 // SavePrivateKey will encode the privatekey in hex and write to
 // the named file. It will refuse to overwrite a file
-func SavePrivateKey(key *PrivateKey, filename string) error {
-	// don't overwrite some keys here...
-	_, err := os.Stat(filename)
-	if !os.IsNotExist(err) {
-		return fmt.Errorf("Refusing to overwrite: %s", filename)
+func SavePrivateKey(key *PrivateKey, filename string, force bool) error {
+	if !force { // check before overwriting keys
+		_, err := os.Stat(filename)
+		if err == nil {
+			return fmt.Errorf("Refusing to overwrite: %s", filename)
+		}
 	}
-	return ForceSavePrivateKey(key, filename)
-}
 
-// ForceSavePrivateKey is like SavePrivateKey,
-// except it will overwrite any file already present.
-func ForceSavePrivateKey(key *PrivateKey, filename string) error {
+	// actually do the write
 	hexKey, err := EncodePrivateKey(key)
 	if err != nil {
 		return err
