@@ -1,10 +1,13 @@
 package utils
 
 import (
+	"context"
+
 	"github.com/pkg/errors"
 
 	"github.com/tendermint/tendermint/rpc/client"
 	ctypes "github.com/tendermint/tendermint/rpc/core/types"
+	tmtypes "github.com/tendermint/tendermint/types"
 
 	"github.com/confio/weave"
 	"github.com/confio/weave/app"
@@ -16,6 +19,8 @@ import (
 // simple access to the data structures used in bcp-demo
 type BcpClient struct {
 	conn client.Client
+	// subscriber is a unique identifier for subscriptions
+	subscriber string
 }
 
 // NewClient wraps a BcpClient around an existing
@@ -23,9 +28,13 @@ type BcpClient struct {
 func NewClient(conn client.Client) *BcpClient {
 	return &BcpClient{
 		conn: conn,
+		// TODO: make this random
+		subscriber: "tools-client",
 	}
 }
 
+// Nonce has a client/address pair, queries for the nonce
+// and caches recent nonce locally to quickly sign
 type Nonce struct {
 	client    *BcpClient
 	addr      weave.Address
@@ -33,6 +42,8 @@ type Nonce struct {
 	fromQuery bool
 }
 
+// NewNonce creates a nonce for a client / address pair.
+// Call Query to force a query, Next to use cache if possible
 func NewNonce(client *BcpClient, addr weave.Address) *Nonce {
 	return &Nonce{client: client, addr: addr}
 }
@@ -165,6 +176,29 @@ func (b *BcpClient) BroadcastTxAsync(tx weave.Tx, out chan<- BroadcastTxResponse
 		Response: res,
 	}
 	out <- msg
+}
+
+// SubscribeHeaders will set a subscription and write every
+// block header to the out channel. If there is no error,
+// returns a cancel function that can be called to cancel
+// the subscription
+func (b *BcpClient) SubscribeHeaders(out chan<- interface{}) (func(), error) {
+	ctx := context.Background()
+	query := tmtypes.EventQueryNewBlockHeader
+	err := b.conn.Subscribe(ctx, b.subscriber, query, out)
+	if err != nil {
+		return nil, err
+	}
+	cancel := func() {
+		b.conn.Unsubscribe(ctx, b.subscriber, query)
+	}
+	return cancel, nil
+}
+
+// UnsubscribeAll cancels all subscriptions
+func (b *BcpClient) UnsubscribeAll() error {
+	ctx := context.Background()
+	return b.conn.UnsubscribeAll(ctx, b.subscriber)
 }
 
 //************* app-specific data structures **********//
