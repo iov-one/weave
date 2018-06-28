@@ -46,7 +46,7 @@ func TestInitState(t *testing.T) {
 			err := init.FromGenesis(weave.Options{optKey: accountsJson}, kv)
 			So(err, ShouldBeNil)
 
-			accounts, err := bucket.Get(kv, []byte(Key))
+			accounts, err := GetAccounts(bucket, kv)
 			So(err, ShouldBeNil)
 			So(accounts.Value(), ShouldResemble, AsAccounts(accts))
 		})
@@ -55,7 +55,7 @@ func TestInitState(t *testing.T) {
 			err := init.FromGenesis(weave.Options{optKey: accountsJson2}, kv)
 			So(err, ShouldBeNil)
 
-			accounts, err := bucket.Get(kv, []byte(Key))
+			accounts, err := GetAccounts(bucket, kv)
 			So(err, ShouldBeNil)
 			So(accounts.Value(), ShouldResemble, AsAccounts(accts2))
 		})

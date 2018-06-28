@@ -61,6 +61,9 @@ func (m *Accounts) Copy() orm.CloneableData {
 func (m *Accounts) Validate() error {
 	return AsWeaveAccounts(m).Validate()
 }
+func GetAccounts(bucket orm.Bucket, kv weave.KVStore) (orm.Object, error) {
+	return bucket.Get(kv, []byte(Key))
+}
 
 func NewBucket() orm.Bucket {
 	return orm.NewBucket(BucketName, NewAccounts())
