@@ -88,3 +88,45 @@ func TestSaveLoad(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, private2, loaded)
 }
+
+func TestSaveLoadMultipleKeys(t *testing.T) {
+	dir, err := ioutil.TempDir("", "tools-util-multikey")
+	require.NoError(t, err)
+	defer os.RemoveAll(dir)
+
+	filename := filepath.Join(dir, "foo.key")
+	filename2 := filepath.Join(dir, "bar.key")
+
+	private := GenPrivateKey()
+	private2 := GenPrivateKey()
+	private3 := GenPrivateKey()
+
+	empty := []*PrivateKey{}
+	one := []*PrivateKey{private}
+	two := []*PrivateKey{private2, private3}
+
+	// Save and load key
+	err = SavePrivateKeys(empty, filename, false)
+	require.NoError(t, err)
+	loaded, err := LoadPrivateKeys(filename)
+	require.NoError(t, err)
+	assert.Equal(t, empty, loaded)
+
+	// try to over-write, but fails
+	err = SavePrivateKeys(one, filename, false)
+	assert.Error(t, err)
+
+	// can write to other location...
+	err = SavePrivateKeys(one, filename2, false)
+	require.NoError(t, err)
+	loaded2, err := LoadPrivateKeys(filename2)
+	require.NoError(t, err)
+	assert.Equal(t, one, loaded2)
+
+	// can handle multiple keys and overwrite
+	err = SavePrivateKeys(two, filename2, true)
+	require.NoError(t, err)
+	loaded2, err = LoadPrivateKeys(filename2)
+	require.NoError(t, err)
+	assert.Equal(t, two, loaded2)
+}

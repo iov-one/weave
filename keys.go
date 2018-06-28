@@ -2,11 +2,12 @@ package utils
 
 import (
 	"encoding/hex"
-	"fmt"
+	"encoding/json"
 	"io/ioutil"
 	"os"
 
 	"github.com/confio/weave/crypto"
+	"github.com/pkg/errors"
 )
 
 // KeyPerm is the file permissions for saved private keys
@@ -56,19 +57,78 @@ func LoadPrivateKey(filename string) (*PrivateKey, error) {
 }
 
 // SavePrivateKey will encode the privatekey in hex and write to
-// the named file. It will refuse to overwrite a file
+// the named file
+//
+// Refuses to overwrite a file unless force is true
 func SavePrivateKey(key *PrivateKey, filename string, force bool) error {
-	if !force { // check before overwriting keys
-		_, err := os.Stat(filename)
-		if err == nil {
-			return fmt.Errorf("Refusing to overwrite: %s", filename)
-		}
+	if err := canWrite(filename, force); err != nil {
+		return err
 	}
-
 	// actually do the write
 	hexKey, err := EncodePrivateKey(key)
 	if err != nil {
 		return err
 	}
 	return ioutil.WriteFile(filename, []byte(hexKey), KeyPerm)
+}
+
+// LoadPrivateKeys will load an array of private keys from a file,
+// Which was previously writen by SavePrivateKeys
+func LoadPrivateKeys(filename string) ([]*PrivateKey, error) {
+	raw, err := ioutil.ReadFile(filename)
+	if err != nil {
+		return nil, err
+	}
+
+	var encoded []string
+	err = json.Unmarshal(raw, &encoded)
+	if err != nil {
+		return nil, err
+	}
+
+	keys := make([]*PrivateKey, len(encoded))
+	for i, hexKey := range encoded {
+		keys[i], err = DecodePrivateKey(hexKey)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return keys, nil
+}
+
+// SavePrivateKeys will encode an array of privatekeys
+// as a json array of hex strings and
+// write to the named file
+//
+// Refuses to overwrite a file unless force is true
+func SavePrivateKeys(keys []*PrivateKey, filename string, force bool) error {
+	var err error
+	if err = canWrite(filename, force); err != nil {
+		return err
+	}
+	encoded := make([]string, len(keys))
+	for i, k := range keys {
+		encoded[i], err = EncodePrivateKey(k)
+		if err != nil {
+			return err
+		}
+	}
+	data, err := json.Marshal(encoded)
+	if err != nil {
+		return err
+	}
+	return ioutil.WriteFile(filename, data, KeyPerm)
+}
+
+// canWrite is a little helper to check if we want to write a file
+func canWrite(filename string, force bool) error {
+	if force {
+		return nil
+	}
+	_, err := os.Stat(filename)
+	if err == nil {
+		return errors.Errorf("Refusing to overwrite: %s", filename)
+	}
+	return nil
 }
