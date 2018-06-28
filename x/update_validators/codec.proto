@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package set_validators;
+
+// For more information on gogo.proto, see:
+// https://github.com/gogo/protobuf/blob/master/extensions.md
+import "github.com/gogo/protobuf/gogoproto/gogo.proto";
+
+// Validator
+message Validator {
+  bytes address = 1;
+  PubKey pub_key = 2 [(gogoproto.nullable)=false];
+  int64 power = 3;
+}
+
+message PubKey {
+  string type = 1;
+  bytes  data = 2;
+}
+
+// This message is designed to update validator power
+message SetValidators {
+	repeated Validator validators = 1;
+}
