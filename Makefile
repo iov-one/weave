@@ -88,7 +88,7 @@ prototools: /usr/local/bin/protoc deps
 	# install all tools from our vendored dependencies
 	@go install ./vendor/github.com/gogo/protobuf/proto
 	@go install ./vendor/github.com/gogo/protobuf/gogoproto
-	go get -u github.com/gogo/protobuf/protoc-gen-gogofaster
+	@go install ./vendor/github.com/gogo/protobuf/protoc-gen-gogofaster
 	# these are for custom extensions
 	@ # @go install ./vendor/github.com/gogo/protobuf/proto
 	@ # @go install ./vendor/github.com/gogo/protobuf/jsonpb

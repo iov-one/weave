@@ -34,10 +34,32 @@
   packages = [
     "gogoproto",
     "jsonpb",
+    "plugin/compare",
+    "plugin/defaultcheck",
+    "plugin/description",
+    "plugin/embedcheck",
+    "plugin/enumstringer",
+    "plugin/equal",
+    "plugin/face",
+    "plugin/gostring",
+    "plugin/marshalto",
+    "plugin/oneofcheck",
+    "plugin/populate",
+    "plugin/size",
+    "plugin/stringer",
+    "plugin/testgen",
+    "plugin/union",
+    "plugin/unmarshal",
     "proto",
     "protoc-gen-gogo/descriptor",
+    "protoc-gen-gogo/generator",
+    "protoc-gen-gogo/grpc",
+    "protoc-gen-gogo/plugin",
+    "protoc-gen-gogofaster",
     "sortkeys",
-    "types"
+    "types",
+    "vanity",
+    "vanity/command"
   ]
   revision = "1adfc126b41513cc696b209667c8656ea7aac67c"
   version = "v1.0.0"
@@ -267,6 +289,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "0421612e1b4f176637bd46bbac02c03d4271e9e385900a6702358a3db47aa2c3"
+  inputs-digest = "a358b2528f7be3862144a08b822ae954d000ec88eb08269cf8943360cf193721"
   solver-name = "gps-cdcl"
   solver-version = 1
