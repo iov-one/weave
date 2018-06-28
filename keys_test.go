@@ -130,3 +130,30 @@ func TestSaveLoadMultipleKeys(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, two, loaded2)
 }
+
+func TestKeysByAddress(t *testing.T) {
+	private := GenPrivateKey()
+	addr := private.PublicKey().Address().String()
+	private2 := GenPrivateKey()
+	addr2 := private2.PublicKey().Address().String()
+	private3 := GenPrivateKey()
+	addr3 := private3.PublicKey().Address().String()
+
+	empty := []*PrivateKey{}
+	one := []*PrivateKey{private}
+	keys := []*PrivateKey{private, private2, private3}
+
+	lookup := KeysByAddress(empty)
+	assert.Equal(t, 0, len(lookup))
+
+	lookup = KeysByAddress(one)
+	assert.Equal(t, 1, len(lookup))
+	assert.Equal(t, private, lookup[addr])
+	assert.Nil(t, lookup[addr2])
+
+	lookup = KeysByAddress(keys)
+	assert.Equal(t, 3, len(lookup))
+	assert.Equal(t, private, lookup[addr])
+	assert.Equal(t, private2, lookup[addr2])
+	assert.Equal(t, private3, lookup[addr3])
+}

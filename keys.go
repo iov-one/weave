@@ -121,6 +121,17 @@ func SavePrivateKeys(keys []*PrivateKey, filename string, force bool) error {
 	return ioutil.WriteFile(filename, data, KeyPerm)
 }
 
+// KeysByAddress takes a list of keys and creates a map
+// to look up private keys by their (hex-encoded) address
+func KeysByAddress(keys []*PrivateKey) map[string]*PrivateKey {
+	res := make(map[string]*PrivateKey, len(keys))
+	for _, k := range keys {
+		addr := k.PublicKey().Address()
+		res[addr.String()] = k
+	}
+	return res
+}
+
 // canWrite is a little helper to check if we want to write a file
 func canWrite(filename string, force bool) error {
 	if force {
