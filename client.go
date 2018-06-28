@@ -16,8 +16,11 @@ import (
 	"github.com/iov-one/bcp-demo/x/namecoin"
 )
 
-// Header is a type alias to make API cleaner
 type Header = tmtypes.Header
+type Status = ctypes.ResultStatus
+type GenesisDoc = tmtypes.GenesisDoc
+
+var QueryNewBlockHeader = tmtypes.EventQueryNewBlockHeader
 
 // BcpClient is a tendermint client wrapped to provide
 // simple access to the data structures used in bcp-demo
@@ -82,6 +85,38 @@ func (n *Nonce) Next() (int64, error) {
 }
 
 //************ generic (weave) functionality *************//
+
+// Status will return the raw status from the node
+func (b *BcpClient) Status() (*Status, error) {
+	return b.conn.Status()
+}
+
+// Genesis will return the genesis directly from the node
+func (b *BcpClient) Genesis() (*GenesisDoc, error) {
+	gen, err := b.conn.Genesis()
+	if err != nil {
+		return nil, err
+	}
+	return gen.Genesis, nil
+}
+
+// ChainID will parse out the chainID from the status result
+func (b *BcpClient) ChainID() (string, error) {
+	gen, err := b.Genesis()
+	if err != nil {
+		return "", err
+	}
+	return gen.ChainID, nil
+}
+
+// Height will parse out the Height from the status result
+func (b *BcpClient) Height() (int64, error) {
+	status, err := b.conn.Status()
+	if err != nil {
+		return -1, err
+	}
+	return status.SyncInfo.LatestBlockHeight, nil
+}
 
 // AbciResponse contains a query result:
 // a (possibly empty) list of key-value pairs, and the height
@@ -185,9 +220,9 @@ func (b *BcpClient) BroadcastTxAsync(tx weave.Tx, out chan<- BroadcastTxResponse
 // SubscribeHeaders queries for headers and starts a goroutine
 // to typecase the events into Headers. Returns a cancel
 // function. If you don't want the automatic goroutine, use
-// Subscribe(tmtypes.EventQueryNewBlockHeader, out)
+// Subscribe(QueryNewBlockHeader, out)
 func (b *BcpClient) SubscribeHeaders(out chan<- *Header) (func(), error) {
-	query := tmtypes.EventQueryNewBlockHeader
+	query := QueryNewBlockHeader
 	pipe := make(chan interface{}, 1)
 	cancel, err := b.Subscribe(query, pipe)
 	if err != nil {

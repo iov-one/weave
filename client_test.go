@@ -160,11 +160,10 @@ func TestSendMoney(t *testing.T) {
 }
 
 func TestSubscribeHeaders(t *testing.T) {
-	headers := make(chan *Header, 4)
-
 	conn := client.NewLocal(node)
 	bcp := NewClient(conn)
 
+	headers := make(chan *Header, 4)
 	cancel, err := bcp.SubscribeHeaders(headers)
 	require.NoError(t, err)
 
@@ -188,4 +187,60 @@ func TestSubscribeHeaders(t *testing.T) {
 	case <-timer:
 		// we want this to fire
 	}
+}
+
+func TestSendMultipleTx(t *testing.T) {
+	conn := client.NewLocal(node)
+	bcp := NewClient(conn)
+
+	friend := GenPrivateKey()
+	rcpt := friend.PublicKey().Address()
+	src := faucet.PublicKey().Address()
+
+	nonce := NewNonce(bcp, src)
+	chainID, err := bcp.ChainID()
+	amount := x.Coin{Whole: 1000, Ticker: initBalance.Ticker}
+	require.NoError(t, err)
+
+	// a prep transaction, so the recipient has something to send
+	prep := BuildSendTx(src, rcpt, amount, "Send 1")
+	n, err := nonce.Next()
+	require.NoError(t, err)
+	SignTx(prep, faucet, chainID, n)
+
+	// from sender with a different nonce
+	tx := BuildSendTx(src, rcpt, amount, "Send 2")
+	n, err = nonce.Next()
+	require.NoError(t, err)
+	SignTx(tx, faucet, chainID, n)
+
+	// and a third one to return from rcpt to sender
+	// nonce must be 0
+	tx2 := BuildSendTx(rcpt, src, amount, "Return")
+	SignTx(tx2, friend, chainID, 0)
+
+	// first, we send the one transaction so the next two will succeed
+	prepResp := bcp.BroadcastTx(prep)
+	require.NoError(t, prepResp.IsError())
+	prepH := prepResp.Response.Height
+
+	txResp := make(chan BroadcastTxResponse, 2)
+	headers := make(chan interface{}, 1)
+	cancel, err := bcp.Subscribe(QueryNewBlockHeader, headers)
+	require.NoError(t, err)
+
+	// to avoid race conditions, wait for a new header
+	// event, then immeidately send off the two tx
+	<-headers
+	go bcp.BroadcastTxAsync(tx, txResp)
+	go bcp.BroadcastTxAsync(tx2, txResp)
+	cancel()
+
+	// both succeed and are in the same block
+	resp := <-txResp
+	resp2 := <-txResp
+	assert.NoError(t, resp.IsError())
+	assert.NoError(t, resp2.IsError())
+	assert.Equal(t, resp.Response.Height, resp2.Response.Height)
+	assert.True(t, resp.Response.Height > prepH+1)
 }
