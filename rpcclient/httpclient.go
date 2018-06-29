@@ -10,9 +10,11 @@ import (
 	tmpubsub "github.com/tendermint/tendermint/libs/pubsub"
 	client "github.com/tendermint/tendermint/rpc/client"
 	ctypes "github.com/tendermint/tendermint/rpc/core/types"
-	libclient "github.com/tendermint/tendermint/rpc/lib/client"
 	"github.com/tendermint/tendermint/types"
 	cmn "github.com/tendermint/tmlibs/common"
+
+	// our modified copy of github.com/tendermint/tendermint/rpc/lib/client
+	libclient "github.com/iov-one/tools/utils/rpcclient/lib"
 )
 
 /*
