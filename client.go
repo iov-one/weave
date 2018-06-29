@@ -13,7 +13,6 @@ import (
 	"github.com/confio/weave"
 	"github.com/confio/weave/app"
 	"github.com/confio/weave/x/sigs"
-	"github.com/iov-one/bcp-demo/x/namecoin"
 )
 
 type Header = tmtypes.Header
@@ -262,15 +261,6 @@ func (b *BcpClient) Subscribe(query tmpubsub.Query, out chan<- interface{}) (fun
 func (b *BcpClient) UnsubscribeAll() error {
 	ctx := context.Background()
 	return b.conn.UnsubscribeAll(ctx, b.subscriber)
-}
-
-//************* app-specific data structures **********//
-
-// WalletResponse is a response on a query for a wallet
-type WalletResponse struct {
-	Address weave.Address
-	Wallet  namecoin.Wallet
-	Height  int64
 }
 
 // GetWallet will return a wallet given an address
