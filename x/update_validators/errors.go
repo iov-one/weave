@@ -2,10 +2,8 @@ package update_validators
 
 import (
 	"fmt"
-
-	"github.com/confio/weave"
+	
 	"github.com/confio/weave/errors"
-	"github.com/confio/weave/x"
 )
 
 // ABCI Response Codes
