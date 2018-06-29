@@ -3,6 +3,7 @@ package update_validators
 import (
 	"github.com/confio/weave"
 	"github.com/confio/weave/orm"
+	"reflect"
 )
 
 const (
@@ -61,8 +62,24 @@ func (m *Accounts) Copy() orm.CloneableData {
 func (m *Accounts) Validate() error {
 	return AsWeaveAccounts(m).Validate()
 }
+
 func GetAccounts(bucket orm.Bucket, kv weave.KVStore) (orm.Object, error) {
 	return bucket.Get(kv, []byte(Key))
+}
+
+func HasPermission(object orm.Object, addr weave.Address) (bool, error) {
+	switch t := object.Value().(type) {
+	case *Accounts:
+		accts := AsWeaveAccounts(t)
+		for _, v := range accts.Addresses {
+			if v.Equals(addr) {
+				return true, nil
+			}
+		}
+	default:
+		return false, ErrWrongType(reflect.TypeOf(t).Name())
+	}
+	return false, nil
 }
 
 func NewBucket() orm.Bucket {
