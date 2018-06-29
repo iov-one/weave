@@ -3,6 +3,8 @@ package utils
 import (
 	nm "github.com/tendermint/tendermint/node"
 	"github.com/tendermint/tendermint/rpc/client"
+
+	"github.com/iov-one/tools/utils/rpcclient"
 )
 
 /***
@@ -21,5 +23,5 @@ func NewLocalConnection(node *nm.Node) client.Client {
 
 // NewHTTPConnection takes a URL and sends all requests to the remote node
 func NewHTTPConnection(remote string) client.Client {
-	return client.NewHTTP(remote, "/websocket")
+	return rpcclient.NewHTTP(remote, "/websocket")
 }
