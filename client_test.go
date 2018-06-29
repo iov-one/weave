@@ -41,7 +41,7 @@ func TestMainSetup(t *testing.T) {
 func TestWalletQuery(t *testing.T) {
 	missing := GenPrivateKey().PublicKey().Address()
 
-	conn := client.NewLocal(node)
+	conn := NewLocalConnection(node)
 	bcp := NewClient(conn)
 	client.WaitForHeight(conn, 5, fastWaiter)
 
@@ -72,7 +72,7 @@ func TestWalletQuery(t *testing.T) {
 }
 
 func TestWalletNameQuery(t *testing.T) {
-	conn := client.NewLocal(node)
+	conn := NewLocalConnection(node)
 	bcp := NewClient(conn)
 	client.WaitForHeight(conn, 5, fastWaiter)
 
@@ -101,7 +101,7 @@ func TestWalletNameQuery(t *testing.T) {
 
 func TestNonce(t *testing.T) {
 	addr := GenPrivateKey().PublicKey().Address()
-	conn := client.NewLocal(node)
+	conn := NewLocalConnection(node)
 	bcp := NewClient(conn)
 
 	nonce := NewNonce(bcp, addr)
@@ -123,7 +123,7 @@ func TestNonce(t *testing.T) {
 }
 
 func TestSendMoney(t *testing.T) {
-	conn := client.NewLocal(node)
+	conn := NewLocalConnection(node)
 	bcp := NewClient(conn)
 
 	rcpt := GenPrivateKey().PublicKey().Address()
@@ -160,7 +160,7 @@ func TestSendMoney(t *testing.T) {
 }
 
 func TestSubscribeHeaders(t *testing.T) {
-	conn := client.NewLocal(node)
+	conn := NewLocalConnection(node)
 	bcp := NewClient(conn)
 
 	headers := make(chan *Header, 4)
@@ -190,7 +190,7 @@ func TestSubscribeHeaders(t *testing.T) {
 }
 
 func TestSendMultipleTx(t *testing.T) {
-	conn := client.NewLocal(node)
+	conn := NewLocalConnection(node)
 	bcp := NewClient(conn)
 
 	friend := GenPrivateKey()
