@@ -169,3 +169,7 @@ func TestDecodesCliKey(t *testing.T) {
 	require.NoError(t, err)
 	assert.EqualValues(t, address, key.PublicKey().Address())
 }
+
+func TestShouldFail(t *testing.T) {
+	t.Fail()
+}
