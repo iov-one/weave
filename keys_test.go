@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"encoding/hex"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -156,4 +157,15 @@ func TestKeysByAddress(t *testing.T) {
 	assert.Equal(t, private, lookup[addr])
 	assert.Equal(t, private2, lookup[addr2])
 	assert.Equal(t, private3, lookup[addr3])
+}
+
+func TestDecodesCliKey(t *testing.T) {
+	address, err := hex.DecodeString("eaff4c2151ed58c8a308528f5cccd105b3f16a33")
+	require.NoError(t, err)
+
+	encodedKey := "0a403b48c9fb3ce29e5780571661b0712d356f5c4195daa915c7c26fb53008085d5beb7f29afc78d6ab75bcb01e6949c3f3f1ba4f61448336ef3f830f5261e311081"
+
+	key, err := DecodePrivateKey(encodedKey)
+	require.NoError(t, err)
+	assert.EqualValues(t, address, key.PublicKey().Address())
 }
