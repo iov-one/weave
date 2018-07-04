@@ -3,7 +3,6 @@ package update_validators
 import (
 	"github.com/confio/weave"
 	"github.com/confio/weave/orm"
-	"reflect"
 )
 
 const (
@@ -68,6 +67,10 @@ func GetAccounts(bucket orm.Bucket, kv weave.KVStore) (orm.Object, error) {
 }
 
 func HasPermission(object orm.Object, addr weave.Address) (bool, error) {
+	if object == nil {
+		return false, ErrWrongType(nil)
+	}
+
 	switch t := object.Value().(type) {
 	case *Accounts:
 		accts := AsWeaveAccounts(t)
@@ -77,7 +80,7 @@ func HasPermission(object orm.Object, addr weave.Address) (bool, error) {
 			}
 		}
 	default:
-		return false, ErrWrongType(reflect.TypeOf(t).Name())
+		return false, ErrWrongType(t)
 	}
 	return false, nil
 }

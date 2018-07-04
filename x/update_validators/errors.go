@@ -2,7 +2,8 @@ package update_validators
 
 import (
 	"fmt"
-	
+	"reflect"
+
 	"github.com/confio/weave/errors"
 )
 
@@ -21,11 +22,15 @@ var (
 )
 
 func ErrEmptyDiff() error {
-	return errors.WithLog("", errEmptyDiff, CodeEmptyDiff)
+	return errors.WithCode(errEmptyDiff, CodeEmptyDiff)
 }
 
-func ErrWrongType(t string) error {
-	return errors.WithLog(t, errWrongType, CodeWrongType)
+func ErrWrongType(t interface{}) error {
+	typeName := ""
+	if t != nil {
+		typeName = reflect.TypeOf(t).Name()
+	}
+	return errors.WithLog(typeName, errWrongType, CodeWrongType)
 }
 
 func ErrUnauthorized(t string) error {

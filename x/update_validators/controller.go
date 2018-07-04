@@ -25,7 +25,7 @@ func NewController(bucket orm.Bucket) BaseController {
 	return BaseController{bucket: bucket}
 }
 
-func (c BaseController) UpdateValidators(store weave.KVStore, user weave.Address, diff []abci.Validator) ([]abci.Validator, error) {
+func (c BaseController) CanUpdateValidators(store weave.KVStore, user weave.Address, diff []abci.Validator) ([]abci.Validator, error) {
 	if len(diff) == 0 {
 		return nil, ErrEmptyDiff()
 	}
