@@ -1,4 +1,4 @@
-package update_validators
+package validators
 
 import (
 	"github.com/confio/weave"

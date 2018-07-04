@@ -1,4 +1,4 @@
-package update_validators
+package validators
 
 import (
 	"github.com/confio/weave"
@@ -17,6 +17,8 @@ const (
 type WeaveAccounts struct {
 	Addresses []weave.Address `json:"addresses"`
 }
+
+type CheckAddress func(address weave.Address) bool
 
 func (wa WeaveAccounts) Validate() error {
 	for _, v := range wa.Addresses {
@@ -66,7 +68,7 @@ func GetAccounts(bucket orm.Bucket, kv weave.KVStore) (orm.Object, error) {
 	return bucket.Get(kv, []byte(Key))
 }
 
-func HasPermission(object orm.Object, addr weave.Address) (bool, error) {
+func HasPermission(object orm.Object, checkAddress CheckAddress) (bool, error) {
 	if object == nil {
 		return false, ErrWrongType(nil)
 	}
@@ -75,7 +77,7 @@ func HasPermission(object orm.Object, addr weave.Address) (bool, error) {
 	case *Accounts:
 		accts := AsWeaveAccounts(t)
 		for _, v := range accts.Addresses {
-			if v.Equals(addr) {
+			if checkAddress(v) {
 				return true, nil
 			}
 		}

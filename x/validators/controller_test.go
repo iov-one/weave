@@ -1,10 +1,11 @@
-package update_validators
+package validators
 
 import (
 	"encoding/json"
 	"testing"
 
 	"github.com/confio/weave"
+	"github.com/confio/weave/errors"
 	"github.com/confio/weave/store"
 	"github.com/confio/weave/x/cash"
 	. "github.com/smartystreets/goconvey/convey"
@@ -16,6 +17,14 @@ func TestController(t *testing.T) {
 		addr := []byte("12345678901234567890")
 		addr2 := []byte("123456")
 		accts := WeaveAccounts{[]weave.Address{addr}}
+
+		checkAddress := func(address weave.Address) bool {
+			return address.Equals(addr)
+		}
+
+		checkAddress2 := func(address weave.Address) bool {
+			return address.Equals(addr2)
+		}
 
 		accountsJson, err := json.Marshal(accts)
 		So(err, ShouldBeNil)
@@ -33,7 +42,7 @@ func TestController(t *testing.T) {
 			So(err, ShouldBeNil)
 
 			Convey("Everything is in order", func() {
-				d, err := ctrl.CanUpdateValidators(kv, addr, diff)
+				d, err := ctrl.CanUpdateValidators(kv, checkAddress, diff)
 				So(err, ShouldBeNil)
 				So(d, ShouldResemble, diff)
 			})
@@ -41,17 +50,17 @@ func TestController(t *testing.T) {
 			Convey("Accounts type is nil", func() {
 				bucket.Delete(kv, []byte(Key))
 				//bucket.Save(kv, orm.NewSimpleObj([]byte(Key), set))
-				_, err = ctrl.CanUpdateValidators(kv, addr, diff)
+				_, err = ctrl.CanUpdateValidators(kv, checkAddress, diff)
 				So(err.Error(), ShouldResemble, ErrWrongType(nil).Error())
 			})
 
 			Convey("No permission", func() {
-				_, err = ctrl.CanUpdateValidators(kv, addr2, diff)
-				So(err.Error(), ShouldResemble, ErrUnauthorized(weave.Address(addr2).String()).Error())
+				_, err = ctrl.CanUpdateValidators(kv, checkAddress2, diff)
+				So(err.Error(), ShouldResemble, errors.ErrUnauthorized().Error())
 			})
 
 			Convey("Empty diff", func() {
-				_, err := ctrl.CanUpdateValidators(kv, addr, emptyDiff)
+				_, err := ctrl.CanUpdateValidators(kv, checkAddress, emptyDiff)
 				So(err.Error(), ShouldResemble, ErrEmptyDiff().Error())
 			})
 
@@ -60,14 +69,14 @@ func TestController(t *testing.T) {
 				So(err, ShouldBeNil)
 				bucket.Delete(kv, []byte(Key))
 				kv.Set([]byte(Key), []byte(set.String()))
-				_, err = ctrl.CanUpdateValidators(kv, addr, diff)
+				_, err = ctrl.CanUpdateValidators(kv, checkAddress, diff)
 				So(err.Error(), ShouldResemble, ErrWrongType(set).Error())
 			})
 		})
 
 		Convey("When init didn't happen", func() {
 			Convey("Error on GetAccounts", func() {
-				_, err = ctrl.CanUpdateValidators(kv, addr, diff)
+				_, err = ctrl.CanUpdateValidators(kv, checkAddress, diff)
 				So(err.Error(), ShouldResemble, ErrWrongType(nil).Error())
 			})
 		})

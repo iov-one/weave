@@ -1,7 +1,8 @@
-package update_validators
+package validators
 
 import (
 	"github.com/confio/weave"
+	"github.com/confio/weave/errors"
 	"github.com/confio/weave/orm"
 	abci "github.com/tendermint/abci/types"
 )
@@ -11,7 +12,7 @@ import (
 // should work plenty fine, but you can add other logic
 // if so desired
 type Controller interface {
-	UpdateValidators(store weave.KVStore, diff []abci.Validator)
+	CanUpdateValidators(store weave.KVStore, checkAddress CheckAddress, diff []abci.Validator) ([]abci.Validator, error)
 }
 
 // BaseController is a simple implementation of controller
@@ -25,7 +26,7 @@ func NewController(bucket orm.Bucket) BaseController {
 	return BaseController{bucket: bucket}
 }
 
-func (c BaseController) CanUpdateValidators(store weave.KVStore, user weave.Address, diff []abci.Validator) ([]abci.Validator, error) {
+func (c BaseController) CanUpdateValidators(store weave.KVStore, checkAddress CheckAddress, diff []abci.Validator) ([]abci.Validator, error) {
 	if len(diff) == 0 {
 		return nil, ErrEmptyDiff()
 	}
@@ -35,13 +36,13 @@ func (c BaseController) CanUpdateValidators(store weave.KVStore, user weave.Addr
 		return nil, err
 	}
 
-	ok, err := HasPermission(accts, user)
+	ok, err := HasPermission(accts, checkAddress)
 	if err != nil {
 		return nil, err
 	}
 
 	if !ok {
-		return nil, ErrUnauthorized(user.String())
+		return nil, errors.ErrUnauthorized()
 	}
 
 	return diff, nil

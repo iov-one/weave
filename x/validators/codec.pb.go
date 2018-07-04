@@ -13,7 +13,7 @@
 		SetValidators
 		Accounts
 */
-package update_validators
+package validators
 
 import proto "github.com/gogo/protobuf/proto"
 import fmt "fmt"
