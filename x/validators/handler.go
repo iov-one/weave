@@ -6,6 +6,8 @@ import (
 	"github.com/confio/weave/x"
 )
 
+type AuthCheckAddress = func(auth x.Authenticator, ctx weave.Context) CheckAddress
+
 var authCheckAddress = func(auth x.Authenticator, ctx weave.Context) CheckAddress {
 	return func(addr weave.Address) bool {
 		return auth.HasAddress(ctx, addr)
@@ -17,7 +19,7 @@ var authCheckAddress = func(auth x.Authenticator, ctx weave.Context) CheckAddres
 func RegisterRoutes(r weave.Registry, auth x.Authenticator,
 	control Controller) {
 
-	r.Handle(pathUpdate, NewUpdateHandler(auth, control))
+	r.Handle(pathUpdate, NewUpdateHandler(auth, control, authCheckAddress))
 }
 
 // RegisterQuery will register this bucket as "/validators"
@@ -27,17 +29,19 @@ func RegisterQuery(qr weave.QueryRouter) {
 
 // UpdateHandler will handle sending coins
 type UpdateHandler struct {
-	auth    x.Authenticator
-	control Controller
+	auth             x.Authenticator
+	control          Controller
+	authCheckAddress AuthCheckAddress
 }
 
 var _ weave.Handler = UpdateHandler{}
 
 // NewUpdateHandler creates a handler for SendMsg
-func NewUpdateHandler(auth x.Authenticator, control Controller) UpdateHandler {
+func NewUpdateHandler(auth x.Authenticator, control Controller, checkAddr AuthCheckAddress) UpdateHandler {
 	return UpdateHandler{
-		auth:    auth,
-		control: control,
+		auth:             auth,
+		control:          control,
+		authCheckAddress: checkAddr,
 	}
 }
 
@@ -55,7 +59,7 @@ func (h UpdateHandler) Check(ctx weave.Context, store weave.KVStore,
 		return res, errors.ErrUnknownTxType(rmsg)
 	}
 
-	_, err = h.control.CanUpdateValidators(store, authCheckAddress(h.auth, ctx), msg.AsABCI())
+	_, err = h.control.CanUpdateValidators(store, h.authCheckAddress(h.auth, ctx), msg.AsABCI())
 	if err != nil {
 		return res, err
 	}
@@ -79,7 +83,7 @@ func (h UpdateHandler) Deliver(ctx weave.Context, store weave.KVStore,
 		return res, errors.ErrUnknownTxType(rmsg)
 	}
 
-	diff, err := h.control.CanUpdateValidators(store, authCheckAddress(h.auth, ctx), msg.AsABCI())
+	diff, err := h.control.CanUpdateValidators(store, h.authCheckAddress(h.auth, ctx), msg.AsABCI())
 	if err != nil {
 		return res, err
 	}
