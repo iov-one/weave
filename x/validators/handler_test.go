@@ -41,8 +41,9 @@ func TestHandler(t *testing.T) {
 				tx := helpers.MockTx(&SetValidators{Validators: []*Validator{{}}})
 				handler := NewUpdateHandler(auth, ctrl, authCheckAddress)
 
-				_, err := handler.Deliver(nil, kv, tx)
+				res, err := handler.Deliver(nil, kv, tx)
 				So(err, ShouldBeNil)
+				So(len(res.Diff), ShouldEqual, 1)
 
 				_, err = handler.Check(nil, kv, tx)
 				So(err, ShouldBeNil)
