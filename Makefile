@@ -60,6 +60,7 @@ protoc:
 	protoc --gogofaster_out=. x/*.proto
 	protoc --gogofaster_out=. -I=. -I=$(GOPATH)/src x/cash/*.proto
 	protoc --gogofaster_out=. -I=. -I=$(GOPATH)/src x/sigs/*.proto
+	protoc --gogofaster_out=. -I=. -I=$(GOPATH)/src x/validators/*.proto
 	for ex in $(EXAMPLES); do cd $$ex && make protoc; done
 
 ### cross-platform check for installing protoc ###
@@ -87,10 +88,7 @@ prototools: /usr/local/bin/protoc deps
 	# install all tools from our vendored dependencies
 	@go install ./vendor/github.com/gogo/protobuf/proto
 	@go install ./vendor/github.com/gogo/protobuf/gogoproto
-	# we only need one probably, choose wisely...
-	@go install ./vendor/github.com/gogo/protobuf/protoc-gen-gogofast
 	@go install ./vendor/github.com/gogo/protobuf/protoc-gen-gogofaster
-	@go install ./vendor/github.com/gogo/protobuf/protoc-gen-gogoslick
 	# these are for custom extensions
 	@ # @go install ./vendor/github.com/gogo/protobuf/proto
 	@ # @go install ./vendor/github.com/gogo/protobuf/jsonpb

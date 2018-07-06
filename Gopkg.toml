@@ -24,6 +24,7 @@
 #   go-tests = true
 #   unused-packages = true
 
+required = ["github.com/gogo/protobuf/protoc-gen-gogofaster"]
 
 [[constraint]]
   name = "github.com/gogo/protobuf"

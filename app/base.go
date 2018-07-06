@@ -43,6 +43,9 @@ func (b BaseApp) DeliverTx(txBytes []byte) abci.ResponseDeliverTx {
 		"path", weave.GetPath(tx))
 
 	res, err := b.handler.Deliver(ctx, b.DeliverStore(), tx)
+	if err == nil {
+		b.AddValChange(res.Diff)
+	}
 	return weave.DeliverOrError(res, err)
 }
 

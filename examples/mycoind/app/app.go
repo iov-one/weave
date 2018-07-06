@@ -23,6 +23,7 @@ import (
 	"github.com/confio/weave/x/cash"
 	"github.com/confio/weave/x/sigs"
 	"github.com/confio/weave/x/utils"
+	"github.com/confio/weave/x/validators"
 )
 
 // Authenticator returns the typical authentication,
@@ -34,6 +35,11 @@ func Authenticator() x.Authenticator {
 // CashControl returns a controller for cash functions
 func CashControl() cash.Controller {
 	return cash.NewController(cash.NewBucket())
+}
+
+// ValidatorControl returns a controller for validator functions
+func ValidatorControl() validators.Controller {
+	return validators.NewController(validators.NewBucket())
 }
 
 // Chain returns a chain of decorators, to handle authentication,
@@ -58,6 +64,7 @@ func Chain(minFee x.Coin, authFn x.Authenticator) app.Decorators {
 func Router(authFn x.Authenticator) app.Router {
 	r := app.NewRouter()
 	cash.RegisterRoutes(r, authFn, CashControl())
+	validators.RegisterRoutes(r, authFn, ValidatorControl())
 	return r
 }
 
@@ -66,6 +73,7 @@ func Router(authFn x.Authenticator) app.Router {
 func QueryRouter() weave.QueryRouter {
 	r := weave.NewQueryRouter()
 	r.RegisterAll(
+		validators.RegisterQuery,
 		cash.RegisterQuery,
 		sigs.RegisterQuery,
 		orm.RegisterQuery,

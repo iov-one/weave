@@ -32,6 +32,7 @@ var _ = math.Inf
 const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
 
 // UserData just stores the data and is used for serialization.
+// Key is the Address (PubKey.Permission().Address())
 //
 // Note: This should not be created from outside the module,
 // User is the entry point you want
