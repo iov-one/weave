@@ -48,7 +48,7 @@ func TestInitState(t *testing.T) {
 
 			accounts, err := GetAccounts(bucket, kv)
 			So(err, ShouldBeNil)
-			So(accounts.Value(), ShouldResemble, AsAccounts(accts))
+			So(accounts, ShouldResemble, AsAccounts(accts))
 		})
 
 		Convey("Init succeeds with hardcoded contents", func() {
@@ -57,7 +57,7 @@ func TestInitState(t *testing.T) {
 
 			accounts, err := GetAccounts(bucket, kv)
 			So(err, ShouldBeNil)
-			So(accounts.Value(), ShouldResemble, AsAccounts(accts2))
+			So(accounts, ShouldResemble, AsAccounts(accts2))
 		})
 	})
 }

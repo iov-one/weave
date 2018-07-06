@@ -18,8 +18,6 @@ type WeaveAccounts struct {
 	Addresses []weave.Address `json:"addresses"`
 }
 
-type CheckAddress func(address weave.Address) bool
-
 func (wa WeaveAccounts) Validate() error {
 	for _, v := range wa.Addresses {
 		err := v.Validate()
@@ -64,27 +62,33 @@ func (m *Accounts) Validate() error {
 	return AsWeaveAccounts(m).Validate()
 }
 
-func GetAccounts(bucket orm.Bucket, kv weave.KVStore) (orm.Object, error) {
-	return bucket.Get(kv, []byte(Key))
+func GetAccounts(bucket orm.Bucket, kv weave.KVStore) (*Accounts, error) {
+	res, err := bucket.Get(kv, []byte(Key))
+	if err != nil {
+		return nil, err
+	}
+
+	if res == nil {
+		return nil, ErrWrongType(nil)
+	}
+	switch t := res.Value().(type) {
+	case *Accounts:
+		return t, nil
+	default:
+		return nil, ErrWrongType(t)
+	}
+
 }
 
-func HasPermission(object orm.Object, checkAddress CheckAddress) (bool, error) {
-	if object == nil {
-		return false, ErrWrongType(nil)
+func HasPermission(accts WeaveAccounts, checkAddress CheckAddress) bool {
+
+	for _, v := range accts.Addresses {
+		if checkAddress(v) {
+			return true
+		}
 	}
 
-	switch t := object.Value().(type) {
-	case *Accounts:
-		accts := AsWeaveAccounts(t)
-		for _, v := range accts.Addresses {
-			if checkAddress(v) {
-				return true, nil
-			}
-		}
-	default:
-		return false, ErrWrongType(t)
-	}
-	return false, nil
+	return false
 }
 
 func NewBucket() orm.Bucket {
