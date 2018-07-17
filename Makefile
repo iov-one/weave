@@ -1,4 +1,6 @@
-.PHONY: test tf build
+.PHONY: test tf build dist
+
+dist: test build
 
 # test targets are to allow easy integration with root Makefile
 test:
