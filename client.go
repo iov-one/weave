@@ -2,17 +2,16 @@ package utils
 
 import (
 	"context"
-
-	"github.com/pkg/errors"
-
-	tmpubsub "github.com/tendermint/tendermint/libs/pubsub"
-	"github.com/tendermint/tendermint/rpc/client"
-	ctypes "github.com/tendermint/tendermint/rpc/core/types"
-	tmtypes "github.com/tendermint/tendermint/types"
+	"sync"
 
 	"github.com/confio/weave"
 	"github.com/confio/weave/app"
 	"github.com/confio/weave/x/sigs"
+	"github.com/pkg/errors"
+	tmpubsub "github.com/tendermint/tendermint/libs/pubsub"
+	"github.com/tendermint/tendermint/rpc/client"
+	ctypes "github.com/tendermint/tendermint/rpc/core/types"
+	tmtypes "github.com/tendermint/tendermint/types"
 )
 
 type Header = tmtypes.Header
@@ -42,6 +41,7 @@ func NewClient(conn client.Client) *BcpClient {
 // Nonce has a client/address pair, queries for the nonce
 // and caches recent nonce locally to quickly sign
 type Nonce struct {
+	mutex     sync.Mutex
 	client    *BcpClient
 	addr      weave.Address
 	nonce     int64
@@ -60,12 +60,14 @@ func (n *Nonce) Query() (int64, error) {
 	if err != nil {
 		return 0, err
 	}
+	n.mutex.Lock()
 	if user != nil {
 		n.nonce = user.UserData.Sequence
 	} else {
 		n.nonce = 0 // new account starts at 0
 	}
 	n.fromQuery = true
+	n.mutex.Unlock()
 	return n.nonce, nil
 }
 
@@ -75,12 +77,18 @@ func (n *Nonce) Query() (int64, error) {
 // you want to rapidly generate many tranasactions without
 // querying the blockchain each time
 func (n *Nonce) Next() (int64, error) {
-	if !n.fromQuery && n.nonce == 0 {
+	n.mutex.Lock()
+	initializedFromBlockchain := !n.fromQuery && n.nonce == 0
+	n.mutex.Unlock()
+	if initializedFromBlockchain {
 		return n.Query()
 	}
+	n.mutex.Lock()
 	n.nonce++
 	n.fromQuery = false
-	return n.nonce, nil
+	result := n.nonce
+	n.mutex.Unlock()
+	return result, nil
 }
 
 //************ generic (weave) functionality *************//
