@@ -1,6 +1,7 @@
 package sigs
 
 import (
+	"crypto/sha512"
 	"encoding/binary"
 
 	"github.com/confio/weave"
@@ -98,6 +99,9 @@ we use the following format:
 
 version | len(chainID) | chainID      | nonce             | signBytes
 4bytes  | uint8        | ascii string | int64 (bigendian) | serialized transaction
+
+This is then prehashed with sha512 before fed into
+the public key signing/verification step
 */
 func BuildSignBytes(signBytes []byte, chainID string, seq int64) ([]byte, error) {
 	if seq < 0 {
@@ -118,7 +122,12 @@ func BuildSignBytes(signBytes []byte, chainID string, seq int64) ([]byte, error)
 	output = append(output, []byte(chainID)...)
 	output = append(output, nonce...)
 	output = append(output, signBytes...)
-	return output, nil
+
+	// now, we take the sha512 hash of the result,
+	// so we have a constant length output to feed into eddsa
+	// which we need so ledger can support this as well
+	hashed := sha512.Sum512(output)
+	return hashed[:], nil
 }
 
 // BuildSignBytesTx calculates the sign bytes given a tx
