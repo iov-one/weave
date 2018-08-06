@@ -71,7 +71,7 @@ func TestHandler(t *testing.T) {
 				{
 					"/escrows", "", id(1), false,
 					[]orm.Object{
-						NewEscrow(id(1), a, b, c, all, Timeout, ""),
+						NewEscrow(id(1), a.Address(), b.Address(), c, all, Timeout, ""),
 					},
 					NewBucket().Bucket,
 				},
@@ -103,23 +103,23 @@ func TestHandler(t *testing.T) {
 				{
 					"/escrows", "", id(1), false,
 					[]orm.Object{
-						NewEscrow(id(1), a, b, c, some, Timeout, ""),
+						NewEscrow(id(1), a.Address(), b.Address(), c, some, Timeout, ""),
 					},
 					NewBucket().Bucket,
 				},
 				// make sure sender index works
 				{
-					"/escrows/sender", "", a, false,
+					"/escrows/sender", "", a.Address(), false,
 					[]orm.Object{
-						NewEscrow(id(1), a, b, c, some, Timeout, ""),
+						NewEscrow(id(1), a.Address(), b.Address(), c, some, Timeout, ""),
 					},
 					NewBucket().Bucket,
 				},
 				// make sure recipient index works
 				{
-					"/escrows/recipient", "", b, false,
+					"/escrows/recipient", "", b.Address(), false,
 					[]orm.Object{
-						NewEscrow(id(1), a, b, c, some, Timeout, ""),
+						NewEscrow(id(1), a.Address(), b.Address(), c, some, Timeout, ""),
 					},
 					NewBucket().Bucket,
 				},
@@ -127,7 +127,7 @@ func TestHandler(t *testing.T) {
 				{
 					"/escrows/arbiter", "", c, false,
 					[]orm.Object{
-						NewEscrow(id(1), a, b, c, some, Timeout, ""),
+						NewEscrow(id(1), a.Address(), b.Address(), c, some, Timeout, ""),
 					},
 					NewBucket().Bucket,
 				},
@@ -172,7 +172,7 @@ func TestHandler(t *testing.T) {
 			action{
 				// note permission is not the sender!
 				perms:  []weave.Condition{b},
-				msg:    NewCreateMsg(a, b, c, some, 12345, ""),
+				msg:    NewCreateMsg(a.Address(), b.Address(), c, some, 12345, ""),
 				height: 123,
 			},
 			true,
@@ -186,7 +186,7 @@ func TestHandler(t *testing.T) {
 			action{
 				perms: []weave.Condition{a},
 				// defaults to sender!
-				msg:    NewCreateMsg(nil, b, c, all, 123, ""),
+				msg:    NewCreateMsg(nil, b.Address(), c, all, 123, ""),
 				height: 888,
 			},
 			true,
@@ -252,7 +252,7 @@ func TestHandler(t *testing.T) {
 				{
 					"/escrows", "", id(1), false,
 					[]orm.Object{
-						NewEscrow(id(1), a, b, c, remain, 12345, "hello"),
+						NewEscrow(id(1), a.Address(), b.Address(), c, remain, 12345, "hello"),
 					},
 					NewBucket().Bucket,
 				},
@@ -568,7 +568,7 @@ func TestHandler(t *testing.T) {
 func createAction(sender, rcpt, arbiter weave.Condition, amount x.Coins, memo string) action {
 	return action{
 		perms:  []weave.Condition{sender},
-		msg:    NewCreateMsg(sender, rcpt, arbiter, amount, Timeout, memo),
+		msg:    NewCreateMsg(sender.Address(), rcpt.Address(), arbiter, amount, Timeout, memo),
 		height: 1000,
 	}
 }
@@ -695,14 +695,14 @@ func TestAtomicSwap(t *testing.T) {
 			require.Equal(t, tc.bInit, bbal)
 
 			// create the offer
-			one := NewCreateMsg(a, b, tc.arbiter, tc.aSwap, timeout, "")
+			one := NewCreateMsg(a.Address(), b.Address(), tc.arbiter, tc.aSwap, timeout, "")
 			aCtx := setAuth(ctx, a)
 			res, err := h.Deliver(aCtx, db, helpers.MockTx(one))
 			require.NoError(t, err)
 			esc1 := res.Data
 
 			// this is the response
-			two := NewCreateMsg(b, a, tc.arbiter, tc.bSwap, timeout, "")
+			two := NewCreateMsg(b.Address(), a.Address(), tc.arbiter, tc.bSwap, timeout, "")
 			bCtx := setAuth(ctx, b)
 			res, err = h.Deliver(bCtx, db, helpers.MockTx(two))
 			require.NoError(t, err)

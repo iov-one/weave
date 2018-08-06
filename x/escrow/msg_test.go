@@ -50,9 +50,9 @@ func TestCreateEscrowMsg(t *testing.T) {
 		// proper
 		1: {
 			&CreateEscrowMsg{
-				Sender:    a,
+				Sender:    a.Address(),
 				Arbiter:   b,
-				Recipient: c,
+				Recipient: c.Address(),
 				Amount:    plus,
 				Timeout:   333,
 			},
@@ -62,7 +62,7 @@ func TestCreateEscrowMsg(t *testing.T) {
 		2: {
 			&CreateEscrowMsg{
 				Arbiter:   c,
-				Recipient: c,
+				Recipient: c.Address(),
 				Amount:    plus,
 				Timeout:   52,
 				Memo:      "some string",
@@ -73,7 +73,7 @@ func TestCreateEscrowMsg(t *testing.T) {
 		3: {
 			&CreateEscrowMsg{
 				Arbiter:   d,
-				Recipient: c,
+				Recipient: c.Address(),
 				Amount:    plus,
 				Timeout:   52,
 			},
@@ -83,7 +83,7 @@ func TestCreateEscrowMsg(t *testing.T) {
 		4: {
 			&CreateEscrowMsg{
 				Arbiter:   b,
-				Recipient: c,
+				Recipient: c.Address(),
 				Amount:    minus,
 				Timeout:   52,
 			},
@@ -93,7 +93,7 @@ func TestCreateEscrowMsg(t *testing.T) {
 		5: {
 			&CreateEscrowMsg{
 				Arbiter:   b,
-				Recipient: c,
+				Recipient: c.Address(),
 				Amount:    mixed,
 				Timeout:   52,
 			},
@@ -103,7 +103,7 @@ func TestCreateEscrowMsg(t *testing.T) {
 		6: {
 			&CreateEscrowMsg{
 				Arbiter:   b,
-				Recipient: c,
+				Recipient: c.Address(),
 				Timeout:   52,
 			},
 			cash.IsInvalidAmountErr,
@@ -112,7 +112,7 @@ func TestCreateEscrowMsg(t *testing.T) {
 		7: {
 			&CreateEscrowMsg{
 				Arbiter:   b,
-				Recipient: c,
+				Recipient: c.Address(),
 				Amount:    plus,
 				Timeout:   52,
 				Memo:      strings.Repeat("foo", 100),
@@ -123,7 +123,7 @@ func TestCreateEscrowMsg(t *testing.T) {
 		8: {
 			&CreateEscrowMsg{
 				Arbiter:   b,
-				Recipient: c,
+				Recipient: c.Address(),
 				Amount:    plus,
 				Timeout:   -8,
 			},
@@ -277,7 +277,7 @@ func TestUpdateEscrowMsg(t *testing.T) {
 		1: {
 			&UpdateEscrowPartiesMsg{
 				EscrowId: escrow,
-				Sender:   a,
+				Sender:   a.Address(),
 			},
 			noErr,
 		},
@@ -292,7 +292,7 @@ func TestUpdateEscrowMsg(t *testing.T) {
 		3: {
 			&UpdateEscrowPartiesMsg{
 				EscrowId: scarecrow,
-				Sender:   a,
+				Sender:   a.Address(),
 			},
 			IsInvalidMetadataErr,
 		},
@@ -300,7 +300,7 @@ func TestUpdateEscrowMsg(t *testing.T) {
 		4: {
 			&UpdateEscrowPartiesMsg{
 				EscrowId:  escrow,
-				Recipient: b,
+				Recipient: b.Address(),
 				Arbiter:   c,
 			},
 			noErr,

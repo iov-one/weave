@@ -45,7 +45,7 @@ func (UpdateEscrowPartiesMsg) Path() string {
 //--------- Validation --------
 
 // NewCreateMsg is a helper to quickly build a create escrow message
-func NewCreateMsg(send, rcpt, arb weave.Condition,
+func NewCreateMsg(send, rcpt weave.Address, arb weave.Condition,
 	amount x.Coins, timeout int64, memo string) *CreateEscrowMsg {
 	return &CreateEscrowMsg{
 		Sender:    send,
@@ -74,7 +74,10 @@ func (m *CreateEscrowMsg) Validate() error {
 	if err := validateAmount(m.Amount); err != nil {
 		return err
 	}
-	return validateConditions(m.Arbiter, m.Sender, m.Recipient)
+	if err := validateConditions(m.Arbiter); err != nil {
+		return err
+	}
+	return validateAddresses(m.Sender, m.Recipient)
 }
 
 // Validate makes sure that this is sensible
@@ -106,7 +109,11 @@ func (m *UpdateEscrowPartiesMsg) Validate() error {
 		m.Recipient == nil {
 		return ErrMissingAllConditions()
 	}
-	return validateConditions(m.Arbiter, m.Sender, m.Recipient)
+	err = validateConditions(m.Arbiter)
+	if err != nil {
+		return err
+	}
+	return validateAddresses(m.Sender, m.Recipient)
 }
 
 // validateConditions returns an error if any permission doesn't validate
@@ -115,6 +122,19 @@ func validateConditions(perms ...weave.Condition) error {
 	for _, p := range perms {
 		if p != nil {
 			if err := p.Validate(); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+// validateAddresses returns an error if any address doesn't validate
+// nil is considered valid here
+func validateAddresses(addrs ...weave.Address) error {
+	for _, a := range addrs {
+		if a != nil {
+			if err := a.Validate(); err != nil {
 				return err
 			}
 		}

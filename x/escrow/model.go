@@ -39,7 +39,10 @@ func (e *Escrow) Validate() error {
 	if err := validateAmount(e.Amount); err != nil {
 		return err
 	}
-	return validateConditions(e.Arbiter, e.Sender, e.Recipient)
+	if err := validateConditions(e.Arbiter); err != nil {
+		return err
+	}
+	return validateAddresses(e.Sender, e.Recipient)
 }
 
 // Copy makes a new set with the same coins
@@ -65,7 +68,7 @@ func AsEscrow(obj orm.Object) *Escrow {
 }
 
 // NewEscrow creates an escrow orm.Object
-func NewEscrow(id []byte, sender, rcpt, arb weave.Condition,
+func NewEscrow(id []byte, sender, rcpt weave.Address, arb weave.Condition,
 	amount x.Coins, timeout int64, memo string) orm.Object {
 	esc := &Escrow{
 		Sender:    sender,
