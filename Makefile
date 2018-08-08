@@ -1,11 +1,12 @@
-.PHONY: all install build test cover deps tools prototools protoc
+.PHONY: all install build test cover deps tools prototools protoc clean dist
 
-GIT_VERSION := $(shell git describe --tags)
-BUILD_FLAGS := -ldflags "-X github.com/iov-one/bcp-demo.Version=$(GIT_VERSION)"
+BUILD_VERSION ?= manual
+BUILD_FLAGS := -ldflags "-X github.com/iov-one/bcp-demo.Version=${BUILD_VERSION}"
 DOCKER_BUILD_FLAGS := -a -installsuffix cgo
 TENDERMINT := ${GOBIN}/tendermint
 BUILDOUT ?= bov
 GOPATH ?= $$HOME/go
+IMAGE_NAME = "iov1/bov:${BUILD_VERSION}"
 
 TM_VERSION := v0.21.0
 
@@ -18,16 +19,19 @@ MODE ?= set
 
 all: deps build test
 
+dist: clean test build image
+
+clean:
+	rm -f ${BUILDOUT}
+
 install:
 	go install $(BUILD_FLAGS) ./cmd/bov
 
 build:
-	go build $(BUILD_FLAGS) -o $(BUILDOUT) ./cmd/bov
-
-docker-build:
 	GOARCH=amd64 CGO_ENABLED=0 GOOS=linux go build $(BUILD_FLAGS) $(DOCKER_BUILD_FLAGS) -o $(BUILDOUT) ./cmd/bov
-	docker build . -t "iov1/bov:$(GIT_VERSION)"
-	rm -rf $(BUILDOUT)
+
+image:
+	docker build --pull -t $(IMAGE_NAME) .
 
 test:
 	go test -race ./...
@@ -47,7 +51,7 @@ cover:
 
 deps: tools $(TENDERMINT)
 	@rm -rf vendor/
-	@dep ensure
+	@dep ensure -vendor-only
 
 tools:
 	@go get github.com/golang/dep/cmd/dep
