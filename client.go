@@ -2,6 +2,7 @@ package utils
 
 import (
 	"context"
+	"fmt"
 	"sync"
 
 	"github.com/confio/weave"
@@ -19,6 +20,19 @@ type Status = ctypes.ResultStatus
 type GenesisDoc = tmtypes.GenesisDoc
 
 var QueryNewBlockHeader = tmtypes.EventQueryNewBlockHeader
+
+var (
+	ErrInsufficientFees  = fmt.Errorf("Insufficient fees")
+	ErrInsufficientFunds = fmt.Errorf("Insufficient funds")
+	ErrInvalidAmount     = fmt.Errorf("Invalid amount")
+	ErrInvalidMemo       = fmt.Errorf("Invalid memo")
+	ErrEmptyAccount      = fmt.Errorf("Account empty")
+)
+
+type TxBroadcaster interface {
+	BroadcastTx(tx weave.Tx) BroadcastTxResponse
+	BroadcastTxAsync(tx weave.Tx, out chan<- BroadcastTxResponse)
+}
 
 // BcpClient is a tendermint client wrapped to provide
 // simple access to the data structures used in bcp-demo
