@@ -29,6 +29,8 @@ var (
 	ErrEmptyAccount      = fmt.Errorf("Account empty")
 )
 
+// TxBroadcaster is an interface to broadcast Tx
+// It can be used to mock BroadcastTxResponse in tests
 type TxBroadcaster interface {
 	BroadcastTx(tx weave.Tx) BroadcastTxResponse
 	BroadcastTxAsync(tx weave.Tx, out chan<- BroadcastTxResponse)
