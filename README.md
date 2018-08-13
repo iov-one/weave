@@ -1,5 +1,5 @@
 # Iov Weave
-[![Build Status circleCI](https://circleci.com/gh/iov-one/weave.png?style=shield&circle-token=4a0ef9d48e00e82022cc6750ba63b2fd6d75343c)](https://circleci.com/gh/iov-one/weave)
+[![Build Status TravisCI](https://api.travis-ci.com/iov-one/weave.svg?branch=master)](https://travis-ci.com/iov-one/weave)
 [![codecov](https://codecov.io/gh/iov-one/weave/branch/master/graph/badge.svg)](https://codecov.io/gh/iov-one/weave/branch/master)
 [![LoC](https://tokei.rs/b1/github/iov-one/weave)](https://github.com/iov-one/weave)
 [![Go Report Card](https://goreportcard.com/badge/github.com/iov-one/weave)](https://goreportcard.com/report/github.com/iov-one/weave)
@@ -69,9 +69,9 @@ make deps
 make install
 # test it built properly
 tendermint version
-# 0.17.1-6f995699
+# 0.21.0-46369a1a
 mycoind version
-# v0.2.1-21-g35d9c08
+# v0.6.0-7-g3aa16c9
 ```
 
 Note that this app relies on a separate tendermint process
@@ -82,3 +82,20 @@ as well as the documentation on the
 
 Once it compiles, I highly suggest going through the
 [tutorials on readthedocs](https://weave.readthedocs.io/en/latest/index.html#mycoin-tutorial)
+
+## History
+
+The original version, until `v0.6.0` was released under
+`confio/weave`. The original author, Ethan Frey, had
+previously worked on the
+[Cosmos SDK](https://github.com/cosmos/cosmos-sdk)
+and wanted to make a simpler framework he could use to
+start building demo apps, while the main sdk matured.
+Thus, `confio/weave` was born the first few months of 2018.
+This framework was designed to be open source and shared,
+but the only real usage and development was by
+[IOV](https://github.com/iov-one), so it was donated to
+that organization in August 2018 to be developed further
+for their BNS blockchain, as well as a companion to
+[iov-core](https://github.com/iov-one/iov-core)
+client libraries that deprecated `confio/weave-js`
