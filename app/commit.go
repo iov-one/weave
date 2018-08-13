@@ -1,8 +1,8 @@
 package app
 
 import (
-	"github.com/confio/weave"
-	"github.com/confio/weave/errors"
+	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/errors"
 )
 
 // commitStore is an internal type to handle loading from a

@@ -4,7 +4,7 @@ import (
 	"github.com/tendermint/iavl"
 	dbm "github.com/tendermint/tmlibs/db"
 
-	"github.com/confio/weave/store"
+	"github.com/iov-one/weave/store"
 )
 
 // TODO: make these configurable?

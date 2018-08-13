@@ -3,7 +3,7 @@ package utils
 import (
 	"time"
 
-	"github.com/confio/weave"
+	"github.com/iov-one/weave"
 )
 
 // Logging is a decorator to log messages as they pass through

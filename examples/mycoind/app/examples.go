@@ -1,11 +1,11 @@
 package app
 
 import (
-	"github.com/confio/weave/commands"
-	"github.com/confio/weave/crypto"
-	"github.com/confio/weave/x"
-	"github.com/confio/weave/x/cash"
-	"github.com/confio/weave/x/sigs"
+	"github.com/iov-one/weave/commands"
+	"github.com/iov-one/weave/crypto"
+	"github.com/iov-one/weave/x"
+	"github.com/iov-one/weave/x/cash"
+	"github.com/iov-one/weave/x/sigs"
 )
 
 // Examples generates some example structs to dump out with testgen

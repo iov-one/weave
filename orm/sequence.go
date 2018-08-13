@@ -3,7 +3,7 @@ package orm
 import (
 	"encoding/binary"
 
-	"github.com/confio/weave"
+	"github.com/iov-one/weave"
 )
 
 var seqPrefix = []byte("_s.")

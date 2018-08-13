@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"regexp"
 
-	"github.com/confio/weave"
-	"github.com/confio/weave/errors"
+	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/errors"
 )
 
 // DefaultRouterSize preallocates this much space to hold routes

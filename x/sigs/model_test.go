@@ -6,8 +6,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/confio/weave/crypto"
-	"github.com/confio/weave/store"
+	"github.com/iov-one/weave/crypto"
+	"github.com/iov-one/weave/store"
 )
 
 func TestUserModel(t *testing.T) {

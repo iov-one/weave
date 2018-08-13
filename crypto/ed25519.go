@@ -1,7 +1,7 @@
 package crypto
 
 import (
-	"github.com/confio/weave"
+	"github.com/iov-one/weave"
 	"golang.org/x/crypto/ed25519"
 )
 

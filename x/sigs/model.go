@@ -1,9 +1,9 @@
 package sigs
 
 import (
-	"github.com/confio/weave"
-	"github.com/confio/weave/crypto"
-	"github.com/confio/weave/orm"
+	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/crypto"
+	"github.com/iov-one/weave/orm"
 )
 
 // BucketName is where we store the accounts

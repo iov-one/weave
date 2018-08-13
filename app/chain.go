@@ -1,6 +1,6 @@
 package app
 
-import "github.com/confio/weave"
+import "github.com/iov-one/weave"
 
 // Decorators holds a chain of decorators, not yet resolved by a Handler
 type Decorators struct {

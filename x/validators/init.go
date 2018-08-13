@@ -1,7 +1,7 @@
 package validators
 
 import (
-	"github.com/confio/weave"
+	"github.com/iov-one/weave"
 )
 
 const optKey = "update_validators"

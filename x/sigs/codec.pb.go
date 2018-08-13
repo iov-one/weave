@@ -16,7 +16,7 @@ package sigs
 import proto "github.com/gogo/protobuf/proto"
 import fmt "fmt"
 import math "math"
-import crypto "github.com/confio/weave/crypto"
+import crypto "github.com/iov-one/weave/crypto"
 
 import io "io"
 

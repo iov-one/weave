@@ -8,7 +8,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/confio/weave/errors"
+	"github.com/iov-one/weave/errors"
 )
 
 var (

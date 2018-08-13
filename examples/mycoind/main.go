@@ -8,10 +8,10 @@ import (
 
 	"github.com/tendermint/tmlibs/log"
 
-	"github.com/confio/weave"
-	"github.com/confio/weave/commands"
-	"github.com/confio/weave/commands/server"
-	"github.com/confio/weave/examples/mycoind/app"
+	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/commands"
+	"github.com/iov-one/weave/commands/server"
+	"github.com/iov-one/weave/examples/mycoind/app"
 )
 
 var (

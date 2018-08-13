@@ -15,8 +15,8 @@ package app
 import proto "github.com/gogo/protobuf/proto"
 import fmt "fmt"
 import math "math"
-import cash "github.com/confio/weave/x/cash"
-import sigs "github.com/confio/weave/x/sigs"
+import cash "github.com/iov-one/weave/x/cash"
+import sigs "github.com/iov-one/weave/x/sigs"
 
 import io "io"
 

@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/confio/weave/x"
+	"github.com/iov-one/weave/x"
 )
 
 func TestRouter(t *testing.T) {

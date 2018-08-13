@@ -3,8 +3,8 @@ package x
 import (
 	"context"
 
-	"github.com/confio/weave"
-	"github.com/confio/weave/crypto"
+	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/crypto"
 	"github.com/tendermint/tmlibs/common"
 )
 

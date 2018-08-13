@@ -15,15 +15,15 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/confio/weave"
-	"github.com/confio/weave/app"
-	"github.com/confio/weave/orm"
-	"github.com/confio/weave/store/iavl"
-	"github.com/confio/weave/x"
-	"github.com/confio/weave/x/cash"
-	"github.com/confio/weave/x/sigs"
-	"github.com/confio/weave/x/utils"
-	"github.com/confio/weave/x/validators"
+	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/app"
+	"github.com/iov-one/weave/orm"
+	"github.com/iov-one/weave/store/iavl"
+	"github.com/iov-one/weave/x"
+	"github.com/iov-one/weave/x/cash"
+	"github.com/iov-one/weave/x/sigs"
+	"github.com/iov-one/weave/x/utils"
+	"github.com/iov-one/weave/x/validators"
 )
 
 // Authenticator returns the typical authentication,

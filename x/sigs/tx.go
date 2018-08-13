@@ -1,7 +1,7 @@
 package sigs
 
 import (
-	"github.com/confio/weave/errors"
+	"github.com/iov-one/weave/errors"
 )
 
 // SignedTx represents a transaction that contains signatures,

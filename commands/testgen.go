@@ -8,7 +8,7 @@ import (
 
 	"github.com/gogo/protobuf/proto"
 
-	"github.com/confio/weave/x/sigs"
+	"github.com/iov-one/weave/x/sigs"
 )
 
 // Example will be written out to a file, .json and .bin

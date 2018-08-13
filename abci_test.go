@@ -7,8 +7,8 @@ import (
 	pkerr "github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/confio/weave"
-	"github.com/confio/weave/errors"
+	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/errors"
 )
 
 func TestCreateErrorResult(t *testing.T) {
@@ -33,7 +33,7 @@ func TestCreateErrorResult(t *testing.T) {
 			// This is if we want minimal logs in the future....
 			// assert.Equal(tc.msg, dres.Log)
 			assert.Contains(t, dres.Log, tc.msg)
-			assert.Contains(t, dres.Log, "confio/weave/abci")
+			assert.Contains(t, dres.Log, "iov-one/weave/abci")
 			assert.Equal(t, tc.code, dres.Code)
 
 			cres := weave.CheckTxError(tc.err)
@@ -41,7 +41,7 @@ func TestCreateErrorResult(t *testing.T) {
 			// This is if we want minimal logs in the future....
 			// assert.Equal(tc.msg, cres.Log)
 			assert.Contains(t, cres.Log, tc.msg)
-			assert.Contains(t, cres.Log, "confio/weave/abci")
+			assert.Contains(t, cres.Log, "iov-one/weave/abci")
 			assert.Equal(t, tc.code, cres.Code)
 		})
 	}

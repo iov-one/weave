@@ -1,7 +1,7 @@
 package app
 
 import (
-	"github.com/confio/weave"
+	"github.com/iov-one/weave"
 )
 
 //------ init state -----

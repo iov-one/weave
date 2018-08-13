@@ -6,9 +6,9 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/confio/weave"
-	"github.com/confio/weave/x"
-	"github.com/confio/weave/x/utils"
+	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/x"
+	"github.com/iov-one/weave/x/utils"
 )
 
 func TestChain(t *testing.T) {

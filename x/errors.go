@@ -3,7 +3,7 @@ package x
 import (
 	"fmt"
 
-	"github.com/confio/weave/errors"
+	"github.com/iov-one/weave/errors"
 )
 
 // ABCI Response Codes

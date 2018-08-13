@@ -11,12 +11,12 @@ import (
 	abci "github.com/tendermint/abci/types"
 	"github.com/tendermint/tmlibs/log"
 
-	"github.com/confio/weave"
-	"github.com/confio/weave/app"
-	"github.com/confio/weave/crypto"
-	"github.com/confio/weave/x"
-	"github.com/confio/weave/x/cash"
-	"github.com/confio/weave/x/sigs"
+	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/app"
+	"github.com/iov-one/weave/crypto"
+	"github.com/iov-one/weave/x"
+	"github.com/iov-one/weave/x/cash"
+	"github.com/iov-one/weave/x/sigs"
 )
 
 func testInitChain(t *testing.T, myApp app.BaseApp, addr string) {

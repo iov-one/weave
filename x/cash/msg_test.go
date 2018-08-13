@@ -4,9 +4,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/confio/weave"
-	"github.com/confio/weave/errors"
-	"github.com/confio/weave/x"
+	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/x"
 	"github.com/stretchr/testify/assert"
 )
 

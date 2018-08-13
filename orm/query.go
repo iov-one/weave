@@ -1,6 +1,6 @@
 package orm
 
-import "github.com/confio/weave"
+import "github.com/iov-one/weave"
 
 // RegisterQuery will register a root query (literal keys)
 // under "/"

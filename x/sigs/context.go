@@ -3,8 +3,8 @@ package sigs
 import (
 	"context"
 
-	"github.com/confio/weave"
-	"github.com/confio/weave/x"
+	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/x"
 )
 
 //------------------- Context --------

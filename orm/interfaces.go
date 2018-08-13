@@ -1,8 +1,8 @@
 package orm
 
 import (
-	"github.com/confio/weave"
-	"github.com/confio/weave/x"
+	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/x"
 )
 
 // Object is what is stored in the bucket

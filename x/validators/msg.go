@@ -1,7 +1,7 @@
 package validators
 
 import (
-	"github.com/confio/weave"
+	"github.com/iov-one/weave"
 	abci "github.com/tendermint/abci/types"
 )
 

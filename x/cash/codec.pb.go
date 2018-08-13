@@ -17,7 +17,7 @@ package cash
 import proto "github.com/gogo/protobuf/proto"
 import fmt "fmt"
 import math "math"
-import x "github.com/confio/weave/x"
+import x "github.com/iov-one/weave/x"
 
 import io "io"
 
