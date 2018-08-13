@@ -1,7 +1,7 @@
 .PHONY: install protoc deps
 
 GIT_VERSION := $(shell git describe --tags)
-BUILD_FLAGS := -ldflags "-X github.com/confio/weave.Version=$(GIT_VERSION)"
+BUILD_FLAGS := -ldflags "-X github.com/iov-one/weave.Version=$(GIT_VERSION)"
 TENDERMINT := ${GOBIN}/tendermint
 BUILDOUT ?= mycoind
 GOPATH ?= $$HOME/go

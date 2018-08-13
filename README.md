@@ -69,9 +69,9 @@ make deps
 make install
 # test it built properly
 tendermint version
-# 0.17.1-6f995699
+# 0.21.0-46369a1a
 mycoind version
-# v0.2.1-21-g35d9c08
+# v0.6.0-7-g3aa16c9
 ```
 
 Note that this app relies on a separate tendermint process

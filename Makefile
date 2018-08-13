@@ -27,7 +27,7 @@ tf:
 	go test -short ./...
 
 cover:
-	@ #Note: 19 is the length of "github.com/confio/" prefix
+	@ #Note: 19 is the length of "github.com/iov-one/" prefix
 	@ for pkg in $(NOVENDOR); do \
         file=`echo $$pkg | cut -c 19- | tr / _`; \
 	    echo "Coverage on" $$pkg "as" $$file; \
@@ -36,13 +36,13 @@ cover:
 	done
 	@ # most of the tests in the app package are in examples/mycoind/app...
 	@ go test -covermode=$(MODE) \
-	 	-coverpkg=github.com/confio/weave/app,github.com/confio/weave/examples/mycoind/app \
+	 	-coverpkg=github.com/iov-one/weave/app,github.com/iov-one/weave/examples/mycoind/app \
 		-coverprofile=coverage/weave_examples_mycoind_app.out \
-		github.com/confio/weave/examples/mycoind/app
+		github.com/iov-one/weave/examples/mycoind/app
 	@ go test -covermode=$(MODE) \
-	 	-coverpkg=github.com/confio/weave/commands/server \
+	 	-coverpkg=github.com/iov-one/weave/commands/server \
 		-coverprofile=coverage/weave_commands_server.out \
-		github.com/confio/weave/examples/mycoind/commands
+		github.com/iov-one/weave/examples/mycoind/commands
 	cat coverage/*.out > coverage/coverage.txt
 
 deps: tools
