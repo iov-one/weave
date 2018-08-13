@@ -7,8 +7,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/confio/weave/store"
-	"github.com/confio/weave/x"
+	"github.com/iov-one/weave/store"
+	"github.com/iov-one/weave/x"
 )
 
 func TestRecovery(t *testing.T) {

@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/confio/weave/store"
+	"github.com/iov-one/weave/store"
 )
 
 type Model = store.Model

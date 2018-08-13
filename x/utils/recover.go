@@ -1,8 +1,8 @@
 package utils
 
 import (
-	"github.com/confio/weave"
-	"github.com/confio/weave/errors"
+	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/errors"
 )
 
 // Recovery is a decorator to recover from panics in transactions,

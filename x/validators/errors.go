@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/confio/weave/errors"
+	"github.com/iov-one/weave/errors"
 )
 
 // ABCI Response Codes

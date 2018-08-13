@@ -1,6 +1,6 @@
 package x
 
-import "github.com/confio/weave"
+import "github.com/iov-one/weave"
 
 //--------------- serialization stuff ---------------------
 

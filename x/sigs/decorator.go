@@ -6,8 +6,8 @@ and maintain nonces for replay protection.
 package sigs
 
 import (
-	"github.com/confio/weave"
-	"github.com/confio/weave/errors"
+	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/errors"
 )
 
 // RegisterQuery will register this bucket as "/auth"

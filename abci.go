@@ -6,7 +6,7 @@ import (
 	abci "github.com/tendermint/abci/types"
 	"github.com/tendermint/tmlibs/common"
 
-	"github.com/confio/weave/errors"
+	"github.com/iov-one/weave/errors"
 )
 
 //---------- helpers for handling responses --------

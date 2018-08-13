@@ -23,7 +23,7 @@ def setup(app):
 # -- Project information -----------------------------------------------------
 
 project = u'Weave'
-copyright = u'2018, Confio ÜO'
+copyright = u'2018, IOV SAS'
 author = u'Ethan Frey'
 
 # The short X.Y version
@@ -134,7 +134,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'Weave.tex', u'Confio Weave Documentation',
+    (master_doc, 'Weave.tex', u'IOV Weave Documentation',
      u'Ethan Frey', 'manual'),
 ]
 
@@ -144,7 +144,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'weave', u'Confio Weave Documentation',
+    (master_doc, 'weave', u'IOV Weave Documentation',
      [author], 1)
 ]
 
@@ -155,7 +155,7 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'Weave', u'Confio Weave Documentation',
+    (master_doc, 'Weave', u'IOV Weave Documentation',
      author, 'Weave', 'Framework for tendermint ABCI apps',
      'Blockchain'),
 ]

@@ -3,8 +3,8 @@ package blog
 import (
 	"errors"
 
-	"github.com/confio/weave"
-	"github.com/confio/weave/orm"
+	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/orm"
 )
 
 //----- Blog -------

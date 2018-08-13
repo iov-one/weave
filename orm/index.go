@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"errors"
 
-	"github.com/confio/weave"
+	"github.com/iov-one/weave"
 )
 
 var indPrefix = []byte("_i.")

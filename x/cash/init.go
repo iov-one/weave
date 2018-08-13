@@ -1,7 +1,7 @@
 package cash
 
 import (
-	"github.com/confio/weave"
+	"github.com/iov-one/weave"
 )
 
 const optKey = "cash"

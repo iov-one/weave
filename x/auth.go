@@ -1,7 +1,7 @@
 package x
 
 import (
-	"github.com/confio/weave"
+	"github.com/iov-one/weave"
 )
 
 // Authenticator is an interface we can use to extract authentication info

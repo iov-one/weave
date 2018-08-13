@@ -4,10 +4,10 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/confio/weave"
-	"github.com/confio/weave/errors"
-	"github.com/confio/weave/store"
-	"github.com/confio/weave/x/cash"
+	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/store"
+	"github.com/iov-one/weave/x/cash"
 	. "github.com/smartystreets/goconvey/convey"
 	abci "github.com/tendermint/abci/types"
 )

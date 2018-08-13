@@ -8,7 +8,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/confio/weave/errors"
+	"github.com/iov-one/weave/errors"
 )
 
 func makeError() error {

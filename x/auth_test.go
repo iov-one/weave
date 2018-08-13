@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/confio/weave"
+	"github.com/iov-one/weave"
 	"github.com/stretchr/testify/assert"
 )
 

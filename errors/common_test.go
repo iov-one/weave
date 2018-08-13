@@ -97,8 +97,8 @@ func TestLog(t *testing.T) {
 			// make sure we also get stack dumps....
 			stack := fmt.Sprintf("%+v", tc.err)
 			// we should trim off unneeded stuff
-			withCode := "github.com/confio/weave/errors.WithCode\n"
-			thisTest := "github.com/confio/weave/errors.TestLog\n"
+			withCode := "github.com/iov-one/weave/errors.WithCode\n"
+			thisTest := "github.com/iov-one/weave/errors.TestLog\n"
 			assert.False(t, strings.Contains(stack, withCode))
 			assert.True(t, strings.Contains(stack, thisTest))
 		})

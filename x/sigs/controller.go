@@ -4,9 +4,9 @@ import (
 	"crypto/sha512"
 	"encoding/binary"
 
-	"github.com/confio/weave"
-	"github.com/confio/weave/crypto"
-	"github.com/confio/weave/errors"
+	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/crypto"
+	"github.com/iov-one/weave/errors"
 )
 
 // SignCodeV1 is the current way to prefix the bytes we use to build
@@ -94,7 +94,7 @@ func VerifySignature(db weave.KVStore, sig *StdSignature,
 /*
 BuildSignBytes combines all info on the actual tx before signing
 
-As specified in https://github.com/confio/weave/issues/70,
+As specified in https://github.com/iov-one/weave/issues/70,
 we use the following format:
 
 version | len(chainID) | chainID      | nonce             | signBytes

@@ -1,6 +1,6 @@
 package store
 
-import "github.com/confio/weave"
+import "github.com/iov-one/weave"
 
 // Move references for all storage types into this package
 // for shorter names everywhere

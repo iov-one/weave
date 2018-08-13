@@ -2,7 +2,7 @@
 Extension Design
 ----------------
 
-`Confio weave <https://github.com/confio/weave>`_ doesn't just
+`IOV weave <https://github.com/iov-one/weave>`_ doesn't just
 produce a ``mycoind`` executable, but was designed from the
 group up to be extremely flexible for many common use cases.
 One can easily extend the functionality of ``mycoind``

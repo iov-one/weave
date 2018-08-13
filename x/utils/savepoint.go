@@ -1,7 +1,7 @@
 package utils
 
 import (
-	"github.com/confio/weave"
+	"github.com/iov-one/weave"
 )
 
 // Savepoint will isolate all data inside of the call,

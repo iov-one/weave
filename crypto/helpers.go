@@ -1,7 +1,7 @@
 package crypto
 
 import (
-	"github.com/confio/weave"
+	"github.com/iov-one/weave"
 )
 
 // ExtensionName is used for the Conditions we get from signatures

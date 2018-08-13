@@ -3,9 +3,9 @@ package cash
 import (
 	"fmt"
 
-	"github.com/confio/weave"
-	"github.com/confio/weave/errors"
-	"github.com/confio/weave/x"
+	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/x"
 )
 
 // ABCI Response Codes

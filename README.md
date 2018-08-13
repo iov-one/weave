@@ -1,12 +1,12 @@
-# Confio Weave
-[![Build Status circleCI](https://circleci.com/gh/confio/weave.png?style=shield&circle-token=4a0ef9d48e00e82022cc6750ba63b2fd6d75343c)](https://circleci.com/gh/confio/weave)
-[![codecov](https://codecov.io/gh/confio/weave/branch/master/graph/badge.svg)](https://codecov.io/gh/confio/weave/branch/master)
-[![LoC](https://tokei.rs/b1/github/confio/weave)](https://github.com/confio/weave)
-[![Go Report Card](https://goreportcard.com/badge/github.com/confio/weave)](https://goreportcard.com/report/github.com/confio/weave)
-[![API Reference](https://godoc.org/github.com/confio/weave?status.svg
-)](https://godoc.org/github.com/confio/weave)
+# Iov Weave
+[![Build Status circleCI](https://circleci.com/gh/iov-one/weave.png?style=shield&circle-token=4a0ef9d48e00e82022cc6750ba63b2fd6d75343c)](https://circleci.com/gh/iov-one/weave)
+[![codecov](https://codecov.io/gh/iov-one/weave/branch/master/graph/badge.svg)](https://codecov.io/gh/iov-one/weave/branch/master)
+[![LoC](https://tokei.rs/b1/github/iov-one/weave)](https://github.com/iov-one/weave)
+[![Go Report Card](https://goreportcard.com/badge/github.com/iov-one/weave)](https://goreportcard.com/report/github.com/iov-one/weave)
+[![API Reference](https://godoc.org/github.com/iov-one/weave?status.svg
+)](https://godoc.org/github.com/iov-one/weave)
 [![ReadTheDocs](https://readthedocs.org/projects/weave/badge/?version=latest)](http://weave.readthedocs.io/en/latest/)
-[![license](https://img.shields.io/github/license/confio/weave.svg)](https://github.com/confio/weave/blob/master/LICENSE)
+[![license](https://img.shields.io/github/license/iov-one/weave.svg)](https://github.com/iov-one/weave/blob/master/LICENSE)
 
 Confio Weave is a framework for quickly building your custom
 [ABCI application](https://github.com/tendermint/abci)
@@ -63,8 +63,8 @@ like the following to compile both `mycoind` (sample app)
 and `tendermint` (a [BFT consensus engine](https://tendermint.com)):
 
 ```
-go get github.com/confio/weave
-cd $GOPATH/src/github.com/confio/weave
+go get github.com/iov-one/weave
+cd $GOPATH/src/github.com/iov-one/weave
 make deps
 make install
 # test it built properly
