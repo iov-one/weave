@@ -1,0 +1,24 @@
+language: go
+sudo: required
+
+os:
+  - linux
+
+go:
+- '1.10'
+
+install:
+- make tools
+- make deps
+
+script:
+- make build
+- make test
+
+after_script:
+- make cover
+- ./coverage/upload.sh
+
+branches:
+  only:
+  - master
