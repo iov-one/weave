@@ -1,5 +1,5 @@
 # Iov Weave
-[![Build Status circleCI](https://circleci.com/gh/iov-one/weave.png?style=shield&circle-token=4a0ef9d48e00e82022cc6750ba63b2fd6d75343c)](https://circleci.com/gh/iov-one/weave)
+[![Build Status TravisCI](https://api.travis-ci.com/iov-one/weave.svg?branch=master)](https://travis-ci.com/iov-one/weave)
 [![codecov](https://codecov.io/gh/iov-one/weave/branch/master/graph/badge.svg)](https://codecov.io/gh/iov-one/weave/branch/master)
 [![LoC](https://tokei.rs/b1/github/iov-one/weave)](https://github.com/iov-one/weave)
 [![Go Report Card](https://goreportcard.com/badge/github.com/iov-one/weave)](https://goreportcard.com/report/github.com/iov-one/weave)
