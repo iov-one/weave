@@ -29,9 +29,9 @@ var (
 	ErrEmptyAccount      = fmt.Errorf("Account empty")
 )
 
-// TxBroadcaster is an interface to broadcast Tx
-// It can be used to mock BroadcastTxResponse in tests
-type TxBroadcaster interface {
+// GetWallet is an interface to interact with tendermint
+type Client interface {
+	GetWallet(addr weave.Address) (*WalletResponse, error)
 	BroadcastTx(tx weave.Tx) BroadcastTxResponse
 	BroadcastTxAsync(tx weave.Tx, out chan<- BroadcastTxResponse)
 }
