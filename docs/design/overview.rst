@@ -1,9 +1,9 @@
 -------------------
-Confio Weave Design
+IOV Weave Design
 -------------------
 
 This document is an attempt to orient you in the wild
-world of application development with Confio Weave.
+world of application development with IOV Weave.
 
 Determinism
 ===========

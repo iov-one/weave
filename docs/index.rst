@@ -1,12 +1,12 @@
-.. Confio Weave documentation master file, created by
+.. IOV Weave documentation master file, created by
    sphinx-quickstart on Thu Apr  5 20:50:33 2018.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to Confio Weave's documentation!
+Welcome to IOV Weave's documentation!
 ========================================
 
-`Confio Weave <https://github.com/confio/weave>`__
+`IOV Weave <https://github.com/confio/weave>`__
 is a framework to quickly build your custom
 `ABCI application <https://github.com/tendermint/abci>`__
 to power a blockchain based on the best-of-class BFT Proof-of-stake
