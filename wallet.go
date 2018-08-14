@@ -6,7 +6,6 @@ import (
 	"io/ioutil"
 
 	"github.com/confio/weave"
-	"github.com/confio/weave/crypto"
 	"github.com/confio/weave/x"
 	"github.com/iov-one/bcp-demo/x/namecoin"
 	tmtype "github.com/tendermint/tendermint/types"
@@ -157,7 +156,7 @@ func (w WalletRequest) Normalize(defaults x.Coin) (namecoin.GenesisAccount, *Pri
 	addr := w.Address
 	var privKey *PrivateKey // generated key if any
 	if len(addr) == 0 {
-		privKey = crypto.GenPrivKeyEd25519()
+		privKey = GenPrivateKey()
 		addr = privKey.PublicKey().Address()
 
 		fmt.Printf("Generating private key: %X\n\n", privKey)
@@ -170,4 +169,19 @@ func (w WalletRequest) Normalize(defaults x.Coin) (namecoin.GenesisAccount, *Pri
 			Coins: coins,
 		},
 	}, privKey
+}
+
+func (w WalletRequest) WithDefaultCoins(defaults x.Coin) x.Coins {
+	var coins x.Coins
+	if len(w.Coins) == 0 {
+		c := MaybeCoin{}.WithDefaults(defaults)
+		coins = x.Coins{&c}
+	} else {
+		for _, coin := range w.Coins {
+			c := coin.WithDefaults(defaults)
+			coins = append(coins, &c)
+		}
+	}
+
+	return coins
 }
