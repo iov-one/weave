@@ -111,7 +111,7 @@ type WalletRequests struct {
 type WalletRequest struct {
 	Address weave.Address `json:"address"`
 	Name    string        `json:"name"`
-	Coins   []*MaybeCoin  `json:"coins,omitempty"`
+	Coins   MaybeCoins    `json:"coins,omitempty"`
 }
 
 // WalletResponse is a response on a query for a wallet
@@ -144,8 +144,7 @@ func (w WalletRequests) Normalize(defaults x.Coin) WalletStore {
 func (w WalletRequest) Normalize(defaults x.Coin) (namecoin.GenesisAccount, *PrivateKey) {
 	var coins x.Coins
 	if len(w.Coins) == 0 {
-		c := MaybeCoin{}.WithDefaults(defaults)
-		coins = x.Coins{&c}
+		coins = x.Coins{defaults.Clone()}
 	} else {
 		for _, coin := range w.Coins {
 			c := coin.WithDefaults(defaults)
@@ -171,16 +170,18 @@ func (w WalletRequest) Normalize(defaults x.Coin) (namecoin.GenesisAccount, *Pri
 	}, privKey
 }
 
-func (w WalletRequest) WithDefaultCoins(defaults x.Coin) x.Coins {
+type MaybeCoins []*MaybeCoin
+
+func (c MaybeCoins) WithDefaults(defaults x.Coins) x.Coins {
 	var coins x.Coins
-	if len(w.Coins) == 0 {
-		c := MaybeCoin{}.WithDefaults(defaults)
-		coins = x.Coins{&c}
+	if len(c) == 0 {
+		coins = defaults.Clone()
 	} else {
-		for _, coin := range w.Coins {
-			c := coin.WithDefaults(defaults)
-			coins = append(coins, &c)
-		}
+		coins = defaults.Clone()
+		// for _, coin := range w.Coins {
+		// 	c := coin.WithDefaults(defaults)
+		// 	coins = append(coins, &c)
+		// }
 	}
 
 	return coins
