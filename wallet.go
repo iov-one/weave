@@ -172,16 +172,22 @@ func (w WalletRequest) Normalize(defaults x.Coin) (namecoin.GenesisAccount, *Pri
 
 type MaybeCoins []*MaybeCoin
 
-func (c MaybeCoins) WithDefaults(defaults x.Coins) x.Coins {
+// WithCoinDefaults applies WithDefault to a collection of coins
+// If no defaults are found for a given coin, it will be ignored
+func WithCoinDefaults(manyCoins MaybeCoins, defaults x.Coins) x.Coins {
 	var coins x.Coins
-	if len(c) == 0 {
+	if len(manyCoins) == 0 {
 		coins = defaults.Clone()
 	} else {
-		coins = defaults.Clone()
-		// for _, coin := range w.Coins {
-		// 	c := coin.WithDefaults(defaults)
-		// 	coins = append(coins, &c)
-		// }
+		for _, coin := range manyCoins {
+			for _, defaultCoin := range defaults {
+				if defaultCoin.Ticker == *coin.Ticker {
+					coinWithDefault := coin.WithDefaults(*defaultCoin)
+					coins = append(coins, &coinWithDefault)
+					break
+				}
+			}
+		}
 	}
 
 	return coins
