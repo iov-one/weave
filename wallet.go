@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"strings"
 
 	"github.com/confio/weave"
 	"github.com/confio/weave/x"
@@ -171,3 +172,12 @@ func (w WalletRequest) Normalize(defaults x.Coin) (namecoin.GenesisAccount, *Pri
 }
 
 type MaybeCoins []*MaybeCoin
+
+func FindCoinByTicker(coins x.Coins, ticker string) (*x.Coin, bool) {
+	for _, coin := range coins {
+		if strings.EqualFold(ticker, coin.Ticker) {
+			return coin, true
+		}
+	}
+	return nil, false
+}
