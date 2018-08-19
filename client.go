@@ -2,7 +2,6 @@ package utils
 
 import (
 	"context"
-	"fmt"
 	"sync"
 
 	"github.com/confio/weave"
@@ -21,15 +20,7 @@ type GenesisDoc = tmtypes.GenesisDoc
 
 var QueryNewBlockHeader = tmtypes.EventQueryNewBlockHeader
 
-var (
-	ErrInsufficientFees  = fmt.Errorf("Insufficient fees")
-	ErrInsufficientFunds = fmt.Errorf("Insufficient funds")
-	ErrInvalidAmount     = fmt.Errorf("Invalid amount")
-	ErrInvalidMemo       = fmt.Errorf("Invalid memo")
-	ErrEmptyAccount      = fmt.Errorf("Account empty")
-)
-
-// GetWallet is an interface to interact with tendermint
+// Client is an interface to interact with bcp
 type Client interface {
 	GetWallet(addr weave.Address) (*WalletResponse, error)
 	BroadcastTx(tx weave.Tx) BroadcastTxResponse
