@@ -22,6 +22,7 @@ var QueryNewBlockHeader = tmtypes.EventQueryNewBlockHeader
 
 // Client is an interface to interact with bcp
 type Client interface {
+	GetUser(addr weave.Address) (*UserResponse, error)
 	GetWallet(addr weave.Address) (*WalletResponse, error)
 	BroadcastTx(tx weave.Tx) BroadcastTxResponse
 	BroadcastTxAsync(tx weave.Tx, out chan<- BroadcastTxResponse)
@@ -49,7 +50,7 @@ func NewClient(conn client.Client) *BcpClient {
 // and caches recent nonce locally to quickly sign
 type Nonce struct {
 	mutex     sync.Mutex
-	client    *BcpClient
+	client    Client
 	addr      weave.Address
 	nonce     int64
 	fromQuery bool
@@ -57,7 +58,7 @@ type Nonce struct {
 
 // NewNonce creates a nonce for a client / address pair.
 // Call Query to force a query, Next to use cache if possible
-func NewNonce(client *BcpClient, addr weave.Address) *Nonce {
+func NewNonce(client Client, addr weave.Address) *Nonce {
 	return &Nonce{client: client, addr: addr}
 }
 
