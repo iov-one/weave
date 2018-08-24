@@ -8,7 +8,7 @@ key-value store. Messages are requests for a change in the
 state, the action part of a transaction. They also need
 to be persisted (to be sent over the wire and stored on the
 blockchain), and must also be validated. They later are passed
-into `Handlers <https://godoc.org/github.com/confio/weave#Handler>`_
+into `Handlers <https://godoc.org/github.com/iov-one/weave#Handler>`_
 to be processed and effect change in the blockchain state.
 
 Messages vs. Transactions
@@ -19,7 +19,7 @@ element of a blockchain. A transaction contains a message
 along with metadata and authorization information, such
 as fees, signatures, nonces, and time-to-live.
 
-A `Transaction <https://godoc.org/github.com/confio/weave#Tx>`_
+A `Transaction <https://godoc.org/github.com/iov-one/weave#Tx>`_
 is fundamentally defined as anything persistent that holds a message:
 
 .. code:: go
@@ -32,16 +32,16 @@ is fundamentally defined as anything persistent that holds a message:
 
 And every application can extend it with additional functionality,
 such as
-`Signatures <https://godoc.org/github.com/confio/weave/x/sigs#SignedTx>`_,
-`Fees <https://godoc.org/github.com/confio/weave/x/cash#FeeTx>`_,
+`Signatures <https://godoc.org/github.com/iov-one/weave/x/sigs#SignedTx>`_,
+`Fees <https://godoc.org/github.com/iov-one/weave/x/cash#FeeTx>`_,
 or anything else your application needs. The data placed in the
 Transaction is meant to be anything that applies to all modules, and
 is processed by a Middleware.
 
-A `Message <https://godoc.org/github.com/confio/weave#Msg>`_
+A `Message <https://godoc.org/github.com/iov-one/weave#Msg>`_
 is also persistent and can be pretty much anything that an
 extension defines, as it also defines the
-`Handler <https://godoc.org/github.com/confio/weave#Handler>`_
+`Handler <https://godoc.org/github.com/iov-one/weave#Handler>`_
 to process it. The only necessary feature of a Message is
 that it can return a ``Path() string`` which allows us to
 route it to the proper Handler.
@@ -73,14 +73,14 @@ In the blog example, we can imagine:
 * Modify Profile (which may be merged with above)
 
 We can create a protobuf message for
-`each of these types <https://github.com/confio/weave/blob/master/examples/tutorial/x/blog/messages.proto>`_:
+`each of these types <https://github.com/iov-one/weave/blob/master/examples/tutorial/x/blog/messages.proto>`_:
 
 .. literalinclude:: ../../examples/tutorial/x/blog/messages.proto
     :language: proto
     :lines: 5-13
 
 And then add a ``Path`` method that
-`returns a constant <https://github.com/confio/weave/blob/master/examples/tutorial/x/blog/msgs.go>`_
+`returns a constant <https://github.com/iov-one/weave/blob/master/examples/tutorial/x/blog/msgs.go>`_
 based on the type:
 
 .. literalinclude:: ../../examples/tutorial/x/blog/msgs.go

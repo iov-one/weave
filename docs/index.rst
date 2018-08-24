@@ -6,7 +6,7 @@
 Welcome to IOV Weave's documentation!
 ========================================
 
-`IOV Weave <https://github.com/confio/weave>`__
+`IOV Weave <https://github.com/iov-one/weave>`__
 is a framework to quickly build your custom
 `ABCI application <https://github.com/tendermint/abci>`__
 to power a blockchain based on the best-of-class BFT Proof-of-stake
@@ -91,7 +91,7 @@ Backend Development Tutorial
 To make this theory more tangible, we will build a sample
 application alongside this tutorial, to demonstrate dealing
 with real-world constraints. The application is located in the
-`examples/tutorial package <https://github.com/confio/weave/tree/master/examples/tutorial>`_
+`examples/tutorial package <https://github.com/iov-one/weave/tree/master/examples/tutorial>`_
 in the weave repository, but it is designed to be self-contained
 and could just as easily live in an external repo that imported
 weave.

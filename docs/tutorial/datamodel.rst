@@ -42,7 +42,7 @@ Select Primary Keys
 
 Some of this data belongs in the primary key, the rest in the value.
 Weave introduces the concept of an
-`Object <https://github.com/confio/weave/blob/master/orm/interfaces.go#L8-L21>`_
+`Object <https://github.com/iov-one/weave/blob/master/orm/interfaces.go#L8-L21>`_
 which contains a Key (`[]byte`) and Value (`Persistent` struct).
 It can be cloned and validated. When we query we will receive
 this object, so we can place some critical information in the Key
@@ -51,7 +51,7 @@ and expect it to always be present.
 The primary key must be a unique identifier and it should be the
 main way we want to access the data. Let's break down the four
 models above into keys and
-`protobuf models <https://github.com/confio/weave/blob/master/examples/tutorial/x/blog/state.proto>`_:
+`protobuf models <https://github.com/iov-one/weave/blob/master/examples/tutorial/x/blog/state.proto>`_:
 
 Blog
 ~~~~
@@ -85,14 +85,14 @@ Key: Use ``(author address)`` as primary key.
 Compile Protobuf
 ----------------
 
-We add the compilation steps into our [Makefile](https://github.com/confio/weave/blob/master/examples/tutorial/Makefile):
+We add the compilation steps into our [Makefile](https://github.com/iov-one/weave/blob/master/examples/tutorial/Makefile):
 
 .. literalinclude:: ../../examples/tutorial/Makefile
     :language: Makefile
     :lines: 3-4
 
 Now we run ``make protoc`` to generate the
-`go objects <https://github.com/confio/weave/blob/master/examples/tutorial/x/blog/state.pb.go>`_.
+`go objects <https://github.com/iov-one/weave/blob/master/examples/tutorial/x/blog/state.pb.go>`_.
 (You will have to add and run the ``prototools`` section if you are
 using your own repo, we inherit that from root weave Makefile).
 
@@ -100,10 +100,10 @@ Using Buckets
 --------------
 
 When running your handlers, you get access to the root
-`KVStore <https://godoc.org/github.com/confio/weave#KVStore>`_,
+`KVStore <https://godoc.org/github.com/iov-one/weave#KVStore>`_,
 which is an abstraction level similar to boltdb or leveldb.
 An extenstion can opt-in to using one or more
-`Buckets <https://godoc.org/github.com/confio/weave/orm#Bucket>`_
+`Buckets <https://godoc.org/github.com/iov-one/weave/orm#Bucket>`_
 to store the data. Buckets offer the following advantages:
 
 * Isolation between extensions (each Bucket has a unique prefix that is transparently prepended to the keys)
@@ -116,7 +116,7 @@ well as the features, please use Buckets in your app, unless you
 have a very good reason not to (and know what you are doing).
 
 To do so, you will have to wrap your state data structures into
-`Objects <https://godoc.org/github.com/confio/weave/orm#Object>`_.
+`Objects <https://godoc.org/github.com/iov-one/weave/orm#Object>`_.
 The simplest way is to use ``SimpleObj``:
 
 .. literalinclude:: ../../orm/object.go
@@ -124,7 +124,7 @@ The simplest way is to use ``SimpleObj``:
     :lines: 14-17
 
 And extend your protobuf objects to implement
-`CloneableData <https://godoc.org/github.com/confio/weave/orm#CloneableData>`_:
+`CloneableData <https://godoc.org/github.com/iov-one/weave/orm#CloneableData>`_:
 
 .. literalinclude:: ../../orm/interfaces.go
     :language: go
@@ -132,7 +132,7 @@ And extend your protobuf objects to implement
 
 This basically consists of adding `Copy()` and `Validate()`
 to the objects in ``state.pb.go``. Just create a
-`models.go <https://github.com/confio/weave/blob/master/examples/tutorial/x/blog/models.go>`_
+`models.go <https://github.com/iov-one/weave/blob/master/examples/tutorial/x/blog/models.go>`_
 file and add extra methods to the auto-generated structs.
 If we don't care about validation, this can be as simple as:
 
@@ -191,13 +191,13 @@ or to provide translations of the error message client side.
 
 For these reasons, weave provides some utility methods
 and common error types in the
-`errors <https://godoc.org/github.com/confio/weave/errors>`_
+`errors <https://godoc.org/github.com/iov-one/weave/errors>`_
 package. The ABCI Code attached to the error is then
-`returned in the DeliverTx Result <https://github.com/confio/weave/blob/master/abci.go#L92-L104>`_.
+`returned in the DeliverTx Result <https://github.com/iov-one/weave/blob/master/abci.go#L92-L104>`_.
 
 Every package can define it's own custom error types and
 error codes, generally in a file called
-`errors.go <https://github.com/confio/weave/blob/master/examples/tutorial/x/blog/errors.go>`_. The key elements are:
+`errors.go <https://github.com/iov-one/weave/blob/master/examples/tutorial/x/blog/errors.go>`_. The key elements are:
 
 .. code:: go
 
@@ -239,7 +239,7 @@ data is validated before saving, but we also need to make sure
 that all data is the proper type of object before saving.
 Unfortunately, this is quite difficult to do compile-time
 without generic, so a typical apporach is to embed the
-`orm.Bucket <https://godoc.org/github.com/confio/weave/orm#Bucket>`_
+`orm.Bucket <https://godoc.org/github.com/iov-one/weave/orm#Bucket>`_
 in another struct and just force validation of the object type
 runtime before save.
 
@@ -266,7 +266,7 @@ to be a proper Post, then extract the index we want. This
 can be a field, or any deterministic transformation of
 one (or multiple) fields. The output of the index becomes a
 key in another query. Bucket provides a simple
-`method to query by index <https://godoc.org/github.com/confio/weave/orm#Bucket.GetIndexed>`_. You can query by name like:
+`method to query by index <https://godoc.org/github.com/iov-one/weave/orm#Bucket.GetIndexed>`_. You can query by name like:
 
 .. code:: go
 

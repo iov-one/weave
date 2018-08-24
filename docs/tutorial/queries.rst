@@ -5,13 +5,13 @@ Processing Queries
 We don't only want to modify data, but allow the clients
 to query the current state. Clients can call ``/abci_query``
 to tendermint which will make a
-`Query <https://github.com/confio/weave/blob/master/app/store.go#L192-L263>`_
+`Query <https://github.com/iov-one/weave/blob/master/app/store.go#L192-L263>`_
 request on the weave application.
 
 Note how it uses a
-`QueryRouter <https://godoc.org/github.com/confio/weave#QueryRouter>`_
+`QueryRouter <https://godoc.org/github.com/iov-one/weave#QueryRouter>`_
 to send queries to different
-`QueryHandlers <https://godoc.org/github.com/confio/weave#QueryHandler>`_
+`QueryHandlers <https://godoc.org/github.com/iov-one/weave#QueryHandler>`_
 based on their *Path*? It just happens that *Buckets* implement
 the *QueryHandler* interface, and now that we understand how
 *RegisterRoutes* work, this should be quite simple.
