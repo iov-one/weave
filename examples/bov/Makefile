@@ -66,7 +66,7 @@ $(TENDERMINT):
 
 protoc:
 	@ # $(GOPATH)/src go we can import namecoin .proto
-	protoc --gogofaster_out=. -I=. -I=./vendor -I=$(GOPATH)/src app/*.proto
+	protoc --gogofaster_out=. -I=. -I=$(GOPATH)/src app/*.proto
 
 ### cross-platform check for installing protoc ###
 

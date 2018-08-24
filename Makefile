@@ -1,6 +1,6 @@
 .PHONY: all install build test cover deps tools prototools protoc
 
-EXAMPLES := "examples/mycoind"
+EXAMPLES := examples/mycoind examples/bov
 
 # dont use `` in the makefile for windows compatibility
 NOVENDOR := $(shell go list ./...)
@@ -13,7 +13,7 @@ GOPATH ?= $$HOME/go
 all: deps build test
 
 install:
-	for ex in $(EXAMPLES); do cd $$ex && make install; done
+	for ex in $(EXAMPLES); do cd $$ex && make install && cd -; done
 
 # This is to make sure it all compiles
 build:
@@ -48,7 +48,7 @@ cover:
 deps: tools
 	@rm -rf vendor/
 	@dep ensure
-	for ex in $(EXAMPLES); do cd $$ex && make deps; done
+	for ex in $(EXAMPLES); do cd $$ex && make deps && cd -; done
 
 tools:
 	@go get github.com/golang/dep/cmd/dep
@@ -63,7 +63,7 @@ protoc:
 	protoc --gogofaster_out=. -I=. -I=$(GOPATH)/src x/validators/*.proto
 	protoc --gogofaster_out=. -I=. -I=$(GOPATH)/src -I=./vendor x/namecoin/*.proto
 	protoc --gogofaster_out=. -I=. -I=$(GOPATH)/src -I=./vendor x/escrow/*.proto
-	for ex in $(EXAMPLES); do cd $$ex && make protoc; done
+	for ex in $(EXAMPLES); do cd $$ex && make protoc && cd -; done
 
 ### cross-platform check for installing protoc ###
 
