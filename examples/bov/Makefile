@@ -18,10 +18,10 @@ clean:
 	rm -f ${BUILDOUT}
 
 install:
-	go install $(BUILD_FLAGS) ./cmd/bov
+	go install $(BUILD_FLAGS) .
 
 build:
-	GOARCH=amd64 CGO_ENABLED=0 GOOS=linux go build $(BUILD_FLAGS) $(DOCKER_BUILD_FLAGS) -o $(BUILDOUT) ./cmd/bov
+	GOARCH=amd64 CGO_ENABLED=0 GOOS=linux go build $(BUILD_FLAGS) $(DOCKER_BUILD_FLAGS) -o $(BUILDOUT) .
 
 image:
 	docker build --pull -t $(IMAGE_NAME) .
