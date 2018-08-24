@@ -2,11 +2,11 @@ syntax = "proto3";
 
 package app;
 
-import "github.com/confio/weave/x/cash/codec.proto";
-import "github.com/confio/weave/x/sigs/codec.proto";
+import "github.com/iov-one/weave/x/cash/codec.proto";
+import "github.com/iov-one/weave/x/sigs/codec.proto";
 
-import "github.com/iov-one/bcp-demo/x/namecoin/codec.proto";
-import "github.com/iov-one/bcp-demo/x/escrow/codec.proto";
+import "github.com/iov-one/weave/x/namecoin/codec.proto";
+import "github.com/iov-one/weave/x/escrow/codec.proto";
 
 // Tx contains the message
 message Tx {

@@ -3,8 +3,8 @@ package namecoin
 import (
 	"encoding/json"
 
-	"github.com/confio/weave"
-	"github.com/confio/weave/errors"
+	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/errors"
 )
 
 const (

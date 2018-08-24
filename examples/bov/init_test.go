@@ -14,9 +14,8 @@ import (
 
 	"github.com/tendermint/tmlibs/log"
 
-	"github.com/confio/weave/commands/server"
-
-	"github.com/iov-one/bcp-demo/app"
+	"github.com/iov-one/weave/commands/server"
+	"github.com/iov-one/weave/examples/bov/app"
 )
 
 func TestInit(t *testing.T) {

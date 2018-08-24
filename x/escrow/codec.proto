@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package escrow;
 
-import "github.com/confio/weave/x/codec.proto";
+import "github.com/iov-one/weave/x/codec.proto";
 
 // Escrow holds some coins.
 // The arbiter or sender can release them to the recipient.

@@ -1,12 +1,11 @@
 package app
 
 import (
-	"github.com/confio/weave"
-	"github.com/confio/weave/errors"
-	"github.com/confio/weave/x/cash"
-	"github.com/confio/weave/x/sigs"
-
-	"github.com/iov-one/bcp-demo/x/hashlock"
+	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/x/cash"
+	"github.com/iov-one/weave/x/hashlock"
+	"github.com/iov-one/weave/x/sigs"
 )
 
 //-------------------------------

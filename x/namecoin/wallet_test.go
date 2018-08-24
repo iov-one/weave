@@ -7,11 +7,11 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/confio/weave"
-	"github.com/confio/weave/orm"
-	"github.com/confio/weave/store"
-	"github.com/confio/weave/x"
-	"github.com/confio/weave/x/cash"
+	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/orm"
+	"github.com/iov-one/weave/store"
+	"github.com/iov-one/weave/x"
+	"github.com/iov-one/weave/x/cash"
 )
 
 // BadBucket contains objects that won't satisfy Coinage interface

@@ -5,18 +5,18 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/iov-one/bcp-demo/x/namecoin"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	abci "github.com/tendermint/abci/types"
 	"github.com/tendermint/tmlibs/log"
 
-	"github.com/confio/weave/app"
-	"github.com/confio/weave/crypto"
-	"github.com/confio/weave/x"
-	"github.com/confio/weave/x/cash"
-	"github.com/confio/weave/x/sigs"
+	"github.com/iov-one/weave/app"
+	"github.com/iov-one/weave/crypto"
+	"github.com/iov-one/weave/x"
+	"github.com/iov-one/weave/x/cash"
+	"github.com/iov-one/weave/x/namecoin"
+	"github.com/iov-one/weave/x/sigs"
 )
 
 func TestApp(t *testing.T) {

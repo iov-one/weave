@@ -1,6 +1,6 @@
 package namecoin
 
-import "github.com/confio/weave/x/cash"
+import "github.com/iov-one/weave/x/cash"
 
 // NewController uses the default implementation for now.
 //

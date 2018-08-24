@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package namecoin;
 
-import "github.com/confio/weave/x/codec.proto";
+import "github.com/iov-one/weave/x/codec.proto";
 
 // Wallet has a name and a set of coins
 message Wallet {

@@ -1,7 +1,7 @@
 package hashlock
 
 import (
-	"github.com/confio/weave"
+	"github.com/iov-one/weave"
 )
 
 // Decorator adds permissions to context based on preimages

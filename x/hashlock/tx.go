@@ -3,7 +3,7 @@ package hashlock
 import (
 	"crypto/sha256"
 
-	"github.com/confio/weave"
+	"github.com/iov-one/weave"
 )
 
 // HashKeyTx is an optional interface for a Tx that allows

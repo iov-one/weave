@@ -65,8 +65,6 @@ $(TENDERMINT):
 		git checkout -
 
 protoc:
-	protoc --gogofaster_out=. -I=. -I=./vendor x/namecoin/*.proto
-	protoc --gogofaster_out=. -I=. -I=./vendor x/escrow/*.proto
 	@ # $(GOPATH)/src go we can import namecoin .proto
 	protoc --gogofaster_out=. -I=. -I=./vendor -I=$(GOPATH)/src app/*.proto
 

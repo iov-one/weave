@@ -6,13 +6,13 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"github.com/iov-one/bcp-demo/x/namecoin"
 	abci "github.com/tendermint/abci/types"
 	"github.com/tendermint/tmlibs/log"
 
-	"github.com/confio/weave"
-	"github.com/confio/weave/crypto"
-	"github.com/confio/weave/x"
+	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/crypto"
+	"github.com/iov-one/weave/x"
+	"github.com/iov-one/weave/x/namecoin"
 )
 
 // GenInitOptions will produce some basic options for one rich

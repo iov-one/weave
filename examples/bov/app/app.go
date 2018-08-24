@@ -10,17 +10,16 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/confio/weave"
-	"github.com/confio/weave/app"
-	"github.com/confio/weave/orm"
-	"github.com/confio/weave/store/iavl"
-	"github.com/confio/weave/x"
-	"github.com/confio/weave/x/sigs"
-	"github.com/confio/weave/x/utils"
-
-	"github.com/iov-one/bcp-demo/x/escrow"
-	"github.com/iov-one/bcp-demo/x/hashlock"
-	"github.com/iov-one/bcp-demo/x/namecoin"
+	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/app"
+	"github.com/iov-one/weave/orm"
+	"github.com/iov-one/weave/store/iavl"
+	"github.com/iov-one/weave/x"
+	"github.com/iov-one/weave/x/escrow"
+	"github.com/iov-one/weave/x/hashlock"
+	"github.com/iov-one/weave/x/namecoin"
+	"github.com/iov-one/weave/x/sigs"
+	"github.com/iov-one/weave/x/utils"
 )
 
 // Authenticator returns the typical authentication,

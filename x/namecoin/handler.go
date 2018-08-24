@@ -1,10 +1,10 @@
 package namecoin
 
 import (
-	"github.com/confio/weave"
-	"github.com/confio/weave/errors"
-	"github.com/confio/weave/x"
-	"github.com/confio/weave/x/cash"
+	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/x"
+	"github.com/iov-one/weave/x/cash"
 )
 
 // NewFeeDecorator customizes cash/FeeDecorator to use our

@@ -2,6 +2,26 @@
 
 
 [[projects]]
+  name = "github.com/iov-one/weave"
+  packages = [
+    ".",
+    "app",
+    "commands",
+    "commands/server",
+    "crypto",
+    "errors",
+    "orm",
+    "store",
+    "store/iavl",
+    "x",
+    "x/cash",
+    "x/sigs",
+    "x/utils"
+  ]
+  revision = "3f14b0c9faedce178ee9653fffd5d0407278429f"
+  version = "v0.6.0"
+
+[[projects]]
   name = "github.com/davecgh/go-spew"
   packages = ["spew"]
   revision = "346938d642f2ec3594ed81d874461961cd0faa76"
@@ -93,6 +113,18 @@
   name = "github.com/gopherjs/gopherjs"
   packages = ["js"]
   revision = "8dffc02ea1cb8398bb73f30424697c60fcf8d4c5"
+
+[[projects]]
+  name = "github.com/iov-one/bcp-demo"
+  packages = [
+    ".",
+    "app",
+    "x/escrow",
+    "x/hashlock",
+    "x/namecoin"
+  ]
+  revision = "6ba6dcf81cdfe28895f64e434704d9472c92c756"
+  version = "v0.6.0"
 
 [[projects]]
   branch = "master"
@@ -289,6 +321,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "a358b2528f7be3862144a08b822ae954d000ec88eb08269cf8943360cf193721"
+  inputs-digest = "36d7f3ea2298fcc30bc844229654d628408b1c55a1fe793845dbd90eb11e19f3"
   solver-name = "gps-cdcl"
   solver-version = 1
