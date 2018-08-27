@@ -11,7 +11,7 @@ import (
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/commands"
 	"github.com/iov-one/weave/commands/server"
-	"github.com/iov-one/weave/examples/bov/app"
+	"github.com/iov-one/weave/cmd/bcpd/app"
 )
 
 var (

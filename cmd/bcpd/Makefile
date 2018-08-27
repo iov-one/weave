@@ -4,9 +4,9 @@ BUILD_VERSION ?= manual
 BUILD_FLAGS := -ldflags "-X github.com/iov-one/weave.Version=${BUILD_VERSION}"
 DOCKER_BUILD_FLAGS := -a -installsuffix cgo
 TENDERMINT := ${GOBIN}/tendermint
-BUILDOUT ?= bov
+BUILDOUT ?= bcpd
 GOPATH ?= $$HOME/go
-IMAGE_NAME = "iov1/bov:${BUILD_VERSION}"
+IMAGE_NAME = "iov1/bcpd:${BUILD_VERSION}"
 
 TM_VERSION := v0.21.0
 

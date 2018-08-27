@@ -1,6 +1,6 @@
 .PHONY: all install build test cover deps tools prototools protoc
 
-EXAMPLES := examples/mycoind examples/bov
+EXAMPLES := examples/mycoind cmd/bcpd
 
 # dont use `` in the makefile for windows compatibility
 NOVENDOR := $(shell go list ./...)
