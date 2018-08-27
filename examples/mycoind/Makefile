@@ -1,12 +1,17 @@
-.PHONY: install protoc deps
+.PHONY: install protoc clean dist build
 
-GIT_VERSION := $(shell git describe --tags)
-BUILD_FLAGS := -ldflags "-X github.com/iov-one/weave.Version=$(GIT_VERSION)"
-TENDERMINT := ${GOBIN}/tendermint
+BUILD_VERSION ?= $(shell git describe --tags)
+BUILD_FLAGS := -ldflags "-X github.com/iov-one/weave.Version=$(BUILD_VERSION)"
 BUILDOUT ?= mycoind
-GOPATH ?= $$HOME/go
 
-TM_VERSION := v0.21.0
+
+dist: clean test build
+
+clean:
+	rm -f ${BUILDOUT}
+
+test:
+	go test -race ./...
 
 install:
 	go install $(BUILD_FLAGS) .
@@ -16,16 +21,3 @@ build:
 
 protoc:
 	protoc --gogofaster_out=. -I=. -I=$(GOPATH)/src app/*.proto
-
-# this is extra dependencies related to our example
-# (integration tests)
-deps: $(TENDERMINT)
-
-$(TENDERMINT):
-	@ #install tendermint binary for testing
-	go get -u -d github.com/tendermint/tendermint/... || true
-	cd $(GOPATH)/src/github.com/tendermint/tendermint && \
-		git checkout $(TM_VERSION) && \
-		make ensure_deps && make install && \
-		git checkout . && \
-		git checkout -
