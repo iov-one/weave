@@ -16,5 +16,8 @@ coverage
 *.log
 *.db
 
+# build artifact for docker stuff
+bcpd
+
 # sphinx / readthedocs
 _build

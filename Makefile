@@ -12,6 +12,9 @@ GOPATH ?= $$HOME/go
 
 all: deps build test
 
+dist:
+	cd cmd/bcpd && make dist
+
 install:
 	for ex in $(EXAMPLES); do cd $$ex && make install && cd -; done
 

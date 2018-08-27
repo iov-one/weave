@@ -1,4 +1,4 @@
 FROM scratch
-ADD bov /
-ENTRYPOINT ["/bov"]
+ADD bcpd /
+ENTRYPOINT ["/bcpd"]
 CMD [""]
