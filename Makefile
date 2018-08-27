@@ -50,8 +50,7 @@ cover:
 
 deps: tools
 	@rm -rf vendor/
-	@dep ensure
-	for ex in $(EXAMPLES); do cd $$ex && make deps && cd -; done
+	dep ensure -vendor-only
 
 tools:
 	@go get github.com/golang/dep/cmd/dep
