@@ -27,7 +27,8 @@ var (
 	errNegativeArticles = fmt.Errorf("Article count is negative")
 	errNegativeCreation = fmt.Errorf("Creation block is negative")
 
-	errNoBlog = fmt.Errorf("No blog for post")
+	errNoBlog    = fmt.Errorf("No blog for post")
+	errBlogExist = fmt.Errorf("Blog already exists")
 )
 
 func ErrTitleTooLong() error {
@@ -69,6 +70,9 @@ func IsNegativeNumberError(err error) bool {
 
 func ErrNoBlogError() error {
 	return errors.WithCode(errNoBlog, CodeInvalidBlog)
+}
+func ErrBlogExistError() error {
+	return errors.WithCode(errBlogExist, CodeInvalidBlog)
 }
 func IsInvalidBlogError(err error) bool {
 	return errors.HasErrorCode(err, CodeInvalidBlog)

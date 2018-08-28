@@ -7,12 +7,83 @@ import (
 	"github.com/iov-one/weave/x"
 )
 
-const costPer1000Chars = 1
+const (
+	newBlogCost  int64 = 1
+	newPostCost  int64 = 1
+	postCostUnit int64 = 1000 // 1 newPostCost per 1000 chars
+)
 
 // RegisterRoutes will instantiate and register
 // all handlers in this package
 func RegisterRoutes(r weave.Registry, auth x.Authenticator) {
-	r.Handle(PathCreatePostMsg, CreatePostMsgHandler{auth, NewPostBucket(), NewBlogBucket()})
+	blogBucket := NewBlogBucket()
+	r.Handle(PathCreateBlogMsg, CreateBlogMsgHandler{auth, blogBucket})
+	r.Handle(PathCreatePostMsg, CreatePostMsgHandler{auth, NewPostBucket(), blogBucket})
+}
+
+type CreateBlogMsgHandler struct {
+	auth   x.Authenticator
+	bucket BlogBucket
+}
+
+var _ weave.Handler = CreateBlogMsgHandler{}
+
+func (h CreateBlogMsgHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (weave.CheckResult, error) {
+	var res weave.CheckResult
+	_, err := h.validate(ctx, db, tx)
+	if err != nil {
+		return res, err
+	}
+
+	res.GasAllocated = newBlogCost
+	return res, nil
+}
+
+func (h CreateBlogMsgHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (weave.DeliverResult, error) {
+	var res weave.DeliverResult
+	msg, err := h.validate(ctx, db, tx)
+	if err != nil {
+		return res, err
+	}
+
+	blog := &Blog{
+		Authors: msg.Authors,
+		Title:   msg.Title,
+	}
+
+	obj := orm.NewSimpleObj([]byte(msg.Slug), blog)
+	err = h.bucket.Save(db, obj)
+	if err != nil {
+		return res, err
+	}
+
+	return res, nil
+}
+
+// validate does all common pre-processing between Check and Deliver
+func (h CreateBlogMsgHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*CreateBlogMsg, error) {
+	msg, err := tx.GetMsg()
+	if err != nil {
+		return nil, err
+	}
+
+	createBlogMsg, ok := msg.(*CreateBlogMsg)
+	if !ok {
+		return nil, errors.ErrUnknownTxType(msg)
+	}
+
+	err = createBlogMsg.Validate()
+	if err != nil {
+		return nil, err
+	}
+
+	// error occurs during parsing the object found so thats also a ErrBlogExistError
+	obj, err := h.bucket.Get(db, []byte(createBlogMsg.Slug))
+	if err != nil || obj != nil || obj.Value() != nil {
+		return nil, ErrBlogExistError()
+	}
+
+	return createBlogMsg, nil
 }
 
 type CreatePostMsgHandler struct {
@@ -30,7 +101,11 @@ func (h CreatePostMsgHandler) Check(ctx weave.Context, db weave.KVStore, tx weav
 		return res, err
 	}
 
-	res.GasAllocated = int64(len(msg.Text) / costPer1000Chars)
+	res.GasAllocated = newPostCost * int64(len(msg.Text)) / postCostUnit
+	if res.GasAllocated == 0 {
+		res.GasAllocated = newPostCost
+	}
+
 	return res, nil
 }
 
@@ -47,12 +122,14 @@ func (h CreatePostMsgHandler) Deliver(ctx weave.Context, db weave.KVStore, tx we
 		Text:   msg.Text,
 	}
 
-	blog.NumArticles++
 	obj := orm.NewSimpleObj([]byte(post.Title), post) // Need to combine with count
 	err = h.posts.Save(db, obj)
 	if err != nil {
 		return res, err
 	}
+
+	blog.NumArticles++
+	//save back blog
 
 	return res, nil
 }

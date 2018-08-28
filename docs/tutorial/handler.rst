@@ -72,9 +72,24 @@ the relevant blog for authorization, which we may want to use
 elsewhere in the Handler as well, we return it from the *validate*
 call as well to avoid loading it twice.
 
-**TODO** include validate code
-Like: https://github.com/iov-one/bcp-demo/blob/master/x/escrow/handler.go#L108-L144
+Blog
+~~~~
 
+.. literalinclude:: ../../examples/tutorial/x/blog/handlers.go
+    :language: go
+    :lines: 64-87
+
+Post
+~~~~
+
+.. literalinclude:: ../../examples/tutorial/x/blog/handlers.go
+    :language: go
+    :lines: 138-165
+
+Profile
+~~~~~~~
+
+**TODO** Add profile validate code here
 
 Once ``validate`` is implemented, ``Check`` must ensure it is valid
 and then return a rough cost of the message, which may be based
@@ -83,8 +98,24 @@ is similar to the concept of *gas* in ethereum, although it doesn't
 count to the fees yet, but rather is used by tendermint to prioritize
 the transactions to fit in a block.
 
-**TODO** include check code
-Like: https://github.com/iov-one/bcp-demo/blob/master/x/escrow/handler.go#L47-L61
+Blog
+~~~~
+
+.. literalinclude:: ../../examples/tutorial/x/blog/handlers.go
+    :language: go
+    :lines: 31-40
+
+Post
+~~~~
+
+.. literalinclude:: ../../examples/tutorial/x/blog/handlers.go
+    :language: go
+    :lines: 97-110
+
+Profile
+~~~~~~~
+
+**TODO** Add profile check code here
 
 ``Deliver`` also makes use of ``validate`` to perform the original
 checks, then it increments the article count on the *Blog*, and
@@ -97,8 +128,24 @@ from the relevant header. (Actually the *Handler* has access to the full
 header, which contains a timestamp,
 `which may or may not be reliable <https://github.com/tendermint/tendermint/issues/1146>`_.)
 
-**TODO** include deliver code
-Like: https://github.com/iov-one/bcp-demo/blob/master/x/escrow/handler.go#L62-L107
+Blog
+~~~~
+
+.. literalinclude:: ../../examples/tutorial/x/blog/handlers.go
+    :language: go
+    :lines: 42-61
+
+Post
+~~~~
+
+.. literalinclude:: ../../examples/tutorial/x/blog/handlers.go
+    :language: go
+    :lines: 112-135
+
+Profile
+~~~~~~~
+
+**TODO** Add profile deliver code here
 
 Routing Messages to Handler
 ---------------------------
