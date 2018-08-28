@@ -1,0 +1,69 @@
+syntax = "proto3";
+
+package escrow;
+
+import "github.com/iov-one/weave/x/codec.proto";
+
+// Escrow holds some coins.
+// The arbiter or sender can release them to the recipient.
+// The recipient can return them to the sender.
+// Upon timeout, they will be returned to the sender.
+//
+// Note that if the arbiter is a Hashlock permission, we have
+// an HTLC ;)
+message Escrow {
+    // Sender, Arbiter, Recipient are all weave.Permission
+    bytes sender = 1;
+    bytes arbiter = 2;
+    bytes recipient = 3;
+    // amount may contain multiple token types
+    repeated x.Coin amount = 4;
+    // if unreleased before timeout, will return to sender
+    // timeout stored here is absolute block height
+    int64 timeout = 5;
+    // max length 128 character
+    string memo = 6;
+}
+
+// CreateEscrowMsg is a request to create an Escrow with some tokens.
+// If sender is not defined, it defaults to the first signer
+// The rest must be defined
+message CreateEscrowMsg {
+    // Sender, Arbiter, Recipient are all weave.Permission
+    bytes sender = 1;
+    bytes arbiter = 2;
+    bytes recipient = 3;
+    // amount may contain multiple token types
+    repeated x.Coin amount = 4;
+    // if unreleased before timeout, will return to sender
+    int64 timeout = 5;
+    // max length 128 character
+    string memo = 6;
+}
+
+// ReleaseEscrowMsg releases the content to the recipient.
+// Must be authorized by sender or arbiter.
+// If amount not provided, defaults to entire escrow,
+// May be a subset of the current balance.
+message ReleaseEscrowMsg {
+    bytes escrow_id = 1;
+    repeated x.Coin amount = 2;
+}
+
+// ReturnEscrowMsg returns the content to the sender.
+// Must be authorized by the sender or an expired timeout
+message ReturnEscrowMsg {
+    bytes escrow_id = 1;
+}
+
+// UpdateEscrowPartiesMsg changes any of the parties of the escrow:
+// sender, arbiter, recipient. This must be authorized by the current
+// holder of that position (eg. only sender can update sender).
+//
+// Represents delegating responsibility
+message UpdateEscrowPartiesMsg {
+    bytes escrow_id = 1;
+    bytes sender = 2;
+    bytes arbiter = 3;
+    bytes recipient = 4;
+}

@@ -157,11 +157,11 @@ Flow of Transactions
 Weave implements the complexity of the ABCI interface
 for you and only exposes a few key points for you to add
 your custom logic. We provide you a `default merklized
-key value store <https://github.com/confio/weave/blob/master/store/iavl/adapter.go>`__ to store all the data, which exposes
+key value store <https://github.com/iov-one/weave/blob/master/store/iavl/adapter.go>`__ to store all the data, which exposes
 a simple interface, similar to LevelDB.
 
 When you create a `new BaseApp
-<https://github.com/confio/weave/blob/master/app/base.go#L25-L33>`__, you must provide:
+<https://github.com/iov-one/weave/blob/master/app/base.go#L21-L31>`__, you must provide:
 
 * a merkelized data store (default provided)
 * a txdecoder to parse the incoming transaction bytes

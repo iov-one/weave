@@ -216,4 +216,4 @@ construct a condition from it, then can compute the address.
 
 I would love to hear opinions on where to use each type.
 What are your ideas?
-`Add it in github <https://github.com/confio/weave/issues/new>`__
+`Add it in github <https://github.com/iov-one/weave/issues/new>`__

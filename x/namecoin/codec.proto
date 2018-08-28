@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+package namecoin;
+
+import "github.com/iov-one/weave/x/codec.proto";
+
+// Wallet has a name and a set of coins
+message Wallet {
+    repeated x.Coin coins = 1;
+    string name = 2;
+}
+
+// Token contains information about a registered currency
+message Token {
+    string name = 2;
+    int32 sig_figs = 3;
+}
+
+// NewTokenMsg will register a new token.
+// This must not conflict with any existing ticker,
+// and should be limited to privledged users.
+message NewTokenMsg {
+    string ticker = 1;
+    string name = 2;
+    int32 sig_figs = 3;
+}
+
+// SetWalletNameMsg will set the name on an existing
+// wallet. Can only be performed if the wallet name is empty.
+message SetWalletNameMsg {
+    bytes address = 1;
+    string name = 2;
+}

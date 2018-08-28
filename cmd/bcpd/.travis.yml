@@ -1,0 +1,51 @@
+sudo: required
+
+language: go
+
+services:
+  - docker
+
+addons:
+  apt:
+    packages:
+    - docker-ce
+
+os:
+  - linux
+
+go:
+  - "1.10"
+  - tip
+
+env:
+- GORACE="halt_on_error=1"
+  BUILD_VERSION=$(echo ${TRAVIS_COMMIT} | cut -c 1-10)
+
+install:
+- make deps
+
+script:
+- make dist
+
+after_success:
+- if [[ "$TRAVIS_GO_VERSION" == "1.10" ]] && [[ "$TRAVIS_OS_NAME" == "linux" ]] && [[ "$TRAVIS_BRANCH" == "master" ]] && [[ "$TRAVIS_TAG" == "" ]] && [[ "$TRAVIS_PULL_REQUEST_BRANCH" == "" ]]; then
+    docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD";
+    docker tag  "iov1/bov:${BUILD_VERSION}" "iov1/bov:latest" ;
+    docker push "iov1/bov:latest";
+    docker logout;
+  fi
+# build the tagged image
+- if [[ "$TRAVIS_GO_VERSION" == "1.10" ]] && [[ "$TRAVIS_OS_NAME" == "linux" ]] && [[ "$TRAVIS_TAG" != "" ]]; then
+  docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD";
+  docker tag  "iov1/bov:${BUILD_VERSION}" "iov1/bov:$TRAVIS_TAG" ;
+  docker push "iov1/bov:$TRAVIS_TAG";
+  docker logout;
+  fi
+notifications:
+  email: false
+
+# whitelist long living branches to avoid testing feature branches twice (as branch and as pull request)
+branches:
+  only:
+  - master
+  - /^v[0-9]+\.[0-9]+\.[0-9]+$/

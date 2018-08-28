@@ -91,7 +91,7 @@ set at the end of every block. Weave-based applications can take
 advantage of this and implement any algorithm they want to
 select the validators, such as:
 
-- `PoA <https://github.com/confio/weave/issues/32>`__
+- `PoA <https://github.com/iov-one/weave/issues/32>`__
   where a set of keys (held by clients) can appoint the validators.
   This allows them to bring up and down machines, but the authority
   of the chain rests in a fixed group of individuals.

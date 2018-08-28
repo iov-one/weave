@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package cash;
 
-import "github.com/confio/weave/x/codec.proto";
+import "github.com/iov-one/weave/x/codec.proto";
 
 // Set may contain Coin of many different currencies.
 // It handles adding and subtracting sets of currencies.

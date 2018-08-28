@@ -79,7 +79,7 @@ provides a highly efficient, Byzantine Fault Tolerant blockchain engine
 offering guaranteed finality in the order of 1-5 seconds. It was
 designed from the ground up to allow many projects to easily
 `plug their application logic <https://tendermint.readthedocs.io/en/master/app-development.html#abci-design>`__ into the engine.
-`Weave <https://github.com/confio/weave>`__ is a framework that
+`Weave <https://github.com/iov-one/weave>`__ is a framework that
 provides many common tools to help you build ABCI apps rapidly.
 You can just focus on writing the application logic and the interface
 and rely on high quality and extensible libraries to solve most of

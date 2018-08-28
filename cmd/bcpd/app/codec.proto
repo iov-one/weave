@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+package app;
+
+import "github.com/iov-one/weave/x/cash/codec.proto";
+import "github.com/iov-one/weave/x/escrow/codec.proto";
+import "github.com/iov-one/weave/x/namecoin/codec.proto";
+import "github.com/iov-one/weave/x/sigs/codec.proto";
+
+// Tx contains the message
+message Tx {
+  // msg is a sum type over all allowed messages on this chain.
+  oneof sum{
+    cash.SendMsg send_msg = 1;
+    namecoin.NewTokenMsg new_token_msg = 2;
+    namecoin.SetWalletNameMsg set_name_msg = 3;
+    // escrow actions
+    escrow.CreateEscrowMsg create_escrow_msg = 4;
+    escrow.ReleaseEscrowMsg release_escrow_msg = 5;
+    escrow.ReturnEscrowMsg return_escrow_msg = 6;
+    escrow.UpdateEscrowPartiesMsg update_escrow_msg = 7;
+  }
+  // fee info, autogenerates GetFees()
+  cash.FeeInfo fees = 20;
+  // signatures, autogenerates GetSignatures()
+  repeated sigs.StdSignature signatures = 21;
+  // preimage for hashlock, autogenerates GetPreimage
+  bytes preimage = 22;
+}

@@ -8,7 +8,7 @@
 [![ReadTheDocs](https://readthedocs.org/projects/weave/badge/?version=latest)](http://weave.readthedocs.io/en/latest/)
 [![license](https://img.shields.io/github/license/iov-one/weave.svg)](https://github.com/iov-one/weave/blob/master/LICENSE)
 
-Confio Weave is a framework for quickly building your custom
+IOV Weave is a framework for quickly building your custom
 [ABCI application](https://github.com/tendermint/abci)
 to run a blockchain on top of the best-of-class
 BFT Proof-of-stake [Tendermint consensus engine](https://tendermint.com).

@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package sigs;
 
-import "github.com/confio/weave/crypto/models.proto";
+import "github.com/iov-one/weave/crypto/models.proto";
 
 // UserData just stores the data and is used for serialization.
 // Key is the Address (PubKey.Permission().Address())

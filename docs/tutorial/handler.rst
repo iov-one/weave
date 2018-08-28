@@ -5,7 +5,7 @@ Message Handlers
 A message is a statement of intention, and wrapped in a transaction,
 while provides authorization to this intention. Once this message
 ends up in the ABCI application and is to be processed, we send it
-to a `Handler <https://godoc.org/github.com/confio/weave#Handler>`_,
+to a `Handler <https://godoc.org/github.com/iov-one/weave#Handler>`_,
 which we have registered for this application.
 
 Check vs Deliver
@@ -106,7 +106,7 @@ Routing Messages to Handler
 After defining all the *Messages*, along with *Handlers* for them all,
 we need to make sure the application knows about them. When we
 instantiate an application, we define a
-`Router and then register all handlers <https://github.com/confio/weave/blob/master/examples/mycoind/app/app.go#L56-L62>`_
+`Router and then register all handlers <https://github.com/iov-one/weave/blob/master/examples/mycoind/app/app.go#L56-L62>`_
 we are interested in. This allows the application
 to explicitly state, not only which messages it supports
 (in the Tx struct), but also which business logic will process

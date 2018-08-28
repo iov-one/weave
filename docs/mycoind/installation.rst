@@ -41,20 +41,20 @@ Install backend programs
 
 You should have a proper go development environment, as explained
 in the `last section <./installation.html>`__. Now, check out
-the most recent version of confio/weave and build both
+the most recent version of iov-one/weave and build both
 ``mycoind`` and ``tendermint``.
 
 .. code:: console
 
-    go get github.com/confio/weave
-    cd $GOPATH/src/github.com/confio/weave
+    go get github.com/iov-one/weave
+    cd $GOPATH/src/github.com/iov-one/weave
     make deps
     make install
     # test it built properly
     tendermint version
-    # 0.17.1-6f995699
+    # 0.21.0-46369a1a
     mycoind version
-    # v0.2.1-21-g35d9c08
+    # v0.7.0
 
 Those were the most recent versions as of the time of the writing,
 your code should be a similar version. If you have an old version
@@ -68,6 +68,8 @@ of the code, you may have to delete it to force go to rebuild:
 
 Install client cli
 ==================
+
+**TODO** Update this to use https://github.com/iov-one/iov-core as the improved client
 
 Node is much less picky as to where the code lives, so just
 find a nice place to store the client code, and install
@@ -156,4 +158,4 @@ one a second.
 
 Note: if you did anything funky during setup and managed to get yourself a rogue tendermint
 node running in the background, you might encounter errors like `panic: Error initializing DB: resource temporarily unavailable`.
-A quick ``killall tendermint`` should get you back on track. 
+A quick ``killall tendermint`` should get you back on track.
