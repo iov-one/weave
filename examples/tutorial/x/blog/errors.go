@@ -12,6 +12,7 @@ const (
 	CodeInvalidText    uint32 = 400
 	CodeInvalidAuthor  uint32 = 401
 	CodeNegativeNumber uint32 = 402
+	CodeInvalidBlog    uint32 = 403
 )
 
 var (
@@ -25,6 +26,8 @@ var (
 
 	errNegativeArticles = fmt.Errorf("Article count is negative")
 	errNegativeCreation = fmt.Errorf("Creation block is negative")
+
+	errNoBlog = fmt.Errorf("No blog for post")
 )
 
 func ErrTitleTooLong() error {
@@ -62,4 +65,11 @@ func ErrNegativeCreation() error {
 }
 func IsNegativeNumberError(err error) bool {
 	return errors.HasErrorCode(err, CodeNegativeNumber)
+}
+
+func ErrNoBlogError() error {
+	return errors.WithCode(errNoBlog, CodeInvalidBlog)
+}
+func IsInvalidBlogError(err error) bool {
+	return errors.HasErrorCode(err, CodeInvalidBlog)
 }
