@@ -7,6 +7,8 @@ import (
 	"github.com/iov-one/weave/x"
 )
 
+const costPer1000Chars = 1
+
 // RegisterRoutes will instantiate and register
 // all handlers in this package
 func RegisterRoutes(r weave.Registry, auth x.Authenticator) {
@@ -23,11 +25,12 @@ var _ weave.Handler = CreatePostMsgHandler{}
 
 func (h CreatePostMsgHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (weave.CheckResult, error) {
 	var res weave.CheckResult
-	_, _, err := h.validate(ctx, db, tx)
+	msg, _, err := h.validate(ctx, db, tx)
 	if err != nil {
 		return res, err
 	}
 
+	res.GasAllocated = int64(len(msg.Text) / costPer1000Chars)
 	return res, nil
 }
 
