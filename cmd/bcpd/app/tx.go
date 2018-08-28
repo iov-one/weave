@@ -55,8 +55,7 @@ func (tx *Tx) GetMsg() (weave.Msg, error) {
 	}
 
 	// we must have covered it above
-	panic(sum)
-	// return nil, errors.ErrUnknownTxType(nil) // alpe????
+	return nil, errors.ErrUnknownTxType(sum)
 }
 
 // GetSignBytes returns the bytes to sign...

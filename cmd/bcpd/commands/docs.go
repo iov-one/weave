@@ -1,5 +1,5 @@
 /*
-Package commands has integration tests of the mycoind
+Package commands has integration tests of the bcpd
 application.
 
 Tests the application plays together properly with the
