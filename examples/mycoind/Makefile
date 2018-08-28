@@ -1,11 +1,9 @@
-.PHONY: install protoc clean dist build
+.PHONY: install protoc clean build
 
 BUILD_VERSION ?= $(shell git describe --tags)
 BUILD_FLAGS := -ldflags "-X github.com/iov-one/weave.Version=$(BUILD_VERSION)"
 BUILDOUT ?= mycoind
 
-
-dist: clean test build
 
 clean:
 	rm -f ${BUILDOUT}

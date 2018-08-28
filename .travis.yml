@@ -20,9 +20,16 @@ go:
 env:
 - GORACE="halt_on_error=1"
   BUILD_VERSION=$(echo ${TRAVIS_COMMIT} | cut -c 1-10)
+  TM_VERSION=v0.21.0
 
 install:
 - make deps
+- go get -d github.com/tendermint/tendermint/... ;
+  cd ${GOPATH}/src/github.com/tendermint/tendermint ;
+  git checkout ${TM_VERSION} ;
+  make ensure_deps && make install ;
+  cd - ;
+  rm -rf ${GOPATH}/src/github.com/tendermint/tendermint
 
 script:
 - make build

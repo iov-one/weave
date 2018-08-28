@@ -1,4 +1,4 @@
-.PHONY: all install build test cover deps tools prototools protoc
+.PHONY: all install build test tf cover deps tools prototools protoc
 
 EXAMPLES := examples/mycoind cmd/bcpd
 
