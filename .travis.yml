@@ -1,24 +1,64 @@
-language: go
 sudo: required
 
+language: go
+
+services:
+- docker
+
+addons:
+  apt:
+    packages:
+    - docker-ce
+
 os:
-  - linux
+- linux
 
 go:
-- '1.10'
+- "1.10"
+- tip
+
+env:
+- GORACE="halt_on_error=1"
+  BUILD_VERSION=$(echo ${TRAVIS_COMMIT} | cut -c 1-10)
+  TM_VERSION=v0.21.0
 
 install:
-- make tools
 - make deps
+- go get -d github.com/tendermint/tendermint/... ;
+  cd ${GOPATH}/src/github.com/tendermint/tendermint ;
+  git checkout ${TM_VERSION} ;
+  make ensure_deps && make install ;
+  cd - ;
+  rm -rf ${GOPATH}/src/github.com/tendermint/tendermint
 
 script:
 - make build
 - make test
+- make dist
 
 after_script:
 - make cover
 - ./coverage/upload.sh
 
+after_success:
+- if [[ "$TRAVIS_GO_VERSION" == "1.10" ]] && [[ "$TRAVIS_OS_NAME" == "linux" ]] && [[ "$TRAVIS_BRANCH" == "master" ]] && [[ "$TRAVIS_TAG" == "" ]] && [[ "$TRAVIS_PULL_REQUEST_BRANCH" == "" ]]; then
+  docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD";
+  docker tag  "iov1/bcpd:${BUILD_VERSION}" "iov1/bcpd:latest" ;
+  docker push "iov1/bcpd:latest";
+  docker logout;
+  fi
+# build the tagged image
+- if [[ "$TRAVIS_GO_VERSION" == "1.10" ]] && [[ "$TRAVIS_OS_NAME" == "linux" ]] && [[ "$TRAVIS_TAG" != "" ]]; then
+  docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD";
+  docker tag  "iov1/bcpd:${BUILD_VERSION}" "iov1/bcpd:$TRAVIS_TAG" ;
+  docker push "iov1/bcpd:$TRAVIS_TAG";
+  docker logout;
+  fi
+notifications:
+  email: false
+
+# whitelist long living branches to avoid testing feature branches twice (as branch and as pull request)
 branches:
   only:
   - master
+  - /^v[0-9]+\.[0-9]+\.[0-9]+$/

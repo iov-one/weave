@@ -1,4 +1,4 @@
-.PHONY: all install build test cover deps tools prototools protoc
+.PHONY: all install build test tf cover deps tools prototools protoc
 
 EXAMPLES := examples/mycoind cmd/bcpd
 
@@ -50,8 +50,7 @@ cover:
 
 deps: tools
 	@rm -rf vendor/
-	@dep ensure
-	for ex in $(EXAMPLES); do cd $$ex && make deps && cd -; done
+	dep ensure -vendor-only
 
 tools:
 	@go get github.com/golang/dep/cmd/dep
