@@ -112,10 +112,12 @@ func (h CreatePostMsgHandler) Deliver(ctx weave.Context, db weave.KVStore, tx we
 		return res, err
 	}
 
+	height, _ := weave.GetHeight(ctx)
 	post := &Post{
-		Title:  msg.Title,
-		Author: msg.Author,
-		Text:   msg.Text,
+		Title:         msg.Title,
+		Author:        msg.Author,
+		Text:          msg.Text,
+		CreationBlock: height,
 	}
 
 	obj := orm.NewSimpleObj([]byte(post.Title), post) // Need to combine with count
