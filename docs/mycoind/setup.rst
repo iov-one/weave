@@ -50,8 +50,8 @@ probably there. Just double check.
 * curl
 
 
-Install Node
-============
+Install Iov-core
+================
 
 You will need node 8+ to run the example client. Unless you know what you
 are doing, stick to even numbered versions (6, 8, 10, ...), the odd numbers

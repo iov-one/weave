@@ -6,7 +6,7 @@ To run our system, we need three components:
 
 * ``mycoind``, our custom ABCI application
 * ``tendermint``, a powerful blockchain consensus engine
-* ``weave-js``, a generic javascript client
+* ``iov-core``, a generic typescript client
 
 If you have never used tendermint before, you should
 read the `ABCI Overview <http://tendermint.readthedocs.io/en/master/introduction.html#abci-overview>`__
@@ -16,7 +16,7 @@ is that we have three programs communicating:
 ::
 
     +---------+            +------------+                    +----------+
-    | mycoind  | <- ABCI -> | Tendermint   |  <- websocket ->  | weave-js  |
+    | mycoind  | <- ABCI -> | Tendermint   |  <- websocket ->  | iov-core  |
     +---------+            +------------+                    +----------+
 
 ``mycoind`` and ``tendermint`` run on the same computer and communicate via
@@ -27,14 +27,10 @@ p2p gossip network to replicate the state. For application development
 (and demos) one copy will work, but has none of the fault tolerance of a
 real blockchain.
 
-``weave-js`` is a javascript library to communicate with the blockchain,
+``iov-core`` is a typescript library to communicate with the blockchain,
 perform binary encoding/decoding of data types, and manage private
 keys locally to sign transactions. This library is designed to be imported
-by your application to power an eg. electron app. We also provide an
-interactive REPL shell with helper functions pre-loaded, so developers
-can interact with the blockchain and get a better feel for the conepts.
-Until there is a great demo UI (hint, hint), we will use weave-js
-to demonstrate the capabilities.
+by your application to power an eg. electron app.
 
 Install backend programs
 ========================
@@ -69,35 +65,17 @@ of the code, you may have to delete it to force go to rebuild:
 Install client cli
 ==================
 
-**TODO** Update this to use https://github.com/iov-one/iov-core as the improved client
-
 Node is much less picky as to where the code lives, so just
-find a nice place to store the client code, and install
-a copy:
+find a nice place to store the client code examples
 
 .. code:: console
 
-    git clone https://github.com/confio/weave-js.git
-    cd weave-js
+    git clone https://github.com/iov-one/iov-core-examples
+    cd iov-core-examples
     yarn install  # you did set this up earlier, right?
 
 After a bit, it should have pulled down all the required
-node modules. Let's make sure it runs, and set up your first
-key pair while we are at it.
-
-``yarn cli demo-keys.db``
-
-.. code:: javascript
-
-    let demo = keys.add('demo')
-    await keys.save()
-    keys.list()
-
-Exit the shell and start up the cli again, make sure the same key
-is still there when you type ``keys.list()`` (auto-loaded from our local db).
-How, save this hex address, you will need it for the next step,
-initializing the blockchain. How else will you give yourself
-access to endless tokens?
+node modules including `iov-core`. Let's start the blockchain and return to the client
 
 Initialize the Blockchain
 =========================
@@ -159,3 +137,21 @@ one a second.
 Note: if you did anything funky during setup and managed to get yourself a rogue tendermint
 node running in the background, you might encounter errors like `panic: Error initializing DB: resource temporarily unavailable`.
 A quick ``killall tendermint`` should get you back on track.
+
+Run some Client examples
+========================
+
+Our `iov-core-examples` project contains examples how to generate keys or query accounts. It also sends transactions from
+an example wallets that are likely to fail due to insufficient funds or `Wallet already has a name`. Please ignore them for now.
+.. code:: javascript
+
+    yarn start
+
+You should see some output from the examples on the console including the **expected errors**. Let's use the printed generated
+account and update the transaction and setName examples accordingly. Before running the examples again,send some funds
+via the faucet:
+.. code:: console
+    curl --header "Content-Type: application/json" \
+      --request POST \
+      --data '{"address": "<your account id>", "tokens":[{"ticker":"IOV"}]}' \
+      https://faucet.${TESTNET_NAME}.iov.one/faucet
