@@ -10,7 +10,7 @@ import (
 const (
 	newBlogCost  int64 = 1
 	newPostCost  int64 = 1
-	postCostUnit int64 = 1000 // 1 newPostCost per 1000 chars
+	postCostUnit int64 = 1000 // first 1000 chars are free then pay 1 per mille
 )
 
 // RegisterRoutes will instantiate and register
@@ -79,7 +79,7 @@ func (h CreateBlogMsgHandler) validate(ctx weave.Context, db weave.KVStore, tx w
 
 	// error occurs during parsing the object found so thats also a ErrBlogExistError
 	obj, err := h.bucket.Get(db, []byte(createBlogMsg.Slug))
-	if err != nil || obj != nil || obj.Value() != nil {
+	if err != nil || (obj != nil && obj.Value() != nil) {
 		return nil, ErrBlogExistError()
 	}
 
@@ -101,11 +101,7 @@ func (h CreatePostMsgHandler) Check(ctx weave.Context, db weave.KVStore, tx weav
 		return res, err
 	}
 
-	res.GasAllocated = newPostCost * int64(len(msg.Text)) / postCostUnit
-	if res.GasAllocated == 0 {
-		res.GasAllocated = newPostCost
-	}
-
+	res.GasAllocated = int64(len(msg.Text)) * newPostCost / postCostUnit
 	return res, nil
 }
 
@@ -129,7 +125,11 @@ func (h CreatePostMsgHandler) Deliver(ctx weave.Context, db weave.KVStore, tx we
 	}
 
 	blog.NumArticles++
-	//save back blog
+	objParent := orm.NewSimpleObj([]byte(msg.Blog), blog)
+	err = h.blogs.Save(db, objParent)
+	if err != nil {
+		return res, err
+	}
 
 	return res, nil
 }
@@ -157,7 +157,7 @@ func (h CreatePostMsgHandler) validate(ctx weave.Context, db weave.KVStore, tx w
 	}
 
 	if obj == nil || obj.Value() == nil {
-		return nil, nil, ErrNoBlogError()
+		return nil, nil, ErrBlogNotFoundError()
 	}
 
 	blog := obj.Value().(*Blog)

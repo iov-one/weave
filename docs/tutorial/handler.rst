@@ -110,7 +110,7 @@ Post
 
 .. literalinclude:: ../../examples/tutorial/x/blog/handlers.go
     :language: go
-    :lines: 97-110
+    :lines: 97-106
 
 Profile
 ~~~~~~~
@@ -140,7 +140,7 @@ Post
 
 .. literalinclude:: ../../examples/tutorial/x/blog/handlers.go
     :language: go
-    :lines: 112-135
+    :lines: 108-135
 
 Profile
 ~~~~~~~
