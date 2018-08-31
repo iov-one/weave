@@ -29,20 +29,23 @@ func toWeaveAddress(addr string) weave.Address {
 	return d
 }
 
-func newContext(helpers x.TestHelpers) (weave.Context, x.Authenticator) {
+func newContext(helpers x.TestHelpers) weave.Context {
 	ctx := context.Background()
 	ctx = weave.WithHeight(ctx, 100)
+	return ctx
+}
 
+func newAuth(helpers x.TestHelpers, ctx weave.Context) x.Authenticator {
+	auth := helpers.CtxAuth("authKey")
 	_, addr := helpers.MakeKey()
-	authenticator := helpers.CtxAuth("authKey")
-	authenticator.SetConditions(ctx, addr)
-	return ctx, authenticator
+	auth.SetConditions(ctx, addr)
+	return auth
 }
 
 func TestMain(m *testing.M) {
 	helpers := x.TestHelpers{}
-	ctx, auth := newContext(helpers)
-	weaveCtx = ctx
+	weaveCtx = newContext(helpers)
+	auth := newAuth(helpers, weaveCtx)
 
 	handlers = map[string]weave.Handler{
 		"CreateBlogMsgHandler": CreateBlogMsgHandler{
