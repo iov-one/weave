@@ -21,8 +21,10 @@ var (
 	errInvalidName        = fmt.Errorf("Name is too long")
 	errDescriptionTooLong = fmt.Errorf("Description is too long")
 
-	errNoAuthor           = fmt.Errorf("No author for post")
-	errInvalidAuthorCount = fmt.Errorf("Invalid number of blog authors")
+	errNoAuthor               = fmt.Errorf("No author for post")
+	errInvalidAuthorCount     = fmt.Errorf("Invalid number of blog authors")
+	errUnauthorisedBlogAuthor = fmt.Errorf("Unauthorised blog author")
+	errUnauthorisedPostAuthor = fmt.Errorf("Unauthorised post author")
 
 	errNegativeArticles = fmt.Errorf("Article count is negative")
 	errNegativeCreation = fmt.Errorf("Creation block is negative")
@@ -54,6 +56,12 @@ func ErrInvalidAuthorCount(count int) error {
 	msg := fmt.Sprintf("authors=%d", count)
 	return errors.WithLog(msg, errInvalidAuthorCount, CodeInvalidAuthor)
 }
+func ErrUnauthorisedBlogAuthor() error {
+	return errors.WithCode(errUnauthorisedBlogAuthor, CodeInvalidAuthor)
+}
+func ErrUnauthorisedPostAuthor() error {
+	return errors.WithCode(errUnauthorisedPostAuthor, CodeInvalidAuthor)
+}
 func IsInvalidAuthorError(err error) bool {
 	return errors.HasErrorCode(err, CodeInvalidAuthor)
 }
@@ -68,10 +76,10 @@ func IsNegativeNumberError(err error) bool {
 	return errors.HasErrorCode(err, CodeNegativeNumber)
 }
 
-func ErrBlogNotFoundError() error {
+func ErrBlogNotFound() error {
 	return errors.WithCode(errBlogNotFound, CodeInvalidBlog)
 }
-func ErrBlogExistError() error {
+func ErrBlogExist() error {
 	return errors.WithCode(errBlogExist, CodeInvalidBlog)
 }
 func IsInvalidBlogError(err error) bool {

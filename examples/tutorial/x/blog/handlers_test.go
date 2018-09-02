@@ -2,9 +2,7 @@ package blog
 
 import (
 	"context"
-	"encoding/hex"
 	"fmt"
-	"os"
 	"testing"
 
 	"github.com/iov-one/weave"
@@ -13,154 +11,169 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-var (
-	weaveCtx weave.Context
-	txs      map[string]weave.Tx
-	handlers map[string]weave.Handler
-	objects  map[string]weave.Persistent
-)
+var newTx func(weave.Msg) weave.Tx = x.TestHelpers{}.MockTx
 
-func toWeaveAddress(addr string) weave.Address {
-	d, err := hex.DecodeString(addr)
-	if err != nil {
-		panic(err)
-	}
-
-	return d
-}
-
-func newContext(helpers x.TestHelpers) weave.Context {
+func newContextWithAuth(addr string) (weave.Context, x.Authenticator) {
+	helpers := x.TestHelpers{}
 	ctx := context.Background()
 	ctx = weave.WithHeight(ctx, 100)
-	return ctx
-}
-
-func newAuth(helpers x.TestHelpers, ctx weave.Context) x.Authenticator {
 	auth := helpers.CtxAuth("authKey")
-	_, addr := helpers.MakeKey()
-	auth.SetConditions(ctx, addr)
-	return auth
+	return auth.SetConditions(ctx, weave.Condition(weave.NewAddress([]byte(addr)))), auth
 }
 
-func TestMain(m *testing.M) {
-	helpers := x.TestHelpers{}
-	weaveCtx = newContext(helpers)
-	auth := newAuth(helpers, weaveCtx)
-
-	handlers = map[string]weave.Handler{
-		"CreateBlogMsgHandler": CreateBlogMsgHandler{
+func newTestHandler(name string, auth x.Authenticator) weave.Handler {
+	switch name {
+	case "CreateBlogMsgHandler":
+		return CreateBlogMsgHandler{
 			auth:   auth,
 			bucket: NewBlogBucket(),
-		},
-		"CreatePostMsgHandler": CreatePostMsgHandler{
+		}
+	case "CreatePostMsgHandler":
+		return CreatePostMsgHandler{
 			auth:  auth,
 			blogs: NewBlogBucket(),
 			posts: NewPostBucket(),
-		},
+		}
+	default:
+		panic(fmt.Errorf("newTestHandler: unknown handler"))
 	}
-
-	txs = map[string]weave.Tx{
-		"CreateBlogMsg": helpers.MockTx(
-			&CreateBlogMsg{
-				Slug:  "this_is_a_blog",
-				Title: "this is a blog title",
-				Authors: [][]byte{
-					toWeaveAddress("3AFCDAB4CFBF066E959D139251C8F0EE91E99D5A"),
-				},
-			}),
-		"CreatePostMsg": helpers.MockTx(
-			&CreatePostMsg{
-				Blog:   "this_is_a_blog",
-				Title:  "this is a post title",
-				Text:   "dLrvpy6wkdR2yG1ECKzxrQGeoVqTglnvQhk7Kagmiqu5c4AwszxIoB4FjGlUfjXyeNU5PCXJoqLFLYmiFnyW6ZvHYB3ZBczTydEJLd51f9bwtTuGhJ4P89vv7MsjTXMizERWm7KtQSiTBT9Vz6vTDmv5OrLoAHEfIK5wZXbhy8L9BNzjzV182Wvv7VdRd2iDid7cQW1FJX6PEgLYWG2A7wkUM76JaeeSlBvVdDtGLF5aav5eOYvVwzGC13SGQTnOKPBIhRFzX1o2g20kwpVxN0LDfm072UsY6Lx0DfDJnS5bvWsojim2BiPd8SjH0ChUN0NbuyUJhlDMfUPnM9LyDp31BXPSH4dRQcYpL4KPCugJ2t8oSqt4Arf2sAgMgdLipVdcm9qtbZuZRleCwT1ielP0jkk9pGFgyhJ7splO0UEDVJWBXvkAxs6fqrANMpQGoLUU7HPINuJbwXDG9208kXvWjNYBjLm8Yj0fosioTwXfNWxk7AvnwLkM1eXWhjBiKY91QA85THajebmwv5R4RS91RAeee67FjpkFT6d2rKDHWrKU5cxZbtPvKGR5Fk1V2mVlxPLoGAlMJmGXpjcDv78TJQQVPOYQbBqybmHlbLflulDRZeFT2VMARGsOsDWEjT3tDQ3NpJWlk4XiVhVJgR8Qy8oH3GGWLcjoCyMNHr5UMyLTYLwNpjxgmn8aoQHTg5m4gJtBWr0Rt82s5M6YQGpEjGfvhnIoEtzzZALjzlrVHAK13clM9ph28jrRXzCMzLANhvXQFoK0bLYoLNYTEPW0W6h1TNfq975hJlmshRhXBb19pyEk6YZ3LvapaZmSudE52t5iO91iXHl1ofDcQ7uTBypqhuRYpn41PA4QvzlE2M2ljIlKlw65n03JncOEVvqnucsDbn9XFjZBLOYrhytBwQuuSKggOudJBLWyz8UWn0XhE3uVt4jR7umX0HCXudeaLgXZvFpk7FjZsuXlBXr2Lffpj6yylBGN2gulHizZbRK7BFW7Py7dOw2VSuxG5bEVND6s4LgW9Imrdnku0TAJsdDahnbJ5t9IwvG0YmHOKLYWy49Se50FvoovsfodJUxfiyL8nYy86V8GgyhLKzDE2EfJWVmYroNErr5eJExBdcwg3WijMEXSxZXcRy3xFppuaTNxfmgiojk3ff8IR37YnAfHyfmPw6KuLupRH6ak12N6F2d7yrG0xno9eIoNpvGpMBpOWfNEajxFHM6i1C1bDHvVGfFwhpY5FdEsXIfXRetkiUNgbwnz36sQATlrj7B5FW6m5hL7yWp6mFI0xWtb0wdqaTIuJj08akHp6miWyWDDJHJrd5q2ipSfeJv0ZjSHqr51LBKZk3mW0r3aq28zBQatSgzQDwExeG2LeAPsQSnPiKUNzdJpONvoJv9ApwqOALD5cveakTzK9LQ5ZSl20uwx4N5JEYRdl2IZD1jgya54fk8wLGoNLlWHOqGrLdHru73nOGIHgGy8G4jhwNNsh2Vo",
-				Author: toWeaveAddress("3AFCDAB4CFBF066E959D139251C8F0EE91E99D5A"),
-			}),
-	}
-
-	objects = map[string]weave.Persistent{
-		"Blog": &Blog{
-			Title:       "this is a blog title",
-			NumArticles: 0,
-			Authors: [][]byte{
-				toWeaveAddress("3AFCDAB4CFBF066E959D139251C8F0EE91E99D5A"),
+}
+func TestCreateBlogMsgHandlerCheck(t *testing.T) {
+	ctx, auth := newContextWithAuth("3AFCDAB4CFBF066E959D139251C8F0EE91E99D5A")
+	testcases := []struct {
+		handler CreateBlogMsgHandler
+		msg     CreateBlogMsg
+		res     weave.CheckResult
+	}{
+		{
+			handler: newTestHandler("CreateBlogMsgHandler", auth).(CreateBlogMsgHandler),
+			msg: CreateBlogMsg{
+				Slug:    "this_is_a_blog",
+				Title:   "this is a blog title",
+				Authors: [][]byte{x.MainSigner(ctx, auth).Address()},
+			},
+			res: weave.CheckResult{
+				GasAllocated: newBlogCost,
 			},
 		},
-		"Post": &Post{
-			Title:         "this is a post title",
-			Text:          "dLrvpy6wkdR2yG1ECKzxrQGeoVqTglnvQhk7Kagmiqu5c4AwszxIoB4FjGlUfjXyeNU5PCXJoqLFLYmiFnyW6ZvHYB3ZBczTydEJLd51f9bwtTuGhJ4P89vv7MsjTXMizERWm7KtQSiTBT9Vz6vTDmv5OrLoAHEfIK5wZXbhy8L9BNzjzV182Wvv7VdRd2iDid7cQW1FJX6PEgLYWG2A7wkUM76JaeeSlBvVdDtGLF5aav5eOYvVwzGC13SGQTnOKPBIhRFzX1o2g20kwpVxN0LDfm072UsY6Lx0DfDJnS5bvWsojim2BiPd8SjH0ChUN0NbuyUJhlDMfUPnM9LyDp31BXPSH4dRQcYpL4KPCugJ2t8oSqt4Arf2sAgMgdLipVdcm9qtbZuZRleCwT1ielP0jkk9pGFgyhJ7splO0UEDVJWBXvkAxs6fqrANMpQGoLUU7HPINuJbwXDG9208kXvWjNYBjLm8Yj0fosioTwXfNWxk7AvnwLkM1eXWhjBiKY91QA85THajebmwv5R4RS91RAeee67FjpkFT6d2rKDHWrKU5cxZbtPvKGR5Fk1V2mVlxPLoGAlMJmGXpjcDv78TJQQVPOYQbBqybmHlbLflulDRZeFT2VMARGsOsDWEjT3tDQ3NpJWlk4XiVhVJgR8Qy8oH3GGWLcjoCyMNHr5UMyLTYLwNpjxgmn8aoQHTg5m4gJtBWr0Rt82s5M6YQGpEjGfvhnIoEtzzZALjzlrVHAK13clM9ph28jrRXzCMzLANhvXQFoK0bLYoLNYTEPW0W6h1TNfq975hJlmshRhXBb19pyEk6YZ3LvapaZmSudE52t5iO91iXHl1ofDcQ7uTBypqhuRYpn41PA4QvzlE2M2ljIlKlw65n03JncOEVvqnucsDbn9XFjZBLOYrhytBwQuuSKggOudJBLWyz8UWn0XhE3uVt4jR7umX0HCXudeaLgXZvFpk7FjZsuXlBXr2Lffpj6yylBGN2gulHizZbRK7BFW7Py7dOw2VSuxG5bEVND6s4LgW9Imrdnku0TAJsdDahnbJ5t9IwvG0YmHOKLYWy49Se50FvoovsfodJUxfiyL8nYy86V8GgyhLKzDE2EfJWVmYroNErr5eJExBdcwg3WijMEXSxZXcRy3xFppuaTNxfmgiojk3ff8IR37YnAfHyfmPw6KuLupRH6ak12N6F2d7yrG0xno9eIoNpvGpMBpOWfNEajxFHM6i1C1bDHvVGfFwhpY5FdEsXIfXRetkiUNgbwnz36sQATlrj7B5FW6m5hL7yWp6mFI0xWtb0wdqaTIuJj08akHp6miWyWDDJHJrd5q2ipSfeJv0ZjSHqr51LBKZk3mW0r3aq28zBQatSgzQDwExeG2LeAPsQSnPiKUNzdJpONvoJv9ApwqOALD5cveakTzK9LQ5ZSl20uwx4N5JEYRdl2IZD1jgya54fk8wLGoNLlWHOqGrLdHru73nOGIHgGy8G4jhwNNsh2Vo",
-			Author:        toWeaveAddress("3AFCDAB4CFBF066E959D139251C8F0EE91E99D5A"),
-			CreationBlock: 100,
-		},
 	}
 
-	os.Exit(m.Run())
-}
-
-func TestCreateBlogMsgHandlerCheck(t *testing.T) {
-	db := store.MemStore()
-	tx := txs["CreateBlogMsg"]
-	handler := handlers["CreateBlogMsgHandler"]
-	res, err := handler.Check(weaveCtx, db, tx)
-
-	require.NoError(t, err)
-	require.Equal(
-		t,
-		newBlogCost,
-		res.GasAllocated,
-		fmt.Sprintf("gas allocated cost was equal to %d", res.GasAllocated))
+	for _, test := range testcases {
+		db := store.MemStore()
+		res, err := test.handler.Check(ctx, db, newTx(&test.msg))
+		require.NoError(t, err)
+		require.Equal(t, newBlogCost, res.GasAllocated,
+			fmt.Sprintf("gas allocated cost was equal to %d", res.GasAllocated))
+	}
 }
 
 func TestCreateBlogMsgHandlerDeliver(t *testing.T) {
-	db := store.MemStore()
-	tx := txs["CreateBlogMsg"]
-	handler := handlers["CreateBlogMsgHandler"]
-	_, err := handler.Deliver(weaveCtx, db, tx)
-	require.NoError(t, err)
+	ctx, auth := newContextWithAuth("3AFCDAB4CFBF066E959D139251C8F0EE91E99D5A")
+	testcases := []struct {
+		handler CreateBlogMsgHandler
+		msg     CreateBlogMsg
+		obj     Blog
+	}{
+		{
+			handler: newTestHandler("CreateBlogMsgHandler", auth).(CreateBlogMsgHandler),
+			msg: CreateBlogMsg{
+				Slug:    "this_is_a_blog",
+				Title:   "this is a blog title",
+				Authors: [][]byte{x.MainSigner(ctx, auth).Address()},
+			},
+			obj: Blog{
+				Title:       "this is a blog title",
+				NumArticles: 0,
+				Authors:     [][]byte{x.MainSigner(ctx, auth).Address()},
+			},
+		},
+	}
 
-	expected := objects["Blog"]
-	bucket := handler.(CreateBlogMsgHandler).bucket
-	actual, err := bucket.Get(db, []byte("this_is_a_blog"))
+	for _, test := range testcases {
+		db := store.MemStore()
+		_, err := test.handler.Deliver(ctx, db, newTx(&test.msg))
+		require.NoError(t, err)
 
-	require.NoError(t, err)
-	require.EqualValues(t, expected, actual.Value())
+		actual, _ := test.handler.bucket.Get(db, []byte("this_is_a_blog"))
+		require.EqualValues(t, test.obj, *actual.Value().(*Blog))
+	}
 }
 
 func TestCreatePostMsgHandlerCheck(t *testing.T) {
-	db := store.MemStore()
-	tx := txs["CreatePostMsg"]
-	handler := handlers["CreatePostMsgHandler"]
-	res, err := handler.Check(weaveCtx, db, tx)
-	// the blog to which the post belong has not been save yet
-	require.EqualError(t, err, errBlogNotFound.Error())
+	ctx, auth := newContextWithAuth("3AFCDAB4CFBF066E959D139251C8F0EE91E99D5A")
+	testcases := []struct {
+		handler CreatePostMsgHandler
+		msg     CreatePostMsg
+		parent  CreateBlogMsg
+		res     weave.CheckResult
+	}{
+		{
+			handler: newTestHandler("CreatePostMsgHandler", auth).(CreatePostMsgHandler),
+			msg: CreatePostMsg{
+				Blog:   "this_is_a_blog",
+				Title:  "this is a post title",
+				Text:   "We have created a room for live communication that is solely dedicated to high-level product discussions because this is a crucial support for fostering a technical user base within our broader community. Just as IOV is developing a full platform suite that includes retail products such as the universal wallet and B2B tools such as the BNS, each kind of community has a place in the movement toward mass adoption of blockchains which we aspire to lead.Another important reason that we established the #Developers room is that it provides a forum for users to receive help from our devs, and from each other, when playing with demos and live releases of IOV products in the future: as one can imagine, getting help with your test node or maintaining a highly dense conversation might be especially difficult in Telegram, depending on how many lambo memes and amusing gifs might be flying around at any given moment!We’re therefore happy to say that #Developers is launching with good timing — because community members who are interested in seeing our development progress for themselves can already try out our IOV-core release (read about it here!), and by the end of this month our public alphanet is launching! Keep your eyes open in coming weeks for this exciting release.",
+				Author: x.MainSigner(ctx, auth).Address(),
+			},
+			parent: CreateBlogMsg{
+				Slug:    "this_is_a_blog",
+				Title:   "this is a blog title",
+				Authors: [][]byte{x.MainSigner(ctx, auth).Address()},
+			},
+			res: weave.CheckResult{
+				GasAllocated: newPostCost,
+			},
+		},
+	}
 
-	// adding the corresponding blog
-	handlers["CreateBlogMsgHandler"].Deliver(weaveCtx, db, txs["CreateBlogMsg"])
-	res, err = handler.Check(weaveCtx, db, tx)
-	require.Equal(
-		t,
-		newPostCost,
-		res.GasAllocated,
-		fmt.Sprintf("gas allocated cost was equal to %d", res.GasAllocated))
+	for _, test := range testcases {
+		db := store.MemStore()
+		_, err := test.handler.Check(ctx, db, newTx(&test.msg))
+		require.EqualError(t, err, errBlogNotFound.Error())
+		newTestHandler("CreateBlogMsgHandler", auth).Deliver(ctx, db, newTx(&test.parent))
+		res, err := test.handler.Check(ctx, db, newTx(&test.msg))
+		require.NoError(t, err)
+		require.EqualValues(t, test.res, res, fmt.Sprintf("gas allocated cost was equal to %d", res.GasAllocated))
+	}
 }
 
 func TestCreatePostMsgHandlerDeliver(t *testing.T) {
-	db := store.MemStore()
-	tx := txs["CreatePostMsg"]
-	handler := handlers["CreatePostMsgHandler"]
-	// adding the corresponding blog
-	handlers["CreateBlogMsgHandler"].Deliver(weaveCtx, db, txs["CreateBlogMsg"])
+	newTx := x.TestHelpers{}.MockTx
+	ctx, auth := newContextWithAuth("3AFCDAB4CFBF066E959D139251C8F0EE91E99D5A")
+	testcases := []struct {
+		handler CreatePostMsgHandler
+		msg     CreatePostMsg
+		parent  CreateBlogMsg
+		obj     Post
+	}{
+		{
+			handler: newTestHandler("CreatePostMsgHandler", auth).(CreatePostMsgHandler),
+			msg: CreatePostMsg{
+				Blog:   "this_is_a_blog",
+				Title:  "this is a title",
+				Text:   "We have created a room for live communication that is solely dedicated to high-level product discussions because this is a crucial support for fostering a technical user base within our broader community. Just as IOV is developing a full platform suite that includes retail products such as the universal wallet and B2B tools such as the BNS, each kind of community has a place in the movement toward mass adoption of blockchains which we aspire to lead.",
+				Author: x.MainSigner(ctx, auth).Address(),
+			},
+			parent: CreateBlogMsg{
+				Slug:    "this_is_a_blog",
+				Title:   "this is a blog title",
+				Authors: [][]byte{x.MainSigner(ctx, auth).Address()},
+			},
+			obj: Post{
+				Title:         "this is a title",
+				Text:          "We have created a room for live communication that is solely dedicated to high-level product discussions because this is a crucial support for fostering a technical user base within our broader community. Just as IOV is developing a full platform suite that includes retail products such as the universal wallet and B2B tools such as the BNS, each kind of community has a place in the movement toward mass adoption of blockchains which we aspire to lead.",
+				Author:        x.MainSigner(ctx, auth).Address(),
+				CreationBlock: 100,
+			},
+		},
+	}
 
-	_, err := handler.Deliver(weaveCtx, db, tx)
-	require.NoError(t, err)
-
-	expected, _ := objects["Post"]
-	posts := handler.(CreatePostMsgHandler).posts
-	actual, err := posts.Get(db, []byte("this is a post title"))
-	require.NoError(t, err)
-	require.EqualValues(t, expected, actual.Value())
-
-	blogs := handler.(CreatePostMsgHandler).blogs
-	blog, err := blogs.Get(db, []byte("this_is_a_blog"))
-	require.NoError(t, err)
-	require.EqualValues(t, 1, blog.Value().(*Blog).NumArticles)
+	for _, test := range testcases {
+		db := store.MemStore()
+		newTestHandler("CreateBlogMsgHandler", auth).Deliver(ctx, db, newTx(&test.parent))
+		_, err := test.handler.Deliver(ctx, db, newTx(&test.msg))
+		require.NoError(t, err)
+		actual, _ := test.handler.posts.Get(db, newPostCompositeKey("this_is_a_blog", 1))
+		require.EqualValues(t, test.obj, *actual.Value().(*Post))
+	}
 }

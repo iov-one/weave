@@ -1,6 +1,9 @@
 package blog
 
 import (
+	"bytes"
+	"fmt"
+
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/orm"
@@ -62,6 +65,11 @@ func (h CreateBlogMsgHandler) Deliver(ctx weave.Context, db weave.KVStore, tx we
 
 // validate does all common pre-processing between Check and Deliver
 func (h CreateBlogMsgHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*CreateBlogMsg, error) {
+	sender := x.MainSigner(ctx, h.auth)
+	if sender == nil {
+		return nil, ErrUnauthorisedBlogAuthor()
+	}
+
 	msg, err := tx.GetMsg()
 	if err != nil {
 		return nil, err
@@ -80,7 +88,7 @@ func (h CreateBlogMsgHandler) validate(ctx weave.Context, db weave.KVStore, tx w
 	// error occurs during parsing the object found so thats also a ErrBlogExistError
 	obj, err := h.bucket.Get(db, []byte(createBlogMsg.Slug))
 	if err != nil || (obj != nil && obj.Value() != nil) {
-		return nil, ErrBlogExistError()
+		return nil, ErrBlogExist()
 	}
 
 	return createBlogMsg, nil
@@ -120,13 +128,14 @@ func (h CreatePostMsgHandler) Deliver(ctx weave.Context, db weave.KVStore, tx we
 		CreationBlock: height,
 	}
 
-	obj := orm.NewSimpleObj([]byte(post.Title), post) // Need to combine with count
+	blog.NumArticles++
+	postKey := newPostCompositeKey(msg.Blog, blog.NumArticles)
+	obj := orm.NewSimpleObj(postKey, post)
 	err = h.posts.Save(db, obj)
 	if err != nil {
 		return res, err
 	}
 
-	blog.NumArticles++
 	objParent := orm.NewSimpleObj([]byte(msg.Blog), blog)
 	err = h.blogs.Save(db, objParent)
 	if err != nil {
@@ -148,6 +157,10 @@ func (h CreatePostMsgHandler) validate(ctx weave.Context, db weave.KVStore, tx w
 		return nil, nil, errors.ErrUnknownTxType(msg)
 	}
 
+	if !h.auth.HasAddress(ctx, createPostMsg.Author) {
+		return nil, nil, ErrUnauthorisedPostAuthor()
+	}
+
 	err = createPostMsg.Validate()
 	if err != nil {
 		return nil, nil, err
@@ -158,10 +171,16 @@ func (h CreatePostMsgHandler) validate(ctx weave.Context, db weave.KVStore, tx w
 		return nil, nil, err
 	}
 
-	if obj == nil || obj.Value() == nil {
-		return nil, nil, ErrBlogNotFoundError()
+	if obj == nil || (obj != nil && obj.Value() == nil) {
+		return nil, nil, ErrBlogNotFound()
 	}
 
 	blog := obj.Value().(*Blog)
 	return createPostMsg, blog, nil
+}
+
+func newPostCompositeKey(slug string, idx int64) []byte {
+	key1 := []byte(slug)
+	key2 := []byte(fmt.Sprintf("%08x", idx))
+	return bytes.Join([][]byte{key1, key2}, nil)
 }
