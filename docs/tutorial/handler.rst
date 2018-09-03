@@ -62,7 +62,10 @@ treat *Handlers* as atomic actions, all or none, and not worry
 too much about cleaning up partially finished state changes
 if a later portion fails.
 
-Blog validation
+Validation
+----------
+
+Blog
 ~~~~
 
 Let us take a look at a first validation example when creating 
@@ -75,9 +78,6 @@ a blog :
 Before anything, we want to make sure that the transaction is allowed 
 and in the case of Blog creation, we choose to consider the main Tx signer 
 as the blog author. This is easily achieved using existing util functions :
-
-Retrieve Tx main signer
-~~~~
 
 .. literalinclude:: ../../examples/tutorial/x/blog/handlers.go
     :language: go
@@ -92,7 +92,7 @@ how to do that by querying the BlogBucket  :
     :language: go
     :lines: 99-104
 
-Post validation
+Post
 ~~~~
 
 In the case of adding a post, we must first ``validate``
@@ -115,8 +115,8 @@ Note how we ensure that the post author is one of the Tx signers :
     :language: go
     :lines: 173-176
 
-Implementing Check method
-~~~~
+Check
+-----
 
 Once ``validate`` is implemented, ``Check`` must ensure it is valid
 and then return a rough cost of the message, which may be based
@@ -125,6 +125,18 @@ is similar to the concept of *gas* in ethereum, although it doesn't
 count to the fees yet, but rather is used by tendermint to prioritize
 the transactions to fit in a block.
 
+Blog
+~~~~
+
+A blog costs one gas to create :
+
+.. literalinclude:: ../../examples/tutorial/x/blog/handlers.go
+    :language: go
+    :lines: 117-127
+
+Post
+~~~~
+
 In the case of a Post creation, we decided to charge the author 1 gas 
 per mile characters with the first 1000 characters offered :  
 
@@ -132,11 +144,26 @@ per mile characters with the first 1000 characters offered :
     :language: go
     :lines: 117-127
 
-Implementing Deliver method
+Deliver
+-------
+
+Similarly to ``Check``, ``Deliver`` also makes use of ``validate`` to perform the original
+checks.
+
+Blog
 ~~~~
 
-``Deliver`` also makes use of ``validate`` to perform the original
-checks, then it increments the article count on the *Blog*, and
+Before saving the blog into the blog bucket, ``Deliver`` checks if the main signer 
+of the Tx is part of the authorized authors for this blog and will add it if not.
+
+.. literalinclude:: ../../examples/tutorial/x/blog/handlers.go
+    :language: go
+    :lines: 54-74
+
+Post
+~~~~
+
+``Deliver`` increments the article count on the *Blog*, and
 calculates the key of the *Post* based on the *Blog* slug and the count
 of this article. It then saves both the *Post* and the updated *Blog*.
 Note how the *Handler* has access to the height of the current block
@@ -154,7 +181,7 @@ Let us recall that when incrementing the article count on the parent blog, user
 must not worry about concurrential access. Indeed, we are garanteed that each 
 Check and Deliver methods will be executed sequentially.
 
-The composite key for the post is obtained by concatenating the blog slug and 
+Finally, note how we generate the composite key for the post by concatenating the blog slug and 
 the blog count : 
 
 .. literalinclude:: ../../examples/tutorial/x/blog/handlers.go

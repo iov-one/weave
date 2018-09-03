@@ -180,11 +180,11 @@ func (h CreatePostMsgHandler) validate(ctx weave.Context, db weave.KVStore, tx w
 		return nil, nil, err
 	}
 
+	// Check that the parent blog exists
 	obj, err := h.blogs.Get(db, []byte(createPostMsg.Blog))
 	if err != nil {
 		return nil, nil, err
 	}
-
 	if obj == nil || (obj != nil && obj.Value() == nil) {
 		return nil, nil, ErrBlogNotFound()
 	}
