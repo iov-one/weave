@@ -19,9 +19,9 @@ const (
 // RegisterRoutes will instantiate and register
 // all handlers in this package
 func RegisterRoutes(r weave.Registry, auth x.Authenticator) {
-	blogBucket := NewBlogBucket()
-	r.Handle(PathCreateBlogMsg, CreateBlogMsgHandler{auth, blogBucket})
-	r.Handle(PathCreatePostMsg, CreatePostMsgHandler{auth, NewPostBucket(), blogBucket})
+	r.Handle(PathCreateBlogMsg, CreateBlogMsgHandler{auth, NewBlogBucket()})
+	r.Handle(PathCreatePostMsg, CreatePostMsgHandler{auth, NewPostBucket(), NewBlogBucket()})
+	r.Handle(PathRenameBlogMsg, RenameBlogMsgHandler{auth, NewBlogBucket()})
 }
 
 type CreateBlogMsgHandler struct {
@@ -40,6 +40,7 @@ func withSender(authors [][]byte, sender weave.Address) [][]byte {
 
 	return append(authors, sender)
 }
+
 func (h CreateBlogMsgHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (weave.CheckResult, error) {
 	var res weave.CheckResult
 	_, err := h.validate(ctx, db, tx)
@@ -197,4 +198,88 @@ func newPostCompositeKey(slug string, idx int64) []byte {
 	key1 := []byte(slug)
 	key2 := []byte(fmt.Sprintf("%08x", idx))
 	return bytes.Join([][]byte{key1, key2}, nil)
+}
+
+type RenameBlogMsgHandler struct {
+	auth   x.Authenticator
+	bucket BlogBucket
+}
+
+var _ weave.Handler = RenameBlogMsgHandler{}
+
+func (h RenameBlogMsgHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (weave.CheckResult, error) {
+	var res weave.CheckResult
+	_, _, err := h.validate(ctx, db, tx)
+	if err != nil {
+		return res, err
+	}
+
+	// renaming costs the same as creating
+	res.GasAllocated = newBlogCost
+	return res, nil
+}
+
+func (h RenameBlogMsgHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (weave.DeliverResult, error) {
+	var res weave.DeliverResult
+	msg, blog, err := h.validate(ctx, db, tx)
+	if err != nil {
+		return res, err
+	}
+
+	blog.Title = msg.Title
+	obj := orm.NewSimpleObj([]byte(msg.Slug), blog)
+	err = h.bucket.Save(db, obj)
+	if err != nil {
+		return res, err
+	}
+
+	return res, nil
+}
+
+// validate does all common pre-processing between Check and Deliver
+func (h RenameBlogMsgHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*RenameBlogMsg, *Blog, error) {
+	// Retrieve tx main signer in this context
+	sender := x.MainSigner(ctx, h.auth)
+	if sender == nil {
+		return nil, nil, ErrUnauthorisedBlogAuthor()
+	}
+
+	msg, err := tx.GetMsg()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	renameBlogMsg, ok := msg.(*RenameBlogMsg)
+	if !ok {
+		return nil, nil, errors.ErrUnknownTxType(msg)
+	}
+
+	err = renameBlogMsg.Validate()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	// Check the blog does not already exist
+	// error occurs during parsing the object found so thats also a ErrBlogExistError
+	obj, err := h.bucket.Get(db, []byte(renameBlogMsg.Slug))
+	if err != nil {
+		return nil, nil, err
+	}
+	if obj == nil || (obj != nil && obj.Value() == nil) {
+		return nil, nil, ErrBlogNotFound()
+	}
+
+	// Check main signer is one of the blog authors
+	authorized := false
+	blog := obj.Value().(*Blog)
+	for _, author := range blog.Authors {
+		if sender.Address().Equals(author) {
+			authorized = true
+		}
+	}
+	if !authorized {
+		return nil, nil, ErrUnauthorisedBlogAuthor()
+	}
+
+	return renameBlogMsg, blog, nil
 }

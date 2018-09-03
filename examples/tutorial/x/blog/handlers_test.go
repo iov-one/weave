@@ -36,6 +36,11 @@ func newTestHandler(name string, auth x.Authenticator) weave.Handler {
 			blogs: NewBlogBucket(),
 			posts: NewPostBucket(),
 		}
+	case "RenameBlogMsgHandler":
+		return RenameBlogMsgHandler{
+			auth:   auth,
+			bucket: NewBlogBucket(),
+		}
 	default:
 		panic(fmt.Errorf("newTestHandler: unknown handler"))
 	}
@@ -195,5 +200,79 @@ func TestCreatePostMsgHandlerDeliver(t *testing.T) {
 		require.EqualValues(t, test.obj, *actual.Value().(*Post))
 		actual, _ = test.handler.blogs.Get(db, []byte("this_is_a_blog"))
 		require.EqualValues(t, 1, actual.Value().(*Blog).GetNumArticles())
+	}
+}
+
+func TestRenameBlogMsgHandlerCheck(t *testing.T) {
+	ctx, auth := newContextWithAuth("3AFCDAB4CFBF066E959D139251C8F0EE91E99D5A")
+	testcases := []struct {
+		handler RenameBlogMsgHandler
+		msg     RenameBlogMsg
+		parent  CreateBlogMsg
+		res     weave.CheckResult
+	}{
+		{
+			handler: newTestHandler("RenameBlogMsgHandler", auth).(RenameBlogMsgHandler),
+			msg: RenameBlogMsg{
+				Slug:  "this_is_a_blog",
+				Title: "this is a blog title which has been renamed",
+			},
+			parent: CreateBlogMsg{
+				Slug:    "this_is_a_blog",
+				Title:   "this is a blog title",
+				Authors: [][]byte{x.MainSigner(ctx, auth).Address()},
+			},
+			res: weave.CheckResult{
+				GasAllocated: newBlogCost,
+			},
+		},
+	}
+
+	for _, test := range testcases {
+		db := store.MemStore()
+		res, err := test.handler.Check(ctx, db, newTx(&test.msg))
+		require.EqualError(t, err, errBlogNotFound.Error())                                // cant rename a blog which does not exist
+		newTestHandler("CreateBlogMsgHandler", auth).Deliver(ctx, db, newTx(&test.parent)) // add blog
+		res, err = test.handler.Check(ctx, db, newTx(&test.msg))                           // then check rename
+		require.NoError(t, err)
+		require.Equal(t, newBlogCost, res.GasAllocated,
+			fmt.Sprintf("gas allocated cost was equal to %d", res.GasAllocated))
+	}
+}
+
+func TestRenameBlogMsgHandlerDeliver(t *testing.T) {
+	ctx, auth := newContextWithAuth("3AFCDAB4CFBF066E959D139251C8F0EE91E99D5A")
+	testcases := []struct {
+		handler RenameBlogMsgHandler
+		msg     RenameBlogMsg
+		parent  CreateBlogMsg
+		obj     Blog
+	}{
+		{
+			handler: newTestHandler("RenameBlogMsgHandler", auth).(RenameBlogMsgHandler),
+			msg: RenameBlogMsg{
+				Slug:  "this_is_a_blog",
+				Title: "this is a blog title which has been renamed",
+			},
+			parent: CreateBlogMsg{
+				Slug:    "this_is_a_blog",
+				Title:   "this is a blog title",
+				Authors: [][]byte{x.MainSigner(ctx, auth).Address()},
+			},
+			obj: Blog{
+				Title:       "this is a blog title which has been renamed",
+				NumArticles: 0,
+				Authors:     [][]byte{x.MainSigner(ctx, auth).Address()},
+			},
+		},
+	}
+
+	for _, test := range testcases {
+		db := store.MemStore()
+		newTestHandler("CreateBlogMsgHandler", auth).Deliver(ctx, db, newTx(&test.parent)) // add blog
+		_, err := test.handler.Deliver(ctx, db, newTx(&test.msg))
+		require.NoError(t, err)
+		actual, _ := test.handler.bucket.Get(db, []byte("this_is_a_blog"))
+		require.EqualValues(t, test.obj, *actual.Value().(*Blog))
 	}
 }
