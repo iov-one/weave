@@ -132,7 +132,7 @@ A blog costs one gas to create :
 
 .. literalinclude:: ../../examples/tutorial/x/blog/handlers.go
     :language: go
-    :lines: 117-127
+    :lines: 43-52
 
 Post
 ~~~~
