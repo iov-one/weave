@@ -31,6 +31,15 @@ type CreateBlogMsgHandler struct {
 
 var _ weave.Handler = CreateBlogMsgHandler{}
 
+func withSender(authors [][]byte, sender weave.Address) [][]byte {
+	for _, author := range authors {
+		if sender.Equals(author) {
+			return authors
+		}
+	}
+
+	return append(authors, sender)
+}
 func (h CreateBlogMsgHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (weave.CheckResult, error) {
 	var res weave.CheckResult
 	_, err := h.validate(ctx, db, tx)
@@ -50,7 +59,7 @@ func (h CreateBlogMsgHandler) Deliver(ctx weave.Context, db weave.KVStore, tx we
 	}
 
 	blog := &Blog{
-		Authors: msg.Authors,
+		Authors: withSender(msg.Authors, x.MainSigner(ctx, h.auth).Address()),
 		Title:   msg.Title,
 	}
 

@@ -87,6 +87,22 @@ func TestCreateBlogMsgHandlerDeliver(t *testing.T) {
 				Authors:     [][]byte{x.MainSigner(ctx, auth).Address()},
 			},
 		},
+		{
+			handler: newTestHandler("CreateBlogMsgHandler", auth).(CreateBlogMsgHandler),
+			msg: CreateBlogMsg{
+				Slug:    "this_is_a_blog",
+				Title:   "this is a blog title",
+				Authors: [][]byte{weave.NewAddress([]byte("12AFFBF6012FD2DF21416582DC80CBF1EFDF2460"))},
+			},
+			obj: Blog{
+				Title:       "this is a blog title",
+				NumArticles: 0,
+				Authors: [][]byte{
+					weave.NewAddress([]byte("12AFFBF6012FD2DF21416582DC80CBF1EFDF2460")),
+					x.MainSigner(ctx, auth).Address(),
+				},
+			},
+		},
 	}
 
 	for _, test := range testcases {
@@ -175,5 +191,7 @@ func TestCreatePostMsgHandlerDeliver(t *testing.T) {
 		require.NoError(t, err)
 		actual, _ := test.handler.posts.Get(db, newPostCompositeKey("this_is_a_blog", 1))
 		require.EqualValues(t, test.obj, *actual.Value().(*Post))
+		actual, _ = test.handler.blogs.Get(db, []byte("this_is_a_blog"))
+		require.EqualValues(t, 1, actual.Value().(*Blog).GetNumArticles())
 	}
 }
