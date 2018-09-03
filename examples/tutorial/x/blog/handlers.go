@@ -59,6 +59,7 @@ func (h CreateBlogMsgHandler) Deliver(ctx weave.Context, db weave.KVStore, tx we
 	}
 
 	blog := &Blog{
+		// add main signer for this Tx to the authors of this blog if that's not already the case
 		Authors: withSender(msg.Authors, x.MainSigner(ctx, h.auth).Address()),
 		Title:   msg.Title,
 	}
@@ -74,6 +75,7 @@ func (h CreateBlogMsgHandler) Deliver(ctx weave.Context, db weave.KVStore, tx we
 
 // validate does all common pre-processing between Check and Deliver
 func (h CreateBlogMsgHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*CreateBlogMsg, error) {
+	// Retrieve tx main signer in this context
 	sender := x.MainSigner(ctx, h.auth)
 	if sender == nil {
 		return nil, ErrUnauthorisedBlogAuthor()
@@ -94,6 +96,7 @@ func (h CreateBlogMsgHandler) validate(ctx weave.Context, db weave.KVStore, tx w
 		return nil, err
 	}
 
+	// Check the blog does not already exist
 	// error occurs during parsing the object found so thats also a ErrBlogExistError
 	obj, err := h.bucket.Get(db, []byte(createBlogMsg.Slug))
 	if err != nil || (obj != nil && obj.Value() != nil) {
@@ -118,6 +121,7 @@ func (h CreatePostMsgHandler) Check(ctx weave.Context, db weave.KVStore, tx weav
 		return res, err
 	}
 
+	// First 1000 chars for free then 1 gas per mile chars
 	res.GasAllocated = int64(len(msg.Text)) * newPostCost / postCostUnit
 	return res, nil
 }
@@ -166,6 +170,7 @@ func (h CreatePostMsgHandler) validate(ctx weave.Context, db weave.KVStore, tx w
 		return nil, nil, errors.ErrUnknownTxType(msg)
 	}
 
+	// Check the author is one of the Tx signer
 	if !h.auth.HasAddress(ctx, createPostMsg.Author) {
 		return nil, nil, ErrUnauthorisedPostAuthor()
 	}

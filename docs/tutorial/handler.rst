@@ -62,6 +62,39 @@ treat *Handlers* as atomic actions, all or none, and not worry
 too much about cleaning up partially finished state changes
 if a later portion fails.
 
+Blog validation
+~~~~
+
+Let us take a look at a first validation example when creating 
+a blog : 
+
+.. literalinclude:: ../../examples/tutorial/x/blog/handlers.go
+    :language: go
+    :lines: 77-107
+
+Before anything, we want to make sure that the transaction is allowed 
+and in the case of Blog creation, we choose to consider the main Tx signer 
+as the blog author. This is easily achieved using existing util functions :
+
+Retrieve Tx main signer
+~~~~
+
+.. literalinclude:: ../../examples/tutorial/x/blog/handlers.go
+    :language: go
+    :lines: 78-82
+
+Next comes the model validation as described in the 
+`Data Model section <https://weave.readthedocs.io/en/latest/tutorial/messages.html#validation>`_, 
+and finally we want to make sure that the blog is unique. The example below shows 
+how to do that by querying the BlogBucket  : 
+
+.. literalinclude:: ../../examples/tutorial/x/blog/handlers.go
+    :language: go
+    :lines: 99-104
+
+Post validation
+~~~~
+
 In the case of adding a post, we must first ``validate``
 that the transaction hold the proper message, the message
 passes all internal validation checks, the blog named
@@ -72,24 +105,18 @@ the relevant blog for authorization, which we may want to use
 elsewhere in the Handler as well, we return it from the *validate*
 call as well to avoid loading it twice.
 
-Blog
-~~~~
+.. literalinclude:: ../../examples/tutorial/x/blog/handlers.go
+    :language: go
+    :lines: 162-194
+
+Note how we ensure that the post author is one of the Tx signers :
 
 .. literalinclude:: ../../examples/tutorial/x/blog/handlers.go
     :language: go
-    :lines: 64-87
+    :lines: 173-176
 
-Post
+Implementing Check method
 ~~~~
-
-.. literalinclude:: ../../examples/tutorial/x/blog/handlers.go
-    :language: go
-    :lines: 138-165
-
-Profile
-~~~~~~~
-
-**TODO** Add profile validate code here
 
 Once ``validate`` is implemented, ``Check`` must ensure it is valid
 and then return a rough cost of the message, which may be based
@@ -98,24 +125,15 @@ is similar to the concept of *gas* in ethereum, although it doesn't
 count to the fees yet, but rather is used by tendermint to prioritize
 the transactions to fit in a block.
 
-Blog
-~~~~
+In the case of a Post creation, we decided to charge the author 1 gas 
+per mile characters with the first 1000 characters offered :  
 
 .. literalinclude:: ../../examples/tutorial/x/blog/handlers.go
     :language: go
-    :lines: 31-40
+    :lines: 117-127
 
-Post
+Implementing Deliver method
 ~~~~
-
-.. literalinclude:: ../../examples/tutorial/x/blog/handlers.go
-    :language: go
-    :lines: 97-106
-
-Profile
-~~~~~~~
-
-**TODO** Add profile check code here
 
 ``Deliver`` also makes use of ``validate`` to perform the original
 checks, then it increments the article count on the *Blog*, and
@@ -128,24 +146,20 @@ from the relevant header. (Actually the *Handler* has access to the full
 header, which contains a timestamp,
 `which may or may not be reliable <https://github.com/tendermint/tendermint/issues/1146>`_.)
 
-Blog
-~~~~
+.. literalinclude:: ../../examples/tutorial/x/blog/handlers.go
+    :language: go
+    :lines: 129-159
+
+Let us recall that when incrementing the article count on the parent blog, user
+must not worry about concurrential access. Indeed, we are garanteed that each 
+Check and Deliver methods will be executed sequentially.
+
+The composite key for the post is obtained by concatenating the blog slug and 
+the blog count : 
 
 .. literalinclude:: ../../examples/tutorial/x/blog/handlers.go
     :language: go
-    :lines: 42-61
-
-Post
-~~~~
-
-.. literalinclude:: ../../examples/tutorial/x/blog/handlers.go
-    :language: go
-    :lines: 108-135
-
-Profile
-~~~~~~~
-
-**TODO** Add profile deliver code here
+    :lines: 196-200
 
 Routing Messages to Handler
 ---------------------------
