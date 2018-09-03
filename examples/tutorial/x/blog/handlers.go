@@ -22,6 +22,7 @@ func RegisterRoutes(r weave.Registry, auth x.Authenticator) {
 	r.Handle(PathCreateBlogMsg, CreateBlogMsgHandler{auth, NewBlogBucket()})
 	r.Handle(PathCreatePostMsg, CreatePostMsgHandler{auth, NewPostBucket(), NewBlogBucket()})
 	r.Handle(PathRenameBlogMsg, RenameBlogMsgHandler{auth, NewBlogBucket()})
+	r.Handle(PathChangeBlogAuthorsMsg, ChangeBlogAuthorsMsgHandler{auth, NewBlogBucket()})
 }
 
 type CreateBlogMsgHandler struct {
@@ -269,17 +270,116 @@ func (h RenameBlogMsgHandler) validate(ctx weave.Context, db weave.KVStore, tx w
 		return nil, nil, ErrBlogNotFound()
 	}
 
-	// Check main signer is one of the blog authors
-	authorized := false
 	blog := obj.Value().(*Blog)
-	for _, author := range blog.Authors {
-		if sender.Address().Equals(author) {
-			authorized = true
-		}
-	}
-	if !authorized {
+	// Check main signer is one of the blog authors
+	if findAuthor(blog.Authors, sender.Address()) == -1 {
 		return nil, nil, ErrUnauthorisedBlogAuthor()
 	}
 
 	return renameBlogMsg, blog, nil
+}
+
+func findAuthor(authors [][]byte, author weave.Address) int {
+	for idx, a := range authors {
+		if author.Equals(a) {
+			return idx
+		}
+	}
+	return -1
+}
+
+type ChangeBlogAuthorsMsgHandler struct {
+	auth   x.Authenticator
+	bucket BlogBucket
+}
+
+var _ weave.Handler = ChangeBlogAuthorsMsgHandler{}
+
+func (h ChangeBlogAuthorsMsgHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (weave.CheckResult, error) {
+	var res weave.CheckResult
+	_, _, err := h.validate(ctx, db, tx)
+	if err != nil {
+		return res, err
+	}
+
+	// renaming costs the same as creating
+	res.GasAllocated = newBlogCost
+	return res, nil
+}
+
+func (h ChangeBlogAuthorsMsgHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (weave.DeliverResult, error) {
+	var res weave.DeliverResult
+	msg, blog, err := h.validate(ctx, db, tx)
+	if err != nil {
+		return res, err
+	}
+
+	if msg.Add {
+		blog.Authors = append(blog.Authors, msg.Author)
+	} else {
+		idx := findAuthor(blog.Authors, msg.Author)
+		blog.Authors = append(blog.Authors[:idx], blog.Authors[idx+1:]...)
+	}
+
+	obj := orm.NewSimpleObj([]byte(msg.Slug), blog)
+	err = h.bucket.Save(db, obj)
+	if err != nil {
+		return res, err
+	}
+
+	return res, nil
+}
+
+// validate does all common pre-processing between Check and Deliver
+func (h ChangeBlogAuthorsMsgHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*ChangeBlogAuthorsMsg, *Blog, error) {
+	// Retrieve tx main signer in this context
+	sender := x.MainSigner(ctx, h.auth)
+	if sender == nil {
+		return nil, nil, ErrUnauthorisedBlogAuthor()
+	}
+
+	msg, err := tx.GetMsg()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	changeBlogAuthorsMsg, ok := msg.(*ChangeBlogAuthorsMsg)
+	if !ok {
+		return nil, nil, errors.ErrUnknownTxType(msg)
+	}
+
+	err = changeBlogAuthorsMsg.Validate()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	// Check the blog exists
+	obj, err := h.bucket.Get(db, []byte(changeBlogAuthorsMsg.Slug))
+	if err != nil {
+		return nil, nil, err
+	}
+	if obj == nil || (obj != nil && obj.Value() == nil) {
+		return nil, nil, ErrBlogNotFound()
+	}
+
+	blog := obj.Value().(*Blog)
+	// Check main signer is one of the blog authors
+	if findAuthor(blog.Authors, sender.Address()) == -1 {
+		return nil, nil, ErrUnauthorisedBlogAuthor()
+	}
+
+	// When removing an author we must ensure :
+	// 1 - It is indeed one of the blog authors
+	// 2 - There will be at least one other author left
+	if !changeBlogAuthorsMsg.Add {
+		if findAuthor(blog.Authors, changeBlogAuthorsMsg.Author) == -1 {
+			return nil, nil, ErrAuthorNotFound(sender.String())
+		}
+
+		if len(blog.Authors) == 1 {
+			return nil, nil, ErrBlogOneAuthorLeft()
+		}
+	}
+
+	return changeBlogAuthorsMsg, blog, nil
 }

@@ -25,12 +25,14 @@ var (
 	errInvalidAuthorCount     = fmt.Errorf("Invalid number of blog authors")
 	errUnauthorisedBlogAuthor = fmt.Errorf("Unauthorised blog author")
 	errUnauthorisedPostAuthor = fmt.Errorf("Unauthorised post author")
+	errAuthorNotFound         = fmt.Errorf("Author not found")
 
 	errNegativeArticles = fmt.Errorf("Article count is negative")
 	errNegativeCreation = fmt.Errorf("Creation block is negative")
 
-	errBlogNotFound = fmt.Errorf("No blog found for post")
-	errBlogExist    = fmt.Errorf("Blog already exists")
+	errBlogNotFound      = fmt.Errorf("No blog found for post")
+	errBlogExist         = fmt.Errorf("Blog already exists")
+	errBlogOneAuthorLeft = fmt.Errorf("Unable to remove last blog author")
 )
 
 func ErrTitleTooLong() error {
@@ -62,6 +64,10 @@ func ErrUnauthorisedBlogAuthor() error {
 func ErrUnauthorisedPostAuthor() error {
 	return errors.WithCode(errUnauthorisedPostAuthor, CodeInvalidAuthor)
 }
+func ErrAuthorNotFound(author string) error {
+	msg := fmt.Sprintf("author=%s", author)
+	return errors.WithLog(msg, errAuthorNotFound, CodeInvalidAuthor)
+}
 func IsInvalidAuthorError(err error) bool {
 	return errors.HasErrorCode(err, CodeInvalidAuthor)
 }
@@ -81,6 +87,9 @@ func ErrBlogNotFound() error {
 }
 func ErrBlogExist() error {
 	return errors.WithCode(errBlogExist, CodeInvalidBlog)
+}
+func ErrBlogOneAuthorLeft() error {
+	return errors.WithCode(errBlogOneAuthorLeft, CodeInvalidBlog)
 }
 func IsInvalidBlogError(err error) bool {
 	return errors.HasErrorCode(err, CodeInvalidBlog)

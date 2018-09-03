@@ -41,6 +41,11 @@ func newTestHandler(name string, auth x.Authenticator) weave.Handler {
 			auth:   auth,
 			bucket: NewBlogBucket(),
 		}
+	case "ChangeBlogAuthorsMsgHandler":
+		return ChangeBlogAuthorsMsgHandler{
+			auth:   auth,
+			bucket: NewBlogBucket(),
+		}
 	default:
 		panic(fmt.Errorf("newTestHandler: unknown handler"))
 	}
@@ -274,5 +279,127 @@ func TestRenameBlogMsgHandlerDeliver(t *testing.T) {
 		require.NoError(t, err)
 		actual, _ := test.handler.bucket.Get(db, []byte("this_is_a_blog"))
 		require.EqualValues(t, test.obj, *actual.Value().(*Blog))
+	}
+}
+
+func TestChangeBlogAuthorsMsgHandlerCheck(t *testing.T) {
+	ctx, auth := newContextWithAuth("3AFCDAB4CFBF066E959D139251C8F0EE91E99D5A")
+	testcases := []struct {
+		handler ChangeBlogAuthorsMsgHandler
+		msg     ChangeBlogAuthorsMsg
+		parent  CreateBlogMsg
+		res     weave.CheckResult
+	}{
+		{
+			handler: newTestHandler("ChangeBlogAuthorsMsgHandler", auth).(ChangeBlogAuthorsMsgHandler),
+			msg: ChangeBlogAuthorsMsg{
+				Slug:   "this_is_a_blog",
+				Author: weave.NewAddress([]byte("12AFFBF6012FD2DF21416582DC80CBF1EFDF2460")),
+				Add:    false,
+			},
+			parent: CreateBlogMsg{
+				Slug:  "this_is_a_blog",
+				Title: "this is a blog title",
+				Authors: [][]byte{
+					weave.NewAddress([]byte("12AFFBF6012FD2DF21416582DC80CBF1EFDF2460")),
+					x.MainSigner(ctx, auth).Address(),
+				},
+			},
+			res: weave.CheckResult{
+				GasAllocated: newBlogCost,
+			},
+		},
+		{
+			handler: newTestHandler("ChangeBlogAuthorsMsgHandler", auth).(ChangeBlogAuthorsMsgHandler),
+			msg: ChangeBlogAuthorsMsg{
+				Slug:   "this_is_a_blog",
+				Author: weave.NewAddress([]byte("12AFFBF6012FD2DF21416582DC80CBF1EFDF2460")),
+				Add:    true,
+			},
+			parent: CreateBlogMsg{
+				Slug:    "this_is_a_blog",
+				Title:   "this is a blog title",
+				Authors: [][]byte{x.MainSigner(ctx, auth).Address()},
+			},
+			res: weave.CheckResult{
+				GasAllocated: newBlogCost,
+			},
+		},
+	}
+
+	for _, test := range testcases {
+		db := store.MemStore()
+		res, err := test.handler.Check(ctx, db, newTx(&test.msg))
+		require.EqualError(t, err, errBlogNotFound.Error())                                // cant rename a blog which does not exist
+		newTestHandler("CreateBlogMsgHandler", auth).Deliver(ctx, db, newTx(&test.parent)) // add blog
+		res, err = test.handler.Check(ctx, db, newTx(&test.msg))                           // then check change
+		require.NoError(t, err)
+		require.Equal(t, newBlogCost, res.GasAllocated,
+			fmt.Sprintf("gas allocated cost was equal to %d", res.GasAllocated))
+	}
+}
+
+func TestChangeBlogAuthorsMsgHandlerDeliver(t *testing.T) {
+	ctx, auth := newContextWithAuth("3AFCDAB4CFBF066E959D139251C8F0EE91E99D5A")
+	testcases := []struct {
+		name    string
+		handler ChangeBlogAuthorsMsgHandler
+		msg     ChangeBlogAuthorsMsg
+		parent  CreateBlogMsg
+		obj     Blog
+	}{
+		{
+			name:    "Remove author",
+			handler: newTestHandler("ChangeBlogAuthorsMsgHandler", auth).(ChangeBlogAuthorsMsgHandler),
+			msg: ChangeBlogAuthorsMsg{
+				Slug:   "this_is_a_blog",
+				Author: weave.NewAddress([]byte("12AFFBF6012FD2DF21416582DC80CBF1EFDF2460")),
+				Add:    false,
+			},
+			parent: CreateBlogMsg{
+				Slug:  "this_is_a_blog",
+				Title: "this is a blog title",
+				Authors: [][]byte{
+					weave.NewAddress([]byte("12AFFBF6012FD2DF21416582DC80CBF1EFDF2460")),
+					x.MainSigner(ctx, auth).Address(),
+				},
+			},
+			obj: Blog{
+				Title:       "this is a blog title",
+				NumArticles: 0,
+				Authors:     [][]byte{x.MainSigner(ctx, auth).Address()},
+			},
+		},
+		{
+			name:    "Add author",
+			handler: newTestHandler("ChangeBlogAuthorsMsgHandler", auth).(ChangeBlogAuthorsMsgHandler),
+			msg: ChangeBlogAuthorsMsg{
+				Slug:   "this_is_a_blog",
+				Author: weave.NewAddress([]byte("12AFFBF6012FD2DF21416582DC80CBF1EFDF2460")),
+				Add:    true,
+			},
+			parent: CreateBlogMsg{
+				Slug:    "this_is_a_blog",
+				Title:   "this is a blog title",
+				Authors: [][]byte{x.MainSigner(ctx, auth).Address()},
+			},
+			obj: Blog{
+				Title:       "this is a blog title",
+				NumArticles: 0,
+				Authors: [][]byte{
+					x.MainSigner(ctx, auth).Address(),
+					weave.NewAddress([]byte("12AFFBF6012FD2DF21416582DC80CBF1EFDF2460")),
+				},
+			},
+		},
+	}
+
+	for _, test := range testcases {
+		db := store.MemStore()
+		newTestHandler("CreateBlogMsgHandler", auth).Deliver(ctx, db, newTx(&test.parent)) // add blog
+		_, err := test.handler.Deliver(ctx, db, newTx(&test.msg))
+		require.NoError(t, err, test.name)
+		actual, _ := test.handler.bucket.Get(db, []byte("this_is_a_blog"))
+		require.EqualValues(t, test.obj, *actual.Value().(*Blog), test.name)
 	}
 }
