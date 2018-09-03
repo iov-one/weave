@@ -179,7 +179,7 @@ header, which contains a timestamp,
 
 Let us recall that when incrementing the article count on the parent blog, user
 must not worry about concurrential access. Indeed, we are garanteed that each 
-Check and Deliver methods will be executed sequentially.
+``Check`` and ``Deliver`` methods will be executed sequentially.
 
 Finally, note how we generate the composite key for the post by concatenating the blog slug and 
 the blog count : 
@@ -214,13 +214,57 @@ for instantiating all the *Handlers* with the desired configuration
 and attaching them to the *Router* to process the matching
 *Message* type (identified by it's *Path*):
 
-**TODO** include our code
+.. literalinclude:: ../../examples/tutorial/x/blog/handlers.go
+    :language: go
+    :lines: 21-25
 
-.. code:: go
+Testing handlers
+----------------
 
-    // RegisterRoutes will instantiate and register
-    // all handlers in this package
-    func RegisterRoutes(r weave.Registry, auth x.Authenticator) {
-        r.Handle(pathSendMsg, NewSendHandler(auth))
-    }
+In order to test a handler, we need four things : 
+ - A storage
+ - A weave context
+ - An Authenticator associated with our context
+ - A Tx object to processs (eg. to check or to deliver)
 
+There is a ready to use in memory storage available in the 
+`store package <https://github.com/iov-one/weave/blob/master/store/btree.go#L31-L36`_.
+There are also util functions available to create a weave context with 
+associated authorized addresses as per the example below :
+
+.. literalinclude:: ../../examples/tutorial/x/blog/handlers_test.go
+    :language: go
+    :lines: 16-24
+
+The Authenticator is essentially what ties together a weave context 
+and a list of addresses. Last but not least, there is a helper function 
+allowing to create a Tx object from a message :
+
+.. literalinclude:: ../../x/helpers.go
+    :language: go
+    :lines: 102-105
+
+Now that we have all the pieces, let us put them together and 
+write a test for the ``Check`` method of the ``CreateBlogMsgHandler`` struct : 
+
+.. literalinclude:: ../../examples/tutorial/x/blog/handlers_test.go
+    :language: go
+    :lines: 43-70
+
+We start by initializing our context with an arbitrary address. 
+Then create our messages eg. test cases.
+For each test case we create an instance of a store, 
+call the ``Check`` method on our handler and run our asserts.
+
+Testing a ``Deliver`` method works in the same way and we will be 
+able to retrieve the saved object from the store to assert wether or not 
+the operation completed succesfully.
+Here is a full example for the ``Deliver`` method of ``CreatePostMsgHandler`` struct : 
+
+.. literalinclude:: ../../examples/tutorial/x/blog/handlers_test.go
+    :language: go
+    :lines: 158-199
+
+Note how we call ``Deliver`` on ``CreateBlogMsgHandler`` to insert the blog 
+required by the post prior to calling the ``Deliver`` method 
+of ``CreatePostMsgHandler`` struct.

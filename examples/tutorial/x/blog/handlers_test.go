@@ -11,13 +11,15 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-var newTx func(weave.Msg) weave.Tx = x.TestHelpers{}.MockTx
+var newTx = x.TestHelpers{}.MockTx
 
 func newContextWithAuth(addr string) (weave.Context, x.Authenticator) {
 	helpers := x.TestHelpers{}
 	ctx := context.Background()
+	// Set current block height to 100
 	ctx = weave.WithHeight(ctx, 100)
 	auth := helpers.CtxAuth("authKey")
+	// Create a new context and add addr to the list of signers
 	return auth.SetConditions(ctx, weave.Condition(weave.NewAddress([]byte(addr)))), auth
 }
 
