@@ -22,7 +22,7 @@ will be discarded next block, so any writes here are never writen
 to disk.
 
 *Deliver* is performed after the transaction was writen to
-the block. Upon consensus, every node will processes the block
+the block. Upon consensus, every node will process the block
 by calling *BeginBlock*, *Deliver* for every transaction in the block,
 and finally *EndBlock* and *Commit*. *Deliver* will be called in
 the same order on every node and must make the **exact same changes**
@@ -33,26 +33,19 @@ and thus kick the deviating nodes out of consensus.
 (Note that *Check* may actually vary between nodes without breaking
 consensus rules, although we generally keep this deterministic as well).
 
+**This is a very powerful concept and means that when modifying a given state, 
+users must not worry about any concurrential access or writing collision 
+since by definition, any write access is garanteed to occur sequentially and 
+in the same order on each node**.
+
 Writing a Handler
 -----------------
 
 We usually can write a separate handler for each message type,
 although you can register multiple messages with the same
 handler if you reuse most of the code. Let's focus on the
-simplest case, and the handler for
-`adding a Post <TODO>`_
-to an existing blog.
-
-Remember that we have to fulfill both *Check* and *Deliver* methods,
-and they share most of the same validation logic. A typical
-approach is to define a *validate* method that parses the
-proper message out of the transaction, verify all authorization
-preconditions are fulfilled by the transaction, and possibly
-check the current state of the blockchain to see if the action
-is allowed. If the *validate* method doesn't return an error,
-then *Check* will return the expected cost of the transaction,
-while *Deliver* will actually peform the action and update
-the blockchain state accordingly.
+simplest cases, and the handlers for creating a Blog and 
+adding a Post to an existing blog.
 
 Note that we can generally assume that *Handlers* are wrapped
 by a `Savepoint Decorator <TODO>`_,
@@ -64,6 +57,17 @@ if a later portion fails.
 
 Validation
 ----------
+
+Remember that we have to fulfill both *Check* and *Deliver* methods,
+and they share most of the same validation logic. A typical
+approach is to define a *validate* method that parses the
+proper message out of the transaction, verify all authorization
+preconditions are fulfilled by the transaction, and possibly
+check the current state of the blockchain to see if the action
+is allowed. If the *validate* method doesn't return an error,
+then *Check* will return the expected cost of the transaction,
+while *Deliver* will actually peform the action and update
+the blockchain state accordingly.
 
 Blog
 ~~~~
@@ -177,9 +181,9 @@ header, which contains a timestamp,
     :language: go
     :lines: 129-159
 
-Let us recall that when incrementing the article count on the parent blog, user
-must not worry about concurrential access. Indeed, we are garanteed that each 
-``Check`` and ``Deliver`` methods will be executed sequentially.
+Let us recall that when incrementing the article count on the parent blog, we don't 
+have to worry about concurrential access, nor use any synchronisation mechanism : We are garanteed 
+that each ``Check`` and ``Deliver`` method will be executed sequentially and in the same order on each node.
 
 Finally, note how we generate the composite key for the post by concatenating the blog slug and 
 the blog count : 
@@ -218,7 +222,7 @@ and attaching them to the *Router* to process the matching
     :language: go
     :lines: 21-25
 
-Testing handlers
+Testing Handlers
 ----------------
 
 In order to test a handler, we need four things : 
