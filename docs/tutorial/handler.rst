@@ -227,8 +227,8 @@ In order to test a handler, we need four things :
  - An Authenticator associated with our context
  - A Tx object to processs (eg. to check or to deliver)
 
-There is a ready to use in memory storage available in the 
-`store package <https://github.com/iov-one/weave/blob/master/store/btree.go#L31-L36`_.
+There is a ready to use in memory storage available in 
+the `store package <https://github.com/iov-one/weave/blob/master/store/btree.go#L31-L36>`_.
 There are also util functions available to create a weave context with 
 associated authorized addresses as per the example below :
 
