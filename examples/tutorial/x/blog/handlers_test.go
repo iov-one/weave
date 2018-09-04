@@ -46,6 +46,11 @@ func newTestHandler(name string, auth x.Authenticator) weave.Handler {
 			auth:   auth,
 			bucket: NewBlogBucket(),
 		}
+	case "SetProfileMsgHandler":
+		return SetProfileMsgHandler{
+			auth:   auth,
+			bucket: NewProfileBucket(),
+		}
 	default:
 		panic(fmt.Errorf("newTestHandler: unknown handler"))
 	}
@@ -401,5 +406,61 @@ func TestChangeBlogAuthorsMsgHandlerDeliver(t *testing.T) {
 		require.NoError(t, err, test.name)
 		actual, _ := test.handler.bucket.Get(db, []byte("this_is_a_blog"))
 		require.EqualValues(t, test.obj, *actual.Value().(*Blog), test.name)
+	}
+}
+
+func TestSetProfileMsgHandlerCheck(t *testing.T) {
+	ctx, auth := newContextWithAuth("3AFCDAB4CFBF066E959D139251C8F0EE91E99D5A")
+	testcases := []struct {
+		handler SetProfileMsgHandler
+		msg     SetProfileMsg
+		res     weave.CheckResult
+	}{
+		{
+			handler: newTestHandler("SetProfileMsgHandler", auth).(SetProfileMsgHandler),
+			msg: SetProfileMsg{
+				Name:        "lehajam",
+				Description: "my profile description",
+			},
+			res: weave.CheckResult{
+				GasAllocated: newProfileCost,
+			},
+		},
+	}
+
+	for _, test := range testcases {
+		db := store.MemStore()
+		res, err := test.handler.Check(ctx, db, newTx(&test.msg))
+		require.NoError(t, err)
+		require.EqualValues(t, newProfileCost, res.GasAllocated,
+			fmt.Sprintf("gas allocated cost was equal to %d", res.GasAllocated))
+	}
+}
+func TestSetProfileMsgHandlerDeliver(t *testing.T) {
+	ctx, auth := newContextWithAuth("3AFCDAB4CFBF066E959D139251C8F0EE91E99D5A")
+	testcases := []struct {
+		handler SetProfileMsgHandler
+		msg     SetProfileMsg
+		obj     Profile
+	}{
+		{
+			handler: newTestHandler("SetProfileMsgHandler", auth).(SetProfileMsgHandler),
+			msg: SetProfileMsg{
+				Name:        "lehajam",
+				Description: "my profile description",
+			},
+			obj: Profile{
+				Name:        "lehajam",
+				Description: "my profile description",
+			},
+		},
+	}
+
+	for _, test := range testcases {
+		db := store.MemStore()
+		_, err := test.handler.Deliver(ctx, db, newTx(&test.msg))
+		require.NoError(t, err)
+		actual, _ := test.handler.bucket.Get(db, []byte("lehajam"))
+		require.EqualValues(t, test.obj, *actual.Value().(*Profile))
 	}
 }

@@ -254,7 +254,7 @@ write a test for the ``Check`` method of the ``CreateBlogMsgHandler`` struct :
 
 .. literalinclude:: ../../examples/tutorial/x/blog/handlers_test.go
     :language: go
-    :lines: 53-80
+    :lines: 58-85
 
 We start by initializing our context with an arbitrary address. 
 Then create our messages eg. test cases.
@@ -268,7 +268,7 @@ Here is a full example for the ``Deliver`` method of ``CreatePostMsgHandler`` st
 
 .. literalinclude:: ../../examples/tutorial/x/blog/handlers_test.go
     :language: go
-    :lines: 168-209
+    :lines: 173-214
 
 Note how we call ``Deliver`` on ``CreateBlogMsgHandler`` to insert the blog 
 required by the post prior to calling the ``Deliver`` method 

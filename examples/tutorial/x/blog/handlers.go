@@ -11,9 +11,10 @@ import (
 )
 
 const (
-	newBlogCost  int64 = 1
-	newPostCost  int64 = 1
-	postCostUnit int64 = 1000 // first 1000 chars are free then pay 1 per mille
+	newBlogCost    int64 = 1
+	newPostCost    int64 = 1
+	postCostUnit   int64 = 1000 // first 1000 chars are free then pay 1 per mille
+	newProfileCost       = 1
 )
 
 // RegisterRoutes will instantiate and register
@@ -390,4 +391,88 @@ func (h ChangeBlogAuthorsMsgHandler) validate(ctx weave.Context, db weave.KVStor
 	}
 
 	return changeBlogAuthorsMsg, blog, nil
+}
+
+type SetProfileMsgHandler struct {
+	auth   x.Authenticator
+	bucket ProfileBucket
+}
+
+var _ weave.Handler = SetProfileMsgHandler{}
+
+func (h SetProfileMsgHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (weave.CheckResult, error) {
+	var res weave.CheckResult
+	_, _, err := h.validate(ctx, db, tx)
+	if err != nil {
+		return res, err
+	}
+
+	// renaming costs the same as creating
+	res.GasAllocated = newProfileCost
+	return res, nil
+}
+
+func (h SetProfileMsgHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (weave.DeliverResult, error) {
+	var res weave.DeliverResult
+	msg, profile, err := h.validate(ctx, db, tx)
+	if err != nil {
+		return res, err
+	}
+
+	if profile != nil { // update
+		profile.Name = msg.Name
+		profile.Description = msg.Description
+	} else { // create
+		profile = &Profile{
+			Name:        msg.Name,
+			Description: msg.Description,
+		}
+	}
+
+	obj := orm.NewSimpleObj([]byte(msg.Name), profile)
+	err = h.bucket.Save(db, obj)
+	if err != nil {
+		return res, err
+	}
+
+	return res, nil
+}
+
+// validate does all common pre-processing between Check and Deliver
+func (h SetProfileMsgHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*SetProfileMsg, *Profile, error) {
+	// Retrieve tx main signer in this context
+	sender := x.MainSigner(ctx, h.auth)
+	if sender == nil {
+		return nil, nil, ErrUnauthorisedBlogAuthor()
+	}
+
+	msg, err := tx.GetMsg()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	setProfileMsg, ok := msg.(*SetProfileMsg)
+	if !ok {
+		return nil, nil, errors.ErrUnknownTxType(msg)
+	}
+
+	// if author is here we use it for authentication
+	if setProfileMsg.Author != nil {
+		if !h.auth.HasAddress(ctx, setProfileMsg.Author) {
+			return nil, nil, ErrUnauthorisedBlogAuthor()
+		}
+	}
+
+	err = setProfileMsg.Validate()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	// update if exist, create if err / not found
+	obj, _ := h.bucket.Get(db, []byte(setProfileMsg.Name))
+	if obj != nil && obj.Value() != nil {
+		return setProfileMsg, obj.Value().(*Profile), nil
+	}
+
+	return setProfileMsg, nil, nil
 }
