@@ -77,7 +77,7 @@ a blog :
 
 .. literalinclude:: ../../examples/tutorial/x/blog/handlers.go
     :language: go
-    :lines: 77-107
+    :lines: 79-108
 
 Before anything, we want to make sure that the transaction is allowed 
 and in the case of Blog creation, we choose to consider the main Tx signer 
@@ -85,7 +85,7 @@ as the blog author. This is easily achieved using existing util functions :
 
 .. literalinclude:: ../../examples/tutorial/x/blog/handlers.go
     :language: go
-    :lines: 78-82
+    :lines: 80-84
 
 Next comes the model validation as described in the 
 `Data Model section <https://weave.readthedocs.io/en/latest/tutorial/messages.html#validation>`_, 
@@ -94,7 +94,7 @@ how to do that by querying the BlogBucket  :
 
 .. literalinclude:: ../../examples/tutorial/x/blog/handlers.go
     :language: go
-    :lines: 99-104
+    :lines: 101-105
 
 Post
 ~~~~
@@ -111,13 +111,13 @@ call as well to avoid loading it twice.
 
 .. literalinclude:: ../../examples/tutorial/x/blog/handlers.go
     :language: go
-    :lines: 162-194
+    :lines: 164-196
 
 Note how we ensure that the post author is one of the Tx signers :
 
 .. literalinclude:: ../../examples/tutorial/x/blog/handlers.go
     :language: go
-    :lines: 173-176
+    :lines: 175-178
 
 Check
 -----
@@ -136,7 +136,7 @@ A blog costs one gas to create :
 
 .. literalinclude:: ../../examples/tutorial/x/blog/handlers.go
     :language: go
-    :lines: 43-52
+    :lines: 45-54
 
 Post
 ~~~~
@@ -146,7 +146,7 @@ per mile characters with the first 1000 characters offered :
 
 .. literalinclude:: ../../examples/tutorial/x/blog/handlers.go
     :language: go
-    :lines: 117-127
+    :lines: 119-129
 
 Deliver
 -------
@@ -162,7 +162,7 @@ of the Tx is part of the authorized authors for this blog and will add it if not
 
 .. literalinclude:: ../../examples/tutorial/x/blog/handlers.go
     :language: go
-    :lines: 54-74
+    :lines: 56-76
 
 Post
 ~~~~
@@ -179,7 +179,7 @@ header, which contains a timestamp,
 
 .. literalinclude:: ../../examples/tutorial/x/blog/handlers.go
     :language: go
-    :lines: 129-159
+    :lines: 131-161
 
 Let us recall that when incrementing the article count on the parent blog, we don't 
 have to worry about concurrential access, nor use any synchronisation mechanism : We are garanteed 
@@ -190,7 +190,7 @@ the blog count :
 
 .. literalinclude:: ../../examples/tutorial/x/blog/handlers.go
     :language: go
-    :lines: 196-200
+    :lines: 198-202
 
 Routing Messages to Handler
 ---------------------------
@@ -220,7 +220,7 @@ and attaching them to the *Router* to process the matching
 
 .. literalinclude:: ../../examples/tutorial/x/blog/handlers.go
     :language: go
-    :lines: 21-25
+    :lines: 21-26
 
 Testing Handlers
 ----------------
@@ -241,8 +241,9 @@ associated authorized addresses as per the example below :
     :lines: 16-24
 
 The Authenticator is essentially what ties together a weave context 
-and a list of addresses. Last but not least, there is a helper function 
-allowing to create a Tx object from a message :
+and a list of addresses. 
+Last but not least, there is a helper function allowing to 
+create a Tx object from a message :
 
 .. literalinclude:: ../../x/helpers.go
     :language: go
@@ -253,7 +254,7 @@ write a test for the ``Check`` method of the ``CreateBlogMsgHandler`` struct :
 
 .. literalinclude:: ../../examples/tutorial/x/blog/handlers_test.go
     :language: go
-    :lines: 43-70
+    :lines: 53-80
 
 We start by initializing our context with an arbitrary address. 
 Then create our messages eg. test cases.
@@ -267,7 +268,7 @@ Here is a full example for the ``Deliver`` method of ``CreatePostMsgHandler`` st
 
 .. literalinclude:: ../../examples/tutorial/x/blog/handlers_test.go
     :language: go
-    :lines: 158-199
+    :lines: 168-209
 
 Note how we call ``Deliver`` on ``CreateBlogMsgHandler`` to insert the blog 
 required by the post prior to calling the ``Deliver`` method 
