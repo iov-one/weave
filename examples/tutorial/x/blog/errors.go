@@ -26,6 +26,7 @@ var (
 	errUnauthorisedBlogAuthor = fmt.Errorf("Unauthorised blog author")
 	errUnauthorisedPostAuthor = fmt.Errorf("Unauthorised post author")
 	errAuthorNotFound         = fmt.Errorf("Author not found")
+	errAuthorAlreadyExist     = fmt.Errorf("Author already exists")
 
 	errNegativeArticles = fmt.Errorf("Article count is negative")
 	errNegativeCreation = fmt.Errorf("Creation block is negative")
@@ -67,6 +68,9 @@ func ErrUnauthorisedPostAuthor() error {
 func ErrAuthorNotFound(author string) error {
 	msg := fmt.Sprintf("author=%s", author)
 	return errors.WithLog(msg, errAuthorNotFound, CodeInvalidAuthor)
+}
+func ErrAuthorAlreadyExist() error {
+	return errors.WithCode(errAuthorAlreadyExist, CodeInvalidAuthor)
 }
 func IsInvalidAuthorError(err error) bool {
 	return errors.HasErrorCode(err, CodeInvalidAuthor)

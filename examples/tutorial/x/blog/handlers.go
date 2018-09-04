@@ -99,7 +99,6 @@ func (h CreateBlogMsgHandler) validate(ctx weave.Context, db weave.KVStore, tx w
 	}
 
 	// Check the blog does not already exist
-	// error occurs during parsing the object found so thats also a ErrBlogExistError
 	obj, err := h.bucket.Get(db, []byte(createBlogMsg.Slug))
 	if err != nil || (obj != nil && obj.Value() != nil) {
 		return nil, ErrBlogExist()
@@ -109,6 +108,7 @@ func (h CreateBlogMsgHandler) validate(ctx weave.Context, db weave.KVStore, tx w
 }
 
 type CreatePostMsgHandler struct {
+	// error occurs during parsing the object found so thats also a ErrBlogExistError
 	auth  x.Authenticator
 	posts PostBucket
 	blogs BlogBucket
@@ -368,11 +368,19 @@ func (h ChangeBlogAuthorsMsgHandler) validate(ctx weave.Context, db weave.KVStor
 		return nil, nil, ErrUnauthorisedBlogAuthor()
 	}
 
-	// When removing an author we must ensure :
-	// 1 - It is indeed one of the blog authors
-	// 2 - There will be at least one other author left
-	if !changeBlogAuthorsMsg.Add {
-		if findAuthor(blog.Authors, changeBlogAuthorsMsg.Author) == -1 {
+	// Get the author index
+	authorIdx := findAuthor(blog.Authors, changeBlogAuthorsMsg.Author)
+	if changeBlogAuthorsMsg.Add {
+		// When removing an author we must ensure it does not exist already
+		if authorIdx >= 0 {
+			return nil, nil, ErrAuthorAlreadyExist()
+		}
+	} else {
+		// When removing an author we must ensure :
+		// 1 - It is indeed one of the blog authors
+		// 2 - There will be at least one other author left
+
+		if authorIdx == -1 {
 			return nil, nil, ErrAuthorNotFound(sender.String())
 		}
 
