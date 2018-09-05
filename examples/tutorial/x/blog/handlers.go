@@ -20,10 +20,12 @@ const (
 // RegisterRoutes will instantiate and register
 // all handlers in this package
 func RegisterRoutes(r weave.Registry, auth x.Authenticator) {
-	r.Handle(PathCreateBlogMsg, CreateBlogMsgHandler{auth, NewBlogBucket()})
-	r.Handle(PathCreatePostMsg, CreatePostMsgHandler{auth, NewPostBucket(), NewBlogBucket()})
-	r.Handle(PathRenameBlogMsg, RenameBlogMsgHandler{auth, NewBlogBucket()})
-	r.Handle(PathChangeBlogAuthorsMsg, ChangeBlogAuthorsMsgHandler{auth, NewBlogBucket()})
+	blogs := NewBlogBucket()
+	r.Handle(PathCreateBlogMsg, CreateBlogMsgHandler{auth, blogs})
+	r.Handle(PathCreatePostMsg, CreatePostMsgHandler{auth, NewPostBucket(), blogs})
+	r.Handle(PathRenameBlogMsg, RenameBlogMsgHandler{auth, blogs})
+	r.Handle(PathChangeBlogAuthorsMsg, ChangeBlogAuthorsMsgHandler{auth, blogs})
+	r.Handle(PathSetProfileMsg, SetProfileMsgHandler{auth, NewProfileBucket()})
 }
 
 type CreateBlogMsgHandler struct {
