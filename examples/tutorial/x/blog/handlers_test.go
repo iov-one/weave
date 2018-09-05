@@ -32,8 +32,8 @@ type testcase struct {
 	Deps    []testdep
 	Err     error
 	Msg     weave.Msg
-	C       weave.CheckResult
-	O       []*orm.SimpleObj
+	Res     weave.CheckResult
+	Obj     []*orm.SimpleObj
 }
 
 func newContextWithAuth(conds []weave.Condition) (weave.Context, x.Authenticator) {
@@ -114,7 +114,7 @@ func testHandlerCheck(t *testing.T, testcases []testcase) {
 		res, err := newTestHandler(test.Handler, auth).Check(ctx, db, newTx(test.Msg))
 		if test.Err == nil {
 			require.NoError(t, err, test.Name)
-			require.EqualValues(t, test.C, res, test.Name)
+			require.EqualValues(t, test.Res, res, test.Name)
 		} else {
 			require.Error(t, err, test.Name) // to avoid seg fault at the next line
 			require.EqualError(t, err, test.Err.Error(), test.Name)
@@ -138,7 +138,7 @@ func testHandlerDeliver(t *testing.T, testcases []testcase) {
 		_, err := handler.Deliver(ctx, db, newTx(test.Msg))
 		if test.Err == nil {
 			require.NoError(t, err, test.Name)
-			for _, obj := range test.O {
+			for _, obj := range test.Obj {
 				actual, err := getDeliveredObject(handler, db, obj.Key())
 				require.NoError(t, err, test.Name)
 				require.NotNil(t, actual, t.Name())
@@ -165,7 +165,7 @@ func TestCreateBlogMsgHandlerCheck(t *testing.T) {
 					Title:   "this is a blog title",
 					Authors: [][]byte{signer.Address()},
 				},
-				C: weave.CheckResult{
+				Res: weave.CheckResult{
 					GasAllocated: newBlogCost,
 				},
 			},
@@ -264,7 +264,7 @@ func TestCreateBlogMsgHandlerDeliver(t *testing.T) {
 					Title:   "this is a blog title",
 					Authors: [][]byte{signer.Address()},
 				},
-				O: []*orm.SimpleObj{
+				Obj: []*orm.SimpleObj{
 					orm.NewSimpleObj(
 						[]byte("this_is_a_blog"),
 						&Blog{
@@ -284,7 +284,7 @@ func TestCreateBlogMsgHandlerDeliver(t *testing.T) {
 					Title:   "this is a blog title",
 					Authors: [][]byte{author.Address()},
 				},
-				O: []*orm.SimpleObj{
+				Obj: []*orm.SimpleObj{
 					orm.NewSimpleObj(
 						[]byte("this_is_a_blog"),
 						&Blog{
@@ -326,7 +326,7 @@ func TestCreatePostMsgHandlerCheck(t *testing.T) {
 						},
 					},
 				},
-				C: weave.CheckResult{
+				Res: weave.CheckResult{
 					GasAllocated: newPostCost,
 				},
 			},
@@ -442,7 +442,7 @@ func TestCreatePostMsgHandlerDeliver(t *testing.T) {
 						},
 					},
 				},
-				O: []*orm.SimpleObj{
+				Obj: []*orm.SimpleObj{
 					orm.NewSimpleObj(
 						newPostCompositeKey("this_is_a_blog", 1),
 						&Post{
@@ -489,7 +489,7 @@ func TestRenameBlogMsgHandlerCheck(t *testing.T) {
 						},
 					},
 				},
-				C: weave.CheckResult{
+				Res: weave.CheckResult{
 					GasAllocated: newBlogCost,
 				},
 			},
@@ -548,7 +548,7 @@ func TestRenameBlogMsgHandlerDeliver(t *testing.T) {
 						},
 					},
 				},
-				O: []*orm.SimpleObj{
+				Obj: []*orm.SimpleObj{
 					orm.NewSimpleObj(
 						[]byte("this_is_a_blog"),
 						&Blog{
@@ -589,7 +589,7 @@ func TestChangeBlogAuthorsMsgHandlerCheck(t *testing.T) {
 						},
 					},
 				},
-				C: weave.CheckResult{
+				Res: weave.CheckResult{
 					GasAllocated: newBlogCost,
 				},
 			},
@@ -616,7 +616,7 @@ func TestChangeBlogAuthorsMsgHandlerCheck(t *testing.T) {
 						},
 					},
 				},
-				C: weave.CheckResult{
+				Res: weave.CheckResult{
 					GasAllocated: newBlogCost,
 				},
 			},
@@ -768,7 +768,7 @@ func TestChangeBlogAuthorsMsgHandlerDeliver(t *testing.T) {
 						},
 					},
 				},
-				O: []*orm.SimpleObj{
+				Obj: []*orm.SimpleObj{
 					orm.NewSimpleObj(
 						[]byte("this_is_a_blog"),
 						&Blog{
@@ -799,7 +799,7 @@ func TestChangeBlogAuthorsMsgHandlerDeliver(t *testing.T) {
 						},
 					},
 				},
-				O: []*orm.SimpleObj{
+				Obj: []*orm.SimpleObj{
 					orm.NewSimpleObj(
 						[]byte("this_is_a_blog"),
 						&Blog{
@@ -828,7 +828,7 @@ func TestSetProfileMsgHandlerCheck(t *testing.T) {
 					Name:        "lehajam",
 					Description: "my profile description",
 				},
-				C: weave.CheckResult{
+				Res: weave.CheckResult{
 					GasAllocated: newProfileCost,
 				},
 			},
@@ -868,7 +868,7 @@ func TestSetProfileMsgHandlerDeliver(t *testing.T) {
 					Name:        "lehajam",
 					Description: "my profile description",
 				},
-				O: []*orm.SimpleObj{
+				Obj: []*orm.SimpleObj{
 					orm.NewSimpleObj(
 						[]byte("lehajam"),
 						&Profile{
