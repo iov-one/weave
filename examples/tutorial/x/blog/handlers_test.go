@@ -13,14 +13,35 @@ import (
 
 var newTx = x.TestHelpers{}.MockTx
 
-func newContextWithAuth(addr string) (weave.Context, x.Authenticator) {
+func newContextWithAuth(addr []string) (weave.Context, x.Authenticator) {
 	helpers := x.TestHelpers{}
 	ctx := context.Background()
 	// Set current block height to 100
 	ctx = weave.WithHeight(ctx, 100)
 	auth := helpers.CtxAuth("authKey")
 	// Create a new context and add addr to the list of signers
-	return auth.SetConditions(ctx, weave.Condition(weave.NewAddress([]byte(addr)))), auth
+	var perms []weave.Condition
+	for _, a := range addr {
+		perms = append(perms, weave.Condition(weave.NewAddress([]byte(a))))
+	}
+	return auth.SetConditions(ctx, perms...), auth
+}
+
+func newAuth() x.CtxAuther {
+	helpers := x.TestHelpers{}
+	return helpers.CtxAuth("authKey")
+}
+
+func newContext(auth x.CtxAuther, addr ...string) weave.Context {
+	ctx := context.Background()
+	// Set current block height to 100
+	ctx = weave.WithHeight(ctx, 100)
+	// Create a new context and add addr to the list of signers
+	var perms []weave.Condition
+	for _, a := range addr {
+		perms = append(perms, weave.Condition(weave.NewAddress([]byte(a))))
+	}
+	return auth.SetConditions(ctx, perms...)
 }
 
 func newTestHandler(name string, auth x.Authenticator) weave.Handler {
@@ -55,37 +76,97 @@ func newTestHandler(name string, auth x.Authenticator) weave.Handler {
 		panic(fmt.Errorf("newTestHandler: unknown handler"))
 	}
 }
+
+type testdep struct {
+	name    string
+	handler string
+	msg     weave.Msg
+}
+
+type testcase struct {
+	name    string
+	handler string
+	perms   []string
+	deps    []testdep
+	err     error
+}
+
 func TestCreateBlogMsgHandlerCheck(t *testing.T) {
-	ctx, auth := newContextWithAuth("3AFCDAB4CFBF066E959D139251C8F0EE91E99D5A")
 	testcases := []struct {
-		handler CreateBlogMsgHandler
-		msg     CreateBlogMsg
-		res     weave.CheckResult
+		testcase
+		msg CreateBlogMsg
+		res weave.CheckResult
 	}{
 		{
-			handler: newTestHandler("CreateBlogMsgHandler", auth).(CreateBlogMsgHandler),
+			testcase: testcase{
+				name:    "valid blog",
+				handler: "CreateBlogMsgHandler",
+				perms:   []string{"3AFCDAB4CFBF066E959D139251C8F0EE91E99D5A"}},
 			msg: CreateBlogMsg{
 				Slug:    "this_is_a_blog",
 				Title:   "this is a blog title",
-				Authors: [][]byte{x.MainSigner(ctx, auth).Address()},
+				Authors: [][]byte{weave.NewAddress([]byte("3AFCDAB4CFBF066E959D139251C8F0EE91E99D5A"))},
 			},
 			res: weave.CheckResult{
 				GasAllocated: newBlogCost,
+			},
+		},
+		{
+			testcase: testcase{
+				name:    "no authors",
+				handler: "CreateBlogMsgHandler",
+				perms:   []string{"3AFCDAB4CFBF066E959D139251C8F0EE91E99D5A"},
+				err:     ErrInvalidAuthorCount(0)},
+			msg: CreateBlogMsg{
+				Slug:  "this_is_a_blog",
+				Title: "this is a blog title",
+			},
+		},
+		{
+			testcase: testcase{
+				name:    "no slug",
+				handler: "CreateBlogMsgHandler",
+				perms:   []string{"3AFCDAB4CFBF066E959D139251C8F0EE91E99D5A"},
+				err:     ErrInvalidName()},
+			msg: CreateBlogMsg{
+				Title: "this is a blog title",
+			},
+		},
+		{
+			testcase: testcase{
+				name:    "no title",
+				handler: "CreateBlogMsgHandler",
+				perms:   []string{"3AFCDAB4CFBF066E959D139251C8F0EE91E99D5A"},
+				err:     ErrTitleTooLong()},
+			msg: CreateBlogMsg{
+				Slug: "this_is_a_blog",
 			},
 		},
 	}
 
 	for _, test := range testcases {
 		db := store.MemStore()
-		res, err := test.handler.Check(ctx, db, newTx(&test.msg))
-		require.NoError(t, err)
-		require.Equal(t, newBlogCost, res.GasAllocated,
-			fmt.Sprintf("gas allocated cost was equal to %d", res.GasAllocated))
+		ctx, auth := newContextWithAuth(test.perms)
+
+		// add dependencies
+		for _, dep := range test.deps {
+			_, err := newTestHandler(dep.handler, auth).Deliver(ctx, db, newTx(dep.msg))
+			require.NoError(t, err, fmt.Sprintf("Failed to deliver dep %s", dep.name))
+		}
+
+		//run test
+		res, err := newTestHandler(test.handler, auth).Check(ctx, db, newTx(&test.msg))
+		if test.err == nil {
+			require.NoError(t, err)
+			require.EqualValues(t, test.res, res, fmt.Sprintf("gas allocated cost was equal to %d", res.GasAllocated))
+		} else {
+			require.EqualError(t, test.err, err.Error())
+		}
 	}
 }
 
 func TestCreateBlogMsgHandlerDeliver(t *testing.T) {
-	ctx, auth := newContextWithAuth("3AFCDAB4CFBF066E959D139251C8F0EE91E99D5A")
+	ctx, auth := newContextWithAuth([]string{"3AFCDAB4CFBF066E959D139251C8F0EE91E99D5A"})
 	testcases := []struct {
 		handler CreateBlogMsgHandler
 		msg     CreateBlogMsg
@@ -133,7 +214,7 @@ func TestCreateBlogMsgHandlerDeliver(t *testing.T) {
 }
 
 func TestCreatePostMsgHandlerCheck(t *testing.T) {
-	ctx, auth := newContextWithAuth("3AFCDAB4CFBF066E959D139251C8F0EE91E99D5A")
+	ctx, auth := newContextWithAuth([]string{"3AFCDAB4CFBF066E959D139251C8F0EE91E99D5A"})
 	testcases := []struct {
 		handler CreatePostMsgHandler
 		msg     CreatePostMsg
@@ -172,7 +253,7 @@ func TestCreatePostMsgHandlerCheck(t *testing.T) {
 
 func TestCreatePostMsgHandlerDeliver(t *testing.T) {
 	newTx := x.TestHelpers{}.MockTx
-	ctx, auth := newContextWithAuth("3AFCDAB4CFBF066E959D139251C8F0EE91E99D5A")
+	ctx, auth := newContextWithAuth([]string{"3AFCDAB4CFBF066E959D139251C8F0EE91E99D5A"})
 	testcases := []struct {
 		handler CreatePostMsgHandler
 		msg     CreatePostMsg
@@ -214,7 +295,7 @@ func TestCreatePostMsgHandlerDeliver(t *testing.T) {
 }
 
 func TestRenameBlogMsgHandlerCheck(t *testing.T) {
-	ctx, auth := newContextWithAuth("3AFCDAB4CFBF066E959D139251C8F0EE91E99D5A")
+	ctx, auth := newContextWithAuth([]string{"3AFCDAB4CFBF066E959D139251C8F0EE91E99D5A"})
 	testcases := []struct {
 		handler RenameBlogMsgHandler
 		msg     RenameBlogMsg
@@ -251,7 +332,7 @@ func TestRenameBlogMsgHandlerCheck(t *testing.T) {
 }
 
 func TestRenameBlogMsgHandlerDeliver(t *testing.T) {
-	ctx, auth := newContextWithAuth("3AFCDAB4CFBF066E959D139251C8F0EE91E99D5A")
+	ctx, auth := newContextWithAuth([]string{"3AFCDAB4CFBF066E959D139251C8F0EE91E99D5A"})
 	testcases := []struct {
 		handler RenameBlogMsgHandler
 		msg     RenameBlogMsg
@@ -288,7 +369,7 @@ func TestRenameBlogMsgHandlerDeliver(t *testing.T) {
 }
 
 func TestChangeBlogAuthorsMsgHandlerCheck(t *testing.T) {
-	ctx, auth := newContextWithAuth("3AFCDAB4CFBF066E959D139251C8F0EE91E99D5A")
+	ctx, auth := newContextWithAuth([]string{"3AFCDAB4CFBF066E959D139251C8F0EE91E99D5A"})
 	testcases := []struct {
 		handler ChangeBlogAuthorsMsgHandler
 		msg     ChangeBlogAuthorsMsg
@@ -345,7 +426,7 @@ func TestChangeBlogAuthorsMsgHandlerCheck(t *testing.T) {
 }
 
 func TestChangeBlogAuthorsMsgHandlerDeliver(t *testing.T) {
-	ctx, auth := newContextWithAuth("3AFCDAB4CFBF066E959D139251C8F0EE91E99D5A")
+	ctx, auth := newContextWithAuth([]string{"3AFCDAB4CFBF066E959D139251C8F0EE91E99D5A"})
 	testcases := []struct {
 		name    string
 		handler ChangeBlogAuthorsMsgHandler
@@ -410,7 +491,7 @@ func TestChangeBlogAuthorsMsgHandlerDeliver(t *testing.T) {
 }
 
 func TestSetProfileMsgHandlerCheck(t *testing.T) {
-	ctx, auth := newContextWithAuth("3AFCDAB4CFBF066E959D139251C8F0EE91E99D5A")
+	ctx, auth := newContextWithAuth([]string{"3AFCDAB4CFBF066E959D139251C8F0EE91E99D5A"})
 	testcases := []struct {
 		handler SetProfileMsgHandler
 		msg     SetProfileMsg
@@ -437,7 +518,7 @@ func TestSetProfileMsgHandlerCheck(t *testing.T) {
 	}
 }
 func TestSetProfileMsgHandlerDeliver(t *testing.T) {
-	ctx, auth := newContextWithAuth("3AFCDAB4CFBF066E959D139251C8F0EE91E99D5A")
+	ctx, auth := newContextWithAuth([]string{"3AFCDAB4CFBF066E959D139251C8F0EE91E99D5A"})
 	testcases := []struct {
 		handler SetProfileMsgHandler
 		msg     SetProfileMsg
