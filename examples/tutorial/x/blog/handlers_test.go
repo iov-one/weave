@@ -878,6 +878,34 @@ func TestSetProfileMsgHandlerDeliver(t *testing.T) {
 					),
 				},
 			},
+			{
+				Name:    "update",
+				Handler: "SetProfileMsgHandler",
+				Perms:   []weave.Condition{signer},
+				Msg: &SetProfileMsg{
+					Name:        "lehajam",
+					Description: "my updated profile description",
+				},
+				Deps: []testdep{
+					testdep{
+						Name:    "profile",
+						Handler: "SetProfileMsgHandler",
+						Msg: &SetProfileMsg{
+							Name:        "lehajam",
+							Description: "my profile description",
+						},
+					},
+				},
+				Obj: []*orm.SimpleObj{
+					orm.NewSimpleObj(
+						[]byte("lehajam"),
+						&Profile{
+							Name:        "lehajam",
+							Description: "my updated profile description",
+						},
+					),
+				},
+			},
 		},
 	)
 }
