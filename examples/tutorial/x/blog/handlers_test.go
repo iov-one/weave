@@ -2,9 +2,10 @@ package blog
 
 import (
 	"context"
-	"encoding/hex"
 	"fmt"
 	"testing"
+
+	"github.com/iov-one/weave/orm"
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
@@ -18,39 +19,29 @@ var (
 	helpers = x.TestHelpers{}
 )
 
-func toWeaveAddress(addr string) weave.Address {
-	d, err := hex.DecodeString(addr)
-	if err != nil {
-		panic(err)
-	}
-	return d
+type testdep struct {
+	Name    string
+	Handler string
+	Msg     weave.Msg
 }
 
-func newContextWithAuth(addr []string) (weave.Context, x.Authenticator) {
+type testcase struct {
+	Name    string
+	Handler string
+	Perms   []weave.Condition
+	Deps    []testdep
+	Err     error
+	Msg     weave.Msg
+	C       weave.CheckResult
+	O       []*orm.SimpleObj
+}
+
+func newContextWithAuth(conds []weave.Condition) (weave.Context, x.Authenticator) {
 	ctx := context.Background()
 	// Set current block height to 100
 	ctx = weave.WithHeight(ctx, 100)
 	auth := helpers.CtxAuth("authKey")
 	// Create a new context and add addr to the list of signers
-	var perms []weave.Condition
-	for _, a := range addr {
-		// perms = append(perms, weave.Condition(weave.NewAddress([]byte(a))))
-		perms = append(perms, weave.Condition(toWeaveAddress(a)))
-	}
-	return auth.SetConditions(ctx, perms...), auth
-}
-
-func newContextWithAuth1(conds []weave.Condition) (weave.Context, x.Authenticator) {
-	ctx := context.Background()
-	// Set current block height to 100
-	ctx = weave.WithHeight(ctx, 100)
-	auth := helpers.CtxAuth("authKey")
-	// Create a new context and add addr to the list of signers
-	// var perms []weave.Condition
-	// for _, a := range addr {
-	// 	// perms = append(perms, weave.Condition(weave.NewAddress([]byte(a))))
-	// 	perms = append(perms, weave.Condition(toWeaveAddress(a)))
-	// }
 	return auth.SetConditions(ctx, conds...), auth
 }
 
@@ -87,27 +78,31 @@ func newTestHandler(name string, auth x.Authenticator) weave.Handler {
 	}
 }
 
-type testdep struct {
-	Name    string
-	Handler string
-	Msg     weave.Msg
-}
-
-type testcase struct {
-	Name    string
-	Handler string
-	Perms   []weave.Condition
-	Deps    []testdep
-	Err     error
-	Msg     weave.Msg
-	C       weave.CheckResult
-	D       weave.DeliverResult
+func getDeliveredObject(handler weave.Handler, db weave.KVStore, key []byte) (orm.Object, error) {
+	switch t := handler.(type) {
+	case CreateBlogMsgHandler:
+		return t.bucket.Get(db, key)
+	case CreatePostMsgHandler:
+		obj, err := t.posts.Get(db, key) // try posts first
+		if obj == nil {
+			return t.blogs.Get(db, key) // then blogs
+		}
+		return obj, err
+	case RenameBlogMsgHandler:
+		return t.bucket.Get(db, key)
+	case ChangeBlogAuthorsMsgHandler:
+		return t.bucket.Get(db, key)
+	case SetProfileMsgHandler:
+		return t.bucket.Get(db, key)
+	default:
+		panic(fmt.Errorf("getDeliveredObject: unknown handler"))
+	}
 }
 
 func testHandlerCheck(t *testing.T, testcases []testcase) {
 	for _, test := range testcases {
 		db := store.MemStore()
-		ctx, auth := newContextWithAuth1(test.Perms)
+		ctx, auth := newContextWithAuth(test.Perms)
 
 		// add dependencies
 		for _, dep := range test.Deps {
@@ -120,6 +115,35 @@ func testHandlerCheck(t *testing.T, testcases []testcase) {
 		if test.Err == nil {
 			require.NoError(t, err, test.Name)
 			require.EqualValues(t, test.C, res, test.Name)
+		} else {
+			require.Error(t, err, test.Name) // to avoid seg fault at the next line
+			require.EqualError(t, err, test.Err.Error(), test.Name)
+		}
+	}
+}
+
+func testHandlerDeliver(t *testing.T, testcases []testcase) {
+	for _, test := range testcases {
+		db := store.MemStore()
+		ctx, auth := newContextWithAuth(test.Perms)
+
+		// add dependencies
+		for _, dep := range test.Deps {
+			_, err := newTestHandler(dep.Handler, auth).Deliver(ctx, db, newTx(dep.Msg))
+			require.NoError(t, err, fmt.Sprintf("Failed to deliver dep %s\n", dep.Name))
+		}
+
+		//run test
+		handler := newTestHandler(test.Handler, auth)
+		_, err := handler.Deliver(ctx, db, newTx(test.Msg))
+		if test.Err == nil {
+			require.NoError(t, err, test.Name)
+			for _, obj := range test.O {
+				actual, err := getDeliveredObject(handler, db, obj.Key())
+				require.NoError(t, err, test.Name)
+				require.NotNil(t, actual, t.Name())
+				require.EqualValues(t, obj.Value(), actual.Value(), test.Name)
+			}
 		} else {
 			require.Error(t, err, test.Name) // to avoid seg fault at the next line
 			require.EqualError(t, err, test.Err.Error(), test.Name)
@@ -226,51 +250,53 @@ func TestCreateBlogMsgHandlerCheck(t *testing.T) {
 	)
 }
 func TestCreateBlogMsgHandlerDeliver(t *testing.T) {
-	ctx, auth := newContextWithAuth([]string{"3AFCDAB4CFBF066E959D139251C8F0EE91E99D5A"})
-	testcases := []struct {
-		handler CreateBlogMsgHandler
-		msg     CreateBlogMsg
-		obj     Blog
-	}{
-		{
-			handler: newTestHandler("CreateBlogMsgHandler", auth).(CreateBlogMsgHandler),
-			msg: CreateBlogMsg{
-				Slug:    "this_is_a_blog",
-				Title:   "this is a blog title",
-				Authors: [][]byte{x.MainSigner(ctx, auth).Address()},
+	_, signer := x.TestHelpers{}.MakeKey()
+	_, author := x.TestHelpers{}.MakeKey()
+	testHandlerDeliver(
+		t,
+		[]testcase{
+			{
+				Name:    "valid blog",
+				Handler: "CreateBlogMsgHandler",
+				Perms:   []weave.Condition{signer},
+				Msg: &CreateBlogMsg{
+					Slug:    "this_is_a_blog",
+					Title:   "this is a blog title",
+					Authors: [][]byte{signer.Address()},
+				},
+				O: []*orm.SimpleObj{
+					orm.NewSimpleObj(
+						[]byte("this_is_a_blog"),
+						&Blog{
+							Title:       "this is a blog title",
+							NumArticles: 0,
+							Authors:     [][]byte{signer.Address()},
+						},
+					),
+				},
 			},
-			obj: Blog{
-				Title:       "this is a blog title",
-				NumArticles: 0,
-				Authors:     [][]byte{x.MainSigner(ctx, auth).Address()},
-			},
-		},
-		{
-			handler: newTestHandler("CreateBlogMsgHandler", auth).(CreateBlogMsgHandler),
-			msg: CreateBlogMsg{
-				Slug:    "this_is_a_blog",
-				Title:   "this is a blog title",
-				Authors: [][]byte{weave.NewAddress([]byte("12AFFBF6012FD2DF21416582DC80CBF1EFDF2460"))},
-			},
-			obj: Blog{
-				Title:       "this is a blog title",
-				NumArticles: 0,
-				Authors: [][]byte{
-					weave.NewAddress([]byte("12AFFBF6012FD2DF21416582DC80CBF1EFDF2460")),
-					x.MainSigner(ctx, auth).Address(),
+			{
+				Name:    "adding signer to authors",
+				Handler: "CreateBlogMsgHandler",
+				Perms:   []weave.Condition{signer},
+				Msg: &CreateBlogMsg{
+					Slug:    "this_is_a_blog",
+					Title:   "this is a blog title",
+					Authors: [][]byte{author.Address()},
+				},
+				O: []*orm.SimpleObj{
+					orm.NewSimpleObj(
+						[]byte("this_is_a_blog"),
+						&Blog{
+							Title:       "this is a blog title",
+							NumArticles: 0,
+							Authors:     [][]byte{author.Address(), signer.Address()},
+						},
+					),
 				},
 			},
 		},
-	}
-
-	for _, test := range testcases {
-		db := store.MemStore()
-		_, err := test.handler.Deliver(ctx, db, newTx(&test.msg))
-		require.NoError(t, err)
-
-		actual, _ := test.handler.bucket.Get(db, []byte("this_is_a_blog"))
-		require.EqualValues(t, test.obj, *actual.Value().(*Blog))
-	}
+	)
 }
 func TestCreatePostMsgHandlerCheck(t *testing.T) {
 	_, signer := helpers.MakeKey()
@@ -391,46 +417,53 @@ func TestCreatePostMsgHandlerCheck(t *testing.T) {
 	)
 }
 func TestCreatePostMsgHandlerDeliver(t *testing.T) {
-	newTx := x.TestHelpers{}.MockTx
-	ctx, auth := newContextWithAuth([]string{"3AFCDAB4CFBF066E959D139251C8F0EE91E99D5A"})
-	testcases := []struct {
-		handler CreatePostMsgHandler
-		msg     CreatePostMsg
-		parent  CreateBlogMsg
-		obj     Post
-	}{
-		{
-			handler: newTestHandler("CreatePostMsgHandler", auth).(CreatePostMsgHandler),
-			msg: CreatePostMsg{
-				Blog:   "this_is_a_blog",
-				Title:  "this is a title",
-				Text:   "We have created a room for live communication that is solely dedicated to high-level product discussions because this is a crucial support for fostering a technical user base within our broader community. Just as IOV is developing a full platform suite that includes retail products such as the universal wallet and B2B tools such as the BNS, each kind of community has a place in the movement toward mass adoption of blockchains which we aspire to lead.",
-				Author: x.MainSigner(ctx, auth).Address(),
-			},
-			parent: CreateBlogMsg{
-				Slug:    "this_is_a_blog",
-				Title:   "this is a blog title",
-				Authors: [][]byte{x.MainSigner(ctx, auth).Address()},
-			},
-			obj: Post{
-				Title:         "this is a title",
-				Text:          "We have created a room for live communication that is solely dedicated to high-level product discussions because this is a crucial support for fostering a technical user base within our broader community. Just as IOV is developing a full platform suite that includes retail products such as the universal wallet and B2B tools such as the BNS, each kind of community has a place in the movement toward mass adoption of blockchains which we aspire to lead.",
-				Author:        x.MainSigner(ctx, auth).Address(),
-				CreationBlock: 100,
+	_, signer := helpers.MakeKey()
+	testHandlerDeliver(
+		t,
+		[]testcase{
+			{
+				Name:    "valid post",
+				Handler: "CreatePostMsgHandler",
+				Perms:   []weave.Condition{signer},
+				Msg: &CreatePostMsg{
+					Blog:   "this_is_a_blog",
+					Title:  "this is a post title",
+					Text:   "We have created a room for live communication that is solely dedicated to high-level product discussions because this is a crucial support for fostering a technical user base within our broader community. Just as IOV is developing a full platform suite that includes retail products such as the universal wallet and B2B tools such as the BNS, each kind of community has a place in the movement toward mass adoption of blockchains which we aspire to lead.",
+					Author: signer.Address(),
+				},
+				Deps: []testdep{
+					testdep{
+						Name:    "Blog",
+						Handler: "CreateBlogMsgHandler",
+						Msg: &CreateBlogMsg{
+							Slug:    "this_is_a_blog",
+							Title:   "this is a blog title",
+							Authors: [][]byte{signer.Address()},
+						},
+					},
+				},
+				O: []*orm.SimpleObj{
+					orm.NewSimpleObj(
+						newPostCompositeKey("this_is_a_blog", 1),
+						&Post{
+							Title:         "this is a post title",
+							Text:          "We have created a room for live communication that is solely dedicated to high-level product discussions because this is a crucial support for fostering a technical user base within our broader community. Just as IOV is developing a full platform suite that includes retail products such as the universal wallet and B2B tools such as the BNS, each kind of community has a place in the movement toward mass adoption of blockchains which we aspire to lead.",
+							Author:        signer.Address(),
+							CreationBlock: 100,
+						},
+					),
+					orm.NewSimpleObj(
+						[]byte("this_is_a_blog"),
+						&Blog{
+							Title:       "this is a blog title",
+							NumArticles: 1,
+							Authors:     [][]byte{signer.Address()},
+						},
+					),
+				},
 			},
 		},
-	}
-
-	for _, test := range testcases {
-		db := store.MemStore()
-		newTestHandler("CreateBlogMsgHandler", auth).Deliver(ctx, db, newTx(&test.parent))
-		_, err := test.handler.Deliver(ctx, db, newTx(&test.msg))
-		require.NoError(t, err)
-		actual, _ := test.handler.posts.Get(db, newPostCompositeKey("this_is_a_blog", 1))
-		require.EqualValues(t, test.obj, *actual.Value().(*Post))
-		actual, _ = test.handler.blogs.Get(db, []byte("this_is_a_blog"))
-		require.EqualValues(t, 1, actual.Value().(*Blog).GetNumArticles())
-	}
+	)
 }
 func TestRenameBlogMsgHandlerCheck(t *testing.T) {
 	_, signer := helpers.MakeKey()
@@ -492,40 +525,42 @@ func TestRenameBlogMsgHandlerCheck(t *testing.T) {
 	)
 }
 func TestRenameBlogMsgHandlerDeliver(t *testing.T) {
-	ctx, auth := newContextWithAuth([]string{"3AFCDAB4CFBF066E959D139251C8F0EE91E99D5A"})
-	testcases := []struct {
-		handler RenameBlogMsgHandler
-		msg     RenameBlogMsg
-		parent  CreateBlogMsg
-		obj     Blog
-	}{
-		{
-			handler: newTestHandler("RenameBlogMsgHandler", auth).(RenameBlogMsgHandler),
-			msg: RenameBlogMsg{
-				Slug:  "this_is_a_blog",
-				Title: "this is a blog title which has been renamed",
-			},
-			parent: CreateBlogMsg{
-				Slug:    "this_is_a_blog",
-				Title:   "this is a blog title",
-				Authors: [][]byte{x.MainSigner(ctx, auth).Address()},
-			},
-			obj: Blog{
-				Title:       "this is a blog title which has been renamed",
-				NumArticles: 0,
-				Authors:     [][]byte{x.MainSigner(ctx, auth).Address()},
+	_, signer := helpers.MakeKey()
+	testHandlerDeliver(
+		t,
+		[]testcase{
+			{
+				Name:    "valid post",
+				Handler: "RenameBlogMsgHandler",
+				Perms:   []weave.Condition{signer},
+				Msg: &RenameBlogMsg{
+					Slug:  "this_is_a_blog",
+					Title: "this is a blog title which has been renamed",
+				},
+				Deps: []testdep{
+					testdep{
+						Name:    "Blog",
+						Handler: "CreateBlogMsgHandler",
+						Msg: &CreateBlogMsg{
+							Slug:    "this_is_a_blog",
+							Title:   "this is a blog title",
+							Authors: [][]byte{signer.Address()},
+						},
+					},
+				},
+				O: []*orm.SimpleObj{
+					orm.NewSimpleObj(
+						[]byte("this_is_a_blog"),
+						&Blog{
+							Title:       "this is a blog title which has been renamed",
+							NumArticles: 0,
+							Authors:     [][]byte{signer.Address()},
+						},
+					),
+				},
 			},
 		},
-	}
-
-	for _, test := range testcases {
-		db := store.MemStore()
-		newTestHandler("CreateBlogMsgHandler", auth).Deliver(ctx, db, newTx(&test.parent)) // add blog
-		_, err := test.handler.Deliver(ctx, db, newTx(&test.msg))
-		require.NoError(t, err)
-		actual, _ := test.handler.bucket.Get(db, []byte("this_is_a_blog"))
-		require.EqualValues(t, test.obj, *actual.Value().(*Blog))
-	}
+	)
 }
 func TestChangeBlogAuthorsMsgHandlerCheck(t *testing.T) {
 	_, signer := helpers.MakeKey()
@@ -707,68 +742,76 @@ func TestChangeBlogAuthorsMsgHandlerCheck(t *testing.T) {
 	)
 }
 func TestChangeBlogAuthorsMsgHandlerDeliver(t *testing.T) {
-	ctx, auth := newContextWithAuth([]string{"3AFCDAB4CFBF066E959D139251C8F0EE91E99D5A"})
-	testcases := []struct {
-		name    string
-		handler ChangeBlogAuthorsMsgHandler
-		msg     ChangeBlogAuthorsMsg
-		parent  CreateBlogMsg
-		obj     Blog
-	}{
-		{
-			name:    "Remove author",
-			handler: newTestHandler("ChangeBlogAuthorsMsgHandler", auth).(ChangeBlogAuthorsMsgHandler),
-			msg: ChangeBlogAuthorsMsg{
-				Slug:   "this_is_a_blog",
-				Author: weave.NewAddress([]byte("12AFFBF6012FD2DF21416582DC80CBF1EFDF2460")),
-				Add:    false,
-			},
-			parent: CreateBlogMsg{
-				Slug:  "this_is_a_blog",
-				Title: "this is a blog title",
-				Authors: [][]byte{
-					weave.NewAddress([]byte("12AFFBF6012FD2DF21416582DC80CBF1EFDF2460")),
-					x.MainSigner(ctx, auth).Address(),
+	_, signer := helpers.MakeKey()
+	_, newAuthor := helpers.MakeKey()
+	_, authorToRemove := helpers.MakeKey()
+	testHandlerDeliver(
+		t,
+		[]testcase{
+			{
+				Name:    "add",
+				Handler: "ChangeBlogAuthorsMsgHandler",
+				Perms:   []weave.Condition{signer},
+				Msg: &ChangeBlogAuthorsMsg{
+					Slug:   "this_is_a_blog",
+					Author: newAuthor.Address(),
+					Add:    true,
+				},
+				Deps: []testdep{
+					testdep{
+						Name:    "Blog",
+						Handler: "CreateBlogMsgHandler",
+						Msg: &CreateBlogMsg{
+							Slug:    "this_is_a_blog",
+							Title:   "this is a blog title",
+							Authors: [][]byte{signer.Address()},
+						},
+					},
+				},
+				O: []*orm.SimpleObj{
+					orm.NewSimpleObj(
+						[]byte("this_is_a_blog"),
+						&Blog{
+							Title:       "this is a blog title",
+							NumArticles: 0,
+							Authors:     [][]byte{signer.Address(), newAuthor.Address()},
+						},
+					),
 				},
 			},
-			obj: Blog{
-				Title:       "this is a blog title",
-				NumArticles: 0,
-				Authors:     [][]byte{x.MainSigner(ctx, auth).Address()},
-			},
-		},
-		{
-			name:    "Add author",
-			handler: newTestHandler("ChangeBlogAuthorsMsgHandler", auth).(ChangeBlogAuthorsMsgHandler),
-			msg: ChangeBlogAuthorsMsg{
-				Slug:   "this_is_a_blog",
-				Author: weave.NewAddress([]byte("12AFFBF6012FD2DF21416582DC80CBF1EFDF2460")),
-				Add:    true,
-			},
-			parent: CreateBlogMsg{
-				Slug:    "this_is_a_blog",
-				Title:   "this is a blog title",
-				Authors: [][]byte{x.MainSigner(ctx, auth).Address()},
-			},
-			obj: Blog{
-				Title:       "this is a blog title",
-				NumArticles: 0,
-				Authors: [][]byte{
-					x.MainSigner(ctx, auth).Address(),
-					weave.NewAddress([]byte("12AFFBF6012FD2DF21416582DC80CBF1EFDF2460")),
+			{
+				Name:    "remove",
+				Handler: "ChangeBlogAuthorsMsgHandler",
+				Perms:   []weave.Condition{signer},
+				Msg: &ChangeBlogAuthorsMsg{
+					Slug:   "this_is_a_blog",
+					Author: authorToRemove.Address(),
+					Add:    false,
+				},
+				Deps: []testdep{
+					testdep{
+						Name:    "Blog",
+						Handler: "CreateBlogMsgHandler",
+						Msg: &CreateBlogMsg{
+							Slug:    "this_is_a_blog",
+							Title:   "this is a blog title",
+							Authors: [][]byte{signer.Address(), authorToRemove.Address()},
+						},
+					},
+				},
+				O: []*orm.SimpleObj{
+					orm.NewSimpleObj(
+						[]byte("this_is_a_blog"),
+						&Blog{
+							Title:       "this is a blog title",
+							NumArticles: 0,
+							Authors:     [][]byte{signer.Address()},
+						},
+					),
 				},
 			},
 		},
-	}
-
-	for _, test := range testcases {
-		db := store.MemStore()
-		newTestHandler("CreateBlogMsgHandler", auth).Deliver(ctx, db, newTx(&test.parent)) // add blog
-		_, err := test.handler.Deliver(ctx, db, newTx(&test.msg))
-		require.NoError(t, err, test.name)
-		actual, _ := test.handler.bucket.Get(db, []byte("this_is_a_blog"))
-		require.EqualValues(t, test.obj, *actual.Value().(*Blog), test.name)
-	}
+	)
 }
 func TestSetProfileMsgHandlerCheck(t *testing.T) {
 	_, signer := helpers.MakeKey()
@@ -813,30 +856,28 @@ func TestSetProfileMsgHandlerCheck(t *testing.T) {
 	)
 }
 func TestSetProfileMsgHandlerDeliver(t *testing.T) {
-	ctx, auth := newContextWithAuth([]string{"3AFCDAB4CFBF066E959D139251C8F0EE91E99D5A"})
-	testcases := []struct {
-		handler SetProfileMsgHandler
-		msg     SetProfileMsg
-		obj     Profile
-	}{
-		{
-			handler: newTestHandler("SetProfileMsgHandler", auth).(SetProfileMsgHandler),
-			msg: SetProfileMsg{
-				Name:        "lehajam",
-				Description: "my profile description",
-			},
-			obj: Profile{
-				Name:        "lehajam",
-				Description: "my profile description",
+	_, signer := helpers.MakeKey()
+	testHandlerDeliver(
+		t,
+		[]testcase{
+			{
+				Name:    "add",
+				Handler: "SetProfileMsgHandler",
+				Perms:   []weave.Condition{signer},
+				Msg: &SetProfileMsg{
+					Name:        "lehajam",
+					Description: "my profile description",
+				},
+				O: []*orm.SimpleObj{
+					orm.NewSimpleObj(
+						[]byte("lehajam"),
+						&Profile{
+							Name:        "lehajam",
+							Description: "my profile description",
+						},
+					),
+				},
 			},
 		},
-	}
-
-	for _, test := range testcases {
-		db := store.MemStore()
-		_, err := test.handler.Deliver(ctx, db, newTx(&test.msg))
-		require.NoError(t, err)
-		actual, _ := test.handler.bucket.Get(db, []byte("lehajam"))
-		require.EqualValues(t, test.obj, *actual.Value().(*Profile))
-	}
+	)
 }
