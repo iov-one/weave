@@ -21,12 +21,13 @@ var (
 	errInvalidName        = fmt.Errorf("Name is too long")
 	errDescriptionTooLong = fmt.Errorf("Description is too long")
 
-	errNoAuthor               = fmt.Errorf("No author for post")
-	errInvalidAuthorCount     = fmt.Errorf("Invalid number of blog authors")
-	errUnauthorisedBlogAuthor = fmt.Errorf("Unauthorised blog author")
-	errUnauthorisedPostAuthor = fmt.Errorf("Unauthorised post author")
-	errAuthorNotFound         = fmt.Errorf("Author not found")
-	errAuthorAlreadyExist     = fmt.Errorf("Author already exists")
+	errNoAuthor                  = fmt.Errorf("No author for post")
+	errInvalidAuthorCount        = fmt.Errorf("Invalid number of blog authors")
+	errUnauthorisedBlogAuthor    = fmt.Errorf("Unauthorised blog author")
+	errUnauthorisedPostAuthor    = fmt.Errorf("Unauthorised post author")
+	errUnauthorisedProfileAuthor = fmt.Errorf("Unauthorised profile author")
+	errAuthorNotFound            = fmt.Errorf("Author not found")
+	errAuthorAlreadyExist        = fmt.Errorf("Author already exists")
 
 	errNegativeArticles = fmt.Errorf("Article count is negative")
 	errNegativeCreation = fmt.Errorf("Creation block is negative")
@@ -59,18 +60,25 @@ func ErrInvalidAuthorCount(count int) error {
 	msg := fmt.Sprintf("authors=%d", count)
 	return errors.WithLog(msg, errInvalidAuthorCount, CodeInvalidAuthor)
 }
-func ErrUnauthorisedBlogAuthor() error {
-	return errors.WithCode(errUnauthorisedBlogAuthor, CodeInvalidAuthor)
+func ErrUnauthorisedBlogAuthor(author []byte) error {
+	msg := fmt.Sprintf("author=%X", author)
+	return errors.WithLog(msg, errUnauthorisedBlogAuthor, CodeInvalidAuthor)
 }
-func ErrUnauthorisedPostAuthor() error {
-	return errors.WithCode(errUnauthorisedPostAuthor, CodeInvalidAuthor)
+func ErrUnauthorisedPostAuthor(author []byte) error {
+	msg := fmt.Sprintf("author=%X", author)
+	return errors.WithLog(msg, errUnauthorisedPostAuthor, CodeInvalidAuthor)
 }
-func ErrAuthorNotFound(author string) error {
-	msg := fmt.Sprintf("author=%s", author)
+func ErrUnauthorisedProfileAuthor(author []byte) error {
+	msg := fmt.Sprintf("author=%X", author)
+	return errors.WithLog(msg, errUnauthorisedPostAuthor, CodeInvalidAuthor)
+}
+func ErrAuthorNotFound(author []byte) error {
+	msg := fmt.Sprintf("author=%X", author)
 	return errors.WithLog(msg, errAuthorNotFound, CodeInvalidAuthor)
 }
-func ErrAuthorAlreadyExist() error {
-	return errors.WithCode(errAuthorAlreadyExist, CodeInvalidAuthor)
+func ErrAuthorAlreadyExist(author []byte) error {
+	msg := fmt.Sprintf("author=%X", author)
+	return errors.WithLog(msg, errAuthorAlreadyExist, CodeInvalidAuthor)
 }
 func IsInvalidAuthorError(err error) bool {
 	return errors.HasErrorCode(err, CodeInvalidAuthor)
