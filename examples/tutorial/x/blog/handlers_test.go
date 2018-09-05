@@ -78,91 +78,91 @@ func newTestHandler(name string, auth x.Authenticator) weave.Handler {
 }
 
 type testdep struct {
-	name    string
-	handler string
-	msg     weave.Msg
+	Name    string
+	Handler string
+	Msg     weave.Msg
 }
 
 type testcase struct {
-	name    string
-	handler string
-	perms   []string
-	deps    []testdep
-	err     error
+	Name    string
+	Handler string
+	Perms   []string
+	Deps    []testdep
+	Err     error
+	Msg     weave.Msg
+	C       weave.CheckResult
+	D       weave.DeliverResult
 }
 
-func TestCreateBlogMsgHandlerCheck(t *testing.T) {
-	testcases := []struct {
-		testcase
-		msg CreateBlogMsg
-		res weave.CheckResult
-	}{
-		{
-			testcase: testcase{
-				name:    "valid blog",
-				handler: "CreateBlogMsgHandler",
-				perms:   []string{"3AFCDAB4CFBF066E959D139251C8F0EE91E99D5A"}},
-			msg: CreateBlogMsg{
-				Slug:    "this_is_a_blog",
-				Title:   "this is a blog title",
-				Authors: [][]byte{weave.NewAddress([]byte("3AFCDAB4CFBF066E959D139251C8F0EE91E99D5A"))},
-			},
-			res: weave.CheckResult{
-				GasAllocated: newBlogCost,
-			},
-		},
-		{
-			testcase: testcase{
-				name:    "no authors",
-				handler: "CreateBlogMsgHandler",
-				perms:   []string{"3AFCDAB4CFBF066E959D139251C8F0EE91E99D5A"},
-				err:     ErrInvalidAuthorCount(0)},
-			msg: CreateBlogMsg{
-				Slug:  "this_is_a_blog",
-				Title: "this is a blog title",
-			},
-		},
-		{
-			testcase: testcase{
-				name:    "no slug",
-				handler: "CreateBlogMsgHandler",
-				perms:   []string{"3AFCDAB4CFBF066E959D139251C8F0EE91E99D5A"},
-				err:     ErrInvalidName()},
-			msg: CreateBlogMsg{
-				Title: "this is a blog title",
-			},
-		},
-		{
-			testcase: testcase{
-				name:    "no title",
-				handler: "CreateBlogMsgHandler",
-				perms:   []string{"3AFCDAB4CFBF066E959D139251C8F0EE91E99D5A"},
-				err:     ErrTitleTooLong()},
-			msg: CreateBlogMsg{
-				Slug: "this_is_a_blog",
-			},
-		},
-	}
-
+func testHandlerCheck(t *testing.T, testcases []testcase) {
 	for _, test := range testcases {
 		db := store.MemStore()
-		ctx, auth := newContextWithAuth(test.perms)
+		ctx, auth := newContextWithAuth(test.Perms)
 
 		// add dependencies
-		for _, dep := range test.deps {
-			_, err := newTestHandler(dep.handler, auth).Deliver(ctx, db, newTx(dep.msg))
-			require.NoError(t, err, fmt.Sprintf("Failed to deliver dep %s", dep.name))
+		for _, dep := range test.Deps {
+			_, err := newTestHandler(dep.Handler, auth).Deliver(ctx, db, newTx(dep.Msg))
+			require.NoError(t, err, fmt.Sprintf("Failed to deliver dep %s", dep.Name))
 		}
 
 		//run test
-		res, err := newTestHandler(test.handler, auth).Check(ctx, db, newTx(&test.msg))
-		if test.err == nil {
+		res, err := newTestHandler(test.Handler, auth).Check(ctx, db, newTx(test.Msg))
+		if test.Err == nil {
 			require.NoError(t, err)
-			require.EqualValues(t, test.res, res, fmt.Sprintf("gas allocated cost was equal to %d", res.GasAllocated))
+			require.EqualValues(t, test.C, res, fmt.Sprintf("gas allocated cost was equal to %d", res.GasAllocated))
 		} else {
-			require.EqualError(t, test.err, err.Error())
+			require.EqualError(t, test.Err, err.Error())
 		}
 	}
+}
+
+func TestCreateBlogMsgHandlerCheck(t *testing.T) {
+	testHandlerCheck(
+		t,
+		[]testcase{
+			{
+				Name:    "valid blog",
+				Handler: "CreateBlogMsgHandler",
+				Perms:   []string{"3AFCDAB4CFBF066E959D139251C8F0EE91E99D5A"},
+				Msg: &CreateBlogMsg{
+					Slug:    "this_is_a_blog",
+					Title:   "this is a blog title",
+					Authors: [][]byte{weave.NewAddress([]byte("3AFCDAB4CFBF066E959D139251C8F0EE91E99D5A"))},
+				},
+				C: weave.CheckResult{
+					GasAllocated: newBlogCost,
+				},
+			},
+			{
+				Name:    "no authors",
+				Handler: "CreateBlogMsgHandler",
+				Perms:   []string{"3AFCDAB4CFBF066E959D139251C8F0EE91E99D5A"},
+				Err:     ErrInvalidAuthorCount(0),
+				Msg: &CreateBlogMsg{
+					Slug:  "this_is_a_blog",
+					Title: "this is a blog title",
+				},
+			},
+			{
+				Name:    "no slug",
+				Handler: "CreateBlogMsgHandler",
+				Perms:   []string{"3AFCDAB4CFBF066E959D139251C8F0EE91E99D5A"},
+				Err:     ErrInvalidName(),
+				Msg: &CreateBlogMsg{
+					Title: "this is a blog title",
+				},
+			},
+			{
+				Name:    "no title",
+				Handler: "CreateBlogMsgHandler",
+				Perms:   []string{"3AFCDAB4CFBF066E959D139251C8F0EE91E99D5A"},
+				Err:     ErrTitleTooLong(),
+				Msg: &CreateBlogMsg{
+					Slug: "this_is_a_blog",
+				},
+			},
+		},
+	)
 }
 
 func TestCreateBlogMsgHandlerDeliver(t *testing.T) {
