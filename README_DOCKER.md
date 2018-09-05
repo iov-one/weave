@@ -19,11 +19,11 @@ Tendermint v0.21.0
 ```
 docker volume create bov-volume
 docker run -v bov-volume:/tmhome  -it --rm iov1/tendermint:0.21.0 init --home /tmhome
-docker run --rm -it -v bov-volume:/bovhome iov1/bov:latest -home=/bovhome init
+docker run --rm -it -v bov-volume:/bovhome iov1/bcpd:latest -home=/bovhome init
 ```
 ### Run interactively 
 ```
-docker run --rm -it -v bov-volume:/bovhome iov1/bov:latest -home=/bovhome start -bind=unix:///bovhome/app.sock
+docker run --rm -it -v bov-volume:/bovhome iov1/bcpd:latest -home=/bovhome start -bind=unix:///bovhome/app.sock
 docker run -v bov-volume:/tmhome -p 46656:46656 -p 46657:46657  -it --rm iov1/tendermint:0.21.0 node --home /tmhome --proxy_app="unix:///tmhome/app.sock"
 ```
 
