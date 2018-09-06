@@ -6,37 +6,29 @@ As we have a websocket connection with the tendermint
 server, we can not only query accounts and post transactions
 but also react to events. This is very nice for modern
 interfaces, but also less thoroughly tested (both in tendermint
-and in weave-js) and there may be some bumps here, especially
+and in iov-core) and there may be some bumps here, especially
 with new versions of tendermint.
 
 Listening for Headers
 ---------------------
 
-.. code:: javascript
+.. code:: typescript
 
-    // subscribe to all new headers, and store in an array
-    let headers = []
-    client.subscribeHeaders(x => headers.push(x))
-    // query the length a few times to see it grow
-    headers.length
-    headers.length
-    // unsubscribe and check that no new headers are added
-    client.unsubscribe()
-    headers.length
-    headers.length
-    // look at one header to see what info is available
-    let mine = headers[1]
-    pprint(mine)
-    // you get similar info by querying
-    let height = mine.block.header.height
-    let head = await client.header(height)
-    let block = await client.block(height)
-    pprint(head)
-    pprint(block)
-    pprint(mine)
-    // one has block, other block_meta....
-    JSON.stringify(block.block) === JSON.stringify(mine.block)
-    JSON.stringify(head) === JSON.stringify(block.block_meta)
+  const writer = new IovWriter(new UserProfile());
+  await writer.addChain(bnsConnector(TESTNET_WS_URL));
+
+  const chainId = writer.chainIds()[0];
+  const maxWatchMillis = 5000;
+  const liveHeight = lastValue(writer.reader(chainId).changeBlock().endWhen(xs.periodic(maxWatchMillis)));
+
+  function delay(ms: number) {
+    return new Promise( resolve => setTimeout(resolve, ms) );
+  }
+
+  for (let i = 0; i < 11 ; i++) {
+    await delay(500);
+    console.log(liveHeight.value());
+  }
 
 
 Listening for Transactions
