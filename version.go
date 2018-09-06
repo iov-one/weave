@@ -4,7 +4,7 @@ package weave
 const Maj = 0
 
 // Min is the minor version number (updated on minor releases)
-const Min = 6
+const Min = 7
 
 // Fix is the patch number (updated on bugfix releases)
 const Fix = 0
