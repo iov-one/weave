@@ -62,19 +62,57 @@ const longText = "We have created a room for live communication that is solely d
 
 type testdep struct {
 	Name    string
-	Handler string
+	Handler HandlerCreator
 	Msg     weave.Msg
 }
 
 type testcase struct {
 	Name    string
-	Handler string
+	Err     error
+	Handler HandlerCreator
 	Perms   []weave.Condition
 	Deps    []testdep
-	Err     error
 	Msg     weave.Msg
 	Res     weave.CheckResult
 	Obj     []*orm.SimpleObj
+}
+
+type HandlerCreator func(auth x.Authenticator) weave.Handler
+
+func createBlogMsgHandlerFn(auth x.Authenticator) weave.Handler {
+	return CreateBlogMsgHandler{
+		auth:   auth,
+		bucket: NewBlogBucket(),
+	}
+}
+
+func createPostMsgHandlerFn(auth x.Authenticator) weave.Handler {
+	return CreatePostMsgHandler{
+		auth:  auth,
+		blogs: NewBlogBucket(),
+		posts: NewPostBucket(),
+	}
+}
+
+func renameBlogMsgHandlerFn(auth x.Authenticator) weave.Handler {
+	return RenameBlogMsgHandler{
+		auth:   auth,
+		bucket: NewBlogBucket(),
+	}
+}
+
+func changeBlogAuthorsMsgHandlerFn(auth x.Authenticator) weave.Handler {
+	return ChangeBlogAuthorsMsgHandler{
+		auth:   auth,
+		bucket: NewBlogBucket(),
+	}
+}
+
+func SetProfileMsgHandlerFn(auth x.Authenticator) weave.Handler {
+	return SetProfileMsgHandler{
+		auth:   auth,
+		bucket: NewProfileBucket(),
+	}
 }
 
 // newContextWithAuth creates a context with perms as signers and sets the height
@@ -85,40 +123,6 @@ func newContextWithAuth(perms []weave.Condition) (weave.Context, x.Authenticator
 	auth := helpers.CtxAuth("authKey")
 	// Create a new context and add addr to the list of signers
 	return auth.SetConditions(ctx, perms...), auth
-}
-
-// newTestHandler maps a handler to a name
-func newTestHandler(name string, auth x.Authenticator) weave.Handler {
-	switch name {
-	case "CreateBlogMsgHandler":
-		return CreateBlogMsgHandler{
-			auth:   auth,
-			bucket: NewBlogBucket(),
-		}
-	case "CreatePostMsgHandler":
-		return CreatePostMsgHandler{
-			auth:  auth,
-			blogs: NewBlogBucket(),
-			posts: NewPostBucket(),
-		}
-	case "RenameBlogMsgHandler":
-		return RenameBlogMsgHandler{
-			auth:   auth,
-			bucket: NewBlogBucket(),
-		}
-	case "ChangeBlogAuthorsMsgHandler":
-		return ChangeBlogAuthorsMsgHandler{
-			auth:   auth,
-			bucket: NewBlogBucket(),
-		}
-	case "SetProfileMsgHandler":
-		return SetProfileMsgHandler{
-			auth:   auth,
-			bucket: NewProfileBucket(),
-		}
-	default:
-		panic(fmt.Errorf("newTestHandler: unknown handler"))
-	}
 }
 
 // getDeliveredObject looks for key in all the buckets associated with handler
@@ -154,13 +158,13 @@ func testHandlerCheck(t *testing.T, testcases []testcase) {
 
 		// add dependencies
 		for _, dep := range test.Deps {
-			depHandler := newTestHandler(dep.Handler, auth)
+			depHandler := dep.Handler(auth)
 			_, err := depHandler.Deliver(ctx, db, newTx(dep.Msg))
 			require.NoError(t, err, test.Name, fmt.Sprintf("failed to deliver dep %s\n", dep.Name))
 		}
 
 		//run test
-		handler := newTestHandler(test.Handler, auth)
+		handler := test.Handler(auth)
 		res, err := handler.Check(ctx, db, newTx(test.Msg))
 		if test.Err == nil {
 			require.NoError(t, err, test.Name)
@@ -182,13 +186,13 @@ func testHandlerDeliver(t *testing.T, testcases []testcase) {
 
 		// add dependencies
 		for _, dep := range test.Deps {
-			depHandler := newTestHandler(dep.Handler, auth)
+			depHandler := dep.Handler(auth)
 			_, err := depHandler.Deliver(ctx, db, newTx(dep.Msg))
 			require.NoError(t, err, test.Name, fmt.Sprintf("failed to deliver dep %s\n", dep.Name))
 		}
 
 		//run test
-		handler := newTestHandler(test.Handler, auth)
+		handler := test.Handler(auth)
 		_, err := handler.Deliver(ctx, db, newTx(test.Msg))
 		if test.Err == nil {
 			require.NoError(t, err, test.Name)
@@ -211,7 +215,7 @@ func TestCreateBlogMsgHandlerCheck(t *testing.T) {
 		[]testcase{
 			{
 				Name:    "valid blog",
-				Handler: "CreateBlogMsgHandler",
+				Handler: createBlogMsgHandlerFn,
 				Perms:   []weave.Condition{signer},
 				Msg: &CreateBlogMsg{
 					Slug:    "this_is_a_blog",
@@ -225,7 +229,7 @@ func TestCreateBlogMsgHandlerCheck(t *testing.T) {
 			{
 				Name:    "no authors",
 				Err:     ErrInvalidAuthorCount(0),
-				Handler: "CreateBlogMsgHandler",
+				Handler: createBlogMsgHandlerFn,
 				Perms:   []weave.Condition{signer},
 				Msg: &CreateBlogMsg{
 					Slug:  "this_is_a_blog",
@@ -235,7 +239,7 @@ func TestCreateBlogMsgHandlerCheck(t *testing.T) {
 			{
 				Name:    "no slug",
 				Err:     ErrInvalidName(),
-				Handler: "CreateBlogMsgHandler",
+				Handler: createBlogMsgHandlerFn,
 				Perms:   []weave.Condition{signer},
 				Msg: &CreateBlogMsg{
 					Title: "this is a blog title",
@@ -244,7 +248,7 @@ func TestCreateBlogMsgHandlerCheck(t *testing.T) {
 			{
 				Name:    "no title",
 				Err:     ErrTitleTooLong(),
-				Handler: "CreateBlogMsgHandler",
+				Handler: createBlogMsgHandlerFn,
 				Perms:   []weave.Condition{signer},
 				Msg: &CreateBlogMsg{
 					Slug: "this_is_a_blog",
@@ -253,7 +257,7 @@ func TestCreateBlogMsgHandlerCheck(t *testing.T) {
 			{
 				Name:    "no signer",
 				Err:     ErrUnauthorisedBlogAuthor(nil),
-				Handler: "CreateBlogMsgHandler",
+				Handler: createBlogMsgHandlerFn,
 				Msg: &CreateBlogMsg{
 					Slug:    "this_is_a_blog",
 					Title:   "this is a blog title",
@@ -263,7 +267,7 @@ func TestCreateBlogMsgHandlerCheck(t *testing.T) {
 			{
 				Name:    "creating twice",
 				Err:     ErrBlogExist(),
-				Handler: "CreateBlogMsgHandler",
+				Handler: createBlogMsgHandlerFn,
 				Perms:   []weave.Condition{signer},
 				Msg: &CreateBlogMsg{
 					Slug:    "this_is_a_blog",
@@ -273,7 +277,7 @@ func TestCreateBlogMsgHandlerCheck(t *testing.T) {
 				Deps: []testdep{
 					testdep{
 						Name:    "blog duplicate",
-						Handler: "CreateBlogMsgHandler",
+						Handler: createBlogMsgHandlerFn,
 						Msg: &CreateBlogMsg{
 							Slug:    "this_is_a_blog",
 							Title:   "this is a blog title",
@@ -290,7 +294,7 @@ func TestCreateBlogMsgHandlerCheck(t *testing.T) {
 					Text:   longText,
 					Author: signer.Address(),
 				}),
-				Handler: "CreateBlogMsgHandler",
+				Handler: createBlogMsgHandlerFn,
 				Perms:   []weave.Condition{signer},
 				Msg: &CreatePostMsg{
 					Blog:   "this_is_a_blog",
@@ -310,7 +314,7 @@ func TestCreateBlogMsgHandlerDeliver(t *testing.T) {
 		[]testcase{
 			{
 				Name:    "valid blog",
-				Handler: "CreateBlogMsgHandler",
+				Handler: createBlogMsgHandlerFn,
 				Perms:   []weave.Condition{signer},
 				Msg: &CreateBlogMsg{
 					Slug:    "this_is_a_blog",
@@ -330,7 +334,7 @@ func TestCreateBlogMsgHandlerDeliver(t *testing.T) {
 			},
 			{
 				Name:    "adding signer to authors",
-				Handler: "CreateBlogMsgHandler",
+				Handler: createBlogMsgHandlerFn,
 				Perms:   []weave.Condition{signer},
 				Msg: &CreateBlogMsg{
 					Slug:    "this_is_a_blog",
@@ -360,7 +364,7 @@ func TestCreatePostMsgHandlerCheck(t *testing.T) {
 		[]testcase{
 			{
 				Name:    "valid post",
-				Handler: "CreatePostMsgHandler",
+				Handler: createPostMsgHandlerFn,
 				Perms:   []weave.Condition{signer},
 				Msg: &CreatePostMsg{
 					Blog:   "this_is_a_blog",
@@ -371,7 +375,7 @@ func TestCreatePostMsgHandlerCheck(t *testing.T) {
 				Deps: []testdep{
 					testdep{
 						Name:    "Blog",
-						Handler: "CreateBlogMsgHandler",
+						Handler: createBlogMsgHandlerFn,
 						Msg: &CreateBlogMsg{
 							Slug:    "this_is_a_blog",
 							Title:   "this is a blog title",
@@ -386,7 +390,7 @@ func TestCreatePostMsgHandlerCheck(t *testing.T) {
 			{
 				Name:    "no title",
 				Err:     ErrTitleTooLong(),
-				Handler: "CreatePostMsgHandler",
+				Handler: createPostMsgHandlerFn,
 				Perms:   []weave.Condition{signer},
 				Msg: &CreatePostMsg{
 					Blog:   "this_is_a_blog",
@@ -397,7 +401,7 @@ func TestCreatePostMsgHandlerCheck(t *testing.T) {
 			{
 				Name:    "no text",
 				Err:     ErrTextTooLong(),
-				Handler: "CreatePostMsgHandler",
+				Handler: createPostMsgHandlerFn,
 				Perms:   []weave.Condition{signer},
 				Msg: &CreatePostMsg{
 					Blog:   "this_is_a_blog",
@@ -408,7 +412,7 @@ func TestCreatePostMsgHandlerCheck(t *testing.T) {
 			{
 				Name:    "no author",
 				Err:     ErrUnauthorisedPostAuthor(nil),
-				Handler: "CreatePostMsgHandler",
+				Handler: createPostMsgHandlerFn,
 				Perms:   []weave.Condition{signer},
 				Msg: &CreatePostMsg{
 					Blog:  "this_is_a_blog",
@@ -419,7 +423,7 @@ func TestCreatePostMsgHandlerCheck(t *testing.T) {
 			{
 				Name:    "unauthorized",
 				Err:     ErrUnauthorisedPostAuthor(unauthorised.Address()),
-				Handler: "CreatePostMsgHandler",
+				Handler: createPostMsgHandlerFn,
 				Perms:   []weave.Condition{signer},
 				Msg: &CreatePostMsg{
 					Blog:   "this_is_a_blog",
@@ -430,7 +434,7 @@ func TestCreatePostMsgHandlerCheck(t *testing.T) {
 				Deps: []testdep{
 					testdep{
 						Name:    "Blog",
-						Handler: "CreateBlogMsgHandler",
+						Handler: createBlogMsgHandlerFn,
 						Msg: &CreateBlogMsg{
 							Slug:    "this_is_a_blog",
 							Title:   "this is a blog title",
@@ -442,7 +446,7 @@ func TestCreatePostMsgHandlerCheck(t *testing.T) {
 			{
 				Name:    "missing blog dependency",
 				Err:     ErrBlogNotFound(),
-				Handler: "CreatePostMsgHandler",
+				Handler: createPostMsgHandlerFn,
 				Perms:   []weave.Condition{signer},
 				Msg: &CreatePostMsg{
 					Blog:   "this_is_a_blog",
@@ -458,7 +462,7 @@ func TestCreatePostMsgHandlerCheck(t *testing.T) {
 					Title:   "this is a blog title",
 					Authors: [][]byte{signer.Address()},
 				}),
-				Handler: "CreatePostMsgHandler",
+				Handler: createPostMsgHandlerFn,
 				Perms:   []weave.Condition{signer},
 				Msg: &CreateBlogMsg{
 					Slug:    "this_is_a_blog",
@@ -476,7 +480,7 @@ func TestCreatePostMsgHandlerDeliver(t *testing.T) {
 		[]testcase{
 			{
 				Name:    "valid post",
-				Handler: "CreatePostMsgHandler",
+				Handler: createPostMsgHandlerFn,
 				Perms:   []weave.Condition{signer},
 				Msg: &CreatePostMsg{
 					Blog:   "this_is_a_blog",
@@ -487,7 +491,7 @@ func TestCreatePostMsgHandlerDeliver(t *testing.T) {
 				Deps: []testdep{
 					testdep{
 						Name:    "Blog",
-						Handler: "CreateBlogMsgHandler",
+						Handler: createBlogMsgHandlerFn,
 						Msg: &CreateBlogMsg{
 							Slug:    "this_is_a_blog",
 							Title:   "this is a blog title",
@@ -525,7 +529,7 @@ func TestRenameBlogMsgHandlerCheck(t *testing.T) {
 		[]testcase{
 			{
 				Name:    "valid rename",
-				Handler: "RenameBlogMsgHandler",
+				Handler: renameBlogMsgHandlerFn,
 				Perms:   []weave.Condition{signer},
 				Msg: &RenameBlogMsg{
 					Slug:  "this_is_a_blog",
@@ -534,7 +538,7 @@ func TestRenameBlogMsgHandlerCheck(t *testing.T) {
 				Deps: []testdep{
 					testdep{
 						Name:    "Blog",
-						Handler: "CreateBlogMsgHandler",
+						Handler: createBlogMsgHandlerFn,
 						Msg: &CreateBlogMsg{
 							Slug:    "this_is_a_blog",
 							Title:   "this is a blog title",
@@ -549,7 +553,7 @@ func TestRenameBlogMsgHandlerCheck(t *testing.T) {
 			{
 				Name:    "no title",
 				Err:     ErrTitleTooLong(),
-				Handler: "RenameBlogMsgHandler",
+				Handler: renameBlogMsgHandlerFn,
 				Perms:   []weave.Condition{signer},
 				Msg: &RenameBlogMsg{
 					Slug: "this_is_a_blog",
@@ -558,7 +562,7 @@ func TestRenameBlogMsgHandlerCheck(t *testing.T) {
 			{
 				Name:    "missing dependency",
 				Err:     ErrBlogNotFound(),
-				Handler: "RenameBlogMsgHandler",
+				Handler: renameBlogMsgHandlerFn,
 				Perms:   []weave.Condition{signer},
 				Msg: &RenameBlogMsg{
 					Slug:  "this_is_a_blog",
@@ -568,7 +572,7 @@ func TestRenameBlogMsgHandlerCheck(t *testing.T) {
 			{
 				Name:    "no signer",
 				Err:     ErrUnauthorisedBlogAuthor(nil),
-				Handler: "RenameBlogMsgHandler",
+				Handler: renameBlogMsgHandlerFn,
 				Msg: &RenameBlogMsg{
 					Slug:  "this_is_a_blog",
 					Title: "this is a blog title which has been renamed",
@@ -584,7 +588,7 @@ func TestRenameBlogMsgHandlerDeliver(t *testing.T) {
 		[]testcase{
 			{
 				Name:    "valid post",
-				Handler: "RenameBlogMsgHandler",
+				Handler: renameBlogMsgHandlerFn,
 				Perms:   []weave.Condition{signer},
 				Msg: &RenameBlogMsg{
 					Slug:  "this_is_a_blog",
@@ -593,7 +597,7 @@ func TestRenameBlogMsgHandlerDeliver(t *testing.T) {
 				Deps: []testdep{
 					testdep{
 						Name:    "Blog",
-						Handler: "CreateBlogMsgHandler",
+						Handler: createBlogMsgHandlerFn,
 						Msg: &CreateBlogMsg{
 							Slug:    "this_is_a_blog",
 							Title:   "this is a blog title",
@@ -624,7 +628,7 @@ func TestChangeBlogAuthorsMsgHandlerCheck(t *testing.T) {
 		[]testcase{
 			{
 				Name:    "add",
-				Handler: "ChangeBlogAuthorsMsgHandler",
+				Handler: changeBlogAuthorsMsgHandlerFn,
 				Perms:   []weave.Condition{signer},
 				Msg: &ChangeBlogAuthorsMsg{
 					Slug:   "this_is_a_blog",
@@ -634,7 +638,7 @@ func TestChangeBlogAuthorsMsgHandlerCheck(t *testing.T) {
 				Deps: []testdep{
 					testdep{
 						Name:    "Blog",
-						Handler: "CreateBlogMsgHandler",
+						Handler: createBlogMsgHandlerFn,
 						Msg: &CreateBlogMsg{
 							Slug:    "this_is_a_blog",
 							Title:   "this is a blog title",
@@ -648,7 +652,7 @@ func TestChangeBlogAuthorsMsgHandlerCheck(t *testing.T) {
 			},
 			{
 				Name:    "remove",
-				Handler: "ChangeBlogAuthorsMsgHandler",
+				Handler: changeBlogAuthorsMsgHandlerFn,
 				Perms:   []weave.Condition{signer},
 				Msg: &ChangeBlogAuthorsMsg{
 					Slug:   "this_is_a_blog",
@@ -658,7 +662,7 @@ func TestChangeBlogAuthorsMsgHandlerCheck(t *testing.T) {
 				Deps: []testdep{
 					testdep{
 						Name:    "Blog",
-						Handler: "CreateBlogMsgHandler",
+						Handler: createBlogMsgHandlerFn,
 						Msg: &CreateBlogMsg{
 							Slug:  "this_is_a_blog",
 							Title: "this is a blog title",
@@ -676,7 +680,7 @@ func TestChangeBlogAuthorsMsgHandlerCheck(t *testing.T) {
 			{
 				Name:    "adding existing author",
 				Err:     ErrAuthorAlreadyExist(newAuthor.Address()),
-				Handler: "ChangeBlogAuthorsMsgHandler",
+				Handler: changeBlogAuthorsMsgHandlerFn,
 				Perms:   []weave.Condition{signer},
 				Msg: &ChangeBlogAuthorsMsg{
 					Slug:   "this_is_a_blog",
@@ -686,7 +690,7 @@ func TestChangeBlogAuthorsMsgHandlerCheck(t *testing.T) {
 				Deps: []testdep{
 					testdep{
 						Name:    "Blog",
-						Handler: "CreateBlogMsgHandler",
+						Handler: createBlogMsgHandlerFn,
 						Msg: &CreateBlogMsg{
 							Slug:    "this_is_a_blog",
 							Title:   "this is a blog title",
@@ -698,7 +702,7 @@ func TestChangeBlogAuthorsMsgHandlerCheck(t *testing.T) {
 			{
 				Name:    "removing unexisting author",
 				Err:     ErrAuthorNotFound(newAuthor.Address()),
-				Handler: "ChangeBlogAuthorsMsgHandler",
+				Handler: changeBlogAuthorsMsgHandlerFn,
 				Perms:   []weave.Condition{signer},
 				Msg: &ChangeBlogAuthorsMsg{
 					Slug:   "this_is_a_blog",
@@ -708,7 +712,7 @@ func TestChangeBlogAuthorsMsgHandlerCheck(t *testing.T) {
 				Deps: []testdep{
 					testdep{
 						Name:    "Blog",
-						Handler: "CreateBlogMsgHandler",
+						Handler: createBlogMsgHandlerFn,
 						Msg: &CreateBlogMsg{
 							Slug:    "this_is_a_blog",
 							Title:   "this is a blog title",
@@ -720,7 +724,7 @@ func TestChangeBlogAuthorsMsgHandlerCheck(t *testing.T) {
 			{
 				Name:    "removing last author",
 				Err:     ErrBlogOneAuthorLeft(),
-				Handler: "ChangeBlogAuthorsMsgHandler",
+				Handler: changeBlogAuthorsMsgHandlerFn,
 				Perms:   []weave.Condition{authorToRemove},
 				Msg: &ChangeBlogAuthorsMsg{
 					Slug:   "this_is_a_blog",
@@ -730,7 +734,7 @@ func TestChangeBlogAuthorsMsgHandlerCheck(t *testing.T) {
 				Deps: []testdep{
 					testdep{
 						Name:    "Blog",
-						Handler: "CreateBlogMsgHandler",
+						Handler: createBlogMsgHandlerFn,
 						Msg: &CreateBlogMsg{
 							Slug:    "this_is_a_blog",
 							Title:   "this is a blog title",
@@ -742,7 +746,7 @@ func TestChangeBlogAuthorsMsgHandlerCheck(t *testing.T) {
 			{
 				Name:    "adding with no author",
 				Err:     errors.ErrUnrecognizedAddress(nil),
-				Handler: "ChangeBlogAuthorsMsgHandler",
+				Handler: changeBlogAuthorsMsgHandlerFn,
 				Perms:   []weave.Condition{signer},
 				Msg: &ChangeBlogAuthorsMsg{
 					Slug: "this_is_a_blog",
@@ -752,7 +756,7 @@ func TestChangeBlogAuthorsMsgHandlerCheck(t *testing.T) {
 			{
 				Name:    "removing with no author",
 				Err:     errors.ErrUnrecognizedAddress(nil),
-				Handler: "ChangeBlogAuthorsMsgHandler",
+				Handler: changeBlogAuthorsMsgHandlerFn,
 				Perms:   []weave.Condition{signer},
 				Msg: &ChangeBlogAuthorsMsg{
 					Slug: "this_is_a_blog",
@@ -762,7 +766,7 @@ func TestChangeBlogAuthorsMsgHandlerCheck(t *testing.T) {
 			{
 				Name:    "adding with missing dep",
 				Err:     ErrBlogNotFound(),
-				Handler: "ChangeBlogAuthorsMsgHandler",
+				Handler: changeBlogAuthorsMsgHandlerFn,
 				Perms:   []weave.Condition{signer},
 				Msg: &ChangeBlogAuthorsMsg{
 					Slug:   "this_is_a_blog",
@@ -773,7 +777,7 @@ func TestChangeBlogAuthorsMsgHandlerCheck(t *testing.T) {
 			{
 				Name:    "removing with missing dep",
 				Err:     ErrBlogNotFound(),
-				Handler: "ChangeBlogAuthorsMsgHandler",
+				Handler: changeBlogAuthorsMsgHandlerFn,
 				Perms:   []weave.Condition{signer},
 				Msg: &ChangeBlogAuthorsMsg{
 					Slug:   "this_is_a_blog",
@@ -784,7 +788,7 @@ func TestChangeBlogAuthorsMsgHandlerCheck(t *testing.T) {
 			{
 				Name:    "unsigned tx",
 				Err:     ErrUnauthorisedBlogAuthor(nil),
-				Handler: "ChangeBlogAuthorsMsgHandler",
+				Handler: changeBlogAuthorsMsgHandlerFn,
 				Msg: &ChangeBlogAuthorsMsg{
 					Slug:   "this_is_a_blog",
 					Add:    false,
@@ -803,7 +807,7 @@ func TestChangeBlogAuthorsMsgHandlerDeliver(t *testing.T) {
 		[]testcase{
 			{
 				Name:    "add",
-				Handler: "ChangeBlogAuthorsMsgHandler",
+				Handler: changeBlogAuthorsMsgHandlerFn,
 				Perms:   []weave.Condition{signer},
 				Msg: &ChangeBlogAuthorsMsg{
 					Slug:   "this_is_a_blog",
@@ -813,7 +817,7 @@ func TestChangeBlogAuthorsMsgHandlerDeliver(t *testing.T) {
 				Deps: []testdep{
 					testdep{
 						Name:    "Blog",
-						Handler: "CreateBlogMsgHandler",
+						Handler: createBlogMsgHandlerFn,
 						Msg: &CreateBlogMsg{
 							Slug:    "this_is_a_blog",
 							Title:   "this is a blog title",
@@ -834,7 +838,7 @@ func TestChangeBlogAuthorsMsgHandlerDeliver(t *testing.T) {
 			},
 			{
 				Name:    "remove",
-				Handler: "ChangeBlogAuthorsMsgHandler",
+				Handler: changeBlogAuthorsMsgHandlerFn,
 				Perms:   []weave.Condition{signer},
 				Msg: &ChangeBlogAuthorsMsg{
 					Slug:   "this_is_a_blog",
@@ -844,7 +848,7 @@ func TestChangeBlogAuthorsMsgHandlerDeliver(t *testing.T) {
 				Deps: []testdep{
 					testdep{
 						Name:    "Blog",
-						Handler: "CreateBlogMsgHandler",
+						Handler: createBlogMsgHandlerFn,
 						Msg: &CreateBlogMsg{
 							Slug:    "this_is_a_blog",
 							Title:   "this is a blog title",
@@ -875,7 +879,7 @@ func TestSetProfileMsgHandlerCheck(t *testing.T) {
 		[]testcase{
 			{
 				Name:    "valid profile",
-				Handler: "SetProfileMsgHandler",
+				Handler: SetProfileMsgHandlerFn,
 				Perms:   []weave.Condition{signer},
 				Msg: &SetProfileMsg{
 					Name:        "lehajam",
@@ -888,7 +892,7 @@ func TestSetProfileMsgHandlerCheck(t *testing.T) {
 			{
 				Name:    "no name",
 				Err:     ErrInvalidName(),
-				Handler: "SetProfileMsgHandler",
+				Handler: SetProfileMsgHandlerFn,
 				Perms:   []weave.Condition{signer},
 				Msg: &SetProfileMsg{
 					Description: "my profile description",
@@ -897,7 +901,7 @@ func TestSetProfileMsgHandlerCheck(t *testing.T) {
 			{
 				Name:    "unauthorized author",
 				Err:     ErrUnauthorisedProfileAuthor(author.Address()),
-				Handler: "SetProfileMsgHandler",
+				Handler: SetProfileMsgHandlerFn,
 				Perms:   []weave.Condition{signer},
 				Msg: &SetProfileMsg{
 					Name:        "lehajam",
@@ -915,7 +919,7 @@ func TestSetProfileMsgHandlerDeliver(t *testing.T) {
 		[]testcase{
 			{
 				Name:    "add",
-				Handler: "SetProfileMsgHandler",
+				Handler: SetProfileMsgHandlerFn,
 				Perms:   []weave.Condition{signer},
 				Msg: &SetProfileMsg{
 					Name:        "lehajam",
@@ -933,7 +937,7 @@ func TestSetProfileMsgHandlerDeliver(t *testing.T) {
 			},
 			{
 				Name:    "update",
-				Handler: "SetProfileMsgHandler",
+				Handler: SetProfileMsgHandlerFn,
 				Perms:   []weave.Condition{signer},
 				Msg: &SetProfileMsg{
 					Name:        "lehajam",
@@ -942,7 +946,7 @@ func TestSetProfileMsgHandlerDeliver(t *testing.T) {
 				Deps: []testdep{
 					testdep{
 						Name:    "profile",
-						Handler: "SetProfileMsgHandler",
+						Handler: SetProfileMsgHandlerFn,
 						Msg: &SetProfileMsg{
 							Name:        "lehajam",
 							Description: "my profile description",
