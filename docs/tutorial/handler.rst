@@ -233,17 +233,9 @@ In order to test a handler, we need four things :
 
 There is a ready to use in memory storage available in 
 the `store package <https://github.com/iov-one/weave/blob/master/store/btree.go#L31-L36>`_.
-There are also util functions available to create a weave context with 
-associated authorized addresses as per the example below :
-
-.. literalinclude:: ../../examples/tutorial/x/blog/handlers_test.go
-    :language: go
-    :lines: 16-24
-
-The Authenticator is essentially what ties together a weave context 
-and a list of addresses. 
-Last but not least, there is a helper function allowing to 
-create a Tx object from a message :
+There are also util functions available that we can use to create a weave context with a 
+list of signers (eg. authorized addresses) via an `Authenticator <https://weave.readthedocs.io/en/latest/design/permissions.html>`_.
+Last but not least, there is a helper function allowing to create a Tx object from a message :
 
 .. literalinclude:: ../../x/helpers.go
     :language: go
@@ -252,8 +244,9 @@ create a Tx object from a message :
 Now that we have all the pieces, let us put them together and 
 write tests. 
 
-To make things easier to understand and follow, we use the same structure / pattern 
-accross all our use cases. A function to test a Check method would look like this :
+First we start by defining a pattern that we will follow in all our tests to make 
+easier for the reader to navigate through them.
+A function to test a handler Check method would look like this :
 
 .. code:: go
 
@@ -277,7 +270,7 @@ accross all our use cases. A function to test a Check method would look like thi
             })
     }
 
-And for the Deliver method :
+And for the Deliver method, like that :
 
 .. code:: go
 
@@ -301,27 +294,63 @@ And for the Deliver method :
             })
     }
 
-The methods ``testHandlerCheck`` and ``testHandlerDeliver`` help with boilerplates 
-required for each test such as saving dependencies or asserting results.
-For example in the case of creating a new Post, we need the corresponding Blog, so 
-we specify this dependency in the test case and saving will be taken care of for us. 
+Our test functions rely on small utilities defined at the top of the test file, namely : 
+ -  A ``testcase`` struct to hold the data required for a test : 
+
+ .. literalinclude:: ../../examples/tutorial/x/blog/handlers_test.go
+    :language: go
+    :lines: 63-80
+
+ - Factory methods to create handlers :
+
+ .. literalinclude:: ../../examples/tutorial/x/blog/handlers_test.go
+    :language: go
+    :lines: 82-95
+
+ - A function to create a context with a set of permissions : 
+
+.. literalinclude:: ../../examples/tutorial/x/blog/handlers_test.go
+    :language: go
+    :lines: 118-126
+
+ - A function to retrieve objects previously saved by a handler (during the call to ``Deliver``) : 
+
+.. literalinclude:: ../../examples/tutorial/x/blog/handlers_test.go
+    :language: go
+    :lines: 128-149
+
+ - A generic test runner for the ``Check`` method of a handler : 
+
+.. literalinclude:: ../../examples/tutorial/x/blog/handlers_test.go
+    :language: go
+    :lines: 151-177
+
+ - And finally a generic test runner for the ``Deliver`` method of a handler : 
+
+.. literalinclude:: ../../examples/tutorial/x/blog/handlers_test.go
+    :language: go
+    :lines: 179-210
+
+The generic test runners help reducing boilerplates in tests by taking care of saving dependencies 
+prior to running a test, and making asserts on the data returned upon completion.
+For example when creating a new Post, we need to save the corresponding Blog first, and upon completion,
+we need to retrieve both the Post and the Blog we saved to ensure they're inline with our expectations.
 
 Below is an example for the ``Check`` method of the ``CreateBlogMsgHandler`` struct : 
 
 .. literalinclude:: ../../examples/tutorial/x/blog/handlers_test.go
     :language: go
-    :lines: 207-304
+    :lines: 211-308
 
-For each test case, we specify the message we want to process, a list of signers to add 
-to the context, the handler's name we're testing for, dependencies if any and finally, 
-the expected result or error.
+As stated above, the test implementation consists in defining the keys and test cases. util functions 
+take care of the remaining.
 
 Let's take a look at another example with the test for the ``Deliver`` method 
 of the ``CreateBlogMsgHandler`` struct :
 
 .. literalinclude:: ../../examples/tutorial/x/blog/handlers_test.go
     :language: go
-    :lines: 472-520
+    :lines: 476-524
 
 It is very similar to what we saw before. One thing to notice here is that we specify 
 the dependencies required, in this case, a Blog object. 
