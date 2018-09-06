@@ -250,26 +250,80 @@ create a Tx object from a message :
     :lines: 102-105
 
 Now that we have all the pieces, let us put them together and 
-write a test for the ``Check`` method of the ``CreateBlogMsgHandler`` struct : 
+write tests. 
+
+To make things easier to understand and follow, we use the same structure / pattern 
+accross all our use cases. A function to test a Check method would look like this :
+
+.. code:: go
+
+    func Test[HandlerName]Check(t *testing.T) {
+
+        1 - generate keys to use in the test
+
+        _, k1 := helpers.MakeKey()
+        // ...
+        _, kN := helpers.MakeKey()
+
+        2 - call testHandlerCheck withs testcases as below
+
+        testHandlerCheck(
+            t,
+            []testcase{
+                // testcase1
+                // testcase2
+                // ...
+                // testcaseN
+            })
+    }
+
+And for the Deliver method :
+
+.. code:: go
+
+    func Test[HandlerName]Deliver(t *testing.T) {
+
+        1 - generate keys to use in the test
+
+        _, k1 := helpers.MakeKey()
+        // ...
+        _, kN := helpers.MakeKey()
+
+        2 - call testHandlerDeliver withs testcases as below
+
+        testHandlerDeliver(
+            t,
+            []testcase{
+                // testcase1
+                // testcase2
+                // ...
+                // testcaseN
+            })
+    }
+
+The methods ``testHandlerCheck`` and ``testHandlerDeliver`` help with boilerplates 
+required for each test such as saving dependencies or asserting results.
+For example in the case of creating a new Post, we need the corresponding Blog, so 
+we specify this dependency in the test case and saving will be taken care of for us. 
+
+Below is an example for the ``Check`` method of the ``CreateBlogMsgHandler`` struct : 
 
 .. literalinclude:: ../../examples/tutorial/x/blog/handlers_test.go
     :language: go
-    :lines: 58-85
+    :lines: 207-304
 
-We start by initializing our context with an arbitrary address. 
-Then create our messages eg. test cases.
-For each test case we create an instance of a store, 
-call the ``Check`` method on our handler and run our asserts.
+For each test case, we specify the message we want to process, a list of signers to add 
+to the context, the handler's name we're testing for, dependencies if any and finally, 
+the expected result or error.
 
-Testing a ``Deliver`` method works in the same way and we will be 
-able to retrieve the saved object from the store to assert wether or not 
-the operation completed succesfully.
-Here is a full example for the ``Deliver`` method of ``CreatePostMsgHandler`` struct : 
+Let's take a look at another example with the test for the ``Deliver`` method 
+of the ``CreateBlogMsgHandler`` struct :
 
 .. literalinclude:: ../../examples/tutorial/x/blog/handlers_test.go
     :language: go
-    :lines: 173-214
+    :lines: 472-520
 
-Note how we call ``Deliver`` on ``CreateBlogMsgHandler`` to insert the blog 
-required by the post prior to calling the ``Deliver`` method 
-of ``CreatePostMsgHandler`` struct.
+It is very similar to what we saw before. One thing to notice here is that we specify 
+the dependencies required, in this case, a Blog object. 
+We also specify the objects we expect this test to deliver so we can assert wether 
+or not they have been delivered correctly.

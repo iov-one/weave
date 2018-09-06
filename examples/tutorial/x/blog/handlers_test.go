@@ -1,3 +1,42 @@
+/*
+
+The test structure is always the same.
+A function to test the Check method of the handler as below :
+
+func Test[HandlerName]Check(t *testing.T) {
+
+	1 - generate keys to use in the test
+	2 - call testHandlerCheck withs testcases as below
+
+	testHandlerCheck(
+		t,
+		[]testcase{
+			// testcase1
+			// testcase2
+			// ...
+			// testcaseN
+		})
+}
+
+And / Or a function to test the Deliver method of the handler as below :
+
+func Test[HandlerName]Deliver(t *testing.T) {
+
+	1 - generate keys to use in the test
+	2 - call testHandlerDeliver withs testcases as below
+
+	testHandlerDeliver(
+		t,
+		[]testcase{
+			// testcase1
+			// testcase2
+			// ...
+			// testcaseN
+		})
+}
+
+*/
+
 package blog
 
 import (
@@ -38,15 +77,17 @@ type testcase struct {
 	Obj     []*orm.SimpleObj
 }
 
-func newContextWithAuth(conds []weave.Condition) (weave.Context, x.Authenticator) {
+// newContextWithAuth creates a context with perms as signers and sets the height
+func newContextWithAuth(perms []weave.Condition) (weave.Context, x.Authenticator) {
 	ctx := context.Background()
 	// Set current block height to 100
 	ctx = weave.WithHeight(ctx, 100)
 	auth := helpers.CtxAuth("authKey")
 	// Create a new context and add addr to the list of signers
-	return auth.SetConditions(ctx, conds...), auth
+	return auth.SetConditions(ctx, perms...), auth
 }
 
+// newTestHandler maps a handler to a name
 func newTestHandler(name string, auth x.Authenticator) weave.Handler {
 	switch name {
 	case "CreateBlogMsgHandler":
@@ -80,6 +121,8 @@ func newTestHandler(name string, auth x.Authenticator) weave.Handler {
 	}
 }
 
+// getDeliveredObject looks for key in all the buckets associated with handler
+// returns the first matching object or nil if none
 func getDeliveredObject(handler weave.Handler, db weave.KVStore, key []byte) (orm.Object, error) {
 	switch t := handler.(type) {
 	case CreateBlogMsgHandler:
@@ -101,6 +144,9 @@ func getDeliveredObject(handler weave.Handler, db weave.KVStore, key []byte) (or
 	}
 }
 
+// testHandlerCheck delivers test dependencies
+// then calls Check on target handler
+// and finally asserts errors or CheckResult
 func testHandlerCheck(t *testing.T, testcases []testcase) {
 	for _, test := range testcases {
 		db := store.MemStore()
@@ -108,12 +154,14 @@ func testHandlerCheck(t *testing.T, testcases []testcase) {
 
 		// add dependencies
 		for _, dep := range test.Deps {
-			_, err := newTestHandler(dep.Handler, auth).Deliver(ctx, db, newTx(dep.Msg))
-			require.NoError(t, err, fmt.Sprintf("Failed to deliver dep %s\n", dep.Name))
+			depHandler := newTestHandler(dep.Handler, auth)
+			_, err := depHandler.Deliver(ctx, db, newTx(dep.Msg))
+			require.NoError(t, err, test.Name, fmt.Sprintf("failed to deliver dep %s\n", dep.Name))
 		}
 
 		//run test
-		res, err := newTestHandler(test.Handler, auth).Check(ctx, db, newTx(test.Msg))
+		handler := newTestHandler(test.Handler, auth)
+		res, err := handler.Check(ctx, db, newTx(test.Msg))
 		if test.Err == nil {
 			require.NoError(t, err, test.Name)
 			require.EqualValues(t, test.Res, res, test.Name)
@@ -124,6 +172,9 @@ func testHandlerCheck(t *testing.T, testcases []testcase) {
 	}
 }
 
+// testHandlerCheck delivers test dependencies
+// then calls Deliver on target handler
+// and finally asserts errors or saved state(s)
 func testHandlerDeliver(t *testing.T, testcases []testcase) {
 	for _, test := range testcases {
 		db := store.MemStore()
@@ -131,8 +182,9 @@ func testHandlerDeliver(t *testing.T, testcases []testcase) {
 
 		// add dependencies
 		for _, dep := range test.Deps {
-			_, err := newTestHandler(dep.Handler, auth).Deliver(ctx, db, newTx(dep.Msg))
-			require.NoError(t, err, fmt.Sprintf("Failed to deliver dep %s\n", dep.Name))
+			depHandler := newTestHandler(dep.Handler, auth)
+			_, err := depHandler.Deliver(ctx, db, newTx(dep.Msg))
+			require.NoError(t, err, test.Name, fmt.Sprintf("failed to deliver dep %s\n", dep.Name))
 		}
 
 		//run test
@@ -143,7 +195,7 @@ func testHandlerDeliver(t *testing.T, testcases []testcase) {
 			for _, obj := range test.Obj {
 				actual, err := getDeliveredObject(handler, db, obj.Key())
 				require.NoError(t, err, test.Name)
-				require.NotNil(t, actual, t.Name())
+				require.NotNil(t, actual, test.Name)
 				require.EqualValues(t, obj.Value(), actual.Value(), test.Name)
 			}
 		} else {
@@ -235,7 +287,7 @@ func TestCreateBlogMsgHandlerCheck(t *testing.T) {
 				Err: errors.ErrUnknownTxType(&CreatePostMsg{
 					Blog:   "this_is_a_blog",
 					Title:  "this is a post title",
-					Text:   "We have created a room for live communication that is solely dedicated to high-level product discussions because this is a crucial support for fostering a technical user base within our broader community. Just as IOV is developing a full platform suite that includes retail products such as the universal wallet and B2B tools such as the BNS, each kind of community has a place in the movement toward mass adoption of blockchains which we aspire to lead.Another important reason that we established the #Developers room is that it provides a forum for users to receive help from our devs, and from each other, when playing with demos and live releases of IOV products in the future: as one can imagine, getting help with your test node or maintaining a highly dense conversation might be especially difficult in Telegram, depending on how many lambo memes and amusing gifs might be flying around at any given moment!We’re therefore happy to say that #Developers is launching with good timing — because community members who are interested in seeing our development progress for themselves can already try out our IOV-core release (read about it here!), and by the end of this month our public alphanet is launching! Keep your eyes open in coming weeks for this exciting release.",
+					Text:   longText,
 					Author: signer.Address(),
 				}),
 				Handler: "CreateBlogMsgHandler",
@@ -243,7 +295,7 @@ func TestCreateBlogMsgHandlerCheck(t *testing.T) {
 				Msg: &CreatePostMsg{
 					Blog:   "this_is_a_blog",
 					Title:  "this is a post title",
-					Text:   "We have created a room for live communication that is solely dedicated to high-level product discussions because this is a crucial support for fostering a technical user base within our broader community. Just as IOV is developing a full platform suite that includes retail products such as the universal wallet and B2B tools such as the BNS, each kind of community has a place in the movement toward mass adoption of blockchains which we aspire to lead.Another important reason that we established the #Developers room is that it provides a forum for users to receive help from our devs, and from each other, when playing with demos and live releases of IOV products in the future: as one can imagine, getting help with your test node or maintaining a highly dense conversation might be especially difficult in Telegram, depending on how many lambo memes and amusing gifs might be flying around at any given moment!We’re therefore happy to say that #Developers is launching with good timing — because community members who are interested in seeing our development progress for themselves can already try out our IOV-core release (read about it here!), and by the end of this month our public alphanet is launching! Keep your eyes open in coming weeks for this exciting release.",
+					Text:   longText,
 					Author: signer.Address(),
 				},
 			},
