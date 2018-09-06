@@ -49,7 +49,7 @@ func (p *Post) Validate() error {
 		return ErrInvalidTitle()
 	}
 	if len(p.Text) > MaxTextLength {
-		return ErrTextTooLong()
+		return ErrInvalidText()
 	}
 	if len(p.Author) == 0 {
 		return ErrNoAuthor()

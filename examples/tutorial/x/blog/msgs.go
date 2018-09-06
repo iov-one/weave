@@ -110,7 +110,7 @@ func (s *CreatePostMsg) Validate() error {
 		return ErrInvalidTitle()
 	}
 	if len(s.Text) < MinTextLength || len(s.Text) > MaxTextLength {
-		return ErrTextTooLong()
+		return ErrInvalidText()
 	}
 
 	// if an author is present, validate it is a valid address

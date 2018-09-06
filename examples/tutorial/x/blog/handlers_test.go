@@ -400,7 +400,7 @@ func TestCreatePostMsgHandlerCheck(t *testing.T) {
 			},
 			{
 				Name:    "no text",
-				Err:     ErrTextTooLong(),
+				Err:     ErrInvalidText(),
 				Handler: createPostMsgHandlerFn,
 				Perms:   []weave.Condition{signer},
 				Msg: &CreatePostMsg{
