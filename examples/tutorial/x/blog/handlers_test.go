@@ -247,7 +247,7 @@ func TestCreateBlogMsgHandlerCheck(t *testing.T) {
 			},
 			{
 				Name:    "no title",
-				Err:     ErrTitleTooLong(),
+				Err:     ErrInvalidTitle(),
 				Handler: createBlogMsgHandlerFn,
 				Perms:   []weave.Condition{signer},
 				Msg: &CreateBlogMsg{
@@ -389,7 +389,7 @@ func TestCreatePostMsgHandlerCheck(t *testing.T) {
 			},
 			{
 				Name:    "no title",
-				Err:     ErrTitleTooLong(),
+				Err:     ErrInvalidTitle(),
 				Handler: createPostMsgHandlerFn,
 				Perms:   []weave.Condition{signer},
 				Msg: &CreatePostMsg{
@@ -552,7 +552,7 @@ func TestRenameBlogMsgHandlerCheck(t *testing.T) {
 			},
 			{
 				Name:    "no title",
-				Err:     ErrTitleTooLong(),
+				Err:     ErrInvalidTitle(),
 				Handler: renameBlogMsgHandlerFn,
 				Perms:   []weave.Condition{signer},
 				Msg: &RenameBlogMsg{

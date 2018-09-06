@@ -16,7 +16,7 @@ const (
 )
 
 var (
-	errTitleTooLong       = fmt.Errorf("Title is too long")
+	errInvalidTitle       = fmt.Errorf("Title is too long or too short")
 	errTextTooLong        = fmt.Errorf("Text is too long")
 	errInvalidName        = fmt.Errorf("Name is too long")
 	errDescriptionTooLong = fmt.Errorf("Description is too long")
@@ -37,8 +37,8 @@ var (
 	errBlogOneAuthorLeft = fmt.Errorf("Unable to remove last blog author")
 )
 
-func ErrTitleTooLong() error {
-	return errors.WithCode(errTitleTooLong, CodeInvalidText)
+func ErrInvalidTitle() error {
+	return errors.WithCode(errInvalidTitle, CodeInvalidText)
 }
 func ErrTextTooLong() error {
 	return errors.WithCode(errTextTooLong, CodeInvalidText)
