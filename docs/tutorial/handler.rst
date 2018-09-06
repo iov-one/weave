@@ -206,7 +206,7 @@ each message.
 
 .. literalinclude:: ../../examples/mycoind/app/app.go
     :language: go
-    :lines: 56-62
+    :lines: 62-69
 
 In order to make it easy for applications to register our extension as
 one piece and not worry about attaching every *Handler* we provide,
@@ -220,7 +220,7 @@ and attaching them to the *Router* to process the matching
 
 .. literalinclude:: ../../examples/tutorial/x/blog/handlers.go
     :language: go
-    :lines: 21-26
+    :lines: 22-29
 
 Testing Handlers
 ----------------
@@ -235,6 +235,12 @@ There is a ready to use in memory storage available in
 the `store package <https://github.com/iov-one/weave/blob/master/store/btree.go#L31-L36>`_.
 There are also util functions available that we can use to create a weave context with a 
 list of signers (eg. authorized addresses) via an `Authenticator <https://weave.readthedocs.io/en/latest/design/permissions.html>`_.
+The function below shows how to use them : 
+
+.. literalinclude:: ../../examples/tutorial/x/blog/handlers_test.go
+    :language: go
+    :lines: 118-126
+
 Last but not least, there is a helper function allowing to create a Tx object from a message :
 
 .. literalinclude:: ../../x/helpers.go
@@ -294,40 +300,22 @@ And for the Deliver method, like that :
             })
     }
 
-Our test functions rely on small utilities defined at the top of the test file, namely : 
- -  A ``testcase`` struct to hold the data required for a test : 
+Our test functions rely on small utilities defined at the top of the test file, mainly, 
+a ``testcase`` struct to hold the data required for a test : 
 
  .. literalinclude:: ../../examples/tutorial/x/blog/handlers_test.go
     :language: go
     :lines: 63-80
 
- - Factory methods to create handlers :
+A generic test runner for the ``Check`` method of a handler : 
 
  .. literalinclude:: ../../examples/tutorial/x/blog/handlers_test.go
     :language: go
-    :lines: 82-95
-
- - A function to create a context with a set of permissions : 
-
-.. literalinclude:: ../../examples/tutorial/x/blog/handlers_test.go
-    :language: go
-    :lines: 118-126
-
- - A function to retrieve objects previously saved by a handler (during the call to ``Deliver``) : 
-
-.. literalinclude:: ../../examples/tutorial/x/blog/handlers_test.go
-    :language: go
-    :lines: 128-149
-
- - A generic test runner for the ``Check`` method of a handler : 
-
-.. literalinclude:: ../../examples/tutorial/x/blog/handlers_test.go
-    :language: go
     :lines: 151-177
 
- - And finally a generic test runner for the ``Deliver`` method of a handler : 
+And one for the ``Deliver`` method of a handler : 
 
-.. literalinclude:: ../../examples/tutorial/x/blog/handlers_test.go
+ .. literalinclude:: ../../examples/tutorial/x/blog/handlers_test.go
     :language: go
     :lines: 179-210
 
@@ -336,14 +324,14 @@ prior to running a test, and making asserts on the data returned upon completion
 For example when creating a new Post, we need to save the corresponding Blog first, and upon completion,
 we need to retrieve both the Post and the Blog we saved to ensure they're inline with our expectations.
 
-Below is an example for the ``Check`` method of the ``CreateBlogMsgHandler`` struct : 
+Here is how a test would look like for the ``Check`` method of the ``CreateBlogMsg`` handler : 
 
 .. literalinclude:: ../../examples/tutorial/x/blog/handlers_test.go
     :language: go
     :lines: 211-308
 
-As stated above, the test implementation consists in defining the keys and test cases. util functions 
-take care of the remaining.
+As stated above, the test implementation consists in defining the keys and test cases to be used. 
+Util functions take care of the remaining.
 
 Let's take a look at another example with the test for the ``Deliver`` method 
 of the ``CreateBlogMsgHandler`` struct :
