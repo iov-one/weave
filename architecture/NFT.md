@@ -150,11 +150,13 @@ type NFT interface {
   Approvals(action string) []Approval
   Payload() Payload
 
-  // write
+  // permissions
   Approve(action string, account Address, options ApprovalOptions)
-  // params depend on action type
-  TakeAction(actor Address, action string, params interface{})
+  // RevokeApproval??
 
+  // usage: params depend on action type
+  TakeAction(actor Address, action string, params interface{})
+  Transfer(newOwner Address) // ???? or maybe this is just an action?
 }
 
 type Approval struct {
@@ -169,9 +171,43 @@ type ApprovalOptions struct {
 }
 ```
 
+## Two-Step Transfer
+
+Fungible tokens are currently designed so I can send them to anyone
+without their approval, and they will appear in their wallet.
+I mean, who doesn't want money? There are some issues with that
+if you have to pay capital gains on the tokens, but this is generally
+considered acceptable.
+
+However, with NFTs there may be more use-cases where you need to 
+explicitly approve taking ownership of an object (IRL you need to sign
+a paper when I give you my car). As there may be liabilities or
+responsibilities associated with ownership of a given NFT. Thus,
+we also need to design for that case (while likely allowing the simpler
+case).
+
+In one-step case, you could imagine a "Transfer" action that the
+owner can execute to set a new owner and possibly trigger a reset
+of the Approvals.
+
+In the two-step case, we could imagine the owner granting an
+`immutible` (and likely `exclusive`) Approval to the new owner
+to `acceptOwnership`. The new owner can now decide whether they want
+to `takeAction(acceptOwnership)` to take ownership of the NFT.
+We will need to make this immutible and/or exclusive to make sure
+that we can do this safely. Eg. you offer to sell it to me, but after
+giving it to me, you decide to give it to your friend as well,
+who acceptsOwnership before me. We just need some design that can avoid
+such race conditions.
+
 ## Use case: Human Address
 
-TODO
+The id is my username, maybe ascii alphanumeric, which is like
+my email address.
+
+The payload is a public key (or multiple, one per algorithm?)
+
+The actions are `transfer` and `setPubkey`
 
 ## Use case: BNS
 
