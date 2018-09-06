@@ -22,7 +22,7 @@ will be discarded next block, so any writes here are never writen
 to disk.
 
 *Deliver* is performed after the transaction was writen to
-the block. Upon consensus, every node will processes the block
+the block. Upon consensus, every node will process the block
 by calling *BeginBlock*, *Deliver* for every transaction in the block,
 and finally *EndBlock* and *Commit*. *Deliver* will be called in
 the same order on every node and must make the **exact same changes**
@@ -33,15 +33,30 @@ and thus kick the deviating nodes out of consensus.
 (Note that *Check* may actually vary between nodes without breaking
 consensus rules, although we generally keep this deterministic as well).
 
+**This is a very powerful concept and means that when modifying a given state, 
+users must not worry about any concurrential access or writing collision 
+since by definition, any write access is garanteed to occur sequentially and 
+in the same order on each node**.
+
 Writing a Handler
 -----------------
 
 We usually can write a separate handler for each message type,
 although you can register multiple messages with the same
 handler if you reuse most of the code. Let's focus on the
-simplest case, and the handler for
-`adding a Post <TODO>`_
-to an existing blog.
+simplest cases, and the handlers for creating a Blog and 
+adding a Post to an existing blog.
+
+Note that we can generally assume that *Handlers* are wrapped
+by a `Savepoint Decorator <TODO>`_,
+and that if *Deliver* returns an error after updating some
+objects, those update will be discarded. This means you can
+treat *Handlers* as atomic actions, all or none, and not worry
+too much about cleaning up partially finished state changes
+if a later portion fails.
+
+Validation
+----------
 
 Remember that we have to fulfill both *Check* and *Deliver* methods,
 and they share most of the same validation logic. A typical
@@ -54,13 +69,35 @@ then *Check* will return the expected cost of the transaction,
 while *Deliver* will actually peform the action and update
 the blockchain state accordingly.
 
-Note that we can generally assume that *Handlers* are wrapped
-by a `Savepoint Decorator <TODO>`_,
-and that if *Deliver* returns an error after updating some
-objects, those update will be discarded. This means you can
-treat *Handlers* as atomic actions, all or none, and not worry
-too much about cleaning up partially finished state changes
-if a later portion fails.
+Blog
+~~~~
+
+Let us take a look at a first validation example when creating 
+a blog : 
+
+.. literalinclude:: ../../examples/tutorial/x/blog/handlers.go
+    :language: go
+    :lines: 82-111
+
+Before anything, we want to make sure that the transaction is allowed 
+and in the case of Blog creation, we choose to consider the main Tx signer 
+as the blog author. This is easily achieved using existing util functions :
+
+.. literalinclude:: ../../examples/tutorial/x/blog/handlers.go
+    :language: go
+    :lines: 83-87
+
+Next comes the model validation as described in the 
+`Data Model section <https://weave.readthedocs.io/en/latest/tutorial/messages.html#validation>`_, 
+and finally we want to make sure that the blog is unique. The example below shows 
+how to do that by querying the BlogBucket  : 
+
+.. literalinclude:: ../../examples/tutorial/x/blog/handlers.go
+    :language: go
+    :lines: 104-108
+
+Post
+~~~~
 
 In the case of adding a post, we must first ``validate``
 that the transaction hold the proper message, the message
@@ -72,9 +109,18 @@ the relevant blog for authorization, which we may want to use
 elsewhere in the Handler as well, we return it from the *validate*
 call as well to avoid loading it twice.
 
-**TODO** include validate code
-Like: https://github.com/iov-one/bcp-demo/blob/master/x/escrow/handler.go#L108-L144
+.. literalinclude:: ../../examples/tutorial/x/blog/handlers.go
+    :language: go
+    :lines: 167-199
 
+Note how we ensure that the post author is one of the Tx signers :
+
+.. literalinclude:: ../../examples/tutorial/x/blog/handlers.go
+    :language: go
+    :lines: 178-181
+
+Check
+-----
 
 Once ``validate`` is implemented, ``Check`` must ensure it is valid
 and then return a rough cost of the message, which may be based
@@ -83,11 +129,45 @@ is similar to the concept of *gas* in ethereum, although it doesn't
 count to the fees yet, but rather is used by tendermint to prioritize
 the transactions to fit in a block.
 
-**TODO** include check code
-Like: https://github.com/iov-one/bcp-demo/blob/master/x/escrow/handler.go#L47-L61
+Blog
+~~~~
 
-``Deliver`` also makes use of ``validate`` to perform the original
-checks, then it increments the article count on the *Blog*, and
+A blog costs one gas to create :
+
+.. literalinclude:: ../../examples/tutorial/x/blog/handlers.go
+    :language: go
+    :lines: 48-57
+
+Post
+~~~~
+
+In the case of a Post creation, we decided to charge the author 1 gas 
+per mile characters with the first 1000 characters offered :  
+
+.. literalinclude:: ../../examples/tutorial/x/blog/handlers.go
+    :language: go
+    :lines: 122-132
+
+Deliver
+-------
+
+Similarly to ``Check``, ``Deliver`` also makes use of ``validate`` to perform the original
+checks.
+
+Blog
+~~~~
+
+Before saving the blog into the blog bucket, ``Deliver`` checks if the main signer 
+of the Tx is part of the authorized authors for this blog and will add it if not.
+
+.. literalinclude:: ../../examples/tutorial/x/blog/handlers.go
+    :language: go
+    :lines: 59-79
+
+Post
+~~~~
+
+``Deliver`` increments the article count on the *Blog*, and
 calculates the key of the *Post* based on the *Blog* slug and the count
 of this article. It then saves both the *Post* and the updated *Blog*.
 Note how the *Handler* has access to the height of the current block
@@ -97,8 +177,20 @@ from the relevant header. (Actually the *Handler* has access to the full
 header, which contains a timestamp,
 `which may or may not be reliable <https://github.com/tendermint/tendermint/issues/1146>`_.)
 
-**TODO** include deliver code
-Like: https://github.com/iov-one/bcp-demo/blob/master/x/escrow/handler.go#L62-L107
+.. literalinclude:: ../../examples/tutorial/x/blog/handlers.go
+    :language: go
+    :lines: 134-164
+
+Let us recall that when incrementing the article count on the parent blog, we don't 
+have to worry about concurrential access, nor use any synchronisation mechanism : We are garanteed 
+that each ``Check`` and ``Deliver`` method will be executed sequentially and in the same order on each node.
+
+Finally, note how we generate the composite key for the post by concatenating the blog slug and 
+the blog count : 
+
+.. literalinclude:: ../../examples/tutorial/x/blog/handlers.go
+    :language: go
+    :lines: 201-205
 
 Routing Messages to Handler
 ---------------------------
@@ -114,7 +206,7 @@ each message.
 
 .. literalinclude:: ../../examples/mycoind/app/app.go
     :language: go
-    :lines: 56-62
+    :lines: 62-69
 
 In order to make it easy for applications to register our extension as
 one piece and not worry about attaching every *Handler* we provide,
@@ -126,13 +218,129 @@ for instantiating all the *Handlers* with the desired configuration
 and attaching them to the *Router* to process the matching
 *Message* type (identified by it's *Path*):
 
-**TODO** include our code
+.. literalinclude:: ../../examples/tutorial/x/blog/handlers.go
+    :language: go
+    :lines: 22-29
+
+Testing Handlers
+----------------
+
+In order to test a handler, we need four things : 
+ - A storage
+ - A weave context
+ - An Authenticator associated with our context
+ - A Tx object to processs (eg. to check or to deliver)
+
+There is a ready to use in memory storage available in 
+the `store package <https://github.com/iov-one/weave/blob/master/store/btree.go#L31-L36>`_.
+There are also util functions available that we can use to create a weave context with a 
+list of signers (eg. authorized addresses) via an `Authenticator <https://weave.readthedocs.io/en/latest/design/permissions.html>`_.
+The function below shows how to use them : 
+
+.. literalinclude:: ../../examples/tutorial/x/blog/handlers_test.go
+    :language: go
+    :lines: 118-126
+
+Last but not least, there is a helper function allowing to create a Tx object from a message :
+
+.. literalinclude:: ../../x/helpers.go
+    :language: go
+    :lines: 102-105
+
+Now that we have all the pieces, let us put them together and 
+write tests. 
+
+First we start by defining a pattern that we will follow in all our tests to make 
+easier for the reader to navigate through them.
+A function to test a handler Check method would look like this :
 
 .. code:: go
 
-    // RegisterRoutes will instantiate and register
-    // all handlers in this package
-    func RegisterRoutes(r weave.Registry, auth x.Authenticator) {
-        r.Handle(pathSendMsg, NewSendHandler(auth))
+    func Test[HandlerName]Check(t *testing.T) {
+
+        1 - generate keys to use in the test
+
+        _, k1 := helpers.MakeKey()
+        // ...
+        _, kN := helpers.MakeKey()
+
+        2 - call testHandlerCheck withs testcases as below
+
+        testHandlerCheck(
+            t,
+            []testcase{
+                // testcase1
+                // testcase2
+                // ...
+                // testcaseN
+            })
     }
 
+And for the Deliver method, like that :
+
+.. code:: go
+
+    func Test[HandlerName]Deliver(t *testing.T) {
+
+        1 - generate keys to use in the test
+
+        _, k1 := helpers.MakeKey()
+        // ...
+        _, kN := helpers.MakeKey()
+
+        2 - call testHandlerDeliver withs testcases as below
+
+        testHandlerDeliver(
+            t,
+            []testcase{
+                // testcase1
+                // testcase2
+                // ...
+                // testcaseN
+            })
+    }
+
+Our test functions rely on small utilities defined at the top of the test file, mainly, 
+a ``testcase`` struct to hold the data required for a test : 
+
+ .. literalinclude:: ../../examples/tutorial/x/blog/handlers_test.go
+    :language: go
+    :lines: 63-80
+
+A generic test runner for the ``Check`` method of a handler : 
+
+ .. literalinclude:: ../../examples/tutorial/x/blog/handlers_test.go
+    :language: go
+    :lines: 151-177
+
+And one for the ``Deliver`` method of a handler : 
+
+ .. literalinclude:: ../../examples/tutorial/x/blog/handlers_test.go
+    :language: go
+    :lines: 179-210
+
+The generic test runners help reducing boilerplates in tests by taking care of saving dependencies 
+prior to running a test, and making asserts on the data returned upon completion.
+For example when creating a new Post, we need to save the corresponding Blog first, and upon completion,
+we need to retrieve both the Post and the Blog we saved to ensure they're inline with our expectations.
+
+Here is how a test would look like for the ``Check`` method of the ``CreateBlogMsg`` handler : 
+
+.. literalinclude:: ../../examples/tutorial/x/blog/handlers_test.go
+    :language: go
+    :lines: 211-308
+
+As stated above, the test implementation consists in defining the keys and test cases to be used. 
+Util functions take care of the remaining.
+
+Let's take a look at another example with the test for the ``Deliver`` method 
+of the ``CreateBlogMsgHandler`` struct :
+
+.. literalinclude:: ../../examples/tutorial/x/blog/handlers_test.go
+    :language: go
+    :lines: 476-524
+
+It is very similar to what we saw before. One thing to notice here is that we specify 
+the dependencies required, in this case, a Blog object. 
+We also specify the objects we expect this test to deliver so we can assert wether 
+or not they have been delivered correctly.

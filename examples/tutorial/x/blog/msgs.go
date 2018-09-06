@@ -44,7 +44,7 @@ func (s *CreateBlogMsg) Validate() error {
 		return ErrInvalidName()
 	}
 	if len(s.Title) < MinTitleLength || len(s.Title) > MaxTitleLength {
-		return ErrTitleTooLong()
+		return ErrInvalidTitle()
 	}
 	// check the number of authors
 	authors := len(s.Authors)
@@ -74,7 +74,7 @@ func (s *RenameBlogMsg) Validate() error {
 		return ErrInvalidName()
 	}
 	if len(s.Title) < MinTitleLength || len(s.Title) > MaxTitleLength {
-		return ErrTitleTooLong()
+		return ErrInvalidTitle()
 	}
 	return nil
 }
@@ -107,10 +107,10 @@ func (s *CreatePostMsg) Validate() error {
 		return ErrInvalidName()
 	}
 	if len(s.Title) < MinTitleLength || len(s.Title) > MaxTitleLength {
-		return ErrTitleTooLong()
+		return ErrInvalidTitle()
 	}
 	if len(s.Text) < MinTextLength || len(s.Text) > MaxTextLength {
-		return ErrTextTooLong()
+		return ErrInvalidText()
 	}
 
 	// if an author is present, validate it is a valid address

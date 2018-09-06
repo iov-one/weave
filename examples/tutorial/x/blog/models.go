@@ -15,7 +15,7 @@ var _ orm.CloneableData = (*Blog)(nil)
 // Validate enforces limits of title size and number of authors
 func (b *Blog) Validate() error {
 	if len(b.Title) > MaxTitleLength {
-		return ErrTitleTooLong()
+		return ErrInvalidTitle()
 	}
 	if len(b.Authors) > MaxAuthors || len(b.Authors) == 0 {
 		return ErrInvalidAuthorCount(len(b.Authors))
@@ -46,10 +46,10 @@ var _ orm.CloneableData = (*Post)(nil)
 // Validate enforces limits of text and title size
 func (p *Post) Validate() error {
 	if len(p.Title) > MaxTitleLength {
-		return ErrTitleTooLong()
+		return ErrInvalidTitle()
 	}
 	if len(p.Text) > MaxTextLength {
-		return ErrTextTooLong()
+		return ErrInvalidText()
 	}
 	if len(p.Author) == 0 {
 		return ErrNoAuthor()

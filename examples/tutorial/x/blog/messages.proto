@@ -23,10 +23,12 @@ message RenameBlogMsg {
 // ChangeBlogAuthorsMsg adds or removes an author from the blog's
 // authorized author list
 message ChangeBlogAuthorsMsg {
+    // slug is a short, unique string used as primary key
+    string slug = 1;
     // whether we add or remove them
-    bool add = 1;
+    bool add = 2;
     // author to add or remove
-    bytes author = 2;
+    bytes author = 3;
 }
 
 // CreatePostMsg adds a post to a blog
