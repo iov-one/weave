@@ -12,7 +12,24 @@ with new versions of tendermint.
 Listening for Headers
 ---------------------
 
-** TODO** add iov-core example when https://github.com/iov-one/iov-core/pull/317 done.
+.. code:: typescript
+
+  const writer = new IovWriter(new UserProfile());
+  await writer.addChain(bnsConnector(TESTNET_WS_URL));
+
+  const chainId = writer.chainIds()[0];
+  const maxWatchMillis = 5000;
+  const liveHeight = lastValue(writer.reader(chainId).changeBlock().endWhen(xs.periodic(maxWatchMillis)));
+
+  function delay(ms: number) {
+    return new Promise( resolve => setTimeout(resolve, ms) );
+  }
+
+  for (let i = 0; i < 11 ; i++) {
+    await delay(500);
+    console.log(liveHeight.value());
+  }
+
 
 Listening for Transactions
 --------------------------

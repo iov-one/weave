@@ -6,9 +6,8 @@ To query an account configure an `IovReader <https://iov-one.github.io/iov-core-
 with the network and chainId.
 .. code:: typescript
 
-  const testnet = await bnsConnector(TESTNET_URL);
-  const chains = await withConnectors([testnet]);
-  const writer = new IovWriter(new UserProfile(), chains);
+  const writer = new IovWriter(new UserProfile());
+  await writer.addChain(bnsConnector(TESTNET_RPC_URL));
 
   const chainId = writer.chainIds()[0];
   const reader = writer.reader(chainId);

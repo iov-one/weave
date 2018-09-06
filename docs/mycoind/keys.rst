@@ -8,7 +8,7 @@ user profiles and identities. An identity is a `BIP39 <https://github.com/bitcoi
 Creating Key Pairs
 ------------------
 
-.. code:: javascript
+.. code:: typescript
 
   const entropy32 = await Random.getBytes(32);
   const mnemonic24 = Bip39.encode(entropy32).asString();
@@ -37,17 +37,16 @@ function for it to be considered valid.
 We need the private/secret key to sign the message, but only
 need the public key to verify the signature.
 
-.. code:: javascript
-
-  const testnet = await bnsConnector(TESTNET_URL);
-  const chains = await withConnectors([testnet]);
+.. code:: typescript
 
   const profile = new UserProfile();
   profile.addEntry(Ed25519SimpleAddressKeyringEntry.fromMnemonic("rose approve seek explain useful tomato canal ecology catch sad sign bracket hungry leave bacon clutch glide bundle control obey mandate creek mask faith"));
   const id1 = await profile.createIdentity(0);
 
-  const writer = new IovWriter(profile, chains);
+  const writer = new IovWriter(profile);
+  await writer.addChain(bnsConnector(TESTNET_RPC_URL));
   const chainId = writer.chainIds()[0];
+
   const destinationAccount = fromHex("e28ae9a6eb94fc88b73eb7cbd6b87bf93eb9bef0") as Address;
 
   const sendTx: SendTx = {

@@ -27,16 +27,16 @@ We assume you have a profile and a key `created earlier <./keys.html>`__
 created from an mnemonic. We assume this is the key
 with tokens and Bert`s address the destination
 
-.. code:: javascript
-const testnet = await bnsConnector(TESTNET_URL);
-  const chains = await withConnectors([testnet]);
+.. code:: typescript
 
   const profile = new UserProfile();
   profile.addEntry(Ed25519SimpleAddressKeyringEntry.fromMnemonic("rose approve seek explain useful tomato canal ecology catch sad sign bracket hungry leave bacon clutch glide bundle control obey mandate creek mask faith"));
   const id1 = await profile.createIdentity(0);
 
-  const writer = new IovWriter(profile, chains);
+  const writer = new IovWriter(profile);
+  await writer.addChain(bnsConnector(TESTNET_RPC_URL));
   const chainId = writer.chainIds()[0];
+
   const bert = fromHex("e28ae9a6eb94fc88b73eb7cbd6b87bf93eb9bef0") as Address;
 
   const sendTx: SendTx = {
@@ -61,9 +61,9 @@ If ``sendTx`` was successful, you should be able to query
 the accounts to see that money arrived. Check the balance,
 send another tx, and see that it updated...
 
-.. code:: javascript
+.. code:: typescript
 
-    const account = await reader.getAccount({address: bert});
+  const account = await reader.getAccount({address: bert});
   console.log(account);
   console.log(account.data[0]);
 
