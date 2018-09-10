@@ -210,44 +210,6 @@ func testHandlerDeliver(t *testing.T, testcases []testcase) {
 	}
 }
 
-// testHandlerCheck delivers test dependencies
-// then calls Deliver on target handler
-// and finally asserts errors or saved state(s)
-func testQuery(t *testing.T, testcases []testcase) {
-	qr := weave.NewQueryRouter()
-	RegisterQuery(qr)
-
-	for _, test := range testcases {
-		db := store.MemStore()
-		ctx, auth := newContextWithAuth(test.Perms)
-
-		// add dependencies
-		for _, dep := range test.Deps {
-			depHandler := dep.Handler(auth)
-			_, err := depHandler.Deliver(ctx, db, newTx(dep.Msg))
-			require.NoError(t, err, test.Name, fmt.Sprintf("failed to deliver dep %s\n", dep.Name))
-		}
-
-		h := qr.Handler(test.QueryPath)
-		require.NotNil(t, h)
-
-		for _, obj := range test.Obj {
-			mods, err := h.Query(db, "", obj.Key())
-			require.NoError(t, err, test.Name)
-			require.NotNil(t, mods, test.Name)
-
-			actual, err := test.Bucket.Parse(nil, mods[0].Value)
-			require.NoError(t, err, test.Name)
-
-			expected, err := test.Bucket.Get(db, obj.Key())
-			require.NoError(t, err, test.Name)
-			require.NotNil(t, expected, test.Name)
-
-			require.EqualValues(t, obj.Value(), actual.Value(), test.Name)
-		}
-	}
-}
-
 func TestCreateBlogMsgHandlerCheck(t *testing.T) {
 	_, signer := x.TestHelpers{}.MakeKey()
 	testHandlerCheck(
@@ -1006,11 +968,7 @@ func TestSetProfileMsgHandlerDeliver(t *testing.T) {
 		},
 	)
 }
-
-func TestQuery(t *testing.T) {
-	qr := weave.NewQueryRouter()
-	RegisterQuery(qr)
-
+func TestBlogQuery(t *testing.T) {
 	db := store.MemStore()
 	_, signer := helpers.MakeKey()
 	ctx, auth := newContextWithAuth([]weave.Condition{signer})
@@ -1022,60 +980,86 @@ func TestQuery(t *testing.T) {
 		}))
 	require.NoError(t, err, "failed to deliver blog")
 
+	qr := weave.NewQueryRouter()
+	RegisterQuery(qr)
+
 	h := qr.Handler("/blogs")
 	require.NotNil(t, h)
-	mods, err := h.Query(db, "", []byte("this_is_a_blog"))
 
-	bucket := NewBlogBucket()
-	obj, err := bucket.Get(db, []byte("this_is_a_blog"))
+	blogs, err := h.Query(db, "", []byte("this_is_a_blog"))
 	require.NoError(t, err)
 
-	got, err := bucket.Parse(nil, mods[0].Value)
-	require.EqualValues(t, obj.Value(), got.Value())
+	bucket := NewBlogBucket()
+	expected, err := bucket.Get(db, []byte("this_is_a_blog"))
+	require.NoError(t, err)
+
+	actual, err := bucket.Parse(nil, blogs[0].Value)
+	require.EqualValues(t, expected.Value(), actual.Value())
 }
-
-func TestRegisterQuery(t *testing.T) {
+func TestPostQuery(t *testing.T) {
+	db := store.MemStore()
 	_, signer := helpers.MakeKey()
+	ctx, auth := newContextWithAuth([]weave.Condition{signer})
 
-	testQuery(
-		t,
-		[]testcase{
-			{
-				Name:      "blog query",
-				QueryPath: "/blogs",
-				Bucket:    NewBlogBucket().Bucket,
-				Perms:     []weave.Condition{signer},
-				Deps: []testdep{
-					testdep{
-						Name:    "Blog 1",
-						Handler: createBlogMsgHandlerFn,
-						Msg: &CreateBlogMsg{
-							Slug:    "this_is_blog_1",
-							Title:   "this is a title for blog 1",
-							Authors: [][]byte{signer.Address()},
-						},
-					},
-					testdep{
-						Name:    "Blog 2",
-						Handler: createBlogMsgHandlerFn,
-						Msg: &CreateBlogMsg{
-							Slug:    "this_is_blog_2",
-							Title:   "this is a title for blog 2",
-							Authors: [][]byte{signer.Address()},
-						},
-					},
-				},
-				Obj: []*orm.SimpleObj{
-					orm.NewSimpleObj(
-						[]byte("this_is_blog_1"),
-						&Blog{
-							Title:       "this is a title for blog 1",
-							NumArticles: 0,
-							Authors:     [][]byte{signer.Address()},
-						},
-					),
-				},
-			},
+	_, err := createBlogMsgHandlerFn(auth).Deliver(ctx, db, newTx(
+		&CreateBlogMsg{
+			Slug:    "this_is_a_blog",
+			Title:   "this is a blog title",
+			Authors: [][]byte{signer.Address()},
+		}))
+	require.NoError(t, err)
+
+	_, err = createPostMsgHandlerFn(auth).Deliver(ctx, db, newTx(
+		&CreatePostMsg{
+			Blog:   "this_is_a_blog",
+			Title:  "this is a post title",
+			Text:   longText,
+			Author: signer.Address(),
+		}))
+	require.NoError(t, err)
+
+	qr := weave.NewQueryRouter()
+	RegisterQuery(qr)
+
+	h := qr.Handler("/posts")
+	require.NotNil(t, h)
+
+	key := newPostCompositeKey("this_is_a_blog", 1)
+	posts, err := h.Query(db, "", key)
+	require.NoError(t, err)
+
+	bucket := NewPostBucket()
+	expected, err := bucket.Get(db, key)
+	require.NoError(t, err)
+
+	actual, err := bucket.Parse(nil, posts[0].Value)
+	require.EqualValues(t, expected.Value(), actual.Value())
+}
+func TestProfile(t *testing.T) {
+	db := store.MemStore()
+	_, signer := helpers.MakeKey()
+	ctx, auth := newContextWithAuth([]weave.Condition{signer})
+	_, err := SetProfileMsgHandlerFn(auth).Deliver(ctx, db, newTx(
+		&SetProfileMsg{
+			Name:        "lehajam",
+			Description: "my profile description",
 		},
-	)
+	))
+	require.NoError(t, err)
+
+	qr := weave.NewQueryRouter()
+	RegisterQuery(qr)
+
+	h := qr.Handler("/profiles")
+	require.NotNil(t, h)
+
+	blogs, err := h.Query(db, "", []byte("lehajam"))
+	require.NoError(t, err)
+
+	bucket := NewProfileBucket()
+	expected, err := bucket.Get(db, []byte("lehajam"))
+	require.NoError(t, err)
+
+	actual, err := bucket.Parse(nil, blogs[0].Value)
+	require.EqualValues(t, expected.Value(), actual.Value())
 }
