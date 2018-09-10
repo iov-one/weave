@@ -44,9 +44,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/iov-one/weave/orm"
+
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
-	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/store"
 	"github.com/iov-one/weave/x"
 	"github.com/stretchr/testify/require"
