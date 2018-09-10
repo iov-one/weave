@@ -107,7 +107,7 @@ func testSendTx(t *testing.T, myApp app.BaseApp, h int64,
 
 func TestApp(t *testing.T) {
 	// no minimum fee, in-memory data-store
-	abciApp, err := GenerateApp("", log.NewNopLogger())
+	abciApp, err := GenerateApp("", log.NewNopLogger(), true)
 	require.NoError(t, err)
 	myApp := abciApp.(app.BaseApp)
 
