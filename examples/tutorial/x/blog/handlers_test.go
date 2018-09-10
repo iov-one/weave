@@ -66,16 +66,14 @@ type testdep struct {
 }
 
 type testcase struct {
-	Name      string
-	Err       error
-	Handler   HandlerCreator
-	Perms     []weave.Condition
-	Deps      []testdep
-	Msg       weave.Msg
-	Res       weave.CheckResult
-	Obj       []*orm.SimpleObj
-	QueryPath string
-	Bucket    orm.Bucket
+	Name    string
+	Err     error
+	Handler HandlerCreator
+	Perms   []weave.Condition
+	Deps    []testdep
+	Msg     weave.Msg
+	Res     weave.CheckResult
+	Obj     []*orm.SimpleObj
 }
 
 type HandlerCreator func(auth x.Authenticator) weave.Handler
