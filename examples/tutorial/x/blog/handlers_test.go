@@ -1021,6 +1021,7 @@ func TestPostQuery(t *testing.T) {
 	qr := weave.NewQueryRouter()
 	RegisterQuery(qr)
 
+	// query by post
 	h := qr.Handler("/posts")
 	require.NotNil(t, h)
 
@@ -1034,6 +1035,19 @@ func TestPostQuery(t *testing.T) {
 
 	actual, err := bucket.Parse(nil, posts[0].Value)
 	require.EqualValues(t, expected.Value(), actual.Value())
+
+	// query by author
+	h = qr.Handler("/posts/author")
+	require.NotNil(t, h)
+
+	posts, err = h.Query(db, "", signer.Address())
+	require.NoError(t, err)
+
+	expectedSlice, err := bucket.GetIndexed(db, "author", signer.Address())
+	require.NoError(t, err)
+
+	actual, err = bucket.Parse(nil, posts[0].Value)
+	require.EqualValues(t, expectedSlice[0].Value(), actual.Value())
 }
 func TestProfile(t *testing.T) {
 	db := store.MemStore()
