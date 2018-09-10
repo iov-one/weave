@@ -83,7 +83,7 @@ func Stack(minFee x.Coin, issuer weave.Address) weave.Handler {
 // the given arguments. If you are not sure what to use
 // for the Handler, just use Stack().
 func Application(name string, h weave.Handler,
-	tx weave.TxDecoder, dbPath string) (app.BaseApp, error) {
+	tx weave.TxDecoder, dbPath string, debug bool) (app.BaseApp, error) {
 
 	ctx := context.Background()
 	kv, err := CommitKVStore(dbPath)
@@ -91,7 +91,7 @@ func Application(name string, h weave.Handler,
 		return app.BaseApp{}, err
 	}
 	store := app.NewStoreApp(name, kv, QueryRouter(), ctx)
-	base := app.NewBaseApp(store, tx, h, nil)
+	base := app.NewBaseApp(store, tx, h, nil, debug)
 	return base, nil
 }
 

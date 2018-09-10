@@ -64,7 +64,7 @@ func GenInitOptions(args []string) (json.RawMessage, error) {
 }
 
 // GenerateApp is used to create a stub for server/start.go command
-func GenerateApp(home string, logger log.Logger) (abci.Application, error) {
+func GenerateApp(home string, logger log.Logger, debug bool) (abci.Application, error) {
 	// db goes in a subdir, but "" -> "" for memdb
 	var dbPath string
 	if home != "" {
@@ -73,7 +73,7 @@ func GenerateApp(home string, logger log.Logger) (abci.Application, error) {
 
 	// TODO: anyone can make a token????
 	stack := Stack(x.Coin{}, nil)
-	app, err := Application("mycoin", stack, TxDecoder, dbPath)
+	app, err := Application("mycoin", stack, TxDecoder, dbPath, debug)
 	if err != nil {
 		return nil, err
 	}

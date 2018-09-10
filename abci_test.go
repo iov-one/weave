@@ -36,7 +36,7 @@ func TestCreateErrorResult(t *testing.T) {
 			assert.Contains(t, dres.Log, "iov-one/weave/abci")
 			assert.Equal(t, tc.code, dres.Code)
 
-			cres := weave.CheckTxError(tc.err)
+			cres := weave.CheckTxError(tc.err, true)
 			assert.True(t, cres.IsErr())
 			// This is if we want minimal logs in the future....
 			// assert.Equal(tc.msg, cres.Log)
