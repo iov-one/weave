@@ -105,6 +105,10 @@ func (s *StoreApp) parseAppState(data []byte, chainID string, init weave.Initial
 		return fmt.Errorf("appState previously loaded for chain: %s", s.chainID)
 	}
 
+	if len(data) == 0 {
+		return fmt.Errorf("app_state not set in genesis.json, please initialize application before launching the blockchain")
+	}
+
 	var appState weave.Options
 	err := json.Unmarshal(data, &appState)
 	if err != nil {
