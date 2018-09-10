@@ -28,6 +28,7 @@ func RegisterRoutes(r weave.Registry, auth x.Authenticator) {
 	r.Handle(PathSetProfileMsg, SetProfileMsgHandler{auth, NewProfileBucket()})
 }
 
+// RegisterQuery register queries from buckets in this package
 func RegisterQuery(qr weave.QueryRouter) {
 	NewBlogBucket().Register("blogs", qr)
 	NewPostBucket().Register("posts", qr)
