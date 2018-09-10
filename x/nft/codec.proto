@@ -1,0 +1,46 @@
+syntax = "proto3";
+
+package nft;
+
+enum actionlKind {
+    transferApproval = 0;
+    usageApproval = 1;
+}
+
+
+message nonFungibleToken {
+    bytes id = 1;
+    bytes owner = 2;
+    repeated approval approval = 3;
+    // space here to allow some more....
+    oneof payload {
+        humanAddressPayload humanAddress = 10;
+        blockChainPayload blockchain = 11;
+        tokenPayload token = 12;
+    }
+}
+
+message approval {
+    bytes toAccount = 1;
+    actionlKind action = 2;
+    approvalOptions options = 3;
+}
+
+message approvalOptions {
+    int64 timeout = 1;
+    int64 count = 2; // usage count
+    bool immutilbe = 3; // todo: immutable ? immutability of the right not the data
+}
+
+
+message humanAddressPayload {
+    bytes account = 1;
+}
+
+message blockChainPayload {
+    bytes account = 1;
+}
+
+message tokenPayload {
+    bytes account = 1;
+}

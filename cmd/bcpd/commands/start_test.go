@@ -13,8 +13,8 @@ import (
 
 	"github.com/tendermint/tmlibs/log"
 
-	"github.com/iov-one/weave/commands/server"
 	"github.com/iov-one/weave/cmd/bcpd/app"
+	"github.com/iov-one/weave/commands/server"
 )
 
 func TestStartStandAlone(t *testing.T) {
