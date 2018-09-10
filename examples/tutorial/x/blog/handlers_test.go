@@ -44,10 +44,9 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/iov-one/weave/orm"
-
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/store"
 	"github.com/iov-one/weave/x"
 	"github.com/stretchr/testify/require"
@@ -67,14 +66,16 @@ type testdep struct {
 }
 
 type testcase struct {
-	Name    string
-	Err     error
-	Handler HandlerCreator
-	Perms   []weave.Condition
-	Deps    []testdep
-	Msg     weave.Msg
-	Res     weave.CheckResult
-	Obj     []*orm.SimpleObj
+	Name      string
+	Err       error
+	Handler   HandlerCreator
+	Perms     []weave.Condition
+	Deps      []testdep
+	Msg       weave.Msg
+	Res       weave.CheckResult
+	Obj       []*orm.SimpleObj
+	QueryPath string
+	Bucket    orm.Bucket
 }
 
 type HandlerCreator func(auth x.Authenticator) weave.Handler
@@ -208,6 +209,45 @@ func testHandlerDeliver(t *testing.T, testcases []testcase) {
 		}
 	}
 }
+
+// testHandlerCheck delivers test dependencies
+// then calls Deliver on target handler
+// and finally asserts errors or saved state(s)
+func testQuery(t *testing.T, testcases []testcase) {
+	qr := weave.NewQueryRouter()
+	RegisterQuery(qr)
+
+	for _, test := range testcases {
+		db := store.MemStore()
+		ctx, auth := newContextWithAuth(test.Perms)
+
+		// add dependencies
+		for _, dep := range test.Deps {
+			depHandler := dep.Handler(auth)
+			_, err := depHandler.Deliver(ctx, db, newTx(dep.Msg))
+			require.NoError(t, err, test.Name, fmt.Sprintf("failed to deliver dep %s\n", dep.Name))
+		}
+
+		h := qr.Handler(test.QueryPath)
+		require.NotNil(t, h)
+
+		for _, obj := range test.Obj {
+			mods, err := h.Query(db, "", obj.Key())
+			require.NoError(t, err, test.Name)
+			require.NotNil(t, mods, test.Name)
+
+			actual, err := test.Bucket.Parse(nil, mods[0].Value)
+			require.NoError(t, err, test.Name)
+
+			expected, err := test.Bucket.Get(db, obj.Key())
+			require.NoError(t, err, test.Name)
+			require.NotNil(t, expected, test.Name)
+
+			require.EqualValues(t, obj.Value(), actual.Value(), test.Name)
+		}
+	}
+}
+
 func TestCreateBlogMsgHandlerCheck(t *testing.T) {
 	_, signer := x.TestHelpers{}.MakeKey()
 	testHandlerCheck(
@@ -959,6 +999,79 @@ func TestSetProfileMsgHandlerDeliver(t *testing.T) {
 						&Profile{
 							Name:        "lehajam",
 							Description: "my updated profile description",
+						},
+					),
+				},
+			},
+		},
+	)
+}
+
+func TestQuery(t *testing.T) {
+	qr := weave.NewQueryRouter()
+	RegisterQuery(qr)
+
+	db := store.MemStore()
+	_, signer := helpers.MakeKey()
+	ctx, auth := newContextWithAuth([]weave.Condition{signer})
+	_, err := createBlogMsgHandlerFn(auth).Deliver(ctx, db, newTx(
+		&CreateBlogMsg{
+			Slug:    "this_is_a_blog",
+			Title:   "this is a blog title",
+			Authors: [][]byte{signer.Address()},
+		}))
+	require.NoError(t, err, "failed to deliver blog")
+
+	h := qr.Handler("/blogs")
+	require.NotNil(t, h)
+	mods, err := h.Query(db, "", []byte("this_is_a_blog"))
+
+	bucket := NewBlogBucket()
+	obj, err := bucket.Get(db, []byte("this_is_a_blog"))
+	require.NoError(t, err)
+
+	got, err := bucket.Parse(nil, mods[0].Value)
+	require.EqualValues(t, obj.Value(), got.Value())
+}
+
+func TestRegisterQuery(t *testing.T) {
+	_, signer := helpers.MakeKey()
+
+	testQuery(
+		t,
+		[]testcase{
+			{
+				Name:      "blog query",
+				QueryPath: "/blogs",
+				Bucket:    NewBlogBucket().Bucket,
+				Perms:     []weave.Condition{signer},
+				Deps: []testdep{
+					testdep{
+						Name:    "Blog 1",
+						Handler: createBlogMsgHandlerFn,
+						Msg: &CreateBlogMsg{
+							Slug:    "this_is_blog_1",
+							Title:   "this is a title for blog 1",
+							Authors: [][]byte{signer.Address()},
+						},
+					},
+					testdep{
+						Name:    "Blog 2",
+						Handler: createBlogMsgHandlerFn,
+						Msg: &CreateBlogMsg{
+							Slug:    "this_is_blog_2",
+							Title:   "this is a title for blog 2",
+							Authors: [][]byte{signer.Address()},
+						},
+					},
+				},
+				Obj: []*orm.SimpleObj{
+					orm.NewSimpleObj(
+						[]byte("this_is_blog_1"),
+						&Blog{
+							Title:       "this is a title for blog 1",
+							NumArticles: 0,
+							Authors:     [][]byte{signer.Address()},
 						},
 					),
 				},
