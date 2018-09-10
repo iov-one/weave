@@ -31,11 +31,41 @@ to handle all querys for the ``/escrows`` path:
         NewBucket().Register("escrows", qr)
     }
 
-**TODO** demo with code from tutorial.
+To summarize : 
+ - Because we are using buckets, we get queries for free
+ - This is true for primary indexes but also for any secondary index registered
+ - This is also true for prefix queries
+ - We only need to setup our bucket properly and attach it to the *QueryRouter*
+ 
+Back to our blog example, let us start by registering our bucket queries :
 
-Notice that this automatically handles prefix queries,
-with paths like ``/escrows?prefix`` as well as queries
-on secondary indexes like ``/escrows/recipient``. All
-you have to do is set up the bucket properly and attach it
-to the *QueryRouter*.
+.. literalinclude:: ../../examples/tutorial/x/blog/handlers.go
+    :language: go
+    :lines: 31-36
 
+That's pretty much it, we can now query blogs, posts and profiles by their primary keys, and posts 
+by author as we have defined this index previously.
+Here is an example of querying a `Blog` from our tests : 
+
+.. literalinclude:: ../../examples/tutorial/x/blog/query_test.go
+    :language: go
+    :lines: 23-34
+
+Similarly for a `Post` : 
+
+.. literalinclude:: ../../examples/tutorial/x/blog/query_test.go
+    :language: go
+    :lines: 70-80
+
+In case no results are returned by a query, we'll get back an empty slice : 
+
+.. literalinclude:: ../../examples/tutorial/x/blog/query_test.go
+    :language: go
+    :lines: 89-92
+
+Finally, here is an example of a query by secondary index. In this case, 
+we want all the Posts authored by `signer` : 
+
+.. literalinclude:: ../../examples/tutorial/x/blog/query_test.go
+    :language: go
+    :lines: 94-100

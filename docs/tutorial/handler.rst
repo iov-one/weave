@@ -77,7 +77,7 @@ a blog :
 
 .. literalinclude:: ../../examples/tutorial/x/blog/handlers.go
     :language: go
-    :lines: 82-111
+    :lines: 89-118
 
 Before anything, we want to make sure that the transaction is allowed 
 and in the case of Blog creation, we choose to consider the main Tx signer 
@@ -85,7 +85,7 @@ as the blog author. This is easily achieved using existing util functions :
 
 .. literalinclude:: ../../examples/tutorial/x/blog/handlers.go
     :language: go
-    :lines: 83-87
+    :lines: 90-94
 
 Next comes the model validation as described in the 
 `Data Model section <https://weave.readthedocs.io/en/latest/tutorial/messages.html#validation>`_, 
@@ -94,7 +94,7 @@ how to do that by querying the BlogBucket  :
 
 .. literalinclude:: ../../examples/tutorial/x/blog/handlers.go
     :language: go
-    :lines: 104-108
+    :lines: 111-115
 
 Post
 ~~~~
@@ -111,13 +111,13 @@ call as well to avoid loading it twice.
 
 .. literalinclude:: ../../examples/tutorial/x/blog/handlers.go
     :language: go
-    :lines: 167-199
+    :lines: 174-206
 
 Note how we ensure that the post author is one of the Tx signers :
 
 .. literalinclude:: ../../examples/tutorial/x/blog/handlers.go
     :language: go
-    :lines: 178-181
+    :lines: 185-188
 
 Check
 -----
@@ -136,7 +136,7 @@ A blog costs one gas to create :
 
 .. literalinclude:: ../../examples/tutorial/x/blog/handlers.go
     :language: go
-    :lines: 48-57
+    :lines: 55-64
 
 Post
 ~~~~
@@ -146,7 +146,7 @@ per mile characters with the first 1000 characters offered :
 
 .. literalinclude:: ../../examples/tutorial/x/blog/handlers.go
     :language: go
-    :lines: 122-132
+    :lines: 129-139
 
 Deliver
 -------
@@ -162,7 +162,7 @@ of the Tx is part of the authorized authors for this blog and will add it if not
 
 .. literalinclude:: ../../examples/tutorial/x/blog/handlers.go
     :language: go
-    :lines: 59-79
+    :lines: 66-86
 
 Post
 ~~~~
@@ -179,7 +179,7 @@ header, which contains a timestamp,
 
 .. literalinclude:: ../../examples/tutorial/x/blog/handlers.go
     :language: go
-    :lines: 134-164
+    :lines: 141-171
 
 Let us recall that when incrementing the article count on the parent blog, we don't 
 have to worry about concurrential access, nor use any synchronisation mechanism : We are garanteed 
@@ -190,7 +190,7 @@ the blog count :
 
 .. literalinclude:: ../../examples/tutorial/x/blog/handlers.go
     :language: go
-    :lines: 201-205
+    :lines: 208-212
 
 Routing Messages to Handler
 ---------------------------
