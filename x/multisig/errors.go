@@ -7,42 +7,41 @@ import (
 )
 
 // ABCI Response Codes
-// multisig takes 1030-1031
+// multisig takes 1030-1040
 const (
-	CodeMissingSigs       = 1030
-	CodeInvalidThreshold  = 1031
-	CodeContractDuplicate = 1032
+	CodeInvalidMsg             = 1030
+	CodeMultisigAuthentication = 1031
 )
 
 var (
-	errMissingSigs = fmt.Errorf("Missing sigs")
-
-	errInvalidThreshold = fmt.Errorf("Activation threshold must be lower than or equal to the number of sigs")
-
+	errMissingSigs       = fmt.Errorf("Missing sigs")
+	errInvalidThreshold  = fmt.Errorf("Activation threshold must be lower than or equal to the number of sigs")
 	errContractDuplicate = fmt.Errorf("Contract already exists")
+
+	errUnauthorizedMultiSig = fmt.Errorf("Multisig authentication failed")
 )
 
 func ErrMissingSigs() error {
-	return errors.WithCode(errMissingSigs, CodeMissingSigs)
+	return errors.WithCode(errMissingSigs, CodeInvalidMsg)
 }
-func IsMissingSigsErr(err error) bool {
-	return errors.HasErrorCode(err, CodeMissingSigs)
-}
-
 func ErrInvalidActivationThreshold() error {
-	return errors.WithCode(errInvalidThreshold, CodeInvalidThreshold)
+	return errors.WithCode(errInvalidThreshold, CodeInvalidMsg)
 }
 func ErrInvalidChangeThreshold() error {
-	return errors.WithCode(errInvalidThreshold, CodeInvalidThreshold)
+	return errors.WithCode(errInvalidThreshold, CodeInvalidMsg)
 }
-func IsInvalidThresholdErr(err error) bool {
-	return errors.HasErrorCode(err, CodeInvalidThreshold)
-}
-
 func ErrContractDuplicate(contract []byte) error {
 	msg := fmt.Sprintf("author=%X", contract)
-	return errors.WithLog(msg, errContractDuplicate, CodeContractDuplicate)
+	return errors.WithLog(msg, errContractDuplicate, CodeInvalidMsg)
 }
-func IsContractDuplicatedErr(err error) bool {
-	return errors.HasErrorCode(err, CodeContractDuplicate)
+func IsInvalidMsgErr(err error) bool {
+	return errors.HasErrorCode(err, CodeInvalidMsg)
+}
+
+func ErrUnauthorizedMultiSig(contract []byte) error {
+	msg := fmt.Sprintf("contrac=%X", contract)
+	return errors.WithLog(msg, errUnauthorizedMultiSig, CodeMultisigAuthentication)
+}
+func IsMultiSigAuthenticationErr(err error) bool {
+	return errors.HasErrorCode(err, CodeMultisigAuthentication)
 }
