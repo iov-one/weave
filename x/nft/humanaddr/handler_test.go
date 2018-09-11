@@ -38,5 +38,4 @@ func TestDeliverIssueToken(t *testing.T) {
 	assert.NoError(t, err)
 	u, _ := AsHumanAddress(o)
 	assert.Equal(t, myPubKey, u.GetPubKey())
-
 }

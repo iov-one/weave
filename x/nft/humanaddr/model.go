@@ -64,7 +64,6 @@ func NewBucket() Bucket {
 	}
 }
 
-// simple indexer for Wallet name
 func ownerIndex(obj orm.Object) ([]byte, error) {
 	if obj == nil {
 		return nil, orm.ErrInvalidIndex("nil")
