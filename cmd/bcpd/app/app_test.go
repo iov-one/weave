@@ -22,7 +22,7 @@ import (
 func TestApp(t *testing.T) {
 	// no minimum fee, in-memory data-store
 	chainID := "test-net-22"
-	abciApp, err := GenerateApp("", log.NewNopLogger())
+	abciApp, err := GenerateApp("", log.NewNopLogger(), true)
 	require.NoError(t, err)
 	myApp := abciApp.(app.BaseApp)
 

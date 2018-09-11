@@ -23,7 +23,7 @@ func parseFlags(args []string) (string, bool, error) {
 	var debug bool
 	startFlags := flag.NewFlagSet("start", flag.ExitOnError)
 	startFlags.StringVar(&addr, flagBind, "tcp://localhost:46658", "address server listens on")
-	startFlags.BoolVar(&debug, flagDebug, false, "call stack returned with Tx result")
+	startFlags.BoolVar(&debug, flagDebug, false, "call stack returned on error")
 	err := startFlags.Parse(args)
 	return addr, debug, err
 }
