@@ -6,6 +6,6 @@ func GiveApproval(nftID []byte, kind ActionlKind, to weave.Address, options Appr
 
 }
 
-func takeAction(nftID []byte, kind ActionlKind, payloadDiff nftPayload) {
+func takeAction(nftID []byte, kind ActionlKind, payloadDiff Payload) {
 
 }

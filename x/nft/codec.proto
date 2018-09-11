@@ -5,6 +5,7 @@ package nft;
 enum actionlKind {
     transferApproval = 0;
     usageApproval = 1;
+    updatePayloadApproval = 2;
 }
 
 
@@ -27,7 +28,7 @@ message approval {
 }
 
 message approvalOptions {
-    int64 timeout = 1;
+    int64 timeout = 1; // nanos. todo: revisit to use block height?, if this is time then this may not be deterministic enough
     int64 count = 2; // usage count
     bool immutilbe = 3; // todo: immutable ? immutability of the right not the data
 }

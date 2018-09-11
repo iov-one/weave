@@ -10,14 +10,14 @@ import (
 const (
 	// BucketName is where we store the nfts
 	BucketName = "usrnft"
-	// IndexName is the index to query nft by owner
-	IndexName = "owner"
+	// OwnerIndexName is the index to query nft by owner
+	OwnerIndexName = "owner"
 )
 
 type HumanAddress interface {
 	nft.BaseNFT
 	GetPubKey() []byte
-	SetPubKey([]byte)
+	SetPubKey(weave.Address, []byte) error
 }
 type humanAddressNftAdapter struct {
 	*nft.NonFungibleToken
@@ -30,12 +30,13 @@ func (a *humanAddressNftAdapter) GetPubKey() []byte {
 	return a.GetHumanAddress().Account
 }
 
-func (a *humanAddressNftAdapter) SetPubKey(pubKey []byte) {
-	a.Payload = &nft.NonFungibleToken_HumanAddress{
+func (a *humanAddressNftAdapter) SetPubKey(actor weave.Address, pubKey []byte) error {
+	newPayload := &nft.NonFungibleToken_HumanAddress{
 		HumanAddress: &nft.HumanAddressPayload{
 			Account: pubKey,
 		},
 	}
+	return a.TakeAction(actor, nft.ActionlKind_updatePayloadApproval, newPayload)
 }
 
 // As HumanAddress will safely type-cast any value from Bucket
@@ -45,7 +46,7 @@ func AsHumanAddress(obj orm.Object) (HumanAddress, error) {
 	}
 	x, ok := obj.Value().(*nft.NonFungibleToken)
 	if !ok {
-		return nil, errors.New("unsupported type")
+		return nil, errors.New("unsupported type") // todo: move
 	}
 	return &humanAddressNftAdapter{x}, nil
 }
@@ -59,7 +60,7 @@ type Bucket struct {
 
 func NewBucket() Bucket {
 	return Bucket{
-		Bucket: orm.NewBucket(BucketName, nft.NewNonFungibleToken(nil)).WithIndex(IndexName, ownerIndex, false),
+		Bucket: orm.NewBucket(BucketName, nft.NewNonFungibleToken(nil, nil)).WithIndex(OwnerIndexName, ownerIndex, false),
 	}
 }
 
@@ -76,7 +77,7 @@ func ownerIndex(obj orm.Object) ([]byte, error) {
 	return []byte(humanAddress.OwnerAddress()), nil
 }
 
-func (b Bucket) Create(db weave.KVStore, key []byte, pubKey []byte) (orm.Object, error) {
+func (b Bucket) Create(db weave.KVStore, owner weave.Address, key []byte, pubKey []byte) (orm.Object, error) {
 	obj, err := b.Get(db, key)
 	switch {
 	case err != nil:
@@ -84,11 +85,11 @@ func (b Bucket) Create(db weave.KVStore, key []byte, pubKey []byte) (orm.Object,
 	case obj != nil:
 		return nil, errors.New("key exists already") // todo: move into errors file
 	}
-	obj = nft.NewNonFungibleToken(key)
+	obj = nft.NewNonFungibleToken(key, owner)
 	humanAddress, err := AsHumanAddress(obj)
 	if err != nil {
 		return nil, err
 	}
-	humanAddress.SetPubKey(pubKey)
+	humanAddress.SetPubKey(owner, pubKey)
 	return obj, nil
 }
