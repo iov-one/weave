@@ -1,4 +1,4 @@
-package humanAddress
+package humanaddr
 
 import (
 	"github.com/iov-one/weave"
@@ -24,19 +24,19 @@ type humanAddressNftAdapter struct {
 }
 
 func (a *humanAddressNftAdapter) GetPubKey() []byte {
-	if a.GetHumanAddress() == nil {
+	if a.Details == nil || a.Details.GetHumanAddress() == nil {
 		return nil
 	}
-	return a.GetHumanAddress().Account
+	return a.Details.GetHumanAddress().Account
 }
 
 func (a *humanAddressNftAdapter) SetPubKey(actor weave.Address, pubKey []byte) error {
-	newPayload := &nft.NonFungibleToken_HumanAddress{
-		HumanAddress: &nft.HumanAddressPayload{
+	newDetails := &nft.TokenDetails_HumanAddress{
+		HumanAddress: &nft.HumanAddressDetails{
 			Account: pubKey,
 		},
 	}
-	return a.TakeAction(actor, nft.ActionlKind_updatePayloadApproval, newPayload)
+	return a.TakeAction(actor, nft.ActionKind_updatePayloadApproval, newDetails)
 }
 
 // As HumanAddress will safely type-cast any value from Bucket

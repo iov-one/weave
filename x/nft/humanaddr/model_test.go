@@ -1,12 +1,13 @@
-package humanAddress
+package humanaddr
 
 import (
+	"testing"
+
 	"github.com/iov-one/weave/crypto"
 	"github.com/iov-one/weave/store"
 	"github.com/iov-one/weave/x/nft"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func TestIssueNewHumanAddress(t *testing.T) {
@@ -50,14 +51,14 @@ func TestTransfer(t *testing.T) {
 
 	// when
 	humanAddress, _ := AsHumanAddress(o)
-	err := humanAddress.SetApproval(nft.ActionlKind_transferApproval, bob, nil)
+	err := humanAddress.SetApproval(nft.ActionKind_transferApproval, bob, nil)
 	require.NoError(t, err)
 	err = humanAddress.Transfer(bob)
 	require.NoError(t, err)
 
 	// then
 	assert.Equal(t, bob, humanAddress.OwnerAddress())
-	assert.Len(t, humanAddress.Approvals(nft.ActionlKind_transferApproval), 0)
+	assert.Len(t, humanAddress.XApprovals(nft.ActionKind_transferApproval), 0)
 }
 
 func TestRevokeTransfer(t *testing.T) {
@@ -69,13 +70,13 @@ func TestRevokeTransfer(t *testing.T) {
 	o, _ := bucket.Create(kv, alice, []byte("alice@example.com"), alice)
 
 	humanAddress, _ := AsHumanAddress(o)
-	err := humanAddress.SetApproval(nft.ActionlKind_transferApproval, bob, nil)
+	err := humanAddress.SetApproval(nft.ActionKind_transferApproval, bob, nil)
 	require.NoError(t, err)
 	// when
-	err = humanAddress.RevokeApproval(nft.ActionlKind_transferApproval, bob)
+	err = humanAddress.RevokeApproval(nft.ActionKind_transferApproval, bob)
 	require.NoError(t, err)
 	// then
-	assert.Len(t, humanAddress.Approvals(nft.ActionlKind_transferApproval), 0)
+	assert.Len(t, humanAddress.XApprovals(nft.ActionKind_transferApproval), 0)
 }
 
 func TestUpdatePayload(t *testing.T) {
