@@ -8,15 +8,28 @@ import (
 // enforce that Contract fulfils desired interface compile-time
 var _ orm.CloneableData = (*Contract)(nil)
 
-// Validate enforces limits of text and title size
+// Validate enforces sigs and threshold boundaries
 func (c *Contract) Validate() error {
+	if len(c.Sigs) == 0 {
+		return ErrMissingSigs()
+	}
+	if c.ActivationThreshold < 0 || int(c.ActivationThreshold) > len(c.Sigs) {
+		return ErrInvalidActivationThreshold()
+	}
+	if c.ChangeThreshold < 0 {
+		return ErrInvalidChangeThreshold()
+	}
+	for _, a := range c.Sigs {
+		if err := weave.Address(a).Validate(); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
 // Copy makes a new Profile with the same data
 func (c *Contract) Copy() orm.CloneableData {
 	return &Contract{
-		Address:             c.Address,
 		Sigs:                c.Sigs,
 		ActivationThreshold: c.ActivationThreshold,
 		ChangeThreshold:     c.ChangeThreshold,

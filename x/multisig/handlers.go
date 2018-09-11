@@ -3,6 +3,7 @@ package multisig
 import (
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/x"
 )
 
@@ -20,11 +21,6 @@ func RegisterRoutes(r weave.Registry, auth x.Authenticator) {
 // RegisterQuery register queries from buckets in this package
 func RegisterQuery(qr weave.QueryRouter) {
 	NewContractBucket().Register("multisigs", qr)
-}
-
-// Path fulfills weave.Msg interface to allow routing
-func (CreateContractMsg) Path() string {
-	return pathCreateContractMsg
 }
 
 type CreateContractMsgHandler struct {
@@ -47,11 +43,34 @@ func (h CreateContractMsgHandler) Check(ctx weave.Context, db weave.KVStore, tx 
 
 func (h CreateContractMsgHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (weave.DeliverResult, error) {
 	var res weave.DeliverResult
+	msg, err := h.validate(ctx, db, tx)
+	if err != nil {
+		return res, err
+	}
+
+	contract := &Contract{
+		Sigs:                msg.Sigs,
+		ActivationThreshold: msg.ActivationThreshold,
+		ChangeThreshold:     msg.ChangeThreshold,
+	}
+
+	obj := orm.NewSimpleObj(msg.Address, contract)
+	err = h.bucket.Save(db, obj)
+	if err != nil {
+		return res, err
+	}
+
 	return res, nil
 }
 
 // validate does all common pre-processing between Check and Deliver
 func (h CreateContractMsgHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*CreateContractMsg, error) {
+	// Retrieve tx main signer in this context
+	sender := x.MainSigner(ctx, h.auth)
+	if sender == nil {
+		return nil, errors.ErrUnauthorized()
+	}
+
 	msg, err := tx.GetMsg()
 	if err != nil {
 		return nil, err
@@ -60,6 +79,16 @@ func (h CreateContractMsgHandler) validate(ctx weave.Context, db weave.KVStore, 
 	createContractMsg, ok := msg.(*CreateContractMsg)
 	if !ok {
 		return nil, errors.ErrUnknownTxType(msg)
+	}
+
+	err = createContractMsg.Validate()
+	if err != nil {
+		return nil, err
+	}
+
+	obj, err := h.bucket.Get(db, createContractMsg.Address)
+	if err != nil || (obj != nil && obj.Value() != nil) {
+		return nil, ErrContractDuplicate(createContractMsg.Address)
 	}
 
 	return createContractMsg, nil
