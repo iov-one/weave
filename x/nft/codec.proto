@@ -18,6 +18,7 @@ message NonFungibleToken {
     bytes owner = 2;
     repeated Approval approvals = 3;
     TokenDetails details = 4;
+    bool isRoot = 5;
 }
 
 message TokenDetails {
@@ -35,9 +36,9 @@ message Approval {
 }
 
 message ApprovalOptions {
-    int64 timeout = 1; // nanos. todo: revisit to use block height?, if this is time then this may not be deterministic enough
+    int64 timeout = 1; // nanos. todo: revisit to use block height?, if this is time then this may not be deterministic enough. Roman: this might not work well, slow/fast nets..
     int64 count = 2; // usage count
-    bool immutilbe = 3; // todo: immutable ? immutability of the right not the data
+    bool immutable = 3;
 }
 
 

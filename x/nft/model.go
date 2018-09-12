@@ -197,7 +197,7 @@ type BaseNFT interface {
 	OwnerAddress() weave.Address
 
 	// permissions
-	XApprovals(action ActionKind) []Approval // todo: come up with a better name
+	ApprovalsByAction(action ActionKind) []Approval
 	SetApproval(action ActionKind, to weave.Address, o *ApprovalOptions) error
 	RevokeApproval(action ActionKind, to weave.Address) error
 
