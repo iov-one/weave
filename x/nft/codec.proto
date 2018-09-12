@@ -8,9 +8,9 @@ import "github.com/gogo/protobuf/gogoproto/gogo.proto";
 
 
 enum ActionKind {
-    transferApproval = 0;
-    usageApproval = 1;
-    updatePayloadApproval = 2;
+    Transfer = 0;
+    Usage = 1;
+    UpdateDetails = 2;
 }
 
 message NonFungibleToken {

@@ -36,7 +36,7 @@ func (a *humanAddressNftAdapter) SetPubKey(actor weave.Address, pubKey []byte) e
 			Account: pubKey,
 		},
 	}
-	return a.TakeAction(actor, nft.ActionKind_updatePayloadApproval, newDetails)
+	return a.TakeAction(actor, nft.ActionKind_UpdateDetails, newDetails)
 }
 
 // As HumanAddress will safely type-cast any value from Bucket

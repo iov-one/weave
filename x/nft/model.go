@@ -115,7 +115,7 @@ func (n *NonFungibleToken) Transfer(newOwner weave.Address) error {
 	}
 	// todo: revisit checks
 	approvals := Approvals(n.Approvals).ByAddress(newOwner).
-		ByAction(ActionKind_transferApproval).WithoutExpired()
+		ByAction(ActionKind_Transfer).WithoutExpired()
 	if !approvals.Exists() || !approvals[0].IsApplicable(newOwner) {
 		return errors.New("unauthorized") // todo: move to errors
 	}
@@ -152,8 +152,8 @@ func (n *NonFungibleToken) TakeAction(actor weave.Address, action ActionKind, ne
 
 	// do action
 	switch action {
-	case ActionKind_usageApproval: // do nothing
-	case ActionKind_updatePayloadApproval:
+	case ActionKind_Usage: // do nothing
+	case ActionKind_UpdateDetails:
 		// todo: check type so that we do not update the wrong kind
 		n.Details = &TokenDetails{Payload: newDetails}
 	default:

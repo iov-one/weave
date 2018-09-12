@@ -26,7 +26,7 @@ func TestDeliverBlockchainIssueTokenMsg(t *testing.T) {
 		Details: TokenDetails{ChainID: []byte("myChainID")},
 		Approvals: []*nft.Approval{{
 			ToAccount: bob.Address(),
-			Action:    nft.ActionKind_updatePayloadApproval,
+			Action:    nft.ActionKind_UpdateDetails,
 			Options:   &nft.ApprovalOptions{Count: 1},
 		}},
 	})
@@ -41,7 +41,7 @@ func TestDeliverBlockchainIssueTokenMsg(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, o)
 	b, _ := AsBlockchainNFT(o)
-	approvals := b.XApprovals(nft.ActionKind_updatePayloadApproval)
+	approvals := b.XApprovals(nft.ActionKind_UpdateDetails)
 	require.Len(t, approvals, 1)
 	assert.Equal(t, bob.Address(), approvals[0].ToAccountAddress())
 }
@@ -59,7 +59,7 @@ func TestDeliverBlockchainUpdateMsgByNonOwner(t *testing.T) {
 	})
 	require.NoError(t, err)
 	b, _ := AsBlockchainNFT(o)
-	require.NoError(t, b.SetApproval(nft.ActionKind_updatePayloadApproval, bob.Address(), &nft.ApprovalOptions{Count: 1}))
+	require.NoError(t, b.SetApproval(nft.ActionKind_UpdateDetails, bob.Address(), &nft.ApprovalOptions{Count: 1}))
 	require.NoError(t, bucket.Save(kv, o))
 
 	handler := NewUpdateHandler(auth, nil, bucket)

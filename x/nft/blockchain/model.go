@@ -34,7 +34,7 @@ func (a *BlockchainNFTAdapter) UpdateDetails(actor weave.Address, details TokenD
 			ChainID: details.ChainID,
 		},
 	}
-	return a.TakeAction(actor, nft.ActionKind_updatePayloadApproval, newDetails)
+	return a.TakeAction(actor, nft.ActionKind_UpdateDetails, newDetails)
 }
 
 // As BlockchainNFT will safely type-cast any value from Bucket
