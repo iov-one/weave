@@ -28,18 +28,22 @@ func TestCreateErrorResult(t *testing.T) {
 	for i, tc := range cases {
 		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
 
-			dres := weave.DeliverTxError(tc.err)
+			dres := weave.DeliverTxError(tc.err, false)
 			assert.True(t, dres.IsErr())
-			// This is if we want minimal logs in the future....
-			// assert.Equal(tc.msg, dres.Log)
+			assert.Equal(t, tc.msg, dres.Log)
+
+			dres = weave.DeliverTxError(tc.err, true)
+			assert.True(t, dres.IsErr())
 			assert.Contains(t, dres.Log, tc.msg)
 			assert.Contains(t, dres.Log, "iov-one/weave/abci")
 			assert.Equal(t, tc.code, dres.Code)
 
-			cres := weave.CheckTxError(tc.err)
+			cres := weave.CheckTxError(tc.err, false)
 			assert.True(t, cres.IsErr())
-			// This is if we want minimal logs in the future....
-			// assert.Equal(tc.msg, cres.Log)
+			assert.Equal(t, tc.msg, cres.Log)
+
+			cres = weave.CheckTxError(tc.err, true)
+			assert.True(t, cres.IsErr())
 			assert.Contains(t, cres.Log, tc.msg)
 			assert.Contains(t, cres.Log, "iov-one/weave/abci")
 			assert.Equal(t, tc.code, cres.Code)

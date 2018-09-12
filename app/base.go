@@ -14,19 +14,21 @@ type BaseApp struct {
 	decoder weave.TxDecoder
 	handler weave.Handler
 	ticker  weave.Ticker
+	debug   bool
 }
 
 var _ abci.Application = BaseApp{}
 
 // NewBaseApp constructs a basic abci application
 func NewBaseApp(store *StoreApp, decoder weave.TxDecoder,
-	handler weave.Handler, ticker weave.Ticker) BaseApp {
+	handler weave.Handler, ticker weave.Ticker, debug bool) BaseApp {
 
 	return BaseApp{
 		StoreApp: store,
 		decoder:  decoder,
 		handler:  handler,
 		ticker:   ticker,
+		debug:    debug,
 	}
 }
 
@@ -34,7 +36,7 @@ func NewBaseApp(store *StoreApp, decoder weave.TxDecoder,
 func (b BaseApp) DeliverTx(txBytes []byte) abci.ResponseDeliverTx {
 	tx, err := b.loadTx(txBytes)
 	if err != nil {
-		return weave.DeliverTxError(err)
+		return weave.DeliverTxError(err, b.debug)
 	}
 
 	// ignore error here, allow it to be logged
@@ -46,14 +48,14 @@ func (b BaseApp) DeliverTx(txBytes []byte) abci.ResponseDeliverTx {
 	if err == nil {
 		b.AddValChange(res.Diff)
 	}
-	return weave.DeliverOrError(res, err)
+	return weave.DeliverOrError(res, err, b.debug)
 }
 
 // CheckTx - ABCI - dispatches to the handler
 func (b BaseApp) CheckTx(txBytes []byte) abci.ResponseCheckTx {
 	tx, err := b.loadTx(txBytes)
 	if err != nil {
-		return weave.CheckTxError(err)
+		return weave.CheckTxError(err, b.debug)
 	}
 
 	ctx := weave.WithLogInfo(b.BlockContext(),
@@ -61,7 +63,7 @@ func (b BaseApp) CheckTx(txBytes []byte) abci.ResponseCheckTx {
 		"path", weave.GetPath(tx))
 
 	res, err := b.handler.Check(ctx, b.CheckStore(), tx)
-	return weave.CheckOrError(res, err)
+	return weave.CheckOrError(res, err, b.debug)
 }
 
 // BeginBlock - ABCI

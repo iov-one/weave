@@ -14,9 +14,9 @@ import (
 // DeliverOrError returns an abci response for DeliverTx,
 // converting the error message if present, or using the successful
 // DeliverResult
-func DeliverOrError(result DeliverResult, err error) abci.ResponseDeliverTx {
+func DeliverOrError(result DeliverResult, err error, debug bool) abci.ResponseDeliverTx {
 	if err != nil {
-		return DeliverTxError(err)
+		return DeliverTxError(err, debug)
 	}
 	return result.ToABCI()
 }
@@ -24,9 +24,9 @@ func DeliverOrError(result DeliverResult, err error) abci.ResponseDeliverTx {
 // CheckOrError returns an abci response for CheckTx,
 // converting the error message if present, or using the successful
 // CheckResult
-func CheckOrError(result CheckResult, err error) abci.ResponseCheckTx {
+func CheckOrError(result CheckResult, err error, debug bool) abci.ResponseCheckTx {
 	if err != nil {
-		return CheckTxError(err)
+		return CheckTxError(err, debug)
 	}
 	return result.ToABCI()
 }
@@ -92,25 +92,31 @@ type TickResult struct {
 // DeliverTxError converts any error into a abci.ResponseDeliverTx,
 // preserving as much info as possible if it was already
 // a TMError
-func DeliverTxError(err error) abci.ResponseDeliverTx {
+func DeliverTxError(err error, debug bool) abci.ResponseDeliverTx {
 	tm := errors.Wrap(err)
+	log := tm.ABCILog()
+	if debug {
+		log = fmt.Sprintf("%v", tm)
+	}
+
 	return abci.ResponseDeliverTx{
 		Code: tm.ABCICode(),
-		// TODO: reduce debugging info like with Check?
-		Log: fmt.Sprintf("%+v", tm),
-		// Log:  tm.ABCILog(),
+		Log:  log,
 	}
 }
 
 // CheckTxError converts any error into a abci.ResponseCheckTx,
 // preserving as much info as possible if it was already
 // a TMError
-func CheckTxError(err error) abci.ResponseCheckTx {
+func CheckTxError(err error, debug bool) abci.ResponseCheckTx {
 	tm := errors.Wrap(err)
+	log := tm.ABCILog()
+	if debug {
+		log = fmt.Sprintf("%v", tm)
+	}
+
 	return abci.ResponseCheckTx{
 		Code: tm.ABCICode(),
-		// just minimal trace here, don't spam with full stack
-		Log: fmt.Sprintf("%v", tm),
-		// Log:  tm.ABCILog(),
+		Log:  log,
 	}
 }
