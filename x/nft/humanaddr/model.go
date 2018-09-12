@@ -10,33 +10,61 @@ import (
 const (
 	// BucketName is where we store the nfts
 	BucketName = "usrnft"
-	// OwnerIndexName is the index to query nft by owner
-	OwnerIndexName = "owner"
 )
+
+func (a *TokenDetails) Clone() *TokenDetails {
+	// todo: revisit to impl proper cloning
+	x := *a
+	return &x
+}
 
 type HumanAddress interface {
 	nft.BaseNFT
 	GetPubKey() []byte
 	SetPubKey(weave.Address, []byte) error
 }
-type humanAddressNftAdapter struct {
-	*nft.NonFungibleToken
+
+func (a *HumanAddressToken) Approvals() *nft.ApprovalOperations {
+	return nft.NewApprovalOperations(a, &a.Base.Approvals)
 }
 
-func (a *humanAddressNftAdapter) GetPubKey() []byte {
-	if a.Details == nil || a.Details.GetHumanAddress() == nil {
+func (a *HumanAddressToken) OwnerAddress() weave.Address {
+	return weave.Address(a.Base.Owner)
+}
+
+func (a *HumanAddressToken) Transfer(newOwner weave.Address) error {
+	// todo: anything special to check?
+	return a.Base.Transfer(newOwner)
+}
+
+func (a *HumanAddressToken) GetPubKey() []byte {
+	if a.Details == nil {
 		return nil
 	}
-	return a.Details.GetHumanAddress().Account
+	return a.Details.PublicKey
 }
 
-func (a *humanAddressNftAdapter) SetPubKey(actor weave.Address, pubKey []byte) error {
-	newDetails := &nft.TokenDetails_HumanAddress{
-		HumanAddress: &nft.HumanAddressDetails{
-			Account: pubKey,
-		},
+func (a *HumanAddressToken) SetPubKey(actor weave.Address, newPubKey []byte) error {
+	if !a.OwnerAddress().Equals(actor) {
+		if !a.Base.HasApproval(actor, nft.ActionKind_UpdateDetails) {
+			return errors.New("unauthorized")
+		}
 	}
-	return a.TakeAction(actor, nft.ActionKind_UpdateDetails, newDetails)
+	a.Details = &TokenDetails{PublicKey: newPubKey}
+	return nil
+}
+
+func (a *HumanAddressToken) Validate() error {
+	// todo: impl
+	return a.OwnerAddress().Validate()
+}
+
+func (a *HumanAddressToken) Copy() orm.CloneableData {
+	// todo: impl
+	return &HumanAddressToken{
+		Base:    a.Base,
+		Details: a.Details.Clone(),
+	}
 }
 
 // As HumanAddress will safely type-cast any value from Bucket
@@ -44,11 +72,11 @@ func AsHumanAddress(obj orm.Object) (HumanAddress, error) {
 	if obj == nil || obj.Value() == nil {
 		return nil, nil
 	}
-	x, ok := obj.Value().(*nft.NonFungibleToken)
+	x, ok := obj.Value().(*HumanAddressToken)
 	if !ok {
 		return nil, errors.New("unsupported type") // todo: move
 	}
-	return &humanAddressNftAdapter{x}, nil
+	return x, nil
 }
 
 // Bucket is a type-safe wrapper around orm.Bucket
@@ -56,12 +84,16 @@ type Bucket struct {
 	orm.Bucket
 }
 
-//var _ nft.BaseBucket = Bucket{}
-
 func NewBucket() Bucket {
 	return Bucket{
-		Bucket: nft.WithOwnerIndex(orm.NewBucket(BucketName, nft.NewNonFungibleToken(nil, nil))),
+		Bucket: nft.WithOwnerIndex(orm.NewBucket(BucketName, NewHumanAddressToken(nil, nil))),
 	}
+}
+func NewHumanAddressToken(key []byte, owner weave.Address) *orm.SimpleObj {
+	return orm.NewSimpleObj(key, &HumanAddressToken{
+		Base:    nft.NewNonFungibleToken(key, owner),
+		Details: &TokenDetails{},
+	})
 }
 
 func (b Bucket) Create(db weave.KVStore, owner weave.Address, key []byte, pubKey []byte) (orm.Object, error) {
@@ -72,11 +104,10 @@ func (b Bucket) Create(db weave.KVStore, owner weave.Address, key []byte, pubKey
 	case obj != nil:
 		return nil, errors.New("key exists already") // todo: move into errors file
 	}
-	obj = nft.NewNonFungibleToken(key, owner)
+	obj = NewHumanAddressToken(key, owner)
 	humanAddress, err := AsHumanAddress(obj)
 	if err != nil {
 		return nil, err
 	}
-	humanAddress.SetPubKey(owner, pubKey)
-	return obj, nil
+	return obj, humanAddress.SetPubKey(owner, pubKey)
 }

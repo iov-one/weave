@@ -1,12 +1,13 @@
 package blockchain
 
 import (
+	"testing"
+
 	"github.com/iov-one/weave/store"
 	"github.com/iov-one/weave/x"
 	"github.com/iov-one/weave/x/nft"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func TestDeliverBlockchainIssueTokenMsg(t *testing.T) {
@@ -41,7 +42,7 @@ func TestDeliverBlockchainIssueTokenMsg(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, o)
 	b, _ := AsBlockchainNFT(o)
-	approvals := b.XApprovals(nft.ActionKind_UpdateDetails)
+	approvals := b.Approvals().List().ByAction(nft.ActionKind_UpdateDetails)
 	require.Len(t, approvals, 1)
 	assert.Equal(t, bob.Address(), approvals[0].ToAccountAddress())
 }
@@ -59,7 +60,7 @@ func TestDeliverBlockchainUpdateMsgByNonOwner(t *testing.T) {
 	})
 	require.NoError(t, err)
 	b, _ := AsBlockchainNFT(o)
-	require.NoError(t, b.SetApproval(nft.ActionKind_UpdateDetails, bob.Address(), &nft.ApprovalOptions{Count: 1}))
+	require.NoError(t, b.Approvals().Set(nft.ActionKind_UpdateDetails, bob.Address(), &nft.ApprovalOptions{Count: 1}))
 	require.NoError(t, bucket.Save(kv, o))
 
 	handler := NewUpdateHandler(auth, nil, bucket)
@@ -80,5 +81,5 @@ func TestDeliverBlockchainUpdateMsgByNonOwner(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, loadedEntity)
 	x, _ := AsBlockchainNFT(loadedEntity)
-	assert.Equal(t, []byte("myOtherChainID"), x.Details().ChainID)
+	assert.Equal(t, []byte("myOtherChainID"), x.GetDetails().ChainID)
 }

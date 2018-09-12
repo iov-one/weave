@@ -15,26 +15,43 @@ const (
 type BlockchainNFT interface {
 	nft.BaseNFT
 	UpdateDetails(actor weave.Address, details TokenDetails) error
-	Details() TokenDetails
-}
-type BlockchainNFTAdapter struct {
-	*nft.NonFungibleToken
+	GetDetails() *TokenDetails
 }
 
-func (a *BlockchainNFTAdapter) Details() TokenDetails {
-	return TokenDetails{
-		// todo: map all
-		ChainID: a.GetDetails().GetBlockchain().ChainID,
-	}
+func (b *BlockchainToken) OwnerAddress() weave.Address {
+	return weave.Address(b.Base.Owner)
 }
-func (a *BlockchainNFTAdapter) UpdateDetails(actor weave.Address, details TokenDetails) error {
-	newDetails := &nft.TokenDetails_Blockchain{
-		Blockchain: &nft.BlockChainDetails{
-			// todo: map all
-			ChainID: details.ChainID,
-		},
+
+func (b *BlockchainToken) Approvals() *nft.ApprovalOperations {
+	return nft.NewApprovalOperations(b, &b.Base.Approvals)
+}
+
+func (b *BlockchainToken) Transfer(newOwner weave.Address) error {
+	// todo: anything special to check?
+	return b.Base.Transfer(newOwner)
+}
+
+func (b *BlockchainToken) UpdateDetails(actor weave.Address, newDetails TokenDetails) error {
+	if !b.OwnerAddress().Equals(actor) {
+		if !b.Base.HasApproval(actor, nft.ActionKind_UpdateDetails) {
+			return errors.New("unauthorized")
+		}
 	}
-	return a.TakeAction(actor, nft.ActionKind_UpdateDetails, newDetails)
+	b.Details = &newDetails
+	return nil
+}
+
+func (b *BlockchainToken) Validate() error {
+	// todo: impl
+	return b.OwnerAddress().Validate()
+}
+
+func (b *BlockchainToken) Copy() orm.CloneableData {
+	// todo: impl
+	return &BlockchainToken{
+		Base:    b.Base,
+		Details: b.Details,
+	}
 }
 
 // As BlockchainNFT will safely type-cast any value from Bucket
@@ -42,11 +59,11 @@ func AsBlockchainNFT(obj orm.Object) (BlockchainNFT, error) {
 	if obj == nil || obj.Value() == nil {
 		return nil, nil
 	}
-	x, ok := obj.Value().(*nft.NonFungibleToken)
+	x, ok := obj.Value().(*BlockchainToken)
 	if !ok {
 		return nil, errors.New("unsupported type") // todo: move
 	}
-	return &BlockchainNFTAdapter{x}, nil
+	return x, nil
 }
 
 // Bucket is a type-safe wrapper around orm.Bucket
@@ -54,12 +71,17 @@ type Bucket struct {
 	orm.Bucket
 }
 
-//var _ nft.BaseBucket = Bucket{}
-
 func NewBucket() Bucket {
 	return Bucket{
-		Bucket: nft.WithOwnerIndex(orm.NewBucket(BucketName, nft.NewNonFungibleToken(nil, nil))),
+		Bucket: nft.WithOwnerIndex(orm.NewBucket(BucketName, NewBlockchainToken(nil, nil))),
 	}
+}
+func NewBlockchainToken(key []byte, owner weave.Address) *orm.SimpleObj {
+	token := nft.NewNonFungibleToken(key, owner)
+	return orm.NewSimpleObj(key, &BlockchainToken{
+		Base:    token,
+		Details: &TokenDetails{},
+	})
 }
 
 func (b Bucket) Create(db weave.KVStore, owner weave.Address, key []byte, details TokenDetails) (orm.Object, error) {
@@ -70,11 +92,10 @@ func (b Bucket) Create(db weave.KVStore, owner weave.Address, key []byte, detail
 	case obj != nil:
 		return nil, errors.New("key exists already") // todo: move into errors file
 	}
-	obj = nft.NewNonFungibleToken(key, owner)
-	//blockchain, err := AsBlockchainNFT(obj)
-	//if err != nil {
-	//	return nil, err
-	//}
-	//blockchain.SetPubKey(owner, pubKey)
-	return obj, nil
+	obj = NewBlockchainToken(key, owner)
+	bc, err := AsBlockchainNFT(obj)
+	if err != nil {
+		return nil, err
+	}
+	return obj, bc.UpdateDetails(owner, details)
 }

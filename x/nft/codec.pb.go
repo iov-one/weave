@@ -9,13 +9,8 @@
 
 	It has these top-level messages:
 		NonFungibleToken
-		TokenDetails
 		Approval
 		ApprovalOptions
-		HumanAddressDetails
-		BlockChainDetails
-		ContractDetails
-		Node
 		RequestTransferTokenMsg
 		SetApprovalMsg
 		RevokeApprovalMsg
@@ -66,10 +61,9 @@ func (x ActionKind) String() string {
 func (ActionKind) EnumDescriptor() ([]byte, []int) { return fileDescriptorCodec, []int{0} }
 
 type NonFungibleToken struct {
-	Id        []byte        `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Owner     []byte        `protobuf:"bytes,2,opt,name=owner,proto3" json:"owner,omitempty"`
-	Approvals []*Approval   `protobuf:"bytes,3,rep,name=approvals" json:"approvals,omitempty"`
-	Details   *TokenDetails `protobuf:"bytes,4,opt,name=details" json:"details,omitempty"`
+	Id        []byte      `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Owner     []byte      `protobuf:"bytes,2,opt,name=owner,proto3" json:"owner,omitempty"`
+	Approvals []*Approval `protobuf:"bytes,3,rep,name=approvals" json:"approvals,omitempty"`
 }
 
 func (m *NonFungibleToken) Reset()                    { *m = NonFungibleToken{} }
@@ -98,167 +92,6 @@ func (m *NonFungibleToken) GetApprovals() []*Approval {
 	return nil
 }
 
-func (m *NonFungibleToken) GetDetails() *TokenDetails {
-	if m != nil {
-		return m.Details
-	}
-	return nil
-}
-
-type TokenDetails struct {
-	// Types that are valid to be assigned to Payload:
-	//	*TokenDetails_HumanAddress
-	//	*TokenDetails_Blockchain
-	//	*TokenDetails_Token
-	Payload isTokenDetails_Payload `protobuf_oneof:"payload"`
-}
-
-func (m *TokenDetails) Reset()                    { *m = TokenDetails{} }
-func (m *TokenDetails) String() string            { return proto.CompactTextString(m) }
-func (*TokenDetails) ProtoMessage()               {}
-func (*TokenDetails) Descriptor() ([]byte, []int) { return fileDescriptorCodec, []int{1} }
-
-type isTokenDetails_Payload interface {
-	isTokenDetails_Payload()
-	MarshalTo([]byte) (int, error)
-	Size() int
-}
-
-type TokenDetails_HumanAddress struct {
-	HumanAddress *HumanAddressDetails `protobuf:"bytes,1,opt,name=humanAddress,oneof"`
-}
-type TokenDetails_Blockchain struct {
-	Blockchain *BlockChainDetails `protobuf:"bytes,2,opt,name=blockchain,oneof"`
-}
-type TokenDetails_Token struct {
-	Token *ContractDetails `protobuf:"bytes,3,opt,name=token,oneof"`
-}
-
-func (*TokenDetails_HumanAddress) isTokenDetails_Payload() {}
-func (*TokenDetails_Blockchain) isTokenDetails_Payload()   {}
-func (*TokenDetails_Token) isTokenDetails_Payload()        {}
-
-func (m *TokenDetails) GetPayload() isTokenDetails_Payload {
-	if m != nil {
-		return m.Payload
-	}
-	return nil
-}
-
-func (m *TokenDetails) GetHumanAddress() *HumanAddressDetails {
-	if x, ok := m.GetPayload().(*TokenDetails_HumanAddress); ok {
-		return x.HumanAddress
-	}
-	return nil
-}
-
-func (m *TokenDetails) GetBlockchain() *BlockChainDetails {
-	if x, ok := m.GetPayload().(*TokenDetails_Blockchain); ok {
-		return x.Blockchain
-	}
-	return nil
-}
-
-func (m *TokenDetails) GetToken() *ContractDetails {
-	if x, ok := m.GetPayload().(*TokenDetails_Token); ok {
-		return x.Token
-	}
-	return nil
-}
-
-// XXX_OneofFuncs is for the internal use of the proto package.
-func (*TokenDetails) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
-	return _TokenDetails_OneofMarshaler, _TokenDetails_OneofUnmarshaler, _TokenDetails_OneofSizer, []interface{}{
-		(*TokenDetails_HumanAddress)(nil),
-		(*TokenDetails_Blockchain)(nil),
-		(*TokenDetails_Token)(nil),
-	}
-}
-
-func _TokenDetails_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
-	m := msg.(*TokenDetails)
-	// payload
-	switch x := m.Payload.(type) {
-	case *TokenDetails_HumanAddress:
-		_ = b.EncodeVarint(1<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.HumanAddress); err != nil {
-			return err
-		}
-	case *TokenDetails_Blockchain:
-		_ = b.EncodeVarint(2<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.Blockchain); err != nil {
-			return err
-		}
-	case *TokenDetails_Token:
-		_ = b.EncodeVarint(3<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.Token); err != nil {
-			return err
-		}
-	case nil:
-	default:
-		return fmt.Errorf("TokenDetails.Payload has unexpected type %T", x)
-	}
-	return nil
-}
-
-func _TokenDetails_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
-	m := msg.(*TokenDetails)
-	switch tag {
-	case 1: // payload.humanAddress
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(HumanAddressDetails)
-		err := b.DecodeMessage(msg)
-		m.Payload = &TokenDetails_HumanAddress{msg}
-		return true, err
-	case 2: // payload.blockchain
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(BlockChainDetails)
-		err := b.DecodeMessage(msg)
-		m.Payload = &TokenDetails_Blockchain{msg}
-		return true, err
-	case 3: // payload.token
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(ContractDetails)
-		err := b.DecodeMessage(msg)
-		m.Payload = &TokenDetails_Token{msg}
-		return true, err
-	default:
-		return false, nil
-	}
-}
-
-func _TokenDetails_OneofSizer(msg proto.Message) (n int) {
-	m := msg.(*TokenDetails)
-	// payload
-	switch x := m.Payload.(type) {
-	case *TokenDetails_HumanAddress:
-		s := proto.Size(x.HumanAddress)
-		n += proto.SizeVarint(1<<3 | proto.WireBytes)
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *TokenDetails_Blockchain:
-		s := proto.Size(x.Blockchain)
-		n += proto.SizeVarint(2<<3 | proto.WireBytes)
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *TokenDetails_Token:
-		s := proto.Size(x.Token)
-		n += proto.SizeVarint(3<<3 | proto.WireBytes)
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case nil:
-	default:
-		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
-	}
-	return n
-}
-
 type Approval struct {
 	ToAccount []byte           `protobuf:"bytes,1,opt,name=toAccount,proto3" json:"toAccount,omitempty"`
 	Action    ActionKind       `protobuf:"varint,2,opt,name=action,proto3,enum=nft.ActionKind" json:"action,omitempty"`
@@ -268,7 +101,7 @@ type Approval struct {
 func (m *Approval) Reset()                    { *m = Approval{} }
 func (m *Approval) String() string            { return proto.CompactTextString(m) }
 func (*Approval) ProtoMessage()               {}
-func (*Approval) Descriptor() ([]byte, []int) { return fileDescriptorCodec, []int{2} }
+func (*Approval) Descriptor() ([]byte, []int) { return fileDescriptorCodec, []int{1} }
 
 func (m *Approval) GetToAccount() []byte {
 	if m != nil {
@@ -300,7 +133,7 @@ type ApprovalOptions struct {
 func (m *ApprovalOptions) Reset()                    { *m = ApprovalOptions{} }
 func (m *ApprovalOptions) String() string            { return proto.CompactTextString(m) }
 func (*ApprovalOptions) ProtoMessage()               {}
-func (*ApprovalOptions) Descriptor() ([]byte, []int) { return fileDescriptorCodec, []int{3} }
+func (*ApprovalOptions) Descriptor() ([]byte, []int) { return fileDescriptorCodec, []int{2} }
 
 func (m *ApprovalOptions) GetTimeout() int64 {
 	if m != nil {
@@ -323,78 +156,6 @@ func (m *ApprovalOptions) GetImmutilbe() bool {
 	return false
 }
 
-type HumanAddressDetails struct {
-	Account []byte `protobuf:"bytes,1,opt,name=account,proto3" json:"account,omitempty"`
-}
-
-func (m *HumanAddressDetails) Reset()                    { *m = HumanAddressDetails{} }
-func (m *HumanAddressDetails) String() string            { return proto.CompactTextString(m) }
-func (*HumanAddressDetails) ProtoMessage()               {}
-func (*HumanAddressDetails) Descriptor() ([]byte, []int) { return fileDescriptorCodec, []int{4} }
-
-func (m *HumanAddressDetails) GetAccount() []byte {
-	if m != nil {
-		return m.Account
-	}
-	return nil
-}
-
-type BlockChainDetails struct {
-	Nodes   []Node `protobuf:"bytes,1,rep,name=nodes" json:"nodes"`
-	ChainID []byte `protobuf:"bytes,2,opt,name=chainID,proto3" json:"chainID,omitempty"`
-}
-
-func (m *BlockChainDetails) Reset()                    { *m = BlockChainDetails{} }
-func (m *BlockChainDetails) String() string            { return proto.CompactTextString(m) }
-func (*BlockChainDetails) ProtoMessage()               {}
-func (*BlockChainDetails) Descriptor() ([]byte, []int) { return fileDescriptorCodec, []int{5} }
-
-func (m *BlockChainDetails) GetNodes() []Node {
-	if m != nil {
-		return m.Nodes
-	}
-	return nil
-}
-
-func (m *BlockChainDetails) GetChainID() []byte {
-	if m != nil {
-		return m.ChainID
-	}
-	return nil
-}
-
-type ContractDetails struct {
-	Account []byte `protobuf:"bytes,1,opt,name=account,proto3" json:"account,omitempty"`
-}
-
-func (m *ContractDetails) Reset()                    { *m = ContractDetails{} }
-func (m *ContractDetails) String() string            { return proto.CompactTextString(m) }
-func (*ContractDetails) ProtoMessage()               {}
-func (*ContractDetails) Descriptor() ([]byte, []int) { return fileDescriptorCodec, []int{6} }
-
-func (m *ContractDetails) GetAccount() []byte {
-	if m != nil {
-		return m.Account
-	}
-	return nil
-}
-
-type Node struct {
-	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-}
-
-func (m *Node) Reset()                    { *m = Node{} }
-func (m *Node) String() string            { return proto.CompactTextString(m) }
-func (*Node) ProtoMessage()               {}
-func (*Node) Descriptor() ([]byte, []int) { return fileDescriptorCodec, []int{7} }
-
-func (m *Node) GetName() string {
-	if m != nil {
-		return m.Name
-	}
-	return ""
-}
-
 type RequestTransferTokenMsg struct {
 	Id       []byte `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	NewOwner []byte `protobuf:"bytes,2,opt,name=newOwner,proto3" json:"newOwner,omitempty"`
@@ -403,7 +164,7 @@ type RequestTransferTokenMsg struct {
 func (m *RequestTransferTokenMsg) Reset()                    { *m = RequestTransferTokenMsg{} }
 func (m *RequestTransferTokenMsg) String() string            { return proto.CompactTextString(m) }
 func (*RequestTransferTokenMsg) ProtoMessage()               {}
-func (*RequestTransferTokenMsg) Descriptor() ([]byte, []int) { return fileDescriptorCodec, []int{8} }
+func (*RequestTransferTokenMsg) Descriptor() ([]byte, []int) { return fileDescriptorCodec, []int{3} }
 
 func (m *RequestTransferTokenMsg) GetId() []byte {
 	if m != nil {
@@ -427,7 +188,7 @@ type SetApprovalMsg struct {
 func (m *SetApprovalMsg) Reset()                    { *m = SetApprovalMsg{} }
 func (m *SetApprovalMsg) String() string            { return proto.CompactTextString(m) }
 func (*SetApprovalMsg) ProtoMessage()               {}
-func (*SetApprovalMsg) Descriptor() ([]byte, []int) { return fileDescriptorCodec, []int{9} }
+func (*SetApprovalMsg) Descriptor() ([]byte, []int) { return fileDescriptorCodec, []int{4} }
 
 func (m *SetApprovalMsg) GetId() []byte {
 	if m != nil {
@@ -452,7 +213,7 @@ type RevokeApprovalMsg struct {
 func (m *RevokeApprovalMsg) Reset()                    { *m = RevokeApprovalMsg{} }
 func (m *RevokeApprovalMsg) String() string            { return proto.CompactTextString(m) }
 func (*RevokeApprovalMsg) ProtoMessage()               {}
-func (*RevokeApprovalMsg) Descriptor() ([]byte, []int) { return fileDescriptorCodec, []int{10} }
+func (*RevokeApprovalMsg) Descriptor() ([]byte, []int) { return fileDescriptorCodec, []int{5} }
 
 func (m *RevokeApprovalMsg) GetToAccount() []byte {
 	if m != nil {
@@ -483,7 +244,7 @@ type RevokeTokenMsg struct {
 func (m *RevokeTokenMsg) Reset()                    { *m = RevokeTokenMsg{} }
 func (m *RevokeTokenMsg) String() string            { return proto.CompactTextString(m) }
 func (*RevokeTokenMsg) ProtoMessage()               {}
-func (*RevokeTokenMsg) Descriptor() ([]byte, []int) { return fileDescriptorCodec, []int{11} }
+func (*RevokeTokenMsg) Descriptor() ([]byte, []int) { return fileDescriptorCodec, []int{6} }
 
 func (m *RevokeTokenMsg) GetId() []byte {
 	if m != nil {
@@ -501,13 +262,8 @@ func (m *RevokeTokenMsg) GetComment() string {
 
 func init() {
 	proto.RegisterType((*NonFungibleToken)(nil), "nft.NonFungibleToken")
-	proto.RegisterType((*TokenDetails)(nil), "nft.TokenDetails")
 	proto.RegisterType((*Approval)(nil), "nft.Approval")
 	proto.RegisterType((*ApprovalOptions)(nil), "nft.ApprovalOptions")
-	proto.RegisterType((*HumanAddressDetails)(nil), "nft.HumanAddressDetails")
-	proto.RegisterType((*BlockChainDetails)(nil), "nft.BlockChainDetails")
-	proto.RegisterType((*ContractDetails)(nil), "nft.ContractDetails")
-	proto.RegisterType((*Node)(nil), "nft.Node")
 	proto.RegisterType((*RequestTransferTokenMsg)(nil), "nft.RequestTransferTokenMsg")
 	proto.RegisterType((*SetApprovalMsg)(nil), "nft.SetApprovalMsg")
 	proto.RegisterType((*RevokeApprovalMsg)(nil), "nft.RevokeApprovalMsg")
@@ -553,86 +309,9 @@ func (m *NonFungibleToken) MarshalTo(dAtA []byte) (int, error) {
 			i += n
 		}
 	}
-	if m.Details != nil {
-		dAtA[i] = 0x22
-		i++
-		i = encodeVarintCodec(dAtA, i, uint64(m.Details.Size()))
-		n1, err := m.Details.MarshalTo(dAtA[i:])
-		if err != nil {
-			return 0, err
-		}
-		i += n1
-	}
 	return i, nil
 }
 
-func (m *TokenDetails) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalTo(dAtA)
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *TokenDetails) MarshalTo(dAtA []byte) (int, error) {
-	var i int
-	_ = i
-	var l int
-	_ = l
-	if m.Payload != nil {
-		nn2, err := m.Payload.MarshalTo(dAtA[i:])
-		if err != nil {
-			return 0, err
-		}
-		i += nn2
-	}
-	return i, nil
-}
-
-func (m *TokenDetails_HumanAddress) MarshalTo(dAtA []byte) (int, error) {
-	i := 0
-	if m.HumanAddress != nil {
-		dAtA[i] = 0xa
-		i++
-		i = encodeVarintCodec(dAtA, i, uint64(m.HumanAddress.Size()))
-		n3, err := m.HumanAddress.MarshalTo(dAtA[i:])
-		if err != nil {
-			return 0, err
-		}
-		i += n3
-	}
-	return i, nil
-}
-func (m *TokenDetails_Blockchain) MarshalTo(dAtA []byte) (int, error) {
-	i := 0
-	if m.Blockchain != nil {
-		dAtA[i] = 0x12
-		i++
-		i = encodeVarintCodec(dAtA, i, uint64(m.Blockchain.Size()))
-		n4, err := m.Blockchain.MarshalTo(dAtA[i:])
-		if err != nil {
-			return 0, err
-		}
-		i += n4
-	}
-	return i, nil
-}
-func (m *TokenDetails_Token) MarshalTo(dAtA []byte) (int, error) {
-	i := 0
-	if m.Token != nil {
-		dAtA[i] = 0x1a
-		i++
-		i = encodeVarintCodec(dAtA, i, uint64(m.Token.Size()))
-		n5, err := m.Token.MarshalTo(dAtA[i:])
-		if err != nil {
-			return 0, err
-		}
-		i += n5
-	}
-	return i, nil
-}
 func (m *Approval) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
@@ -663,11 +342,11 @@ func (m *Approval) MarshalTo(dAtA []byte) (int, error) {
 		dAtA[i] = 0x1a
 		i++
 		i = encodeVarintCodec(dAtA, i, uint64(m.Options.Size()))
-		n6, err := m.Options.MarshalTo(dAtA[i:])
+		n1, err := m.Options.MarshalTo(dAtA[i:])
 		if err != nil {
 			return 0, err
 		}
-		i += n6
+		i += n1
 	}
 	return i, nil
 }
@@ -706,114 +385,6 @@ func (m *ApprovalOptions) MarshalTo(dAtA []byte) (int, error) {
 			dAtA[i] = 0
 		}
 		i++
-	}
-	return i, nil
-}
-
-func (m *HumanAddressDetails) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalTo(dAtA)
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *HumanAddressDetails) MarshalTo(dAtA []byte) (int, error) {
-	var i int
-	_ = i
-	var l int
-	_ = l
-	if len(m.Account) > 0 {
-		dAtA[i] = 0xa
-		i++
-		i = encodeVarintCodec(dAtA, i, uint64(len(m.Account)))
-		i += copy(dAtA[i:], m.Account)
-	}
-	return i, nil
-}
-
-func (m *BlockChainDetails) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalTo(dAtA)
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *BlockChainDetails) MarshalTo(dAtA []byte) (int, error) {
-	var i int
-	_ = i
-	var l int
-	_ = l
-	if len(m.Nodes) > 0 {
-		for _, msg := range m.Nodes {
-			dAtA[i] = 0xa
-			i++
-			i = encodeVarintCodec(dAtA, i, uint64(msg.Size()))
-			n, err := msg.MarshalTo(dAtA[i:])
-			if err != nil {
-				return 0, err
-			}
-			i += n
-		}
-	}
-	if len(m.ChainID) > 0 {
-		dAtA[i] = 0x12
-		i++
-		i = encodeVarintCodec(dAtA, i, uint64(len(m.ChainID)))
-		i += copy(dAtA[i:], m.ChainID)
-	}
-	return i, nil
-}
-
-func (m *ContractDetails) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalTo(dAtA)
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *ContractDetails) MarshalTo(dAtA []byte) (int, error) {
-	var i int
-	_ = i
-	var l int
-	_ = l
-	if len(m.Account) > 0 {
-		dAtA[i] = 0xa
-		i++
-		i = encodeVarintCodec(dAtA, i, uint64(len(m.Account)))
-		i += copy(dAtA[i:], m.Account)
-	}
-	return i, nil
-}
-
-func (m *Node) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalTo(dAtA)
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *Node) MarshalTo(dAtA []byte) (int, error) {
-	var i int
-	_ = i
-	var l int
-	_ = l
-	if len(m.Name) > 0 {
-		dAtA[i] = 0xa
-		i++
-		i = encodeVarintCodec(dAtA, i, uint64(len(m.Name)))
-		i += copy(dAtA[i:], m.Name)
 	}
 	return i, nil
 }
@@ -873,11 +444,11 @@ func (m *SetApprovalMsg) MarshalTo(dAtA []byte) (int, error) {
 		dAtA[i] = 0x12
 		i++
 		i = encodeVarintCodec(dAtA, i, uint64(m.Approvals.Size()))
-		n7, err := m.Approvals.MarshalTo(dAtA[i:])
+		n2, err := m.Approvals.MarshalTo(dAtA[i:])
 		if err != nil {
 			return 0, err
 		}
-		i += n7
+		i += n2
 	}
 	return i, nil
 }
@@ -973,49 +544,9 @@ func (m *NonFungibleToken) Size() (n int) {
 			n += 1 + l + sovCodec(uint64(l))
 		}
 	}
-	if m.Details != nil {
-		l = m.Details.Size()
-		n += 1 + l + sovCodec(uint64(l))
-	}
 	return n
 }
 
-func (m *TokenDetails) Size() (n int) {
-	var l int
-	_ = l
-	if m.Payload != nil {
-		n += m.Payload.Size()
-	}
-	return n
-}
-
-func (m *TokenDetails_HumanAddress) Size() (n int) {
-	var l int
-	_ = l
-	if m.HumanAddress != nil {
-		l = m.HumanAddress.Size()
-		n += 1 + l + sovCodec(uint64(l))
-	}
-	return n
-}
-func (m *TokenDetails_Blockchain) Size() (n int) {
-	var l int
-	_ = l
-	if m.Blockchain != nil {
-		l = m.Blockchain.Size()
-		n += 1 + l + sovCodec(uint64(l))
-	}
-	return n
-}
-func (m *TokenDetails_Token) Size() (n int) {
-	var l int
-	_ = l
-	if m.Token != nil {
-		l = m.Token.Size()
-		n += 1 + l + sovCodec(uint64(l))
-	}
-	return n
-}
 func (m *Approval) Size() (n int) {
 	var l int
 	_ = l
@@ -1044,52 +575,6 @@ func (m *ApprovalOptions) Size() (n int) {
 	}
 	if m.Immutilbe {
 		n += 2
-	}
-	return n
-}
-
-func (m *HumanAddressDetails) Size() (n int) {
-	var l int
-	_ = l
-	l = len(m.Account)
-	if l > 0 {
-		n += 1 + l + sovCodec(uint64(l))
-	}
-	return n
-}
-
-func (m *BlockChainDetails) Size() (n int) {
-	var l int
-	_ = l
-	if len(m.Nodes) > 0 {
-		for _, e := range m.Nodes {
-			l = e.Size()
-			n += 1 + l + sovCodec(uint64(l))
-		}
-	}
-	l = len(m.ChainID)
-	if l > 0 {
-		n += 1 + l + sovCodec(uint64(l))
-	}
-	return n
-}
-
-func (m *ContractDetails) Size() (n int) {
-	var l int
-	_ = l
-	l = len(m.Account)
-	if l > 0 {
-		n += 1 + l + sovCodec(uint64(l))
-	}
-	return n
-}
-
-func (m *Node) Size() (n int) {
-	var l int
-	_ = l
-	l = len(m.Name)
-	if l > 0 {
-		n += 1 + l + sovCodec(uint64(l))
 	}
 	return n
 }
@@ -1287,185 +772,6 @@ func (m *NonFungibleToken) Unmarshal(dAtA []byte) error {
 			if err := m.Approvals[len(m.Approvals)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
-			iNdEx = postIndex
-		case 4:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Details", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowCodec
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthCodec
-			}
-			postIndex := iNdEx + msglen
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if m.Details == nil {
-				m.Details = &TokenDetails{}
-			}
-			if err := m.Details.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipCodec(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if skippy < 0 {
-				return ErrInvalidLengthCodec
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *TokenDetails) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowCodec
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: TokenDetails: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: TokenDetails: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field HumanAddress", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowCodec
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthCodec
-			}
-			postIndex := iNdEx + msglen
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			v := &HumanAddressDetails{}
-			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			m.Payload = &TokenDetails_HumanAddress{v}
-			iNdEx = postIndex
-		case 2:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Blockchain", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowCodec
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthCodec
-			}
-			postIndex := iNdEx + msglen
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			v := &BlockChainDetails{}
-			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			m.Payload = &TokenDetails_Blockchain{v}
-			iNdEx = postIndex
-		case 3:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Token", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowCodec
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthCodec
-			}
-			postIndex := iNdEx + msglen
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			v := &ContractDetails{}
-			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			m.Payload = &TokenDetails_Token{v}
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
@@ -1708,359 +1014,6 @@ func (m *ApprovalOptions) Unmarshal(dAtA []byte) error {
 				}
 			}
 			m.Immutilbe = bool(v != 0)
-		default:
-			iNdEx = preIndex
-			skippy, err := skipCodec(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if skippy < 0 {
-				return ErrInvalidLengthCodec
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *HumanAddressDetails) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowCodec
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: HumanAddressDetails: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: HumanAddressDetails: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Account", wireType)
-			}
-			var byteLen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowCodec
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				byteLen |= (int(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if byteLen < 0 {
-				return ErrInvalidLengthCodec
-			}
-			postIndex := iNdEx + byteLen
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Account = append(m.Account[:0], dAtA[iNdEx:postIndex]...)
-			if m.Account == nil {
-				m.Account = []byte{}
-			}
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipCodec(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if skippy < 0 {
-				return ErrInvalidLengthCodec
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *BlockChainDetails) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowCodec
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: BlockChainDetails: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: BlockChainDetails: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Nodes", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowCodec
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthCodec
-			}
-			postIndex := iNdEx + msglen
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Nodes = append(m.Nodes, Node{})
-			if err := m.Nodes[len(m.Nodes)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		case 2:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ChainID", wireType)
-			}
-			var byteLen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowCodec
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				byteLen |= (int(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if byteLen < 0 {
-				return ErrInvalidLengthCodec
-			}
-			postIndex := iNdEx + byteLen
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.ChainID = append(m.ChainID[:0], dAtA[iNdEx:postIndex]...)
-			if m.ChainID == nil {
-				m.ChainID = []byte{}
-			}
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipCodec(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if skippy < 0 {
-				return ErrInvalidLengthCodec
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *ContractDetails) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowCodec
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: ContractDetails: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: ContractDetails: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Account", wireType)
-			}
-			var byteLen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowCodec
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				byteLen |= (int(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if byteLen < 0 {
-				return ErrInvalidLengthCodec
-			}
-			postIndex := iNdEx + byteLen
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Account = append(m.Account[:0], dAtA[iNdEx:postIndex]...)
-			if m.Account == nil {
-				m.Account = []byte{}
-			}
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipCodec(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if skippy < 0 {
-				return ErrInvalidLengthCodec
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *Node) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowCodec
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: Node: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: Node: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Name", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowCodec
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= (uint64(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthCodec
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Name = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipCodec(dAtA[iNdEx:])
@@ -2655,44 +1608,32 @@ var (
 func init() { proto.RegisterFile("x/nft/codec.proto", fileDescriptorCodec) }
 
 var fileDescriptorCodec = []byte{
-	// 618 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x54, 0xcd, 0x6e, 0xd3, 0x40,
-	0x10, 0x8e, 0xf3, 0xd3, 0xc4, 0x93, 0x34, 0x4d, 0x96, 0x0a, 0xac, 0x0a, 0x85, 0xca, 0x12, 0xa2,
-	0xa2, 0x90, 0x48, 0xe1, 0x52, 0x71, 0x40, 0x6a, 0x5a, 0x50, 0x11, 0x6a, 0x2b, 0x2d, 0xed, 0x19,
-	0xad, 0xed, 0x8d, 0x6b, 0xd5, 0xde, 0x35, 0xf6, 0xba, 0x85, 0x23, 0x6f, 0x80, 0x78, 0x23, 0x6e,
-	0x3d, 0xf2, 0x04, 0x08, 0x85, 0x17, 0x41, 0xbb, 0x6b, 0x63, 0xa7, 0x3f, 0x9c, 0xb8, 0xf9, 0x9b,
-	0x6f, 0xbe, 0x9d, 0xd9, 0x6f, 0x66, 0x0d, 0xc3, 0x4f, 0x13, 0x36, 0x17, 0x13, 0x97, 0x7b, 0xd4,
-	0x1d, 0xc7, 0x09, 0x17, 0x1c, 0x35, 0xd8, 0x5c, 0x6c, 0x3c, 0xf7, 0x03, 0x71, 0x96, 0x39, 0x63,
-	0x97, 0x47, 0x13, 0x9f, 0xfb, 0x7c, 0xa2, 0x38, 0x27, 0x9b, 0x2b, 0xa4, 0x80, 0xfa, 0xd2, 0x1a,
-	0xfb, 0x9b, 0x01, 0x83, 0x23, 0xce, 0xde, 0x64, 0xcc, 0x0f, 0x9c, 0x90, 0x9e, 0xf0, 0x73, 0xca,
-	0x50, 0x1f, 0xea, 0x81, 0x67, 0x19, 0x9b, 0xc6, 0x56, 0x0f, 0xd7, 0x03, 0x0f, 0xad, 0x43, 0x8b,
-	0x5f, 0x32, 0x9a, 0x58, 0x75, 0x15, 0xd2, 0x00, 0x6d, 0x83, 0x49, 0xe2, 0x38, 0xe1, 0x17, 0x24,
-	0x4c, 0xad, 0xc6, 0x66, 0x63, 0xab, 0x3b, 0x5d, 0x1d, 0xb3, 0xb9, 0x18, 0xef, 0xe6, 0x51, 0x5c,
-	0xf2, 0x68, 0x1b, 0xda, 0x1e, 0x15, 0x24, 0x08, 0x53, 0xab, 0xb9, 0x69, 0x6c, 0x75, 0xa7, 0x43,
-	0x95, 0xaa, 0xea, 0xed, 0x6b, 0x02, 0x17, 0x19, 0xf6, 0x77, 0x03, 0x7a, 0x55, 0x06, 0xbd, 0x82,
-	0xde, 0x59, 0x16, 0x11, 0xb6, 0xeb, 0x79, 0x09, 0x4d, 0x53, 0xd5, 0x5a, 0x77, 0x6a, 0xa9, 0x23,
-	0x0e, 0x2a, 0x44, 0x9e, 0x7f, 0x50, 0xc3, 0x4b, 0xf9, 0x68, 0x07, 0xc0, 0x09, 0xb9, 0x7b, 0xee,
-	0x9e, 0x91, 0x80, 0xa9, 0x5b, 0x74, 0xa7, 0xf7, 0x95, 0x7a, 0x26, 0xc3, 0x7b, 0x32, 0x5c, 0x6a,
-	0x2b, 0xb9, 0xe8, 0x19, 0xb4, 0x84, 0xec, 0xc4, 0x6a, 0x28, 0xd1, 0xba, 0x12, 0xed, 0x71, 0x26,
-	0x12, 0xe2, 0x8a, 0x52, 0xa2, 0x93, 0x66, 0x26, 0xb4, 0x63, 0xf2, 0x39, 0xe4, 0xc4, 0xb3, 0xbf,
-	0x18, 0xd0, 0x29, 0x8c, 0x40, 0x0f, 0xc1, 0x14, 0x7c, 0xd7, 0x75, 0x79, 0xc6, 0x44, 0xee, 0x6b,
-	0x19, 0x40, 0x4f, 0x60, 0x85, 0xb8, 0x22, 0xe0, 0xba, 0xb3, 0xfe, 0x74, 0x4d, 0xbb, 0xa8, 0x42,
-	0xef, 0x02, 0xe6, 0xe1, 0x9c, 0x46, 0x63, 0x68, 0xf3, 0x58, 0x7e, 0xa5, 0x4b, 0xed, 0x14, 0x65,
-	0x8e, 0x35, 0x87, 0x8b, 0x24, 0xfb, 0x03, 0xac, 0x5d, 0xe3, 0x90, 0x05, 0x6d, 0x11, 0x44, 0x94,
-	0x67, 0xba, 0x8f, 0x06, 0x2e, 0xa0, 0x1c, 0xb2, 0xee, 0xaf, 0xae, 0xe2, 0x1a, 0xc8, 0xce, 0x83,
-	0x28, 0xca, 0x44, 0x10, 0x3a, 0x54, 0x15, 0xed, 0xe0, 0x32, 0x60, 0x4f, 0xe0, 0xde, 0x2d, 0xf6,
-	0xcb, 0x22, 0x64, 0xe9, 0xb2, 0x05, 0xb4, 0x4f, 0x60, 0x78, 0xc3, 0x71, 0xf4, 0x18, 0x5a, 0x8c,
-	0x7b, 0x54, 0x8e, 0x55, 0x2e, 0x91, 0xa9, 0x2e, 0x75, 0xc4, 0x3d, 0x3a, 0x6b, 0x5e, 0xfd, 0x7c,
-	0x54, 0xc3, 0x9a, 0x95, 0xa7, 0xaa, 0x99, 0xbc, 0xdd, 0xcf, 0xf7, 0xb0, 0x80, 0xf6, 0x36, 0xac,
-	0x5d, 0x1b, 0xc9, 0x3f, 0x5a, 0xd8, 0x80, 0xa6, 0x3c, 0x1b, 0x21, 0x68, 0x32, 0x12, 0x51, 0x45,
-	0x9b, 0x58, 0x7d, 0xdb, 0xaf, 0xe1, 0x01, 0xa6, 0x1f, 0x33, 0x9a, 0x8a, 0x93, 0x84, 0xb0, 0x74,
-	0x4e, 0x13, 0xb5, 0x86, 0x87, 0xa9, 0x7f, 0xe3, 0x4d, 0x6c, 0x40, 0x87, 0xd1, 0xcb, 0xe3, 0xca,
-	0xb3, 0xf8, 0x8b, 0xed, 0x43, 0xe8, 0xbf, 0xa7, 0xa2, 0xb0, 0xfe, 0x36, 0xf5, 0xd2, 0xdb, 0xd1,
-	0xfb, 0x78, 0xe7, 0xdb, 0xb1, 0x05, 0x0c, 0x31, 0xbd, 0xe0, 0xe7, 0xb4, 0x7a, 0xe2, 0x7f, 0x5a,
-	0x29, 0x69, 0x2a, 0x8f, 0x22, 0xca, 0x84, 0x9a, 0xae, 0x89, 0x0b, 0x68, 0xbf, 0x84, 0xbe, 0xae,
-	0x7a, 0xa7, 0x05, 0x15, 0x6d, 0x7d, 0x49, 0xfb, 0x74, 0x07, 0xa0, 0xac, 0x85, 0x7a, 0xd0, 0x29,
-	0xec, 0x1c, 0xd4, 0x90, 0x09, 0xad, 0xd3, 0x94, 0xf8, 0x74, 0x60, 0xa0, 0x21, 0xac, 0x9e, 0xc6,
-	0x1e, 0x11, 0x34, 0x9f, 0xda, 0xa0, 0x3e, 0x1b, 0x5c, 0x2d, 0x46, 0xc6, 0x8f, 0xc5, 0xc8, 0xf8,
-	0xb5, 0x18, 0x19, 0x5f, 0x7f, 0x8f, 0x6a, 0xce, 0x8a, 0xfa, 0x51, 0xbd, 0xf8, 0x13, 0x00, 0x00,
-	0xff, 0xff, 0x9c, 0x28, 0x77, 0x66, 0xf1, 0x04, 0x00, 0x00,
+	// 427 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x52, 0x4d, 0x6f, 0xd3, 0x40,
+	0x10, 0xad, 0x1d, 0xb5, 0x49, 0xa6, 0x6d, 0xea, 0xac, 0x2a, 0x61, 0x55, 0x28, 0xaa, 0x7c, 0x21,
+	0x02, 0xe1, 0x48, 0xe1, 0x82, 0xb8, 0x15, 0x01, 0x17, 0x54, 0x2a, 0x2d, 0xed, 0x19, 0xf9, 0x63,
+	0x6c, 0x56, 0x8d, 0x77, 0x8c, 0x3d, 0x6e, 0xb9, 0xf2, 0x0f, 0xf8, 0x59, 0x1c, 0xf9, 0x09, 0x28,
+	0xfc, 0x11, 0x94, 0xdd, 0x18, 0x27, 0x40, 0x6e, 0xdc, 0xf6, 0xbd, 0xe7, 0xd9, 0xf7, 0xe6, 0x79,
+	0x61, 0xfc, 0x79, 0xa6, 0x33, 0x9e, 0x25, 0x94, 0x62, 0x12, 0x96, 0x15, 0x31, 0x89, 0x9e, 0xce,
+	0xf8, 0xec, 0x69, 0xae, 0xf8, 0x63, 0x13, 0x87, 0x09, 0x15, 0xb3, 0x9c, 0x72, 0x9a, 0x19, 0x2d,
+	0x6e, 0x32, 0x83, 0x0c, 0x30, 0x27, 0x3b, 0x13, 0x20, 0x78, 0xef, 0x48, 0xbf, 0x69, 0x74, 0xae,
+	0xe2, 0x05, 0x5e, 0xd3, 0x2d, 0x6a, 0x31, 0x02, 0x57, 0xa5, 0xbe, 0x73, 0xee, 0x4c, 0x8f, 0xa4,
+	0xab, 0x52, 0x71, 0x0a, 0xfb, 0x74, 0xaf, 0xb1, 0xf2, 0x5d, 0x43, 0x59, 0x20, 0x9e, 0xc0, 0x30,
+	0x2a, 0xcb, 0x8a, 0xee, 0xa2, 0x45, 0xed, 0xf7, 0xce, 0x7b, 0xd3, 0xc3, 0xf9, 0x71, 0xa8, 0x33,
+	0x0e, 0x2f, 0xd6, 0xac, 0xec, 0xf4, 0xe0, 0x8b, 0x03, 0x83, 0x96, 0x17, 0x0f, 0x61, 0xc8, 0x74,
+	0x91, 0x24, 0xd4, 0x68, 0x5e, 0xdb, 0x74, 0x84, 0x78, 0x04, 0x07, 0x51, 0xc2, 0x8a, 0xb4, 0xb1,
+	0x1b, 0xcd, 0x4f, 0xec, 0xa5, 0x86, 0x7a, 0xab, 0x74, 0x2a, 0xd7, 0xb2, 0x08, 0xa1, 0x4f, 0xe5,
+	0xea, 0xb4, 0xb2, 0x77, 0xa6, 0x87, 0xf3, 0xd3, 0x2d, 0xfb, 0x2b, 0xab, 0xc9, 0xf6, 0xa3, 0xe0,
+	0x03, 0x9c, 0xfc, 0xa1, 0x09, 0x1f, 0xfa, 0xac, 0x0a, 0xa4, 0xc6, 0xe6, 0xe8, 0xc9, 0x16, 0xae,
+	0x76, 0xb6, 0xf9, 0x5c, 0xc3, 0x5b, 0xb0, 0x4a, 0xae, 0x8a, 0xa2, 0x61, 0xb5, 0x88, 0xd1, 0x98,
+	0x0e, 0x64, 0x47, 0x04, 0xaf, 0xe1, 0x81, 0xc4, 0x4f, 0x0d, 0xd6, 0x7c, 0x5d, 0x45, 0xba, 0xce,
+	0xb0, 0x32, 0x7d, 0x5e, 0xd6, 0xf9, 0x5f, 0x95, 0x9e, 0xc1, 0x40, 0xe3, 0xfd, 0xd5, 0x46, 0xab,
+	0xbf, 0x71, 0x70, 0x09, 0xa3, 0xf7, 0xc8, 0x6d, 0xd4, 0x7f, 0x4d, 0x6f, 0x55, 0xef, 0x9a, 0xdd,
+	0x77, 0x57, 0xcf, 0x30, 0x96, 0x78, 0x47, 0xb7, 0xb8, 0x79, 0xe3, 0x7f, 0xfa, 0x05, 0x3e, 0xf4,
+	0x13, 0x2a, 0x0a, 0xd4, 0x6c, 0xda, 0x18, 0xca, 0x16, 0x06, 0x2f, 0x60, 0x64, 0x5d, 0x77, 0x56,
+	0xb0, 0x31, 0xeb, 0x6e, 0xcd, 0x3e, 0x7e, 0x0e, 0xd0, 0x79, 0x89, 0x23, 0x18, 0xb4, 0x75, 0x7a,
+	0x7b, 0x62, 0x08, 0xfb, 0x37, 0x75, 0x94, 0xa3, 0xe7, 0x88, 0x31, 0x1c, 0xdf, 0x94, 0x69, 0xc4,
+	0xf8, 0x0a, 0x39, 0x52, 0x8b, 0xda, 0x73, 0x5f, 0x7a, 0xdf, 0x96, 0x13, 0xe7, 0xfb, 0x72, 0xe2,
+	0xfc, 0x58, 0x4e, 0x9c, 0xaf, 0x3f, 0x27, 0x7b, 0xf1, 0x81, 0x79, 0xe6, 0xcf, 0x7e, 0x05, 0x00,
+	0x00, 0xff, 0xff, 0xae, 0x84, 0xe5, 0x9f, 0x2f, 0x03, 0x00, 0x00,
 }

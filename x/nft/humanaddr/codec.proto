@@ -8,6 +8,12 @@ import "github.com/iov-one/weave/x/nft/codec.proto";
 import "github.com/gogo/protobuf/gogoproto/gogo.proto";
 
 
+message HumanAddressToken{
+    nft.NonFungibleToken base = 1;
+    TokenDetails details = 2 ;
+}
+
+
 message IssueTokenMsg {
     bytes owner = 1;
     bytes id = 2;

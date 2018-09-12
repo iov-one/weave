@@ -1,10 +1,11 @@
 package humanaddr
 
 import (
+	"testing"
+
 	"github.com/iov-one/weave/store"
 	"github.com/iov-one/weave/x"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func TestDeliverHumanAddressIssueToken(t *testing.T) {

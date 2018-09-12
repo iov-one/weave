@@ -17,15 +17,6 @@ message NonFungibleToken {
     bytes id = 1;
     bytes owner = 2;
     repeated Approval approvals = 3;
-    TokenDetails details = 4;
-}
-
-message TokenDetails {
-    oneof payload {
-        HumanAddressDetails humanAddress = 1;
-        BlockChainDetails blockchain = 2;
-        ContractDetails token = 3;
-    }
 }
 
 message Approval {
@@ -39,25 +30,6 @@ message ApprovalOptions {
     int64 count = 2; // usage count
     bool immutilbe = 3; // todo: immutable ? immutability of the right not the data
 }
-
-
-message HumanAddressDetails {
-    bytes account = 1; // anything for the spike
-}
-
-message BlockChainDetails {
-    repeated Node nodes = 1 [(gogoproto.nullable) = false];
-    bytes chainID = 2;
-}
-
-message ContractDetails {
-    bytes account = 1; // anything for the spike
-}
-
-message Node {
-    string name = 1;
-}
-
 
 // base messages
 //

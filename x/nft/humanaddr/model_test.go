@@ -51,14 +51,14 @@ func TestTransfer(t *testing.T) {
 
 	// when
 	humanAddress, _ := AsHumanAddress(o)
-	err := humanAddress.SetApproval(nft.ActionKind_Transfer, bob, nil)
+	err := humanAddress.Approvals().Set(nft.ActionKind_Transfer, bob, nil)
 	require.NoError(t, err)
 	err = humanAddress.Transfer(bob)
 	require.NoError(t, err)
 
 	// then
 	assert.Equal(t, bob, humanAddress.OwnerAddress())
-	assert.Len(t, humanAddress.XApprovals(nft.ActionKind_Transfer), 0)
+	assert.Len(t, humanAddress.Approvals().List().ByAction(nft.ActionKind_Transfer), 0)
 }
 
 func TestRevokeTransfer(t *testing.T) {
@@ -70,13 +70,13 @@ func TestRevokeTransfer(t *testing.T) {
 	o, _ := bucket.Create(kv, alice, []byte("alice@example.com"), alice)
 
 	humanAddress, _ := AsHumanAddress(o)
-	err := humanAddress.SetApproval(nft.ActionKind_Transfer, bob, nil)
+	err := humanAddress.Approvals().Set(nft.ActionKind_Transfer, bob, nil)
 	require.NoError(t, err)
 	// when
-	err = humanAddress.RevokeApproval(nft.ActionKind_Transfer, bob)
+	err = humanAddress.Approvals().Revoke(nft.ActionKind_Transfer, bob)
 	require.NoError(t, err)
 	// then
-	assert.Len(t, humanAddress.XApprovals(nft.ActionKind_Transfer), 0)
+	assert.Len(t, humanAddress.Approvals().List().ByAction(nft.ActionKind_Transfer), 0)
 }
 
 func TestUpdatePayload(t *testing.T) {
@@ -115,19 +115,19 @@ func TestFindByOwner(t *testing.T) {
 	kv := store.MemStore()
 	bucket := NewBucket()
 	alice := crypto.GenPrivKeyEd25519().PublicKey().Address()
-	o1, _ := bucket.Create(kv, alice, []byte("alice1@example.com"), []byte("my Public key"))
+	o1, _ := bucket.Create(kv, alice, []byte("alice1@example.com"), []byte("my first public key"))
 	_ = bucket.Save(kv, o1)
 	o2, _ := bucket.Create(kv, alice, []byte("alice2@example.com"), []byte("my other key"))
 	_ = bucket.Save(kv, o2)
 	// when
-	result, err := bucket.GetIndexed(kv, OwnerIndexName, []byte(alice))
+	result, err := bucket.GetIndexed(kv, nft.OwnerIndexName, []byte(alice))
 	// then
 	assert.NoError(t, err)
 	require.Len(t, result, 2)
 	u1, err := AsHumanAddress(result[0])
 	assert.NoError(t, err)
 	require.NotNil(t, u1)
-	assert.Equal(t, []byte("my Public key"), u1.GetPubKey())
+	assert.Equal(t, []byte("my first public key"), u1.GetPubKey())
 	// and
 	u2, err := AsHumanAddress(result[1])
 	assert.NoError(t, err)

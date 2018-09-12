@@ -7,6 +7,13 @@ import "github.com/iov-one/weave/x/nft/codec.proto";
 // https://github.com/gogo/protobuf/blob/master/extensions.md
 import "github.com/gogo/protobuf/gogoproto/gogo.proto";
 
+
+message BlockchainToken{
+    nft.NonFungibleToken base = 1;
+    TokenDetails details = 2 ;
+}
+
+
 message IssueTokenMsg {
     bytes owner = 1;
     bytes id = 2;

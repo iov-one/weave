@@ -12,11 +12,11 @@ type Owned interface {
 	OwnerAddress() weave.Address
 }
 
-type BaseBucket interface {
-	Issue(id []byte, owner weave.Address, initialPayload Payload) BaseNFT
-	Load(id []byte) BaseNFT
-	Revoke(id []byte)
-}
+//type BaseBucket interface {
+//	Issue(id []byte, owner weave.Address, initialPayload Payload) BaseNFT
+//	Load(id []byte) BaseNFT
+//	Revoke(id []byte)
+//}
 
 type PersistentBaseBucket struct {
 	orm.Bucket
