@@ -1,4 +1,4 @@
-package nft
+package humanaddr
 
 import (
 	"github.com/iov-one/weave"

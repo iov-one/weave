@@ -4,7 +4,6 @@ import (
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/x"
-	"github.com/iov-one/weave/x/nft"
 )
 
 type IssueHandler struct {
@@ -26,7 +25,7 @@ func (h IssueHandler) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx)
 	if err != nil {
 		return res, err
 	}
-	_, ok := rmsg.(*nft.IssueTokenMsg)
+	_, ok := rmsg.(*IssueTokenMsg)
 	if !ok {
 		return res, errors.ErrUnknownTxType(rmsg)
 	}
@@ -41,7 +40,7 @@ func (h IssueHandler) Deliver(ctx weave.Context, store weave.KVStore, tx weave.T
 	if err != nil {
 		return res, err
 	}
-	msg, ok := rmsg.(*nft.IssueTokenMsg)
+	msg, ok := rmsg.(*IssueTokenMsg)
 	if !ok {
 		return res, errors.ErrUnknownTxType(rmsg)
 	}
@@ -60,9 +59,20 @@ func (h IssueHandler) Deliver(ctx weave.Context, store weave.KVStore, tx weave.T
 	}
 
 	// persist the data
-	o, err := h.bucket.Create(store, weave.Address(msg.Owner), msg.Id, msg.Details.GetHumanAddress().Account)
+	o, err := h.bucket.Create(store, weave.Address(msg.Owner), msg.Id, msg.Details.PublicKey)
 	if err != nil {
 		return res, err
 	}
+	ha, err := AsHumanAddress(o)
+	if err != nil {
+		return res, err
+	}
+
+	for _, a := range msg.Approvals {
+		if err := ha.SetApproval(a.Action, a.ToAccount, a.Options); err != nil {
+			return res, err
+		}
+	}
+
 	return res, h.bucket.Save(store, o)
 }

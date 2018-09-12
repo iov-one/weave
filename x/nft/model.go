@@ -178,23 +178,14 @@ func NewNonFungibleToken(key []byte, owner weave.Address) orm.Object {
 	return orm.NewSimpleObj(key, &token)
 }
 
-type BaseBucket interface {
-	Issue(id []byte, owner weave.Address, initialPayload Payload) BaseNFT
-	Load(id []byte) BaseNFT
-	Revoke(id []byte)
-}
-
-type PersistentBaseBucket struct {
-	orm.Bucket
-}
 type Payload isTokenDetails_Payload
 
 // Note: we need to pass authorization info somehow,
 // eg. via context or passed in explicitly
 type BaseNFT interface {
 	// read
+	Owned
 	GetId() []byte
-	OwnerAddress() weave.Address
 
 	// permissions
 	XApprovals(action ActionKind) []Approval // todo: come up with a better name

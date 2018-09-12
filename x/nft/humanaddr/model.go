@@ -60,20 +60,8 @@ type Bucket struct {
 
 func NewBucket() Bucket {
 	return Bucket{
-		Bucket: orm.NewBucket(BucketName, nft.NewNonFungibleToken(nil, nil)).WithIndex(OwnerIndexName, ownerIndex, false),
+		Bucket: nft.WithOwnerIndex(orm.NewBucket(BucketName, nft.NewNonFungibleToken(nil, nil))),
 	}
-}
-
-func ownerIndex(obj orm.Object) ([]byte, error) {
-	if obj == nil {
-		return nil, orm.ErrInvalidIndex("nil")
-	}
-	humanAddress, err := AsHumanAddress(obj)
-	if err != nil {
-		return nil, orm.ErrInvalidIndex("not human address")
-	}
-	// big-endian encoded int64
-	return []byte(humanAddress.OwnerAddress()), nil
 }
 
 func (b Bucket) Create(db weave.KVStore, owner weave.Address, key []byte, pubKey []byte) (orm.Object, error) {

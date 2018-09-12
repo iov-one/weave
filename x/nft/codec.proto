@@ -46,20 +46,21 @@ message HumanAddressDetails {
 }
 
 message BlockChainDetails {
-    bytes account = 1; // anything for the spike
+    repeated Node nodes = 1 [(gogoproto.nullable) = false];
+    bytes chainID = 2;
 }
 
 message ContractDetails {
     bytes account = 1; // anything for the spike
 }
 
-
-message IssueTokenMsg {
-    bytes owner = 1;
-    bytes id = 2;
-    TokenDetails details = 3 [(gogoproto.nullable) = false];
-    repeated Approval approvals = 4;
+message Node {
+    string name = 1;
 }
+
+
+// base messages
+//
 
 message RequestTransferTokenMsg {
     bytes id = 1;
@@ -68,8 +69,16 @@ message RequestTransferTokenMsg {
 
 message SetApprovalMsg {
     bytes id = 1;
-    bytes newOwner = 2;
+    Approval approvals = 2; // todo: Can be `repeated`
+}
+
+message RevokeApprovalMsg {
+    bytes toAccount = 1;
+    ActionKind action = 2;
+    string comment = 3;
 }
 
 message RevokeTokenMsg {
+    bytes id = 1;
+    string comment = 2;
 }

@@ -62,6 +62,8 @@ protoc:
 	protoc --gogofaster_out=. x/*.proto
 	protoc --gogofaster_out=. -I=. -I=$(GOPATH)/src x/cash/*.proto
 	protoc --gogofaster_out=. -I=. -I=$(GOPATH)/src x/nft/*.proto
+	protoc --gogofaster_out=. -I=. -I=$(GOPATH)/src x/nft/blockchain/*.proto
+	protoc --gogofaster_out=. -I=. -I=$(GOPATH)/src x/nft/humanaddr/*.proto
 	protoc --gogofaster_out=. -I=. -I=$(GOPATH)/src x/sigs/*.proto
 	protoc --gogofaster_out=. -I=. -I=$(GOPATH)/src x/validators/*.proto
 	protoc --gogofaster_out=. -I=. -I=$(GOPATH)/src -I=./vendor x/namecoin/*.proto

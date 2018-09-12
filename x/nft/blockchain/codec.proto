@@ -1,12 +1,11 @@
 syntax = "proto3";
 
-package humanaddr;
+package blockchain;
 
 import "github.com/iov-one/weave/x/nft/codec.proto";
 // For more information on gogo.proto, see:
 // https://github.com/gogo/protobuf/blob/master/extensions.md
 import "github.com/gogo/protobuf/gogoproto/gogo.proto";
-
 
 message IssueTokenMsg {
     bytes owner = 1;
@@ -15,7 +14,19 @@ message IssueTokenMsg {
     repeated nft.Approval approvals = 4;
 }
 
-message TokenDetails {
-    bytes publicKey = 1;
+
+message UpdateTokenMsg {
+    bytes actor = 1;
+    bytes id = 2;
+    TokenDetails newDetails = 3 [(gogoproto.nullable) = false];
 }
 
+
+message TokenDetails {
+    repeated Node nodes = 1 [(gogoproto.nullable) = false];
+    bytes chainID = 2;
+}
+
+message Node {
+    string name = 1;
+}
