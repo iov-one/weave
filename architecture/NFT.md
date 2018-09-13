@@ -107,13 +107,13 @@ There are concepts of some metadata that would also accompany it.
 
 `timeout: int` ? : The approval may automatically expire at some block height (or timestamp?). This will not trigger a cron job, but usage after the timeout will just error (and trigger a cleanup maybe?)
 
-`immutible: boolean` ? : If ownership of the NFT is transfered,
+`immutable: boolean` ? : If ownership of the NFT is transfered,
 it may be normal for all Approvals to be revoked, so the new owner
 can re-issue them as needed. If I buy your domain name, I certainly
 don't expect your sysadmins to be able to set my DNS records.
 However, there are cases where the approval will persist beyond
 a transfer of ownership (like a lease of mineral rights to some land).
-The immutible flag could be used to renote the approval does not
+The immutable flag could be used to renote the approval does not
 expire upon transfer of ownership.
 
 `count: int` ? : Another form of expiration is assigning a count of
@@ -167,7 +167,7 @@ type Approval struct {
 type ApprovalOptions struct {
   Timeout int
   Count int
-  Immutible bool
+  Immutable bool
 }
 ```
 
@@ -191,10 +191,10 @@ owner can execute to set a new owner and possibly trigger a reset
 of the Approvals.
 
 In the two-step case, we could imagine the owner granting an
-`immutible` (and likely `exclusive`) Approval to the new owner
+`immutable` (and likely `exclusive`) Approval to the new owner
 to `acceptOwnership`. The new owner can now decide whether they want
 to `takeAction(acceptOwnership)` to take ownership of the NFT.
-We will need to make this immutible and/or exclusive to make sure
+We will need to make this immutable and/or exclusive to make sure
 that we can do this safely. Eg. you offer to sell it to me, but after
 giving it to me, you decide to give it to your friend as well,
 who acceptsOwnership before me. We just need some design that can avoid
