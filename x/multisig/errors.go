@@ -14,9 +14,8 @@ const (
 )
 
 var (
-	errMissingSigs       = fmt.Errorf("Missing sigs")
-	errInvalidThreshold  = fmt.Errorf("Activation threshold must be lower than or equal to the number of sigs")
-	errContractDuplicate = fmt.Errorf("Contract already exists")
+	errMissingSigs      = fmt.Errorf("Missing sigs")
+	errInvalidThreshold = fmt.Errorf("Activation threshold must be lower than or equal to the number of sigs")
 
 	errUnauthorizedMultiSig = fmt.Errorf("Multisig authentication failed")
 	errContractNotFound     = fmt.Errorf("Multisig contract not found")
@@ -30,10 +29,6 @@ func ErrInvalidActivationThreshold() error {
 }
 func ErrInvalidChangeThreshold() error {
 	return errors.WithCode(errInvalidThreshold, CodeInvalidMsg)
-}
-func ErrContractDuplicate(contract []byte) error {
-	msg := fmt.Sprintf("author=%X", contract)
-	return errors.WithLog(msg, errContractDuplicate, CodeInvalidMsg)
 }
 func IsInvalidMsgErr(err error) bool {
 	return errors.HasErrorCode(err, CodeInvalidMsg)

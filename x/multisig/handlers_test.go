@@ -109,7 +109,6 @@ func TestCreateContractMsgHandlerDeliver(t *testing.T) {
 	_, a := helpers.MakeKey()
 	_, b := helpers.MakeKey()
 	_, c := helpers.MakeKey()
-	_, d := helpers.MakeKey()
 
 	db := store.MemStore()
 	ctx, auth := newContextWithAuth(a)
@@ -118,7 +117,6 @@ func TestCreateContractMsgHandlerDeliver(t *testing.T) {
 		ctx,
 		db,
 		newTx(&CreateContractMsg{
-			Address:             d.Address(),
 			Sigs:                [][]byte{a.Address(), b.Address(), c.Address()},
 			ActivationThreshold: 2,
 			ChangeThreshold:     3,

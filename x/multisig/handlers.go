@@ -88,10 +88,5 @@ func (h CreateContractMsgHandler) validate(ctx weave.Context, db weave.KVStore, 
 		return nil, err
 	}
 
-	obj, err := h.bucket.Get(db, createContractMsg.Address)
-	if err != nil || (obj != nil && obj.Value() != nil) {
-		return nil, ErrContractDuplicate(createContractMsg.Address)
-	}
-
 	return createContractMsg, nil
 }
