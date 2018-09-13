@@ -10,6 +10,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/iov-one/weave/x/multisig"
+
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/app"
 	"github.com/iov-one/weave/orm"
@@ -25,7 +27,7 @@ import (
 // Authenticator returns the typical authentication,
 // just using public key signatures
 func Authenticator() x.Authenticator {
-	return x.ChainAuth(sigs.Authenticate{}, hashlock.Authenticate{})
+	return x.ChainAuth(sigs.Authenticate{}, hashlock.Authenticate{}, multisig.Authenticate{})
 }
 
 // Chain returns a chain of decorators, to handle authentication,
@@ -38,6 +40,7 @@ func Chain(minFee x.Coin, authFn x.Authenticator) app.Decorators {
 		// on CheckTx, bad tx don't affect state
 		utils.NewSavepoint().OnCheck(),
 		sigs.NewDecorator(),
+		multisig.NewDecorator(authFn, multisig.NewContractBucket()),
 		namecoin.NewFeeDecorator(authFn, minFee),
 		// cannot pay for fee with hashlock...
 		hashlock.NewDecorator(),
@@ -67,6 +70,7 @@ func QueryRouter() weave.QueryRouter {
 		namecoin.RegisterQuery,
 		sigs.RegisterQuery,
 		orm.RegisterQuery,
+		multisig.RegisterQuery,
 	)
 	return r
 }

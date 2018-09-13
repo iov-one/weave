@@ -20,7 +20,7 @@ message Tx {
     escrow.ReleaseEscrowMsg release_escrow_msg = 5;
     escrow.ReturnEscrowMsg return_escrow_msg = 6; 
     escrow.UpdateEscrowPartiesMsg update_escrow_msg = 7;
-    
+  
     multisig.CreateContractMsg create_contract_msg = 8;
   }
   // fee info, autogenerates GetFees()
@@ -29,6 +29,6 @@ message Tx {
   repeated sigs.StdSignature signatures = 21;
   // preimage for hashlock, autogenerates GetaPreimage
   bytes preimage = 22;
-  // address for multisig contract, autogenerates GetPreimage
+  // id of multisig contract, autogenerates GetMultisig
   bytes multisig = 23;
 }

@@ -19,6 +19,7 @@ var (
 	errContractDuplicate = fmt.Errorf("Contract already exists")
 
 	errUnauthorizedMultiSig = fmt.Errorf("Multisig authentication failed")
+	errContractNotFound     = fmt.Errorf("Multisig contract not found")
 )
 
 func ErrMissingSigs() error {
@@ -39,8 +40,12 @@ func IsInvalidMsgErr(err error) bool {
 }
 
 func ErrUnauthorizedMultiSig(contract []byte) error {
-	msg := fmt.Sprintf("contrac=%X", contract)
+	msg := fmt.Sprintf("contract=%X", contract)
 	return errors.WithLog(msg, errUnauthorizedMultiSig, CodeMultisigAuthentication)
+}
+func ErrContractNotFound(contract []byte) error {
+	msg := fmt.Sprintf("contract=%X", contract)
+	return errors.WithLog(msg, errContractNotFound, CodeMultisigAuthentication)
 }
 func IsMultiSigAuthenticationErr(err error) bool {
 	return errors.HasErrorCode(err, CodeMultisigAuthentication)

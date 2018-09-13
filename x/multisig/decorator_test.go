@@ -19,14 +19,14 @@ func TestDecorator(t *testing.T) {
 	_, a := helpers.MakeKey()
 	_, b := helpers.MakeKey()
 	_, c := helpers.MakeKey()
+	auth := helpers.CtxAuth("multisig")
+	bg := auth.SetConditions(context.Background(), a, b, c)
 
 	h := new(MultisigCheckHandler)
-	d := NewDecorator()
+	d := NewDecorator(auth, NewContractBucket())
 	stack := helpers.Wrap(d, h)
 
 	db := store.MemStore()
-	auth := helpers.CtxAuth("multisig")
-	bg := auth.SetConditions(context.Background(), a, b, c)
 	hc := CreateContractMsgHandler{auth, NewContractBucket()}
 	res, err := hc.Deliver(bg, db,
 		helpers.MockTx(
@@ -40,20 +40,20 @@ func TestDecorator(t *testing.T) {
 
 	multisigTx := func(payload, multisig []byte) ContractTx {
 		tx := helpers.MockTx(helpers.MockMsg(payload))
-		return ContractTx{Tx: tx, Multisig: multisig}
+		return ContractTx{Tx: tx, MultisigID: multisig}
 	}
 
 	cases := []struct {
 		tx    weave.Tx
-		perms []weave.Address
+		perms []weave.Condition
 	}{
 		// doesn't support multisig interface
 		{helpers.MockTx(helpers.MockMsg([]byte{1, 2, 3})), nil},
 		// Correct interface but no content
 		{multisigTx([]byte("john"), nil), nil},
-		// Hash a preimage
-		{multisigTx([]byte("foo"), []byte("bar")),
-			[]weave.Address{MultiSigCondition(contractID).Address()}},
+		// with multisig contract
+		{multisigTx([]byte("foo"), contractID),
+			[]weave.Condition{MultiSigCondition(contractID)}},
 	}
 
 	for i, tc := range cases {
@@ -71,7 +71,7 @@ func TestDecorator(t *testing.T) {
 
 //---------------- helpers --------
 
-// HashCheckHandler stores the seen permissions on each call
+// MultisigCheckHandler stores the seen permissions on each call
 type MultisigCheckHandler struct {
 	Perms []weave.Condition
 }
@@ -93,12 +93,12 @@ func (s *MultisigCheckHandler) Deliver(ctx weave.Context, store weave.KVStore,
 // ContractTx fulfills the MultiSigTx interface to satisfy the decorator
 type ContractTx struct {
 	weave.Tx
-	Multisig weave.Address
+	MultisigID []byte
 }
 
 var _ MultiSigTx = ContractTx{}
 var _ weave.Tx = ContractTx{}
 
-func (p ContractTx) GetMultiSig() weave.Address {
-	return p.Multisig
+func (p ContractTx) GetMultisigID() []byte {
+	return p.MultisigID
 }

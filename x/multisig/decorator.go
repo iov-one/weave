@@ -14,8 +14,8 @@ type Decorator struct {
 var _ weave.Decorator = Decorator{}
 
 // NewDecorator returns a default multisig decorator
-func NewDecorator() Decorator {
-	return Decorator{}
+func NewDecorator(auth x.Authenticator, bucket ContractBucket) Decorator {
+	return Decorator{auth, bucket}
 }
 
 // Check enforce multisig contract before calling down the stack
@@ -45,19 +45,18 @@ func (d Decorator) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx,
 func (d Decorator) withMultisig(ctx weave.Context, store weave.KVStore, tx weave.Tx) (weave.Context, error) {
 	if multisigContract, ok := tx.(MultiSigTx); ok {
 		// does tx have multisig ?
-		addr := multisigContract.GetMultiSig()
-		if addr == nil {
-			return ctx, nil
-		}
-
-		if d.auth.HasAddress(ctx, addr) {
+		id := multisigContract.GetMultisigID()
+		if id == nil {
 			return ctx, nil
 		}
 
 		// load contract
-		obj, err := d.bucket.Get(store, multisigContract.GetMultiSig())
+		obj, err := d.bucket.Get(store, id)
 		if err != nil {
 			return ctx, err
+		}
+		if obj == nil || (obj != nil && obj.Value() == nil) {
+			return nil, ErrContractNotFound(id)
 		}
 		contract := obj.Value().(*Contract)
 
@@ -70,10 +69,10 @@ func (d Decorator) withMultisig(ctx weave.Context, store weave.KVStore, tx weave
 		// check sigs
 		authenticated := x.HasNAddresses(ctx, d.auth, sigs, int(contract.ActivationThreshold))
 		if !authenticated {
-			return ctx, ErrUnauthorizedMultiSig(addr)
+			return ctx, ErrUnauthorizedMultiSig(id)
 		}
 
-		return withMultisig(ctx, addr), nil
+		return withMultisig(ctx, id), nil
 	}
 
 	return ctx, nil

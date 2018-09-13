@@ -17,10 +17,10 @@ func TestContext(t *testing.T) {
 		return bz
 	}
 
-	// sig is a signature permission, not a hash
+	// sig is a signature permission, not a contract ID
 	foo := id(1)
 	sig := weave.NewCondition("multisig", "usage", foo).Address()
-	// other is a permission for some "other" preimage
+	// other is a permission for some "other" contract ID
 	other := MultiSigCondition(foo).Address()
 	random := weave.NewAddress(foo)
 
@@ -35,12 +35,12 @@ func TestContext(t *testing.T) {
 		{
 			withMultisig(bg, foo),
 			[]weave.Condition{MultiSigCondition(foo)},
-			[]weave.Address{other},
-			[]weave.Address{sig, random},
+			[]weave.Address{sig, other},
+			[]weave.Address{random},
 		},
 		{
-			withMultisig(bg, []byte("one more time")),
-			[]weave.Condition{MultiSigCondition([]byte("one more time"))},
+			withMultisig(bg, id(2)),
+			[]weave.Condition{MultiSigCondition(id(2))},
 			nil,
 			[]weave.Address{sig, other, random},
 		},

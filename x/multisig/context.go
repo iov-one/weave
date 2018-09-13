@@ -7,19 +7,19 @@ import (
 	"github.com/iov-one/weave/x"
 )
 
-type contextKey int // local to the hashlock module
+type contextKey int // local to the multisig module
 
 const (
 	contextKeyMultisig contextKey = iota
 )
 
-// withPreimage is a private method, as only this module
-// can add a signer
+// withMultisig is a private method, as only this module
+// can add a multisig signer
 func withMultisig(ctx weave.Context, id []byte) weave.Context {
 	return context.WithValue(ctx, contextKeyMultisig, MultiSigCondition(id))
 }
 
-// CtxAuther gets/sets permissions on the given context key
+// Authenticate gets/sets permissions on the given context key
 type Authenticate struct {
 }
 
