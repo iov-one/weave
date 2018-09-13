@@ -81,6 +81,25 @@ func HasAllAddresses(ctx weave.Context, auth Authenticator, required []weave.Add
 	return true
 }
 
+// HasNAddresses returns true if at least n elements in requested are
+// also in context.
+func HasNAddresses(ctx weave.Context, auth Authenticator, required []weave.Address, n int) bool {
+	// Special case: is this an error???
+	if n <= 0 {
+		return true
+	}
+
+	for _, r := range required {
+		if auth.HasAddress(ctx, r) {
+			n--
+			if n == 0 {
+				return true
+			}
+		}
+	}
+	return false
+}
+
 // HasAllConditions returns true if all elements in required are
 // also in context.
 func HasAllConditions(ctx weave.Context, auth Authenticator, required []weave.Condition) bool {

@@ -9,7 +9,6 @@ import (
 	"github.com/iov-one/weave/store"
 
 	"github.com/iov-one/weave"
-	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/x"
 )
 
@@ -32,7 +31,6 @@ func TestCreateContractMsgHandlerValidate(t *testing.T) {
 	_, a := helpers.MakeKey()
 	_, b := helpers.MakeKey()
 	_, c := helpers.MakeKey()
-	_, d := helpers.MakeKey()
 
 	testcases := []struct {
 		name string
@@ -42,7 +40,6 @@ func TestCreateContractMsgHandlerValidate(t *testing.T) {
 		{
 			name: "valid use case",
 			msg: &CreateContractMsg{
-				Address:             d.Address(),
 				Sigs:                [][]byte{a.Address(), b.Address(), c.Address()},
 				ActivationThreshold: 2,
 				ChangeThreshold:     3,
@@ -52,17 +49,11 @@ func TestCreateContractMsgHandlerValidate(t *testing.T) {
 		{
 			name: "missing sigs",
 			msg:  &CreateContractMsg{},
-			err:  errors.ErrUnrecognizedAddress(nil),
-		},
-		{
-			name: "missing sigs",
-			msg:  &CreateContractMsg{Address: d.Address()},
 			err:  ErrMissingSigs(),
 		},
 		{
 			name: "bad activation threshold",
 			msg: &CreateContractMsg{
-				Address:             d.Address(),
 				Sigs:                [][]byte{a.Address(), b.Address(), c.Address()},
 				ActivationThreshold: 4,
 				ChangeThreshold:     3,
@@ -72,7 +63,6 @@ func TestCreateContractMsgHandlerValidate(t *testing.T) {
 		{
 			name: "bad activation threshold",
 			msg: &CreateContractMsg{
-				Address:             d.Address(),
 				Sigs:                [][]byte{a.Address(), b.Address(), c.Address()},
 				ActivationThreshold: 1,
 				ChangeThreshold:     -1,
@@ -98,7 +88,6 @@ func TestCreateContractMsgHandlerCheck(t *testing.T) {
 	_, a := helpers.MakeKey()
 	_, b := helpers.MakeKey()
 	_, c := helpers.MakeKey()
-	_, d := helpers.MakeKey()
 
 	db := store.MemStore()
 	ctx, auth := newContextWithAuth(a)
@@ -107,7 +96,6 @@ func TestCreateContractMsgHandlerCheck(t *testing.T) {
 		ctx,
 		db,
 		newTx(&CreateContractMsg{
-			Address:             d.Address(),
 			Sigs:                [][]byte{a.Address(), b.Address(), c.Address()},
 			ActivationThreshold: 2,
 			ChangeThreshold:     3,
@@ -126,7 +114,7 @@ func TestCreateContractMsgHandlerDeliver(t *testing.T) {
 	db := store.MemStore()
 	ctx, auth := newContextWithAuth(a)
 	handler := CreateContractMsgHandler{auth, NewContractBucket()}
-	_, err := handler.Deliver(
+	res, err := handler.Deliver(
 		ctx,
 		db,
 		newTx(&CreateContractMsg{
@@ -135,9 +123,10 @@ func TestCreateContractMsgHandlerDeliver(t *testing.T) {
 			ActivationThreshold: 2,
 			ChangeThreshold:     3,
 		}))
-
 	require.NoError(t, err)
-	obj, err := handler.bucket.Get(db, d.Address())
+
+	objKey := res.Data
+	obj, err := handler.bucket.Get(db, objKey)
 	require.NoError(t, err)
 	require.NotNil(t, obj)
 	require.EqualValues(t,

@@ -5,6 +5,13 @@ import (
 	"github.com/iov-one/weave/orm"
 )
 
+const (
+	// BucketName is where we store the contracts
+	BucketName = "contracts"
+	// SequenceName is an auto-increment ID counter for contracts
+	SequenceName = "id"
+)
+
 // enforce that Contract fulfils desired interface compile-time
 var _ orm.CloneableData = (*Contract)(nil)
 
@@ -36,11 +43,10 @@ func (c *Contract) Copy() orm.CloneableData {
 	}
 }
 
-const ContractBucketName = "contracts"
-
 // ContractBucket is a type-safe wrapper around orm.Bucket
 type ContractBucket struct {
 	orm.Bucket
+	idSeq orm.Sequence
 }
 
 // NewContractBucket initializes a ContractBucket with default name
@@ -48,10 +54,11 @@ type ContractBucket struct {
 // inherit Get and Save from orm.Bucket
 // add run-time check on Save
 func NewContractBucket() ContractBucket {
-	bucket := orm.NewBucket(ContractBucketName,
+	bucket := orm.NewBucket(BucketName,
 		orm.NewSimpleObj(nil, new(Contract)))
 	return ContractBucket{
 		Bucket: bucket,
+		idSeq:  bucket.Sequence(SequenceName),
 	}
 }
 

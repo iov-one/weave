@@ -1,6 +1,8 @@
 package multisig
 
 import (
+	"crypto/sha256"
+
 	"github.com/iov-one/weave"
 )
 
@@ -10,10 +12,8 @@ type MultiSigTx interface {
 	GetMultiSig() weave.Address
 }
 
-func MultiSigConditions(contract Contract) []weave.Condition {
-	var conditions []weave.Condition
-	for _, sig := range contract.Sigs {
-		conditions = append(conditions, weave.Condition(sig))
-	}
-	return conditions
+// MultiSigCondition calculates a sha256 hash and then
+func MultiSigCondition(id []byte) weave.Condition {
+	h := sha256.Sum256(id)
+	return weave.NewCondition("multisig", "usage", h[:])
 }

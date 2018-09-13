@@ -9,9 +9,6 @@ func (CreateContractMsg) Path() string {
 
 // Validate enforces sigs and threshold boundaries
 func (c *CreateContractMsg) Validate() error {
-	if err := weave.Address(c.Address).Validate(); err != nil {
-		return err
-	}
 	if len(c.Sigs) == 0 {
 		return ErrMissingSigs()
 	}

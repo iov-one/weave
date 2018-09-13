@@ -54,12 +54,14 @@ func (h CreateContractMsgHandler) Deliver(ctx weave.Context, db weave.KVStore, t
 		ChangeThreshold:     msg.ChangeThreshold,
 	}
 
-	obj := orm.NewSimpleObj(msg.Address, contract)
+	id := h.bucket.idSeq.NextVal(db)
+	obj := orm.NewSimpleObj(id, contract)
 	err = h.bucket.Save(db, obj)
 	if err != nil {
 		return res, err
 	}
 
+	res.Data = id
 	return res, nil
 }
 
