@@ -45,7 +45,7 @@ func (d Decorator) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx,
 func (d Decorator) withMultisig(ctx weave.Context, store weave.KVStore, tx weave.Tx) (weave.Context, error) {
 	if multisigContract, ok := tx.(MultiSigTx); ok {
 		// does tx have multisig ?
-		id := multisigContract.GetMultisigID()
+		id := multisigContract.GetMultisig()
 		if id == nil {
 			return ctx, nil
 		}

@@ -58,6 +58,7 @@ func Router(authFn x.Authenticator, issuer weave.Address) app.Router {
 	// we use the namecoin wallet handler
 	// TODO: move to cash upon refactor
 	escrow.RegisterRoutes(r, authFn, namecoin.NewController())
+	multisig.RegisterRoutes(r, authFn)
 	return r
 }
 

@@ -7,7 +7,7 @@ import (
 // MultiSigTx is an optional interface for a Tx that allows
 // it to support multisig contract
 type MultiSigTx interface {
-	GetMultisigID() []byte
+	GetMultisig() []byte
 }
 
 // MultiSigCondition returns condition for a contract ID

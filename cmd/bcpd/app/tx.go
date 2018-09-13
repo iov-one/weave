@@ -5,6 +5,7 @@ import (
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/x/cash"
 	"github.com/iov-one/weave/x/hashlock"
+	"github.com/iov-one/weave/x/multisig"
 	"github.com/iov-one/weave/x/sigs"
 )
 
@@ -28,6 +29,7 @@ var _ weave.Tx = (*Tx)(nil)
 var _ cash.FeeTx = (*Tx)(nil)
 var _ sigs.SignedTx = (*Tx)(nil)
 var _ hashlock.HashKeyTx = (*Tx)(nil)
+var _ multisig.MultiSigTx = (*Tx)(nil)
 
 // GetMsg switches over all types defined in the protobuf file
 func (tx *Tx) GetMsg() (weave.Msg, error) {
@@ -54,6 +56,8 @@ func (tx *Tx) GetMsg() (weave.Msg, error) {
 		return t.UpdateEscrowMsg, nil
 	case *Tx_CreateContractMsg:
 		return t.CreateContractMsg, nil
+	case *Tx_UpdateContractMsg:
+		return t.UpdateContractMsg, nil
 	}
 
 	// we must have covered it above
