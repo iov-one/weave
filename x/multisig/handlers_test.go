@@ -153,7 +153,17 @@ func withContract(t *testing.T, db weave.KVStore, msg CreateContractMsg) []byte 
 	return res.Data
 }
 
-func TestUpdateContractMsgHandlerValidate(t *testing.T) {
+func queryContract(t *testing.T, db weave.KVStore, handler UpdateContractMsgHandler, id []byte) Contract {
+	// run query
+	contracts, err := handler.bucket.Query(db, "", id)
+	require.NoError(t, err)
+	require.Len(t, contracts, 1)
+
+	actual, err := handler.bucket.Parse(nil, contracts[0].Value)
+	return *actual.Value().(*Contract)
+}
+
+func TestUpdateContractMsgHandler(t *testing.T) {
 	db := store.MemStore()
 
 	// addresses controlling contract
@@ -219,11 +229,25 @@ func TestUpdateContractMsgHandlerValidate(t *testing.T) {
 	}
 
 	for _, test := range testcases {
+		msg := test.msg
 		ctx, auth := newContextWithAuth(test.signers...)
 		handler := UpdateContractMsgHandler{auth, NewContractBucket()}
-		_, err := handler.validate(ctx, db, newTx(test.msg))
+
+		_, err := handler.Check(ctx, db, newTx(msg))
 		if test.err == nil {
 			require.NoError(t, err, test.name)
+		} else {
+			require.EqualError(t, err, test.err.Error(), test.name)
+		}
+
+		_, err = handler.Deliver(ctx, db, newTx(msg))
+		if test.err == nil {
+			require.NoError(t, err, test.name)
+			contract := queryContract(t, db, handler, msg.Id)
+			require.EqualValues(t,
+				Contract{msg.Sigs, msg.ActivationThreshold, msg.AdminThreshold},
+				contract,
+				test.name)
 		} else {
 			require.EqualError(t, err, test.err.Error(), test.name)
 		}
