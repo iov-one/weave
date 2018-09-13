@@ -23,7 +23,7 @@ func (c *Contract) Validate() error {
 	if c.ActivationThreshold < 0 || int(c.ActivationThreshold) > len(c.Sigs) {
 		return ErrInvalidActivationThreshold()
 	}
-	if c.ChangeThreshold < 0 {
+	if c.ActivationThreshold < 0 {
 		return ErrInvalidChangeThreshold()
 	}
 	for _, a := range c.Sigs {
@@ -39,7 +39,7 @@ func (c *Contract) Copy() orm.CloneableData {
 	return &Contract{
 		Sigs:                c.Sigs,
 		ActivationThreshold: c.ActivationThreshold,
-		ChangeThreshold:     c.ChangeThreshold,
+		AdminThreshold:      c.AdminThreshold,
 	}
 }
 

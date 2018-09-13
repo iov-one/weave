@@ -33,7 +33,7 @@ func TestDecorator(t *testing.T) {
 			&CreateContractMsg{
 				Sigs:                [][]byte{a.Address(), b.Address(), c.Address()},
 				ActivationThreshold: 2,
-				ChangeThreshold:     3,
+				AdminThreshold:      3,
 			}))
 	require.NoError(t, err)
 	contractID := res.Data

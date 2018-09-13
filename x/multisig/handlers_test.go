@@ -42,7 +42,7 @@ func TestCreateContractMsgHandlerValidate(t *testing.T) {
 			msg: &CreateContractMsg{
 				Sigs:                [][]byte{a.Address(), b.Address(), c.Address()},
 				ActivationThreshold: 2,
-				ChangeThreshold:     3,
+				AdminThreshold:      3,
 			},
 			err: nil,
 		},
@@ -56,7 +56,7 @@ func TestCreateContractMsgHandlerValidate(t *testing.T) {
 			msg: &CreateContractMsg{
 				Sigs:                [][]byte{a.Address(), b.Address(), c.Address()},
 				ActivationThreshold: 4,
-				ChangeThreshold:     3,
+				AdminThreshold:      3,
 			},
 			err: ErrInvalidActivationThreshold(),
 		},
@@ -65,7 +65,7 @@ func TestCreateContractMsgHandlerValidate(t *testing.T) {
 			msg: &CreateContractMsg{
 				Sigs:                [][]byte{a.Address(), b.Address(), c.Address()},
 				ActivationThreshold: 1,
-				ChangeThreshold:     -1,
+				AdminThreshold:      -1,
 			},
 			err: ErrInvalidChangeThreshold(),
 		},
@@ -98,7 +98,7 @@ func TestCreateContractMsgHandlerCheck(t *testing.T) {
 		newTx(&CreateContractMsg{
 			Sigs:                [][]byte{a.Address(), b.Address(), c.Address()},
 			ActivationThreshold: 2,
-			ChangeThreshold:     3,
+			AdminThreshold:      3,
 		}))
 
 	require.NoError(t, err)
@@ -119,7 +119,7 @@ func TestCreateContractMsgHandlerDeliver(t *testing.T) {
 		newTx(&CreateContractMsg{
 			Sigs:                [][]byte{a.Address(), b.Address(), c.Address()},
 			ActivationThreshold: 2,
-			ChangeThreshold:     3,
+			AdminThreshold:      3,
 		}))
 	require.NoError(t, err)
 
@@ -130,4 +130,102 @@ func TestCreateContractMsgHandlerDeliver(t *testing.T) {
 	require.EqualValues(t,
 		Contract{[][]byte{a.Address(), b.Address(), c.Address()}, 2, 3},
 		*obj.Value().(*Contract))
+}
+
+func newSigs(perms ...weave.Condition) [][]byte {
+	// initial addresses controlling contract
+	var sigs [][]byte
+	for _, p := range perms {
+		sigs = append(sigs, p.Address())
+	}
+	return sigs
+}
+
+func withContract(t *testing.T, db weave.KVStore, msg CreateContractMsg) []byte {
+	_, k := helpers.MakeKey()
+	ctx, auth := newContextWithAuth(k)
+	handler := CreateContractMsgHandler{auth, NewContractBucket()}
+	res, err := handler.Deliver(
+		ctx,
+		db,
+		newTx(&msg))
+	require.NoError(t, err)
+	return res.Data
+}
+
+func TestUpdateContractMsgHandlerValidate(t *testing.T) {
+	db := store.MemStore()
+
+	// addresses controlling contract
+	_, a := helpers.MakeKey()
+	_, b := helpers.MakeKey()
+	_, c := helpers.MakeKey()
+	_, d := helpers.MakeKey()
+	_, e := helpers.MakeKey()
+
+	mutableID := withContract(t, db,
+		CreateContractMsg{
+			Sigs:                newSigs(a, b, c),
+			ActivationThreshold: 1,
+			AdminThreshold:      2,
+		})
+
+	immutableID := withContract(t, db,
+		CreateContractMsg{
+			Sigs:                newSigs(a, b, c),
+			ActivationThreshold: 1,
+			AdminThreshold:      4,
+		})
+
+	testcases := []struct {
+		name    string
+		msg     *UpdateContractMsg
+		signers []weave.Condition
+		err     error
+	}{
+		{
+			name: "authorized",
+			msg: &UpdateContractMsg{
+				Id:                  mutableID,
+				Sigs:                newSigs(a, b, c, d, e),
+				ActivationThreshold: 4,
+				AdminThreshold:      5,
+			},
+			signers: []weave.Condition{a, b},
+			err:     nil,
+		},
+		{
+			name: "unauthorised",
+			msg: &UpdateContractMsg{
+				Id:                  mutableID,
+				Sigs:                newSigs(a, b, c, d, e),
+				ActivationThreshold: 4,
+				AdminThreshold:      5,
+			},
+			signers: []weave.Condition{a},
+			err:     ErrUnauthorizedMultiSig(mutableID),
+		},
+		{
+			name: "immutable",
+			msg: &UpdateContractMsg{
+				Id:                  immutableID,
+				Sigs:                newSigs(a, b, c, d, e),
+				ActivationThreshold: 4,
+				AdminThreshold:      5,
+			},
+			signers: []weave.Condition{a, b, c, d, e},
+			err:     ErrUnauthorizedMultiSig(immutableID),
+		},
+	}
+
+	for _, test := range testcases {
+		ctx, auth := newContextWithAuth(test.signers...)
+		handler := UpdateContractMsgHandler{auth, NewContractBucket()}
+		_, err := handler.validate(ctx, db, newTx(test.msg))
+		if test.err == nil {
+			require.NoError(t, err, test.name)
+		} else {
+			require.EqualError(t, err, test.err.Error(), test.name)
+		}
+	}
 }

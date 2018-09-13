@@ -2,13 +2,15 @@ syntax = "proto3";
 
 package multisig;
 
+import "github.com/gogo/protobuf/gogoproto/gogo.proto";
+
 message Contract {
     // addresses to control it
     repeated bytes sigs = 1;
     // threshold needed to sign to activate it
     int64 activationThreshold = 2;
     // threshold needed to sign to change it
-    int64 changeThreshold = 3;
+    int64 adminThreshold = 3;
 }
 
 message CreateContractMsg {
@@ -17,5 +19,16 @@ message CreateContractMsg {
     // threshold needed to sign to activate it
     int64 activationThreshold = 2;
     // threshold needed to sign to change it
-    int64 changeThreshold = 3;
+    int64 adminThreshold = 3;
+}
+
+message UpdateContractMsg {
+    // contract id
+    bytes id = 1;
+    // addresses to control it
+    repeated bytes sigs = 2;
+    // threshold needed to sign to activate it
+    int64 activationThreshold = 3;
+    // threshold needed to sign to change it
+    int64 adminThreshold = 4;
 }
