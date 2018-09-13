@@ -18,7 +18,7 @@ message Tx {
     // escrow actions
     escrow.CreateEscrowMsg create_escrow_msg = 4;
     escrow.ReleaseEscrowMsg release_escrow_msg = 5;
-    escrow.ReturnEscrowMsg return_escrow_msg = 6; 
+    escrow.ReturnEscrowMsg return_escrow_msg = 6;
     escrow.UpdateEscrowPartiesMsg update_escrow_msg = 7;
   
     multisig.CreateContractMsg create_contract_msg = 8;
