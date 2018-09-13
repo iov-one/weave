@@ -28,7 +28,7 @@ message Tx {
   cash.FeeInfo fees = 20;
   // signatures, autogenerates GetSignatures()
   repeated sigs.StdSignature signatures = 21;
-  // preimage for hashlock, autogenerates GetaPreimage
+  // preimage for hashlock, autogenerates GetPreimage
   bytes preimage = 22;
   // id of multisig contract, autogenerates GetMultisig
   bytes multisig = 23;
