@@ -40,7 +40,7 @@ func Chain(minFee x.Coin, authFn x.Authenticator) app.Decorators {
 		// on CheckTx, bad tx don't affect state
 		utils.NewSavepoint().OnCheck(),
 		sigs.NewDecorator(),
-		multisig.NewDecorator(authFn, multisig.NewContractBucket()),
+		multisig.NewDecorator(authFn),
 		namecoin.NewFeeDecorator(authFn, minFee),
 		// cannot pay for fee with hashlock...
 		hashlock.NewDecorator(),

@@ -14,8 +14,8 @@ type Decorator struct {
 var _ weave.Decorator = Decorator{}
 
 // NewDecorator returns a default multisig decorator
-func NewDecorator(auth x.Authenticator, bucket ContractBucket) Decorator {
-	return Decorator{auth, bucket}
+func NewDecorator(auth x.Authenticator) Decorator {
+	return Decorator{auth, NewContractBucket()}
 }
 
 // Check enforce multisig contract before calling down the stack

@@ -23,7 +23,7 @@ func TestDecorator(t *testing.T) {
 	bg := auth.SetConditions(context.Background(), a, b, c)
 
 	h := new(MultisigCheckHandler)
-	d := NewDecorator(auth, NewContractBucket())
+	d := NewDecorator(auth)
 	stack := helpers.Wrap(d, h)
 
 	db := store.MemStore()
