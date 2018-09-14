@@ -20,10 +20,10 @@ func (c *Contract) Validate() error {
 	if len(c.Sigs) == 0 {
 		return ErrMissingSigs()
 	}
-	if c.ActivationThreshold < 0 || int(c.ActivationThreshold) > len(c.Sigs) {
+	if c.ActivationThreshold <= 0 || int(c.ActivationThreshold) > len(c.Sigs) {
 		return ErrInvalidActivationThreshold()
 	}
-	if c.ActivationThreshold < 0 {
+	if c.AdminThreshold <= 0 {
 		return ErrInvalidChangeThreshold()
 	}
 	for _, a := range c.Sigs {
