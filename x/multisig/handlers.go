@@ -15,7 +15,9 @@ const (
 // RegisterRoutes will instantiate and register
 // all handlers in this package
 func RegisterRoutes(r weave.Registry, auth x.Authenticator) {
-	r.Handle(pathCreateContractMsg, CreateContractMsgHandler{auth, NewContractBucket()})
+	bucket := NewContractBucket()
+	r.Handle(pathCreateContractMsg, CreateContractMsgHandler{auth, bucket})
+	r.Handle(pathUpdateContractMsg, UpdateContractMsgHandler{auth, bucket})
 }
 
 // RegisterQuery register queries from buckets in this package
