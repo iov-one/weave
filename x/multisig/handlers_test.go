@@ -27,120 +27,7 @@ func newContextWithAuth(perms ...weave.Condition) (weave.Context, x.Authenticato
 	return auth.SetConditions(ctx, perms...), auth
 }
 
-func TestCreateContractMsgHandlerValidate(t *testing.T) {
-	_, a := helpers.MakeKey()
-	_, b := helpers.MakeKey()
-	_, c := helpers.MakeKey()
-
-	testcases := []struct {
-		name string
-		msg  *CreateContractMsg
-		err  error
-	}{
-		{
-			name: "valid use case",
-			msg: &CreateContractMsg{
-				Sigs:                [][]byte{a.Address(), b.Address(), c.Address()},
-				ActivationThreshold: 2,
-				AdminThreshold:      3,
-			},
-			err: nil,
-		},
-		{
-			name: "missing sigs",
-			msg:  &CreateContractMsg{},
-			err:  ErrMissingSigs(),
-		},
-		{
-			name: "bad activation threshold",
-			msg: &CreateContractMsg{
-				Sigs:                [][]byte{a.Address(), b.Address(), c.Address()},
-				ActivationThreshold: 4,
-				AdminThreshold:      3,
-			},
-			err: ErrInvalidActivationThreshold(),
-		},
-		{
-			name: "bad admin threshold",
-			msg: &CreateContractMsg{
-				Sigs:                [][]byte{a.Address(), b.Address(), c.Address()},
-				ActivationThreshold: 1,
-				AdminThreshold:      -1,
-			},
-			err: ErrInvalidChangeThreshold(),
-		},
-		{
-			name: "0 activation threshold",
-			msg: &CreateContractMsg{
-				Sigs:                [][]byte{a.Address(), b.Address(), c.Address()},
-				ActivationThreshold: 0,
-				AdminThreshold:      1,
-			},
-			err: ErrInvalidChangeThreshold(),
-		},
-	}
-
-	db := store.MemStore()
-	ctx, auth := newContextWithAuth(a)
-	handler := CreateContractMsgHandler{auth, NewContractBucket()}
-	for _, test := range testcases {
-		_, err := handler.validate(ctx, db, newTx(test.msg))
-		if test.err == nil {
-			require.NoError(t, err, test.name)
-		} else {
-			require.EqualError(t, err, test.err.Error(), test.name)
-		}
-	}
-}
-
-func TestCreateContractMsgHandlerCheck(t *testing.T) {
-	_, a := helpers.MakeKey()
-	_, b := helpers.MakeKey()
-	_, c := helpers.MakeKey()
-
-	db := store.MemStore()
-	ctx, auth := newContextWithAuth(a)
-	handler := CreateContractMsgHandler{auth, NewContractBucket()}
-	res, err := handler.Check(
-		ctx,
-		db,
-		newTx(&CreateContractMsg{
-			Sigs:                [][]byte{a.Address(), b.Address(), c.Address()},
-			ActivationThreshold: 2,
-			AdminThreshold:      3,
-		}))
-
-	require.NoError(t, err)
-	require.Equal(t, creationCost, res.GasAllocated)
-}
-
-func TestCreateContractMsgHandlerDeliver(t *testing.T) {
-	_, a := helpers.MakeKey()
-	_, b := helpers.MakeKey()
-	_, c := helpers.MakeKey()
-
-	db := store.MemStore()
-	ctx, auth := newContextWithAuth(a)
-	handler := CreateContractMsgHandler{auth, NewContractBucket()}
-	res, err := handler.Deliver(
-		ctx,
-		db,
-		newTx(&CreateContractMsg{
-			Sigs:                [][]byte{a.Address(), b.Address(), c.Address()},
-			ActivationThreshold: 2,
-			AdminThreshold:      3,
-		}))
-	require.NoError(t, err)
-
-	objKey := res.Data
-	obj, err := handler.bucket.Get(db, objKey)
-	require.NoError(t, err)
-	require.NotNil(t, obj)
-	require.EqualValues(t,
-		Contract{[][]byte{a.Address(), b.Address(), c.Address()}, 2, 3},
-		*obj.Value().(*Contract))
-}
-
+// newSigs creates an array with addresses from each condition
 func newSigs(perms ...weave.Condition) [][]byte {
 	// initial addresses controlling contract
 	var sigs [][]byte
@@ -148,6 +35,20 @@ func newSigs(perms ...weave.Condition) [][]byte {
 		sigs = append(sigs, p.Address())
 	}
 	return sigs
+}
+
+// queryContract queries a contract from the bucket and handles errors
+// so you get a strongly typed object or a test failure
+func queryContract(t *testing.T, db weave.KVStore, bucket ContractBucket, id []byte) Contract {
+	// run query
+	contracts, err := bucket.Query(db, "", id)
+	require.NoError(t, err)
+	require.Len(t, contracts, 1)
+
+	actual, err := bucket.Parse(nil, contracts[0].Value)
+	require.NoError(t, err)
+
+	return *actual.Value().(*Contract)
 }
 
 func withContract(t *testing.T, db weave.KVStore, msg CreateContractMsg) []byte {
@@ -162,14 +63,85 @@ func withContract(t *testing.T, db weave.KVStore, msg CreateContractMsg) []byte 
 	return res.Data
 }
 
-func queryContract(t *testing.T, db weave.KVStore, handler UpdateContractMsgHandler, id []byte) Contract {
-	// run query
-	contracts, err := handler.bucket.Query(db, "", id)
-	require.NoError(t, err)
-	require.Len(t, contracts, 1)
+func TestCreateContractMsgHandler(t *testing.T) {
+	_, a := helpers.MakeKey()
+	_, b := helpers.MakeKey()
+	_, c := helpers.MakeKey()
 
-	actual, err := handler.bucket.Parse(nil, contracts[0].Value)
-	return *actual.Value().(*Contract)
+	testcases := []struct {
+		name string
+		msg  *CreateContractMsg
+		err  error
+	}{
+		{
+			name: "valid use case",
+			msg: &CreateContractMsg{
+				Sigs:                newSigs(a, b, c),
+				ActivationThreshold: 2,
+				AdminThreshold:      3,
+			},
+			err: nil,
+		},
+		{
+			name: "missing sigs",
+			msg:  &CreateContractMsg{},
+			err:  ErrMissingSigs(),
+		},
+		{
+			name: "bad activation threshold",
+			msg: &CreateContractMsg{
+				Sigs:                newSigs(a, b, c),
+				ActivationThreshold: 4,
+				AdminThreshold:      3,
+			},
+			err: ErrInvalidActivationThreshold(),
+		},
+		{
+			name: "bad admin threshold",
+			msg: &CreateContractMsg{
+				Sigs:                newSigs(a, b, c),
+				ActivationThreshold: 1,
+				AdminThreshold:      -1,
+			},
+			err: ErrInvalidChangeThreshold(),
+		},
+		{
+			name: "0 activation threshold",
+			msg: &CreateContractMsg{
+				Sigs:                newSigs(a, b, c),
+				ActivationThreshold: 0,
+				AdminThreshold:      1,
+			},
+			err: ErrInvalidChangeThreshold(),
+		},
+	}
+
+	db := store.MemStore()
+	for _, test := range testcases {
+		msg := test.msg
+		ctx, auth := newContextWithAuth(a)
+		handler := CreateContractMsgHandler{auth, NewContractBucket()}
+
+		_, err := handler.Check(ctx, db, newTx(msg))
+		if test.err == nil {
+			require.NoError(t, err, test.name)
+		} else {
+			require.EqualError(t, err, test.err.Error(), test.name)
+		}
+
+		res, err := handler.Deliver(ctx, db, newTx(msg))
+		if test.err == nil {
+			require.NoError(t, err, test.name)
+			contract := queryContract(t, db, handler.bucket, res.Data)
+			require.EqualValues(t,
+				Contract{msg.Sigs, msg.ActivationThreshold, msg.AdminThreshold},
+				contract,
+				test.name)
+		} else {
+			require.EqualError(t, err, test.err.Error(), test.name)
+		}
+
+	}
 }
 
 func TestUpdateContractMsgHandler(t *testing.T) {
@@ -263,7 +235,7 @@ func TestUpdateContractMsgHandler(t *testing.T) {
 		_, err = handler.Deliver(ctx, db, newTx(msg))
 		if test.err == nil {
 			require.NoError(t, err, test.name)
-			contract := queryContract(t, db, handler, msg.Id)
+			contract := queryContract(t, db, handler.bucket, msg.Id)
 			require.EqualValues(t,
 				Contract{msg.Sigs, msg.ActivationThreshold, msg.AdminThreshold},
 				contract,
