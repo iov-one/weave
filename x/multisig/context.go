@@ -19,6 +19,11 @@ func withMultisig(ctx weave.Context, id []byte) weave.Context {
 	return context.WithValue(ctx, contextKeyMultisig, MultiSigCondition(id))
 }
 
+// MultiSigCondition returns condition for a contract ID
+func MultiSigCondition(id []byte) weave.Condition {
+	return weave.NewCondition("multisig", "usage", id)
+}
+
 // Authenticate gets/sets permissions on the given context key
 type Authenticate struct {
 }
