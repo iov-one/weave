@@ -61,11 +61,20 @@ func TestCreateContractMsgHandlerValidate(t *testing.T) {
 			err: ErrInvalidActivationThreshold(),
 		},
 		{
-			name: "bad activation threshold",
+			name: "bad admin threshold",
 			msg: &CreateContractMsg{
 				Sigs:                [][]byte{a.Address(), b.Address(), c.Address()},
 				ActivationThreshold: 1,
 				AdminThreshold:      -1,
+			},
+			err: ErrInvalidChangeThreshold(),
+		},
+		{
+			name: "0 activation threshold",
+			msg: &CreateContractMsg{
+				Sigs:                [][]byte{a.Address(), b.Address(), c.Address()},
+				ActivationThreshold: 0,
+				AdminThreshold:      1,
 			},
 			err: ErrInvalidChangeThreshold(),
 		},
@@ -225,6 +234,17 @@ func TestUpdateContractMsgHandler(t *testing.T) {
 			},
 			signers: []weave.Condition{a, b, c, d, e},
 			err:     ErrUnauthorizedMultiSig(immutableID),
+		},
+		{
+			name: "bad change threshold",
+			msg: &UpdateContractMsg{
+				Id:                  mutableID,
+				Sigs:                newSigs(a, b, c, d, e),
+				ActivationThreshold: 1,
+				AdminThreshold:      0,
+			},
+			signers: []weave.Condition{a, b, c, d, e},
+			err:     ErrInvalidChangeThreshold(),
 		},
 	}
 
