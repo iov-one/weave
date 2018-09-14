@@ -58,7 +58,7 @@ func TestTransfer(t *testing.T) {
 
 	// then
 	assert.Equal(t, bob, humanAddress.OwnerAddress())
-	assert.Len(t, humanAddress.Approvals().List().ByAction(nft.ActionKind_Transfer), 0)
+	assert.Len(t, humanAddress.Approvals().List().ByAction(nft.ActionKind_Transfer)[nft.ActionKind_Transfer], 1)
 }
 
 func TestRevokeTransfer(t *testing.T) {
@@ -76,7 +76,7 @@ func TestRevokeTransfer(t *testing.T) {
 	err = humanAddress.Approvals().Revoke(nft.ActionKind_Transfer, bob)
 	require.NoError(t, err)
 	// then
-	assert.Len(t, humanAddress.Approvals().List().ByAction(nft.ActionKind_Transfer), 0)
+	assert.Len(t, humanAddress.Approvals().List().ByAction(nft.ActionKind_Transfer)[nft.ActionKind_Transfer], 0)
 }
 
 func TestUpdatePayload(t *testing.T) {

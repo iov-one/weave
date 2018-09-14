@@ -25,7 +25,7 @@ type HumanAddress interface {
 }
 
 func (a *HumanAddressToken) Approvals() *nft.ApprovalOperations {
-	return nft.NewApprovalOperations(a, &a.Base.Approvals)
+	return nft.NewApprovalOperations(a, &a.Base.ActionApprovals)
 }
 
 func (a *HumanAddressToken) OwnerAddress() weave.Address {

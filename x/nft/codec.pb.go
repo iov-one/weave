@@ -9,6 +9,7 @@
 
 	It has these top-level messages:
 		NonFungibleToken
+		ActionApprovals
 		Approval
 		ApprovalOptions
 		RequestTransferTokenMsg
@@ -61,9 +62,9 @@ func (x ActionKind) String() string {
 func (ActionKind) EnumDescriptor() ([]byte, []int) { return fileDescriptorCodec, []int{0} }
 
 type NonFungibleToken struct {
-	Id        []byte      `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Owner     []byte      `protobuf:"bytes,2,opt,name=owner,proto3" json:"owner,omitempty"`
-	Approvals []*Approval `protobuf:"bytes,3,rep,name=approvals" json:"approvals,omitempty"`
+	Id              []byte             `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Owner           []byte             `protobuf:"bytes,2,opt,name=owner,proto3" json:"owner,omitempty"`
+	ActionApprovals []*ActionApprovals `protobuf:"bytes,3,rep,name=actionApprovals" json:"actionApprovals,omitempty"`
 }
 
 func (m *NonFungibleToken) Reset()                    { *m = NonFungibleToken{} }
@@ -85,7 +86,31 @@ func (m *NonFungibleToken) GetOwner() []byte {
 	return nil
 }
 
-func (m *NonFungibleToken) GetApprovals() []*Approval {
+func (m *NonFungibleToken) GetActionApprovals() []*ActionApprovals {
+	if m != nil {
+		return m.ActionApprovals
+	}
+	return nil
+}
+
+type ActionApprovals struct {
+	Action    ActionKind  `protobuf:"varint,1,opt,name=action,proto3,enum=nft.ActionKind" json:"action,omitempty"`
+	Approvals []*Approval `protobuf:"bytes,2,rep,name=approvals" json:"approvals,omitempty"`
+}
+
+func (m *ActionApprovals) Reset()                    { *m = ActionApprovals{} }
+func (m *ActionApprovals) String() string            { return proto.CompactTextString(m) }
+func (*ActionApprovals) ProtoMessage()               {}
+func (*ActionApprovals) Descriptor() ([]byte, []int) { return fileDescriptorCodec, []int{1} }
+
+func (m *ActionApprovals) GetAction() ActionKind {
+	if m != nil {
+		return m.Action
+	}
+	return ActionKind_Transfer
+}
+
+func (m *ActionApprovals) GetApprovals() []*Approval {
 	if m != nil {
 		return m.Approvals
 	}
@@ -94,27 +119,19 @@ func (m *NonFungibleToken) GetApprovals() []*Approval {
 
 type Approval struct {
 	ToAccount []byte           `protobuf:"bytes,1,opt,name=toAccount,proto3" json:"toAccount,omitempty"`
-	Action    ActionKind       `protobuf:"varint,2,opt,name=action,proto3,enum=nft.ActionKind" json:"action,omitempty"`
-	Options   *ApprovalOptions `protobuf:"bytes,3,opt,name=options" json:"options,omitempty"`
+	Options   *ApprovalOptions `protobuf:"bytes,2,opt,name=options" json:"options,omitempty"`
 }
 
 func (m *Approval) Reset()                    { *m = Approval{} }
 func (m *Approval) String() string            { return proto.CompactTextString(m) }
 func (*Approval) ProtoMessage()               {}
-func (*Approval) Descriptor() ([]byte, []int) { return fileDescriptorCodec, []int{1} }
+func (*Approval) Descriptor() ([]byte, []int) { return fileDescriptorCodec, []int{2} }
 
 func (m *Approval) GetToAccount() []byte {
 	if m != nil {
 		return m.ToAccount
 	}
 	return nil
-}
-
-func (m *Approval) GetAction() ActionKind {
-	if m != nil {
-		return m.Action
-	}
-	return ActionKind_Transfer
 }
 
 func (m *Approval) GetOptions() *ApprovalOptions {
@@ -127,13 +144,13 @@ func (m *Approval) GetOptions() *ApprovalOptions {
 type ApprovalOptions struct {
 	Timeout   int64 `protobuf:"varint,1,opt,name=timeout,proto3" json:"timeout,omitempty"`
 	Count     int64 `protobuf:"varint,2,opt,name=count,proto3" json:"count,omitempty"`
-	Immutilbe bool  `protobuf:"varint,3,opt,name=immutilbe,proto3" json:"immutilbe,omitempty"`
+	Immutable bool  `protobuf:"varint,3,opt,name=immutable,proto3" json:"immutable,omitempty"`
 }
 
 func (m *ApprovalOptions) Reset()                    { *m = ApprovalOptions{} }
 func (m *ApprovalOptions) String() string            { return proto.CompactTextString(m) }
 func (*ApprovalOptions) ProtoMessage()               {}
-func (*ApprovalOptions) Descriptor() ([]byte, []int) { return fileDescriptorCodec, []int{2} }
+func (*ApprovalOptions) Descriptor() ([]byte, []int) { return fileDescriptorCodec, []int{3} }
 
 func (m *ApprovalOptions) GetTimeout() int64 {
 	if m != nil {
@@ -149,9 +166,9 @@ func (m *ApprovalOptions) GetCount() int64 {
 	return 0
 }
 
-func (m *ApprovalOptions) GetImmutilbe() bool {
+func (m *ApprovalOptions) GetImmutable() bool {
 	if m != nil {
-		return m.Immutilbe
+		return m.Immutable
 	}
 	return false
 }
@@ -164,7 +181,7 @@ type RequestTransferTokenMsg struct {
 func (m *RequestTransferTokenMsg) Reset()                    { *m = RequestTransferTokenMsg{} }
 func (m *RequestTransferTokenMsg) String() string            { return proto.CompactTextString(m) }
 func (*RequestTransferTokenMsg) ProtoMessage()               {}
-func (*RequestTransferTokenMsg) Descriptor() ([]byte, []int) { return fileDescriptorCodec, []int{3} }
+func (*RequestTransferTokenMsg) Descriptor() ([]byte, []int) { return fileDescriptorCodec, []int{4} }
 
 func (m *RequestTransferTokenMsg) GetId() []byte {
 	if m != nil {
@@ -181,14 +198,14 @@ func (m *RequestTransferTokenMsg) GetNewOwner() []byte {
 }
 
 type SetApprovalMsg struct {
-	Id        []byte    `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Approvals *Approval `protobuf:"bytes,2,opt,name=approvals" json:"approvals,omitempty"`
+	Id              []byte             `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	ActionApprovals []*ActionApprovals `protobuf:"bytes,2,rep,name=actionApprovals" json:"actionApprovals,omitempty"`
 }
 
 func (m *SetApprovalMsg) Reset()                    { *m = SetApprovalMsg{} }
 func (m *SetApprovalMsg) String() string            { return proto.CompactTextString(m) }
 func (*SetApprovalMsg) ProtoMessage()               {}
-func (*SetApprovalMsg) Descriptor() ([]byte, []int) { return fileDescriptorCodec, []int{4} }
+func (*SetApprovalMsg) Descriptor() ([]byte, []int) { return fileDescriptorCodec, []int{5} }
 
 func (m *SetApprovalMsg) GetId() []byte {
 	if m != nil {
@@ -197,9 +214,9 @@ func (m *SetApprovalMsg) GetId() []byte {
 	return nil
 }
 
-func (m *SetApprovalMsg) GetApprovals() *Approval {
+func (m *SetApprovalMsg) GetActionApprovals() []*ActionApprovals {
 	if m != nil {
-		return m.Approvals
+		return m.ActionApprovals
 	}
 	return nil
 }
@@ -213,7 +230,7 @@ type RevokeApprovalMsg struct {
 func (m *RevokeApprovalMsg) Reset()                    { *m = RevokeApprovalMsg{} }
 func (m *RevokeApprovalMsg) String() string            { return proto.CompactTextString(m) }
 func (*RevokeApprovalMsg) ProtoMessage()               {}
-func (*RevokeApprovalMsg) Descriptor() ([]byte, []int) { return fileDescriptorCodec, []int{5} }
+func (*RevokeApprovalMsg) Descriptor() ([]byte, []int) { return fileDescriptorCodec, []int{6} }
 
 func (m *RevokeApprovalMsg) GetToAccount() []byte {
 	if m != nil {
@@ -244,7 +261,7 @@ type RevokeTokenMsg struct {
 func (m *RevokeTokenMsg) Reset()                    { *m = RevokeTokenMsg{} }
 func (m *RevokeTokenMsg) String() string            { return proto.CompactTextString(m) }
 func (*RevokeTokenMsg) ProtoMessage()               {}
-func (*RevokeTokenMsg) Descriptor() ([]byte, []int) { return fileDescriptorCodec, []int{6} }
+func (*RevokeTokenMsg) Descriptor() ([]byte, []int) { return fileDescriptorCodec, []int{7} }
 
 func (m *RevokeTokenMsg) GetId() []byte {
 	if m != nil {
@@ -262,6 +279,7 @@ func (m *RevokeTokenMsg) GetComment() string {
 
 func init() {
 	proto.RegisterType((*NonFungibleToken)(nil), "nft.NonFungibleToken")
+	proto.RegisterType((*ActionApprovals)(nil), "nft.ActionApprovals")
 	proto.RegisterType((*Approval)(nil), "nft.Approval")
 	proto.RegisterType((*ApprovalOptions)(nil), "nft.ApprovalOptions")
 	proto.RegisterType((*RequestTransferTokenMsg)(nil), "nft.RequestTransferTokenMsg")
@@ -297,9 +315,44 @@ func (m *NonFungibleToken) MarshalTo(dAtA []byte) (int, error) {
 		i = encodeVarintCodec(dAtA, i, uint64(len(m.Owner)))
 		i += copy(dAtA[i:], m.Owner)
 	}
+	if len(m.ActionApprovals) > 0 {
+		for _, msg := range m.ActionApprovals {
+			dAtA[i] = 0x1a
+			i++
+			i = encodeVarintCodec(dAtA, i, uint64(msg.Size()))
+			n, err := msg.MarshalTo(dAtA[i:])
+			if err != nil {
+				return 0, err
+			}
+			i += n
+		}
+	}
+	return i, nil
+}
+
+func (m *ActionApprovals) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalTo(dAtA)
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *ActionApprovals) MarshalTo(dAtA []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	if m.Action != 0 {
+		dAtA[i] = 0x8
+		i++
+		i = encodeVarintCodec(dAtA, i, uint64(m.Action))
+	}
 	if len(m.Approvals) > 0 {
 		for _, msg := range m.Approvals {
-			dAtA[i] = 0x1a
+			dAtA[i] = 0x12
 			i++
 			i = encodeVarintCodec(dAtA, i, uint64(msg.Size()))
 			n, err := msg.MarshalTo(dAtA[i:])
@@ -333,13 +386,8 @@ func (m *Approval) MarshalTo(dAtA []byte) (int, error) {
 		i = encodeVarintCodec(dAtA, i, uint64(len(m.ToAccount)))
 		i += copy(dAtA[i:], m.ToAccount)
 	}
-	if m.Action != 0 {
-		dAtA[i] = 0x10
-		i++
-		i = encodeVarintCodec(dAtA, i, uint64(m.Action))
-	}
 	if m.Options != nil {
-		dAtA[i] = 0x1a
+		dAtA[i] = 0x12
 		i++
 		i = encodeVarintCodec(dAtA, i, uint64(m.Options.Size()))
 		n1, err := m.Options.MarshalTo(dAtA[i:])
@@ -376,10 +424,10 @@ func (m *ApprovalOptions) MarshalTo(dAtA []byte) (int, error) {
 		i++
 		i = encodeVarintCodec(dAtA, i, uint64(m.Count))
 	}
-	if m.Immutilbe {
+	if m.Immutable {
 		dAtA[i] = 0x18
 		i++
-		if m.Immutilbe {
+		if m.Immutable {
 			dAtA[i] = 1
 		} else {
 			dAtA[i] = 0
@@ -440,15 +488,17 @@ func (m *SetApprovalMsg) MarshalTo(dAtA []byte) (int, error) {
 		i = encodeVarintCodec(dAtA, i, uint64(len(m.Id)))
 		i += copy(dAtA[i:], m.Id)
 	}
-	if m.Approvals != nil {
-		dAtA[i] = 0x12
-		i++
-		i = encodeVarintCodec(dAtA, i, uint64(m.Approvals.Size()))
-		n2, err := m.Approvals.MarshalTo(dAtA[i:])
-		if err != nil {
-			return 0, err
+	if len(m.ActionApprovals) > 0 {
+		for _, msg := range m.ActionApprovals {
+			dAtA[i] = 0x12
+			i++
+			i = encodeVarintCodec(dAtA, i, uint64(msg.Size()))
+			n, err := msg.MarshalTo(dAtA[i:])
+			if err != nil {
+				return 0, err
+			}
+			i += n
 		}
-		i += n2
 	}
 	return i, nil
 }
@@ -538,6 +588,21 @@ func (m *NonFungibleToken) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovCodec(uint64(l))
 	}
+	if len(m.ActionApprovals) > 0 {
+		for _, e := range m.ActionApprovals {
+			l = e.Size()
+			n += 1 + l + sovCodec(uint64(l))
+		}
+	}
+	return n
+}
+
+func (m *ActionApprovals) Size() (n int) {
+	var l int
+	_ = l
+	if m.Action != 0 {
+		n += 1 + sovCodec(uint64(m.Action))
+	}
 	if len(m.Approvals) > 0 {
 		for _, e := range m.Approvals {
 			l = e.Size()
@@ -553,9 +618,6 @@ func (m *Approval) Size() (n int) {
 	l = len(m.ToAccount)
 	if l > 0 {
 		n += 1 + l + sovCodec(uint64(l))
-	}
-	if m.Action != 0 {
-		n += 1 + sovCodec(uint64(m.Action))
 	}
 	if m.Options != nil {
 		l = m.Options.Size()
@@ -573,7 +635,7 @@ func (m *ApprovalOptions) Size() (n int) {
 	if m.Count != 0 {
 		n += 1 + sovCodec(uint64(m.Count))
 	}
-	if m.Immutilbe {
+	if m.Immutable {
 		n += 2
 	}
 	return n
@@ -600,9 +662,11 @@ func (m *SetApprovalMsg) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovCodec(uint64(l))
 	}
-	if m.Approvals != nil {
-		l = m.Approvals.Size()
-		n += 1 + l + sovCodec(uint64(l))
+	if len(m.ActionApprovals) > 0 {
+		for _, e := range m.ActionApprovals {
+			l = e.Size()
+			n += 1 + l + sovCodec(uint64(l))
+		}
 	}
 	return n
 }
@@ -744,6 +808,106 @@ func (m *NonFungibleToken) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 3:
 			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ActionApprovals", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + msglen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.ActionApprovals = append(m.ActionApprovals, &ActionApprovals{})
+			if err := m.ActionApprovals[len(m.ActionApprovals)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipCodec(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *ActionApprovals) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowCodec
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= (uint64(b) & 0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: ActionApprovals: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: ActionApprovals: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Action", wireType)
+			}
+			m.Action = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Action |= (ActionKind(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 2:
+			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Approvals", wireType)
 			}
 			var msglen int
@@ -855,25 +1019,6 @@ func (m *Approval) Unmarshal(dAtA []byte) error {
 			}
 			iNdEx = postIndex
 		case 2:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Action", wireType)
-			}
-			m.Action = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowCodec
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.Action |= (ActionKind(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		case 3:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Options", wireType)
 			}
@@ -996,7 +1141,7 @@ func (m *ApprovalOptions) Unmarshal(dAtA []byte) error {
 			}
 		case 3:
 			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Immutilbe", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Immutable", wireType)
 			}
 			var v int
 			for shift := uint(0); ; shift += 7 {
@@ -1013,7 +1158,7 @@ func (m *ApprovalOptions) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
-			m.Immutilbe = bool(v != 0)
+			m.Immutable = bool(v != 0)
 		default:
 			iNdEx = preIndex
 			skippy, err := skipCodec(dAtA[iNdEx:])
@@ -1209,7 +1354,7 @@ func (m *SetApprovalMsg) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Approvals", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field ActionApprovals", wireType)
 			}
 			var msglen int
 			for shift := uint(0); ; shift += 7 {
@@ -1233,10 +1378,8 @@ func (m *SetApprovalMsg) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if m.Approvals == nil {
-				m.Approvals = &Approval{}
-			}
-			if err := m.Approvals.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+			m.ActionApprovals = append(m.ActionApprovals, &ActionApprovals{})
+			if err := m.ActionApprovals[len(m.ActionApprovals)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
@@ -1608,32 +1751,34 @@ var (
 func init() { proto.RegisterFile("x/nft/codec.proto", fileDescriptorCodec) }
 
 var fileDescriptorCodec = []byte{
-	// 427 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x52, 0x4d, 0x6f, 0xd3, 0x40,
-	0x10, 0xad, 0x1d, 0xb5, 0x49, 0xa6, 0x6d, 0xea, 0xac, 0x2a, 0x61, 0x55, 0x28, 0xaa, 0x7c, 0x21,
-	0x02, 0xe1, 0x48, 0xe1, 0x82, 0xb8, 0x15, 0x01, 0x17, 0x54, 0x2a, 0x2d, 0xed, 0x19, 0xf9, 0x63,
-	0x6c, 0x56, 0x8d, 0x77, 0x8c, 0x3d, 0x6e, 0xb9, 0xf2, 0x0f, 0xf8, 0x59, 0x1c, 0xf9, 0x09, 0x28,
-	0xfc, 0x11, 0x94, 0xdd, 0x18, 0x27, 0x40, 0x6e, 0xdc, 0xf6, 0xbd, 0xe7, 0xd9, 0xf7, 0xe6, 0x79,
-	0x61, 0xfc, 0x79, 0xa6, 0x33, 0x9e, 0x25, 0x94, 0x62, 0x12, 0x96, 0x15, 0x31, 0x89, 0x9e, 0xce,
-	0xf8, 0xec, 0x69, 0xae, 0xf8, 0x63, 0x13, 0x87, 0x09, 0x15, 0xb3, 0x9c, 0x72, 0x9a, 0x19, 0x2d,
-	0x6e, 0x32, 0x83, 0x0c, 0x30, 0x27, 0x3b, 0x13, 0x20, 0x78, 0xef, 0x48, 0xbf, 0x69, 0x74, 0xae,
-	0xe2, 0x05, 0x5e, 0xd3, 0x2d, 0x6a, 0x31, 0x02, 0x57, 0xa5, 0xbe, 0x73, 0xee, 0x4c, 0x8f, 0xa4,
-	0xab, 0x52, 0x71, 0x0a, 0xfb, 0x74, 0xaf, 0xb1, 0xf2, 0x5d, 0x43, 0x59, 0x20, 0x9e, 0xc0, 0x30,
-	0x2a, 0xcb, 0x8a, 0xee, 0xa2, 0x45, 0xed, 0xf7, 0xce, 0x7b, 0xd3, 0xc3, 0xf9, 0x71, 0xa8, 0x33,
-	0x0e, 0x2f, 0xd6, 0xac, 0xec, 0xf4, 0xe0, 0x8b, 0x03, 0x83, 0x96, 0x17, 0x0f, 0x61, 0xc8, 0x74,
-	0x91, 0x24, 0xd4, 0x68, 0x5e, 0xdb, 0x74, 0x84, 0x78, 0x04, 0x07, 0x51, 0xc2, 0x8a, 0xb4, 0xb1,
-	0x1b, 0xcd, 0x4f, 0xec, 0xa5, 0x86, 0x7a, 0xab, 0x74, 0x2a, 0xd7, 0xb2, 0x08, 0xa1, 0x4f, 0xe5,
-	0xea, 0xb4, 0xb2, 0x77, 0xa6, 0x87, 0xf3, 0xd3, 0x2d, 0xfb, 0x2b, 0xab, 0xc9, 0xf6, 0xa3, 0xe0,
-	0x03, 0x9c, 0xfc, 0xa1, 0x09, 0x1f, 0xfa, 0xac, 0x0a, 0xa4, 0xc6, 0xe6, 0xe8, 0xc9, 0x16, 0xae,
-	0x76, 0xb6, 0xf9, 0x5c, 0xc3, 0x5b, 0xb0, 0x4a, 0xae, 0x8a, 0xa2, 0x61, 0xb5, 0x88, 0xd1, 0x98,
-	0x0e, 0x64, 0x47, 0x04, 0xaf, 0xe1, 0x81, 0xc4, 0x4f, 0x0d, 0xd6, 0x7c, 0x5d, 0x45, 0xba, 0xce,
-	0xb0, 0x32, 0x7d, 0x5e, 0xd6, 0xf9, 0x5f, 0x95, 0x9e, 0xc1, 0x40, 0xe3, 0xfd, 0xd5, 0x46, 0xab,
-	0xbf, 0x71, 0x70, 0x09, 0xa3, 0xf7, 0xc8, 0x6d, 0xd4, 0x7f, 0x4d, 0x6f, 0x55, 0xef, 0x9a, 0xdd,
-	0x77, 0x57, 0xcf, 0x30, 0x96, 0x78, 0x47, 0xb7, 0xb8, 0x79, 0xe3, 0x7f, 0xfa, 0x05, 0x3e, 0xf4,
-	0x13, 0x2a, 0x0a, 0xd4, 0x6c, 0xda, 0x18, 0xca, 0x16, 0x06, 0x2f, 0x60, 0x64, 0x5d, 0x77, 0x56,
-	0xb0, 0x31, 0xeb, 0x6e, 0xcd, 0x3e, 0x7e, 0x0e, 0xd0, 0x79, 0x89, 0x23, 0x18, 0xb4, 0x75, 0x7a,
-	0x7b, 0x62, 0x08, 0xfb, 0x37, 0x75, 0x94, 0xa3, 0xe7, 0x88, 0x31, 0x1c, 0xdf, 0x94, 0x69, 0xc4,
-	0xf8, 0x0a, 0x39, 0x52, 0x8b, 0xda, 0x73, 0x5f, 0x7a, 0xdf, 0x96, 0x13, 0xe7, 0xfb, 0x72, 0xe2,
-	0xfc, 0x58, 0x4e, 0x9c, 0xaf, 0x3f, 0x27, 0x7b, 0xf1, 0x81, 0x79, 0xe6, 0xcf, 0x7e, 0x05, 0x00,
-	0x00, 0xff, 0xff, 0xae, 0x84, 0xe5, 0x9f, 0x2f, 0x03, 0x00, 0x00,
+	// 455 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x94, 0x53, 0x4d, 0x6f, 0xd3, 0x40,
+	0x14, 0xac, 0x6d, 0xb5, 0x49, 0x1e, 0x6d, 0xe2, 0xac, 0x2a, 0x61, 0x55, 0x28, 0x8a, 0x7c, 0x21,
+	0x02, 0xe1, 0x48, 0xe5, 0x82, 0x38, 0x20, 0x05, 0x01, 0x17, 0x04, 0x95, 0x96, 0x56, 0xe2, 0x06,
+	0xfe, 0x78, 0x36, 0xab, 0xc6, 0xfb, 0x8c, 0xbd, 0x6e, 0xfb, 0x33, 0xf8, 0x59, 0x1c, 0xf9, 0x09,
+	0x28, 0xfc, 0x11, 0x94, 0xdd, 0x38, 0x4e, 0x43, 0x89, 0xd4, 0x9b, 0x67, 0xe6, 0xbd, 0x9d, 0xdd,
+	0x19, 0x19, 0x86, 0x37, 0x53, 0x99, 0xaa, 0x69, 0x4c, 0x09, 0xc6, 0x41, 0x51, 0x92, 0x22, 0xe6,
+	0xc8, 0x54, 0x9d, 0x3c, 0xcb, 0x84, 0xfa, 0x56, 0x47, 0x41, 0x4c, 0xf9, 0x34, 0xa3, 0x8c, 0xa6,
+	0x5a, 0x8b, 0xea, 0x54, 0x23, 0x0d, 0xf4, 0x97, 0xd9, 0xf1, 0x6f, 0xc0, 0xfd, 0x48, 0xf2, 0x5d,
+	0x2d, 0x33, 0x11, 0xcd, 0xf1, 0x9c, 0x2e, 0x51, 0xb2, 0x3e, 0xd8, 0x22, 0xf1, 0xac, 0xb1, 0x35,
+	0x39, 0xe4, 0xb6, 0x48, 0xd8, 0x31, 0xec, 0xd3, 0xb5, 0xc4, 0xd2, 0xb3, 0x35, 0x65, 0x00, 0x7b,
+	0x05, 0x83, 0x30, 0x56, 0x82, 0xe4, 0xac, 0x28, 0x4a, 0xba, 0x0a, 0xe7, 0x95, 0xe7, 0x8c, 0x9d,
+	0xc9, 0x83, 0xd3, 0xe3, 0x40, 0xa6, 0x2a, 0x98, 0xdd, 0xd6, 0xf8, 0xf6, 0xb0, 0x9f, 0xc1, 0x60,
+	0x6b, 0x86, 0x3d, 0x86, 0x03, 0x33, 0xa5, 0xcd, 0xfb, 0xa7, 0x83, 0x8d, 0x93, 0xde, 0x0b, 0x99,
+	0xf0, 0x95, 0xcc, 0x9e, 0x42, 0x2f, 0x5c, 0xbb, 0xda, 0xda, 0xf5, 0xc8, 0xcc, 0xae, 0x58, 0xde,
+	0xea, 0xfe, 0x67, 0xe8, 0x36, 0x34, 0x7b, 0x04, 0x3d, 0x45, 0xb3, 0x38, 0xa6, 0x5a, 0xaa, 0xd5,
+	0x0b, 0x5b, 0x82, 0x05, 0xd0, 0xa1, 0x62, 0x69, 0x50, 0xe9, 0xa7, 0xae, 0x9f, 0xb2, 0xda, 0x3e,
+	0x33, 0x1a, 0x6f, 0x86, 0xfc, 0x2f, 0x30, 0xd8, 0xd2, 0x98, 0x07, 0x1d, 0x25, 0x72, 0xa4, 0xda,
+	0x1c, 0xef, 0xf0, 0x06, 0x2e, 0x53, 0x34, 0xb6, 0xb6, 0xe6, 0x0d, 0x58, 0x5e, 0x48, 0xe4, 0x79,
+	0xad, 0xc2, 0x68, 0x8e, 0x9e, 0x33, 0xb6, 0x26, 0x5d, 0xde, 0x12, 0xfe, 0x5b, 0x78, 0xc8, 0xf1,
+	0x7b, 0x8d, 0x95, 0x3a, 0x2f, 0x43, 0x59, 0xa5, 0x58, 0xea, 0x86, 0x3e, 0x54, 0xd9, 0x3f, 0x25,
+	0x9d, 0x40, 0x57, 0xe2, 0xf5, 0xd9, 0x46, 0x4f, 0x6b, 0xec, 0x7f, 0x85, 0xfe, 0x27, 0x54, 0xcd,
+	0x55, 0xef, 0xda, 0xbe, 0xa3, 0x4c, 0xfb, 0x3e, 0x65, 0x2a, 0x18, 0x72, 0xbc, 0xa2, 0x4b, 0xdc,
+	0x34, 0xd9, 0x1d, 0x76, 0x5b, 0xb6, 0xbd, 0xbb, 0x6c, 0x0f, 0x3a, 0x31, 0xe5, 0x39, 0x4a, 0xa5,
+	0x03, 0xea, 0xf1, 0x06, 0xfa, 0x2f, 0xa1, 0x6f, 0x5c, 0xff, 0x9b, 0xca, 0xc6, 0xae, 0x7d, 0x6b,
+	0xf7, 0xc9, 0x0b, 0x80, 0xd6, 0x8b, 0x1d, 0x42, 0xb7, 0x49, 0xd8, 0xdd, 0x63, 0x3d, 0xd8, 0xbf,
+	0xa8, 0xc2, 0x0c, 0x5d, 0x8b, 0x0d, 0xe1, 0xe8, 0xa2, 0x48, 0x42, 0x85, 0x6f, 0x50, 0x85, 0x62,
+	0x5e, 0xb9, 0xf6, 0x6b, 0xf7, 0xe7, 0x62, 0x64, 0xfd, 0x5a, 0x8c, 0xac, 0xdf, 0x8b, 0x91, 0xf5,
+	0xe3, 0xcf, 0x68, 0x2f, 0x3a, 0xd0, 0xff, 0xd2, 0xf3, 0xbf, 0x01, 0x00, 0x00, 0xff, 0xff, 0xfa,
+	0x6a, 0x15, 0xb4, 0x94, 0x03, 0x00, 0x00,
 }
