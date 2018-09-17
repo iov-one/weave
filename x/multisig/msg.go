@@ -7,6 +7,9 @@ import (
 const (
 	pathCreateContractMsg = "multisig/create"
 	pathUpdateContractMsg = "multisig/update"
+
+	creationCost int64 = 300 // 3x more expensive than SendMsg
+	updateCost   int64 = 150 // Half the creation cost
 )
 
 // Path fulfills weave.Msg interface to allow routing

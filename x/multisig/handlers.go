@@ -7,11 +7,6 @@ import (
 	"github.com/iov-one/weave/x"
 )
 
-const (
-	creationCost int64 = 1
-	updateCost   int64 = 1
-)
-
 // RegisterRoutes will instantiate and register
 // all handlers in this package
 func RegisterRoutes(r weave.Registry, auth x.Authenticator) {
