@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package nft;
+
+message NonFungibleToken {
+    bytes id = 1;
+    bytes owner = 2;
+    repeated ActionApprovals actionApprovals = 3;
+}
+
+message ActionApprovals {
+    string action = 1;
+    repeated Approval approvals = 2;
+}
+
+message Approval {
+    bytes address = 1;
+    ApprovalOptions options = 2;
+}
+
+message ApprovalOptions {
+    int64 untilBlockHeight = 1; // valid until block height reached
+    int64 count = 2; // usage count
+    bool immutable = 3;
+}
+
