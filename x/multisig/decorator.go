@@ -56,7 +56,7 @@ func (d Decorator) withMultisig(ctx weave.Context, store weave.KVStore, tx weave
 			return ctx, err
 		}
 		if obj == nil || (obj != nil && obj.Value() == nil) {
-			return nil, ErrContractNotFound(id)
+			return ctx, ErrContractNotFound(id)
 		}
 		contract := obj.Value().(*Contract)
 
