@@ -23,7 +23,7 @@ func TestDecorator(t *testing.T) {
 
 	// the contract we'll be using in our tests
 	contractID := withContract(t, db, CreateContractMsg{
-		Sigs:                [][]byte{a.Address(), b.Address(), c.Address()},
+		Sigs:                newSigs(a, b, c),
 		ActivationThreshold: 2,
 		AdminThreshold:      3,
 	})
