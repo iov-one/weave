@@ -17,12 +17,16 @@ func TestContext(t *testing.T) {
 		return bz
 	}
 
-	// sig is a signature permission, not a contract ID
-	foo := id(1)
-	sig := weave.NewCondition("multisig", "usage", foo).Address()
-	// other is a permission for some "other" contract ID
-	other := MultiSigCondition(foo).Address()
-	random := weave.NewAddress(foo)
+	// sig is a signature permission for contractID, not a contract ID
+	contractID := id(1)
+	sig := MultiSigCondition(contractID).Address()
+
+	// other is a signature permission for some "other" contract ID
+	otherContractID := id(2)
+	other := MultiSigCondition(otherContractID).Address()
+
+	// random address which does not represent anything in particular
+	random := weave.NewAddress(id(3))
 
 	bg := context.Background()
 	cases := []struct {
@@ -33,21 +37,26 @@ func TestContext(t *testing.T) {
 	}{
 		{bg, nil, nil, []weave.Address{sig, other, random}},
 		{
-			withMultisig(bg, foo),
-			[]weave.Condition{MultiSigCondition(foo)},
-			[]weave.Address{sig, other},
-			[]weave.Address{random},
+			withMultisig(bg, contractID),
+			[]weave.Condition{MultiSigCondition(contractID)},
+			[]weave.Address{sig},
+			[]weave.Address{other, random},
 		},
 		{
-			withMultisig(bg, id(2)),
-			[]weave.Condition{MultiSigCondition(id(2))},
+			withMultisig(bg, otherContractID),
+			[]weave.Condition{MultiSigCondition(otherContractID)},
+			[]weave.Address{other},
+			[]weave.Address{sig, random},
+		},
+		{
+			withMultisig(bg, id(3)),
+			[]weave.Condition{MultiSigCondition(id(3))},
 			nil,
 			[]weave.Address{sig, other, random},
 		},
 	}
 
 	auth := Authenticate{}
-
 	for i, tc := range cases {
 		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
 			perms := auth.GetConditions(tc.ctx)
