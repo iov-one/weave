@@ -69,9 +69,11 @@ func (h IssueHandler) Deliver(ctx weave.Context, store weave.KVStore, tx weave.T
 	if err != nil {
 		return res, err
 	}
-	for _, a := range msg.Approvals {
-		if err := b.Approvals().Set(a.Action, a.ToAccount, a.Options); err != nil {
-			return res, err
+	for _, a := range msg.ActionApprovals {
+		for _, approval := range a.Approvals {
+			if err := b.Approvals().Set(a.Action, approval.ToAccount, approval.Options); err != nil {
+				return res, err
+			}
 		}
 	}
 	return res, h.bucket.Save(store, o)

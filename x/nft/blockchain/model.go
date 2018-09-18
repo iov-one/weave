@@ -23,7 +23,7 @@ func (b *BlockchainToken) OwnerAddress() weave.Address {
 }
 
 func (b *BlockchainToken) Approvals() *nft.ApprovalOperations {
-	return nft.NewApprovalOperations(b, &b.Base.Approvals)
+	return nft.NewApprovalOperations(b, &b.Base.ActionApprovals)
 }
 
 func (b *BlockchainToken) Transfer(newOwner weave.Address) error {
