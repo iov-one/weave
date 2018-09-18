@@ -8,11 +8,16 @@ import "github.com/gogo/protobuf/gogoproto/gogo.proto";
 
 message UsernameToken {
     nft.NonFungibleToken base = 1;
-    TokenDetails details = 2 ;
+    TokenDetails details = 2;
 }
 
 message TokenDetails {
-    bytes publicKey = 1;
+    repeated PublicKey keys = 1 [(gogoproto.nullable) = false];
+}
+
+message PublicKey {
+    bytes data = 1;
+    string algorithm = 2;
 }
 
 message IssueTokenMsg {
