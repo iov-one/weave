@@ -44,7 +44,7 @@ func (o *ApprovalOps) Revoke(action string, from weave.Address) error {
 	return nil
 }
 
-func (o *ApprovalOps) Grant(action string, to weave.Address, op *ApprovalOptions, blockHeight int64) error {
+func (o *ApprovalOps) Grant(action string, to weave.Address, op *ApprovalOptions, blockHeight int64, actions ...string) error {
 	if to == nil || to.Equals(o.nft.OwnerAddress()) {
 		return errors.New("invalid destination account")
 	}
@@ -59,7 +59,7 @@ func (o *ApprovalOps) Grant(action string, to weave.Address, op *ApprovalOptions
 		Options: op.Clone(),
 	})
 
-	err := approvals.Validate()
+	err := approvals.Validate(actions...)
 	if err != nil {
 		return err
 	}
