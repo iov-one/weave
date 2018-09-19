@@ -49,6 +49,13 @@ func TestContext(t *testing.T) {
 			[]weave.Address{sig, random},
 		},
 		{
+			// add multisig conditions for both contractID and otherContractID to the context
+			func() weave.Context { return withMultisig(withMultisig(bg, contractID), otherContractID) }(),
+			[]weave.Condition{MultiSigCondition(contractID), MultiSigCondition(otherContractID)},
+			[]weave.Address{sig, other},
+			[]weave.Address{random},
+		},
+		{
 			withMultisig(bg, id(3)),
 			[]weave.Condition{MultiSigCondition(id(3))},
 			nil,

@@ -20,12 +20,29 @@ func TestDecorator(t *testing.T) {
 	_, a := helpers.MakeKey()
 	_, b := helpers.MakeKey()
 	_, c := helpers.MakeKey()
+	_, d := helpers.MakeKey()
+	_, e := helpers.MakeKey()
+	_, f := helpers.MakeKey()
 
 	// the contract we'll be using in our tests
-	contractID := withContract(t, db, CreateContractMsg{
+	contractID1 := withContract(t, db, CreateContractMsg{
 		Sigs:                newSigs(a, b, c),
 		ActivationThreshold: 2,
 		AdminThreshold:      3,
+	})
+
+	// contractID2 is used as a sig for contractID3
+	contractID2 := withContract(t, db, CreateContractMsg{
+		Sigs:                newSigs(d, e, f),
+		ActivationThreshold: 2,
+		AdminThreshold:      3,
+	})
+
+	// contractID3 requires either sig for a or activation for contractID2
+	contractID3 := withContract(t, db, CreateContractMsg{
+		Sigs:                [][]byte{a.Address(), contractID2},
+		ActivationThreshold: 1,
+		AdminThreshold:      2,
 	})
 
 	// helper to create a ContractTx
@@ -56,17 +73,17 @@ func TestDecorator(t *testing.T) {
 		},
 		// with multisig contract
 		{
-			multisigTx([]byte("foo"), contractID),
+			multisigTx([]byte("foo"), contractID1),
 			[]weave.Condition{a, b},
-			[]weave.Condition{MultiSigCondition(contractID)},
+			[]weave.Condition{MultiSigCondition(contractID1)},
 			nil,
 		},
 		// with multisig contract but not enough signatures to activate
 		{
-			multisigTx([]byte("foo"), contractID),
+			multisigTx([]byte("foo"), contractID1),
 			[]weave.Condition{a},
 			nil,
-			ErrUnauthorizedMultiSig(contractID),
+			ErrUnauthorizedMultiSig(contractID1),
 		},
 		// with invalid multisig contract ID
 		{
@@ -75,6 +92,20 @@ func TestDecorator(t *testing.T) {
 			nil,
 			ErrContractNotFound([]byte("bad id")),
 		},
+		// contractID3 is activated by contractID2
+		{
+			multisigTx([]byte("foo"), contractID3),
+			[]weave.Condition{d, e}, // will activate contractID2 wwhich in return will activate contractID3
+			[]weave.Condition{MultiSigCondition(contractID2), MultiSigCondition(contractID3)},
+			nil,
+		},
+		// contractID3 is activated by a
+		{
+			multisigTx([]byte("foo"), contractID3),
+			[]weave.Condition{a}, // will activate contractID2 wwhich in return will activate contractID3
+			[]weave.Condition{MultiSigCondition(contractID3)},
+			nil,
+		},
 	}
 
 	// the handler we're chaining with the decorator
@@ -82,10 +113,9 @@ func TestDecorator(t *testing.T) {
 	for i, tc := range cases {
 		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
 			ctx, auth := newContextWithAuth(tc.signers...)
+			d := NewDecorator(x.ChainAuth(auth, Authenticate{}))
 
-			d := NewDecorator(auth)
 			stack := helpers.Wrap(d, h)
-
 			_, err := stack.Check(ctx, db, tc.tx)
 			if tc.err != nil {
 				require.EqualError(t, err, tc.err.Error())

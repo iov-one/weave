@@ -16,7 +16,12 @@ const (
 // withMultisig is a private method, as only this module
 // can add a multisig signer
 func withMultisig(ctx weave.Context, id []byte) weave.Context {
-	return context.WithValue(ctx, contextKeyMultisig, MultiSigCondition(id))
+	val, _ := ctx.Value(contextKeyMultisig).([]weave.Condition)
+	if val == nil {
+		return context.WithValue(ctx, contextKeyMultisig, []weave.Condition{MultiSigCondition(id)})
+	}
+
+	return context.WithValue(ctx, contextKeyMultisig, append(val, MultiSigCondition(id)))
 }
 
 // MultiSigCondition returns condition for a contract ID
@@ -33,11 +38,11 @@ var _ x.Authenticator = Authenticate{}
 // GetConditions returns permissions previously set on this context
 func (a Authenticate) GetConditions(ctx weave.Context) []weave.Condition {
 	// (val, ok) form to return nil instead of panic if unset
-	val, _ := ctx.Value(contextKeyMultisig).(weave.Condition)
+	val, _ := ctx.Value(contextKeyMultisig).([]weave.Condition)
 	if val == nil {
 		return nil
 	}
-	return []weave.Condition{val}
+	return val
 }
 
 // HasAddress returns true iff this address is in GetConditions
