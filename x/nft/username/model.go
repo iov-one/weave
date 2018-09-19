@@ -1,7 +1,6 @@
 package username
 
 import (
-	stderrors "errors"
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/orm"
@@ -52,7 +51,21 @@ func (u *UsernameToken) Validate() error {
 }
 
 func (u *UsernameToken) Copy() orm.CloneableData {
-	panic("implement me")
+	return &UsernameToken{
+		Base:    u.Base.Clone(),
+		Details: u.Details.Clone(),
+	}
+}
+
+func (t *TokenDetails) Clone() *TokenDetails {
+	if t == nil {
+		return nil
+	}
+	keys := make([]PublicKey, len(t.Keys))
+	for i, v := range t.Keys {
+		keys[i] = v
+	}
+	return &TokenDetails{Keys: keys}
 }
 
 func (t *TokenDetails) Validate() error {
@@ -68,14 +81,7 @@ func (t *TokenDetails) Validate() error {
 }
 
 func (p *PublicKey) Validate() error {
-	const (
-		minDataLength = 2
-		maxDataLength = 1000
-	)
-	if len(p.Data) < minDataLength || len(p.Data) > maxDataLength {
-		return errors.WithCode(stderrors.New("Invalid data length"), nft.CodeInvalidDataLength)
-	}
-	// todo: validate algorithms
+	// Todo: the validation rules are not specified yet
 	return nil
 }
 

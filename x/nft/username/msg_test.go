@@ -1,8 +1,9 @@
-package username
+package username_test
 
 import (
 	"fmt"
 	"github.com/iov-one/weave/x"
+	"github.com/iov-one/weave/x/nft/username"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -12,73 +13,74 @@ func TestIssueTokenMsgValidate(t *testing.T) {
 	_, alice := helpers.MakeKey()
 
 	specs := []struct {
-		msg      IssueTokenMsg
+		msg      username.IssueTokenMsg
 		expError bool
 	}{
 		{ // happy path email
-			msg: IssueTokenMsg{
+			msg: username.IssueTokenMsg{
 				Owner:   alice.Address(),
 				Id:      []byte("alice@example.com"),
-				Details: TokenDetails{},
+				Details: username.TokenDetails{},
 			},
 			expError: false,
 		},
 		{ // happy path twitter
-			msg: IssueTokenMsg{
+			msg: username.IssueTokenMsg{
 				Owner:   alice.Address(),
 				Id:      []byte("@iov_official"),
-				Details: TokenDetails{},
+				Details: username.TokenDetails{},
 			},
 			expError: false,
 		},
 		{ // happy path phone
-			msg: IssueTokenMsg{
+			msg: username.IssueTokenMsg{
 				Owner:   alice.Address(),
 				Id:      []byte("+491234567890"),
-				Details: TokenDetails{},
+				Details: username.TokenDetails{},
 			},
 			expError: false,
 		},
 		{ // owner missing
-			msg: IssueTokenMsg{
+			msg: username.IssueTokenMsg{
 				Id:      []byte("alice@example.com"),
-				Details: TokenDetails{},
+				Details: username.TokenDetails{},
 			},
 			expError: true,
 		},
 		{ // owner wrong format
-			msg: IssueTokenMsg{
+			msg: username.IssueTokenMsg{
 				Owner:   []byte("not an address"),
 				Id:      []byte("alice@example.com"),
-				Details: TokenDetails{},
+				Details: username.TokenDetails{},
 			},
 			expError: true,
 		},
 		{ // id too short
-			msg: IssueTokenMsg{
+			msg: username.IssueTokenMsg{
 				Owner:   alice.Address(),
 				Id:      []byte("foo"),
-				Details: TokenDetails{},
+				Details: username.TokenDetails{},
 			},
 			expError: true,
 		},
 		{ // id too long
-			msg: IssueTokenMsg{
+			msg: username.IssueTokenMsg{
 				Owner:   alice.Address(),
 				Id:      anyIDWithLength(257),
-				Details: TokenDetails{},
+				Details: username.TokenDetails{},
 			},
 			expError: true,
 		},
 		{ // id with forbidden character *
-			msg: IssueTokenMsg{
+			msg: username.IssueTokenMsg{
 				Owner:   alice.Address(),
 				Id:      []byte("foo*bar"),
-				Details: TokenDetails{},
+				Details: username.TokenDetails{},
 			},
 			expError: true,
 		},
 		// TODO: Add checks for approvals
+		// TODO: Add checks for TokenDetails
 	}
 	for i, spec := range specs {
 		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {

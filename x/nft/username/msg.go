@@ -10,7 +10,7 @@ import (
 var _ weave.Msg = (*IssueTokenMsg)(nil)
 
 const (
-	pathIssue = "nft/username/issue"
+	pathIssueTokenMsg = "nft/username/issue"
 )
 
 var (
@@ -19,7 +19,7 @@ var (
 
 // Path returns the routing path for this message
 func (*IssueTokenMsg) Path() string {
-	return pathIssue
+	return pathIssueTokenMsg
 }
 
 func (i *IssueTokenMsg) Validate() error {
