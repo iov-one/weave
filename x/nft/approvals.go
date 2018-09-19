@@ -3,13 +3,13 @@ package nft
 import (
 	"fmt"
 
-	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/errors"
 )
 
 const (
 	ActionUpdateDetails = "baseUpdateDetails"
-	ActionTransfer = "baseActionTransfer"
+	ActionTransfer      = "baseActionTransfer"
 )
 
 const UnlimitedCount = -1
@@ -18,7 +18,7 @@ const UnlimitedCount = -1
 type ApprovalMeta []*Approval
 type Approvals map[string]ApprovalMeta
 
-func(m *ActionApprovals) Clone() *ActionApprovals {
+func (m *ActionApprovals) Clone() *ActionApprovals {
 	x := *m
 	approvals := make([]*Approval, 0)
 	for k, v := range m.Approvals {
@@ -27,19 +27,19 @@ func(m *ActionApprovals) Clone() *ActionApprovals {
 	return &x
 }
 
-func(m *Approval) Clone() *Approval {
+func (m *Approval) Clone() *Approval {
 	x := *m
 	// We should not allow nil options here, so a panic is fine
 	x.Options = x.Options.Clone()
 	return &x
 }
 
-func(m *ApprovalOptions) Clone() *ApprovalOptions {
+func (m *ApprovalOptions) Clone() *ApprovalOptions {
 	x := *m
 	return &x
 }
 
-func(m ApprovalMeta) Clone() ApprovalMeta {
+func (m ApprovalMeta) Clone() ApprovalMeta {
 	x := m
 	approvals := make([]*Approval, 0)
 	for k, v := range x {

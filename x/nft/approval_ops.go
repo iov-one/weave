@@ -56,7 +56,7 @@ func (o *ApprovalOps) Grant(action string, to weave.Address, op *ApprovalOptions
 	}
 	approvals := o.List().Add(action, &Approval{
 		Address: to,
-		Options:   op.Clone(),
+		Options: op.Clone(),
 	})
 
 	err := approvals.Validate()
