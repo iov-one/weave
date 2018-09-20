@@ -72,16 +72,7 @@ func TestApp(t *testing.T) {
 		Data: key,
 	}
 	qres := myApp.Query(query)
-	require.Equal(t, uint32(0), qres.Code, "%#v", qres)
-	assert.NotEmpty(t, qres.Value)
-	// parse it and check it is not empty
-	var acct namecoin.Wallet
-	err = app.UnmarshalOneResult(qres.Value, &acct)
-	require.NoError(t, err)
-	require.Equal(t, 2, len(acct.Coins))
-	assert.Equal(t, "demote", acct.Name)
-	assert.Equal(t, int64(50000), acct.Coins[0].Whole)
-	assert.Equal(t, "FRNK", acct.Coins[1].Ticker)
+	checkWalletQuery(t, qres, "demote", 2, map[int]int64{0: 50000}, map[int]string{1: "FRNK"})
 
 	// build and sign a transaction
 	pk2 := crypto.GenPrivKeyEd25519()
@@ -127,16 +118,7 @@ func TestApp(t *testing.T) {
 
 	// Query for new balances (same query, new state)
 	qres = myApp.Query(query)
-	require.Equal(t, uint32(0), qres.Code, "%#v", qres)
-	assert.NotEmpty(t, qres.Value)
-	// parse it and check it is not empty
-	var acct2 namecoin.Wallet
-	err = app.UnmarshalOneResult(qres.Value, &acct2)
-	require.NoError(t, err)
-	assert.Equal(t, "demote", acct2.Name)
-	require.Equal(t, 2, len(acct2.Coins))
-	assert.Equal(t, int64(48000), acct2.Coins[0].Whole)
-	assert.Equal(t, int64(1234), acct2.Coins[1].Whole)
+	checkWalletQuery(t, qres, "demote", 2, map[int]int64{0: 48000, 1: 1234}, nil)
 
 	// make sure money arrived safely
 	key2 := namecoin.NewWalletBucket().DBKey(addr2)
@@ -145,14 +127,7 @@ func TestApp(t *testing.T) {
 		Data: key2,
 	}
 	qres2 := myApp.Query(query2)
-	require.Equal(t, uint32(0), qres2.Code, "%#v", qres2)
-	// parse it and check it is not empty
-	var acct3 namecoin.Wallet
-	err = app.UnmarshalOneResult(qres2.Value, &acct3)
-	require.NoError(t, err)
-	require.Equal(t, 1, len(acct3.Coins))
-	assert.Equal(t, int64(2000), acct3.Coins[0].Whole)
-	assert.Equal(t, "ETH", acct3.Coins[0].Ticker)
+	checkWalletQuery(t, qres2, "", 1, map[int]int64{0: 2000}, map[int]string{0: "ETH"})
 
 	// make sure other paths also get this value....
 	query3 := abci.RequestQuery{
@@ -234,6 +209,7 @@ func TestApp(t *testing.T) {
 	dres, cres = signAndCommit(t, myApp, tx, []Signer{{pk, 1}}, chainID, 3)
 	assert.NotEmpty(t, cres.Data)
 
+	// retrieve contract ID
 	contractID := dres.Data
 	contractAddr := multisig.MultiSigCondition(contractID).Address()
 
@@ -274,7 +250,7 @@ func TestApp(t *testing.T) {
 			Whole:  1000,
 			Ticker: "ETH",
 		},
-		Memo: "Have a great trip!",
+		Memo: "Gift from a contract!",
 	}
 	tx = &Tx{
 		Sum:      &Tx_SendMsg{msg},
@@ -282,6 +258,15 @@ func TestApp(t *testing.T) {
 	}
 	_, cres = signAndCommit(t, myApp, tx, []Signer{{ck1, 0}, {ck2, 0}}, chainID, 5)
 	assert.NotEmpty(t, cres.Data)
+
+	// make sure money arrived safely
+	contractAddrKey := namecoin.NewWalletBucket().DBKey(contractAddr)
+	cwquery := abci.RequestQuery{
+		Path: "/",
+		Data: contractAddrKey,
+	}
+	cwqres := myApp.Query(cwquery)
+	checkWalletQuery(t, cwqres, "", 1, map[int]int64{0: 1000}, map[int]string{0: "ETH"})
 }
 
 type Signer struct {
@@ -289,6 +274,8 @@ type Signer struct {
 	nonce int64
 }
 
+// signAndCommit signs tx with signatures from signers and submits to the chain
+// asserts and fails the test in case of errors during the process
 func signAndCommit(t *testing.T, app app.BaseApp, tx *Tx, signers []Signer, chainID string, blockHeight int64) (abci.ResponseDeliverTx, abci.ResponseCommit) {
 	for _, signer := range signers {
 		sig, err := sigs.SignTx(signer.pk, tx, chainID, signer.nonce)
@@ -313,4 +300,28 @@ func signAndCommit(t *testing.T, app app.BaseApp, tx *Tx, signers []Signer, chai
 	app.EndBlock(abci.RequestEndBlock{})
 	cres := app.Commit()
 	return dres, cres
+}
+
+// checkWalletQuery checks the results of a wallet query along with the received wallet
+// maps are used to the wallet state eg. {0: 50000}, {1:"FRNK"} would assert that the first coin whole is 50000 and
+// the second coin ticker is "ETH" in a wallet of at least 2 coins
+func checkWalletQuery(t *testing.T, res abci.ResponseQuery, name string, nbCoins int, wholes map[int]int64, tickers map[int]string) {
+	// check query was ok
+	require.Equal(t, uint32(0), res.Code, "%#v", res)
+	assert.NotEmpty(t, res.Value)
+
+	var w namecoin.Wallet
+	err := app.UnmarshalOneResult(res.Value, &w)
+	require.NoError(t, err)
+	require.Equal(t, nbCoins, len(w.Coins))
+
+	for idx, whole := range wholes {
+		assert.True(t, len(w.Coins) > idx)
+		assert.Equal(t, whole, w.Coins[idx].Whole)
+	}
+
+	for idx, ticker := range tickers {
+		assert.True(t, len(w.Coins) > idx)
+		assert.Equal(t, ticker, w.Coins[idx].Ticker)
+	}
 }
