@@ -60,7 +60,7 @@ func (h IssueHandler) Deliver(ctx weave.Context, store weave.KVStore, tx weave.T
 	}
 
 	// todo: figure out a nice uniform way of wrapping passing impl-specific actions
-	if err := nft.NewApprovalOps(ha.OwnerAddress(), &msg.Approvals).List().Validate(); err != nil {
+	if err := nft.NewApprovalOps(owner, &msg.Approvals).List().Validate(); err != nil {
 		return res, err
 	}
 
