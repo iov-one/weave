@@ -13,8 +13,8 @@ type ApprovalOps struct {
 }
 
 //TODO: Sort errors and their codes
-func NewApprovalOps(nft Owned, approvals *[]*ActionApprovals) *ApprovalOps {
-	return &ApprovalOps{owner: nft.OwnerAddress(), approvals: approvals}
+func NewApprovalOps(owner weave.Address, approvals *[]*ActionApprovals) *ApprovalOps {
+	return &ApprovalOps{owner: owner, approvals: approvals}
 }
 
 func (o *ApprovalOps) List() Approvals {
