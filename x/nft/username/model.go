@@ -58,12 +58,9 @@ func (u *UsernameToken) Copy() orm.CloneableData {
 }
 
 func (t *TokenDetails) Clone() *TokenDetails {
-	if t == nil {
-		return nil
-	}
-	var keys []PublicKey
-	for _, v := range t.Keys {
-		keys = append(keys, v)
+	keys := make([]PublicKey, len(t.Keys))
+	for i, v := range t.Keys {
+		keys[i] = v
 	}
 	return &TokenDetails{Keys: keys}
 }

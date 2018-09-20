@@ -32,9 +32,15 @@ func TestTokenClone(t *testing.T) {
 				[]username.PublicKey{{Data: alice, Algorithm: "any"}},
 			},
 		},
-		{},
-		{Base: &nft.NonFungibleToken{}},
-		{Details: &username.TokenDetails{}},
+		{Base: &nft.NonFungibleToken{}, Details: &username.TokenDetails{}},
+		{Base: &nft.NonFungibleToken{}, Details: &username.TokenDetails{
+			Keys: []username.PublicKey{}},
+		},
+		{Base: &nft.NonFungibleToken{ActionApprovals: []*nft.ActionApprovals{}}, Details: &username.TokenDetails{}},
+		{
+			Base:    &nft.NonFungibleToken{ActionApprovals: []*nft.ActionApprovals{{Approvals: []*nft.Approval{}}}},
+			Details: &username.TokenDetails{},
+		},
 	}
 	for i, source := range sources {
 		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
@@ -45,23 +51,18 @@ func TestTokenClone(t *testing.T) {
 }
 
 func equals(t *testing.T, expected username.UsernameToken, actual username.UsernameToken) {
-	if expected.Base != nil {
-		assert.Equal(t, expected.Base.Id, actual.Base.Id)
-		assert.Equal(t, expected.Base.Owner, actual.Base.Owner)
-		if expected.Base.ActionApprovals != nil {
-			assert.Equal(t, expected.Base.ActionApprovals, actual.Base.ActionApprovals)
-		} else {
-			assert.Nil(t, expected.Base.ActionApprovals)
-		}
+	assert.Equal(t, expected.Base.Id, actual.Base.Id)
+	assert.Equal(t, expected.Base.Owner, actual.Base.Owner)
+	if expected.Base.ActionApprovals != nil {
+		assert.Equal(t, expected.Base.ActionApprovals, actual.Base.ActionApprovals)
 	} else {
-		assert.Nil(t, actual.Base)
+		assert.Len(t, actual.Base.ActionApprovals, 0)
 	}
-	if expected.Details != nil {
+	if expected.Details.Keys != nil {
 		assert.Equal(t, expected.Details.Keys, actual.Details.Keys)
 	} else {
-		assert.Nil(t, actual.Details)
+		assert.Len(t, actual.Details.Keys, 0)
 	}
-
 }
 
 func TestTokenDetailsClone(t *testing.T) {

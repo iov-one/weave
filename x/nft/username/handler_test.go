@@ -96,8 +96,10 @@ func TestHandleIssueTokenMsg(t *testing.T) {
 				require.Error(t, err)
 				return
 			}
+			// then
 			require.NoError(t, err)
 
+			// and when delivered
 			res, err := handler.Deliver(nil, db, tx)
 
 			// then
@@ -114,7 +116,11 @@ func TestHandleIssueTokenMsg(t *testing.T) {
 			require.NoError(t, err)
 			require.NotNil(t, o)
 			u, _ := username.AsUsername(o)
-			assert.Equal(t, spec.details.Keys, u.GetPubKeys())
+			if len(spec.details.Keys) == 0 {
+				assert.Len(t, u.GetPubKeys(), 0)
+			} else {
+				assert.Equal(t, spec.details.Keys, u.GetPubKeys())
+			}
 			// todo: verify approvals
 		})
 	}
