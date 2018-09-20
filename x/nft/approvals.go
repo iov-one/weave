@@ -71,11 +71,12 @@ func (a *ApprovalOptions) Equals(o *ApprovalOptions) bool {
 }
 
 //TODO: decide what we need to validate here and what before
+//This requires all the model-specific actions to be passed here
 func (m Approvals) Validate(actions ...string) error {
 	actions = append(actions, []string{ActionUpdateDetails, ActionTransfer}...)
-	actionMap := make(map[string]bool, 0)
+	actionMap := make(map[string]struct{}, 0)
 	for _, action := range actions {
-		actionMap[action] = true
+		actionMap[action] = struct{}{}
 	}
 
 	for action := range m {
@@ -91,23 +92,23 @@ func (m Approvals) Validate(actions ...string) error {
 func (m Approvals) FilterExpired(blockHeight int64) Approvals {
 	res := make(map[string]ApprovalMeta, 0)
 	for action, approvals := range m {
-		for _, app := range approvals {
-			if app.Options.UntilBlockHeight < blockHeight {
+		for _, approval := range approvals {
+			if approval.Options.UntilBlockHeight < blockHeight {
 				continue
 			}
-			if app.Options.Count == 0 {
+			if approval.Options.Count == 0 {
 				continue
 			}
 			if _, ok := res[action]; !ok {
 				res[action] = make([]*Approval, 0)
 			}
-			res[action] = append(res[action], app)
+			res[action] = append(res[action], approval)
 		}
 	}
 	return res
 }
 
-func (m Approvals) AsOriginal() []*ActionApprovals {
+func (m Approvals) AsPersistable() []*ActionApprovals {
 	r := make([]*ActionApprovals, 0)
 	for k, v := range m {
 		r = append(r, &ActionApprovals{k, v})
@@ -145,36 +146,25 @@ func (m Approvals) ForAddress(addr weave.Address) Approvals {
 	return res
 }
 
-//TODO: See if this can be further simplified
 func (m Approvals) Filter(obsolete Approvals) Approvals {
 	res := make(map[string]ApprovalMeta, 0)
 
+ApprovalsLoop:
 	for action, approvals := range m {
 		obsoleteApprovals := obsolete[action]
-		for _, app := range approvals {
-			found := false
+		for _, approval := range approvals {
 			for _, obsoleteApproval := range obsoleteApprovals {
-				if app.Equals(obsoleteApproval) {
-					found = true
-					break
+				if approval.Equals(obsoleteApproval) {
+					continue ApprovalsLoop
 				}
 			}
-			if !found {
-				if _, ok := res[action]; !ok {
-					res[action] = make([]*Approval, 0)
-				}
-				res[action] = append(res[action], app)
-			}
+			res[action] = append(res[action], approval)
 		}
 	}
 	return res
 }
 
 func (m Approvals) Add(action string, approval *Approval) Approvals {
-	// TODO: Should we validate action here instead? would make sense.
-	if _, ok := m[action]; !ok {
-		m[action] = make([]*Approval, 0)
-	}
 	m[action] = append(m[action], approval)
 	return m
 }

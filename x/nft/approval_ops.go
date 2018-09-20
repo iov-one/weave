@@ -7,14 +7,14 @@ import (
 )
 
 type ApprovalOps struct {
-	nft Owned
+	owner weave.Address
 	//TODO: Possibly define a type for it, e.g. *ActionApprovalsSet
 	approvals *[]*ActionApprovals
 }
 
 //TODO: Sort errors and their codes
 func NewApprovalOps(nft Owned, approvals *[]*ActionApprovals) *ApprovalOps {
-	return &ApprovalOps{nft: nft, approvals: approvals}
+	return &ApprovalOps{owner: nft.OwnerAddress(), approvals: approvals}
 }
 
 func (o *ApprovalOps) List() Approvals {
@@ -26,7 +26,7 @@ func (o *ApprovalOps) List() Approvals {
 }
 
 func (o *ApprovalOps) Revoke(action string, from weave.Address) error {
-	if from == nil || from.Equals(o.nft.OwnerAddress()) {
+	if from == nil || from.Equals(o.owner) {
 		return errors.New("invalid account")
 	}
 	approvalsToRemove := o.List().ForAction(action).ForAddress(from)
@@ -40,12 +40,15 @@ func (o *ApprovalOps) Revoke(action string, from weave.Address) error {
 			}
 		}
 	}
-	*o.approvals = o.List().Filter(approvalsToRemove).AsOriginal()
+	*o.approvals = o.List().Filter(approvalsToRemove).AsPersistable()
 	return nil
 }
 
+//TODO: Note, that we are always excluding an owner from permissions, that might not be ideal
+//because upon transfer the owner might have some rights? Revisit
+//TODO: Figure out whether we need wildcard approvals, might be wise to add an ApprovalOptions flag
 func (o *ApprovalOps) Grant(action string, to weave.Address, op *ApprovalOptions, blockHeight int64, actions ...string) error {
-	if to == nil || to.Equals(o.nft.OwnerAddress()) {
+	if to == nil || to.Equals(o.owner) {
 		return errors.New("invalid destination account")
 	}
 	if !o.List().ForAddress(to).ForAction(action).FilterExpired(blockHeight).IsEmpty() {
@@ -64,6 +67,6 @@ func (o *ApprovalOps) Grant(action string, to weave.Address, op *ApprovalOptions
 		return err
 	}
 
-	*o.approvals = approvals.AsOriginal()
+	*o.approvals = approvals.AsPersistable()
 	return nil
 }
