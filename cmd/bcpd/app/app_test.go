@@ -2,7 +2,6 @@ package app
 
 import (
 	"bytes"
-	"encoding/binary"
 	"fmt"
 	"testing"
 
@@ -23,12 +22,6 @@ import (
 )
 
 func TestApp(t *testing.T) {
-	id := func(i int64) []byte {
-		bz := make([]byte, 8)
-		binary.BigEndian.PutUint64(bz, uint64(i))
-		return bz
-	}
-
 	// no minimum fee, in-memory data-store
 	chainID := "test-net-22"
 	abciApp, err := GenerateApp("", log.NewNopLogger(), true)
@@ -39,9 +32,6 @@ func TestApp(t *testing.T) {
 	pk := crypto.GenPrivKeyEd25519()
 	addr := pk.PublicKey().Address()
 
-	contractID := id(1)
-	contractAddr := multisig.MultiSigCondition(contractID).Address()
-
 	appState := fmt.Sprintf(`{
         "wallets": [{
             "name": "demote",
@@ -49,19 +39,11 @@ func TestApp(t *testing.T) {
             "coins": [{
                 "whole": 50000,
                 "ticker": "ETH"
-                }, {
+            },{
                 "whole": 1234,
 				"ticker": "FRNK"
-				}
-			]},
-			{
-				"name": "contract",
-				"address": "%s",
-				"coins": [{
-					"whole": 50000,
-					"ticker": "ETH"
-					}]
-        	}],
+			}]
+		}],
         "tokens": [{
             "ticker": "ETH",
             "name": "Smells like ethereum",
@@ -71,7 +53,7 @@ func TestApp(t *testing.T) {
             "name": "Frankie",
             "sig_figs": 3
 		}]
-	}`, addr, contractAddr)
+	}`, addr)
 
 	// Commit first block, make sure non-nil hash
 	myApp.InitChain(abci.RequestInitChain{AppStateBytes: []byte(appState), ChainId: chainID})
@@ -228,12 +210,19 @@ func TestApp(t *testing.T) {
 	assert.Equal(t, int32(3), toke.SigFigs)
 	assert.Equal(t, "Frankie", toke.Name)
 
-	// create contract
-	pk = crypto.GenPrivKeyEd25519()
-	pk2 = crypto.GenPrivKeyEd25519()
-	pk3 := crypto.GenPrivKeyEd25519()
-	signers := [][]byte{pk.PublicKey().Address(), pk2.PublicKey().Address(), pk3.PublicKey().Address()}
+	// testing multisig contract
+	// first create a contract
+	// then a wallet at the contract address
+	// finaly send money from the wallet controlled by contractAddr
 
+	// create contract
+	ck1 := crypto.GenPrivKeyEd25519()
+	ck2 := crypto.GenPrivKeyEd25519()
+	ck3 := crypto.GenPrivKeyEd25519()
+	signers := [][]byte{
+		ck1.PublicKey().Address(),
+		ck2.PublicKey().Address(),
+		ck3.PublicKey().Address()}
 	cmsg := &multisig.CreateContractMsg{
 		Sigs:                signers,
 		ActivationThreshold: 2,
@@ -242,8 +231,11 @@ func TestApp(t *testing.T) {
 	tx = &Tx{
 		Sum: &Tx_CreateContractMsg{cmsg},
 	}
-	_, cres = signAndCommit(t, myApp, tx, []Signer{{pk, 0}}, chainID, 3)
+	dres, cres = signAndCommit(t, myApp, tx, []Signer{{pk, 1}}, chainID, 3)
 	assert.NotEmpty(t, cres.Data)
+
+	contractID := dres.Data
+	contractAddr := multisig.MultiSigCondition(contractID).Address()
 
 	// get a contract
 	cquery := abci.RequestQuery{
@@ -258,12 +250,28 @@ func TestApp(t *testing.T) {
 	assert.EqualValues(t, 2, c.ActivationThreshold)
 	assert.EqualValues(t, 2, c.AdminThreshold)
 
+	// create a wallet at contractAddr
+	msg = &cash.SendMsg{
+		Src:  addr,
+		Dest: contractAddr,
+		Amount: &x.Coin{
+			Whole:  2000,
+			Ticker: "ETH",
+		},
+		Memo: "New wallet controlled by a contract",
+	}
+	tx = &Tx{
+		Sum: &Tx_SendMsg{msg},
+	}
+	_, cres = signAndCommit(t, myApp, tx, []Signer{{pk, 2}}, chainID, 4)
+	assert.NotEmpty(t, cres.Data)
+
 	// build and sign a transaction with contract
 	msg = &cash.SendMsg{
 		Src:  contractAddr,
 		Dest: addr2,
 		Amount: &x.Coin{
-			Whole:  2000,
+			Whole:  1000,
 			Ticker: "ETH",
 		},
 		Memo: "Have a great trip!",
@@ -272,7 +280,7 @@ func TestApp(t *testing.T) {
 		Sum:      &Tx_SendMsg{msg},
 		Multisig: contractID,
 	}
-	_, cres = signAndCommit(t, myApp, tx, []Signer{{pk, 1}, {pk2, 0}}, chainID, 4)
+	_, cres = signAndCommit(t, myApp, tx, []Signer{{ck1, 0}, {ck2, 0}}, chainID, 5)
 	assert.NotEmpty(t, cres.Data)
 }
 
