@@ -1,10 +1,11 @@
 package username
 
 import (
+	"regexp"
+
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/x/nft"
-	"regexp"
 )
 
 var _ weave.Msg = (*IssueTokenMsg)(nil)

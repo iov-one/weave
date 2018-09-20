@@ -2,10 +2,11 @@ package username_test
 
 import (
 	"fmt"
+	"testing"
+
 	"github.com/iov-one/weave/x"
 	"github.com/iov-one/weave/x/nft/username"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func TestIssueTokenMsgValidate(t *testing.T) {

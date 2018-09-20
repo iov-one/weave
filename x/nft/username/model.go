@@ -61,9 +61,9 @@ func (t *TokenDetails) Clone() *TokenDetails {
 	if t == nil {
 		return nil
 	}
-	keys := make([]PublicKey, len(t.Keys))
-	for i, v := range t.Keys {
-		keys[i] = v
+	var keys []PublicKey
+	for _, v := range t.Keys {
+		keys = append(keys, v)
 	}
 	return &TokenDetails{Keys: keys}
 }
@@ -72,21 +72,24 @@ func (t *TokenDetails) Validate() error {
 	if t == nil {
 		return errors.ErrInternal("must not be nil")
 	}
+	m := make(map[string]struct{})
+
 	for _, k := range t.Keys {
 		if err := k.Validate(); err != nil {
 			return err
 		}
+		if _, ok := m[k.Algorithm]; ok {
+			return nft.ErrDuplicateEntry()
+		}
+		m[k.Algorithm] = struct{}{}
 	}
+
 	return nil
 }
 
 func (p *PublicKey) Validate() error {
 	// Todo: the validation rules are not specified yet
 	return nil
-}
-
-func (t *TokenDetails) Copy() orm.CloneableData {
-	panic("implement me")
 }
 
 // AsUsername will safely type-cast any value from Bucket

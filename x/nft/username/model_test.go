@@ -2,11 +2,12 @@ package username_test
 
 import (
 	"fmt"
+	"testing"
+
 	"github.com/iov-one/weave/x"
 	"github.com/iov-one/weave/x/nft"
 	"github.com/iov-one/weave/x/nft/username"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func TestTokenClone(t *testing.T) {
@@ -56,11 +57,7 @@ func equals(t *testing.T, expected username.UsernameToken, actual username.Usern
 		assert.Nil(t, actual.Base)
 	}
 	if expected.Details != nil {
-		if expected.Details.Keys != nil {
-			assert.Equal(t, expected.Details.Keys, actual.Details.Keys)
-		} else {
-			assert.Len(t, actual.Details.Keys, 0)
-		}
+		assert.Equal(t, expected.Details.Keys, actual.Details.Keys)
 	} else {
 		assert.Nil(t, actual.Details)
 	}
