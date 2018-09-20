@@ -37,10 +37,11 @@ func (i *IssueTokenMsg) Validate() error {
 	if err := i.Details.Validate(); err != nil {
 		return err
 	}
-	for _, a := range i.Approvals {
-		if err := a.Validate(); err != nil {
-			return err
-		}
-	}
+	// TODO: impl proper approval validation
+	//for _, a := range i.Approvals {
+	//	if err := a.Validate(); err != nil {
+	//		return err
+	//	}
+	//}
 	return nil
 }

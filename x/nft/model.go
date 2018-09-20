@@ -19,11 +19,12 @@ func (m *NonFungibleToken) Validate() error {
 	if err := weave.Address(m.Owner).Validate(); err != nil {
 		return err
 	}
-	for _, a := range m.ActionApprovals {
-		if err := a.Validate(); err != nil {
-			return err
-		}
-	}
+	// TODO: impl proper validation
+	//for _, a := range m.ActionApprovals {
+	//if err := a.Validate(); err != nil {
+	//	return err
+	//}
+	//}
 	return nil
 }
 

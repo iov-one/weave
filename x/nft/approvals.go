@@ -14,20 +14,26 @@ const (
 
 const UnlimitedCount = -1
 
-//TODO: Revisit this typename
 type ApprovalMeta []*Approval
 type Approvals map[string]ApprovalMeta
 
 func (m *ActionApprovals) Clone() *ActionApprovals {
+	if m == nil {
+		return nil
+	}
+
 	x := *m
-	approvals := make([]*Approval, 0)
-	for k, v := range m.Approvals {
-		approvals[k] = v.Clone()
+	approvals := make([]*Approval, len(m.Approvals))
+	for i, v := range m.Approvals {
+		approvals[i] = v.Clone()
 	}
 	return &x
 }
 
 func (m *Approval) Clone() *Approval {
+	if m == nil {
+		return nil
+	}
 	x := *m
 	// We should not allow nil options here, so a panic is fine
 	x.Options = x.Options.Clone()
