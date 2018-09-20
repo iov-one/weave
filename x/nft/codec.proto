@@ -25,3 +25,15 @@ message ApprovalOptions {
     bool immutable = 3;
 }
 
+message AddApprovalMsg {
+    bytes id = 1;
+    bytes address = 2;
+    string action = 3;
+    ApprovalOptions options = 4;
+}
+
+message RemoveApprovalMsg {
+    bytes id = 1;
+    bytes address = 2;
+    string action = 3;
+}

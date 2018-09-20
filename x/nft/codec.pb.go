@@ -12,6 +12,8 @@
 		ActionApprovals
 		Approval
 		ApprovalOptions
+		AddApprovalMsg
+		RemoveApprovalMsg
 */
 package nft
 
@@ -144,11 +146,85 @@ func (m *ApprovalOptions) GetImmutable() bool {
 	return false
 }
 
+type AddApprovalMsg struct {
+	Id      []byte           `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Address []byte           `protobuf:"bytes,2,opt,name=address,proto3" json:"address,omitempty"`
+	Action  string           `protobuf:"bytes,3,opt,name=action,proto3" json:"action,omitempty"`
+	Options *ApprovalOptions `protobuf:"bytes,4,opt,name=options" json:"options,omitempty"`
+}
+
+func (m *AddApprovalMsg) Reset()                    { *m = AddApprovalMsg{} }
+func (m *AddApprovalMsg) String() string            { return proto.CompactTextString(m) }
+func (*AddApprovalMsg) ProtoMessage()               {}
+func (*AddApprovalMsg) Descriptor() ([]byte, []int) { return fileDescriptorCodec, []int{4} }
+
+func (m *AddApprovalMsg) GetId() []byte {
+	if m != nil {
+		return m.Id
+	}
+	return nil
+}
+
+func (m *AddApprovalMsg) GetAddress() []byte {
+	if m != nil {
+		return m.Address
+	}
+	return nil
+}
+
+func (m *AddApprovalMsg) GetAction() string {
+	if m != nil {
+		return m.Action
+	}
+	return ""
+}
+
+func (m *AddApprovalMsg) GetOptions() *ApprovalOptions {
+	if m != nil {
+		return m.Options
+	}
+	return nil
+}
+
+type RemoveApprovalMsg struct {
+	Id      []byte `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Address []byte `protobuf:"bytes,2,opt,name=address,proto3" json:"address,omitempty"`
+	Action  string `protobuf:"bytes,3,opt,name=action,proto3" json:"action,omitempty"`
+}
+
+func (m *RemoveApprovalMsg) Reset()                    { *m = RemoveApprovalMsg{} }
+func (m *RemoveApprovalMsg) String() string            { return proto.CompactTextString(m) }
+func (*RemoveApprovalMsg) ProtoMessage()               {}
+func (*RemoveApprovalMsg) Descriptor() ([]byte, []int) { return fileDescriptorCodec, []int{5} }
+
+func (m *RemoveApprovalMsg) GetId() []byte {
+	if m != nil {
+		return m.Id
+	}
+	return nil
+}
+
+func (m *RemoveApprovalMsg) GetAddress() []byte {
+	if m != nil {
+		return m.Address
+	}
+	return nil
+}
+
+func (m *RemoveApprovalMsg) GetAction() string {
+	if m != nil {
+		return m.Action
+	}
+	return ""
+}
+
 func init() {
 	proto.RegisterType((*NonFungibleToken)(nil), "nft.NonFungibleToken")
 	proto.RegisterType((*ActionApprovals)(nil), "nft.ActionApprovals")
 	proto.RegisterType((*Approval)(nil), "nft.Approval")
 	proto.RegisterType((*ApprovalOptions)(nil), "nft.ApprovalOptions")
+	proto.RegisterType((*AddApprovalMsg)(nil), "nft.AddApprovalMsg")
+	proto.RegisterType((*RemoveApprovalMsg)(nil), "nft.RemoveApprovalMsg")
 }
 func (m *NonFungibleToken) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
@@ -300,6 +376,88 @@ func (m *ApprovalOptions) MarshalTo(dAtA []byte) (int, error) {
 	return i, nil
 }
 
+func (m *AddApprovalMsg) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalTo(dAtA)
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *AddApprovalMsg) MarshalTo(dAtA []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	if len(m.Id) > 0 {
+		dAtA[i] = 0xa
+		i++
+		i = encodeVarintCodec(dAtA, i, uint64(len(m.Id)))
+		i += copy(dAtA[i:], m.Id)
+	}
+	if len(m.Address) > 0 {
+		dAtA[i] = 0x12
+		i++
+		i = encodeVarintCodec(dAtA, i, uint64(len(m.Address)))
+		i += copy(dAtA[i:], m.Address)
+	}
+	if len(m.Action) > 0 {
+		dAtA[i] = 0x1a
+		i++
+		i = encodeVarintCodec(dAtA, i, uint64(len(m.Action)))
+		i += copy(dAtA[i:], m.Action)
+	}
+	if m.Options != nil {
+		dAtA[i] = 0x22
+		i++
+		i = encodeVarintCodec(dAtA, i, uint64(m.Options.Size()))
+		n2, err := m.Options.MarshalTo(dAtA[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += n2
+	}
+	return i, nil
+}
+
+func (m *RemoveApprovalMsg) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalTo(dAtA)
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *RemoveApprovalMsg) MarshalTo(dAtA []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	if len(m.Id) > 0 {
+		dAtA[i] = 0xa
+		i++
+		i = encodeVarintCodec(dAtA, i, uint64(len(m.Id)))
+		i += copy(dAtA[i:], m.Id)
+	}
+	if len(m.Address) > 0 {
+		dAtA[i] = 0x12
+		i++
+		i = encodeVarintCodec(dAtA, i, uint64(len(m.Address)))
+		i += copy(dAtA[i:], m.Address)
+	}
+	if len(m.Action) > 0 {
+		dAtA[i] = 0x1a
+		i++
+		i = encodeVarintCodec(dAtA, i, uint64(len(m.Action)))
+		i += copy(dAtA[i:], m.Action)
+	}
+	return i, nil
+}
+
 func encodeVarintCodec(dAtA []byte, offset int, v uint64) int {
 	for v >= 1<<7 {
 		dAtA[offset] = uint8(v&0x7f | 0x80)
@@ -370,6 +528,46 @@ func (m *ApprovalOptions) Size() (n int) {
 	}
 	if m.Immutable {
 		n += 2
+	}
+	return n
+}
+
+func (m *AddApprovalMsg) Size() (n int) {
+	var l int
+	_ = l
+	l = len(m.Id)
+	if l > 0 {
+		n += 1 + l + sovCodec(uint64(l))
+	}
+	l = len(m.Address)
+	if l > 0 {
+		n += 1 + l + sovCodec(uint64(l))
+	}
+	l = len(m.Action)
+	if l > 0 {
+		n += 1 + l + sovCodec(uint64(l))
+	}
+	if m.Options != nil {
+		l = m.Options.Size()
+		n += 1 + l + sovCodec(uint64(l))
+	}
+	return n
+}
+
+func (m *RemoveApprovalMsg) Size() (n int) {
+	var l int
+	_ = l
+	l = len(m.Id)
+	if l > 0 {
+		n += 1 + l + sovCodec(uint64(l))
+	}
+	l = len(m.Address)
+	if l > 0 {
+		n += 1 + l + sovCodec(uint64(l))
+	}
+	l = len(m.Action)
+	if l > 0 {
+		n += 1 + l + sovCodec(uint64(l))
 	}
 	return n
 }
@@ -862,6 +1060,321 @@ func (m *ApprovalOptions) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+func (m *AddApprovalMsg) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowCodec
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= (uint64(b) & 0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: AddApprovalMsg: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: AddApprovalMsg: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Id", wireType)
+			}
+			var byteLen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				byteLen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if byteLen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + byteLen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Id = append(m.Id[:0], dAtA[iNdEx:postIndex]...)
+			if m.Id == nil {
+				m.Id = []byte{}
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Address", wireType)
+			}
+			var byteLen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				byteLen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if byteLen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + byteLen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Address = append(m.Address[:0], dAtA[iNdEx:postIndex]...)
+			if m.Address == nil {
+				m.Address = []byte{}
+			}
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Action", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= (uint64(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Action = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Options", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + msglen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Options == nil {
+				m.Options = &ApprovalOptions{}
+			}
+			if err := m.Options.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipCodec(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *RemoveApprovalMsg) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowCodec
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= (uint64(b) & 0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: RemoveApprovalMsg: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: RemoveApprovalMsg: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Id", wireType)
+			}
+			var byteLen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				byteLen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if byteLen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + byteLen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Id = append(m.Id[:0], dAtA[iNdEx:postIndex]...)
+			if m.Id == nil {
+				m.Id = []byte{}
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Address", wireType)
+			}
+			var byteLen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				byteLen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if byteLen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + byteLen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Address = append(m.Address[:0], dAtA[iNdEx:postIndex]...)
+			if m.Address == nil {
+				m.Address = []byte{}
+			}
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Action", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= (uint64(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Action = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipCodec(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
 func skipCodec(dAtA []byte) (n int, err error) {
 	l := len(dAtA)
 	iNdEx := 0
@@ -970,24 +1483,27 @@ var (
 func init() { proto.RegisterFile("x/nft/codec.proto", fileDescriptorCodec) }
 
 var fileDescriptorCodec = []byte{
-	// 300 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x64, 0x91, 0xdd, 0x4a, 0xf3, 0x30,
-	0x18, 0xc7, 0xdf, 0x34, 0xbc, 0xdb, 0xfa, 0xf8, 0xd1, 0x1a, 0x86, 0xf4, 0x40, 0x4a, 0xe9, 0x51,
-	0x51, 0xe8, 0x40, 0xcf, 0x85, 0xed, 0x40, 0x3c, 0x52, 0x08, 0xc3, 0xf3, 0x7e, 0xa4, 0x33, 0xac,
-	0x4b, 0x6a, 0x9b, 0xea, 0x2e, 0xc3, 0xcb, 0xf2, 0xd0, 0x4b, 0x90, 0x7a, 0x23, 0xb2, 0xb4, 0xdd,
-	0xb0, 0x1e, 0xfe, 0x3f, 0x92, 0x5f, 0x9e, 0x3c, 0x70, 0xb6, 0x9d, 0x89, 0x4c, 0xcd, 0x12, 0x99,
-	0xb2, 0x24, 0x2c, 0x4a, 0xa9, 0x24, 0xc1, 0x22, 0x53, 0xfe, 0x16, 0xec, 0x07, 0x29, 0xee, 0x6a,
-	0xb1, 0xe2, 0x71, 0xce, 0x96, 0x72, 0xcd, 0x04, 0x39, 0x05, 0x83, 0xa7, 0x0e, 0xf2, 0x50, 0x70,
-	0x4c, 0x0d, 0x9e, 0x92, 0x29, 0xfc, 0x97, 0x6f, 0x82, 0x95, 0x8e, 0xa1, 0xad, 0x56, 0x90, 0x5b,
-	0xb0, 0xa2, 0x44, 0x71, 0x29, 0xe6, 0x45, 0x51, 0xca, 0xd7, 0x28, 0xaf, 0x1c, 0xec, 0xe1, 0xe0,
-	0xe8, 0x7a, 0x1a, 0x8a, 0x4c, 0x85, 0xf3, 0xdf, 0x19, 0x1d, 0x96, 0xfd, 0x27, 0xb0, 0x06, 0x1d,
-	0x72, 0x0e, 0xa3, 0xb6, 0xa5, 0xe1, 0x26, 0xed, 0x14, 0xb9, 0x02, 0x33, 0xda, 0x43, 0x0c, 0x0d,
-	0x39, 0x69, 0x21, 0x9d, 0x4b, 0x0f, 0xb9, 0xbf, 0x84, 0x49, 0x6f, 0x13, 0x07, 0xc6, 0x51, 0x9a,
-	0x96, 0xac, 0xaa, 0xba, 0x71, 0x7a, 0x49, 0x42, 0x18, 0xcb, 0x62, 0x77, 0x79, 0xa5, 0xa7, 0xda,
-	0xbf, 0xba, 0x3b, 0xf9, 0xd8, 0x66, 0xb4, 0x2f, 0xf9, 0x2f, 0x60, 0x0d, 0x32, 0x72, 0x09, 0x76,
-	0x2d, 0x14, 0xcf, 0x17, 0xb9, 0x4c, 0xd6, 0xf7, 0x8c, 0xaf, 0x9e, 0x95, 0xa6, 0x60, 0xfa, 0xc7,
-	0xdf, 0x7d, 0x61, 0x22, 0x6b, 0xa1, 0x34, 0x0c, 0xd3, 0x56, 0x90, 0x0b, 0x30, 0xf9, 0x66, 0x53,
-	0xab, 0x28, 0xce, 0x99, 0x83, 0x3d, 0x14, 0x4c, 0xe8, 0xc1, 0x58, 0xd8, 0x1f, 0x8d, 0x8b, 0x3e,
-	0x1b, 0x17, 0x7d, 0x35, 0x2e, 0x7a, 0xff, 0x76, 0xff, 0xc5, 0x23, 0xbd, 0xb8, 0x9b, 0x9f, 0x00,
-	0x00, 0x00, 0xff, 0xff, 0xad, 0xd5, 0xa5, 0x93, 0xcd, 0x01, 0x00, 0x00,
+	// 341 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x52, 0xbb, 0x4e, 0xc3, 0x30,
+	0x14, 0xc5, 0x31, 0xf4, 0x71, 0x81, 0x3e, 0xac, 0x0a, 0x65, 0x40, 0x51, 0x95, 0xa9, 0x02, 0x29,
+	0x95, 0x60, 0x47, 0x6a, 0x07, 0xc4, 0x02, 0x48, 0x56, 0x61, 0x4f, 0x63, 0xb7, 0x58, 0x4d, 0xed,
+	0x90, 0x38, 0xa5, 0x33, 0x5f, 0xc0, 0x67, 0x31, 0xf2, 0x09, 0xa8, 0xfc, 0x08, 0xaa, 0x93, 0xf4,
+	0xb9, 0x30, 0x30, 0x9e, 0x87, 0x7d, 0xee, 0xb9, 0x36, 0x34, 0xe7, 0x5d, 0x39, 0xd2, 0xdd, 0x40,
+	0x31, 0x1e, 0x78, 0x51, 0xac, 0xb4, 0x22, 0x58, 0x8e, 0xb4, 0x3b, 0x87, 0xc6, 0x83, 0x92, 0xb7,
+	0xa9, 0x1c, 0x8b, 0x61, 0xc8, 0x07, 0x6a, 0xc2, 0x25, 0xa9, 0x81, 0x25, 0x98, 0x8d, 0xda, 0xa8,
+	0x73, 0x42, 0x2d, 0xc1, 0x48, 0x0b, 0x8e, 0xd4, 0x9b, 0xe4, 0xb1, 0x6d, 0x19, 0x2a, 0x03, 0xe4,
+	0x06, 0xea, 0x7e, 0xa0, 0x85, 0x92, 0xbd, 0x28, 0x8a, 0xd5, 0xcc, 0x0f, 0x13, 0x1b, 0xb7, 0x71,
+	0xe7, 0xf8, 0xaa, 0xe5, 0xc9, 0x91, 0xf6, 0x7a, 0xdb, 0x1a, 0xdd, 0x35, 0xbb, 0xcf, 0x50, 0xdf,
+	0xf1, 0x90, 0x33, 0x28, 0x65, 0x2e, 0x13, 0x5e, 0xa5, 0x39, 0x22, 0x97, 0x50, 0xf5, 0x57, 0x21,
+	0x96, 0x09, 0x39, 0xcd, 0x42, 0x72, 0x96, 0xae, 0x75, 0x77, 0x00, 0x95, 0x82, 0x26, 0x36, 0x94,
+	0x7d, 0xc6, 0x62, 0x9e, 0x24, 0x79, 0x9d, 0x02, 0x12, 0x0f, 0xca, 0x2a, 0x5a, 0x5e, 0x9e, 0x98,
+	0x56, 0xab, 0xa9, 0xf3, 0x93, 0x8f, 0x99, 0x46, 0x0b, 0x93, 0xfb, 0x0a, 0xf5, 0x1d, 0x8d, 0x5c,
+	0x40, 0x23, 0x95, 0x5a, 0x84, 0xfd, 0x50, 0x05, 0x93, 0x3b, 0x2e, 0xc6, 0x2f, 0xda, 0xa4, 0x60,
+	0xba, 0xc7, 0x2f, 0x57, 0x18, 0xa8, 0x54, 0x6a, 0x13, 0x86, 0x69, 0x06, 0xc8, 0x39, 0x54, 0xc5,
+	0x74, 0x9a, 0x6a, 0x7f, 0x18, 0x72, 0x1b, 0xb7, 0x51, 0xa7, 0x42, 0xd7, 0x84, 0xfb, 0x8e, 0xa0,
+	0xd6, 0x63, 0xac, 0x88, 0xbd, 0x4f, 0xc6, 0x7b, 0x2f, 0xb3, 0xd1, 0xcf, 0xda, 0xee, 0xb7, 0x5e,
+	0x25, 0xde, 0x5a, 0xe5, 0x46, 0xef, 0xc3, 0xbf, 0xf4, 0x7e, 0x82, 0x26, 0xe5, 0x53, 0x35, 0xe3,
+	0xff, 0x3a, 0x46, 0xbf, 0xf1, 0xb9, 0x70, 0xd0, 0xd7, 0xc2, 0x41, 0xdf, 0x0b, 0x07, 0x7d, 0xfc,
+	0x38, 0x07, 0xc3, 0x92, 0xf9, 0x94, 0xd7, 0xbf, 0x01, 0x00, 0x00, 0xff, 0xff, 0xfe, 0x55, 0x4f,
+	0x62, 0xa9, 0x02, 0x00, 0x00,
 }
