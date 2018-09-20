@@ -30,6 +30,7 @@ func (m *AddApprovalMsg) Validate() error {
 	if m.Action == "" {
 		return errors.ErrInternal("action must not be empty")
 	}
+	//TODO: Figure out if we care, as we have a default in ops now that adds infinite count
 	if m.Options == nil {
 		return errors.ErrInternal("options must not be nil")
 	}
@@ -40,6 +41,16 @@ func (m *AddApprovalMsg) Validate() error {
 	return nil
 }
 
-func (i *RemoveApprovalMsg) Validate() error {
+func (m *RemoveApprovalMsg) Validate() error {
+	if err := weave.Address(m.Address).Validate(); err != nil {
+		return err
+	}
+	if m.Action == "" {
+		return errors.ErrInternal("action must not be empty")
+	}
+	//TODO: Figure out whether we need to incorporate same check as in NFT
+	if len(m.Id) == 0 {
+		return errors.ErrInternal("id must not be empty")
+	}
 	return nil
 }
