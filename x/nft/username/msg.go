@@ -1,16 +1,17 @@
 package username
 
 import (
+	"regexp"
+
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/x/nft"
-	"regexp"
 )
 
 var _ weave.Msg = (*IssueTokenMsg)(nil)
 
 const (
-	pathIssue = "nft/username/issue"
+	pathIssueTokenMsg = "nft/username/issue"
 )
 
 var (
@@ -19,7 +20,7 @@ var (
 
 // Path returns the routing path for this message
 func (*IssueTokenMsg) Path() string {
-	return pathIssue
+	return pathIssueTokenMsg
 }
 
 func (i *IssueTokenMsg) Validate() error {
@@ -36,10 +37,11 @@ func (i *IssueTokenMsg) Validate() error {
 	if err := i.Details.Validate(); err != nil {
 		return err
 	}
-	for _, a := range i.Approvals {
-		if err := a.Validate(); err != nil {
-			return err
-		}
-	}
+	// TODO: impl proper approval validation
+	//for _, a := range i.Approvals {
+	//	if err := a.Validate(); err != nil {
+	//		return err
+	//	}
+	//}
 	return nil
 }

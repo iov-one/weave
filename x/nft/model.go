@@ -7,12 +7,41 @@ import (
 
 var _ orm.CloneableData = (*NonFungibleToken)(nil)
 
+const (
+	minIDLength = 4
+	maxIDLength = 256
+)
+
 func (m *NonFungibleToken) Validate() error {
-	panic("implement me")
+	if len(m.Id) < minIDLength || len(m.Id) > maxIDLength {
+		return ErrInvalidID()
+	}
+	if err := weave.Address(m.Owner).Validate(); err != nil {
+		return err
+	}
+	// TODO: impl proper validation
+	//for _, a := range m.ActionApprovals {
+	//if err := a.Validate(); err != nil {
+	//	return err
+	//}
+	//}
+	return nil
 }
 
 func (m *NonFungibleToken) Copy() orm.CloneableData {
-	panic("implement me")
+	return m.Clone()
+}
+
+func (m *NonFungibleToken) Clone() *NonFungibleToken {
+	actionApprovals := make([]*ActionApprovals, len(m.ActionApprovals))
+	for i, v := range m.ActionApprovals {
+		actionApprovals[i] = v.Clone()
+	}
+	return &NonFungibleToken{
+		Id:              m.Id,
+		Owner:           m.Owner,
+		ActionApprovals: actionApprovals,
+	}
 }
 
 func NewNonFungibleToken(key []byte, owner weave.Address) *NonFungibleToken {
