@@ -53,7 +53,7 @@ func TestApp(t *testing.T) {
                 "whole": 1234,
 				"ticker": "FRNK"
 				}
-			]}, 
+			]},
 			{
 				"name": "contract",
 				"address": "%s",
@@ -116,21 +116,10 @@ func TestApp(t *testing.T) {
 	tx := &Tx{
 		Sum: &Tx_SendMsg{msg},
 	}
-	sig, err := sigs.SignTx(pk, tx, chainID, 0)
-	require.NoError(t, err)
-	tx.Signatures = []*sigs.StdSignature{sig}
-	txBytes, err := tx.Marshal()
-	require.NoError(t, err)
-	require.NotEmpty(t, txBytes)
-
-	// Submit to the chain
-	header = abci.Header{Height: 2}
-	myApp.BeginBlock(abci.RequestBeginBlock{Header: header})
-	// check and deliver must pass
-	chres := myApp.CheckTx(txBytes)
-	require.Equal(t, uint32(0), chres.Code, chres.Log)
-	dres := myApp.DeliverTx(txBytes)
-	require.Equal(t, uint32(0), dres.Code, dres.Log)
+	dres, cres := signAndCommit(t, myApp, tx, []Signer{{pk, 0}}, chainID, 2)
+	block2 := cres.Data
+	assert.NotEmpty(t, block2)
+	assert.NotEqual(t, block1, block2)
 
 	// ensure 3 keys with proper values
 	if assert.Equal(t, 3, len(dres.Tags), "%#v", dres.Tags) {
@@ -153,14 +142,6 @@ func TestApp(t *testing.T) {
 		assert.Equal(t, vals[1], dres.Tags[1].Value)
 		assert.Equal(t, vals[2], dres.Tags[2].Value)
 	}
-
-	// make sure commit is proper
-	myApp.EndBlock(abci.RequestEndBlock{})
-	// commit should produce a different hash
-	cres = myApp.Commit()
-	block2 := cres.Data
-	assert.NotEmpty(t, block2)
-	assert.NotEqual(t, block1, block2)
 
 	// Query for new balances (same query, new state)
 	qres = myApp.Query(query)
@@ -261,27 +242,8 @@ func TestApp(t *testing.T) {
 	tx = &Tx{
 		Sum: &Tx_CreateContractMsg{cmsg},
 	}
-	sig1, err := sigs.SignTx(pk, tx, chainID, 0)
-	require.NoError(t, err)
-	tx.Signatures = []*sigs.StdSignature{sig1}
-	txBytes, err = tx.Marshal()
-	require.NoError(t, err)
-	require.NotEmpty(t, txBytes)
-
-	// Submit to the chain
-	header = abci.Header{Height: 3}
-	myApp.BeginBlock(abci.RequestBeginBlock{Header: header})
-	// check and deliver must pass
-	chres = myApp.CheckTx(txBytes)
-	require.Equal(t, uint32(0), chres.Code, chres.Log)
-	dres = myApp.DeliverTx(txBytes)
-	require.Equal(t, uint32(0), dres.Code, dres.Log)
-	// make sure commit is proper
-	myApp.EndBlock(abci.RequestEndBlock{})
-	cres = myApp.Commit()
-	block1 = cres.Data
-	assert.NotEmpty(t, block1)
-	assert.Equal(t, chainID, myApp.GetChainID())
+	_, cres = signAndCommit(t, myApp, tx, []Signer{{pk, 0}}, chainID, 3)
+	assert.NotEmpty(t, cres.Data)
 
 	// get a contract
 	cquery := abci.RequestQuery{
@@ -310,22 +272,37 @@ func TestApp(t *testing.T) {
 		Sum:      &Tx_SendMsg{msg},
 		Multisig: contractID,
 	}
-	sig1, err = sigs.SignTx(pk, tx, chainID, 1)
-	require.NoError(t, err)
-	sig2, err := sigs.SignTx(pk2, tx, chainID, 0)
-	require.NoError(t, err)
-	tx.Signatures = []*sigs.StdSignature{sig1, sig2}
-	txBytes, err = tx.Marshal()
+	_, cres = signAndCommit(t, myApp, tx, []Signer{{pk, 1}, {pk2, 0}}, chainID, 4)
+	assert.NotEmpty(t, cres.Data)
+}
+
+type Signer struct {
+	pk    *crypto.PrivateKey
+	nonce int64
+}
+
+func signAndCommit(t *testing.T, app app.BaseApp, tx *Tx, signers []Signer, chainID string, blockHeight int64) (abci.ResponseDeliverTx, abci.ResponseCommit) {
+	for _, signer := range signers {
+		sig, err := sigs.SignTx(signer.pk, tx, chainID, signer.nonce)
+		require.NoError(t, err)
+		tx.Signatures = append(tx.Signatures, sig)
+	}
+
+	txBytes, err := tx.Marshal()
 	require.NoError(t, err)
 	require.NotEmpty(t, txBytes)
 
 	// Submit to the chain
-	header = abci.Header{Height: 4}
-	myApp.BeginBlock(abci.RequestBeginBlock{Header: header})
+	header := abci.Header{Height: blockHeight}
+	app.BeginBlock(abci.RequestBeginBlock{Header: header})
 	// check and deliver must pass
-	chres = myApp.CheckTx(txBytes)
+	chres := app.CheckTx(txBytes)
 	require.Equal(t, uint32(0), chres.Code, chres.Log)
-	dres = myApp.DeliverTx(txBytes)
+
+	dres := app.DeliverTx(txBytes)
 	require.Equal(t, uint32(0), dres.Code, dres.Log)
 
+	app.EndBlock(abci.RequestEndBlock{})
+	cres := app.Commit()
+	return dres, cres
 }
