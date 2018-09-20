@@ -54,6 +54,7 @@ func (o *ApprovalOps) Grant(action string, to weave.Address, op *ApprovalOptions
 	if !o.List().ForAddress(to).ForAction(action).FilterExpired(blockHeight).IsEmpty() {
 		return errors.New("already exists")
 	}
+	//TODO: remove this since we check it in Add/Remove msg?
 	if op == nil {
 		op = &ApprovalOptions{Count: UnlimitedCount}
 	}
