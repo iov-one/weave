@@ -18,7 +18,6 @@ import (
 	"github.com/iov-one/weave/x/escrow"
 	"github.com/iov-one/weave/x/hashlock"
 	"github.com/iov-one/weave/x/namecoin"
-	"github.com/iov-one/weave/x/nft/username"
 	"github.com/iov-one/weave/x/sigs"
 	"github.com/iov-one/weave/x/utils"
 )
@@ -56,7 +55,6 @@ func Router(authFn x.Authenticator, issuer weave.Address) app.Router {
 	// we use the namecoin wallet handler
 	// TODO: move to cash upon refactor
 	escrow.RegisterRoutes(r, authFn, namecoin.NewController())
-	username.RegisterRoutes(r, authFn, issuer)
 	return r
 }
 
@@ -68,7 +66,6 @@ func QueryRouter() weave.QueryRouter {
 		escrow.RegisterQuery,
 		namecoin.RegisterQuery,
 		sigs.RegisterQuery,
-		username.RegisterQuery,
 		orm.RegisterQuery,
 	)
 	return r
