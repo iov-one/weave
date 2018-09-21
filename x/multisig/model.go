@@ -26,6 +26,11 @@ func (c *Contract) Validate() error {
 	if c.AdminThreshold <= 0 {
 		return ErrInvalidChangeThreshold()
 	}
+	for _, a := range c.Sigs {
+		if err := weave.Address(a).Validate(); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 

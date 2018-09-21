@@ -40,7 +40,7 @@ func TestDecorator(t *testing.T) {
 
 	// contractID3 requires either sig for a or activation for contractID2
 	contractID3 := withContract(t, db, CreateContractMsg{
-		Sigs:                [][]byte{a.Address(), contractID2},
+		Sigs:                newSigs(a, MultiSigCondition(contractID2)),
 		ActivationThreshold: 1,
 		AdminThreshold:      2,
 	})

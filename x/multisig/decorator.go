@@ -64,16 +64,10 @@ func (d Decorator) withMultisig(ctx weave.Context, store weave.KVStore, id []byt
 		return ctx, err
 	}
 
-	// calls withMultisig recursively for each subcontract encountered
+	// collect all sigs
 	sigs := make([]weave.Address, len(contract.Sigs))
 	for i, sig := range contract.Sigs {
-		if weave.Address(sig).Validate() == nil {
-			// thats just a signture
-			sigs[i] = sig
-		} else {
-			// that could be a multisig id
-			sigs[i] = MultiSigCondition(sig).Address()
-		}
+		sigs[i] = sig
 	}
 
 	// check sigs (can be sig or multisig)

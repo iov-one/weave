@@ -1,5 +1,7 @@
 package multisig
 
+import "github.com/iov-one/weave"
+
 const (
 	pathCreateContractMsg = "multisig/create"
 	pathUpdateContractMsg = "multisig/update"
@@ -24,6 +26,11 @@ func (c *CreateContractMsg) Validate() error {
 	if c.AdminThreshold <= 0 {
 		return ErrInvalidChangeThreshold()
 	}
+	for _, a := range c.Sigs {
+		if err := weave.Address(a).Validate(); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
@@ -42,6 +49,11 @@ func (c *UpdateContractMsg) Validate() error {
 	}
 	if c.AdminThreshold <= 0 {
 		return ErrInvalidChangeThreshold()
+	}
+	for _, a := range c.Sigs {
+		if err := weave.Address(a).Validate(); err != nil {
+			return err
+		}
 	}
 	return nil
 }

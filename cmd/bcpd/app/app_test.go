@@ -229,7 +229,7 @@ func TestApp(t *testing.T) {
 	masterKey := crypto.GenPrivKeyEd25519()
 	signers = [][]byte{
 		masterKey.PublicKey().Address(),
-		recoveryContract,
+		multisig.MultiSigCondition(recoveryContract).Address(),
 	}
 	cmsg = &multisig.CreateContractMsg{
 		Sigs:                signers,
