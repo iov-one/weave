@@ -275,7 +275,7 @@ func createContract(t *testing.T, baseApp app.BaseApp, chainID string, height in
 	msg := &multisig.CreateContractMsg{
 		Sigs:                contractSigs,
 		ActivationThreshold: activationThreshold,
-		AdminThreshold:      int64(len(contractSigs)), // immutable
+		AdminThreshold:      int64(len(contractSigs)) + 1, // immutable
 	}
 
 	tx := &Tx{
@@ -290,7 +290,7 @@ func createContract(t *testing.T, baseApp app.BaseApp, chainID string, height in
 		multisig.Contract{
 			Sigs:                contractSigs,
 			ActivationThreshold: activationThreshold,
-			AdminThreshold:      int64(len(contractSigs)),
+			AdminThreshold:      int64(len(contractSigs)) + 1,
 		})
 
 	return contractID
