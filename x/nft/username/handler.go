@@ -4,8 +4,7 @@ import (
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/x"
-	"github.com/iov-one/weave/x/nft"
-)
+	)
 
 const (
 	createUsernameCost = 0
@@ -51,11 +50,6 @@ func (h IssueHandler) Deliver(ctx weave.Context, store weave.KVStore, tx weave.T
 	// persist the data
 	o, err := h.bucket.Create(store, owner, msg.Id, msg.Details.Keys)
 	if err != nil {
-		return res, err
-	}
-
-	// todo: figure out a nice uniform way of wrapping passing impl-specific actions
-	if err := nft.NewApprovalOps(owner, &msg.Approvals).List().Validate(); err != nil {
 		return res, err
 	}
 
