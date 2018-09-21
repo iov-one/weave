@@ -54,15 +54,17 @@ func (h IssueHandler) Deliver(ctx weave.Context, store weave.KVStore, tx weave.T
 		return res, err
 	}
 
-	ha, err := AsUsername(o)
-	if err != nil {
-		return res, err
-	}
-
 	// todo: figure out a nice uniform way of wrapping passing impl-specific actions
 	if err := nft.NewApprovalOps(owner, &msg.Approvals).List().Validate(); err != nil {
 		return res, err
 	}
+
+	_, err = AsUsername(o)
+	if err != nil {
+		return res, err
+	}
+
+
 
 	return res, h.bucket.Save(store, o)
 }
