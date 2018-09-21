@@ -89,7 +89,10 @@ func TestApp(t *testing.T) {
 	tx := &Tx{
 		Sum: &Tx_SendMsg{msg},
 	}
-	dres := signAndCommit(t, myApp, tx, []Signer{{pk, 0}}, chainID, 2)
+	dres, cres := signAndCommit(t, myApp, tx, []Signer{{pk, 0}}, chainID, 2)
+	block2 := cres.Data
+	assert.NotEmpty(t, block2)
+	assert.NotEqual(t, block1, block2)
 
 	// ensure 3 keys with proper values
 	if assert.Equal(t, 3, len(dres.Tags), "%#v", dres.Tags) {
@@ -188,31 +191,31 @@ func TestApp(t *testing.T) {
 	// finaly send money from the wallet controlled by contractAddr
 
 	// create contract
-	ck1 := crypto.GenPrivKeyEd25519()
-	ck2 := crypto.GenPrivKeyEd25519()
-	ck3 := crypto.GenPrivKeyEd25519()
+	recovery1 := crypto.GenPrivKeyEd25519()
+	recovery2 := crypto.GenPrivKeyEd25519()
+	recovery3 := crypto.GenPrivKeyEd25519()
 	signers := [][]byte{
-		ck1.PublicKey().Address(),
-		ck2.PublicKey().Address(),
-		ck3.PublicKey().Address()}
+		recovery1.PublicKey().Address(),
+		recovery2.PublicKey().Address(),
+		recovery3.PublicKey().Address()}
 	cmsg := &multisig.CreateContractMsg{
 		Sigs:                signers,
 		ActivationThreshold: 2,
-		AdminThreshold:      2,
+		AdminThreshold:      3, // immutable
 	}
 	tx = &Tx{
 		Sum: &Tx_CreateContractMsg{cmsg},
 	}
-	dres = signAndCommit(t, myApp, tx, []Signer{{pk, 1}}, chainID, 3)
+	dres, cres = signAndCommit(t, myApp, tx, []Signer{{pk, 1}}, chainID, 3)
+	assert.NotEmpty(t, cres.Data)
 
 	// retrieve contract ID
-	contractID := dres.Data
-	contractAddr := multisig.MultiSigCondition(contractID).Address()
+	recoveryContract := dres.Data
 
 	// get a contract
 	cquery := abci.RequestQuery{
 		Path: "/contracts",
-		Data: contractID,
+		Data: recoveryContract,
 	}
 	var c multisig.Contract
 	cqres := myApp.Query(cquery)
@@ -220,12 +223,46 @@ func TestApp(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, signers, c.Sigs)
 	assert.EqualValues(t, 2, c.ActivationThreshold)
-	assert.EqualValues(t, 2, c.AdminThreshold)
+	assert.EqualValues(t, 3, c.AdminThreshold)
+
+	// create master contract
+	masterKey := crypto.GenPrivKeyEd25519()
+	signers = [][]byte{
+		masterKey.PublicKey().Address(),
+		recoveryContract,
+	}
+	cmsg = &multisig.CreateContractMsg{
+		Sigs:                signers,
+		ActivationThreshold: 1,
+		AdminThreshold:      2, // immutable
+	}
+	tx = &Tx{
+		Sum: &Tx_CreateContractMsg{cmsg},
+	}
+	dres, cres = signAndCommit(t, myApp, tx, []Signer{{pk, 2}}, chainID, 4)
+	assert.NotEmpty(t, cres.Data)
+
+	// retrieve contract ID
+	safeKeyContract := dres.Data
+	safeKeyContractAddr := multisig.MultiSigCondition(safeKeyContract).Address()
+
+	// get a contract
+	cquery = abci.RequestQuery{
+		Path: "/contracts",
+		Data: safeKeyContract,
+	}
+	var c1 multisig.Contract
+	cqres = myApp.Query(cquery)
+	err = app.UnmarshalOneResult(cqres.Value, &c1)
+	require.NoError(t, err)
+	assert.Equal(t, signers, c1.Sigs)
+	assert.EqualValues(t, 1, c1.ActivationThreshold)
+	assert.EqualValues(t, 2, c1.AdminThreshold)
 
 	// create a wallet at contractAddr
 	msg = &cash.SendMsg{
 		Src:  addr,
-		Dest: contractAddr,
+		Dest: safeKeyContractAddr,
 		Amount: &x.Coin{
 			Whole:  2000,
 			Ticker: "ETH",
@@ -235,11 +272,12 @@ func TestApp(t *testing.T) {
 	tx = &Tx{
 		Sum: &Tx_SendMsg{msg},
 	}
-	signAndCommit(t, myApp, tx, []Signer{{pk, 2}}, chainID, 4)
+	_, cres = signAndCommit(t, myApp, tx, []Signer{{pk, 3}}, chainID, 5)
+	assert.NotEmpty(t, cres.Data)
 
-	// build and sign a transaction with contract
+	// build and sign a transaction using master key to activate safeKeyContract
 	msg = &cash.SendMsg{
-		Src:  contractAddr,
+		Src:  safeKeyContractAddr,
 		Dest: addr2,
 		Amount: &x.Coin{
 			Whole:  1000,
@@ -249,18 +287,43 @@ func TestApp(t *testing.T) {
 	}
 	tx = &Tx{
 		Sum:      &Tx_SendMsg{msg},
-		Multisig: contractID,
+		Multisig: [][]byte{safeKeyContract},
 	}
-	signAndCommit(t, myApp, tx, []Signer{{ck1, 0}, {ck2, 0}}, chainID, 5)
+	_, cres = signAndCommit(t, myApp, tx, []Signer{{masterKey, 0}}, chainID, 6)
+	assert.NotEmpty(t, cres.Data)
 
 	// make sure money arrived safely
-	contractAddrKey := namecoin.NewWalletBucket().DBKey(contractAddr)
 	cwquery := abci.RequestQuery{
 		Path: "/",
-		Data: contractAddrKey,
+		Data: key2,
 	}
 	cwqres := myApp.Query(cwquery)
-	checkWalletQuery(t, cwqres, "", 1, map[int]int64{0: 1000}, map[int]string{0: "ETH"})
+	checkWalletQuery(t, cwqres, "", 1, map[int]int64{0: 3000}, map[int]string{0: "ETH"})
+
+	// Now do the same operation but using recoveryContract to activate safeKeyContract
+	msg = &cash.SendMsg{
+		Src:  safeKeyContractAddr,
+		Dest: addr2,
+		Amount: &x.Coin{
+			Whole:  1000,
+			Ticker: "ETH",
+		},
+		Memo: "Gift from a contract!",
+	}
+	tx = &Tx{
+		Sum:      &Tx_SendMsg{msg},
+		Multisig: [][]byte{recoveryContract, safeKeyContract},
+	}
+	_, cres = signAndCommit(t, myApp, tx, []Signer{{recovery1, 0}, {recovery2, 0}}, chainID, 7)
+	assert.NotEmpty(t, cres.Data)
+
+	// make sure money arrived safely
+	cwquery = abci.RequestQuery{
+		Path: "/",
+		Data: key2,
+	}
+	cwqres = myApp.Query(cwquery)
+	checkWalletQuery(t, cwqres, "", 1, map[int]int64{0: 4000}, map[int]string{0: "ETH"})
 }
 
 type Signer struct {
@@ -270,7 +333,7 @@ type Signer struct {
 
 // signAndCommit signs tx with signatures from signers and submits to the chain
 // asserts and fails the test in case of errors during the process
-func signAndCommit(t *testing.T, app app.BaseApp, tx *Tx, signers []Signer, chainID string, blockHeight int64) abci.ResponseDeliverTx {
+func signAndCommit(t *testing.T, app app.BaseApp, tx *Tx, signers []Signer, chainID string, blockHeight int64) (abci.ResponseDeliverTx, abci.ResponseCommit) {
 	for _, signer := range signers {
 		sig, err := sigs.SignTx(signer.pk, tx, chainID, signer.nonce)
 		require.NoError(t, err)
@@ -293,8 +356,7 @@ func signAndCommit(t *testing.T, app app.BaseApp, tx *Tx, signers []Signer, chai
 
 	app.EndBlock(abci.RequestEndBlock{})
 	cres := app.Commit()
-	assert.NotEmpty(t, cres.Data)
-	return dres
+	return dres, cres
 }
 
 // checkWalletQuery checks the results of a wallet query along with the received wallet
