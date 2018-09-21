@@ -17,6 +17,11 @@ type Token interface {
 	SetPubKeys(actor weave.Address, newKeys []PublicKey) error
 }
 
+//TODO: Maybe worth revisiting?
+func (u *UsernameToken) OwnerAddress() weave.Address {
+	return u.Base.OwnerAddress()
+}
+
 func (u *UsernameToken) GetPubKeys() []PublicKey {
 	if u.Details == nil {
 		return nil
@@ -24,7 +29,7 @@ func (u *UsernameToken) GetPubKeys() []PublicKey {
 	return u.Details.Keys
 }
 func (u *UsernameToken) SetPubKeys(actor weave.Address, newKeys []PublicKey) error {
-	if !u.Base.OwnerAddress().Equals(actor) {
+	if !u.OwnerAddress().Equals(actor) {
 		if !u.Base.HasApproval(actor, nft.ActionUpdateDetails) {
 			return errors.ErrUnauthorized()
 		}
@@ -41,7 +46,7 @@ func (u *UsernameToken) Validate() error {
 	if err := u.Base.Validate(); err != nil {
 		return err
 	}
-	ops := nft.NewApprovalOps(u.Base.OwnerAddress(), &u.Base.ActionApprovals)
+	ops := nft.NewApprovalOps(u.OwnerAddress(), &u.Base.ActionApprovals)
 	if err := ops.List().Validate(); err != nil {
 		return err
 	}
