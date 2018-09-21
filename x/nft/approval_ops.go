@@ -44,8 +44,6 @@ func (o *ApprovalOps) Revoke(action string, from weave.Address) error {
 	return nil
 }
 
-//TODO: Note, that we are always excluding an owner from permissions, that might not be ideal
-//because upon transfer the owner might have some rights? Revisit
 //TODO: Figure out whether we need wildcard approvals, might be wise to add an ApprovalOptions flag
 func (o *ApprovalOps) Grant(action string, to weave.Address, op *ApprovalOptions, blockHeight int64, actions ...string) error {
 	if to == nil || to.Equals(o.owner) {
@@ -54,6 +52,7 @@ func (o *ApprovalOps) Grant(action string, to weave.Address, op *ApprovalOptions
 	if !o.List().ForAddress(to).ForAction(action).FilterExpired(blockHeight).IsEmpty() {
 		return errors.New("already exists")
 	}
+	//TODO: Do we needs this? I think this is not ideal and has to be done explicitly
 	if op == nil {
 		op = &ApprovalOptions{Count: UnlimitedCount}
 	}
