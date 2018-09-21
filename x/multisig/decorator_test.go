@@ -46,7 +46,7 @@ func TestDecorator(t *testing.T) {
 	})
 
 	// helper to create a ContractTx
-	multisigTx := func(payload, multisig []byte) ContractTx {
+	multisigTx := func(payload []byte, multisig ...[]byte) ContractTx {
 		tx := helpers.MockTx(helpers.MockMsg(payload))
 		return ContractTx{Tx: tx, MultisigID: multisig}
 	}
@@ -94,9 +94,9 @@ func TestDecorator(t *testing.T) {
 		},
 		// contractID3 is activated by contractID2
 		{
-			multisigTx([]byte("foo"), contractID3),
-			[]weave.Condition{MultiSigCondition(contractID2)},
-			[]weave.Condition{MultiSigCondition(contractID3)},
+			multisigTx([]byte("foo"), contractID2, contractID3),
+			[]weave.Condition{d, e},
+			[]weave.Condition{MultiSigCondition(contractID2), MultiSigCondition(contractID3)},
 			nil,
 		},
 		// contractID3 is activated by a
@@ -109,7 +109,7 @@ func TestDecorator(t *testing.T) {
 		// contractID3 is not activated
 		{
 			multisigTx([]byte("foo"), contractID3),
-			[]weave.Condition{d, e}, // ccondition for ontractID2 must be passed explicitly
+			[]weave.Condition{d, e}, // cconditions for ontractID2 are there but ontractID2 must be passed explicitly
 			nil,
 			ErrUnauthorizedMultiSig(contractID3),
 		},
@@ -167,12 +167,12 @@ func (s *MultisigCheckHandler) Deliver(ctx weave.Context, store weave.KVStore,
 // ContractTx fulfills the MultiSigTx interface to satisfy the decorator
 type ContractTx struct {
 	weave.Tx
-	MultisigID []byte
+	MultisigID [][]byte
 }
 
 var _ MultiSigTx = ContractTx{}
 var _ weave.Tx = ContractTx{}
 
-func (p ContractTx) GetMultisig() []byte {
+func (p ContractTx) GetMultisig() [][]byte {
 	return p.MultisigID
 }

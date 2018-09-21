@@ -21,10 +21,12 @@ func NewDecorator(auth x.Authenticator) Decorator {
 // Check enforce multisig contract before calling down the stack
 func (d Decorator) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx, next weave.Checker) (res weave.CheckResult, err error) {
 	if multisigContract, ok := tx.(MultiSigTx); ok {
-		id := multisigContract.GetMultisig()
-		ctx, err = d.withMultisig(ctx, store, id)
-		if err != nil {
-			return res, err
+		ids := multisigContract.GetMultisig()
+		for _, id := range ids {
+			ctx, err = d.withMultisig(ctx, store, id)
+			if err != nil {
+				return res, err
+			}
 		}
 	}
 
@@ -34,10 +36,12 @@ func (d Decorator) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx, ne
 // Deliver enforces multisig contract before calling down the stack
 func (d Decorator) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx, next weave.Deliverer) (res weave.DeliverResult, err error) {
 	if multisigContract, ok := tx.(MultiSigTx); ok {
-		id := multisigContract.GetMultisig()
-		ctx, err = d.withMultisig(ctx, store, id)
-		if err != nil {
-			return res, err
+		ids := multisigContract.GetMultisig()
+		for _, id := range ids {
+			ctx, err = d.withMultisig(ctx, store, id)
+			if err != nil {
+				return res, err
+			}
 		}
 	}
 
