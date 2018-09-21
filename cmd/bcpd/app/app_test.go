@@ -89,10 +89,7 @@ func TestApp(t *testing.T) {
 	tx := &Tx{
 		Sum: &Tx_SendMsg{msg},
 	}
-	dres, cres := signAndCommit(t, myApp, tx, []Signer{{pk, 0}}, chainID, 2)
-	block2 := cres.Data
-	assert.NotEmpty(t, block2)
-	assert.NotEqual(t, block1, block2)
+	dres := signAndCommit(t, myApp, tx, []Signer{{pk, 0}}, chainID, 2)
 
 	// ensure 3 keys with proper values
 	if assert.Equal(t, 3, len(dres.Tags), "%#v", dres.Tags) {
@@ -206,8 +203,7 @@ func TestApp(t *testing.T) {
 	tx = &Tx{
 		Sum: &Tx_CreateContractMsg{cmsg},
 	}
-	dres, cres = signAndCommit(t, myApp, tx, []Signer{{pk, 1}}, chainID, 3)
-	assert.NotEmpty(t, cres.Data)
+	dres = signAndCommit(t, myApp, tx, []Signer{{pk, 1}}, chainID, 3)
 
 	// retrieve contract ID
 	contractID := dres.Data
@@ -239,8 +235,7 @@ func TestApp(t *testing.T) {
 	tx = &Tx{
 		Sum: &Tx_SendMsg{msg},
 	}
-	_, cres = signAndCommit(t, myApp, tx, []Signer{{pk, 2}}, chainID, 4)
-	assert.NotEmpty(t, cres.Data)
+	signAndCommit(t, myApp, tx, []Signer{{pk, 2}}, chainID, 4)
 
 	// build and sign a transaction with contract
 	msg = &cash.SendMsg{
@@ -256,8 +251,7 @@ func TestApp(t *testing.T) {
 		Sum:      &Tx_SendMsg{msg},
 		Multisig: contractID,
 	}
-	_, cres = signAndCommit(t, myApp, tx, []Signer{{ck1, 0}, {ck2, 0}}, chainID, 5)
-	assert.NotEmpty(t, cres.Data)
+	signAndCommit(t, myApp, tx, []Signer{{ck1, 0}, {ck2, 0}}, chainID, 5)
 
 	// make sure money arrived safely
 	contractAddrKey := namecoin.NewWalletBucket().DBKey(contractAddr)
@@ -276,7 +270,7 @@ type Signer struct {
 
 // signAndCommit signs tx with signatures from signers and submits to the chain
 // asserts and fails the test in case of errors during the process
-func signAndCommit(t *testing.T, app app.BaseApp, tx *Tx, signers []Signer, chainID string, blockHeight int64) (abci.ResponseDeliverTx, abci.ResponseCommit) {
+func signAndCommit(t *testing.T, app app.BaseApp, tx *Tx, signers []Signer, chainID string, blockHeight int64) abci.ResponseDeliverTx {
 	for _, signer := range signers {
 		sig, err := sigs.SignTx(signer.pk, tx, chainID, signer.nonce)
 		require.NoError(t, err)
@@ -299,7 +293,8 @@ func signAndCommit(t *testing.T, app app.BaseApp, tx *Tx, signers []Signer, chai
 
 	app.EndBlock(abci.RequestEndBlock{})
 	cres := app.Commit()
-	return dres, cres
+	assert.NotEmpty(t, cres.Data)
+	return dres
 }
 
 // checkWalletQuery checks the results of a wallet query along with the received wallet
