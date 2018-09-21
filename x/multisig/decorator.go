@@ -69,7 +69,6 @@ func (d Decorator) withMultisig(ctx weave.Context, store weave.KVStore, id []byt
 		} else {
 			// that could be a multisig id
 			sigs[i] = MultiSigCondition(sig).Address()
-			ctx, _ = d.withMultisig(ctx, store, sig)
 		}
 	}
 

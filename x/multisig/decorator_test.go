@@ -95,16 +95,23 @@ func TestDecorator(t *testing.T) {
 		// contractID3 is activated by contractID2
 		{
 			multisigTx([]byte("foo"), contractID3),
-			[]weave.Condition{d, e}, // will activate contractID2 wwhich in return will activate contractID3
-			[]weave.Condition{MultiSigCondition(contractID2), MultiSigCondition(contractID3)},
+			[]weave.Condition{MultiSigCondition(contractID2)},
+			[]weave.Condition{MultiSigCondition(contractID3)},
 			nil,
 		},
 		// contractID3 is activated by a
 		{
 			multisigTx([]byte("foo"), contractID3),
-			[]weave.Condition{a}, // will activate contractID2 wwhich in return will activate contractID3
+			[]weave.Condition{a},
 			[]weave.Condition{MultiSigCondition(contractID3)},
 			nil,
+		},
+		// contractID3 is not activated
+		{
+			multisigTx([]byte("foo"), contractID3),
+			[]weave.Condition{d, e}, // ccondition for ontractID2 must be passed explicitly
+			nil,
+			ErrUnauthorizedMultiSig(contractID3),
 		},
 	}
 
