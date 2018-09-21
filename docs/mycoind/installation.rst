@@ -37,8 +37,11 @@ Install backend programs
 
 You should have a proper go development environment, as explained
 in the `last section <./installation.html>`__. Now, check out
-the most recent version of iov-one/weave and build both
-``mycoind`` and ``tendermint``.
+the most recent version of iov-one/weave and build ``mycoind`` then get
+the version 0.21 for ``tendermint`` from `here <https://github.com/tendermint/tendermint/releases?after=v0.22.0>`__.
+You can also build ``tendermint`` from source following the instructions
+`there <https://github.com/tendermint/tendermint/blob/master/docs/introduction/install.md>`__
+but make sure to use the tag **0.21** as other versions might not be compatible.
 
 .. code:: console
 
