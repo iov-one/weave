@@ -12,17 +12,13 @@ const (
 	maxIDLength = 256
 )
 
+//NOTE: approval validations happen in specific implementations due to a possibility
+// of having to validate custom actions
 func (m *NonFungibleToken) Validate() error {
 	if len(m.Id) < minIDLength || len(m.Id) > maxIDLength {
 		return ErrInvalidID()
 	}
 	if err := weave.Address(m.Owner).Validate(); err != nil {
-		return err
-	}
-
-	//TODO: Figure out what we do with custom action
-	ops := NewApprovalOps(weave.Address(m.Owner), &m.ActionApprovals)
-	if err := ops.List().Validate(); err != nil {
 		return err
 	}
 

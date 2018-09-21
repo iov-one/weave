@@ -47,6 +47,10 @@ func (u *UsernameToken) Validate() error {
 	if err := u.Base.Validate(); err != nil {
 		return err
 	}
+	ops := nft.NewApprovalOps(u.OwnerAddress(), &u.Base.ActionApprovals)
+	if err := ops.List().Validate(); err != nil {
+		return err
+	}
 	return u.Details.Validate()
 }
 
