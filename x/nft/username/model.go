@@ -24,19 +24,13 @@ func (u *UsernameToken) GetPubKeys() []PublicKey {
 	return u.Details.Keys
 }
 func (u *UsernameToken) SetPubKeys(actor weave.Address, newKeys []PublicKey) error {
-	if !u.OwnerAddress().Equals(actor) {
-		panic("Not implemented, yet")
-		// TODO: handle permissions
-		//if !u.Base.HasApproval(actor, nft.ActionKindUpdateDetails) {
-		//	return errors.ErrUnauthorized()
-		//}
+	if !u.Base.OwnerAddress().Equals(actor) {
+		if !u.Base.HasApproval(actor, nft.ActionUpdateDetails) {
+			return errors.ErrUnauthorized()
+		}
 	}
 	u.Details = &TokenDetails{Keys: newKeys}
 	return nil
-}
-
-func (u *UsernameToken) OwnerAddress() weave.Address {
-	return weave.Address(u.Base.Owner)
 }
 
 func (u *UsernameToken) Transfer(newOwner weave.Address) error {
@@ -47,7 +41,7 @@ func (u *UsernameToken) Validate() error {
 	if err := u.Base.Validate(); err != nil {
 		return err
 	}
-	ops := nft.NewApprovalOps(u.OwnerAddress(), &u.Base.ActionApprovals)
+	ops := nft.NewApprovalOps(u.Base.OwnerAddress(), &u.Base.ActionApprovals)
 	if err := ops.List().Validate(); err != nil {
 		return err
 	}

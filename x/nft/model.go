@@ -29,6 +29,15 @@ func (m *NonFungibleToken) Copy() orm.CloneableData {
 	return m.Clone()
 }
 
+func (m *NonFungibleToken) HasApproval(actor weave.Address, action string) bool {
+	return !NewApprovalOps(m.OwnerAddress(), &m.ActionApprovals).
+		List().ForAction(action).ForAddress(actor).IsEmpty()
+}
+
+func (u *NonFungibleToken) OwnerAddress() weave.Address {
+	return weave.Address(u.Owner)
+}
+
 func (m *NonFungibleToken) Clone() *NonFungibleToken {
 	actionApprovals := make([]*ActionApprovals, len(m.ActionApprovals))
 	for i, v := range m.ActionApprovals {
