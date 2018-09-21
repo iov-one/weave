@@ -4,7 +4,7 @@ import (
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/x"
-)
+	)
 
 const (
 	createUsernameCost = 0
@@ -46,24 +46,20 @@ func (h IssueHandler) Deliver(ctx weave.Context, store weave.KVStore, tx weave.T
 	if err != nil {
 		return res, err
 	}
+	owner := weave.Address(msg.Owner)
 	// persist the data
-	o, err := h.bucket.Create(store, weave.Address(msg.Owner), msg.Id, msg.Details.Keys)
+	o, err := h.bucket.Create(store, owner, msg.Id, msg.Details.Keys)
 	if err != nil {
 		return res, err
 	}
 
-	//ha, err := AsUsername(o)
-	//if err != nil {
-	//	return res, err
-	//}
-	//for _, a := range msg.Approvals {
-	//	for _, approval := range a.Approvals {
-	//		// todo: apply approval validation rules:
-	//		//if err := ha.Approvals().Set(a.Action, approval.ToAccount, approval.Options); err != nil {
-	//		//	return res, err
-	//		//}
-	//	}
-	//}
+	_, err = AsUsername(o)
+	if err != nil {
+		return res, err
+	}
+
+
+
 	return res, h.bucket.Save(store, o)
 }
 
