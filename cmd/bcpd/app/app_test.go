@@ -2,8 +2,11 @@ package app
 
 import (
 	"bytes"
+	"encoding/binary"
 	"fmt"
 	"testing"
+
+	"github.com/iov-one/weave/x/multisig"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -20,6 +23,12 @@ import (
 )
 
 func TestApp(t *testing.T) {
+	id := func(i int64) []byte {
+		bz := make([]byte, 8)
+		binary.BigEndian.PutUint64(bz, uint64(i))
+		return bz
+	}
+
 	// no minimum fee, in-memory data-store
 	chainID := "test-net-22"
 	abciApp, err := GenerateApp("", log.NewNopLogger(), true)
@@ -29,6 +38,10 @@ func TestApp(t *testing.T) {
 	// let's set up a genesis file with some cash
 	pk := crypto.GenPrivKeyEd25519()
 	addr := pk.PublicKey().Address()
+
+	contractID := id(1)
+	contractAddr := multisig.MultiSigCondition(contractID).Address()
+
 	appState := fmt.Sprintf(`{
         "wallets": [{
             "name": "demote",
@@ -38,9 +51,17 @@ func TestApp(t *testing.T) {
                 "ticker": "ETH"
                 }, {
                 "whole": 1234,
-                "ticker": "FRNK"
-            }]
-        }],
+				"ticker": "FRNK"
+				}
+			]}, 
+			{
+				"name": "contract",
+				"address": "%s",
+				"coins": [{
+					"whole": 50000,
+					"ticker": "ETH"
+					}]
+        	}],
         "tokens": [{
             "ticker": "ETH",
             "name": "Smells like ethereum",
@@ -49,8 +70,8 @@ func TestApp(t *testing.T) {
             "ticker": "FRNK",
             "name": "Frankie",
             "sig_figs": 3
-        }]
-    }`, addr)
+		}]
+	}`, addr, contractAddr)
 
 	// Commit first block, make sure non-nil hash
 	myApp.InitChain(abci.RequestInitChain{AppStateBytes: []byte(appState), ChainId: chainID})
@@ -225,4 +246,86 @@ func TestApp(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, int32(3), toke.SigFigs)
 	assert.Equal(t, "Frankie", toke.Name)
+
+	// create contract
+	pk = crypto.GenPrivKeyEd25519()
+	pk2 = crypto.GenPrivKeyEd25519()
+	pk3 := crypto.GenPrivKeyEd25519()
+	signers := [][]byte{pk.PublicKey().Address(), pk2.PublicKey().Address(), pk3.PublicKey().Address()}
+
+	cmsg := &multisig.CreateContractMsg{
+		Sigs:                signers,
+		ActivationThreshold: 2,
+		AdminThreshold:      2,
+	}
+	tx = &Tx{
+		Sum: &Tx_CreateContractMsg{cmsg},
+	}
+	sig1, err := sigs.SignTx(pk, tx, chainID, 0)
+	require.NoError(t, err)
+	tx.Signatures = []*sigs.StdSignature{sig1}
+	txBytes, err = tx.Marshal()
+	require.NoError(t, err)
+	require.NotEmpty(t, txBytes)
+
+	// Submit to the chain
+	header = abci.Header{Height: 3}
+	myApp.BeginBlock(abci.RequestBeginBlock{Header: header})
+	// check and deliver must pass
+	chres = myApp.CheckTx(txBytes)
+	require.Equal(t, uint32(0), chres.Code, chres.Log)
+	dres = myApp.DeliverTx(txBytes)
+	require.Equal(t, uint32(0), dres.Code, dres.Log)
+	// make sure commit is proper
+	myApp.EndBlock(abci.RequestEndBlock{})
+	cres = myApp.Commit()
+	block1 = cres.Data
+	assert.NotEmpty(t, block1)
+	assert.Equal(t, chainID, myApp.GetChainID())
+
+	// get a contract
+	cquery := abci.RequestQuery{
+		Path: "/contracts",
+		Data: contractID,
+	}
+	var c multisig.Contract
+	cqres := myApp.Query(cquery)
+	err = app.UnmarshalOneResult(cqres.Value, &c)
+	require.NoError(t, err)
+	assert.Equal(t, signers, c.Sigs)
+	assert.EqualValues(t, 2, c.ActivationThreshold)
+	assert.EqualValues(t, 2, c.AdminThreshold)
+
+	// build and sign a transaction with contract
+	msg = &cash.SendMsg{
+		Src:  contractAddr,
+		Dest: addr2,
+		Amount: &x.Coin{
+			Whole:  2000,
+			Ticker: "ETH",
+		},
+		Memo: "Have a great trip!",
+	}
+	tx = &Tx{
+		Sum:      &Tx_SendMsg{msg},
+		Multisig: contractID,
+	}
+	sig1, err = sigs.SignTx(pk, tx, chainID, 1)
+	require.NoError(t, err)
+	sig2, err := sigs.SignTx(pk2, tx, chainID, 0)
+	require.NoError(t, err)
+	tx.Signatures = []*sigs.StdSignature{sig1, sig2}
+	txBytes, err = tx.Marshal()
+	require.NoError(t, err)
+	require.NotEmpty(t, txBytes)
+
+	// Submit to the chain
+	header = abci.Header{Height: 4}
+	myApp.BeginBlock(abci.RequestBeginBlock{Header: header})
+	// check and deliver must pass
+	chres = myApp.CheckTx(txBytes)
+	require.Equal(t, uint32(0), chres.Code, chres.Log)
+	dres = myApp.DeliverTx(txBytes)
+	require.Equal(t, uint32(0), dres.Code, dres.Log)
+
 }
