@@ -2,7 +2,6 @@ package app
 
 import (
 	"bytes"
-	"encoding/binary"
 	"fmt"
 	"testing"
 
@@ -23,12 +22,6 @@ import (
 )
 
 func TestApp(t *testing.T) {
-	id := func(i int64) []byte {
-		bz := make([]byte, 8)
-		binary.BigEndian.PutUint64(bz, uint64(i))
-		return bz
-	}
-
 	// no minimum fee, in-memory data-store
 	chainID := "test-net-22"
 	abciApp, err := GenerateApp("", log.NewNopLogger(), true)
@@ -39,9 +32,6 @@ func TestApp(t *testing.T) {
 	pk := crypto.GenPrivKeyEd25519()
 	addr := pk.PublicKey().Address()
 
-	contractID := id(1)
-	contractAddr := multisig.MultiSigCondition(contractID).Address()
-
 	appState := fmt.Sprintf(`{
         "wallets": [{
             "name": "demote",
@@ -49,19 +39,11 @@ func TestApp(t *testing.T) {
             "coins": [{
                 "whole": 50000,
                 "ticker": "ETH"
-                }, {
+            },{
                 "whole": 1234,
 				"ticker": "FRNK"
-				}
-			]}, 
-			{
-				"name": "contract",
-				"address": "%s",
-				"coins": [{
-					"whole": 50000,
-					"ticker": "ETH"
-					}]
-        	}],
+			}]
+		}],
         "tokens": [{
             "ticker": "ETH",
             "name": "Smells like ethereum",
@@ -71,7 +53,7 @@ func TestApp(t *testing.T) {
             "name": "Frankie",
             "sig_figs": 3
 		}]
-	}`, addr, contractAddr)
+	}`, addr)
 
 	// Commit first block, make sure non-nil hash
 	myApp.InitChain(abci.RequestInitChain{AppStateBytes: []byte(appState), ChainId: chainID})
@@ -90,16 +72,7 @@ func TestApp(t *testing.T) {
 		Data: key,
 	}
 	qres := myApp.Query(query)
-	require.Equal(t, uint32(0), qres.Code, "%#v", qres)
-	assert.NotEmpty(t, qres.Value)
-	// parse it and check it is not empty
-	var acct namecoin.Wallet
-	err = app.UnmarshalOneResult(qres.Value, &acct)
-	require.NoError(t, err)
-	require.Equal(t, 2, len(acct.Coins))
-	assert.Equal(t, "demote", acct.Name)
-	assert.Equal(t, int64(50000), acct.Coins[0].Whole)
-	assert.Equal(t, "FRNK", acct.Coins[1].Ticker)
+	checkWalletQuery(t, qres, "demote", 2, map[int]int64{0: 50000}, map[int]string{1: "FRNK"})
 
 	// build and sign a transaction
 	pk2 := crypto.GenPrivKeyEd25519()
@@ -116,21 +89,7 @@ func TestApp(t *testing.T) {
 	tx := &Tx{
 		Sum: &Tx_SendMsg{msg},
 	}
-	sig, err := sigs.SignTx(pk, tx, chainID, 0)
-	require.NoError(t, err)
-	tx.Signatures = []*sigs.StdSignature{sig}
-	txBytes, err := tx.Marshal()
-	require.NoError(t, err)
-	require.NotEmpty(t, txBytes)
-
-	// Submit to the chain
-	header = abci.Header{Height: 2}
-	myApp.BeginBlock(abci.RequestBeginBlock{Header: header})
-	// check and deliver must pass
-	chres := myApp.CheckTx(txBytes)
-	require.Equal(t, uint32(0), chres.Code, chres.Log)
-	dres := myApp.DeliverTx(txBytes)
-	require.Equal(t, uint32(0), dres.Code, dres.Log)
+	dres := signAndCommit(t, myApp, tx, []Signer{{pk, 0}}, chainID, 2)
 
 	// ensure 3 keys with proper values
 	if assert.Equal(t, 3, len(dres.Tags), "%#v", dres.Tags) {
@@ -154,26 +113,9 @@ func TestApp(t *testing.T) {
 		assert.Equal(t, vals[2], dres.Tags[2].Value)
 	}
 
-	// make sure commit is proper
-	myApp.EndBlock(abci.RequestEndBlock{})
-	// commit should produce a different hash
-	cres = myApp.Commit()
-	block2 := cres.Data
-	assert.NotEmpty(t, block2)
-	assert.NotEqual(t, block1, block2)
-
 	// Query for new balances (same query, new state)
 	qres = myApp.Query(query)
-	require.Equal(t, uint32(0), qres.Code, "%#v", qres)
-	assert.NotEmpty(t, qres.Value)
-	// parse it and check it is not empty
-	var acct2 namecoin.Wallet
-	err = app.UnmarshalOneResult(qres.Value, &acct2)
-	require.NoError(t, err)
-	assert.Equal(t, "demote", acct2.Name)
-	require.Equal(t, 2, len(acct2.Coins))
-	assert.Equal(t, int64(48000), acct2.Coins[0].Whole)
-	assert.Equal(t, int64(1234), acct2.Coins[1].Whole)
+	checkWalletQuery(t, qres, "demote", 2, map[int]int64{0: 48000, 1: 1234}, nil)
 
 	// make sure money arrived safely
 	key2 := namecoin.NewWalletBucket().DBKey(addr2)
@@ -182,14 +124,7 @@ func TestApp(t *testing.T) {
 		Data: key2,
 	}
 	qres2 := myApp.Query(query2)
-	require.Equal(t, uint32(0), qres2.Code, "%#v", qres2)
-	// parse it and check it is not empty
-	var acct3 namecoin.Wallet
-	err = app.UnmarshalOneResult(qres2.Value, &acct3)
-	require.NoError(t, err)
-	require.Equal(t, 1, len(acct3.Coins))
-	assert.Equal(t, int64(2000), acct3.Coins[0].Whole)
-	assert.Equal(t, "ETH", acct3.Coins[0].Ticker)
+	checkWalletQuery(t, qres2, "", 1, map[int]int64{0: 2000}, map[int]string{0: "ETH"})
 
 	// make sure other paths also get this value....
 	query3 := abci.RequestQuery{
@@ -247,12 +182,19 @@ func TestApp(t *testing.T) {
 	assert.Equal(t, int32(3), toke.SigFigs)
 	assert.Equal(t, "Frankie", toke.Name)
 
-	// create contract
-	pk = crypto.GenPrivKeyEd25519()
-	pk2 = crypto.GenPrivKeyEd25519()
-	pk3 := crypto.GenPrivKeyEd25519()
-	signers := [][]byte{pk.PublicKey().Address(), pk2.PublicKey().Address(), pk3.PublicKey().Address()}
+	// testing multisig contract
+	// first create a contract
+	// then a wallet at the contract address
+	// finaly send money from the wallet controlled by contractAddr
 
+	// create contract
+	ck1 := crypto.GenPrivKeyEd25519()
+	ck2 := crypto.GenPrivKeyEd25519()
+	ck3 := crypto.GenPrivKeyEd25519()
+	signers := [][]byte{
+		ck1.PublicKey().Address(),
+		ck2.PublicKey().Address(),
+		ck3.PublicKey().Address()}
 	cmsg := &multisig.CreateContractMsg{
 		Sigs:                signers,
 		ActivationThreshold: 2,
@@ -261,27 +203,11 @@ func TestApp(t *testing.T) {
 	tx = &Tx{
 		Sum: &Tx_CreateContractMsg{cmsg},
 	}
-	sig1, err := sigs.SignTx(pk, tx, chainID, 0)
-	require.NoError(t, err)
-	tx.Signatures = []*sigs.StdSignature{sig1}
-	txBytes, err = tx.Marshal()
-	require.NoError(t, err)
-	require.NotEmpty(t, txBytes)
+	dres = signAndCommit(t, myApp, tx, []Signer{{pk, 1}}, chainID, 3)
 
-	// Submit to the chain
-	header = abci.Header{Height: 3}
-	myApp.BeginBlock(abci.RequestBeginBlock{Header: header})
-	// check and deliver must pass
-	chres = myApp.CheckTx(txBytes)
-	require.Equal(t, uint32(0), chres.Code, chres.Log)
-	dres = myApp.DeliverTx(txBytes)
-	require.Equal(t, uint32(0), dres.Code, dres.Log)
-	// make sure commit is proper
-	myApp.EndBlock(abci.RequestEndBlock{})
-	cres = myApp.Commit()
-	block1 = cres.Data
-	assert.NotEmpty(t, block1)
-	assert.Equal(t, chainID, myApp.GetChainID())
+	// retrieve contract ID
+	contractID := dres.Data
+	contractAddr := multisig.MultiSigCondition(contractID).Address()
 
 	// get a contract
 	cquery := abci.RequestQuery{
@@ -296,36 +222,101 @@ func TestApp(t *testing.T) {
 	assert.EqualValues(t, 2, c.ActivationThreshold)
 	assert.EqualValues(t, 2, c.AdminThreshold)
 
+	// create a wallet at contractAddr
+	msg = &cash.SendMsg{
+		Src:  addr,
+		Dest: contractAddr,
+		Amount: &x.Coin{
+			Whole:  2000,
+			Ticker: "ETH",
+		},
+		Memo: "New wallet controlled by a contract",
+	}
+	tx = &Tx{
+		Sum: &Tx_SendMsg{msg},
+	}
+	signAndCommit(t, myApp, tx, []Signer{{pk, 2}}, chainID, 4)
+
 	// build and sign a transaction with contract
 	msg = &cash.SendMsg{
 		Src:  contractAddr,
 		Dest: addr2,
 		Amount: &x.Coin{
-			Whole:  2000,
+			Whole:  1000,
 			Ticker: "ETH",
 		},
-		Memo: "Have a great trip!",
+		Memo: "Gift from a contract!",
 	}
 	tx = &Tx{
 		Sum:      &Tx_SendMsg{msg},
 		Multisig: contractID,
 	}
-	sig1, err = sigs.SignTx(pk, tx, chainID, 1)
-	require.NoError(t, err)
-	sig2, err := sigs.SignTx(pk2, tx, chainID, 0)
-	require.NoError(t, err)
-	tx.Signatures = []*sigs.StdSignature{sig1, sig2}
-	txBytes, err = tx.Marshal()
+	signAndCommit(t, myApp, tx, []Signer{{ck1, 0}, {ck2, 0}}, chainID, 5)
+
+	// make sure money arrived safely
+	contractAddrKey := namecoin.NewWalletBucket().DBKey(contractAddr)
+	cwquery := abci.RequestQuery{
+		Path: "/",
+		Data: contractAddrKey,
+	}
+	cwqres := myApp.Query(cwquery)
+	checkWalletQuery(t, cwqres, "", 1, map[int]int64{0: 1000}, map[int]string{0: "ETH"})
+}
+
+type Signer struct {
+	pk    *crypto.PrivateKey
+	nonce int64
+}
+
+// signAndCommit signs tx with signatures from signers and submits to the chain
+// asserts and fails the test in case of errors during the process
+func signAndCommit(t *testing.T, app app.BaseApp, tx *Tx, signers []Signer, chainID string, blockHeight int64) abci.ResponseDeliverTx {
+	for _, signer := range signers {
+		sig, err := sigs.SignTx(signer.pk, tx, chainID, signer.nonce)
+		require.NoError(t, err)
+		tx.Signatures = append(tx.Signatures, sig)
+	}
+
+	txBytes, err := tx.Marshal()
 	require.NoError(t, err)
 	require.NotEmpty(t, txBytes)
 
 	// Submit to the chain
-	header = abci.Header{Height: 4}
-	myApp.BeginBlock(abci.RequestBeginBlock{Header: header})
+	header := abci.Header{Height: blockHeight}
+	app.BeginBlock(abci.RequestBeginBlock{Header: header})
 	// check and deliver must pass
-	chres = myApp.CheckTx(txBytes)
+	chres := app.CheckTx(txBytes)
 	require.Equal(t, uint32(0), chres.Code, chres.Log)
-	dres = myApp.DeliverTx(txBytes)
+
+	dres := app.DeliverTx(txBytes)
 	require.Equal(t, uint32(0), dres.Code, dres.Log)
 
+	app.EndBlock(abci.RequestEndBlock{})
+	cres := app.Commit()
+	assert.NotEmpty(t, cres.Data)
+	return dres
+}
+
+// checkWalletQuery checks the results of a wallet query along with the received wallet
+// maps are used to the wallet state eg. {0: 50000}, {1:"FRNK"} would assert that the first coin whole is 50000 and
+// the second coin ticker is "ETH" in a wallet of at least 2 coins
+func checkWalletQuery(t *testing.T, res abci.ResponseQuery, name string, nbCoins int, wholes map[int]int64, tickers map[int]string) {
+	// check query was ok
+	require.Equal(t, uint32(0), res.Code, "%#v", res)
+	assert.NotEmpty(t, res.Value)
+
+	var w namecoin.Wallet
+	err := app.UnmarshalOneResult(res.Value, &w)
+	require.NoError(t, err)
+	require.Equal(t, nbCoins, len(w.Coins))
+
+	for idx, whole := range wholes {
+		assert.True(t, len(w.Coins) > idx)
+		assert.Equal(t, whole, w.Coins[idx].Whole)
+	}
+
+	for idx, ticker := range tickers {
+		assert.True(t, len(w.Coins) > idx)
+		assert.Equal(t, ticker, w.Coins[idx].Ticker)
+	}
 }
