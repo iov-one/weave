@@ -85,22 +85,7 @@ func TestApp(t *testing.T) {
 	// build and sign a transaction
 	pk2 := crypto.GenPrivKeyEd25519()
 	addr2 := pk2.PublicKey().Address()
-	msg := &cash.SendMsg{
-		Src:  addr,
-		Dest: addr2,
-		Amount: &x.Coin{
-			Whole:  2000,
-			Ticker: "ETH",
-		},
-		Memo: "Have a great trip!",
-	}
-	tx := &Tx{
-		Sum: &Tx_SendMsg{msg},
-	}
-	dres, cres := signAndCommit(t, myApp, tx, []Signer{{pk, 0}}, chainID, 2)
-	block2 := cres.Data
-	assert.NotEmpty(t, block2)
-	assert.NotEqual(t, block1, block2)
+	dres := sendToken(t, myApp, chainID, 2, []Signer{{pk, 0}}, addr, addr2, 2000, "ETH", "Have a great trip!")
 
 	// ensure 3 keys with proper values
 	if assert.Equal(t, 3, len(dres.Tags), "%#v", dres.Tags) {
@@ -216,129 +201,31 @@ func TestApp(t *testing.T) {
 	recovery1 := crypto.GenPrivKeyEd25519()
 	recovery2 := crypto.GenPrivKeyEd25519()
 	recovery3 := crypto.GenPrivKeyEd25519()
-	signers := [][]byte{
-		recovery1.PublicKey().Address(),
-		recovery2.PublicKey().Address(),
-		recovery3.PublicKey().Address()}
-	cmsg := &multisig.CreateContractMsg{
-		Sigs:                signers,
-		ActivationThreshold: 2,
-		AdminThreshold:      3, // immutable
-	}
-	tx = &Tx{
-		Sum: &Tx_CreateContractMsg{cmsg},
-	}
-	dres, cres = signAndCommit(t, myApp, tx, []Signer{{pk, 1}}, chainID, 3)
-	assert.NotEmpty(t, cres.Data)
-
-	// retrieve contract ID
-	recoveryContract := dres.Data
-	queryAndCheckContract(t, myApp, "/contracts", recoveryContract,
-		multisig.Contract{
-			Sigs:                signers,
-			ActivationThreshold: 2,
-			AdminThreshold:      3,
-		})
+	recoveryContract := createContract(t, myApp, chainID, 3, []Signer{{pk, 1}},
+		2, recovery1.PublicKey().Address(), recovery2.PublicKey().Address(), recovery3.PublicKey().Address())
 
 	// create safeKeyContract contract
 	// can be activated by masterKey or recoveryContract
 	masterKey := crypto.GenPrivKeyEd25519()
-	signers = [][]byte{
-		masterKey.PublicKey().Address(),
-		multisig.MultiSigCondition(recoveryContract).Address(),
-	}
-	cmsg = &multisig.CreateContractMsg{
-		Sigs:                signers,
-		ActivationThreshold: 1,
-		AdminThreshold:      2, // immutable
-	}
-	tx = &Tx{
-		Sum: &Tx_CreateContractMsg{cmsg},
-	}
-	dres, cres = signAndCommit(t, myApp, tx, []Signer{{pk, 2}}, chainID, 4)
-	assert.NotEmpty(t, cres.Data)
-
-	// retrieve contract ID
-	safeKeyContract := dres.Data
-	queryAndCheckContract(t, myApp, "/contracts", safeKeyContract,
-		multisig.Contract{
-			Sigs:                signers,
-			ActivationThreshold: 1,
-			AdminThreshold:      2,
-		})
+	safeKeyContract := createContract(t, myApp, chainID, 4, []Signer{{pk, 2}},
+		1, masterKey.PublicKey().Address(), multisig.MultiSigCondition(recoveryContract).Address())
 
 	// create a wallet controlled by safeKeyContract
 	safeKeyContractAddr := multisig.MultiSigCondition(safeKeyContract).Address()
-	msg = &cash.SendMsg{
-		Src:  addr,
-		Dest: safeKeyContractAddr,
-		Amount: &x.Coin{
-			Whole:  2000,
-			Ticker: "ETH",
-		},
-		Memo: "New wallet controlled by safeKeyContract",
-	}
-	tx = &Tx{
-		Sum: &Tx_SendMsg{msg},
-	}
-	_, cres = signAndCommit(t, myApp, tx, []Signer{{pk, 3}}, chainID, 5)
-	assert.NotEmpty(t, cres.Data)
+	sendToken(t, myApp, chainID, 5, []Signer{{pk, 3}},
+		addr, safeKeyContractAddr, 2000, "ETH", "New wallet controlled by safeKeyContract")
 
 	// build and sign a transaction using master key to activate safeKeyContract
-	msg = &cash.SendMsg{
-		Src:  safeKeyContractAddr,
-		Dest: addr2,
-		Amount: &x.Coin{
-			Whole:  1000,
-			Ticker: "ETH",
-		},
-		Memo: "Gift from a contract!",
-	}
-	tx = &Tx{
-		Sum:      &Tx_SendMsg{msg},
-		Multisig: [][]byte{safeKeyContract},
-	}
-	_, cres = signAndCommit(t, myApp, tx, []Signer{{masterKey, 0}}, chainID, 6)
-	assert.NotEmpty(t, cres.Data)
-
-	// make sure money arrived safely
-	queryAndCheckWallet(t, myApp, "/", key2,
-		namecoin.Wallet{
-			Coins: x.Coins{
-				{
-					Ticker: "ETH",
-					Whole:  3000,
-				},
-			},
-		})
+	receiver := crypto.GenPrivKeyEd25519()
+	sendToken(t, myApp, chainID, 6, []Signer{{masterKey, 0}},
+		safeKeyContractAddr, receiver.PublicKey().Address(), 1000, "ETH", "Gift from a contract!", safeKeyContract)
 
 	// Now do the same operation but using recoveryContract to activate safeKeyContract
-	msg = &cash.SendMsg{
-		Src:  safeKeyContractAddr,
-		Dest: addr2,
-		Amount: &x.Coin{
-			Whole:  1000,
-			Ticker: "ETH",
-		},
-		Memo: "Gift from a contract!",
-	}
-	tx = &Tx{
-		Sum:      &Tx_SendMsg{msg},
-		Multisig: [][]byte{recoveryContract, safeKeyContract},
-	}
-	_, cres = signAndCommit(t, myApp, tx, []Signer{{recovery1, 0}, {recovery2, 0}}, chainID, 7)
-	assert.NotEmpty(t, cres.Data)
-
-	// make sure money arrived safely
-	queryAndCheckWallet(t, myApp, "/", key2,
-		namecoin.Wallet{
-			Coins: x.Coins{
-				{
-					Ticker: "ETH",
-					Whole:  4000,
-				},
-			},
-		})
+	// create a new receiver so it is easy to check its balance (no need to remember previous one)
+	receiver = crypto.GenPrivKeyEd25519()
+	sendToken(t, myApp, chainID, 7, []Signer{{recovery1, 0}, {recovery2, 0}},
+		safeKeyContractAddr, receiver.PublicKey().Address(), 1000, "ETH", "Another gift from a contract!",
+		recoveryContract, safeKeyContract)
 }
 
 type Signer struct {
@@ -346,9 +233,73 @@ type Signer struct {
 	nonce int64
 }
 
+// sendToken creates the transaction, signs it and sends it
+// checks money has arrived safely
+func sendToken(t *testing.T, baseApp app.BaseApp, chainID string, height int64, signers []Signer,
+	from, to []byte, amount int64, ticker, memo string, contracts ...[]byte) abci.ResponseDeliverTx {
+	msg := &cash.SendMsg{
+		Src:  from,
+		Dest: to,
+		Amount: &x.Coin{
+			Whole:  amount,
+			Ticker: ticker,
+		},
+		Memo: memo,
+	}
+
+	tx := &Tx{
+		Sum:      &Tx_SendMsg{msg},
+		Multisig: contracts,
+	}
+
+	res := signAndCommit(t, baseApp, tx, signers, chainID, height)
+
+	// make sure money arrived safely
+	queryAndCheckWallet(t, baseApp, "/wallets", to,
+		namecoin.Wallet{
+			Coins: x.Coins{
+				{
+					Ticker: ticker,
+					Whole:  amount,
+				},
+			},
+		})
+
+	return res
+}
+
+// createContract creates an immutable contract, signs the transaction and sends it
+// checks contract has been created correctly
+func createContract(t *testing.T, baseApp app.BaseApp, chainID string, height int64, signers []Signer,
+	activationThreshold int64, contractSigs ...[]byte) []byte {
+	msg := &multisig.CreateContractMsg{
+		Sigs:                contractSigs,
+		ActivationThreshold: activationThreshold,
+		AdminThreshold:      int64(len(contractSigs)), // immutable
+	}
+
+	tx := &Tx{
+		Sum: &Tx_CreateContractMsg{msg},
+	}
+
+	dres := signAndCommit(t, baseApp, tx, signers, chainID, height)
+
+	// retrieve contract ID and check contract was correctly created
+	contractID := dres.Data
+	queryAndCheckContract(t, baseApp, "/contracts", contractID,
+		multisig.Contract{
+			Sigs:                contractSigs,
+			ActivationThreshold: activationThreshold,
+			AdminThreshold:      int64(len(contractSigs)),
+		})
+
+	return contractID
+}
+
 // signAndCommit signs tx with signatures from signers and submits to the chain
 // asserts and fails the test in case of errors during the process
-func signAndCommit(t *testing.T, app app.BaseApp, tx *Tx, signers []Signer, chainID string, blockHeight int64) (abci.ResponseDeliverTx, abci.ResponseCommit) {
+func signAndCommit(t *testing.T, app app.BaseApp, tx *Tx, signers []Signer, chainID string,
+	height int64) abci.ResponseDeliverTx {
 	for _, signer := range signers {
 		sig, err := sigs.SignTx(signer.pk, tx, chainID, signer.nonce)
 		require.NoError(t, err)
@@ -360,7 +311,7 @@ func signAndCommit(t *testing.T, app app.BaseApp, tx *Tx, signers []Signer, chai
 	require.NotEmpty(t, txBytes)
 
 	// Submit to the chain
-	header := abci.Header{Height: blockHeight}
+	header := abci.Header{Height: height}
 	app.BeginBlock(abci.RequestBeginBlock{Header: header})
 	// check and deliver must pass
 	chres := app.CheckTx(txBytes)
@@ -371,9 +322,11 @@ func signAndCommit(t *testing.T, app app.BaseApp, tx *Tx, signers []Signer, chai
 
 	app.EndBlock(abci.RequestEndBlock{})
 	cres := app.Commit()
-	return dres, cres
+	assert.NotEmpty(t, cres.Data)
+	return dres
 }
 
+// queryAndCheckWallet queries the wallet from the chain and check it is the one expected
 func queryAndCheckWallet(t *testing.T, baseApp app.BaseApp, path string, data []byte, expected namecoin.Wallet) {
 	query := abci.RequestQuery{Path: path, Data: data}
 	res := baseApp.Query(query)
@@ -388,6 +341,7 @@ func queryAndCheckWallet(t *testing.T, baseApp app.BaseApp, path string, data []
 	require.Equal(t, expected, actual)
 }
 
+// queryAndCheckContract queries the contract from the chain and check it is the one expected
 func queryAndCheckContract(t *testing.T, baseApp app.BaseApp, path string, data []byte, expected multisig.Contract) {
 	query := abci.RequestQuery{Path: path, Data: data}
 	res := baseApp.Query(query)
@@ -402,6 +356,7 @@ func queryAndCheckContract(t *testing.T, baseApp app.BaseApp, path string, data 
 	require.Equal(t, expected, actual)
 }
 
+// queryAndCheckToken queries tokens from the chain and check they're the one expected
 func queryAndCheckToken(t *testing.T, baseApp app.BaseApp, path string, data []byte, expected []namecoin.Token) {
 	query := abci.RequestQuery{Path: path, Data: data}
 	res := baseApp.Query(query)
