@@ -61,7 +61,6 @@ func Router(authFn x.Authenticator, issuer weave.Address) app.Router {
 	escrow.RegisterRoutes(r, authFn, namecoin.NewController())
 	multisig.RegisterRoutes(r, authFn)
 	validators.RegisterRoutes(r, authFn, validators.NewController())
-	username.RegisterRoutes(r, authFn, issuer)
 	return r
 }
 
@@ -73,7 +72,6 @@ func QueryRouter() weave.QueryRouter {
 		escrow.RegisterQuery,
 		namecoin.RegisterQuery,
 		sigs.RegisterQuery,
-		username.RegisterQuery,
 		orm.RegisterQuery,
 		multisig.RegisterQuery,
 		validators.RegisterQuery,
