@@ -41,6 +41,14 @@ func TestIssueTokenMsgValidate(t *testing.T) {
 			},
 			expError: false,
 		},
+		{ // other characters
+			msg: username.IssueTokenMsg{
+				Owner:   alice.Address(),
+				Id:      []byte("+-,._@"),
+				Details: username.TokenDetails{},
+			},
+			expError: false,
+		},
 		{ // owner missing
 			msg: username.IssueTokenMsg{
 				Id:      []byte("alice@example.com"),
@@ -67,7 +75,7 @@ func TestIssueTokenMsgValidate(t *testing.T) {
 		{ // id too long
 			msg: username.IssueTokenMsg{
 				Owner:   alice.Address(),
-				Id:      anyIDWithLength(257),
+				Id:      anyIDWithLength(65),
 				Details: username.TokenDetails{},
 			},
 			expError: true,
@@ -95,6 +103,90 @@ func TestIssueTokenMsgValidate(t *testing.T) {
 	}
 }
 
+func TestAddChainAddressMsgValidate(t *testing.T) {
+	specs := []struct {
+		msg      username.AddChainAddressMsg
+		expError bool
+	}{
+		{ // happy path
+			msg: username.AddChainAddressMsg{
+				Id:      []byte("me@example.com"),
+				ChainID: []byte("myChain"),
+				Address: []byte("myChainAddress"),
+			},
+		}, { // address can be empty
+			msg: username.AddChainAddressMsg{
+				Id:      []byte("me@example.com"),
+				ChainID: []byte("myChain"),
+			},
+		}, { // id missing
+			msg: username.AddChainAddressMsg{
+				ChainID: []byte("myChain"),
+				Address: []byte("myChainAddress"),
+			},
+			expError: true,
+		},
+		{ // chainID missing
+			msg: username.AddChainAddressMsg{
+				Id:      []byte("me@example.com"),
+				Address: []byte("myChainAddress"),
+			},
+			expError: true,
+		},
+	}
+	for i, spec := range specs {
+		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
+			err := spec.msg.Validate()
+			if spec.expError {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
+func TestRemoveChainAddressMsgValidate(t *testing.T) {
+	specs := []struct {
+		msg      username.RemoveChainAddressMsg
+		expError bool
+	}{
+		{ // happy path
+			msg: username.RemoveChainAddressMsg{
+				Id:      []byte("me@example.com"),
+				ChainID: []byte("myChain"),
+				Address: []byte("myChainAddress"),
+			},
+		}, { // address can be empty
+			msg: username.RemoveChainAddressMsg{
+				Id:      []byte("me@example.com"),
+				ChainID: []byte("myChain"),
+			},
+		}, { // id missing
+			msg: username.RemoveChainAddressMsg{
+				ChainID: []byte("myChain"),
+				Address: []byte("myChainAddress"),
+			},
+			expError: true,
+		},
+		{ // chainID missing
+			msg: username.RemoveChainAddressMsg{
+				Id:      []byte("me@example.com"),
+				Address: []byte("myChainAddress"),
+			},
+			expError: true,
+		},
+	}
+	for i, spec := range specs {
+		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
+			err := spec.msg.Validate()
+			if spec.expError {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
 func anyIDWithLength(n int) []byte {
 	r := make([]byte, n)
 	for i := 0; i < n; i++ {
