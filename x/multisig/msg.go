@@ -1,8 +1,6 @@
 package multisig
 
-import (
-	"github.com/iov-one/weave"
-)
+import "github.com/iov-one/weave"
 
 const (
 	pathCreateContractMsg = "multisig/create"

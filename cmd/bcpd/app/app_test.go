@@ -67,29 +67,25 @@ func TestApp(t *testing.T) {
 
 	// Query for my balance
 	key := namecoin.NewWalletBucket().DBKey(addr)
-	query := abci.RequestQuery{
-		Path: "/",
-		Data: key,
-	}
-	qres := myApp.Query(query)
-	checkWalletQuery(t, qres, "demote", 2, map[int]int64{0: 50000}, map[int]string{1: "FRNK"})
+	queryAndCheckWallet(t, myApp, "/", key,
+		namecoin.Wallet{
+			Name: "demote",
+			Coins: x.Coins{
+				{
+					Ticker: "ETH",
+					Whole:  50000,
+				},
+				{
+					Ticker: "FRNK",
+					Whole:  1234,
+				},
+			},
+		})
 
 	// build and sign a transaction
 	pk2 := crypto.GenPrivKeyEd25519()
 	addr2 := pk2.PublicKey().Address()
-	msg := &cash.SendMsg{
-		Src:  addr,
-		Dest: addr2,
-		Amount: &x.Coin{
-			Whole:  2000,
-			Ticker: "ETH",
-		},
-		Memo: "Have a great trip!",
-	}
-	tx := &Tx{
-		Sum: &Tx_SendMsg{msg},
-	}
-	dres := signAndCommit(t, myApp, tx, []Signer{{pk, 0}}, chainID, 2)
+	dres := sendToken(t, myApp, chainID, 2, []Signer{{pk, 0}}, addr, addr2, 2000, "ETH", "Have a great trip!")
 
 	// ensure 3 keys with proper values
 	if assert.Equal(t, 3, len(dres.Tags), "%#v", dres.Tags) {
@@ -114,153 +110,122 @@ func TestApp(t *testing.T) {
 	}
 
 	// Query for new balances (same query, new state)
-	qres = myApp.Query(query)
-	checkWalletQuery(t, qres, "demote", 2, map[int]int64{0: 48000, 1: 1234}, nil)
+	queryAndCheckWallet(t, myApp, "/", key,
+		namecoin.Wallet{
+			Name: "demote",
+			Coins: x.Coins{
+				{
+					Ticker: "ETH",
+					Whole:  48000,
+				},
+				{
+					Ticker: "FRNK",
+					Whole:  1234,
+				},
+			},
+		})
 
 	// make sure money arrived safely
 	key2 := namecoin.NewWalletBucket().DBKey(addr2)
-	query2 := abci.RequestQuery{
-		Path: "/",
-		Data: key2,
-	}
-	qres2 := myApp.Query(query2)
-	checkWalletQuery(t, qres2, "", 1, map[int]int64{0: 2000}, map[int]string{0: "ETH"})
+	queryAndCheckWallet(t, myApp, "/", key2,
+		namecoin.Wallet{
+			Coins: x.Coins{
+				{
+					Ticker: "ETH",
+					Whole:  2000,
+				},
+			},
+		})
 
 	// make sure other paths also get this value....
-	query3 := abci.RequestQuery{
-		Path: "/wallets",
-		Data: addr2,
-	}
-	qres3 := myApp.Query(query3)
-	require.Equal(t, uint32(0), qres3.Code, "%#v", qres3)
-	assert.Equal(t, qres2.Key, qres3.Key)
-	assert.Equal(t, qres2.Value, qres3.Value)
+	queryAndCheckWallet(t, myApp, "/wallets", addr2,
+		namecoin.Wallet{
+			Coins: x.Coins{
+				{
+					Ticker: "ETH",
+					Whole:  2000,
+				},
+			},
+		})
 
 	// make sure other paths also get this value....
-	query4 := abci.RequestQuery{
-		Path: "/wallets?prefix",
-		Data: addr2[:15],
-	}
-	qres4 := myApp.Query(query4)
-	require.Equal(t, uint32(0), qres4.Code, "%#v", qres4)
-	assert.Equal(t, qres2.Key, qres4.Key)
-	assert.Equal(t, qres2.Value, qres4.Value)
+	queryAndCheckWallet(t, myApp, "/wallets?prefix", addr2[:15],
+		namecoin.Wallet{
+			Coins: x.Coins{
+				{
+					Ticker: "ETH",
+					Whole:  2000,
+				},
+			},
+		})
 
 	// and we can query by name (sender account)
-	query5 := abci.RequestQuery{
-		Path: "/wallets/name",
-		Data: []byte("demote"),
-	}
-	qres5 := myApp.Query(query5)
-	require.Equal(t, uint32(0), qres5.Code, "%#v", qres5)
-	assert.Equal(t, qres.Key, qres5.Key)
-	assert.Equal(t, qres.Value, qres5.Value)
+	queryAndCheckWallet(t, myApp, "/wallets/name", []byte("demote"),
+		namecoin.Wallet{
+			Name: "demote",
+			Coins: x.Coins{
+				{
+					Ticker: "ETH",
+					Whole:  48000,
+				},
+				{
+					Ticker: "FRNK",
+					Whole:  1234,
+				},
+			},
+		})
 
 	// get a token
-	tquery := abci.RequestQuery{
-		Path: "/tokens",
-		Data: []byte("ETH"),
-	}
-	var toke namecoin.Token
-	tres := myApp.Query(tquery)
-	err = app.UnmarshalOneResult(tres.Value, &toke)
-	require.NoError(t, err)
-	assert.Equal(t, int32(9), toke.SigFigs)
-	assert.Equal(t, "Smells like ethereum", toke.Name)
+	queryAndCheckToken(t, myApp, "/tokens", []byte("ETH"),
+		[]namecoin.Token{
+			{
+				Name:    "Smells like ethereum",
+				SigFigs: int32(9),
+			},
+		})
 
 	// get all tokens
-	aquery := abci.RequestQuery{
-		Path: "/tokens?prefix",
-	}
-	ares := myApp.Query(aquery)
-	var set app.ResultSet
-	err = set.Unmarshal(ares.Value)
-	require.NoError(t, err)
-	assert.Equal(t, 2, len(set.Results))
-	err = toke.Unmarshal(set.Results[1])
-	require.NoError(t, err)
-	assert.Equal(t, int32(3), toke.SigFigs)
-	assert.Equal(t, "Frankie", toke.Name)
+	queryAndCheckToken(t, myApp, "/tokens?prefix", nil,
+		[]namecoin.Token{
+			{
+				Name:    "Smells like ethereum",
+				SigFigs: int32(9),
+			},
+			{
+				Name:    "Frankie",
+				SigFigs: int32(3),
+			},
+		})
 
-	// testing multisig contract
-	// first create a contract
-	// then a wallet at the contract address
-	// finaly send money from the wallet controlled by contractAddr
+	// create recoveryContract
+	recovery1 := crypto.GenPrivKeyEd25519()
+	recovery2 := crypto.GenPrivKeyEd25519()
+	recovery3 := crypto.GenPrivKeyEd25519()
+	recoveryContract := createContract(t, myApp, chainID, 3, []Signer{{pk, 1}},
+		2, recovery1.PublicKey().Address(), recovery2.PublicKey().Address(), recovery3.PublicKey().Address())
 
-	// create contract
-	ck1 := crypto.GenPrivKeyEd25519()
-	ck2 := crypto.GenPrivKeyEd25519()
-	ck3 := crypto.GenPrivKeyEd25519()
-	signers := [][]byte{
-		ck1.PublicKey().Address(),
-		ck2.PublicKey().Address(),
-		ck3.PublicKey().Address()}
-	cmsg := &multisig.CreateContractMsg{
-		Sigs:                signers,
-		ActivationThreshold: 2,
-		AdminThreshold:      2,
-	}
-	tx = &Tx{
-		Sum: &Tx_CreateContractMsg{cmsg},
-	}
-	dres = signAndCommit(t, myApp, tx, []Signer{{pk, 1}}, chainID, 3)
+	// create safeKeyContract contract
+	// can be activated by masterKey or recoveryContract
+	masterKey := crypto.GenPrivKeyEd25519()
+	safeKeyContract := createContract(t, myApp, chainID, 4, []Signer{{pk, 2}},
+		1, masterKey.PublicKey().Address(), multisig.MultiSigCondition(recoveryContract).Address())
 
-	// retrieve contract ID
-	contractID := dres.Data
-	contractAddr := multisig.MultiSigCondition(contractID).Address()
+	// create a wallet controlled by safeKeyContract
+	safeKeyContractAddr := multisig.MultiSigCondition(safeKeyContract).Address()
+	sendToken(t, myApp, chainID, 5, []Signer{{pk, 3}},
+		addr, safeKeyContractAddr, 2000, "ETH", "New wallet controlled by safeKeyContract")
 
-	// get a contract
-	cquery := abci.RequestQuery{
-		Path: "/contracts",
-		Data: contractID,
-	}
-	var c multisig.Contract
-	cqres := myApp.Query(cquery)
-	err = app.UnmarshalOneResult(cqres.Value, &c)
-	require.NoError(t, err)
-	assert.Equal(t, signers, c.Sigs)
-	assert.EqualValues(t, 2, c.ActivationThreshold)
-	assert.EqualValues(t, 2, c.AdminThreshold)
+	// build and sign a transaction using master key to activate safeKeyContract
+	receiver := crypto.GenPrivKeyEd25519()
+	sendToken(t, myApp, chainID, 6, []Signer{{masterKey, 0}},
+		safeKeyContractAddr, receiver.PublicKey().Address(), 1000, "ETH", "Gift from a contract!", safeKeyContract)
 
-	// create a wallet at contractAddr
-	msg = &cash.SendMsg{
-		Src:  addr,
-		Dest: contractAddr,
-		Amount: &x.Coin{
-			Whole:  2000,
-			Ticker: "ETH",
-		},
-		Memo: "New wallet controlled by a contract",
-	}
-	tx = &Tx{
-		Sum: &Tx_SendMsg{msg},
-	}
-	signAndCommit(t, myApp, tx, []Signer{{pk, 2}}, chainID, 4)
-
-	// build and sign a transaction with contract
-	msg = &cash.SendMsg{
-		Src:  contractAddr,
-		Dest: addr2,
-		Amount: &x.Coin{
-			Whole:  1000,
-			Ticker: "ETH",
-		},
-		Memo: "Gift from a contract!",
-	}
-	tx = &Tx{
-		Sum:      &Tx_SendMsg{msg},
-		Multisig: contractID,
-	}
-	signAndCommit(t, myApp, tx, []Signer{{ck1, 0}, {ck2, 0}}, chainID, 5)
-
-	// make sure money arrived safely
-	contractAddrKey := namecoin.NewWalletBucket().DBKey(contractAddr)
-	cwquery := abci.RequestQuery{
-		Path: "/",
-		Data: contractAddrKey,
-	}
-	cwqres := myApp.Query(cwquery)
-	checkWalletQuery(t, cwqres, "", 1, map[int]int64{0: 1000}, map[int]string{0: "ETH"})
+	// Now do the same operation but using recoveryContract to activate safeKeyContract
+	// create a new receiver so it is easy to check its balance (no need to remember previous one)
+	receiver = crypto.GenPrivKeyEd25519()
+	sendToken(t, myApp, chainID, 7, []Signer{{recovery1, 0}, {recovery2, 0}},
+		safeKeyContractAddr, receiver.PublicKey().Address(), 1000, "ETH", "Another gift from a contract!",
+		recoveryContract, safeKeyContract)
 }
 
 type Signer struct {
@@ -268,9 +233,73 @@ type Signer struct {
 	nonce int64
 }
 
+// sendToken creates the transaction, signs it and sends it
+// checks money has arrived safely
+func sendToken(t *testing.T, baseApp app.BaseApp, chainID string, height int64, signers []Signer,
+	from, to []byte, amount int64, ticker, memo string, contracts ...[]byte) abci.ResponseDeliverTx {
+	msg := &cash.SendMsg{
+		Src:  from,
+		Dest: to,
+		Amount: &x.Coin{
+			Whole:  amount,
+			Ticker: ticker,
+		},
+		Memo: memo,
+	}
+
+	tx := &Tx{
+		Sum:      &Tx_SendMsg{msg},
+		Multisig: contracts,
+	}
+
+	res := signAndCommit(t, baseApp, tx, signers, chainID, height)
+
+	// make sure money arrived safely
+	queryAndCheckWallet(t, baseApp, "/wallets", to,
+		namecoin.Wallet{
+			Coins: x.Coins{
+				{
+					Ticker: ticker,
+					Whole:  amount,
+				},
+			},
+		})
+
+	return res
+}
+
+// createContract creates an immutable contract, signs the transaction and sends it
+// checks contract has been created correctly
+func createContract(t *testing.T, baseApp app.BaseApp, chainID string, height int64, signers []Signer,
+	activationThreshold int64, contractSigs ...[]byte) []byte {
+	msg := &multisig.CreateContractMsg{
+		Sigs:                contractSigs,
+		ActivationThreshold: activationThreshold,
+		AdminThreshold:      int64(len(contractSigs)) + 1, // immutable
+	}
+
+	tx := &Tx{
+		Sum: &Tx_CreateContractMsg{msg},
+	}
+
+	dres := signAndCommit(t, baseApp, tx, signers, chainID, height)
+
+	// retrieve contract ID and check contract was correctly created
+	contractID := dres.Data
+	queryAndCheckContract(t, baseApp, "/contracts", contractID,
+		multisig.Contract{
+			Sigs:                contractSigs,
+			ActivationThreshold: activationThreshold,
+			AdminThreshold:      int64(len(contractSigs)) + 1,
+		})
+
+	return contractID
+}
+
 // signAndCommit signs tx with signatures from signers and submits to the chain
 // asserts and fails the test in case of errors during the process
-func signAndCommit(t *testing.T, app app.BaseApp, tx *Tx, signers []Signer, chainID string, blockHeight int64) abci.ResponseDeliverTx {
+func signAndCommit(t *testing.T, app app.BaseApp, tx *Tx, signers []Signer, chainID string,
+	height int64) abci.ResponseDeliverTx {
 	for _, signer := range signers {
 		sig, err := sigs.SignTx(signer.pk, tx, chainID, signer.nonce)
 		require.NoError(t, err)
@@ -282,7 +311,7 @@ func signAndCommit(t *testing.T, app app.BaseApp, tx *Tx, signers []Signer, chai
 	require.NotEmpty(t, txBytes)
 
 	// Submit to the chain
-	header := abci.Header{Height: blockHeight}
+	header := abci.Header{Height: height}
 	app.BeginBlock(abci.RequestBeginBlock{Header: header})
 	// check and deliver must pass
 	chres := app.CheckTx(txBytes)
@@ -297,26 +326,50 @@ func signAndCommit(t *testing.T, app app.BaseApp, tx *Tx, signers []Signer, chai
 	return dres
 }
 
-// checkWalletQuery checks the results of a wallet query along with the received wallet
-// maps are used to the wallet state eg. {0: 50000}, {1:"FRNK"} would assert that the first coin whole is 50000 and
-// the second coin ticker is "ETH" in a wallet of at least 2 coins
-func checkWalletQuery(t *testing.T, res abci.ResponseQuery, name string, nbCoins int, wholes map[int]int64, tickers map[int]string) {
+// queryAndCheckWallet queries the wallet from the chain and check it is the one expected
+func queryAndCheckWallet(t *testing.T, baseApp app.BaseApp, path string, data []byte, expected namecoin.Wallet) {
+	query := abci.RequestQuery{Path: path, Data: data}
+	res := baseApp.Query(query)
+
 	// check query was ok
 	require.Equal(t, uint32(0), res.Code, "%#v", res)
 	assert.NotEmpty(t, res.Value)
 
-	var w namecoin.Wallet
-	err := app.UnmarshalOneResult(res.Value, &w)
+	var actual namecoin.Wallet
+	err := app.UnmarshalOneResult(res.Value, &actual)
 	require.NoError(t, err)
-	require.Equal(t, nbCoins, len(w.Coins))
+	require.Equal(t, expected, actual)
+}
 
-	for idx, whole := range wholes {
-		assert.True(t, len(w.Coins) > idx)
-		assert.Equal(t, whole, w.Coins[idx].Whole)
-	}
+// queryAndCheckContract queries the contract from the chain and check it is the one expected
+func queryAndCheckContract(t *testing.T, baseApp app.BaseApp, path string, data []byte, expected multisig.Contract) {
+	query := abci.RequestQuery{Path: path, Data: data}
+	res := baseApp.Query(query)
 
-	for idx, ticker := range tickers {
-		assert.True(t, len(w.Coins) > idx)
-		assert.Equal(t, ticker, w.Coins[idx].Ticker)
+	// check query was ok
+	require.Equal(t, uint32(0), res.Code, "%#v", res)
+	assert.NotEmpty(t, res.Value)
+
+	var actual multisig.Contract
+	err := app.UnmarshalOneResult(res.Value, &actual)
+	require.NoError(t, err)
+	require.Equal(t, expected, actual)
+}
+
+// queryAndCheckToken queries tokens from the chain and check they're the one expected
+func queryAndCheckToken(t *testing.T, baseApp app.BaseApp, path string, data []byte, expected []namecoin.Token) {
+	query := abci.RequestQuery{Path: path, Data: data}
+	res := baseApp.Query(query)
+
+	var set app.ResultSet
+	err := set.Unmarshal(res.Value)
+	require.NoError(t, err)
+	assert.Equal(t, len(expected), len(set.Results))
+
+	for i, obj := range set.Results {
+		var actual namecoin.Token
+		err = actual.Unmarshal(obj)
+		require.NoError(t, err)
+		require.Equal(t, expected[i], actual)
 	}
 }
