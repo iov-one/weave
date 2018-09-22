@@ -23,7 +23,7 @@ func NewHumanAddressToken(key []byte, owner weave.Address) *orm.SimpleObj {
 	})
 }
 
-func (b Bucket) Create(db weave.KVStore, owner weave.Address, id []byte, pubKeys []PublicKey) (orm.Object, error) {
+func (b Bucket) Create(db weave.KVStore, owner weave.Address, id []byte, addresses []ChainAddress) (orm.Object, error) {
 	obj, err := b.Get(db, id)
 	switch {
 	case err != nil:
@@ -36,5 +36,5 @@ func (b Bucket) Create(db weave.KVStore, owner weave.Address, id []byte, pubKeys
 	if err != nil {
 		return nil, err
 	}
-	return obj, humanAddress.SetPubKeys(owner, pubKeys)
+	return obj, humanAddress.SetChainAddresses(owner, addresses)
 }

@@ -29,12 +29,12 @@ func TestTokenClone(t *testing.T) {
 						}},
 				}},
 			Details: &username.TokenDetails{
-				[]username.PublicKey{{Data: alice, Algorithm: "any"}},
+				[]username.ChainAddress{{ChainID: []byte("myChainID"), Address: alice.Address()}},
 			},
 		},
 		{Base: &nft.NonFungibleToken{}, Details: &username.TokenDetails{}},
 		{Base: &nft.NonFungibleToken{}, Details: &username.TokenDetails{
-			Keys: []username.PublicKey{}},
+			Addresses: []username.ChainAddress{}},
 		},
 		{Base: &nft.NonFungibleToken{ActionApprovals: []*nft.ActionApprovals{}}, Details: &username.TokenDetails{}},
 		{
@@ -58,21 +58,48 @@ func equals(t *testing.T, expected username.UsernameToken, actual username.Usern
 	} else {
 		assert.Len(t, actual.Base.ActionApprovals, 0)
 	}
-	if expected.Details.Keys != nil {
-		assert.Equal(t, expected.Details.Keys, actual.Details.Keys)
+	if expected.Details.Addresses != nil {
+		assert.Equal(t, expected.Details.Addresses, actual.Details.Addresses)
 	} else {
-		assert.Len(t, actual.Details.Keys, 0)
+		assert.Len(t, actual.Details.Addresses, 0)
 	}
 }
 
 func TestTokenDetailsClone(t *testing.T) {
-	source := username.TokenDetails{[]username.PublicKey{{Data: []byte("foo")}, {Data: []byte("bar")}}}
+	source := username.TokenDetails{[]username.ChainAddress{{ChainID: []byte("foo")}, {ChainID: []byte("bar")}}}
 	myClone := source.Clone()
 	// when
-	source.Keys[0].Data = source.Keys[0].Data[1:]
-	source.Keys = append(source.Keys, username.PublicKey{})
+	source.Addresses[0].ChainID = source.Addresses[0].ChainID[1:]
+	source.Addresses = append(source.Addresses, username.ChainAddress{})
 
 	assert.NotEqual(t, source, myClone)
-	assert.Len(t, myClone.Keys, 2)
-	assert.Equal(t, []username.PublicKey{{Data: []byte("foo")}, {Data: []byte("bar")}}, myClone.Keys)
+	assert.Len(t, myClone.Addresses, 2)
+	assert.Equal(t, []username.ChainAddress{{ChainID: []byte("foo")}, {ChainID: []byte("bar")}}, myClone.Addresses)
+}
+
+func TestChainAddressValidation(t *testing.T) {
+	specs := []struct {
+		chainID  string
+		address  []byte
+		expError bool
+	}{
+		{chainID: "1234", address: []byte("123456789012"), expError: false},
+		{chainID: "1234", address: anyIDWithLength(50), expError: false},
+		{chainID: "1234", address: []byte{}, expError: false},
+		{chainID: "1234", address: nil, expError: false},
+		{chainID: "", address: []byte("123456789012"), expError: true},
+		{chainID: "1234", address: []byte("12345678901"), expError: true},
+		{chainID: "1234", address: anyIDWithLength(51), expError: true},
+		{chainID: string(anyIDWithLength(256)), address: []byte("123456789012"), expError: true},
+	}
+	for i, spec := range specs {
+		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
+			c := username.ChainAddress{ChainID: []byte(spec.chainID), Address: []byte(spec.address)}
+			if spec.expError {
+				assert.Error(t, c.Validate())
+			} else {
+				assert.NoError(t, c.Validate())
+			}
+		})
+	}
 }
