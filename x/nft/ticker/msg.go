@@ -1,4 +1,4 @@
-package blockchain
+package ticker
 
 import (
 	"regexp"
@@ -11,12 +11,12 @@ import (
 var _ weave.Msg = (*IssueTokenMsg)(nil)
 
 const (
-	pathIssueTokenMsg = "nft/blockchain/issue"
+	pathIssueTokenMsg = "nft/ticker/issue"
 )
 
 var (
 	//todo: revisit pattern
-	IsValidID = regexp.MustCompile(`^[a-zA-Z0-9_.]{4,256}$`).MatchString
+	IsValidID = regexp.MustCompile(`^[A-Z0-9]{3,4}$`).MatchString
 )
 
 // Path returns the routing path for this message
