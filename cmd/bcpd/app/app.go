@@ -64,7 +64,7 @@ func Router(authFn x.Authenticator, issuer weave.Address) app.Router {
 }
 
 // QueryRouter returns a default query router,
-// allowing access to "/wallets", "/auth", "/", and "/escrows"
+// allowing access to "/wallets", "/validators", "/auth", "/", and "/escrows"
 func QueryRouter() weave.QueryRouter {
 	r := weave.NewQueryRouter()
 	r.RegisterAll(
@@ -73,6 +73,7 @@ func QueryRouter() weave.QueryRouter {
 		sigs.RegisterQuery,
 		orm.RegisterQuery,
 		multisig.RegisterQuery,
+		validators.RegisterQuery,
 	)
 	return r
 }
