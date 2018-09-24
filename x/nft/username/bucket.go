@@ -6,17 +6,21 @@ import (
 	"github.com/iov-one/weave/x/nft"
 )
 
+const (
+	BucketName = "usrnft"
+)
+
 type Bucket struct {
 	orm.Bucket
 }
 
 func NewBucket() Bucket {
 	return Bucket{
-		Bucket: nft.WithOwnerIndex(orm.NewBucket(BucketName, NewHumanAddressToken(nil, nil))),
+		Bucket: nft.WithOwnerIndex(orm.NewBucket(BucketName, NewUsernameToken(nil, nil))),
 	}
 }
 
-func NewHumanAddressToken(key []byte, owner weave.Address) *orm.SimpleObj {
+func NewUsernameToken(key []byte, owner weave.Address) *orm.SimpleObj {
 	return orm.NewSimpleObj(key, &UsernameToken{
 		Base:    nft.NewNonFungibleToken(key, owner),
 		Details: &TokenDetails{},
@@ -31,7 +35,7 @@ func (b Bucket) Create(db weave.KVStore, owner weave.Address, id []byte, address
 	case obj != nil:
 		return nil, orm.ErrUniqueConstraint("id exists already")
 	}
-	obj = NewHumanAddressToken(id, owner)
+	obj = NewUsernameToken(id, owner)
 	humanAddress, err := AsUsername(obj)
 	if err != nil {
 		return nil, err
