@@ -8,8 +8,8 @@ import (
 )
 
 const (
-	ActionUpdateDetails = "baseUpdateDetails"
-	ActionTransfer      = "baseActionTransfer"
+	ActionUpdateDetails = "BASE_UPDATE_DETAILS"
+	ActionTransfer      = "BASE_ACTION_TRANSFER"
 )
 
 const UnlimitedCount = -1
@@ -28,16 +28,8 @@ func (m *ActionApprovals) Clone() *ActionApprovals {
 
 func (m *Approval) Clone() *Approval {
 	x := *m
-	// We should not allow nil options here, so a panic is fine
-	x.Options = x.Options.Clone()
 	return &x
 }
-
-func (m *ApprovalOptions) Clone() *ApprovalOptions {
-	x := *m
-	return &x
-}
-
 func (m ApprovalMeta) Clone() ApprovalMeta {
 	x := m
 	approvals := make([]*Approval, 0)
@@ -62,10 +54,7 @@ func (a *Approval) Equals(o *Approval) bool {
 		a.Options.Equals(o.Options)
 }
 
-func (a *ApprovalOptions) Equals(o *ApprovalOptions) bool {
-	if a == nil && o == nil || a == o {
-		return true
-	}
+func (a ApprovalOptions) Equals(o ApprovalOptions) bool {
 	return a.Immutable == o.Immutable && a.Count == o.Count && a.UntilBlockHeight == o.UntilBlockHeight
 }
 
