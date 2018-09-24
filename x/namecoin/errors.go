@@ -62,7 +62,7 @@ func ErrInvalidWalletName(name string) error {
 	return errors.WithLog(name, errInvalidWalletName, CodeInvalidWallet)
 }
 func ErrNoSuchWallet(addr []byte) error {
-	name := fmt.Sprintf("%s", addr)
+	name := fmt.Sprintf("%X", addr)
 	return errors.WithLog(name, errNoSuchWallet, CodeInvalidWallet)
 }
 func IsInvalidWallet(err error) bool {

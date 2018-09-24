@@ -241,6 +241,10 @@ func TestSetNameHandler(t *testing.T) {
 		// cannot create conflict - only checked deliver?
 		8: {perm, []orm.Object{newUser, dupUser}, msg,
 			noErr, orm.IsUniqueConstraintErr, nil, nil},
+		// cannot change - no such a wallet (should should up by addr2 not addr)
+		9: {perm, []orm.Object{dupUser}, msg, noErr,
+			func(err error) bool { return errors.IsSameError(err, ErrNoSuchWallet(addr)) },
+			addr, nil},
 	}
 
 	for i, tc := range cases {
