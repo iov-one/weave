@@ -8,8 +8,8 @@ import (
 )
 
 const (
-	ActionUpdateDetails = "baseUpdateDetails"
-	ActionTransfer      = "baseActionTransfer"
+	ActionUpdateDetails = "BASE_UPDATE_DETAILS"
+	ActionTransfer      = "BASE_ACTION_TRANSFER"
 )
 
 const UnlimitedCount = -1
