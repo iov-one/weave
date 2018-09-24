@@ -30,10 +30,6 @@ func (m *AddApprovalMsg) Validate() error {
 	if m.Action == "" {
 		return errors.ErrInternal("action must not be empty")
 	}
-	//TODO: Figure out if we care, as we have a default in ops now that adds infinite count
-	if m.Options == nil {
-		return errors.ErrInternal("options must not be nil")
-	}
 	//TODO: Figure out whether we need to incorporate same check as in NFT
 	if len(m.Id) == 0 {
 		return errors.ErrInternal("id must not be empty")
