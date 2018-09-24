@@ -9,8 +9,8 @@ var _ weave.Msg = (*AddApprovalMsg)(nil)
 var _ weave.Msg = (*RemoveApprovalMsg)(nil)
 
 const (
-	pathAddApproval    = "nft/add-approval"
-	pathRemoveApproval = "nft/remove-approval"
+	pathAddApproval    = "nft/approval/add"
+	pathRemoveApproval = "nft/approval/remove"
 )
 
 // Path returns the routing path for this message
