@@ -10,8 +10,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/iov-one/weave/x/multisig"
-
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/app"
 	"github.com/iov-one/weave/orm"
@@ -19,9 +17,11 @@ import (
 	"github.com/iov-one/weave/x"
 	"github.com/iov-one/weave/x/escrow"
 	"github.com/iov-one/weave/x/hashlock"
+	"github.com/iov-one/weave/x/multisig"
 	"github.com/iov-one/weave/x/namecoin"
 	"github.com/iov-one/weave/x/sigs"
 	"github.com/iov-one/weave/x/utils"
+	"github.com/iov-one/weave/x/validators"
 )
 
 // Authenticator returns the typical authentication,
@@ -59,11 +59,12 @@ func Router(authFn x.Authenticator, issuer weave.Address) app.Router {
 	// TODO: move to cash upon refactor
 	escrow.RegisterRoutes(r, authFn, namecoin.NewController())
 	multisig.RegisterRoutes(r, authFn)
+	validators.RegisterRoutes(r, authFn, validators.NewController())
 	return r
 }
 
 // QueryRouter returns a default query router,
-// allowing access to "/wallets", "/auth", "/", and "/escrows"
+// allowing access to "/wallets", "/validators", "/auth", "/", and "/escrows"
 func QueryRouter() weave.QueryRouter {
 	r := weave.NewQueryRouter()
 	r.RegisterAll(
@@ -72,6 +73,7 @@ func QueryRouter() weave.QueryRouter {
 		sigs.RegisterQuery,
 		orm.RegisterQuery,
 		multisig.RegisterQuery,
+		validators.RegisterQuery,
 	)
 	return r
 }

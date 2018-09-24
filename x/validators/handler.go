@@ -54,7 +54,7 @@ func (h UpdateHandler) Check(ctx weave.Context, store weave.KVStore,
 	if err != nil {
 		return res, err
 	}
-	msg, ok := rmsg.(*SetValidators)
+	msg, ok := rmsg.(*SetValidatorsMsg)
 	if !ok {
 		return res, errors.ErrUnknownTxType(rmsg)
 	}
@@ -78,7 +78,7 @@ func (h UpdateHandler) Deliver(ctx weave.Context, store weave.KVStore,
 	if err != nil {
 		return res, err
 	}
-	msg, ok := rmsg.(*SetValidators)
+	msg, ok := rmsg.(*SetValidatorsMsg)
 	if !ok {
 		return res, errors.ErrUnknownTxType(rmsg)
 	}

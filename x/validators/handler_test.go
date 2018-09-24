@@ -30,15 +30,14 @@ func TestHandler(t *testing.T) {
 		So(err, ShouldBeNil)
 
 		kv := store.MemStore()
-		bucket := NewBucket()
 		init := Initializer{}
 		err = init.FromGenesis(weave.Options{optKey: accountsJson}, kv)
 		So(err, ShouldBeNil)
-		ctrl := NewController(bucket)
+		ctrl := NewController()
 
 		Convey("Check Deliver and Check", func() {
 			Convey("With a right address", func() {
-				tx := helpers.MockTx(&SetValidators{Validators: []*Validator{{}}})
+				tx := helpers.MockTx(&SetValidatorsMsg{Validators: []*Validator{{}}})
 				handler := NewUpdateHandler(auth, ctrl, authCheckAddress)
 
 				res, err := handler.Deliver(nil, kv, tx)
@@ -50,7 +49,7 @@ func TestHandler(t *testing.T) {
 			})
 
 			Convey("With a wrong address", func() {
-				tx := helpers.MockTx(&SetValidators{Validators: []*Validator{{}}})
+				tx := helpers.MockTx(&SetValidatorsMsg{Validators: []*Validator{{}}})
 				handler := NewUpdateHandler(auth2, ctrl, authCheckAddress)
 
 				_, err := handler.Deliver(nil, kv, tx)
