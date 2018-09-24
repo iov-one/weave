@@ -19,7 +19,7 @@ message PubKey {
 }
 
 // This message is designed to update validator power
-message SetValidators {
+message SetValidatorsMsg {
 	repeated Validator validators = 1;
 }
 

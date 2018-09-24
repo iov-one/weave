@@ -37,11 +37,6 @@ func CashControl() cash.Controller {
 	return cash.NewController(cash.NewBucket())
 }
 
-// ValidatorControl returns a controller for validator functions
-func ValidatorControl() validators.Controller {
-	return validators.NewController(validators.NewBucket())
-}
-
 // Chain returns a chain of decorators, to handle authentication,
 // fees, logging, and recovery
 func Chain(minFee x.Coin, authFn x.Authenticator) app.Decorators {
@@ -64,7 +59,7 @@ func Chain(minFee x.Coin, authFn x.Authenticator) app.Decorators {
 func Router(authFn x.Authenticator) app.Router {
 	r := app.NewRouter()
 	cash.RegisterRoutes(r, authFn, CashControl())
-	validators.RegisterRoutes(r, authFn, ValidatorControl())
+	validators.RegisterRoutes(r, authFn, validators.NewController())
 	return r
 }
 

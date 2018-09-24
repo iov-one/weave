@@ -6,12 +6,12 @@ import (
 )
 
 // Ensure we implement the Msg interface
-var _ weave.Msg = (*SetValidators)(nil)
+var _ weave.Msg = (*SetValidatorsMsg)(nil)
 
 const pathUpdate = "validators/update"
 
 // Path returns the routing path for this message
-func (*SetValidators) Path() string {
+func (*SetValidatorsMsg) Path() string {
 	return pathUpdate
 }
 
@@ -30,7 +30,7 @@ func (m PubKey) AsABCI() abci.PubKey {
 	}
 }
 
-func (m *SetValidators) AsABCI() []abci.Validator {
+func (m *SetValidatorsMsg) AsABCI() []abci.Validator {
 	validators := make([]abci.Validator, len(m.Validators))
 	for k, v := range m.Validators {
 		validators[k] = v.AsABCI()

@@ -34,7 +34,7 @@ func TestController(t *testing.T) {
 
 		kv := store.MemStore()
 		bucket := NewBucket()
-		ctrl := NewController(bucket)
+		ctrl := BaseController{bucket: bucket}
 
 		Convey("When init is okay", func() {
 			init := Initializer{}

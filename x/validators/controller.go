@@ -24,8 +24,8 @@ type BaseController struct {
 }
 
 // NewController returns a basic controller implementation
-func NewController(bucket orm.Bucket) BaseController {
-	return BaseController{bucket: bucket}
+func NewController() BaseController {
+	return BaseController{bucket: NewBucket()}
 }
 
 func (c BaseController) CanUpdateValidators(store weave.KVStore, checkAddress CheckAddress, diff []abci.Validator) ([]abci.Validator, error) {

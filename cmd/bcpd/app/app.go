@@ -59,7 +59,7 @@ func Router(authFn x.Authenticator, issuer weave.Address) app.Router {
 	// TODO: move to cash upon refactor
 	escrow.RegisterRoutes(r, authFn, namecoin.NewController())
 	multisig.RegisterRoutes(r, authFn)
-	validators.RegisterRoutes(r, authFn, validators.NewController(validators.NewBucket()))
+	validators.RegisterRoutes(r, authFn, validators.NewController())
 	return r
 }
 
