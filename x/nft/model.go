@@ -7,15 +7,12 @@ import (
 
 var _ orm.CloneableData = (*NonFungibleToken)(nil)
 
-const (
-	minIDLength = 4
-	maxIDLength = 256
-)
-
 func (m *NonFungibleToken) Validate() error {
-	if len(m.Id) < minIDLength || len(m.Id) > maxIDLength {
+	var validation *Validation
+	if !validation.IsValidTokenID(m.Id) {
 		return ErrInvalidID()
 	}
+
 	if err := weave.Address(m.Owner).Validate(); err != nil {
 		return err
 	}
