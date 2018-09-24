@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package nft;
 
+import "github.com/gogo/protobuf/gogoproto/gogo.proto";
+
 message NonFungibleToken {
     bytes id = 1;
     bytes owner = 2;
@@ -16,7 +18,7 @@ message ActionApprovals {
 
 message Approval {
     bytes address = 1;
-    ApprovalOptions options = 2;
+    ApprovalOptions options = 2 [(gogoproto.nullable) = false];
 }
 
 message ApprovalOptions {
@@ -29,7 +31,7 @@ message AddApprovalMsg {
     bytes id = 1;
     bytes address = 2;
     string action = 3;
-    ApprovalOptions options = 4;
+    ApprovalOptions options = 4 [(gogoproto.nullable) = false];
 }
 
 message RemoveApprovalMsg {
