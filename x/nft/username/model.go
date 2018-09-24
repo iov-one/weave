@@ -9,10 +9,6 @@ import (
 	"github.com/iov-one/weave/x/nft"
 )
 
-const (
-	BucketName = "usrnft"
-)
-
 type Token interface {
 	nft.BaseNFT
 	GetChainAddresses() []ChainAddress

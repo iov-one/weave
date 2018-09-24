@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package blockchain;
+
+import "github.com/iov-one/weave/x/nft/codec.proto";
+import "github.com/gogo/protobuf/gogoproto/gogo.proto";
+
+
+message BlockchainToken {
+    nft.NonFungibleToken base = 1;
+    TokenDetails details = 2;
+}
+
+message TokenDetails {
+    repeated Network networks = 1 [(gogoproto.nullable) = false];
+}
+
+message Network { // these are all placeholders
+    bytes tickers = 1;
+    bytes bootstrap = 2;
+    bytes codec = 3;
+    bytes codecSettings = 4;
+}
+
+message IssueTokenMsg {
+    bytes owner = 1;
+    bytes id = 2;
+    TokenDetails details = 3 [(gogoproto.nullable) = false];
+    repeated nft.ActionApprovals approvals = 4;
+}
