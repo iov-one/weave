@@ -24,7 +24,7 @@ func TestTokenClone(t *testing.T) {
 					{Action: "anyActiom",
 						Approvals: []*nft.Approval{
 							{Address: bob.Address(),
-								Options: &nft.ApprovalOptions{Count: 1},
+								Options: nft.ApprovalOptions{Count: 1},
 							},
 						}},
 				}},
