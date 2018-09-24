@@ -33,6 +33,8 @@ func (tx *Tx) GetMsg() (weave.Msg, error) {
 	switch t := sum.(type) {
 	case *Tx_SendMsg:
 		return t.SendMsg, nil
+	case *Tx_SetValidatorsMsg:
+		return t.SetValidatorsMsg, nil
 	}
 
 	// we must have covered it above

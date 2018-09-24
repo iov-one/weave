@@ -58,6 +58,8 @@ func (tx *Tx) GetMsg() (weave.Msg, error) {
 		return t.CreateContractMsg, nil
 	case *Tx_UpdateContractMsg:
 		return t.UpdateContractMsg, nil
+	case *Tx_SetValidatorsMsg:
+		return t.SetValidatorsMsg, nil
 	}
 
 	// we must have covered it above

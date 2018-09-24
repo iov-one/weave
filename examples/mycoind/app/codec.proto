@@ -4,6 +4,7 @@ package app;
 
 import "github.com/iov-one/weave/x/cash/codec.proto";
 import "github.com/iov-one/weave/x/sigs/codec.proto";
+import "github.com/iov-one/weave/x/validators/codec.proto";
 
 // Tx contains the message
 message Tx {
@@ -11,6 +12,8 @@ message Tx {
   oneof sum{
     cash.SendMsg send_msg = 1;
     // space here to allow many more....
+    // validators actions
+    validators.SetValidatorsMsg set_validators_msg = 2;
   }
   // fee info, autogenerates GetFees()
   cash.FeeInfo fees = 20;
