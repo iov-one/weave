@@ -39,3 +39,11 @@ message RemoveChainAddressMsg {
     bytes chainID = 2;
     bytes address = 3;
 }
+
+message AddApprovalMsg {
+    nft.AddApprovalMsg base = 1 [(gogoproto.nullable) = false];
+}
+
+message RemoveApprovalMsg {
+    nft.RemoveApprovalMsg base = 1 [(gogoproto.nullable) = false];
+}
