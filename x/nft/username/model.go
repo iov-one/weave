@@ -15,6 +15,10 @@ type Token interface {
 	SetChainAddresses(actor weave.Address, newKeys []ChainAddress) error
 }
 
+func (u *UsernameToken) Approvals() *nft.ApprovalOps {
+	return u.Base.Approvals()
+}
+
 func (u *UsernameToken) GetChainAddresses() []ChainAddress {
 	if u.Details == nil {
 		return nil
@@ -39,7 +43,7 @@ func (u *UsernameToken) SetChainAddresses(actor weave.Address, newAddresses []Ch
 }
 
 func (u *UsernameToken) OwnerAddress() weave.Address {
-	return weave.Address(u.Base.Owner)
+	return u.Base.OwnerAddress()
 }
 
 func (u *UsernameToken) Transfer(newOwner weave.Address) error {

@@ -15,10 +15,15 @@ type Token interface {
 }
 
 func (m *TickerToken) OwnerAddress() weave.Address {
-	return weave.Address(m.Base.Owner)
+	return m.Base.OwnerAddress()
 }
+
 func (m *TickerToken) GetBlockchainID() []byte {
 	return m.Details.BlockchainID
+}
+
+func (m *TickerToken) Approvals() *nft.ApprovalOps {
+	return m.Base.Approvals()
 }
 
 func (m *TickerToken) SetBlockchainID(actor weave.Address, id []byte) error {

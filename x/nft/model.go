@@ -48,9 +48,22 @@ func NewNonFungibleToken(key []byte, owner weave.Address) *NonFungibleToken {
 	}
 }
 
+func (u *NonFungibleToken) OwnerAddress() weave.Address {
+	return weave.Address(u.Owner)
+}
+
+func (m *NonFungibleToken) Approvals() *ApprovalOps {
+	return NewApprovalOps(m, &m.ActionApprovals)
+}
+
 type BaseNFT interface {
 	Owned
-	//	GetId() []byte
-	//Approvals() *ApprovalOperations
+	//GetId() []byte
+	Approvals() *ApprovalOps
 	//Transfer(newOwner weave.Address) error
+}
+
+//TODO: Better name
+type Identified interface {
+	GetId() []byte
 }

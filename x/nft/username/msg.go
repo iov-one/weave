@@ -11,12 +11,11 @@ import (
 var _ weave.Msg = (*IssueTokenMsg)(nil)
 
 const (
-	pathIssueTokenMsg    = "nft/username/issue"
-	pathAddAddressMsg    = "nft/username/address/add"
-	pathRemoveAddressMsg = "nft/username/address/remove"
+	pathIssueTokenMsg     = "nft/username/issue"
+	pathAddAddressMsg     = "nft/username/address/add"
+	pathRemoveAddressMsg  = "nft/username/address/remove"
 	pathAddApprovalMsg    = "nft/username/approval/add"
 	pathRemoveApprovalMsg = "nft/username/approval/remove"
-
 )
 
 var (
@@ -38,20 +37,28 @@ func (*RemoveChainAddressMsg) Path() string {
 	return pathRemoveAddressMsg
 }
 
-func(*AddApprovalMsg) Path() string {
+func (*AddApprovalMsg) Path() string {
 	return pathAddApprovalMsg
 }
 
-func(*RemoveApprovalMsg) Path() string {
+func (*RemoveApprovalMsg) Path() string {
 	return pathRemoveApprovalMsg
 }
 
-func(m *AddApprovalMsg) Validate() error {
+func (m *AddApprovalMsg) Validate() error {
 	return m.Base.Validate()
 }
 
-func(m *RemoveApprovalMsg) Validate() error {
+func (m *RemoveApprovalMsg) Validate() error {
 	return m.Base.Validate()
+}
+
+func (m *AddApprovalMsg) GetId() []byte {
+	return m.Base.GetId()
+}
+
+func (m *RemoveApprovalMsg) GetId() []byte {
+	return m.Base.GetId()
 }
 
 func (m *IssueTokenMsg) Validate() error {
