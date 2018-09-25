@@ -60,6 +60,22 @@ func (tx *Tx) GetMsg() (weave.Msg, error) {
 		return t.UpdateContractMsg, nil
 	case *Tx_SetValidatorsMsg:
 		return t.SetValidatorsMsg, nil
+	// nft actions
+	case *Tx_AddApprovalMsg:
+		return t.AddApprovalMsg, nil
+	case *Tx_RemoveApprovalMsg:
+		return t.RemoveApprovalMsg, nil
+	case *Tx_IssueUsernameNftMsg:
+		return t.IssueUsernameNftMsg, nil
+	case *Tx_AddUsernameAddressNftMsg:
+		return t.AddUsernameAddressNftMsg, nil
+	case *Tx_RemoveUsernameAddressMsg:
+		return t.RemoveUsernameAddressMsg, nil
+	case *Tx_IssueBlockchainNftMsg:
+		return t.IssueBlockchainNftMsg, nil
+	case *Tx_IssueTickerNftMsg:
+		return t.IssueTickerNftMsg, nil
+
 	}
 
 	// we must have covered it above
