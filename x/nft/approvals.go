@@ -58,6 +58,13 @@ func (a ApprovalOptions) Equals(o ApprovalOptions) bool {
 	return a.Immutable == o.Immutable && a.Count == o.Count && a.UntilBlockHeight == o.UntilBlockHeight
 }
 
+func (a ApprovalOptions) Validate() error {
+	if a.Count == 0 || a.Count < UnlimitedCount {
+		return errors.ErrInternal("Approval count should either be unlimited or above zero")
+	}
+	return nil
+}
+
 //TODO: decide what we need to validate here and what before
 //This requires all the model-specific actions to be passed here
 func (m Approvals) Validate(actions ...string) error {

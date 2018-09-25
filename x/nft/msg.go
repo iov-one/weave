@@ -36,7 +36,7 @@ func (m *AddApprovalMsg) Validate() error {
 	if !validation.IsValidTokenID(m.Id) {
 		return errors.ErrInternal("id must be valid")
 	}
-	return nil
+	return m.Options.Validate()
 }
 
 func (m *RemoveApprovalMsg) Validate() error {
