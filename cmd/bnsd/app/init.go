@@ -76,7 +76,7 @@ func GenerateApp(home string, logger log.Logger, debug bool) (abci.Application, 
 
 	// TODO: anyone can make a token????
 	stack := Stack(x.Coin{}, nil)
-	app, err := Application("mycoin", stack, TxDecoder, dbPath, debug)
+	app, err := Application("bnsd", stack, TxDecoder, dbPath, debug)
 	if err != nil {
 		return nil, err
 	}
