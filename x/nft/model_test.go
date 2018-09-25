@@ -32,7 +32,7 @@ func TestNonFungibleTokenValidate(t *testing.T) {
 		},
 		{ // id to small
 			token: nft.NonFungibleToken{
-				Id:    []byte("123"),
+				Id:    []byte("12"),
 				Owner: alice.Address(),
 			},
 			expError: true,
