@@ -13,8 +13,13 @@ type Token interface {
 }
 
 func (m *BlockchainToken) OwnerAddress() weave.Address {
-	return weave.Address(m.Base.Owner)
+	return m.Base.OwnerAddress()
 }
+
+func (m *BlockchainToken) Approvals() *nft.ApprovalOps {
+	return m.Base.Approvals()
+}
+
 func (m *BlockchainToken) GetNetworks() []Network {
 	return m.Details.Networks
 }
