@@ -7,9 +7,9 @@ package mocks
 import (
 	reflect "reflect"
 
-	weave "github.com/confio/weave"
 	gomock "github.com/golang/mock/gomock"
 	utils "github.com/iov-one/tools/utils"
+	weave "github.com/iov-one/weave"
 )
 
 // MockClient is a mock of Client interface

@@ -6,9 +6,9 @@ import (
 	"os"
 	"testing"
 
-	"github.com/confio/weave"
-	"github.com/confio/weave/x"
-	"github.com/iov-one/bcp-demo/app"
+	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/cmd/bcpd/app"
+	"github.com/iov-one/weave/x"
 
 	abci "github.com/tendermint/abci/types"
 	cfg "github.com/tendermint/tendermint/config"
@@ -60,7 +60,7 @@ func TestMain(m *testing.M) {
 }
 
 func initApp(config *cfg.Config, addr weave.Address) (abci.Application, error) {
-	bcp, err := app.GenerateApp(config.RootDir, logger)
+	bcp, err := app.GenerateApp(config.RootDir, logger, false)
 	if err != nil {
 		return nil, err
 	}

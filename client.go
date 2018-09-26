@@ -4,9 +4,9 @@ import (
 	"context"
 	"sync"
 
-	"github.com/confio/weave"
-	"github.com/confio/weave/app"
-	"github.com/confio/weave/x/sigs"
+	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/app"
+	"github.com/iov-one/weave/x/sigs"
 	"github.com/pkg/errors"
 	tmpubsub "github.com/tendermint/tendermint/libs/pubsub"
 	"github.com/tendermint/tendermint/rpc/client"

@@ -10,7 +10,7 @@ import (
 	"github.com/tendermint/tendermint/rpc/client"
 	rpctest "github.com/tendermint/tendermint/rpc/test"
 
-	"github.com/confio/weave/x"
+	"github.com/iov-one/weave/x"
 )
 
 // blocks go by fast, no need to wait seconds....

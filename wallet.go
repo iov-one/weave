@@ -6,9 +6,9 @@ import (
 	"io/ioutil"
 	"strings"
 
-	"github.com/confio/weave"
-	"github.com/confio/weave/x"
-	"github.com/iov-one/bcp-demo/x/namecoin"
+	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/x"
+	"github.com/iov-one/weave/x/namecoin"
 	tmtype "github.com/tendermint/tendermint/types"
 )
 

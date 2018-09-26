@@ -6,7 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 
-	"github.com/confio/weave/crypto"
+	"github.com/iov-one/weave/crypto"
 	"github.com/pkg/errors"
 )
 

@@ -3,10 +3,10 @@ package mocks
 import (
 	"fmt"
 
-	"github.com/confio/weave/x"
 	"github.com/golang/mock/gomock"
-	"github.com/iov-one/bcp-demo/x/namecoin"
 	"github.com/iov-one/tools/utils"
+	"github.com/iov-one/weave/x"
+	"github.com/iov-one/weave/x/namecoin"
 	"github.com/pkg/errors"
 	abci "github.com/tendermint/abci/types"
 	ctypes "github.com/tendermint/tendermint/rpc/core/types"
