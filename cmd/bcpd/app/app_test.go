@@ -19,6 +19,8 @@ import (
 	"github.com/iov-one/weave/x/cash"
 	"github.com/iov-one/weave/x/namecoin"
 	"github.com/iov-one/weave/x/sigs"
+
+	cmn "github.com/tendermint/tmlibs/common"
 )
 
 func TestApp(t *testing.T) {
@@ -235,7 +237,7 @@ type Signer struct {
 
 // sendToken creates the transaction, signs it and sends it
 // checks money has arrived safely
-func sendToken(t *testing.T, baseApp app.BaseApp, chainID string, height int64, signers []Signer,
+func sendToken(t require.TestingT, baseApp app.BaseApp, chainID string, height int64, signers []Signer,
 	from, to []byte, amount int64, ticker, memo string, contracts ...[]byte) abci.ResponseDeliverTx {
 	msg := &cash.SendMsg{
 		Src:  from,
@@ -270,7 +272,7 @@ func sendToken(t *testing.T, baseApp app.BaseApp, chainID string, height int64, 
 
 // createContract creates an immutable contract, signs the transaction and sends it
 // checks contract has been created correctly
-func createContract(t *testing.T, baseApp app.BaseApp, chainID string, height int64, signers []Signer,
+func createContract(t require.TestingT, baseApp app.BaseApp, chainID string, height int64, signers []Signer,
 	activationThreshold int64, contractSigs ...[]byte) []byte {
 	msg := &multisig.CreateContractMsg{
 		Sigs:                contractSigs,
@@ -298,7 +300,7 @@ func createContract(t *testing.T, baseApp app.BaseApp, chainID string, height in
 
 // signAndCommit signs tx with signatures from signers and submits to the chain
 // asserts and fails the test in case of errors during the process
-func signAndCommit(t *testing.T, app app.BaseApp, tx *Tx, signers []Signer, chainID string,
+func signAndCommit(t require.TestingT, app app.BaseApp, tx *Tx, signers []Signer, chainID string,
 	height int64) abci.ResponseDeliverTx {
 	for _, signer := range signers {
 		sig, err := sigs.SignTx(signer.pk, tx, chainID, signer.nonce)
@@ -327,7 +329,7 @@ func signAndCommit(t *testing.T, app app.BaseApp, tx *Tx, signers []Signer, chai
 }
 
 // queryAndCheckWallet queries the wallet from the chain and check it is the one expected
-func queryAndCheckWallet(t *testing.T, baseApp app.BaseApp, path string, data []byte, expected namecoin.Wallet) {
+func queryAndCheckWallet(t require.TestingT, baseApp app.BaseApp, path string, data []byte, expected namecoin.Wallet) {
 	query := abci.RequestQuery{Path: path, Data: data}
 	res := baseApp.Query(query)
 
@@ -342,7 +344,7 @@ func queryAndCheckWallet(t *testing.T, baseApp app.BaseApp, path string, data []
 }
 
 // queryAndCheckContract queries the contract from the chain and check it is the one expected
-func queryAndCheckContract(t *testing.T, baseApp app.BaseApp, path string, data []byte, expected multisig.Contract) {
+func queryAndCheckContract(t require.TestingT, baseApp app.BaseApp, path string, data []byte, expected multisig.Contract) {
 	query := abci.RequestQuery{Path: path, Data: data}
 	res := baseApp.Query(query)
 
@@ -357,7 +359,7 @@ func queryAndCheckContract(t *testing.T, baseApp app.BaseApp, path string, data 
 }
 
 // queryAndCheckToken queries tokens from the chain and check they're the one expected
-func queryAndCheckToken(t *testing.T, baseApp app.BaseApp, path string, data []byte, expected []namecoin.Token) {
+func queryAndCheckToken(t require.TestingT, baseApp app.BaseApp, path string, data []byte, expected []namecoin.Token) {
 	query := abci.RequestQuery{Path: path, Data: data}
 	res := baseApp.Query(query)
 
@@ -371,5 +373,174 @@ func queryAndCheckToken(t *testing.T, baseApp app.BaseApp, path string, data []b
 		err = actual.Unmarshal(obj)
 		require.NoError(t, err)
 		require.Equal(t, expected[i], actual)
+	}
+}
+
+type account struct {
+	pk *crypto.PrivateKey
+	n  int64
+}
+
+func (a *account) nonce() (n int64) {
+	n = a.n
+	a.n++
+	return
+}
+
+func (a *account) address() []byte {
+	return a.pk.PublicKey().Address()
+}
+
+func newBenchmarkApp(t require.TestingT, chainID string, accounts []*account) app.BaseApp {
+	// no minimum fee, in-memory data-store
+	abciApp, err := GenerateApp("", log.NewNopLogger(), true)
+	require.NoError(t, err)
+	myApp := abciApp.(app.BaseApp) // let's set up a genesis file with some cash
+	pk := crypto.GenPrivKeyEd25519()
+	addr := pk.PublicKey().Address()
+	appState := fmt.Sprintf(`{
+        "wallets": [{
+            "name": "demote",
+            "address": "%s",
+            "coins": [{
+                "whole": 1234567890,
+                "ticker": "IOV"
+            }]
+		}],
+        "tokens": [{
+            "ticker": "IOV",
+            "name": "Smells like ethereum",
+            "sig_figs": 9
+        }]
+	}`, addr)
+
+	// Commit first block, make sure non-nil hash
+	myApp.InitChain(abci.RequestInitChain{AppStateBytes: []byte(appState), ChainId: chainID})
+	header := abci.Header{Height: 1}
+	myApp.BeginBlock(abci.RequestBeginBlock{Header: header})
+	myApp.EndBlock(abci.RequestEndBlock{})
+	cres := myApp.Commit()
+	block1 := cres.Data
+	assert.NotEmpty(t, block1)
+	assert.Equal(t, chainID, myApp.GetChainID())
+
+	for idx, acc := range accounts {
+		sendToken(t, myApp, chainID, int64(idx+2), []Signer{{pk, int64(idx)}}, pk.PublicKey().Address(), acc.address(), 1000, "IOV", "benchmark")
+	}
+
+	return myApp
+}
+
+func makeTx(t require.TestingT, chainID string, sender, receiver *account) []byte {
+	msg := &cash.SendMsg{
+		Src:  sender.address(),
+		Dest: receiver.address(),
+		Amount: &x.Coin{
+			Whole:  1,
+			Ticker: "IOV",
+		},
+		Memo: "courtesy of benchmark",
+	}
+
+	tx := &Tx{
+		Sum: &Tx_SendMsg{msg},
+	}
+
+	nonce := sender.nonce()
+	sig, err := sigs.SignTx(sender.pk, tx, chainID, nonce)
+	require.NoError(t, err)
+	tx.Signatures = append(tx.Signatures, sig)
+	txBytes, err := tx.Marshal()
+	require.NoError(t, err)
+	require.NotEmpty(t, txBytes)
+	return txBytes
+}
+
+func SendTxBenchRunner(b *testing.B, nbAccounts, blockSize int) {
+	accounts := make([]*account, nbAccounts)
+	for i := 0; i < nbAccounts; i++ {
+		accounts[i] = &account{pk: crypto.GenPrivKeyEd25519()}
+	}
+
+	chainID := "bench-net-22"
+	myApp := newBenchmarkApp(b, chainID, accounts)
+
+	txs := make([][]byte, b.N)
+	for i := 1; i <= b.N; i++ {
+		sender := accounts[cmn.RandInt()%nbAccounts]
+		recipient := accounts[cmn.RandInt()%nbAccounts]
+		txs[i-1] = makeTx(b, chainID, sender, recipient)
+	}
+
+	b.ResetTimer()
+
+	for i := 1; i <= b.N; i++ {
+		chres := myApp.CheckTx(txs[i-1])
+		require.Equal(b, uint32(0), chres.Code, chres.Log)
+	}
+
+	k := 1
+	header := abci.Header{Height: int64(k)}
+	myApp.BeginBlock(abci.RequestBeginBlock{Header: header})
+	for i := 1; i <= b.N; i++ {
+		if i%blockSize == 0 {
+			myApp.EndBlock(abci.RequestEndBlock{})
+			cres := myApp.Commit()
+			assert.NotEmpty(b, cres.Data)
+
+			k++
+			header = abci.Header{Height: int64(k)}
+			myApp.BeginBlock(abci.RequestBeginBlock{Header: header})
+		}
+
+		dres := myApp.DeliverTx(txs[i-1])
+		require.Equal(b, uint32(0), dres.Code, dres.Log)
+	}
+
+	myApp.EndBlock(abci.RequestEndBlock{})
+	cres := myApp.Commit()
+	assert.NotEmpty(b, cres.Data)
+}
+func TestNewBenchmarkApp(t *testing.T) {
+	tests := []struct {
+		accounts  int
+		blockSize int
+	}{
+		{100, 10},
+		{100, 200},
+		{10000, 1000},
+		{10000, 2000},
+	}
+
+	for _, tt := range tests {
+		prefix := fmt.Sprintf("%d-%d", tt.accounts, tt.blockSize)
+		t.Run(prefix, func(sub *testing.T) {
+			accounts := make([]*account, tt.accounts)
+			for i := 0; i < tt.accounts; i++ {
+				accounts[i] = &account{pk: crypto.GenPrivKeyEd25519()}
+			}
+
+			chainID := prefix
+			newBenchmarkApp(t, chainID, accounts)
+		})
+	}
+}
+
+func BenchmarkSendTx(b *testing.B) {
+	benchmarks := []struct {
+		accounts  int
+		blockSize int
+	}{
+		{100, 10},
+		{100, 200},
+		{10000, 1000},
+		{10000, 2000},
+	}
+
+	for _, bb := range benchmarks {
+		prefix := fmt.Sprintf("%d-%d", bb.accounts, bb.blockSize)
+		b.Run(prefix, func(sub *testing.B) {
+			SendTxBenchRunner(sub, bb.accounts, bb.blockSize)
+		})
 	}
 }
