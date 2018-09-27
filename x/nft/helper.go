@@ -3,7 +3,7 @@ package nft
 import "regexp"
 
 const (
-	minIDLength = 4
+	minIDLength = 3
 	maxIDLength = 256
 )
 
