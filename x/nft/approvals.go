@@ -65,22 +65,25 @@ func (a ApprovalOptions) Validate() error {
 	return nil
 }
 
-//TODO: decide what we need to validate here and what before
 //This requires all the model-specific actions to be passed here
-func (m Approvals) Validate(actions ...string) error {
-	actions = append(actions, []string{ActionUpdateDetails, ActionTransfer}...)
-	actionMap := make(map[string]struct{}, 0)
-	for _, action := range actions {
-		actionMap[action] = struct{}{}
-	}
-
+func (m Approvals) Validate(actionMaps ...map[string]int32) error {
 	for action := range m {
-		if _, ok := actionMap[action]; !ok {
+
+		withinImpl := func() bool {
+			for _, actionMap := range actionMaps {
+				if _, ok := actionMap[action]; ok {
+					return true
+				}
+			}
+			return false
+		}()
+		_, withinBase := Action_value[action]
+
+		if !(withinBase || withinImpl) {
 			return errors.ErrInternal(fmt.Sprintf("illegal action: %s", action))
 		}
 	}
 
-	// todo: also validate that options are not nil, maybe best to do it at the moment of granting
 	return nil
 }
 

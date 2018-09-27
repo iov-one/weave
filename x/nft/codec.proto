@@ -39,3 +39,8 @@ message RemoveApprovalMsg {
     bytes address = 2;
     string action = 3;
 }
+
+enum Action {
+    ActionUpdateDetails = 0;
+    ActionTransfer = 1;
+}
