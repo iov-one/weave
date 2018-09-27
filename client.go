@@ -24,7 +24,7 @@ type GenesisDoc = tmtypes.GenesisDoc
 
 var QueryNewBlockHeader = tmtypes.EventQueryNewBlockHeader
 
-const BroadcastTxSyncDefaultTimeOut = 1 * time.Second
+const BroadcastTxSyncDefaultTimeOut = 15 * time.Second
 
 // Client is an interface to interact with bcp
 type Client interface {
@@ -236,7 +236,7 @@ func (b *BcpClient) BroadcastTxSync(tx weave.Tx, timeout time.Duration) Broadcas
 	}
 
 	// and wait for confirmation
-	evt, err := b.WaitForTxEvent(data, res.Hash, tmtypes.EventTx, timeout)
+	evt, err := b.WaitForTxEvent(data, tmtypes.EventTx, timeout)
 	if err != nil {
 		return BroadcastTxResponse{Error: err}
 	}
@@ -257,13 +257,13 @@ func (b *BcpClient) BroadcastTxSync(tx weave.Tx, timeout time.Duration) Broadcas
 	}
 }
 
-func (b *BcpClient) WaitForTxEvent(tx []byte, blockHash []byte, evtTyp string, timeout time.Duration) (tmtypes.TMEventData, error) {
+func (b *BcpClient) WaitForTxEvent(tx tmtypes.Tx, evtTyp string, timeout time.Duration) (tmtypes.TMEventData, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 	evts := make(chan interface{}, 1)
 	query := tmtypes.EventQueryTxFor(tx)
 
-	uuid := hex.EncodeToString(append(blockHash[:], cmn.RandBytes(2)...))
+	uuid := hex.EncodeToString(append(tx.Hash(), cmn.RandBytes(2)...))
 	err := b.conn.Subscribe(ctx, uuid, query, evts)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to subscribe")
