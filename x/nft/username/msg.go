@@ -69,16 +69,19 @@ func (m *IssueTokenMsg) Validate() error {
 		return err
 	}
 
-	if err := weave.Address(m.Owner).Validate(); err != nil {
+	addr := weave.Address(m.Owner)
+
+	if err := addr.Validate(); err != nil {
 		return err
 	}
 
-	// TODO: impl proper approval validation
-	//for _, a := range m.Approvals {
-	//	if err := a.Validate(); err != nil {
-	//		return err
-	//	}
-	//}
+	if m.Approvals == nil {
+		return errors.ErrInternal("approvals must not be nil")
+	}
+	if err := nft.NewApprovalOps(addr, &m.Approvals).List().Validate(); err != nil {
+		return err
+	}
+
 	return nil
 }
 
