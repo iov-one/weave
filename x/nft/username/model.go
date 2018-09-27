@@ -129,3 +129,13 @@ func AsUsername(obj orm.Object) (Token, error) {
 	}
 	return x, nil
 }
+
+func validateID(i nft.Identified) error {
+	if i == nil {
+		return errors.ErrInternal("must not be nil")
+	}
+	if !isValidID(string(i.GetId())) {
+		return nft.ErrInvalidID()
+	}
+	return nil
+}

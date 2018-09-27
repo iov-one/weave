@@ -5,8 +5,19 @@ import (
 	"github.com/iov-one/weave/errors"
 )
 
-//TODO: Fields are exactly the same, except Add has ApprovalOptions. Shall we unify common
-// fields to baseApprovalMessage?
+const(
+	pathAddApprovalMsg    = "nft/approval/add"
+	pathRemoveApprovalMsg = "nft/approval/remove"
+)
+
+func (*AddApprovalMsg) Path() string {
+	return pathAddApprovalMsg
+}
+
+func (*RemoveApprovalMsg) Path() string {
+	return pathRemoveApprovalMsg
+}
+
 func (m AddApprovalMsg) Validate() error {
 	var validation *Validation
 	if err := weave.Address(m.Address).Validate(); err != nil {

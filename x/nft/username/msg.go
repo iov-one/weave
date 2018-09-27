@@ -14,8 +14,6 @@ const (
 	pathIssueTokenMsg     = "nft/username/issue"
 	pathAddAddressMsg     = "nft/username/address/add"
 	pathRemoveAddressMsg  = "nft/username/address/remove"
-	pathAddApprovalMsg    = "nft/username/approval/add"
-	pathRemoveApprovalMsg = "nft/username/approval/remove"
 )
 
 var (
@@ -35,30 +33,6 @@ func (*AddChainAddressMsg) Path() string {
 // Path returns the routing path for this message
 func (*RemoveChainAddressMsg) Path() string {
 	return pathRemoveAddressMsg
-}
-
-func (*AddApprovalMsg) Path() string {
-	return pathAddApprovalMsg
-}
-
-func (*RemoveApprovalMsg) Path() string {
-	return pathRemoveApprovalMsg
-}
-
-func (m *AddApprovalMsg) Validate() error {
-	return m.Base.Validate()
-}
-
-func (m *RemoveApprovalMsg) Validate() error {
-	return m.Base.Validate()
-}
-
-func (m *AddApprovalMsg) GetId() []byte {
-	return m.Base.GetId()
-}
-
-func (m *RemoveApprovalMsg) GetId() []byte {
-	return m.Base.GetId()
 }
 
 func (m *IssueTokenMsg) Validate() error {
@@ -82,16 +56,6 @@ func (m *IssueTokenMsg) Validate() error {
 		return err
 	}
 
-	return nil
-}
-
-func validateID(i nft.Identified) error {
-	if i == nil {
-		return errors.ErrInternal("must not be nil")
-	}
-	if !isValidID(string(i.GetId())) {
-		return nft.ErrInvalidID()
-	}
 	return nil
 }
 
