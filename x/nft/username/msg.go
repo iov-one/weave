@@ -85,7 +85,7 @@ func (m *IssueTokenMsg) Validate() error {
 	return nil
 }
 
-func validateID(i interface{ GetId() []byte }) error {
+func validateID(i nft.Identified) error {
 	if i == nil {
 		return errors.ErrInternal("must not be nil")
 	}
