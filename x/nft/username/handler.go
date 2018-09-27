@@ -235,15 +235,13 @@ func findActor(h tokenHandler, ctx weave.Context, t Token) weave.Address {
 		return t.OwnerAddress()
 	} else {
 		signers := x.GetAddresses(ctx, h.auth)
-		if len(signers) == 1 {
-			return signers[0]
-		} else {
-			for _, signers := range signers {
-				_ = signers
-				// todo: if update approval for signer exists in t then set actor
-				// else
-				return nil
-				//return res, errors.ErrUnauthorized()
+		for _, signer := range signers {
+			if !t.Approvals().
+				List().
+				ForAction(nft.Action_ActionUpdateDetails.String()).
+				ForAddress(signer).
+				IsEmpty() {
+				return signer
 			}
 		}
 	}
