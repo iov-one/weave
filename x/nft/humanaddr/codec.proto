@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package humanaddr;
+
+import "github.com/iov-one/weave/x/nft/codec.proto";
+// For more information on gogo.proto, see:
+// https://github.com/gogo/protobuf/blob/master/extensions.md
+import "github.com/gogo/protobuf/gogoproto/gogo.proto";
+
+
+message HumanAddressToken{
+    nft.NonFungibleToken base = 1;
+    TokenDetails details = 2 ;
+}
+
+
+message IssueTokenMsg {
+    bytes owner = 1;
+    bytes id = 2;
+    TokenDetails details = 3 [(gogoproto.nullable) = false];
+    repeated nft.ActionApprovals actionApprovals = 4;
+}
+
+message TokenDetails {
+    bytes publicKey = 1;
+}
+

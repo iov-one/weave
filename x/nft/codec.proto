@@ -1,0 +1,60 @@
+syntax = "proto3";
+
+package nft;
+
+// For more information on gogo.proto, see:
+// https://github.com/gogo/protobuf/blob/master/extensions.md
+import "github.com/gogo/protobuf/gogoproto/gogo.proto";
+
+
+enum ActionKind {
+    Transfer = 0;
+    Usage = 1;
+    UpdateDetails = 2;
+}
+
+message NonFungibleToken {
+    bytes id = 1;
+    bytes owner = 2;
+    repeated ActionApprovals actionApprovals = 3;
+}
+
+message ActionApprovals {
+    ActionKind action = 1; // todo: might be better off with a string value here for better readability/maitenance
+    repeated Approval approvals = 2;
+}
+
+message Approval {
+    bytes toAccount = 1;
+    ApprovalOptions options = 2;
+}
+
+message ApprovalOptions {
+    int64 timeout = 1; // nanos. todo: revisit to use block height?, if this is time then this may not be deterministic enough
+    int64 count = 2; // usage count
+    bool immutable = 3;
+}
+
+// base messages
+//
+
+message RequestTransferTokenMsg {
+    bytes id = 1;
+    bytes newOwner = 2;
+}
+
+message SetApprovalMsg {
+    bytes id = 1;
+    repeated ActionApprovals actionApprovals = 2;
+}
+
+message RevokeApprovalMsg {
+    bytes toAccount = 1;
+    ActionKind action = 2;
+    string comment = 3;
+}
+
+message RevokeTokenMsg {
+    bytes id = 1;
+    string comment = 2;
+}
