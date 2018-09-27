@@ -2,7 +2,10 @@ package utils
 
 import (
 	"context"
+	"encoding/hex"
+	"fmt"
 	"sync"
+	"time"
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/app"
@@ -12,6 +15,7 @@ import (
 	"github.com/tendermint/tendermint/rpc/client"
 	ctypes "github.com/tendermint/tendermint/rpc/core/types"
 	tmtypes "github.com/tendermint/tendermint/types"
+	cmn "github.com/tendermint/tmlibs/common"
 )
 
 type Header = tmtypes.Header
@@ -20,12 +24,15 @@ type GenesisDoc = tmtypes.GenesisDoc
 
 var QueryNewBlockHeader = tmtypes.EventQueryNewBlockHeader
 
+const BroadcastTxSyncDefaultTimeOut = 1 * time.Second
+
 // Client is an interface to interact with bcp
 type Client interface {
 	GetUser(addr weave.Address) (*UserResponse, error)
 	GetWallet(addr weave.Address) (*WalletResponse, error)
 	BroadcastTx(tx weave.Tx) BroadcastTxResponse
 	BroadcastTxAsync(tx weave.Tx, out chan<- BroadcastTxResponse)
+	BroadcastTxSync(tx weave.Tx, timeout time.Duration) BroadcastTxResponse
 }
 
 // BcpClient is a tendermint client wrapped to provide
@@ -208,9 +215,69 @@ func (b BroadcastTxResponse) IsError() error {
 // If you want high-performance, parallel sending, use BroadcastTxAsync
 func (b *BcpClient) BroadcastTx(tx weave.Tx) BroadcastTxResponse {
 	out := make(chan BroadcastTxResponse, 1)
+	defer close(out)
 	go b.BroadcastTxAsync(tx, out)
 	res := <-out
 	return res
+}
+
+func (b *BcpClient) BroadcastTxSync(tx weave.Tx, timeout time.Duration) BroadcastTxResponse {
+	data, err := tx.Marshal()
+	if err != nil {
+		return BroadcastTxResponse{Error: err}
+	}
+
+	res, err := b.conn.BroadcastTxSync(data)
+	if err != nil {
+		return BroadcastTxResponse{Error: err}
+	}
+	if res.Code != 0 {
+		return BroadcastTxResponse{Error: errors.WithMessage(fmt.Errorf("CheckTx failed with code %d", res.Code), res.Log)}
+	}
+
+	// and wait for confirmation
+	evt, err := b.WaitForTxEvent(data, res.Hash, tmtypes.EventTx, timeout)
+	if err != nil {
+		return BroadcastTxResponse{Error: err}
+	}
+
+	txe, ok := evt.(tmtypes.EventDataTx)
+	if !ok {
+		if err != nil {
+			return BroadcastTxResponse{Error: fmt.Errorf("WaitForOneEvent did not return an EventDataTx object")}
+		}
+	}
+
+	return BroadcastTxResponse{
+		Response: &ctypes.ResultBroadcastTxCommit{
+			DeliverTx: txe.Result,
+			Height:    txe.Height,
+			Hash:      txe.Tx.Hash(),
+		},
+	}
+}
+
+func (b *BcpClient) WaitForTxEvent(tx []byte, blockHash []byte, evtTyp string, timeout time.Duration) (tmtypes.TMEventData, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+	evts := make(chan interface{}, 1)
+	query := tmtypes.EventQueryTxFor(tx)
+
+	uuid := hex.EncodeToString(append(blockHash[:], cmn.RandBytes(2)...))
+	err := b.conn.Subscribe(ctx, uuid, query, evts)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to subscribe")
+	}
+
+	// make sure to unregister after the test is over
+	defer b.conn.UnsubscribeAll(ctx, uuid)
+
+	select {
+	case evt := <-evts:
+		return evt.(tmtypes.TMEventData), nil
+	case <-ctx.Done():
+		return nil, errors.New("timed out waiting for event")
+	}
 }
 
 // BroadcastTxAsync can be run in a goroutine and will output

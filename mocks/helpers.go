@@ -58,10 +58,10 @@ func NewBcpClientMock(ctrl *gomock.Controller, getWallet GetWalletMock, broadcas
 
 	switch broadcastTx.Impl {
 	case BroadcastTxOk:
-		bcpClient.EXPECT().BroadcastTx(gomock.Any()).Return(
+		bcpClient.EXPECT().BroadcastTxSync(gomock.Any(), gomock.Any()).Return(
 			utils.BroadcastTxResponse{Response: &ctypes.ResultBroadcastTxCommit{}}).AnyTimes()
 	case CheckTxError:
-		bcpClient.EXPECT().BroadcastTx(gomock.Any()).Return(
+		bcpClient.EXPECT().BroadcastTxSync(gomock.Any(), gomock.Any()).Return(
 			utils.BroadcastTxResponse{
 				Response: &ctypes.ResultBroadcastTxCommit{
 					CheckTx: abci.ResponseCheckTx{
@@ -69,7 +69,7 @@ func NewBcpClientMock(ctrl *gomock.Controller, getWallet GetWalletMock, broadcas
 					},
 				}}).AnyTimes()
 	case DeliverTxError:
-		bcpClient.EXPECT().BroadcastTx(gomock.Any()).Return(
+		bcpClient.EXPECT().BroadcastTxSync(gomock.Any(), gomock.Any()).Return(
 			utils.BroadcastTxResponse{
 				Response: &ctypes.ResultBroadcastTxCommit{
 					DeliverTx: abci.ResponseDeliverTx{

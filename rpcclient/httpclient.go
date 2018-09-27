@@ -246,6 +246,7 @@ type WSEvents struct {
 
 func newWSEvents(cdc *amino.Codec, remote, endpoint string) *WSEvents {
 	wsEvents := &WSEvents{
+		ws:            libclient.NewWSClient(remote, endpoint),
 		cdc:           cdc,
 		endpoint:      endpoint,
 		remote:        remote,
