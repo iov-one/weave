@@ -19,57 +19,20 @@ import (
 	"github.com/iov-one/weave/x/cash"
 	"github.com/iov-one/weave/x/namecoin"
 	"github.com/iov-one/weave/x/sigs"
+
+	cmn "github.com/tendermint/tmlibs/common"
 )
 
-func TestApp(t *testing.T) {
-	// no minimum fee, in-memory data-store
+func TestSendTx(t *testing.T) {
 	chainID := "test-net-22"
-	abciApp, err := GenerateApp("", log.NewNopLogger(), true)
-	require.NoError(t, err)
-	myApp := abciApp.(app.BaseApp)
-
-	// let's set up a genesis file with some cash
-	pk := crypto.GenPrivKeyEd25519()
-	addr := pk.PublicKey().Address()
-
-	appState := fmt.Sprintf(`{
-        "wallets": [{
-            "name": "demote",
-            "address": "%s",
-            "coins": [{
-                "whole": 50000,
-                "ticker": "ETH"
-            },{
-                "whole": 1234,
-				"ticker": "FRNK"
-			}]
-		}],
-        "tokens": [{
-            "ticker": "ETH",
-            "name": "Smells like ethereum",
-            "sig_figs": 9
-        },{
-            "ticker": "FRNK",
-            "name": "Frankie",
-            "sig_figs": 3
-		}]
-	}`, addr)
-
-	// Commit first block, make sure non-nil hash
-	myApp.InitChain(abci.RequestInitChain{AppStateBytes: []byte(appState), ChainId: chainID})
-	header := abci.Header{Height: 1}
-	myApp.BeginBlock(abci.RequestBeginBlock{Header: header})
-	myApp.EndBlock(abci.RequestEndBlock{})
-	cres := myApp.Commit()
-	block1 := cres.Data
-	assert.NotEmpty(t, block1)
-	assert.Equal(t, chainID, myApp.GetChainID())
+	mainAccount := &account{pk: crypto.GenPrivKeyEd25519()}
+	myApp := newTestApp(t, chainID, []*account{mainAccount})
 
 	// Query for my balance
-	key := namecoin.NewWalletBucket().DBKey(addr)
+	key := namecoin.NewWalletBucket().DBKey(mainAccount.address())
 	queryAndCheckWallet(t, myApp, "/", key,
 		namecoin.Wallet{
-			Name: "demote",
+			Name: "wallet0",
 			Coins: x.Coins{
 				{
 					Ticker: "ETH",
@@ -85,7 +48,7 @@ func TestApp(t *testing.T) {
 	// build and sign a transaction
 	pk2 := crypto.GenPrivKeyEd25519()
 	addr2 := pk2.PublicKey().Address()
-	dres := sendToken(t, myApp, chainID, 2, []Signer{{pk, 0}}, addr, addr2, 2000, "ETH", "Have a great trip!")
+	dres := sendToken(t, myApp, chainID, 2, []*account{mainAccount}, mainAccount.address(), addr2, 2000, "ETH", "Have a great trip!")
 
 	// ensure 3 keys with proper values
 	if assert.Equal(t, 3, len(dres.Tags), "%#v", dres.Tags) {
@@ -94,6 +57,7 @@ func TestApp(t *testing.T) {
 		vals := [][]byte{[]byte("s"), []byte("s"), []byte("s")}
 		hexWllt := []byte("776C6C743A")
 		hexSigs := []byte("736967733A")
+		addr := mainAccount.pk.PublicKey().Address()
 		keys[0] = append(hexSigs, []byte(addr.String())...)
 		keys[1] = append(hexWllt, []byte(addr.String())...)
 		keys[2] = append(hexWllt, []byte(addr2.String())...)
@@ -112,7 +76,35 @@ func TestApp(t *testing.T) {
 	// Query for new balances (same query, new state)
 	queryAndCheckWallet(t, myApp, "/", key,
 		namecoin.Wallet{
-			Name: "demote",
+			Name: "wallet0",
+			Coins: x.Coins{
+				{
+					Ticker: "ETH",
+					Whole:  48000,
+				},
+				{
+					Ticker: "FRNK",
+					Whole:  1234,
+				},
+			},
+		})
+}
+
+func TestQuery(t *testing.T) {
+	chainID := "test-net-22"
+	mainAccount := &account{pk: crypto.GenPrivKeyEd25519()}
+	myApp := newTestApp(t, chainID, []*account{mainAccount})
+
+	// build and sign a transaction
+	pk2 := crypto.GenPrivKeyEd25519()
+	addr2 := pk2.PublicKey().Address()
+	sendToken(t, myApp, chainID, 2, []*account{mainAccount}, mainAccount.address(), addr2, 2000, "ETH", "Have a great trip!")
+
+	// Query for new balances
+	key := namecoin.NewWalletBucket().DBKey(mainAccount.address())
+	queryAndCheckWallet(t, myApp, "/", key,
+		namecoin.Wallet{
+			Name: "wallet0",
 			Coins: x.Coins{
 				{
 					Ticker: "ETH",
@@ -160,9 +152,9 @@ func TestApp(t *testing.T) {
 		})
 
 	// and we can query by name (sender account)
-	queryAndCheckWallet(t, myApp, "/wallets/name", []byte("demote"),
+	queryAndCheckWallet(t, myApp, "/wallets/name", []byte("wallet0"),
 		namecoin.Wallet{
-			Name: "demote",
+			Name: "wallet0",
 			Coins: x.Coins{
 				{
 					Ticker: "ETH",
@@ -196,46 +188,117 @@ func TestApp(t *testing.T) {
 				SigFigs: int32(3),
 			},
 		})
+}
+
+func TestMultisigContract(t *testing.T) {
+	chainID := "test-net-22"
+	mainAccount := &account{pk: crypto.GenPrivKeyEd25519()}
+	myApp := newTestApp(t, chainID, []*account{mainAccount})
 
 	// create recoveryContract
 	recovery1 := crypto.GenPrivKeyEd25519()
 	recovery2 := crypto.GenPrivKeyEd25519()
 	recovery3 := crypto.GenPrivKeyEd25519()
-	recoveryContract := createContract(t, myApp, chainID, 3, []Signer{{pk, 1}},
+	recoveryContract := createContract(t, myApp, chainID, 3, []*account{mainAccount},
 		2, recovery1.PublicKey().Address(), recovery2.PublicKey().Address(), recovery3.PublicKey().Address())
 
 	// create safeKeyContract contract
 	// can be activated by masterKey or recoveryContract
 	masterKey := crypto.GenPrivKeyEd25519()
-	safeKeyContract := createContract(t, myApp, chainID, 4, []Signer{{pk, 2}},
+	safeKeyContract := createContract(t, myApp, chainID, 4, []*account{mainAccount},
 		1, masterKey.PublicKey().Address(), multisig.MultiSigCondition(recoveryContract).Address())
 
 	// create a wallet controlled by safeKeyContract
 	safeKeyContractAddr := multisig.MultiSigCondition(safeKeyContract).Address()
-	sendToken(t, myApp, chainID, 5, []Signer{{pk, 3}},
-		addr, safeKeyContractAddr, 2000, "ETH", "New wallet controlled by safeKeyContract")
+	sendToken(t, myApp, chainID, 5, []*account{mainAccount},
+		mainAccount.address(), safeKeyContractAddr, 2000, "ETH", "New wallet controlled by safeKeyContract")
 
 	// build and sign a transaction using master key to activate safeKeyContract
 	receiver := crypto.GenPrivKeyEd25519()
-	sendToken(t, myApp, chainID, 6, []Signer{{masterKey, 0}},
+	sendToken(t, myApp, chainID, 6, []*account{{pk: masterKey}},
 		safeKeyContractAddr, receiver.PublicKey().Address(), 1000, "ETH", "Gift from a contract!", safeKeyContract)
 
 	// Now do the same operation but using recoveryContract to activate safeKeyContract
 	// create a new receiver so it is easy to check its balance (no need to remember previous one)
 	receiver = crypto.GenPrivKeyEd25519()
-	sendToken(t, myApp, chainID, 7, []Signer{{recovery1, 0}, {recovery2, 0}},
+	sendToken(t, myApp, chainID, 7, []*account{{pk: recovery1}, {pk: recovery2}},
 		safeKeyContractAddr, receiver.PublicKey().Address(), 1000, "ETH", "Another gift from a contract!",
 		recoveryContract, safeKeyContract)
 }
 
-type Signer struct {
-	pk    *crypto.PrivateKey
-	nonce int64
+type account struct {
+	pk *crypto.PrivateKey
+	n  int64
+}
+
+func (a *account) nonce() (n int64) {
+	n = a.n
+	a.n++
+	return
+}
+
+func (a *account) address() []byte {
+	return a.pk.PublicKey().Address()
+}
+
+// newTestApp creates a new app with a wallet for each account
+// coins and tokens are the same across all accounts and calls
+func newTestApp(t require.TestingT, chainID string, accounts []*account) app.BaseApp {
+	// no minimum fee, in-memory data-store
+	abciApp, err := GenerateApp("", log.NewNopLogger(), true)
+	require.NoError(t, err)
+	myApp := abciApp.(app.BaseApp) // let's set up a genesis file with some cash
+
+	var wBuffer bytes.Buffer
+	for i, acc := range accounts {
+		_, err := wBuffer.WriteString(fmt.Sprintf(`{
+            "name": "wallet%d",
+			"address": "%s",
+			"coins": [{
+                "whole": 50000,
+                "ticker": "ETH"
+            },{
+                "whole": 1234,
+				"ticker": "FRNK"
+			}]
+		}`, i, acc.pk.PublicKey().Address()))
+		require.NoError(t, err)
+
+		if i != len(accounts)-1 {
+			_, err = wBuffer.WriteString(",")
+			require.NoError(t, err)
+		}
+	}
+
+	appState := fmt.Sprintf(`{
+        "wallets": [%s],
+        "tokens": [{
+            "ticker": "ETH",
+            "name": "Smells like ethereum",
+            "sig_figs": 9
+        },{
+            "ticker": "FRNK",
+            "name": "Frankie",
+            "sig_figs": 3
+		}]
+	}`, wBuffer.String())
+
+	// Commit first block, make sure non-nil hash
+	myApp.InitChain(abci.RequestInitChain{AppStateBytes: []byte(appState), ChainId: chainID})
+	header := abci.Header{Height: 1}
+	myApp.BeginBlock(abci.RequestBeginBlock{Header: header})
+	myApp.EndBlock(abci.RequestEndBlock{})
+	cres := myApp.Commit()
+	block1 := cres.Data
+	assert.NotEmpty(t, block1)
+	assert.Equal(t, chainID, myApp.GetChainID())
+
+	return myApp
 }
 
 // sendToken creates the transaction, signs it and sends it
 // checks money has arrived safely
-func sendToken(t *testing.T, baseApp app.BaseApp, chainID string, height int64, signers []Signer,
+func sendToken(t require.TestingT, baseApp app.BaseApp, chainID string, height int64, signers []*account,
 	from, to []byte, amount int64, ticker, memo string, contracts ...[]byte) abci.ResponseDeliverTx {
 	msg := &cash.SendMsg{
 		Src:  from,
@@ -270,7 +333,7 @@ func sendToken(t *testing.T, baseApp app.BaseApp, chainID string, height int64, 
 
 // createContract creates an immutable contract, signs the transaction and sends it
 // checks contract has been created correctly
-func createContract(t *testing.T, baseApp app.BaseApp, chainID string, height int64, signers []Signer,
+func createContract(t require.TestingT, baseApp app.BaseApp, chainID string, height int64, signers []*account,
 	activationThreshold int64, contractSigs ...[]byte) []byte {
 	msg := &multisig.CreateContractMsg{
 		Sigs:                contractSigs,
@@ -298,10 +361,10 @@ func createContract(t *testing.T, baseApp app.BaseApp, chainID string, height in
 
 // signAndCommit signs tx with signatures from signers and submits to the chain
 // asserts and fails the test in case of errors during the process
-func signAndCommit(t *testing.T, app app.BaseApp, tx *Tx, signers []Signer, chainID string,
+func signAndCommit(t require.TestingT, app app.BaseApp, tx *Tx, signers []*account, chainID string,
 	height int64) abci.ResponseDeliverTx {
 	for _, signer := range signers {
-		sig, err := sigs.SignTx(signer.pk, tx, chainID, signer.nonce)
+		sig, err := sigs.SignTx(signer.pk, tx, chainID, signer.nonce())
 		require.NoError(t, err)
 		tx.Signatures = append(tx.Signatures, sig)
 	}
@@ -327,7 +390,7 @@ func signAndCommit(t *testing.T, app app.BaseApp, tx *Tx, signers []Signer, chai
 }
 
 // queryAndCheckWallet queries the wallet from the chain and check it is the one expected
-func queryAndCheckWallet(t *testing.T, baseApp app.BaseApp, path string, data []byte, expected namecoin.Wallet) {
+func queryAndCheckWallet(t require.TestingT, baseApp app.BaseApp, path string, data []byte, expected namecoin.Wallet) {
 	query := abci.RequestQuery{Path: path, Data: data}
 	res := baseApp.Query(query)
 
@@ -342,7 +405,7 @@ func queryAndCheckWallet(t *testing.T, baseApp app.BaseApp, path string, data []
 }
 
 // queryAndCheckContract queries the contract from the chain and check it is the one expected
-func queryAndCheckContract(t *testing.T, baseApp app.BaseApp, path string, data []byte, expected multisig.Contract) {
+func queryAndCheckContract(t require.TestingT, baseApp app.BaseApp, path string, data []byte, expected multisig.Contract) {
 	query := abci.RequestQuery{Path: path, Data: data}
 	res := baseApp.Query(query)
 
@@ -357,7 +420,7 @@ func queryAndCheckContract(t *testing.T, baseApp app.BaseApp, path string, data 
 }
 
 // queryAndCheckToken queries tokens from the chain and check they're the one expected
-func queryAndCheckToken(t *testing.T, baseApp app.BaseApp, path string, data []byte, expected []namecoin.Token) {
+func queryAndCheckToken(t require.TestingT, baseApp app.BaseApp, path string, data []byte, expected []namecoin.Token) {
 	query := abci.RequestQuery{Path: path, Data: data}
 	res := baseApp.Query(query)
 
@@ -371,5 +434,106 @@ func queryAndCheckToken(t *testing.T, baseApp app.BaseApp, path string, data []b
 		err = actual.Unmarshal(obj)
 		require.NoError(t, err)
 		require.Equal(t, expected[i], actual)
+	}
+}
+
+// makeSendTx is a special case of sendToken when the sender account is the only signer
+// this is used in our benchmark
+func makeSendTx(t require.TestingT, chainID string, sender, receiver *account, ticker, memo string, amount int64) []byte {
+	msg := &cash.SendMsg{
+		Src:  sender.address(),
+		Dest: receiver.address(),
+		Amount: &x.Coin{
+			Whole:  amount,
+			Ticker: ticker,
+		},
+		Memo: memo,
+	}
+
+	tx := &Tx{
+		Sum: &Tx_SendMsg{msg},
+	}
+
+	sig, err := sigs.SignTx(sender.pk, tx, chainID, sender.nonce())
+	require.NoError(t, err)
+	tx.Signatures = append(tx.Signatures, sig)
+	txBytes, err := tx.Marshal()
+	require.NoError(t, err)
+	require.NotEmpty(t, txBytes)
+	return txBytes
+}
+
+// benchmarkSendTx runs the actual benchmark sequence eg.
+// N * CheckTx
+// BeginBlock
+// N * DeliverTx
+// EndBlock
+// Commit
+func benchmarkSendTx(b *testing.B, nbAccounts, blockSize int) {
+	accounts := make([]*account, nbAccounts)
+	for i := 0; i < nbAccounts; i++ {
+		accounts[i] = &account{pk: crypto.GenPrivKeyEd25519()}
+	}
+
+	chainID := "bench-net-22"
+	myApp := newTestApp(b, chainID, accounts)
+
+	txs := make([][]byte, b.N)
+	for i := 0; i < b.N; i++ {
+		sender := accounts[cmn.RandInt()%nbAccounts]
+		recipient := accounts[cmn.RandInt()%nbAccounts]
+		txs[i] = makeSendTx(b, chainID, sender, recipient, "ETH", "benchmark", 1)
+	}
+
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		chres := myApp.CheckTx(txs[i])
+		require.Equal(b, uint32(0), chres.Code, chres.Log)
+	}
+
+	k := 1
+	header := abci.Header{Height: int64(k)}
+	myApp.BeginBlock(abci.RequestBeginBlock{Header: header})
+	for i := 1; i <= b.N; i++ {
+		if i%blockSize == 0 {
+			myApp.EndBlock(abci.RequestEndBlock{})
+			cres := myApp.Commit()
+			assert.NotEmpty(b, cres.Data)
+
+			k++
+			header = abci.Header{Height: int64(k)}
+			myApp.BeginBlock(abci.RequestBeginBlock{Header: header})
+		}
+
+		dres := myApp.DeliverTx(txs[i-1])
+		require.Equal(b, uint32(0), dres.Code, dres.Log)
+	}
+
+	myApp.EndBlock(abci.RequestEndBlock{})
+	cres := myApp.Commit()
+	assert.NotEmpty(b, cres.Data)
+}
+
+// Runs benchmarks with various input combination of initial accounts and block size
+func BenchmarkSendTx(b *testing.B) {
+	benchmarks := []struct {
+		accounts  int
+		blockSize int
+	}{
+		{100, 10},
+		{100, 100},
+		{10000, 10},
+		{10000, 100},
+		{10000, 1000},
+		{100000, 10},
+		{100000, 100},
+	}
+
+	for _, bb := range benchmarks {
+		prefix := fmt.Sprintf("%d-%d", bb.accounts, bb.blockSize)
+		b.Run(prefix, func(sub *testing.B) {
+			benchmarkSendTx(sub, bb.accounts, bb.blockSize)
+		})
 	}
 }
