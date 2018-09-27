@@ -479,16 +479,16 @@ func benchmarkSendTx(b *testing.B, nbAccounts, blockSize int) {
 	myApp := newTestApp(b, chainID, accounts)
 
 	txs := make([][]byte, b.N)
-	for i := 1; i <= b.N; i++ {
+	for i := 0; i < b.N; i++ {
 		sender := accounts[cmn.RandInt()%nbAccounts]
 		recipient := accounts[cmn.RandInt()%nbAccounts]
-		txs[i-1] = makeSendTx(b, chainID, sender, recipient, "ETH", "benchmark", 1)
+		txs[i] = makeSendTx(b, chainID, sender, recipient, "ETH", "benchmark", 1)
 	}
 
 	b.ResetTimer()
 
-	for i := 1; i <= b.N; i++ {
-		chres := myApp.CheckTx(txs[i-1])
+	for i := 0; i < b.N; i++ {
+		chres := myApp.CheckTx(txs[i])
 		require.Equal(b, uint32(0), chres.Code, chres.Log)
 	}
 
@@ -522,11 +522,12 @@ func BenchmarkSendTx(b *testing.B) {
 		blockSize int
 	}{
 		{100, 10},
-		{100, 200},
+		{100, 100},
+		{10000, 10},
+		{10000, 100},
 		{10000, 1000},
-		{10000, 2000},
-		{100000, 1000},
-		{100000, 10000},
+		{100000, 10},
+		{100000, 100},
 	}
 
 	for _, bb := range benchmarks {
