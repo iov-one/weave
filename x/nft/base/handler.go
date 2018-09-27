@@ -2,6 +2,7 @@ package base
 
 import (
 	"fmt"
+
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/orm"
