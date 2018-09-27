@@ -11,9 +11,9 @@ import (
 var _ weave.Msg = (*IssueTokenMsg)(nil)
 
 const (
-	pathIssueTokenMsg     = "nft/username/issue"
-	pathAddAddressMsg     = "nft/username/address/add"
-	pathRemoveAddressMsg  = "nft/username/address/remove"
+	pathIssueTokenMsg    = "nft/username/issue"
+	pathAddAddressMsg    = "nft/username/address/add"
+	pathRemoveAddressMsg = "nft/username/address/remove"
 )
 
 var (

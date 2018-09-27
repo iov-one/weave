@@ -5,17 +5,22 @@ import (
 	"github.com/iov-one/weave/errors"
 )
 
-const(
-	pathAddApprovalMsg    = "nft/approval/add"
-	pathRemoveApprovalMsg = "nft/approval/remove"
+const (
+	PathAddApprovalMsg    = "nft/approval/add"
+	PathRemoveApprovalMsg = "nft/approval/remove"
 )
 
+type ApprovalMsg interface {
+	GetT() Type
+	Identified
+}
+
 func (*AddApprovalMsg) Path() string {
-	return pathAddApprovalMsg
+	return PathAddApprovalMsg
 }
 
 func (*RemoveApprovalMsg) Path() string {
-	return pathRemoveApprovalMsg
+	return PathRemoveApprovalMsg
 }
 
 func (m AddApprovalMsg) Validate() error {
