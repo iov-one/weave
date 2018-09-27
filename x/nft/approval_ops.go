@@ -45,7 +45,7 @@ func (o *ApprovalOps) Revoke(action string, from weave.Address) error {
 }
 
 //TODO: Figure out whether we need wildcard approvals, might be wise to add an ApprovalOptions flag
-func (o *ApprovalOps) Grant(action string, to weave.Address, op ApprovalOptions, blockHeight int64, actions ...string) error {
+func (o *ApprovalOps) Grant(action string, to weave.Address, op ApprovalOptions, blockHeight int64, actionMaps ...map[string]int32) error {
 	if to == nil || to.Equals(o.owner) {
 		return errors.New("invalid destination account")
 	}
@@ -58,7 +58,7 @@ func (o *ApprovalOps) Grant(action string, to weave.Address, op ApprovalOptions,
 		Options: op,
 	})
 
-	err := approvals.Validate(actions...)
+	err := approvals.Validate(actionMaps...)
 	if err != nil {
 		return err
 	}
