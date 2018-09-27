@@ -235,6 +235,7 @@ func findActor(h tokenHandler, ctx weave.Context, t Token) weave.Address {
 		return t.OwnerAddress()
 	} else {
 		signers := x.GetAddresses(ctx, h.auth)
+		//TODO: revise, introduce updateApprovalsAction?
 		for _, signer := range signers {
 			if !t.Approvals().
 				List().

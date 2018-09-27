@@ -66,6 +66,8 @@ func (a ApprovalOptions) Validate() error {
 }
 
 //This requires all the model-specific actions to be passed here
+//TODO: Not sure I'm a fan of array of maps, but it makes sense
+//given we validate using protobuf enum value maps
 func (m Approvals) Validate(actionMaps ...map[string]int32) error {
 	for action := range m {
 
