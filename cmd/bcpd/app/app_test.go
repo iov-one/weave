@@ -485,34 +485,27 @@ func benchmarkSendTx(b *testing.B, nbAccounts, blockSize int) {
 		txs[i] = makeSendTx(b, chainID, sender, recipient, "ETH", "benchmark", 1)
 	}
 
+	idTx := func(a, b int) int { return (a * blockSize) + b }
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
-		chres := myApp.CheckTx(txs[i])
-		require.Equal(b, uint32(0), chres.Code, chres.Log)
-	}
-
-	k := 1
-	header := abci.Header{Height: int64(k)}
-	myApp.BeginBlock(abci.RequestBeginBlock{Header: header})
-	for i := 1; i <= b.N; i++ {
-		if i%blockSize == 0 {
-			myApp.EndBlock(abci.RequestEndBlock{})
-			cres := myApp.Commit()
-			assert.NotEmpty(b, cres.Data)
-
-			k++
-			header = abci.Header{Height: int64(k)}
-			myApp.BeginBlock(abci.RequestBeginBlock{Header: header})
+		for k := 0; k < blockSize && idTx(i, k) < b.N; k++ {
+			chres := myApp.CheckTx(txs[idTx(i, k)])
+			require.Equal(b, uint32(0), chres.Code, chres.Log)
 		}
 
-		dres := myApp.DeliverTx(txs[i-1])
-		require.Equal(b, uint32(0), dres.Code, dres.Log)
-	}
+		header := abci.Header{Height: int64(i + 1)}
+		myApp.BeginBlock(abci.RequestBeginBlock{Header: header})
 
-	myApp.EndBlock(abci.RequestEndBlock{})
-	cres := myApp.Commit()
-	assert.NotEmpty(b, cres.Data)
+		for k := 0; k < blockSize && idTx(i, k) < b.N; k++ {
+			dres := myApp.DeliverTx(txs[idTx(i, k)])
+			require.Equal(b, uint32(0), dres.Code, dres.Log)
+		}
+
+		myApp.EndBlock(abci.RequestEndBlock{})
+		cres := myApp.Commit()
+		assert.NotEmpty(b, cres.Data)
+	}
 }
 
 // Runs benchmarks with various input combination of initial accounts and block size
@@ -528,6 +521,7 @@ func BenchmarkSendTx(b *testing.B) {
 		{10000, 1000},
 		{100000, 10},
 		{100000, 100},
+		{100000, 1000},
 	}
 
 	for _, bb := range benchmarks {
