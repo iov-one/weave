@@ -1,6 +1,11 @@
 package nft
 
-import "regexp"
+import (
+	"regexp"
+
+	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/x"
+)
 
 const (
 	minIDLength = 3
@@ -20,4 +25,23 @@ func (*Validation) IsValidAction(action string) bool {
 
 func (*Validation) IsValidTokenID(id []byte) bool {
 	return len(id) >= minIDLength && len(id) <= maxIDLength
+}
+
+func FindActor(auth x.Authenticator, ctx weave.Context, t BaseNFT, action string) weave.Address {
+	if auth.HasAddress(ctx, t.OwnerAddress()) {
+		return t.OwnerAddress()
+	} else {
+		signers := x.GetAddresses(ctx, auth)
+		//TODO: revise, introduce updateApprovalsAction?
+		for _, signer := range signers {
+			if !t.Approvals().
+				List().
+				ForAction(action).
+				ForAddress(signer).
+				IsEmpty() {
+				return signer
+			}
+		}
+	}
+	return nil
 }

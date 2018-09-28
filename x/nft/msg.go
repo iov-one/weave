@@ -11,7 +11,7 @@ const (
 )
 
 type ApprovalMsg interface {
-	GetT() Type
+	GetT() string
 	Identified
 }
 
