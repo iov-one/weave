@@ -439,7 +439,7 @@ func queryAndCheckToken(t require.TestingT, baseApp app.BaseApp, path string, da
 
 // makeSendTx is a special case of sendToken when the sender account is the only signer
 // this is used in our benchmark
-func makeSendTx(t require.TestingT, chainID string, sender, receiver *account, ticker, memo string, amount int64) []byte {
+func makeSendTx(t require.TestingT, chainID string, sender, receiver *account, ticker, memo string, amount int64, contracts ...[]byte) []byte {
 	msg := &cash.SendMsg{
 		Src:  sender.address(),
 		Dest: receiver.address(),
@@ -451,7 +451,8 @@ func makeSendTx(t require.TestingT, chainID string, sender, receiver *account, t
 	}
 
 	tx := &Tx{
-		Sum: &Tx_SendMsg{msg},
+		Sum:      &Tx_SendMsg{msg},
+		Multisig: contracts,
 	}
 
 	sig, err := sigs.SignTx(sender.pk, tx, chainID, sender.nonce())
@@ -461,6 +462,77 @@ func makeSendTx(t require.TestingT, chainID string, sender, receiver *account, t
 	require.NoError(t, err)
 	require.NotEmpty(t, txBytes)
 	return txBytes
+}
+
+func makeCreateContractTx(t require.TestingT, chainID string, signers [][]byte, threshold int64) *Tx {
+	msg := &multisig.CreateContractMsg{
+		Sigs:                signers,
+		ActivationThreshold: threshold,
+		AdminThreshold:      threshold,
+	}
+
+	return &Tx{
+		Sum: &Tx_CreateContractMsg{msg},
+	}
+}
+
+func newBlock(t require.TestingT, baseApp app.BaseApp, txs [][]byte, nbAccounts, blockSize, maxBlock, idx, height int) {
+	idTx := func(a, b int) int { return (a * blockSize) + b }
+	for k := 0; k < blockSize && idTx(idx, k) < maxBlock; k++ {
+		chres := baseApp.CheckTx(txs[idTx(idx, k)])
+		require.Equal(t, uint32(0), chres.Code, chres.Log)
+	}
+
+	header := abci.Header{Height: int64(height)}
+	baseApp.BeginBlock(abci.RequestBeginBlock{Header: header})
+
+	for k := 0; k < blockSize && idTx(idx, k) < maxBlock; k++ {
+		dres := baseApp.DeliverTx(txs[idTx(idx, k)])
+		require.Equal(t, uint32(0), dres.Code, dres.Log)
+	}
+
+	baseApp.EndBlock(abci.RequestEndBlock{})
+	cres := baseApp.Commit()
+	assert.NotEmpty(t, cres.Data)
+}
+
+// benchmarkSendTx runs the actual benchmark sequence eg.
+// N * CheckTx
+// BeginBlock
+// N * DeliverTx
+// EndBlock
+// Commit
+func benchmarkSendTxWithMultisig(b *testing.B, nbAccounts, blockSize, nbMultisigSigs int, threshold int64) {
+	accounts := make([]*account, nbAccounts)
+	for i := 0; i < nbAccounts; i++ {
+		accounts[i] = &account{pk: crypto.GenPrivKeyEd25519()}
+	}
+
+	chainID := "bench-net-22"
+	myApp := newTestApp(b, chainID, accounts)
+
+	height := 1
+	txs := make([][]byte, b.N)
+	for i := 0; i < b.N; i++ {
+		multisigs := make([][]byte, nbMultisigSigs)
+		for k := 0; k < nbMultisigSigs; k++ {
+			multisigs[k] = accounts[cmn.RandInt()%nbAccounts].address()
+		}
+
+		tx := makeCreateContractTx(b, chainID, multisigs, threshold)
+		res := signAndCommit(b, myApp, tx, []*account{accounts[cmn.RandInt()%nbAccounts]}, chainID, int64(height))
+		height++
+
+		sender := accounts[cmn.RandInt()%nbAccounts]
+		recipient := accounts[cmn.RandInt()%nbAccounts]
+		txs[i] = makeSendTx(b, chainID, sender, recipient, "ETH", "benchmark", 1, res.Data)
+	}
+
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		newBlock(b, myApp, txs, nbAccounts, blockSize, b.N, i, i+height)
+	}
 }
 
 // benchmarkSendTx runs the actual benchmark sequence eg.
@@ -485,26 +557,10 @@ func benchmarkSendTx(b *testing.B, nbAccounts, blockSize int) {
 		txs[i] = makeSendTx(b, chainID, sender, recipient, "ETH", "benchmark", 1)
 	}
 
-	idTx := func(a, b int) int { return (a * blockSize) + b }
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
-		for k := 0; k < blockSize && idTx(i, k) < b.N; k++ {
-			chres := myApp.CheckTx(txs[idTx(i, k)])
-			require.Equal(b, uint32(0), chres.Code, chres.Log)
-		}
-
-		header := abci.Header{Height: int64(i + 1)}
-		myApp.BeginBlock(abci.RequestBeginBlock{Header: header})
-
-		for k := 0; k < blockSize && idTx(i, k) < b.N; k++ {
-			dres := myApp.DeliverTx(txs[idTx(i, k)])
-			require.Equal(b, uint32(0), dres.Code, dres.Log)
-		}
-
-		myApp.EndBlock(abci.RequestEndBlock{})
-		cres := myApp.Commit()
-		assert.NotEmpty(b, cres.Data)
+		newBlock(b, myApp, txs, nbAccounts, blockSize, b.N, i, i+1)
 	}
 }
 
@@ -528,6 +584,33 @@ func BenchmarkSendTx(b *testing.B) {
 		prefix := fmt.Sprintf("%d-%d", bb.accounts, bb.blockSize)
 		b.Run(prefix, func(sub *testing.B) {
 			benchmarkSendTx(sub, bb.accounts, bb.blockSize)
+		})
+	}
+}
+
+func BenchmarkSendTxMultiSig(b *testing.B) {
+	benchmarks := []struct {
+		accounts  int
+		blockSize int
+		nbSigs    int
+		threshold int64
+	}{
+		{10000, 10, 2, 1},
+		{10000, 10, 3, 2},
+		{10000, 100, 2, 1},
+		{10000, 100, 3, 2},
+		{10000, 1000, 2, 1},
+		{10000, 1000, 3, 2},
+		{100000, 100, 2, 1},
+		{100000, 100, 3, 2},
+		{100000, 1000, 2, 1},
+		{100000, 1000, 3, 2},
+	}
+
+	for _, bb := range benchmarks {
+		prefix := fmt.Sprintf("%d-%d", bb.accounts, bb.blockSize)
+		b.Run(prefix, func(sub *testing.B) {
+			benchmarkSendTxWithMultisig(sub, bb.accounts, bb.blockSize, bb.nbSigs, bb.threshold)
 		})
 	}
 }
