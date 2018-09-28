@@ -19,6 +19,7 @@ import (
 	"github.com/iov-one/weave/x/hashlock"
 	"github.com/iov-one/weave/x/multisig"
 	"github.com/iov-one/weave/x/namecoin"
+	"github.com/iov-one/weave/x/nft"
 	"github.com/iov-one/weave/x/nft/blockchain"
 	"github.com/iov-one/weave/x/nft/ticker"
 	"github.com/iov-one/weave/x/nft/username"
@@ -85,6 +86,7 @@ func QueryRouter() weave.QueryRouter {
 		validators.RegisterQuery,
 		orm.RegisterQuery,
 	)
+	nft.GetBucketDispatcher().AssertRegistered(nft.Type_Username, nft.Type_Ticker, nft.Type_Blockchain)
 	return r
 }
 

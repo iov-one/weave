@@ -32,14 +32,14 @@ message AddApprovalMsg {
     bytes address = 2;
     string action = 3;
     ApprovalOptions options = 4 [(gogoproto.nullable) = false];
-    Type t = 5;
+    string t = 5;
 }
 
 message RemoveApprovalMsg {
     bytes id = 1;
     bytes address = 2;
     string action = 3;
-    Type t = 4;
+    string t = 4;
 }
 
 enum Type {

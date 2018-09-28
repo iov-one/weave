@@ -15,14 +15,18 @@ const (
 // RegisterRoutes will instantiate and register all handlers in this package
 func RegisterRoutes(r weave.Registry, auth x.Authenticator, issuer weave.Address) {
 	bucket := NewBucket()
+
 	r.Handle(pathIssueTokenMsg, NewIssueHandler(auth, issuer, bucket))
 	r.Handle(pathAddAddressMsg, NewAddChainAddressHandler(auth, issuer, bucket))
 	r.Handle(pathRemoveAddressMsg, NewRemoveChainAddressHandler(auth, issuer, bucket))
+
 }
 
 // RegisterQuery will register this bucket as "/nft/usernames"
 func RegisterQuery(qr weave.QueryRouter) {
-	NewBucket().Register("nft/usernames", qr)
+	bucket := NewBucket()
+	nft.GetBucketDispatcher().Register(nft.Type_Username.String(), bucket)
+	bucket.Register("nft/usernames", qr)
 }
 
 type tokenHandler struct {
@@ -127,7 +131,7 @@ func (h AddChainAddressHandler) Deliver(ctx weave.Context, store weave.KVStore, 
 	if err != nil {
 		return res, err
 	}
-	actor := findActor(h.tokenHandler, ctx, t)
+	actor := nft.FindActor(h.auth, ctx, t, nft.Action_ActionUpdateDetails.String())
 	if actor == nil {
 		return res, errors.ErrUnauthorized()
 	}
@@ -228,23 +232,4 @@ func loadToken(h tokenHandler, store weave.KVStore, id []byte) (orm.Object, Toke
 	}
 	t, e := AsUsername(o)
 	return o, t, e
-}
-
-func findActor(h tokenHandler, ctx weave.Context, t Token) weave.Address {
-	if h.auth.HasAddress(ctx, t.OwnerAddress()) {
-		return t.OwnerAddress()
-	} else {
-		signers := x.GetAddresses(ctx, h.auth)
-		//TODO: revise, introduce updateApprovalsAction?
-		for _, signer := range signers {
-			if !t.Approvals().
-				List().
-				ForAction(nft.Action_ActionUpdateDetails.String()).
-				ForAddress(signer).
-				IsEmpty() {
-				return signer
-			}
-		}
-	}
-	return nil
 }
