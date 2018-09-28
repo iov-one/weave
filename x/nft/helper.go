@@ -27,6 +27,7 @@ func (*Validation) IsValidTokenID(id []byte) bool {
 	return len(id) >= minIDLength && len(id) <= maxIDLength
 }
 
+// TODO: Maybe fmt.Stringer for action is better, if we agree on using protobuf for that always
 func FindActor(auth x.Authenticator, ctx weave.Context, t BaseNFT, action string) weave.Address {
 	if auth.HasAddress(ctx, t.OwnerAddress()) {
 		return t.OwnerAddress()
