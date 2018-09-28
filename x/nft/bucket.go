@@ -34,6 +34,8 @@ type bucketDispatcher struct {
 
 var bs BucketDispatcher
 
+//TODO: if we ever want to support concurrency here
+// then we might be better of with a separate Init() method or similar
 func GetBucketDispatcher() BucketDispatcher {
 	if bs == nil {
 		bs = &bucketDispatcher{}

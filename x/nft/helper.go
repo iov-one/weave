@@ -32,7 +32,6 @@ func FindActor(auth x.Authenticator, ctx weave.Context, t BaseNFT, action string
 		return t.OwnerAddress()
 	} else {
 		signers := x.GetAddresses(ctx, auth)
-		//TODO: revise, introduce updateApprovalsAction?
 		for _, signer := range signers {
 			if !t.Approvals().
 				List().
