@@ -1,24 +1,23 @@
-BenchmarkSendTx/100-10-8                    3000            514055 ns/op          119221 B/op       2412 allocs/op
-BenchmarkSendTx/100-100-8                   3000            338524 ns/op           23235 B/op        430 allocs/op
-BenchmarkSendTx/10000-10-8                  3000           1460607 ns/op          456949 B/op       9273 allocs/op
-BenchmarkSendTx/10000-100-8                 3000            462201 ns/op           68020 B/op       1238 allocs/op
-BenchmarkSendTx/10000-1000-8               10000            405973 ns/op           44066 B/op        735 allocs/op
-BenchmarkSendTx/100000-10-8                 3000           8882982 ns/op         2151144 B/op      44320 allocs/op
-BenchmarkSendTx/100000-100-8                3000            813833 ns/op          165058 B/op       2905 allocs/op
-BenchmarkSendTx/100000-1000-8              10000            469141 ns/op           69699 B/op       1132 allocs/op
+BenchmarkSendTx/100-10-8                    3000            494052 ns/op          118792 B/op       2402 allocs/op
+BenchmarkSendTx/100-100-8                   5000            335825 ns/op           25323 B/op        474 allocs/op
+BenchmarkSendTx/10000-10-8                  5000           1849667 ns/op          607507 B/op      12449 allocs/op
+BenchmarkSendTx/10000-100-8                 3000            445892 ns/op           68358 B/op       1240 allocs/op
+BenchmarkSendTx/10000-1000-8                5000            384716 ns/op           41155 B/op        689 allocs/op
+BenchmarkSendTx/100000-10-8                 3000           7456650 ns/op         2151802 B/op      44337 allocs/op
+BenchmarkSendTx/100000-100-8                3000            748259 ns/op          164601 B/op       2900 allocs/op
+BenchmarkSendTx/100000-1000-8               3000            441999 ns/op           77443 B/op       1061 allocs/op
 PASS
-ok      github.com/iov-one/weave/cmd/bcpd/app   144.723s
+ok      github.com/iov-one/weave/cmd/bcpd/app   136.447s
 
 ------------------------------------------------------------
 
-BenchmarkSendTxMultiSig/10000-100-100-2-1-8                 5000            362085 ns/op           31205 B/op        613 allocs/op
-BenchmarkSendTxMultiSig/10000-100-100-10-5-8                1000           1583479 ns/op           68750 B/op       1256 allocs/op
-BenchmarkSendTxMultiSig/10000-100-1000-2-1-8                3000            478199 ns/op           70610 B/op       1365 allocs/op
-BenchmarkSendTxMultiSig/10000-100-1000-10-5-8               1000           2122700 ns/op          128419 B/op       2282 allocs/op
-BenchmarkSendTxMultiSig/10000-100-1000-20-10-8               500           3760470 ns/op          195295 B/op       3304 allocs/op
-BenchmarkSendTxMultiSig/10000-1000-100-2-1-8               10000            386712 ns/op           20219 B/op        397 allocs/op
-BenchmarkSendTxMultiSig/10000-1000-100-10-5-8               2000           1741662 ns/op           53420 B/op        949 allocs/op
-BenchmarkSendTxMultiSig/10000-1000-100-20-10-8              1000           3151774 ns/op           98379 B/op       1688 allocs/op
+BenchmarkSendTxMultiSig/10000-100-100-2-1-8                 5000            357555 ns/op           31474 B/op        617 allocs/op
+BenchmarkSendTxMultiSig/10000-100-100-10-5-8                1000           1567772 ns/op           68580 B/op       1255 allocs/op
+BenchmarkSendTxMultiSig/10000-100-1000-2-1-8                3000            471521 ns/op           70268 B/op       1359 allocs/op
+BenchmarkSendTxMultiSig/10000-100-1000-10-5-8               1000           1722731 ns/op          128363 B/op       2280 allocs/op
+BenchmarkSendTxMultiSig/10000-100-1000-20-10-8               500           3274522 ns/op          193864 B/op       3295 allocs/op
+BenchmarkSendTxMultiSig/10000-1000-100-2-1-8                5000            332730 ns/op           19792 B/op        392 allocs/op
+BenchmarkSendTxMultiSig/10000-1000-100-10-5-8               1000           1510140 ns/op           53548 B/op        947 allocs/op
+BenchmarkSendTxMultiSig/10000-1000-100-20-10-8               500           3006528 ns/op          100733 B/op       1740 allocs/op
 PASS
-ok      github.com/iov-one/weave/cmd/bcpd/app   64.219s
-
+ok      github.com/iov-one/weave/cmd/bcpd/app   50.628s
