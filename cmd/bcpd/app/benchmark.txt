@@ -3,8 +3,10 @@ BenchmarkSendTx/100-100-8                     50          34253808 ns/op        
 BenchmarkSendTx/10000-10-8                   200          14787621 ns/op         3740037 B/op      76124 allocs/op
 BenchmarkSendTx/10000-100-8                   30          48618981 ns/op         6845716 B/op     124288 allocs/op
 BenchmarkSendTx/10000-1000-8                   3         404855149 ns/op        39829581 B/op     653600 allocs/op
-BenchmarkSendTx/100000-10-8                  100          77092694 ns/op        17602598 B/op     355118 allocs/opBenchmarkSendTx/100000-100-8                  30          87291256 ns/op        16496994 B/op     290574 allocs/op
-BenchmarkSendTx/100000-1000-8                  3         498527483 ns/op        77594389 B/op    1062805 allocs/opPASS
+BenchmarkSendTx/100000-10-8                  100          77092694 ns/op        17602598 B/op     355118 allocs/op
+BenchmarkSendTx/100000-100-8                  30          87291256 ns/op        16496994 B/op     290574 allocs/op
+BenchmarkSendTx/100000-1000-8                  3         498527483 ns/op        77594389 B/op    1062805 allocs/op
+PASS
 ok      github.com/iov-one/weave/cmd/bcpd/app   106.689s
 
 ------------------------------------------------------------
