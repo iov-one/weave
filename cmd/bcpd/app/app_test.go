@@ -646,19 +646,32 @@ func benchmarkSendTxWithMultisig(b *testing.B, nbAccounts, blockSize, nbContract
 		c.id = createContract(b, myApp, chainID, int64(i+1), []*account{signer}, threshold, c.sigs()...)
 	}
 
-	txs := make([][]byte, b.N*blockSize)
+	txs := make([][]byte, b.N)
 	for i := 0; i < b.N; i++ {
-		for k := 0; k < blockSize; k++ {
-			sender := contracts[cmn.RandInt()%nbContracts]
-			recipient := contracts[cmn.RandInt()%nbContracts]
-			txs[(i*blockSize)+k] = makeSendTxMultisig(b, chainID, sender, recipient, "ETH", "benchmark", 1)
-		}
+		sender := contracts[cmn.RandInt()%nbContracts]
+		recipient := contracts[cmn.RandInt()%nbContracts]
+		txs[i] = makeSendTxMultisig(b, chainID, sender, recipient, "ETH", "benchmark", 1)
 	}
 
 	b.ResetTimer()
 
-	for i := 0; i < b.N; i++ {
-		newBlock(b, myApp, txs, nbAccounts, blockSize, i, nbContracts+1)
+	for i := 1; i <= b.N; i++ {
+		chres := myApp.CheckTx(txs[i-1])
+		require.Equal(b, uint32(0), chres.Code, chres.Log)
+
+		if i%blockSize == 0 {
+			header := abci.Header{Height: int64(i/blockSize) + 1}
+			myApp.BeginBlock(abci.RequestBeginBlock{Header: header})
+
+			for k := i - blockSize; k < i; k++ {
+				dres := myApp.DeliverTx(txs[k])
+				require.Equal(b, uint32(0), dres.Code, dres.Log)
+			}
+
+			myApp.EndBlock(abci.RequestEndBlock{})
+			cres := myApp.Commit()
+			assert.NotEmpty(b, cres.Data)
+		}
 	}
 }
 
@@ -677,19 +690,32 @@ func benchmarkSendTx(b *testing.B, nbAccounts, blockSize int) {
 	chainID := "bench-net-22"
 	myApp := newTestApp(b, chainID, accounts)
 
-	txs := make([][]byte, b.N*blockSize)
+	txs := make([][]byte, b.N)
 	for i := 0; i < b.N; i++ {
-		for k := 0; k < blockSize; k++ {
-			sender := accounts[cmn.RandInt()%nbAccounts]
-			recipient := accounts[cmn.RandInt()%nbAccounts]
-			txs[(i*blockSize)+k] = makeSendTx(b, chainID, sender, recipient, "ETH", "benchmark", 1)
-		}
+		sender := accounts[cmn.RandInt()%nbAccounts]
+		recipient := accounts[cmn.RandInt()%nbAccounts]
+		txs[i] = makeSendTx(b, chainID, sender, recipient, "ETH", "benchmark", 1)
 	}
 
 	b.ResetTimer()
 
-	for i := 0; i < b.N; i++ {
-		newBlock(b, myApp, txs, nbAccounts, blockSize, i, i+1)
+	for i := 1; i <= b.N; i++ {
+		chres := myApp.CheckTx(txs[i-1])
+		require.Equal(b, uint32(0), chres.Code, chres.Log)
+
+		if i%blockSize == 0 {
+			header := abci.Header{Height: int64(i/blockSize) + 1}
+			myApp.BeginBlock(abci.RequestBeginBlock{Header: header})
+
+			for k := i - blockSize; k < i; k++ {
+				dres := myApp.DeliverTx(txs[k])
+				require.Equal(b, uint32(0), dres.Code, dres.Log)
+			}
+
+			myApp.EndBlock(abci.RequestEndBlock{})
+			cres := myApp.Commit()
+			assert.NotEmpty(b, cres.Data)
+		}
 	}
 }
 
@@ -726,15 +752,13 @@ func BenchmarkSendTxMultiSig(b *testing.B) {
 		threshold int64
 	}{
 		{10000, 100, 100, 2, 1},
-		{10000, 100, 1000, 2, 1},
 		{10000, 100, 100, 10, 5},
+		{10000, 100, 1000, 2, 1},
 		{10000, 100, 1000, 10, 5},
 		{10000, 100, 1000, 20, 10},
 		{10000, 1000, 100, 2, 1},
-		{10000, 1000, 1000, 2, 1},
 		{10000, 1000, 100, 10, 5},
-		{10000, 1000, 1000, 10, 5},
-		{10000, 1000, 1000, 20, 10},
+		{10000, 1000, 100, 20, 10},
 	}
 
 	for _, bb := range benchmarks {
