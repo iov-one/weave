@@ -636,15 +636,22 @@ func benchmarkSendTxWithMultisig(b *testing.B, nbAccounts, blockSize, nbContract
 
 	b.ResetTimer()
 
-	for i := 1; i <= b.N; i++ {
+	// iterate through Txs
+	// start at one to not trigger block creation at the first iteration
+	for i, height := 1, 0; i <= b.N; i++ {
 		chres := myApp.CheckTx(txs[i-1])
 		require.Equal(b, uint32(0), chres.Code, chres.Log)
 
-		if i%blockSize == 0 {
-			header := abci.Header{Height: int64(i/blockSize) + 1}
+		// if there is no remainder we have enough txs to create a block
+		// If the number of tx is not a multiple of the block size, we create
+		// a final block at the end with the remaining txs
+		if i%blockSize == 0 || (i == b.N && b.N%blockSize != 0) {
+			height++
+			header := abci.Header{Height: int64(height + nbContracts + 1)}
 			myApp.BeginBlock(abci.RequestBeginBlock{Header: header})
 
-			for k := i - blockSize; k < i; k++ {
+			// deliver from the first tx following previous block (or 0) to the current tx
+			for k := (height - 1) * blockSize; k < i; k++ {
 				dres := myApp.DeliverTx(txs[k])
 				require.Equal(b, uint32(0), dres.Code, dres.Log)
 			}
@@ -680,19 +687,26 @@ func benchmarkSendTx(b *testing.B, nbAccounts, blockSize int) {
 
 	b.ResetTimer()
 
-	for i := 1; i <= b.N; i++ {
+	// iterate through Txs
+	// start at one to not trigger block creation at the first iteration
+	for i, height := 1, 0; i <= b.N; i++ {
 		chres := myApp.CheckTx(txs[i-1])
 		require.Equal(b, uint32(0), chres.Code, chres.Log)
 
-		if i%blockSize == 0 {
-			header := abci.Header{Height: int64(i/blockSize) + 1}
+		// if there is no remainder we have enough txs to create a block
+		// If the number of tx is not a multiple of the block size, we create
+		// a final block at the end with the remaining txs
+		if i%blockSize == 0 || (i == b.N && b.N%blockSize != 0) {
+			height++
+			header := abci.Header{Height: int64(height + 1)}
 			myApp.BeginBlock(abci.RequestBeginBlock{Header: header})
 
-			for k := i - blockSize; k < i; k++ {
+			for k := (height - 1) * blockSize; k < i; k++ {
 				dres := myApp.DeliverTx(txs[k])
 				require.Equal(b, uint32(0), dres.Code, dres.Log)
 			}
 
+			// deliver from the first tx following previous block (or 0) to the current tx
 			myApp.EndBlock(abci.RequestEndBlock{})
 			cres := myApp.Commit()
 			assert.NotEmpty(b, cres.Data)
