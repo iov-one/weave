@@ -592,25 +592,6 @@ func makeCreateContractTx(t require.TestingT, chainID string, signers [][]byte, 
 	}
 }
 
-func newBlock(t require.TestingT, baseApp app.BaseApp, txs [][]byte, nbAccounts, blockSize, idx, height int) {
-	for k := 0; k < blockSize; k++ {
-		chres := baseApp.CheckTx(txs[(idx*blockSize)+k])
-		require.Equal(t, uint32(0), chres.Code, chres.Log)
-	}
-
-	header := abci.Header{Height: int64(height)}
-	baseApp.BeginBlock(abci.RequestBeginBlock{Header: header})
-
-	for k := 0; k < blockSize; k++ {
-		dres := baseApp.DeliverTx(txs[(idx*blockSize)+k])
-		require.Equal(t, uint32(0), dres.Code, dres.Log)
-	}
-
-	baseApp.EndBlock(abci.RequestEndBlock{})
-	cres := baseApp.Commit()
-	assert.NotEmpty(t, cres.Data)
-}
-
 // benchmarkSendTxWithMultisig runs the actual benchmark sequence with multisig eg.
 // N * CheckTx
 // BeginBlock
