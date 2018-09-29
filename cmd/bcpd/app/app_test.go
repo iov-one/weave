@@ -592,18 +592,17 @@ func makeCreateContractTx(t require.TestingT, chainID string, signers [][]byte, 
 	}
 }
 
-func newBlock(t require.TestingT, baseApp app.BaseApp, txs [][]byte, nbAccounts, blockSize, maxBlock, idx, height int) {
-	idTx := func(a, b int) int { return (a * blockSize) + b }
-	for k := 0; k < blockSize && idTx(idx, k) < maxBlock; k++ {
-		chres := baseApp.CheckTx(txs[idTx(idx, k)])
+func newBlock(t require.TestingT, baseApp app.BaseApp, txs [][]byte, nbAccounts, blockSize, idx, height int) {
+	for k := 0; k < blockSize; k++ {
+		chres := baseApp.CheckTx(txs[(idx*blockSize)+k])
 		require.Equal(t, uint32(0), chres.Code, chres.Log)
 	}
 
 	header := abci.Header{Height: int64(height)}
 	baseApp.BeginBlock(abci.RequestBeginBlock{Header: header})
 
-	for k := 0; k < blockSize && idTx(idx, k) < maxBlock; k++ {
-		dres := baseApp.DeliverTx(txs[idTx(idx, k)])
+	for k := 0; k < blockSize; k++ {
+		dres := baseApp.DeliverTx(txs[(idx*blockSize)+k])
 		require.Equal(t, uint32(0), dres.Code, dres.Log)
 	}
 
@@ -647,17 +646,19 @@ func benchmarkSendTxWithMultisig(b *testing.B, nbAccounts, blockSize, nbContract
 		c.id = createContract(b, myApp, chainID, int64(i+1), []*account{signer}, threshold, c.sigs()...)
 	}
 
-	txs := make([][]byte, b.N)
+	txs := make([][]byte, b.N*blockSize)
 	for i := 0; i < b.N; i++ {
-		sender := contracts[cmn.RandInt()%nbContracts]
-		recipient := contracts[cmn.RandInt()%nbContracts]
-		txs[i] = makeSendTxMultisig(b, chainID, sender, recipient, "ETH", "benchmark", 1)
+		for k := 0; k < blockSize; k++ {
+			sender := contracts[cmn.RandInt()%nbContracts]
+			recipient := contracts[cmn.RandInt()%nbContracts]
+			txs[(i*blockSize)+k] = makeSendTxMultisig(b, chainID, sender, recipient, "ETH", "benchmark", 1)
+		}
 	}
 
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
-		newBlock(b, myApp, txs, nbAccounts, blockSize, b.N, i, nbContracts+1)
+		newBlock(b, myApp, txs, nbAccounts, blockSize, i, nbContracts+1)
 	}
 }
 
@@ -676,17 +677,19 @@ func benchmarkSendTx(b *testing.B, nbAccounts, blockSize int) {
 	chainID := "bench-net-22"
 	myApp := newTestApp(b, chainID, accounts)
 
-	txs := make([][]byte, b.N)
+	txs := make([][]byte, b.N*blockSize)
 	for i := 0; i < b.N; i++ {
-		sender := accounts[cmn.RandInt()%nbAccounts]
-		recipient := accounts[cmn.RandInt()%nbAccounts]
-		txs[i] = makeSendTx(b, chainID, sender, recipient, "ETH", "benchmark", 1)
+		for k := 0; k < blockSize; k++ {
+			sender := accounts[cmn.RandInt()%nbAccounts]
+			recipient := accounts[cmn.RandInt()%nbAccounts]
+			txs[(i*blockSize)+k] = makeSendTx(b, chainID, sender, recipient, "ETH", "benchmark", 1)
+		}
 	}
 
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
-		newBlock(b, myApp, txs, nbAccounts, blockSize, b.N, i, i+1)
+		newBlock(b, myApp, txs, nbAccounts, blockSize, i, i+1)
 	}
 }
 

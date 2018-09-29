@@ -1,0 +1,26 @@
+BenchmarkSendTx/100-10-8                     300           5112629 ns/op         1199393 B/op      24288 allocs/op
+BenchmarkSendTx/100-100-8                     50          34253808 ns/op         2543190 B/op      47555 allocs/op
+BenchmarkSendTx/10000-10-8                   200          14787621 ns/op         3740037 B/op      76124 allocs/op
+BenchmarkSendTx/10000-100-8                   30          48618981 ns/op         6845716 B/op     124288 allocs/op
+BenchmarkSendTx/10000-1000-8                   3         404855149 ns/op        39829581 B/op     653600 allocs/op
+BenchmarkSendTx/100000-10-8                  100          77092694 ns/op        17602598 B/op     355118 allocs/opBenchmarkSendTx/100000-100-8                  30          87291256 ns/op        16496994 B/op     290574 allocs/op
+BenchmarkSendTx/100000-1000-8                  3         498527483 ns/op        77594389 B/op    1062805 allocs/opPASS
+ok      github.com/iov-one/weave/cmd/bcpd/app   106.689s
+
+------------------------------------------------------------
+
+BenchmarkSendTxMultiSig/10000-100-100-2-1-8                   50          37669548 ns/op         3114398 B/op      61234 allocs/op
+BenchmarkSendTxMultiSig/10000-100-1000-2-1-8                  30          47764969 ns/op         7035119 B/op     136142 allocs/op
+BenchmarkSendTxMultiSig/10000-100-100-10-5-8                  10         163004876 ns/op         6836098 B/op     125467 allocs/op
+BenchmarkSendTxMultiSig/10000-100-1000-10-5-8                 10         177063226 ns/op        12743496 B/op     227037 allocs/op
+BenchmarkSendTxMultiSig/10000-100-1000-20-10-8                 3         336190983 ns/op        17644237 B/op     318921 allocs/op
+BenchmarkSendTxMultiSig/10000-1000-100-2-1-8                   3         345198149 ns/op        20138642 B/op     395852 allocs/op
+BenchmarkSendTxMultiSig/10000-1000-1000-2-1-8                  3         383009786 ns/op        31735421 B/op     563366 allocs/op
+BenchmarkSendTxMultiSig/10000-1000-100-10-5-8                  1        1585337733 ns/op        53458392 B/op     946680 allocs/op
+BenchmarkSendTxMultiSig/10000-1000-1000-10-5-8                 1        1670586259 ns/op        73196464 B/op    1270779 allocs/op
+BenchmarkSendTxMultiSig/10000-1000-1000-20-10-8                1        3222734229 ns/op        131112336 B/op   2116184 allocs/op
+PASS
+ok      github.com/iov-one/weave/cmd/bcpd/app   59.932s
+
+
+
