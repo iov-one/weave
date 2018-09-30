@@ -638,7 +638,8 @@ func benchmarkSendTxWithMultisig(b *testing.B, nbAccounts, blockSize, nbContract
 
 	// iterate through Txs
 	// start at one to not trigger block creation at the first iteration
-	for i, height := 1, 0; i <= b.N; i++ {
+	height := 0
+	for i := 1; i <= b.N; i++ {
 		chres := myApp.CheckTx(txs[i-1])
 		require.Equal(b, uint32(0), chres.Code, chres.Log)
 
@@ -689,7 +690,8 @@ func benchmarkSendTx(b *testing.B, nbAccounts, blockSize int) {
 
 	// iterate through Txs
 	// start at one to not trigger block creation at the first iteration
-	for i, height := 1, 0; i <= b.N; i++ {
+	height := 0
+	for i := 1; i <= b.N; i++ {
 		chres := myApp.CheckTx(txs[i-1])
 		require.Equal(b, uint32(0), chres.Code, chres.Log)
 
