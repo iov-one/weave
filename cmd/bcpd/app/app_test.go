@@ -646,7 +646,7 @@ func benchmarkSendTxWithMultisig(b *testing.B, nbAccounts, blockSize, nbContract
 		// if there is no remainder we have enough txs to create a block
 		// If the number of tx is not a multiple of the block size, we create
 		// a final block at the end with the remaining txs
-		if i%blockSize == 0 || (i == b.N && b.N%blockSize != 0) {
+		if i%blockSize == 0 || i == b.N {
 			height++
 			header := abci.Header{Height: int64(height + nbContracts + 1)}
 			myApp.BeginBlock(abci.RequestBeginBlock{Header: header})
@@ -698,7 +698,7 @@ func benchmarkSendTx(b *testing.B, nbAccounts, blockSize int) {
 		// if there is no remainder we have enough txs to create a block
 		// If the number of tx is not a multiple of the block size, we create
 		// a final block at the end with the remaining txs
-		if i%blockSize == 0 || (i == b.N && b.N%blockSize != 0) {
+		if i%blockSize == 0 || i == b.N {
 			height++
 			header := abci.Header{Height: int64(height + 1)}
 			myApp.BeginBlock(abci.RequestBeginBlock{Header: header})
