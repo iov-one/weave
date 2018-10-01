@@ -184,7 +184,7 @@ func (h RemoveChainAddressHandler) Deliver(ctx weave.Context, store weave.KVStor
 	if err != nil {
 		return res, err
 	}
-	actor := findActor(h.tokenHandler, ctx, t)
+	actor := nft.FindActor(h.auth, ctx, t, nft.Action_ActionUpdateDetails.String())
 	if actor == nil {
 		return res, errors.ErrUnauthorized()
 	}
