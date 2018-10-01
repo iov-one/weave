@@ -4,7 +4,6 @@ import (
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/x"
-	"github.com/iov-one/weave/x/nft"
 )
 
 const (
@@ -20,7 +19,6 @@ func RegisterRoutes(r weave.Registry, auth x.Authenticator, issuer weave.Address
 // RegisterQuery will register this bucket as "/nft/blockchain"
 func RegisterQuery(qr weave.QueryRouter) {
 	bucket := NewBucket()
-	nft.GetBucketDispatcher().Register(nft.Type_Blockchain.String(), bucket)
 	bucket.Register("nft/blockchains", qr)
 }
 

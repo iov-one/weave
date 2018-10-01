@@ -71,10 +71,11 @@ func Router(authFn x.Authenticator, issuer weave.Address) app.Router {
 }
 
 // QueryRouter returns a default query router,
-// allowing access to "/wallets", "/auth", "/", "/escrows", "/nft/tickers",
+// allowing access to "/wallets", "/auth", "/", "/escrows", "/nft/usernames",
 // "/nft/blockchains", "/nft/tickers", "/validators"
 func QueryRouter() weave.QueryRouter {
 	r := weave.NewQueryRouter()
+
 	r.RegisterAll(
 		escrow.RegisterQuery,
 		namecoin.RegisterQuery,
@@ -86,8 +87,15 @@ func QueryRouter() weave.QueryRouter {
 		validators.RegisterQuery,
 		orm.RegisterQuery,
 	)
-	nft.GetBucketDispatcher().AssertRegistered(nft.Type_Username, nft.Type_Ticker, nft.Type_Blockchain)
+	nft.GetBucketDispatcher().AssertRegistered(x.EnumHelpers{}.AsList(NftType_value)...)
 	return r
+}
+
+// Register nft types for shared action handling via base handler
+func RegisterNft() {
+	nft.GetBucketDispatcher().Register(NftType_Username.String(), username.NewBucket())
+	nft.GetBucketDispatcher().Register(NftType_Ticker.String(), ticker.NewBucket())
+	nft.GetBucketDispatcher().Register(NftType_Blockchain.String(), blockchain.NewBucket())
 }
 
 // Stack wires up a standard router with a standard decorator
@@ -109,6 +117,7 @@ func Application(name string, h weave.Handler,
 	if err != nil {
 		return app.BaseApp{}, err
 	}
+	RegisterNft()
 	store := app.NewStoreApp(name, kv, QueryRouter(), ctx)
 	base := app.NewBaseApp(store, tx, h, nil, debug)
 	return base, nil

@@ -42,13 +42,8 @@ message RemoveApprovalMsg {
     string t = 4;
 }
 
-enum Type {
-    Username = 0;
-    Ticker = 1;
-    Blockchain = 3;
-}
-
 enum Action {
     ActionUpdateDetails = 0;
     ActionTransfer = 1;
+    ActionUpdateApprovals = 2;
 }

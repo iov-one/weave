@@ -21,7 +21,6 @@ func RegisterRoutes(r weave.Registry, auth x.Authenticator, issuer weave.Address
 // RegisterQuery will register this bucket as "/nft/ticker"
 func RegisterQuery(qr weave.QueryRouter) {
 	bucket := NewBucket()
-	nft.GetBucketDispatcher().Register(nft.Type_Ticker.String(), bucket)
 	bucket.Register("nft/tickers", qr)
 }
 

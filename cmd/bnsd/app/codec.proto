@@ -48,3 +48,9 @@ message Tx {
     // id of multisig contract, autogenerates GetMultisig
     repeated bytes multisig = 23;
 }
+
+enum NftType {
+    Username = 0;
+    Ticker = 1;
+    Blockchain = 3;
+}
