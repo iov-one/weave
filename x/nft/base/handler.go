@@ -9,7 +9,8 @@ import (
 )
 
 const (
-	updateApprovalCost = 0
+	//TODO: revisit
+	updateApprovalCost = 100
 )
 
 // RegisterRoutes will instantiate and register all handlers in this package
@@ -83,7 +84,7 @@ func (h *ApprovalOpsHandler) Deliver(ctx weave.Context, store weave.KVStore, tx 
 		return res, err
 	}
 
-	actor := nft.FindActor(h.auth, ctx, t, nft.Action_ActionUpdateDetails.String())
+	actor := nft.FindActor(h.auth, ctx, t, nft.Action_ActionUpdateApprovals.String())
 	if actor == nil {
 		return res, errors.ErrUnauthorized()
 	}
@@ -111,7 +112,7 @@ func (h *ApprovalOpsHandler) validate(ctx weave.Context, tx weave.Tx) (nft.Appro
 	}
 
 	switch v := msg.(type) {
-	case *nft.AddApprovalMsg, *nft.AddApprovalMsg:
+	case *nft.AddApprovalMsg, *nft.RemoveApprovalMsg:
 		if err := msg.(x.Validater).Validate(); err != nil {
 			return nil, err
 		}

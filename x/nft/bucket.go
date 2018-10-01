@@ -23,12 +23,12 @@ type BucketAccess interface {
 
 type BucketDispatcher interface {
 	Register(t string, bucket BucketAccess) error
-	AssertRegistered(types ...fmt.Stringer)
+	AssertRegistered(types ...string)
 	Get(t string) (BucketAccess, error)
 }
 
 type bucketDispatcher struct {
-	mutex     sync.RWMutex
+	mutex     *sync.RWMutex
 	bucketMap map[string]BucketAccess
 }
 
@@ -38,7 +38,7 @@ var bs BucketDispatcher
 // then we might be better of with a separate Init() method or similar
 func GetBucketDispatcher() BucketDispatcher {
 	if bs == nil {
-		bs = &bucketDispatcher{}
+		bs = &bucketDispatcher{mutex: &sync.RWMutex{}, bucketMap: make(map[string]BucketAccess, 0)}
 	}
 
 	return bs
@@ -55,13 +55,13 @@ func (b *bucketDispatcher) Register(t string, bucket BucketAccess) error {
 	return nil
 }
 
-func (b *bucketDispatcher) AssertRegistered(types ...fmt.Stringer) {
+func (b *bucketDispatcher) AssertRegistered(types ...string) {
 	if len(types) != len(b.bucketMap) {
 		panic("Not enough types registered")
 	}
 
 	for _, t := range types {
-		if _, ok := b.bucketMap[t.String()]; !ok {
+		if _, ok := b.bucketMap[t]; !ok {
 			panic(fmt.Sprintf("Missing registered type: %s", t))
 		}
 	}
