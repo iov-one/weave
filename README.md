@@ -22,7 +22,7 @@ to your project.
 It is inspired by the routing and middleware model of many web
 application frameworks, and informed by years of wrestling with
 blockchain state machines. More directly, it is based on the
-offical cosmos-sdk, both the
+official cosmos-sdk, both the
 [0.8 release](https://github.com/cosmos/cosmos-sdk/tree/v0.8.0) as well as the
 future [0.9 rewrite](https://github.com/cosmos/cosmos-sdk/tree/develop). Naturally, as I was the main author of 0.8.
 
