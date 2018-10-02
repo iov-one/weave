@@ -8,6 +8,7 @@ import (
 	"github.com/iov-one/weave/store"
 	"github.com/iov-one/weave/x"
 	"github.com/iov-one/weave/x/nft"
+	"github.com/iov-one/weave/x/nft/blockchain"
 	"github.com/iov-one/weave/x/nft/username"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -17,14 +18,18 @@ func TestHandleIssueTokenMsg(t *testing.T) {
 	var helpers x.TestHelpers
 	_, alice := helpers.MakeKey()
 	_, bob := helpers.MakeKey()
-	myAddress := username.ChainAddress{ChainID: []byte("myChainID"), Address: []byte("myAddressID0")}
+	myAddress := username.ChainAddress{ChainID: []byte("myNet"), Address: []byte("myAddressID0")}
 
 	db := store.MemStore()
 	bucket := username.NewBucket()
+	blockchains := blockchain.NewBucket()
+	b, _ := blockchains.Create(db, alice.Address(), []byte("myNet"), nil)
+	blockchains.Save(db, b)
+
 	o, _ := bucket.Create(db, bob.Address(), []byte("existing@example.com"), []username.ChainAddress{myAddress})
 	bucket.Save(db, o)
 
-	handler := username.NewIssueHandler(helpers.Authenticate(alice), nil, bucket)
+	handler := username.NewIssueHandler(helpers.Authenticate(alice), nil, bucket, blockchains)
 
 	// when
 	specs := []struct {
@@ -65,7 +70,7 @@ func TestHandleIssueTokenMsg(t *testing.T) {
 		{ // duplicate chainID
 			owner:           alice.Address(),
 			id:              []byte("any4@example.com"),
-			details:         username.TokenDetails{[]username.ChainAddress{myAddress, {[]byte("myChainID"), []byte("myOtherAddressID")}}},
+			details:         username.TokenDetails{[]username.ChainAddress{myAddress, {[]byte("myNet"), []byte("myOtherNet")}}},
 			expCheckError:   true,
 			expDeliverError: true,
 		},
@@ -160,11 +165,17 @@ func TestQueryTokenByName(t *testing.T) {
 func TestAddChainAddress(t *testing.T) {
 	var helpers x.TestHelpers
 	_, alice := helpers.MakeKey()
-	myAddresses := []username.ChainAddress{{ChainID: []byte("myChainID"), Address: []byte("myAddressID0")}}
+	myAddresses := []username.ChainAddress{{ChainID: []byte("myNet"), Address: []byte("myAddressID0")}}
 
 	db := store.MemStore()
 	bucket := username.NewBucket()
-	handler := username.NewAddChainAddressHandler(helpers.Authenticate(alice), nil, bucket)
+	blockchains := blockchain.NewBucket()
+	b, _ := blockchains.Create(db, alice.Address(), []byte("myNet"), nil)
+	blockchains.Save(db, b)
+	b, _ = blockchains.Create(db, alice.Address(), []byte("myOtherNet"), nil)
+	blockchains.Save(db, b)
+
+	handler := username.NewAddChainAddressHandler(helpers.Authenticate(alice), nil, bucket, blockchains)
 
 	specs := []struct {
 		id              []byte
@@ -175,12 +186,12 @@ func TestAddChainAddress(t *testing.T) {
 	}{
 		{ // happy path
 			id:         []byte("alice0@example.com"),
-			newChainID: []byte("myOtherChainID"),
+			newChainID: []byte("myOtherNet"),
 			newAddress: []byte("myOtherAddressID"),
 		},
 		{ // empty address
 			id:              []byte("alice1@example.com"),
-			newChainID:      []byte("myOtherChainID"),
+			newChainID:      []byte("myOtherNet"),
 			expCheckError:   false,
 			expDeliverError: false,
 		},
@@ -192,14 +203,14 @@ func TestAddChainAddress(t *testing.T) {
 		},
 		{ // existing chain
 			id:              []byte("alice3@example.com"),
-			newChainID:      []byte("myChainID"),
+			newChainID:      []byte("myNet"),
 			newAddress:      []byte("myOtherAddressID"),
 			expCheckError:   false,
 			expDeliverError: true,
 		},
 		{ // unknown id
 			id:              []byte("unknown@example.com"),
-			newChainID:      []byte("myOtherChainID"),
+			newChainID:      []byte("myUnknownNet"),
 			newAddress:      []byte("myOtherAddressID"),
 			expCheckError:   false,
 			expDeliverError: true,
@@ -254,7 +265,7 @@ func TestAddChainAddress(t *testing.T) {
 func TestRemoveChainAddress(t *testing.T) {
 	var helpers x.TestHelpers
 	_, alice := helpers.MakeKey()
-	myAddresses := []username.ChainAddress{{ChainID: []byte("myChainID"), Address: []byte("myAddressID0")}, {ChainID: []byte("myOtherChainID")}}
+	myAddresses := []username.ChainAddress{{ChainID: []byte("myChainID"), Address: []byte("myAddressID0")}, {ChainID: []byte("myOtherNet")}}
 
 	db := store.MemStore()
 	bucket := username.NewBucket()
@@ -274,7 +285,7 @@ func TestRemoveChainAddress(t *testing.T) {
 		},
 		{ // empty address stored
 			id:              []byte("alice1@example.com"),
-			newChainID:      []byte("myOtherChainID"),
+			newChainID:      []byte("myOtherNet"),
 			expCheckError:   false,
 			expDeliverError: false,
 		},

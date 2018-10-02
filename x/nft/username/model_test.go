@@ -90,7 +90,7 @@ func TestChainAddressValidation(t *testing.T) {
 		{chainID: "", address: []byte("123456789012"), expError: true},
 		{chainID: "1234", address: []byte("12345678901"), expError: true},
 		{chainID: "1234", address: anyIDWithLength(51), expError: true},
-		{chainID: string(anyIDWithLength(256)), address: []byte("123456789012"), expError: true},
+		{chainID: string(anyIDWithLength(257)), address: []byte("123456789012"), expError: true},
 	}
 	for i, spec := range specs {
 		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
