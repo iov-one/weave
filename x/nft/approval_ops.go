@@ -7,12 +7,12 @@ import (
 )
 
 type ApprovalOps struct {
-	owner weave.Address
-	//TODO: Possibly define a type for it, e.g. *ActionApprovalsSet
+	owner     weave.Address
 	approvals *[]ActionApprovals
 }
 
 //TODO: Sort errors and their codes
+//TODO: Figure out what we need to do with counts for the next iteration
 func NewApprovalOps(owner weave.Address, approvals *[]ActionApprovals) *ApprovalOps {
 	return &ApprovalOps{owner: owner, approvals: approvals}
 }

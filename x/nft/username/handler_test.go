@@ -23,10 +23,10 @@ func TestHandleIssueTokenMsg(t *testing.T) {
 	db := store.MemStore()
 	bucket := username.NewBucket()
 	blockchains := blockchain.NewBucket()
-	b, _ := blockchains.Create(db, alice.Address(), []byte("myNet"), nil)
+	b, _ := blockchains.Create(db, alice.Address(), []byte("myNet"), nil, nil)
 	blockchains.Save(db, b)
 
-	o, _ := bucket.Create(db, bob.Address(), []byte("existing@example.com"), []username.ChainAddress{myAddress})
+	o, _ := bucket.Create(db, bob.Address(), []byte("existing@example.com"), nil, []username.ChainAddress{myAddress})
 	bucket.Save(db, o)
 
 	handler := username.NewIssueHandler(helpers.Authenticate(alice), nil, bucket, blockchains)
@@ -81,7 +81,26 @@ func TestHandleIssueTokenMsg(t *testing.T) {
 			expCheckError:   false,
 			expDeliverError: true,
 		},
-		// todo: add approval cases
+		{ // valid approvals
+			owner:   alice.Address(),
+			id:      []byte("any5@example.com"),
+			details: username.TokenDetails{[]username.ChainAddress{myAddress}},
+			approvals: []nft.ActionApprovals{{
+				Action:    nft.Action_ActionUpdateDetails.String(),
+				Approvals: []nft.Approval{{Options: nft.ApprovalOptions{Count: nft.UnlimitedCount}, Address: bob.Address()}},
+			}},
+		},
+		{ // invalid approvals
+			owner:           alice.Address(),
+			id:              []byte("any6@example.com"),
+			details:         username.TokenDetails{[]username.ChainAddress{myAddress}},
+			expCheckError:   true,
+			expDeliverError: true,
+			approvals: []nft.ActionApprovals{{
+				Action:    "12",
+				Approvals: []nft.Approval{{Options: nft.ApprovalOptions{}, Address: nil}},
+			}},
+		},
 	}
 
 	for i, spec := range specs {
@@ -139,9 +158,9 @@ func TestQueryTokenByName(t *testing.T) {
 
 	db := store.MemStore()
 	bucket := username.NewBucket()
-	o1, _ := bucket.Create(db, alice.Address(), []byte("alice@example.com"), myAddresses)
+	o1, _ := bucket.Create(db, alice.Address(), []byte("alice@example.com"), nil, myAddresses)
 	bucket.Save(db, o1)
-	o2, _ := bucket.Create(db, bob.Address(), []byte("bob@example.com"), myAddresses)
+	o2, _ := bucket.Create(db, bob.Address(), []byte("bob@example.com"), nil, myAddresses)
 	bucket.Save(db, o2)
 
 	qr := weave.NewQueryRouter()
@@ -170,9 +189,9 @@ func TestAddChainAddress(t *testing.T) {
 	db := store.MemStore()
 	bucket := username.NewBucket()
 	blockchains := blockchain.NewBucket()
-	b, _ := blockchains.Create(db, alice.Address(), []byte("myNet"), nil)
+	b, _ := blockchains.Create(db, alice.Address(), []byte("myNet"), nil, nil)
 	blockchains.Save(db, b)
-	b, _ = blockchains.Create(db, alice.Address(), []byte("myOtherNet"), nil)
+	b, _ = blockchains.Create(db, alice.Address(), []byte("myOtherNet"), nil, nil)
 	blockchains.Save(db, b)
 
 	handler := username.NewAddChainAddressHandler(helpers.Authenticate(alice), nil, bucket, blockchains)
@@ -218,7 +237,7 @@ func TestAddChainAddress(t *testing.T) {
 	}
 	for i, spec := range specs {
 		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
-			o, _ := bucket.Create(db, alice.Address(), []byte(fmt.Sprintf("alice%d@example.com", i)), myAddresses)
+			o, _ := bucket.Create(db, alice.Address(), []byte(fmt.Sprintf("alice%d@example.com", i)), nil, myAddresses)
 			bucket.Save(db, o)
 
 			tx := helpers.MockTx(&username.AddChainAddressMsg{
@@ -318,7 +337,7 @@ func TestRemoveChainAddress(t *testing.T) {
 	}
 	for i, spec := range specs {
 		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
-			o, _ := bucket.Create(db, alice.Address(), []byte(fmt.Sprintf("alice%d@example.com", i)), myAddresses)
+			o, _ := bucket.Create(db, alice.Address(), []byte(fmt.Sprintf("alice%d@example.com", i)), nil, myAddresses)
 			bucket.Save(db, o)
 
 			tx := helpers.MockTx(&username.RemoveChainAddressMsg{

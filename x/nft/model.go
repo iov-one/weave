@@ -16,12 +16,7 @@ func (m *NonFungibleToken) Validate() error {
 	if err := weave.Address(m.Owner).Validate(); err != nil {
 		return err
 	}
-	// TODO: impl proper validation
-	//for _, a := range m.ActionApprovals {
-	//if err := a.Validate(); err != nil {
-	//	return err
-	//}
-	//}
+
 	return nil
 }
 
@@ -41,10 +36,11 @@ func (m *NonFungibleToken) Clone() *NonFungibleToken {
 	}
 }
 
-func NewNonFungibleToken(key []byte, owner weave.Address) *NonFungibleToken {
+func NewNonFungibleToken(key []byte, owner weave.Address, approvals []ActionApprovals) *NonFungibleToken {
 	return &NonFungibleToken{
-		Id:    key,
-		Owner: owner,
+		Id:              key,
+		Owner:           owner,
+		ActionApprovals: approvals,
 	}
 }
 

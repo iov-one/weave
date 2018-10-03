@@ -17,14 +17,15 @@ import (
 func TestHandleIssueTokenMsg(t *testing.T) {
 	var helpers x.TestHelpers
 	_, alice := helpers.MakeKey()
+	_, bob := helpers.MakeKey()
 
 	db := store.MemStore()
 
 	bucket := ticker.NewBucket()
 	blockchains := blockchain.NewBucket()
-	b, _ := blockchains.Create(db, alice.Address(), []byte("alicenet"), nil)
+	b, _ := blockchains.Create(db, alice.Address(), []byte("alicenet"), nil, nil)
 	blockchains.Save(db, b)
-	o, _ := bucket.Create(db, alice.Address(), []byte("ALC0"), []byte(string("alicenet")))
+	o, _ := bucket.Create(db, alice.Address(), []byte("ALC0"), nil, []byte(string("alicenet")))
 	bucket.Save(db, o)
 
 	handler := ticker.NewIssueHandler(helpers.Authenticate(alice), nil, bucket, blockchains)
@@ -42,8 +43,27 @@ func TestHandleIssueTokenMsg(t *testing.T) {
 			id:      []byte("ALC1"),
 			details: ticker.TokenDetails{[]byte("alicenet")},
 		},
+		{ // valid approvals
+			owner:   alice.Address(),
+			id:      []byte("ALC2"),
+			details: ticker.TokenDetails{[]byte("alicenet")},
+			approvals: []nft.ActionApprovals{{
+				Action:    nft.Action_ActionUpdateDetails.String(),
+				Approvals: []nft.Approval{{Options: nft.ApprovalOptions{Count: nft.UnlimitedCount}, Address: bob.Address()}},
+			}},
+		},
+		{ // invalid approvals
+			owner:           alice.Address(),
+			id:              []byte("ACL3"),
+			details:         ticker.TokenDetails{[]byte("alicenet")},
+			expCheckError:   true,
+			expDeliverError: true,
+			approvals: []nft.ActionApprovals{{
+				Action:    "12",
+				Approvals: []nft.Approval{{Options: nft.ApprovalOptions{}, Address: nil}},
+			}},
+		},
 		// todo: add other test cases when details are specified
-		// todo: add approval cases
 	}
 
 	for i, spec := range specs {
@@ -96,9 +116,9 @@ func TestQueryTokenByName(t *testing.T) {
 
 	db := store.MemStore()
 	bucket := ticker.NewBucket()
-	o1, _ := bucket.Create(db, alice.Address(), []byte("ALC0"), []byte("myBlockchainID"))
+	o1, _ := bucket.Create(db, alice.Address(), []byte("ALC0"), nil, []byte("myBlockchainID"))
 	bucket.Save(db, o1)
-	o2, _ := bucket.Create(db, bob.Address(), []byte("BOB0"), []byte("myOtherBlockchainID"))
+	o2, _ := bucket.Create(db, bob.Address(), []byte("BOB0"), nil, []byte("myOtherBlockchainID"))
 	bucket.Save(db, o2)
 
 	qr := weave.NewQueryRouter()

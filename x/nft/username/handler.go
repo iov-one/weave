@@ -69,23 +69,11 @@ func (h IssueHandler) Deliver(ctx weave.Context, store weave.KVStore, tx weave.T
 		}
 	}
 	// persist the data
-	o, err := h.bucket.Create(store, weave.Address(msg.Owner), msg.Id, msg.Details.Addresses)
+	o, err := h.bucket.Create(store, weave.Address(msg.Owner), msg.Id, msg.Approvals, msg.Details.Addresses)
 	if err != nil {
 		return res, err
 	}
 
-	//ha, err := AsUsername(o)
-	//if err != nil {
-	//	return res, err
-	//}
-	//for _, a := range msg.Approvals {
-	//	for _, approval := range a.Approvals {
-	//		// todo: apply approval validation rules:
-	//		//if err := ha.Approvals().Set(a.Action, approval.ToAccount, approval.Options); err != nil {
-	//		//	return res, err
-	//		//}
-	//	}
-	//}
 	return res, h.bucket.Save(store, o)
 }
 
