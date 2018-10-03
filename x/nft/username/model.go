@@ -7,6 +7,7 @@ import (
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/x/nft"
+	"github.com/iov-one/weave/x/nft/blockchain"
 )
 
 type Token interface {
@@ -107,8 +108,8 @@ func (p ChainAddress) Equals(o ChainAddress) bool {
 }
 
 func (p *ChainAddress) Validate() error {
-	if len(p.ChainID) == 0 || len(p.ChainID) > 255 { // todo: take from blockchain id
-		return nft.ErrInvalidLength()
+	if !blockchain.IsValidID(string(p.ChainID)) {
+		return nft.ErrInvalidID()
 	}
 	switch l := len(p.Address); {
 	case l == 0: // address can be empty
