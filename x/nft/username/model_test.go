@@ -20,9 +20,9 @@ func TestTokenClone(t *testing.T) {
 			Base: &nft.NonFungibleToken{
 				Id:    []byte("anyID"),
 				Owner: alice.Address(),
-				ActionApprovals: []*nft.ActionApprovals{
+				ActionApprovals: []nft.ActionApprovals{
 					{Action: "anyActiom",
-						Approvals: []*nft.Approval{
+						Approvals: []nft.Approval{
 							{Address: bob.Address(),
 								Options: nft.ApprovalOptions{Count: 1},
 							},
@@ -36,9 +36,9 @@ func TestTokenClone(t *testing.T) {
 		{Base: &nft.NonFungibleToken{}, Details: &username.TokenDetails{
 			Addresses: []username.ChainAddress{}},
 		},
-		{Base: &nft.NonFungibleToken{ActionApprovals: []*nft.ActionApprovals{}}, Details: &username.TokenDetails{}},
+		{Base: &nft.NonFungibleToken{ActionApprovals: []nft.ActionApprovals{}}, Details: &username.TokenDetails{}},
 		{
-			Base:    &nft.NonFungibleToken{ActionApprovals: []*nft.ActionApprovals{{Approvals: []*nft.Approval{}}}},
+			Base:    &nft.NonFungibleToken{ActionApprovals: []nft.ActionApprovals{{Approvals: []nft.Approval{}}}},
 			Details: &username.TokenDetails{},
 		},
 	}

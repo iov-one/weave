@@ -16,7 +16,7 @@ func TestApprovalMsg(t *testing.T) {
 				msg := AddApprovalMsg{
 					Id:      []byte("asdf"),
 					Address: validKey.Address(),
-					Action:  ActionUpdateDetails,
+					Action:  Action_ActionUpdateDetails.String(),
 				}
 				Convey("Positive count", func() {
 					msg.Options = ApprovalOptions{Count: 1}
@@ -32,7 +32,7 @@ func TestApprovalMsg(t *testing.T) {
 				msg := AddApprovalMsg{
 					Id:      []byte("asdf"),
 					Address: validKey.Address(),
-					Action:  ActionUpdateDetails,
+					Action:  Action_ActionUpdateDetails.String(),
 				}
 
 				Convey("Invalid action", func() {
@@ -62,7 +62,7 @@ func TestApprovalMsg(t *testing.T) {
 				msg := RemoveApprovalMsg{
 					Id:      []byte("asdf"),
 					Address: validKey.Address(),
-					Action:  ActionUpdateDetails,
+					Action:  Action_ActionUpdateDetails.String(),
 				}
 				So(msg.Validate(), ShouldBeNil)
 			})
@@ -71,7 +71,7 @@ func TestApprovalMsg(t *testing.T) {
 				msg := RemoveApprovalMsg{
 					Id:      []byte("asdf"),
 					Address: validKey.Address(),
-					Action:  ActionUpdateDetails,
+					Action:  Action_ActionUpdateDetails.String(),
 				}
 
 				Convey("Invalid action", func() {
@@ -80,7 +80,7 @@ func TestApprovalMsg(t *testing.T) {
 				})
 
 				Convey("Invalid id", func() {
-					msg.Id = []byte("asd")
+					msg.Id = []byte("as")
 					So(msg.Validate(), ShouldNotBeNil)
 				})
 
