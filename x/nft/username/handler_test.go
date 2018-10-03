@@ -145,7 +145,6 @@ func TestHandleIssueTokenMsg(t *testing.T) {
 			} else {
 				assert.Equal(t, spec.details.Addresses, u.GetChainAddresses())
 			}
-			// todo: verify approvals
 		})
 	}
 }
