@@ -4,7 +4,6 @@ import (
 	"regexp"
 
 	"github.com/iov-one/weave"
-	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/x/nft"
 )
 
@@ -50,7 +49,7 @@ func (m *IssueTokenMsg) Validate() error {
 	}
 
 	if m.Approvals == nil {
-		return errors.ErrInternal("approvals must not be nil")
+		m.Approvals = make([]*nft.ActionApprovals, 0)
 	}
 	if err := nft.NewApprovalOps(addr, &m.Approvals).List().Validate(); err != nil {
 		return err
