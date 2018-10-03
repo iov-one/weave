@@ -27,14 +27,15 @@ func (u *UsernameToken) GetChainAddresses() []ChainAddress {
 	return u.Details.Addresses
 }
 func (u *UsernameToken) SetChainAddresses(actor weave.Address, newAddresses []ChainAddress) error {
-	// todo: this should be a sorted list
-
 	if !u.OwnerAddress().Equals(actor) {
-		panic("Not implemented, yet")
-		// TODO: handle permissions
-		//if !u.Base.HasApproval(actor, nft.ActionKindUpdateDetails) {
-		//	return errors.ErrUnauthorized()
-		//}
+		if u.Approvals().
+			List().
+			ForAction(nft.Action_ActionUpdateDetails.String()).
+			ForAddress(actor).
+			IsEmpty() {
+			return errors.ErrUnauthorized()
+
+		}
 	}
 	if containsDuplicateChains(newAddresses) {
 		return nft.ErrDuplicateEntry()
@@ -55,8 +56,7 @@ func (u *UsernameToken) Validate() error {
 	if err := u.Base.Validate(); err != nil {
 		return err
 	}
-	ops := nft.NewApprovalOps(u.OwnerAddress(), &u.Base.ActionApprovals)
-	if err := ops.List().Validate(); err != nil {
+	if err := u.Approvals().List().Validate(); err != nil {
 		return err
 	}
 	return u.Details.Validate()

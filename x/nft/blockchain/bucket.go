@@ -16,18 +16,18 @@ type Bucket struct {
 
 func NewBucket() Bucket {
 	return Bucket{
-		Bucket: nft.WithOwnerIndex(orm.NewBucket(BucketName, NewBlockchainToken(nil, nil))),
+		Bucket: nft.WithOwnerIndex(orm.NewBucket(BucketName, NewBlockchainToken(nil, nil, nil))),
 	}
 }
 
-func NewBlockchainToken(key []byte, owner weave.Address) *orm.SimpleObj {
+func NewBlockchainToken(key []byte, owner weave.Address, approvals []nft.ActionApprovals) *orm.SimpleObj {
 	return orm.NewSimpleObj(key, &BlockchainToken{
-		Base:    nft.NewNonFungibleToken(key, owner),
+		Base:    nft.NewNonFungibleToken(key, owner, approvals),
 		Details: &TokenDetails{},
 	})
 }
 
-func (b Bucket) Create(db weave.KVStore, owner weave.Address, id []byte, networks []Network) (orm.Object, error) {
+func (b Bucket) Create(db weave.KVStore, owner weave.Address, id []byte, approvals []nft.ActionApprovals, networks []Network) (orm.Object, error) {
 	obj, err := b.Get(db, id)
 	switch {
 	case err != nil:
@@ -35,7 +35,8 @@ func (b Bucket) Create(db weave.KVStore, owner weave.Address, id []byte, network
 	case obj != nil:
 		return nil, orm.ErrUniqueConstraint("id exists already")
 	}
-	obj = NewBlockchainToken(id, owner)
+	obj = NewBlockchainToken(id, owner, approvals)
+
 	humanAddress, err := AsBlockchain(obj)
 	if err != nil {
 		return nil, err

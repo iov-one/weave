@@ -42,7 +42,7 @@ func (i *IssueTokenMsg) Validate() error {
 
 	if err := nft.NewApprovalOps(owner, &i.Approvals).
 		List().
-		Validate(nft.Action_value); err != nil {
+		Validate(); err != nil {
 		return err
 	}
 

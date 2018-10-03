@@ -20,7 +20,7 @@ func TestHandleIssueTokenMsg(t *testing.T) {
 
 	db := store.MemStore()
 	bucket := blockchain.NewBucket()
-	o, _ := bucket.Create(db, bob.Address(), []byte("any_network"), nil)
+	o, _ := bucket.Create(db, bob.Address(), []byte("any_network"), nil, nil)
 	bucket.Save(db, o)
 
 	handler := blockchain.NewIssueHandler(helpers.Authenticate(alice), nil, bucket)
@@ -38,8 +38,27 @@ func TestHandleIssueTokenMsg(t *testing.T) {
 			id:      []byte("other_netowork"),
 			details: blockchain.TokenDetails{[]blockchain.Network{}},
 		},
+		{ // valid approvals
+			owner:   alice.Address(),
+			id:      []byte("other_netowork1"),
+			details: blockchain.TokenDetails{[]blockchain.Network{}},
+			approvals: []nft.ActionApprovals{{
+				Action:    nft.Action_ActionUpdateDetails.String(),
+				Approvals: []nft.Approval{{Options: nft.ApprovalOptions{Count: nft.UnlimitedCount}, Address: bob.Address()}},
+			}},
+		},
+		{ // invalid approvals
+			owner:           alice.Address(),
+			id:              []byte("other_netowork2"),
+			details:         blockchain.TokenDetails{[]blockchain.Network{}},
+			expCheckError:   true,
+			expDeliverError: true,
+			approvals: []nft.ActionApprovals{{
+				Action:    "12",
+				Approvals: []nft.Approval{{Options: nft.ApprovalOptions{}, Address: nil}},
+			}},
+		},
 		// todo: add other test cases when details are specified
-		// todo: add approval cases
 	}
 
 	for i, spec := range specs {
@@ -96,9 +115,9 @@ func TestQueryTokenByName(t *testing.T) {
 
 	db := store.MemStore()
 	bucket := blockchain.NewBucket()
-	o1, _ := bucket.Create(db, alice.Address(), []byte("alicenet"), nil)
+	o1, _ := bucket.Create(db, alice.Address(), []byte("alicenet"), nil, nil)
 	bucket.Save(db, o1)
-	o2, _ := bucket.Create(db, bob.Address(), []byte("bobnet"), nil)
+	o2, _ := bucket.Create(db, bob.Address(), []byte("bobnet"), nil, nil)
 	bucket.Save(db, o2)
 
 	qr := weave.NewQueryRouter()

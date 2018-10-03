@@ -19,14 +19,32 @@ func (m ActionApprovals) Clone() ActionApprovals {
 func (m Approval) Clone() Approval {
 	return m
 }
+
 func (m ApprovalMeta) Clone() ApprovalMeta {
 	return m
 }
 
-func (a Approval) AsAddress() weave.Address {
-	if a.Address == nil {
-		return nil
+func (m ApprovalMeta) Validate() error {
+	for _, v := range m {
+		if err := v.Validate(); err != nil {
+			return err
+		}
 	}
+	return nil
+}
+
+func (m Approval) Validate() error {
+	if err := m.Options.Validate(); err != nil {
+		return err
+	}
+	if err := m.AsAddress().Validate(); err != nil {
+		return err
+	}
+
+	return m.Options.Validate()
+}
+
+func (a Approval) AsAddress() weave.Address {
 	return weave.Address(a.Address)
 }
 
@@ -50,7 +68,11 @@ func (a ApprovalOptions) Validate() error {
 //TODO: Not sure I'm a fan of array of maps, but it makes sense
 //given we validate using protobuf enum value maps
 func (m Approvals) Validate(actionMaps ...map[string]int32) error {
-	for action := range m {
+	for action, meta := range m {
+		print(action)
+		if err := meta.Validate(); err != nil {
+			return err
+		}
 
 		withinImpl := func() bool {
 			for _, actionMap := range actionMaps {

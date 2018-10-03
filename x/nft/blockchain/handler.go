@@ -47,11 +47,11 @@ func (h IssueHandler) Deliver(ctx weave.Context, store weave.KVStore, tx weave.T
 	if err != nil {
 		return res, err
 	}
-	o, err := h.bucket.Create(store, weave.Address(msg.Owner), msg.Id, msg.Details.Networks)
+	o, err := h.bucket.Create(store, weave.Address(msg.Owner), msg.Id, msg.Approvals, msg.Details.Networks)
 	if err != nil {
 		return res, err
 	}
-	// todo: impl proper with approvals
+
 	return res, h.bucket.Save(store, o)
 }
 

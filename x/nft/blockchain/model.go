@@ -32,6 +32,9 @@ func (m *BlockchainToken) Validate() error {
 	if err := m.Base.Validate(); err != nil {
 		return err
 	}
+	if err := m.Approvals().List().Validate(); err != nil {
+		return err
+	}
 	return m.Details.Validate()
 }
 
