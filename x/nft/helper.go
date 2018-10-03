@@ -13,7 +13,7 @@ const (
 )
 
 var (
-	isValidAction = regexp.MustCompile(`^[A-Z_]{4,32}$`).MatchString
+	isValidAction = regexp.MustCompile(`^[A-Za-z]{4,32}$`).MatchString
 )
 
 type Validation struct {

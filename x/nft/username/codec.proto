@@ -23,7 +23,7 @@ message ChainAddress {
 message IssueTokenMsg {
     bytes id = 1;
     bytes owner = 2;
-    repeated nft.ActionApprovals approvals = 3;
+    repeated nft.ActionApprovals approvals = 3 [(gogoproto.nullable) = false];
     TokenDetails details = 4 [(gogoproto.nullable) = false];
 }
 

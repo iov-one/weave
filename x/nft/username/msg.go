@@ -48,10 +48,9 @@ func (m *IssueTokenMsg) Validate() error {
 		return err
 	}
 
-	if m.Approvals == nil {
-		m.Approvals = make([]*nft.ActionApprovals, 0)
-	}
-	if err := nft.NewApprovalOps(addr, &m.Approvals).List().Validate(); err != nil {
+	if err := nft.NewApprovalOps(addr, &m.Approvals).
+		List().
+		Validate(nft.Action_value); err != nil {
 		return err
 	}
 
