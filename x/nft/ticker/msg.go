@@ -40,6 +40,9 @@ func (i *IssueTokenMsg) Validate() error {
 		return err
 	}
 
+	//TODO: This is being validated on model save
+	//so in our case both check and deliver - double
+	//work?
 	if err := nft.NewApprovalOps(owner, &i.Approvals).
 		List().
 		Validate(); err != nil {
