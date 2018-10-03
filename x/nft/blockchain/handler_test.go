@@ -29,7 +29,7 @@ func TestHandleIssueTokenMsg(t *testing.T) {
 	specs := []struct {
 		owner, id       []byte
 		details         blockchain.TokenDetails
-		approvals       []*nft.ActionApprovals
+		approvals       []nft.ActionApprovals
 		expCheckError   bool
 		expDeliverError bool
 	}{

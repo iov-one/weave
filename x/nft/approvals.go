@@ -7,11 +7,6 @@ import (
 	"github.com/iov-one/weave/errors"
 )
 
-const (
-	ActionUpdateDetails = "BASE_UPDATE_DETAILS"
-	ActionTransfer      = "BASE_ACTION_TRANSFER"
-)
-
 const UnlimitedCount = -1
 
 type ApprovalMeta []Approval
