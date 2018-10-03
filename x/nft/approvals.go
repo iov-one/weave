@@ -120,7 +120,7 @@ func (m Approvals) AsPersistable() []ActionApprovals {
 }
 
 func (m Approvals) IsEmpty() bool {
-	return len(m) > 0
+	return len(m) == 0
 }
 
 func (m Approvals) MetaByAction(action string) ApprovalMeta {

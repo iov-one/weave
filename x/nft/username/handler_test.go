@@ -180,6 +180,7 @@ func TestQueryTokenByName(t *testing.T) {
 	assert.Equal(t, myAddresses, x.GetChainAddresses())
 }
 
+//TODO: This needs to be extended with examples where we use approvals for different users
 func TestAddChainAddress(t *testing.T) {
 	var helpers x.TestHelpers
 	_, alice := helpers.MakeKey()
@@ -280,6 +281,7 @@ func TestAddChainAddress(t *testing.T) {
 
 }
 
+//TODO: This needs to be extended with examples where we use approvals for different users
 func TestRemoveChainAddress(t *testing.T) {
 	var helpers x.TestHelpers
 	_, alice := helpers.MakeKey()
