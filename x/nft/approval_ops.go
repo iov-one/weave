@@ -9,11 +9,11 @@ import (
 type ApprovalOps struct {
 	owner weave.Address
 	//TODO: Possibly define a type for it, e.g. *ActionApprovalsSet
-	approvals *[]*ActionApprovals
+	approvals *[]ActionApprovals
 }
 
 //TODO: Sort errors and their codes
-func NewApprovalOps(owner weave.Address, approvals *[]*ActionApprovals) *ApprovalOps {
+func NewApprovalOps(owner weave.Address, approvals *[]ActionApprovals) *ApprovalOps {
 	return &ApprovalOps{owner: owner, approvals: approvals}
 }
 
@@ -53,7 +53,7 @@ func (o *ApprovalOps) Grant(action string, to weave.Address, op ApprovalOptions,
 		return errors.New("already exists")
 	}
 
-	approvals := o.List().Add(action, &Approval{
+	approvals := o.List().Add(action, Approval{
 		Address: to,
 		Options: op,
 	})

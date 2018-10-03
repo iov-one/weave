@@ -30,7 +30,7 @@ func (m *NonFungibleToken) Copy() orm.CloneableData {
 }
 
 func (m *NonFungibleToken) Clone() *NonFungibleToken {
-	actionApprovals := make([]*ActionApprovals, len(m.ActionApprovals))
+	actionApprovals := make([]ActionApprovals, len(m.ActionApprovals))
 	for i, v := range m.ActionApprovals {
 		actionApprovals[i] = v.Clone()
 	}

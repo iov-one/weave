@@ -19,5 +19,5 @@ message IssueTokenMsg {
     bytes owner = 1;
     bytes id = 2;
     TokenDetails details = 3 [(gogoproto.nullable) = false];
-    repeated nft.ActionApprovals approvals = 4;
+    repeated nft.ActionApprovals approvals = 4 [(gogoproto.nullable) = false];
 }

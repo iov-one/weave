@@ -14,29 +14,18 @@ const (
 
 const UnlimitedCount = -1
 
-type ApprovalMeta []*Approval
+type ApprovalMeta []Approval
 type Approvals map[string]ApprovalMeta
 
-func (m *ActionApprovals) Clone() *ActionApprovals {
-	x := *m
-	approvals := make([]*Approval, len(m.Approvals))
-	for i, v := range m.Approvals {
-		approvals[i] = v.Clone()
-	}
-	return &x
+func (m ActionApprovals) Clone() ActionApprovals {
+	return m
 }
 
-func (m *Approval) Clone() *Approval {
-	x := *m
-	return &x
+func (m Approval) Clone() Approval {
+	return m
 }
 func (m ApprovalMeta) Clone() ApprovalMeta {
-	x := m
-	approvals := make([]*Approval, 0)
-	for k, v := range x {
-		approvals[k] = v.Clone()
-	}
-	return approvals
+	return m
 }
 
 func (a Approval) AsAddress() weave.Address {
@@ -46,10 +35,7 @@ func (a Approval) AsAddress() weave.Address {
 	return weave.Address(a.Address)
 }
 
-func (a *Approval) Equals(o *Approval) bool {
-	if a == nil && o == nil || a == o {
-		return true
-	}
+func (a Approval) Equals(o Approval) bool {
 	return a.AsAddress().Equals(o.AsAddress()) &&
 		a.Options.Equals(o.Options)
 }
@@ -100,7 +86,7 @@ func (m Approvals) FilterExpired(blockHeight int64) Approvals {
 				continue
 			}
 			if _, ok := res[action]; !ok {
-				res[action] = make([]*Approval, 0)
+				res[action] = make([]Approval, 0)
 			}
 			res[action] = append(res[action], approval)
 		}
@@ -108,10 +94,10 @@ func (m Approvals) FilterExpired(blockHeight int64) Approvals {
 	return res
 }
 
-func (m Approvals) AsPersistable() []*ActionApprovals {
-	r := make([]*ActionApprovals, 0)
+func (m Approvals) AsPersistable() []ActionApprovals {
+	r := make([]ActionApprovals, 0)
 	for k, v := range m {
-		r = append(r, &ActionApprovals{k, v})
+		r = append(r, ActionApprovals{k, v})
 	}
 	return r
 }
@@ -133,7 +119,7 @@ func (m Approvals) ForAction(action string) Approvals {
 func (m Approvals) ForAddress(addr weave.Address) Approvals {
 	res := make(map[string]ApprovalMeta, 0)
 	for k, v := range m {
-		r := make([]*Approval, 0)
+		r := make([]Approval, 0)
 		for _, vv := range v {
 			if vv.AsAddress().Equals(addr) {
 				r = append(r, vv)
@@ -164,7 +150,7 @@ ApprovalsLoop:
 	return res
 }
 
-func (m Approvals) Add(action string, approval *Approval) Approvals {
+func (m Approvals) Add(action string, approval Approval) Approvals {
 	m[action] = append(m[action], approval)
 	return m
 }
