@@ -69,7 +69,6 @@ func (a ApprovalOptions) Validate() error {
 //given we validate using protobuf enum value maps
 func (m Approvals) Validate(actionMaps ...map[string]int32) error {
 	for action, meta := range m {
-		print(action)
 		if err := meta.Validate(); err != nil {
 			return err
 		}
