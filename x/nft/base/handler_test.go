@@ -14,10 +14,10 @@ import (
 
 func TestApprovalOpsHandler(t *testing.T) {
 	Convey("Test approval ops handler", t, func() {
-		userId := []byte("user")
-		user2Id := []byte("user2")
-		user3Id := []byte("user3")
-		user4Id := []byte("user4")
+		bobsUsername := []byte("user")
+		aliceWithBobApproval := []byte("user2")
+		bobWithAliceApproval := []byte("user3")
+		bobWithAliceImmutableApproval := []byte("user4")
 
 		chainId := []byte("any_network")
 		var helpers x.TestHelpers
@@ -34,27 +34,26 @@ func TestApprovalOpsHandler(t *testing.T) {
 
 		o, _ := chainBucket.Create(db, bob.Address(), chainId, nil, nil)
 		chainBucket.Save(db, o)
-		o, _ = userBucket.Create(db, bob.Address(), userId, nil, nil)
+		o, _ = userBucket.Create(db, bob.Address(), bobsUsername, nil, nil)
 		userBucket.Save(db, o)
-		o, _ = userBucket.Create(db, alice.Address(), user2Id, []nft.ActionApprovals{{
+		o, _ = userBucket.Create(db, alice.Address(), aliceWithBobApproval, []nft.ActionApprovals{{
 			Action:    nft.Action_ActionUpdateApprovals.String(),
 			Approvals: []nft.Approval{{Options: nft.ApprovalOptions{Count: nft.UnlimitedCount}, Address: bob.Address()}},
 		}}, nil)
 		userBucket.Save(db, o)
-		o, _ = userBucket.Create(db, bob.Address(), user3Id, []nft.ActionApprovals{{
+		o, _ = userBucket.Create(db, bob.Address(), bobWithAliceApproval, []nft.ActionApprovals{{
 			Action:    nft.Action_ActionUpdateApprovals.String(),
 			Approvals: []nft.Approval{{Options: nft.ApprovalOptions{Count: nft.UnlimitedCount}, Address: alice.Address()}},
 		}}, nil)
 		userBucket.Save(db, o)
-		o, _ = userBucket.Create(db, bob.Address(), user4Id, []nft.ActionApprovals{{
+		o, _ = userBucket.Create(db, bob.Address(), bobWithAliceImmutableApproval, []nft.ActionApprovals{{
 			Action:    nft.Action_ActionUpdateApprovals.String(),
 			Approvals: []nft.Approval{{Options: nft.ApprovalOptions{Count: nft.UnlimitedCount, Immutable: true}, Address: alice.Address()}},
 		}}, nil)
 		userBucket.Save(db, o)
-		cache := db.CacheWrap()
 
 		Convey("Test add", func() {
-			msg := &nft.AddApprovalMsg{Id: userId,
+			msg := &nft.AddApprovalMsg{Id: bobsUsername,
 				Address: alice.Address(),
 				Action:  nft.Action_ActionUpdateDetails.String(),
 				Options: nft.ApprovalOptions{Count: nft.UnlimitedCount},
@@ -63,11 +62,11 @@ func TestApprovalOpsHandler(t *testing.T) {
 			Convey("Test happy", func() {
 				Convey("By owner", func() {
 					tx := helpers.MockTx(msg)
-					_, err := handler.Check(nil, cache, tx)
+					_, err := handler.Check(nil, db, tx)
 					So(err, ShouldBeNil)
-					_, err = handler.Deliver(nil, cache, tx)
+					_, err = handler.Deliver(nil, db, tx)
 					So(err, ShouldBeNil)
-					o, err := userBucket.Get(cache, userId)
+					o, err := userBucket.Get(db, bobsUsername)
 					So(err, ShouldBeNil)
 					u, err := username.AsUsername(o)
 					So(err, ShouldBeNil)
@@ -81,13 +80,13 @@ func TestApprovalOpsHandler(t *testing.T) {
 
 				Convey("By approved", func() {
 					msg.Address = guest.Address()
-					msg.Id = user2Id
+					msg.Id = aliceWithBobApproval
 					tx := helpers.MockTx(msg)
-					_, err := handler.Check(nil, cache, tx)
+					_, err := handler.Check(nil, db, tx)
 					So(err, ShouldBeNil)
-					_, err = handler.Deliver(nil, cache, tx)
+					_, err = handler.Deliver(nil, db, tx)
 					So(err, ShouldBeNil)
-					o, err := userBucket.Get(cache, user2Id)
+					o, err := userBucket.Get(db, aliceWithBobApproval)
 					So(err, ShouldBeNil)
 					u, err := username.AsUsername(o)
 					So(err, ShouldBeNil)
@@ -103,27 +102,27 @@ func TestApprovalOpsHandler(t *testing.T) {
 				Convey("To owner", func() {
 					tx := helpers.MockTx(msg)
 					msg.Address = bob.Address()
-					_, err := handler.Check(nil, cache, tx)
+					_, err := handler.Check(nil, db, tx)
 					So(err, ShouldBeNil)
-					_, err = handler.Deliver(nil, cache, tx)
+					_, err = handler.Deliver(nil, db, tx)
 					So(err, ShouldNotBeNil)
 				})
 
 				Convey("Invalid", func() {
 					tx := helpers.MockTx(msg)
 					msg.Options.Count = 0
-					_, err := handler.Check(nil, cache, tx)
+					_, err := handler.Check(nil, db, tx)
 					So(err, ShouldNotBeNil)
 				})
 
 				Convey("By guest", func() {
 					handler = NewApprovalOpsHandler(helpers.Authenticate(guest), nil, d)
 					msg.Address = bob.Address()
-					msg.Id = userId
+					msg.Id = bobsUsername
 					tx := helpers.MockTx(msg)
-					_, err := handler.Check(nil, cache, tx)
+					_, err := handler.Check(nil, db, tx)
 					So(err, ShouldBeNil)
-					_, err = handler.Deliver(nil, cache, tx)
+					_, err = handler.Deliver(nil, db, tx)
 					So(err, ShouldNotBeNil)
 				})
 
@@ -132,28 +131,28 @@ func TestApprovalOpsHandler(t *testing.T) {
 					msg.T = app.NftType_Blockchain.String()
 					msg.Id = chainId
 					tx := helpers.MockTx(msg)
-					_, err := handler.Check(nil, cache, tx)
+					_, err := handler.Check(nil, db, tx)
 					So(err, ShouldBeNil)
-					_, err = handler.Deliver(nil, cache, tx)
+					_, err = handler.Deliver(nil, db, tx)
 					So(err, ShouldNotBeNil)
 				})
 
 				Convey("Exists", func() {
 					tx := helpers.MockTx(msg)
-					_, err := handler.Check(nil, cache, tx)
+					_, err := handler.Check(nil, db, tx)
 					So(err, ShouldBeNil)
-					_, err = handler.Deliver(nil, cache, tx)
+					_, err = handler.Deliver(nil, db, tx)
 					So(err, ShouldBeNil)
-					_, err = handler.Deliver(nil, cache, tx)
+					_, err = handler.Deliver(nil, db, tx)
 					So(err, ShouldNotBeNil)
 				})
 
 				Convey("Unknown id", func() {
 					msg.Id = []byte("123")
 					tx := helpers.MockTx(msg)
-					_, err := handler.Check(nil, cache, tx)
+					_, err := handler.Check(nil, db, tx)
 					So(err, ShouldBeNil)
-					_, err = handler.Deliver(nil, cache, tx)
+					_, err = handler.Deliver(nil, db, tx)
 					So(err, ShouldNotBeNil)
 
 				})
@@ -162,7 +161,7 @@ func TestApprovalOpsHandler(t *testing.T) {
 		})
 
 		Convey("Test Remove", func() {
-			msg := &nft.RemoveApprovalMsg{Id: user3Id,
+			msg := &nft.RemoveApprovalMsg{Id: bobWithAliceApproval,
 				Address: alice.Address(),
 				Action:  nft.Action_ActionUpdateApprovals.String(),
 				T:       app.NftType_Username.String(),
@@ -170,11 +169,11 @@ func TestApprovalOpsHandler(t *testing.T) {
 			Convey("Test happy", func() {
 				Convey("By owner", func() {
 					tx := helpers.MockTx(msg)
-					_, err := handler.Check(nil, cache, tx)
+					_, err := handler.Check(nil, db, tx)
 					So(err, ShouldBeNil)
-					_, err = handler.Deliver(nil, cache, tx)
+					_, err = handler.Deliver(nil, db, tx)
 					So(err, ShouldBeNil)
-					o, err := userBucket.Get(cache, user3Id)
+					o, err := userBucket.Get(db, bobWithAliceApproval)
 					So(err, ShouldBeNil)
 					u, err := username.AsUsername(o)
 					So(err, ShouldBeNil)
@@ -191,11 +190,11 @@ func TestApprovalOpsHandler(t *testing.T) {
 					handler = NewApprovalOpsHandler(helpers.Authenticate(alice), nil, d)
 
 					tx := helpers.MockTx(msg)
-					_, err := handler.Check(nil, cache, tx)
+					_, err := handler.Check(nil, db, tx)
 					So(err, ShouldBeNil)
-					_, err = handler.Deliver(nil, cache, tx)
+					_, err = handler.Deliver(nil, db, tx)
 					So(err, ShouldBeNil)
-					o, err := userBucket.Get(cache, user3Id)
+					o, err := userBucket.Get(db, bobWithAliceApproval)
 					So(err, ShouldBeNil)
 					u, err := username.AsUsername(o)
 					So(err, ShouldBeNil)
@@ -211,20 +210,20 @@ func TestApprovalOpsHandler(t *testing.T) {
 				Convey("From owner", func() {
 					tx := helpers.MockTx(msg)
 					msg.Address = bob.Address()
-					_, err := handler.Check(nil, cache, tx)
+					_, err := handler.Check(nil, db, tx)
 					So(err, ShouldBeNil)
-					_, err = handler.Deliver(nil, cache, tx)
+					_, err = handler.Deliver(nil, db, tx)
 					So(err, ShouldNotBeNil)
 				})
 
 				Convey("By guest", func() {
 					handler = NewApprovalOpsHandler(helpers.Authenticate(guest), nil, d)
 					msg.Address = bob.Address()
-					msg.Id = user3Id
+					msg.Id = bobWithAliceApproval
 					tx := helpers.MockTx(msg)
-					_, err := handler.Check(nil, cache, tx)
+					_, err := handler.Check(nil, db, tx)
 					So(err, ShouldBeNil)
-					_, err = handler.Deliver(nil, cache, tx)
+					_, err = handler.Deliver(nil, db, tx)
 					So(err, ShouldNotBeNil)
 				})
 
@@ -232,37 +231,37 @@ func TestApprovalOpsHandler(t *testing.T) {
 					msg.T = app.NftType_Blockchain.String()
 					msg.Id = chainId
 					tx := helpers.MockTx(msg)
-					_, err := handler.Check(nil, cache, tx)
+					_, err := handler.Check(nil, db, tx)
 					So(err, ShouldBeNil)
-					_, err = handler.Deliver(nil, cache, tx)
+					_, err = handler.Deliver(nil, db, tx)
 					So(err, ShouldNotBeNil)
 				})
 
 				Convey("Does not exist", func() {
 					tx := helpers.MockTx(msg)
-					_, err := handler.Check(nil, cache, tx)
+					_, err := handler.Check(nil, db, tx)
 					So(err, ShouldBeNil)
-					_, err = handler.Deliver(nil, cache, tx)
+					_, err = handler.Deliver(nil, db, tx)
 					So(err, ShouldBeNil)
-					_, err = handler.Deliver(nil, cache, tx)
+					_, err = handler.Deliver(nil, db, tx)
 					So(err, ShouldNotBeNil)
 				})
 
 				Convey("Unknown id", func() {
 					msg.Id = []byte("123")
 					tx := helpers.MockTx(msg)
-					_, err := handler.Check(nil, cache, tx)
+					_, err := handler.Check(nil, db, tx)
 					So(err, ShouldBeNil)
-					_, err = handler.Deliver(nil, cache, tx)
+					_, err = handler.Deliver(nil, db, tx)
 					So(err, ShouldNotBeNil)
 				})
 
 				Convey("Immutable", func() {
-					msg.Id = user4Id
+					msg.Id = bobWithAliceImmutableApproval
 					tx := helpers.MockTx(msg)
-					_, err := handler.Check(nil, cache, tx)
+					_, err := handler.Check(nil, db, tx)
 					So(err, ShouldBeNil)
-					_, err = handler.Deliver(nil, cache, tx)
+					_, err = handler.Deliver(nil, db, tx)
 					So(err, ShouldNotBeNil)
 				})
 
