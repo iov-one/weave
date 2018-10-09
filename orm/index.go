@@ -12,6 +12,9 @@ var indPrefix = []byte("_i.")
 // Indexer calculates the secondary index key for a given object
 type Indexer func(Object) ([]byte, error)
 
+// MultiKeyIndexer calculates the secondary index keys for a given object
+type MultiKeyIndexer func(Object) ([][]byte, error)
+
 // Index represents a secondary index on some data.
 // It is indexed by an arbitrary key returned by Indexer.
 // The value is one primary key (unique),
@@ -20,17 +23,34 @@ type Index struct {
 	name   string
 	id     []byte
 	unique bool
-	index  Indexer
+	index  MultiKeyIndexer
 	refKey func([]byte) []byte
 }
 
-var _ weave.QueryHandler = Index{}
+var _ Indexed = Index{}
 
 // NewIndex constructs an index
 // Indexer calculcates the index for an object
 // unique enforces a unique constraint on the index
 // refKey calculates the absolute dbkey for a ref
 func NewIndex(name string, indexer Indexer, unique bool,
+	refKey func([]byte) []byte) Index {
+	// TODO: index name must be [a-z_]
+	return Index{
+		name: name,
+		id:   append(indPrefix, []byte(name+":")...),
+		index: func(obj Object) ([][]byte, error) {
+			key, err := indexer(obj)
+			if err != nil {
+				return nil, err
+			}
+			return [][]byte{key}, nil
+		},
+		unique: unique,
+		refKey: refKey,
+	}
+}
+func NewMulitiKeyIndex(name string, indexer MultiKeyIndexer, unique bool,
 	refKey func([]byte) []byte) Index {
 	// TODO: index name must be [a-z_]
 	return Index{
@@ -70,17 +90,27 @@ func (i Index) Update(db weave.KVStore, prev Object, save Object) error {
 	case s{true, true}:
 		return ErrUpdateNil()
 	case s{true, false}:
-		key, err := i.index(save)
+		keys, err := i.index(save)
 		if err != nil {
 			return err
 		}
-		return i.insert(db, key, save.Key())
+		for _, key := range keys {
+			if err := i.insert(db, key, save.Key()); err != nil {
+				return err
+			}
+		}
+		return nil
 	case s{false, true}:
-		key, err := i.index(prev)
+		keys, err := i.index(prev)
 		if err != nil {
 			return err
 		}
-		return i.remove(db, key, prev.Key())
+		for _, key := range keys {
+			if err := i.remove(db, key, prev.Key()); err != nil {
+				return err
+			}
+		}
+		return nil
 	case s{false, false}:
 		return i.move(db, prev, save)
 	}
@@ -90,11 +120,14 @@ func (i Index) Update(db weave.KVStore, prev Object, save Object) error {
 // GetLike calculates the index for the given pattern, and
 // returns a list of all pk that match (may be empty), or an error
 func (i Index) GetLike(db weave.ReadOnlyKVStore, pattern Object) ([][]byte, error) {
-	index, err := i.index(pattern)
+	indexes, err := i.index(pattern)
 	if err != nil {
 		return nil, err
 	}
-	return i.GetAt(db, index)
+	for _, index := range indexes {
+		return i.GetAt(db, index)
+	}
+	return [][]byte{}, nil
 }
 
 // GetAt returns a list of all pk at that index (may be empty), or an error
@@ -183,33 +216,61 @@ func (i Index) move(db weave.KVStore, prev Object, save Object) error {
 		return ErrModifiedPK()
 	}
 
-	// if the keys don't change, then
-	oldKey, err := i.index(prev)
+	oldKeys, err := i.index(prev)
 	if err != nil {
 		return err
 	}
-	newKey, err := i.index(save)
+	newKeys, err := i.index(save)
 	if err != nil {
 		return err
-	}
-	if bytes.Equal(oldKey, newKey) {
-		return nil
 	}
 
-	// check unique constraint before removing
-	if i.unique && len(oldKey) != 0 {
-		k := i.IndexKey(newKey)
-		val := db.Get(k)
-		if val != nil {
-			return ErrUniqueConstraint(i.name)
+	oldKeysSet := make(map[string]struct{})
+	for _, v := range oldKeys {
+		oldKeysSet[string(v)] = struct{}{}
+	}
+
+	newKeysSet := make(map[string]struct{})
+	for _, v := range newKeys {
+		newKeysSet[string(v)] = struct{}{}
+	}
+
+	// check unique constraints first
+	for _, newKey := range newKeys {
+		if _, exists := oldKeysSet[string(newKey)]; exists { // skip existing keys
+			continue
+		}
+		// check unique constraint before removing
+		if i.unique && len(oldKeysSet) != 0 {
+			k := i.IndexKey(newKey)
+			val := db.Get(k)
+			if val != nil {
+				return ErrUniqueConstraint(i.name)
+			}
 		}
 	}
 
-	err = i.remove(db, oldKey, prev.Key())
-	if err != nil {
-		return err
+	// remove unused keys
+	for _, oldKey := range oldKeys {
+		if _, exists := newKeysSet[string(oldKey)]; !exists {
+			if err = i.remove(db, oldKey, prev.Key()); err != nil {
+				return err
+			}
+			continue
+		}
 	}
-	return i.insert(db, newKey, save.Key())
+
+	// add new keys
+	for _, newKey := range newKeys {
+		// check unique constraint before removing
+		if _, exists := oldKeysSet[string(newKey)]; !exists {
+			if err = i.insert(db, newKey, prev.Key()); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
 }
 
 func (i Index) remove(db weave.KVStore, index []byte, pk []byte) error {

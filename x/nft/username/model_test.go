@@ -85,8 +85,8 @@ func TestChainAddressValidation(t *testing.T) {
 	}{
 		{chainID: "1234", address: []byte("123456789012"), expError: false},
 		{chainID: "1234", address: anyIDWithLength(50), expError: false},
-		{chainID: "1234", address: []byte{}, expError: false},
-		{chainID: "1234", address: nil, expError: false},
+		{chainID: "1234", address: []byte{}, expError: true}, // empty address
+		{chainID: "1234", address: nil, expError: true},
 		{chainID: "", address: []byte("123456789012"), expError: true},
 		{chainID: "1234", address: []byte("12345678901"), expError: true},
 		{chainID: "1234", address: anyIDWithLength(51), expError: true},

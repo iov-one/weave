@@ -31,6 +31,13 @@ var (
 	isBucketName = regexp.MustCompile(`^[a-z_]{3,10}$`).MatchString
 )
 
+type Indexed interface {
+	weave.QueryHandler
+	Update(db weave.KVStore, prev Object, save Object) error
+	GetAt(db weave.ReadOnlyKVStore, index []byte) ([][]byte, error)
+	GetLike(db weave.ReadOnlyKVStore, pattern Object) ([][]byte, error)
+}
+
 // Bucket is a generic holder that stores data as well
 // as references to secondary indexes and sequences.
 //
@@ -43,7 +50,7 @@ type Bucket struct {
 	name    string
 	prefix  []byte
 	proto   Cloneable
-	indexes map[string]Index
+	indexes map[string]Indexed
 }
 
 var _ weave.QueryHandler = Bucket{}
@@ -203,14 +210,24 @@ func (b Bucket) Sequence(name string) Sequence {
 //
 // Designed to be chained.
 func (b Bucket) WithIndex(name string, indexer Indexer, unique bool) Bucket {
+	return b.WithMultiKeyIndex(name, func(obj Object) ([][]byte, error) {
+		key, err := indexer(obj)
+		if err != nil {
+			return nil, err
+		}
+		return [][]byte{key}, nil
+	}, unique)
+}
+
+func (b Bucket) WithMultiKeyIndex(name string, indexer MultiKeyIndexer, unique bool) Bucket {
 	// no duplicate indexes! (panic on init)
 	if _, ok := b.indexes[name]; ok {
 		panic(fmt.Sprintf("Index %s registered twice", name))
 	}
 
 	iname := b.name + "_" + name
-	add := NewIndex(iname, indexer, unique, b.DBKey)
-	indexes := make(map[string]Index, len(b.indexes)+1)
+	add := NewMulitiKeyIndex(iname, indexer, unique, b.DBKey)
+	indexes := make(map[string]Indexed, len(b.indexes)+1)
 	for n, i := range b.indexes {
 		indexes[n] = i
 	}
@@ -219,7 +236,7 @@ func (b Bucket) WithIndex(name string, indexer Indexer, unique bool) Bucket {
 	return b
 }
 
-// GetIndexed querys the named index for the given key
+// GetIndexed queries the named index for the given key
 func (b Bucket) GetIndexed(db weave.ReadOnlyKVStore, name string, key []byte) ([]Object, error) {
 	idx, ok := b.indexes[name]
 	if !ok {
