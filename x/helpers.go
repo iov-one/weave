@@ -463,3 +463,14 @@ func (w wrappedHandler) Deliver(ctx weave.Context, store weave.KVStore,
 
 	return w.d.Deliver(ctx, store, tx, w.h)
 }
+
+type EnumHelpers struct{}
+
+func (EnumHelpers) AsList(enum map[string]int32) []string {
+	res := make([]string, 0, len(enum))
+	for name := range enum {
+		res = append(res, name)
+	}
+
+	return res
+}

@@ -1,0 +1,49 @@
+syntax = "proto3";
+
+package nft;
+
+import "github.com/gogo/protobuf/gogoproto/gogo.proto";
+
+message NonFungibleToken {
+    bytes id = 1;
+    bytes owner = 2;
+    repeated ActionApprovals actionApprovals = 3 [(gogoproto.nullable) = false];
+
+}
+
+message ActionApprovals {
+    string action = 1;
+    repeated Approval approvals = 2 [(gogoproto.nullable) = false];
+}
+
+message Approval {
+    bytes address = 1;
+    ApprovalOptions options = 2 [(gogoproto.nullable) = false];
+}
+
+message ApprovalOptions {
+    int64 untilBlockHeight = 1; // valid until block height reached
+    int64 count = 2; // usage count
+    bool immutable = 3;
+}
+
+message AddApprovalMsg {
+    bytes id = 1;
+    bytes address = 2;
+    string action = 3;
+    ApprovalOptions options = 4 [(gogoproto.nullable) = false];
+    string t = 5;
+}
+
+message RemoveApprovalMsg {
+    bytes id = 1;
+    bytes address = 2;
+    string action = 3;
+    string t = 4;
+}
+
+enum Action {
+    ActionUpdateDetails = 0;
+    ActionTransfer = 1;
+    ActionUpdateApprovals = 2;
+}
