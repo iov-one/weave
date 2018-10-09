@@ -1,6 +1,6 @@
 .PHONY: all install build test tf cover deps tools prototools protoc
 
-EXAMPLES := examples/mycoind cmd/bcpd
+EXAMPLES := examples/mycoind cmd/bcpd cmd/bnsd
 
 # dont use `` in the makefile for windows compatibility
 NOVENDOR := $(shell go list ./...)
@@ -13,7 +13,8 @@ GOPATH ?= $$HOME/go
 all: deps build test
 
 dist:
-	cd cmd/bcpd && make dist
+	cd cmd/bnsd ; make dist ; cd -
+	cd cmd/bcpd ; make dist ; cd -
 
 install:
 	for ex in $(EXAMPLES); do cd $$ex && make install && cd -; done
@@ -60,6 +61,10 @@ protoc:
 	protoc --gogofaster_out=. crypto/*.proto
 	protoc --gogofaster_out=. orm/*.proto
 	protoc --gogofaster_out=. x/*.proto
+	protoc --gogofaster_out=. -I=. -I=$(GOPATH)/src x/nft/*.proto
+	protoc --gogofaster_out=. -I=. -I=$(GOPATH)/src x/nft/username/*.proto
+	protoc --gogofaster_out=. -I=. -I=$(GOPATH)/src x/nft/blockchain/*.proto
+	protoc --gogofaster_out=. -I=. -I=$(GOPATH)/src x/nft/ticker/*.proto
 	protoc --gogofaster_out=. -I=. -I=$(GOPATH)/src x/cash/*.proto
 	protoc --gogofaster_out=. -I=. -I=$(GOPATH)/src x/sigs/*.proto
 	protoc --gogofaster_out=. -I=. -I=$(GOPATH)/src x/multisig/*.proto

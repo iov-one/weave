@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+package username;
+
+import "github.com/iov-one/weave/x/nft/codec.proto";
+import "github.com/gogo/protobuf/gogoproto/gogo.proto";
+
+
+message UsernameToken {
+    nft.NonFungibleToken base = 1;
+    TokenDetails details = 2;
+}
+
+message TokenDetails {
+    repeated ChainAddress addresses = 1 [(gogoproto.nullable) = false];
+}
+
+message ChainAddress {
+    bytes chainID = 1;
+    bytes address = 2;
+}
+
+message IssueTokenMsg {
+    bytes id = 1;
+    bytes owner = 2;
+    repeated nft.ActionApprovals approvals = 3 [(gogoproto.nullable) = false];
+    TokenDetails details = 4 [(gogoproto.nullable) = false];
+}
+
+message AddChainAddressMsg {
+    bytes id = 1;
+    bytes chainID = 2;
+    bytes address = 3;
+
+}
+
+message RemoveChainAddressMsg {
+    bytes id = 1;
+    bytes chainID = 2;
+    bytes address = 3;
+}
