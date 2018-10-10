@@ -115,6 +115,174 @@ func TestCounterSingleKeyIndex(t *testing.T) {
 	}
 }
 
+func TestCounterMultiKeyIndex(t *testing.T) {
+	uniq := NewMulitiKeyIndex("unique", evenOddIndexer, true, nil)
+
+	specs := []struct {
+		index               Index
+		store               Object
+		prev, next          Object
+		expError            bool
+		expKeys, expNotKeys [][]byte
+	}{
+		{ // update with all keys replaced
+			index:      uniq,
+			prev:       NewSimpleObj([]byte("my"), NewCounter(5)),
+			next:       NewSimpleObj([]byte("my"), NewCounter(6)),
+			expKeys:    [][]byte{encodeSequence(6), []byte("even")},
+			expNotKeys: [][]byte{encodeSequence(5), []byte("odd")},
+		},
+		{ // update with 1 key updated only
+			index:      uniq,
+			prev:       NewSimpleObj([]byte("my"), NewCounter(6)),
+			next:       NewSimpleObj([]byte("my"), NewCounter(8)),
+			expKeys:    [][]byte{encodeSequence(8), []byte("even")},
+			expNotKeys: [][]byte{encodeSequence(6)},
+		},
+		{ // insert
+			index:   uniq,
+			next:    NewSimpleObj([]byte("my"), NewCounter(6)),
+			expKeys: [][]byte{encodeSequence(6), []byte("even")},
+		},
+		{ // delete
+			index:      uniq,
+			prev:       NewSimpleObj([]byte("my"), NewCounter(5)),
+			expNotKeys: [][]byte{encodeSequence(5), []byte("odd")},
+		},
+		{ // update with unique constraint fail
+			index:    uniq,
+			store:    NewSimpleObj([]byte("even"), NewCounter(8)),
+			prev:     NewSimpleObj([]byte("my"), NewCounter(5)),
+			next:     NewSimpleObj([]byte("my"), NewCounter(6)),
+			expError: true,
+		},
+		{ // update without unique constraint
+			index:    NewMulitiKeyIndex("multi", evenOddIndexer, false, nil),
+			store:    NewSimpleObj([]byte("even"), NewCounter(8)),
+			prev:     NewSimpleObj([]byte("my"), NewCounter(5)),
+			next:     NewSimpleObj([]byte("my"), NewCounter(6)),
+			expKeys:  [][]byte{encodeSequence(6), []byte("even")},
+			expError: false,
+		},
+		{ // id missmatch
+			index:    uniq,
+			prev:     NewSimpleObj([]byte("my"), NewCounter(5)),
+			next:     NewSimpleObj([]byte("bar"), NewCounter(7)),
+			expError: true,
+		},
+		{ // both nil
+			index:    uniq,
+			expError: true,
+		},
+	}
+
+	for i, spec := range specs {
+		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
+			db := store.MemStore()
+
+			// given
+			idx := spec.index
+			for _, o := range []Object{spec.store, spec.prev} {
+				if o == nil {
+					continue
+				}
+				keys, _ := idx.index(o)
+				for _, key := range keys {
+					require.NoError(t, idx.insert(db, key, o.Key()))
+				}
+			}
+			// when
+			err := idx.Update(db, spec.prev, spec.next)
+
+			// then
+			if spec.expError {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+			}
+			for _, k := range spec.expKeys {
+				// and index keys exists
+				pks, err := idx.GetAt(db, k)
+				require.NoError(t, err)
+				// with proper pk
+				if idx.unique {
+					assert.Equal(t, [][]byte{[]byte("my")}, pks)
+				} else {
+					assert.Contains(t, pks, []byte("my"))
+				}
+			}
+			// and previous index keys don't exist anymore
+			for _, k := range spec.expNotKeys {
+				pks, err := idx.GetAt(db, k)
+				require.NoError(t, err)
+				assert.Nil(t, pks)
+			}
+		})
+	}
+}
+
+func TestGetLikeWithMultiKeyIndex(t *testing.T) {
+	db := store.MemStore()
+	idx := NewMulitiKeyIndex("multi", evenOddIndexer, false, nil)
+
+	persistentObjects := []Object{
+		NewSimpleObj([]byte("firstOdd"), NewCounter(5)),
+		NewSimpleObj([]byte("secondOdd"), NewCounter(7)),
+		NewSimpleObj([]byte("even"), NewCounter(8)),
+	}
+	for _, o := range persistentObjects {
+		keys, _ := idx.index(o)
+		for _, key := range keys {
+			require.NoError(t, idx.insert(db, key, o.Key()))
+		}
+	}
+
+	specs := []struct {
+		source Object
+		expPKs [][]byte
+	}{
+		{
+			source: NewSimpleObj([]byte("anyOdd"), NewCounter(9)),
+			expPKs: [][]byte{[]byte("firstOdd"), []byte("secondOdd")},
+		},
+		{
+			source: NewSimpleObj([]byte("firstOdd"), NewCounter(5)),
+			expPKs: [][]byte{[]byte("firstOdd"), []byte("secondOdd")},
+		},
+		{
+			source: NewSimpleObj([]byte("even"), NewCounter(8)),
+			expPKs: [][]byte{[]byte("even")},
+		},
+		{
+			source: NewSimpleObj([]byte("anotherEven"), NewCounter(10)),
+			expPKs: [][]byte{[]byte("even")},
+		},
+	}
+	for i, spec := range specs {
+		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
+			// when
+			pks, err := idx.GetLike(db, spec.source)
+
+			// then
+			require.NoError(t, err)
+			assert.Equal(t, spec.expPKs, pks)
+		})
+	}
+}
+
+func evenOddIndexer(obj Object) ([][]byte, error) {
+	cntr, _ := obj.Value().(*Counter)
+	result := [][]byte{encodeSequence(cntr.Count)}
+	switch {
+	case cntr.Count == 0:
+	case cntr.Count%2 == 0:
+		result = append(result, []byte("even"))
+	default:
+		result = append(result, []byte("odd"))
+	}
+	return result, nil
+}
+
 // simple indexer for MultiRef
 // return first value (if any), or nil
 func first(obj Object) ([]byte, error) {
