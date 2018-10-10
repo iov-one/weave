@@ -12,6 +12,7 @@ import (
 	"github.com/iov-one/weave/x/nft/username"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/tendermint/tmlibs/common"
 )
 
 func TestHandleIssueTokenMsg(t *testing.T) {
@@ -155,6 +156,29 @@ func TestHandleIssueTokenMsg(t *testing.T) {
 			}
 		})
 	}
+}
+func TestIssueUsernameTx(t *testing.T) {
+	var helpers x.TestHelpers
+	_, alice := helpers.MakeKey()
+
+	db := store.MemStore()
+	blockchains := blockchain.NewBucket()
+	b, _ := blockchains.Create(db, alice.Address(), []byte("myNet"), nil, nil)
+	blockchains.Save(db, b)
+
+	handler := username.NewIssueHandler(helpers.Authenticate(alice), nil, username.NewBucket(), blockchains)
+
+	// when
+	tx := helpers.MockTx(&username.IssueTokenMsg{
+		Owner:   alice.Address(),
+		Id:      []byte("any@example.com"),
+		Details: username.TokenDetails{[]username.ChainAddress{{ChainID: []byte("myNet"), Address: []byte("myChainAddress")}}},
+	})
+	res, err := handler.Deliver(nil, db, tx)
+	// then
+	require.NoError(t, err)
+	assert.Equal(t, []common.KVPair{{[]byte("msgType"), []byte("registerUsername")}}, res.Tags)
+
 }
 
 func TestQueryTokenByName(t *testing.T) {
