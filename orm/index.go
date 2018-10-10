@@ -3,7 +3,6 @@ package orm
 import (
 	"bytes"
 	"errors"
-
 	"github.com/iov-one/weave"
 )
 
@@ -27,7 +26,7 @@ type Index struct {
 	refKey func([]byte) []byte
 }
 
-var _ Indexed = Index{}
+var _ weave.QueryHandler = Index{}
 
 // NewIndex constructs an index
 // Indexer calculcates the index for an object
@@ -35,17 +34,10 @@ var _ Indexed = Index{}
 // refKey calculates the absolute dbkey for a ref
 func NewIndex(name string, indexer Indexer, unique bool,
 	refKey func([]byte) []byte) Index {
-	// TODO: index name must be [a-z_]
 	return Index{
-		name: name,
-		id:   append(indPrefix, []byte(name+":")...),
-		index: func(obj Object) ([][]byte, error) {
-			key, err := indexer(obj)
-			if err != nil {
-				return nil, err
-			}
-			return [][]byte{key}, nil
-		},
+		name:   name,
+		id:     append(indPrefix, []byte(name+":")...),
+		index:  asMulitKeyIndexer(indexer),
 		unique: unique,
 		refKey: refKey,
 	}
@@ -59,6 +51,19 @@ func NewMulitiKeyIndex(name string, indexer MultiKeyIndexer, unique bool,
 		index:  indexer,
 		unique: unique,
 		refKey: refKey,
+	}
+}
+
+func asMulitKeyIndexer(indexer Indexer) MultiKeyIndexer {
+	return func(obj Object) ([][]byte, error) {
+		key, err := indexer(obj)
+		switch {
+		case err != nil:
+			return nil, err
+		case key == nil:
+			return nil, nil
+		}
+		return [][]byte{key}, nil
 	}
 }
 
@@ -118,16 +123,32 @@ func (i Index) Update(db weave.KVStore, prev Object, save Object) error {
 }
 
 // GetLike calculates the index for the given pattern, and
-// returns a list of all pk that match (may be empty), or an error
+// returns a list of all pk that match (may be nil when empty), or an error
 func (i Index) GetLike(db weave.ReadOnlyKVStore, pattern Object) ([][]byte, error) {
 	indexes, err := i.index(pattern)
 	if err != nil {
 		return nil, err
 	}
+	var r [][]byte
 	for _, index := range indexes {
-		return i.GetAt(db, index)
+		pks, err := i.GetAt(db, index)
+		if err != nil {
+			return nil, err
+		}
+		if i.unique {
+			return pks, nil
+		}
+		r = append(r, pks...)
 	}
-	return [][]byte{}, nil
+	// deduplicate
+	for i, v := range r {
+		for j, w := range r[i+1:] {
+			if bytes.Equal(v, w) {
+				r = append(r[0:i], r[i+j+1:]...)
+			}
+		}
+	}
+	return r, nil
 }
 
 // GetAt returns a list of all pk at that index (may be empty), or an error
@@ -224,24 +245,12 @@ func (i Index) move(db weave.KVStore, prev Object, save Object) error {
 	if err != nil {
 		return err
 	}
-
-	oldKeysSet := make(map[string]struct{})
-	for _, v := range oldKeys {
-		oldKeysSet[string(v)] = struct{}{}
-	}
-
-	newKeysSet := make(map[string]struct{})
-	for _, v := range newKeys {
-		newKeysSet[string(v)] = struct{}{}
-	}
+	keysToAdd := subtract(newKeys, oldKeys)
+	keysToRemove := subtract(oldKeys, newKeys)
 
 	// check unique constraints first
-	for _, newKey := range newKeys {
-		if _, exists := oldKeysSet[string(newKey)]; exists { // skip existing keys
-			continue
-		}
-		// check unique constraint before removing
-		if i.unique && len(oldKeysSet) != 0 {
+	for _, newKey := range keysToAdd {
+		if i.unique {
 			k := i.IndexKey(newKey)
 			val := db.Get(k)
 			if val != nil {
@@ -251,26 +260,33 @@ func (i Index) move(db weave.KVStore, prev Object, save Object) error {
 	}
 
 	// remove unused keys
-	for _, oldKey := range oldKeys {
-		if _, exists := newKeysSet[string(oldKey)]; !exists {
-			if err = i.remove(db, oldKey, prev.Key()); err != nil {
-				return err
-			}
-			continue
+	for _, oldKey := range keysToRemove {
+		if err = i.remove(db, oldKey, prev.Key()); err != nil {
+			return err
 		}
 	}
 
 	// add new keys
-	for _, newKey := range newKeys {
-		// check unique constraint before removing
-		if _, exists := oldKeysSet[string(newKey)]; !exists {
-			if err = i.insert(db, newKey, prev.Key()); err != nil {
-				return err
-			}
+	for _, newKey := range keysToAdd {
+		if err = i.insert(db, newKey, prev.Key()); err != nil {
+			return err
 		}
 	}
-
 	return nil
+}
+
+func subtract(minuend [][]byte, subtrahend [][]byte) [][]byte {
+	r := make([][]byte, 0)
+OUTER:
+	for _, m := range minuend {
+		for _, s := range subtrahend {
+			if bytes.Equal(m, s) {
+				continue OUTER
+			}
+		}
+		r = append(r, m)
+	}
+	return r
 }
 
 func (i Index) remove(db weave.KVStore, index []byte, pk []byte) error {
