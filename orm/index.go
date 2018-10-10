@@ -143,15 +143,15 @@ func (i Index) GetLike(db weave.ReadOnlyKVStore, pattern Object) ([][]byte, erro
 	return deduplicate(r), nil
 }
 
-func deduplicate(r [][]byte) [][]byte {
-	for i, v := range r {
-		for j := i + 1; j < len(r); j++ {
-			if bytes.Equal(v, r[j]) {
-				r = append(r[0:j], r[j+1:]...)
+func deduplicate(s [][]byte) [][]byte {
+	for i := 0; i < len(s); i++ {
+		for j := i + 1; j < len(s); j++ {
+			if bytes.Equal(s[i], s[j]) {
+				s = append(s[0:j], s[j+1:]...)
 			}
 		}
 	}
-	return r
+	return s
 }
 
 // GetAt returns a list of all pk at that index (may be empty), or an error
