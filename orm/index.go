@@ -140,15 +140,18 @@ func (i Index) GetLike(db weave.ReadOnlyKVStore, pattern Object) ([][]byte, erro
 		}
 		r = append(r, pks...)
 	}
-	// deduplicate
+	return deduplicate(r), nil
+}
+
+func deduplicate(r [][]byte) [][]byte {
 	for i, v := range r {
-		for j, w := range r[i+1:] {
-			if bytes.Equal(v, w) {
-				r = append(r[0:i], r[i+j+1:]...)
+		for j := i + 1; j < len(r); j++ {
+			if bytes.Equal(v, r[j]) {
+				r = append(r[0:j], r[j+1:]...)
 			}
 		}
 	}
-	return r, nil
+	return r
 }
 
 // GetAt returns a list of all pk at that index (may be empty), or an error
@@ -275,7 +278,11 @@ func (i Index) move(db weave.KVStore, prev Object, save Object) error {
 	return nil
 }
 
+// subtract returns all elements of minuend that are not in subtrahend.
 func subtract(minuend [][]byte, subtrahend [][]byte) [][]byte {
+	if minuend == nil {
+		return nil
+	}
 	r := make([][]byte, 0)
 OUTER:
 	for _, m := range minuend {

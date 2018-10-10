@@ -23,7 +23,7 @@ func count(obj Object) ([]byte, error) {
 	return encodeSequence(cntr.Count), nil
 }
 
-func TestCounterIndex(t *testing.T) {
+func TestCounterSingleKeyIndex(t *testing.T) {
 	multi := NewIndex("likes", count, false, nil)
 	uniq := NewIndex("magic", count, true, nil)
 
@@ -205,5 +205,54 @@ func TestNullableIndex(t *testing.T) {
 			}
 		})
 	}
+}
 
+func TestDeduplicatePKList(t *testing.T) {
+	specs := []struct {
+		src, exp []string
+	}{
+		{src: []string{}, exp: []string{}},
+		{src: []string{"a", "a"}, exp: []string{"a"}},
+		{src: []string{"a", "a", "b"}, exp: []string{"a", "b"}},
+		{src: []string{"a", "b", "a"}, exp: []string{"a", "b"}},
+		{src: []string{"a", "b", "b"}, exp: []string{"a", "b"}},
+		{src: []string{"a", "b", "a", "b"}, exp: []string{"a", "b"}},
+		{src: []string{"a", "b", "c", "b", "d"}, exp: []string{"a", "b", "c", "d"}},
+		{src: nil, exp: nil},
+	}
+	for i, spec := range specs {
+		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
+			assert.Equal(t, toBytes(spec.exp), deduplicate(toBytes(spec.src)))
+		})
+	}
+}
+
+func TestSubstract(t *testing.T) {
+	specs := []struct {
+		src, sub, exp []string
+	}{
+		{src: []string{}, sub: []string{}, exp: []string{}},
+		{src: []string{"a", "b", "c"}, sub: []string{"a"}, exp: []string{"b", "c"}},
+		{src: []string{"a", "b", "c"}, sub: []string{"b", "c"}, exp: []string{"a"}},
+		{src: []string{"a", "b", "c"}, sub: []string{"b", "d"}, exp: []string{"a", "c"}},
+		{src: nil, exp: nil},
+		{src: []string{"a"}, exp: []string{"a"}},
+		{sub: []string{"a"}, exp: nil},
+	}
+	for i, spec := range specs {
+		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
+			assert.Equal(t, toBytes(spec.exp), subtract(toBytes(spec.src), toBytes(spec.sub)))
+		})
+	}
+}
+
+func toBytes(s []string) [][]byte {
+	if s == nil {
+		return nil
+	}
+	source := make([][]byte, len(s))
+	for i, v := range s {
+		source[i] = []byte(v)
+	}
+	return source
 }
