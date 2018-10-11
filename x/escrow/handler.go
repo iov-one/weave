@@ -70,7 +70,7 @@ func (h CreateEscrowHandler) Deliver(ctx weave.Context, db weave.KVStore,
 	}
 
 	// apply a default for sender
-	sender := weave.Address(msg.Sender)
+	sender := weave.Address(msg.Src)
 	if sender == nil {
 		sender = x.MainSigner(ctx, h.auth).Address()
 	}
@@ -129,8 +129,8 @@ func (h CreateEscrowHandler) validate(ctx weave.Context, db weave.KVStore,
 	}
 
 	// sender must authorize this (if not set, defaults to MainSigner)
-	if msg.Sender != nil {
-		sender := weave.Address(msg.Sender)
+	if msg.Src != nil {
+		sender := weave.Address(msg.Src)
 		if !h.auth.HasAddress(ctx, sender) {
 			return nil, errors.ErrUnauthorized()
 		}
