@@ -37,8 +37,8 @@ const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
 // Note: This should not be created from outside the module,
 // User is the entry point you want
 type UserData struct {
-	PubKey   *crypto.PublicKey `protobuf:"bytes,1,opt,name=pub_key,json=pubKey" json:"pub_key,omitempty"`
-	Sequence int64             `protobuf:"varint,2,opt,name=sequence,proto3" json:"sequence,omitempty"`
+	PublicKey *crypto.PublicKey `protobuf:"bytes,1,opt,name=public_key,json=publicKey" json:"public_key,omitempty"`
+	Sequence  int64             `protobuf:"varint,2,opt,name=sequence,proto3" json:"sequence,omitempty"`
 }
 
 func (m *UserData) Reset()                    { *m = UserData{} }
@@ -46,9 +46,9 @@ func (m *UserData) String() string            { return proto.CompactTextString(m
 func (*UserData) ProtoMessage()               {}
 func (*UserData) Descriptor() ([]byte, []int) { return fileDescriptorCodec, []int{0} }
 
-func (m *UserData) GetPubKey() *crypto.PublicKey {
+func (m *UserData) GetPublicKey() *crypto.PublicKey {
 	if m != nil {
-		return m.PubKey
+		return m.PublicKey
 	}
 	return nil
 }
@@ -66,8 +66,8 @@ func (m *UserData) GetSequence() int64 {
 // A given signer must submit transactions with the sequence number
 // increasing by 1 each time (starting at 0)
 type StdSignature struct {
-	Sequence int64             `protobuf:"varint,1,opt,name=sequence,proto3" json:"sequence,omitempty"`
-	PubKey   *crypto.PublicKey `protobuf:"bytes,2,opt,name=pub_key,json=pubKey" json:"pub_key,omitempty"`
+	Sequence  int64             `protobuf:"varint,1,opt,name=sequence,proto3" json:"sequence,omitempty"`
+	PublicKey *crypto.PublicKey `protobuf:"bytes,2,opt,name=public_key,json=publicKey" json:"public_key,omitempty"`
 	// Removed Address, PubKey is more powerful
 	Signature *crypto.Signature `protobuf:"bytes,4,opt,name=signature" json:"signature,omitempty"`
 }
@@ -84,9 +84,9 @@ func (m *StdSignature) GetSequence() int64 {
 	return 0
 }
 
-func (m *StdSignature) GetPubKey() *crypto.PublicKey {
+func (m *StdSignature) GetPublicKey() *crypto.PublicKey {
 	if m != nil {
-		return m.PubKey
+		return m.PublicKey
 	}
 	return nil
 }
@@ -117,11 +117,11 @@ func (m *UserData) MarshalTo(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
-	if m.PubKey != nil {
+	if m.PublicKey != nil {
 		dAtA[i] = 0xa
 		i++
-		i = encodeVarintCodec(dAtA, i, uint64(m.PubKey.Size()))
-		n1, err := m.PubKey.MarshalTo(dAtA[i:])
+		i = encodeVarintCodec(dAtA, i, uint64(m.PublicKey.Size()))
+		n1, err := m.PublicKey.MarshalTo(dAtA[i:])
 		if err != nil {
 			return 0, err
 		}
@@ -155,11 +155,11 @@ func (m *StdSignature) MarshalTo(dAtA []byte) (int, error) {
 		i++
 		i = encodeVarintCodec(dAtA, i, uint64(m.Sequence))
 	}
-	if m.PubKey != nil {
+	if m.PublicKey != nil {
 		dAtA[i] = 0x12
 		i++
-		i = encodeVarintCodec(dAtA, i, uint64(m.PubKey.Size()))
-		n2, err := m.PubKey.MarshalTo(dAtA[i:])
+		i = encodeVarintCodec(dAtA, i, uint64(m.PublicKey.Size()))
+		n2, err := m.PublicKey.MarshalTo(dAtA[i:])
 		if err != nil {
 			return 0, err
 		}
@@ -190,8 +190,8 @@ func encodeVarintCodec(dAtA []byte, offset int, v uint64) int {
 func (m *UserData) Size() (n int) {
 	var l int
 	_ = l
-	if m.PubKey != nil {
-		l = m.PubKey.Size()
+	if m.PublicKey != nil {
+		l = m.PublicKey.Size()
 		n += 1 + l + sovCodec(uint64(l))
 	}
 	if m.Sequence != 0 {
@@ -206,8 +206,8 @@ func (m *StdSignature) Size() (n int) {
 	if m.Sequence != 0 {
 		n += 1 + sovCodec(uint64(m.Sequence))
 	}
-	if m.PubKey != nil {
-		l = m.PubKey.Size()
+	if m.PublicKey != nil {
+		l = m.PublicKey.Size()
 		n += 1 + l + sovCodec(uint64(l))
 	}
 	if m.Signature != nil {
@@ -261,7 +261,7 @@ func (m *UserData) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field PubKey", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field PublicKey", wireType)
 			}
 			var msglen int
 			for shift := uint(0); ; shift += 7 {
@@ -285,10 +285,10 @@ func (m *UserData) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if m.PubKey == nil {
-				m.PubKey = &crypto.PublicKey{}
+			if m.PublicKey == nil {
+				m.PublicKey = &crypto.PublicKey{}
 			}
-			if err := m.PubKey.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+			if err := m.PublicKey.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
@@ -382,7 +382,7 @@ func (m *StdSignature) Unmarshal(dAtA []byte) error {
 			}
 		case 2:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field PubKey", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field PublicKey", wireType)
 			}
 			var msglen int
 			for shift := uint(0); ; shift += 7 {
@@ -406,10 +406,10 @@ func (m *StdSignature) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if m.PubKey == nil {
-				m.PubKey = &crypto.PublicKey{}
+			if m.PublicKey == nil {
+				m.PublicKey = &crypto.PublicKey{}
 			}
-			if err := m.PubKey.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+			if err := m.PublicKey.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
@@ -575,20 +575,20 @@ var (
 func init() { proto.RegisterFile("x/sigs/codec.proto", fileDescriptorCodec) }
 
 var fileDescriptorCodec = []byte{
-	// 230 bytes of a gzipped FileDescriptorProto
+	// 227 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x12, 0xaa, 0xd0, 0x2f, 0xce,
 	0x4c, 0x2f, 0xd6, 0x4f, 0xce, 0x4f, 0x49, 0x4d, 0xd6, 0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17, 0x62,
 	0x01, 0x89, 0x48, 0xe9, 0xa4, 0x67, 0x96, 0x64, 0x94, 0x26, 0xe9, 0x25, 0xe7, 0xe7, 0xea, 0x67,
 	0xe6, 0x97, 0xe9, 0xe6, 0xe7, 0xa5, 0xea, 0x97, 0xa7, 0x26, 0x96, 0xa5, 0xea, 0x27, 0x17, 0x55,
-	0x16, 0x94, 0xe4, 0xeb, 0xe7, 0xe6, 0xa7, 0xa4, 0xe6, 0x14, 0x43, 0xf4, 0x28, 0x05, 0x71, 0x71,
-	0x84, 0x16, 0xa7, 0x16, 0xb9, 0x24, 0x96, 0x24, 0x0a, 0x69, 0x71, 0xb1, 0x17, 0x94, 0x26, 0xc5,
-	0x67, 0xa7, 0x56, 0x4a, 0x30, 0x2a, 0x30, 0x6a, 0x70, 0x1b, 0x09, 0xea, 0x41, 0xb4, 0xe8, 0x05,
-	0x94, 0x26, 0xe5, 0x64, 0x26, 0x7b, 0xa7, 0x56, 0x06, 0xb1, 0x15, 0x94, 0x26, 0x79, 0xa7, 0x56,
-	0x0a, 0x49, 0x71, 0x71, 0x14, 0xa7, 0x16, 0x96, 0xa6, 0xe6, 0x25, 0xa7, 0x4a, 0x30, 0x29, 0x30,
-	0x6a, 0x30, 0x07, 0xc1, 0xf9, 0x4a, 0xed, 0x8c, 0x5c, 0x3c, 0xc1, 0x25, 0x29, 0xc1, 0x99, 0xe9,
-	0x79, 0x89, 0x25, 0xa5, 0x45, 0xa9, 0x28, 0x8a, 0x19, 0x51, 0x15, 0x23, 0x5b, 0xca, 0x44, 0xc8,
-	0x52, 0x7d, 0x2e, 0xce, 0x62, 0x98, 0xa1, 0x12, 0x2c, 0xa8, 0xaa, 0xe1, 0xb6, 0x05, 0x21, 0xd4,
-	0x38, 0x09, 0x9c, 0x78, 0x24, 0xc7, 0x78, 0xe1, 0x91, 0x1c, 0xe3, 0x83, 0x47, 0x72, 0x8c, 0x13,
-	0x1e, 0xcb, 0x31, 0x24, 0xb1, 0x81, 0xbd, 0x6d, 0x0c, 0x08, 0x00, 0x00, 0xff, 0xff, 0xb1, 0xaa,
-	0xb3, 0x8b, 0x40, 0x01, 0x00, 0x00,
+	0x16, 0x94, 0xe4, 0xeb, 0xe7, 0xe6, 0xa7, 0xa4, 0xe6, 0x14, 0x43, 0xf4, 0x28, 0x45, 0x70, 0x71,
+	0x84, 0x16, 0xa7, 0x16, 0xb9, 0x24, 0x96, 0x24, 0x0a, 0x19, 0x70, 0x71, 0x15, 0x94, 0x26, 0xe5,
+	0x64, 0x26, 0xc7, 0x67, 0xa7, 0x56, 0x4a, 0x30, 0x2a, 0x30, 0x6a, 0x70, 0x1b, 0x09, 0xea, 0x41,
+	0x74, 0xe9, 0x05, 0x80, 0x65, 0xbc, 0x53, 0x2b, 0x83, 0x38, 0x0b, 0x60, 0x4c, 0x21, 0x29, 0x2e,
+	0x8e, 0xe2, 0xd4, 0xc2, 0xd2, 0xd4, 0xbc, 0xe4, 0x54, 0x09, 0x26, 0x05, 0x46, 0x0d, 0xe6, 0x20,
+	0x38, 0x5f, 0xa9, 0x97, 0x91, 0x8b, 0x27, 0xb8, 0x24, 0x25, 0x38, 0x33, 0x3d, 0x2f, 0xb1, 0xa4,
+	0xb4, 0x28, 0x15, 0x45, 0x31, 0x23, 0xaa, 0x62, 0x34, 0xab, 0x99, 0x88, 0xb0, 0x5a, 0x9f, 0x8b,
+	0xb3, 0x18, 0x66, 0xb4, 0x04, 0x0b, 0xaa, 0x06, 0xb8, 0x9d, 0x41, 0x08, 0x35, 0x4e, 0x02, 0x27,
+	0x1e, 0xc9, 0x31, 0x5e, 0x78, 0x24, 0xc7, 0xf8, 0xe0, 0x91, 0x1c, 0xe3, 0x84, 0xc7, 0x72, 0x0c,
+	0x49, 0x6c, 0xe0, 0x20, 0x30, 0x06, 0x04, 0x00, 0x00, 0xff, 0xff, 0xe9, 0x9f, 0x32, 0x53, 0x4c,
+	0x01, 0x00, 0x00,
 }

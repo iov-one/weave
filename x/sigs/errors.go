@@ -35,7 +35,7 @@ func ErrMissingPubKey() error {
 }
 func ErrPubKeyAddressMismatch() error {
 	invalidSig := errors.ErrInvalidSignature()
-	return errors.WithLog("PubKey and Address don't match", invalidSig, errors.CodeUnauthorized)
+	return errors.WithLog("PublicKey and Address don't match", invalidSig, errors.CodeUnauthorized)
 }
 
 var IsInvalidSignatureErr = errors.IsInvalidSignatureErr

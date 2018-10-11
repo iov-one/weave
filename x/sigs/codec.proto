@@ -10,7 +10,7 @@ import "github.com/iov-one/weave/crypto/models.proto";
 // Note: This should not be created from outside the module,
 // User is the entry point you want
 message UserData {
-  crypto.PublicKey pub_key = 1;
+  crypto.PublicKey public_key = 1;
   int64 sequence = 2;
 }
 
@@ -21,7 +21,7 @@ message UserData {
 // increasing by 1 each time (starting at 0)
 message StdSignature {
     int64 sequence = 1;
-    crypto.PublicKey pub_key = 2;
+    crypto.PublicKey public_key = 2;
     // Removed Address, PubKey is more powerful
     crypto.Signature signature = 4;
 }

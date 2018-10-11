@@ -28,7 +28,7 @@ func TestUserModel(t *testing.T) {
 	assert.NotNil(t, obj)
 	assert.NoError(t, obj.Validate())
 	user := AsUser(obj)
-	assert.NotNil(t, user.PubKey)
+	assert.NotNil(t, user.PublicKey)
 	assert.Equal(t, int64(0), user.Sequence)
 
 	// set sequence
@@ -47,7 +47,7 @@ func TestUserModel(t *testing.T) {
 	assert.NotNil(t, obj2)
 	user2 := AsUser(obj2)
 	assert.Equal(t, int64(2), user2.Sequence)
-	assert.Equal(t, pub, user2.PubKey)
+	assert.Equal(t, pub, user2.PublicKey)
 }
 
 func TestUserValidation(t *testing.T) {

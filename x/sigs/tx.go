@@ -24,7 +24,7 @@ func (s *StdSignature) Validate() error {
 	if seq < 0 {
 		return ErrInvalidSequence("Negative")
 	}
-	if s.PubKey == nil {
+	if s.PublicKey == nil {
 		return ErrMissingPubKey()
 	}
 	if s.Signature == nil {
