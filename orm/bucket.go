@@ -203,7 +203,7 @@ func (b Bucket) Sequence(name string) Sequence {
 //
 // Designed to be chained.
 func (b Bucket) WithIndex(name string, indexer Indexer, unique bool) Bucket {
-	return b.WithMultiKeyIndex(name, asMulitKeyIndexer(indexer), unique)
+	return b.WithMultiKeyIndex(name, asMultiKeyIndexer(indexer), unique)
 }
 
 func (b Bucket) WithMultiKeyIndex(name string, indexer MultiKeyIndexer, unique bool) Bucket {
@@ -213,7 +213,7 @@ func (b Bucket) WithMultiKeyIndex(name string, indexer MultiKeyIndexer, unique b
 	}
 
 	iname := b.name + "_" + name
-	add := NewMulitiKeyIndex(iname, indexer, unique, b.DBKey)
+	add := NewMultiKeyIndex(iname, indexer, unique, b.DBKey)
 	indexes := make(map[string]Index, len(b.indexes)+1)
 	for n, i := range b.indexes {
 		indexes[n] = i

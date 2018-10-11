@@ -116,7 +116,7 @@ func TestCounterSingleKeyIndex(t *testing.T) {
 }
 
 func TestCounterMultiKeyIndex(t *testing.T) {
-	uniq := NewMulitiKeyIndex("unique", evenOddIndexer, true, nil)
+	uniq := NewMultiKeyIndex("unique", evenOddIndexer, true, nil)
 
 	specs := []struct {
 		index               Index
@@ -157,7 +157,7 @@ func TestCounterMultiKeyIndex(t *testing.T) {
 			expError: true,
 		},
 		{ // update without unique constraint
-			index:    NewMulitiKeyIndex("multi", evenOddIndexer, false, nil),
+			index:    NewMultiKeyIndex("multi", evenOddIndexer, false, nil),
 			store:    NewSimpleObj([]byte("even"), NewCounter(8)),
 			prev:     NewSimpleObj([]byte("my"), NewCounter(5)),
 			next:     NewSimpleObj([]byte("my"), NewCounter(6)),
@@ -223,7 +223,7 @@ func TestCounterMultiKeyIndex(t *testing.T) {
 
 func TestGetLikeWithMultiKeyIndex(t *testing.T) {
 	db := store.MemStore()
-	idx := NewMulitiKeyIndex("multi", evenOddIndexer, false, nil)
+	idx := NewMultiKeyIndex("multi", evenOddIndexer, false, nil)
 
 	persistentObjects := []Object{
 		NewSimpleObj([]byte("firstOdd"), NewCounter(5)),

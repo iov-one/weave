@@ -9,7 +9,7 @@ import (
 
 const (
 	BucketName            = "usrnft"
-	ChainAddressIndexName = "usrnft_caddr_idx"
+	ChainAddressIndexName = "chainaddr"
 	chainAddressSeparator = "*"
 )
 

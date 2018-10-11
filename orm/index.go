@@ -28,21 +28,20 @@ type Index struct {
 
 var _ weave.QueryHandler = Index{}
 
-// NewIndex constructs an index
-// Indexer calculcates the index for an object
+// NewIndex constructs an index with single key Indexer.
+// Indexer calculates the index for an object
 // unique enforces a unique constraint on the index
 // refKey calculates the absolute dbkey for a ref
 func NewIndex(name string, indexer Indexer, unique bool,
 	refKey func([]byte) []byte) Index {
-	return Index{
-		name:   name,
-		id:     append(indPrefix, []byte(name+":")...),
-		index:  asMulitKeyIndexer(indexer),
-		unique: unique,
-		refKey: refKey,
-	}
+	return NewMultiKeyIndex(name, asMultiKeyIndexer(indexer), unique, refKey)
 }
-func NewMulitiKeyIndex(name string, indexer MultiKeyIndexer, unique bool,
+
+// NewMultiKeyIndex constructs an index with multi key indexer.
+// Indexer calculates the index for an object
+// unique enforces a unique constraint on the index
+// refKey calculates the absolute dbkey for a ref
+func NewMultiKeyIndex(name string, indexer MultiKeyIndexer, unique bool,
 	refKey func([]byte) []byte) Index {
 	// TODO: index name must be [a-z_]
 	return Index{
@@ -54,7 +53,7 @@ func NewMulitiKeyIndex(name string, indexer MultiKeyIndexer, unique bool,
 	}
 }
 
-func asMulitKeyIndexer(indexer Indexer) MultiKeyIndexer {
+func asMultiKeyIndexer(indexer Indexer) MultiKeyIndexer {
 	return func(obj Object) ([][]byte, error) {
 		key, err := indexer(obj)
 		switch {

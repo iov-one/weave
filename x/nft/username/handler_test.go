@@ -181,35 +181,59 @@ func TestIssueUsernameTx(t *testing.T) {
 
 }
 
-func TestQueryTokenByName(t *testing.T) {
+func TestQueryUsernameToken(t *testing.T) {
 	var helpers x.TestHelpers
 	_, alice := helpers.MakeKey()
 	_, bob := helpers.MakeKey()
-	myAddresses := []username.ChainAddress{{ChainID: []byte("myChainID"), Address: []byte("myAddressID0")}}
+	aliceAddress := []username.ChainAddress{{ChainID: []byte("myChainID"), Address: []byte("aliceChainAddress")}}
+	bobAddress := []username.ChainAddress{{ChainID: []byte("myChainID"), Address: []byte("bobChainAddress")}}
 
 	db := store.MemStore()
 	bucket := username.NewBucket()
-	o1, _ := bucket.Create(db, alice.Address(), []byte("alice@example.com"), nil, myAddresses)
+	o1, _ := bucket.Create(db, alice.Address(), []byte("alice@example.com"), nil, aliceAddress)
 	bucket.Save(db, o1)
-	o2, _ := bucket.Create(db, bob.Address(), []byte("bob@example.com"), nil, myAddresses)
-	bucket.Save(db, o2)
+	o2, _ := bucket.Create(db, bob.Address(), []byte("bob@example.com"), nil, bobAddress)
+	require.NoError(t, bucket.Save(db, o2))
 
 	qr := weave.NewQueryRouter()
 	username.RegisterQuery(qr)
-	// when
-	h := qr.Handler("/nft/usernames")
-	require.NotNil(t, h)
-	mods, err := h.Query(db, "", []byte("alice@example.com"))
-	// then
-	require.NoError(t, err)
-	require.Len(t, mods, 1)
 
-	assert.Equal(t, bucket.DBKey([]byte("alice@example.com")), mods[0].Key)
-	got, err := bucket.Parse(nil, mods[0].Value)
-	require.NoError(t, err)
-	x, err := username.AsUsername(got)
-	require.NoError(t, err)
-	assert.Equal(t, myAddresses, x.GetChainAddresses())
+	specs := []struct {
+		path        string
+		data        []byte
+		expUsername string
+	}{
+		{ // by username alice
+			"/nft/usernames", []byte("alice@example.com"), "alice@example.com"},
+		{ // by chain address
+			"/nft/usernames/chainaddr", []byte("aliceChainAddress*myChainID"), "alice@example.com"},
+		{ // by owner
+			"/nft/usernames/owner", alice.Address(), "alice@example.com"},
+		{ // by username bob
+			"/nft/usernames", []byte("bob@example.com"), "bob@example.com"},
+		{ // by chain address
+			"/nft/usernames/chainaddr", []byte("bobChainAddress*myChainID"), "bob@example.com"},
+		{ // by owner
+			"/nft/usernames/owner", bob.Address(), "bob@example.com"},
+	}
+	for i, spec := range specs {
+		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
+			// when
+			h := qr.Handler(spec.path)
+			require.NotNil(t, h)
+			mods, err := h.Query(db, "", spec.data)
+
+			// then
+			require.NoError(t, err)
+			require.Len(t, mods, 1)
+
+			assert.Equal(t, bucket.DBKey([]byte(spec.expUsername)), mods[0].Key)
+			got, err := bucket.Parse(nil, mods[0].Value)
+			require.NoError(t, err)
+			_, err = username.AsUsername(got)
+			require.NoError(t, err)
+		})
+	}
 }
 
 //TODO: This needs to be extended with examples where we use approvals for different users
@@ -226,8 +250,10 @@ func TestAddChainAddress(t *testing.T) {
 	}
 
 	myAddress := []username.ChainAddress{{ChainID: []byte("myNet"), Address: []byte("myChainAddress")}}
-	o, err := bucket.Create(db, alice.Address(), []byte("alice@example.com"), nil, myAddress)
-	require.NoError(t, err)
+	o, _ := bucket.Create(db, alice.Address(), []byte("alice@example.com"), nil, myAddress)
+	bucket.Save(db, o)
+	myOtherAddress := []username.ChainAddress{{ChainID: []byte("myOtherNet"), Address: []byte("myOtherChainAddress")}}
+	o, _ = bucket.Create(db, alice.Address(), []byte("anyOther@example.com"), nil, myOtherAddress)
 	bucket.Save(db, o)
 
 	handler := username.NewAddChainAddressHandler(helpers.Authenticate(alice), nil, bucket, blockchains)
@@ -263,6 +289,13 @@ func TestAddChainAddress(t *testing.T) {
 			expCheckError:   false,
 			expDeliverError: true,
 		},
+		{ // non unique chain address
+			id:              []byte("alice@example.com"),
+			newChainID:      []byte("myOtherNet"),
+			newAddress:      []byte("myOtherChainAddress"),
+			expCheckError:   false,
+			expDeliverError: true,
+		},
 		{ // unknown id
 			id:              []byte("unknown@example.com"),
 			newChainID:      []byte("myUnknownNet"),
@@ -283,7 +316,7 @@ func TestAddChainAddress(t *testing.T) {
 			})
 
 			// when
-			_, err = handler.Check(nil, cache, tx)
+			_, err := handler.Check(nil, cache, tx)
 			if spec.expCheckError {
 				require.Error(t, err)
 				return
