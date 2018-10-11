@@ -18,13 +18,16 @@ message TokenDetails {
 
 message Config {
     string chainID = 1;
+    //TODO: Enum?
     string codec = 2;
     string codecConfig = 3;
+    //TODO: Enum?
     string liveness = 4;
     ticker.TickerToken mainToken = 5;
     repeated URI bootstrapNodes = 6;
 }
 
+//TODO: Move this to base nft, might come in handy
 message URI {
 
 }
