@@ -10,7 +10,8 @@
 	It has these top-level messages:
 		BlockchainToken
 		TokenDetails
-		Network
+		Config
+		URI
 		IssueTokenMsg
 */
 package blockchain
@@ -20,6 +21,7 @@ import fmt "fmt"
 import math "math"
 import nft "github.com/iov-one/weave/x/nft"
 import _ "github.com/gogo/protobuf/gogoproto"
+import ticker "github.com/iov-one/weave/x/nft/ticker"
 
 import io "io"
 
@@ -59,7 +61,7 @@ func (m *BlockchainToken) GetDetails() *TokenDetails {
 }
 
 type TokenDetails struct {
-	Networks []Network `protobuf:"bytes,1,rep,name=networks" json:"networks"`
+	Config Config `protobuf:"bytes,1,opt,name=config" json:"config"`
 }
 
 func (m *TokenDetails) Reset()                    { *m = TokenDetails{} }
@@ -67,52 +69,76 @@ func (m *TokenDetails) String() string            { return proto.CompactTextStri
 func (*TokenDetails) ProtoMessage()               {}
 func (*TokenDetails) Descriptor() ([]byte, []int) { return fileDescriptorCodec, []int{1} }
 
-func (m *TokenDetails) GetNetworks() []Network {
+func (m *TokenDetails) GetConfig() Config {
 	if m != nil {
-		return m.Networks
+		return m.Config
 	}
-	return nil
+	return Config{}
 }
 
-type Network struct {
-	Tickers       []byte `protobuf:"bytes,1,opt,name=tickers,proto3" json:"tickers,omitempty"`
-	Bootstrap     []byte `protobuf:"bytes,2,opt,name=bootstrap,proto3" json:"bootstrap,omitempty"`
-	Codec         []byte `protobuf:"bytes,3,opt,name=codec,proto3" json:"codec,omitempty"`
-	CodecSettings []byte `protobuf:"bytes,4,opt,name=codecSettings,proto3" json:"codecSettings,omitempty"`
+type Config struct {
+	ChainID        string              `protobuf:"bytes,1,opt,name=chainID,proto3" json:"chainID,omitempty"`
+	Codec          string              `protobuf:"bytes,2,opt,name=codec,proto3" json:"codec,omitempty"`
+	CodecConfig    string              `protobuf:"bytes,3,opt,name=codecConfig,proto3" json:"codecConfig,omitempty"`
+	Liveness       string              `protobuf:"bytes,4,opt,name=liveness,proto3" json:"liveness,omitempty"`
+	MainToken      *ticker.TickerToken `protobuf:"bytes,5,opt,name=mainToken" json:"mainToken,omitempty"`
+	BootstrapNodes []*URI              `protobuf:"bytes,6,rep,name=bootstrapNodes" json:"bootstrapNodes,omitempty"`
 }
 
-func (m *Network) Reset()                    { *m = Network{} }
-func (m *Network) String() string            { return proto.CompactTextString(m) }
-func (*Network) ProtoMessage()               {}
-func (*Network) Descriptor() ([]byte, []int) { return fileDescriptorCodec, []int{2} }
+func (m *Config) Reset()                    { *m = Config{} }
+func (m *Config) String() string            { return proto.CompactTextString(m) }
+func (*Config) ProtoMessage()               {}
+func (*Config) Descriptor() ([]byte, []int) { return fileDescriptorCodec, []int{2} }
 
-func (m *Network) GetTickers() []byte {
+func (m *Config) GetChainID() string {
 	if m != nil {
-		return m.Tickers
+		return m.ChainID
 	}
-	return nil
+	return ""
 }
 
-func (m *Network) GetBootstrap() []byte {
-	if m != nil {
-		return m.Bootstrap
-	}
-	return nil
-}
-
-func (m *Network) GetCodec() []byte {
+func (m *Config) GetCodec() string {
 	if m != nil {
 		return m.Codec
 	}
-	return nil
+	return ""
 }
 
-func (m *Network) GetCodecSettings() []byte {
+func (m *Config) GetCodecConfig() string {
 	if m != nil {
-		return m.CodecSettings
+		return m.CodecConfig
+	}
+	return ""
+}
+
+func (m *Config) GetLiveness() string {
+	if m != nil {
+		return m.Liveness
+	}
+	return ""
+}
+
+func (m *Config) GetMainToken() *ticker.TickerToken {
+	if m != nil {
+		return m.MainToken
 	}
 	return nil
 }
+
+func (m *Config) GetBootstrapNodes() []*URI {
+	if m != nil {
+		return m.BootstrapNodes
+	}
+	return nil
+}
+
+type URI struct {
+}
+
+func (m *URI) Reset()                    { *m = URI{} }
+func (m *URI) String() string            { return proto.CompactTextString(m) }
+func (*URI) ProtoMessage()               {}
+func (*URI) Descriptor() ([]byte, []int) { return fileDescriptorCodec, []int{3} }
 
 type IssueTokenMsg struct {
 	Owner     []byte                `protobuf:"bytes,1,opt,name=owner,proto3" json:"owner,omitempty"`
@@ -124,7 +150,7 @@ type IssueTokenMsg struct {
 func (m *IssueTokenMsg) Reset()                    { *m = IssueTokenMsg{} }
 func (m *IssueTokenMsg) String() string            { return proto.CompactTextString(m) }
 func (*IssueTokenMsg) ProtoMessage()               {}
-func (*IssueTokenMsg) Descriptor() ([]byte, []int) { return fileDescriptorCodec, []int{3} }
+func (*IssueTokenMsg) Descriptor() ([]byte, []int) { return fileDescriptorCodec, []int{4} }
 
 func (m *IssueTokenMsg) GetOwner() []byte {
 	if m != nil {
@@ -157,7 +183,8 @@ func (m *IssueTokenMsg) GetApprovals() []nft.ActionApprovals {
 func init() {
 	proto.RegisterType((*BlockchainToken)(nil), "blockchain.BlockchainToken")
 	proto.RegisterType((*TokenDetails)(nil), "blockchain.TokenDetails")
-	proto.RegisterType((*Network)(nil), "blockchain.Network")
+	proto.RegisterType((*Config)(nil), "blockchain.Config")
+	proto.RegisterType((*URI)(nil), "blockchain.URI")
 	proto.RegisterType((*IssueTokenMsg)(nil), "blockchain.IssueTokenMsg")
 }
 func (m *BlockchainToken) Marshal() (dAtA []byte, err error) {
@@ -213,9 +240,69 @@ func (m *TokenDetails) MarshalTo(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
-	if len(m.Networks) > 0 {
-		for _, msg := range m.Networks {
-			dAtA[i] = 0xa
+	dAtA[i] = 0xa
+	i++
+	i = encodeVarintCodec(dAtA, i, uint64(m.Config.Size()))
+	n3, err := m.Config.MarshalTo(dAtA[i:])
+	if err != nil {
+		return 0, err
+	}
+	i += n3
+	return i, nil
+}
+
+func (m *Config) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalTo(dAtA)
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *Config) MarshalTo(dAtA []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	if len(m.ChainID) > 0 {
+		dAtA[i] = 0xa
+		i++
+		i = encodeVarintCodec(dAtA, i, uint64(len(m.ChainID)))
+		i += copy(dAtA[i:], m.ChainID)
+	}
+	if len(m.Codec) > 0 {
+		dAtA[i] = 0x12
+		i++
+		i = encodeVarintCodec(dAtA, i, uint64(len(m.Codec)))
+		i += copy(dAtA[i:], m.Codec)
+	}
+	if len(m.CodecConfig) > 0 {
+		dAtA[i] = 0x1a
+		i++
+		i = encodeVarintCodec(dAtA, i, uint64(len(m.CodecConfig)))
+		i += copy(dAtA[i:], m.CodecConfig)
+	}
+	if len(m.Liveness) > 0 {
+		dAtA[i] = 0x22
+		i++
+		i = encodeVarintCodec(dAtA, i, uint64(len(m.Liveness)))
+		i += copy(dAtA[i:], m.Liveness)
+	}
+	if m.MainToken != nil {
+		dAtA[i] = 0x2a
+		i++
+		i = encodeVarintCodec(dAtA, i, uint64(m.MainToken.Size()))
+		n4, err := m.MainToken.MarshalTo(dAtA[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += n4
+	}
+	if len(m.BootstrapNodes) > 0 {
+		for _, msg := range m.BootstrapNodes {
+			dAtA[i] = 0x32
 			i++
 			i = encodeVarintCodec(dAtA, i, uint64(msg.Size()))
 			n, err := msg.MarshalTo(dAtA[i:])
@@ -228,7 +315,7 @@ func (m *TokenDetails) MarshalTo(dAtA []byte) (int, error) {
 	return i, nil
 }
 
-func (m *Network) Marshal() (dAtA []byte, err error) {
+func (m *URI) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalTo(dAtA)
@@ -238,35 +325,11 @@ func (m *Network) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *Network) MarshalTo(dAtA []byte) (int, error) {
+func (m *URI) MarshalTo(dAtA []byte) (int, error) {
 	var i int
 	_ = i
 	var l int
 	_ = l
-	if len(m.Tickers) > 0 {
-		dAtA[i] = 0xa
-		i++
-		i = encodeVarintCodec(dAtA, i, uint64(len(m.Tickers)))
-		i += copy(dAtA[i:], m.Tickers)
-	}
-	if len(m.Bootstrap) > 0 {
-		dAtA[i] = 0x12
-		i++
-		i = encodeVarintCodec(dAtA, i, uint64(len(m.Bootstrap)))
-		i += copy(dAtA[i:], m.Bootstrap)
-	}
-	if len(m.Codec) > 0 {
-		dAtA[i] = 0x1a
-		i++
-		i = encodeVarintCodec(dAtA, i, uint64(len(m.Codec)))
-		i += copy(dAtA[i:], m.Codec)
-	}
-	if len(m.CodecSettings) > 0 {
-		dAtA[i] = 0x22
-		i++
-		i = encodeVarintCodec(dAtA, i, uint64(len(m.CodecSettings)))
-		i += copy(dAtA[i:], m.CodecSettings)
-	}
 	return i, nil
 }
 
@@ -300,11 +363,11 @@ func (m *IssueTokenMsg) MarshalTo(dAtA []byte) (int, error) {
 	dAtA[i] = 0x1a
 	i++
 	i = encodeVarintCodec(dAtA, i, uint64(m.Details.Size()))
-	n3, err := m.Details.MarshalTo(dAtA[i:])
+	n5, err := m.Details.MarshalTo(dAtA[i:])
 	if err != nil {
 		return 0, err
 	}
-	i += n3
+	i += n5
 	if len(m.Approvals) > 0 {
 		for _, msg := range m.Approvals {
 			dAtA[i] = 0x22
@@ -346,23 +409,15 @@ func (m *BlockchainToken) Size() (n int) {
 func (m *TokenDetails) Size() (n int) {
 	var l int
 	_ = l
-	if len(m.Networks) > 0 {
-		for _, e := range m.Networks {
-			l = e.Size()
-			n += 1 + l + sovCodec(uint64(l))
-		}
-	}
+	l = m.Config.Size()
+	n += 1 + l + sovCodec(uint64(l))
 	return n
 }
 
-func (m *Network) Size() (n int) {
+func (m *Config) Size() (n int) {
 	var l int
 	_ = l
-	l = len(m.Tickers)
-	if l > 0 {
-		n += 1 + l + sovCodec(uint64(l))
-	}
-	l = len(m.Bootstrap)
+	l = len(m.ChainID)
 	if l > 0 {
 		n += 1 + l + sovCodec(uint64(l))
 	}
@@ -370,10 +425,30 @@ func (m *Network) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovCodec(uint64(l))
 	}
-	l = len(m.CodecSettings)
+	l = len(m.CodecConfig)
 	if l > 0 {
 		n += 1 + l + sovCodec(uint64(l))
 	}
+	l = len(m.Liveness)
+	if l > 0 {
+		n += 1 + l + sovCodec(uint64(l))
+	}
+	if m.MainToken != nil {
+		l = m.MainToken.Size()
+		n += 1 + l + sovCodec(uint64(l))
+	}
+	if len(m.BootstrapNodes) > 0 {
+		for _, e := range m.BootstrapNodes {
+			l = e.Size()
+			n += 1 + l + sovCodec(uint64(l))
+		}
+	}
+	return n
+}
+
+func (m *URI) Size() (n int) {
+	var l int
+	_ = l
 	return n
 }
 
@@ -559,7 +634,7 @@ func (m *TokenDetails) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Networks", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Config", wireType)
 			}
 			var msglen int
 			for shift := uint(0); ; shift += 7 {
@@ -583,8 +658,7 @@ func (m *TokenDetails) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Networks = append(m.Networks, Network{})
-			if err := m.Networks[len(m.Networks)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+			if err := m.Config.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
@@ -609,7 +683,7 @@ func (m *TokenDetails) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *Network) Unmarshal(dAtA []byte) error {
+func (m *Config) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -632,17 +706,17 @@ func (m *Network) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: Network: wiretype end group for non-group")
+			return fmt.Errorf("proto: Config: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: Network: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: Config: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Tickers", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field ChainID", wireType)
 			}
-			var byteLen int
+			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowCodec
@@ -652,28 +726,26 @@ func (m *Network) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				byteLen |= (int(b) & 0x7F) << shift
+				stringLen |= (uint64(b) & 0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			if byteLen < 0 {
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
 				return ErrInvalidLengthCodec
 			}
-			postIndex := iNdEx + byteLen
+			postIndex := iNdEx + intStringLen
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Tickers = append(m.Tickers[:0], dAtA[iNdEx:postIndex]...)
-			if m.Tickers == nil {
-				m.Tickers = []byte{}
-			}
+			m.ChainID = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Bootstrap", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Codec", wireType)
 			}
-			var byteLen int
+			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowCodec
@@ -683,28 +755,26 @@ func (m *Network) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				byteLen |= (int(b) & 0x7F) << shift
+				stringLen |= (uint64(b) & 0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			if byteLen < 0 {
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
 				return ErrInvalidLengthCodec
 			}
-			postIndex := iNdEx + byteLen
+			postIndex := iNdEx + intStringLen
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Bootstrap = append(m.Bootstrap[:0], dAtA[iNdEx:postIndex]...)
-			if m.Bootstrap == nil {
-				m.Bootstrap = []byte{}
-			}
+			m.Codec = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 3:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Codec", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field CodecConfig", wireType)
 			}
-			var byteLen int
+			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowCodec
@@ -714,28 +784,26 @@ func (m *Network) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				byteLen |= (int(b) & 0x7F) << shift
+				stringLen |= (uint64(b) & 0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			if byteLen < 0 {
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
 				return ErrInvalidLengthCodec
 			}
-			postIndex := iNdEx + byteLen
+			postIndex := iNdEx + intStringLen
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Codec = append(m.Codec[:0], dAtA[iNdEx:postIndex]...)
-			if m.Codec == nil {
-				m.Codec = []byte{}
-			}
+			m.CodecConfig = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 4:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field CodecSettings", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Liveness", wireType)
 			}
-			var byteLen int
+			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowCodec
@@ -745,23 +813,135 @@ func (m *Network) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				byteLen |= (int(b) & 0x7F) << shift
+				stringLen |= (uint64(b) & 0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			if byteLen < 0 {
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
 				return ErrInvalidLengthCodec
 			}
-			postIndex := iNdEx + byteLen
+			postIndex := iNdEx + intStringLen
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.CodecSettings = append(m.CodecSettings[:0], dAtA[iNdEx:postIndex]...)
-			if m.CodecSettings == nil {
-				m.CodecSettings = []byte{}
+			m.Liveness = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 5:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field MainToken", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + msglen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.MainToken == nil {
+				m.MainToken = &ticker.TickerToken{}
+			}
+			if err := m.MainToken.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
 			}
 			iNdEx = postIndex
+		case 6:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field BootstrapNodes", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + msglen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.BootstrapNodes = append(m.BootstrapNodes, &URI{})
+			if err := m.BootstrapNodes[len(m.BootstrapNodes)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipCodec(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *URI) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowCodec
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= (uint64(b) & 0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: URI: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: URI: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
 		default:
 			iNdEx = preIndex
 			skippy, err := skipCodec(dAtA[iNdEx:])
@@ -1064,30 +1244,33 @@ var (
 func init() { proto.RegisterFile("x/nft/blockchain/codec.proto", fileDescriptorCodec) }
 
 var fileDescriptorCodec = []byte{
-	// 392 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x7c, 0x91, 0x4f, 0x6e, 0xda, 0x40,
-	0x14, 0xc6, 0x31, 0xd0, 0x52, 0x06, 0x68, 0xab, 0x29, 0x95, 0x2c, 0x84, 0x5c, 0x64, 0x75, 0x41,
-	0x2b, 0x61, 0x4b, 0x54, 0x95, 0xd8, 0x82, 0xda, 0x4a, 0x5d, 0x84, 0x85, 0x93, 0x0b, 0xf8, 0xcf,
-	0x60, 0x46, 0x76, 0xe6, 0x59, 0x9e, 0x31, 0x64, 0x93, 0x3b, 0xe4, 0x1a, 0xb9, 0x09, 0xcb, 0x9c,
-	0x20, 0x8a, 0xc8, 0x45, 0x22, 0x9e, 0x6d, 0xec, 0x6c, 0xb2, 0xf3, 0xf7, 0xbe, 0xdf, 0xbc, 0xf9,
-	0xfc, 0x0d, 0x19, 0xdf, 0xd8, 0x62, 0xa3, 0x6c, 0x2f, 0x06, 0x3f, 0xf2, 0xb7, 0x2e, 0x17, 0xb6,
-	0x0f, 0x01, 0xf3, 0xad, 0x24, 0x05, 0x05, 0x94, 0x54, 0xf3, 0xd1, 0xcf, 0x90, 0xab, 0x6d, 0xe6,
-	0x59, 0x3e, 0x5c, 0xdb, 0x1c, 0x76, 0x33, 0x10, 0xcc, 0xde, 0x33, 0x77, 0xc7, 0xec, 0x7c, 0x45,
-	0xed, 0xdc, 0x68, 0x56, 0x63, 0x43, 0x08, 0xc1, 0xc6, 0xb1, 0x97, 0x6d, 0x50, 0xa1, 0xc0, 0xaf,
-	0x1c, 0x37, 0x13, 0xf2, 0x69, 0x75, 0xbe, 0xe8, 0x0a, 0x22, 0x26, 0xe8, 0x0f, 0xd2, 0xf6, 0x5c,
-	0xc9, 0x74, 0x6d, 0xa2, 0x4d, 0x7b, 0xf3, 0xaf, 0x96, 0xd8, 0x28, 0x6b, 0x0d, 0xe2, 0x5f, 0x26,
-	0x42, 0xee, 0xc5, 0x0c, 0x21, 0x07, 0x11, 0x3a, 0x27, 0x9d, 0x80, 0x29, 0x97, 0xc7, 0x52, 0x6f,
-	0x22, 0xad, 0x5b, 0x55, 0x6c, 0x0b, 0xc9, 0x3f, 0xb9, 0xef, 0x94, 0xa0, 0xf9, 0x97, 0xf4, 0xeb,
-	0x06, 0xfd, 0x4d, 0x3e, 0x08, 0xa6, 0xf6, 0x90, 0x46, 0x52, 0xd7, 0x26, 0xad, 0x69, 0x6f, 0xfe,
-	0xa5, 0xbe, 0x64, 0x9d, 0x7b, 0xab, 0xf6, 0xe1, 0xf1, 0x5b, 0xc3, 0x39, 0xa3, 0xe6, 0x2d, 0xe9,
-	0x14, 0x16, 0xd5, 0x49, 0x47, 0x71, 0x3f, 0x62, 0xa9, 0xc4, 0xcc, 0x7d, 0xa7, 0x94, 0x74, 0x4c,
-	0xba, 0x1e, 0x80, 0x92, 0x2a, 0x75, 0x13, 0x4c, 0xd8, 0x77, 0xaa, 0x01, 0x1d, 0x92, 0x77, 0xd8,
-	0x9c, 0xde, 0x42, 0x27, 0x17, 0xf4, 0x3b, 0x19, 0xe0, 0xc7, 0x25, 0x53, 0x8a, 0x8b, 0x50, 0xea,
-	0x6d, 0x74, 0x5f, 0x0f, 0xcd, 0x7b, 0x8d, 0x0c, 0xfe, 0x4b, 0x99, 0xe5, 0x75, 0x5c, 0xc8, 0xf0,
-	0xb4, 0x0d, 0xf6, 0x82, 0xa5, 0x45, 0x86, 0x5c, 0xd0, 0x8f, 0xa4, 0xc9, 0x83, 0xe2, 0xea, 0x26,
-	0x0f, 0xe8, 0xa2, 0x6a, 0xac, 0xf5, 0x76, 0x63, 0xc5, 0x1f, 0x97, 0x38, 0x5d, 0x90, 0xae, 0x9b,
-	0x24, 0x29, 0xec, 0xdc, 0xf8, 0x94, 0xe9, 0x54, 0xd4, 0x10, 0xdf, 0x66, 0xe9, 0x2b, 0x0e, 0x62,
-	0x59, 0x7a, 0xc5, 0xb9, 0x0a, 0x5e, 0x7d, 0x3e, 0x1c, 0x0d, 0xed, 0xe1, 0x68, 0x68, 0x4f, 0x47,
-	0x43, 0xbb, 0x7b, 0x36, 0x1a, 0xde, 0x7b, 0x7c, 0xfc, 0x5f, 0x2f, 0x01, 0x00, 0x00, 0xff, 0xff,
-	0xd8, 0xa1, 0xc8, 0x46, 0x83, 0x02, 0x00, 0x00,
+	// 447 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x84, 0x92, 0x4f, 0x6e, 0xd3, 0x40,
+	0x14, 0xc6, 0xeb, 0xfc, 0x2b, 0x79, 0x09, 0x2d, 0x1a, 0x8a, 0x64, 0x45, 0x28, 0x44, 0x5e, 0x15,
+	0xa4, 0xda, 0x34, 0x2c, 0xe8, 0x92, 0x86, 0x0a, 0x29, 0x0b, 0xba, 0x18, 0xb5, 0x07, 0xf0, 0x9f,
+	0x89, 0x3b, 0x8a, 0x3b, 0xcf, 0xf2, 0x4c, 0x52, 0x8e, 0xc1, 0x35, 0xb8, 0x49, 0x97, 0x9c, 0x00,
+	0x21, 0x73, 0x11, 0x94, 0x37, 0x76, 0x6c, 0xb1, 0xa0, 0x2b, 0xfb, 0xcd, 0xf7, 0x7b, 0x33, 0xef,
+	0xfb, 0x66, 0xe0, 0xf5, 0xb7, 0x40, 0xad, 0x4c, 0x10, 0x65, 0x18, 0xaf, 0xe3, 0xbb, 0x50, 0xaa,
+	0x20, 0xc6, 0x44, 0xc4, 0x7e, 0x5e, 0xa0, 0x41, 0x06, 0xcd, 0xfa, 0xe4, 0x5d, 0x2a, 0xcd, 0xdd,
+	0x26, 0xf2, 0x63, 0xbc, 0x0f, 0x24, 0x6e, 0xcf, 0x50, 0x89, 0xe0, 0x41, 0x84, 0x5b, 0x11, 0xd8,
+	0x2d, 0x5a, 0x7d, 0x93, 0xb3, 0x16, 0x9b, 0x62, 0x8a, 0x01, 0x2d, 0x47, 0x9b, 0x15, 0x55, 0x54,
+	0xd0, 0x5f, 0x85, 0x9f, 0x3f, 0xb1, 0xb5, 0x91, 0xf1, 0x5a, 0x14, 0xed, 0x13, 0xbc, 0x1c, 0x8e,
+	0x17, 0xfb, 0xd9, 0x6e, 0x70, 0x2d, 0x14, 0x7b, 0x0b, 0xbd, 0x28, 0xd4, 0xc2, 0x75, 0x66, 0xce,
+	0xe9, 0x68, 0xfe, 0xca, 0x57, 0x2b, 0xe3, 0x5f, 0xa3, 0xfa, 0xb2, 0x51, 0xa9, 0x8c, 0x32, 0x41,
+	0x10, 0x27, 0x84, 0xcd, 0xe1, 0x30, 0x11, 0x26, 0x94, 0x99, 0x76, 0x3b, 0x44, 0xbb, 0x7e, 0xe3,
+	0xd4, 0x27, 0xf2, 0xca, 0xea, 0xbc, 0x06, 0xbd, 0x4f, 0x30, 0x6e, 0x0b, 0xec, 0x3d, 0x0c, 0x62,
+	0x54, 0x2b, 0x99, 0x56, 0x07, 0xb2, 0xf6, 0x16, 0x9f, 0x49, 0x59, 0xf4, 0x1e, 0x7f, 0xbd, 0x39,
+	0xe0, 0x15, 0xe7, 0x95, 0x0e, 0x0c, 0xac, 0xc0, 0x5c, 0x38, 0x24, 0x70, 0x79, 0x45, 0xdd, 0x43,
+	0x5e, 0x97, 0xec, 0x04, 0xfa, 0xe4, 0x93, 0x06, 0x1b, 0x72, 0x5b, 0xb0, 0x19, 0x8c, 0xe8, 0xc7,
+	0xb6, 0xbb, 0x5d, 0xd2, 0xda, 0x4b, 0x6c, 0x02, 0xcf, 0x32, 0xb9, 0x15, 0x4a, 0x68, 0xed, 0xf6,
+	0x48, 0xde, 0xd7, 0xec, 0x1c, 0x86, 0xf7, 0x75, 0x4c, 0x6e, 0x9f, 0xa6, 0x7d, 0xe9, 0xdb, 0x50,
+	0xfd, 0x1b, 0xfa, 0xd8, 0x70, 0x1a, 0x8a, 0x7d, 0x84, 0xa3, 0x08, 0xd1, 0x68, 0x53, 0x84, 0xf9,
+	0x35, 0x26, 0x42, 0xbb, 0x83, 0x59, 0xf7, 0x74, 0x34, 0x3f, 0x6e, 0xbb, 0xbc, 0xe5, 0x4b, 0xfe,
+	0x0f, 0xe6, 0xf5, 0xa1, 0x7b, 0xcb, 0x97, 0xde, 0x0f, 0x07, 0x9e, 0x2f, 0xb5, 0xde, 0xd8, 0xd8,
+	0xbf, 0xea, 0x74, 0x67, 0x0c, 0x1f, 0x94, 0x28, 0xc8, 0xf0, 0x98, 0xdb, 0x82, 0x1d, 0x41, 0x47,
+	0x26, 0xe4, 0x75, 0xcc, 0x3b, 0x32, 0x61, 0x17, 0xcd, 0xcd, 0x74, 0xff, 0x7f, 0x33, 0x55, 0xb8,
+	0x35, 0xce, 0x2e, 0x60, 0x18, 0xe6, 0x79, 0x81, 0xdb, 0x30, 0xdb, 0x25, 0xb0, 0x1b, 0xf6, 0x84,
+	0xde, 0xc0, 0x65, 0x6c, 0x24, 0xaa, 0xcb, 0x5a, 0xab, 0xfa, 0x1a, 0x78, 0xf1, 0xe2, 0xb1, 0x9c,
+	0x3a, 0x3f, 0xcb, 0xa9, 0xf3, 0xbb, 0x9c, 0x3a, 0xdf, 0xff, 0x4c, 0x0f, 0xa2, 0x01, 0x3d, 0xb2,
+	0x0f, 0x7f, 0x03, 0x00, 0x00, 0xff, 0xff, 0x55, 0x5f, 0xa4, 0x6a, 0x1e, 0x03, 0x00, 0x00,
 }

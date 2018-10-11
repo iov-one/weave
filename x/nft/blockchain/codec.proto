@@ -4,6 +4,7 @@ package blockchain;
 
 import "github.com/iov-one/weave/x/nft/codec.proto";
 import "github.com/gogo/protobuf/gogoproto/gogo.proto";
+import "github.com/iov-one/weave/x/nft/ticker/codec.proto";
 
 
 message BlockchainToken {
@@ -12,14 +13,20 @@ message BlockchainToken {
 }
 
 message TokenDetails {
-    repeated Network networks = 1 [(gogoproto.nullable) = false];
+    Config config = 1 [(gogoproto.nullable) = false];
 }
 
-message Network { // these are all placeholders
-    bytes tickers = 1;
-    bytes bootstrap = 2;
-    bytes codec = 3;
-    bytes codecSettings = 4;
+message Config {
+    string chainID = 1;
+    string codec = 2;
+    string codecConfig = 3;
+    string liveness = 4;
+    ticker.TickerToken mainToken = 5;
+    repeated URI bootstrapNodes = 6;
+}
+
+message URI {
+
 }
 
 message IssueTokenMsg {
