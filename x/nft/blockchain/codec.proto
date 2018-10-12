@@ -16,20 +16,23 @@ message TokenDetails {
     Config config = 1 [(gogoproto.nullable) = false];
 }
 
-message Config {
-    string chainID = 1;
-    //TODO: Enum?
-    string codec = 2;
-    string codecConfig = 3;
-    //TODO: Enum?
-    string liveness = 4;
-    ticker.TickerToken mainToken = 5;
-    repeated URI bootstrapNodes = 6;
+enum Codec {
+    bns = 0;
+    lisk = 1;
 }
 
-//TODO: Move this to base nft, might come in handy
-message URI {
+enum Env {
+    mainnet = 0;
+    testnet = 1;
+}
 
+message Config {
+    string chainID = 1;
+    Codec codec = 2;
+    string codecConfig = 3;
+    bool live = 4;
+    Env env = 5;
+    bytes mainTickerId = 6;
 }
 
 message IssueTokenMsg {
