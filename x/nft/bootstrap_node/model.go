@@ -8,6 +8,8 @@ import (
 	"github.com/iov-one/weave/x/nft/blockchain"
 )
 
+//TODO: This is very similar to ticker token, I bet we can consolidate those somehow
+// or at least their common parts
 type Token interface {
 	nft.BaseNFT
 	GetBlockchainID() []byte
