@@ -32,7 +32,7 @@ message Config {
     string codecConfig = 3;
     bool live = 4;
     Env env = 5;
-    bytes mainTickerId = 6;
+    bytes mainTickerID = 6;
 }
 
 message IssueTokenMsg {

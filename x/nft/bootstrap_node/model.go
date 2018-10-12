@@ -84,6 +84,7 @@ func (m *TokenDetails) Clone() *TokenDetails {
 }
 
 func (m *TokenDetails) Validate() error {
+	//TODO: Validate uri
 	if m == nil {
 		return errors.ErrInternal("must not be nil")
 	}
