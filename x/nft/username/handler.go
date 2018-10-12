@@ -7,6 +7,7 @@ import (
 	"github.com/iov-one/weave/x"
 	"github.com/iov-one/weave/x/nft"
 	"github.com/iov-one/weave/x/nft/blockchain"
+	"github.com/tendermint/tmlibs/common"
 )
 
 const (
@@ -75,6 +76,7 @@ func (h IssueHandler) Deliver(ctx weave.Context, store weave.KVStore, tx weave.T
 	if err != nil {
 		return res, err
 	}
+	res.Tags = append(res.Tags, common.KVPair{Key: []byte(msgTypeTagKey), Value: []byte(newUsernameTagValue)})
 	return res, h.bucket.Save(store, o)
 }
 
