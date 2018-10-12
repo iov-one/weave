@@ -114,11 +114,12 @@ func TestAddChainAddressMsgValidate(t *testing.T) {
 				ChainID: []byte("myChain"),
 				Address: []byte("myChainAddress"),
 			},
-		}, { // address can be empty
+		}, { // address missing
 			msg: username.AddChainAddressMsg{
 				Id:      []byte("me@example.com"),
 				ChainID: []byte("myChain"),
 			},
+			expError: true,
 		}, { // id missing
 			msg: username.AddChainAddressMsg{
 				ChainID: []byte("myChain"),
@@ -156,11 +157,12 @@ func TestRemoveChainAddressMsgValidate(t *testing.T) {
 				ChainID: []byte("myChain"),
 				Address: []byte("myChainAddress"),
 			},
-		}, { // address can be empty
+		}, { // address missing
 			msg: username.RemoveChainAddressMsg{
 				Id:      []byte("me@example.com"),
 				ChainID: []byte("myChain"),
 			},
+			expError: true,
 		}, { // id missing
 			msg: username.RemoveChainAddressMsg{
 				ChainID: []byte("myChain"),

@@ -10,7 +10,9 @@ import (
 )
 
 const (
-	createUsernameCost = 0
+	createUsernameCost  = 0
+	msgTypeTagKey       = "msgType"
+	newUsernameTagValue = "registerUsername"
 )
 
 // RegisterRoutes will instantiate and register all handlers in this package
@@ -73,7 +75,6 @@ func (h IssueHandler) Deliver(ctx weave.Context, store weave.KVStore, tx weave.T
 	if err != nil {
 		return res, err
 	}
-
 	return res, h.bucket.Save(store, o)
 }
 

@@ -112,7 +112,6 @@ func (p *ChainAddress) Validate() error {
 		return nft.ErrInvalidID()
 	}
 	switch l := len(p.Address); {
-	case l == 0: // address can be empty
 	case l < 12 || l > 50:
 		return nft.ErrInvalidLength()
 	}

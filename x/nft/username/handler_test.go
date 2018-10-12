@@ -16,22 +16,22 @@ import (
 
 func TestHandleIssueTokenMsg(t *testing.T) {
 	var helpers x.TestHelpers
+	_, anybody := helpers.MakeKey()
 	_, alice := helpers.MakeKey()
 	_, bob := helpers.MakeKey()
-	myAddress := username.ChainAddress{ChainID: []byte("myNet"), Address: []byte("myAddressID0")}
 
 	db := store.MemStore()
 	bucket := username.NewBucket()
 	blockchains := blockchain.NewBucket()
-	b, _ := blockchains.Create(db, alice.Address(), []byte("myNet"), nil, nil)
+	b, _ := blockchains.Create(db, anybody.Address(), []byte("myNet"), nil, nil)
 	blockchains.Save(db, b)
 
-	o, _ := bucket.Create(db, bob.Address(), []byte("existing@example.com"), nil, []username.ChainAddress{myAddress})
+	o, _ := bucket.Create(db, bob.Address(), []byte("existing@example.com"), nil, []username.ChainAddress{{ChainID: []byte("myNet"), Address: []byte("bobsChainAddress")}})
 	bucket.Save(db, o)
 
 	handler := username.NewIssueHandler(helpers.Authenticate(alice), nil, bucket, blockchains)
-
 	// when
+	myNewChainAddresses := []username.ChainAddress{{ChainID: []byte("myNet"), Address: []byte("anyChainAddress")}}
 	specs := []struct {
 		owner, id       []byte
 		details         username.TokenDetails
@@ -42,49 +42,56 @@ func TestHandleIssueTokenMsg(t *testing.T) {
 		{ // happy path
 			owner:   alice.Address(),
 			id:      []byte("any1@example.com"),
-			details: username.TokenDetails{[]username.ChainAddress{myAddress}},
+			details: username.TokenDetails{myNewChainAddresses},
 		},
 		{ // without details
 			owner: alice.Address(),
 			id:    []byte("any2@example.com"),
 		},
 		{ // not signed by owner
-			owner:           bob.Address(),
-			id:              []byte("any3@example.com"),
-			details:         username.TokenDetails{[]username.ChainAddress{myAddress}},
+			owner:           anybody.Address(),
+			id:              []byte("any@example.com"),
+			details:         username.TokenDetails{myNewChainAddresses},
 			expCheckError:   true,
 			expDeliverError: true,
 		},
 		{ // id missing
 			owner:           alice.Address(),
-			details:         username.TokenDetails{[]username.ChainAddress{myAddress}},
+			details:         username.TokenDetails{myNewChainAddresses},
 			expCheckError:   true,
 			expDeliverError: true,
 		},
 		{ // owner missing
-			id:              []byte("any3@example.com"),
-			details:         username.TokenDetails{[]username.ChainAddress{myAddress}},
+			id:              []byte("any@example.com"),
+			details:         username.TokenDetails{myNewChainAddresses},
 			expCheckError:   true,
 			expDeliverError: true,
 		},
 		{ // duplicate chainID
 			owner:           alice.Address(),
-			id:              []byte("any4@example.com"),
-			details:         username.TokenDetails{[]username.ChainAddress{myAddress, {[]byte("myNet"), []byte("myOtherNet")}}},
+			id:              []byte("any@example.com"),
+			details:         username.TokenDetails{append(myNewChainAddresses, username.ChainAddress{[]byte("myNet"), []byte("anyOtherAddress")})},
 			expCheckError:   true,
 			expDeliverError: true,
 		},
-		{ // key already used
+		{ // name already used
 			owner:           alice.Address(),
 			id:              []byte("existing@example.com"),
-			details:         username.TokenDetails{[]username.ChainAddress{myAddress}},
+			details:         username.TokenDetails{myNewChainAddresses},
+			expCheckError:   false,
+			expDeliverError: true,
+		},
+		{ // address already used
+			owner:           alice.Address(),
+			id:              []byte("any@example.com"),
+			details:         username.TokenDetails{[]username.ChainAddress{{[]byte("myNet"), []byte("bobsChainAddress")}}},
 			expCheckError:   false,
 			expDeliverError: true,
 		},
 		{ // valid approvals
 			owner:   alice.Address(),
 			id:      []byte("any5@example.com"),
-			details: username.TokenDetails{[]username.ChainAddress{myAddress}},
+			details: username.TokenDetails{myNewChainAddresses},
 			approvals: []nft.ActionApprovals{{
 				Action:    nft.Action_ActionUpdateDetails.String(),
 				Approvals: []nft.Approval{{Options: nft.ApprovalOptions{Count: nft.UnlimitedCount}, Address: bob.Address()}},
@@ -93,7 +100,7 @@ func TestHandleIssueTokenMsg(t *testing.T) {
 		{ // invalid approvals
 			owner:           alice.Address(),
 			id:              []byte("any6@example.com"),
-			details:         username.TokenDetails{[]username.ChainAddress{myAddress}},
+			details:         username.TokenDetails{myNewChainAddresses},
 			expCheckError:   true,
 			expDeliverError: true,
 			approvals: []nft.ActionApprovals{{
@@ -105,6 +112,9 @@ func TestHandleIssueTokenMsg(t *testing.T) {
 
 	for i, spec := range specs {
 		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
+			cache := db.CacheWrap()
+			defer cache.Discard()
+
 			tx := helpers.MockTx(&username.IssueTokenMsg{
 				Owner:     spec.owner,
 				Id:        spec.id,
@@ -113,9 +123,7 @@ func TestHandleIssueTokenMsg(t *testing.T) {
 			})
 
 			// when
-			cache := db.CacheWrap()
 			_, err := handler.Check(nil, cache, tx)
-			cache.Discard()
 			if spec.expCheckError {
 				require.Error(t, err)
 				return
@@ -124,7 +132,7 @@ func TestHandleIssueTokenMsg(t *testing.T) {
 			require.NoError(t, err)
 
 			// and when delivered
-			res, err := handler.Deliver(nil, db, tx)
+			res, err := handler.Deliver(nil, cache, tx)
 
 			// then
 			if spec.expDeliverError {
@@ -136,7 +144,7 @@ func TestHandleIssueTokenMsg(t *testing.T) {
 			assert.Equal(t, uint32(0), res.ToABCI().Code)
 
 			// and persisted
-			o, err := bucket.Get(db, spec.id)
+			o, err := bucket.Get(cache, spec.id)
 			require.NoError(t, err)
 			require.NotNil(t, o)
 			u, _ := username.AsUsername(o)
@@ -148,51 +156,103 @@ func TestHandleIssueTokenMsg(t *testing.T) {
 		})
 	}
 }
+func TestIssueUsernameTx(t *testing.T) {
+	var helpers x.TestHelpers
+	_, alice := helpers.MakeKey()
 
-func TestQueryTokenByName(t *testing.T) {
+	db := store.MemStore()
+	blockchains := blockchain.NewBucket()
+	b, _ := blockchains.Create(db, alice.Address(), []byte("myNet"), nil, nil)
+	blockchains.Save(db, b)
+
+	handler := username.NewIssueHandler(helpers.Authenticate(alice), nil, username.NewBucket(), blockchains)
+
+	// when
+	tx := helpers.MockTx(&username.IssueTokenMsg{
+		Owner:   alice.Address(),
+		Id:      []byte("any@example.com"),
+		Details: username.TokenDetails{[]username.ChainAddress{{ChainID: []byte("myNet"), Address: []byte("myChainAddress")}}},
+	})
+	_, err := handler.Deliver(nil, db, tx)
+	// then
+	require.NoError(t, err)
+
+}
+
+func TestQueryUsernameToken(t *testing.T) {
 	var helpers x.TestHelpers
 	_, alice := helpers.MakeKey()
 	_, bob := helpers.MakeKey()
-	myAddresses := []username.ChainAddress{{ChainID: []byte("myChainID"), Address: []byte("myAddressID0")}}
+	aliceAddress := []username.ChainAddress{{ChainID: []byte("myChainID"), Address: []byte("aliceChainAddress")}}
+	bobAddress := []username.ChainAddress{{ChainID: []byte("myChainID"), Address: []byte("bobChainAddress")}}
 
 	db := store.MemStore()
 	bucket := username.NewBucket()
-	o1, _ := bucket.Create(db, alice.Address(), []byte("alice@example.com"), nil, myAddresses)
+	o1, _ := bucket.Create(db, alice.Address(), []byte("alice@example.com"), nil, aliceAddress)
 	bucket.Save(db, o1)
-	o2, _ := bucket.Create(db, bob.Address(), []byte("bob@example.com"), nil, myAddresses)
-	bucket.Save(db, o2)
+	o2, _ := bucket.Create(db, bob.Address(), []byte("bob@example.com"), nil, bobAddress)
+	require.NoError(t, bucket.Save(db, o2))
 
 	qr := weave.NewQueryRouter()
 	username.RegisterQuery(qr)
-	// when
-	h := qr.Handler("/nft/usernames")
-	require.NotNil(t, h)
-	mods, err := h.Query(db, "", []byte("alice@example.com"))
-	// then
-	require.NoError(t, err)
-	require.Len(t, mods, 1)
 
-	assert.Equal(t, bucket.DBKey([]byte("alice@example.com")), mods[0].Key)
-	got, err := bucket.Parse(nil, mods[0].Value)
-	require.NoError(t, err)
-	x, err := username.AsUsername(got)
-	require.NoError(t, err)
-	assert.Equal(t, myAddresses, x.GetChainAddresses())
+	specs := []struct {
+		path        string
+		data        []byte
+		expUsername string
+	}{
+		{ // by username alice
+			"/nft/usernames", []byte("alice@example.com"), "alice@example.com"},
+		{ // by chain address
+			"/nft/usernames/chainaddr", []byte("aliceChainAddress*myChainID"), "alice@example.com"},
+		{ // by owner
+			"/nft/usernames/owner", alice.Address(), "alice@example.com"},
+		{ // by username bob
+			"/nft/usernames", []byte("bob@example.com"), "bob@example.com"},
+		{ // by chain address
+			"/nft/usernames/chainaddr", []byte("bobChainAddress*myChainID"), "bob@example.com"},
+		{ // by owner
+			"/nft/usernames/owner", bob.Address(), "bob@example.com"},
+	}
+	for i, spec := range specs {
+		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
+			// when
+			h := qr.Handler(spec.path)
+			require.NotNil(t, h)
+			mods, err := h.Query(db, "", spec.data)
+
+			// then
+			require.NoError(t, err)
+			require.Len(t, mods, 1)
+
+			assert.Equal(t, bucket.DBKey([]byte(spec.expUsername)), mods[0].Key)
+			got, err := bucket.Parse(nil, mods[0].Value)
+			require.NoError(t, err)
+			_, err = username.AsUsername(got)
+			require.NoError(t, err)
+		})
+	}
 }
 
 //TODO: This needs to be extended with examples where we use approvals for different users
 func TestAddChainAddress(t *testing.T) {
 	var helpers x.TestHelpers
 	_, alice := helpers.MakeKey()
-	myAddresses := []username.ChainAddress{{ChainID: []byte("myNet"), Address: []byte("myAddressID0")}}
 
 	db := store.MemStore()
 	bucket := username.NewBucket()
 	blockchains := blockchain.NewBucket()
-	b, _ := blockchains.Create(db, alice.Address(), []byte("myNet"), nil, nil)
-	blockchains.Save(db, b)
-	b, _ = blockchains.Create(db, alice.Address(), []byte("myOtherNet"), nil, nil)
-	blockchains.Save(db, b)
+	for _, blockchainID := range []string{"myNet", "myOtherNet"} {
+		b, _ := blockchains.Create(db, alice.Address(), []byte(blockchainID), nil, nil)
+		blockchains.Save(db, b)
+	}
+
+	myAddress := []username.ChainAddress{{ChainID: []byte("myNet"), Address: []byte("myChainAddress")}}
+	o, _ := bucket.Create(db, alice.Address(), []byte("alice@example.com"), nil, myAddress)
+	bucket.Save(db, o)
+	myOtherAddress := []username.ChainAddress{{ChainID: []byte("myOtherNet"), Address: []byte("myOtherChainAddress")}}
+	o, _ = bucket.Create(db, alice.Address(), []byte("anyOther@example.com"), nil, myOtherAddress)
+	bucket.Save(db, o)
 
 	handler := username.NewAddChainAddressHandler(helpers.Authenticate(alice), nil, bucket, blockchains)
 
@@ -204,26 +264,33 @@ func TestAddChainAddress(t *testing.T) {
 		expDeliverError bool
 	}{
 		{ // happy path
-			id:         []byte("alice0@example.com"),
+			id:         []byte("alice@example.com"),
 			newChainID: []byte("myOtherNet"),
 			newAddress: []byte("myOtherAddressID"),
 		},
 		{ // empty address
-			id:              []byte("alice1@example.com"),
+			id:              []byte("alice@example.com"),
 			newChainID:      []byte("myOtherNet"),
-			expCheckError:   false,
-			expDeliverError: false,
+			expCheckError:   true,
+			expDeliverError: true,
 		},
 		{ // empty chainID
-			id:              []byte("alice2@example.com"),
+			id:              []byte("alice@example.com"),
 			newAddress:      []byte("myOtherAddressID"),
 			expCheckError:   true,
 			expDeliverError: true,
 		},
 		{ // existing chain
-			id:              []byte("alice3@example.com"),
+			id:              []byte("alice@example.com"),
 			newChainID:      []byte("myNet"),
 			newAddress:      []byte("myOtherAddressID"),
+			expCheckError:   false,
+			expDeliverError: true,
+		},
+		{ // non unique chain address
+			id:              []byte("alice@example.com"),
+			newChainID:      []byte("myOtherNet"),
+			newAddress:      []byte("myOtherChainAddress"),
 			expCheckError:   false,
 			expDeliverError: true,
 		},
@@ -237,8 +304,8 @@ func TestAddChainAddress(t *testing.T) {
 	}
 	for i, spec := range specs {
 		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
-			o, _ := bucket.Create(db, alice.Address(), []byte(fmt.Sprintf("alice%d@example.com", i)), nil, myAddresses)
-			bucket.Save(db, o)
+			cache := db.CacheWrap()
+			defer cache.Discard()
 
 			tx := helpers.MockTx(&username.AddChainAddressMsg{
 				Id:      spec.id,
@@ -247,9 +314,7 @@ func TestAddChainAddress(t *testing.T) {
 			})
 
 			// when
-			cache := db.CacheWrap()
 			_, err := handler.Check(nil, cache, tx)
-			cache.Discard()
 			if spec.expCheckError {
 				require.Error(t, err)
 				return
@@ -258,7 +323,7 @@ func TestAddChainAddress(t *testing.T) {
 			require.NoError(t, err)
 
 			// and when delivered
-			res, err := handler.Deliver(nil, db, tx)
+			res, err := handler.Deliver(nil, cache, tx)
 
 			// then
 			if spec.expDeliverError {
@@ -270,12 +335,12 @@ func TestAddChainAddress(t *testing.T) {
 			assert.Equal(t, uint32(0), res.ToABCI().Code)
 
 			// and persisted
-			o, err = bucket.Get(db, spec.id)
+			o, err = bucket.Get(cache, spec.id)
 			require.NoError(t, err)
 			require.NotNil(t, o)
 			u, _ := username.AsUsername(o)
 			// todo: test sorting
-			assert.Equal(t, append(myAddresses, username.ChainAddress{spec.newChainID, spec.newAddress}), u.GetChainAddresses())
+			assert.Equal(t, append(myAddress, username.ChainAddress{spec.newChainID, spec.newAddress}), u.GetChainAddresses())
 		})
 	}
 
@@ -285,10 +350,14 @@ func TestAddChainAddress(t *testing.T) {
 func TestRemoveChainAddress(t *testing.T) {
 	var helpers x.TestHelpers
 	_, alice := helpers.MakeKey()
-	myAddresses := []username.ChainAddress{{ChainID: []byte("myChainID"), Address: []byte("myAddressID0")}, {ChainID: []byte("myOtherNet")}}
 
 	db := store.MemStore()
 	bucket := username.NewBucket()
+
+	myAddresses := []username.ChainAddress{{ChainID: []byte("myChainID"), Address: []byte("myChainAddress")}, {ChainID: []byte("myOtherNet"), Address: []byte("myOtherChainAddress")}}
+	o, _ := bucket.Create(db, alice.Address(), []byte("alice@example.com"), nil, myAddresses)
+	bucket.Save(db, o)
+
 	handler := username.NewRemoveChainAddressHandler(helpers.Authenticate(alice), nil, bucket)
 
 	specs := []struct {
@@ -299,47 +368,34 @@ func TestRemoveChainAddress(t *testing.T) {
 		expDeliverError bool
 	}{
 		{ // happy path
-			id:         []byte("alice0@example.com"),
+			id:         []byte("alice@example.com"),
 			newChainID: []byte("myChainID"),
-			newAddress: []byte("myAddressID0"),
+			newAddress: []byte("myChainAddress"),
 		},
-		{ // empty address stored
-			id:              []byte("alice1@example.com"),
-			newChainID:      []byte("myOtherNet"),
-			expCheckError:   false,
-			expDeliverError: false,
-		},
-		{ // empty address submitted for non empty value
-			id:              []byte("alice2@example.com"),
+		{ // empty address submitted
+			id:              []byte("alice@example.com"),
 			newChainID:      []byte("myChainID"),
-			expCheckError:   false,
-			expDeliverError: true,
-		},
-		{ // empty chainID
-			id:              []byte("alice3@example.com"),
-			newAddress:      []byte("myAddressID0"),
 			expCheckError:   true,
 			expDeliverError: true,
 		},
-		{ // non existing chain
-			id:              []byte("alice4@example.com"),
-			newChainID:      []byte("myUnknownChainID"),
-			newAddress:      []byte("myAddressID0"),
-			expCheckError:   false,
+		{ // empty chainID
+			id:              []byte("alice@example.com"),
+			newAddress:      []byte("myChainAddress"),
+			expCheckError:   true,
 			expDeliverError: true,
 		},
-		{ // unknown id
+		{ // unknown name
 			id:              []byte("unknown@example.com"),
 			newChainID:      []byte("myNewChainID"),
-			newAddress:      []byte("myAddressID0"),
+			newAddress:      []byte("myChainAddress"),
 			expCheckError:   false,
 			expDeliverError: true,
 		},
 	}
 	for i, spec := range specs {
 		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
-			o, _ := bucket.Create(db, alice.Address(), []byte(fmt.Sprintf("alice%d@example.com", i)), nil, myAddresses)
-			bucket.Save(db, o)
+			cache := db.CacheWrap()
+			defer cache.Discard()
 
 			tx := helpers.MockTx(&username.RemoveChainAddressMsg{
 				Id:      spec.id,
@@ -348,9 +404,7 @@ func TestRemoveChainAddress(t *testing.T) {
 			})
 
 			// when
-			cache := db.CacheWrap()
 			_, err := handler.Check(nil, cache, tx)
-			cache.Discard()
 			if spec.expCheckError {
 				require.Error(t, err)
 				return
