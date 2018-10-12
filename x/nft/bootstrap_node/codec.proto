@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package bootstrap_node;
+
+import "github.com/iov-one/weave/x/nft/codec.proto";
+import "github.com/gogo/protobuf/gogoproto/gogo.proto";
+
+
+message BootstrapNodeToken {
+    nft.NonFungibleToken base = 1;
+    TokenDetails details = 2;
+}
+
+message TokenDetails {
+    bytes blockchainID = 1;
+    string uri = 2;
+}
+
+message IssueTokenMsg {
+    bytes owner = 1;
+    bytes id = 2;
+    TokenDetails details = 3 [(gogoproto.nullable) = false];
+    repeated nft.ActionApprovals approvals = 4 [(gogoproto.nullable) = false];
+}
