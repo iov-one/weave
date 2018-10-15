@@ -13,7 +13,13 @@ message BootstrapNodeToken {
 
 message TokenDetails {
     bytes blockchainID = 1;
-    string uri = 2;
+    URI uri = 2;
+}
+
+message URI {
+    string host = 1;
+    int32 port = 2;
+    string protocol = 3;
 }
 
 message IssueTokenMsg {
