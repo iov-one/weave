@@ -185,6 +185,10 @@ func (b *BcpClient) AbciQuery(path string, data []byte) (AbciResponse, error) {
 	return out, err
 }
 
+func (b *BcpClient) TxSearch(query string, prove bool, page, perPage int) (*ctypes.ResultTxSearch, error) {
+	return b.conn.TxSearch(query, prove, page, perPage)
+}
+
 // BroadcastTxResponse is the result of submitting a transaction
 type BroadcastTxResponse struct {
 	Error    error                           // not-nil if there was an error sending
