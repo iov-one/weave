@@ -111,6 +111,7 @@ func (m IOV) Validate() error {
 
 func (m Chain) Validate() error {
 	// todo: impl
+	// ticker id already validated on issue etc via bucket
 	return nil
 }
 
