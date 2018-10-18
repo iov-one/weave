@@ -9,9 +9,9 @@ import (
 	"github.com/iov-one/weave/x"
 	"github.com/iov-one/weave/x/nft"
 	"github.com/iov-one/weave/x/nft/blockchain"
+	"github.com/iov-one/weave/x/nft/bootstrap_node"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/iov-one/weave/x/nft/bootstrap_node"
 )
 
 func TestHandleIssueTokenMsg(t *testing.T) {

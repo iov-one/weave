@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"github.com/iov-one/weave/x"
-	"github.com/stretchr/testify/assert"
 	"github.com/iov-one/weave/x/nft/bootstrap_node"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestIssueTokenMsgValidate(t *testing.T) {
