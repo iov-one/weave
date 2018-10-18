@@ -32,7 +32,7 @@ func TestApprovalOpsHandler(t *testing.T) {
 		_ = d.Register(app.NftType_Username.String(), userBucket)
 		handler := NewApprovalOpsHandler(helpers.Authenticate(bob), nil, d)
 
-		o, _ := chainBucket.Create(db, bob.Address(), chainId, nil, nil)
+		o, _ := chainBucket.Create(db, bob.Address(), chainId, nil, blockchain.Chain{MainTickerID: []byte("IOV")}, blockchain.IOV{Codec: "asd"})
 		chainBucket.Save(db, o)
 		o, _ = userBucket.Create(db, bob.Address(), bobsUsername, nil, nil)
 		userBucket.Save(db, o)

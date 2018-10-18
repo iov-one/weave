@@ -26,7 +26,7 @@ func TestIssueNfts(t *testing.T) {
 		Sum: &app.Tx_IssueBlockchainNftMsg{&blockchain.IssueTokenMsg{
 			Id:      myBlockchainID,
 			Owner:   isuserAddr,
-			Details: blockchain.TokenDetails{},
+			Details: blockchain.TokenDetails{Iov: blockchain.IOV{Codec: "asd"}},
 		},
 		},
 	}

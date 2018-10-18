@@ -10,6 +10,7 @@ import (
 	"github.com/iov-one/weave/x/nft"
 	"github.com/iov-one/weave/x/nft/blockchain"
 	"github.com/iov-one/weave/x/nft/bootstrap_node"
+	"github.com/iov-one/weave/x/nft/ticker"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -23,10 +24,21 @@ func TestHandleIssueTokenMsg(t *testing.T) {
 
 	bucket := bootstrap_node.NewBucket()
 	blockchains := blockchain.NewBucket()
-	b, _ := blockchains.Create(db, alice.Address(), []byte("alicenet"), nil, blockchain.Chain{}, blockchain.IOV{})
-	blockchains.Save(db, b)
-	o, _ := bucket.Create(db, alice.Address(), []byte("ALC0"), nil, []byte(string("alicenet")), bootstrap_node.URI{})
-	bucket.Save(db, o)
+	tickerBucket := ticker.NewBucket()
+	tick, err := tickerBucket.Create(db, alice.Address(), []byte("IOV"), nil, []byte("alicenet"))
+	require.NoError(t, err)
+	require.NoError(t, tickerBucket.Save(db, tick))
+	b, err := blockchains.Create(db, alice.Address(), []byte("alicenet"), nil, blockchain.Chain{MainTickerID: []byte("IOV")}, blockchain.IOV{Codec: "asd"})
+	require.NoError(t, err)
+	require.NoError(t, blockchains.Save(db, b))
+	o, err := bucket.Create(db, alice.Address(), []byte("ALC0"), nil, []byte("alicenet"), bootstrap_node.URI{
+		"ya.ru",
+		10,
+		"grpc",
+		"",
+	})
+	require.NoError(t, err)
+	require.NoError(t, bucket.Save(db, o))
 
 	handler := bootstrap_node.NewIssueHandler(helpers.Authenticate(alice), nil, bucket, blockchains)
 
@@ -39,23 +51,53 @@ func TestHandleIssueTokenMsg(t *testing.T) {
 		expDeliverError bool
 	}{
 		{ // happy path
-			owner:   alice.Address(),
-			id:      []byte("ALC1"),
-			details: bootstrap_node.TokenDetails{[]byte("alicenet"), bootstrap_node.URI{}},
+			owner: alice.Address(),
+			id:    []byte("ALC1"),
+			details: bootstrap_node.TokenDetails{[]byte("alicenet"), bootstrap_node.URI{
+				"ya.ru",
+				10,
+				"grpc",
+				"",
+			}},
 		},
 		{ // valid approvals
-			owner:   alice.Address(),
-			id:      []byte("ALC2"),
-			details: bootstrap_node.TokenDetails{[]byte("alicenet"), bootstrap_node.URI{}},
+			owner: alice.Address(),
+			id:    []byte("ALC2"),
+			details: bootstrap_node.TokenDetails{[]byte("alicenet"), bootstrap_node.URI{
+				"ya.ru",
+				10,
+				"grpc",
+				"",
+			}},
+			approvals: []nft.ActionApprovals{{
+				Action:    nft.Action_ActionUpdateDetails.String(),
+				Approvals: []nft.Approval{{Options: nft.ApprovalOptions{Count: nft.UnlimitedCount}, Address: bob.Address()}},
+			}},
+		},
+		{ // invalid uri
+			owner: alice.Address(),
+			id:    []byte("ALC2"),
+			details: bootstrap_node.TokenDetails{[]byte("alicenet"), bootstrap_node.URI{
+				"ya.ru",
+				10,
+				"grp",
+				"",
+			}},
+			expCheckError: true,
 			approvals: []nft.ActionApprovals{{
 				Action:    nft.Action_ActionUpdateDetails.String(),
 				Approvals: []nft.Approval{{Options: nft.ApprovalOptions{Count: nft.UnlimitedCount}, Address: bob.Address()}},
 			}},
 		},
 		{ // invalid approvals
-			owner:           alice.Address(),
-			id:              []byte("ACL3"),
-			details:         bootstrap_node.TokenDetails{[]byte("alicenet"), bootstrap_node.URI{}},
+			owner: alice.Address(),
+			id:    []byte("ACL3"),
+			details: bootstrap_node.TokenDetails{[]byte("alicenet"), bootstrap_node.URI{
+				"ya.ru",
+				10,
+				"grpc",
+				"",
+			}},
 			expCheckError:   true,
 			expDeliverError: true,
 			approvals: []nft.ActionApprovals{{
@@ -118,9 +160,19 @@ func TestQueryTokenByName(t *testing.T) {
 
 	db := store.MemStore()
 	bucket := bootstrap_node.NewBucket()
-	o1, _ := bucket.Create(db, alice.Address(), []byte("ALC0"), nil, []byte("myBlockchainID"), bootstrap_node.URI{})
+	o1, _ := bucket.Create(db, alice.Address(), []byte("ALC0"), nil, []byte("myBlockchainID"), bootstrap_node.URI{
+		"ya.ru",
+		10,
+		"grpc",
+		"",
+	})
 	bucket.Save(db, o1)
-	o2, _ := bucket.Create(db, bob.Address(), []byte("BOB0"), nil, []byte("myOtherBlockchainID"), bootstrap_node.URI{})
+	o2, _ := bucket.Create(db, bob.Address(), []byte("BOB0"), nil, []byte("myOtherBlockchainID"), bootstrap_node.URI{
+		"ya.ru",
+		10,
+		"grpc",
+		"",
+	})
 	bucket.Save(db, o2)
 
 	qr := weave.NewQueryRouter()

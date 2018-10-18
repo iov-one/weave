@@ -18,41 +18,66 @@ func TestIssueTokenMsgValidate(t *testing.T) {
 	}{
 		{ // happy path
 			token: bootstrap_node.IssueTokenMsg{
-				Id:      []byte("BTC"),
-				Owner:   alice.Address(),
-				Details: bootstrap_node.TokenDetails{[]byte("myBlockchainID"), bootstrap_node.URI{}},
+				Id:    []byte("BTC"),
+				Owner: alice.Address(),
+				Details: bootstrap_node.TokenDetails{[]byte("myBlockchainID"), bootstrap_node.URI{
+					"ya.ru",
+					10,
+					"grpc",
+					"",
+				}},
 			},
 			expError: false,
 		},
 		{ // happy path
 			token: bootstrap_node.IssueTokenMsg{
-				Id:      []byte("ANY1"),
-				Owner:   alice.Address(),
-				Details: bootstrap_node.TokenDetails{[]byte("myBlockchainID"), bootstrap_node.URI{}},
+				Id:    []byte("ANY1"),
+				Owner: alice.Address(),
+				Details: bootstrap_node.TokenDetails{[]byte("myBlockchainID"), bootstrap_node.URI{
+					"ya.ru",
+					10,
+					"grpc",
+					"",
+				}},
 			},
 			expError: false,
 		},
 		{ // not an address
 			token: bootstrap_node.IssueTokenMsg{
-				Id:      []byte("ANY"),
-				Owner:   []byte("not an address"),
-				Details: bootstrap_node.TokenDetails{[]byte("myBlockchainID"), bootstrap_node.URI{}},
+				Id:    []byte("ANY"),
+				Owner: []byte("not an address"),
+				Details: bootstrap_node.TokenDetails{[]byte("myBlockchainID"), bootstrap_node.URI{
+					"ya.ru",
+					10,
+					"grpc",
+					"",
+				}},
 			},
 			expError: true,
 		},
 		{ // id to small
 			token: bootstrap_node.IssueTokenMsg{
-				Id:      []byte("FO"),
-				Owner:   alice.Address(),
-				Details: bootstrap_node.TokenDetails{[]byte("myBlockchainID"), bootstrap_node.URI{}},
+				Id:    []byte("FO"),
+				Owner: alice.Address(),
+				Details: bootstrap_node.TokenDetails{[]byte("myBlockchainID"), bootstrap_node.URI{
+					"ya.ru",
+					10,
+					"grpc",
+					"",
+				}},
 			},
 			expError: true,
 		},
 		{ // id too big
 			token: bootstrap_node.IssueTokenMsg{
-				Id:      []byte("FOOBAFOOBAFOOBAFOOBAFOOBAFOOBA"),
-				Owner:   alice.Address(),
-				Details: bootstrap_node.TokenDetails{[]byte("myBlockchainID"), bootstrap_node.URI{}},
+				Id:    []byte("FOOBAFOOBAFOOBAFOOBAFOOBAFOOBA"),
+				Owner: alice.Address(),
+				Details: bootstrap_node.TokenDetails{[]byte("myBlockchainID"), bootstrap_node.URI{
+					"ya.ru",
+					10,
+					"grpc",
+					"",
+				}},
 			},
 			expError: true,
 		},
@@ -66,9 +91,14 @@ func TestIssueTokenMsgValidate(t *testing.T) {
 		},
 		{ // invalid payload
 			token: bootstrap_node.IssueTokenMsg{
-				Id:      []byte("ANY"),
-				Owner:   alice.Address(),
-				Details: bootstrap_node.TokenDetails{[]byte("&&&"), bootstrap_node.URI{}},
+				Id:    []byte("ANY"),
+				Owner: alice.Address(),
+				Details: bootstrap_node.TokenDetails{[]byte("&&&"), bootstrap_node.URI{
+					"ya.ru",
+					10,
+					"grpc",
+					"",
+				}},
 			},
 			expError: true,
 		},

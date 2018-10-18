@@ -23,9 +23,9 @@ func TestHandleIssueTokenMsg(t *testing.T) {
 
 	bucket := ticker.NewBucket()
 	blockchains := blockchain.NewBucket()
-	b, _ := blockchains.Create(db, alice.Address(), []byte("alicenet"), nil, blockchain.Chain{}, blockchain.IOV{})
+	b, _ := blockchains.Create(db, alice.Address(), []byte("alicenet"), nil, blockchain.Chain{MainTickerID: []byte("IOV")}, blockchain.IOV{Codec: "asd"})
 	blockchains.Save(db, b)
-	o, _ := bucket.Create(db, alice.Address(), []byte("ALC0"), nil, []byte(string("alicenet")))
+	o, _ := bucket.Create(db, alice.Address(), []byte("ALC0"), nil, []byte("alicenet"))
 	bucket.Save(db, o)
 
 	handler := ticker.NewIssueHandler(helpers.Authenticate(alice), nil, bucket, blockchains.Bucket)

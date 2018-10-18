@@ -21,7 +21,7 @@ func TestHandleIssueTokenMsg(t *testing.T) {
 
 	db := store.MemStore()
 	bucket := blockchain.NewBucket()
-	o, _ := bucket.Create(db, bob.Address(), []byte("any_network"), nil, blockchain.Chain{}, blockchain.IOV{})
+	o, _ := bucket.Create(db, bob.Address(), []byte("any_network"), nil, blockchain.Chain{MainTickerID: []byte("IOV")}, blockchain.IOV{Codec: "asd"})
 	bucket.Save(db, o)
 	tickerBucket := ticker.NewBucket()
 	tick, _ := tickerBucket.Create(db, alice.Address(), []byte("IOV"), nil, []byte("any_network"))
@@ -146,9 +146,9 @@ func TestQueryTokenByName(t *testing.T) {
 
 	db := store.MemStore()
 	bucket := blockchain.NewBucket()
-	o1, _ := bucket.Create(db, alice.Address(), []byte("alicenet"), nil, blockchain.Chain{}, blockchain.IOV{})
+	o1, _ := bucket.Create(db, alice.Address(), []byte("alicenet"), nil, blockchain.Chain{MainTickerID: []byte("IOV")}, blockchain.IOV{Codec: "asd"})
 	bucket.Save(db, o1)
-	o2, _ := bucket.Create(db, bob.Address(), []byte("bobnet"), nil, blockchain.Chain{}, blockchain.IOV{})
+	o2, _ := bucket.Create(db, bob.Address(), []byte("bobnet"), nil, blockchain.Chain{MainTickerID: []byte("IOV")}, blockchain.IOV{Codec: "asd"})
 	bucket.Save(db, o2)
 
 	qr := weave.NewQueryRouter()

@@ -78,7 +78,7 @@ func (m URI) Validate() error {
 	if err := validation.Validate(m.Host, is.Host); err != nil {
 		return nft.ErrInvalidHost()
 	}
-	if err := validation.In("http", "https", "ws", "wss", "grpc"); err != nil {
+	if err := validation.Validate(m.Protocol, validation.In("http", "https", "ws", "wss", "grpc")); err != nil {
 		return nft.ErrInvalidProtocol()
 	}
 	//todo: impl pubkey validation
