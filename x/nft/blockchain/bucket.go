@@ -27,7 +27,7 @@ func NewBlockchainToken(key []byte, owner weave.Address, approvals []nft.ActionA
 	})
 }
 
-func (b Bucket) Create(db weave.KVStore, owner weave.Address, id []byte, approvals []nft.ActionApprovals, networks []Network) (orm.Object, error) {
+func (b Bucket) Create(db weave.KVStore, owner weave.Address, id []byte, approvals []nft.ActionApprovals, chain Chain, iov IOV) (orm.Object, error) {
 	obj, err := b.Get(db, id)
 	switch {
 	case err != nil:
@@ -37,11 +37,14 @@ func (b Bucket) Create(db weave.KVStore, owner weave.Address, id []byte, approva
 	}
 	obj = NewBlockchainToken(id, owner, approvals)
 
-	humanAddress, err := AsBlockchain(obj)
+	blockChain, err := AsBlockchain(obj)
 	if err != nil {
 		return nil, err
 	}
-	_ = humanAddress // todo set payload proper
-	//return obj, humanAddress.SetNetworks(owner, networks)
-	return obj, nil
+
+	if err := blockChain.SetChain(owner, chain); err != nil {
+		return obj, err
+	}
+
+	return obj, blockChain.SetIov(owner, iov)
 }

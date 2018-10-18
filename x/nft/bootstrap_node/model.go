@@ -16,8 +16,6 @@ type Token interface {
 	SetBlockchainID(actor weave.Address, id []byte) error
 	SetUri(actor weave.Address, uri string) error
 	GetUri() string
-
-
 }
 
 func (m *BootstrapNodeToken) OwnerAddress() weave.Address {

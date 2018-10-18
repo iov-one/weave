@@ -9,7 +9,10 @@ import (
 
 type Token interface {
 	nft.BaseNFT
-	GetNetworks() []Network
+	GetChain() Chain
+	GetIov() IOV
+	SetChain(actor weave.Address, chain Chain) error
+	SetIov(actor weave.Address, iov IOV) error
 }
 
 func (m *BlockchainToken) OwnerAddress() weave.Address {
@@ -20,8 +23,32 @@ func (m *BlockchainToken) Approvals() *nft.ApprovalOps {
 	return m.Base.Approvals()
 }
 
-func (m *BlockchainToken) GetNetworks() []Network {
-	return m.Details.Networks
+func (m *BlockchainToken) GetChain() Chain {
+	return m.Details.Chain
+}
+
+func (m *BlockchainToken) GetIov() IOV {
+	return m.Details.Iov
+}
+
+func (m *BlockchainToken) SetChain(actor weave.Address, chain Chain) error {
+	if !m.OwnerAddress().Equals(actor) {
+		panic("Not implemented, yet")
+		// TODO: handle permissions
+	}
+
+	m.Details.Chain = chain
+	return nil
+}
+
+func (m *BlockchainToken) SetIov(actor weave.Address, iov IOV) error {
+	if !m.OwnerAddress().Equals(actor) {
+		panic("Not implemented, yet")
+		// TODO: handle permissions
+	}
+
+	m.Details.Iov = iov
+	return nil
 }
 
 func (m *BlockchainToken) Transfer(newOwner weave.Address) error {
@@ -46,23 +73,25 @@ func (m *BlockchainToken) Copy() orm.CloneableData {
 }
 
 func (m *TokenDetails) Clone() *TokenDetails {
-	// todo: impl
-	return &TokenDetails{Networks: m.Networks}
+	return &TokenDetails{Chain: m.Chain, Iov: m.Iov}
 }
 
 func (m *TokenDetails) Validate() error {
 	if m == nil {
 		return errors.ErrInternal("must not be nil")
 	}
-	for _, v := range m.Networks {
-		if err := v.Validate(); err != nil {
-			return err
-		}
+	if err := m.Iov.Validate(); err != nil {
+		return err
 	}
+	return m.Chain.Validate()
+}
+
+func (m IOV) Validate() error {
+	// todo: impl
 	return nil
 }
 
-func (m *Network) Validate() error {
+func (m Chain) Validate() error {
 	// todo: impl
 	return nil
 }

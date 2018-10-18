@@ -4,7 +4,6 @@ package blockchain;
 
 import "github.com/iov-one/weave/x/nft/codec.proto";
 import "github.com/gogo/protobuf/gogoproto/gogo.proto";
-import "github.com/iov-one/weave/x/nft/ticker/codec.proto";
 
 
 message BlockchainToken {
@@ -21,7 +20,7 @@ message Chain {
     string chainID = 1;
     string networkID = 2;
     string name = 3;
-    bool live = 4;
+    bool enabled = 4;
     bool production = 5;
     bytes mainTickerID = 6;
 }

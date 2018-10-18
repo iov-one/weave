@@ -20,7 +20,7 @@ func TestHandleIssueTokenMsg(t *testing.T) {
 
 	db := store.MemStore()
 	bucket := blockchain.NewBucket()
-	o, _ := bucket.Create(db, bob.Address(), []byte("any_network"), nil, nil)
+	o, _ := bucket.Create(db, bob.Address(), []byte("any_network"), nil, blockchain.Chain{}, blockchain.IOV{})
 	bucket.Save(db, o)
 
 	handler := blockchain.NewIssueHandler(helpers.Authenticate(alice), nil, bucket)
@@ -36,12 +36,12 @@ func TestHandleIssueTokenMsg(t *testing.T) {
 		{ // happy path
 			owner:   alice.Address(),
 			id:      []byte("other_netowork"),
-			details: blockchain.TokenDetails{[]blockchain.Network{}},
+			details: blockchain.TokenDetails{Chain: blockchain.Chain{}, Iov: blockchain.IOV{}},
 		},
 		{ // valid approvals
 			owner:   alice.Address(),
 			id:      []byte("other_netowork1"),
-			details: blockchain.TokenDetails{[]blockchain.Network{}},
+			details: blockchain.TokenDetails{Chain: blockchain.Chain{}, Iov: blockchain.IOV{}},
 			approvals: []nft.ActionApprovals{{
 				Action:    nft.Action_ActionUpdateDetails.String(),
 				Approvals: []nft.Approval{{Options: nft.ApprovalOptions{Count: nft.UnlimitedCount}, Address: bob.Address()}},
@@ -50,7 +50,7 @@ func TestHandleIssueTokenMsg(t *testing.T) {
 		{ // invalid approvals
 			owner:           alice.Address(),
 			id:              []byte("other_netowork2"),
-			details:         blockchain.TokenDetails{[]blockchain.Network{}},
+			details:         blockchain.TokenDetails{Chain: blockchain.Chain{}, Iov: blockchain.IOV{}},
 			expCheckError:   true,
 			expDeliverError: true,
 			approvals: []nft.ActionApprovals{{
@@ -98,11 +98,8 @@ func TestHandleIssueTokenMsg(t *testing.T) {
 			require.NoError(t, err)
 			require.NotNil(t, o)
 			u, _ := blockchain.AsBlockchain(o)
-			if len(spec.details.Networks) == 0 {
-				assert.Len(t, u.GetNetworks(), 0)
-			} else {
-				assert.Equal(t, spec.details.Networks, u.GetNetworks())
-			}
+			assert.Equal(t, spec.details.Chain, u.GetChain())
+			assert.Equal(t, spec.details.Iov, u.GetIov())
 			// todo: verify approvals
 		})
 	}
@@ -115,9 +112,9 @@ func TestQueryTokenByName(t *testing.T) {
 
 	db := store.MemStore()
 	bucket := blockchain.NewBucket()
-	o1, _ := bucket.Create(db, alice.Address(), []byte("alicenet"), nil, nil)
+	o1, _ := bucket.Create(db, alice.Address(), []byte("alicenet"), nil, blockchain.Chain{}, blockchain.IOV{})
 	bucket.Save(db, o1)
-	o2, _ := bucket.Create(db, bob.Address(), []byte("bobnet"), nil, nil)
+	o2, _ := bucket.Create(db, bob.Address(), []byte("bobnet"), nil, blockchain.Chain{}, blockchain.IOV{})
 	bucket.Save(db, o2)
 
 	qr := weave.NewQueryRouter()

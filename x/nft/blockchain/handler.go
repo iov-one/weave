@@ -47,7 +47,7 @@ func (h IssueHandler) Deliver(ctx weave.Context, store weave.KVStore, tx weave.T
 	if err != nil {
 		return res, err
 	}
-	o, err := h.bucket.Create(store, weave.Address(msg.Owner), msg.Id, msg.Approvals, msg.Details.Networks)
+	o, err := h.bucket.Create(store, weave.Address(msg.Owner), msg.Id, msg.Approvals, msg.Details.Chain, msg.Details.Iov)
 	if err != nil {
 		return res, err
 	}
