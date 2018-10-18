@@ -28,7 +28,7 @@ func (m *BootstrapNodeToken) GetBlockchainID() []byte {
 	return m.Details.BlockchainID
 }
 
-func (m *BootstrapNodeToken) GetUri() string {
+func (m *BootstrapNodeToken) GetUri() URI {
 	return m.Details.Uri
 }
 
