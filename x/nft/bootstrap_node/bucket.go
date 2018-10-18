@@ -27,7 +27,8 @@ func NewBootstrapNodeToken(key []byte, owner weave.Address, approvals []nft.Acti
 	})
 }
 
-func (b Bucket) Create(db weave.KVStore, owner weave.Address, id []byte, approvals []nft.ActionApprovals, blockchainID []byte, uri string) (orm.Object, error) {
+func (b Bucket) Create(db weave.KVStore, owner weave.Address, id []byte,
+	approvals []nft.ActionApprovals, blockchainID []byte, uri URI) (orm.Object, error) {
 	obj, err := b.Get(db, id)
 	switch {
 	case err != nil:

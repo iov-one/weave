@@ -8,14 +8,12 @@ import (
 	"github.com/iov-one/weave/x/nft/blockchain"
 )
 
-//TODO: This is very similar to ticker token, I bet we can consolidate those somehow
-// or at least their common parts
 type Token interface {
 	nft.BaseNFT
 	GetBlockchainID() []byte
 	SetBlockchainID(actor weave.Address, id []byte) error
-	SetUri(actor weave.Address, uri string) error
-	GetUri() string
+	SetUri(actor weave.Address, uri URI) error
+	GetUri() URI
 }
 
 func (m *BootstrapNodeToken) OwnerAddress() weave.Address {
@@ -34,7 +32,7 @@ func (m *BootstrapNodeToken) Approvals() *nft.ApprovalOps {
 	return m.Base.Approvals()
 }
 
-func (m *BootstrapNodeToken) SetUri(actor weave.Address, uri string) error {
+func (m *BootstrapNodeToken) SetUri(actor weave.Address, uri URI) error {
 	if !m.OwnerAddress().Equals(actor) {
 		panic("Not implemented, yet")
 		// TODO: handle permissions
@@ -71,6 +69,12 @@ func (m *BootstrapNodeToken) Validate() error {
 	return m.Details.Validate()
 }
 
+func (m URI) Validate() error {
+	//todo: impl
+
+	return nil
+}
+
 func (m *BootstrapNodeToken) Copy() orm.CloneableData {
 	return &BootstrapNodeToken{
 		Base:    m.Base.Clone(),
@@ -84,14 +88,13 @@ func (m *TokenDetails) Clone() *TokenDetails {
 }
 
 func (m *TokenDetails) Validate() error {
-	//TODO: Validate uri
 	if m == nil {
 		return errors.ErrInternal("must not be nil")
 	}
 	if m.BlockchainID == nil || !blockchain.IsValidID(string(m.BlockchainID)) {
 		return nft.ErrInvalidEntry()
 	}
-	return nil
+	return m.Uri.Validate()
 }
 
 // AsNode will safely type-cast any value from Bucket
