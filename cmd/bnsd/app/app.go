@@ -64,8 +64,10 @@ func Router(authFn x.Authenticator, issuer weave.Address) app.Router {
 	// TODO: move to cash upon refactor
 	escrow.RegisterRoutes(r, authFn, namecoin.NewController())
 	multisig.RegisterRoutes(r, authFn)
-	blockchain.RegisterRoutes(r, authFn, issuer)
-	ticker.RegisterRoutes(r, authFn, issuer)
+	//TODO: Possibly revisit passing the bucket later to have more control over types?
+	// or implement a check
+	blockchain.RegisterRoutes(r, authFn, issuer, ticker.NewBucket().Bucket)
+	ticker.RegisterRoutes(r, authFn, issuer, blockchain.NewBucket().Bucket)
 	username.RegisterRoutes(r, authFn, issuer)
 	validators.RegisterRoutes(r, authFn, validators.NewController())
 	bootstrap_node.RegisterRoutes(r, authFn, issuer)

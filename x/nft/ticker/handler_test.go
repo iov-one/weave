@@ -28,7 +28,7 @@ func TestHandleIssueTokenMsg(t *testing.T) {
 	o, _ := bucket.Create(db, alice.Address(), []byte("ALC0"), nil, []byte(string("alicenet")))
 	bucket.Save(db, o)
 
-	handler := ticker.NewIssueHandler(helpers.Authenticate(alice), nil, bucket, blockchains)
+	handler := ticker.NewIssueHandler(helpers.Authenticate(alice), nil, bucket, blockchains.Bucket)
 
 	// when
 	specs := []struct {

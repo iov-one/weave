@@ -9,6 +9,7 @@ import (
 	"github.com/iov-one/weave/x"
 	"github.com/iov-one/weave/x/nft"
 	"github.com/iov-one/weave/x/nft/blockchain"
+	"github.com/iov-one/weave/x/nft/ticker"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -22,8 +23,11 @@ func TestHandleIssueTokenMsg(t *testing.T) {
 	bucket := blockchain.NewBucket()
 	o, _ := bucket.Create(db, bob.Address(), []byte("any_network"), nil, blockchain.Chain{}, blockchain.IOV{})
 	bucket.Save(db, o)
+	tickerBucket := ticker.NewBucket()
+	tick, _ := tickerBucket.Create(db, alice.Address(), []byte("IOV"), nil, []byte("any_network"))
+	tickerBucket.Save(db, tick)
 
-	handler := blockchain.NewIssueHandler(helpers.Authenticate(alice), nil, bucket)
+	handler := blockchain.NewIssueHandler(helpers.Authenticate(alice), nil, bucket, tickerBucket.Bucket)
 
 	// when
 	specs := []struct {
@@ -36,21 +40,31 @@ func TestHandleIssueTokenMsg(t *testing.T) {
 		{ // happy path
 			owner:   alice.Address(),
 			id:      []byte("other_netowork"),
-			details: blockchain.TokenDetails{Chain: blockchain.Chain{}, Iov: blockchain.IOV{}},
+			details: blockchain.TokenDetails{Chain: blockchain.Chain{MainTickerID: []byte("IOV")}, Iov: blockchain.IOV{}},
 		},
 		{ // valid approvals
 			owner:   alice.Address(),
 			id:      []byte("other_netowork1"),
-			details: blockchain.TokenDetails{Chain: blockchain.Chain{}, Iov: blockchain.IOV{}},
+			details: blockchain.TokenDetails{Chain: blockchain.Chain{MainTickerID: []byte("IOV")}, Iov: blockchain.IOV{}},
 			approvals: []nft.ActionApprovals{{
 				Action:    nft.Action_ActionUpdateDetails.String(),
 				Approvals: []nft.Approval{{Options: nft.ApprovalOptions{Count: nft.UnlimitedCount}, Address: bob.Address()}},
 			}},
 		},
+		{ // invalid ticker
+			owner:   alice.Address(),
+			id:      []byte("other_netowork2"),
+			details: blockchain.TokenDetails{Chain: blockchain.Chain{MainTickerID: []byte("1OV")}, Iov: blockchain.IOV{}},
+			approvals: []nft.ActionApprovals{{
+				Action:    nft.Action_ActionUpdateDetails.String(),
+				Approvals: []nft.Approval{{Options: nft.ApprovalOptions{Count: nft.UnlimitedCount}, Address: bob.Address()}},
+			}},
+			expDeliverError: true,
+		},
 		{ // invalid approvals
 			owner:           alice.Address(),
-			id:              []byte("other_netowork2"),
-			details:         blockchain.TokenDetails{Chain: blockchain.Chain{}, Iov: blockchain.IOV{}},
+			id:              []byte("other_netowork3"),
+			details:         blockchain.TokenDetails{Chain: blockchain.Chain{MainTickerID: []byte("IOV")}, Iov: blockchain.IOV{}},
 			expCheckError:   true,
 			expDeliverError: true,
 			approvals: []nft.ActionApprovals{{
