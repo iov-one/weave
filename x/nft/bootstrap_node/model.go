@@ -1,6 +1,8 @@
 package bootstrap_node
 
 import (
+	"github.com/go-ozzo/ozzo-validation"
+	"github.com/go-ozzo/ozzo-validation/is"
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/orm"
@@ -70,7 +72,16 @@ func (m *BootstrapNodeToken) Validate() error {
 }
 
 func (m URI) Validate() error {
-	//todo: impl
+	if m.Port == 0 {
+		return nft.ErrInvalidPort()
+	}
+	if err := validation.Validate(m.Host, is.Host); err != nil {
+		return nft.ErrInvalidHost()
+	}
+	if err := validation.In("http", "https", "ws", "wss", "grpc"); err != nil {
+		return nft.ErrInvalidProtocol()
+	}
+	//todo: impl pubkey validation
 
 	return nil
 }

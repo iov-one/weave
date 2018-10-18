@@ -15,6 +15,9 @@ const (
 	CodeInvalidEntry         uint32 = 504
 	CodeUnknownID            uint32 = 505
 	CodeInvalidLength        uint32 = 506
+	CodeInvalidHost          uint32 = 507
+	CodeInvalidPort          uint32 = 508
+	CodeInvalidProtocol      uint32 = 509
 )
 
 var (
@@ -25,6 +28,9 @@ var (
 	errInvalidEntry         = stderrors.New("Invalid entry")
 	errUnknownID            = stderrors.New("Unknown Id")
 	errInvalidLength        = stderrors.New("Invalid length")
+	errInvalidHost          = stderrors.New("Invalid host")
+	errInvalidPort          = stderrors.New("Invalid port")
+	errInvalidProtocol      = stderrors.New("Invalid protocol")
 )
 
 // ErrUnsupportedTokenType is when the type passed does not match the expected token type.
@@ -49,4 +55,13 @@ func ErrUnknownID() error {
 }
 func ErrInvalidLength() error {
 	return errors.WithCode(errInvalidLength, CodeInvalidLength)
+}
+func ErrInvalidHost() error {
+	return errors.WithCode(errInvalidHost, CodeInvalidHost)
+}
+func ErrInvalidPort() error {
+	return errors.WithCode(errInvalidPort, CodeInvalidPort)
+}
+func ErrInvalidProtocol() error {
+	return errors.WithCode(errInvalidProtocol, CodeInvalidProtocol)
 }
