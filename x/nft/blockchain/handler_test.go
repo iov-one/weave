@@ -40,12 +40,12 @@ func TestHandleIssueTokenMsg(t *testing.T) {
 		{ // happy path
 			owner:   alice.Address(),
 			id:      []byte("other_netowork"),
-			details: blockchain.TokenDetails{Chain: blockchain.Chain{MainTickerID: []byte("IOV")}, Iov: blockchain.IOV{}},
+			details: blockchain.TokenDetails{Chain: blockchain.Chain{MainTickerID: []byte("IOV")}, Iov: blockchain.IOV{Codec: "test"}},
 		},
 		{ // valid approvals
 			owner:   alice.Address(),
 			id:      []byte("other_netowork1"),
-			details: blockchain.TokenDetails{Chain: blockchain.Chain{MainTickerID: []byte("IOV")}, Iov: blockchain.IOV{}},
+			details: blockchain.TokenDetails{Chain: blockchain.Chain{MainTickerID: []byte("IOV")}, Iov: blockchain.IOV{Codec: "test"}},
 			approvals: []nft.ActionApprovals{{
 				Action:    nft.Action_ActionUpdateDetails.String(),
 				Approvals: []nft.Approval{{Options: nft.ApprovalOptions{Count: nft.UnlimitedCount}, Address: bob.Address()}},
@@ -54,17 +54,37 @@ func TestHandleIssueTokenMsg(t *testing.T) {
 		{ // invalid ticker
 			owner:   alice.Address(),
 			id:      []byte("other_netowork2"),
-			details: blockchain.TokenDetails{Chain: blockchain.Chain{MainTickerID: []byte("1OV")}, Iov: blockchain.IOV{}},
+			details: blockchain.TokenDetails{Chain: blockchain.Chain{MainTickerID: []byte("1OV")}, Iov: blockchain.IOV{Codec: "test", CodecConfig: `{"da": 1}`}},
 			approvals: []nft.ActionApprovals{{
 				Action:    nft.Action_ActionUpdateDetails.String(),
 				Approvals: []nft.Approval{{Options: nft.ApprovalOptions{Count: nft.UnlimitedCount}, Address: bob.Address()}},
 			}},
 			expDeliverError: true,
 		},
+		{ // invalid codec
+			owner:   alice.Address(),
+			id:      []byte("other_netowork3"),
+			details: blockchain.TokenDetails{Chain: blockchain.Chain{MainTickerID: []byte("IOV")}, Iov: blockchain.IOV{Codec: "1"}},
+			approvals: []nft.ActionApprovals{{
+				Action:    nft.Action_ActionUpdateDetails.String(),
+				Approvals: []nft.Approval{{Options: nft.ApprovalOptions{Count: nft.UnlimitedCount}, Address: bob.Address()}},
+			}},
+			expCheckError: true,
+		},
+		{ // invalid codec json
+			owner:   alice.Address(),
+			id:      []byte("other_netowork4"),
+			details: blockchain.TokenDetails{Chain: blockchain.Chain{MainTickerID: []byte("IOV")}, Iov: blockchain.IOV{Codec: "bbb", CodecConfig: "{ssdas"}},
+			approvals: []nft.ActionApprovals{{
+				Action:    nft.Action_ActionUpdateDetails.String(),
+				Approvals: []nft.Approval{{Options: nft.ApprovalOptions{Count: nft.UnlimitedCount}, Address: bob.Address()}},
+			}},
+			expCheckError: true,
+		},
 		{ // invalid approvals
 			owner:           alice.Address(),
-			id:              []byte("other_netowork3"),
-			details:         blockchain.TokenDetails{Chain: blockchain.Chain{MainTickerID: []byte("IOV")}, Iov: blockchain.IOV{}},
+			id:              []byte("other_netowork5"),
+			details:         blockchain.TokenDetails{Chain: blockchain.Chain{MainTickerID: []byte("IOV")}, Iov: blockchain.IOV{Codec: "test"}},
 			expCheckError:   true,
 			expDeliverError: true,
 			approvals: []nft.ActionApprovals{{

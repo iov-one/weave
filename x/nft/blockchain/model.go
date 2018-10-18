@@ -1,10 +1,17 @@
 package blockchain
 
 import (
+	"encoding/json"
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/x/nft"
+	"regexp"
+)
+
+var (
+	//todo: revisit pattern
+	IsValidCodec = regexp.MustCompile(`^[a-zA-Z0-9_.]{3,20}$`).MatchString
 )
 
 type Token interface {
@@ -87,7 +94,18 @@ func (m *TokenDetails) Validate() error {
 }
 
 func (m IOV) Validate() error {
-	// todo: impl
+	if !IsValidCodec(m.Codec) {
+		return nft.ErrInvalidEntry()
+	}
+
+	if m.CodecConfig != "" {
+		var js interface{}
+		bytes := []byte(m.CodecConfig)
+		if err := json.Unmarshal(bytes, &js); err != nil {
+			return nft.ErrInvalidEntry()
+		}
+	}
+
 	return nil
 }
 

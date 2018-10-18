@@ -83,7 +83,6 @@ func (m *BootstrapNodeToken) Copy() orm.CloneableData {
 }
 
 func (m *TokenDetails) Clone() *TokenDetails {
-	// todo: impl
 	return &TokenDetails{BlockchainID: m.BlockchainID, Uri: m.Uri}
 }
 
