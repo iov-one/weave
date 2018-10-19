@@ -95,14 +95,14 @@ func (m *TokenDetails) Validate() error {
 
 func (m IOV) Validate() error {
 	if !IsValidCodec(m.Codec) {
-		return nft.ErrInvalidEntry()
+		return nft.ErrInvalidCodec()
 	}
 
 	if m.CodecConfig != "" {
 		var js interface{}
 		bytes := []byte(m.CodecConfig)
 		if err := json.Unmarshal(bytes, &js); err != nil {
-			return nft.ErrInvalidEntry()
+			return nft.ErrInvalidJson()
 		}
 	}
 
