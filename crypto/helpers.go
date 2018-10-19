@@ -7,7 +7,7 @@ import (
 // ExtensionName is used for the Conditions we get from signatures
 const ExtensionName = "sigs"
 
-// PublicKey represents a crypto public key we use
+// PubKey represents a crypto public key we use
 type PubKey interface {
 	Verify(message []byte, sig *Signature) bool
 	Condition() weave.Condition
@@ -23,7 +23,7 @@ type Signer interface {
 //-------- unwrappers --------
 // enforce that all of the one-ofs implement some interfaces
 
-// unwrap a PublicKey struct into a PublicKey interface
+// unwrap a PublicKey struct into a PubKey interface
 func (p PublicKey) unwrap() PubKey {
 	pub := p.GetPub()
 	if pub == nil {

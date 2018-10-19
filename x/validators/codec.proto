@@ -9,11 +9,11 @@ import "github.com/gogo/protobuf/gogoproto/gogo.proto";
 // Validator
 message Validator {
   bytes address = 1;
-  PublicKey public_key = 2 [(gogoproto.nullable)=false];
+  PubKey pub_key = 2 [(gogoproto.nullable)=false];
   int64 power = 3;
 }
 
-message PublicKey {
+message PubKey {
   string type = 1;
   bytes  data = 2;
 }

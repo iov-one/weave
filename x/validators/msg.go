@@ -18,12 +18,12 @@ func (*SetValidatorsMsg) Path() string {
 func (m Validator) AsABCI() abci.Validator {
 	return abci.Validator{
 		Address: m.Address,
-		PubKey:  m.PublicKey.AsABCI(),
+		PubKey:  m.PubKey.AsABCI(),
 		Power:   m.Power,
 	}
 }
 
-func (m PublicKey) AsABCI() abci.PubKey {
+func (m PubKey) AsABCI() abci.PubKey {
 	return abci.PubKey{
 		Data: m.Data,
 		Type: m.Type,

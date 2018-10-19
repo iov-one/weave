@@ -21,8 +21,8 @@ func (u *UserData) Validate() error {
 	if seq < 0 {
 		return ErrInvalidSequence("Seq(%d)", seq)
 	}
-	if seq > 0 && u.PublicKey == nil {
-		return ErrInvalidSequence("Seq(%d) needs PublicKey", seq)
+	if seq > 0 && u.PubKey == nil {
+		return ErrInvalidSequence("Seq(%d) needs PubKey", seq)
 	}
 	return nil
 }
@@ -30,8 +30,8 @@ func (u *UserData) Validate() error {
 // Copy makes a new UserData with the same coins
 func (u *UserData) Copy() orm.CloneableData {
 	return &UserData{
-		Sequence:  u.Sequence,
-		PublicKey: u.PublicKey,
+		Sequence: u.Sequence,
+		PubKey:   u.PubKey,
 	}
 }
 
@@ -47,15 +47,15 @@ func (u *UserData) CheckAndIncrementSequence(check int64) error {
 	return nil
 }
 
-// SetPubKey will try to set the PublicKey or panic on an illegal operation.
+// SetPubKey will try to set the PubKey or panic on an illegal operation.
 // It is illegal to reset an already set key
 // Otherwise, we don't control
 // (although we could verify the hash, we leave that to the controller)
 func (u *UserData) SetPubKey(pubKey *crypto.PublicKey) {
-	if u.PublicKey != nil {
+	if u.PubKey != nil {
 		panic("Cannot change pubkey for a user")
 	}
-	u.PublicKey = pubKey
+	u.PubKey = pubKey
 }
 
 //-------------------- Object Wrapper -------
@@ -71,7 +71,7 @@ func AsUser(obj orm.Object) *UserData {
 // NewUser constructs an object from an address and pubkey
 func NewUser(pubKey *crypto.PublicKey) orm.Object {
 	var key weave.Address
-	value := &UserData{PublicKey: pubKey}
+	value := &UserData{PubKey: pubKey}
 	if pubKey != nil {
 		key = pubKey.Address()
 	}
