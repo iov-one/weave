@@ -66,8 +66,8 @@ func Router(authFn x.Authenticator, issuer weave.Address) app.Router {
 	multisig.RegisterRoutes(r, authFn)
 	//TODO: Possibly revisit passing the bucket later to have more control over types?
 	// or implement a check
-	blockchain.RegisterRoutes(r, authFn, issuer, ticker.NewBucket().Bucket)
-	ticker.RegisterRoutes(r, authFn, issuer, blockchain.NewBucket().Bucket)
+	blockchain.RegisterRoutes(r, authFn, issuer, ticker.NewBucket())
+	ticker.RegisterRoutes(r, authFn, issuer, blockchain.NewBucket())
 	username.RegisterRoutes(r, authFn, issuer)
 	validators.RegisterRoutes(r, authFn, validators.NewController())
 	bootstrap_node.RegisterRoutes(r, authFn, issuer)

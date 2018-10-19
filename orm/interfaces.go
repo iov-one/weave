@@ -19,6 +19,11 @@ type Object interface {
 	Value() weave.Persistent
 }
 
+// Reader defines an interface that allows reading objects from the db
+type Reader interface {
+	Get(db weave.ReadOnlyKVStore, key []byte) (Object, error)
+}
+
 // Keyed is anything that can identify itself
 type Keyed interface {
 	Key() []byte

@@ -3,6 +3,7 @@ package bootstrap_node
 import (
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/x"
 	"github.com/iov-one/weave/x/nft"
 	"github.com/iov-one/weave/x/nft/blockchain"
@@ -28,10 +29,10 @@ type IssueHandler struct {
 	auth        x.Authenticator
 	issuer      weave.Address
 	bucket      Bucket
-	blockchains blockchain.Bucket
+	blockchains orm.Reader
 }
 
-func NewIssueHandler(auth x.Authenticator, issuer weave.Address, bucket Bucket, blockchains blockchain.Bucket) *IssueHandler {
+func NewIssueHandler(auth x.Authenticator, issuer weave.Address, bucket Bucket, blockchains orm.Reader) *IssueHandler {
 	return &IssueHandler{auth: auth, issuer: issuer, bucket: bucket, blockchains: blockchains}
 }
 

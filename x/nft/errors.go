@@ -18,9 +18,8 @@ const (
 	CodeInvalidHost          uint32 = 507
 	CodeInvalidPort          uint32 = 508
 	CodeInvalidProtocol      uint32 = 509
-	CodeInvalidCodec     uint32 = 510
-	CodeInvalidJson     uint32 = 511
-
+	CodeInvalidCodec         uint32 = 510
+	CodeInvalidJson          uint32 = 511
 )
 
 var (
@@ -35,7 +34,7 @@ var (
 	errInvalidPort          = stderrors.New("Invalid port")
 	errInvalidProtocol      = stderrors.New("Invalid protocol")
 	errInvalidCodec         = stderrors.New("Invalid codec")
-	errInvalidJson      = stderrors.New("Invalid json")
+	errInvalidJson          = stderrors.New("Invalid json")
 )
 
 // ErrUnsupportedTokenType is when the type passed does not match the expected token type.

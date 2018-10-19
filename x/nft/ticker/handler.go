@@ -13,7 +13,7 @@ const (
 )
 
 // RegisterRoutes will instantiate and register all handlers in this package
-func RegisterRoutes(r weave.Registry, auth x.Authenticator, issuer weave.Address, blockchainBucket orm.Bucket) {
+func RegisterRoutes(r weave.Registry, auth x.Authenticator, issuer weave.Address, blockchainBucket orm.Reader) {
 	bucket := NewBucket()
 	r.Handle(pathIssueTokenMsg, NewIssueHandler(auth, issuer, bucket, blockchainBucket))
 }
@@ -28,10 +28,10 @@ type IssueHandler struct {
 	auth        x.Authenticator
 	issuer      weave.Address
 	bucket      Bucket
-	blockchains orm.Bucket
+	blockchains orm.Reader
 }
 
-func NewIssueHandler(auth x.Authenticator, issuer weave.Address, bucket Bucket, blockchains orm.Bucket) *IssueHandler {
+func NewIssueHandler(auth x.Authenticator, issuer weave.Address, bucket Bucket, blockchains orm.Reader) *IssueHandler {
 	return &IssueHandler{auth: auth, issuer: issuer, bucket: bucket, blockchains: blockchains}
 }
 
