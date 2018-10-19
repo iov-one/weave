@@ -21,6 +21,7 @@ import (
 	"github.com/iov-one/weave/x/namecoin"
 	"github.com/iov-one/weave/x/nft"
 	"github.com/iov-one/weave/x/nft/blockchain"
+	"github.com/iov-one/weave/x/nft/bootstrap_node"
 	"github.com/iov-one/weave/x/nft/ticker"
 	"github.com/iov-one/weave/x/nft/username"
 	"github.com/iov-one/weave/x/sigs"
@@ -63,10 +64,13 @@ func Router(authFn x.Authenticator, issuer weave.Address) app.Router {
 	// TODO: move to cash upon refactor
 	escrow.RegisterRoutes(r, authFn, namecoin.NewController())
 	multisig.RegisterRoutes(r, authFn)
-	blockchain.RegisterRoutes(r, authFn, issuer)
-	ticker.RegisterRoutes(r, authFn, issuer)
+	//TODO: Possibly revisit passing the bucket later to have more control over types?
+	// or implement a check
+	blockchain.RegisterRoutes(r, authFn, issuer, ticker.NewBucket())
+	ticker.RegisterRoutes(r, authFn, issuer, blockchain.NewBucket())
 	username.RegisterRoutes(r, authFn, issuer)
 	validators.RegisterRoutes(r, authFn, validators.NewController())
+	bootstrap_node.RegisterRoutes(r, authFn, issuer)
 	return r
 }
 
@@ -82,6 +86,7 @@ func QueryRouter() weave.QueryRouter {
 		sigs.RegisterQuery,
 		multisig.RegisterQuery,
 		blockchain.RegisterQuery,
+		bootstrap_node.RegisterQuery,
 		ticker.RegisterQuery,
 		username.RegisterQuery,
 		validators.RegisterQuery,
@@ -96,6 +101,7 @@ func RegisterNft() {
 	nft.GetBucketDispatcher().Register(NftType_Username.String(), username.NewBucket())
 	nft.GetBucketDispatcher().Register(NftType_Ticker.String(), ticker.NewBucket())
 	nft.GetBucketDispatcher().Register(NftType_Blockchain.String(), blockchain.NewBucket())
+	nft.GetBucketDispatcher().Register(NftType_BootstrapNode.String(), bootstrap_node.NewBucket())
 }
 
 // Stack wires up a standard router with a standard decorator

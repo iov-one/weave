@@ -12,14 +12,27 @@ message BlockchainToken {
 }
 
 message TokenDetails {
-    repeated Network networks = 1 [(gogoproto.nullable) = false];
+    Chain chain = 1 [(gogoproto.nullable) = false];
+    IOV iov = 2 [(gogoproto.nullable) = false];
 }
 
-message Network { // these are all placeholders
-    bytes tickers = 1;
-    bytes bootstrap = 2;
-    bytes codec = 3;
-    bytes codecSettings = 4;
+message Chain {
+    string chainID = 1;
+    string networkID = 2;
+    string name = 3;
+    bool enabled = 4;
+    bool production = 5;
+    bytes mainTickerID = 6;
+}
+
+message IOV {
+    string codec = 1;
+    string codecConfig = 2;
+}
+
+message Config {
+    Chain chain = 1;
+    string codecConfig = 3;
 }
 
 message IssueTokenMsg {

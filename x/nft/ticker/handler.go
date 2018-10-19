@@ -3,9 +3,9 @@ package ticker
 import (
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/x"
 	"github.com/iov-one/weave/x/nft"
-	"github.com/iov-one/weave/x/nft/blockchain"
 )
 
 const (
@@ -13,9 +13,9 @@ const (
 )
 
 // RegisterRoutes will instantiate and register all handlers in this package
-func RegisterRoutes(r weave.Registry, auth x.Authenticator, issuer weave.Address) {
+func RegisterRoutes(r weave.Registry, auth x.Authenticator, issuer weave.Address, blockchainBucket orm.Reader) {
 	bucket := NewBucket()
-	r.Handle(pathIssueTokenMsg, NewIssueHandler(auth, issuer, bucket, blockchain.NewBucket()))
+	r.Handle(pathIssueTokenMsg, NewIssueHandler(auth, issuer, bucket, blockchainBucket))
 }
 
 // RegisterQuery will register this bucket as "/nft/ticker"
@@ -28,10 +28,10 @@ type IssueHandler struct {
 	auth        x.Authenticator
 	issuer      weave.Address
 	bucket      Bucket
-	blockchains blockchain.Bucket
+	blockchains orm.Reader
 }
 
-func NewIssueHandler(auth x.Authenticator, issuer weave.Address, bucket Bucket, blockchains blockchain.Bucket) *IssueHandler {
+func NewIssueHandler(auth x.Authenticator, issuer weave.Address, bucket Bucket, blockchains orm.Reader) *IssueHandler {
 	return &IssueHandler{auth: auth, issuer: issuer, bucket: bucket, blockchains: blockchains}
 }
 

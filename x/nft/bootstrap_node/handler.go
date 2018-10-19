@@ -1,4 +1,4 @@
-package blockchain
+package bootstrap_node
 
 import (
 	"github.com/iov-one/weave"
@@ -6,33 +6,34 @@ import (
 	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/x"
 	"github.com/iov-one/weave/x/nft"
+	"github.com/iov-one/weave/x/nft/blockchain"
 )
 
 const (
-	createBlockchainCost = 1
+	createNodeCost = 1
 )
 
 // RegisterRoutes will instantiate and register all handlers in this package
-func RegisterRoutes(r weave.Registry, auth x.Authenticator, issuer weave.Address, tickerBucket orm.Reader) {
+func RegisterRoutes(r weave.Registry, auth x.Authenticator, issuer weave.Address) {
 	bucket := NewBucket()
-	r.Handle(pathIssueTokenMsg, NewIssueHandler(auth, issuer, bucket, tickerBucket))
+	r.Handle(pathIssueTokenMsg, NewIssueHandler(auth, issuer, bucket, blockchain.NewBucket()))
 }
 
-// RegisterQuery will register this bucket as "/nft/blockchain"
+// RegisterQuery will register this bucket as "nft/bootstrap_nodes"
 func RegisterQuery(qr weave.QueryRouter) {
 	bucket := NewBucket()
-	bucket.Register("nft/blockchains", qr)
+	bucket.Register("nft/bootstrap_nodes", qr)
 }
 
 type IssueHandler struct {
-	auth         x.Authenticator
-	issuer       weave.Address
-	bucket       Bucket
-	tickerBucket orm.Reader
+	auth        x.Authenticator
+	issuer      weave.Address
+	bucket      Bucket
+	blockchains orm.Reader
 }
 
-func NewIssueHandler(auth x.Authenticator, issuer weave.Address, bucket Bucket, tickerBucket orm.Reader) *IssueHandler {
-	return &IssueHandler{auth: auth, issuer: issuer, bucket: bucket, tickerBucket: tickerBucket}
+func NewIssueHandler(auth x.Authenticator, issuer weave.Address, bucket Bucket, blockchains orm.Reader) *IssueHandler {
+	return &IssueHandler{auth: auth, issuer: issuer, bucket: bucket, blockchains: blockchains}
 }
 
 func (h IssueHandler) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx) (weave.CheckResult, error) {
@@ -40,7 +41,7 @@ func (h IssueHandler) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx)
 	if _, err := h.validate(ctx, tx); err != nil {
 		return res, err
 	}
-	res.GasAllocated += createBlockchainCost
+	res.GasAllocated += createNodeCost
 	return res, nil
 }
 
@@ -50,17 +51,14 @@ func (h IssueHandler) Deliver(ctx weave.Context, store weave.KVStore, tx weave.T
 	if err != nil {
 		return res, err
 	}
-	//TODO: Need to discuss, maybe we need to also validate the linked blockchainID vs ours
-	if len(msg.Details.Chain.MainTickerID) != 0 {
-		ticker, err := h.tickerBucket.Get(store, msg.Details.Chain.MainTickerID)
-		switch {
-		case err != nil:
-			return res, err
-		case ticker == nil:
-			return res, nft.ErrInvalidEntry()
-		}
+	chain, err := h.blockchains.Get(store, msg.Details.BlockchainID)
+	switch {
+	case err != nil:
+		return res, err
+	case chain == nil:
+		return res, nft.ErrInvalidEntry()
 	}
-	o, err := h.bucket.Create(store, weave.Address(msg.Owner), msg.Id, msg.Approvals, msg.Details.Chain, msg.Details.Iov)
+	o, err := h.bucket.Create(store, weave.Address(msg.Owner), msg.Id, msg.Approvals, msg.Details.BlockchainID, msg.Details.Uri)
 	if err != nil {
 		return res, err
 	}

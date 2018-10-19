@@ -9,6 +9,7 @@ import (
 	"github.com/iov-one/weave/x"
 	"github.com/iov-one/weave/x/nft"
 	"github.com/iov-one/weave/x/nft/blockchain"
+	"github.com/iov-one/weave/x/nft/ticker"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -20,10 +21,13 @@ func TestHandleIssueTokenMsg(t *testing.T) {
 
 	db := store.MemStore()
 	bucket := blockchain.NewBucket()
-	o, _ := bucket.Create(db, bob.Address(), []byte("any_network"), nil, nil)
+	o, _ := bucket.Create(db, bob.Address(), []byte("any_network"), nil, blockchain.Chain{MainTickerID: []byte("IOV")}, blockchain.IOV{Codec: "asd"})
 	bucket.Save(db, o)
+	tickerBucket := ticker.NewBucket()
+	tick, _ := tickerBucket.Create(db, alice.Address(), []byte("IOV"), nil, []byte("any_network"))
+	tickerBucket.Save(db, tick)
 
-	handler := blockchain.NewIssueHandler(helpers.Authenticate(alice), nil, bucket)
+	handler := blockchain.NewIssueHandler(helpers.Authenticate(alice), nil, bucket, tickerBucket.Bucket)
 
 	// when
 	specs := []struct {
@@ -35,22 +39,52 @@ func TestHandleIssueTokenMsg(t *testing.T) {
 	}{
 		{ // happy path
 			owner:   alice.Address(),
-			id:      []byte("other_netowork"),
-			details: blockchain.TokenDetails{[]blockchain.Network{}},
+			id:      []byte("other_network"),
+			details: blockchain.TokenDetails{Chain: blockchain.Chain{MainTickerID: []byte("IOV")}, Iov: blockchain.IOV{Codec: "test"}},
 		},
 		{ // valid approvals
 			owner:   alice.Address(),
-			id:      []byte("other_netowork1"),
-			details: blockchain.TokenDetails{[]blockchain.Network{}},
+			id:      []byte("other_network1"),
+			details: blockchain.TokenDetails{Chain: blockchain.Chain{MainTickerID: []byte("IOV")}, Iov: blockchain.IOV{Codec: "test"}},
 			approvals: []nft.ActionApprovals{{
 				Action:    nft.Action_ActionUpdateDetails.String(),
 				Approvals: []nft.Approval{{Options: nft.ApprovalOptions{Count: nft.UnlimitedCount}, Address: bob.Address()}},
 			}},
 		},
+		{ // invalid ticker
+			owner:   alice.Address(),
+			id:      []byte("other_network2"),
+			details: blockchain.TokenDetails{Chain: blockchain.Chain{MainTickerID: []byte("1OV")}, Iov: blockchain.IOV{Codec: "test", CodecConfig: `{"da": 1}`}},
+			approvals: []nft.ActionApprovals{{
+				Action:    nft.Action_ActionUpdateDetails.String(),
+				Approvals: []nft.Approval{{Options: nft.ApprovalOptions{Count: nft.UnlimitedCount}, Address: bob.Address()}},
+			}},
+			expDeliverError: true,
+		},
+		{ // invalid codec
+			owner:   alice.Address(),
+			id:      []byte("other_network3"),
+			details: blockchain.TokenDetails{Chain: blockchain.Chain{MainTickerID: []byte("IOV")}, Iov: blockchain.IOV{Codec: "1"}},
+			approvals: []nft.ActionApprovals{{
+				Action:    nft.Action_ActionUpdateDetails.String(),
+				Approvals: []nft.Approval{{Options: nft.ApprovalOptions{Count: nft.UnlimitedCount}, Address: bob.Address()}},
+			}},
+			expCheckError: true,
+		},
+		{ // invalid codec json
+			owner:   alice.Address(),
+			id:      []byte("other_network4"),
+			details: blockchain.TokenDetails{Chain: blockchain.Chain{MainTickerID: []byte("IOV")}, Iov: blockchain.IOV{Codec: "bbb", CodecConfig: "{ssdas"}},
+			approvals: []nft.ActionApprovals{{
+				Action:    nft.Action_ActionUpdateDetails.String(),
+				Approvals: []nft.Approval{{Options: nft.ApprovalOptions{Count: nft.UnlimitedCount}, Address: bob.Address()}},
+			}},
+			expCheckError: true,
+		},
 		{ // invalid approvals
 			owner:           alice.Address(),
-			id:              []byte("other_netowork2"),
-			details:         blockchain.TokenDetails{[]blockchain.Network{}},
+			id:              []byte("other_network5"),
+			details:         blockchain.TokenDetails{Chain: blockchain.Chain{MainTickerID: []byte("IOV")}, Iov: blockchain.IOV{Codec: "test"}},
 			expCheckError:   true,
 			expDeliverError: true,
 			approvals: []nft.ActionApprovals{{
@@ -98,11 +132,8 @@ func TestHandleIssueTokenMsg(t *testing.T) {
 			require.NoError(t, err)
 			require.NotNil(t, o)
 			u, _ := blockchain.AsBlockchain(o)
-			if len(spec.details.Networks) == 0 {
-				assert.Len(t, u.GetNetworks(), 0)
-			} else {
-				assert.Equal(t, spec.details.Networks, u.GetNetworks())
-			}
+			assert.Equal(t, spec.details.Chain, u.GetChain())
+			assert.Equal(t, spec.details.Iov, u.GetIov())
 			// todo: verify approvals
 		})
 	}
@@ -115,9 +146,9 @@ func TestQueryTokenByName(t *testing.T) {
 
 	db := store.MemStore()
 	bucket := blockchain.NewBucket()
-	o1, _ := bucket.Create(db, alice.Address(), []byte("alicenet"), nil, nil)
+	o1, _ := bucket.Create(db, alice.Address(), []byte("alicenet"), nil, blockchain.Chain{MainTickerID: []byte("IOV")}, blockchain.IOV{Codec: "asd"})
 	bucket.Save(db, o1)
-	o2, _ := bucket.Create(db, bob.Address(), []byte("bobnet"), nil, nil)
+	o2, _ := bucket.Create(db, bob.Address(), []byte("bobnet"), nil, blockchain.Chain{MainTickerID: []byte("IOV")}, blockchain.IOV{Codec: "asd"})
 	bucket.Save(db, o2)
 
 	qr := weave.NewQueryRouter()

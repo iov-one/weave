@@ -24,7 +24,7 @@ func TestHandleIssueTokenMsg(t *testing.T) {
 	db := store.MemStore()
 	bucket := username.NewBucket()
 	blockchains := blockchain.NewBucket()
-	b, _ := blockchains.Create(db, anybody.Address(), []byte("myNet"), nil, nil)
+	b, _ := blockchains.Create(db, anybody.Address(), []byte("myNet"), nil, blockchain.Chain{MainTickerID: []byte("IOV")}, blockchain.IOV{Codec: "asd"})
 	blockchains.Save(db, b)
 
 	o, _ := bucket.Create(db, bob.Address(), []byte("existing@example.com"), nil, []username.ChainAddress{{ChainID: []byte("myNet"), Address: []byte("bobsChainAddress")}})
@@ -163,7 +163,7 @@ func TestIssueUsernameTx(t *testing.T) {
 
 	db := store.MemStore()
 	blockchains := blockchain.NewBucket()
-	b, _ := blockchains.Create(db, alice.Address(), []byte("myNet"), nil, nil)
+	b, _ := blockchains.Create(db, alice.Address(), []byte("myNet"), nil, blockchain.Chain{MainTickerID: []byte("IOV")}, blockchain.IOV{Codec: "asd"})
 	blockchains.Save(db, b)
 
 	handler := username.NewIssueHandler(helpers.Authenticate(alice), nil, username.NewBucket(), blockchains)
@@ -245,7 +245,7 @@ func TestAddChainAddress(t *testing.T) {
 	bucket := username.NewBucket()
 	blockchains := blockchain.NewBucket()
 	for _, blockchainID := range []string{"myNet", "myOtherNet"} {
-		b, _ := blockchains.Create(db, alice.Address(), []byte(blockchainID), nil, nil)
+		b, _ := blockchains.Create(db, alice.Address(), []byte(blockchainID), nil, blockchain.Chain{MainTickerID: []byte("IOV")}, blockchain.IOV{Codec: "asd"})
 		blockchains.Save(db, b)
 	}
 
