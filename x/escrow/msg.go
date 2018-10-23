@@ -48,7 +48,7 @@ func (UpdateEscrowPartiesMsg) Path() string {
 func NewCreateMsg(send, rcpt weave.Address, arb weave.Condition,
 	amount x.Coins, timeout int64, memo string) *CreateEscrowMsg {
 	return &CreateEscrowMsg{
-		Sender:    send,
+		Src:       send,
 		Recipient: rcpt,
 		Arbiter:   arb,
 		Amount:    amount,
@@ -77,7 +77,7 @@ func (m *CreateEscrowMsg) Validate() error {
 	if err := validateConditions(m.Arbiter); err != nil {
 		return err
 	}
-	return validateAddresses(m.Sender, m.Recipient)
+	return validateAddresses(m.Src, m.Recipient)
 }
 
 // Validate makes sure that this is sensible

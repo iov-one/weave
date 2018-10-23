@@ -30,7 +30,7 @@ message Escrow {
 // The rest must be defined
 message CreateEscrowMsg {
     // Sender, Arbiter, Recipient are all weave.Permission
-    bytes sender = 1;
+    bytes src = 1;
     bytes arbiter = 2;
     bytes recipient = 3;
     // amount may contain multiple token types

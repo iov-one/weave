@@ -22,7 +22,7 @@ const (
 
 var (
 	errMissingArbiter       = fmt.Errorf("Missing Arbiter")
-	errMissingSender        = fmt.Errorf("Missing Sender")
+	errMissingSender        = fmt.Errorf("Missing Src")
 	errMissingRecipient     = fmt.Errorf("Missing Recipient")
 	errMissingAllConditions = fmt.Errorf("Missing All Conditions")
 

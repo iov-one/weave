@@ -28,7 +28,7 @@ func TestUserModel(t *testing.T) {
 	assert.NotNil(t, obj)
 	assert.NoError(t, obj.Validate())
 	user := AsUser(obj)
-	assert.NotNil(t, user.PubKey)
+	assert.NotNil(t, user.Pubkey)
 	assert.Equal(t, int64(0), user.Sequence)
 
 	// set sequence
@@ -47,7 +47,7 @@ func TestUserModel(t *testing.T) {
 	assert.NotNil(t, obj2)
 	user2 := AsUser(obj2)
 	assert.Equal(t, int64(2), user2.Sequence)
-	assert.Equal(t, pub, user2.PubKey)
+	assert.Equal(t, pub, user2.Pubkey)
 }
 
 func TestUserValidation(t *testing.T) {
@@ -57,12 +57,12 @@ func TestUserValidation(t *testing.T) {
 
 	// set pubkey
 	pub := crypto.GenPrivKeyEd25519().PublicKey()
-	AsUser(obj).SetPubKey(pub)
+	AsUser(obj).SetPubkey(pub)
 	assert.Error(t, obj.Validate()) // missing key
 	obj.SetKey(pub.Address())
 	assert.NoError(t, obj.Validate()) // now complete
 	// cannot set pubkey a second time....
-	assert.Panics(t, func() { AsUser(obj).SetPubKey(pub) })
+	assert.Panics(t, func() { AsUser(obj).SetPubkey(pub) })
 
 	// make sure negative sequence throw error
 	AsUser(obj).Sequence = -30

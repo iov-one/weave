@@ -29,13 +29,13 @@ func IsInvalidSequenceErr(err error) bool {
 //------ various invalid signatures ----
 // all will match IsInvalidSignatureError
 
-func ErrMissingPubKey() error {
+func ErrMissingPubkey() error {
 	invalidSig := errors.ErrInvalidSignature()
 	return errors.WithLog("Missing public key", invalidSig, errors.CodeUnauthorized)
 }
-func ErrPubKeyAddressMismatch() error {
+func ErrPubkeyAddressMismatch() error {
 	invalidSig := errors.ErrInvalidSignature()
-	return errors.WithLog("PubKey and Address don't match", invalidSig, errors.CodeUnauthorized)
+	return errors.WithLog("Pubkey and Address don't match", invalidSig, errors.CodeUnauthorized)
 }
 
 var IsInvalidSignatureErr = errors.IsInvalidSignatureErr

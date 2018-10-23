@@ -164,10 +164,6 @@ func idxArbiter(obj orm.Object) ([]byte, error) {
 func (b Bucket) Create(db weave.KVStore, escrow *Escrow) (orm.Object, error) {
 	key := b.idSeq.NextVal(db)
 	obj := orm.NewSimpleObj(key, escrow)
-	err := b.Bucket.Save(db, obj)
-	if err != nil {
-		return nil, err
-	}
 	return obj, nil
 }
 

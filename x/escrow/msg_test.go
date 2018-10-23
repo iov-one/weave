@@ -50,7 +50,7 @@ func TestCreateEscrowMsg(t *testing.T) {
 		// proper
 		1: {
 			&CreateEscrowMsg{
-				Sender:    a.Address(),
+				Src:       a.Address(),
 				Arbiter:   b,
 				Recipient: c.Address(),
 				Amount:    plus,

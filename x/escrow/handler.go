@@ -16,12 +16,17 @@ const (
 	updateEscrowCost  int64 = 50
 )
 
+type escrowOperations interface {
+	Deposit(db weave.KVStore, escrow *Escrow, escrowID []byte, src weave.Address, amounts x.Coins) error
+	Withdraw(db weave.KVStore, escrow *Escrow, escrowID []byte, dest weave.Address, amounts x.Coins) error
+}
+
 // RegisterRoutes will instantiate and register
 // all handlers in this package
 func RegisterRoutes(r weave.Registry, auth x.Authenticator,
-	control cash.Controller) {
-
+	cashctrl cash.Controller) {
 	bucket := NewBucket()
+	control := NewController(cashctrl, bucket)
 	r.Handle(pathCreateEscrowMsg, CreateEscrowHandler{auth, bucket, control})
 	r.Handle(pathReleaseEscrowMsg, ReleaseEscrowHandler{auth, bucket, control})
 	r.Handle(pathReturnEscrowMsg, ReturnEscrowHandler{auth, bucket, control})
@@ -39,7 +44,7 @@ func RegisterQuery(qr weave.QueryRouter) {
 type CreateEscrowHandler struct {
 	auth   x.Authenticator
 	bucket Bucket
-	cash   cash.Controller
+	ops    escrowOperations
 }
 
 var _ weave.Handler = CreateEscrowHandler{}
@@ -70,7 +75,7 @@ func (h CreateEscrowHandler) Deliver(ctx weave.Context, db weave.KVStore,
 	}
 
 	// apply a default for sender
-	sender := weave.Address(msg.Sender)
+	sender := weave.Address(msg.Src)
 	if sender == nil {
 		sender = x.MainSigner(ctx, h.auth).Address()
 	}
@@ -80,7 +85,6 @@ func (h CreateEscrowHandler) Deliver(ctx weave.Context, db weave.KVStore,
 		Sender:    sender,
 		Arbiter:   msg.Arbiter,
 		Recipient: msg.Recipient,
-		Amount:    msg.Amount,
 		Timeout:   msg.Timeout,
 		Memo:      msg.Memo,
 	}
@@ -89,16 +93,9 @@ func (h CreateEscrowHandler) Deliver(ctx weave.Context, db weave.KVStore,
 		return res, err
 	}
 
-	// move the money to this object
-	dest := Condition(obj.Key()).Address()
-	for _, c := range escrow.Amount {
-		err := h.cash.MoveCoins(db, sender, dest, *c)
-		if err != nil {
-			// this will rollback the half-finished tx
-			return res, err
-		}
+	if err := h.ops.Deposit(db, escrow, obj.Key(), sender, msg.Amount); err != nil {
+		return res, err
 	}
-
 	// return id of escrow to use in future calls
 	res.Data = obj.Key()
 	return res, err
@@ -129,8 +126,8 @@ func (h CreateEscrowHandler) validate(ctx weave.Context, db weave.KVStore,
 	}
 
 	// sender must authorize this (if not set, defaults to MainSigner)
-	if msg.Sender != nil {
-		sender := weave.Address(msg.Sender)
+	if msg.Src != nil {
+		sender := weave.Address(msg.Src)
 		if !h.auth.HasAddress(ctx, sender) {
 			return nil, errors.ErrUnauthorized()
 		}
@@ -147,7 +144,7 @@ func (h CreateEscrowHandler) validate(ctx weave.Context, db weave.KVStore,
 type ReleaseEscrowHandler struct {
 	auth   x.Authenticator
 	bucket Bucket
-	cash   cash.Controller
+	ops    escrowOperations
 }
 
 var _ weave.Handler = ReleaseEscrowHandler{}
@@ -191,35 +188,14 @@ func (h ReleaseEscrowHandler) Deliver(ctx weave.Context, db weave.KVStore,
 
 	// move the money from escrow to recipient
 	key := msg.EscrowId
-	sender := Condition(key).Address()
 	dest := weave.Address(escrow.Recipient)
-	for _, c := range request {
-		err := h.cash.MoveCoins(db, sender, dest, *c)
-		if err != nil {
-			// this will rollback the half-finished tx
-			return res, err
-		}
-		// remove coin from remaining balance
-		available, err = available.Subtract(*c)
-		if err != nil {
-			return res, err
-		}
+	if err := h.ops.Withdraw(db, escrow, key, dest, request); err != nil {
+		return res, err
 	}
 
-	// if there is something left, just update the balance...
-	if available.IsPositive() {
-		// return id as we can use again
+	if x.Coins(escrow.Amount).IsPositive() {
 		res.Data = key
-		// this updates the object, as we have a pointer
-		escrow.Amount = available
-		obj := orm.NewSimpleObj(key, escrow)
-		err = h.bucket.Save(db, obj)
-	} else {
-		// otherwise we finished the escrow and can delete it
-		err = h.bucket.Delete(db, key)
 	}
-
-	// returns error if Save/Delete failed
 	return res, err
 }
 
@@ -268,7 +244,7 @@ func (h ReleaseEscrowHandler) validate(ctx weave.Context, db weave.KVStore,
 type ReturnEscrowHandler struct {
 	auth   x.Authenticator
 	bucket Bucket
-	cash   cash.Controller
+	ops    escrowOperations
 }
 
 var _ weave.Handler = ReturnEscrowHandler{}
@@ -299,19 +275,10 @@ func (h ReturnEscrowHandler) Deliver(ctx weave.Context, db weave.KVStore,
 	}
 
 	// move the money from escrow to recipient
-	sender := Condition(key).Address()
 	dest := weave.Address(escrow.Sender)
-	for _, c := range escrow.Amount {
-		err := h.cash.MoveCoins(db, sender, dest, *c)
-		if err != nil {
-			// this will rollback the half-finished tx
-			return res, err
-		}
+	if err := h.ops.Withdraw(db, escrow, key, dest, escrow.Amount); err != nil {
+		return res, err
 	}
-
-	// now remove the finished escrow
-	err = h.bucket.Delete(db, key)
-
 	// returns error if Delete failed
 	return res, err
 }
@@ -335,14 +302,9 @@ func (h ReturnEscrowHandler) validate(ctx weave.Context, db weave.KVStore,
 	}
 
 	// load escrow
-	key := msg.EscrowId
-	obj, err := h.bucket.Get(db, key)
+	escrow, err := loadEscrow(h.bucket, db, msg.GetEscrowId())
 	if err != nil {
 		return nil, nil, err
-	}
-	escrow := AsEscrow(obj)
-	if escrow == nil {
-		return nil, nil, ErrNoSuchEscrow(key)
 	}
 
 	// timeout must have expired
@@ -351,7 +313,7 @@ func (h ReturnEscrowHandler) validate(ctx weave.Context, db weave.KVStore,
 		return nil, nil, ErrEscrowNotExpired(escrow.Timeout)
 	}
 
-	return key, escrow, nil
+	return msg.EscrowId, escrow, nil
 }
 
 //---- update
@@ -427,14 +389,9 @@ func (h UpdateEscrowHandler) validate(ctx weave.Context, db weave.KVStore,
 		return nil, nil, err
 	}
 
-	// load escrow
-	obj, err := h.bucket.Get(db, msg.EscrowId)
+	escrow, err := loadEscrow(h.bucket, db, msg.GetEscrowId())
 	if err != nil {
 		return nil, nil, err
-	}
-	escrow := AsEscrow(obj)
-	if escrow == nil {
-		return nil, nil, ErrNoSuchEscrow(msg.EscrowId)
 	}
 
 	// timeout must not have expired
@@ -465,8 +422,6 @@ func (h UpdateEscrowHandler) validate(ctx weave.Context, db weave.KVStore,
 
 	return msg, escrow, nil
 }
-
-// helpers
 
 // load escrow and cast it, returns error if not present
 func loadEscrow(bucket Bucket, db weave.KVStore, escrowID []byte) (*Escrow, error) {
