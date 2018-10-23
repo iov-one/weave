@@ -21,8 +21,8 @@ func (u *UserData) Validate() error {
 	if seq < 0 {
 		return ErrInvalidSequence("Seq(%d)", seq)
 	}
-	if seq > 0 && u.PubKey == nil {
-		return ErrInvalidSequence("Seq(%d) needs PubKey", seq)
+	if seq > 0 && u.Pubkey == nil {
+		return ErrInvalidSequence("Seq(%d) needs Pubkey", seq)
 	}
 	return nil
 }
@@ -31,7 +31,7 @@ func (u *UserData) Validate() error {
 func (u *UserData) Copy() orm.CloneableData {
 	return &UserData{
 		Sequence: u.Sequence,
-		PubKey:   u.PubKey,
+		Pubkey:   u.Pubkey,
 	}
 }
 
@@ -47,15 +47,15 @@ func (u *UserData) CheckAndIncrementSequence(check int64) error {
 	return nil
 }
 
-// SetPubKey will try to set the PubKey or panic on an illegal operation.
+// SetPubkey will try to set the Pubkey or panic on an illegal operation.
 // It is illegal to reset an already set key
 // Otherwise, we don't control
 // (although we could verify the hash, we leave that to the controller)
-func (u *UserData) SetPubKey(pubKey *crypto.PublicKey) {
-	if u.PubKey != nil {
+func (u *UserData) SetPubkey(pubkey *crypto.PublicKey) {
+	if u.Pubkey != nil {
 		panic("Cannot change pubkey for a user")
 	}
-	u.PubKey = pubKey
+	u.Pubkey = pubkey
 }
 
 //-------------------- Object Wrapper -------
@@ -69,11 +69,11 @@ func AsUser(obj orm.Object) *UserData {
 }
 
 // NewUser constructs an object from an address and pubkey
-func NewUser(pubKey *crypto.PublicKey) orm.Object {
+func NewUser(pubkey *crypto.PublicKey) orm.Object {
 	var key weave.Address
-	value := &UserData{PubKey: pubKey}
-	if pubKey != nil {
-		key = pubKey.Address()
+	value := &UserData{Pubkey: pubkey}
+	if pubkey != nil {
+		key = pubkey.Address()
 	}
 	return orm.NewSimpleObj(key, value)
 }
@@ -94,11 +94,11 @@ func NewBucket() Bucket {
 
 // GetOrCreate initializes a UserData if none exist for that key
 func (b Bucket) GetOrCreate(db weave.KVStore,
-	pubKey *crypto.PublicKey) (orm.Object, error) {
+	pubkey *crypto.PublicKey) (orm.Object, error) {
 
-	obj, err := b.Get(db, pubKey.Address())
+	obj, err := b.Get(db, pubkey.Address())
 	if err == nil && obj == nil {
-		obj = NewUser(pubKey)
+		obj = NewUser(pubkey)
 	}
 	return obj, err
 }

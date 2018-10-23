@@ -65,7 +65,7 @@ func VerifySignature(db weave.KVStore, sig *StdSignature,
 	bucket := NewBucket()
 
 	// load account
-	obj, err := bucket.GetOrCreate(db, sig.PubKey)
+	obj, err := bucket.GetOrCreate(db, sig.Pubkey)
 	if err != nil {
 		return nil, err
 	}
@@ -76,7 +76,7 @@ func VerifySignature(db weave.KVStore, sig *StdSignature,
 	}
 
 	user := AsUser(obj)
-	if !user.PubKey.Verify(toSign, sig.Signature) {
+	if !user.Pubkey.Verify(toSign, sig.Signature) {
 		return nil, errors.ErrInvalidSignature()
 	}
 
@@ -88,7 +88,7 @@ func VerifySignature(db weave.KVStore, sig *StdSignature,
 	if err != nil {
 		return nil, err
 	}
-	return user.PubKey.Condition(), nil
+	return user.Pubkey.Condition(), nil
 }
 
 /*
@@ -155,7 +155,7 @@ func SignTx(signer crypto.Signer, tx SignedTx, chainID string,
 	pub := signer.PublicKey()
 
 	res := &StdSignature{
-		PubKey:    pub,
+		Pubkey:    pub,
 		Signature: sig,
 		Sequence:  seq,
 	}

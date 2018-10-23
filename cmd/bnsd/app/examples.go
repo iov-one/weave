@@ -27,7 +27,7 @@ func Examples() []commands.Example {
 	priv := crypto.GenPrivKeyEd25519()
 	pub := priv.PublicKey()
 	user := &sigs.UserData{
-		PubKey:   pub,
+		Pubkey:   pub,
 		Sequence: 17,
 	}
 
