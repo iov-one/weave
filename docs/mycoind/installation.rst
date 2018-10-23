@@ -9,7 +9,7 @@ To run our system, we need three components:
 * ``iov-core``, a generic typescript client
 
 If you have never used tendermint before, you should
-read the `ABCI Overview <http://tendermint.readthedocs.io/en/master/introduction.html#abci-overview>`__
+read the `ABCI Overview <https://tendermint.com/docs/introduction/introduction.html#abci-overview>`__
 and ideally through to the bottom of the page. The end result
 is that we have three programs communicating:
 
