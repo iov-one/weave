@@ -1,0 +1,80 @@
+syntax = "proto3";
+
+package paychan;
+
+import "github.com/iov-one/weave/x/codec.proto";
+import "github.com/iov-one/weave/crypto/models.proto";
+
+// PaymentChannel holds the state of a payment channel during its lifetime.
+message PaymentChannel {
+    // Sender is the source that the founds are allocated from.
+    crypto.PublicKey sender_public_key = 1;
+    // Arbiter is an account selected by the system to keep the founds
+    // allocated for the payment channel.
+    bytes recipient = 2;
+    // Total represents a maximum value that can be transferred via this
+    // payment channel.
+    x.Coin total = 3;
+    // Absolute block height value. If reached, channel can be closed by
+    // sender.
+    int64 timeout = 4;
+    // Max length 128 character.
+    string memo = 5;
+    // Transferred represents total amount that was transferred using allocated
+    // (total) value. Transferred must never exceed total value.
+    x.Coin transferred = 6;
+}
+
+// CreatePaymentChannelMsg creates a new payment channel that can be used to
+// transfer value between two parties.
+//
+// Total amount will be taken from the senders account and allocated for user
+// in the transactions done via created payment channel.
+//
+// Arbiter is not specified because it is selected by the system.
+message CreatePaymentChannelMsg {
+    // Sender public key is used both for validating transfer message signature
+    // and to acquire senders address.
+    crypto.PublicKey sender_public_key = 1;
+    // Recipient address.
+    bytes recipient = 2;
+    // Maximum amount that can be transferred via this channel.
+    x.Coin total = 3;
+    // Absolute block height value. If reached, channel can be closed by
+    // anyone.
+    int64 timeout = 4;
+    // Max length 128 character.
+    string memo = 5;
+}
+
+// Payment is created by the sender. Sender should give the message to the
+// recipient, so that it can be redeemed at any time.
+//
+// Each Payment should be created with amount greater than the previous one.
+message Payment {
+    string chain_id = 1;
+    bytes channel_id = 2;
+    x.Coin amount = 3;
+    // Max length 128 character.
+    string memo = 4;
+}
+
+// TransferPaymentChannelMsg binds Payment with a signature created using
+// senders private key.
+// Signature is there to ensure that payment message was not altered.
+message TransferPaymentChannelMsg {
+    Payment payment = 1;
+    crypto.Signature signature = 2;
+}
+
+// ClosePaymentChannelMsg close a payment channel and release remaining founds
+// by sending them back to the sender account.
+//
+// Recipient account can close channel at any moment.
+//
+// Sender can close channel only if the timeout chain height was reached.
+message ClosePaymentChannelMsg {
+    bytes channel_id = 1;
+    // Max length 128 character.
+    string memo = 2;
+}
