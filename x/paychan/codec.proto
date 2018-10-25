@@ -9,8 +9,6 @@ import "github.com/iov-one/weave/crypto/models.proto";
 message PaymentChannel {
     // Sender is the source that the founds are allocated from.
     crypto.PublicKey sender_public_key = 1;
-    // Arbiter is an account selected by the system to keep the founds
-    // allocated for the payment channel.
     bytes recipient = 2;
     // Total represents a maximum value that can be transferred via this
     // payment channel.
@@ -30,8 +28,6 @@ message PaymentChannel {
 //
 // Total amount will be taken from the senders account and allocated for user
 // in the transactions done via created payment channel.
-//
-// Arbiter is not specified because it is selected by the system.
 message CreatePaymentChannelMsg {
     // Sender public key is used both for validating transfer message signature
     // and to acquire senders address.
