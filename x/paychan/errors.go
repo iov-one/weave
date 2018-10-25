@@ -9,16 +9,6 @@ import (
 	x "github.com/iov-one/weave/x"
 )
 
-func ErrMissingSender() error {
-	return errors.WithCode(errMissingSender, codeMissingCondition)
-}
-
-var errMissingSender = stderr.New("missing sender")
-
-func IsMissingSenderErr(err error) bool {
-	return errors.IsSameError(err, errMissingSender)
-}
-
 func ErrMissingRecipient() error {
 	return errors.WithCode(errMissingRecipient, codeMissingCondition)
 }

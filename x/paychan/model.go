@@ -9,11 +9,8 @@ var _ orm.CloneableData = (*PaymentChannel)(nil)
 
 // Validate ensures the payment channel is valid.
 func (pc *PaymentChannel) Validate() error {
-	if pc.Sender == nil {
-		return ErrMissingSender()
-	}
 	if pc.SenderPublicKey == nil {
-		return ErrMissingPublicKey()
+		return ErrMissingSenderPublicKey()
 	}
 	if pc.Recipient == nil {
 		return ErrMissingRecipient()
