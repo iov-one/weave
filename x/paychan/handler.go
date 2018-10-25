@@ -111,8 +111,7 @@ var _ weave.Handler = (*transferPaymentChannelHandler)(nil)
 
 func (h *transferPaymentChannelHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (weave.CheckResult, error) {
 	var res weave.CheckResult
-	msg, err := h.validate(ctx, db, tx)
-	if err != nil {
+	if _, err := h.validate(ctx, db, tx); err != nil {
 		return res, err
 	}
 	res.GasAllocated += transferPaymentChannelCost
