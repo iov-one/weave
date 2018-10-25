@@ -9,6 +9,15 @@ import (
 	x "github.com/iov-one/weave/x"
 )
 
+// ABCI Response Codes
+//
+// paychan takes 1021-1029
+const (
+	codeMissingCondition = 1021
+	codeInvalidCondition = 1022
+	codeNotFound         = 1023
+)
+
 func ErrMissingRecipient() error {
 	return errors.WithCode(errMissingRecipient, codeMissingCondition)
 }
@@ -128,15 +137,6 @@ var errNotAllowed = stderr.New("not allowed")
 func IsNotAllowedErr(err error) bool {
 	return errors.IsSameError(err, errNotAllowed)
 }
-
-// ABCI Response Codes
-//
-// paychan takes 1021-1029
-const (
-	codeMissingCondition = 1021
-	codeInvalidCondition = 1022
-	codeNotFound         = 1023
-)
 
 func IsMissingConditionErr(err error) bool {
 	return errors.HasErrorCode(err, codeMissingCondition)
