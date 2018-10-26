@@ -27,6 +27,7 @@ var (
 	errInvalidTotal           = stderr.New("invalid total")
 	errInvalidTransferred     = stderr.New("invalid transferred")
 	errMissingRecipient       = stderr.New("missing recipient")
+	errMissingSender          = stderr.New("missing sender")
 	errMissingSenderPublicKey = stderr.New("missing sender public key")
 	errNoSuchPaymentChannel   = stderr.New("no such payment channel")
 	errNotAllowed             = stderr.New("not allowed")
@@ -38,6 +39,14 @@ func ErrMissingRecipient() error {
 
 func IsMissingRecipientErr(err error) bool {
 	return errors.IsSameError(err, errMissingRecipient)
+}
+
+func ErrMissingSender() error {
+	return errors.WithCode(errMissingSender, codeMissingCondition)
+}
+
+func IsMissingSenderErr(err error) bool {
+	return errors.IsSameError(err, errMissingSender)
 }
 
 func ErrInvalidTimeout(timeout int64) error {

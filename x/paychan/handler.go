@@ -58,7 +58,7 @@ func (h *createPaymentChannelHandler) validate(ctx weave.Context, db weave.KVSto
 		return msg, ErrInvalidTimeout(msg.Timeout)
 	}
 
-	if !h.auth.HasAddress(ctx, msg.SenderPublicKey.Address()) {
+	if !h.auth.HasAddress(ctx, weave.NewAddress(msg.Sender)) {
 		return msg, errors.ErrUnauthorized()
 	}
 
@@ -90,7 +90,7 @@ func (h *createPaymentChannelHandler) Deliver(ctx weave.Context, db weave.KVStor
 
 	// Move coins from sender account and deposit total amount available on
 	// that channels account.
-	src := msg.SenderPublicKey.Address()
+	src := weave.NewAddress(msg.Sender)
 	dst := paymentChannelAccount(obj.Key())
 	if err := h.cash.MoveCoins(db, src, dst, *msg.Total); err != nil {
 		return res, err
@@ -185,7 +185,7 @@ func (h *transferPaymentChannelHandler) Deliver(ctx weave.Context, db weave.KVSt
 	}
 
 	src := paymentChannelAccount(msg.Payment.ChannelId)
-	dst := weave.Address(pc.Recipient)
+	dst := weave.NewAddress(pc.Recipient)
 	if err := h.cash.MoveCoins(db, src, dst, diff); err != nil {
 		return res, err
 	}
@@ -264,7 +264,7 @@ func (h *closePaymentChannelHandler) Deliver(ctx weave.Context, db weave.KVStore
 		return res, err
 	}
 	src := paymentChannelAccount(msg.ChannelId)
-	dst := pc.SenderPublicKey.Address()
+	dst := weave.NewAddress(pc.Sender)
 	if err := h.cash.MoveCoins(db, src, dst, diff); err != nil {
 		return res, err
 	}

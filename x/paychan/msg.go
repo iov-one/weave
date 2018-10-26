@@ -15,6 +15,9 @@ const (
 )
 
 func (m *CreatePaymentChannelMsg) Validate() error {
+	if m.Sender == nil {
+		return ErrMissingSender()
+	}
 	if m.SenderPublicKey == nil {
 		return ErrMissingSenderPublicKey()
 	}
@@ -31,7 +34,7 @@ func (m *CreatePaymentChannelMsg) Validate() error {
 		return ErrInvalidMemo(m.Memo)
 	}
 
-	return validateAddresses(m.Recipient, m.SenderPublicKey.Address())
+	return validateAddresses(m.Recipient, m.Sender)
 }
 
 func (CreatePaymentChannelMsg) Path() string {

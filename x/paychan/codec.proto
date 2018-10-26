@@ -8,19 +8,24 @@ import "github.com/iov-one/weave/crypto/models.proto";
 // PaymentChannel holds the state of a payment channel during its lifetime.
 message PaymentChannel {
     // Sender is the source that the founds are allocated from.
-    crypto.PublicKey sender_public_key = 1;
-    bytes recipient = 2;
+    bytes sender = 1;
+    // Sender public key is a key that must be used to verify signature of
+    // transfer message. Sender creates signed transfer messages and gives them
+    // to the recipient. Signature prevents from altering transfer message.
+    crypto.PublicKey sender_public_key = 2;
+    // Recipient is the party that receives payments through this channel.
+    bytes recipient = 3;
     // Total represents a maximum value that can be transferred via this
     // payment channel.
-    x.Coin total = 3;
+    x.Coin total = 4;
     // Absolute block height value. If reached, channel can be closed by
     // sender.
-    int64 timeout = 4;
+    int64 timeout = 5;
     // Max length 128 character.
-    string memo = 5;
+    string memo = 6;
     // Transferred represents total amount that was transferred using allocated
     // (total) value. Transferred must never exceed total value.
-    x.Coin transferred = 6;
+    x.Coin transferred = 7;
 }
 
 // CreatePaymentChannelMsg creates a new payment channel that can be used to
@@ -29,18 +34,19 @@ message PaymentChannel {
 // Total amount will be taken from the senders account and allocated for user
 // in the transactions done via created payment channel.
 message CreatePaymentChannelMsg {
-    // Sender public key is used both for validating transfer message signature
-    // and to acquire senders address.
-    crypto.PublicKey sender_public_key = 1;
+    // Sender address.
+    bytes sender = 1;
+    // Sender public key is for validating transfer message signature.
+    crypto.PublicKey sender_public_key = 2;
     // Recipient address.
-    bytes recipient = 2;
+    bytes recipient = 3;
     // Maximum amount that can be transferred via this channel.
-    x.Coin total = 3;
+    x.Coin total = 4;
     // Absolute block height value. If reached, channel can be closed by
     // anyone.
-    int64 timeout = 4;
+    int64 timeout = 5;
     // Max length 128 character.
-    string memo = 5;
+    string memo = 6;
 }
 
 // Payment is created by the sender. Sender should give the message to the
