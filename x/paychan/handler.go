@@ -1,13 +1,12 @@
 package paychan
 
 import (
-	"fmt"
-
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/x"
 	"github.com/iov-one/weave/x/cash"
+	pkgerrors "github.com/pkg/errors"
 )
 
 const (
@@ -142,7 +141,7 @@ func (h *transferPaymentChannelHandler) validate(ctx weave.Context, db weave.KVS
 	// Check signature to ensure the message was not altered.
 	raw, err := msg.Payment.Marshal()
 	if err != nil {
-		return nil, fmt.Errorf("serialize payment: %s", err)
+		return nil, pkgerrors.Wrap(err, "serialize payment")
 	}
 	if !pc.SenderPublicKey.Verify(raw, msg.Signature) {
 		return msg, ErrInvalidSignature()
