@@ -38,7 +38,7 @@ func CheckOrError(result CheckResult, err error, debug bool) abci.ResponseCheckT
 type DeliverResult struct {
 	Data    []byte
 	Log     string
-	Diff    []abci.Validator
+	Diff    []abci.ValidatorUpdate
 	Tags    []common.KVPair
 	GasUsed int64 // unused
 }
@@ -84,7 +84,7 @@ func (c CheckResult) ToABCI() abci.ResponseCheckTx {
 
 // TickResult allows the Ticker to modify the validator set
 type TickResult struct {
-	Diff []abci.Validator
+	Diff []abci.ValidatorUpdate
 }
 
 //---------- type safe error converters --------

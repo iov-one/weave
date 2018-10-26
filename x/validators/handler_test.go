@@ -37,7 +37,7 @@ func TestHandler(t *testing.T) {
 
 		Convey("Check Deliver and Check", func() {
 			Convey("With a right address", func() {
-				tx := helpers.MockTx(&SetValidatorsMsg{Validators: []*Validator{{}}})
+				tx := helpers.MockTx(&SetValidatorsMsg{ValidatorUpdates: []*ValidatorUpdate{{}}})
 				handler := NewUpdateHandler(auth, ctrl, authCheckAddress)
 
 				res, err := handler.Deliver(nil, kv, tx)
@@ -49,7 +49,7 @@ func TestHandler(t *testing.T) {
 			})
 
 			Convey("With a wrong address", func() {
-				tx := helpers.MockTx(&SetValidatorsMsg{Validators: []*Validator{{}}})
+				tx := helpers.MockTx(&SetValidatorsMsg{ValidatorUpdates: []*ValidatorUpdate{{}}})
 				handler := NewUpdateHandler(auth2, ctrl, authCheckAddress)
 
 				_, err := handler.Deliver(nil, kv, tx)

@@ -45,7 +45,7 @@ type StoreApp struct {
 	chainID string
 
 	// cached validator changes from DeliverTx
-	pending []abci.Validator
+	pending []abci.ValidatorUpdate
 
 	// baseContext contains context info that is valid for
 	// lifetime of this app (eg. chainID)
@@ -327,14 +327,14 @@ func (s *StoreApp) BeginBlock(req abci.RequestBeginBlock) (res abci.ResponseBegi
 // Returns a list of all validator changes made in this block
 // TODO: investigate response tags as of 0.11 abci
 func (s *StoreApp) EndBlock(_ abci.RequestEndBlock) (res abci.ResponseEndBlock) {
-	//res.ValidatorUpdates = s.pending
+	res.ValidatorUpdates = s.pending
 	s.pending = nil
 	return
 }
 
 // AddValChange is meant to be called by apps on DeliverTx
 // results, this is added to the cache for the endblock changeset
-func (s *StoreApp) AddValChange(diffs []abci.Validator) {
+func (s *StoreApp) AddValChange(diffs []abci.ValidatorUpdate) {
 	// ensures multiple updates for one validator are combined into one slot
 	for _, d := range diffs {
 		idx := pubKeyIndex(d, s.pending)
@@ -347,7 +347,7 @@ func (s *StoreApp) AddValChange(diffs []abci.Validator) {
 }
 
 // return index of list with validator of same Pubkey, or -1 if no match
-func pubKeyIndex(val abci.Validator, list []abci.Validator) int {
+func pubKeyIndex(val abci.ValidatorUpdate, list []abci.ValidatorUpdate) int {
 	for i, v := range list {
 		if val.PubKey.Type == v.PubKey.Type && bytes.Equal(val.PubKey.Data, v.PubKey.Data) {
 			return i

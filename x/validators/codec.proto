@@ -6,11 +6,10 @@ package validators;
 // https://github.com/gogo/protobuf/blob/master/extensions.md
 import "github.com/gogo/protobuf/gogoproto/gogo.proto";
 
-// Validator
-message Validator {
-  bytes address = 1;
-  Pubkey pubkey = 2 [(gogoproto.nullable)=false];
-  int64 power = 3;
+// ValidatorUpdate
+message ValidatorUpdate {
+  Pubkey pubkey = 1 [(gogoproto.nullable)=false];
+  int64 power = 2;
 }
 
 message Pubkey {
@@ -20,7 +19,7 @@ message Pubkey {
 
 // This message is designed to update validator power
 message SetValidatorsMsg {
-	repeated Validator validators = 1;
+	repeated ValidatorUpdate validator_updates = 1;
 }
 
 // Accounts is a list of accounts allowed to update validators

@@ -15,9 +15,8 @@ func (*SetValidatorsMsg) Path() string {
 	return pathUpdate
 }
 
-func (m Validator) AsABCI() abci.Validator {
-	return abci.Validator{
-		Address: m.Address,
+func (m ValidatorUpdate) AsABCI() abci.ValidatorUpdate {
+	return abci.ValidatorUpdate{
 		PubKey:  m.Pubkey.AsABCI(),
 		Power:   m.Power,
 	}
@@ -30,9 +29,9 @@ func (m Pubkey) AsABCI() abci.PubKey {
 	}
 }
 
-func (m *SetValidatorsMsg) AsABCI() []abci.Validator {
-	validators := make([]abci.Validator, len(m.Validators))
-	for k, v := range m.Validators {
+func (m *SetValidatorsMsg) AsABCI() []abci.ValidatorUpdate {
+	validators := make([]abci.ValidatorUpdate, len(m.ValidatorUpdates))
+	for k, v := range m.ValidatorUpdates {
 		validators[k] = v.AsABCI()
 	}
 
