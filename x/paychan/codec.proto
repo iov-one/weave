@@ -7,13 +7,14 @@ import "github.com/iov-one/weave/crypto/models.proto";
 
 // PaymentChannel holds the state of a payment channel during its lifetime.
 message PaymentChannel {
-    // Sender is the source that the founds are allocated from.
-    bytes sender = 1;
+    // Sender is the source that the founds are allocated from (weave.Address).
+    bytes src = 1;
     // Sender public key is a key that must be used to verify signature of
     // transfer message. Sender creates signed transfer messages and gives them
     // to the recipient. Signature prevents from altering transfer message.
-    crypto.PublicKey sender_public_key = 2;
-    // Recipient is the party that receives payments through this channel.
+    crypto.PublicKey sender_pubkey = 2;
+    // Recipient is the party that receives payments through this channel
+    // (weave.Address).
     bytes recipient = 3;
     // Total represents a maximum value that can be transferred via this
     // payment channel.
@@ -34,11 +35,11 @@ message PaymentChannel {
 // Total amount will be taken from the senders account and allocated for user
 // in the transactions done via created payment channel.
 message CreatePaymentChannelMsg {
-    // Sender address.
-    bytes sender = 1;
+    // Sender address (weave.Address).
+    bytes src = 1;
     // Sender public key is for validating transfer message signature.
-    crypto.PublicKey sender_public_key = 2;
-    // Recipient address.
+    crypto.PublicKey sender_pubkey = 2;
+    // Recipient address  (weave.Address).
     bytes recipient = 3;
     // Maximum amount that can be transferred via this channel.
     x.Coin total = 4;

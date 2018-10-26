@@ -58,7 +58,7 @@ func (h *createPaymentChannelHandler) validate(ctx weave.Context, db weave.KVSto
 		return msg, ErrInvalidTimeout(msg.Timeout)
 	}
 
-	if !h.auth.HasAddress(ctx, weave.NewAddress(msg.Sender)) {
+	if !h.auth.HasAddress(ctx, msg.Src) {
 		return msg, errors.ErrUnauthorized()
 	}
 
@@ -73,11 +73,11 @@ func (h *createPaymentChannelHandler) Deliver(ctx weave.Context, db weave.KVStor
 	}
 
 	obj, err := h.bucket.Create(db, &PaymentChannel{
-		SenderPublicKey: msg.SenderPublicKey,
-		Recipient:       msg.Recipient,
-		Total:           msg.Total,
-		Timeout:         msg.Timeout,
-		Memo:            msg.Memo,
+		SenderPubkey: msg.SenderPubkey,
+		Recipient:    msg.Recipient,
+		Total:        msg.Total,
+		Timeout:      msg.Timeout,
+		Memo:         msg.Memo,
 		Transferred: &x.Coin{
 			Whole:      0,
 			Fractional: 0,
@@ -90,9 +90,8 @@ func (h *createPaymentChannelHandler) Deliver(ctx weave.Context, db weave.KVStor
 
 	// Move coins from sender account and deposit total amount available on
 	// that channels account.
-	src := weave.NewAddress(msg.Sender)
 	dst := paymentChannelAccount(obj.Key())
-	if err := h.cash.MoveCoins(db, src, dst, *msg.Total); err != nil {
+	if err := h.cash.MoveCoins(db, msg.Src, dst, *msg.Total); err != nil {
 		return res, err
 	}
 
@@ -143,7 +142,7 @@ func (h *transferPaymentChannelHandler) validate(ctx weave.Context, db weave.KVS
 	if err != nil {
 		return nil, pkgerrors.Wrap(err, "serialize payment")
 	}
-	if !pc.SenderPublicKey.Verify(raw, msg.Signature) {
+	if !pc.SenderPubkey.Verify(raw, msg.Signature) {
 		return msg, ErrInvalidSignature()
 	}
 
@@ -185,8 +184,7 @@ func (h *transferPaymentChannelHandler) Deliver(ctx weave.Context, db weave.KVSt
 	}
 
 	src := paymentChannelAccount(msg.Payment.ChannelId)
-	dst := weave.NewAddress(pc.Recipient)
-	if err := h.cash.MoveCoins(db, src, dst, diff); err != nil {
+	if err := h.cash.MoveCoins(db, src, pc.Recipient, diff); err != nil {
 		return res, err
 	}
 
@@ -264,8 +262,7 @@ func (h *closePaymentChannelHandler) Deliver(ctx weave.Context, db weave.KVStore
 		return res, err
 	}
 	src := paymentChannelAccount(msg.ChannelId)
-	dst := weave.NewAddress(pc.Sender)
-	if err := h.cash.MoveCoins(db, src, dst, diff); err != nil {
+	if err := h.cash.MoveCoins(db, src, pc.Src, diff); err != nil {
 		return res, err
 	}
 	err = h.bucket.Delete(db, msg.ChannelId)

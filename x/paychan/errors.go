@@ -27,8 +27,8 @@ var (
 	errInvalidTotal           = stderr.New("invalid total")
 	errInvalidTransferred     = stderr.New("invalid transferred")
 	errMissingRecipient       = stderr.New("missing recipient")
-	errMissingSender          = stderr.New("missing sender")
-	errMissingSenderPublicKey = stderr.New("missing sender public key")
+	errMissingSrc             = stderr.New("missing src")
+	errMissingSenderPubkey    = stderr.New("missing sender public key")
 	errNoSuchPaymentChannel   = stderr.New("no such payment channel")
 	errNotAllowed             = stderr.New("not allowed")
 )
@@ -41,12 +41,12 @@ func IsMissingRecipientErr(err error) bool {
 	return errors.IsSameError(err, errMissingRecipient)
 }
 
-func ErrMissingSender() error {
-	return errors.WithCode(errMissingSender, codeMissingCondition)
+func ErrMissingSrc() error {
+	return errors.WithCode(errMissingSrc, codeMissingCondition)
 }
 
 func IsMissingSenderErr(err error) bool {
-	return errors.IsSameError(err, errMissingSender)
+	return errors.IsSameError(err, errMissingSrc)
 }
 
 func ErrInvalidTimeout(timeout int64) error {
@@ -54,12 +54,12 @@ func ErrInvalidTimeout(timeout int64) error {
 	return errors.WithLog(msg, errInvalidTimeout, codeInvalidCondition)
 }
 
-func ErrMissingSenderPublicKey() error {
-	return errors.WithCode(errMissingSenderPublicKey, codeMissingCondition)
+func ErrMissingSenderPubkey() error {
+	return errors.WithCode(errMissingSenderPubkey, codeMissingCondition)
 }
 
 func IsMissingSenderPublicKeyErr(err error) bool {
-	return errors.IsSameError(err, errMissingSenderPublicKey)
+	return errors.IsSameError(err, errMissingSenderPubkey)
 }
 
 func ErrInvalidSenderPublicKey() error {
