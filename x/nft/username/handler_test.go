@@ -12,7 +12,7 @@ import (
 	"github.com/iov-one/weave/x/nft/username"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/tendermint/tmlibs/common"
+	"github.com/tendermint/tendermint/libs/common"
 )
 
 func TestHandleIssueTokenMsg(t *testing.T) {

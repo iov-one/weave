@@ -2,7 +2,7 @@ package iavl
 
 import (
 	"github.com/tendermint/iavl"
-	dbm "github.com/tendermint/tmlibs/db"
+	dbm "github.com/tendermint/tendermint/libs/db"
 
 	"github.com/iov-one/weave/store"
 )

@@ -3,8 +3,8 @@ package weave
 import (
 	"fmt"
 
-	abci "github.com/tendermint/abci/types"
-	"github.com/tendermint/tmlibs/common"
+	abci "github.com/tendermint/tendermint/abci/types"
+	"github.com/tendermint/tendermint/libs/common"
 
 	"github.com/iov-one/weave/errors"
 )
@@ -78,7 +78,7 @@ func (c CheckResult) ToABCI() abci.ResponseCheckTx {
 		Data:      c.Data,
 		Log:       c.Log,
 		GasWanted: c.GasAllocated,
-		Fee:       common.KI64Pair{Value: c.GasPayment},
+		GasUsed:   c.GasPayment,
 	}
 }
 

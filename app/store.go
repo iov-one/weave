@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"strings"
 
-	abci "github.com/tendermint/abci/types"
-	"github.com/tendermint/tmlibs/log"
+	abci "github.com/tendermint/tendermint/abci/types"
+	"github.com/tendermint/tendermint/libs/log"
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
@@ -20,7 +20,7 @@ import (
 // DeliverTx and initializing state from the genesis.
 // Errors on ABCI steps handled as panics
 // I'm sorry Alex, but there is no other way :(
-// https://github.com/tendermint/abci/issues/165#issuecomment-353704015
+// https://github.com/tendermint/tendermint/abci/issues/165#issuecomment-353704015
 // "Regarding errors in general, for messages that don't take
 //  user input like Flush, Info, InitChain, BeginBlock, EndBlock,
 // and Commit.... There is no way to handle these errors gracefully,
@@ -327,7 +327,7 @@ func (s *StoreApp) BeginBlock(req abci.RequestBeginBlock) (res abci.ResponseBegi
 // Returns a list of all validator changes made in this block
 // TODO: investigate response tags as of 0.11 abci
 func (s *StoreApp) EndBlock(_ abci.RequestEndBlock) (res abci.ResponseEndBlock) {
-	res.ValidatorUpdates = s.pending
+	//res.ValidatorUpdates = s.pending
 	s.pending = nil
 	return
 }

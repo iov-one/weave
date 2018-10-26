@@ -20,7 +20,7 @@ go:
 env:
 - GORACE="halt_on_error=1"
   BUILD_VERSION=$(echo ${TRAVIS_COMMIT} | cut -c 1-10)
-  TM_VERSION=v0.21.0
+  TM_VERSION=v0.25.0
 
 install:
 - make deps

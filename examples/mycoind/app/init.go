@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"path/filepath"
 
-	abci "github.com/tendermint/abci/types"
-	"github.com/tendermint/tmlibs/log"
+	abci "github.com/tendermint/tendermint/abci/types"
+	"github.com/tendermint/tendermint/libs/log"
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/crypto"
