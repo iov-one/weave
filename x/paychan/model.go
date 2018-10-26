@@ -27,7 +27,7 @@ func (pc *PaymentChannel) Validate() error {
 
 	// Transfer value must not be greater than the Total value represented
 	// by the PaymentChannel.
-	if pc.Transferred == nil || !pc.Transferred.IsPositive() || pc.Transferred.IsGT(*pc.Total) {
+	if pc.Transferred == nil || !pc.Transferred.IsPositive() || pc.Transferred.Compare(*pc.Total) > 0 {
 		return ErrInvalidTransferred(pc.Transferred)
 	}
 	return nil

@@ -145,22 +145,6 @@ func (c Coin) IsGTE(o Coin) bool {
 	return true
 }
 
-// IsGT returns true if this coin is same type and greater than the other coin.
-//
-// This method requires that both coins are normalized.
-func (c Coin) IsGT(other Coin) bool {
-	if !c.SameType(other) {
-		return false
-	}
-	if c.Whole > other.Whole {
-		return true
-	}
-	if c.Whole < other.Whole {
-		return false
-	}
-	return c.Fractional > other.Fractional
-}
-
 // SameType returns true if they have the same currency
 func (c Coin) SameType(o Coin) bool {
 	return c.Ticker == o.Ticker &&

@@ -152,13 +152,13 @@ func (h *transferPaymentChannelHandler) validate(ctx weave.Context, db weave.KVS
 		return msg, ErrInvalidAmount(msg.Payment.Amount)
 	}
 
-	if msg.Payment.Amount.IsGT(*pc.Total) {
+	if msg.Payment.Amount.Compare(*pc.Total) > 0 {
 		return msg, ErrInvalidAmount(msg.Payment.Amount)
 	}
 	// Payment is representing a cumulative amount that is to be
 	// transferred to recipients account. Because it is cumulative, every
 	// transfer request must be greater than the previous one.
-	if !msg.Payment.Amount.IsGT(*pc.Transferred) {
+	if msg.Payment.Amount.Compare(*pc.Transferred) <= 0 {
 		return msg, ErrInvalidAmount(msg.Payment.Amount)
 	}
 

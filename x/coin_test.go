@@ -260,50 +260,41 @@ func TestAddCoin(t *testing.T) {
 	}
 }
 
-func TestCoinComparison(t *testing.T) {
+func TestCoinGTE(t *testing.T) {
 	cases := map[string]struct {
 		coin    Coin
 		other   Coin
-		wantGt  bool
 		wantGte bool
 	}{
 		"greater by fraction": {
 			coin:    NewCoin(1, 1, "DOGE"),
 			other:   NewCoin(1, 0, "DOGE"),
-			wantGt:  true,
 			wantGte: true,
 		},
 		"greater by whole": {
 			coin:    NewCoin(2, 0, "DOGE"),
 			other:   NewCoin(1, 0, "DOGE"),
-			wantGt:  true,
 			wantGte: true,
 		},
 		"equal": {
 			coin:    NewCoin(1, 2, "DOGE"),
 			other:   NewCoin(1, 2, "DOGE"),
-			wantGt:  false,
 			wantGte: true,
 		},
 		"different type": {
 			coin:    NewCoin(1, 2, "DOGE"),
 			other:   NewCoin(1, 2, "BTC"),
-			wantGt:  false,
 			wantGte: false,
 		},
 		"less than": {
 			coin:    NewCoin(0, 2, "DOGE"),
 			other:   NewCoin(1, 2, "DOGE"),
-			wantGt:  false,
 			wantGte: false,
 		},
 	}
 
 	for testName, tc := range cases {
 		t.Run(testName, func(t *testing.T) {
-			if tc.coin.IsGT(tc.other) != tc.wantGt {
-				t.Errorf("want greater = %v", tc.wantGt)
-			}
 			if tc.coin.IsGTE(tc.other) != tc.wantGte {
 				t.Errorf("want greaterequal = %v", tc.wantGte)
 			}
