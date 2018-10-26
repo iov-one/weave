@@ -18,6 +18,20 @@ const (
 	codeNotFound         = 1023
 )
 
+var (
+	errInvalidAmount          = stderr.New("invalid amount")
+	errInvalidMemo            = stderr.New("invalid memo")
+	errInvalidSenderPublicKey = stderr.New("invalid sender public key")
+	errInvalidSignature       = stderr.New("invalid signature")
+	errInvalidTimeout         = stderr.New("invalid timeout")
+	errInvalidTotal           = stderr.New("invalid total")
+	errInvalidTransferred     = stderr.New("invalid transferred")
+	errMissingRecipient       = stderr.New("missing recipient")
+	errMissingSenderPublicKey = stderr.New("missing sender public key")
+	errNoSuchPaymentChannel   = stderr.New("no such payment channel")
+	errNotAllowed             = stderr.New("not allowed")
+)
+
 func ErrMissingRecipient() error {
 	return errors.WithCode(errMissingRecipient, codeMissingCondition)
 }
@@ -26,20 +40,14 @@ func IsMissingRecipientErr(err error) bool {
 	return errors.IsSameError(err, errMissingRecipient)
 }
 
-var errMissingRecipient = stderr.New("missing recipient")
-
 func ErrInvalidTimeout(timeout int64) error {
 	msg := fmt.Sprint(timeout)
 	return errors.WithLog(msg, errInvalidTimeout, codeInvalidCondition)
 }
 
-var errInvalidTimeout = stderr.New("invalid timeout")
-
 func ErrMissingSenderPublicKey() error {
 	return errors.WithCode(errMissingSenderPublicKey, codeMissingCondition)
 }
-
-var errMissingSenderPublicKey = stderr.New("missing sender public key")
 
 func IsMissingSenderPublicKeyErr(err error) bool {
 	return errors.IsSameError(err, errMissingSenderPublicKey)
@@ -48,8 +56,6 @@ func IsMissingSenderPublicKeyErr(err error) bool {
 func ErrInvalidSenderPublicKey() error {
 	return errors.WithCode(errInvalidSenderPublicKey, codeInvalidCondition)
 }
-
-var errInvalidSenderPublicKey = stderr.New("invalid sender public key")
 
 func IsInvalidSenderPublicKeyErr(err error) bool {
 	return errors.IsSameError(err, errInvalidSenderPublicKey)
@@ -63,8 +69,6 @@ func ErrInvalidTotal(total *x.Coin) error {
 	return errors.WithLog(msg, errInvalidTotal, codeInvalidCondition)
 }
 
-var errInvalidTotal = stderr.New("invalid total")
-
 func IsInvalidTotalErr(err error) bool {
 	return errors.IsSameError(err, errInvalidTotal)
 }
@@ -77,8 +81,6 @@ func ErrInvalidTransferred(trans *x.Coin) error {
 	return errors.WithLog(msg, errInvalidTransferred, codeInvalidCondition)
 }
 
-var errInvalidTransferred = stderr.New("invalid transferred")
-
 func IsInvalidTransferredErr(err error) bool {
 	return errors.IsSameError(err, errInvalidTransferred)
 }
@@ -86,8 +88,6 @@ func IsInvalidTransferredErr(err error) bool {
 func ErrInvalidMemo(memo string) error {
 	return errors.WithLog(memo, errInvalidMemo, codeInvalidCondition)
 }
-
-var errInvalidMemo = stderr.New("invalid memo")
 
 func IsInvalidMemoErr(err error) bool {
 	return errors.IsSameError(err, errInvalidMemo)
@@ -97,8 +97,6 @@ func ErrInvalidSignature() error {
 	return errors.WithCode(errInvalidSignature, codeInvalidCondition)
 }
 
-var errInvalidSignature = stderr.New("invalid signature")
-
 func IsInvalidSignatureErr(err error) bool {
 	return errors.IsSameError(err, errInvalidSignature)
 }
@@ -107,8 +105,6 @@ func ErrNoSuchPaymentChannel(id []byte) error {
 	s := hex.EncodeToString(id)
 	return errors.WithLog(s, errNoSuchPaymentChannel, codeNotFound)
 }
-
-var errNoSuchPaymentChannel = stderr.New("no such payment channel")
 
 func IsNoSuchPaymentChannelErr(err error) bool {
 	return errors.IsSameError(err, errNoSuchPaymentChannel)
@@ -122,8 +118,6 @@ func ErrInvalidAmount(c *x.Coin) error {
 	return errors.WithLog(msg, errInvalidAmount, codeInvalidCondition)
 }
 
-var errInvalidAmount = stderr.New("invalid amount")
-
 func IsInvalidAmountErr(err error) bool {
 	return errors.IsSameError(err, errInvalidAmount)
 }
@@ -131,8 +125,6 @@ func IsInvalidAmountErr(err error) bool {
 func ErrNotAllowed(reason string) error {
 	return errors.WithLog(reason, errNotAllowed, codeInvalidCondition)
 }
-
-var errNotAllowed = stderr.New("not allowed")
 
 func IsNotAllowedErr(err error) bool {
 	return errors.IsSameError(err, errNotAllowed)
