@@ -64,6 +64,6 @@ func TestCreateResults(t *testing.T) {
 	ac := cres.ToABCI()
 	assert.Equal(t, c, ac.Log)
 	assert.Equal(t, gas, ac.GasWanted)
-	assert.Equal(t, int64(0), ac.Fee.Value)
+	assert.Equal(t, int64(0), ac.GasUsed)
 	assert.Empty(t, ac.Data)
 }

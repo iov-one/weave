@@ -29,8 +29,8 @@ func TestController(t *testing.T) {
 		accountsJson, err := json.Marshal(accts)
 		So(err, ShouldBeNil)
 
-		diff := []abci.Validator{{}}
-		emptyDiff := make([]abci.Validator, 0)
+		diff := []abci.ValidatorUpdate{{}}
+		emptyDiff := make([]abci.ValidatorUpdate, 0)
 
 		kv := store.MemStore()
 		bucket := NewBucket()

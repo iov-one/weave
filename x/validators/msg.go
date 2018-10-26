@@ -17,8 +17,8 @@ func (*SetValidatorsMsg) Path() string {
 
 func (m ValidatorUpdate) AsABCI() abci.ValidatorUpdate {
 	return abci.ValidatorUpdate{
-		PubKey:  m.Pubkey.AsABCI(),
-		Power:   m.Power,
+		PubKey: m.Pubkey.AsABCI(),
+		Power:  m.Power,
 	}
 }
 

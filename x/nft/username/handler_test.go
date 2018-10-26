@@ -177,7 +177,7 @@ func TestIssueUsernameTx(t *testing.T) {
 	res, err := handler.Deliver(nil, db, tx)
 	// then
 	require.NoError(t, err)
-	assert.Equal(t, []common.KVPair{{[]byte("msgType"), []byte("registerUsername")}}, res.Tags)
+	assert.Equal(t, []common.KVPair{{Key: []byte("msgType"), Value: []byte("registerUsername")}}, res.Tags)
 
 }
 
