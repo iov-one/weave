@@ -33,7 +33,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 	RegisterQuery(qr)
 
 	_, src := helper.MakeKey()
-	// Because it is allowed, use different publick key to sign the message.
+	// Because it is allowed, use different public key to sign the message.
 	srcSig, _ := helper.MakeKey()
 	_, recipient := helper.MakeKey()
 
