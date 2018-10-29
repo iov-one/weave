@@ -133,14 +133,6 @@
   revision = "0766667cb4d1cfb8d5fde1fe210ae41ead3cf589"
 
 [[projects]]
-  digest = "1:97aa68e2f00ec82d190dd4f10961085204c91f7dd0bfb7e58880ab4704588aa0"
-  name = "github.com/iov-one/iavl"
-  packages = ["."]
-  pruneopts = "UT"
-  revision = "896f49f369fa23dd4da663abca5657eaa8256f59"
-  version = "0.9.2-tm-0.25"
-
-[[projects]]
   branch = "master"
   digest = "1:39b27d1381a30421f9813967a5866fba35dc1d4df43a6eefe3b7a5444cb07214"
   name = "github.com/jmhodges/levigo"
@@ -251,6 +243,14 @@
   pruneopts = "UT"
   revision = "2106ca61d91029c931fd54968c2bb02dc96b1412"
   version = "0.10.1"
+
+[[projects]]
+  digest = "1:53397098d6acb7613358683cc84ae59281a60c6033f0bff62fa8d3f279c6c430"
+  name = "github.com/tendermint/iavl"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "3acc91fb8811db2c5409a855ae1f8e441fe98e2d"
+  version = "v0.11.0"
 
 [[projects]]
   digest = "1:1a4f3b76e8055836495ae4ea6af1c1393a31e9aed413b6a882543f3147b5693f"
@@ -369,11 +369,11 @@
     "github.com/gogo/protobuf/proto",
     "github.com/gogo/protobuf/protoc-gen-gogofaster",
     "github.com/google/btree",
-    "github.com/iov-one/iavl",
     "github.com/pkg/errors",
     "github.com/smartystreets/goconvey/convey",
     "github.com/stretchr/testify/assert",
     "github.com/stretchr/testify/require",
+    "github.com/tendermint/iavl",
     "github.com/tendermint/tendermint/abci/server",
     "github.com/tendermint/tendermint/abci/types",
     "github.com/tendermint/tendermint/libs/common",
