@@ -159,7 +159,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 					conditions: []weave.Condition{src},
 					msg: setSignature(srcSig, &TransferPaymentChannelMsg{
 						Payment: &Payment{
-							ChainId:   "TODO-123",
+							ChainId:   "testchain-123",
 							ChannelId: asSeqID(1),
 							Amount:    dogeCoin(2, 50),
 							Memo:      "much transfer",
@@ -171,7 +171,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 					conditions: []weave.Condition{src},
 					msg: setSignature(srcSig, &TransferPaymentChannelMsg{
 						Payment: &Payment{
-							ChainId:   "TODO-123",
+							ChainId:   "testchain-123",
 							ChannelId: asSeqID(1),
 							Amount:    dogeCoin(3, 0),
 							Memo:      "such value",
@@ -217,7 +217,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 					conditions: []weave.Condition{src},
 					msg: setSignature(srcSig, &TransferPaymentChannelMsg{
 						Payment: &Payment{
-							ChainId:   "TODO-123",
+							ChainId:   "testchain-123",
 							ChannelId: asSeqID(1),
 							Amount:    dogeCoin(2, 0),
 							Memo:      "much transfer",
@@ -321,6 +321,35 @@ func TestPaymentChannelHandlers(t *testing.T) {
 				},
 			},
 		},
+		"transfer ensure transaction on the right chain": {
+			actions: []action{
+				{
+					conditions: []weave.Condition{src},
+					msg: &CreatePaymentChannelMsg{
+						Src:          src.Address(),
+						Recipient:    recipient.Address(),
+						SenderPubkey: srcSig.PublicKey(),
+						Total:        dogeCoin(10, 0),
+						Timeout:      1000,
+						Memo:         "start",
+					},
+					blocksize: 100,
+				},
+				{
+					conditions: []weave.Condition{src},
+					msg: setSignature(srcSig, &TransferPaymentChannelMsg{
+						Payment: &Payment{
+							ChainId:   "another-chain-666",
+							ChannelId: asSeqID(1),
+							Amount:    dogeCoin(2, 50),
+							Memo:      "much transfer",
+						},
+					}),
+					blocksize:    103,
+					wantCheckErr: ErrInvalidChainID("another-chain-666"),
+				},
+			},
+		},
 	}
 
 	for testName, tc := range cases {
@@ -390,6 +419,7 @@ func (a *action) tx() weave.Tx {
 
 func (a *action) ctx() weave.Context {
 	ctx := weave.WithHeight(context.Background(), a.blocksize)
+	ctx = weave.WithChainID(ctx, "testchain-123")
 	return helper.CtxAuth("auth").SetConditions(ctx, a.conditions...)
 }
 

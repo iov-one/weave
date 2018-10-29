@@ -133,7 +133,9 @@ func (h *transferPaymentChannelHandler) validate(ctx weave.Context, db weave.KVS
 		return msg, err
 	}
 
-	// TODO(husio) validate that the payment is done for the right chain
+	if weave.GetChainID(ctx) != msg.Payment.ChainId {
+		return nil, ErrInvalidChainID(msg.Payment.ChainId)
+	}
 
 	pc, err := h.bucket.GetPaymentChannel(db, msg.Payment.ChannelId)
 	if err != nil {

@@ -26,6 +26,7 @@ var (
 	errInvalidTimeout         = stderr.New("invalid timeout")
 	errInvalidTotal           = stderr.New("invalid total")
 	errInvalidTransferred     = stderr.New("invalid transferred")
+	errInvalidChainID         = stderr.New("invalid chain ID")
 	errMissingChannelID       = stderr.New("missing channel ID")
 	errMissingChainID         = stderr.New("missing chain ID")
 	errMissingPayment         = stderr.New("missing payment")
@@ -43,6 +44,14 @@ func ErrMissingChainID() error {
 
 func IsMissingChainErr(err error) bool {
 	return errors.IsSameError(err, errMissingChainID)
+}
+
+func ErrInvalidChainID(chainID string) error {
+	return errors.WithLog(chainID, errInvalidChainID, codeInvalidCondition)
+}
+
+func IsInvalidChainErr(err error) bool {
+	return errors.IsSameError(err, errInvalidChainID)
 }
 
 func ErrMissingSignature() error {
