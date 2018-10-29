@@ -181,7 +181,7 @@ func (h *transferPaymentChannelHandler) Deliver(ctx weave.Context, db weave.KVSt
 	// Payment amount is total amount that should be transferred from
 	// payment channel to recipient. Deduct already transferred funds and
 	// move only the difference.
-	diff, err := msg.Payment.Amount.Add(pc.Transferred.Negative())
+	diff, err := msg.Payment.Amount.Subtract(*pc.Transferred)
 	if err != nil || diff.IsZero() {
 		return res, ErrInvalidAmount(msg.Payment.Amount)
 	}
@@ -260,7 +260,7 @@ func (h *closePaymentChannelHandler) Deliver(ctx weave.Context, db weave.KVStore
 
 	// Before deleting the channel, return to sender all leftover funds
 	// that are still allocated on this payment channel account.
-	diff, err := pc.Total.Add(pc.Transferred.Negative())
+	diff, err := pc.Total.Subtract(*pc.Transferred)
 	if err != nil {
 		return res, err
 	}
