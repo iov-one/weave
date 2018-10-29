@@ -60,6 +60,7 @@ type CheckResult struct {
 	// GasAllocated is the maximum units of work we allow this tx to perform
 	GasAllocated int64
 	// GasPayment is the total fees for this tx (or other source of payment)
+	//TODO: Implement when tendermint implements this properly
 	GasPayment int64
 }
 
@@ -78,7 +79,6 @@ func (c CheckResult) ToABCI() abci.ResponseCheckTx {
 		Data:      c.Data,
 		Log:       c.Log,
 		GasWanted: c.GasAllocated,
-		GasUsed:   c.GasPayment,
 	}
 }
 
