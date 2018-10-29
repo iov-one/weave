@@ -9,7 +9,7 @@ import (
 	"github.com/iov-one/weave/store"
 	"github.com/iov-one/weave/x/cash"
 	. "github.com/smartystreets/goconvey/convey"
-	abci "github.com/tendermint/tendermint/abci/types"
+	abci "github.com/tendermint/abci/types"
 )
 
 func TestController(t *testing.T) {

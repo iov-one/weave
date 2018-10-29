@@ -4,7 +4,7 @@ import (
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/orm"
-	abci "github.com/tendermint/tendermint/abci/types"
+	abci "github.com/tendermint/abci/types"
 )
 
 type CheckAddress func(address weave.Address) bool

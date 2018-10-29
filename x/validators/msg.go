@@ -2,7 +2,7 @@ package validators
 
 import (
 	"github.com/iov-one/weave"
-	abci "github.com/tendermint/tendermint/abci/types"
+	abci "github.com/tendermint/abci/types"
 )
 
 // Ensure we implement the Msg interface

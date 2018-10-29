@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	abci "github.com/tendermint/tendermint/abci/types"
+	abci "github.com/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
 
 	"github.com/iov-one/weave"

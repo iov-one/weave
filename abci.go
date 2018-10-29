@@ -3,7 +3,7 @@ package weave
 import (
 	"fmt"
 
-	abci "github.com/tendermint/tendermint/abci/types"
+	abci "github.com/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/common"
 
 	"github.com/iov-one/weave/errors"
