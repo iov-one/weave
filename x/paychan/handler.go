@@ -250,10 +250,7 @@ func (h *closePaymentChannelHandler) Deliver(ctx weave.Context, db weave.KVStore
 	if height, _ := weave.GetHeight(ctx); pc.Timeout > height {
 		// If timeout was not reached, only the recipient is allowed to
 		// close the channel.
-
-		// TODO(husio) check if recipient is authenticated.
-		msgFromRecipient := true
-		if !msgFromRecipient {
+		if !h.auth.HasAddress(ctx, pc.Recipient) {
 			return res, ErrNotAllowed("not recipient")
 		}
 	}

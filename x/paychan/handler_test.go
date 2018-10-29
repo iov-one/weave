@@ -285,6 +285,42 @@ func TestPaymentChannelHandlers(t *testing.T) {
 				},
 			},
 		},
+		"only recipient can close non expired payment channel": {
+			actions: []action{
+				{
+					conditions: []weave.Condition{src},
+					msg: &CreatePaymentChannelMsg{
+						Src:          src.Address(),
+						Recipient:    recipient.Address(),
+						SenderPubkey: srcSig.PublicKey(),
+						Total:        dogeCoin(10, 0),
+						Timeout:      500,
+						Memo:         "start",
+					},
+					blocksize: 100,
+				},
+				// Signer cannot close a channel that holds
+				// funds and is not expired.
+				{
+					conditions: []weave.Condition{src},
+					msg: &ClosePaymentChannelMsg{
+						ChannelId: asSeqID(1),
+						Memo:      "end",
+					},
+					blocksize:      104,
+					wantDeliverErr: ErrNotAllowed("not recipient"),
+				},
+				// Recipient can close channel any time.
+				{
+					conditions: []weave.Condition{recipient},
+					msg: &ClosePaymentChannelMsg{
+						ChannelId: asSeqID(1),
+						Memo:      "end",
+					},
+					blocksize: 108,
+				},
+			},
+		},
 	}
 
 	for testName, tc := range cases {
