@@ -9,6 +9,8 @@ import (
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/app"
+	crypto "github.com/iov-one/weave/crypto"
+	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/store"
 	"github.com/iov-one/weave/x"
@@ -39,7 +41,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 		actions []action
 		dbtests []querycheck
 	}{
-		"create payment channel allocates funds": {
+		"creating a payment channel allocates funds": {
 			actions: []action{
 				{
 					conditions: []weave.Condition{src},
@@ -93,7 +95,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 				},
 			},
 		},
-		"closing channel release funds": {
+		"closing a channel without a transfer releases funds": {
 			actions: []action{
 				{
 					conditions: []weave.Condition{src},
@@ -139,6 +141,150 @@ func TestPaymentChannelHandlers(t *testing.T) {
 				},
 			},
 		},
+		"transfer moves allocated coins to the recipient": {
+			actions: []action{
+				{
+					conditions: []weave.Condition{src},
+					msg: &CreatePaymentChannelMsg{
+						Src:          src.Address(),
+						Recipient:    recipient.Address(),
+						SenderPubkey: srcSig.PublicKey(),
+						Total:        dogeCoin(10, 0),
+						Timeout:      1000,
+						Memo:         "start",
+					},
+					blocksize: 100,
+				},
+				{
+					conditions: []weave.Condition{src},
+					msg: setSignature(srcSig, &TransferPaymentChannelMsg{
+						Payment: &Payment{
+							ChainId:   "TODO-123",
+							ChannelId: asSeqID(1),
+							Amount:    dogeCoin(2, 50),
+							Memo:      "much transfer",
+						},
+					}),
+					blocksize: 103,
+				},
+				{
+					conditions: []weave.Condition{src},
+					msg: setSignature(srcSig, &TransferPaymentChannelMsg{
+						Payment: &Payment{
+							ChainId:   "TODO-123",
+							ChannelId: asSeqID(1),
+							Amount:    dogeCoin(3, 0),
+							Memo:      "such value",
+						},
+					}),
+					blocksize: 104,
+				},
+			},
+			dbtests: []querycheck{
+				{
+					path:   "/wallets",
+					data:   paymentChannelAccount(asSeqID(1)),
+					bucket: cashBucket.Bucket,
+					wantRes: []orm.Object{
+						mustObject(cash.WalletWith(paymentChannelAccount(asSeqID(1)), dogeCoin(7, 0))),
+					},
+				},
+				{
+					path:   "/wallets",
+					data:   recipient.Address(),
+					bucket: cashBucket.Bucket,
+					wantRes: []orm.Object{
+						mustObject(cash.WalletWith(recipient.Address(), dogeCoin(3, 0))),
+					},
+				},
+			},
+		},
+		"closing a channel with a transfer made releases funds": {
+			actions: []action{
+				{
+					conditions: []weave.Condition{src},
+					msg: &CreatePaymentChannelMsg{
+						Src:          src.Address(),
+						Recipient:    recipient.Address(),
+						SenderPubkey: srcSig.PublicKey(),
+						Total:        dogeCoin(10, 0),
+						Timeout:      1000,
+						Memo:         "start",
+					},
+					blocksize: 100,
+				},
+				{
+					conditions: []weave.Condition{src},
+					msg: setSignature(srcSig, &TransferPaymentChannelMsg{
+						Payment: &Payment{
+							ChainId:   "TODO-123",
+							ChannelId: asSeqID(1),
+							Amount:    dogeCoin(2, 0),
+							Memo:      "much transfer",
+						},
+					}),
+					blocksize: 104,
+				},
+				{
+					conditions: []weave.Condition{src},
+					msg: &ClosePaymentChannelMsg{
+						ChannelId: asSeqID(1),
+						Memo:      "end",
+					},
+					blocksize: 1001,
+				},
+			},
+			dbtests: []querycheck{
+				// When payment channel is closed, it is
+				// removed from the database. Fetching an
+				// entity that does not exist does not return
+				// an error, but returns nil instead.
+				{
+					path:    "/paychans",
+					data:    asSeqID(1),
+					bucket:  payChanBucket.Bucket,
+					wantRes: nil,
+				},
+				// Query senders wallet to ensure that the
+				// remaining coins were returned to the
+				// account.
+				{
+					path:   "/wallets",
+					data:   src.Address(),
+					bucket: cashBucket.Bucket,
+					wantRes: []orm.Object{
+						mustObject(cash.WalletWith(src.Address(), dogeCoin(9, 22))),
+					},
+				},
+				// What was transferred must belong to
+				// recipient.
+				{
+					path:   "/wallets",
+					data:   recipient.Address(),
+					bucket: cashBucket.Bucket,
+					wantRes: []orm.Object{
+						mustObject(cash.WalletWith(recipient.Address(), dogeCoin(2, 0))),
+					},
+				},
+			},
+		},
+		"creating a payment channel without enough funds fails": {
+			actions: []action{
+				{
+					conditions: []weave.Condition{src},
+					msg: &CreatePaymentChannelMsg{
+						Src:          src.Address(),
+						Recipient:    recipient.Address(),
+						SenderPubkey: srcSig.PublicKey(),
+						Total:        dogeCoin(999, 0),
+						Timeout:      1000,
+						Memo:         "start",
+					},
+					blocksize:      100,
+					wantDeliverErr: cash.ErrInsufficientFunds(),
+				},
+			},
+		},
 	}
 
 	for testName, tc := range cases {
@@ -156,12 +302,21 @@ func TestPaymentChannelHandlers(t *testing.T) {
 
 			for i, a := range tc.actions {
 				cache := db.CacheWrap()
-				if _, err := rt.Check(a.ctx(), cache, a.tx()); err != nil {
-					t.Fatalf("action %d check: %s", i, err)
+				if _, err := rt.Check(a.ctx(), cache, a.tx()); !isSameError(err, a.wantCheckErr) {
+					t.Logf("want: %+v", a.wantCheckErr)
+					t.Logf(" got: %+v", err)
+					t.Fatalf("action %d check", i)
 				}
 				cache.Discard()
-				if _, err := rt.Deliver(a.ctx(), db, a.tx()); err != nil {
-					t.Fatalf("action %d deliver: %s", i, err)
+				if a.wantCheckErr != nil {
+					// Failed checks are causing the message to be ignored.
+					continue
+				}
+
+				if _, err := rt.Deliver(a.ctx(), db, a.tx()); !isSameError(err, a.wantDeliverErr) {
+					t.Logf("want: %+v", a.wantDeliverErr)
+					t.Logf(" got: %+v", err)
+					t.Fatalf("action %d delivery", i)
 				}
 			}
 			for _, tt := range tc.dbtests {
@@ -186,9 +341,11 @@ func dogeCoin(w, f int64) *x.Coin {
 
 // action represents a single request call that is handled by a handler.
 type action struct {
-	conditions []weave.Condition
-	msg        weave.Msg
-	blocksize  int64
+	conditions     []weave.Condition
+	msg            weave.Msg
+	blocksize      int64
+	wantCheckErr   error
+	wantDeliverErr error
 }
 
 func (a *action) tx() weave.Tx {
@@ -241,4 +398,26 @@ func mustObject(obj orm.Object, err error) orm.Object {
 		panic(err)
 	}
 	return obj
+}
+
+// setSignature computes and sets signature for given message.
+func setSignature(key crypto.Signer, msg *TransferPaymentChannelMsg) *TransferPaymentChannelMsg {
+	raw, err := msg.Payment.Marshal()
+	if err != nil {
+		panic(err)
+	}
+	sig, err := key.Sign(raw)
+	if err != nil {
+		panic(err)
+	}
+	msg.Signature = sig
+	return msg
+}
+
+// isSameError returns true if both errors are nil.
+func isSameError(a, b error) bool {
+	if a == nil && b == nil {
+		return true
+	}
+	return errors.IsSameError(a, b)
 }

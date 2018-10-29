@@ -42,7 +42,22 @@ func (CreatePaymentChannelMsg) Path() string {
 }
 
 func (m *TransferPaymentChannelMsg) Validate() error {
-	panic("todo")
+	if m.Signature == nil {
+		return ErrMissingSignature()
+	}
+	if m.Payment == nil {
+		return ErrMissingPayment()
+	}
+	if m.Payment.ChainId == "" {
+		return ErrMissingChainID()
+	}
+	if m.Payment.ChannelId == nil {
+		return ErrMissingChannelID()
+	}
+	if !m.Payment.Amount.IsPositive() {
+		return ErrInvalidAmount(m.Payment.Amount)
+	}
+	return nil
 }
 
 func (TransferPaymentChannelMsg) Path() string {

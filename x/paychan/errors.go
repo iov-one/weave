@@ -26,13 +26,40 @@ var (
 	errInvalidTimeout         = stderr.New("invalid timeout")
 	errInvalidTotal           = stderr.New("invalid total")
 	errInvalidTransferred     = stderr.New("invalid transferred")
-	errMissingRecipient       = stderr.New("missing recipient")
-	errMissingSrc             = stderr.New("missing src")
 	errMissingChannelID       = stderr.New("missing channel ID")
+	errMissingChainID         = stderr.New("missing chain ID")
+	errMissingPayment         = stderr.New("missing payment")
+	errMissingRecipient       = stderr.New("missing recipient")
 	errMissingSenderPubkey    = stderr.New("missing sender public key")
+	errMissingSignature       = stderr.New("missing signature")
+	errMissingSrc             = stderr.New("missing src")
 	errNoSuchPaymentChannel   = stderr.New("no such payment channel")
 	errNotAllowed             = stderr.New("not allowed")
 )
+
+func ErrMissingChainID() error {
+	return errors.WithCode(errMissingChainID, codeMissingCondition)
+}
+
+func IsMissingChainErr(err error) bool {
+	return errors.IsSameError(err, errMissingChainID)
+}
+
+func ErrMissingSignature() error {
+	return errors.WithCode(errMissingSignature, codeMissingCondition)
+}
+
+func IsMissingSignatureErr(err error) bool {
+	return errors.IsSameError(err, errMissingSignature)
+}
+
+func ErrMissingPayment() error {
+	return errors.WithCode(errMissingPayment, codeMissingCondition)
+}
+
+func IsMissingPaymentErr(err error) bool {
+	return errors.IsSameError(err, errMissingPayment)
+}
 
 func ErrMissingChannelID() error {
 	return errors.WithCode(errMissingChannelID, codeMissingCondition)
