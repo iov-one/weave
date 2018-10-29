@@ -5,7 +5,7 @@ import (
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/crypto"
-	"github.com/tendermint/tmlibs/common"
+	"github.com/tendermint/tendermint/libs/common"
 )
 
 //--------------- expose helpers -----

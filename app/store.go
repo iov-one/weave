@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"strings"
 
-	abci "github.com/tendermint/abci/types"
-	"github.com/tendermint/tmlibs/log"
+	abci "github.com/tendermint/tendermint/abci/types"
+	"github.com/tendermint/tendermint/libs/log"
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
@@ -20,7 +20,7 @@ import (
 // DeliverTx and initializing state from the genesis.
 // Errors on ABCI steps handled as panics
 // I'm sorry Alex, but there is no other way :(
-// https://github.com/tendermint/abci/issues/165#issuecomment-353704015
+// https://github.com/tendermint/tendermint/abci/issues/165#issuecomment-353704015
 // "Regarding errors in general, for messages that don't take
 //  user input like Flush, Info, InitChain, BeginBlock, EndBlock,
 // and Commit.... There is no way to handle these errors gracefully,
@@ -45,7 +45,7 @@ type StoreApp struct {
 	chainID string
 
 	// cached validator changes from DeliverTx
-	pending []abci.Validator
+	pending []abci.ValidatorUpdate
 
 	// baseContext contains context info that is valid for
 	// lifetime of this app (eg. chainID)
@@ -334,7 +334,7 @@ func (s *StoreApp) EndBlock(_ abci.RequestEndBlock) (res abci.ResponseEndBlock) 
 
 // AddValChange is meant to be called by apps on DeliverTx
 // results, this is added to the cache for the endblock changeset
-func (s *StoreApp) AddValChange(diffs []abci.Validator) {
+func (s *StoreApp) AddValChange(diffs []abci.ValidatorUpdate) {
 	// ensures multiple updates for one validator are combined into one slot
 	for _, d := range diffs {
 		idx := pubKeyIndex(d, s.pending)
@@ -347,7 +347,7 @@ func (s *StoreApp) AddValChange(diffs []abci.Validator) {
 }
 
 // return index of list with validator of same Pubkey, or -1 if no match
-func pubKeyIndex(val abci.Validator, list []abci.Validator) int {
+func pubKeyIndex(val abci.ValidatorUpdate, list []abci.ValidatorUpdate) int {
 	for i, v := range list {
 		if val.PubKey.Type == v.PubKey.Type && bytes.Equal(val.PubKey.Data, v.PubKey.Data) {
 			return i

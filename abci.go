@@ -3,8 +3,8 @@ package weave
 import (
 	"fmt"
 
-	abci "github.com/tendermint/abci/types"
-	"github.com/tendermint/tmlibs/common"
+	abci "github.com/tendermint/tendermint/abci/types"
+	"github.com/tendermint/tendermint/libs/common"
 
 	"github.com/iov-one/weave/errors"
 )
@@ -38,7 +38,7 @@ func CheckOrError(result CheckResult, err error, debug bool) abci.ResponseCheckT
 type DeliverResult struct {
 	Data    []byte
 	Log     string
-	Diff    []abci.Validator
+	Diff    []abci.ValidatorUpdate
 	Tags    []common.KVPair
 	GasUsed int64 // unused
 }
@@ -60,6 +60,7 @@ type CheckResult struct {
 	// GasAllocated is the maximum units of work we allow this tx to perform
 	GasAllocated int64
 	// GasPayment is the total fees for this tx (or other source of payment)
+	//TODO: Implement when tendermint implements this properly
 	GasPayment int64
 }
 
@@ -78,13 +79,12 @@ func (c CheckResult) ToABCI() abci.ResponseCheckTx {
 		Data:      c.Data,
 		Log:       c.Log,
 		GasWanted: c.GasAllocated,
-		Fee:       common.KI64Pair{Value: c.GasPayment},
 	}
 }
 
 // TickResult allows the Ticker to modify the validator set
 type TickResult struct {
-	Diff []abci.Validator
+	Diff []abci.ValidatorUpdate
 }
 
 //---------- type safe error converters --------

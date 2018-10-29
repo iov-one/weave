@@ -12,7 +12,7 @@ import (
 	"github.com/iov-one/weave/x/nft/username"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/tendermint/tmlibs/common"
+	"github.com/tendermint/tendermint/libs/common"
 )
 
 func TestHandleIssueTokenMsg(t *testing.T) {
@@ -177,7 +177,7 @@ func TestIssueUsernameTx(t *testing.T) {
 	res, err := handler.Deliver(nil, db, tx)
 	// then
 	require.NoError(t, err)
-	assert.Equal(t, []common.KVPair{{[]byte("msgType"), []byte("registerUsername")}}, res.Tags)
+	assert.Equal(t, []common.KVPair{{Key: []byte("msgType"), Value: []byte("registerUsername")}}, res.Tags)
 
 }
 

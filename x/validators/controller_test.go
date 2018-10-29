@@ -9,7 +9,7 @@ import (
 	"github.com/iov-one/weave/store"
 	"github.com/iov-one/weave/x/cash"
 	. "github.com/smartystreets/goconvey/convey"
-	abci "github.com/tendermint/abci/types"
+	abci "github.com/tendermint/tendermint/abci/types"
 )
 
 func TestController(t *testing.T) {
@@ -29,8 +29,8 @@ func TestController(t *testing.T) {
 		accountsJson, err := json.Marshal(accts)
 		So(err, ShouldBeNil)
 
-		diff := []abci.Validator{{}}
-		emptyDiff := make([]abci.Validator, 0)
+		diff := []abci.ValidatorUpdate{{}}
+		emptyDiff := make([]abci.ValidatorUpdate, 0)
 
 		kv := store.MemStore()
 		bucket := NewBucket()

@@ -27,8 +27,8 @@ import (
 	"fmt"
 	"regexp"
 
-	abci "github.com/tendermint/abci/types"
-	"github.com/tendermint/tmlibs/log"
+	abci "github.com/tendermint/tendermint/abci/types"
+	"github.com/tendermint/tendermint/libs/log"
 )
 
 type contextKey int // local to the weave module

@@ -10,7 +10,7 @@ import (
 	"github.com/iov-one/weave/x/nft/ticker"
 	"github.com/iov-one/weave/x/nft/username"
 	"github.com/stretchr/testify/require"
-	abci "github.com/tendermint/abci/types"
+	abci "github.com/tendermint/tendermint/abci/types"
 )
 
 func TestIssueNfts(t *testing.T) {

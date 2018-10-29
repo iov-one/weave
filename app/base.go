@@ -1,7 +1,7 @@
 package app
 
 import (
-	abci "github.com/tendermint/abci/types"
+	abci "github.com/tendermint/tendermint/abci/types"
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"

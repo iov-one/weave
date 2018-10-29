@@ -2,7 +2,7 @@ package iavl
 
 import (
 	"github.com/tendermint/iavl"
-	dbm "github.com/tendermint/tmlibs/db"
+	dbm "github.com/tendermint/tendermint/libs/db"
 
 	"github.com/iov-one/weave/store"
 )
@@ -15,7 +15,7 @@ const (
 
 // CommitStore manages a iavl committed state
 type CommitStore struct {
-	tree       *iavl.VersionedTree
+	tree       *iavl.MutableTree
 	numHistory int64
 }
 
@@ -30,7 +30,7 @@ func NewCommitStore(path, name string) CommitStore {
 		panic(err)
 	}
 
-	tree := iavl.NewVersionedTree(db, DefaultCacheSize)
+	tree := iavl.NewMutableTree(db, DefaultCacheSize)
 	commit := CommitStore{tree, DefaultHistory}
 	commit.LoadLatestVersion()
 	return commit
@@ -39,7 +39,7 @@ func NewCommitStore(path, name string) CommitStore {
 // MockCommitStore creates a new in-memory store for testing
 func MockCommitStore() CommitStore {
 	var db dbm.DB = dbm.NewMemDB()
-	tree := iavl.NewVersionedTree(db, DefaultCacheSize)
+	tree := iavl.NewMutableTree(db, DefaultCacheSize)
 	return CommitStore{tree, DefaultHistory}
 }
 
@@ -93,7 +93,7 @@ func (s CommitStore) LatestVersion() store.CommitID {
 // to rollback writes here, without throwing away the CommitStore
 // and re-loading from disk.
 func (s CommitStore) Adapter() store.CacheableKVStore {
-	var kv store.KVStore = adapter{s.tree.Tree()}
+	var kv store.KVStore = adapter{s.tree}
 	return store.BTreeCacheable{kv}
 }
 
@@ -111,7 +111,7 @@ func (s CommitStore) CacheWrap() store.KVCacheWrap {
 
 // adapter converts the working iavl.Tree to match these interfaces
 type adapter struct {
-	tree *iavl.Tree
+	tree *iavl.MutableTree
 }
 
 var _ store.KVStore = adapter{}

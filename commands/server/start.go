@@ -5,11 +5,10 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/tendermint/abci/server"
-	abci "github.com/tendermint/abci/types"
-
-	cmn "github.com/tendermint/tmlibs/common"
-	"github.com/tendermint/tmlibs/log"
+	"github.com/tendermint/tendermint/abci/server"
+	abci "github.com/tendermint/tendermint/abci/types"
+	cmn "github.com/tendermint/tendermint/libs/common"
+	"github.com/tendermint/tendermint/libs/log"
 )
 
 const (

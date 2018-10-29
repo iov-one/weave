@@ -42,18 +42,14 @@ required = ["github.com/gogo/protobuf/protoc-gen-gogofaster"]
   name = "github.com/stretchr/testify"
   version = "1.2.1"
 
-[[constraint]]
-  name = "github.com/tendermint/abci"
-  version = "~0.11.0"
-
-[[constraint]]
-  name = "github.com/tendermint/iavl"
-  version = "v0.8.0-rc0"
-
-[[constraint]]
-  name = "github.com/tendermint/tmlibs"
-  version = "~0.8.4"
+[[override]]
+  name = "github.com/tendermint/tendermint"
+  version = "=0.25.0"
 
 [prune]
   go-tests = true
   unused-packages = true
+
+[[constraint]]
+  name = "github.com/tendermint/iavl"
+  version = "=0.11.0"

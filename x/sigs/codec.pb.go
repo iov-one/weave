@@ -32,7 +32,7 @@ var _ = math.Inf
 const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
 
 // UserData just stores the data and is used for serialization.
-// Key is the Address (Pubkey.Permission().Address())
+// Key is the Address (PubKey.Permission().Address())
 //
 // Note: This should not be created from outside the module,
 // User is the entry point you want
@@ -61,14 +61,14 @@ func (m *UserData) GetSequence() int64 {
 }
 
 // StdSignature represents the signature, the identity of the signer
-// (the PubKey), and a sequence number to prevent replay attacks.
+// (the Pubkey), and a sequence number to prevent replay attacks.
 //
 // A given signer must submit transactions with the sequence number
 // increasing by 1 each time (starting at 0)
 type StdSignature struct {
 	Sequence int64             `protobuf:"varint,1,opt,name=sequence,proto3" json:"sequence,omitempty"`
 	Pubkey   *crypto.PublicKey `protobuf:"bytes,2,opt,name=pubkey" json:"pubkey,omitempty"`
-	// Removed Address, PubKey is more powerful
+	// Removed Address, Pubkey is more powerful
 	Signature *crypto.Signature `protobuf:"bytes,4,opt,name=signature" json:"signature,omitempty"`
 }
 
