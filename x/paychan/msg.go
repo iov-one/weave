@@ -50,7 +50,13 @@ func (TransferPaymentChannelMsg) Path() string {
 }
 
 func (m *ClosePaymentChannelMsg) Validate() error {
-	panic("todo")
+	if m.ChannelId == nil {
+		return ErrMissingChannelID()
+	}
+	if len(m.Memo) > 128 {
+		return ErrInvalidMemo(m.Memo)
+	}
+	return nil
 }
 
 func (ClosePaymentChannelMsg) Path() string {

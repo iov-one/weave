@@ -28,10 +28,19 @@ var (
 	errInvalidTransferred     = stderr.New("invalid transferred")
 	errMissingRecipient       = stderr.New("missing recipient")
 	errMissingSrc             = stderr.New("missing src")
+	errMissingChannelID       = stderr.New("missing channel ID")
 	errMissingSenderPubkey    = stderr.New("missing sender public key")
 	errNoSuchPaymentChannel   = stderr.New("no such payment channel")
 	errNotAllowed             = stderr.New("not allowed")
 )
+
+func ErrMissingChannelID() error {
+	return errors.WithCode(errMissingChannelID, codeMissingCondition)
+}
+
+func IsMissingChannelIDErr(err error) bool {
+	return errors.IsSameError(err, errMissingChannelID)
+}
 
 func ErrMissingRecipient() error {
 	return errors.WithCode(errMissingRecipient, codeMissingCondition)

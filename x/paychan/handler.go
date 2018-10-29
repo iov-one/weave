@@ -14,6 +14,12 @@ const (
 	transferPaymentChannelCost int64 = 5
 )
 
+// RegisterQuery registers payment channel bucket under /paychans.
+func RegisterQuery(qr weave.QueryRouter) {
+	NewPaymentChannelBucket().Register("paychans", qr)
+}
+
+// RegisterRouters registers payment channel message handelers in given registry.
 func RegisterRoutes(r weave.Registry, auth x.Authenticator, cash cash.Controller) {
 	bucket := NewPaymentChannelBucket()
 	r.Handle(pathCreatePaymentChannelMsg, &createPaymentChannelHandler{auth: auth, bucket: bucket, cash: cash})
@@ -73,16 +79,13 @@ func (h *createPaymentChannelHandler) Deliver(ctx weave.Context, db weave.KVStor
 	}
 
 	obj, err := h.bucket.Create(db, &PaymentChannel{
+		Src:          msg.Src,
 		SenderPubkey: msg.SenderPubkey,
 		Recipient:    msg.Recipient,
 		Total:        msg.Total,
 		Timeout:      msg.Timeout,
 		Memo:         msg.Memo,
-		Transferred: &x.Coin{
-			Whole:      0,
-			Fractional: 0,
-			Ticker:     msg.Total.Ticker,
-		},
+		Transferred:  &x.Coin{Ticker: msg.Total.Ticker},
 	})
 	if err != nil {
 		return res, err

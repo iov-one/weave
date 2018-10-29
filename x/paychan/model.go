@@ -30,7 +30,7 @@ func (pc *PaymentChannel) Validate() error {
 
 	// Transfer value must not be greater than the Total value represented
 	// by the PaymentChannel.
-	if pc.Transferred == nil || !pc.Transferred.IsPositive() || pc.Transferred.Compare(*pc.Total) > 0 {
+	if pc.Transferred == nil || !pc.Transferred.IsNonNegative() || pc.Transferred.Compare(*pc.Total) > 0 {
 		return ErrInvalidTransferred(pc.Transferred)
 	}
 	return nil
@@ -62,7 +62,7 @@ func NewPaymentChannelBucket() PaymentChannelBucket {
 func (b *PaymentChannelBucket) Create(db weave.KVStore, pc *PaymentChannel) (orm.Object, error) {
 	key := b.idSeq.NextVal(db)
 	obj := orm.NewSimpleObj(key, pc)
-	return obj, nil
+	return obj, b.Bucket.Save(db, obj)
 }
 
 // Save updates the state of given PaymentChannel entity in the store.
