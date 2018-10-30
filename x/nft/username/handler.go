@@ -5,9 +5,7 @@ import (
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/x"
-	"github.com/iov-one/weave/x/nft"
 	"github.com/iov-one/weave/x/nft/blockchain"
-	"github.com/tendermint/tendermint/libs/common"
 )
 
 const (
@@ -20,7 +18,7 @@ const (
 func RegisterRoutes(r weave.Registry, auth x.Authenticator, issuer weave.Address) {
 	bucket := NewBucket()
 	blockchains := blockchain.NewBucket()
-	r.Handle(pathIssueTokenMsg, NewIssueHandler(auth, issuer, bucket, blockchains))
+	r.Handle(pathIssueTokenMsg, NewCreateUsernameTokenMsgHandler(auth, issuer, bucket, blockchains))
 	r.Handle(pathAddAddressMsg, NewAddChainAddressHandler(auth, issuer, bucket, blockchains))
 	r.Handle(pathRemoveAddressMsg, NewRemoveChainAddressHandler(auth, issuer, bucket))
 
@@ -32,22 +30,21 @@ func RegisterQuery(qr weave.QueryRouter) {
 	bucket.Register("nft/usernames", qr)
 }
 
-type tokenHandler struct {
+type CreateUsernameTokenMsgHandler struct {
 	auth        x.Authenticator
-	issuer      weave.Address
-	bucket      Bucket
 	blockchains blockchain.Bucket
+	bucket      UsernameTokenBucket
 }
 
-type IssueHandler struct {
-	tokenHandler
+func NewCreateUsernameTokenMsgHandler(auth x.Authenticator, bucket UsernameTokenBucket, blockchains blockchain.Bucket) *IssueHandler {
+	return &CreateUsernameTokenMsgHandler{
+		auth: auth, issuer: issuer,
+		bucket:      bucket,
+		blockchains: blockchains,
+	}
 }
 
-func NewIssueHandler(auth x.Authenticator, issuer weave.Address, bucket Bucket, blockchains blockchain.Bucket) *IssueHandler {
-	return &IssueHandler{tokenHandler{auth: auth, issuer: issuer, bucket: bucket, blockchains: blockchains}}
-}
-
-func (h IssueHandler) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx) (weave.CheckResult, error) {
+func (h CreateUsernameTokenMsgHandler) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx) (weave.CheckResult, error) {
 	var res weave.CheckResult
 	if _, err := h.validate(ctx, tx); err != nil {
 		return res, err
@@ -56,13 +53,13 @@ func (h IssueHandler) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx)
 	return res, nil
 }
 
-func (h IssueHandler) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx) (weave.DeliverResult, error) {
+func (h CreateUsernameTokenMsgHandler) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx) (weave.DeliverResult, error) {
 	var res weave.DeliverResult
 	msg, err := h.validate(ctx, tx)
 	if err != nil {
 		return res, err
 	}
-	for _, a := range msg.Details.Addresses {
+	for _, a := range msg.Addresses {
 		chain, err := h.blockchains.Get(store, a.ChainID)
 		switch {
 		case err != nil:
@@ -71,16 +68,18 @@ func (h IssueHandler) Deliver(ctx weave.Context, store weave.KVStore, tx weave.T
 			return res, nft.ErrInvalidEntry()
 		}
 	}
+
 	// persist the data
-	o, err := h.bucket.Create(store, weave.Address(msg.Owner), msg.Id, msg.Approvals, msg.Details.Addresses)
-	if err != nil {
-		return res, err
-	}
-	res.Tags = append(res.Tags, common.KVPair{Key: []byte(msgTypeTagKey), Value: []byte(newUsernameTagValue)})
+	h.bucket.Save(store, &UsernameToken{
+		Id:        msg.Id,
+		Owner:     msg.Owner,
+		Approvals: msg.Approvals,
+		Addresses: msg.Addresses,
+	})
 	return res, h.bucket.Save(store, o)
 }
 
-func (h IssueHandler) validate(ctx weave.Context, tx weave.Tx) (*IssueTokenMsg, error) {
+func (h IssueHandler) validate(ctx weave.Context, tx weave.Tx) (*CreateUsernameTokenMsg, error) {
 	rmsg, err := tx.GetMsg()
 	if err != nil {
 		return nil, err
@@ -141,15 +140,11 @@ func (h AddChainAddressHandler) Deliver(ctx weave.Context, store weave.KVStore, 
 		return res, err
 	}
 
-	actor := nft.FindActor(h.auth, ctx, t, nft.Action_ActionUpdateDetails.String())
-	if actor == nil {
-		return res, errors.ErrUnauthorized()
-	}
 	allKeys := append(t.GetChainAddresses(), ChainAddress{msg.GetChainID(), msg.GetAddress()})
-	if err := t.SetChainAddresses(actor, allKeys); err != nil {
-		return res, err
+	if containsDuplicateChains(newAddresses) {
+		return nft.ErrDuplicateEntry()
 	}
-
+	u.Details = &TokenDetails{Addresses: newAddresses}
 	return res, h.bucket.Save(store, o)
 }
 
