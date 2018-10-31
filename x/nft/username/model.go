@@ -28,8 +28,7 @@ func (u *UsernameToken) GetChainAddresses() []ChainAddress {
 }
 func (u *UsernameToken) SetChainAddresses(height int64, actor weave.Address, newAddresses []ChainAddress) error {
 	if !u.OwnerAddress().Equals(actor) {
-		if u.Approvals().
-			List().
+		if u.Approvals().List().
 			ForAction(nft.Action_ActionUpdateDetails.String()).
 			ForAddress(actor).
 			FilterExpired(height).
@@ -40,7 +39,16 @@ func (u *UsernameToken) SetChainAddresses(height int64, actor weave.Address, new
 	if containsDuplicateChains(newAddresses) {
 		return nft.ErrDuplicateEntry()
 	}
+
 	u.Details = &TokenDetails{Addresses: newAddresses}
+	u.Base.ActionApprovals = u.Approvals().List().Merge(
+		u.Approvals().List().
+			ForAction(nft.Action_ActionUpdateDetails.String()).
+			ForAddress(actor).
+			FilterExpired(height).
+			DecrementCount()).
+		AsPersistable()
+
 	return nil
 }
 

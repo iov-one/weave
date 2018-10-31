@@ -170,3 +170,60 @@ func (m Approvals) Add(action string, approval Approval) Approvals {
 	m[action] = append(m[action], approval)
 	return m
 }
+
+func (m Approvals) DecrementCount() Approvals {
+	res := make(map[string]ApprovalMeta, 0)
+	for action, approvals := range m {
+		for _, approval := range approvals {
+			if approval.Options.Count == 0 {
+				continue
+			}
+			if _, ok := res[action]; !ok {
+				res[action] = make([]Approval, 0)
+			}
+
+			approval.Options.Count = approval.Options.Count - 1
+			res[action] = append(res[action], approval)
+		}
+	}
+	return res
+}
+
+func (m Approvals) Merge(others Approvals) Approvals {
+	for action, aSrc := range others {
+		found := false
+		aDest := m[action]
+		for _, src := range aSrc {
+			for idx, dest := range aDest {
+				if weave.Address(src.Address).Equals(dest.Address) {
+					aDest[idx] = src
+					found = true
+					break
+				}
+			}
+
+			if !found {
+				m[action] = append(m[action])
+			}
+		}
+	}
+	return m
+}
+
+func (m Approvals) Intersect(others Approvals) Approvals {
+	res := make(map[string]ApprovalMeta, 0)
+	for action, approvals := range others {
+		mApprovals := m[action]
+		for _, src := range approvals {
+			for _, dest := range mApprovals {
+				if dest.Equals(src) {
+					if _, ok := res[action]; !ok {
+						res[action] = make([]Approval, 0)
+					}
+					res[action] = append(res[action], dest)
+				}
+			}
+		}
+	}
+	return res
+}
