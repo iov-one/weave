@@ -1,6 +1,7 @@
 package username_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -240,6 +241,7 @@ func TestQueryUsernameToken(t *testing.T) {
 func TestAddChainAddress(t *testing.T) {
 	var helpers x.TestHelpers
 	_, alice := helpers.MakeKey()
+	ctx := context.Background()
 
 	db := store.MemStore()
 	bucket := username.NewBucket()
@@ -316,7 +318,7 @@ func TestAddChainAddress(t *testing.T) {
 			})
 
 			// when
-			_, err := handler.Check(nil, cache, tx)
+			_, err := handler.Check(ctx, cache, tx)
 			if spec.expCheckError {
 				require.Error(t, err)
 				return
@@ -325,7 +327,7 @@ func TestAddChainAddress(t *testing.T) {
 			require.NoError(t, err)
 
 			// and when delivered
-			res, err := handler.Deliver(nil, cache, tx)
+			res, err := handler.Deliver(ctx, cache, tx)
 
 			// then
 			if spec.expDeliverError {
@@ -352,6 +354,7 @@ func TestAddChainAddress(t *testing.T) {
 func TestRemoveChainAddress(t *testing.T) {
 	var helpers x.TestHelpers
 	_, alice := helpers.MakeKey()
+	ctx := context.Background()
 
 	db := store.MemStore()
 	bucket := username.NewBucket()
@@ -406,7 +409,7 @@ func TestRemoveChainAddress(t *testing.T) {
 			})
 
 			// when
-			_, err := handler.Check(nil, cache, tx)
+			_, err := handler.Check(ctx, cache, tx)
 			if spec.expCheckError {
 				require.Error(t, err)
 				return
@@ -415,7 +418,7 @@ func TestRemoveChainAddress(t *testing.T) {
 			require.NoError(t, err)
 
 			// and when delivered
-			res, err := handler.Deliver(nil, db, tx)
+			res, err := handler.Deliver(ctx, db, tx)
 
 			// then
 			if spec.expDeliverError {

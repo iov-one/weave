@@ -20,12 +20,12 @@ func TestFindActor(t *testing.T) {
 				Owner: bob.Address(),
 			}
 			Convey("Test valid owner", func() {
-				addr := FindActor(helper.Authenticate(bob), nil, token, "")
+				addr := FindActor(-1, helper.Authenticate(bob), nil, token, "")
 				So(addr, ShouldResemble, bob.Address())
 			})
 
 			Convey("Test invalid owner", func() {
-				addr := FindActor(helper.Authenticate(alice), nil, token, "")
+				addr := FindActor(-1, helper.Authenticate(alice), nil, token, "")
 				So(addr, ShouldBeNil)
 			})
 		})
@@ -36,21 +36,26 @@ func TestFindActor(t *testing.T) {
 				Owner: bob.Address(),
 				ActionApprovals: []ActionApprovals{{
 					Action:    Action_ActionUpdateDetails.String(),
-					Approvals: []Approval{{Options: ApprovalOptions{Count: UnlimitedCount}, Address: alice.Address()}},
+					Approvals: []Approval{{Options: ApprovalOptions{Count: UnlimitedCount, UntilBlockHeight: 5}, Address: alice.Address()}},
 				}},
 			}
 			Convey("Test valid approval", func() {
-				addr := FindActor(helper.Authenticate(alice), nil, token, Action_ActionUpdateDetails.String())
+				addr := FindActor(-1, helper.Authenticate(alice), nil, token, Action_ActionUpdateDetails.String())
 				So(addr, ShouldResemble, alice.Address())
 			})
 
 			Convey("Test invalid action", func() {
-				addr := FindActor(helper.Authenticate(alice), nil, token, Action_ActionUpdateApprovals.String())
+				addr := FindActor(-1, helper.Authenticate(alice), nil, token, Action_ActionUpdateApprovals.String())
 				So(addr, ShouldBeNil)
 			})
 
 			Convey("Test invalid signer", func() {
-				addr := FindActor(helper.Authenticate(guest), nil, token, "")
+				addr := FindActor(-1, helper.Authenticate(guest), nil, token, "")
+				So(addr, ShouldBeNil)
+			})
+
+			Convey("Test timeout", func() {
+				addr := FindActor(10, helper.Authenticate(guest), nil, token, "")
 				So(addr, ShouldBeNil)
 			})
 		})
