@@ -5,42 +5,30 @@ package approvals;
 import "github.com/gogo/protobuf/gogoproto/gogo.proto";
 
 message Approval {
-    //
-    string type = 1;
-    //
-    int64 timeout = 2;
-    // addresses to control it
-    repeated bytes sigs = 3;
-    // threshold needed to sign to activate it
-    int64 activationThreshold = 4;
-    // threshold needed to sign to change it
-    int64 adminThreshold = 5;
+    // the action this approval allows
+    string action = 1;
+    // number of times this approval can be used, unlimited = -1
+    int64 count = 2;
+    // block height timeout, no timeout = 0
+    int64 timeout = 3;
+    // the address for this approval eg. sig or multisig
+    repeated bytes address = 4;
 }
 
 message CreateApprovalMsg {
     //
-    string type = 1;
+    int64 count = 1;
     //
     int64 timeout = 2;
-    // addresses to control it
-    repeated bytes sigs = 3;
-    // threshold needed to sign to activate it
-    int64 activationThreshold = 4;
-    // threshold needed to sign to change it
-    int64 adminThreshold = 5;
+
+    repeated bytes address = 3;
 }
 
 message UpdateApprovalMsg {
-    // contract id
-    bytes id = 1;
     //
-    string type = 2;
+    int64 count = 1;
     //
-    int64 timeout = 3;
-    // addresses to control it
-    repeated bytes sigs = 4;
-    // threshold needed to sign to activate it
-    int64 activationThreshold = 5;
-    // threshold needed to sign to change it
-    int64 adminThreshold = 6;
+    int64 timeout = 2;
+
+    repeated bytes address = 3;
 }
