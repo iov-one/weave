@@ -13,7 +13,7 @@ import (
 type Token interface {
 	nft.BaseNFT
 	GetChainAddresses() []ChainAddress
-	SetChainAddresses(actor weave.Address, newKeys []ChainAddress) error
+	SetChainAddresses(height int64, actor weave.Address, newKeys []ChainAddress) error
 }
 
 func (u *UsernameToken) Approvals() *nft.ApprovalOps {
@@ -26,15 +26,15 @@ func (u *UsernameToken) GetChainAddresses() []ChainAddress {
 	}
 	return u.Details.Addresses
 }
-func (u *UsernameToken) SetChainAddresses(actor weave.Address, newAddresses []ChainAddress) error {
+func (u *UsernameToken) SetChainAddresses(height int64, actor weave.Address, newAddresses []ChainAddress) error {
 	if !u.OwnerAddress().Equals(actor) {
 		if u.Approvals().
 			List().
 			ForAction(nft.Action_ActionUpdateDetails.String()).
 			ForAddress(actor).
+			FilterExpired(height).
 			IsEmpty() {
 			return errors.ErrUnauthorized()
-
 		}
 	}
 	if containsDuplicateChains(newAddresses) {

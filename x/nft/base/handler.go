@@ -84,9 +84,12 @@ func (h *ApprovalOpsHandler) Deliver(ctx weave.Context, store weave.KVStore, tx 
 		return res, err
 	}
 
-	actor := nft.FindActor(h.auth, ctx, t, nft.Action_ActionUpdateApprovals.String())
-	if actor == nil {
-		return res, errors.ErrUnauthorized()
+	if ctx != nil {
+		height, _ := weave.GetHeight(ctx)
+		actor := nft.FindActor(height, h.auth, ctx, t, nft.Action_ActionUpdateApprovals.String())
+		if actor == nil {
+			return res, errors.ErrUnauthorized()
+		}
 	}
 
 	switch v := msg.(type) {

@@ -18,6 +18,7 @@ func TestApprovalOpsHandler(t *testing.T) {
 		aliceWithBobApproval := []byte("user2")
 		bobWithAliceApproval := []byte("user3")
 		bobWithAliceImmutableApproval := []byte("user4")
+		// bobWithAliceTimeoutApproval := []byte("user5")
 
 		chainId := []byte("any_network")
 		var helpers x.TestHelpers
@@ -51,12 +52,18 @@ func TestApprovalOpsHandler(t *testing.T) {
 			Approvals: []nft.Approval{{Options: nft.ApprovalOptions{Count: nft.UnlimitedCount, Immutable: true}, Address: alice.Address()}},
 		}}, nil)
 		userBucket.Save(db, o)
+		// o, _ = userBucket.Create(db, bob.Address(), bobWithAliceTimeoutApproval, []nft.ActionApprovals{{
+		// 	Action:    nft.Action_ActionUpdateApprovals.String(),
+		// 	Approvals: []nft.Approval{{Options: nft.ApprovalOptions{Count: nft.UnlimitedCount, UntilBlockHeight: 5}, Address: alice.Address()}},
+		// }}, nil)
+		// userBucket.Save(db, o)
 
 		Convey("Test add", func() {
+			var blockHeight int64 = 5
 			msg := &nft.AddApprovalMsg{Id: bobsUsername,
 				Address: alice.Address(),
 				Action:  nft.Action_ActionUpdateDetails.String(),
-				Options: nft.ApprovalOptions{Count: nft.UnlimitedCount},
+				Options: nft.ApprovalOptions{Count: nft.UnlimitedCount, UntilBlockHeight: 5},
 				T:       app.NftType_Username.String(),
 			}
 			Convey("Test happy", func() {
@@ -74,8 +81,8 @@ func TestApprovalOpsHandler(t *testing.T) {
 						List().
 						ForAction(msg.Action).
 						ForAddress(msg.Address).
+						FilterExpired(blockHeight).
 						IsEmpty(), ShouldBeFalse)
-
 				})
 
 				Convey("By approved", func() {
@@ -94,6 +101,7 @@ func TestApprovalOpsHandler(t *testing.T) {
 						List().
 						ForAction(msg.Action).
 						ForAddress(msg.Address).
+						FilterExpired(blockHeight).
 						IsEmpty(), ShouldBeFalse)
 				})
 			})
@@ -154,7 +162,24 @@ func TestApprovalOpsHandler(t *testing.T) {
 					So(err, ShouldBeNil)
 					_, err = handler.Deliver(nil, db, tx)
 					So(err, ShouldNotBeNil)
+				})
 
+				Convey("Timeout", func() {
+					tx := helpers.MockTx(msg)
+					var blockHeight int64 = 10
+					_, err := handler.Check(nil, db, tx)
+					So(err, ShouldBeNil)
+					_, err = handler.Deliver(nil, db, tx)
+					So(err, ShouldBeNil)
+					o, err := userBucket.Get(db, bobsUsername)
+					So(err, ShouldBeNil)
+					u, err := username.AsUsername(o)
+					So(u.Approvals().
+						List().
+						ForAction(msg.Action).
+						ForAddress(msg.Address).
+						FilterExpired(blockHeight).
+						IsEmpty(), ShouldBeTrue)
 				})
 			})
 
@@ -264,7 +289,6 @@ func TestApprovalOpsHandler(t *testing.T) {
 					_, err = handler.Deliver(nil, db, tx)
 					So(err, ShouldNotBeNil)
 				})
-
 			})
 
 		})

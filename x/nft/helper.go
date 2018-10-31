@@ -27,19 +27,20 @@ func (*Validation) IsValidTokenID(id []byte) bool {
 	return len(id) >= minIDLength && len(id) <= maxIDLength
 }
 
-func FindActor(auth x.Authenticator, ctx weave.Context, t BaseNFT, action string) weave.Address {
+func FindActor(height int64, auth x.Authenticator, ctx weave.Context, t BaseNFT, action string) weave.Address {
 	if auth.HasAddress(ctx, t.OwnerAddress()) {
 		return t.OwnerAddress()
-	} else {
-		signers := x.GetAddresses(ctx, auth)
-		for _, signer := range signers {
-			if !t.Approvals().
-				List().
-				ForAction(action).
-				ForAddress(signer).
-				IsEmpty() {
-				return signer
-			}
+	}
+
+	signers := x.GetAddresses(ctx, auth)
+	for _, signer := range signers {
+		if !t.Approvals().
+			List().
+			ForAction(action).
+			ForAddress(signer).
+			FilterExpired(height).
+			IsEmpty() {
+			return signer
 		}
 	}
 	return nil
