@@ -1,8 +1,10 @@
 package base
 
 import (
+	"context"
 	"testing"
 
+	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/cmd/bnsd/app"
 	"github.com/iov-one/weave/store"
 	"github.com/iov-one/weave/x"
@@ -18,7 +20,7 @@ func TestApprovalOpsHandler(t *testing.T) {
 		aliceWithBobApproval := []byte("user2")
 		bobWithAliceApproval := []byte("user3")
 		bobWithAliceImmutableApproval := []byte("user4")
-		// bobWithAliceTimeoutApproval := []byte("user5")
+		bobWithAliceTimeoutApproval := []byte("user5")
 
 		chainId := []byte("any_network")
 		var helpers x.TestHelpers
@@ -52,11 +54,11 @@ func TestApprovalOpsHandler(t *testing.T) {
 			Approvals: []nft.Approval{{Options: nft.ApprovalOptions{Count: nft.UnlimitedCount, Immutable: true}, Address: alice.Address()}},
 		}}, nil)
 		userBucket.Save(db, o)
-		// o, _ = userBucket.Create(db, bob.Address(), bobWithAliceTimeoutApproval, []nft.ActionApprovals{{
-		// 	Action:    nft.Action_ActionUpdateApprovals.String(),
-		// 	Approvals: []nft.Approval{{Options: nft.ApprovalOptions{Count: nft.UnlimitedCount, UntilBlockHeight: 5}, Address: alice.Address()}},
-		// }}, nil)
-		// userBucket.Save(db, o)
+		o, _ = userBucket.Create(db, bob.Address(), bobWithAliceTimeoutApproval, []nft.ActionApprovals{{
+			Action:    nft.Action_ActionUpdateApprovals.String(),
+			Approvals: []nft.Approval{{Options: nft.ApprovalOptions{Count: nft.UnlimitedCount, UntilBlockHeight: 5}, Address: alice.Address()}},
+		}}, nil)
+		userBucket.Save(db, o)
 
 		Convey("Test add", func() {
 			var blockHeight int64 = 5
@@ -186,6 +188,7 @@ func TestApprovalOpsHandler(t *testing.T) {
 		})
 
 		Convey("Test Remove", func() {
+			var blockHeight int64 = 5
 			msg := &nft.RemoveApprovalMsg{Id: bobWithAliceApproval,
 				Address: alice.Address(),
 				Action:  nft.Action_ActionUpdateApprovals.String(),
@@ -206,6 +209,7 @@ func TestApprovalOpsHandler(t *testing.T) {
 						List().
 						ForAction(msg.Action).
 						ForAddress(msg.Address).
+						FilterExpired(blockHeight).
 						IsEmpty(), ShouldBeTrue)
 
 				})
@@ -227,6 +231,7 @@ func TestApprovalOpsHandler(t *testing.T) {
 						List().
 						ForAction(msg.Action).
 						ForAddress(msg.Address).
+						FilterExpired(blockHeight).
 						IsEmpty(), ShouldBeTrue)
 				})
 			})
@@ -287,6 +292,17 @@ func TestApprovalOpsHandler(t *testing.T) {
 					_, err := handler.Check(nil, db, tx)
 					So(err, ShouldBeNil)
 					_, err = handler.Deliver(nil, db, tx)
+					So(err, ShouldNotBeNil)
+				})
+
+				Convey("Timeout", func() {
+					msg.Id = bobWithAliceTimeoutApproval
+					tx := helpers.MockTx(msg)
+					ctx := weave.WithHeight(context.Background(), 10)
+					handler = NewApprovalOpsHandler(helpers.Authenticate(guest), nil, d)
+					_, err := handler.Check(ctx, db, tx)
+					So(err, ShouldBeNil)
+					_, err = handler.Deliver(ctx, db, tx)
 					So(err, ShouldNotBeNil)
 				})
 			})
