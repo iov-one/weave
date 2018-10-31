@@ -4,11 +4,11 @@ import (
 	"fmt"
 
 	"github.com/golang/mock/gomock"
-	"github.com/iov-one/tools/utils"
+	utils "github.com/iov-one/weave/cmd/bnsd/client"
 	"github.com/iov-one/weave/x"
 	"github.com/iov-one/weave/x/namecoin"
 	"github.com/pkg/errors"
-	abci "github.com/tendermint/abci/types"
+	abci "github.com/tendermint/tendermint/abci/types"
 	ctypes "github.com/tendermint/tendermint/rpc/core/types"
 )
 

@@ -9,7 +9,7 @@ import (
 	time "time"
 
 	gomock "github.com/golang/mock/gomock"
-	utils "github.com/iov-one/tools/utils"
+	utils "github.com/iov-one/weave/cmd/bnsd/client"
 	weave "github.com/iov-one/weave"
 )
 

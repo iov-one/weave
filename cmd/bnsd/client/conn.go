@@ -1,10 +1,10 @@
-package utils
+package client
 
 import (
 	nm "github.com/tendermint/tendermint/node"
 	"github.com/tendermint/tendermint/rpc/client"
 
-	"github.com/iov-one/tools/utils/rpcclient"
+	"github.com/iov-one/weave/cmd/bnsd/client/rpcclient"
 )
 
 /***

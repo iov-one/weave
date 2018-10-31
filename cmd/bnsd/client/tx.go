@@ -1,4 +1,4 @@
-package utils
+package client
 
 import (
 	"github.com/iov-one/weave"

@@ -1,4 +1,4 @@
-package utils
+package client
 
 import (
 	"encoding/json"
@@ -10,7 +10,7 @@ import (
 	"github.com/iov-one/weave/cmd/bcpd/app"
 	"github.com/iov-one/weave/x"
 
-	abci "github.com/tendermint/abci/types"
+	abci "github.com/tendermint/tendermint/abci/types"
 	cfg "github.com/tendermint/tendermint/config"
 	nm "github.com/tendermint/tendermint/node"
 	rpctest "github.com/tendermint/tendermint/rpc/test"

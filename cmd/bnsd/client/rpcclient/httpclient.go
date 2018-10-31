@@ -7,14 +7,11 @@ import (
 	"github.com/pkg/errors"
 
 	amino "github.com/tendermint/go-amino"
+	cmn "github.com/tendermint/tendermint/libs/common"
 	tmpubsub "github.com/tendermint/tendermint/libs/pubsub"
-	client "github.com/tendermint/tendermint/rpc/client"
 	ctypes "github.com/tendermint/tendermint/rpc/core/types"
+	rpcclient "github.com/tendermint/tendermint/rpc/lib/client"
 	"github.com/tendermint/tendermint/types"
-	cmn "github.com/tendermint/tmlibs/common"
-
-	// our modified copy of github.com/tendermint/tendermint/rpc/lib/client
-	libclient "github.com/iov-one/tools/utils/rpcclient/lib"
 )
 
 /*
@@ -28,16 +25,17 @@ out the server for test code (mock).
 */
 type HTTP struct {
 	remote string
-	rpc    *libclient.JSONRPCClient
+	rpc    *rpcclient.JSONRPCClient
 	*WSEvents
 }
 
-// New takes a remote endpoint in the form tcp://<host>:<port>
+// NewHTTP takes a remote endpoint in the form tcp://<host>:<port>
 // and the websocket path (which always seems to be "/websocket")
 func NewHTTP(remote, wsEndpoint string) *HTTP {
-	rc := libclient.NewJSONRPCClient(remote)
+	rc := rpcclient.NewJSONRPCClient(remote)
 	cdc := rc.Codec()
 	ctypes.RegisterAmino(cdc)
+	rc.SetCodec(cdc)
 
 	return &HTTP{
 		rpc:      rc,
@@ -47,9 +45,9 @@ func NewHTTP(remote, wsEndpoint string) *HTTP {
 }
 
 var (
-	_ client.Client        = (*HTTP)(nil)
-	_ client.NetworkClient = (*HTTP)(nil)
-	_ client.EventsClient  = (*HTTP)(nil)
+	_ Client        = (*HTTP)(nil)
+	_ NetworkClient = (*HTTP)(nil)
+	_ EventsClient  = (*HTTP)(nil)
 )
 
 func (c *HTTP) Status() (*ctypes.ResultStatus, error) {
@@ -71,10 +69,10 @@ func (c *HTTP) ABCIInfo() (*ctypes.ResultABCIInfo, error) {
 }
 
 func (c *HTTP) ABCIQuery(path string, data cmn.HexBytes) (*ctypes.ResultABCIQuery, error) {
-	return c.ABCIQueryWithOptions(path, data, client.DefaultABCIQueryOptions)
+	return c.ABCIQueryWithOptions(path, data, DefaultABCIQueryOptions)
 }
 
-func (c *HTTP) ABCIQueryWithOptions(path string, data cmn.HexBytes, opts client.ABCIQueryOptions) (*ctypes.ResultABCIQuery, error) {
+func (c *HTTP) ABCIQueryWithOptions(path string, data cmn.HexBytes, opts ABCIQueryOptions) (*ctypes.ResultABCIQuery, error) {
 	result := new(ctypes.ResultABCIQuery)
 	_, err := c.rpc.Call("abci_query",
 		map[string]interface{}{"path": path, "data": data, "height": opts.Height, "trusted": opts.Trusted},
@@ -238,7 +236,7 @@ type WSEvents struct {
 	cdc      *amino.Codec
 	remote   string
 	endpoint string
-	ws       *libclient.WSClient
+	ws       *rpcclient.WSClient
 
 	mtx           sync.RWMutex
 	subscriptions map[string]chan<- interface{}
@@ -246,7 +244,6 @@ type WSEvents struct {
 
 func newWSEvents(cdc *amino.Codec, remote, endpoint string) *WSEvents {
 	wsEvents := &WSEvents{
-		ws:            libclient.NewWSClient(remote, endpoint),
 		cdc:           cdc,
 		endpoint:      endpoint,
 		remote:        remote,
@@ -258,7 +255,7 @@ func newWSEvents(cdc *amino.Codec, remote, endpoint string) *WSEvents {
 }
 
 func (w *WSEvents) OnStart() error {
-	w.ws = libclient.NewWSClient(w.remote, w.endpoint, libclient.OnReconnect(func() {
+	w.ws = rpcclient.NewWSClient(w.remote, w.endpoint, rpcclient.OnReconnect(func() {
 		w.redoSubscriptions()
 	}))
 	w.ws.SetCodec(w.cdc)
