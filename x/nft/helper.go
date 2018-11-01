@@ -27,7 +27,7 @@ func (*Validation) IsValidTokenID(id []byte) bool {
 	return len(id) >= minIDLength && len(id) <= maxIDLength
 }
 
-func FindActor(height int64, auth x.Authenticator, ctx weave.Context, t BaseNFT, action string) weave.Address {
+func FindActor(auth x.Authenticator, ctx weave.Context, t BaseNFT, action string, height int64) weave.Address {
 	if auth.HasAddress(ctx, t.OwnerAddress()) {
 		return t.OwnerAddress()
 	}

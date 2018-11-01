@@ -142,12 +142,12 @@ func (h AddChainAddressHandler) Deliver(ctx weave.Context, store weave.KVStore, 
 	}
 
 	height, _ := weave.GetHeight(ctx)
-	actor := nft.FindActor(height, h.auth, ctx, t, nft.Action_ActionUpdateDetails.String())
+	actor := nft.FindActor(h.auth, ctx, t, nft.Action_ActionUpdateDetails.String(), height)
 	if actor == nil {
 		return res, errors.ErrUnauthorized()
 	}
 	allKeys := append(t.GetChainAddresses(), ChainAddress{msg.GetChainID(), msg.GetAddress()})
-	if err := t.SetChainAddresses(height, actor, allKeys); err != nil {
+	if err := t.SetChainAddresses(actor, allKeys, height); err != nil {
 		return res, err
 	}
 
@@ -197,7 +197,7 @@ func (h RemoveChainAddressHandler) Deliver(ctx weave.Context, store weave.KVStor
 		return res, err
 	}
 	height, _ := weave.GetHeight(ctx)
-	actor := nft.FindActor(height, h.auth, ctx, t, nft.Action_ActionUpdateDetails.String())
+	actor := nft.FindActor(h.auth, ctx, t, nft.Action_ActionUpdateDetails.String(), height)
 	if actor == nil {
 		return res, errors.ErrUnauthorized()
 	}
@@ -214,7 +214,7 @@ func (h RemoveChainAddressHandler) Deliver(ctx weave.Context, store weave.KVStor
 	if len(newAddresses) == len(t.GetChainAddresses()) {
 		return res, nft.ErrInvalidEntry()
 	}
-	if err := t.SetChainAddresses(height, actor, newAddresses); err != nil {
+	if err := t.SetChainAddresses(actor, newAddresses, height); err != nil {
 		return res, err
 	}
 	return res, h.bucket.Save(store, o)

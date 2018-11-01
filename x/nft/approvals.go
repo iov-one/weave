@@ -182,7 +182,7 @@ func (m Approvals) DecrementCount() Approvals {
 				res[action] = make([]Approval, 0)
 			}
 
-			approval.Options.Count = approval.Options.Count - 1
+			approval.Options.Count--
 			res[action] = append(res[action], approval)
 		}
 	}
