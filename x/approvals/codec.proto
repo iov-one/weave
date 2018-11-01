@@ -7,28 +7,26 @@ import "github.com/gogo/protobuf/gogoproto/gogo.proto";
 message Approval {
     // the action this approval allows
     string action = 1;
-    // number of times this approval can be used, unlimited = -1
-    int64 count = 2;
     // block height timeout, no timeout = 0
-    int64 timeout = 3;
+    int64 timeout = 2;
     // the address for this approval eg. sig or multisig
-    repeated bytes address = 4;
+    bytes address = 3;
 }
 
 message CreateApprovalMsg {
-    //
-    int64 count = 1;
+    // the action this approval allows
+    string action = 1;
     //
     int64 timeout = 2;
 
-    repeated bytes address = 3;
+    bytes address = 3;
 }
 
 message UpdateApprovalMsg {
-    //
-    int64 count = 1;
+    // the action this approval allows
+    string action = 1;
     //
     int64 timeout = 2;
 
-    repeated bytes address = 3;
+    bytes address = 3;
 }

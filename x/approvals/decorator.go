@@ -1,6 +1,7 @@
 package approvals
 
 import (
+	"github.com/confio/weave/errors"
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/x"
 )
@@ -42,7 +43,7 @@ func (d Decorator) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx, 
 
 func (d Decorator) withApproval(ctx weave.Context, store weave.KVStore, tx weave.Tx) (weave.Context, error) {
 	if approvalTx, ok := tx.(ApprovalTx); ok {
-		ids := approvalTx.GetApproval()
+		ids := approvalTx.GetApprovals()
 		for _, approvalID := range ids {
 			if approvalID == nil {
 				return ctx, nil
@@ -55,23 +56,16 @@ func (d Decorator) withApproval(ctx weave.Context, store weave.KVStore, tx weave
 			}
 
 			// check if we already have it
-			if d.auth.HasAddress(ctx, ApprovalCondition(approvalID, approval.Type).Address()) {
+			if d.auth.HasAddress(ctx, ApprovalCondition(approvalID, approval.Action).Address()) {
 				return ctx, nil
 			}
 
-			// collect all sigs
-			sigs := make([]weave.Address, len(approval.Sigs))
-			for i, sig := range approval.Sigs {
-				sigs[i] = sig
+			// check if we already have it
+			if d.auth.HasAddress(ctx, approval.Address) {
+				return ctx, errors.ErrUnauthorized()
 			}
 
-			// check sigs (can be sig or multisig)
-			authenticated := x.HasNAddresses(ctx, d.auth, sigs, int(approval.ActivationThreshold))
-			if !authenticated {
-				return ctx, ErrUnauthorizedMultiSig(approvalID)
-			}
-
-			ctx = withApproval(ctx, approvalID, approval.Type)
+			ctx = withApproval(ctx, approvalID, approval.Action)
 		}
 	}
 

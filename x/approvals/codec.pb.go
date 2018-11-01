@@ -22,23 +22,19 @@ var _ = math.Inf
 const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
 
 type Approval struct {
-	//
-	Type string `protobuf:"bytes,1,opt,name=type,proto3" json:"type,omitempty"`
-	//
+	// the action this approval allows
+	Action string `protobuf:"bytes,1,opt,name=action,proto3" json:"action,omitempty"`
+	// block height timeout, no timeout = 0
 	Timeout int64 `protobuf:"varint,2,opt,name=timeout,proto3" json:"timeout,omitempty"`
-	// addresses to control it
-	Sigs [][]byte `protobuf:"bytes,3,rep,name=sigs" json:"sigs,omitempty"`
-	// threshold needed to sign to activate it
-	ActivationThreshold int64 `protobuf:"varint,4,opt,name=activationThreshold,proto3" json:"activationThreshold,omitempty"`
-	// threshold needed to sign to change it
-	AdminThreshold int64 `protobuf:"varint,5,opt,name=adminThreshold,proto3" json:"adminThreshold,omitempty"`
+	// the address for this approval eg. sig or multisig
+	Address []byte `protobuf:"bytes,3,opt,name=address,proto3" json:"address,omitempty"`
 }
 
 func (m *Approval) Reset()         { *m = Approval{} }
 func (m *Approval) String() string { return proto.CompactTextString(m) }
 func (*Approval) ProtoMessage()    {}
 func (*Approval) Descriptor() ([]byte, []int) {
-	return fileDescriptor_codec_5b0d0f2020baa549, []int{0}
+	return fileDescriptor_codec_42c5654dc993c494, []int{0}
 }
 func (m *Approval) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -67,9 +63,9 @@ func (m *Approval) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_Approval proto.InternalMessageInfo
 
-func (m *Approval) GetType() string {
+func (m *Approval) GetAction() string {
 	if m != nil {
-		return m.Type
+		return m.Action
 	}
 	return ""
 }
@@ -81,45 +77,26 @@ func (m *Approval) GetTimeout() int64 {
 	return 0
 }
 
-func (m *Approval) GetSigs() [][]byte {
+func (m *Approval) GetAddress() []byte {
 	if m != nil {
-		return m.Sigs
+		return m.Address
 	}
 	return nil
 }
 
-func (m *Approval) GetActivationThreshold() int64 {
-	if m != nil {
-		return m.ActivationThreshold
-	}
-	return 0
-}
-
-func (m *Approval) GetAdminThreshold() int64 {
-	if m != nil {
-		return m.AdminThreshold
-	}
-	return 0
-}
-
 type CreateApprovalMsg struct {
+	// the action this approval allows
+	Action string `protobuf:"bytes,1,opt,name=action,proto3" json:"action,omitempty"`
 	//
-	Type string `protobuf:"bytes,1,opt,name=type,proto3" json:"type,omitempty"`
-	//
-	Timeout int64 `protobuf:"varint,2,opt,name=timeout,proto3" json:"timeout,omitempty"`
-	// addresses to control it
-	Sigs [][]byte `protobuf:"bytes,3,rep,name=sigs" json:"sigs,omitempty"`
-	// threshold needed to sign to activate it
-	ActivationThreshold int64 `protobuf:"varint,4,opt,name=activationThreshold,proto3" json:"activationThreshold,omitempty"`
-	// threshold needed to sign to change it
-	AdminThreshold int64 `protobuf:"varint,5,opt,name=adminThreshold,proto3" json:"adminThreshold,omitempty"`
+	Timeout int64  `protobuf:"varint,2,opt,name=timeout,proto3" json:"timeout,omitempty"`
+	Address []byte `protobuf:"bytes,3,opt,name=address,proto3" json:"address,omitempty"`
 }
 
 func (m *CreateApprovalMsg) Reset()         { *m = CreateApprovalMsg{} }
 func (m *CreateApprovalMsg) String() string { return proto.CompactTextString(m) }
 func (*CreateApprovalMsg) ProtoMessage()    {}
 func (*CreateApprovalMsg) Descriptor() ([]byte, []int) {
-	return fileDescriptor_codec_5b0d0f2020baa549, []int{1}
+	return fileDescriptor_codec_42c5654dc993c494, []int{1}
 }
 func (m *CreateApprovalMsg) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -148,9 +125,9 @@ func (m *CreateApprovalMsg) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_CreateApprovalMsg proto.InternalMessageInfo
 
-func (m *CreateApprovalMsg) GetType() string {
+func (m *CreateApprovalMsg) GetAction() string {
 	if m != nil {
-		return m.Type
+		return m.Action
 	}
 	return ""
 }
@@ -162,47 +139,26 @@ func (m *CreateApprovalMsg) GetTimeout() int64 {
 	return 0
 }
 
-func (m *CreateApprovalMsg) GetSigs() [][]byte {
+func (m *CreateApprovalMsg) GetAddress() []byte {
 	if m != nil {
-		return m.Sigs
+		return m.Address
 	}
 	return nil
 }
 
-func (m *CreateApprovalMsg) GetActivationThreshold() int64 {
-	if m != nil {
-		return m.ActivationThreshold
-	}
-	return 0
-}
-
-func (m *CreateApprovalMsg) GetAdminThreshold() int64 {
-	if m != nil {
-		return m.AdminThreshold
-	}
-	return 0
-}
-
 type UpdateApprovalMsg struct {
-	// contract id
-	Id []byte `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	// the action this approval allows
+	Action string `protobuf:"bytes,1,opt,name=action,proto3" json:"action,omitempty"`
 	//
-	Type string `protobuf:"bytes,2,opt,name=type,proto3" json:"type,omitempty"`
-	//
-	Timeout int64 `protobuf:"varint,3,opt,name=timeout,proto3" json:"timeout,omitempty"`
-	// addresses to control it
-	Sigs [][]byte `protobuf:"bytes,4,rep,name=sigs" json:"sigs,omitempty"`
-	// threshold needed to sign to activate it
-	ActivationThreshold int64 `protobuf:"varint,5,opt,name=activationThreshold,proto3" json:"activationThreshold,omitempty"`
-	// threshold needed to sign to change it
-	AdminThreshold int64 `protobuf:"varint,6,opt,name=adminThreshold,proto3" json:"adminThreshold,omitempty"`
+	Timeout int64  `protobuf:"varint,2,opt,name=timeout,proto3" json:"timeout,omitempty"`
+	Address []byte `protobuf:"bytes,3,opt,name=address,proto3" json:"address,omitempty"`
 }
 
 func (m *UpdateApprovalMsg) Reset()         { *m = UpdateApprovalMsg{} }
 func (m *UpdateApprovalMsg) String() string { return proto.CompactTextString(m) }
 func (*UpdateApprovalMsg) ProtoMessage()    {}
 func (*UpdateApprovalMsg) Descriptor() ([]byte, []int) {
-	return fileDescriptor_codec_5b0d0f2020baa549, []int{2}
+	return fileDescriptor_codec_42c5654dc993c494, []int{2}
 }
 func (m *UpdateApprovalMsg) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -231,16 +187,9 @@ func (m *UpdateApprovalMsg) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_UpdateApprovalMsg proto.InternalMessageInfo
 
-func (m *UpdateApprovalMsg) GetId() []byte {
+func (m *UpdateApprovalMsg) GetAction() string {
 	if m != nil {
-		return m.Id
-	}
-	return nil
-}
-
-func (m *UpdateApprovalMsg) GetType() string {
-	if m != nil {
-		return m.Type
+		return m.Action
 	}
 	return ""
 }
@@ -252,25 +201,11 @@ func (m *UpdateApprovalMsg) GetTimeout() int64 {
 	return 0
 }
 
-func (m *UpdateApprovalMsg) GetSigs() [][]byte {
+func (m *UpdateApprovalMsg) GetAddress() []byte {
 	if m != nil {
-		return m.Sigs
+		return m.Address
 	}
 	return nil
-}
-
-func (m *UpdateApprovalMsg) GetActivationThreshold() int64 {
-	if m != nil {
-		return m.ActivationThreshold
-	}
-	return 0
-}
-
-func (m *UpdateApprovalMsg) GetAdminThreshold() int64 {
-	if m != nil {
-		return m.AdminThreshold
-	}
-	return 0
 }
 
 func init() {
@@ -293,34 +228,22 @@ func (m *Approval) MarshalTo(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
-	if len(m.Type) > 0 {
+	if len(m.Action) > 0 {
 		dAtA[i] = 0xa
 		i++
-		i = encodeVarintCodec(dAtA, i, uint64(len(m.Type)))
-		i += copy(dAtA[i:], m.Type)
+		i = encodeVarintCodec(dAtA, i, uint64(len(m.Action)))
+		i += copy(dAtA[i:], m.Action)
 	}
 	if m.Timeout != 0 {
 		dAtA[i] = 0x10
 		i++
 		i = encodeVarintCodec(dAtA, i, uint64(m.Timeout))
 	}
-	if len(m.Sigs) > 0 {
-		for _, b := range m.Sigs {
-			dAtA[i] = 0x1a
-			i++
-			i = encodeVarintCodec(dAtA, i, uint64(len(b)))
-			i += copy(dAtA[i:], b)
-		}
-	}
-	if m.ActivationThreshold != 0 {
-		dAtA[i] = 0x20
+	if len(m.Address) > 0 {
+		dAtA[i] = 0x1a
 		i++
-		i = encodeVarintCodec(dAtA, i, uint64(m.ActivationThreshold))
-	}
-	if m.AdminThreshold != 0 {
-		dAtA[i] = 0x28
-		i++
-		i = encodeVarintCodec(dAtA, i, uint64(m.AdminThreshold))
+		i = encodeVarintCodec(dAtA, i, uint64(len(m.Address)))
+		i += copy(dAtA[i:], m.Address)
 	}
 	return i, nil
 }
@@ -340,34 +263,22 @@ func (m *CreateApprovalMsg) MarshalTo(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
-	if len(m.Type) > 0 {
+	if len(m.Action) > 0 {
 		dAtA[i] = 0xa
 		i++
-		i = encodeVarintCodec(dAtA, i, uint64(len(m.Type)))
-		i += copy(dAtA[i:], m.Type)
+		i = encodeVarintCodec(dAtA, i, uint64(len(m.Action)))
+		i += copy(dAtA[i:], m.Action)
 	}
 	if m.Timeout != 0 {
 		dAtA[i] = 0x10
 		i++
 		i = encodeVarintCodec(dAtA, i, uint64(m.Timeout))
 	}
-	if len(m.Sigs) > 0 {
-		for _, b := range m.Sigs {
-			dAtA[i] = 0x1a
-			i++
-			i = encodeVarintCodec(dAtA, i, uint64(len(b)))
-			i += copy(dAtA[i:], b)
-		}
-	}
-	if m.ActivationThreshold != 0 {
-		dAtA[i] = 0x20
+	if len(m.Address) > 0 {
+		dAtA[i] = 0x1a
 		i++
-		i = encodeVarintCodec(dAtA, i, uint64(m.ActivationThreshold))
-	}
-	if m.AdminThreshold != 0 {
-		dAtA[i] = 0x28
-		i++
-		i = encodeVarintCodec(dAtA, i, uint64(m.AdminThreshold))
+		i = encodeVarintCodec(dAtA, i, uint64(len(m.Address)))
+		i += copy(dAtA[i:], m.Address)
 	}
 	return i, nil
 }
@@ -387,40 +298,22 @@ func (m *UpdateApprovalMsg) MarshalTo(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
-	if len(m.Id) > 0 {
+	if len(m.Action) > 0 {
 		dAtA[i] = 0xa
 		i++
-		i = encodeVarintCodec(dAtA, i, uint64(len(m.Id)))
-		i += copy(dAtA[i:], m.Id)
-	}
-	if len(m.Type) > 0 {
-		dAtA[i] = 0x12
-		i++
-		i = encodeVarintCodec(dAtA, i, uint64(len(m.Type)))
-		i += copy(dAtA[i:], m.Type)
+		i = encodeVarintCodec(dAtA, i, uint64(len(m.Action)))
+		i += copy(dAtA[i:], m.Action)
 	}
 	if m.Timeout != 0 {
-		dAtA[i] = 0x18
+		dAtA[i] = 0x10
 		i++
 		i = encodeVarintCodec(dAtA, i, uint64(m.Timeout))
 	}
-	if len(m.Sigs) > 0 {
-		for _, b := range m.Sigs {
-			dAtA[i] = 0x22
-			i++
-			i = encodeVarintCodec(dAtA, i, uint64(len(b)))
-			i += copy(dAtA[i:], b)
-		}
-	}
-	if m.ActivationThreshold != 0 {
-		dAtA[i] = 0x28
+	if len(m.Address) > 0 {
+		dAtA[i] = 0x1a
 		i++
-		i = encodeVarintCodec(dAtA, i, uint64(m.ActivationThreshold))
-	}
-	if m.AdminThreshold != 0 {
-		dAtA[i] = 0x30
-		i++
-		i = encodeVarintCodec(dAtA, i, uint64(m.AdminThreshold))
+		i = encodeVarintCodec(dAtA, i, uint64(len(m.Address)))
+		i += copy(dAtA[i:], m.Address)
 	}
 	return i, nil
 }
@@ -440,24 +333,16 @@ func (m *Approval) Size() (n int) {
 	}
 	var l int
 	_ = l
-	l = len(m.Type)
+	l = len(m.Action)
 	if l > 0 {
 		n += 1 + l + sovCodec(uint64(l))
 	}
 	if m.Timeout != 0 {
 		n += 1 + sovCodec(uint64(m.Timeout))
 	}
-	if len(m.Sigs) > 0 {
-		for _, b := range m.Sigs {
-			l = len(b)
-			n += 1 + l + sovCodec(uint64(l))
-		}
-	}
-	if m.ActivationThreshold != 0 {
-		n += 1 + sovCodec(uint64(m.ActivationThreshold))
-	}
-	if m.AdminThreshold != 0 {
-		n += 1 + sovCodec(uint64(m.AdminThreshold))
+	l = len(m.Address)
+	if l > 0 {
+		n += 1 + l + sovCodec(uint64(l))
 	}
 	return n
 }
@@ -468,24 +353,16 @@ func (m *CreateApprovalMsg) Size() (n int) {
 	}
 	var l int
 	_ = l
-	l = len(m.Type)
+	l = len(m.Action)
 	if l > 0 {
 		n += 1 + l + sovCodec(uint64(l))
 	}
 	if m.Timeout != 0 {
 		n += 1 + sovCodec(uint64(m.Timeout))
 	}
-	if len(m.Sigs) > 0 {
-		for _, b := range m.Sigs {
-			l = len(b)
-			n += 1 + l + sovCodec(uint64(l))
-		}
-	}
-	if m.ActivationThreshold != 0 {
-		n += 1 + sovCodec(uint64(m.ActivationThreshold))
-	}
-	if m.AdminThreshold != 0 {
-		n += 1 + sovCodec(uint64(m.AdminThreshold))
+	l = len(m.Address)
+	if l > 0 {
+		n += 1 + l + sovCodec(uint64(l))
 	}
 	return n
 }
@@ -496,28 +373,16 @@ func (m *UpdateApprovalMsg) Size() (n int) {
 	}
 	var l int
 	_ = l
-	l = len(m.Id)
-	if l > 0 {
-		n += 1 + l + sovCodec(uint64(l))
-	}
-	l = len(m.Type)
+	l = len(m.Action)
 	if l > 0 {
 		n += 1 + l + sovCodec(uint64(l))
 	}
 	if m.Timeout != 0 {
 		n += 1 + sovCodec(uint64(m.Timeout))
 	}
-	if len(m.Sigs) > 0 {
-		for _, b := range m.Sigs {
-			l = len(b)
-			n += 1 + l + sovCodec(uint64(l))
-		}
-	}
-	if m.ActivationThreshold != 0 {
-		n += 1 + sovCodec(uint64(m.ActivationThreshold))
-	}
-	if m.AdminThreshold != 0 {
-		n += 1 + sovCodec(uint64(m.AdminThreshold))
+	l = len(m.Address)
+	if l > 0 {
+		n += 1 + l + sovCodec(uint64(l))
 	}
 	return n
 }
@@ -566,7 +431,7 @@ func (m *Approval) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Type", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Action", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -591,7 +456,7 @@ func (m *Approval) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Type = string(dAtA[iNdEx:postIndex])
+			m.Action = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 2:
 			if wireType != 0 {
@@ -614,7 +479,7 @@ func (m *Approval) Unmarshal(dAtA []byte) error {
 			}
 		case 3:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Sigs", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Address", wireType)
 			}
 			var byteLen int
 			for shift := uint(0); ; shift += 7 {
@@ -638,47 +503,11 @@ func (m *Approval) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Sigs = append(m.Sigs, make([]byte, postIndex-iNdEx))
-			copy(m.Sigs[len(m.Sigs)-1], dAtA[iNdEx:postIndex])
+			m.Address = append(m.Address[:0], dAtA[iNdEx:postIndex]...)
+			if m.Address == nil {
+				m.Address = []byte{}
+			}
 			iNdEx = postIndex
-		case 4:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ActivationThreshold", wireType)
-			}
-			m.ActivationThreshold = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowCodec
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.ActivationThreshold |= (int64(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		case 5:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field AdminThreshold", wireType)
-			}
-			m.AdminThreshold = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowCodec
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.AdminThreshold |= (int64(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
 		default:
 			iNdEx = preIndex
 			skippy, err := skipCodec(dAtA[iNdEx:])
@@ -731,7 +560,7 @@ func (m *CreateApprovalMsg) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Type", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Action", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -756,7 +585,7 @@ func (m *CreateApprovalMsg) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Type = string(dAtA[iNdEx:postIndex])
+			m.Action = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 2:
 			if wireType != 0 {
@@ -779,7 +608,7 @@ func (m *CreateApprovalMsg) Unmarshal(dAtA []byte) error {
 			}
 		case 3:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Sigs", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Address", wireType)
 			}
 			var byteLen int
 			for shift := uint(0); ; shift += 7 {
@@ -803,47 +632,11 @@ func (m *CreateApprovalMsg) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Sigs = append(m.Sigs, make([]byte, postIndex-iNdEx))
-			copy(m.Sigs[len(m.Sigs)-1], dAtA[iNdEx:postIndex])
+			m.Address = append(m.Address[:0], dAtA[iNdEx:postIndex]...)
+			if m.Address == nil {
+				m.Address = []byte{}
+			}
 			iNdEx = postIndex
-		case 4:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ActivationThreshold", wireType)
-			}
-			m.ActivationThreshold = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowCodec
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.ActivationThreshold |= (int64(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		case 5:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field AdminThreshold", wireType)
-			}
-			m.AdminThreshold = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowCodec
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.AdminThreshold |= (int64(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
 		default:
 			iNdEx = preIndex
 			skippy, err := skipCodec(dAtA[iNdEx:])
@@ -896,38 +689,7 @@ func (m *UpdateApprovalMsg) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Id", wireType)
-			}
-			var byteLen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowCodec
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				byteLen |= (int(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if byteLen < 0 {
-				return ErrInvalidLengthCodec
-			}
-			postIndex := iNdEx + byteLen
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Id = append(m.Id[:0], dAtA[iNdEx:postIndex]...)
-			if m.Id == nil {
-				m.Id = []byte{}
-			}
-			iNdEx = postIndex
-		case 2:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Type", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Action", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -952,9 +714,9 @@ func (m *UpdateApprovalMsg) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Type = string(dAtA[iNdEx:postIndex])
+			m.Action = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 3:
+		case 2:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Timeout", wireType)
 			}
@@ -973,9 +735,9 @@ func (m *UpdateApprovalMsg) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
-		case 4:
+		case 3:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Sigs", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Address", wireType)
 			}
 			var byteLen int
 			for shift := uint(0); ; shift += 7 {
@@ -999,47 +761,11 @@ func (m *UpdateApprovalMsg) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Sigs = append(m.Sigs, make([]byte, postIndex-iNdEx))
-			copy(m.Sigs[len(m.Sigs)-1], dAtA[iNdEx:postIndex])
+			m.Address = append(m.Address[:0], dAtA[iNdEx:postIndex]...)
+			if m.Address == nil {
+				m.Address = []byte{}
+			}
 			iNdEx = postIndex
-		case 5:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ActivationThreshold", wireType)
-			}
-			m.ActivationThreshold = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowCodec
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.ActivationThreshold |= (int64(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		case 6:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field AdminThreshold", wireType)
-			}
-			m.AdminThreshold = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowCodec
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.AdminThreshold |= (int64(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
 		default:
 			iNdEx = preIndex
 			skippy, err := skipCodec(dAtA[iNdEx:])
@@ -1166,26 +892,21 @@ var (
 	ErrIntOverflowCodec   = fmt.Errorf("proto: integer overflow")
 )
 
-func init() { proto.RegisterFile("codec.proto", fileDescriptor_codec_5b0d0f2020baa549) }
+func init() { proto.RegisterFile("codec.proto", fileDescriptor_codec_42c5654dc993c494) }
 
-var fileDescriptor_codec_5b0d0f2020baa549 = []byte{
-	// 276 bytes of a gzipped FileDescriptorProto
+var fileDescriptor_codec_42c5654dc993c494 = []byte{
+	// 198 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0xe2, 0x4e, 0xce, 0x4f, 0x49,
 	0x4d, 0xd6, 0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17, 0xe2, 0x4c, 0x2c, 0x28, 0x28, 0xca, 0x2f, 0x4b,
 	0xcc, 0x29, 0x96, 0xd2, 0x4d, 0xcf, 0x2c, 0xc9, 0x28, 0x4d, 0xd2, 0x4b, 0xce, 0xcf, 0xd5, 0x4f,
 	0xcf, 0x4f, 0xcf, 0xd7, 0x07, 0xab, 0x48, 0x2a, 0x4d, 0x03, 0xf3, 0xc0, 0x1c, 0x30, 0x0b, 0xa2,
-	0x53, 0x69, 0x19, 0x23, 0x17, 0x87, 0x23, 0x54, 0xb3, 0x90, 0x10, 0x17, 0x4b, 0x49, 0x65, 0x41,
-	0xaa, 0x04, 0xa3, 0x02, 0xa3, 0x06, 0x67, 0x10, 0x98, 0x2d, 0x24, 0xc1, 0xc5, 0x5e, 0x92, 0x99,
-	0x9b, 0x9a, 0x5f, 0x5a, 0x22, 0xc1, 0xa4, 0xc0, 0xa8, 0xc1, 0x1c, 0x04, 0xe3, 0x82, 0x54, 0x17,
-	0x67, 0xa6, 0x17, 0x4b, 0x30, 0x2b, 0x30, 0x6b, 0xf0, 0x04, 0x81, 0xd9, 0x42, 0x06, 0x5c, 0xc2,
-	0x89, 0xc9, 0x25, 0x99, 0x65, 0x89, 0x25, 0x99, 0xf9, 0x79, 0x21, 0x19, 0x45, 0xa9, 0xc5, 0x19,
-	0xf9, 0x39, 0x29, 0x12, 0x2c, 0x60, 0x9d, 0xd8, 0xa4, 0x84, 0xd4, 0xb8, 0xf8, 0x12, 0x53, 0x72,
-	0x33, 0x91, 0x14, 0xb3, 0x82, 0x15, 0xa3, 0x89, 0x2a, 0xad, 0x67, 0xe4, 0x12, 0x74, 0x2e, 0x4a,
-	0x4d, 0x2c, 0x49, 0x85, 0x39, 0xd7, 0xb7, 0x38, 0x7d, 0x50, 0xbb, 0x78, 0x3f, 0x23, 0x97, 0x60,
-	0x68, 0x41, 0x0a, 0x9a, 0x8b, 0xf9, 0xb8, 0x98, 0x32, 0x53, 0xc0, 0xee, 0xe5, 0x09, 0x62, 0xca,
-	0x4c, 0x81, 0xfb, 0x80, 0x09, 0xbb, 0x0f, 0x98, 0xb1, 0xfb, 0x80, 0x85, 0xb0, 0x0f, 0x58, 0x49,
-	0xf1, 0x01, 0x1b, 0x36, 0x1f, 0x38, 0x49, 0x9c, 0x78, 0x24, 0xc7, 0x78, 0xe1, 0x91, 0x1c, 0xe3,
-	0x83, 0x47, 0x72, 0x8c, 0x13, 0x1e, 0xcb, 0x31, 0x5c, 0x78, 0x2c, 0xc7, 0x70, 0xe3, 0xb1, 0x1c,
-	0x43, 0x12, 0x1b, 0x38, 0xf5, 0x18, 0x03, 0x02, 0x00, 0x00, 0xff, 0xff, 0x70, 0xa8, 0xab, 0x91,
-	0x86, 0x02, 0x00, 0x00,
+	0x53, 0x29, 0x8c, 0x8b, 0xc3, 0x11, 0xaa, 0x57, 0x48, 0x8c, 0x8b, 0x2d, 0x31, 0xb9, 0x24, 0x33,
+	0x3f, 0x4f, 0x82, 0x51, 0x81, 0x51, 0x83, 0x33, 0x08, 0xca, 0x13, 0x92, 0xe0, 0x62, 0x2f, 0xc9,
+	0xcc, 0x4d, 0xcd, 0x2f, 0x2d, 0x91, 0x60, 0x52, 0x60, 0xd4, 0x60, 0x0e, 0x82, 0x71, 0x41, 0x32,
+	0x89, 0x29, 0x29, 0x45, 0xa9, 0xc5, 0xc5, 0x12, 0xcc, 0x0a, 0x8c, 0x1a, 0x3c, 0x41, 0x30, 0xae,
+	0x52, 0x3c, 0x97, 0xa0, 0x73, 0x51, 0x6a, 0x62, 0x49, 0x2a, 0xcc, 0x74, 0xdf, 0xe2, 0x74, 0x6a,
+	0x5b, 0x10, 0x5a, 0x90, 0x42, 0x3b, 0x0b, 0x9c, 0x24, 0x4e, 0x3c, 0x92, 0x63, 0xbc, 0xf0, 0x48,
+	0x8e, 0xf1, 0xc1, 0x23, 0x39, 0xc6, 0x09, 0x8f, 0xe5, 0x18, 0x2e, 0x3c, 0x96, 0x63, 0xb8, 0xf1,
+	0x58, 0x8e, 0x21, 0x89, 0x0d, 0x1c, 0x74, 0xc6, 0x80, 0x00, 0x00, 0x00, 0xff, 0xff, 0xb7, 0xb6,
+	0x17, 0x0d, 0x83, 0x01, 0x00, 0x00,
 }

@@ -46,11 +46,9 @@ func (h CreateApprovalMsgHandler) Deliver(ctx weave.Context, db weave.KVStore, t
 	}
 
 	contract := &Approval{
-		Type:                msg.Type,
-		Timeout:             msg.Timeout,
-		Sigs:                msg.Sigs,
-		ActivationThreshold: msg.ActivationThreshold,
-		AdminThreshold:      msg.AdminThreshold,
+		Action:  msg.Action,
+		Timeout: msg.Timeout,
+		Address: msg.Address,
 	}
 
 	id := h.bucket.idSeq.NextVal(db)
