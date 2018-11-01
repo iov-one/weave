@@ -189,14 +189,17 @@ func (m Approvals) DecrementCount() Approvals {
 	return res
 }
 
-func (m Approvals) Merge(others Approvals) Approvals {
-	for action, aSrc := range others {
+func (m Approvals) MergeDecremented(decremented Approvals) Approvals {
+	for action, aDecr := range decremented {
 		found := false
 		aDest := m[action]
-		for _, src := range aSrc {
+		for _, decr := range aDecr {
 			for idx, dest := range aDest {
-				if weave.Address(src.Address).Equals(dest.Address) {
-					aDest[idx] = src
+				if decr.AsAddress().Equals(dest.AsAddress()) &&
+					decr.Options.Immutable == dest.Options.Immutable &&
+					decr.Options.UntilBlockHeight == dest.Options.UntilBlockHeight &&
+					decr.Options.Count+1 == dest.Options.Count {
+					aDest[idx] = decr
 					found = true
 					break
 				}
