@@ -1,8 +1,11 @@
 package username
 
 import (
+	"bytes"
+
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/x"
 	"github.com/iov-one/weave/x/nft"
 	"github.com/iov-one/weave/x/nft/blockchain"
@@ -17,36 +20,35 @@ const (
 
 // RegisterRoutes will instantiate and register all handlers in this package
 func RegisterRoutes(r weave.Registry, auth x.Authenticator, issuer weave.Address) {
-	bucket := NewBucket()
+	tokens := NewUsernameTokenBucket()
 	blockchains := blockchain.NewBucket()
-	r.Handle(pathIssueTokenMsg, NewIssueHandler(auth, issuer, bucket, blockchains))
-	r.Handle(pathAddAddressMsg, NewAddChainAddressHandler(auth, issuer, bucket, blockchains))
-	r.Handle(pathRemoveAddressMsg, NewRemoveChainAddressHandler(auth, issuer, bucket))
-
+	r.Handle(pathIssueTokenMsg, &CreateUsernameTokenHandler{auth, issuer, tokens, blockchains})
+	r.Handle(pathAddAddressMsg, &AddChainAddressHandler{auth, tokens, blockchains})
+	r.Handle(pathRemoveAddressMsg, &RemoveChainAddressHandler{auth, issuer, tokens})
 }
 
 // RegisterQuery will register this bucket as "/nft/usernames"
 func RegisterQuery(qr weave.QueryRouter) {
-	bucket := NewBucket()
-	bucket.Register("nft/usernames", qr)
+	NewUsernameTokenBucket().Register("nft/usernames", qr)
 }
 
-type tokenHandler struct {
+type CreateUsernameTokenHandler struct {
 	auth        x.Authenticator
 	issuer      weave.Address
-	bucket      Bucket
+	bucket      UsernameTokenBucket
 	blockchains blockchain.Bucket
 }
 
-type IssueHandler struct {
-	tokenHandler
+func NewCreateUsernameTokenHandler(auth x.Authenticator, issuer weave.Address) *CreateUsernameTokenHandler {
+	return &CreateUsernameTokenHandler{
+		auth:        auth,
+		issuer:      issuer,
+		bucket:      NewUsernameTokenBucket(),
+		blockchains: blockchain.NewBucket(),
+	}
 }
 
-func NewIssueHandler(auth x.Authenticator, issuer weave.Address, bucket Bucket, blockchains blockchain.Bucket) *IssueHandler {
-	return &IssueHandler{tokenHandler{auth: auth, issuer: issuer, bucket: bucket, blockchains: blockchains}}
-}
-
-func (h IssueHandler) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx) (weave.CheckResult, error) {
+func (h CreateUsernameTokenHandler) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx) (weave.CheckResult, error) {
 	var res weave.CheckResult
 	if _, err := h.validate(ctx, tx); err != nil {
 		return res, err
@@ -55,13 +57,13 @@ func (h IssueHandler) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx)
 	return res, nil
 }
 
-func (h IssueHandler) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx) (weave.DeliverResult, error) {
+func (h CreateUsernameTokenHandler) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx) (weave.DeliverResult, error) {
 	var res weave.DeliverResult
 	msg, err := h.validate(ctx, tx)
 	if err != nil {
 		return res, err
 	}
-	for _, a := range msg.Details.Addresses {
+	for _, a := range msg.Addresses {
 		chain, err := h.blockchains.Get(store, a.ChainID)
 		switch {
 		case err != nil:
@@ -70,21 +72,30 @@ func (h IssueHandler) Deliver(ctx weave.Context, store weave.KVStore, tx weave.T
 			return res, nft.ErrInvalidEntry()
 		}
 	}
-	// persist the data
-	o, err := h.bucket.Create(store, weave.Address(msg.Owner), msg.Id, msg.Approvals, msg.Details.Addresses)
+
+	res.Tags = append(res.Tags, common.KVPair{Key: []byte(msgTypeTagKey), Value: []byte(newUsernameTagValue)})
+	obj := orm.NewSimpleObj(msg.Id,
+		&UsernameToken{
+			Id:        msg.Id,
+			Owner:     msg.Owner,
+			Addresses: msg.Addresses,
+			Approvals: msg.Approvals,
+		})
+
+	err = h.bucket.Save(store, obj)
 	if err != nil {
 		return res, err
 	}
-	res.Tags = append(res.Tags, common.KVPair{Key: []byte(msgTypeTagKey), Value: []byte(newUsernameTagValue)})
-	return res, h.bucket.Save(store, o)
+
+	return res, nil
 }
 
-func (h IssueHandler) validate(ctx weave.Context, tx weave.Tx) (*IssueTokenMsg, error) {
+func (h CreateUsernameTokenHandler) validate(ctx weave.Context, tx weave.Tx) (*CreateUsernameTokenMsg, error) {
 	rmsg, err := tx.GetMsg()
 	if err != nil {
 		return nil, err
 	}
-	msg, ok := rmsg.(*IssueTokenMsg)
+	msg, ok := rmsg.(*CreateUsernameTokenMsg)
 	if !ok {
 		return nil, errors.ErrUnknownTxType(rmsg)
 	}
@@ -105,8 +116,9 @@ func (h IssueHandler) validate(ctx weave.Context, tx weave.Tx) (*IssueTokenMsg, 
 }
 
 type AddChainAddressHandler struct {
-	auth   x.Authenticator
-	bucket UsernameTokenBucket
+	auth        x.Authenticator
+	bucket      UsernameTokenBucket
+	blockchains blockchain.Bucket
 }
 
 func (h AddChainAddressHandler) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx) (weave.CheckResult, error) {
@@ -124,7 +136,7 @@ func (h AddChainAddressHandler) Deliver(ctx weave.Context, store weave.KVStore, 
 	if err != nil {
 		return res, err
 	}
-	chain, err := h.blockchains.Get(store, msg.ChainID)
+	chain, err := h.blockchains.Get(store, msg.Addresses.ChainID)
 	switch {
 	case err != nil:
 		return res, err
@@ -137,12 +149,23 @@ func (h AddChainAddressHandler) Deliver(ctx weave.Context, store weave.KVStore, 
 		return res, err
 	}
 
-	if !x.HasNAddresses(ctx, h.auth, token.Approvals, 1) {
+	approvals := make([]weave.Address, len(token.Approvals))
+	for i, appr := range token.Approvals {
+		approvals[i] = weave.Address(appr)
+	}
+
+	if !x.HasNAddresses(ctx, h.auth, approvals, 1) {
 		return res, errors.ErrUnauthorized()
 	}
 
-	token.Addresses = append(token.Addresses, ChainAddress{msg.GetChainID(), msg.GetAddress()})
-	return res, h.bucket.Save(store, o)
+	token.Addresses = append(token.Addresses, msg.Addresses)
+	obj := orm.NewSimpleObj(token.Id, token)
+	err = h.bucket.Save(store, obj)
+	if err != nil {
+		return res, err
+	}
+
+	return res, nil
 }
 
 func (h *AddChainAddressHandler) validate(ctx weave.Context, tx weave.Tx) (*AddChainAddressMsg, error) {
@@ -161,11 +184,9 @@ func (h *AddChainAddressHandler) validate(ctx weave.Context, tx weave.Tx) (*AddC
 }
 
 type RemoveChainAddressHandler struct {
-	tokenHandler
-}
-
-func NewRemoveChainAddressHandler(auth x.Authenticator, issuer weave.Address, bucket Bucket) *RemoveChainAddressHandler {
-	return &RemoveChainAddressHandler{tokenHandler{auth: auth, issuer: issuer, bucket: bucket}}
+	auth   x.Authenticator
+	issuer weave.Address
+	bucket UsernameTokenBucket
 }
 
 func (h RemoveChainAddressHandler) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx) (weave.CheckResult, error) {
@@ -183,32 +204,41 @@ func (h RemoveChainAddressHandler) Deliver(ctx weave.Context, store weave.KVStor
 	if err != nil {
 		return res, err
 	}
-	o, t, err := loadToken(h.tokenHandler, store, msg.GetId())
+
+	token, err := getUsernameToken(h.bucket, store, msg.GetId())
 	if err != nil {
 		return res, err
 	}
 
-	actor := nft.FindActor(h.auth, ctx, t, nft.Action_ActionUpdateDetails.String())
-	if actor == nil {
+	approvals := make([]weave.Address, len(token.Approvals))
+	for i, appr := range token.Approvals {
+		approvals[i] = weave.Address(appr)
+	}
+
+	if !x.HasNAddresses(ctx, h.auth, approvals, 1) {
 		return res, errors.ErrUnauthorized()
 	}
-	if len(t.GetChainAddresses()) == 0 {
-		return res, nft.ErrInvalidEntry()
-	}
-	obsoleteAddress := ChainAddress{msg.GetChainID(), msg.GetAddress()}
-	newAddresses := make([]ChainAddress, 0, len(t.GetChainAddresses()))
-	for _, v := range t.GetChainAddresses() {
-		if !v.Equals(obsoleteAddress) {
-			newAddresses = append(newAddresses, v)
+
+	found := -1
+	for i, address := range token.Addresses {
+		if bytes.Equal(address.ChainID, msg.Id) {
+			found = i
+			break
 		}
 	}
-	if len(newAddresses) == len(t.GetChainAddresses()) {
+
+	if found == -1 {
 		return res, nft.ErrInvalidEntry()
 	}
-	if err := t.SetChainAddresses(actor, newAddresses); err != nil {
+
+	token.Addresses = append(token.Addresses[:found], token.Addresses[found+1:]...)
+	obj := orm.NewSimpleObj(token.Id, token)
+	err = h.bucket.Save(store, obj)
+	if err != nil {
 		return res, err
 	}
-	return res, h.bucket.Save(store, o)
+
+	return res, nil
 }
 
 func (h *RemoveChainAddressHandler) validate(ctx weave.Context, tx weave.Tx) (*RemoveChainAddressMsg, error) {
@@ -230,10 +260,10 @@ func getUsernameToken(bucket UsernameTokenBucket, store weave.KVStore, id []byte
 	o, err := bucket.Get(store, id)
 	switch {
 	case err != nil:
-		return nil, nil, err
+		return nil, err
 	case o == nil:
-		return nil, nil, nft.ErrUnknownID()
+		return nil, nft.ErrUnknownID()
 	}
 	t, e := AsUsername(o)
-	return o, e
+	return t, e
 }

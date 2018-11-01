@@ -46,18 +46,3 @@ package username
 // 	}
 // 	return obj, humanAddress.SetChainAddresses(owner, addresses)
 // }
-
-// func chainAddressIndexer(obj orm.Object) ([][]byte, error) {
-// 	if obj == nil {
-// 		return nil, orm.ErrInvalidIndex("nil")
-// 	}
-// 	u, err := AsUsername(obj)
-// 	if err != nil {
-// 		return nil, orm.ErrInvalidIndex("unsupported type")
-// 	}
-// 	idx := make([][]byte, 0, len(u.GetChainAddresses()))
-// 	for _, addr := range u.GetChainAddresses() {
-// 		idx = append(idx, bytes.Join([][]byte{addr.Address, addr.ChainID}, []byte(chainAddressSeparator)))
-// 	}
-// 	return idx, nil
-// }

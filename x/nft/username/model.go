@@ -19,15 +19,33 @@ type UsernameTokenBucket struct {
 	orm.Bucket
 }
 
-func NewUsernameTokenBucket() Bucket {
+func NewUsernameTokenBucket() UsernameTokenBucket {
 	return UsernameTokenBucket{
-		Bucket: nft.WithOwnerIndex(orm.NewBucket(BucketName, NewUsernameToken(nil, nil, nil))).
-			WithMultiKeyIndex(ChainAddressIndexName, chainAddressIndexer, true),
+		Bucket: nft.WithOwnerIndex(orm.NewBucket(BucketName, orm.NewSimpleObj(nil, new(UsernameToken))).
+			WithMultiKeyIndex(ChainAddressIndexName, chainAddressIndexer, true)),
 	}
 }
 
+func chainAddressIndexer(obj orm.Object) ([][]byte, error) {
+	if obj == nil {
+		return nil, orm.ErrInvalidIndex("nil")
+	}
+	u, err := AsUsername(obj)
+	if err != nil {
+		return nil, orm.ErrInvalidIndex("unsupported type")
+	}
+	idx := make([][]byte, 0, len(u.Addresses))
+	for _, addr := range u.Addresses {
+		idx = append(idx, bytes.Join([][]byte{addr.Address, addr.ChainID}, []byte(chainAddressSeparator)))
+	}
+	return idx, nil
+}
+
+var _ orm.CloneableData = (*UsernameToken)(nil)
+
 func (u *UsernameToken) Validate() error {
-	return u.Details.Validate()
+	return nil
+	// return u.Details.Validate()
 }
 
 func (u *UsernameToken) Copy() orm.CloneableData {
