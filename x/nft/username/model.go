@@ -1,8 +1,12 @@
 package username
 
 import (
-	"github.com/iov-one/weave"
+	"bytes"
+
+	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/orm"
+	"github.com/iov-one/weave/x/nft"
+	"github.com/iov-one/weave/x/nft/blockchain"
 )
 
 const (
@@ -11,40 +15,74 @@ const (
 	chainAddressSeparator = "*"
 )
 
-// enforce that Contract fulfils desired interface compile-time
-var _ orm.CloneableData = (*UsernameToken)(nil)
-
-// Validate enforces sigs and threshold boundaries
-func (c *UsernameToken) Validate() error {
-	return nil
-}
-
-// Copy makes a new Profile with the same data
-func (c *UsernameToken) Copy() orm.CloneableData {
-	return &UsernameToken{}
-}
-
-// ApprovalBucket is a type-safe wrapper around orm.Bucket
 type UsernameTokenBucket struct {
 	orm.Bucket
 }
 
-// NewApprovalBucket initializes a ApprovalBucket with default name
-//
-// inherit Get and Save from orm.Bucket
-// add run-time check on Save
-func NewUsernameTokenBucket() UsernameTokenBucket {
-	bucket := orm.NewBucket(BucketName,
-		orm.NewSimpleObj(nil, new(UsernameToken)))
+func NewUsernameTokenBucket() Bucket {
 	return UsernameTokenBucket{
-		Bucket: bucket,
+		Bucket: nft.WithOwnerIndex(orm.NewBucket(BucketName, NewUsernameToken(nil, nil, nil))).
+			WithMultiKeyIndex(ChainAddressIndexName, chainAddressIndexer, true),
 	}
 }
 
-// Save enforces the proper type
-func (b UsernameTokenBucket) Save(db weave.KVStore, obj orm.Object) error {
-	if _, ok := obj.Value().(*Approval); !ok {
-		return orm.ErrInvalidObject(obj.Value())
+func (u *UsernameToken) Validate() error {
+	return u.Details.Validate()
+}
+
+func (u *UsernameToken) Copy() orm.CloneableData {
+	return &UsernameToken{
+		Id:        u.Id,
+		Owner:     u.Owner,
+		Addresses: u.Addresses,
+		Approvals: u.Approvals,
 	}
-	return b.Bucket.Save(db, obj)
+}
+
+func containsDuplicateChains(addresses []ChainAddress) bool {
+	m := make(map[string]struct{})
+	for _, k := range addresses {
+		if _, ok := m[string(k.ChainID)]; ok {
+			return true
+		}
+		m[string(k.ChainID)] = struct{}{}
+	}
+	return false
+}
+
+func (p ChainAddress) Equals(o ChainAddress) bool {
+	return bytes.Equal(p.Address, o.Address) && bytes.Equal(p.ChainID, o.ChainID)
+}
+
+func (p *ChainAddress) Validate() error {
+	if !blockchain.IsValidID(string(p.ChainID)) {
+		return nft.ErrInvalidID()
+	}
+	switch l := len(p.Address); {
+	case l < 12 || l > 50:
+		return nft.ErrInvalidLength()
+	}
+	return nil
+}
+
+// AsUsername will safely type-cast any value from Bucket
+func AsUsername(obj orm.Object) (*UsernameToken, error) {
+	if obj == nil || obj.Value() == nil {
+		return nil, nil
+	}
+	x, ok := obj.Value().(*UsernameToken)
+	if !ok {
+		return nil, nft.ErrUnsupportedTokenType()
+	}
+	return x, nil
+}
+
+func validateID(i nft.Identified) error {
+	if i == nil {
+		return errors.ErrInternal("must not be nil")
+	}
+	if !isValidID(string(i.GetId())) {
+		return nft.ErrInvalidID()
+	}
+	return nil
 }
