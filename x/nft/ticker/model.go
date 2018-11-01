@@ -26,6 +26,10 @@ func (m *TickerToken) Approvals() *nft.ApprovalOps {
 	return m.Base.Approvals()
 }
 
+func (m *TickerToken) SetApprovals(a nft.Approvals) {
+	m.Base.ActionApprovals = a.AsPersistable()
+}
+
 func (m *TickerToken) SetBlockchainID(actor weave.Address, id []byte) error {
 	if !m.OwnerAddress().Equals(actor) {
 		panic("Not implemented, yet")

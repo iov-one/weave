@@ -46,7 +46,7 @@ func (b Bucket) Create(db weave.KVStore, owner weave.Address, id []byte, approva
 		return nil, err
 	}
 	// height is not relevant when creating the token
-	return obj, humanAddress.SetChainAddresses(owner, addresses, -1)
+	return obj, humanAddress.SetChainAddresses(owner, addresses)
 }
 
 func chainAddressIndexer(obj orm.Object) ([][]byte, error) {

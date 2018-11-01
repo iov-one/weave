@@ -13,11 +13,15 @@ import (
 type Token interface {
 	nft.BaseNFT
 	GetChainAddresses() []ChainAddress
-	SetChainAddresses(actor weave.Address, newKeys []ChainAddress, height int64) error
+	SetChainAddresses(actor weave.Address, newKeys []ChainAddress) error
 }
 
 func (u *UsernameToken) Approvals() *nft.ApprovalOps {
 	return u.Base.Approvals()
+}
+
+func (m *UsernameToken) SetApprovals(a nft.Approvals) {
+	m.Base.ActionApprovals = a.AsPersistable()
 }
 
 func (u *UsernameToken) GetChainAddresses() []ChainAddress {
@@ -27,29 +31,12 @@ func (u *UsernameToken) GetChainAddresses() []ChainAddress {
 	return u.Details.Addresses
 }
 
-func (u *UsernameToken) SetChainAddresses(actor weave.Address, newAddresses []ChainAddress, height int64) error {
-	if !u.OwnerAddress().Equals(actor) {
-		if u.Approvals().List().
-			ForAction(nft.Action_ActionUpdateDetails.String()).
-			ForAddress(actor).
-			FilterExpired(height).
-			IsEmpty() {
-			return errors.ErrUnauthorized()
-		}
-	}
+func (u *UsernameToken) SetChainAddresses(actor weave.Address, newAddresses []ChainAddress) error {
 	if containsDuplicateChains(newAddresses) {
 		return nft.ErrDuplicateEntry()
 	}
 
 	u.Details = &TokenDetails{Addresses: newAddresses}
-	u.Base.ActionApprovals = u.Approvals().List().MergeUsed(
-		u.Approvals().List().
-			ForAction(nft.Action_ActionUpdateDetails.String()).
-			ForAddress(actor).
-			FilterExpired(height).
-			UseCount()).
-		AsPersistable()
-
 	return nil
 }
 

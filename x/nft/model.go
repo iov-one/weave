@@ -52,6 +52,10 @@ func (m *NonFungibleToken) Approvals() *ApprovalOps {
 	return NewApprovalOps(m.OwnerAddress(), &m.ActionApprovals)
 }
 
+func (m *NonFungibleToken) SetApprovals(a Approvals) {
+	m.ActionApprovals = a.AsPersistable()
+}
+
 func (m *NonFungibleToken) HasApproval(actor weave.Address, action string) bool {
 	return !NewApprovalOps(m.OwnerAddress(), &m.ActionApprovals).
 		List().ForAction(action).ForAddress(actor).IsEmpty()
@@ -61,7 +65,8 @@ type BaseNFT interface {
 	Owned
 	//GetId() []byte
 	Approvals() *ApprovalOps
-	//Transfer(newOwner weave.Address) error
+	//Set new approvals
+	SetApprovals(Approvals)
 }
 
 //TODO: Better name

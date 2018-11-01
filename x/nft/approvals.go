@@ -105,15 +105,18 @@ func (m Approvals) FilterExpired(blockHeight int64) Approvals {
 	res := make(map[string]ApprovalMeta, 0)
 	for action, approvals := range m {
 		for _, approval := range approvals {
-			if approval.Options.UntilBlockHeight < blockHeight {
+			if approval.Options.UntilBlockHeight > 0 && approval.Options.UntilBlockHeight < blockHeight {
 				continue
 			}
+
 			if approval.Options.Count == 0 {
 				continue
 			}
+
 			if _, ok := res[action]; !ok {
 				res[action] = make([]Approval, 0)
 			}
+
 			res[action] = append(res[action], approval)
 		}
 	}

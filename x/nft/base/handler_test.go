@@ -2,6 +2,7 @@ package base
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/iov-one/weave"
@@ -15,9 +16,9 @@ import (
 )
 
 func TestApprovalOpsHandler(t *testing.T) {
-	ctx := context.Background()
-
 	Convey("Test approval ops handler", t, func() {
+		ctx := context.Background()
+
 		bobsUsername := []byte("user")
 		aliceWithBobApproval := []byte("user2")
 		bobWithAliceApproval := []byte("user3")
@@ -43,7 +44,7 @@ func TestApprovalOpsHandler(t *testing.T) {
 		userBucket.Save(db, o)
 		o, _ = userBucket.Create(db, alice.Address(), aliceWithBobApproval, []nft.ActionApprovals{{
 			Action:    nft.Action_ActionUpdateApprovals.String(),
-			Approvals: []nft.Approval{{Options: nft.ApprovalOptions{Count: nft.UnlimitedCount}, Address: bob.Address()}},
+			Approvals: []nft.Approval{{Options: nft.ApprovalOptions{Count: 10, UntilBlockHeight: 5}, Address: bob.Address()}},
 		}}, nil)
 		userBucket.Save(db, o)
 		o, _ = userBucket.Create(db, bob.Address(), bobWithAliceApproval, []nft.ActionApprovals{{
@@ -63,11 +64,10 @@ func TestApprovalOpsHandler(t *testing.T) {
 		userBucket.Save(db, o)
 
 		Convey("Test add", func() {
-			var blockHeight int64 = 5
 			msg := &nft.AddApprovalMsg{Id: bobsUsername,
 				Address: alice.Address(),
 				Action:  nft.Action_ActionUpdateDetails.String(),
-				Options: nft.ApprovalOptions{Count: nft.UnlimitedCount, UntilBlockHeight: 5},
+				Options: nft.ApprovalOptions{Count: nft.UnlimitedCount},
 				T:       app.NftType_Username.String(),
 			}
 			Convey("Test happy", func() {
@@ -81,12 +81,8 @@ func TestApprovalOpsHandler(t *testing.T) {
 					So(err, ShouldBeNil)
 					u, err := username.AsUsername(o)
 					So(err, ShouldBeNil)
-					So(u.Approvals().
-						List().
-						ForAction(msg.Action).
-						ForAddress(msg.Address).
-						FilterExpired(blockHeight).
-						IsEmpty(), ShouldBeFalse)
+					owner := nft.FindActor(handler.auth, ctx, u, nft.Action_ActionUpdateApprovals.String())
+					So(owner, ShouldResemble, bob.Address())
 				})
 
 				Convey("By approved", func() {
@@ -101,12 +97,12 @@ func TestApprovalOpsHandler(t *testing.T) {
 					So(err, ShouldBeNil)
 					u, err := username.AsUsername(o)
 					So(err, ShouldBeNil)
-					So(u.Approvals().
-						List().
-						ForAction(msg.Action).
-						ForAddress(msg.Address).
-						FilterExpired(blockHeight).
-						IsEmpty(), ShouldBeFalse)
+					usedApproval := getApproval(u.Approvals(), bob.Address(), nft.Action_ActionUpdateApprovals.String())
+					So(usedApproval.Options.Count, ShouldEqual, 9)
+					approved := nft.FindActor(handler.auth, ctx, u, nft.Action_ActionUpdateApprovals.String())
+					So(approved, ShouldResemble, bob.Address())
+					usedApproval = getApproval(u.Approvals(), bob.Address(), nft.Action_ActionUpdateApprovals.String())
+					So(usedApproval.Options.Count, ShouldEqual, 8)
 				})
 			})
 
@@ -169,28 +165,26 @@ func TestApprovalOpsHandler(t *testing.T) {
 				})
 
 				Convey("Timeout", func() {
+					timeoutCtx := weave.WithHeight(ctx, 10)
+					msg.Address = guest.Address()
+					msg.Id = aliceWithBobApproval
 					tx := helpers.MockTx(msg)
-					var blockHeight int64 = 10
-					_, err := handler.Check(ctx, db, tx)
+					_, err := handler.Check(timeoutCtx, db, tx)
 					So(err, ShouldBeNil)
-					_, err = handler.Deliver(ctx, db, tx)
-					So(err, ShouldBeNil)
-					o, err := userBucket.Get(db, bobsUsername)
+					_, err = handler.Deliver(timeoutCtx, db, tx)
+					So(err, ShouldNotBeNil)
+					o, err := userBucket.Get(db, aliceWithBobApproval)
 					So(err, ShouldBeNil)
 					u, err := username.AsUsername(o)
-					So(u.Approvals().
-						List().
-						ForAction(msg.Action).
-						ForAddress(msg.Address).
-						FilterExpired(blockHeight).
-						IsEmpty(), ShouldBeTrue)
+					So(err, ShouldBeNil)
+					approved := nft.FindActor(handler.auth, timeoutCtx, u, nft.Action_ActionUpdateApprovals.String())
+					So(approved, ShouldBeNil)
 				})
 			})
 
 		})
 
 		Convey("Test Remove", func() {
-			var blockHeight int64 = 5
 			msg := &nft.RemoveApprovalMsg{Id: bobWithAliceApproval,
 				Address: alice.Address(),
 				Action:  nft.Action_ActionUpdateApprovals.String(),
@@ -207,19 +201,14 @@ func TestApprovalOpsHandler(t *testing.T) {
 					So(err, ShouldBeNil)
 					u, err := username.AsUsername(o)
 					So(err, ShouldBeNil)
-					So(u.Approvals().
-						List().
-						ForAction(msg.Action).
-						ForAddress(msg.Address).
-						FilterExpired(blockHeight).
-						IsEmpty(), ShouldBeTrue)
-
+					owner := nft.FindActor(handler.auth, ctx, u, msg.Action)
+					So(owner, ShouldResemble, bob.Address())
 				})
 
 				//TODO: Should we allow approved to remove their own approvals? :)
 				Convey("By approved", func() {
+					fmt.Println(alice.Address())
 					handler = NewApprovalOpsHandler(helpers.Authenticate(alice), nil, d)
-
 					tx := helpers.MockTx(msg)
 					_, err := handler.Check(ctx, db, tx)
 					So(err, ShouldBeNil)
@@ -229,12 +218,8 @@ func TestApprovalOpsHandler(t *testing.T) {
 					So(err, ShouldBeNil)
 					u, err := username.AsUsername(o)
 					So(err, ShouldBeNil)
-					So(u.Approvals().
-						List().
-						ForAction(msg.Action).
-						ForAddress(msg.Address).
-						FilterExpired(blockHeight).
-						IsEmpty(), ShouldBeTrue)
+					approved := nft.FindActor(handler.auth, ctx, u, msg.Action)
+					So(approved, ShouldBeNil)
 				})
 			})
 
@@ -312,4 +297,22 @@ func TestApprovalOpsHandler(t *testing.T) {
 		})
 
 	})
+}
+
+func getApproval(approvals *nft.ApprovalOps, signer weave.Address, action string) nft.Approval {
+	appr := approvals.
+		List().
+		ForAction(action).
+		ForAddress(signer).
+		AsPersistable()
+
+	if len(appr) == 0 {
+		panic("No approvals for action and user")
+	}
+
+	if len(appr[0].Approvals) == 0 {
+		panic("No approvals for action and user")
+	}
+
+	return appr[0].Approvals[0]
 }

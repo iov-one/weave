@@ -1,14 +1,18 @@
 package nft
 
 import (
+	"context"
 	"testing"
 
+	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/x"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestFindActor(t *testing.T) {
 	Convey("Test find actor", t, func() {
+		ctx := context.Background()
+
 		var helper x.TestHelpers
 		_, bob := helper.MakeKey()
 		_, alice := helper.MakeKey()
@@ -20,12 +24,12 @@ func TestFindActor(t *testing.T) {
 				Owner: bob.Address(),
 			}
 			Convey("Test valid owner", func() {
-				addr := FindActor(helper.Authenticate(bob), nil, token, "", -1)
+				addr := FindActor(helper.Authenticate(bob), ctx, token, "")
 				So(addr, ShouldResemble, bob.Address())
 			})
 
 			Convey("Test invalid owner", func() {
-				addr := FindActor(helper.Authenticate(alice), nil, token, "", -1)
+				addr := FindActor(helper.Authenticate(alice), ctx, token, "")
 				So(addr, ShouldBeNil)
 			})
 		})
@@ -40,22 +44,49 @@ func TestFindActor(t *testing.T) {
 				}},
 			}
 			Convey("Test valid approval", func() {
-				addr := FindActor(helper.Authenticate(alice), nil, token, Action_ActionUpdateDetails.String(), -1)
+				addr := FindActor(helper.Authenticate(alice), ctx, token, Action_ActionUpdateDetails.String())
 				So(addr, ShouldResemble, alice.Address())
 			})
 
 			Convey("Test invalid action", func() {
-				addr := FindActor(helper.Authenticate(alice), nil, token, Action_ActionUpdateApprovals.String(), -1)
+				addr := FindActor(helper.Authenticate(alice), ctx, token, Action_ActionUpdateApprovals.String())
 				So(addr, ShouldBeNil)
 			})
 
 			Convey("Test invalid signer", func() {
-				addr := FindActor(helper.Authenticate(guest), nil, token, "", -1)
+				addr := FindActor(helper.Authenticate(guest), ctx, token, "")
 				So(addr, ShouldBeNil)
 			})
 
 			Convey("Test timeout", func() {
-				addr := FindActor(helper.Authenticate(guest), nil, token, "", 10)
+				addr := FindActor(helper.Authenticate(guest), weave.WithHeight(ctx, 10), token, "")
+				So(addr, ShouldBeNil)
+			})
+
+			Convey("Test count decrements after use", func() {
+				token.ActionApprovals = []ActionApprovals{{
+					Action:    Action_ActionUpdateDetails.String(),
+					Approvals: []Approval{{Options: ApprovalOptions{Count: 10}, Address: alice.Address()}},
+				}}
+
+				addr := FindActor(helper.Authenticate(alice), ctx, token, Action_ActionUpdateDetails.String())
+				So(addr, ShouldResemble, alice.Address())
+				So(token.ActionApprovals[0].Approvals[0].Options.Count, ShouldEqual, 9)
+
+				FindActor(helper.Authenticate(alice), ctx, token, Action_ActionUpdateDetails.String())
+				So(token.ActionApprovals[0].Approvals[0].Options.Count, ShouldEqual, 8)
+			})
+
+			Convey("Test count decrements to 0 then disabled", func() {
+				token.ActionApprovals = []ActionApprovals{{
+					Action:    Action_ActionUpdateDetails.String(),
+					Approvals: []Approval{{Options: ApprovalOptions{Count: 1}, Address: alice.Address()}},
+				}}
+
+				addr := FindActor(helper.Authenticate(alice), ctx, token, Action_ActionUpdateDetails.String())
+				So(addr, ShouldResemble, alice.Address())
+
+				addr = FindActor(helper.Authenticate(alice), ctx, token, Action_ActionUpdateDetails.String())
 				So(addr, ShouldBeNil)
 			})
 		})
