@@ -2,6 +2,7 @@ package username
 
 import (
 	"bytes"
+
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/x/nft"
@@ -44,6 +45,7 @@ func (b Bucket) Create(db weave.KVStore, owner weave.Address, id []byte, approva
 	if err != nil {
 		return nil, err
 	}
+	// height is not relevant when creating the token
 	return obj, humanAddress.SetChainAddresses(owner, addresses)
 }
 

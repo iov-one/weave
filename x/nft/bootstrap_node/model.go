@@ -34,6 +34,10 @@ func (m *BootstrapNodeToken) Approvals() *nft.ApprovalOps {
 	return m.Base.Approvals()
 }
 
+func (m *BootstrapNodeToken) SetApprovals(a nft.Approvals) {
+	m.Base.ActionApprovals = a.AsPersistable()
+}
+
 func (m *BootstrapNodeToken) SetUri(actor weave.Address, uri URI) error {
 	if !m.OwnerAddress().Equals(actor) {
 		panic("Not implemented, yet")

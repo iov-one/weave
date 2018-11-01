@@ -2,11 +2,12 @@ package blockchain
 
 import (
 	"encoding/json"
+	"regexp"
+
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/x/nft"
-	"regexp"
 )
 
 var (
@@ -28,6 +29,10 @@ func (m *BlockchainToken) OwnerAddress() weave.Address {
 
 func (m *BlockchainToken) Approvals() *nft.ApprovalOps {
 	return m.Base.Approvals()
+}
+
+func (m *BlockchainToken) SetApprovals(a nft.Approvals) {
+	m.Base.ActionApprovals = a.AsPersistable()
 }
 
 func (m *BlockchainToken) GetChain() Chain {

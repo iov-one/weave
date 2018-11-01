@@ -1,6 +1,7 @@
 package username_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -240,11 +241,12 @@ func TestQueryUsernameToken(t *testing.T) {
 func TestAddChainAddress(t *testing.T) {
 	var helpers x.TestHelpers
 	_, alice := helpers.MakeKey()
+	_, bob := helpers.MakeKey()
 
 	db := store.MemStore()
 	bucket := username.NewBucket()
 	blockchains := blockchain.NewBucket()
-	for _, blockchainID := range []string{"myNet", "myOtherNet"} {
+	for _, blockchainID := range []string{"myNet", "myOtherNet", "myNextNet"} {
 		b, _ := blockchains.Create(db, alice.Address(), []byte(blockchainID), nil, blockchain.Chain{MainTickerID: []byte("IOV")}, blockchain.IOV{Codec: "asd"})
 		blockchains.Save(db, b)
 	}
@@ -255,7 +257,15 @@ func TestAddChainAddress(t *testing.T) {
 	myOtherAddress := []username.ChainAddress{{ChainID: []byte("myOtherNet"), Address: []byte("myOtherChainAddress")}}
 	o, _ = bucket.Create(db, alice.Address(), []byte("anyOther@example.com"), nil, myOtherAddress)
 	bucket.Save(db, o)
-
+	myNextAddress := []username.ChainAddress{{ChainID: []byte("myNextNet"), Address: []byte("myNextChainAddress")}}
+	o, _ = bucket.Create(db,
+		bob.Address(),
+		[]byte("withcount@example.com"),
+		[]nft.ActionApprovals{{
+			Action:    nft.Action_ActionUpdateDetails.String(),
+			Approvals: []nft.Approval{{Options: nft.ApprovalOptions{Count: 10, UntilBlockHeight: 5}, Address: alice.Address()}},
+		}}, myNextAddress)
+	bucket.Save(db, o)
 	handler := username.NewAddChainAddressHandler(helpers.Authenticate(alice), nil, bucket, blockchains)
 
 	specs := []struct {
@@ -264,23 +274,31 @@ func TestAddChainAddress(t *testing.T) {
 		newChainID      []byte
 		expCheckError   bool
 		expDeliverError bool
+		expCount        int64
+		ctx             weave.Context
+		expApprovals    nft.Approvals
+		expChainAddress []username.ChainAddress
 	}{
 		{ // happy path
-			id:         []byte("alice@example.com"),
-			newChainID: []byte("myOtherNet"),
-			newAddress: []byte("myOtherAddressID"),
+			id:              []byte("alice@example.com"),
+			newChainID:      []byte("myOtherNet"),
+			newAddress:      []byte("myOtherAddressID"),
+			expChainAddress: append(myAddress, username.ChainAddress{ChainID: []byte("myOtherNet"), Address: []byte("myOtherAddressID")}),
+			ctx:             context.Background(),
 		},
 		{ // empty address
 			id:              []byte("alice@example.com"),
 			newChainID:      []byte("myOtherNet"),
 			expCheckError:   true,
 			expDeliverError: true,
+			ctx:             context.Background(),
 		},
 		{ // empty chainID
 			id:              []byte("alice@example.com"),
 			newAddress:      []byte("myOtherAddressID"),
 			expCheckError:   true,
 			expDeliverError: true,
+			ctx:             context.Background(),
 		},
 		{ // existing chain
 			id:              []byte("alice@example.com"),
@@ -288,6 +306,7 @@ func TestAddChainAddress(t *testing.T) {
 			newAddress:      []byte("myOtherAddressID"),
 			expCheckError:   false,
 			expDeliverError: true,
+			ctx:             context.Background(),
 		},
 		{ // non unique chain address
 			id:              []byte("alice@example.com"),
@@ -295,11 +314,31 @@ func TestAddChainAddress(t *testing.T) {
 			newAddress:      []byte("myOtherChainAddress"),
 			expCheckError:   false,
 			expDeliverError: true,
+			ctx:             context.Background(),
 		},
 		{ // unknown id
 			id:              []byte("unknown@example.com"),
 			newChainID:      []byte("myUnknownNet"),
 			newAddress:      []byte("myOtherAddressID"),
+			expCheckError:   false,
+			expDeliverError: true,
+			ctx:             context.Background(),
+		},
+		{ // happy path with count decremented
+			id:         []byte("withcount@example.com"),
+			newChainID: []byte("myOtherNet"),
+			newAddress: []byte("myOtherAddressID"),
+			expApprovals: nft.Approvals{
+				nft.Action_ActionUpdateDetails.String(): []nft.Approval{
+					{Options: nft.ApprovalOptions{Count: 9, UntilBlockHeight: 5}, Address: alice.Address()}}},
+			expChainAddress: append(myNextAddress, username.ChainAddress{ChainID: []byte("myOtherNet"), Address: []byte("myOtherAddressID")}),
+			ctx:             context.Background(),
+		},
+		{ // approval timeout
+			id:              []byte("withcount@example.com"),
+			newChainID:      []byte("myOtherNet"),
+			newAddress:      []byte("myOtherAddressID"),
+			ctx:             weave.WithHeight(context.Background(), 10),
 			expCheckError:   false,
 			expDeliverError: true,
 		},
@@ -316,7 +355,7 @@ func TestAddChainAddress(t *testing.T) {
 			})
 
 			// when
-			_, err := handler.Check(nil, cache, tx)
+			_, err := handler.Check(spec.ctx, cache, tx)
 			if spec.expCheckError {
 				require.Error(t, err)
 				return
@@ -325,7 +364,7 @@ func TestAddChainAddress(t *testing.T) {
 			require.NoError(t, err)
 
 			// and when delivered
-			res, err := handler.Deliver(nil, cache, tx)
+			res, err := handler.Deliver(spec.ctx, cache, tx)
 
 			// then
 			if spec.expDeliverError {
@@ -342,16 +381,20 @@ func TestAddChainAddress(t *testing.T) {
 			require.NotNil(t, o)
 			u, _ := username.AsUsername(o)
 			// todo: test sorting
-			assert.Equal(t, append(myAddress, username.ChainAddress{spec.newChainID, spec.newAddress}), u.GetChainAddresses())
+			assert.EqualValues(t, spec.expChainAddress, u.GetChainAddresses())
+
+			if len(spec.expApprovals) > 0 {
+				assert.False(t, u.Approvals().List().Intersect(spec.expApprovals).IsEmpty())
+			}
 		})
 	}
-
 }
 
 //TODO: This needs to be extended with examples where we use approvals for different users
 func TestRemoveChainAddress(t *testing.T) {
 	var helpers x.TestHelpers
 	_, alice := helpers.MakeKey()
+	ctx := context.Background()
 
 	db := store.MemStore()
 	bucket := username.NewBucket()
@@ -406,7 +449,7 @@ func TestRemoveChainAddress(t *testing.T) {
 			})
 
 			// when
-			_, err := handler.Check(nil, cache, tx)
+			_, err := handler.Check(ctx, cache, tx)
 			if spec.expCheckError {
 				require.Error(t, err)
 				return
@@ -415,7 +458,7 @@ func TestRemoveChainAddress(t *testing.T) {
 			require.NoError(t, err)
 
 			// and when delivered
-			res, err := handler.Deliver(nil, db, tx)
+			res, err := handler.Deliver(ctx, db, tx)
 
 			// then
 			if spec.expDeliverError {

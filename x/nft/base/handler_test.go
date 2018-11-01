@@ -1,8 +1,11 @@
 package base
 
 import (
+	"context"
+	"fmt"
 	"testing"
 
+	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/cmd/bnsd/app"
 	"github.com/iov-one/weave/store"
 	"github.com/iov-one/weave/x"
@@ -14,10 +17,13 @@ import (
 
 func TestApprovalOpsHandler(t *testing.T) {
 	Convey("Test approval ops handler", t, func() {
+		ctx := context.Background()
+
 		bobsUsername := []byte("user")
 		aliceWithBobApproval := []byte("user2")
 		bobWithAliceApproval := []byte("user3")
 		bobWithAliceImmutableApproval := []byte("user4")
+		bobWithAliceTimeoutApproval := []byte("user5")
 
 		chainId := []byte("any_network")
 		var helpers x.TestHelpers
@@ -38,7 +44,7 @@ func TestApprovalOpsHandler(t *testing.T) {
 		userBucket.Save(db, o)
 		o, _ = userBucket.Create(db, alice.Address(), aliceWithBobApproval, []nft.ActionApprovals{{
 			Action:    nft.Action_ActionUpdateApprovals.String(),
-			Approvals: []nft.Approval{{Options: nft.ApprovalOptions{Count: nft.UnlimitedCount}, Address: bob.Address()}},
+			Approvals: []nft.Approval{{Options: nft.ApprovalOptions{Count: 10, UntilBlockHeight: 5}, Address: bob.Address()}},
 		}}, nil)
 		userBucket.Save(db, o)
 		o, _ = userBucket.Create(db, bob.Address(), bobWithAliceApproval, []nft.ActionApprovals{{
@@ -49,6 +55,11 @@ func TestApprovalOpsHandler(t *testing.T) {
 		o, _ = userBucket.Create(db, bob.Address(), bobWithAliceImmutableApproval, []nft.ActionApprovals{{
 			Action:    nft.Action_ActionUpdateApprovals.String(),
 			Approvals: []nft.Approval{{Options: nft.ApprovalOptions{Count: nft.UnlimitedCount, Immutable: true}, Address: alice.Address()}},
+		}}, nil)
+		userBucket.Save(db, o)
+		o, _ = userBucket.Create(db, bob.Address(), bobWithAliceTimeoutApproval, []nft.ActionApprovals{{
+			Action:    nft.Action_ActionUpdateApprovals.String(),
+			Approvals: []nft.Approval{{Options: nft.ApprovalOptions{Count: nft.UnlimitedCount, UntilBlockHeight: 5}, Address: alice.Address()}},
 		}}, nil)
 		userBucket.Save(db, o)
 
@@ -62,39 +73,36 @@ func TestApprovalOpsHandler(t *testing.T) {
 			Convey("Test happy", func() {
 				Convey("By owner", func() {
 					tx := helpers.MockTx(msg)
-					_, err := handler.Check(nil, db, tx)
+					_, err := handler.Check(ctx, db, tx)
 					So(err, ShouldBeNil)
-					_, err = handler.Deliver(nil, db, tx)
+					_, err = handler.Deliver(ctx, db, tx)
 					So(err, ShouldBeNil)
 					o, err := userBucket.Get(db, bobsUsername)
 					So(err, ShouldBeNil)
 					u, err := username.AsUsername(o)
 					So(err, ShouldBeNil)
-					So(u.Approvals().
-						List().
-						ForAction(msg.Action).
-						ForAddress(msg.Address).
-						IsEmpty(), ShouldBeFalse)
-
+					owner := nft.FindActor(handler.auth, ctx, u, nft.Action_ActionUpdateApprovals.String())
+					So(owner, ShouldResemble, bob.Address())
 				})
 
 				Convey("By approved", func() {
 					msg.Address = guest.Address()
 					msg.Id = aliceWithBobApproval
 					tx := helpers.MockTx(msg)
-					_, err := handler.Check(nil, db, tx)
+					_, err := handler.Check(ctx, db, tx)
 					So(err, ShouldBeNil)
-					_, err = handler.Deliver(nil, db, tx)
+					_, err = handler.Deliver(ctx, db, tx)
 					So(err, ShouldBeNil)
 					o, err := userBucket.Get(db, aliceWithBobApproval)
 					So(err, ShouldBeNil)
 					u, err := username.AsUsername(o)
 					So(err, ShouldBeNil)
-					So(u.Approvals().
-						List().
-						ForAction(msg.Action).
-						ForAddress(msg.Address).
-						IsEmpty(), ShouldBeFalse)
+					usedApproval := getApproval(u.Approvals(), bob.Address(), nft.Action_ActionUpdateApprovals.String())
+					So(usedApproval.Options.Count, ShouldEqual, 9)
+					approved := nft.FindActor(handler.auth, ctx, u, nft.Action_ActionUpdateApprovals.String())
+					So(approved, ShouldResemble, bob.Address())
+					usedApproval = getApproval(u.Approvals(), bob.Address(), nft.Action_ActionUpdateApprovals.String())
+					So(usedApproval.Options.Count, ShouldEqual, 8)
 				})
 			})
 
@@ -102,16 +110,16 @@ func TestApprovalOpsHandler(t *testing.T) {
 				Convey("To owner", func() {
 					tx := helpers.MockTx(msg)
 					msg.Address = bob.Address()
-					_, err := handler.Check(nil, db, tx)
+					_, err := handler.Check(ctx, db, tx)
 					So(err, ShouldBeNil)
-					_, err = handler.Deliver(nil, db, tx)
+					_, err = handler.Deliver(ctx, db, tx)
 					So(err, ShouldNotBeNil)
 				})
 
 				Convey("Invalid", func() {
 					tx := helpers.MockTx(msg)
 					msg.Options.Count = 0
-					_, err := handler.Check(nil, db, tx)
+					_, err := handler.Check(ctx, db, tx)
 					So(err, ShouldNotBeNil)
 				})
 
@@ -120,9 +128,9 @@ func TestApprovalOpsHandler(t *testing.T) {
 					msg.Address = bob.Address()
 					msg.Id = bobsUsername
 					tx := helpers.MockTx(msg)
-					_, err := handler.Check(nil, db, tx)
+					_, err := handler.Check(ctx, db, tx)
 					So(err, ShouldBeNil)
-					_, err = handler.Deliver(nil, db, tx)
+					_, err = handler.Deliver(ctx, db, tx)
 					So(err, ShouldNotBeNil)
 				})
 
@@ -131,30 +139,46 @@ func TestApprovalOpsHandler(t *testing.T) {
 					msg.T = app.NftType_Blockchain.String()
 					msg.Id = chainId
 					tx := helpers.MockTx(msg)
-					_, err := handler.Check(nil, db, tx)
+					_, err := handler.Check(ctx, db, tx)
 					So(err, ShouldBeNil)
-					_, err = handler.Deliver(nil, db, tx)
+					_, err = handler.Deliver(ctx, db, tx)
 					So(err, ShouldNotBeNil)
 				})
 
 				Convey("Exists", func() {
 					tx := helpers.MockTx(msg)
-					_, err := handler.Check(nil, db, tx)
+					_, err := handler.Check(ctx, db, tx)
 					So(err, ShouldBeNil)
-					_, err = handler.Deliver(nil, db, tx)
+					_, err = handler.Deliver(ctx, db, tx)
 					So(err, ShouldBeNil)
-					_, err = handler.Deliver(nil, db, tx)
+					_, err = handler.Deliver(ctx, db, tx)
 					So(err, ShouldNotBeNil)
 				})
 
 				Convey("Unknown id", func() {
 					msg.Id = []byte("123")
 					tx := helpers.MockTx(msg)
-					_, err := handler.Check(nil, db, tx)
+					_, err := handler.Check(ctx, db, tx)
 					So(err, ShouldBeNil)
-					_, err = handler.Deliver(nil, db, tx)
+					_, err = handler.Deliver(ctx, db, tx)
 					So(err, ShouldNotBeNil)
+				})
 
+				Convey("Timeout", func() {
+					timeoutCtx := weave.WithHeight(ctx, 10)
+					msg.Address = guest.Address()
+					msg.Id = aliceWithBobApproval
+					tx := helpers.MockTx(msg)
+					_, err := handler.Check(timeoutCtx, db, tx)
+					So(err, ShouldBeNil)
+					_, err = handler.Deliver(timeoutCtx, db, tx)
+					So(err, ShouldNotBeNil)
+					o, err := userBucket.Get(db, aliceWithBobApproval)
+					So(err, ShouldBeNil)
+					u, err := username.AsUsername(o)
+					So(err, ShouldBeNil)
+					approved := nft.FindActor(handler.auth, timeoutCtx, u, nft.Action_ActionUpdateApprovals.String())
+					So(approved, ShouldBeNil)
 				})
 			})
 
@@ -169,40 +193,33 @@ func TestApprovalOpsHandler(t *testing.T) {
 			Convey("Test happy", func() {
 				Convey("By owner", func() {
 					tx := helpers.MockTx(msg)
-					_, err := handler.Check(nil, db, tx)
+					_, err := handler.Check(ctx, db, tx)
 					So(err, ShouldBeNil)
-					_, err = handler.Deliver(nil, db, tx)
+					_, err = handler.Deliver(ctx, db, tx)
 					So(err, ShouldBeNil)
 					o, err := userBucket.Get(db, bobWithAliceApproval)
 					So(err, ShouldBeNil)
 					u, err := username.AsUsername(o)
 					So(err, ShouldBeNil)
-					So(u.Approvals().
-						List().
-						ForAction(msg.Action).
-						ForAddress(msg.Address).
-						IsEmpty(), ShouldBeTrue)
-
+					owner := nft.FindActor(handler.auth, ctx, u, msg.Action)
+					So(owner, ShouldResemble, bob.Address())
 				})
 
 				//TODO: Should we allow approved to remove their own approvals? :)
 				Convey("By approved", func() {
+					fmt.Println(alice.Address())
 					handler = NewApprovalOpsHandler(helpers.Authenticate(alice), nil, d)
-
 					tx := helpers.MockTx(msg)
-					_, err := handler.Check(nil, db, tx)
+					_, err := handler.Check(ctx, db, tx)
 					So(err, ShouldBeNil)
-					_, err = handler.Deliver(nil, db, tx)
+					_, err = handler.Deliver(ctx, db, tx)
 					So(err, ShouldBeNil)
 					o, err := userBucket.Get(db, bobWithAliceApproval)
 					So(err, ShouldBeNil)
 					u, err := username.AsUsername(o)
 					So(err, ShouldBeNil)
-					So(u.Approvals().
-						List().
-						ForAction(msg.Action).
-						ForAddress(msg.Address).
-						IsEmpty(), ShouldBeTrue)
+					approved := nft.FindActor(handler.auth, ctx, u, msg.Action)
+					So(approved, ShouldBeNil)
 				})
 			})
 
@@ -210,9 +227,9 @@ func TestApprovalOpsHandler(t *testing.T) {
 				Convey("From owner", func() {
 					tx := helpers.MockTx(msg)
 					msg.Address = bob.Address()
-					_, err := handler.Check(nil, db, tx)
+					_, err := handler.Check(ctx, db, tx)
 					So(err, ShouldBeNil)
-					_, err = handler.Deliver(nil, db, tx)
+					_, err = handler.Deliver(ctx, db, tx)
 					So(err, ShouldNotBeNil)
 				})
 
@@ -221,9 +238,9 @@ func TestApprovalOpsHandler(t *testing.T) {
 					msg.Address = bob.Address()
 					msg.Id = bobWithAliceApproval
 					tx := helpers.MockTx(msg)
-					_, err := handler.Check(nil, db, tx)
+					_, err := handler.Check(ctx, db, tx)
 					So(err, ShouldBeNil)
-					_, err = handler.Deliver(nil, db, tx)
+					_, err = handler.Deliver(ctx, db, tx)
 					So(err, ShouldNotBeNil)
 				})
 
@@ -231,43 +248,71 @@ func TestApprovalOpsHandler(t *testing.T) {
 					msg.T = app.NftType_Blockchain.String()
 					msg.Id = chainId
 					tx := helpers.MockTx(msg)
-					_, err := handler.Check(nil, db, tx)
+					_, err := handler.Check(ctx, db, tx)
 					So(err, ShouldBeNil)
-					_, err = handler.Deliver(nil, db, tx)
+					_, err = handler.Deliver(ctx, db, tx)
 					So(err, ShouldNotBeNil)
 				})
 
 				Convey("Does not exist", func() {
 					tx := helpers.MockTx(msg)
-					_, err := handler.Check(nil, db, tx)
+					_, err := handler.Check(ctx, db, tx)
 					So(err, ShouldBeNil)
-					_, err = handler.Deliver(nil, db, tx)
+					_, err = handler.Deliver(ctx, db, tx)
 					So(err, ShouldBeNil)
-					_, err = handler.Deliver(nil, db, tx)
+					_, err = handler.Deliver(ctx, db, tx)
 					So(err, ShouldNotBeNil)
 				})
 
 				Convey("Unknown id", func() {
 					msg.Id = []byte("123")
 					tx := helpers.MockTx(msg)
-					_, err := handler.Check(nil, db, tx)
+					_, err := handler.Check(ctx, db, tx)
 					So(err, ShouldBeNil)
-					_, err = handler.Deliver(nil, db, tx)
+					_, err = handler.Deliver(ctx, db, tx)
 					So(err, ShouldNotBeNil)
 				})
 
 				Convey("Immutable", func() {
 					msg.Id = bobWithAliceImmutableApproval
 					tx := helpers.MockTx(msg)
-					_, err := handler.Check(nil, db, tx)
+					_, err := handler.Check(ctx, db, tx)
 					So(err, ShouldBeNil)
-					_, err = handler.Deliver(nil, db, tx)
+					_, err = handler.Deliver(ctx, db, tx)
 					So(err, ShouldNotBeNil)
 				})
 
+				Convey("Timeout", func() {
+					msg.Id = bobWithAliceTimeoutApproval
+					tx := helpers.MockTx(msg)
+					timeoutCtx := weave.WithHeight(context.Background(), 10)
+					handler = NewApprovalOpsHandler(helpers.Authenticate(guest), nil, d)
+					_, err := handler.Check(timeoutCtx, db, tx)
+					So(err, ShouldBeNil)
+					_, err = handler.Deliver(timeoutCtx, db, tx)
+					So(err, ShouldNotBeNil)
+				})
 			})
 
 		})
 
 	})
+}
+
+func getApproval(approvals *nft.ApprovalOps, signer weave.Address, action string) nft.Approval {
+	appr := approvals.
+		List().
+		ForAction(action).
+		ForAddress(signer).
+		AsPersistable()
+
+	if len(appr) == 0 {
+		panic("No approvals for action and user")
+	}
+
+	if len(appr[0].Approvals) == 0 {
+		panic("No approvals for action and user")
+	}
+
+	return appr[0].Approvals[0]
 }

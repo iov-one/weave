@@ -20,26 +20,22 @@ func (u *UsernameToken) Approvals() *nft.ApprovalOps {
 	return u.Base.Approvals()
 }
 
+func (m *UsernameToken) SetApprovals(a nft.Approvals) {
+	m.Base.ActionApprovals = a.AsPersistable()
+}
+
 func (u *UsernameToken) GetChainAddresses() []ChainAddress {
 	if u.Details == nil {
 		return nil
 	}
 	return u.Details.Addresses
 }
-func (u *UsernameToken) SetChainAddresses(actor weave.Address, newAddresses []ChainAddress) error {
-	if !u.OwnerAddress().Equals(actor) {
-		if u.Approvals().
-			List().
-			ForAction(nft.Action_ActionUpdateDetails.String()).
-			ForAddress(actor).
-			IsEmpty() {
-			return errors.ErrUnauthorized()
 
-		}
-	}
+func (u *UsernameToken) SetChainAddresses(actor weave.Address, newAddresses []ChainAddress) error {
 	if containsDuplicateChains(newAddresses) {
 		return nft.ErrDuplicateEntry()
 	}
+
 	u.Details = &TokenDetails{Addresses: newAddresses}
 	return nil
 }
