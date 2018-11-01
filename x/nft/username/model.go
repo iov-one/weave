@@ -42,12 +42,12 @@ func (u *UsernameToken) SetChainAddresses(actor weave.Address, newAddresses []Ch
 	}
 
 	u.Details = &TokenDetails{Addresses: newAddresses}
-	u.Base.ActionApprovals = u.Approvals().List().MergeDecremented(
+	u.Base.ActionApprovals = u.Approvals().List().MergeUsed(
 		u.Approvals().List().
 			ForAction(nft.Action_ActionUpdateDetails.String()).
 			ForAddress(actor).
 			FilterExpired(height).
-			DecrementCount()).
+			UseCount()).
 		AsPersistable()
 
 	return nil

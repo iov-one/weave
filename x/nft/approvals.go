@@ -57,6 +57,16 @@ func (a ApprovalOptions) Equals(o ApprovalOptions) bool {
 	return a.Immutable == o.Immutable && a.Count == o.Count && a.UntilBlockHeight == o.UntilBlockHeight
 }
 
+func (a ApprovalOptions) EqualsAfterUse(used ApprovalOptions) bool {
+	if a.Count == UnlimitedCount || a.Immutable {
+		return a.Equals(used)
+	}
+
+	return a.Count == used.Count+1 &&
+		a.Immutable == used.Immutable &&
+		a.UntilBlockHeight == used.UntilBlockHeight
+}
+
 func (a ApprovalOptions) Validate() error {
 	if a.Count == 0 || a.Count < UnlimitedCount {
 		return errors.ErrInternal("Approval count should either be unlimited or above zero")
@@ -171,35 +181,37 @@ func (m Approvals) Add(action string, approval Approval) Approvals {
 	return m
 }
 
-func (m Approvals) DecrementCount() Approvals {
+func (m Approvals) UseCount() Approvals {
 	res := make(map[string]ApprovalMeta, 0)
 	for action, approvals := range m {
 		for _, approval := range approvals {
 			if approval.Options.Count == 0 {
 				continue
 			}
+
 			if _, ok := res[action]; !ok {
 				res[action] = make([]Approval, 0)
 			}
 
-			approval.Options.Count--
+			if !approval.Options.Immutable {
+				approval.Options.Count--
+			}
+
 			res[action] = append(res[action], approval)
 		}
 	}
 	return res
 }
 
-func (m Approvals) MergeDecremented(decremented Approvals) Approvals {
-	for action, aDecr := range decremented {
+func (m Approvals) MergeUsed(used Approvals) Approvals {
+	for action, aUsed := range used {
 		found := false
 		aDest := m[action]
-		for _, decr := range aDecr {
+		for _, u := range aUsed {
 			for idx, dest := range aDest {
-				if decr.AsAddress().Equals(dest.AsAddress()) &&
-					decr.Options.Immutable == dest.Options.Immutable &&
-					decr.Options.UntilBlockHeight == dest.Options.UntilBlockHeight &&
-					decr.Options.Count+1 == dest.Options.Count {
-					aDest[idx] = decr
+				if u.AsAddress().Equals(dest.AsAddress()) &&
+					dest.Options.EqualsAfterUse(u.Options) {
+					aDest[idx] = u
 					found = true
 					break
 				}
