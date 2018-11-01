@@ -4,16 +4,16 @@ package username;
 
 import "github.com/gogo/protobuf/gogoproto/gogo.proto";
 
-message ChainAddress {
-    bytes chainID = 1;
-    bytes address = 2;
-}
-
 message UsernameToken {
     bytes id = 1;
     bytes owner = 2;
     repeated bytes approvals = 3;
     repeated ChainAddress addresses = 4;
+}
+
+message ChainAddress {
+    bytes chainID = 1;
+    bytes address = 2;
 }
 
 message CreateUsernameTokenMsg {
@@ -25,12 +25,10 @@ message CreateUsernameTokenMsg {
 
 message AddChainAddressMsg {
     bytes id = 1;
-    bytes chainID = 2;
-    bytes address = 3;
+    ChainAddress addresses = 2;
 }
 
 message RemoveChainAddressMsg {
     bytes id = 1;
-    bytes chainID = 2;
-    bytes address = 3;
+    ChainAddress addresses = 2;
 }

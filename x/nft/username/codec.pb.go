@@ -21,58 +21,6 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
 
-type ChainAddress struct {
-	ChainID []byte `protobuf:"bytes,1,opt,name=chainID,proto3" json:"chainID,omitempty"`
-	Address []byte `protobuf:"bytes,2,opt,name=address,proto3" json:"address,omitempty"`
-}
-
-func (m *ChainAddress) Reset()         { *m = ChainAddress{} }
-func (m *ChainAddress) String() string { return proto.CompactTextString(m) }
-func (*ChainAddress) ProtoMessage()    {}
-func (*ChainAddress) Descriptor() ([]byte, []int) {
-	return fileDescriptor_codec_96482e4f1127a2ec, []int{0}
-}
-func (m *ChainAddress) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *ChainAddress) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_ChainAddress.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalTo(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (dst *ChainAddress) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ChainAddress.Merge(dst, src)
-}
-func (m *ChainAddress) XXX_Size() int {
-	return m.Size()
-}
-func (m *ChainAddress) XXX_DiscardUnknown() {
-	xxx_messageInfo_ChainAddress.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_ChainAddress proto.InternalMessageInfo
-
-func (m *ChainAddress) GetChainID() []byte {
-	if m != nil {
-		return m.ChainID
-	}
-	return nil
-}
-
-func (m *ChainAddress) GetAddress() []byte {
-	if m != nil {
-		return m.Address
-	}
-	return nil
-}
-
 type UsernameToken struct {
 	Id        []byte          `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	Owner     []byte          `protobuf:"bytes,2,opt,name=owner,proto3" json:"owner,omitempty"`
@@ -84,7 +32,7 @@ func (m *UsernameToken) Reset()         { *m = UsernameToken{} }
 func (m *UsernameToken) String() string { return proto.CompactTextString(m) }
 func (*UsernameToken) ProtoMessage()    {}
 func (*UsernameToken) Descriptor() ([]byte, []int) {
-	return fileDescriptor_codec_96482e4f1127a2ec, []int{1}
+	return fileDescriptor_codec_be3bab71bc05cb09, []int{0}
 }
 func (m *UsernameToken) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -141,6 +89,58 @@ func (m *UsernameToken) GetAddresses() []*ChainAddress {
 	return nil
 }
 
+type ChainAddress struct {
+	ChainID []byte `protobuf:"bytes,1,opt,name=chainID,proto3" json:"chainID,omitempty"`
+	Address []byte `protobuf:"bytes,2,opt,name=address,proto3" json:"address,omitempty"`
+}
+
+func (m *ChainAddress) Reset()         { *m = ChainAddress{} }
+func (m *ChainAddress) String() string { return proto.CompactTextString(m) }
+func (*ChainAddress) ProtoMessage()    {}
+func (*ChainAddress) Descriptor() ([]byte, []int) {
+	return fileDescriptor_codec_be3bab71bc05cb09, []int{1}
+}
+func (m *ChainAddress) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *ChainAddress) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_ChainAddress.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (dst *ChainAddress) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ChainAddress.Merge(dst, src)
+}
+func (m *ChainAddress) XXX_Size() int {
+	return m.Size()
+}
+func (m *ChainAddress) XXX_DiscardUnknown() {
+	xxx_messageInfo_ChainAddress.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ChainAddress proto.InternalMessageInfo
+
+func (m *ChainAddress) GetChainID() []byte {
+	if m != nil {
+		return m.ChainID
+	}
+	return nil
+}
+
+func (m *ChainAddress) GetAddress() []byte {
+	if m != nil {
+		return m.Address
+	}
+	return nil
+}
+
 type CreateUsernameTokenMsg struct {
 	Id        []byte          `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	Owner     []byte          `protobuf:"bytes,2,opt,name=owner,proto3" json:"owner,omitempty"`
@@ -152,7 +152,7 @@ func (m *CreateUsernameTokenMsg) Reset()         { *m = CreateUsernameTokenMsg{}
 func (m *CreateUsernameTokenMsg) String() string { return proto.CompactTextString(m) }
 func (*CreateUsernameTokenMsg) ProtoMessage()    {}
 func (*CreateUsernameTokenMsg) Descriptor() ([]byte, []int) {
-	return fileDescriptor_codec_96482e4f1127a2ec, []int{2}
+	return fileDescriptor_codec_be3bab71bc05cb09, []int{2}
 }
 func (m *CreateUsernameTokenMsg) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -210,16 +210,15 @@ func (m *CreateUsernameTokenMsg) GetAddresses() []*ChainAddress {
 }
 
 type AddChainAddressMsg struct {
-	Id      []byte `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	ChainID []byte `protobuf:"bytes,2,opt,name=chainID,proto3" json:"chainID,omitempty"`
-	Address []byte `protobuf:"bytes,3,opt,name=address,proto3" json:"address,omitempty"`
+	Id        []byte        `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Addresses *ChainAddress `protobuf:"bytes,2,opt,name=addresses" json:"addresses,omitempty"`
 }
 
 func (m *AddChainAddressMsg) Reset()         { *m = AddChainAddressMsg{} }
 func (m *AddChainAddressMsg) String() string { return proto.CompactTextString(m) }
 func (*AddChainAddressMsg) ProtoMessage()    {}
 func (*AddChainAddressMsg) Descriptor() ([]byte, []int) {
-	return fileDescriptor_codec_96482e4f1127a2ec, []int{3}
+	return fileDescriptor_codec_be3bab71bc05cb09, []int{3}
 }
 func (m *AddChainAddressMsg) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -255,31 +254,23 @@ func (m *AddChainAddressMsg) GetId() []byte {
 	return nil
 }
 
-func (m *AddChainAddressMsg) GetChainID() []byte {
+func (m *AddChainAddressMsg) GetAddresses() *ChainAddress {
 	if m != nil {
-		return m.ChainID
-	}
-	return nil
-}
-
-func (m *AddChainAddressMsg) GetAddress() []byte {
-	if m != nil {
-		return m.Address
+		return m.Addresses
 	}
 	return nil
 }
 
 type RemoveChainAddressMsg struct {
-	Id      []byte `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	ChainID []byte `protobuf:"bytes,2,opt,name=chainID,proto3" json:"chainID,omitempty"`
-	Address []byte `protobuf:"bytes,3,opt,name=address,proto3" json:"address,omitempty"`
+	Id        []byte        `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Addresses *ChainAddress `protobuf:"bytes,2,opt,name=addresses" json:"addresses,omitempty"`
 }
 
 func (m *RemoveChainAddressMsg) Reset()         { *m = RemoveChainAddressMsg{} }
 func (m *RemoveChainAddressMsg) String() string { return proto.CompactTextString(m) }
 func (*RemoveChainAddressMsg) ProtoMessage()    {}
 func (*RemoveChainAddressMsg) Descriptor() ([]byte, []int) {
-	return fileDescriptor_codec_96482e4f1127a2ec, []int{4}
+	return fileDescriptor_codec_be3bab71bc05cb09, []int{4}
 }
 func (m *RemoveChainAddressMsg) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -315,57 +306,20 @@ func (m *RemoveChainAddressMsg) GetId() []byte {
 	return nil
 }
 
-func (m *RemoveChainAddressMsg) GetChainID() []byte {
+func (m *RemoveChainAddressMsg) GetAddresses() *ChainAddress {
 	if m != nil {
-		return m.ChainID
-	}
-	return nil
-}
-
-func (m *RemoveChainAddressMsg) GetAddress() []byte {
-	if m != nil {
-		return m.Address
+		return m.Addresses
 	}
 	return nil
 }
 
 func init() {
-	proto.RegisterType((*ChainAddress)(nil), "username.ChainAddress")
 	proto.RegisterType((*UsernameToken)(nil), "username.UsernameToken")
+	proto.RegisterType((*ChainAddress)(nil), "username.ChainAddress")
 	proto.RegisterType((*CreateUsernameTokenMsg)(nil), "username.CreateUsernameTokenMsg")
 	proto.RegisterType((*AddChainAddressMsg)(nil), "username.AddChainAddressMsg")
 	proto.RegisterType((*RemoveChainAddressMsg)(nil), "username.RemoveChainAddressMsg")
 }
-func (m *ChainAddress) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalTo(dAtA)
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *ChainAddress) MarshalTo(dAtA []byte) (int, error) {
-	var i int
-	_ = i
-	var l int
-	_ = l
-	if len(m.ChainID) > 0 {
-		dAtA[i] = 0xa
-		i++
-		i = encodeVarintCodec(dAtA, i, uint64(len(m.ChainID)))
-		i += copy(dAtA[i:], m.ChainID)
-	}
-	if len(m.Address) > 0 {
-		dAtA[i] = 0x12
-		i++
-		i = encodeVarintCodec(dAtA, i, uint64(len(m.Address)))
-		i += copy(dAtA[i:], m.Address)
-	}
-	return i, nil
-}
-
 func (m *UsernameToken) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
@@ -412,6 +366,36 @@ func (m *UsernameToken) MarshalTo(dAtA []byte) (int, error) {
 			}
 			i += n
 		}
+	}
+	return i, nil
+}
+
+func (m *ChainAddress) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalTo(dAtA)
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *ChainAddress) MarshalTo(dAtA []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	if len(m.ChainID) > 0 {
+		dAtA[i] = 0xa
+		i++
+		i = encodeVarintCodec(dAtA, i, uint64(len(m.ChainID)))
+		i += copy(dAtA[i:], m.ChainID)
+	}
+	if len(m.Address) > 0 {
+		dAtA[i] = 0x12
+		i++
+		i = encodeVarintCodec(dAtA, i, uint64(len(m.Address)))
+		i += copy(dAtA[i:], m.Address)
 	}
 	return i, nil
 }
@@ -487,17 +471,15 @@ func (m *AddChainAddressMsg) MarshalTo(dAtA []byte) (int, error) {
 		i = encodeVarintCodec(dAtA, i, uint64(len(m.Id)))
 		i += copy(dAtA[i:], m.Id)
 	}
-	if len(m.ChainID) > 0 {
+	if m.Addresses != nil {
 		dAtA[i] = 0x12
 		i++
-		i = encodeVarintCodec(dAtA, i, uint64(len(m.ChainID)))
-		i += copy(dAtA[i:], m.ChainID)
-	}
-	if len(m.Address) > 0 {
-		dAtA[i] = 0x1a
-		i++
-		i = encodeVarintCodec(dAtA, i, uint64(len(m.Address)))
-		i += copy(dAtA[i:], m.Address)
+		i = encodeVarintCodec(dAtA, i, uint64(m.Addresses.Size()))
+		n1, err := m.Addresses.MarshalTo(dAtA[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += n1
 	}
 	return i, nil
 }
@@ -523,17 +505,15 @@ func (m *RemoveChainAddressMsg) MarshalTo(dAtA []byte) (int, error) {
 		i = encodeVarintCodec(dAtA, i, uint64(len(m.Id)))
 		i += copy(dAtA[i:], m.Id)
 	}
-	if len(m.ChainID) > 0 {
+	if m.Addresses != nil {
 		dAtA[i] = 0x12
 		i++
-		i = encodeVarintCodec(dAtA, i, uint64(len(m.ChainID)))
-		i += copy(dAtA[i:], m.ChainID)
-	}
-	if len(m.Address) > 0 {
-		dAtA[i] = 0x1a
-		i++
-		i = encodeVarintCodec(dAtA, i, uint64(len(m.Address)))
-		i += copy(dAtA[i:], m.Address)
+		i = encodeVarintCodec(dAtA, i, uint64(m.Addresses.Size()))
+		n2, err := m.Addresses.MarshalTo(dAtA[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += n2
 	}
 	return i, nil
 }
@@ -547,23 +527,6 @@ func encodeVarintCodec(dAtA []byte, offset int, v uint64) int {
 	dAtA[offset] = uint8(v)
 	return offset + 1
 }
-func (m *ChainAddress) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	l = len(m.ChainID)
-	if l > 0 {
-		n += 1 + l + sovCodec(uint64(l))
-	}
-	l = len(m.Address)
-	if l > 0 {
-		n += 1 + l + sovCodec(uint64(l))
-	}
-	return n
-}
-
 func (m *UsernameToken) Size() (n int) {
 	if m == nil {
 		return 0
@@ -589,6 +552,23 @@ func (m *UsernameToken) Size() (n int) {
 			l = e.Size()
 			n += 1 + l + sovCodec(uint64(l))
 		}
+	}
+	return n
+}
+
+func (m *ChainAddress) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.ChainID)
+	if l > 0 {
+		n += 1 + l + sovCodec(uint64(l))
+	}
+	l = len(m.Address)
+	if l > 0 {
+		n += 1 + l + sovCodec(uint64(l))
 	}
 	return n
 }
@@ -632,12 +612,8 @@ func (m *AddChainAddressMsg) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovCodec(uint64(l))
 	}
-	l = len(m.ChainID)
-	if l > 0 {
-		n += 1 + l + sovCodec(uint64(l))
-	}
-	l = len(m.Address)
-	if l > 0 {
+	if m.Addresses != nil {
+		l = m.Addresses.Size()
 		n += 1 + l + sovCodec(uint64(l))
 	}
 	return n
@@ -653,12 +629,8 @@ func (m *RemoveChainAddressMsg) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovCodec(uint64(l))
 	}
-	l = len(m.ChainID)
-	if l > 0 {
-		n += 1 + l + sovCodec(uint64(l))
-	}
-	l = len(m.Address)
-	if l > 0 {
+	if m.Addresses != nil {
+		l = m.Addresses.Size()
 		n += 1 + l + sovCodec(uint64(l))
 	}
 	return n
@@ -676,118 +648,6 @@ func sovCodec(x uint64) (n int) {
 }
 func sozCodec(x uint64) (n int) {
 	return sovCodec(uint64((x << 1) ^ uint64((int64(x) >> 63))))
-}
-func (m *ChainAddress) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowCodec
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: ChainAddress: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: ChainAddress: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ChainID", wireType)
-			}
-			var byteLen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowCodec
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				byteLen |= (int(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if byteLen < 0 {
-				return ErrInvalidLengthCodec
-			}
-			postIndex := iNdEx + byteLen
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.ChainID = append(m.ChainID[:0], dAtA[iNdEx:postIndex]...)
-			if m.ChainID == nil {
-				m.ChainID = []byte{}
-			}
-			iNdEx = postIndex
-		case 2:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Address", wireType)
-			}
-			var byteLen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowCodec
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				byteLen |= (int(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if byteLen < 0 {
-				return ErrInvalidLengthCodec
-			}
-			postIndex := iNdEx + byteLen
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Address = append(m.Address[:0], dAtA[iNdEx:postIndex]...)
-			if m.Address == nil {
-				m.Address = []byte{}
-			}
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipCodec(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if skippy < 0 {
-				return ErrInvalidLengthCodec
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
 }
 func (m *UsernameToken) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
@@ -938,6 +798,118 @@ func (m *UsernameToken) Unmarshal(dAtA []byte) error {
 			m.Addresses = append(m.Addresses, &ChainAddress{})
 			if err := m.Addresses[len(m.Addresses)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipCodec(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *ChainAddress) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowCodec
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= (uint64(b) & 0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: ChainAddress: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: ChainAddress: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ChainID", wireType)
+			}
+			var byteLen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				byteLen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if byteLen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + byteLen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.ChainID = append(m.ChainID[:0], dAtA[iNdEx:postIndex]...)
+			if m.ChainID == nil {
+				m.ChainID = []byte{}
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Address", wireType)
+			}
+			var byteLen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				byteLen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if byteLen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + byteLen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Address = append(m.Address[:0], dAtA[iNdEx:postIndex]...)
+			if m.Address == nil {
+				m.Address = []byte{}
 			}
 			iNdEx = postIndex
 		default:
@@ -1195,9 +1167,9 @@ func (m *AddChainAddressMsg) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ChainID", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Addresses", wireType)
 			}
-			var byteLen int
+			var msglen int
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowCodec
@@ -1207,52 +1179,23 @@ func (m *AddChainAddressMsg) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				byteLen |= (int(b) & 0x7F) << shift
+				msglen |= (int(b) & 0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			if byteLen < 0 {
+			if msglen < 0 {
 				return ErrInvalidLengthCodec
 			}
-			postIndex := iNdEx + byteLen
+			postIndex := iNdEx + msglen
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.ChainID = append(m.ChainID[:0], dAtA[iNdEx:postIndex]...)
-			if m.ChainID == nil {
-				m.ChainID = []byte{}
+			if m.Addresses == nil {
+				m.Addresses = &ChainAddress{}
 			}
-			iNdEx = postIndex
-		case 3:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Address", wireType)
-			}
-			var byteLen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowCodec
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				byteLen |= (int(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if byteLen < 0 {
-				return ErrInvalidLengthCodec
-			}
-			postIndex := iNdEx + byteLen
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Address = append(m.Address[:0], dAtA[iNdEx:postIndex]...)
-			if m.Address == nil {
-				m.Address = []byte{}
+			if err := m.Addresses.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
 			}
 			iNdEx = postIndex
 		default:
@@ -1338,9 +1281,9 @@ func (m *RemoveChainAddressMsg) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ChainID", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Addresses", wireType)
 			}
-			var byteLen int
+			var msglen int
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowCodec
@@ -1350,52 +1293,23 @@ func (m *RemoveChainAddressMsg) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				byteLen |= (int(b) & 0x7F) << shift
+				msglen |= (int(b) & 0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			if byteLen < 0 {
+			if msglen < 0 {
 				return ErrInvalidLengthCodec
 			}
-			postIndex := iNdEx + byteLen
+			postIndex := iNdEx + msglen
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.ChainID = append(m.ChainID[:0], dAtA[iNdEx:postIndex]...)
-			if m.ChainID == nil {
-				m.ChainID = []byte{}
+			if m.Addresses == nil {
+				m.Addresses = &ChainAddress{}
 			}
-			iNdEx = postIndex
-		case 3:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Address", wireType)
-			}
-			var byteLen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowCodec
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				byteLen |= (int(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if byteLen < 0 {
-				return ErrInvalidLengthCodec
-			}
-			postIndex := iNdEx + byteLen
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Address = append(m.Address[:0], dAtA[iNdEx:postIndex]...)
-			if m.Address == nil {
-				m.Address = []byte{}
+			if err := m.Addresses.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
 			}
 			iNdEx = postIndex
 		default:
@@ -1524,27 +1438,26 @@ var (
 	ErrIntOverflowCodec   = fmt.Errorf("proto: integer overflow")
 )
 
-func init() { proto.RegisterFile("codec.proto", fileDescriptor_codec_96482e4f1127a2ec) }
+func init() { proto.RegisterFile("codec.proto", fileDescriptor_codec_be3bab71bc05cb09) }
 
-var fileDescriptor_codec_96482e4f1127a2ec = []byte{
-	// 290 bytes of a gzipped FileDescriptorProto
+var fileDescriptor_codec_be3bab71bc05cb09 = []byte{
+	// 287 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0xe2, 0x4e, 0xce, 0x4f, 0x49,
 	0x4d, 0xd6, 0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17, 0xe2, 0x28, 0x2d, 0x4e, 0x2d, 0xca, 0x4b, 0xcc,
 	0x4d, 0x95, 0xd2, 0x4d, 0xcf, 0x2c, 0xc9, 0x28, 0x4d, 0xd2, 0x4b, 0xce, 0xcf, 0xd5, 0x4f, 0xcf,
 	0x4f, 0xcf, 0xd7, 0x07, 0x2b, 0x48, 0x2a, 0x4d, 0x03, 0xf3, 0xc0, 0x1c, 0x30, 0x0b, 0xa2, 0x51,
-	0xc9, 0x89, 0x8b, 0xc7, 0x39, 0x23, 0x31, 0x33, 0xcf, 0x31, 0x25, 0xa5, 0x28, 0xb5, 0xb8, 0x58,
-	0x48, 0x82, 0x8b, 0x3d, 0x19, 0xc4, 0xf7, 0x74, 0x91, 0x60, 0x54, 0x60, 0xd4, 0xe0, 0x09, 0x82,
-	0x71, 0x41, 0x32, 0x89, 0x10, 0x45, 0x12, 0x4c, 0x10, 0x19, 0x28, 0x57, 0xa9, 0x93, 0x91, 0x8b,
-	0x37, 0x14, 0x6a, 0x7f, 0x48, 0x7e, 0x76, 0x6a, 0x9e, 0x10, 0x1f, 0x17, 0x53, 0x66, 0x0a, 0xd4,
-	0x00, 0xa6, 0xcc, 0x14, 0x21, 0x11, 0x2e, 0xd6, 0xfc, 0xf2, 0xbc, 0xd4, 0x22, 0xa8, 0x4e, 0x08,
-	0x47, 0x48, 0x86, 0x8b, 0x33, 0xb1, 0xa0, 0xa0, 0x28, 0xbf, 0x2c, 0x31, 0xa7, 0x58, 0x82, 0x59,
-	0x81, 0x59, 0x83, 0x27, 0x08, 0x21, 0x20, 0x64, 0xc2, 0xc5, 0x09, 0xb5, 0x20, 0xb5, 0x58, 0x82,
-	0x45, 0x81, 0x59, 0x83, 0xdb, 0x48, 0x4c, 0x0f, 0xe6, 0x4d, 0x3d, 0x64, 0x47, 0x07, 0x21, 0x14,
-	0x2a, 0x4d, 0x62, 0xe4, 0x12, 0x73, 0x2e, 0x4a, 0x4d, 0x2c, 0x49, 0x45, 0x71, 0x91, 0x6f, 0x71,
-	0xfa, 0x00, 0x3a, 0x2a, 0x82, 0x4b, 0xc8, 0x31, 0x25, 0x05, 0x59, 0x16, 0x9b, 0x7b, 0x90, 0x82,
-	0x9e, 0x09, 0x67, 0xd0, 0x33, 0xa3, 0x06, 0x7d, 0x34, 0x97, 0x68, 0x50, 0x6a, 0x6e, 0x7e, 0x59,
-	0x2a, 0x0d, 0x0c, 0x77, 0x92, 0x38, 0xf1, 0x48, 0x8e, 0xf1, 0xc2, 0x23, 0x39, 0xc6, 0x07, 0x8f,
-	0xe4, 0x18, 0x27, 0x3c, 0x96, 0x63, 0xb8, 0xf0, 0x58, 0x8e, 0xe1, 0xc6, 0x63, 0x39, 0x86, 0x24,
-	0x36, 0x70, 0xe2, 0x31, 0x06, 0x04, 0x00, 0x00, 0xff, 0xff, 0x7d, 0xde, 0xea, 0xa7, 0x84, 0x02,
-	0x00, 0x00,
+	0xa9, 0x93, 0x91, 0x8b, 0x37, 0x14, 0xaa, 0x37, 0x24, 0x3f, 0x3b, 0x35, 0x4f, 0x88, 0x8f, 0x8b,
+	0x29, 0x33, 0x45, 0x82, 0x51, 0x81, 0x51, 0x83, 0x27, 0x88, 0x29, 0x33, 0x45, 0x48, 0x84, 0x8b,
+	0x35, 0xbf, 0x3c, 0x2f, 0xb5, 0x48, 0x82, 0x09, 0x2c, 0x04, 0xe1, 0x08, 0xc9, 0x70, 0x71, 0x26,
+	0x16, 0x14, 0x14, 0xe5, 0x97, 0x25, 0xe6, 0x14, 0x4b, 0x30, 0x2b, 0x30, 0x6b, 0xf0, 0x04, 0x21,
+	0x04, 0x84, 0x4c, 0xb8, 0x38, 0x13, 0x53, 0x52, 0x8a, 0x52, 0x8b, 0x8b, 0x53, 0x8b, 0x25, 0x58,
+	0x14, 0x98, 0x35, 0xb8, 0x8d, 0xc4, 0xf4, 0x60, 0x4e, 0xd4, 0x73, 0xce, 0x48, 0xcc, 0xcc, 0x73,
+	0x84, 0xc8, 0x07, 0x21, 0x14, 0x2a, 0x39, 0x71, 0xf1, 0x20, 0x4b, 0x09, 0x49, 0x70, 0xb1, 0x27,
+	0x83, 0xf8, 0x9e, 0x2e, 0x50, 0xe7, 0xc0, 0xb8, 0x20, 0x19, 0xa8, 0x36, 0xa8, 0xab, 0x60, 0x5c,
+	0xa5, 0x49, 0x8c, 0x5c, 0x62, 0xce, 0x45, 0xa9, 0x89, 0x25, 0xa9, 0x28, 0xbe, 0xf2, 0x2d, 0x4e,
+	0x1f, 0x40, 0x8f, 0x45, 0x71, 0x09, 0x39, 0xa6, 0xa4, 0x20, 0xcb, 0x62, 0x73, 0x0f, 0x8a, 0xd9,
+	0x20, 0x37, 0x11, 0x65, 0x76, 0x2c, 0x97, 0x68, 0x50, 0x6a, 0x6e, 0x7e, 0x59, 0x2a, 0x4d, 0x8c,
+	0x77, 0x92, 0x38, 0xf1, 0x48, 0x8e, 0xf1, 0xc2, 0x23, 0x39, 0xc6, 0x07, 0x8f, 0xe4, 0x18, 0x27,
+	0x3c, 0x96, 0x63, 0xb8, 0xf0, 0x58, 0x8e, 0xe1, 0xc6, 0x63, 0x39, 0x86, 0x24, 0x36, 0x70, 0x02,
+	0x32, 0x06, 0x04, 0x00, 0x00, 0xff, 0xff, 0xc4, 0xc3, 0xce, 0x36, 0x88, 0x02, 0x00, 0x00,
 }
