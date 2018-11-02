@@ -4,6 +4,8 @@ import (
 	"regexp"
 
 	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/x/nft"
 )
 
 var _ weave.Msg = (*IssueTokenMsg)(nil)
@@ -33,20 +35,19 @@ func (*RemoveChainAddressMsg) Path() string {
 	return pathRemoveAddressMsg
 }
 
-func (m *IssueTokenMsg) Validate() error {
-	if err := validateID(m); err != nil {
+func (t *IssueTokenMsg) Validate() error {
+	if err := validateID(t); err != nil {
 		return err
 	}
-	// if err := m.Details.Validate(); err != nil {
-	// 	return err
-	// }
-
-	addr := weave.Address(m.Owner)
-
-	if err := addr.Validate(); err != nil {
+	if t == nil {
+		return errors.ErrInternal("must not be nil")
+	}
+	if containsDuplicateChains(t.Addresses) {
+		return nft.ErrDuplicateEntry()
+	}
+	if err := weave.Address(t.Owner).Validate(); err != nil {
 		return err
 	}
-
 	return nil
 }
 

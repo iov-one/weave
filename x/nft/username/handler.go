@@ -107,7 +107,7 @@ func (h IssueHandler) validate(ctx weave.Context, store weave.KVStore, tx weave.
 		}
 	}
 	for _, a := range msg.Addresses {
-		if !chainExist(store, h.blockchains, a.ChainID) {
+		if !exist(a.ChainID, h.blockchains.Bucket, store) {
 			return nil, nft.ErrInvalidEntry()
 		}
 	}
@@ -169,7 +169,7 @@ func (h *AddChainAddressHandler) validate(ctx weave.Context, store weave.KVStore
 	if err := msg.Validate(); err != nil {
 		return nil, nil, err
 	}
-	if !chainExist(store, h.blockchains, msg.Addresses.ChainID) {
+	if !exist(msg.Addresses.ChainID, h.blockchains.Bucket, store) {
 		return nil, nil, nft.ErrInvalidEntry()
 	}
 	token, err := getUsernameToken(h.bucket, store, msg.GetId())
@@ -283,11 +283,10 @@ func authorizedAction(ctx weave.Context, auth x.Authenticator, token *UsernameTo
 	return authorized
 }
 
-func chainExist(store weave.KVStore, blockhains blockchain.Bucket, chainID []byte) bool {
-	chain, err := blockhains.Get(store, chainID)
-	if err != nil || chain == nil {
+func exist(id []byte, b orm.Bucket, db weave.KVStore) bool {
+	obj, err := b.Get(db, id)
+	if err != nil || obj == nil {
 		return false
 	}
-
 	return true
 }

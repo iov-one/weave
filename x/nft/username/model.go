@@ -20,19 +20,26 @@ type UsernameTokenBucket struct {
 }
 
 func NewUsernameTokenBucket() UsernameTokenBucket {
-	bucket := orm.NewBucket(BucketName,
-		orm.NewSimpleObj(nil, new(UsernameToken)))
 	return UsernameTokenBucket{
-		Bucket: bucket,
+		Bucket: WithOwnerIndex(orm.NewBucket(BucketName, orm.NewSimpleObj(nil, new(UsernameToken)))).
+			WithMultiKeyIndex("chainaddr", chainAddressIndexer, true),
 	}
 }
 
-// func NewUsernameTokenBucket() UsernameTokenBucket {
-// 	return UsernameTokenBucket{
-// 		Bucket: nft.WithOwnerIndex(orm.NewBucket(BucketName, orm.NewSimpleObj(nil, new(UsernameToken))).
-// 			WithMultiKeyIndex(ChainAddressIndexName, chainAddressIndexer, true)),
-// 	}
-// }
+func WithOwnerIndex(bucket orm.Bucket) orm.Bucket {
+	return bucket.WithIndex("owner", ownerIndex, false)
+}
+
+func ownerIndex(obj orm.Object) ([]byte, error) {
+	if obj == nil {
+		return nil, orm.ErrInvalidIndex("nil")
+	}
+	o, ok := obj.Value().(*UsernameToken)
+	if !ok {
+		return nil, orm.ErrInvalidIndex("unsupported type")
+	}
+	return []byte(o.Owner), nil
+}
 
 func chainAddressIndexer(obj orm.Object) ([][]byte, error) {
 	if obj == nil {
@@ -51,11 +58,6 @@ func chainAddressIndexer(obj orm.Object) ([][]byte, error) {
 
 var _ orm.CloneableData = (*UsernameToken)(nil)
 
-func (u *UsernameToken) Validate() error {
-	return nil
-	// return u.Details.Validate()
-}
-
 func (u *UsernameToken) Copy() orm.CloneableData {
 	return &UsernameToken{
 		Id:        u.Id,
@@ -63,6 +65,24 @@ func (u *UsernameToken) Copy() orm.CloneableData {
 		Addresses: u.Addresses,
 		Approvals: u.Approvals,
 	}
+}
+
+func (t *UsernameToken) Validate() error {
+	if err := validateID(t); err != nil {
+		return err
+	}
+	if t == nil {
+		return errors.ErrInternal("must not be nil")
+	}
+	if containsDuplicateChains(t.Addresses) {
+		return nft.ErrDuplicateEntry()
+	}
+	for _, k := range t.Addresses {
+		if err := k.Validate(); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func containsDuplicateChains(addresses []*ChainAddress) bool {
