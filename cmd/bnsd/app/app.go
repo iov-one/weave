@@ -34,7 +34,7 @@ import (
 // Authenticator returns the typical authentication,
 // just using public key signatures
 func Authenticator() x.Authenticator {
-	return x.ChainAuth(sigs.Authenticate{}, hashlock.Authenticate{}, multisig.Authenticate{})
+	return x.ChainAuth(sigs.Authenticate{}, hashlock.Authenticate{}, multisig.Authenticate{}, approvals.Authenticate{})
 }
 
 // Chain returns a chain of decorators, to handle authentication,

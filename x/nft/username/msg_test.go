@@ -9,6 +9,33 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestChainAddressValidation(t *testing.T) {
+	specs := []struct {
+		chainID  string
+		address  []byte
+		expError bool
+	}{
+		{chainID: "1234", address: []byte("123456789012"), expError: false},
+		{chainID: "1234", address: anyIDWithLength(50), expError: false},
+		{chainID: "1234", address: []byte{}, expError: true}, // empty address
+		{chainID: "1234", address: nil, expError: true},
+		{chainID: "", address: []byte("123456789012"), expError: true},
+		{chainID: "1234", address: []byte("12345678901"), expError: true},
+		{chainID: "1234", address: anyIDWithLength(51), expError: true},
+		{chainID: string(anyIDWithLength(257)), address: []byte("123456789012"), expError: true},
+	}
+	for i, spec := range specs {
+		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
+			c := username.ChainAddress{ChainID: []byte(spec.chainID), Address: []byte(spec.address)}
+			if spec.expError {
+				assert.Error(t, c.Validate())
+			} else {
+				assert.NoError(t, c.Validate())
+			}
+		})
+	}
+}
+
 func TestIssueTokenMsgValidate(t *testing.T) {
 	var helpers x.TestHelpers
 	_, alice := helpers.MakeKey()
