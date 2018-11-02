@@ -66,6 +66,15 @@ func TestHandlers(t *testing.T) {
 				So(*token, ShouldResemble, UsernameToken{msg.Id, msg.Owner, msg.Approvals, msg.Addresses})
 			})
 
+			Convey("id already exists", func() {
+				_, err := h.Check(ctx, db, tx)
+				So(err, ShouldBeNil)
+				_, err = h.Deliver(ctx, db, tx)
+				So(err, ShouldBeNil)
+				_, err = h.Deliver(ctx, db, tx)
+				So(err.Error(), ShouldEqual, orm.ErrUniqueConstraint("id exists already").Error())
+			})
+
 			Convey("invalid chain id", func() {
 				msg.Addresses = []*ChainAddress{{[]byte("unknown"), []byte("unknown")}}
 				tx := helpers.MockTx(&msg)

@@ -96,6 +96,9 @@ func (h IssueHandler) validate(ctx weave.Context, store weave.KVStore, tx weave.
 	if err := msg.Validate(); err != nil {
 		return nil, err
 	}
+	if exist(msg.Id, h.bucket.Bucket, store) {
+		return nil, orm.ErrUniqueConstraint("id exists already")
+	}
 	// check permissions
 	if h.issuer != nil {
 		if !h.auth.HasAddress(ctx, h.issuer) {
