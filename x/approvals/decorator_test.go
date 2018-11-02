@@ -1,6 +1,7 @@
 package approvals
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"testing"
@@ -25,7 +26,7 @@ func newContextWithAuth(perms ...weave.Condition) (weave.Context, x.Authenticato
 	return auth.SetConditions(ctx, perms...), auth
 }
 
-func TestSigDecorator(t *testing.T) {
+func TestDecorator(t *testing.T) {
 	db := store.MemStore()
 	tx := helpers.MockTx(helpers.MockMsg([]byte("test")))
 
@@ -61,7 +62,7 @@ func TestSigDecorator(t *testing.T) {
 	for i, tc := range cases {
 		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
 			ctx, auth := newContextWithAuth(tc.signers...)
-			d := NewSigDecorator(x.ChainAuth(auth, Authenticate{}))
+			d := NewDecorator(x.ChainAuth(auth, Authenticate{}))
 			stack := helpers.Wrap(d, h)
 
 			_, err := stack.Check(ctx, db, tx)
@@ -99,73 +100,107 @@ func (s *ApprovalCheckHandler) Deliver(ctx weave.Context, store weave.KVStore,
 
 func TestHasApproval(t *testing.T) {
 	db := store.MemStore()
-	tx := helpers.MockTx(helpers.MockMsg([]byte("test")))
-
 	_, a := helpers.MakeKey()
 	_, b := helpers.MakeKey()
 
 	cases := []struct {
-		signers []weave.Condition
-		match   []weave.Condition
-		not     []weave.Condition
+		action     string
+		signers    []weave.Condition
+		authorized [][]byte
+		match      []weave.Condition
+		not        []weave.Condition
 	}{
 		{
-			[]weave.Condition{a},
-			[]weave.Condition{
-				ApprovalCondition(a.Address(), "admin"),
-				ApprovalCondition(a.Address(), "create"),
+			"update",
+			[]weave.Condition{},
+			[][]byte{
 				ApprovalCondition(a.Address(), "update"),
 				ApprovalCondition(a.Address(), "transfer"),
 			},
+			nil,
 			[]weave.Condition{
-				ApprovalCondition(b.Address(), "admin"),
-				ApprovalCondition(b.Address(), "create"),
 				ApprovalCondition(b.Address(), "update"),
+				ApprovalCondition(a.Address(), "update"),
+				ApprovalCondition(a.Address(), "transfer"),
 				ApprovalCondition(b.Address(), "transfer"),
 			},
 		},
 		{
-			[]weave.Condition{b},
-			[]weave.Condition{
-				ApprovalCondition(b.Address(), "admin"),
-				ApprovalCondition(b.Address(), "create"),
-				ApprovalCondition(b.Address(), "update"),
-				ApprovalCondition(b.Address(), "transfer"),
-			},
-			[]weave.Condition{
-				ApprovalCondition(a.Address(), "admin"),
-				ApprovalCondition(a.Address(), "create"),
+			"update",
+			[]weave.Condition{a},
+			[][]byte{
 				ApprovalCondition(a.Address(), "update"),
 				ApprovalCondition(a.Address(), "transfer"),
+			},
+			[]weave.Condition{
+				ApprovalCondition(a.Address(), "update"),
+			},
+			[]weave.Condition{
+				ApprovalCondition(b.Address(), "update"),
+				ApprovalCondition(a.Address(), "transfer"),
+				ApprovalCondition(b.Address(), "transfer"),
+			},
+		},
+		{
+			"update",
+			[]weave.Condition{a, b},
+			[][]byte{
+				ApprovalCondition(a.Address(), "update"),
+				ApprovalCondition(b.Address(), "update"),
+				ApprovalCondition(a.Address(), "transfer"),
+			},
+			[]weave.Condition{
+				ApprovalCondition(a.Address(), "update"),
+				ApprovalCondition(b.Address(), "update"),
+			},
+			[]weave.Condition{
+				ApprovalCondition(a.Address(), "transfer"),
+				ApprovalCondition(b.Address(), "transfer"),
+			},
+		},
+		{
+			"transfer",
+			[]weave.Condition{a, b},
+			[][]byte{
+				ApprovalCondition(a.Address(), "update"),
+				ApprovalCondition(b.Address(), "update"),
+				ApprovalCondition(a.Address(), "transfer"),
+			},
+			[]weave.Condition{
+				ApprovalCondition(a.Address(), "transfer"),
+			},
+			[]weave.Condition{
+				ApprovalCondition(a.Address(), "update"),
+				ApprovalCondition(b.Address(), "update"),
+				ApprovalCondition(b.Address(), "transfer"),
 			},
 		},
 	}
 
 	// the handler we're chaining with the decorator
+	h := new(HasApprovalCheckHandler)
 	for i, tc := range cases {
 		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
 			ctx, auth := newContextWithAuth(tc.signers...)
-			apprAuth := Authenticate{}
-			h := &ApprovalCheckHandler{auth: apprAuth}
-			multiauth := x.ChainAuth(auth, apprAuth)
-			d := NewSigDecorator(multiauth)
+			d := NewDecorator(x.ChainAuth(auth, Authenticate{}))
 			stack := helpers.Wrap(d, h)
+
+			msg := &nftMsg{helpers.MockMsg([]byte("nft")), tc.action, tc.authorized}
+			tx := helpers.MockTx(msg)
 
 			_, err := stack.Check(ctx, db, tx)
 			require.NoError(t, err)
+			assert.ElementsMatch(t, tc.match, h.approved)
+			for _, a := range tc.not {
+				assert.NotContains(t, h.approved, a)
+			}
 
 			_, err = stack.Deliver(ctx, db, tx)
 			require.NoError(t, err)
-
-			assert.True(t, HasApproval(ctx, multiauth, tc.match, "admin"))
-			assert.True(t, HasApproval(ctx, multiauth, tc.match, "create"))
-			assert.True(t, HasApproval(ctx, multiauth, tc.match, "update"))
-			assert.True(t, HasApproval(ctx, multiauth, tc.match, "transfer"))
-
-			assert.False(t, HasApproval(ctx, multiauth, tc.not, "admin"))
-			assert.False(t, HasApproval(ctx, multiauth, tc.not, "create"))
-			assert.False(t, HasApproval(ctx, multiauth, tc.not, "update"))
-			assert.False(t, HasApproval(ctx, multiauth, tc.not, "transfer"))
+			assert.ElementsMatch(t, tc.match, h.approved)
+			for _, a := range tc.not {
+				assert.NotContains(t, h.approved, a)
+			}
 		})
 	}
 }
@@ -173,25 +208,62 @@ func TestHasApproval(t *testing.T) {
 // MultisigCheckHandler stores the seen permissions on each call
 // for this extension's authenticator (ie. multisig.Authenticate)
 type HasApprovalCheckHandler struct {
-	actions    []string
-	authorized []weave.Condition
-	approved   []weave.Condition
+	approved []weave.Condition
 }
 
 var _ weave.Handler = (*HasApprovalCheckHandler)(nil)
 
 func (s *HasApprovalCheckHandler) Check(ctx weave.Context, store weave.KVStore,
 	tx weave.Tx) (res weave.CheckResult, err error) {
-	for _, action := range s.actions {
-		HasApproval(ctx, Authenticate{}, s.authorized, action)
+	msg, _ := tx.GetMsg()
+	nft := msg.(*nftMsg)
+	var authorized []weave.Condition
+	for _, auth := range nft.authorized {
+		authorized = append(authorized, auth)
 	}
+
+	_, approved := HasApprovals(ctx, Authenticate{}, authorized, nft.action)
+	s.approved = approved
 	return
 }
 
 func (s *HasApprovalCheckHandler) Deliver(ctx weave.Context, store weave.KVStore,
 	tx weave.Tx) (res weave.DeliverResult, err error) {
-	for _, action := range s.actions {
-		HasApproval(ctx, Authenticate{}, s.authorized, action)
+	msg, _ := tx.GetMsg()
+	nft := msg.(*nftMsg)
+	var authorized []weave.Condition
+	for _, auth := range nft.authorized {
+		authorized = append(authorized, auth)
 	}
+
+	_, approved := HasApprovals(ctx, Authenticate{}, authorized, nft.action)
+	s.approved = approved
 	return
+}
+
+// ContractTx fulfills the MultiSigTx interface to satisfy the decorator
+type nftMsg struct {
+	weave.Msg
+	action     string
+	authorized [][]byte
+}
+
+var _ weave.Msg = (*nftMsg)(nil)
+
+func (nft nftMsg) Marshal() ([]byte, error) {
+	bytes.Join(nft.authorized, []byte(","))
+	return bytes.Join(nft.authorized, []byte(",")), nil
+}
+
+func (nft *nftMsg) Unmarshal(bz []byte) error {
+	nft.authorized = bytes.Split(bz, []byte(","))
+	return nil
+}
+
+func (nft nftMsg) Path() string {
+	return "nft"
+}
+
+func (nft nftMsg) GetMsg() (weave.Msg, error) {
+	return nft.Msg, nil
 }

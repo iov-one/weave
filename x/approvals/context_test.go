@@ -65,8 +65,11 @@ func TestContext(t *testing.T) {
 	auth := Authenticate{}
 	for i, tc := range cases {
 		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
-			assert.True(t, HasApproval(tc.ctx, auth, tc.match, tc.action))
-			assert.False(t, HasApproval(tc.ctx, auth, tc.not, tc.action))
+			ok, _ := HasApprovals(tc.ctx, auth, tc.match, tc.action)
+			assert.True(t, ok)
+
+			ok, _ = HasApprovals(tc.ctx, auth, tc.not, tc.action)
+			assert.False(t, ok)
 		})
 	}
 }
