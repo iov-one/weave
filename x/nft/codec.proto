@@ -8,7 +8,6 @@ message NonFungibleToken {
     bytes id = 1;
     bytes owner = 2;
     repeated ActionApprovals actionApprovals = 3 [(gogoproto.nullable) = false];
-
 }
 
 message ActionApprovals {

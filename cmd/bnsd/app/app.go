@@ -15,6 +15,7 @@ import (
 	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/store/iavl"
 	"github.com/iov-one/weave/x"
+	"github.com/iov-one/weave/x/approvals"
 	"github.com/iov-one/weave/x/escrow"
 	"github.com/iov-one/weave/x/hashlock"
 	"github.com/iov-one/weave/x/multisig"
@@ -47,6 +48,7 @@ func Chain(minFee x.Coin, authFn x.Authenticator) app.Decorators {
 		utils.NewSavepoint().OnCheck(),
 		sigs.NewDecorator(),
 		multisig.NewDecorator(authFn),
+		approvals.NewDecorator(authFn),
 		namecoin.NewFeeDecorator(authFn, minFee),
 		// cannot pay for fee with hashlock...
 		hashlock.NewDecorator(),
@@ -100,7 +102,7 @@ func QueryRouter() weave.QueryRouter {
 
 // Register nft types for shared action handling via base handler
 func RegisterNft() {
-	nft.GetBucketDispatcher().Register(NftType_Username.String(), username.NewBucket())
+	nft.GetBucketDispatcher().Register(NftType_Username.String(), username.NewUsernameTokenBucket())
 	nft.GetBucketDispatcher().Register(NftType_Ticker.String(), ticker.NewBucket())
 	nft.GetBucketDispatcher().Register(NftType_Blockchain.String(), blockchain.NewBucket())
 	nft.GetBucketDispatcher().Register(NftType_BootstrapNode.String(), bootstrap_node.NewBucket())
