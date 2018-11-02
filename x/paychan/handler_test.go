@@ -350,6 +350,123 @@ func TestPaymentChannelHandlers(t *testing.T) {
 				},
 			},
 		},
+		"transfer of more funds than allocated fails": {
+			actions: []action{
+				{
+					conditions: []weave.Condition{src},
+					msg: &CreatePaymentChannelMsg{
+						Src:          src.Address(),
+						Recipient:    recipient.Address(),
+						SenderPubkey: srcSig.PublicKey(),
+						Total:        dogeCoin(10, 0),
+						Timeout:      1000,
+						Memo:         "start",
+					},
+					blocksize: 100,
+				},
+				{
+					conditions: []weave.Condition{src},
+					msg: setSignature(srcSig, &TransferPaymentChannelMsg{
+						Payment: &Payment{
+							ChainId:   "testchain-123",
+							ChannelId: asSeqID(1),
+							Amount:    dogeCoin(11, 50),
+							Memo:      "much transfer",
+						},
+					}),
+					blocksize:    103,
+					wantCheckErr: ErrInvalidAmount(dogeCoin(11, 50)),
+				},
+			},
+		},
+		"cannot create a channel without sender signature": {
+			actions: []action{
+				{
+					conditions: []weave.Condition{src},
+					msg: &CreatePaymentChannelMsg{
+						Src:          src.Address(),
+						Recipient:    recipient.Address(),
+						SenderPubkey: nil,
+						Total:        dogeCoin(10, 0),
+						Timeout:      1000,
+						Memo:         "start",
+					},
+					blocksize:    100,
+					wantCheckErr: ErrMissingSenderPubkey(),
+				},
+			},
+		},
+		"transfer on a closed or non existing channel fails": {
+			actions: []action{
+				{
+					conditions: []weave.Condition{src},
+					msg: &CreatePaymentChannelMsg{
+						Src:          src.Address(),
+						Recipient:    recipient.Address(),
+						SenderPubkey: srcSig.PublicKey(),
+						Total:        dogeCoin(10, 0),
+						Timeout:      1000,
+						Memo:         "start",
+					},
+					blocksize: 100,
+				},
+				{
+					conditions: []weave.Condition{recipient},
+					msg: &ClosePaymentChannelMsg{
+						ChannelId: asSeqID(1),
+						Memo:      "end",
+					},
+					blocksize: 101,
+				},
+				{
+					conditions: []weave.Condition{src},
+					msg: setSignature(srcSig, &TransferPaymentChannelMsg{
+						Payment: &Payment{
+							ChainId:   "testchain-123",
+							ChannelId: asSeqID(1),
+							Amount:    dogeCoin(11, 50),
+							Memo:      "much transfer",
+						},
+					}),
+					blocksize:    103,
+					wantCheckErr: ErrNoSuchPaymentChannel(asSeqID(1)),
+				},
+			},
+		},
+		"transfer signed with invalid key fails": {
+			actions: []action{
+				{
+					conditions: []weave.Condition{src},
+					msg: &CreatePaymentChannelMsg{
+						Src:          src.Address(),
+						Recipient:    recipient.Address(),
+						SenderPubkey: srcSig.PublicKey(),
+						Total:        dogeCoin(10, 0),
+						Timeout:      1000,
+						Memo:         "start",
+					},
+					blocksize: 100,
+				},
+				{
+					conditions: []weave.Condition{src},
+					msg: &TransferPaymentChannelMsg{
+						Signature: &crypto.Signature{
+							Sig: &crypto.Signature_Ed25519{
+								Ed25519: []byte("invalid signature"),
+							},
+						},
+						Payment: &Payment{
+							ChainId:   "testchain-123",
+							ChannelId: asSeqID(1),
+							Amount:    dogeCoin(11, 50),
+							Memo:      "much transfer",
+						},
+					},
+					blocksize:    103,
+					wantCheckErr: ErrInvalidSignature(),
+				},
+			},
+		},
 	}
 
 	for testName, tc := range cases {
@@ -370,7 +487,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 				if _, err := rt.Check(a.ctx(), cache, a.tx()); !isSameError(err, a.wantCheckErr) {
 					t.Logf("want: %+v", a.wantCheckErr)
 					t.Logf(" got: %+v", err)
-					t.Fatalf("action %d check", i)
+					t.Fatalf("action %d check (%T)", i, a.msg)
 				}
 				cache.Discard()
 				if a.wantCheckErr != nil {
@@ -381,7 +498,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 				if _, err := rt.Deliver(a.ctx(), db, a.tx()); !isSameError(err, a.wantDeliverErr) {
 					t.Logf("want: %+v", a.wantDeliverErr)
 					t.Logf(" got: %+v", err)
-					t.Fatalf("action %d delivery", i)
+					t.Fatalf("action %d delivery (%T)", i, a.msg)
 				}
 			}
 			for _, tt := range tc.dbtests {
