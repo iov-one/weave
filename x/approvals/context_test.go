@@ -1,81 +1,72 @@
 package approvals
 
-// import (
-// 	"context"
-// 	"encoding/binary"
-// 	"fmt"
-// 	"testing"
+import (
+	"context"
+	"fmt"
+	"testing"
 
-// 	"github.com/iov-one/weave"
-// 	"github.com/stretchr/testify/assert"
-// )
+	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/x"
+	"github.com/stretchr/testify/assert"
+)
 
-// func TestContext(t *testing.T) {
-// 	id := func(i int64) []byte {
-// 		bz := make([]byte, 8)
-// 		binary.BigEndian.PutUint64(bz, uint64(i))
-// 		return bz
-// 	}
+func TestApprovalCondition(t *testing.T) {
+	var helpers x.TestHelpers
+	_, alice := helpers.MakeKey()
+	cond := ApprovalCondition(alice.Address(), "update")
 
-// 	// sig is a signature permission for contractID, not a contract ID
-// 	contractID := id(1)
-// 	sig := MultiSigCondition(contractID).Address()
+	err := cond.Validate()
+	assert.NoError(t, err)
 
-// 	// other is a signature permission for some "other" contract ID
-// 	otherContractID := id(2)
-// 	other := MultiSigCondition(otherContractID).Address()
+	_, action, id, err := cond.Parse()
+	assert.NoError(t, err)
 
-// 	// random address which does not represent anything in particular
-// 	random := weave.NewAddress(id(3))
+	assert.Equal(t, action, "update")
+	assert.Equal(t, alice.Address(), weave.Address(id))
+}
 
-// 	bg := context.Background()
-// 	cases := []struct {
-// 		ctx   weave.Context
-// 		perms []weave.Condition
-// 		match []weave.Address
-// 		not   []weave.Address
-// 	}{
-// 		{bg, nil, nil, []weave.Address{sig, other, random}},
-// 		{
-// 			withMultisig(bg, contractID),
-// 			[]weave.Condition{MultiSigCondition(contractID)},
-// 			[]weave.Address{sig},
-// 			[]weave.Address{other, random},
-// 		},
-// 		{
-// 			withMultisig(bg, otherContractID),
-// 			[]weave.Condition{MultiSigCondition(otherContractID)},
-// 			[]weave.Address{other},
-// 			[]weave.Address{sig, random},
-// 		},
-// 		{
-// 			// add multisig conditions for both contractID and otherContractID to the context
-// 			withMultisig(withMultisig(bg, contractID), otherContractID),
-// 			[]weave.Condition{MultiSigCondition(contractID), MultiSigCondition(otherContractID)},
-// 			[]weave.Address{sig, other},
-// 			[]weave.Address{random},
-// 		},
-// 		{
-// 			withMultisig(bg, id(3)),
-// 			[]weave.Condition{MultiSigCondition(id(3))},
-// 			nil,
-// 			[]weave.Address{sig, other, random},
-// 		},
-// 	}
+func TestContext(t *testing.T) {
+	// sig is a signature permission for contractID, not a contract ID
+	var helpers x.TestHelpers
+	_, alice := helpers.MakeKey()
+	_, bob := helpers.MakeKey()
 
-// 	auth := Authenticate{}
-// 	for i, tc := range cases {
-// 		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
-// 			perms := auth.GetConditions(tc.ctx)
-// 			assert.Equal(t, tc.perms, perms)
+	bg := context.Background()
+	cases := []struct {
+		action string
+		ctx    weave.Context
+		match  []weave.Condition
+		not    []weave.Condition
+	}{
+		{
+			"update",
+			withApproval(bg, alice.Address()),
+			[]weave.Condition{
+				ApprovalCondition(alice.Address(), "update"),
+			},
+			[]weave.Condition{
+				ApprovalCondition(alice.Address(), "create"),
+				ApprovalCondition(bob.Address(), "update"),
+			},
+		},
+		{
+			"create",
+			withApproval(bg, alice.Address()),
+			[]weave.Condition{
+				ApprovalCondition(alice.Address(), "create"),
+			},
+			[]weave.Condition{
+				ApprovalCondition(alice.Address(), "update"),
+				ApprovalCondition(bob.Address(), "update"),
+			},
+		},
+	}
 
-// 			for _, a := range tc.match {
-// 				assert.True(t, auth.HasAddress(tc.ctx, a))
-// 			}
-
-// 			for _, a := range tc.not {
-// 				assert.False(t, auth.HasAddress(tc.ctx, a))
-// 			}
-// 		})
-// 	}
-// }
+	auth := Authenticate{}
+	for i, tc := range cases {
+		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
+			assert.True(t, HasApproval(tc.ctx, auth, tc.match, tc.action))
+			assert.False(t, HasApproval(tc.ctx, auth, tc.not, tc.action))
+		})
+	}
+}

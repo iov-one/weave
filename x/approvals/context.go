@@ -15,18 +15,18 @@ const (
 
 // withMultisig is a private method, as only this module
 // can add a multisig signer
-func withApproval(ctx weave.Context, id []byte, approvalType string) weave.Context {
+func withApproval(ctx weave.Context, id []byte) weave.Context {
 	val, _ := ctx.Value(contextKeyApprovals).([]weave.Condition)
 	if val == nil {
-		return context.WithValue(ctx, contextKeyApprovals, []weave.Condition{ApprovalCondition(id, approvalType)})
+		return context.WithValue(ctx, contextKeyApprovals, []weave.Condition{ApprovalCondition(id, "usage")})
 	}
 
-	return context.WithValue(ctx, contextKeyApprovals, append(val, ApprovalCondition(id, approvalType)))
+	return context.WithValue(ctx, contextKeyApprovals, append(val, ApprovalCondition(id, "usage")))
 }
 
 // MultiSigCondition returns condition for a contract ID
 func ApprovalCondition(id []byte, approvalType string) weave.Condition {
-	return weave.NewCondition("approvals", approvalType, id)
+	return weave.NewCondition("approval", approvalType, id)
 }
 
 // Authenticate gets/sets permissions on the given context key
@@ -50,6 +50,18 @@ func (a Authenticate) HasAddress(ctx weave.Context, addr weave.Address) bool {
 	for _, s := range a.GetConditions(ctx) {
 		if addr.Equals(s.Address()) {
 			return true
+		}
+	}
+	return false
+}
+
+func HasApproval(ctx weave.Context, auth x.Authenticator, allowed []weave.Condition, requestedAction string) bool {
+	for _, a := range allowed {
+		_, action, addr, _ := a.Parse()
+		if action == requestedAction {
+			if auth.HasAddress(ctx, ApprovalCondition(addr, "usage").Address()) {
+				return true
+			}
 		}
 	}
 	return false

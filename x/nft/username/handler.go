@@ -3,6 +3,8 @@ package username
 import (
 	"bytes"
 
+	"github.com/iov-one/weave/x/approvals"
+
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/orm"
@@ -149,12 +151,7 @@ func (h AddChainAddressHandler) Deliver(ctx weave.Context, store weave.KVStore, 
 		return res, err
 	}
 
-	approvals := make([]weave.Address, len(token.Approvals))
-	for i, appr := range token.Approvals {
-		approvals[i] = weave.Address(appr)
-	}
-
-	if !x.HasNAddresses(ctx, h.auth, approvals, 1) {
+	if !approvals.HasApproval(ctx, h.auth, getConditions(token), "update") {
 		return res, errors.ErrUnauthorized()
 	}
 
@@ -210,12 +207,7 @@ func (h RemoveChainAddressHandler) Deliver(ctx weave.Context, store weave.KVStor
 		return res, err
 	}
 
-	approvals := make([]weave.Address, len(token.Approvals))
-	for i, appr := range token.Approvals {
-		approvals[i] = weave.Address(appr)
-	}
-
-	if !x.HasNAddresses(ctx, h.auth, approvals, 1) {
+	if !approvals.HasApproval(ctx, h.auth, getConditions(token), "update") {
 		return res, errors.ErrUnauthorized()
 	}
 
@@ -266,4 +258,12 @@ func getUsernameToken(bucket UsernameTokenBucket, store weave.KVStore, id []byte
 	}
 	t, e := AsUsername(o)
 	return t, e
+}
+
+func getConditions(token *UsernameToken) []weave.Condition {
+	allowed := make([]weave.Condition, len(token.Approvals))
+	for i, appr := range token.Approvals {
+		allowed[i] = weave.Condition(appr)
+	}
+	return allowed
 }

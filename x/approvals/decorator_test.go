@@ -1,178 +1,197 @@
 package approvals
 
-// import (
-// 	"fmt"
-// 	"testing"
+import (
+	"context"
+	"fmt"
+	"testing"
 
-// 	"github.com/stretchr/testify/assert"
-// 	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
-// 	"github.com/iov-one/weave"
-// 	"github.com/iov-one/weave/store"
-// 	"github.com/iov-one/weave/x"
-// )
+	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/store"
+	"github.com/iov-one/weave/x"
+)
 
-// func TestDecorator(t *testing.T) {
-// 	var helpers x.TestHelpers
-// 	db := store.MemStore()
+var helpers x.TestHelpers
 
-// 	// create some keys
-// 	_, a := helpers.MakeKey()
-// 	_, b := helpers.MakeKey()
-// 	_, c := helpers.MakeKey()
-// 	_, d := helpers.MakeKey()
-// 	_, e := helpers.MakeKey()
-// 	_, f := helpers.MakeKey()
+// newContextWithAuth creates a context with perms as signers and sets the height
+func newContextWithAuth(perms ...weave.Condition) (weave.Context, x.Authenticator) {
+	ctx := context.Background()
+	// Set current block height to 100
+	ctx = weave.WithHeight(ctx, 100)
+	auth := helpers.CtxAuth("authKey")
+	// Create a new context and add addr to the list of signers
+	return auth.SetConditions(ctx, perms...), auth
+}
 
-// 	// the contract we'll be using in our tests
-// 	contractID1 := withContract(t, db, CreateContractMsg{
-// 		Sigs:                newSigs(a, b, c),
-// 		ActivationThreshold: 2,
-// 		AdminThreshold:      3,
-// 	})
+func TestSigDecorator(t *testing.T) {
+	db := store.MemStore()
+	tx := helpers.MockTx(helpers.MockMsg([]byte("test")))
 
-// 	// contractID2 is used as a sig for contractID3
-// 	contractID2 := withContract(t, db, CreateContractMsg{
-// 		Sigs:                newSigs(d, e, f),
-// 		ActivationThreshold: 2,
-// 		AdminThreshold:      3,
-// 	})
+	_, a := helpers.MakeKey()
+	_, b := helpers.MakeKey()
+	_, c := helpers.MakeKey()
 
-// 	// contractID3 requires either sig for a or activation for contractID2
-// 	contractID3 := withContract(t, db, CreateContractMsg{
-// 		Sigs:                newSigs(a, MultiSigCondition(contractID2)),
-// 		ActivationThreshold: 1,
-// 		AdminThreshold:      2,
-// 	})
+	cases := []struct {
+		signers []weave.Condition
+		perms   []weave.Condition
+	}{
+		{[]weave.Condition{}, nil},
+		{[]weave.Condition{a},
+			[]weave.Condition{
+				ApprovalCondition(a.Address(), "usage")},
+		},
+		{[]weave.Condition{a, b},
+			[]weave.Condition{
+				ApprovalCondition(a.Address(), "usage"),
+				ApprovalCondition(b.Address(), "usage")}},
+		{
+			[]weave.Condition{a, b, c},
+			[]weave.Condition{
+				ApprovalCondition(a.Address(), "usage"),
+				ApprovalCondition(b.Address(), "usage"),
+				ApprovalCondition(c.Address(), "usage"),
+			},
+		},
+	}
 
-// 	// helper to create a ContractTx
-// 	multisigTx := func(payload []byte, multisig ...[]byte) ContractTx {
-// 		tx := helpers.MockTx(helpers.MockMsg(payload))
-// 		return ContractTx{Tx: tx, MultisigID: multisig}
-// 	}
+	// the handler we're chaining with the decorator
+	h := new(ApprovalCheckHandler)
+	for i, tc := range cases {
+		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
+			ctx, auth := newContextWithAuth(tc.signers...)
+			d := NewSigDecorator(x.ChainAuth(auth, Authenticate{}))
+			stack := helpers.Wrap(d, h)
 
-// 	cases := []struct {
-// 		tx      weave.Tx
-// 		signers []weave.Condition
-// 		perms   []weave.Condition
-// 		err     error
-// 	}{
-// 		// doesn't support multisig interface
-// 		{
-// 			helpers.MockTx(helpers.MockMsg([]byte{1, 2, 3})),
-// 			[]weave.Condition{a},
-// 			nil,
-// 			nil,
-// 		},
-// 		// Correct interface but no content
-// 		{
-// 			multisigTx([]byte("john"), nil),
-// 			[]weave.Condition{a},
-// 			nil,
-// 			nil,
-// 		},
-// 		// with multisig contract
-// 		{
-// 			multisigTx([]byte("foo"), contractID1),
-// 			[]weave.Condition{a, b},
-// 			[]weave.Condition{MultiSigCondition(contractID1)},
-// 			nil,
-// 		},
-// 		// with multisig contract but not enough signatures to activate
-// 		{
-// 			multisigTx([]byte("foo"), contractID1),
-// 			[]weave.Condition{a},
-// 			nil,
-// 			ErrUnauthorizedMultiSig(contractID1),
-// 		},
-// 		// with invalid multisig contract ID
-// 		{
-// 			multisigTx([]byte("foo"), []byte("bad id")),
-// 			[]weave.Condition{a, b},
-// 			nil,
-// 			ErrContractNotFound([]byte("bad id")),
-// 		},
-// 		// contractID3 is activated by contractID2
-// 		{
-// 			multisigTx([]byte("foo"), contractID2, contractID3),
-// 			[]weave.Condition{d, e},
-// 			[]weave.Condition{MultiSigCondition(contractID2), MultiSigCondition(contractID3)},
-// 			nil,
-// 		},
-// 		// contractID3 is activated by a
-// 		{
-// 			multisigTx([]byte("foo"), contractID3),
-// 			[]weave.Condition{a},
-// 			[]weave.Condition{MultiSigCondition(contractID3)},
-// 			nil,
-// 		},
-// 		// contractID3 is not activated
-// 		{
-// 			multisigTx([]byte("foo"), contractID3),
-// 			[]weave.Condition{d, e}, // cconditions for ontractID2 are there but ontractID2 must be passed explicitly
-// 			nil,
-// 			ErrUnauthorizedMultiSig(contractID3),
-// 		},
-// 	}
+			_, err := stack.Check(ctx, db, tx)
+			require.NoError(t, err)
+			assert.Equal(t, tc.perms, h.Perms)
 
-// 	// the handler we're chaining with the decorator
-// 	h := new(MultisigCheckHandler)
-// 	for i, tc := range cases {
-// 		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
-// 			ctx, auth := newContextWithAuth(tc.signers...)
-// 			d := NewDecorator(x.ChainAuth(auth, Authenticate{}))
+			_, err = stack.Deliver(ctx, db, tx)
+			require.NoError(t, err)
+			assert.Equal(t, tc.perms, h.Perms)
+		})
+	}
+}
 
-// 			stack := helpers.Wrap(d, h)
-// 			_, err := stack.Check(ctx, db, tc.tx)
-// 			if tc.err != nil {
-// 				require.EqualError(t, err, tc.err.Error())
-// 			} else {
-// 				require.NoError(t, err)
-// 				assert.Equal(t, tc.perms, h.Perms)
-// 			}
+//---------------- helpers --------
 
-// 			_, err = stack.Deliver(ctx, db, tc.tx)
-// 			if tc.err != nil {
-// 				require.EqualError(t, err, tc.err.Error())
-// 			} else {
-// 				require.NoError(t, err)
-// 				assert.Equal(t, tc.perms, h.Perms)
-// 			}
-// 		})
-// 	}
-// }
+// MultisigCheckHandler stores the seen permissions on each call
+// for this extension's authenticator (ie. multisig.Authenticate)
+type ApprovalCheckHandler struct {
+	Perms []weave.Condition
+}
 
-// //---------------- helpers --------
+var _ weave.Handler = (*ApprovalCheckHandler)(nil)
 
-// // MultisigCheckHandler stores the seen permissions on each call
-// // for this extension's authenticator (ie. multisig.Authenticate)
-// type MultisigCheckHandler struct {
-// 	Perms []weave.Condition
-// }
+func (s *ApprovalCheckHandler) Check(ctx weave.Context, store weave.KVStore,
+	tx weave.Tx) (res weave.CheckResult, err error) {
+	s.Perms = Authenticate{}.GetConditions(ctx)
+	return
+}
 
-// var _ weave.Handler = (*MultisigCheckHandler)(nil)
+func (s *ApprovalCheckHandler) Deliver(ctx weave.Context, store weave.KVStore,
+	tx weave.Tx) (res weave.DeliverResult, err error) {
+	s.Perms = Authenticate{}.GetConditions(ctx)
+	return
+}
 
-// func (s *MultisigCheckHandler) Check(ctx weave.Context, store weave.KVStore,
-// 	tx weave.Tx) (res weave.CheckResult, err error) {
-// 	s.Perms = Authenticate{}.GetConditions(ctx)
-// 	return
-// }
+func TestHasApproval(t *testing.T) {
+	db := store.MemStore()
+	tx := helpers.MockTx(helpers.MockMsg([]byte("test")))
 
-// func (s *MultisigCheckHandler) Deliver(ctx weave.Context, store weave.KVStore,
-// 	tx weave.Tx) (res weave.DeliverResult, err error) {
-// 	s.Perms = Authenticate{}.GetConditions(ctx)
-// 	return
-// }
+	_, a := helpers.MakeKey()
+	_, b := helpers.MakeKey()
 
-// // ContractTx fulfills the MultiSigTx interface to satisfy the decorator
-// type ContractTx struct {
-// 	weave.Tx
-// 	MultisigID [][]byte
-// }
+	cases := []struct {
+		signers []weave.Condition
+		match   []weave.Condition
+		not     []weave.Condition
+	}{
+		{
+			[]weave.Condition{a},
+			[]weave.Condition{
+				ApprovalCondition(a.Address(), "admin"),
+				ApprovalCondition(a.Address(), "create"),
+				ApprovalCondition(a.Address(), "update"),
+				ApprovalCondition(a.Address(), "transfer"),
+			},
+			[]weave.Condition{
+				ApprovalCondition(b.Address(), "admin"),
+				ApprovalCondition(b.Address(), "create"),
+				ApprovalCondition(b.Address(), "update"),
+				ApprovalCondition(b.Address(), "transfer"),
+			},
+		},
+		{
+			[]weave.Condition{b},
+			[]weave.Condition{
+				ApprovalCondition(b.Address(), "admin"),
+				ApprovalCondition(b.Address(), "create"),
+				ApprovalCondition(b.Address(), "update"),
+				ApprovalCondition(b.Address(), "transfer"),
+			},
+			[]weave.Condition{
+				ApprovalCondition(a.Address(), "admin"),
+				ApprovalCondition(a.Address(), "create"),
+				ApprovalCondition(a.Address(), "update"),
+				ApprovalCondition(a.Address(), "transfer"),
+			},
+		},
+	}
 
-// var _ MultiSigTx = ContractTx{}
-// var _ weave.Tx = ContractTx{}
+	// the handler we're chaining with the decorator
+	for i, tc := range cases {
+		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
+			ctx, auth := newContextWithAuth(tc.signers...)
+			apprAuth := Authenticate{}
+			h := &ApprovalCheckHandler{auth: apprAuth}
+			multiauth := x.ChainAuth(auth, apprAuth)
+			d := NewSigDecorator(multiauth)
+			stack := helpers.Wrap(d, h)
 
-// func (p ContractTx) GetMultisig() [][]byte {
-// 	return p.MultisigID
-// }
+			_, err := stack.Check(ctx, db, tx)
+			require.NoError(t, err)
+
+			_, err = stack.Deliver(ctx, db, tx)
+			require.NoError(t, err)
+
+			assert.True(t, HasApproval(ctx, multiauth, tc.match, "admin"))
+			assert.True(t, HasApproval(ctx, multiauth, tc.match, "create"))
+			assert.True(t, HasApproval(ctx, multiauth, tc.match, "update"))
+			assert.True(t, HasApproval(ctx, multiauth, tc.match, "transfer"))
+
+			assert.False(t, HasApproval(ctx, multiauth, tc.not, "admin"))
+			assert.False(t, HasApproval(ctx, multiauth, tc.not, "create"))
+			assert.False(t, HasApproval(ctx, multiauth, tc.not, "update"))
+			assert.False(t, HasApproval(ctx, multiauth, tc.not, "transfer"))
+		})
+	}
+}
+
+// MultisigCheckHandler stores the seen permissions on each call
+// for this extension's authenticator (ie. multisig.Authenticate)
+type HasApprovalCheckHandler struct {
+	actions    []string
+	authorized []weave.Condition
+	approved   []weave.Condition
+}
+
+var _ weave.Handler = (*HasApprovalCheckHandler)(nil)
+
+func (s *HasApprovalCheckHandler) Check(ctx weave.Context, store weave.KVStore,
+	tx weave.Tx) (res weave.CheckResult, err error) {
+	for _, action := range s.actions {
+		HasApproval(ctx, Authenticate{}, s.authorized, action)
+	}
+	return
+}
+
+func (s *HasApprovalCheckHandler) Deliver(ctx weave.Context, store weave.KVStore,
+	tx weave.Tx) (res weave.DeliverResult, err error) {
+	for _, action := range s.actions {
+		HasApproval(ctx, Authenticate{}, s.authorized, action)
+	}
+	return
+}
