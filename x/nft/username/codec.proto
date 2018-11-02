@@ -16,7 +16,7 @@ message ChainAddress {
     bytes address = 2;
 }
 
-message CreateUsernameTokenMsg {
+message IssueTokenMsg {
     bytes id = 1;
     bytes owner = 2;
     repeated bytes approvals = 3;

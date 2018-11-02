@@ -6,7 +6,7 @@ import (
 	"github.com/iov-one/weave"
 )
 
-var _ weave.Msg = (*CreateUsernameTokenMsg)(nil)
+var _ weave.Msg = (*IssueTokenMsg)(nil)
 
 const (
 	pathIssueTokenMsg    = "nft/username/issue"
@@ -19,7 +19,7 @@ var (
 )
 
 // Path fulfills weave.Msg interface to allow routing
-func (CreateUsernameTokenMsg) Path() string {
+func (IssueTokenMsg) Path() string {
 	return pathIssueTokenMsg
 }
 
@@ -33,7 +33,7 @@ func (*RemoveChainAddressMsg) Path() string {
 	return pathRemoveAddressMsg
 }
 
-func (m *CreateUsernameTokenMsg) Validate() error {
+func (m *IssueTokenMsg) Validate() error {
 	if err := validateID(m); err != nil {
 		return err
 	}

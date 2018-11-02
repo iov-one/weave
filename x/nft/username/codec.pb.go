@@ -32,7 +32,7 @@ func (m *UsernameToken) Reset()         { *m = UsernameToken{} }
 func (m *UsernameToken) String() string { return proto.CompactTextString(m) }
 func (*UsernameToken) ProtoMessage()    {}
 func (*UsernameToken) Descriptor() ([]byte, []int) {
-	return fileDescriptor_codec_be3bab71bc05cb09, []int{0}
+	return fileDescriptor_codec_a8cd4c8cc84cf6cd, []int{0}
 }
 func (m *UsernameToken) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -98,7 +98,7 @@ func (m *ChainAddress) Reset()         { *m = ChainAddress{} }
 func (m *ChainAddress) String() string { return proto.CompactTextString(m) }
 func (*ChainAddress) ProtoMessage()    {}
 func (*ChainAddress) Descriptor() ([]byte, []int) {
-	return fileDescriptor_codec_be3bab71bc05cb09, []int{1}
+	return fileDescriptor_codec_a8cd4c8cc84cf6cd, []int{1}
 }
 func (m *ChainAddress) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -141,25 +141,25 @@ func (m *ChainAddress) GetAddress() []byte {
 	return nil
 }
 
-type CreateUsernameTokenMsg struct {
+type IssueTokenMsg struct {
 	Id        []byte          `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	Owner     []byte          `protobuf:"bytes,2,opt,name=owner,proto3" json:"owner,omitempty"`
 	Approvals [][]byte        `protobuf:"bytes,3,rep,name=approvals" json:"approvals,omitempty"`
 	Addresses []*ChainAddress `protobuf:"bytes,4,rep,name=addresses" json:"addresses,omitempty"`
 }
 
-func (m *CreateUsernameTokenMsg) Reset()         { *m = CreateUsernameTokenMsg{} }
-func (m *CreateUsernameTokenMsg) String() string { return proto.CompactTextString(m) }
-func (*CreateUsernameTokenMsg) ProtoMessage()    {}
-func (*CreateUsernameTokenMsg) Descriptor() ([]byte, []int) {
-	return fileDescriptor_codec_be3bab71bc05cb09, []int{2}
+func (m *IssueTokenMsg) Reset()         { *m = IssueTokenMsg{} }
+func (m *IssueTokenMsg) String() string { return proto.CompactTextString(m) }
+func (*IssueTokenMsg) ProtoMessage()    {}
+func (*IssueTokenMsg) Descriptor() ([]byte, []int) {
+	return fileDescriptor_codec_a8cd4c8cc84cf6cd, []int{2}
 }
-func (m *CreateUsernameTokenMsg) XXX_Unmarshal(b []byte) error {
+func (m *IssueTokenMsg) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *CreateUsernameTokenMsg) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *IssueTokenMsg) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_CreateUsernameTokenMsg.Marshal(b, m, deterministic)
+		return xxx_messageInfo_IssueTokenMsg.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalTo(b)
@@ -169,40 +169,40 @@ func (m *CreateUsernameTokenMsg) XXX_Marshal(b []byte, deterministic bool) ([]by
 		return b[:n], nil
 	}
 }
-func (dst *CreateUsernameTokenMsg) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_CreateUsernameTokenMsg.Merge(dst, src)
+func (dst *IssueTokenMsg) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_IssueTokenMsg.Merge(dst, src)
 }
-func (m *CreateUsernameTokenMsg) XXX_Size() int {
+func (m *IssueTokenMsg) XXX_Size() int {
 	return m.Size()
 }
-func (m *CreateUsernameTokenMsg) XXX_DiscardUnknown() {
-	xxx_messageInfo_CreateUsernameTokenMsg.DiscardUnknown(m)
+func (m *IssueTokenMsg) XXX_DiscardUnknown() {
+	xxx_messageInfo_IssueTokenMsg.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_CreateUsernameTokenMsg proto.InternalMessageInfo
+var xxx_messageInfo_IssueTokenMsg proto.InternalMessageInfo
 
-func (m *CreateUsernameTokenMsg) GetId() []byte {
+func (m *IssueTokenMsg) GetId() []byte {
 	if m != nil {
 		return m.Id
 	}
 	return nil
 }
 
-func (m *CreateUsernameTokenMsg) GetOwner() []byte {
+func (m *IssueTokenMsg) GetOwner() []byte {
 	if m != nil {
 		return m.Owner
 	}
 	return nil
 }
 
-func (m *CreateUsernameTokenMsg) GetApprovals() [][]byte {
+func (m *IssueTokenMsg) GetApprovals() [][]byte {
 	if m != nil {
 		return m.Approvals
 	}
 	return nil
 }
 
-func (m *CreateUsernameTokenMsg) GetAddresses() []*ChainAddress {
+func (m *IssueTokenMsg) GetAddresses() []*ChainAddress {
 	if m != nil {
 		return m.Addresses
 	}
@@ -218,7 +218,7 @@ func (m *AddChainAddressMsg) Reset()         { *m = AddChainAddressMsg{} }
 func (m *AddChainAddressMsg) String() string { return proto.CompactTextString(m) }
 func (*AddChainAddressMsg) ProtoMessage()    {}
 func (*AddChainAddressMsg) Descriptor() ([]byte, []int) {
-	return fileDescriptor_codec_be3bab71bc05cb09, []int{3}
+	return fileDescriptor_codec_a8cd4c8cc84cf6cd, []int{3}
 }
 func (m *AddChainAddressMsg) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -270,7 +270,7 @@ func (m *RemoveChainAddressMsg) Reset()         { *m = RemoveChainAddressMsg{} }
 func (m *RemoveChainAddressMsg) String() string { return proto.CompactTextString(m) }
 func (*RemoveChainAddressMsg) ProtoMessage()    {}
 func (*RemoveChainAddressMsg) Descriptor() ([]byte, []int) {
-	return fileDescriptor_codec_be3bab71bc05cb09, []int{4}
+	return fileDescriptor_codec_a8cd4c8cc84cf6cd, []int{4}
 }
 func (m *RemoveChainAddressMsg) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -316,7 +316,7 @@ func (m *RemoveChainAddressMsg) GetAddresses() *ChainAddress {
 func init() {
 	proto.RegisterType((*UsernameToken)(nil), "username.UsernameToken")
 	proto.RegisterType((*ChainAddress)(nil), "username.ChainAddress")
-	proto.RegisterType((*CreateUsernameTokenMsg)(nil), "username.CreateUsernameTokenMsg")
+	proto.RegisterType((*IssueTokenMsg)(nil), "username.IssueTokenMsg")
 	proto.RegisterType((*AddChainAddressMsg)(nil), "username.AddChainAddressMsg")
 	proto.RegisterType((*RemoveChainAddressMsg)(nil), "username.RemoveChainAddressMsg")
 }
@@ -400,7 +400,7 @@ func (m *ChainAddress) MarshalTo(dAtA []byte) (int, error) {
 	return i, nil
 }
 
-func (m *CreateUsernameTokenMsg) Marshal() (dAtA []byte, err error) {
+func (m *IssueTokenMsg) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalTo(dAtA)
@@ -410,7 +410,7 @@ func (m *CreateUsernameTokenMsg) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *CreateUsernameTokenMsg) MarshalTo(dAtA []byte) (int, error) {
+func (m *IssueTokenMsg) MarshalTo(dAtA []byte) (int, error) {
 	var i int
 	_ = i
 	var l int
@@ -573,7 +573,7 @@ func (m *ChainAddress) Size() (n int) {
 	return n
 }
 
-func (m *CreateUsernameTokenMsg) Size() (n int) {
+func (m *IssueTokenMsg) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -933,7 +933,7 @@ func (m *ChainAddress) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *CreateUsernameTokenMsg) Unmarshal(dAtA []byte) error {
+func (m *IssueTokenMsg) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -956,10 +956,10 @@ func (m *CreateUsernameTokenMsg) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: CreateUsernameTokenMsg: wiretype end group for non-group")
+			return fmt.Errorf("proto: IssueTokenMsg: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: CreateUsernameTokenMsg: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: IssueTokenMsg: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -1438,10 +1438,10 @@ var (
 	ErrIntOverflowCodec   = fmt.Errorf("proto: integer overflow")
 )
 
-func init() { proto.RegisterFile("codec.proto", fileDescriptor_codec_be3bab71bc05cb09) }
+func init() { proto.RegisterFile("codec.proto", fileDescriptor_codec_a8cd4c8cc84cf6cd) }
 
-var fileDescriptor_codec_be3bab71bc05cb09 = []byte{
-	// 287 bytes of a gzipped FileDescriptorProto
+var fileDescriptor_codec_a8cd4c8cc84cf6cd = []byte{
+	// 282 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0xe2, 0x4e, 0xce, 0x4f, 0x49,
 	0x4d, 0xd6, 0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17, 0xe2, 0x28, 0x2d, 0x4e, 0x2d, 0xca, 0x4b, 0xcc,
 	0x4d, 0x95, 0xd2, 0x4d, 0xcf, 0x2c, 0xc9, 0x28, 0x4d, 0xd2, 0x4b, 0xce, 0xcf, 0xd5, 0x4f, 0xcf,
@@ -1454,10 +1454,10 @@ var fileDescriptor_codec_be3bab71bc05cb09 = []byte{
 	0x14, 0x98, 0x35, 0xb8, 0x8d, 0xc4, 0xf4, 0x60, 0x4e, 0xd4, 0x73, 0xce, 0x48, 0xcc, 0xcc, 0x73,
 	0x84, 0xc8, 0x07, 0x21, 0x14, 0x2a, 0x39, 0x71, 0xf1, 0x20, 0x4b, 0x09, 0x49, 0x70, 0xb1, 0x27,
 	0x83, 0xf8, 0x9e, 0x2e, 0x50, 0xe7, 0xc0, 0xb8, 0x20, 0x19, 0xa8, 0x36, 0xa8, 0xab, 0x60, 0x5c,
-	0xa5, 0x49, 0x8c, 0x5c, 0x62, 0xce, 0x45, 0xa9, 0x89, 0x25, 0xa9, 0x28, 0xbe, 0xf2, 0x2d, 0x4e,
-	0x1f, 0x40, 0x8f, 0x45, 0x71, 0x09, 0x39, 0xa6, 0xa4, 0x20, 0xcb, 0x62, 0x73, 0x0f, 0x8a, 0xd9,
-	0x20, 0x37, 0x11, 0x65, 0x76, 0x2c, 0x97, 0x68, 0x50, 0x6a, 0x6e, 0x7e, 0x59, 0x2a, 0x4d, 0x8c,
-	0x77, 0x92, 0x38, 0xf1, 0x48, 0x8e, 0xf1, 0xc2, 0x23, 0x39, 0xc6, 0x07, 0x8f, 0xe4, 0x18, 0x27,
-	0x3c, 0x96, 0x63, 0xb8, 0xf0, 0x58, 0x8e, 0xe1, 0xc6, 0x63, 0x39, 0x86, 0x24, 0x36, 0x70, 0x02,
-	0x32, 0x06, 0x04, 0x00, 0x00, 0xff, 0xff, 0xc4, 0xc3, 0xce, 0x36, 0x88, 0x02, 0x00, 0x00,
+	0xb0, 0x7f, 0x3c, 0x8b, 0x8b, 0x4b, 0x21, 0x9e, 0xf1, 0x2d, 0x4e, 0x1f, 0x40, 0xff, 0x44, 0x71,
+	0x09, 0x39, 0xa6, 0xa4, 0x20, 0xcb, 0x62, 0x73, 0x0f, 0x8a, 0xd9, 0x20, 0x37, 0x11, 0x65, 0x76,
+	0x2c, 0x97, 0x68, 0x50, 0x6a, 0x6e, 0x7e, 0x59, 0x2a, 0x4d, 0x8c, 0x77, 0x92, 0x38, 0xf1, 0x48,
+	0x8e, 0xf1, 0xc2, 0x23, 0x39, 0xc6, 0x07, 0x8f, 0xe4, 0x18, 0x27, 0x3c, 0x96, 0x63, 0xb8, 0xf0,
+	0x58, 0x8e, 0xe1, 0xc6, 0x63, 0x39, 0x86, 0x24, 0x36, 0x70, 0xba, 0x31, 0x06, 0x04, 0x00, 0x00,
+	0xff, 0xff, 0xd8, 0x26, 0x0a, 0x0f, 0x7f, 0x02, 0x00, 0x00,
 }

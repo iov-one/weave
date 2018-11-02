@@ -20,11 +20,19 @@ type UsernameTokenBucket struct {
 }
 
 func NewUsernameTokenBucket() UsernameTokenBucket {
+	bucket := orm.NewBucket(BucketName,
+		orm.NewSimpleObj(nil, new(UsernameToken)))
 	return UsernameTokenBucket{
-		Bucket: nft.WithOwnerIndex(orm.NewBucket(BucketName, orm.NewSimpleObj(nil, new(UsernameToken))).
-			WithMultiKeyIndex(ChainAddressIndexName, chainAddressIndexer, true)),
+		Bucket: bucket,
 	}
 }
+
+// func NewUsernameTokenBucket() UsernameTokenBucket {
+// 	return UsernameTokenBucket{
+// 		Bucket: nft.WithOwnerIndex(orm.NewBucket(BucketName, orm.NewSimpleObj(nil, new(UsernameToken))).
+// 			WithMultiKeyIndex(ChainAddressIndexName, chainAddressIndexer, true)),
+// 	}
+// }
 
 func chainAddressIndexer(obj orm.Object) ([][]byte, error) {
 	if obj == nil {
@@ -57,7 +65,7 @@ func (u *UsernameToken) Copy() orm.CloneableData {
 	}
 }
 
-func containsDuplicateChains(addresses []ChainAddress) bool {
+func containsDuplicateChains(addresses []*ChainAddress) bool {
 	m := make(map[string]struct{})
 	for _, k := range addresses {
 		if _, ok := m[string(k.ChainID)]; ok {
