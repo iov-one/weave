@@ -6,6 +6,7 @@ import (
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/x/approvals"
+	"github.com/iov-one/weave/x/multisig"
 
 	weave_app "github.com/iov-one/weave/app"
 	"github.com/iov-one/weave/cmd/bnsd/app"
@@ -88,37 +89,63 @@ func TestNftApprovals(t *testing.T) {
 	myApp := appFixture.Build()
 
 	// add blockchains
-	for i := int64(0); i < 5; i++ {
-		tx := newIssueBlockchainNftTx(t, []byte(fmt.Sprintf("blockchain%d", i)), issuerAddr)
-		res := signAndCommit(t, myApp, tx, []Signer{{issuerPrivKey, i}}, appFixture.ChainID, i+2)
+	var height int64 = 2
+	var nbBlockchains int64 = 10
+	issuerNonce := nbBlockchains
+	for i := int64(0); i < nbBlockchains; i++ {
+		tx := newIssueBlockchainNftTx([]byte(fmt.Sprintf("blockchain%d", i)), issuerAddr)
+		res := signAndCommit(t, myApp, tx, []Signer{{issuerPrivKey, i}}, appFixture.ChainID, height)
 		require.EqualValues(t, 0, res.Code)
+		height++
 	}
 
+	pk1 := crypto.GenPrivKeyEd25519()
+	pk2 := crypto.GenPrivKeyEd25519()
+	contractID := createContract(t, myApp, appFixture.ChainID, height,
+		[]Signer{{issuerPrivKey, issuerNonce}}, 1, pk1.PublicKey().Address(), pk2.PublicKey().Address())
+	height++
+	issuerNonce++
+
 	// check approvals
+	// guest1 can update by signing
+	// pk1 OR pk2 can update by multisig
 	guest1 := crypto.GenPrivKeyEd25519()
-	tx := newIssueUsernameNftTx(t, "anybody@example.com", issuerAddr, []byte("blockchain1"),
-		approvals.ApprovalCondition(guest1.PublicKey().Address(), "update"))
-	res := signAndCommit(t, myApp, tx, []Signer{{issuerPrivKey, 5}}, appFixture.ChainID, 7)
+	tx := newIssueUsernameNftTx("anybody@example.com", issuerAddr, []byte("blockchain1"),
+		approvals.ApprovalCondition(guest1.PublicKey().Address(), "update"),
+		approvals.ApprovalCondition(multisig.MultiSigCondition(contractID).Address(), "update"),
+	)
+	res := signAndCommit(t, myApp, tx, []Signer{{issuerPrivKey, issuerNonce}}, appFixture.ChainID, height)
 	require.EqualValues(t, 0, res.Code)
+	height++
+	issuerNonce++
 
-	// by owner
-	tx = newAddUsernameAddressNftTx(t, "anybody@example.com", []byte("blockchain2"))
-	res = signAndCommit(t, myApp, tx, []Signer{{issuerPrivKey, 6}}, appFixture.ChainID, 8)
+	// by owner sig
+	tx = newAddUsernameAddressNftTx("anybody@example.com", []byte("blockchain2"))
+	res = signAndCommit(t, myApp, tx, []Signer{{issuerPrivKey, issuerNonce}}, appFixture.ChainID, height)
 	require.EqualValues(t, 0, res.Code)
+	height++
+	issuerNonce++
 
-	// by approved guest1
-	tx = newAddUsernameAddressNftTx(t, "anybody@example.com", []byte("blockchain3"))
-	res = signAndCommit(t, myApp, tx, []Signer{{guest1, 0}}, appFixture.ChainID, 9)
+	// with guest1 sig
+	tx = newAddUsernameAddressNftTx("anybody@example.com", []byte("blockchain3"))
+	res = signAndCommit(t, myApp, tx, []Signer{{guest1, 0}}, appFixture.ChainID, height)
 	require.EqualValues(t, 0, res.Code)
+	height++
 
-	// by unapproved guest2
-	// guest2 := crypto.GenPrivKeyEd25519()
-	// tx = newAddUsernameAddressNftTx(t, "anybody@example.com", []byte("blockchain4"))
-	// res = signAndCommit(t, myApp, tx, []Signer{{guest2, 0}}, appFixture.ChainID, 6)
-	// require.NotEqual(t, 0, res.Code)
+	// with multisig via pk1
+	tx = withMultisig(newAddUsernameAddressNftTx("anybody@example.com", []byte("blockchain5")), contractID)
+	res = signAndCommit(t, myApp, tx, []Signer{{pk1, 0}}, appFixture.ChainID, height)
+	require.EqualValues(t, 0, res.Code)
+	height++
+
+	// with multisig via pk2
+	tx = withMultisig(newAddUsernameAddressNftTx("anybody@example.com", []byte("blockchain6")), contractID)
+	res = signAndCommit(t, myApp, tx, []Signer{{pk2, 0}}, appFixture.ChainID, height)
+	require.EqualValues(t, 0, res.Code)
+	height++
 }
 
-func newIssueBlockchainNftTx(t require.TestingT, blockchainID []byte, issuer weave.Address) *app.Tx {
+func newIssueBlockchainNftTx(blockchainID []byte, issuer weave.Address) *app.Tx {
 	// when blockchain nft issued
 	return &app.Tx{
 		Sum: &app.Tx_IssueBlockchainNftMsg{&blockchain.IssueTokenMsg{
@@ -129,7 +156,7 @@ func newIssueBlockchainNftTx(t require.TestingT, blockchainID []byte, issuer wea
 	}
 }
 
-func newIssueUsernameNftTx(t require.TestingT, ID string, owner weave.Address, blockchainID []byte, approved ...[]byte) *app.Tx {
+func newIssueUsernameNftTx(ID string, owner weave.Address, blockchainID []byte, approved ...[]byte) *app.Tx {
 	return &app.Tx{
 		Sum: &app.Tx_IssueUsernameNftMsg{
 			&username.IssueTokenMsg{
@@ -141,7 +168,7 @@ func newIssueUsernameNftTx(t require.TestingT, ID string, owner weave.Address, b
 	}
 }
 
-func newAddUsernameAddressNftTx(t require.TestingT, ID string, blockchainID []byte) *app.Tx {
+func newAddUsernameAddressNftTx(ID string, blockchainID []byte) *app.Tx {
 	return &app.Tx{
 		Sum: &app.Tx_AddUsernameAddressNftMsg{
 			&username.AddChainAddressMsg{
@@ -149,4 +176,9 @@ func newAddUsernameAddressNftTx(t require.TestingT, ID string, blockchainID []by
 				Addresses: &username.ChainAddress{ChainID: blockchainID, Address: []byte("myChainAddressID")},
 			}},
 	}
+}
+
+func withMultisig(tx *app.Tx, contractID ...[]byte) *app.Tx {
+	tx.Multisig = contractID
+	return tx
 }
