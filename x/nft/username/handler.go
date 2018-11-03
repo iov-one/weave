@@ -208,7 +208,7 @@ func (h RemoveChainAddressHandler) Deliver(ctx weave.Context, store weave.KVStor
 
 	found := -1
 	for i, address := range token.Addresses {
-		if bytes.Equal(address.ChainID, msg.Id) {
+		if bytes.Equal(address.ChainID, msg.Addresses.ChainID) {
 			found = i
 			break
 		}

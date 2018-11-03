@@ -85,7 +85,7 @@ func TestHandlers(t *testing.T) {
 			})
 		})
 
-		Convey("Test AddChainAddressMsg", func() {
+		Convey("Test AddChainAddressMsgHandler", func() {
 			tokenBucket.Save(db, orm.NewSimpleObj(
 				[]byte("any1@example.com"),
 				&UsernameToken{
@@ -150,6 +150,77 @@ func TestHandlers(t *testing.T) {
 				So(err, ShouldBeNil)
 				_, err = stack.Deliver(ctx, db, tx)
 				So(err.Error(), ShouldEqual, nft.ErrDuplicateEntry().Error())
+			})
+		})
+
+		Convey("Test RemoveChainAddressHandler", func() {
+			tokenBucket.Save(db, orm.NewSimpleObj(
+				[]byte("any1@example.com"),
+				&UsernameToken{
+					Id:        []byte("any1@example.com"),
+					Owner:     alice.Address(),
+					Approvals: [][]byte{approvals.ApprovalCondition(bob.Address(), "update")},
+					Addresses: []*ChainAddress{
+						{[]byte("myNet"), []byte("myNetAddress")},
+						{[]byte("myOtherNet"), []byte("myOtherChainAddress")},
+					},
+				}))
+
+			msg := &RemoveChainAddressMsg{
+				Id:        []byte("any1@example.com"),
+				Addresses: &ChainAddress{[]byte("myNet"), []byte("myNetAddress")},
+			}
+			tx := helpers.MockTx(msg)
+
+			Convey("owner can update", func() {
+				ctx, auth := newContextWithAuth(alice)
+				multiauth := x.ChainAuth(auth, approvals.Authenticate{})
+				h := RemoveChainAddressHandler{multiauth, nil, tokenBucket}
+				d := approvals.NewDecorator(multiauth)
+				stack := helpers.Wrap(d, h)
+				_, err := stack.Check(ctx, db, tx)
+				So(err, ShouldBeNil)
+				_, err = stack.Deliver(ctx, db, tx)
+				So(err, ShouldBeNil)
+			})
+
+			Convey("bob can update", func() {
+				ctx, auth := newContextWithAuth(bob)
+				multiauth := x.ChainAuth(auth, approvals.Authenticate{})
+				h := RemoveChainAddressHandler{multiauth, nil, tokenBucket}
+				d := approvals.NewDecorator(multiauth)
+				stack := helpers.Wrap(d, h)
+				_, err := stack.Check(ctx, db, tx)
+				So(err, ShouldBeNil)
+				_, err = stack.Deliver(ctx, db, tx)
+				So(err, ShouldBeNil)
+			})
+
+			Convey("tom cannot update", func() {
+				ctx, auth := newContextWithAuth(tom)
+				multiauth := x.ChainAuth(auth, approvals.Authenticate{})
+				h := RemoveChainAddressHandler{multiauth, nil, tokenBucket}
+				d := approvals.NewDecorator(multiauth)
+				stack := helpers.Wrap(d, h)
+				_, err := stack.Check(ctx, db, tx)
+				So(err.Error(), ShouldEqual, errors.ErrUnauthorized().Error())
+				_, err = stack.Deliver(ctx, db, tx)
+				So(err.Error(), ShouldEqual, errors.ErrUnauthorized().Error())
+			})
+
+			Convey("not found", func() {
+				msg.Addresses = &ChainAddress{[]byte("unknown"), []byte("unknown")}
+				tx := helpers.MockTx(msg)
+
+				ctx, auth := newContextWithAuth(alice)
+				multiauth := x.ChainAuth(auth, approvals.Authenticate{})
+				h := RemoveChainAddressHandler{multiauth, nil, tokenBucket}
+				d := approvals.NewDecorator(multiauth)
+				stack := helpers.Wrap(d, h)
+				_, err := stack.Check(ctx, db, tx)
+				So(err, ShouldNotBeNil)
+				_, err = stack.Deliver(ctx, db, tx)
+				So(err, ShouldNotBeNil)
 			})
 		})
 	})
