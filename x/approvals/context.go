@@ -13,8 +13,8 @@ const (
 	contextKeyApprovals contextKey = iota
 )
 
-// withMultisig is a private method, as only this module
-// can add a multisig signer
+// withApproval is a private method, as only this module
+// can add a approved signer
 func withApproval(ctx weave.Context, id []byte) weave.Context {
 	val, _ := ctx.Value(contextKeyApprovals).([]weave.Condition)
 	if val == nil {
@@ -24,7 +24,7 @@ func withApproval(ctx weave.Context, id []byte) weave.Context {
 	return context.WithValue(ctx, contextKeyApprovals, append(val, ApprovalCondition(id, "usage")))
 }
 
-// MultiSigCondition returns condition for a contract ID
+// ApprovalCondition returns condition for a given action and signer
 func ApprovalCondition(id []byte, approvalType string) weave.Condition {
 	return weave.NewCondition("approval", approvalType, id)
 }
