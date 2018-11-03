@@ -3,6 +3,7 @@ package username
 import (
 	"bytes"
 
+	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/x/nft"
@@ -123,6 +124,18 @@ func AsUsername(obj orm.Object) (*UsernameToken, error) {
 	return x, nil
 }
 
+func LoadToken(bucket UsernameTokenBucket, store weave.KVStore, id []byte) (*UsernameToken, error) {
+	o, err := bucket.Get(store, id)
+	switch {
+	case err != nil:
+		return nil, err
+	case o == nil:
+		return nil, nft.ErrUnknownID()
+	}
+	t, e := AsUsername(o)
+	return t, e
+}
+
 func validateID(i nft.Identified) error {
 	if i == nil {
 		return errors.ErrInternal("must not be nil")
@@ -131,4 +144,12 @@ func validateID(i nft.Identified) error {
 		return nft.ErrInvalidID()
 	}
 	return nil
+}
+
+func exist(id []byte, b orm.Bucket, db weave.KVStore) bool {
+	obj, err := b.Get(db, id)
+	if err != nil || obj == nil {
+		return false
+	}
+	return true
 }

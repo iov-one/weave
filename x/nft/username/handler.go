@@ -2,12 +2,12 @@ package username
 
 import (
 	"bytes"
-	"fmt"
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/x"
+	"github.com/iov-one/weave/x/approvals"
 	"github.com/iov-one/weave/x/nft"
 	"github.com/iov-one/weave/x/nft/blockchain"
 	"github.com/tendermint/tendermint/libs/common"
@@ -145,10 +145,6 @@ func (h AddChainAddressHandler) Deliver(ctx weave.Context, store weave.KVStore, 
 		return res, nft.ErrDuplicateEntry()
 	}
 
-	for _, addr := range token.Addresses {
-		fmt.Println(addr)
-	}
-
 	obj := orm.NewSimpleObj(token.Id, token)
 	err = h.bucket.Save(store, obj)
 	if err != nil {
@@ -173,11 +169,12 @@ func (h *AddChainAddressHandler) validate(ctx weave.Context, store weave.KVStore
 	if !exist(msg.Addresses.ChainID, h.blockchains.Bucket, store) {
 		return nil, nil, nft.ErrInvalidEntry()
 	}
-	token, err := getUsernameToken(h.bucket, store, msg.GetId())
+	token, err := LoadToken(h.bucket, store, msg.GetId())
 	if err != nil {
 		return nil, nil, err
 	}
-	if !authorizedAction(ctx, h.auth, token, "update") {
+	authorized, _ := approvals.HasApprovals(ctx, h.auth, "update", token.Approvals, token.Owner)
+	if !authorized {
 		return nil, nil, errors.ErrUnauthorized()
 	}
 
@@ -244,11 +241,12 @@ func (h *RemoveChainAddressHandler) validate(ctx weave.Context, store weave.KVSt
 	if err := msg.Validate(); err != nil {
 		return nil, nil, err
 	}
-	token, err := getUsernameToken(h.bucket, store, msg.GetId())
+	token, err := LoadToken(h.bucket, store, msg.GetId())
 	if err != nil {
 		return nil, nil, err
 	}
-	if !authorizedAction(ctx, h.auth, token, "update") {
+	authorized, _ := approvals.HasApprovals(ctx, h.auth, "update", token.Approvals, token.Owner)
+	if !authorized {
 		return nil, nil, errors.ErrUnauthorized()
 	}
 

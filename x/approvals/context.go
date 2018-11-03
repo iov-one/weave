@@ -55,13 +55,18 @@ func (a Authenticate) HasAddress(ctx weave.Context, addr weave.Address) bool {
 	return false
 }
 
-func HasApprovals(ctx weave.Context, auth x.Authenticator, allowed []weave.Condition, requestedAction string) (bool, []weave.Condition) {
+func HasApprovals(ctx weave.Context, auth x.Authenticator, action string, conditions [][]byte, admins ...[]byte) (bool, []weave.Condition) {
 	var approved []weave.Condition
-	for _, a := range allowed {
-		_, action, addr, _ := a.Parse()
-		if action == requestedAction {
+	for _, admin := range admins {
+		if auth.HasAddress(ctx, ApprovalCondition(admin, "usage").Address()) {
+			return true, approved
+		}
+	}
+	for _, cond := range conditions {
+		_, act, addr, _ := weave.Condition(cond).Parse()
+		if act == action {
 			if auth.HasAddress(ctx, ApprovalCondition(addr, "usage").Address()) {
-				approved = append(approved, a)
+				approved = append(approved, cond)
 			}
 		}
 	}

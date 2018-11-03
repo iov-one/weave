@@ -62,7 +62,7 @@ func TestHandlers(t *testing.T) {
 				So(err, ShouldBeNil)
 				_, err = h.Deliver(ctx, db, tx)
 				So(err, ShouldBeNil)
-				token, _ := getUsernameToken(tokenBucket, db, msg.Id)
+				token, _ := LoadToken(tokenBucket, db, msg.Id)
 				So(*token, ShouldResemble, UsernameToken{msg.Id, msg.Owner, msg.Approvals, msg.Addresses})
 			})
 

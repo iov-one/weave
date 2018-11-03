@@ -35,16 +35,16 @@ func TestContext(t *testing.T) {
 	cases := []struct {
 		action string
 		ctx    weave.Context
-		match  []weave.Condition
-		not    []weave.Condition
+		match  [][]byte
+		not    [][]byte
 	}{
 		{
 			"update",
 			withApproval(bg, alice.Address()),
-			[]weave.Condition{
+			[][]byte{
 				ApprovalCondition(alice.Address(), "update"),
 			},
-			[]weave.Condition{
+			[][]byte{
 				ApprovalCondition(alice.Address(), "create"),
 				ApprovalCondition(bob.Address(), "update"),
 			},
@@ -52,10 +52,10 @@ func TestContext(t *testing.T) {
 		{
 			"create",
 			withApproval(bg, alice.Address()),
-			[]weave.Condition{
+			[][]byte{
 				ApprovalCondition(alice.Address(), "create"),
 			},
-			[]weave.Condition{
+			[][]byte{
 				ApprovalCondition(alice.Address(), "update"),
 				ApprovalCondition(bob.Address(), "update"),
 			},
@@ -65,10 +65,10 @@ func TestContext(t *testing.T) {
 	auth := Authenticate{}
 	for i, tc := range cases {
 		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
-			ok, _ := HasApprovals(tc.ctx, auth, tc.match, tc.action)
+			ok, _ := HasApprovals(tc.ctx, auth, tc.action, tc.match)
 			assert.True(t, ok)
 
-			ok, _ = HasApprovals(tc.ctx, auth, tc.not, tc.action)
+			ok, _ = HasApprovals(tc.ctx, auth, tc.action, tc.not)
 			assert.False(t, ok)
 		})
 	}
