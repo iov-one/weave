@@ -111,10 +111,11 @@ func TestNftApprovals(t *testing.T) {
 	// pk1 OR pk2 can update by multisig
 	guest1 := crypto.GenPrivKeyEd25519()
 	guest2 := crypto.GenPrivKeyEd25519()
+	admin := crypto.GenPrivKeyEd25519()
 	tx := newIssueUsernameNftTx("anybody@example.com", issuerAddr, []byte("blockchain1"),
 		approvals.ApprovalCondition(guest1.PublicKey().Address(), "update"),
+		approvals.ApprovalCondition(admin.PublicKey().Address(), approvals.Admin),
 		approvals.ApprovalConditionWithCount(guest2.PublicKey().Address(), "update", 1),
-		approvals.ApprovalCondition(guest1.PublicKey().Address(), "update"),
 		approvals.ApprovalCondition(multisig.MultiSigCondition(contractID).Address(), "update"),
 	)
 	res := signAndCommit(t, myApp, tx, []Signer{{issuerPrivKey, issuerNonce}}, appFixture.ChainID, height)
@@ -151,8 +152,8 @@ func TestNftApprovals(t *testing.T) {
 
 	// authorising guest3
 	tx = newAddUsernameAddApprovalTx("anybody@example.com", approvals.ApprovalCondition(guest3.PublicKey().Address(), "update"))
-	res = signAndCommit(t, myApp, tx, []Signer{{issuerPrivKey, issuerNonce}}, appFixture.ChainID, height)
-	require.NotEqual(t, uint32(0), cres.Code)
+	res = signAndCommit(t, myApp, tx, []Signer{{admin, 0}}, appFixture.ChainID, height)
+	require.EqualValues(t, 0, res.Code)
 	height++
 	issuerNonce++
 

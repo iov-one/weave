@@ -8,7 +8,7 @@ import (
 	"github.com/iov-one/weave/x/nft"
 )
 
-const UpdateAction = "update_approvals"
+const Admin = "admin"
 
 type AddApprovalMsgHandler struct {
 	auth   x.Authenticator
@@ -38,11 +38,7 @@ func (h AddApprovalMsgHandler) Deliver(ctx weave.Context, store weave.KVStore, t
 		return res, err
 	}
 
-	ok := Approve(ctx, h.auth, UpdateAction, appr.GetApprovals(), appr.GetOwner())
-	if !ok {
-		return res, errors.ErrUnauthorized()
-	}
-
+	Approve(ctx, h.auth, Admin, appr.GetApprovals(), appr.GetOwner())
 	appr.UpdateApprovals(append(appr.GetApprovals(), msg.GetApproval()))
 	obj := orm.NewSimpleObj(msg.GetId(), appr)
 	err = h.bucket.Save(store, obj)
@@ -69,7 +65,7 @@ func (h *AddApprovalMsgHandler) validate(ctx weave.Context, store weave.KVStore,
 	if err != nil {
 		return nil, nil, err
 	}
-	ok, _ = HasApprovals(ctx, h.auth, UpdateAction, appr.GetApprovals(), appr.GetOwner())
+	ok, _ = HasApprovals(ctx, h.auth, Admin, appr.GetApprovals(), appr.GetOwner())
 	if !ok {
 		return nil, nil, errors.ErrUnauthorized()
 	}
