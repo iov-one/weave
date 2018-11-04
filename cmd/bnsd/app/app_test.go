@@ -26,6 +26,7 @@ func TestApp(t *testing.T) {
 	pk := appFixture.GenesisKey
 	chainID := appFixture.ChainID
 	myApp := appFixture.Build()
+	var height int64 = 2
 	// Query for my balance
 	key := namecoin.NewWalletBucket().DBKey(appFixture.GenesisKeyAddress)
 	queryAndCheckWallet(t, myApp, "/", key,
@@ -46,7 +47,7 @@ func TestApp(t *testing.T) {
 	// build and sign a transaction
 	pk2 := crypto.GenPrivKeyEd25519()
 	addr2 := pk2.PublicKey().Address()
-	dres := sendToken(t, myApp, appFixture.ChainID, 2, []Signer{{pk, 0}}, addr, addr2, 2000, "ETH", "Have a great trip!")
+	dres := sendToken(t, myApp, appFixture.ChainID, &height, []Signer{{pk, 0}}, addr, addr2, 2000, "ETH", "Have a great trip!")
 
 	// ensure 3 keys with proper values
 	if assert.Equal(t, 3, len(dres.Tags), "%#v", dres.Tags) {
@@ -162,29 +163,29 @@ func TestApp(t *testing.T) {
 	recovery1 := crypto.GenPrivKeyEd25519()
 	recovery2 := crypto.GenPrivKeyEd25519()
 	recovery3 := crypto.GenPrivKeyEd25519()
-	recoveryContract := createContract(t, myApp, chainID, 3, []Signer{{pk, 1}},
+	recoveryContract := createContract(t, myApp, chainID, &height, []Signer{{pk, 1}},
 		2, recovery1.PublicKey().Address(), recovery2.PublicKey().Address(), recovery3.PublicKey().Address())
 
 	// create safeKeyContract contract
 	// can be activated by masterKey or recoveryContract
 	masterKey := crypto.GenPrivKeyEd25519()
-	safeKeyContract := createContract(t, myApp, chainID, 4, []Signer{{pk, 2}},
+	safeKeyContract := createContract(t, myApp, chainID, &height, []Signer{{pk, 2}},
 		1, masterKey.PublicKey().Address(), multisig.MultiSigCondition(recoveryContract).Address())
 
 	// create a wallet controlled by safeKeyContract
 	safeKeyContractAddr := multisig.MultiSigCondition(safeKeyContract).Address()
-	sendToken(t, myApp, chainID, 5, []Signer{{pk, 3}},
+	sendToken(t, myApp, chainID, &height, []Signer{{pk, 3}},
 		addr, safeKeyContractAddr, 2000, "ETH", "New wallet controlled by safeKeyContract")
 
 	// build and sign a transaction using master key to activate safeKeyContract
 	receiver := crypto.GenPrivKeyEd25519()
-	sendToken(t, myApp, chainID, 6, []Signer{{masterKey, 0}},
+	sendToken(t, myApp, chainID, &height, []Signer{{masterKey, 0}},
 		safeKeyContractAddr, receiver.PublicKey().Address(), 1000, "ETH", "Gift from a contract!", safeKeyContract)
 
 	// Now do the same operation but using recoveryContract to activate safeKeyContract
 	// create a new receiver so it is easy to check its balance (no need to remember previous one)
 	receiver = crypto.GenPrivKeyEd25519()
-	sendToken(t, myApp, chainID, 7, []Signer{{recovery1, 0}, {recovery2, 0}},
+	sendToken(t, myApp, chainID, &height, []Signer{{recovery1, 0}, {recovery2, 0}},
 		safeKeyContractAddr, receiver.PublicKey().Address(), 1000, "ETH", "Another gift from a contract!",
 		recoveryContract, safeKeyContract)
 }
@@ -196,7 +197,7 @@ type Signer struct {
 
 // sendToken creates the transaction, signs it and sends it
 // checks money has arrived safely
-func sendToken(t *testing.T, baseApp weave_app.BaseApp, chainID string, height int64, signers []Signer,
+func sendToken(t *testing.T, baseApp weave_app.BaseApp, chainID string, height *int64, signers []Signer,
 	from, to []byte, amount int64, ticker, memo string, contracts ...[]byte) abci.ResponseDeliverTx {
 	msg := &cash.SendMsg{
 		Src:  from,
@@ -231,7 +232,7 @@ func sendToken(t *testing.T, baseApp weave_app.BaseApp, chainID string, height i
 
 // createContract creates an immutable contract, signs the transaction and sends it
 // checks contract has been created correctly
-func createContract(t *testing.T, baseApp weave_app.BaseApp, chainID string, height int64, signers []Signer,
+func createContract(t *testing.T, baseApp weave_app.BaseApp, chainID string, height *int64, signers []Signer,
 	activationThreshold int64, contractSigs ...[]byte) []byte {
 	msg := &multisig.CreateContractMsg{
 		Sigs:                contractSigs,
@@ -260,7 +261,7 @@ func createContract(t *testing.T, baseApp weave_app.BaseApp, chainID string, hei
 // signAndCommit signs tx with signatures from signers and submits to the chain
 // asserts and fails the test in case of errors during the process
 func signAndCommit(t *testing.T, app weave_app.BaseApp, tx *app.Tx, signers []Signer, chainID string,
-	height int64) abci.ResponseDeliverTx {
+	height *int64) abci.ResponseDeliverTx {
 	for _, signer := range signers {
 		sig, err := sigs.SignTx(signer.pk, tx, chainID, signer.nonce)
 		require.NoError(t, err)
@@ -272,7 +273,7 @@ func signAndCommit(t *testing.T, app weave_app.BaseApp, tx *app.Tx, signers []Si
 	require.NotEmpty(t, txBytes)
 
 	// Submit to the chain
-	header := abci.Header{Height: height}
+	header := abci.Header{Height: *height}
 	app.BeginBlock(abci.RequestBeginBlock{Header: header})
 	// check and deliver must pass
 	chres := app.CheckTx(txBytes)
@@ -284,6 +285,7 @@ func signAndCommit(t *testing.T, app weave_app.BaseApp, tx *app.Tx, signers []Si
 	app.EndBlock(abci.RequestEndBlock{})
 	cres := app.Commit()
 	assert.NotEmpty(t, cres.Data)
+	*height++
 	return dres
 }
 

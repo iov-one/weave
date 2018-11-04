@@ -23,7 +23,7 @@ func TestIssueNfts(t *testing.T) {
 	appFixture := fixtures.NewApp()
 	isuserAddr := appFixture.GenesisKeyAddress
 	issuerPrivKey := appFixture.GenesisKey
-
+	var height int64 = 2
 	myApp := appFixture.Build()
 	myBlockchainID := []byte("myblockchain")
 
@@ -37,7 +37,7 @@ func TestIssueNfts(t *testing.T) {
 		},
 	}
 
-	res := signAndCommit(t, myApp, tx, []Signer{{issuerPrivKey, 0}}, appFixture.ChainID, 2)
+	res := signAndCommit(t, myApp, tx, []Signer{{issuerPrivKey, 0}}, appFixture.ChainID, &height)
 
 	// then
 	require.EqualValues(t, 0, res.Code)
@@ -53,7 +53,7 @@ func TestIssueNfts(t *testing.T) {
 		},
 	}
 
-	res = signAndCommit(t, myApp, tx, []Signer{{issuerPrivKey, 1}}, appFixture.ChainID, 3)
+	res = signAndCommit(t, myApp, tx, []Signer{{issuerPrivKey, 1}}, appFixture.ChainID, &height)
 
 	// then
 	require.EqualValues(t, 0, res.Code)
@@ -68,7 +68,7 @@ func TestIssueNfts(t *testing.T) {
 		},
 	}
 
-	res = signAndCommit(t, myApp, tx, []Signer{{issuerPrivKey, 2}}, appFixture.ChainID, 4)
+	res = signAndCommit(t, myApp, tx, []Signer{{issuerPrivKey, 2}}, appFixture.ChainID, &height)
 
 	// then
 	require.EqualValues(t, 0, res.Code, res.Log)
@@ -91,23 +91,22 @@ func TestNftApprovals(t *testing.T) {
 	// add blockchains
 	var height int64 = 2
 	var nbBlockchains int64 = 10
-	issuerNonce := nbBlockchains
 	for i := int64(0); i < nbBlockchains; i++ {
 		tx := newIssueBlockchainNftTx([]byte(fmt.Sprintf("blockchain%d", i)), issuerAddr)
-		res := signAndCommit(t, myApp, tx, []Signer{{issuerPrivKey, i}}, appFixture.ChainID, height)
+		res := signAndCommit(t, myApp, tx, []Signer{{issuerPrivKey, i}}, appFixture.ChainID, &height)
 		require.EqualValues(t, 0, res.Code)
 		height++
 	}
 
 	pk1 := crypto.GenPrivKeyEd25519()
 	pk2 := crypto.GenPrivKeyEd25519()
-	contractID := createContract(t, myApp, appFixture.ChainID, height,
-		[]Signer{{issuerPrivKey, issuerNonce}}, 1, pk1.PublicKey().Address(), pk2.PublicKey().Address())
-	height++
-	issuerNonce++
+	contractID := createContract(t, myApp, appFixture.ChainID, &height,
+		[]Signer{{issuerPrivKey, nbBlockchains}}, 1, pk1.PublicKey().Address(), pk2.PublicKey().Address())
 
 	// check approvals
 	// guest1 can update by signing
+	// admin can add approvals
+	// guest2 can update once
 	// pk1 OR pk2 can update by multisig
 	guest1 := crypto.GenPrivKeyEd25519()
 	guest2 := crypto.GenPrivKeyEd25519()
@@ -118,31 +117,25 @@ func TestNftApprovals(t *testing.T) {
 		approvals.ApprovalConditionWithCount(guest2.PublicKey().Address(), "update", 1),
 		approvals.ApprovalCondition(multisig.MultiSigCondition(contractID).Address(), "update"),
 	)
-	res := signAndCommit(t, myApp, tx, []Signer{{issuerPrivKey, issuerNonce}}, appFixture.ChainID, height)
+	res := signAndCommit(t, myApp, tx, []Signer{{issuerPrivKey, nbBlockchains + 1}}, appFixture.ChainID, &height)
 	require.EqualValues(t, 0, res.Code)
-	height++
-	issuerNonce++
 
 	// by owner sig
 	tx = newAddUsernameAddressNftTx("anybody@example.com", []byte("blockchain2"))
-	res = signAndCommit(t, myApp, tx, []Signer{{issuerPrivKey, issuerNonce}}, appFixture.ChainID, height)
+	res = signAndCommit(t, myApp, tx, []Signer{{issuerPrivKey, nbBlockchains + 2}}, appFixture.ChainID, &height)
 	require.EqualValues(t, 0, res.Code)
-	height++
-	issuerNonce++
 
 	// with guest1 sig
 	tx = newAddUsernameAddressNftTx("anybody@example.com", []byte("blockchain3"))
-	res = signAndCommit(t, myApp, tx, []Signer{{guest1, 0}}, appFixture.ChainID, height)
+	res = signAndCommit(t, myApp, tx, []Signer{{guest1, 0}}, appFixture.ChainID, &height)
 	require.EqualValues(t, 0, res.Code)
-	height++
 
 	// with guest2 only once
 	tx = newAddUsernameAddressNftTx("anybody@example.com", []byte("blockchain4"))
-	res = signAndCommit(t, myApp, tx, []Signer{{guest2, 0}}, appFixture.ChainID, height)
+	res = signAndCommit(t, myApp, tx, []Signer{{guest2, 0}}, appFixture.ChainID, &height)
 	require.EqualValues(t, 0, res.Code)
 	cres := signAndCheck(t, myApp, tx, []Signer{{guest2, 1}}, appFixture.ChainID)
 	require.NotEqual(t, uint32(0), cres.Code)
-	height++
 
 	// with guest3 not approved
 	guest3 := crypto.GenPrivKeyEd25519()
@@ -152,10 +145,8 @@ func TestNftApprovals(t *testing.T) {
 
 	// authorising guest3
 	tx = newAddUsernameAddApprovalTx("anybody@example.com", approvals.ApprovalCondition(guest3.PublicKey().Address(), "update"))
-	res = signAndCommit(t, myApp, tx, []Signer{{admin, 0}}, appFixture.ChainID, height)
+	res = signAndCommit(t, myApp, tx, []Signer{{admin, 0}}, appFixture.ChainID, &height)
 	require.EqualValues(t, 0, res.Code)
-	height++
-	issuerNonce++
 
 	// now guest3 is approved
 	tx = newAddUsernameAddressNftTx("anybody@example.com", []byte("blockchain4"))
@@ -164,15 +155,13 @@ func TestNftApprovals(t *testing.T) {
 
 	// with multisig via pk1
 	tx = withMultisig(newAddUsernameAddressNftTx("anybody@example.com", []byte("blockchain5")), contractID)
-	res = signAndCommit(t, myApp, tx, []Signer{{pk1, 0}}, appFixture.ChainID, height)
+	res = signAndCommit(t, myApp, tx, []Signer{{pk1, 0}}, appFixture.ChainID, &height)
 	require.EqualValues(t, 0, res.Code)
-	height++
 
 	// with multisig via pk2
 	tx = withMultisig(newAddUsernameAddressNftTx("anybody@example.com", []byte("blockchain6")), contractID)
-	res = signAndCommit(t, myApp, tx, []Signer{{pk2, 0}}, appFixture.ChainID, height)
+	res = signAndCommit(t, myApp, tx, []Signer{{pk2, 0}}, appFixture.ChainID, &height)
 	require.EqualValues(t, 0, res.Code)
-	height++
 }
 
 func newIssueBlockchainNftTx(blockchainID []byte, issuer weave.Address) *app.Tx {
