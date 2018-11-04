@@ -38,7 +38,7 @@ func (h AddApprovalMsgHandler) Deliver(ctx weave.Context, store weave.KVStore, t
 		return res, err
 	}
 
-	ok := Approve(ctx, h.auth, "update", appr)
+	ok := Approve(ctx, h.auth, Admin, appr)
 	if !ok {
 		return res, errors.ErrUnauthorized()
 	}
