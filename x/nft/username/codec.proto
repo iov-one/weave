@@ -32,3 +32,8 @@ message RemoveChainAddressMsg {
     bytes id = 1;
     ChainAddress addresses = 2;
 }
+
+message AddApprovalMsg {
+    bytes id = 1;
+    bytes approval = 2;
+}

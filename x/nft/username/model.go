@@ -6,6 +6,7 @@ import (
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/orm"
+	"github.com/iov-one/weave/x/approvals"
 	"github.com/iov-one/weave/x/nft"
 	"github.com/iov-one/weave/x/nft/blockchain"
 )
@@ -84,6 +85,12 @@ func (t *UsernameToken) Validate() error {
 		}
 	}
 	return nil
+}
+
+var _ approvals.Approvable = (*UsernameToken)(nil)
+
+func (u *UsernameToken) UpdateApprovals(appr [][]byte) {
+	u.Approvals = appr
 }
 
 func containsDuplicateChains(addresses []*ChainAddress) bool {

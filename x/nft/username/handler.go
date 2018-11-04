@@ -26,6 +26,7 @@ func RegisterRoutes(r weave.Registry, auth x.Authenticator, issuer weave.Address
 	r.Handle(pathIssueTokenMsg, &IssueHandler{auth, issuer, tokens, blockchains})
 	r.Handle(pathAddAddressMsg, &AddChainAddressHandler{auth, tokens, blockchains})
 	r.Handle(pathRemoveAddressMsg, &RemoveChainAddressHandler{auth, issuer, tokens})
+	r.Handle(pathAddApprovalMsg, approvals.NewAddApprovalMsgHandler(auth, tokens.Bucket))
 }
 
 // RegisterQuery will register this bucket as "/nft/usernames"

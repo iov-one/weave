@@ -3,6 +3,8 @@ package username
 import (
 	"regexp"
 
+	"github.com/iov-one/weave/x/approvals"
+
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/x/nft"
@@ -14,6 +16,7 @@ const (
 	pathIssueTokenMsg    = "nft/username/issue"
 	pathAddAddressMsg    = "nft/username/address/add"
 	pathRemoveAddressMsg = "nft/username/address/remove"
+	pathAddApprovalMsg   = "nft/username/approval/add"
 )
 
 var (
@@ -63,4 +66,11 @@ func (m *RemoveChainAddressMsg) Validate() error {
 		return err
 	}
 	return m.Addresses.Validate()
+}
+
+var _ approvals.AddApprovalMsg = (*AddApprovalMsg)(nil)
+
+// Path returns the routing path for this message
+func (*AddApprovalMsg) Path() string {
+	return pathAddApprovalMsg
 }

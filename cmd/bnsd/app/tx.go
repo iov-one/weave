@@ -71,11 +71,12 @@ func (tx *Tx) GetMsg() (weave.Msg, error) {
 		return t.AddUsernameAddressNftMsg, nil
 	case *Tx_RemoveUsernameAddressMsg:
 		return t.RemoveUsernameAddressMsg, nil
+	case *Tx_UsernameAddApprovalMsg:
+		return t.UsernameAddApprovalMsg, nil
 	case *Tx_IssueBlockchainNftMsg:
 		return t.IssueBlockchainNftMsg, nil
 	case *Tx_IssueTickerNftMsg:
 		return t.IssueTickerNftMsg, nil
-
 	}
 
 	// we must have covered it above
