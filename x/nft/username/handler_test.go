@@ -29,6 +29,15 @@ func newContextWithAuth(perms ...weave.Condition) (weave.Context, x.Authenticato
 	return auth.SetConditions(ctx, perms...), auth
 }
 
+func newContextWithAuthAndHeight(height int64, perms ...weave.Condition) (weave.Context, x.Authenticator) {
+	ctx := context.Background()
+	// Set current block height to 100
+	ctx = weave.WithHeight(ctx, height)
+	auth := helpers.CtxAuth("authKey")
+	// Create a new context and add addr to the list of signers
+	return auth.SetConditions(ctx, perms...), auth
+}
+
 func TestHandlers(t *testing.T) {
 	Convey("Test handlers", t, func() {
 		db := store.MemStore()
@@ -86,70 +95,156 @@ func TestHandlers(t *testing.T) {
 		})
 
 		Convey("Test AddChainAddressMsgHandler", func() {
-			tokenBucket.Save(db, orm.NewSimpleObj(
-				[]byte("any1@example.com"),
-				&UsernameToken{
-					Id:        []byte("any1@example.com"),
-					Owner:     alice.Address(),
-					Approvals: [][]byte{approvals.ApprovalCondition(bob.Address(), "update")},
-					Addresses: []*ChainAddress{{[]byte("myNet"), []byte("myNetAddress")}},
-				}))
-
 			msg := &AddChainAddressMsg{
 				Id:        []byte("any1@example.com"),
 				Addresses: &ChainAddress{[]byte("myOtherNet"), []byte("myOtherNetAddress")},
 			}
 			tx := helpers.MockTx(msg)
 
-			Convey("owner can update", func() {
-				ctx, auth := newContextWithAuth(alice)
-				multiauth := x.ChainAuth(auth, approvals.Authenticate{})
-				h := AddChainAddressHandler{multiauth, tokenBucket, blockchains}
-				d := approvals.NewDecorator(multiauth)
-				stack := helpers.Wrap(d, h)
-				_, err := stack.Check(ctx, db, tx)
-				So(err, ShouldBeNil)
-				_, err = stack.Deliver(ctx, db, tx)
-				So(err, ShouldBeNil)
+			Convey("No count and timeout", func() {
+				tokenBucket.Save(db, orm.NewSimpleObj(
+					[]byte("any1@example.com"),
+					&UsernameToken{
+						Id:        []byte("any1@example.com"),
+						Owner:     alice.Address(),
+						Approvals: [][]byte{approvals.ApprovalCondition(bob.Address(), "update")},
+						Addresses: []*ChainAddress{{[]byte("myNet"), []byte("myNetAddress")}},
+					}))
+
+				Convey("owner can update", func() {
+					ctx, auth := newContextWithAuth(alice)
+					multiauth := x.ChainAuth(auth, approvals.Authenticate{})
+					h := AddChainAddressHandler{multiauth, tokenBucket, blockchains}
+					d := approvals.NewDecorator(multiauth)
+					stack := helpers.Wrap(d, h)
+					_, err := stack.Check(ctx, db, tx)
+					So(err, ShouldBeNil)
+					_, err = stack.Deliver(ctx, db, tx)
+					So(err, ShouldBeNil)
+				})
+
+				Convey("bob can update", func() {
+					ctx, auth := newContextWithAuth(bob)
+					multiauth := x.ChainAuth(auth, approvals.Authenticate{})
+					h := AddChainAddressHandler{multiauth, tokenBucket, blockchains}
+					d := approvals.NewDecorator(multiauth)
+					stack := helpers.Wrap(d, h)
+					_, err := stack.Check(ctx, db, tx)
+					So(err, ShouldBeNil)
+					_, err = stack.Deliver(ctx, db, tx)
+					So(err, ShouldBeNil)
+				})
+
+				Convey("tom cannot update", func() {
+					ctx, auth := newContextWithAuth(tom)
+					multiauth := x.ChainAuth(auth, approvals.Authenticate{})
+					h := AddChainAddressHandler{multiauth, tokenBucket, blockchains}
+					d := approvals.NewDecorator(multiauth)
+					stack := helpers.Wrap(d, h)
+					_, err := stack.Check(ctx, db, tx)
+					So(err.Error(), ShouldEqual, errors.ErrUnauthorized().Error())
+					_, err = stack.Deliver(ctx, db, tx)
+					So(err.Error(), ShouldEqual, errors.ErrUnauthorized().Error())
+				})
+
+				Convey("chain duplicate", func() {
+					msg.Addresses = &ChainAddress{[]byte("myNet"), []byte("myNetAddress")}
+					tx := helpers.MockTx(msg)
+
+					ctx, auth := newContextWithAuth(alice)
+					multiauth := x.ChainAuth(auth, approvals.Authenticate{})
+					h := AddChainAddressHandler{multiauth, tokenBucket, blockchains}
+					d := approvals.NewDecorator(multiauth)
+					stack := helpers.Wrap(d, h)
+					_, err := stack.Check(ctx, db, tx)
+					So(err, ShouldBeNil)
+					_, err = stack.Deliver(ctx, db, tx)
+					So(err.Error(), ShouldEqual, nft.ErrDuplicateEntry().Error())
+				})
 			})
 
-			Convey("bob can update", func() {
-				ctx, auth := newContextWithAuth(bob)
-				multiauth := x.ChainAuth(auth, approvals.Authenticate{})
-				h := AddChainAddressHandler{multiauth, tokenBucket, blockchains}
-				d := approvals.NewDecorator(multiauth)
-				stack := helpers.Wrap(d, h)
-				_, err := stack.Check(ctx, db, tx)
-				So(err, ShouldBeNil)
-				_, err = stack.Deliver(ctx, db, tx)
-				So(err, ShouldBeNil)
+			Convey("with count", func() {
+				tokenBucket.Save(db, orm.NewSimpleObj(
+					[]byte("any1@example.com"),
+					&UsernameToken{
+						Id:        []byte("any1@example.com"),
+						Owner:     alice.Address(),
+						Approvals: [][]byte{approvals.ApprovalConditionWithCount(bob.Address(), "update", 1)},
+						Addresses: []*ChainAddress{{[]byte("myNet"), []byte("myNetAddress")}},
+					}))
+
+				Convey("owner can update", func() {
+					ctx, auth := newContextWithAuth(alice)
+					multiauth := x.ChainAuth(auth, approvals.Authenticate{})
+					h := AddChainAddressHandler{multiauth, tokenBucket, blockchains}
+					d := approvals.NewDecorator(multiauth)
+					stack := helpers.Wrap(d, h)
+					_, err := stack.Check(ctx, db, tx)
+					So(err, ShouldBeNil)
+					_, err = stack.Deliver(ctx, db, tx)
+					So(err, ShouldBeNil)
+				})
+
+				Convey("bob can update once", func() {
+					ctx, auth := newContextWithAuth(bob)
+					multiauth := x.ChainAuth(auth, approvals.Authenticate{})
+					h := AddChainAddressHandler{multiauth, tokenBucket, blockchains}
+					d := approvals.NewDecorator(multiauth)
+					stack := helpers.Wrap(d, h)
+					_, err := stack.Check(ctx, db, tx)
+					So(err, ShouldBeNil)
+					_, err = stack.Deliver(ctx, db, tx)
+					So(err, ShouldBeNil)
+					_, err = stack.Deliver(ctx, db, tx)
+					So(err, ShouldNotBeNil)
+				})
 			})
 
-			Convey("tom cannot update", func() {
-				ctx, auth := newContextWithAuth(tom)
-				multiauth := x.ChainAuth(auth, approvals.Authenticate{})
-				h := AddChainAddressHandler{multiauth, tokenBucket, blockchains}
-				d := approvals.NewDecorator(multiauth)
-				stack := helpers.Wrap(d, h)
-				_, err := stack.Check(ctx, db, tx)
-				So(err.Error(), ShouldEqual, errors.ErrUnauthorized().Error())
-				_, err = stack.Deliver(ctx, db, tx)
-				So(err.Error(), ShouldEqual, errors.ErrUnauthorized().Error())
-			})
+			Convey("with timeout", func() {
+				tokenBucket.Save(db, orm.NewSimpleObj(
+					[]byte("any1@example.com"),
+					&UsernameToken{
+						Id:        []byte("any1@example.com"),
+						Owner:     alice.Address(),
+						Approvals: [][]byte{approvals.ApprovalConditionWithTimeout(bob.Address(), "update", 5)},
+						Addresses: []*ChainAddress{{[]byte("myNet"), []byte("myNetAddress")}},
+					}))
 
-			Convey("chain duplicate", func() {
-				msg.Addresses = &ChainAddress{[]byte("myNet"), []byte("myNetAddress")}
-				tx := helpers.MockTx(msg)
+				Convey("owner can update", func() {
+					ctx, auth := newContextWithAuthAndHeight(10, alice)
+					multiauth := x.ChainAuth(auth, approvals.Authenticate{})
+					h := AddChainAddressHandler{multiauth, tokenBucket, blockchains}
+					d := approvals.NewDecorator(multiauth)
+					stack := helpers.Wrap(d, h)
+					_, err := stack.Check(ctx, db, tx)
+					So(err, ShouldBeNil)
+					_, err = stack.Deliver(ctx, db, tx)
+					So(err, ShouldBeNil)
+				})
 
-				ctx, auth := newContextWithAuth(alice)
-				multiauth := x.ChainAuth(auth, approvals.Authenticate{})
-				h := AddChainAddressHandler{multiauth, tokenBucket, blockchains}
-				d := approvals.NewDecorator(multiauth)
-				stack := helpers.Wrap(d, h)
-				_, err := stack.Check(ctx, db, tx)
-				So(err, ShouldBeNil)
-				_, err = stack.Deliver(ctx, db, tx)
-				So(err.Error(), ShouldEqual, nft.ErrDuplicateEntry().Error())
+				Convey("bob can update up to timeout", func() {
+					ctx, auth := newContextWithAuthAndHeight(5, bob)
+					multiauth := x.ChainAuth(auth, approvals.Authenticate{})
+					h := AddChainAddressHandler{multiauth, tokenBucket, blockchains}
+					d := approvals.NewDecorator(multiauth)
+					stack := helpers.Wrap(d, h)
+					_, err := stack.Check(ctx, db, tx)
+					So(err, ShouldBeNil)
+					_, err = stack.Deliver(ctx, db, tx)
+					So(err, ShouldBeNil)
+				})
+
+				Convey("bob cannot update after timeout", func() {
+					ctx, auth := newContextWithAuthAndHeight(10, bob)
+					multiauth := x.ChainAuth(auth, approvals.Authenticate{})
+					h := AddChainAddressHandler{multiauth, tokenBucket, blockchains}
+					d := approvals.NewDecorator(multiauth)
+					stack := helpers.Wrap(d, h)
+					_, err := stack.Check(ctx, db, tx)
+					So(err, ShouldNotBeNil)
+					_, err = stack.Deliver(ctx, db, tx)
+					So(err, ShouldNotBeNil)
+				})
 			})
 		})
 

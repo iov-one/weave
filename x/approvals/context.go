@@ -1,7 +1,9 @@
 package approvals
 
 import (
+	"bytes"
 	"context"
+	"encoding/binary"
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/x"
@@ -11,6 +13,8 @@ type contextKey int // local to the multisig module
 
 const (
 	contextKeyApprovals contextKey = iota
+	NoCount                        = -1
+	NoTimeout                      = -1
 )
 
 // withApproval is a private method, as only this module
@@ -27,6 +31,35 @@ func withApproval(ctx weave.Context, id []byte) weave.Context {
 // ApprovalCondition returns condition for a given action and signer
 func ApprovalCondition(id []byte, approvalType string) weave.Condition {
 	return weave.NewCondition("approval", approvalType, id)
+}
+
+func ApprovalConditionWithCount(id []byte, approvalType string, count int64) weave.Condition {
+	key := bytes.Join([][]byte{id, encode(count), encode(NoTimeout)}, []byte(":"))
+	return weave.NewCondition("approval", approvalType, key)
+}
+
+func ApprovalConditionWithTimeout(id []byte, approvalType string, timeout int64) weave.Condition {
+	key := bytes.Join([][]byte{id, encode(NoCount), encode(timeout)}, []byte(":"))
+	return weave.NewCondition("approval", approvalType, key)
+}
+
+func ApprovalConditionWithCountAndTimeout(id []byte, approvalType string, count, timeout int64) weave.Condition {
+	key := bytes.Join([][]byte{id, encode(count), encode(timeout)}, []byte(":"))
+	return weave.NewCondition("approval", approvalType, key)
+}
+
+func decode(bz []byte) int64 {
+	if bz == nil {
+		return 0
+	}
+	val := binary.BigEndian.Uint64(bz)
+	return int64(val)
+}
+
+func encode(val int64) []byte {
+	bz := make([]byte, 8)
+	binary.BigEndian.PutUint64(bz, uint64(val))
+	return bz
 }
 
 // Authenticate gets/sets permissions on the given context key
@@ -65,10 +98,55 @@ func HasApprovals(ctx weave.Context, auth x.Authenticator, action string, condit
 	for _, cond := range conditions {
 		_, act, addr, _ := weave.Condition(cond).Parse()
 		if act == action {
-			if auth.HasAddress(ctx, ApprovalCondition(addr, "usage").Address()) {
+			key := bytes.Split(addr, []byte(":"))
+			var target weave.Address
+			switch len(key) {
+			case 1:
+				target = addr
+			case 3:
+				target = key[0]
+				count := decode(key[1])
+				timeout := decode(key[2])
+				height, _ := weave.GetHeight(ctx)
+				if count == 0 || (timeout != NoTimeout && height > timeout) {
+					continue
+				}
+			}
+			if auth.HasAddress(ctx, ApprovalCondition(target, "usage").Address()) {
 				approved = append(approved, cond)
 			}
 		}
 	}
 	return len(approved) > 0, approved
+}
+
+func Approve(ctx weave.Context, auth x.Authenticator, action string, conditions [][]byte, admins ...[]byte) bool {
+	ok, used := HasApprovals(ctx, auth, action, conditions, admins...)
+	if !ok {
+		return false
+	}
+
+	for _, u := range used {
+		for idx, a := range conditions {
+			if u.Equals(weave.Condition(a)) {
+				conditions[idx] = withUpdatedCount(u)
+			}
+		}
+	}
+
+	return true
+}
+
+func withUpdatedCount(cond weave.Condition) weave.Condition {
+	_, action, addr, _ := cond.Parse()
+	key := bytes.Split(addr, []byte(":"))
+	switch len(key) {
+	case 3:
+		target := key[0]
+		count := decode(key[1])
+		if count != NoCount {
+			return ApprovalConditionWithCount(target, action, count-1)
+		}
+	}
+	return cond
 }

@@ -54,10 +54,40 @@ func TestContext(t *testing.T) {
 			withApproval(bg, alice.Address()),
 			[][]byte{
 				ApprovalCondition(alice.Address(), "create"),
+				ApprovalConditionWithCount(alice.Address(), "create", 1),
 			},
 			[][]byte{
 				ApprovalCondition(alice.Address(), "update"),
 				ApprovalCondition(bob.Address(), "update"),
+			},
+		},
+		{
+			"create",
+			withApproval(bg, alice.Address()),
+			[][]byte{
+				ApprovalCondition(alice.Address(), "create"),
+				ApprovalConditionWithCount(alice.Address(), "create", 1),
+			},
+			[][]byte{
+				ApprovalCondition(bob.Address(), "update"),
+				ApprovalCondition(alice.Address(), "update"),
+				ApprovalConditionWithCount(alice.Address(), "update", 1),
+				ApprovalConditionWithCount(alice.Address(), "create", 0),
+			},
+		},
+		{
+			"create",
+			weave.WithHeight(withApproval(bg, alice.Address()), 10),
+			[][]byte{
+				ApprovalCondition(alice.Address(), "create"),
+				ApprovalConditionWithTimeout(alice.Address(), "create", 10),
+				ApprovalConditionWithTimeout(alice.Address(), "create", 15),
+			},
+			[][]byte{
+				ApprovalCondition(bob.Address(), "update"),
+				ApprovalCondition(alice.Address(), "update"),
+				ApprovalConditionWithTimeout(alice.Address(), "update", 15),
+				ApprovalConditionWithTimeout(alice.Address(), "create", 5),
 			},
 		},
 	}

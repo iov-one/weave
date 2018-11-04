@@ -110,8 +110,10 @@ func TestNftApprovals(t *testing.T) {
 	// guest1 can update by signing
 	// pk1 OR pk2 can update by multisig
 	guest1 := crypto.GenPrivKeyEd25519()
+	guest2 := crypto.GenPrivKeyEd25519()
 	tx := newIssueUsernameNftTx("anybody@example.com", issuerAddr, []byte("blockchain1"),
 		approvals.ApprovalCondition(guest1.PublicKey().Address(), "update"),
+		approvals.ApprovalConditionWithCount(guest2.PublicKey().Address(), "update", 1),
 		approvals.ApprovalCondition(multisig.MultiSigCondition(contractID).Address(), "update"),
 	)
 	res := signAndCommit(t, myApp, tx, []Signer{{issuerPrivKey, issuerNonce}}, appFixture.ChainID, height)
@@ -131,6 +133,20 @@ func TestNftApprovals(t *testing.T) {
 	res = signAndCommit(t, myApp, tx, []Signer{{guest1, 0}}, appFixture.ChainID, height)
 	require.EqualValues(t, 0, res.Code)
 	height++
+
+	// with guest2 only once
+	tx = newAddUsernameAddressNftTx("anybody@example.com", []byte("blockchain4"))
+	res = signAndCommit(t, myApp, tx, []Signer{{guest2, 0}}, appFixture.ChainID, height)
+	require.EqualValues(t, 0, res.Code)
+	cres := signAndCheck(t, myApp, tx, []Signer{{guest2, 1}}, appFixture.ChainID)
+	require.NotEqual(t, uint32(0), cres.Code)
+	height++
+
+	// with guest3 not approved
+	guest3 := crypto.GenPrivKeyEd25519()
+	tx = newAddUsernameAddressNftTx("anybody@example.com", []byte("blockchain4"))
+	cres = signAndCheck(t, myApp, tx, []Signer{{guest3, 0}}, appFixture.ChainID)
+	require.NotEqual(t, uint32(0), cres.Code)
 
 	// with multisig via pk1
 	tx = withMultisig(newAddUsernameAddressNftTx("anybody@example.com", []byte("blockchain5")), contractID)

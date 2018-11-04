@@ -287,6 +287,20 @@ func signAndCommit(t *testing.T, app weave_app.BaseApp, tx *app.Tx, signers []Si
 	return dres
 }
 
+func signAndCheck(t *testing.T, app weave_app.BaseApp, tx *app.Tx, signers []Signer, chainID string) abci.ResponseCheckTx {
+	for _, signer := range signers {
+		sig, err := sigs.SignTx(signer.pk, tx, chainID, signer.nonce)
+		require.NoError(t, err)
+		tx.Signatures = append(tx.Signatures, sig)
+	}
+
+	txBytes, err := tx.Marshal()
+	require.NoError(t, err)
+	require.NotEmpty(t, txBytes)
+
+	return app.CheckTx(txBytes)
+}
+
 // queryAndCheckWallet queries the wallet from the chain and check it is the one expected
 func queryAndCheckWallet(t *testing.T, baseApp weave_app.BaseApp, path string, data []byte, expected namecoin.Wallet) {
 	query := abci.RequestQuery{Path: path, Data: data}
