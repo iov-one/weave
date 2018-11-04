@@ -172,11 +172,8 @@ func (h *AddChainAddressHandler) validate(ctx weave.Context, store weave.KVStore
 	if err := msg.Validate(); err != nil {
 		return nil, nil, err
 	}
-	if !exist(msg.Addresses.ChainID, h.blockchains.Bucket, store) {
-		return nil, nil, nft.ErrInvalidEntry()
-	}
 	token, err := LoadToken(h.bucket, store, msg.GetId())
-	if err != nil {
+	if token == nil || err != nil {
 		return nil, nil, err
 	}
 	ok, _ = approvals.HasApprovals(ctx, h.auth, "update", token.Approvals, token.Owner)
@@ -252,7 +249,7 @@ func (h *RemoveChainAddressHandler) validate(ctx weave.Context, store weave.KVSt
 		return nil, nil, err
 	}
 	token, err := LoadToken(h.bucket, store, msg.GetId())
-	if err != nil {
+	if token == nil || err != nil {
 		return nil, nil, err
 	}
 	ok, _ = approvals.HasApprovals(ctx, h.auth, "update", token.Approvals, token.Owner)
