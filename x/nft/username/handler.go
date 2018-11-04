@@ -141,7 +141,7 @@ func (h AddChainAddressHandler) Deliver(ctx weave.Context, store weave.KVStore, 
 		return res, err
 	}
 
-	ok := approvals.Approve(ctx, h.auth, "update", token.Approvals, token.Owner)
+	ok := approvals.Approve(ctx, h.auth, "update", token)
 	if !ok {
 		return res, errors.ErrUnauthorized()
 	}
@@ -205,7 +205,7 @@ func (h RemoveChainAddressHandler) Deliver(ctx weave.Context, store weave.KVStor
 		return res, err
 	}
 
-	ok := approvals.Approve(ctx, h.auth, "update", token.Approvals, token.Owner)
+	ok := approvals.Approve(ctx, h.auth, "update", token)
 	if !ok {
 		return res, errors.ErrUnauthorized()
 	}

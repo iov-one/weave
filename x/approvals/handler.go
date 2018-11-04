@@ -38,7 +38,11 @@ func (h AddApprovalMsgHandler) Deliver(ctx weave.Context, store weave.KVStore, t
 		return res, err
 	}
 
-	Approve(ctx, h.auth, Admin, appr.GetApprovals(), appr.GetOwner())
+	ok := Approve(ctx, h.auth, "update", appr)
+	if !ok {
+		return res, errors.ErrUnauthorized()
+	}
+
 	appr.UpdateApprovals(append(appr.GetApprovals(), msg.GetApproval()))
 	obj := orm.NewSimpleObj(msg.GetId(), appr)
 	err = h.bucket.Save(store, obj)

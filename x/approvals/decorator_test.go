@@ -217,7 +217,7 @@ func (s *HasApprovalCheckHandler) Check(ctx weave.Context, store weave.KVStore,
 	tx weave.Tx) (res weave.CheckResult, err error) {
 	msg, _ := tx.GetMsg()
 	nft := msg.(*nftMsg)
-	_, approved := HasApprovals(ctx, Authenticate{}, nft.action, nft.authorized)
+	_, approved := HasApprovals(ctx, Authenticate{}, nft.action, nft.authorized, nil)
 	s.approved = approved
 	return
 }
@@ -231,7 +231,7 @@ func (s *HasApprovalCheckHandler) Deliver(ctx weave.Context, store weave.KVStore
 		authorized = append(authorized, auth)
 	}
 
-	_, approved := HasApprovals(ctx, Authenticate{}, nft.action, nft.authorized)
+	_, approved := HasApprovals(ctx, Authenticate{}, nft.action, nft.authorized, nil)
 	s.approved = approved
 	return
 }

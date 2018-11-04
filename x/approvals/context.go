@@ -88,12 +88,10 @@ func (a Authenticate) HasAddress(ctx weave.Context, addr weave.Address) bool {
 	return false
 }
 
-func HasApprovals(ctx weave.Context, auth x.Authenticator, action string, conditions [][]byte, admins ...[]byte) (bool, []weave.Condition) {
+func HasApprovals(ctx weave.Context, auth x.Authenticator, action string, conditions [][]byte, owner []byte) (bool, []weave.Condition) {
 	var approved []weave.Condition
-	for _, admin := range admins {
-		if auth.HasAddress(ctx, ApprovalCondition(admin, "usage").Address()) {
-			return true, approved
-		}
+	if auth.HasAddress(ctx, ApprovalCondition(owner, "usage").Address()) {
+		return true, approved
 	}
 	for _, cond := range conditions {
 		_, act, addr, _ := weave.Condition(cond).Parse()
@@ -120,12 +118,13 @@ func HasApprovals(ctx weave.Context, auth x.Authenticator, action string, condit
 	return len(approved) > 0, approved
 }
 
-func Approve(ctx weave.Context, auth x.Authenticator, action string, conditions [][]byte, admins ...[]byte) bool {
-	ok, used := HasApprovals(ctx, auth, action, conditions, admins...)
+func Approve(ctx weave.Context, auth x.Authenticator, action string, appr Approvable) bool {
+	ok, used := HasApprovals(ctx, auth, action, appr.GetApprovals(), appr.GetOwner())
 	if !ok {
 		return false
 	}
 
+	conditions := appr.GetApprovals()
 	for _, u := range used {
 		for idx, a := range conditions {
 			if u.Equals(weave.Condition(a)) {
