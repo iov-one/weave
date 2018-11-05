@@ -1,4 +1,4 @@
-package base
+package base_test
 
 import (
 	"context"
@@ -10,6 +10,7 @@ import (
 	"github.com/iov-one/weave/store"
 	"github.com/iov-one/weave/x"
 	"github.com/iov-one/weave/x/nft"
+	"github.com/iov-one/weave/x/nft/base"
 	"github.com/iov-one/weave/x/nft/blockchain"
 	"github.com/iov-one/weave/x/nft/username"
 	. "github.com/smartystreets/goconvey/convey"
@@ -36,7 +37,7 @@ func TestApprovalOpsHandler(t *testing.T) {
 		d := nft.GetBucketDispatcher()
 
 		_ = d.Register(app.NftType_Username.String(), userBucket)
-		handler := NewApprovalOpsHandler(helpers.Authenticate(bob), nil, d)
+		handler := base.NewApprovalOpsHandler(helpers.Authenticate(bob), nil, d)
 
 		o, _ := chainBucket.Create(db, bob.Address(), chainId, nil, blockchain.Chain{MainTickerID: []byte("IOV")}, blockchain.IOV{Codec: "asd"})
 		chainBucket.Save(db, o)
@@ -81,7 +82,7 @@ func TestApprovalOpsHandler(t *testing.T) {
 					So(err, ShouldBeNil)
 					u, err := username.AsUsername(o)
 					So(err, ShouldBeNil)
-					owner := nft.FindActor(handler.auth, ctx, u, nft.Action_ActionUpdateApprovals.String())
+					owner := nft.FindActor(handler.Auth(), ctx, u, nft.Action_ActionUpdateApprovals.String())
 					So(owner, ShouldResemble, bob.Address())
 				})
 
@@ -99,7 +100,7 @@ func TestApprovalOpsHandler(t *testing.T) {
 					So(err, ShouldBeNil)
 					usedApproval := getApproval(u.Approvals(), bob.Address(), nft.Action_ActionUpdateApprovals.String())
 					So(usedApproval.Options.Count, ShouldEqual, 9)
-					approved := nft.FindActor(handler.auth, ctx, u, nft.Action_ActionUpdateApprovals.String())
+					approved := nft.FindActor(handler.Auth(), ctx, u, nft.Action_ActionUpdateApprovals.String())
 					So(approved, ShouldResemble, bob.Address())
 					usedApproval = getApproval(u.Approvals(), bob.Address(), nft.Action_ActionUpdateApprovals.String())
 					So(usedApproval.Options.Count, ShouldEqual, 8)
@@ -124,7 +125,7 @@ func TestApprovalOpsHandler(t *testing.T) {
 				})
 
 				Convey("By guest", func() {
-					handler = NewApprovalOpsHandler(helpers.Authenticate(guest), nil, d)
+					handler = base.NewApprovalOpsHandler(helpers.Authenticate(guest), nil, d)
 					msg.Address = bob.Address()
 					msg.Id = bobsUsername
 					tx := helpers.MockTx(msg)
@@ -177,7 +178,7 @@ func TestApprovalOpsHandler(t *testing.T) {
 					So(err, ShouldBeNil)
 					u, err := username.AsUsername(o)
 					So(err, ShouldBeNil)
-					approved := nft.FindActor(handler.auth, timeoutCtx, u, nft.Action_ActionUpdateApprovals.String())
+					approved := nft.FindActor(handler.Auth(), timeoutCtx, u, nft.Action_ActionUpdateApprovals.String())
 					So(approved, ShouldBeNil)
 				})
 			})
@@ -201,14 +202,14 @@ func TestApprovalOpsHandler(t *testing.T) {
 					So(err, ShouldBeNil)
 					u, err := username.AsUsername(o)
 					So(err, ShouldBeNil)
-					owner := nft.FindActor(handler.auth, ctx, u, msg.Action)
+					owner := nft.FindActor(handler.Auth(), ctx, u, msg.Action)
 					So(owner, ShouldResemble, bob.Address())
 				})
 
 				//TODO: Should we allow approved to remove their own approvals? :)
 				Convey("By approved", func() {
 					fmt.Println(alice.Address())
-					handler = NewApprovalOpsHandler(helpers.Authenticate(alice), nil, d)
+					handler = base.NewApprovalOpsHandler(helpers.Authenticate(alice), nil, d)
 					tx := helpers.MockTx(msg)
 					_, err := handler.Check(ctx, db, tx)
 					So(err, ShouldBeNil)
@@ -218,7 +219,7 @@ func TestApprovalOpsHandler(t *testing.T) {
 					So(err, ShouldBeNil)
 					u, err := username.AsUsername(o)
 					So(err, ShouldBeNil)
-					approved := nft.FindActor(handler.auth, ctx, u, msg.Action)
+					approved := nft.FindActor(handler.Auth(), ctx, u, msg.Action)
 					So(approved, ShouldBeNil)
 				})
 			})
@@ -234,7 +235,7 @@ func TestApprovalOpsHandler(t *testing.T) {
 				})
 
 				Convey("By guest", func() {
-					handler = NewApprovalOpsHandler(helpers.Authenticate(guest), nil, d)
+					handler = base.NewApprovalOpsHandler(helpers.Authenticate(guest), nil, d)
 					msg.Address = bob.Address()
 					msg.Id = bobWithAliceApproval
 					tx := helpers.MockTx(msg)
@@ -286,7 +287,7 @@ func TestApprovalOpsHandler(t *testing.T) {
 					msg.Id = bobWithAliceTimeoutApproval
 					tx := helpers.MockTx(msg)
 					timeoutCtx := weave.WithHeight(context.Background(), 10)
-					handler = NewApprovalOpsHandler(helpers.Authenticate(guest), nil, d)
+					handler = base.NewApprovalOpsHandler(helpers.Authenticate(guest), nil, d)
 					_, err := handler.Check(timeoutCtx, db, tx)
 					So(err, ShouldBeNil)
 					_, err = handler.Deliver(timeoutCtx, db, tx)
