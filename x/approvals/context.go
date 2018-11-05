@@ -93,22 +93,14 @@ func HasApprovals(ctx weave.Context, auth x.Authenticator, action string, condit
 	if auth.HasAddress(ctx, ApprovalCondition(owner, "usage").Address()) {
 		return true, approved
 	}
+
+	height, _ := weave.GetHeight(ctx)
 	for _, cond := range conditions {
 		_, act, addr, _ := weave.Condition(cond).Parse()
 		if act == action {
-			key := bytes.Split(addr, []byte(":"))
-			var target weave.Address
-			switch len(key) {
-			case 1:
-				target = addr
-			case 3:
-				target = key[0]
-				count := decode(key[1])
-				timeout := decode(key[2])
-				height, _ := weave.GetHeight(ctx)
-				if count == 0 || (timeout != NoTimeout && height > timeout) {
-					continue
-				}
+			target, count, timeout := ApprovalKey(addr).Parse()
+			if count == 0 || (timeout != NoTimeout && height > timeout) {
+				continue
 			}
 			if auth.HasAddress(ctx, ApprovalCondition(target, "usage").Address()) {
 				approved = append(approved, cond)
@@ -138,14 +130,23 @@ func Approve(ctx weave.Context, auth x.Authenticator, action string, appr Approv
 
 func withUpdatedCount(cond weave.Condition) weave.Condition {
 	_, action, addr, _ := cond.Parse()
-	key := bytes.Split(addr, []byte(":"))
-	switch len(key) {
-	case 3:
-		target := key[0]
-		count := decode(key[1])
-		if count != NoCount {
-			return ApprovalConditionWithCount(target, action, count-1)
-		}
+	target, count, timeout := ApprovalKey(addr).Parse()
+	if count != NoCount {
+		return ApprovalConditionWithCountAndTimeout(target, action, count-1, timeout)
 	}
 	return cond
+}
+
+type ApprovalKey []byte
+
+func (k ApprovalKey) Parse() ([]byte, int64, int64) {
+	key := bytes.Split(k, []byte(":"))
+	switch len(key) {
+	case 1:
+		return k, NoCount, NoTimeout
+	case 3:
+		return key[0], decode(key[1]), decode(key[2])
+	default:
+		return nil, NoCount, NoTimeout
+	}
 }
