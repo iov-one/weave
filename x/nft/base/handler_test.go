@@ -272,20 +272,20 @@ package base_test
 // 	})
 // }
 
-func getApproval(approvals *nft.ApprovalOps, signer weave.Address, action string) nft.Approval {
-	appr := approvals.
-		List().
-		ForAction(action).
-		ForAddress(signer).
-		AsPersistable()
+// func getApproval(approvals *nft.ApprovalOps, signer weave.Address, action string) nft.Approval {
+// 	appr := approvals.
+// 		List().
+// 		ForAction(action).
+// 		ForAddress(signer).
+// 		AsPersistable()
 
-	if len(appr) == 0 {
-		panic("No approvals for action and user")
-	}
+// 	if len(appr) == 0 {
+// 		panic("No approvals for action and user")
+// 	}
 
-	if len(appr[0].Approvals) == 0 {
-		panic("No approvals for action and user")
-	}
+// 	if len(appr[0].Approvals) == 0 {
+// 		panic("No approvals for action and user")
+// 	}
 
-	return appr[0].Approvals[0]
-}
+// 	return appr[0].Approvals[0]
+// }
