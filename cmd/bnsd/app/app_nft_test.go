@@ -95,7 +95,6 @@ func TestNftApprovals(t *testing.T) {
 		tx := newIssueBlockchainNftTx([]byte(fmt.Sprintf("blockchain%d", i)), issuerAddr)
 		res := signAndCommit(t, myApp, tx, []Signer{{issuerPrivKey, i}}, appFixture.ChainID, &height)
 		require.EqualValues(t, 0, res.Code)
-		height++
 	}
 
 	pk1 := crypto.GenPrivKeyEd25519()
@@ -144,7 +143,7 @@ func TestNftApprovals(t *testing.T) {
 	require.NotEqual(t, uint32(0), cres.Code)
 
 	// authorising guest3
-	tx = newAddUsernameAddApprovalTx("anybody@example.com", approvals.ApprovalCondition(guest3.PublicKey().Address(), "update"))
+	tx = newUsernameAddApprovalTx("anybody@example.com", approvals.ApprovalCondition(guest3.PublicKey().Address(), "update"))
 	res = signAndCommit(t, myApp, tx, []Signer{{admin, 0}}, appFixture.ChainID, &height)
 	require.EqualValues(t, 0, res.Code)
 
@@ -197,7 +196,7 @@ func newAddUsernameAddressNftTx(ID string, blockchainID []byte) *app.Tx {
 	}
 }
 
-func newAddUsernameAddApprovalTx(ID string, perm []byte) *app.Tx {
+func newUsernameAddApprovalTx(ID string, perm []byte) *app.Tx {
 	return &app.Tx{
 		Sum: &app.Tx_UsernameAddApprovalMsg{
 			&username.AddApprovalMsg{
