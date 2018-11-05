@@ -58,6 +58,10 @@ type ApprovalOpsHandler struct {
 	bucketDispatcher nft.BucketDispatcher
 }
 
+func (h *ApprovalOpsHandler) Auth() x.Authenticator {
+	return h.auth
+}
+
 func (h *ApprovalOpsHandler) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx) (weave.CheckResult, error) {
 	var res weave.CheckResult
 	if _, err := h.validate(ctx, tx); err != nil {

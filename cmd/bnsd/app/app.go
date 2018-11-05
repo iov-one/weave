@@ -20,6 +20,7 @@ import (
 	"github.com/iov-one/weave/x/multisig"
 	"github.com/iov-one/weave/x/namecoin"
 	"github.com/iov-one/weave/x/nft"
+	"github.com/iov-one/weave/x/nft/base"
 	"github.com/iov-one/weave/x/nft/blockchain"
 	"github.com/iov-one/weave/x/nft/bootstrap_node"
 	"github.com/iov-one/weave/x/nft/ticker"
@@ -71,6 +72,7 @@ func Router(authFn x.Authenticator, issuer weave.Address) app.Router {
 	username.RegisterRoutes(r, authFn, issuer)
 	validators.RegisterRoutes(r, authFn, validators.NewController())
 	bootstrap_node.RegisterRoutes(r, authFn, issuer)
+	base.RegisterRoutes(r, authFn, issuer)
 	return r
 }
 
