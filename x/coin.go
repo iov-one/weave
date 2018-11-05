@@ -79,6 +79,11 @@ func (c Coin) Negative() Coin {
 	}
 }
 
+// Subtract given amount.
+func (c Coin) Subtract(amount Coin) (Coin, error) {
+	return c.Add(amount.Negative())
+}
+
 // Compare will check values of two coins, without
 // inspecting the currency code. It is up to the caller
 // to determine if they want to check this.
