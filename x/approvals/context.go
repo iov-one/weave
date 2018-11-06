@@ -95,58 +95,34 @@ func HasApprovals(ctx weave.Context, auth x.Authenticator, action string, condit
 	}
 
 	height, _ := weave.GetHeight(ctx)
-	for _, cond := range conditions {
-		_, act, addr, _ := weave.Condition(cond).Parse()
+	for i, cond := range conditions {
+		act, addr, count, timeout := Approval(cond).Parse()
 		if act == action {
-			target, count, timeout := ApprovalKey(addr).Parse()
 			if count == 0 || (timeout != NoTimeout && height > timeout) {
 				continue
 			}
-			if auth.HasAddress(ctx, ApprovalCondition(target, "usage").Address()) {
+			if auth.HasAddress(ctx, ApprovalCondition(addr, "usage").Address()) {
 				approved = append(approved, cond)
+				if count != NoCount {
+					conditions[i] = ApprovalConditionWithCountAndTimeout(addr, action, count-1, timeout)
+				}
 			}
 		}
 	}
 	return len(approved) > 0, approved
 }
 
-func Approve(ctx weave.Context, auth x.Authenticator, action string, appr Approvable) bool {
-	ok, used := HasApprovals(ctx, auth, action, appr.GetApprovals(), appr.GetOwner())
-	if !ok {
-		return false
-	}
+type Approval weave.Condition
 
-	conditions := appr.GetApprovals()
-	for _, u := range used {
-		for idx, a := range conditions {
-			if u.Equals(weave.Condition(a)) {
-				conditions[idx] = withUpdatedCount(u)
-			}
-		}
-	}
-
-	return true
-}
-
-func withUpdatedCount(cond weave.Condition) weave.Condition {
-	_, action, addr, _ := cond.Parse()
-	target, count, timeout := ApprovalKey(addr).Parse()
-	if count != NoCount {
-		return ApprovalConditionWithCountAndTimeout(target, action, count-1, timeout)
-	}
-	return cond
-}
-
-type ApprovalKey []byte
-
-func (k ApprovalKey) Parse() ([]byte, int64, int64) {
-	key := bytes.Split(k, []byte(":"))
+func (cond Approval) Parse() (string, []byte, int64, int64) {
+	_, action, addr, _ := weave.Condition(cond).Parse()
+	key := bytes.Split(addr, []byte(":"))
 	switch len(key) {
 	case 1:
-		return k, NoCount, NoTimeout
+		return action, addr, NoCount, NoTimeout
 	case 3:
-		return key[0], decode(key[1]), decode(key[2])
+		return action, key[0], decode(key[1]), decode(key[2])
 	default:
-		return nil, NoCount, NoTimeout
+		return action, nil, NoCount, NoTimeout
 	}
 }
