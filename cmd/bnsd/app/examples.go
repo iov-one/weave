@@ -1,6 +1,8 @@
 package app
 
 import (
+	"fmt"
+
 	"github.com/iov-one/weave/commands"
 	"github.com/iov-one/weave/crypto"
 	"github.com/iov-one/weave/x"
@@ -29,6 +31,7 @@ func Examples() []commands.Example {
 
 	priv := crypto.GenPrivKeyEd25519()
 	pub := priv.PublicKey()
+	addr := pub.Address()
 	user := &sigs.UserData{
 		Pubkey:   pub,
 		Sequence: 17,
@@ -39,12 +42,12 @@ func Examples() []commands.Example {
 	msg := &cash.SendMsg{
 		Amount: &amt,
 		Dest:   dst,
-		Src:    pub.Address(),
+		Src:    addr,
 		Memo:   "Test payment",
 	}
 
 	nameMsg := &namecoin.SetWalletNameMsg{
-		Address: pub.Address(),
+		Address: addr,
 		Name:    "myname",
 	}
 
@@ -67,7 +70,7 @@ func Examples() []commands.Example {
 	guest := crypto.GenPrivKeyEd25519().PublicKey().Address()
 	issueUsernameMsg := &username.IssueTokenMsg{
 		Id:    []byte("alice@example.com"),
-		Owner: pub.Address(),
+		Owner: addr,
 		Details: username.TokenDetails{
 			Addresses: []username.ChainAddress{
 				{[]byte("myNet"), []byte("myChainAddress")},
@@ -91,13 +94,14 @@ func Examples() []commands.Example {
 
 	issueBlockchainMsg := &blockchain.IssueTokenMsg{
 		Id:      []byte("test-chain-123456"),
-		Owner:   pub.Address(),
+		Owner:   addr,
 		Details: blockchain.TokenDetails{},
 	}
 	issueBlockchainTx := &Tx{
 		Sum: &Tx_IssueBlockchainNftMsg{issueBlockchainMsg},
 	}
 
+	fmt.Printf("Address: %s\n", addr)
 	return []commands.Example{
 		{"wallet", wallet},
 		{"token", token},
