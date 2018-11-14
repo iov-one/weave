@@ -7,6 +7,7 @@ import (
 	"github.com/iov-one/weave/x/cash"
 	"github.com/iov-one/weave/x/namecoin"
 	"github.com/iov-one/weave/x/nft"
+	"github.com/iov-one/weave/x/nft/blockchain"
 	"github.com/iov-one/weave/x/nft/username"
 	"github.com/iov-one/weave/x/sigs"
 )
@@ -63,11 +64,10 @@ func Examples() []commands.Example {
 	}
 	tx.Signatures = []*sigs.StdSignature{sig}
 
-	owner := crypto.GenPrivKeyEd25519().PublicKey().Address()
 	guest := crypto.GenPrivKeyEd25519().PublicKey().Address()
-	issueToken := &username.IssueTokenMsg{
+	issueUsernameMsg := &username.IssueTokenMsg{
 		Id:    []byte("alice@example.com"),
-		Owner: owner,
+		Owner: pub.Address(),
 		Details: username.TokenDetails{
 			Addresses: []username.ChainAddress{
 				{[]byte("myNet"), []byte("myChainAddress")},
@@ -79,11 +79,23 @@ func Examples() []commands.Example {
 			}},
 		},
 	}
+	issueUsernameTx := &Tx{
+		Sum: &Tx_IssueUsernameNftMsg{issueUsernameMsg},
+	}
 
-	addAddress := &username.AddChainAddressMsg{
+	addAddressMsg := &username.AddChainAddressMsg{
 		Id:      []byte("alice@example.com"),
 		ChainID: []byte("myNet"),
 		Address: []byte("myChainAddress"),
+	}
+
+	issueBlockchainMsg := &blockchain.IssueTokenMsg{
+		Id:      []byte("test-chain-123456"),
+		Owner:   pub.Address(),
+		Details: blockchain.TokenDetails{},
+	}
+	issueBlockchainTx := &Tx{
+		Sum: &Tx_IssueBlockchainNftMsg{issueBlockchainMsg},
 	}
 
 	return []commands.Example{
@@ -97,7 +109,10 @@ func Examples() []commands.Example {
 		{"token_msg", tokenMsg},
 		{"unsigned_tx", &unsigned},
 		{"signed_tx", &tx},
-		{"issuetoken_msg", issueToken},
-		{"add_addr_msg", addAddress},
+		{"issue_username_msg", issueUsernameMsg},
+		{"issue_username_tx", issueUsernameTx},
+		{"issue_blockchain_msg", issueBlockchainMsg},
+		{"issue_blockchain_tx", issueBlockchainTx},
+		{"add_addr_msg", addAddressMsg},
 	}
 }
