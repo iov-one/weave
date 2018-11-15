@@ -68,6 +68,7 @@ protoc:
 	protoc --gogofaster_out=. -I=. -I=$(GOPATH)/src x/sigs/*.proto
 	protoc --gogofaster_out=. -I=. -I=$(GOPATH)/src x/multisig/*.proto
 	protoc --gogofaster_out=. -I=. -I=$(GOPATH)/src x/validators/*.proto
+	protoc --gogofaster_out=. -I=. -I=$(GOPATH)/src x/batch/*.proto
 	protoc --gogofaster_out=. -I=. -I=$(GOPATH)/src -I=./vendor x/namecoin/*.proto
 	protoc --gogofaster_out=. -I=. -I=$(GOPATH)/src -I=./vendor x/escrow/*.proto
 	protoc --gogofaster_out=. -I=. -I=$(GOPATH)/src -I=./vendor x/paychan/*.proto

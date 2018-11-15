@@ -1,0 +1,47 @@
+syntax = "proto3";
+
+package batch;
+
+import "github.com/iov-one/weave/x/cash/codec.proto";
+import "github.com/iov-one/weave/x/escrow/codec.proto";
+import "github.com/iov-one/weave/x/namecoin/codec.proto";
+import "github.com/iov-one/weave/x/sigs/codec.proto";
+import "github.com/iov-one/weave/x/multisig/codec.proto";
+import "github.com/iov-one/weave/x/nft/codec.proto";
+import "github.com/iov-one/weave/x/nft/blockchain/codec.proto";
+import "github.com/iov-one/weave/x/nft/ticker/codec.proto";
+import "github.com/iov-one/weave/x/nft/username/codec.proto";
+import "github.com/iov-one/weave/x/nft/bootstrap_node/codec.proto";
+import "github.com/iov-one/weave/x/validators/codec.proto";
+
+// ExecuteBatchMsg encapsulates multiple messages to support batch transaction
+message ExecuteBatchMsg {
+    repeated Msg messages = 1;
+    // Msg is a workaround as protobuf does not support repeated oneof
+    message Msg {
+        oneof msg {
+            cash.SendMsg send_msg = 1;
+            namecoin.NewTokenMsg new_token_msg = 2;
+            namecoin.SetWalletNameMsg set_name_msg = 3;
+            // escrow actions
+            escrow.CreateEscrowMsg create_escrow_msg = 4;
+            escrow.ReleaseEscrowMsg release_escrow_msg = 5;
+            escrow.ReturnEscrowMsg return_escrow_msg = 6;
+            escrow.UpdateEscrowPartiesMsg update_escrow_msg = 7;
+            // multisig contract
+            multisig.CreateContractMsg create_contract_msg = 8;
+            multisig.UpdateContractMsg update_contract_msg = 9;
+            // validators actions
+            validators.SetValidatorsMsg set_validators_msg = 10;
+            // nft actions
+            nft.AddApprovalMsg add_approval_msg = 11;
+            nft.RemoveApprovalMsg remove_approval_msg = 12;
+            username.IssueTokenMsg issue_username_nft_msg = 13;
+            username.AddChainAddressMsg add_username_address_nft_msg = 14;
+            username.RemoveChainAddressMsg remove_username_address_msg = 15;
+            blockchain.IssueTokenMsg issue_blockchain_nft_msg = 16;
+            ticker.IssueTokenMsg issue_ticker_nft_msg = 17;
+            bootstrap_node.IssueTokenMsg issue_bootstrap_node_nft_msg = 18;
+        }
+    }
+}
