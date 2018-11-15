@@ -15,7 +15,8 @@ os:
 
 go:
 - "1.10"
-- tip
+- "1.11"
+# - tip
 
 env:
 - GORACE="halt_on_error=1"
