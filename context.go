@@ -100,6 +100,9 @@ func WithChainID(ctx Context, chainID string) Context {
 // GetChainID returns the current chain id
 // panics if chain id not already set (should never happen)
 func GetChainID(ctx Context) string {
+	if x := ctx.Value(contextKeyChainID); x == nil {
+		panic("Chain id is not in context")
+	}
 	return ctx.Value(contextKeyChainID).(string)
 }
 
