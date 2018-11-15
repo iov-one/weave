@@ -1,6 +1,7 @@
 package client
 
 import (
+	"sync"
 	"testing"
 	"time"
 
@@ -230,10 +231,25 @@ func TestSendMultipleTx(t *testing.T) {
 	require.NoError(t, err)
 
 	// to avoid race conditions, wait for a new header
-	// event, then immeidately send off the two tx
+	// event, then immediately send off the two tx
+	var ready, start sync.WaitGroup
+	ready.Add(2)
+	start.Add(1)
+
+	go func() {
+		ready.Done()
+		start.Wait()
+		bcp.BroadcastTxAsync(tx, txResp)
+	}()
+	go func() {
+		ready.Done()
+		start.Wait()
+		bcp.BroadcastTxAsync(tx2, txResp)
+	}()
+
+	ready.Wait()
 	<-headers
-	go bcp.BroadcastTxAsync(tx, txResp)
-	go bcp.BroadcastTxAsync(tx2, txResp)
+	start.Done()
 	cancel()
 
 	// both succeed and are in the same block
