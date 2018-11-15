@@ -9,8 +9,7 @@ import (
 	"strings"
 
 	"github.com/iov-one/weave"
-	"github.com/tendermint/go-wire"
-	"github.com/tendermint/go-wire/data"
+	"github.com/tendermint/go-amino"
 	"github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/common"
 )
@@ -64,10 +63,10 @@ func (d Decorator) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx,
 	return next.Check(ctx, store, tx)
 }
 
-// combines all data bytes as a go-wire array.
+// combines all data bytes as a go-amino array.
 // joins all log messages with \n
 func (*Decorator) combineChecks(checks []weave.CheckResult) weave.CheckResult {
-	datas := make([]data.Bytes, len(checks))
+	datas := make([][]byte, len(checks))
 	logs := make([]string, len(checks))
 	var allocated, payments int64
 	for i, r := range checks {
@@ -77,7 +76,7 @@ func (*Decorator) combineChecks(checks []weave.CheckResult) weave.CheckResult {
 		payments += r.GasPayment
 	}
 	return weave.CheckResult{
-		Data:         wire.BinaryBytes(datas),
+		Data:         amino.MustMarshalBinary(datas),
 		Log:          strings.Join(logs, "\n"),
 		GasAllocated: allocated,
 		GasPayment:   payments,
@@ -108,10 +107,10 @@ func (d Decorator) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx,
 	return next.Deliver(ctx, store, tx)
 }
 
-// combines all data bytes as a go-wire array.
+// combines all data bytes as a go-amino array.
 // joins all log messages with \n
 func (*Decorator) combineDelivers(delivers []weave.DeliverResult) weave.DeliverResult {
-	datas := make([]data.Bytes, len(delivers))
+	datas := make([][]byte, len(delivers))
 	logs := make([]string, len(delivers))
 	var payments int64
 	var diffs []types.ValidatorUpdate
@@ -128,7 +127,7 @@ func (*Decorator) combineDelivers(delivers []weave.DeliverResult) weave.DeliverR
 		}
 	}
 	return weave.DeliverResult{
-		Data:    wire.BinaryBytes(datas),
+		Data:    amino.MustMarshalBinary(datas),
 		Log:     strings.Join(logs, "\n"),
 		GasUsed: payments,
 		Diff:    diffs,
