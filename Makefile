@@ -31,7 +31,21 @@ tf:
 	go test -short ./...
 
 cover:
-	go test -covermode=$(MODE) -coverprofile=coverage/coverage.txt ./...
+	@ go test -covermode=$(MODE) -coverprofile=coverage/allpackages.out ./...
+	@ # most of the tests in the app package are in examples/mycoind/app...
+	@ go test -covermode=$(MODE) \
+	 	-coverpkg=github.com/iov-one/weave/app,github.com/iov-one/weave/examples/mycoind/app \
+		-coverprofile=coverage/weave_examples_mycoind_app.out \
+		github.com/iov-one/weave/examples/mycoind/app
+	@ go test -covermode=$(MODE) \
+	 	-coverpkg=github.com/iov-one/weave/commands/server \
+		-coverprofile=coverage/weave_commands_server.out \
+		github.com/iov-one/weave/examples/mycoind/commands
+	@ go test -covermode=$(MODE) \
+	 	-coverpkg=github.com/iov-one/weave/cmd/bnsd/app,github.com/iov-one/weave/cmd/bnsd/client,github.com/iov-one/weave/app \
+		-coverprofile=coverage/bnsd_app.out \
+		github.com/iov-one/weave/cmd/bnsd/scenarios
+	cat coverage/*.out > coverage/coverage.txt
 
 deps: tools
 	@rm -rf vendor/
