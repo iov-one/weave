@@ -2,6 +2,7 @@ syntax = "proto3";
 
 package batch;
 
+import "github.com/gogo/protobuf/gogoproto/gogo.proto";
 import "github.com/iov-one/weave/x/cash/codec.proto";
 import "github.com/iov-one/weave/x/escrow/codec.proto";
 import "github.com/iov-one/weave/x/namecoin/codec.proto";
@@ -16,7 +17,7 @@ import "github.com/iov-one/weave/x/validators/codec.proto";
 
 // ExecuteBatchMsg encapsulates multiple messages to support batch transaction
 message ExecuteBatchMsg {
-    repeated Msg messages = 1;
+    repeated Msg messages = 1 [(gogoproto.nullable) = false];
     // Msg is a workaround as protobuf does not support repeated oneof
     message Msg {
         oneof msg {
