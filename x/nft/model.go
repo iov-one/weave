@@ -10,7 +10,7 @@ var _ orm.CloneableData = (*NonFungibleToken)(nil)
 func (m *NonFungibleToken) Validate() error {
 	var validation *Validation
 	if !validation.IsValidTokenID(m.Id) {
-		return ErrInvalidID()
+		return ErrInvalidID(m.Id)
 	}
 
 	if err := weave.Address(m.Owner).Validate(); err != nil {

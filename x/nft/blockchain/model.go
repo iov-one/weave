@@ -100,7 +100,7 @@ func (m *TokenDetails) Validate() error {
 
 func (m IOV) Validate() error {
 	if !IsValidCodec(m.Codec) {
-		return nft.ErrInvalidCodec()
+		return nft.ErrInvalidCodec(m.Codec)
 	}
 
 	if m.CodecConfig != "" {

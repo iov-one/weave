@@ -51,13 +51,14 @@ func (h IssueHandler) Deliver(ctx weave.Context, store weave.KVStore, tx weave.T
 		return res, err
 	}
 	//TODO: Need to discuss, maybe we need to also validate the linked blockchainID vs ours
-	if len(msg.Details.Chain.MainTickerID) != 0 {
-		ticker, err := h.tickerBucket.Get(store, msg.Details.Chain.MainTickerID)
+	mainTicker := msg.Details.Chain.MainTickerID
+	if len(mainTicker) != 0 {
+		ticker, err := h.tickerBucket.Get(store, mainTicker)
 		switch {
 		case err != nil:
 			return res, err
 		case ticker == nil:
-			return res, nft.ErrInvalidEntry()
+			return res, nft.ErrInvalidEntry(mainTicker)
 		}
 	}
 	o, err := h.bucket.Create(store, weave.Address(msg.Owner), msg.Id, msg.Approvals, msg.Details.Chain, msg.Details.Iov)

@@ -32,10 +32,10 @@ func (u *UsernameToken) GetChainAddresses() []ChainAddress {
 }
 
 func (u *UsernameToken) SetChainAddresses(actor weave.Address, newAddresses []ChainAddress) error {
-	if containsDuplicateChains(newAddresses) {
-		return nft.ErrDuplicateEntry()
+	dup := containsDuplicateChains(newAddresses)
+	if dup != nil {
+		return nft.ErrDuplicateEntry(dup)
 	}
-
 	u.Details = &TokenDetails{Addresses: newAddresses}
 	return nil
 }
@@ -77,8 +77,9 @@ func (t *TokenDetails) Validate() error {
 	if t == nil {
 		return errors.ErrInternal("must not be nil")
 	}
-	if containsDuplicateChains(t.Addresses) {
-		return nft.ErrDuplicateEntry()
+	dup := containsDuplicateChains(t.Addresses)
+	if dup != nil {
+		return nft.ErrDuplicateEntry(dup)
 	}
 	for _, k := range t.Addresses {
 		if err := k.Validate(); err != nil {
@@ -88,15 +89,16 @@ func (t *TokenDetails) Validate() error {
 	return nil
 }
 
-func containsDuplicateChains(addresses []ChainAddress) bool {
+// returns the duplicated chainId or nil if no duplicates
+func containsDuplicateChains(addresses []ChainAddress) []byte {
 	m := make(map[string]struct{})
 	for _, k := range addresses {
 		if _, ok := m[string(k.ChainID)]; ok {
-			return true
+			return k.ChainID
 		}
 		m[string(k.ChainID)] = struct{}{}
 	}
-	return false
+	return nil
 }
 
 func (p ChainAddress) Equals(o ChainAddress) bool {
@@ -105,7 +107,7 @@ func (p ChainAddress) Equals(o ChainAddress) bool {
 
 func (p *ChainAddress) Validate() error {
 	if !blockchain.IsValidID(string(p.ChainID)) {
-		return nft.ErrInvalidID()
+		return nft.ErrInvalidID(p.ChainID)
 	}
 	switch l := len(p.Address); {
 	case l < 12 || l > 50:
@@ -130,8 +132,9 @@ func validateID(i nft.Identified) error {
 	if i == nil {
 		return errors.ErrInternal("must not be nil")
 	}
-	if !isValidID(string(i.GetId())) {
-		return nft.ErrInvalidID()
+	id := i.GetId()
+	if !isValidID(string(id)) {
+		return nft.ErrInvalidID(id)
 	}
 	return nil
 }

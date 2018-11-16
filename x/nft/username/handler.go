@@ -68,7 +68,7 @@ func (h IssueHandler) Deliver(ctx weave.Context, store weave.KVStore, tx weave.T
 		case err != nil:
 			return res, err
 		case chain == nil:
-			return res, nft.ErrInvalidEntry()
+			return res, nft.ErrInvalidEntry(a.ChainID)
 		}
 	}
 	// persist the data
@@ -133,7 +133,7 @@ func (h AddChainAddressHandler) Deliver(ctx weave.Context, store weave.KVStore, 
 	case err != nil:
 		return res, err
 	case chain == nil:
-		return res, nft.ErrInvalidEntry()
+		return res, nft.ErrInvalidEntry(msg.ChainID)
 	}
 
 	o, t, err := loadToken(h.tokenHandler, store, msg.GetId())
@@ -201,7 +201,7 @@ func (h RemoveChainAddressHandler) Deliver(ctx weave.Context, store weave.KVStor
 		return res, errors.ErrUnauthorized()
 	}
 	if len(t.GetChainAddresses()) == 0 {
-		return res, nft.ErrInvalidEntry()
+		return res, nft.ErrInvalidEntry([]byte("no chain to delete"))
 	}
 	obsoleteAddress := ChainAddress{msg.GetChainID(), msg.GetAddress()}
 	newAddresses := make([]ChainAddress, 0, len(t.GetChainAddresses()))
@@ -211,7 +211,7 @@ func (h RemoveChainAddressHandler) Deliver(ctx weave.Context, store weave.KVStor
 		}
 	}
 	if len(newAddresses) == len(t.GetChainAddresses()) {
-		return res, nft.ErrInvalidEntry()
+		return res, nft.ErrInvalidEntry([]byte("requested address not registered"))
 	}
 	if err := t.SetChainAddresses(actor, newAddresses); err != nil {
 		return res, err
@@ -240,7 +240,7 @@ func loadToken(h tokenHandler, store weave.KVStore, id []byte) (orm.Object, Toke
 	case err != nil:
 		return nil, nil, err
 	case o == nil:
-		return nil, nil, nft.ErrUnknownID()
+		return nil, nil, nft.ErrUnknownID(id)
 	}
 	t, e := AsUsername(o)
 	return o, t, e

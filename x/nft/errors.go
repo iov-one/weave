@@ -1,6 +1,7 @@
 package nft
 
 import (
+	"encoding/hex"
 	stderrors "errors"
 
 	"github.com/iov-one/weave/errors"
@@ -42,20 +43,20 @@ func ErrUnsupportedTokenType() error {
 	return errors.WithCode(errUnsupportedTokenType, CodeUnsupportedTokenType)
 }
 
-func ErrInvalidID() error {
-	return errors.WithCode(errInvalidID, CodeInvalidID)
+func ErrInvalidID(id []byte) error {
+	return errors.WithLog(printableId(id), errInvalidID, CodeInvalidID)
 }
-func ErrDuplicateEntry() error {
-	return errors.WithCode(errDuplicateEntry, CodeDuplicateEntry)
+func ErrDuplicateEntry(id []byte) error {
+	return errors.WithLog(printableId(id), errDuplicateEntry, CodeDuplicateEntry)
 }
 func ErrMissingEntry() error {
 	return errors.WithCode(errMissingEntry, CodeMissingEntry)
 }
-func ErrInvalidEntry() error {
-	return errors.WithCode(errInvalidEntry, CodeInvalidEntry)
+func ErrInvalidEntry(id []byte) error {
+	return errors.WithLog(printableId(id), errInvalidEntry, CodeInvalidEntry)
 }
-func ErrUnknownID() error {
-	return errors.WithCode(errUnknownID, CodeUnknownID)
+func ErrUnknownID(id []byte) error {
+	return errors.WithLog(printableId(id), errUnknownID, CodeUnknownID)
 }
 func ErrInvalidLength() error {
 	return errors.WithCode(errInvalidLength, CodeInvalidLength)
@@ -69,9 +70,32 @@ func ErrInvalidPort() error {
 func ErrInvalidProtocol() error {
 	return errors.WithCode(errInvalidProtocol, CodeInvalidProtocol)
 }
-func ErrInvalidCodec() error {
-	return errors.WithCode(errInvalidCodec, CodeInvalidCodec)
+func ErrInvalidCodec(codec string) error {
+	return errors.WithLog(codec, errInvalidCodec, CodeInvalidCodec)
 }
 func ErrInvalidJson() error {
 	return errors.WithCode(errInvalidJson, CodeInvalidJson)
+}
+
+// id's are stored as bytes, but most are ascii text
+// if in ascii, just convert to string
+// if not, hex-encode it and prefix with 0x
+func printableId(id []byte) string {
+	if len(id) == 0 {
+		return "<nil>"
+	}
+	if isSafeAscii(id) {
+		return string(id)
+	}
+	return "0x" + hex.EncodeToString(id)
+}
+
+// require all bytes between 0x20 and 0x7f
+func isSafeAscii(id []byte) bool {
+	for _, c := range id {
+		if c < 0x20 || c > 0x7f {
+			return false
+		}
+	}
+	return true
 }
