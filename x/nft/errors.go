@@ -1,6 +1,7 @@
 package nft
 
 import (
+	"encoding/hex"
 	stderrors "errors"
 
 	"github.com/iov-one/weave/errors"
@@ -74,4 +75,24 @@ func ErrInvalidCodec() error {
 }
 func ErrInvalidJson() error {
 	return errors.WithCode(errInvalidJson, CodeInvalidJson)
+}
+
+// id's are stored as bytes, but most are ascii text
+// if in ascii, just convert to string
+// if not, hex-encode it and prefix with 0x
+func printableId(id []byte) string {
+	if isSafeAscii(id) {
+		return string(id)
+	}
+	return "0x" + hex.EncodeToString(id)
+}
+
+// require all bytes between 0x20 and 0x7f
+func isSafeAscii(id []byte) bool {
+	for _, c := range id {
+		if c < 0x20 || c > 0x7f {
+			return false
+		}
+	}
+	return true
 }
