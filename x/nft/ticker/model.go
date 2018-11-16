@@ -74,7 +74,7 @@ func (m *TokenDetails) Validate() error {
 		return errors.ErrInternal("must not be nil")
 	}
 	if m.BlockchainID == nil || !blockchain.IsValidID(string(m.BlockchainID)) {
-		return nft.ErrInvalidEntry()
+		return nft.ErrInvalidEntry(m.BlockchainID)
 	}
 	return nil
 }

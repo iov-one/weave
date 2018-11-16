@@ -19,6 +19,7 @@ func TestPrintableId(t *testing.T) {
 		{[]byte{0x88, 0x99, 0xad, 0x00}, "0x8899ad00"},
 		// newline, or any control chars should also trigger hex
 		{[]byte{0x43, 0x55, 0x0a, 0x57}, "0x43550a57"},
+		{nil, "<nil>"},
 	}
 
 	for i, tc := range cases {

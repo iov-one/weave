@@ -42,7 +42,7 @@ func loadToken(bucket nft.BucketAccess, store weave.KVStore, id []byte) (orm.Obj
 	case err != nil:
 		return nil, nil, err
 	case o == nil:
-		return nil, nil, nft.ErrUnknownID()
+		return nil, nil, nft.ErrUnknownID(id)
 	}
 	t, e := asBase(o)
 	return o, t, e

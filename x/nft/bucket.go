@@ -48,7 +48,7 @@ func (b *bucketDispatcher) Register(t string, bucket BucketAccess) error {
 	b.mutex.Lock()
 	defer b.mutex.Unlock()
 	if _, ok := b.bucketMap[t]; ok {
-		return ErrDuplicateEntry()
+		return ErrDuplicateEntry([]byte(t))
 	}
 	b.bucketMap[t] = bucket
 
