@@ -31,13 +31,7 @@ tf:
 	go test -short ./...
 
 cover:
-	@ #Note: 19 is the length of "github.com/iov-one/" prefix
-	@ for pkg in $(NOVENDOR); do \
-        file=`echo $$pkg | cut -c 19- | tr / _`; \
-	    echo "Coverage on" $$pkg "as" $$file; \
-		go test -covermode=$(MODE) -coverprofile=coverage/$$file.out $$pkg; \
-		go tool cover -html=coverage/$$file.out -o=coverage/$$file.html; \
-	done
+	@ go test -covermode=$(MODE) -coverprofile=coverage/allpackages.out ./...
 	@ # most of the tests in the app package are in examples/mycoind/app...
 	@ go test -covermode=$(MODE) \
 	 	-coverpkg=github.com/iov-one/weave/app,github.com/iov-one/weave/examples/mycoind/app \
@@ -47,6 +41,10 @@ cover:
 	 	-coverpkg=github.com/iov-one/weave/commands/server \
 		-coverprofile=coverage/weave_commands_server.out \
 		github.com/iov-one/weave/examples/mycoind/commands
+	@ go test -covermode=$(MODE) \
+		-coverpkg=github.com/iov-one/weave/cmd/bnsd/app,github.com/iov-one/weave/cmd/bnsd/client,github.com/iov-one/weave/app \
+		-coverprofile=coverage/bnsd_app.out \
+		github.com/iov-one/weave/cmd/bnsd/scenarios
 	cat coverage/*.out > coverage/coverage.txt
 
 deps: tools

@@ -46,10 +46,15 @@ required = ["github.com/gogo/protobuf/protoc-gen-gogofaster"]
   name = "github.com/tendermint/tendermint"
   version = "=0.25.0"
 
+[[constraint]]
+  name = "github.com/tendermint/iavl"
+  version = "=0.11.0"
+
+[[override]]
+  name = "github.com/tendermint/go-amino"
+  version = "0.12.0-rc0"
+
 [prune]
   go-tests = true
   unused-packages = true
 
-[[constraint]]
-  name = "github.com/tendermint/iavl"
-  version = "=0.11.0"

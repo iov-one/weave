@@ -1,0 +1,12 @@
+{
+    "wallets": [
+        {
+          "address": "ce5d5a5ca8c7d545d7756d3677234d81622ba297",
+          "name": "alice"
+        },
+        {
+          "address": "d4821fd051696273d09e1fbad0ebe5b5060787a7",
+          "name": "bert"
+        }
+    ]
+}

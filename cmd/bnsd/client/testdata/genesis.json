@@ -1,0 +1,56 @@
+{
+  "app_hash": "",
+  "app_state": {
+    "wallets": [
+      {
+        "address": "3afcdab4cfbf066e959d139251c8f0ee91e99d5a",
+        "name": "admin",
+        "coins": [
+          {
+            "whole": 123456789,
+            "ticker": "CASH"
+          }
+        ]
+      },
+      {
+        "address": "12affbf6012fd2df21416582dc80cbf1efdf2460",
+        "name": "second",
+        "coins": [
+          {
+            "whole": 987654321,
+            "ticker": "CASH"
+          }
+        ]
+      }
+    ],
+    "tokens": [
+      {
+        "ticker": "CASH",
+        "name": "Main token of this chain",
+        "sig_figs": 6
+      }
+    ]
+  },
+  "chain_id": "test-chain-KqKNbF",
+  "consensus_params": {
+    "block_size_params": {
+      "max_bytes": "22020096",
+      "max_gas": "-1"
+    },
+    "evidence_params": {
+      "max_age": "100000"
+    }
+  },
+  "genesis_time": "2018-10-31T22:04:57.909689Z",
+  "validators": [
+    {
+      "address": "A94D2534C2CA44C2BB10C89D6987E43B8AAEA7FD",
+      "pub_key": {
+        "type": "tendermint/PubKeyEd25519",
+        "value": "Oq6NBzW4r6NpMdXFyI2aoZyJWGR0XJHc/nsV69ElUe4="
+      },
+      "power": "10",
+      "name": ""
+    }
+  ]
+}
