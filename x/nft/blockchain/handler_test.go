@@ -40,7 +40,17 @@ func TestHandleIssueTokenMsg(t *testing.T) {
 		{ // happy path
 			owner:   alice.Address(),
 			id:      []byte("other_network"),
-			details: blockchain.TokenDetails{Chain: blockchain.Chain{MainTickerID: []byte("IOV")}, Iov: blockchain.IOV{Codec: "test"}},
+			details: blockchain.TokenDetails{Chain: blockchain.Chain{MainTickerID: []byte("IOV")}, Iov: blockchain.IOV{Codec: "bns"}},
+		},
+		{ // happy path for tendermint chain (validate autogen chainId, codec valid)
+			owner:   alice.Address(),
+			id:      []byte("test-chain-CnckvA"),
+			details: blockchain.TokenDetails{Chain: blockchain.Chain{MainTickerID: []byte("IOV")}, Iov: blockchain.IOV{Codec: "cosmos"}},
+		},
+		{ // happy path for lisk chain (validate nethash, codec valid)
+			owner:   alice.Address(),
+			id:      []byte("9a9813156bf1d2355da31a171e37f97dfa7568187c3fd7f9c728de8f180c19c7"),
+			details: blockchain.TokenDetails{Chain: blockchain.Chain{MainTickerID: []byte("IOV")}, Iov: blockchain.IOV{Codec: "lisk"}},
 		},
 		{ // valid approvals
 			owner:   alice.Address(),
@@ -61,9 +71,15 @@ func TestHandleIssueTokenMsg(t *testing.T) {
 			}},
 			expDeliverError: true,
 		},
+		{ // unegistered ticker
+			owner:           alice.Address(),
+			id:              []byte("other_network3"),
+			details:         blockchain.TokenDetails{Chain: blockchain.Chain{MainTickerID: []byte("LSK")}, Iov: blockchain.IOV{Codec: "test", CodecConfig: `{"da": 1}`}},
+			expDeliverError: true,
+		},
 		{ // invalid codec
 			owner:   alice.Address(),
-			id:      []byte("other_network3"),
+			id:      []byte("other_network4"),
 			details: blockchain.TokenDetails{Chain: blockchain.Chain{MainTickerID: []byte("IOV")}, Iov: blockchain.IOV{Codec: "1"}},
 			approvals: []nft.ActionApprovals{{
 				Action:    nft.Action_ActionUpdateDetails.String(),
@@ -73,7 +89,7 @@ func TestHandleIssueTokenMsg(t *testing.T) {
 		},
 		{ // invalid codec json
 			owner:   alice.Address(),
-			id:      []byte("other_network4"),
+			id:      []byte("other_network5"),
 			details: blockchain.TokenDetails{Chain: blockchain.Chain{MainTickerID: []byte("IOV")}, Iov: blockchain.IOV{Codec: "bbb", CodecConfig: "{ssdas"}},
 			approvals: []nft.ActionApprovals{{
 				Action:    nft.Action_ActionUpdateDetails.String(),
@@ -83,7 +99,7 @@ func TestHandleIssueTokenMsg(t *testing.T) {
 		},
 		{ // invalid approvals
 			owner:           alice.Address(),
-			id:              []byte("other_network5"),
+			id:              []byte("other_network6"),
 			details:         blockchain.TokenDetails{Chain: blockchain.Chain{MainTickerID: []byte("IOV")}, Iov: blockchain.IOV{Codec: "test"}},
 			expCheckError:   true,
 			expDeliverError: true,

@@ -16,7 +16,7 @@ const (
 
 var (
 	//todo: revisit pattern
-	IsValidID = regexp.MustCompile(`^[a-zA-Z0-9_.]{4,256}$`).MatchString
+	IsValidID = regexp.MustCompile(`^[a-zA-Z0-9_.-]{4,128}$`).MatchString
 )
 
 // Path returns the routing path for this message
