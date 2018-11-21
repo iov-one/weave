@@ -71,6 +71,7 @@ func (*Decorator) combineChecks(checks []weave.CheckResult) weave.CheckResult {
 	var allocated, payments int64
 	for i, r := range checks {
 		datas[i] = r.Data
+		//TODO: Is this good enough conversion? Should be, in theory
 		logs[i] = []byte(r.Log)
 		allocated += r.GasAllocated
 		payments += r.GasPayment
@@ -81,6 +82,7 @@ func (*Decorator) combineChecks(checks []weave.CheckResult) weave.CheckResult {
 
 	return weave.CheckResult{
 		Data:         data,
+		//TODO: Is this good enough conversion? Should be, in theory
 		Log:          string(log),
 		GasAllocated: allocated,
 		GasPayment:   payments,
@@ -126,6 +128,7 @@ func (*Decorator) combineDelivers(delivers []weave.DeliverResult) weave.DeliverR
 	var tags []common.KVPair
 	for i, r := range delivers {
 		datas[i] = r.Data
+		//TODO: Is this good enough conversion? Should be, in theory
 		logs[i] = []byte(r.Log)
 		payments += r.GasUsed
 		if len(r.Diff) > 0 {
@@ -141,6 +144,7 @@ func (*Decorator) combineDelivers(delivers []weave.DeliverResult) weave.DeliverR
 
 	return weave.DeliverResult{
 		Data:    data,
+		//TODO: Is this good enough?
 		Log:     string(log),
 		GasUsed: payments,
 		Diff:    diffs,
