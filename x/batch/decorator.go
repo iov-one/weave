@@ -7,7 +7,7 @@ package batch
 
 import (
 	"github.com/iov-one/weave"
-		"github.com/tendermint/tendermint/abci/types"
+	"github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/common"
 )
 
@@ -147,6 +147,6 @@ func (*Decorator) combineDelivers(delivers []weave.DeliverResult) weave.DeliverR
 		//TODO: Per Ethan's comment this is sorted
 		// https://github.com/iov-one/weave/pull/188#discussion_r234531097
 		// but I couldn't find a place where, so need to figure it out
-		Tags:    tags,
+		Tags: tags,
 	}
 }

@@ -209,7 +209,7 @@ func sendToken(t *testing.T, baseApp weave_app.BaseApp, chainID string, height i
 	}
 
 	tx := &app.Tx{
-		Sum:     &app.Sum{&app.Sum_SendMsg{msg}},
+		Sum:      &app.Sum{&app.Sum_SendMsg{msg}},
 		Multisig: contracts,
 	}
 

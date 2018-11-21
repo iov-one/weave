@@ -46,7 +46,7 @@ func TestIssueNfts(t *testing.T) {
 			}},
 		},
 		},
-	},
+		},
 	}
 
 	res = signAndCommit(t, myApp, tx, []Signer{{issuerPrivKey, 1}}, appFixture.ChainID, 3)
@@ -56,7 +56,7 @@ func TestIssueNfts(t *testing.T) {
 
 	// and when ticker nft issued
 	tx = &app.Tx{
-		Sum: &app.Sum{Sum:&app.Sum_IssueTickerNftMsg{&ticker.IssueTokenMsg{
+		Sum: &app.Sum{Sum: &app.Sum_IssueTickerNftMsg{&ticker.IssueTokenMsg{
 			Id:      []byte("ANY"),
 			Owner:   isuserAddr,
 			Details: ticker.TokenDetails{myBlockchainID},

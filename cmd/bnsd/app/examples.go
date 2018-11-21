@@ -58,7 +58,7 @@ func Examples() []commands.Example {
 	}
 
 	unsigned := Tx{
-		Sum: &Sum{ &Sum_SendMsg{msg}},
+		Sum: &Sum{&Sum_SendMsg{msg}},
 	}
 	tx := unsigned
 	sig, err := sigs.SignTx(priv, &tx, "test-123", 17)

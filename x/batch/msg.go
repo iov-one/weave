@@ -2,7 +2,7 @@ package batch
 
 import (
 	"github.com/iov-one/weave"
-	)
+)
 
 const (
 	PathExecuteBatchMsg = "batch/execute"
