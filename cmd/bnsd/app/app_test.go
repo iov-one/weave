@@ -209,7 +209,7 @@ func sendToken(t *testing.T, baseApp weave_app.BaseApp, chainID string, height i
 	}
 
 	tx := &app.Tx{
-		Sum:      &app.Tx_SendMsg{msg},
+		Sum:     &app.Sum{&app.Sum_SendMsg{msg}},
 		Multisig: contracts,
 	}
 
@@ -240,7 +240,7 @@ func createContract(t *testing.T, baseApp weave_app.BaseApp, chainID string, hei
 	}
 
 	tx := &app.Tx{
-		Sum: &app.Tx_CreateContractMsg{msg},
+		Sum: &app.Sum{&app.Sum_CreateContractMsg{msg}},
 	}
 
 	dres := signAndCommit(t, baseApp, tx, signers, chainID, height)

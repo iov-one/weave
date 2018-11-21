@@ -396,7 +396,7 @@ func sendToken(t require.TestingT, baseApp app.BaseApp, chainID string, height i
 	}
 
 	tx := &Tx{
-		Sum:      &Tx_SendMsg{msg},
+		Sum:      &Sum{&Sum_SendMsg{msg}},
 		Multisig: contracts,
 	}
 
@@ -427,7 +427,7 @@ func createContract(t require.TestingT, baseApp app.BaseApp, chainID string, hei
 	}
 
 	tx := &Tx{
-		Sum: &Tx_CreateContractMsg{msg},
+		Sum: &Sum{&Sum_CreateContractMsg{msg}},
 	}
 
 	dres := signAndCommit(t, baseApp, tx, signers, chainID, height)
@@ -536,7 +536,7 @@ func makeSendTx(t require.TestingT, chainID string, sender, receiver *account, t
 	}
 
 	tx := &Tx{
-		Sum: &Tx_SendMsg{msg},
+		Sum: &Sum{&Sum_SendMsg{msg}},
 	}
 
 	sig, err := sigs.SignTx(sender.pk, tx, chainID, sender.nonce())
@@ -563,7 +563,7 @@ func makeSendTxMultisig(t require.TestingT, chainID string, sender, receiver *co
 	}
 
 	tx := &Tx{
-		Sum:      &Tx_SendMsg{msg},
+		Sum:      &Sum{&Sum_SendMsg{msg}},
 		Multisig: [][]byte{sender.id},
 	}
 
@@ -588,7 +588,7 @@ func makeCreateContractTx(t require.TestingT, chainID string, signers [][]byte, 
 	}
 
 	return &Tx{
-		Sum: &Tx_CreateContractMsg{msg},
+		Sum: &Sum{&Sum_CreateContractMsg{msg}},
 	}
 }
 

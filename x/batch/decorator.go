@@ -7,8 +7,7 @@ package batch
 
 import (
 	"github.com/iov-one/weave"
-	"github.com/tendermint/go-amino"
-	"github.com/tendermint/tendermint/abci/types"
+		"github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/common"
 )
 
@@ -48,10 +47,11 @@ func (d Decorator) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx,
 		return res, err
 	}
 
-	if batchMsg, ok := msg.(*ExecuteBatchMsg); ok {
-		checks := make([]weave.CheckResult, len(batchMsg.Messages))
-		for i, msg := range batchMsg.Messages {
-			checks[i], err = next.Check(ctx, store, &BatchTx{Tx: tx, Msg: msg.GetMsg().(weave.Msg)})
+	if batchMsg, ok := msg.(Msg); ok {
+		msgList := batchMsg.MsgList()
+		checks := make([]weave.CheckResult, len(msgList))
+		for i, msg := range msgList {
+			checks[i], err = next.Check(ctx, store, &BatchTx{Tx: tx, Msg: msg})
 			if err != nil {
 				return res, err
 			}
@@ -76,10 +76,11 @@ func (*Decorator) combineChecks(checks []weave.CheckResult) weave.CheckResult {
 		payments += r.GasPayment
 	}
 
+	data, _ := (&ByteArrayList{Elements: datas}).Marshal()
 	log, _ := (&ByteArrayList{Elements: logs}).Marshal()
 
 	return weave.CheckResult{
-		Data:         amino.MustMarshalBinary(datas),
+		Data:         data,
 		Log:          string(log),
 		GasAllocated: allocated,
 		GasPayment:   payments,
@@ -98,10 +99,12 @@ func (d Decorator) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx,
 		return res, err
 	}
 
-	if batchMsg, ok := msg.(*ExecuteBatchMsg); ok {
-		delivers := make([]weave.DeliverResult, len(batchMsg.Messages))
-		for i, msg := range batchMsg.Messages {
-			delivers[i], err = next.Deliver(ctx, store, &BatchTx{Tx: tx, Msg: msg.GetMsg().(weave.Msg)})
+	if batchMsg, ok := msg.(Msg); ok {
+		msgList := batchMsg.MsgList()
+
+		delivers := make([]weave.DeliverResult, len(msgList))
+		for i, msg := range msgList {
+			delivers[i], err = next.Deliver(ctx, store, &BatchTx{Tx: tx, Msg: msg})
 			if err != nil {
 				return res, err
 			}
@@ -141,6 +144,9 @@ func (*Decorator) combineDelivers(delivers []weave.DeliverResult) weave.DeliverR
 		Log:     string(log),
 		GasUsed: payments,
 		Diff:    diffs,
+		//TODO: Per Ethan's comment this is sorted
+		// https://github.com/iov-one/weave/pull/188#discussion_r234531097
+		// but I couldn't find a place where, so need to figure it out
 		Tags:    tags,
 	}
 }

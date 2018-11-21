@@ -2,6 +2,7 @@ syntax = "proto3";
 
 package app;
 
+import "github.com/gogo/protobuf/gogoproto/gogo.proto";
 import "github.com/iov-one/weave/x/cash/codec.proto";
 import "github.com/iov-one/weave/x/escrow/codec.proto";
 import "github.com/iov-one/weave/x/namecoin/codec.proto";
@@ -18,6 +19,25 @@ import "github.com/iov-one/weave/x/validators/codec.proto";
 // Tx contains the message
 message Tx {
     // msg is a sum type over all allowed messages on this chain.
+    Sum sum = 1;
+    // fee info, autogenerates GetFees()
+    cash.FeeInfo fees = 2;
+    // signatures, autogenerates GetSignatures()
+    repeated sigs.StdSignature signatures = 3;
+    // preimage for hashlock, autogenerates GetPreimage
+    bytes preimage = 4;
+    // id of multisig contract, autogenerates GetMultisig
+    repeated bytes multisig = 5;
+}
+
+enum NftType {
+    Username = 0;
+    Ticker = 1;
+    Blockchain = 3;
+    BootstrapNode = 4;
+}
+
+message Sum {
     oneof sum {
         cash.SendMsg send_msg = 1;
         namecoin.NewTokenMsg new_token_msg = 2;
@@ -41,20 +61,11 @@ message Tx {
         blockchain.IssueTokenMsg issue_blockchain_nft_msg = 16;
         ticker.IssueTokenMsg issue_ticker_nft_msg = 17;
         bootstrap_node.IssueTokenMsg issue_bootstrap_node_nft_msg = 18;
+        BatchMsg batch_msg = 19;
     }
-    // fee info, autogenerates GetFees()
-    cash.FeeInfo fees = 20;
-    // signatures, autogenerates GetSignatures()
-    repeated sigs.StdSignature signatures = 21;
-    // preimage for hashlock, autogenerates GetPreimage
-    bytes preimage = 22;
-    // id of multisig contract, autogenerates GetMultisig
-    repeated bytes multisig = 23;
 }
 
-enum NftType {
-    Username = 0;
-    Ticker = 1;
-    Blockchain = 3;
-    BootstrapNode = 4;
+// BatchMsg encapsulates multiple messages to support batch transaction
+message BatchMsg {
+    repeated Sum messages = 1 [(gogoproto.nullable) = false];
 }
