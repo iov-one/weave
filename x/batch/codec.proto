@@ -15,6 +15,10 @@ import "github.com/iov-one/weave/x/nft/username/codec.proto";
 import "github.com/iov-one/weave/x/nft/bootstrap_node/codec.proto";
 import "github.com/iov-one/weave/x/validators/codec.proto";
 
+message ByteArrayList {
+    repeated bytes elements = 1;
+}
+
 // ExecuteBatchMsg encapsulates multiple messages to support batch transaction
 message ExecuteBatchMsg {
     repeated Msg messages = 1 [(gogoproto.nullable) = false];

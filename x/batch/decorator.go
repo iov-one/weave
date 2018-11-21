@@ -6,8 +6,6 @@ transaction
 package batch
 
 import (
-	"strings"
-
 	"github.com/iov-one/weave"
 	"github.com/tendermint/go-amino"
 	"github.com/tendermint/tendermint/abci/types"
@@ -42,10 +40,12 @@ func (tx *BatchTx) GetMsg() (weave.Msg, error) {
 // Check iterates through messages in a batch transaction and passes them
 // down the stack
 func (d Decorator) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx,
-	next weave.Checker) (res weave.CheckResult, err error) {
+	next weave.Checker) (weave.CheckResult, error) {
+	var res weave.CheckResult
+	var err error
 	msg, err := tx.GetMsg()
 	if err != nil {
-		return
+		return res, err
 	}
 
 	if batchMsg, ok := msg.(*ExecuteBatchMsg); ok {
@@ -53,11 +53,11 @@ func (d Decorator) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx,
 		for i, msg := range batchMsg.Messages {
 			checks[i], err = next.Check(ctx, store, &BatchTx{Tx: tx, Msg: msg.GetMsg().(weave.Msg)})
 			if err != nil {
-				return
+				return res, err
 			}
 		}
 		res = d.combineChecks(checks)
-		return
+		return res, err
 	}
 
 	return next.Check(ctx, store, tx)
@@ -67,17 +67,20 @@ func (d Decorator) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx,
 // joins all log messages with \n
 func (*Decorator) combineChecks(checks []weave.CheckResult) weave.CheckResult {
 	datas := make([][]byte, len(checks))
-	logs := make([]string, len(checks))
+	logs := make([][]byte, len(checks))
 	var allocated, payments int64
 	for i, r := range checks {
 		datas[i] = r.Data
-		logs[i] = r.Log
+		logs[i] = []byte(r.Log)
 		allocated += r.GasAllocated
 		payments += r.GasPayment
 	}
+
+	log, _ := (&ByteArrayList{Elements: logs}).Marshal()
+
 	return weave.CheckResult{
 		Data:         amino.MustMarshalBinary(datas),
-		Log:          strings.Join(logs, "\n"),
+		Log:          string(log),
 		GasAllocated: allocated,
 		GasPayment:   payments,
 	}
@@ -86,10 +89,13 @@ func (*Decorator) combineChecks(checks []weave.CheckResult) weave.CheckResult {
 // Deliver iterates through messages in a batch transaction and passes them
 // down the stack
 func (d Decorator) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx,
-	next weave.Deliverer) (res weave.DeliverResult, err error) {
+	next weave.Deliverer) (weave.DeliverResult, error) {
+	var res weave.DeliverResult
+	var err error
+
 	msg, err := tx.GetMsg()
 	if err != nil {
-		return
+		return res, err
 	}
 
 	if batchMsg, ok := msg.(*ExecuteBatchMsg); ok {
@@ -97,11 +103,11 @@ func (d Decorator) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx,
 		for i, msg := range batchMsg.Messages {
 			delivers[i], err = next.Deliver(ctx, store, &BatchTx{Tx: tx, Msg: msg.GetMsg().(weave.Msg)})
 			if err != nil {
-				return
+				return res, err
 			}
 		}
 		res = d.combineDelivers(delivers)
-		return
+		return res, err
 	}
 
 	return next.Deliver(ctx, store, tx)
@@ -111,13 +117,13 @@ func (d Decorator) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx,
 // joins all log messages with \n
 func (*Decorator) combineDelivers(delivers []weave.DeliverResult) weave.DeliverResult {
 	datas := make([][]byte, len(delivers))
-	logs := make([]string, len(delivers))
+	logs := make([][]byte, len(delivers))
 	var payments int64
 	var diffs []types.ValidatorUpdate
 	var tags []common.KVPair
 	for i, r := range delivers {
 		datas[i] = r.Data
-		logs[i] = r.Log
+		logs[i] = []byte(r.Log)
 		payments += r.GasUsed
 		if len(r.Diff) > 0 {
 			diffs = append(diffs, r.Diff...)
@@ -126,9 +132,13 @@ func (*Decorator) combineDelivers(delivers []weave.DeliverResult) weave.DeliverR
 			tags = append(tags, r.Tags...)
 		}
 	}
+
+	data, _ := (&ByteArrayList{Elements: datas}).Marshal()
+	log, _ := (&ByteArrayList{Elements: logs}).Marshal()
+
 	return weave.DeliverResult{
-		Data:    amino.MustMarshalBinary(datas),
-		Log:     strings.Join(logs, "\n"),
+		Data:    data,
+		Log:     string(log),
 		GasUsed: payments,
 		Diff:    diffs,
 		Tags:    tags,
