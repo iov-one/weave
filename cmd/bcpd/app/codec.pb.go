@@ -9,7 +9,6 @@
 
 	It has these top-level messages:
 		Tx
-		Sum
 		BatchMsg
 */
 package app
@@ -41,15 +40,28 @@ const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
 // Tx contains the message
 type Tx struct {
 	// msg is a sum type over all allowed messages on this chain.
-	Sum *Sum `protobuf:"bytes,1,opt,name=sum" json:"sum,omitempty"`
+	//
+	// Types that are valid to be assigned to Sum:
+	//	*Tx_SendMsg
+	//	*Tx_NewTokenMsg
+	//	*Tx_SetNameMsg
+	//	*Tx_CreateEscrowMsg
+	//	*Tx_ReleaseEscrowMsg
+	//	*Tx_ReturnEscrowMsg
+	//	*Tx_UpdateEscrowMsg
+	//	*Tx_CreateContractMsg
+	//	*Tx_UpdateContractMsg
+	//	*Tx_SetValidatorsMsg
+	//	*Tx_BatchMsg
+	Sum isTx_Sum `protobuf_oneof:"sum"`
 	// fee info, autogenerates GetFees()
-	Fees *cash.FeeInfo `protobuf:"bytes,2,opt,name=fees" json:"fees,omitempty"`
+	Fees *cash.FeeInfo `protobuf:"bytes,12,opt,name=fees" json:"fees,omitempty"`
 	// signatures, autogenerates GetSignatures()
-	Signatures []*sigs.StdSignature `protobuf:"bytes,3,rep,name=signatures" json:"signatures,omitempty"`
+	Signatures []*sigs.StdSignature `protobuf:"bytes,13,rep,name=signatures" json:"signatures,omitempty"`
 	// preimage for hashlock, autogenerates GetPreimage
-	Preimage []byte `protobuf:"bytes,4,opt,name=preimage,proto3" json:"preimage,omitempty"`
+	Preimage []byte `protobuf:"bytes,14,opt,name=preimage,proto3" json:"preimage,omitempty"`
 	// id of multisig contract, autogenerates GetMultisig
-	Multisig [][]byte `protobuf:"bytes,5,rep,name=multisig" json:"multisig,omitempty"`
+	Multisig [][]byte `protobuf:"bytes,15,rep,name=multisig" json:"multisig,omitempty"`
 }
 
 func (m *Tx) Reset()                    { *m = Tx{} }
@@ -57,9 +69,138 @@ func (m *Tx) String() string            { return proto.CompactTextString(m) }
 func (*Tx) ProtoMessage()               {}
 func (*Tx) Descriptor() ([]byte, []int) { return fileDescriptorCodec, []int{0} }
 
-func (m *Tx) GetSum() *Sum {
+type isTx_Sum interface {
+	isTx_Sum()
+	MarshalTo([]byte) (int, error)
+	Size() int
+}
+
+type Tx_SendMsg struct {
+	SendMsg *cash.SendMsg `protobuf:"bytes,1,opt,name=send_msg,json=sendMsg,oneof"`
+}
+type Tx_NewTokenMsg struct {
+	NewTokenMsg *namecoin.NewTokenMsg `protobuf:"bytes,2,opt,name=new_token_msg,json=newTokenMsg,oneof"`
+}
+type Tx_SetNameMsg struct {
+	SetNameMsg *namecoin.SetWalletNameMsg `protobuf:"bytes,3,opt,name=set_name_msg,json=setNameMsg,oneof"`
+}
+type Tx_CreateEscrowMsg struct {
+	CreateEscrowMsg *escrow.CreateEscrowMsg `protobuf:"bytes,4,opt,name=create_escrow_msg,json=createEscrowMsg,oneof"`
+}
+type Tx_ReleaseEscrowMsg struct {
+	ReleaseEscrowMsg *escrow.ReleaseEscrowMsg `protobuf:"bytes,5,opt,name=release_escrow_msg,json=releaseEscrowMsg,oneof"`
+}
+type Tx_ReturnEscrowMsg struct {
+	ReturnEscrowMsg *escrow.ReturnEscrowMsg `protobuf:"bytes,6,opt,name=return_escrow_msg,json=returnEscrowMsg,oneof"`
+}
+type Tx_UpdateEscrowMsg struct {
+	UpdateEscrowMsg *escrow.UpdateEscrowPartiesMsg `protobuf:"bytes,7,opt,name=update_escrow_msg,json=updateEscrowMsg,oneof"`
+}
+type Tx_CreateContractMsg struct {
+	CreateContractMsg *multisig.CreateContractMsg `protobuf:"bytes,8,opt,name=create_contract_msg,json=createContractMsg,oneof"`
+}
+type Tx_UpdateContractMsg struct {
+	UpdateContractMsg *multisig.UpdateContractMsg `protobuf:"bytes,9,opt,name=update_contract_msg,json=updateContractMsg,oneof"`
+}
+type Tx_SetValidatorsMsg struct {
+	SetValidatorsMsg *validators.SetValidatorsMsg `protobuf:"bytes,10,opt,name=set_validators_msg,json=setValidatorsMsg,oneof"`
+}
+type Tx_BatchMsg struct {
+	BatchMsg *BatchMsg `protobuf:"bytes,11,opt,name=batch_msg,json=batchMsg,oneof"`
+}
+
+func (*Tx_SendMsg) isTx_Sum()           {}
+func (*Tx_NewTokenMsg) isTx_Sum()       {}
+func (*Tx_SetNameMsg) isTx_Sum()        {}
+func (*Tx_CreateEscrowMsg) isTx_Sum()   {}
+func (*Tx_ReleaseEscrowMsg) isTx_Sum()  {}
+func (*Tx_ReturnEscrowMsg) isTx_Sum()   {}
+func (*Tx_UpdateEscrowMsg) isTx_Sum()   {}
+func (*Tx_CreateContractMsg) isTx_Sum() {}
+func (*Tx_UpdateContractMsg) isTx_Sum() {}
+func (*Tx_SetValidatorsMsg) isTx_Sum()  {}
+func (*Tx_BatchMsg) isTx_Sum()          {}
+
+func (m *Tx) GetSum() isTx_Sum {
 	if m != nil {
 		return m.Sum
+	}
+	return nil
+}
+
+func (m *Tx) GetSendMsg() *cash.SendMsg {
+	if x, ok := m.GetSum().(*Tx_SendMsg); ok {
+		return x.SendMsg
+	}
+	return nil
+}
+
+func (m *Tx) GetNewTokenMsg() *namecoin.NewTokenMsg {
+	if x, ok := m.GetSum().(*Tx_NewTokenMsg); ok {
+		return x.NewTokenMsg
+	}
+	return nil
+}
+
+func (m *Tx) GetSetNameMsg() *namecoin.SetWalletNameMsg {
+	if x, ok := m.GetSum().(*Tx_SetNameMsg); ok {
+		return x.SetNameMsg
+	}
+	return nil
+}
+
+func (m *Tx) GetCreateEscrowMsg() *escrow.CreateEscrowMsg {
+	if x, ok := m.GetSum().(*Tx_CreateEscrowMsg); ok {
+		return x.CreateEscrowMsg
+	}
+	return nil
+}
+
+func (m *Tx) GetReleaseEscrowMsg() *escrow.ReleaseEscrowMsg {
+	if x, ok := m.GetSum().(*Tx_ReleaseEscrowMsg); ok {
+		return x.ReleaseEscrowMsg
+	}
+	return nil
+}
+
+func (m *Tx) GetReturnEscrowMsg() *escrow.ReturnEscrowMsg {
+	if x, ok := m.GetSum().(*Tx_ReturnEscrowMsg); ok {
+		return x.ReturnEscrowMsg
+	}
+	return nil
+}
+
+func (m *Tx) GetUpdateEscrowMsg() *escrow.UpdateEscrowPartiesMsg {
+	if x, ok := m.GetSum().(*Tx_UpdateEscrowMsg); ok {
+		return x.UpdateEscrowMsg
+	}
+	return nil
+}
+
+func (m *Tx) GetCreateContractMsg() *multisig.CreateContractMsg {
+	if x, ok := m.GetSum().(*Tx_CreateContractMsg); ok {
+		return x.CreateContractMsg
+	}
+	return nil
+}
+
+func (m *Tx) GetUpdateContractMsg() *multisig.UpdateContractMsg {
+	if x, ok := m.GetSum().(*Tx_UpdateContractMsg); ok {
+		return x.UpdateContractMsg
+	}
+	return nil
+}
+
+func (m *Tx) GetSetValidatorsMsg() *validators.SetValidatorsMsg {
+	if x, ok := m.GetSum().(*Tx_SetValidatorsMsg); ok {
+		return x.SetValidatorsMsg
+	}
+	return nil
+}
+
+func (m *Tx) GetBatchMsg() *BatchMsg {
+	if x, ok := m.GetSum().(*Tx_BatchMsg); ok {
+		return x.BatchMsg
 	}
 	return nil
 }
@@ -92,248 +233,91 @@ func (m *Tx) GetMultisig() [][]byte {
 	return nil
 }
 
-type Sum struct {
-	// Types that are valid to be assigned to Sum:
-	//	*Sum_SendMsg
-	//	*Sum_NewTokenMsg
-	//	*Sum_SetNameMsg
-	//	*Sum_CreateEscrowMsg
-	//	*Sum_ReleaseEscrowMsg
-	//	*Sum_ReturnEscrowMsg
-	//	*Sum_UpdateEscrowMsg
-	//	*Sum_CreateContractMsg
-	//	*Sum_UpdateContractMsg
-	//	*Sum_SetValidatorsMsg
-	//	*Sum_BatchMsg
-	Sum isSum_Sum `protobuf_oneof:"sum"`
-}
-
-func (m *Sum) Reset()                    { *m = Sum{} }
-func (m *Sum) String() string            { return proto.CompactTextString(m) }
-func (*Sum) ProtoMessage()               {}
-func (*Sum) Descriptor() ([]byte, []int) { return fileDescriptorCodec, []int{1} }
-
-type isSum_Sum interface {
-	isSum_Sum()
-	MarshalTo([]byte) (int, error)
-	Size() int
-}
-
-type Sum_SendMsg struct {
-	SendMsg *cash.SendMsg `protobuf:"bytes,1,opt,name=send_msg,json=sendMsg,oneof"`
-}
-type Sum_NewTokenMsg struct {
-	NewTokenMsg *namecoin.NewTokenMsg `protobuf:"bytes,2,opt,name=new_token_msg,json=newTokenMsg,oneof"`
-}
-type Sum_SetNameMsg struct {
-	SetNameMsg *namecoin.SetWalletNameMsg `protobuf:"bytes,3,opt,name=set_name_msg,json=setNameMsg,oneof"`
-}
-type Sum_CreateEscrowMsg struct {
-	CreateEscrowMsg *escrow.CreateEscrowMsg `protobuf:"bytes,4,opt,name=create_escrow_msg,json=createEscrowMsg,oneof"`
-}
-type Sum_ReleaseEscrowMsg struct {
-	ReleaseEscrowMsg *escrow.ReleaseEscrowMsg `protobuf:"bytes,5,opt,name=release_escrow_msg,json=releaseEscrowMsg,oneof"`
-}
-type Sum_ReturnEscrowMsg struct {
-	ReturnEscrowMsg *escrow.ReturnEscrowMsg `protobuf:"bytes,6,opt,name=return_escrow_msg,json=returnEscrowMsg,oneof"`
-}
-type Sum_UpdateEscrowMsg struct {
-	UpdateEscrowMsg *escrow.UpdateEscrowPartiesMsg `protobuf:"bytes,7,opt,name=update_escrow_msg,json=updateEscrowMsg,oneof"`
-}
-type Sum_CreateContractMsg struct {
-	CreateContractMsg *multisig.CreateContractMsg `protobuf:"bytes,8,opt,name=create_contract_msg,json=createContractMsg,oneof"`
-}
-type Sum_UpdateContractMsg struct {
-	UpdateContractMsg *multisig.UpdateContractMsg `protobuf:"bytes,9,opt,name=update_contract_msg,json=updateContractMsg,oneof"`
-}
-type Sum_SetValidatorsMsg struct {
-	SetValidatorsMsg *validators.SetValidatorsMsg `protobuf:"bytes,10,opt,name=set_validators_msg,json=setValidatorsMsg,oneof"`
-}
-type Sum_BatchMsg struct {
-	BatchMsg *BatchMsg `protobuf:"bytes,11,opt,name=batch_msg,json=batchMsg,oneof"`
-}
-
-func (*Sum_SendMsg) isSum_Sum()           {}
-func (*Sum_NewTokenMsg) isSum_Sum()       {}
-func (*Sum_SetNameMsg) isSum_Sum()        {}
-func (*Sum_CreateEscrowMsg) isSum_Sum()   {}
-func (*Sum_ReleaseEscrowMsg) isSum_Sum()  {}
-func (*Sum_ReturnEscrowMsg) isSum_Sum()   {}
-func (*Sum_UpdateEscrowMsg) isSum_Sum()   {}
-func (*Sum_CreateContractMsg) isSum_Sum() {}
-func (*Sum_UpdateContractMsg) isSum_Sum() {}
-func (*Sum_SetValidatorsMsg) isSum_Sum()  {}
-func (*Sum_BatchMsg) isSum_Sum()          {}
-
-func (m *Sum) GetSum() isSum_Sum {
-	if m != nil {
-		return m.Sum
-	}
-	return nil
-}
-
-func (m *Sum) GetSendMsg() *cash.SendMsg {
-	if x, ok := m.GetSum().(*Sum_SendMsg); ok {
-		return x.SendMsg
-	}
-	return nil
-}
-
-func (m *Sum) GetNewTokenMsg() *namecoin.NewTokenMsg {
-	if x, ok := m.GetSum().(*Sum_NewTokenMsg); ok {
-		return x.NewTokenMsg
-	}
-	return nil
-}
-
-func (m *Sum) GetSetNameMsg() *namecoin.SetWalletNameMsg {
-	if x, ok := m.GetSum().(*Sum_SetNameMsg); ok {
-		return x.SetNameMsg
-	}
-	return nil
-}
-
-func (m *Sum) GetCreateEscrowMsg() *escrow.CreateEscrowMsg {
-	if x, ok := m.GetSum().(*Sum_CreateEscrowMsg); ok {
-		return x.CreateEscrowMsg
-	}
-	return nil
-}
-
-func (m *Sum) GetReleaseEscrowMsg() *escrow.ReleaseEscrowMsg {
-	if x, ok := m.GetSum().(*Sum_ReleaseEscrowMsg); ok {
-		return x.ReleaseEscrowMsg
-	}
-	return nil
-}
-
-func (m *Sum) GetReturnEscrowMsg() *escrow.ReturnEscrowMsg {
-	if x, ok := m.GetSum().(*Sum_ReturnEscrowMsg); ok {
-		return x.ReturnEscrowMsg
-	}
-	return nil
-}
-
-func (m *Sum) GetUpdateEscrowMsg() *escrow.UpdateEscrowPartiesMsg {
-	if x, ok := m.GetSum().(*Sum_UpdateEscrowMsg); ok {
-		return x.UpdateEscrowMsg
-	}
-	return nil
-}
-
-func (m *Sum) GetCreateContractMsg() *multisig.CreateContractMsg {
-	if x, ok := m.GetSum().(*Sum_CreateContractMsg); ok {
-		return x.CreateContractMsg
-	}
-	return nil
-}
-
-func (m *Sum) GetUpdateContractMsg() *multisig.UpdateContractMsg {
-	if x, ok := m.GetSum().(*Sum_UpdateContractMsg); ok {
-		return x.UpdateContractMsg
-	}
-	return nil
-}
-
-func (m *Sum) GetSetValidatorsMsg() *validators.SetValidatorsMsg {
-	if x, ok := m.GetSum().(*Sum_SetValidatorsMsg); ok {
-		return x.SetValidatorsMsg
-	}
-	return nil
-}
-
-func (m *Sum) GetBatchMsg() *BatchMsg {
-	if x, ok := m.GetSum().(*Sum_BatchMsg); ok {
-		return x.BatchMsg
-	}
-	return nil
-}
-
 // XXX_OneofFuncs is for the internal use of the proto package.
-func (*Sum) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
-	return _Sum_OneofMarshaler, _Sum_OneofUnmarshaler, _Sum_OneofSizer, []interface{}{
-		(*Sum_SendMsg)(nil),
-		(*Sum_NewTokenMsg)(nil),
-		(*Sum_SetNameMsg)(nil),
-		(*Sum_CreateEscrowMsg)(nil),
-		(*Sum_ReleaseEscrowMsg)(nil),
-		(*Sum_ReturnEscrowMsg)(nil),
-		(*Sum_UpdateEscrowMsg)(nil),
-		(*Sum_CreateContractMsg)(nil),
-		(*Sum_UpdateContractMsg)(nil),
-		(*Sum_SetValidatorsMsg)(nil),
-		(*Sum_BatchMsg)(nil),
+func (*Tx) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
+	return _Tx_OneofMarshaler, _Tx_OneofUnmarshaler, _Tx_OneofSizer, []interface{}{
+		(*Tx_SendMsg)(nil),
+		(*Tx_NewTokenMsg)(nil),
+		(*Tx_SetNameMsg)(nil),
+		(*Tx_CreateEscrowMsg)(nil),
+		(*Tx_ReleaseEscrowMsg)(nil),
+		(*Tx_ReturnEscrowMsg)(nil),
+		(*Tx_UpdateEscrowMsg)(nil),
+		(*Tx_CreateContractMsg)(nil),
+		(*Tx_UpdateContractMsg)(nil),
+		(*Tx_SetValidatorsMsg)(nil),
+		(*Tx_BatchMsg)(nil),
 	}
 }
 
-func _Sum_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
-	m := msg.(*Sum)
+func _Tx_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
+	m := msg.(*Tx)
 	// sum
 	switch x := m.Sum.(type) {
-	case *Sum_SendMsg:
+	case *Tx_SendMsg:
 		_ = b.EncodeVarint(1<<3 | proto.WireBytes)
 		if err := b.EncodeMessage(x.SendMsg); err != nil {
 			return err
 		}
-	case *Sum_NewTokenMsg:
+	case *Tx_NewTokenMsg:
 		_ = b.EncodeVarint(2<<3 | proto.WireBytes)
 		if err := b.EncodeMessage(x.NewTokenMsg); err != nil {
 			return err
 		}
-	case *Sum_SetNameMsg:
+	case *Tx_SetNameMsg:
 		_ = b.EncodeVarint(3<<3 | proto.WireBytes)
 		if err := b.EncodeMessage(x.SetNameMsg); err != nil {
 			return err
 		}
-	case *Sum_CreateEscrowMsg:
+	case *Tx_CreateEscrowMsg:
 		_ = b.EncodeVarint(4<<3 | proto.WireBytes)
 		if err := b.EncodeMessage(x.CreateEscrowMsg); err != nil {
 			return err
 		}
-	case *Sum_ReleaseEscrowMsg:
+	case *Tx_ReleaseEscrowMsg:
 		_ = b.EncodeVarint(5<<3 | proto.WireBytes)
 		if err := b.EncodeMessage(x.ReleaseEscrowMsg); err != nil {
 			return err
 		}
-	case *Sum_ReturnEscrowMsg:
+	case *Tx_ReturnEscrowMsg:
 		_ = b.EncodeVarint(6<<3 | proto.WireBytes)
 		if err := b.EncodeMessage(x.ReturnEscrowMsg); err != nil {
 			return err
 		}
-	case *Sum_UpdateEscrowMsg:
+	case *Tx_UpdateEscrowMsg:
 		_ = b.EncodeVarint(7<<3 | proto.WireBytes)
 		if err := b.EncodeMessage(x.UpdateEscrowMsg); err != nil {
 			return err
 		}
-	case *Sum_CreateContractMsg:
+	case *Tx_CreateContractMsg:
 		_ = b.EncodeVarint(8<<3 | proto.WireBytes)
 		if err := b.EncodeMessage(x.CreateContractMsg); err != nil {
 			return err
 		}
-	case *Sum_UpdateContractMsg:
+	case *Tx_UpdateContractMsg:
 		_ = b.EncodeVarint(9<<3 | proto.WireBytes)
 		if err := b.EncodeMessage(x.UpdateContractMsg); err != nil {
 			return err
 		}
-	case *Sum_SetValidatorsMsg:
+	case *Tx_SetValidatorsMsg:
 		_ = b.EncodeVarint(10<<3 | proto.WireBytes)
 		if err := b.EncodeMessage(x.SetValidatorsMsg); err != nil {
 			return err
 		}
-	case *Sum_BatchMsg:
+	case *Tx_BatchMsg:
 		_ = b.EncodeVarint(11<<3 | proto.WireBytes)
 		if err := b.EncodeMessage(x.BatchMsg); err != nil {
 			return err
 		}
 	case nil:
 	default:
-		return fmt.Errorf("Sum.Sum has unexpected type %T", x)
+		return fmt.Errorf("Tx.Sum has unexpected type %T", x)
 	}
 	return nil
 }
 
-func _Sum_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
-	m := msg.(*Sum)
+func _Tx_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
+	m := msg.(*Tx)
 	switch tag {
 	case 1: // sum.send_msg
 		if wire != proto.WireBytes {
@@ -341,7 +325,7 @@ func _Sum_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (b
 		}
 		msg := new(cash.SendMsg)
 		err := b.DecodeMessage(msg)
-		m.Sum = &Sum_SendMsg{msg}
+		m.Sum = &Tx_SendMsg{msg}
 		return true, err
 	case 2: // sum.new_token_msg
 		if wire != proto.WireBytes {
@@ -349,7 +333,7 @@ func _Sum_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (b
 		}
 		msg := new(namecoin.NewTokenMsg)
 		err := b.DecodeMessage(msg)
-		m.Sum = &Sum_NewTokenMsg{msg}
+		m.Sum = &Tx_NewTokenMsg{msg}
 		return true, err
 	case 3: // sum.set_name_msg
 		if wire != proto.WireBytes {
@@ -357,7 +341,7 @@ func _Sum_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (b
 		}
 		msg := new(namecoin.SetWalletNameMsg)
 		err := b.DecodeMessage(msg)
-		m.Sum = &Sum_SetNameMsg{msg}
+		m.Sum = &Tx_SetNameMsg{msg}
 		return true, err
 	case 4: // sum.create_escrow_msg
 		if wire != proto.WireBytes {
@@ -365,7 +349,7 @@ func _Sum_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (b
 		}
 		msg := new(escrow.CreateEscrowMsg)
 		err := b.DecodeMessage(msg)
-		m.Sum = &Sum_CreateEscrowMsg{msg}
+		m.Sum = &Tx_CreateEscrowMsg{msg}
 		return true, err
 	case 5: // sum.release_escrow_msg
 		if wire != proto.WireBytes {
@@ -373,7 +357,7 @@ func _Sum_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (b
 		}
 		msg := new(escrow.ReleaseEscrowMsg)
 		err := b.DecodeMessage(msg)
-		m.Sum = &Sum_ReleaseEscrowMsg{msg}
+		m.Sum = &Tx_ReleaseEscrowMsg{msg}
 		return true, err
 	case 6: // sum.return_escrow_msg
 		if wire != proto.WireBytes {
@@ -381,7 +365,7 @@ func _Sum_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (b
 		}
 		msg := new(escrow.ReturnEscrowMsg)
 		err := b.DecodeMessage(msg)
-		m.Sum = &Sum_ReturnEscrowMsg{msg}
+		m.Sum = &Tx_ReturnEscrowMsg{msg}
 		return true, err
 	case 7: // sum.update_escrow_msg
 		if wire != proto.WireBytes {
@@ -389,7 +373,7 @@ func _Sum_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (b
 		}
 		msg := new(escrow.UpdateEscrowPartiesMsg)
 		err := b.DecodeMessage(msg)
-		m.Sum = &Sum_UpdateEscrowMsg{msg}
+		m.Sum = &Tx_UpdateEscrowMsg{msg}
 		return true, err
 	case 8: // sum.create_contract_msg
 		if wire != proto.WireBytes {
@@ -397,7 +381,7 @@ func _Sum_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (b
 		}
 		msg := new(multisig.CreateContractMsg)
 		err := b.DecodeMessage(msg)
-		m.Sum = &Sum_CreateContractMsg{msg}
+		m.Sum = &Tx_CreateContractMsg{msg}
 		return true, err
 	case 9: // sum.update_contract_msg
 		if wire != proto.WireBytes {
@@ -405,7 +389,7 @@ func _Sum_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (b
 		}
 		msg := new(multisig.UpdateContractMsg)
 		err := b.DecodeMessage(msg)
-		m.Sum = &Sum_UpdateContractMsg{msg}
+		m.Sum = &Tx_UpdateContractMsg{msg}
 		return true, err
 	case 10: // sum.set_validators_msg
 		if wire != proto.WireBytes {
@@ -413,7 +397,7 @@ func _Sum_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (b
 		}
 		msg := new(validators.SetValidatorsMsg)
 		err := b.DecodeMessage(msg)
-		m.Sum = &Sum_SetValidatorsMsg{msg}
+		m.Sum = &Tx_SetValidatorsMsg{msg}
 		return true, err
 	case 11: // sum.batch_msg
 		if wire != proto.WireBytes {
@@ -421,68 +405,68 @@ func _Sum_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (b
 		}
 		msg := new(BatchMsg)
 		err := b.DecodeMessage(msg)
-		m.Sum = &Sum_BatchMsg{msg}
+		m.Sum = &Tx_BatchMsg{msg}
 		return true, err
 	default:
 		return false, nil
 	}
 }
 
-func _Sum_OneofSizer(msg proto.Message) (n int) {
-	m := msg.(*Sum)
+func _Tx_OneofSizer(msg proto.Message) (n int) {
+	m := msg.(*Tx)
 	// sum
 	switch x := m.Sum.(type) {
-	case *Sum_SendMsg:
+	case *Tx_SendMsg:
 		s := proto.Size(x.SendMsg)
 		n += proto.SizeVarint(1<<3 | proto.WireBytes)
 		n += proto.SizeVarint(uint64(s))
 		n += s
-	case *Sum_NewTokenMsg:
+	case *Tx_NewTokenMsg:
 		s := proto.Size(x.NewTokenMsg)
 		n += proto.SizeVarint(2<<3 | proto.WireBytes)
 		n += proto.SizeVarint(uint64(s))
 		n += s
-	case *Sum_SetNameMsg:
+	case *Tx_SetNameMsg:
 		s := proto.Size(x.SetNameMsg)
 		n += proto.SizeVarint(3<<3 | proto.WireBytes)
 		n += proto.SizeVarint(uint64(s))
 		n += s
-	case *Sum_CreateEscrowMsg:
+	case *Tx_CreateEscrowMsg:
 		s := proto.Size(x.CreateEscrowMsg)
 		n += proto.SizeVarint(4<<3 | proto.WireBytes)
 		n += proto.SizeVarint(uint64(s))
 		n += s
-	case *Sum_ReleaseEscrowMsg:
+	case *Tx_ReleaseEscrowMsg:
 		s := proto.Size(x.ReleaseEscrowMsg)
 		n += proto.SizeVarint(5<<3 | proto.WireBytes)
 		n += proto.SizeVarint(uint64(s))
 		n += s
-	case *Sum_ReturnEscrowMsg:
+	case *Tx_ReturnEscrowMsg:
 		s := proto.Size(x.ReturnEscrowMsg)
 		n += proto.SizeVarint(6<<3 | proto.WireBytes)
 		n += proto.SizeVarint(uint64(s))
 		n += s
-	case *Sum_UpdateEscrowMsg:
+	case *Tx_UpdateEscrowMsg:
 		s := proto.Size(x.UpdateEscrowMsg)
 		n += proto.SizeVarint(7<<3 | proto.WireBytes)
 		n += proto.SizeVarint(uint64(s))
 		n += s
-	case *Sum_CreateContractMsg:
+	case *Tx_CreateContractMsg:
 		s := proto.Size(x.CreateContractMsg)
 		n += proto.SizeVarint(8<<3 | proto.WireBytes)
 		n += proto.SizeVarint(uint64(s))
 		n += s
-	case *Sum_UpdateContractMsg:
+	case *Tx_UpdateContractMsg:
 		s := proto.Size(x.UpdateContractMsg)
 		n += proto.SizeVarint(9<<3 | proto.WireBytes)
 		n += proto.SizeVarint(uint64(s))
 		n += s
-	case *Sum_SetValidatorsMsg:
+	case *Tx_SetValidatorsMsg:
 		s := proto.Size(x.SetValidatorsMsg)
 		n += proto.SizeVarint(10<<3 | proto.WireBytes)
 		n += proto.SizeVarint(uint64(s))
 		n += s
-	case *Sum_BatchMsg:
+	case *Tx_BatchMsg:
 		s := proto.Size(x.BatchMsg)
 		n += proto.SizeVarint(11<<3 | proto.WireBytes)
 		n += proto.SizeVarint(uint64(s))
@@ -496,25 +480,427 @@ func _Sum_OneofSizer(msg proto.Message) (n int) {
 
 // BatchMsg encapsulates multiple messages to support batch transaction
 type BatchMsg struct {
-	Messages []Sum `protobuf:"bytes,1,rep,name=messages" json:"messages"`
+	Messages []BatchMsg_Union `protobuf:"bytes,1,rep,name=messages" json:"messages"`
 }
 
 func (m *BatchMsg) Reset()                    { *m = BatchMsg{} }
 func (m *BatchMsg) String() string            { return proto.CompactTextString(m) }
 func (*BatchMsg) ProtoMessage()               {}
-func (*BatchMsg) Descriptor() ([]byte, []int) { return fileDescriptorCodec, []int{2} }
+func (*BatchMsg) Descriptor() ([]byte, []int) { return fileDescriptorCodec, []int{1} }
 
-func (m *BatchMsg) GetMessages() []Sum {
+func (m *BatchMsg) GetMessages() []BatchMsg_Union {
 	if m != nil {
 		return m.Messages
 	}
 	return nil
 }
 
+type BatchMsg_Union struct {
+	// Types that are valid to be assigned to Sum:
+	//	*BatchMsg_Union_SendMsg
+	//	*BatchMsg_Union_NewTokenMsg
+	//	*BatchMsg_Union_SetNameMsg
+	//	*BatchMsg_Union_CreateEscrowMsg
+	//	*BatchMsg_Union_ReleaseEscrowMsg
+	//	*BatchMsg_Union_ReturnEscrowMsg
+	//	*BatchMsg_Union_UpdateEscrowMsg
+	//	*BatchMsg_Union_CreateContractMsg
+	//	*BatchMsg_Union_UpdateContractMsg
+	//	*BatchMsg_Union_SetValidatorsMsg
+	//	*BatchMsg_Union_BatchMsg
+	Sum isBatchMsg_Union_Sum `protobuf_oneof:"sum"`
+}
+
+func (m *BatchMsg_Union) Reset()                    { *m = BatchMsg_Union{} }
+func (m *BatchMsg_Union) String() string            { return proto.CompactTextString(m) }
+func (*BatchMsg_Union) ProtoMessage()               {}
+func (*BatchMsg_Union) Descriptor() ([]byte, []int) { return fileDescriptorCodec, []int{1, 0} }
+
+type isBatchMsg_Union_Sum interface {
+	isBatchMsg_Union_Sum()
+	MarshalTo([]byte) (int, error)
+	Size() int
+}
+
+type BatchMsg_Union_SendMsg struct {
+	SendMsg *cash.SendMsg `protobuf:"bytes,1,opt,name=send_msg,json=sendMsg,oneof"`
+}
+type BatchMsg_Union_NewTokenMsg struct {
+	NewTokenMsg *namecoin.NewTokenMsg `protobuf:"bytes,2,opt,name=new_token_msg,json=newTokenMsg,oneof"`
+}
+type BatchMsg_Union_SetNameMsg struct {
+	SetNameMsg *namecoin.SetWalletNameMsg `protobuf:"bytes,3,opt,name=set_name_msg,json=setNameMsg,oneof"`
+}
+type BatchMsg_Union_CreateEscrowMsg struct {
+	CreateEscrowMsg *escrow.CreateEscrowMsg `protobuf:"bytes,4,opt,name=create_escrow_msg,json=createEscrowMsg,oneof"`
+}
+type BatchMsg_Union_ReleaseEscrowMsg struct {
+	ReleaseEscrowMsg *escrow.ReleaseEscrowMsg `protobuf:"bytes,5,opt,name=release_escrow_msg,json=releaseEscrowMsg,oneof"`
+}
+type BatchMsg_Union_ReturnEscrowMsg struct {
+	ReturnEscrowMsg *escrow.ReturnEscrowMsg `protobuf:"bytes,6,opt,name=return_escrow_msg,json=returnEscrowMsg,oneof"`
+}
+type BatchMsg_Union_UpdateEscrowMsg struct {
+	UpdateEscrowMsg *escrow.UpdateEscrowPartiesMsg `protobuf:"bytes,7,opt,name=update_escrow_msg,json=updateEscrowMsg,oneof"`
+}
+type BatchMsg_Union_CreateContractMsg struct {
+	CreateContractMsg *multisig.CreateContractMsg `protobuf:"bytes,8,opt,name=create_contract_msg,json=createContractMsg,oneof"`
+}
+type BatchMsg_Union_UpdateContractMsg struct {
+	UpdateContractMsg *multisig.UpdateContractMsg `protobuf:"bytes,9,opt,name=update_contract_msg,json=updateContractMsg,oneof"`
+}
+type BatchMsg_Union_SetValidatorsMsg struct {
+	SetValidatorsMsg *validators.SetValidatorsMsg `protobuf:"bytes,10,opt,name=set_validators_msg,json=setValidatorsMsg,oneof"`
+}
+type BatchMsg_Union_BatchMsg struct {
+	BatchMsg *BatchMsg `protobuf:"bytes,11,opt,name=batch_msg,json=batchMsg,oneof"`
+}
+
+func (*BatchMsg_Union_SendMsg) isBatchMsg_Union_Sum()           {}
+func (*BatchMsg_Union_NewTokenMsg) isBatchMsg_Union_Sum()       {}
+func (*BatchMsg_Union_SetNameMsg) isBatchMsg_Union_Sum()        {}
+func (*BatchMsg_Union_CreateEscrowMsg) isBatchMsg_Union_Sum()   {}
+func (*BatchMsg_Union_ReleaseEscrowMsg) isBatchMsg_Union_Sum()  {}
+func (*BatchMsg_Union_ReturnEscrowMsg) isBatchMsg_Union_Sum()   {}
+func (*BatchMsg_Union_UpdateEscrowMsg) isBatchMsg_Union_Sum()   {}
+func (*BatchMsg_Union_CreateContractMsg) isBatchMsg_Union_Sum() {}
+func (*BatchMsg_Union_UpdateContractMsg) isBatchMsg_Union_Sum() {}
+func (*BatchMsg_Union_SetValidatorsMsg) isBatchMsg_Union_Sum()  {}
+func (*BatchMsg_Union_BatchMsg) isBatchMsg_Union_Sum()          {}
+
+func (m *BatchMsg_Union) GetSum() isBatchMsg_Union_Sum {
+	if m != nil {
+		return m.Sum
+	}
+	return nil
+}
+
+func (m *BatchMsg_Union) GetSendMsg() *cash.SendMsg {
+	if x, ok := m.GetSum().(*BatchMsg_Union_SendMsg); ok {
+		return x.SendMsg
+	}
+	return nil
+}
+
+func (m *BatchMsg_Union) GetNewTokenMsg() *namecoin.NewTokenMsg {
+	if x, ok := m.GetSum().(*BatchMsg_Union_NewTokenMsg); ok {
+		return x.NewTokenMsg
+	}
+	return nil
+}
+
+func (m *BatchMsg_Union) GetSetNameMsg() *namecoin.SetWalletNameMsg {
+	if x, ok := m.GetSum().(*BatchMsg_Union_SetNameMsg); ok {
+		return x.SetNameMsg
+	}
+	return nil
+}
+
+func (m *BatchMsg_Union) GetCreateEscrowMsg() *escrow.CreateEscrowMsg {
+	if x, ok := m.GetSum().(*BatchMsg_Union_CreateEscrowMsg); ok {
+		return x.CreateEscrowMsg
+	}
+	return nil
+}
+
+func (m *BatchMsg_Union) GetReleaseEscrowMsg() *escrow.ReleaseEscrowMsg {
+	if x, ok := m.GetSum().(*BatchMsg_Union_ReleaseEscrowMsg); ok {
+		return x.ReleaseEscrowMsg
+	}
+	return nil
+}
+
+func (m *BatchMsg_Union) GetReturnEscrowMsg() *escrow.ReturnEscrowMsg {
+	if x, ok := m.GetSum().(*BatchMsg_Union_ReturnEscrowMsg); ok {
+		return x.ReturnEscrowMsg
+	}
+	return nil
+}
+
+func (m *BatchMsg_Union) GetUpdateEscrowMsg() *escrow.UpdateEscrowPartiesMsg {
+	if x, ok := m.GetSum().(*BatchMsg_Union_UpdateEscrowMsg); ok {
+		return x.UpdateEscrowMsg
+	}
+	return nil
+}
+
+func (m *BatchMsg_Union) GetCreateContractMsg() *multisig.CreateContractMsg {
+	if x, ok := m.GetSum().(*BatchMsg_Union_CreateContractMsg); ok {
+		return x.CreateContractMsg
+	}
+	return nil
+}
+
+func (m *BatchMsg_Union) GetUpdateContractMsg() *multisig.UpdateContractMsg {
+	if x, ok := m.GetSum().(*BatchMsg_Union_UpdateContractMsg); ok {
+		return x.UpdateContractMsg
+	}
+	return nil
+}
+
+func (m *BatchMsg_Union) GetSetValidatorsMsg() *validators.SetValidatorsMsg {
+	if x, ok := m.GetSum().(*BatchMsg_Union_SetValidatorsMsg); ok {
+		return x.SetValidatorsMsg
+	}
+	return nil
+}
+
+func (m *BatchMsg_Union) GetBatchMsg() *BatchMsg {
+	if x, ok := m.GetSum().(*BatchMsg_Union_BatchMsg); ok {
+		return x.BatchMsg
+	}
+	return nil
+}
+
+// XXX_OneofFuncs is for the internal use of the proto package.
+func (*BatchMsg_Union) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
+	return _BatchMsg_Union_OneofMarshaler, _BatchMsg_Union_OneofUnmarshaler, _BatchMsg_Union_OneofSizer, []interface{}{
+		(*BatchMsg_Union_SendMsg)(nil),
+		(*BatchMsg_Union_NewTokenMsg)(nil),
+		(*BatchMsg_Union_SetNameMsg)(nil),
+		(*BatchMsg_Union_CreateEscrowMsg)(nil),
+		(*BatchMsg_Union_ReleaseEscrowMsg)(nil),
+		(*BatchMsg_Union_ReturnEscrowMsg)(nil),
+		(*BatchMsg_Union_UpdateEscrowMsg)(nil),
+		(*BatchMsg_Union_CreateContractMsg)(nil),
+		(*BatchMsg_Union_UpdateContractMsg)(nil),
+		(*BatchMsg_Union_SetValidatorsMsg)(nil),
+		(*BatchMsg_Union_BatchMsg)(nil),
+	}
+}
+
+func _BatchMsg_Union_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
+	m := msg.(*BatchMsg_Union)
+	// sum
+	switch x := m.Sum.(type) {
+	case *BatchMsg_Union_SendMsg:
+		_ = b.EncodeVarint(1<<3 | proto.WireBytes)
+		if err := b.EncodeMessage(x.SendMsg); err != nil {
+			return err
+		}
+	case *BatchMsg_Union_NewTokenMsg:
+		_ = b.EncodeVarint(2<<3 | proto.WireBytes)
+		if err := b.EncodeMessage(x.NewTokenMsg); err != nil {
+			return err
+		}
+	case *BatchMsg_Union_SetNameMsg:
+		_ = b.EncodeVarint(3<<3 | proto.WireBytes)
+		if err := b.EncodeMessage(x.SetNameMsg); err != nil {
+			return err
+		}
+	case *BatchMsg_Union_CreateEscrowMsg:
+		_ = b.EncodeVarint(4<<3 | proto.WireBytes)
+		if err := b.EncodeMessage(x.CreateEscrowMsg); err != nil {
+			return err
+		}
+	case *BatchMsg_Union_ReleaseEscrowMsg:
+		_ = b.EncodeVarint(5<<3 | proto.WireBytes)
+		if err := b.EncodeMessage(x.ReleaseEscrowMsg); err != nil {
+			return err
+		}
+	case *BatchMsg_Union_ReturnEscrowMsg:
+		_ = b.EncodeVarint(6<<3 | proto.WireBytes)
+		if err := b.EncodeMessage(x.ReturnEscrowMsg); err != nil {
+			return err
+		}
+	case *BatchMsg_Union_UpdateEscrowMsg:
+		_ = b.EncodeVarint(7<<3 | proto.WireBytes)
+		if err := b.EncodeMessage(x.UpdateEscrowMsg); err != nil {
+			return err
+		}
+	case *BatchMsg_Union_CreateContractMsg:
+		_ = b.EncodeVarint(8<<3 | proto.WireBytes)
+		if err := b.EncodeMessage(x.CreateContractMsg); err != nil {
+			return err
+		}
+	case *BatchMsg_Union_UpdateContractMsg:
+		_ = b.EncodeVarint(9<<3 | proto.WireBytes)
+		if err := b.EncodeMessage(x.UpdateContractMsg); err != nil {
+			return err
+		}
+	case *BatchMsg_Union_SetValidatorsMsg:
+		_ = b.EncodeVarint(10<<3 | proto.WireBytes)
+		if err := b.EncodeMessage(x.SetValidatorsMsg); err != nil {
+			return err
+		}
+	case *BatchMsg_Union_BatchMsg:
+		_ = b.EncodeVarint(11<<3 | proto.WireBytes)
+		if err := b.EncodeMessage(x.BatchMsg); err != nil {
+			return err
+		}
+	case nil:
+	default:
+		return fmt.Errorf("BatchMsg_Union.Sum has unexpected type %T", x)
+	}
+	return nil
+}
+
+func _BatchMsg_Union_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
+	m := msg.(*BatchMsg_Union)
+	switch tag {
+	case 1: // sum.send_msg
+		if wire != proto.WireBytes {
+			return true, proto.ErrInternalBadWireType
+		}
+		msg := new(cash.SendMsg)
+		err := b.DecodeMessage(msg)
+		m.Sum = &BatchMsg_Union_SendMsg{msg}
+		return true, err
+	case 2: // sum.new_token_msg
+		if wire != proto.WireBytes {
+			return true, proto.ErrInternalBadWireType
+		}
+		msg := new(namecoin.NewTokenMsg)
+		err := b.DecodeMessage(msg)
+		m.Sum = &BatchMsg_Union_NewTokenMsg{msg}
+		return true, err
+	case 3: // sum.set_name_msg
+		if wire != proto.WireBytes {
+			return true, proto.ErrInternalBadWireType
+		}
+		msg := new(namecoin.SetWalletNameMsg)
+		err := b.DecodeMessage(msg)
+		m.Sum = &BatchMsg_Union_SetNameMsg{msg}
+		return true, err
+	case 4: // sum.create_escrow_msg
+		if wire != proto.WireBytes {
+			return true, proto.ErrInternalBadWireType
+		}
+		msg := new(escrow.CreateEscrowMsg)
+		err := b.DecodeMessage(msg)
+		m.Sum = &BatchMsg_Union_CreateEscrowMsg{msg}
+		return true, err
+	case 5: // sum.release_escrow_msg
+		if wire != proto.WireBytes {
+			return true, proto.ErrInternalBadWireType
+		}
+		msg := new(escrow.ReleaseEscrowMsg)
+		err := b.DecodeMessage(msg)
+		m.Sum = &BatchMsg_Union_ReleaseEscrowMsg{msg}
+		return true, err
+	case 6: // sum.return_escrow_msg
+		if wire != proto.WireBytes {
+			return true, proto.ErrInternalBadWireType
+		}
+		msg := new(escrow.ReturnEscrowMsg)
+		err := b.DecodeMessage(msg)
+		m.Sum = &BatchMsg_Union_ReturnEscrowMsg{msg}
+		return true, err
+	case 7: // sum.update_escrow_msg
+		if wire != proto.WireBytes {
+			return true, proto.ErrInternalBadWireType
+		}
+		msg := new(escrow.UpdateEscrowPartiesMsg)
+		err := b.DecodeMessage(msg)
+		m.Sum = &BatchMsg_Union_UpdateEscrowMsg{msg}
+		return true, err
+	case 8: // sum.create_contract_msg
+		if wire != proto.WireBytes {
+			return true, proto.ErrInternalBadWireType
+		}
+		msg := new(multisig.CreateContractMsg)
+		err := b.DecodeMessage(msg)
+		m.Sum = &BatchMsg_Union_CreateContractMsg{msg}
+		return true, err
+	case 9: // sum.update_contract_msg
+		if wire != proto.WireBytes {
+			return true, proto.ErrInternalBadWireType
+		}
+		msg := new(multisig.UpdateContractMsg)
+		err := b.DecodeMessage(msg)
+		m.Sum = &BatchMsg_Union_UpdateContractMsg{msg}
+		return true, err
+	case 10: // sum.set_validators_msg
+		if wire != proto.WireBytes {
+			return true, proto.ErrInternalBadWireType
+		}
+		msg := new(validators.SetValidatorsMsg)
+		err := b.DecodeMessage(msg)
+		m.Sum = &BatchMsg_Union_SetValidatorsMsg{msg}
+		return true, err
+	case 11: // sum.batch_msg
+		if wire != proto.WireBytes {
+			return true, proto.ErrInternalBadWireType
+		}
+		msg := new(BatchMsg)
+		err := b.DecodeMessage(msg)
+		m.Sum = &BatchMsg_Union_BatchMsg{msg}
+		return true, err
+	default:
+		return false, nil
+	}
+}
+
+func _BatchMsg_Union_OneofSizer(msg proto.Message) (n int) {
+	m := msg.(*BatchMsg_Union)
+	// sum
+	switch x := m.Sum.(type) {
+	case *BatchMsg_Union_SendMsg:
+		s := proto.Size(x.SendMsg)
+		n += proto.SizeVarint(1<<3 | proto.WireBytes)
+		n += proto.SizeVarint(uint64(s))
+		n += s
+	case *BatchMsg_Union_NewTokenMsg:
+		s := proto.Size(x.NewTokenMsg)
+		n += proto.SizeVarint(2<<3 | proto.WireBytes)
+		n += proto.SizeVarint(uint64(s))
+		n += s
+	case *BatchMsg_Union_SetNameMsg:
+		s := proto.Size(x.SetNameMsg)
+		n += proto.SizeVarint(3<<3 | proto.WireBytes)
+		n += proto.SizeVarint(uint64(s))
+		n += s
+	case *BatchMsg_Union_CreateEscrowMsg:
+		s := proto.Size(x.CreateEscrowMsg)
+		n += proto.SizeVarint(4<<3 | proto.WireBytes)
+		n += proto.SizeVarint(uint64(s))
+		n += s
+	case *BatchMsg_Union_ReleaseEscrowMsg:
+		s := proto.Size(x.ReleaseEscrowMsg)
+		n += proto.SizeVarint(5<<3 | proto.WireBytes)
+		n += proto.SizeVarint(uint64(s))
+		n += s
+	case *BatchMsg_Union_ReturnEscrowMsg:
+		s := proto.Size(x.ReturnEscrowMsg)
+		n += proto.SizeVarint(6<<3 | proto.WireBytes)
+		n += proto.SizeVarint(uint64(s))
+		n += s
+	case *BatchMsg_Union_UpdateEscrowMsg:
+		s := proto.Size(x.UpdateEscrowMsg)
+		n += proto.SizeVarint(7<<3 | proto.WireBytes)
+		n += proto.SizeVarint(uint64(s))
+		n += s
+	case *BatchMsg_Union_CreateContractMsg:
+		s := proto.Size(x.CreateContractMsg)
+		n += proto.SizeVarint(8<<3 | proto.WireBytes)
+		n += proto.SizeVarint(uint64(s))
+		n += s
+	case *BatchMsg_Union_UpdateContractMsg:
+		s := proto.Size(x.UpdateContractMsg)
+		n += proto.SizeVarint(9<<3 | proto.WireBytes)
+		n += proto.SizeVarint(uint64(s))
+		n += s
+	case *BatchMsg_Union_SetValidatorsMsg:
+		s := proto.Size(x.SetValidatorsMsg)
+		n += proto.SizeVarint(10<<3 | proto.WireBytes)
+		n += proto.SizeVarint(uint64(s))
+		n += s
+	case *BatchMsg_Union_BatchMsg:
+		s := proto.Size(x.BatchMsg)
+		n += proto.SizeVarint(11<<3 | proto.WireBytes)
+		n += proto.SizeVarint(uint64(s))
+		n += s
+	case nil:
+	default:
+		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
+	}
+	return n
+}
+
 func init() {
 	proto.RegisterType((*Tx)(nil), "app.Tx")
-	proto.RegisterType((*Sum)(nil), "app.Sum")
 	proto.RegisterType((*BatchMsg)(nil), "app.BatchMsg")
+	proto.RegisterType((*BatchMsg_Union)(nil), "app.BatchMsg.Union")
 }
 func (m *Tx) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
@@ -532,17 +918,14 @@ func (m *Tx) MarshalTo(dAtA []byte) (int, error) {
 	var l int
 	_ = l
 	if m.Sum != nil {
-		dAtA[i] = 0xa
-		i++
-		i = encodeVarintCodec(dAtA, i, uint64(m.Sum.Size()))
-		n1, err := m.Sum.MarshalTo(dAtA[i:])
+		nn1, err := m.Sum.MarshalTo(dAtA[i:])
 		if err != nil {
 			return 0, err
 		}
-		i += n1
+		i += nn1
 	}
 	if m.Fees != nil {
-		dAtA[i] = 0x12
+		dAtA[i] = 0x62
 		i++
 		i = encodeVarintCodec(dAtA, i, uint64(m.Fees.Size()))
 		n2, err := m.Fees.MarshalTo(dAtA[i:])
@@ -553,7 +936,7 @@ func (m *Tx) MarshalTo(dAtA []byte) (int, error) {
 	}
 	if len(m.Signatures) > 0 {
 		for _, msg := range m.Signatures {
-			dAtA[i] = 0x1a
+			dAtA[i] = 0x6a
 			i++
 			i = encodeVarintCodec(dAtA, i, uint64(msg.Size()))
 			n, err := msg.MarshalTo(dAtA[i:])
@@ -564,14 +947,14 @@ func (m *Tx) MarshalTo(dAtA []byte) (int, error) {
 		}
 	}
 	if len(m.Preimage) > 0 {
-		dAtA[i] = 0x22
+		dAtA[i] = 0x72
 		i++
 		i = encodeVarintCodec(dAtA, i, uint64(len(m.Preimage)))
 		i += copy(dAtA[i:], m.Preimage)
 	}
 	if len(m.Multisig) > 0 {
 		for _, b := range m.Multisig {
-			dAtA[i] = 0x2a
+			dAtA[i] = 0x7a
 			i++
 			i = encodeVarintCodec(dAtA, i, uint64(len(b)))
 			i += copy(dAtA[i:], b)
@@ -580,38 +963,27 @@ func (m *Tx) MarshalTo(dAtA []byte) (int, error) {
 	return i, nil
 }
 
-func (m *Sum) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalTo(dAtA)
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *Sum) MarshalTo(dAtA []byte) (int, error) {
-	var i int
-	_ = i
-	var l int
-	_ = l
-	if m.Sum != nil {
-		nn3, err := m.Sum.MarshalTo(dAtA[i:])
-		if err != nil {
-			return 0, err
-		}
-		i += nn3
-	}
-	return i, nil
-}
-
-func (m *Sum_SendMsg) MarshalTo(dAtA []byte) (int, error) {
+func (m *Tx_SendMsg) MarshalTo(dAtA []byte) (int, error) {
 	i := 0
 	if m.SendMsg != nil {
 		dAtA[i] = 0xa
 		i++
 		i = encodeVarintCodec(dAtA, i, uint64(m.SendMsg.Size()))
-		n4, err := m.SendMsg.MarshalTo(dAtA[i:])
+		n3, err := m.SendMsg.MarshalTo(dAtA[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += n3
+	}
+	return i, nil
+}
+func (m *Tx_NewTokenMsg) MarshalTo(dAtA []byte) (int, error) {
+	i := 0
+	if m.NewTokenMsg != nil {
+		dAtA[i] = 0x12
+		i++
+		i = encodeVarintCodec(dAtA, i, uint64(m.NewTokenMsg.Size()))
+		n4, err := m.NewTokenMsg.MarshalTo(dAtA[i:])
 		if err != nil {
 			return 0, err
 		}
@@ -619,13 +991,13 @@ func (m *Sum_SendMsg) MarshalTo(dAtA []byte) (int, error) {
 	}
 	return i, nil
 }
-func (m *Sum_NewTokenMsg) MarshalTo(dAtA []byte) (int, error) {
+func (m *Tx_SetNameMsg) MarshalTo(dAtA []byte) (int, error) {
 	i := 0
-	if m.NewTokenMsg != nil {
-		dAtA[i] = 0x12
+	if m.SetNameMsg != nil {
+		dAtA[i] = 0x1a
 		i++
-		i = encodeVarintCodec(dAtA, i, uint64(m.NewTokenMsg.Size()))
-		n5, err := m.NewTokenMsg.MarshalTo(dAtA[i:])
+		i = encodeVarintCodec(dAtA, i, uint64(m.SetNameMsg.Size()))
+		n5, err := m.SetNameMsg.MarshalTo(dAtA[i:])
 		if err != nil {
 			return 0, err
 		}
@@ -633,13 +1005,13 @@ func (m *Sum_NewTokenMsg) MarshalTo(dAtA []byte) (int, error) {
 	}
 	return i, nil
 }
-func (m *Sum_SetNameMsg) MarshalTo(dAtA []byte) (int, error) {
+func (m *Tx_CreateEscrowMsg) MarshalTo(dAtA []byte) (int, error) {
 	i := 0
-	if m.SetNameMsg != nil {
-		dAtA[i] = 0x1a
+	if m.CreateEscrowMsg != nil {
+		dAtA[i] = 0x22
 		i++
-		i = encodeVarintCodec(dAtA, i, uint64(m.SetNameMsg.Size()))
-		n6, err := m.SetNameMsg.MarshalTo(dAtA[i:])
+		i = encodeVarintCodec(dAtA, i, uint64(m.CreateEscrowMsg.Size()))
+		n6, err := m.CreateEscrowMsg.MarshalTo(dAtA[i:])
 		if err != nil {
 			return 0, err
 		}
@@ -647,13 +1019,13 @@ func (m *Sum_SetNameMsg) MarshalTo(dAtA []byte) (int, error) {
 	}
 	return i, nil
 }
-func (m *Sum_CreateEscrowMsg) MarshalTo(dAtA []byte) (int, error) {
+func (m *Tx_ReleaseEscrowMsg) MarshalTo(dAtA []byte) (int, error) {
 	i := 0
-	if m.CreateEscrowMsg != nil {
-		dAtA[i] = 0x22
+	if m.ReleaseEscrowMsg != nil {
+		dAtA[i] = 0x2a
 		i++
-		i = encodeVarintCodec(dAtA, i, uint64(m.CreateEscrowMsg.Size()))
-		n7, err := m.CreateEscrowMsg.MarshalTo(dAtA[i:])
+		i = encodeVarintCodec(dAtA, i, uint64(m.ReleaseEscrowMsg.Size()))
+		n7, err := m.ReleaseEscrowMsg.MarshalTo(dAtA[i:])
 		if err != nil {
 			return 0, err
 		}
@@ -661,13 +1033,13 @@ func (m *Sum_CreateEscrowMsg) MarshalTo(dAtA []byte) (int, error) {
 	}
 	return i, nil
 }
-func (m *Sum_ReleaseEscrowMsg) MarshalTo(dAtA []byte) (int, error) {
+func (m *Tx_ReturnEscrowMsg) MarshalTo(dAtA []byte) (int, error) {
 	i := 0
-	if m.ReleaseEscrowMsg != nil {
-		dAtA[i] = 0x2a
+	if m.ReturnEscrowMsg != nil {
+		dAtA[i] = 0x32
 		i++
-		i = encodeVarintCodec(dAtA, i, uint64(m.ReleaseEscrowMsg.Size()))
-		n8, err := m.ReleaseEscrowMsg.MarshalTo(dAtA[i:])
+		i = encodeVarintCodec(dAtA, i, uint64(m.ReturnEscrowMsg.Size()))
+		n8, err := m.ReturnEscrowMsg.MarshalTo(dAtA[i:])
 		if err != nil {
 			return 0, err
 		}
@@ -675,13 +1047,13 @@ func (m *Sum_ReleaseEscrowMsg) MarshalTo(dAtA []byte) (int, error) {
 	}
 	return i, nil
 }
-func (m *Sum_ReturnEscrowMsg) MarshalTo(dAtA []byte) (int, error) {
+func (m *Tx_UpdateEscrowMsg) MarshalTo(dAtA []byte) (int, error) {
 	i := 0
-	if m.ReturnEscrowMsg != nil {
-		dAtA[i] = 0x32
+	if m.UpdateEscrowMsg != nil {
+		dAtA[i] = 0x3a
 		i++
-		i = encodeVarintCodec(dAtA, i, uint64(m.ReturnEscrowMsg.Size()))
-		n9, err := m.ReturnEscrowMsg.MarshalTo(dAtA[i:])
+		i = encodeVarintCodec(dAtA, i, uint64(m.UpdateEscrowMsg.Size()))
+		n9, err := m.UpdateEscrowMsg.MarshalTo(dAtA[i:])
 		if err != nil {
 			return 0, err
 		}
@@ -689,13 +1061,13 @@ func (m *Sum_ReturnEscrowMsg) MarshalTo(dAtA []byte) (int, error) {
 	}
 	return i, nil
 }
-func (m *Sum_UpdateEscrowMsg) MarshalTo(dAtA []byte) (int, error) {
+func (m *Tx_CreateContractMsg) MarshalTo(dAtA []byte) (int, error) {
 	i := 0
-	if m.UpdateEscrowMsg != nil {
-		dAtA[i] = 0x3a
+	if m.CreateContractMsg != nil {
+		dAtA[i] = 0x42
 		i++
-		i = encodeVarintCodec(dAtA, i, uint64(m.UpdateEscrowMsg.Size()))
-		n10, err := m.UpdateEscrowMsg.MarshalTo(dAtA[i:])
+		i = encodeVarintCodec(dAtA, i, uint64(m.CreateContractMsg.Size()))
+		n10, err := m.CreateContractMsg.MarshalTo(dAtA[i:])
 		if err != nil {
 			return 0, err
 		}
@@ -703,13 +1075,13 @@ func (m *Sum_UpdateEscrowMsg) MarshalTo(dAtA []byte) (int, error) {
 	}
 	return i, nil
 }
-func (m *Sum_CreateContractMsg) MarshalTo(dAtA []byte) (int, error) {
+func (m *Tx_UpdateContractMsg) MarshalTo(dAtA []byte) (int, error) {
 	i := 0
-	if m.CreateContractMsg != nil {
-		dAtA[i] = 0x42
+	if m.UpdateContractMsg != nil {
+		dAtA[i] = 0x4a
 		i++
-		i = encodeVarintCodec(dAtA, i, uint64(m.CreateContractMsg.Size()))
-		n11, err := m.CreateContractMsg.MarshalTo(dAtA[i:])
+		i = encodeVarintCodec(dAtA, i, uint64(m.UpdateContractMsg.Size()))
+		n11, err := m.UpdateContractMsg.MarshalTo(dAtA[i:])
 		if err != nil {
 			return 0, err
 		}
@@ -717,13 +1089,13 @@ func (m *Sum_CreateContractMsg) MarshalTo(dAtA []byte) (int, error) {
 	}
 	return i, nil
 }
-func (m *Sum_UpdateContractMsg) MarshalTo(dAtA []byte) (int, error) {
+func (m *Tx_SetValidatorsMsg) MarshalTo(dAtA []byte) (int, error) {
 	i := 0
-	if m.UpdateContractMsg != nil {
-		dAtA[i] = 0x4a
+	if m.SetValidatorsMsg != nil {
+		dAtA[i] = 0x52
 		i++
-		i = encodeVarintCodec(dAtA, i, uint64(m.UpdateContractMsg.Size()))
-		n12, err := m.UpdateContractMsg.MarshalTo(dAtA[i:])
+		i = encodeVarintCodec(dAtA, i, uint64(m.SetValidatorsMsg.Size()))
+		n12, err := m.SetValidatorsMsg.MarshalTo(dAtA[i:])
 		if err != nil {
 			return 0, err
 		}
@@ -731,31 +1103,17 @@ func (m *Sum_UpdateContractMsg) MarshalTo(dAtA []byte) (int, error) {
 	}
 	return i, nil
 }
-func (m *Sum_SetValidatorsMsg) MarshalTo(dAtA []byte) (int, error) {
-	i := 0
-	if m.SetValidatorsMsg != nil {
-		dAtA[i] = 0x52
-		i++
-		i = encodeVarintCodec(dAtA, i, uint64(m.SetValidatorsMsg.Size()))
-		n13, err := m.SetValidatorsMsg.MarshalTo(dAtA[i:])
-		if err != nil {
-			return 0, err
-		}
-		i += n13
-	}
-	return i, nil
-}
-func (m *Sum_BatchMsg) MarshalTo(dAtA []byte) (int, error) {
+func (m *Tx_BatchMsg) MarshalTo(dAtA []byte) (int, error) {
 	i := 0
 	if m.BatchMsg != nil {
 		dAtA[i] = 0x5a
 		i++
 		i = encodeVarintCodec(dAtA, i, uint64(m.BatchMsg.Size()))
-		n14, err := m.BatchMsg.MarshalTo(dAtA[i:])
+		n13, err := m.BatchMsg.MarshalTo(dAtA[i:])
 		if err != nil {
 			return 0, err
 		}
-		i += n14
+		i += n13
 	}
 	return i, nil
 }
@@ -789,6 +1147,185 @@ func (m *BatchMsg) MarshalTo(dAtA []byte) (int, error) {
 	return i, nil
 }
 
+func (m *BatchMsg_Union) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalTo(dAtA)
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *BatchMsg_Union) MarshalTo(dAtA []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	if m.Sum != nil {
+		nn14, err := m.Sum.MarshalTo(dAtA[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += nn14
+	}
+	return i, nil
+}
+
+func (m *BatchMsg_Union_SendMsg) MarshalTo(dAtA []byte) (int, error) {
+	i := 0
+	if m.SendMsg != nil {
+		dAtA[i] = 0xa
+		i++
+		i = encodeVarintCodec(dAtA, i, uint64(m.SendMsg.Size()))
+		n15, err := m.SendMsg.MarshalTo(dAtA[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += n15
+	}
+	return i, nil
+}
+func (m *BatchMsg_Union_NewTokenMsg) MarshalTo(dAtA []byte) (int, error) {
+	i := 0
+	if m.NewTokenMsg != nil {
+		dAtA[i] = 0x12
+		i++
+		i = encodeVarintCodec(dAtA, i, uint64(m.NewTokenMsg.Size()))
+		n16, err := m.NewTokenMsg.MarshalTo(dAtA[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += n16
+	}
+	return i, nil
+}
+func (m *BatchMsg_Union_SetNameMsg) MarshalTo(dAtA []byte) (int, error) {
+	i := 0
+	if m.SetNameMsg != nil {
+		dAtA[i] = 0x1a
+		i++
+		i = encodeVarintCodec(dAtA, i, uint64(m.SetNameMsg.Size()))
+		n17, err := m.SetNameMsg.MarshalTo(dAtA[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += n17
+	}
+	return i, nil
+}
+func (m *BatchMsg_Union_CreateEscrowMsg) MarshalTo(dAtA []byte) (int, error) {
+	i := 0
+	if m.CreateEscrowMsg != nil {
+		dAtA[i] = 0x22
+		i++
+		i = encodeVarintCodec(dAtA, i, uint64(m.CreateEscrowMsg.Size()))
+		n18, err := m.CreateEscrowMsg.MarshalTo(dAtA[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += n18
+	}
+	return i, nil
+}
+func (m *BatchMsg_Union_ReleaseEscrowMsg) MarshalTo(dAtA []byte) (int, error) {
+	i := 0
+	if m.ReleaseEscrowMsg != nil {
+		dAtA[i] = 0x2a
+		i++
+		i = encodeVarintCodec(dAtA, i, uint64(m.ReleaseEscrowMsg.Size()))
+		n19, err := m.ReleaseEscrowMsg.MarshalTo(dAtA[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += n19
+	}
+	return i, nil
+}
+func (m *BatchMsg_Union_ReturnEscrowMsg) MarshalTo(dAtA []byte) (int, error) {
+	i := 0
+	if m.ReturnEscrowMsg != nil {
+		dAtA[i] = 0x32
+		i++
+		i = encodeVarintCodec(dAtA, i, uint64(m.ReturnEscrowMsg.Size()))
+		n20, err := m.ReturnEscrowMsg.MarshalTo(dAtA[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += n20
+	}
+	return i, nil
+}
+func (m *BatchMsg_Union_UpdateEscrowMsg) MarshalTo(dAtA []byte) (int, error) {
+	i := 0
+	if m.UpdateEscrowMsg != nil {
+		dAtA[i] = 0x3a
+		i++
+		i = encodeVarintCodec(dAtA, i, uint64(m.UpdateEscrowMsg.Size()))
+		n21, err := m.UpdateEscrowMsg.MarshalTo(dAtA[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += n21
+	}
+	return i, nil
+}
+func (m *BatchMsg_Union_CreateContractMsg) MarshalTo(dAtA []byte) (int, error) {
+	i := 0
+	if m.CreateContractMsg != nil {
+		dAtA[i] = 0x42
+		i++
+		i = encodeVarintCodec(dAtA, i, uint64(m.CreateContractMsg.Size()))
+		n22, err := m.CreateContractMsg.MarshalTo(dAtA[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += n22
+	}
+	return i, nil
+}
+func (m *BatchMsg_Union_UpdateContractMsg) MarshalTo(dAtA []byte) (int, error) {
+	i := 0
+	if m.UpdateContractMsg != nil {
+		dAtA[i] = 0x4a
+		i++
+		i = encodeVarintCodec(dAtA, i, uint64(m.UpdateContractMsg.Size()))
+		n23, err := m.UpdateContractMsg.MarshalTo(dAtA[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += n23
+	}
+	return i, nil
+}
+func (m *BatchMsg_Union_SetValidatorsMsg) MarshalTo(dAtA []byte) (int, error) {
+	i := 0
+	if m.SetValidatorsMsg != nil {
+		dAtA[i] = 0x52
+		i++
+		i = encodeVarintCodec(dAtA, i, uint64(m.SetValidatorsMsg.Size()))
+		n24, err := m.SetValidatorsMsg.MarshalTo(dAtA[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += n24
+	}
+	return i, nil
+}
+func (m *BatchMsg_Union_BatchMsg) MarshalTo(dAtA []byte) (int, error) {
+	i := 0
+	if m.BatchMsg != nil {
+		dAtA[i] = 0x5a
+		i++
+		i = encodeVarintCodec(dAtA, i, uint64(m.BatchMsg.Size()))
+		n25, err := m.BatchMsg.MarshalTo(dAtA[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += n25
+	}
+	return i, nil
+}
 func encodeVarintCodec(dAtA []byte, offset int, v uint64) int {
 	for v >= 1<<7 {
 		dAtA[offset] = uint8(v&0x7f | 0x80)
@@ -802,8 +1339,7 @@ func (m *Tx) Size() (n int) {
 	var l int
 	_ = l
 	if m.Sum != nil {
-		l = m.Sum.Size()
-		n += 1 + l + sovCodec(uint64(l))
+		n += m.Sum.Size()
 	}
 	if m.Fees != nil {
 		l = m.Fees.Size()
@@ -828,16 +1364,7 @@ func (m *Tx) Size() (n int) {
 	return n
 }
 
-func (m *Sum) Size() (n int) {
-	var l int
-	_ = l
-	if m.Sum != nil {
-		n += m.Sum.Size()
-	}
-	return n
-}
-
-func (m *Sum_SendMsg) Size() (n int) {
+func (m *Tx_SendMsg) Size() (n int) {
 	var l int
 	_ = l
 	if m.SendMsg != nil {
@@ -846,7 +1373,7 @@ func (m *Sum_SendMsg) Size() (n int) {
 	}
 	return n
 }
-func (m *Sum_NewTokenMsg) Size() (n int) {
+func (m *Tx_NewTokenMsg) Size() (n int) {
 	var l int
 	_ = l
 	if m.NewTokenMsg != nil {
@@ -855,7 +1382,7 @@ func (m *Sum_NewTokenMsg) Size() (n int) {
 	}
 	return n
 }
-func (m *Sum_SetNameMsg) Size() (n int) {
+func (m *Tx_SetNameMsg) Size() (n int) {
 	var l int
 	_ = l
 	if m.SetNameMsg != nil {
@@ -864,7 +1391,7 @@ func (m *Sum_SetNameMsg) Size() (n int) {
 	}
 	return n
 }
-func (m *Sum_CreateEscrowMsg) Size() (n int) {
+func (m *Tx_CreateEscrowMsg) Size() (n int) {
 	var l int
 	_ = l
 	if m.CreateEscrowMsg != nil {
@@ -873,7 +1400,7 @@ func (m *Sum_CreateEscrowMsg) Size() (n int) {
 	}
 	return n
 }
-func (m *Sum_ReleaseEscrowMsg) Size() (n int) {
+func (m *Tx_ReleaseEscrowMsg) Size() (n int) {
 	var l int
 	_ = l
 	if m.ReleaseEscrowMsg != nil {
@@ -882,7 +1409,7 @@ func (m *Sum_ReleaseEscrowMsg) Size() (n int) {
 	}
 	return n
 }
-func (m *Sum_ReturnEscrowMsg) Size() (n int) {
+func (m *Tx_ReturnEscrowMsg) Size() (n int) {
 	var l int
 	_ = l
 	if m.ReturnEscrowMsg != nil {
@@ -891,7 +1418,7 @@ func (m *Sum_ReturnEscrowMsg) Size() (n int) {
 	}
 	return n
 }
-func (m *Sum_UpdateEscrowMsg) Size() (n int) {
+func (m *Tx_UpdateEscrowMsg) Size() (n int) {
 	var l int
 	_ = l
 	if m.UpdateEscrowMsg != nil {
@@ -900,7 +1427,7 @@ func (m *Sum_UpdateEscrowMsg) Size() (n int) {
 	}
 	return n
 }
-func (m *Sum_CreateContractMsg) Size() (n int) {
+func (m *Tx_CreateContractMsg) Size() (n int) {
 	var l int
 	_ = l
 	if m.CreateContractMsg != nil {
@@ -909,7 +1436,7 @@ func (m *Sum_CreateContractMsg) Size() (n int) {
 	}
 	return n
 }
-func (m *Sum_UpdateContractMsg) Size() (n int) {
+func (m *Tx_UpdateContractMsg) Size() (n int) {
 	var l int
 	_ = l
 	if m.UpdateContractMsg != nil {
@@ -918,7 +1445,7 @@ func (m *Sum_UpdateContractMsg) Size() (n int) {
 	}
 	return n
 }
-func (m *Sum_SetValidatorsMsg) Size() (n int) {
+func (m *Tx_SetValidatorsMsg) Size() (n int) {
 	var l int
 	_ = l
 	if m.SetValidatorsMsg != nil {
@@ -927,7 +1454,7 @@ func (m *Sum_SetValidatorsMsg) Size() (n int) {
 	}
 	return n
 }
-func (m *Sum_BatchMsg) Size() (n int) {
+func (m *Tx_BatchMsg) Size() (n int) {
 	var l int
 	_ = l
 	if m.BatchMsg != nil {
@@ -944,6 +1471,115 @@ func (m *BatchMsg) Size() (n int) {
 			l = e.Size()
 			n += 1 + l + sovCodec(uint64(l))
 		}
+	}
+	return n
+}
+
+func (m *BatchMsg_Union) Size() (n int) {
+	var l int
+	_ = l
+	if m.Sum != nil {
+		n += m.Sum.Size()
+	}
+	return n
+}
+
+func (m *BatchMsg_Union_SendMsg) Size() (n int) {
+	var l int
+	_ = l
+	if m.SendMsg != nil {
+		l = m.SendMsg.Size()
+		n += 1 + l + sovCodec(uint64(l))
+	}
+	return n
+}
+func (m *BatchMsg_Union_NewTokenMsg) Size() (n int) {
+	var l int
+	_ = l
+	if m.NewTokenMsg != nil {
+		l = m.NewTokenMsg.Size()
+		n += 1 + l + sovCodec(uint64(l))
+	}
+	return n
+}
+func (m *BatchMsg_Union_SetNameMsg) Size() (n int) {
+	var l int
+	_ = l
+	if m.SetNameMsg != nil {
+		l = m.SetNameMsg.Size()
+		n += 1 + l + sovCodec(uint64(l))
+	}
+	return n
+}
+func (m *BatchMsg_Union_CreateEscrowMsg) Size() (n int) {
+	var l int
+	_ = l
+	if m.CreateEscrowMsg != nil {
+		l = m.CreateEscrowMsg.Size()
+		n += 1 + l + sovCodec(uint64(l))
+	}
+	return n
+}
+func (m *BatchMsg_Union_ReleaseEscrowMsg) Size() (n int) {
+	var l int
+	_ = l
+	if m.ReleaseEscrowMsg != nil {
+		l = m.ReleaseEscrowMsg.Size()
+		n += 1 + l + sovCodec(uint64(l))
+	}
+	return n
+}
+func (m *BatchMsg_Union_ReturnEscrowMsg) Size() (n int) {
+	var l int
+	_ = l
+	if m.ReturnEscrowMsg != nil {
+		l = m.ReturnEscrowMsg.Size()
+		n += 1 + l + sovCodec(uint64(l))
+	}
+	return n
+}
+func (m *BatchMsg_Union_UpdateEscrowMsg) Size() (n int) {
+	var l int
+	_ = l
+	if m.UpdateEscrowMsg != nil {
+		l = m.UpdateEscrowMsg.Size()
+		n += 1 + l + sovCodec(uint64(l))
+	}
+	return n
+}
+func (m *BatchMsg_Union_CreateContractMsg) Size() (n int) {
+	var l int
+	_ = l
+	if m.CreateContractMsg != nil {
+		l = m.CreateContractMsg.Size()
+		n += 1 + l + sovCodec(uint64(l))
+	}
+	return n
+}
+func (m *BatchMsg_Union_UpdateContractMsg) Size() (n int) {
+	var l int
+	_ = l
+	if m.UpdateContractMsg != nil {
+		l = m.UpdateContractMsg.Size()
+		n += 1 + l + sovCodec(uint64(l))
+	}
+	return n
+}
+func (m *BatchMsg_Union_SetValidatorsMsg) Size() (n int) {
+	var l int
+	_ = l
+	if m.SetValidatorsMsg != nil {
+		l = m.SetValidatorsMsg.Size()
+		n += 1 + l + sovCodec(uint64(l))
+	}
+	return n
+}
+func (m *BatchMsg_Union_BatchMsg) Size() (n int) {
+	var l int
+	_ = l
+	if m.BatchMsg != nil {
+		l = m.BatchMsg.Size()
+		n += 1 + l + sovCodec(uint64(l))
 	}
 	return n
 }
@@ -992,7 +1628,7 @@ func (m *Tx) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Sum", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field SendMsg", wireType)
 			}
 			var msglen int
 			for shift := uint(0); ; shift += 7 {
@@ -1016,14 +1652,333 @@ func (m *Tx) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if m.Sum == nil {
-				m.Sum = &Sum{}
-			}
-			if err := m.Sum.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+			v := &cash.SendMsg{}
+			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
+			m.Sum = &Tx_SendMsg{v}
 			iNdEx = postIndex
 		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field NewTokenMsg", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + msglen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			v := &namecoin.NewTokenMsg{}
+			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			m.Sum = &Tx_NewTokenMsg{v}
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field SetNameMsg", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + msglen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			v := &namecoin.SetWalletNameMsg{}
+			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			m.Sum = &Tx_SetNameMsg{v}
+			iNdEx = postIndex
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field CreateEscrowMsg", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + msglen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			v := &escrow.CreateEscrowMsg{}
+			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			m.Sum = &Tx_CreateEscrowMsg{v}
+			iNdEx = postIndex
+		case 5:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ReleaseEscrowMsg", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + msglen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			v := &escrow.ReleaseEscrowMsg{}
+			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			m.Sum = &Tx_ReleaseEscrowMsg{v}
+			iNdEx = postIndex
+		case 6:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ReturnEscrowMsg", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + msglen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			v := &escrow.ReturnEscrowMsg{}
+			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			m.Sum = &Tx_ReturnEscrowMsg{v}
+			iNdEx = postIndex
+		case 7:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field UpdateEscrowMsg", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + msglen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			v := &escrow.UpdateEscrowPartiesMsg{}
+			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			m.Sum = &Tx_UpdateEscrowMsg{v}
+			iNdEx = postIndex
+		case 8:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field CreateContractMsg", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + msglen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			v := &multisig.CreateContractMsg{}
+			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			m.Sum = &Tx_CreateContractMsg{v}
+			iNdEx = postIndex
+		case 9:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field UpdateContractMsg", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + msglen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			v := &multisig.UpdateContractMsg{}
+			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			m.Sum = &Tx_UpdateContractMsg{v}
+			iNdEx = postIndex
+		case 10:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field SetValidatorsMsg", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + msglen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			v := &validators.SetValidatorsMsg{}
+			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			m.Sum = &Tx_SetValidatorsMsg{v}
+			iNdEx = postIndex
+		case 11:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field BatchMsg", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + msglen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			v := &BatchMsg{}
+			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			m.Sum = &Tx_BatchMsg{v}
+			iNdEx = postIndex
+		case 12:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Fees", wireType)
 			}
@@ -1056,7 +2011,7 @@ func (m *Tx) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
-		case 3:
+		case 13:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Signatures", wireType)
 			}
@@ -1087,7 +2042,7 @@ func (m *Tx) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
-		case 4:
+		case 14:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Preimage", wireType)
 			}
@@ -1118,7 +2073,7 @@ func (m *Tx) Unmarshal(dAtA []byte) error {
 				m.Preimage = []byte{}
 			}
 			iNdEx = postIndex
-		case 5:
+		case 15:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Multisig", wireType)
 			}
@@ -1146,408 +2101,6 @@ func (m *Tx) Unmarshal(dAtA []byte) error {
 			}
 			m.Multisig = append(m.Multisig, make([]byte, postIndex-iNdEx))
 			copy(m.Multisig[len(m.Multisig)-1], dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipCodec(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if skippy < 0 {
-				return ErrInvalidLengthCodec
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *Sum) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowCodec
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: Sum: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: Sum: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field SendMsg", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowCodec
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthCodec
-			}
-			postIndex := iNdEx + msglen
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			v := &cash.SendMsg{}
-			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			m.Sum = &Sum_SendMsg{v}
-			iNdEx = postIndex
-		case 2:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field NewTokenMsg", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowCodec
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthCodec
-			}
-			postIndex := iNdEx + msglen
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			v := &namecoin.NewTokenMsg{}
-			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			m.Sum = &Sum_NewTokenMsg{v}
-			iNdEx = postIndex
-		case 3:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field SetNameMsg", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowCodec
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthCodec
-			}
-			postIndex := iNdEx + msglen
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			v := &namecoin.SetWalletNameMsg{}
-			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			m.Sum = &Sum_SetNameMsg{v}
-			iNdEx = postIndex
-		case 4:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field CreateEscrowMsg", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowCodec
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthCodec
-			}
-			postIndex := iNdEx + msglen
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			v := &escrow.CreateEscrowMsg{}
-			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			m.Sum = &Sum_CreateEscrowMsg{v}
-			iNdEx = postIndex
-		case 5:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ReleaseEscrowMsg", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowCodec
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthCodec
-			}
-			postIndex := iNdEx + msglen
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			v := &escrow.ReleaseEscrowMsg{}
-			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			m.Sum = &Sum_ReleaseEscrowMsg{v}
-			iNdEx = postIndex
-		case 6:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ReturnEscrowMsg", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowCodec
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthCodec
-			}
-			postIndex := iNdEx + msglen
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			v := &escrow.ReturnEscrowMsg{}
-			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			m.Sum = &Sum_ReturnEscrowMsg{v}
-			iNdEx = postIndex
-		case 7:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field UpdateEscrowMsg", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowCodec
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthCodec
-			}
-			postIndex := iNdEx + msglen
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			v := &escrow.UpdateEscrowPartiesMsg{}
-			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			m.Sum = &Sum_UpdateEscrowMsg{v}
-			iNdEx = postIndex
-		case 8:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field CreateContractMsg", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowCodec
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthCodec
-			}
-			postIndex := iNdEx + msglen
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			v := &multisig.CreateContractMsg{}
-			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			m.Sum = &Sum_CreateContractMsg{v}
-			iNdEx = postIndex
-		case 9:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field UpdateContractMsg", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowCodec
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthCodec
-			}
-			postIndex := iNdEx + msglen
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			v := &multisig.UpdateContractMsg{}
-			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			m.Sum = &Sum_UpdateContractMsg{v}
-			iNdEx = postIndex
-		case 10:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field SetValidatorsMsg", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowCodec
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthCodec
-			}
-			postIndex := iNdEx + msglen
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			v := &validators.SetValidatorsMsg{}
-			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			m.Sum = &Sum_SetValidatorsMsg{v}
-			iNdEx = postIndex
-		case 11:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field BatchMsg", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowCodec
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthCodec
-			}
-			postIndex := iNdEx + msglen
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			v := &BatchMsg{}
-			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			m.Sum = &Sum_BatchMsg{v}
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
@@ -1625,10 +2178,412 @@ func (m *BatchMsg) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Messages = append(m.Messages, Sum{})
+			m.Messages = append(m.Messages, BatchMsg_Union{})
 			if err := m.Messages[len(m.Messages)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipCodec(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *BatchMsg_Union) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowCodec
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= (uint64(b) & 0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: Union: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: Union: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field SendMsg", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + msglen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			v := &cash.SendMsg{}
+			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			m.Sum = &BatchMsg_Union_SendMsg{v}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field NewTokenMsg", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + msglen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			v := &namecoin.NewTokenMsg{}
+			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			m.Sum = &BatchMsg_Union_NewTokenMsg{v}
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field SetNameMsg", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + msglen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			v := &namecoin.SetWalletNameMsg{}
+			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			m.Sum = &BatchMsg_Union_SetNameMsg{v}
+			iNdEx = postIndex
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field CreateEscrowMsg", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + msglen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			v := &escrow.CreateEscrowMsg{}
+			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			m.Sum = &BatchMsg_Union_CreateEscrowMsg{v}
+			iNdEx = postIndex
+		case 5:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ReleaseEscrowMsg", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + msglen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			v := &escrow.ReleaseEscrowMsg{}
+			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			m.Sum = &BatchMsg_Union_ReleaseEscrowMsg{v}
+			iNdEx = postIndex
+		case 6:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ReturnEscrowMsg", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + msglen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			v := &escrow.ReturnEscrowMsg{}
+			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			m.Sum = &BatchMsg_Union_ReturnEscrowMsg{v}
+			iNdEx = postIndex
+		case 7:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field UpdateEscrowMsg", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + msglen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			v := &escrow.UpdateEscrowPartiesMsg{}
+			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			m.Sum = &BatchMsg_Union_UpdateEscrowMsg{v}
+			iNdEx = postIndex
+		case 8:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field CreateContractMsg", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + msglen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			v := &multisig.CreateContractMsg{}
+			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			m.Sum = &BatchMsg_Union_CreateContractMsg{v}
+			iNdEx = postIndex
+		case 9:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field UpdateContractMsg", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + msglen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			v := &multisig.UpdateContractMsg{}
+			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			m.Sum = &BatchMsg_Union_UpdateContractMsg{v}
+			iNdEx = postIndex
+		case 10:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field SetValidatorsMsg", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + msglen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			v := &validators.SetValidatorsMsg{}
+			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			m.Sum = &BatchMsg_Union_SetValidatorsMsg{v}
+			iNdEx = postIndex
+		case 11:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field BatchMsg", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + msglen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			v := &BatchMsg{}
+			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			m.Sum = &BatchMsg_Union_BatchMsg{v}
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
@@ -1759,45 +2714,45 @@ var (
 func init() { proto.RegisterFile("app/codec.proto", fileDescriptorCodec) }
 
 var fileDescriptorCodec = []byte{
-	// 625 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x8c, 0x93, 0xc1, 0x6e, 0xd3, 0x4c,
-	0x10, 0xc7, 0xeb, 0x3a, 0x69, 0xd3, 0x4d, 0xab, 0xb6, 0xfb, 0xe9, 0x13, 0x56, 0x40, 0x21, 0xf4,
-	0x54, 0x01, 0x5d, 0x8b, 0x22, 0x71, 0x41, 0xe2, 0x90, 0xaa, 0xa8, 0x48, 0x6d, 0x85, 0x9c, 0x02,
-	0xc7, 0x68, 0xe3, 0x4c, 0x5d, 0x8b, 0xd8, 0x6b, 0xed, 0xae, 0x9b, 0x3e, 0x06, 0x6f, 0xc2, 0x6b,
-	0xf4, 0xc8, 0x13, 0x20, 0x54, 0x9e, 0x81, 0x3b, 0xda, 0x59, 0x3b, 0xb1, 0x7d, 0x88, 0xb8, 0x79,
-	0x66, 0xfe, 0xff, 0x9f, 0x67, 0x77, 0x67, 0xc8, 0x2e, 0xcf, 0x32, 0x3f, 0x14, 0x53, 0x08, 0x59,
-	0x26, 0x85, 0x16, 0xd4, 0xe5, 0x59, 0xd6, 0x3b, 0x8a, 0x62, 0x7d, 0x93, 0x4f, 0x58, 0x28, 0x12,
-	0x3f, 0x12, 0x91, 0xf0, 0xb1, 0x36, 0xc9, 0xaf, 0x31, 0xc2, 0x00, 0xbf, 0xac, 0xa7, 0xf7, 0xa2,
-	0x22, 0x8f, 0xc5, 0xed, 0x91, 0x48, 0xc1, 0x9f, 0x03, 0xbf, 0x05, 0xff, 0xce, 0x0f, 0xb9, 0xba,
-	0xa9, 0xfe, 0xa0, 0xc6, 0x6e, 0x8a, 0x41, 0x85, 0x52, 0xcc, 0x6b, 0x72, 0x7f, 0x85, 0x3c, 0xe5,
-	0x09, 0x84, 0x22, 0x4e, 0x6b, 0x86, 0x55, 0xcd, 0xa8, 0x38, 0x52, 0xff, 0x4c, 0x4f, 0xf2, 0x99,
-	0x8e, 0x55, 0x1c, 0xd5, 0x0c, 0xaf, 0x56, 0x18, 0x6e, 0xf9, 0x2c, 0x9e, 0x72, 0x2d, 0x64, 0xed,
-	0x1f, 0x07, 0xdf, 0x1d, 0xb2, 0x7e, 0x75, 0x47, 0x7b, 0xc4, 0x55, 0x79, 0xe2, 0x39, 0x03, 0xe7,
-	0xb0, 0x7b, 0xdc, 0x61, 0x3c, 0xcb, 0xd8, 0x28, 0x4f, 0x02, 0x93, 0xa4, 0xcf, 0x48, 0xeb, 0x1a,
-	0x40, 0x79, 0xeb, 0x58, 0xdc, 0x61, 0xe6, 0xd2, 0xd8, 0x7b, 0x80, 0x0f, 0xe9, 0xb5, 0x08, 0xb0,
-	0x44, 0x8f, 0x09, 0x51, 0x71, 0x94, 0x72, 0x9d, 0x4b, 0x50, 0x9e, 0x3b, 0x70, 0x0f, 0xbb, 0xc7,
-	0x94, 0x99, 0x03, 0xb1, 0x91, 0x9e, 0x8e, 0xca, 0x52, 0x50, 0x51, 0xd1, 0x1e, 0xe9, 0x64, 0x12,
-	0xe2, 0x84, 0x47, 0xe0, 0xb5, 0x06, 0xce, 0xe1, 0x76, 0xb0, 0x88, 0x4d, 0xad, 0x3c, 0xa0, 0xd7,
-	0x1e, 0xb8, 0xa6, 0x56, 0xc6, 0x07, 0x7f, 0xda, 0xc4, 0x1d, 0xe5, 0x09, 0x7d, 0x4e, 0x3a, 0x0a,
-	0xd2, 0xe9, 0x38, 0x51, 0x51, 0xd1, 0x77, 0xd1, 0xda, 0x08, 0xd2, 0xe9, 0x85, 0x8a, 0xce, 0xd6,
-	0x82, 0x4d, 0x65, 0x3f, 0xe9, 0x5b, 0xb2, 0x93, 0xc2, 0x7c, 0xac, 0xc5, 0x57, 0x48, 0xd1, 0x60,
-	0xcf, 0xf2, 0x3f, 0x2b, 0x1f, 0x89, 0x5d, 0xc2, 0xfc, 0xca, 0x54, 0xad, 0xb1, 0x9b, 0x2e, 0x43,
-	0xfa, 0x8e, 0x6c, 0x2b, 0xd0, 0x63, 0x23, 0x45, 0xaf, 0x8b, 0xde, 0xde, 0xd2, 0x3b, 0x02, 0xfd,
-	0x85, 0xcf, 0x66, 0xa0, 0x2f, 0x79, 0x02, 0x16, 0x40, 0xd4, 0x22, 0xa2, 0xa7, 0x64, 0x3f, 0x94,
-	0xc0, 0x35, 0x8c, 0xed, 0x04, 0x21, 0xa4, 0x85, 0x90, 0x47, 0xcc, 0xa6, 0xd8, 0x09, 0x0a, 0x4e,
-	0x31, 0xb0, 0x84, 0xdd, 0xb0, 0x9e, 0xa2, 0x67, 0x84, 0x4a, 0x98, 0x01, 0x57, 0x35, 0x4e, 0x1b,
-	0x39, 0x5e, 0xc9, 0x09, 0xac, 0xa2, 0x0a, 0xda, 0x93, 0x8d, 0x9c, 0x69, 0x48, 0x82, 0xce, 0x65,
-	0x5a, 0x05, 0x6d, 0xd4, 0x1b, 0x0a, 0x50, 0x50, 0x6b, 0x48, 0xd6, 0x53, 0xf4, 0x9c, 0xec, 0xe7,
-	0xd9, 0xb4, 0x71, 0xae, 0x4d, 0xc4, 0xf4, 0x4b, 0xcc, 0x27, 0x14, 0x58, 0xcf, 0x47, 0x2e, 0x75,
-	0x0c, 0xaa, 0xa0, 0xe5, 0x95, 0x8a, 0xa1, 0x5d, 0x90, 0xff, 0x8a, 0x5b, 0x0a, 0x45, 0xaa, 0x25,
-	0x0f, 0x35, 0xf2, 0x3a, 0xc8, 0x7b, 0xcc, 0xca, 0xe7, 0x2f, 0x6e, 0xea, 0xa4, 0xd0, 0x58, 0x58,
-	0x71, 0xbf, 0x95, 0xa4, 0xc1, 0x15, 0xcd, 0xd5, 0x70, 0x5b, 0x4d, 0x9c, 0x6d, 0xb0, 0x81, 0xcb,
-	0x9b, 0x49, 0x7a, 0x4e, 0xa8, 0x99, 0x81, 0xe5, 0x12, 0x21, 0x8d, 0x20, 0xed, 0x09, 0x5b, 0xa6,
-	0xcd, 0x2c, 0x7c, 0x5e, 0x44, 0xc5, 0x03, 0xa8, 0x46, 0x8e, 0xbe, 0x24, 0x5b, 0x13, 0xae, 0xc3,
-	0x1b, 0x84, 0x74, 0x8b, 0xd9, 0x35, 0x3b, 0x37, 0x34, 0x59, 0xeb, 0xea, 0x4c, 0x8a, 0xef, 0x61,
-	0x1b, 0x77, 0xf3, 0xe0, 0x0d, 0xe9, 0x94, 0x65, 0x33, 0xfb, 0x09, 0x28, 0xc5, 0x23, 0x50, 0x9e,
-	0x83, 0xdb, 0xb6, 0xd8, 0xd9, 0x61, 0xeb, 0xfe, 0xe7, 0xd3, 0xb5, 0x60, 0x51, 0x1f, 0xee, 0xdd,
-	0x3f, 0xf4, 0x9d, 0x1f, 0x0f, 0x7d, 0xe7, 0xd7, 0x43, 0xdf, 0xf9, 0xf6, 0xbb, 0xbf, 0x36, 0xd9,
-	0xc0, 0xd5, 0x7f, 0xfd, 0x37, 0x00, 0x00, 0xff, 0xff, 0x3e, 0xd7, 0xd7, 0xed, 0x5f, 0x05, 0x00,
-	0x00,
+	// 632 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xec, 0x95, 0x41, 0x4f, 0xd4, 0x40,
+	0x14, 0xc7, 0x29, 0xcb, 0xc2, 0x32, 0x0b, 0x02, 0x43, 0x8c, 0xcd, 0x6a, 0xd6, 0x95, 0x13, 0x51,
+	0x99, 0x46, 0x8c, 0x27, 0x13, 0x0f, 0x4b, 0x30, 0x98, 0x00, 0x31, 0x5d, 0xd0, 0xe3, 0x66, 0xb6,
+	0xfb, 0x28, 0x8d, 0xdb, 0x99, 0x66, 0x66, 0xca, 0x72, 0xf7, 0x0b, 0xf8, 0x7d, 0xfc, 0x02, 0x1c,
+	0xfd, 0x04, 0xc6, 0xe0, 0x87, 0xf0, 0x6a, 0xfa, 0xda, 0xee, 0x76, 0x7a, 0x20, 0xde, 0xe5, 0x36,
+	0xef, 0xbd, 0xff, 0xff, 0x37, 0x6f, 0xa6, 0x6f, 0x52, 0xb2, 0xc1, 0x93, 0xc4, 0x0b, 0xe4, 0x18,
+	0x02, 0x96, 0x28, 0x69, 0x24, 0x6d, 0xf0, 0x24, 0xe9, 0xec, 0x85, 0x91, 0xb9, 0x4c, 0x47, 0x2c,
+	0x90, 0xb1, 0x17, 0xca, 0x50, 0x7a, 0x58, 0x1b, 0xa5, 0x17, 0x18, 0x61, 0x80, 0xab, 0xdc, 0xd3,
+	0x79, 0x51, 0x91, 0x47, 0xf2, 0x6a, 0x4f, 0x0a, 0xf0, 0xa6, 0xc0, 0xaf, 0xc0, 0xbb, 0xf6, 0x02,
+	0xae, 0x2f, 0xab, 0x1b, 0x58, 0xec, 0xba, 0x18, 0x74, 0xa0, 0xe4, 0xd4, 0x92, 0x7b, 0x77, 0xc8,
+	0x05, 0x8f, 0x21, 0x90, 0x91, 0xb0, 0x0c, 0x77, 0x35, 0xa3, 0xa3, 0x50, 0xff, 0x33, 0x3d, 0x4e,
+	0x27, 0x26, 0xd2, 0x51, 0x68, 0x19, 0x5e, 0xdd, 0x61, 0xb8, 0xe2, 0x93, 0x68, 0xcc, 0x8d, 0x54,
+	0xd6, 0x1e, 0x3b, 0x5f, 0x57, 0xc8, 0xe2, 0xd9, 0x35, 0x7d, 0x4e, 0x5a, 0x1a, 0xc4, 0x78, 0x18,
+	0xeb, 0xd0, 0x75, 0x7a, 0xce, 0x6e, 0x7b, 0x7f, 0x9d, 0x65, 0x97, 0xc3, 0x06, 0x20, 0xc6, 0x27,
+	0x3a, 0x3c, 0x5a, 0xf0, 0x57, 0x74, 0xbe, 0xa4, 0x6f, 0xc9, 0xba, 0x80, 0xe9, 0xd0, 0xc8, 0x2f,
+	0x20, 0xd0, 0xb0, 0x88, 0x86, 0x87, 0xac, 0x3c, 0x31, 0x3b, 0x85, 0xe9, 0x59, 0x56, 0xcd, 0x8d,
+	0x6d, 0x31, 0x0f, 0xe9, 0x3b, 0xb2, 0xa6, 0xc1, 0x0c, 0x33, 0x29, 0x7a, 0x1b, 0xe8, 0xed, 0xcc,
+	0xbd, 0x03, 0x30, 0x9f, 0xf9, 0x64, 0x02, 0xe6, 0x94, 0xc7, 0x90, 0x03, 0x88, 0x9e, 0x45, 0xf4,
+	0x90, 0x6c, 0x05, 0x0a, 0xb8, 0x81, 0x61, 0xfe, 0x39, 0x10, 0xb2, 0x84, 0x90, 0x47, 0x2c, 0x4f,
+	0xb1, 0x03, 0x14, 0x1c, 0x62, 0x90, 0x13, 0x36, 0x02, 0x3b, 0x45, 0x8f, 0x08, 0x55, 0x30, 0x01,
+	0xae, 0x2d, 0x4e, 0x13, 0x39, 0x6e, 0xc9, 0xf1, 0x73, 0x45, 0x15, 0xb4, 0xa9, 0x6a, 0xb9, 0xac,
+	0x21, 0x05, 0x26, 0x55, 0xa2, 0x0a, 0x5a, 0xb6, 0x1b, 0xf2, 0x51, 0x60, 0x35, 0xa4, 0xec, 0x14,
+	0x3d, 0x26, 0x5b, 0x69, 0x32, 0xae, 0x9d, 0x6b, 0x05, 0x31, 0xdd, 0x12, 0x73, 0x8e, 0x82, 0xdc,
+	0xf3, 0x91, 0x2b, 0x13, 0x81, 0x2e, 0x68, 0x69, 0xa5, 0x92, 0xd1, 0x4e, 0xc8, 0x76, 0x71, 0x4b,
+	0x81, 0x14, 0x46, 0xf1, 0xc0, 0x20, 0xaf, 0x85, 0xbc, 0xc7, 0xac, 0x1c, 0x9e, 0xe2, 0xa6, 0x0e,
+	0x0a, 0x4d, 0x0e, 0x2b, 0xee, 0xb7, 0x92, 0xcc, 0x70, 0x45, 0x73, 0x16, 0x6e, 0xb5, 0x8e, 0xcb,
+	0x1b, 0xac, 0xe1, 0xd2, 0x7a, 0x92, 0x1e, 0x13, 0x9a, 0xcd, 0xc0, 0x7c, 0x22, 0x91, 0x46, 0x90,
+	0xf6, 0x84, 0xcd, 0xd3, 0xd9, 0x2c, 0x7c, 0x9a, 0x45, 0xc5, 0x07, 0xd0, 0xb5, 0x1c, 0x7d, 0x49,
+	0x56, 0x47, 0xdc, 0x04, 0x97, 0x08, 0x69, 0x17, 0xb3, 0xcb, 0x93, 0x84, 0xf5, 0xb3, 0x6c, 0xee,
+	0x6a, 0x8d, 0x8a, 0x35, 0x7d, 0x46, 0x96, 0x2e, 0x00, 0xb4, 0xbb, 0x56, 0x1d, 0xf2, 0xf7, 0x00,
+	0x1f, 0xc4, 0x85, 0xf4, 0xb1, 0x44, 0xf7, 0x09, 0xd1, 0x51, 0x28, 0xb8, 0x49, 0x15, 0x68, 0x77,
+	0xbd, 0xd7, 0xd8, 0x6d, 0xef, 0x53, 0x96, 0xbd, 0x4e, 0x36, 0x30, 0xe3, 0x41, 0x59, 0xf2, 0x2b,
+	0x2a, 0xda, 0x21, 0xad, 0x44, 0x41, 0x14, 0xf3, 0x10, 0xdc, 0x07, 0x3d, 0x67, 0x77, 0xcd, 0x9f,
+	0xc5, 0x59, 0xad, 0xbc, 0x21, 0x77, 0xa3, 0xd7, 0xc8, 0x6a, 0x65, 0xdc, 0x6f, 0x92, 0x86, 0x4e,
+	0xe3, 0x9d, 0xef, 0xcb, 0xa4, 0x55, 0xb6, 0x4b, 0xdf, 0x90, 0x56, 0x0c, 0x5a, 0xf3, 0x10, 0xb4,
+	0xeb, 0xe0, 0xee, 0xdb, 0xd6, 0x79, 0xd8, 0xb9, 0x88, 0xa4, 0xe8, 0x2f, 0xdd, 0xfc, 0x7c, 0xba,
+	0xe0, 0xcf, 0xa4, 0x9d, 0x3f, 0x4d, 0xd2, 0xc4, 0xca, 0xfd, 0x63, 0xbe, 0x7f, 0xcc, 0xff, 0xc5,
+	0x63, 0x2e, 0x5e, 0x4f, 0x7f, 0xf3, 0xe6, 0xb6, 0xeb, 0xfc, 0xb8, 0xed, 0x3a, 0xbf, 0x6e, 0xbb,
+	0xce, 0xb7, 0xdf, 0xdd, 0x85, 0xd1, 0x32, 0xfe, 0xdc, 0x5e, 0xff, 0x0d, 0x00, 0x00, 0xff, 0xff,
+	0xa2, 0xbc, 0xdb, 0x0f, 0x41, 0x08, 0x00, 0x00,
 }

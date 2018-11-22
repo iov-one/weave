@@ -33,33 +33,35 @@ var _ multisig.MultiSigTx = (*Tx)(nil)
 
 // GetMsg switches over all types defined in the protobuf file
 func (tx *Tx) GetMsg() (weave.Msg, error) {
-	sum := tx.GetSum().GetSum()
+	sum := tx.GetSum()
 	if sum == nil {
 		return nil, errors.ErrDecoding()
 	}
 
 	// make sure to cover all messages defined in protobuf
 	switch t := sum.(type) {
-	case *Sum_SendMsg:
+	case *Tx_SendMsg:
 		return t.SendMsg, nil
-	case *Sum_SetNameMsg:
+	case *Tx_SetNameMsg:
 		return t.SetNameMsg, nil
-	case *Sum_NewTokenMsg:
+	case *Tx_NewTokenMsg:
 		return t.NewTokenMsg, nil
-	case *Sum_CreateEscrowMsg:
+	case *Tx_CreateEscrowMsg:
 		return t.CreateEscrowMsg, nil
-	case *Sum_ReleaseEscrowMsg:
+	case *Tx_ReleaseEscrowMsg:
 		return t.ReleaseEscrowMsg, nil
-	case *Sum_ReturnEscrowMsg:
+	case *Tx_ReturnEscrowMsg:
 		return t.ReturnEscrowMsg, nil
-	case *Sum_UpdateEscrowMsg:
+	case *Tx_UpdateEscrowMsg:
 		return t.UpdateEscrowMsg, nil
-	case *Sum_CreateContractMsg:
+	case *Tx_CreateContractMsg:
 		return t.CreateContractMsg, nil
-	case *Sum_UpdateContractMsg:
+	case *Tx_UpdateContractMsg:
 		return t.UpdateContractMsg, nil
-	case *Sum_SetValidatorsMsg:
+	case *Tx_SetValidatorsMsg:
 		return t.SetValidatorsMsg, nil
+	case *Tx_BatchMsg:
+		return t.BatchMsg, nil
 	}
 
 	// we must have covered it above

@@ -14,19 +14,6 @@ import "github.com/iov-one/weave/x/validators/codec.proto";
 // Tx contains the message
 message Tx {
   // msg is a sum type over all allowed messages on this chain.
-  Sum sum = 1;
-  // fee info, autogenerates GetFees()
-  cash.FeeInfo fees = 2;
-  // signatures, autogenerates GetSignatures()
-  repeated sigs.StdSignature signatures = 3;
-  // preimage for hashlock, autogenerates GetPreimage
-  bytes preimage = 4;
-  // id of multisig contract, autogenerates GetMultisig
-  repeated bytes multisig = 5;
-}
-
-
-message Sum {
   oneof sum {
     cash.SendMsg send_msg = 1;
     namecoin.NewTokenMsg new_token_msg = 2;
@@ -43,9 +30,36 @@ message Sum {
     validators.SetValidatorsMsg set_validators_msg = 10;
     BatchMsg batch_msg = 11;
   }
+  // fee info, autogenerates GetFees()
+  cash.FeeInfo fees = 12;
+  // signatures, autogenerates GetSignatures()
+  repeated sigs.StdSignature signatures = 13;
+  // preimage for hashlock, autogenerates GetPreimage
+  bytes preimage = 14;
+  // id of multisig contract, autogenerates GetMultisig
+  repeated bytes multisig = 15;
 }
 
 // BatchMsg encapsulates multiple messages to support batch transaction
 message BatchMsg {
-  repeated Sum messages = 1 [(gogoproto.nullable) = false];
+  repeated Union messages = 1 [(gogoproto.nullable) = false];
+
+  message Union {
+    oneof sum {
+      cash.SendMsg send_msg = 1;
+      namecoin.NewTokenMsg new_token_msg = 2;
+      namecoin.SetWalletNameMsg set_name_msg = 3;
+      // escrow actions
+      escrow.CreateEscrowMsg create_escrow_msg = 4;
+      escrow.ReleaseEscrowMsg release_escrow_msg = 5;
+      escrow.ReturnEscrowMsg return_escrow_msg = 6;
+      escrow.UpdateEscrowPartiesMsg update_escrow_msg = 7;
+      // multisig contract
+      multisig.CreateContractMsg create_contract_msg = 8;
+      multisig.UpdateContractMsg update_contract_msg = 9;
+      // validators actions
+      validators.SetValidatorsMsg set_validators_msg = 10;
+      BatchMsg batch_msg = 11;
+    }
+  }
 }

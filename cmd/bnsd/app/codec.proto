@@ -19,25 +19,6 @@ import "github.com/iov-one/weave/x/validators/codec.proto";
 // Tx contains the message
 message Tx {
     // msg is a sum type over all allowed messages on this chain.
-    Sum sum = 1;
-    // fee info, autogenerates GetFees()
-    cash.FeeInfo fees = 2;
-    // signatures, autogenerates GetSignatures()
-    repeated sigs.StdSignature signatures = 3;
-    // preimage for hashlock, autogenerates GetPreimage
-    bytes preimage = 4;
-    // id of multisig contract, autogenerates GetMultisig
-    repeated bytes multisig = 5;
-}
-
-enum NftType {
-    Username = 0;
-    Ticker = 1;
-    Blockchain = 3;
-    BootstrapNode = 4;
-}
-
-message Sum {
     oneof sum {
         cash.SendMsg send_msg = 1;
         namecoin.NewTokenMsg new_token_msg = 2;
@@ -63,9 +44,52 @@ message Sum {
         bootstrap_node.IssueTokenMsg issue_bootstrap_node_nft_msg = 18;
         BatchMsg batch_msg = 19;
     }
+    // fee info, autogenerates GetFees()
+    cash.FeeInfo fees = 20;
+    // signatures, autogenerates GetSignatures()
+    repeated sigs.StdSignature signatures = 21;
+    // preimage for hashlock, autogenerates GetPreimage
+    bytes preimage = 22;
+    // id of multisig contract, autogenerates GetMultisig
+    repeated bytes multisig = 23;
+}
+
+enum NftType {
+    Username = 0;
+    Ticker = 1;
+    Blockchain = 3;
+    BootstrapNode = 4;
 }
 
 // BatchMsg encapsulates multiple messages to support batch transaction
 message BatchMsg {
-    repeated Sum messages = 1 [(gogoproto.nullable) = false];
+    repeated Union messages = 1 [(gogoproto.nullable) = false];
+
+    message Union {
+        oneof sum {
+            cash.SendMsg send_msg = 1;
+            namecoin.NewTokenMsg new_token_msg = 2;
+            namecoin.SetWalletNameMsg set_name_msg = 3;
+            // escrow actions
+            escrow.CreateEscrowMsg create_escrow_msg = 4;
+            escrow.ReleaseEscrowMsg release_escrow_msg = 5;
+            escrow.ReturnEscrowMsg return_escrow_msg = 6;
+            escrow.UpdateEscrowPartiesMsg update_escrow_msg = 7;
+            // multisig contract
+            multisig.CreateContractMsg create_contract_msg = 8;
+            multisig.UpdateContractMsg update_contract_msg = 9;
+            // validators actions
+            validators.SetValidatorsMsg set_validators_msg = 10;
+            // nft actions
+            nft.AddApprovalMsg add_approval_msg = 11;
+            nft.RemoveApprovalMsg remove_approval_msg = 12;
+            username.IssueTokenMsg issue_username_nft_msg = 13;
+            username.AddChainAddressMsg add_username_address_nft_msg = 14;
+            username.RemoveChainAddressMsg remove_username_address_msg = 15;
+            blockchain.IssueTokenMsg issue_blockchain_nft_msg = 16;
+            ticker.IssueTokenMsg issue_ticker_nft_msg = 17;
+            bootstrap_node.IssueTokenMsg issue_bootstrap_node_nft_msg = 18;
+            BatchMsg batch_msg = 19;
+        }
+    }
 }
