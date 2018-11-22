@@ -22,21 +22,21 @@ func TestIssueNfts(t *testing.T) {
 	myUserName := []byte(fmt.Sprintf("alice-%d@example.com", uniqueSuffix))
 	nfts := []*app.Tx{
 		{
-			Sum: &app.Tx_IssueBlockchainNftMsg{&blockchain.IssueTokenMsg{
+			Sum: &app.Sum{&app.Sum_IssueBlockchainNftMsg{&blockchain.IssueTokenMsg{
 				Id:      myBlockchainID,
 				Owner:   alice.PublicKey().Address(),
 				Details: blockchain.TokenDetails{Iov: blockchain.IOV{Codec: "test", CodecConfig: `{ "any" : [ "json", "content" ] }`}},
-			},
+			}},
 			},
 		}, {
-			Sum: &app.Tx_IssueTickerNftMsg{&ticker.IssueTokenMsg{
+			Sum: &app.Sum{&app.Sum_IssueTickerNftMsg{&ticker.IssueTokenMsg{
 				Id:      myTicker,
 				Owner:   alice.PublicKey().Address(),
 				Details: ticker.TokenDetails{myBlockchainID},
-			},
+			}},
 			},
 		}, {
-			Sum: &app.Tx_IssueUsernameNftMsg{&username.IssueTokenMsg{
+			Sum: &app.Sum{&app.Sum_IssueUsernameNftMsg{&username.IssueTokenMsg{
 				Id:    myUserName,
 				Owner: alice.PublicKey().Address(),
 				Details: username.TokenDetails{[]username.ChainAddress{{
@@ -44,7 +44,7 @@ func TestIssueNfts(t *testing.T) {
 					Address: alice.PublicKey().Address().String(),
 				},
 				}},
-			},
+			}},
 			},
 		},
 	}

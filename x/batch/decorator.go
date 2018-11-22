@@ -81,7 +81,7 @@ func (*Decorator) combineChecks(checks []weave.CheckResult) weave.CheckResult {
 	log, _ := (&ByteArrayList{Elements: logs}).Marshal()
 
 	return weave.CheckResult{
-		Data:         data,
+		Data: data,
 		//TODO: Is this good enough conversion? Should be, in theory
 		Log:          string(log),
 		GasAllocated: allocated,
@@ -143,7 +143,7 @@ func (*Decorator) combineDelivers(delivers []weave.DeliverResult) weave.DeliverR
 	log, _ := (&ByteArrayList{Elements: logs}).Marshal()
 
 	return weave.DeliverResult{
-		Data:    data,
+		Data: data,
 		//TODO: Is this good enough?
 		Log:     string(log),
 		GasUsed: payments,

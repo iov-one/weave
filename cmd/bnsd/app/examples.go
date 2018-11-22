@@ -83,7 +83,7 @@ func Examples() []commands.Example {
 		},
 	}
 	issueUsernameTx := &Tx{
-		Sum: &Tx_IssueUsernameNftMsg{issueUsernameMsg},
+		Sum: &Sum{&Sum_IssueUsernameNftMsg{issueUsernameMsg}},
 	}
 
 	addAddressMsg := &username.AddChainAddressMsg{
@@ -98,7 +98,7 @@ func Examples() []commands.Example {
 		Details: blockchain.TokenDetails{},
 	}
 	issueBlockchainTx := &Tx{
-		Sum: &Tx_IssueBlockchainNftMsg{issueBlockchainMsg},
+		Sum: &Sum{&Sum_IssueBlockchainNftMsg{issueBlockchainMsg}},
 	}
 
 	fmt.Printf("Address: %s\n", addr)
