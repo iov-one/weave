@@ -15,6 +15,7 @@ import (
 	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/store/iavl"
 	"github.com/iov-one/weave/x"
+	"github.com/iov-one/weave/x/batch"
 	"github.com/iov-one/weave/x/escrow"
 	"github.com/iov-one/weave/x/hashlock"
 	"github.com/iov-one/weave/x/multisig"
@@ -45,6 +46,7 @@ func Chain(minFee x.Coin, authFn x.Authenticator) app.Decorators {
 		utils.NewKeyTagger(),
 		// on CheckTx, bad tx don't affect state
 		utils.NewSavepoint().OnCheck(),
+		batch.NewDecorator(),
 		sigs.NewDecorator(),
 		multisig.NewDecorator(authFn),
 		namecoin.NewFeeDecorator(authFn, minFee),
