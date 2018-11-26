@@ -89,7 +89,6 @@ message BatchMsg {
             blockchain.IssueTokenMsg issue_blockchain_nft_msg = 16;
             ticker.IssueTokenMsg issue_ticker_nft_msg = 17;
             bootstrap_node.IssueTokenMsg issue_bootstrap_node_nft_msg = 18;
-            BatchMsg batch_msg = 19;
         }
     }
 }

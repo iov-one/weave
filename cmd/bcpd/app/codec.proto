@@ -31,13 +31,13 @@ message Tx {
     BatchMsg batch_msg = 11;
   }
   // fee info, autogenerates GetFees()
-  cash.FeeInfo fees = 12;
+  cash.FeeInfo fees = 20;
   // signatures, autogenerates GetSignatures()
-  repeated sigs.StdSignature signatures = 13;
+  repeated sigs.StdSignature signatures = 21;
   // preimage for hashlock, autogenerates GetPreimage
-  bytes preimage = 14;
+  bytes preimage = 22;
   // id of multisig contract, autogenerates GetMultisig
-  repeated bytes multisig = 15;
+  repeated bytes multisig = 23;
 }
 
 // BatchMsg encapsulates multiple messages to support batch transaction
@@ -59,7 +59,6 @@ message BatchMsg {
       multisig.UpdateContractMsg update_contract_msg = 9;
       // validators actions
       validators.SetValidatorsMsg set_validators_msg = 10;
-      BatchMsg batch_msg = 11;
     }
   }
 }

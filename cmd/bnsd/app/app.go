@@ -46,12 +46,13 @@ func Chain(minFee x.Coin, authFn x.Authenticator) app.Decorators {
 		utils.NewKeyTagger(),
 		// on CheckTx, bad tx don't affect state
 		utils.NewSavepoint().OnCheck(),
-		batch.NewDecorator(),
 		sigs.NewDecorator(),
 		multisig.NewDecorator(authFn),
 		namecoin.NewFeeDecorator(authFn, minFee),
 		// cannot pay for fee with hashlock...
 		hashlock.NewDecorator(),
+		// make sure we execute all the transactions in batch before the save point
+		batch.NewDecorator(),
 		// on DeliverTx, bad tx will increment nonce and take fee
 		// even if the message fails
 		utils.NewSavepoint().OnDeliver(),
