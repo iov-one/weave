@@ -18,3 +18,7 @@ func (msg *BatchMsg) MsgList() []weave.Msg {
 	}
 	return messages
 }
+
+func (msg *BatchMsg) Validate() error {
+	return batch.Validate(msg)
+}

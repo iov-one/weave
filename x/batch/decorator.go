@@ -7,7 +7,6 @@ package batch
 
 import (
 	"github.com/iov-one/weave"
-	"github.com/iov-one/weave/errors"
 	"github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/common"
 )
@@ -51,11 +50,11 @@ func (d Decorator) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx,
 	}
 
 	if batchMsg, ok := msg.(Msg); ok {
-		msgList := batchMsg.MsgList()
-		if len(msgList) > maxBatcMessages {
-			//TODO: Figure out if this is the correct error
-			return res, errors.ErrTooLarge()
+		if err = batchMsg.Validate(); err != nil {
+			return res, err
 		}
+
+		msgList := batchMsg.MsgList()
 
 		checks := make([]weave.CheckResult, len(msgList))
 		for i, msg := range msgList {
@@ -110,6 +109,10 @@ func (d Decorator) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx,
 	}
 
 	if batchMsg, ok := msg.(Msg); ok {
+		if err = batchMsg.Validate(); err != nil {
+			return res, err
+		}
+
 		msgList := batchMsg.MsgList()
 
 		delivers := make([]weave.DeliverResult, len(msgList))
