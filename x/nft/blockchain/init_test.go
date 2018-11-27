@@ -11,24 +11,26 @@ import (
 func TestInitializer(t *testing.T) {
 	const genesis = `
 	{
-		"nft_tokens": [
-			{
-				"id": "id-123",
-				"owner": "owner-12300000000000",
-				"chain": {
-					"chain_id": "chain-123",
-					"network_id": "network-123",
-					"name": "name-123",
-					"enabled": true,
-					"production": true,
-					"main_ticker_id": "main-ticker-id-123"
-				},
-				"iov": {
-					"codec": "happy_little_tree",
-					"codec_config": "{\"any\": [\"foo\"]}"
+		"nfts": {
+			"blockchains": [
+				{
+					"id": "id-123",
+					"owner": "owner-12300000000000",
+					"chain": {
+						"chain_id": "chain-123",
+						"network_id": "network-123",
+						"name": "name-123",
+						"enabled": true,
+						"production": true,
+						"main_ticker_id": "main-ticker-id-123"
+					},
+					"iov": {
+						"codec": "happy_little_tree",
+						"codec_config": "{\"any\": [\"foo\"]}"
+					}
 				}
-			}
-		]
+			]
+		}
 	}
 	`
 	var opts weave.Options

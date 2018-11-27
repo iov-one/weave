@@ -5,6 +5,25 @@ import (
 	"github.com/pkg/errors"
 )
 
+// Initializer fulfils the InitStater interface to load data from
+// the genesis file
+type Initializer struct {
+}
+
+var _ weave.Initializer = (*Initializer)(nil)
+
+// FromGenesis will parse initial tokens information from the genesis and
+// persist it in the database.
+func (i *Initializer) FromGenesis(opts weave.Options, db weave.KVStore) error {
+	var nfts struct {
+		Blockchains []genesisBlockchainToken `json:"blockchains"`
+	}
+	if err := opts.ReadOptions("nfts", &nfts); err != nil {
+		return errors.Wrap(err, "read options")
+	}
+	return setTokens(db, nfts.Blockchains)
+}
+
 type genesisBlockchainToken struct {
 	ID    string `json:"id"`
 	Owner string `json:"owner"`
@@ -20,24 +39,6 @@ type genesisBlockchainToken struct {
 		Codec       string `json:"codec"`
 		CodecConfig string `json:"codec_config"`
 	} `json:"iov"`
-}
-
-// Initializer fulfils the InitStater interface to load data from
-// the genesis file
-type Initializer struct {
-}
-
-var _ weave.Initializer = (*Initializer)(nil)
-
-// FromGenesis will parse initial tokens information from the genesis and
-// persist it in the database.
-func (i *Initializer) FromGenesis(opts weave.Options, db weave.KVStore) error {
-	var tokens []genesisBlockchainToken
-	err := opts.ReadOptions("nft_tokens", &tokens)
-	if err != nil {
-		return errors.Wrap(err, "read options")
-	}
-	return setTokens(db, tokens)
 }
 
 func setTokens(db weave.KVStore, tokens []genesisBlockchainToken) error {
