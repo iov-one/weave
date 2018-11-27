@@ -158,13 +158,12 @@ func idxArbiter(obj orm.Object) ([]byte, error) {
 	return esc.Arbiter, nil
 }
 
-// Create will calculate the next sequence number and then
-// store the escrow there.
-// Saves the object and returns it (to inspect the ID)
+// Create assigns an ID to given escrow instance, saves it and returns as an
+// orm Object.
 func (b Bucket) Create(db weave.KVStore, escrow *Escrow) (orm.Object, error) {
 	key := b.idSeq.NextVal(db)
 	obj := orm.NewSimpleObj(key, escrow)
-	return obj, nil
+	return obj, b.Save(db, obj)
 }
 
 // Save enforces the proper type
