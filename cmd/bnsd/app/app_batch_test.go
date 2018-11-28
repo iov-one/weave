@@ -11,8 +11,6 @@ import (
 	"github.com/iov-one/weave/x/nft/blockchain"
 	"github.com/iov-one/weave/x/sigs"
 	. "github.com/smartystreets/goconvey/convey"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	abci "github.com/tendermint/tendermint/abci/types"
 )
 
@@ -39,7 +37,7 @@ func TestAppBatch(t *testing.T) {
 				})
 		}
 		tx := createBatchTx(messages)
-		res := signBatchAndCommit(t, myApp, tx, []Signer{{issuerPrivKey, 0}}, appFixture.ChainID,
+		res := signBatchAndCommit(myApp, tx, []Signer{{issuerPrivKey, 0}}, appFixture.ChainID,
 			0, true)
 
 		So(res.Code, ShouldEqual, 0)
@@ -68,7 +66,7 @@ func TestAppBatch(t *testing.T) {
 		}
 		(&messages[0]).GetIssueBlockchainNftMsg().Details = blockchain.TokenDetails{}
 		tx := createBatchTx(messages)
-		res := signBatchAndCommit(t, myApp, tx,
+		res := signBatchAndCommit(myApp, tx,
 			[]Signer{{issuerPrivKey, 0}}, appFixture.ChainID, 1, false)
 
 		So(res.Code, ShouldEqual, 510)
@@ -96,7 +94,7 @@ func TestAppBatch(t *testing.T) {
 				})
 		}
 		tx := createBatchTx(messages)
-		res := signBatchAndCommit(t, myApp, tx,
+		res := signBatchAndCommit(myApp, tx,
 			[]Signer{{issuerPrivKey, 0}}, appFixture.ChainID, 1, false)
 
 		So(res.Code, ShouldEqual, 2)
@@ -113,17 +111,17 @@ func createBatchTx(messages []app.BatchMsg_Union) *app.Tx {
 	}
 }
 
-func signBatchAndCommit(t *testing.T, app weave_app.BaseApp, tx *app.Tx, signers []Signer, chainID string,
+func signBatchAndCommit(app weave_app.BaseApp, tx *app.Tx, signers []Signer, chainID string,
 	height int64, happy bool) abci.ResponseDeliverTx {
 	for _, signer := range signers {
 		sig, err := sigs.SignTx(signer.pk, tx, chainID, signer.nonce)
-		require.NoError(t, err)
+		So(err, ShouldBeNil)
 		tx.Signatures = append(tx.Signatures, sig)
 	}
 
 	txBytes, err := tx.Marshal()
-	require.NoError(t, err)
-	require.NotEmpty(t, txBytes)
+	So(err, ShouldBeNil)
+	So(txBytes, ShouldNotBeEmpty)
 
 	// Submit to the chain
 	header := abci.Header{Height: height}
@@ -131,16 +129,17 @@ func signBatchAndCommit(t *testing.T, app weave_app.BaseApp, tx *app.Tx, signers
 	// check and deliver must pass
 	chres := app.CheckTx(txBytes)
 	if happy {
-		require.Equal(t, uint32(0), chres.Code, chres.Log)
+		So(0, ShouldEqual, chres.Code)
 	}
 
 	dres := app.DeliverTx(txBytes)
 	if happy {
-		require.Equal(t, uint32(0), dres.Code, dres.Log)
+		So(0, ShouldEqual, dres.Code)
 	}
 
 	app.EndBlock(abci.RequestEndBlock{})
 	cres := app.Commit()
-	assert.NotEmpty(t, cres.Data)
+
+	So(cres.Data, ShouldNotBeEmpty)
 	return dres
 }
