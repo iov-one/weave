@@ -73,6 +73,34 @@ func TestAppBatch(t *testing.T) {
 
 		So(res.Code, ShouldEqual, 510)
 	})
+
+	Convey("Test batch transaction size too big", t, func() {
+		appFixture := fixtures.NewApp()
+		isuserAddr := appFixture.GenesisKeyAddress
+		issuerPrivKey := appFixture.GenesisKey
+
+		myApp := appFixture.Build()
+
+		var messages []app.BatchMsg_Union
+
+		for i := 0; i <= batch.MaxBatchMessages; i++ {
+			messages = append(messages,
+				app.BatchMsg_Union{
+					Sum: &app.BatchMsg_Union_IssueBlockchainNftMsg{
+						IssueBlockchainNftMsg: &blockchain.IssueTokenMsg{
+							Id:      []byte(fmt.Sprintf("myblockchain-%d", i)),
+							Owner:   isuserAddr,
+							Details: blockchain.TokenDetails{Iov: blockchain.IOV{Codec: "asd"}},
+						},
+					},
+				})
+		}
+		tx := createBatchTx(messages)
+		res := signBatchAndCommit(t, myApp, tx,
+			[]Signer{{issuerPrivKey, 0}}, appFixture.ChainID, 1, false)
+
+		So(res.Code, ShouldEqual, 2)
+	})
 }
 
 func createBatchTx(messages []app.BatchMsg_Union) *app.Tx {
