@@ -1,9 +1,9 @@
 package app_test
 
 import (
+	"fmt"
 	"testing"
 
-	"fmt"
 	weave_app "github.com/iov-one/weave/app"
 	"github.com/iov-one/weave/cmd/bnsd/app"
 	"github.com/iov-one/weave/cmd/bnsd/app/testdata/fixtures"
