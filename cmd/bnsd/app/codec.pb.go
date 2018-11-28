@@ -783,7 +783,7 @@ type BatchMsg_Union struct {
 	//	*BatchMsg_Union_CreateEscrowMsg
 	//	*BatchMsg_Union_ReleaseEscrowMsg
 	//	*BatchMsg_Union_ReturnEscrowMsg
-	//	*BatchMsg_Union_UpdateEscrowMsg
+	//	**BatchMsg_Union_UpdateEscrowMsg
 	//	*BatchMsg_Union_CreateContractMsg
 	//	*BatchMsg_Union_UpdateContractMsg
 	//	*BatchMsg_Union_SetValidatorsMsg

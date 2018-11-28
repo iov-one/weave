@@ -17,7 +17,7 @@ type Msg interface {
 }
 
 func Validate(msg Msg) error {
-	if len(msg.MsgList()) > maxBatcMessages {
+	if len(msg.MsgList()) > MaxBatchMessages {
 		//TODO: Figure out if this is the correct error
 		return errors.ErrTooLarge()
 	}

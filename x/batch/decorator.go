@@ -11,7 +11,7 @@ import (
 	"github.com/tendermint/tendermint/libs/common"
 )
 
-const maxBatcMessages = 10
+const MaxBatchMessages = 10
 
 //----------------- Decorator ----------------
 //
