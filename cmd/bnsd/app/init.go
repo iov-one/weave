@@ -6,13 +6,14 @@ import (
 	"fmt"
 	"path/filepath"
 
-	abci "github.com/tendermint/tendermint/abci/types"
-	"github.com/tendermint/tendermint/libs/log"
-
 	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/app"
 	"github.com/iov-one/weave/crypto"
 	"github.com/iov-one/weave/x"
 	"github.com/iov-one/weave/x/namecoin"
+	"github.com/iov-one/weave/x/nft/blockchain"
+	abci "github.com/tendermint/tendermint/abci/types"
+	"github.com/tendermint/tendermint/libs/log"
 )
 
 // GenInitOptions will produce some basic options for one rich
@@ -61,7 +62,10 @@ func GenInitOptions(args []string) (json.RawMessage, error) {
         "name": "Main token of this chain",
         "sig_figs": 6
       }
-    ]
+    ],
+    "nfts": {
+      "blockchains": []
+    }
   }`, addr, ticker, ticker)
 	return []byte(opts), nil
 }
@@ -76,15 +80,18 @@ func GenerateApp(home string, logger log.Logger, debug bool) (abci.Application, 
 
 	// TODO: anyone can make a token????
 	stack := Stack(x.Coin{}, nil)
-	app, err := Application("bnsd", stack, TxDecoder, dbPath, debug)
+	application, err := Application("bnsd", stack, TxDecoder, dbPath, debug)
 	if err != nil {
 		return nil, err
 	}
-	app.WithInit(namecoin.Initializer{})
+	application.WithInit(app.ChainInitializers(
+		&namecoin.Initializer{},
+		&blockchain.Initializer{},
+	))
 
 	// set the logger and return
-	app.WithLogger(logger)
-	return app, nil
+	application.WithLogger(logger)
+	return application, nil
 }
 
 type output struct {
