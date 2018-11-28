@@ -88,11 +88,7 @@ func (h CreateEscrowHandler) Deliver(ctx weave.Context, db weave.KVStore,
 		Timeout:   msg.Timeout,
 		Memo:      msg.Memo,
 	}
-	obj, err := h.bucket.Create(db, escrow)
-	if err != nil {
-		return res, err
-	}
-
+	obj := h.bucket.Build(db, escrow)
 	if err := h.ops.Deposit(db, escrow, obj.Key(), sender, msg.Amount); err != nil {
 		return res, err
 	}
