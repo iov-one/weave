@@ -13,11 +13,16 @@ const (
 type Msg interface {
 	weave.Msg
 	x.Validater
-	MsgList() []weave.Msg
+	MsgList() ([]weave.Msg, error)
 }
 
 func Validate(msg Msg) error {
-	if len(msg.MsgList()) > MaxBatchMessages {
+	l, err := msg.MsgList()
+	if err != nil {
+		return errors.Wrap(err)
+	}
+
+	if len(l) > MaxBatchMessages {
 		//TODO: Figure out if this is the correct error
 		return errors.ErrTooLarge()
 	}

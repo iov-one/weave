@@ -54,7 +54,7 @@ func (d Decorator) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx,
 			return res, err
 		}
 
-		msgList := batchMsg.MsgList()
+		msgList, _ := batchMsg.MsgList()
 
 		checks := make([]weave.CheckResult, len(msgList))
 		for i, msg := range msgList {
@@ -113,7 +113,7 @@ func (d Decorator) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx,
 			return res, err
 		}
 
-		msgList := batchMsg.MsgList()
+		msgList, _ := batchMsg.MsgList()
 
 		delivers := make([]weave.DeliverResult, len(msgList))
 		for i, msg := range msgList {
