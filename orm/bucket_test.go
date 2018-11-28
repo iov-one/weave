@@ -149,7 +149,7 @@ func TestBucketSequence(t *testing.T) {
 	for i, tc := range cases {
 		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
 			s := tc.bucket.Sequence(tc.seq)
-			res := incrementN(s, db, tc.add)
+			res, _ := s.increment(db, tc.add)
 			assert.Equal(t, tc.expect, res)
 		})
 	}
