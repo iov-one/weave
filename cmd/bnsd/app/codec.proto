@@ -63,8 +63,6 @@ enum NftType {
 
 // BatchMsg encapsulates multiple messages to support batch transaction
 message BatchMsg {
-    repeated Union messages = 1 [(gogoproto.nullable) = false];
-
     message Union {
         oneof sum {
             cash.SendMsg send_msg = 1;
@@ -91,4 +89,6 @@ message BatchMsg {
             bootstrap_node.IssueTokenMsg issue_bootstrap_node_nft_msg = 18;
         }
     }
+
+    repeated Union messages = 1 [(gogoproto.nullable) = false];
 }
