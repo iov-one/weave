@@ -6,6 +6,8 @@ transaction
 package batch
 
 import (
+	"strings"
+
 	"github.com/iov-one/weave"
 	"github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/common"
@@ -133,14 +135,14 @@ func (d Decorator) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx,
 // joins all log messages with \n
 func (*Decorator) combineDelivers(delivers []weave.DeliverResult) weave.DeliverResult {
 	datas := make([][]byte, len(delivers))
-	logs := make([][]byte, len(delivers))
+	logs := make([]string, len(delivers))
 	var payments int64
 	var diffs []types.ValidatorUpdate
 	var tags []common.KVPair
 	for i, r := range delivers {
 		datas[i] = r.Data
 		//TODO: Is this good enough conversion? Should be, in theory
-		logs[i] = []byte(r.Log)
+		logs[i] = r.Log
 		payments += r.GasUsed
 		if len(r.Diff) > 0 {
 			diffs = append(diffs, r.Diff...)
@@ -151,12 +153,12 @@ func (*Decorator) combineDelivers(delivers []weave.DeliverResult) weave.DeliverR
 	}
 
 	data, _ := (&ByteArrayList{Elements: datas}).Marshal()
-	log, _ := (&ByteArrayList{Elements: logs}).Marshal()
+	log := strings.Join(logs, "\n")
 
 	return weave.DeliverResult{
 		Data: data,
 		//TODO: Is this good enough?
-		Log:     string(log),
+		Log:     log,
 		GasUsed: payments,
 		Diff:    diffs,
 		//TODO: Per Ethan's comment this is sorted
