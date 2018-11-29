@@ -73,7 +73,7 @@ func Examples() []commands.Example {
 		Owner: addr,
 		Details: username.TokenDetails{
 			Addresses: []username.ChainAddress{
-				{[]byte("myNet"), []byte("myChainAddress")},
+				{[]byte("myNet"), "myChainAddress"},
 			},
 		},
 		Approvals: []nft.ActionApprovals{
@@ -89,7 +89,7 @@ func Examples() []commands.Example {
 	addAddressMsg := &username.AddChainAddressMsg{
 		Id:      []byte("alice@example.com"),
 		ChainID: []byte("myNet"),
-		Address: []byte("myChainAddress"),
+		Address: "myChainAddress",
 	}
 
 	issueBlockchainMsg := &blockchain.IssueTokenMsg{

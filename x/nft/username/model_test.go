@@ -29,7 +29,7 @@ func TestTokenClone(t *testing.T) {
 						}},
 				}},
 			Details: &username.TokenDetails{
-				[]username.ChainAddress{{ChainID: []byte("myChainID"), Address: alice.Address()}},
+				[]username.ChainAddress{{ChainID: []byte("myChainID"), Address: alice.Address().String()}},
 			},
 		},
 		{Base: &nft.NonFungibleToken{}, Details: &username.TokenDetails{}},
@@ -80,21 +80,21 @@ func TestTokenDetailsClone(t *testing.T) {
 func TestChainAddressValidation(t *testing.T) {
 	specs := []struct {
 		chainID  string
-		address  []byte
+		address  string
 		expError bool
 	}{
-		{chainID: "1234", address: []byte("123456789012"), expError: false},
-		{chainID: "1234", address: anyIDWithLength(50), expError: false},
-		{chainID: "1234", address: []byte{}, expError: true}, // empty address
-		{chainID: "1234", address: nil, expError: true},
-		{chainID: "", address: []byte("123456789012"), expError: true},
-		{chainID: "1234", address: []byte("12345678901"), expError: true},
-		{chainID: "1234", address: anyIDWithLength(51), expError: true},
-		{chainID: string(anyIDWithLength(257)), address: []byte("123456789012"), expError: true},
+		{chainID: "1234", address: "123456789012", expError: false},
+		{chainID: "1234", address: string(anyIDWithLength(50)), expError: false},
+		{chainID: "1234", address: "", expError: true}, // empty address
+		{chainID: "1234", address: "", expError: true},
+		{chainID: "", address: "123456789012", expError: true},
+		{chainID: "1234", address: "12345678901", expError: true},
+		{chainID: "1234", address: string(anyIDWithLength(51)), expError: true},
+		{chainID: string(anyIDWithLength(257)), address: "123456789012", expError: true},
 	}
 	for i, spec := range specs {
 		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
-			c := username.ChainAddress{ChainID: []byte(spec.chainID), Address: []byte(spec.address)}
+			c := username.ChainAddress{ChainID: []byte(spec.chainID), Address: spec.address}
 			if spec.expError {
 				assert.Error(t, c.Validate())
 			} else {

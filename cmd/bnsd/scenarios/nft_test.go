@@ -41,7 +41,7 @@ func TestIssueNfts(t *testing.T) {
 				Owner: alice.PublicKey().Address(),
 				Details: username.TokenDetails{[]username.ChainAddress{{
 					ChainID: myBlockchainID,
-					Address: []byte(alice.PublicKey().Address()),
+					Address: alice.PublicKey().Address().String(),
 				},
 				}},
 			},

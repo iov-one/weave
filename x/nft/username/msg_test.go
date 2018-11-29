@@ -112,7 +112,7 @@ func TestAddChainAddressMsgValidate(t *testing.T) {
 			msg: username.AddChainAddressMsg{
 				Id:      []byte("me@example.com"),
 				ChainID: []byte("myChain"),
-				Address: []byte("myChainAddress"),
+				Address: "myChainAddress",
 			},
 		}, { // address missing
 			msg: username.AddChainAddressMsg{
@@ -123,14 +123,14 @@ func TestAddChainAddressMsgValidate(t *testing.T) {
 		}, { // id missing
 			msg: username.AddChainAddressMsg{
 				ChainID: []byte("myChain"),
-				Address: []byte("myChainAddress"),
+				Address: "myChainAddress",
 			},
 			expError: true,
 		},
 		{ // chainID missing
 			msg: username.AddChainAddressMsg{
 				Id:      []byte("me@example.com"),
-				Address: []byte("myChainAddress"),
+				Address: "myChainAddress",
 			},
 			expError: true,
 		},
@@ -155,7 +155,7 @@ func TestRemoveChainAddressMsgValidate(t *testing.T) {
 			msg: username.RemoveChainAddressMsg{
 				Id:      []byte("me@example.com"),
 				ChainID: []byte("myChain"),
-				Address: []byte("myChainAddress"),
+				Address: "myChainAddress",
 			},
 		}, { // address missing
 			msg: username.RemoveChainAddressMsg{
@@ -166,14 +166,14 @@ func TestRemoveChainAddressMsgValidate(t *testing.T) {
 		}, { // id missing
 			msg: username.RemoveChainAddressMsg{
 				ChainID: []byte("myChain"),
-				Address: []byte("myChainAddress"),
+				Address: "myChainAddress",
 			},
 			expError: true,
 		},
 		{ // chainID missing
 			msg: username.RemoveChainAddressMsg{
 				Id:      []byte("me@example.com"),
-				Address: []byte("myChainAddress"),
+				Address: "myChainAddress",
 			},
 			expError: true,
 		},

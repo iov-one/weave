@@ -17,7 +17,7 @@ message TokenDetails {
 
 message ChainAddress {
     bytes chainID = 1;
-    bytes address = 2;
+    string address = 2;
 }
 
 message IssueTokenMsg {
@@ -30,12 +30,12 @@ message IssueTokenMsg {
 message AddChainAddressMsg {
     bytes id = 1;
     bytes chainID = 2;
-    bytes address = 3;
+    string address = 3;
 
 }
 
 message RemoveChainAddressMsg {
     bytes id = 1;
     bytes chainID = 2;
-    bytes address = 3;
+    string address = 3;
 }
