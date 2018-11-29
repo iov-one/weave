@@ -102,7 +102,7 @@ func containsDuplicateChains(addresses []ChainAddress) []byte {
 }
 
 func (p ChainAddress) Equals(o ChainAddress) bool {
-	return bytes.Equal(p.Address, o.Address) && bytes.Equal(p.ChainID, o.ChainID)
+	return p.Address == o.Address && bytes.Equal(p.ChainID, o.ChainID)
 }
 
 func (p *ChainAddress) Validate() error {
