@@ -33,11 +33,11 @@ func NewDecorator() Decorator {
 
 type BatchTx struct {
 	weave.Tx
-	Msg weave.Msg
+	msg weave.Msg
 }
 
 func (tx *BatchTx) GetMsg() (weave.Msg, error) {
-	return tx.Msg, nil
+	return tx.msg, nil
 }
 
 // Check iterates through messages in a batch transaction and passes them
@@ -51,25 +51,27 @@ func (d Decorator) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx,
 		return res, err
 	}
 
-	if batchMsg, ok := msg.(Msg); ok {
-		if err = batchMsg.Validate(); err != nil {
-			return res, err
-		}
+	batchMsg, ok := msg.(Msg)
+	if !ok {
+		return next.Check(ctx, store, tx)
+	}
 
-		msgList, _ := batchMsg.MsgList()
-
-		checks := make([]weave.CheckResult, len(msgList))
-		for i, msg := range msgList {
-			checks[i], err = next.Check(ctx, store, &BatchTx{Tx: tx, Msg: msg})
-			if err != nil {
-				return res, err
-			}
-		}
-		res = d.combineChecks(checks)
+	if err = batchMsg.Validate(); err != nil {
 		return res, err
 	}
 
-	return next.Check(ctx, store, tx)
+	msgList, _ := batchMsg.MsgList()
+
+	checks := make([]weave.CheckResult, len(msgList))
+	for i, msg := range msgList {
+		checks[i], err = next.Check(ctx, store, &BatchTx{Tx: tx, msg: msg})
+		if err != nil {
+			return res, err
+		}
+	}
+	res = d.combineChecks(checks)
+	return res, err
+
 }
 
 // combines all data bytes as a go-amino array.
@@ -110,25 +112,27 @@ func (d Decorator) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx,
 		return res, err
 	}
 
-	if batchMsg, ok := msg.(Msg); ok {
-		if err = batchMsg.Validate(); err != nil {
-			return res, err
-		}
+	batchMsg, ok := msg.(Msg)
+	if !ok {
+		return next.Deliver(ctx, store, tx)
+	}
 
-		msgList, _ := batchMsg.MsgList()
 
-		delivers := make([]weave.DeliverResult, len(msgList))
-		for i, msg := range msgList {
-			delivers[i], err = next.Deliver(ctx, store, &BatchTx{Tx: tx, Msg: msg})
-			if err != nil {
-				return res, err
-			}
-		}
-		res = d.combineDelivers(delivers)
+	if err = batchMsg.Validate(); err != nil {
 		return res, err
 	}
 
-	return next.Deliver(ctx, store, tx)
+	msgList, _ := batchMsg.MsgList()
+
+	delivers := make([]weave.DeliverResult, len(msgList))
+	for i, msg := range msgList {
+		delivers[i], err = next.Deliver(ctx, store, &BatchTx{Tx: tx, msg: msg})
+		if err != nil {
+			return res, err
+		}
+	}
+	res = d.combineDelivers(delivers)
+	return res, err
 }
 
 // combines all data bytes as a go-amino array.
