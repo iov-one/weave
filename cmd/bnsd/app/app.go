@@ -15,7 +15,6 @@ import (
 	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/store/iavl"
 	"github.com/iov-one/weave/x"
-	"github.com/iov-one/weave/x/batch"
 	"github.com/iov-one/weave/x/escrow"
 	"github.com/iov-one/weave/x/hashlock"
 	"github.com/iov-one/weave/x/multisig"
@@ -52,7 +51,7 @@ func Chain(minFee x.Coin, authFn x.Authenticator) app.Decorators {
 		// cannot pay for fee with hashlock...
 		hashlock.NewDecorator(),
 		// make sure we execute all the transactions in batch before the save point
-		batch.NewDecorator(),
+		//batch.NewDecorator(),
 		// on DeliverTx, bad tx will increment nonce and take fee
 		// even if the message fails
 		utils.NewSavepoint().OnDeliver(),

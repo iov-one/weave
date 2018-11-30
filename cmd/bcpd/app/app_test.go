@@ -6,22 +6,20 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/iov-one/weave/x/multisig"
-
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-
-	abci "github.com/tendermint/tendermint/abci/types"
-	"github.com/tendermint/tendermint/libs/log"
-
 	"github.com/iov-one/weave/app"
 	"github.com/iov-one/weave/crypto"
 	"github.com/iov-one/weave/x"
+	"github.com/iov-one/weave/x/batch"
 	"github.com/iov-one/weave/x/cash"
+	"github.com/iov-one/weave/x/escrow"
+	"github.com/iov-one/weave/x/multisig"
 	"github.com/iov-one/weave/x/namecoin"
 	"github.com/iov-one/weave/x/sigs"
-
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	abci "github.com/tendermint/tendermint/abci/types"
 	cmn "github.com/tendermint/tendermint/libs/common"
+	"github.com/tendermint/tendermint/libs/log"
 )
 
 func TestSendTx(t *testing.T) {
@@ -49,7 +47,7 @@ func TestSendTx(t *testing.T) {
 	// build and sign a transaction
 	pk2 := crypto.GenPrivKeyEd25519()
 	addr2 := pk2.PublicKey().Address()
-	dres := sendToken(t, myApp, chainID, 2, []*account{mainAccount}, mainAccount.address(), addr2, 2000, "ETH", "Have a great trip!")
+	dres := sendBatch(t, false, myApp, chainID, 2, []*account{mainAccount}, mainAccount.address(), addr2, 2000, "ETH", "Have a great trip!")
 
 	// ensure 3 keys with proper values
 	if assert.Equal(t, 3, len(dres.Tags), "%#v", dres.Tags) {
@@ -81,7 +79,7 @@ func TestSendTx(t *testing.T) {
 			Coins: x.Coins{
 				{
 					Ticker: "ETH",
-					Whole:  48000,
+					Whole:  30000,
 				},
 				{
 					Ticker: "FRNK",
@@ -89,6 +87,9 @@ func TestSendTx(t *testing.T) {
 				},
 			},
 		})
+
+	dres = sendBatch(t, true, myApp, chainID, 2, []*account{mainAccount}, mainAccount.address(), addr2, 2000, "ETH", "Have a great trip!")
+	assert.NotEqual(t, 0, dres.Code)
 }
 
 func TestQuery(t *testing.T) {
@@ -400,7 +401,7 @@ func sendToken(t require.TestingT, baseApp app.BaseApp, chainID string, height i
 		Multisig: contracts,
 	}
 
-	res := signAndCommit(t, baseApp, tx, signers, chainID, height)
+	res := signAndCommit(t, false, baseApp, tx, signers, chainID, height)
 
 	// make sure money arrived safely
 	queryAndCheckWallet(t, baseApp, "/wallets", to,
@@ -412,6 +413,60 @@ func sendToken(t require.TestingT, baseApp app.BaseApp, chainID string, height i
 				},
 			},
 		})
+
+	return res
+}
+
+// checks batchWorks
+func sendBatch(t require.TestingT, fail bool, baseApp app.BaseApp, chainID string, height int64, signers []*account,
+	from, to []byte, amount int64, ticker, memo string, contracts ...[]byte) abci.ResponseDeliverTx {
+	msg := &cash.SendMsg{
+		Src:  from,
+		Dest: to,
+		Amount: &x.Coin{
+			Whole:  amount,
+			Ticker: ticker,
+		},
+		Memo: memo,
+	}
+
+	var messages []BatchMsg_Union
+	for i := 0; i < batch.MaxBatchMessages; i++ {
+		messages = append(messages,
+			BatchMsg_Union{
+				Sum: &BatchMsg_Union_SendMsg{
+					SendMsg: msg,
+				},
+			})
+	}
+
+	if fail == true {
+		messages[0] = BatchMsg_Union{
+			Sum: &BatchMsg_Union_CreateEscrowMsg{
+				&escrow.CreateEscrowMsg{},
+			},
+		}
+	}
+
+	tx := &Tx{
+		Sum:      createBatchMsg(messages),
+		Multisig: contracts,
+	}
+
+	res := signAndCommit(t, fail, baseApp, tx, signers, chainID, height)
+
+	// make sure money arrived safely
+	if !fail {
+		queryAndCheckWallet(t, baseApp, "/wallets", to,
+			namecoin.Wallet{
+				Coins: x.Coins{
+					{
+						Ticker: ticker,
+						Whole:  amount * batch.MaxBatchMessages,
+					},
+				},
+			})
+	}
 
 	return res
 }
@@ -430,7 +485,7 @@ func createContract(t require.TestingT, baseApp app.BaseApp, chainID string, hei
 		Sum: &Tx_CreateContractMsg{msg},
 	}
 
-	dres := signAndCommit(t, baseApp, tx, signers, chainID, height)
+	dres := signAndCommit(t, false, baseApp, tx, signers, chainID, height)
 
 	// retrieve contract ID and check contract was correctly created
 	contractID := dres.Data
@@ -446,7 +501,7 @@ func createContract(t require.TestingT, baseApp app.BaseApp, chainID string, hei
 
 // signAndCommit signs tx with signatures from signers and submits to the chain
 // asserts and fails the test in case of errors during the process
-func signAndCommit(t require.TestingT, app app.BaseApp, tx *Tx, signers []*account, chainID string,
+func signAndCommit(t require.TestingT, fail bool, app app.BaseApp, tx *Tx, signers []*account, chainID string,
 	height int64) abci.ResponseDeliverTx {
 	for _, signer := range signers {
 		sig, err := sigs.SignTx(signer.pk, tx, chainID, signer.nonce())
@@ -463,10 +518,14 @@ func signAndCommit(t require.TestingT, app app.BaseApp, tx *Tx, signers []*accou
 	app.BeginBlock(abci.RequestBeginBlock{Header: header})
 	// check and deliver must pass
 	chres := app.CheckTx(txBytes)
-	require.Equal(t, uint32(0), chres.Code, chres.Log)
-
+	if !fail {
+		require.Equal(t, uint32(0), chres.Code, chres.Log)
+	}
 	dres := app.DeliverTx(txBytes)
-	require.Equal(t, uint32(0), dres.Code, dres.Log)
+
+	if !fail {
+		require.Equal(t, uint32(0), dres.Code, dres.Log)
+	}
 
 	app.EndBlock(abci.RequestEndBlock{})
 	cres := app.Commit()
@@ -763,5 +822,13 @@ func BenchmarkSendTxMultiSig(b *testing.B) {
 		b.Run(prefix, func(sub *testing.B) {
 			benchmarkSendTxWithMultisig(sub, bb.accounts, bb.blockSize, bb.contracts, bb.nbSigs, bb.threshold)
 		})
+	}
+}
+
+func createBatchMsg(messages []BatchMsg_Union) *Tx_BatchMsg {
+	return &Tx_BatchMsg{
+		BatchMsg: &BatchMsg{
+			Messages: messages,
+		},
 	}
 }
