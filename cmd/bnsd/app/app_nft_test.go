@@ -69,7 +69,7 @@ func TestIssueNfts(t *testing.T) {
 	require.EqualValues(t, 0, res.Code, res.Log)
 
 	// and query a username
-	query := abci.RequestQuery{Path: "/nft/usernames/chainaddr", Data: []byte("myChainAddress*myblockchain")}
+	query := abci.RequestQuery{Path: "/nft/usernames/chainaddr", Data: []byte("myChainAddress;myblockchain")}
 	qRes := myApp.Query(query)
 	require.EqualValues(t, 0, qRes.Code, qRes.Log)
 	var actual username.UsernameToken

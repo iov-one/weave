@@ -11,7 +11,7 @@ import (
 const (
 	BucketName            = "usrnft"
 	ChainAddressIndexName = "chainaddr"
-	chainAddressSeparator = "*"
+	chainAddressSeparator = ";"
 )
 
 type Bucket struct {
