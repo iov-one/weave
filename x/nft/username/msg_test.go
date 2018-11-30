@@ -189,6 +189,7 @@ func TestRemoveChainAddressMsgValidate(t *testing.T) {
 		})
 	}
 }
+
 func anyIDWithLength(n int) []byte {
 	r := make([]byte, n)
 	for i := 0; i < n; i++ {
