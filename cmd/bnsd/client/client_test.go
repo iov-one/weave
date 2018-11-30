@@ -252,11 +252,11 @@ func TestSendMultipleTx(t *testing.T) {
 	start.Done()
 	cancel()
 
-	// both succeed and are in the same block
+	// both succeed
 	resp := <-txResp
 	resp2 := <-txResp
-	assert.NoError(t, resp.IsError())
-	assert.NoError(t, resp2.IsError())
-	assert.Equal(t, resp.Response.Height, resp2.Response.Height)
+	require.NoError(t, resp.IsError())
+	require.NoError(t, resp2.IsError())
 	assert.True(t, resp.Response.Height > prepH+1)
+	assert.True(t, resp2.Response.Height > prepH+1)
 }
