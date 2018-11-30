@@ -207,13 +207,13 @@ func TestQueryUsernameToken(t *testing.T) {
 		{ // by username alice
 			"/nft/usernames", []byte("alice@example.com"), "alice@example.com"},
 		{ // by chain address
-			"/nft/usernames/chainaddr", []byte("aliceChainAddress*myChainID"), "alice@example.com"},
+			"/nft/usernames/chainaddr", []byte("aliceChainAddress;myChainID"), "alice@example.com"},
 		{ // by owner
 			"/nft/usernames/owner", alice.Address(), "alice@example.com"},
 		{ // by username bob
 			"/nft/usernames", []byte("bob@example.com"), "bob@example.com"},
 		{ // by chain address
-			"/nft/usernames/chainaddr", []byte("bobChainAddress*myChainID"), "bob@example.com"},
+			"/nft/usernames/chainaddr", []byte("bobChainAddress;myChainID"), "bob@example.com"},
 		{ // by owner
 			"/nft/usernames/owner", bob.Address(), "bob@example.com"},
 	}
