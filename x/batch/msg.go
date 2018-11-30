@@ -23,7 +23,6 @@ func Validate(msg Msg) error {
 	}
 
 	if len(l) > MaxBatchMessages {
-		//TODO: Figure out if this is the correct error
 		return errors.ErrTooLarge()
 	}
 	return nil

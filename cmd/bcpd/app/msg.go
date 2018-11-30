@@ -15,7 +15,6 @@ func (*BatchMsg) Path() string {
 func (msg *BatchMsg) MsgList() ([]weave.Msg, error) {
 	messages := make([]weave.Msg, len(msg.Messages))
 	// make sure to cover all messages defined in protobuf
-	//TODO: Might be easier with reflection?
 	for i, m := range msg.Messages {
 		res, err := func() (weave.Msg, error) {
 			switch t := m.GetSum().(type) {

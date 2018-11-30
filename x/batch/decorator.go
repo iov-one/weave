@@ -74,27 +74,24 @@ func (d Decorator) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx,
 
 }
 
-// combines all data bytes as a go-amino array.
+// combines all data bytes as protobuf.
 // joins all log messages with \n
 func (*Decorator) combineChecks(checks []weave.CheckResult) weave.CheckResult {
 	datas := make([][]byte, len(checks))
-	logs := make([][]byte, len(checks))
+	logs := make([]string, len(checks))
 	var allocated, payments int64
 	for i, r := range checks {
 		datas[i] = r.Data
-		//TODO: Is this good enough conversion? Should be, in theory
-		logs[i] = []byte(r.Log)
+		logs[i] = r.Log
 		allocated += r.GasAllocated
 		payments += r.GasPayment
 	}
 
 	data, _ := (&ByteArrayList{Elements: datas}).Marshal()
-	log, _ := (&ByteArrayList{Elements: logs}).Marshal()
 
 	return weave.CheckResult{
-		Data: data,
-		//TODO: Is this good enough conversion? Should be, in theory
-		Log:          string(log),
+		Data:         data,
+		Log:          strings.Join(logs, "\n"),
 		GasAllocated: allocated,
 		GasPayment:   payments,
 	}
@@ -117,7 +114,6 @@ func (d Decorator) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx,
 		return next.Deliver(ctx, store, tx)
 	}
 
-
 	if err = batchMsg.Validate(); err != nil {
 		return res, err
 	}
@@ -135,7 +131,7 @@ func (d Decorator) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx,
 	return res, err
 }
 
-// combines all data bytes as a go-amino array.
+// combines all data bytes as protobuf.
 // joins all log messages with \n
 func (*Decorator) combineDelivers(delivers []weave.DeliverResult) weave.DeliverResult {
 	datas := make([][]byte, len(delivers))
@@ -145,7 +141,6 @@ func (*Decorator) combineDelivers(delivers []weave.DeliverResult) weave.DeliverR
 	var tags []common.KVPair
 	for i, r := range delivers {
 		datas[i] = r.Data
-		//TODO: Is this good enough conversion? Should be, in theory
 		logs[i] = r.Log
 		payments += r.GasUsed
 		if len(r.Diff) > 0 {
@@ -160,12 +155,10 @@ func (*Decorator) combineDelivers(delivers []weave.DeliverResult) weave.DeliverR
 	log := strings.Join(logs, "\n")
 
 	return weave.DeliverResult{
-		Data: data,
-		//TODO: Is this good enough?
+		Data:    data,
 		Log:     log,
 		GasUsed: payments,
 		Diff:    diffs,
-		//TODO: Per Ethan's comment this is sorted
 		// https://github.com/iov-one/weave/pull/188#discussion_r234531097
 		// but I couldn't find a place where, so need to figure it out
 		Tags: tags,
