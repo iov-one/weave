@@ -12,6 +12,7 @@ import (
 	"github.com/iov-one/weave/x"
 	"github.com/iov-one/weave/x/namecoin"
 	"github.com/iov-one/weave/x/nft/blockchain"
+	"github.com/iov-one/weave/x/nft/ticker"
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
 )
@@ -87,6 +88,7 @@ func GenerateApp(home string, logger log.Logger, debug bool) (abci.Application, 
 	application.WithInit(app.ChainInitializers(
 		&namecoin.Initializer{},
 		&blockchain.Initializer{},
+		&ticker.Initializer{},
 	))
 
 	// set the logger and return
