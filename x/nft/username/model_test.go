@@ -88,7 +88,8 @@ func TestChainAddressValidation(t *testing.T) {
 		{chainID: "1234", address: "", expError: true}, // empty address
 		{chainID: "1234", address: "", expError: true},
 		{chainID: "", address: "123456789012", expError: true},
-		{chainID: "1234", address: "12345678901", expError: true},
+		{chainID: "1234", address: "1", expError: true},   // too short
+		{chainID: "1234", address: "1L", expError: false}, // Lisk uses <number>L with number being any uint64 number represented as decimal.
 		{chainID: "1234", address: string(anyIDWithLength(51)), expError: true},
 		{chainID: string(anyIDWithLength(257)), address: "123456789012", expError: true},
 	}

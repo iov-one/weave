@@ -109,8 +109,7 @@ func (p *ChainAddress) Validate() error {
 	if !blockchain.IsValidID(string(p.ChainID)) {
 		return nft.ErrInvalidID(p.ChainID)
 	}
-	switch l := len(p.Address); {
-	case l < 12 || l > 50:
+	if n := len(p.Address); n < 2 || n > 50 {
 		return nft.ErrInvalidLength()
 	}
 	return nil
