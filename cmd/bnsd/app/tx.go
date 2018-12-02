@@ -75,8 +75,8 @@ func (tx *Tx) GetMsg() (weave.Msg, error) {
 		return t.IssueBlockchainNftMsg, nil
 	case *Tx_IssueTickerNftMsg:
 		return t.IssueTickerNftMsg, nil
-	case *Tx_BatchMsg:
-		return t.BatchMsg, nil
+	//case *Tx_BatchMsg:
+	//	return t.BatchMsg, nil
 
 	}
 
