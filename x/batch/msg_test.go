@@ -52,7 +52,8 @@ func (m *mockMsg) Path() string {
 }
 
 func (m *mockMsg) Validate() error {
-	panic("implement me")
+	args := m.Mock.Called()
+	return args.Error(0)
 }
 
 func (m *mockMsg) MsgList() ([]weave.Msg, error) {
