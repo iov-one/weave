@@ -1,20 +1,19 @@
 package batch_test
 
 import (
+	"errors"
+	"strings"
 	"testing"
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/x/batch"
 	. "github.com/smartystreets/goconvey/convey"
 	"github.com/stretchr/testify/mock"
-	"strings"
 	"github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/common"
-	"errors"
 )
 
 type wrongWeaveMsg struct {
-
 }
 
 func (wrongWeaveMsg) Marshal() ([]byte, error) {
@@ -119,32 +118,30 @@ func TestDecorator(t *testing.T) {
 			})
 
 			helper.On("Deliver", nil, nil, mock.Anything).Return(weave.DeliverResult{
-				Data:         make([]byte, 1),
-				Log:          logVal,
+				Data:    make([]byte, 1),
+				Log:     logVal,
 				GasUsed: gas,
-				Diff: make([]types.ValidatorUpdate, 1),
-				Tags: make([]common.KVPair, 1),
+				Diff:    make([]types.ValidatorUpdate, 1),
+				Tags:    make([]common.KVPair, 1),
 			}, nil).Times(int(num))
 
 			deliverRes, err := decorator.Deliver(nil, nil, helper, helper)
 			So(err, ShouldBeNil)
 			So(deliverRes, ShouldResemble, weave.DeliverResult{
-				Data:         data,
-				Log:          mockLog(num, logVal),
+				Data:    data,
+				Log:     mockLog(num, logVal),
 				GasUsed: gas * num,
-				Diff: mockDiff(num),
-				Tags: mockTags(num),
+				Diff:    mockDiff(num),
+				Tags:    mockTags(num),
 			})
 			helper.AssertExpectations(t)
 			msg.AssertExpectations(t)
 		})
 
-		Convey("Wrong tx type", func(){
+		Convey("Wrong tx type", func() {
 			helper.On("GetMsg").Return(wrongWeaveMsg{}, nil).Times(2)
-			helper.On("Deliver", nil, nil, mock.Anything).Return(weave.DeliverResult{
-			}, nil).Times(1)
-			helper.On("Check", nil, nil, mock.Anything).Return(weave.CheckResult{
-			}, nil).Times(1)
+			helper.On("Deliver", nil, nil, mock.Anything).Return(weave.DeliverResult{}, nil).Times(1)
+			helper.On("Check", nil, nil, mock.Anything).Return(weave.CheckResult{}, nil).Times(1)
 
 			_, err := decorator.Check(nil, nil, helper, helper)
 			So(err, ShouldBeNil)
@@ -153,8 +150,8 @@ func TestDecorator(t *testing.T) {
 			helper.AssertExpectations(t)
 		})
 
-		Convey("Error paths", func(){
-			Convey("Tx GetMsg error", func(){
+		Convey("Error paths", func() {
+			Convey("Tx GetMsg error", func() {
 				expectedErr := errors.New("asd")
 				helper.On("GetMsg").Return(msg, expectedErr).Times(2)
 
@@ -165,11 +162,10 @@ func TestDecorator(t *testing.T) {
 				helper.AssertExpectations(t)
 			})
 
-			Convey("Validation error", func(){
+			Convey("Validation error", func() {
 				expectedErr := errors.New("asd")
 				helper.On("GetMsg").Return(msg, nil).Times(2)
 				msg.On("Validate").Return(expectedErr).Times(2)
-
 
 				_, err := decorator.Check(nil, nil, helper, helper)
 				So(err, ShouldEqual, expectedErr)
@@ -179,7 +175,7 @@ func TestDecorator(t *testing.T) {
 				msg.AssertExpectations(t)
 			})
 
-			Convey("Error while executing one of the messages", func(){
+			Convey("Error while executing one of the messages", func() {
 				expectedErr := errors.New("asd")
 				helper.On("GetMsg").Return(msg, nil).Times(2)
 				msg.On("Validate").Return(nil).Times(2)
@@ -188,8 +184,6 @@ func TestDecorator(t *testing.T) {
 					expectedErr).Times(1)
 				helper.On("Check", nil, nil, mock.Anything).Return(weave.CheckResult{},
 					expectedErr).Times(1)
-
-
 
 				_, err := decorator.Check(nil, nil, helper, helper)
 				So(err, ShouldEqual, expectedErr)
