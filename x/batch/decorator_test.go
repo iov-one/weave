@@ -150,6 +150,7 @@ func TestDecorator(t *testing.T) {
 			So(err, ShouldBeNil)
 			_, err = decorator.Deliver(nil, nil, helper, helper)
 			So(err, ShouldBeNil)
+			helper.AssertExpectations(t)
 		})
 
 		Convey("Error paths", func(){
@@ -161,6 +162,7 @@ func TestDecorator(t *testing.T) {
 				So(err, ShouldEqual, expectedErr)
 				_, err = decorator.Deliver(nil, nil, helper, helper)
 				So(err, ShouldEqual, expectedErr)
+				helper.AssertExpectations(t)
 			})
 
 			Convey("Validation error", func(){
@@ -173,6 +175,8 @@ func TestDecorator(t *testing.T) {
 				So(err, ShouldEqual, expectedErr)
 				_, err = decorator.Deliver(nil, nil, helper, helper)
 				So(err, ShouldEqual, expectedErr)
+				helper.AssertExpectations(t)
+				msg.AssertExpectations(t)
 			})
 
 			Convey("Error while executing one of the messages", func(){
@@ -191,6 +195,8 @@ func TestDecorator(t *testing.T) {
 				So(err, ShouldEqual, expectedErr)
 				_, err = decorator.Deliver(nil, nil, helper, helper)
 				So(err, ShouldEqual, expectedErr)
+				helper.AssertExpectations(t)
+				msg.AssertExpectations(t)
 			})
 		})
 	})
