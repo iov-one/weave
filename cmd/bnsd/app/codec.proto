@@ -42,7 +42,8 @@ message Tx {
         blockchain.IssueTokenMsg issue_blockchain_nft_msg = 16;
         ticker.IssueTokenMsg issue_ticker_nft_msg = 17;
         bootstrap_node.IssueTokenMsg issue_bootstrap_node_nft_msg = 18;
-//        BatchMsg batch_msg = 19;
+        //Commented out for a minimal feature-set release
+        //        BatchMsg batch_msg = 19;
     }
     // fee info, autogenerates GetFees()
     cash.FeeInfo fees = 20;
@@ -60,7 +61,7 @@ enum NftType {
     Blockchain = 3;
     BootstrapNode = 4;
 }
-
+//Commented out for a minimal feature-set release
 //// BatchMsg encapsulates multiple messages to support batch transaction
 //message BatchMsg {
 //    message Union {
