@@ -50,6 +50,7 @@ func Chain(minFee x.Coin, authFn x.Authenticator) app.Decorators {
 		namecoin.NewFeeDecorator(authFn, minFee),
 		// cannot pay for fee with hashlock...
 		hashlock.NewDecorator(),
+		// batch commented out temporarily to minimize release features
 		// make sure we execute all the transactions in batch before the save point
 		//batch.NewDecorator(),
 		// on DeliverTx, bad tx will increment nonce and take fee

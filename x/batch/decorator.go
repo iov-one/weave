@@ -45,7 +45,7 @@ func (tx *BatchTx) GetMsg() (weave.Msg, error) {
 func (d Decorator) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx,
 	next weave.Checker) (weave.CheckResult, error) {
 	var res weave.CheckResult
-	var err error
+
 	msg, err := tx.GetMsg()
 	if err != nil {
 		return res, err
@@ -102,7 +102,6 @@ func (*Decorator) combineChecks(checks []weave.CheckResult) weave.CheckResult {
 func (d Decorator) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx,
 	next weave.Deliverer) (weave.DeliverResult, error) {
 	var res weave.DeliverResult
-	var err error
 
 	msg, err := tx.GetMsg()
 	if err != nil {
