@@ -30,15 +30,15 @@ type genesisTickerToken struct {
 		BlockchainID string `json:"blockchain_id"`
 	} `json:"details"`
 	Base struct {
-		ID    string `json:"id"`
-		Owner string `json:"owner"`
+		ID    string        `json:"id"`
+		Owner weave.Address `json:"owner"`
 	} `json:"base"`
 }
 
 func setTickerTokens(db weave.KVStore, tokens []genesisTickerToken) error {
 	bucket := NewBucket()
 	for _, t := range tokens {
-		obj, err := bucket.Create(db, weave.Address(t.Base.Owner), weave.Address(t.Base.ID), nil, []byte(t.Details.BlockchainID))
+		obj, err := bucket.Create(db, t.Base.Owner, []byte(t.Base.ID), nil, []byte(t.Details.BlockchainID))
 		if err != nil {
 			return err
 		}
