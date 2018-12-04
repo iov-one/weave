@@ -25,8 +25,8 @@ func (i *Initializer) FromGenesis(opts weave.Options, db weave.KVStore) error {
 }
 
 type genesisBlockchainToken struct {
-	ID    string `json:"id"`
-	Owner string `json:"owner"`
+	ID    string        `json:"id"`
+	Owner weave.Address `json:"owner"`
 	Chain struct {
 		ChainID      string `json:"chain_id"`
 		NetworkID    string `json:"network_id"`
@@ -57,7 +57,7 @@ func setTokens(db weave.KVStore, tokens []genesisBlockchainToken) error {
 			Codec:       t.IOV.Codec,
 			CodecConfig: t.IOV.CodecConfig,
 		}
-		obj, err := bucket.Create(db, weave.Address(t.Owner), weave.Address(t.ID), nil, chain, iov)
+		obj, err := bucket.Create(db, t.Owner, []byte(t.ID), nil, chain, iov)
 		if err != nil {
 			return err
 		}

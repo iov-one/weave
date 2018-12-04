@@ -15,7 +15,7 @@ func TestInitializer(t *testing.T) {
 			"blockchains": [
 				{
 					"id": "id-123",
-					"owner": "owner-12300000000000",
+					"owner": "6f776e65722d3132333030303030303030303030",
 					"chain": {
 						"chain_id": "chain-123",
 						"network_id": "network-123",
