@@ -63,12 +63,12 @@ func (h IssueHandler) Deliver(ctx weave.Context, store weave.KVStore, tx weave.T
 		return res, err
 	}
 	for _, a := range msg.Details.Addresses {
-		chain, err := h.blockchains.Get(store, a.ChainID)
+		chain, err := h.blockchains.Get(store, a.BlockchainID)
 		switch {
 		case err != nil:
 			return res, err
 		case chain == nil:
-			return res, nft.ErrInvalidEntry(a.ChainID)
+			return res, nft.ErrInvalidEntry(a.BlockchainID)
 		}
 	}
 	// persist the data
@@ -128,15 +128,15 @@ func (h AddChainAddressHandler) Deliver(ctx weave.Context, store weave.KVStore, 
 	if err != nil {
 		return res, err
 	}
-	chain, err := h.blockchains.Get(store, msg.ChainID)
+	chain, err := h.blockchains.Get(store, msg.BlockchainID)
 	switch {
 	case err != nil:
 		return res, err
 	case chain == nil:
-		return res, nft.ErrInvalidEntry(msg.ChainID)
+		return res, nft.ErrInvalidEntry(msg.BlockchainID)
 	}
 
-	o, t, err := loadToken(h.tokenHandler, store, msg.GetId())
+	o, t, err := loadToken(h.tokenHandler, store, msg.GetUsernameID())
 	if err != nil {
 		return res, err
 	}
@@ -145,7 +145,7 @@ func (h AddChainAddressHandler) Deliver(ctx weave.Context, store weave.KVStore, 
 	if actor == nil {
 		return res, errors.ErrUnauthorized()
 	}
-	allKeys := append(t.GetChainAddresses(), ChainAddress{msg.GetChainID(), msg.GetAddress()})
+	allKeys := append(t.GetChainAddresses(), ChainAddress{msg.GetBlockchainID(), msg.GetAddress()})
 	if err := t.SetChainAddresses(actor, allKeys); err != nil {
 		return res, err
 	}
@@ -191,7 +191,7 @@ func (h RemoveChainAddressHandler) Deliver(ctx weave.Context, store weave.KVStor
 	if err != nil {
 		return res, err
 	}
-	o, t, err := loadToken(h.tokenHandler, store, msg.GetId())
+	o, t, err := loadToken(h.tokenHandler, store, msg.GetUsernameID())
 	if err != nil {
 		return res, err
 	}
@@ -203,7 +203,7 @@ func (h RemoveChainAddressHandler) Deliver(ctx weave.Context, store weave.KVStor
 	if len(t.GetChainAddresses()) == 0 {
 		return res, nft.ErrInvalidEntry([]byte("no chain to delete"))
 	}
-	obsoleteAddress := ChainAddress{msg.GetChainID(), msg.GetAddress()}
+	obsoleteAddress := ChainAddress{msg.GetBlockchainID(), msg.GetAddress()}
 	newAddresses := make([]ChainAddress, 0, len(t.GetChainAddresses()))
 	for _, v := range t.GetChainAddresses() {
 		if !v.Equals(obsoleteAddress) {

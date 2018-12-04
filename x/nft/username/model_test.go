@@ -29,7 +29,7 @@ func TestTokenClone(t *testing.T) {
 						}},
 				}},
 			Details: &username.TokenDetails{
-				[]username.ChainAddress{{ChainID: []byte("myChainID"), Address: alice.Address().String()}},
+				[]username.ChainAddress{{BlockchainID: []byte("myChainID"), Address: alice.Address().String()}},
 			},
 		},
 		{Base: &nft.NonFungibleToken{}, Details: &username.TokenDetails{}},
@@ -66,15 +66,15 @@ func equals(t *testing.T, expected username.UsernameToken, actual username.Usern
 }
 
 func TestTokenDetailsClone(t *testing.T) {
-	source := username.TokenDetails{[]username.ChainAddress{{ChainID: []byte("foo")}, {ChainID: []byte("bar")}}}
+	source := username.TokenDetails{[]username.ChainAddress{{BlockchainID: []byte("foo")}, {BlockchainID: []byte("bar")}}}
 	myClone := source.Clone()
 	// when
-	source.Addresses[0].ChainID = source.Addresses[0].ChainID[1:]
+	source.Addresses[0].BlockchainID = source.Addresses[0].BlockchainID[1:]
 	source.Addresses = append(source.Addresses, username.ChainAddress{})
 
 	assert.NotEqual(t, source, myClone)
 	assert.Len(t, myClone.Addresses, 2)
-	assert.Equal(t, []username.ChainAddress{{ChainID: []byte("foo")}, {ChainID: []byte("bar")}}, myClone.Addresses)
+	assert.Equal(t, []username.ChainAddress{{BlockchainID: []byte("foo")}, {BlockchainID: []byte("bar")}}, myClone.Addresses)
 }
 
 func TestChainAddressValidation(t *testing.T) {
@@ -95,7 +95,7 @@ func TestChainAddressValidation(t *testing.T) {
 	}
 	for i, spec := range specs {
 		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
-			c := username.ChainAddress{ChainID: []byte(spec.chainID), Address: spec.address}
+			c := username.ChainAddress{BlockchainID: []byte(spec.chainID), Address: spec.address}
 			if spec.expError {
 				assert.Error(t, c.Validate())
 			} else {

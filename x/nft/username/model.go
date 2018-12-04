@@ -93,21 +93,21 @@ func (t *TokenDetails) Validate() error {
 func containsDuplicateChains(addresses []ChainAddress) []byte {
 	m := make(map[string]struct{})
 	for _, k := range addresses {
-		if _, ok := m[string(k.ChainID)]; ok {
-			return k.ChainID
+		if _, ok := m[string(k.BlockchainID)]; ok {
+			return k.BlockchainID
 		}
-		m[string(k.ChainID)] = struct{}{}
+		m[string(k.BlockchainID)] = struct{}{}
 	}
 	return nil
 }
 
 func (p ChainAddress) Equals(o ChainAddress) bool {
-	return p.Address == o.Address && bytes.Equal(p.ChainID, o.ChainID)
+	return p.Address == o.Address && bytes.Equal(p.BlockchainID, o.BlockchainID)
 }
 
 func (p *ChainAddress) Validate() error {
-	if !blockchain.IsValidID(string(p.ChainID)) {
-		return nft.ErrInvalidID(p.ChainID)
+	if !blockchain.IsValidID(string(p.BlockchainID)) {
+		return nft.ErrInvalidID(p.BlockchainID)
 	}
 	if n := len(p.Address); n < 2 || n > 50 {
 		return nft.ErrInvalidLength()
@@ -125,15 +125,4 @@ func AsUsername(obj orm.Object) (Token, error) {
 		return nil, nft.ErrUnsupportedTokenType()
 	}
 	return x, nil
-}
-
-func validateID(i nft.Identified) error {
-	if i == nil {
-		return errors.ErrInternal("must not be nil")
-	}
-	id := i.GetId()
-	if !isValidID(string(id)) {
-		return nft.ErrInvalidID(id)
-	}
-	return nil
 }
