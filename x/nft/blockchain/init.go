@@ -24,6 +24,7 @@ func (i *Initializer) FromGenesis(opts weave.Options, db weave.KVStore) error {
 	return setTokens(db, nfts.Blockchains)
 }
 
+// https://github.com/iov-one/bns-spec/blob/master/docs/data/ObjectDefinitions.rst#chain
 type genesisBlockchainToken struct {
 	ID    string        `json:"id"`
 	Owner weave.Address `json:"owner"`
