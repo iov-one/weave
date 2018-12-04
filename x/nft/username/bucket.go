@@ -59,7 +59,7 @@ func chainAddressIndexer(obj orm.Object) ([][]byte, error) {
 	}
 	idx := make([][]byte, 0, len(u.GetChainAddresses()))
 	for _, addr := range u.GetChainAddresses() {
-		idx = append(idx, bytes.Join([][]byte{[]byte(addr.Address), addr.ChainID}, []byte(chainAddressSeparator)))
+		idx = append(idx, bytes.Join([][]byte{[]byte(addr.Address), addr.BlockchainID}, []byte(chainAddressSeparator)))
 	}
 	return idx, nil
 }

@@ -42,7 +42,7 @@ func TestIssueNfts(t *testing.T) {
 			Id:    []byte("anybody@example.com"),
 			Owner: isuserAddr,
 			Details: username.TokenDetails{[]username.ChainAddress{
-				{ChainID: myBlockchainID, Address: "myChainAddress"},
+				{BlockchainID: myBlockchainID, Address: "myChainAddress"},
 			}},
 		},
 		},

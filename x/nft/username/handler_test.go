@@ -28,12 +28,12 @@ func TestHandleIssueTokenMsg(t *testing.T) {
 	b, _ := blockchains.Create(db, anybody.Address(), []byte("myNet"), nil, blockchain.Chain{MainTickerID: []byte("IOV")}, blockchain.IOV{Codec: "asd"})
 	blockchains.Save(db, b)
 
-	o, _ := bucket.Create(db, bob.Address(), []byte("existing@example.com"), nil, []username.ChainAddress{{ChainID: []byte("myNet"), Address: "bobsChainAddress"}})
+	o, _ := bucket.Create(db, bob.Address(), []byte("existing@example.com"), nil, []username.ChainAddress{{BlockchainID: []byte("myNet"), Address: "bobsChainAddress"}})
 	bucket.Save(db, o)
 
 	handler := username.NewIssueHandler(helpers.Authenticate(alice), nil, bucket, blockchains)
 	// when
-	myNewChainAddresses := []username.ChainAddress{{ChainID: []byte("myNet"), Address: "anyChainAddress"}}
+	myNewChainAddresses := []username.ChainAddress{{BlockchainID: []byte("myNet"), Address: "anyChainAddress"}}
 	specs := []struct {
 		owner, id       []byte
 		details         username.TokenDetails
@@ -173,7 +173,7 @@ func TestIssueUsernameTx(t *testing.T) {
 	tx := helpers.MockTx(&username.IssueTokenMsg{
 		Owner:   alice.Address(),
 		Id:      []byte("any@example.com"),
-		Details: username.TokenDetails{[]username.ChainAddress{{ChainID: []byte("myNet"), Address: "myChainAddress"}}},
+		Details: username.TokenDetails{[]username.ChainAddress{{BlockchainID: []byte("myNet"), Address: "myChainAddress"}}},
 	})
 	res, err := handler.Deliver(nil, db, tx)
 	// then
@@ -186,8 +186,8 @@ func TestQueryUsernameToken(t *testing.T) {
 	var helpers x.TestHelpers
 	_, alice := helpers.MakeKey()
 	_, bob := helpers.MakeKey()
-	aliceAddress := []username.ChainAddress{{ChainID: []byte("myChainID"), Address: "aliceChainAddress"}}
-	bobAddress := []username.ChainAddress{{ChainID: []byte("myChainID"), Address: "bobChainAddress"}}
+	aliceAddress := []username.ChainAddress{{BlockchainID: []byte("myChainID"), Address: "aliceChainAddress"}}
+	bobAddress := []username.ChainAddress{{BlockchainID: []byte("myChainID"), Address: "bobChainAddress"}}
 
 	db := store.MemStore()
 	bucket := username.NewBucket()
@@ -251,13 +251,13 @@ func TestAddChainAddress(t *testing.T) {
 		blockchains.Save(db, b)
 	}
 
-	myAddress := []username.ChainAddress{{ChainID: []byte("myNet"), Address: "myChainAddress"}}
+	myAddress := []username.ChainAddress{{BlockchainID: []byte("myNet"), Address: "myChainAddress"}}
 	o, _ := bucket.Create(db, alice.Address(), []byte("alice@example.com"), nil, myAddress)
 	bucket.Save(db, o)
-	myOtherAddress := []username.ChainAddress{{ChainID: []byte("myOtherNet"), Address: "myOtherChainAddress"}}
+	myOtherAddress := []username.ChainAddress{{BlockchainID: []byte("myOtherNet"), Address: "myOtherChainAddress"}}
 	o, _ = bucket.Create(db, alice.Address(), []byte("anyOther@example.com"), nil, myOtherAddress)
 	bucket.Save(db, o)
-	myNextAddress := []username.ChainAddress{{ChainID: []byte("myNextNet"), Address: "myNextChainAddress"}}
+	myNextAddress := []username.ChainAddress{{BlockchainID: []byte("myNextNet"), Address: "myNextChainAddress"}}
 	o, _ = bucket.Create(db,
 		bob.Address(),
 		[]byte("withcount@example.com"),
@@ -283,7 +283,7 @@ func TestAddChainAddress(t *testing.T) {
 			id:              []byte("alice@example.com"),
 			newChainID:      []byte("myOtherNet"),
 			newAddress:      "myOtherAddressID",
-			expChainAddress: append(myAddress, username.ChainAddress{ChainID: []byte("myOtherNet"), Address: "myOtherAddressID"}),
+			expChainAddress: append(myAddress, username.ChainAddress{BlockchainID: []byte("myOtherNet"), Address: "myOtherAddressID"}),
 			ctx:             context.Background(),
 		},
 		{ // empty address
@@ -331,7 +331,7 @@ func TestAddChainAddress(t *testing.T) {
 			expApprovals: nft.Approvals{
 				nft.Action_ActionUpdateDetails.String(): []nft.Approval{
 					{Options: nft.ApprovalOptions{Count: 9, UntilBlockHeight: 5}, Address: alice.Address()}}},
-			expChainAddress: append(myNextAddress, username.ChainAddress{ChainID: []byte("myOtherNet"), Address: "myOtherAddressID"}),
+			expChainAddress: append(myNextAddress, username.ChainAddress{BlockchainID: []byte("myOtherNet"), Address: "myOtherAddressID"}),
 			ctx:             context.Background(),
 		},
 		{ // approval timeout
@@ -349,9 +349,9 @@ func TestAddChainAddress(t *testing.T) {
 			defer cache.Discard()
 
 			tx := helpers.MockTx(&username.AddChainAddressMsg{
-				Id:      spec.id,
-				ChainID: spec.newChainID,
-				Address: spec.newAddress,
+				Id:           spec.id,
+				BlockchainID: spec.newChainID,
+				Address:      spec.newAddress,
 			})
 
 			// when
@@ -399,7 +399,7 @@ func TestRemoveChainAddress(t *testing.T) {
 	db := store.MemStore()
 	bucket := username.NewBucket()
 
-	myAddresses := []username.ChainAddress{{ChainID: []byte("myChainID"), Address: "myChainAddress"}, {ChainID: []byte("myOtherNet"), Address: "myOtherChainAddress"}}
+	myAddresses := []username.ChainAddress{{BlockchainID: []byte("myChainID"), Address: "myChainAddress"}, {BlockchainID: []byte("myOtherNet"), Address: "myOtherChainAddress"}}
 	o, _ := bucket.Create(db, alice.Address(), []byte("alice@example.com"), nil, myAddresses)
 	bucket.Save(db, o)
 
@@ -443,9 +443,9 @@ func TestRemoveChainAddress(t *testing.T) {
 			defer cache.Discard()
 
 			tx := helpers.MockTx(&username.RemoveChainAddressMsg{
-				Id:      spec.id,
-				ChainID: spec.newChainID,
-				Address: spec.newAddress,
+				Id:           spec.id,
+				BlockchainID: spec.newChainID,
+				Address:      spec.newAddress,
 			})
 
 			// when
