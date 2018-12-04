@@ -1,6 +1,7 @@
 package username
 
 import (
+	"github.com/iov-one/weave/errors"
 	"regexp"
 
 	"github.com/iov-one/weave"
@@ -35,7 +36,7 @@ func (*RemoveChainAddressMsg) Path() string {
 }
 
 func (m *IssueTokenMsg) Validate() error {
-	if err := validateID(m); err != nil {
+	if err := validateID(m.Id); err != nil {
 		return err
 	}
 	if err := m.Details.Validate(); err != nil {
@@ -60,7 +61,7 @@ func (m *IssueTokenMsg) Validate() error {
 }
 
 func (m *AddChainAddressMsg) Validate() error {
-	if err := validateID(m); err != nil {
+	if err := validateID(m.UsernameID); err != nil {
 		return err
 	}
 	address := ChainAddress{m.GetBlockchainID(), m.GetAddress()}
@@ -68,9 +69,19 @@ func (m *AddChainAddressMsg) Validate() error {
 }
 
 func (m *RemoveChainAddressMsg) Validate() error {
-	if err := validateID(m); err != nil {
+	if err := validateID(m.UsernameID); err != nil {
 		return err
 	}
 	address := ChainAddress{m.GetBlockchainID(), m.GetAddress()}
 	return address.Validate()
+}
+
+func validateID(id []byte) error {
+	if id == nil {
+		return errors.ErrInternal("must not be nil")
+	}
+	if !isValidID(string(id)) {
+		return nft.ErrInvalidID(id)
+	}
+	return nil
 }

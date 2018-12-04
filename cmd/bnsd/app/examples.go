@@ -87,7 +87,7 @@ func Examples() []commands.Example {
 	}
 
 	addAddressMsg := &username.AddChainAddressMsg{
-		Id:           []byte("alice@example.com"),
+		UsernameID:   []byte("alice@example.com"),
 		BlockchainID: []byte("myNet"),
 		Address:      "myChainAddress",
 	}

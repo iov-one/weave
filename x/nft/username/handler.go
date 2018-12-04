@@ -136,7 +136,7 @@ func (h AddChainAddressHandler) Deliver(ctx weave.Context, store weave.KVStore, 
 		return res, nft.ErrInvalidEntry(msg.BlockchainID)
 	}
 
-	o, t, err := loadToken(h.tokenHandler, store, msg.GetId())
+	o, t, err := loadToken(h.tokenHandler, store, msg.GetUsernameID())
 	if err != nil {
 		return res, err
 	}
@@ -191,7 +191,7 @@ func (h RemoveChainAddressHandler) Deliver(ctx weave.Context, store weave.KVStor
 	if err != nil {
 		return res, err
 	}
-	o, t, err := loadToken(h.tokenHandler, store, msg.GetId())
+	o, t, err := loadToken(h.tokenHandler, store, msg.GetUsernameID())
 	if err != nil {
 		return res, err
 	}

@@ -349,7 +349,7 @@ func TestAddChainAddress(t *testing.T) {
 			defer cache.Discard()
 
 			tx := helpers.MockTx(&username.AddChainAddressMsg{
-				Id:           spec.id,
+				UsernameID:   spec.id,
 				BlockchainID: spec.newChainID,
 				Address:      spec.newAddress,
 			})
@@ -443,7 +443,7 @@ func TestRemoveChainAddress(t *testing.T) {
 			defer cache.Discard()
 
 			tx := helpers.MockTx(&username.RemoveChainAddressMsg{
-				Id:           spec.id,
+				UsernameID:   spec.id,
 				BlockchainID: spec.newChainID,
 				Address:      spec.newAddress,
 			})
