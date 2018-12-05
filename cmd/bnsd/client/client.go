@@ -388,40 +388,6 @@ func (b *BnsClient) GetWallet(addr weave.Address) (*WalletResponse, error) {
 	return &out, nil
 }
 
-// GetWalletByName will return a wallet given the wallet name
-func (b *BnsClient) GetWalletByName(name string) (*WalletResponse, error) {
-	// query by secondary index on name
-	resp, err := b.AbciQuery("/wallets/name", []byte(name))
-	if err != nil {
-		return nil, err
-	}
-	if len(resp.Models) == 0 { // empty list or nil
-		return nil, nil // no wallet
-	}
-	// assume only one result
-	model := resp.Models[0]
-
-	// make sure the return value is expected
-	acct := walletKeyToAddr(model.Key)
-	err = acct.Validate()
-	if err != nil {
-		return nil, errors.WithMessage(err, "Returned invalid Address")
-	}
-	out := WalletResponse{
-		Address: acct,
-		Height:  resp.Height,
-	}
-
-	// TODO: double parse this into result set???
-
-	// parse the value as wallet bytes
-	err = out.Wallet.Unmarshal(model.Value)
-	if err != nil {
-		return nil, err
-	}
-	return &out, nil
-}
-
 // key is the address prefixed with "wallet:"
 func walletKeyToAddr(key []byte) weave.Address {
 	return key[5:]

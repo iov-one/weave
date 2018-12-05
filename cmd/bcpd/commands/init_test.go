@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -9,13 +10,13 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-
-	"github.com/tendermint/tendermint/libs/log"
-
+	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/cmd/bcpd/app"
 	"github.com/iov-one/weave/commands/server"
+	"github.com/iov-one/weave/x"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"github.com/tendermint/tendermint/libs/log"
 )
 
 func TestInit(t *testing.T) {
@@ -30,20 +31,29 @@ func TestInit(t *testing.T) {
 	// make sure we set proper data
 	genFile := filepath.Join(home, "config", "genesis.json")
 
-	var doc server.GenesisDoc
 	bz, err := ioutil.ReadFile(genFile)
 	require.NoError(t, err)
-	err = json.Unmarshal(bz, &doc)
-	require.NoError(t, err)
-	// keep old values, and add our values
-	assert.EqualValues(t, []byte(`"test-chain-LgVOZ0"`),
-		doc["chain_id"])
-	assert.NotEmpty(t, doc["validators"])
-	assert.NotEmpty(t, doc[server.AppStateKey])
-	assert.Contains(t, string(doc[server.AppStateKey]), `"ticker": "ETH"`)
-	assert.Contains(t, string(doc[server.AppStateKey]), `"name": "admin"`)
-	assert.Contains(t, string(doc[server.AppStateKey]), `"wallets":`)
-	assert.Contains(t, string(doc[server.AppStateKey]), `"tokens":`)
+
+	var genesis struct {
+		State struct {
+			Cash []struct {
+				Address weave.Address
+				Coins   x.Coins
+			}
+		} `json:"app_state"`
+	}
+	err = json.Unmarshal(bz, &genesis)
+	assert.NoErrorf(t, err, "cannot unmarshal genesis: %s", err)
+
+	if assert.Equal(t, 1, len(genesis.State.Cash), string(bz)) {
+		wallet := genesis.State.Cash[0]
+		want, err := hex.DecodeString(args[1])
+		assert.NoError(t, err)
+		assert.Equal(t, weave.Address(want), wallet.Address)
+		if assert.Equal(t, 1, len(wallet.Coins), "Genesis: %s", bz) {
+			assert.Equal(t, &x.Coin{Ticker: args[0], Whole: 123456789}, wallet.Coins[0])
+		}
+	}
 }
 
 // setupConfig creates a homedir to run inside,

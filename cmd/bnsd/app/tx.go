@@ -42,10 +42,6 @@ func (tx *Tx) GetMsg() (weave.Msg, error) {
 	switch t := sum.(type) {
 	case *Tx_SendMsg:
 		return t.SendMsg, nil
-	case *Tx_SetNameMsg:
-		return t.SetNameMsg, nil
-	case *Tx_NewTokenMsg:
-		return t.NewTokenMsg, nil
 	case *Tx_CreateEscrowMsg:
 		return t.CreateEscrowMsg, nil
 	case *Tx_ReleaseEscrowMsg:
@@ -60,6 +56,8 @@ func (tx *Tx) GetMsg() (weave.Msg, error) {
 		return t.UpdateContractMsg, nil
 	case *Tx_SetValidatorsMsg:
 		return t.SetValidatorsMsg, nil
+	case *Tx_NewTokenInfoMsg:
+		return t.NewTokenInfoMsg, nil
 	// nft actions
 	case *Tx_AddApprovalMsg:
 		return t.AddApprovalMsg, nil
@@ -75,9 +73,8 @@ func (tx *Tx) GetMsg() (weave.Msg, error) {
 		return t.IssueBlockchainNftMsg, nil
 	case *Tx_IssueTickerNftMsg:
 		return t.IssueTickerNftMsg, nil
-	//case *Tx_BatchMsg:
-	//	return t.BatchMsg, nil
-
+		//case *Tx_BatchMsg:
+		//	return t.BatchMsg, nil
 	}
 
 	// we must have covered it above

@@ -72,6 +72,7 @@ protoc:
 	protoc --gogofaster_out=. -I=. -I=$(GOPATH)/src -I=./vendor x/namecoin/*.proto
 	protoc --gogofaster_out=. -I=. -I=$(GOPATH)/src -I=./vendor x/escrow/*.proto
 	protoc --gogofaster_out=. -I=. -I=$(GOPATH)/src -I=./vendor x/paychan/*.proto
+	protoc --gogofaster_out=. -I=. -I=$(GOPATH)/src x/token/*.proto
 	for ex in $(EXAMPLES); do cd $$ex && make protoc && cd -; done
 
 ### cross-platform check for installing protoc ###

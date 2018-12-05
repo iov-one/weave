@@ -6,13 +6,14 @@ import (
 	"fmt"
 	"path/filepath"
 
-	abci "github.com/tendermint/tendermint/abci/types"
-	"github.com/tendermint/tendermint/libs/log"
-
 	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/app"
 	"github.com/iov-one/weave/crypto"
 	"github.com/iov-one/weave/x"
-	"github.com/iov-one/weave/x/namecoin"
+	"github.com/iov-one/weave/x/cash"
+	"github.com/iov-one/weave/x/token"
+	abci "github.com/tendermint/tendermint/abci/types"
+	"github.com/tendermint/tendermint/libs/log"
 )
 
 // GenInitOptions will produce some basic options for one rich
@@ -34,35 +35,26 @@ func GenInitOptions(args []string) (json.RawMessage, error) {
 	} else {
 		// if no address provided, auto-generate one
 		// and print out a recovery phrase
-		bz, phrase, err := GenerateCoinKey()
+		bz, _, err := GenerateCoinKey()
 		if err != nil {
 			return nil, err
 		}
 		addr = hex.EncodeToString(bz)
-		fmt.Println(phrase)
 	}
 
-	opts := fmt.Sprintf(`{
-    "wallets": [
-      {
-        "address": "%s",
-        "name": "admin",
-        "coins": [
+	opts := fmt.Sprintf(`
           {
-            "whole": 123456789,
-            "ticker": "%s"
+            "cash": [
+              {
+                "address": "%s",
+                "coins": [
+                  {"whole": 123456789, "ticker": "%s"}
+                ]
+              }
+            ],
+	    "tokens": []
           }
-        ]
-      }
-    ],
-    "tokens": [
-      {
-        "ticker": "%s",
-        "name": "Main token of this chain",
-        "sig_figs": 6
-      }
-    ]
-  }`, addr, ticker, ticker)
+  	`, addr, ticker)
 	return []byte(opts), nil
 }
 
@@ -76,15 +68,18 @@ func GenerateApp(home string, logger log.Logger, debug bool) (abci.Application, 
 
 	// TODO: anyone can make a token????
 	stack := Stack(x.Coin{}, nil)
-	app, err := Application("mycoin", stack, TxDecoder, dbPath, debug)
+	application, err := Application("mycoin", stack, TxDecoder, dbPath, debug)
 	if err != nil {
 		return nil, err
 	}
-	app.WithInit(namecoin.Initializer{})
+	application.WithInit(app.ChainInitializers(
+		&cash.Initializer{},
+		&token.Initializer{},
+	))
 
 	// set the logger and return
-	app.WithLogger(logger)
-	return app, nil
+	application.WithLogger(logger)
+	return application, nil
 }
 
 type output struct {
