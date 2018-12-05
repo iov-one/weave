@@ -10,7 +10,7 @@ import (
 	"github.com/iov-one/weave/app"
 	"github.com/iov-one/weave/crypto"
 	"github.com/iov-one/weave/x"
-	"github.com/iov-one/weave/x/namecoin"
+	"github.com/iov-one/weave/x/cash"
 	"github.com/iov-one/weave/x/nft/blockchain"
 	"github.com/iov-one/weave/x/nft/ticker"
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -45,10 +45,9 @@ func GenInitOptions(args []string) (json.RawMessage, error) {
 	}
 
 	opts := fmt.Sprintf(`{
-    "wallets": [
+    "cash": [
       {
         "address": "%s",
-        "name": "admin",
         "coins": [
           {
             "whole": 123456789,
@@ -57,17 +56,10 @@ func GenInitOptions(args []string) (json.RawMessage, error) {
         ]
       }
     ],
-    "tokens": [
-      {
-        "ticker": "%s",
-        "name": "Main token of this chain",
-        "sig_figs": 6
-      }
-    ],
     "nfts": {
       "blockchains": []
     }
-  }`, addr, ticker, ticker)
+  }`, addr, ticker)
 	return []byte(opts), nil
 }
 
@@ -86,7 +78,7 @@ func GenerateApp(home string, logger log.Logger, debug bool) (abci.Application, 
 		return nil, err
 	}
 	application.WithInit(app.ChainInitializers(
-		&namecoin.Initializer{},
+		&cash.Initializer{},
 		&blockchain.Initializer{},
 		&ticker.Initializer{},
 	))

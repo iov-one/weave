@@ -102,55 +102,33 @@ func initGenesis(filename string, addr weave.Address) (*tm.GenesisDoc, error) {
 	}
 
 	// set app state
-	appState := fmt.Sprintf(`{
-  "wallets": [
-    {
-      "name": "alice",
-      "address": "%s",
-      "coins": [
-        {
-          "whole": 123456789,
-          "ticker": "IOV"
-        },
-        {
-          "whole": 123456789,
-          "ticker": "CASH"
-        },
-        {
-          "whole": 123456789,
-          "ticker": "ALX"
-        },
-        {
-          "whole": 123456789,
-          "ticker": "PAJA"
-        }
-      ]
-    }
-  ],
-  "tokens": [
-    {
-      "ticker": "IOV",
-      "name": "Main token of this chain",
-      "sig_figs": 6
-    },
-    {
-      "ticker": "CASH",
-      "name": "Second token of this chain",
-      "sig_figs": 6
-    },
-    {
-      "ticker": "ALX",
-      "name": "Third token of this chain",
-      "sig_figs": 6
-    },
-    {
-      "ticker": "PAJA",
-      "name": "Mightiest token of this chain",
-      "sig_figs": 9
-    }
-  ]
-}
-`, addr)
+	appState := fmt.Sprintf(`
+	{
+	  "cash": [
+	    {
+	      "address": "%s",
+	      "coins": [
+		{
+		  "whole": 123456789,
+		  "ticker": "IOV"
+		},
+		{
+		  "whole": 123456789,
+		  "ticker": "CASH"
+		},
+		{
+		  "whole": 123456789,
+		  "ticker": "ALX"
+		},
+		{
+		  "whole": 123456789,
+		  "ticker": "PAJA"
+		}
+	      ]
+	    }
+	  ]
+	}
+	`, addr)
 	doc.AppState = []byte(appState)
 	// save file
 	return doc, doc.SaveAs(filename)

@@ -5,7 +5,6 @@ package app;
 import "github.com/gogo/protobuf/gogoproto/gogo.proto";
 import "github.com/iov-one/weave/x/cash/codec.proto";
 import "github.com/iov-one/weave/x/escrow/codec.proto";
-import "github.com/iov-one/weave/x/namecoin/codec.proto";
 import "github.com/iov-one/weave/x/sigs/codec.proto";
 import "github.com/iov-one/weave/x/multisig/codec.proto";
 import "github.com/iov-one/weave/x/nft/codec.proto";
@@ -21,8 +20,6 @@ message Tx {
     // msg is a sum type over all allowed messages on this chain.
     oneof sum {
         cash.SendMsg send_msg = 1;
-        namecoin.NewTokenMsg new_token_msg = 2;
-        namecoin.SetWalletNameMsg set_name_msg = 3;
         // escrow actions
         escrow.CreateEscrowMsg create_escrow_msg = 4;
         escrow.ReleaseEscrowMsg release_escrow_msg = 5;
@@ -67,8 +64,6 @@ enum NftType {
 //    message Union {
 //        oneof sum {
 //            cash.SendMsg send_msg = 1;
-//            namecoin.NewTokenMsg new_token_msg = 2;
-//            namecoin.SetWalletNameMsg set_name_msg = 3;
 //            // escrow actions
 //            escrow.CreateEscrowMsg create_escrow_msg = 4;
 //            escrow.ReleaseEscrowMsg release_escrow_msg = 5;
