@@ -39,6 +39,10 @@ func Authenticator() x.Authenticator {
 // Chain returns a chain of decorators, to handle authentication,
 // fees, logging, and recovery
 func Chain(minFee x.Coin, authFn x.Authenticator) app.Decorators {
+	// ctrl can be initialized with any implementation, but must be used
+	// consistently everywhere.
+	var ctrl cash.Controller = cash.NewController(cash.NewBucket())
+
 	return app.ChainDecorators(
 		utils.NewLogging(),
 		utils.NewRecovery(),
@@ -47,6 +51,7 @@ func Chain(minFee x.Coin, authFn x.Authenticator) app.Decorators {
 		utils.NewSavepoint().OnCheck(),
 		sigs.NewDecorator(),
 		multisig.NewDecorator(authFn),
+		cash.NewFeeDecorator(authFn, ctrl, minFee),
 		// cannot pay for fee with hashlock...
 		hashlock.NewDecorator(),
 		// batch commented out temporarily to minimize release features
