@@ -4,19 +4,17 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/iov-one/weave/x/multisig"
-
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-
-	weave_app "github.com/iov-one/weave/app"
+	weaveApp "github.com/iov-one/weave/app"
 	"github.com/iov-one/weave/cmd/bnsd/app"
 	"github.com/iov-one/weave/cmd/bnsd/app/testdata/fixtures"
 	"github.com/iov-one/weave/crypto"
 	"github.com/iov-one/weave/x"
 	"github.com/iov-one/weave/x/cash"
+	"github.com/iov-one/weave/x/multisig"
 	"github.com/iov-one/weave/x/namecoin"
 	"github.com/iov-one/weave/x/sigs"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	abci "github.com/tendermint/tendermint/abci/types"
 )
 
@@ -27,7 +25,7 @@ func TestApp(t *testing.T) {
 	chainID := appFixture.ChainID
 	myApp := appFixture.Build()
 	// Query for my balance
-	key := namecoin.NewWalletBucket().DBKey(appFixture.GenesisKeyAddress)
+	key := cash.NewBucket().DBKey(appFixture.GenesisKeyAddress)
 	queryAndCheckWallet(t, myApp, "/", key,
 		namecoin.Wallet{
 			Name: "demote",
@@ -196,7 +194,7 @@ type Signer struct {
 
 // sendToken creates the transaction, signs it and sends it
 // checks money has arrived safely
-func sendToken(t *testing.T, baseApp weave_app.BaseApp, chainID string, height int64, signers []Signer,
+func sendToken(t *testing.T, baseApp weaveApp.BaseApp, chainID string, height int64, signers []Signer,
 	from, to []byte, amount int64, ticker, memo string, contracts ...[]byte) abci.ResponseDeliverTx {
 	msg := &cash.SendMsg{
 		Src:  from,
@@ -231,7 +229,7 @@ func sendToken(t *testing.T, baseApp weave_app.BaseApp, chainID string, height i
 
 // createContract creates an immutable contract, signs the transaction and sends it
 // checks contract has been created correctly
-func createContract(t *testing.T, baseApp weave_app.BaseApp, chainID string, height int64, signers []Signer,
+func createContract(t *testing.T, baseApp weaveApp.BaseApp, chainID string, height int64, signers []Signer,
 	activationThreshold int64, contractSigs ...[]byte) []byte {
 	msg := &multisig.CreateContractMsg{
 		Sigs:                contractSigs,
@@ -259,7 +257,7 @@ func createContract(t *testing.T, baseApp weave_app.BaseApp, chainID string, hei
 
 // signAndCommit signs tx with signatures from signers and submits to the chain
 // asserts and fails the test in case of errors during the process
-func signAndCommit(t *testing.T, app weave_app.BaseApp, tx *app.Tx, signers []Signer, chainID string,
+func signAndCommit(t *testing.T, app weaveApp.BaseApp, tx *app.Tx, signers []Signer, chainID string,
 	height int64) abci.ResponseDeliverTx {
 	for _, signer := range signers {
 		sig, err := sigs.SignTx(signer.pk, tx, chainID, signer.nonce)
@@ -288,7 +286,7 @@ func signAndCommit(t *testing.T, app weave_app.BaseApp, tx *app.Tx, signers []Si
 }
 
 // queryAndCheckWallet queries the wallet from the chain and check it is the one expected
-func queryAndCheckWallet(t *testing.T, baseApp weave_app.BaseApp, path string, data []byte, expected namecoin.Wallet) {
+func queryAndCheckWallet(t *testing.T, baseApp weaveApp.BaseApp, path string, data []byte, expected namecoin.Wallet) {
 	query := abci.RequestQuery{Path: path, Data: data}
 	res := baseApp.Query(query)
 
@@ -297,13 +295,13 @@ func queryAndCheckWallet(t *testing.T, baseApp weave_app.BaseApp, path string, d
 	assert.NotEmpty(t, res.Value)
 
 	var actual namecoin.Wallet
-	err := weave_app.UnmarshalOneResult(res.Value, &actual)
+	err := weaveApp.UnmarshalOneResult(res.Value, &actual)
 	require.NoError(t, err)
 	require.Equal(t, expected, actual)
 }
 
 // queryAndCheckContract queries the contract from the chain and check it is the one expected
-func queryAndCheckContract(t *testing.T, baseApp weave_app.BaseApp, path string, data []byte, expected multisig.Contract) {
+func queryAndCheckContract(t *testing.T, baseApp weaveApp.BaseApp, path string, data []byte, expected multisig.Contract) {
 	query := abci.RequestQuery{Path: path, Data: data}
 	res := baseApp.Query(query)
 
@@ -312,17 +310,17 @@ func queryAndCheckContract(t *testing.T, baseApp weave_app.BaseApp, path string,
 	assert.NotEmpty(t, res.Value)
 
 	var actual multisig.Contract
-	err := weave_app.UnmarshalOneResult(res.Value, &actual)
+	err := weaveApp.UnmarshalOneResult(res.Value, &actual)
 	require.NoError(t, err)
 	require.Equal(t, expected, actual)
 }
 
 // queryAndCheckToken queries tokens from the chain and check they're the one expected
-func queryAndCheckToken(t *testing.T, baseApp weave_app.BaseApp, path string, data []byte, expected []namecoin.Token) {
+func queryAndCheckToken(t *testing.T, baseApp weaveApp.BaseApp, path string, data []byte, expected []namecoin.Token) {
 	query := abci.RequestQuery{Path: path, Data: data}
 	res := baseApp.Query(query)
 
-	var set weave_app.ResultSet
+	var set weaveApp.ResultSet
 	err := set.Unmarshal(res.Value)
 	require.NoError(t, err)
 	assert.Equal(t, len(expected), len(set.Results))
