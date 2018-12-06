@@ -16,6 +16,7 @@ import (
 	"github.com/iov-one/weave/store/iavl"
 	"github.com/iov-one/weave/x"
 	"github.com/iov-one/weave/x/cash"
+	"github.com/iov-one/weave/x/currency"
 	"github.com/iov-one/weave/x/escrow"
 	"github.com/iov-one/weave/x/hashlock"
 	"github.com/iov-one/weave/x/multisig"
@@ -26,7 +27,6 @@ import (
 	"github.com/iov-one/weave/x/nft/ticker"
 	"github.com/iov-one/weave/x/nft/username"
 	"github.com/iov-one/weave/x/sigs"
-	"github.com/iov-one/weave/x/token"
 	"github.com/iov-one/weave/x/utils"
 	"github.com/iov-one/weave/x/validators"
 )
@@ -80,7 +80,7 @@ func Router(authFn x.Authenticator, issuer weave.Address) app.Router {
 	// or implement a check
 	blockchain.RegisterRoutes(r, authFn, issuer, ticker.NewBucket())
 	ticker.RegisterRoutes(r, authFn, issuer, blockchain.NewBucket())
-	token.RegisterRoutes(r, authFn, issuer)
+	currency.RegisterRoutes(r, authFn, issuer)
 	username.RegisterRoutes(r, authFn, issuer)
 	validators.RegisterRoutes(r, authFn, validators.NewController())
 	bootstrap_node.RegisterRoutes(r, authFn, issuer)
@@ -105,7 +105,7 @@ func QueryRouter() weave.QueryRouter {
 		username.RegisterQuery,
 		validators.RegisterQuery,
 		orm.RegisterQuery,
-		token.RegisterQuery,
+		currency.RegisterQuery,
 	)
 	nft.GetBucketDispatcher().AssertRegistered(x.EnumHelpers{}.AsList(NftType_value)...)
 	return r

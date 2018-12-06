@@ -281,7 +281,7 @@ func withContractAppState(t require.TestingT, contracts []*contract) string {
 	walletStr = walletStr[:len(walletStr)-1]
 	appState := fmt.Sprintf(`{
 		"wallets": [%s],
-        "tokens": [{
+        "currencies": [{
             "ticker": "ETH",
             "name": "Smells like ethereum",
             "sig_figs": 9

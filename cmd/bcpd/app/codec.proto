@@ -4,7 +4,7 @@ package app;
 
 import "github.com/gogo/protobuf/gogoproto/gogo.proto";
 import "github.com/iov-one/weave/x/cash/codec.proto";
-import "github.com/iov-one/weave/x/token/codec.proto";
+import "github.com/iov-one/weave/x/currency/codec.proto";
 import "github.com/iov-one/weave/x/escrow/codec.proto";
 import "github.com/iov-one/weave/x/sigs/codec.proto";
 import "github.com/iov-one/weave/x/multisig/codec.proto";
@@ -27,7 +27,7 @@ message Tx {
     // validators actions
     validators.SetValidatorsMsg set_validators_msg = 10;
     BatchMsg batch_msg = 11;
-    token.NewTokenInfoMsg new_token_info_msg = 24;
+    currency.NewTokenInfoMsg new_token_info_msg = 24;
   }
   // fee info, autogenerates GetFees()
   cash.FeeInfo fees = 20;
@@ -54,7 +54,7 @@ message BatchMsg {
       multisig.UpdateContractMsg update_contract_msg = 9;
       // validators actions
       validators.SetValidatorsMsg set_validators_msg = 10;
-      token.NewTokenInfoMsg new_token_info_msg = 11;
+      currency.NewTokenInfoMsg new_token_info_msg = 11;
     }
   }
 

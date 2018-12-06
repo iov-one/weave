@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package token;
+package currency;
 
 // TokenInfo contains information about a single currency. It is used as an
 // alternative solution to hardcoding supported currencies information.

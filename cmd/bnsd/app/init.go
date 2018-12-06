@@ -11,9 +11,9 @@ import (
 	"github.com/iov-one/weave/crypto"
 	"github.com/iov-one/weave/x"
 	"github.com/iov-one/weave/x/cash"
+	"github.com/iov-one/weave/x/currency"
 	"github.com/iov-one/weave/x/nft/blockchain"
 	"github.com/iov-one/weave/x/nft/ticker"
-	"github.com/iov-one/weave/x/token"
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
 )
@@ -55,7 +55,7 @@ func GenInitOptions(args []string) (json.RawMessage, error) {
                 ]
               }
             ],
-            "tokens": [],
+            "currencies": [],
             "nfts": {
               "blockchains": []
             }
@@ -80,7 +80,7 @@ func GenerateApp(home string, logger log.Logger, debug bool) (abci.Application, 
 	}
 	application.WithInit(app.ChainInitializers(
 		&cash.Initializer{},
-		&token.Initializer{},
+		&currency.Initializer{},
 		&blockchain.Initializer{},
 		&ticker.Initializer{},
 	))

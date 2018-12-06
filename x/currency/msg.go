@@ -1,4 +1,4 @@
-package token
+package currency
 
 import (
 	"github.com/iov-one/weave"
@@ -8,7 +8,7 @@ import (
 var _ weave.Msg = (*NewTokenInfoMsg)(nil)
 
 func (NewTokenInfoMsg) Path() string {
-	return "token/tokeninfo"
+	return "currency/tokeninfo"
 }
 
 func (t *NewTokenInfoMsg) Validate() error {

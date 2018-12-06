@@ -1,4 +1,4 @@
-package token
+package currency
 
 import (
 	"github.com/iov-one/weave"

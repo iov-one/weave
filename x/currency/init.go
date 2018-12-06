@@ -1,4 +1,4 @@
-package token
+package currency
 
 import (
 	"github.com/iov-one/weave"
@@ -15,11 +15,11 @@ var _ weave.Initializer = (*Initializer)(nil)
 // database
 func (*Initializer) FromGenesis(opts weave.Options, db weave.KVStore) error {
 	var tokens []struct {
-		Ticker  string
-		Name    string
-		SigFigs int32
+		Ticker  string `json:"ticker"`
+		Name    string `json:"name"`
+		SigFigs int32  `json:"sig_figs"`
 	}
-	if err := opts.ReadOptions("tokens", &tokens); err != nil {
+	if err := opts.ReadOptions("currencies", &tokens); err != nil {
 		return err
 	}
 

@@ -17,11 +17,11 @@ import (
 	"github.com/iov-one/weave/x"
 	"github.com/iov-one/weave/x/batch"
 	"github.com/iov-one/weave/x/cash"
+	"github.com/iov-one/weave/x/currency"
 	"github.com/iov-one/weave/x/escrow"
 	"github.com/iov-one/weave/x/hashlock"
 	"github.com/iov-one/weave/x/multisig"
 	"github.com/iov-one/weave/x/sigs"
-	"github.com/iov-one/weave/x/token"
 	"github.com/iov-one/weave/x/utils"
 	"github.com/iov-one/weave/x/validators"
 )
@@ -67,7 +67,7 @@ func Router(authFn x.Authenticator, issuer weave.Address) app.Router {
 
 	r := app.NewRouter()
 	cash.RegisterRoutes(r, authFn, ctrl)
-	token.RegisterRoutes(r, authFn, issuer)
+	currency.RegisterRoutes(r, authFn, issuer)
 	escrow.RegisterRoutes(r, authFn, ctrl)
 	multisig.RegisterRoutes(r, authFn)
 	validators.RegisterRoutes(r, authFn, validators.NewController())
@@ -81,7 +81,7 @@ func QueryRouter() weave.QueryRouter {
 	r.RegisterAll(
 		escrow.RegisterQuery,
 		cash.RegisterQuery,
-		token.RegisterQuery,
+		currency.RegisterQuery,
 		sigs.RegisterQuery,
 		orm.RegisterQuery,
 		multisig.RegisterQuery,

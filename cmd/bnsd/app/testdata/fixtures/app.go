@@ -10,9 +10,9 @@ import (
 	"github.com/iov-one/weave/crypto"
 	"github.com/iov-one/weave/x"
 	"github.com/iov-one/weave/x/cash"
+	"github.com/iov-one/weave/x/currency"
 	"github.com/iov-one/weave/x/nft/blockchain"
 	"github.com/iov-one/weave/x/nft/ticker"
-	"github.com/iov-one/weave/x/token"
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
 )
@@ -60,7 +60,7 @@ func (f AppFixture) Build() weaveApp.BaseApp {
 	}
 	myApp.WithInit(weaveApp.ChainInitializers(
 		&cash.Initializer{},
-		&token.Initializer{},
+		&currency.Initializer{},
 		&blockchain.Initializer{},
 		&ticker.Initializer{},
 	))

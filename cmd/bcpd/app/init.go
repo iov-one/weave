@@ -11,7 +11,7 @@ import (
 	"github.com/iov-one/weave/crypto"
 	"github.com/iov-one/weave/x"
 	"github.com/iov-one/weave/x/cash"
-	"github.com/iov-one/weave/x/token"
+	"github.com/iov-one/weave/x/currency"
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
 )
@@ -52,7 +52,7 @@ func GenInitOptions(args []string) (json.RawMessage, error) {
                 ]
               }
             ],
-	    "tokens": []
+	    "currency": []
           }
   	`, addr, ticker)
 	return []byte(opts), nil
@@ -74,7 +74,7 @@ func GenerateApp(home string, logger log.Logger, debug bool) (abci.Application, 
 	}
 	application.WithInit(app.ChainInitializers(
 		&cash.Initializer{},
-		&token.Initializer{},
+		&currency.Initializer{},
 	))
 
 	// set the logger and return
