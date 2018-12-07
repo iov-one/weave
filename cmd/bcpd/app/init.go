@@ -52,7 +52,7 @@ func GenInitOptions(args []string) (json.RawMessage, error) {
                 ]
               }
             ],
-	    "currency": []
+	    "currencies": []
           }
   	`, addr, ticker)
 	return []byte(opts), nil
