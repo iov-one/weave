@@ -7,6 +7,8 @@ import (
 	"github.com/iov-one/weave/x"
 )
 
+const newTokenInfoCost = 100
+
 func RegisterQuery(qr weave.QueryRouter) {
 	NewTokenInfoBucket().Register("tokens", qr)
 }
@@ -37,10 +39,6 @@ func (h *TokenInfoHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.T
 	res.GasAllocated += newTokenInfoCost
 	return res, nil
 }
-
-const (
-	newTokenInfoCost = 100
-)
 
 func (h *TokenInfoHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (weave.DeliverResult, error) {
 	var res weave.DeliverResult
@@ -75,9 +73,10 @@ func (h *TokenInfoHandler) validate(ctx weave.Context, db weave.KVStore, tx weav
 	}
 
 	// Token can be registered only once and must not be updated.
-	if obj, err := h.bucket.Get(db, msg.Ticker); err != nil {
+	switch obj, err := h.bucket.Get(db, msg.Ticker); {
+	case err != nil:
 		return nil, err
-	} else if obj != nil {
+	case obj != nil:
 		return nil, ErrDuplicateToken(msg.Ticker)
 	}
 

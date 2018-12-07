@@ -45,28 +45,26 @@ func TestSendTx(t *testing.T) {
 	addr2 := pk2.PublicKey().Address()
 	dres := sendBatch(t, false, myApp, chainID, 2, []*account{mainAccount}, mainAccount.address(), addr2, 2000, "ETH", "Have a great trip!")
 
-	// ensure 3 keys with proper values
-	if assert.Equal(t, 3, len(dres.Tags), "%#v", dres.Tags) {
-		addr := mainAccount.pk.PublicKey().Address()
-		wantKeys := []string{
-			toHex("cash:") + addr.String(),
-			toHex("cash:") + addr2.String(),
-			toHex("sigs:") + addr.String(),
-		}
-		sort.Strings(wantKeys)
-		gotKeys := []string{
-			string(dres.Tags[0].Key),
-			string(dres.Tags[1].Key),
-			string(dres.Tags[2].Key),
-		}
-		assert.Equal(t, wantKeys, gotKeys)
-
-		assert.Equal(t, []string{"s", "s", "s"}, []string{
-			string(dres.Tags[0].Value),
-			string(dres.Tags[1].Value),
-			string(dres.Tags[2].Value),
-		})
+	require.Equal(t, 3, len(dres.Tags), "%#v", dres.Tags)
+	addr := mainAccount.pk.PublicKey().Address()
+	wantKeys := []string{
+		toHex("cash:") + addr.String(),
+		toHex("cash:") + addr2.String(),
+		toHex("sigs:") + addr.String(),
 	}
+	sort.Strings(wantKeys)
+	gotKeys := []string{
+		string(dres.Tags[0].Key),
+		string(dres.Tags[1].Key),
+		string(dres.Tags[2].Key),
+	}
+	assert.Equal(t, wantKeys, gotKeys)
+
+	assert.Equal(t, []string{"s", "s", "s"}, []string{
+		string(dres.Tags[0].Value),
+		string(dres.Tags[1].Value),
+		string(dres.Tags[2].Value),
+	})
 
 	// Query for new balances (same query, new state)
 	queryAndCheckWallet(t, myApp, "/", key, cash.Set{

@@ -43,17 +43,15 @@ func TestInit(t *testing.T) {
 		} `json:"app_state"`
 	}
 	err = json.Unmarshal(bz, &genesis)
-	assert.NoErrorf(t, err, "cannot unmarshal genesis: %s", err)
+	require.NoErrorf(t, err, "cannot unmarshal genesis: %s", err)
 
-	if assert.Equal(t, 1, len(genesis.State.Cash), string(bz)) {
-		wallet := genesis.State.Cash[0]
-		want, err := hex.DecodeString(args[1])
-		assert.NoError(t, err)
-		assert.Equal(t, weave.Address(want), wallet.Address)
-		if assert.Equal(t, 1, len(wallet.Coins), "Genesis: %s", bz) {
-			assert.Equal(t, &x.Coin{Ticker: args[0], Whole: 123456789}, wallet.Coins[0])
-		}
-	}
+	require.Equal(t, 1, len(genesis.State.Cash), string(bz))
+	wallet := genesis.State.Cash[0]
+	want, err := hex.DecodeString(args[1])
+	assert.NoError(t, err)
+	assert.Equal(t, weave.Address(want), wallet.Address)
+	require.Equal(t, 1, len(wallet.Coins), "Genesis: %s", bz)
+	assert.Equal(t, &x.Coin{Ticker: args[0], Whole: 123456789}, wallet.Coins[0])
 }
 
 // setupConfig creates a homedir to run inside,
