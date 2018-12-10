@@ -10,6 +10,15 @@ import (
 
 var _ orm.CloneableData = (*TokenInfo)(nil)
 
+// NewTokenInfo returns a new instance of Token Info, as represented by orm
+// object.
+func NewTokenInfo(ticker, name string, sigFigs int32) orm.Object {
+	return orm.NewSimpleObj([]byte(ticker), &TokenInfo{
+		Name:    name,
+		SigFigs: sigFigs,
+	})
+}
+
 func (t *TokenInfo) Validate() error {
 	if !isTokenName(t.Name) {
 		return ErrInvalidTokenName(t.Name)

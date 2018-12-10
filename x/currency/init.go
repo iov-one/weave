@@ -2,7 +2,6 @@ package currency
 
 import (
 	"github.com/iov-one/weave"
-	"github.com/iov-one/weave/orm"
 )
 
 // Initializer fulfils the Initializer interface to load data from the genesis
@@ -25,10 +24,7 @@ func (*Initializer) FromGenesis(opts weave.Options, db weave.KVStore) error {
 
 	bucket := NewTokenInfoBucket()
 	for _, t := range tokens {
-		obj := orm.NewSimpleObj([]byte(t.Ticker), &TokenInfo{
-			Name:    t.Name,
-			SigFigs: t.SigFigs,
-		})
+		obj := NewTokenInfo(t.Ticker, t.Name, t.SigFigs)
 		if err := bucket.Save(db, obj); err != nil {
 			return err
 		}

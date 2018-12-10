@@ -3,7 +3,6 @@ package currency
 import (
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
-	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/x"
 )
 
@@ -46,10 +45,7 @@ func (h *TokenInfoHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave
 	if err != nil {
 		return res, err
 	}
-	obj := orm.NewSimpleObj([]byte(msg.Ticker), &TokenInfo{
-		Name:    msg.Name,
-		SigFigs: msg.SigFigs,
-	})
+	obj := NewTokenInfo(msg.Ticker, msg.Name, msg.SigFigs)
 	return res, h.bucket.Save(db, obj)
 }
 
