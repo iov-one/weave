@@ -8,6 +8,13 @@ import (
 	"github.com/iov-one/weave/x"
 )
 
+const (
+	minSigFigs = 0
+	maxSigFigs = 9
+)
+
+var isTokenName = regexp.MustCompile(`^[A-Za-z0-9 \-_:]{3,32}$`).MatchString
+
 var _ orm.CloneableData = (*TokenInfo)(nil)
 
 // NewTokenInfo returns a new instance of Token Info, as represented by orm
@@ -28,13 +35,6 @@ func (t *TokenInfo) Validate() error {
 	}
 	return nil
 }
-
-var isTokenName = regexp.MustCompile(`^[A-Za-z0-9 \-_:]{3,32}$`).MatchString
-
-const (
-	minSigFigs = 0
-	maxSigFigs = 9
-)
 
 func (t *TokenInfo) Copy() orm.CloneableData {
 	return &TokenInfo{
