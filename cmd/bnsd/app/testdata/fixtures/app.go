@@ -5,37 +5,32 @@ import (
 	"math/rand"
 
 	"github.com/iov-one/weave"
-	weave_app "github.com/iov-one/weave/app"
+	weaveApp "github.com/iov-one/weave/app"
 	"github.com/iov-one/weave/cmd/bnsd/app"
 	"github.com/iov-one/weave/crypto"
 	"github.com/iov-one/weave/x"
-	"github.com/iov-one/weave/x/namecoin"
+	"github.com/iov-one/weave/x/cash"
+	"github.com/iov-one/weave/x/currency"
+	"github.com/iov-one/weave/x/nft/blockchain"
+	"github.com/iov-one/weave/x/nft/ticker"
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
 )
 
-const appState = `{
-        "wallets": [{
-            "name": "demote",
-            "address": "%s",
-            "coins": [{
-                "whole": 50000,
-                "ticker": "ETH"
-            },{
-                "whole": 1234,
-				"ticker": "FRNK"
-			}]
-		}],
-        "tokens": [{
-            "ticker": "ETH",
-            "name": "Smells like ethereum",
-            "sig_figs": 9
-        },{
-            "ticker": "FRNK",
-            "name": "Frankie",
-            "sig_figs": 3
-		}]
-	}`
+const appState = `
+  {
+    "cash": [
+      {
+        "name": "demote",
+        "address": "%s",
+        "coins": [
+          {"whole": 50000, "ticker": "ETH"},
+          {"whole": 1234, "ticker": "FRNK"}
+        ]
+      }
+    ]
+  }
+`
 
 type AppFixture struct {
 	Name              string
@@ -56,14 +51,19 @@ func NewApp() *AppFixture {
 	}
 }
 
-func (f AppFixture) Build() weave_app.BaseApp {
+func (f AppFixture) Build() weaveApp.BaseApp {
 	// setup app
 	stack := app.Stack(x.Coin{}, nil)
 	myApp, err := app.Application(f.Name, stack, app.TxDecoder, "", true)
 	if err != nil {
 		panic(err)
 	}
-	myApp.WithInit(namecoin.Initializer{})
+	myApp.WithInit(weaveApp.ChainInitializers(
+		&cash.Initializer{},
+		&currency.Initializer{},
+		&blockchain.Initializer{},
+		&ticker.Initializer{},
+	))
 	myApp.WithLogger(log.NewNopLogger())
 	// load state
 

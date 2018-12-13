@@ -10,7 +10,6 @@ import (
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/cmd/bnsd/app"
 	"github.com/iov-one/weave/x"
-
 	abci "github.com/tendermint/tendermint/abci/types"
 	cfg "github.com/tendermint/tendermint/config"
 	"github.com/tendermint/tendermint/libs/log"
@@ -73,28 +72,21 @@ func initApp(config *cfg.Config, addr weave.Address) (abci.Application, error) {
 }
 
 func initGenesis(filename string, addr weave.Address) error {
-	// load genesis
 	doc, err := tm.GenesisDocFromFile(filename)
 	if err != nil {
 		return err
 	}
-
-	// set app state
-	token, _ := json.Marshal(initBalance)
-	appState := fmt.Sprintf(`{
-        "wallets": [{
-            "name": "faucet",
-            "address": "%s",
-            "coins": [%s]
-        }],
-        "tokens": [{
-            "ticker": "%s",
-            "name": "Default token",
-            "sig_figs": 9
-        }]
-    }`, addr, string(token), initBalance.Ticker)
-	doc.AppState = []byte(appState)
-
-	// save file
+	appState, err := json.Marshal(map[string]interface{}{
+		"cash": []interface{}{
+			map[string]interface{}{
+				"address": addr,
+				"coins":   x.Coins{&initBalance},
+			},
+		},
+	})
+	if err != nil {
+		return fmt.Errorf("serialize state: %s", err)
+	}
+	doc.AppState = appState
 	return doc.SaveAs(filename)
 }

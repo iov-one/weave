@@ -20,10 +20,6 @@ func (msg *BatchMsg) MsgList() ([]weave.Msg, error) {
 			switch t := m.GetSum().(type) {
 			case *BatchMsg_Union_SendMsg:
 				return t.SendMsg, nil
-			case *BatchMsg_Union_NewTokenMsg:
-				return t.NewTokenMsg, nil
-			case *BatchMsg_Union_SetNameMsg:
-				return t.SetNameMsg, nil
 			case *BatchMsg_Union_CreateEscrowMsg:
 				return t.CreateEscrowMsg, nil
 			case *BatchMsg_Union_ReleaseEscrowMsg:
@@ -38,6 +34,8 @@ func (msg *BatchMsg) MsgList() ([]weave.Msg, error) {
 				return t.UpdateContractMsg, nil
 			case *BatchMsg_Union_SetValidatorsMsg:
 				return t.SetValidatorsMsg, nil
+			case *BatchMsg_Union_NewTokenInfoMsg:
+				return t.NewTokenInfoMsg, nil
 			default:
 				return nil, errors.ErrUnknownTxType(t)
 			}

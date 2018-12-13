@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package currency;
+
+// TokenInfo contains information about a single currency. It is used as an
+// alternative solution to hardcoding supported currencies information.
+message TokenInfo {
+    string name = 1;
+    int32 sig_figs = 2;
+}
+
+// NewTokenInfoMsg will register a new currency. Ticker (currency symbol) can
+// be registered only once.
+message NewTokenInfoMsg {
+    string ticker = 1;
+    string name = 2;
+    int32 sig_figs = 3;
+}

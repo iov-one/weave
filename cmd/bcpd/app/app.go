@@ -16,10 +16,11 @@ import (
 	"github.com/iov-one/weave/store/iavl"
 	"github.com/iov-one/weave/x"
 	"github.com/iov-one/weave/x/batch"
+	"github.com/iov-one/weave/x/cash"
+	"github.com/iov-one/weave/x/currency"
 	"github.com/iov-one/weave/x/escrow"
 	"github.com/iov-one/weave/x/hashlock"
 	"github.com/iov-one/weave/x/multisig"
-	"github.com/iov-one/weave/x/namecoin"
 	"github.com/iov-one/weave/x/sigs"
 	"github.com/iov-one/weave/x/utils"
 	"github.com/iov-one/weave/x/validators"
@@ -34,6 +35,10 @@ func Authenticator() x.Authenticator {
 // Chain returns a chain of decorators, to handle authentication,
 // fees, logging, and recovery
 func Chain(minFee x.Coin, authFn x.Authenticator) app.Decorators {
+	// ctrl can be initialized with any implementation, but must be used
+	// consistently everywhere.
+	var ctrl cash.Controller = cash.NewController(cash.NewBucket())
+
 	return app.ChainDecorators(
 		utils.NewLogging(),
 		utils.NewRecovery(),
@@ -42,7 +47,7 @@ func Chain(minFee x.Coin, authFn x.Authenticator) app.Decorators {
 		utils.NewSavepoint().OnCheck(),
 		sigs.NewDecorator(),
 		multisig.NewDecorator(authFn),
-		namecoin.NewFeeDecorator(authFn, minFee),
+		cash.NewFeeDecorator(authFn, ctrl, minFee),
 		// cannot pay for fee with hashlock...
 		hashlock.NewDecorator(),
 		// make sure we execute all the transactions in batch before the save point
@@ -56,11 +61,14 @@ func Chain(minFee x.Coin, authFn x.Authenticator) app.Decorators {
 // Router returns a default router, only dispatching to the
 // cash.SendMsg
 func Router(authFn x.Authenticator, issuer weave.Address) app.Router {
+	// ctrl can be initialized with any implementation, but must be used
+	// consistently everywhere.
+	var ctrl cash.Controller = cash.NewController(cash.NewBucket())
+
 	r := app.NewRouter()
-	namecoin.RegisterRoutes(r, authFn, issuer)
-	// we use the namecoin wallet handler
-	// TODO: move to cash upon refactor
-	escrow.RegisterRoutes(r, authFn, namecoin.NewController())
+	cash.RegisterRoutes(r, authFn, ctrl)
+	currency.RegisterRoutes(r, authFn, issuer)
+	escrow.RegisterRoutes(r, authFn, ctrl)
 	multisig.RegisterRoutes(r, authFn)
 	validators.RegisterRoutes(r, authFn, validators.NewController())
 	return r
@@ -72,7 +80,8 @@ func QueryRouter() weave.QueryRouter {
 	r := weave.NewQueryRouter()
 	r.RegisterAll(
 		escrow.RegisterQuery,
-		namecoin.RegisterQuery,
+		cash.RegisterQuery,
+		currency.RegisterQuery,
 		sigs.RegisterQuery,
 		orm.RegisterQuery,
 		multisig.RegisterQuery,

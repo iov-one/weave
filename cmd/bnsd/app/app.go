@@ -15,10 +15,11 @@ import (
 	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/store/iavl"
 	"github.com/iov-one/weave/x"
+	"github.com/iov-one/weave/x/cash"
+	"github.com/iov-one/weave/x/currency"
 	"github.com/iov-one/weave/x/escrow"
 	"github.com/iov-one/weave/x/hashlock"
 	"github.com/iov-one/weave/x/multisig"
-	"github.com/iov-one/weave/x/namecoin"
 	"github.com/iov-one/weave/x/nft"
 	"github.com/iov-one/weave/x/nft/base"
 	"github.com/iov-one/weave/x/nft/blockchain"
@@ -39,6 +40,10 @@ func Authenticator() x.Authenticator {
 // Chain returns a chain of decorators, to handle authentication,
 // fees, logging, and recovery
 func Chain(minFee x.Coin, authFn x.Authenticator) app.Decorators {
+	// ctrl can be initialized with any implementation, but must be used
+	// consistently everywhere.
+	var ctrl cash.Controller = cash.NewController(cash.NewBucket())
+
 	return app.ChainDecorators(
 		utils.NewLogging(),
 		utils.NewRecovery(),
@@ -47,7 +52,7 @@ func Chain(minFee x.Coin, authFn x.Authenticator) app.Decorators {
 		utils.NewSavepoint().OnCheck(),
 		sigs.NewDecorator(),
 		multisig.NewDecorator(authFn),
-		namecoin.NewFeeDecorator(authFn, minFee),
+		cash.NewFeeDecorator(authFn, ctrl, minFee),
 		// cannot pay for fee with hashlock...
 		hashlock.NewDecorator(),
 		// batch commented out temporarily to minimize release features
@@ -63,15 +68,19 @@ func Chain(minFee x.Coin, authFn x.Authenticator) app.Decorators {
 // cash.SendMsg
 func Router(authFn x.Authenticator, issuer weave.Address) app.Router {
 	r := app.NewRouter()
-	namecoin.RegisterRoutes(r, authFn, issuer)
-	// we use the namecoin wallet handler
-	// TODO: move to cash upon refactor
-	escrow.RegisterRoutes(r, authFn, namecoin.NewController())
+
+	// ctrl can be initialized with any implementation, but must be used
+	// consistently everywhere.
+	var ctrl cash.Controller = cash.NewController(cash.NewBucket())
+
+	cash.RegisterRoutes(r, authFn, ctrl)
+	escrow.RegisterRoutes(r, authFn, ctrl)
 	multisig.RegisterRoutes(r, authFn)
 	//TODO: Possibly revisit passing the bucket later to have more control over types?
 	// or implement a check
 	blockchain.RegisterRoutes(r, authFn, issuer, ticker.NewBucket())
 	ticker.RegisterRoutes(r, authFn, issuer, blockchain.NewBucket())
+	currency.RegisterRoutes(r, authFn, issuer)
 	username.RegisterRoutes(r, authFn, issuer)
 	validators.RegisterRoutes(r, authFn, validators.NewController())
 	bootstrap_node.RegisterRoutes(r, authFn, issuer)
@@ -87,7 +96,7 @@ func QueryRouter() weave.QueryRouter {
 
 	r.RegisterAll(
 		escrow.RegisterQuery,
-		namecoin.RegisterQuery,
+		cash.RegisterQuery,
 		sigs.RegisterQuery,
 		multisig.RegisterQuery,
 		blockchain.RegisterQuery,
@@ -96,6 +105,7 @@ func QueryRouter() weave.QueryRouter {
 		username.RegisterQuery,
 		validators.RegisterQuery,
 		orm.RegisterQuery,
+		currency.RegisterQuery,
 	)
 	nft.GetBucketDispatcher().AssertRegistered(x.EnumHelpers{}.AsList(NftType_value)...)
 	return r

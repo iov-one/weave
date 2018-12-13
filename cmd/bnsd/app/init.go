@@ -10,7 +10,8 @@ import (
 	"github.com/iov-one/weave/app"
 	"github.com/iov-one/weave/crypto"
 	"github.com/iov-one/weave/x"
-	"github.com/iov-one/weave/x/namecoin"
+	"github.com/iov-one/weave/x/cash"
+	"github.com/iov-one/weave/x/currency"
 	"github.com/iov-one/weave/x/nft/blockchain"
 	"github.com/iov-one/weave/x/nft/ticker"
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -44,30 +45,22 @@ func GenInitOptions(args []string) (json.RawMessage, error) {
 		fmt.Println(phrase)
 	}
 
-	opts := fmt.Sprintf(`{
-    "wallets": [
-      {
-        "address": "%s",
-        "name": "admin",
-        "coins": [
+	opts := fmt.Sprintf(`
           {
-            "whole": 123456789,
-            "ticker": "%s"
+            "cash": [
+              {
+                "address": "%s",
+                "coins": [
+                  {"whole": 123456789, "ticker": "%s"}
+                ]
+              }
+            ],
+            "currencies": [],
+            "nfts": {
+              "blockchains": []
+            }
           }
-        ]
-      }
-    ],
-    "tokens": [
-      {
-        "ticker": "%s",
-        "name": "Main token of this chain",
-        "sig_figs": 6
-      }
-    ],
-    "nfts": {
-      "blockchains": []
-    }
-  }`, addr, ticker, ticker)
+	`, addr, ticker)
 	return []byte(opts), nil
 }
 
@@ -86,7 +79,8 @@ func GenerateApp(home string, logger log.Logger, debug bool) (abci.Application, 
 		return nil, err
 	}
 	application.WithInit(app.ChainInitializers(
-		&namecoin.Initializer{},
+		&cash.Initializer{},
+		&currency.Initializer{},
 		&blockchain.Initializer{},
 		&ticker.Initializer{},
 	))

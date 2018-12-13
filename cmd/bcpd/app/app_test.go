@@ -3,9 +3,14 @@ package app
 import (
 	"bytes"
 	"encoding/binary"
+	"encoding/hex"
+	"encoding/json"
 	"fmt"
+	"sort"
+	"strings"
 	"testing"
 
+	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/app"
 	"github.com/iov-one/weave/crypto"
 	"github.com/iov-one/weave/x"
@@ -13,7 +18,6 @@ import (
 	"github.com/iov-one/weave/x/cash"
 	"github.com/iov-one/weave/x/escrow"
 	"github.com/iov-one/weave/x/multisig"
-	"github.com/iov-one/weave/x/namecoin"
 	"github.com/iov-one/weave/x/sigs"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -28,68 +32,55 @@ func TestSendTx(t *testing.T) {
 	myApp := newTestApp(t, chainID, []*account{mainAccount})
 
 	// Query for my balance
-	key := namecoin.NewWalletBucket().DBKey(mainAccount.address())
-	queryAndCheckWallet(t, myApp, "/", key,
-		namecoin.Wallet{
-			Name: "wallet0",
-			Coins: x.Coins{
-				{
-					Ticker: "ETH",
-					Whole:  50000,
-				},
-				{
-					Ticker: "FRNK",
-					Whole:  1234,
-				},
-			},
-		})
+	key := cash.NewBucket().DBKey(mainAccount.address())
+	queryAndCheckWallet(t, myApp, "/", key, cash.Set{
+		Coins: x.Coins{
+			{Ticker: "ETH", Whole: 50000},
+			{Ticker: "FRNK", Whole: 1234},
+		},
+	})
 
 	// build and sign a transaction
 	pk2 := crypto.GenPrivKeyEd25519()
 	addr2 := pk2.PublicKey().Address()
 	dres := sendBatch(t, false, myApp, chainID, 2, []*account{mainAccount}, mainAccount.address(), addr2, 2000, "ETH", "Have a great trip!")
 
-	// ensure 3 keys with proper values
-	if assert.Equal(t, 3, len(dres.Tags), "%#v", dres.Tags) {
-		// three keys we expect, in order
-		keys := make([][]byte, 3)
-		vals := [][]byte{[]byte("s"), []byte("s"), []byte("s")}
-		hexWllt := []byte("776C6C743A")
-		hexSigs := []byte("736967733A")
-		addr := mainAccount.pk.PublicKey().Address()
-		keys[0] = append(hexSigs, []byte(addr.String())...)
-		keys[1] = append(hexWllt, []byte(addr.String())...)
-		keys[2] = append(hexWllt, []byte(addr2.String())...)
-		if bytes.Compare(addr2, addr) < 0 {
-			keys[1], keys[2] = keys[2], keys[1]
-		}
-		// make sure the DeliverResult matches expections
-		assert.Equal(t, keys[0], dres.Tags[0].Key)
-		assert.Equal(t, keys[1], dres.Tags[1].Key)
-		assert.Equal(t, keys[2], dres.Tags[2].Key)
-		assert.Equal(t, vals[0], dres.Tags[0].Value)
-		assert.Equal(t, vals[1], dres.Tags[1].Value)
-		assert.Equal(t, vals[2], dres.Tags[2].Value)
+	require.Equal(t, 3, len(dres.Tags), "%#v", dres.Tags)
+	addr := mainAccount.pk.PublicKey().Address()
+	wantKeys := []string{
+		toHex("cash:") + addr.String(),
+		toHex("cash:") + addr2.String(),
+		toHex("sigs:") + addr.String(),
 	}
+	sort.Strings(wantKeys)
+	gotKeys := []string{
+		string(dres.Tags[0].Key),
+		string(dres.Tags[1].Key),
+		string(dres.Tags[2].Key),
+	}
+	assert.Equal(t, wantKeys, gotKeys)
+
+	assert.Equal(t, []string{"s", "s", "s"}, []string{
+		string(dres.Tags[0].Value),
+		string(dres.Tags[1].Value),
+		string(dres.Tags[2].Value),
+	})
 
 	// Query for new balances (same query, new state)
-	queryAndCheckWallet(t, myApp, "/", key,
-		namecoin.Wallet{
-			Name: "wallet0",
-			Coins: x.Coins{
-				{
-					Ticker: "ETH",
-					Whole:  30000,
-				},
-				{
-					Ticker: "FRNK",
-					Whole:  1234,
-				},
-			},
-		})
+	queryAndCheckWallet(t, myApp, "/", key, cash.Set{
+		Coins: x.Coins{
+			{Ticker: "ETH", Whole: 30000},
+			{Ticker: "FRNK", Whole: 1234},
+		},
+	})
 
 	dres = sendBatch(t, true, myApp, chainID, 2, []*account{mainAccount}, mainAccount.address(), addr2, 2000, "ETH", "Have a great trip!")
 	assert.NotEqual(t, 0, dres.Code)
+}
+
+func toHex(s string) string {
+	h := hex.EncodeToString([]byte(s))
+	return strings.ToUpper(h)
 }
 
 func TestQuery(t *testing.T) {
@@ -103,93 +94,28 @@ func TestQuery(t *testing.T) {
 	sendToken(t, myApp, chainID, 2, []*account{mainAccount}, mainAccount.address(), addr2, 2000, "ETH", "Have a great trip!")
 
 	// Query for new balances
-	key := namecoin.NewWalletBucket().DBKey(mainAccount.address())
-	queryAndCheckWallet(t, myApp, "/", key,
-		namecoin.Wallet{
-			Name: "wallet0",
-			Coins: x.Coins{
-				{
-					Ticker: "ETH",
-					Whole:  48000,
-				},
-				{
-					Ticker: "FRNK",
-					Whole:  1234,
-				},
-			},
-		})
+	key := cash.NewBucket().DBKey(mainAccount.address())
+	queryAndCheckWallet(t, myApp, "/", key, cash.Set{
+		Coins: x.Coins{
+			{Ticker: "ETH", Whole: 48000},
+			{Ticker: "FRNK", Whole: 1234},
+		},
+	})
 
 	// make sure money arrived safely
-	key2 := namecoin.NewWalletBucket().DBKey(addr2)
-	queryAndCheckWallet(t, myApp, "/", key2,
-		namecoin.Wallet{
-			Coins: x.Coins{
-				{
-					Ticker: "ETH",
-					Whole:  2000,
-				},
-			},
-		})
+	key2 := cash.NewBucket().DBKey(addr2)
+	queryAndCheckWallet(t, myApp, "/", key2, cash.Set{
+		Coins: x.Coins{
+			{Ticker: "ETH", Whole: 2000},
+		},
+	})
 
 	// make sure other paths also get this value....
-	queryAndCheckWallet(t, myApp, "/wallets", addr2,
-		namecoin.Wallet{
-			Coins: x.Coins{
-				{
-					Ticker: "ETH",
-					Whole:  2000,
-				},
-			},
-		})
-
-	// make sure other paths also get this value....
-	queryAndCheckWallet(t, myApp, "/wallets?prefix", addr2[:15],
-		namecoin.Wallet{
-			Coins: x.Coins{
-				{
-					Ticker: "ETH",
-					Whole:  2000,
-				},
-			},
-		})
-
-	// and we can query by name (sender account)
-	queryAndCheckWallet(t, myApp, "/wallets/name", []byte("wallet0"),
-		namecoin.Wallet{
-			Name: "wallet0",
-			Coins: x.Coins{
-				{
-					Ticker: "ETH",
-					Whole:  48000,
-				},
-				{
-					Ticker: "FRNK",
-					Whole:  1234,
-				},
-			},
-		})
-
-	// get a token
-	queryAndCheckToken(t, myApp, "/tokens", []byte("ETH"),
-		[]namecoin.Token{
-			{
-				Name:    "Smells like ethereum",
-				SigFigs: int32(9),
-			},
-		})
-
-	// get all tokens
-	queryAndCheckToken(t, myApp, "/tokens?prefix", nil,
-		[]namecoin.Token{
-			{
-				Name:    "Smells like ethereum",
-				SigFigs: int32(9),
-			},
-			{
-				Name:    "Frankie",
-				SigFigs: int32(3),
-			},
-		})
+	queryAndCheckWallet(t, myApp, "/wallets", addr2, cash.Set{
+		Coins: x.Coins{
+			{Ticker: "ETH", Whole: 2000},
+		},
+	})
 }
 
 func TestMultisigContract(t *testing.T) {
@@ -286,41 +212,26 @@ func newMultisigTestApp(t require.TestingT, chainID string, contracts []*contrac
 }
 
 func withWalletAppState(t require.TestingT, accounts []*account) string {
-	var wBuffer bytes.Buffer
-	for i, acc := range accounts {
-		_, err := wBuffer.WriteString(fmt.Sprintf(`{
-            "name": "wallet%d",
-			"address": "%X",
-			"coins": [{
-                "whole": 50000,
-                "ticker": "ETH"
-            },{
-                "whole": 1234,
-				"ticker": "FRNK"
-			}]
-		}`, i, acc.address()))
-		require.NoError(t, err)
-
-		if i != len(accounts)-1 {
-			_, err = wBuffer.WriteString(",")
-			require.NoError(t, err)
-		}
+	type wallet struct {
+		Address weave.Address `json:"address"`
+		Coins   x.Coins       `json:"coins"`
+	}
+	var state struct {
+		Cash []wallet `json:"cash"`
 	}
 
-	appState := fmt.Sprintf(`{
-        "wallets": [%s],
-        "tokens": [{
-            "ticker": "ETH",
-            "name": "Smells like ethereum",
-            "sig_figs": 9
-        },{
-            "ticker": "FRNK",
-            "name": "Frankie",
-            "sig_figs": 3
-		}]
-	}`, wBuffer.String())
-
-	return appState
+	for _, acc := range accounts {
+		state.Cash = append(state.Cash, wallet{
+			Address: acc.address(),
+			Coins: x.Coins{
+				&x.Coin{Whole: 50000, Ticker: "ETH"},
+				&x.Coin{Whole: 1234, Ticker: "FRNK"},
+			},
+		})
+	}
+	raw, err := json.MarshalIndent(state, "", "  ")
+	assert.NoErrorf(t, err, "marshal state: %s", err)
+	return string(raw)
 }
 
 type contract struct {
@@ -368,7 +279,7 @@ func withContractAppState(t require.TestingT, contracts []*contract) string {
 	walletStr = walletStr[:len(walletStr)-1]
 	appState := fmt.Sprintf(`{
 		"wallets": [%s],
-        "tokens": [{
+        "currencies": [{
             "ticker": "ETH",
             "name": "Smells like ethereum",
             "sig_figs": 9
@@ -404,15 +315,11 @@ func sendToken(t require.TestingT, baseApp app.BaseApp, chainID string, height i
 	res := signAndCommit(t, false, baseApp, tx, signers, chainID, height)
 
 	// make sure money arrived safely
-	queryAndCheckWallet(t, baseApp, "/wallets", to,
-		namecoin.Wallet{
-			Coins: x.Coins{
-				{
-					Ticker: ticker,
-					Whole:  amount,
-				},
-			},
-		})
+	queryAndCheckWallet(t, baseApp, "/wallets", to, cash.Set{
+		Coins: x.Coins{
+			{Ticker: ticker, Whole: amount},
+		},
+	})
 
 	return res
 }
@@ -457,15 +364,11 @@ func sendBatch(t require.TestingT, fail bool, baseApp app.BaseApp, chainID strin
 
 	// make sure money arrived safely
 	if !fail {
-		queryAndCheckWallet(t, baseApp, "/wallets", to,
-			namecoin.Wallet{
-				Coins: x.Coins{
-					{
-						Ticker: ticker,
-						Whole:  amount * batch.MaxBatchMessages,
-					},
-				},
-			})
+		queryAndCheckWallet(t, baseApp, "/wallets", to, cash.Set{
+			Coins: x.Coins{
+				{Ticker: ticker, Whole: amount * batch.MaxBatchMessages},
+			},
+		})
 	}
 
 	return res
@@ -534,7 +437,7 @@ func signAndCommit(t require.TestingT, fail bool, app app.BaseApp, tx *Tx, signe
 }
 
 // queryAndCheckWallet queries the wallet from the chain and check it is the one expected
-func queryAndCheckWallet(t require.TestingT, baseApp app.BaseApp, path string, data []byte, expected namecoin.Wallet) {
+func queryAndCheckWallet(t require.TestingT, baseApp app.BaseApp, path string, data []byte, expected cash.Set) {
 	query := abci.RequestQuery{Path: path, Data: data}
 	res := baseApp.Query(query)
 
@@ -542,7 +445,7 @@ func queryAndCheckWallet(t require.TestingT, baseApp app.BaseApp, path string, d
 	require.Equal(t, uint32(0), res.Code, "%#v", res)
 	assert.NotEmpty(t, res.Value)
 
-	var actual namecoin.Wallet
+	var actual cash.Set
 	err := app.UnmarshalOneResult(res.Value, &actual)
 	require.NoError(t, err)
 	require.Equal(t, expected, actual)
@@ -561,24 +464,6 @@ func queryAndCheckContract(t require.TestingT, baseApp app.BaseApp, path string,
 	err := app.UnmarshalOneResult(res.Value, &actual)
 	require.NoError(t, err)
 	require.Equal(t, expected, actual)
-}
-
-// queryAndCheckToken queries tokens from the chain and check they're the one expected
-func queryAndCheckToken(t require.TestingT, baseApp app.BaseApp, path string, data []byte, expected []namecoin.Token) {
-	query := abci.RequestQuery{Path: path, Data: data}
-	res := baseApp.Query(query)
-
-	var set app.ResultSet
-	err := set.Unmarshal(res.Value)
-	require.NoError(t, err)
-	assert.Equal(t, len(expected), len(set.Results))
-
-	for i, obj := range set.Results {
-		var actual namecoin.Token
-		err = actual.Unmarshal(obj)
-		require.NoError(t, err)
-		require.Equal(t, expected[i], actual)
-	}
 }
 
 // makeSendTx is a special case of sendToken when the sender account is the only signer
