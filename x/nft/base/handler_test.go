@@ -36,7 +36,7 @@ func TestApprovalOpsHandler(t *testing.T) {
 		userBucket := username.NewBucket()
 		d := nft.GetBucketDispatcher()
 
-		_ = d.Register(app.NftType_Username.String(), userBucket)
+		_ = d.Register(app.NftType_USERNAME.String(), userBucket)
 		handler := base.NewApprovalOpsHandler(helpers.Authenticate(bob), nil, d)
 
 		o, _ := chainBucket.Create(db, bob.Address(), chainId, nil, blockchain.Chain{MainTickerID: []byte("IOV")}, blockchain.IOV{Codec: "asd"})
@@ -69,7 +69,7 @@ func TestApprovalOpsHandler(t *testing.T) {
 				Address: alice.Address(),
 				Action:  nft.Action_ActionUpdateDetails.String(),
 				Options: nft.ApprovalOptions{Count: nft.UnlimitedCount},
-				T:       app.NftType_Username.String(),
+				T:       app.NftType_USERNAME.String(),
 			}
 			Convey("Test happy", func() {
 				Convey("By owner", func() {
@@ -137,7 +137,7 @@ func TestApprovalOpsHandler(t *testing.T) {
 
 				Convey("Unknown type", func() {
 					msg.Address = alice.Address()
-					msg.T = app.NftType_Blockchain.String()
+					msg.T = app.NftType_BLOCKCHAIN.String()
 					msg.Id = chainId
 					tx := helpers.MockTx(msg)
 					_, err := handler.Check(ctx, db, tx)
@@ -189,7 +189,7 @@ func TestApprovalOpsHandler(t *testing.T) {
 			msg := &nft.RemoveApprovalMsg{Id: bobWithAliceApproval,
 				Address: alice.Address(),
 				Action:  nft.Action_ActionUpdateApprovals.String(),
-				T:       app.NftType_Username.String(),
+				T:       app.NftType_USERNAME.String(),
 			}
 			Convey("Test happy", func() {
 				Convey("By owner", func() {
@@ -246,7 +246,7 @@ func TestApprovalOpsHandler(t *testing.T) {
 				})
 
 				Convey("Unknown type", func() {
-					msg.T = app.NftType_Blockchain.String()
+					msg.T = app.NftType_BLOCKCHAIN.String()
 					msg.Id = chainId
 					tx := helpers.MockTx(msg)
 					_, err := handler.Check(ctx, db, tx)
