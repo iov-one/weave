@@ -138,7 +138,7 @@ func (b WalletBucket) GetByName(db weave.KVStore, name string) (orm.Object, erro
 // Save enforces the proper type
 func (b WalletBucket) Save(db weave.KVStore, obj orm.Object) error {
 	if _, ok := obj.Value().(*Wallet); !ok {
-		return ErrInvalidObject(obj.Value())
+		return orm.ErrInvalidObject(obj.Value())
 	}
 	return b.Bucket.Save(db, obj)
 }

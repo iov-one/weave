@@ -61,7 +61,7 @@ func (b *TokenInfoBucket) Get(db weave.KVStore, ticker string) (orm.Object, erro
 
 func (b *TokenInfoBucket) Save(db weave.KVStore, obj orm.Object) error {
 	if _, ok := obj.Value().(*TokenInfo); !ok {
-		return ErrInvalidObject(obj.Value())
+		return orm.ErrInvalidObject(obj.Value())
 	}
 	if n := string(obj.Key()); !x.IsCC(n) {
 		return x.ErrInvalidCurrency(n)

@@ -96,7 +96,7 @@ func (b TokenBucket) Get(db weave.KVStore, ticker string) (orm.Object, error) {
 // Save enforces the proper type
 func (b TokenBucket) Save(db weave.KVStore, obj orm.Object) error {
 	if _, ok := obj.Value().(*Token); !ok {
-		return ErrInvalidObject(obj.Value())
+		return orm.ErrInvalidObject(obj.Value())
 	}
 	name := string(obj.Key())
 	if !x.IsCC(name) {
