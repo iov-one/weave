@@ -21,7 +21,7 @@ type GenesisAccount struct {
 
 // GenesisToken is used to describe a token in the genesis account
 type GenesisToken struct {
-	Ticker  string `json: "ticker"`
+	Ticker  string `json:"ticker"`
 	Name    string `json:"name"`
 	SigFigs int32  `json:"sig_figs"`
 }
