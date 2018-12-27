@@ -41,7 +41,7 @@ func helpMessage() {
 
 func main() {
 	logger := log.NewTMLogger(log.NewSyncWriter(os.Stdout)).
-		With("module", "bov")
+		With("module", "bns")
 
 	flag.Parse()
 	if flag.NArg() == 0 {
