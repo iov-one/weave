@@ -11,32 +11,36 @@ import "github.com/iov-one/weave/x/multisig/codec.proto";
 import "github.com/iov-one/weave/x/validators/codec.proto";
 
 
-// Tx contains the message
+// Tx contains the message.
+//
+// When extending Tx, follow the rules:
+// - range 1-50 is reserved for middlewares,
+// - range 51-inf is reserved for different message types,
+// - keep the same numbers for the same message types in both bcpd and bnsd
+//   applications. For example, FeeInfo field is used by both and indexed at
+//   first position. Skip unused fields (leave index unused).
 message Tx {
+  cash.FeeInfo fees = 1;
+  repeated sigs.StdSignature signatures = 2;
+  // Preimage for hashlock.
+  bytes preimage = 3;
+  // ID of a multisig contract.
+  repeated bytes multisig = 4;
+
+
   // msg is a sum type over all allowed messages on this chain.
   oneof sum {
-    cash.SendMsg send_msg = 1;
-    // escrow actions
-    escrow.CreateEscrowMsg create_escrow_msg = 4;
-    escrow.ReleaseEscrowMsg release_escrow_msg = 5;
-    escrow.ReturnEscrowMsg return_escrow_msg = 6;
-    escrow.UpdateEscrowPartiesMsg update_escrow_msg = 7;
-    // multisig contract
-    multisig.CreateContractMsg create_contract_msg = 8;
-    multisig.UpdateContractMsg update_contract_msg = 9;
-    // validators actions
-    validators.SetValidatorsMsg set_validators_msg = 10;
-    BatchMsg batch_msg = 11;
-    currency.NewTokenInfoMsg new_token_info_msg = 24;
+    cash.SendMsg send_msg = 51;
+    escrow.CreateEscrowMsg create_escrow_msg = 52;
+    escrow.ReleaseEscrowMsg release_escrow_msg = 53;
+    escrow.ReturnEscrowMsg return_escrow_msg = 54;
+    escrow.UpdateEscrowPartiesMsg update_escrow_msg = 55;
+    multisig.CreateContractMsg create_contract_msg = 56;
+    multisig.UpdateContractMsg update_contract_msg = 57;
+    validators.SetValidatorsMsg set_validators_msg = 58;
+    currency.NewTokenInfoMsg new_token_info_msg = 59;
+    BatchMsg batch_msg = 60;
   }
-  // fee info, autogenerates GetFees()
-  cash.FeeInfo fees = 20;
-  // signatures, autogenerates GetSignatures()
-  repeated sigs.StdSignature signatures = 21;
-  // preimage for hashlock, autogenerates GetPreimage
-  bytes preimage = 22;
-  // id of multisig contract, autogenerates GetMultisig
-  repeated bytes multisig = 23;
 }
 
 // BatchMsg encapsulates multiple messages to support batch transaction

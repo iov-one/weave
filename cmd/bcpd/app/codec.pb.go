@@ -37,8 +37,21 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
 
-// Tx contains the message
+// Tx contains the message.
+//
+// When extending Tx, follow the rules:
+// - range 1-50 is reserved for middlewares,
+// - range 51-inf is reserved for different message types,
+// - keep the same numbers for the same message types in both bcpd and bnsd
+//   applications. For example, FeeInfo field is used by both and indexed at
+//   first position. Skip unused fields (leave index unused).
 type Tx struct {
+	Fees       *cash.FeeInfo        `protobuf:"bytes,1,opt,name=fees" json:"fees,omitempty"`
+	Signatures []*sigs.StdSignature `protobuf:"bytes,2,rep,name=signatures" json:"signatures,omitempty"`
+	// Preimage for hashlock.
+	Preimage []byte `protobuf:"bytes,3,opt,name=preimage,proto3" json:"preimage,omitempty"`
+	// ID of a multisig contract.
+	Multisig [][]byte `protobuf:"bytes,4,rep,name=multisig" json:"multisig,omitempty"`
 	// msg is a sum type over all allowed messages on this chain.
 	//
 	// Types that are valid to be assigned to Sum:
@@ -50,17 +63,9 @@ type Tx struct {
 	//	*Tx_CreateContractMsg
 	//	*Tx_UpdateContractMsg
 	//	*Tx_SetValidatorsMsg
-	//	*Tx_BatchMsg
 	//	*Tx_NewTokenInfoMsg
+	//	*Tx_BatchMsg
 	Sum isTx_Sum `protobuf_oneof:"sum"`
-	// fee info, autogenerates GetFees()
-	Fees *cash.FeeInfo `protobuf:"bytes,20,opt,name=fees" json:"fees,omitempty"`
-	// signatures, autogenerates GetSignatures()
-	Signatures []*sigs.StdSignature `protobuf:"bytes,21,rep,name=signatures" json:"signatures,omitempty"`
-	// preimage for hashlock, autogenerates GetPreimage
-	Preimage []byte `protobuf:"bytes,22,opt,name=preimage,proto3" json:"preimage,omitempty"`
-	// id of multisig contract, autogenerates GetMultisig
-	Multisig [][]byte `protobuf:"bytes,23,rep,name=multisig" json:"multisig,omitempty"`
 }
 
 func (m *Tx) Reset()                    { *m = Tx{} }
@@ -75,34 +80,34 @@ type isTx_Sum interface {
 }
 
 type Tx_SendMsg struct {
-	SendMsg *cash.SendMsg `protobuf:"bytes,1,opt,name=send_msg,json=sendMsg,oneof"`
+	SendMsg *cash.SendMsg `protobuf:"bytes,51,opt,name=send_msg,json=sendMsg,oneof"`
 }
 type Tx_CreateEscrowMsg struct {
-	CreateEscrowMsg *escrow.CreateEscrowMsg `protobuf:"bytes,4,opt,name=create_escrow_msg,json=createEscrowMsg,oneof"`
+	CreateEscrowMsg *escrow.CreateEscrowMsg `protobuf:"bytes,52,opt,name=create_escrow_msg,json=createEscrowMsg,oneof"`
 }
 type Tx_ReleaseEscrowMsg struct {
-	ReleaseEscrowMsg *escrow.ReleaseEscrowMsg `protobuf:"bytes,5,opt,name=release_escrow_msg,json=releaseEscrowMsg,oneof"`
+	ReleaseEscrowMsg *escrow.ReleaseEscrowMsg `protobuf:"bytes,53,opt,name=release_escrow_msg,json=releaseEscrowMsg,oneof"`
 }
 type Tx_ReturnEscrowMsg struct {
-	ReturnEscrowMsg *escrow.ReturnEscrowMsg `protobuf:"bytes,6,opt,name=return_escrow_msg,json=returnEscrowMsg,oneof"`
+	ReturnEscrowMsg *escrow.ReturnEscrowMsg `protobuf:"bytes,54,opt,name=return_escrow_msg,json=returnEscrowMsg,oneof"`
 }
 type Tx_UpdateEscrowMsg struct {
-	UpdateEscrowMsg *escrow.UpdateEscrowPartiesMsg `protobuf:"bytes,7,opt,name=update_escrow_msg,json=updateEscrowMsg,oneof"`
+	UpdateEscrowMsg *escrow.UpdateEscrowPartiesMsg `protobuf:"bytes,55,opt,name=update_escrow_msg,json=updateEscrowMsg,oneof"`
 }
 type Tx_CreateContractMsg struct {
-	CreateContractMsg *multisig.CreateContractMsg `protobuf:"bytes,8,opt,name=create_contract_msg,json=createContractMsg,oneof"`
+	CreateContractMsg *multisig.CreateContractMsg `protobuf:"bytes,56,opt,name=create_contract_msg,json=createContractMsg,oneof"`
 }
 type Tx_UpdateContractMsg struct {
-	UpdateContractMsg *multisig.UpdateContractMsg `protobuf:"bytes,9,opt,name=update_contract_msg,json=updateContractMsg,oneof"`
+	UpdateContractMsg *multisig.UpdateContractMsg `protobuf:"bytes,57,opt,name=update_contract_msg,json=updateContractMsg,oneof"`
 }
 type Tx_SetValidatorsMsg struct {
-	SetValidatorsMsg *validators.SetValidatorsMsg `protobuf:"bytes,10,opt,name=set_validators_msg,json=setValidatorsMsg,oneof"`
-}
-type Tx_BatchMsg struct {
-	BatchMsg *BatchMsg `protobuf:"bytes,11,opt,name=batch_msg,json=batchMsg,oneof"`
+	SetValidatorsMsg *validators.SetValidatorsMsg `protobuf:"bytes,58,opt,name=set_validators_msg,json=setValidatorsMsg,oneof"`
 }
 type Tx_NewTokenInfoMsg struct {
-	NewTokenInfoMsg *currency.NewTokenInfoMsg `protobuf:"bytes,24,opt,name=new_token_info_msg,json=newTokenInfoMsg,oneof"`
+	NewTokenInfoMsg *currency.NewTokenInfoMsg `protobuf:"bytes,59,opt,name=new_token_info_msg,json=newTokenInfoMsg,oneof"`
+}
+type Tx_BatchMsg struct {
+	BatchMsg *BatchMsg `protobuf:"bytes,60,opt,name=batch_msg,json=batchMsg,oneof"`
 }
 
 func (*Tx_SendMsg) isTx_Sum()           {}
@@ -113,12 +118,40 @@ func (*Tx_UpdateEscrowMsg) isTx_Sum()   {}
 func (*Tx_CreateContractMsg) isTx_Sum() {}
 func (*Tx_UpdateContractMsg) isTx_Sum() {}
 func (*Tx_SetValidatorsMsg) isTx_Sum()  {}
-func (*Tx_BatchMsg) isTx_Sum()          {}
 func (*Tx_NewTokenInfoMsg) isTx_Sum()   {}
+func (*Tx_BatchMsg) isTx_Sum()          {}
 
 func (m *Tx) GetSum() isTx_Sum {
 	if m != nil {
 		return m.Sum
+	}
+	return nil
+}
+
+func (m *Tx) GetFees() *cash.FeeInfo {
+	if m != nil {
+		return m.Fees
+	}
+	return nil
+}
+
+func (m *Tx) GetSignatures() []*sigs.StdSignature {
+	if m != nil {
+		return m.Signatures
+	}
+	return nil
+}
+
+func (m *Tx) GetPreimage() []byte {
+	if m != nil {
+		return m.Preimage
+	}
+	return nil
+}
+
+func (m *Tx) GetMultisig() [][]byte {
+	if m != nil {
+		return m.Multisig
 	}
 	return nil
 }
@@ -179,13 +212,6 @@ func (m *Tx) GetSetValidatorsMsg() *validators.SetValidatorsMsg {
 	return nil
 }
 
-func (m *Tx) GetBatchMsg() *BatchMsg {
-	if x, ok := m.GetSum().(*Tx_BatchMsg); ok {
-		return x.BatchMsg
-	}
-	return nil
-}
-
 func (m *Tx) GetNewTokenInfoMsg() *currency.NewTokenInfoMsg {
 	if x, ok := m.GetSum().(*Tx_NewTokenInfoMsg); ok {
 		return x.NewTokenInfoMsg
@@ -193,30 +219,9 @@ func (m *Tx) GetNewTokenInfoMsg() *currency.NewTokenInfoMsg {
 	return nil
 }
 
-func (m *Tx) GetFees() *cash.FeeInfo {
-	if m != nil {
-		return m.Fees
-	}
-	return nil
-}
-
-func (m *Tx) GetSignatures() []*sigs.StdSignature {
-	if m != nil {
-		return m.Signatures
-	}
-	return nil
-}
-
-func (m *Tx) GetPreimage() []byte {
-	if m != nil {
-		return m.Preimage
-	}
-	return nil
-}
-
-func (m *Tx) GetMultisig() [][]byte {
-	if m != nil {
-		return m.Multisig
+func (m *Tx) GetBatchMsg() *BatchMsg {
+	if x, ok := m.GetSum().(*Tx_BatchMsg); ok {
+		return x.BatchMsg
 	}
 	return nil
 }
@@ -232,8 +237,8 @@ func (*Tx) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, fun
 		(*Tx_CreateContractMsg)(nil),
 		(*Tx_UpdateContractMsg)(nil),
 		(*Tx_SetValidatorsMsg)(nil),
-		(*Tx_BatchMsg)(nil),
 		(*Tx_NewTokenInfoMsg)(nil),
+		(*Tx_BatchMsg)(nil),
 	}
 }
 
@@ -242,53 +247,53 @@ func _Tx_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
 	// sum
 	switch x := m.Sum.(type) {
 	case *Tx_SendMsg:
-		_ = b.EncodeVarint(1<<3 | proto.WireBytes)
+		_ = b.EncodeVarint(51<<3 | proto.WireBytes)
 		if err := b.EncodeMessage(x.SendMsg); err != nil {
 			return err
 		}
 	case *Tx_CreateEscrowMsg:
-		_ = b.EncodeVarint(4<<3 | proto.WireBytes)
+		_ = b.EncodeVarint(52<<3 | proto.WireBytes)
 		if err := b.EncodeMessage(x.CreateEscrowMsg); err != nil {
 			return err
 		}
 	case *Tx_ReleaseEscrowMsg:
-		_ = b.EncodeVarint(5<<3 | proto.WireBytes)
+		_ = b.EncodeVarint(53<<3 | proto.WireBytes)
 		if err := b.EncodeMessage(x.ReleaseEscrowMsg); err != nil {
 			return err
 		}
 	case *Tx_ReturnEscrowMsg:
-		_ = b.EncodeVarint(6<<3 | proto.WireBytes)
+		_ = b.EncodeVarint(54<<3 | proto.WireBytes)
 		if err := b.EncodeMessage(x.ReturnEscrowMsg); err != nil {
 			return err
 		}
 	case *Tx_UpdateEscrowMsg:
-		_ = b.EncodeVarint(7<<3 | proto.WireBytes)
+		_ = b.EncodeVarint(55<<3 | proto.WireBytes)
 		if err := b.EncodeMessage(x.UpdateEscrowMsg); err != nil {
 			return err
 		}
 	case *Tx_CreateContractMsg:
-		_ = b.EncodeVarint(8<<3 | proto.WireBytes)
+		_ = b.EncodeVarint(56<<3 | proto.WireBytes)
 		if err := b.EncodeMessage(x.CreateContractMsg); err != nil {
 			return err
 		}
 	case *Tx_UpdateContractMsg:
-		_ = b.EncodeVarint(9<<3 | proto.WireBytes)
+		_ = b.EncodeVarint(57<<3 | proto.WireBytes)
 		if err := b.EncodeMessage(x.UpdateContractMsg); err != nil {
 			return err
 		}
 	case *Tx_SetValidatorsMsg:
-		_ = b.EncodeVarint(10<<3 | proto.WireBytes)
+		_ = b.EncodeVarint(58<<3 | proto.WireBytes)
 		if err := b.EncodeMessage(x.SetValidatorsMsg); err != nil {
 			return err
 		}
-	case *Tx_BatchMsg:
-		_ = b.EncodeVarint(11<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.BatchMsg); err != nil {
+	case *Tx_NewTokenInfoMsg:
+		_ = b.EncodeVarint(59<<3 | proto.WireBytes)
+		if err := b.EncodeMessage(x.NewTokenInfoMsg); err != nil {
 			return err
 		}
-	case *Tx_NewTokenInfoMsg:
-		_ = b.EncodeVarint(24<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.NewTokenInfoMsg); err != nil {
+	case *Tx_BatchMsg:
+		_ = b.EncodeVarint(60<<3 | proto.WireBytes)
+		if err := b.EncodeMessage(x.BatchMsg); err != nil {
 			return err
 		}
 	case nil:
@@ -301,7 +306,7 @@ func _Tx_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
 func _Tx_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
 	m := msg.(*Tx)
 	switch tag {
-	case 1: // sum.send_msg
+	case 51: // sum.send_msg
 		if wire != proto.WireBytes {
 			return true, proto.ErrInternalBadWireType
 		}
@@ -309,7 +314,7 @@ func _Tx_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bo
 		err := b.DecodeMessage(msg)
 		m.Sum = &Tx_SendMsg{msg}
 		return true, err
-	case 4: // sum.create_escrow_msg
+	case 52: // sum.create_escrow_msg
 		if wire != proto.WireBytes {
 			return true, proto.ErrInternalBadWireType
 		}
@@ -317,7 +322,7 @@ func _Tx_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bo
 		err := b.DecodeMessage(msg)
 		m.Sum = &Tx_CreateEscrowMsg{msg}
 		return true, err
-	case 5: // sum.release_escrow_msg
+	case 53: // sum.release_escrow_msg
 		if wire != proto.WireBytes {
 			return true, proto.ErrInternalBadWireType
 		}
@@ -325,7 +330,7 @@ func _Tx_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bo
 		err := b.DecodeMessage(msg)
 		m.Sum = &Tx_ReleaseEscrowMsg{msg}
 		return true, err
-	case 6: // sum.return_escrow_msg
+	case 54: // sum.return_escrow_msg
 		if wire != proto.WireBytes {
 			return true, proto.ErrInternalBadWireType
 		}
@@ -333,7 +338,7 @@ func _Tx_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bo
 		err := b.DecodeMessage(msg)
 		m.Sum = &Tx_ReturnEscrowMsg{msg}
 		return true, err
-	case 7: // sum.update_escrow_msg
+	case 55: // sum.update_escrow_msg
 		if wire != proto.WireBytes {
 			return true, proto.ErrInternalBadWireType
 		}
@@ -341,7 +346,7 @@ func _Tx_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bo
 		err := b.DecodeMessage(msg)
 		m.Sum = &Tx_UpdateEscrowMsg{msg}
 		return true, err
-	case 8: // sum.create_contract_msg
+	case 56: // sum.create_contract_msg
 		if wire != proto.WireBytes {
 			return true, proto.ErrInternalBadWireType
 		}
@@ -349,7 +354,7 @@ func _Tx_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bo
 		err := b.DecodeMessage(msg)
 		m.Sum = &Tx_CreateContractMsg{msg}
 		return true, err
-	case 9: // sum.update_contract_msg
+	case 57: // sum.update_contract_msg
 		if wire != proto.WireBytes {
 			return true, proto.ErrInternalBadWireType
 		}
@@ -357,7 +362,7 @@ func _Tx_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bo
 		err := b.DecodeMessage(msg)
 		m.Sum = &Tx_UpdateContractMsg{msg}
 		return true, err
-	case 10: // sum.set_validators_msg
+	case 58: // sum.set_validators_msg
 		if wire != proto.WireBytes {
 			return true, proto.ErrInternalBadWireType
 		}
@@ -365,21 +370,21 @@ func _Tx_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bo
 		err := b.DecodeMessage(msg)
 		m.Sum = &Tx_SetValidatorsMsg{msg}
 		return true, err
-	case 11: // sum.batch_msg
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(BatchMsg)
-		err := b.DecodeMessage(msg)
-		m.Sum = &Tx_BatchMsg{msg}
-		return true, err
-	case 24: // sum.new_token_info_msg
+	case 59: // sum.new_token_info_msg
 		if wire != proto.WireBytes {
 			return true, proto.ErrInternalBadWireType
 		}
 		msg := new(currency.NewTokenInfoMsg)
 		err := b.DecodeMessage(msg)
 		m.Sum = &Tx_NewTokenInfoMsg{msg}
+		return true, err
+	case 60: // sum.batch_msg
+		if wire != proto.WireBytes {
+			return true, proto.ErrInternalBadWireType
+		}
+		msg := new(BatchMsg)
+		err := b.DecodeMessage(msg)
+		m.Sum = &Tx_BatchMsg{msg}
 		return true, err
 	default:
 		return false, nil
@@ -392,52 +397,52 @@ func _Tx_OneofSizer(msg proto.Message) (n int) {
 	switch x := m.Sum.(type) {
 	case *Tx_SendMsg:
 		s := proto.Size(x.SendMsg)
-		n += proto.SizeVarint(1<<3 | proto.WireBytes)
+		n += proto.SizeVarint(51<<3 | proto.WireBytes)
 		n += proto.SizeVarint(uint64(s))
 		n += s
 	case *Tx_CreateEscrowMsg:
 		s := proto.Size(x.CreateEscrowMsg)
-		n += proto.SizeVarint(4<<3 | proto.WireBytes)
+		n += proto.SizeVarint(52<<3 | proto.WireBytes)
 		n += proto.SizeVarint(uint64(s))
 		n += s
 	case *Tx_ReleaseEscrowMsg:
 		s := proto.Size(x.ReleaseEscrowMsg)
-		n += proto.SizeVarint(5<<3 | proto.WireBytes)
+		n += proto.SizeVarint(53<<3 | proto.WireBytes)
 		n += proto.SizeVarint(uint64(s))
 		n += s
 	case *Tx_ReturnEscrowMsg:
 		s := proto.Size(x.ReturnEscrowMsg)
-		n += proto.SizeVarint(6<<3 | proto.WireBytes)
+		n += proto.SizeVarint(54<<3 | proto.WireBytes)
 		n += proto.SizeVarint(uint64(s))
 		n += s
 	case *Tx_UpdateEscrowMsg:
 		s := proto.Size(x.UpdateEscrowMsg)
-		n += proto.SizeVarint(7<<3 | proto.WireBytes)
+		n += proto.SizeVarint(55<<3 | proto.WireBytes)
 		n += proto.SizeVarint(uint64(s))
 		n += s
 	case *Tx_CreateContractMsg:
 		s := proto.Size(x.CreateContractMsg)
-		n += proto.SizeVarint(8<<3 | proto.WireBytes)
+		n += proto.SizeVarint(56<<3 | proto.WireBytes)
 		n += proto.SizeVarint(uint64(s))
 		n += s
 	case *Tx_UpdateContractMsg:
 		s := proto.Size(x.UpdateContractMsg)
-		n += proto.SizeVarint(9<<3 | proto.WireBytes)
+		n += proto.SizeVarint(57<<3 | proto.WireBytes)
 		n += proto.SizeVarint(uint64(s))
 		n += s
 	case *Tx_SetValidatorsMsg:
 		s := proto.Size(x.SetValidatorsMsg)
-		n += proto.SizeVarint(10<<3 | proto.WireBytes)
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *Tx_BatchMsg:
-		s := proto.Size(x.BatchMsg)
-		n += proto.SizeVarint(11<<3 | proto.WireBytes)
+		n += proto.SizeVarint(58<<3 | proto.WireBytes)
 		n += proto.SizeVarint(uint64(s))
 		n += s
 	case *Tx_NewTokenInfoMsg:
 		s := proto.Size(x.NewTokenInfoMsg)
-		n += proto.SizeVarint(24<<3 | proto.WireBytes)
+		n += proto.SizeVarint(59<<3 | proto.WireBytes)
+		n += proto.SizeVarint(uint64(s))
+		n += s
+	case *Tx_BatchMsg:
+		s := proto.Size(x.BatchMsg)
+		n += proto.SizeVarint(60<<3 | proto.WireBytes)
 		n += proto.SizeVarint(uint64(s))
 		n += s
 	case nil:
@@ -824,30 +829,19 @@ func (m *Tx) MarshalTo(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
-	if m.Sum != nil {
-		nn1, err := m.Sum.MarshalTo(dAtA[i:])
-		if err != nil {
-			return 0, err
-		}
-		i += nn1
-	}
 	if m.Fees != nil {
-		dAtA[i] = 0xa2
-		i++
-		dAtA[i] = 0x1
+		dAtA[i] = 0xa
 		i++
 		i = encodeVarintCodec(dAtA, i, uint64(m.Fees.Size()))
-		n2, err := m.Fees.MarshalTo(dAtA[i:])
+		n1, err := m.Fees.MarshalTo(dAtA[i:])
 		if err != nil {
 			return 0, err
 		}
-		i += n2
+		i += n1
 	}
 	if len(m.Signatures) > 0 {
 		for _, msg := range m.Signatures {
-			dAtA[i] = 0xaa
-			i++
-			dAtA[i] = 0x1
+			dAtA[i] = 0x12
 			i++
 			i = encodeVarintCodec(dAtA, i, uint64(msg.Size()))
 			n, err := msg.MarshalTo(dAtA[i:])
@@ -858,22 +852,25 @@ func (m *Tx) MarshalTo(dAtA []byte) (int, error) {
 		}
 	}
 	if len(m.Preimage) > 0 {
-		dAtA[i] = 0xb2
-		i++
-		dAtA[i] = 0x1
+		dAtA[i] = 0x1a
 		i++
 		i = encodeVarintCodec(dAtA, i, uint64(len(m.Preimage)))
 		i += copy(dAtA[i:], m.Preimage)
 	}
 	if len(m.Multisig) > 0 {
 		for _, b := range m.Multisig {
-			dAtA[i] = 0xba
-			i++
-			dAtA[i] = 0x1
+			dAtA[i] = 0x22
 			i++
 			i = encodeVarintCodec(dAtA, i, uint64(len(b)))
 			i += copy(dAtA[i:], b)
 		}
+	}
+	if m.Sum != nil {
+		nn2, err := m.Sum.MarshalTo(dAtA[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += nn2
 	}
 	return i, nil
 }
@@ -881,7 +878,9 @@ func (m *Tx) MarshalTo(dAtA []byte) (int, error) {
 func (m *Tx_SendMsg) MarshalTo(dAtA []byte) (int, error) {
 	i := 0
 	if m.SendMsg != nil {
-		dAtA[i] = 0xa
+		dAtA[i] = 0x9a
+		i++
+		dAtA[i] = 0x3
 		i++
 		i = encodeVarintCodec(dAtA, i, uint64(m.SendMsg.Size()))
 		n3, err := m.SendMsg.MarshalTo(dAtA[i:])
@@ -895,7 +894,9 @@ func (m *Tx_SendMsg) MarshalTo(dAtA []byte) (int, error) {
 func (m *Tx_CreateEscrowMsg) MarshalTo(dAtA []byte) (int, error) {
 	i := 0
 	if m.CreateEscrowMsg != nil {
-		dAtA[i] = 0x22
+		dAtA[i] = 0xa2
+		i++
+		dAtA[i] = 0x3
 		i++
 		i = encodeVarintCodec(dAtA, i, uint64(m.CreateEscrowMsg.Size()))
 		n4, err := m.CreateEscrowMsg.MarshalTo(dAtA[i:])
@@ -909,7 +910,9 @@ func (m *Tx_CreateEscrowMsg) MarshalTo(dAtA []byte) (int, error) {
 func (m *Tx_ReleaseEscrowMsg) MarshalTo(dAtA []byte) (int, error) {
 	i := 0
 	if m.ReleaseEscrowMsg != nil {
-		dAtA[i] = 0x2a
+		dAtA[i] = 0xaa
+		i++
+		dAtA[i] = 0x3
 		i++
 		i = encodeVarintCodec(dAtA, i, uint64(m.ReleaseEscrowMsg.Size()))
 		n5, err := m.ReleaseEscrowMsg.MarshalTo(dAtA[i:])
@@ -923,7 +926,9 @@ func (m *Tx_ReleaseEscrowMsg) MarshalTo(dAtA []byte) (int, error) {
 func (m *Tx_ReturnEscrowMsg) MarshalTo(dAtA []byte) (int, error) {
 	i := 0
 	if m.ReturnEscrowMsg != nil {
-		dAtA[i] = 0x32
+		dAtA[i] = 0xb2
+		i++
+		dAtA[i] = 0x3
 		i++
 		i = encodeVarintCodec(dAtA, i, uint64(m.ReturnEscrowMsg.Size()))
 		n6, err := m.ReturnEscrowMsg.MarshalTo(dAtA[i:])
@@ -937,7 +942,9 @@ func (m *Tx_ReturnEscrowMsg) MarshalTo(dAtA []byte) (int, error) {
 func (m *Tx_UpdateEscrowMsg) MarshalTo(dAtA []byte) (int, error) {
 	i := 0
 	if m.UpdateEscrowMsg != nil {
-		dAtA[i] = 0x3a
+		dAtA[i] = 0xba
+		i++
+		dAtA[i] = 0x3
 		i++
 		i = encodeVarintCodec(dAtA, i, uint64(m.UpdateEscrowMsg.Size()))
 		n7, err := m.UpdateEscrowMsg.MarshalTo(dAtA[i:])
@@ -951,7 +958,9 @@ func (m *Tx_UpdateEscrowMsg) MarshalTo(dAtA []byte) (int, error) {
 func (m *Tx_CreateContractMsg) MarshalTo(dAtA []byte) (int, error) {
 	i := 0
 	if m.CreateContractMsg != nil {
-		dAtA[i] = 0x42
+		dAtA[i] = 0xc2
+		i++
+		dAtA[i] = 0x3
 		i++
 		i = encodeVarintCodec(dAtA, i, uint64(m.CreateContractMsg.Size()))
 		n8, err := m.CreateContractMsg.MarshalTo(dAtA[i:])
@@ -965,7 +974,9 @@ func (m *Tx_CreateContractMsg) MarshalTo(dAtA []byte) (int, error) {
 func (m *Tx_UpdateContractMsg) MarshalTo(dAtA []byte) (int, error) {
 	i := 0
 	if m.UpdateContractMsg != nil {
-		dAtA[i] = 0x4a
+		dAtA[i] = 0xca
+		i++
+		dAtA[i] = 0x3
 		i++
 		i = encodeVarintCodec(dAtA, i, uint64(m.UpdateContractMsg.Size()))
 		n9, err := m.UpdateContractMsg.MarshalTo(dAtA[i:])
@@ -979,7 +990,9 @@ func (m *Tx_UpdateContractMsg) MarshalTo(dAtA []byte) (int, error) {
 func (m *Tx_SetValidatorsMsg) MarshalTo(dAtA []byte) (int, error) {
 	i := 0
 	if m.SetValidatorsMsg != nil {
-		dAtA[i] = 0x52
+		dAtA[i] = 0xd2
+		i++
+		dAtA[i] = 0x3
 		i++
 		i = encodeVarintCodec(dAtA, i, uint64(m.SetValidatorsMsg.Size()))
 		n10, err := m.SetValidatorsMsg.MarshalTo(dAtA[i:])
@@ -990,13 +1003,15 @@ func (m *Tx_SetValidatorsMsg) MarshalTo(dAtA []byte) (int, error) {
 	}
 	return i, nil
 }
-func (m *Tx_BatchMsg) MarshalTo(dAtA []byte) (int, error) {
+func (m *Tx_NewTokenInfoMsg) MarshalTo(dAtA []byte) (int, error) {
 	i := 0
-	if m.BatchMsg != nil {
-		dAtA[i] = 0x5a
+	if m.NewTokenInfoMsg != nil {
+		dAtA[i] = 0xda
 		i++
-		i = encodeVarintCodec(dAtA, i, uint64(m.BatchMsg.Size()))
-		n11, err := m.BatchMsg.MarshalTo(dAtA[i:])
+		dAtA[i] = 0x3
+		i++
+		i = encodeVarintCodec(dAtA, i, uint64(m.NewTokenInfoMsg.Size()))
+		n11, err := m.NewTokenInfoMsg.MarshalTo(dAtA[i:])
 		if err != nil {
 			return 0, err
 		}
@@ -1004,15 +1019,15 @@ func (m *Tx_BatchMsg) MarshalTo(dAtA []byte) (int, error) {
 	}
 	return i, nil
 }
-func (m *Tx_NewTokenInfoMsg) MarshalTo(dAtA []byte) (int, error) {
+func (m *Tx_BatchMsg) MarshalTo(dAtA []byte) (int, error) {
 	i := 0
-	if m.NewTokenInfoMsg != nil {
-		dAtA[i] = 0xc2
+	if m.BatchMsg != nil {
+		dAtA[i] = 0xe2
 		i++
-		dAtA[i] = 0x1
+		dAtA[i] = 0x3
 		i++
-		i = encodeVarintCodec(dAtA, i, uint64(m.NewTokenInfoMsg.Size()))
-		n12, err := m.NewTokenInfoMsg.MarshalTo(dAtA[i:])
+		i = encodeVarintCodec(dAtA, i, uint64(m.BatchMsg.Size()))
+		n12, err := m.BatchMsg.MarshalTo(dAtA[i:])
 		if err != nil {
 			return 0, err
 		}
@@ -1213,28 +1228,28 @@ func encodeVarintCodec(dAtA []byte, offset int, v uint64) int {
 func (m *Tx) Size() (n int) {
 	var l int
 	_ = l
-	if m.Sum != nil {
-		n += m.Sum.Size()
-	}
 	if m.Fees != nil {
 		l = m.Fees.Size()
-		n += 2 + l + sovCodec(uint64(l))
+		n += 1 + l + sovCodec(uint64(l))
 	}
 	if len(m.Signatures) > 0 {
 		for _, e := range m.Signatures {
 			l = e.Size()
-			n += 2 + l + sovCodec(uint64(l))
+			n += 1 + l + sovCodec(uint64(l))
 		}
 	}
 	l = len(m.Preimage)
 	if l > 0 {
-		n += 2 + l + sovCodec(uint64(l))
+		n += 1 + l + sovCodec(uint64(l))
 	}
 	if len(m.Multisig) > 0 {
 		for _, b := range m.Multisig {
 			l = len(b)
-			n += 2 + l + sovCodec(uint64(l))
+			n += 1 + l + sovCodec(uint64(l))
 		}
+	}
+	if m.Sum != nil {
+		n += m.Sum.Size()
 	}
 	return n
 }
@@ -1244,7 +1259,7 @@ func (m *Tx_SendMsg) Size() (n int) {
 	_ = l
 	if m.SendMsg != nil {
 		l = m.SendMsg.Size()
-		n += 1 + l + sovCodec(uint64(l))
+		n += 2 + l + sovCodec(uint64(l))
 	}
 	return n
 }
@@ -1253,7 +1268,7 @@ func (m *Tx_CreateEscrowMsg) Size() (n int) {
 	_ = l
 	if m.CreateEscrowMsg != nil {
 		l = m.CreateEscrowMsg.Size()
-		n += 1 + l + sovCodec(uint64(l))
+		n += 2 + l + sovCodec(uint64(l))
 	}
 	return n
 }
@@ -1262,7 +1277,7 @@ func (m *Tx_ReleaseEscrowMsg) Size() (n int) {
 	_ = l
 	if m.ReleaseEscrowMsg != nil {
 		l = m.ReleaseEscrowMsg.Size()
-		n += 1 + l + sovCodec(uint64(l))
+		n += 2 + l + sovCodec(uint64(l))
 	}
 	return n
 }
@@ -1271,7 +1286,7 @@ func (m *Tx_ReturnEscrowMsg) Size() (n int) {
 	_ = l
 	if m.ReturnEscrowMsg != nil {
 		l = m.ReturnEscrowMsg.Size()
-		n += 1 + l + sovCodec(uint64(l))
+		n += 2 + l + sovCodec(uint64(l))
 	}
 	return n
 }
@@ -1280,7 +1295,7 @@ func (m *Tx_UpdateEscrowMsg) Size() (n int) {
 	_ = l
 	if m.UpdateEscrowMsg != nil {
 		l = m.UpdateEscrowMsg.Size()
-		n += 1 + l + sovCodec(uint64(l))
+		n += 2 + l + sovCodec(uint64(l))
 	}
 	return n
 }
@@ -1289,7 +1304,7 @@ func (m *Tx_CreateContractMsg) Size() (n int) {
 	_ = l
 	if m.CreateContractMsg != nil {
 		l = m.CreateContractMsg.Size()
-		n += 1 + l + sovCodec(uint64(l))
+		n += 2 + l + sovCodec(uint64(l))
 	}
 	return n
 }
@@ -1298,7 +1313,7 @@ func (m *Tx_UpdateContractMsg) Size() (n int) {
 	_ = l
 	if m.UpdateContractMsg != nil {
 		l = m.UpdateContractMsg.Size()
-		n += 1 + l + sovCodec(uint64(l))
+		n += 2 + l + sovCodec(uint64(l))
 	}
 	return n
 }
@@ -1307,16 +1322,7 @@ func (m *Tx_SetValidatorsMsg) Size() (n int) {
 	_ = l
 	if m.SetValidatorsMsg != nil {
 		l = m.SetValidatorsMsg.Size()
-		n += 1 + l + sovCodec(uint64(l))
-	}
-	return n
-}
-func (m *Tx_BatchMsg) Size() (n int) {
-	var l int
-	_ = l
-	if m.BatchMsg != nil {
-		l = m.BatchMsg.Size()
-		n += 1 + l + sovCodec(uint64(l))
+		n += 2 + l + sovCodec(uint64(l))
 	}
 	return n
 }
@@ -1325,6 +1331,15 @@ func (m *Tx_NewTokenInfoMsg) Size() (n int) {
 	_ = l
 	if m.NewTokenInfoMsg != nil {
 		l = m.NewTokenInfoMsg.Size()
+		n += 2 + l + sovCodec(uint64(l))
+	}
+	return n
+}
+func (m *Tx_BatchMsg) Size() (n int) {
+	var l int
+	_ = l
+	if m.BatchMsg != nil {
+		l = m.BatchMsg.Size()
 		n += 2 + l + sovCodec(uint64(l))
 	}
 	return n
@@ -1476,294 +1491,6 @@ func (m *Tx) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field SendMsg", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowCodec
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthCodec
-			}
-			postIndex := iNdEx + msglen
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			v := &cash.SendMsg{}
-			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			m.Sum = &Tx_SendMsg{v}
-			iNdEx = postIndex
-		case 4:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field CreateEscrowMsg", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowCodec
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthCodec
-			}
-			postIndex := iNdEx + msglen
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			v := &escrow.CreateEscrowMsg{}
-			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			m.Sum = &Tx_CreateEscrowMsg{v}
-			iNdEx = postIndex
-		case 5:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ReleaseEscrowMsg", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowCodec
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthCodec
-			}
-			postIndex := iNdEx + msglen
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			v := &escrow.ReleaseEscrowMsg{}
-			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			m.Sum = &Tx_ReleaseEscrowMsg{v}
-			iNdEx = postIndex
-		case 6:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ReturnEscrowMsg", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowCodec
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthCodec
-			}
-			postIndex := iNdEx + msglen
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			v := &escrow.ReturnEscrowMsg{}
-			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			m.Sum = &Tx_ReturnEscrowMsg{v}
-			iNdEx = postIndex
-		case 7:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field UpdateEscrowMsg", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowCodec
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthCodec
-			}
-			postIndex := iNdEx + msglen
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			v := &escrow.UpdateEscrowPartiesMsg{}
-			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			m.Sum = &Tx_UpdateEscrowMsg{v}
-			iNdEx = postIndex
-		case 8:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field CreateContractMsg", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowCodec
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthCodec
-			}
-			postIndex := iNdEx + msglen
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			v := &multisig.CreateContractMsg{}
-			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			m.Sum = &Tx_CreateContractMsg{v}
-			iNdEx = postIndex
-		case 9:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field UpdateContractMsg", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowCodec
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthCodec
-			}
-			postIndex := iNdEx + msglen
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			v := &multisig.UpdateContractMsg{}
-			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			m.Sum = &Tx_UpdateContractMsg{v}
-			iNdEx = postIndex
-		case 10:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field SetValidatorsMsg", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowCodec
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthCodec
-			}
-			postIndex := iNdEx + msglen
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			v := &validators.SetValidatorsMsg{}
-			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			m.Sum = &Tx_SetValidatorsMsg{v}
-			iNdEx = postIndex
-		case 11:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field BatchMsg", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowCodec
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthCodec
-			}
-			postIndex := iNdEx + msglen
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			v := &BatchMsg{}
-			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			m.Sum = &Tx_BatchMsg{v}
-			iNdEx = postIndex
-		case 20:
-			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Fees", wireType)
 			}
 			var msglen int
@@ -1795,7 +1522,7 @@ func (m *Tx) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
-		case 21:
+		case 2:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Signatures", wireType)
 			}
@@ -1826,7 +1553,7 @@ func (m *Tx) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
-		case 22:
+		case 3:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Preimage", wireType)
 			}
@@ -1857,7 +1584,7 @@ func (m *Tx) Unmarshal(dAtA []byte) error {
 				m.Preimage = []byte{}
 			}
 			iNdEx = postIndex
-		case 23:
+		case 4:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Multisig", wireType)
 			}
@@ -1886,7 +1613,263 @@ func (m *Tx) Unmarshal(dAtA []byte) error {
 			m.Multisig = append(m.Multisig, make([]byte, postIndex-iNdEx))
 			copy(m.Multisig[len(m.Multisig)-1], dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 24:
+		case 51:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field SendMsg", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + msglen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			v := &cash.SendMsg{}
+			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			m.Sum = &Tx_SendMsg{v}
+			iNdEx = postIndex
+		case 52:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field CreateEscrowMsg", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + msglen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			v := &escrow.CreateEscrowMsg{}
+			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			m.Sum = &Tx_CreateEscrowMsg{v}
+			iNdEx = postIndex
+		case 53:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ReleaseEscrowMsg", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + msglen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			v := &escrow.ReleaseEscrowMsg{}
+			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			m.Sum = &Tx_ReleaseEscrowMsg{v}
+			iNdEx = postIndex
+		case 54:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ReturnEscrowMsg", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + msglen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			v := &escrow.ReturnEscrowMsg{}
+			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			m.Sum = &Tx_ReturnEscrowMsg{v}
+			iNdEx = postIndex
+		case 55:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field UpdateEscrowMsg", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + msglen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			v := &escrow.UpdateEscrowPartiesMsg{}
+			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			m.Sum = &Tx_UpdateEscrowMsg{v}
+			iNdEx = postIndex
+		case 56:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field CreateContractMsg", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + msglen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			v := &multisig.CreateContractMsg{}
+			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			m.Sum = &Tx_CreateContractMsg{v}
+			iNdEx = postIndex
+		case 57:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field UpdateContractMsg", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + msglen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			v := &multisig.UpdateContractMsg{}
+			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			m.Sum = &Tx_UpdateContractMsg{v}
+			iNdEx = postIndex
+		case 58:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field SetValidatorsMsg", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + msglen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			v := &validators.SetValidatorsMsg{}
+			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			m.Sum = &Tx_SetValidatorsMsg{v}
+			iNdEx = postIndex
+		case 59:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field NewTokenInfoMsg", wireType)
 			}
@@ -1917,6 +1900,38 @@ func (m *Tx) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			m.Sum = &Tx_NewTokenInfoMsg{v}
+			iNdEx = postIndex
+		case 60:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field BatchMsg", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + msglen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			v := &BatchMsg{}
+			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			m.Sum = &Tx_BatchMsg{v}
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
@@ -2466,44 +2481,45 @@ var (
 func init() { proto.RegisterFile("app/codec.proto", fileDescriptorCodec) }
 
 var fileDescriptorCodec = []byte{
-	// 612 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xec, 0x55, 0xc1, 0x6e, 0xd3, 0x4c,
-	0x10, 0xae, 0xff, 0x34, 0xad, 0xbb, 0xf9, 0x51, 0xdb, 0x2d, 0x50, 0x13, 0x50, 0x08, 0x3d, 0x55,
-	0x40, 0xd7, 0x22, 0x88, 0x17, 0x48, 0x55, 0x54, 0xa4, 0x16, 0x21, 0xa7, 0xe5, 0x1a, 0x6d, 0xec,
-	0x89, 0x63, 0x11, 0xef, 0x5a, 0xbb, 0xeb, 0xa4, 0xbc, 0x05, 0x27, 0x9e, 0xa9, 0xc7, 0x9e, 0x39,
-	0x20, 0x14, 0x5e, 0x04, 0x79, 0x6d, 0xa7, 0x5e, 0x0b, 0x45, 0x08, 0xae, 0xbd, 0xed, 0x7c, 0xf3,
-	0x7d, 0x9f, 0x67, 0x67, 0x67, 0x64, 0xb4, 0x4d, 0x93, 0xc4, 0xf5, 0x79, 0x00, 0x3e, 0x49, 0x04,
-	0x57, 0x1c, 0x37, 0x68, 0x92, 0xb4, 0x8f, 0xc2, 0x48, 0x4d, 0xd2, 0x11, 0xf1, 0x79, 0xec, 0x86,
-	0x3c, 0xe4, 0xae, 0xce, 0x8d, 0xd2, 0xb1, 0x8e, 0x74, 0xa0, 0x4f, 0xb9, 0xa6, 0xfd, 0xa2, 0x42,
-	0x8f, 0xf8, 0xec, 0x88, 0x33, 0x70, 0xe7, 0x40, 0x67, 0xe0, 0x5e, 0xb9, 0x3e, 0x95, 0x93, 0xea,
-	0x07, 0xda, 0xee, 0x2a, 0x72, 0x2a, 0x04, 0x30, 0xff, 0xb3, 0x21, 0x38, 0x5a, 0x21, 0x00, 0xe9,
-	0x0b, 0x3e, 0x37, 0xe8, 0xab, 0x8a, 0x91, 0x51, 0x28, 0xff, 0xb8, 0x98, 0x38, 0x9d, 0xaa, 0x48,
-	0x46, 0xa1, 0x21, 0x78, 0xb5, 0x42, 0x30, 0xa3, 0xd3, 0x28, 0xa0, 0x8a, 0x0b, 0xe3, 0x1b, 0x07,
-	0x37, 0x1b, 0xe8, 0xbf, 0x8b, 0x2b, 0xfc, 0x1c, 0xd9, 0x12, 0x58, 0x30, 0x8c, 0x65, 0xe8, 0x58,
-	0x5d, 0xeb, 0xb0, 0xd5, 0xbb, 0x47, 0xb2, 0xe6, 0x90, 0x01, 0xb0, 0xe0, 0x5c, 0x86, 0xa7, 0x6b,
-	0xde, 0xa6, 0xcc, 0x8f, 0xf8, 0x04, 0xed, 0xfa, 0x02, 0xa8, 0x82, 0x61, 0x7e, 0x41, 0x2d, 0x5a,
-	0xd7, 0xa2, 0x7d, 0x92, 0x43, 0xe4, 0x58, 0x13, 0x4e, 0x74, 0x90, 0xcb, 0xb7, 0x7d, 0x13, 0xc2,
-	0xa7, 0x08, 0x0b, 0x98, 0x02, 0x95, 0x86, 0x4f, 0x53, 0xfb, 0x38, 0xa5, 0x8f, 0x97, 0x33, 0xaa,
-	0x46, 0x3b, 0xa2, 0x86, 0x65, 0x05, 0x09, 0x50, 0xa9, 0x60, 0x55, 0xa3, 0x0d, 0xb3, 0x20, 0x4f,
-	0x13, 0x8c, 0x82, 0x84, 0x09, 0xe1, 0x33, 0xb4, 0x9b, 0x26, 0x41, 0xed, 0x5e, 0x9b, 0xda, 0xa6,
-	0x53, 0xda, 0x5c, 0x6a, 0x42, 0xae, 0xf9, 0x40, 0x85, 0x8a, 0x40, 0x16, 0x6e, 0x69, 0x25, 0x93,
-	0xb9, 0x9d, 0xa3, 0xbd, 0xa2, 0x4b, 0x3e, 0x67, 0x4a, 0x50, 0x5f, 0x69, 0x3f, 0x5b, 0xfb, 0x3d,
-	0x26, 0xe5, 0xfb, 0x15, 0x9d, 0x3a, 0x2e, 0x38, 0xb9, 0x59, 0xd1, 0xdf, 0x0a, 0x98, 0xd9, 0x15,
-	0xc5, 0x19, 0x76, 0x5b, 0x75, 0xbb, 0xbc, 0xc0, 0x9a, 0x5d, 0x5a, 0x07, 0xf1, 0x19, 0xc2, 0x12,
-	0xd4, 0xf0, 0x76, 0x28, 0xb4, 0x1b, 0xd2, 0x6e, 0x4f, 0xc8, 0x2d, 0x4c, 0x06, 0xa0, 0x3e, 0x2e,
-	0xa3, 0xe2, 0x01, 0x64, 0x0d, 0xc3, 0x2f, 0xd1, 0xd6, 0x88, 0x2a, 0x7f, 0xa2, 0x4d, 0x5a, 0xc5,
-	0xf8, 0xd0, 0x24, 0x21, 0xfd, 0x0c, 0xcd, 0x55, 0xf6, 0xa8, 0x38, 0xe3, 0x67, 0x68, 0x7d, 0x0c,
-	0x20, 0x9d, 0xfb, 0xd5, 0x39, 0x7b, 0x0b, 0xf0, 0x8e, 0x8d, 0xb9, 0xa7, 0x53, 0xb8, 0x87, 0x90,
-	0x8c, 0x42, 0x46, 0x55, 0x2a, 0x40, 0x3a, 0x0f, 0xba, 0x8d, 0xc3, 0x56, 0x0f, 0x93, 0x6c, 0x41,
-	0xc8, 0x40, 0x05, 0x83, 0x32, 0xe5, 0x55, 0x58, 0xb8, 0x8d, 0xec, 0x44, 0x40, 0x14, 0xd3, 0x10,
-	0x9c, 0x87, 0x5d, 0xeb, 0xf0, 0x7f, 0x6f, 0x19, 0x67, 0xb9, 0xb2, 0x43, 0xce, 0x7e, 0xb7, 0x91,
-	0xe5, 0xca, 0x38, 0x9b, 0x43, 0x06, 0xf3, 0xa1, 0xe2, 0x9f, 0x80, 0x0d, 0x23, 0x36, 0xe6, 0xfa,
-	0x16, 0x8e, 0x2e, 0xee, 0x11, 0x29, 0x97, 0x9e, 0xbc, 0x87, 0xf9, 0x45, 0x46, 0xc9, 0xaa, 0x2c,
-	0x9e, 0x9c, 0x99, 0x50, 0xbf, 0x89, 0x1a, 0x32, 0x8d, 0x0f, 0xbe, 0x35, 0x91, 0x5d, 0x5e, 0x1c,
-	0xbf, 0x41, 0x76, 0x0c, 0x52, 0xd2, 0x10, 0xa4, 0x63, 0xe9, 0x7b, 0xec, 0x19, 0x9d, 0x21, 0x97,
-	0x2c, 0xe2, 0xac, 0xbf, 0x7e, 0xfd, 0xfd, 0xe9, 0x9a, 0xb7, 0xa4, 0xb6, 0xbf, 0x36, 0x51, 0x53,
-	0x67, 0xee, 0x36, 0xf3, 0x6e, 0x33, 0xff, 0x61, 0x33, 0x7f, 0x3f, 0xdc, 0xad, 0xbf, 0x1e, 0xee,
-	0xfe, 0xce, 0xf5, 0xa2, 0x63, 0xdd, 0x2c, 0x3a, 0xd6, 0x8f, 0x45, 0xc7, 0xfa, 0xf2, 0xb3, 0xb3,
-	0x36, 0xda, 0xd0, 0x3f, 0x92, 0xd7, 0xbf, 0x02, 0x00, 0x00, 0xff, 0xff, 0x9e, 0xf6, 0x14, 0x3c,
-	0xad, 0x07, 0x00, 0x00,
+	// 636 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x95, 0x4f, 0x4f, 0xdb, 0x4c,
+	0x10, 0xc6, 0x31, 0x49, 0x20, 0x2c, 0xef, 0x2b, 0x60, 0x39, 0x34, 0x4d, 0xab, 0x34, 0xe5, 0x84,
+	0xda, 0xb2, 0x56, 0xa1, 0xf4, 0xff, 0x29, 0x88, 0x8a, 0x4a, 0x50, 0x55, 0x0e, 0xf4, 0x1a, 0x6d,
+	0xec, 0x89, 0xb1, 0x8a, 0x77, 0xad, 0xdd, 0x35, 0xa1, 0xdf, 0xa2, 0xa7, 0x7e, 0x26, 0x8e, 0x9c,
+	0x7b, 0xa8, 0x2a, 0xfa, 0x45, 0xaa, 0x5d, 0xdb, 0xe0, 0xf5, 0x21, 0x6a, 0x2b, 0xdf, 0x76, 0x66,
+	0x9e, 0xf9, 0x79, 0x3c, 0xde, 0x47, 0x46, 0x2b, 0x34, 0x49, 0x5c, 0x9f, 0x07, 0xe0, 0x93, 0x44,
+	0x70, 0xc5, 0x71, 0x83, 0x26, 0x49, 0x77, 0x2b, 0x8c, 0xd4, 0x69, 0x3a, 0x26, 0x3e, 0x8f, 0xdd,
+	0x90, 0x87, 0xdc, 0x35, 0xb5, 0x71, 0x3a, 0x31, 0x91, 0x09, 0xcc, 0x29, 0xeb, 0xe9, 0x3e, 0x2e,
+	0xc9, 0x23, 0x7e, 0xbe, 0xc5, 0x19, 0xb8, 0x53, 0xa0, 0xe7, 0xe0, 0x5e, 0xb8, 0x3e, 0x95, 0xa7,
+	0xe5, 0x07, 0x74, 0xdd, 0x59, 0xe2, 0x54, 0x08, 0x60, 0xfe, 0x17, 0xab, 0x61, 0x6b, 0x46, 0x03,
+	0x48, 0x5f, 0xf0, 0xa9, 0x25, 0x9f, 0x35, 0x8c, 0x8c, 0x42, 0xf9, 0xc7, 0xc3, 0xc4, 0xe9, 0x99,
+	0x8a, 0x64, 0x14, 0x5a, 0x0d, 0x4f, 0x67, 0x34, 0x9c, 0xd3, 0xb3, 0x28, 0xa0, 0x8a, 0x0b, 0xeb,
+	0x19, 0x1b, 0x57, 0x0b, 0x68, 0xfe, 0xf8, 0x02, 0x3f, 0x44, 0xcd, 0x09, 0x80, 0xec, 0x38, 0x7d,
+	0x67, 0x73, 0x79, 0xfb, 0x7f, 0xa2, 0x17, 0x43, 0xde, 0x01, 0xbc, 0x67, 0x13, 0xee, 0x99, 0x12,
+	0xde, 0x46, 0x48, 0x46, 0x21, 0xa3, 0x2a, 0x15, 0x20, 0x3b, 0xf3, 0xfd, 0xc6, 0xe6, 0xf2, 0x36,
+	0x26, 0x7a, 0x68, 0x32, 0x54, 0xc1, 0xb0, 0x28, 0x79, 0x25, 0x15, 0xee, 0xa2, 0x76, 0x22, 0x20,
+	0x8a, 0x69, 0x08, 0x9d, 0x46, 0xdf, 0xd9, 0xfc, 0xcf, 0xbb, 0x89, 0x75, 0xad, 0x78, 0x89, 0x4e,
+	0xb3, 0xdf, 0xd0, 0xb5, 0x22, 0xc6, 0x8f, 0x50, 0x5b, 0x02, 0x0b, 0x46, 0xb1, 0x0c, 0x3b, 0x3b,
+	0xe5, 0x91, 0x86, 0xc0, 0x82, 0x23, 0x19, 0x1e, 0xcc, 0x79, 0x8b, 0x32, 0x3b, 0xe2, 0x7d, 0xb4,
+	0xe6, 0x0b, 0xa0, 0x0a, 0x46, 0xd9, 0xbe, 0x4d, 0xd3, 0x33, 0xd3, 0x74, 0x87, 0x64, 0x29, 0xb2,
+	0x67, 0x04, 0xfb, 0x26, 0xc8, 0xda, 0x57, 0x7c, 0x3b, 0x85, 0x0f, 0x10, 0x16, 0x70, 0x06, 0x54,
+	0x5a, 0x9c, 0x5d, 0xc3, 0xe9, 0x14, 0x1c, 0x2f, 0x53, 0x94, 0x41, 0xab, 0xa2, 0x92, 0xd3, 0x03,
+	0x09, 0x50, 0xa9, 0x60, 0x65, 0xd0, 0x73, 0x7b, 0x20, 0xcf, 0x08, 0xac, 0x81, 0x84, 0x9d, 0xc2,
+	0x87, 0x68, 0x2d, 0x4d, 0x82, 0xca, 0x7b, 0xbd, 0x30, 0x98, 0x5e, 0x81, 0x39, 0x31, 0x82, 0xac,
+	0xe7, 0x23, 0x15, 0x2a, 0x02, 0x99, 0xd3, 0xd2, 0x52, 0x45, 0xd3, 0x8e, 0xd0, 0x7a, 0xbe, 0x25,
+	0x9f, 0x33, 0x25, 0xa8, 0xaf, 0x0c, 0xef, 0xa5, 0xe1, 0xdd, 0x23, 0xc5, 0xe6, 0xf3, 0x4d, 0xed,
+	0xe5, 0x9a, 0x0c, 0x96, 0xef, 0xb7, 0x94, 0xd4, 0xb8, 0x7c, 0x38, 0x0b, 0xf7, 0xaa, 0x8a, 0xcb,
+	0x06, 0xac, 0xe0, 0xd2, 0x6a, 0x12, 0x1f, 0x22, 0x2c, 0x41, 0x8d, 0x6e, 0xef, 0xa8, 0xa1, 0xbd,
+	0x36, 0xb4, 0xfb, 0xe4, 0x36, 0x4d, 0x86, 0xa0, 0x3e, 0xdd, 0x44, 0xf9, 0x07, 0x90, 0x95, 0x9c,
+	0xfe, 0x94, 0x0c, 0xa6, 0x23, 0xc5, 0x3f, 0x03, 0x1b, 0x45, 0x6c, 0xc2, 0x0d, 0xed, 0x8d, 0xa1,
+	0xdd, 0x25, 0x85, 0x8d, 0xc9, 0x07, 0x98, 0x1e, 0x6b, 0x89, 0xbe, 0xe3, 0xf9, 0xd6, 0x98, 0x9d,
+	0xc2, 0x4f, 0xd0, 0xd2, 0x98, 0x2a, 0xff, 0xd4, 0x00, 0xde, 0xe6, 0x17, 0x91, 0x26, 0x09, 0x19,
+	0xe8, 0x6c, 0xd6, 0xd4, 0x1e, 0xe7, 0xe7, 0x41, 0x0b, 0x35, 0x64, 0x1a, 0x6f, 0x7c, 0x6f, 0xa1,
+	0x76, 0x51, 0xc7, 0xbb, 0xa8, 0x1d, 0x83, 0x94, 0x34, 0x34, 0xe6, 0xd2, 0x9e, 0x59, 0xb7, 0x00,
+	0xe4, 0x84, 0x45, 0x9c, 0x0d, 0x9a, 0x97, 0x3f, 0x1e, 0xcc, 0x79, 0x37, 0xd2, 0xee, 0xb7, 0x16,
+	0x6a, 0x99, 0x8a, 0x65, 0x05, 0xe7, 0x5f, 0xac, 0xd0, 0xac, 0xc9, 0x0a, 0xad, 0xba, 0xac, 0xb0,
+	0x50, 0x8f, 0x15, 0x16, 0x6b, 0xb6, 0x42, 0xbb, 0x5e, 0x2b, 0x2c, 0xd5, 0x6a, 0x05, 0x54, 0xab,
+	0x15, 0x96, 0xff, 0xde, 0x0a, 0xf9, 0xe5, 0x1e, 0xac, 0x5e, 0x5e, 0xf7, 0x9c, 0xab, 0xeb, 0x9e,
+	0xf3, 0xf3, 0xba, 0xe7, 0x7c, 0xfd, 0xd5, 0x9b, 0x1b, 0x2f, 0x98, 0x1f, 0xc9, 0xce, 0xef, 0x00,
+	0x00, 0x00, 0xff, 0xff, 0x79, 0xf8, 0x43, 0xcf, 0xad, 0x07, 0x00, 0x00,
 }
