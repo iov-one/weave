@@ -18,7 +18,7 @@ func TestTokenClone(t *testing.T) {
 	sources := []username.UsernameToken{
 		{ // happy path
 			Base: &nft.NonFungibleToken{
-				Id:    []byte("anyID"),
+				ID:    []byte("anyID"),
 				Owner: alice.Address(),
 				ActionApprovals: []nft.ActionApprovals{
 					{Action: "anyActiom",
@@ -51,7 +51,7 @@ func TestTokenClone(t *testing.T) {
 }
 
 func equals(t *testing.T, expected username.UsernameToken, actual username.UsernameToken) {
-	assert.Equal(t, expected.Base.Id, actual.Base.Id)
+	assert.Equal(t, expected.Base.ID, actual.Base.ID)
 	assert.Equal(t, expected.Base.Owner, actual.Base.Owner)
 	if expected.Base.ActionApprovals != nil {
 		assert.Equal(t, expected.Base.ActionApprovals, actual.Base.ActionApprovals)

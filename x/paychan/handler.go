@@ -133,11 +133,11 @@ func (h *transferPaymentChannelHandler) validate(ctx weave.Context, db weave.KVS
 		return msg, err
 	}
 
-	if weave.GetChainID(ctx) != msg.Payment.ChainId {
-		return nil, ErrInvalidChainID(msg.Payment.ChainId)
+	if weave.GetChainID(ctx) != msg.Payment.ChainID {
+		return nil, ErrInvalidChainID(msg.Payment.ChainID)
 	}
 
-	pc, err := h.bucket.GetPaymentChannel(db, msg.Payment.ChannelId)
+	pc, err := h.bucket.GetPaymentChannel(db, msg.Payment.ChannelID)
 	if err != nil {
 		return nil, err
 	}
@@ -175,7 +175,7 @@ func (h *transferPaymentChannelHandler) Deliver(ctx weave.Context, db weave.KVSt
 		return res, err
 	}
 
-	pc, err := h.bucket.GetPaymentChannel(db, msg.Payment.ChannelId)
+	pc, err := h.bucket.GetPaymentChannel(db, msg.Payment.ChannelID)
 	if err != nil {
 		return res, err
 	}
@@ -188,7 +188,7 @@ func (h *transferPaymentChannelHandler) Deliver(ctx weave.Context, db weave.KVSt
 		return res, ErrInvalidAmount(msg.Payment.Amount)
 	}
 
-	src := paymentChannelAccount(msg.Payment.ChannelId)
+	src := paymentChannelAccount(msg.Payment.ChannelID)
 	if err := h.cash.MoveCoins(db, src, pc.Recipient, diff); err != nil {
 		return res, err
 	}
@@ -208,11 +208,11 @@ func (h *transferPaymentChannelHandler) Deliver(ctx weave.Context, db weave.KVSt
 	// To avoid "empty" payment channels in our database, delete it without
 	// waiting for the explicit close request.
 	if pc.Transferred.Equals(*pc.Total) {
-		err := h.bucket.Delete(db, msg.Payment.ChannelId)
+		err := h.bucket.Delete(db, msg.Payment.ChannelID)
 		return res, err
 	}
 
-	obj := orm.NewSimpleObj(msg.Payment.ChannelId, pc)
+	obj := orm.NewSimpleObj(msg.Payment.ChannelID, pc)
 	err = h.bucket.Save(db, obj)
 	return res, err
 }
@@ -238,14 +238,14 @@ func (h *closePaymentChannelHandler) Deliver(ctx weave.Context, db weave.KVStore
 		return res, err
 	}
 
-	pc, err := h.bucket.GetPaymentChannel(db, msg.ChannelId)
+	pc, err := h.bucket.GetPaymentChannel(db, msg.ChannelID)
 	if err != nil {
 		return res, err
 	}
 
 	// If payment channel funds were exhausted anyone is free to close it.
 	if pc.Total.Equals(*pc.Transferred) {
-		err := h.bucket.Delete(db, msg.ChannelId)
+		err := h.bucket.Delete(db, msg.ChannelID)
 		return res, err
 	}
 
@@ -263,11 +263,11 @@ func (h *closePaymentChannelHandler) Deliver(ctx weave.Context, db weave.KVStore
 	if err != nil {
 		return res, err
 	}
-	src := paymentChannelAccount(msg.ChannelId)
+	src := paymentChannelAccount(msg.ChannelID)
 	if err := h.cash.MoveCoins(db, src, pc.Src, diff); err != nil {
 		return res, err
 	}
-	err = h.bucket.Delete(db, msg.ChannelId)
+	err = h.bucket.Delete(db, msg.ChannelID)
 	return res, err
 }
 

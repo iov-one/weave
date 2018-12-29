@@ -24,7 +24,7 @@ func TestIssueNfts(t *testing.T) {
 	// when blockchain nft issued
 	tx := &app.Tx{
 		Sum: &app.Tx_IssueBlockchainNftMsg{&blockchain.IssueTokenMsg{
-			Id:      myBlockchainID,
+			ID:      myBlockchainID,
 			Owner:   isuserAddr,
 			Details: blockchain.TokenDetails{Iov: blockchain.IOV{Codec: "asd"}},
 		},
@@ -39,7 +39,7 @@ func TestIssueNfts(t *testing.T) {
 	// and when username nft issued
 	tx = &app.Tx{
 		Sum: &app.Tx_IssueUsernameNftMsg{&username.IssueTokenMsg{
-			Id:    []byte("anybody@example.com"),
+			ID:    []byte("anybody@example.com"),
 			Owner: isuserAddr,
 			Details: username.TokenDetails{[]username.ChainAddress{
 				{BlockchainID: myBlockchainID, Address: "myChainAddress"},
@@ -56,7 +56,7 @@ func TestIssueNfts(t *testing.T) {
 	// and when ticker nft issued
 	tx = &app.Tx{
 		Sum: &app.Tx_IssueTickerNftMsg{&ticker.IssueTokenMsg{
-			Id:      []byte("ANY"),
+			ID:      []byte("ANY"),
 			Owner:   isuserAddr,
 			Details: ticker.TokenDetails{myBlockchainID},
 		},
@@ -75,5 +75,5 @@ func TestIssueNfts(t *testing.T) {
 	var actual username.UsernameToken
 	err := weave_app.UnmarshalOneResult(qRes.Value, &actual)
 	require.NoError(t, err)
-	require.Equal(t, []byte("anybody@example.com"), actual.GetBase().GetId())
+	require.Equal(t, []byte("anybody@example.com"), actual.GetBase().GetID())
 }

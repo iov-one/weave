@@ -2,6 +2,7 @@ syntax = "proto3";
 
 package paychan;
 
+import "github.com/gogo/protobuf/gogoproto/gogo.proto";
 import "github.com/iov-one/weave/x/codec.proto";
 import "github.com/iov-one/weave/crypto/models.proto";
 
@@ -55,8 +56,8 @@ message CreatePaymentChannelMsg {
 //
 // Each Payment should be created with amount greater than the previous one.
 message Payment {
-    string chain_id = 1;
-    bytes channel_id = 2;
+    string chain_id = 1 [(gogoproto.customname) = "ChainID"];
+    bytes channel_id = 2 [(gogoproto.customname) = "ChannelID"];
     x.Coin amount = 3;
     // Max length 128 character.
     string memo = 4;
@@ -77,7 +78,7 @@ message TransferPaymentChannelMsg {
 //
 // Sender can close channel only if the timeout chain height was reached.
 message ClosePaymentChannelMsg {
-    bytes channel_id = 1;
+    bytes channel_id = 1 [(gogoproto.customname) = "ChannelID"];
     // Max length 128 character.
     string memo = 2;
 }

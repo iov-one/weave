@@ -119,7 +119,7 @@ func TestHandleIssueTokenMsg(t *testing.T) {
 
 			tx := helpers.MockTx(&username.IssueTokenMsg{
 				Owner:     spec.owner,
-				Id:        spec.id,
+				ID:        spec.id,
 				Details:   spec.details,
 				Approvals: spec.approvals,
 			})
@@ -172,7 +172,7 @@ func TestIssueUsernameTx(t *testing.T) {
 	// when
 	tx := helpers.MockTx(&username.IssueTokenMsg{
 		Owner:   alice.Address(),
-		Id:      []byte("any@example.com"),
+		ID:      []byte("any@example.com"),
 		Details: username.TokenDetails{[]username.ChainAddress{{BlockchainID: []byte("myNet"), Address: "myChainAddress"}}},
 	})
 	res, err := handler.Deliver(nil, db, tx)

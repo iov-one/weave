@@ -69,7 +69,7 @@ func Examples() []commands.Example {
 
 	guest := crypto.GenPrivKeyEd25519().PublicKey().Address()
 	issueUsernameMsg := &username.IssueTokenMsg{
-		Id:    []byte("alice@example.com"),
+		ID:    []byte("alice@example.com"),
 		Owner: addr,
 		Details: username.TokenDetails{
 			Addresses: []username.ChainAddress{
@@ -93,7 +93,7 @@ func Examples() []commands.Example {
 	}
 
 	issueBlockchainMsg := &blockchain.IssueTokenMsg{
-		Id:      []byte("test-chain-123456"),
+		ID:      []byte("test-chain-123456"),
 		Owner:   addr,
 		Details: blockchain.TokenDetails{},
 	}

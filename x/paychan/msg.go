@@ -48,10 +48,10 @@ func (m *TransferPaymentChannelMsg) Validate() error {
 	if m.Payment == nil {
 		return ErrMissingPayment()
 	}
-	if m.Payment.ChainId == "" {
+	if m.Payment.ChainID == "" {
 		return ErrMissingChainID()
 	}
-	if m.Payment.ChannelId == nil {
+	if m.Payment.ChannelID == nil {
 		return ErrMissingChannelID()
 	}
 	if !m.Payment.Amount.IsPositive() {
@@ -65,7 +65,7 @@ func (TransferPaymentChannelMsg) Path() string {
 }
 
 func (m *ClosePaymentChannelMsg) Validate() error {
-	if m.ChannelId == nil {
+	if m.ChannelID == nil {
 		return ErrMissingChannelID()
 	}
 	if len(m.Memo) > 128 {

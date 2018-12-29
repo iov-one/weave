@@ -17,27 +17,27 @@ message TokenDetails {
 // ChainAddress is an address on a blockchain
 message ChainAddress {
     // blockchainID is the reference to a blockchain nft token.
-    bytes blockchainID = 1;
+    bytes blockchain_id = 1 [(gogoproto.customname) = "BlockchainID"];
     // address is the unique identifier of an account on the referenced blockchain
     string address = 2;
 }
 
 message IssueTokenMsg {
-    bytes id = 1;
+    bytes id = 1 [(gogoproto.customname) = "ID"];
     bytes owner = 2;
     repeated nft.ActionApprovals approvals = 3 [(gogoproto.nullable) = false];
     TokenDetails details = 4 [(gogoproto.nullable) = false];
 }
 
 message AddChainAddressMsg {
-    bytes usernameID = 1;
-    bytes blockchainID = 2;
+    bytes username_id = 1 [(gogoproto.customname) = "UsernameID"];
+    bytes blockchain_id = 2 [(gogoproto.customname) = "BlockchainID"];
     string address = 3;
 
 }
 
 message RemoveChainAddressMsg {
-    bytes usernameID = 1;
-    bytes blockchainID = 2;
+    bytes username_id = 1 [(gogoproto.customname) = "UsernameID"];;
+    bytes blockchain_id = 2 [(gogoproto.customname) = "BlockchainID"];
     string address = 3;
 }

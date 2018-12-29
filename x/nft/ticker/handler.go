@@ -57,7 +57,7 @@ func (h IssueHandler) Deliver(ctx weave.Context, store weave.KVStore, tx weave.T
 	case chain == nil:
 		return res, nft.ErrInvalidEntry(msg.Details.BlockchainID)
 	}
-	o, err := h.bucket.Create(store, weave.Address(msg.Owner), msg.Id, msg.Approvals, msg.Details.BlockchainID)
+	o, err := h.bucket.Create(store, weave.Address(msg.Owner), msg.ID, msg.Approvals, msg.Details.BlockchainID)
 	if err != nil {
 		return res, err
 	}

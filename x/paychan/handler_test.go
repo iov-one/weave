@@ -112,7 +112,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 				{
 					conditions: []weave.Condition{src},
 					msg: &ClosePaymentChannelMsg{
-						ChannelId: asSeqID(1),
+						ChannelID: asSeqID(1),
 						Memo:      "end",
 					},
 					blocksize: 1001,
@@ -159,8 +159,8 @@ func TestPaymentChannelHandlers(t *testing.T) {
 					conditions: []weave.Condition{src},
 					msg: setSignature(srcSig, &TransferPaymentChannelMsg{
 						Payment: &Payment{
-							ChainId:   "testchain-123",
-							ChannelId: asSeqID(1),
+							ChainID:   "testchain-123",
+							ChannelID: asSeqID(1),
 							Amount:    dogeCoin(2, 50),
 							Memo:      "much transfer",
 						},
@@ -171,8 +171,8 @@ func TestPaymentChannelHandlers(t *testing.T) {
 					conditions: []weave.Condition{src},
 					msg: setSignature(srcSig, &TransferPaymentChannelMsg{
 						Payment: &Payment{
-							ChainId:   "testchain-123",
-							ChannelId: asSeqID(1),
+							ChainID:   "testchain-123",
+							ChannelID: asSeqID(1),
 							Amount:    dogeCoin(3, 0),
 							Memo:      "such value",
 						},
@@ -217,8 +217,8 @@ func TestPaymentChannelHandlers(t *testing.T) {
 					conditions: []weave.Condition{src},
 					msg: setSignature(srcSig, &TransferPaymentChannelMsg{
 						Payment: &Payment{
-							ChainId:   "testchain-123",
-							ChannelId: asSeqID(1),
+							ChainID:   "testchain-123",
+							ChannelID: asSeqID(1),
 							Amount:    dogeCoin(2, 0),
 							Memo:      "much transfer",
 						},
@@ -228,7 +228,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 				{
 					conditions: []weave.Condition{src},
 					msg: &ClosePaymentChannelMsg{
-						ChannelId: asSeqID(1),
+						ChannelID: asSeqID(1),
 						Memo:      "end",
 					},
 					blocksize: 1001,
@@ -304,7 +304,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 				{
 					conditions: []weave.Condition{src},
 					msg: &ClosePaymentChannelMsg{
-						ChannelId: asSeqID(1),
+						ChannelID: asSeqID(1),
 						Memo:      "end",
 					},
 					blocksize:      104,
@@ -314,7 +314,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 				{
 					conditions: []weave.Condition{recipient},
 					msg: &ClosePaymentChannelMsg{
-						ChannelId: asSeqID(1),
+						ChannelID: asSeqID(1),
 						Memo:      "end",
 					},
 					blocksize: 108,
@@ -339,8 +339,8 @@ func TestPaymentChannelHandlers(t *testing.T) {
 					conditions: []weave.Condition{src},
 					msg: setSignature(srcSig, &TransferPaymentChannelMsg{
 						Payment: &Payment{
-							ChainId:   "another-chain-666",
-							ChannelId: asSeqID(1),
+							ChainID:   "another-chain-666",
+							ChannelID: asSeqID(1),
 							Amount:    dogeCoin(2, 50),
 							Memo:      "much transfer",
 						},
@@ -368,8 +368,8 @@ func TestPaymentChannelHandlers(t *testing.T) {
 					conditions: []weave.Condition{src},
 					msg: setSignature(srcSig, &TransferPaymentChannelMsg{
 						Payment: &Payment{
-							ChainId:   "testchain-123",
-							ChannelId: asSeqID(1),
+							ChainID:   "testchain-123",
+							ChannelID: asSeqID(1),
 							Amount:    dogeCoin(11, 50),
 							Memo:      "much transfer",
 						},
@@ -413,7 +413,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 				{
 					conditions: []weave.Condition{recipient},
 					msg: &ClosePaymentChannelMsg{
-						ChannelId: asSeqID(1),
+						ChannelID: asSeqID(1),
 						Memo:      "end",
 					},
 					blocksize: 101,
@@ -422,8 +422,8 @@ func TestPaymentChannelHandlers(t *testing.T) {
 					conditions: []weave.Condition{src},
 					msg: setSignature(srcSig, &TransferPaymentChannelMsg{
 						Payment: &Payment{
-							ChainId:   "testchain-123",
-							ChannelId: asSeqID(1),
+							ChainID:   "testchain-123",
+							ChannelID: asSeqID(1),
 							Amount:    dogeCoin(11, 50),
 							Memo:      "much transfer",
 						},
@@ -456,8 +456,8 @@ func TestPaymentChannelHandlers(t *testing.T) {
 							},
 						},
 						Payment: &Payment{
-							ChainId:   "testchain-123",
-							ChannelId: asSeqID(1),
+							ChainID:   "testchain-123",
+							ChannelID: asSeqID(1),
 							Amount:    dogeCoin(11, 50),
 							Memo:      "much transfer",
 						},

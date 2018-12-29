@@ -18,7 +18,7 @@ func TestIssueTokenMsgValidate(t *testing.T) {
 	}{
 		{ // happy path
 			token: ticker.IssueTokenMsg{
-				Id:      []byte("BTC"),
+				ID:      []byte("BTC"),
 				Owner:   alice.Address(),
 				Details: ticker.TokenDetails{[]byte("myBlockchainID")},
 			},
@@ -26,7 +26,7 @@ func TestIssueTokenMsgValidate(t *testing.T) {
 		},
 		{ // happy path
 			token: ticker.IssueTokenMsg{
-				Id:      []byte("ANY1"),
+				ID:      []byte("ANY1"),
 				Owner:   alice.Address(),
 				Details: ticker.TokenDetails{[]byte("myBlockchainID")},
 			},
@@ -34,7 +34,7 @@ func TestIssueTokenMsgValidate(t *testing.T) {
 		},
 		{ // not an address
 			token: ticker.IssueTokenMsg{
-				Id:      []byte("ANY"),
+				ID:      []byte("ANY"),
 				Owner:   []byte("not an address"),
 				Details: ticker.TokenDetails{[]byte("myBlockchainID")},
 			},
@@ -42,7 +42,7 @@ func TestIssueTokenMsgValidate(t *testing.T) {
 		},
 		{ // id to small
 			token: ticker.IssueTokenMsg{
-				Id:      []byte("FO"),
+				ID:      []byte("FO"),
 				Owner:   alice.Address(),
 				Details: ticker.TokenDetails{[]byte("myBlockchainID")},
 			},
@@ -50,7 +50,7 @@ func TestIssueTokenMsgValidate(t *testing.T) {
 		},
 		{ // id too big
 			token: ticker.IssueTokenMsg{
-				Id:      []byte("FOOBA"),
+				ID:      []byte("FOOBA"),
 				Owner:   alice.Address(),
 				Details: ticker.TokenDetails{[]byte("myBlockchainID")},
 			},
@@ -58,7 +58,7 @@ func TestIssueTokenMsgValidate(t *testing.T) {
 		},
 		{ // empty payload
 			token: ticker.IssueTokenMsg{
-				Id:      []byte("ANY"),
+				ID:      []byte("ANY"),
 				Owner:   alice.Address(),
 				Details: ticker.TokenDetails{},
 			},
@@ -66,7 +66,7 @@ func TestIssueTokenMsgValidate(t *testing.T) {
 		},
 		{ // invalid payload
 			token: ticker.IssueTokenMsg{
-				Id:      []byte("ANY"),
+				ID:      []byte("ANY"),
 				Owner:   alice.Address(),
 				Details: ticker.TokenDetails{[]byte("&&&")},
 			},

@@ -70,7 +70,7 @@ func TestHandleIssueTokenMsg(t *testing.T) {
 		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
 			tx := helpers.MockTx(&ticker.IssueTokenMsg{
 				Owner:     spec.owner,
-				Id:        spec.id,
+				ID:        spec.id,
 				Details:   spec.details,
 				Approvals: spec.approvals,
 			})

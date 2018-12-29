@@ -17,27 +17,27 @@ message TokenDetails {
 }
 
 message Chain {
-    string chainID = 1;
-    string networkID = 2;
+    string chain_id = 1 [(gogoproto.customname) = "ChainID"];
+    string network_id = 2 [(gogoproto.customname) = "NetworkID"];
     string name = 3;
     bool enabled = 4;
     bool production = 5;
-    bytes mainTickerID = 6;
+    bytes main_ticker_id = 6 [(gogoproto.customname) = "MainTickerID"];
 }
 
 message IOV {
     string codec = 1;
-    string codecConfig = 2;
+    string codec_config = 2;
 }
 
 message Config {
     Chain chain = 1;
-    string codecConfig = 3;
+    string codec_config = 3;
 }
 
 message IssueTokenMsg {
     bytes owner = 1;
-    bytes id = 2;
+    bytes id = 2 [(gogoproto.customname) = "ID"];
     TokenDetails details = 3 [(gogoproto.nullable) = false];
     repeated nft.ActionApprovals approvals = 4 [(gogoproto.nullable) = false];
 }

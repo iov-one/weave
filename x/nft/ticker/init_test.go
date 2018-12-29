@@ -49,7 +49,7 @@ func TestInitializer(t *testing.T) {
 		t.Fatalf("returned object is not a token: %T", obj.Value())
 	}
 
-	if want, got := "id-123", string(token.Base.Id); want != got {
+	if want, got := "id-123", string(token.Base.ID); want != got {
 		t.Fatalf("want %q, got %q", want, got)
 	}
 	if want, got := "owner-12300000000000", string(token.Base.Owner); want != got {

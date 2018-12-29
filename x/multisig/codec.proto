@@ -8,18 +8,18 @@ message Contract {
     // addresses to control it
     repeated bytes sigs = 1;
     // threshold needed to sign to activate it
-    int64 activationThreshold = 2;
+    int64 activation_threshold = 2;
     // threshold needed to sign to change it
-    int64 adminThreshold = 3;
+    int64 admin_threshold = 3;
 }
 
 message CreateContractMsg {
     // addresses to control it
     repeated bytes sigs = 1;
     // threshold needed to sign to activate it
-    int64 activationThreshold = 2;
+    int64 activation_threshold = 2;
     // threshold needed to sign to change it
-    int64 adminThreshold = 3;
+    int64 admin_threshold = 3;
 }
 
 message UpdateContractMsg {
@@ -28,7 +28,7 @@ message UpdateContractMsg {
     // addresses to control it
     repeated bytes sigs = 2;
     // threshold needed to sign to activate it
-    int64 activationThreshold = 3;
+    int64 activation_threshold = 3;
     // threshold needed to sign to change it
-    int64 adminThreshold = 4;
+    int64 admin_threshold = 4;
 }

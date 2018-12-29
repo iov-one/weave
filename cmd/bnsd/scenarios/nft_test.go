@@ -23,21 +23,21 @@ func TestIssueNfts(t *testing.T) {
 	nfts := []*app.Tx{
 		{
 			Sum: &app.Tx_IssueBlockchainNftMsg{&blockchain.IssueTokenMsg{
-				Id:      myBlockchainID,
+				ID:      myBlockchainID,
 				Owner:   alice.PublicKey().Address(),
 				Details: blockchain.TokenDetails{Iov: blockchain.IOV{Codec: "test", CodecConfig: `{ "any" : [ "json", "content" ] }`}},
 			},
 			},
 		}, {
 			Sum: &app.Tx_IssueTickerNftMsg{&ticker.IssueTokenMsg{
-				Id:      myTicker,
+				ID:      myTicker,
 				Owner:   alice.PublicKey().Address(),
 				Details: ticker.TokenDetails{myBlockchainID},
 			},
 			},
 		}, {
 			Sum: &app.Tx_IssueUsernameNftMsg{&username.IssueTokenMsg{
-				Id:    myUserName,
+				ID:    myUserName,
 				Owner: alice.PublicKey().Address(),
 				Details: username.TokenDetails{[]username.ChainAddress{{
 					BlockchainID: myBlockchainID,
