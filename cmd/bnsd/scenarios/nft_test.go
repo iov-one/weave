@@ -15,10 +15,9 @@ import (
 )
 
 func TestIssueNfts(t *testing.T) {
-	rand.Seed(time.Now().UnixNano())
-	uniqueSuffix := rand.Intn(9999)
+	uniqueSuffix := rand.New(rand.NewSource(time.Now().UnixNano())).Intn(9999)
 	myBlockchainID := []byte(fmt.Sprintf("aliceChain%d", uniqueSuffix))
-	myTicker := []byte(fmt.Sprintf("%d", uniqueSuffix))
+	myTicker := []byte(fmt.Sprint(uniqueSuffix))
 	myUserName := []byte(fmt.Sprintf("alice-%d@example.com", uniqueSuffix))
 	nfts := []*app.Tx{
 		{

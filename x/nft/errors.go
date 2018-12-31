@@ -25,11 +25,11 @@ const (
 
 var (
 	errUnsupportedTokenType = stderrors.New("Unsupported token type")
-	errInvalidID            = stderrors.New("Id is invalid")
+	errInvalidID            = stderrors.New("ID is invalid")
 	errDuplicateEntry       = stderrors.New("Duplicate entry")
 	errMissingEntry         = stderrors.New("Missing entry")
 	errInvalidEntry         = stderrors.New("Invalid entry")
-	errUnknownID            = stderrors.New("Unknown Id")
+	errUnknownID            = stderrors.New("Unknown ID")
 	errInvalidLength        = stderrors.New("Invalid length")
 	errInvalidHost          = stderrors.New("Invalid host")
 	errInvalidPort          = stderrors.New("Invalid port")
@@ -44,19 +44,19 @@ func ErrUnsupportedTokenType() error {
 }
 
 func ErrInvalidID(id []byte) error {
-	return errors.WithLog(printableId(id), errInvalidID, CodeInvalidID)
+	return errors.WithLog(printableID(id), errInvalidID, CodeInvalidID)
 }
 func ErrDuplicateEntry(id []byte) error {
-	return errors.WithLog(printableId(id), errDuplicateEntry, CodeDuplicateEntry)
+	return errors.WithLog(printableID(id), errDuplicateEntry, CodeDuplicateEntry)
 }
 func ErrMissingEntry() error {
 	return errors.WithCode(errMissingEntry, CodeMissingEntry)
 }
 func ErrInvalidEntry(id []byte) error {
-	return errors.WithLog(printableId(id), errInvalidEntry, CodeInvalidEntry)
+	return errors.WithLog(printableID(id), errInvalidEntry, CodeInvalidEntry)
 }
 func ErrUnknownID(id []byte) error {
-	return errors.WithLog(printableId(id), errUnknownID, CodeUnknownID)
+	return errors.WithLog(printableID(id), errUnknownID, CodeUnknownID)
 }
 func ErrInvalidLength() error {
 	return errors.WithCode(errInvalidLength, CodeInvalidLength)
@@ -80,7 +80,7 @@ func ErrInvalidJson() error {
 // id's are stored as bytes, but most are ascii text
 // if in ascii, just convert to string
 // if not, hex-encode it and prefix with 0x
-func printableId(id []byte) string {
+func printableID(id []byte) string {
 	if len(id) == 0 {
 		return "<nil>"
 	}
