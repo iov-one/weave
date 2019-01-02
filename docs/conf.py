@@ -23,7 +23,7 @@ def setup(app):
 # -- Project information -----------------------------------------------------
 
 project = u'Weave'
-copyright = u'2018, IOV SAS'
+copyright = u'2018 - 2019, IOV SAS'
 author = u'Ethan Frey'
 
 # The short X.Y version
