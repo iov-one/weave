@@ -10,13 +10,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-
-	"github.com/tendermint/tendermint/libs/log"
-
 	"github.com/iov-one/weave/commands/server"
 	"github.com/iov-one/weave/examples/mycoind/app"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"github.com/tendermint/tendermint/libs/log"
 )
 
 func TestInit(t *testing.T) {
@@ -86,7 +84,6 @@ func copyConfigFiles(rootDir string) error {
 		}
 		input := filepath.Join(inDir, f.Name())
 		output := filepath.Join(outDir, f.Name())
-		fmt.Printf("Copying %s to %s\n", input, output)
 		err = fileCopy(input, output, f.Mode())
 		if err != nil {
 			return err

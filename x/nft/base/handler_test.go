@@ -2,7 +2,6 @@ package base_test
 
 import (
 	"context"
-	"fmt"
 	"testing"
 
 	"github.com/iov-one/weave"
@@ -208,7 +207,7 @@ func TestApprovalOpsHandler(t *testing.T) {
 
 				//TODO: Should we allow approved to remove their own approvals? :)
 				Convey("By approved", func() {
-					fmt.Println(alice.Address())
+					t.Logf("alice address: %s", alice.Address())
 					handler = base.NewApprovalOpsHandler(helpers.Authenticate(alice), nil, d)
 					tx := helpers.MockTx(msg)
 					_, err := handler.Check(ctx, db, tx)
