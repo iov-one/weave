@@ -16,7 +16,9 @@ import (
 
 func TestIssueNfts(t *testing.T) {
 	rand.Seed(time.Now().UnixNano())
-	uniqueSuffix := rand.Intn(9999)
+	// ID must be at least 3 characters, so ensure it's never less than 100.
+	// Min length is defined in x/nft helpers.
+	uniqueSuffix := rand.Intn(9999) + 100
 	myBlockchainID := []byte(fmt.Sprintf("aliceChain%d", uniqueSuffix))
 	myTicker := []byte(fmt.Sprintf("%d", uniqueSuffix))
 	myUserName := []byte(fmt.Sprintf("alice-%d@example.com", uniqueSuffix))
@@ -55,9 +57,6 @@ func TestIssueNfts(t *testing.T) {
 			seq, err := aNonce.Next()
 			require.NoError(t, err)
 			require.NoError(t, client.SignTx(tx, alice, chainID, seq))
-			//sig, err := sigs.SignTx(alice, tx, chainID, seq)
-			//require.NoError(t, err)
-			//tx.Signatures = append(tx.Signatures, sig)
 			resp := bnsClient.BroadcastTx(tx)
 			// then
 			require.NoError(t, resp.IsError())
