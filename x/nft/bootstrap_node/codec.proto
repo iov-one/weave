@@ -20,7 +20,7 @@ message URI {
     string host = 1;
     int32 port = 2;
     string protocol = 3;
-    string pubKey = 4;
+    string pub_key = 4;
 }
 
 message IssueTokenMsg {

@@ -7,7 +7,7 @@ import "github.com/gogo/protobuf/gogoproto/gogo.proto";
 message NonFungibleToken {
     bytes id = 1 [(gogoproto.customname) = "ID"];
     bytes owner = 2;
-    repeated ActionApprovals actionApprovals = 3 [(gogoproto.nullable) = false];
+    repeated ActionApprovals action_approvals = 3 [(gogoproto.nullable) = false];
 
 }
 
