@@ -3,7 +3,6 @@ package commands
 import (
 	"encoding/hex"
 	"encoding/json"
-	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
@@ -64,12 +63,12 @@ func TestInit(t *testing.T) {
 func setupConfig(t *testing.T) string {
 	rootDir, err := ioutil.TempDir("", "mock-sdk-cmd")
 	require.NoError(t, err)
-	err = copyConfigFiles(rootDir)
+	err = copyConfigFiles(t, rootDir)
 	require.NoError(t, err)
 	return rootDir
 }
 
-func copyConfigFiles(rootDir string) error {
+func copyConfigFiles(t *testing.T, rootDir string) error {
 	// make the output dir
 	outDir := filepath.Join(rootDir, "config")
 	err := os.Mkdir(outDir, 0755)
@@ -89,7 +88,7 @@ func copyConfigFiles(rootDir string) error {
 		}
 		input := filepath.Join(inDir, f.Name())
 		output := filepath.Join(outDir, f.Name())
-		fmt.Printf("Copying %s to %s\n", input, output)
+		t.Logf("Copying %s to %s", input, output)
 		err = fileCopy(input, output, f.Mode())
 		if err != nil {
 			return err
