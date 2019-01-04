@@ -48,11 +48,11 @@ required = ["github.com/gogo/protobuf/protoc-gen-gogofaster"]
 
 [[constraint]]
   name = "github.com/tendermint/iavl"
-  version = "~0.11.0"
+  version = "~0.12.0"
 
 [[override]]
   name = "github.com/tendermint/go-amino"
-  version = "~0.14.0"
+  version = "~0.14.1"
 
 [prune]
   go-tests = true
