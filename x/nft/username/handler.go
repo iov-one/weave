@@ -72,7 +72,7 @@ func (h IssueHandler) Deliver(ctx weave.Context, store weave.KVStore, tx weave.T
 		}
 	}
 	// persist the data
-	o, err := h.bucket.Create(store, weave.Address(msg.Owner), msg.Id, msg.Approvals, msg.Details.Addresses)
+	o, err := h.bucket.Create(store, weave.Address(msg.Owner), msg.ID, msg.Approvals, msg.Details.Addresses)
 	if err != nil {
 		return res, err
 	}

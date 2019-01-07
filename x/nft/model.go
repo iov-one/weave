@@ -9,8 +9,8 @@ var _ orm.CloneableData = (*NonFungibleToken)(nil)
 
 func (m *NonFungibleToken) Validate() error {
 	var validation *Validation
-	if !validation.IsValidTokenID(m.Id) {
-		return ErrInvalidID(m.Id)
+	if !validation.IsValidTokenID(m.ID) {
+		return ErrInvalidID(m.ID)
 	}
 
 	if err := weave.Address(m.Owner).Validate(); err != nil {
@@ -30,7 +30,7 @@ func (m *NonFungibleToken) Clone() *NonFungibleToken {
 		actionApprovals[i] = v.Clone()
 	}
 	return &NonFungibleToken{
-		Id:              m.Id,
+		ID:              m.ID,
 		Owner:           m.Owner,
 		ActionApprovals: actionApprovals,
 	}
@@ -38,7 +38,7 @@ func (m *NonFungibleToken) Clone() *NonFungibleToken {
 
 func NewNonFungibleToken(key []byte, owner weave.Address, approvals []ActionApprovals) *NonFungibleToken {
 	return &NonFungibleToken{
-		Id:              key,
+		ID:              key,
 		Owner:           owner,
 		ActionApprovals: approvals,
 	}
@@ -71,5 +71,5 @@ type BaseNFT interface {
 
 //TODO: Better name
 type Identified interface {
-	GetId() []byte
+	GetID() []byte
 }

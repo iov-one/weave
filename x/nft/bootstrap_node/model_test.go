@@ -18,7 +18,7 @@ func TestIssueTokenMsgValidate(t *testing.T) {
 	}{
 		{ // happy path
 			token: bootstrap_node.IssueTokenMsg{
-				Id:    []byte("BTC"),
+				ID:    []byte("BTC"),
 				Owner: alice.Address(),
 				Details: bootstrap_node.TokenDetails{[]byte("myBlockchainID"), bootstrap_node.URI{
 					"ya.ru",
@@ -31,7 +31,7 @@ func TestIssueTokenMsgValidate(t *testing.T) {
 		},
 		{ // happy path
 			token: bootstrap_node.IssueTokenMsg{
-				Id:    []byte("ANY1"),
+				ID:    []byte("ANY1"),
 				Owner: alice.Address(),
 				Details: bootstrap_node.TokenDetails{[]byte("myBlockchainID"), bootstrap_node.URI{
 					"ya.ru",
@@ -44,7 +44,7 @@ func TestIssueTokenMsgValidate(t *testing.T) {
 		},
 		{ // not an address
 			token: bootstrap_node.IssueTokenMsg{
-				Id:    []byte("ANY"),
+				ID:    []byte("ANY"),
 				Owner: []byte("not an address"),
 				Details: bootstrap_node.TokenDetails{[]byte("myBlockchainID"), bootstrap_node.URI{
 					"ya.ru",
@@ -57,7 +57,7 @@ func TestIssueTokenMsgValidate(t *testing.T) {
 		},
 		{ // id to small
 			token: bootstrap_node.IssueTokenMsg{
-				Id:    []byte("FO"),
+				ID:    []byte("FO"),
 				Owner: alice.Address(),
 				Details: bootstrap_node.TokenDetails{[]byte("myBlockchainID"), bootstrap_node.URI{
 					"ya.ru",
@@ -70,7 +70,7 @@ func TestIssueTokenMsgValidate(t *testing.T) {
 		},
 		{ // id too big
 			token: bootstrap_node.IssueTokenMsg{
-				Id:    []byte("FOOBAFOOBAFOOBAFOOBAFOOBAFOOBA"),
+				ID:    []byte("FOOBAFOOBAFOOBAFOOBAFOOBAFOOBA"),
 				Owner: alice.Address(),
 				Details: bootstrap_node.TokenDetails{[]byte("myBlockchainID"), bootstrap_node.URI{
 					"ya.ru",
@@ -83,7 +83,7 @@ func TestIssueTokenMsgValidate(t *testing.T) {
 		},
 		{ // empty payload
 			token: bootstrap_node.IssueTokenMsg{
-				Id:      []byte("ANY"),
+				ID:      []byte("ANY"),
 				Owner:   alice.Address(),
 				Details: bootstrap_node.TokenDetails{},
 			},
@@ -91,7 +91,7 @@ func TestIssueTokenMsgValidate(t *testing.T) {
 		},
 		{ // invalid payload
 			token: bootstrap_node.IssueTokenMsg{
-				Id:    []byte("ANY"),
+				ID:    []byte("ANY"),
 				Owner: alice.Address(),
 				Details: bootstrap_node.TokenDetails{[]byte("&&&"), bootstrap_node.URI{
 					"ya.ru",

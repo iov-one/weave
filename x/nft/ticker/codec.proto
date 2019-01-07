@@ -12,12 +12,12 @@ message TickerToken {
 }
 
 message TokenDetails {
-    bytes blockchainID = 1;
+    bytes blockchain_id = 1 [(gogoproto.customname) = "BlockchainID"];
 }
 
 message IssueTokenMsg {
     bytes owner = 1;
-    bytes id = 2;
+    bytes id = 2 [(gogoproto.customname) = "ID"];
     TokenDetails details = 3 [(gogoproto.nullable) = false];
     repeated nft.ActionApprovals approvals = 4 [(gogoproto.nullable) = false];
 }

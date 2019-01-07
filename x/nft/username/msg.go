@@ -1,10 +1,10 @@
 package username
 
 import (
-	"github.com/iov-one/weave/errors"
 	"regexp"
 
 	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/x/nft"
 )
 
@@ -36,7 +36,7 @@ func (*RemoveChainAddressMsg) Path() string {
 }
 
 func (m *IssueTokenMsg) Validate() error {
-	if err := validateID(m.Id); err != nil {
+	if err := validateID(m.ID); err != nil {
 		return err
 	}
 	if err := m.Details.Validate(); err != nil {

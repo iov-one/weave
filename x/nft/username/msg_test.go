@@ -20,7 +20,7 @@ func TestIssueTokenMsgValidate(t *testing.T) {
 		{ // happy path email
 			msg: username.IssueTokenMsg{
 				Owner:   alice.Address(),
-				Id:      []byte("alice@example.com"),
+				ID:      []byte("alice@example.com"),
 				Details: username.TokenDetails{},
 			},
 			expError: false,
@@ -28,7 +28,7 @@ func TestIssueTokenMsgValidate(t *testing.T) {
 		{ // happy path twitter
 			msg: username.IssueTokenMsg{
 				Owner:   alice.Address(),
-				Id:      []byte("@iov_official"),
+				ID:      []byte("@iov_official"),
 				Details: username.TokenDetails{},
 			},
 			expError: false,
@@ -36,7 +36,7 @@ func TestIssueTokenMsgValidate(t *testing.T) {
 		{ // happy path phone
 			msg: username.IssueTokenMsg{
 				Owner:   alice.Address(),
-				Id:      []byte("+491234567890"),
+				ID:      []byte("+491234567890"),
 				Details: username.TokenDetails{},
 			},
 			expError: false,
@@ -44,14 +44,14 @@ func TestIssueTokenMsgValidate(t *testing.T) {
 		{ // other characters
 			msg: username.IssueTokenMsg{
 				Owner:   alice.Address(),
-				Id:      []byte("+-,._@"),
+				ID:      []byte("+-,._@"),
 				Details: username.TokenDetails{},
 			},
 			expError: false,
 		},
 		{ // owner missing
 			msg: username.IssueTokenMsg{
-				Id:      []byte("alice@example.com"),
+				ID:      []byte("alice@example.com"),
 				Details: username.TokenDetails{},
 			},
 			expError: true,
@@ -59,7 +59,7 @@ func TestIssueTokenMsgValidate(t *testing.T) {
 		{ // owner wrong format
 			msg: username.IssueTokenMsg{
 				Owner:   []byte("not an address"),
-				Id:      []byte("alice@example.com"),
+				ID:      []byte("alice@example.com"),
 				Details: username.TokenDetails{},
 			},
 			expError: true,
@@ -67,7 +67,7 @@ func TestIssueTokenMsgValidate(t *testing.T) {
 		{ // id too short
 			msg: username.IssueTokenMsg{
 				Owner:   alice.Address(),
-				Id:      []byte("foo"),
+				ID:      []byte("foo"),
 				Details: username.TokenDetails{},
 			},
 			expError: true,
@@ -75,7 +75,7 @@ func TestIssueTokenMsgValidate(t *testing.T) {
 		{ // id too long
 			msg: username.IssueTokenMsg{
 				Owner:   alice.Address(),
-				Id:      anyIDWithLength(65),
+				ID:      anyIDWithLength(65),
 				Details: username.TokenDetails{},
 			},
 			expError: true,
@@ -83,7 +83,7 @@ func TestIssueTokenMsgValidate(t *testing.T) {
 		{ // id with forbidden character *
 			msg: username.IssueTokenMsg{
 				Owner:   alice.Address(),
-				Id:      []byte("foo*bar"),
+				ID:      []byte("foo*bar"),
 				Details: username.TokenDetails{},
 			},
 			expError: true,

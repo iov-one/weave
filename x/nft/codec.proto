@@ -5,9 +5,9 @@ package nft;
 import "github.com/gogo/protobuf/gogoproto/gogo.proto";
 
 message NonFungibleToken {
-    bytes id = 1;
+    bytes id = 1 [(gogoproto.customname) = "ID"];
     bytes owner = 2;
-    repeated ActionApprovals actionApprovals = 3 [(gogoproto.nullable) = false];
+    repeated ActionApprovals action_approvals = 3 [(gogoproto.nullable) = false];
 
 }
 
@@ -22,13 +22,13 @@ message Approval {
 }
 
 message ApprovalOptions {
-    int64 untilBlockHeight = 1; // valid until block height reached
+    int64 until_block_height = 1; // valid until block height reached
     int64 count = 2; // usage count
     bool immutable = 3;
 }
 
 message AddApprovalMsg {
-    bytes id = 1;
+    bytes id = 1 [(gogoproto.customname) = "ID"];
     bytes address = 2;
     string action = 3;
     ApprovalOptions options = 4 [(gogoproto.nullable) = false];
@@ -36,7 +36,7 @@ message AddApprovalMsg {
 }
 
 message RemoveApprovalMsg {
-    bytes id = 1;
+    bytes id = 1 [(gogoproto.customname) = "ID"];
     bytes address = 2;
     string action = 3;
     string t = 4;

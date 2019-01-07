@@ -15,31 +15,30 @@ import (
 )
 
 func TestIssueNfts(t *testing.T) {
-	rand.Seed(time.Now().UnixNano())
-	// ID must be at least 3 characters, so ensure it's never less than 100.
+  // ID must be at least 3 characters, so ensure it's never less than 100.
 	// Min length is defined in x/nft helpers.
-	uniqueSuffix := rand.Intn(9999) + 100
+	uniqueSuffix := rand.New(rand.NewSource(time.Now().UnixNano())).Intn(9999) + 100
 	myBlockchainID := []byte(fmt.Sprintf("aliceChain%d", uniqueSuffix))
-	myTicker := []byte(fmt.Sprintf("%d", uniqueSuffix))
+	myTicker := []byte(fmt.Sprint(uniqueSuffix))
 	myUserName := []byte(fmt.Sprintf("alice-%d@example.com", uniqueSuffix))
 	nfts := []*app.Tx{
 		{
 			Sum: &app.Tx_IssueBlockchainNftMsg{&blockchain.IssueTokenMsg{
-				Id:      myBlockchainID,
+				ID:      myBlockchainID,
 				Owner:   alice.PublicKey().Address(),
 				Details: blockchain.TokenDetails{Iov: blockchain.IOV{Codec: "test", CodecConfig: `{ "any" : [ "json", "content" ] }`}},
 			},
 			},
 		}, {
 			Sum: &app.Tx_IssueTickerNftMsg{&ticker.IssueTokenMsg{
-				Id:      myTicker,
+				ID:      myTicker,
 				Owner:   alice.PublicKey().Address(),
 				Details: ticker.TokenDetails{myBlockchainID},
 			},
 			},
 		}, {
 			Sum: &app.Tx_IssueUsernameNftMsg{&username.IssueTokenMsg{
-				Id:    myUserName,
+				ID:    myUserName,
 				Owner: alice.PublicKey().Address(),
 				Details: username.TokenDetails{[]username.ChainAddress{{
 					BlockchainID: myBlockchainID,

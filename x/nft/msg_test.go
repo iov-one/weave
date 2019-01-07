@@ -14,7 +14,7 @@ func TestApprovalMsg(t *testing.T) {
 		Convey("Test add approvals", func() {
 			Convey("Happy flow", func() {
 				msg := AddApprovalMsg{
-					Id:      []byte("asdf"),
+					ID:      []byte("asdf"),
 					Address: validKey.Address(),
 					Action:  Action_ActionUpdateDetails.String(),
 				}
@@ -30,7 +30,7 @@ func TestApprovalMsg(t *testing.T) {
 
 			Convey("Testing various errors", func() {
 				msg := AddApprovalMsg{
-					Id:      []byte("asdf"),
+					ID:      []byte("asdf"),
 					Address: validKey.Address(),
 					Action:  Action_ActionUpdateDetails.String(),
 				}
@@ -41,7 +41,7 @@ func TestApprovalMsg(t *testing.T) {
 				})
 
 				Convey("Invalid id", func() {
-					msg.Id = []byte("asd")
+					msg.ID = []byte("asd")
 					So(msg.Validate(), ShouldNotBeNil)
 				})
 
@@ -60,7 +60,7 @@ func TestApprovalMsg(t *testing.T) {
 		Convey("Test Remove approvals", func() {
 			Convey("Happy flow", func() {
 				msg := RemoveApprovalMsg{
-					Id:      []byte("asdf"),
+					ID:      []byte("asdf"),
 					Address: validKey.Address(),
 					Action:  Action_ActionUpdateDetails.String(),
 				}
@@ -69,7 +69,7 @@ func TestApprovalMsg(t *testing.T) {
 
 			Convey("Testing various errors", func() {
 				msg := RemoveApprovalMsg{
-					Id:      []byte("asdf"),
+					ID:      []byte("asdf"),
 					Address: validKey.Address(),
 					Action:  Action_ActionUpdateDetails.String(),
 				}
@@ -80,7 +80,7 @@ func TestApprovalMsg(t *testing.T) {
 				})
 
 				Convey("Invalid id", func() {
-					msg.Id = []byte("as")
+					msg.ID = []byte("as")
 					So(msg.Validate(), ShouldNotBeNil)
 				})
 

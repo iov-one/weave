@@ -83,7 +83,7 @@ func (h *ApprovalOpsHandler) Deliver(ctx weave.Context, store weave.KVStore, tx 
 		return res, err
 	}
 
-	o, t, err := loadToken(bucket, store, msg.GetId())
+	o, t, err := loadToken(bucket, store, msg.GetID())
 	if err != nil {
 		return res, err
 	}

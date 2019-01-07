@@ -18,28 +18,28 @@ func TestNonFungibleTokenValidate(t *testing.T) {
 	}{
 		{ // happy path
 			token: nft.NonFungibleToken{
-				Id:    []byte("anyID"),
+				ID:    []byte("anyID"),
 				Owner: alice.Address(),
 			},
 			expError: false,
 		},
 		{ // not an address
 			token: nft.NonFungibleToken{
-				Id:    []byte("anyID"),
+				ID:    []byte("anyID"),
 				Owner: []byte("not an address"),
 			},
 			expError: true,
 		},
 		{ // id to small
 			token: nft.NonFungibleToken{
-				Id:    []byte("12"),
+				ID:    []byte("12"),
 				Owner: alice.Address(),
 			},
 			expError: true,
 		},
 		{ // id too big
 			token: nft.NonFungibleToken{
-				Id:    anyIDWithLength(257),
+				ID:    anyIDWithLength(257),
 				Owner: alice.Address(),
 			},
 			expError: true,

@@ -20,7 +20,7 @@ func TestFindActor(t *testing.T) {
 
 		Convey("Test owner", func() {
 			token := &NonFungibleToken{
-				Id:    []byte("asd"),
+				ID:    []byte("asd"),
 				Owner: bob.Address(),
 			}
 			Convey("Test valid owner", func() {
@@ -36,7 +36,7 @@ func TestFindActor(t *testing.T) {
 
 		Convey("Test approvals", func() {
 			token := &NonFungibleToken{
-				Id:    []byte("asd"),
+				ID:    []byte("asd"),
 				Owner: bob.Address(),
 				ActionApprovals: []ActionApprovals{{
 					Action:    Action_ActionUpdateDetails.String(),

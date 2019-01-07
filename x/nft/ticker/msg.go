@@ -33,8 +33,8 @@ func (i *IssueTokenMsg) Validate() error {
 		return err
 	}
 
-	if !IsValidID(string(i.Id)) {
-		return nft.ErrInvalidID(i.Id)
+	if !IsValidID(string(i.ID)) {
+		return nft.ErrInvalidID(i.ID)
 	}
 	if err := i.Details.Validate(); err != nil {
 		return err
