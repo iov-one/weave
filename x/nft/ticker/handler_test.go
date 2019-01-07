@@ -1,6 +1,8 @@
 package ticker_test
 
 import (
+	"encoding/base32"
+	"encoding/binary"
 	"fmt"
 	"testing"
 
@@ -139,4 +141,92 @@ func TestQueryTokenByName(t *testing.T) {
 	x, err := ticker.AsTicker(got)
 	require.NoError(t, err)
 	_ = x // todo verify stored details
+}
+
+func BenchmarkIssueToken(b *testing.B) {
+	var helpers x.TestHelpers
+	_, authKey := helpers.MakeKey()
+
+	cases := map[string]struct {
+		check   bool
+		deliver bool
+	}{
+		"check only": {
+			check:   true,
+			deliver: false,
+		},
+		"deliver only": {
+			check:   false,
+			deliver: true,
+		},
+		"check and deliver": {
+			// This case may seem pointless considered the above
+			// checks, but in real application a cache layer may
+			// kick in.
+			check:   true,
+			deliver: true,
+		},
+	}
+
+	for testName, tc := range cases {
+		b.Run(testName, func(b *testing.B) {
+			db := store.MemStore()
+			tickers := ticker.NewBucket()
+			blockchains := blockchain.NewBucket()
+			bc, _ := blockchains.Create(db, authKey.Address(), []byte("benchnet"), nil, blockchain.Chain{MainTickerID: []byte("IOV")}, blockchain.IOV{Codec: "asd"})
+			blockchains.Save(db, bc)
+			handler := ticker.NewIssueHandler(helpers.Authenticate(authKey), nil, tickers, blockchains.Bucket)
+
+			transactions := make([]weave.Tx, b.N)
+			for i := range transactions {
+				transactions[i] = helpers.MockTx(&ticker.IssueTokenMsg{
+					Owner: authKey.Address(),
+					ID:    genTickerID(i),
+					Details: ticker.TokenDetails{
+						BlockchainID: []byte("benchnet"),
+					},
+					Approvals: []nft.ActionApprovals{
+						{
+							Action: nft.UpdateDetails,
+							Approvals: []nft.Approval{
+								{Options: nft.ApprovalOptions{Count: nft.UnlimitedCount}, Address: authKey.Address()},
+							},
+						},
+					},
+				})
+			}
+			cache := db.CacheWrap()
+
+			b.ResetTimer()
+
+			for i, tx := range transactions {
+				if tc.check {
+					_, err := handler.Check(nil, cache, tx)
+					cache.Discard()
+					if err != nil {
+						b.Fatalf("check %d: %s", i, err)
+					}
+				}
+
+				if tc.deliver {
+					_, err := handler.Deliver(nil, db, tx)
+					cache.Discard()
+					if err != nil {
+						b.Fatalf("deliver %d: %s", i, err)
+					}
+				}
+			}
+		})
+	}
+}
+
+// genTickerID returns a unique ticker ID that is always associated with given
+// number.
+func genTickerID(i int) []byte {
+	raw := make([]byte, 4)
+	binary.LittleEndian.PutUint32(raw, uint32(i))
+	id := []byte("aaaaaaaaaaaa")
+	base32.StdEncoding.Encode(id, raw)
+	// Ticker ID must be between 3 and 4 characters.
+	return id[:4]
 }
