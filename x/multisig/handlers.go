@@ -51,14 +51,11 @@ func (h CreateContractMsgHandler) Deliver(ctx weave.Context, db weave.KVStore, t
 		AdminThreshold:      msg.AdminThreshold,
 	}
 
-	id := h.bucket.idSeq.NextVal(db)
-	obj := orm.NewSimpleObj(id, contract)
-	err = h.bucket.Save(db, obj)
-	if err != nil {
+	obj := h.bucket.Build(db, contract)
+	if err = h.bucket.Save(db, obj); err != nil {
 		return res, err
 	}
-
-	res.Data = id
+	res.Data = obj.Key()
 	return res, nil
 }
 

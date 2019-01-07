@@ -69,3 +69,10 @@ func (b ContractBucket) Save(db weave.KVStore, obj orm.Object) error {
 	}
 	return b.Bucket.Save(db, obj)
 }
+
+// Build assigns an ID to given contract instance and returns it as an orm
+// Object. It does not persist the escrow in the store.
+func (b ContractBucket) Build(db weave.KVStore, c *Contract) orm.Object {
+	key := b.idSeq.NextVal(db)
+	return orm.NewSimpleObj(key, c)
+}
