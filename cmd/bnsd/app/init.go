@@ -12,6 +12,7 @@ import (
 	"github.com/iov-one/weave/x"
 	"github.com/iov-one/weave/x/cash"
 	"github.com/iov-one/weave/x/currency"
+	"github.com/iov-one/weave/x/multisig"
 	"github.com/iov-one/weave/x/nft/blockchain"
 	"github.com/iov-one/weave/x/nft/ticker"
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -58,7 +59,8 @@ func GenInitOptions(args []string) (json.RawMessage, error) {
             "currencies": [],
             "nfts": {
               "blockchains": []
-            }
+            },
+	    "multisig": []
           }
 	`, addr, ticker)
 	return []byte(opts), nil
@@ -83,6 +85,7 @@ func GenerateApp(home string, logger log.Logger, debug bool) (abci.Application, 
 		&currency.Initializer{},
 		&blockchain.Initializer{},
 		&ticker.Initializer{},
+		&multisig.Initializer{},
 	))
 
 	// set the logger and return
