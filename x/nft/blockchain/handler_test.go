@@ -57,7 +57,7 @@ func TestHandleIssueTokenMsg(t *testing.T) {
 			id:      []byte("other_network1"),
 			details: blockchain.TokenDetails{Chain: blockchain.Chain{MainTickerID: []byte("IOV")}, Iov: blockchain.IOV{Codec: "test"}},
 			approvals: []nft.ActionApprovals{{
-				Action:    nft.Action_ActionUpdateDetails.String(),
+				Action:    nft.UpdateDetails,
 				Approvals: []nft.Approval{{Options: nft.ApprovalOptions{Count: nft.UnlimitedCount}, Address: bob.Address()}},
 			}},
 		},
@@ -66,7 +66,7 @@ func TestHandleIssueTokenMsg(t *testing.T) {
 			id:      []byte("other_network2"),
 			details: blockchain.TokenDetails{Chain: blockchain.Chain{MainTickerID: []byte("1OV")}, Iov: blockchain.IOV{Codec: "test", CodecConfig: `{"da": 1}`}},
 			approvals: []nft.ActionApprovals{{
-				Action:    nft.Action_ActionUpdateDetails.String(),
+				Action:    nft.UpdateDetails,
 				Approvals: []nft.Approval{{Options: nft.ApprovalOptions{Count: nft.UnlimitedCount}, Address: bob.Address()}},
 			}},
 			expDeliverError: true,
@@ -82,7 +82,7 @@ func TestHandleIssueTokenMsg(t *testing.T) {
 			id:      []byte("other_network4"),
 			details: blockchain.TokenDetails{Chain: blockchain.Chain{MainTickerID: []byte("IOV")}, Iov: blockchain.IOV{Codec: "1"}},
 			approvals: []nft.ActionApprovals{{
-				Action:    nft.Action_ActionUpdateDetails.String(),
+				Action:    nft.UpdateDetails,
 				Approvals: []nft.Approval{{Options: nft.ApprovalOptions{Count: nft.UnlimitedCount}, Address: bob.Address()}},
 			}},
 			expCheckError: true,
@@ -92,7 +92,7 @@ func TestHandleIssueTokenMsg(t *testing.T) {
 			id:      []byte("other_network5"),
 			details: blockchain.TokenDetails{Chain: blockchain.Chain{MainTickerID: []byte("IOV")}, Iov: blockchain.IOV{Codec: "bbb", CodecConfig: "{ssdas"}},
 			approvals: []nft.ActionApprovals{{
-				Action:    nft.Action_ActionUpdateDetails.String(),
+				Action:    nft.UpdateDetails,
 				Approvals: []nft.Approval{{Options: nft.ApprovalOptions{Count: nft.UnlimitedCount}, Address: bob.Address()}},
 			}},
 			expCheckError: true,

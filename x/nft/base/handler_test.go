@@ -43,22 +43,22 @@ func TestApprovalOpsHandler(t *testing.T) {
 		o, _ = userBucket.Create(db, bob.Address(), bobsUsername, nil, nil)
 		userBucket.Save(db, o)
 		o, _ = userBucket.Create(db, alice.Address(), aliceWithBobApproval, []nft.ActionApprovals{{
-			Action:    nft.Action_ActionUpdateApprovals.String(),
+			Action:    nft.UpdateApprovals,
 			Approvals: []nft.Approval{{Options: nft.ApprovalOptions{Count: 10, UntilBlockHeight: 5}, Address: bob.Address()}},
 		}}, nil)
 		userBucket.Save(db, o)
 		o, _ = userBucket.Create(db, bob.Address(), bobWithAliceApproval, []nft.ActionApprovals{{
-			Action:    nft.Action_ActionUpdateApprovals.String(),
+			Action:    nft.UpdateApprovals,
 			Approvals: []nft.Approval{{Options: nft.ApprovalOptions{Count: nft.UnlimitedCount}, Address: alice.Address()}},
 		}}, nil)
 		userBucket.Save(db, o)
 		o, _ = userBucket.Create(db, bob.Address(), bobWithAliceImmutableApproval, []nft.ActionApprovals{{
-			Action:    nft.Action_ActionUpdateApprovals.String(),
+			Action:    nft.UpdateApprovals,
 			Approvals: []nft.Approval{{Options: nft.ApprovalOptions{Count: nft.UnlimitedCount, Immutable: true}, Address: alice.Address()}},
 		}}, nil)
 		userBucket.Save(db, o)
 		o, _ = userBucket.Create(db, bob.Address(), bobWithAliceTimeoutApproval, []nft.ActionApprovals{{
-			Action:    nft.Action_ActionUpdateApprovals.String(),
+			Action:    nft.UpdateApprovals,
 			Approvals: []nft.Approval{{Options: nft.ApprovalOptions{Count: nft.UnlimitedCount, UntilBlockHeight: 5}, Address: alice.Address()}},
 		}}, nil)
 		userBucket.Save(db, o)
@@ -66,7 +66,7 @@ func TestApprovalOpsHandler(t *testing.T) {
 		Convey("Test add", func() {
 			msg := &nft.AddApprovalMsg{ID: bobsUsername,
 				Address: alice.Address(),
-				Action:  nft.Action_ActionUpdateDetails.String(),
+				Action:  nft.UpdateDetails,
 				Options: nft.ApprovalOptions{Count: nft.UnlimitedCount},
 				T:       app.NftType_USERNAME.String(),
 			}
@@ -81,7 +81,7 @@ func TestApprovalOpsHandler(t *testing.T) {
 					So(err, ShouldBeNil)
 					u, err := username.AsUsername(o)
 					So(err, ShouldBeNil)
-					owner := nft.FindActor(handler.Auth(), ctx, u, nft.Action_ActionUpdateApprovals.String())
+					owner := nft.FindActor(handler.Auth(), ctx, u, nft.UpdateApprovals)
 					So(owner, ShouldResemble, bob.Address())
 				})
 
@@ -97,11 +97,11 @@ func TestApprovalOpsHandler(t *testing.T) {
 					So(err, ShouldBeNil)
 					u, err := username.AsUsername(o)
 					So(err, ShouldBeNil)
-					usedApproval := getApproval(u.Approvals(), bob.Address(), nft.Action_ActionUpdateApprovals.String())
+					usedApproval := getApproval(u.Approvals(), bob.Address(), nft.UpdateApprovals)
 					So(usedApproval.Options.Count, ShouldEqual, 9)
-					approved := nft.FindActor(handler.Auth(), ctx, u, nft.Action_ActionUpdateApprovals.String())
+					approved := nft.FindActor(handler.Auth(), ctx, u, nft.UpdateApprovals)
 					So(approved, ShouldResemble, bob.Address())
-					usedApproval = getApproval(u.Approvals(), bob.Address(), nft.Action_ActionUpdateApprovals.String())
+					usedApproval = getApproval(u.Approvals(), bob.Address(), nft.UpdateApprovals)
 					So(usedApproval.Options.Count, ShouldEqual, 8)
 				})
 			})
@@ -177,7 +177,7 @@ func TestApprovalOpsHandler(t *testing.T) {
 					So(err, ShouldBeNil)
 					u, err := username.AsUsername(o)
 					So(err, ShouldBeNil)
-					approved := nft.FindActor(handler.Auth(), timeoutCtx, u, nft.Action_ActionUpdateApprovals.String())
+					approved := nft.FindActor(handler.Auth(), timeoutCtx, u, nft.UpdateApprovals)
 					So(approved, ShouldBeNil)
 				})
 			})
@@ -187,7 +187,7 @@ func TestApprovalOpsHandler(t *testing.T) {
 		Convey("Test Remove", func() {
 			msg := &nft.RemoveApprovalMsg{ID: bobWithAliceApproval,
 				Address: alice.Address(),
-				Action:  nft.Action_ActionUpdateApprovals.String(),
+				Action:  nft.UpdateApprovals,
 				T:       app.NftType_USERNAME.String(),
 			}
 			Convey("Test happy", func() {
@@ -299,7 +299,7 @@ func TestApprovalOpsHandler(t *testing.T) {
 	})
 }
 
-func getApproval(approvals *nft.ApprovalOps, signer weave.Address, action string) nft.Approval {
+func getApproval(approvals *nft.ApprovalOps, signer weave.Address, action nft.Action) nft.Approval {
 	appr := approvals.
 		List().
 		ForAction(action).

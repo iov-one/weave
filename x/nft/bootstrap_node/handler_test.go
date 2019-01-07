@@ -70,7 +70,7 @@ func TestHandleIssueTokenMsg(t *testing.T) {
 				"",
 			}},
 			approvals: []nft.ActionApprovals{{
-				Action:    nft.Action_ActionUpdateDetails.String(),
+				Action:    nft.UpdateDetails,
 				Approvals: []nft.Approval{{Options: nft.ApprovalOptions{Count: nft.UnlimitedCount}, Address: bob.Address()}},
 			}},
 		},
@@ -85,7 +85,7 @@ func TestHandleIssueTokenMsg(t *testing.T) {
 			}},
 			expCheckError: true,
 			approvals: []nft.ActionApprovals{{
-				Action:    nft.Action_ActionUpdateDetails.String(),
+				Action:    nft.UpdateDetails,
 				Approvals: []nft.Approval{{Options: nft.ApprovalOptions{Count: nft.UnlimitedCount}, Address: bob.Address()}},
 			}},
 		},

@@ -12,7 +12,7 @@ message NonFungibleToken {
 }
 
 message ActionApprovals {
-    string action = 1;
+    string action = 1 [(gogoproto.customtype) = "Action", (gogoproto.nullable) = false];
     repeated Approval approvals = 2 [(gogoproto.nullable) = false];
 }
 
@@ -30,7 +30,7 @@ message ApprovalOptions {
 message AddApprovalMsg {
     bytes id = 1 [(gogoproto.customname) = "ID"];
     bytes address = 2;
-    string action = 3;
+    string action = 3 [(gogoproto.customtype) = "Action", (gogoproto.nullable) = false];
     ApprovalOptions options = 4 [(gogoproto.nullable) = false];
     string t = 5;
 }
@@ -38,12 +38,6 @@ message AddApprovalMsg {
 message RemoveApprovalMsg {
     bytes id = 1 [(gogoproto.customname) = "ID"];
     bytes address = 2;
-    string action = 3;
+    string action = 3 [(gogoproto.customtype) = "Action", (gogoproto.nullable) = false];
     string t = 4;
-}
-
-enum Action {
-    ActionUpdateDetails = 0;
-    ActionTransfer = 1;
-    ActionUpdateApprovals = 2;
 }

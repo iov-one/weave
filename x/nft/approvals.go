@@ -10,7 +10,7 @@ import (
 const UnlimitedCount = -1
 
 type ApprovalMeta []Approval
-type Approvals map[string]ApprovalMeta
+type Approvals map[Action]ApprovalMeta
 
 func (m ActionApprovals) Clone() ActionApprovals {
 	return m
@@ -77,24 +77,19 @@ func (a ApprovalOptions) Validate() error {
 //This requires all the model-specific actions to be passed here
 //TODO: Not sure I'm a fan of array of maps, but it makes sense
 //given we validate using protobuf enum value maps
-func (m Approvals) Validate(actionMaps ...map[string]int32) error {
+func (m Approvals) Validate(actionMaps ...map[Action]int32) error {
 	for action, meta := range m {
 		if err := meta.Validate(); err != nil {
 			return err
 		}
 
-		withinImpl := func() bool {
-			for _, actionMap := range actionMaps {
-				if _, ok := actionMap[action]; ok {
-					return true
-				}
-			}
-			return false
-		}()
-		_, withinBase := Action_value[action]
-
-		if !(withinBase || withinImpl) {
+		if _, ok := validActions[action]; !ok {
 			return errors.ErrInternal(fmt.Sprintf("illegal action: %s", action))
+		}
+		for _, actionMap := range actionMaps {
+			if _, ok := actionMap[action]; ok {
+				return errors.ErrInternal(fmt.Sprintf("illegal action: %s", action))
+			}
 		}
 	}
 
@@ -102,7 +97,7 @@ func (m Approvals) Validate(actionMaps ...map[string]int32) error {
 }
 
 func (m Approvals) FilterExpired(blockHeight int64) Approvals {
-	res := make(map[string]ApprovalMeta, 0)
+	res := make(map[Action]ApprovalMeta, 0)
 	for action, approvals := range m {
 		for _, approval := range approvals {
 			if approval.Options.UntilBlockHeight > 0 && approval.Options.UntilBlockHeight < blockHeight {
@@ -135,18 +130,18 @@ func (m Approvals) IsEmpty() bool {
 	return len(m) == 0
 }
 
-func (m Approvals) MetaByAction(action string) ApprovalMeta {
+func (m Approvals) MetaByAction(action Action) ApprovalMeta {
 	return m[action]
 }
 
-func (m Approvals) ForAction(action string) Approvals {
-	res := make(map[string]ApprovalMeta, 0)
+func (m Approvals) ForAction(action Action) Approvals {
+	res := make(map[Action]ApprovalMeta, 0)
 	res[action] = m.MetaByAction(action)
 	return res
 }
 
 func (m Approvals) ForAddress(addr weave.Address) Approvals {
-	res := make(map[string]ApprovalMeta, 0)
+	res := make(map[Action]ApprovalMeta, 0)
 	for k, v := range m {
 		r := make([]Approval, 0)
 		for _, vv := range v {
@@ -162,7 +157,7 @@ func (m Approvals) ForAddress(addr weave.Address) Approvals {
 }
 
 func (m Approvals) Filter(obsolete Approvals) Approvals {
-	res := make(map[string]ApprovalMeta, 0)
+	res := make(map[Action]ApprovalMeta, 0)
 
 ApprovalsLoop:
 	for action, approvals := range m {
@@ -179,13 +174,13 @@ ApprovalsLoop:
 	return res
 }
 
-func (m Approvals) Add(action string, approval Approval) Approvals {
+func (m Approvals) Add(action Action, approval Approval) Approvals {
 	m[action] = append(m[action], approval)
 	return m
 }
 
 func (m Approvals) UseCount() Approvals {
-	res := make(map[string]ApprovalMeta, 0)
+	res := make(map[Action]ApprovalMeta, 0)
 	for action, approvals := range m {
 		for _, approval := range approvals {
 			if approval.Options.Count == 0 {
@@ -229,7 +224,7 @@ func (m Approvals) MergeUsed(used Approvals) Approvals {
 }
 
 func (m Approvals) Intersect(others Approvals) Approvals {
-	res := make(map[string]ApprovalMeta, 0)
+	res := make(map[Action]ApprovalMeta, 0)
 	for action, approvals := range others {
 		mApprovals := m[action]
 		for _, src := range approvals {

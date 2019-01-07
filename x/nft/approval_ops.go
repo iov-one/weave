@@ -18,14 +18,14 @@ func NewApprovalOps(owner weave.Address, approvals *[]ActionApprovals) *Approval
 }
 
 func (o *ApprovalOps) List() Approvals {
-	res := make(map[string]ApprovalMeta, 0)
+	res := make(map[Action]ApprovalMeta, 0)
 	for _, v := range *o.approvals {
 		res[v.Action] = v.Approvals
 	}
 	return res
 }
 
-func (o *ApprovalOps) Revoke(action string, from weave.Address) error {
+func (o *ApprovalOps) Revoke(action Action, from weave.Address) error {
 	if from == nil || from.Equals(o.owner) {
 		return errors.New("invalid account")
 	}
@@ -45,7 +45,7 @@ func (o *ApprovalOps) Revoke(action string, from weave.Address) error {
 }
 
 //TODO: Figure out whether we need wildcard approvals, might be wise to add an ApprovalOptions flag
-func (o *ApprovalOps) Grant(action string, to weave.Address, op ApprovalOptions, blockHeight int64, actionMaps ...map[string]int32) error {
+func (o *ApprovalOps) Grant(action Action, to weave.Address, op ApprovalOptions, blockHeight int64, actionMaps ...map[Action]int32) error {
 	if to == nil || to.Equals(o.owner) {
 		return errors.New("invalid destination account")
 	}

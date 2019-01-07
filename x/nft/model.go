@@ -8,8 +8,7 @@ import (
 var _ orm.CloneableData = (*NonFungibleToken)(nil)
 
 func (m *NonFungibleToken) Validate() error {
-	var validation *Validation
-	if !validation.IsValidTokenID(m.ID) {
+	if !isValidTokenID(m.ID) {
 		return ErrInvalidID(m.ID)
 	}
 
@@ -56,7 +55,7 @@ func (m *NonFungibleToken) SetApprovals(a Approvals) {
 	m.ActionApprovals = a.AsPersistable()
 }
 
-func (m *NonFungibleToken) HasApproval(actor weave.Address, action string) bool {
+func (m *NonFungibleToken) HasApproval(actor weave.Address, action Action) bool {
 	return !NewApprovalOps(m.OwnerAddress(), &m.ActionApprovals).
 		List().ForAction(action).ForAddress(actor).IsEmpty()
 }

@@ -48,7 +48,7 @@ func TestHandleIssueTokenMsg(t *testing.T) {
 			id:      []byte("ALC2"),
 			details: ticker.TokenDetails{[]byte("alicenet")},
 			approvals: []nft.ActionApprovals{{
-				Action:    nft.Action_ActionUpdateDetails.String(),
+				Action:    nft.UpdateDetails,
 				Approvals: []nft.Approval{{Options: nft.ApprovalOptions{Count: nft.UnlimitedCount}, Address: bob.Address()}},
 			}},
 		},
