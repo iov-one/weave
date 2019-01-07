@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/binary"
-	"encoding/hex"
 	"flag"
 	"fmt"
 	"io"
@@ -50,22 +49,12 @@ func printAddresses(out io.Writer, header bool, limit, offset int) {
 	defer w.Flush()
 
 	if header {
-		fmt.Fprintln(w, "index\taddress\tjson repr\thex repr")
+		fmt.Fprintln(w, "index\taddress")
 	}
 	for i := offset; i < limit+offset; i++ {
 		addr := multisig.MultiSigCondition(seq(i)).Address()
-		jsonAddr, err := addr.MarshalJSON()
-		hexAddr := hex.EncodeToString(addr)
-		if err != nil {
-			fatalf("cannot serialize address: %s", err)
-		}
-		fmt.Fprintf(w, "%d\t%s\t%s\t%s\n", i, addr, jsonAddr[1:len(jsonAddr)-1], hexAddr)
+		fmt.Fprintf(w, "%d\t%s\n", i, addr.String())
 	}
-}
-
-func fatalf(format string, args ...interface{}) {
-	fmt.Fprintf(os.Stderr, format, args...)
-	os.Exit(1)
 }
 
 // seq returns binary representation of a sequence number.
