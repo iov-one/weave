@@ -33,12 +33,15 @@
   },
   "chain_id": "test-chain-KqKNbF",
   "consensus_params": {
-    "block_size_params": {
+    "block_size": {
       "max_bytes": "22020096",
       "max_gas": "-1"
     },
-    "evidence_params": {
+    "evidence": {
       "max_age": "100000"
+    },
+    "validator": {
+      "pub_key_types": ["ed25519"]
     }
   },
   "genesis_time": "2018-10-31T22:04:57.909689Z",

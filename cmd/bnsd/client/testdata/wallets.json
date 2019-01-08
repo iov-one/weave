@@ -8,5 +8,11 @@
           "address": "d4821fd051696273d09e1fbad0ebe5b5060787a7",
           "name": "bert"
         }
-    ]
+    ],
+    "consensus_params": {
+        "block_size": {
+            "max_bytes": "22020096",
+            "max_gas": "-1"
+	}
+    }
 }
