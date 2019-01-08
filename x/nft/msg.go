@@ -1,6 +1,8 @@
 package nft
 
 import (
+	"regexp"
+
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
 )
@@ -27,7 +29,7 @@ func (m AddApprovalMsg) Validate() error {
 	if err := weave.Address(m.Address).Validate(); err != nil {
 		return err
 	}
-	if _, ok := validActions[m.Action]; !ok {
+	if !isValidAction(m.Action) {
 		return errors.ErrInternal("invalid action")
 	}
 	if !isValidTokenID(m.ID) {
@@ -40,7 +42,7 @@ func (m RemoveApprovalMsg) Validate() error {
 	if err := weave.Address(m.Address).Validate(); err != nil {
 		return err
 	}
-	if _, ok := validActions[m.Action]; !ok {
+	if !isValidAction(m.Action) {
 		return errors.ErrInternal("invalid action")
 	}
 	if !isValidTokenID(m.ID) {
@@ -60,11 +62,22 @@ const (
 	UpdateApprovals Action = "ActionUpdateApprovals"
 )
 
-// validActions is an index of all available and supported by the
-// implementation actions. This is to be used to validate if requested action
-// is valid and can be handled.
-var validActions = map[Action]struct{}{
-	UpdateDetails:   struct{}{},
-	Transfer:        struct{}{},
-	UpdateApprovals: struct{}{},
+// isValidAction returns true if given value is a valid action name. Action can
+// be of type string or Action.
+//
+// Although all known to nft implementation actions are declared as constatns,
+// user of nft might extend it with custom action strings. Because of this, we
+// cannot validate the action by comparing to list of all known actions. We can
+// only ensure that given name follows certain rules.
+func isValidAction(action interface{}) bool {
+	switch a := action.(type) {
+	case Action:
+		return isValidActionString(string(a))
+	case string:
+		return isValidActionString(a)
+	default:
+		return false
+	}
 }
+
+var isValidActionString = regexp.MustCompile(`^[A-Za-z]{4,32}$`).MatchString

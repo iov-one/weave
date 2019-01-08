@@ -83,7 +83,7 @@ func (m Approvals) Validate(actionMaps ...map[Action]int32) error {
 			return err
 		}
 
-		if _, ok := validActions[action]; !ok {
+		if !isValidAction(action) {
 			return errors.ErrInternal(fmt.Sprintf("illegal action: %s", action))
 		}
 		for _, actionMap := range actionMaps {
