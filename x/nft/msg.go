@@ -1,8 +1,6 @@
 package nft
 
 import (
-	"regexp"
-
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
 )
@@ -50,34 +48,3 @@ func (m RemoveApprovalMsg) Validate() error {
 	}
 	return nil
 }
-
-// Action represents available and supported by the implementation actions.
-// This is just a string type alias, but using it increase the clarity of the
-// API.
-type Action string
-
-const (
-	UpdateDetails   Action = "ActionUpdateDetails"
-	Transfer        Action = "ActionTransfer"
-	UpdateApprovals Action = "ActionUpdateApprovals"
-)
-
-// isValidAction returns true if given value is a valid action name. Action can
-// be of type string or Action.
-//
-// Although all known to nft implementation actions are declared as constatns,
-// user of nft might extend it with custom action strings. Because of this, we
-// cannot validate the action by comparing to list of all known actions. We can
-// only ensure that given name follows certain rules.
-func isValidAction(action interface{}) bool {
-	switch a := action.(type) {
-	case Action:
-		return isValidActionString(string(a))
-	case string:
-		return isValidActionString(a)
-	default:
-		return false
-	}
-}
-
-var isValidActionString = regexp.MustCompile(`^[A-Za-z]{4,32}$`).MatchString
