@@ -21,7 +21,7 @@ go:
 env:
 - GORACE="halt_on_error=1"
   BUILD_VERSION=$(echo ${TRAVIS_COMMIT} | cut -c 1-10)
-  TM_VERSION=v0.25.0
+  TM_VERSION=v0.27.4
   FORCE_TM_TEST=1
 
 install:
