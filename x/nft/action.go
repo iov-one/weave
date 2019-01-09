@@ -18,12 +18,6 @@ const (
 	UpdateApprovals Action = "ActionUpdateApprovals"
 )
 
-func init() {
-	RegisterAction(UpdateDetails)
-	RegisterAction(Transfer)
-	RegisterAction(UpdateApprovals)
-}
-
 // RegisterAction introduce an Action to the extension.
 //
 // Every action must be registered before being used. This is a mandatory step
@@ -51,7 +45,12 @@ var validActions = struct {
 	sync.RWMutex
 	set map[Action]struct{}
 }{
-	set: map[Action]struct{}{},
+	set: map[Action]struct{}{
+		// Actions for which support is implemented in nft.
+		UpdateDetails:   struct{}{},
+		Transfer:        struct{}{},
+		UpdateApprovals: struct{}{},
+	},
 }
 
 // isValidAction returns true if given value is a valid action name. Action can
