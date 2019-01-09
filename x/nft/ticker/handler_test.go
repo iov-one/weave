@@ -1,13 +1,20 @@
 package ticker_test
 
 import (
+	"crypto/rand"
 	"encoding/base32"
+	"encoding/base64"
 	"encoding/binary"
 	"fmt"
+	"os"
+	"path"
+	"strings"
 	"testing"
 
 	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/app"
 	"github.com/iov-one/weave/store"
+	"github.com/iov-one/weave/store/iavl"
 	"github.com/iov-one/weave/x"
 	"github.com/iov-one/weave/x/nft"
 	"github.com/iov-one/weave/x/nft/blockchain"
@@ -144,80 +151,110 @@ func TestQueryTokenByName(t *testing.T) {
 }
 
 func BenchmarkIssueToken(b *testing.B) {
+	cases := []struct {
+		check       bool
+		deliver     bool
+		txBlockSize int
+	}{
+		{check: true, deliver: false, txBlockSize: 10},
+		{check: false, deliver: true, txBlockSize: 10},
+		{check: true, deliver: true, txBlockSize: 1},
+		{check: true, deliver: true, txBlockSize: 10},
+		{check: true, deliver: true, txBlockSize: 100},
+	}
+
+	for _, tc := range cases {
+		// Build a nice test name, considering all the parameters of a
+		// table test.
+		var nameChunks []string
+		if tc.check {
+			nameChunks = append(nameChunks, "with check")
+		} else {
+			nameChunks = append(nameChunks, "no check")
+		}
+		if tc.deliver {
+			nameChunks = append(nameChunks, "with deliver")
+		} else {
+			nameChunks = append(nameChunks, "no deliver")
+		}
+		nameChunks = append(nameChunks, fmt.Sprintf("block size %d", tc.txBlockSize))
+		testName := strings.Join(nameChunks, " ")
+
+		b.Run(testName, func(b *testing.B) {
+			benchIssueToken(b, tc.check, tc.deliver, tc.txBlockSize)
+		})
+	}
+}
+
+func benchIssueToken(
+	b *testing.B,
+	check bool,
+	deliver bool,
+	txBlockSize int,
+) {
 	var helpers x.TestHelpers
 	_, authKey := helpers.MakeKey()
 
-	cases := map[string]struct {
-		check   bool
-		deliver bool
-	}{
-		"check only": {
-			check:   true,
-			deliver: false,
-		},
-		"deliver only": {
-			check:   false,
-			deliver: true,
-		},
-		"check and deliver": {
-			// This case may seem pointless considered the above
-			// checks, but in real application a cache layer may
-			// kick in.
-			check:   true,
-			deliver: true,
-		},
-	}
+	dir := tmpDir()
+	defer os.RemoveAll(dir)
 
-	for testName, tc := range cases {
-		b.Run(testName, func(b *testing.B) {
-			db := store.MemStore()
-			tickers := ticker.NewBucket()
-			blockchains := blockchain.NewBucket()
-			bc, _ := blockchains.Create(db, authKey.Address(), []byte("benchnet"), nil, blockchain.Chain{MainTickerID: []byte("IOV")}, blockchain.IOV{Codec: "asd"})
-			blockchains.Save(db, bc)
-			handler := ticker.NewIssueHandler(helpers.Authenticate(authKey), nil, tickers, blockchains.Bucket)
+	// Use commit store, so that database operations can be grouped in
+	// blocks and commited in batches, just like the real application is
+	// supposed to work.
+	// We also use a database backend that is using a hard drive, so that
+	// the benchmark is as close to a real application as possible.
+	db := app.NewCommitStore(iavl.NewCommitStore(dir, b.Name()))
 
-			transactions := make([]weave.Tx, b.N)
-			for i := range transactions {
-				transactions[i] = helpers.MockTx(&ticker.IssueTokenMsg{
-					Owner: authKey.Address(),
-					ID:    genTickerID(i),
-					Details: ticker.TokenDetails{
-						BlockchainID: []byte("benchnet"),
+	tickers := ticker.NewBucket()
+	blockchains := blockchain.NewBucket()
+	bc, _ := blockchains.Create(db.DeliverStore(), authKey.Address(), []byte("benchnet"), nil, blockchain.Chain{MainTickerID: []byte("IOV")}, blockchain.IOV{Codec: "asd"})
+	blockchains.Save(db.DeliverStore(), bc)
+	handler := ticker.NewIssueHandler(helpers.Authenticate(authKey), nil, tickers, blockchains.Bucket)
+	db.Commit()
+
+	transactions := make([]weave.Tx, b.N)
+	for i := range transactions {
+		transactions[i] = helpers.MockTx(&ticker.IssueTokenMsg{
+			Owner: authKey.Address(),
+			ID:    genTickerID(i),
+			Details: ticker.TokenDetails{
+				BlockchainID: []byte("benchnet"),
+			},
+			Approvals: []nft.ActionApprovals{
+				{
+					Action: nft.UpdateDetails,
+					Approvals: []nft.Approval{
+						{Options: nft.ApprovalOptions{Count: nft.UnlimitedCount}, Address: authKey.Address()},
 					},
-					Approvals: []nft.ActionApprovals{
-						{
-							Action: nft.UpdateDetails,
-							Approvals: []nft.Approval{
-								{Options: nft.ApprovalOptions{Count: nft.UnlimitedCount}, Address: authKey.Address()},
-							},
-						},
-					},
-				})
-			}
-			cache := db.CacheWrap()
-
-			b.ResetTimer()
-
-			for i, tx := range transactions {
-				if tc.check {
-					_, err := handler.Check(nil, cache, tx)
-					cache.Discard()
-					if err != nil {
-						b.Fatalf("check %d: %s", i, err)
-					}
-				}
-
-				if tc.deliver {
-					_, err := handler.Deliver(nil, db, tx)
-					cache.Discard()
-					if err != nil {
-						b.Fatalf("deliver %d: %s", i, err)
-					}
-				}
-			}
+				},
+			},
 		})
 	}
+
+	b.ResetTimer()
+
+	for i, tx := range transactions {
+		if check {
+			_, err := handler.Check(nil, db.CheckStore(), tx)
+			if err != nil {
+				b.Fatalf("check %d: %s", i, err)
+			}
+		}
+
+		if deliver {
+			_, err := handler.Deliver(nil, db.DeliverStore(), tx)
+			if err != nil {
+				b.Fatalf("deliver %d: %s", i, err)
+			}
+		}
+
+		// Commit only when enough transactions were processed.
+		if i%txBlockSize == 0 {
+			db.Commit()
+		}
+	}
+	// Make sure buffer is cleaned up when done.
+	db.Commit()
 }
 
 // genTickerID returns a unique ticker ID that is always associated with given
@@ -229,4 +266,17 @@ func genTickerID(i int) []byte {
 	base32.StdEncoding.Encode(id, raw)
 	// Ticker ID must be between 3 and 4 characters.
 	return id[:4]
+}
+
+// tmpDir creates and returns a temporary directory absolute path.
+func tmpDir() string {
+	b := make([]byte, 8)
+	if _, err := rand.Read(b); err != nil {
+		panic(b)
+	}
+	dir := path.Join(os.TempDir(), strings.TrimRight(base64.StdEncoding.EncodeToString(b), "="))
+	if err := os.MkdirAll(dir, 0777); err != nil {
+		panic("cannot created directory: " + dir)
+	}
+	return dir
 }
