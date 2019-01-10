@@ -1,4 +1,5 @@
 package app
+
 //Commented out for a minimal feature-set release
 //import (
 //	"github.com/iov-one/weave"

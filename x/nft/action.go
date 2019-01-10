@@ -45,12 +45,7 @@ var validActions = struct {
 	sync.RWMutex
 	set map[Action]struct{}
 }{
-	set: map[Action]struct{}{
-		// Actions for which support is implemented in nft.
-		UpdateDetails:   struct{}{},
-		Transfer:        struct{}{},
-		UpdateApprovals: struct{}{},
-	},
+	set: map[Action]struct{}{},
 }
 
 // isValidAction returns true if given value is a valid action name. Action can
