@@ -18,6 +18,11 @@ const (
 	UpdateApprovals Action = "ActionUpdateApprovals"
 )
 
+// DefaultActions lists all the actions that need to be registered for nft to work
+var DefaultActions = []Action{
+	UpdateApprovals, UpdateDetails, Transfer,
+}
+
 // RegisterAction introduce an Action to the extension.
 //
 // Every action must be registered before being used. This is a mandatory step

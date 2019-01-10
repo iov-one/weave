@@ -119,7 +119,7 @@ func RegisterNft() {
 	nft.GetBucketDispatcher().Register(NftType_BOOTSTRAP_NODE.String(), bootstrap_node.NewBucket())
 
 	// Default nft actions.
-	nft.RegisterAction(nft.UpdateDetails, nft.Transfer, nft.UpdateApprovals)
+	nft.RegisterAction(nft.DefaultActions...)
 }
 
 // Stack wires up a standard router with a standard decorator
