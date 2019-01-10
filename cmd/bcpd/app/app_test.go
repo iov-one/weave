@@ -33,7 +33,7 @@ func TestSendTx(t *testing.T) {
 
 	// Query for my balance
 	key := cash.NewBucket().DBKey(mainAccount.address())
-	queryAndCheckWallet(t, myApp, "/", key, cash.Set{
+	queryAndCheckWallet(t, false, myApp, "/", key, cash.Set{
 		Coins: x.Coins{
 			{Ticker: "ETH", Whole: 50000},
 			{Ticker: "FRNK", Whole: 1234},
@@ -67,14 +67,16 @@ func TestSendTx(t *testing.T) {
 	})
 
 	// Query for new balances (same query, new state)
-	queryAndCheckWallet(t, myApp, "/", key, cash.Set{
+	queryAndCheckWallet(t, false, myApp, "/", key, cash.Set{
 		Coins: x.Coins{
 			{Ticker: "ETH", Whole: 30000},
 			{Ticker: "FRNK", Whole: 1234},
 		},
 	})
 
-	dres = sendBatch(t, true, myApp, chainID, 2, []*account{mainAccount}, mainAccount.address(), addr2, 2000, "ETH", "Have a great trip!")
+	pk3 := crypto.GenPrivKeyEd25519()
+	addr3 := pk3.PublicKey().Address()
+	dres = sendBatch(t, true, myApp, chainID, 2, []*account{mainAccount}, mainAccount.address(), addr3, 2000, "ETH", "Have a great trip!")
 	assert.NotEqual(t, 0, dres.Code)
 }
 
@@ -95,7 +97,7 @@ func TestQuery(t *testing.T) {
 
 	// Query for new balances
 	key := cash.NewBucket().DBKey(mainAccount.address())
-	queryAndCheckWallet(t, myApp, "/", key, cash.Set{
+	queryAndCheckWallet(t, false, myApp, "/", key, cash.Set{
 		Coins: x.Coins{
 			{Ticker: "ETH", Whole: 48000},
 			{Ticker: "FRNK", Whole: 1234},
@@ -104,14 +106,14 @@ func TestQuery(t *testing.T) {
 
 	// make sure money arrived safely
 	key2 := cash.NewBucket().DBKey(addr2)
-	queryAndCheckWallet(t, myApp, "/", key2, cash.Set{
+	queryAndCheckWallet(t, false, myApp, "/", key2, cash.Set{
 		Coins: x.Coins{
 			{Ticker: "ETH", Whole: 2000},
 		},
 	})
 
 	// make sure other paths also get this value....
-	queryAndCheckWallet(t, myApp, "/wallets", addr2, cash.Set{
+	queryAndCheckWallet(t, false, myApp, "/wallets", addr2, cash.Set{
 		Coins: x.Coins{
 			{Ticker: "ETH", Whole: 2000},
 		},
@@ -315,7 +317,7 @@ func sendToken(t require.TestingT, baseApp app.BaseApp, chainID string, height i
 	res := signAndCommit(t, false, baseApp, tx, signers, chainID, height)
 
 	// make sure money arrived safely
-	queryAndCheckWallet(t, baseApp, "/wallets", to, cash.Set{
+	queryAndCheckWallet(t, false, baseApp, "/wallets", to, cash.Set{
 		Coins: x.Coins{
 			{Ticker: ticker, Whole: amount},
 		},
@@ -348,7 +350,7 @@ func sendBatch(t require.TestingT, fail bool, baseApp app.BaseApp, chainID strin
 	}
 
 	if fail == true {
-		messages[0] = BatchMsg_Union{
+		messages[batch.MaxBatchMessages-1] = BatchMsg_Union{
 			Sum: &BatchMsg_Union_CreateEscrowMsg{
 				&escrow.CreateEscrowMsg{},
 			},
@@ -362,14 +364,17 @@ func sendBatch(t require.TestingT, fail bool, baseApp app.BaseApp, chainID strin
 
 	res := signAndCommit(t, fail, baseApp, tx, signers, chainID, height)
 
-	// make sure money arrived safely
-	if !fail {
-		queryAndCheckWallet(t, baseApp, "/wallets", to, cash.Set{
-			Coins: x.Coins{
-				{Ticker: ticker, Whole: amount * batch.MaxBatchMessages},
-			},
-		})
+	checkAmount := amount * batch.MaxBatchMessages
+	if fail {
+		checkAmount = 0
 	}
+
+	// make sure money arrived only for successful batch
+	queryAndCheckWallet(t, fail, baseApp, "/wallets", to, cash.Set{
+		Coins: x.Coins{
+			{Ticker: ticker, Whole: checkAmount},
+		},
+	})
 
 	return res
 }
@@ -437,12 +442,17 @@ func signAndCommit(t require.TestingT, fail bool, app app.BaseApp, tx *Tx, signe
 }
 
 // queryAndCheckWallet queries the wallet from the chain and check it is the one expected
-func queryAndCheckWallet(t require.TestingT, baseApp app.BaseApp, path string, data []byte, expected cash.Set) {
+func queryAndCheckWallet(t require.TestingT, fail bool, baseApp app.BaseApp, path string, data []byte, expected cash.Set) {
 	query := abci.RequestQuery{Path: path, Data: data}
 	res := baseApp.Query(query)
 
 	// check query was ok
 	require.Equal(t, uint32(0), res.Code, "%#v", res)
+
+	// don't check the result on fail as it is empty when nothing is sent
+	if fail {
+		return
+	}
 	assert.NotEmpty(t, res.Value)
 
 	var actual cash.Set

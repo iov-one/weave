@@ -15,7 +15,7 @@ import (
 )
 
 func TestIssueNfts(t *testing.T) {
-  // ID must be at least 3 characters, so ensure it's never less than 100.
+	// ID must be at least 3 characters, so ensure it's never less than 100.
 	// Min length is defined in x/nft helpers.
 	uniqueSuffix := rand.New(rand.NewSource(time.Now().UnixNano())).Intn(9999) + 100
 	myBlockchainID := []byte(fmt.Sprintf("aliceChain%d", uniqueSuffix))
