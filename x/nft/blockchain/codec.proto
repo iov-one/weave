@@ -16,12 +16,25 @@ message TokenDetails {
     IOV iov = 2 [(gogoproto.nullable) = false];
 }
 
+// Chain represents a blockchain information.
+//
+// Name chain is used instead of blockchain to not repeat the same word
+// everywhere.
 message Chain {
+    // Chain ID is the blockchain ID as referred in our system.
     string chain_id = 1 [(gogoproto.customname) = "ChainID"];
+
+    // TODO(piotr) what is this values used for?
+
     string network_id = 2 [(gogoproto.customname) = "NetworkID"];
+    // Name holds human redable name of the blockchain.
     string name = 3;
+    // Enabled is a flag used for soft delete.
     bool enabled = 4;
     bool production = 5;
+    // Main ticker ID links to the ticker (see ticker module) that is
+    // considered the main ticker for given blockchain. A blockchain can have
+    // any number of tickers registered.
     bytes main_ticker_id = 6 [(gogoproto.customname) = "MainTickerID"];
 }
 
