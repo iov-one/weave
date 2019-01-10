@@ -30,7 +30,7 @@ func TestSendTx(t *testing.T) {
 	chainID := "test-net-22"
 	mainAccount := &account{pk: crypto.GenPrivKeyEd25519()}
 	myApp := newTestApp(t, chainID, []*account{mainAccount})
-
+	var amount int64 = 2000
 	// Query for my balance
 	key := cash.NewBucket().DBKey(mainAccount.address())
 	queryAndCheckWallet(t, false, myApp, "/", key, cash.Set{
@@ -43,8 +43,7 @@ func TestSendTx(t *testing.T) {
 	// build and sign a transaction
 	pk2 := crypto.GenPrivKeyEd25519()
 	addr2 := pk2.PublicKey().Address()
-	dres := sendBatch(t, false, myApp, chainID, 2, []*account{mainAccount}, mainAccount.address(), addr2, 2000, "ETH", "Have a great trip!")
-
+	dres := sendBatch(t, false, myApp, chainID, 2, []*account{mainAccount}, mainAccount.address(), addr2, amount, "ETH", "Have a great trip!")
 	require.Equal(t, 3, len(dres.Tags), "%#v", dres.Tags)
 	addr := mainAccount.pk.PublicKey().Address()
 	wantKeys := []string{
@@ -66,17 +65,23 @@ func TestSendTx(t *testing.T) {
 		string(dres.Tags[2].Value),
 	})
 
+	queryBalance := func() {
+		queryAndCheckWallet(t, false, myApp, "/", key, cash.Set{
+			Coins: x.Coins{
+				{Ticker: "ETH", Whole: 30000},
+				{Ticker: "FRNK", Whole: 1234},
+			},
+		})
+	}
+
 	// Query for new balances (same query, new state)
-	queryAndCheckWallet(t, false, myApp, "/", key, cash.Set{
-		Coins: x.Coins{
-			{Ticker: "ETH", Whole: 30000},
-			{Ticker: "FRNK", Whole: 1234},
-		},
-	})
+	queryBalance()
 
 	pk3 := crypto.GenPrivKeyEd25519()
 	addr3 := pk3.PublicKey().Address()
-	dres = sendBatch(t, true, myApp, chainID, 2, []*account{mainAccount}, mainAccount.address(), addr3, 2000, "ETH", "Have a great trip!")
+	dres = sendBatch(t, true, myApp, chainID, 2, []*account{mainAccount}, mainAccount.address(), addr3, amount, "ETH", "Have a great trip!")
+	// Query for balances (should be unchanged because of fail)
+	queryBalance()
 	assert.NotEqual(t, 0, dres.Code)
 }
 
