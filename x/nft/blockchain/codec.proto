@@ -23,9 +23,11 @@ message TokenDetails {
 message Chain {
     // Chain ID is the blockchain ID as referred in our system.
     string chain_id = 1 [(gogoproto.customname) = "ChainID"];
-
-    // TODO(piotr) what is this values used for?
-
+    // Network ID can be used by a blockchain implementation to distinguish
+    // between different instances of the same implementation. This value might
+    // be called chain ID in other places.
+    //
+    // https://ethereum.stackexchange.com/questions/17051/how-to-select-a-network-id-or-is-there-a-list-of-network-ids
     string network_id = 2 [(gogoproto.customname) = "NetworkID"];
     // Name holds human redable name of the blockchain.
     string name = 3;
