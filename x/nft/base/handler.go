@@ -88,7 +88,7 @@ func (h *ApprovalOpsHandler) Deliver(ctx weave.Context, store weave.KVStore, tx 
 		return res, err
 	}
 
-	actor := nft.FindActor(h.auth, ctx, t, nft.Action_ActionUpdateApprovals.String())
+	actor := nft.FindActor(h.auth, ctx, t, nft.UpdateApprovals)
 	if actor == nil {
 		return res, errors.ErrUnauthorized()
 	}

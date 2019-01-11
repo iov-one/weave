@@ -1,8 +1,6 @@
 package nft
 
 import (
-	"regexp"
-
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/x"
 )
@@ -12,22 +10,11 @@ const (
 	maxIDLength = 256
 )
 
-var (
-	isValidAction = regexp.MustCompile(`^[A-Za-z]{4,32}$`).MatchString
-)
-
-type Validation struct {
-}
-
-func (*Validation) IsValidAction(action string) bool {
-	return isValidAction(action)
-}
-
-func (*Validation) IsValidTokenID(id []byte) bool {
+func isValidTokenID(id []byte) bool {
 	return len(id) >= minIDLength && len(id) <= maxIDLength
 }
 
-func FindActor(auth x.Authenticator, ctx weave.Context, t BaseNFT, action string) weave.Address {
+func FindActor(auth x.Authenticator, ctx weave.Context, t BaseNFT, action Action) weave.Address {
 	if auth.HasAddress(ctx, t.OwnerAddress()) {
 		return t.OwnerAddress()
 	}

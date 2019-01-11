@@ -111,12 +111,15 @@ func QueryRouter() weave.QueryRouter {
 	return r
 }
 
-// Register nft types for shared action handling via base handler
+// Register nft types and actions for shared action handling via base handler
 func RegisterNft() {
 	nft.GetBucketDispatcher().Register(NftType_USERNAME.String(), username.NewBucket())
 	nft.GetBucketDispatcher().Register(NftType_TICKER.String(), ticker.NewBucket())
 	nft.GetBucketDispatcher().Register(NftType_BLOCKCHAIN.String(), blockchain.NewBucket())
 	nft.GetBucketDispatcher().Register(NftType_BOOTSTRAP_NODE.String(), bootstrap_node.NewBucket())
+
+	// Default nft actions.
+	nft.RegisterAction(nft.DefaultActions...)
 }
 
 // Stack wires up a standard router with a standard decorator

@@ -20,6 +20,8 @@ func TestHandleIssueTokenMsg(t *testing.T) {
 	_, alice := helpers.MakeKey()
 	_, bob := helpers.MakeKey()
 
+	nft.RegisterAction(nft.DefaultActions...)
+
 	db := store.MemStore()
 
 	bucket := bootstrap_node.NewBucket()
@@ -70,7 +72,7 @@ func TestHandleIssueTokenMsg(t *testing.T) {
 				"",
 			}},
 			approvals: []nft.ActionApprovals{{
-				Action:    nft.Action_ActionUpdateDetails.String(),
+				Action:    nft.UpdateDetails,
 				Approvals: []nft.Approval{{Options: nft.ApprovalOptions{Count: nft.UnlimitedCount}, Address: bob.Address()}},
 			}},
 		},
@@ -85,7 +87,7 @@ func TestHandleIssueTokenMsg(t *testing.T) {
 			}},
 			expCheckError: true,
 			approvals: []nft.ActionApprovals{{
-				Action:    nft.Action_ActionUpdateDetails.String(),
+				Action:    nft.UpdateDetails,
 				Approvals: []nft.Approval{{Options: nft.ApprovalOptions{Count: nft.UnlimitedCount}, Address: bob.Address()}},
 			}},
 		},

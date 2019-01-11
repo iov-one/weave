@@ -19,6 +19,8 @@ func TestHandleIssueTokenMsg(t *testing.T) {
 	_, alice := helpers.MakeKey()
 	_, bob := helpers.MakeKey()
 
+	nft.RegisterAction(nft.DefaultActions...)
+
 	db := store.MemStore()
 	bucket := blockchain.NewBucket()
 	o, _ := bucket.Create(db, bob.Address(), []byte("any_network"), nil, blockchain.Chain{MainTickerID: []byte("IOV")}, blockchain.IOV{Codec: "asd"})
@@ -57,7 +59,7 @@ func TestHandleIssueTokenMsg(t *testing.T) {
 			id:      []byte("other_network1"),
 			details: blockchain.TokenDetails{Chain: blockchain.Chain{MainTickerID: []byte("IOV")}, Iov: blockchain.IOV{Codec: "test"}},
 			approvals: []nft.ActionApprovals{{
-				Action:    nft.Action_ActionUpdateDetails.String(),
+				Action:    nft.UpdateDetails,
 				Approvals: []nft.Approval{{Options: nft.ApprovalOptions{Count: nft.UnlimitedCount}, Address: bob.Address()}},
 			}},
 		},
@@ -66,7 +68,7 @@ func TestHandleIssueTokenMsg(t *testing.T) {
 			id:      []byte("other_network2"),
 			details: blockchain.TokenDetails{Chain: blockchain.Chain{MainTickerID: []byte("1OV")}, Iov: blockchain.IOV{Codec: "test", CodecConfig: `{"da": 1}`}},
 			approvals: []nft.ActionApprovals{{
-				Action:    nft.Action_ActionUpdateDetails.String(),
+				Action:    nft.UpdateDetails,
 				Approvals: []nft.Approval{{Options: nft.ApprovalOptions{Count: nft.UnlimitedCount}, Address: bob.Address()}},
 			}},
 			expDeliverError: true,
@@ -82,7 +84,7 @@ func TestHandleIssueTokenMsg(t *testing.T) {
 			id:      []byte("other_network4"),
 			details: blockchain.TokenDetails{Chain: blockchain.Chain{MainTickerID: []byte("IOV")}, Iov: blockchain.IOV{Codec: "1"}},
 			approvals: []nft.ActionApprovals{{
-				Action:    nft.Action_ActionUpdateDetails.String(),
+				Action:    nft.UpdateDetails,
 				Approvals: []nft.Approval{{Options: nft.ApprovalOptions{Count: nft.UnlimitedCount}, Address: bob.Address()}},
 			}},
 			expCheckError: true,
@@ -92,7 +94,7 @@ func TestHandleIssueTokenMsg(t *testing.T) {
 			id:      []byte("other_network5"),
 			details: blockchain.TokenDetails{Chain: blockchain.Chain{MainTickerID: []byte("IOV")}, Iov: blockchain.IOV{Codec: "bbb", CodecConfig: "{ssdas"}},
 			approvals: []nft.ActionApprovals{{
-				Action:    nft.Action_ActionUpdateDetails.String(),
+				Action:    nft.UpdateDetails,
 				Approvals: []nft.Approval{{Options: nft.ApprovalOptions{Count: nft.UnlimitedCount}, Address: bob.Address()}},
 			}},
 			expCheckError: true,
@@ -159,6 +161,8 @@ func TestQueryTokenByName(t *testing.T) {
 	var helpers x.TestHelpers
 	_, alice := helpers.MakeKey()
 	_, bob := helpers.MakeKey()
+
+	nft.RegisterAction(nft.DefaultActions...)
 
 	db := store.MemStore()
 	bucket := blockchain.NewBucket()

@@ -22,6 +22,8 @@ func TestHandleIssueTokenMsg(t *testing.T) {
 	_, alice := helpers.MakeKey()
 	_, bob := helpers.MakeKey()
 
+	nft.RegisterAction(nft.DefaultActions...)
+
 	db := store.MemStore()
 	bucket := username.NewBucket()
 	blockchains := blockchain.NewBucket()
@@ -95,7 +97,7 @@ func TestHandleIssueTokenMsg(t *testing.T) {
 			id:      []byte("any5@example.com"),
 			details: username.TokenDetails{myNewChainAddresses},
 			approvals: []nft.ActionApprovals{{
-				Action:    nft.Action_ActionUpdateDetails.String(),
+				Action:    nft.UpdateDetails,
 				Approvals: []nft.Approval{{Options: nft.ApprovalOptions{Count: nft.UnlimitedCount}, Address: bob.Address()}},
 			}},
 		},
@@ -262,7 +264,7 @@ func TestAddChainAddress(t *testing.T) {
 		bob.Address(),
 		[]byte("withcount@example.com"),
 		[]nft.ActionApprovals{{
-			Action:    nft.Action_ActionUpdateDetails.String(),
+			Action:    nft.UpdateDetails,
 			Approvals: []nft.Approval{{Options: nft.ApprovalOptions{Count: 10, UntilBlockHeight: 5}, Address: alice.Address()}},
 		}}, myNextAddress)
 	bucket.Save(db, o)
@@ -329,7 +331,7 @@ func TestAddChainAddress(t *testing.T) {
 			newChainID: []byte("myOtherNet"),
 			newAddress: "myOtherAddressID",
 			expApprovals: nft.Approvals{
-				nft.Action_ActionUpdateDetails.String(): []nft.Approval{
+				nft.UpdateDetails: []nft.Approval{
 					{Options: nft.ApprovalOptions{Count: 9, UntilBlockHeight: 5}, Address: alice.Address()}}},
 			expChainAddress: append(myNextAddress, username.ChainAddress{BlockchainID: []byte("myOtherNet"), Address: "myOtherAddressID"}),
 			ctx:             context.Background(),

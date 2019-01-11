@@ -24,29 +24,27 @@ func (*RemoveApprovalMsg) Path() string {
 }
 
 func (m AddApprovalMsg) Validate() error {
-	var validation *Validation
 	if err := weave.Address(m.Address).Validate(); err != nil {
 		return err
 	}
-	if !validation.IsValidAction(m.Action) {
-		return errors.ErrInternal("action must be valid")
+	if !isValidAction(m.Action) {
+		return errors.ErrInternal("invalid action")
 	}
-	if !validation.IsValidTokenID(m.ID) {
-		return errors.ErrInternal("id must be valid")
+	if !isValidTokenID(m.ID) {
+		return errors.ErrInternal("invalid token ID")
 	}
 	return m.Options.Validate()
 }
 
 func (m RemoveApprovalMsg) Validate() error {
-	var validation *Validation
 	if err := weave.Address(m.Address).Validate(); err != nil {
 		return err
 	}
-	if !validation.IsValidAction(m.Action) {
-		return errors.ErrInternal("action must be valid")
+	if !isValidAction(m.Action) {
+		return errors.ErrInternal("invalid action")
 	}
-	if !validation.IsValidTokenID(m.ID) {
-		return errors.ErrInternal("id must be valid")
+	if !isValidTokenID(m.ID) {
+		return errors.ErrInternal("invalid token ID")
 	}
 	return nil
 }
