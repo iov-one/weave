@@ -21,6 +21,8 @@ func TestHandleIssueTokenMsg(t *testing.T) {
 
 	db := store.MemStore()
 
+	nft.RegisterAction(nft.DefaultActions...)
+
 	bucket := ticker.NewBucket()
 	blockchains := blockchain.NewBucket()
 	b, _ := blockchains.Create(db, alice.Address(), []byte("alicenet"), nil, blockchain.Chain{MainTickerID: []byte("IOV")}, blockchain.IOV{Codec: "asd"})

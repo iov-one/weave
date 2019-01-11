@@ -20,6 +20,8 @@ func TestHandleIssueTokenMsg(t *testing.T) {
 	_, alice := helpers.MakeKey()
 	_, bob := helpers.MakeKey()
 
+	nft.RegisterAction(nft.DefaultActions...)
+
 	db := store.MemStore()
 
 	bucket := bootstrap_node.NewBucket()

@@ -16,6 +16,8 @@ import (
 )
 
 func TestApprovalOpsHandler(t *testing.T) {
+	nft.RegisterAction(nft.DefaultActions...)
+
 	Convey("Test approval ops handler", t, func() {
 		ctx := context.Background()
 

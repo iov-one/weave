@@ -19,6 +19,8 @@ func TestHandleIssueTokenMsg(t *testing.T) {
 	_, alice := helpers.MakeKey()
 	_, bob := helpers.MakeKey()
 
+	nft.RegisterAction(nft.DefaultActions...)
+
 	db := store.MemStore()
 	bucket := blockchain.NewBucket()
 	o, _ := bucket.Create(db, bob.Address(), []byte("any_network"), nil, blockchain.Chain{MainTickerID: []byte("IOV")}, blockchain.IOV{Codec: "asd"})
@@ -159,6 +161,8 @@ func TestQueryTokenByName(t *testing.T) {
 	var helpers x.TestHelpers
 	_, alice := helpers.MakeKey()
 	_, bob := helpers.MakeKey()
+
+	nft.RegisterAction(nft.DefaultActions...)
 
 	db := store.MemStore()
 	bucket := blockchain.NewBucket()

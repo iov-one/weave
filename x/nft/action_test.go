@@ -10,10 +10,6 @@ func TestIsValidAction(t *testing.T) {
 		action    interface{}
 		wantValid bool
 	}{
-		"const declared action": {
-			action:    UpdateDetails,
-			wantValid: true,
-		},
 		"custom string action": {
 			action:    string(customAction),
 			wantValid: true,

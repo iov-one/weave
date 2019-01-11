@@ -8,6 +8,8 @@ import (
 )
 
 func TestApprovalMsg(t *testing.T) {
+	RegisterAction(DefaultActions...)
+
 	Convey("Test add/remove approvals msg validation", t, func() {
 		var helper x.TestHelpers
 		_, validKey := helper.MakeKey()

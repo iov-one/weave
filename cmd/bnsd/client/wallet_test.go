@@ -6,13 +6,12 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/stretchr/testify/require"
-
 	"github.com/iov-one/weave"
-
 	"github.com/iov-one/weave/x"
 	"github.com/iov-one/weave/x/namecoin"
+	"github.com/iov-one/weave/x/nft"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 var defaults = x.Coin{
@@ -55,6 +54,7 @@ func wsFromGenesisFile(t *testing.T, wsFile string) WalletStore {
 }
 
 func TestMergeWalletStore(t *testing.T) {
+	nft.RegisterAction(nft.DefaultActions...)
 	w1 := wsFromGenesisFile(t, "./testdata/genesis.json")
 	w2 := wsFromFile(t, "./testdata/wallets.json")
 	expected := WalletStore{
