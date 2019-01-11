@@ -195,6 +195,8 @@ func benchIssueToken(
 	var helpers x.TestHelpers
 	_, authKey := helpers.MakeKey()
 
+	nft.RegisterAction(nft.DefaultActions...)
+
 	dir := tmpDir()
 	defer os.RemoveAll(dir)
 
