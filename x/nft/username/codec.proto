@@ -22,13 +22,6 @@ message ChainAddress {
     string address = 2;
 }
 
-message IssueTokenMsg {
-    bytes id = 1 [(gogoproto.customname) = "ID"];
-    bytes owner = 2;
-    repeated nft.ActionApprovals approvals = 3 [(gogoproto.nullable) = false];
-    TokenDetails details = 4 [(gogoproto.nullable) = false];
-}
-
 message AddChainAddressMsg {
     bytes username_id = 1 [(gogoproto.customname) = "UsernameID"];
     bytes blockchain_id = 2 [(gogoproto.customname) = "BlockchainID"];

@@ -1,0 +1,47 @@
+syntax = "proto3";
+
+package namespace;
+
+import "github.com/iov-one/weave/x/codec.proto";
+import "github.com/iov-one/weave/x/nft/codec.proto";
+import "github.com/gogo/protobuf/gogoproto/gogo.proto";
+
+
+message namespaceToken {
+    nft.NonFungibleToken base = 1;
+    TokenDetails details = 2;
+}
+
+message TokenDetails {
+    bytes delegate = 1; // address of user's key or multisig to send ownerFee too. Will be set to owner when empty; optional
+    x.Coin username_product_fee = 2; // costs of a username in this namespace
+}
+
+message IssueTokenMsg {
+    bytes id = 1 [(gogoproto.customname) = "ID"]; // -> key; required
+    bytes owner = 2; // address: user or mulitisig; required
+    repeated nft.ActionApprovals approvals = 3 [(gogoproto.nullable) = false]; // can be empty ?
+
+    bytes delegate = 4; // address of user's key or multisig to send ownerFee too. Will be set to owner when empty; optional
+    x.Coin username_product_fee = 5; // required but can be 0
+
+    Fees fees = 7 [(gogoproto.nullable) = false]; // required? can we lift this 1 message level up?
+}
+
+message TransferTokenMsg {
+    bytes id = 1 [(gogoproto.customname) = "ID"]; // -> key; required
+    bytes new_owner = 2; // address: user or mulitisig; required
+    repeated nft.ActionApprovals approvals = 3 [(gogoproto.nullable) = false]; // can be empty
+
+    bytes delegate = 4; // address of user's key or multisig to send ownerFee too. Will be set to owner when empty; optional
+    x.Coin username_product_fee = 5; // required but can be 0
+
+    Fees fees = 7 [(gogoproto.nullable) = false]; // required? can we lift this 1 message level up?
+}
+
+
+message Fees {
+//    x.Coin owner_fee = 1; // only relevant for usernames
+    x.Coin product_fee = 2;
+    x.Coin priority_fee = 3;
+}

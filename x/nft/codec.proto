@@ -17,8 +17,11 @@ message ActionApprovals {
 }
 
 message Approval {
-    bytes address = 1;
-    ApprovalOptions options = 2 [(gogoproto.nullable) = false];
+    oneof actor {
+        bytes address = 1;
+        bool all = 2; // everybody when set to true
+    }
+    ApprovalOptions options = 3 [(gogoproto.nullable) = false];
 }
 
 message ApprovalOptions {
