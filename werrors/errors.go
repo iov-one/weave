@@ -2,51 +2,23 @@ package werrors
 
 import (
 	"fmt"
-	"log"
-	"runtime"
 )
 
-// E builds an error value from its arguments.
-// There must be at least one argument given or E panics. The type of each
-// argument determines its meaning. If more than one argument of a given type
-// is presented, only the last one is recorded.
-//
-// The types are:
-//
-// 	Code
-//		The class of error, such as validation error.
-// 	string
-//		Treated as an error message.
-// 	error
-//		The underlying error that triggered this one.
-//
-func E(args ...interface{}) error {
-	if len(args) == 0 {
-		panic("call to werrors.E with no arguments")
+// New returns a new error instance. Avoid using Internal code when creating
+// errors.
+func New(cause Code, description string) error {
+	return &Error{
+		Code: cause,
+		Msg:  description,
 	}
-	var err Error
-	for _, arg := range args {
-		switch arg := arg.(type) {
-		case Code:
-			err.Code = arg
-		case string:
-			err.Msg = arg
-		case *Error:
-			err.Parent = arg
-			// Inherit the error code, but prioritize an overwrite.
-			if err.Code == 0 {
-				err.Code = arg.Code
-			}
-		case error:
-			err.Parent = arg
-		default:
-			_, file, line, _ := runtime.Caller(1)
-			log.Printf("errors.E: bad call from %s:%d: %v", file, line, args)
-			return fmt.Errorf("unknown type %T, value %v in error call", arg, arg)
-		}
-	}
+}
 
-	return &err
+// Wrap extends given error with additional information.
+func Wrap(err error, description string) error {
+	return &Error{
+		Parent: err,
+		Msg:    description,
+	}
 }
 
 type Error struct {

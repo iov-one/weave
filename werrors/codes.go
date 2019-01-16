@@ -10,12 +10,19 @@ const (
 	// caused by deep implementation issues and the details of them must
 	// not be exposed outside of the application.
 	// This class of errors represents failures that the client cannot fix.
-	Internal            Code = 1
-	TxParse                  = 2
-	Unauthorized             = 3
-	UnknownRequest           = 4
-	UnrecognizedAddress      = 5
-	InvalidChainID           = 6
+
+	// It is crucial that the zero value for the Code type represents
+	// general internal error. This fact is important for errors that are
+	// created outside of weave. This class of errors does not explicitly
+	// provide an error code and their details must not be exposed by the
+	// API.
+	Internal Code = 0
+
+	TxParse             Code = 2
+	Unauthorized        Code = 3
+	UnknownRequest      Code = 4
+	UnrecognizedAddress Code = 5
+	InvalidChainID      Code = 6
 
 	// Codes greater than 1000 are considered public and errors with such
 	// code can be fully exposed through the API. Those codes are related
