@@ -17,22 +17,22 @@ const (
 
 func (m *CreatePaymentChannelMsg) Validate() error {
 	if m.Src == nil {
-		return werrors.E(werrors.InvalidMsg, "missing source")
+		return werrors.New(werrors.InvalidMsg, "missing source")
 	}
 	if m.SenderPubkey == nil {
-		return werrors.E(werrors.InvalidMsg, "missing sender public key")
+		return werrors.New(werrors.InvalidMsg, "missing sender public key")
 	}
 	if m.Recipient == nil {
-		return werrors.E(werrors.InvalidMsg, "missing recipient")
+		return werrors.New(werrors.InvalidMsg, "missing recipient")
 	}
 	if m.Total == nil || m.Total.IsZero() {
-		return werrors.E(werrors.InvalidMsg, "inalid total amount")
+		return werrors.New(werrors.InvalidMsg, "inalid total amount")
 	}
 	if m.Timeout <= 0 {
-		return werrors.E(werrors.InvalidMsg, "inalid timeout value")
+		return werrors.New(werrors.InvalidMsg, "inalid timeout value")
 	}
 	if len(m.Memo) > 128 {
-		return werrors.E(werrors.InvalidMsg, "memo too long")
+		return werrors.New(werrors.InvalidMsg, "memo too long")
 	}
 
 	return validateAddresses(m.Recipient, m.Src)
@@ -44,19 +44,19 @@ func (CreatePaymentChannelMsg) Path() string {
 
 func (m *TransferPaymentChannelMsg) Validate() error {
 	if m.Signature == nil {
-		return werrors.E(werrors.InvalidMsg, "missing signature")
+		return werrors.New(werrors.InvalidMsg, "missing signature")
 	}
 	if m.Payment == nil {
-		return werrors.E(werrors.InvalidMsg, "missing payment")
+		return werrors.New(werrors.InvalidMsg, "missing payment")
 	}
 	if m.Payment.ChainID == "" {
-		return werrors.E(werrors.InvalidMsg, "missing chain ID")
+		return werrors.New(werrors.InvalidMsg, "missing chain ID")
 	}
 	if m.Payment.ChannelID == nil {
-		return werrors.E(werrors.InvalidMsg, "missing channel ID")
+		return werrors.New(werrors.InvalidMsg, "missing channel ID")
 	}
 	if !m.Payment.Amount.IsPositive() {
-		return werrors.E(werrors.InvalidMsg, "invalid amount value")
+		return werrors.New(werrors.InvalidMsg, "invalid amount value")
 	}
 	return nil
 }
@@ -67,10 +67,10 @@ func (TransferPaymentChannelMsg) Path() string {
 
 func (m *ClosePaymentChannelMsg) Validate() error {
 	if m.ChannelID == nil {
-		return werrors.E(werrors.InvalidMsg, "missing channel ID")
+		return werrors.New(werrors.InvalidMsg, "missing channel ID")
 	}
 	if len(m.Memo) > 128 {
-		return werrors.E(werrors.InvalidMsg, "memo too long")
+		return werrors.New(werrors.InvalidMsg, "memo too long")
 	}
 	return nil
 }
