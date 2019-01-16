@@ -13,6 +13,7 @@ import (
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/store"
+	"github.com/iov-one/weave/werrors"
 	"github.com/iov-one/weave/x"
 	"github.com/iov-one/weave/x/cash"
 )
@@ -308,7 +309,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 						Memo:      "end",
 					},
 					blocksize:      104,
-					wantDeliverErr: ErrNotAllowed("not recipient"),
+					wantDeliverErr: werrors.E(werrors.InvalidMsg),
 				},
 				// Recipient can close channel any time.
 				{
@@ -346,7 +347,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 						},
 					}),
 					blocksize:    103,
-					wantCheckErr: ErrInvalidChainID("another-chain-666"),
+					wantCheckErr: werrors.E(werrors.InvalidMsg),
 				},
 			},
 		},
@@ -375,7 +376,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 						},
 					}),
 					blocksize:    103,
-					wantCheckErr: ErrInvalidAmount(dogeCoin(11, 50)),
+					wantCheckErr: werrors.E(werrors.InvalidMsg),
 				},
 			},
 		},
@@ -392,7 +393,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 						Memo:         "start",
 					},
 					blocksize:    100,
-					wantCheckErr: ErrMissingSenderPubkey(),
+					wantCheckErr: werrors.E(werrors.InvalidMsg),
 				},
 			},
 		},
@@ -429,7 +430,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 						},
 					}),
 					blocksize:    103,
-					wantCheckErr: ErrNoSuchPaymentChannel(asSeqID(1)),
+					wantCheckErr: werrors.E(werrors.InvalidMsg),
 				},
 			},
 		},
@@ -463,7 +464,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 						},
 					},
 					blocksize:    103,
-					wantCheckErr: ErrInvalidSignature(),
+					wantCheckErr: werrors.E(werrors.InvalidMsg),
 				},
 			},
 		},
