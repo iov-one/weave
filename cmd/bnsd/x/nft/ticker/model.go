@@ -2,10 +2,10 @@ package ticker
 
 import (
 	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/cmd/bnsd/x/nft/blockchain"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/x/nft"
-	"github.com/iov-one/weave/x/nft/blockchain"
 )
 
 type Token interface {

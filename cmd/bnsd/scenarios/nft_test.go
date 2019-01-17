@@ -8,9 +8,9 @@ import (
 
 	"github.com/iov-one/weave/cmd/bnsd/app"
 	"github.com/iov-one/weave/cmd/bnsd/client"
-	"github.com/iov-one/weave/x/nft/blockchain"
-	"github.com/iov-one/weave/x/nft/ticker"
-	"github.com/iov-one/weave/x/nft/username"
+	"github.com/iov-one/weave/cmd/bnsd/x/nft/blockchain"
+	"github.com/iov-one/weave/cmd/bnsd/x/nft/ticker"
+	"github.com/iov-one/weave/cmd/bnsd/x/nft/username"
 	"github.com/stretchr/testify/require"
 )
 

@@ -9,10 +9,10 @@ import "github.com/iov-one/weave/x/escrow/codec.proto";
 import "github.com/iov-one/weave/x/sigs/codec.proto";
 import "github.com/iov-one/weave/x/multisig/codec.proto";
 import "github.com/iov-one/weave/x/nft/codec.proto";
-import "github.com/iov-one/weave/x/nft/blockchain/codec.proto";
-import "github.com/iov-one/weave/x/nft/ticker/codec.proto";
-import "github.com/iov-one/weave/x/nft/username/codec.proto";
-import "github.com/iov-one/weave/x/nft/bootstrap_node/codec.proto";
+import "github.com/iov-one/weave/cmd/bnsd/x/nft/blockchain/codec.proto";
+import "github.com/iov-one/weave/cmd/bnsd/x/nft/ticker/codec.proto";
+import "github.com/iov-one/weave/cmd/bnsd/x/nft/username/codec.proto";
+import "github.com/iov-one/weave/cmd/bnsd/x/nft/bootstrap_node/codec.proto";
 import "github.com/iov-one/weave/x/validators/codec.proto";
 
 

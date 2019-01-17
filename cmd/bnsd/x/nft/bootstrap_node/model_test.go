@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/iov-one/weave/cmd/bnsd/x/nft/bootstrap_node"
 	"github.com/iov-one/weave/x"
-	"github.com/iov-one/weave/x/nft/bootstrap_node"
 	"github.com/stretchr/testify/assert"
 )
 
