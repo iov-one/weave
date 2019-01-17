@@ -61,9 +61,12 @@ func GenInitOptions(args []string) (json.RawMessage, error) {
             "nfts": {
               "blockchains": []
             },
-	    "multisig": []
+            "multisig": [],
+	    "update_validators": {
+              "addresses": ["%s"]
+	    }
           }
-	`, addr, ticker)
+	`, addr, addr, ticker)
 	return []byte(opts), nil
 }
 
