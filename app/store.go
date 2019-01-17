@@ -6,11 +6,10 @@ import (
 	"fmt"
 	"strings"
 
-	abci "github.com/tendermint/tendermint/abci/types"
-	"github.com/tendermint/tendermint/libs/log"
-
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
+	abci "github.com/tendermint/tendermint/abci/types"
+	"github.com/tendermint/tendermint/libs/log"
 )
 
 // StoreApp contains a data store and all info needed
@@ -32,7 +31,7 @@ type StoreApp struct {
 	name string
 
 	// Database state (committed, check, deliver....)
-	store *commitStore
+	store *CommitStore
 
 	// Code to initialize from a genesis file
 	initializer weave.Initializer
@@ -69,7 +68,7 @@ func NewStoreApp(name string, store weave.CommitKVStore,
 	s := &StoreApp{
 		name: name,
 		// note: panics if trouble initializing from store
-		store:       newCommitStore(store),
+		store:       NewCommitStore(store),
 		queryRouter: queryRouter,
 		baseContext: baseContext,
 	}

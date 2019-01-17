@@ -5,23 +5,22 @@ import (
 	"github.com/iov-one/weave/errors"
 )
 
-// commitStore is an internal type to handle loading from a
-// KVCommitStore, maintaining different CacheWraps for
-// Deliver and Check, and returning useful state info.
-type commitStore struct {
+// CommitStore handles loading from a KVCommitStore, maintaining different
+// CacheWraps for Deliver and Check, and returning useful state info.
+type CommitStore struct {
 	committed weave.CommitKVStore
 	deliver   weave.KVCacheWrap
 	check     weave.KVCacheWrap
 }
 
-// newCommitStore loads the CommitKVStore from disk or panics
-// Sets up the deliver and check caches
-func newCommitStore(store weave.CommitKVStore) *commitStore {
+// NewCommitStore loads the CommitKVStore from disk or panics. It sets up the
+// deliver and check caches.
+func NewCommitStore(store weave.CommitKVStore) *CommitStore {
 	err := store.LoadLatestVersion()
 	if err != nil {
 		panic(err)
 	}
-	return &commitStore{
+	return &CommitStore{
 		committed: store,
 		deliver:   store.CacheWrap(),
 		check:     store.CacheWrap(),
@@ -29,7 +28,7 @@ func newCommitStore(store weave.CommitKVStore) *commitStore {
 }
 
 // CommitInfo returns the current height and hash
-func (cs *commitStore) CommitInfo() (version int64, hash []byte) {
+func (cs *CommitStore) CommitInfo() (version int64, hash []byte) {
 	id := cs.committed.LatestVersion()
 	return id.Version, id.Hash
 }
@@ -39,7 +38,7 @@ func (cs *commitStore) CommitInfo() (version int64, hash []byte) {
 //
 // TODO: this should probably be protected by a mutex....
 // need to think what concurrency we expect
-func (cs *commitStore) Commit() weave.CommitID {
+func (cs *CommitStore) Commit() weave.CommitID {
 	// flush deliver to store and discard check
 	cs.deliver.Write()
 	cs.check.Discard()
@@ -51,6 +50,18 @@ func (cs *commitStore) Commit() weave.CommitID {
 	cs.deliver = cs.committed.CacheWrap()
 	cs.check = cs.committed.CacheWrap()
 	return res
+}
+
+// CheckStore returns a store implementation that must be used during the
+// checking phase.
+func (cs *CommitStore) CheckStore() weave.CacheableKVStore {
+	return cs.check
+}
+
+// DeliverStore returns a store implementation that must be used during the
+// delivery phase.
+func (cs *CommitStore) DeliverStore() weave.CacheableKVStore {
+	return cs.deliver
 }
 
 //------- storing chainID ---------
