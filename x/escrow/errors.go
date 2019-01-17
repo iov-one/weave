@@ -7,7 +7,6 @@ import (
 )
 
 // ABCI Response Codes
-// bov takes 1000-1100
 // escrow takes 1010-1020
 const (
 	CodeNoEscrow         = 1010

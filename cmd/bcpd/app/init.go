@@ -65,7 +65,7 @@ func GenerateApp(home string, logger log.Logger, debug bool) (abci.Application, 
 	// db goes in a subdir, but "" -> "" for memdb
 	var dbPath string
 	if home != "" {
-		dbPath = filepath.Join(home, "bov.db")
+		dbPath = filepath.Join(home, "bcp.db")
 	}
 
 	// TODO: anyone can make a token????
