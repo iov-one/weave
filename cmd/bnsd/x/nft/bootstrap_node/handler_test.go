@@ -5,12 +5,12 @@ import (
 	"testing"
 
 	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/cmd/bnsd/x/nft/blockchain"
+	"github.com/iov-one/weave/cmd/bnsd/x/nft/bootstrap_node"
+	"github.com/iov-one/weave/cmd/bnsd/x/nft/ticker"
 	"github.com/iov-one/weave/store"
 	"github.com/iov-one/weave/x"
 	"github.com/iov-one/weave/x/nft"
-	"github.com/iov-one/weave/x/nft/blockchain"
-	"github.com/iov-one/weave/x/nft/bootstrap_node"
-	"github.com/iov-one/weave/x/nft/ticker"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

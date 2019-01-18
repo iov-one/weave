@@ -35,9 +35,15 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
 
+// NonFungibleToken is a message that must be incuded by any concrete NFT
+// implementation. Usually it is the first attirbute called `base`.
 type NonFungibleToken struct {
-	ID              []byte            `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Owner           []byte            `protobuf:"bytes,2,opt,name=owner,proto3" json:"owner,omitempty"`
+	// ID is the address of this token.
+	ID []byte `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	// Owner is the address of the token owner.
+	Owner []byte `protobuf:"bytes,2,opt,name=owner,proto3" json:"owner,omitempty"`
+	// Action approvals is a list of permissions. In order for operation to
+	// succeed, all action approvals validation must pass.
 	ActionApprovals []ActionApprovals `protobuf:"bytes,3,rep,name=action_approvals,json=actionApprovals" json:"action_approvals"`
 }
 
@@ -67,6 +73,8 @@ func (m *NonFungibleToken) GetActionApprovals() []ActionApprovals {
 	return nil
 }
 
+// ActionApprovals are used to control permissions and validate that a user can
+// execute given operation.
 type ActionApprovals struct {
 	Action    Action     `protobuf:"bytes,1,opt,name=action,proto3,customtype=Action" json:"action"`
 	Approvals []Approval `protobuf:"bytes,2,rep,name=approvals" json:"approvals"`
@@ -109,9 +117,18 @@ func (m *Approval) GetOptions() ApprovalOptions {
 }
 
 type ApprovalOptions struct {
+	// Until block height is used to mark blochain height until which an
+	// approval is valid. This can be used to define an approval expiration.
 	UntilBlockHeight int64 `protobuf:"varint,1,opt,name=until_block_height,json=untilBlockHeight,proto3" json:"until_block_height,omitempty"`
-	Count            int64 `protobuf:"varint,2,opt,name=count,proto3" json:"count,omitempty"`
-	Immutable        bool  `protobuf:"varint,3,opt,name=immutable,proto3" json:"immutable,omitempty"`
+	// Count is defining how many times an approval can be used. Each approval
+	// test decrese the counter. Once the counter reaches value 0, an approval
+	// is considered expired and can no longer be used.
+	// Use -1 to bypass count expiration.
+	Count int64 `protobuf:"varint,2,opt,name=count,proto3" json:"count,omitempty"`
+	// Immutable is a flag that prevents an option to be modified. Once
+	// created, cannot be altered. For example, counter state cannot be
+	// changed.
+	Immutable bool `protobuf:"varint,3,opt,name=immutable,proto3" json:"immutable,omitempty"`
 }
 
 func (m *ApprovalOptions) Reset()                    { *m = ApprovalOptions{} }

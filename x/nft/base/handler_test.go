@@ -6,12 +6,12 @@ import (
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/cmd/bnsd/app"
+	"github.com/iov-one/weave/cmd/bnsd/x/nft/blockchain"
+	"github.com/iov-one/weave/cmd/bnsd/x/nft/username"
 	"github.com/iov-one/weave/store"
 	"github.com/iov-one/weave/x"
 	"github.com/iov-one/weave/x/nft"
 	"github.com/iov-one/weave/x/nft/base"
-	"github.com/iov-one/weave/x/nft/blockchain"
-	"github.com/iov-one/weave/x/nft/username"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
