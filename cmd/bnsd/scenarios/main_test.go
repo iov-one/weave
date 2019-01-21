@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"strings"
 	"testing"
 	"time"
 
@@ -32,11 +33,12 @@ var (
 )
 
 var (
-	alice     *client.PrivateKey
-	node      *nm.Node
-	logger    = log.NewTMLogger(os.Stdout) //log.NewNopLogger()
-	bnsClient *client.BnsClient
-	chainID   string
+	alice      *client.PrivateKey
+	node       *nm.Node
+	logger     = log.NewTMLogger(os.Stdout) //log.NewNopLogger()
+	bnsClient  *client.BnsClient
+	chainID    string
+	rpcAddress string
 )
 
 func TestMain(m *testing.M) {
@@ -55,12 +57,15 @@ func TestMain(m *testing.M) {
 			logger.Error("Failed to fetch chain id", "cause", err)
 			os.Exit(1)
 		}
+		rpcAddress = *tendermintAddress
 		os.Exit(m.Run())
 	}
 
 	config := rpctest.GetConfig()
 	config.Moniker = "SetInTestMain"
 	chainID = config.ChainID()
+
+	rpcAddress = "http://localhost" + config.RPC.ListenAddress[strings.LastIndex(config.RPC.ListenAddress, ":"):]
 	app, err := initApp(config, alice.PublicKey().Address())
 	if err != nil {
 		logger.Error("Failed to init app", "cause", err)
@@ -126,9 +131,12 @@ func initGenesis(filename string, addr weave.Address) (*tm.GenesisDoc, error) {
 		}
 	      ]
 	    }
-	  ]
+	  ],
+      "update_validators": {
+         "addresses": ["%s"]
+      }
 	}
-	`, addr)
+	`, addr, addr)
 	doc.AppState = []byte(appState)
 	// save file
 	return doc, doc.SaveAs(filename)

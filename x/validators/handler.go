@@ -48,7 +48,6 @@ func NewUpdateHandler(auth x.Authenticator, control Controller, checkAddr AuthCh
 // Check verifies all the preconditions
 func (h UpdateHandler) Check(ctx weave.Context, store weave.KVStore,
 	tx weave.Tx) (weave.CheckResult, error) {
-
 	var res weave.CheckResult
 	rmsg, err := tx.GetMsg()
 	if err != nil {
@@ -58,12 +57,10 @@ func (h UpdateHandler) Check(ctx weave.Context, store weave.KVStore,
 	if !ok {
 		return res, errors.ErrUnknownTxType(rmsg)
 	}
-
 	_, err = h.control.CanUpdateValidators(store, h.authCheckAddress(h.auth, ctx), msg.AsABCI())
 	if err != nil {
 		return res, err
 	}
-
 	return res, nil
 }
 
@@ -71,7 +68,6 @@ func (h UpdateHandler) Check(ctx weave.Context, store weave.KVStore,
 // Check did the same job already, so we can assume stuff goes okay
 func (h UpdateHandler) Deliver(ctx weave.Context, store weave.KVStore,
 	tx weave.Tx) (weave.DeliverResult, error) {
-
 	// ensure type and validate...
 	var res weave.DeliverResult
 	rmsg, err := tx.GetMsg()
@@ -89,6 +85,5 @@ func (h UpdateHandler) Deliver(ctx weave.Context, store weave.KVStore,
 	}
 
 	res.Diff = diff
-
 	return res, nil
 }

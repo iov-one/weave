@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"path/filepath"
 
+	"github.com/iov-one/weave/x/validators"
+
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/app"
 	"github.com/iov-one/weave/cmd/bnsd/x/nft/blockchain"
@@ -86,6 +88,7 @@ func GenerateApp(home string, logger log.Logger, debug bool) (abci.Application, 
 		&blockchain.Initializer{},
 		&ticker.Initializer{},
 		&multisig.Initializer{},
+		&validators.Initializer{},
 	))
 
 	// set the logger and return

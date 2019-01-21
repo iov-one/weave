@@ -6,6 +6,7 @@ import (
 	"github.com/iov-one/weave/x"
 	"github.com/iov-one/weave/x/cash"
 	"github.com/iov-one/weave/x/sigs"
+	"github.com/iov-one/weave/x/validators"
 )
 
 // Tx is all the interfaces we need rolled into one
@@ -45,4 +46,15 @@ func ParseBcpTx(data []byte) (*app.Tx, error) {
 		return nil, err
 	}
 	return &tx, nil
+}
+
+// SetValidatorTx will create an unsigned tx to replace current validator set
+func SetValidatorTx(u ...*validators.ValidatorUpdate) *app.Tx {
+	return &app.Tx{
+		Sum: &app.Tx_SetValidatorsMsg{
+			SetValidatorsMsg: &validators.SetValidatorsMsg{
+				ValidatorUpdates: u,
+			},
+		},
+	}
 }
