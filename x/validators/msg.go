@@ -2,7 +2,9 @@ package validators
 
 import (
 	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/errors"
 	abci "github.com/tendermint/tendermint/abci/types"
+	"strings"
 )
 
 // Ensure we implement the Msg interface
@@ -13,6 +15,15 @@ const pathUpdate = "validators/update"
 // Path returns the routing path for this message
 func (*SetValidatorsMsg) Path() string {
 	return pathUpdate
+}
+
+func (m ValidatorUpdate) Validate() error {
+	if len(m.Pubkey.Data) != 32 ||
+		strings.ToLower(m.Pubkey.Type) != "ed25519" {
+		return errors.WithCode(errInvalidPubKey, CodeInvalidPubKey)
+	}
+	// can power be negative?
+	return nil
 }
 
 func (m ValidatorUpdate) AsABCI() abci.ValidatorUpdate {
@@ -27,6 +38,18 @@ func (m Pubkey) AsABCI() abci.PubKey {
 		Data: m.Data,
 		Type: m.Type,
 	}
+}
+
+func (m *SetValidatorsMsg) Validate() error {
+	if len(m.ValidatorUpdates) == 0 {
+		return errors.WithCode(errEmptyValidatorSet, CodeEmptyValidatorSet)
+	}
+	for _, v := range m.ValidatorUpdates {
+		if err := v.Validate(); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (m *SetValidatorsMsg) AsABCI() []abci.ValidatorUpdate {

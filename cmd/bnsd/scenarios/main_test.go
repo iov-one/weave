@@ -1,12 +1,15 @@
 package scenarios
 
 import (
+	"encoding/binary"
 	"flag"
 	"fmt"
 	"os"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/iov-one/weave/x/multisig"
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/cmd/bnsd/app"
@@ -33,16 +36,20 @@ var (
 )
 
 var (
-	alice      *client.PrivateKey
-	node       *nm.Node
-	logger     = log.NewTMLogger(os.Stdout) //log.NewNopLogger()
-	bnsClient  *client.BnsClient
-	chainID    string
-	rpcAddress string
+	alice                *client.PrivateKey
+	node                 *nm.Node
+	logger               = log.NewTMLogger(os.Stdout) //log.NewNopLogger()
+	bnsClient            *client.BnsClient
+	chainID              string
+	rpcAddress           string
+	multiSigContractID   = make([]byte, 8) // first contractID
+	multiSigContractAddr weave.Address     // results to: "5AE2C58796B0AD48FFE7602EAC3353488C859A2B"
 )
 
 func TestMain(m *testing.M) {
 	flag.Parse()
+	binary.BigEndian.PutUint64(multiSigContractID, 1)
+	multiSigContractAddr = multisig.MultiSigCondition(multiSigContractID).Address()
 	var err error
 	alice, err = client.DecodePrivateKey(*hexSeed)
 	if err != nil {
@@ -134,9 +141,17 @@ func initGenesis(filename string, addr weave.Address) (*tm.GenesisDoc, error) {
 	  ],
       "update_validators": {
          "addresses": ["%s"]
-      }
+      },
+      "multisig": [
+			{
+		  	"sigs": ["%s"],
+			"activation_threshold": 1,
+			"admin_threshold": 1
+			}
+		]
 	}
-	`, addr, addr)
+	`, addr, multiSigContractAddr, addr)
+	println(appState)
 	doc.AppState = []byte(appState)
 	// save file
 	return doc, doc.SaveAs(filename)

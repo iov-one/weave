@@ -10,13 +10,17 @@ import (
 // ABCI Response Codes
 // x/update_validators reserves 40 ~ 49.
 const (
-	CodeEmptyDiff uint32 = 40
-	CodeWrongType        = 41
+	CodeEmptyDiff         uint32 = 40
+	CodeWrongType                = 41
+	CodeInvalidPubKey            = 42
+	CodeEmptyValidatorSet        = 43
 )
 
 var (
-	errEmptyDiff = fmt.Errorf("Empty validator diff")
-	errWrongType = fmt.Errorf("Wrong type for accounts storage")
+	errEmptyDiff         = fmt.Errorf("Empty validator diff")
+	errWrongType         = fmt.Errorf("Wrong type for accounts storage")
+	errInvalidPubKey     = fmt.Errorf("Invalid public key")
+	errEmptyValidatorSet = fmt.Errorf("Empty validator set")
 )
 
 func ErrEmptyDiff() error {

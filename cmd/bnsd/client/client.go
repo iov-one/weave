@@ -439,6 +439,14 @@ func (b *BnsClient) GetUser(addr weave.Address) (*UserResponse, error) {
 	return &out, nil
 }
 
+func (b *BnsClient) GetCurrentValidators() (*ctypes.ResultValidators, error) {
+	return b.conn.Validators(nil)
+}
+
+func (b *BnsClient) GetValidators(height int64) (*ctypes.ResultValidators, error) {
+	return b.conn.Validators(&height)
+}
+
 // key is the address prefixed with "sigs:"
 func userKeyToAddr(key []byte) weave.Address {
 	return key[5:]

@@ -1,47 +1,100 @@
 package scenarios
 
 import (
-	"fmt"
-	"io/ioutil"
-	"net/http"
+	"testing"
+	"time"
 
 	"github.com/iov-one/weave/cmd/bnsd/client"
 	"github.com/iov-one/weave/x/validators"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
-	//"github.com/tendermint/tendermint/crypto/ed25519"
-	"testing"
+	"github.com/tendermint/tendermint/crypto"
+	"github.com/tendermint/tendermint/crypto/ed25519"
+	ctypes "github.com/tendermint/tendermint/rpc/core/types"
+	"github.com/tendermint/tendermint/types"
 )
 
-func TestSetValidator(t *testing.T) {
-	newValidator := client.GenPrivateKey()
-	//newValidator := ed25519.GenPrivKey()
-	tx := client.SetValidatorTx(&validators.ValidatorUpdate{
-		// see https://tendermint.com/docs/app-dev/abci-spec.html#data-messages
-		Pubkey: validators.Pubkey{
-			Type: "ed25519",
-			Data: newValidator.PublicKey().GetEd25519(),
-		},
-		Power: 10,
-	})
+func TestUpdateValidatorSet(t *testing.T) {
+	current, err := bnsClient.GetCurrentValidators()
+	require.NoError(t, err)
 
-	// when
+	newValidator := ed25519.GenPrivKey()
+	keyEd25519 := newValidator.PubKey().(ed25519.PubKeyEd25519)
 	aNonce := client.NewNonce(bnsClient, alice.PublicKey().Address())
+
+	// when adding a new validator
+	addValidatorTX := client.SetValidatorTx(
+		&validators.ValidatorUpdate{
+			Pubkey: validators.Pubkey{
+				Type: "ed25519",
+				Data: keyEd25519[:],
+			},
+			Power: 1,
+		},
+	)
+	addValidatorTX.Multisig = [][]byte{multiSigContractID}
+
 	seq, err := aNonce.Next()
 	require.NoError(t, err)
-	require.NoError(t, client.SignTx(tx, alice, chainID, seq))
-	resp := bnsClient.BroadcastTx(tx)
-	t.Log(resp)
+	require.NoError(t, client.SignTx(addValidatorTX, alice, chainID, seq))
+	resp := bnsClient.BroadcastTx(addValidatorTX)
+
 	// then
 	require.NoError(t, resp.IsError())
+	t.Logf("Added validator: %X\n", keyEd25519)
 
-	// and data is updated
-	qResp, err := http.Get(fmt.Sprintf("%s/validators", rpcAddress))
+	// and tendermint validator set is updated
+	tmValidatorSet := awaitValidatorUpdate(resp.Response.Height + 2)
+	require.NotNil(t, tmValidatorSet)
+	require.Len(t, tmValidatorSet.Validators, len(current.Validators)+1)
+	require.True(t, contains(tmValidatorSet.Validators, newValidator.PubKey()))
+
+	// and when delete validator
+	delValidatorTX := client.SetValidatorTx(
+		&validators.ValidatorUpdate{
+			Pubkey: validators.Pubkey{
+				Type: "ed25519",
+				Data: keyEd25519[:],
+			},
+			Power: 0, // 0 for delete
+		},
+	)
+	delValidatorTX.Multisig = [][]byte{multiSigContractID}
+
+	// then
+	seq, err = aNonce.Next()
 	require.NoError(t, err)
-	require.Equal(t, 200, qResp.StatusCode)
-	defer qResp.Body.Close()
-	body, _ := ioutil.ReadAll(qResp.Body)
-	t.Log(string(body))
-	// todo: check for pubkey returned to match "newValidator"
-	// returned content is amino encoded: see "github.com/tendermint/tendermint/crypto/ed25519"
+	require.NoError(t, client.SignTx(delValidatorTX, alice, chainID, seq))
+	resp = bnsClient.BroadcastTx(delValidatorTX)
+
+	// then
+	require.NoError(t, resp.IsError())
+	t.Logf("Removed validator: %X\n", keyEd25519)
+
+	// and tendermint validator set is updated
+	tmValidatorSet = awaitValidatorUpdate(resp.Response.Height + 2)
+	require.NotNil(t, tmValidatorSet)
+	require.Len(t, tmValidatorSet.Validators, len(current.Validators))
+	assert.False(t, contains(tmValidatorSet.Validators, newValidator.PubKey()))
+}
+
+func awaitValidatorUpdate(height int64) (v *ctypes.ResultValidators) {
+	for i := 0; i < 15; i++ {
+		var err error
+		v, err = bnsClient.GetValidators(height)
+		if err == nil {
+			break
+		}
+		time.Sleep(time.Duration(i) * 50 * time.Millisecond)
+	}
+	return
+}
+
+func contains(got []*types.Validator, exp crypto.PubKey) bool {
+	for _, v := range got {
+		if exp.Equals(v.PubKey.(ed25519.PubKeyEd25519)) {
+			return true
+		}
+	}
+	return false
 }

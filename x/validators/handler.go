@@ -4,6 +4,7 @@ import (
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/x"
+	abci "github.com/tendermint/tendermint/abci/types"
 )
 
 type AuthCheckAddress = func(auth x.Authenticator, ctx weave.Context) CheckAddress
@@ -49,19 +50,8 @@ func NewUpdateHandler(auth x.Authenticator, control Controller, checkAddr AuthCh
 func (h UpdateHandler) Check(ctx weave.Context, store weave.KVStore,
 	tx weave.Tx) (weave.CheckResult, error) {
 	var res weave.CheckResult
-	rmsg, err := tx.GetMsg()
-	if err != nil {
-		return res, err
-	}
-	msg, ok := rmsg.(*SetValidatorsMsg)
-	if !ok {
-		return res, errors.ErrUnknownTxType(rmsg)
-	}
-	_, err = h.control.CanUpdateValidators(store, h.authCheckAddress(h.auth, ctx), msg.AsABCI())
-	if err != nil {
-		return res, err
-	}
-	return res, nil
+	_, err := h.validate(ctx, store, tx)
+	return res, err
 }
 
 // Deliver provides the diff given everything is okay with permissions and such
@@ -70,20 +60,27 @@ func (h UpdateHandler) Deliver(ctx weave.Context, store weave.KVStore,
 	tx weave.Tx) (weave.DeliverResult, error) {
 	// ensure type and validate...
 	var res weave.DeliverResult
-	rmsg, err := tx.GetMsg()
+	diff, err := h.validate(ctx, store, tx)
 	if err != nil {
 		return res, err
+	}
+	res.Diff = diff
+	return res, nil
+}
+
+func (h UpdateHandler) validate(ctx weave.Context, store weave.KVStore, tx weave.Tx) ([]abci.ValidatorUpdate, error) {
+	rmsg, err := tx.GetMsg()
+	if err != nil {
+		return nil, err
 	}
 	msg, ok := rmsg.(*SetValidatorsMsg)
 	if !ok {
-		return res, errors.ErrUnknownTxType(rmsg)
+		return nil, errors.ErrUnknownTxType(rmsg)
 	}
-
-	diff, err := h.control.CanUpdateValidators(store, h.authCheckAddress(h.auth, ctx), msg.AsABCI())
+	err = msg.Validate()
 	if err != nil {
-		return res, err
+		return nil, err
 	}
 
-	res.Diff = diff
-	return res, nil
+	return h.control.CanUpdateValidators(store, h.authCheckAddress(h.auth, ctx), msg.AsABCI())
 }
