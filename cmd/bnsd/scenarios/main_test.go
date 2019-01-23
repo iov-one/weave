@@ -151,7 +151,6 @@ func initGenesis(filename string, addr weave.Address) (*tm.GenesisDoc, error) {
 		]
 	}
 	`, addr, multiSigContractAddr, addr)
-	println(appState)
 	doc.AppState = []byte(appState)
 	// save file
 	return doc, doc.SaveAs(filename)

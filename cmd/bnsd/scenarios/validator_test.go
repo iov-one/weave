@@ -15,7 +15,7 @@ import (
 )
 
 func TestUpdateValidatorSet(t *testing.T) {
-	current, err := bnsClient.GetCurrentValidators()
+	current, err := client.Admin(bnsClient).GetValidators(client.CurrentHeight)
 	require.NoError(t, err)
 
 	newValidator := ed25519.GenPrivKey()
@@ -78,16 +78,16 @@ func TestUpdateValidatorSet(t *testing.T) {
 	assert.False(t, contains(tmValidatorSet.Validators, newValidator.PubKey()))
 }
 
-func awaitValidatorUpdate(height int64) (v *ctypes.ResultValidators) {
+func awaitValidatorUpdate(height int64) *ctypes.ResultValidators {
+	admin := client.Admin(bnsClient)
 	for i := 0; i < 15; i++ {
-		var err error
-		v, err = bnsClient.GetValidators(height)
+		v, err := admin.GetValidators(height)
 		if err == nil {
-			break
+			return v
 		}
 		time.Sleep(time.Duration(i) * 50 * time.Millisecond)
 	}
-	return
+	return nil
 }
 
 func contains(got []*types.Validator, exp crypto.PubKey) bool {

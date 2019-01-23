@@ -2,8 +2,9 @@ package validators
 
 import (
 	"encoding/json"
-	"github.com/tendermint/tendermint/crypto/ed25519"
 	"testing"
+
+	"github.com/tendermint/tendermint/crypto/ed25519"
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"

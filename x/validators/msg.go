@@ -1,10 +1,11 @@
 package validators
 
 import (
+	"strings"
+
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
 	abci "github.com/tendermint/tendermint/abci/types"
-	"strings"
 )
 
 // Ensure we implement the Msg interface
@@ -22,7 +23,9 @@ func (m ValidatorUpdate) Validate() error {
 		strings.ToLower(m.Pubkey.Type) != "ed25519" {
 		return errors.WithCode(errInvalidPubKey, CodeInvalidPubKey)
 	}
-	// can power be negative?
+	if m.Power < 0 {
+		return errors.WithCode(errInvalidPower, CodeInvalidPower)
+	}
 	return nil
 }
 
