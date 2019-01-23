@@ -8,7 +8,7 @@ import (
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/x"
-	"github.com/iov-one/weave/x/namecoin"
+	"github.com/iov-one/weave/x/cash"
 	"github.com/iov-one/weave/x/nft"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -58,13 +58,12 @@ func TestMergeWalletStore(t *testing.T) {
 	w1 := wsFromGenesisFile(t, "./testdata/genesis.json")
 	w2 := wsFromFile(t, "./testdata/wallets.json")
 	expected := WalletStore{
-		Wallets: []namecoin.GenesisAccount{
-			namecoin.GenesisAccount{
+		Wallets: []cash.GenesisAccount{
+			{
 				Address: toWeaveAddress(t, "3AFCDAB4CFBF066E959D139251C8F0EE91E99D5A"),
-				Wallet: &namecoin.Wallet{
-					Name: "admin",
+				Set: cash.Set{
 					Coins: []*x.Coin{
-						&x.Coin{
+						{
 							Ticker:     "CASH",
 							Whole:      123456789,
 							Fractional: 5555555,
@@ -72,12 +71,11 @@ func TestMergeWalletStore(t *testing.T) {
 					},
 				},
 			},
-			namecoin.GenesisAccount{
+			{
 				Address: toWeaveAddress(t, "12AFFBF6012FD2DF21416582DC80CBF1EFDF2460"),
-				Wallet: &namecoin.Wallet{
-					Name: "second",
+				Set: cash.Set{
 					Coins: []*x.Coin{
-						&x.Coin{
+						{
 							Ticker:     "CASH",
 							Whole:      987654321,
 							Fractional: 5555555,
@@ -85,12 +83,11 @@ func TestMergeWalletStore(t *testing.T) {
 					},
 				},
 			},
-			namecoin.GenesisAccount{
+			{
 				Address: toWeaveAddress(t, "CE5D5A5CA8C7D545D7756D3677234D81622BA297"),
-				Wallet: &namecoin.Wallet{
-					Name: "alice",
+				Set: cash.Set{
 					Coins: []*x.Coin{
-						&x.Coin{
+						{
 							Ticker:     "IOV",
 							Whole:      123456789,
 							Fractional: 5555555,
@@ -98,12 +95,11 @@ func TestMergeWalletStore(t *testing.T) {
 					},
 				},
 			},
-			namecoin.GenesisAccount{
+			{
 				Address: toWeaveAddress(t, "D4821FD051696273D09E1FBAD0EBE5B5060787A7"),
-				Wallet: &namecoin.Wallet{
-					Name: "bert",
+				Set: cash.Set{
 					Coins: []*x.Coin{
-						&x.Coin{
+						{
 							Ticker:     "IOV",
 							Whole:      123456789,
 							Fractional: 5555555,
@@ -123,13 +119,12 @@ func TestMergeWithEmptyWallet(t *testing.T) {
 	w2 := wsFromFile(t, "./testdata/wallets.json")
 
 	expected := WalletStore{
-		Wallets: []namecoin.GenesisAccount{
-			namecoin.GenesisAccount{
+		Wallets: []cash.GenesisAccount{
+			{
 				Address: toWeaveAddress(t, "CE5D5A5CA8C7D545D7756D3677234D81622BA297"),
-				Wallet: &namecoin.Wallet{
-					Name: "alice",
+				Set: cash.Set{
 					Coins: []*x.Coin{
-						&x.Coin{
+						{
 							Ticker:     "IOV",
 							Whole:      123456789,
 							Fractional: 5555555,
@@ -137,12 +132,11 @@ func TestMergeWithEmptyWallet(t *testing.T) {
 					},
 				},
 			},
-			namecoin.GenesisAccount{
+			{
 				Address: toWeaveAddress(t, "D4821FD051696273D09E1FBAD0EBE5B5060787A7"),
-				Wallet: &namecoin.Wallet{
-					Name: "bert",
+				Set: cash.Set{
 					Coins: []*x.Coin{
-						&x.Coin{
+						{
 							Ticker:     "IOV",
 							Whole:      123456789,
 							Fractional: 5555555,
@@ -160,13 +154,12 @@ func TestMergeWithEmptyWallet(t *testing.T) {
 func TestDefaultValues(t *testing.T) {
 	actual := wsFromFile(t, "./testdata/wallets_extra.json")
 	expected := WalletStore{
-		Wallets: []namecoin.GenesisAccount{
-			namecoin.GenesisAccount{
+		Wallets: []cash.GenesisAccount{
+			{
 				Address: toWeaveAddress(t, "3AFCDAB4CFBF066E959D139251C8F0EE91E99D5A"),
-				Wallet: &namecoin.Wallet{
-					Name: "first",
+				Set: cash.Set{
 					Coins: []*x.Coin{
-						&x.Coin{
+						{
 							Ticker:     "IOV",
 							Whole:      123456789,
 							Fractional: 5555555,
@@ -174,12 +167,11 @@ func TestDefaultValues(t *testing.T) {
 					},
 				},
 			},
-			namecoin.GenesisAccount{
+			{
 				Address: toWeaveAddress(t, "CE5D5A5CA8C7D545D7756D3677234D81622BA297"),
-				Wallet: &namecoin.Wallet{
-					Name: "second",
+				Set: cash.Set{
 					Coins: []*x.Coin{
-						&x.Coin{
+						{
 							Ticker:     "IOV",
 							Whole:      17,
 							Fractional: 5555555,
@@ -187,12 +179,11 @@ func TestDefaultValues(t *testing.T) {
 					},
 				},
 			},
-			namecoin.GenesisAccount{
+			{
 				Address: toWeaveAddress(t, "D4821FD051696273D09E1FBAD0EBE5B5060787A7"),
-				Wallet: &namecoin.Wallet{
-					Name: "third",
+				Set: cash.Set{
 					Coins: []*x.Coin{
-						&x.Coin{
+						{
 							Ticker:     "IOV",
 							Whole:      123456789,
 							Fractional: 42,
@@ -201,12 +192,11 @@ func TestDefaultValues(t *testing.T) {
 					},
 				},
 			},
-			namecoin.GenesisAccount{
+			{
 				Address: toWeaveAddress(t, "5AC5F736DB0E083D2316E1C5BFC141CC0C669F84"),
-				Wallet: &namecoin.Wallet{
-					Name: "fourth",
+				Set: cash.Set{
 					Coins: []*x.Coin{
-						&x.Coin{
+						{
 							Ticker:     "IOV",
 							Whole:      0,
 							Fractional: 0,
@@ -214,22 +204,21 @@ func TestDefaultValues(t *testing.T) {
 					},
 				},
 			},
-			namecoin.GenesisAccount{
+			{
 				Address: toWeaveAddress(t, "12AFFBF6012FD2DF21416582DC80CBF1EFDF2460"),
-				Wallet: &namecoin.Wallet{
-					Name: "fifth",
+				Set: cash.Set{
 					Coins: []*x.Coin{
-						&x.Coin{
+						{
 							Ticker:     "ETH",
 							Whole:      123456789,
 							Fractional: 5555555,
 						},
-						&x.Coin{
+						{
 							Ticker:     "CASH",
 							Whole:      123456789,
 							Fractional: 5555555,
 						},
-						&x.Coin{
+						{
 							Ticker:     "IOV",
 							Whole:      1000,
 							Fractional: 5555555,
@@ -249,10 +238,10 @@ func TestKeyGen(t *testing.T) {
 		N int
 	}{
 		{`{}`, 0},
-		{`{"wallets":[{"name": "alice"}]}`, 1},
-		{`{"wallets":[{"name": "alice"},{"name": "dora"}]}`, 2},
-		{`{"wallets":[{"name": "alice"},{"name": "dora"},{"name": "bert"}]}`, 3},
-		{`{"wallets":[{"name": "alice"},{"name": "dora"},{"name": "bert"},{"name": "charlie"}]}`, 4},
+		{`{"cash":[{}]}`, 1},
+		//{`{"cash":[{},{}]}`, 2},
+		//{`{"cash":[{"name": "alice"},{"name": "dora"},{"name": "bert"}]}`, 3},
+		//{`{"cash":[{"name": "alice"},{"name": "dora"},{"name": "bert"},{"name": "charlie"}]}`, 4},
 	}
 
 	for _, useCase := range useCases {

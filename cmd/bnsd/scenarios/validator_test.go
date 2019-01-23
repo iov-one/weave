@@ -40,8 +40,8 @@ func TestUpdateValidatorSet(t *testing.T) {
 	resp := bnsClient.BroadcastTx(addValidatorTX)
 
 	// then
+	t.Logf("Adding validator: %X\n", keyEd25519)
 	require.NoError(t, resp.IsError())
-	t.Logf("Added validator: %X\n", keyEd25519)
 
 	// and tendermint validator set is updated
 	tmValidatorSet := awaitValidatorUpdate(resp.Response.Height + 2)
