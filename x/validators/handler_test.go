@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"testing"
 
+	"github.com/tendermint/tendermint/crypto/ed25519"
+
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/store"
@@ -16,11 +18,11 @@ func TestHandler(t *testing.T) {
 	var helpers x.TestHelpers
 
 	Convey("Test handler works as intended", t, func() {
-		addr := []byte{1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2}
-		addr2 := []byte{4, 5, 6, 1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2}
+		addr := ed25519.GenPrivKey().PubKey().(ed25519.PubKeyEd25519)
+		addr2 := ed25519.GenPrivKey().PubKey().(ed25519.PubKeyEd25519)
 
-		perm := weave.NewCondition("sig", "ed25519", addr)
-		perm2 := weave.NewCondition("sig", "ed25519", addr2)
+		perm := weave.NewCondition("sig", "ed25519", addr[:])
+		perm2 := weave.NewCondition("sig", "ed25519", addr2[:])
 
 		auth := helpers.Authenticate(perm)
 		auth2 := helpers.Authenticate(perm2)
@@ -34,10 +36,13 @@ func TestHandler(t *testing.T) {
 		err = init.FromGenesis(weave.Options{optKey: accountsJson}, kv)
 		So(err, ShouldBeNil)
 		ctrl := NewController()
+		anUpdate := []*ValidatorUpdate{
+			{Pubkey: Pubkey{Data: addr[:], Type: "ed25519"}, Power: 10},
+		}
 
 		Convey("Check Deliver and Check", func() {
 			Convey("With a right address", func() {
-				tx := helpers.MockTx(&SetValidatorsMsg{ValidatorUpdates: []*ValidatorUpdate{{}}})
+				tx := helpers.MockTx(&SetValidatorsMsg{ValidatorUpdates: anUpdate})
 				handler := NewUpdateHandler(auth, ctrl, authCheckAddress)
 
 				res, err := handler.Deliver(nil, kv, tx)
@@ -49,7 +54,7 @@ func TestHandler(t *testing.T) {
 			})
 
 			Convey("With a wrong address", func() {
-				tx := helpers.MockTx(&SetValidatorsMsg{ValidatorUpdates: []*ValidatorUpdate{{}}})
+				tx := helpers.MockTx(&SetValidatorsMsg{ValidatorUpdates: anUpdate})
 				handler := NewUpdateHandler(auth2, ctrl, authCheckAddress)
 
 				_, err := handler.Deliver(nil, kv, tx)

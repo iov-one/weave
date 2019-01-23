@@ -1,11 +1,15 @@
 package scenarios
 
 import (
+	"encoding/binary"
 	"flag"
 	"fmt"
 	"os"
+	"strings"
 	"testing"
 	"time"
+
+	"github.com/iov-one/weave/x/multisig"
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/cmd/bnsd/app"
@@ -32,15 +36,20 @@ var (
 )
 
 var (
-	alice     *client.PrivateKey
-	node      *nm.Node
-	logger    = log.NewTMLogger(os.Stdout) //log.NewNopLogger()
-	bnsClient *client.BnsClient
-	chainID   string
+	alice                *client.PrivateKey
+	node                 *nm.Node
+	logger               = log.NewTMLogger(os.Stdout) //log.NewNopLogger()
+	bnsClient            *client.BnsClient
+	chainID              string
+	rpcAddress           string
+	multiSigContractID   = make([]byte, 8) // first contractID
+	multiSigContractAddr weave.Address     // results to: "5AE2C58796B0AD48FFE7602EAC3353488C859A2B"
 )
 
 func TestMain(m *testing.M) {
 	flag.Parse()
+	binary.BigEndian.PutUint64(multiSigContractID, 1)
+	multiSigContractAddr = multisig.MultiSigCondition(multiSigContractID).Address()
 	var err error
 	alice, err = client.DecodePrivateKey(*hexSeed)
 	if err != nil {
@@ -55,12 +64,15 @@ func TestMain(m *testing.M) {
 			logger.Error("Failed to fetch chain id", "cause", err)
 			os.Exit(1)
 		}
+		rpcAddress = *tendermintAddress
 		os.Exit(m.Run())
 	}
 
 	config := rpctest.GetConfig()
 	config.Moniker = "SetInTestMain"
 	chainID = config.ChainID()
+
+	rpcAddress = "http://localhost" + config.RPC.ListenAddress[strings.LastIndex(config.RPC.ListenAddress, ":"):]
 	app, err := initApp(config, alice.PublicKey().Address())
 	if err != nil {
 		logger.Error("Failed to init app", "cause", err)
@@ -126,9 +138,19 @@ func initGenesis(filename string, addr weave.Address) (*tm.GenesisDoc, error) {
 		}
 	      ]
 	    }
-	  ]
+	  ],
+      "update_validators": {
+         "addresses": ["%s"]
+      },
+      "multisig": [
+			{
+		  	"sigs": ["%s"],
+			"activation_threshold": 1,
+			"admin_threshold": 1
+			}
+		]
 	}
-	`, addr)
+	`, addr, multiSigContractAddr, addr)
 	doc.AppState = []byte(appState)
 	// save file
 	return doc, doc.SaveAs(filename)

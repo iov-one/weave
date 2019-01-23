@@ -4,7 +4,10 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"github.com/iov-one/weave/x/multisig"
 	"path/filepath"
+
+	"github.com/iov-one/weave/x/validators"
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/app"
@@ -14,7 +17,6 @@ import (
 	"github.com/iov-one/weave/x"
 	"github.com/iov-one/weave/x/cash"
 	"github.com/iov-one/weave/x/currency"
-	"github.com/iov-one/weave/x/multisig"
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
 )
@@ -81,11 +83,12 @@ func GenerateApp(home string, logger log.Logger, debug bool) (abci.Application, 
 		return nil, err
 	}
 	application.WithInit(app.ChainInitializers(
+		&multisig.Initializer{},
 		&cash.Initializer{},
 		&currency.Initializer{},
 		&blockchain.Initializer{},
 		&ticker.Initializer{},
-		&multisig.Initializer{},
+		&validators.Initializer{},
 	))
 
 	// set the logger and return
