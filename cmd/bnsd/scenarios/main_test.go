@@ -31,7 +31,7 @@ const (
 
 var (
 	tendermintAddress = flag.String("address", testLocalAddress, "destination address of tendermint rpc")
-	hexSeed           = flag.String("seed", "0a40d34c1970ae90acf3405f2d99dcaca16d0c7db379f4beafcfdf667b9d69ce350d27f5fb440509dfa79ec883a0510bc9a9614c3d44188881f0c5e402898b4bf3c9", "private key")
+	hexSeed           = flag.String("seed", "d34c1970ae90acf3405f2d99dcaca16d0c7db379f4beafcfdf667b9d69ce350d27f5fb440509dfa79ec883a0510bc9a9614c3d44188881f0c5e402898b4bf3c9", "private key seed in hex")
 	delay             = flag.Duration("delay", time.Duration(0), "duration to wait between test cases for rate limits")
 )
 
@@ -51,7 +51,7 @@ func TestMain(m *testing.M) {
 	binary.BigEndian.PutUint64(multiSigContractID, 1)
 	multiSigContractAddr = multisig.MultiSigCondition(multiSigContractID).Address()
 	var err error
-	alice, err = client.DecodePrivateKey(*hexSeed)
+	alice, err = client.DecodePrivateKeyFromSeed(*hexSeed)
 	if err != nil {
 		logger.Error("Failed to decode private key", "cause", err)
 		os.Exit(1)
