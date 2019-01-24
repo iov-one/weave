@@ -2,7 +2,6 @@ package validators
 
 import (
 	stderr "errors"
-	fmt "fmt"
 	"reflect"
 
 	"github.com/iov-one/weave/errors"
@@ -25,7 +24,7 @@ var (
 	errInvalidPubKey     = stderr.New("Invalid public key")
 	errEmptyValidatorSet = stderr.New("Empty validator set")
 	errInvalidPower      = stderr.New("Power value is invalid")
-	errNotFound          = fmt.Errorf("Not found")
+	errNotFound          = stderr.New("Not found")
 )
 
 func ErrEmptyDiff() error {
