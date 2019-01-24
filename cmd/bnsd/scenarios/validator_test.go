@@ -14,6 +14,19 @@ import (
 	"github.com/tendermint/tendermint/types"
 )
 
+func TestQueryValidatorUpdateSigner(t *testing.T) {
+	// when
+	r, err := bnsClient.AbciQuery("/validators", []byte("accounts"))
+	// then
+	require.NoError(t, err)
+	require.Len(t, r.Models, 1)
+
+	var accounts validators.Accounts
+	require.NoError(t, accounts.Unmarshal(r.Models[0].Value))
+	require.Len(t, accounts.Addresses, 1)
+	assert.Contains(t, accounts.Addresses, []byte(multiSigContractAddr))
+}
+
 func TestUpdateValidatorSet(t *testing.T) {
 	current, err := client.Admin(bnsClient).GetValidators(client.CurrentHeight)
 	require.NoError(t, err)
