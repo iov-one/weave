@@ -66,7 +66,7 @@ func GenInitOptions(args []string) (json.RawMessage, error) {
               "addresses": ["%s"]
 	    }
           }
-	`, addr, addr, ticker)
+	`, addr, ticker, addr)
 	return []byte(opts), nil
 }
 
