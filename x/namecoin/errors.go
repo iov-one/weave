@@ -7,7 +7,6 @@ import (
 )
 
 // ABCI Response Codes
-// bov takes 1000-1100
 // namecoin takes 1000-1010
 const (
 	CodeInvalidToken  = 1000

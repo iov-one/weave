@@ -6,12 +6,11 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/tendermint/tendermint/libs/log"
-
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/cmd/bcpd/app"
 	"github.com/iov-one/weave/commands"
 	"github.com/iov-one/weave/commands/server"
+	"github.com/tendermint/tendermint/libs/log"
 )
 
 var (
@@ -20,14 +19,14 @@ var (
 )
 
 func init() {
-	defaultHome := filepath.Join(os.ExpandEnv("$HOME"), ".bov")
+	defaultHome := filepath.Join(os.ExpandEnv("$HOME"), ".bcp")
 	varHome = flag.String(flagHome, defaultHome, "directory to store files under")
 
 	flag.CommandLine.Usage = helpMessage
 }
 
 func helpMessage() {
-	fmt.Println("bov")
+	fmt.Println("bcp")
 	fmt.Println("        Blockchain of Value node")
 	fmt.Println("")
 	fmt.Println("help    Print this message")
@@ -36,7 +35,7 @@ func helpMessage() {
 	fmt.Println("version Print the app version")
 	fmt.Println(`
   -home string
-        directory to store files under (default "$HOME/.bov")`)
+        directory to store files under (default "$HOME/.bcp")`)
 }
 
 func main() {

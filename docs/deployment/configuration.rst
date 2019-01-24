@@ -130,7 +130,7 @@ the application cares about:
 App State
 ---------
 
-If the backend ABCI app is weave-based, such as ``mycoind`` or ``bov``,
+If the backend ABCI app is weave-based, such as ``mycoind`` or ``bns``,
 the app_state contains one key for each extension that it wishes
 to initialize. Each element is an array of an extension-specific
 format, which is fed into ``Initialized.FromGenesis`` from the
