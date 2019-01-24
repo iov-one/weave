@@ -2,6 +2,17 @@
 
 
 [[projects]]
+  branch = "master"
+  digest = "1:47ea4fbe2ab4aeb9808502c51e657041c2e49b36b83fc1c1a349135cdf16342f"
+  name = "github.com/agl/ed25519"
+  packages = [
+    ".",
+    "edwards25519",
+  ]
+  pruneopts = "UT"
+  revision = "5312a61534124124185d41f09206b9fef1d88403"
+
+[[projects]]
   digest = "1:320e7ead93de9fd2b0e59b50fd92a4d50c1f8ab455d96bc2eb083267453a9709"
   name = "github.com/asaskevich/govalidator"
   packages = ["."]
@@ -309,6 +320,14 @@
   version = "1.6.3"
 
 [[projects]]
+  branch = "master"
+  digest = "1:3b7dd59739ff307269127f1cec32bcc663a2eaea2ca6526025ea6f6f7193bf18"
+  name = "github.com/stellar/go"
+  packages = ["exp/crypto/derivation"]
+  pruneopts = "UT"
+  revision = "cf1e2104ac1255afcc4e7b203a0239c59975e22f"
+
+[[projects]]
   digest = "1:ac83cf90d08b63ad5f7e020ef480d319ae890c208f8524622a2f3136e2686b02"
   name = "github.com/stretchr/objx"
   packages = ["."]
@@ -564,6 +583,7 @@
     "github.com/google/btree",
     "github.com/pkg/errors",
     "github.com/smartystreets/goconvey/convey",
+    "github.com/stellar/go/exp/crypto/derivation",
     "github.com/stretchr/testify/assert",
     "github.com/stretchr/testify/mock",
     "github.com/stretchr/testify/require",
@@ -571,6 +591,8 @@
     "github.com/tendermint/tendermint/abci/server",
     "github.com/tendermint/tendermint/abci/types",
     "github.com/tendermint/tendermint/config",
+    "github.com/tendermint/tendermint/crypto",
+    "github.com/tendermint/tendermint/crypto/ed25519",
     "github.com/tendermint/tendermint/libs/common",
     "github.com/tendermint/tendermint/libs/db",
     "github.com/tendermint/tendermint/libs/log",
