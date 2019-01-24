@@ -3,6 +3,7 @@ package orm
 import (
 	"bytes"
 	"errors"
+
 	"github.com/iov-one/weave"
 )
 
