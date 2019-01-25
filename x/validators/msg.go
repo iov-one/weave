@@ -1,6 +1,7 @@
 package validators
 
 import (
+	"math"
 	"strings"
 
 	"github.com/iov-one/weave"
@@ -23,7 +24,7 @@ func (m ValidatorUpdate) Validate() error {
 		strings.ToLower(m.Pubkey.Type) != "ed25519" {
 		return errors.WithCode(errInvalidPubKey, CodeInvalidPubKey)
 	}
-	if m.Power < 0 {
+	if m.Power < 0 || m.Power > math.MaxInt64/8 {
 		return errors.WithCode(errInvalidPower, CodeInvalidPower)
 	}
 	return nil

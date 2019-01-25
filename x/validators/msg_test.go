@@ -1,11 +1,11 @@
 package validators
 
 import (
+	"math"
 	"testing"
 
-	"github.com/tendermint/tendermint/crypto/ed25519"
-
 	"github.com/stretchr/testify/assert"
+	"github.com/tendermint/tendermint/crypto/ed25519"
 )
 
 func TestValidate(t *testing.T) {
@@ -36,6 +36,12 @@ func TestValidate(t *testing.T) {
 		"Power must not be negative": {
 			src: SetValidatorsMsg{[]*ValidatorUpdate{
 				{Pubkey: Pubkey{Data: keyEd25519[:], Type: "ed25519"}, Power: -1},
+			}},
+			expError: true,
+		},
+		"Power must not exceed max": {
+			src: SetValidatorsMsg{[]*ValidatorUpdate{
+				{Pubkey: Pubkey{Data: keyEd25519[:], Type: "ed25519"}, Power: math.MaxInt64/8 + 1},
 			}},
 			expError: true,
 		},
