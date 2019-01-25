@@ -44,7 +44,7 @@ required = ["github.com/gogo/protobuf/protoc-gen-gogofaster"]
 
 [[override]]
   name = "github.com/tendermint/tendermint"
-  version = "=0.29.0"
+  version = "=0.29.1"
 
 [[constraint]]
   name = "github.com/tendermint/iavl"
