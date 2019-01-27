@@ -350,11 +350,12 @@
   revision = "6b91fda63f2e36186f1c9d0e48578defb69c5d43"
 
 [[projects]]
-  digest = "1:605b6546f3f43745695298ec2d342d3e952b6d91cdf9f349bea9315f677d759f"
+  digest = "1:83f5e189eea2baad419a6a410984514266ff690075759c87e9ede596809bd0b8"
   name = "github.com/tendermint/btcd"
   packages = ["btcec"]
   pruneopts = "UT"
-  revision = "e5840949ff4fff0c56f9b6a541e22b63581ea9df"
+  revision = "80daadac05d1cd29571fccf27002d79667a88b58"
+  version = "v0.1.1"
 
 [[projects]]
   digest = "1:ad9c4c1a4e7875330b1f62906f2830f043a23edb5db997e3a5ac5d3e6eadf80a"
@@ -373,11 +374,12 @@
   version = "v0.12.0"
 
 [[projects]]
-  digest = "1:34acd7597c3f233b3d5ba00a11be81e9e46c5ba525d9f71a10159ec5fa2ee128"
+  digest = "1:e008b9ca2caab4393739bbd2209f198b7759a724ea0cfcd6e4d1629a85411405"
   name = "github.com/tendermint/tendermint"
   packages = [
     "abci/client",
     "abci/example/code",
+    "abci/example/counter",
     "abci/example/kvstore",
     "abci/server",
     "abci/types",
@@ -428,8 +430,8 @@
     "version",
   ]
   pruneopts = "UT"
-  revision = "1e1ca15bccedc16c2452c73745c3c2b5df91ae96"
-  version = "v0.27.4"
+  revision = "4d7b29cd8f8ef998cf8f7141f3a100b0a4fa718d"
+  version = "v0.29.1"
 
 [[projects]]
   digest = "1:b97247853a9ddc82f593fbacff672b8cae8ae82d7bb9b91436098328703c476c"
@@ -571,6 +573,8 @@
     "github.com/tendermint/tendermint/abci/server",
     "github.com/tendermint/tendermint/abci/types",
     "github.com/tendermint/tendermint/config",
+    "github.com/tendermint/tendermint/crypto",
+    "github.com/tendermint/tendermint/crypto/ed25519",
     "github.com/tendermint/tendermint/libs/common",
     "github.com/tendermint/tendermint/libs/db",
     "github.com/tendermint/tendermint/libs/log",
