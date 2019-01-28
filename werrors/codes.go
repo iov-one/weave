@@ -25,28 +25,6 @@ const (
 	InvalidModel   Code = 6
 )
 
-// String returns a text representation of each error code.
-func (c Code) String() string {
-	switch c {
-	case Internal:
-		return "internal"
-	case TxParse:
-		return "transaction parse"
-	case Unauthorized:
-		return "unauthorized"
-	case UnknownRequest:
-		return "unknown request"
-	case NotFound:
-		return "not found"
-	case InvalidMsg:
-		return "invalid message"
-	case InvalidModel:
-		return "invalid model"
-	default:
-		return "unknown"
-	}
-}
-
 // Is returns true if given error represents an error Code equal to this one.
 // This method is ment for testing error class equality (instead of instance
 // equality).
@@ -57,5 +35,7 @@ func (c Code) Is(err error) bool {
 	if e, ok := err.(coder); ok {
 		return e.ABCICode() == uint32(c)
 	}
-	return false
+	// If an error does not implement coder interface, than it must be
+	// treated as an error with an internal code.
+	return c == Internal
 }
