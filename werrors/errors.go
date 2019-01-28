@@ -14,6 +14,9 @@ func New(cause Code, description string) error {
 }
 
 // Wrap extends given error with additional information.
+//
+// If the wrapped error does not provide ABCICode method (ie. stdlib errors),
+// it will be labeled as internal error.
 func Wrap(err error, description string) error {
 	return &Error{
 		Parent: err,
@@ -34,14 +37,14 @@ type Error struct {
 
 func (e *Error) Error() string {
 	if e.Parent == nil {
-		return fmt.Sprintf("%s: %s", e.Code, e.Msg)
+		return e.Msg
 	}
-	return fmt.Sprintf("%s: %s\n\t%s", e.Code, e.Msg, e.Parent.Error())
+	return fmt.Sprintf("%s: %s", e.Msg, e.Parent.Error())
 }
 
 func (e *Error) ABCICode() uint32 {
 	// Most outside error code should be the most precise, so prioritize it.
-	if e.Code != 0 {
+	if e.Code != Internal {
 		return uint32(e.Code)
 	}
 
@@ -56,17 +59,12 @@ func (e *Error) ABCICode() uint32 {
 }
 
 func (e *Error) ABCILog() string {
-	// First 100 error codes are reserved for internal errors. We do not
-	// want to expose internal error or implementation details, therefore
-	// those are providing partial information.
-	switch {
-	case e.Code == 0:
+	// Internal error must not be revealed as a public API message.
+	// Instead, return generic description.
+	if e.ABCICode() == uint32(Internal) {
 		return "internal error"
-	case e.Code <= 100:
-		return e.Code.String() + " error"
-	default:
-		return e.Error()
 	}
+	return e.Error()
 }
 
 func (e *Error) Cause() error {
