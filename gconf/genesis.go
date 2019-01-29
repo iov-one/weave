@@ -17,7 +17,7 @@ var _ weave.Initializer = Initializer{}
 // and save it to the database
 func (Initializer) FromGenesis(opts weave.Options, db weave.KVStore) error {
 	conf := make(map[string]interface{})
-	err := opts.ReadOptions("gconfig", &accts)
+	err := opts.ReadOptions("gconfig", &conf)
 	if err != nil {
 		return err
 	}
