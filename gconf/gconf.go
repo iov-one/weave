@@ -2,7 +2,7 @@ package gconf
 
 import (
 	"encoding/json"
-	"log"
+	"fmt"
 	"time"
 
 	"github.com/iov-one/weave"
@@ -52,10 +52,14 @@ func loadInto(confStore Store, propName string, dest interface{}) {
 	key := []byte("gconf:" + propName)
 	raw := confStore.Get(key)
 	if raw == nil {
-		log.Printf("cannot load %q configuration: not found", propName)
+		fail(fmt.Sprintf("cannot load %q configuration: not found", propName))
 		return
 	}
 	if err := json.Unmarshal(raw, dest); err != nil {
-		log.Printf("cannot load %q configuration: %s", propName, err)
+		fail(fmt.Sprintf("cannot load %q configuration: %s", propName, err))
 	}
+}
+
+var fail = func(msg string) {
+	panic(msg)
 }
