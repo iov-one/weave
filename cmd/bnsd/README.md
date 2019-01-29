@@ -31,13 +31,13 @@ Make sure to set `TM_VERSION` to the right tendermint version (ie. 0.27.4)
 export TM_VERSION='x.xx.x'
 docker volume create bns-volume
 docker run -v bns-volume:/tmhome  -it --rm iov1/tendermint:$TM_VERSION init --home /tmhome
-docker run --rm -it -v bcp-volume:/bcphome iov1/bcpd:latest -home=/bcphome init
+docker run --rm -it -v bns-volume:/bnshome iov1/bnsd:latest -home=/bnshome init
 ```
 
 
 Once the state is initialized, `bpcd` instance can be started.
 
 ```
-docker run --rm -it -v bcp-volume:/bcphome iov1/bcpd:latest -home=/bcphome start -bind=unix:///bcphome/app.sock
-docker run -v bcp-volume:/tmhome -p 46656:46656 -p 46657:46657  -it --rm iov1/tendermint:$TM_VERSION node --home /tmhome --proxy_app="unix:///tmhome/app.sock"
+docker run --rm -it -v bns-volume:/bnshome iov1/bnsd:latest -home=/bnshome start -bind=unix:///bnshome/app.sock
+docker run -v bns-volume:/tmhome -p 46656:46656 -p 46657:46657  -it --rm iov1/tendermint:$TM_VERSION node --home /tmhome --proxy_app="unix:///tmhome/app.sock"
 ```
