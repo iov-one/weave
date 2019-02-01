@@ -16,10 +16,30 @@ type TMError interface {
 	ABCILog() string
 }
 
+// New returns a new internal error instance. This function is defined so that
+// weave/errors package provides the same interface as standard library error
+// package.
+//
+// Current notation allows of additional code argument for compatibility with
+// an older errors package API. Once all code is migrated, it can be reduced to
+// a single case when only a description is provided.
+func New(description string, code ...uint32) error {
+	switch len(code) {
+	case 1:
+		// fmt.Fprintf
+		// debug.PrintStack()
+		return deprecatedLegacyNew(description, code[0])
+	case 0:
+		return InternalErr.New(description)
+	default:
+		panic("invalid New notation used")
+	}
+}
+
 // New creates an error with the given message and a stacktrace,
 // and sets the code and log,
 // overriding the state if err was already TMError
-func New(log string, code uint32) error {
+func deprecatedLegacyNew(log string, code uint32) error {
 	// create a new error with stack trace and attach a code
 	st := errors.New(log).(stackTracer)
 	return tmerror{
@@ -55,9 +75,11 @@ func WithLog(prefix string, err error, code uint32) TMError {
 	return WithCode(e2, code)
 }
 
+// This function was deprecated.
+//
 // Wrap safely takes any error and promotes it to a TMError.
 // Doing nothing on nil or an incoming TMError.
-func Wrap(err error) TMError {
+func deprecatedLegacyWrap(err error) TMError {
 	// nil or TMError are no-ops
 	if err == nil {
 		return nil
