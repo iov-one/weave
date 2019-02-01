@@ -65,7 +65,7 @@ var commands = map[string]func() error{
 
 func cmdList() error {
 	var (
-		tmAddrFl = flag.String("tm", "https://bns.NETWORK.iov.one", "Tendermint node address. Use proper NETWORK name.")
+		tmAddrFl = flag.String("tm", "https://bns.NETWORK.iov.one:443", "Tendermint node address. Use proper NETWORK name.")
 	)
 	flag.Parse()
 
@@ -123,12 +123,15 @@ type pubKeyInfo struct {
 func cmdAdd() error {
 	var (
 		tmAddrFl = flag.String("tm", "https://bns.NETWORK.iov.one:443", "Tendermint node address. Use proper NETWORK name.")
-		pubKeyFl = flag.String("pubkey", "ASrHklGzkWYreMkjmhK9bwqUbDk1+1KflU+wpDAkvZs=", "Base64 encoded, ed25519 public key.")
-		hexKeyFl = flag.String("key", "0a40d34c1970ae90acf3405f2d99dcaca16d0c7db379f4beafcfdf667b9d69ce350d27f5fb440509dfa79ec883a0510bc9a9614c3d44188881f0c5e402898b4bf3c9", "Hex encoded, private key of the validator that is to be added/updated.")
+		pubKeyFl = flag.String("pubkey", "", "Base64 encoded, ed25519 public key.")
+		hexKeyFl = flag.String("key", "", "Hex encoded, private key of the validator that is to be added/updated.")
 		powerFl  = flag.Int64("power", 10, "Validator node power. Set to 0 to delete a node.")
 	)
 	flag.Parse()
 
+	if *pubKeyFl == "" {
+		return errors.New("public key is required")
+	}
 	pubkey, err := base64.StdEncoding.DecodeString(*pubKeyFl)
 	if err != nil {
 		return fmt.Errorf("cannot base64 decode public key: %s", err)
@@ -141,6 +144,9 @@ func cmdAdd() error {
 
 	bnsClient := client.NewClient(client.NewHTTPConnection(*tmAddrFl))
 
+	if *pubKeyFl == "" {
+		return errors.New("private key is required")
+	}
 	key, err := decodePrivateKey(*hexKeyFl)
 	if err != nil {
 		return fmt.Errorf("cannot decode private key: %s", err)
