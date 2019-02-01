@@ -2,14 +2,8 @@ package app
 
 import (
 	"bytes"
-	"fmt"
+	"encoding/json"
 	"testing"
-
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-
-	abci "github.com/tendermint/tendermint/abci/types"
-	"github.com/tendermint/tendermint/libs/log"
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/app"
@@ -17,24 +11,45 @@ import (
 	"github.com/iov-one/weave/x"
 	"github.com/iov-one/weave/x/cash"
 	"github.com/iov-one/weave/x/sigs"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	abci "github.com/tendermint/tendermint/abci/types"
+	"github.com/tendermint/tendermint/libs/log"
 )
 
 func testInitChain(t *testing.T, myApp app.BaseApp, addr string) {
+	t.Helper()
+
 	chainID := "test-net-22"
-	// initialize chain
-	appState := fmt.Sprintf(`{
-            "cash": [{
-                "address": "%s",
-                "coins": [{
-                    "whole": 50000,
-                    "ticker": "ETH"
-                    }, {
-                    "whole": 1234,
-                    "ticker": "FRNK"
-                }]
-            }]}`, addr)
+
+	// Local Alias for JSON types, so that declaration is nicer.
+	type (
+		dict  map[string]interface{}
+		array []interface{}
+	)
+	appState, err := json.Marshal(dict{
+		"cash": array{
+			dict{
+				"address": addr,
+				"coins": array{
+					dict{"whole": 50000, "ticker": "ETH"},
+					dict{"whole": 1234, "ticker": "FRNK"},
+				},
+			},
+		},
+		"gconf": dict{
+			cash.GconfCollectorAddress: "fake-collector-address",
+			cash.GconfMinimalFee:       x.Coin{Whole: 0}, // no fee
+		},
+	})
+	if err != nil {
+		t.Fatalf("cannot serialize state: %s", err)
+	}
 	assert.Equal(t, "", myApp.GetChainID())
-	myApp.InitChain(abci.RequestInitChain{AppStateBytes: []byte(appState), ChainId: chainID})
+	myApp.InitChain(abci.RequestInitChain{
+		AppStateBytes: appState,
+		ChainId:       chainID,
+	})
 	assert.Equal(t, chainID, myApp.GetChainID())
 
 }

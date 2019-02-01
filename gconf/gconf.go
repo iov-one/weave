@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/x"
 )
 
 type Store interface {
@@ -56,6 +57,12 @@ func Address(confStore Store, propName string) weave.Address {
 // This function panics if configuration cannot be acquired.
 func Bytes(confStore Store, propName string) []byte {
 	value := make([]byte, 0, 128)
+	loadInto(confStore, propName, &value)
+	return value
+}
+
+func Coin(confStore Store, propName string) x.Coin {
+	var value x.Coin
 	loadInto(confStore, propName, &value)
 	return value
 }

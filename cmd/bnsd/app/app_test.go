@@ -183,8 +183,16 @@ func createContract(t *testing.T, baseApp weaveApp.BaseApp, chainID string, heig
 
 // signAndCommit signs tx with signatures from signers and submits to the chain
 // asserts and fails the test in case of errors during the process
-func signAndCommit(t *testing.T, app weaveApp.BaseApp, tx *app.Tx, signers []Signer, chainID string,
-	height int64) abci.ResponseDeliverTx {
+func signAndCommit(
+	t *testing.T,
+	app weaveApp.BaseApp,
+	tx *app.Tx,
+	signers []Signer,
+	chainID string,
+	height int64,
+) abci.ResponseDeliverTx {
+	t.Helper()
+
 	for _, signer := range signers {
 		sig, err := sigs.SignTx(signer.pk, tx, chainID, signer.nonce)
 		require.NoError(t, err)

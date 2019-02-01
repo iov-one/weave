@@ -4,12 +4,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/store"
 	"github.com/iov-one/weave/x"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func getWallet(kv weave.KVStore, addr weave.Address) x.Coins {

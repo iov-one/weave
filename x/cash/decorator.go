@@ -3,11 +3,8 @@ package cash
 import (
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/gconf"
 	"github.com/iov-one/weave/x"
-)
-
-var (
-	defaultCollector = weave.NewAddress([]byte("no-fees-here"))
 )
 
 //----------------- FeeDecorator ----------------
@@ -19,38 +16,33 @@ var (
 // the account. All deducted fees are send to the collector,
 // which can be set to an address controlled by another
 // extension ("smart contract").
+// Collector address is configured via gconf package.
 //
-// If minFee is zero, no fees required, but will
-// speed processing. If a currency is set on minFee,
+// Minimal fee is configured via gconf package. If minimal is zero, no fees
+// required, but will speed processing. If a currency is set on minimal fee,
 // then all fees must be paid in that currency
 //
 // It uses auth to verify the sender
 type FeeDecorator struct {
-	minFee    x.Coin
-	collector weave.Address
-	auth      x.Authenticator
-	control   Controller
+	auth    x.Authenticator
+	control Controller
 }
+
+const (
+	GconfCollectorAddress = "cash:collector_address"
+	GconfMinimalFee       = "cash:minimal_fee"
+)
 
 var _ weave.Decorator = FeeDecorator{}
 
 // NewFeeDecorator returns a FeeDecorator with the given
 // minimum fee, and all collected fees going to a
 // default address.
-func NewFeeDecorator(auth x.Authenticator, control Controller,
-	min x.Coin) FeeDecorator {
+func NewFeeDecorator(auth x.Authenticator, control Controller) FeeDecorator {
 	return FeeDecorator{
-		auth:      auth,
-		control:   control,
-		minFee:    min,
-		collector: defaultCollector,
+		auth:    auth,
+		control: control,
 	}
-}
-
-// WithCollector allows you to set the collector in app setup
-func (d FeeDecorator) WithCollector(addr weave.Address) FeeDecorator {
-	d.collector = addr
-	return d
 }
 
 // Check verifies and deducts fees before calling down the stack
@@ -58,7 +50,7 @@ func (d FeeDecorator) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx,
 	next weave.Checker) (weave.CheckResult, error) {
 
 	var res weave.CheckResult
-	finfo, err := d.extractFee(ctx, tx)
+	finfo, err := d.extractFee(ctx, tx, store)
 	if err != nil {
 		return res, err
 	}
@@ -74,7 +66,8 @@ func (d FeeDecorator) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx,
 		return res, errors.ErrUnauthorized()
 	}
 	// and have enough
-	err = d.control.MoveCoins(store, finfo.Payer, d.collector, *fee)
+	collector := gconf.Address(store, GconfCollectorAddress)
+	err = d.control.MoveCoins(store, finfo.Payer, collector, *fee)
 	if err != nil {
 		return res, err
 	}
@@ -91,7 +84,7 @@ func (d FeeDecorator) Deliver(ctx weave.Context, store weave.KVStore, tx weave.T
 	next weave.Deliverer) (weave.DeliverResult, error) {
 
 	var res weave.DeliverResult
-	finfo, err := d.extractFee(ctx, tx)
+	finfo, err := d.extractFee(ctx, tx, store)
 	if err != nil {
 		return res, err
 	}
@@ -107,7 +100,8 @@ func (d FeeDecorator) Deliver(ctx weave.Context, store weave.KVStore, tx weave.T
 		return res, errors.ErrUnauthorized()
 	}
 	// and subtract it from the account
-	err = d.control.MoveCoins(store, finfo.Payer, d.collector, *fee)
+	collector := gconf.Address(store, "cash:collector_address")
+	err = d.control.MoveCoins(store, finfo.Payer, collector, *fee)
 	if err != nil {
 		return res, err
 	}
@@ -115,7 +109,7 @@ func (d FeeDecorator) Deliver(ctx weave.Context, store weave.KVStore, tx weave.T
 	return next.Deliver(ctx, store, tx)
 }
 
-func (d FeeDecorator) extractFee(ctx weave.Context, tx weave.Tx) (*FeeInfo, error) {
+func (d FeeDecorator) extractFee(ctx weave.Context, tx weave.Tx, store weave.KVStore) (*FeeInfo, error) {
 	var finfo *FeeInfo
 	ftx, ok := tx.(FeeTx)
 	if ok {
@@ -125,7 +119,8 @@ func (d FeeDecorator) extractFee(ctx weave.Context, tx weave.Tx) (*FeeInfo, erro
 
 	fee := finfo.GetFees()
 	if x.IsEmpty(fee) {
-		if d.minFee.IsZero() {
+		minFee := gconf.Coin(store, GconfMinimalFee)
+		if minFee.IsZero() {
 			return finfo, nil
 		}
 		return nil, ErrInsufficientFees(x.Coin{})
@@ -137,7 +132,7 @@ func (d FeeDecorator) extractFee(ctx weave.Context, tx weave.Tx) (*FeeInfo, erro
 		return nil, err
 	}
 
-	cmp := d.minFee
+	cmp := gconf.Coin(store, GconfMinimalFee)
 	// minimum has no currency -> accept everything
 	if cmp.Ticker == "" {
 		cmp.Ticker = fee.Ticker

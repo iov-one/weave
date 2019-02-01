@@ -10,6 +10,7 @@ import (
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/cmd/bnsd/app"
 	"github.com/iov-one/weave/x"
+	"github.com/iov-one/weave/x/cash"
 	abci "github.com/tendermint/tendermint/abci/types"
 	cfg "github.com/tendermint/tendermint/config"
 	"github.com/tendermint/tendermint/libs/log"
@@ -82,6 +83,10 @@ func initGenesis(filename string, addr weave.Address) error {
 				"address": addr,
 				"coins":   x.Coins{&initBalance},
 			},
+		},
+		"gconf": map[string]interface{}{
+			cash.GconfCollectorAddress: "fake-collector-address",
+			cash.GconfMinimalFee:       x.Coin{}, // no fee
 		},
 	})
 	if err != nil {

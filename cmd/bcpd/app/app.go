@@ -34,7 +34,7 @@ func Authenticator() x.Authenticator {
 
 // Chain returns a chain of decorators, to handle authentication,
 // fees, logging, and recovery
-func Chain(minFee x.Coin, authFn x.Authenticator) app.Decorators {
+func Chain(authFn x.Authenticator) app.Decorators {
 	// ctrl can be initialized with any implementation, but must be used
 	// consistently everywhere.
 	var ctrl cash.Controller = cash.NewController(cash.NewBucket())
@@ -47,7 +47,7 @@ func Chain(minFee x.Coin, authFn x.Authenticator) app.Decorators {
 		utils.NewSavepoint().OnCheck(),
 		sigs.NewDecorator(),
 		multisig.NewDecorator(authFn),
-		cash.NewFeeDecorator(authFn, ctrl, minFee),
+		cash.NewFeeDecorator(authFn, ctrl),
 		// cannot pay for fee with hashlock...
 		hashlock.NewDecorator(),
 		// on DeliverTx, bad tx will increment nonce and take fee
@@ -92,10 +92,9 @@ func QueryRouter() weave.QueryRouter {
 
 // Stack wires up a standard router with a standard decorator
 // chain. This can be passed into BaseApp.
-func Stack(minFee x.Coin, issuer weave.Address) weave.Handler {
+func Stack(issuer weave.Address) weave.Handler {
 	authFn := Authenticator()
-	return Chain(minFee, authFn).
-		WithHandler(Router(authFn, issuer))
+	return Chain(authFn).WithHandler(Router(authFn, issuer))
 }
 
 // Application constructs a basic ABCI application with

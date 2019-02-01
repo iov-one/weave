@@ -25,10 +25,10 @@ func TestGenInitOptions(t *testing.T) {
 			val, err := GenInitOptions(tc.args)
 			require.NoError(t, err)
 
-			cc := fmt.Sprintf(`"ticker": "%s"`, tc.cur)
+			cc := fmt.Sprintf(`"ticker":"%s"`, tc.cur)
 			assert.Contains(t, string(val), cc)
 
-			ca := fmt.Sprintf(`"address": "%s"`, tc.addr)
+			ca := fmt.Sprintf(`"address":"%s"`, tc.addr)
 			if tc.addr == "" {
 				// we just know there is an address, not what it is
 				ca = ca[:len(ca)-1]
