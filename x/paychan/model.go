@@ -11,28 +11,28 @@ var _ orm.CloneableData = (*PaymentChannel)(nil)
 // Validate ensures the payment channel is valid.
 func (pc *PaymentChannel) Validate() error {
 	if pc.Src == nil {
-		return werrors.New(werrors.InvalidModel, "missing source")
+		return werrors.InvalidModelErr.New("missing source")
 	}
 	if pc.SenderPubkey == nil {
-		return werrors.New(werrors.InvalidModel, "missing sender public key")
+		return werrors.InvalidModelErr.New("missing sender public key")
 	}
 	if pc.Recipient == nil {
-		return werrors.New(werrors.InvalidModel, "missing recipient")
+		return werrors.InvalidModelErr.New("missing recipient")
 	}
 	if pc.Timeout <= 0 {
-		return werrors.New(werrors.InvalidModel, "timeout in the past")
+		return werrors.InvalidModelErr.New("timeout in the past")
 	}
 	if pc.Total == nil || !pc.Total.IsPositive() {
-		return werrors.New(werrors.InvalidModel, "negative total")
+		return werrors.InvalidModelErr.New("negative total")
 	}
 	if len(pc.Memo) > 128 {
-		return werrors.New(werrors.InvalidModel, "memo too long")
+		return werrors.InvalidModelErr.New("memo too long")
 	}
 
 	// Transfer value must not be greater than the Total value represented
 	// by the PaymentChannel.
 	if pc.Transferred == nil || !pc.Transferred.IsNonNegative() || pc.Transferred.Compare(*pc.Total) > 0 {
-		return werrors.New(werrors.InvalidModel, "invalid transferred value")
+		return werrors.InvalidModelErr.New("invalid transferred value")
 	}
 	return nil
 }
@@ -82,11 +82,11 @@ func (b *PaymentChannelBucket) GetPaymentChannel(db weave.KVStore, paymentChanne
 		return nil, err
 	}
 	if obj == nil || obj.Value() == nil {
-		return nil, werrors.New(werrors.NotFound, "payment channel not found")
+		return nil, werrors.NotFoundErr.New("payment channel not found")
 	}
 	pc, ok := obj.Value().(*PaymentChannel)
 	if !ok {
-		return nil, werrors.New(werrors.NotFound, "payment channel not found")
+		return nil, werrors.NotFoundErr.New("payment channel not found")
 	}
 	return pc, nil
 }
