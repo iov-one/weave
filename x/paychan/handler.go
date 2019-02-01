@@ -2,8 +2,8 @@ package paychan
 
 import (
 	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/orm"
-	"github.com/iov-one/weave/werrors"
 	"github.com/iov-one/weave/x"
 	"github.com/iov-one/weave/x/cash"
 )
@@ -51,7 +51,7 @@ func (h *createPaymentChannelHandler) validate(ctx weave.Context, db weave.KVSto
 	}
 	msg, ok := rmsg.(*CreatePaymentChannelMsg)
 	if !ok {
-		return nil, werrors.InternalErr.New("unknown transaction type")
+		return nil, errors.InternalErr.New("unknown transaction type")
 	}
 
 	if err := msg.Validate(); err != nil {
@@ -60,11 +60,11 @@ func (h *createPaymentChannelHandler) validate(ctx weave.Context, db weave.KVSto
 
 	// Ensure that the timeout is in the future.
 	if height, _ := weave.GetHeight(ctx); msg.Timeout <= height {
-		return msg, werrors.InvalidMsgErr.New("timeout in the past")
+		return msg, errors.InvalidMsgErr.New("timeout in the past")
 	}
 
 	if !h.auth.HasAddress(ctx, msg.Src) {
-		return msg, werrors.UnauthorizedErr.New("invalid address")
+		return msg, errors.UnauthorizedErr.New("invalid address")
 	}
 
 	return msg, nil
@@ -87,14 +87,14 @@ func (h *createPaymentChannelHandler) Deliver(ctx weave.Context, db weave.KVStor
 		Transferred:  &x.Coin{Ticker: msg.Total.Ticker},
 	})
 	if err != nil {
-		return res, werrors.Wrap(err, "cannot create a payment channel")
+		return res, errors.Wrap(err, "cannot create a payment channel")
 	}
 
 	// Move coins from sender account and deposit total amount available on
 	// that channels account.
 	dst := paymentChannelAccount(obj.Key())
 	if err := h.cash.MoveCoins(db, msg.Src, dst, *msg.Total); err != nil {
-		return res, werrors.Wrap(err, "cannot move coins")
+		return res, errors.Wrap(err, "cannot move coins")
 	}
 
 	res.Data = obj.Key()
@@ -121,11 +121,11 @@ func (h *transferPaymentChannelHandler) Check(ctx weave.Context, db weave.KVStor
 func (h *transferPaymentChannelHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*TransferPaymentChannelMsg, error) {
 	rmsg, err := tx.GetMsg()
 	if err != nil {
-		return nil, werrors.Wrap(err, "cannot get message")
+		return nil, errors.Wrap(err, "cannot get message")
 	}
 	msg, ok := rmsg.(*TransferPaymentChannelMsg)
 	if !ok {
-		return nil, werrors.InternalErr.New("unknown tx type")
+		return nil, errors.InternalErr.New("unknown tx type")
 	}
 
 	if err := msg.Validate(); err != nil {
@@ -133,7 +133,7 @@ func (h *transferPaymentChannelHandler) validate(ctx weave.Context, db weave.KVS
 	}
 
 	if weave.GetChainID(ctx) != msg.Payment.ChainID {
-		return nil, werrors.InvalidMsgErr.New("invalid chain ID")
+		return nil, errors.InvalidMsgErr.New("invalid chain ID")
 	}
 
 	pc, err := h.bucket.GetPaymentChannel(db, msg.Payment.ChannelID)
@@ -144,24 +144,24 @@ func (h *transferPaymentChannelHandler) validate(ctx weave.Context, db weave.KVS
 	// Check signature to ensure the message was not altered.
 	raw, err := msg.Payment.Marshal()
 	if err != nil {
-		return nil, werrors.Wrap(err, "cannot serialize payment")
+		return nil, errors.Wrap(err, "cannot serialize payment")
 	}
 	if !pc.SenderPubkey.Verify(raw, msg.Signature) {
-		return msg, werrors.InvalidMsgErr.New("invalid signature")
+		return msg, errors.InvalidMsgErr.New("invalid signature")
 	}
 
 	if !msg.Payment.Amount.SameType(*pc.Total) {
-		return msg, werrors.InvalidMsgErr.New("amount and total amount use different ticker")
+		return msg, errors.InvalidMsgErr.New("amount and total amount use different ticker")
 	}
 
 	if msg.Payment.Amount.Compare(*pc.Total) > 0 {
-		return msg, werrors.InvalidMsgErr.New("amount greater than total amount")
+		return msg, errors.InvalidMsgErr.New("amount greater than total amount")
 	}
 	// Payment is representing a cumulative amount that is to be
 	// transferred to recipients account. Because it is cumulative, every
 	// transfer request must be greater than the previous one.
 	if msg.Payment.Amount.Compare(*pc.Transferred) <= 0 {
-		return msg, werrors.InvalidMsgErr.New("amount must be greater than previously requested")
+		return msg, errors.InvalidMsgErr.New("amount must be greater than previously requested")
 	}
 
 	return msg, nil
@@ -184,7 +184,7 @@ func (h *transferPaymentChannelHandler) Deliver(ctx weave.Context, db weave.KVSt
 	// move only the difference.
 	diff, err := msg.Payment.Amount.Subtract(*pc.Transferred)
 	if err != nil || diff.IsZero() {
-		return res, werrors.InvalidMsgErr.New("invalid amount")
+		return res, errors.InvalidMsgErr.New("invalid amount")
 	}
 
 	src := paymentChannelAccount(msg.Payment.ChannelID)
@@ -252,7 +252,7 @@ func (h *closePaymentChannelHandler) Deliver(ctx weave.Context, db weave.KVStore
 		// If timeout was not reached, only the recipient is allowed to
 		// close the channel.
 		if !h.auth.HasAddress(ctx, pc.Recipient) {
-			return res, werrors.InvalidMsgErr.New("only the recipient is allowed to close the channel")
+			return res, errors.InvalidMsgErr.New("only the recipient is allowed to close the channel")
 		}
 	}
 
@@ -277,7 +277,7 @@ func (h *closePaymentChannelHandler) validate(ctx weave.Context, db weave.KVStor
 	}
 	msg, ok := rmsg.(*ClosePaymentChannelMsg)
 	if !ok {
-		return nil, werrors.InvalidMsgErr.New("invalid message type")
+		return nil, errors.InvalidMsgErr.New("invalid message type")
 	}
 
 	return msg, msg.Validate()

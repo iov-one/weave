@@ -1,4 +1,4 @@
-package werrors
+package errors
 
 import (
 	"errors"

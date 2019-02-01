@@ -3,10 +3,9 @@ package weave
 import (
 	"fmt"
 
+	"github.com/iov-one/weave/errors"
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/common"
-
-	"github.com/iov-one/weave/errors"
 )
 
 //---------- helpers for handling responses --------

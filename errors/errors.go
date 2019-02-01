@@ -1,7 +1,9 @@
-package werrors
+package errors
 
 import (
 	"fmt"
+
+	"github.com/pkg/errors"
 )
 
 var (
@@ -75,11 +77,29 @@ func (e RootError) New(description string) error {
 	return Wrap(e, description)
 }
 
+// This Wrap implementation provides a transition layer between two Wrap
+// function implementations with incompatible notations.
+//
+// Once migration is complete, it will be removed and replaced by wrapng
+// function.
+func Wrap(err error, description ...string) TMError {
+	switch len(description) {
+	case 0:
+		// fmt.Fprintf
+		// debug.PrintStack()
+		return deprecatedLegacyWrap(err)
+	case 1:
+		return wrapng(err, description[0])
+	default:
+		panic("invalid Wrap notation used")
+	}
+}
+
 // Wrap extends given error with an additional information.
 //
 // If the wrapped error does not provide ABCICode method (ie. stdlib errors),
 // it will be labeled as internal error.
-func Wrap(err error, description string) error {
+func wrapng(err error, description string) TMError {
 	return &wrappedError{
 		Parent: err,
 		Msg:    description,
@@ -91,6 +111,13 @@ type wrappedError struct {
 	Msg string
 	// The underlying error that triggered this one.
 	Parent error
+}
+
+func (e *wrappedError) StackTrace() errors.StackTrace {
+	// TODO: this is either to be implemented or expectation of it being
+	// present removed completely. As this is an early stage of
+	// refactoring, this is left unimplemented for now.
+	return nil
 }
 
 func (e *wrappedError) Error() string {
