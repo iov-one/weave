@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"io"
@@ -121,9 +122,9 @@ type pubKeyInfo struct {
 
 func cmdAdd() error {
 	var (
-		tmAddrFl = flag.String("tm", "https://bns.NETWORK.iov.one", "Tendermint node address. Use proper NETWORK name.")
+		tmAddrFl = flag.String("tm", "https://bns.NETWORK.iov.one:443", "Tendermint node address. Use proper NETWORK name.")
 		pubKeyFl = flag.String("pubkey", "ASrHklGzkWYreMkjmhK9bwqUbDk1+1KflU+wpDAkvZs=", "Base64 encoded, ed25519 public key.")
-		hexKeyFl = flag.String("key", "0a40d34c1970ae90acf3405f2d99dcaca16d0c7db379f4beafcfdf667b9d69ce350d27f5fb440509dfa79ec883a0510bc9a9614c3d44188881f0c5e402898b4bf3c9", "Hex encoded, private key used to sign the transaction.")
+		hexKeyFl = flag.String("key", "0a40d34c1970ae90acf3405f2d99dcaca16d0c7db379f4beafcfdf667b9d69ce350d27f5fb440509dfa79ec883a0510bc9a9614c3d44188881f0c5e402898b4bf3c9", "Hex encoded, private key of the validator that is to be added/updated.")
 		powerFl  = flag.Int64("power", 10, "Validator node power. Set to 0 to delete a node.")
 	)
 	flag.Parse()
@@ -140,13 +141,9 @@ func cmdAdd() error {
 
 	bnsClient := client.NewClient(client.NewHTTPConnection(*tmAddrFl))
 
-	rawPrivateKey, err := hex.DecodeString(*hexKeyFl)
+	key, err := decodePrivateKey(*hexKeyFl)
 	if err != nil {
-		return fmt.Errorf("cannot hex decode private key: %s", err)
-	}
-	var key crypto.PrivateKey
-	if err := key.Unmarshal(rawPrivateKey); err != nil {
-		return fmt.Errorf("cannot deserialize private key: %s", err)
+		return fmt.Errorf("cannot decode private key: %s", err)
 	}
 
 	addValidatorTx := client.SetValidatorTx(
@@ -163,12 +160,26 @@ func cmdAdd() error {
 	if seq, err := aNonce.Next(); err != nil {
 		return fmt.Errorf("cannot get the next sequence number: %s", err)
 	} else {
-		client.SignTx(addValidatorTx, &key, genesis.ChainID, seq)
+		client.SignTx(addValidatorTx, key, genesis.ChainID, seq)
 	}
 	if err := bnsClient.BroadcastTx(addValidatorTx).IsError(); err != nil {
 		return fmt.Errorf("cannot broadcast transaction: %s", err)
 	}
 	return nil
+}
+
+func decodePrivateKey(hexSeed string) (*crypto.PrivateKey, error) {
+	data, err := hex.DecodeString(hexSeed)
+	if err != nil {
+		return nil, fmt.Errorf("cannot hex decode: %s", err)
+	}
+	if len(data) != 64 {
+		return nil, errors.New("invalid key length")
+	}
+	key := &crypto.PrivateKey{
+		Priv: &crypto.PrivateKey_Ed25519{Ed25519: data},
+	}
+	return key, nil
 }
 
 func fetchGenesis(serverURL string) (*genesis, error) {
