@@ -1,6 +1,8 @@
 package crypto
 
 import (
+	"errors"
+
 	"github.com/iov-one/weave"
 )
 
@@ -47,6 +49,10 @@ var _ PubKey = (*PublicKey)(nil)
 
 // Verify verifies the signature was created with this message and public key
 func (p *PublicKey) Verify(message []byte, sig *Signature) bool {
+	// Absence of a public key is always failing the signature test.
+	if p.unwrap() == nil {
+		return false
+	}
 	return p.unwrap().Verify(message, sig)
 }
 
@@ -69,6 +75,9 @@ var _ Signer = (*PrivateKey)(nil)
 
 // Sign returns a matching signature for this private key
 func (p *PrivateKey) Sign(message []byte) (*Signature, error) {
+	if p.unwrap() == nil {
+		return nil, errors.New("private key missing")
+	}
 	return p.unwrap().Sign(message)
 }
 

@@ -51,7 +51,7 @@ func TestController(t *testing.T) {
 				bucket.Delete(kv, []byte(Key))
 				//bucket.Save(kv, orm.NewSimpleObj([]byte(Key), set))
 				_, err = ctrl.CanUpdateValidators(kv, checkAddress, diff)
-				So(err.Error(), ShouldResemble, ErrWrongType(nil).Error())
+				So(err.Error(), ShouldResemble, ErrNotFound("account").Error())
 			})
 
 			Convey("No permission", func() {
@@ -70,14 +70,14 @@ func TestController(t *testing.T) {
 				bucket.Delete(kv, []byte(Key))
 				kv.Set([]byte(Key), []byte(set.String()))
 				_, err = ctrl.CanUpdateValidators(kv, checkAddress, diff)
-				So(err.Error(), ShouldResemble, ErrWrongType(set).Error())
+				So(err.Error(), ShouldResemble, ErrNotFound("account").Error())
 			})
 		})
 
 		Convey("When init didn't happen", func() {
 			Convey("Error on GetAccounts", func() {
 				_, err = ctrl.CanUpdateValidators(kv, checkAddress, diff)
-				So(err.Error(), ShouldResemble, ErrWrongType(nil).Error())
+				So(err.Error(), ShouldResemble, ErrNotFound("account").Error())
 			})
 		})
 	})
