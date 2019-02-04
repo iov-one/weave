@@ -25,19 +25,45 @@ Versions of both are pinned down in the [weave respository](https://github.com/i
 
 In order to run a node, its state must be first initialized. this is done by running `init` commands.
 
-Make sure to set `TM_VERSION` to the right tendermint version (ie. 0.27.4)
+Make sure to set `TM_VERSION` to the right tendermint version (ie. 0.27.4).
+You can change `BNS_HOME` to any directory. This is where the application state is saved.
 
+```sh
+$ export TM_VERSION='x.xx.x'
+$ export BNS_HOME="$HOME/bns_home"
+$ mkdir -p $BNS_HOME
+$ docker run \
+    -v $BNS_HOME:/tmhome \
+    -it \
+    --rm \
+    iov1/tendermint:$TM_VERSION init \
+        --home /tmhome
+$ docker run \
+    --rm \
+    -it \
+    -v $BNS_HOME:/bnshome \
+    iov1/bnsd:latest \
+        -home=/bnshome init
 ```
-export TM_VERSION='x.xx.x'
-docker volume create bns-volume
-docker run -v bns-volume:/tmhome  -it --rm iov1/tendermint:$TM_VERSION init --home /tmhome
-docker run --rm -it -v bns-volume:/bnshome iov1/bnsd:latest -home=/bnshome init
-```
 
 
-Once the state is initialized, `bpcd` instance can be started.
+Once the state is initialized, `bnsd` instance can be started.
 
-```
-docker run --rm -it -v bns-volume:/bnshome iov1/bnsd:latest -home=/bnshome start -bind=unix:///bnshome/app.sock
-docker run -v bns-volume:/tmhome -p 46656:46656 -p 46657:46657  -it --rm iov1/tendermint:$TM_VERSION node --home /tmhome --proxy_app="unix:///tmhome/app.sock"
+```sh
+$ docker run \
+    --rm \
+    -it \
+    -v $BNS_HOME:/bnshome \
+    iov1/bnsd:latest \
+        -home=/bnshome start \
+        -bind=unix:///bnshome/app.sock
+$ docker run -v $BNS_HOME:/tmhome \
+    -p 26656:26656 \
+    -p 26657:26657 \
+    -it \
+    --rm \
+    iov1/tendermint:$TM_VERSION node \
+        --home /tmhome \
+        --proxy_app="unix:///tmhome/app.sock" \
+        --moniker="local"
 ```
