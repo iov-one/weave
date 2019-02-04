@@ -100,7 +100,7 @@ func (d FeeDecorator) Deliver(ctx weave.Context, store weave.KVStore, tx weave.T
 		return res, errors.ErrUnauthorized()
 	}
 	// and subtract it from the account
-	collector := gconf.Address(store, "cash:collector_address")
+	collector := gconf.Address(store, GconfCollectorAddress)
 	err = d.control.MoveCoins(store, finfo.Payer, collector, *fee)
 	if err != nil {
 		return res, err
