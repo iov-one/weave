@@ -1,7 +1,7 @@
 {
   "app_hash": "",
   "app_state": {
-    "wallets": [
+    "cash": [
       {
         "address": "3afcdab4cfbf066e959d139251c8f0ee91e99d5a",
         "name": "admin",

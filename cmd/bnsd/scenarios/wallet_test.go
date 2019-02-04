@@ -14,7 +14,10 @@ func TestSendTokens(t *testing.T) {
 	aNonce := client.NewNonce(bnsClient, alice.PublicKey().Address())
 
 	walletResp, err := bnsClient.GetWallet(alice.PublicKey().Address())
+	require.NoError(t, err)
+	require.NotNil(t, walletResp)
 	require.NotEmpty(t, walletResp.Wallet.Coins)
+
 	for i, coin := range walletResp.Wallet.Coins {
 		// send a coin from Alice to Emilia
 		coin := x.Coin{

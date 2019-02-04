@@ -21,6 +21,18 @@ func GenPrivateKey() *PrivateKey {
 	return crypto.GenPrivKeyEd25519()
 }
 
+func DecodePrivateKeyFromSeed(hexSeed string) (*PrivateKey, error) {
+	data, err := hex.DecodeString(hexSeed)
+	if err != nil {
+		return nil, err
+	}
+	if len(data) != 64 {
+		return nil, errors.New("invalid key")
+	}
+	key := &PrivateKey{Priv: &crypto.PrivateKey_Ed25519{Ed25519: data}}
+	return key, nil
+}
+
 // DecodePrivateKey reads a hex string created by EncodePrivateKey
 // and returns the original PrivateKey
 func DecodePrivateKey(hexKey string) (*PrivateKey, error) {

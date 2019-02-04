@@ -6,17 +6,18 @@ import (
 	"io/ioutil"
 	"strings"
 
+	"github.com/iov-one/weave/x/cash"
+
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/x"
-	"github.com/iov-one/weave/x/namecoin"
 	tmtype "github.com/tendermint/tendermint/types"
 )
 
 // WalletStore represents a list of wallets from a tendermint genesis file
 // It also contains private keys generated for wallets without an Address
 type WalletStore struct {
-	Wallets []namecoin.GenesisAccount `json:"wallets"`
-	Keys    []*PrivateKey             `json:"-"`
+	Wallets []cash.GenesisAccount `json:"wallets"`
+	Keys    []*PrivateKey         `json:"-"`
 }
 
 // MergeWalletStore merges two WalletStore
@@ -104,28 +105,27 @@ func (m MaybeCoin) WithDefaults(defaults x.Coin) x.Coin {
 
 // WalletRequests contains a collection of MaybeWalletRequest
 type WalletRequests struct {
-	Wallets []WalletRequest `json:"wallets"`
+	Wallets []WalletRequest `json:"cash"`
 }
 
 // WalletRequest is like GenesisAccount, but using pointers
 // To differentiate between 0 and missing
 type WalletRequest struct {
 	Address weave.Address `json:"address"`
-	Name    string        `json:"name"`
 	Coins   MaybeCoins    `json:"coins,omitempty"`
 }
 
 // WalletResponse is a response on a query for a wallet
 type WalletResponse struct {
 	Address weave.Address
-	Wallet  namecoin.Wallet
+	Wallet  cash.Set
 	Height  int64
 }
 
 // Normalize Creates a WalletStore with defaulted Wallets and Generated Keys
 func (w WalletRequests) Normalize(defaults x.Coin) WalletStore {
 	out := WalletStore{
-		Wallets: make([]namecoin.GenesisAccount, len(w.Wallets)),
+		Wallets: make([]cash.GenesisAccount, len(w.Wallets)),
 	}
 
 	for i, w := range w.Wallets {
@@ -140,9 +140,9 @@ func (w WalletRequests) Normalize(defaults x.Coin) WalletStore {
 	return out
 }
 
-// Normalize returns corresponding namecoin.GenesisAccount
+// Normalize returns corresponding cash.GenesisAccount
 // with default values. It will generate private keys when there is no Address
-func (w WalletRequest) Normalize(defaults x.Coin) (namecoin.GenesisAccount, *PrivateKey) {
+func (w WalletRequest) Normalize(defaults x.Coin) (cash.GenesisAccount, *PrivateKey) {
 	var coins x.Coins
 	if len(w.Coins) == 0 {
 		coins = x.Coins{defaults.Clone()}
@@ -162,12 +162,9 @@ func (w WalletRequest) Normalize(defaults x.Coin) (namecoin.GenesisAccount, *Pri
 		fmt.Printf("Generating private key: %X\n\n", privKey)
 	}
 
-	return namecoin.GenesisAccount{
+	return cash.GenesisAccount{
 		Address: addr,
-		Wallet: &namecoin.Wallet{
-			Name:  w.Name,
-			Coins: coins,
-		},
+		Set:     cash.Set{Coins: coins},
 	}, privKey
 }
 
