@@ -203,7 +203,7 @@ func newMultisigTestApp(t require.TestingT, chainID string, contracts []*contrac
 	abciApp, err := GenerateApp("", log.NewNopLogger(), true)
 	require.NoError(t, err)
 	myApp := abciApp.(app.BaseApp) // let's set up a genesis file with some cash
-	appState := withContractAppState(t, contracts)
+	appState := appStateGenesis(t, contracts)
 
 	// Commit first block, make sure non-nil hash
 	myApp.InitChain(abci.RequestInitChain{AppStateBytes: []byte(appState), ChainId: chainID})
@@ -223,8 +223,14 @@ func withWalletAppState(t require.TestingT, accounts []*account) string {
 		Address weave.Address `json:"address"`
 		Coins   x.Coins       `json:"coins"`
 	}
-	var state struct {
-		Cash []wallet `json:"cash"`
+	state := struct {
+		Cash  []wallet               `json:"cash"`
+		Gconf map[string]interface{} `json:"gconf"`
+	}{
+		Gconf: map[string]interface{}{
+			cash.GconfCollectorAddress: "fake-collector-address",
+			cash.GconfMinimalFee:       x.Coin{}, // no fee
+		},
 	}
 
 	for _, acc := range accounts {
@@ -265,7 +271,7 @@ func (c *contract) signers() []*account {
 	return c.accountSigs[:c.threshold]
 }
 
-func withContractAppState(t require.TestingT, contracts []*contract) string {
+func appStateGenesis(t require.TestingT, contracts []*contract) string {
 	var buff bytes.Buffer
 	for i, acc := range contracts {
 		_, err := buff.WriteString(fmt.Sprintf(`{

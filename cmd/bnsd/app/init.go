@@ -11,6 +11,7 @@ import (
 	"github.com/iov-one/weave/cmd/bnsd/x/nft/blockchain"
 	"github.com/iov-one/weave/cmd/bnsd/x/nft/ticker"
 	"github.com/iov-one/weave/crypto"
+	"github.com/iov-one/weave/gconf"
 	"github.com/iov-one/weave/x"
 	"github.com/iov-one/weave/x/cash"
 	"github.com/iov-one/weave/x/currency"
@@ -79,12 +80,13 @@ func GenerateApp(home string, logger log.Logger, debug bool) (abci.Application, 
 	}
 
 	// TODO: anyone can make a token????
-	stack := Stack(x.Coin{}, nil)
+	stack := Stack(nil)
 	application, err := Application("bnsd", stack, TxDecoder, dbPath, debug)
 	if err != nil {
 		return nil, err
 	}
 	application.WithInit(app.ChainInitializers(
+		&gconf.Initializer{},
 		&multisig.Initializer{},
 		&cash.Initializer{},
 		&currency.Initializer{},

@@ -3,19 +3,20 @@ package scenarios
 import (
 	"encoding/binary"
 	"encoding/hex"
+	"encoding/json"
 	"flag"
-	"fmt"
-	"github.com/stellar/go/exp/crypto/derivation"
 	"os"
 	"strings"
 	"testing"
 	"time"
 
-	"github.com/iov-one/weave/x/multisig"
-
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/cmd/bnsd/app"
 	"github.com/iov-one/weave/cmd/bnsd/client"
+	"github.com/iov-one/weave/x"
+	"github.com/iov-one/weave/x/cash"
+	"github.com/iov-one/weave/x/multisig"
+	"github.com/stellar/go/exp/crypto/derivation"
 	abci "github.com/tendermint/tendermint/abci/types"
 	cfg "github.com/tendermint/tendermint/config"
 	"github.com/tendermint/tendermint/libs/log"
@@ -137,45 +138,54 @@ func initGenesis(filename string, addr weave.Address) (*tm.GenesisDoc, error) {
 		return nil, err
 	}
 
-	// set app state
-	appState := fmt.Sprintf(`
-	{
-	  "cash": [
-	    {
-	      "address": "%s",
-	      "coins": [
-		{
-		  "whole": 123456789,
-		  "ticker": "IOV"
+	type dict map[string]interface{}
+
+	appState, err := json.MarshalIndent(dict{
+		"cash": []interface{}{
+			dict{
+				"address": addr,
+				"coins": []interface{}{
+					dict{
+						"whole":  123456789,
+						"ticker": "IOV",
+					},
+					dict{
+						"whole":  123456789,
+						"ticker": "CASH",
+					},
+					dict{
+						"whole":  123456789,
+						"ticker": "ALX",
+					},
+					dict{
+						"whole":  123456789,
+						"ticker": "PAJA",
+					},
+				},
+			},
 		},
-		{
-		  "whole": 123456789,
-		  "ticker": "CASH"
+		"update_validators": dict{
+			"addresses": []weave.Address{
+				multiSigContractAddr,
+			},
 		},
-		{
-		  "whole": 123456789,
-		  "ticker": "ALX"
+		"multisig": []interface{}{
+			dict{
+				"sigs":                 []weave.Address{addr},
+				"activation_threshold": 1,
+				"admin_threshold":      1,
+			},
 		},
-		{
-		  "whole": 123456789,
-		  "ticker": "PAJA"
-		}
-	      ]
-	    }
-	  ],
-      "update_validators": {
-         "addresses": ["%s"]
-      },
-      "multisig": [
-			{
-		  	"sigs": ["%s"],
-			"activation_threshold": 1,
-			"admin_threshold": 1
-			}
-		]
+		"gconf": map[string]interface{}{
+			cash.GconfCollectorAddress: "fake-collector-address",
+			cash.GconfMinimalFee:       x.Coin{}, // no fee
+		},
+	}, "", "  ")
+	if err != nil {
+		panic(err)
 	}
-	`, addr, multiSigContractAddr, addr)
-	doc.AppState = []byte(appState)
+
+	doc.AppState = appState
 	// save file
 	return doc, doc.SaveAs(filename)
 }

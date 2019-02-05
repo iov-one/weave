@@ -5,13 +5,14 @@ import (
 	"fmt"
 	"path/filepath"
 
-	abci "github.com/tendermint/tendermint/abci/types"
-	"github.com/tendermint/tendermint/libs/log"
-
 	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/app"
 	"github.com/iov-one/weave/crypto"
+	"github.com/iov-one/weave/gconf"
 	"github.com/iov-one/weave/x"
 	"github.com/iov-one/weave/x/cash"
+	abci "github.com/tendermint/tendermint/abci/types"
+	"github.com/tendermint/tendermint/libs/log"
 )
 
 // GenInitOptions will produce some basic options for one rich
@@ -38,20 +39,27 @@ func GenInitOptions(args []string) (json.RawMessage, error) {
 		fmt.Println(phrase)
 	}
 
-	opts := fmt.Sprintf(`{
-    "cash": [
-      {
-        "address": "%s",
-        "coins": [
-          {
-            "whole": 123456789,
-            "ticker": "%s"
-          }
-        ]
-      }
-    ]
-  }`, addr, code)
-	return []byte(opts), nil
+	type (
+		dict  map[string]interface{}
+		array []interface{}
+	)
+	return json.Marshal(dict{
+		"cash": array{
+			dict{
+				"address": addr,
+				"coins": array{
+					dict{
+						"whole":  123456789,
+						"ticker": code,
+					},
+				},
+			},
+		},
+		"gconf": dict{
+			cash.GconfCollectorAddress: "fake-collector-address",
+			cash.GconfMinimalFee:       x.Coin{Whole: 0}, // no fee
+		},
+	})
 }
 
 // GenerateApp is used to create a stub for server/start.go command
@@ -63,15 +71,18 @@ func GenerateApp(home string, logger log.Logger, debug bool) (abci.Application, 
 	}
 
 	stack := Stack(x.Coin{})
-	app, err := Application("mycoin", stack, TxDecoder, dbPath, debug)
+	application, err := Application("mycoin", stack, TxDecoder, dbPath, debug)
 	if err != nil {
 		return nil, err
 	}
-	app.WithInit(cash.Initializer{})
+	application.WithInit(app.ChainInitializers(
+		&gconf.Initializer{},
+		&cash.Initializer{},
+	))
 
 	// set the logger and return
-	app.WithLogger(logger)
-	return app, nil
+	application.WithLogger(logger)
+	return application, nil
 }
 
 // GenerateCoinKey returns the address of a public key,

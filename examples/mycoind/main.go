@@ -6,12 +6,11 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/tendermint/tendermint/libs/log"
-
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/commands"
 	"github.com/iov-one/weave/commands/server"
 	"github.com/iov-one/weave/examples/mycoind/app"
+	"github.com/tendermint/tendermint/libs/log"
 )
 
 var (

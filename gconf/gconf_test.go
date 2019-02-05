@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/x"
 )
 
 func TestString(t *testing.T) {
@@ -47,6 +48,18 @@ func TestAddress(t *testing.T) {
 func TestBytes(t *testing.T) {
 	store := confStore(`"YWJjZA=="`)
 	if want, got := []byte("abcd"), Bytes(store, "a"); !bytes.Equal(got, want) {
+		t.Fatalf("want %q, got %q", want, got)
+	}
+}
+
+func TestCoin(t *testing.T) {
+	store := confStore(`{"whole": 3, "fractional": 4, "ticker": "DOGE"}`)
+	want := x.Coin{
+		Whole:      3,
+		Fractional: 4,
+		Ticker:     "DOGE",
+	}
+	if got := Coin(store, "a"); !reflect.DeepEqual(got, want) {
 		t.Fatalf("want %q, got %q", want, got)
 	}
 }

@@ -6,6 +6,7 @@ import (
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/gconf"
 	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/store"
 	"github.com/iov-one/weave/x"
@@ -141,10 +142,13 @@ func TestFees(t *testing.T) {
 		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
 			auth := helpers.Authenticate(tc.signers...)
 			controller := NewController(NewBucket())
-			h := NewFeeDecorator(auth, controller, tc.min).
-				WithCollector(perm3.Address())
+			h := NewFeeDecorator(auth, controller)
 
 			kv := store.MemStore()
+
+			gconf.SetValue(kv, GconfCollectorAddress, perm3.Address())
+			gconf.SetValue(kv, GconfMinimalFee, tc.min)
+
 			bucket := NewBucket()
 			for _, wallet := range tc.initState {
 				err := bucket.Save(kv, wallet)

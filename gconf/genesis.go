@@ -23,13 +23,25 @@ func (Initializer) FromGenesis(opts weave.Options, db weave.KVStore) error {
 	}
 
 	for name, value := range conf {
-		raw, err := json.Marshal(value)
-		if err != nil {
-			return fmt.Errorf("cannot serialize %s: %s", name, err)
+		if err := SetValue(db, name, value); err != nil {
+			return err
 		}
-		key := []byte("gconf:" + name)
-		db.Set(key, raw)
 	}
 
+	return nil
+}
+
+// SetValue sets given value for the configuration property. Value must be JSON
+// serializable.
+// Usually this function is not needed, because genesis allows to load all at
+// once. But it comes in handy when writing tests and only few configuration
+// values are necessary.
+func SetValue(db weave.KVStore, propName string, value interface{}) error {
+	raw, err := json.Marshal(value)
+	if err != nil {
+		return fmt.Errorf("cannot serialize %s: %s", propName, err)
+	}
+	key := []byte("gconf:" + propName)
+	db.Set(key, raw)
 	return nil
 }
