@@ -14,6 +14,7 @@ import (
 	"github.com/iov-one/weave/x/cash"
 	"github.com/iov-one/weave/x/currency"
 	"github.com/iov-one/weave/x/multisig"
+	"github.com/iov-one/weave/x/validators"
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
 )
@@ -37,11 +38,12 @@ func GenInitOptions(args []string) (json.RawMessage, error) {
 	} else {
 		// if no address provided, auto-generate one
 		// and print out a recovery phrase
-		bz, _, err := GenerateCoinKey()
+		bz, phrase, err := GenerateCoinKey()
 		if err != nil {
 			return nil, err
 		}
 		addr = hex.EncodeToString(bz)
+		fmt.Println(phrase)
 	}
 
 	opts := fmt.Sprintf(`
@@ -49,15 +51,18 @@ func GenInitOptions(args []string) (json.RawMessage, error) {
             "cash": [
               {
                 "address": "%s",
-                "cash": [
+                "coins": [
                   {"whole": 123456789, "ticker": "%s"}
                 ]
               }
             ],
 	    "currencies": [],
-	    "multisig": []
+	    "multisig": [],
+	    "update_validators": {
+              "addresses": ["%s"]
+	    }
           }
-  	`, addr, ticker)
+	`, addr, ticker, addr)
 	return []byte(opts), nil
 }
 
@@ -71,7 +76,7 @@ func GenerateApp(home string, logger log.Logger, debug bool) (abci.Application, 
 
 	// TODO: anyone can make a token????
 	stack := Stack(nil)
-	application, err := Application("mycoin", stack, TxDecoder, dbPath, debug)
+	application, err := Application("bcp", stack, TxDecoder, dbPath, debug)
 	if err != nil {
 		return nil, err
 	}
@@ -80,6 +85,7 @@ func GenerateApp(home string, logger log.Logger, debug bool) (abci.Application, 
 		&multisig.Initializer{},
 		&cash.Initializer{},
 		&currency.Initializer{},
+		&validators.Initializer{},
 	))
 
 	// set the logger and return
