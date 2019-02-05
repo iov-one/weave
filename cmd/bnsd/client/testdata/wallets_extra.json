@@ -1,11 +1,9 @@
 {
-    "wallets": [
+    "cash": [
         {
-            "name": "first",
             "address": "3afcdab4cfbf066e959d139251c8f0ee91e99d5a"
         },
         {
-            "name": "second",
             "address": "ce5d5a5ca8c7d545d7756d3677234d81622ba297",
             "coins": [
                 {
@@ -14,7 +12,6 @@
             ]
         },
         {
-            "name": "third",
             "address": "d4821fd051696273d09e1fbad0ebe5b5060787a7",
             "coins": [
                 {
@@ -24,7 +21,6 @@
             ]
         },
         {
-            "name": "fourth",
             "address": "5AC5F736DB0E083D2316E1C5BFC141CC0C669F84",
             "coins": [
                 {
@@ -34,7 +30,6 @@
             ]
         },
         {
-            "name": "fifth",
             "address": "12affbf6012fd2df21416582dc80cbf1efdf2460",
             "coins": [
                 {

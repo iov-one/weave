@@ -77,9 +77,9 @@ func GenerateApp(home string, logger log.Logger, debug bool) (abci.Application, 
 	}
 	application.WithInit(app.ChainInitializers(
 		&gconf.Initializer{},
+		&multisig.Initializer{},
 		&cash.Initializer{},
 		&currency.Initializer{},
-		&multisig.Initializer{},
 	))
 
 	// set the logger and return

@@ -22,9 +22,9 @@ type Header = tmtypes.Header
 type Status = ctypes.ResultStatus
 type GenesisDoc = tmtypes.GenesisDoc
 
-var QueryNewBlockHeader = tmtypes.EventQueryNewBlockHeader
-
 const BroadcastTxSyncDefaultTimeOut = 15 * time.Second
+
+var QueryNewBlockHeader = tmtypes.EventQueryNewBlockHeader
 
 // Client is an interface to interact with bcp
 type Client interface {
@@ -365,11 +365,10 @@ func (b *BnsClient) GetWallet(addr weave.Address) (*WalletResponse, error) {
 		return nil, err
 	}
 	if len(resp.Models) == 0 { // empty list or nil
-		return nil, nil // no wallet
+		return nil, nil
 	}
 	// assume only one result
 	model := resp.Models[0]
-
 	// make sure the return value is expected
 	acct := walletKeyToAddr(model.Key)
 	if !addr.Equals(acct) {

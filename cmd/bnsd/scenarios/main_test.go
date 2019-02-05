@@ -2,6 +2,7 @@ package scenarios
 
 import (
 	"encoding/binary"
+	"encoding/hex"
 	"encoding/json"
 	"flag"
 	"os"
@@ -15,6 +16,7 @@ import (
 	"github.com/iov-one/weave/x"
 	"github.com/iov-one/weave/x/cash"
 	"github.com/iov-one/weave/x/multisig"
+	"github.com/stellar/go/exp/crypto/derivation"
 	abci "github.com/tendermint/tendermint/abci/types"
 	cfg "github.com/tendermint/tendermint/config"
 	"github.com/tendermint/tendermint/libs/log"
@@ -32,8 +34,9 @@ const (
 
 var (
 	tendermintAddress = flag.String("address", testLocalAddress, "destination address of tendermint rpc")
-	hexSeed           = flag.String("seed", "0a40d34c1970ae90acf3405f2d99dcaca16d0c7db379f4beafcfdf667b9d69ce350d27f5fb440509dfa79ec883a0510bc9a9614c3d44188881f0c5e402898b4bf3c9", "private key")
+	hexSeed           = flag.String("seed", "d34c1970ae90acf3405f2d99dcaca16d0c7db379f4beafcfdf667b9d69ce350d27f5fb440509dfa79ec883a0510bc9a9614c3d44188881f0c5e402898b4bf3c9", "private key seed in hex")
 	delay             = flag.Duration("delay", time.Duration(0), "duration to wait between test cases for rate limits")
+	derivationPath    = flag.String("derivation", "", "bip44 derivation path: \"m/4804438'/0'\"")
 )
 
 var (
@@ -52,11 +55,32 @@ func TestMain(m *testing.M) {
 	binary.BigEndian.PutUint64(multiSigContractID, 1)
 	multiSigContractAddr = multisig.MultiSigCondition(multiSigContractID).Address()
 	var err error
-	alice, err = client.DecodePrivateKey(*hexSeed)
+	aliceHexSeed := *hexSeed
+	if len(*derivationPath) != 0 {
+		b, err := hex.DecodeString(*hexSeed)
+		if err != nil {
+			logger.Error("Failed to decode private key", "cause", err)
+			os.Exit(1)
+		}
+		k, err := derivation.DeriveForPath(*derivationPath, b)
+		if err != nil {
+			logger.Error("Failed to derive private key", "cause", err, "derivationPath", *derivationPath)
+			os.Exit(1)
+		}
+		pubKey, err := k.PublicKey()
+		if err != nil {
+			logger.Error("Failed to derive public key", "cause", err)
+			os.Exit(1)
+		}
+		aliceHexSeed = hex.EncodeToString(append(k.Key, pubKey...))
+	}
+
+	alice, err = client.DecodePrivateKeyFromSeed(aliceHexSeed)
 	if err != nil {
 		logger.Error("Failed to decode private key", "cause", err)
 		os.Exit(1)
 	}
+	logger.Error("Loaded Alice key", "addressID", alice.PublicKey().Address())
 
 	if *tendermintAddress != testLocalAddress {
 		bnsClient = client.NewClient(client.NewHTTPConnection(*tendermintAddress))

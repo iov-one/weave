@@ -69,7 +69,7 @@ func GetAccounts(bucket orm.Bucket, kv weave.KVStore) (*Accounts, error) {
 	}
 
 	if res == nil {
-		return nil, ErrWrongType(nil)
+		return nil, ErrNotFound("account")
 	}
 	switch t := res.Value().(type) {
 	case *Accounts:
