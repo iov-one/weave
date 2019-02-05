@@ -37,7 +37,7 @@ func TestInit(t *testing.T) {
 		State struct {
 			Cash []struct {
 				Address weave.Address
-				Cash    x.Coins
+				Coins   x.Coins
 			}
 		} `json:"app_state"`
 	}
@@ -49,8 +49,8 @@ func TestInit(t *testing.T) {
 	want, err := hex.DecodeString(args[1])
 	assert.NoError(t, err)
 	assert.Equal(t, weave.Address(want), wallet.Address)
-	require.Equal(t, 1, len(wallet.Cash), "Genesis: %s", bz)
-	assert.Equal(t, &x.Coin{Ticker: args[0], Whole: 123456789}, wallet.Cash[0])
+	require.Equal(t, 1, len(wallet.Coins), "Genesis: %s", bz)
+	assert.Equal(t, &x.Coin{Ticker: args[0], Whole: 123456789}, wallet.Coins[0])
 }
 
 // setupConfig creates a homedir to run inside,
