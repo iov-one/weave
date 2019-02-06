@@ -22,6 +22,9 @@ image:
 test:
 	go test -race ./...
 
+install:
+	go install $(BUILD_FLAGS) .
+
 # Test fast
 tf:
 	go test -short ./...
