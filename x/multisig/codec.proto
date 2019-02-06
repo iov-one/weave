@@ -5,30 +5,30 @@ package multisig;
 import "github.com/gogo/protobuf/gogoproto/gogo.proto";
 
 message Contract {
-    // addresses to control it
-    repeated bytes sigs = 1;
-    // threshold needed to sign to activate it
-    int64 activation_threshold = 2;
-    // threshold needed to sign to change it
-    int64 admin_threshold = 3;
+  // addresses to control it
+  repeated bytes sigs = 1;
+  // threshold needed to sign to activate it
+  int64 activation_threshold = 2;
+  // threshold needed to sign to change it
+  int64 admin_threshold = 3;
 }
 
 message CreateContractMsg {
-    // addresses to control it
-    repeated bytes sigs = 1;
-    // threshold needed to sign to activate it
-    int64 activation_threshold = 2;
-    // threshold needed to sign to change it
-    int64 admin_threshold = 3;
+  // addresses to control it
+  repeated bytes sigs = 1;
+  // threshold needed to sign to activate it
+  int64 activation_threshold = 2;
+  // threshold needed to sign to change it
+  int64 admin_threshold = 3;
 }
 
 message UpdateContractMsg {
-    // contract id
-    bytes id = 1;
-    // addresses to control it
-    repeated bytes sigs = 2;
-    // threshold needed to sign to activate it
-    int64 activation_threshold = 3;
-    // threshold needed to sign to change it
-    int64 admin_threshold = 4;
+  // contract id
+  bytes id = 1;
+  // addresses to control it
+  repeated bytes sigs = 2;
+  // threshold needed to sign to activate it
+  int64 activation_threshold = 3;
+  // threshold needed to sign to change it
+  int64 admin_threshold = 4;
 }

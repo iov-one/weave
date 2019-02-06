@@ -8,21 +8,21 @@ import "github.com/gogo/protobuf/gogoproto/gogo.proto";
 
 // ValidatorUpdate
 message ValidatorUpdate {
-  Pubkey pubkey = 1 [(gogoproto.nullable)=false];
+  Pubkey pubkey = 1 [(gogoproto.nullable) = false];
   int64 power = 2;
 }
 
 message Pubkey {
   string type = 1;
-  bytes  data = 2;
+  bytes data = 2;
 }
 
 // This message is designed to update validator power
 message SetValidatorsMsg {
-	repeated ValidatorUpdate validator_updates = 1;
+  repeated ValidatorUpdate validator_updates = 1;
 }
 
 // Accounts is a list of accounts allowed to update validators
 message Accounts {
-	repeated bytes addresses = 1;
+  repeated bytes addresses = 1;
 }

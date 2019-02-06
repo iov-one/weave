@@ -12,33 +12,33 @@ import "github.com/iov-one/weave/x/codec.proto";
 // Note that if the arbiter is a Hashlock permission, we have
 // an HTLC ;)
 message Escrow {
-    // Sender, Arbiter, Recipient are all weave.Permission
-    bytes sender = 1;
-    bytes arbiter = 2;
-    bytes recipient = 3;
-    // amount may contain multiple token types
-    repeated x.Coin amount = 4;
-    // if unreleased before timeout, will return to sender
-    // timeout stored here is absolute block height
-    int64 timeout = 5;
-    // max length 128 character
-    string memo = 6;
+  // Sender, Arbiter, Recipient are all weave.Permission
+  bytes sender = 1;
+  bytes arbiter = 2;
+  bytes recipient = 3;
+  // amount may contain multiple token types
+  repeated x.Coin amount = 4;
+  // if unreleased before timeout, will return to sender
+  // timeout stored here is absolute block height
+  int64 timeout = 5;
+  // max length 128 character
+  string memo = 6;
 }
 
 // CreateEscrowMsg is a request to create an Escrow with some tokens.
 // If sender is not defined, it defaults to the first signer
 // The rest must be defined
 message CreateEscrowMsg {
-    // Sender, Arbiter, Recipient are all weave.Permission
-    bytes src = 1;
-    bytes arbiter = 2;
-    bytes recipient = 3;
-    // amount may contain multiple token types
-    repeated x.Coin amount = 4;
-    // if unreleased before timeout, will return to sender
-    int64 timeout = 5;
-    // max length 128 character
-    string memo = 6;
+  // Sender, Arbiter, Recipient are all weave.Permission
+  bytes src = 1;
+  bytes arbiter = 2;
+  bytes recipient = 3;
+  // amount may contain multiple token types
+  repeated x.Coin amount = 4;
+  // if unreleased before timeout, will return to sender
+  int64 timeout = 5;
+  // max length 128 character
+  string memo = 6;
 }
 
 // ReleaseEscrowMsg releases the content to the recipient.
@@ -46,14 +46,14 @@ message CreateEscrowMsg {
 // If amount not provided, defaults to entire escrow,
 // May be a subset of the current balance.
 message ReleaseEscrowMsg {
-    bytes escrow_id = 1;
-    repeated x.Coin amount = 2;
+  bytes escrow_id = 1;
+  repeated x.Coin amount = 2;
 }
 
 // ReturnEscrowMsg returns the content to the sender.
 // Must be authorized by the sender or an expired timeout
 message ReturnEscrowMsg {
-    bytes escrow_id = 1;
+  bytes escrow_id = 1;
 }
 
 // UpdateEscrowPartiesMsg changes any of the parties of the escrow:
@@ -62,8 +62,8 @@ message ReturnEscrowMsg {
 //
 // Represents delegating responsibility
 message UpdateEscrowPartiesMsg {
-    bytes escrow_id = 1;
-    bytes sender = 2;
-    bytes arbiter = 3;
-    bytes recipient = 4;
+  bytes escrow_id = 1;
+  bytes sender = 2;
+  bytes arbiter = 3;
+  bytes recipient = 4;
 }

@@ -3,18 +3,17 @@ syntax = "proto3";
 package app;
 
 import "github.com/gogo/protobuf/gogoproto/gogo.proto";
+import "github.com/iov-one/weave/cmd/bnsd/x/nft/blockchain/codec.proto";
+import "github.com/iov-one/weave/cmd/bnsd/x/nft/bootstrap_node/codec.proto";
+import "github.com/iov-one/weave/cmd/bnsd/x/nft/ticker/codec.proto";
+import "github.com/iov-one/weave/cmd/bnsd/x/nft/username/codec.proto";
 import "github.com/iov-one/weave/x/cash/codec.proto";
 import "github.com/iov-one/weave/x/currency/codec.proto";
 import "github.com/iov-one/weave/x/escrow/codec.proto";
-import "github.com/iov-one/weave/x/sigs/codec.proto";
 import "github.com/iov-one/weave/x/multisig/codec.proto";
 import "github.com/iov-one/weave/x/nft/codec.proto";
-import "github.com/iov-one/weave/cmd/bnsd/x/nft/blockchain/codec.proto";
-import "github.com/iov-one/weave/cmd/bnsd/x/nft/ticker/codec.proto";
-import "github.com/iov-one/weave/cmd/bnsd/x/nft/username/codec.proto";
-import "github.com/iov-one/weave/cmd/bnsd/x/nft/bootstrap_node/codec.proto";
+import "github.com/iov-one/weave/x/sigs/codec.proto";
 import "github.com/iov-one/weave/x/validators/codec.proto";
-
 
 // Tx contains the message.
 //
@@ -32,7 +31,6 @@ message Tx {
   bytes preimage = 3;
   // ID of a multisig contract.
   repeated bytes multisig = 4;
-
   // msg is a sum type over all allowed messages on this chain.
   oneof sum {
     cash.SendMsg send_msg = 51;
@@ -57,14 +55,14 @@ message Tx {
 }
 
 enum NftType {
-    USERNAME = 0;
-    TICKER = 1;
-    BLOCKCHAIN = 3;
-    BOOTSTRAP_NODE = 4;
+  USERNAME = 0;
+  TICKER = 1;
+  BLOCKCHAIN = 3;
+  BOOTSTRAP_NODE = 4;
 }
 
 //Commented out for a minimal feature-set release
-//// BatchMsg encapsulates multiple messages to support batch transaction
+// BatchMsg encapsulates multiple messages to support batch transaction
 //message BatchMsg {
 //    message Union {
 //        oneof sum {

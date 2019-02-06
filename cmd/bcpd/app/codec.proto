@@ -6,10 +6,9 @@ import "github.com/gogo/protobuf/gogoproto/gogo.proto";
 import "github.com/iov-one/weave/x/cash/codec.proto";
 import "github.com/iov-one/weave/x/currency/codec.proto";
 import "github.com/iov-one/weave/x/escrow/codec.proto";
-import "github.com/iov-one/weave/x/sigs/codec.proto";
 import "github.com/iov-one/weave/x/multisig/codec.proto";
+import "github.com/iov-one/weave/x/sigs/codec.proto";
 import "github.com/iov-one/weave/x/validators/codec.proto";
-
 
 // Tx contains the message.
 //
@@ -26,8 +25,6 @@ message Tx {
   bytes preimage = 3;
   // ID of a multisig contract.
   repeated bytes multisig = 4;
-
-
   // msg is a sum type over all allowed messages on this chain.
   oneof sum {
     cash.SendMsg send_msg = 51;
@@ -61,6 +58,5 @@ message BatchMsg {
       currency.NewTokenInfoMsg new_token_info_msg = 11;
     }
   }
-
   repeated Union messages = 1 [(gogoproto.nullable) = false];
 }

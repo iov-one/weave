@@ -3,5 +3,5 @@ syntax = "proto3";
 package batch;
 
 message ByteArrayList {
-    repeated bytes elements = 1;
+  repeated bytes elements = 1;
 }

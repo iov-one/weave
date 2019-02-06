@@ -9,7 +9,7 @@ import "github.com/iov-one/weave/x/validators/codec.proto";
 // Tx contains the message
 message Tx {
   // msg is a sum type over all allowed messages on this chain.
-  oneof sum{
+  oneof sum {
     cash.SendMsg send_msg = 1;
     // space here to allow many more....
     // validators actions

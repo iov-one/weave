@@ -2,22 +2,21 @@ syntax = "proto3";
 
 package ticker;
 
-import "github.com/iov-one/weave/x/nft/codec.proto";
 import "github.com/gogo/protobuf/gogoproto/gogo.proto";
-
+import "github.com/iov-one/weave/x/nft/codec.proto";
 
 message TickerToken {
-    nft.NonFungibleToken base = 1;
-    TokenDetails details = 2;
+  nft.NonFungibleToken base = 1;
+  TokenDetails details = 2;
 }
 
 message TokenDetails {
-    bytes blockchain_id = 1 [(gogoproto.customname) = "BlockchainID"];
+  bytes blockchain_id = 1 [(gogoproto.customname) = "BlockchainID"];
 }
 
 message IssueTokenMsg {
-    bytes owner = 1;
-    bytes id = 2 [(gogoproto.customname) = "ID"];
-    TokenDetails details = 3 [(gogoproto.nullable) = false];
-    repeated nft.ActionApprovals approvals = 4 [(gogoproto.nullable) = false];
+  bytes owner = 1;
+  bytes id = 2 [(gogoproto.customname) = "ID"];
+  TokenDetails details = 3 [(gogoproto.nullable) = false];
+  repeated nft.ActionApprovals approvals = 4 [(gogoproto.nullable) = false];
 }
