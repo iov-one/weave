@@ -69,9 +69,9 @@ make deps
 make install
 # test it built properly
 tendermint version
-# 0.21.0-46369a1a
+# 0.29.1-xxxxx
 mycoind version
-# v0.6.0-7-g3aa16c9
+# v0.11.1
 ```
 
 Note that this app relies on a separate tendermint process
@@ -82,6 +82,25 @@ as well as the documentation on the
 
 Once it compiles, I highly suggest going through the
 [tutorials on readthedocs](https://weave.readthedocs.io/en/latest/index.html#mycoin-tutorial)
+
+## Compatibility Charts
+
+| Weave | Tendermint |
+|--------|-----------|
+|v0.11.1 | v0.29.1|
+|v0.11.0 | v0.27.4|
+|v0.10.x | v0.27.4|
+|v0.9.3	| v0.25.0|
+
+| Weave | Protobuf compatible to previous version|
+|--------|--------------------|
+|v0.11.1 | :heavy_check_mark:|
+|v0.11.0 | :heavy_check_mark:|
+|v0.10.2 | :heavy_check_mark:|
+|v0.10.1 | :x:|
+|v0.10.0 | :x:|
+|v0.9.3	| :heavy_check_mark:|
+
 
 ## History
 
