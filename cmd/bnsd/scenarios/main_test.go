@@ -177,7 +177,7 @@ func initGenesis(filename string, addr weave.Address) (*tm.GenesisDoc, error) {
 			},
 		},
 		"gconf": map[string]interface{}{
-			cash.GconfCollectorAddress: "fake-collector-address",
+			cash.GconfCollectorAddress: hex.EncodeToString(addr),
 			cash.GconfMinimalFee:       x.Coin{}, // no fee
 		},
 	}, "", "  ")
