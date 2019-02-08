@@ -9,26 +9,26 @@ import (
 var (
 	// InternalErr represents a general case issue that cannot be
 	// categorized as any of the below cases.
-	InternalErr = NewRootError(0, "internal")
+	InternalErr = RegisterNew(0, "internal")
 
 	// UnauthorizedErr is used whenever a request without sufficient
 	// authorization is handled.
-	UnauthorizedErr = NewRootError(1, "unauthorized")
+	UnauthorizedErr = RegisterNew(1, "unauthorized")
 
 	// NotFoundErr is used when a requested operation cannot be completed
 	// due to missing data.
-	NotFoundErr = NewRootError(2, "not found")
+	NotFoundErr = RegisterNew(2, "not found")
 
 	// InvalidMsgErr is returned whenever an event is invalid and cannot be
 	// handled.
-	InvalidMsgErr = NewRootError(3, "invalid message")
+	InvalidMsgErr = RegisterNew(3, "invalid message")
 
 	// InvalidModelErr is returned whenever a message is invalid and cannot
 	// be used (ie. persisted).
-	InvalidModelErr = NewRootError(4, "invalid model")
+	InvalidModelErr = RegisterNew(4, "invalid model")
 )
 
-// NewRootError returns an error instance that should be used as the base for
+// RegisterNew returns an error instance that should be used as the base for
 // creating error instances during runtime.
 //
 // Popular root errors are declared in this package, but extensions may want to
@@ -36,11 +36,11 @@ var (
 // twice. Attempt to reuse an error code results in panic.
 //
 // Use this function only during a program startup phase.
-func NewRootError(code uint32, description string) RootError {
+func RegisterNew(code uint32, description string) Error {
 	if e, ok := usedCodes[code]; ok {
 		panic(fmt.Sprintf("error with code %d is already registered: %q", code, e.desc))
 	}
-	err := RootError{
+	err := Error{
 		code: code,
 		desc: description,
 	}
@@ -49,31 +49,31 @@ func NewRootError(code uint32, description string) RootError {
 }
 
 // usedCodes is keeping track of used codes to ensure uniqueness.
-var usedCodes = map[uint32]RootError{}
+var usedCodes = map[uint32]Error{}
 
-// RootError represents a root error.
+// Error represents a root error.
 //
 // Weave framework is using root error to categorize issues. Each instance
 // created during the runtime should wrap one of the declared root errors. This
 // allows error tests and returning all errors to the client in a safe manner.
 //
 // All popular root errors are declared in this package. If an extension has to
-// declare a custom root error, always use NewRootError function to ensure
+// declare a custom root error, always use RegisterNew function to ensure
 // error code uniqueness.
-type RootError struct {
+type Error struct {
 	code uint32
 	desc string
 }
 
-func (e RootError) Error() string    { return e.desc }
-func (e RootError) ABCICode() uint32 { return e.code }
-func (e RootError) ABCILog() string  { return e.desc }
+func (e Error) Error() string    { return e.desc }
+func (e Error) ABCICode() uint32 { return e.code }
+func (e Error) ABCILog() string  { return e.desc }
 
 // New returns a new error. Returned instance is having the root cause set to
 // this error. Below two lines are equal
 //   e.New("my description")
 //   Wrap(e, "my description")
-func (e RootError) New(description string) error {
+func (e Error) New(description string) error {
 	return Wrap(e, description)
 }
 

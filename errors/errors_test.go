@@ -9,7 +9,7 @@ import (
 func TestErrors(t *testing.T) {
 	cases := map[string]struct {
 		err      error
-		wantRoot RootError
+		wantRoot Error
 		wantMsg  string
 		wantLog  string
 	}{
