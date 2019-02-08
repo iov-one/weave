@@ -398,8 +398,8 @@ type CurrenciesResponse struct {
 	Currencies map[string]currency.TokenInfo
 }
 
-// GetCurrencies will returns all currencies configured for the blockchain with their token details.
-func (b *BnsClient) GetCurrencies() (CurrenciesResponse, error) {
+// Currencies will returns all currencies configured for the blockchain with their token details.
+func (b *BnsClient) Currencies() (CurrenciesResponse, error) {
 	out := CurrenciesResponse{
 		Currencies: make(map[string]currency.TokenInfo),
 	}
