@@ -62,18 +62,18 @@ Available commands: %s
 var commands = map[string]func() error{
 	"list":            cmdList(os.Stdout),
 	"add":             cmdAdd,
-	"multisig-new":    cmdMultisigNew(os.Stdin),
+	"multisig-new":    cmdMultisigNew(os.Stdout),
 	"multisig-sign":   cmdMultisigSign(os.Stdin, os.Stdout),
 	"multisig-submit": cmdMultisigSubmit(os.Stdin),
 }
 
 func cmdList(out io.Writer) func() error {
 	return func() error {
-
+		fl := flag.NewFlagSet("", flag.ExitOnError)
 		var (
-			tmAddrFl = flag.String("tm", "https://bns.NETWORK.iov.one:443", "Tendermint node address. Use proper NETWORK name.")
+			tmAddrFl = fl.String("tm", "https://bns.NETWORK.iov.one:443", "Tendermint node address. Use proper NETWORK name.")
 		)
-		flag.Parse()
+		fl.Parse(os.Args[1:])
 
 		info, err := listValidators(*tmAddrFl)
 		if err != nil {
@@ -83,8 +83,8 @@ func cmdList(out io.Writer) func() error {
 		if err != nil {
 			return fmt.Errorf("cannot serialize: %s", err)
 		}
-		out.Write(b)
-		return nil
+		_, err = out.Write(b)
+		return err
 	}
 }
 
@@ -129,7 +129,8 @@ type pubKeyInfo struct {
 
 func cmdMultisigNew(out io.Writer) func() error {
 	return func() error {
-		flag.Usage = func() {
+		fl := flag.NewFlagSet("", flag.ExitOnError)
+		fl.Usage = func() {
 			fmt.Fprint(flag.CommandLine.Output(), `
 Create a new validator update request with multi signature authentication.
 Created request is binary serialized and written to standard output.
@@ -137,14 +138,14 @@ Created request is binary serialized and written to standard output.
 Returned request must be signed by other parties before it can be submitted.
 
 `)
-			flag.PrintDefaults()
+			fl.PrintDefaults()
 		}
 		var (
-			pubKeyFl       = flag.String("pubkey", "", "Base64 encoded, ed25519 public key.")
-			multisigAddrFl = flag.String("multisig", "", "Address of the multisig contract that this request will authenticate with.")
-			powerFl        = flag.Int64("power", 10, "Validator node power. Set to 0 to delete a node.")
+			pubKeyFl       = fl.String("pubkey", "", "Base64 encoded, ed25519 public key.")
+			multisigAddrFl = fl.String("multisig", "", "Address of the multisig contract that this request will authenticate with.")
+			powerFl        = fl.Int64("power", 10, "Validator node power. Set to 0 to delete a node.")
 		)
-		flag.Parse()
+		fl.Parse(os.Args[1:])
 
 		if *pubKeyFl == "" {
 			return errors.New("public key is required")
@@ -172,27 +173,28 @@ Returned request must be signed by other parties before it can be submitted.
 		if err != nil {
 			return fmt.Errorf("cannot serialize transaction: %s", err)
 		}
-		out.Write(raw)
-		return nil
+		_, err = out.Write(raw)
+		return err
 	}
 }
 
 func cmdMultisigSign(in io.Reader, out io.Writer) func() error {
 	return func() error {
-		flag.Usage = func() {
+		fl := flag.NewFlagSet("", flag.ExitOnError)
+		fl.Usage = func() {
 			fmt.Fprint(flag.CommandLine.Output(), `
 Sign given transaction. This is decoding a transaction data from standard
 input, adds a signature and writes back to standard output signed transaction
 content.
 
 `)
-			flag.PrintDefaults()
+			fl.PrintDefaults()
 		}
 		var (
-			tmAddrFl = flag.String("tm", "https://bns.NETWORK.iov.one:443", "Tendermint node address. Use proper NETWORK name.")
-			keyFl    = flag.String("key", "", "Hex encoded, private key that transaction should be signed with.")
+			tmAddrFl = fl.String("tm", "https://bns.NETWORK.iov.one:443", "Tendermint node address. Use proper NETWORK name.")
+			keyFl    = fl.String("key", "", "Hex encoded, private key that transaction should be signed with.")
 		)
-		flag.Parse()
+		fl.Parse(os.Args[1:])
 
 		if *keyFl == "" {
 			return errors.New("private key is required")
@@ -230,15 +232,16 @@ content.
 		if raw, err := tx.Marshal(); err != nil {
 			return fmt.Errorf("cannot serialize transaction: %s", err)
 		} else {
-			out.Write(raw)
+			_, err = out.Write(raw)
 		}
-		return nil
+		return err
 	}
 }
 
 func cmdMultisigSubmit(in io.Reader) func() error {
 	return func() error {
-		flag.Usage = func() {
+		fl := flag.NewFlagSet("", flag.ExitOnError)
+		fl.Usage = func() {
 			fmt.Fprint(flag.CommandLine.Output(), `
 Read binary serialized validator change transaction from standard input and
 submit it.
@@ -247,12 +250,12 @@ This command is intended to be used to submit multisig authenticated requests.
 Make sure to collect enough signatures before submitting.
 
 `)
-			flag.PrintDefaults()
+			fl.PrintDefaults()
 		}
 		var (
-			tmAddrFl = flag.String("tm", "https://bns.NETWORK.iov.one:443", "Tendermint node address. Use proper NETWORK name.")
+			tmAddrFl = fl.String("tm", "https://bns.NETWORK.iov.one:443", "Tendermint node address. Use proper NETWORK name.")
 		)
-		flag.Parse()
+		fl.Parse(os.Args[1:])
 
 		raw, err := ioutil.ReadAll(in)
 		if err != nil {
@@ -275,13 +278,14 @@ Make sure to collect enough signatures before submitting.
 }
 
 func cmdAdd() error {
+	fl := flag.NewFlagSet("", flag.ExitOnError)
 	var (
-		tmAddrFl = flag.String("tm", "https://bns.NETWORK.iov.one:443", "Tendermint node address. Use proper NETWORK name.")
-		pubKeyFl = flag.String("pubkey", "", "Base64 encoded, ed25519 public key.")
-		hexKeyFl = flag.String("key", "", "Hex encoded, private key of the validator that is to be added/updated.")
-		powerFl  = flag.Int64("power", 2, "Validator node power. Set to 0 to delete a node.")
+		tmAddrFl = fl.String("tm", "https://bns.NETWORK.iov.one:443", "Tendermint node address. Use proper NETWORK name.")
+		pubKeyFl = fl.String("pubkey", "", "Base64 encoded, ed25519 public key.")
+		hexKeyFl = fl.String("key", "", "Hex encoded, private key of the validator that is to be added/updated.")
+		powerFl  = fl.Int64("power", 10, "Validator node power. Set to 0 to delete a node.")
 	)
-	flag.Parse()
+	fl.Parse(os.Args[1:])
 
 	if *pubKeyFl == "" {
 		return errors.New("public key is required")
