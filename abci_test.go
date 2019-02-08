@@ -16,10 +16,10 @@ func TestCreateErrorResult(t *testing.T) {
 		msg  string
 		code uint32
 	}{
-		{fmt.Errorf("base"), "base", errors.CodeInternalErr},
+		{fmt.Errorf("base"), "internal error", errors.CodeInternalErr},
 		{pkerr.New("dave"), "dave", errors.CodeInternalErr},
 		{errors.New("nonce", errors.CodeUnauthorized), "nonce", errors.CodeUnauthorized},
-		{errors.Wrap(fmt.Errorf("wrap")), "wrap", errors.CodeInternalErr},
+		{errors.Wrap(fmt.Errorf("wrap"), "wrap"), "wrap", errors.CodeInternalErr},
 		{errors.WithCode(fmt.Errorf("no sender"), errors.CodeUnrecognizedAddress), "no sender", errors.CodeUnrecognizedAddress},
 		{errors.ErrDecoding(), errors.ErrDecoding().Error(), errors.CodeTxParseError},
 	}
@@ -35,7 +35,7 @@ func TestCreateErrorResult(t *testing.T) {
 			assert.True(t, dres.IsErr())
 			assert.Contains(t, dres.Log, tc.msg)
 
-			// TODO: this is failing, because stacktrace
+			// TODO:O this is failing, because stacktrace
 			// implementation is not present for the new error
 			// handing code.
 			//assert.Contains(t, dres.Log, "iov-one/weave/abci")

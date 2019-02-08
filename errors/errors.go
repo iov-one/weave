@@ -2,7 +2,6 @@ package errors
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/pkg/errors"
 )
@@ -10,23 +9,24 @@ import (
 var (
 	// InternalErr represents a general case issue that cannot be
 	// categorized as any of the below cases.
-	InternalErr = Register(0, "internal")
+	// We start as 1 as 0 is reserved for non-errors
+	InternalErr = Register(1, "internal")
 
 	// UnauthorizedErr is used whenever a request without sufficient
 	// authorization is handled.
-	UnauthorizedErr = Register(1, "unauthorized")
+	UnauthorizedErr = Register(2, "unauthorized")
 
 	// NotFoundErr is used when a requested operation cannot be completed
 	// due to missing data.
-	NotFoundErr = Register(2, "not found")
+	NotFoundErr = Register(3, "not found")
 
 	// InvalidMsgErr is returned whenever an event is invalid and cannot be
 	// handled.
-	InvalidMsgErr = Register(3, "invalid message")
+	InvalidMsgErr = Register(4, "invalid message")
 
 	// InvalidModelErr is returned whenever a message is invalid and cannot
 	// be used (ie. persisted).
-	InvalidModelErr = Register(4, "invalid model")
+	InvalidModelErr = Register(5, "invalid model")
 )
 
 // Register returns an error instance that should be used as the base for
@@ -78,26 +78,14 @@ func (e Error) New(description string) error {
 	return Wrap(e, description)
 }
 
-// This Wrap implementation provides a transition layer between two Wrap
-// function implementations with incompatible notations.
-//
-// Once migration is complete, it will be removed and replaced by wrapng
-// function.
-func Wrap(err error, description ...string) TMError {
-	if err == nil {
-		return nil
-	}
-	if len(description) == 0 {
-		return deprecatedLegacyWrap(err)
-	}
-	return wrapng(err, strings.Join(description, ", "))
-}
-
 // Wrap extends given error with an additional information.
 //
 // If the wrapped error does not provide ABCICode method (ie. stdlib errors),
 // it will be labeled as internal error.
-func wrapng(err error, description string) TMError {
+func Wrap(err error, description string) TMError {
+	if err == nil {
+		return nil
+	}
 	return &wrappedError{
 		Parent: err,
 		Msg:    description,

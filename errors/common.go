@@ -49,7 +49,7 @@ func HasErrorCode(err error, code uint32) bool {
 // NormalizePanic converts a panic into a proper error
 func NormalizePanic(p interface{}) error {
 	if err, isErr := p.(error); isErr {
-		return Wrap(err)
+		return Wrap(err, "normalized panic")
 	}
 	msg := fmt.Sprintf("panic: %v", p)
 	return ErrInternal(msg)

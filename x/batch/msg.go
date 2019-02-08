@@ -19,7 +19,7 @@ type Msg interface {
 func Validate(msg Msg) error {
 	l, err := msg.MsgList()
 	if err != nil {
-		return errors.Wrap(err)
+		return errors.Wrap(err, "error retrieving batch messages")
 	}
 
 	if len(l) > MaxBatchMessages {
