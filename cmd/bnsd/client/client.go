@@ -9,6 +9,7 @@ import (
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/app"
+	"github.com/iov-one/weave/x/currency"
 	"github.com/iov-one/weave/x/sigs"
 	"github.com/pkg/errors"
 	tmpubsub "github.com/tendermint/tendermint/libs/pubsub"
@@ -390,6 +391,31 @@ func (b *BnsClient) GetWallet(addr weave.Address) (*WalletResponse, error) {
 // key is the address prefixed with "wallet:"
 func walletKeyToAddr(key []byte) weave.Address {
 	return key[5:]
+}
+
+type CurrenciesResponse struct {
+	Height     int64
+	Currencies map[string]currency.TokenInfo
+}
+
+// Currencies will returns all currencies configured for the blockchain with their token details.
+func (b *BnsClient) Currencies() (CurrenciesResponse, error) {
+	out := CurrenciesResponse{
+		Currencies: make(map[string]currency.TokenInfo),
+	}
+
+	resp, err := b.AbciQuery("/tokens?prefix", nil)
+	if err != nil {
+		return out, errors.Wrap(err, "failed to query for all currencies")
+	}
+	for _, v := range resp.Models {
+		var ti currency.TokenInfo
+		if err := ti.Unmarshal(v.Value); err != nil {
+			return out, errors.Wrapf(err, "failed to unmarshal value of key %q", string(v.Key))
+		}
+		out.Currencies[string(v.Key)] = ti
+	}
+	return out, nil
 }
 
 // UserResponse is a response on a query for a User

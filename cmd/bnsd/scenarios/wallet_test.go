@@ -80,3 +80,10 @@ func TestSendTokenWithFee(t *testing.T) {
 	require.NoError(t, err)
 	t.Log("message", "done", "height", heights, "coins", walletResp.Wallet.Coins)
 }
+
+func TestQueryCurrencies(t *testing.T) {
+	l, err := bnsClient.Currencies()
+	require.NoError(t, err)
+	require.NotNil(t, l, "no currencies found")
+	require.True(t, len(l.Currencies) > 0)
+}

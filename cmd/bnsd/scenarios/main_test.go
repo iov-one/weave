@@ -164,6 +164,13 @@ func initGenesis(filename string, addr weave.Address) (*tm.GenesisDoc, error) {
 				},
 			},
 		},
+		"currencies": []interface{}{
+			dict{
+				"ticker":   "IOV",
+				"name":     "Main token of this chain",
+				"sig_figs": 6,
+			},
+		},
 		"update_validators": dict{
 			"addresses": []weave.Address{
 				multiSigContractAddr,
