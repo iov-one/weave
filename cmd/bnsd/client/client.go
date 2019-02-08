@@ -7,6 +7,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/iov-one/weave/x/currency"
+
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/app"
 	"github.com/iov-one/weave/x/sigs"
@@ -390,6 +392,33 @@ func (b *BnsClient) GetWallet(addr weave.Address) (*WalletResponse, error) {
 // key is the address prefixed with "wallet:"
 func walletKeyToAddr(key []byte) weave.Address {
 	return key[5:]
+}
+
+type CurrenciesResponse struct {
+	Height     int64
+	Currencies map[string]currency.TokenInfo
+}
+
+func (b *BnsClient) ListCurrencies() (*CurrenciesResponse, error) {
+	resp, err := b.AbciQuery("/tokens?prefix", nil)
+	if err != nil {
+		return nil, err
+	}
+	if len(resp.Models) == 0 { // empty list or nil
+		return nil, nil
+	}
+	out := &CurrenciesResponse{
+		Height:     resp.Height,
+		Currencies: make(map[string]currency.TokenInfo),
+	}
+	for _, v := range resp.Models {
+		var ti currency.TokenInfo
+		if err := ti.Unmarshal(v.Value); err != nil {
+			return nil, err
+		}
+		out.Currencies[string(v.Key)] = ti
+	}
+	return out, nil
 }
 
 // UserResponse is a response on a query for a User
