@@ -10,26 +10,26 @@ import (
 var (
 	// InternalErr represents a general case issue that cannot be
 	// categorized as any of the below cases.
-	InternalErr = RegisterNew(0, "internal")
+	InternalErr = Register(0, "internal")
 
 	// UnauthorizedErr is used whenever a request without sufficient
 	// authorization is handled.
-	UnauthorizedErr = RegisterNew(1, "unauthorized")
+	UnauthorizedErr = Register(1, "unauthorized")
 
 	// NotFoundErr is used when a requested operation cannot be completed
 	// due to missing data.
-	NotFoundErr = RegisterNew(2, "not found")
+	NotFoundErr = Register(2, "not found")
 
 	// InvalidMsgErr is returned whenever an event is invalid and cannot be
 	// handled.
-	InvalidMsgErr = RegisterNew(3, "invalid message")
+	InvalidMsgErr = Register(3, "invalid message")
 
 	// InvalidModelErr is returned whenever a message is invalid and cannot
 	// be used (ie. persisted).
-	InvalidModelErr = RegisterNew(4, "invalid model")
+	InvalidModelErr = Register(4, "invalid model")
 )
 
-// RegisterNew returns an error instance that should be used as the base for
+// Register returns an error instance that should be used as the base for
 // creating error instances during runtime.
 //
 // Popular root errors are declared in this package, but extensions may want to
@@ -37,7 +37,7 @@ var (
 // twice. Attempt to reuse an error code results in panic.
 //
 // Use this function only during a program startup phase.
-func RegisterNew(code uint32, description string) Error {
+func Register(code uint32, description string) Error {
 	if e, ok := usedCodes[code]; ok {
 		panic(fmt.Sprintf("error with code %d is already registered: %q", code, e.desc))
 	}
@@ -59,7 +59,7 @@ var usedCodes = map[uint32]Error{}
 // allows error tests and returning all errors to the client in a safe manner.
 //
 // All popular root errors are declared in this package. If an extension has to
-// declare a custom root error, always use RegisterNew function to ensure
+// declare a custom root error, always use Register function to ensure
 // error code uniqueness.
 type Error struct {
 	code uint32
