@@ -7,10 +7,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/iov-one/weave/x/currency"
-
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/app"
+	"github.com/iov-one/weave/x/currency"
 	"github.com/iov-one/weave/x/sigs"
 	"github.com/pkg/errors"
 	tmpubsub "github.com/tendermint/tendermint/libs/pubsub"
@@ -399,22 +398,20 @@ type CurrenciesResponse struct {
 	Currencies map[string]currency.TokenInfo
 }
 
-func (b *BnsClient) ListCurrencies() (*CurrenciesResponse, error) {
+// GetCurrencies will returns all currencies configured for the blockchain with their token details.
+func (b *BnsClient) GetCurrencies() (CurrenciesResponse, error) {
+	out := CurrenciesResponse{
+		Currencies: make(map[string]currency.TokenInfo),
+	}
+
 	resp, err := b.AbciQuery("/tokens?prefix", nil)
 	if err != nil {
-		return nil, err
-	}
-	if len(resp.Models) == 0 { // empty list or nil
-		return nil, nil
-	}
-	out := &CurrenciesResponse{
-		Height:     resp.Height,
-		Currencies: make(map[string]currency.TokenInfo),
+		return out, errors.Wrap(err, "failed to query for all currencies")
 	}
 	for _, v := range resp.Models {
 		var ti currency.TokenInfo
 		if err := ti.Unmarshal(v.Value); err != nil {
-			return nil, err
+			return out, errors.Wrapf(err, "failed to unmarshal value of key %q", string(v.Key))
 		}
 		out.Currencies[string(v.Key)] = ti
 	}

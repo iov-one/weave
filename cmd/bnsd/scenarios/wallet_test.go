@@ -82,7 +82,7 @@ func TestSendTokenWithFee(t *testing.T) {
 }
 
 func TestQueryCurrencies(t *testing.T) {
-	l, err := bnsClient.ListCurrencies()
+	l, err := bnsClient.GetCurrencies()
 	require.NoError(t, err)
 	require.NotNil(t, l, "no currencies found")
 	require.True(t, len(l.Currencies) > 0)
