@@ -1,12 +1,5 @@
-# Blockchain name service - bns
+# Blockchain of value reference implementation
 
-
-## Remote acceptance tests
-
-To execute the test scenarios against a testnet pass the address and a delay to not hit rate limits
-```bash
-go test -v  ./cmd/bnsd/scenarios/...  -address=https://<testnet-domain>:443 -delay=500ms
-```
 
 ## Running a local instance
 
@@ -26,14 +19,14 @@ Versions of both are pinned down in the [weave respository](https://github.com/i
 In order to run a node, its state must be first initialized. This is done by running `init` commands.
 
 Make sure to set `TM_VERSION` to the right tendermint version (ie. 0.27.4).
-You can change `BNS_HOME` to any directory. This is where the application state is saved.
+You can change `BCP_HOME` to any directory. This is where the application state is saved.
 
 ```sh
 $ export TM_VERSION='x.xx.x'
-$ export BNS_HOME="$HOME/bns_home"
-$ mkdir -p $BNS_HOME
+$ export BCP_HOME="$HOME/bcp_home"
+$ mkdir -p $BCP_HOME
 $ docker run \
-    -v $BNS_HOME:/tmhome \
+    -v $BCP_HOME:/tmhome \
     -it \
     --rm \
     iov1/tendermint:$TM_VERSION init \
@@ -41,23 +34,23 @@ $ docker run \
 $ docker run \
     --rm \
     -it \
-    -v $BNS_HOME:/bnshome \
-    iov1/bnsd:latest \
-        -home=/bnshome init
+    -v $BCP_HOME:/bcphome \
+    iov1/bcpd:latest \
+        -home=/bcphome init
 ```
 
 
-Once the state is initialized, `bnsd` instance can be started.
+Once the state is initialized, `bcpd` instance can be started.
 
 ```sh
 $ docker run \
     --rm \
     -it \
-    -v $BNS_HOME:/bnshome \
-    iov1/bnsd:latest \
-        -home=/bnshome start \
-        -bind=unix:///bnshome/app.sock
-$ docker run -v $BNS_HOME:/tmhome \
+    -v $BCP_HOME:/bcphome \
+    iov1/bcpd:latest \
+        -home=/bcphome start \
+        -bind=unix:///bcphome/app.sock
+$ docker run -v $BCP_HOME:/tmhome \
     -p 26656:26656 \
     -p 26657:26657 \
     -it \
