@@ -2,6 +2,7 @@ package errors
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/pkg/errors"
 )
@@ -83,16 +84,10 @@ func (e Error) New(description string) error {
 // Once migration is complete, it will be removed and replaced by wrapng
 // function.
 func Wrap(err error, description ...string) TMError {
-	switch len(description) {
-	case 0:
-		// fmt.Fprintf
-		// debug.PrintStack()
+	if len(description) == 0 {
 		return deprecatedLegacyWrap(err)
-	case 1:
-		return wrapng(err, description[0])
-	default:
-		panic("invalid Wrap notation used")
 	}
+	return wrapng(err, strings.Join(description, ", "))
 }
 
 // Wrap extends given error with an additional information.
