@@ -64,6 +64,7 @@ var commands = map[string]func() error{
 	"add":             cmdAdd,
 	"multisig-new":    cmdMultisigNew(os.Stdout),
 	"multisig-sign":   cmdMultisigSign(os.Stdin, os.Stdout),
+	"multisig-view":   cmdMultisigView(os.Stdin, os.Stdout),
 	"multisig-submit": cmdMultisigSubmit(os.Stdin),
 }
 
@@ -178,6 +179,43 @@ Returned request must be signed by other parties before it can be submitted.
 	}
 }
 
+func cmdMultisigView(in io.Reader, out io.Writer) func() error {
+	return func() error {
+		fl := flag.NewFlagSet("", flag.ExitOnError)
+		fl.Usage = func() {
+			fmt.Fprint(flag.CommandLine.Output(), `
+Decode and display transaction summary. This command is helpful when reciving a
+binary representation of a transaction. Before signing you should check what
+kind of operation are you authorizing.
+`)
+			fl.PrintDefaults()
+		}
+		fl.Parse(os.Args[1:])
+
+		raw, err := ioutil.ReadAll(in)
+		if err != nil {
+			return fmt.Errorf("cannot read transaction: %s", err)
+		}
+		if len(raw) == 0 {
+			return errors.New("no stdin data")
+		}
+
+		var tx app.Tx
+		if err := tx.Unmarshal(raw); err != nil {
+			return fmt.Errorf("cannot deserialize transaction: %s", err)
+		}
+
+		// Protobuf compiler is exposing all attributes as JSON as
+		// well. This will produce a beautiful summary.
+		pretty, err := json.MarshalIndent(tx, "", "\t")
+		if err != nil {
+			return fmt.Errorf("cannot JSON serialize: %s", err)
+		}
+		_, err = out.Write(pretty)
+		return err
+	}
+}
+
 func cmdMultisigSign(in io.Reader, out io.Writer) func() error {
 	return func() error {
 		fl := flag.NewFlagSet("", flag.ExitOnError)
@@ -206,7 +244,7 @@ content.
 
 		raw, err := ioutil.ReadAll(in)
 		if err != nil {
-			return fmt.Errorf("cannot read transaction from stdin: %s", err)
+			return fmt.Errorf("cannot read transaction: %s", err)
 		}
 		if len(raw) == 0 {
 			return errors.New("no stdin data")
