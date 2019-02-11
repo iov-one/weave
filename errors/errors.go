@@ -82,6 +82,9 @@ func (e Error) New(description string) error {
 //
 // If the wrapped error does not provide ABCICode method (ie. stdlib errors),
 // it will be labeled as internal error.
+//
+// If err is nil, this returns nil, avoiding the need for an if statement when
+// wrapping a error returned at the end of a function
 func Wrap(err error, description string) TMError {
 	if err == nil {
 		return nil
