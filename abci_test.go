@@ -17,9 +17,10 @@ func TestCreateErrorResult(t *testing.T) {
 		code uint32
 	}{
 		{fmt.Errorf("base"), "internal error", errors.CodeInternalErr},
-		{pkerr.New("dave"), "dave", errors.CodeInternalErr},
+		{pkerr.New("dave"), "internal error", errors.CodeInternalErr},
+		{errors.Wrap(fmt.Errorf("demo"), "wrapped"), "internal error", errors.CodeInternalErr},
+		{errors.New(fmt.Errorf("wrap").Error(), 5), "wrap", 5},
 		{errors.New("nonce", errors.CodeUnauthorized), "nonce", errors.CodeUnauthorized},
-		{errors.Wrap(fmt.Errorf("wrap"), "wrap"), "wrap", errors.CodeInternalErr},
 		{errors.WithCode(fmt.Errorf("no sender"), errors.CodeUnrecognizedAddress), "no sender", errors.CodeUnrecognizedAddress},
 		{errors.ErrDecoding(), errors.ErrDecoding().Error(), errors.CodeTxParseError},
 	}
@@ -29,7 +30,7 @@ func TestCreateErrorResult(t *testing.T) {
 
 			dres := weave.DeliverTxError(tc.err, false)
 			assert.True(t, dres.IsErr())
-			assert.Equal(t, tc.msg, dres.Log)
+			assert.Contains(t, dres.Log, tc.msg)
 
 			dres = weave.DeliverTxError(tc.err, true)
 			assert.True(t, dres.IsErr())
@@ -43,7 +44,8 @@ func TestCreateErrorResult(t *testing.T) {
 
 			cres := weave.CheckTxError(tc.err, false)
 			assert.True(t, cres.IsErr())
-			assert.Equal(t, tc.msg, cres.Log)
+			assert.Contains(t, cres.Log, tc.msg)
+			// assert.Equal(t, fmt.Sprintf("cannot check tx: %s", tc.msg), cres.Log)
 
 			cres = weave.CheckTxError(tc.err, true)
 			assert.True(t, cres.IsErr())
