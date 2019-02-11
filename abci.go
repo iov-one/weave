@@ -92,7 +92,7 @@ type TickResult struct {
 // preserving as much info as possible if it was already
 // a TMError
 func DeliverTxError(err error, debug bool) abci.ResponseDeliverTx {
-	tm := errors.Wrap(err, "error while delivering tx")
+	tm := errors.Wrap(err, "cannot deliver tx")
 	log := tm.ABCILog()
 	if debug {
 		log = fmt.Sprintf("%v", tm)
@@ -108,7 +108,7 @@ func DeliverTxError(err error, debug bool) abci.ResponseDeliverTx {
 // preserving as much info as possible if it was already
 // a TMError
 func CheckTxError(err error, debug bool) abci.ResponseCheckTx {
-	tm := errors.Wrap(err, "error while checking tx")
+	tm := errors.Wrap(err, "cannot check tx")
 	log := tm.ABCILog()
 	if debug {
 		log = fmt.Sprintf("%v", tm)
