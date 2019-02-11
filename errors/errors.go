@@ -105,6 +105,10 @@ type wrappedError struct {
 	Parent error
 }
 
+type coder interface {
+	ABCICode() uint32
+}
+
 func (e *wrappedError) StackTrace() errors.StackTrace {
 	// TODO: this is either to be implemented or expectation of it being
 	// present removed completely. As this is an early stage of
@@ -123,9 +127,6 @@ func (e *wrappedError) Error() string {
 func (e *wrappedError) ABCICode() uint32 {
 	if e.Parent == nil {
 		return InternalErr.code
-	}
-	type coder interface {
-		ABCICode() uint32
 	}
 	if p, ok := e.Parent.(coder); ok {
 		return p.ABCICode()

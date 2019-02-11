@@ -41,7 +41,7 @@ func IsSameError(pattern error, err error) bool {
 
 // HasErrorCode checks if this error would return the named error code
 func HasErrorCode(err error, code uint32) bool {
-	if tm, ok := err.(TMError); ok {
+	if tm, ok := err.(coder); ok {
 		return tm.ABCICode() == code
 	}
 	return code == CodeInternalErr
@@ -58,6 +58,14 @@ func NormalizePanic(p interface{}) error {
 	// }
 	msg := fmt.Sprintf("panic: %v", p)
 	return Error{code: CodePanic, desc: msg}
+}
+
+// Redact will replace all panic errors with a generic message
+func Redact(err error) error {
+	if HasErrorCode(err, PanicErr.code) {
+		return InternalErr
+	}
+	return err
 }
 
 // Recover takes a pointer to the returned error,

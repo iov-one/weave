@@ -16,6 +16,7 @@ func TestCreateErrorResult(t *testing.T) {
 		msg  string
 		code uint32
 	}{
+		{errors.NormalizePanic("stdlib"), "internal", errors.CodeInternalErr},
 		{fmt.Errorf("base"), "base", errors.CodeInternalErr},
 		{pkerr.New("dave"), "dave", errors.CodeInternalErr},
 		{errors.Wrap(fmt.Errorf("demo"), "wrapped"), "wrapped: demo", errors.CodeInternalErr},

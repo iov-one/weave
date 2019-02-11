@@ -2,6 +2,7 @@ package errors
 
 import (
 	"errors"
+	"fmt"
 	"math"
 	"testing"
 )
@@ -50,7 +51,7 @@ func TestErrors(t *testing.T) {
 			wantLog:  "panic: foo",
 		},
 		"normalize panic handles errors": {
-			err:      NormalizePanic(New("message", 123)),
+			err:      NormalizePanic(fmt.Errorf("message")),
 			wantRoot: PanicErr,
 			wantMsg:  "panic: message",
 			wantLog:  "panic: message",
