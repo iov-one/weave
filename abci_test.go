@@ -16,10 +16,12 @@ func TestCreateErrorResult(t *testing.T) {
 		msg  string
 		code uint32
 	}{
+		{errors.NormalizePanic("stdlib"), "internal", errors.CodeInternalErr},
 		{fmt.Errorf("base"), "base", errors.CodeInternalErr},
 		{pkerr.New("dave"), "dave", errors.CodeInternalErr},
+		{errors.Wrap(fmt.Errorf("demo"), "wrapped"), "wrapped: demo", errors.CodeInternalErr},
+		{errors.New(fmt.Errorf("stdlib").Error(), 5), "stdlib", 5},
 		{errors.New("nonce", errors.CodeUnauthorized), "nonce", errors.CodeUnauthorized},
-		{errors.Wrap(fmt.Errorf("wrap")), "wrap", errors.CodeInternalErr},
 		{errors.WithCode(fmt.Errorf("no sender"), errors.CodeUnrecognizedAddress), "no sender", errors.CodeUnrecognizedAddress},
 		{errors.ErrDecoding(), errors.ErrDecoding().Error(), errors.CodeTxParseError},
 	}
@@ -29,13 +31,13 @@ func TestCreateErrorResult(t *testing.T) {
 
 			dres := weave.DeliverTxError(tc.err, false)
 			assert.True(t, dres.IsErr())
-			assert.Equal(t, tc.msg, dres.Log)
+			assert.Contains(t, dres.Log, tc.msg)
 
 			dres = weave.DeliverTxError(tc.err, true)
 			assert.True(t, dres.IsErr())
 			assert.Contains(t, dres.Log, tc.msg)
 
-			// TODO: this is failing, because stacktrace
+			// TODO:O this is failing, because stacktrace
 			// implementation is not present for the new error
 			// handing code.
 			//assert.Contains(t, dres.Log, "iov-one/weave/abci")
@@ -43,7 +45,8 @@ func TestCreateErrorResult(t *testing.T) {
 
 			cres := weave.CheckTxError(tc.err, false)
 			assert.True(t, cres.IsErr())
-			assert.Equal(t, tc.msg, cres.Log)
+			assert.Contains(t, cres.Log, tc.msg)
+			// assert.Equal(t, fmt.Sprintf("cannot check tx: %s", tc.msg), cres.Log)
 
 			cres = weave.CheckTxError(tc.err, true)
 			assert.True(t, cres.IsErr())

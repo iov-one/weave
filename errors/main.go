@@ -57,24 +57,6 @@ func WithLog(prefix string, err error, code uint32) TMError {
 	return WithCode(e2, code)
 }
 
-// This function was deprecated.
-//
-// Wrap safely takes any error and promotes it to a TMError.
-// Doing nothing on nil or an incoming TMError.
-func deprecatedLegacyWrap(err error) TMError {
-	// nil or TMError are no-ops
-	if err == nil {
-		return nil
-	}
-	// and check for noop
-	tm, ok := err.(TMError)
-	if ok {
-		return tm
-	}
-
-	return WithCode(err, CodeInternalErr)
-}
-
 //////////////////////////////////////////////////
 // tmerror is generic implementation of TMError
 

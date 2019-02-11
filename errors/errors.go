@@ -2,7 +2,6 @@ package errors
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/pkg/errors"
 )
@@ -10,26 +9,30 @@ import (
 var (
 	// InternalErr represents a general case issue that cannot be
 	// categorized as any of the below cases.
-	InternalErr = RegisterNew(0, "internal")
+	// We start as 1 as 0 is reserved for non-errors
+	InternalErr = Register(1, "internal")
 
 	// UnauthorizedErr is used whenever a request without sufficient
 	// authorization is handled.
-	UnauthorizedErr = RegisterNew(1, "unauthorized")
+	UnauthorizedErr = Register(2, "unauthorized")
 
 	// NotFoundErr is used when a requested operation cannot be completed
 	// due to missing data.
-	NotFoundErr = RegisterNew(2, "not found")
+	NotFoundErr = Register(3, "not found")
 
 	// InvalidMsgErr is returned whenever an event is invalid and cannot be
 	// handled.
-	InvalidMsgErr = RegisterNew(3, "invalid message")
+	InvalidMsgErr = Register(4, "invalid message")
 
 	// InvalidModelErr is returned whenever a message is invalid and cannot
 	// be used (ie. persisted).
-	InvalidModelErr = RegisterNew(4, "invalid model")
+	InvalidModelErr = Register(5, "invalid model")
+
+	// PanicErr is only set when we recover from a panic, so we know to redact potentially sensitive system info
+	PanicErr = Register(111222, "panic")
 )
 
-// RegisterNew returns an error instance that should be used as the base for
+// Register returns an error instance that should be used as the base for
 // creating error instances during runtime.
 //
 // Popular root errors are declared in this package, but extensions may want to
@@ -37,7 +40,7 @@ var (
 // twice. Attempt to reuse an error code results in panic.
 //
 // Use this function only during a program startup phase.
-func RegisterNew(code uint32, description string) Error {
+func Register(code uint32, description string) Error {
 	if e, ok := usedCodes[code]; ok {
 		panic(fmt.Sprintf("error with code %d is already registered: %q", code, e.desc))
 	}
@@ -59,16 +62,21 @@ var usedCodes = map[uint32]Error{}
 // allows error tests and returning all errors to the client in a safe manner.
 //
 // All popular root errors are declared in this package. If an extension has to
-// declare a custom root error, always use RegisterNew function to ensure
+// declare a custom root error, always use Register function to ensure
 // error code uniqueness.
 type Error struct {
 	code uint32
 	desc string
 }
 
-func (e Error) Error() string    { return e.desc }
+// Error returns the stored description
+func (e Error) Error() string { return e.desc }
+
+// ABCILog returns the stored description, same as Error()
+func (e Error) ABCILog() string { return e.desc }
+
+// ABCICode returns the associated ABCICode
 func (e Error) ABCICode() uint32 { return e.code }
-func (e Error) ABCILog() string  { return e.desc }
 
 // New returns a new error. Returned instance is having the root cause set to
 // this error. Below two lines are equal
@@ -78,26 +86,17 @@ func (e Error) New(description string) error {
 	return Wrap(e, description)
 }
 
-// This Wrap implementation provides a transition layer between two Wrap
-// function implementations with incompatible notations.
-//
-// Once migration is complete, it will be removed and replaced by wrapng
-// function.
-func Wrap(err error, description ...string) TMError {
-	if err == nil {
-		return nil
-	}
-	if len(description) == 0 {
-		return deprecatedLegacyWrap(err)
-	}
-	return wrapng(err, strings.Join(description, ", "))
-}
-
 // Wrap extends given error with an additional information.
 //
 // If the wrapped error does not provide ABCICode method (ie. stdlib errors),
 // it will be labeled as internal error.
-func wrapng(err error, description string) TMError {
+//
+// If err is nil, this returns nil, avoiding the need for an if statement when
+// wrapping a error returned at the end of a function
+func Wrap(err error, description string) TMError {
+	if err == nil {
+		return nil
+	}
 	return &wrappedError{
 		Parent: err,
 		Msg:    description,
@@ -111,6 +110,10 @@ type wrappedError struct {
 	Parent error
 }
 
+type coder interface {
+	ABCICode() uint32
+}
+
 func (e *wrappedError) StackTrace() errors.StackTrace {
 	// TODO: this is either to be implemented or expectation of it being
 	// present removed completely. As this is an early stage of
@@ -119,6 +122,7 @@ func (e *wrappedError) StackTrace() errors.StackTrace {
 }
 
 func (e *wrappedError) Error() string {
+	// if we have a real error code, show all logs recursively
 	if e.Parent == nil {
 		return e.Msg
 	}
@@ -129,9 +133,6 @@ func (e *wrappedError) ABCICode() uint32 {
 	if e.Parent == nil {
 		return InternalErr.code
 	}
-	type coder interface {
-		ABCICode() uint32
-	}
 	if p, ok := e.Parent.(coder); ok {
 		return p.ABCICode()
 	}
@@ -139,11 +140,6 @@ func (e *wrappedError) ABCICode() uint32 {
 }
 
 func (e *wrappedError) ABCILog() string {
-	// Internal error must not be revealed as a public API message.
-	// Instead, return generic description.
-	if e.ABCICode() == InternalErr.code {
-		return "internal error"
-	}
 	return e.Error()
 }
 
