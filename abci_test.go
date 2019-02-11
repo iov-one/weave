@@ -16,10 +16,10 @@ func TestCreateErrorResult(t *testing.T) {
 		msg  string
 		code uint32
 	}{
-		{fmt.Errorf("base"), "internal error", errors.CodeInternalErr},
-		{pkerr.New("dave"), "internal error", errors.CodeInternalErr},
-		{errors.Wrap(fmt.Errorf("demo"), "wrapped"), "internal error", errors.CodeInternalErr},
-		{errors.New(fmt.Errorf("wrap").Error(), 5), "wrap", 5},
+		{fmt.Errorf("base"), "base", errors.CodeInternalErr},
+		{pkerr.New("dave"), "dave", errors.CodeInternalErr},
+		{errors.Wrap(fmt.Errorf("demo"), "wrapped"), "wrapped: demo", errors.CodeInternalErr},
+		{errors.New(fmt.Errorf("stdlib").Error(), 5), "stdlib", 5},
 		{errors.New("nonce", errors.CodeUnauthorized), "nonce", errors.CodeUnauthorized},
 		{errors.WithCode(fmt.Errorf("no sender"), errors.CodeUnrecognizedAddress), "no sender", errors.CodeUnrecognizedAddress},
 		{errors.ErrDecoding(), errors.ErrDecoding().Error(), errors.CodeTxParseError},

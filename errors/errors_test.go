@@ -29,7 +29,7 @@ func TestErrors(t *testing.T) {
 			err:      Wrap(errors.New("stdlib"), "outer"),
 			wantRoot: InternalErr,
 			wantMsg:  "outer: stdlib",
-			wantLog:  "internal error",
+			wantLog:  "outer: stdlib",
 		},
 		"deep wrap of a weave error": {
 			err:      Wrap(Wrap(Wrap(NotFoundErr, "404"), "inner"), "outer"),
@@ -41,7 +41,7 @@ func TestErrors(t *testing.T) {
 			err:      Wrap(Wrap(errors.New("stdlib"), "inner"), "outer"),
 			wantRoot: InternalErr,
 			wantMsg:  "outer: inner: stdlib",
-			wantLog:  "internal error",
+			wantLog:  "outer: inner: stdlib",
 		},
 	}
 

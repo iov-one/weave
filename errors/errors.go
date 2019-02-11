@@ -110,13 +110,6 @@ func (e *wrappedError) StackTrace() errors.StackTrace {
 }
 
 func (e *wrappedError) Error() string {
-	// we redact some lines here, showing only top wrapped info if present
-	if e.ABCICode() == InternalErr.code {
-		if e.Parent == nil {
-			return "internal error"
-		}
-		return fmt.Sprintf("%s: internal error", e.Msg)
-	}
 	// if we have a real error code, show all logs recursively
 	if e.Parent == nil {
 		return e.Msg
@@ -138,11 +131,6 @@ func (e *wrappedError) ABCICode() uint32 {
 }
 
 func (e *wrappedError) ABCILog() string {
-	// Internal error must not be revealed as a public API message.
-	// Instead, return generic description.
-	if e.ABCICode() == InternalErr.code {
-		return "internal error"
-	}
 	return e.Error()
 }
 
