@@ -84,6 +84,9 @@ func (e Error) New(description string) error {
 // Once migration is complete, it will be removed and replaced by wrapng
 // function.
 func Wrap(err error, description ...string) TMError {
+	if err == nil {
+		return nil
+	}
 	if len(description) == 0 {
 		return deprecatedLegacyWrap(err)
 	}

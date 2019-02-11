@@ -123,3 +123,9 @@ func TestIs(t *testing.T) {
 		})
 	}
 }
+
+func TestWrapEmpty(t *testing.T) {
+	if err := Wrap(nil, "wrapping <nil>"); err != nil {
+		t.Fatal(err)
+	}
+}
