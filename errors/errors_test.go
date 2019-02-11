@@ -43,6 +43,18 @@ func TestErrors(t *testing.T) {
 			wantMsg:  "outer: inner: stdlib",
 			wantLog:  "outer: inner: stdlib",
 		},
+		"normalize panic handles strings": {
+			err:      NormalizePanic("foo"),
+			wantRoot: PanicErr,
+			wantMsg:  "panic: foo",
+			wantLog:  "panic: foo",
+		},
+		"normalize panic handles errors": {
+			err:      NormalizePanic(New("message", 123)),
+			wantRoot: PanicErr,
+			wantMsg:  "panic: message",
+			wantLog:  "panic: message",
+		},
 	}
 
 	for testName, tc := range cases {

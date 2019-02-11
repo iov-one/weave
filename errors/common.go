@@ -16,6 +16,7 @@ const (
 	CodeUnknownRequest             = 4
 	CodeUnrecognizedAddress        = 5
 	CodeInvalidChainID             = 6
+	CodePanic                      = 111222 // TODO: use maxint or such?
 )
 
 var (
@@ -46,13 +47,17 @@ func HasErrorCode(err error, code uint32) bool {
 	return code == CodeInternalErr
 }
 
-// NormalizePanic converts a panic into a proper error
+// NormalizePanic converts a panic into a redacted error
+//
+// We want the whole stack trace for logging
+// but should show nothing over the ABCI interface....
 func NormalizePanic(p interface{}) error {
-	if err, isErr := p.(error); isErr {
-		return Wrap(err, "normalized panic")
-	}
+	// TODO, handle this better??? for stack traces
+	// if err, isErr := p.(error); isErr {
+	// 	return Wrap(err, "normalized panic")
+	// }
 	msg := fmt.Sprintf("panic: %v", p)
-	return ErrInternal(msg)
+	return Error{code: CodePanic, desc: msg}
 }
 
 // Recover takes a pointer to the returned error,

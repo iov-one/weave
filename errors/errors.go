@@ -27,6 +27,9 @@ var (
 	// InvalidModelErr is returned whenever a message is invalid and cannot
 	// be used (ie. persisted).
 	InvalidModelErr = Register(5, "invalid model")
+
+	// PanicErr is only set when we recover from a panic, so we know to redact potentially sensitive system info
+	PanicErr = Register(111222, "panic")
 )
 
 // Register returns an error instance that should be used as the base for
