@@ -2,7 +2,6 @@ package app
 
 import (
 	"github.com/iov-one/weave"
-	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/x/cash"
 	"github.com/iov-one/weave/x/hashlock"
 	"github.com/iov-one/weave/x/multisig"
@@ -33,37 +32,7 @@ var _ multisig.MultiSigTx = (*Tx)(nil)
 
 // GetMsg switches over all types defined in the protobuf file
 func (tx *Tx) GetMsg() (weave.Msg, error) {
-	sum := tx.GetSum()
-	if sum == nil {
-		return nil, errors.ErrDecoding()
-	}
-
-	// make sure to cover all messages defined in protobuf
-	switch t := sum.(type) {
-	case *Tx_SendMsg:
-		return t.SendMsg, nil
-	case *Tx_CreateEscrowMsg:
-		return t.CreateEscrowMsg, nil
-	case *Tx_ReleaseEscrowMsg:
-		return t.ReleaseEscrowMsg, nil
-	case *Tx_ReturnEscrowMsg:
-		return t.ReturnEscrowMsg, nil
-	case *Tx_UpdateEscrowMsg:
-		return t.UpdateEscrowMsg, nil
-	case *Tx_CreateContractMsg:
-		return t.CreateContractMsg, nil
-	case *Tx_UpdateContractMsg:
-		return t.UpdateContractMsg, nil
-	case *Tx_SetValidatorsMsg:
-		return t.SetValidatorsMsg, nil
-	case *Tx_BatchMsg:
-		return t.BatchMsg, nil
-	case *Tx_NewTokenInfoMsg:
-		return t.NewTokenInfoMsg, nil
-	}
-
-	// we must have covered it above
-	return nil, errors.ErrUnknownTxType(sum)
+	return weave.ExtractMsgFromSum(tx.GetSum())
 }
 
 // GetSignBytes returns the bytes to sign...
