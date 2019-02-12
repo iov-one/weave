@@ -2,9 +2,9 @@ package username
 
 import (
 	"bytes"
+	"regexp"
 
 	"github.com/iov-one/weave"
-	"github.com/iov-one/weave/cmd/bnsd/x/nft/blockchain"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/x/nft"
@@ -106,7 +106,7 @@ func (p ChainAddress) Equals(o ChainAddress) bool {
 }
 
 func (p *ChainAddress) Validate() error {
-	if !blockchain.IsValidID(string(p.BlockchainID)) {
+	if !validBlockchainID(p.BlockchainID) {
 		return nft.ErrInvalidID(p.BlockchainID)
 	}
 	if n := len(p.Address); n < 2 || n > 50 {
@@ -114,6 +114,10 @@ func (p *ChainAddress) Validate() error {
 	}
 	return nil
 }
+
+var (
+	validBlockchainID = regexp.MustCompile(`^[a-zA-Z0-9_.-]{4,128}$`).Match
+)
 
 // AsUsername will safely type-cast any value from Bucket
 func AsUsername(obj orm.Object) (Token, error) {

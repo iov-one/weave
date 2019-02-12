@@ -3,9 +3,6 @@ syntax = "proto3";
 package app;
 
 import "github.com/gogo/protobuf/gogoproto/gogo.proto";
-import "github.com/iov-one/weave/cmd/bnsd/x/nft/blockchain/codec.proto";
-import "github.com/iov-one/weave/cmd/bnsd/x/nft/bootstrap_node/codec.proto";
-import "github.com/iov-one/weave/cmd/bnsd/x/nft/ticker/codec.proto";
 import "github.com/iov-one/weave/cmd/bnsd/x/nft/username/codec.proto";
 import "github.com/iov-one/weave/x/cash/codec.proto";
 import "github.com/iov-one/weave/x/currency/codec.proto";
@@ -48,9 +45,6 @@ message Tx {
     username.IssueTokenMsg issue_username_nft_msg = 63;
     username.AddChainAddressMsg add_username_address_nft_msg = 64;
     username.RemoveChainAddressMsg remove_username_address_msg = 65;
-    blockchain.IssueTokenMsg issue_blockchain_nft_msg = 66;
-    ticker.IssueTokenMsg issue_ticker_nft_msg = 67;
-    bootstrap_node.IssueTokenMsg issue_bootstrap_node_nft_msg = 68;
   }
 }
 

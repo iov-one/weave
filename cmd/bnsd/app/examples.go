@@ -3,7 +3,6 @@ package app
 import (
 	"fmt"
 
-	"github.com/iov-one/weave/cmd/bnsd/x/nft/blockchain"
 	"github.com/iov-one/weave/cmd/bnsd/x/nft/username"
 	"github.com/iov-one/weave/commands"
 	"github.com/iov-one/weave/crypto"
@@ -92,15 +91,6 @@ func Examples() []commands.Example {
 		Address:      "myChainAddress",
 	}
 
-	issueBlockchainMsg := &blockchain.IssueTokenMsg{
-		ID:      []byte("test-chain-123456"),
-		Owner:   addr,
-		Details: blockchain.TokenDetails{},
-	}
-	issueBlockchainTx := &Tx{
-		Sum: &Tx_IssueBlockchainNftMsg{issueBlockchainMsg},
-	}
-
 	fmt.Printf("Address: %s\n", addr)
 	return []commands.Example{
 		{"wallet", wallet},
@@ -115,8 +105,6 @@ func Examples() []commands.Example {
 		{"signed_tx", &tx},
 		{"issue_username_msg", issueUsernameMsg},
 		{"issue_username_tx", issueUsernameTx},
-		{"issue_blockchain_msg", issueBlockchainMsg},
-		{"issue_blockchain_tx", issueBlockchainTx},
 		{"add_addr_msg", addAddressMsg},
 	}
 }
