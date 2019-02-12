@@ -6,7 +6,6 @@ import (
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/cmd/bnsd/app"
-	"github.com/iov-one/weave/cmd/bnsd/x/nft/blockchain"
 	"github.com/iov-one/weave/cmd/bnsd/x/nft/username"
 	"github.com/iov-one/weave/store"
 	"github.com/iov-one/weave/x"
@@ -27,22 +26,18 @@ func TestApprovalOpsHandler(t *testing.T) {
 		bobWithAliceImmutableApproval := []byte("user4")
 		bobWithAliceTimeoutApproval := []byte("user5")
 
-		chainId := []byte("any_network")
 		var helpers x.TestHelpers
 		_, alice := helpers.MakeKey()
 		_, guest := helpers.MakeKey()
 		_, bob := helpers.MakeKey()
 		db := store.MemStore()
-		chainBucket := blockchain.NewBucket()
 		userBucket := username.NewBucket()
 		d := nft.GetBucketDispatcher()
 
 		_ = d.Register(app.NftType_USERNAME.String(), userBucket)
 		handler := base.NewApprovalOpsHandler(helpers.Authenticate(bob), nil, d)
 
-		o, _ := chainBucket.Create(db, bob.Address(), chainId, nil, blockchain.Chain{MainTickerID: []byte("IOV")}, blockchain.IOV{Codec: "asd"})
-		chainBucket.Save(db, o)
-		o, _ = userBucket.Create(db, bob.Address(), bobsUsername, nil, nil)
+		o, _ := userBucket.Create(db, bob.Address(), bobsUsername, nil, nil)
 		userBucket.Save(db, o)
 		o, _ = userBucket.Create(db, alice.Address(), aliceWithBobApproval, []nft.ActionApprovals{{
 			Action:    nft.UpdateApprovals,
@@ -129,17 +124,6 @@ func TestApprovalOpsHandler(t *testing.T) {
 					handler = base.NewApprovalOpsHandler(helpers.Authenticate(guest), nil, d)
 					msg.Address = bob.Address()
 					msg.ID = bobsUsername
-					tx := helpers.MockTx(msg)
-					_, err := handler.Check(ctx, db, tx)
-					So(err, ShouldBeNil)
-					_, err = handler.Deliver(ctx, db, tx)
-					So(err, ShouldNotBeNil)
-				})
-
-				Convey("Unknown type", func() {
-					msg.Address = alice.Address()
-					msg.T = app.NftType_BLOCKCHAIN.String()
-					msg.ID = chainId
 					tx := helpers.MockTx(msg)
 					_, err := handler.Check(ctx, db, tx)
 					So(err, ShouldBeNil)
@@ -239,16 +223,6 @@ func TestApprovalOpsHandler(t *testing.T) {
 					handler = base.NewApprovalOpsHandler(helpers.Authenticate(guest), nil, d)
 					msg.Address = bob.Address()
 					msg.ID = bobWithAliceApproval
-					tx := helpers.MockTx(msg)
-					_, err := handler.Check(ctx, db, tx)
-					So(err, ShouldBeNil)
-					_, err = handler.Deliver(ctx, db, tx)
-					So(err, ShouldNotBeNil)
-				})
-
-				Convey("Unknown type", func() {
-					msg.T = app.NftType_BLOCKCHAIN.String()
-					msg.ID = chainId
 					tx := helpers.MockTx(msg)
 					_, err := handler.Check(ctx, db, tx)
 					So(err, ShouldBeNil)

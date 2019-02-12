@@ -50,9 +50,6 @@ message Tx {
 
 enum NftType {
   USERNAME = 0;
-  TICKER = 1;
-  BLOCKCHAIN = 3;
-  BOOTSTRAP_NODE = 4;
 }
 
 //Commented out for a minimal feature-set release

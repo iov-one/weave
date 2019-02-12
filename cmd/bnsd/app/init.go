@@ -8,8 +8,6 @@ import (
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/app"
-	"github.com/iov-one/weave/cmd/bnsd/x/nft/blockchain"
-	"github.com/iov-one/weave/cmd/bnsd/x/nft/ticker"
 	"github.com/iov-one/weave/crypto"
 	"github.com/iov-one/weave/gconf"
 	"github.com/iov-one/weave/x"
@@ -90,8 +88,6 @@ func GenerateApp(home string, logger log.Logger, debug bool) (abci.Application, 
 		&multisig.Initializer{},
 		&cash.Initializer{},
 		&currency.Initializer{},
-		&blockchain.Initializer{},
-		&ticker.Initializer{},
 		&validators.Initializer{},
 	))
 

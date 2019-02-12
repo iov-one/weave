@@ -8,8 +8,6 @@ import (
 	"github.com/iov-one/weave"
 	weaveApp "github.com/iov-one/weave/app"
 	"github.com/iov-one/weave/cmd/bnsd/app"
-	"github.com/iov-one/weave/cmd/bnsd/x/nft/blockchain"
-	"github.com/iov-one/weave/cmd/bnsd/x/nft/ticker"
 	"github.com/iov-one/weave/crypto"
 	"github.com/iov-one/weave/gconf"
 	"github.com/iov-one/weave/x"
@@ -49,8 +47,6 @@ func (f AppFixture) Build() weaveApp.BaseApp {
 		&gconf.Initializer{},
 		&cash.Initializer{},
 		&currency.Initializer{},
-		&blockchain.Initializer{},
-		&ticker.Initializer{},
 	))
 	myApp.WithLogger(log.NewNopLogger())
 	// load state
