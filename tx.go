@@ -86,20 +86,20 @@ type TxDecoder func(txBytes []byte) (Tx, error)
 func ExtractMsgFromSum(sum interface{}) (Msg, error) {
 	// TODO: add better error messages here with new refactor
 	if sum == nil {
-		return nil, errors.ErrInternal("sum is <nil>")
+		return nil, errors.InvalidMsgErr.New("sum is <nil>")
 	}
 	pval := reflect.ValueOf(sum)
 	if pval.Kind() != reflect.Ptr || pval.Elem().Kind() != reflect.Struct {
-		return nil, errors.ErrInternal(fmt.Sprintf("invalid value: %T", sum))
+		return nil, errors.InvalidMsgErr.New(fmt.Sprintf("invalid value: %T", sum))
 	}
 	val := pval.Elem()
 	if val.NumField() != 1 {
-		return nil, errors.ErrInternal(fmt.Sprintf("Unexpected field count: %d", val.NumField()))
+		return nil, errors.InvalidMsgErr.New(fmt.Sprintf("Unexpected field count: %d", val.NumField()))
 	}
 	field := val.Field(0).Interface()
 	res, ok := field.(Msg)
 	if !ok {
-		return nil, errors.ErrUnknownTxType(field)
+		return nil, errors.InvalidMsgErr.New(fmt.Sprintf("Unsupported field type: %T", field))
 	}
 	return res, nil
 }
