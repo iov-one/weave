@@ -2,7 +2,6 @@ package app
 
 import (
 	"github.com/iov-one/weave"
-	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/x/batch"
 )
 
@@ -16,34 +15,11 @@ func (msg *BatchMsg) MsgList() ([]weave.Msg, error) {
 	messages := make([]weave.Msg, len(msg.Messages))
 	// make sure to cover all messages defined in protobuf
 	for i, m := range msg.Messages {
-		res, err := func() (weave.Msg, error) {
-			switch t := m.GetSum().(type) {
-			case *BatchMsg_Union_SendMsg:
-				return t.SendMsg, nil
-			case *BatchMsg_Union_CreateEscrowMsg:
-				return t.CreateEscrowMsg, nil
-			case *BatchMsg_Union_ReleaseEscrowMsg:
-				return t.ReleaseEscrowMsg, nil
-			case *BatchMsg_Union_ReturnEscrowMsg:
-				return t.ReturnEscrowMsg, nil
-			case *BatchMsg_Union_UpdateEscrowMsg:
-				return t.UpdateEscrowMsg, nil
-			case *BatchMsg_Union_CreateContractMsg:
-				return t.CreateContractMsg, nil
-			case *BatchMsg_Union_UpdateContractMsg:
-				return t.UpdateContractMsg, nil
-			case *BatchMsg_Union_SetValidatorsMsg:
-				return t.SetValidatorsMsg, nil
-			case *BatchMsg_Union_NewTokenInfoMsg:
-				return t.NewTokenInfoMsg, nil
-			default:
-				return nil, errors.ErrUnknownTxType(t)
-			}
-		}()
+		res, err := weave.ExtractMsgFromSum(m.GetSum())
 		if err != nil {
 			return messages, err
 		}
-		messages[i] = res.(weave.Msg)
+		messages[i] = res
 	}
 	return messages, nil
 }

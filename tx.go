@@ -1,5 +1,12 @@
 package weave
 
+import (
+	"fmt"
+	"reflect"
+
+	"github.com/iov-one/weave/errors"
+)
+
 // Msg is message for the blockchain to take an action
 // (Make a state transition). It is just the request, and
 // must be validated by the Handlers. All authentication
@@ -67,3 +74,32 @@ func GetPath(tx Tx) string {
 
 // TxDecoder can parse bytes into a Tx
 type TxDecoder func(txBytes []byte) (Tx, error)
+
+// ExtractMsgFromSum will find a weave message from a tx sum type if it exists.
+// Assuming you define your Tx with protobuf, this will help you implement GetMsg()
+//
+//   ExtractMsgFromSum(tx.GetSum())
+//
+// To work, this requires sum to be a pointer to a struct with one field,
+// and that field can be cast to a Msg.
+// Returns an error if it cannot succeed.
+func ExtractMsgFromSum(sum interface{}) (Msg, error) {
+	// TODO: add better error messages here with new refactor
+	if sum == nil {
+		return nil, errors.ErrInternal("sum is <nil>")
+	}
+	pval := reflect.ValueOf(sum)
+	if pval.Kind() != reflect.Ptr || pval.Elem().Kind() != reflect.Struct {
+		return nil, errors.ErrInternal(fmt.Sprintf("invalid value: %T", sum))
+	}
+	val := pval.Elem()
+	if val.NumField() != 1 {
+		return nil, errors.ErrInternal(fmt.Sprintf("Unexpected field count: %d", val.NumField()))
+	}
+	field := val.Field(0).Interface()
+	res, ok := field.(Msg)
+	if !ok {
+		return nil, errors.ErrUnknownTxType(field)
+	}
+	return res, nil
+}
