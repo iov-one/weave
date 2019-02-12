@@ -96,10 +96,13 @@ func ExtractMsgFromSum(sum interface{}) (Msg, error) {
 	if val.NumField() != 1 {
 		return nil, errors.InvalidMsgErr.New(fmt.Sprintf("Unexpected field count: %d", val.NumField()))
 	}
-	field := val.Field(0).Interface()
-	res, ok := field.(Msg)
+	field := val.Field(0)
+	if field.IsNil() {
+		return nil, errors.InvalidMsgErr.New("wrapped value is <nil>")
+	}
+	res, ok := field.Interface().(Msg)
 	if !ok {
-		return nil, errors.InvalidMsgErr.New(fmt.Sprintf("Unsupported field type: %T", field))
+		return nil, errors.InvalidMsgErr.New(fmt.Sprintf("Unsupported field type: %T", field.Interface()))
 	}
 	return res, nil
 }
