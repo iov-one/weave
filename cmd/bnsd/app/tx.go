@@ -1,6 +1,9 @@
 package app
 
 import (
+	"fmt"
+	"reflect"
+
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/x/cash"
@@ -31,54 +34,34 @@ var _ sigs.SignedTx = (*Tx)(nil)
 var _ hashlock.HashKeyTx = (*Tx)(nil)
 var _ multisig.MultiSigTx = (*Tx)(nil)
 
+// ExtractMsgFromSum will find a weave message from a sum if it exists
+// To work, this requires sum to be a struct with one field, and that field can be cast to a weave.Msg
+// Returns an error if it cannot succeed.
+func ExtractMsgFromSum(sum interface{}) (weave.Msg, error) {
+	// TODO: add better error messages here with new refactor
+	if sum == nil {
+		return nil, errors.ErrInternal("sum is <nil>")
+	}
+	pval := reflect.ValueOf(sum)
+	if pval.Kind() != reflect.Ptr || pval.Elem().Kind() != reflect.Struct {
+		return nil, errors.ErrInternal(fmt.Sprintf("invalid value: %T", sum))
+	}
+	val := pval.Elem()
+	if val.NumField() != 1 {
+		return nil, errors.ErrInternal(fmt.Sprintf("Unexpected field count: %d", val.NumField()))
+	}
+	field := val.Field(0).Interface()
+	res, ok := field.(weave.Msg)
+	if !ok {
+		return nil, errors.ErrUnknownTxType(field)
+	}
+	return res, nil
+}
+
 // GetMsg switches over all types defined in the protobuf file
 func (tx *Tx) GetMsg() (weave.Msg, error) {
 	sum := tx.GetSum()
-	if sum == nil {
-		return nil, errors.ErrDecoding()
-	}
-
-	// make sure to cover all messages defined in protobuf
-	switch t := sum.(type) {
-	case *Tx_SendMsg:
-		return t.SendMsg, nil
-	case *Tx_CreateEscrowMsg:
-		return t.CreateEscrowMsg, nil
-	case *Tx_ReleaseEscrowMsg:
-		return t.ReleaseEscrowMsg, nil
-	case *Tx_ReturnEscrowMsg:
-		return t.ReturnEscrowMsg, nil
-	case *Tx_UpdateEscrowMsg:
-		return t.UpdateEscrowMsg, nil
-	case *Tx_CreateContractMsg:
-		return t.CreateContractMsg, nil
-	case *Tx_UpdateContractMsg:
-		return t.UpdateContractMsg, nil
-	case *Tx_SetValidatorsMsg:
-		return t.SetValidatorsMsg, nil
-	case *Tx_NewTokenInfoMsg:
-		return t.NewTokenInfoMsg, nil
-	// nft actions
-	case *Tx_AddApprovalMsg:
-		return t.AddApprovalMsg, nil
-	case *Tx_RemoveApprovalMsg:
-		return t.RemoveApprovalMsg, nil
-	case *Tx_IssueUsernameNftMsg:
-		return t.IssueUsernameNftMsg, nil
-	case *Tx_AddUsernameAddressNftMsg:
-		return t.AddUsernameAddressNftMsg, nil
-	case *Tx_RemoveUsernameAddressMsg:
-		return t.RemoveUsernameAddressMsg, nil
-	case *Tx_IssueBlockchainNftMsg:
-		return t.IssueBlockchainNftMsg, nil
-	case *Tx_IssueTickerNftMsg:
-		return t.IssueTickerNftMsg, nil
-		//case *Tx_BatchMsg:
-		//	return t.BatchMsg, nil
-	}
-
-	// we must have covered it above
-	return nil, errors.ErrUnknownTxType(sum)
+	return ExtractMsgFromSum(sum)
 }
 
 // GetSignBytes returns the bytes to sign...
