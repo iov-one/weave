@@ -63,7 +63,7 @@ func Chain(authFn x.Authenticator) app.Decorators {
 
 // Router returns a default router, only dispatching to the
 // cash.SendMsg
-func Router(authFn x.Authenticator, issuer weave.Address) app.Router {
+func Router(authFn x.Authenticator, issuer weave.Address, nftBuckets map[string]orm.Bucket) app.Router {
 	r := app.NewRouter()
 
 	// ctrl can be initialized with any implementation, but must be used
@@ -78,7 +78,7 @@ func Router(authFn x.Authenticator, issuer weave.Address) app.Router {
 	currency.RegisterRoutes(r, authFn, issuer)
 	username.RegisterRoutes(r, authFn, issuer)
 	validators.RegisterRoutes(r, authFn, validators.NewController())
-	base.RegisterRoutes(r, authFn, issuer)
+	base.RegisterRoutes(r, authFn, issuer, nftBuckets)
 	return r
 }
 
@@ -98,23 +98,20 @@ func QueryRouter() weave.QueryRouter {
 		orm.RegisterQuery,
 		currency.RegisterQuery,
 	)
-	nft.GetBucketDispatcher().AssertRegistered(x.EnumHelpers{}.AsList(NftType_value)...)
 	return r
 }
 
 // Register nft types and actions for shared action handling via base handler
 func RegisterNft() {
-	nft.GetBucketDispatcher().Register(NftType_USERNAME.String(), username.NewBucket())
-
 	// Default nft actions.
 	nft.RegisterAction(nft.DefaultActions...)
 }
 
 // Stack wires up a standard router with a standard decorator
 // chain. This can be passed into BaseApp.
-func Stack(issuer weave.Address) weave.Handler {
+func Stack(issuer weave.Address, nftBuckets map[string]orm.Bucket) weave.Handler {
 	authFn := Authenticator()
-	return Chain(authFn).WithHandler(Router(authFn, issuer))
+	return Chain(authFn).WithHandler(Router(authFn, issuer, nftBuckets))
 }
 
 // Application constructs a basic ABCI application with

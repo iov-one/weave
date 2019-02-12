@@ -8,8 +8,10 @@ import (
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/app"
+	"github.com/iov-one/weave/cmd/bnsd/x/nft/username"
 	"github.com/iov-one/weave/crypto"
 	"github.com/iov-one/weave/gconf"
+	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/x"
 	"github.com/iov-one/weave/x/cash"
 	"github.com/iov-one/weave/x/currency"
@@ -77,8 +79,10 @@ func GenerateApp(home string, logger log.Logger, debug bool) (abci.Application, 
 		dbPath = filepath.Join(home, "bns.db")
 	}
 
-	// TODO: anyone can make a token????
-	stack := Stack(nil)
+	nftBuckets := map[string]orm.Bucket{
+		"USERNAME": username.NewBucket().Bucket,
+	}
+	stack := Stack(nil, nftBuckets)
 	application, err := Application("bnsd", stack, TxDecoder, dbPath, debug)
 	if err != nil {
 		return nil, err

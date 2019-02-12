@@ -48,10 +48,6 @@ message Tx {
   }
 }
 
-enum NftType {
-  USERNAME = 0;
-}
-
 //Commented out for a minimal feature-set release
 // BatchMsg encapsulates multiple messages to support batch transaction
 //message BatchMsg {

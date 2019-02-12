@@ -8,8 +8,10 @@ import (
 	"github.com/iov-one/weave"
 	weaveApp "github.com/iov-one/weave/app"
 	"github.com/iov-one/weave/cmd/bnsd/app"
+	"github.com/iov-one/weave/cmd/bnsd/x/nft/username"
 	"github.com/iov-one/weave/crypto"
 	"github.com/iov-one/weave/gconf"
+	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/x"
 	"github.com/iov-one/weave/x/cash"
 	"github.com/iov-one/weave/x/currency"
@@ -38,7 +40,9 @@ func NewApp() *AppFixture {
 
 func (f AppFixture) Build() weaveApp.BaseApp {
 	// setup app
-	stack := app.Stack(nil)
+	stack := app.Stack(nil, map[string]orm.Bucket{
+		"USERNAME": username.NewBucket().Bucket,
+	})
 	myApp, err := app.Application(f.Name, stack, app.TxDecoder, "", true)
 	if err != nil {
 		panic(err)

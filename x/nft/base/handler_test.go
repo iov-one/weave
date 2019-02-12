@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"github.com/iov-one/weave"
-	"github.com/iov-one/weave/cmd/bnsd/app"
 	"github.com/iov-one/weave/cmd/bnsd/x/nft/username"
+	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/store"
 	"github.com/iov-one/weave/x"
 	"github.com/iov-one/weave/x/nft"
@@ -32,10 +32,11 @@ func TestApprovalOpsHandler(t *testing.T) {
 		_, bob := helpers.MakeKey()
 		db := store.MemStore()
 		userBucket := username.NewBucket()
-		d := nft.GetBucketDispatcher()
+		nftBuckets := map[string]orm.Bucket{
+			"USERNAME": userBucket.Bucket,
+		}
 
-		_ = d.Register(app.NftType_USERNAME.String(), userBucket)
-		handler := base.NewApprovalOpsHandler(helpers.Authenticate(bob), nil, d)
+		handler := base.NewApprovalOpsHandler(helpers.Authenticate(bob), nil, nftBuckets)
 
 		o, _ := userBucket.Create(db, bob.Address(), bobsUsername, nil, nil)
 		userBucket.Save(db, o)
@@ -65,7 +66,7 @@ func TestApprovalOpsHandler(t *testing.T) {
 				Address: alice.Address(),
 				Action:  nft.UpdateDetails,
 				Options: nft.ApprovalOptions{Count: nft.UnlimitedCount},
-				T:       app.NftType_USERNAME.String(),
+				T:       "USERNAME",
 			}
 			Convey("Test happy", func() {
 				Convey("By owner", func() {
@@ -121,7 +122,7 @@ func TestApprovalOpsHandler(t *testing.T) {
 				})
 
 				Convey("By guest", func() {
-					handler = base.NewApprovalOpsHandler(helpers.Authenticate(guest), nil, d)
+					handler = base.NewApprovalOpsHandler(helpers.Authenticate(guest), nil, nftBuckets)
 					msg.Address = bob.Address()
 					msg.ID = bobsUsername
 					tx := helpers.MockTx(msg)
@@ -174,7 +175,7 @@ func TestApprovalOpsHandler(t *testing.T) {
 			msg := &nft.RemoveApprovalMsg{ID: bobWithAliceApproval,
 				Address: alice.Address(),
 				Action:  nft.UpdateApprovals,
-				T:       app.NftType_USERNAME.String(),
+				T:       "USERNAME",
 			}
 			Convey("Test happy", func() {
 				Convey("By owner", func() {
@@ -194,7 +195,7 @@ func TestApprovalOpsHandler(t *testing.T) {
 				//TODO: Should we allow approved to remove their own approvals? :)
 				Convey("By approved", func() {
 					t.Logf("alice address: %s", alice.Address())
-					handler = base.NewApprovalOpsHandler(helpers.Authenticate(alice), nil, d)
+					handler = base.NewApprovalOpsHandler(helpers.Authenticate(alice), nil, nftBuckets)
 					tx := helpers.MockTx(msg)
 					_, err := handler.Check(ctx, db, tx)
 					So(err, ShouldBeNil)
@@ -220,7 +221,7 @@ func TestApprovalOpsHandler(t *testing.T) {
 				})
 
 				Convey("By guest", func() {
-					handler = base.NewApprovalOpsHandler(helpers.Authenticate(guest), nil, d)
+					handler = base.NewApprovalOpsHandler(helpers.Authenticate(guest), nil, nftBuckets)
 					msg.Address = bob.Address()
 					msg.ID = bobWithAliceApproval
 					tx := helpers.MockTx(msg)
@@ -262,7 +263,7 @@ func TestApprovalOpsHandler(t *testing.T) {
 					msg.ID = bobWithAliceTimeoutApproval
 					tx := helpers.MockTx(msg)
 					timeoutCtx := weave.WithHeight(context.Background(), 10)
-					handler = base.NewApprovalOpsHandler(helpers.Authenticate(guest), nil, d)
+					handler = base.NewApprovalOpsHandler(helpers.Authenticate(guest), nil, nftBuckets)
 					_, err := handler.Check(timeoutCtx, db, tx)
 					So(err, ShouldBeNil)
 					_, err = handler.Deliver(timeoutCtx, db, tx)
