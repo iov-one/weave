@@ -308,7 +308,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 						Memo:      "end",
 					},
 					blocksize:      104,
-					wantDeliverErr: ErrNotAllowed("not recipient"),
+					wantDeliverErr: errors.InvalidMsgErr,
 				},
 				// Recipient can close channel any time.
 				{
@@ -346,7 +346,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 						},
 					}),
 					blocksize:    103,
-					wantCheckErr: ErrInvalidChainID("another-chain-666"),
+					wantCheckErr: errors.InvalidMsgErr,
 				},
 			},
 		},
@@ -375,7 +375,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 						},
 					}),
 					blocksize:    103,
-					wantCheckErr: ErrInvalidAmount(dogeCoin(11, 50)),
+					wantCheckErr: errors.InvalidMsgErr,
 				},
 			},
 		},
@@ -392,7 +392,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 						Memo:         "start",
 					},
 					blocksize:    100,
-					wantCheckErr: ErrMissingSenderPubkey(),
+					wantCheckErr: errors.InvalidMsgErr,
 				},
 			},
 		},
@@ -429,7 +429,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 						},
 					}),
 					blocksize:    103,
-					wantCheckErr: ErrNoSuchPaymentChannel(asSeqID(1)),
+					wantCheckErr: errors.NotFoundErr,
 				},
 			},
 		},
@@ -463,7 +463,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 						},
 					},
 					blocksize:    103,
-					wantCheckErr: ErrInvalidSignature(),
+					wantCheckErr: errors.InvalidMsgErr,
 				},
 			},
 		},
@@ -484,7 +484,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 
 			for i, a := range tc.actions {
 				cache := db.CacheWrap()
-				if _, err := rt.Check(a.ctx(), cache, a.tx()); !isSameError(err, a.wantCheckErr) {
+				if _, err := rt.Check(a.ctx(), cache, a.tx()); !errors.Is(err, a.wantCheckErr) {
 					t.Logf("want: %+v", a.wantCheckErr)
 					t.Logf(" got: %+v", err)
 					t.Fatalf("action %d check (%T)", i, a.msg)
@@ -495,7 +495,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 					continue
 				}
 
-				if _, err := rt.Deliver(a.ctx(), db, a.tx()); !isSameError(err, a.wantDeliverErr) {
+				if _, err := rt.Deliver(a.ctx(), db, a.tx()); !errors.Is(err, a.wantDeliverErr) {
 					t.Logf("want: %+v", a.wantDeliverErr)
 					t.Logf(" got: %+v", err)
 					t.Fatalf("action %d delivery (%T)", i, a.msg)
@@ -595,12 +595,4 @@ func setSignature(key crypto.Signer, msg *TransferPaymentChannelMsg) *TransferPa
 	}
 	msg.Signature = sig
 	return msg
-}
-
-// isSameError returns true if both errors are nil.
-func isSameError(a, b error) bool {
-	if a == nil && b == nil {
-		return true
-	}
-	return errors.IsSameError(a, b)
 }

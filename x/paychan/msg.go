@@ -2,6 +2,7 @@ package paychan
 
 import (
 	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/errors"
 )
 
 var _ weave.Msg = (*CreatePaymentChannelMsg)(nil)
@@ -16,22 +17,22 @@ const (
 
 func (m *CreatePaymentChannelMsg) Validate() error {
 	if m.Src == nil {
-		return ErrMissingSrc()
+		return errors.InvalidMsgErr.New("missing source")
 	}
 	if m.SenderPubkey == nil {
-		return ErrMissingSenderPubkey()
+		return errors.InvalidMsgErr.New("missing sender public key")
 	}
 	if m.Recipient == nil {
-		return ErrMissingRecipient()
+		return errors.InvalidMsgErr.New("missing recipient")
 	}
 	if m.Total == nil || m.Total.IsZero() {
-		return ErrInvalidTotal(m.Total)
+		return errors.InvalidMsgErr.New("inalid total amount")
 	}
 	if m.Timeout <= 0 {
-		return ErrInvalidTimeout(m.Timeout)
+		return errors.InvalidMsgErr.New("inalid timeout value")
 	}
 	if len(m.Memo) > 128 {
-		return ErrInvalidMemo(m.Memo)
+		return errors.InvalidMsgErr.New("memo too long")
 	}
 
 	return validateAddresses(m.Recipient, m.Src)
@@ -43,19 +44,19 @@ func (CreatePaymentChannelMsg) Path() string {
 
 func (m *TransferPaymentChannelMsg) Validate() error {
 	if m.Signature == nil {
-		return ErrMissingSignature()
+		return errors.InvalidMsgErr.New("missing signature")
 	}
 	if m.Payment == nil {
-		return ErrMissingPayment()
+		return errors.InvalidMsgErr.New("missing payment")
 	}
 	if m.Payment.ChainID == "" {
-		return ErrMissingChainID()
+		return errors.InvalidMsgErr.New("missing chain ID")
 	}
 	if m.Payment.ChannelID == nil {
-		return ErrMissingChannelID()
+		return errors.InvalidMsgErr.New("missing channel ID")
 	}
 	if !m.Payment.Amount.IsPositive() {
-		return ErrInvalidAmount(m.Payment.Amount)
+		return errors.InvalidMsgErr.New("invalid amount value")
 	}
 	return nil
 }
@@ -66,10 +67,10 @@ func (TransferPaymentChannelMsg) Path() string {
 
 func (m *ClosePaymentChannelMsg) Validate() error {
 	if m.ChannelID == nil {
-		return ErrMissingChannelID()
+		return errors.InvalidMsgErr.New("missing channel ID")
 	}
 	if len(m.Memo) > 128 {
-		return ErrInvalidMemo(m.Memo)
+		return errors.InvalidMsgErr.New("memo too long")
 	}
 	return nil
 }

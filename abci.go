@@ -3,10 +3,9 @@ package weave
 import (
 	"fmt"
 
+	"github.com/iov-one/weave/errors"
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/common"
-
-	"github.com/iov-one/weave/errors"
 )
 
 //---------- helpers for handling responses --------
@@ -93,7 +92,9 @@ type TickResult struct {
 // preserving as much info as possible if it was already
 // a TMError
 func DeliverTxError(err error, debug bool) abci.ResponseDeliverTx {
-	tm := errors.Wrap(err)
+	clean := errors.Redact(err)
+	tm := errors.Wrap(clean, "cannot deliver tx")
+
 	log := tm.ABCILog()
 	if debug {
 		log = fmt.Sprintf("%v", tm)
@@ -109,7 +110,9 @@ func DeliverTxError(err error, debug bool) abci.ResponseDeliverTx {
 // preserving as much info as possible if it was already
 // a TMError
 func CheckTxError(err error, debug bool) abci.ResponseCheckTx {
-	tm := errors.Wrap(err)
+	clean := errors.Redact(err)
+	tm := errors.Wrap(clean, "cannot check tx")
+
 	log := tm.ABCILog()
 	if debug {
 		log = fmt.Sprintf("%v", tm)

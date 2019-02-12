@@ -16,6 +16,8 @@ type TMError interface {
 	ABCILog() string
 }
 
+// This function is deprecated. Error codes are no longer part of an error API.
+//
 // New creates an error with the given message and a stacktrace,
 // and sets the code and log,
 // overriding the state if err was already TMError
@@ -53,22 +55,6 @@ func WithCode(err error, code uint32) TMError {
 func WithLog(prefix string, err error, code uint32) TMError {
 	e2 := errors.WithMessage(err, prefix)
 	return WithCode(e2, code)
-}
-
-// Wrap safely takes any error and promotes it to a TMError.
-// Doing nothing on nil or an incoming TMError.
-func Wrap(err error) TMError {
-	// nil or TMError are no-ops
-	if err == nil {
-		return nil
-	}
-	// and check for noop
-	tm, ok := err.(TMError)
-	if ok {
-		return tm
-	}
-
-	return WithCode(err, CodeInternalErr)
 }
 
 //////////////////////////////////////////////////
