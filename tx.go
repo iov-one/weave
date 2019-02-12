@@ -86,23 +86,23 @@ type TxDecoder func(txBytes []byte) (Tx, error)
 func ExtractMsgFromSum(sum interface{}) (Msg, error) {
 	// TODO: add better error messages here with new refactor
 	if sum == nil {
-		return nil, errors.InvalidMsgErr.New("sum is <nil>")
+		return nil, errors.InvalidMsgErr.New("message container is <nil>")
 	}
 	pval := reflect.ValueOf(sum)
 	if pval.Kind() != reflect.Ptr || pval.Elem().Kind() != reflect.Struct {
-		return nil, errors.InvalidMsgErr.New(fmt.Sprintf("invalid value: %T", sum))
+		return nil, errors.InvalidMsgErr.New(fmt.Sprintf("invalid message container value: %T", sum))
 	}
 	val := pval.Elem()
 	if val.NumField() != 1 {
-		return nil, errors.InvalidMsgErr.New(fmt.Sprintf("Unexpected field count: %d", val.NumField()))
+		return nil, errors.InvalidMsgErr.New(fmt.Sprintf("Unexpected message container field count: %d", val.NumField()))
 	}
 	field := val.Field(0)
 	if field.IsNil() {
-		return nil, errors.InvalidMsgErr.New("wrapped value is <nil>")
+		return nil, errors.InvalidMsgErr.New("message is <nil>")
 	}
 	res, ok := field.Interface().(Msg)
 	if !ok {
-		return nil, errors.InvalidMsgErr.New(fmt.Sprintf("Unsupported field type: %T", field.Interface()))
+		return nil, errors.InvalidMsgErr.New(fmt.Sprintf("Unsupported message type: %T", field.Interface()))
 	}
 	return res, nil
 }

@@ -44,12 +44,12 @@ func TestExtractMsgFromSum(tt *testing.T) {
 		msg     string // some text contained in the error message
 	}{
 		{nil, true, "<nil>"},
-		{7, true, "invalid value"},
-		{&Container{}, true, "wrapped value"},
-		{Container{msg}, true, "invalid value"},
+		{7, true, "invalid message container"},
+		{&Container{}, true, "message is <nil>"},
+		{Container{msg}, true, "invalid message container"},
 		{&Container{msg}, false, ""},
-		{&BigContainer{msg, "foo"}, true, "field count"},
-		{&BadContents{&Container{}}, true, "field type"},
+		{&BigContainer{msg, "foo"}, true, "container field count"},
+		{&BadContents{&Container{}}, true, "invalid message"},
 	}
 
 	for i, tc := range cases {
