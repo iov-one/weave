@@ -1,8 +1,13 @@
 package blockchain_test
 
 import (
+	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"testing"
+
+	"github.com/iov-one/weave/cmd/bnsd/app"
+	"github.com/iov-one/weave/store/iavl"
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/cmd/bnsd/x/nft/blockchain"
@@ -187,4 +192,51 @@ func TestQueryTokenByName(t *testing.T) {
 	x, err := blockchain.AsBlockchain(got)
 	require.NoError(t, err)
 	_ = x // todo verify stored details
+}
+
+func TestDeterministicStorage(t *testing.T) {
+	var helpers x.TestHelpers
+	for i := 0; i < 10000; i++ {
+		t.Run(fmt.Sprint(i), func(t *testing.T) {
+			db := iavl.MockCommitStore()
+			bucket := blockchain.NewBucket()
+			tickerBucket := ticker.NewBucket()
+			var owner weave.Address
+			owner.UnmarshalJSON([]byte("4orppuuU/Ii3PrfL1rh7+T65vvA="))
+			handler := blockchain.NewIssueHandler(helpers.AlwaysTrueAuthenticator(), nil, bucket, tickerBucket.Bucket)
+
+			// when
+			rawJson := `
+ 	{
+    "owner": "4orppuuU/Ii3PrfL1rh7+T65vvA=",
+    "id": "YWxpY2VDaGFpbjMzODM=",
+    "details": {
+     "chain": {},
+     "iov": {
+      "codec": "test",
+      "codec_config": "{ \"any\" : [ \"json\", \"content\" ] }"
+     }
+    },
+    "approvals": null
+   }`
+
+			var issueMsg blockchain.IssueTokenMsg
+			require.NoError(t, json.Unmarshal([]byte(rawJson), &issueMsg))
+
+			tx := &app.Tx{Sum: &app.Tx_IssueBlockchainNftMsg{&issueMsg}}
+
+			_, err := handler.Deliver(nil, db.Adapter(), tx)
+			require.NoError(t, err)
+			hash := db.Commit().Hash
+			require.Equal(t, h("792704c884c5d9163a5cb466555b927470e3b80a103de9f56d237b229d3af0cf"), hash)
+		})
+	}
+}
+
+func h(s string) []byte {
+	v, err := hex.DecodeString(s)
+	if err != nil {
+		panic(err)
+	}
+	return v
 }

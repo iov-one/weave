@@ -116,6 +116,19 @@ func (TestHelpers) CtxAuth(key interface{}) CtxAuther {
 	return CtxAuther{key}
 }
 
+type HasAddressAutenticatorFunc func(weave.Context, weave.Address) bool
+
+func (HasAddressAutenticatorFunc) GetConditions(weave.Context) []weave.Condition {
+	panic("not implemented")
+}
+
+func (a HasAddressAutenticatorFunc) HasAddress(ctx weave.Context, addr weave.Address) bool {
+	return a(ctx, addr)
+}
+func (helpers TestHelpers) AlwaysTrueAuthenticator() Authenticator {
+	return HasAddressAutenticatorFunc(func(weave.Context, weave.Address) bool { return true })
+}
+
 // CountingDecorator keeps track of number of times called.
 // 2x per call, 1x per call with panic inside
 type CountingDecorator interface {

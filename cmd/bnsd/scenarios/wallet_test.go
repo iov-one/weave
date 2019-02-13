@@ -1,8 +1,9 @@
 package scenarios
 
 import (
-	"github.com/iov-one/weave/x/cash"
 	"testing"
+
+	"github.com/iov-one/weave/x/cash"
 
 	"github.com/iov-one/weave/cmd/bnsd/client"
 	"github.com/iov-one/weave/x"

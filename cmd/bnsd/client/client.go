@@ -53,6 +53,9 @@ func NewClient(conn client.Client) *BnsClient {
 		subscriber: "tools-client",
 	}
 }
+func (c BnsClient) RawConnectionClient() client.Client {
+	return c.conn
+}
 
 // Nonce has a client/address pair, queries for the nonce
 // and caches recent nonce locally to quickly sign

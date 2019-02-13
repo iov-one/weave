@@ -1,6 +1,7 @@
 package scenarios
 
 import (
+	"encoding/json"
 	"fmt"
 	"math/rand"
 	"testing"
@@ -12,6 +13,7 @@ import (
 	"github.com/iov-one/weave/cmd/bnsd/x/nft/ticker"
 	"github.com/iov-one/weave/cmd/bnsd/x/nft/username"
 	"github.com/stretchr/testify/require"
+	ctypes "github.com/tendermint/tendermint/rpc/core/types"
 )
 
 func TestIssueNfts(t *testing.T) {
@@ -62,4 +64,44 @@ func TestIssueNfts(t *testing.T) {
 			delayForRateLimits()
 		})
 	}
+}
+
+func TestOddTX(t *testing.T) {
+	rawJson := `
+ 	{
+    "owner": "4orppuuU/Ii3PrfL1rh7+T65vvA=",
+    "id": "YWxpY2VDaGFpbjMzODM=",
+    "details": {
+     "chain": {},
+     "iov": {
+      "codec": "test",
+      "codec_config": "{ \"any\" : [ \"json\", \"content\" ] }"
+     }
+    },
+    "approvals": null
+   }`
+
+	var issueMsg blockchain.IssueTokenMsg
+	require.NoError(t, json.Unmarshal([]byte(rawJson), &issueMsg))
+
+	aNonce := client.NewNonce(bnsClient, alice.PublicKey().Address())
+	// when
+	seq, err := aNonce.Next()
+	require.NoError(t, err)
+	tx := &app.Tx{Sum: &app.Tx_IssueBlockchainNftMsg{&issueMsg}}
+	require.NoError(t, client.SignTx(tx, alice, chainID, seq))
+	resp := bnsClient.BroadcastTx(tx)
+	// then
+	require.NoError(t, resp.IsError())
+	embeddedHeight := resp.Response.Height + 1
+	var info *ctypes.ResultBlockchainInfo
+	for {
+		info, err = bnsClient.RawConnectionClient().BlockchainInfo(embeddedHeight, embeddedHeight)
+		if err == nil {
+			break
+		}
+		time.Sleep(time.Millisecond)
+	}
+	println(embeddedHeight)
+	t.Logf("+++ hash: %s", info.BlockMetas[0].Header.AppHash.String())
 }
