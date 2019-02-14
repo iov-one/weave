@@ -18,6 +18,7 @@ import (
 	"errors"
 	"fmt"
 	"regexp"
+	"sort"
 
 	"github.com/iov-one/weave"
 )
@@ -40,13 +41,36 @@ var (
 // Bucket is a prefixed subspace of the DB
 // proto defines the default Model, all elements of this type
 type Bucket struct {
-	name    string
-	prefix  []byte
-	proto   Cloneable
-	indexes map[string]Index
+	name   string
+	prefix []byte
+	proto  Cloneable
+	// index is a list of indexes sorted by
+	indexes namedIndexes
 }
 
 var _ weave.QueryHandler = Bucket{}
+
+type namedIndex struct {
+	Index
+	publicName string
+}
+
+type namedIndexes []namedIndex
+
+// Get returns the index with the given (internal/db) name, or nil if not found
+func (n namedIndexes) Get(name string) *Index {
+	for _, ni := range n {
+		if ni.publicName == name {
+			return &ni.Index
+		}
+	}
+	return nil
+}
+
+// Has returns true iff an index with the given name is already registered
+func (n namedIndexes) Has(name string) bool {
+	return n.Get(name) != nil
+}
 
 // NewBucket creates a bucket to store data
 func NewBucket(name string, proto Cloneable) Bucket {
@@ -70,8 +94,8 @@ func (b Bucket) Register(name string, r weave.QueryRouter) {
 	}
 	root := "/" + name
 	r.Register(root, b)
-	for name, idx := range b.indexes {
-		r.Register(root+"/"+name, idx)
+	for _, ni := range b.indexes {
+		r.Register(root+"/"+ni.publicName, ni.Index)
 	}
 }
 
@@ -208,25 +232,22 @@ func (b Bucket) WithIndex(name string, indexer Indexer, unique bool) Bucket {
 
 func (b Bucket) WithMultiKeyIndex(name string, indexer MultiKeyIndexer, unique bool) Bucket {
 	// no duplicate indexes! (panic on init)
-	if _, ok := b.indexes[name]; ok {
+	if b.indexes.Has(name) {
 		panic(fmt.Sprintf("Index %s registered twice", name))
 	}
 
 	iname := b.name + "_" + name
 	add := NewMultiKeyIndex(iname, indexer, unique, b.DBKey)
-	indexes := make(map[string]Index, len(b.indexes)+1)
-	for n, i := range b.indexes {
-		indexes[n] = i
-	}
-	indexes[name] = add
-	b.indexes = indexes
+	idxs := append(b.indexes, namedIndex{Index: add, publicName: name})
+	sort.Slice(idxs, func(i int, j int) bool { return idxs[i].name < idxs[j].name })
+	b.indexes = idxs
 	return b
 }
 
 // GetIndexed queries the named index for the given key
 func (b Bucket) GetIndexed(db weave.ReadOnlyKVStore, name string, key []byte) ([]Object, error) {
-	idx, ok := b.indexes[name]
-	if !ok {
+	idx := b.indexes.Get(name)
+	if idx == nil {
 		return nil, ErrInvalidIndex(name)
 	}
 	refs, err := idx.GetAt(db, key)
@@ -238,8 +259,8 @@ func (b Bucket) GetIndexed(db weave.ReadOnlyKVStore, name string, key []byte) ([
 
 // GetIndexedLike querys the named index with the given pattern
 func (b Bucket) GetIndexedLike(db weave.ReadOnlyKVStore, name string, pattern Object) ([]Object, error) {
-	idx, ok := b.indexes[name]
-	if !ok {
+	idx := b.indexes.Get(name)
+	if idx == nil {
 		return nil, ErrInvalidIndex(name)
 	}
 	refs, err := idx.GetLike(db, pattern)
