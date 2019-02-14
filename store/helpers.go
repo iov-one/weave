@@ -123,6 +123,16 @@ func (o Op) Apply(out SetDeleter) {
 	}
 }
 
+// IsSetOp returns true if it is setting (false implies delete)
+func (o Op) IsSetOp() bool {
+	return o.kind == setKind
+}
+
+// Key returns a copy of the Key
+func (o Op) Key() []byte {
+	return append([]byte(nil), o.key...)
+}
+
 // SetOp is a helper to create a set operation
 func SetOp(key, value []byte) Op {
 	return Op{
@@ -185,4 +195,14 @@ func (b *NonAtomicBatch) Write() {
 		Op.Apply(b.out)
 	}
 	b.ops = nil
+}
+
+// ShowOps is instrumentation for testing,
+// it returns a copy of the internal Ops list
+func (b *NonAtomicBatch) ShowOps() []Op {
+	ops := make([]Op, len(b.ops))
+	for i, op := range b.ops {
+		ops[i] = op
+	}
+	return ops
 }
