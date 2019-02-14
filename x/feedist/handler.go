@@ -17,11 +17,19 @@ func RegisterQuery(qr weave.QueryRouter) {
 	NewRevenueBucket().Register("revenues", qr)
 }
 
-// RegisterRouter registers handlers for feedlist message processing.
-func RegisterRouter(r weave.Registry, auth x.Authenticator) {
+// RegisterRoutes registers handlers for feedlist message processing.
+func RegisterRoutes(r weave.Registry, auth x.Authenticator, ctrl CashController) {
 	bucket := NewRevenueBucket()
-	r.Handle(pathDistributeMsg, &distributeHandler{auth: auth, bucket: bucket})
-	r.Handle(pathUpdateRevenueMsg, &updateRevenueHandler{auth: auth, bucket: bucket})
+	r.Handle(pathDistributeMsg, &distributeHandler{
+		auth:   auth,
+		bucket: bucket,
+		ctrl:   ctrl,
+	})
+	r.Handle(pathUpdateRevenueMsg, &updateRevenueHandler{
+		auth:   auth,
+		bucket: bucket,
+		ctrl:   ctrl,
+	})
 }
 
 type distributeHandler struct {
@@ -76,6 +84,9 @@ func (h *distributeHandler) validate(ctx weave.Context, db weave.KVStore, tx wea
 	}
 	if err := msg.Validate(); err != nil {
 		return msg, err
+	}
+	if _, err := h.bucket.GetRevenue(db, msg.RevenueID); err != nil {
+		return nil, errors.Wrap(err, "cannot get revenue")
 	}
 	return msg, nil
 }
