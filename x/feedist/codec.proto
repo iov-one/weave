@@ -36,6 +36,20 @@ message Recipient {
   int32 weight = 2;
 }
 
+// NewRevenueMsg is issuing the creation of a new revenue stream instance.
+message NewRevenueMsg {
+  // Admin key belongs to the governance entities. It can be used to transfer
+  // stored amount to an another account.
+  // While not enforced it is best to use a multisig contract here.
+  bytes admin = 1 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
+
+  // Recipients holds any number of addresses that the collected revenue is
+  // distributed to. This does not contain the weights required for the
+  // transfer operation, but declares addresses that must be involved in each
+  // funds distribution.
+  repeated Recipient recipients = 2;
+}
+
 // DistributeMsg is a request to distribute all funds collected within a single
 // revenue instance. Revenue is distributed between recipients. Request must be
 // signed using admin key.

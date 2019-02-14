@@ -8,6 +8,7 @@ import (
 )
 
 const (
+	newRevenueCost    = 0
 	distributeCost    = 0
 	updateRevenueCost = 0
 )
@@ -20,6 +21,11 @@ func RegisterQuery(qr weave.QueryRouter) {
 // RegisterRoutes registers handlers for feedlist message processing.
 func RegisterRoutes(r weave.Registry, auth x.Authenticator, ctrl CashController) {
 	bucket := NewRevenueBucket()
+	r.Handle(pathNewRevenueMsg, &newRevenueHandler{
+		auth:   auth,
+		bucket: bucket,
+		ctrl:   ctrl,
+	})
 	r.Handle(pathDistributeMsg, &distributeHandler{
 		auth:   auth,
 		bucket: bucket,
@@ -30,6 +36,54 @@ func RegisterRoutes(r weave.Registry, auth x.Authenticator, ctrl CashController)
 		bucket: bucket,
 		ctrl:   ctrl,
 	})
+}
+
+type newRevenueHandler struct {
+	auth   x.Authenticator
+	bucket *RevenueBucket
+	ctrl   CashController
+}
+
+func (h *newRevenueHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (weave.CheckResult, error) {
+	var res weave.CheckResult
+	if _, err := h.validate(ctx, db, tx); err != nil {
+		return res, err
+	}
+	res.GasAllocated += newRevenueCost
+	return res, nil
+}
+
+func (h *newRevenueHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (weave.DeliverResult, error) {
+	var res weave.DeliverResult
+	msg, err := h.validate(ctx, db, tx)
+	if err != nil {
+		return res, err
+	}
+
+	obj, err := h.bucket.Create(db, &Revenue{
+		Admin:      msg.Admin,
+		Recipients: msg.Recipients,
+	})
+	if err != nil {
+		return res, err
+	}
+	res.Data = obj.Key()
+	return res, nil
+}
+
+func (h *newRevenueHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*NewRevenueMsg, error) {
+	rmsg, err := tx.GetMsg()
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot get message")
+	}
+	msg, ok := rmsg.(*NewRevenueMsg)
+	if !ok {
+		return nil, errors.InvalidMsgErr.New("unknown transaction type")
+	}
+	if err := msg.Validate(); err != nil {
+		return msg, err
+	}
+	return msg, nil
 }
 
 type distributeHandler struct {
@@ -161,6 +215,18 @@ func distribute(db weave.KVStore, ctrl CashController, source weave.Address, rec
 		chunks += int64(r.Weight)
 	}
 
+	// Find the greatest common division for all weights. This is needed to
+	// avoid leaving big fund leftovers on the source account when
+	// distributing between many recipients. Or when there is only one
+	// recipient with a high weight value.
+	var weights []int32
+	for _, r := range recipients {
+		weights = append(weights, r.Weight)
+	}
+	div := findGcd(weights...)
+
+	chunks = chunks / int64(div)
+
 	balance, err := ctrl.Balance(db, source)
 	switch {
 	case err == nil:
@@ -189,8 +255,8 @@ func distribute(db weave.KVStore, ctrl CashController, source weave.Address, rec
 
 		for _, r := range recipients {
 			amount := x.Coin{
-				Whole:      (c.Whole / chunks) * int64(r.Weight),
-				Fractional: (c.Fractional / chunks) * int64(r.Weight),
+				Whole:      (c.Whole / chunks) * int64(r.Weight/div),
+				Fractional: (c.Fractional / chunks) * int64(r.Weight/div),
 				Ticker:     c.Ticker,
 			}
 			// Chunk is too small to be distributed.
@@ -204,4 +270,30 @@ func distribute(db weave.KVStore, ctrl CashController, source weave.Address, rec
 	}
 
 	return nil
+}
+
+// findGcd returns greatest common division for any number of numbers.
+func findGcd(values ...int32) int32 {
+	switch len(values) {
+	case 0:
+		return 0
+	case 1:
+		return values[0]
+	}
+
+	res := values[0]
+	for i := 1; i < len(values); i++ {
+		res = gcd(res, values[i])
+	}
+	return res
+}
+
+// gcd returns greatest common division of two numbers.
+func gcd(a, b int32) int32 {
+	for b != 0 {
+		t := b
+		b = a % b
+		a = t
+	}
+	return a
 }
