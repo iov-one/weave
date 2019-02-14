@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/store"
 	"github.com/iov-one/weave/x"
 	"github.com/stretchr/testify/assert"
@@ -250,6 +251,67 @@ func TestMoveCoins(t *testing.T) {
 						assert.False(t, w.Contains(not), "%d/%d: %#v", j, k, w)
 					}
 				}
+			}
+		})
+	}
+}
+
+func TestBalance(t *testing.T) {
+	var helpers x.TestHelpers
+
+	newAddr := func() weave.Address {
+		_, a := helpers.MakeKey()
+		return a.Address()
+	}
+
+	store := store.MemStore()
+	ctrl := NewController(NewBucket())
+
+	addr1 := newAddr()
+	coin1 := x.NewCoin(1, 20, "BTC")
+	if err := ctrl.IssueCoins(store, addr1, coin1); err != nil {
+		t.Fatalf("cannot issue coins: %s", err)
+	}
+
+	addr2 := newAddr()
+	coin2_1 := x.NewCoin(3, 40, "ETH")
+	coin2_2 := x.NewCoin(5, 0, "DOGE")
+	if err := ctrl.IssueCoins(store, addr2, coin2_1); err != nil {
+		t.Fatalf("cannot issue coins: %s", err)
+	}
+	if err := ctrl.IssueCoins(store, addr2, coin2_2); err != nil {
+		t.Fatalf("cannot issue coins: %s", err)
+	}
+
+	cases := map[string]struct {
+		addr      weave.Address
+		wantCoins x.Coins
+		wantErr   error
+	}{
+		"non exising account": {
+			addr:    newAddr(),
+			wantErr: errors.NotFoundErr,
+		},
+		"exising account with one coin": {
+			addr:      addr1,
+			wantCoins: x.Coins{&coin1},
+		},
+		"exising account with two coins": {
+			addr:      addr2,
+			wantCoins: x.Coins{&coin2_1, &coin2_2},
+		},
+	}
+
+	for testName, tc := range cases {
+		t.Run(testName, func(t *testing.T) {
+			coins, err := ctrl.Balance(store, tc.addr)
+			if !errors.Is(tc.wantErr, err) {
+				t.Fatalf("want %q error, got %q", tc.wantErr, err)
+			}
+			if !tc.wantCoins.Equals(coins) {
+				t.Logf("want %q", tc.wantCoins)
+				t.Logf("got %q", coins)
+				t.Fatal("unexpected coins amount")
 			}
 		})
 	}

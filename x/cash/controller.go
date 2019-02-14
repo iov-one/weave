@@ -2,30 +2,50 @@ package cash
 
 import (
 	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/x"
 )
 
-// Controller is the functionality needed by
-// cash.Handler and cash.Decorator. BaseController
-// should work plenty fine, but you can add other logic
-// if so desired
+// Controller is the functionality needed by cash.Handler and cash.Decorator.
+// BaseController should work plenty fine, but you can add other logic if so
+// desired
 type Controller interface {
-	MoveCoins(store weave.KVStore, src weave.Address,
-		dest weave.Address, amount x.Coin) error
-	IssueCoins(store weave.KVStore, dest weave.Address,
-		amount x.Coin) error
+	// MoveCoins removes funds from the source account and adds them to the
+	// destination account. This operation is atomic.
+	MoveCoins(store weave.KVStore, src weave.Address, dest weave.Address, amount x.Coin) error
+
+	// IssueCoins increase the number of funds on given accouunt by a
+	// specified amount.
+	IssueCoins(weave.KVStore, weave.Address, x.Coin) error
+
+	// Balance returns the amount of funds stored under given account address.
+	Balance(weave.KVStore, weave.Address) (x.Coins, error)
 }
 
-// BaseController is a simple implementation of controller
-// wallet must return something that supports AsSet
+// BaseController implements Controller interface, using WalletBucket as the
+// storage engine. Wallet must return something that supports AsSet.
 type BaseController struct {
 	bucket WalletBucket
 }
 
-// NewController returns a basic controller implementation
+var _ Controller = BaseController{}
+
+// NewController returns a base controller implementation.
 func NewController(bucket WalletBucket) BaseController {
 	ValidateWalletBucket(bucket)
 	return BaseController{bucket: bucket}
+}
+
+// Balance returns the amount of funds stored under given account address.
+func (c BaseController) Balance(store weave.KVStore, src weave.Address) (x.Coins, error) {
+	state, err := c.bucket.Get(store, src)
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot get account state")
+	}
+	if state == nil {
+		return nil, errors.NotFoundErr.New("no account")
+	}
+	return AsCoins(state), nil
 }
 
 // MoveCoins moves the given amount from src to dest.
