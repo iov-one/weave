@@ -22,7 +22,7 @@ func init() {
 	ctypes.RegisterAmino(cdc)
 }
 
-func parseArgs(args []string) (string, int64, error) {
+func parseGetBlockArgs(args []string) (string, int64, error) {
 	if len(args) == 0 {
 		return "", 0, fmt.Errorf("Usage: cmd getblock <path to blockstore.db> [-height=H]")
 	}
@@ -37,7 +37,7 @@ func parseArgs(args []string) (string, int64, error) {
 // It takes the last block unless -height is explicitly specified
 // It writes the json to stdout
 func GetBlockCmd(logger log.Logger, home string, args []string) error {
-	dbPath, height, err := parseArgs(args)
+	dbPath, height, err := parseGetBlockArgs(args)
 	if err != nil {
 		return err
 	}
