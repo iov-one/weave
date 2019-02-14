@@ -113,7 +113,7 @@ func retryBlock(builder appBuilder, tree *iavl.MutableTree, block *types.Block, 
 		return err
 	}
 
-	if same && untilError && maxTries > 0 {
+	for same && untilError && maxTries > 0 {
 		maxTries--
 		same, err = rerunBlock(builder, tree, block)
 		if err != nil {
