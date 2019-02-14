@@ -26,13 +26,14 @@ func init() {
 }
 
 func helpMessage() {
-	fmt.Println("bns")
-	fmt.Println("        Blockchain of Value node")
+	fmt.Println("bnsd")
+	fmt.Println("          Blockchain Name Service node")
 	fmt.Println("")
-	fmt.Println("help    Print this message")
-	fmt.Println("init    Initialize app options in genesis file")
-	fmt.Println("start   Run the abci server")
-	fmt.Println("version Print the app version")
+	fmt.Println("help      Print this message")
+	fmt.Println("init      Initialize app options in genesis file")
+	fmt.Println("start     Run the abci server")
+	fmt.Println("getblock  Extract a block from blockchain.db")
+	fmt.Println("version   Print the app version")
 	fmt.Println(`
   -home string
         directory to store files under (default "$HOME/.bns")`)
@@ -60,6 +61,8 @@ func main() {
 		err = server.InitCmd(app.GenInitOptions, logger, *varHome, rest)
 	case "start":
 		err = server.StartCmd(app.GenerateApp, logger, *varHome, rest)
+	case "getblock":
+		err = server.GetBlockCmd(logger, *varHome, rest)
 	case "testgen":
 		err = commands.TestGenCmd(app.Examples(), rest)
 	case "version":
