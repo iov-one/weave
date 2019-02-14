@@ -1,6 +1,7 @@
 package server
 
 import (
+	"bytes"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -62,7 +63,7 @@ func RetryCmd(logger log.Logger, home string, args []string) error {
 	}
 
 	fmt.Println("--> Loading Database")
-	_, ver, err := readTree(flags.dbPath, 0)
+	tree, ver, err := readTree(flags.dbPath, 0)
 	if err != nil {
 		return fmt.Errorf("error reading abci data: %s", err)
 	}
@@ -71,7 +72,7 @@ func RetryCmd(logger log.Logger, home string, args []string) error {
 		return fmt.Errorf("Height mismatch - block=%d, abcistore=%d", block.Header.Height, ver)
 	}
 
-	return nil
+	return retryBlock(tree, block, flags.untilError, flags.maxTries)
 }
 
 func readTree(dir string, version int) (*iavl.MutableTree, int64, error) {
@@ -85,4 +86,42 @@ func readTree(dir string, version int) (*iavl.MutableTree, int64, error) {
 		return nil, 0, fmt.Errorf("iavl tree is empty")
 	}
 	return tree, ver, err
+}
+
+func retryBlock(tree *iavl.MutableTree, block *types.Block, untilError bool, maxTries int) error {
+	fmt.Printf("Original Height: %d\n", block.Header.Height)
+	fmt.Printf("Original Hash: %X\n", tree.Hash())
+
+	same, err := rerunBlock(tree, block)
+	if err != nil {
+		return err
+	}
+
+	if same && untilError && maxTries > 0 {
+		maxTries--
+		same, err = rerunBlock(tree, block)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func rerunBlock(tree *iavl.MutableTree, block *types.Block) (bool, error) {
+	origHash := tree.Hash()
+	backHeight := block.Header.Height - 1
+
+	fmt.Printf("Rollback to height: %d\n", backHeight)
+	_, err := tree.LoadVersionForOverwriting(backHeight)
+	if err != nil {
+		return false, err
+	}
+
+	// run this block....
+
+	hash := tree.Hash()
+	fmt.Printf("Recomputed Hash: %X\n", hash)
+	same := bytes.Equal(origHash, hash)
+	return same, nil
 }
