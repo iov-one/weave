@@ -27,6 +27,15 @@ func RegisterRouter(r weave.Registry, auth x.Authenticator) {
 type distributeHandler struct {
 	auth   x.Authenticator
 	bucket *RevenueBucket
+	ctrl   CashController
+}
+
+// CashController allows to manage coins stored by the accounts without the
+// need to directly access the bucket.
+// Required functionality is implemented by the x/cash extension.
+type CashController interface {
+	Balance(weave.KVStore, weave.Address) (x.Coins, error)
+	MoveCoins(weave.KVStore, weave.Address, weave.Address, x.Coin) error
 }
 
 func (h *distributeHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (weave.CheckResult, error) {
@@ -50,7 +59,7 @@ func (h *distributeHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weav
 		return res, err
 	}
 
-	if err := distribute(ctx, db, rev); err != nil {
+	if err := distribute(db, h.ctrl, weave.Address(msg.RevenueID), rev.Recipients); err != nil {
 		return res, errors.Wrap(err, "cannot distribute")
 	}
 	return res, nil
@@ -74,6 +83,7 @@ func (h *distributeHandler) validate(ctx weave.Context, db weave.KVStore, tx wea
 type updateRevenueHandler struct {
 	auth   x.Authenticator
 	bucket *RevenueBucket
+	ctrl   CashController
 }
 
 func (h *updateRevenueHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (weave.CheckResult, error) {
@@ -101,7 +111,7 @@ func (h *updateRevenueHandler) Deliver(ctx weave.Context, db weave.KVStore, tx w
 	// revenue with no funds can be updated, so that recipients trust us.
 	// Otherwise an admin could change who receives the money without the
 	// previously selected recepients ever being paid.
-	if err := distribute(ctx, db, rev); err != nil {
+	if err := distribute(db, h.ctrl, weave.Address(msg.RevenueID), rev.Recipients); err != nil {
 		return res, errors.Wrap(err, "cannot distribute")
 	}
 
@@ -131,11 +141,50 @@ func (h *updateRevenueHandler) validate(ctx weave.Context, db weave.KVStore, tx 
 // distribute split the funds stored under the revenue address and distribute
 // them according to recipients proportions. When successful, revenue account
 // has no funds left after this call.
-func distribute(ctx weave.Context, db weave.KVStore, rev *Revenue) error {
-	var chunks int32
-	for _, r := range rev.Recipients {
-		chunks += r.Weight
+//
+// It might be that not all funds can be distributed equally. Because of that a
+// small leftover can remain on the revenue account after this operation.
+func distribute(db weave.KVStore, ctrl CashController, source weave.Address, recipients []*Recipient) error {
+	var chunks int64
+	for _, r := range recipients {
+		chunks += int64(r.Weight)
 	}
 
-	panic("todo")
+	balance, err := ctrl.Balance(db, source)
+	if err != nil {
+		return errors.Wrap(err, "cannot acquire revenue account balance")
+	}
+
+	// TODO normalize balance. There is no functionality that allows to
+	// normalize x.Coins right now (14 Feb 2019).
+
+	// For each currency, distribute the coins equally to the weight of
+	// each recipient. This can leave small amount of coins on the original
+	// account.
+	for _, c := range balance {
+		// Ignore those coins that have a negative value. This
+		// functionality is supposed to be distributing value from
+		// revenue account, not collect it. Otherwise this could be
+		// used to charge the recipients instead of paying them.
+		if !c.IsPositive() {
+			continue
+		}
+
+		for _, r := range recipients {
+			amount := x.Coin{
+				Whole:      (c.Whole / chunks) * int64(r.Weight),
+				Fractional: (c.Fractional / chunks) * int64(r.Weight),
+				Ticker:     c.Ticker,
+			}
+			// Chunk is too small to be distributed.
+			if amount.IsZero() {
+				continue
+			}
+			if err := ctrl.MoveCoins(db, source, r.Address, amount); err != nil {
+				return errors.Wrap(err, "cannot move coins")
+			}
+		}
+	}
+
+	return nil
 }
