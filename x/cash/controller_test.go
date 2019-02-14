@@ -297,8 +297,10 @@ func TestBalance(t *testing.T) {
 			wantCoins: x.Coins{&coin1},
 		},
 		"exising account with two coins": {
-			addr:      addr2,
-			wantCoins: x.Coins{&coin2_1, &coin2_2},
+			addr: addr2,
+			// Coins are stored in normalized form
+			// https://github.com/iov-one/weave/pull/316#discussion_r256763396
+			wantCoins: x.Coins{&coin2_2, &coin2_1},
 		},
 	}
 

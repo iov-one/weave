@@ -1,8 +1,6 @@
 package x
 
-import (
-	"strings"
-)
+import "strings"
 
 //--------------------- Coins -------------------------
 
@@ -151,49 +149,13 @@ func (cs Coins) IsNonNegative() bool {
 	return true
 }
 
-// Equals returns true if both Coinss contain same value in coins.
+// Equals returns true if both Coinss contain same coins
 func (cs Coins) Equals(o Coins) bool {
-	// Optimize for the edge case. This might be comparison of an empty
-	// slice to a nil pointer but values are equal.
-	//
-	// Coins can store a zero value coin, so do not overoptimize.
-	if len(cs) == 0 && len(o) == 0 {
-		return true
+	if len(cs) != len(o) {
+		return false
 	}
-
-	// We expect that the coins are not ordered and not normalized. For
-	// example the same ticker can repeat with different values.
-	//
-	// To correctly compare two coins collections, we must check if the
-	// total value difference is zero.
-	diff := make(map[string]Coin)
-
-	for _, c := range o {
-		if total, ok := diff[c.Ticker]; !ok {
-			diff[c.Ticker] = *c
-		} else {
-			if res, err := total.Add(*c); err != nil {
-				return false
-			} else {
-				diff[c.Ticker] = res
-			}
-		}
-	}
-
-	for _, c := range cs {
-		if total, ok := diff[c.Ticker]; !ok {
-			diff[c.Ticker] = c.Negative()
-		} else {
-			if res, err := total.Subtract(*c); err != nil {
-				return false
-			} else {
-				diff[c.Ticker] = res
-			}
-		}
-	}
-
-	for _, c := range diff {
-		if !c.IsZero() {
+	for i := range cs {
+		if !cs[i].Equals(*o[i]) {
 			return false
 		}
 	}
