@@ -162,7 +162,13 @@ func distribute(db weave.KVStore, ctrl CashController, source weave.Address, rec
 	}
 
 	balance, err := ctrl.Balance(db, source)
-	if err != nil {
+	switch {
+	case err == nil:
+		// All good.
+	case errors.Is(errors.NotFoundErr, err):
+		// Account does not exist, so there is are no funds to split.
+		return nil
+	default:
 		return errors.Wrap(err, "cannot acquire revenue account balance")
 	}
 
