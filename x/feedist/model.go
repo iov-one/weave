@@ -21,8 +21,8 @@ func (rev *Revenue) Validate() error {
 		if err := r.Address.Validate(); err != nil {
 			return errors.Wrap(err, fmt.Sprintf("recipient %d address", i))
 		}
-		if r.Weight < 0 {
-			return errors.InvalidModelErr.New(fmt.Sprintf("recipient %d has negative weight", i))
+		if r.Weight <= 0 {
+			return errors.InvalidModelErr.New(fmt.Sprintf("recipient %d invalid weight", i))
 		}
 	}
 	return nil
