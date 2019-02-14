@@ -65,7 +65,7 @@ func main() {
 	case "getblock":
 		err = server.GetBlockCmd(logger, *varHome, rest)
 	case "retry":
-		err = server.RetryCmd(logger, *varHome, rest)
+		err = server.RetryCmd(app.InlineApp, logger, *varHome, rest)
 	case "testgen":
 		err = commands.TestGenCmd(app.Examples(), rest)
 	case "version":

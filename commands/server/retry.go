@@ -7,8 +7,12 @@ import (
 	"io/ioutil"
 
 	"github.com/tendermint/iavl"
+	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
 	"github.com/tendermint/tendermint/types"
+
+	"github.com/iov-one/weave"
+	iavlstore "github.com/iov-one/weave/store/iavl"
 )
 
 const (
@@ -40,12 +44,23 @@ func parseRetryArgs(args []string) (retryArgs, error) {
 	return res, err
 }
 
+// InlineAppGenerator should be implemented by the app/init.go file
+type InlineAppGenerator func(weave.CommitKVStore, log.Logger, bool) abci.Application
+
+type appBuilder func(weave.CommitKVStore) abci.Application
+
+func wrapInlineAppGenerator(gen InlineAppGenerator, logger log.Logger, debug bool) appBuilder {
+	return func(kv weave.CommitKVStore) abci.Application {
+		return gen(kv, logger, debug)
+	}
+}
+
 // RetryCmd takes the app state and the last block from the file system
 // It verifies that they match, then rolls back one block and re-runs the given block
 // It will output the new hash after running.
 //
 // If -error is passed, then it will try -max times until a different app hash results
-func RetryCmd(logger log.Logger, home string, args []string) error {
+func RetryCmd(makeApp InlineAppGenerator, logger log.Logger, home string, args []string) error {
 	flags, err := parseRetryArgs(args)
 	if err != nil {
 		return err
@@ -72,7 +87,8 @@ func RetryCmd(logger log.Logger, home string, args []string) error {
 		return fmt.Errorf("Height mismatch - block=%d, abcistore=%d", block.Header.Height, ver)
 	}
 
-	return retryBlock(tree, block, flags.untilError, flags.maxTries)
+	builder := wrapInlineAppGenerator(makeApp, logger, flags.debug)
+	return retryBlock(builder, tree, block, flags.untilError, flags.maxTries)
 }
 
 func readTree(dir string, version int) (*iavl.MutableTree, int64, error) {
@@ -88,18 +104,18 @@ func readTree(dir string, version int) (*iavl.MutableTree, int64, error) {
 	return tree, ver, err
 }
 
-func retryBlock(tree *iavl.MutableTree, block *types.Block, untilError bool, maxTries int) error {
+func retryBlock(builder appBuilder, tree *iavl.MutableTree, block *types.Block, untilError bool, maxTries int) error {
 	fmt.Printf("Original Height: %d\n", block.Header.Height)
 	fmt.Printf("Original Hash: %X\n", tree.Hash())
 
-	same, err := rerunBlock(tree, block)
+	same, err := rerunBlock(builder, tree, block)
 	if err != nil {
 		return err
 	}
 
 	if same && untilError && maxTries > 0 {
 		maxTries--
-		same, err = rerunBlock(tree, block)
+		same, err = rerunBlock(builder, tree, block)
 		if err != nil {
 			return err
 		}
@@ -108,7 +124,7 @@ func retryBlock(tree *iavl.MutableTree, block *types.Block, untilError bool, max
 	return nil
 }
 
-func rerunBlock(tree *iavl.MutableTree, block *types.Block) (bool, error) {
+func rerunBlock(builder appBuilder, tree *iavl.MutableTree, block *types.Block) (bool, error) {
 	origHash := tree.Hash()
 	backHeight := block.Header.Height - 1
 
@@ -119,9 +135,52 @@ func rerunBlock(tree *iavl.MutableTree, block *types.Block) (bool, error) {
 	}
 
 	// run this block....
+	kv := iavlstore.NewCommitStoreFromTree(tree)
+	app := builder(kv)
 
-	hash := tree.Hash()
+	fmt.Println("---> Begin Block")
+	app.BeginBlock(abci.RequestBeginBlock{Hash: block.Header.Hash(), Header: toAbciHeader(block.Header)})
+	for i, tx := range block.Txs {
+		fmt.Printf("---> Deliver Tx %d\n", i)
+		app.DeliverTx(tx)
+
+	}
+	fmt.Println("---> End Block")
+	app.EndBlock(abci.RequestEndBlock{Height: block.Header.Height})
+	hash := app.Commit().Data
 	fmt.Printf("Recomputed Hash: %X\n", hash)
+
 	same := bytes.Equal(origHash, hash)
 	return same, nil
+}
+
+func toAbciHeader(h types.Header) abci.Header {
+	lb := h.LastBlockID
+	return abci.Header{
+		Version: abci.Version{
+			Block: uint64(h.Version.Block),
+			App:   uint64(h.Version.App),
+		},
+		ChainID:  h.ChainID,
+		Height:   h.Height,
+		Time:     h.Time,
+		NumTxs:   h.NumTxs,
+		TotalTxs: h.TotalTxs,
+		LastBlockId: abci.BlockID{
+			Hash: lb.Hash,
+			PartsHeader: abci.PartSetHeader{
+				Total: int32(lb.PartsHeader.Total),
+				Hash:  lb.PartsHeader.Hash,
+			},
+		},
+		LastCommitHash:     h.LastCommitHash,
+		DataHash:           h.DataHash,
+		ValidatorsHash:     h.ValidatorsHash,
+		NextValidatorsHash: h.NextValidatorsHash,
+		ConsensusHash:      h.ConsensusHash,
+		AppHash:            h.AppHash,
+		LastResultsHash:    h.LastResultsHash,
+		EvidenceHash:       h.EvidenceHash,
+		ProposerAddress:    h.ProposerAddress,
+	}
 }
