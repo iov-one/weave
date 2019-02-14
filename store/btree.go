@@ -35,6 +35,19 @@ func MemStore() CacheableKVStore {
 	return NewBTreeCacheWrap(e, e.NewBatch(), nil)
 }
 
+// ShowOpser returns an ordered list of all operations performed
+type ShowOpser interface {
+	ShowOps() []Op
+}
+
+// LogableStore will return a store, along with insight into all operations that were run on it
+func LogableStore() (CacheableKVStore, ShowOpser) {
+	e := EmptyKVStore{}
+	b := NewNonAtomicBatch(e)
+	kv := NewBTreeCacheWrap(e, b, nil)
+	return kv, b
+}
+
 ///////////////////////////////////////////////
 // Actual CacheWrap implementation
 

@@ -433,3 +433,52 @@ func TestBucketQuery(t *testing.T) {
 		})
 	}
 }
+
+// Make sure saving indexes is a deterministic process...
+// That is all writes happen in the same order
+func TestBucketIndexDeterministic(t *testing.T) {
+
+	// Same as above, note there are two indexes.... we can check the save order
+	const uniq, mini = "uniq", "mini"
+	bucket := NewBucket("special", NewSimpleObj(nil, new(Counter))).
+		WithIndex(uniq, count, true).
+		WithIndex(mini, countByte, false)
+
+	key := []byte("key")
+	val := NewSimpleObj(key, NewCounter(5))
+	val2 := NewSimpleObj(key, NewCounter(256+5))
+
+	db, log := store.LogableStore()
+
+	ops := log.ShowOps()
+	assert.Equal(t, 0, len(ops))
+
+	// saving one item should update the item as well as two indexes
+	err := bucket.Save(db, val)
+	require.NoError(t, err)
+	ops = log.ShowOps()
+	assert.Equal(t, 3, len(ops))
+	set, del := countOps(ops)
+	assert.Equal(t, 3, set)
+	assert.Equal(t, 0, del)
+
+	// saving second item should update the item as well as the one index that changed (don't write constant index)
+	err = bucket.Save(db, val2)
+	require.NoError(t, err)
+	ops = log.ShowOps()
+	assert.Equal(t, 6, len(ops))
+	set, del = countOps(ops)
+	assert.Equal(t, 5, set)
+	assert.Equal(t, 1, del)
+}
+
+func countOps(ops []store.Op) (set int, del int) {
+	for _, op := range ops {
+		if op.IsSetOp() {
+			set++
+		} else {
+			del++
+		}
+	}
+	return
+}
