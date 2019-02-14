@@ -3,6 +3,7 @@ package feedist
 import (
 	"context"
 	"encoding/binary"
+	"reflect"
 	"testing"
 
 	"github.com/iov-one/weave"
@@ -24,10 +25,6 @@ func TestHandlers(t *testing.T) {
 	cashBucket := cash.NewBucket()
 	ctrl := cash.NewController(cashBucket)
 	RegisterRoutes(rt, auth, ctrl)
-
-	qr := weave.NewQueryRouter()
-	cash.RegisterQuery(qr)
-	RegisterQuery(qr)
 
 	// In below cases, asSeqID(1) is used - this is the address of the
 	// first revenue instance created. Sequence is reset for each test
@@ -423,4 +420,100 @@ func TestFindGdc(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestDistribute(t *testing.T) {
+	cases := map[string]struct {
+		recipients []*Recipient
+		ctrl       *testController
+		wantMoves  []movecall
+		wantErr    error
+	}{
+		"zero funds is not distributed": {
+			recipients: []*Recipient{
+				{Address: weave.Address("address-1"), Weight: 1},
+				{Address: weave.Address("address-2"), Weight: 2},
+			},
+			ctrl: &testController{
+				balance: nil,
+			},
+			wantErr: nil,
+		},
+		"tiny funds are not distributed if cannot be split": {
+			recipients: []*Recipient{
+				{Address: weave.Address("address-1"), Weight: 1},
+				{Address: weave.Address("address-2"), Weight: 2},
+			},
+			ctrl: &testController{
+				balance: x.Coins{coinp(0, 1, "ETH")},
+			},
+			wantErr: nil,
+		},
+		"simple distribute case": {
+			recipients: []*Recipient{
+				{Address: weave.Address("address-1"), Weight: 1},
+				{Address: weave.Address("address-2"), Weight: 2},
+			},
+			ctrl: &testController{
+				balance: x.Coins{coinp(3, 0, "BTC")},
+			},
+			wantErr: nil,
+			wantMoves: []movecall{
+				{dst: weave.Address("address-1"), amount: x.NewCoin(1, 0, "BTC")},
+				{dst: weave.Address("address-2"), amount: x.NewCoin(2, 0, "BTC")},
+			},
+		},
+		"distribution splits whole into fractional": {
+			recipients: []*Recipient{
+				{Address: weave.Address("address-1"), Weight: 1},
+				{Address: weave.Address("address-2"), Weight: 2},
+			},
+			ctrl: &testController{
+				balance: x.Coins{coinp(1, 0, "BTC")},
+			},
+			wantErr: nil,
+			wantMoves: []movecall{
+				// TODO - where relation of whole-frictional is defined?
+				{dst: weave.Address("address-1"), amount: x.NewCoin(0, 500, "BTC")},
+				{dst: weave.Address("address-2"), amount: x.NewCoin(0, 500, "BTC")},
+			},
+		},
+	}
+
+	for testName, tc := range cases {
+		t.Run(testName, func(t *testing.T) {
+			src := weave.Address("address-source")
+			err := distribute(nil, tc.ctrl, src, tc.recipients)
+			if !errors.Is(tc.wantErr, err) {
+				t.Errorf("want %q error, got %q", tc.wantErr, err)
+			}
+			if !reflect.DeepEqual(tc.wantMoves, tc.ctrl.moves) {
+				t.Logf("got %d MoveCoins calls", len(tc.ctrl.moves))
+				for i, m := range tc.ctrl.moves {
+					t.Logf("%d: %v", i, m)
+				}
+				t.Fatalf("unexpected MoveCoins calls")
+			}
+		})
+	}
+}
+
+type testController struct {
+	balance x.Coins
+	err     error
+	moves   []movecall
+}
+
+type movecall struct {
+	dst    weave.Address
+	amount x.Coin
+}
+
+func (tc *testController) Balance(weave.KVStore, weave.Address) (x.Coins, error) {
+	return tc.balance, tc.err
+}
+
+func (tc *testController) MoveCoins(db weave.KVStore, src, dst weave.Address, amount x.Coin) error {
+	tc.moves = append(tc.moves, movecall{dst: dst, amount: amount})
+	return tc.err
 }
