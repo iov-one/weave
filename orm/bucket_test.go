@@ -1,6 +1,7 @@
 package orm
 
 import (
+	"bytes"
 	"fmt"
 	"testing"
 
@@ -470,6 +471,17 @@ func TestBucketIndexDeterministic(t *testing.T) {
 	set, del = countOps(ops)
 	assert.Equal(t, 5, set)
 	assert.Equal(t, 1, del)
+
+	// now that we validated the "proper" ops, let's ensure all runs have the same
+	for i := 0; i < 20; i++ {
+		db2, log2 := store.LogableStore()
+		err = bucket.Save(db2, val)
+		require.NoError(t, err)
+		err = bucket.Save(db2, val2)
+		require.NoError(t, err)
+		ops2 := log2.ShowOps()
+		assert.NoError(t, sameOps(ops, ops2))
+	}
 }
 
 func countOps(ops []store.Op) (set int, del int) {
@@ -481,4 +493,22 @@ func countOps(ops []store.Op) (set int, del int) {
 		}
 	}
 	return
+}
+
+// sameOps returns nil if they are the same, a helpful error if different
+func sameOps(a []store.Op, b []store.Op) error {
+	if len(a) != len(b) {
+		return fmt.Errorf("Different op count: %d vs %d", len(a), len(b))
+	}
+
+	for i, opa := range a {
+		opb := b[i]
+		if opa.IsSetOp() != opb.IsSetOp() {
+			return fmt.Errorf("Set vs. delete difference at index %d", i)
+		}
+		if !bytes.Equal(opa.Key(), opb.Key()) {
+			return fmt.Errorf("Different key at index %d: %X vs %X", i, opa.Key(), opb.Key())
+		}
+	}
+	return nil
 }
