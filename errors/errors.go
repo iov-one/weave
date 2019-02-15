@@ -105,6 +105,8 @@ func (e Error) New(description string) error {
 	return Wrap(e, description)
 }
 
+// Is is a proxy helper for global Is to be able to easily instantiate and match error codes
+// for example in tests
 func(e Error) Is(err error) bool {
 	return Is(e.New(""), err)
 }
