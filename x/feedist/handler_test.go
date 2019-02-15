@@ -104,7 +104,7 @@ func TestHandlers(t *testing.T) {
 		},
 		"weights are normalized during distribution": {
 			prepareAccounts: []account{
-				{address: asSeqID(1), coins: x.Coins{coinp(0, 7, "BTC")}},
+				{address: RevenueAccount(asSeqID(1)), coins: x.Coins{coinp(0, 7, "BTC")}},
 			},
 			wantAccounts: []account{
 				// All funds must be transferred to the only recipient.
@@ -164,10 +164,10 @@ func TestHandlers(t *testing.T) {
 		},
 		"revenue with an account but without enough funds": {
 			prepareAccounts: []account{
-				{address: asSeqID(1), coins: x.Coins{coinp(0, 1, "BTC")}},
+				{address: RevenueAccount(asSeqID(1)), coins: x.Coins{coinp(0, 1, "BTC")}},
 			},
 			wantAccounts: []account{
-				{address: asSeqID(1), coins: x.Coins{coinp(0, 1, "BTC")}},
+				{address: RevenueAccount(asSeqID(1)), coins: x.Coins{coinp(0, 1, "BTC")}},
 			},
 			actions: []action{
 				{
@@ -196,10 +196,10 @@ func TestHandlers(t *testing.T) {
 		},
 		"distribute revenue with a leftover funds": {
 			prepareAccounts: []account{
-				{address: asSeqID(1), coins: x.Coins{coinp(0, 7, "BTC")}},
+				{address: RevenueAccount(asSeqID(1)), coins: x.Coins{coinp(0, 7, "BTC")}},
 			},
 			wantAccounts: []account{
-				{address: asSeqID(1), coins: x.Coins{coinp(0, 1, "BTC")}},
+				{address: RevenueAccount(asSeqID(1)), coins: x.Coins{coinp(0, 1, "BTC")}},
 				{address: addr1, coins: x.Coins{coinp(0, 2, "BTC")}},
 				{address: addr2, coins: x.Coins{coinp(0, 4, "BTC")}},
 			},
@@ -230,10 +230,10 @@ func TestHandlers(t *testing.T) {
 		},
 		"distribute revenue with an account holding various tickers": {
 			prepareAccounts: []account{
-				{address: asSeqID(1), coins: x.Coins{coinp(0, 3, "BTC"), coinp(0, 7, "ETH")}},
+				{address: RevenueAccount(asSeqID(1)), coins: x.Coins{coinp(0, 3, "BTC"), coinp(0, 7, "ETH")}},
 			},
 			wantAccounts: []account{
-				{address: asSeqID(1), coins: x.Coins{coinp(0, 1, "ETH")}},
+				{address: RevenueAccount(asSeqID(1)), coins: x.Coins{coinp(0, 1, "ETH")}},
 				{address: addr1, coins: x.Coins{coinp(0, 1, "BTC"), coinp(0, 2, "ETH")}},
 				{address: addr2, coins: x.Coins{coinp(0, 2, "BTC"), coinp(0, 4, "ETH")}},
 			},
@@ -264,7 +264,7 @@ func TestHandlers(t *testing.T) {
 		},
 		"updating a revenue is distributing the collected funds first": {
 			prepareAccounts: []account{
-				{address: asSeqID(1), coins: x.Coins{coinp(0, 3, "BTC")}},
+				{address: RevenueAccount(asSeqID(1)), coins: x.Coins{coinp(0, 3, "BTC")}},
 			},
 			wantAccounts: []account{
 				{address: addr1, coins: x.Coins{coinp(0, 1, "BTC")}},

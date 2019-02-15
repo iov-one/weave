@@ -121,7 +121,7 @@ func (h *distributeHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weav
 		return res, err
 	}
 
-	if err := distribute(db, h.ctrl, weave.Address(msg.RevenueID), rev.Recipients); err != nil {
+	if err := distribute(db, h.ctrl, RevenueAccount(msg.RevenueID), rev.Recipients); err != nil {
 		return res, errors.Wrap(err, "cannot distribute")
 	}
 	return res, nil
@@ -176,7 +176,7 @@ func (h *updateRevenueHandler) Deliver(ctx weave.Context, db weave.KVStore, tx w
 	// revenue with no funds can be updated, so that recipients trust us.
 	// Otherwise an admin could change who receives the money without the
 	// previously selected recepients ever being paid.
-	if err := distribute(db, h.ctrl, weave.Address(msg.RevenueID), rev.Recipients); err != nil {
+	if err := distribute(db, h.ctrl, RevenueAccount(msg.RevenueID), rev.Recipients); err != nil {
 		return res, errors.Wrap(err, "cannot distribute")
 	}
 
