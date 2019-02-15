@@ -13,11 +13,8 @@ message Revenue {
   // stored amount to an another account.
   // While not enforced it is best to use a multisig contract here.
   bytes admin = 1 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
-
   // Recipients holds any number of addresses that the collected revenue is
-  // distributed to. This does not contain the weights required for the
-  // transfer operation, but declares addresses that must be involved in each
-  // funds distribution.
+  // distributed to. Must be at least one.
   repeated Recipient recipients = 2;
 }
 
@@ -42,11 +39,8 @@ message NewRevenueMsg {
   // stored amount to an another account.
   // While not enforced it is best to use a multisig contract here.
   bytes admin = 1 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
-
   // Recipients holds any number of addresses that the collected revenue is
-  // distributed to. This does not contain the weights required for the
-  // transfer operation, but declares addresses that must be involved in each
-  // funds distribution.
+  // distributed to. Must be at least one.
   repeated Recipient recipients = 2;
 }
 
@@ -67,5 +61,7 @@ message DistributeMsg {
 message UpdateRevenueMsg {
   // Revenue ID reference an ID of a revenue instance that is updated.
   bytes revenue_id = 1 [(gogoproto.customname) = "RevenueID"];
+  // Recipients holds any number of addresses that the collected revenue is
+  // distributed to. Must be at least one.
   repeated Recipient recipients = 2;
 }

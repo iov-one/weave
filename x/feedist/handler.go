@@ -18,6 +18,14 @@ func RegisterQuery(qr weave.QueryRouter) {
 	NewRevenueBucket().Register("revenues", qr)
 }
 
+// CashController allows to manage coins stored by the accounts without the
+// need to directly access the bucket.
+// Required functionality is implemented by the x/cash extension.
+type CashController interface {
+	Balance(weave.KVStore, weave.Address) (x.Coins, error)
+	MoveCoins(weave.KVStore, weave.Address, weave.Address, x.Coin) error
+}
+
 // RegisterRoutes registers handlers for feedlist message processing.
 func RegisterRoutes(r weave.Registry, auth x.Authenticator, ctrl CashController) {
 	bucket := NewRevenueBucket()
@@ -90,14 +98,6 @@ type distributeHandler struct {
 	auth   x.Authenticator
 	bucket *RevenueBucket
 	ctrl   CashController
-}
-
-// CashController allows to manage coins stored by the accounts without the
-// need to directly access the bucket.
-// Required functionality is implemented by the x/cash extension.
-type CashController interface {
-	Balance(weave.KVStore, weave.Address) (x.Coins, error)
-	MoveCoins(weave.KVStore, weave.Address, weave.Address, x.Coin) error
 }
 
 func (h *distributeHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (weave.CheckResult, error) {

@@ -35,6 +35,9 @@ func (NewRevenueMsg) Path() string {
 }
 
 func (msg *DistributeMsg) Validate() error {
+	if len(msg.RevenueID) == 0 {
+		return errors.InvalidMsgErr.New("revenue ID missing")
+	}
 	return nil
 }
 
