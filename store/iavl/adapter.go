@@ -36,6 +36,12 @@ func NewCommitStore(path, name string) CommitStore {
 	return commit
 }
 
+// NewCommitStoreFromTree accepts a preloaded MutableTree and wraps it
+// Mainly designed for test code... or devs who want full control
+func NewCommitStoreFromTree(tree *iavl.MutableTree) CommitStore {
+	return CommitStore{tree, DefaultHistory}
+}
+
 // MockCommitStore creates a new in-memory store for testing
 func MockCommitStore() CommitStore {
 	var db dbm.DB = dbm.NewMemDB()

@@ -1,6 +1,7 @@
 package orm
 
 import (
+	"bytes"
 	"fmt"
 	"testing"
 
@@ -432,4 +433,82 @@ func TestBucketQuery(t *testing.T) {
 			assert.EqualValues(t, tc.expected, res)
 		})
 	}
+}
+
+// Make sure saving indexes is a deterministic process...
+// That is all writes happen in the same order
+func TestBucketIndexDeterministic(t *testing.T) {
+
+	// Same as above, note there are two indexes.... we can check the save order
+	const uniq, mini = "uniq", "mini"
+	bucket := NewBucket("special", NewSimpleObj(nil, new(Counter))).
+		WithIndex(uniq, count, true).
+		WithIndex(mini, countByte, false)
+
+	key := []byte("key")
+	val := NewSimpleObj(key, NewCounter(5))
+	val2 := NewSimpleObj(key, NewCounter(256+5))
+
+	db, log := store.LogableStore()
+
+	ops := log.ShowOps()
+	assert.Equal(t, 0, len(ops))
+
+	// saving one item should update the item as well as two indexes
+	err := bucket.Save(db, val)
+	require.NoError(t, err)
+	ops = log.ShowOps()
+	assert.Equal(t, 3, len(ops))
+	set, del := countOps(ops)
+	assert.Equal(t, 3, set)
+	assert.Equal(t, 0, del)
+
+	// saving second item should update the item as well as the one index that changed (don't write constant index)
+	err = bucket.Save(db, val2)
+	require.NoError(t, err)
+	ops = log.ShowOps()
+	assert.Equal(t, 6, len(ops))
+	set, del = countOps(ops)
+	assert.Equal(t, 5, set)
+	assert.Equal(t, 1, del)
+
+	// now that we validated the "proper" ops, let's ensure all runs have the same
+	for i := 0; i < 20; i++ {
+		db2, log2 := store.LogableStore()
+		err = bucket.Save(db2, val)
+		require.NoError(t, err)
+		err = bucket.Save(db2, val2)
+		require.NoError(t, err)
+		ops2 := log2.ShowOps()
+		assert.NoError(t, sameOps(ops, ops2))
+	}
+}
+
+func countOps(ops []store.Op) (set int, del int) {
+	for _, op := range ops {
+		if op.IsSetOp() {
+			set++
+		} else {
+			del++
+		}
+	}
+	return
+}
+
+// sameOps returns nil if they are the same, a helpful error if different
+func sameOps(a []store.Op, b []store.Op) error {
+	if len(a) != len(b) {
+		return fmt.Errorf("Different op count: %d vs %d", len(a), len(b))
+	}
+
+	for i, opa := range a {
+		opb := b[i]
+		if opa.IsSetOp() != opb.IsSetOp() {
+			return fmt.Errorf("Set vs. delete difference at index %d", i)
+		}
+		if !bytes.Equal(opa.Key(), opb.Key()) {
+			return fmt.Errorf("Different key at index %d: %X vs %X", i, opa.Key(), opb.Key())
+		}
+	}
+	return nil
 }

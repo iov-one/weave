@@ -1,6 +1,7 @@
 package app
 
 import (
+	"context"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
@@ -73,7 +74,7 @@ func GenInitOptions(args []string) (json.RawMessage, error) {
 
 // GenerateApp is used to create a stub for server/start.go command
 func GenerateApp(home string, logger log.Logger, debug bool) (abci.Application, error) {
-	// db goes in a subdir, but "" -> "" for memdb
+	// db goes in a subdir, but "" stays "" to use memdb
 	var dbPath string
 	if home != "" {
 		dbPath = filepath.Join(home, "bns.db")
@@ -87,6 +88,11 @@ func GenerateApp(home string, logger log.Logger, debug bool) (abci.Application, 
 	if err != nil {
 		return nil, err
 	}
+	return DecorateApp(application, logger), nil
+}
+
+// DecorateApp adds initializers and Logger to an Application
+func DecorateApp(application app.BaseApp, logger log.Logger) app.BaseApp {
 	application.WithInit(app.ChainInitializers(
 		&gconf.Initializer{},
 		&multisig.Initializer{},
@@ -94,10 +100,18 @@ func GenerateApp(home string, logger log.Logger, debug bool) (abci.Application, 
 		&currency.Initializer{},
 		&validators.Initializer{},
 	))
-
-	// set the logger and return
 	application.WithLogger(logger)
-	return application, nil
+	return application
+}
+
+// InlineApp will take a previously prepared CommitStore and return a complete Application
+func InlineApp(kv weave.CommitKVStore, logger log.Logger, debug bool) abci.Application {
+	stack := Stack(nil)
+	ctx := context.Background()
+	RegisterNft()
+	store := app.NewStoreApp("bnsd", kv, QueryRouter(), ctx)
+	base := app.NewBaseApp(store, TxDecoder, stack, nil, debug)
+	return DecorateApp(base, logger)
 }
 
 type output struct {
