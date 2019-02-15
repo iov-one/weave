@@ -324,3 +324,67 @@ func TestCoinSubtract(t *testing.T) {
 		})
 	}
 }
+
+func TestCoinDivide(t *testing.T) {
+	cases := map[string]struct {
+		total    Coin
+		pieces   int64
+		wantOne  Coin
+		wantRest Coin
+	}{
+		"split into one piece": {
+			total:    NewCoin(7, 11, "BTC"),
+			pieces:   1,
+			wantOne:  NewCoin(7, 11, "BTC"),
+			wantRest: NewCoin(0, 0, "BTC"),
+		},
+		"split into two pieces with no rest": {
+			total:    NewCoin(4, 0, "BTC"),
+			pieces:   2,
+			wantOne:  NewCoin(2, 0, "BTC"),
+			wantRest: NewCoin(0, 0, "BTC"),
+		},
+		"split into two pieces with fractional division and no rest": {
+			total:    NewCoin(5, 0, "BTC"),
+			pieces:   2,
+			wantOne:  NewCoin(2, FracUnit/2, "BTC"),
+			wantRest: NewCoin(0, 0, "BTC"),
+		},
+		"split into two pieces with a leftover": {
+			total:    NewCoin(0, 3, "BTC"),
+			pieces:   2,
+			wantOne:  NewCoin(0, 1, "BTC"),
+			wantRest: NewCoin(0, 1, "BTC"),
+		},
+		"split into two pieces with a fractional division and a leftover": {
+			total:    NewCoin(1, 0, "BTC"),
+			pieces:   3,
+			wantOne:  NewCoin(0, FracUnit/3, "BTC"),
+			wantRest: NewCoin(0, 1, "BTC"),
+		},
+		"zero pieces": {
+			total:    NewCoin(666, 0, "BTC"),
+			pieces:   0,
+			wantOne:  NewCoin(0, 0, "BTC"),
+			wantRest: NewCoin(0, 0, "BTC"),
+		},
+		"negative pieces": {
+			total:    NewCoin(999, 0, "BTC"),
+			pieces:   -1,
+			wantOne:  NewCoin(0, 0, "BTC"),
+			wantRest: NewCoin(0, 0, "BTC"),
+		},
+	}
+
+	for testName, tc := range cases {
+		t.Run(testName, func(t *testing.T) {
+			gotOne, gotRest := tc.total.Divide(tc.pieces)
+			if !gotOne.Equals(tc.wantOne) {
+				t.Errorf("got one %v", gotOne)
+			}
+			if !gotRest.Equals(tc.wantRest) {
+				t.Errorf("got rest %v", gotRest)
+			}
+		})
+	}
+}
