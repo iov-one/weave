@@ -10,6 +10,12 @@ import (
 	"github.com/iov-one/weave/x/nft"
 )
 
+// ModelName is used to recognize the model provided by this NFT impementation.
+// It can be used by the nft/base extension to register a handler.
+const ModelName = "username"
+
+var validBlockchainID = regexp.MustCompile(`^[a-zA-Z0-9_.-]{4,128}$`).Match
+
 type Token interface {
 	nft.BaseNFT
 	GetChainAddresses() []ChainAddress
@@ -114,10 +120,6 @@ func (p *ChainAddress) Validate() error {
 	}
 	return nil
 }
-
-var (
-	validBlockchainID = regexp.MustCompile(`^[a-zA-Z0-9_.-]{4,128}$`).Match
-)
 
 // AsUsername will safely type-cast any value from Bucket
 func AsUsername(obj orm.Object) (Token, error) {

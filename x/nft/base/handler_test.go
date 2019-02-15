@@ -33,7 +33,7 @@ func TestApprovalOpsHandler(t *testing.T) {
 		db := store.MemStore()
 		userBucket := username.NewBucket()
 		nftBuckets := map[string]orm.Bucket{
-			"USERNAME": userBucket.Bucket,
+			username.ModelName: userBucket.Bucket,
 		}
 
 		handler := base.NewApprovalOpsHandler(helpers.Authenticate(bob), nil, nftBuckets)
@@ -66,7 +66,7 @@ func TestApprovalOpsHandler(t *testing.T) {
 				Address: alice.Address(),
 				Action:  nft.UpdateDetails,
 				Options: nft.ApprovalOptions{Count: nft.UnlimitedCount},
-				T:       "USERNAME",
+				T:       username.ModelName,
 			}
 			Convey("Test happy", func() {
 				Convey("By owner", func() {
@@ -175,7 +175,7 @@ func TestApprovalOpsHandler(t *testing.T) {
 			msg := &nft.RemoveApprovalMsg{ID: bobWithAliceApproval,
 				Address: alice.Address(),
 				Action:  nft.UpdateApprovals,
-				T:       "USERNAME",
+				T:       username.ModelName,
 			}
 			Convey("Test happy", func() {
 				Convey("By owner", func() {

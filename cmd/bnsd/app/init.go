@@ -81,7 +81,7 @@ func GenerateApp(home string, logger log.Logger, debug bool) (abci.Application, 
 	}
 
 	nftBuckets := map[string]orm.Bucket{
-		"USERNAME": username.NewBucket().Bucket,
+		username.ModelName: username.NewBucket().Bucket,
 	}
 	stack := Stack(nil, nftBuckets)
 	application, err := Application("bnsd", stack, TxDecoder, dbPath, debug)
@@ -106,7 +106,10 @@ func DecorateApp(application app.BaseApp, logger log.Logger) app.BaseApp {
 
 // InlineApp will take a previously prepared CommitStore and return a complete Application
 func InlineApp(kv weave.CommitKVStore, logger log.Logger, debug bool) abci.Application {
-	stack := Stack(nil)
+	nftBuckets := map[string]orm.Bucket{
+		username.ModelName: username.NewBucket().Bucket,
+	}
+	stack := Stack(nil, nftBuckets)
 	ctx := context.Background()
 	RegisterNft()
 	store := app.NewStoreApp("bnsd", kv, QueryRouter(), ctx)

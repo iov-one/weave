@@ -41,7 +41,7 @@ func NewApp() *AppFixture {
 func (f AppFixture) Build() weaveApp.BaseApp {
 	// setup app
 	stack := app.Stack(nil, map[string]orm.Bucket{
-		"USERNAME": username.NewBucket().Bucket,
+		username.ModelName: username.NewBucket().Bucket,
 	})
 	myApp, err := app.Application(f.Name, stack, app.TxDecoder, "", true)
 	if err != nil {
