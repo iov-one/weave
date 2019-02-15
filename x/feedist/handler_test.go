@@ -31,9 +31,16 @@ func TestHandlers(t *testing.T) {
 	// case.
 
 	cases := map[string]struct {
+		// prepareAccounts is used to set the funds for each declared
+		// account, before executing actions.
 		prepareAccounts []account
-		actions         []action
-		wantAccounts    []account
+		// actions is a set of messages that will be handled by the
+		// router. Successfully handled messages are altering the
+		// state.
+		actions []action
+		// wantAccounts is used to declare desired state of each
+		// account after all actions are applied.
+		wantAccounts []account
 	}{
 		"at least one recipient is required": {
 			prepareAccounts: nil,
@@ -223,12 +230,12 @@ func TestHandlers(t *testing.T) {
 		},
 		"distribute revenue with an account holding various tickers": {
 			prepareAccounts: []account{
-				{address: asSeqID(1), coins: x.Coins{coinp(0, 3, "BTC"), coinp(7, 0, "ETH")}},
+				{address: asSeqID(1), coins: x.Coins{coinp(0, 3, "BTC"), coinp(0, 7, "ETH")}},
 			},
 			wantAccounts: []account{
-				{address: asSeqID(1), coins: x.Coins{coinp(1, 0, "ETH")}},
-				{address: addr1, coins: x.Coins{coinp(0, 1, "BTC"), coinp(2, 0, "ETH")}},
-				{address: addr2, coins: x.Coins{coinp(0, 2, "BTC"), coinp(4, 0, "ETH")}},
+				{address: asSeqID(1), coins: x.Coins{coinp(0, 1, "ETH")}},
+				{address: addr1, coins: x.Coins{coinp(0, 1, "BTC"), coinp(0, 2, "ETH")}},
+				{address: addr2, coins: x.Coins{coinp(0, 2, "BTC"), coinp(0, 4, "ETH")}},
 			},
 			actions: []action{
 				{
@@ -257,11 +264,12 @@ func TestHandlers(t *testing.T) {
 		},
 		"updating a revenue is distributing the collected funds first": {
 			prepareAccounts: []account{
-				{address: asSeqID(1), coins: x.Coins{coinp(3, 0, "BTC")}},
+				{address: asSeqID(1), coins: x.Coins{coinp(0, 3, "BTC")}},
 			},
 			wantAccounts: []account{
-				{address: addr1, coins: x.Coins{coinp(2, 0, "BTC")}},
-				{address: addr2, coins: x.Coins{coinp(1, 0, "BTC")}},
+				{address: addr1, coins: x.Coins{coinp(0, 1, "BTC")}},
+				// Below is the state of the second account after ALL the actions applied.
+				{address: addr2, coins: x.Coins{coinp(0, 2, "BTC")}},
 			},
 			actions: []action{
 				{
@@ -278,20 +286,20 @@ func TestHandlers(t *testing.T) {
 					wantDeliverErr: nil,
 				},
 				// Issuing an update must distribute first.
-				// Distributing 3 BTC equally, means that 1 BTC will be left.
+				// Distributing 3 BTC cents equally, means that 1 BTC cent will be left.
 				{
 					conditions: []weave.Condition{src},
 					msg: &UpdateRevenueMsg{
 						RevenueID: asSeqID(1),
 						Recipients: []*Recipient{
-							{Weight: 1234, Address: addr1},
+							{Weight: 1234, Address: addr2},
 						},
 					},
 					blocksize:      102,
 					wantCheckErr:   nil,
 					wantDeliverErr: nil,
 				},
-				// After the update, all funds should be moved to addr1
+				// After the update, all funds (1 cent) should be moved to addr2
 				{
 					conditions: []weave.Condition{src},
 					msg: &DistributeMsg{
@@ -352,6 +360,7 @@ func TestHandlers(t *testing.T) {
 	}
 }
 
+// account represents a single account state - the coins/funds it holds.
 type account struct {
 	address weave.Address
 	coins   x.Coins
@@ -445,8 +454,11 @@ func TestDistribute(t *testing.T) {
 	cases := map[string]struct {
 		recipients []*Recipient
 		ctrl       *testController
-		wantMoves  []movecall
-		wantErr    error
+		// Each MoveCoins call on the testController result in creation
+		// of a movecall. Those can be used later to validate that
+		// certain MoveCoins calls were made.
+		wantMoves []movecall
+		wantErr   error
 	}{
 		"zero funds is not distributed": {
 			recipients: []*Recipient{
@@ -492,9 +504,10 @@ func TestDistribute(t *testing.T) {
 			},
 			wantErr: nil,
 			wantMoves: []movecall{
-				// TODO - where relation of whole-frictional is defined?
-				{dst: weave.Address("address-1"), amount: x.NewCoin(0, 500, "BTC")},
-				{dst: weave.Address("address-2"), amount: x.NewCoin(0, 500, "BTC")},
+				// One cent is left on the revenue account,
+				// because it is too small to divide.
+				{dst: weave.Address("address-1"), amount: x.NewCoin(0, x.FracUnit/3, "BTC")},
+				{dst: weave.Address("address-2"), amount: x.NewCoin(0, x.FracUnit/3*2, "BTC")},
 			},
 		},
 	}

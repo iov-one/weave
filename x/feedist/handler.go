@@ -253,12 +253,13 @@ func distribute(db weave.KVStore, ctrl CashController, source weave.Address, rec
 			continue
 		}
 
+		// Rest of the division can be ignored, because we transfer
+		// funds to each recipients separately. Any leftover will be
+		// left on the recipients account.
+		one, _ := c.Divide(chunks)
+
 		for _, r := range recipients {
-			amount := x.Coin{
-				Whole:      (c.Whole / chunks) * int64(r.Weight/div),
-				Fractional: (c.Fractional / chunks) * int64(r.Weight/div),
-				Ticker:     c.Ticker,
-			}
+			amount := one.Multiply(int64(r.Weight / div))
 			// Chunk is too small to be distributed.
 			if amount.IsZero() {
 				continue
