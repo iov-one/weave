@@ -85,13 +85,28 @@ func (c Coin) Divide(pieces int64) (one, rest Coin) {
 	return one, rest
 }
 
+// Multiply returns the result of a coin value multiplication.
+func (c Coin) Multiply(times int64) Coin {
+	whole := c.Whole * times
+	frac := c.Fractional * times
+
+	// Normalize if fractional value overflows.
+	if frac > FracUnit {
+		whole += frac / FracUnit
+		frac = frac % FracUnit
+	}
+
+	return Coin{
+		Ticker:     c.Ticker,
+		Whole:      whole,
+		Fractional: frac,
+	}
+}
+
 // Add combines two coins.
 // Returns error if they are of different
 // currencies, or if the combination would cause
 // an overflow
-//
-// To subtract:
-//   c.Add(o.Negative())
 func (c Coin) Add(o Coin) (Coin, error) {
 	if !c.SameType(o) {
 		err := ErrInvalidCurrency(c.Ticker, o.Ticker)

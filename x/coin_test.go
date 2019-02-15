@@ -388,3 +388,45 @@ func TestCoinDivide(t *testing.T) {
 		})
 	}
 }
+
+func TestCoinMultiply(t *testing.T) {
+	cases := map[string]struct {
+		coin  Coin
+		times int64
+		want  Coin
+	}{
+		"zero value coin": {
+			coin:  NewCoin(0, 0, "DOGE"),
+			times: 666,
+			want:  NewCoin(0, 0, "DOGE"),
+		},
+		"multiply": {
+			coin:  NewCoin(1, 0, "DOGE"),
+			times: 3,
+			want:  NewCoin(3, 0, "DOGE"),
+		},
+		"multiply with normalization": {
+			coin:  NewCoin(0, FracUnit/2, "DOGE"),
+			times: 3,
+			want:  NewCoin(1, FracUnit/2, "DOGE"),
+		},
+		"multiply zero times": {
+			coin:  NewCoin(1, 1, "DOGE"),
+			times: 0,
+			want:  NewCoin(0, 0, "DOGE"),
+		},
+		"multiply negative times": {
+			coin:  NewCoin(1, 1, "DOGE"),
+			times: -2,
+			want:  NewCoin(-2, -2, "DOGE"),
+		},
+	}
+	for testName, tc := range cases {
+		t.Run(testName, func(t *testing.T) {
+			got := tc.coin.Multiply(tc.times)
+			if !got.Equals(tc.want) {
+				t.Fatalf("got %v", got)
+			}
+		})
+	}
+}
