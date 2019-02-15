@@ -28,10 +28,6 @@ var (
 	// be used (ie. persisted).
 	InvalidModelErr = Register(5, "invalid model")
 
-	// ConflictErr is returned when an operation cannot be completed due to
-	// state conflict.
-	ConflictErr = Register(6, "conflict")
-
 	// PanicErr is only set when we recover from a panic, so we know to redact potentially sensitive system info
 	PanicErr = Register(111222, "panic")
 )

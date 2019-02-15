@@ -67,6 +67,17 @@ func TestHandlers(t *testing.T) {
 					blocksize:    102,
 					wantCheckErr: errors.InvalidMsgErr,
 				},
+				{
+					conditions: []weave.Condition{src},
+					msg: &UpdateRevenueMsg{
+						RevenueID: asSeqID(1),
+						Recipients: []*Recipient{
+							{Weight: 1, Address: addr1},
+							{Weight: 2, Address: addr2},
+						},
+					},
+					blocksize: 104,
+				},
 			},
 		},
 		"revenue not found": {
@@ -409,6 +420,14 @@ func TestFindGdc(t *testing.T) {
 		"four elements": {
 			want:   6,
 			values: []int32{12, 6, 18},
+		},
+		"less common divisors": {
+			want:   2,
+			values: []int32{24, 12, 64, 18},
+		},
+		"prime numbers": {
+			want:   1,
+			values: []int32{67, 71, 73, 79, 83, 89, 97},
 		},
 	}
 
