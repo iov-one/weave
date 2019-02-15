@@ -2,6 +2,7 @@ package username
 
 import (
 	"bytes"
+	"github.com/iov-one/weave/errors"
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/orm"
@@ -38,7 +39,7 @@ func (b Bucket) Create(db weave.KVStore, owner weave.Address, id []byte, approva
 	case err != nil:
 		return nil, err
 	case obj != nil:
-		return nil, orm.ErrUniqueConstraint("id exists already")
+		return nil, errors.DuplicateErr.New("id exists already")
 	}
 	obj = NewUsernameToken(id, owner, approvals)
 	humanAddress, err := AsUsername(obj)
@@ -51,11 +52,11 @@ func (b Bucket) Create(db weave.KVStore, owner weave.Address, id []byte, approva
 
 func chainAddressIndexer(obj orm.Object) ([][]byte, error) {
 	if obj == nil {
-		return nil, orm.ErrInvalidIndex("nil")
+		return nil, orm.InvalidIndexErr.New("nil")
 	}
 	u, err := AsUsername(obj)
 	if err != nil {
-		return nil, orm.ErrInvalidIndex("unsupported type")
+		return nil, orm.InvalidIndexErr.New("unsupported type")
 	}
 	idx := make([][]byte, 0, len(u.GetChainAddresses()))
 	for _, addr := range u.GetChainAddresses() {

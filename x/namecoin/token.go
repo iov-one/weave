@@ -2,6 +2,7 @@ package namecoin
 
 import (
 	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/x"
 )
@@ -96,7 +97,7 @@ func (b TokenBucket) Get(db weave.KVStore, ticker string) (orm.Object, error) {
 // Save enforces the proper type
 func (b TokenBucket) Save(db weave.KVStore, obj orm.Object) error {
 	if _, ok := obj.Value().(*Token); !ok {
-		return orm.ErrInvalidObject(obj.Value())
+		return errors.WithType(errors.InvalidModelErr, obj.Value())
 	}
 	name := string(obj.Key())
 	if !x.IsCC(name) {

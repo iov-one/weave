@@ -248,7 +248,7 @@ func (b Bucket) WithMultiKeyIndex(name string, indexer MultiKeyIndexer, unique b
 func (b Bucket) GetIndexed(db weave.ReadOnlyKVStore, name string, key []byte) ([]Object, error) {
 	idx := b.indexes.Get(name)
 	if idx == nil {
-		return nil, ErrInvalidIndex(name)
+		return nil, InvalidIndexErr.New(name)
 	}
 	refs, err := idx.GetAt(db, key)
 	if err != nil {
@@ -261,7 +261,7 @@ func (b Bucket) GetIndexed(db weave.ReadOnlyKVStore, name string, key []byte) ([
 func (b Bucket) GetIndexedLike(db weave.ReadOnlyKVStore, name string, pattern Object) ([]Object, error) {
 	idx := b.indexes.Get(name)
 	if idx == nil {
-		return nil, ErrInvalidIndex(name)
+		return nil, InvalidIndexErr.New(name)
 	}
 	refs, err := idx.GetLike(db, pattern)
 	if err != nil {

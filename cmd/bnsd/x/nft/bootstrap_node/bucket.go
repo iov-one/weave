@@ -2,6 +2,7 @@ package bootstrap_node
 
 import (
 	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/x/nft"
 )
@@ -34,7 +35,7 @@ func (b Bucket) Create(db weave.KVStore, owner weave.Address, id []byte,
 	case err != nil:
 		return nil, err
 	case obj != nil:
-		return nil, orm.ErrUniqueConstraint("id exists already")
+		return nil, errors.DuplicateErr.New("id exists already")
 	}
 	obj = NewBootstrapNodeToken(id, owner, approvals)
 	node, err := AsNode(obj)

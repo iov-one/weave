@@ -69,7 +69,7 @@ func (b *PaymentChannelBucket) Create(db weave.KVStore, pc *PaymentChannel) (orm
 // Save updates the state of given PaymentChannel entity in the store.
 func (b *PaymentChannelBucket) Save(db weave.KVStore, obj orm.Object) error {
 	if _, ok := obj.Value().(*PaymentChannel); !ok {
-		return orm.ErrInvalidObject(obj.Value())
+		return errors.WithType(errors.InvalidModelErr, obj.Value())
 	}
 	return b.Bucket.Save(db, obj)
 }

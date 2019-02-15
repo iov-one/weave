@@ -2,6 +2,7 @@ package orm
 
 import (
 	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/x"
 )
 
@@ -38,10 +39,10 @@ func (o SimpleObj) Key() []byte {
 // And delegates to the value validator if present
 func (o SimpleObj) Validate() error {
 	if len(o.key) == 0 {
-		return ErrMissingKey()
+		return errors.EmptyError.New("missing key")
 	}
 	if o.value == nil {
-		return ErrMissingValue()
+		return errors.EmptyError.New("missing value")
 	}
 	return o.value.Validate()
 }
