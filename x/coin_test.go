@@ -347,7 +347,7 @@ func TestCoinDivide(t *testing.T) {
 		"split into two pieces with fractional division and no rest": {
 			total:    NewCoin(5, 0, "BTC"),
 			pieces:   2,
-			wantOne:  NewCoin(2, FracUnit/2, "BTC"),
+			wantOne:  NewCoin(2, 500000000, "BTC"),
 			wantRest: NewCoin(0, 0, "BTC"),
 		},
 		"split into two pieces with a leftover": {
@@ -359,8 +359,14 @@ func TestCoinDivide(t *testing.T) {
 		"split into two pieces with a fractional division and a leftover": {
 			total:    NewCoin(1, 0, "BTC"),
 			pieces:   3,
-			wantOne:  NewCoin(0, FracUnit/3, "BTC"),
+			wantOne:  NewCoin(0, 333333333, "BTC"),
 			wantRest: NewCoin(0, 1, "BTC"),
+		},
+		"split fractional 2 by 3 should return 3 as leftover": {
+			total:    NewCoin(0, 2, "BTC"),
+			pieces:   3,
+			wantOne:  NewCoin(0, 3, "BTC"),
+			wantRest: NewCoin(0, 0, "BTC"),
 		},
 		"zero pieces": {
 			total:    NewCoin(666, 0, "BTC"),

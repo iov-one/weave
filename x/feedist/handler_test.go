@@ -405,51 +405,6 @@ func coinp(w, f int64, ticker string) *x.Coin {
 	return &c
 }
 
-func TestFindGdc(t *testing.T) {
-	cases := map[string]struct {
-		want   int32
-		values []int32
-	}{
-		"empty": {
-			want:   0,
-			values: nil,
-		},
-		"one element": {
-			want:   7,
-			values: []int32{7},
-		},
-		"two elements": {
-			want:   3,
-			values: []int32{9, 6},
-		},
-		"three elements": {
-			want:   3,
-			values: []int32{9, 3, 6},
-		},
-		"four elements": {
-			want:   6,
-			values: []int32{12, 6, 18},
-		},
-		"less common divisors": {
-			want:   2,
-			values: []int32{24, 12, 64, 18},
-		},
-		"prime numbers": {
-			want:   1,
-			values: []int32{67, 71, 73, 79, 83, 89, 97},
-		},
-	}
-
-	for testName, tc := range cases {
-		t.Run(testName, func(t *testing.T) {
-			got := findGcd(tc.values...)
-			if got != tc.want {
-				t.Fatalf("want %d, got %d", tc.want, got)
-			}
-		})
-	}
-}
-
 func TestDistribute(t *testing.T) {
 	cases := map[string]struct {
 		recipients []*Recipient
@@ -509,6 +464,21 @@ func TestDistribute(t *testing.T) {
 				{dst: weave.Address("address-1"), amount: x.NewCoin(0, x.FracUnit/3, "BTC")},
 				{dst: weave.Address("address-2"), amount: x.NewCoin(0, x.FracUnit/3*2, "BTC")},
 			},
+		}, "whole split into fractions": {
+			recipients: []*Recipient{
+				{Address: weave.Address("address-1"), Weight: 1},
+				{Address: weave.Address("address-2"), Weight: 2},
+			},
+			ctrl: &testController{
+				balance: x.Coins{coinp(2, 0, "BTC")},
+			}, // 2
+			wantErr: nil,
+			wantMoves: []movecall{
+				// One cent is left on the revenue account,
+				// because it is too small to divide.
+				{dst: weave.Address("address-1"), amount: x.NewCoin(0, 666666666, "BTC")},
+				{dst: weave.Address("address-2"), amount: x.NewCoin(1, 333333333, "BTC")},
+			},
 		},
 	}
 
@@ -522,7 +492,7 @@ func TestDistribute(t *testing.T) {
 			if !reflect.DeepEqual(tc.wantMoves, tc.ctrl.moves) {
 				t.Logf("got %d MoveCoins calls", len(tc.ctrl.moves))
 				for i, m := range tc.ctrl.moves {
-					t.Logf("%d: %v", i, m)
+					t.Logf("%d: %v", i, m.amount)
 				}
 				t.Fatalf("unexpected MoveCoins calls")
 			}
