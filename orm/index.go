@@ -3,8 +3,8 @@ package orm
 import (
 	"bytes"
 
-	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/errors"
 )
 
 var indPrefix = []byte("_i.")

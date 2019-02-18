@@ -79,7 +79,7 @@ func TestValidateSendMsg(t *testing.T) {
 	}
 	err = ugly.Validate()
 	assert.Error(t, err)
-	assert.True(t, x.IsInvalidCurrencyErr(err))
+	assert.True(t, x.InvalidCurrencyErr.Is(err))
 
 }
 
@@ -133,6 +133,6 @@ func TestValidateFeeTx(t *testing.T) {
 	}
 	err = ugly.Validate()
 	assert.Error(t, err)
-	assert.True(t, x.IsInvalidCurrencyErr(err))
+	assert.True(t, x.InvalidCurrencyErr.Is(err))
 
 }

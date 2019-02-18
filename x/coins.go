@@ -178,10 +178,10 @@ func (cs Coins) Validate() error {
 			return err
 		}
 		if c.IsZero() {
-			return ErrInvalidWallet("Zero coins")
+			return InvalidWalletErr.New("zero coins")
 		}
 		if c.Ticker < last {
-			return ErrInvalidWallet("Not sorted")
+			return InvalidWalletErr.New("not sorted")
 		}
 		last = c.Ticker
 	}

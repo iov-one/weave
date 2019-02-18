@@ -5,6 +5,7 @@ import (
 
 	"github.com/pkg/errors"
 )
+
 // Global error registry, codes 1-99 are reserved for global errors, 0 is reserved for non-errors
 var (
 
@@ -101,13 +102,14 @@ func (e Error) ABCICode() uint32 { return e.code }
 // this error. Below two lines are equal
 //   e.New("my description")
 //   Wrap(e, "my description")
-func (e Error) New(description string) error {
-	return Wrap(e, description)
+// Allows sprintf format and vararg
+func (e Error) New(description string, args ...interface{}) error {
+	return Wrap(e, fmt.Sprintf(description, args...))
 }
 
 // Is is a proxy helper for global Is to be able to easily instantiate and match error codes
 // for example in tests
-func(e Error) Is(err error) bool {
+func (e Error) Is(err error) bool {
 	return Is(e.New(""), err)
 }
 

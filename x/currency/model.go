@@ -65,7 +65,7 @@ func (b *TokenInfoBucket) Save(db weave.KVStore, obj orm.Object) error {
 		return errors.WithType(errors.InvalidModelErr, obj.Value())
 	}
 	if n := string(obj.Key()); !x.IsCC(n) {
-		return x.ErrInvalidCurrency(n)
+		return x.InvalidCurrencyErr.New(n)
 	}
 	return b.Bucket.Save(db, obj)
 }

@@ -126,7 +126,7 @@ func TestFees(t *testing.T) {
 			[]orm.Object{must(WalletWith(perm.Address(), &cash))},
 			&FeeInfo{Fees: &min},
 			x.NewCoin(0, 1000, "NOT"),
-			x.IsInvalidCurrencyErr,
+			x.InvalidCurrencyErr.Is,
 		},
 		// has the cash, but didn't offer enough fees
 		9: {

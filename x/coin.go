@@ -60,7 +60,7 @@ func (c Coin) ID() string {
 //   c.Add(o.Negative())
 func (c Coin) Add(o Coin) (Coin, error) {
 	if !c.SameType(o) {
-		err := ErrInvalidCurrency(c.Ticker, o.Ticker)
+		err := InvalidCurrencyErr.New("%s vs %s", c.Ticker, o.Ticker)
 		return Coin{}, err
 	}
 	c.Whole += o.Whole
@@ -172,18 +172,18 @@ func (c *Coin) Clone() *Coin {
 // logic
 func (c Coin) Validate() error {
 	if !IsCC(c.Ticker) {
-		return ErrInvalidCurrency(c.Ticker)
+		return InvalidCurrencyErr.New(c.Ticker)
 	}
 	if c.Whole < MinInt || c.Whole > MaxInt {
-		return ErrOutOfRange(c)
+		return InvalidCoinErr.New(outOfRangeErr)
 	}
 	if c.Fractional < MinFrac || c.Fractional > MaxFrac {
-		return ErrOutOfRange(c)
+		return InvalidCoinErr.New(outOfRangeErr)
 	}
 	// make sure signs match
 	if c.Whole != 0 && c.Fractional != 0 &&
 		((c.Whole > 0) != (c.Fractional > 0)) {
-		return ErrMismatchedSign(c)
+		return InvalidCoinErr.New("mismatched sign")
 	}
 
 	return nil
@@ -216,7 +216,7 @@ func (c Coin) normalize() (Coin, error) {
 
 	// return error if integer is out of range
 	if c.Whole < MinInt || c.Whole > MaxInt {
-		return Coin{}, ErrOutOfRange(c)
+		return Coin{}, InvalidCoinErr.New(outOfRangeErr)
 	}
 	return c, nil
 }
