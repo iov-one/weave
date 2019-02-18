@@ -55,6 +55,16 @@ deps: tools
 tools:
 	@go get github.com/golang/dep/cmd/dep
 
+lint: prototool-bin
+	prototool lint
+
+prototool-bin:
+ifndef $(shell command -v prototool help > /dev/null)
+	@@curl -sSL https://github.com/uber/prototool/releases/download/v1.3.0/prototool-$(shell uname -s)-$(shell uname -m) -o $(HOME)/.bin/prototool
+	@@chmod +x $(HOME)/.bin/prototool
+endif
+
+
 protoc:
 	protoc --gogofaster_out=. app/*.proto
 	protoc --gogofaster_out=. crypto/*.proto
@@ -62,9 +72,6 @@ protoc:
 	protoc --gogofaster_out=. x/*.proto
 	protoc --gogofaster_out=. -I=. -I=$(GOPATH)/src x/nft/*.proto
 	protoc --gogofaster_out=. -I=. -I=$(GOPATH)/src cmd/bnsd/x/nft/username/*.proto
-	protoc --gogofaster_out=. -I=. -I=$(GOPATH)/src cmd/bnsd/x/nft/blockchain/*.proto
-	protoc --gogofaster_out=. -I=. -I=$(GOPATH)/src cmd/bnsd/x/nft/ticker/*.proto
-	protoc --gogofaster_out=. -I=. -I=$(GOPATH)/src cmd/bnsd/x/nft/bootstrap_node/*.proto
 	protoc --gogofaster_out=. -I=. -I=$(GOPATH)/src x/cash/*.proto
 	protoc --gogofaster_out=. -I=. -I=$(GOPATH)/src x/sigs/*.proto
 	protoc --gogofaster_out=. -I=. -I=$(GOPATH)/src x/multisig/*.proto

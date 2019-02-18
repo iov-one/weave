@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/iov-one/weave"
-	"github.com/iov-one/weave/cmd/bnsd/x/nft/blockchain"
 	"github.com/iov-one/weave/cmd/bnsd/x/nft/username"
 	"github.com/iov-one/weave/store"
 	"github.com/iov-one/weave/x"
@@ -26,14 +25,11 @@ func TestHandleIssueTokenMsg(t *testing.T) {
 
 	db := store.MemStore()
 	bucket := username.NewBucket()
-	blockchains := blockchain.NewBucket()
-	b, _ := blockchains.Create(db, anybody.Address(), []byte("myNet"), nil, blockchain.Chain{MainTickerID: []byte("IOV")}, blockchain.IOV{Codec: "asd"})
-	blockchains.Save(db, b)
 
 	o, _ := bucket.Create(db, bob.Address(), []byte("existing@example.com"), nil, []username.ChainAddress{{BlockchainID: []byte("myNet"), Address: "bobsChainAddress"}})
 	bucket.Save(db, o)
 
-	handler := username.NewIssueHandler(helpers.Authenticate(alice), nil, bucket, blockchains)
+	handler := username.NewIssueHandler(helpers.Authenticate(alice), nil, bucket)
 	// when
 	myNewChainAddresses := []username.ChainAddress{{BlockchainID: []byte("myNet"), Address: "anyChainAddress"}}
 	specs := []struct {
@@ -165,11 +161,7 @@ func TestIssueUsernameTx(t *testing.T) {
 	_, alice := helpers.MakeKey()
 
 	db := store.MemStore()
-	blockchains := blockchain.NewBucket()
-	b, _ := blockchains.Create(db, alice.Address(), []byte("myNet"), nil, blockchain.Chain{MainTickerID: []byte("IOV")}, blockchain.IOV{Codec: "asd"})
-	blockchains.Save(db, b)
-
-	handler := username.NewIssueHandler(helpers.Authenticate(alice), nil, username.NewBucket(), blockchains)
+	handler := username.NewIssueHandler(helpers.Authenticate(alice), nil, username.NewBucket())
 
 	// when
 	tx := helpers.MockTx(&username.IssueTokenMsg{
@@ -247,11 +239,6 @@ func TestAddChainAddress(t *testing.T) {
 
 	db := store.MemStore()
 	bucket := username.NewBucket()
-	blockchains := blockchain.NewBucket()
-	for _, blockchainID := range []string{"myNet", "myOtherNet", "myNextNet"} {
-		b, _ := blockchains.Create(db, alice.Address(), []byte(blockchainID), nil, blockchain.Chain{MainTickerID: []byte("IOV")}, blockchain.IOV{Codec: "asd"})
-		blockchains.Save(db, b)
-	}
 
 	myAddress := []username.ChainAddress{{BlockchainID: []byte("myNet"), Address: "myChainAddress"}}
 	o, _ := bucket.Create(db, alice.Address(), []byte("alice@example.com"), nil, myAddress)
@@ -268,7 +255,7 @@ func TestAddChainAddress(t *testing.T) {
 			Approvals: []nft.Approval{{Options: nft.ApprovalOptions{Count: 10, UntilBlockHeight: 5}, Address: alice.Address()}},
 		}}, myNextAddress)
 	bucket.Save(db, o)
-	handler := username.NewAddChainAddressHandler(helpers.Authenticate(alice), nil, bucket, blockchains)
+	handler := username.NewAddChainAddressHandler(helpers.Authenticate(alice), nil, bucket)
 
 	specs := []struct {
 		id              []byte

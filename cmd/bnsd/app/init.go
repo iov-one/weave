@@ -9,10 +9,10 @@ import (
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/app"
-	"github.com/iov-one/weave/cmd/bnsd/x/nft/blockchain"
-	"github.com/iov-one/weave/cmd/bnsd/x/nft/ticker"
+	"github.com/iov-one/weave/cmd/bnsd/x/nft/username"
 	"github.com/iov-one/weave/crypto"
 	"github.com/iov-one/weave/gconf"
+	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/x"
 	"github.com/iov-one/weave/x/cash"
 	"github.com/iov-one/weave/x/currency"
@@ -79,7 +79,11 @@ func GenerateApp(home string, logger log.Logger, debug bool) (abci.Application, 
 	if home != "" {
 		dbPath = filepath.Join(home, "bns.db")
 	}
-	stack := Stack(nil)
+
+	nftBuckets := map[string]orm.Bucket{
+		username.ModelName: username.NewBucket().Bucket,
+	}
+	stack := Stack(nil, nftBuckets)
 	application, err := Application("bnsd", stack, TxDecoder, dbPath, debug)
 	if err != nil {
 		return nil, err
@@ -94,8 +98,6 @@ func DecorateApp(application app.BaseApp, logger log.Logger) app.BaseApp {
 		&multisig.Initializer{},
 		&cash.Initializer{},
 		&currency.Initializer{},
-		&blockchain.Initializer{},
-		&ticker.Initializer{},
 		&validators.Initializer{},
 	))
 	application.WithLogger(logger)
@@ -104,7 +106,10 @@ func DecorateApp(application app.BaseApp, logger log.Logger) app.BaseApp {
 
 // InlineApp will take a previously prepared CommitStore and return a complete Application
 func InlineApp(kv weave.CommitKVStore, logger log.Logger, debug bool) abci.Application {
-	stack := Stack(nil)
+	nftBuckets := map[string]orm.Bucket{
+		username.ModelName: username.NewBucket().Bucket,
+	}
+	stack := Stack(nil, nftBuckets)
 	ctx := context.Background()
 	RegisterNft()
 	store := app.NewStoreApp("bnsd", kv, QueryRouter(), ctx)
