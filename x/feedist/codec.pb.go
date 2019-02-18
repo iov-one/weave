@@ -12,7 +12,7 @@
 		Recipient
 		NewRevenueMsg
 		DistributeMsg
-		UpdateRevenueMsg
+		ResetRevenueMsg
 */
 package feedist
 
@@ -156,30 +156,30 @@ func (m *DistributeMsg) GetRevenueID() []byte {
 	return nil
 }
 
-// UpdateRevenueMsg change the configuration of a revenue instance.
+// ResetRevenueMsg change the configuration of a revenue instance.
 // To assure recipients that they will receive money, every revenue update is
 // forcing funds distribution. Before applying any change all funds stored by
 // the revenue account are distributed using old configuration. Only when the
 // collected revenue amount is equal to zero the change is applied.
-type UpdateRevenueMsg struct {
+type ResetRevenueMsg struct {
 	// Revenue ID reference an ID of a revenue instance that is updated.
 	RevenueID  []byte       `protobuf:"bytes,1,opt,name=revenue_id,json=revenueId,proto3" json:"revenue_id,omitempty"`
 	Recipients []*Recipient `protobuf:"bytes,2,rep,name=recipients" json:"recipients,omitempty"`
 }
 
-func (m *UpdateRevenueMsg) Reset()                    { *m = UpdateRevenueMsg{} }
-func (m *UpdateRevenueMsg) String() string            { return proto.CompactTextString(m) }
-func (*UpdateRevenueMsg) ProtoMessage()               {}
-func (*UpdateRevenueMsg) Descriptor() ([]byte, []int) { return fileDescriptorCodec, []int{4} }
+func (m *ResetRevenueMsg) Reset()                    { *m = ResetRevenueMsg{} }
+func (m *ResetRevenueMsg) String() string            { return proto.CompactTextString(m) }
+func (*ResetRevenueMsg) ProtoMessage()               {}
+func (*ResetRevenueMsg) Descriptor() ([]byte, []int) { return fileDescriptorCodec, []int{4} }
 
-func (m *UpdateRevenueMsg) GetRevenueID() []byte {
+func (m *ResetRevenueMsg) GetRevenueID() []byte {
 	if m != nil {
 		return m.RevenueID
 	}
 	return nil
 }
 
-func (m *UpdateRevenueMsg) GetRecipients() []*Recipient {
+func (m *ResetRevenueMsg) GetRecipients() []*Recipient {
 	if m != nil {
 		return m.Recipients
 	}
@@ -191,7 +191,7 @@ func init() {
 	proto.RegisterType((*Recipient)(nil), "feedist.Recipient")
 	proto.RegisterType((*NewRevenueMsg)(nil), "feedist.NewRevenueMsg")
 	proto.RegisterType((*DistributeMsg)(nil), "feedist.DistributeMsg")
-	proto.RegisterType((*UpdateRevenueMsg)(nil), "feedist.UpdateRevenueMsg")
+	proto.RegisterType((*ResetRevenueMsg)(nil), "feedist.ResetRevenueMsg")
 }
 func (m *Revenue) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
@@ -318,7 +318,7 @@ func (m *DistributeMsg) MarshalTo(dAtA []byte) (int, error) {
 	return i, nil
 }
 
-func (m *UpdateRevenueMsg) Marshal() (dAtA []byte, err error) {
+func (m *ResetRevenueMsg) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalTo(dAtA)
@@ -328,7 +328,7 @@ func (m *UpdateRevenueMsg) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *UpdateRevenueMsg) MarshalTo(dAtA []byte) (int, error) {
+func (m *ResetRevenueMsg) MarshalTo(dAtA []byte) (int, error) {
 	var i int
 	_ = i
 	var l int
@@ -418,7 +418,7 @@ func (m *DistributeMsg) Size() (n int) {
 	return n
 }
 
-func (m *UpdateRevenueMsg) Size() (n int) {
+func (m *ResetRevenueMsg) Size() (n int) {
 	var l int
 	_ = l
 	l = len(m.RevenueID)
@@ -852,7 +852,7 @@ func (m *DistributeMsg) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *UpdateRevenueMsg) Unmarshal(dAtA []byte) error {
+func (m *ResetRevenueMsg) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -875,10 +875,10 @@ func (m *UpdateRevenueMsg) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: UpdateRevenueMsg: wiretype end group for non-group")
+			return fmt.Errorf("proto: ResetRevenueMsg: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: UpdateRevenueMsg: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: ResetRevenueMsg: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:

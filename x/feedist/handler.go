@@ -10,7 +10,7 @@ import (
 const (
 	newRevenueCost    = 0
 	distributeCost    = 0
-	updateRevenueCost = 0
+	resetRevenueCost = 0
 )
 
 // RegisterQuery registers feedlist buckets for querying.
@@ -39,7 +39,7 @@ func RegisterRoutes(r weave.Registry, auth x.Authenticator, ctrl CashController)
 		bucket: bucket,
 		ctrl:   ctrl,
 	})
-	r.Handle(pathUpdateRevenueMsg, &updateRevenueHandler{
+	r.Handle(pathResetRevenueMsg, &resetRevenueHandler{
 		auth:   auth,
 		bucket: bucket,
 		ctrl:   ctrl,
@@ -145,22 +145,22 @@ func (h *distributeHandler) validate(ctx weave.Context, db weave.KVStore, tx wea
 	return msg, nil
 }
 
-type updateRevenueHandler struct {
+type resetRevenueHandler struct {
 	auth   x.Authenticator
 	bucket *RevenueBucket
 	ctrl   CashController
 }
 
-func (h *updateRevenueHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (weave.CheckResult, error) {
+func (h *resetRevenueHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (weave.CheckResult, error) {
 	var res weave.CheckResult
 	if _, err := h.validate(ctx, db, tx); err != nil {
 		return res, err
 	}
-	res.GasAllocated += updateRevenueCost
+	res.GasAllocated += resetRevenueCost
 	return res, nil
 }
 
-func (h *updateRevenueHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (weave.DeliverResult, error) {
+func (h *resetRevenueHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (weave.DeliverResult, error) {
 	var res weave.DeliverResult
 	msg, err := h.validate(ctx, db, tx)
 	if err != nil {
@@ -188,12 +188,12 @@ func (h *updateRevenueHandler) Deliver(ctx weave.Context, db weave.KVStore, tx w
 	return res, nil
 }
 
-func (h *updateRevenueHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*UpdateRevenueMsg, error) {
+func (h *resetRevenueHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*ResetRevenueMsg, error) {
 	rmsg, err := tx.GetMsg()
 	if err != nil {
 		return nil, errors.Wrap(err, "cannot get message")
 	}
-	msg, ok := rmsg.(*UpdateRevenueMsg)
+	msg, ok := rmsg.(*ResetRevenueMsg)
 	if !ok {
 		return nil, errors.InvalidMsgErr.New("unknown transaction type")
 	}

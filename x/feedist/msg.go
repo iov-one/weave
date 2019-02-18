@@ -9,7 +9,7 @@ import (
 const (
 	pathNewRevenueMsg    = "feedist/newrevenue"
 	pathDistributeMsg    = "feedist/distribute"
-	pathUpdateRevenueMsg = "feedist/updateRevenue"
+	pathResetRevenueMsg = "feedist/resetRevenue"
 )
 
 func (msg *NewRevenueMsg) Validate() error {
@@ -45,7 +45,7 @@ func (DistributeMsg) Path() string {
 	return pathDistributeMsg
 }
 
-func (msg *UpdateRevenueMsg) Validate() error {
+func (msg *ResetRevenueMsg) Validate() error {
 	if len(msg.Recipients) == 0 {
 		return errors.InvalidMsgErr.New("at least one recipient must be given")
 	}
@@ -60,6 +60,6 @@ func (msg *UpdateRevenueMsg) Validate() error {
 	return nil
 }
 
-func (UpdateRevenueMsg) Path() string {
-	return pathUpdateRevenueMsg
+func (ResetRevenueMsg) Path() string {
+	return pathResetRevenueMsg
 }

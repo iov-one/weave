@@ -53,12 +53,12 @@ message DistributeMsg {
   bytes revenue_id = 1 [(gogoproto.customname) = "RevenueID"];
 }
 
-// UpdateRevenueMsg change the configuration of a revenue instance.
+// ResetRevenueMsg change the configuration of a revenue instance.
 // To assure recipients that they will receive money, every revenue update is
 // forcing funds distribution. Before applying any change all funds stored by
 // the revenue account are distributed using old configuration. Only when the
 // collected revenue amount is equal to zero the change is applied.
-message UpdateRevenueMsg {
+message ResetRevenueMsg {
   // Revenue ID reference an ID of a revenue instance that is updated.
   bytes revenue_id = 1 [(gogoproto.customname) = "RevenueID"];
   // Recipients holds any number of addresses that the collected revenue is

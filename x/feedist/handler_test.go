@@ -67,7 +67,7 @@ func TestHandlers(t *testing.T) {
 				},
 				{
 					conditions: []weave.Condition{src},
-					msg: &UpdateRevenueMsg{
+					msg: &ResetRevenueMsg{
 						RevenueID:  asSeqID(1),
 						Recipients: []*Recipient{},
 					},
@@ -76,7 +76,7 @@ func TestHandlers(t *testing.T) {
 				},
 				{
 					conditions: []weave.Condition{src},
-					msg: &UpdateRevenueMsg{
+					msg: &ResetRevenueMsg{
 						RevenueID: asSeqID(1),
 						Recipients: []*Recipient{
 							{Weight: 1, Address: addr1},
@@ -289,7 +289,7 @@ func TestHandlers(t *testing.T) {
 				// Distributing 3 BTC cents equally, means that 1 BTC cent will be left.
 				{
 					conditions: []weave.Condition{src},
-					msg: &UpdateRevenueMsg{
+					msg: &ResetRevenueMsg{
 						RevenueID: asSeqID(1),
 						Recipients: []*Recipient{
 							{Weight: 1234, Address: addr2},
