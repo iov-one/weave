@@ -2,6 +2,7 @@ package namecoin
 
 import (
 	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/x"
 	"github.com/iov-one/weave/x/cash"
@@ -138,7 +139,7 @@ func (b WalletBucket) GetByName(db weave.KVStore, name string) (orm.Object, erro
 // Save enforces the proper type
 func (b WalletBucket) Save(db weave.KVStore, obj orm.Object) error {
 	if _, ok := obj.Value().(*Wallet); !ok {
-		return orm.ErrInvalidObject(obj.Value())
+		return errors.WithType(errors.InvalidModelErr, obj.Value())
 	}
 	return b.Bucket.Save(db, obj)
 }

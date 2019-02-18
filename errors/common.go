@@ -209,3 +209,7 @@ func ErrModifyChainID() error {
 func IsModifyChainIDErr(err error) bool {
 	return IsSameError(errModifyChainID, err)
 }
+
+func WithType(err error, obj interface{}) error {
+	return Wrap(err, fmt.Sprintf("%T", obj))
+}

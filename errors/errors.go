@@ -5,8 +5,9 @@ import (
 
 	"github.com/pkg/errors"
 )
-
+// Global error registry, codes 1-99 are reserved for global errors, 0 is reserved for non-errors
 var (
+
 	// InternalErr represents a general case issue that cannot be
 	// categorized as any of the below cases.
 	// We start as 1 as 0 is reserved for non-errors
@@ -27,6 +28,24 @@ var (
 	// InvalidModelErr is returned whenever a message is invalid and cannot
 	// be used (ie. persisted).
 	InvalidModelErr = Register(5, "invalid model")
+
+	// DuplicateErr is returned when there is a record already that has the same
+	// unique key/index used
+	DuplicateErr = Register(6, "duplicate")
+
+	// HumanErr is returned when application reaches a code path which should not
+	// ever be reached if the code was written as expected by the framework
+	HumanErr = Register(7, "coding error")
+
+	// CannotBeModifiedErr is returned when something that is considered immutable
+	// gets modified
+	CannotBeModifiedErr = Register(8, "cannot be modified")
+
+	// EmptyError is returned when a value fails a not empty assertion
+	EmptyError = Register(9, "value is empty")
+
+	// InvalidStateErr is returned when an object is in invalid state
+	InvalidStateErr = Register(10, "invalid state")
 
 	// PanicErr is only set when we recover from a panic, so we know to redact potentially sensitive system info
 	PanicErr = Register(111222, "panic")
@@ -84,6 +103,12 @@ func (e Error) ABCICode() uint32 { return e.code }
 //   Wrap(e, "my description")
 func (e Error) New(description string) error {
 	return Wrap(e, description)
+}
+
+// Is is a proxy helper for global Is to be able to easily instantiate and match error codes
+// for example in tests
+func(e Error) Is(err error) bool {
+	return Is(e.New(""), err)
 }
 
 // Wrap extends given error with an additional information.
