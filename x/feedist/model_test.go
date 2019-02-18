@@ -1,6 +1,8 @@
 package feedist
 
 import (
+	"encoding/binary"
+	"math"
 	"testing"
 
 	"github.com/iov-one/weave"
@@ -68,4 +70,59 @@ func TestRevenueValidate(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestValidRecipients(t *testing.T) {
+	cases := map[string]struct {
+		recipients []*Recipient
+		baseErr    errors.Error
+		want       error
+	}{
+		"all good": {
+			recipients: []*Recipient{
+				{Address: weave.Address("f427d624ed29c1fae0e2"), Weight: 1},
+				{Address: weave.Address("aa27d624ed29c1fae0e2"), Weight: 2},
+			},
+			baseErr: errors.InvalidModelErr,
+			want:    nil,
+		},
+		"recipient address not unique": {
+			recipients: []*Recipient{
+				{Address: weave.Address("f427d624ed29c1fae0e2"), Weight: 1},
+				{Address: weave.Address("f427d624ed29c1fae0e2"), Weight: 1},
+			},
+			baseErr: errors.InvalidMsgErr,
+			want:    errors.InvalidMsgErr,
+		},
+		"too many recipients": {
+			recipients: createRecipients(maxRecipients + 1),
+			baseErr:    errors.InvalidModelErr,
+			want:       errors.InvalidModelErr,
+		},
+		"weight too big": {
+			recipients: []*Recipient{
+				{Address: weave.Address("f427d624ed29c1fae0e2"), Weight: math.MaxInt32 - 1},
+			},
+			baseErr: errors.InvalidMsgErr,
+			want:    errors.InvalidMsgErr,
+		},
+	}
+
+	for testName, tc := range cases {
+		t.Run(testName, func(t *testing.T) {
+			if err := validateRecipients(tc.recipients, tc.baseErr); !errors.Is(tc.want, err) {
+				t.Fatalf("%+v", err)
+			}
+		})
+	}
+}
+
+func createRecipients(amount int) []*Recipient {
+	rs := make([]*Recipient, amount)
+	addr := make([]byte, 8)
+	for i := range rs {
+		binary.BigEndian.PutUint64(addr, uint64(i))
+		rs[i] = &Recipient{Address: addr, Weight: int32(i%100 + 1)}
+	}
+	return rs
 }

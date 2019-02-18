@@ -118,7 +118,7 @@ func TestHandlers(t *testing.T) {
 						Recipients: []*Recipient{
 							// There is only one recipient with a ridiculously high weight.
 							// All funds should be send to this account.
-							{Weight: 123456789, Address: addr1},
+							{Weight: 1234, Address: addr1},
 						},
 					},
 					blocksize:      100,

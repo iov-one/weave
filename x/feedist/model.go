@@ -2,6 +2,7 @@ package feedist
 
 import (
 	"fmt"
+	"math"
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
@@ -14,19 +15,63 @@ func (rev *Revenue) Validate() error {
 	if err := rev.Admin.Validate(); err != nil {
 		return errors.Wrap(err, "invalid admin signature")
 	}
-	if len(rev.Recipients) == 0 {
-		return errors.InvalidModelErr.New("no recipients")
-	}
-	for i, r := range rev.Recipients {
-		if err := r.Address.Validate(); err != nil {
-			return errors.Wrap(err, fmt.Sprintf("recipient %d address", i))
-		}
-		if r.Weight <= 0 {
-			return errors.InvalidModelErr.New(fmt.Sprintf("recipient %d invalid weight", i))
-		}
+	if err := validateRecipients(rev.Recipients, errors.InvalidModelErr); err != nil {
+		return err
 	}
 	return nil
 }
+
+// validateRecipients returns an error if given list of recipients is not
+// valid. This functionality is used in many places (model and messages),
+// having it abstracted saves repeating validation code.
+// Model validation returns different class of error than message validation,
+// that is why require base error class to be given.
+func validateRecipients(rs []*Recipient, baseErr errors.Error) error {
+	switch n := len(rs); {
+	case n == 0:
+		return baseErr.New("no recipients")
+	case n > maxRecipients:
+		return baseErr.New("too many recipients")
+	}
+
+	// Recipient address must not repeat. Repeating addresses would not
+	// cause an issue, but requiring them to be unique increase
+	// configuration clarity.
+	addresses := make(map[string]struct{})
+
+	for i, r := range rs {
+		switch {
+		case r.Weight <= 0:
+			return baseErr.New(fmt.Sprintf("recipient %d invalid weight", i))
+		case r.Weight > maxWeight:
+			return baseErr.New(fmt.Sprintf("weight must not be greater than %d", maxWeight))
+		}
+
+		if err := r.Address.Validate(); err != nil {
+			return errors.Wrap(err, fmt.Sprintf("recipient %d address", i))
+		}
+		addr := r.Address.String()
+		if _, ok := addresses[addr]; ok {
+			return baseErr.New(fmt.Sprintf("address %q is not unique", addr))
+		}
+		addresses[addr] = struct{}{}
+
+	}
+
+	return nil
+}
+
+const (
+	// maxRecipients defines the maximum number of recipients allowed within a
+	// single revenue. This is a high number that should not be an issue in real
+	// life scenarios. But having a sane limit allows us to avoid attacks.
+	maxRecipients = 200
+
+	// maxWeight defines the maximum value for the recipient weight. This
+	// is a high number that for all recipient of a given revenue, when
+	// combined does not exceed int32 capacity.
+	maxWeight = math.MaxInt32 / (maxRecipients + 1)
+)
 
 func (rev *Revenue) Copy() orm.CloneableData {
 	cpy := &Revenue{
