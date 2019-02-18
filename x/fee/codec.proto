@@ -7,13 +7,6 @@ import "github.com/iov-one/weave/x/codec.proto";
 // TransactionFee represents a fee that has to be deducted for each transaction
 // of a given type. No fee is deducted if this is not configured for a certain transaction
 message TransactionFee {
-  // This is a message path, every transaction message that exists in weave has a Path() which returns it's unique Path
-  // for routing to the right handler, which could also be used to iniquely identify them when matching a message to a
-  // fee
-  string msg_path = 1;
-  // This field is used to identify dynamic fees, e.g. when we have different fees for nft issuing per namespace
-  // when this field is empty - it's a default value for all of the transactions of msg_path type
-  string msg_type_id = 2;
-  // Fee amount, currently IOV token only
-  x.Coin fee = 3;
+  // Fee definition, we ignore ticker and always set it to IOV a discussed
+  x.Coin fee = 1;
 }
