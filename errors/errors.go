@@ -48,6 +48,9 @@ var (
 	// InvalidStateErr is returned when an object is in invalid state
 	InvalidStateErr = Register(10, "invalid state")
 
+	// InvalidTypeErr is returned whenever the type is not what was expected
+	InvalidTypeErr = Register(11, "invalid type")
+
 	// PanicErr is only set when we recover from a panic, so we know to redact potentially sensitive system info
 	PanicErr = Register(111222, "panic")
 )

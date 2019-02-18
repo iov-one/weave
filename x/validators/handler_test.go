@@ -58,10 +58,10 @@ func TestHandler(t *testing.T) {
 				handler := NewUpdateHandler(auth2, ctrl, authCheckAddress)
 
 				_, err := handler.Deliver(nil, kv, tx)
-				So(err.Error(), ShouldResemble, errors.ErrUnauthorized().Error())
+				So(errors.Is(err, errors.UnauthorizedErr), ShouldBeTrue)
 
 				_, err = handler.Check(nil, kv, tx)
-				So(err.Error(), ShouldResemble, errors.ErrUnauthorized().Error())
+				So(errors.Is(err, errors.UnauthorizedErr), ShouldBeTrue)
 			})
 
 			Convey("With an invalid message", func() {

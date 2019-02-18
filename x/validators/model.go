@@ -2,6 +2,7 @@ package validators
 
 import (
 	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/orm"
 )
 
@@ -69,13 +70,13 @@ func GetAccounts(bucket orm.Bucket, kv weave.KVStore) (*Accounts, error) {
 	}
 
 	if res == nil {
-		return nil, ErrNotFound("account")
+		return nil, errors.NotFoundErr.New("account not found")
 	}
 	switch t := res.Value().(type) {
 	case *Accounts:
 		return t, nil
 	default:
-		return nil, ErrWrongType(t)
+		return nil, errors.WithType(errors.InvalidTypeErr, t)
 	}
 
 }
