@@ -510,6 +510,22 @@ func TestDistribute(t *testing.T) {
 				{dst: weave.Address("address-2"), amount: x.NewCoin(0, x.FracUnit/3*2, "BTC")},
 			},
 		},
+		"whole split into fractions": {
+			recipients: []*Recipient{
+				{Address: weave.Address("address-1"), Weight: 1},
+				{Address: weave.Address("address-2"), Weight: 2},
+			},
+			ctrl: &testController{
+				balance: x.Coins{coinp(2, 0, "BTC")},
+			},
+			wantErr: nil,
+			wantMoves: []movecall{
+				// One cent is left on the revenue account,
+				// because it is too small to divide.
+				{dst: weave.Address("address-1"), amount: x.NewCoin(0, 666666666, "BTC")},
+				{dst: weave.Address("address-2"), amount: x.NewCoin(1, 333333332, "BTC")},
+			},
+		},
 	}
 
 	for testName, tc := range cases {
