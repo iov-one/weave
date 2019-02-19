@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/iov-one/weave/errors"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -331,6 +332,7 @@ func TestCoinDivide(t *testing.T) {
 		pieces   int64
 		wantOne  Coin
 		wantRest Coin
+		wantErr  error
 	}{
 		"split into one piece": {
 			total:    NewCoin(7, 11, "BTC"),
@@ -367,12 +369,14 @@ func TestCoinDivide(t *testing.T) {
 			pieces:   0,
 			wantOne:  NewCoin(0, 0, "BTC"),
 			wantRest: NewCoin(0, 0, "BTC"),
+			wantErr:  errors.ErrRuntime,
 		},
 		"negative pieces": {
 			total:    NewCoin(999, 0, "BTC"),
 			pieces:   -1,
 			wantOne:  NewCoin(0, 0, "BTC"),
 			wantRest: NewCoin(0, 0, "BTC"),
+			wantErr:  errors.ErrRuntime,
 		},
 		"split fractional 2 by 3 should return 2 as leftover": {
 			total:    NewCoin(0, 2, "BTC"),
@@ -384,12 +388,15 @@ func TestCoinDivide(t *testing.T) {
 
 	for testName, tc := range cases {
 		t.Run(testName, func(t *testing.T) {
-			gotOne, gotRest := tc.total.Divide(tc.pieces)
+			gotOne, gotRest, err := tc.total.Divide(tc.pieces)
 			if !gotOne.Equals(tc.wantOne) {
 				t.Errorf("got one %v", gotOne)
 			}
 			if !gotRest.Equals(tc.wantRest) {
 				t.Errorf("got rest %v", gotRest)
+			}
+			if !errors.Is(tc.wantErr, err) {
+				t.Errorf("got err %+v", err)
 			}
 		})
 	}

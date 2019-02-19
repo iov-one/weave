@@ -28,6 +28,10 @@ var (
 	// be used (ie. persisted).
 	InvalidModelErr = Register(5, "invalid model")
 
+	// ErrRuntime is returned when the program cannot continue due to
+	// an invalid arguments.
+	ErrRuntime = Register(6, "runtime error")
+
 	// PanicErr is only set when we recover from a panic, so we know to redact potentially sensitive system info
 	PanicErr = Register(111222, "panic")
 )

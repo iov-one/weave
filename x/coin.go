@@ -2,6 +2,8 @@ package x
 
 import (
 	"regexp"
+
+	"github.com/iov-one/weave/errors"
 )
 
 //-------------- Coin -----------------------
@@ -58,11 +60,11 @@ func (c Coin) ID() string {
 // For example splitting 4 EUR into 3 pieces will result in a single piece
 // being 1.33 EUR and 1 cent returned as the rest (leftover).
 //   4 = 1.33 x 3 + 1
-func (c Coin) Divide(pieces int64) (one, rest Coin) {
+func (c Coin) Divide(pieces int64) (Coin, Coin, error) {
 	// This is an invalid use of the method.
 	if pieces <= 0 {
 		zero := Coin{Ticker: c.Ticker}
-		return zero, zero
+		return zero, zero, errors.Wrap(errors.ErrRuntime, "pieces must be greater than zero")
 	}
 
 	// When dividing whole and there is a leftover then convert it to
@@ -72,17 +74,17 @@ func (c Coin) Divide(pieces int64) (one, rest Coin) {
 		fractional += leftover * FracUnit
 	}
 
-	one = Coin{
+	one := Coin{
 		Ticker:     c.Ticker,
 		Whole:      c.Whole / pieces,
 		Fractional: fractional / pieces,
 	}
-	rest = Coin{
+	rest := Coin{
 		Ticker:     c.Ticker,
 		Whole:      0, // This we can always divide.
 		Fractional: fractional % pieces,
 	}
-	return one, rest
+	return one, rest, nil
 }
 
 // Multiply returns the result of a coin value multiplication.
