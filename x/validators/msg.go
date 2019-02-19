@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/errors"
 	abci "github.com/tendermint/tendermint/abci/types"
 )
 
@@ -20,10 +21,10 @@ func (*SetValidatorsMsg) Path() string {
 func (m ValidatorUpdate) Validate() error {
 	if len(m.Pubkey.Data) != 32 ||
 		strings.ToLower(m.Pubkey.Type) != "ed25519" {
-		return InvalidPubKeyErr
+		return InvalidPubKeyErr.New(m.Pubkey.Type)
 	}
 	if m.Power < 0 {
-		return InvalidPower
+		return InvalidPower.Newf("%d", m.Power)
 	}
 	return nil
 }
@@ -44,7 +45,7 @@ func (m Pubkey) AsABCI() abci.PubKey {
 
 func (m *SetValidatorsMsg) Validate() error {
 	if len(m.ValidatorUpdates) == 0 {
-		return EmptyValidatorErr
+		return errors.EmptyError.New("validator set")
 	}
 	for _, v := range m.ValidatorUpdates {
 		if err := v.Validate(); err != nil {
