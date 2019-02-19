@@ -29,17 +29,17 @@ func TestChecks(t *testing.T) {
 		{ErrTooLarge(), IsDecodingErr, true},
 		{ErrDecoding(), IsTooLargeErr, false},
 
-		{ErrUnauthorized(), IsDecodingErr, false},
-		{ErrUnauthorized(), IsUnauthorizedErr, true},
-		// make sure lots of things match InternalErr, but not everything
-		{ErrInternal("bad db connection"), IsInternalErr, true},
+		{ErrUnauthorizedLegacy(), IsDecodingErr, false},
+		{ErrUnauthorizedLegacy(), IsUnauthorizedErr, true},
+		// make sure lots of things match ErrInternal, but not everything
+		{ErrInternalLegacy("bad db connection"), IsInternalErr, true},
 		{Wrap(fmt.Errorf("wrapped"), "wrapped"), IsInternalErr, true},
 		{fmt.Errorf("wrapped"), IsInternalErr, true},
-		{ErrUnauthorized(), IsInternalErr, false},
+		{ErrUnauthorizedLegacy(), IsInternalErr, false},
 
 		{ErrMissingSignature(), IsUnauthorizedErr, true},
 		{ErrMissingSignature(), IsMissingSignatureErr, true},
-		{ErrUnauthorized(), IsMissingSignatureErr, false},
+		{ErrUnauthorizedLegacy(), IsMissingSignatureErr, false},
 		{ErrInvalidSignature(), IsUnauthorizedErr, true},
 		{ErrInvalidSignature(), IsInvalidSignatureErr, true},
 
@@ -68,10 +68,10 @@ func TestLog(t *testing.T) {
 		{Wrap(fmt.Errorf("wrapped"), ""), IsInternalErr, ": wrapped"},
 
 		// with code shouldn't change the error message
-		{WithCode(ErrUnauthorized(), CodeTxParseError), IsDecodingErr, "(2) Unauthorized"},
+		{WithCode(ErrUnauthorizedLegacy(), CodeTxParseError), IsDecodingErr, "(2) Unauthorized"},
 
 		// with log should add some in front
-		{WithLog("Special", ErrUnauthorized(), CodeInternalErr), IsInternalErr, "(1) Special: Unauthorized"},
+		{WithLog("Special", ErrUnauthorizedLegacy(), CodeInternalErr), IsInternalErr, "(1) Special: Unauthorized"},
 
 		// verify some standard message types with prefixes
 		{ErrUnrecognizedAddress([]byte{0, 0x12, 0x77}), IsUnrecognizedAddressErr, "(5) 001277: Unrecognized Address"},

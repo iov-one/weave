@@ -125,7 +125,7 @@ func (h CreateEscrowHandler) validate(ctx weave.Context, db weave.KVStore,
 	if msg.Src != nil {
 		sender := weave.Address(msg.Src)
 		if !h.auth.HasAddress(ctx, sender) {
-			return nil, errors.ErrUnauthorized()
+			return nil, errors.ErrUnauthorizedLegacy()
 		}
 	}
 
@@ -222,7 +222,7 @@ func (h ReleaseEscrowHandler) validate(ctx weave.Context, db weave.KVStore,
 	arb := weave.Condition(escrow.Arbiter).Address()
 	sender := weave.Address(escrow.Sender)
 	if !h.auth.HasAddress(ctx, arb) && !h.auth.HasAddress(ctx, sender) {
-		return nil, nil, errors.ErrUnauthorized()
+		return nil, nil, errors.ErrUnauthorizedLegacy()
 	}
 
 	// timeout must not have expired
@@ -400,19 +400,19 @@ func (h UpdateEscrowHandler) validate(ctx weave.Context, db weave.KVStore,
 	if msg.Sender != nil {
 		sender := weave.Address(escrow.Sender)
 		if !h.auth.HasAddress(ctx, sender) {
-			return nil, nil, errors.ErrUnauthorized()
+			return nil, nil, errors.ErrUnauthorizedLegacy()
 		}
 	}
 	if msg.Recipient != nil {
 		rcpt := weave.Address(escrow.Recipient)
 		if !h.auth.HasAddress(ctx, rcpt) {
-			return nil, nil, errors.ErrUnauthorized()
+			return nil, nil, errors.ErrUnauthorizedLegacy()
 		}
 	}
 	if msg.Arbiter != nil {
 		arbiter := weave.Condition(escrow.Arbiter).Address()
 		if !h.auth.HasAddress(ctx, arbiter) {
-			return nil, nil, errors.ErrUnauthorized()
+			return nil, nil, errors.ErrUnauthorizedLegacy()
 		}
 	}
 

@@ -66,7 +66,7 @@ func NewContractBucket() ContractBucket {
 // Save enforces the proper type
 func (b ContractBucket) Save(db weave.KVStore, obj orm.Object) error {
 	if _, ok := obj.Value().(*Contract); !ok {
-		return errors.WithType(errors.InvalidModelErr, obj.Value())
+		return errors.WithType(errors.ErrInvalidModel, obj.Value())
 	}
 	return b.Bucket.Save(db, obj)
 }

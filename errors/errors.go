@@ -9,50 +9,50 @@ import (
 // Global error registry, codes 1-99 are reserved for global errors, 0 is reserved for non-errors
 var (
 
-	// InternalErr represents a general case issue that cannot be
+	// ErrInternal represents a general case issue that cannot be
 	// categorized as any of the below cases.
 	// We start as 1 as 0 is reserved for non-errors
-	InternalErr = Register(1, "internal")
+	ErrInternal = Register(1, "internal")
 
-	// UnauthorizedErr is used whenever a request without sufficient
+	// ErrUnauthorized is used whenever a request without sufficient
 	// authorization is handled.
-	UnauthorizedErr = Register(2, "unauthorized")
+	ErrUnauthorized = Register(2, "unauthorized")
 
-	// NotFoundErr is used when a requested operation cannot be completed
+	// ErrNotFound is used when a requested operation cannot be completed
 	// due to missing data.
-	NotFoundErr = Register(3, "not found")
+	ErrNotFound = Register(3, "not found")
 
-	// InvalidMsgErr is returned whenever an event is invalid and cannot be
+	// ErrInvalidMsg is returned whenever an event is invalid and cannot be
 	// handled.
-	InvalidMsgErr = Register(4, "invalid message")
+	ErrInvalidMsg = Register(4, "invalid message")
 
-	// InvalidModelErr is returned whenever a message is invalid and cannot
+	// ErrInvalidModel is returned whenever a message is invalid and cannot
 	// be used (ie. persisted).
-	InvalidModelErr = Register(5, "invalid model")
+	ErrInvalidModel = Register(5, "invalid model")
 
-	// DuplicateErr is returned when there is a record already that has the same
+	// ErrDuplicate is returned when there is a record already that has the same
 	// unique key/index used
-	DuplicateErr = Register(6, "duplicate")
+	ErrDuplicate = Register(6, "duplicate")
 
-	// HumanErr is returned when application reaches a code path which should not
+	// ErrHuman is returned when application reaches a code path which should not
 	// ever be reached if the code was written as expected by the framework
-	HumanErr = Register(7, "coding error")
+	ErrHuman = Register(7, "coding error")
 
-	// CannotBeModifiedErr is returned when something that is considered immutable
+	// ErrCannotBeModified is returned when something that is considered immutable
 	// gets modified
-	CannotBeModifiedErr = Register(8, "cannot be modified")
+	ErrCannotBeModified = Register(8, "cannot be modified")
 
-	// EmptyError is returned when a value fails a not empty assertion
-	EmptyError = Register(9, "value is empty")
+	// ErrEmpty is returned when a value fails a not empty assertion
+	ErrEmpty = Register(9, "value is empty")
 
-	// InvalidStateErr is returned when an object is in invalid state
-	InvalidStateErr = Register(10, "invalid state")
+	// ErrInvalidState is returned when an object is in invalid state
+	ErrInvalidState = Register(10, "invalid state")
 
-	// InvalidTypeErr is returned whenever the type is not what was expected
-	InvalidTypeErr = Register(11, "invalid type")
+	// ErrInvalidType is returned whenever the type is not what was expected
+	ErrInvalidType = Register(11, "invalid type")
 
-	// PanicErr is only set when we recover from a panic, so we know to redact potentially sensitive system info
-	PanicErr = Register(111222, "panic")
+	// ErrPanic is only set when we recover from a panic, so we know to redact potentially sensitive system info
+	ErrPanic = Register(111222, "panic")
 )
 
 // Register returns an error instance that should be used as the base for
@@ -166,12 +166,12 @@ func (e *wrappedError) Error() string {
 
 func (e *wrappedError) ABCICode() uint32 {
 	if e.Parent == nil {
-		return InternalErr.code
+		return ErrInternal.code
 	}
 	if p, ok := e.Parent.(coder); ok {
 		return p.ABCICode()
 	}
-	return InternalErr.code
+	return ErrInternal.code
 }
 
 func (e *wrappedError) ABCILog() string {
@@ -195,7 +195,7 @@ func (e *wrappedError) Cause() error {
 }
 
 // Is returns true if both errors represent the same class of issue. For
-// example, both errors' root cause is NotFoundErr.
+// example, both errors' root cause is ErrNotFound.
 //
 // If two errors are not the same instance, Is always returns false if at least
 // one of the errors is internal. This is because all external errors (created
@@ -213,11 +213,11 @@ func Is(a, b error) bool {
 	// Two errors are equal only if none of them is internal and they have
 	// the same ABCICode.
 	ac, ok := a.(coder)
-	if !ok || ac.ABCICode() == InternalErr.code {
+	if !ok || ac.ABCICode() == ErrInternal.code {
 		return false
 	}
 	bc, ok := b.(coder)
-	if !ok || bc.ABCICode() == InternalErr.code {
+	if !ok || bc.ABCICode() == ErrInternal.code {
 		return false
 	}
 	return ac.ABCICode() == bc.ABCICode()

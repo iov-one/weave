@@ -37,7 +37,7 @@ func (NewTokenMsg) Path() string {
 // Validate makes sure that this is sensible
 func (t *NewTokenMsg) Validate() error {
 	if !x.IsCC(t.Ticker) {
-		return x.InvalidCurrencyErr.New(t.Ticker)
+		return x.ErrInvalidCurrency.New(t.Ticker)
 	}
 	if !IsTokenName(t.Name) {
 		return ErrInvalidTokenName(t.Name)

@@ -62,10 +62,10 @@ func (b *TokenInfoBucket) Get(db weave.KVStore, ticker string) (orm.Object, erro
 
 func (b *TokenInfoBucket) Save(db weave.KVStore, obj orm.Object) error {
 	if _, ok := obj.Value().(*TokenInfo); !ok {
-		return errors.WithType(errors.InvalidModelErr, obj.Value())
+		return errors.WithType(errors.ErrInvalidModel, obj.Value())
 	}
 	if n := string(obj.Key()); !x.IsCC(n) {
-		return x.InvalidCurrencyErr.New(n)
+		return x.ErrInvalidCurrency.New(n)
 	}
 	return b.Bucket.Save(db, obj)
 }

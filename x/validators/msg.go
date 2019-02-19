@@ -21,10 +21,10 @@ func (*SetValidatorsMsg) Path() string {
 func (m ValidatorUpdate) Validate() error {
 	if len(m.Pubkey.Data) != 32 ||
 		strings.ToLower(m.Pubkey.Type) != "ed25519" {
-		return InvalidPubKeyErr.New(m.Pubkey.Type)
+		return ErrInvalidPubKey.New(m.Pubkey.Type)
 	}
 	if m.Power < 0 {
-		return InvalidPower.Newf("%d", m.Power)
+		return ErrInvalidPower.Newf("%d", m.Power)
 	}
 	return nil
 }
@@ -45,7 +45,7 @@ func (m Pubkey) AsABCI() abci.PubKey {
 
 func (m *SetValidatorsMsg) Validate() error {
 	if len(m.ValidatorUpdates) == 0 {
-		return errors.EmptyError.New("validator set")
+		return errors.ErrEmpty.New("validator set")
 	}
 	for _, v := range m.ValidatorUpdates {
 		if err := v.Validate(); err != nil {
