@@ -60,7 +60,7 @@ func (c Coin) ID() string {
 //   c.Add(o.Negative())
 func (c Coin) Add(o Coin) (Coin, error) {
 	if !c.SameType(o) {
-		err := InvalidCurrencyErr.New("%s vs %s", c.Ticker, o.Ticker)
+		err := InvalidCurrencyErr.Newf("%s vs %s", c.Ticker, o.Ticker)
 		return Coin{}, err
 	}
 	c.Whole += o.Whole
