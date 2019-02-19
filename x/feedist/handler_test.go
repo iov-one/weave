@@ -405,6 +405,51 @@ func coinp(w, f int64, ticker string) *x.Coin {
 	return &c
 }
 
+func TestFindGdc(t *testing.T) {
+	cases := map[string]struct {
+		want   int32
+		values []int32
+	}{
+		"empty": {
+			want:   0,
+			values: nil,
+		},
+		"one element": {
+			want:   7,
+			values: []int32{7},
+		},
+		"two elements": {
+			want:   3,
+			values: []int32{9, 6},
+		},
+		"three elements": {
+			want:   3,
+			values: []int32{9, 3, 6},
+		},
+		"four elements": {
+			want:   6,
+			values: []int32{12, 6, 18},
+		},
+		"less common divisors": {
+			want:   2,
+			values: []int32{24, 12, 64, 18},
+		},
+		"prime numbers": {
+			want:   1,
+			values: []int32{67, 71, 73, 79, 83, 89, 97},
+		},
+	}
+
+	for testName, tc := range cases {
+		t.Run(testName, func(t *testing.T) {
+			got := findGcd(tc.values...)
+			if got != tc.want {
+				t.Fatalf("want %d, got %d", tc.want, got)
+			}
+		})
+	}
+}
+
 func TestDistribute(t *testing.T) {
 	cases := map[string]struct {
 		recipients []*Recipient

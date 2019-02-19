@@ -1,7 +1,6 @@
 package feedist
 
 import (
-	"fmt"
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/orm"
@@ -211,10 +210,22 @@ func (h *updateRevenueHandler) validate(ctx weave.Context, db weave.KVStore, tx 
 // It might be that not all funds can be distributed equally. Because of that a
 // small leftover can remain on the revenue account after this operation.
 func distribute(db weave.KVStore, ctrl CashController, source weave.Address, recipients []*Recipient) error {
-	var totalWeight int64
+	var chunks int64
 	for _, r := range recipients {
-		totalWeight += int64(r.Weight)
+		chunks += int64(r.Weight)
 	}
+
+	// Find the greatest common division for all weights. This is needed to
+	// avoid leaving big fund leftovers on the source account when
+	// distributing between many recipients. Or when there is only one
+	// recipient with a high weight value.
+	var weights []int32
+	for _, r := range recipients {
+		weights = append(weights, r.Weight)
+	}
+	div := findGcd(weights...)
+
+	chunks = chunks / int64(div)
 
 	balance, err := ctrl.Balance(db, source)
 	switch {
@@ -226,6 +237,7 @@ func distribute(db weave.KVStore, ctrl CashController, source weave.Address, rec
 	default:
 		return errors.Wrap(err, "cannot acquire revenue account balance")
 	}
+
 	// TODO normalize balance. There is no functionality that allows to
 	// normalize x.Coins right now (14 Feb 2019).
 
@@ -241,17 +253,13 @@ func distribute(db weave.KVStore, ctrl CashController, source weave.Address, rec
 			continue
 		}
 
-		// store sent and rest values for sanity check
-		zeroCoin := x.NewCoin(0, 0, c.Ticker).WithIssuer(c.Issuer)
-		totalRest, totalSent := zeroCoin, zeroCoin
-
 		// Rest of the division can be ignored, because we transfer
 		// funds to each recipients separately. Any leftover will be
 		// left on the recipients account.
+		one, _ := c.Divide(chunks)
+
 		for _, r := range recipients {
-			amount, rest := c.Multiply(int64(r.Weight)).Divide(totalWeight)
-			// ignoring err as rest and totalRest always have the same currency for a balance
-			totalRest, _ = totalRest.Add(rest)
+			amount := one.Multiply(int64(r.Weight / div))
 			// Chunk is too small to be distributed.
 			if amount.IsZero() {
 				continue
@@ -259,15 +267,34 @@ func distribute(db weave.KVStore, ctrl CashController, source weave.Address, rec
 			if err := ctrl.MoveCoins(db, source, r.Address, amount); err != nil {
 				return errors.Wrap(err, "cannot move coins")
 			}
-			totalSent, _ = totalSent.Add(amount)
-		}
-		// sanity check: balance - sent  == rest
-		undistrAmount, _ := c.Subtract(totalSent)
-		if !totalRest.Equals(undistrAmount) {
-			msg := fmt.Sprintf("sanity check failed balance (%#v) - sent (%#v). Expected (%#v) but got (%#v) for the rest",
-				c, totalSent, totalRest, undistrAmount)
-			return errors.New(msg, errors.CodeInternalErr)
 		}
 	}
+
 	return nil
+}
+
+// findGcd returns greatest common division for any number of numbers.
+func findGcd(values ...int32) int32 {
+	switch len(values) {
+	case 0:
+		return 0
+	case 1:
+		return values[0]
+	}
+
+	res := values[0]
+	for i := 1; i < len(values); i++ {
+		res = gcd(res, values[i])
+	}
+	return res
+}
+
+// gcd returns greatest common division of two numbers.
+func gcd(a, b int32) int32 {
+	for b != 0 {
+		t := b
+		b = a % b
+		a = t
+	}
+	return a
 }
