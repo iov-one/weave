@@ -10,7 +10,7 @@ import (
 	"text/tabwriter"
 
 	"github.com/iov-one/weave"
-	"github.com/iov-one/weave/x/feedist"
+	"github.com/iov-one/weave/x/distribution"
 	"github.com/iov-one/weave/x/multisig"
 )
 
@@ -20,8 +20,8 @@ var converters = map[string]converter{
 	"multisig": func(i int) weave.Address {
 		return multisig.MultiSigCondition(seq(i)).Address()
 	},
-	"feedist": func(i int) weave.Address {
-		return feedist.RevenueAccount(seq(i))
+	"distribution": func(i int) weave.Address {
+		return distribution.RevenueAccount(seq(i))
 	},
 }
 
