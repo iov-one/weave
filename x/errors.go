@@ -12,5 +12,5 @@ var (
 )
 
 const (
-	outOfRangeErr = "overflow coin range"
+	outOfRange = "overflow coin range"
 )

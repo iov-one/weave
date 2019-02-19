@@ -60,7 +60,7 @@ func (c Coin) ID() string {
 //   c.Add(o.Negative())
 func (c Coin) Add(o Coin) (Coin, error) {
 	if !c.SameType(o) {
-		err := InvalidCurrencyErr.Newf("%s vs %s", c.Ticker, o.Ticker)
+		err := InvalidCurrencyErr.Newf("adding %s to %s", c.Ticker, o.Ticker)
 		return Coin{}, err
 	}
 	c.Whole += o.Whole
@@ -175,10 +175,10 @@ func (c Coin) Validate() error {
 		return InvalidCurrencyErr.New(c.Ticker)
 	}
 	if c.Whole < MinInt || c.Whole > MaxInt {
-		return InvalidCoinErr.New(outOfRangeErr)
+		return InvalidCoinErr.New(outOfRange)
 	}
 	if c.Fractional < MinFrac || c.Fractional > MaxFrac {
-		return InvalidCoinErr.New(outOfRangeErr)
+		return InvalidCoinErr.New(outOfRange)
 	}
 	// make sure signs match
 	if c.Whole != 0 && c.Fractional != 0 &&
@@ -216,7 +216,7 @@ func (c Coin) normalize() (Coin, error) {
 
 	// return error if integer is out of range
 	if c.Whole < MinInt || c.Whole > MaxInt {
-		return Coin{}, InvalidCoinErr.New(outOfRangeErr)
+		return Coin{}, InvalidCoinErr.New(outOfRange)
 	}
 	return c, nil
 }
