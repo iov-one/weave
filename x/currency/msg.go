@@ -13,7 +13,7 @@ func (NewTokenInfoMsg) Path() string {
 
 func (t *NewTokenInfoMsg) Validate() error {
 	if !x.IsCC(t.Ticker) {
-		return x.ErrInvalidCurrency(t.Ticker)
+		return x.ErrInvalidCurrency.New(t.Ticker)
 	}
 	if !isTokenName(t.Name) {
 		return ErrInvalidTokenName(t.Name)

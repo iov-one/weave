@@ -135,7 +135,7 @@ func TestNewTokenHandler(t *testing.T) {
 			errors.IsUnknownTxTypeErr, errors.IsUnknownTxTypeErr, "", nil},
 		// wrong currency values
 		1: {nil, nil, nil, BuildTokenMsg("YO", "digga", 7),
-			x.IsInvalidCurrencyErr, x.IsInvalidCurrencyErr, "", nil},
+			x.ErrInvalidCurrency.Is, x.ErrInvalidCurrency.Is, "", nil},
 		2: {nil, nil, nil, BuildTokenMsg("GOOD", "ill3glz!", 7),
 			IsInvalidToken, IsInvalidToken, "", nil},
 		3: {nil, nil, nil, BuildTokenMsg("GOOD", "my good token", 17),
@@ -240,7 +240,7 @@ func TestSetNameHandler(t *testing.T) {
 			noErr, IsInvalidWallet, nil, nil},
 		// cannot create conflict - only checked deliver?
 		8: {perm, []orm.Object{newUser, dupUser}, msg,
-			noErr, errors.DuplicateErr.Is, nil, nil},
+			noErr, errors.ErrDuplicate.Is, nil, nil},
 		// cannot change - no such a wallet (should should up by addr2 not addr)
 		9: {perm, []orm.Object{dupUser}, msg, noErr,
 			func(err error) bool { return errors.IsSameError(err, ErrNoSuchWallet(addr)) },

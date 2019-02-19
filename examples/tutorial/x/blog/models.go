@@ -117,7 +117,7 @@ func NewBlogBucket() BlogBucket {
 // Save enforces the proper type
 func (b BlogBucket) Save(db weave.KVStore, obj orm.Object) error {
 	if _, ok := obj.Value().(*Blog); !ok {
-		return errors.WithType(errors.InvalidModelErr, obj.Value())
+		return errors.WithType(errors.ErrInvalidModel, obj.Value())
 	}
 	return b.Bucket.Save(db, obj)
 }
@@ -148,11 +148,11 @@ func idxAuthor(obj orm.Object) ([]byte, error) {
 	// these should use proper errors, but they never occur
 	// except in case of developer error (wrong data in wrong bucket)
 	if obj == nil {
-		return nil, errors.HumanErr.New("Cannot take index of nil")
+		return nil, errors.ErrHuman.New("Cannot take index of nil")
 	}
 	post, ok := obj.Value().(*Post)
 	if !ok {
-		return nil, errors.HumanErr.New("Can only take index of Post")
+		return nil, errors.ErrHuman.New("Can only take index of Post")
 	}
 	return post.Author, nil
 }
@@ -160,7 +160,7 @@ func idxAuthor(obj orm.Object) ([]byte, error) {
 // Save enforces the proper type
 func (b PostBucket) Save(db weave.KVStore, obj orm.Object) error {
 	if _, ok := obj.Value().(*Post); !ok {
-		return errors.WithType(errors.InvalidModelErr, obj.Value())
+		return errors.WithType(errors.ErrInvalidModel, obj.Value())
 	}
 	return b.Bucket.Save(db, obj)
 }
@@ -189,7 +189,7 @@ func NewProfileBucket() ProfileBucket {
 // Save enforces the proper type
 func (b ProfileBucket) Save(db weave.KVStore, obj orm.Object) error {
 	if _, ok := obj.Value().(*Profile); !ok {
-		return errors.WithType(errors.InvalidModelErr, obj.Value())
+		return errors.WithType(errors.ErrInvalidModel, obj.Value())
 	}
 	return b.Bucket.Save(db, obj)
 }

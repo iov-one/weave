@@ -124,11 +124,11 @@ func NewBucket() Bucket {
 
 func getEscrow(obj orm.Object) (*Escrow, error) {
 	if obj == nil {
-		return nil, errors.HumanErr.New("Cannot take index of nil")
+		return nil, errors.ErrHuman.New("Cannot take index of nil")
 	}
 	esc, ok := obj.Value().(*Escrow)
 	if !ok {
-		return nil, errors.HumanErr.New("Can only take index of Escrow")
+		return nil, errors.ErrHuman.New("Can only take index of Escrow")
 	}
 	return esc, nil
 }
@@ -167,7 +167,7 @@ func (b Bucket) Build(db weave.KVStore, escrow *Escrow) orm.Object {
 // Save enforces the proper type
 func (b Bucket) Save(db weave.KVStore, obj orm.Object) error {
 	if _, ok := obj.Value().(*Escrow); !ok {
-		return errors.WithType(errors.InvalidModelErr, obj.Value())
+		return errors.WithType(errors.ErrInvalidModel, obj.Value())
 	}
 	return b.Bucket.Save(db, obj)
 }

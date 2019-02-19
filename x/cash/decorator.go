@@ -63,7 +63,7 @@ func (d FeeDecorator) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx,
 
 	// verify we have access to the money
 	if !d.auth.HasAddress(ctx, finfo.Payer) {
-		return res, errors.ErrUnauthorized()
+		return res, errors.ErrUnauthorizedLegacy()
 	}
 	// and have enough
 	collector := gconf.Address(store, GconfCollectorAddress)
@@ -97,7 +97,7 @@ func (d FeeDecorator) Deliver(ctx weave.Context, store weave.KVStore, tx weave.T
 
 	// verify we have access to the money
 	if !d.auth.HasAddress(ctx, finfo.Payer) {
-		return res, errors.ErrUnauthorized()
+		return res, errors.ErrUnauthorizedLegacy()
 	}
 	// and subtract it from the account
 	collector := gconf.Address(store, GconfCollectorAddress)
@@ -138,7 +138,8 @@ func (d FeeDecorator) extractFee(ctx weave.Context, tx weave.Tx, store weave.KVS
 		cmp.Ticker = fee.Ticker
 	}
 	if !fee.SameType(cmp) {
-		return nil, x.ErrInvalidCurrency("fee", fee.Ticker)
+		return nil, x.ErrInvalidCurrency.Newf("%s vs fee %s", cmp.Ticker, fee.Ticker)
+
 	}
 	if !fee.IsGTE(cmp) {
 		return nil, ErrInsufficientFees(*fee)

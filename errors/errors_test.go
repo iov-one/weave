@@ -15,44 +15,44 @@ func TestErrors(t *testing.T) {
 		wantLog  string
 	}{
 		"weave error": {
-			err:      Wrap(NotFoundErr, "404"),
-			wantRoot: NotFoundErr,
-			wantMsg:  "404: " + NotFoundErr.desc,
-			wantLog:  "404: " + NotFoundErr.desc,
+			err:      Wrap(ErrNotFound, "404"),
+			wantRoot: ErrNotFound,
+			wantMsg:  "404: " + ErrNotFound.desc,
+			wantLog:  "404: " + ErrNotFound.desc,
 		},
 		"wrap of a weave error": {
-			err:      Wrap(Wrap(NotFoundErr, "404"), "outer"),
-			wantRoot: NotFoundErr,
-			wantMsg:  "outer: 404: " + NotFoundErr.desc,
-			wantLog:  "outer: 404: " + NotFoundErr.desc,
+			err:      Wrap(Wrap(ErrNotFound, "404"), "outer"),
+			wantRoot: ErrNotFound,
+			wantMsg:  "outer: 404: " + ErrNotFound.desc,
+			wantLog:  "outer: 404: " + ErrNotFound.desc,
 		},
 		"wrap of an stdlib error": {
 			err:      Wrap(errors.New("stdlib"), "outer"),
-			wantRoot: InternalErr,
+			wantRoot: ErrInternal,
 			wantMsg:  "outer: stdlib",
 			wantLog:  "outer: stdlib",
 		},
 		"deep wrap of a weave error": {
-			err:      Wrap(Wrap(Wrap(NotFoundErr, "404"), "inner"), "outer"),
-			wantRoot: NotFoundErr,
-			wantMsg:  "outer: inner: 404: " + NotFoundErr.desc,
-			wantLog:  "outer: inner: 404: " + NotFoundErr.desc,
+			err:      Wrap(Wrap(Wrap(ErrNotFound, "404"), "inner"), "outer"),
+			wantRoot: ErrNotFound,
+			wantMsg:  "outer: inner: 404: " + ErrNotFound.desc,
+			wantLog:  "outer: inner: 404: " + ErrNotFound.desc,
 		},
 		"deep wrap of an stdlib error": {
 			err:      Wrap(Wrap(errors.New("stdlib"), "inner"), "outer"),
-			wantRoot: InternalErr,
+			wantRoot: ErrInternal,
 			wantMsg:  "outer: inner: stdlib",
 			wantLog:  "outer: inner: stdlib",
 		},
 		"normalize panic handles strings": {
 			err:      NormalizePanic("foo"),
-			wantRoot: PanicErr,
+			wantRoot: ErrPanic,
 			wantMsg:  "panic: foo",
 			wantLog:  "panic: foo",
 		},
 		"normalize panic handles errors": {
 			err:      NormalizePanic(fmt.Errorf("message")),
-			wantRoot: PanicErr,
+			wantRoot: ErrPanic,
 			wantMsg:  "panic: message",
 			wantLog:  "panic: message",
 		},
@@ -102,8 +102,8 @@ func TestIs(t *testing.T) {
 		wantIs bool
 	}{
 		"instance of the same error, even if internal": {
-			a:      InternalErr,
-			b:      InternalErr,
+			a:      ErrInternal,
+			b:      ErrInternal,
 			wantIs: true,
 		},
 		"two different internal errors": {
@@ -112,18 +112,18 @@ func TestIs(t *testing.T) {
 			wantIs: false,
 		},
 		"two different coded errors": {
-			a:      NotFoundErr,
-			b:      InvalidModelErr,
+			a:      ErrNotFound,
+			b:      ErrInvalidModel,
 			wantIs: false,
 		},
 		"two different internal and wrapped  errors": {
 			a:      Wrap(errors.New("a not found"), "where is a?"),
-			b:      Wrap(InternalErr, "b not found"),
+			b:      Wrap(ErrInternal, "b not found"),
 			wantIs: false,
 		},
 		"two equal coded errors": {
-			a:      Wrap(NotFoundErr, "a not found"),
-			b:      Wrap(NotFoundErr, "b not found"),
+			a:      Wrap(ErrNotFound, "a not found"),
+			b:      Wrap(ErrNotFound, "b not found"),
 			wantIs: true,
 		},
 	}

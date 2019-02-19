@@ -30,11 +30,11 @@ func (f feeTx) GetFees() *FeeInfo {
 }
 
 func (f feeTx) Marshal() ([]byte, error) {
-	return nil, errors.ErrInternal("TODO: not implemented")
+	return nil, errors.ErrInternalLegacy("TODO: not implemented")
 }
 
 func (f *feeTx) Unmarshal([]byte) error {
-	return errors.ErrInternal("TODO: not implemented")
+	return errors.ErrInternalLegacy("TODO: not implemented")
 }
 
 type okHandler struct{}
@@ -126,7 +126,7 @@ func TestFees(t *testing.T) {
 			[]orm.Object{must(WalletWith(perm.Address(), &cash))},
 			&FeeInfo{Fees: &min},
 			x.NewCoin(0, 1000, "NOT"),
-			x.IsInvalidCurrencyErr,
+			x.ErrInvalidCurrency.Is,
 		},
 		// has the cash, but didn't offer enough fees
 		9: {

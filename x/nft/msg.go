@@ -28,10 +28,10 @@ func (m AddApprovalMsg) Validate() error {
 		return err
 	}
 	if !isValidAction(m.Action) {
-		return errors.ErrInternal("invalid action")
+		return errors.ErrInternalLegacy("invalid action")
 	}
 	if !isValidTokenID(m.ID) {
-		return errors.ErrInternal("invalid token ID")
+		return errors.ErrInternalLegacy("invalid token ID")
 	}
 	return m.Options.Validate()
 }
@@ -41,10 +41,10 @@ func (m RemoveApprovalMsg) Validate() error {
 		return err
 	}
 	if !isValidAction(m.Action) {
-		return errors.ErrInternal("invalid action")
+		return errors.ErrInternalLegacy("invalid action")
 	}
 	if !isValidTokenID(m.ID) {
-		return errors.ErrInternal("invalid token ID")
+		return errors.ErrInternalLegacy("invalid token ID")
 	}
 	return nil
 }

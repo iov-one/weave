@@ -30,7 +30,7 @@ func NewController() BaseController {
 
 func (c BaseController) CanUpdateValidators(store weave.KVStore, checkAddress CheckAddress, diff []abci.ValidatorUpdate) ([]abci.ValidatorUpdate, error) {
 	if len(diff) == 0 {
-		return nil, ErrEmptyDiff()
+		return nil, ErrEmptyDiff
 	}
 
 	accts, err := GetAccounts(c.bucket, store)
@@ -40,7 +40,7 @@ func (c BaseController) CanUpdateValidators(store weave.KVStore, checkAddress Ch
 
 	ok := HasPermission(AsWeaveAccounts(accts), checkAddress)
 	if !ok {
-		return nil, errors.ErrUnauthorized()
+		return nil, errors.ErrUnauthorized
 	}
 
 	return diff, nil

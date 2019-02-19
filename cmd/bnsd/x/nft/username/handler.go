@@ -82,11 +82,11 @@ func (h IssueHandler) validate(ctx weave.Context, tx weave.Tx) (*IssueTokenMsg, 
 	// check permissions
 	if h.issuer != nil {
 		if !h.auth.HasAddress(ctx, h.issuer) {
-			return nil, errors.ErrUnauthorized()
+			return nil, errors.ErrUnauthorizedLegacy()
 		}
 	} else {
 		if !h.auth.HasAddress(ctx, msg.Owner) {
-			return nil, errors.ErrUnauthorized()
+			return nil, errors.ErrUnauthorizedLegacy()
 		}
 	}
 	return msg, nil
@@ -122,7 +122,7 @@ func (h AddChainAddressHandler) Deliver(ctx weave.Context, store weave.KVStore, 
 
 	actor := nft.FindActor(h.auth, ctx, t, nft.UpdateDetails)
 	if actor == nil {
-		return res, errors.ErrUnauthorized()
+		return res, errors.ErrUnauthorizedLegacy()
 	}
 	allKeys := append(t.GetChainAddresses(), ChainAddress{msg.GetBlockchainID(), msg.GetAddress()})
 	if err := t.SetChainAddresses(actor, allKeys); err != nil {
@@ -177,7 +177,7 @@ func (h RemoveChainAddressHandler) Deliver(ctx weave.Context, store weave.KVStor
 
 	actor := nft.FindActor(h.auth, ctx, t, nft.UpdateDetails)
 	if actor == nil {
-		return res, errors.ErrUnauthorized()
+		return res, errors.ErrUnauthorizedLegacy()
 	}
 	if len(t.GetChainAddresses()) == 0 {
 		return res, nft.ErrInvalidEntry([]byte("no chain to delete"))

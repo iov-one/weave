@@ -18,11 +18,11 @@ func WithOwnerIndex(bucket orm.Bucket) orm.Bucket {
 
 func ownerIndex(obj orm.Object) ([]byte, error) {
 	if obj == nil {
-		return nil, orm.InvalidIndexErr.New("nil")
+		return nil, orm.ErrInvalidIndex.New("nil")
 	}
 	o, ok := obj.Value().(Owned)
 	if !ok {
-		return nil, orm.InvalidIndexErr.New("unsupported type")
+		return nil, orm.ErrInvalidIndex.New("unsupported type")
 	}
 	return []byte(o.OwnerAddress()), nil
 }
