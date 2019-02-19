@@ -1,5 +1,5 @@
 /*
-Package feedist implements a revenue stream that is periodically distributing
+Package distribution implements a revenue stream that is periodically distributing
 collected coins between defined recipients.
 
 Revenue instance defines recipients of an income. Coins are send to a revenue
@@ -16,4 +16,4 @@ This functionality can be used to pay validators for their work. It is a
 transparent and trustful way to split income.
 
 */
-package feedist
+package distribution

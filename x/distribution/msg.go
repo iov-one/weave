@@ -1,13 +1,13 @@
-package feedist
+package distribution
 
 import (
 	"github.com/iov-one/weave/errors"
 )
 
 const (
-	pathNewRevenueMsg   = "feedist/newrevenue"
-	pathDistributeMsg   = "feedist/distribute"
-	pathResetRevenueMsg = "feedist/resetRevenue"
+	pathNewRevenueMsg   = "distribution/newrevenue"
+	pathDistributeMsg   = "distribution/distribute"
+	pathResetRevenueMsg = "distribution/resetRevenue"
 )
 
 func (msg *NewRevenueMsg) Validate() error {

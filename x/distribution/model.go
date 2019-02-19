@@ -1,4 +1,4 @@
-package feedist
+package distribution
 
 import (
 	"fmt"
@@ -118,7 +118,7 @@ func (b *RevenueBucket) Create(db weave.KVStore, rev *Revenue) (orm.Object, erro
 // RevenueAccount returns an account address that is holding funds of a revenue
 // with given ID.
 func RevenueAccount(revenueID []byte) weave.Address {
-	return weave.NewCondition("feedist", "revenue", revenueID).Address()
+	return weave.NewCondition("distribution", "revenue", revenueID).Address()
 }
 
 // Save persists the state of a given revenue entity.

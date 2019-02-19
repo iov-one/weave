@@ -1,4 +1,4 @@
-package feedist
+package distribution
 
 import (
 	"encoding/hex"
@@ -12,7 +12,7 @@ import (
 func TestGenesisKey(t *testing.T) {
 	const genesis = `
 		{
-			"feedist": [
+			"distribution": [
 				{
 					"admin": "E94323317C46BDA2268FA3698BAF4F95B893E8C7",
 					"recipients": [

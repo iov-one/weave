@@ -1,4 +1,4 @@
-package feedist
+package distribution
 
 import (
 	"fmt"
@@ -24,8 +24,8 @@ func (*Initializer) FromGenesis(opts weave.Options, db weave.KVStore) error {
 		Admin      weave.Address `json:"admin"`
 		Recipients []recipient   `json:"recipients"`
 	}
-	if err := opts.ReadOptions("feedist", &revenues); err != nil {
-		return errors.Wrap(err, "cannot load feedist")
+	if err := opts.ReadOptions("distribution", &revenues); err != nil {
+		return errors.Wrap(err, "cannot load distribution")
 	}
 
 	bucket := NewRevenueBucket()

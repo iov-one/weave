@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package feedist;
+package distribution;
 
 import "github.com/gogo/protobuf/gogoproto/gogo.proto";
 

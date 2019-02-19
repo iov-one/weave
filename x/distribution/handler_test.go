@@ -1,4 +1,4 @@
-package feedist
+package distribution
 
 import (
 	"context"
