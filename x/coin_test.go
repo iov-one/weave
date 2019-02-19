@@ -362,10 +362,10 @@ func TestCoinDivide(t *testing.T) {
 			wantOne:  NewCoin(0, 333333333, "BTC"),
 			wantRest: NewCoin(0, 1, "BTC"),
 		},
-		"split fractional 2 by 3 should return 3 as leftover": {
+		"split fractional 2 by 3 should return 2 as leftover": {
 			total:    NewCoin(0, 2, "BTC"),
 			pieces:   3,
-			wantOne:  NewCoin(0, 3, "BTC"),
+			wantOne:  NewCoin(0, 2, "BTC"),
 			wantRest: NewCoin(0, 0, "BTC"),
 		},
 		"zero pieces": {
