@@ -1,9 +1,8 @@
 package escrow
 
 import (
-	"errors"
-
 	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/x"
 )
@@ -125,11 +124,11 @@ func NewBucket() Bucket {
 
 func getEscrow(obj orm.Object) (*Escrow, error) {
 	if obj == nil {
-		return nil, errors.New("Cannot take index of nil")
+		return nil, errors.ErrHuman.New("Cannot take index of nil")
 	}
 	esc, ok := obj.Value().(*Escrow)
 	if !ok {
-		return nil, errors.New("Can only take index of Escrow")
+		return nil, errors.ErrHuman.New("Can only take index of Escrow")
 	}
 	return esc, nil
 }
@@ -168,7 +167,7 @@ func (b Bucket) Build(db weave.KVStore, escrow *Escrow) orm.Object {
 // Save enforces the proper type
 func (b Bucket) Save(db weave.KVStore, obj orm.Object) error {
 	if _, ok := obj.Value().(*Escrow); !ok {
-		return orm.ErrInvalidObject(obj.Value())
+		return errors.WithType(errors.ErrInvalidModel, obj.Value())
 	}
 	return b.Bucket.Save(db, obj)
 }

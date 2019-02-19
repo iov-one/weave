@@ -43,7 +43,7 @@ func (c BaseController) Balance(store weave.KVStore, src weave.Address) (x.Coins
 		return nil, errors.Wrap(err, "cannot get account state")
 	}
 	if state == nil {
-		return nil, errors.NotFoundErr.New("no account")
+		return nil, errors.ErrNotFound.New("no account")
 	}
 	return AsCoins(state), nil
 }

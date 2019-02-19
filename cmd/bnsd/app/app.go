@@ -12,9 +12,6 @@ import (
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/app"
-	"github.com/iov-one/weave/cmd/bnsd/x/nft/blockchain"
-	"github.com/iov-one/weave/cmd/bnsd/x/nft/bootstrap_node"
-	"github.com/iov-one/weave/cmd/bnsd/x/nft/ticker"
 	"github.com/iov-one/weave/cmd/bnsd/x/nft/username"
 	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/store/iavl"
@@ -66,7 +63,7 @@ func Chain(authFn x.Authenticator) app.Decorators {
 
 // Router returns a default router, only dispatching to the
 // cash.SendMsg
-func Router(authFn x.Authenticator, issuer weave.Address) app.Router {
+func Router(authFn x.Authenticator, issuer weave.Address, nftBuckets map[string]orm.Bucket) app.Router {
 	r := app.NewRouter()
 
 	// ctrl can be initialized with any implementation, but must be used
@@ -78,13 +75,10 @@ func Router(authFn x.Authenticator, issuer weave.Address) app.Router {
 	multisig.RegisterRoutes(r, authFn)
 	//TODO: Possibly revisit passing the bucket later to have more control over types?
 	// or implement a check
-	blockchain.RegisterRoutes(r, authFn, issuer, ticker.NewBucket())
-	ticker.RegisterRoutes(r, authFn, issuer, blockchain.NewBucket())
 	currency.RegisterRoutes(r, authFn, issuer)
 	username.RegisterRoutes(r, authFn, issuer)
 	validators.RegisterRoutes(r, authFn, validators.NewController())
-	bootstrap_node.RegisterRoutes(r, authFn, issuer)
-	base.RegisterRoutes(r, authFn, issuer)
+	base.RegisterRoutes(r, authFn, issuer, nftBuckets)
 	return r
 }
 
@@ -99,34 +93,25 @@ func QueryRouter() weave.QueryRouter {
 		cash.RegisterQuery,
 		sigs.RegisterQuery,
 		multisig.RegisterQuery,
-		blockchain.RegisterQuery,
-		bootstrap_node.RegisterQuery,
-		ticker.RegisterQuery,
 		username.RegisterQuery,
 		validators.RegisterQuery,
 		orm.RegisterQuery,
 		currency.RegisterQuery,
 	)
-	nft.GetBucketDispatcher().AssertRegistered(x.EnumHelpers{}.AsList(NftType_value)...)
 	return r
 }
 
 // Register nft types and actions for shared action handling via base handler
 func RegisterNft() {
-	nft.GetBucketDispatcher().Register(NftType_USERNAME.String(), username.NewBucket())
-	nft.GetBucketDispatcher().Register(NftType_TICKER.String(), ticker.NewBucket())
-	nft.GetBucketDispatcher().Register(NftType_BLOCKCHAIN.String(), blockchain.NewBucket())
-	nft.GetBucketDispatcher().Register(NftType_BOOTSTRAP_NODE.String(), bootstrap_node.NewBucket())
-
 	// Default nft actions.
 	nft.RegisterAction(nft.DefaultActions...)
 }
 
 // Stack wires up a standard router with a standard decorator
 // chain. This can be passed into BaseApp.
-func Stack(issuer weave.Address) weave.Handler {
+func Stack(issuer weave.Address, nftBuckets map[string]orm.Bucket) weave.Handler {
 	authFn := Authenticator()
-	return Chain(authFn).WithHandler(Router(authFn, issuer))
+	return Chain(authFn).WithHandler(Router(authFn, issuer, nftBuckets))
 }
 
 // Application constructs a basic ABCI application with

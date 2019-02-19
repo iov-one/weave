@@ -290,7 +290,7 @@ func TestBalance(t *testing.T) {
 	}{
 		"non exising account": {
 			addr:    newAddr(),
-			wantErr: errors.NotFoundErr,
+			wantErr: errors.ErrNotFound,
 		},
 		"exising account with one coin": {
 			addr:      addr1,

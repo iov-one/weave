@@ -53,7 +53,7 @@ func TestHandlers(t *testing.T) {
 						Recipients: []*Recipient{},
 					},
 					blocksize:    100,
-					wantCheckErr: errors.InvalidMsgErr,
+					wantCheckErr: errors.ErrInvalidMsg,
 				},
 				{
 					conditions: []weave.Condition{src},
@@ -72,7 +72,7 @@ func TestHandlers(t *testing.T) {
 						Recipients: []*Recipient{},
 					},
 					blocksize:    102,
-					wantCheckErr: errors.InvalidMsgErr,
+					wantCheckErr: errors.ErrInvalidMsg,
 				},
 				{
 					conditions: []weave.Condition{src},
@@ -97,8 +97,8 @@ func TestHandlers(t *testing.T) {
 						RevenueID: []byte("revenue-with-this-id-does-not-exist"),
 					},
 					blocksize:      100,
-					wantCheckErr:   errors.NotFoundErr,
-					wantDeliverErr: errors.NotFoundErr,
+					wantCheckErr:   errors.ErrNotFound,
+					wantDeliverErr: errors.ErrNotFound,
 				},
 			},
 		},

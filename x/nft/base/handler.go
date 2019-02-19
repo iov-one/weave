@@ -14,8 +14,8 @@ const (
 )
 
 // RegisterRoutes will instantiate and register all handlers in this package
-func RegisterRoutes(r weave.Registry, auth x.Authenticator, issuer weave.Address) {
-	handler := NewApprovalOpsHandler(auth, issuer, nft.GetBucketDispatcher())
+func RegisterRoutes(r weave.Registry, auth x.Authenticator, issuer weave.Address, buckets map[string]orm.Bucket) {
+	handler := NewApprovalOpsHandler(auth, issuer, buckets)
 	r.Handle(nft.PathAddApprovalMsg, handler)
 	r.Handle(nft.PathRemoveApprovalMsg, handler)
 }
@@ -36,7 +36,7 @@ func asBase(obj orm.Object) (nft.BaseNFT, error) {
 	return x, nil
 }
 
-func loadToken(bucket nft.BucketAccess, store weave.KVStore, id []byte) (orm.Object, nft.BaseNFT, error) {
+func loadToken(bucket orm.Bucket, store weave.KVStore, id []byte) (orm.Object, nft.BaseNFT, error) {
 	o, err := bucket.Get(store, id)
 	switch {
 	case err != nil:
@@ -48,14 +48,18 @@ func loadToken(bucket nft.BucketAccess, store weave.KVStore, id []byte) (orm.Obj
 	return o, t, e
 }
 
-func NewApprovalOpsHandler(auth x.Authenticator, issuer weave.Address, bucketDispatcher nft.BucketDispatcher) *ApprovalOpsHandler {
-	return &ApprovalOpsHandler{auth: auth, issuer: issuer, bucketDispatcher: bucketDispatcher}
+func NewApprovalOpsHandler(
+	auth x.Authenticator,
+	issuer weave.Address,
+	nftBuckets map[string]orm.Bucket,
+) *ApprovalOpsHandler {
+	return &ApprovalOpsHandler{auth: auth, issuer: issuer, buckets: nftBuckets}
 }
 
 type ApprovalOpsHandler struct {
-	auth             x.Authenticator
-	issuer           weave.Address
-	bucketDispatcher nft.BucketDispatcher
+	auth    x.Authenticator
+	issuer  weave.Address
+	buckets map[string]orm.Bucket
 }
 
 func (h *ApprovalOpsHandler) Auth() x.Authenticator {
@@ -78,9 +82,9 @@ func (h *ApprovalOpsHandler) Deliver(ctx weave.Context, store weave.KVStore, tx 
 		return res, err
 	}
 
-	bucket, err := h.bucketDispatcher.Get(msg.GetT())
-	if err != nil {
-		return res, err
+	bucket, ok := h.buckets[msg.GetT()]
+	if !ok {
+		return res, nft.ErrUnsupportedTokenType()
 	}
 
 	o, t, err := loadToken(bucket, store, msg.GetID())
@@ -90,7 +94,7 @@ func (h *ApprovalOpsHandler) Deliver(ctx weave.Context, store weave.KVStore, tx 
 
 	actor := nft.FindActor(h.auth, ctx, t, nft.UpdateApprovals)
 	if actor == nil {
-		return res, errors.ErrUnauthorized()
+		return res, errors.ErrUnauthorizedLegacy()
 	}
 
 	switch v := msg.(type) {

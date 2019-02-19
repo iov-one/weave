@@ -2,7 +2,6 @@ package username
 
 import (
 	"github.com/iov-one/weave"
-	"github.com/iov-one/weave/cmd/bnsd/x/nft/blockchain"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/x"
@@ -19,9 +18,8 @@ const (
 // RegisterRoutes will instantiate and register all handlers in this package
 func RegisterRoutes(r weave.Registry, auth x.Authenticator, issuer weave.Address) {
 	bucket := NewBucket()
-	blockchains := blockchain.NewBucket()
-	r.Handle(pathIssueTokenMsg, NewIssueHandler(auth, issuer, bucket, blockchains))
-	r.Handle(pathAddAddressMsg, NewAddChainAddressHandler(auth, issuer, bucket, blockchains))
+	r.Handle(pathIssueTokenMsg, NewIssueHandler(auth, issuer, bucket))
+	r.Handle(pathAddAddressMsg, NewAddChainAddressHandler(auth, issuer, bucket))
 	r.Handle(pathRemoveAddressMsg, NewRemoveChainAddressHandler(auth, issuer, bucket))
 
 }
@@ -33,18 +31,17 @@ func RegisterQuery(qr weave.QueryRouter) {
 }
 
 type tokenHandler struct {
-	auth        x.Authenticator
-	issuer      weave.Address
-	bucket      Bucket
-	blockchains blockchain.Bucket
+	auth   x.Authenticator
+	issuer weave.Address
+	bucket Bucket
 }
 
 type IssueHandler struct {
 	tokenHandler
 }
 
-func NewIssueHandler(auth x.Authenticator, issuer weave.Address, bucket Bucket, blockchains blockchain.Bucket) *IssueHandler {
-	return &IssueHandler{tokenHandler{auth: auth, issuer: issuer, bucket: bucket, blockchains: blockchains}}
+func NewIssueHandler(auth x.Authenticator, issuer weave.Address, bucket Bucket) *IssueHandler {
+	return &IssueHandler{tokenHandler{auth: auth, issuer: issuer, bucket: bucket}}
 }
 
 func (h IssueHandler) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx) (weave.CheckResult, error) {
@@ -62,16 +59,6 @@ func (h IssueHandler) Deliver(ctx weave.Context, store weave.KVStore, tx weave.T
 	if err != nil {
 		return res, err
 	}
-	for _, a := range msg.Details.Addresses {
-		chain, err := h.blockchains.Get(store, a.BlockchainID)
-		switch {
-		case err != nil:
-			return res, err
-		case chain == nil:
-			return res, nft.ErrInvalidEntry(a.BlockchainID)
-		}
-	}
-	// persist the data
 	o, err := h.bucket.Create(store, weave.Address(msg.Owner), msg.ID, msg.Approvals, msg.Details.Addresses)
 	if err != nil {
 		return res, err
@@ -95,11 +82,11 @@ func (h IssueHandler) validate(ctx weave.Context, tx weave.Tx) (*IssueTokenMsg, 
 	// check permissions
 	if h.issuer != nil {
 		if !h.auth.HasAddress(ctx, h.issuer) {
-			return nil, errors.ErrUnauthorized()
+			return nil, errors.ErrUnauthorizedLegacy()
 		}
 	} else {
 		if !h.auth.HasAddress(ctx, msg.Owner) {
-			return nil, errors.ErrUnauthorized()
+			return nil, errors.ErrUnauthorizedLegacy()
 		}
 	}
 	return msg, nil
@@ -109,8 +96,8 @@ type AddChainAddressHandler struct {
 	tokenHandler
 }
 
-func NewAddChainAddressHandler(auth x.Authenticator, issuer weave.Address, bucket Bucket, blockchains blockchain.Bucket) *AddChainAddressHandler {
-	return &AddChainAddressHandler{tokenHandler{auth: auth, issuer: issuer, bucket: bucket, blockchains: blockchains}}
+func NewAddChainAddressHandler(auth x.Authenticator, issuer weave.Address, bucket Bucket) *AddChainAddressHandler {
+	return &AddChainAddressHandler{tokenHandler{auth: auth, issuer: issuer, bucket: bucket}}
 }
 
 func (h AddChainAddressHandler) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx) (weave.CheckResult, error) {
@@ -128,14 +115,6 @@ func (h AddChainAddressHandler) Deliver(ctx weave.Context, store weave.KVStore, 
 	if err != nil {
 		return res, err
 	}
-	chain, err := h.blockchains.Get(store, msg.BlockchainID)
-	switch {
-	case err != nil:
-		return res, err
-	case chain == nil:
-		return res, nft.ErrInvalidEntry(msg.BlockchainID)
-	}
-
 	o, t, err := loadToken(h.tokenHandler, store, msg.GetUsernameID())
 	if err != nil {
 		return res, err
@@ -143,7 +122,7 @@ func (h AddChainAddressHandler) Deliver(ctx weave.Context, store weave.KVStore, 
 
 	actor := nft.FindActor(h.auth, ctx, t, nft.UpdateDetails)
 	if actor == nil {
-		return res, errors.ErrUnauthorized()
+		return res, errors.ErrUnauthorizedLegacy()
 	}
 	allKeys := append(t.GetChainAddresses(), ChainAddress{msg.GetBlockchainID(), msg.GetAddress()})
 	if err := t.SetChainAddresses(actor, allKeys); err != nil {
@@ -198,7 +177,7 @@ func (h RemoveChainAddressHandler) Deliver(ctx weave.Context, store weave.KVStor
 
 	actor := nft.FindActor(h.auth, ctx, t, nft.UpdateDetails)
 	if actor == nil {
-		return res, errors.ErrUnauthorized()
+		return res, errors.ErrUnauthorizedLegacy()
 	}
 	if len(t.GetChainAddresses()) == 0 {
 		return res, nft.ErrInvalidEntry([]byte("no chain to delete"))

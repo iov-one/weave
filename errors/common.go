@@ -62,8 +62,8 @@ func NormalizePanic(p interface{}) error {
 
 // Redact will replace all panic errors with a generic message
 func Redact(err error) error {
-	if HasErrorCode(err, PanicErr.code) {
-		return InternalErr
+	if HasErrorCode(err, ErrPanic.code) {
+		return ErrInternal
 	}
 	return err
 }
@@ -120,9 +120,9 @@ func IsUnrecognizedConditionErr(err error) bool {
 	return IsSameError(errUnrecognizedCondition, err)
 }
 
-// ErrInternal is a generic error code when we cannot return any more
+// ErrInternalLegacy is a generic error code when we cannot return any more
 // useful info
-func ErrInternal(msg string) error {
+func ErrInternalLegacy(msg string) error {
 	return New(msg, CodeInternalErr)
 }
 
@@ -152,9 +152,9 @@ func IsTooLargeErr(err error) bool {
 	return IsSameError(errTooLarge, err)
 }
 
-// ErrUnauthorized is a generic denial.
+// ErrUnauthorizedLegacy is a generic denial.
 // You can use a more specific cause if you wish, such as ErrInvalidSignature
-func ErrUnauthorized() error {
+func ErrUnauthorizedLegacy() error {
 	return WithCode(errUnauthorized, CodeUnauthorized)
 }
 
@@ -208,4 +208,8 @@ func ErrModifyChainID() error {
 // with ErrModifyChainID
 func IsModifyChainIDErr(err error) bool {
 	return IsSameError(errModifyChainID, err)
+}
+
+func WithType(err error, obj interface{}) error {
+	return Wrap(err, fmt.Sprintf("%T", obj))
 }

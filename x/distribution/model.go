@@ -15,7 +15,7 @@ func (rev *Revenue) Validate() error {
 	if err := rev.Admin.Validate(); err != nil {
 		return errors.Wrap(err, "invalid admin signature")
 	}
-	if err := validateRecipients(rev.Recipients, errors.InvalidModelErr); err != nil {
+	if err := validateRecipients(rev.Recipients, errors.ErrInvalidModel); err != nil {
 		return err
 	}
 	return nil
@@ -124,7 +124,7 @@ func RevenueAccount(revenueID []byte) weave.Address {
 // Save persists the state of a given revenue entity.
 func (b *RevenueBucket) Save(db weave.KVStore, obj orm.Object) error {
 	if _, ok := obj.Value().(*Revenue); !ok {
-		return errors.InvalidModelErr.New(fmt.Sprintf("invalid type: %T", obj.Value()))
+		return errors.ErrInvalidModel.New(fmt.Sprintf("invalid type: %T", obj.Value()))
 	}
 	return b.Bucket.Save(db, obj)
 }
@@ -136,11 +136,11 @@ func (b *RevenueBucket) GetRevenue(db weave.KVStore, revenueID []byte) (*Revenue
 		return nil, errors.Wrap(err, "no revenue")
 	}
 	if obj == nil || obj.Value() == nil {
-		return nil, errors.NotFoundErr.New("no revenue")
+		return nil, errors.ErrNotFound.New("no revenue")
 	}
 	rev, ok := obj.Value().(*Revenue)
 	if !ok {
-		return nil, errors.InvalidModelErr.New(fmt.Sprintf("invalid type: %T", obj.Value()))
+		return nil, errors.ErrInvalidModel.New(fmt.Sprintf("invalid type: %T", obj.Value()))
 	}
 	return rev, nil
 }

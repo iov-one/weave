@@ -2,13 +2,19 @@ package username
 
 import (
 	"bytes"
+	"regexp"
 
 	"github.com/iov-one/weave"
-	"github.com/iov-one/weave/cmd/bnsd/x/nft/blockchain"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/x/nft"
 )
+
+// ModelName is used to recognize the model provided by this NFT impementation.
+// It can be used by the nft/base extension to register a handler.
+const ModelName = "username"
+
+var validBlockchainID = regexp.MustCompile(`^[a-zA-Z0-9_.-]{4,128}$`).Match
 
 type Token interface {
 	nft.BaseNFT
@@ -75,7 +81,7 @@ func (t *TokenDetails) Clone() *TokenDetails {
 
 func (t *TokenDetails) Validate() error {
 	if t == nil {
-		return errors.ErrInternal("must not be nil")
+		return errors.ErrInternalLegacy("must not be nil")
 	}
 	dup := containsDuplicateChains(t.Addresses)
 	if dup != nil {
@@ -106,7 +112,7 @@ func (p ChainAddress) Equals(o ChainAddress) bool {
 }
 
 func (p *ChainAddress) Validate() error {
-	if !blockchain.IsValidID(string(p.BlockchainID)) {
+	if !validBlockchainID(p.BlockchainID) {
 		return nft.ErrInvalidID(p.BlockchainID)
 	}
 	if n := len(p.Address); n < 2 || n > 50 {

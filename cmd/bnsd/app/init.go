@@ -1,6 +1,7 @@
 package app
 
 import (
+	"context"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
@@ -8,10 +9,10 @@ import (
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/app"
-	"github.com/iov-one/weave/cmd/bnsd/x/nft/blockchain"
-	"github.com/iov-one/weave/cmd/bnsd/x/nft/ticker"
+	"github.com/iov-one/weave/cmd/bnsd/x/nft/username"
 	"github.com/iov-one/weave/crypto"
 	"github.com/iov-one/weave/gconf"
+	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/x"
 	"github.com/iov-one/weave/x/cash"
 	"github.com/iov-one/weave/x/currency"
@@ -73,31 +74,47 @@ func GenInitOptions(args []string) (json.RawMessage, error) {
 
 // GenerateApp is used to create a stub for server/start.go command
 func GenerateApp(home string, logger log.Logger, debug bool) (abci.Application, error) {
-	// db goes in a subdir, but "" -> "" for memdb
+	// db goes in a subdir, but "" stays "" to use memdb
 	var dbPath string
 	if home != "" {
 		dbPath = filepath.Join(home, "bns.db")
 	}
 
-	// TODO: anyone can make a token????
-	stack := Stack(nil)
+	nftBuckets := map[string]orm.Bucket{
+		username.ModelName: username.NewBucket().Bucket,
+	}
+	stack := Stack(nil, nftBuckets)
 	application, err := Application("bnsd", stack, TxDecoder, dbPath, debug)
 	if err != nil {
 		return nil, err
 	}
+	return DecorateApp(application, logger), nil
+}
+
+// DecorateApp adds initializers and Logger to an Application
+func DecorateApp(application app.BaseApp, logger log.Logger) app.BaseApp {
 	application.WithInit(app.ChainInitializers(
 		&gconf.Initializer{},
 		&multisig.Initializer{},
 		&cash.Initializer{},
 		&currency.Initializer{},
-		&blockchain.Initializer{},
-		&ticker.Initializer{},
 		&validators.Initializer{},
 	))
-
-	// set the logger and return
 	application.WithLogger(logger)
-	return application, nil
+	return application
+}
+
+// InlineApp will take a previously prepared CommitStore and return a complete Application
+func InlineApp(kv weave.CommitKVStore, logger log.Logger, debug bool) abci.Application {
+	nftBuckets := map[string]orm.Bucket{
+		username.ModelName: username.NewBucket().Bucket,
+	}
+	stack := Stack(nil, nftBuckets)
+	ctx := context.Background()
+	RegisterNft()
+	store := app.NewStoreApp("bnsd", kv, QueryRouter(), ctx)
+	base := app.NewBaseApp(store, TxDecoder, stack, nil, debug)
+	return DecorateApp(base, logger)
 }
 
 type output struct {

@@ -14,7 +14,7 @@ func (msg *NewRevenueMsg) Validate() error {
 	if err := msg.Admin.Validate(); err != nil {
 		return errors.Wrap(err, "invalid admin address")
 	}
-	if err := validateRecipients(msg.Recipients, errors.InvalidMsgErr); err != nil {
+	if err := validateRecipients(msg.Recipients, errors.ErrInvalidMsg); err != nil {
 		return err
 	}
 	return nil
@@ -26,7 +26,7 @@ func (NewRevenueMsg) Path() string {
 
 func (msg *DistributeMsg) Validate() error {
 	if len(msg.RevenueID) == 0 {
-		return errors.InvalidMsgErr.New("revenue ID missing")
+		return errors.ErrInvalidMsg.New("revenue ID missing")
 	}
 	return nil
 }
@@ -36,7 +36,7 @@ func (DistributeMsg) Path() string {
 }
 
 func (msg *ResetRevenueMsg) Validate() error {
-	if err := validateRecipients(msg.Recipients, errors.InvalidMsgErr); err != nil {
+	if err := validateRecipients(msg.Recipients, errors.ErrInvalidMsg); err != nil {
 		return err
 	}
 	return nil

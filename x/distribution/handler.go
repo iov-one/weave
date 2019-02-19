@@ -86,7 +86,7 @@ func (h *newRevenueHandler) validate(ctx weave.Context, db weave.KVStore, tx wea
 	}
 	msg, ok := rmsg.(*NewRevenueMsg)
 	if !ok {
-		return nil, errors.InvalidMsgErr.New("unknown transaction type")
+		return nil, errors.ErrInvalidMsg.New("unknown transaction type")
 	}
 	if err := msg.Validate(); err != nil {
 		return msg, err
@@ -140,7 +140,7 @@ func (h *distributeHandler) validate(ctx weave.Context, db weave.KVStore, tx wea
 	}
 	msg, ok := rmsg.(*DistributeMsg)
 	if !ok {
-		return nil, errors.InvalidMsgErr.New("unknown transaction type")
+		return nil, errors.ErrInvalidMsg.New("unknown transaction type")
 	}
 	if err := msg.Validate(); err != nil {
 		return msg, err
@@ -210,7 +210,7 @@ func (h *resetRevenueHandler) validate(ctx weave.Context, db weave.KVStore, tx w
 	}
 	msg, ok := rmsg.(*ResetRevenueMsg)
 	if !ok {
-		return nil, errors.InvalidMsgErr.New("unknown transaction type")
+		return nil, errors.ErrInvalidMsg.New("unknown transaction type")
 	}
 	if err := msg.Validate(); err != nil {
 		return msg, err
@@ -246,7 +246,7 @@ func distribute(db weave.KVStore, ctrl CashController, source weave.Address, rec
 	switch {
 	case err == nil:
 		// All good.
-	case errors.Is(errors.NotFoundErr, err):
+	case errors.Is(errors.ErrNotFound, err):
 		// Account does not exist, so there is are no funds to split.
 		return nil
 	default:
@@ -271,7 +271,10 @@ func distribute(db weave.KVStore, ctrl CashController, source weave.Address, rec
 		// Rest of the division can be ignored, because we transfer
 		// funds to each recipients separately. Any leftover will be
 		// left on the recipients account.
-		one, _ := c.Divide(chunks)
+		one, _, err := c.Divide(chunks)
+		if err != nil {
+			return errors.Wrap(err, "cannot split revenue")
+		}
 
 		for _, r := range recipients {
 			amount := one.Multiply(int64(r.Weight / div))

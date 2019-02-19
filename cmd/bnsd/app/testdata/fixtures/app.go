@@ -8,10 +8,10 @@ import (
 	"github.com/iov-one/weave"
 	weaveApp "github.com/iov-one/weave/app"
 	"github.com/iov-one/weave/cmd/bnsd/app"
-	"github.com/iov-one/weave/cmd/bnsd/x/nft/blockchain"
-	"github.com/iov-one/weave/cmd/bnsd/x/nft/ticker"
+	"github.com/iov-one/weave/cmd/bnsd/x/nft/username"
 	"github.com/iov-one/weave/crypto"
 	"github.com/iov-one/weave/gconf"
+	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/x"
 	"github.com/iov-one/weave/x/cash"
 	"github.com/iov-one/weave/x/currency"
@@ -40,7 +40,9 @@ func NewApp() *AppFixture {
 
 func (f AppFixture) Build() weaveApp.BaseApp {
 	// setup app
-	stack := app.Stack(nil)
+	stack := app.Stack(nil, map[string]orm.Bucket{
+		username.ModelName: username.NewBucket().Bucket,
+	})
 	myApp, err := app.Application(f.Name, stack, app.TxDecoder, "", true)
 	if err != nil {
 		panic(err)
@@ -49,8 +51,6 @@ func (f AppFixture) Build() weaveApp.BaseApp {
 		&gconf.Initializer{},
 		&cash.Initializer{},
 		&currency.Initializer{},
-		&blockchain.Initializer{},
-		&ticker.Initializer{},
 	))
 	myApp.WithLogger(log.NewNopLogger())
 	// load state

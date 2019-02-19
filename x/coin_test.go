@@ -369,14 +369,14 @@ func TestCoinDivide(t *testing.T) {
 			pieces:   0,
 			wantOne:  NewCoin(0, 0, "BTC"),
 			wantRest: NewCoin(0, 0, "BTC"),
-			wantErr:  errors.ErrRuntime,
+			wantErr:  errors.ErrHuman,
 		},
 		"negative pieces": {
 			total:    NewCoin(999, 0, "BTC"),
 			pieces:   -1,
 			wantOne:  NewCoin(0, 0, "BTC"),
 			wantRest: NewCoin(0, 0, "BTC"),
-			wantErr:  errors.ErrRuntime,
+			wantErr:  errors.ErrHuman,
 		},
 		"split fractional 2 by 3 should return 2 as leftover": {
 			total:    NewCoin(0, 2, "BTC"),

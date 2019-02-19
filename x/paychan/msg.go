@@ -17,22 +17,22 @@ const (
 
 func (m *CreatePaymentChannelMsg) Validate() error {
 	if m.Src == nil {
-		return errors.InvalidMsgErr.New("missing source")
+		return errors.ErrInvalidMsg.New("missing source")
 	}
 	if m.SenderPubkey == nil {
-		return errors.InvalidMsgErr.New("missing sender public key")
+		return errors.ErrInvalidMsg.New("missing sender public key")
 	}
 	if m.Recipient == nil {
-		return errors.InvalidMsgErr.New("missing recipient")
+		return errors.ErrInvalidMsg.New("missing recipient")
 	}
 	if m.Total == nil || m.Total.IsZero() {
-		return errors.InvalidMsgErr.New("inalid total amount")
+		return errors.ErrInvalidMsg.New("inalid total amount")
 	}
 	if m.Timeout <= 0 {
-		return errors.InvalidMsgErr.New("inalid timeout value")
+		return errors.ErrInvalidMsg.New("inalid timeout value")
 	}
 	if len(m.Memo) > 128 {
-		return errors.InvalidMsgErr.New("memo too long")
+		return errors.ErrInvalidMsg.New("memo too long")
 	}
 
 	return validateAddresses(m.Recipient, m.Src)
@@ -44,19 +44,19 @@ func (CreatePaymentChannelMsg) Path() string {
 
 func (m *TransferPaymentChannelMsg) Validate() error {
 	if m.Signature == nil {
-		return errors.InvalidMsgErr.New("missing signature")
+		return errors.ErrInvalidMsg.New("missing signature")
 	}
 	if m.Payment == nil {
-		return errors.InvalidMsgErr.New("missing payment")
+		return errors.ErrInvalidMsg.New("missing payment")
 	}
 	if m.Payment.ChainID == "" {
-		return errors.InvalidMsgErr.New("missing chain ID")
+		return errors.ErrInvalidMsg.New("missing chain ID")
 	}
 	if m.Payment.ChannelID == nil {
-		return errors.InvalidMsgErr.New("missing channel ID")
+		return errors.ErrInvalidMsg.New("missing channel ID")
 	}
 	if !m.Payment.Amount.IsPositive() {
-		return errors.InvalidMsgErr.New("invalid amount value")
+		return errors.ErrInvalidMsg.New("invalid amount value")
 	}
 	return nil
 }
@@ -67,10 +67,10 @@ func (TransferPaymentChannelMsg) Path() string {
 
 func (m *ClosePaymentChannelMsg) Validate() error {
 	if m.ChannelID == nil {
-		return errors.InvalidMsgErr.New("missing channel ID")
+		return errors.ErrInvalidMsg.New("missing channel ID")
 	}
 	if len(m.Memo) > 128 {
-		return errors.InvalidMsgErr.New("memo too long")
+		return errors.ErrInvalidMsg.New("memo too long")
 	}
 	return nil
 }

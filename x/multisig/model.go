@@ -2,6 +2,7 @@ package multisig
 
 import (
 	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/orm"
 )
 
@@ -65,7 +66,7 @@ func NewContractBucket() ContractBucket {
 // Save enforces the proper type
 func (b ContractBucket) Save(db weave.KVStore, obj orm.Object) error {
 	if _, ok := obj.Value().(*Contract); !ok {
-		return orm.ErrInvalidObject(obj.Value())
+		return errors.WithType(errors.ErrInvalidModel, obj.Value())
 	}
 	return b.Bucket.Save(db, obj)
 }

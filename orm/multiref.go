@@ -2,9 +2,8 @@ package orm
 
 import (
 	"bytes"
+	"github.com/iov-one/weave/errors"
 	"sort"
-
-	"github.com/pkg/errors"
 )
 
 var _ CloneableData = (*MultiRef)(nil)
@@ -36,7 +35,7 @@ func multiRefFromStrings(strs ...string) (*MultiRef, error) {
 func (m *MultiRef) Add(ref []byte) error {
 	i, found := m.findRef(ref)
 	if found {
-		return ErrRemoveUnregistered()
+		return errors.ErrNotFound.New("cannot add a ref twice")
 	}
 	// append to end
 	if i == len(m.Refs) {
@@ -55,7 +54,7 @@ func (m *MultiRef) Add(ref []byte) error {
 func (m *MultiRef) Remove(ref []byte) error {
 	i, found := m.findRef(ref)
 	if !found {
-		return ErrRemoveUnregistered()
+		return errors.ErrNotFound.New("cannot remove non-existent ref")
 	}
 	// splice it out
 	m.Refs = append(m.Refs[:i], m.Refs[i+1:]...)
@@ -100,7 +99,7 @@ func (m *MultiRef) Copy() CloneableData {
 // Validate just returns an error if empty
 func (m *MultiRef) Validate() error {
 	if len(m.GetRefs()) == 0 {
-		return ErrNoRefs()
+		return errors.ErrEmpty.New("no references")
 	}
 	return nil
 }
@@ -122,7 +121,7 @@ func (c *Counter) Copy() CloneableData {
 // Validate returns error on negative numbers
 func (c *Counter) Validate() error {
 	if c.Count < 0 {
-		return errors.New("Negative counter")
+		return errors.ErrInvalidState.New("negative counter")
 	}
 	return nil
 }

@@ -2,9 +2,9 @@ package orm
 
 import (
 	"bytes"
-	"errors"
 
 	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/errors"
 )
 
 var indPrefix = []byte("_i.")
@@ -93,7 +93,7 @@ func (i Index) Update(db weave.KVStore, prev Object, save Object) error {
 	sw := s{prev == nil, save == nil}
 	switch sw {
 	case s{true, true}:
-		return ErrUpdateNil()
+		return errors.ErrHuman.New("update requires at least one non-nil object")
 	case s{true, false}:
 		keys, err := i.index(save)
 		if err != nil {
@@ -119,7 +119,7 @@ func (i Index) Update(db weave.KVStore, prev Object, save Object) error {
 	case s{false, false}:
 		return i.move(db, prev, save)
 	}
-	return ErrBoolean()
+	return errors.ErrHuman.New("you have violated the rules of boolean logic")
 }
 
 // GetLike calculates the index for the given pattern, and
@@ -213,7 +213,7 @@ func (i Index) Query(db weave.ReadOnlyKVStore, mod string,
 		}
 		return i.loadRefs(db, refs), nil
 	default:
-		return nil, errors.New("no implemented: " + mod)
+		return nil, errors.ErrHuman.New("not implemented: " + mod)
 	}
 }
 
@@ -237,7 +237,7 @@ func (i Index) loadRefs(db weave.ReadOnlyKVStore,
 func (i Index) move(db weave.KVStore, prev Object, save Object) error {
 	// if the primary key is not equal, we have a problem
 	if !bytes.Equal(prev.Key(), save.Key()) {
-		return ErrModifiedPK()
+		return errors.ErrCannotBeModified.New("cannot modify the primary key of an object")
 	}
 
 	oldKeys, err := i.index(prev)
@@ -257,7 +257,7 @@ func (i Index) move(db weave.KVStore, prev Object, save Object) error {
 			k := i.IndexKey(newKey)
 			val := db.Get(k)
 			if val != nil {
-				return ErrUniqueConstraint(i.name)
+				return errors.ErrDuplicate.New(i.name)
 			}
 		}
 	}
@@ -305,12 +305,12 @@ func (i Index) remove(db weave.KVStore, index []byte, pk []byte) error {
 	key := i.IndexKey(index)
 	cur := db.Get(key)
 	if cur == nil {
-		return ErrRemoveUnregistered()
+		return errors.ErrNotFound.New("cannot remove index from nothing")
 	}
 	if i.unique {
 		// if something else was here, don't delete
 		if !bytes.Equal(cur, pk) {
-			return ErrRemoveUnregistered()
+			return errors.ErrNotFound.New("cannot remove index from invalid object")
 		}
 		db.Delete(key)
 		return nil
@@ -351,7 +351,7 @@ func (i Index) insert(db weave.KVStore, index []byte, pk []byte) error {
 
 	if i.unique {
 		if cur != nil {
-			return ErrUniqueConstraint(i.name)
+			return errors.ErrDuplicate.New(i.name)
 		}
 		db.Set(key, pk)
 		return nil
