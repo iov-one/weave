@@ -31,3 +31,11 @@ message FeeInfo {
   bytes payer = 1;
   x.Coin fees = 2;
 }
+
+
+// TransactionFee represents a fee that has to be deducted for each transaction
+// of a given type. No fee is deducted if this is not configured for a certain transaction
+message TransactionFee {
+  // Fee definition, we ignore ticker and always set it to IOV a discussed
+  x.Coin fee = 1;
+}
