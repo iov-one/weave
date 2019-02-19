@@ -506,8 +506,8 @@ func TestDistribute(t *testing.T) {
 			wantMoves: []movecall{
 				// One cent is left on the revenue account,
 				// because it is too small to divide.
-				{dst: weave.Address("address-1"), amount: x.NewCoin(0, x.FracUnit/3, "BTC")},
-				{dst: weave.Address("address-2"), amount: x.NewCoin(0, x.FracUnit/3*2, "BTC")},
+				{dst: weave.Address("address-1"), amount: x.NewCoin(0, 333333333, "BTC")},
+				{dst: weave.Address("address-2"), amount: x.NewCoin(0, 666666666, "BTC")},
 			},
 		},
 		"whole split into fractions": {
