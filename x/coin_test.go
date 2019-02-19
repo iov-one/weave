@@ -386,10 +386,10 @@ func TestCoinDivide(t *testing.T) {
 		t.Run(testName, func(t *testing.T) {
 			gotOne, gotRest := tc.total.Divide(tc.pieces)
 			if !gotOne.Equals(tc.wantOne) {
-				t.Errorf("got one %v", gotOne)
+				t.Errorf("whole: expected %v but got %v", tc.wantOne, gotOne)
 			}
 			if !gotRest.Equals(tc.wantRest) {
-				t.Errorf("got rest %v", gotRest)
+				t.Errorf("rest: expected %v but got %v", tc.wantRest, gotRest)
 			}
 		})
 	}
