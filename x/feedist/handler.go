@@ -8,9 +8,9 @@ import (
 )
 
 const (
-	newRevenueCost    = 0
-	distributeCost    = 0
-	resetRevenueCost = 0
+	newRevenueCost               = 0
+	distributePerRecipientCost   = 0
+	resetRevenuePerRecipientCost = 0
 )
 
 // RegisterQuery registers feedlist buckets for querying.
@@ -102,10 +102,16 @@ type distributeHandler struct {
 
 func (h *distributeHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (weave.CheckResult, error) {
 	var res weave.CheckResult
-	if _, err := h.validate(ctx, db, tx); err != nil {
+	msg, err := h.validate(ctx, db, tx)
+	if err != nil {
 		return res, err
 	}
-	res.GasAllocated += distributeCost
+	rev, err := h.bucket.GetRevenue(db, msg.RevenueID)
+	if err != nil {
+		return res, err
+	}
+
+	res.GasAllocated += distributePerRecipientCost * int64(len(rev.Recipients))
 	return res, nil
 }
 
@@ -153,10 +159,19 @@ type resetRevenueHandler struct {
 
 func (h *resetRevenueHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (weave.CheckResult, error) {
 	var res weave.CheckResult
-	if _, err := h.validate(ctx, db, tx); err != nil {
+	msg, err := h.validate(ctx, db, tx)
+	if err != nil {
 		return res, err
 	}
-	res.GasAllocated += resetRevenueCost
+
+	rev, err := h.bucket.GetRevenue(db, msg.RevenueID)
+	if err != nil {
+		return res, err
+	}
+
+	// Reseting a revenue cost is counterd per recipient, because this is a
+	// distribution operation as well.
+	res.GasAllocated += resetRevenuePerRecipientCost * int64(len(rev.Recipients))
 	return res, nil
 }
 
