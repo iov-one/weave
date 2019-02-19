@@ -48,6 +48,9 @@ var (
 	// InvalidStateErr is returned when an object is in invalid state
 	InvalidStateErr = Register(10, "invalid state")
 
+	// InvalidTypeErr is returned whenever the type is not what was expected
+	InvalidTypeErr = Register(11, "invalid type")
+
 	// PanicErr is only set when we recover from a panic, so we know to redact potentially sensitive system info
 	PanicErr = Register(111222, "panic")
 )
@@ -103,8 +106,13 @@ func (e Error) ABCICode() uint32 { return e.code }
 //   e.New("my description")
 //   Wrap(e, "my description")
 // Allows sprintf format and vararg
-func (e Error) New(description string, args ...interface{}) error {
-	return Wrap(e, fmt.Sprintf(description, args...))
+func (e Error) New(description string) error {
+	return Wrap(e, description)
+}
+
+// Newf is basically New with formatting capabilities
+func (e Error) Newf(description string, args ...interface{}) error {
+	return e.New(fmt.Sprintf(description, args...))
 }
 
 // Is is a proxy helper for global Is to be able to easily instantiate and match error codes

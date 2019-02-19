@@ -51,17 +51,17 @@ func TestController(t *testing.T) {
 				bucket.Delete(kv, []byte(Key))
 				//bucket.Save(kv, orm.NewSimpleObj([]byte(Key), set))
 				_, err = ctrl.CanUpdateValidators(kv, checkAddress, diff)
-				So(err.Error(), ShouldResemble, ErrNotFound("account").Error())
+				So(errors.Is(err, errors.NotFoundErr), ShouldBeTrue)
 			})
 
 			Convey("No permission", func() {
 				_, err = ctrl.CanUpdateValidators(kv, checkAddress2, diff)
-				So(err.Error(), ShouldResemble, errors.ErrUnauthorized().Error())
+				So(errors.Is(err, errors.UnauthorizedErr), ShouldBeTrue)
 			})
 
 			Convey("Empty diff", func() {
 				_, err := ctrl.CanUpdateValidators(kv, checkAddress, emptyDiff)
-				So(err.Error(), ShouldResemble, ErrEmptyDiff().Error())
+				So(errors.Is(err, EmptyDiffErr), ShouldBeTrue)
 			})
 
 			Convey("Accounts type is wrong", func() {
@@ -70,14 +70,14 @@ func TestController(t *testing.T) {
 				bucket.Delete(kv, []byte(Key))
 				kv.Set([]byte(Key), []byte(set.String()))
 				_, err = ctrl.CanUpdateValidators(kv, checkAddress, diff)
-				So(err.Error(), ShouldResemble, ErrNotFound("account").Error())
+				So(errors.Is(err, errors.NotFoundErr), ShouldBeTrue)
 			})
 		})
 
 		Convey("When init didn't happen", func() {
 			Convey("Error on GetAccounts", func() {
 				_, err = ctrl.CanUpdateValidators(kv, checkAddress, diff)
-				So(err.Error(), ShouldResemble, ErrNotFound("account").Error())
+				So(errors.Is(err, errors.NotFoundErr), ShouldBeTrue)
 			})
 		})
 	})

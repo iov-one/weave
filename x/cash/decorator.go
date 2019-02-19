@@ -138,7 +138,7 @@ func (d FeeDecorator) extractFee(ctx weave.Context, tx weave.Tx, store weave.KVS
 		cmp.Ticker = fee.Ticker
 	}
 	if !fee.SameType(cmp) {
-		return nil, x.InvalidCurrencyErr.New("%s vs fee %s", cmp.Ticker, fee.Ticker)
+		return nil, x.InvalidCurrencyErr.Newf("%s vs fee %s", cmp.Ticker, fee.Ticker)
 
 	}
 	if !fee.IsGTE(cmp) {
