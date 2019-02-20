@@ -77,7 +77,7 @@ func TestFees(t *testing.T) {
 		// no fee given, nothing expected
 		0: {nil, nil, nil, x.Coin{}, noErr},
 		// no fee given, something expected
-		1: {nil, nil, nil, min, IsInsufficientFeesErr},
+		1: {nil, nil, nil, min, errors.ErrInsufficientAmount.Is},
 		// no signer given
 		2: {nil, nil, &FeeInfo{Fees: &min}, min, errors.IsUnrecognizedAddressErr},
 		// use default signer, but not enough money
@@ -86,7 +86,7 @@ func TestFees(t *testing.T) {
 			nil,
 			&FeeInfo{Fees: &min},
 			min,
-			IsEmptyAccountErr,
+			errors.ErrEmpty.Is,
 		},
 		// signer can cover min, but not pledge
 		4: {
@@ -94,7 +94,7 @@ func TestFees(t *testing.T) {
 			[]orm.Object{must(WalletWith(perm.Address(), &min))},
 			&FeeInfo{Fees: &cash},
 			min,
-			IsInsufficientFundsErr,
+			errors.ErrInsufficientAmount.Is,
 		},
 		// all proper
 		5: {
@@ -134,7 +134,7 @@ func TestFees(t *testing.T) {
 			[]orm.Object{must(WalletWith(perm.Address(), &cash))},
 			&FeeInfo{Fees: &min},
 			x.NewCoin(0, 45000, "FOO"),
-			IsInsufficientFeesErr,
+			errors.ErrInsufficientAmount.Is,
 		},
 	}
 

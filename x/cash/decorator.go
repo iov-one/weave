@@ -123,7 +123,7 @@ func (d FeeDecorator) extractFee(ctx weave.Context, tx weave.Tx, store weave.KVS
 		if minFee.IsZero() {
 			return finfo, nil
 		}
-		return nil, ErrInsufficientFees(x.Coin{})
+		return nil, errors.ErrInsufficientAmount.Newf("fees %#v", &x.Coin{})
 	}
 
 	// make sure it is a valid fee (non-negative, going somewhere)
@@ -142,7 +142,7 @@ func (d FeeDecorator) extractFee(ctx weave.Context, tx weave.Tx, store weave.KVS
 
 	}
 	if !fee.IsGTE(cmp) {
-		return nil, ErrInsufficientFees(*fee)
+		return nil, errors.ErrInsufficientAmount.Newf("fees %#v", fee)
 	}
 	return finfo, nil
 }

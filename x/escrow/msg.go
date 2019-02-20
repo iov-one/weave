@@ -2,8 +2,8 @@ package escrow
 
 import (
 	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/x"
-	"github.com/iov-one/weave/x/cash"
 )
 
 const (
@@ -146,7 +146,7 @@ func validateAmount(amount x.Coins) error {
 	// we enforce this is positive
 	positive := amount.IsPositive()
 	if !positive {
-		return cash.ErrInvalidAmount("Non-positive SendMsg")
+		return errors.ErrInvalidAmount.Newf("non-positive SendMsg: %#v", &amount)
 	}
 	// then make sure these are properly formatted coins
 	return amount.Validate()

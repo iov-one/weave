@@ -51,6 +51,12 @@ var (
 	// ErrInvalidType is returned whenever the type is not what was expected
 	ErrInvalidType = Register(11, "invalid type")
 
+	// ErrInsufficientAmount is returned when an amount of currency is insufficient, e.g. funds/fees
+	ErrInsufficientAmount = Register(12, "insufficient amount")
+
+	// ErrInvalidAmount stands for invalid amount of whatever
+	ErrInvalidAmount = Register(13, "invalid amount")
+
 	// ErrPanic is only set when we recover from a panic, so we know to redact potentially sensitive system info
 	ErrPanic = Register(111222, "panic")
 )

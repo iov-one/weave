@@ -26,7 +26,8 @@ func (SendMsg) Path() string {
 func (s *SendMsg) Validate() error {
 	amt := s.GetAmount()
 	if x.IsEmpty(amt) || !amt.IsPositive() {
-		return ErrInvalidAmount("Non-positive SendMsg")
+		return errors.ErrInvalidAmount.Newf("non-positive SendMsg: %#v", amt)
+
 	}
 	if err := amt.Validate(); err != nil {
 		return err
@@ -38,10 +39,10 @@ func (s *SendMsg) Validate() error {
 		return err
 	}
 	if len(s.GetMemo()) > maxMemoSize {
-		return ErrInvalidMemo("Memo too long")
+		return errors.ErrInvalidState.New("memo too long")
 	}
 	if len(s.GetRef()) > maxRefSize {
-		return ErrInvalidMemo("Ref too long")
+		return errors.ErrInvalidState.New("ref too long")
 	}
 	return nil
 }
@@ -90,13 +91,13 @@ func (f *FeeInfo) Validate() error {
 	}
 	fee := f.GetFees()
 	if fee == nil {
-		return ErrInvalidAmount("Fees nil")
+		return errors.ErrInvalidAmount.New("fees nil")
 	}
 	if err := fee.Validate(); err != nil {
 		return err
 	}
 	if !fee.IsNonNegative() {
-		return ErrInvalidAmount("Negative fees")
+		return errors.ErrInvalidAmount.New("negative fees")
 	}
 	return weave.Address(f.Payer).Validate()
 }

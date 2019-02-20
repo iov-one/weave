@@ -179,7 +179,7 @@ func (h ReleaseEscrowHandler) Deliver(ctx weave.Context, db weave.KVStore,
 		// TODO: add functionality to compare two sets
 		// } else if !available.Contains(request) {
 		// 	// ensure there is enough to pay
-		// 	return res, cash.ErrInsufficientFunds()
+		// 	return res, cash.ErrInsufficientFundsLegacy()
 	}
 
 	// move the money from escrow to recipient

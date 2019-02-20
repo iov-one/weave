@@ -281,7 +281,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 						Memo:         "start",
 					},
 					blocksize:      100,
-					wantDeliverErr: cash.ErrInsufficientFunds(),
+					wantDeliverErr: errors.ErrInsufficientAmount.New("funds"),
 				},
 			},
 		},

@@ -34,7 +34,7 @@ func TestSend(t *testing.T) {
 		expectDeliver checkErr
 	}{
 		0: {nil, nil, nil, errors.IsUnknownTxTypeErr, errors.IsUnknownTxTypeErr},
-		1: {nil, nil, new(SendMsg), IsInvalidAmountErr, IsInvalidAmountErr},
+		1: {nil, nil, new(SendMsg), errors.ErrInvalidAmount.Is, errors.ErrInvalidAmount.Is},
 		2: {nil, nil, &SendMsg{Amount: &foo}, errors.IsUnrecognizedAddressErr, errors.IsUnrecognizedAddressErr},
 		3: {
 			nil,
@@ -49,7 +49,7 @@ func TestSend(t *testing.T) {
 			nil,
 			&SendMsg{Amount: &foo, Src: perm.Address(), Dest: perm2.Address()},
 			noErr, // we don't check funds
-			IsEmptyAccountErr,
+			errors.ErrEmpty.Is,
 		},
 		// sender too poor
 		5: {
@@ -57,7 +57,7 @@ func TestSend(t *testing.T) {
 			[]orm.Object{must(WalletWith(perm.Address(), &some))},
 			&SendMsg{Amount: &foo, Src: perm.Address(), Dest: perm2.Address()},
 			noErr, // we don't check funds
-			IsInsufficientFundsErr,
+			errors.ErrInsufficientAmount.Is,
 		},
 		// sender got cash
 		6: {
