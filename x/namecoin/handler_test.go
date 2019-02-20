@@ -47,7 +47,7 @@ func TestSendHandler(t *testing.T) {
 		expectDeliver checkErr
 	}{
 		0: {nil, nil, nil, errors.IsUnknownTxTypeErr, errors.IsUnknownTxTypeErr},
-		1: {nil, nil, new(cash.SendMsg), cash.IsInvalidAmountErr, cash.IsInvalidAmountErr},
+		1: {nil, nil, new(cash.SendMsg), errors.ErrInvalidAmount.Is, errors.ErrInvalidAmount.Is},
 		2: {nil, nil, &cash.SendMsg{Amount: &foo}, errors.IsUnrecognizedAddressErr, errors.IsUnrecognizedAddressErr},
 		3: {
 			nil,
@@ -62,7 +62,7 @@ func TestSendHandler(t *testing.T) {
 			nil,
 			&cash.SendMsg{Amount: &foo, Src: addr, Dest: addr2},
 			noErr, // we don't check funds
-			cash.IsEmptyAccountErr,
+			errors.ErrEmpty.Is,
 		},
 		// sender too poor
 		5: {
@@ -70,7 +70,7 @@ func TestSendHandler(t *testing.T) {
 			[]orm.Object{mo(WalletWith(addr, "", &some))},
 			&cash.SendMsg{Amount: &foo, Src: addr, Dest: addr2},
 			noErr, // we don't check funds
-			cash.IsInsufficientFundsErr,
+			errors.ErrInsufficientAmount.Is,
 		},
 		// fool and his money are soon parted....
 		6: {

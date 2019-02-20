@@ -50,7 +50,7 @@ func TestValidateSendMsg(t *testing.T) {
 	good3.Memo = strings.Repeat("foo", 300)
 	err = good3.Validate()
 	assert.Error(t, err)
-	assert.True(t, IsInvalidMemoErr(err))
+	assert.True(t, errors.ErrInvalidState.Is(err))
 
 	// test ref length
 	good3.Memo = "short"
@@ -59,7 +59,7 @@ func TestValidateSendMsg(t *testing.T) {
 	good3.Ref = make([]byte, 68)
 	err = good3.Validate()
 	assert.Error(t, err)
-	assert.True(t, IsInvalidMemoErr(err))
+	assert.True(t, errors.ErrInvalidState.Is(err))
 
 	neg := x.NewCoin(-3, 0, "FOO")
 	minus := &SendMsg{
@@ -69,7 +69,7 @@ func TestValidateSendMsg(t *testing.T) {
 	}
 	err = minus.Validate()
 	assert.Error(t, err)
-	assert.True(t, IsInvalidAmountErr(err))
+	assert.True(t, errors.ErrInvalidAmount.Is(err))
 
 	bad := x.NewCoin(3, 4, "fab9")
 	ugly := &SendMsg{
@@ -95,7 +95,7 @@ func TestValidateFeeTx(t *testing.T) {
 	nofee := &FeeInfo{Payer: addr}
 	err = nofee.Validate()
 	assert.Error(t, err)
-	assert.True(t, IsInvalidAmountErr(err))
+	assert.True(t, errors.ErrInvalidAmount.Is(err))
 
 	pos := x.NewCoin(10, 0, "FOO")
 	plus := &FeeInfo{Fees: &pos}
@@ -124,7 +124,7 @@ func TestValidateFeeTx(t *testing.T) {
 	}
 	err = minus.Validate()
 	assert.Error(t, err)
-	assert.True(t, IsInvalidAmountErr(err))
+	assert.True(t, errors.ErrInvalidAmount.Is(err))
 
 	bad := x.NewCoin(3, 0, "fab9")
 	ugly := &FeeInfo{

@@ -6,8 +6,8 @@ import (
 	"testing"
 
 	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/x"
-	"github.com/iov-one/weave/x/cash"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -87,7 +87,7 @@ func TestCreateEscrowMsg(t *testing.T) {
 				Amount:    minus,
 				Timeout:   52,
 			},
-			cash.IsInvalidAmountErr,
+			errors.ErrInvalidAmount.Is,
 		},
 		// improperly formatted amount
 		5: {
@@ -106,7 +106,7 @@ func TestCreateEscrowMsg(t *testing.T) {
 				Recipient: c.Address(),
 				Timeout:   52,
 			},
-			cash.IsInvalidAmountErr,
+			errors.ErrInvalidAmount.Is,
 		},
 		// invalid memo
 		7: {
@@ -194,7 +194,7 @@ func TestReleaseEscrowMsg(t *testing.T) {
 				EscrowId: escrow,
 				Amount:   minus,
 			},
-			cash.IsInvalidAmountErr,
+			errors.ErrInvalidAmount.Is,
 		},
 		// improperly formatted amount
 		6: {
