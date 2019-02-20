@@ -11,6 +11,7 @@ import "github.com/iov-one/weave/x/multisig/codec.proto";
 import "github.com/iov-one/weave/x/nft/codec.proto";
 import "github.com/iov-one/weave/x/sigs/codec.proto";
 import "github.com/iov-one/weave/x/validators/codec.proto";
+import "github.com/iov-one/weave/x/distribution/codec.proto";
 
 // Tx contains the message.
 //
@@ -45,6 +46,9 @@ message Tx {
     username.IssueTokenMsg issue_username_nft_msg = 63;
     username.AddChainAddressMsg add_username_address_nft_msg = 64;
     username.RemoveChainAddressMsg remove_username_address_msg = 65;
+    distribution.NewRevenueMsg new_revenue_msg = 66;
+    distribution.DistributeMsg distribute_msg = 67;
+    distribution.ResetRevenueMsg reset_revenue_msg = 68;
   }
 }
 

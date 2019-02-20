@@ -18,6 +18,7 @@ import (
 	"github.com/iov-one/weave/x"
 	"github.com/iov-one/weave/x/cash"
 	"github.com/iov-one/weave/x/currency"
+	"github.com/iov-one/weave/x/distribution"
 	"github.com/iov-one/weave/x/escrow"
 	"github.com/iov-one/weave/x/hashlock"
 	"github.com/iov-one/weave/x/multisig"
@@ -78,6 +79,7 @@ func Router(authFn x.Authenticator, issuer weave.Address, nftBuckets map[string]
 	currency.RegisterRoutes(r, authFn, issuer)
 	username.RegisterRoutes(r, authFn, issuer)
 	validators.RegisterRoutes(r, authFn, validators.NewController())
+	distribution.RegisterRoutes(r, authFn, ctrl)
 	base.RegisterRoutes(r, authFn, issuer, nftBuckets)
 	return r
 }
@@ -97,6 +99,7 @@ func QueryRouter() weave.QueryRouter {
 		validators.RegisterQuery,
 		orm.RegisterQuery,
 		currency.RegisterQuery,
+		distribution.RegisterQuery,
 	)
 	return r
 }
