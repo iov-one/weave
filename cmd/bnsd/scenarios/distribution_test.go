@@ -6,24 +6,23 @@ import (
 	"github.com/iov-one/weave"
 	bnsdApp "github.com/iov-one/weave/cmd/bnsd/app"
 	"github.com/iov-one/weave/cmd/bnsd/client"
-	"github.com/iov-one/weave/crypto"
 	"github.com/iov-one/weave/x"
 	"github.com/iov-one/weave/x/distribution"
 )
 
 func TestRevenueDistribution(t *testing.T) {
 	admin := client.GenPrivateKey()
-	recipients := []*crypto.PrivateKey{
-		client.GenPrivateKey(),
-		client.GenPrivateKey(),
+	recipients := []weave.Address{
+		client.GenPrivateKey().PublicKey().Address(),
+		client.GenPrivateKey().PublicKey().Address(),
 	}
 	newRevenueTx := &bnsdApp.Tx{
 		Sum: &bnsdApp.Tx_NewRevenueMsg{
 			NewRevenueMsg: &distribution.NewRevenueMsg{
 				Admin: admin.PublicKey().Address(),
 				Recipients: []*distribution.Recipient{
-					{Address: recipients[0].PublicKey().Address(), Weight: 1},
-					{Address: recipients[1].PublicKey().Address(), Weight: 2},
+					{Address: recipients[0], Weight: 1},
+					{Address: recipients[1], Weight: 2},
 				},
 			},
 		},
@@ -69,6 +68,7 @@ func TestRevenueDistribution(t *testing.T) {
 		t.Fatalf("cannot broadcast coin sending transaction from alice: %s", err)
 	}
 	t.Logf("alice transferred funds to revenue %s account: %s", revenueID, string(resp.Response.DeliverTx.GetData()))
+	assertWalletCoins(t, revenueAddress, 7)
 
 	delayForRateLimits()
 
@@ -96,9 +96,9 @@ func TestRevenueDistribution(t *testing.T) {
 	// requested. Funds should be split proportianally to their weights
 	// between the recepients and moved to their accounts.
 	// 7 IOV cents should be split between parties.
-	assertWalletCoins(t, admin.PublicKey().Address(), 1)
-	assertWalletCoins(t, recipients[0].PublicKey().Address(), 2)
-	assertWalletCoins(t, recipients[1].PublicKey().Address(), 4)
+	assertWalletCoins(t, revenueAddress, 1)
+	assertWalletCoins(t, recipients[0], 2)
+	assertWalletCoins(t, recipients[1], 4)
 
 }
 
