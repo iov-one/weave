@@ -16,6 +16,7 @@ import (
 	"github.com/iov-one/weave/x"
 	"github.com/iov-one/weave/x/cash"
 	"github.com/iov-one/weave/x/currency"
+	"github.com/iov-one/weave/x/distribution"
 	"github.com/iov-one/weave/x/multisig"
 	"github.com/iov-one/weave/x/validators"
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -66,7 +67,8 @@ func GenInitOptions(args []string) (json.RawMessage, error) {
             "multisig": [],
 	    "update_validators": {
               "addresses": ["%s"]
-	    }
+	    },
+	    "distribution": []
           }
 	`, addr, ticker, addr)
 	return []byte(opts), nil
@@ -99,6 +101,7 @@ func DecorateApp(application app.BaseApp, logger log.Logger) app.BaseApp {
 		&cash.Initializer{},
 		&currency.Initializer{},
 		&validators.Initializer{},
+		&distribution.Initializer{},
 	))
 	application.WithLogger(logger)
 	return application
