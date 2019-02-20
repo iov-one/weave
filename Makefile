@@ -55,15 +55,11 @@ deps: tools
 tools:
 	@go get github.com/golang/dep/cmd/dep
 
-lint: prototool-bin
-	prototool lint
-
-prototool-bin:
+lint:
 ifndef $(shell command -v prototool help > /dev/null)
-	@@curl -sSL https://github.com/uber/prototool/releases/download/v1.3.0/prototool-$(shell uname -s)-$(shell uname -m) -o $(HOME)/.bin/prototool
-	@@chmod +x $(HOME)/.bin/prototool
+	@go get github.com/uber/prototool/cmd/prototool
 endif
-
+	prototool lint
 
 protoc:
 	protoc --gogofaster_out=. app/*.proto
