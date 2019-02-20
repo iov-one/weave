@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/iov-one/weave/errors"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -320,6 +321,124 @@ func TestCoinSubtract(t *testing.T) {
 			}
 			if !res.Equals(tc.want) {
 				t.Fatalf("%+v - %+v = %+v", tc.a, tc.b, res)
+			}
+		})
+	}
+}
+
+func TestCoinDivide(t *testing.T) {
+	cases := map[string]struct {
+		total    Coin
+		pieces   int64
+		wantOne  Coin
+		wantRest Coin
+		wantErr  error
+	}{
+		"split into one piece": {
+			total:    NewCoin(7, 11, "BTC"),
+			pieces:   1,
+			wantOne:  NewCoin(7, 11, "BTC"),
+			wantRest: NewCoin(0, 0, "BTC"),
+		},
+		"split into two pieces with no rest": {
+			total:    NewCoin(4, 0, "BTC"),
+			pieces:   2,
+			wantOne:  NewCoin(2, 0, "BTC"),
+			wantRest: NewCoin(0, 0, "BTC"),
+		},
+		"split into two pieces with fractional division and no rest": {
+			total:    NewCoin(5, 0, "BTC"),
+			pieces:   2,
+			wantOne:  NewCoin(2, 500000000, "BTC"),
+			wantRest: NewCoin(0, 0, "BTC"),
+		},
+		"split into two pieces with a leftover": {
+			total:    NewCoin(0, 3, "BTC"),
+			pieces:   2,
+			wantOne:  NewCoin(0, 1, "BTC"),
+			wantRest: NewCoin(0, 1, "BTC"),
+		},
+		"split into two pieces with a fractional division and a leftover": {
+			total:    NewCoin(1, 0, "BTC"),
+			pieces:   3,
+			wantOne:  NewCoin(0, 333333333, "BTC"),
+			wantRest: NewCoin(0, 1, "BTC"),
+		},
+		"zero pieces": {
+			total:    NewCoin(666, 0, "BTC"),
+			pieces:   0,
+			wantOne:  NewCoin(0, 0, "BTC"),
+			wantRest: NewCoin(0, 0, "BTC"),
+			wantErr:  errors.ErrHuman,
+		},
+		"negative pieces": {
+			total:    NewCoin(999, 0, "BTC"),
+			pieces:   -1,
+			wantOne:  NewCoin(0, 0, "BTC"),
+			wantRest: NewCoin(0, 0, "BTC"),
+			wantErr:  errors.ErrHuman,
+		},
+		"split fractional 2 by 3 should return 2 as leftover": {
+			total:    NewCoin(0, 2, "BTC"),
+			pieces:   3,
+			wantOne:  NewCoin(0, 0, "BTC"),
+			wantRest: NewCoin(0, 2, "BTC"),
+		},
+	}
+
+	for testName, tc := range cases {
+		t.Run(testName, func(t *testing.T) {
+			gotOne, gotRest, err := tc.total.Divide(tc.pieces)
+			if !gotOne.Equals(tc.wantOne) {
+				t.Errorf("got one %v", gotOne)
+			}
+			if !gotRest.Equals(tc.wantRest) {
+				t.Errorf("got rest %v", gotRest)
+			}
+			if !errors.Is(tc.wantErr, err) {
+				t.Errorf("got err %+v", err)
+			}
+		})
+	}
+}
+
+func TestCoinMultiply(t *testing.T) {
+	cases := map[string]struct {
+		coin  Coin
+		times int64
+		want  Coin
+	}{
+		"zero value coin": {
+			coin:  NewCoin(0, 0, "DOGE"),
+			times: 666,
+			want:  NewCoin(0, 0, "DOGE"),
+		},
+		"multiply": {
+			coin:  NewCoin(1, 0, "DOGE"),
+			times: 3,
+			want:  NewCoin(3, 0, "DOGE"),
+		},
+		"multiply with normalization": {
+			coin:  NewCoin(0, FracUnit/2, "DOGE"),
+			times: 3,
+			want:  NewCoin(1, FracUnit/2, "DOGE"),
+		},
+		"multiply zero times": {
+			coin:  NewCoin(1, 1, "DOGE"),
+			times: 0,
+			want:  NewCoin(0, 0, "DOGE"),
+		},
+		"multiply negative times": {
+			coin:  NewCoin(1, 1, "DOGE"),
+			times: -2,
+			want:  NewCoin(-2, -2, "DOGE"),
+		},
+	}
+	for testName, tc := range cases {
+		t.Run(testName, func(t *testing.T) {
+			got := tc.coin.Multiply(tc.times)
+			if !got.Equals(tc.want) {
+				t.Fatalf("got %v", got)
 			}
 		})
 	}

@@ -2,6 +2,8 @@ package x
 
 import (
 	"regexp"
+
+	"github.com/iov-one/weave/errors"
 )
 
 //-------------- Coin -----------------------
@@ -51,13 +53,62 @@ func (c Coin) ID() string {
 	return c.Issuer + "/" + c.Ticker
 }
 
+// Split divides the value of a coin into given amount of pieces and returns a
+// single piece.
+// It might be that a precise splitting is not possible. Any leftover of a
+// fractional value is returned as well.
+// For example splitting 4 EUR into 3 pieces will result in a single piece
+// being 1.33 EUR and 1 cent returned as the rest (leftover).
+//   4 = 1.33 x 3 + 1
+func (c Coin) Divide(pieces int64) (Coin, Coin, error) {
+	// This is an invalid use of the method.
+	if pieces <= 0 {
+		zero := Coin{Ticker: c.Ticker}
+		return zero, zero, errors.Wrap(errors.ErrHuman, "pieces must be greater than zero")
+	}
+
+	// When dividing whole and there is a leftover then convert it to
+	// fractional and split as well.
+	fractional := c.Fractional
+	if leftover := c.Whole % pieces; leftover != 0 {
+		fractional += leftover * FracUnit
+	}
+
+	one := Coin{
+		Ticker:     c.Ticker,
+		Whole:      c.Whole / pieces,
+		Fractional: fractional / pieces,
+	}
+	rest := Coin{
+		Ticker:     c.Ticker,
+		Whole:      0, // This we can always divide.
+		Fractional: fractional % pieces,
+	}
+	return one, rest, nil
+}
+
+// Multiply returns the result of a coin value multiplication.
+func (c Coin) Multiply(times int64) Coin {
+	whole := c.Whole * times
+	frac := c.Fractional * times
+
+	// Normalize if fractional value overflows.
+	if frac > FracUnit {
+		whole += frac / FracUnit
+		frac = frac % FracUnit
+	}
+
+	return Coin{
+		Ticker:     c.Ticker,
+		Whole:      whole,
+		Fractional: frac,
+	}
+}
+
 // Add combines two coins.
 // Returns error if they are of different
 // currencies, or if the combination would cause
 // an overflow
-//
-// To subtract:
-//   c.Add(o.Negative())
 func (c Coin) Add(o Coin) (Coin, error) {
 	if !c.SameType(o) {
 		err := ErrInvalidCurrency.Newf("adding %s to %s", c.Ticker, o.Ticker)
