@@ -9,6 +9,7 @@ import "github.com/iov-one/weave/x/escrow/codec.proto";
 import "github.com/iov-one/weave/x/multisig/codec.proto";
 import "github.com/iov-one/weave/x/sigs/codec.proto";
 import "github.com/iov-one/weave/x/validators/codec.proto";
+import "github.com/iov-one/weave/x/distribution/codec.proto";
 
 // Tx contains the message.
 //
@@ -37,6 +38,9 @@ message Tx {
     validators.SetValidatorsMsg set_validators_msg = 58;
     currency.NewTokenInfoMsg new_token_info_msg = 59;
     BatchMsg batch_msg = 60;
+    distribution.NewRevenueMsg new_revenue_msg = 66;
+    distribution.DistributeMsg distribute_msg = 67;
+    distribution.ResetRevenueMsg reset_revenue_msg = 68;
   }
 }
 
