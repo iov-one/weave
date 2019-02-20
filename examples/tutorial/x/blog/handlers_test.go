@@ -171,7 +171,8 @@ func testHandlerCheck(t *testing.T, testcases []testcase) {
 			require.EqualValues(t, test.Res, res, test.Name)
 		} else {
 			require.Error(t, err, test.Name) // to avoid seg fault at the next line
-			require.EqualError(t, err, test.Err.Error(), test.Name)
+			errors.Is(err, test.Err)
+			require.True(t, errors.Is(err, test.Err), test.Name)
 		}
 	}
 }
@@ -228,7 +229,7 @@ func TestCreateBlogMsgHandlerCheck(t *testing.T) {
 			},
 			{
 				Name:    "no authors",
-				Err:     ErrInvalidAuthorCount(0),
+				Err:     errors.ErrInvalidState.Newf("authors: %d", 0),
 				Handler: createBlogMsgHandlerFn,
 				Perms:   []weave.Condition{signer},
 				Msg: &CreateBlogMsg{
@@ -238,7 +239,7 @@ func TestCreateBlogMsgHandlerCheck(t *testing.T) {
 			},
 			{
 				Name:    "no slug",
-				Err:     ErrInvalidName(),
+				Err:     errors.ErrInvalidInput.New(invalidName),
 				Handler: createBlogMsgHandlerFn,
 				Perms:   []weave.Condition{signer},
 				Msg: &CreateBlogMsg{
@@ -247,7 +248,7 @@ func TestCreateBlogMsgHandlerCheck(t *testing.T) {
 			},
 			{
 				Name:    "no title",
-				Err:     ErrInvalidTitle(),
+				Err:     errors.ErrInvalidInput.New(invalidTitle),
 				Handler: createBlogMsgHandlerFn,
 				Perms:   []weave.Condition{signer},
 				Msg: &CreateBlogMsg{
@@ -256,7 +257,7 @@ func TestCreateBlogMsgHandlerCheck(t *testing.T) {
 			},
 			{
 				Name:    "no signer",
-				Err:     ErrUnauthorisedBlogAuthor(nil),
+				Err:     errors.ErrUnauthorized.Newf(unauthorisedBlogAuthor, nil),
 				Handler: createBlogMsgHandlerFn,
 				Msg: &CreateBlogMsg{
 					Slug:    "this_is_a_blog",
@@ -266,7 +267,7 @@ func TestCreateBlogMsgHandlerCheck(t *testing.T) {
 			},
 			{
 				Name:    "creating twice",
-				Err:     ErrBlogExist(),
+				Err:     errors.ErrExists.New("blog"),
 				Handler: createBlogMsgHandlerFn,
 				Perms:   []weave.Condition{signer},
 				Msg: &CreateBlogMsg{
@@ -389,7 +390,7 @@ func TestCreatePostMsgHandlerCheck(t *testing.T) {
 			},
 			{
 				Name:    "no title",
-				Err:     ErrInvalidTitle(),
+				Err:     errors.ErrInvalidInput.New(invalidTitle),
 				Handler: createPostMsgHandlerFn,
 				Perms:   []weave.Condition{signer},
 				Msg: &CreatePostMsg{
@@ -400,7 +401,7 @@ func TestCreatePostMsgHandlerCheck(t *testing.T) {
 			},
 			{
 				Name:    "no text",
-				Err:     ErrInvalidText(),
+				Err:     errors.ErrInvalidInput.New(invalidText),
 				Handler: createPostMsgHandlerFn,
 				Perms:   []weave.Condition{signer},
 				Msg: &CreatePostMsg{
@@ -411,7 +412,7 @@ func TestCreatePostMsgHandlerCheck(t *testing.T) {
 			},
 			{
 				Name:    "no author",
-				Err:     ErrUnauthorisedPostAuthor(nil),
+				Err:     errors.ErrUnauthorized.Newf(unauthorisedPostAuthor, nil),
 				Handler: createPostMsgHandlerFn,
 				Perms:   []weave.Condition{signer},
 				Msg: &CreatePostMsg{
@@ -422,7 +423,7 @@ func TestCreatePostMsgHandlerCheck(t *testing.T) {
 			},
 			{
 				Name:    "unauthorized",
-				Err:     ErrUnauthorisedPostAuthor(unauthorised.Address()),
+				Err:     errors.ErrUnauthorized.Newf(unauthorisedPostAuthor, unauthorised.Address()),
 				Handler: createPostMsgHandlerFn,
 				Perms:   []weave.Condition{signer},
 				Msg: &CreatePostMsg{
@@ -445,7 +446,7 @@ func TestCreatePostMsgHandlerCheck(t *testing.T) {
 			},
 			{
 				Name:    "missing blog dependency",
-				Err:     ErrBlogNotFound(),
+				Err:     errors.ErrNotFound.New("blog"),
 				Handler: createPostMsgHandlerFn,
 				Perms:   []weave.Condition{signer},
 				Msg: &CreatePostMsg{
@@ -552,7 +553,7 @@ func TestRenameBlogMsgHandlerCheck(t *testing.T) {
 			},
 			{
 				Name:    "no title",
-				Err:     ErrInvalidTitle(),
+				Err:     errors.ErrInvalidInput.New(invalidTitle),
 				Handler: renameBlogMsgHandlerFn,
 				Perms:   []weave.Condition{signer},
 				Msg: &RenameBlogMsg{
@@ -561,7 +562,7 @@ func TestRenameBlogMsgHandlerCheck(t *testing.T) {
 			},
 			{
 				Name:    "missing dependency",
-				Err:     ErrBlogNotFound(),
+				Err:     errors.ErrNotFound.New("blog"),
 				Handler: renameBlogMsgHandlerFn,
 				Perms:   []weave.Condition{signer},
 				Msg: &RenameBlogMsg{
@@ -571,7 +572,7 @@ func TestRenameBlogMsgHandlerCheck(t *testing.T) {
 			},
 			{
 				Name:    "no signer",
-				Err:     ErrUnauthorisedBlogAuthor(nil),
+				Err:     errors.ErrUnauthorized.Newf(unauthorisedBlogAuthor, nil),
 				Handler: renameBlogMsgHandlerFn,
 				Msg: &RenameBlogMsg{
 					Slug:  "this_is_a_blog",
@@ -679,7 +680,7 @@ func TestChangeBlogAuthorsMsgHandlerCheck(t *testing.T) {
 			},
 			{
 				Name:    "adding existing author",
-				Err:     ErrAuthorAlreadyExist(newAuthor.Address()),
+				Err:     errors.ErrExists.Newf("author: %X", newAuthor.Address()),
 				Handler: changeBlogAuthorsMsgHandlerFn,
 				Perms:   []weave.Condition{signer},
 				Msg: &ChangeBlogAuthorsMsg{
@@ -701,7 +702,7 @@ func TestChangeBlogAuthorsMsgHandlerCheck(t *testing.T) {
 			},
 			{
 				Name:    "removing unexisting author",
-				Err:     ErrAuthorNotFound(newAuthor.Address()),
+				Err:     errors.ErrNotFound.Newf("author: %X", newAuthor.Address()),
 				Handler: changeBlogAuthorsMsgHandlerFn,
 				Perms:   []weave.Condition{signer},
 				Msg: &ChangeBlogAuthorsMsg{
@@ -723,7 +724,7 @@ func TestChangeBlogAuthorsMsgHandlerCheck(t *testing.T) {
 			},
 			{
 				Name:    "removing last author",
-				Err:     ErrBlogOneAuthorLeft(),
+				Err:     errors.ErrInvalidState.New(""),
 				Handler: changeBlogAuthorsMsgHandlerFn,
 				Perms:   []weave.Condition{authorToRemove},
 				Msg: &ChangeBlogAuthorsMsg{
@@ -765,7 +766,7 @@ func TestChangeBlogAuthorsMsgHandlerCheck(t *testing.T) {
 			},
 			{
 				Name:    "adding with missing dep",
-				Err:     ErrBlogNotFound(),
+				Err:     errors.ErrNotFound.New("blog"),
 				Handler: changeBlogAuthorsMsgHandlerFn,
 				Perms:   []weave.Condition{signer},
 				Msg: &ChangeBlogAuthorsMsg{
@@ -776,7 +777,7 @@ func TestChangeBlogAuthorsMsgHandlerCheck(t *testing.T) {
 			},
 			{
 				Name:    "removing with missing dep",
-				Err:     ErrBlogNotFound(),
+				Err:     errors.ErrNotFound.New("blog"),
 				Handler: changeBlogAuthorsMsgHandlerFn,
 				Perms:   []weave.Condition{signer},
 				Msg: &ChangeBlogAuthorsMsg{
@@ -787,7 +788,7 @@ func TestChangeBlogAuthorsMsgHandlerCheck(t *testing.T) {
 			},
 			{
 				Name:    "unsigned tx",
-				Err:     ErrUnauthorisedBlogAuthor(nil),
+				Err:     errors.ErrUnauthorized.Newf(unauthorisedBlogAuthor, nil),
 				Handler: changeBlogAuthorsMsgHandlerFn,
 				Msg: &ChangeBlogAuthorsMsg{
 					Slug:   "this_is_a_blog",
@@ -891,7 +892,7 @@ func TestSetProfileMsgHandlerCheck(t *testing.T) {
 			},
 			{
 				Name:    "no name",
-				Err:     ErrInvalidName(),
+				Err:     errors.ErrInvalidInput.New(invalidName),
 				Handler: SetProfileMsgHandlerFn,
 				Perms:   []weave.Condition{signer},
 				Msg: &SetProfileMsg{
@@ -900,7 +901,7 @@ func TestSetProfileMsgHandlerCheck(t *testing.T) {
 			},
 			{
 				Name:    "unauthorized author",
-				Err:     ErrUnauthorisedProfileAuthor(author.Address()),
+				Err:     errors.ErrUnauthorized.Newf(unauthorisedPostAuthor, author.Address()),
 				Handler: SetProfileMsgHandlerFn,
 				Perms:   []weave.Condition{signer},
 				Msg: &SetProfileMsg{
