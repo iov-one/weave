@@ -58,7 +58,6 @@ tools:
 lint:
 ifndef $(shell command -v prototool help > /dev/null)
 	@go get github.com/uber/prototool/cmd/prototool
-	@go install github.com/uber/prototool/cmd/prototool
 endif
 	prototool lint
 
