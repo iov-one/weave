@@ -19,15 +19,15 @@ var _ orm.CloneableData = (*Escrow)(nil)
 // Validate ensures the escrow is valid
 func (e *Escrow) Validate() error {
 	if e.Sender == nil {
-		return ErrMissingSender()
+		return errors.ErrEmpty.New("sender")
 	}
 	// Copied from CreateEscrowMsg.Validate
 	// TODO: code reuse???
 	if e.Arbiter == nil {
-		return ErrMissingArbiter()
+		return errors.ErrEmpty.New("arbiter")
 	}
 	if e.Recipient == nil {
-		return ErrMissingRecipient()
+		return errors.ErrEmpty.New("recipient")
 	}
 	if e.Timeout <= 0 {
 		return ErrInvalidTimeout(e.Timeout)

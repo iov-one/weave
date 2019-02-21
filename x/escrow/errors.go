@@ -10,8 +10,6 @@ import (
 // escrow takes 1010-1020
 const (
 	CodeNoEscrow         = 1010
-	CodeMissingCondition = 1011
-	CodeInvalidCondition = 1012
 	CodeInvalidMetadata  = 1013
 	CodeInvalidHeight    = 1014
 
@@ -20,10 +18,6 @@ const (
 )
 
 var (
-	errMissingArbiter       = fmt.Errorf("Missing Arbiter")
-	errMissingSender        = fmt.Errorf("Missing Src")
-	errMissingRecipient     = fmt.Errorf("Missing Recipient")
-	errMissingAllConditions = fmt.Errorf("Missing All Conditions")
 
 	errInvalidMemo     = fmt.Errorf("Memo field too long")
 	errInvalidTimeout  = fmt.Errorf("Invalid Timeout")
@@ -39,22 +33,6 @@ var (
 	// errChangeWalletName  = fmt.Errorf("Wallet already has a name")
 	// errNoSuchWallet      = fmt.Errorf("No wallet exists with this address")
 )
-
-func ErrMissingArbiter() error {
-	return errors.WithCode(errMissingArbiter, CodeMissingCondition)
-}
-func ErrMissingSender() error {
-	return errors.WithCode(errMissingSender, CodeMissingCondition)
-}
-func ErrMissingRecipient() error {
-	return errors.WithCode(errMissingRecipient, CodeMissingCondition)
-}
-func ErrMissingAllConditions() error {
-	return errors.WithCode(errMissingAllConditions, CodeMissingCondition)
-}
-func IsMissingConditionErr(err error) bool {
-	return errors.HasErrorCode(err, CodeMissingCondition)
-}
 
 func ErrInvalidCondition(perm []byte) error {
 	return errors.ErrUnrecognizedCondition(perm)

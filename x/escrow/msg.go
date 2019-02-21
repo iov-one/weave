@@ -60,10 +60,10 @@ func NewCreateMsg(send, rcpt weave.Address, arb weave.Condition,
 // Validate makes sure that this is sensible
 func (m *CreateEscrowMsg) Validate() error {
 	if m.Arbiter == nil {
-		return ErrMissingArbiter()
+		return errors.ErrEmpty.New("arbiter")
 	}
 	if m.Recipient == nil {
-		return ErrMissingRecipient()
+		return errors.ErrEmpty.New("recipient")
 	}
 	if m.Timeout <= 0 {
 		return ErrInvalidTimeout(m.Timeout)
@@ -107,7 +107,7 @@ func (m *UpdateEscrowPartiesMsg) Validate() error {
 	if m.Arbiter == nil &&
 		m.Sender == nil &&
 		m.Recipient == nil {
-		return ErrMissingAllConditions()
+		return errors.ErrEmpty.New("all conditions")
 	}
 	err = validateConditions(m.Arbiter)
 	if err != nil {

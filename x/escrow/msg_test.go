@@ -46,7 +46,7 @@ func TestCreateEscrowMsg(t *testing.T) {
 		check checkErr
 	}{
 		// nothing
-		0: {new(CreateEscrowMsg), IsMissingConditionErr},
+		0: {new(CreateEscrowMsg), errors.ErrEmpty.Is},
 		// proper
 		1: {
 			&CreateEscrowMsg{
@@ -286,7 +286,7 @@ func TestUpdateEscrowMsg(t *testing.T) {
 			&UpdateEscrowPartiesMsg{
 				EscrowId: escrow,
 			},
-			IsMissingConditionErr,
+			errors.ErrEmpty.Is,
 		},
 		// invalid escrow, proper permissions
 		3: {

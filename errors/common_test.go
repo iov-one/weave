@@ -2,7 +2,6 @@ package errors
 
 import (
 	"fmt"
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -23,26 +22,9 @@ func TestChecks(t *testing.T) {
 		check CheckErr
 		match bool
 	}{
-		// specific errors match broader checks, but not visa versa
-		{ErrDecoding(), IsDecodingErr, true},
-		{ErrTooLarge(), IsTooLargeErr, true},
-		{ErrTooLarge(), IsDecodingErr, true},
-		{ErrDecoding(), IsTooLargeErr, false},
 
-		{ErrUnauthorizedLegacy(), IsDecodingErr, false},
-		{ErrUnauthorizedLegacy(), IsUnauthorizedErr, true},
 		// make sure lots of things match ErrInternal, but not everything
-		{ErrInternalLegacy("bad db connection"), IsInternalErr, true},
 		{Wrap(fmt.Errorf("wrapped"), "wrapped"), IsInternalErr, true},
-		{fmt.Errorf("wrapped"), IsInternalErr, true},
-		{ErrUnauthorizedLegacy(), IsInternalErr, false},
-
-		{ErrMissingSignature(), IsUnauthorizedErr, true},
-		{ErrMissingSignature(), IsMissingSignatureErr, true},
-		{ErrUnauthorizedLegacy(), IsMissingSignatureErr, false},
-		{ErrInvalidSignature(), IsUnauthorizedErr, true},
-		{ErrInvalidSignature(), IsInvalidSignatureErr, true},
-
 		{nil, NoErr, true},
 		{Wrap(nil, "asd"), NoErr, true},
 	}
@@ -50,64 +32,5 @@ func TestChecks(t *testing.T) {
 	for i, tc := range cases {
 		match := tc.check(tc.err)
 		assert.Equal(t, tc.match, match, "%d", i)
-	}
-}
-
-// TestLog checks the text returned by the error
-func TestLog(t *testing.T) {
-	cases := []struct {
-		err error
-		// this should always pass, just to verify
-		check CheckErr
-		// this is the text we want to see with .Log()
-		log string
-	}{
-		// make sure messages are nice, even if wrapped or not
-		{ErrTooLarge(), IsTooLargeErr, "(2) Input size too large"},
-		{Wrap(ErrTooLarge(), ""), IsTooLargeErr, ": Input size too large"},
-		{Wrap(fmt.Errorf("wrapped"), ""), IsInternalErr, ": wrapped"},
-
-		// with code shouldn't change the error message
-		{WithCode(ErrUnauthorizedLegacy(), CodeTxParseError), IsDecodingErr, "(2) Unauthorized"},
-
-		// with log should add some in front
-		{WithLog("Special", ErrUnauthorizedLegacy(), CodeInternalErr), IsInternalErr, "(1) Special: Unauthorized"},
-
-		// verify some standard message types with prefixes
-		{ErrUnrecognizedAddress([]byte{0, 0x12, 0x77}), IsUnrecognizedAddressErr, "(5) 001277: Unrecognized Address"},
-		{ErrUnrecognizedCondition([]byte{0xF0, 0x0D, 0xCA, 0xFE}), IsUnrecognizedConditionErr, "(5) F00DCAFE: Unrecognized Condition"},
-		{ErrUnknownTxType("john_123"), IsUnknownTxTypeErr, "(4) string: Tx type unknown"},
-		{ErrUnknownTxType(t), IsUnknownTxTypeErr, "(4) *testing.T: Tx type unknown"},
-	}
-
-	for i, tc := range cases {
-		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
-
-			assert.True(t, tc.check(tc.err))
-
-			// make sure we have a nice error message with code
-			msg := fmt.Sprintf("%s", tc.err)
-			assert.Equal(t, tc.log, msg)
-
-			// make sure we have a nice error message with code
-			middle := fmt.Sprintf("%v", tc.err)
-			assert.Contains(t, middle, tc.log)
-
-			// TODO: this is failing, because stacktrace
-			// implementation is not present for the new error
-			// handing code.
-			// assert.Contains(t, middle, "common_test.go", middle)
-
-			// make sure we also get stack dumps....
-			stack := fmt.Sprintf("%+v", tc.err)
-			// we should trim off unneeded stuff
-			withCode := "github.com/iov-one/weave/errors.WithCode\n"
-			// thisTest := "github.com/iov-one/weave/errors.TestLog\n"
-			assert.False(t, strings.Contains(stack, withCode))
-			// TODO: this is failing, because stacktrace
-			// implementation is not present for the new error
-			// handing code.
-			// assert.True(t, strings.Contains(stack, thisTest))
-		})
 	}
 }

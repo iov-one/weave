@@ -63,7 +63,7 @@ func (d FeeDecorator) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx,
 
 	// verify we have access to the money
 	if !d.auth.HasAddress(ctx, finfo.Payer) {
-		return res, errors.ErrUnauthorizedLegacy()
+		return res, errors.ErrUnauthorized
 	}
 	// and have enough
 	collector := gconf.Address(store, GconfCollectorAddress)
@@ -97,7 +97,7 @@ func (d FeeDecorator) Deliver(ctx weave.Context, store weave.KVStore, tx weave.T
 
 	// verify we have access to the money
 	if !d.auth.HasAddress(ctx, finfo.Payer) {
-		return res, errors.ErrUnauthorizedLegacy()
+		return res, errors.ErrUnauthorized
 	}
 	// and subtract it from the account
 	collector := gconf.Address(store, GconfCollectorAddress)

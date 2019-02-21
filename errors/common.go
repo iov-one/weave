@@ -136,10 +136,6 @@ func ErrDecoding() error {
 	return WithCode(errDecoding, CodeTxParseError)
 }
 
-// IsDecodingErr returns true for any error with a ParseError code
-func IsDecodingErr(err error) bool {
-	return HasErrorCode(err, CodeTxParseError)
-}
 
 // ErrTooLarge is a specific decode error when we pass the max tx size
 func ErrTooLarge() error {
@@ -150,12 +146,6 @@ func ErrTooLarge() error {
 // with ErrTooLarge
 func IsTooLargeErr(err error) bool {
 	return IsSameError(errTooLarge, err)
-}
-
-// ErrUnauthorizedLegacy is a generic denial.
-// You can use a more specific cause if you wish, such as ErrInvalidSignature
-func ErrUnauthorizedLegacy() error {
-	return WithCode(errUnauthorized, CodeUnauthorized)
 }
 
 // IsUnauthorizedErr is generic helper for any unauthorized errors,
@@ -192,22 +182,10 @@ func ErrInvalidChainID(chainID string) error {
 	return WithLog(chainID, errInvalidChainID, CodeInvalidChainID)
 }
 
-// IsInvalidChainIDErr returns true iff an error was created
-// with ErrInvalidChainID
-func IsInvalidChainIDErr(err error) bool {
-	return IsSameError(errInvalidChainID, err)
-}
-
 // ErrModifyChainID is when someone tries to change the chainID
 // after genesis
 func ErrModifyChainID() error {
 	return WithCode(errModifyChainID, CodeInvalidChainID)
-}
-
-// IsModifyChainIDErr returns true iff an error was created
-// with ErrModifyChainID
-func IsModifyChainIDErr(err error) bool {
-	return IsSameError(errModifyChainID, err)
 }
 
 func WithType(err error, obj interface{}) error {
