@@ -9,16 +9,15 @@ import (
 // ABCI Response Codes
 // escrow takes 1010-1020
 const (
-	CodeNoEscrow         = 1010
-	CodeInvalidMetadata  = 1013
-	CodeInvalidHeight    = 1014
+	CodeNoEscrow        = 1010
+	CodeInvalidMetadata = 1013
+	CodeInvalidHeight   = 1014
 
 	// CodeInvalidIndex  = 1001
 	// CodeInvalidWallet = 1002
 )
 
 var (
-
 	errInvalidMemo     = fmt.Errorf("Memo field too long")
 	errInvalidTimeout  = fmt.Errorf("Invalid Timeout")
 	errInvalidEscrowID = fmt.Errorf("Invalid Escrow ID")

@@ -23,7 +23,6 @@ var (
 	errDecoding              = stderrors.New("Error decoding input")
 	errTooLarge              = stderrors.New("Input size too large")
 	errUnknownTxType         = stderrors.New("Tx type unknown")
-	errUnauthorized          = stderrors.New("Unauthorized")
 	errMissingSignature      = stderrors.New("Signature missing")
 	errInvalidSignature      = stderrors.New("Signature invalid")
 	errUnrecognizedAddress   = stderrors.New("Unrecognized Address")
@@ -120,22 +119,10 @@ func IsUnrecognizedConditionErr(err error) bool {
 	return IsSameError(errUnrecognizedCondition, err)
 }
 
-// ErrInternalLegacy is a generic error code when we cannot return any more
-// useful info
-func ErrInternalLegacy(msg string) error {
-	return New(msg, CodeInternalErr)
-}
-
-// IsInternalErr returns true for any error that is not classified
-func IsInternalErr(err error) bool {
-	return HasErrorCode(err, CodeInternalErr)
-}
-
 // ErrDecoding is generic when we cannot parse the transaction input
 func ErrDecoding() error {
 	return WithCode(errDecoding, CodeTxParseError)
 }
-
 
 // ErrTooLarge is a specific decode error when we pass the max tx size
 func ErrTooLarge() error {

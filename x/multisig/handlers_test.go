@@ -195,7 +195,7 @@ func TestUpdateContractMsgHandler(t *testing.T) {
 				AdminThreshold:      5,
 			},
 			signers: []weave.Condition{a},
-			err:    errors.ErrUnauthorized.Newf("contract=%X", mutableID),
+			err:     errors.ErrUnauthorized.Newf("contract=%X", mutableID),
 		},
 		{
 			name: "immutable",

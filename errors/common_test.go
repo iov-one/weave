@@ -24,7 +24,8 @@ func TestChecks(t *testing.T) {
 	}{
 
 		// make sure lots of things match ErrInternal, but not everything
-		{Wrap(fmt.Errorf("wrapped"), "wrapped"), IsInternalErr, true},
+		{Wrap(fmt.Errorf("internal"), "wrapped"),
+			func(err error) bool { return !Is(err, ErrInternal.New("wrapped")) }, true},
 		{nil, NoErr, true},
 		{Wrap(nil, "asd"), NoErr, true},
 	}

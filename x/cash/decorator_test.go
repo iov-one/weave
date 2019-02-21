@@ -30,11 +30,11 @@ func (f feeTx) GetFees() *FeeInfo {
 }
 
 func (f feeTx) Marshal() ([]byte, error) {
-	return nil, errors.ErrInternalLegacy("TODO: not implemented")
+	return nil, errors.ErrInternal.New("TODO: not implemented")
 }
 
 func (f *feeTx) Unmarshal([]byte) error {
-	return errors.ErrInternalLegacy("TODO: not implemented")
+	return errors.ErrInternal.New("TODO: not implemented")
 }
 
 type okHandler struct{}

@@ -12,7 +12,7 @@ import (
 )
 
 func makeError() error {
-	return errors.ErrInternalLegacy("foo")
+	return errors.ErrInternal.New("foo")
 }
 
 func otherError() error {
