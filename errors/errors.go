@@ -60,9 +60,6 @@ var (
 	// ErrInvalidInput stands for general input problems indication
 	ErrInvalidInput = Register(14, "invalid input")
 
-	// ErrExists already exists error
-	ErrExists = Register(15, "already exists")
-
 	// ErrPanic is only set when we recover from a panic, so we know to redact potentially sensitive system info
 	ErrPanic = Register(111222, "panic")
 )

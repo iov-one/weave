@@ -257,7 +257,7 @@ func TestCreateBlogMsgHandlerCheck(t *testing.T) {
 			},
 			{
 				Name:    "no signer",
-				Err:     errors.ErrUnauthorized.Newf(unauthorisedBlogAuthor, nil),
+				Err:     errors.ErrUnauthorized.Newf(unauthorisedBlogAuthorFmt, nil),
 				Handler: createBlogMsgHandlerFn,
 				Msg: &CreateBlogMsg{
 					Slug:    "this_is_a_blog",
@@ -267,7 +267,7 @@ func TestCreateBlogMsgHandlerCheck(t *testing.T) {
 			},
 			{
 				Name:    "creating twice",
-				Err:     errors.ErrExists.New("blog"),
+				Err:     errors.ErrDuplicate.New("blog"),
 				Handler: createBlogMsgHandlerFn,
 				Perms:   []weave.Condition{signer},
 				Msg: &CreateBlogMsg{
@@ -412,7 +412,7 @@ func TestCreatePostMsgHandlerCheck(t *testing.T) {
 			},
 			{
 				Name:    "no author",
-				Err:     errors.ErrUnauthorized.Newf(unauthorisedPostAuthor, nil),
+				Err:     errors.ErrUnauthorized.Newf(unauthorisedPostAuthorFmt, nil),
 				Handler: createPostMsgHandlerFn,
 				Perms:   []weave.Condition{signer},
 				Msg: &CreatePostMsg{
@@ -423,7 +423,7 @@ func TestCreatePostMsgHandlerCheck(t *testing.T) {
 			},
 			{
 				Name:    "unauthorized",
-				Err:     errors.ErrUnauthorized.Newf(unauthorisedPostAuthor, unauthorised.Address()),
+				Err:     errors.ErrUnauthorized.Newf(unauthorisedPostAuthorFmt, unauthorised.Address()),
 				Handler: createPostMsgHandlerFn,
 				Perms:   []weave.Condition{signer},
 				Msg: &CreatePostMsg{
@@ -572,7 +572,7 @@ func TestRenameBlogMsgHandlerCheck(t *testing.T) {
 			},
 			{
 				Name:    "no signer",
-				Err:     errors.ErrUnauthorized.Newf(unauthorisedBlogAuthor, nil),
+				Err:     errors.ErrUnauthorized.Newf(unauthorisedBlogAuthorFmt, nil),
 				Handler: renameBlogMsgHandlerFn,
 				Msg: &RenameBlogMsg{
 					Slug:  "this_is_a_blog",
@@ -680,7 +680,7 @@ func TestChangeBlogAuthorsMsgHandlerCheck(t *testing.T) {
 			},
 			{
 				Name:    "adding existing author",
-				Err:     errors.ErrExists.Newf("author: %X", newAuthor.Address()),
+				Err:     errors.ErrDuplicate.Newf("author: %X", newAuthor.Address()),
 				Handler: changeBlogAuthorsMsgHandlerFn,
 				Perms:   []weave.Condition{signer},
 				Msg: &ChangeBlogAuthorsMsg{
@@ -788,7 +788,7 @@ func TestChangeBlogAuthorsMsgHandlerCheck(t *testing.T) {
 			},
 			{
 				Name:    "unsigned tx",
-				Err:     errors.ErrUnauthorized.Newf(unauthorisedBlogAuthor, nil),
+				Err:     errors.ErrUnauthorized.Newf(unauthorisedBlogAuthorFmt, nil),
 				Handler: changeBlogAuthorsMsgHandlerFn,
 				Msg: &ChangeBlogAuthorsMsg{
 					Slug:   "this_is_a_blog",
@@ -901,7 +901,7 @@ func TestSetProfileMsgHandlerCheck(t *testing.T) {
 			},
 			{
 				Name:    "unauthorized author",
-				Err:     errors.ErrUnauthorized.Newf(unauthorisedPostAuthor, author.Address()),
+				Err:     errors.ErrUnauthorized.Newf(unauthorisedPostAuthorFmt, author.Address()),
 				Handler: SetProfileMsgHandlerFn,
 				Perms:   []weave.Condition{signer},
 				Msg: &SetProfileMsg{
