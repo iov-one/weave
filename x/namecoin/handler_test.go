@@ -48,7 +48,7 @@ func TestSendHandler(t *testing.T) {
 	}{
 		0: {nil, nil, nil, errors.ErrInvalidMsg.Is, errors.ErrInvalidMsg.Is},
 		1: {nil, nil, new(cash.SendMsg), errors.ErrInvalidAmount.Is, errors.ErrInvalidAmount.Is},
-		2: {nil, nil, &cash.SendMsg{Amount: &foo}, errors.IsUnrecognizedAddressErr, errors.IsUnrecognizedAddressErr},
+		2: {nil, nil, &cash.SendMsg{Amount: &foo}, errors.ErrInvalidInput.Is, errors.ErrInvalidInput.Is},
 		3: {
 			nil,
 			nil,
@@ -221,7 +221,7 @@ func TestSetNameHandler(t *testing.T) {
 			errors.ErrInvalidMsg.Is, errors.ErrInvalidMsg.Is, nil, nil},
 		// invalid message
 		1: {nil, nil, BuildSetNameMsg([]byte{1, 2}, "johnny"),
-			errors.IsUnrecognizedAddressErr, errors.IsUnrecognizedAddressErr, nil, nil},
+			errors.ErrInvalidInput.Is, errors.ErrInvalidInput.Is, nil, nil},
 		2: {nil, nil, BuildSetNameMsg(addr, "sh"),
 			IsInvalidWallet, IsInvalidWallet, nil, nil},
 		// no permission to change account

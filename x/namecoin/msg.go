@@ -65,7 +65,7 @@ func (SetWalletNameMsg) Path() string {
 // Validate makes sure that this is sensible
 func (s *SetWalletNameMsg) Validate() error {
 	if len(s.Address) != weave.AddressLength {
-		return errors.ErrUnrecognizedAddress(s.Address)
+		return errors.ErrInvalidInput.Newf("address: %v", s.Address)
 	}
 	if !IsWalletName(s.Name) {
 		return ErrInvalidWalletName(s.Name)

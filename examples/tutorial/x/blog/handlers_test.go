@@ -746,7 +746,7 @@ func TestChangeBlogAuthorsMsgHandlerCheck(t *testing.T) {
 			},
 			{
 				Name:    "adding with no author",
-				Err:     errors.ErrUnrecognizedAddress(nil),
+				Err:     errors.ErrInvalidInput.Newf("address: %v", nil),
 				Handler: changeBlogAuthorsMsgHandlerFn,
 				Perms:   []weave.Condition{signer},
 				Msg: &ChangeBlogAuthorsMsg{
@@ -756,7 +756,7 @@ func TestChangeBlogAuthorsMsgHandlerCheck(t *testing.T) {
 			},
 			{
 				Name:    "removing with no author",
-				Err:     errors.ErrUnrecognizedAddress(nil),
+				Err:     errors.ErrInvalidInput.Newf("address: %v", nil),
 				Handler: changeBlogAuthorsMsgHandlerFn,
 				Perms:   []weave.Condition{signer},
 				Msg: &ChangeBlogAuthorsMsg{

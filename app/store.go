@@ -111,7 +111,7 @@ func (s *StoreApp) parseAppState(data []byte, chainID string, init weave.Initial
 	var appState weave.Options
 	err := json.Unmarshal(data, &appState)
 	if err != nil {
-		return errors.WithCode(err, errors.CodeTxParseError)
+		return errors.ErrInternal.New(err.Error())
 	}
 
 	err = s.storeChainID(chainID)
@@ -215,7 +215,7 @@ func (s *StoreApp) Query(reqQuery abci.RequestQuery) (resQuery abci.ResponseQuer
 	path, mod := splitPath(reqQuery.Path)
 	qh := s.queryRouter.Handler(path)
 	if qh == nil {
-		resQuery.Code = errors.CodeUnknownRequest
+		resQuery.Code = errors.ErrNotFound.ABCICode()
 		resQuery.Log = fmt.Sprintf("Unexpected Query path: %v", reqQuery.Path)
 		return
 	}
@@ -279,7 +279,7 @@ func splitPath(path string) (string, string) {
 func queryError(err error) abci.ResponseQuery {
 	return abci.ResponseQuery{
 		Log:  err.Error(),
-		Code: errors.CodeInternalErr,
+		Code: errors.ErrInternal.ABCICode(),
 	}
 }
 

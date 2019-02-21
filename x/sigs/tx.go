@@ -28,7 +28,7 @@ func (s *StdSignature) Validate() error {
 		return ErrMissingPubkey()
 	}
 	if s.Signature == nil {
-		return errors.ErrMissingSignature()
+		return errors.ErrUnauthorized.New("missing signature")
 	}
 
 	return nil

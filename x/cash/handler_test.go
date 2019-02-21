@@ -35,7 +35,7 @@ func TestSend(t *testing.T) {
 	}{
 		0: {nil, nil, nil, errors.ErrInvalidMsg.Is, errors.ErrInvalidMsg.Is},
 		1: {nil, nil, new(SendMsg), errors.ErrInvalidAmount.Is, errors.ErrInvalidAmount.Is},
-		2: {nil, nil, &SendMsg{Amount: &foo}, errors.IsUnrecognizedAddressErr, errors.IsUnrecognizedAddressErr},
+		2: {nil, nil, &SendMsg{Amount: &foo}, errors.ErrInvalidInput.Is, errors.ErrInvalidInput.Is},
 		3: {
 			nil,
 			nil,

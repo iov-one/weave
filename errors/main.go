@@ -16,21 +16,6 @@ type TMError interface {
 	ABCILog() string
 }
 
-// This function is deprecated. Error codes are no longer part of an error API.
-//
-// New creates an error with the given message and a stacktrace,
-// and sets the code and log,
-// overriding the state if err was already TMError
-func New(log string, code uint32) error {
-	// create a new error with stack trace and attach a code
-	st := errors.New(log).(stackTracer)
-	return tmerror{
-		stackTracer: st,
-		code:        code,
-		log:         log,
-	}
-}
-
 // WithCode adds a stacktrace if necessary and sets the code and msg,
 // overriding the code if err was already TMError
 func WithCode(err error, code uint32) TMError {

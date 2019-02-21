@@ -16,7 +16,7 @@ func makeError() error {
 }
 
 func otherError() error {
-	return errors.ErrDecoding()
+	return errors.ErrInvalidInput.New("unable to decode")
 }
 
 type foo struct {

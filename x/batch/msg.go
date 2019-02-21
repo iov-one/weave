@@ -23,7 +23,7 @@ func Validate(msg Msg) error {
 	}
 
 	if len(l) > MaxBatchMessages {
-		return errors.ErrTooLarge()
+		return errors.ErrInvalidInput.New("transaction is too large")
 	}
 	return nil
 }

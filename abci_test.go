@@ -16,14 +16,12 @@ func TestCreateErrorResult(t *testing.T) {
 		msg  string
 		code uint32
 	}{
-		{errors.NormalizePanic("stdlib"), "internal", errors.CodeInternalErr},
-		{fmt.Errorf("base"), "base", errors.CodeInternalErr},
-		{pkerr.New("dave"), "dave", errors.CodeInternalErr},
-		{errors.Wrap(fmt.Errorf("demo"), "wrapped"), "wrapped: demo", errors.CodeInternalErr},
-		{errors.New(fmt.Errorf("stdlib").Error(), 5), "stdlib", 5},
-		{errors.New("nonce", errors.CodeUnauthorized), "nonce", errors.CodeUnauthorized},
-		{errors.WithCode(fmt.Errorf("no sender"), errors.CodeUnrecognizedAddress), "no sender", errors.CodeUnrecognizedAddress},
-		{errors.ErrDecoding(), errors.ErrDecoding().Error(), errors.CodeTxParseError},
+		{errors.NormalizePanic("stdlib"), "internal", errors.ErrInternal.ABCICode()},
+		{fmt.Errorf("base"), "base", errors.ErrInternal.ABCICode()},
+		{pkerr.New("dave"), "dave", errors.ErrInternal.ABCICode()},
+		{errors.Wrap(fmt.Errorf("demo"), "wrapped"), "wrapped: demo", errors.ErrInternal.ABCICode()},
+		{errors.WithCode(fmt.Errorf("no sender"), 11), "no sender", 11},
+		{errors.ErrInvalidInput.New("unable to decode"), errors.ErrInvalidInput.New("unable to decode").Error(), errors.ErrInvalidInput.ABCICode()},
 	}
 
 	for i, tc := range cases {

@@ -87,7 +87,7 @@ func (f *FeeInfo) DefaultPayer(addr []byte) *FeeInfo {
 // Note that fee must be present, even if 0
 func (f *FeeInfo) Validate() error {
 	if f == nil {
-		return errors.ErrUnrecognizedAddress(nil)
+		return errors.ErrInvalidInput.Newf("address: %v", nil)
 	}
 	fee := f.GetFees()
 	if fee == nil {

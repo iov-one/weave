@@ -38,7 +38,8 @@ func NewCondition(ext, typ string, data []byte) Condition {
 func (c Condition) Parse() (string, string, []byte, error) {
 	chunks := perm.FindSubmatch(c)
 	if len(chunks) == 0 {
-		return "", "", nil, errors.ErrUnrecognizedCondition(c)
+		return "", "", nil, errors.ErrInvalidInput.Newf("condition: %X", []byte(c))
+
 	}
 	// returns [all, match1, match2, match3]
 	return string(chunks[1]), string(chunks[2]), chunks[3], nil
@@ -68,7 +69,7 @@ func (c Condition) String() string {
 // Validate returns an error if the Condition is not the proper format
 func (c Condition) Validate() error {
 	if !perm.Match(c) {
-		return errors.ErrUnrecognizedCondition(c)
+		return errors.ErrInvalidInput.Newf("condition: %X", []byte(c))
 	}
 	return nil
 }
@@ -109,7 +110,7 @@ func (a Address) String() string {
 // Validate returns an error if the address is not the valid size
 func (a Address) Validate() error {
 	if len(a) != AddressLength {
-		return errors.ErrUnrecognizedAddress(a)
+		return errors.ErrInvalidInput.Newf("address: %v", a)
 	}
 	return nil
 }

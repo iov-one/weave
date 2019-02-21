@@ -79,7 +79,7 @@ func TestFees(t *testing.T) {
 		// no fee given, something expected
 		1: {nil, nil, nil, min, errors.ErrInsufficientAmount.Is},
 		// no signer given
-		2: {nil, nil, &FeeInfo{Fees: &min}, min, errors.IsUnrecognizedAddressErr},
+		2: {nil, nil, &FeeInfo{Fees: &min}, min, errors.ErrInvalidInput.Is},
 		// use default signer, but not enough money
 		3: {
 			[]weave.Condition{perm},

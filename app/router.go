@@ -82,7 +82,7 @@ func (r Router) Check(ctx weave.Context, store weave.KVStore,
 
 	msg, _ := tx.GetMsg()
 	if msg == nil {
-		return weave.CheckResult{}, errors.ErrDecoding()
+		return weave.CheckResult{}, errors.ErrInvalidInput.New("unable to decode")
 	}
 	path := msg.Path()
 	h := r.Handler(path)
@@ -95,7 +95,7 @@ func (r Router) Deliver(ctx weave.Context, store weave.KVStore,
 
 	msg, _ := tx.GetMsg()
 	if msg == nil {
-		return weave.DeliverResult{}, errors.ErrDecoding()
+		return weave.DeliverResult{}, errors.ErrInvalidInput.New("unable to decode")
 	}
 	path := msg.Path()
 	h := r.Handler(path)

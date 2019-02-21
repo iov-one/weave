@@ -30,12 +30,7 @@ func IsInvalidSequenceErr(err error) bool {
 // all will match IsInvalidSignatureError
 
 func ErrMissingPubkey() error {
-	invalidSig := errors.ErrInvalidSignature()
-	return errors.WithLog("Missing public key", invalidSig, errors.CodeUnauthorized)
-}
-func ErrPubkeyAddressMismatch() error {
-	invalidSig := errors.ErrInvalidSignature()
-	return errors.WithLog("Pubkey and Address don't match", invalidSig, errors.CodeUnauthorized)
+	return errors.ErrUnauthorized.New("missing public key")
 }
 
-var IsInvalidSignatureErr = errors.IsInvalidSignatureErr
+var IsInvalidSignatureErr = errors.ErrUnauthorized.Is

@@ -34,10 +34,10 @@ var (
 )
 
 func ErrInvalidCondition(perm []byte) error {
-	return errors.ErrUnrecognizedCondition(perm)
+	return errors.ErrInvalidInput.Newf("condition: %v", perm)
 }
 func IsInvalidConditionErr(err error) bool {
-	return errors.IsUnrecognizedConditionErr(err)
+	return errors.ErrInvalidInput.Is(err)
 }
 
 func ErrInvalidMemo(memo string) error {
