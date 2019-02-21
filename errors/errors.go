@@ -148,17 +148,24 @@ func Wrap(err error, description string) TMError {
 	if err == nil {
 		return nil
 	}
+
+	// take ABCICode from wrapped error, or default ErrInternal
+	code := ErrInternal.code
+	if p, ok := err.(coder); ok {
+		code = p.ABCICode()
+	}
+
 	// this will not fire on wrapping a wrappedError,
 	// but only on wrapping a registered Error, or stdlib error
-	//
-	// TODO
-	// Note: we need to grab the abci code and message as well....
-	// if _, ok := err.(stackTracer); !ok {
-	// 	err = errors.WithStack(err)
-	// }
+	st, ok := err.(stackTracer)
+	if !ok {
+		st = errors.WithStack(err).(stackTracer)
+	}
+
 	return &wrappedError{
-		parent: err,
+		parent: st,
 		msg:    description,
+		code:   code,
 	}
 }
 
@@ -166,7 +173,9 @@ type wrappedError struct {
 	// This error layer description.
 	msg string
 	// The underlying error that triggered this one.
-	parent error
+	parent stackTracer
+	// The abci code, inherited from the parent
+	code uint32
 }
 
 type coder interface {
@@ -192,13 +201,7 @@ func (e *wrappedError) Error() string {
 }
 
 func (e *wrappedError) ABCICode() uint32 {
-	if e.parent == nil {
-		return ErrInternal.code
-	}
-	if p, ok := e.parent.(coder); ok {
-		return p.ABCICode()
-	}
-	return ErrInternal.code
+	return e.code
 }
 
 func (e *wrappedError) ABCILog() string {
