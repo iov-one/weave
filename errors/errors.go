@@ -157,16 +157,16 @@ func Wrap(err error, description string) TMError {
 	// 	err = errors.WithStack(err)
 	// }
 	return &wrappedError{
-		Parent: err,
-		Msg:    description,
+		parent: err,
+		msg:    description,
 	}
 }
 
 type wrappedError struct {
 	// This error layer description.
-	Msg string
+	msg string
 	// The underlying error that triggered this one.
-	Parent error
+	parent error
 }
 
 type coder interface {
@@ -174,10 +174,10 @@ type coder interface {
 }
 
 func (e *wrappedError) StackTrace() errors.StackTrace {
-	if e.Parent == nil {
+	if e.parent == nil {
 		return nil
 	}
-	if s, ok := e.Parent.(stackTracer); ok {
+	if s, ok := e.parent.(stackTracer); ok {
 		return s.StackTrace()
 	}
 	return nil
@@ -185,17 +185,17 @@ func (e *wrappedError) StackTrace() errors.StackTrace {
 
 func (e *wrappedError) Error() string {
 	// if we have a real error code, show all logs recursively
-	if e.Parent == nil {
-		return e.Msg
+	if e.parent == nil {
+		return e.msg
 	}
-	return fmt.Sprintf("%s: %s", e.Msg, e.Parent.Error())
+	return fmt.Sprintf("%s: %s", e.msg, e.parent.Error())
 }
 
 func (e *wrappedError) ABCICode() uint32 {
-	if e.Parent == nil {
+	if e.parent == nil {
 		return ErrInternal.code
 	}
-	if p, ok := e.Parent.(coder); ok {
+	if p, ok := e.parent.(coder); ok {
 		return p.ABCICode()
 	}
 	return ErrInternal.code
@@ -206,19 +206,10 @@ func (e *wrappedError) ABCILog() string {
 }
 
 func (e *wrappedError) Cause() error {
-	type causer interface {
-		Cause() error
-	}
-	// If there is no parent, this is the root error and the cause.
-	if e.Parent == nil {
+	if e.parent == nil {
 		return e
 	}
-	if c, ok := e.Parent.(causer); ok {
-		if cause := c.Cause(); cause != nil {
-			return cause
-		}
-	}
-	return e.Parent
+	return errors.Cause(e.parent)
 }
 
 // Is returns true if both errors represent the same class of issue. For

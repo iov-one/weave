@@ -1,10 +1,11 @@
 package errors
 
 import (
-	"errors"
 	"fmt"
 	"math"
 	"testing"
+
+	"github.com/pkg/errors"
 )
 
 func TestErrors(t *testing.T) {
@@ -27,7 +28,7 @@ func TestErrors(t *testing.T) {
 			wantLog:  "outer: 404: " + ErrNotFound.desc,
 		},
 		"wrap of an stdlib error": {
-			err:      Wrap(errors.New("stdlib"), "outer"),
+			err:      Wrap(fmt.Errorf("stdlib"), "outer"),
 			wantRoot: ErrInternal,
 			wantMsg:  "outer: stdlib",
 			wantLog:  "outer: stdlib",
@@ -39,7 +40,7 @@ func TestErrors(t *testing.T) {
 			wantLog:  "outer: inner: 404: " + ErrNotFound.desc,
 		},
 		"deep wrap of an stdlib error": {
-			err:      Wrap(Wrap(errors.New("stdlib"), "inner"), "outer"),
+			err:      Wrap(Wrap(fmt.Errorf("stdlib"), "inner"), "outer"),
 			wantRoot: ErrInternal,
 			wantMsg:  "outer: inner: stdlib",
 			wantLog:  "outer: inner: stdlib",
@@ -95,6 +96,36 @@ func errLog(err error) string {
 	return ""
 }
 
+func TestCause(t *testing.T) {
+	std := fmt.Errorf("This is stdlib error")
+
+	cases := map[string]struct {
+		err  error
+		root error
+	}{
+		"Errors are self-causing": {
+			err:  ErrNotFound,
+			root: ErrNotFound,
+		},
+		"Wrap reveals root cause": {
+			err:  ErrNotFound.New("foo"),
+			root: ErrNotFound,
+		},
+		"Cause works for stderr as root": {
+			err:  Wrap(std, "Some helpful text"),
+			root: std,
+		},
+	}
+
+	for testName, tc := range cases {
+		t.Run(testName, func(t *testing.T) {
+			if got := errors.Cause(tc.err); got != tc.root {
+				t.Fatal("unexpected result")
+			}
+		})
+	}
+}
+
 func TestIs(t *testing.T) {
 	cases := map[string]struct {
 		a      error
@@ -107,8 +138,8 @@ func TestIs(t *testing.T) {
 			wantIs: true,
 		},
 		"two different internal errors": {
-			a:      errors.New("one"),
-			b:      errors.New("two"),
+			a:      fmt.Errorf("one"),
+			b:      fmt.Errorf("two"),
 			wantIs: false,
 		},
 		"two different coded errors": {
@@ -117,7 +148,7 @@ func TestIs(t *testing.T) {
 			wantIs: false,
 		},
 		"two different internal and wrapped  errors": {
-			a:      Wrap(errors.New("a not found"), "where is a?"),
+			a:      Wrap(fmt.Errorf("a not found"), "where is a?"),
 			b:      Wrap(ErrInternal, "b not found"),
 			wantIs: false,
 		},
