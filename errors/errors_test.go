@@ -3,9 +3,12 @@ package errors
 import (
 	"fmt"
 	"math"
+	"strings"
 	"testing"
 
 	"github.com/pkg/errors"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestErrors(t *testing.T) {
@@ -171,5 +174,55 @@ func TestIs(t *testing.T) {
 func TestWrapEmpty(t *testing.T) {
 	if err := Wrap(nil, "wrapping <nil>"); err != nil {
 		t.Fatal(err)
+	}
+}
+
+func TestStackTrace(t *testing.T) {
+	cases := map[string]struct {
+		err error
+		// this is the text we want to see with .Log()
+		log string
+	}{
+		"New gives us a stacktrace": {
+			err: ErrDuplicate.New("name"),
+			log: "name: duplicate",
+		},
+	}
+
+	for testName, tc := range cases {
+		t.Run(testName, func(t *testing.T) {
+			// make sure error returns the log
+			assert.Equal(t, tc.log, tc.err.Error())
+
+			// make sure we can get a stack trace
+			st, ok := tc.err.(stackTracer)
+			require.True(t, ok)
+			trace := st.StackTrace()
+			stack := fmt.Sprintf("%+v", trace)
+
+			// these lines are in all traces, but we want to remove them
+			wrap := "github.com/iov-one/weave/errors.Wrap\n"
+			errNew := "github.com/iov-one/weave/errors.Error.New\n"
+			runtime := "runtime.goexit\n"
+			// this is the actual test code that must remains
+			thisTest := "github.com/iov-one/weave/errors.TestStackTrace\n"
+			assert.True(t, strings.Contains(stack, wrap))
+			assert.True(t, strings.Contains(stack, errNew))
+			assert.True(t, strings.Contains(stack, thisTest))
+			assert.True(t, strings.Contains(stack, runtime))
+
+			// // verify printing the error produces nicer data
+			// debug := fmt.Sprintf("%+v", tc.err)
+			// fmt.Println(" --- ")
+			// fmt.Println(debug)
+			// // include the log message
+			// assert.True(t, strings.Contains(debug, tc.log))
+			// // and the important lines of the trace
+			// assert.True(t, strings.Contains(debug, thisTest))
+			// // but not the garbage
+			// assert.False(t, strings.Contains(debug, wrap))
+			// assert.False(t, strings.Contains(debug, errNew))
+			// assert.False(t, strings.Contains(debug, runtime))
+		})
 	}
 }

@@ -186,10 +186,7 @@ func (e *wrappedError) StackTrace() errors.StackTrace {
 	if e.parent == nil {
 		return nil
 	}
-	if s, ok := e.parent.(stackTracer); ok {
-		return s.StackTrace()
-	}
-	return nil
+	return e.parent.StackTrace()
 }
 
 func (e *wrappedError) Error() string {
