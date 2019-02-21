@@ -73,7 +73,7 @@ func (h *TokenInfoHandler) validate(ctx weave.Context, db weave.KVStore, tx weav
 	case err != nil:
 		return nil, err
 	case obj != nil:
-		return nil, ErrDuplicateToken(msg.Ticker)
+		return nil, errors.ErrDuplicate.Newf("ticker %s", msg.Ticker)
 	}
 
 	return msg, nil
