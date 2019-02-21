@@ -313,6 +313,6 @@ func (e *wrappedError) Format(s fmt.State, verb rune) {
 		fmt.Fprintf(s, e.ABCILog())
 	} else {
 		fmt.Fprintf(s, e.ABCILog())
-		writeSimpleFrame(s, e.StackTrace()[0])
+		writeSimpleFrame(s, stack[0])
 	}
 }

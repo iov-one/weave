@@ -177,6 +177,10 @@ func TestWrapEmpty(t *testing.T) {
 	}
 }
 
+func doWrap(err error) error {
+	return Wrap(err, "do the do")
+}
+
 func TestStackTrace(t *testing.T) {
 	cases := map[string]struct {
 		err error
@@ -199,6 +203,11 @@ func TestStackTrace(t *testing.T) {
 			err:      Wrap(errors.New("bar"), "pkg"),
 			log:      "pkg: bar",
 			withWrap: false,
+		},
+		"Wrapping inside another function is still clean": {
+			err:      doWrap(fmt.Errorf("indirect")),
+			log:      "do the do: indirect",
+			withWrap: true,
 		},
 	}
 
@@ -236,13 +245,12 @@ func TestStackTrace(t *testing.T) {
 
 			// verify printing with %v gives minimal info
 			medium := fmt.Sprintf("%v", tc.err)
-			fmt.Println(medium)
 			// include the log message
 			assert.True(t, strings.HasPrefix(medium, tc.log))
 			// only one line
 			assert.False(t, strings.Contains(medium, "\n"))
-			// contains a link to where it started
-			assert.True(t, strings.Contains(medium, "[iov-one/weave/errors/"))
+			// contains a link to where it was created, which must be here, not the Wrap() function
+			assert.True(t, strings.Contains(medium, "[iov-one/weave/errors/errors_test.go"))
 		})
 	}
 }
