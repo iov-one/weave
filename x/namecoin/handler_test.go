@@ -46,7 +46,7 @@ func TestSendHandler(t *testing.T) {
 		expectCheck   checkErr
 		expectDeliver checkErr
 	}{
-		0: {nil, nil, nil, errors.IsUnknownTxTypeErr, errors.IsUnknownTxTypeErr},
+		0: {nil, nil, nil, errors.ErrInvalidMsg.Is, errors.ErrInvalidMsg.Is},
 		1: {nil, nil, new(cash.SendMsg), errors.ErrInvalidAmount.Is, errors.ErrInvalidAmount.Is},
 		2: {nil, nil, &cash.SendMsg{Amount: &foo}, errors.IsUnrecognizedAddressErr, errors.IsUnrecognizedAddressErr},
 		3: {
@@ -132,7 +132,7 @@ func TestNewTokenHandler(t *testing.T) {
 	}{
 		// wrong message type
 		0: {nil, nil, nil, new(cash.SendMsg),
-			errors.IsUnknownTxTypeErr, errors.IsUnknownTxTypeErr, "", nil},
+			errors.ErrInvalidMsg.Is, errors.ErrInvalidMsg.Is, "", nil},
 		// wrong currency values
 		1: {nil, nil, nil, BuildTokenMsg("YO", "digga", 7),
 			x.ErrInvalidCurrency.Is, x.ErrInvalidCurrency.Is, "", nil},
@@ -218,7 +218,7 @@ func TestSetNameHandler(t *testing.T) {
 	}{
 		// wrong message type
 		0: {nil, nil, new(cash.SendMsg),
-			errors.IsUnknownTxTypeErr, errors.IsUnknownTxTypeErr, nil, nil},
+			errors.ErrInvalidMsg.Is, errors.ErrInvalidMsg.Is, nil, nil},
 		// invalid message
 		1: {nil, nil, BuildSetNameMsg([]byte{1, 2}, "johnny"),
 			errors.IsUnrecognizedAddressErr, errors.IsUnrecognizedAddressErr, nil, nil},

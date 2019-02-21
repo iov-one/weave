@@ -74,7 +74,7 @@ func (h CreateContractMsgHandler) validate(ctx weave.Context, db weave.KVStore, 
 
 	createContractMsg, ok := msg.(*CreateContractMsg)
 	if !ok {
-		return nil, errors.ErrUnknownTxType(msg)
+		return nil, errors.WithType(errors.ErrInvalidMsg, msg)
 	}
 
 	err = createContractMsg.Validate()
@@ -134,7 +134,7 @@ func (h UpdateContractMsgHandler) validate(ctx weave.Context, db weave.KVStore, 
 
 	updateContractMsg, ok := msg.(*UpdateContractMsg)
 	if !ok {
-		return nil, errors.ErrUnknownTxType(msg)
+		return nil, errors.WithType(errors.ErrInvalidMsg, msg)
 	}
 
 	err = updateContractMsg.Validate()

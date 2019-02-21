@@ -126,6 +126,6 @@ func (h *ApprovalOpsHandler) validate(ctx weave.Context, tx weave.Tx) (nft.Appro
 		}
 		return v.(nft.ApprovalMsg), nil
 	default:
-		return nil, errors.ErrUnknownTxType(msg)
+		return nil, errors.WithType(errors.ErrInvalidMsg, msg)
 	}
 }

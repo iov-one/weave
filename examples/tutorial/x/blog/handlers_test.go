@@ -289,7 +289,7 @@ func TestCreateBlogMsgHandlerCheck(t *testing.T) {
 			},
 			{
 				Name: "wrong msg type",
-				Err: errors.ErrUnknownTxType(&CreatePostMsg{
+				Err: errors.WithType(errors.ErrInvalidMsg, &CreatePostMsg{
 					Blog:   "this_is_a_blog",
 					Title:  "this is a post title",
 					Text:   longText,
@@ -458,7 +458,7 @@ func TestCreatePostMsgHandlerCheck(t *testing.T) {
 			},
 			{
 				Name: "wrong msg type",
-				Err: errors.ErrUnknownTxType(&CreateBlogMsg{
+				Err: errors.WithType(errors.ErrInvalidMsg, &CreateBlogMsg{
 					Slug:    "this_is_a_blog",
 					Title:   "this is a blog title",
 					Authors: [][]byte{signer.Address()},

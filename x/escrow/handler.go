@@ -107,7 +107,7 @@ func (h CreateEscrowHandler) validate(ctx weave.Context, db weave.KVStore,
 	}
 	msg, ok := rmsg.(*CreateEscrowMsg)
 	if !ok {
-		return nil, errors.ErrUnknownTxType(rmsg)
+		return nil, errors.WithType(errors.ErrInvalidMsg, rmsg)
 	}
 
 	err = msg.Validate()
@@ -205,7 +205,7 @@ func (h ReleaseEscrowHandler) validate(ctx weave.Context, db weave.KVStore,
 	}
 	msg, ok := rmsg.(*ReleaseEscrowMsg)
 	if !ok {
-		return nil, nil, errors.ErrUnknownTxType(rmsg)
+		return nil, nil, errors.WithType(errors.ErrInvalidMsg, rmsg)
 	}
 
 	err = msg.Validate()
@@ -289,7 +289,7 @@ func (h ReturnEscrowHandler) validate(ctx weave.Context, db weave.KVStore,
 	}
 	msg, ok := rmsg.(*ReturnEscrowMsg)
 	if !ok {
-		return nil, nil, errors.ErrUnknownTxType(rmsg)
+		return nil, nil, errors.WithType(errors.ErrInvalidMsg, rmsg)
 	}
 
 	err = msg.Validate()
@@ -377,7 +377,7 @@ func (h UpdateEscrowHandler) validate(ctx weave.Context, db weave.KVStore,
 	}
 	msg, ok := rmsg.(*UpdateEscrowPartiesMsg)
 	if !ok {
-		return nil, nil, errors.ErrUnknownTxType(rmsg)
+		return nil, nil, errors.WithType(errors.ErrInvalidMsg, rmsg)
 	}
 
 	err = msg.Validate()

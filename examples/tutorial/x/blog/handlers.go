@@ -100,7 +100,7 @@ func (h CreateBlogMsgHandler) validate(ctx weave.Context, db weave.KVStore, tx w
 
 	createBlogMsg, ok := msg.(*CreateBlogMsg)
 	if !ok {
-		return nil, errors.ErrUnknownTxType(msg)
+		return nil, errors.WithType(errors.ErrInvalidMsg, msg)
 	}
 
 	err = createBlogMsg.Validate()
@@ -179,7 +179,7 @@ func (h CreatePostMsgHandler) validate(ctx weave.Context, db weave.KVStore, tx w
 
 	createPostMsg, ok := msg.(*CreatePostMsg)
 	if !ok {
-		return nil, nil, errors.ErrUnknownTxType(msg)
+		return nil, nil, errors.WithType(errors.ErrInvalidMsg, msg)
 	}
 
 	// Check the author is one of the Tx signer
@@ -262,7 +262,7 @@ func (h RenameBlogMsgHandler) validate(ctx weave.Context, db weave.KVStore, tx w
 
 	renameBlogMsg, ok := msg.(*RenameBlogMsg)
 	if !ok {
-		return nil, nil, errors.ErrUnknownTxType(msg)
+		return nil, nil, errors.WithType(errors.ErrInvalidMsg, msg)
 	}
 
 	err = renameBlogMsg.Validate()
@@ -355,7 +355,7 @@ func (h ChangeBlogAuthorsMsgHandler) validate(ctx weave.Context, db weave.KVStor
 
 	changeBlogAuthorsMsg, ok := msg.(*ChangeBlogAuthorsMsg)
 	if !ok {
-		return nil, nil, errors.ErrUnknownTxType(msg)
+		return nil, nil, errors.WithType(errors.ErrInvalidMsg, msg)
 	}
 
 	err = changeBlogAuthorsMsg.Validate()
@@ -462,7 +462,7 @@ func (h SetProfileMsgHandler) validate(ctx weave.Context, db weave.KVStore, tx w
 
 	setProfileMsg, ok := msg.(*SetProfileMsg)
 	if !ok {
-		return nil, nil, errors.ErrUnknownTxType(msg)
+		return nil, nil, errors.WithType(errors.ErrInvalidMsg, msg)
 	}
 
 	// if author is here we use it for authentication

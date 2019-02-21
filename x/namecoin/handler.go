@@ -106,7 +106,7 @@ func (h TokenHandler) validate(ctx weave.Context, db weave.KVStore,
 	}
 	msg, ok := rmsg.(*NewTokenMsg)
 	if !ok {
-		return nil, errors.ErrUnknownTxType(rmsg)
+		return nil, errors.WithType(errors.ErrInvalidMsg, rmsg)
 	}
 
 	err = msg.Validate()
@@ -192,7 +192,7 @@ func (h SetNameHandler) validate(ctx weave.Context, db weave.KVStore,
 	}
 	msg, ok := rmsg.(*SetWalletNameMsg)
 	if !ok {
-		return nil, errors.ErrUnknownTxType(rmsg)
+		return nil, errors.WithType(errors.ErrInvalidMsg, rmsg)
 	}
 
 	err = msg.Validate()

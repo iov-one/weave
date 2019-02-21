@@ -24,7 +24,7 @@ type foo struct {
 }
 
 func fullError() error {
-	return errors.ErrUnknownTxType(&foo{7})
+	return errors.WithType(errors.ErrInvalidMsg, &foo{7})
 }
 
 func panicError() (err error) {

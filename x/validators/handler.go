@@ -75,7 +75,7 @@ func (h UpdateHandler) validate(ctx weave.Context, store weave.KVStore, tx weave
 	}
 	msg, ok := rmsg.(*SetValidatorsMsg)
 	if !ok {
-		return nil, errors.ErrUnknownTxType(rmsg)
+		return nil, errors.WithType(errors.ErrInvalidMsg, rmsg)
 	}
 	err = msg.Validate()
 	if err != nil {

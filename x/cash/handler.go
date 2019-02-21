@@ -48,7 +48,7 @@ func (h SendHandler) Check(ctx weave.Context, store weave.KVStore,
 	}
 	msg, ok := rmsg.(*SendMsg)
 	if !ok {
-		return res, errors.ErrUnknownTxType(rmsg)
+		return res, errors.WithType(errors.ErrInvalidMsg, rmsg)
 	}
 
 	err = msg.Validate()
@@ -79,7 +79,7 @@ func (h SendHandler) Deliver(ctx weave.Context, store weave.KVStore,
 	}
 	msg, ok := rmsg.(*SendMsg)
 	if !ok {
-		return res, errors.ErrUnknownTxType(rmsg)
+		return res, errors.WithType(errors.ErrInvalidMsg, rmsg)
 	}
 
 	err = msg.Validate()

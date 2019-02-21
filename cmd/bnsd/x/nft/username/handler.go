@@ -74,7 +74,7 @@ func (h IssueHandler) validate(ctx weave.Context, tx weave.Tx) (*IssueTokenMsg, 
 	}
 	msg, ok := rmsg.(*IssueTokenMsg)
 	if !ok {
-		return nil, errors.ErrUnknownTxType(rmsg)
+		return nil, errors.WithType(errors.ErrInvalidMsg, rmsg)
 	}
 	if err := msg.Validate(); err != nil {
 		return nil, err
@@ -139,7 +139,7 @@ func (h *AddChainAddressHandler) validate(ctx weave.Context, tx weave.Tx) (*AddC
 	}
 	msg, ok := rmsg.(*AddChainAddressMsg)
 	if !ok {
-		return nil, errors.ErrUnknownTxType(rmsg)
+		return nil, errors.WithType(errors.ErrInvalidMsg, rmsg)
 	}
 	if err := msg.Validate(); err != nil {
 		return nil, err
@@ -205,7 +205,7 @@ func (h *RemoveChainAddressHandler) validate(ctx weave.Context, tx weave.Tx) (*R
 	}
 	msg, ok := rmsg.(*RemoveChainAddressMsg)
 	if !ok {
-		return nil, errors.ErrUnknownTxType(rmsg)
+		return nil, errors.WithType(errors.ErrInvalidMsg, rmsg)
 	}
 	if err := msg.Validate(); err != nil {
 		return nil, err

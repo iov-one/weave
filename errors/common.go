@@ -75,18 +75,6 @@ func Recover(err *error) {
 	}
 }
 
-// ErrUnknownTxType creates an error for unexpected transaction objects
-func ErrUnknownTxType(tx interface{}) error {
-	msg := fmt.Sprintf("%T", tx)
-	return WithLog(msg, errUnknownTxType, CodeUnknownRequest)
-}
-
-// IsUnknownTxTypeErr returns true if an error was created with
-// ErrUnknownTxType
-func IsUnknownTxTypeErr(err error) bool {
-	return IsSameError(errUnknownTxType, err)
-}
-
 // ErrUnrecognizedAddress may be used for empty addresses, or
 // badly formatted addresses
 func ErrUnrecognizedAddress(addr []byte) error {
@@ -129,12 +117,6 @@ func ErrTooLarge() error {
 	return WithCode(errTooLarge, CodeTxParseError)
 }
 
-// IsTooLargeErr returns true iff an error was created
-// with ErrTooLarge
-func IsTooLargeErr(err error) bool {
-	return IsSameError(errTooLarge, err)
-}
-
 // IsUnauthorizedErr is generic helper for any unauthorized errors,
 // also specific sub-types
 func IsUnauthorizedErr(err error) bool {
@@ -144,12 +126,6 @@ func IsUnauthorizedErr(err error) bool {
 // ErrMissingSignature is returned when no signature is present
 func ErrMissingSignature() error {
 	return WithCode(errMissingSignature, CodeUnauthorized)
-}
-
-// IsMissingSignatureErr returns true iff an error was created
-// with ErrMissingSignature
-func IsMissingSignatureErr(err error) bool {
-	return IsSameError(errMissingSignature, err)
 }
 
 // ErrInvalidSignature is when the signature doesn't match

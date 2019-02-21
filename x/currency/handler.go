@@ -56,7 +56,7 @@ func (h *TokenInfoHandler) validate(ctx weave.Context, db weave.KVStore, tx weav
 	}
 	msg, ok := rmsg.(*NewTokenInfoMsg)
 	if !ok {
-		return nil, errors.ErrUnknownTxType(rmsg)
+		return nil, errors.WithType(errors.ErrInvalidMsg, rmsg)
 	}
 
 	if err := msg.Validate(); err != nil {
