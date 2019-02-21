@@ -2,6 +2,7 @@ package multisig
 
 import (
 	"context"
+	"github.com/iov-one/weave/errors"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -194,7 +195,7 @@ func TestUpdateContractMsgHandler(t *testing.T) {
 				AdminThreshold:      5,
 			},
 			signers: []weave.Condition{a},
-			err:     ErrUnauthorizedMultiSig(mutableID),
+			err:    errors.ErrUnauthorized.Newf("contract=%X", mutableID),
 		},
 		{
 			name: "immutable",
@@ -205,7 +206,7 @@ func TestUpdateContractMsgHandler(t *testing.T) {
 				AdminThreshold:      5,
 			},
 			signers: []weave.Condition{a, b, c, d, e},
-			err:     ErrUnauthorizedMultiSig(immutableID),
+			err:     errors.ErrUnauthorized.Newf("contract=%X", immutableID),
 		},
 		{
 			name: "bad change threshold",
@@ -229,7 +230,7 @@ func TestUpdateContractMsgHandler(t *testing.T) {
 		if test.err == nil {
 			require.NoError(t, err, test.name)
 		} else {
-			require.EqualError(t, err, test.err.Error(), test.name)
+			require.True(t, errors.Is(err, test.err), test.name)
 		}
 
 		_, err = handler.Deliver(ctx, db, newTx(msg))

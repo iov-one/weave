@@ -161,7 +161,7 @@ func (h UpdateContractMsgHandler) validate(ctx weave.Context, db weave.KVStore, 
 	// check sigs
 	authenticated := x.HasNAddresses(ctx, h.auth, sigs, int(contract.AdminThreshold))
 	if !authenticated {
-		return nil, ErrUnauthorizedMultiSig(updateContractMsg.Id)
+		return nil, errors.ErrUnauthorized.Newf("contract=%X", updateContractMsg.Id)
 	}
 
 	return updateContractMsg, nil

@@ -110,7 +110,7 @@ func TestFees(t *testing.T) {
 			[]orm.Object{must(WalletWith(perm2.Address(), &cash))},
 			&FeeInfo{Payer: perm2.Address(), Fees: &min},
 			min,
-			errors.IsUnauthorizedErr,
+			errors.ErrUnauthorized.Is,
 		},
 		// can pay in any fee
 		7: {

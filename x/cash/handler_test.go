@@ -40,8 +40,8 @@ func TestSend(t *testing.T) {
 			nil,
 			nil,
 			&SendMsg{Amount: &foo, Src: perm.Address(), Dest: perm2.Address()},
-			errors.IsUnauthorizedErr,
-			errors.IsUnauthorizedErr,
+			errors.ErrUnauthorized.Is,
+			errors.ErrUnauthorized.Is,
 		},
 		// sender has no account
 		4: {

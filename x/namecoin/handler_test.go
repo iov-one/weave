@@ -53,8 +53,8 @@ func TestSendHandler(t *testing.T) {
 			nil,
 			nil,
 			&cash.SendMsg{Amount: &foo, Src: addr, Dest: addr2},
-			errors.IsUnauthorizedErr,
-			errors.IsUnauthorizedErr,
+			errors.ErrUnauthorized.Is,
+			errors.ErrUnauthorized.Is,
 		},
 		// sender has no account
 		4: {
@@ -151,9 +151,9 @@ func TestNewTokenHandler(t *testing.T) {
 			noErr, noErr, ticker, added},
 		// not enough permissions
 		7: {nil, addr, nil, msg,
-			errors.IsUnauthorizedErr, errors.IsUnauthorizedErr, "", nil},
+			errors.ErrUnauthorized.Is, errors.ErrUnauthorized.Is, "", nil},
 		8: {[]weave.Condition{perm2, perm3}, addr, nil, msg,
-			errors.IsUnauthorizedErr, errors.IsUnauthorizedErr, "", nil},
+			errors.ErrUnauthorized.Is, errors.ErrUnauthorized.Is, "", nil},
 		// now have permission
 		9: {[]weave.Condition{perm2, perm3}, addr2, nil, msg,
 			noErr, noErr, ticker, added},
@@ -226,12 +226,12 @@ func TestSetNameHandler(t *testing.T) {
 			IsInvalidWallet, IsInvalidWallet, nil, nil},
 		// no permission to change account
 		3: {nil, []orm.Object{newUser}, msg,
-			errors.IsUnauthorizedErr, errors.IsUnauthorizedErr, nil, nil},
+			errors.ErrUnauthorized.Is, errors.ErrUnauthorized.Is, nil, nil},
 		// no account to change - only checked deliver
 		4: {perm, nil, msg,
 			noErr, IsInvalidWallet, nil, nil},
 		5: {perm2, []orm.Object{newUser}, msg,
-			errors.IsUnauthorizedErr, errors.IsUnauthorizedErr, nil, nil},
+			errors.ErrUnauthorized.Is, errors.ErrUnauthorized.Is, nil, nil},
 		// yes, we changed it!
 		6: {perm, []orm.Object{newUser}, msg,
 			noErr, noErr, addr, setUser},

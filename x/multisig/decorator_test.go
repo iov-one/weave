@@ -2,6 +2,7 @@ package multisig
 
 import (
 	"fmt"
+	"github.com/iov-one/weave/errors"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -83,7 +84,7 @@ func TestDecorator(t *testing.T) {
 			multisigTx([]byte("foo"), contractID1),
 			[]weave.Condition{a},
 			nil,
-			ErrUnauthorizedMultiSig(contractID1),
+			errors.ErrUnauthorized.Newf("contract=%X", contractID1),
 		},
 		// with invalid multisig contract ID
 		{
@@ -111,7 +112,7 @@ func TestDecorator(t *testing.T) {
 			multisigTx([]byte("foo"), contractID3),
 			[]weave.Condition{d, e}, // cconditions for ontractID2 are there but ontractID2 must be passed explicitly
 			nil,
-			ErrUnauthorizedMultiSig(contractID3),
+			errors.ErrUnauthorized.Newf("contract=%X", contractID3),
 		},
 	}
 
