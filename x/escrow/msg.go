@@ -66,10 +66,10 @@ func (m *CreateEscrowMsg) Validate() error {
 		return errors.ErrEmpty.New("recipient")
 	}
 	if m.Timeout <= 0 {
-		return ErrInvalidTimeout(m.Timeout)
+		return errors.ErrInvalidInput.Newf("timeout: %d", m.Timeout)
 	}
 	if len(m.Memo) > maxMemoSize {
-		return ErrInvalidMemo(m.Memo)
+		return errors.ErrInvalidInput.Newf("memo %s", m.Memo)
 	}
 	if err := validateAmount(m.Amount); err != nil {
 		return err
@@ -154,7 +154,7 @@ func validateAmount(amount x.Coins) error {
 
 func validateEscrowID(id []byte) error {
 	if len(id) != 8 {
-		return ErrInvalidEscrowID(id)
+		return errors.ErrInvalidInput.Newf("escrow id: %X", id)
 	}
 	return nil
 }

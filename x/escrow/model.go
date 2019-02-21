@@ -30,10 +30,10 @@ func (e *Escrow) Validate() error {
 		return errors.ErrEmpty.New("recipient")
 	}
 	if e.Timeout <= 0 {
-		return ErrInvalidTimeout(e.Timeout)
+		return errors.ErrInvalidInput.Newf("timeout: %d", e.Timeout)
 	}
 	if len(e.Memo) > maxMemoSize {
-		return ErrInvalidMemo(e.Memo)
+		return errors.ErrInvalidInput.Newf("memo %s", e.Memo)
 	}
 	if err := validateAmount(e.Amount); err != nil {
 		return err
