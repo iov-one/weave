@@ -182,10 +182,23 @@ func TestStackTrace(t *testing.T) {
 		err error
 		// this is the text we want to see with .Log()
 		log string
+		// whether the Wrap call is in the stacktrace (not for pkg/errors)
+		withWrap bool
 	}{
 		"New gives us a stacktrace": {
-			err: ErrDuplicate.New("name"),
-			log: "name: duplicate",
+			err:      ErrDuplicate.New("name"),
+			log:      "name: duplicate",
+			withWrap: true,
+		},
+		"Wrapping stderr gives us a stacktrace": {
+			err:      Wrap(fmt.Errorf("foo"), "standard"),
+			log:      "standard: foo",
+			withWrap: true,
+		},
+		"Wrapping pkg/errors gives us clean stacktrace": {
+			err:      Wrap(errors.New("bar"), "pkg"),
+			log:      "pkg: bar",
+			withWrap: false,
 		},
 	}
 
@@ -206,23 +219,20 @@ func TestStackTrace(t *testing.T) {
 			runtime := "runtime.goexit\n"
 			// this is the actual test code that must remains
 			thisTest := "github.com/iov-one/weave/errors.TestStackTrace\n"
-			assert.True(t, strings.Contains(stack, wrap))
-			assert.True(t, strings.Contains(stack, errNew))
+			assert.Equal(t, tc.withWrap, strings.Contains(stack, wrap))
 			assert.True(t, strings.Contains(stack, thisTest))
 			assert.True(t, strings.Contains(stack, runtime))
 
-			// // verify printing the error produces nicer data
-			// debug := fmt.Sprintf("%+v", tc.err)
-			// fmt.Println(" --- ")
-			// fmt.Println(debug)
-			// // include the log message
-			// assert.True(t, strings.Contains(debug, tc.log))
-			// // and the important lines of the trace
-			// assert.True(t, strings.Contains(debug, thisTest))
-			// // but not the garbage
-			// assert.False(t, strings.Contains(debug, wrap))
-			// assert.False(t, strings.Contains(debug, errNew))
-			// assert.False(t, strings.Contains(debug, runtime))
+			// verify printing the error produces cleaned stack
+			debug := fmt.Sprintf("%+v", tc.err)
+			// include the log message
+			assert.True(t, strings.Contains(debug, tc.log))
+			// and the important lines of the trace
+			assert.True(t, strings.Contains(debug, thisTest))
+			// but not the garbage
+			assert.False(t, strings.Contains(debug, wrap))
+			assert.False(t, strings.Contains(debug, errNew))
+			assert.False(t, strings.Contains(debug, runtime))
 		})
 	}
 }

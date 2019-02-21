@@ -2,9 +2,6 @@ package errors
 
 import (
 	"fmt"
-	"io"
-	"runtime"
-	"strings"
 
 	"github.com/pkg/errors"
 )
@@ -79,36 +76,6 @@ type stackTracer interface {
 // causer from pkg/errors
 type causer interface {
 	Cause() error
-}
-
-func matchesFile(f errors.Frame, substrs ...string) bool {
-	file, _ := fileLine(f)
-	for _, sub := range substrs {
-		if strings.Contains(file, sub) {
-			return true
-		}
-	}
-	return false
-}
-
-func fileLine(f errors.Frame) (string, int) {
-	pc := uintptr(f) - 1
-	fn := runtime.FuncForPC(pc)
-	if fn == nil {
-		return "unknown", 0
-	}
-	return fn.FileLine(pc)
-}
-
-func writeSimpleFrame(s io.Writer, f errors.Frame) {
-	file, line := fileLine(f)
-	// cut file at "github.com/"
-	// TODO: generalize better for other hosts?
-	chunks := strings.SplitN(file, "github.com/", 2)
-	if len(chunks) == 2 {
-		file = chunks[1]
-	}
-	fmt.Fprintf(s, " [%s:%d]", file, line)
 }
 
 // Format works like pkg/errors, with additions.

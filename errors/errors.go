@@ -2,6 +2,9 @@ package errors
 
 import (
 	"fmt"
+	"io"
+	"runtime"
+	"strings"
 
 	"github.com/pkg/errors"
 )
@@ -239,4 +242,77 @@ func Is(a, b error) bool {
 		return false
 	}
 	return ac.ABCICode() == bc.ABCICode()
+}
+
+//---- Stacktrace formatting -----
+
+func matchesFile(f errors.Frame, substrs ...string) bool {
+	file, _ := fileLine(f)
+	for _, sub := range substrs {
+		if strings.Contains(file, sub) {
+			return true
+		}
+	}
+	return false
+}
+
+func fileLine(f errors.Frame) (string, int) {
+	pc := uintptr(f) - 1
+	fn := runtime.FuncForPC(pc)
+	if fn == nil {
+		return "unknown", 0
+	}
+	return fn.FileLine(pc)
+}
+
+func trimInternal(st errors.StackTrace) errors.StackTrace {
+	// trim our internal parts here
+	// manual error creation, or runtime for caught panics
+	for matchesFile(st[0],
+		// where we create errors
+		"weave/errors/errors.go",
+		// runtime are added on panics
+		"/runtime/",
+		// _test is defined in coverage tests, causing failure
+		"/_test/") {
+		st = st[1:]
+	}
+	// trim out outer wrappers (runtime.goexit and test library if present)
+	for l := len(st) - 1; matchesFile(st[l], "/runtime/", "src/testing/testing.go"); l-- {
+		st = st[:l]
+	}
+	return st
+}
+
+func writeSimpleFrame(s io.Writer, f errors.Frame) {
+	file, line := fileLine(f)
+	// cut file at "github.com/"
+	// TODO: generalize better for other hosts?
+	chunks := strings.SplitN(file, "github.com/", 2)
+	if len(chunks) == 2 {
+		file = chunks[1]
+	}
+	fmt.Fprintf(s, " [%s:%d]", file, line)
+}
+
+// Format works like pkg/errors, with additions.
+// %s is just the error message
+// %+v is the full stack trace
+// %v appends a compressed [filename:line] where the error
+//    was created
+func (e *wrappedError) Format(s fmt.State, verb rune) {
+	// normal output here....
+	if verb != 'v' {
+		fmt.Fprintf(s, e.ABCILog())
+		return
+	}
+	// work with the stack trace... whole or part
+	stack := trimInternal(e.StackTrace())
+	if s.Flag('+') {
+		fmt.Fprintf(s, "%+v\n", stack)
+		fmt.Fprintf(s, e.ABCILog())
+	} else {
+		fmt.Fprintf(s, e.ABCILog())
+		writeSimpleFrame(s, e.StackTrace()[0])
+	}
 }
