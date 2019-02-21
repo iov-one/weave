@@ -148,7 +148,7 @@ func (h UpdateContractMsgHandler) validate(ctx weave.Context, db weave.KVStore, 
 		return nil, err
 	}
 	if obj == nil || (obj != nil && obj.Value() == nil) {
-		return nil, ErrContractNotFound(updateContractMsg.Id)
+		return nil, errors.ErrNotFound.Newf(contractNotFoundFmt, updateContractMsg.Id)
 	}
 	contract := obj.Value().(*Contract)
 

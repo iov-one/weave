@@ -86,7 +86,7 @@ func (d Decorator) getContract(store weave.KVStore, id []byte) (*Contract, error
 	}
 
 	if obj == nil || (obj != nil && obj.Value() == nil) {
-		return nil, ErrContractNotFound(id)
+		return nil, errors.ErrNotFound.Newf(contractNotFoundFmt, id)
 	}
 
 	contract := obj.Value().(*Contract)

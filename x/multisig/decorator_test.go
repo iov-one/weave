@@ -91,7 +91,7 @@ func TestDecorator(t *testing.T) {
 			multisigTx([]byte("foo"), []byte("bad id")),
 			[]weave.Condition{a, b},
 			nil,
-			ErrContractNotFound([]byte("bad id")),
+			errors.ErrNotFound.Newf(contractNotFoundFmt, []byte("bad id")),
 		},
 		// contractID3 is activated by contractID2
 		{
