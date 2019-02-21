@@ -148,6 +148,14 @@ func Wrap(err error, description string) TMError {
 	if err == nil {
 		return nil
 	}
+	// this will not fire on wrapping a wrappedError,
+	// but only on wrapping a registered Error, or stdlib error
+	//
+	// TODO
+	// Note: we need to grab the abci code and message as well....
+	// if _, ok := err.(stackTracer); !ok {
+	// 	err = errors.WithStack(err)
+	// }
 	return &wrappedError{
 		Parent: err,
 		Msg:    description,
@@ -166,9 +174,12 @@ type coder interface {
 }
 
 func (e *wrappedError) StackTrace() errors.StackTrace {
-	// TODO: this is either to be implemented or expectation of it being
-	// present removed completely. As this is an early stage of
-	// refactoring, this is left unimplemented for now.
+	if e.Parent == nil {
+		return nil
+	}
+	if s, ok := e.Parent.(stackTracer); ok {
+		return s.StackTrace()
+	}
 	return nil
 }
 
