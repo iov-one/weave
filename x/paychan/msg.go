@@ -26,10 +26,10 @@ func (m *CreatePaymentChannelMsg) Validate() error {
 		return errors.ErrInvalidMsg.New("missing recipient")
 	}
 	if m.Total == nil || m.Total.IsZero() {
-		return errors.ErrInvalidMsg.New("inalid total amount")
+		return errors.ErrInvalidMsg.New("invalid total amount")
 	}
 	if m.Timeout <= 0 {
-		return errors.ErrInvalidMsg.New("inalid timeout value")
+		return errors.ErrInvalidMsg.New("invalid timeout value")
 	}
 	if len(m.Memo) > 128 {
 		return errors.ErrInvalidMsg.New("memo too long")
