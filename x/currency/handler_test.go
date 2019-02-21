@@ -74,10 +74,10 @@ func TestNewTokenInfoHandler(t *testing.T) {
 			h := NewTokenInfoHandler(auth, tc.issuer)
 			tx := helpers.MockTx(tc.msg)
 			if _, err := h.Check(nil, db, tx); tc.wantCheckErr.Is(err) {
-				t.Fatalf("check error: want %d, got %+v", tc.wantCheckErr, err)
+				t.Fatalf("check error: want %v, got %+v", tc.wantCheckErr, err)
 			}
 			if _, err := h.Deliver(nil, db, tx); tc.wantCheckErr.Is(err) {
-				t.Fatalf("deliver error: want %d, got %+v", tc.wantCheckErr, err)
+				t.Fatalf("deliver error: want %v, got %+v", tc.wantCheckErr, err)
 			}
 
 			if res, err := bucket.Get(db, tc.query); err != nil {
