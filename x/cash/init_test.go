@@ -15,7 +15,7 @@ import (
 func TestInitState(t *testing.T) {
 	// test data
 	addr := []byte("12345678901234567890")
-	coins := Set{mustCombineCoins(x.NewCoin(100, 5, "ATM"), x.NewCoin(50, 0, "ETH").WithIssuer("chain-1"))}
+	coins := Set{mustCombineCoins(x.NewCoin(100, 5, "ATM"), x.NewCoin(50, 0, "ETH"))}
 	accts := []GenesisAccount{{Address: addr, Set: coins}}
 
 	bz, err := json.Marshal(accts)

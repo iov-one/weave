@@ -187,7 +187,6 @@ func TestDefaultValues(t *testing.T) {
 							Ticker:     "IOV",
 							Whole:      123456789,
 							Fractional: 42,
-							Issuer:     "IOV-ONE",
 						},
 					},
 				},
