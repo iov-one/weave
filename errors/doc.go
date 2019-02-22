@@ -10,6 +10,8 @@
 
   If you want to register a custom error - use Register(code, description).
   For reusing errors - use Errxxx.New and Errxxx.Newf.
+  Code stands for ABCI error code, which allows to distinguish types of errors
+  on the client side and act accordingly.
 
   Also, error package defines a convenient Is helper to compare errors, also each Error defines an Is
   helper to compare errors directly to that type.

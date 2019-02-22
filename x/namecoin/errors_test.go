@@ -12,6 +12,6 @@ import (
 func TestErrNoSuchWallet(t *testing.T) {
 	hasNonASCII := regexp.MustCompile("[[:^ascii:]]").MatchString
 	addr := crypto.GenPrivKeyEd25519().PublicKey().Address()
-	msg := errors.ErrNotFound.Newf("wallet %X", addr).Error()
+	msg := errors.ErrNotFound.Newf("wallet %s", addr).Error()
 	require.False(t, hasNonASCII(msg), msg)
 }

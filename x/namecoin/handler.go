@@ -170,7 +170,7 @@ func (h SetNameHandler) Deliver(ctx weave.Context, db weave.KVStore,
 		return res, err
 	}
 	if obj == nil {
-		return res, errors.ErrNotFound.Newf("wallet %X", msg.Address)
+		return res, errors.ErrNotFound.Newf("wallet %s", msg.Address)
 	}
 	named := AsNamed(obj)
 	err = named.SetName(msg.Name)
