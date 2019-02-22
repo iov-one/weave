@@ -2,8 +2,10 @@ package x
 
 import (
 	"fmt"
+	"reflect"
 	"testing"
 
+	"github.com/iov-one/weave/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -212,6 +214,171 @@ func TestCombine(t *testing.T) {
 				tc.b.Equals(res))
 			assert.Equal(t, tc.b.IsEmpty(),
 				tc.a.Equals(res))
+		})
+	}
+}
+
+func TestNormalizeCoins(t *testing.T) {
+	coinp := func(w, f int64, t string) *Coin {
+		c := NewCoin(w, f, t)
+		return &c
+	}
+
+	cases := map[string]struct {
+		coins     Coins
+		wantCoins []*Coin
+		wantErr   error
+	}{
+		"nil coins": {
+			coins:     nil,
+			wantCoins: nil,
+		},
+		"empty coins": {
+			coins:     make(Coins, 0),
+			wantCoins: nil,
+		},
+		"one zero coin": {
+			coins:     Coins{coinp(0, 0, "BTC")},
+			wantCoins: nil,
+		},
+		"one non zero coin": {
+			coins:     Coins{coinp(1, 1, "BTC")},
+			wantCoins: Coins{coinp(1, 1, "BTC")},
+		},
+		"coins sum to zero": {
+			coins: Coins{
+				coinp(1, 1, "BTC"),
+				coinp(-1, -1, "BTC"),
+			},
+			wantCoins: nil,
+		},
+		"coins sum to non zero": {
+			coins: Coins{
+				coinp(1, 1, "BTC"),
+				coinp(2, 2, "BTC"),
+			},
+			wantCoins: []*Coin{
+				coinp(3, 3, "BTC"),
+			},
+		},
+		"unordered coins": {
+			coins: Coins{
+				coinp(2, 0, "B"),
+				coinp(3, 0, "C"),
+				coinp(1, 0, "A"),
+			},
+			wantCoins: []*Coin{
+				coinp(1, 0, "A"),
+				coinp(2, 0, "B"),
+				coinp(3, 0, "C"),
+			},
+		},
+		"unordered and split value coins": {
+			coins: Coins{
+				coinp(1, 0, "B"),
+				coinp(1, 0, "C"),
+				coinp(1, 0, "B"),
+				coinp(1, 0, "A"),
+				coinp(1, 0, "C"),
+				coinp(1, 0, "C"),
+			},
+			wantCoins: []*Coin{
+				coinp(1, 0, "A"),
+				coinp(2, 0, "B"),
+				coinp(3, 0, "C"),
+			},
+		},
+		"multiple coins sum to zero": {
+			coins: Coins{
+				coinp(1, 0, "DOGE"),
+
+				coinp(1, 0, "BTC"),
+				coinp(-1, 0, "BTC"),
+
+				coinp(-1, 0, "ETH"),
+				coinp(2, 0, "ETH"),
+				coinp(-1, 0, "ETH"),
+
+				coinp(-1, 0, "DOGE"),
+			},
+			wantCoins: nil,
+		},
+	}
+
+	for testName, tc := range cases {
+		t.Run(testName, func(t *testing.T) {
+			got, err := normalize(tc.coins)
+			if !errors.Is(tc.wantErr, err) {
+				t.Fatalf("want %+v error, got %+v", tc.wantErr, err)
+			}
+			if tc.wantErr == nil {
+				if !reflect.DeepEqual(got, tc.wantCoins) {
+					t.Logf(" got: %s", Coins(got))
+					t.Logf("want: %s", Coins(tc.wantCoins))
+					t.Fatal("unexpected result")
+				}
+			}
+		})
+	}
+}
+
+func BenchmarkNormalizeCoins(b *testing.B) {
+	coinp := func(w, f int64, t string) *Coin {
+		c := NewCoin(w, f, t)
+		return &c
+	}
+
+	benchmarks := map[string]Coins{
+		"nil coins":      nil,
+		"zero len coins": make(Coins, 0),
+		"one coin":       Coins{coinp(1, 0, "ETH")},
+		"two normalized coins": Coins{
+			coinp(1, 0, "A"),
+			coinp(1, 0, "B"),
+		},
+		"two unordered coins": Coins{
+			coinp(1, 0, "B"),
+			coinp(1, 0, "C"),
+		},
+		"two split coins": Coins{
+			coinp(1, 0, "BTC"),
+			coinp(1, 0, "BTC"),
+		},
+		"four normalized": Coins{
+			coinp(1, 0, "A"),
+			coinp(1, 0, "B"),
+			coinp(1, 0, "C"),
+			coinp(1, 0, "D"),
+		},
+		"four not normalized": Coins{
+			coinp(1, 0, "A"),
+			coinp(1, 0, "C"),
+			coinp(1, 0, "A"),
+			coinp(1, 0, "B"),
+		},
+		"six not normalized": Coins{
+			coinp(1, 0, "A"),
+			coinp(1, 0, "C"),
+			coinp(1, 0, "A"),
+			coinp(1, 0, "B"),
+			coinp(-1, 0, "B"),
+			coinp(1, 0, "D"),
+		},
+		"six normalized": Coins{
+			coinp(1, 0, "A"),
+			coinp(1, 0, "B"),
+			coinp(1, 0, "C"),
+			coinp(1, 0, "D"),
+			coinp(-1, 0, "E"),
+			coinp(-1, 0, "F"),
+		},
+	}
+
+	for benchName, coins := range benchmarks {
+		b.Run(benchName, func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				normalize(coins)
+			}
 		})
 	}
 }

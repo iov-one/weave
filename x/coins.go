@@ -1,6 +1,11 @@
 package x
 
-import "strings"
+import (
+	"sort"
+	"strings"
+
+	"github.com/iov-one/weave/errors"
+)
 
 //--------------------- Coins -------------------------
 
@@ -186,4 +191,74 @@ func (cs Coins) Validate() error {
 		last = c.Ticker
 	}
 	return nil
+}
+
+// normalize is a cleanup operation that merge and orders set of coin instances
+// into a unified form. This includes merging coins of the same currency and
+// sorting coins according to the ticker name.
+// If given set of coins is normalized this operation return what was given.
+// Otherwise a new instance of a slice can be returned.
+func normalize(cs []*Coin) ([]*Coin, error) {
+	// If there is one or no coins, there is nothing to normalize.
+	switch len(cs) {
+	case 0:
+		return nil, nil
+	case 1:
+		if cs[0].IsZero() {
+			return nil, nil
+		}
+		return cs, nil
+	}
+
+	// This is an another optimization. If there are only two coins then
+	// compare them directly.
+	if len(cs) == 2 {
+		switch n := strings.Compare(cs[0].Ticker, cs[1].Ticker); {
+		case n == 0:
+			total, err := cs[0].Add(*cs[1])
+			if err != nil {
+				return cs, err
+			}
+			if total.IsZero() {
+				return nil, nil
+			}
+			return []*Coin{&total}, nil
+		case n > 0:
+			return []*Coin{cs[1], cs[2]}, nil
+		case n < 0:
+			return cs, nil
+		}
+	}
+
+	set := make(map[string]Coin)
+	for _, c := range cs {
+		sum, ok := set[c.Ticker]
+		if ok {
+			var err error
+			sum, err = sum.Add(*c)
+			if err != nil {
+				return nil, errors.Wrap(err, "cannot sum coins")
+			}
+		} else {
+			sum = *c
+		}
+		set[sum.Ticker] = sum
+	}
+	coins := make([]*Coin, 0, len(set))
+	for _, c := range set {
+		if c.IsZero() {
+			// Ignore zero coins because they carry no value.
+			continue
+		}
+		cpy := c
+		coins = append(coins, &cpy)
+	}
+	if len(coins) == 0 {
+		return nil, nil
+	}
+	sort.Slice(coins, func(i, j int) bool {
+		return strings.Compare(coins[i].Ticker, coins[j].Ticker) < 0
+	})
+
+	return coins, nil
 }
