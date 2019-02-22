@@ -19,10 +19,10 @@ var _ orm.CloneableData = (*UserData)(nil)
 func (u *UserData) Validate() error {
 	seq := u.Sequence
 	if seq < 0 {
-		return ErrInvalidSequence("Seq(%d)", seq)
+		return ErrInvalidSequence.Newf("Seq(%d)", seq)
 	}
 	if seq > 0 && u.Pubkey == nil {
-		return ErrInvalidSequence("Seq(%d) needs Pubkey", seq)
+		return ErrInvalidSequence.Newf("Seq(%d) needs Pubkey", seq)
 	}
 	return nil
 }
@@ -41,7 +41,7 @@ func (u *UserData) Copy() orm.CloneableData {
 // If not, it will not change the sequence, but return an error
 func (u *UserData) CheckAndIncrementSequence(check int64) error {
 	if u.Sequence != check {
-		return ErrInvalidSequence("Mismatch %d != %d", check, u.Sequence)
+		return ErrInvalidSequence.Newf("Mismatch %d != %d", check, u.Sequence)
 	}
 	u.Sequence++
 	return nil

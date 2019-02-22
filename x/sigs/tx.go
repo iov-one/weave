@@ -22,10 +22,10 @@ type SignedTx interface {
 func (s *StdSignature) Validate() error {
 	seq := s.GetSequence()
 	if seq < 0 {
-		return ErrInvalidSequence("Negative")
+		return ErrInvalidSequence.New("Negative")
 	}
 	if s.Pubkey == nil {
-		return ErrMissingPubkey()
+		return errors.ErrUnauthorized.New("missing public key")
 	}
 	if s.Signature == nil {
 		return errors.ErrUnauthorized.New("missing signature")
