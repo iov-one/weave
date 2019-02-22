@@ -11,7 +11,7 @@
   If you want to register a custom error - use Register(code, description).
   For reusing errors - use Errxxx.New and Errxxx.Newf.
 
-  Also, error package defines a convenient Is helper to compare errors as well as each err defines an Is
+  Also, error package defines a convenient Is helper to compare errors, also each Error defines an Is
   helper to compare errors directly to that type.
  */
 package errors
