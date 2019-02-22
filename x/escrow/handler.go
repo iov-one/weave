@@ -107,7 +107,7 @@ func (h CreateEscrowHandler) validate(ctx weave.Context, db weave.KVStore,
 	}
 	msg, ok := rmsg.(*CreateEscrowMsg)
 	if !ok {
-		return nil, errors.ErrUnknownTxType(rmsg)
+		return nil, errors.WithType(errors.ErrInvalidMsg, rmsg)
 	}
 
 	err = msg.Validate()
@@ -118,14 +118,14 @@ func (h CreateEscrowHandler) validate(ctx weave.Context, db weave.KVStore,
 	// verify that timeout is in the future
 	height, _ := weave.GetHeight(ctx)
 	if msg.Timeout <= height {
-		return nil, ErrInvalidTimeout(msg.Timeout)
+		return nil, errors.ErrInvalidInput.Newf("timeout: %d", msg.Timeout)
 	}
 
 	// sender must authorize this (if not set, defaults to MainSigner)
 	if msg.Src != nil {
 		sender := weave.Address(msg.Src)
 		if !h.auth.HasAddress(ctx, sender) {
-			return nil, errors.ErrUnauthorizedLegacy()
+			return nil, errors.ErrUnauthorized
 		}
 	}
 
@@ -205,7 +205,7 @@ func (h ReleaseEscrowHandler) validate(ctx weave.Context, db weave.KVStore,
 	}
 	msg, ok := rmsg.(*ReleaseEscrowMsg)
 	if !ok {
-		return nil, nil, errors.ErrUnknownTxType(rmsg)
+		return nil, nil, errors.WithType(errors.ErrInvalidMsg, rmsg)
 	}
 
 	err = msg.Validate()
@@ -222,13 +222,13 @@ func (h ReleaseEscrowHandler) validate(ctx weave.Context, db weave.KVStore,
 	arb := weave.Condition(escrow.Arbiter).Address()
 	sender := weave.Address(escrow.Sender)
 	if !h.auth.HasAddress(ctx, arb) && !h.auth.HasAddress(ctx, sender) {
-		return nil, nil, errors.ErrUnauthorizedLegacy()
+		return nil, nil, errors.ErrUnauthorized
 	}
 
 	// timeout must not have expired
 	height, _ := weave.GetHeight(ctx)
 	if escrow.Timeout < height {
-		return nil, nil, ErrEscrowExpired(escrow.Timeout)
+		return nil, nil, errors.ErrExpired.Newf("escrow %d", escrow.Timeout)
 	}
 
 	return msg, escrow, nil
@@ -289,7 +289,7 @@ func (h ReturnEscrowHandler) validate(ctx weave.Context, db weave.KVStore,
 	}
 	msg, ok := rmsg.(*ReturnEscrowMsg)
 	if !ok {
-		return nil, nil, errors.ErrUnknownTxType(rmsg)
+		return nil, nil, errors.WithType(errors.ErrInvalidMsg, rmsg)
 	}
 
 	err = msg.Validate()
@@ -306,7 +306,7 @@ func (h ReturnEscrowHandler) validate(ctx weave.Context, db weave.KVStore,
 	// timeout must have expired
 	height, _ := weave.GetHeight(ctx)
 	if height <= escrow.Timeout {
-		return nil, nil, ErrEscrowNotExpired(escrow.Timeout)
+		return nil, nil, errors.ErrInvalidState.Newf("escrow not expired %d", escrow.Timeout)
 	}
 
 	return msg.EscrowId, escrow, nil
@@ -377,7 +377,7 @@ func (h UpdateEscrowHandler) validate(ctx weave.Context, db weave.KVStore,
 	}
 	msg, ok := rmsg.(*UpdateEscrowPartiesMsg)
 	if !ok {
-		return nil, nil, errors.ErrUnknownTxType(rmsg)
+		return nil, nil, errors.WithType(errors.ErrInvalidMsg, rmsg)
 	}
 
 	err = msg.Validate()
@@ -393,26 +393,26 @@ func (h UpdateEscrowHandler) validate(ctx weave.Context, db weave.KVStore,
 	// timeout must not have expired
 	height, _ := weave.GetHeight(ctx)
 	if height > escrow.Timeout {
-		return nil, nil, ErrEscrowExpired(escrow.Timeout)
+		return nil, nil, errors.ErrExpired.Newf("escrow %d", escrow.Timeout)
 	}
 
 	// we must have the permission for the items we want to change
 	if msg.Sender != nil {
 		sender := weave.Address(escrow.Sender)
 		if !h.auth.HasAddress(ctx, sender) {
-			return nil, nil, errors.ErrUnauthorizedLegacy()
+			return nil, nil, errors.ErrUnauthorized
 		}
 	}
 	if msg.Recipient != nil {
 		rcpt := weave.Address(escrow.Recipient)
 		if !h.auth.HasAddress(ctx, rcpt) {
-			return nil, nil, errors.ErrUnauthorizedLegacy()
+			return nil, nil, errors.ErrUnauthorized
 		}
 	}
 	if msg.Arbiter != nil {
 		arbiter := weave.Condition(escrow.Arbiter).Address()
 		if !h.auth.HasAddress(ctx, arbiter) {
-			return nil, nil, errors.ErrUnauthorizedLegacy()
+			return nil, nil, errors.ErrUnauthorized
 		}
 	}
 
@@ -427,7 +427,7 @@ func loadEscrow(bucket Bucket, db weave.KVStore, escrowID []byte) (*Escrow, erro
 	}
 	escrow := AsEscrow(obj)
 	if escrow == nil {
-		return nil, ErrNoSuchEscrow(escrowID)
+		return nil, errors.ErrEmpty.Newf("escrow %d", escrowID)
 	}
 	return escrow, nil
 }

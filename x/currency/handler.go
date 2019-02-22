@@ -56,7 +56,7 @@ func (h *TokenInfoHandler) validate(ctx weave.Context, db weave.KVStore, tx weav
 	}
 	msg, ok := rmsg.(*NewTokenInfoMsg)
 	if !ok {
-		return nil, errors.ErrUnknownTxType(rmsg)
+		return nil, errors.WithType(errors.ErrInvalidMsg, rmsg)
 	}
 
 	if err := msg.Validate(); err != nil {
@@ -65,7 +65,7 @@ func (h *TokenInfoHandler) validate(ctx weave.Context, db weave.KVStore, tx weav
 
 	// Ensure we have permission if the issuer is provided.
 	if h.issuer != nil && !h.auth.HasAddress(ctx, h.issuer) {
-		return nil, errors.ErrUnauthorizedLegacy()
+		return nil, errors.ErrUnauthorized
 	}
 
 	// Token can be registered only once and must not be updated.
@@ -73,7 +73,7 @@ func (h *TokenInfoHandler) validate(ctx weave.Context, db weave.KVStore, tx weav
 	case err != nil:
 		return nil, err
 	case obj != nil:
-		return nil, ErrDuplicateToken(msg.Ticker)
+		return nil, errors.ErrDuplicate.Newf("ticker %s", msg.Ticker)
 	}
 
 	return msg, nil

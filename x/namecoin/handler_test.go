@@ -46,15 +46,15 @@ func TestSendHandler(t *testing.T) {
 		expectCheck   checkErr
 		expectDeliver checkErr
 	}{
-		0: {nil, nil, nil, errors.IsUnknownTxTypeErr, errors.IsUnknownTxTypeErr},
+		0: {nil, nil, nil, errors.ErrInvalidMsg.Is, errors.ErrInvalidMsg.Is},
 		1: {nil, nil, new(cash.SendMsg), errors.ErrInvalidAmount.Is, errors.ErrInvalidAmount.Is},
-		2: {nil, nil, &cash.SendMsg{Amount: &foo}, errors.IsUnrecognizedAddressErr, errors.IsUnrecognizedAddressErr},
+		2: {nil, nil, &cash.SendMsg{Amount: &foo}, errors.ErrInvalidInput.Is, errors.ErrInvalidInput.Is},
 		3: {
 			nil,
 			nil,
 			&cash.SendMsg{Amount: &foo, Src: addr, Dest: addr2},
-			errors.IsUnauthorizedErr,
-			errors.IsUnauthorizedErr,
+			errors.ErrUnauthorized.Is,
+			errors.ErrUnauthorized.Is,
 		},
 		// sender has no account
 		4: {
@@ -132,28 +132,28 @@ func TestNewTokenHandler(t *testing.T) {
 	}{
 		// wrong message type
 		0: {nil, nil, nil, new(cash.SendMsg),
-			errors.IsUnknownTxTypeErr, errors.IsUnknownTxTypeErr, "", nil},
+			errors.ErrInvalidMsg.Is, errors.ErrInvalidMsg.Is, "", nil},
 		// wrong currency values
 		1: {nil, nil, nil, BuildTokenMsg("YO", "digga", 7),
 			x.ErrInvalidCurrency.Is, x.ErrInvalidCurrency.Is, "", nil},
 		2: {nil, nil, nil, BuildTokenMsg("GOOD", "ill3glz!", 7),
-			IsInvalidToken, IsInvalidToken, "", nil},
+			errors.ErrInvalidInput.Is, errors.ErrInvalidInput.Is, "", nil},
 		3: {nil, nil, nil, BuildTokenMsg("GOOD", "my good token", 17),
-			IsInvalidToken, IsInvalidToken, "", nil},
+			errors.ErrInvalidInput.Is, errors.ErrInvalidInput.Is, "", nil},
 		// valid message, done!
 		4: {nil, nil, nil, msg,
 			noErr, noErr, ticker, added},
 		// try to overwrite
 		5: {nil, nil, []orm.Object{NewToken(ticker, "i was here first", 4)}, msg,
-			IsInvalidToken, IsInvalidToken, "", nil},
+			errors.ErrDuplicate.Is, errors.ErrDuplicate.Is, "", nil},
 		// different name is fine
 		6: {nil, nil, []orm.Object{NewToken("OTHR", "i was here first", 4)}, msg,
 			noErr, noErr, ticker, added},
 		// not enough permissions
 		7: {nil, addr, nil, msg,
-			errors.IsUnauthorizedErr, errors.IsUnauthorizedErr, "", nil},
+			errors.ErrUnauthorized.Is, errors.ErrUnauthorized.Is, "", nil},
 		8: {[]weave.Condition{perm2, perm3}, addr, nil, msg,
-			errors.IsUnauthorizedErr, errors.IsUnauthorizedErr, "", nil},
+			errors.ErrUnauthorized.Is, errors.ErrUnauthorized.Is, "", nil},
 		// now have permission
 		9: {[]weave.Condition{perm2, perm3}, addr2, nil, msg,
 			noErr, noErr, ticker, added},
@@ -218,32 +218,32 @@ func TestSetNameHandler(t *testing.T) {
 	}{
 		// wrong message type
 		0: {nil, nil, new(cash.SendMsg),
-			errors.IsUnknownTxTypeErr, errors.IsUnknownTxTypeErr, nil, nil},
+			errors.ErrInvalidMsg.Is, errors.ErrInvalidMsg.Is, nil, nil},
 		// invalid message
 		1: {nil, nil, BuildSetNameMsg([]byte{1, 2}, "johnny"),
-			errors.IsUnrecognizedAddressErr, errors.IsUnrecognizedAddressErr, nil, nil},
+			errors.ErrInvalidInput.Is, errors.ErrInvalidInput.Is, nil, nil},
 		2: {nil, nil, BuildSetNameMsg(addr, "sh"),
-			IsInvalidWallet, IsInvalidWallet, nil, nil},
+			errors.ErrInvalidInput.Is, errors.ErrInvalidInput.Is, nil, nil},
 		// no permission to change account
 		3: {nil, []orm.Object{newUser}, msg,
-			errors.IsUnauthorizedErr, errors.IsUnauthorizedErr, nil, nil},
+			errors.ErrUnauthorized.Is, errors.ErrUnauthorized.Is, nil, nil},
 		// no account to change - only checked deliver
 		4: {perm, nil, msg,
-			noErr, IsInvalidWallet, nil, nil},
+			noErr, errors.ErrNotFound.Is, nil, nil},
 		5: {perm2, []orm.Object{newUser}, msg,
-			errors.IsUnauthorizedErr, errors.IsUnauthorizedErr, nil, nil},
+			errors.ErrUnauthorized.Is, errors.ErrUnauthorized.Is, nil, nil},
 		// yes, we changed it!
 		6: {perm, []orm.Object{newUser}, msg,
 			noErr, noErr, addr, setUser},
 		// cannot change already set - only checked deliver?
 		7: {perm, []orm.Object{setUser}, msg,
-			noErr, IsInvalidWallet, nil, nil},
+			noErr, errors.ErrCannotBeModified.Is, nil, nil},
 		// cannot create conflict - only checked deliver?
 		8: {perm, []orm.Object{newUser, dupUser}, msg,
 			noErr, errors.ErrDuplicate.Is, nil, nil},
 		// cannot change - no such a wallet (should should up by addr2 not addr)
 		9: {perm, []orm.Object{dupUser}, msg, noErr,
-			func(err error) bool { return errors.IsSameError(err, ErrNoSuchWallet(addr)) },
+			func(err error) bool { return errors.ErrNotFound.Is(err) },
 			addr, nil},
 	}
 

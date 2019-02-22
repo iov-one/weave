@@ -79,11 +79,11 @@ func loadChainID(kv weave.KVStore) string {
 // Returns error if already set, or invalid name
 func saveChainID(kv weave.KVStore, chainID string) error {
 	if !weave.IsValidChainID(chainID) {
-		return errors.ErrInvalidChainID(chainID)
+		return errors.ErrInvalidInput.Newf("chain id: %v", chainID)
 	}
 	k := []byte(chainIDKey)
 	if kv.Has(k) {
-		return errors.ErrModifyChainID()
+		return errors.ErrUnauthorized.New("can't modify chain id after genesis init")
 	}
 	kv.Set(k, []byte(chainID))
 	return nil

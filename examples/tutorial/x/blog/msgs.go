@@ -4,6 +4,7 @@ import (
 	"regexp"
 
 	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/errors"
 )
 
 const (
@@ -41,15 +42,15 @@ func (CreateBlogMsg) Path() string {
 func (s *CreateBlogMsg) Validate() error {
 	// validate the strings
 	if !IsValidName(s.Slug) {
-		return ErrInvalidName()
+		return errors.ErrInvalidInput.New(invalidName)
 	}
 	if len(s.Title) < MinTitleLength || len(s.Title) > MaxTitleLength {
-		return ErrInvalidTitle()
+		return errors.ErrInvalidInput.New(invalidTitle)
 	}
 	// check the number of authors
 	authors := len(s.Authors)
 	if authors < MinAuthors || authors > MaxAuthors {
-		return ErrInvalidAuthorCount(authors)
+		return errors.ErrInvalidState.Newf("authors: %d", authors)
 	}
 	// and validate all of them are valid addresses
 	for _, a := range s.Authors {
@@ -71,10 +72,10 @@ func (RenameBlogMsg) Path() string {
 // Validate makes sure that this is sensible
 func (s *RenameBlogMsg) Validate() error {
 	if !IsValidName(s.Slug) {
-		return ErrInvalidName()
+		return errors.ErrInvalidInput.New(invalidName)
 	}
 	if len(s.Title) < MinTitleLength || len(s.Title) > MaxTitleLength {
-		return ErrInvalidTitle()
+		return errors.ErrInvalidInput.New(invalidTitle)
 	}
 	return nil
 }
@@ -104,13 +105,13 @@ func (CreatePostMsg) Path() string {
 // Validate makes sure that this is sensible
 func (s *CreatePostMsg) Validate() error {
 	if !IsValidName(s.Blog) {
-		return ErrInvalidName()
+		return errors.ErrInvalidInput.New(invalidName)
 	}
 	if len(s.Title) < MinTitleLength || len(s.Title) > MaxTitleLength {
-		return ErrInvalidTitle()
+		return errors.ErrInvalidInput.New(invalidTitle)
 	}
 	if len(s.Text) < MinTextLength || len(s.Text) > MaxTextLength {
-		return ErrInvalidText()
+		return errors.ErrInvalidInput.New(invalidText)
 	}
 
 	// if an author is present, validate it is a valid address
@@ -131,10 +132,10 @@ func (SetProfileMsg) Path() string {
 // Validate makes sure that this is sensible
 func (s *SetProfileMsg) Validate() error {
 	if !IsValidName(s.Name) {
-		return ErrInvalidName()
+		return errors.ErrInvalidInput.New(invalidName)
 	}
 	if len(s.Description) > MaxDescriptionLength {
-		return ErrDescriptionTooLong()
+		return errors.ErrInvalidInput.New(descriptionTooLong)
 	}
 	// if an author is present, validate it is a valid address
 	if len(s.Author) > 0 {

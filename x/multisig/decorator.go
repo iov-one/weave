@@ -2,6 +2,7 @@ package multisig
 
 import (
 	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/x"
 )
 
@@ -68,7 +69,7 @@ func (d Decorator) withMultisig(ctx weave.Context, store weave.KVStore, tx weave
 			// check sigs (can be sig or multisig)
 			authenticated := x.HasNAddresses(ctx, d.auth, sigs, int(contract.ActivationThreshold))
 			if !authenticated {
-				return ctx, ErrUnauthorizedMultiSig(contractID)
+				return ctx, errors.ErrUnauthorized.Newf("contract=%X", contractID)
 			}
 
 			ctx = withMultisig(ctx, contractID)
@@ -85,7 +86,7 @@ func (d Decorator) getContract(store weave.KVStore, id []byte) (*Contract, error
 	}
 
 	if obj == nil || (obj != nil && obj.Value() == nil) {
-		return nil, ErrContractNotFound(id)
+		return nil, errors.ErrNotFound.Newf(contractNotFoundFmt, id)
 	}
 
 	contract := obj.Value().(*Contract)

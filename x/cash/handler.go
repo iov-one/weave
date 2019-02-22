@@ -48,7 +48,7 @@ func (h SendHandler) Check(ctx weave.Context, store weave.KVStore,
 	}
 	msg, ok := rmsg.(*SendMsg)
 	if !ok {
-		return res, errors.ErrUnknownTxType(rmsg)
+		return res, errors.WithType(errors.ErrInvalidMsg, rmsg)
 	}
 
 	err = msg.Validate()
@@ -58,7 +58,7 @@ func (h SendHandler) Check(ctx weave.Context, store weave.KVStore,
 
 	// make sure we have permission from the sender
 	if !h.auth.HasAddress(ctx, msg.Src) {
-		return res, errors.ErrUnauthorizedLegacy()
+		return res, errors.ErrUnauthorized
 	}
 
 	// return cost
@@ -79,7 +79,7 @@ func (h SendHandler) Deliver(ctx weave.Context, store weave.KVStore,
 	}
 	msg, ok := rmsg.(*SendMsg)
 	if !ok {
-		return res, errors.ErrUnknownTxType(rmsg)
+		return res, errors.WithType(errors.ErrInvalidMsg, rmsg)
 	}
 
 	err = msg.Validate()
@@ -89,7 +89,7 @@ func (h SendHandler) Deliver(ctx weave.Context, store weave.KVStore,
 
 	// make sure we have permission from the sender
 	if !h.auth.HasAddress(ctx, msg.Src) {
-		return res, errors.ErrUnauthorizedLegacy()
+		return res, errors.ErrUnauthorized
 	}
 
 	// move the money....

@@ -26,7 +26,7 @@ func TestValidateSendMsg(t *testing.T) {
 	}
 	err := noSrc.Validate()
 	assert.Error(t, err)
-	assert.True(t, errors.IsUnrecognizedAddressErr(err))
+	assert.True(t, errors.ErrInvalidInput.Is(err))
 
 	// add a default source, so it validates
 	good := noSrc.DefaultSource(addr2)
@@ -87,7 +87,7 @@ func TestValidateFeeTx(t *testing.T) {
 	var empty *FeeInfo
 	err := empty.Validate()
 	assert.Error(t, err)
-	assert.True(t, errors.IsUnrecognizedAddressErr(err))
+	assert.True(t, errors.ErrInvalidInput.Is(err))
 
 	addr := weave.NewAddress([]byte{8, 8})
 	addr2 := weave.NewAddress([]byte{7, 7})
@@ -101,7 +101,7 @@ func TestValidateFeeTx(t *testing.T) {
 	plus := &FeeInfo{Fees: &pos}
 	err = plus.Validate()
 	assert.Error(t, err)
-	assert.True(t, errors.IsUnrecognizedAddressErr(err))
+	assert.True(t, errors.ErrInvalidInput.Is(err))
 
 	full := plus.DefaultPayer(addr)
 	assert.NoError(t, full.Validate())

@@ -70,10 +70,10 @@ func TestHandler(t *testing.T) {
 				handler := NewUpdateHandler(auth2, ctrl, authCheckAddress)
 
 				_, err := handler.Deliver(nil, kv, tx)
-				So(err.Error(), ShouldResemble, errors.ErrUnknownTxType(msg).Error())
+				So(err.Error(), ShouldResemble, errors.WithType(errors.ErrInvalidMsg, msg).Error())
 
 				_, err = handler.Check(nil, kv, tx)
-				So(err.Error(), ShouldResemble, errors.ErrUnknownTxType(msg).Error())
+				So(err.Error(), ShouldResemble, errors.WithType(errors.ErrInvalidMsg, msg).Error())
 			})
 		})
 	})

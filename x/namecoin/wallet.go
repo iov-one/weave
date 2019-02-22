@@ -31,7 +31,7 @@ func (w *Wallet) SetCoins(coins []*x.Coin) {
 func (w *Wallet) Validate() error {
 	name := w.GetName()
 	if name != "" && !IsWalletName(name) {
-		return ErrInvalidWalletName(name)
+		return errors.ErrInvalidInput.Newf("wallet name: %v", name)
 	}
 	return cash.XCoins(w).Validate()
 }
@@ -47,10 +47,10 @@ func (w *Wallet) Copy() orm.CloneableData {
 // SetName verifies the name is valid and sets it on the wallet
 func (w *Wallet) SetName(name string) error {
 	if w.Name != "" {
-		return ErrChangeWalletName()
+		return errors.ErrCannotBeModified.New("wallet already has a name")
 	}
 	if !IsWalletName(name) {
-		return ErrInvalidWalletName(name)
+		return errors.ErrInvalidInput.Newf("wallet name %s", name)
 	}
 	w.Name = name
 	return nil
@@ -147,11 +147,11 @@ func (b WalletBucket) Save(db weave.KVStore, obj orm.Object) error {
 // simple indexer for Wallet name
 func nameIndex(obj orm.Object) ([]byte, error) {
 	if obj == nil {
-		return nil, ErrInvalidIndex("nil")
+		return nil, errors.ErrInvalidModel.New("nil")
 	}
 	wallet, ok := obj.Value().(*Wallet)
 	if !ok {
-		return nil, ErrInvalidIndex("Not wallet")
+		return nil, errors.ErrInvalidModel.New("not wallet")
 	}
 	// big-endian encoded int64
 	return []byte(wallet.Name), nil

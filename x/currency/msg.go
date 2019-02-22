@@ -2,6 +2,7 @@ package currency
 
 import (
 	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/x"
 )
 
@@ -16,10 +17,10 @@ func (t *NewTokenInfoMsg) Validate() error {
 		return x.ErrInvalidCurrency.New(t.Ticker)
 	}
 	if !isTokenName(t.Name) {
-		return ErrInvalidTokenName(t.Name)
+		return errors.ErrInvalidState.Newf("invalid token name %v", t.Name)
 	}
 	if t.SigFigs < minSigFigs || t.SigFigs > maxSigFigs {
-		return ErrInvalidSigFigs(t.SigFigs)
+		return errors.ErrInvalidState.Newf("invalid significant figures %d", t.SigFigs)
 	}
 	return nil
 }

@@ -32,7 +32,7 @@ func TestRevenueValidate(t *testing.T) {
 					{Weight: 1, Address: addr},
 				},
 			},
-			wantErr: errors.ErrInvalidModel,
+			wantErr: errors.ErrInvalidInput,
 		},
 		"at least one recipient must be given": {
 			model: Revenue{
@@ -57,7 +57,7 @@ func TestRevenueValidate(t *testing.T) {
 					{Weight: 2, Address: []byte("zzz")},
 				},
 			},
-			wantErr: errors.ErrInvalidModel,
+			wantErr: errors.ErrInvalidInput,
 		},
 	}
 

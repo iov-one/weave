@@ -106,7 +106,7 @@ func (h TokenHandler) validate(ctx weave.Context, db weave.KVStore,
 	}
 	msg, ok := rmsg.(*NewTokenMsg)
 	if !ok {
-		return nil, errors.ErrUnknownTxType(rmsg)
+		return nil, errors.WithType(errors.ErrInvalidMsg, rmsg)
 	}
 
 	err = msg.Validate()
@@ -116,7 +116,7 @@ func (h TokenHandler) validate(ctx weave.Context, db weave.KVStore,
 
 	// make sure we have permission if the issuer is set
 	if h.issuer != nil && !h.auth.HasAddress(ctx, h.issuer) {
-		return nil, errors.ErrUnauthorizedLegacy()
+		return nil, errors.ErrUnauthorized
 	}
 
 	// make sure no token there yet
@@ -125,7 +125,7 @@ func (h TokenHandler) validate(ctx weave.Context, db weave.KVStore,
 		return nil, err
 	}
 	if obj != nil {
-		return nil, ErrDuplicateToken(msg.Ticker)
+		return nil, errors.ErrDuplicate.Newf("token with ticker %s", msg.Ticker)
 	}
 
 	return msg, nil
@@ -170,7 +170,7 @@ func (h SetNameHandler) Deliver(ctx weave.Context, db weave.KVStore,
 		return res, err
 	}
 	if obj == nil {
-		return res, ErrNoSuchWallet(msg.Address)
+		return res, errors.ErrNotFound.Newf("wallet %s", msg.Address)
 	}
 	named := AsNamed(obj)
 	err = named.SetName(msg.Name)
@@ -192,7 +192,7 @@ func (h SetNameHandler) validate(ctx weave.Context, db weave.KVStore,
 	}
 	msg, ok := rmsg.(*SetWalletNameMsg)
 	if !ok {
-		return nil, errors.ErrUnknownTxType(rmsg)
+		return nil, errors.WithType(errors.ErrInvalidMsg, rmsg)
 	}
 
 	err = msg.Validate()
@@ -202,7 +202,7 @@ func (h SetNameHandler) validate(ctx weave.Context, db weave.KVStore,
 
 	// only wallet owner can set the name
 	if !h.auth.HasAddress(ctx, msg.Address) {
-		return nil, errors.ErrUnauthorizedLegacy()
+		return nil, errors.ErrUnauthorized
 	}
 
 	return msg, nil

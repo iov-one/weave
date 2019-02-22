@@ -24,7 +24,7 @@ func TestPrintableId(t *testing.T) {
 
 	for i, tc := range cases {
 		t.Run(fmt.Sprintf("case %d", i), func(tt *testing.T) {
-			printable := printableID(tc.id)
+			printable := PrintableID(tc.id)
 			assert.Equal(t, tc.expected, printable)
 		})
 	}

@@ -47,14 +47,14 @@ func TestErrors(t *testing.T) {
 		"normalize panic handles strings": {
 			err:      NormalizePanic("foo"),
 			wantRoot: ErrPanic,
-			wantMsg:  "panic: foo",
-			wantLog:  "panic: foo",
+			wantMsg:  "foo: panic",
+			wantLog:  "foo: panic",
 		},
 		"normalize panic handles errors": {
 			err:      NormalizePanic(fmt.Errorf("message")),
 			wantRoot: ErrPanic,
-			wantMsg:  "panic: message",
-			wantLog:  "panic: message",
+			wantMsg:  "message: panic",
+			wantLog:  "message: panic",
 		},
 	}
 

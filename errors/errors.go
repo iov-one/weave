@@ -57,6 +57,12 @@ var (
 	// ErrInvalidAmount stands for invalid amount of whatever
 	ErrInvalidAmount = Register(13, "invalid amount")
 
+	// ErrInvalidInput stands for general input problems indication
+	ErrInvalidInput = Register(14, "invalid input")
+
+	// ErrExpired stands for expired entities, normally has to do with block height expirations
+	ErrExpired = Register(15, "expired")
+
 	// ErrPanic is only set when we recover from a panic, so we know to redact potentially sensitive system info
 	ErrPanic = Register(111222, "panic")
 )

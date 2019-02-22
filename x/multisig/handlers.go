@@ -64,7 +64,7 @@ func (h CreateContractMsgHandler) validate(ctx weave.Context, db weave.KVStore, 
 	// Retrieve tx main signer in this context
 	sender := x.MainSigner(ctx, h.auth)
 	if sender == nil {
-		return nil, errors.ErrUnauthorizedLegacy()
+		return nil, errors.ErrUnauthorized
 	}
 
 	msg, err := tx.GetMsg()
@@ -74,7 +74,7 @@ func (h CreateContractMsgHandler) validate(ctx weave.Context, db weave.KVStore, 
 
 	createContractMsg, ok := msg.(*CreateContractMsg)
 	if !ok {
-		return nil, errors.ErrUnknownTxType(msg)
+		return nil, errors.WithType(errors.ErrInvalidMsg, msg)
 	}
 
 	err = createContractMsg.Validate()
@@ -134,7 +134,7 @@ func (h UpdateContractMsgHandler) validate(ctx weave.Context, db weave.KVStore, 
 
 	updateContractMsg, ok := msg.(*UpdateContractMsg)
 	if !ok {
-		return nil, errors.ErrUnknownTxType(msg)
+		return nil, errors.WithType(errors.ErrInvalidMsg, msg)
 	}
 
 	err = updateContractMsg.Validate()
@@ -148,7 +148,7 @@ func (h UpdateContractMsgHandler) validate(ctx weave.Context, db weave.KVStore, 
 		return nil, err
 	}
 	if obj == nil || (obj != nil && obj.Value() == nil) {
-		return nil, ErrContractNotFound(updateContractMsg.Id)
+		return nil, errors.ErrNotFound.Newf(contractNotFoundFmt, updateContractMsg.Id)
 	}
 	contract := obj.Value().(*Contract)
 
@@ -161,7 +161,7 @@ func (h UpdateContractMsgHandler) validate(ctx weave.Context, db weave.KVStore, 
 	// check sigs
 	authenticated := x.HasNAddresses(ctx, h.auth, sigs, int(contract.AdminThreshold))
 	if !authenticated {
-		return nil, ErrUnauthorizedMultiSig(updateContractMsg.Id)
+		return nil, errors.ErrUnauthorized.Newf("contract=%X", updateContractMsg.Id)
 	}
 
 	return updateContractMsg, nil

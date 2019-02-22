@@ -22,8 +22,9 @@ func Validate(msg Msg) error {
 		return errors.Wrap(err, "cannot retrieve batch message")
 	}
 
-	if len(l) > MaxBatchMessages {
-		return errors.ErrTooLarge()
+	msgNum := len(l)
+	if msgNum > MaxBatchMessages {
+		return errors.ErrInvalidInput.Newf("transaction is too large, max: %d vs current: %d", MaxBatchMessages, msgNum)
 	}
 	return nil
 }

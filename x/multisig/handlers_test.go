@@ -2,6 +2,7 @@ package multisig
 
 import (
 	"context"
+	"github.com/iov-one/weave/errors"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -85,7 +86,7 @@ func TestCreateContractMsgHandler(t *testing.T) {
 		{
 			name: "missing sigs",
 			msg:  &CreateContractMsg{},
-			err:  ErrMissingSigs(),
+			err:  errors.ErrInvalidMsg.New("missing sigs"),
 		},
 		{
 			name: "bad activation threshold",
@@ -94,7 +95,7 @@ func TestCreateContractMsgHandler(t *testing.T) {
 				ActivationThreshold: 4,
 				AdminThreshold:      3,
 			},
-			err: ErrInvalidActivationThreshold(),
+			err: errors.ErrInvalidMsg.New(invalidThreshold),
 		},
 		{
 			name: "bad admin threshold",
@@ -103,7 +104,7 @@ func TestCreateContractMsgHandler(t *testing.T) {
 				ActivationThreshold: 1,
 				AdminThreshold:      -1,
 			},
-			err: ErrInvalidChangeThreshold(),
+			err: errors.ErrInvalidMsg.New(invalidThreshold),
 		},
 		{
 			name: "0 activation threshold",
@@ -112,7 +113,7 @@ func TestCreateContractMsgHandler(t *testing.T) {
 				ActivationThreshold: 0,
 				AdminThreshold:      1,
 			},
-			err: ErrInvalidChangeThreshold(),
+			err: errors.ErrInvalidMsg.New(invalidThreshold),
 		},
 	}
 
@@ -194,7 +195,7 @@ func TestUpdateContractMsgHandler(t *testing.T) {
 				AdminThreshold:      5,
 			},
 			signers: []weave.Condition{a},
-			err:     ErrUnauthorizedMultiSig(mutableID),
+			err:     errors.ErrUnauthorized.Newf("contract=%X", mutableID),
 		},
 		{
 			name: "immutable",
@@ -205,7 +206,7 @@ func TestUpdateContractMsgHandler(t *testing.T) {
 				AdminThreshold:      5,
 			},
 			signers: []weave.Condition{a, b, c, d, e},
-			err:     ErrUnauthorizedMultiSig(immutableID),
+			err:     errors.ErrUnauthorized.Newf("contract=%X", immutableID),
 		},
 		{
 			name: "bad change threshold",
@@ -216,7 +217,7 @@ func TestUpdateContractMsgHandler(t *testing.T) {
 				AdminThreshold:      0,
 			},
 			signers: []weave.Condition{a, b, c, d, e},
-			err:     ErrInvalidChangeThreshold(),
+			err:     errors.ErrInvalidMsg.New(invalidThreshold),
 		},
 	}
 
@@ -229,7 +230,7 @@ func TestUpdateContractMsgHandler(t *testing.T) {
 		if test.err == nil {
 			require.NoError(t, err, test.name)
 		} else {
-			require.EqualError(t, err, test.err.Error(), test.name)
+			require.True(t, errors.Is(err, test.err), test.name)
 		}
 
 		_, err = handler.Deliver(ctx, db, newTx(msg))

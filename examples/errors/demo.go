@@ -12,11 +12,11 @@ import (
 )
 
 func makeError() error {
-	return errors.ErrInternalLegacy("foo")
+	return errors.ErrInternal.New("foo")
 }
 
 func otherError() error {
-	return errors.ErrDecoding()
+	return errors.ErrInvalidInput.New("unable to decode")
 }
 
 type foo struct {
@@ -24,7 +24,7 @@ type foo struct {
 }
 
 func fullError() error {
-	return errors.ErrUnknownTxType(&foo{7})
+	return errors.WithType(errors.ErrInvalidMsg, &foo{7})
 }
 
 func panicError() (err error) {

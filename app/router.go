@@ -14,22 +14,6 @@ const DefaultRouterSize = 10
 // isPath is the RegExp to ensure the routes make sense
 var isPath = regexp.MustCompile(`^[a-zA-Z0-9_/]+$`).MatchString
 
-// CodeNoSuchPath is an ABCI Response Codes
-// Base SDK reserves 0 ~ 99. App uses 10 ~ 19
-const CodeNoSuchPath uint32 = 10
-
-var errNoSuchPath = fmt.Errorf("Path not registered")
-
-// ErrNoSuchPath constructs an error when router doesn't know the path
-func ErrNoSuchPath(path string) error {
-	return errors.WithLog(path, errNoSuchPath, CodeNoSuchPath)
-}
-
-// IsNoSuchPathErr checks if this is an unknown route error
-func IsNoSuchPathErr(err error) bool {
-	return errors.IsSameError(errNoSuchPath, err)
-}
-
 // Router allows us to register many handlers with different
 // paths and then direct each message to the proper handler.
 //
@@ -82,7 +66,7 @@ func (r Router) Check(ctx weave.Context, store weave.KVStore,
 
 	msg, _ := tx.GetMsg()
 	if msg == nil {
-		return weave.CheckResult{}, errors.ErrDecoding()
+		return weave.CheckResult{}, errors.ErrInvalidInput.New("unable to decode")
 	}
 	path := msg.Path()
 	h := r.Handler(path)
@@ -95,7 +79,7 @@ func (r Router) Deliver(ctx weave.Context, store weave.KVStore,
 
 	msg, _ := tx.GetMsg()
 	if msg == nil {
-		return weave.DeliverResult{}, errors.ErrDecoding()
+		return weave.DeliverResult{}, errors.ErrInvalidInput.New("unable to decode")
 	}
 	path := msg.Path()
 	h := r.Handler(path)
@@ -114,12 +98,12 @@ var _ weave.Handler = noSuchPathHandler{}
 func (h noSuchPathHandler) Check(ctx weave.Context, store weave.KVStore,
 	tx weave.Tx) (weave.CheckResult, error) {
 
-	return weave.CheckResult{}, ErrNoSuchPath(h.path)
+	return weave.CheckResult{}, errors.ErrNotFound.Newf("path: %s", h.path)
 }
 
 // Deliver always returns ErrNoSuchPath
 func (h noSuchPathHandler) Deliver(ctx weave.Context, store weave.KVStore,
 	tx weave.Tx) (weave.DeliverResult, error) {
 
-	return weave.DeliverResult{}, ErrNoSuchPath(h.path)
+	return weave.DeliverResult{}, errors.ErrNotFound.Newf("path: %s", h.path)
 }

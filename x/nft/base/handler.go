@@ -31,7 +31,7 @@ func asBase(obj orm.Object) (nft.BaseNFT, error) {
 	}
 	x, ok := obj.Value().(nft.BaseNFT)
 	if !ok {
-		return nil, nft.ErrUnsupportedTokenType()
+		return nil, errors.ErrInvalidInput.New(nft.UnsupportedTokenType)
 	}
 	return x, nil
 }
@@ -42,7 +42,7 @@ func loadToken(bucket orm.Bucket, store weave.KVStore, id []byte) (orm.Object, n
 	case err != nil:
 		return nil, nil, err
 	case o == nil:
-		return nil, nil, nft.ErrUnknownID(id)
+		return nil, nil, errors.ErrNotFound.Newf("nft %s", nft.PrintableID(id))
 	}
 	t, e := asBase(o)
 	return o, t, e
@@ -84,7 +84,7 @@ func (h *ApprovalOpsHandler) Deliver(ctx weave.Context, store weave.KVStore, tx 
 
 	bucket, ok := h.buckets[msg.GetT()]
 	if !ok {
-		return res, nft.ErrUnsupportedTokenType()
+		return res, errors.ErrInvalidInput.New(nft.UnsupportedTokenType)
 	}
 
 	o, t, err := loadToken(bucket, store, msg.GetID())
@@ -94,7 +94,7 @@ func (h *ApprovalOpsHandler) Deliver(ctx weave.Context, store weave.KVStore, tx 
 
 	actor := nft.FindActor(h.auth, ctx, t, nft.UpdateApprovals)
 	if actor == nil {
-		return res, errors.ErrUnauthorizedLegacy()
+		return res, errors.ErrUnauthorized
 	}
 
 	switch v := msg.(type) {
@@ -126,6 +126,6 @@ func (h *ApprovalOpsHandler) validate(ctx weave.Context, tx weave.Tx) (nft.Appro
 		}
 		return v.(nft.ApprovalMsg), nil
 	default:
-		return nil, errors.ErrUnknownTxType(msg)
+		return nil, errors.WithType(errors.ErrInvalidMsg, msg)
 	}
 }

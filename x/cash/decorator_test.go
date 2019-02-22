@@ -30,11 +30,11 @@ func (f feeTx) GetFees() *FeeInfo {
 }
 
 func (f feeTx) Marshal() ([]byte, error) {
-	return nil, errors.ErrInternalLegacy("TODO: not implemented")
+	return nil, errors.ErrInternal.New("TODO: not implemented")
 }
 
 func (f *feeTx) Unmarshal([]byte) error {
-	return errors.ErrInternalLegacy("TODO: not implemented")
+	return errors.ErrInternal.New("TODO: not implemented")
 }
 
 type okHandler struct{}
@@ -79,7 +79,7 @@ func TestFees(t *testing.T) {
 		// no fee given, something expected
 		1: {nil, nil, nil, min, errors.ErrInsufficientAmount.Is},
 		// no signer given
-		2: {nil, nil, &FeeInfo{Fees: &min}, min, errors.IsUnrecognizedAddressErr},
+		2: {nil, nil, &FeeInfo{Fees: &min}, min, errors.ErrInvalidInput.Is},
 		// use default signer, but not enough money
 		3: {
 			[]weave.Condition{perm},
@@ -110,7 +110,7 @@ func TestFees(t *testing.T) {
 			[]orm.Object{must(WalletWith(perm2.Address(), &cash))},
 			&FeeInfo{Payer: perm2.Address(), Fees: &min},
 			min,
-			errors.IsUnauthorizedErr,
+			errors.ErrUnauthorized.Is,
 		},
 		// can pay in any fee
 		7: {

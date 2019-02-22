@@ -14,13 +14,13 @@ var _ orm.CloneableData = (*Blog)(nil)
 // Validate enforces limits of title size and number of authors
 func (b *Blog) Validate() error {
 	if len(b.Title) > MaxTitleLength {
-		return ErrInvalidTitle()
+		return errors.ErrInvalidInput.New(invalidTitle)
 	}
 	if len(b.Authors) > MaxAuthors || len(b.Authors) == 0 {
-		return ErrInvalidAuthorCount(len(b.Authors))
+		return errors.ErrInvalidState.Newf("authors: %d", len(b.Authors))
 	}
 	if b.NumArticles < 0 {
-		return ErrNegativeArticles()
+		return errors.ErrInvalidModel.Newf("negative articles")
 	}
 	return nil
 }
@@ -45,16 +45,16 @@ var _ orm.CloneableData = (*Post)(nil)
 // Validate enforces limits of text and title size
 func (p *Post) Validate() error {
 	if len(p.Title) > MaxTitleLength {
-		return ErrInvalidTitle()
+		return errors.ErrInvalidInput.New(invalidTitle)
 	}
 	if len(p.Text) > MaxTextLength {
-		return ErrInvalidText()
+		return errors.ErrInvalidInput.New(invalidText)
 	}
 	if len(p.Author) == 0 {
-		return ErrNoAuthor()
+		return errors.ErrEmpty.New("author")
 	}
 	if p.CreationBlock < 0 {
-		return ErrNegativeCreation()
+		return errors.ErrInvalidModel.Newf("negative creation")
 	}
 	return nil
 }
@@ -77,10 +77,10 @@ var _ orm.CloneableData = (*Profile)(nil)
 // Validate enforces limits of text and title size
 func (p *Profile) Validate() error {
 	if len(p.Name) > MaxNameLength {
-		return ErrInvalidName()
+		return errors.ErrInvalidInput.New(invalidName)
 	}
 	if len(p.Description) > MaxDescriptionLength {
-		return ErrDescriptionTooLong()
+		return errors.ErrInvalidInput.New(descriptionTooLong)
 	}
 	return nil
 }

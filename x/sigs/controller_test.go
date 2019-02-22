@@ -8,6 +8,7 @@ import (
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/crypto"
+	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/store"
 	"github.com/iov-one/weave/x"
 )
@@ -80,7 +81,7 @@ func TestVerifySignature(t *testing.T) {
 	// empty sig
 	_, err = VerifySignature(kv, empty, bz, chainID)
 	assert.Error(t, err)
-	assert.True(t, IsInvalidSignatureErr(err))
+	assert.True(t, errors.ErrUnauthorized.Is(err))
 
 	// must start with 0
 	sign, err := VerifySignature(kv, sig0, bz, chainID)
@@ -94,10 +95,10 @@ func TestVerifySignature(t *testing.T) {
 	// jumping and replays are a no-no
 	_, err = VerifySignature(kv, sig1, bz, chainID)
 	assert.Error(t, err)
-	assert.True(t, IsInvalidSequenceErr(err))
+	assert.True(t, ErrInvalidSequence.Is(err))
 	_, err = VerifySignature(kv, sig13, bz, chainID)
 	assert.Error(t, err)
-	assert.True(t, IsInvalidSequenceErr(err))
+	assert.True(t, ErrInvalidSequence.Is(err))
 
 	// different chain doesn't match
 	_, err = VerifySignature(kv, sig2, bz, "metal")

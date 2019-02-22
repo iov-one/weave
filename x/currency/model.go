@@ -29,10 +29,10 @@ func NewTokenInfo(ticker, name string, sigFigs int32) orm.Object {
 
 func (t *TokenInfo) Validate() error {
 	if !isTokenName(t.Name) {
-		return ErrInvalidTokenName(t.Name)
+		return errors.ErrInvalidState.Newf("invalid token name %v", t.Name)
 	}
 	if t.SigFigs < minSigFigs || t.SigFigs > maxSigFigs {
-		return ErrInvalidSigFigs(t.SigFigs)
+		return errors.ErrInvalidState.Newf("invalid significant figures %d", t.SigFigs)
 	}
 	return nil
 }

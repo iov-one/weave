@@ -74,7 +74,7 @@ func (h IssueHandler) validate(ctx weave.Context, tx weave.Tx) (*IssueTokenMsg, 
 	}
 	msg, ok := rmsg.(*IssueTokenMsg)
 	if !ok {
-		return nil, errors.ErrUnknownTxType(rmsg)
+		return nil, errors.WithType(errors.ErrInvalidMsg, rmsg)
 	}
 	if err := msg.Validate(); err != nil {
 		return nil, err
@@ -82,11 +82,11 @@ func (h IssueHandler) validate(ctx weave.Context, tx weave.Tx) (*IssueTokenMsg, 
 	// check permissions
 	if h.issuer != nil {
 		if !h.auth.HasAddress(ctx, h.issuer) {
-			return nil, errors.ErrUnauthorizedLegacy()
+			return nil, errors.ErrUnauthorized.New("")
 		}
 	} else {
 		if !h.auth.HasAddress(ctx, msg.Owner) {
-			return nil, errors.ErrUnauthorizedLegacy()
+			return nil, errors.ErrUnauthorized.New("")
 		}
 	}
 	return msg, nil
@@ -122,7 +122,7 @@ func (h AddChainAddressHandler) Deliver(ctx weave.Context, store weave.KVStore, 
 
 	actor := nft.FindActor(h.auth, ctx, t, nft.UpdateDetails)
 	if actor == nil {
-		return res, errors.ErrUnauthorizedLegacy()
+		return res, errors.ErrUnauthorized.New("")
 	}
 	allKeys := append(t.GetChainAddresses(), ChainAddress{msg.GetBlockchainID(), msg.GetAddress()})
 	if err := t.SetChainAddresses(actor, allKeys); err != nil {
@@ -139,7 +139,7 @@ func (h *AddChainAddressHandler) validate(ctx weave.Context, tx weave.Tx) (*AddC
 	}
 	msg, ok := rmsg.(*AddChainAddressMsg)
 	if !ok {
-		return nil, errors.ErrUnknownTxType(rmsg)
+		return nil, errors.WithType(errors.ErrInvalidMsg, rmsg)
 	}
 	if err := msg.Validate(); err != nil {
 		return nil, err
@@ -177,10 +177,10 @@ func (h RemoveChainAddressHandler) Deliver(ctx weave.Context, store weave.KVStor
 
 	actor := nft.FindActor(h.auth, ctx, t, nft.UpdateDetails)
 	if actor == nil {
-		return res, errors.ErrUnauthorizedLegacy()
+		return res, errors.ErrUnauthorized.New("")
 	}
 	if len(t.GetChainAddresses()) == 0 {
-		return res, nft.ErrInvalidEntry([]byte("no chain to delete"))
+		return res, errors.ErrInvalidInput.New("empty chain addresses")
 	}
 	obsoleteAddress := ChainAddress{msg.GetBlockchainID(), msg.GetAddress()}
 	newAddresses := make([]ChainAddress, 0, len(t.GetChainAddresses()))
@@ -190,7 +190,7 @@ func (h RemoveChainAddressHandler) Deliver(ctx weave.Context, store weave.KVStor
 		}
 	}
 	if len(newAddresses) == len(t.GetChainAddresses()) {
-		return res, nft.ErrInvalidEntry([]byte("requested address not registered"))
+		return res, errors.ErrNotFound.New("requested address not registered")
 	}
 	if err := t.SetChainAddresses(actor, newAddresses); err != nil {
 		return res, err
@@ -205,7 +205,7 @@ func (h *RemoveChainAddressHandler) validate(ctx weave.Context, tx weave.Tx) (*R
 	}
 	msg, ok := rmsg.(*RemoveChainAddressMsg)
 	if !ok {
-		return nil, errors.ErrUnknownTxType(rmsg)
+		return nil, errors.WithType(errors.ErrInvalidMsg, rmsg)
 	}
 	if err := msg.Validate(); err != nil {
 		return nil, err
@@ -219,7 +219,7 @@ func loadToken(h tokenHandler, store weave.KVStore, id []byte) (orm.Object, Toke
 	case err != nil:
 		return nil, nil, err
 	case o == nil:
-		return nil, nil, nft.ErrUnknownID(id)
+		return nil, nil, errors.ErrNotFound.Newf("username %s", nft.PrintableID(id))
 	}
 	t, e := AsUsername(o)
 	return o, t, e

@@ -46,7 +46,7 @@ func TestCreateEscrowMsg(t *testing.T) {
 		check checkErr
 	}{
 		// nothing
-		0: {new(CreateEscrowMsg), IsMissingConditionErr},
+		0: {new(CreateEscrowMsg), errors.ErrEmpty.Is},
 		// proper
 		1: {
 			&CreateEscrowMsg{
@@ -77,7 +77,7 @@ func TestCreateEscrowMsg(t *testing.T) {
 				Amount:    plus,
 				Timeout:   52,
 			},
-			IsInvalidConditionErr,
+			errors.ErrInvalidInput.Is,
 		},
 		// negative amount
 		4: {
@@ -117,7 +117,7 @@ func TestCreateEscrowMsg(t *testing.T) {
 				Timeout:   52,
 				Memo:      strings.Repeat("foo", 100),
 			},
-			IsInvalidMetadataErr,
+			errors.ErrInvalidInput.Is,
 		},
 		// invalid timeout
 		8: {
@@ -127,7 +127,7 @@ func TestCreateEscrowMsg(t *testing.T) {
 				Amount:    plus,
 				Timeout:   -8,
 			},
-			IsInvalidMetadataErr,
+			errors.ErrInvalidInput.Is,
 		},
 	}
 
@@ -158,7 +158,7 @@ func TestReleaseEscrowMsg(t *testing.T) {
 		check checkErr
 	}{
 		// nothing
-		0: {new(ReleaseEscrowMsg), IsInvalidMetadataErr},
+		0: {new(ReleaseEscrowMsg), errors.ErrInvalidInput.Is},
 		// proper: valid amount
 		1: {
 			&ReleaseEscrowMsg{
@@ -179,14 +179,14 @@ func TestReleaseEscrowMsg(t *testing.T) {
 			&ReleaseEscrowMsg{
 				EscrowId: scarecrow,
 			},
-			IsInvalidMetadataErr,
+			errors.ErrInvalidInput.Is,
 		},
 		// missing id
 		4: {
 			&ReleaseEscrowMsg{
 				Amount: plus,
 			},
-			IsInvalidMetadataErr,
+			errors.ErrInvalidInput.Is,
 		},
 		// negative amount
 		5: {
@@ -226,7 +226,7 @@ func TestReturnEscrowMsg(t *testing.T) {
 		check checkErr
 	}{
 		// missing id
-		0: {new(ReturnEscrowMsg), IsInvalidMetadataErr},
+		0: {new(ReturnEscrowMsg), errors.ErrInvalidInput.Is},
 		// proper: valid id
 		1: {
 			&ReturnEscrowMsg{
@@ -239,7 +239,7 @@ func TestReturnEscrowMsg(t *testing.T) {
 			&ReturnEscrowMsg{
 				EscrowId: scarecrow,
 			},
-			IsInvalidMetadataErr,
+			errors.ErrInvalidInput.Is,
 		},
 	}
 
@@ -272,7 +272,7 @@ func TestUpdateEscrowMsg(t *testing.T) {
 		check checkErr
 	}{
 		// nothing
-		0: {new(UpdateEscrowPartiesMsg), IsInvalidMetadataErr},
+		0: {new(UpdateEscrowPartiesMsg), errors.ErrInvalidInput.Is},
 		// proper: valid id, one valid permission
 		1: {
 			&UpdateEscrowPartiesMsg{
@@ -286,7 +286,7 @@ func TestUpdateEscrowMsg(t *testing.T) {
 			&UpdateEscrowPartiesMsg{
 				EscrowId: escrow,
 			},
-			IsMissingConditionErr,
+			errors.ErrEmpty.Is,
 		},
 		// invalid escrow, proper permissions
 		3: {
@@ -294,7 +294,7 @@ func TestUpdateEscrowMsg(t *testing.T) {
 				EscrowId: scarecrow,
 				Sender:   a.Address(),
 			},
-			IsInvalidMetadataErr,
+			errors.ErrInvalidInput.Is,
 		},
 		// allow multiple permissions
 		4: {
@@ -311,7 +311,7 @@ func TestUpdateEscrowMsg(t *testing.T) {
 				EscrowId: escrow,
 				Arbiter:  d,
 			},
-			IsInvalidConditionErr,
+			errors.ErrInvalidInput.Is,
 		},
 	}
 

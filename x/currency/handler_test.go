@@ -22,8 +22,8 @@ func TestNewTokenInfoHandler(t *testing.T) {
 		issuer          weave.Address
 		initState       []orm.Object
 		msg             weave.Msg
-		wantCheckErr    uint32
-		wantDeliverErr  uint32
+		wantCheckErr    errors.Error
+		wantDeliverErr  errors.Error
 		query           string
 		wantQueryResult orm.Object
 	}{
@@ -34,15 +34,15 @@ func TestNewTokenInfoHandler(t *testing.T) {
 				orm.NewSimpleObj([]byte("DOGE"), &TokenInfo{Name: "Doge Coin", SigFigs: 6}),
 			},
 			msg:            &NewTokenInfoMsg{Ticker: "DOGE", Name: "Doge Coin", SigFigs: 6},
-			wantCheckErr:   CodeInvalidToken,
-			wantDeliverErr: CodeInvalidToken,
+			wantCheckErr:   errors.ErrDuplicate,
+			wantDeliverErr: errors.ErrDuplicate,
 		},
 		"insufficient permission": {
 			signers:        []weave.Condition{permB},
 			issuer:         permA.Address(),
 			msg:            &NewTokenInfoMsg{Ticker: "DOGE", Name: "Doge Coin", SigFigs: 6},
-			wantCheckErr:   errors.CodeUnauthorized,
-			wantDeliverErr: errors.CodeUnauthorized,
+			wantCheckErr:   errors.ErrUnauthorized,
+			wantDeliverErr: errors.ErrUnauthorized,
 		},
 		"query unknown ticker": {
 			signers:         []weave.Condition{permA, permB},
@@ -73,11 +73,17 @@ func TestNewTokenInfoHandler(t *testing.T) {
 			auth := helpers.Authenticate(tc.signers...)
 			h := NewTokenInfoHandler(auth, tc.issuer)
 			tx := helpers.MockTx(tc.msg)
-			if _, err := h.Check(nil, db, tx); errcode(err) != tc.wantCheckErr {
-				t.Fatalf("check error: want %d, got %+v", tc.wantCheckErr, err)
+			_, err := h.Check(nil, db, tx)
+			if err != nil {
+				if !tc.wantCheckErr.Is(err) {
+					t.Fatalf("check error: want %v, got %+v", tc.wantCheckErr, err)
+				}
 			}
-			if _, err := h.Deliver(nil, db, tx); errcode(err) != tc.wantDeliverErr {
-				t.Fatalf("deliver error: want %d, got %+v", tc.wantCheckErr, err)
+			_, err = h.Deliver(nil, db, tx)
+			if err != nil {
+				if !tc.wantDeliverErr.Is(err) {
+					t.Fatalf("deliver error: want %v, got %+v", tc.wantDeliverErr, err)
+				}
 			}
 
 			if res, err := bucket.Get(db, tc.query); err != nil {

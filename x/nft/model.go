@@ -2,6 +2,7 @@ package nft
 
 import (
 	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/orm"
 )
 
@@ -9,7 +10,7 @@ var _ orm.CloneableData = (*NonFungibleToken)(nil)
 
 func (m *NonFungibleToken) Validate() error {
 	if !isValidTokenID(m.ID) {
-		return ErrInvalidID(m.ID)
+		return errors.ErrInvalidInput.Newf("id: %s", PrintableID(m.ID))
 	}
 
 	if err := weave.Address(m.Owner).Validate(); err != nil {

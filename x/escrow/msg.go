@@ -60,16 +60,16 @@ func NewCreateMsg(send, rcpt weave.Address, arb weave.Condition,
 // Validate makes sure that this is sensible
 func (m *CreateEscrowMsg) Validate() error {
 	if m.Arbiter == nil {
-		return ErrMissingArbiter()
+		return errors.ErrEmpty.New("arbiter")
 	}
 	if m.Recipient == nil {
-		return ErrMissingRecipient()
+		return errors.ErrEmpty.New("recipient")
 	}
 	if m.Timeout <= 0 {
-		return ErrInvalidTimeout(m.Timeout)
+		return errors.ErrInvalidInput.Newf("timeout: %d", m.Timeout)
 	}
 	if len(m.Memo) > maxMemoSize {
-		return ErrInvalidMemo(m.Memo)
+		return errors.ErrInvalidInput.Newf("memo %s", m.Memo)
 	}
 	if err := validateAmount(m.Amount); err != nil {
 		return err
@@ -107,7 +107,7 @@ func (m *UpdateEscrowPartiesMsg) Validate() error {
 	if m.Arbiter == nil &&
 		m.Sender == nil &&
 		m.Recipient == nil {
-		return ErrMissingAllConditions()
+		return errors.ErrEmpty.New("all conditions")
 	}
 	err = validateConditions(m.Arbiter)
 	if err != nil {
@@ -154,7 +154,7 @@ func validateAmount(amount x.Coins) error {
 
 func validateEscrowID(id []byte) error {
 	if len(id) != 8 {
-		return ErrInvalidEscrowID(id)
+		return errors.ErrInvalidInput.Newf("escrow id: %X", id)
 	}
 	return nil
 }

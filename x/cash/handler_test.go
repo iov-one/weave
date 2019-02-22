@@ -33,15 +33,15 @@ func TestSend(t *testing.T) {
 		expectCheck   checkErr
 		expectDeliver checkErr
 	}{
-		0: {nil, nil, nil, errors.IsUnknownTxTypeErr, errors.IsUnknownTxTypeErr},
+		0: {nil, nil, nil, errors.ErrInvalidMsg.Is, errors.ErrInvalidMsg.Is},
 		1: {nil, nil, new(SendMsg), errors.ErrInvalidAmount.Is, errors.ErrInvalidAmount.Is},
-		2: {nil, nil, &SendMsg{Amount: &foo}, errors.IsUnrecognizedAddressErr, errors.IsUnrecognizedAddressErr},
+		2: {nil, nil, &SendMsg{Amount: &foo}, errors.ErrInvalidInput.Is, errors.ErrInvalidInput.Is},
 		3: {
 			nil,
 			nil,
 			&SendMsg{Amount: &foo, Src: perm.Address(), Dest: perm2.Address()},
-			errors.IsUnauthorizedErr,
-			errors.IsUnauthorizedErr,
+			errors.ErrUnauthorized.Is,
+			errors.ErrUnauthorized.Is,
 		},
 		// sender has no account
 		4: {
