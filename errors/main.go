@@ -16,32 +16,6 @@ type TMError interface {
 	ABCILog() string
 }
 
-// WithCode adds a stacktrace if necessary and sets the code and msg,
-// overriding the code if err was already TMError
-func WithCode(err error, code uint32) TMError {
-	// add a stack only if not present
-	st, ok := err.(stackTracer)
-	if !ok {
-		st = errors.WithStack(err).(stackTracer)
-	}
-	// TODO: preserve log better???
-	// and then wrap it with TMError info
-	return tmerror{
-		stackTracer: st,
-		code:        code,
-		log:         err.Error(),
-	}
-}
-
-// WithLog prepends some text to the error, then calls WithCode
-// It wraps the original error, so IsSameError will still match on err
-//
-// Since
-func WithLog(prefix string, err error, code uint32) TMError {
-	e2 := errors.WithMessage(err, prefix)
-	return WithCode(e2, code)
-}
-
 //////////////////////////////////////////////////
 // tmerror is generic implementation of TMError
 

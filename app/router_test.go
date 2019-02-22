@@ -2,6 +2,7 @@ package app
 
 import (
 	"fmt"
+	"github.com/iov-one/weave/errors"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -37,16 +38,16 @@ func TestRouter(t *testing.T) {
 	// check errors handler is also looked up
 	_, err = r.Handler(bad).Deliver(nil, nil, nil)
 	assert.Error(t, err)
-	assert.False(t, IsNoSuchPathErr(err))
+	assert.False(t, errors.ErrNotFound.Is(err))
 	assert.Equal(t, msg, err.Error())
 	assert.Equal(t, 2, counter.GetCount())
 
 	// make sure not found returns an error handler as well
 	_, err = r.Handler(missing).Deliver(nil, nil, nil)
 	assert.Error(t, err)
-	assert.True(t, IsNoSuchPathErr(err))
+	assert.True(t, errors.ErrNotFound.Is(err))
 	_, err = r.Handler(missing).Check(nil, nil, nil)
 	assert.Error(t, err)
-	assert.True(t, IsNoSuchPathErr(err))
+	assert.True(t, errors.ErrNotFound.Is(err))
 	assert.Equal(t, 2, counter.GetCount())
 }

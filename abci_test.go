@@ -20,7 +20,6 @@ func TestCreateErrorResult(t *testing.T) {
 		{fmt.Errorf("base"), "base", errors.ErrInternal.ABCICode()},
 		{pkerr.New("dave"), "dave", errors.ErrInternal.ABCICode()},
 		{errors.Wrap(fmt.Errorf("demo"), "wrapped"), "wrapped: demo", errors.ErrInternal.ABCICode()},
-		{errors.WithCode(fmt.Errorf("no sender"), 11), "no sender", 11},
 		{errors.ErrInvalidInput.New("unable to decode"), errors.ErrInvalidInput.New("unable to decode").Error(), errors.ErrInvalidInput.ABCICode()},
 	}
 

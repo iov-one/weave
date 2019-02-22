@@ -2,16 +2,7 @@ package errors
 
 import (
 	"fmt"
-
-	"github.com/pkg/errors"
 )
-
-// IsSameError returns true if these errors have the same root cause.
-// pattern is the expected error type and should always be non-nil
-// err may be anything and returns true if it is a wrapped version of pattern
-func IsSameError(pattern error, err error) bool {
-	return err != nil && (errors.Cause(err) == errors.Cause(pattern))
-}
 
 // HasErrorCode checks if this error would return the named error code
 func HasErrorCode(err error, code uint32) bool {
