@@ -24,7 +24,7 @@ func Validate(msg Msg) error {
 
 	msgNum := len(l)
 	if msgNum > MaxBatchMessages {
-		return errors.ErrInvalidInput.New("transaction is too large, max: %d vs current: %d", MaxBatchMessages, msgNum)
+		return errors.ErrInvalidInput.Newf("transaction is too large, max: %d vs current: %d", MaxBatchMessages, msgNum)
 	}
 	return nil
 }
