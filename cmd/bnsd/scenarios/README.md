@@ -53,3 +53,6 @@ seq, err := aliceNonce.Next()
 
 If you need coins, transfer them from the `alice` account.
 
+> Rule of thumb is to do smoke tests. If a message is not rejected there is no
+> need to check all the details as we have unit test coverage for that in
+> place.
