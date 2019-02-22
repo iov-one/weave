@@ -72,6 +72,58 @@ func TestRevenueDistribution(t *testing.T) {
 
 	delayForRateLimits()
 
+	// Revenue reset must distribute the funds before changing the
+	// configuration.
+
+	resetRevenueTx := &bnsdApp.Tx{
+		Sum: &bnsdApp.Tx_ResetRevenueMsg{
+			ResetRevenueMsg: &distribution.ResetRevenueMsg{
+				RevenueID: revenueID,
+				Recipients: []*distribution.Recipient{
+					{Address: recipients[0], Weight: 321},
+				},
+			},
+		},
+	}
+	seq, err = adminNonce.Next()
+	if err != nil {
+		t.Fatalf("cannot acquire admin nonce sequence: %s", err)
+	}
+	if err := client.SignTx(resetRevenueTx, admin, chainID, seq); err != nil {
+		t.Fatalf("cannot sing revenue distribution transaction: %s", err)
+	}
+	if err := bnsClient.BroadcastTx(resetRevenueTx).IsError(); err != nil {
+		t.Fatalf("cannot broadcast revenue distribution transaction: %s", err)
+	}
+
+	// Revenue stream received funds from alice and its distribution was
+	// requested. Funds should be split proportianally to their weights
+	// between the recepients and moved to their accounts.
+	// 7 IOV cents should be split between parties.
+	assertWalletCoins(t, revenueAddress, 1)
+	assertWalletCoins(t, recipients[0], 2)
+	assertWalletCoins(t, recipients[1], 4)
+
+	// Send more coins to the revenue account.
+	sendCoinsTx = client.BuildSendTx(
+		alice.PublicKey().Address(),
+		revenueAddress,
+		x.NewCoin(0, 11, "IOV"),
+		"an income that is to be split using revenue distribution (2)")
+	seq, err = aliceNonce.Next()
+	if err != nil {
+		t.Fatalf("cannot acquire alice nonce sequence: %s", err)
+	}
+	if err := client.SignTx(sendCoinsTx, alice, chainID, seq); err != nil {
+		t.Fatalf("alice cannot sign coin transfer transaction: %s", err)
+	}
+	resp = bnsClient.BroadcastTx(sendCoinsTx)
+	if err := resp.IsError(); err != nil {
+		t.Fatalf("cannot broadcast coin sending transaction from alice: %s", err)
+	}
+	t.Logf("alice transferred funds to revenue %s account: %s", revenueID, string(resp.Response.DeliverTx.GetData()))
+	assertWalletCoins(t, revenueAddress, 12) // 11 + 1 leftover
+
 	distributeTx := &bnsdApp.Tx{
 		Sum: &bnsdApp.Tx_DistributeMsg{
 			DistributeMsg: &distribution.DistributeMsg{
@@ -92,14 +144,9 @@ func TestRevenueDistribution(t *testing.T) {
 
 	delayForRateLimits()
 
-	// Revenue stream received funds from alice and its distribution was
-	// requested. Funds should be split proportianally to their weights
-	// between the recepients and moved to their accounts.
-	// 7 IOV cents should be split between parties.
-	assertWalletCoins(t, revenueAddress, 1)
-	assertWalletCoins(t, recipients[0], 2)
+	assertWalletCoins(t, revenueAddress, 0)
+	assertWalletCoins(t, recipients[0], 14)
 	assertWalletCoins(t, recipients[1], 4)
-
 }
 
 func assertWalletCoins(t *testing.T, account weave.Address, wantIOVCents int64) {
@@ -113,6 +160,9 @@ func assertWalletCoins(t *testing.T, account weave.Address, wantIOVCents int64) 
 		t.Fatal("no wallet response") // ?!
 	}
 	if len(w.Wallet.Coins) == 0 {
+		if wantIOVCents == 0 {
+			return
+		}
 		t.Fatal("wallet has no coins")
 	}
 
