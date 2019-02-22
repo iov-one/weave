@@ -20,8 +20,4 @@ message Coin {
   // Ticker is 3-4 upper-case letters and
   // all Coins of the same currency can be combined
   string ticker = 3;
-  // Issuer is optional string, maybe chain_id? maybe custodian name?
-  // can be empty. tokens are only fungible if CurrencyCode and
-  // Issuer both match.
-  string issuer = 4;
 }

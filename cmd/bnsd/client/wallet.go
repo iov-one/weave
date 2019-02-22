@@ -6,10 +6,9 @@ import (
 	"io/ioutil"
 	"strings"
 
-	"github.com/iov-one/weave/x/cash"
-
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/x"
+	"github.com/iov-one/weave/x/cash"
 	tmtype "github.com/tendermint/tendermint/types"
 )
 
@@ -80,7 +79,6 @@ type MaybeCoin struct {
 	Whole      *int64  `json:"whole,omitempty"`
 	Fractional *int64  `json:"fractional,omitempty"`
 	Ticker     *string `json:"ticker,omitempty"`
-	Issuer     *string `json:"issuer,omitempty"`
 }
 
 // WithDefaults fills the gaps in a maybe coin by replacing
@@ -96,9 +94,6 @@ func (m MaybeCoin) WithDefaults(defaults x.Coin) x.Coin {
 	}
 	if m.Ticker != nil {
 		res.Ticker = *m.Ticker
-	}
-	if m.Issuer != nil {
-		res.Issuer = *m.Issuer
 	}
 	return res
 }

@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/store"
 	"github.com/iov-one/weave/x"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestInitState(t *testing.T) {
@@ -40,7 +39,7 @@ func TestInitState(t *testing.T) {
 
 	// valid data
 	addr2 := []byte("12345678901234567890")
-	wallet2 := &Wallet{Coins: mustCombineCoins(x.NewCoin(100, 5, "ATM"), x.NewCoin(50, 0, "ETH").WithIssuer("chain-1"))}
+	wallet2 := &Wallet{Coins: mustCombineCoins(x.NewCoin(100, 5, "ATM"), x.NewCoin(50, 0, "ETH"))}
 	ticker2 := "ATM"
 	token2 := &Token{Name: "At the moment", SigFigs: 3}
 	ticker2a := "ETH"

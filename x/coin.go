@@ -36,21 +36,9 @@ func NewCoin(whole int64, fractional int64,
 	}
 }
 
-// WithIssuer sets the Issuer on a coin.
-// Returns new coin, so this can be chained on constructor
-func (c Coin) WithIssuer(issuer string) Coin {
-	c.Issuer = issuer
-	return c
-}
-
-// ID returns a unique identifier.
-// If issuer is empty, then just the Ticker.
-// If issuer is present, then <Issuer>/<Ticker>
+// ID returns a coin ticker name.
 func (c Coin) ID() string {
-	if c.Issuer == "" {
-		return c.Ticker
-	}
-	return c.Issuer + "/" + c.Ticker
+	return c.Ticker
 }
 
 // Split divides the value of a coin into given amount of pieces and returns a
@@ -124,7 +112,6 @@ func (c Coin) Add(o Coin) (Coin, error) {
 func (c Coin) Negative() Coin {
 	return Coin{
 		Ticker:     c.Ticker,
-		Issuer:     c.Issuer,
 		Whole:      -1 * c.Whole,
 		Fractional: -1 * c.Fractional,
 	}
@@ -203,14 +190,12 @@ func (c Coin) IsGTE(o Coin) bool {
 
 // SameType returns true if they have the same currency
 func (c Coin) SameType(o Coin) bool {
-	return c.Ticker == o.Ticker &&
-		c.Issuer == o.Issuer
+	return c.Ticker == o.Ticker
 }
 
 // Clone provides an independent copy of a coin pointer
 func (c *Coin) Clone() *Coin {
 	return &Coin{
-		Issuer:     c.Issuer,
 		Ticker:     c.Ticker,
 		Whole:      c.Whole,
 		Fractional: c.Fractional,

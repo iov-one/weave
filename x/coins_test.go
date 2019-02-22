@@ -55,15 +55,6 @@ func TestMakeCoins(t *testing.T) {
 			[]Coin{NewCoin(40, 1, "FUD"), NewCoin(40, 0, "FUN")},
 			false,
 		},
-		// simple with issuer
-		{
-			[]Coin{NewCoin(40, 0, "FUD").WithIssuer("johnny")},
-			false,
-			true,
-			[]Coin{NewCoin(37, 0, "FUD").WithIssuer("johnny")},
-			[]Coin{NewCoin(10, 0, "FUD")},
-			false,
-		},
 		// out of order, with negative
 		{
 			[]Coin{NewCoin(-20, -3, "FIN"), NewCoin(40, 5, "BON")},
@@ -71,23 +62,6 @@ func TestMakeCoins(t *testing.T) {
 			false,
 			[]Coin{NewCoin(40, 4, "BON"), NewCoin(-30, 0, "FIN")},
 			[]Coin{NewCoin(40, 6, "BON"), NewCoin(-20, 0, "FIN")},
-			false,
-		},
-		// out of order, with different issuers
-		{
-			[]Coin{
-				NewCoin(200, 0, "FIN").WithIssuer("chain-2"),
-				NewCoin(100, 0, "FIN").WithIssuer("chain-1"),
-			},
-			false,
-			true,
-			// make sure both match
-			[]Coin{
-				NewCoin(100, 0, "FIN").WithIssuer("chain-1"),
-				NewCoin(200, 0, "FIN").WithIssuer("chain-2"),
-			},
-			// don't combine the two issuers
-			[]Coin{NewCoin(200, 0, "FIN").WithIssuer("chain-1")},
 			false,
 		},
 		// combine and remove

@@ -16,49 +16,6 @@ const (
 	pos      = 1
 )
 
-func TestIssuer(t *testing.T) {
-	cases := []struct {
-		a        Coin
-		id       string
-		b        Coin
-		sameType bool
-	}{
-		{NewCoin(1, 2, "FOO"), "FOO", NewCoin(12, 0, "FOO"), true},
-		{NewCoin(1, 2, "BAR"), "BAR", NewCoin(12, 0, "FOO"), false},
-		{
-			NewCoin(1, 2, "FOO").WithIssuer("chain1"),
-			"chain1/FOO",
-			NewCoin(12, 0, "FOO"),
-			false,
-		},
-		{
-			NewCoin(1, 2, "FOO"),
-			"FOO",
-			NewCoin(12, 0, "FOO").WithIssuer("chain1"),
-			false,
-		},
-		{
-			NewCoin(1, 2, "FOO").WithIssuer("chain1"),
-			"chain1/FOO",
-			NewCoin(12, 0, "FOO").WithIssuer("chain1"),
-			true,
-		},
-		{
-			NewCoin(1, 2, "WIN").WithIssuer("my-chain").Negative(),
-			"my-chain/WIN",
-			NewCoin(12, 0, "WIN").WithIssuer("my-chain"),
-			true,
-		},
-	}
-
-	for idx, tc := range cases {
-		t.Run(fmt.Sprintf("case-%d", idx), func(t *testing.T) {
-			assert.Equal(t, tc.id, tc.a.ID())
-			assert.Equal(t, tc.sameType, tc.a.SameType(tc.b))
-		})
-	}
-}
-
 func TestCompareCoin(t *testing.T) {
 
 	cases := []struct {
@@ -140,9 +97,9 @@ func TestValidCoin(t *testing.T) {
 		},
 		// make sure issuer is maintained throughout
 		{
-			NewCoin(2, -1500500500, "ABC").WithIssuer("my-chain"),
+			NewCoin(2, -1500500500, "ABC"),
 			false,
-			NewCoin(0, 499499500, "ABC").WithIssuer("my-chain"),
+			NewCoin(0, 499499500, "ABC"),
 			true,
 		},
 		// from negative to positive rollover
@@ -211,32 +168,11 @@ func TestAddCoin(t *testing.T) {
 			Coin{},
 			true,
 		},
-		// wrong issuer
-		{
-			NewCoin(1, 2, "FOO").WithIssuer("chain-1"),
-			NewCoin(2, 3, "FOO"),
-			Coin{},
-			true,
-		},
-		// negative hold issuer
-		{
-			NewCoin(7, 5000, "DEF").WithIssuer("lucky7"),
-			NewCoin(5, 5000, "DEF").WithIssuer("lucky7").Negative(),
-			NewCoin(2, 0, "DEF").WithIssuer("lucky7"),
-			false,
-		},
 		// normal math
 		{
 			NewCoin(7, 5000, "ABC"),
 			NewCoin(-4, -12000, "ABC"),
 			NewCoin(2, 999993000, "ABC"),
-			false,
-		},
-		// normal math with issuer
-		{
-			NewCoin(7, 5000, "ABC").WithIssuer("chain-1"),
-			NewCoin(-4, -12000, "ABC").WithIssuer("chain-1"),
-			NewCoin(2, 999993000, "ABC").WithIssuer("chain-1"),
 			false,
 		},
 		// overflow
