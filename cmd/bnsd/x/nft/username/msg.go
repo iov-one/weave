@@ -81,7 +81,7 @@ func validateID(id []byte) error {
 		return errors.ErrInternal.New("must not be nil")
 	}
 	if !isValidID(string(id)) {
-		return nft.ErrInvalidID(id)
+		return errors.ErrInvalidInput.Newf("id: %s", nft.PrintableID(id))
 	}
 	return nil
 }

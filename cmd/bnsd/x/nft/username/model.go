@@ -40,7 +40,7 @@ func (u *UsernameToken) GetChainAddresses() []ChainAddress {
 func (u *UsernameToken) SetChainAddresses(actor weave.Address, newAddresses []ChainAddress) error {
 	dup := containsDuplicateChains(newAddresses)
 	if dup != nil {
-		return nft.ErrDuplicateEntry(dup)
+		return errors.ErrDuplicate.Newf("chain %s", nft.PrintableID(dup))
 	}
 	u.Details = &TokenDetails{Addresses: newAddresses}
 	return nil
@@ -85,7 +85,7 @@ func (t *TokenDetails) Validate() error {
 	}
 	dup := containsDuplicateChains(t.Addresses)
 	if dup != nil {
-		return nft.ErrDuplicateEntry(dup)
+		return errors.ErrDuplicate.Newf("chain %s", nft.PrintableID(dup))
 	}
 	for _, k := range t.Addresses {
 		if err := k.Validate(); err != nil {
@@ -113,10 +113,10 @@ func (p ChainAddress) Equals(o ChainAddress) bool {
 
 func (p *ChainAddress) Validate() error {
 	if !validBlockchainID(p.BlockchainID) {
-		return nft.ErrInvalidID(p.BlockchainID)
+		return errors.ErrInvalidInput.Newf("id: %s", nft.PrintableID(p.BlockchainID))
 	}
 	if n := len(p.Address); n < 2 || n > 50 {
-		return nft.ErrInvalidLength()
+		return errors.ErrInvalidInput.Newf("address length: %s", p.Address)
 	}
 	return nil
 }
@@ -128,7 +128,7 @@ func AsUsername(obj orm.Object) (Token, error) {
 	}
 	x, ok := obj.Value().(*UsernameToken)
 	if !ok {
-		return nil, nft.ErrUnsupportedTokenType()
+		return nil, errors.ErrInvalidInput.New(nft.UnsupportedTokenType)
 	}
 	return x, nil
 }
