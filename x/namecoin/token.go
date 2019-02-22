@@ -21,10 +21,10 @@ var _ orm.CloneableData = (*Token)(nil)
 // Validate ensures the token is valid
 func (t *Token) Validate() error {
 	if !IsTokenName(t.Name) {
-		return ErrInvalidTokenName(t.Name)
+		return errors.ErrInvalidInput.Newf(invalidTokenNameFmt, t.Name)
 	}
 	if t.SigFigs < minSigFigs || t.SigFigs > maxSigFigs {
-		return ErrInvalidSigFigs(t.SigFigs)
+		return errors.ErrInvalidInput.Newf(invalidSigFigsFmt, t.SigFigs)
 	}
 	return nil
 }
@@ -101,7 +101,7 @@ func (b TokenBucket) Save(db weave.KVStore, obj orm.Object) error {
 	}
 	name := string(obj.Key())
 	if !x.IsCC(name) {
-		return ErrInvalidTokenName(name)
+		return errors.ErrInvalidInput.Newf(invalidTokenNameFmt, name)
 	}
 	return b.Bucket.Save(db, obj)
 }

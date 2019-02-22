@@ -137,15 +137,15 @@ func TestNewTokenHandler(t *testing.T) {
 		1: {nil, nil, nil, BuildTokenMsg("YO", "digga", 7),
 			x.ErrInvalidCurrency.Is, x.ErrInvalidCurrency.Is, "", nil},
 		2: {nil, nil, nil, BuildTokenMsg("GOOD", "ill3glz!", 7),
-			IsInvalidToken, IsInvalidToken, "", nil},
+			errors.ErrInvalidInput.Is, errors.ErrInvalidInput.Is, "", nil},
 		3: {nil, nil, nil, BuildTokenMsg("GOOD", "my good token", 17),
-			IsInvalidToken, IsInvalidToken, "", nil},
+			errors.ErrInvalidInput.Is, errors.ErrInvalidInput.Is, "", nil},
 		// valid message, done!
 		4: {nil, nil, nil, msg,
 			noErr, noErr, ticker, added},
 		// try to overwrite
 		5: {nil, nil, []orm.Object{NewToken(ticker, "i was here first", 4)}, msg,
-			IsInvalidToken, IsInvalidToken, "", nil},
+			errors.ErrDuplicate.Is, errors.ErrDuplicate.Is, "", nil},
 		// different name is fine
 		6: {nil, nil, []orm.Object{NewToken("OTHR", "i was here first", 4)}, msg,
 			noErr, noErr, ticker, added},
@@ -223,13 +223,13 @@ func TestSetNameHandler(t *testing.T) {
 		1: {nil, nil, BuildSetNameMsg([]byte{1, 2}, "johnny"),
 			errors.ErrInvalidInput.Is, errors.ErrInvalidInput.Is, nil, nil},
 		2: {nil, nil, BuildSetNameMsg(addr, "sh"),
-			IsInvalidWallet, IsInvalidWallet, nil, nil},
+			errors.ErrInvalidInput.Is, errors.ErrInvalidInput.Is, nil, nil},
 		// no permission to change account
 		3: {nil, []orm.Object{newUser}, msg,
 			errors.ErrUnauthorized.Is, errors.ErrUnauthorized.Is, nil, nil},
 		// no account to change - only checked deliver
 		4: {perm, nil, msg,
-			noErr, IsInvalidWallet, nil, nil},
+			noErr, errors.ErrNotFound.Is, nil, nil},
 		5: {perm2, []orm.Object{newUser}, msg,
 			errors.ErrUnauthorized.Is, errors.ErrUnauthorized.Is, nil, nil},
 		// yes, we changed it!
@@ -237,13 +237,13 @@ func TestSetNameHandler(t *testing.T) {
 			noErr, noErr, addr, setUser},
 		// cannot change already set - only checked deliver?
 		7: {perm, []orm.Object{setUser}, msg,
-			noErr, IsInvalidWallet, nil, nil},
+			noErr, errors.ErrCannotBeModified.Is, nil, nil},
 		// cannot create conflict - only checked deliver?
 		8: {perm, []orm.Object{newUser, dupUser}, msg,
 			noErr, errors.ErrDuplicate.Is, nil, nil},
 		// cannot change - no such a wallet (should should up by addr2 not addr)
 		9: {perm, []orm.Object{dupUser}, msg, noErr,
-			func(err error) bool { return errors.IsSameError(err, ErrNoSuchWallet(addr)) },
+			func(err error) bool { return errors.ErrNotFound.Is(err) },
 			addr, nil},
 	}
 

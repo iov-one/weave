@@ -125,7 +125,7 @@ func (h TokenHandler) validate(ctx weave.Context, db weave.KVStore,
 		return nil, err
 	}
 	if obj != nil {
-		return nil, ErrDuplicateToken(msg.Ticker)
+		return nil, errors.ErrDuplicate.Newf("token with ticker %s", msg.Ticker)
 	}
 
 	return msg, nil
@@ -170,7 +170,7 @@ func (h SetNameHandler) Deliver(ctx weave.Context, db weave.KVStore,
 		return res, err
 	}
 	if obj == nil {
-		return res, ErrNoSuchWallet(msg.Address)
+		return res, errors.ErrNotFound.Newf("wallet %X", msg.Address)
 	}
 	named := AsNamed(obj)
 	err = named.SetName(msg.Name)

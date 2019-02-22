@@ -1,6 +1,7 @@
 package namecoin
 
 import (
+	"github.com/iov-one/weave/errors"
 	"regexp"
 	"testing"
 
@@ -11,6 +12,6 @@ import (
 func TestErrNoSuchWallet(t *testing.T) {
 	hasNonASCII := regexp.MustCompile("[[:^ascii:]]").MatchString
 	addr := crypto.GenPrivKeyEd25519().PublicKey().Address()
-	msg := ErrNoSuchWallet(addr).Error()
+	msg := errors.ErrNotFound.Newf("wallet %X", addr).Error()
 	require.False(t, hasNonASCII(msg), msg)
 }
