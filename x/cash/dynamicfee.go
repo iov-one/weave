@@ -67,12 +67,11 @@ func (d DynamicFeeDecorator) Check(ctx weave.Context, store weave.KVStore, tx we
 
 	// read config
 	minFee := d.getMinFee(store)
-	collector := d.getCollector(store)
 
 	// do subtransaction in a function for easier error handling
 	res, err = func() (weave.CheckResult, error) {
 		// shadow with local variables...
-		err := d.control.MoveCoins(cache, payer, collector, fee)
+		err := d.maybeTakeFee(cache, payer, fee)
 		if err != nil {
 			return weave.CheckResult{}, err
 		}
@@ -86,7 +85,7 @@ func (d DynamicFeeDecorator) Check(ctx weave.Context, store weave.KVStore, tx we
 		cache.Discard()
 		// if this fails, we aborted early above, we can just ignore return value
 		// this is 2 ops, not 1, for errors, but done to optimize the success case to use 1 not 2
-		d.control.MoveCoins(store, payer, collector, minFee)
+		d.maybeTakeFee(store, payer, minFee)
 		// return error from the transaction, not the possible error from minFee deduction
 		return res, err
 	}
@@ -109,12 +108,11 @@ func (d DynamicFeeDecorator) Deliver(ctx weave.Context, store weave.KVStore, tx 
 
 	// read config
 	minFee := d.getMinFee(store)
-	collector := d.getCollector(store)
 
 	// do subtransaction in a function for easier error handling
 	res, err = func() (weave.DeliverResult, error) {
 		// shadow with local variables...
-		err := d.control.MoveCoins(cache, payer, collector, fee)
+		err := d.maybeTakeFee(cache, payer, fee)
 		if err != nil {
 			return weave.DeliverResult{}, err
 		}
@@ -128,7 +126,7 @@ func (d DynamicFeeDecorator) Deliver(ctx weave.Context, store weave.KVStore, tx 
 		cache.Discard()
 		// if this fails, we aborted early above, we can just ignore return value
 		// this is 2 ops, not 1, for errors, but done to optimize the success case to use 1 not 2
-		d.control.MoveCoins(store, payer, collector, minFee)
+		d.maybeTakeFee(store, payer, minFee)
 		// return error from the transaction, not the possible error from minFee deduction
 		return res, err
 	}
@@ -136,6 +134,15 @@ func (d DynamicFeeDecorator) Deliver(ctx weave.Context, store weave.KVStore, tx 
 	// if success, we commit and update the importance
 	cache.Write()
 	return res, err
+}
+
+// maybeTakeFee will send fees only if they are positive, so we don't have to check IsZero() everywhere else
+func (d DynamicFeeDecorator) maybeTakeFee(store weave.KVStore, src weave.Address, amount x.Coin) error {
+	if amount.IsZero() {
+		return nil
+	}
+	dest := d.getCollector(store)
+	return d.control.MoveCoins(store, src, dest, amount)
 }
 
 // prepare is all shared setup between Check and Deliver, one more level above extractFee
