@@ -680,7 +680,7 @@ func TestChangeBlogAuthorsMsgHandlerCheck(t *testing.T) {
 			},
 			{
 				Name:    "adding existing author",
-				Err:     errors.ErrDuplicate.Newf("author: %X", newAuthor.Address()),
+				Err:     errors.ErrDuplicate.Newf("author: %s", newAuthor.Address()),
 				Handler: changeBlogAuthorsMsgHandlerFn,
 				Perms:   []weave.Condition{signer},
 				Msg: &ChangeBlogAuthorsMsg{
@@ -702,7 +702,7 @@ func TestChangeBlogAuthorsMsgHandlerCheck(t *testing.T) {
 			},
 			{
 				Name:    "removing unexisting author",
-				Err:     errors.ErrNotFound.Newf("author: %X", newAuthor.Address()),
+				Err:     errors.ErrNotFound.Newf("author: %s", newAuthor.Address()),
 				Handler: changeBlogAuthorsMsgHandlerFn,
 				Perms:   []weave.Condition{signer},
 				Msg: &ChangeBlogAuthorsMsg{
