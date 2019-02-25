@@ -22,6 +22,13 @@ type Controller interface {
 	Balance(weave.KVStore, weave.Address) (coin.Coins, error)
 }
 
+// FeeController is a minimal subset of the full cash.Controller
+type FeeController interface {
+	// MoveCoins removes funds from the source account and adds them to the
+	// destination account. This operation is atomic.
+	MoveCoins(store weave.KVStore, src weave.Address, dest weave.Address, amount x.Coin) error
+}
+
 // BaseController implements Controller interface, using WalletBucket as the
 // storage engine. Wallet must return something that supports AsSet.
 type BaseController struct {
