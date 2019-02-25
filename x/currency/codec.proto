@@ -6,7 +6,6 @@ package currency;
 // alternative solution to hardcoding supported currencies information.
 message TokenInfo {
   string name = 1;
-  int32 sig_figs = 2;
 }
 
 // NewTokenInfoMsg will register a new currency. Ticker (currency symbol) can
@@ -14,5 +13,4 @@ message TokenInfo {
 message NewTokenInfoMsg {
   string ticker = 1;
   string name = 2;
-  int32 sig_figs = 3;
 }

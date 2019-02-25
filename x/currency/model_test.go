@@ -13,16 +13,16 @@ func TestTokenInfoBucketQuery(t *testing.T) {
 	db := store.MemStore()
 
 	// Registration of invalid token must fail.
-	obj := NewTokenInfo("this is not a valid name", "Invalid Token", 4)
+	obj := NewTokenInfo("this is not a valid name", "Invalid Token")
 	if err := bucket.Save(db, obj); err == nil {
 		t.Fatal("want error")
 	}
 
-	doge := NewTokenInfo("DOGE", "Doge Coin", 4)
+	doge := NewTokenInfo("DOGE", "Doge Coin")
 	if err := bucket.Save(db, doge); err != nil {
 		t.Fatalf("cannot register doge: %s", err)
 	}
-	plop := NewTokenInfo("PLP", "Plop Coin", 7)
+	plop := NewTokenInfo("PLP", "Plop Coin")
 	if err := bucket.Save(db, plop); err != nil {
 		t.Fatalf("cannot register plop: %s", err)
 	}

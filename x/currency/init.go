@@ -14,9 +14,8 @@ var _ weave.Initializer = (*Initializer)(nil)
 // database
 func (*Initializer) FromGenesis(opts weave.Options, db weave.KVStore) error {
 	var tokens []struct {
-		Ticker  string `json:"ticker"`
-		Name    string `json:"name"`
-		SigFigs int32  `json:"sig_figs"`
+		Ticker string `json:"ticker"`
+		Name   string `json:"name"`
 	}
 	if err := opts.ReadOptions("currencies", &tokens); err != nil {
 		return err
@@ -24,7 +23,7 @@ func (*Initializer) FromGenesis(opts weave.Options, db weave.KVStore) error {
 
 	bucket := NewTokenInfoBucket()
 	for _, t := range tokens {
-		obj := NewTokenInfo(t.Ticker, t.Name, t.SigFigs)
+		obj := NewTokenInfo(t.Ticker, t.Name)
 		if err := bucket.Save(db, obj); err != nil {
 			return err
 		}

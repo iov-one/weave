@@ -45,7 +45,7 @@ func (h *TokenInfoHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave
 	if err != nil {
 		return res, err
 	}
-	obj := NewTokenInfo(msg.Ticker, msg.Name, msg.SigFigs)
+	obj := NewTokenInfo(msg.Ticker, msg.Name)
 	return res, h.bucket.Save(db, obj)
 }
 
