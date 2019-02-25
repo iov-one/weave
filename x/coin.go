@@ -112,20 +112,15 @@ func (c Coin) Multiply(times int64) (Coin, error) {
 
 // mul64 multiplies two int64 numbers. If the result overflows the int64 size
 // the ErrOverflow is returned.
-//
-// Borrowed from
-// https://github.com/JohnCGriffin/overflow/blob/master/overflow_impl.go#L336
 func mul64(a, b int64) (int64, error) {
 	if a == 0 || b == 0 {
 		return 0, nil
 	}
 	c := a * b
-	if (c < 0) == ((a < 0) != (b < 0)) {
-		if c/b == a {
-			return c, nil
-		}
+	if c/a != b {
+		return c, errors.ErrOverflow
 	}
-	return c, errors.ErrOverflow
+	return c, nil
 }
 
 // Add combines two coins.
