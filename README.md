@@ -94,7 +94,7 @@ Once it compiles, I highly suggest going through the
 
 | Weave | Protobuf compatible to previous version| Comments | 
 |--------|--------------------|------------------|
-|v0.12.0 | :question_mark:| Currency no longer supports supplying SigFigs nor returns them |
+|v0.12.0 | :question:| Currency no longer supports supplying SigFigs nor returns them |
 |v0.11.1 | :heavy_check_mark:||
 |v0.11.0 | :heavy_check_mark:| |
 |v0.10.2 | :heavy_check_mark:| | 
