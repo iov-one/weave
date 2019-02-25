@@ -75,22 +75,54 @@ func (c Coin) Divide(pieces int64) (Coin, Coin, error) {
 	return one, rest, nil
 }
 
-// Multiply returns the result of a coin value multiplication.
-func (c Coin) Multiply(times int64) Coin {
-	whole := c.Whole * times
-	frac := c.Fractional * times
+// Multiply returns the result of a coin value multiplication. This method can
+// fail if the result would overflow maximum coin value.
+func (c Coin) Multiply(times int64) (Coin, error) {
+	if times == 0 || (c.Whole == 0 && c.Fractional == 0) {
+		return Coin{Ticker: c.Ticker}, nil
+	}
+
+	whole, ok := mul64(c.Whole, times)
+	if !ok {
+		return Coin{}, errors.ErrOverflow
+
+	}
+	frac, ok := mul64(c.Fractional, times)
+	if !ok {
+		return Coin{}, errors.ErrOverflow
+	}
 
 	// Normalize if fractional value overflows.
 	if frac > FracUnit {
-		whole += frac / FracUnit
+		if n := whole + frac/FracUnit; n < whole {
+			return Coin{}, errors.ErrOverflow
+		} else {
+			whole = n
+		}
 		frac = frac % FracUnit
 	}
 
-	return Coin{
+	res := Coin{
 		Ticker:     c.Ticker,
 		Whole:      whole,
 		Fractional: frac,
 	}
+	return res, nil
+}
+
+// Borrowed from
+// https://github.com/JohnCGriffin/overflow/blob/master/overflow_impl.go#L336
+func mul64(a, b int64) (int64, bool) {
+	if a == 0 || b == 0 {
+		return 0, true
+	}
+	c := a * b
+	if (c < 0) == ((a < 0) != (b < 0)) {
+		if c/b == a {
+			return c, true
+		}
+	}
+	return c, false
 }
 
 // Add combines two coins.
