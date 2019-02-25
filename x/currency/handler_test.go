@@ -31,32 +31,32 @@ func TestNewTokenInfoHandler(t *testing.T) {
 			signers: []weave.Condition{permA, permB},
 			issuer:  permA.Address(),
 			initState: []orm.Object{
-				orm.NewSimpleObj([]byte("DOGE"), &TokenInfo{Name: "Doge Coin", SigFigs: 6}),
+				orm.NewSimpleObj([]byte("DOGE"), &TokenInfo{Name: "Doge Coin"}),
 			},
-			msg:            &NewTokenInfoMsg{Ticker: "DOGE", Name: "Doge Coin", SigFigs: 6},
+			msg:            &NewTokenInfoMsg{Ticker: "DOGE", Name: "Doge Coin"},
 			wantCheckErr:   errors.ErrDuplicate,
 			wantDeliverErr: errors.ErrDuplicate,
 		},
 		"insufficient permission": {
 			signers:        []weave.Condition{permB},
 			issuer:         permA.Address(),
-			msg:            &NewTokenInfoMsg{Ticker: "DOGE", Name: "Doge Coin", SigFigs: 6},
+			msg:            &NewTokenInfoMsg{Ticker: "DOGE", Name: "Doge Coin"},
 			wantCheckErr:   errors.ErrUnauthorized,
 			wantDeliverErr: errors.ErrUnauthorized,
 		},
 		"query unknown ticker": {
 			signers:         []weave.Condition{permA, permB},
 			issuer:          permA.Address(),
-			msg:             &NewTokenInfoMsg{Ticker: "DOGE", Name: "Doge Coin", SigFigs: 6},
+			msg:             &NewTokenInfoMsg{Ticker: "DOGE", Name: "Doge Coin"},
 			query:           "UNK",
 			wantQueryResult: nil,
 		},
 		"ok": {
 			signers:         []weave.Condition{permA, permB},
 			issuer:          permA.Address(),
-			msg:             &NewTokenInfoMsg{Ticker: "TKR", Name: "tikr", SigFigs: 6},
+			msg:             &NewTokenInfoMsg{Ticker: "TKR", Name: "tikr"},
 			query:           "TKR",
-			wantQueryResult: orm.NewSimpleObj([]byte("TKR"), &TokenInfo{Name: "tikr", SigFigs: 6}),
+			wantQueryResult: orm.NewSimpleObj([]byte("TKR"), &TokenInfo{Name: "tikr"}),
 		},
 	}
 

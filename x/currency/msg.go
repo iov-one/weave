@@ -19,8 +19,5 @@ func (t *NewTokenInfoMsg) Validate() error {
 	if !isTokenName(t.Name) {
 		return errors.ErrInvalidState.Newf("invalid token name %v", t.Name)
 	}
-	if t.SigFigs < minSigFigs || t.SigFigs > maxSigFigs {
-		return errors.ErrInvalidState.Newf("invalid significant figures %d", t.SigFigs)
-	}
 	return nil
 }

@@ -12,8 +12,8 @@ func TestGenesisKey(t *testing.T) {
 	const genesis = `
 		{
 			"currencies": [
-				{"ticker": "MCR", "name": "my currency", "sig_figs": 9},
-				{"ticker": "DOGE", "name": "Doge Coin", "sig_figs": 4}
+				{"ticker": "MCR", "name": "my currency"},
+				{"ticker": "DOGE", "name": "Doge Coin"}
 			]
 		}
 	`
@@ -40,8 +40,5 @@ func TestGenesisKey(t *testing.T) {
 	info := obj.Value().(*TokenInfo)
 	if info.Name != "my currency" {
 		t.Errorf("invalid token name: %q", info.Name)
-	}
-	if info.SigFigs != 9 {
-		t.Errorf("invalid token sig figs: %d", info.SigFigs)
 	}
 }

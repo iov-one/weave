@@ -9,21 +9,15 @@ import (
 	"github.com/iov-one/weave/x"
 )
 
-const (
-	minSigFigs = 0
-	maxSigFigs = 9
-)
-
 var isTokenName = regexp.MustCompile(`^[A-Za-z0-9 \-_:]{3,32}$`).MatchString
 
 var _ orm.CloneableData = (*TokenInfo)(nil)
 
 // NewTokenInfo returns a new instance of Token Info, as represented by orm
 // object.
-func NewTokenInfo(ticker, name string, sigFigs int32) orm.Object {
+func NewTokenInfo(ticker, name string) orm.Object {
 	return orm.NewSimpleObj([]byte(ticker), &TokenInfo{
-		Name:    name,
-		SigFigs: sigFigs,
+		Name: name,
 	})
 }
 
@@ -31,16 +25,12 @@ func (t *TokenInfo) Validate() error {
 	if !isTokenName(t.Name) {
 		return errors.ErrInvalidState.Newf("invalid token name %v", t.Name)
 	}
-	if t.SigFigs < minSigFigs || t.SigFigs > maxSigFigs {
-		return errors.ErrInvalidState.Newf("invalid significant figures %d", t.SigFigs)
-	}
 	return nil
 }
 
 func (t *TokenInfo) Copy() orm.CloneableData {
 	return &TokenInfo{
-		Name:    t.Name,
-		SigFigs: t.SigFigs,
+		Name: t.Name,
 	}
 }
 
