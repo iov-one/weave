@@ -48,12 +48,9 @@ func Chain(authFn x.Authenticator) app.Decorators {
 		utils.NewSavepoint().OnCheck(),
 		sigs.NewDecorator(),
 		multisig.NewDecorator(authFn),
-		cash.NewFeeDecorator(authFn, ctrl),
+		cash.NewDynamicFeeDecorator(authFn, ctrl),
 		// cannot pay for fee with hashlock...
 		hashlock.NewDecorator(),
-		// on DeliverTx, bad tx will increment nonce and take fee
-		// even if the message fails
-		utils.NewSavepoint().OnDeliver(),
 		// make sure we execute all the transactions in batch after savepoint
 		batch.NewDecorator(),
 	)
