@@ -307,7 +307,7 @@ func TestCoinsNormalize(t *testing.T) {
 
 	for testName, tc := range cases {
 		t.Run(testName, func(t *testing.T) {
-			got, err := normalize(tc.coins)
+			got, err := NormalizeCoins(tc.coins)
 			if !errors.Is(tc.wantErr, err) {
 				t.Fatalf("want %+v error, got %+v", tc.wantErr, err)
 			}
@@ -405,7 +405,7 @@ func BenchmarkCoinsNormalize(b *testing.B) {
 	for benchName, coins := range benchmarks {
 		b.Run(benchName, func(b *testing.B) {
 			for i := 0; i < b.N; i++ {
-				normalize(coins)
+				NormalizeCoins(coins)
 			}
 		})
 	}

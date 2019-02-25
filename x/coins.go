@@ -193,30 +193,24 @@ func (cs Coins) Validate() error {
 	return nil
 }
 
-// normalize is a cleanup operation that merge and orders set of coin instances
+// NormalizeCoins is a cleanup operation that merge and orders set of coin instances
 // into a unified form. This includes merging coins of the same currency and
 // sorting coins according to the ticker name.
 // If given set of coins is normalized this operation return what was given.
 // Otherwise a new instance of a slice can be returned.
-func normalize(cs []*Coin) ([]*Coin, error) {
+func NormalizeCoins(cs Coins) (Coins, error) {
 	// If there is one or no coins, there is nothing to normalize.
 	switch len(cs) {
 	case 0:
 		return nil, nil
 	case 1:
-		if cs[0].IsZero() {
+		if cs[0] == nil || cs[0].IsZero() {
 			return nil, nil
 		}
 		return cs, nil
-	}
-
-	if isNormalized(cs) {
-		return cs, nil
-	}
-
-	// This is an another optimization. If there are only two coins then
-	// compare them directly.
-	if len(cs) == 2 {
+	case 2:
+		// This is an another optimization. If there are only two coins then
+		// compare them directly.
 		switch n := strings.Compare(cs[0].Ticker, cs[1].Ticker); {
 		case n == 0:
 			total, err := cs[0].Add(*cs[1])
@@ -232,6 +226,10 @@ func normalize(cs []*Coin) ([]*Coin, error) {
 		case n < 0:
 			return cs, nil
 		}
+	}
+
+	if isNormalized(cs) {
+		return cs, nil
 	}
 
 	set := make(map[string]Coin)
@@ -267,8 +265,8 @@ func normalize(cs []*Coin) ([]*Coin, error) {
 	return coins, nil
 }
 
-// isNormalized check if coins are in normalized form. This is a cheap
-// operation.
+// isNormalized check if coins collection is in a normalized form. This is a
+// cheap operation.
 func isNormalized(cs []*Coin) bool {
 	var prev *Coin
 	for _, c := range cs {
