@@ -184,7 +184,7 @@ func (h CreatePostMsgHandler) validate(ctx weave.Context, db weave.KVStore, tx w
 
 	// Check the author is one of the Tx signer
 	if !h.auth.HasAddress(ctx, createPostMsg.Author) {
-		return nil, nil, errors.ErrUnauthorized.Newf(unauthorisedPostAuthorFmt, createPostMsg.Author)
+		return nil, nil, errors.ErrUnauthorized.Newf(unauthorisedPostAuthorFmt, weave.Address(createPostMsg.Author))
 	}
 
 	err = createPostMsg.Validate()
@@ -468,7 +468,7 @@ func (h SetProfileMsgHandler) validate(ctx weave.Context, db weave.KVStore, tx w
 	// if author is here we use it for authentication
 	if setProfileMsg.Author != nil {
 		if !h.auth.HasAddress(ctx, setProfileMsg.Author) {
-			return nil, nil, errors.ErrUnauthorized.Newf(unauthorisedPostAuthorFmt, setProfileMsg.Author)
+			return nil, nil, errors.ErrUnauthorized.Newf(unauthorisedPostAuthorFmt, weave.Address(setProfileMsg.Author))
 		}
 	}
 

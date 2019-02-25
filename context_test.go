@@ -1,12 +1,12 @@
-package weave
+package weave_test
 
 import (
 	"context"
 	"os"
 	"testing"
 
+	"github.com/iov-one/weave"
 	"github.com/stretchr/testify/assert"
-
 	"github.com/tendermint/tendermint/libs/log"
 )
 
@@ -15,34 +15,34 @@ func TestContext(t *testing.T) {
 
 	// try logger with default
 	newLogger := log.NewTMLogger(os.Stdout)
-	ctx := WithLogger(bg, newLogger)
-	assert.Equal(t, DefaultLogger, GetLogger(bg))
-	assert.Equal(t, newLogger, GetLogger(ctx))
+	ctx := weave.WithLogger(bg, newLogger)
+	assert.Equal(t, weave.DefaultLogger, weave.GetLogger(bg))
+	assert.Equal(t, newLogger, weave.GetLogger(ctx))
 
 	// test height - uninitialized
-	val, ok := GetHeight(ctx)
+	val, ok := weave.GetHeight(ctx)
 	assert.Equal(t, int64(0), val)
 	assert.False(t, ok)
 	// set
-	ctx = WithHeight(ctx, 7)
-	val, ok = GetHeight(ctx)
+	ctx = weave.WithHeight(ctx, 7)
+	val, ok = weave.GetHeight(ctx)
 	assert.Equal(t, int64(7), val)
 	assert.True(t, ok)
 	// no reset
-	assert.Panics(t, func() { WithHeight(ctx, 9) })
+	assert.Panics(t, func() { weave.WithHeight(ctx, 9) })
 
 	// changing the info, should modify the logger, but not the height
-	ctx2 := WithLogInfo(ctx, "foo", "bar")
-	assert.NotEqual(t, GetLogger(ctx), GetLogger(ctx2))
-	val, _ = GetHeight(ctx)
+	ctx2 := weave.WithLogInfo(ctx, "foo", "bar")
+	assert.NotEqual(t, weave.GetLogger(ctx), weave.GetLogger(ctx2))
+	val, _ = weave.GetHeight(ctx)
 	assert.Equal(t, int64(7), val)
 
 	// chain id MUST be set exactly once
-	assert.Panics(t, func() { GetChainID(ctx) })
-	ctx2 = WithChainID(ctx, "my-chain")
-	assert.Equal(t, "my-chain", GetChainID(ctx2))
+	assert.Panics(t, func() { weave.GetChainID(ctx) })
+	ctx2 = weave.WithChainID(ctx, "my-chain")
+	assert.Equal(t, "my-chain", weave.GetChainID(ctx2))
 	// don't try a second time
-	assert.Panics(t, func() { WithChainID(ctx2, "my-chain") })
+	assert.Panics(t, func() { weave.WithChainID(ctx2, "my-chain") })
 
 	// TODO: test header context!
 }
@@ -61,6 +61,6 @@ func TestChainID(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		assert.Equal(t, tc.valid, IsValidChainID(tc.chainID), tc.chainID)
+		assert.Equal(t, tc.valid, weave.IsValidChainID(tc.chainID), tc.chainID)
 	}
 }
