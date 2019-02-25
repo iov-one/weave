@@ -26,8 +26,11 @@ func NormalizePanic(p interface{}) error {
 
 // Redact will replace all panic errors with a generic message
 func Redact(err error) error {
+	// We print to console for debugging
+	// TODO: remove
+	fmt.Printf("Redacting error: %+v\n", err)
 	if HasErrorCode(err, ErrPanic.code) {
-		return ErrInternal
+		return ErrInternal.New("redacted")
 	}
 	return err
 }
