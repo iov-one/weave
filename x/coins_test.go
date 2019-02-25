@@ -226,7 +226,7 @@ func TestCoinsNormalize(t *testing.T) {
 
 	cases := map[string]struct {
 		coins     Coins
-		wantCoins []*Coin
+		wantCoins Coins
 		wantErr   error
 	}{
 		"nil coins": {
@@ -418,7 +418,7 @@ func TestCoinsIsNormalized(t *testing.T) {
 	}
 
 	cases := map[string]struct {
-		coins []*Coin
+		coins Coins
 		want  bool
 	}{
 		"nil": {
