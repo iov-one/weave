@@ -204,7 +204,7 @@ func NormalizeCoins(cs Coins) (Coins, error) {
 	case 0:
 		return nil, nil
 	case 1:
-		if cs[0] == nil || cs[0].IsZero() {
+		if IsEmpty(cs[0]) {
 			return nil, nil
 		}
 		return cs, nil
@@ -270,14 +270,15 @@ func NormalizeCoins(cs Coins) (Coins, error) {
 func isNormalized(cs []*Coin) bool {
 	var prev *Coin
 	for _, c := range cs {
-		if c == nil {
-			return false
-		}
-		if c.IsZero() {
+		if IsEmpty(c) {
 			// Zero coins should not be a part of a collection
 			// because they carry no value.
 			return false
 		}
+
+		// This is a good place to call c.Validate() but because of
+		// huge performance impact, it is not called.
+
 		if prev != nil {
 			if prev.Ticker >= c.Ticker {
 				// Not ordered by the ticker or the ticker is
