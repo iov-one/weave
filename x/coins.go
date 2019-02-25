@@ -1,6 +1,11 @@
 package x
 
-import "strings"
+import (
+	"sort"
+	"strings"
+
+	"github.com/iov-one/weave/errors"
+)
 
 //--------------------- Coins -------------------------
 
@@ -186,4 +191,102 @@ func (cs Coins) Validate() error {
 		last = c.Ticker
 	}
 	return nil
+}
+
+// NormalizeCoins is a cleanup operation that merge and orders set of coin instances
+// into a unified form. This includes merging coins of the same currency and
+// sorting coins according to the ticker name.
+// If given set of coins is normalized this operation return what was given.
+// Otherwise a new instance of a slice can be returned.
+func NormalizeCoins(cs Coins) (Coins, error) {
+	// If there is one or no coins, there is nothing to normalize.
+	switch len(cs) {
+	case 0:
+		return nil, nil
+	case 1:
+		if IsEmpty(cs[0]) {
+			return nil, nil
+		}
+		return cs, nil
+	case 2:
+		// This is an another optimization. If there are only two coins then
+		// compare them directly.
+		switch n := strings.Compare(cs[0].Ticker, cs[1].Ticker); {
+		case n == 0:
+			total, err := cs[0].Add(*cs[1])
+			if err != nil {
+				return cs, err
+			}
+			if total.IsZero() {
+				return nil, nil
+			}
+			return []*Coin{&total}, nil
+		case n > 0:
+			return []*Coin{cs[1], cs[2]}, nil
+		case n < 0:
+			return cs, nil
+		}
+	}
+
+	if isNormalized(cs) {
+		return cs, nil
+	}
+
+	set := make(map[string]Coin)
+	for _, c := range cs {
+		sum, ok := set[c.Ticker]
+		if ok {
+			var err error
+			sum, err = sum.Add(*c)
+			if err != nil {
+				return nil, errors.Wrap(err, "cannot sum coins")
+			}
+		} else {
+			sum = *c
+		}
+		set[sum.Ticker] = sum
+	}
+	coins := make([]*Coin, 0, len(set))
+	for _, c := range set {
+		if c.IsZero() {
+			// Ignore zero coins because they carry no value.
+			continue
+		}
+		cpy := c
+		coins = append(coins, &cpy)
+	}
+	if len(coins) == 0 {
+		return nil, nil
+	}
+	sort.Slice(coins, func(i, j int) bool {
+		return strings.Compare(coins[i].Ticker, coins[j].Ticker) < 0
+	})
+
+	return coins, nil
+}
+
+// isNormalized check if coins collection is in a normalized form. This is a
+// cheap operation.
+func isNormalized(cs []*Coin) bool {
+	var prev *Coin
+	for _, c := range cs {
+		if IsEmpty(c) {
+			// Zero coins should not be a part of a collection
+			// because they carry no value.
+			return false
+		}
+
+		// This is a good place to call c.Validate() but because of
+		// huge performance impact, it is not called.
+
+		if prev != nil {
+			if prev.Ticker >= c.Ticker {
+				// Not ordered by the ticker or the ticker is
+				// duplicated.
+				return false
+			}
+		}
+		prev = c
+	}
+	return true
 }

@@ -245,16 +245,16 @@ func distribute(db weave.KVStore, ctrl CashController, source weave.Address, rec
 	balance, err := ctrl.Balance(db, source)
 	switch {
 	case err == nil:
-		// All good.
+		balance, err = x.NormalizeCoins(balance)
+		if err != nil {
+			return errors.Wrap(err, "cannot normalize balance")
+		}
 	case errors.Is(errors.ErrNotFound, err):
 		// Account does not exist, so there is are no funds to split.
 		return nil
 	default:
 		return errors.Wrap(err, "cannot acquire revenue account balance")
 	}
-
-	// TODO normalize balance. There is no functionality that allows to
-	// normalize x.Coins right now (14 Feb 2019).
 
 	// For each currency, distribute the coins equally to the weight of
 	// each recipient. This can leave small amount of coins on the original
