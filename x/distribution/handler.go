@@ -277,7 +277,10 @@ func distribute(db weave.KVStore, ctrl CashController, source weave.Address, rec
 		}
 
 		for _, r := range recipients {
-			amount := one.Multiply(int64(r.Weight / div))
+			amount, err := one.Multiply(int64(r.Weight / div))
+			if err != nil {
+				return errors.Wrap(err, "cannot multiply chunk")
+			}
 			// Chunk is too small to be distributed.
 			if amount.IsZero() {
 				continue

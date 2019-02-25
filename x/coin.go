@@ -75,22 +75,52 @@ func (c Coin) Divide(pieces int64) (Coin, Coin, error) {
 	return one, rest, nil
 }
 
-// Multiply returns the result of a coin value multiplication.
-func (c Coin) Multiply(times int64) Coin {
-	whole := c.Whole * times
-	frac := c.Fractional * times
+// Multiply returns the result of a coin value multiplication. This method can
+// fail if the result would overflow maximum coin value.
+func (c Coin) Multiply(times int64) (Coin, error) {
+	if times == 0 || (c.Whole == 0 && c.Fractional == 0) {
+		return Coin{Ticker: c.Ticker}, nil
+	}
+
+	whole, err := mul64(c.Whole, times)
+	if err != nil {
+		return Coin{}, err
+
+	}
+	frac, err := mul64(c.Fractional, times)
+	if err != nil {
+		return Coin{}, err
+	}
 
 	// Normalize if fractional value overflows.
 	if frac > FracUnit {
-		whole += frac / FracUnit
+		if n := whole + frac/FracUnit; n < whole {
+			return Coin{}, errors.ErrOverflow
+		} else {
+			whole = n
+		}
 		frac = frac % FracUnit
 	}
 
-	return Coin{
+	res := Coin{
 		Ticker:     c.Ticker,
 		Whole:      whole,
 		Fractional: frac,
 	}
+	return res, nil
+}
+
+// mul64 multiplies two int64 numbers. If the result overflows the int64 size
+// the ErrOverflow is returned.
+func mul64(a, b int64) (int64, error) {
+	if a == 0 || b == 0 {
+		return 0, nil
+	}
+	c := a * b
+	if c/a != b {
+		return c, errors.ErrOverflow
+	}
+	return c, nil
 }
 
 // Add combines two coins.

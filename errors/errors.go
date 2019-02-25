@@ -63,6 +63,10 @@ var (
 	// ErrExpired stands for expired entities, normally has to do with block height expirations
 	ErrExpired = Register(15, "expired")
 
+	// ErrOverflow s returned when a computation cannot be completed
+	// because the result value exceeds the type.
+	ErrOverflow = Register(16, "an operation cannot be completed due to value overflow")
+
 	// ErrPanic is only set when we recover from a panic, so we know to redact potentially sensitive system info
 	ErrPanic = Register(111222, "panic")
 )

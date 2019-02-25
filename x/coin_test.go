@@ -2,6 +2,7 @@ package x
 
 import (
 	"fmt"
+	"math"
 	"testing"
 
 	"github.com/iov-one/weave/errors"
@@ -340,16 +341,17 @@ func TestCoinDivide(t *testing.T) {
 
 func TestCoinMultiply(t *testing.T) {
 	cases := map[string]struct {
-		coin  Coin
-		times int64
-		want  Coin
+		coin    Coin
+		times   int64
+		want    Coin
+		wantErr error
 	}{
 		"zero value coin": {
 			coin:  NewCoin(0, 0, "DOGE"),
 			times: 666,
 			want:  NewCoin(0, 0, "DOGE"),
 		},
-		"multiply": {
+		"simple multiply": {
 			coin:  NewCoin(1, 0, "DOGE"),
 			times: 3,
 			want:  NewCoin(3, 0, "DOGE"),
@@ -369,12 +371,53 @@ func TestCoinMultiply(t *testing.T) {
 			times: -2,
 			want:  NewCoin(-2, -2, "DOGE"),
 		},
+		"overflow of a negative and a positive value": {
+			coin:    NewCoin(math.MaxInt64, 0, "DOGE"),
+			times:   -math.MaxInt64,
+			wantErr: errors.ErrOverflow,
+		},
+		"overflow of two negative values": {
+			coin:    NewCoin(-math.MaxInt64, 0, "DOGE"),
+			times:   -math.MaxInt64,
+			wantErr: errors.ErrOverflow,
+		},
+		"overflow of two positive values": {
+			coin:    NewCoin(math.MaxInt64, 0, "DOGE"),
+			times:   math.MaxInt64,
+			wantErr: errors.ErrOverflow,
+		},
+		"overflow with a big multiply": {
+			coin:    NewCoin(1000, 0, "DOGE"),
+			times:   math.MaxInt64 / 10,
+			wantErr: errors.ErrOverflow,
+		},
+		"overflow with a small multiply": {
+			coin:    NewCoin(math.MaxInt64/10, 0, "DOGE"),
+			times:   1000,
+			wantErr: errors.ErrOverflow,
+		},
+		"overflow when normalizing": {
+			coin:    NewCoin(math.MaxInt64-1, math.MaxInt64-1, "DOGE"),
+			times:   1,
+			wantErr: errors.ErrOverflow,
+		},
+		"overflow when normalizing 2": {
+			coin:  NewCoin(1, 230000000, "DOGE"),
+			times: 10,
+			want:  NewCoin(12, 300000000, "DOGE"),
+		},
 	}
 	for testName, tc := range cases {
 		t.Run(testName, func(t *testing.T) {
-			got := tc.coin.Multiply(tc.times)
-			if !got.Equals(tc.want) {
-				t.Fatalf("got %v", got)
+			got, err := tc.coin.Multiply(tc.times)
+			if !errors.Is(tc.wantErr, err) {
+				t.Logf("got coin: %+v", got)
+				t.Fatalf("got error %v", err)
+			}
+			if tc.wantErr == nil {
+				if !got.Equals(tc.want) {
+					t.Fatalf("got %v", got)
+				}
 			}
 		})
 	}
