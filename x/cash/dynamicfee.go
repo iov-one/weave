@@ -58,58 +58,42 @@ func NewDynamicFeeDecorator(auth x.Authenticator, control FeeController) Dynamic
 func (d DynamicFeeDecorator) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx,
 	next weave.Checker) (weave.CheckResult, error) {
 
+	// prepare fees for subtransaction -- shared in Check and Deliver
 	var res weave.CheckResult
-	finfo, err := d.extractFee(ctx, tx, store)
+	fee, payer, cache, err := d.prepare(ctx, store, tx)
 	if err != nil {
 		return res, err
 	}
 
-	// if nothing returned, but no error, just move along
-	fee := finfo.GetFees()
-	if x.IsEmpty(fee) {
-		return next.Check(ctx, store, tx)
-	}
-	paid := toPayment(*fee)
-
-	// verify we have access to the money
-	if !d.auth.HasAddress(ctx, finfo.Payer) {
-		return res, errors.ErrUnauthorized.New("Fee payer signature missing")
-	}
+	// read config
+	minFee := d.getMinFee(store)
 	collector := d.getCollector(store)
-
-	// ensure we can execute subtransactions (see check on utils.Savepoint)
-	cstore, ok := store.(weave.CacheableKVStore)
-	if !ok {
-		return res, errors.ErrInternal.New("Need cachable kvstore")
-	}
-
-	//---- START: subtransaction - this can be rolled back
-	cache := cstore.CacheWrap()
 
 	// do subtransaction in a function for easier error handling
 	res, err = func() (weave.CheckResult, error) {
 		// shadow with local variables...
-		err := d.control.MoveCoins(cache, finfo.Payer, collector, *fee)
+		err := d.control.MoveCoins(cache, payer, collector, fee)
 		if err != nil {
 			return weave.CheckResult{}, err
 		}
-		return next.Check(ctx, cache, tx)
+		res, err := next.Check(ctx, cache, tx)
+		// TODO: check RequiredFee here and return an error if insufficient
+		return res, err
 	}()
 
 	// on error, rollback, then take the minfee from the store
 	if err != nil {
 		cache.Discard()
-		minFee := d.getMinFee(store)
 		// if this fails, we aborted early above, we can just ignore return value
 		// this is 2 ops, not 1, for errors, but done to optimize the success case to use 1 not 2
-		d.control.MoveCoins(store, finfo.Payer, collector, minFee)
+		d.control.MoveCoins(store, payer, collector, minFee)
 		// return error from the transaction, not the possible error from minFee deduction
 		return res, err
 	}
 
 	// if success, we commit and update the importance
 	cache.Write()
-	res.GasPayment += paid
+	res.GasPayment += toPayment(fee)
 	return res, err
 }
 
@@ -118,31 +102,78 @@ func (d DynamicFeeDecorator) Deliver(ctx weave.Context, store weave.KVStore, tx 
 	next weave.Deliverer) (weave.DeliverResult, error) {
 
 	var res weave.DeliverResult
-	finfo, err := d.extractFee(ctx, tx, store)
+	fee, payer, cache, err := d.prepare(ctx, store, tx)
 	if err != nil {
 		return res, err
 	}
 
-	// if nothing returned, but no error, just move along
-	fee := finfo.GetFees()
-	if x.IsEmpty(fee) {
-		return next.Deliver(ctx, store, tx)
-	}
-
-	// verify we have access to the money
-	if !d.auth.HasAddress(ctx, finfo.Payer) {
-		return res, errors.ErrUnauthorized.New("Fee payer signature missing")
-	}
-	// and subtract it from the account
+	// read config
+	minFee := d.getMinFee(store)
 	collector := d.getCollector(store)
-	err = d.control.MoveCoins(store, finfo.Payer, collector, *fee)
+
+	// do subtransaction in a function for easier error handling
+	res, err = func() (weave.DeliverResult, error) {
+		// shadow with local variables...
+		err := d.control.MoveCoins(cache, payer, collector, fee)
+		if err != nil {
+			return weave.DeliverResult{}, err
+		}
+		res, err := next.Deliver(ctx, cache, tx)
+		// TODO: check RequiredFee here and return an error if insufficient
+		return res, err
+	}()
+
+	// on error, rollback, then take the minfee from the store
 	if err != nil {
+		cache.Discard()
+		// if this fails, we aborted early above, we can just ignore return value
+		// this is 2 ops, not 1, for errors, but done to optimize the success case to use 1 not 2
+		d.control.MoveCoins(store, payer, collector, minFee)
+		// return error from the transaction, not the possible error from minFee deduction
 		return res, err
 	}
 
-	return next.Deliver(ctx, store, tx)
+	// if success, we commit and update the importance
+	cache.Write()
+	return res, err
 }
 
+// prepare is all shared setup between Check and Deliver, one more level above extractFee
+func (d DynamicFeeDecorator) prepare(ctx weave.Context, store weave.KVStore, tx weave.Tx) (fee x.Coin, payer weave.Address, cache weave.KVCacheWrap, err error) {
+	var finfo *FeeInfo
+	fee = x.Coin{}
+
+	// extract expected fee
+	finfo, err = d.extractFee(ctx, tx, store)
+	if err != nil {
+		return
+	}
+	// safely dererefence the fees (handling nil)
+	pfee := finfo.GetFees()
+	if pfee != nil {
+		fee = *pfee
+	}
+	payer = finfo.GetPayer()
+
+	// verify we have access to the money
+	if !d.auth.HasAddress(ctx, payer) {
+		err = errors.ErrUnauthorized.New("Fee payer signature missing")
+		return
+	}
+
+	// ensure we can execute subtransactions (see check on utils.Savepoint)
+	cstore, ok := store.(weave.CacheableKVStore)
+	if !ok {
+		err = errors.ErrInternal.New("Need cachable kvstore")
+		return
+	}
+
+	// prepare a cached version to work on
+	cache = cstore.CacheWrap()
+	return
+}
+
+// this returns the fee info to deduct and the error if incorrectly set
 func (d DynamicFeeDecorator) extractFee(ctx weave.Context, tx weave.Tx, store weave.KVStore) (*FeeInfo, error) {
 	var finfo *FeeInfo
 	ftx, ok := tx.(FeeTx)
