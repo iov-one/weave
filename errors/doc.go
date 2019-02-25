@@ -15,5 +15,18 @@ Package errors implements custom error interfaces for weave.
 
  Also, error package defines a convenient Is helper to compare errors, also each Error defines an Is
  helper to compare errors directly to that type.
+
+ There is also support for stacktraces. Please ensure you create the custom error using
+ ErrXyz.New("...") or errors.Wrap(err, "...") at the point of creation to ensure we attach
+ a stacktrace. If you wrap multiple times, we only record the first wrap with the stacktrace.
+ (And don't do this as a global `var ErrFoo = errors.ErrInternal.New("foo")` or you will get a
+ useless stacktrace).
+
+ Once you have an error, you can use `fmt.Printf/Sprintf` to get more context for the error
+   %s is just the error message
+   %+v is the full stack trace
+   %v appends a compressed [filename:line] where the error was created
+(source is wrappedError.Format)
+Or call `err.StackTrace()` to get the raw call stack of the creation point
 */
 package errors

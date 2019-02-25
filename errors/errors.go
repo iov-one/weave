@@ -2,6 +2,9 @@ package errors
 
 import (
 	"fmt"
+	"io"
+	"runtime"
+	"strings"
 
 	"github.com/pkg/errors"
 )
@@ -148,17 +151,34 @@ func Wrap(err error, description string) TMError {
 	if err == nil {
 		return nil
 	}
+
+	// take ABCICode from wrapped error, or default ErrInternal
+	code := ErrInternal.code
+	if p, ok := err.(coder); ok {
+		code = p.ABCICode()
+	}
+
+	// this will not fire on wrapping a wrappedError,
+	// but only on wrapping a registered Error, or stdlib error
+	st, ok := err.(stackTracer)
+	if !ok {
+		st = errors.WithStack(err).(stackTracer)
+	}
+
 	return &wrappedError{
-		Parent: err,
-		Msg:    description,
+		parent: st,
+		msg:    description,
+		code:   code,
 	}
 }
 
 type wrappedError struct {
 	// This error layer description.
-	Msg string
+	msg string
 	// The underlying error that triggered this one.
-	Parent error
+	parent stackTracer
+	// The abci code, inherited from the parent
+	code uint32
 }
 
 type coder interface {
@@ -166,28 +186,22 @@ type coder interface {
 }
 
 func (e *wrappedError) StackTrace() errors.StackTrace {
-	// TODO: this is either to be implemented or expectation of it being
-	// present removed completely. As this is an early stage of
-	// refactoring, this is left unimplemented for now.
-	return nil
+	if e.parent == nil {
+		return nil
+	}
+	return e.parent.StackTrace()
 }
 
 func (e *wrappedError) Error() string {
 	// if we have a real error code, show all logs recursively
-	if e.Parent == nil {
-		return e.Msg
+	if e.parent == nil {
+		return e.msg
 	}
-	return fmt.Sprintf("%s: %s", e.Msg, e.Parent.Error())
+	return fmt.Sprintf("%s: %s", e.msg, e.parent.Error())
 }
 
 func (e *wrappedError) ABCICode() uint32 {
-	if e.Parent == nil {
-		return ErrInternal.code
-	}
-	if p, ok := e.Parent.(coder); ok {
-		return p.ABCICode()
-	}
-	return ErrInternal.code
+	return e.code
 }
 
 func (e *wrappedError) ABCILog() string {
@@ -195,19 +209,10 @@ func (e *wrappedError) ABCILog() string {
 }
 
 func (e *wrappedError) Cause() error {
-	type causer interface {
-		Cause() error
-	}
-	// If there is no parent, this is the root error and the cause.
-	if e.Parent == nil {
+	if e.parent == nil {
 		return e
 	}
-	if c, ok := e.Parent.(causer); ok {
-		if cause := c.Cause(); cause != nil {
-			return cause
-		}
-	}
-	return e.Parent
+	return errors.Cause(e.parent)
 }
 
 // Is returns true if both errors represent the same class of issue. For
@@ -237,4 +242,82 @@ func Is(a, b error) bool {
 		return false
 	}
 	return ac.ABCICode() == bc.ABCICode()
+}
+
+//---- Stacktrace formatting -----
+
+func matchesFile(f errors.Frame, substrs ...string) bool {
+	file, _ := fileLine(f)
+	for _, sub := range substrs {
+		if strings.Contains(file, sub) {
+			return true
+		}
+	}
+	return false
+}
+
+func fileLine(f errors.Frame) (string, int) {
+	// this looks a bit like magic, but follows example here:
+	// https://github.com/pkg/errors/blob/v0.8.1/stack.go#L14-L27
+	// as this is where we get the Frames
+	pc := uintptr(f) - 1
+	fn := runtime.FuncForPC(pc)
+	if fn == nil {
+		return "unknown", 0
+	}
+	return fn.FileLine(pc)
+}
+
+func trimInternal(st errors.StackTrace) errors.StackTrace {
+	// trim our internal parts here
+	// manual error creation, or runtime for caught panics
+	for matchesFile(st[0],
+		// where we create errors
+		"weave/errors/errors.go",
+		// runtime are added on panics
+		"/runtime/",
+		// _test is defined in coverage tests, causing failure
+		"/_test/") {
+		st = st[1:]
+	}
+	// trim out outer wrappers (runtime.goexit and test library if present)
+	for l := len(st) - 1; matchesFile(st[l], "/runtime/", "src/testing/testing.go"); l-- {
+		st = st[:l]
+	}
+	return st
+}
+
+func writeSimpleFrame(s io.Writer, f errors.Frame) {
+	file, line := fileLine(f)
+	// cut file at "github.com/"
+	// TODO: generalize better for other hosts?
+	chunks := strings.SplitN(file, "github.com/", 2)
+	if len(chunks) == 2 {
+		file = chunks[1]
+	}
+	fmt.Fprintf(s, " [%s:%d]", file, line)
+}
+
+// Format works like pkg/errors, with additions.
+// %s is just the error message
+// %+v is the full stack trace
+// %v appends a compressed [filename:line] where the error
+//    was created
+//
+// Inspired by https://github.com/pkg/errors/blob/v0.8.1/errors.go#L162-L176
+func (e *wrappedError) Format(s fmt.State, verb rune) {
+	// normal output here....
+	if verb != 'v' {
+		fmt.Fprintf(s, e.ABCILog())
+		return
+	}
+	// work with the stack trace... whole or part
+	stack := trimInternal(e.StackTrace())
+	if s.Flag('+') {
+		fmt.Fprintf(s, "%+v\n", stack)
+		fmt.Fprintf(s, e.ABCILog())
+	} else {
+		fmt.Fprintf(s, e.ABCILog())
+		writeSimpleFrame(s, stack[0])
+	}
 }

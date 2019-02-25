@@ -40,6 +40,9 @@ func (c BaseController) CanUpdateValidators(store weave.KVStore, checkAddress Ch
 
 	ok := HasPermission(AsWeaveAccounts(accts), checkAddress)
 	if !ok {
+		// TODO: improve this error message, so we use .New for stacktrace
+		// The current check flow seems convoluted to me, why pass functions into something else,
+		// rather than just pass an address/es and call the standard auth function
 		return nil, errors.ErrUnauthorized
 	}
 

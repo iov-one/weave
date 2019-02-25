@@ -1,10 +1,14 @@
 package errors
 
 import (
-	"errors"
 	"fmt"
 	"math"
+	"strings"
 	"testing"
+
+	"github.com/pkg/errors"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestErrors(t *testing.T) {
@@ -27,7 +31,7 @@ func TestErrors(t *testing.T) {
 			wantLog:  "outer: 404: " + ErrNotFound.desc,
 		},
 		"wrap of an stdlib error": {
-			err:      Wrap(errors.New("stdlib"), "outer"),
+			err:      Wrap(fmt.Errorf("stdlib"), "outer"),
 			wantRoot: ErrInternal,
 			wantMsg:  "outer: stdlib",
 			wantLog:  "outer: stdlib",
@@ -39,7 +43,7 @@ func TestErrors(t *testing.T) {
 			wantLog:  "outer: inner: 404: " + ErrNotFound.desc,
 		},
 		"deep wrap of an stdlib error": {
-			err:      Wrap(Wrap(errors.New("stdlib"), "inner"), "outer"),
+			err:      Wrap(Wrap(fmt.Errorf("stdlib"), "inner"), "outer"),
 			wantRoot: ErrInternal,
 			wantMsg:  "outer: inner: stdlib",
 			wantLog:  "outer: inner: stdlib",
@@ -95,6 +99,36 @@ func errLog(err error) string {
 	return ""
 }
 
+func TestCause(t *testing.T) {
+	std := fmt.Errorf("This is stdlib error")
+
+	cases := map[string]struct {
+		err  error
+		root error
+	}{
+		"Errors are self-causing": {
+			err:  ErrNotFound,
+			root: ErrNotFound,
+		},
+		"Wrap reveals root cause": {
+			err:  ErrNotFound.New("foo"),
+			root: ErrNotFound,
+		},
+		"Cause works for stderr as root": {
+			err:  Wrap(std, "Some helpful text"),
+			root: std,
+		},
+	}
+
+	for testName, tc := range cases {
+		t.Run(testName, func(t *testing.T) {
+			if got := errors.Cause(tc.err); got != tc.root {
+				t.Fatal("unexpected result")
+			}
+		})
+	}
+}
+
 func TestIs(t *testing.T) {
 	cases := map[string]struct {
 		a      error
@@ -107,8 +141,8 @@ func TestIs(t *testing.T) {
 			wantIs: true,
 		},
 		"two different internal errors": {
-			a:      errors.New("one"),
-			b:      errors.New("two"),
+			a:      fmt.Errorf("one"),
+			b:      fmt.Errorf("two"),
 			wantIs: false,
 		},
 		"two different coded errors": {
@@ -117,7 +151,7 @@ func TestIs(t *testing.T) {
 			wantIs: false,
 		},
 		"two different internal and wrapped  errors": {
-			a:      Wrap(errors.New("a not found"), "where is a?"),
+			a:      Wrap(fmt.Errorf("a not found"), "where is a?"),
 			b:      Wrap(ErrInternal, "b not found"),
 			wantIs: false,
 		},
@@ -140,5 +174,83 @@ func TestIs(t *testing.T) {
 func TestWrapEmpty(t *testing.T) {
 	if err := Wrap(nil, "wrapping <nil>"); err != nil {
 		t.Fatal(err)
+	}
+}
+
+func doWrap(err error) error {
+	return Wrap(err, "do the do")
+}
+
+func TestStackTrace(t *testing.T) {
+	cases := map[string]struct {
+		err error
+		// this is the text we want to see with .Log()
+		log string
+		// whether the Wrap call is in the stacktrace (not for pkg/errors)
+		withWrap bool
+	}{
+		"New gives us a stacktrace": {
+			err:      ErrDuplicate.New("name"),
+			log:      "name: duplicate",
+			withWrap: true,
+		},
+		"Wrapping stderr gives us a stacktrace": {
+			err:      Wrap(fmt.Errorf("foo"), "standard"),
+			log:      "standard: foo",
+			withWrap: true,
+		},
+		"Wrapping pkg/errors gives us clean stacktrace": {
+			err:      Wrap(errors.New("bar"), "pkg"),
+			log:      "pkg: bar",
+			withWrap: false,
+		},
+		"Wrapping inside another function is still clean": {
+			err:      doWrap(fmt.Errorf("indirect")),
+			log:      "do the do: indirect",
+			withWrap: true,
+		},
+	}
+
+	for testName, tc := range cases {
+		t.Run(testName, func(t *testing.T) {
+			// make sure error returns the log
+			assert.Equal(t, tc.log, tc.err.Error())
+
+			// make sure we can get a stack trace
+			st, ok := tc.err.(stackTracer)
+			require.True(t, ok)
+			trace := st.StackTrace()
+			stack := fmt.Sprintf("%+v", trace)
+
+			// these lines are in all traces, but we want to remove them
+			wrap := "github.com/iov-one/weave/errors.Wrap\n"
+			errNew := "github.com/iov-one/weave/errors.Error.New\n"
+			runtime := "runtime.goexit\n"
+			// this is the actual test code that must remains
+			thisTest := "github.com/iov-one/weave/errors.TestStackTrace\n"
+			assert.Equal(t, tc.withWrap, strings.Contains(stack, wrap))
+			assert.True(t, strings.Contains(stack, thisTest))
+			assert.True(t, strings.Contains(stack, runtime))
+
+			// verify printing the error produces cleaned stack
+			debug := fmt.Sprintf("%+v", tc.err)
+			// include the log message
+			assert.True(t, strings.Contains(debug, tc.log))
+			// and the important lines of the trace
+			assert.True(t, strings.Contains(debug, thisTest))
+			// but not the garbage
+			assert.False(t, strings.Contains(debug, wrap))
+			assert.False(t, strings.Contains(debug, errNew))
+			assert.False(t, strings.Contains(debug, runtime))
+
+			// verify printing with %v gives minimal info
+			medium := fmt.Sprintf("%v", tc.err)
+			// include the log message
+			assert.True(t, strings.HasPrefix(medium, tc.log))
+			// only one line
+			assert.False(t, strings.Contains(medium, "\n"))
+			// contains a link to where it was created, which must be here, not the Wrap() function
+			assert.True(t, strings.Contains(medium, "[iov-one/weave/errors/errors_test.go"))
+		})
 	}
 }
