@@ -41,7 +41,7 @@ func (u *UserData) Copy() orm.CloneableData {
 // If not, it will not change the sequence, but return an error
 func (u *UserData) CheckAndIncrementSequence(check int64) error {
 	if u.Sequence != check {
-		return ErrInvalidSequence.Newf("Mismatch %d != %d", check, u.Sequence)
+		return ErrInvalidSequence.Newf("Mismatch expected %d, got %d", check, u.Sequence)
 	}
 	u.Sequence++
 	return nil
