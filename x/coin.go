@@ -82,14 +82,14 @@ func (c Coin) Multiply(times int64) (Coin, error) {
 		return Coin{Ticker: c.Ticker}, nil
 	}
 
-	whole, ok := mul64(c.Whole, times)
-	if !ok {
-		return Coin{}, errors.ErrOverflow
+	whole, err := mul64(c.Whole, times)
+	if err != nil {
+		return Coin{}, err
 
 	}
-	frac, ok := mul64(c.Fractional, times)
-	if !ok {
-		return Coin{}, errors.ErrOverflow
+	frac, err := mul64(c.Fractional, times)
+	if err != nil {
+		return Coin{}, err
 	}
 
 	// Normalize if fractional value overflows.
@@ -110,19 +110,22 @@ func (c Coin) Multiply(times int64) (Coin, error) {
 	return res, nil
 }
 
+// mul64 multiplies two int64 numbers. If the result overflows the int64 size
+// the ErrOverflow is returned.
+//
 // Borrowed from
 // https://github.com/JohnCGriffin/overflow/blob/master/overflow_impl.go#L336
-func mul64(a, b int64) (int64, bool) {
+func mul64(a, b int64) (int64, error) {
 	if a == 0 || b == 0 {
-		return 0, true
+		return 0, nil
 	}
 	c := a * b
 	if (c < 0) == ((a < 0) != (b < 0)) {
 		if c/b == a {
-			return c, true
+			return c, nil
 		}
 	}
-	return c, false
+	return c, errors.ErrOverflow
 }
 
 // Add combines two coins.

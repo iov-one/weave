@@ -401,6 +401,11 @@ func TestCoinMultiply(t *testing.T) {
 			times:   1,
 			wantErr: errors.ErrOverflow,
 		},
+		"overflow when normalizing 2": {
+			coin:  NewCoin(1, 230000000, "DOGE"),
+			times: 10,
+			want:  NewCoin(12, 300000000, "DOGE"),
+		},
 	}
 	for testName, tc := range cases {
 		t.Run(testName, func(t *testing.T) {
