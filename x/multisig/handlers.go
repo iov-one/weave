@@ -64,7 +64,7 @@ func (h CreateContractMsgHandler) validate(ctx weave.Context, db weave.KVStore, 
 	// Retrieve tx main signer in this context
 	sender := x.MainSigner(ctx, h.auth)
 	if sender == nil {
-		return nil, errors.ErrUnauthorized
+		return nil, errors.ErrUnauthorized.New("No signer")
 	}
 
 	msg, err := tx.GetMsg()

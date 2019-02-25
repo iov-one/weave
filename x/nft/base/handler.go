@@ -94,7 +94,7 @@ func (h *ApprovalOpsHandler) Deliver(ctx weave.Context, store weave.KVStore, tx 
 
 	actor := nft.FindActor(h.auth, ctx, t, nft.UpdateApprovals)
 	if actor == nil {
-		return res, errors.ErrUnauthorized
+		return res, errors.ErrUnauthorized.New("Needs update approval")
 	}
 
 	switch v := msg.(type) {

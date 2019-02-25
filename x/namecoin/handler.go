@@ -116,7 +116,7 @@ func (h TokenHandler) validate(ctx weave.Context, db weave.KVStore,
 
 	// make sure we have permission if the issuer is set
 	if h.issuer != nil && !h.auth.HasAddress(ctx, h.issuer) {
-		return nil, errors.ErrUnauthorized
+		return nil, errors.ErrUnauthorized.Newf("Token only issued by %s", h.issuer)
 	}
 
 	// make sure no token there yet
@@ -202,7 +202,7 @@ func (h SetNameHandler) validate(ctx weave.Context, db weave.KVStore,
 
 	// only wallet owner can set the name
 	if !h.auth.HasAddress(ctx, msg.Address) {
-		return nil, errors.ErrUnauthorized
+		return nil, errors.ErrUnauthorized.New("Not wallet owner")
 	}
 
 	return msg, nil

@@ -65,7 +65,7 @@ func (h *TokenInfoHandler) validate(ctx weave.Context, db weave.KVStore, tx weav
 
 	// Ensure we have permission if the issuer is provided.
 	if h.issuer != nil && !h.auth.HasAddress(ctx, h.issuer) {
-		return nil, errors.ErrUnauthorized
+		return nil, errors.ErrUnauthorized.Newf("Token only issued by %s", h.issuer)
 	}
 
 	// Token can be registered only once and must not be updated.

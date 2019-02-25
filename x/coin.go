@@ -52,7 +52,7 @@ func (c Coin) Divide(pieces int64) (Coin, Coin, error) {
 	// This is an invalid use of the method.
 	if pieces <= 0 {
 		zero := Coin{Ticker: c.Ticker}
-		return zero, zero, errors.Wrap(errors.ErrHuman, "pieces must be greater than zero")
+		return zero, zero, errors.ErrHuman.New("pieces must be greater than zero")
 	}
 
 	// When dividing whole and there is a leftover then convert it to
