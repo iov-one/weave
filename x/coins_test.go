@@ -218,7 +218,7 @@ func TestCombine(t *testing.T) {
 	}
 }
 
-func TestNormalizeCoins(t *testing.T) {
+func TestCoinsNormalize(t *testing.T) {
 	coinp := func(w, f int64, t string) *Coin {
 		c := NewCoin(w, f, t)
 		return &c
@@ -322,7 +322,7 @@ func TestNormalizeCoins(t *testing.T) {
 	}
 }
 
-func BenchmarkNormalizeCoins(b *testing.B) {
+func BenchmarkCoinsNormalize(b *testing.B) {
 	coinp := func(w, f int64, t string) *Coin {
 		c := NewCoin(w, f, t)
 		return &c
@@ -372,12 +372,113 @@ func BenchmarkNormalizeCoins(b *testing.B) {
 			coinp(-1, 0, "E"),
 			coinp(-1, 0, "F"),
 		},
+		"twelve normalized": Coins{
+			coinp(1, 0, "A"),
+			coinp(1, 0, "B"),
+			coinp(1, 0, "C"),
+			coinp(1, 0, "D"),
+			coinp(-1, 0, "E"),
+			coinp(-1, 0, "F"),
+			coinp(-1, 0, "G"),
+			coinp(-1, 0, "H"),
+			coinp(-1, 0, "I"),
+			coinp(-1, 0, "J"),
+			coinp(-1, 0, "K"),
+			coinp(-1, 0, "L"),
+		},
+		"twelve not normalized": Coins{
+			coinp(-1, 0, "G"),
+			coinp(-1, 0, "H"),
+			coinp(-1, 0, "A"),
+			coinp(-1, 0, "H"),
+			coinp(1, 0, "A"),
+			coinp(1, 0, "B"),
+			coinp(1, 0, "C"),
+			coinp(1, 0, "D"),
+			coinp(-1, 0, "E"),
+			coinp(-1, 0, "F"),
+			coinp(-1, 0, "A"),
+			coinp(-1, 0, "H"),
+		},
 	}
 
 	for benchName, coins := range benchmarks {
 		b.Run(benchName, func(b *testing.B) {
 			for i := 0; i < b.N; i++ {
 				normalize(coins)
+			}
+		})
+	}
+}
+
+func TestCoinsIsNormalized(t *testing.T) {
+	coinp := func(w, f int64, t string) *Coin {
+		c := NewCoin(w, f, t)
+		return &c
+	}
+
+	cases := map[string]struct {
+		coins []*Coin
+		want  bool
+	}{
+		"nil": {
+			coins: nil,
+			want:  true,
+		},
+		"empty": {
+			coins: []*Coin{},
+			want:  true,
+		},
+		"one non zero coin": {
+			coins: []*Coin{coinp(1, 0, "BTC")},
+			want:  true,
+		},
+		"one zero coin": {
+			coins: []*Coin{coinp(0, 0, "BTC")},
+			want:  false,
+		},
+		"normalized": {
+			coins: []*Coin{
+				coinp(1, 0, "A"),
+				coinp(0, 1, "B"),
+				coinp(0, 1, "C"),
+				coinp(1, 0, "D"),
+			},
+			want: true,
+		},
+		"unordered": {
+			coins: []*Coin{
+				coinp(1, 0, "A"),
+				coinp(0, 1, "C"),
+				coinp(0, 1, "B"),
+				coinp(1, 0, "D"),
+			},
+			want: false,
+		},
+		"repeating currency": {
+			coins: []*Coin{
+				coinp(1, 0, "A"),
+				coinp(0, 1, "A"),
+				coinp(0, 1, "B"),
+				coinp(1, 0, "C"),
+			},
+			want: false,
+		},
+		"one currency nil": {
+			coins: []*Coin{
+				coinp(1, 0, "A"),
+				nil,
+				coinp(0, 1, "B"),
+				coinp(1, 0, "C"),
+			},
+			want: false,
+		},
+	}
+
+	for testName, tc := range cases {
+		t.Run(testName, func(t *testing.T) {
+			if got := isNormalized(tc.coins); got != tc.want {
+				t.Fatal("unexpected result")
 			}
 		})
 	}

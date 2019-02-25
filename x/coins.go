@@ -210,6 +210,10 @@ func normalize(cs []*Coin) ([]*Coin, error) {
 		return cs, nil
 	}
 
+	if isNormalized(cs) {
+		return cs, nil
+	}
+
 	// This is an another optimization. If there are only two coins then
 	// compare them directly.
 	if len(cs) == 2 {
@@ -261,4 +265,29 @@ func normalize(cs []*Coin) ([]*Coin, error) {
 	})
 
 	return coins, nil
+}
+
+// isNormalized check if coins are in normalized form. This is a cheap
+// operation.
+func isNormalized(cs []*Coin) bool {
+	var prev *Coin
+	for _, c := range cs {
+		if c == nil {
+			return false
+		}
+		if c.IsZero() {
+			// Zero coins should not be a part of a collection
+			// because they carry no value.
+			return false
+		}
+		if prev != nil {
+			if prev.Ticker >= c.Ticker {
+				// Not ordered by the ticker or the ticker is
+				// duplicated.
+				return false
+			}
+		}
+		prev = c
+	}
+	return true
 }
