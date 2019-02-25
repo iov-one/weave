@@ -257,6 +257,9 @@ func matchesFile(f errors.Frame, substrs ...string) bool {
 }
 
 func fileLine(f errors.Frame) (string, int) {
+	// this looks a bit like magic, but follows example here:
+	// https://github.com/pkg/errors/blob/v0.8.1/stack.go#L14-L27
+	// as this is where we get the Frames
 	pc := uintptr(f) - 1
 	fn := runtime.FuncForPC(pc)
 	if fn == nil {
@@ -300,6 +303,8 @@ func writeSimpleFrame(s io.Writer, f errors.Frame) {
 // %+v is the full stack trace
 // %v appends a compressed [filename:line] where the error
 //    was created
+//
+// Inspired by https://github.com/pkg/errors/blob/v0.8.1/errors.go#L162-L176
 func (e *wrappedError) Format(s fmt.State, verb rune) {
 	// normal output here....
 	if verb != 'v' {
