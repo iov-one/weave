@@ -121,7 +121,7 @@ func (m Approvals) FilterExpired(blockHeight int64) Approvals {
 func (m Approvals) AsPersistable() []ActionApprovals {
 	r := make([]ActionApprovals, 0)
 	for k, v := range m {
-		r = append(r, ActionApprovals{k, v})
+		r = append(r, ActionApprovals{Action: k, Approvals: v})
 	}
 	return r
 }

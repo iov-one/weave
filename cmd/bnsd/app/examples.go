@@ -72,13 +72,16 @@ func Examples() []commands.Example {
 		Owner: addr,
 		Details: username.TokenDetails{
 			Addresses: []username.ChainAddress{
-				{[]byte("myNet"), "myChainAddress"},
+				{BlockchainID: []byte("myNet"), Address: "myChainAddress"},
 			},
 		},
 		Approvals: []nft.ActionApprovals{
-			{"update", []nft.Approval{
-				{guest, nft.ApprovalOptions{Count: nft.UnlimitedCount}},
-			}},
+			{
+				Action: "update",
+				Approvals: []nft.Approval{
+					{Address: guest, Options: nft.ApprovalOptions{Count: nft.UnlimitedCount}},
+				},
+			},
 		},
 	}
 	issueUsernameTx := &Tx{

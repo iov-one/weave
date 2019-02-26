@@ -13,7 +13,7 @@ func ResultsFromKeys(models []weave.Model) *ResultSet {
 	for i, m := range models {
 		res[i] = m.Key
 	}
-	return &ResultSet{res}
+	return &ResultSet{Results: res}
 }
 
 // ResultsFromValues returns a ResultSet of all values
@@ -23,7 +23,7 @@ func ResultsFromValues(models []weave.Model) *ResultSet {
 	for i, m := range models {
 		res[i] = m.Value
 	}
-	return &ResultSet{res}
+	return &ResultSet{Results: res}
 }
 
 // JoinResults inverts ResultsFromKeys and ResultsFromValues
