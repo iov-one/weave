@@ -1,9 +1,9 @@
 package app
 
 import (
+	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/commands"
 	"github.com/iov-one/weave/crypto"
-	"github.com/iov-one/weave/x"
 	"github.com/iov-one/weave/x/cash"
 	"github.com/iov-one/weave/x/namecoin"
 	"github.com/iov-one/weave/x/sigs"
