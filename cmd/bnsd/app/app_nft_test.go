@@ -23,9 +23,11 @@ func TestIssueNfts(t *testing.T) {
 		Sum: &app.Tx_IssueUsernameNftMsg{&username.IssueTokenMsg{
 			ID:    []byte("anybody@example.com"),
 			Owner: isuserAddr,
-			Details: username.TokenDetails{[]username.ChainAddress{
-				{BlockchainID: myBlockchainID, Address: "myChainAddress"},
-			}},
+			Details: username.TokenDetails{
+				Addresses: []username.ChainAddress{
+					{BlockchainID: myBlockchainID, Address: "myChainAddress"},
+				},
+			},
 		},
 		},
 	}

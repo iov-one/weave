@@ -124,7 +124,7 @@ func (h AddChainAddressHandler) Deliver(ctx weave.Context, store weave.KVStore, 
 	if actor == nil {
 		return res, errors.ErrUnauthorized.New("")
 	}
-	allKeys := append(t.GetChainAddresses(), ChainAddress{msg.GetBlockchainID(), msg.GetAddress()})
+	allKeys := append(t.GetChainAddresses(), ChainAddress{BlockchainID: msg.GetBlockchainID(), Address: msg.GetAddress()})
 	if err := t.SetChainAddresses(actor, allKeys); err != nil {
 		return res, err
 	}
@@ -182,7 +182,7 @@ func (h RemoveChainAddressHandler) Deliver(ctx weave.Context, store weave.KVStor
 	if len(t.GetChainAddresses()) == 0 {
 		return res, errors.ErrInvalidInput.New("empty chain addresses")
 	}
-	obsoleteAddress := ChainAddress{msg.GetBlockchainID(), msg.GetAddress()}
+	obsoleteAddress := ChainAddress{BlockchainID: msg.GetBlockchainID(), Address: msg.GetAddress()}
 	newAddresses := make([]ChainAddress, 0, len(t.GetChainAddresses()))
 	for _, v := range t.GetChainAddresses() {
 		if !v.Equals(obsoleteAddress) {

@@ -64,7 +64,7 @@ func (m *AddChainAddressMsg) Validate() error {
 	if err := validateID(m.UsernameID); err != nil {
 		return err
 	}
-	address := ChainAddress{m.GetBlockchainID(), m.GetAddress()}
+	address := ChainAddress{BlockchainID: m.GetBlockchainID(), Address: m.GetAddress()}
 	return address.Validate()
 }
 
@@ -72,7 +72,7 @@ func (m *RemoveChainAddressMsg) Validate() error {
 	if err := validateID(m.UsernameID); err != nil {
 		return err
 	}
-	address := ChainAddress{m.GetBlockchainID(), m.GetAddress()}
+	address := ChainAddress{BlockchainID: m.GetBlockchainID(), Address: m.GetAddress()}
 	return address.Validate()
 }
 

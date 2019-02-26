@@ -42,7 +42,7 @@ func TestHandleIssueTokenMsg(t *testing.T) {
 		{ // happy path
 			owner:   alice.Address(),
 			id:      []byte("any1@example.com"),
-			details: username.TokenDetails{myNewChainAddresses},
+			details: username.TokenDetails{Addresses: myNewChainAddresses},
 		},
 		{ // without details
 			owner: alice.Address(),
@@ -51,47 +51,50 @@ func TestHandleIssueTokenMsg(t *testing.T) {
 		{ // not signed by owner
 			owner:           anybody.Address(),
 			id:              []byte("any@example.com"),
-			details:         username.TokenDetails{myNewChainAddresses},
+			details:         username.TokenDetails{Addresses: myNewChainAddresses},
 			expCheckError:   true,
 			expDeliverError: true,
 		},
 		{ // id missing
 			owner:           alice.Address(),
-			details:         username.TokenDetails{myNewChainAddresses},
+			details:         username.TokenDetails{Addresses: myNewChainAddresses},
 			expCheckError:   true,
 			expDeliverError: true,
 		},
 		{ // owner missing
 			id:              []byte("any@example.com"),
-			details:         username.TokenDetails{myNewChainAddresses},
+			details:         username.TokenDetails{Addresses: myNewChainAddresses},
 			expCheckError:   true,
 			expDeliverError: true,
 		},
 		{ // duplicate chainID
-			owner:           alice.Address(),
-			id:              []byte("any@example.com"),
-			details:         username.TokenDetails{append(myNewChainAddresses, username.ChainAddress{[]byte("myNet"), "anyOtherAddress"})},
+			owner: alice.Address(),
+			id:    []byte("any@example.com"),
+			details: username.TokenDetails{
+				Addresses: append(myNewChainAddresses,
+					username.ChainAddress{BlockchainID: []byte("myNet"), Address: "anyOtherAddress"}),
+			},
 			expCheckError:   true,
 			expDeliverError: true,
 		},
 		{ // name already used
 			owner:           alice.Address(),
 			id:              []byte("existing@example.com"),
-			details:         username.TokenDetails{myNewChainAddresses},
+			details:         username.TokenDetails{Addresses: myNewChainAddresses},
 			expCheckError:   false,
 			expDeliverError: true,
 		},
 		{ // address already used
 			owner:           alice.Address(),
 			id:              []byte("any@example.com"),
-			details:         username.TokenDetails{[]username.ChainAddress{{[]byte("myNet"), "bobsChainAddress"}}},
+			details:         username.TokenDetails{Addresses: []username.ChainAddress{{BlockchainID: []byte("myNet"), Address: "bobsChainAddress"}}},
 			expCheckError:   false,
 			expDeliverError: true,
 		},
 		{ // valid approvals
 			owner:   alice.Address(),
 			id:      []byte("any5@example.com"),
-			details: username.TokenDetails{myNewChainAddresses},
+			details: username.TokenDetails{Addresses: myNewChainAddresses},
 			approvals: []nft.ActionApprovals{{
 				Action:    nft.UpdateDetails,
 				Approvals: []nft.Approval{{Options: nft.ApprovalOptions{Count: nft.UnlimitedCount}, Address: bob.Address()}},
@@ -100,7 +103,7 @@ func TestHandleIssueTokenMsg(t *testing.T) {
 		{ // invalid approvals
 			owner:           alice.Address(),
 			id:              []byte("any6@example.com"),
-			details:         username.TokenDetails{myNewChainAddresses},
+			details:         username.TokenDetails{Addresses: myNewChainAddresses},
 			expCheckError:   true,
 			expDeliverError: true,
 			approvals: []nft.ActionApprovals{{
@@ -167,7 +170,7 @@ func TestIssueUsernameTx(t *testing.T) {
 	tx := helpers.MockTx(&username.IssueTokenMsg{
 		Owner:   alice.Address(),
 		ID:      []byte("any@example.com"),
-		Details: username.TokenDetails{[]username.ChainAddress{{BlockchainID: []byte("myNet"), Address: "myChainAddress"}}},
+		Details: username.TokenDetails{Addresses: []username.ChainAddress{{BlockchainID: []byte("myNet"), Address: "myChainAddress"}}},
 	})
 	res, err := handler.Deliver(nil, db, tx)
 	// then

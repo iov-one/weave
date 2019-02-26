@@ -16,25 +16,25 @@ func TestValidate(t *testing.T) {
 		expError bool
 	}{
 		"All good": {
-			src: SetValidatorsMsg{[]*ValidatorUpdate{
+			src: SetValidatorsMsg{ValidatorUpdates: []*ValidatorUpdate{
 				{Pubkey: Pubkey{Data: keyEd25519[:], Type: "ed25519"}, Power: 10},
 			}},
 			expError: false,
 		},
 		"Power can be 0": {
-			src: SetValidatorsMsg{[]*ValidatorUpdate{
+			src: SetValidatorsMsg{ValidatorUpdates: []*ValidatorUpdate{
 				{Pubkey: Pubkey{Data: keyEd25519[:], Type: "ed25519"}, Power: 0},
 			}},
 			expError: false,
 		},
 		"PubKey data too short": {
-			src: SetValidatorsMsg{[]*ValidatorUpdate{
+			src: SetValidatorsMsg{ValidatorUpdates: []*ValidatorUpdate{
 				{Pubkey: Pubkey{Data: []byte("too short"), Type: "ed25519"}, Power: 10},
 			}},
 			expError: true,
 		},
 		"Power must not be negative": {
-			src: SetValidatorsMsg{[]*ValidatorUpdate{
+			src: SetValidatorsMsg{ValidatorUpdates: []*ValidatorUpdate{
 				{Pubkey: Pubkey{Data: keyEd25519[:], Type: "ed25519"}, Power: -1},
 			}},
 			expError: true,

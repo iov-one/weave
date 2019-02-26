@@ -102,6 +102,19 @@ Once it compiles, I highly suggest going through the
 |v0.10.0 | :x:| |
 |v0.9.3	| :heavy_check_mark:| |
 
+## Protobuf Documentation
+
+We generate documentation from the *.proto files to keep it up to date.
+
+You can view the [documentation for all packages used in the `bns` app](http://htmlpreview.github.io/?https://github.com/iov-one/weave/blob/feature/proto-docs/docs/proto/index.html).
+
+Or generate it yourself:
+
+```shell
+make prototools
+make protodocs
+open ./docs/proto/index.html
+```
 
 ## History
 

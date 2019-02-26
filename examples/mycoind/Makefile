@@ -18,4 +18,4 @@ build:
 	go build $(BUILD_FLAGS) -o $(BUILDOUT) .
 
 protoc:
-	protoc --gogofaster_out=. -I=. -I=$(GOPATH)/src app/*.proto
+	protoc --gogofaster_out=. -I=. -I=../../vendor -I=$(GOPATH)/src app/*.proto
