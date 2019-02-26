@@ -61,7 +61,7 @@ ifndef $(shell command -v prototool help > /dev/null)
 endif
 	prototool lint
 
-protoc:
+protoc: protodocs
 	protoc --gogofaster_out=. app/*.proto
 	protoc --gogofaster_out=. crypto/*.proto
 	protoc --gogofaster_out=. orm/*.proto
@@ -80,6 +80,9 @@ protoc:
 	protoc --gogofaster_out=. -I=. -I=$(GOPATH)/src -I=./vendor x/paychan/*.proto
 	protoc --gogofaster_out=. -I=. -I=$(GOPATH)/src x/currency/*.proto
 	for ex in $(EXAMPLES); do cd $$ex && make protoc && cd -; done
+
+protodocs:
+	@./scripts/build_protodocs.sh
 
 ### cross-platform check for installing protoc ###
 
