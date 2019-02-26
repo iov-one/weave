@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/iov-one/weave/x"
+	"github.com/iov-one/weave/coin"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/tendermint/tendermint/rpc/client"
@@ -102,7 +102,7 @@ func TestSendMoney(t *testing.T) {
 	chainID := getChainID()
 
 	// build the tx
-	amount := x.Coin{Whole: 1000, Ticker: initBalance.Ticker}
+	amount := coin.Coin{Whole: 1000, Ticker: initBalance.Ticker}
 	tx := BuildSendTx(src, rcpt, amount, "Send 1")
 	n, err := nonce.Query()
 	require.NoError(t, err)
@@ -168,7 +168,7 @@ func TestSendMultipleTx(t *testing.T) {
 
 	nonce := NewNonce(bcp, src)
 	chainID, err := bcp.ChainID()
-	amount := x.Coin{Whole: 1000, Ticker: initBalance.Ticker}
+	amount := coin.Coin{Whole: 1000, Ticker: initBalance.Ticker}
 	require.NoError(t, err)
 
 	// a prep transaction, so the recipient has something to send

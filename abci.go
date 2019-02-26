@@ -3,8 +3,8 @@ package weave
 import (
 	"fmt"
 
+	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/errors"
-	"github.com/iov-one/weave/x"
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/common"
 )
@@ -42,7 +42,7 @@ type DeliverResult struct {
 	Log string
 	// RequiredFee can set an custom fee that must be paid for this transaction to be allowed to run.
 	// This is enforced in cash.DynamicFeeDecorator
-	RequiredFee x.Coin
+	RequiredFee coin.Coin
 	// Diff, if present, will apply to the Validator set in tendermint next block
 	Diff []abci.ValidatorUpdate
 	// Tags, if present, will be used by tendermint to index and search the transaction history
@@ -69,7 +69,7 @@ type CheckResult struct {
 	Log string
 	// RequiredFee can set an custom fee that must be paid for this transaction to be allowed to run.
 	// This is enforced in cash.DynamicFeeDecorator
-	RequiredFee x.Coin
+	RequiredFee coin.Coin
 	// GasAllocated is the maximum units of work we allow this tx to perform
 	GasAllocated int64
 	// GasPayment is the total fees for this tx (or other source of payment)

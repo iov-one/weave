@@ -8,6 +8,7 @@ import (
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/app"
+	coin "github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/store"
 	"github.com/iov-one/weave/x"
@@ -33,8 +34,8 @@ func TestHandler(t *testing.T) {
 	_, d := helpers.MakeKey()
 
 	// good
-	all := mustCombineCoins(x.NewCoin(100, 0, "FOO"))
-	some := mustCombineCoins(x.NewCoin(32, 0, "FOO"))
+	all := mustCombineCoins(coin.NewCoin(100, 0, "FOO"))
+	some := mustCombineCoins(coin.NewCoin(32, 0, "FOO"))
 	remain := MustMinusCoins(t, all, some)
 
 	id := func(i int64) []byte {
@@ -49,7 +50,7 @@ func TestHandler(t *testing.T) {
 	cases := []struct {
 		// initial balance to set
 		account weave.Address
-		balance []*x.Coin
+		balance []*coin.Coin
 		// preparation transactions, must all succeed
 		prep []action
 		// tx to test
@@ -565,7 +566,7 @@ func TestHandler(t *testing.T) {
 }
 
 // createAction is a default action at height 1000, timeout 12345
-func createAction(sender, rcpt, arbiter weave.Condition, amount x.Coins, memo string) action {
+func createAction(sender, rcpt, arbiter weave.Condition, amount coin.Coins, memo string) action {
 	return action{
 		perms:  []weave.Condition{sender},
 		msg:    NewCreateMsg(sender.Address(), rcpt.Address(), arbiter, amount, Timeout, memo),
@@ -574,7 +575,7 @@ func createAction(sender, rcpt, arbiter weave.Condition, amount x.Coins, memo st
 }
 
 // MinusCoins returns a-b
-func MinusCoins(a, b x.Coins) (x.Coins, error) {
+func MinusCoins(a, b coin.Coins) (coin.Coins, error) {
 	// TODO: add coins.Negative...
 	minus := b.Clone()
 	for _, m := range minus {
@@ -584,13 +585,13 @@ func MinusCoins(a, b x.Coins) (x.Coins, error) {
 	return a.Combine(minus)
 }
 
-func MustMinusCoins(t *testing.T, a, b x.Coins) x.Coins {
+func MustMinusCoins(t *testing.T, a, b coin.Coins) coin.Coins {
 	remain, err := MinusCoins(a, b)
 	require.NoError(t, err)
 	return remain
 }
 
-func MustAddCoins(t *testing.T, a, b x.Coins) x.Coins {
+func MustAddCoins(t *testing.T, a, b coin.Coins) coin.Coins {
 	res, err := a.Combine(b)
 	require.NoError(t, err)
 	return res
@@ -609,25 +610,25 @@ func TestAtomicSwap(t *testing.T) {
 	// c is just an observer, no role in escrow
 	_, c := helpers.MakeKey()
 
-	foo := mustCombineCoins(x.NewCoin(500, 0, "FOO"))
-	lilFoo := mustCombineCoins(x.NewCoin(77, 0, "FOO"))
+	foo := mustCombineCoins(coin.NewCoin(500, 0, "FOO"))
+	lilFoo := mustCombineCoins(coin.NewCoin(77, 0, "FOO"))
 	leftFoo := MustMinusCoins(t, foo, lilFoo)
-	bar := mustCombineCoins(x.NewCoin(1100, 0, "BAR"))
-	lilBar := mustCombineCoins(x.NewCoin(250, 0, "BAR"))
+	bar := mustCombineCoins(coin.NewCoin(1100, 0, "BAR"))
+	lilBar := mustCombineCoins(coin.NewCoin(250, 0, "BAR"))
 	leftBar := MustMinusCoins(t, bar, lilBar)
 
 	cases := []struct {
 		// initial values
-		aInit, bInit x.Coins
+		aInit, bInit coin.Coins
 		// amount we wish to swap
-		aSwap, bSwap x.Coins
+		aSwap, bSwap coin.Coins
 		// arbiter, same on both
 		arbiter weave.Condition
 		// preimage used in claim
 		preimage []byte
 		// does the release cause an error?
 		isError        bool
-		aFinal, bFinal x.Coins
+		aFinal, bFinal coin.Coins
 	}{
 		// good preimage
 		0: {
@@ -656,13 +657,13 @@ func TestAtomicSwap(t *testing.T) {
 	bank := cash.NewBucket()
 	ctrl := cash.NewController(bank)
 
-	setBalance := func(t *testing.T, db weave.KVStore, addr weave.Address, coins x.Coins) {
+	setBalance := func(t *testing.T, db weave.KVStore, addr weave.Address, coins coin.Coins) {
 		acct, err := cash.WalletWith(addr, coins...)
 		require.NoError(t, err)
 		err = bank.Save(db, acct)
 		require.NoError(t, err)
 	}
-	checkBalance := func(t *testing.T, db weave.KVStore, addr weave.Address) x.Coins {
+	checkBalance := func(t *testing.T, db weave.KVStore, addr weave.Address) coin.Coins {
 		acct, err := bank.Get(db, addr)
 		require.NoError(t, err)
 		coins := cash.AsCoins(acct)

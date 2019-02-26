@@ -6,8 +6,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/store"
-	"github.com/iov-one/weave/x"
 	"github.com/iov-one/weave/x/cash"
 	"github.com/iov-one/weave/x/sigs"
 )
@@ -16,7 +16,7 @@ func TestSendTx(t *testing.T) {
 	sender := GenPrivateKey()
 	senderAddr := sender.PublicKey().Address()
 	rcpt := GenPrivateKey().PublicKey().Address()
-	amount := x.Coin{Whole: 59, Fractional: 42, Ticker: "ECK"}
+	amount := coin.Coin{Whole: 59, Fractional: 42, Ticker: "ECK"}
 
 	chainID := "ding-dong"
 	tx := BuildSendTx(senderAddr, rcpt, amount, "Hi There")

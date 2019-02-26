@@ -1,9 +1,9 @@
 package app
 
 import (
+	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/commands"
 	"github.com/iov-one/weave/crypto"
-	"github.com/iov-one/weave/x"
 	"github.com/iov-one/weave/x/cash"
 	"github.com/iov-one/weave/x/sigs"
 )
@@ -11,7 +11,7 @@ import (
 // Examples generates some example structs to dump out with testgen
 func Examples() []commands.Example {
 	wallet := &cash.Set{
-		Coins: []*x.Coin{
+		Coins: []*coin.Coin{
 			{Whole: 50000, Ticker: "ETH"},
 			{Whole: 150, Fractional: 567000, Ticker: "BTC"},
 		},
@@ -25,7 +25,7 @@ func Examples() []commands.Example {
 	}
 
 	dst := crypto.GenPrivKeyEd25519().PublicKey().Address()
-	amt := x.NewCoin(250, 0, "ETH")
+	amt := coin.NewCoin(250, 0, "ETH")
 	msg := &cash.SendMsg{
 		Amount: &amt,
 		Dest:   dst,

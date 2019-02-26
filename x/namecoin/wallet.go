@@ -2,9 +2,9 @@ package namecoin
 
 import (
 	"github.com/iov-one/weave"
+	coin "github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/orm"
-	"github.com/iov-one/weave/x"
 	"github.com/iov-one/weave/x/cash"
 )
 
@@ -23,7 +23,7 @@ var _ Named = (*Wallet)(nil)
 
 // SetCoins lets us modify the wallet
 // and satisfy Coinage to be compatible with x/cash
-func (w *Wallet) SetCoins(coins []*x.Coin) {
+func (w *Wallet) SetCoins(coins []*coin.Coin) {
 	w.Coins = coins
 }
 
@@ -79,7 +79,7 @@ func NewWallet(key weave.Address) orm.Object {
 }
 
 // WalletWith creates an wallet with a balance
-func WalletWith(key weave.Address, name string, coins ...*x.Coin) (orm.Object, error) {
+func WalletWith(key weave.Address, name string, coins ...*coin.Coin) (orm.Object, error) {
 	obj := NewWallet(key)
 	err := cash.Concat(cash.AsCoinage(obj), coins)
 	if err != nil {

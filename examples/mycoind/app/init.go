@@ -7,9 +7,9 @@ import (
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/app"
+	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/crypto"
 	"github.com/iov-one/weave/gconf"
-	"github.com/iov-one/weave/x"
 	"github.com/iov-one/weave/x/cash"
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
@@ -57,7 +57,7 @@ func GenInitOptions(args []string) (json.RawMessage, error) {
 		},
 		"gconf": dict{
 			cash.GconfCollectorAddress: "fake-collector-address",
-			cash.GconfMinimalFee:       x.Coin{Whole: 0}, // no fee
+			cash.GconfMinimalFee:       coin.Coin{Whole: 0}, // no fee
 		},
 	})
 }
@@ -70,7 +70,7 @@ func GenerateApp(home string, logger log.Logger, debug bool) (abci.Application, 
 		dbPath = filepath.Join(home, "abci.db")
 	}
 
-	stack := Stack(x.Coin{})
+	stack := Stack(coin.Coin{})
 	application, err := Application("mycoin", stack, TxDecoder, dbPath, debug)
 	if err != nil {
 		return nil, err

@@ -9,8 +9,8 @@ import (
 	weaveApp "github.com/iov-one/weave/app"
 	"github.com/iov-one/weave/cmd/bnsd/app"
 	"github.com/iov-one/weave/cmd/bnsd/app/testdata/fixtures"
+	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/crypto"
-	"github.com/iov-one/weave/x"
 	"github.com/iov-one/weave/x/cash"
 	"github.com/iov-one/weave/x/multisig"
 	"github.com/iov-one/weave/x/sigs"
@@ -28,7 +28,7 @@ func TestApp(t *testing.T) {
 	// Query for my balance
 	key := cash.NewBucket().DBKey(appFixture.GenesisKeyAddress)
 	queryAndCheckAccount(t, myApp, "/", key, cash.Set{
-		Coins: x.Coins{
+		Coins: coin.Coins{
 			{Ticker: "ETH", Whole: 50000},
 			{Ticker: "FRNK", Whole: 1234},
 		},
@@ -63,7 +63,7 @@ func TestApp(t *testing.T) {
 
 	// Query for new balances (same query, new state)
 	queryAndCheckAccount(t, myApp, "/", key, cash.Set{
-		Coins: x.Coins{
+		Coins: coin.Coins{
 			{Ticker: "ETH", Whole: 48000},
 			{Ticker: "FRNK", Whole: 1234},
 		},
@@ -72,7 +72,7 @@ func TestApp(t *testing.T) {
 	// make sure money arrived safely
 	key2 := cash.NewBucket().DBKey(addr2)
 	queryAndCheckAccount(t, myApp, "/", key2, cash.Set{
-		Coins: x.Coins{
+		Coins: coin.Coins{
 			{
 				Ticker: "ETH",
 				Whole:  2000,
@@ -82,12 +82,12 @@ func TestApp(t *testing.T) {
 
 	// make sure other paths also get this value....
 	queryAndCheckAccount(t, myApp, "/wallets", addr2, cash.Set{
-		Coins: x.Coins{{Ticker: "ETH", Whole: 2000}},
+		Coins: coin.Coins{{Ticker: "ETH", Whole: 2000}},
 	})
 
 	// make sure other paths also get this value....
 	queryAndCheckAccount(t, myApp, "/wallets?prefix", addr2[:15], cash.Set{
-		Coins: x.Coins{
+		Coins: coin.Coins{
 			{Ticker: "ETH", Whole: 2000},
 		},
 	})
@@ -140,7 +140,7 @@ func sendToken(t *testing.T, baseApp weaveApp.BaseApp, chainID string, height in
 	msg := &cash.SendMsg{
 		Src:    from,
 		Dest:   to,
-		Amount: &x.Coin{Whole: amount, Ticker: ticker},
+		Amount: &coin.Coin{Whole: amount, Ticker: ticker},
 		Memo:   memo,
 	}
 	tx := &app.Tx{
@@ -149,7 +149,7 @@ func sendToken(t *testing.T, baseApp weaveApp.BaseApp, chainID string, height in
 	}
 	res := signAndCommit(t, baseApp, tx, signers, chainID, height)
 	// make sure money arrived safely
-	queryAndCheckAccount(t, baseApp, "/wallets", to, cash.Set{Coins: x.Coins{{Ticker: ticker, Whole: amount}}})
+	queryAndCheckAccount(t, baseApp, "/wallets", to, cash.Set{Coins: coin.Coins{{Ticker: ticker, Whole: amount}}})
 	return res
 }
 

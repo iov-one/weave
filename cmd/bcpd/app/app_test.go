@@ -12,8 +12,8 @@ import (
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/app"
+	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/crypto"
-	"github.com/iov-one/weave/x"
 	"github.com/iov-one/weave/x/batch"
 	"github.com/iov-one/weave/x/cash"
 	"github.com/iov-one/weave/x/escrow"
@@ -34,7 +34,7 @@ func TestSendTx(t *testing.T) {
 	// Query for my balance
 	key := cash.NewBucket().DBKey(mainAccount.address())
 	queryAndCheckWallet(t, false, myApp, "/", key, cash.Set{
-		Coins: x.Coins{
+		Coins: coin.Coins{
 			{Ticker: "ETH", Whole: 50000},
 			{Ticker: "FRNK", Whole: 1234},
 		},
@@ -67,7 +67,7 @@ func TestSendTx(t *testing.T) {
 
 	queryBalance := func() {
 		queryAndCheckWallet(t, false, myApp, "/", key, cash.Set{
-			Coins: x.Coins{
+			Coins: coin.Coins{
 				{Ticker: "ETH", Whole: 30000},
 				{Ticker: "FRNK", Whole: 1234},
 			},
@@ -103,7 +103,7 @@ func TestQuery(t *testing.T) {
 	// Query for new balances
 	key := cash.NewBucket().DBKey(mainAccount.address())
 	queryAndCheckWallet(t, false, myApp, "/", key, cash.Set{
-		Coins: x.Coins{
+		Coins: coin.Coins{
 			{Ticker: "ETH", Whole: 48000},
 			{Ticker: "FRNK", Whole: 1234},
 		},
@@ -112,14 +112,14 @@ func TestQuery(t *testing.T) {
 	// make sure money arrived safely
 	key2 := cash.NewBucket().DBKey(addr2)
 	queryAndCheckWallet(t, false, myApp, "/", key2, cash.Set{
-		Coins: x.Coins{
+		Coins: coin.Coins{
 			{Ticker: "ETH", Whole: 2000},
 		},
 	})
 
 	// make sure other paths also get this value....
 	queryAndCheckWallet(t, false, myApp, "/wallets", addr2, cash.Set{
-		Coins: x.Coins{
+		Coins: coin.Coins{
 			{Ticker: "ETH", Whole: 2000},
 		},
 	})
@@ -221,7 +221,7 @@ func newMultisigTestApp(t require.TestingT, chainID string, contracts []*contrac
 func withWalletAppState(t require.TestingT, accounts []*account) string {
 	type wallet struct {
 		Address weave.Address `json:"address"`
-		Coins   x.Coins       `json:"coins"`
+		Coins   coin.Coins    `json:"coins"`
 	}
 	state := struct {
 		Cash  []wallet               `json:"cash"`
@@ -229,16 +229,16 @@ func withWalletAppState(t require.TestingT, accounts []*account) string {
 	}{
 		Gconf: map[string]interface{}{
 			cash.GconfCollectorAddress: "fake-collector-address",
-			cash.GconfMinimalFee:       x.Coin{}, // no fee
+			cash.GconfMinimalFee:       coin.Coin{}, // no fee
 		},
 	}
 
 	for _, acc := range accounts {
 		state.Cash = append(state.Cash, wallet{
 			Address: acc.address(),
-			Coins: x.Coins{
-				&x.Coin{Whole: 50000, Ticker: "ETH"},
-				&x.Coin{Whole: 1234, Ticker: "FRNK"},
+			Coins: coin.Coins{
+				&coin.Coin{Whole: 50000, Ticker: "ETH"},
+				&coin.Coin{Whole: 1234, Ticker: "FRNK"},
 			},
 		})
 	}
@@ -313,7 +313,7 @@ func sendToken(t require.TestingT, baseApp app.BaseApp, chainID string, height i
 	msg := &cash.SendMsg{
 		Src:  from,
 		Dest: to,
-		Amount: &x.Coin{
+		Amount: &coin.Coin{
 			Whole:  amount,
 			Ticker: ticker,
 		},
@@ -329,7 +329,7 @@ func sendToken(t require.TestingT, baseApp app.BaseApp, chainID string, height i
 
 	// make sure money arrived safely
 	queryAndCheckWallet(t, false, baseApp, "/wallets", to, cash.Set{
-		Coins: x.Coins{
+		Coins: coin.Coins{
 			{Ticker: ticker, Whole: amount},
 		},
 	})
@@ -343,7 +343,7 @@ func sendBatch(t require.TestingT, fail bool, baseApp app.BaseApp, chainID strin
 	msg := &cash.SendMsg{
 		Src:  from,
 		Dest: to,
-		Amount: &x.Coin{
+		Amount: &coin.Coin{
 			Whole:  amount,
 			Ticker: ticker,
 		},
@@ -382,7 +382,7 @@ func sendBatch(t require.TestingT, fail bool, baseApp app.BaseApp, chainID strin
 
 	// make sure money arrived only for successful batch
 	queryAndCheckWallet(t, fail, baseApp, "/wallets", to, cash.Set{
-		Coins: x.Coins{
+		Coins: coin.Coins{
 			{Ticker: ticker, Whole: checkAmount},
 		},
 	})
@@ -493,7 +493,7 @@ func makeSendTx(t require.TestingT, chainID string, sender, receiver *account, t
 	msg := &cash.SendMsg{
 		Src:  sender.address(),
 		Dest: receiver.address(),
-		Amount: &x.Coin{
+		Amount: &coin.Coin{
 			Whole:  amount,
 			Ticker: ticker,
 		},
@@ -520,7 +520,7 @@ func makeSendTxMultisig(t require.TestingT, chainID string, sender, receiver *co
 	msg := &cash.SendMsg{
 		Src:  sender.address(),
 		Dest: receiver.address(),
-		Amount: &x.Coin{
+		Amount: &coin.Coin{
 			Whole:  amount,
 			Ticker: ticker,
 		},

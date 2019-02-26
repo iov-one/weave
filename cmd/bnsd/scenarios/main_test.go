@@ -13,7 +13,7 @@ import (
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/cmd/bnsd/app"
 	"github.com/iov-one/weave/cmd/bnsd/client"
-	"github.com/iov-one/weave/x"
+	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/x/cash"
 	"github.com/iov-one/weave/x/multisig"
 	"github.com/stellar/go/exp/crypto/derivation"
@@ -21,7 +21,7 @@ import (
 	cfg "github.com/tendermint/tendermint/config"
 	"github.com/tendermint/tendermint/libs/log"
 	nm "github.com/tendermint/tendermint/node"
-	"github.com/tendermint/tendermint/rpc/test"
+	rpctest "github.com/tendermint/tendermint/rpc/test"
 	tm "github.com/tendermint/tendermint/types"
 )
 
@@ -185,7 +185,7 @@ func initGenesis(filename string, addr weave.Address) (*tm.GenesisDoc, error) {
 		},
 		"gconf": map[string]interface{}{
 			cash.GconfCollectorAddress: hex.EncodeToString(addr),
-			cash.GconfMinimalFee:       x.Coin{}, // no fee
+			cash.GconfMinimalFee:       coin.Coin{}, // no fee
 		},
 	}, "", "  ")
 	if err != nil {

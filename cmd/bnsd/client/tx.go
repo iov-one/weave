@@ -3,7 +3,7 @@ package client
 import (
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/cmd/bnsd/app"
-	"github.com/iov-one/weave/x"
+	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/x/cash"
 	"github.com/iov-one/weave/x/sigs"
 	"github.com/iov-one/weave/x/validators"
@@ -16,7 +16,7 @@ type Tx interface {
 }
 
 // BuildSendTx will create an unsigned tx to move tokens
-func BuildSendTx(src, dest weave.Address, amount x.Coin, memo string) *app.Tx {
+func BuildSendTx(src, dest weave.Address, amount coin.Coin, memo string) *app.Tx {
 	return &app.Tx{
 		Sum: &app.Tx_SendMsg{&cash.SendMsg{
 			Src:    src,

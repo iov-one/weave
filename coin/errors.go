@@ -1,4 +1,4 @@
-package x
+package coin
 
 import (
 	"github.com/iov-one/weave/errors"

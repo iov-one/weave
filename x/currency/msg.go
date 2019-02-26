@@ -2,8 +2,8 @@ package currency
 
 import (
 	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/errors"
-	"github.com/iov-one/weave/x"
 )
 
 var _ weave.Msg = (*NewTokenInfoMsg)(nil)
@@ -13,8 +13,8 @@ func (NewTokenInfoMsg) Path() string {
 }
 
 func (t *NewTokenInfoMsg) Validate() error {
-	if !x.IsCC(t.Ticker) {
-		return x.ErrInvalidCurrency.New(t.Ticker)
+	if !coin.IsCC(t.Ticker) {
+		return coin.ErrInvalidCurrency.New(t.Ticker)
 	}
 	if !isTokenName(t.Name) {
 		return errors.ErrInvalidState.Newf("invalid token name %v", t.Name)

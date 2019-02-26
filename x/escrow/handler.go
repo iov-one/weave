@@ -2,6 +2,7 @@ package escrow
 
 import (
 	"github.com/iov-one/weave"
+	coin "github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/x"
@@ -17,8 +18,8 @@ const (
 )
 
 type escrowOperations interface {
-	Deposit(db weave.KVStore, escrow *Escrow, escrowID []byte, src weave.Address, amounts x.Coins) error
-	Withdraw(db weave.KVStore, escrow *Escrow, escrowID []byte, dest weave.Address, amounts x.Coins) error
+	Deposit(db weave.KVStore, escrow *Escrow, escrowID []byte, src weave.Address, amounts coin.Coins) error
+	Withdraw(db weave.KVStore, escrow *Escrow, escrowID []byte, dest weave.Address, amounts coin.Coins) error
 }
 
 // RegisterRoutes will instantiate and register
@@ -171,8 +172,8 @@ func (h ReleaseEscrowHandler) Deliver(ctx weave.Context, db weave.KVStore,
 	}
 
 	// use amount in message, or
-	request := x.Coins(msg.Amount)
-	available := x.Coins(escrow.Amount)
+	request := coin.Coins(msg.Amount)
+	available := coin.Coins(escrow.Amount)
 	if len(request) == 0 {
 		request = available
 
@@ -189,7 +190,7 @@ func (h ReleaseEscrowHandler) Deliver(ctx weave.Context, db weave.KVStore,
 		return res, err
 	}
 
-	if x.Coins(escrow.Amount).IsPositive() {
+	if coin.Coins(escrow.Amount).IsPositive() {
 		res.Data = key
 	}
 	return res, err
