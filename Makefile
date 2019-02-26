@@ -62,22 +62,23 @@ endif
 	prototool lint
 
 protoc:
-	protoc --doc_out=docs/proto/ --doc_opt=html,app.html --gogofaster_out=. app/*.proto
-	protoc --doc_out=docs/proto/ --doc_opt=html,crypto.html --gogofaster_out=. crypto/*.proto
-	protoc --doc_out=docs/proto/ --doc_opt=html,orm.html --gogofaster_out=. orm/*.proto
-	protoc --doc_out=docs/proto/ --doc_opt=html,x.html --gogofaster_out=. x/*.proto
-	protoc --doc_out=docs/proto/ --doc_opt=html,nft.html --gogofaster_out=. -I=. -I=$(GOPATH)/src x/nft/*.proto
-	protoc --doc_out=docs/proto/ --doc_opt=html,bnsd.html --gogofaster_out=. -I=. -I=$(GOPATH)/src cmd/bnsd/x/nft/username/*.proto
-	protoc --doc_out=docs/proto/ --doc_opt=html,cash.html --gogofaster_out=. -I=. -I=$(GOPATH)/src x/cash/*.proto
-	protoc --doc_out=docs/proto/ --doc_opt=html,sigs.html --gogofaster_out=. -I=. -I=$(GOPATH)/src x/sigs/*.proto
-	protoc --doc_out=docs/proto/ --doc_opt=html,multisig.html --gogofaster_out=. -I=. -I=$(GOPATH)/src x/multisig/*.proto
-	protoc --doc_out=docs/proto/ --doc_opt=html,validators.html --gogofaster_out=. -I=. -I=$(GOPATH)/src x/validators/*.proto
-	protoc --doc_out=docs/proto/ --doc_opt=html,batch.html --gogofaster_out=. -I=. -I=$(GOPATH)/src x/batch/*.proto
-	protoc --doc_out=docs/proto/ --doc_opt=html,distribution.html --gogofaster_out=. -I=. -I=$(GOPATH)/src x/distribution/*.proto
-	protoc --doc_out=docs/proto/ --doc_opt=html,namecoin.html --gogofaster_out=. -I=. -I=$(GOPATH)/src -I=./vendor x/namecoin/*.proto
-	protoc --doc_out=docs/proto/ --doc_opt=html,escrow.html --gogofaster_out=. -I=. -I=$(GOPATH)/src -I=./vendor x/escrow/*.proto
-	protoc --doc_out=docs/proto/ --doc_opt=html,paychan.html --gogofaster_out=. -I=. -I=$(GOPATH)/src -I=./vendor x/paychan/*.proto
-	protoc --doc_out=docs/proto/ --doc_opt=html,currency.html --gogofaster_out=. -I=. -I=$(GOPATH)/src x/currency/*.proto
+	protoc --gogofaster_out=. app/*.proto
+	protoc --gogofaster_out=. crypto/*.proto
+	protoc --gogofaster_out=. orm/*.proto
+	protoc --gogofaster_out=. x/*.proto
+	# Note, you must include -I=./vendor when compiling files that use gogoprotobuf extensions
+	protoc --gogofaster_out=. -I=. -I=./vendor -I=$(GOPATH)/src x/nft/*.proto
+	protoc --gogofaster_out=. -I=. -I=./vendor -I=$(GOPATH)/src cmd/bnsd/x/nft/username/*.proto
+	protoc --gogofaster_out=. -I=. -I=$(GOPATH)/src x/cash/*.proto
+	protoc --gogofaster_out=. -I=. -I=$(GOPATH)/src x/sigs/*.proto
+	protoc --gogofaster_out=. -I=. -I=./vendor -I=$(GOPATH)/src x/multisig/*.proto
+	protoc --gogofaster_out=. -I=. -I=./vendor -I=$(GOPATH)/src x/validators/*.proto
+	protoc --gogofaster_out=. -I=. -I=$(GOPATH)/src x/batch/*.proto
+	protoc --gogofaster_out=. -I=. -I=./vendor -I=$(GOPATH)/src x/distribution/*.proto
+	protoc --gogofaster_out=. -I=. -I=$(GOPATH)/src -I=./vendor x/namecoin/*.proto
+	protoc --gogofaster_out=. -I=. -I=$(GOPATH)/src -I=./vendor x/escrow/*.proto
+	protoc --gogofaster_out=. -I=. -I=$(GOPATH)/src -I=./vendor x/paychan/*.proto
+	protoc --gogofaster_out=. -I=. -I=$(GOPATH)/src x/currency/*.proto
 	for ex in $(EXAMPLES); do cd $$ex && make protoc && cd -; done
 
 ### cross-platform check for installing protoc ###
