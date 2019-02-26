@@ -1,4 +1,4 @@
-package x
+package coin
 
 import (
 	"sort"

@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package x;
+package coin;
 
 // Coin can hold any amount between -1 billion and +1 billion
 // at steps of 10^-9. It is a fixed-point decimal
