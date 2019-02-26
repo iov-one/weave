@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/iov-one/weave"
-	"github.com/iov-one/weave/x"
+	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/x/cash"
 	"github.com/iov-one/weave/x/nft"
 	"github.com/stretchr/testify/assert"

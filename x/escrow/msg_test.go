@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/iov-one/weave"
+	coin "github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/x"
 	"github.com/stretchr/testify/assert"
@@ -13,7 +14,7 @@ import (
 
 // mustCombineCoins has one return value for tests...
 func mustCombineCoins(cs ...coin.Coin) coin.Coins {
-	s, err := x.CombineCoins(cs...)
+	s, err := coin.CombineCoins(cs...)
 	if err != nil {
 		panic(err)
 	}
@@ -35,10 +36,10 @@ func TestCreateEscrowMsg(t *testing.T) {
 	d := weave.Condition("foobar")
 
 	// good
-	plus := mustCombineCoins(x.NewCoin(100, 0, "FOO"))
+	plus := mustCombineCoins(coin.NewCoin(100, 0, "FOO"))
 	// invalid
-	minus := mustCombineCoins(x.NewCoin(100, 0, "BAR"),
-		x.NewCoin(-20, 0, "FIT"))
+	minus := mustCombineCoins(coin.NewCoin(100, 0, "BAR"),
+		coin.NewCoin(-20, 0, "FIT"))
 	mixed := coin.Coins{{Whole: 100, Ticker: "bad"}}
 
 	cases := []struct {
@@ -147,10 +148,10 @@ func TestReleaseEscrowMsg(t *testing.T) {
 	scarecrow := []byte{1, 2, 3, 4}
 
 	// good
-	plus := mustCombineCoins(x.NewCoin(100, 0, "FOO"))
+	plus := mustCombineCoins(coin.NewCoin(100, 0, "FOO"))
 	// invalid
-	minus := mustCombineCoins(x.NewCoin(100, 0, "BAR"),
-		x.NewCoin(-20, 0, "FIT"))
+	minus := mustCombineCoins(coin.NewCoin(100, 0, "BAR"),
+		coin.NewCoin(-20, 0, "FIT"))
 	mixed := coin.Coins{{Whole: 100, Ticker: "bad"}}
 
 	cases := []struct {

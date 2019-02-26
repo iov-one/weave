@@ -11,8 +11,8 @@ import (
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/cmd/bnsd/app"
+	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/commands/server"
-	"github.com/iov-one/weave/x"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/tendermint/tendermint/libs/log"

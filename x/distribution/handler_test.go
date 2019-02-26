@@ -8,6 +8,7 @@ import (
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/app"
+	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/store"
 	"github.com/iov-one/weave/x"
@@ -401,7 +402,7 @@ func asSeqID(i int64) []byte {
 }
 
 func coinp(w, f int64, ticker string) *coin.Coin {
-	c := x.NewCoin(w, f, ticker)
+	c := coin.NewCoin(w, f, ticker)
 	return &c
 }
 
@@ -490,8 +491,8 @@ func TestDistribute(t *testing.T) {
 			},
 			wantErr: nil,
 			wantMoves: []movecall{
-				{dst: weave.Address("address-1"), amount: x.NewCoin(1, 0, "BTC")},
-				{dst: weave.Address("address-2"), amount: x.NewCoin(2, 0, "BTC")},
+				{dst: weave.Address("address-1"), amount: coin.NewCoin(1, 0, "BTC")},
+				{dst: weave.Address("address-2"), amount: coin.NewCoin(2, 0, "BTC")},
 			},
 		},
 		"distribution splits whole into fractional": {
@@ -506,8 +507,8 @@ func TestDistribute(t *testing.T) {
 			wantMoves: []movecall{
 				// One cent is left on the revenue account,
 				// because it is too small to divide.
-				{dst: weave.Address("address-1"), amount: x.NewCoin(0, 333333333, "BTC")},
-				{dst: weave.Address("address-2"), amount: x.NewCoin(0, 666666666, "BTC")},
+				{dst: weave.Address("address-1"), amount: coin.NewCoin(0, 333333333, "BTC")},
+				{dst: weave.Address("address-2"), amount: coin.NewCoin(0, 666666666, "BTC")},
 			},
 		},
 		"whole split into fractions": {
@@ -522,8 +523,8 @@ func TestDistribute(t *testing.T) {
 			wantMoves: []movecall{
 				// One cent is left on the revenue account,
 				// because it is too small to divide.
-				{dst: weave.Address("address-1"), amount: x.NewCoin(0, 666666666, "BTC")},
-				{dst: weave.Address("address-2"), amount: x.NewCoin(1, 333333332, "BTC")},
+				{dst: weave.Address("address-1"), amount: coin.NewCoin(0, 666666666, "BTC")},
+				{dst: weave.Address("address-2"), amount: coin.NewCoin(1, 333333332, "BTC")},
 			},
 		},
 	}

@@ -12,8 +12,8 @@ import (
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/app"
+	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/crypto"
-	"github.com/iov-one/weave/x"
 	"github.com/iov-one/weave/x/batch"
 	"github.com/iov-one/weave/x/cash"
 	"github.com/iov-one/weave/x/escrow"
@@ -221,7 +221,7 @@ func newMultisigTestApp(t require.TestingT, chainID string, contracts []*contrac
 func withWalletAppState(t require.TestingT, accounts []*account) string {
 	type wallet struct {
 		Address weave.Address `json:"address"`
-		Coins   coin.Coins       `json:"coins"`
+		Coins   coin.Coins    `json:"coins"`
 	}
 	state := struct {
 		Cash  []wallet               `json:"cash"`

@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/iov-one/weave"
+	coin "github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/store"
 	"github.com/iov-one/weave/x"
@@ -51,10 +52,10 @@ func TestIssueCoins(t *testing.T) {
 
 	controller := NewController(NewBucket())
 
-	plus := x.NewCoin(500, 1000, "FOO")
-	minus := x.NewCoin(-400, -600, "FOO")
-	total := x.NewCoin(100, 400, "FOO")
-	other := x.NewCoin(1, 0, "DING")
+	plus := coin.NewCoin(500, 1000, "FOO")
+	minus := coin.NewCoin(-400, -600, "FOO")
+	total := coin.NewCoin(100, 400, "FOO")
+	other := coin.NewCoin(1, 0, "DING")
 
 	cases := []struct {
 		issue []issueCmd
@@ -96,7 +97,7 @@ func TestIssueCoins(t *testing.T) {
 		{
 			issue: []issueCmd{
 				{addr, total, false},
-				{addr, x.NewCoin(x.MaxInt, 0, "FOO"), true}},
+				{addr, coin.NewCoin(coin.MaxInt, 0, "FOO"), true}},
 			check: []checkCmd{
 				{addr, false, []coin.Coin{total}, []coin.Coin{plus, other}},
 				{addr2, true, nil, nil},
@@ -149,9 +150,9 @@ func TestMoveCoins(t *testing.T) {
 	controller := NewController(NewBucket())
 
 	cc := "MONY"
-	bank := x.NewCoin(50000, 0, cc)
-	send := x.NewCoin(300, 0, cc)
-	rem := x.NewCoin(49700, 0, cc)
+	bank := coin.NewCoin(50000, 0, cc)
+	send := coin.NewCoin(300, 0, cc)
+	rem := coin.NewCoin(49700, 0, cc)
 
 	cases := []struct {
 		issue issueCmd
@@ -191,13 +192,13 @@ func TestMoveCoins(t *testing.T) {
 		// cannot send zero
 		{
 			issue: issueCmd{addr, bank, false},
-			move:  moveCmd{addr, addr2, x.NewCoin(0, 0, cc), true},
+			move:  moveCmd{addr, addr2, coin.NewCoin(0, 0, cc), true},
 			check: nil,
 		},
 		// cannot send wrong currency
 		{
 			issue: issueCmd{addr, bank, false},
-			move:  moveCmd{addr, addr2, x.NewCoin(500, 0, "BAD"), true},
+			move:  moveCmd{addr, addr2, coin.NewCoin(500, 0, "BAD"), true},
 			check: nil,
 		},
 		// send everything
@@ -268,14 +269,14 @@ func TestBalance(t *testing.T) {
 	ctrl := NewController(NewBucket())
 
 	addr1 := newAddr()
-	coin1 := x.NewCoin(1, 20, "BTC")
+	coin1 := coin.NewCoin(1, 20, "BTC")
 	if err := ctrl.IssueCoins(store, addr1, coin1); err != nil {
 		t.Fatalf("cannot issue coins: %s", err)
 	}
 
 	addr2 := newAddr()
-	coin2_1 := x.NewCoin(3, 40, "ETH")
-	coin2_2 := x.NewCoin(5, 0, "DOGE")
+	coin2_1 := coin.NewCoin(3, 40, "ETH")
+	coin2_2 := coin.NewCoin(5, 0, "DOGE")
 	if err := ctrl.IssueCoins(store, addr2, coin2_1); err != nil {
 		t.Fatalf("cannot issue coins: %s", err)
 	}

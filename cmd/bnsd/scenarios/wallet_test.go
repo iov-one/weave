@@ -1,11 +1,12 @@
 package scenarios
 
 import (
-	"github.com/iov-one/weave/x/cash"
 	"testing"
 
+	"github.com/iov-one/weave/coin"
+	"github.com/iov-one/weave/x/cash"
+
 	"github.com/iov-one/weave/cmd/bnsd/client"
-	"github.com/iov-one/weave/x"
 	"github.com/stretchr/testify/require"
 )
 
@@ -19,17 +20,17 @@ func TestSendTokensWithoutFee(t *testing.T) {
 	require.NotEmpty(t, walletResp.Wallet.Coins)
 
 	heights := make([]int64, len(walletResp.Wallet.Coins))
-	for i, coin := range walletResp.Wallet.Coins {
+	for i, cc := range walletResp.Wallet.Coins {
 		// send a coin from Alice to Emilia
-		coin := coin.Coin{
-			Ticker:     coin.Ticker,
+		c := coin.Coin{
+			Ticker:     cc.Ticker,
 			Fractional: 0,
 			Whole:      1,
 		}
 
 		seq, err := aNonce.Next()
 		require.NoError(t, err)
-		tx := client.BuildSendTx(alice.PublicKey().Address(), emilia.PublicKey().Address(), coin, "test tx without fee")
+		tx := client.BuildSendTx(alice.PublicKey().Address(), emilia.PublicKey().Address(), c, "test tx without fee")
 		require.NoError(t, client.SignTx(tx, alice, chainID, seq))
 		resp := bnsClient.BroadcastTx(tx)
 		require.NoError(t, resp.IsError())
@@ -51,21 +52,21 @@ func TestSendTokenWithFee(t *testing.T) {
 	require.NotEmpty(t, walletResp.Wallet.Coins)
 
 	heights := make([]int64, len(walletResp.Wallet.Coins))
-	for i, coin := range walletResp.Wallet.Coins {
+	for i, c := range walletResp.Wallet.Coins {
 		// send a coin from Alice to Emilia
-		coin := coin.Coin{
-			Ticker:     coin.Ticker,
+		cc := coin.Coin{
+			Ticker:     c.Ticker,
 			Fractional: 0,
 			Whole:      1,
 		}
 
 		seq, err := aNonce.Next()
 		require.NoError(t, err)
-		tx := client.BuildSendTx(alice.PublicKey().Address(), emilia.PublicKey().Address(), coin, "test tx with fee")
+		tx := client.BuildSendTx(alice.PublicKey().Address(), emilia.PublicKey().Address(), cc, "test tx with fee")
 		tx.Fees = &cash.FeeInfo{
 			Payer: alice.PublicKey().Address(),
 			Fees: &coin.Coin{
-				Ticker:     coin.Ticker,
+				Ticker:     c.Ticker,
 				Fractional: 1,
 				Whole:      0,
 			},

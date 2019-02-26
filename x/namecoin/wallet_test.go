@@ -8,9 +8,9 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/iov-one/weave"
+	coin "github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/store"
-	"github.com/iov-one/weave/x"
 	"github.com/iov-one/weave/x/cash"
 )
 
@@ -45,13 +45,13 @@ func TestWalletBucket(t *testing.T) {
 	addr := weave.NewAddress([]byte{1, 2, 3, 4})
 	addr2 := weave.NewAddress([]byte{7, 8, 9, 0})
 
-	coin := x.NewCoin(100, 0, "RTC")
-	coins := []*coin.Coin{&coin}
-	coin2 := x.NewCoin(532, 235, "LRN")
-	coins2 := []*coin.Coin{&coin2, &coin}
-	alice := &Wallet{Name: "alice", Coins: coins}
-	alice2 := &Wallet{Name: "alice", Coins: coins2}
-	bob := &Wallet{Name: "bobby", Coins: coins2}
+	c := coin.NewCoin(100, 0, "RTC")
+	cs := []*coin.Coin{&c}
+	c2 := coin.NewCoin(532, 235, "LRN")
+	cs2 := []*coin.Coin{&c2, &c}
+	alice := &Wallet{Name: "alice", Coins: cs}
+	alice2 := &Wallet{Name: "alice", Coins: cs2}
+	bob := &Wallet{Name: "bobby", Coins: cs2}
 
 	cases := []struct {
 		set           []orm.Object
@@ -82,7 +82,7 @@ func TestWalletBucket(t *testing.T) {
 		// invalid name
 		4: {
 			[]orm.Object{orm.NewSimpleObj(addr,
-				&Wallet{Name: "yo", Coins: coins})},
+				&Wallet{Name: "yo", Coins: cs})},
 			true,
 			nil, nil,
 			nil, nil,

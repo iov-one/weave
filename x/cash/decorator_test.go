@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/iov-one/weave"
+	coin "github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/gconf"
 	"github.com/iov-one/weave/orm"
@@ -61,8 +62,8 @@ func must(obj orm.Object, err error) orm.Object {
 func TestFees(t *testing.T) {
 	var helpers x.TestHelpers
 
-	cash := x.NewCoin(50, 0, "FOO")
-	min := x.NewCoin(0, 1234, "FOO")
+	cash := coin.NewCoin(50, 0, "FOO")
+	min := coin.NewCoin(0, 1234, "FOO")
 	perm := weave.NewCondition("sigs", "ed25519", []byte{1, 2, 3})
 	perm2 := weave.NewCondition("sigs", "ed25519", []byte{3, 4, 5})
 	perm3 := weave.NewCondition("custom", "type", []byte{0xAB})
@@ -117,7 +118,7 @@ func TestFees(t *testing.T) {
 			[]weave.Condition{perm},
 			[]orm.Object{must(WalletWith(perm.Address(), &cash))},
 			&FeeInfo{Fees: &min},
-			x.NewCoin(0, 1000, ""),
+			coin.NewCoin(0, 1000, ""),
 			noErr,
 		},
 		// wrong currency checked
@@ -125,7 +126,7 @@ func TestFees(t *testing.T) {
 			[]weave.Condition{perm},
 			[]orm.Object{must(WalletWith(perm.Address(), &cash))},
 			&FeeInfo{Fees: &min},
-			x.NewCoin(0, 1000, "NOT"),
+			coin.NewCoin(0, 1000, "NOT"),
 			coin.ErrInvalidCurrency.Is,
 		},
 		// has the cash, but didn't offer enough fees
@@ -133,7 +134,7 @@ func TestFees(t *testing.T) {
 			[]weave.Condition{perm},
 			[]orm.Object{must(WalletWith(perm.Address(), &cash))},
 			&FeeInfo{Fees: &min},
-			x.NewCoin(0, 45000, "FOO"),
+			coin.NewCoin(0, 45000, "FOO"),
 			errors.ErrInsufficientAmount.Is,
 		},
 	}

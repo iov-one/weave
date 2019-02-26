@@ -8,6 +8,7 @@ import (
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/app"
+	coin "github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/store"
 	"github.com/iov-one/weave/x"
@@ -33,8 +34,8 @@ func TestHandler(t *testing.T) {
 	_, d := helpers.MakeKey()
 
 	// good
-	all := mustCombineCoins(x.NewCoin(100, 0, "FOO"))
-	some := mustCombineCoins(x.NewCoin(32, 0, "FOO"))
+	all := mustCombineCoins(coin.NewCoin(100, 0, "FOO"))
+	some := mustCombineCoins(coin.NewCoin(32, 0, "FOO"))
 	remain := MustMinusCoins(t, all, some)
 
 	id := func(i int64) []byte {
@@ -609,11 +610,11 @@ func TestAtomicSwap(t *testing.T) {
 	// c is just an observer, no role in escrow
 	_, c := helpers.MakeKey()
 
-	foo := mustCombineCoins(x.NewCoin(500, 0, "FOO"))
-	lilFoo := mustCombineCoins(x.NewCoin(77, 0, "FOO"))
+	foo := mustCombineCoins(coin.NewCoin(500, 0, "FOO"))
+	lilFoo := mustCombineCoins(coin.NewCoin(77, 0, "FOO"))
 	leftFoo := MustMinusCoins(t, foo, lilFoo)
-	bar := mustCombineCoins(x.NewCoin(1100, 0, "BAR"))
-	lilBar := mustCombineCoins(x.NewCoin(250, 0, "BAR"))
+	bar := mustCombineCoins(coin.NewCoin(1100, 0, "BAR"))
+	lilBar := mustCombineCoins(coin.NewCoin(250, 0, "BAR"))
 	leftBar := MustMinusCoins(t, bar, lilBar)
 
 	cases := []struct {

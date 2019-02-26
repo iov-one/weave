@@ -9,6 +9,7 @@ import (
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/app"
+	coin "github.com/iov-one/weave/coin"
 	crypto "github.com/iov-one/weave/crypto"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/orm"
@@ -517,7 +518,7 @@ func asSeqID(i int64) []byte {
 }
 
 func dogeCoin(w, f int64) *coin.Coin {
-	c := x.NewCoin(w, f, "DOGE")
+	c := coin.NewCoin(w, f, "DOGE")
 	return &c
 }
 

@@ -6,7 +6,7 @@ import (
 	"github.com/iov-one/weave"
 	bnsdApp "github.com/iov-one/weave/cmd/bnsd/app"
 	"github.com/iov-one/weave/cmd/bnsd/client"
-	"github.com/iov-one/weave/x"
+	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/x/distribution"
 )
 

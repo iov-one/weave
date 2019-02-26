@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"github.com/iov-one/weave"
+	coin "github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/errors"
-	"github.com/iov-one/weave/x"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -19,7 +19,7 @@ func TestValidateSendMsg(t *testing.T) {
 	addr2 := weave.NewAddress([]byte{3, 4})
 	addr3 := weave.NewAddress([]byte{5, 6})
 
-	pos := x.NewCoin(10, 0, "FOO")
+	pos := coin.NewCoin(10, 0, "FOO")
 	noSrc := &SendMsg{
 		Amount: &pos,
 		Dest:   addr,
@@ -61,7 +61,7 @@ func TestValidateSendMsg(t *testing.T) {
 	assert.Error(t, err)
 	assert.True(t, errors.ErrInvalidState.Is(err))
 
-	neg := x.NewCoin(-3, 0, "FOO")
+	neg := coin.NewCoin(-3, 0, "FOO")
 	minus := &SendMsg{
 		Amount: &neg,
 		Dest:   addr2,
@@ -71,7 +71,7 @@ func TestValidateSendMsg(t *testing.T) {
 	assert.Error(t, err)
 	assert.True(t, errors.ErrInvalidAmount.Is(err))
 
-	bad := x.NewCoin(3, 4, "fab9")
+	bad := coin.NewCoin(3, 4, "fab9")
 	ugly := &SendMsg{
 		Amount: &bad,
 		Dest:   addr2,
@@ -97,7 +97,7 @@ func TestValidateFeeTx(t *testing.T) {
 	assert.Error(t, err)
 	assert.True(t, errors.ErrInvalidAmount.Is(err))
 
-	pos := x.NewCoin(10, 0, "FOO")
+	pos := coin.NewCoin(10, 0, "FOO")
 	plus := &FeeInfo{Fees: &pos}
 	err = plus.Validate()
 	assert.Error(t, err)
@@ -117,7 +117,7 @@ func TestValidateFeeTx(t *testing.T) {
 	}
 	assert.NoError(t, zero.Validate())
 
-	neg := x.NewCoin(-3, 0, "FOO")
+	neg := coin.NewCoin(-3, 0, "FOO")
 	minus := &FeeInfo{
 		Payer: addr,
 		Fees:  &neg,
@@ -126,7 +126,7 @@ func TestValidateFeeTx(t *testing.T) {
 	assert.Error(t, err)
 	assert.True(t, errors.ErrInvalidAmount.Is(err))
 
-	bad := x.NewCoin(3, 0, "fab9")
+	bad := coin.NewCoin(3, 0, "fab9")
 	ugly := &FeeInfo{
 		Payer: addr,
 		Fees:  &bad,
