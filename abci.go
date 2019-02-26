@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/x"
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/common"
 )
@@ -35,11 +36,19 @@ func CheckOrError(result CheckResult, err error, debug bool) abci.ResponseCheckT
 // DeliverResult captures any non-error abci result
 // to make sure people use error for error cases
 type DeliverResult struct {
-	Data    []byte
-	Log     string
-	Diff    []abci.ValidatorUpdate
-	Tags    []common.KVPair
-	GasUsed int64 // unused
+	// Data is a machine-parseable return value, like id of created entity
+	Data []byte
+	// Log is human-readable informational string
+	Log string
+	// RequiredFee can set an custom fee that must be paid for this transaction to be allowed to run.
+	// This is enforced in cash.DynamicFeeDecorator
+	RequiredFee x.Coin
+	// Diff, if present, will apply to the Validator set in tendermint next block
+	Diff []abci.ValidatorUpdate
+	// Tags, if present, will be used by tendermint to index and search the transaction history
+	Tags []common.KVPair
+	// GasUsed is currently unused field until effects in tendermint are clear
+	GasUsed int64
 }
 
 // ToABCI converts our internal type into an abci response
@@ -54,8 +63,13 @@ func (d DeliverResult) ToABCI() abci.ResponseDeliverTx {
 // CheckResult captures any non-error abci result
 // to make sure people use error for error cases
 type CheckResult struct {
+	// Data is a machine-parseable return value, like id of created entity
 	Data []byte
-	Log  string
+	// Log is human-readable informational string
+	Log string
+	// RequiredFee can set an custom fee that must be paid for this transaction to be allowed to run.
+	// This is enforced in cash.DynamicFeeDecorator
+	RequiredFee x.Coin
 	// GasAllocated is the maximum units of work we allow this tx to perform
 	GasAllocated int64
 	// GasPayment is the total fees for this tx (or other source of payment)
