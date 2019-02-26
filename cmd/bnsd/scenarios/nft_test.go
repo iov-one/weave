@@ -24,13 +24,12 @@ func TestIssueNfts(t *testing.T) {
 			Sum: &app.Tx_IssueUsernameNftMsg{&username.IssueTokenMsg{
 				ID:    myUserName,
 				Owner: alice.PublicKey().Address(),
-				Details: username.TokenDetails{[]username.ChainAddress{{
+				Details: username.TokenDetails{Addresses: []username.ChainAddress{{
 					BlockchainID: myBlockchainID,
 					Address:      alice.PublicKey().Address().String(),
-				},
 				}},
-			},
-			},
+				},
+			}},
 		},
 	}
 	aNonce := client.NewNonce(bnsClient, alice.PublicKey().Address())

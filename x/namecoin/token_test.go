@@ -48,7 +48,7 @@ func TestTokenBucket(t *testing.T) {
 			[]orm.Object{NewToken("ABC", "Michael", 5)},
 			false,
 			[]string{"ABC", "LED"},
-			[]*Token{&Token{"Michael", 5}, nil},
+			[]*Token{&Token{Name: "Michael", SigFigs: 5}, nil},
 		},
 		6: {
 			[]orm.Object{
@@ -57,7 +57,7 @@ func TestTokenBucket(t *testing.T) {
 			},
 			false,
 			[]string{"ABC", "LED"},
-			[]*Token{&Token{"Jackson", 5}, &Token{"Zeppelin", 4}},
+			[]*Token{&Token{Name: "Jackson", SigFigs: 5}, &Token{Name: "Zeppelin", SigFigs: 4}},
 		},
 	}
 

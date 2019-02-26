@@ -2,8 +2,9 @@ package multisig
 
 import (
 	"context"
-	"github.com/iov-one/weave/errors"
 	"testing"
+
+	"github.com/iov-one/weave/errors"
 
 	"github.com/stretchr/testify/require"
 
@@ -135,7 +136,7 @@ func TestCreateContractMsgHandler(t *testing.T) {
 			require.NoError(t, err, test.name)
 			contract := queryContract(t, db, handler.bucket, res.Data)
 			require.EqualValues(t,
-				Contract{msg.Sigs, msg.ActivationThreshold, msg.AdminThreshold},
+				Contract{Sigs: msg.Sigs, ActivationThreshold: msg.ActivationThreshold, AdminThreshold: msg.AdminThreshold},
 				contract,
 				test.name)
 		} else {
@@ -238,7 +239,7 @@ func TestUpdateContractMsgHandler(t *testing.T) {
 			require.NoError(t, err, test.name)
 			contract := queryContract(t, db, handler.bucket, msg.Id)
 			require.EqualValues(t,
-				Contract{msg.Sigs, msg.ActivationThreshold, msg.AdminThreshold},
+				Contract{Sigs: msg.Sigs, ActivationThreshold: msg.ActivationThreshold, AdminThreshold: msg.AdminThreshold},
 				contract,
 				test.name)
 		} else {
