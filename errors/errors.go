@@ -335,8 +335,10 @@ func (e *wrappedError) Format(s fmt.State, verb rune) {
 	}
 }
 
-// HasErrorCode checks if this error would return the named error code
-func HasErrorCode(err error, code uint32) bool {
+// hasErrorCode checks if this error would return the named error code
+// only used internally for Redact to avoid issues that have to do with
+// Is expecting the same reference for ErrInternal
+func hasErrorCode(err error, code uint32) bool {
 	if tm, ok := err.(coder); ok {
 		return tm.ABCICode() == code
 	}
@@ -357,7 +359,7 @@ func NormalizePanic(p interface{}) error {
 
 // Redact will replace all panic errors with a generic message
 func Redact(err error) error {
-	if HasErrorCode(err, ErrPanic.code) {
+	if hasErrorCode(err, ErrPanic.code) {
 		return ErrInternal
 	}
 	return err
