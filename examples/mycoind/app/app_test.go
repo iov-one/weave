@@ -39,7 +39,7 @@ func testInitChain(t *testing.T, myApp app.BaseApp, addr string) {
 		},
 		"gconf": dict{
 			cash.GconfCollectorAddress: "fake-collector-address",
-			cash.GconfMinimalFee:       x.Coin{Whole: 0}, // no fee
+			cash.GconfMinimalFee:       coin.Coin{Whole: 0}, // no fee
 		},
 	})
 	if err != nil {
@@ -93,7 +93,7 @@ func testSendTx(t *testing.T, myApp app.BaseApp, h int64,
 	msg := &cash.SendMsg{
 		Src:  sender.PublicKey().Address(),
 		Dest: rcpt,
-		Amount: &x.Coin{
+		Amount: &coin.Coin{
 			Whole:  amount,
 			Ticker: ticker,
 		},

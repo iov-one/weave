@@ -53,7 +53,7 @@ func TestRevenueDistribution(t *testing.T) {
 	sendCoinsTx := client.BuildSendTx(
 		alice.PublicKey().Address(),
 		revenueAddress,
-		x.NewCoin(0, 7, "IOV"),
+		coin.NewCoin(0, 7, "IOV"),
 		"an income that is to be split using revenue distribution")
 	aliceNonce := client.NewNonce(bnsClient, alice.PublicKey().Address())
 	seq, err = aliceNonce.Next()
@@ -108,7 +108,7 @@ func TestRevenueDistribution(t *testing.T) {
 	sendCoinsTx = client.BuildSendTx(
 		alice.PublicKey().Address(),
 		revenueAddress,
-		x.NewCoin(0, 11, "IOV"),
+		coin.NewCoin(0, 11, "IOV"),
 		"an income that is to be split using revenue distribution (2)")
 	seq, err = aliceNonce.Next()
 	if err != nil {
@@ -166,9 +166,9 @@ func assertWalletCoins(t *testing.T, account weave.Address, wantIOVCents int64) 
 		t.Fatal("wallet has no coins")
 	}
 
-	wantCoin := x.NewCoin(0, wantIOVCents, "IOV")
-	gotCoins := x.Coins(w.Wallet.Coins)
-	if !gotCoins.Equals(x.Coins{&wantCoin}) {
+	wantCoin := coin.NewCoin(0, wantIOVCents, "IOV")
+	gotCoins := coin.Coins(w.Wallet.Coins)
+	if !gotCoins.Equals(coin.Coins{&wantCoin}) {
 		t.Fatalf("wallet state: %s", gotCoins)
 	}
 }

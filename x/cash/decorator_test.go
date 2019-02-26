@@ -71,11 +71,11 @@ func TestFees(t *testing.T) {
 		signers   []weave.Condition
 		initState []orm.Object
 		fee       *FeeInfo
-		min       x.Coin
+		min       coin.Coin
 		expect    checkErr
 	}{
 		// no fee given, nothing expected
-		0: {nil, nil, nil, x.Coin{}, noErr},
+		0: {nil, nil, nil, coin.Coin{}, noErr},
 		// no fee given, something expected
 		1: {nil, nil, nil, min, errors.ErrInsufficientAmount.Is},
 		// no signer given
@@ -126,7 +126,7 @@ func TestFees(t *testing.T) {
 			[]orm.Object{must(WalletWith(perm.Address(), &cash))},
 			&FeeInfo{Fees: &min},
 			x.NewCoin(0, 1000, "NOT"),
-			x.ErrInvalidCurrency.Is,
+			coin.ErrInvalidCurrency.Is,
 		},
 		// has the cash, but didn't offer enough fees
 		9: {

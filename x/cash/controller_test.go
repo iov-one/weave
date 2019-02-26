@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func getWallet(kv weave.KVStore, addr weave.Address) x.Coins {
+func getWallet(kv weave.KVStore, addr weave.Address) coin.Coins {
 	bucket := NewBucket()
 	res, err := bucket.Get(kv, addr)
 	if err != nil {
@@ -23,22 +23,22 @@ func getWallet(kv weave.KVStore, addr weave.Address) x.Coins {
 
 type issueCmd struct {
 	addr   weave.Address
-	amount x.Coin
+	amount coin.Coin
 	isErr  bool
 }
 
 type moveCmd struct {
 	sender weave.Address
 	rcpt   weave.Address
-	amount x.Coin
+	amount coin.Coin
 	isErr  bool
 }
 
 type checkCmd struct {
 	addr       weave.Address
 	isNil      bool
-	contains   []x.Coin
-	notContain []x.Coin
+	contains   []coin.Coin
+	notContain []coin.Coin
 }
 
 func TestIssueCoins(t *testing.T) {
@@ -64,7 +64,7 @@ func TestIssueCoins(t *testing.T) {
 		{
 			issue: []issueCmd{{addr, plus, false}},
 			check: []checkCmd{
-				{addr, false, []x.Coin{plus, total}, []x.Coin{other}},
+				{addr, false, []coin.Coin{plus, total}, []coin.Coin{other}},
 				{addr2, true, nil, nil},
 			},
 		},
@@ -72,7 +72,7 @@ func TestIssueCoins(t *testing.T) {
 		{
 			issue: []issueCmd{{addr, plus, false}, {addr, minus, false}},
 			check: []checkCmd{
-				{addr, false, []x.Coin{total}, []x.Coin{plus, other}},
+				{addr, false, []coin.Coin{total}, []coin.Coin{plus, other}},
 				{addr2, true, nil, nil},
 			},
 		},
@@ -80,8 +80,8 @@ func TestIssueCoins(t *testing.T) {
 		{
 			issue: []issueCmd{{addr, total, false}, {addr2, other, false}},
 			check: []checkCmd{
-				{addr, false, []x.Coin{total}, []x.Coin{plus, other}},
-				{addr2, false, []x.Coin{other}, []x.Coin{plus, total}},
+				{addr, false, []coin.Coin{total}, []coin.Coin{plus, other}},
+				{addr2, false, []coin.Coin{other}, []coin.Coin{plus, total}},
 			},
 		},
 		// set back to zero
@@ -98,7 +98,7 @@ func TestIssueCoins(t *testing.T) {
 				{addr, total, false},
 				{addr, x.NewCoin(x.MaxInt, 0, "FOO"), true}},
 			check: []checkCmd{
-				{addr, false, []x.Coin{total}, []x.Coin{plus, other}},
+				{addr, false, []coin.Coin{total}, []coin.Coin{plus, other}},
 				{addr2, true, nil, nil},
 			},
 		},
@@ -164,7 +164,7 @@ func TestMoveCoins(t *testing.T) {
 			move:  moveCmd{addr, addr2, send, true},
 			check: []checkCmd{
 				{addr2, true, nil, nil},
-				{addr3, false, []x.Coin{bank}, nil},
+				{addr3, false, []coin.Coin{bank}, nil},
 			},
 		},
 		// simple send
@@ -172,8 +172,8 @@ func TestMoveCoins(t *testing.T) {
 			issue: issueCmd{addr, bank, false},
 			move:  moveCmd{addr, addr2, send, false},
 			check: []checkCmd{
-				{addr, false, []x.Coin{rem}, []x.Coin{bank}},
-				{addr2, false, []x.Coin{send}, []x.Coin{bank}},
+				{addr, false, []coin.Coin{rem}, []coin.Coin{bank}},
+				{addr2, false, []coin.Coin{send}, []coin.Coin{bank}},
 			},
 		},
 		// cannot send negative
@@ -206,7 +206,7 @@ func TestMoveCoins(t *testing.T) {
 			move:  moveCmd{addr, addr2, bank, false},
 			check: []checkCmd{
 				{addr, true, nil, nil},
-				{addr2, false, []x.Coin{bank}, nil},
+				{addr2, false, []coin.Coin{bank}, nil},
 			},
 		},
 		// send to self
@@ -214,7 +214,7 @@ func TestMoveCoins(t *testing.T) {
 			issue: issueCmd{addr, rem, false},
 			move:  moveCmd{addr, addr, send, false},
 			check: []checkCmd{
-				{addr, false, []x.Coin{send, rem}, []x.Coin{bank}},
+				{addr, false, []coin.Coin{send, rem}, []coin.Coin{bank}},
 			},
 		},
 		// TODO: check overflow
@@ -285,7 +285,7 @@ func TestBalance(t *testing.T) {
 
 	cases := map[string]struct {
 		addr      weave.Address
-		wantCoins x.Coins
+		wantCoins coin.Coins
 		wantErr   error
 	}{
 		"non exising account": {
@@ -294,13 +294,13 @@ func TestBalance(t *testing.T) {
 		},
 		"exising account with one coin": {
 			addr:      addr1,
-			wantCoins: x.Coins{&coin1},
+			wantCoins: coin.Coins{&coin1},
 		},
 		"exising account with two coins": {
 			addr: addr2,
 			// Coins are stored in normalized form
 			// https://github.com/iov-one/weave/pull/316#discussion_r256763396
-			wantCoins: x.Coins{&coin2_2, &coin2_1},
+			wantCoins: coin.Coins{&coin2_2, &coin2_1},
 		},
 	}
 

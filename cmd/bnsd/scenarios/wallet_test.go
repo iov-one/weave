@@ -21,7 +21,7 @@ func TestSendTokensWithoutFee(t *testing.T) {
 	heights := make([]int64, len(walletResp.Wallet.Coins))
 	for i, coin := range walletResp.Wallet.Coins {
 		// send a coin from Alice to Emilia
-		coin := x.Coin{
+		coin := coin.Coin{
 			Ticker:     coin.Ticker,
 			Fractional: 0,
 			Whole:      1,
@@ -53,7 +53,7 @@ func TestSendTokenWithFee(t *testing.T) {
 	heights := make([]int64, len(walletResp.Wallet.Coins))
 	for i, coin := range walletResp.Wallet.Coins {
 		// send a coin from Alice to Emilia
-		coin := x.Coin{
+		coin := coin.Coin{
 			Ticker:     coin.Ticker,
 			Fractional: 0,
 			Whole:      1,
@@ -64,7 +64,7 @@ func TestSendTokenWithFee(t *testing.T) {
 		tx := client.BuildSendTx(alice.PublicKey().Address(), emilia.PublicKey().Address(), coin, "test tx with fee")
 		tx.Fees = &cash.FeeInfo{
 			Payer: alice.PublicKey().Address(),
-			Fees: &x.Coin{
+			Fees: &coin.Coin{
 				Ticker:     coin.Ticker,
 				Fractional: 1,
 				Whole:      0,

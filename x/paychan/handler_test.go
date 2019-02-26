@@ -516,7 +516,7 @@ func asSeqID(i int64) []byte {
 	return b
 }
 
-func dogeCoin(w, f int64) *x.Coin {
+func dogeCoin(w, f int64) *coin.Coin {
 	c := x.NewCoin(w, f, "DOGE")
 	return &c
 }

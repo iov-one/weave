@@ -20,7 +20,7 @@ import (
 )
 
 // configuration for genesis
-var initBalance = x.Coin{
+var initBalance = coin.Coin{
 	Whole:  100200300,
 	Ticker: "TOOL",
 }
@@ -81,12 +81,12 @@ func initGenesis(filename string, addr weave.Address) error {
 		"cash": []interface{}{
 			map[string]interface{}{
 				"address": addr,
-				"coins":   x.Coins{&initBalance},
+				"coins":   coin.Coins{&initBalance},
 			},
 		},
 		"gconf": map[string]interface{}{
 			cash.GconfCollectorAddress: "fake-collector-address",
-			cash.GconfMinimalFee:       x.Coin{}, // no fee
+			cash.GconfMinimalFee:       coin.Coin{}, // no fee
 		},
 	})
 	if err != nil {

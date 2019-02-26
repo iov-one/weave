@@ -79,7 +79,7 @@ func TestValidateSendMsg(t *testing.T) {
 	}
 	err = ugly.Validate()
 	assert.Error(t, err)
-	assert.True(t, x.ErrInvalidCurrency.Is(err))
+	assert.True(t, coin.ErrInvalidCurrency.Is(err))
 
 }
 
@@ -113,7 +113,7 @@ func TestValidateFeeTx(t *testing.T) {
 
 	zero := &FeeInfo{
 		Payer: addr2,
-		Fees:  &x.Coin{Ticker: "BAR"},
+		Fees:  &coin.Coin{Ticker: "BAR"},
 	}
 	assert.NoError(t, zero.Validate())
 
@@ -133,6 +133,6 @@ func TestValidateFeeTx(t *testing.T) {
 	}
 	err = ugly.Validate()
 	assert.Error(t, err)
-	assert.True(t, x.ErrInvalidCurrency.Is(err))
+	assert.True(t, coin.ErrInvalidCurrency.Is(err))
 
 }

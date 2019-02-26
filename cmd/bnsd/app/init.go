@@ -10,10 +10,10 @@ import (
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/app"
 	"github.com/iov-one/weave/cmd/bnsd/x/nft/username"
+	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/crypto"
 	"github.com/iov-one/weave/gconf"
 	"github.com/iov-one/weave/orm"
-	"github.com/iov-one/weave/x"
 	"github.com/iov-one/weave/x/cash"
 	"github.com/iov-one/weave/x/currency"
 	"github.com/iov-one/weave/x/distribution"
@@ -31,7 +31,7 @@ func GenInitOptions(args []string) (json.RawMessage, error) {
 	ticker := "IOV"
 	if len(args) > 0 {
 		ticker = args[0]
-		if !x.IsCC(ticker) {
+		if !coin.IsCC(ticker) {
 			return nil, fmt.Errorf("Invalid ticker %s", ticker)
 		}
 	}

@@ -135,7 +135,7 @@ func TestNewTokenHandler(t *testing.T) {
 			errors.ErrInvalidMsg.Is, errors.ErrInvalidMsg.Is, "", nil},
 		// wrong currency values
 		1: {nil, nil, nil, BuildTokenMsg("YO", "digga", 7),
-			x.ErrInvalidCurrency.Is, x.ErrInvalidCurrency.Is, "", nil},
+			coin.ErrInvalidCurrency.Is, coin.ErrInvalidCurrency.Is, "", nil},
 		2: {nil, nil, nil, BuildTokenMsg("GOOD", "ill3glz!", 7),
 			errors.ErrInvalidInput.Is, errors.ErrInvalidInput.Is, "", nil},
 		3: {nil, nil, nil, BuildTokenMsg("GOOD", "my good token", 17),

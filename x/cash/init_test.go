@@ -73,7 +73,7 @@ func TestInitState(t *testing.T) {
 }
 
 // mustCombineCoins has one return value for tests...
-func mustCombineCoins(cs ...x.Coin) x.Coins {
+func mustCombineCoins(cs ...coin.Coin) coin.Coins {
 	s, err := x.CombineCoins(cs...)
 	if err != nil {
 		panic(err)

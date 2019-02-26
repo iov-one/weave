@@ -12,7 +12,7 @@ import (
 )
 
 // mustCombineCoins has one return value for tests...
-func mustCombineCoins(cs ...x.Coin) x.Coins {
+func mustCombineCoins(cs ...coin.Coin) coin.Coins {
 	s, err := x.CombineCoins(cs...)
 	if err != nil {
 		panic(err)
@@ -39,7 +39,7 @@ func TestCreateEscrowMsg(t *testing.T) {
 	// invalid
 	minus := mustCombineCoins(x.NewCoin(100, 0, "BAR"),
 		x.NewCoin(-20, 0, "FIT"))
-	mixed := x.Coins{{Whole: 100, Ticker: "bad"}}
+	mixed := coin.Coins{{Whole: 100, Ticker: "bad"}}
 
 	cases := []struct {
 		msg   *CreateEscrowMsg
@@ -97,7 +97,7 @@ func TestCreateEscrowMsg(t *testing.T) {
 				Amount:    mixed,
 				Timeout:   52,
 			},
-			x.ErrInvalidCurrency.Is,
+			coin.ErrInvalidCurrency.Is,
 		},
 		// missing amount
 		6: {
@@ -151,7 +151,7 @@ func TestReleaseEscrowMsg(t *testing.T) {
 	// invalid
 	minus := mustCombineCoins(x.NewCoin(100, 0, "BAR"),
 		x.NewCoin(-20, 0, "FIT"))
-	mixed := x.Coins{{Whole: 100, Ticker: "bad"}}
+	mixed := coin.Coins{{Whole: 100, Ticker: "bad"}}
 
 	cases := []struct {
 		msg   *ReleaseEscrowMsg
@@ -202,7 +202,7 @@ func TestReleaseEscrowMsg(t *testing.T) {
 				EscrowId: escrow,
 				Amount:   mixed,
 			},
-			x.ErrInvalidCurrency.Is,
+			coin.ErrInvalidCurrency.Is,
 		},
 	}
 

@@ -28,7 +28,7 @@ func GenInitOptions(args []string) (json.RawMessage, error) {
 	ticker := "IOV"
 	if len(args) > 0 {
 		ticker = args[0]
-		if !x.IsCC(ticker) {
+		if !coin.IsCC(ticker) {
 			return nil, fmt.Errorf("Invalid ticker %s", ticker)
 		}
 	}

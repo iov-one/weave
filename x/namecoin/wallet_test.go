@@ -46,9 +46,9 @@ func TestWalletBucket(t *testing.T) {
 	addr2 := weave.NewAddress([]byte{7, 8, 9, 0})
 
 	coin := x.NewCoin(100, 0, "RTC")
-	coins := []*x.Coin{&coin}
+	coins := []*coin.Coin{&coin}
 	coin2 := x.NewCoin(532, 235, "LRN")
-	coins2 := []*x.Coin{&coin2, &coin}
+	coins2 := []*coin.Coin{&coin2, &coin}
 	alice := &Wallet{Name: "alice", Coins: coins}
 	alice2 := &Wallet{Name: "alice", Coins: coins2}
 	bob := &Wallet{Name: "bobby", Coins: coins2}

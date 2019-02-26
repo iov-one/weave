@@ -51,7 +51,7 @@ func TestInitState(t *testing.T) {
 
 	// invalid wallet
 	badCoin := x.NewCoin(100, -5000, "ATM")
-	walletBad := &Wallet{Coins: []*x.Coin{&badCoin}}
+	walletBad := &Wallet{Coins: []*coin.Coin{&badCoin}}
 	opts3, err := BuildGenesis(
 		[]GenesisAccount{{Address: addr2, Wallet: walletBad}},
 		[]GenesisToken{ToGenesisToken(ticker2, token2)})
@@ -121,7 +121,7 @@ func TestInitState(t *testing.T) {
 }
 
 // mustCombineCoins has one return value for tests...
-func mustCombineCoins(cs ...x.Coin) x.Coins {
+func mustCombineCoins(cs ...coin.Coin) coin.Coins {
 	s, err := x.CombineCoins(cs...)
 	if err != nil {
 		panic(err)
