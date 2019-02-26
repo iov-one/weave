@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/x"
 	"github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/common"
 )
@@ -80,11 +81,14 @@ func (*Decorator) combineChecks(checks []weave.CheckResult) weave.CheckResult {
 	datas := make([][]byte, len(checks))
 	logs := make([]string, len(checks))
 	var allocated, payments int64
+	var required x.Coin
 	for i, r := range checks {
 		datas[i] = r.Data
 		logs[i] = r.Log
 		allocated += r.GasAllocated
 		payments += r.GasPayment
+		// TODO: add test for required fee
+		required = required.Add(r.RequiredFee)
 	}
 
 	data, _ := (&ByteArrayList{Elements: datas}).Marshal()
@@ -138,10 +142,13 @@ func (*Decorator) combineDelivers(delivers []weave.DeliverResult) weave.DeliverR
 	var payments int64
 	var diffs []types.ValidatorUpdate
 	var tags []common.KVPair
+	var required x.Coin
 	for i, r := range delivers {
 		datas[i] = r.Data
 		logs[i] = r.Log
 		payments += r.GasUsed
+		// TODO: add test for required fee
+		required = required.Add(r.RequiredFee)
 		if len(r.Diff) > 0 {
 			diffs = append(diffs, r.Diff...)
 		}
