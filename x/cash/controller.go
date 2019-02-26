@@ -2,8 +2,8 @@ package cash
 
 import (
 	"github.com/iov-one/weave"
+	coin "github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/errors"
-	"github.com/iov-one/weave/x"
 )
 
 // Controller is the functionality needed by cash.Handler and cash.Decorator.
@@ -12,14 +12,14 @@ import (
 type Controller interface {
 	// MoveCoins removes funds from the source account and adds them to the
 	// destination account. This operation is atomic.
-	MoveCoins(store weave.KVStore, src weave.Address, dest weave.Address, amount x.Coin) error
+	MoveCoins(store weave.KVStore, src weave.Address, dest weave.Address, amount coin.Coin) error
 
 	// IssueCoins increase the number of funds on given accouunt by a
 	// specified amount.
-	IssueCoins(weave.KVStore, weave.Address, x.Coin) error
+	IssueCoins(weave.KVStore, weave.Address, coin.Coin) error
 
 	// Balance returns the amount of funds stored under given account address.
-	Balance(weave.KVStore, weave.Address) (x.Coins, error)
+	Balance(weave.KVStore, weave.Address) (coin.Coins, error)
 }
 
 // BaseController implements Controller interface, using WalletBucket as the
@@ -37,7 +37,7 @@ func NewController(bucket WalletBucket) BaseController {
 }
 
 // Balance returns the amount of funds stored under given account address.
-func (c BaseController) Balance(store weave.KVStore, src weave.Address) (x.Coins, error) {
+func (c BaseController) Balance(store weave.KVStore, src weave.Address) (coin.Coins, error) {
 	state, err := c.bucket.Get(store, src)
 	if err != nil {
 		return nil, errors.Wrap(err, "cannot get account state")
@@ -52,7 +52,7 @@ func (c BaseController) Balance(store weave.KVStore, src weave.Address) (x.Coins
 // If src doesn't exist, or doesn't have sufficient
 // coins, it fails.
 func (c BaseController) MoveCoins(store weave.KVStore,
-	src weave.Address, dest weave.Address, amount x.Coin) error {
+	src weave.Address, dest weave.Address, amount coin.Coin) error {
 
 	if !amount.IsPositive() {
 		return errors.ErrInvalidAmount.Newf("non-positive SendMsg: %#v", &amount)
@@ -96,7 +96,7 @@ func (c BaseController) MoveCoins(store weave.KVStore,
 // Note the amount may also be negative:
 // "the lord giveth and the lord taketh away"
 func (c BaseController) IssueCoins(store weave.KVStore,
-	dest weave.Address, amount x.Coin) error {
+	dest weave.Address, amount coin.Coin) error {
 
 	recipient, err := c.bucket.GetOrCreate(store, dest)
 	if err != nil {

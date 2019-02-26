@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/iov-one/weave"
-	"github.com/iov-one/weave/x"
+	"github.com/iov-one/weave/coin"
 )
 
 type Store interface {
@@ -61,8 +61,8 @@ func Bytes(confStore Store, propName string) []byte {
 	return value
 }
 
-func Coin(confStore Store, propName string) x.Coin {
-	var value x.Coin
+func Coin(confStore Store, propName string) coin.Coin {
+	var value coin.Coin
 	loadInto(confStore, propName, &value)
 	return value
 }

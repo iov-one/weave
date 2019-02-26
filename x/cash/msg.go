@@ -2,8 +2,8 @@ package cash
 
 import (
 	"github.com/iov-one/weave"
+	coin "github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/errors"
-	"github.com/iov-one/weave/x"
 )
 
 // Ensure we implement the Msg interface
@@ -25,7 +25,7 @@ func (SendMsg) Path() string {
 // Validate makes sure that this is sensible
 func (s *SendMsg) Validate() error {
 	amt := s.GetAmount()
-	if x.IsEmpty(amt) || !amt.IsPositive() {
+	if coin.IsEmpty(amt) || !amt.IsPositive() {
 		return errors.ErrInvalidAmount.Newf("non-positive SendMsg: %#v", amt)
 
 	}

@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"github.com/iov-one/weave"
-	"github.com/iov-one/weave/x"
+	"github.com/iov-one/weave/coin"
 	"github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/common"
 )
@@ -81,7 +81,7 @@ func (*Decorator) combineChecks(checks []weave.CheckResult) weave.CheckResult {
 	datas := make([][]byte, len(checks))
 	logs := make([]string, len(checks))
 	var allocated, payments int64
-	var required x.Coin
+	var required coin.Coin
 	for i, r := range checks {
 		datas[i] = r.Data
 		logs[i] = r.Log
@@ -142,7 +142,7 @@ func (*Decorator) combineDelivers(delivers []weave.DeliverResult) weave.DeliverR
 	var payments int64
 	var diffs []types.ValidatorUpdate
 	var tags []common.KVPair
-	var required x.Coin
+	var required coin.Coin
 	for i, r := range delivers {
 		datas[i] = r.Data
 		logs[i] = r.Log

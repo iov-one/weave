@@ -1,12 +1,13 @@
 package currency
 
 import (
-	"github.com/iov-one/weave/errors"
 	"regexp"
+
+	"github.com/iov-one/weave/coin"
+	"github.com/iov-one/weave/errors"
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/orm"
-	"github.com/iov-one/weave/x"
 )
 
 var isTokenName = regexp.MustCompile(`^[A-Za-z0-9 \-_:]{3,32}$`).MatchString
@@ -54,8 +55,8 @@ func (b *TokenInfoBucket) Save(db weave.KVStore, obj orm.Object) error {
 	if _, ok := obj.Value().(*TokenInfo); !ok {
 		return errors.WithType(errors.ErrInvalidModel, obj.Value())
 	}
-	if n := string(obj.Key()); !x.IsCC(n) {
-		return x.ErrInvalidCurrency.New(n)
+	if n := string(obj.Key()); !coin.IsCC(n) {
+		return coin.ErrInvalidCurrency.New(n)
 	}
 	return b.Bucket.Save(db, obj)
 }

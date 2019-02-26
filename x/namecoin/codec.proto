@@ -2,11 +2,11 @@ syntax = "proto3";
 
 package namecoin;
 
-import "github.com/iov-one/weave/x/codec.proto";
+import "github.com/iov-one/weave/coin/codec.proto";
 
 // Wallet has a name and a set of coins
 message Wallet {
-  repeated x.Coin coins = 1;
+  repeated coin.Coin coins = 1;
   string name = 2;
 }
 

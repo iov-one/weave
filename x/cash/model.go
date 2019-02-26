@@ -2,9 +2,9 @@ package cash
 
 import (
 	"github.com/iov-one/weave"
+	coin "github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/store"
-	"github.com/iov-one/weave/x"
 )
 
 // BucketName is where we store the balances
@@ -28,7 +28,7 @@ func (s *Set) Copy() orm.CloneableData {
 }
 
 // SetCoins allows us to modify the Set
-func (s *Set) SetCoins(coins []*x.Coin) {
+func (s *Set) SetCoins(coins []*coin.Coin) {
 	s.Coins = coins
 }
 
@@ -39,16 +39,16 @@ func (s *Set) SetCoins(coins []*x.Coin) {
 // (oh, how I long for default implementations for interface,
 // like rust traits)
 type Coinage interface {
-	GetCoins() []*x.Coin
-	SetCoins([]*x.Coin)
+	GetCoins() []*coin.Coin
+	SetCoins([]*coin.Coin)
 }
 
 // XCoins returns the stored coins cast properly
-func XCoins(c Coinage) x.Coins {
+func XCoins(c Coinage) coin.Coins {
 	if c == nil {
 		return nil
 	}
-	return x.Coins(c.GetCoins())
+	return coin.Coins(c.GetCoins())
 }
 
 // AsCoinage will safely type-cast any value from Bucket to Coinage
@@ -60,13 +60,13 @@ func AsCoinage(obj orm.Object) Coinage {
 }
 
 // AsCoins will extract XCoins from any object
-func AsCoins(obj orm.Object) x.Coins {
+func AsCoins(obj orm.Object) coin.Coins {
 	c := AsCoinage(obj)
 	return XCoins(c)
 }
 
 // Add modifies the coinage to add Coin c
-func Add(cng Coinage, c x.Coin) error {
+func Add(cng Coinage, c coin.Coin) error {
 	cs, err := XCoins(cng).Add(c)
 	if err != nil {
 		return err
@@ -76,13 +76,13 @@ func Add(cng Coinage, c x.Coin) error {
 }
 
 // Subtract modifies the coinage to remove Coin c
-func Subtract(cng Coinage, c x.Coin) error {
+func Subtract(cng Coinage, c coin.Coin) error {
 	return Add(cng, c.Negative())
 }
 
 // Concat combines the coins to make sure they are sorted
 // and rounded off, with no duplicates or 0 values.
-func Concat(cng Coinage, coins x.Coins) error {
+func Concat(cng Coinage, coins coin.Coins) error {
 	joint, err := XCoins(cng).Combine(coins)
 	if err != nil {
 		return err
@@ -100,7 +100,7 @@ func NewWallet(key weave.Address) orm.Object {
 }
 
 // WalletWith creates an wallet with a balance
-func WalletWith(key weave.Address, coins ...*x.Coin) (orm.Object, error) {
+func WalletWith(key weave.Address, coins ...*coin.Coin) (orm.Object, error) {
 	obj := NewWallet(key)
 	err := Concat(AsCoinage(obj), coins)
 	if err != nil {
