@@ -9,9 +9,7 @@ import (
 // CoinsMover is an interface for moving coins between accounts.
 type CoinMover interface {
 	// Moving coins must happen from the source to the destination address.
-	// Negative amounts must not be accepted. Calling this method with a
-	// negative amount must fail.
-	// Zero amount can be allowed but then should be a no-operation.
+	// Zero or negative values must result in an error.
 	MoveCoins(store weave.KVStore, src weave.Address, dest weave.Address, amount coin.Coin) error
 }
 
@@ -62,11 +60,8 @@ func (c BaseController) MoveCoins(store weave.KVStore,
 	src weave.Address, dest weave.Address, amount coin.Coin) error {
 
 	if amount.IsZero() {
-		// Moving no coins can be ignored as it should not change the
-		// state.
-		return nil
+		return errors.ErrInvalidAmount.New("zero value")
 	}
-
 	if !amount.IsPositive() {
 		return errors.ErrInvalidAmount.Newf("non-positive SendMsg: %#v", &amount)
 	}
