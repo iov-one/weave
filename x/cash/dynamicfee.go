@@ -4,23 +4,26 @@ DynamicFeeDecorator is an enhanced version the basic FeeDecorator with better
 handling of transaction errors and ability to deduct/enforce app-specific fees.
 
 The business logic is:
-* If a transaction fee < min fee, or a transaction fee cannot be paid, reject with
-  an error.
-* Run the transaction.
-* If a transaction processing results in an error, revert all transaction
-  changes and charge only the min fee.
+1. If a transaction fee < min fee, or a transaction fee cannot be paid, reject
+   it with an error.
+2. Run the transaction.
+3. If a transaction processing results in an error, revert all transaction
+   changes and charge only the min fee.
 
-TODO: * If a transaction succeeded, but requested a RequiredFee higher than
-paid fee, revert all transaction changes and refund all but the min fee,
-returning an error.
+TODO: If a transaction succeeded, but requested a RequiredFee higher than paid
+fee, revert all transaction changes and refund all but the min fee, returning
+an error.
 
-* If a transaction succeeded, and at least RequiredFee was paid, everything is
-  committed and we return success
+If a transaction succeeded, and at least RequiredFee was paid, everything is
+committed and we return success
 
 It also embeds a checkpoint inside, so in the typical application stack:
+
 	cash.NewFeeDecorator(authFn, ctrl),
 	utils.NewSavepoint().OnDeliver(),
+
 can be replaced by
+
 	cash.NewDynamicFeeDecorator(authFn, ctrl),
 
 As with FeeDecorator, all deducted fees are send to the collector, whose
@@ -74,9 +77,9 @@ func (d DynamicFeeDecorator) Check(ctx weave.Context, store weave.KVStore, tx we
 	// do subtransaction in a function for easier error handling
 	res, err = func() (weave.CheckResult, error) {
 		// shadow with local variables...
-		err := d.maybeTakeFee(cache, payer, fee)
+		err := d.chargeFee(cache, payer, fee)
 		if err != nil {
-			return weave.CheckResult{}, err
+			return weave.CheckResult{}, errors.Wrap(err, "cannot charge fee")
 		}
 		res, err := next.Check(ctx, cache, tx)
 		// TODO: check RequiredFee here and return an error if insufficient
@@ -88,7 +91,7 @@ func (d DynamicFeeDecorator) Check(ctx weave.Context, store weave.KVStore, tx we
 		cache.Discard()
 		// if this fails, we aborted early above, we can just ignore return value
 		// this is 2 ops, not 1, for errors, but done to optimize the success case to use 1 not 2
-		d.maybeTakeFee(store, payer, minFee)
+		_ = d.chargeFee(store, payer, minFee)
 		// return error from the transaction, not the possible error from minFee deduction
 		return res, err
 	}
@@ -115,9 +118,9 @@ func (d DynamicFeeDecorator) Deliver(ctx weave.Context, store weave.KVStore, tx 
 	// do subtransaction in a function for easier error handling
 	res, err = func() (weave.DeliverResult, error) {
 		// shadow with local variables...
-		err := d.maybeTakeFee(cache, payer, fee)
+		err := d.chargeFee(cache, payer, fee)
 		if err != nil {
-			return weave.DeliverResult{}, err
+			return weave.DeliverResult{}, errors.Wrap(err, "cannot charge fee")
 		}
 		res, err := next.Deliver(ctx, cache, tx)
 		// TODO: check RequiredFee here and return an error if insufficient
@@ -129,7 +132,7 @@ func (d DynamicFeeDecorator) Deliver(ctx weave.Context, store weave.KVStore, tx 
 		cache.Discard()
 		// if this fails, we aborted early above, we can just ignore return value
 		// this is 2 ops, not 1, for errors, but done to optimize the success case to use 1 not 2
-		d.maybeTakeFee(store, payer, minFee)
+		_ = d.chargeFee(store, payer, minFee)
 		// return error from the transaction, not the possible error from minFee deduction
 		return res, err
 	}
@@ -139,10 +142,14 @@ func (d DynamicFeeDecorator) Deliver(ctx weave.Context, store weave.KVStore, tx 
 	return res, err
 }
 
-// maybeTakeFee will send fees only if they are positive, so we don't have to check IsZero() everywhere else
-func (d DynamicFeeDecorator) maybeTakeFee(store weave.KVStore, src weave.Address, amount coin.Coin) error {
+// chargeFee will send fees only if they are positive. Zero fees are are a no
+// operation actions and negative fee is a missconfiguration error.
+func (d DynamicFeeDecorator) chargeFee(store weave.KVStore, src weave.Address, amount coin.Coin) error {
 	if amount.IsZero() {
 		return nil
+	}
+	if !amount.IsPositive() {
+		return errors.ErrInvalidState.Newf("negative fee: %v", amount)
 	}
 	dest := d.getCollector(store)
 	return d.ctrl.MoveCoins(store, src, dest, amount)
