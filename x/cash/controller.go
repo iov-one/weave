@@ -6,13 +6,18 @@ import (
 	"github.com/iov-one/weave/errors"
 )
 
+// CoinsMover is an interface for moving coins between accounts.
+type CoinMover interface {
+	// MoveCoins removes funds from the source account and adds them to the
+	// destination account. This operation is atomic.
+	MoveCoins(store weave.KVStore, src weave.Address, dest weave.Address, amount coin.Coin) error
+}
+
 // Controller is the functionality needed by cash.Handler and cash.Decorator.
 // BaseController should work plenty fine, but you can add other logic if so
 // desired
 type Controller interface {
-	// MoveCoins removes funds from the source account and adds them to the
-	// destination account. This operation is atomic.
-	MoveCoins(store weave.KVStore, src weave.Address, dest weave.Address, amount coin.Coin) error
+	CoinMover
 
 	// IssueCoins increase the number of funds on given accouunt by a
 	// specified amount.
@@ -20,13 +25,6 @@ type Controller interface {
 
 	// Balance returns the amount of funds stored under given account address.
 	Balance(weave.KVStore, weave.Address) (coin.Coins, error)
-}
-
-// FeeController is a minimal subset of the full cash.Controller
-type FeeController interface {
-	// MoveCoins removes funds from the source account and adds them to the
-	// destination account. This operation is atomic.
-	MoveCoins(store weave.KVStore, src weave.Address, dest weave.Address, amount x.Coin) error
 }
 
 // BaseController implements Controller interface, using WalletBucket as the

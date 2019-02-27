@@ -2,6 +2,7 @@ package cash
 
 import (
 	"github.com/iov-one/weave"
+	coin "github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/gconf"
 	"github.com/iov-one/weave/x"
@@ -36,21 +37,21 @@ As with FeeDecorator, all deducted fees are send to the collector,
 whose address is configured via gconf package.
 */
 type DynamicFeeDecorator struct {
-	auth    x.Authenticator
-	control FeeController
+	auth x.Authenticator
+	ctrl CoinMover
 	// these are cached values to not hit gconf on each read
 	collector weave.Address
-	minFee    *x.Coin
+	minFee    *coin.Coin
 }
 
 var _ weave.Decorator = DynamicFeeDecorator{}
 
 // NewDynamicFeeDecorator returns a DynamicFeeDecorator with the given
 // minimum fee, and all collected fees going to a default address.
-func NewDynamicFeeDecorator(auth x.Authenticator, control FeeController) DynamicFeeDecorator {
+func NewDynamicFeeDecorator(auth x.Authenticator, ctrl CoinMover) DynamicFeeDecorator {
 	return DynamicFeeDecorator{
-		auth:    auth,
-		control: control,
+		auth: auth,
+		ctrl: ctrl,
 	}
 }
 
@@ -137,18 +138,18 @@ func (d DynamicFeeDecorator) Deliver(ctx weave.Context, store weave.KVStore, tx 
 }
 
 // maybeTakeFee will send fees only if they are positive, so we don't have to check IsZero() everywhere else
-func (d DynamicFeeDecorator) maybeTakeFee(store weave.KVStore, src weave.Address, amount x.Coin) error {
+func (d DynamicFeeDecorator) maybeTakeFee(store weave.KVStore, src weave.Address, amount coin.Coin) error {
 	if amount.IsZero() {
 		return nil
 	}
 	dest := d.getCollector(store)
-	return d.control.MoveCoins(store, src, dest, amount)
+	return d.ctrl.MoveCoins(store, src, dest, amount)
 }
 
 // prepare is all shared setup between Check and Deliver, one more level above extractFee
-func (d DynamicFeeDecorator) prepare(ctx weave.Context, store weave.KVStore, tx weave.Tx) (fee x.Coin, payer weave.Address, cache weave.KVCacheWrap, err error) {
+func (d DynamicFeeDecorator) prepare(ctx weave.Context, store weave.KVStore, tx weave.Tx) (fee coin.Coin, payer weave.Address, cache weave.KVCacheWrap, err error) {
 	var finfo *FeeInfo
-	fee = x.Coin{}
+	fee = coin.Coin{}
 
 	// extract expected fee
 	finfo, err = d.extractFee(ctx, tx, store)
@@ -190,12 +191,12 @@ func (d DynamicFeeDecorator) extractFee(ctx weave.Context, tx weave.Tx, store we
 	}
 
 	fee := finfo.GetFees()
-	if x.IsEmpty(fee) {
+	if coin.IsEmpty(fee) {
 		minFee := d.getMinFee(store)
 		if minFee.IsZero() {
 			return finfo, nil
 		}
-		return nil, errors.ErrInsufficientAmount.Newf("fees %#v", &x.Coin{})
+		return nil, errors.ErrInsufficientAmount.Newf("fees %#v", &coin.Coin{})
 	}
 
 	// make sure it is a valid fee (non-negative, going somewhere)
@@ -210,7 +211,7 @@ func (d DynamicFeeDecorator) extractFee(ctx weave.Context, tx weave.Tx, store we
 		cmp.Ticker = fee.Ticker
 	}
 	if !fee.SameType(cmp) {
-		return nil, x.ErrInvalidCurrency.Newf("%s vs fee %s", cmp.Ticker, fee.Ticker)
+		return nil, coin.ErrInvalidCurrency.Newf("%s vs fee %s", cmp.Ticker, fee.Ticker)
 
 	}
 	if !fee.IsGTE(cmp) {
@@ -226,7 +227,7 @@ func (d DynamicFeeDecorator) getCollector(store weave.KVStore) weave.Address {
 	return d.collector
 }
 
-func (d DynamicFeeDecorator) getMinFee(store weave.KVStore) x.Coin {
+func (d DynamicFeeDecorator) getMinFee(store weave.KVStore) coin.Coin {
 	if d.minFee == nil {
 		fee := gconf.Coin(store, GconfMinimalFee)
 		d.minFee = &fee
