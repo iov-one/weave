@@ -1,3 +1,18 @@
+/*
+
+FeeDecorator ensures that the fee can be deducted from the account. All
+deducted fees are send to the collector, which can be set to an address
+controlled by another extension ("smart contract").
+Collector address is configured via gconf package.
+
+Minimal fee is configured via gconf package. If minimal is zero, no fees
+required, but will speed processing. If a currency is set on minimal fee, then
+all fees must be paid in that currency
+
+It uses auth to verify the sender.
+
+*/
+
 package cash
 
 import (
@@ -7,19 +22,6 @@ import (
 	"github.com/iov-one/weave/x"
 )
 
-/*
-FeeDecorator ensures that the fee can be deducted from
-the account. All deducted fees are send to the collector,
-which can be set to an address controlled by another
-extension ("smart contract").
-Collector address is configured via gconf package.
-
-Minimal fee is configured via gconf package. If minimal is zero, no fees
-required, but will speed processing. If a currency is set on minimal fee,
-then all fees must be paid in that currency
-
-It uses auth to verify the sender
-*/
 type FeeDecorator struct {
 	auth x.Authenticator
 	ctrl CoinMover
