@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/x/batch"
 	. "github.com/smartystreets/goconvey/convey"
 	"github.com/stretchr/testify/mock"
@@ -95,6 +96,9 @@ func TestDecorator(t *testing.T) {
 			logVal := "log"
 			dataContent := make([]byte, 1)
 			gas := int64(1)
+			fee := coin.Coin{Whole: 1, Fractional: 400000000, Ticker: "IOV"}
+			combinedFee, err := fee.Multiply(num)
+			So(err, ShouldBeNil)
 
 			msg.On("Validate").Return(nil).Times(2)
 			msg.On("MsgList").Return(make([]weave.Msg, num), nil).Times(2)
@@ -105,6 +109,7 @@ func TestDecorator(t *testing.T) {
 				Log:          logVal,
 				GasAllocated: gas,
 				GasPayment:   gas,
+				RequiredFee:  fee,
 			}, nil).Times(int(num))
 
 			checkRes, err := decorator.Check(nil, nil, helper, helper)
@@ -115,24 +120,27 @@ func TestDecorator(t *testing.T) {
 				Log:          mockLog(num, logVal),
 				GasAllocated: gas * num,
 				GasPayment:   gas * num,
+				RequiredFee:  combinedFee,
 			})
 
 			helper.On("Deliver", nil, nil, mock.Anything).Return(weave.DeliverResult{
-				Data:    make([]byte, 1),
-				Log:     logVal,
-				GasUsed: gas,
-				Diff:    make([]types.ValidatorUpdate, 1),
-				Tags:    make([]common.KVPair, 1),
+				Data:        make([]byte, 1),
+				Log:         logVal,
+				GasUsed:     gas,
+				Diff:        make([]types.ValidatorUpdate, 1),
+				Tags:        make([]common.KVPair, 1),
+				RequiredFee: fee,
 			}, nil).Times(int(num))
 
 			deliverRes, err := decorator.Deliver(nil, nil, helper, helper)
 			So(err, ShouldBeNil)
 			So(deliverRes, ShouldResemble, weave.DeliverResult{
-				Data:    data,
-				Log:     mockLog(num, logVal),
-				GasUsed: gas * num,
-				Diff:    mockDiff(num),
-				Tags:    mockTags(num),
+				Data:        data,
+				Log:         mockLog(num, logVal),
+				GasUsed:     gas * num,
+				Diff:        mockDiff(num),
+				Tags:        mockTags(num),
+				RequiredFee: combinedFee,
 			})
 			helper.AssertExpectations(t)
 			msg.AssertExpectations(t)

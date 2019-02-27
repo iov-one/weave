@@ -86,10 +86,13 @@ func (*Decorator) combineChecks(checks []weave.CheckResult) (weave.CheckResult, 
 		logs[i] = r.Log
 		allocated += r.GasAllocated
 		payments += r.GasPayment
-		// TODO: add test for required fee
-		required, err = required.Add(r.RequiredFee)
-		if err != nil {
-			return weave.CheckResult{}, err
+		if required.IsZero() {
+			required = r.RequiredFee
+		} else {
+			required, err = required.Add(r.RequiredFee)
+			if err != nil {
+				return weave.CheckResult{}, err
+			}
 		}
 	}
 
@@ -100,6 +103,7 @@ func (*Decorator) combineChecks(checks []weave.CheckResult) (weave.CheckResult, 
 		Log:          strings.Join(logs, "\n"),
 		GasAllocated: allocated,
 		GasPayment:   payments,
+		RequiredFee:  required,
 	}, nil
 }
 
@@ -149,16 +153,19 @@ func (*Decorator) combineDelivers(delivers []weave.DeliverResult) (weave.Deliver
 		datas[i] = r.Data
 		logs[i] = r.Log
 		payments += r.GasUsed
-		// TODO: add test for required fee
-		required, err = required.Add(r.RequiredFee)
-		if err != nil {
-			return weave.DeliverResult{}, err
-		}
 		if len(r.Diff) > 0 {
 			diffs = append(diffs, r.Diff...)
 		}
 		if len(r.Tags) > 0 {
 			tags = append(tags, r.Tags...)
+		}
+		if required.IsZero() {
+			required = r.RequiredFee
+		} else {
+			required, err = required.Add(r.RequiredFee)
+			if err != nil {
+				return weave.DeliverResult{}, err
+			}
 		}
 	}
 
@@ -172,6 +179,7 @@ func (*Decorator) combineDelivers(delivers []weave.DeliverResult) (weave.Deliver
 		Diff:    diffs,
 		// https://github.com/iov-one/weave/pull/188#discussion_r234531097
 		// but I couldn't find a place where, so need to figure it out
-		Tags: tags,
+		Tags:        tags,
+		RequiredFee: required,
 	}, nil
 }
