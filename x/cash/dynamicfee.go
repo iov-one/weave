@@ -1,3 +1,33 @@
+/*
+
+DynamicFeeDecorator is an enhanced version the basic FeeDecorator with better
+handling of transaction errors and ability to deduct/enforce app-specific fees.
+
+The business logic is:
+* If a transaction fee < min fee, or a transaction fee cannot be paid, reject with
+  an error.
+* Run the transaction.
+* If a transaction processing results in an error, revert all transaction
+  changes and charge only the min fee.
+
+TODO: * If a transaction succeeded, but requested a RequiredFee higher than
+paid fee, revert all transaction changes and refund all but the min fee,
+returning an error.
+
+* If a transaction succeeded, and at least RequiredFee was paid, everything is
+  committed and we return success
+
+It also embeds a checkpoint inside, so in the typical application stack:
+	cash.NewFeeDecorator(authFn, ctrl),
+	utils.NewSavepoint().OnDeliver(),
+can be replaced by
+	cash.NewDynamicFeeDecorator(authFn, ctrl),
+
+As with FeeDecorator, all deducted fees are send to the collector, whose
+address is configured via gconf package.
+
+*/
+
 package cash
 
 import (
@@ -8,34 +38,6 @@ import (
 	"github.com/iov-one/weave/x"
 )
 
-/*
-DynamicFeeDecorator is an enhanced version the basic FeeDecorator with
-better handling of tx errors, and ability to deduct/enforce
-app-specific fees.
-
-The business logic is:
-
-* If tx fee < min fee, or tx fee cannot be paid, reject with error.
-
-* Run the tx.
-
-* If tx errors, revert all tx changes and charge only the min fee
-
-TODO: * If tx succeeded, but requested a RequiredFee higher than paid fee,
-revert all tx changes and refund all but the min fee, returning an error.
-
-* If tx succeeded, and at least RequiredFee was paid, everything is committed
-and we return success
-
-It also embeds a checkpoint inside, so in the typical application stack:
-	cash.NewFeeDecorator(authFn, ctrl),
-	utils.NewSavepoint().OnDeliver(),
-can be replaced by
-	cash.NewDynamicFeeDecorator(authFn, ctrl),
-
-As with FeeDecorator, all deducted fees are send to the collector,
-whose address is configured via gconf package.
-*/
 type DynamicFeeDecorator struct {
 	auth x.Authenticator
 	ctrl CoinMover
