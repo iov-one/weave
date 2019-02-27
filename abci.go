@@ -41,7 +41,7 @@ type DeliverResult struct {
 	// Log is human-readable informational string
 	Log string
 	// RequiredFee can set an custom fee that must be paid for this transaction to be allowed to run.
-	// This is enforced in cash.DynamicFeeDecorator
+	// This may enforced by a decorator, such as cash.DynamicFeeDecorator
 	RequiredFee coin.Coin
 	// Diff, if present, will apply to the Validator set in tendermint next block
 	Diff []abci.ValidatorUpdate
@@ -68,7 +68,7 @@ type CheckResult struct {
 	// Log is human-readable informational string
 	Log string
 	// RequiredFee can set an custom fee that must be paid for this transaction to be allowed to run.
-	// This is enforced in cash.DynamicFeeDecorator
+	// This may enforced by a decorator, such as cash.DynamicFeeDecorator
 	RequiredFee coin.Coin
 	// GasAllocated is the maximum units of work we allow this tx to perform
 	GasAllocated int64
