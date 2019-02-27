@@ -10,6 +10,10 @@ import (
 type CoinMover interface {
 	// MoveCoins removes funds from the source account and adds them to the
 	// destination account. This operation is atomic.
+	// Moving coins must happen from the source to the destination address.
+	// Negative amounts must not be accepted. Calling this method with a
+	// negative amount must fail.
+	// Zero amount can be allowed but then should be a no-operation.
 	MoveCoins(store weave.KVStore, src weave.Address, dest weave.Address, amount x.Coin) error
 }
 
