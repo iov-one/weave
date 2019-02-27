@@ -29,7 +29,7 @@ func TestTokenClone(t *testing.T) {
 						}},
 				}},
 			Details: &username.TokenDetails{
-				[]username.ChainAddress{{BlockchainID: []byte("myChainID"), Address: alice.Address().String()}},
+				Addresses: []username.ChainAddress{{BlockchainID: []byte("myChainID"), Address: alice.Address().String()}},
 			},
 		},
 		{Base: &nft.NonFungibleToken{}, Details: &username.TokenDetails{}},
@@ -66,7 +66,7 @@ func equals(t *testing.T, expected username.UsernameToken, actual username.Usern
 }
 
 func TestTokenDetailsClone(t *testing.T) {
-	source := username.TokenDetails{[]username.ChainAddress{{BlockchainID: []byte("foo")}, {BlockchainID: []byte("bar")}}}
+	source := username.TokenDetails{Addresses: []username.ChainAddress{{BlockchainID: []byte("foo")}, {BlockchainID: []byte("bar")}}}
 	myClone := source.Clone()
 	// when
 	source.Addresses[0].BlockchainID = source.Addresses[0].BlockchainID[1:]

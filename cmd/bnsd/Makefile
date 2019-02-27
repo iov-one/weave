@@ -30,4 +30,4 @@ tf:
 	go test -short ./...
 
 protoc:
-	protoc --gogofaster_out=. -I=. -I=$(GOPATH)/src app/*.proto
+	protoc --gogofaster_out=. -I=. -I=../../vendor -I=$(GOPATH)/src app/*.proto

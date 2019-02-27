@@ -61,24 +61,28 @@ ifndef $(shell command -v prototool help > /dev/null)
 endif
 	prototool lint
 
-protoc:
+protoc: protodocs
 	protoc --gogofaster_out=. app/*.proto
 	protoc --gogofaster_out=. crypto/*.proto
 	protoc --gogofaster_out=. orm/*.proto
 	protoc --gogofaster_out=. x/*.proto
-	protoc --gogofaster_out=. -I=. -I=$(GOPATH)/src x/nft/*.proto
-	protoc --gogofaster_out=. -I=. -I=$(GOPATH)/src cmd/bnsd/x/nft/username/*.proto
+	# Note, you must include -I=./vendor when compiling files that use gogoprotobuf extensions
+	protoc --gogofaster_out=. -I=. -I=./vendor -I=$(GOPATH)/src x/nft/*.proto
+	protoc --gogofaster_out=. -I=. -I=./vendor -I=$(GOPATH)/src cmd/bnsd/x/nft/username/*.proto
 	protoc --gogofaster_out=. -I=. -I=$(GOPATH)/src x/cash/*.proto
 	protoc --gogofaster_out=. -I=. -I=$(GOPATH)/src x/sigs/*.proto
-	protoc --gogofaster_out=. -I=. -I=$(GOPATH)/src x/multisig/*.proto
-	protoc --gogofaster_out=. -I=. -I=$(GOPATH)/src x/validators/*.proto
+	protoc --gogofaster_out=. -I=. -I=./vendor -I=$(GOPATH)/src x/multisig/*.proto
+	protoc --gogofaster_out=. -I=. -I=./vendor -I=$(GOPATH)/src x/validators/*.proto
 	protoc --gogofaster_out=. -I=. -I=$(GOPATH)/src x/batch/*.proto
-	protoc --gogofaster_out=. -I=. -I=$(GOPATH)/src x/distribution/*.proto
+	protoc --gogofaster_out=. -I=. -I=./vendor -I=$(GOPATH)/src x/distribution/*.proto
 	protoc --gogofaster_out=. -I=. -I=$(GOPATH)/src -I=./vendor x/namecoin/*.proto
 	protoc --gogofaster_out=. -I=. -I=$(GOPATH)/src -I=./vendor x/escrow/*.proto
 	protoc --gogofaster_out=. -I=. -I=$(GOPATH)/src -I=./vendor x/paychan/*.proto
 	protoc --gogofaster_out=. -I=. -I=$(GOPATH)/src x/currency/*.proto
 	for ex in $(EXAMPLES); do cd $$ex && make protoc && cd -; done
+
+protodocs:
+	@./scripts/build_protodocs.sh
 
 ### cross-platform check for installing protoc ###
 
@@ -111,5 +115,7 @@ prototools: /usr/local/bin/protoc deps
 	@ # @go install ./vendor/github.com/gogo/protobuf/jsonpb
 	@ # @go install ./vendor/github.com/gogo/protobuf/protoc-gen-gogo
 	@ # go get github.com/golang/protobuf/protoc-gen-go
+	# docs
+	@go get -u github.com/pseudomuto/protoc-gen-doc/cmd/protoc-gen-doc
 
 

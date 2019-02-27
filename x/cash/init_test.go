@@ -15,7 +15,7 @@ import (
 func TestInitState(t *testing.T) {
 	// test data
 	addr := []byte("12345678901234567890")
-	coins := Set{mustCombineCoins(x.NewCoin(100, 5, "ATM"), x.NewCoin(50, 0, "ETH"))}
+	coins := Set{Coins: mustCombineCoins(x.NewCoin(100, 5, "ATM"), x.NewCoin(50, 0, "ETH"))}
 	accts := []GenesisAccount{{Address: addr, Set: coins}}
 
 	bz, err := json.Marshal(accts)
@@ -27,7 +27,7 @@ func TestInitState(t *testing.T) {
                 "fractional":1234567,
                 "ticker":"FOO"
               }]}]`)
-	coins2 := Set{mustCombineCoins(x.NewCoin(50, 1234567, "FOO"))}
+	coins2 := Set{Coins: mustCombineCoins(x.NewCoin(50, 1234567, "FOO"))}
 	addr2 := []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 0x21, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27, 0x28, 0x29, 0x30}
 
 	cases := [...]struct {

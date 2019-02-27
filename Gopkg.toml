@@ -26,9 +26,9 @@
 
 required = ["github.com/gogo/protobuf/protoc-gen-gogofaster"]
 
-[[constraint]]
+[[override]]
   name = "github.com/gogo/protobuf"
-  version = "1.0.0"
+  version = "~1.2.0"
 
 [[constraint]]
   branch = "master"
