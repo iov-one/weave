@@ -136,16 +136,10 @@ func (d DynamicFeeDecorator) Deliver(ctx weave.Context, store weave.KVStore, tx 
 	return res, err
 }
 
-// chargeFee will send fees only if they are positive. Zero fees are are a no
-// operation actions and negative fee is a missconfiguration error.
 func (d DynamicFeeDecorator) chargeFee(store weave.KVStore, src weave.Address, amount x.Coin) error {
-	if amount.IsZero() {
-		return nil
-	}
-	if !amount.IsPositive() {
-		return errors.ErrInvalidState.Newf("negative fee: %v", amount)
-	}
 	dest := gconf.Address(store, GconfCollectorAddress)
+	// Rely on MoveCoins implemnetation to ensure that the amount value is
+	// acceptable.
 	return d.ctrl.MoveCoins(store, src, dest, amount)
 }
 
