@@ -57,83 +57,53 @@ func NewDynamicFeeDecorator(auth x.Authenticator, ctrl CoinMover) DynamicFeeDeco
 }
 
 // Check verifies and deducts fees before calling down the stack
-func (d DynamicFeeDecorator) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx,
-	next weave.Checker) (weave.CheckResult, error) {
-
-	// prepare fees for subtransaction -- shared in Check and Deliver
-	var res weave.CheckResult
+func (d DynamicFeeDecorator) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx, next weave.Checker) (res weave.CheckResult, err error) {
 	fee, payer, cache, err := d.prepare(ctx, store, tx)
 	if err != nil {
-		return res, err
+		return res, errors.Wrap(err, "cannot prepare")
 	}
 
-	minFee := gconf.Coin(store, GconfMinimalFee)
-
-	// do subtransaction in a function for easier error handling
-	res, err = func() (weave.CheckResult, error) {
-		// shadow with local variables...
-		err := d.chargeFee(cache, payer, fee)
-		if err != nil {
-			return weave.CheckResult{}, errors.Wrap(err, "cannot charge fee")
+	defer func() {
+		if err == nil {
+			cache.Write()
+			res.GasPayment += toPayment(fee)
+		} else {
+			cache.Discard()
+			minFee := gconf.Coin(store, GconfMinimalFee)
+			_ = d.chargeFee(store, payer, minFee)
+			// TODO(husio) why no GasPayment assignment here?
 		}
-		res, err := next.Check(ctx, cache, tx)
-		// TODO: check RequiredFee here and return an error if insufficient
-		return res, err
 	}()
 
-	// on error, rollback, then take the minfee from the store
-	if err != nil {
-		cache.Discard()
-		// if this fails, we aborted early above, we can just ignore return value
-		// this is 2 ops, not 1, for errors, but done to optimize the success case to use 1 not 2
-		_ = d.chargeFee(store, payer, minFee)
-		// return error from the transaction, not the possible error from minFee deduction
-		return res, err
+	if err := d.chargeFee(cache, payer, fee); err != nil {
+		return res, errors.Wrap(err, "cannot charge fee")
 	}
-
-	// if success, we commit and update the importance
-	cache.Write()
-	res.GasPayment += toPayment(fee)
-	return res, err
+	return next.Check(ctx, cache, tx)
 }
 
 // Deliver verifies and deducts fees before calling down the stack
 func (d DynamicFeeDecorator) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx,
-	next weave.Deliverer) (weave.DeliverResult, error) {
+	next weave.Deliverer) (res weave.DeliverResult, err error) {
 
-	var res weave.DeliverResult
 	fee, payer, cache, err := d.prepare(ctx, store, tx)
 	if err != nil {
-		return res, err
+		return res, errors.Wrap(err, "cannot prepare")
 	}
 
-	minFee := gconf.Coin(store, GconfMinimalFee)
-
-	// do subtransaction in a function for easier error handling
-	res, err = func() (weave.DeliverResult, error) {
-		// shadow with local variables...
-		err := d.chargeFee(cache, payer, fee)
-		if err != nil {
-			return weave.DeliverResult{}, errors.Wrap(err, "cannot charge fee")
+	defer func() {
+		if err == nil {
+			cache.Write()
+		} else {
+			cache.Discard()
+			minFee := gconf.Coin(store, GconfMinimalFee)
+			_ = d.chargeFee(store, payer, minFee)
 		}
-		res, err := next.Deliver(ctx, cache, tx)
-		// TODO: check RequiredFee here and return an error if insufficient
-		return res, err
 	}()
 
-	// on error, rollback, then take the minfee from the store
-	if err != nil {
-		cache.Discard()
-		// if this fails, we aborted early above, we can just ignore return value
-		// this is 2 ops, not 1, for errors, but done to optimize the success case to use 1 not 2
-		_ = d.chargeFee(store, payer, minFee)
-		// return error from the transaction, not the possible error from minFee deduction
-		return res, err
+	if err := d.chargeFee(cache, payer, fee); err != nil {
+		return weave.DeliverResult{}, errors.Wrap(err, "cannot charge fee")
 	}
-
-	// if success, we commit and update the importance
-	cache.Write()
-	return res, err
+	return next.Deliver(ctx, cache, tx)
 }
 
 func (d DynamicFeeDecorator) chargeFee(store weave.KVStore, src weave.Address, amount x.Coin) error {
@@ -144,39 +114,34 @@ func (d DynamicFeeDecorator) chargeFee(store weave.KVStore, src weave.Address, a
 	return d.ctrl.MoveCoins(store, src, dest, amount)
 }
 
-// prepare is all shared setup between Check and Deliver, one more level above extractFee
+// prepare is all shared setup between Check and Deliver. It computes the fee
+// for the transaction, ensures that the payer is authenticated and prepares
+// the database transaction.
 func (d DynamicFeeDecorator) prepare(ctx weave.Context, store weave.KVStore, tx weave.Tx) (fee x.Coin, payer weave.Address, cache weave.KVCacheWrap, err error) {
-	var finfo *FeeInfo
-	fee = x.Coin{}
-
-	// extract expected fee
-	finfo, err = d.extractFee(ctx, tx, store)
+	finfo, err := d.extractFee(ctx, tx, store)
 	if err != nil {
-		return
+		return fee, payer, cache, errors.Wrap(err, "cannot extract fee")
 	}
-	// safely dererefence the fees (handling nil)
-	pfee := finfo.GetFees()
-	if pfee != nil {
+	// Dererefence the fees (handling nil).
+	if pfee := finfo.GetFees(); pfee != nil {
 		fee = *pfee
 	}
 	payer = finfo.GetPayer()
 
-	// verify we have access to the money
+	// Verify we have access to the money.
 	if !d.auth.HasAddress(ctx, payer) {
-		err = errors.ErrUnauthorized.New("Fee payer signature missing")
-		return
+		err := errors.ErrUnauthorized.New("fee payer signature missing")
+		return fee, payer, cache, err
 	}
 
-	// ensure we can execute subtransactions (see check on utils.Savepoint)
+	// Ensure we can execute subtransactions (see check on utils.Savepoint).
 	cstore, ok := store.(weave.CacheableKVStore)
 	if !ok {
-		err = errors.ErrInternal.New("Need cachable kvstore")
-		return
+		err = errors.ErrInternal.New("need cachable kvstore")
+		return fee, payer, cache, err
 	}
-
-	// prepare a cached version to work on
 	cache = cstore.CacheWrap()
-	return
+	return fee, payer, cache, nil
 }
 
 // this returns the fee info to deduct and the error if incorrectly set
@@ -197,9 +162,7 @@ func (d DynamicFeeDecorator) extractFee(ctx weave.Context, tx weave.Tx, store we
 		return nil, errors.ErrInsufficientAmount.Newf("fees %#v", &x.Coin{})
 	}
 
-	// make sure it is a valid fee (non-negative, going somewhere)
-	err := finfo.Validate()
-	if err != nil {
+	if err := finfo.Validate(); err != nil {
 		return nil, err
 	}
 
