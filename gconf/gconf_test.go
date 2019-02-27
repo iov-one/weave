@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/iov-one/weave"
-	"github.com/iov-one/weave/x"
+	"github.com/iov-one/weave/coin"
 )
 
 func TestString(t *testing.T) {
@@ -54,7 +54,7 @@ func TestBytes(t *testing.T) {
 
 func TestCoin(t *testing.T) {
 	store := confStore(`{"whole": 3, "fractional": 4, "ticker": "DOGE"}`)
-	want := x.Coin{
+	want := coin.Coin{
 		Whole:      3,
 		Fractional: 4,
 		Ticker:     "DOGE",

@@ -2,6 +2,7 @@ package cash
 
 import (
 	"github.com/iov-one/weave"
+	coin "github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/gconf"
 	"github.com/iov-one/weave/x"
@@ -57,7 +58,7 @@ func (d FeeDecorator) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx,
 
 	// if nothing returned, but no error, just move along
 	fee := finfo.GetFees()
-	if x.IsEmpty(fee) {
+	if coin.IsEmpty(fee) {
 		return next.Check(ctx, store, tx)
 	}
 
@@ -91,7 +92,7 @@ func (d FeeDecorator) Deliver(ctx weave.Context, store weave.KVStore, tx weave.T
 
 	// if nothing returned, but no error, just move along
 	fee := finfo.GetFees()
-	if x.IsEmpty(fee) {
+	if coin.IsEmpty(fee) {
 		return next.Deliver(ctx, store, tx)
 	}
 
@@ -118,12 +119,12 @@ func (d FeeDecorator) extractFee(ctx weave.Context, tx weave.Tx, store weave.KVS
 	}
 
 	fee := finfo.GetFees()
-	if x.IsEmpty(fee) {
+	if coin.IsEmpty(fee) {
 		minFee := gconf.Coin(store, GconfMinimalFee)
 		if minFee.IsZero() {
 			return finfo, nil
 		}
-		return nil, errors.ErrInsufficientAmount.Newf("fees %#v", &x.Coin{})
+		return nil, errors.ErrInsufficientAmount.Newf("fees %#v", fee)
 	}
 
 	// make sure it is a valid fee (non-negative, going somewhere)
@@ -138,7 +139,7 @@ func (d FeeDecorator) extractFee(ctx weave.Context, tx weave.Tx, store weave.KVS
 		cmp.Ticker = fee.Ticker
 	}
 	if !fee.SameType(cmp) {
-		return nil, x.ErrInvalidCurrency.Newf("%s vs fee %s", cmp.Ticker, fee.Ticker)
+		return nil, coin.ErrInvalidCurrency.Newf("%s vs fee %s", cmp.Ticker, fee.Ticker)
 
 	}
 	if !fee.IsGTE(cmp) {
@@ -149,8 +150,8 @@ func (d FeeDecorator) extractFee(ctx weave.Context, tx weave.Tx, store weave.KVS
 
 // toPayment calculates how much we prioritize the tx
 // one point per fractional unit
-func toPayment(fee x.Coin) int64 {
+func toPayment(fee coin.Coin) int64 {
 	base := int64(fee.Fractional)
-	base += int64(fee.Whole) * int64(x.FracUnit)
+	base += int64(fee.Whole) * int64(coin.FracUnit)
 	return base
 }

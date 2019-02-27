@@ -2,6 +2,7 @@ package distribution
 
 import (
 	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/x"
@@ -22,8 +23,8 @@ func RegisterQuery(qr weave.QueryRouter) {
 // need to directly access the bucket.
 // Required functionality is implemented by the x/cash extension.
 type CashController interface {
-	Balance(weave.KVStore, weave.Address) (x.Coins, error)
-	MoveCoins(weave.KVStore, weave.Address, weave.Address, x.Coin) error
+	Balance(weave.KVStore, weave.Address) (coin.Coins, error)
+	MoveCoins(weave.KVStore, weave.Address, weave.Address, coin.Coin) error
 }
 
 // RegisterRoutes registers handlers for feedlist message processing.
@@ -245,7 +246,7 @@ func distribute(db weave.KVStore, ctrl CashController, source weave.Address, rec
 	balance, err := ctrl.Balance(db, source)
 	switch {
 	case err == nil:
-		balance, err = x.NormalizeCoins(balance)
+		balance, err = coin.NormalizeCoins(balance)
 		if err != nil {
 			return errors.Wrap(err, "cannot normalize balance")
 		}

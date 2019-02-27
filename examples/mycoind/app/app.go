@@ -17,6 +17,7 @@ import (
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/app"
+	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/store/iavl"
 	"github.com/iov-one/weave/x"
@@ -39,7 +40,7 @@ func CashControl() cash.Controller {
 
 // Chain returns a chain of decorators, to handle authentication,
 // fees, logging, and recovery
-func Chain(minFee x.Coin, authFn x.Authenticator) app.Decorators {
+func Chain(minFee coin.Coin, authFn x.Authenticator) app.Decorators {
 	return app.ChainDecorators(
 		utils.NewLogging(),
 		utils.NewRecovery(),
@@ -78,7 +79,7 @@ func QueryRouter() weave.QueryRouter {
 
 // Stack wires up a standard router with a standard decorator
 // chain. This can be passed into BaseApp.
-func Stack(minFee x.Coin) weave.Handler {
+func Stack(minFee coin.Coin) weave.Handler {
 	authFn := Authenticator()
 	return Chain(minFee, authFn).
 		WithHandler(Router(authFn))

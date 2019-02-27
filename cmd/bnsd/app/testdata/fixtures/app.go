@@ -9,10 +9,10 @@ import (
 	weaveApp "github.com/iov-one/weave/app"
 	"github.com/iov-one/weave/cmd/bnsd/app"
 	"github.com/iov-one/weave/cmd/bnsd/x/nft/username"
+	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/crypto"
 	"github.com/iov-one/weave/gconf"
 	"github.com/iov-one/weave/orm"
-	"github.com/iov-one/weave/x"
 	"github.com/iov-one/weave/x/cash"
 	"github.com/iov-one/weave/x/currency"
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -74,7 +74,7 @@ func (f AppFixture) Build() weaveApp.BaseApp {
 func appStateGenesis(keyAddress weave.Address) []byte {
 	type wallet struct {
 		Address weave.Address `json:"address"`
-		Coins   x.Coins       `json:"coins"`
+		Coins   coin.Coins    `json:"coins"`
 	}
 
 	state := struct {
@@ -84,7 +84,7 @@ func appStateGenesis(keyAddress weave.Address) []byte {
 		Cash: []wallet{
 			{
 				Address: keyAddress,
-				Coins: x.Coins{
+				Coins: coin.Coins{
 					{Whole: 50000, Ticker: "ETH"},
 					{Whole: 1234, Ticker: "FRNK"},
 				},
@@ -92,7 +92,7 @@ func appStateGenesis(keyAddress weave.Address) []byte {
 		},
 		Gconf: map[string]interface{}{
 			cash.GconfCollectorAddress: "fake-collector-address",
-			cash.GconfMinimalFee:       x.Coin{Whole: 0}, // no fee
+			cash.GconfMinimalFee:       coin.Coin{Whole: 0}, // no fee
 		},
 	}
 	raw, err := json.MarshalIndent(state, "", "  ")

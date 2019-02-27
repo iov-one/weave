@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/iov-one/weave"
+	coin "github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/store"
@@ -20,8 +21,8 @@ func noErr(err error) bool { return err == nil }
 func TestSend(t *testing.T) {
 	var helpers x.TestHelpers
 
-	foo := x.NewCoin(100, 0, "FOO")
-	some := x.NewCoin(300, 0, "SOME")
+	foo := coin.NewCoin(100, 0, "FOO")
+	some := coin.NewCoin(300, 0, "SOME")
 
 	perm := weave.NewCondition("sig", "ed25519", []byte{1, 2, 3})
 	perm2 := weave.NewCondition("sig", "ed25519", []byte{4, 5, 6})

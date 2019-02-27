@@ -7,14 +7,14 @@ import (
 	"testing"
 
 	"github.com/iov-one/weave"
-	"github.com/iov-one/weave/x"
+	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/x/cash"
 	"github.com/iov-one/weave/x/nft"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-var defaults = x.Coin{
+var defaults = coin.Coin{
 	Ticker:     "IOV",
 	Whole:      123456789,
 	Fractional: 5555555,
@@ -62,7 +62,7 @@ func TestMergeWalletStore(t *testing.T) {
 			{
 				Address: toWeaveAddress(t, "3AFCDAB4CFBF066E959D139251C8F0EE91E99D5A"),
 				Set: cash.Set{
-					Coins: []*x.Coin{
+					Coins: []*coin.Coin{
 						{
 							Ticker:     "CASH",
 							Whole:      123456789,
@@ -74,7 +74,7 @@ func TestMergeWalletStore(t *testing.T) {
 			{
 				Address: toWeaveAddress(t, "12AFFBF6012FD2DF21416582DC80CBF1EFDF2460"),
 				Set: cash.Set{
-					Coins: []*x.Coin{
+					Coins: []*coin.Coin{
 						{
 							Ticker:     "CASH",
 							Whole:      987654321,
@@ -86,7 +86,7 @@ func TestMergeWalletStore(t *testing.T) {
 			{
 				Address: toWeaveAddress(t, "CE5D5A5CA8C7D545D7756D3677234D81622BA297"),
 				Set: cash.Set{
-					Coins: []*x.Coin{
+					Coins: []*coin.Coin{
 						{
 							Ticker:     "IOV",
 							Whole:      123456789,
@@ -98,7 +98,7 @@ func TestMergeWalletStore(t *testing.T) {
 			{
 				Address: toWeaveAddress(t, "D4821FD051696273D09E1FBAD0EBE5B5060787A7"),
 				Set: cash.Set{
-					Coins: []*x.Coin{
+					Coins: []*coin.Coin{
 						{
 							Ticker:     "IOV",
 							Whole:      123456789,
@@ -123,7 +123,7 @@ func TestMergeWithEmptyWallet(t *testing.T) {
 			{
 				Address: toWeaveAddress(t, "CE5D5A5CA8C7D545D7756D3677234D81622BA297"),
 				Set: cash.Set{
-					Coins: []*x.Coin{
+					Coins: []*coin.Coin{
 						{
 							Ticker:     "IOV",
 							Whole:      123456789,
@@ -135,7 +135,7 @@ func TestMergeWithEmptyWallet(t *testing.T) {
 			{
 				Address: toWeaveAddress(t, "D4821FD051696273D09E1FBAD0EBE5B5060787A7"),
 				Set: cash.Set{
-					Coins: []*x.Coin{
+					Coins: []*coin.Coin{
 						{
 							Ticker:     "IOV",
 							Whole:      123456789,
@@ -158,7 +158,7 @@ func TestDefaultValues(t *testing.T) {
 			{
 				Address: toWeaveAddress(t, "3AFCDAB4CFBF066E959D139251C8F0EE91E99D5A"),
 				Set: cash.Set{
-					Coins: []*x.Coin{
+					Coins: []*coin.Coin{
 						{
 							Ticker:     "IOV",
 							Whole:      123456789,
@@ -170,7 +170,7 @@ func TestDefaultValues(t *testing.T) {
 			{
 				Address: toWeaveAddress(t, "CE5D5A5CA8C7D545D7756D3677234D81622BA297"),
 				Set: cash.Set{
-					Coins: []*x.Coin{
+					Coins: []*coin.Coin{
 						{
 							Ticker:     "IOV",
 							Whole:      17,
@@ -182,7 +182,7 @@ func TestDefaultValues(t *testing.T) {
 			{
 				Address: toWeaveAddress(t, "D4821FD051696273D09E1FBAD0EBE5B5060787A7"),
 				Set: cash.Set{
-					Coins: []*x.Coin{
+					Coins: []*coin.Coin{
 						{
 							Ticker:     "IOV",
 							Whole:      123456789,
@@ -194,7 +194,7 @@ func TestDefaultValues(t *testing.T) {
 			{
 				Address: toWeaveAddress(t, "5AC5F736DB0E083D2316E1C5BFC141CC0C669F84"),
 				Set: cash.Set{
-					Coins: []*x.Coin{
+					Coins: []*coin.Coin{
 						{
 							Ticker:     "IOV",
 							Whole:      0,
@@ -206,7 +206,7 @@ func TestDefaultValues(t *testing.T) {
 			{
 				Address: toWeaveAddress(t, "12AFFBF6012FD2DF21416582DC80CBF1EFDF2460"),
 				Set: cash.Set{
-					Coins: []*x.Coin{
+					Coins: []*coin.Coin{
 						{
 							Ticker:     "ETH",
 							Whole:      123456789,

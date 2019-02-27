@@ -8,6 +8,7 @@ import (
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/app"
+	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/store"
 	"github.com/iov-one/weave/x"
@@ -104,11 +105,11 @@ func TestHandlers(t *testing.T) {
 		},
 		"weights are normalized during distribution": {
 			prepareAccounts: []account{
-				{address: RevenueAccount(asSeqID(1)), coins: x.Coins{coinp(0, 7, "BTC")}},
+				{address: RevenueAccount(asSeqID(1)), coins: coin.Coins{coinp(0, 7, "BTC")}},
 			},
 			wantAccounts: []account{
 				// All funds must be transferred to the only recipient.
-				{address: addr1, coins: x.Coins{coinp(0, 7, "BTC")}},
+				{address: addr1, coins: coin.Coins{coinp(0, 7, "BTC")}},
 			},
 			actions: []action{
 				{
@@ -164,10 +165,10 @@ func TestHandlers(t *testing.T) {
 		},
 		"revenue with an account but without enough funds": {
 			prepareAccounts: []account{
-				{address: RevenueAccount(asSeqID(1)), coins: x.Coins{coinp(0, 1, "BTC")}},
+				{address: RevenueAccount(asSeqID(1)), coins: coin.Coins{coinp(0, 1, "BTC")}},
 			},
 			wantAccounts: []account{
-				{address: RevenueAccount(asSeqID(1)), coins: x.Coins{coinp(0, 1, "BTC")}},
+				{address: RevenueAccount(asSeqID(1)), coins: coin.Coins{coinp(0, 1, "BTC")}},
 			},
 			actions: []action{
 				{
@@ -196,12 +197,12 @@ func TestHandlers(t *testing.T) {
 		},
 		"distribute revenue with a leftover funds": {
 			prepareAccounts: []account{
-				{address: RevenueAccount(asSeqID(1)), coins: x.Coins{coinp(0, 7, "BTC")}},
+				{address: RevenueAccount(asSeqID(1)), coins: coin.Coins{coinp(0, 7, "BTC")}},
 			},
 			wantAccounts: []account{
-				{address: RevenueAccount(asSeqID(1)), coins: x.Coins{coinp(0, 1, "BTC")}},
-				{address: addr1, coins: x.Coins{coinp(0, 2, "BTC")}},
-				{address: addr2, coins: x.Coins{coinp(0, 4, "BTC")}},
+				{address: RevenueAccount(asSeqID(1)), coins: coin.Coins{coinp(0, 1, "BTC")}},
+				{address: addr1, coins: coin.Coins{coinp(0, 2, "BTC")}},
+				{address: addr2, coins: coin.Coins{coinp(0, 4, "BTC")}},
 			},
 			actions: []action{
 				{
@@ -230,12 +231,12 @@ func TestHandlers(t *testing.T) {
 		},
 		"distribute revenue with an account holding various tickers": {
 			prepareAccounts: []account{
-				{address: RevenueAccount(asSeqID(1)), coins: x.Coins{coinp(0, 3, "BTC"), coinp(0, 7, "ETH")}},
+				{address: RevenueAccount(asSeqID(1)), coins: coin.Coins{coinp(0, 3, "BTC"), coinp(0, 7, "ETH")}},
 			},
 			wantAccounts: []account{
-				{address: RevenueAccount(asSeqID(1)), coins: x.Coins{coinp(0, 1, "ETH")}},
-				{address: addr1, coins: x.Coins{coinp(0, 1, "BTC"), coinp(0, 2, "ETH")}},
-				{address: addr2, coins: x.Coins{coinp(0, 2, "BTC"), coinp(0, 4, "ETH")}},
+				{address: RevenueAccount(asSeqID(1)), coins: coin.Coins{coinp(0, 1, "ETH")}},
+				{address: addr1, coins: coin.Coins{coinp(0, 1, "BTC"), coinp(0, 2, "ETH")}},
+				{address: addr2, coins: coin.Coins{coinp(0, 2, "BTC"), coinp(0, 4, "ETH")}},
 			},
 			actions: []action{
 				{
@@ -264,12 +265,12 @@ func TestHandlers(t *testing.T) {
 		},
 		"updating a revenue is distributing the collected funds first": {
 			prepareAccounts: []account{
-				{address: RevenueAccount(asSeqID(1)), coins: x.Coins{coinp(0, 3, "BTC")}},
+				{address: RevenueAccount(asSeqID(1)), coins: coin.Coins{coinp(0, 3, "BTC")}},
 			},
 			wantAccounts: []account{
-				{address: addr1, coins: x.Coins{coinp(0, 1, "BTC")}},
+				{address: addr1, coins: coin.Coins{coinp(0, 1, "BTC")}},
 				// Below is the state of the second account after ALL the actions applied.
-				{address: addr2, coins: x.Coins{coinp(0, 2, "BTC")}},
+				{address: addr2, coins: coin.Coins{coinp(0, 2, "BTC")}},
 			},
 			actions: []action{
 				{
@@ -363,7 +364,7 @@ func TestHandlers(t *testing.T) {
 // account represents a single account state - the coins/funds it holds.
 type account struct {
 	address weave.Address
-	coins   x.Coins
+	coins   coin.Coins
 }
 
 // action represents a single request call that is handled by a handler.
@@ -400,8 +401,8 @@ func asSeqID(i int64) []byte {
 	return b
 }
 
-func coinp(w, f int64, ticker string) *x.Coin {
-	c := x.NewCoin(w, f, ticker)
+func coinp(w, f int64, ticker string) *coin.Coin {
+	c := coin.NewCoin(w, f, ticker)
 	return &c
 }
 
@@ -476,7 +477,7 @@ func TestDistribute(t *testing.T) {
 				{Address: weave.Address("address-2"), Weight: 2},
 			},
 			ctrl: &testController{
-				balance: x.Coins{coinp(0, 1, "ETH")},
+				balance: coin.Coins{coinp(0, 1, "ETH")},
 			},
 			wantErr: nil,
 		},
@@ -486,12 +487,12 @@ func TestDistribute(t *testing.T) {
 				{Address: weave.Address("address-2"), Weight: 2},
 			},
 			ctrl: &testController{
-				balance: x.Coins{coinp(3, 0, "BTC")},
+				balance: coin.Coins{coinp(3, 0, "BTC")},
 			},
 			wantErr: nil,
 			wantMoves: []movecall{
-				{dst: weave.Address("address-1"), amount: x.NewCoin(1, 0, "BTC")},
-				{dst: weave.Address("address-2"), amount: x.NewCoin(2, 0, "BTC")},
+				{dst: weave.Address("address-1"), amount: coin.NewCoin(1, 0, "BTC")},
+				{dst: weave.Address("address-2"), amount: coin.NewCoin(2, 0, "BTC")},
 			},
 		},
 		"distribution splits whole into fractional": {
@@ -500,14 +501,14 @@ func TestDistribute(t *testing.T) {
 				{Address: weave.Address("address-2"), Weight: 2},
 			},
 			ctrl: &testController{
-				balance: x.Coins{coinp(1, 0, "BTC")},
+				balance: coin.Coins{coinp(1, 0, "BTC")},
 			},
 			wantErr: nil,
 			wantMoves: []movecall{
 				// One cent is left on the revenue account,
 				// because it is too small to divide.
-				{dst: weave.Address("address-1"), amount: x.NewCoin(0, 333333333, "BTC")},
-				{dst: weave.Address("address-2"), amount: x.NewCoin(0, 666666666, "BTC")},
+				{dst: weave.Address("address-1"), amount: coin.NewCoin(0, 333333333, "BTC")},
+				{dst: weave.Address("address-2"), amount: coin.NewCoin(0, 666666666, "BTC")},
 			},
 		},
 		"whole split into fractions": {
@@ -516,14 +517,14 @@ func TestDistribute(t *testing.T) {
 				{Address: weave.Address("address-2"), Weight: 2},
 			},
 			ctrl: &testController{
-				balance: x.Coins{coinp(2, 0, "BTC")},
+				balance: coin.Coins{coinp(2, 0, "BTC")},
 			},
 			wantErr: nil,
 			wantMoves: []movecall{
 				// One cent is left on the revenue account,
 				// because it is too small to divide.
-				{dst: weave.Address("address-1"), amount: x.NewCoin(0, 666666666, "BTC")},
-				{dst: weave.Address("address-2"), amount: x.NewCoin(1, 333333332, "BTC")},
+				{dst: weave.Address("address-1"), amount: coin.NewCoin(0, 666666666, "BTC")},
+				{dst: weave.Address("address-2"), amount: coin.NewCoin(1, 333333332, "BTC")},
 			},
 		},
 	}
@@ -547,21 +548,21 @@ func TestDistribute(t *testing.T) {
 }
 
 type testController struct {
-	balance x.Coins
+	balance coin.Coins
 	err     error
 	moves   []movecall
 }
 
 type movecall struct {
 	dst    weave.Address
-	amount x.Coin
+	amount coin.Coin
 }
 
-func (tc *testController) Balance(weave.KVStore, weave.Address) (x.Coins, error) {
+func (tc *testController) Balance(weave.KVStore, weave.Address) (coin.Coins, error) {
 	return tc.balance, tc.err
 }
 
-func (tc *testController) MoveCoins(db weave.KVStore, src, dst weave.Address, amount x.Coin) error {
+func (tc *testController) MoveCoins(db weave.KVStore, src, dst weave.Address, amount coin.Coin) error {
 	tc.moves = append(tc.moves, movecall{dst: dst, amount: amount})
 	return tc.err
 }

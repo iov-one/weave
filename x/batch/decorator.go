@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/coin"
 	"github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/common"
 )
@@ -69,22 +70,30 @@ func (d Decorator) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx,
 			return res, err
 		}
 	}
-	res = d.combineChecks(checks)
-	return res, err
-
+	return d.combineChecks(checks)
 }
 
 // combines all data bytes as protobuf.
 // joins all log messages with \n
-func (*Decorator) combineChecks(checks []weave.CheckResult) weave.CheckResult {
+func (*Decorator) combineChecks(checks []weave.CheckResult) (weave.CheckResult, error) {
 	datas := make([][]byte, len(checks))
 	logs := make([]string, len(checks))
 	var allocated, payments int64
+	var required coin.Coin
+	var err error
 	for i, r := range checks {
 		datas[i] = r.Data
 		logs[i] = r.Log
 		allocated += r.GasAllocated
 		payments += r.GasPayment
+		if required.IsZero() {
+			required = r.RequiredFee
+		} else if !r.RequiredFee.IsZero() {
+			required, err = required.Add(r.RequiredFee)
+			if err != nil {
+				return weave.CheckResult{}, err
+			}
+		}
 	}
 
 	data, _ := (&ByteArrayList{Elements: datas}).Marshal()
@@ -94,7 +103,8 @@ func (*Decorator) combineChecks(checks []weave.CheckResult) weave.CheckResult {
 		Log:          strings.Join(logs, "\n"),
 		GasAllocated: allocated,
 		GasPayment:   payments,
-	}
+		RequiredFee:  required,
+	}, nil
 }
 
 // Deliver iterates through messages in a batch transaction and passes them
@@ -126,18 +136,19 @@ func (d Decorator) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx,
 			return res, err
 		}
 	}
-	res = d.combineDelivers(delivers)
-	return res, err
+	return d.combineDelivers(delivers)
 }
 
 // combines all data bytes as protobuf.
 // joins all log messages with \n
-func (*Decorator) combineDelivers(delivers []weave.DeliverResult) weave.DeliverResult {
+func (*Decorator) combineDelivers(delivers []weave.DeliverResult) (weave.DeliverResult, error) {
 	datas := make([][]byte, len(delivers))
 	logs := make([]string, len(delivers))
 	var payments int64
 	var diffs []types.ValidatorUpdate
 	var tags []common.KVPair
+	var required coin.Coin
+	var err error
 	for i, r := range delivers {
 		datas[i] = r.Data
 		logs[i] = r.Log
@@ -147,6 +158,14 @@ func (*Decorator) combineDelivers(delivers []weave.DeliverResult) weave.DeliverR
 		}
 		if len(r.Tags) > 0 {
 			tags = append(tags, r.Tags...)
+		}
+		if required.IsZero() {
+			required = r.RequiredFee
+		} else if !r.RequiredFee.IsZero() {
+			required, err = required.Add(r.RequiredFee)
+			if err != nil {
+				return weave.DeliverResult{}, err
+			}
 		}
 	}
 
@@ -160,6 +179,7 @@ func (*Decorator) combineDelivers(delivers []weave.DeliverResult) weave.DeliverR
 		Diff:    diffs,
 		// https://github.com/iov-one/weave/pull/188#discussion_r234531097
 		// but I couldn't find a place where, so need to figure it out
-		Tags: tags,
-	}
+		Tags:        tags,
+		RequiredFee: required,
+	}, nil
 }

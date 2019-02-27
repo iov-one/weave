@@ -2,9 +2,9 @@ package escrow
 
 import (
 	"github.com/iov-one/weave"
+	coin "github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/orm"
-	"github.com/iov-one/weave/x"
 )
 
 const (
@@ -68,7 +68,7 @@ func AsEscrow(obj orm.Object) *Escrow {
 
 // NewEscrow creates an escrow orm.Object
 func NewEscrow(id []byte, sender, rcpt weave.Address, arb weave.Condition,
-	amount x.Coins, timeout int64, memo string) orm.Object {
+	amount coin.Coins, timeout int64, memo string) orm.Object {
 	esc := &Escrow{
 		Sender:    sender,
 		Arbiter:   arb,

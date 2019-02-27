@@ -4,9 +4,9 @@ import (
 	"fmt"
 
 	"github.com/iov-one/weave/cmd/bnsd/x/nft/username"
+	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/commands"
 	"github.com/iov-one/weave/crypto"
-	"github.com/iov-one/weave/x"
 	"github.com/iov-one/weave/x/cash"
 	"github.com/iov-one/weave/x/namecoin"
 	"github.com/iov-one/weave/x/nft"
@@ -17,9 +17,9 @@ import (
 func Examples() []commands.Example {
 	wallet := &namecoin.Wallet{
 		Name: "example",
-		Coins: []*x.Coin{
-			&x.Coin{Whole: 50000, Ticker: "ETH"},
-			&x.Coin{Whole: 150, Fractional: 567000, Ticker: "BTC"},
+		Coins: []*coin.Coin{
+			&coin.Coin{Whole: 50000, Ticker: "ETH"},
+			&coin.Coin{Whole: 150, Fractional: 567000, Ticker: "BTC"},
 		},
 	}
 
@@ -37,7 +37,7 @@ func Examples() []commands.Example {
 	}
 
 	dst := crypto.GenPrivKeyEd25519().PublicKey().Address()
-	amt := x.NewCoin(250, 0, "ETH")
+	amt := coin.NewCoin(250, 0, "ETH")
 	msg := &cash.SendMsg{
 		Amount: &amt,
 		Dest:   dst,

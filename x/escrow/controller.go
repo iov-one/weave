@@ -2,8 +2,8 @@ package escrow
 
 import (
 	"github.com/iov-one/weave"
+	coin "github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/orm"
-	"github.com/iov-one/weave/x"
 	"github.com/iov-one/weave/x/cash"
 )
 
@@ -20,8 +20,8 @@ func NewController(cash cash.Controller, bucket Bucket) *controller {
 }
 
 // Deposit transfers the given amounts from source wallet to the escrow account and persist it.
-func (m *controller) Deposit(db weave.KVStore, escrow *Escrow, escrowID []byte, src weave.Address, amounts x.Coins) error {
-	available := x.Coins(escrow.Amount).Clone()
+func (m *controller) Deposit(db weave.KVStore, escrow *Escrow, escrowID []byte, src weave.Address, amounts coin.Coins) error {
+	available := coin.Coins(escrow.Amount).Clone()
 	err := m.moveCoins(db, src, Condition(escrowID).Address(), amounts)
 	if err != nil {
 		return err
@@ -38,8 +38,8 @@ func (m *controller) Deposit(db weave.KVStore, escrow *Escrow, escrowID []byte, 
 
 // Deposit transfers the given amounts from escrow account to dest wallet and persist it.
 // If no coins are remaining in the escrow account it is deleted.
-func (m *controller) Withdraw(db weave.KVStore, escrow *Escrow, escrowID []byte, dest weave.Address, amounts x.Coins) error {
-	available := x.Coins(escrow.Amount).Clone()
+func (m *controller) Withdraw(db weave.KVStore, escrow *Escrow, escrowID []byte, dest weave.Address, amounts coin.Coins) error {
+	available := coin.Coins(escrow.Amount).Clone()
 	err := m.moveCoins(db, Condition(escrowID).Address(), dest, amounts)
 	if err != nil {
 		return err
@@ -60,7 +60,7 @@ func (m *controller) Withdraw(db weave.KVStore, escrow *Escrow, escrowID []byte,
 	return m.bucket.Delete(db, escrowID)
 }
 
-func (m *controller) moveCoins(db weave.KVStore, src weave.Address, dest weave.Address, amounts x.Coins) error {
+func (m *controller) moveCoins(db weave.KVStore, src weave.Address, dest weave.Address, amounts coin.Coins) error {
 	for _, c := range amounts {
 		err := m.cash.MoveCoins(db, src, dest, *c)
 		if err != nil {

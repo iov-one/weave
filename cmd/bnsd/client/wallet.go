@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/iov-one/weave"
-	"github.com/iov-one/weave/x"
+	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/x/cash"
 	tmtype "github.com/tendermint/tendermint/types"
 )
@@ -31,7 +31,7 @@ func MergeWalletStore(w1, w2 WalletStore) WalletStore {
 
 // LoadFromJSON loads a wallet from a json stream
 // It will generate private keys for wallets without an Address
-func (w *WalletStore) LoadFromJSON(msg json.RawMessage, defaults x.Coin) error {
+func (w *WalletStore) LoadFromJSON(msg json.RawMessage, defaults coin.Coin) error {
 	fmt.Printf("\nLoading new wallets from JSON %s\n", string(msg))
 
 	if len(msg) == 0 {
@@ -51,7 +51,7 @@ func (w *WalletStore) LoadFromJSON(msg json.RawMessage, defaults x.Coin) error {
 
 // LoadFromFile loads a wallet from a file
 // It will generate private keys for wallets without an Address
-func (w *WalletStore) LoadFromFile(file string, defaults x.Coin) error {
+func (w *WalletStore) LoadFromFile(file string, defaults coin.Coin) error {
 	fmt.Printf("\nLoading new wallets from %s\n", file)
 	newWallet, err := ioutil.ReadFile(file)
 	if err != nil {
@@ -63,7 +63,7 @@ func (w *WalletStore) LoadFromFile(file string, defaults x.Coin) error {
 
 // LoadFromGenesisFile loads a wallet from a tendermint genesis file
 // It will generate private keys for wallets without an Address
-func (w *WalletStore) LoadFromGenesisFile(file string, defaults x.Coin) error {
+func (w *WalletStore) LoadFromGenesisFile(file string, defaults coin.Coin) error {
 	fmt.Printf("Loading genesis file from %s\n", file)
 	genesis, err := tmtype.GenesisDocFromFile(file)
 	if err != nil {
@@ -73,7 +73,7 @@ func (w *WalletStore) LoadFromGenesisFile(file string, defaults x.Coin) error {
 	return w.LoadFromJSON(genesis.AppState, defaults)
 }
 
-// MaybeCoin is like x.Coin, but with pointers instead
+// MaybeCoin is like coin.Coin, but with pointers instead
 // This allows to distinguish between set values and missing ones
 type MaybeCoin struct {
 	Whole      *int64  `json:"whole,omitempty"`
@@ -83,7 +83,7 @@ type MaybeCoin struct {
 
 // WithDefaults fills the gaps in a maybe coin by replacing
 // missing values with default ones
-func (m MaybeCoin) WithDefaults(defaults x.Coin) x.Coin {
+func (m MaybeCoin) WithDefaults(defaults coin.Coin) coin.Coin {
 	res := defaults
 	// apply all set values, even if they are the zero value
 	if m.Whole != nil {
@@ -118,7 +118,7 @@ type WalletResponse struct {
 }
 
 // Normalize Creates a WalletStore with defaulted Wallets and Generated Keys
-func (w WalletRequests) Normalize(defaults x.Coin) WalletStore {
+func (w WalletRequests) Normalize(defaults coin.Coin) WalletStore {
 	out := WalletStore{
 		Wallets: make([]cash.GenesisAccount, len(w.Wallets)),
 	}
@@ -137,10 +137,10 @@ func (w WalletRequests) Normalize(defaults x.Coin) WalletStore {
 
 // Normalize returns corresponding cash.GenesisAccount
 // with default values. It will generate private keys when there is no Address
-func (w WalletRequest) Normalize(defaults x.Coin) (cash.GenesisAccount, *PrivateKey) {
-	var coins x.Coins
+func (w WalletRequest) Normalize(defaults coin.Coin) (cash.GenesisAccount, *PrivateKey) {
+	var coins coin.Coins
 	if len(w.Coins) == 0 {
-		coins = x.Coins{defaults.Clone()}
+		coins = coin.Coins{defaults.Clone()}
 	} else {
 		for _, coin := range w.Coins {
 			c := coin.WithDefaults(defaults)
@@ -165,7 +165,7 @@ func (w WalletRequest) Normalize(defaults x.Coin) (cash.GenesisAccount, *Private
 
 type MaybeCoins []*MaybeCoin
 
-func FindCoinByTicker(coins x.Coins, ticker string) (*x.Coin, bool) {
+func FindCoinByTicker(coins coin.Coins, ticker string) (*coin.Coin, bool) {
 	for _, coin := range coins {
 		if strings.EqualFold(ticker, coin.Ticker) {
 			return coin, true

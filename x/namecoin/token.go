@@ -2,9 +2,9 @@ package namecoin
 
 import (
 	"github.com/iov-one/weave"
+	coin "github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/orm"
-	"github.com/iov-one/weave/x"
 )
 
 const (
@@ -100,7 +100,7 @@ func (b TokenBucket) Save(db weave.KVStore, obj orm.Object) error {
 		return errors.WithType(errors.ErrInvalidModel, obj.Value())
 	}
 	name := string(obj.Key())
-	if !x.IsCC(name) {
+	if !coin.IsCC(name) {
 		return errors.ErrInvalidInput.Newf(invalidTokenNameFmt, name)
 	}
 	return b.Bucket.Save(db, obj)

@@ -2,6 +2,7 @@ package paychan
 
 import (
 	"github.com/iov-one/weave"
+	coin "github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/x"
@@ -84,7 +85,7 @@ func (h *createPaymentChannelHandler) Deliver(ctx weave.Context, db weave.KVStor
 		Total:        msg.Total,
 		Timeout:      msg.Timeout,
 		Memo:         msg.Memo,
-		Transferred:  &x.Coin{Ticker: msg.Total.Ticker},
+		Transferred:  &coin.Coin{Ticker: msg.Total.Ticker},
 	})
 	if err != nil {
 		return res, errors.Wrap(err, "cannot create a payment channel")

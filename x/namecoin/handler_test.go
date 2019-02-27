@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/iov-one/weave"
+	coin "github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/store"
@@ -31,8 +32,8 @@ func mo(obj orm.Object, err error) orm.Object {
 func TestSendHandler(t *testing.T) {
 	var helpers x.TestHelpers
 
-	foo := x.NewCoin(100, 0, "FOO")
-	some := x.NewCoin(300, 0, "SOME")
+	foo := coin.NewCoin(100, 0, "FOO")
+	some := coin.NewCoin(300, 0, "SOME")
 
 	perm := weave.NewCondition("sig", "ed25519", []byte{1, 2, 3})
 	perm2 := weave.NewCondition("sig", "ed25519", []byte{4, 5, 6})
@@ -135,7 +136,7 @@ func TestNewTokenHandler(t *testing.T) {
 			errors.ErrInvalidMsg.Is, errors.ErrInvalidMsg.Is, "", nil},
 		// wrong currency values
 		1: {nil, nil, nil, BuildTokenMsg("YO", "digga", 7),
-			x.ErrInvalidCurrency.Is, x.ErrInvalidCurrency.Is, "", nil},
+			coin.ErrInvalidCurrency.Is, coin.ErrInvalidCurrency.Is, "", nil},
 		2: {nil, nil, nil, BuildTokenMsg("GOOD", "ill3glz!", 7),
 			errors.ErrInvalidInput.Is, errors.ErrInvalidInput.Is, "", nil},
 		3: {nil, nil, nil, BuildTokenMsg("GOOD", "my good token", 17),
@@ -197,7 +198,7 @@ func TestSetNameHandler(t *testing.T) {
 	addr := perm.Address()
 	addr2 := perm2.Address()
 
-	coin := x.NewCoin(100, 0, "FOO")
+	coin := coin.NewCoin(100, 0, "FOO")
 	name := "carl"
 	// newUser + msg -> setUser
 	newUser := mo(WalletWith(addr, "", &coin))

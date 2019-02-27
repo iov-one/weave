@@ -6,8 +6,8 @@ import (
 	"testing"
 
 	"github.com/iov-one/weave"
+	coin "github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/store"
-	"github.com/iov-one/weave/x"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -33,13 +33,13 @@ func TestInitState(t *testing.T) {
 	require.NoError(t, err)
 	// expected values
 	addr := []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 0x21, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27, 0x28, 0x29, 0x30}
-	wallet := &Wallet{Name: "lolz1793", Coins: mustCombineCoins(x.NewCoin(50, 1234567, "FUN"))}
+	wallet := &Wallet{Name: "lolz1793", Coins: mustCombineCoins(coin.NewCoin(50, 1234567, "FUN"))}
 	ticker := "FUN"
 	token := &Token{Name: "The most fun coin", SigFigs: 7}
 
 	// valid data
 	addr2 := []byte("12345678901234567890")
-	wallet2 := &Wallet{Coins: mustCombineCoins(x.NewCoin(100, 5, "ATM"), x.NewCoin(50, 0, "ETH"))}
+	wallet2 := &Wallet{Coins: mustCombineCoins(coin.NewCoin(100, 5, "ATM"), coin.NewCoin(50, 0, "ETH"))}
 	ticker2 := "ATM"
 	token2 := &Token{Name: "At the moment", SigFigs: 3}
 	ticker2a := "ETH"
@@ -50,8 +50,8 @@ func TestInitState(t *testing.T) {
 	require.NoError(t, err)
 
 	// invalid wallet
-	badCoin := x.NewCoin(100, -5000, "ATM")
-	walletBad := &Wallet{Coins: []*x.Coin{&badCoin}}
+	badCoin := coin.NewCoin(100, -5000, "ATM")
+	walletBad := &Wallet{Coins: []*coin.Coin{&badCoin}}
 	opts3, err := BuildGenesis(
 		[]GenesisAccount{{Address: addr2, Wallet: walletBad}},
 		[]GenesisToken{ToGenesisToken(ticker2, token2)})
@@ -121,8 +121,8 @@ func TestInitState(t *testing.T) {
 }
 
 // mustCombineCoins has one return value for tests...
-func mustCombineCoins(cs ...x.Coin) x.Coins {
-	s, err := x.CombineCoins(cs...)
+func mustCombineCoins(cs ...coin.Coin) coin.Coins {
+	s, err := coin.CombineCoins(cs...)
 	if err != nil {
 		panic(err)
 	}

@@ -2,8 +2,8 @@ package escrow
 
 import (
 	"github.com/iov-one/weave"
+	coin "github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/errors"
-	"github.com/iov-one/weave/x"
 )
 
 const (
@@ -46,7 +46,7 @@ func (UpdateEscrowPartiesMsg) Path() string {
 
 // NewCreateMsg is a helper to quickly build a create escrow message
 func NewCreateMsg(send, rcpt weave.Address, arb weave.Condition,
-	amount x.Coins, timeout int64, memo string) *CreateEscrowMsg {
+	amount coin.Coins, timeout int64, memo string) *CreateEscrowMsg {
 	return &CreateEscrowMsg{
 		Src:       send,
 		Recipient: rcpt,
@@ -142,7 +142,7 @@ func validateAddresses(addrs ...weave.Address) error {
 	return nil
 }
 
-func validateAmount(amount x.Coins) error {
+func validateAmount(amount coin.Coins) error {
 	// we enforce this is positive
 	positive := amount.IsPositive()
 	if !positive {
