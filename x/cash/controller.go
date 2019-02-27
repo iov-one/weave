@@ -63,7 +63,7 @@ func (c BaseController) MoveCoins(store weave.KVStore,
 
 	if amount.IsZero() {
 		// Moving no coins can be ignored as it should not change the
-		// sate.
+		// state.
 		return nil
 	}
 
