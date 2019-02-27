@@ -6,13 +6,22 @@ import (
 	"github.com/iov-one/weave/x"
 )
 
+// CoinsMover is an interface for moving coins between accounts.
+type CoinMover interface {
+	// MoveCoins removes funds from the source account and adds them to the
+	// destination account. This operation is atomic.
+	// Moving coins must happen from the source to the destination address.
+	// Negative amounts must not be accepted. Calling this method with a
+	// negative amount must fail.
+	// Zero amount can be allowed but then should be a no-operation.
+	MoveCoins(store weave.KVStore, src weave.Address, dest weave.Address, amount x.Coin) error
+}
+
 // Controller is the functionality needed by cash.Handler and cash.Decorator.
 // BaseController should work plenty fine, but you can add other logic if so
 // desired
 type Controller interface {
-	// MoveCoins removes funds from the source account and adds them to the
-	// destination account. This operation is atomic.
-	MoveCoins(store weave.KVStore, src weave.Address, dest weave.Address, amount x.Coin) error
+	CoinMover
 
 	// IssueCoins increase the number of funds on given accouunt by a
 	// specified amount.
@@ -20,13 +29,6 @@ type Controller interface {
 
 	// Balance returns the amount of funds stored under given account address.
 	Balance(weave.KVStore, weave.Address) (x.Coins, error)
-}
-
-// FeeController is a minimal subset of the full cash.Controller
-type FeeController interface {
-	// MoveCoins removes funds from the source account and adds them to the
-	// destination account. This operation is atomic.
-	MoveCoins(store weave.KVStore, src weave.Address, dest weave.Address, amount x.Coin) error
 }
 
 // BaseController implements Controller interface, using WalletBucket as the
@@ -60,6 +62,12 @@ func (c BaseController) Balance(store weave.KVStore, src weave.Address) (x.Coins
 // coins, it fails.
 func (c BaseController) MoveCoins(store weave.KVStore,
 	src weave.Address, dest weave.Address, amount x.Coin) error {
+
+	if amount.IsZero() {
+		// Moving no coins can be ignored as it should not change the
+		// state.
+		return nil
+	}
 
 	if !amount.IsPositive() {
 		return errors.ErrInvalidAmount.Newf("non-positive SendMsg: %#v", &amount)
