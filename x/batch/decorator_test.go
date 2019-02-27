@@ -146,6 +146,50 @@ func TestDecorator(t *testing.T) {
 			msg.AssertExpectations(t)
 		})
 
+		Convey("Combine required fees with none", func() {
+			// 4 elements, 1 and 3 with fees, 2 and 4 without
+			num := int64(4)
+			logVal := "log"
+			dataContent := make([]byte, 2)
+			gas := int64(1)
+
+			fee := coin.Coin{Whole: 1, Fractional: 50, Ticker: "IOV"}
+			fee2 := coin.Coin{Whole: 2, Ticker: "IOV"}
+			combined := coin.Coin{Whole: 3, Fractional: 50, Ticker: "IOV"}
+			zero := coin.Coin{}
+
+			msg.On("Validate").Return(nil).Times(2)
+			msg.On("MsgList").Return(make([]weave.Msg, 4), nil).Times(2)
+			helper.On("GetMsg").Return(msg, nil).Times(2)
+			makeRes := func(req coin.Coin) weave.DeliverResult {
+				return weave.DeliverResult{
+					Data:        dataContent,
+					Log:         logVal,
+					GasUsed:     gas,
+					Diff:        make([]types.ValidatorUpdate, 1),
+					Tags:        make([]common.KVPair, 1),
+					RequiredFee: req,
+				}
+			}
+			// fee, zero, fee2, zero
+			helper.On("Deliver", nil, nil, mock.Anything).Return(makeRes(fee), nil).Times(1)
+			helper.On("Deliver", nil, nil, mock.Anything).Return(makeRes(zero), nil).Times(1)
+			helper.On("Deliver", nil, nil, mock.Anything).Return(makeRes(fee2), nil).Times(1)
+			helper.On("Deliver", nil, nil, mock.Anything).Return(makeRes(zero), nil).Times(1)
+
+			deliverRes, err := decorator.Deliver(nil, nil, helper, helper)
+			So(err, ShouldBeNil)
+			data, _ := mockData(num, dataContent).Marshal()
+			So(deliverRes, ShouldResemble, weave.DeliverResult{
+				Data:        data,
+				Log:         mockLog(num, logVal),
+				GasUsed:     gas * num,
+				Diff:        mockDiff(num),
+				Tags:        mockTags(num),
+				RequiredFee: combined,
+			})
+		})
+
 		Convey("Wrong tx type", func() {
 			helper.On("GetMsg").Return(wrongWeaveMsg{}, nil).Times(2)
 			helper.On("Deliver", nil, nil, mock.Anything).Return(weave.DeliverResult{}, nil).Times(1)
@@ -168,6 +212,34 @@ func TestDecorator(t *testing.T) {
 				_, err = decorator.Deliver(nil, nil, helper, helper)
 				So(err, ShouldEqual, expectedErr)
 				helper.AssertExpectations(t)
+			})
+
+			Convey("Incompatible fees", func() {
+				logVal := "log"
+				gas := int64(3)
+
+				msg.On("Validate").Return(nil).Times(2)
+				msg.On("MsgList").Return(make([]weave.Msg, 2), nil).Times(2)
+				helper.On("GetMsg").Return(msg, nil).Times(2)
+
+				// two different returns, with different fees
+				helper.On("Check", nil, nil, mock.Anything).Return(weave.CheckResult{
+					Data:         make([]byte, 2),
+					Log:          logVal,
+					GasAllocated: gas,
+					GasPayment:   gas,
+					RequiredFee:  coin.Coin{Whole: 1, Ticker: "IOV"},
+				}, nil).Times(1)
+				helper.On("Check", nil, nil, mock.Anything).Return(weave.CheckResult{
+					Data:         make([]byte, 1),
+					Log:          logVal,
+					GasAllocated: gas,
+					GasPayment:   gas,
+					RequiredFee:  coin.Coin{Whole: 1, Ticker: "LSK"},
+				}, nil).Times(1)
+
+				_, err := decorator.Check(nil, nil, helper, helper)
+				So(err, ShouldNotBeNil)
 			})
 
 			Convey("Validation error", func() {

@@ -88,7 +88,7 @@ func (*Decorator) combineChecks(checks []weave.CheckResult) (weave.CheckResult, 
 		payments += r.GasPayment
 		if required.IsZero() {
 			required = r.RequiredFee
-		} else {
+		} else if !r.RequiredFee.IsZero() {
 			required, err = required.Add(r.RequiredFee)
 			if err != nil {
 				return weave.CheckResult{}, err
@@ -161,7 +161,7 @@ func (*Decorator) combineDelivers(delivers []weave.DeliverResult) (weave.Deliver
 		}
 		if required.IsZero() {
 			required = r.RequiredFee
-		} else {
+		} else if !r.RequiredFee.IsZero() {
 			required, err = required.Add(r.RequiredFee)
 			if err != nil {
 				return weave.DeliverResult{}, err
