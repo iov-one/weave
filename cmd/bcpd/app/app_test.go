@@ -1,7 +1,6 @@
 package app
 
 import (
-	"bytes"
 	"encoding/binary"
 	"encoding/hex"
 	"encoding/json"
@@ -228,7 +227,7 @@ func withWalletAppState(t require.TestingT, accounts []*account) string {
 		Gconf map[string]interface{} `json:"gconf"`
 	}{
 		Gconf: map[string]interface{}{
-			cash.GconfCollectorAddress: "fake-collector-address",
+			cash.GconfCollectorAddress: "66616b652d636f6c6c6563746f722d61646472657373",
 			cash.GconfMinimalFee:       x.Coin{}, // no fee
 		},
 	}
@@ -272,38 +271,37 @@ func (c *contract) signers() []*account {
 }
 
 func appStateGenesis(t require.TestingT, contracts []*contract) string {
-	var buff bytes.Buffer
-	for i, acc := range contracts {
-		_, err := buff.WriteString(fmt.Sprintf(`{
-            "name": "wallet%d",
-			"address": "%X",
-			"coins": [{
-                "whole": 50000,
-                "ticker": "ETH"
-            },{
-                "whole": 1234,
-				"ticker": "FRNK"
-			}]
-		},`, i, acc.address()))
-		require.NoError(t, err)
+	type dt map[string]interface{}
+	type arr []interface{}
+
+	var wallets arr
+	for i, c := range contracts {
+		wallets = append(wallets, dt{
+			"name":    fmt.Sprintf("wallet%d", i),
+			"address": c.address(),
+			"coins": arr{
+				dt{"whole": 50000, "ticker": "ETH"},
+				dt{"whole": 1234, "ticker": "FRNK"},
+			},
+		})
 	}
 
-	walletStr := buff.String()
-	walletStr = walletStr[:len(walletStr)-1]
-	appState := fmt.Sprintf(`{
-		"wallets": [%s],
-        "currencies": [{
-            "ticker": "ETH",
-            "name": "Smells like ethereum",
-            "sig_figs": 9
-        },{
-            "ticker": "FRNK",
-            "name": "Frankie",
-            "sig_figs": 3
-		}]
-	}`, walletStr)
+	state := dt{
+		"wallets": wallets,
+		"currencies": arr{
+			dt{"ticker": "ETH", "name": "Smells like ethereum", "sig_figs": 9},
+			dt{"ticker": "FRNK", "name": "Frankie", "sig_figs": 3},
+		},
+		"gconf": dt{
+			"cash:collector_address": "66616b652d636f6c6c6563746f722d61646472657373",
+		},
+	}
 
-	return appState
+	b, err := json.MarshalIndent(state, "", "\t")
+	if err != nil {
+		panic(err)
+	}
+	return string(b)
 }
 
 // sendToken creates the transaction, signs it and sends it
@@ -392,8 +390,7 @@ func sendBatch(t require.TestingT, fail bool, baseApp app.BaseApp, chainID strin
 
 // createContract creates an immutable contract, signs the transaction and sends it
 // checks contract has been created correctly
-func createContract(t require.TestingT, baseApp app.BaseApp, chainID string, height int64, signers []*account,
-	activationThreshold int64, contractSigs ...[]byte) []byte {
+func createContract(t require.TestingT, baseApp app.BaseApp, chainID string, height int64, signers []*account, activationThreshold int64, contractSigs ...[]byte) []byte {
 	msg := &multisig.CreateContractMsg{
 		Sigs:                contractSigs,
 		ActivationThreshold: activationThreshold,
@@ -420,8 +417,7 @@ func createContract(t require.TestingT, baseApp app.BaseApp, chainID string, hei
 
 // signAndCommit signs tx with signatures from signers and submits to the chain
 // asserts and fails the test in case of errors during the process
-func signAndCommit(t require.TestingT, fail bool, app app.BaseApp, tx *Tx, signers []*account, chainID string,
-	height int64) abci.ResponseDeliverTx {
+func signAndCommit(t require.TestingT, fail bool, app app.BaseApp, tx *Tx, signers []*account, chainID string, height int64) abci.ResponseDeliverTx {
 	for _, signer := range signers {
 		sig, err := sigs.SignTx(signer.pk, tx, chainID, signer.nonce())
 		require.NoError(t, err)

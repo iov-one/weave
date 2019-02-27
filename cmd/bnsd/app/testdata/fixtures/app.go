@@ -91,7 +91,7 @@ func appStateGenesis(keyAddress weave.Address) []byte {
 			},
 		},
 		Gconf: map[string]interface{}{
-			cash.GconfCollectorAddress: "fake-collector-address",
+			cash.GconfCollectorAddress: "66616b652d636f6c6c6563746f722d61646472657373",
 			cash.GconfMinimalFee:       x.Coin{Whole: 0}, // no fee
 		},
 	}
