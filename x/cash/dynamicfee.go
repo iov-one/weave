@@ -44,9 +44,6 @@ import (
 type DynamicFeeDecorator struct {
 	auth x.Authenticator
 	ctrl CoinMover
-	// these are cached values to not hit gconf on each read
-	collector weave.Address
-	minFee    *coin.Coin
 }
 
 var _ weave.Decorator = DynamicFeeDecorator{}
@@ -71,8 +68,7 @@ func (d DynamicFeeDecorator) Check(ctx weave.Context, store weave.KVStore, tx we
 		return res, err
 	}
 
-	// read config
-	minFee := d.getMinFee(store)
+	minFee := gconf.Coin(store, GconfMinimalFee)
 
 	// do subtransaction in a function for easier error handling
 	res, err = func() (weave.CheckResult, error) {
@@ -112,8 +108,7 @@ func (d DynamicFeeDecorator) Deliver(ctx weave.Context, store weave.KVStore, tx 
 		return res, err
 	}
 
-	// read config
-	minFee := d.getMinFee(store)
+	minFee := gconf.Coin(store, GconfMinimalFee)
 
 	// do subtransaction in a function for easier error handling
 	res, err = func() (weave.DeliverResult, error) {
@@ -151,7 +146,7 @@ func (d DynamicFeeDecorator) chargeFee(store weave.KVStore, src weave.Address, a
 	if !amount.IsPositive() {
 		return errors.ErrInvalidState.Newf("negative fee: %v", amount)
 	}
-	dest := d.getCollector(store)
+	dest := gconf.Address(store, GconfCollectorAddress)
 	return d.ctrl.MoveCoins(store, src, dest, amount)
 }
 
@@ -201,7 +196,7 @@ func (d DynamicFeeDecorator) extractFee(ctx weave.Context, tx weave.Tx, store we
 
 	fee := finfo.GetFees()
 	if coin.IsEmpty(fee) {
-		minFee := d.getMinFee(store)
+		minFee := gconf.Coin(store, GconfMinimalFee)
 		if minFee.IsZero() {
 			return finfo, nil
 		}
@@ -214,7 +209,7 @@ func (d DynamicFeeDecorator) extractFee(ctx weave.Context, tx weave.Tx, store we
 		return nil, err
 	}
 
-	cmp := d.getMinFee(store)
+	cmp := gconf.Coin(store, GconfMinimalFee)
 	// minimum has no currency -> accept everything
 	if cmp.Ticker == "" {
 		cmp.Ticker = fee.Ticker
@@ -227,19 +222,4 @@ func (d DynamicFeeDecorator) extractFee(ctx weave.Context, tx weave.Tx, store we
 		return nil, errors.ErrInsufficientAmount.Newf("fees %#v", fee)
 	}
 	return finfo, nil
-}
-
-func (d DynamicFeeDecorator) getCollector(store weave.KVStore) weave.Address {
-	if d.collector == nil {
-		d.collector = gconf.Address(store, GconfCollectorAddress)
-	}
-	return d.collector
-}
-
-func (d DynamicFeeDecorator) getMinFee(store weave.KVStore) coin.Coin {
-	if d.minFee == nil {
-		fee := gconf.Coin(store, GconfMinimalFee)
-		d.minFee = &fee
-	}
-	return *d.minFee
 }
