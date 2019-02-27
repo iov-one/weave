@@ -36,8 +36,8 @@ As with FeeDecorator, all deducted fees are send to the collector,
 whose address is configured via gconf package.
 */
 type DynamicFeeDecorator struct {
-	auth    x.Authenticator
-	control FeeController
+	auth x.Authenticator
+	ctrl CoinMover
 	// these are cached values to not hit gconf on each read
 	collector weave.Address
 	minFee    *x.Coin
@@ -47,10 +47,10 @@ var _ weave.Decorator = DynamicFeeDecorator{}
 
 // NewDynamicFeeDecorator returns a DynamicFeeDecorator with the given
 // minimum fee, and all collected fees going to a default address.
-func NewDynamicFeeDecorator(auth x.Authenticator, control FeeController) DynamicFeeDecorator {
+func NewDynamicFeeDecorator(auth x.Authenticator, ctrl CoinMover) DynamicFeeDecorator {
 	return DynamicFeeDecorator{
-		auth:    auth,
-		control: control,
+		auth: auth,
+		ctrl: ctrl,
 	}
 }
 
@@ -142,7 +142,7 @@ func (d DynamicFeeDecorator) maybeTakeFee(store weave.KVStore, src weave.Address
 		return nil
 	}
 	dest := d.getCollector(store)
-	return d.control.MoveCoins(store, src, dest, amount)
+	return d.ctrl.MoveCoins(store, src, dest, amount)
 }
 
 // prepare is all shared setup between Check and Deliver, one more level above extractFee

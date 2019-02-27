@@ -21,8 +21,8 @@ then all fees must be paid in that currency
 It uses auth to verify the sender
 */
 type FeeDecorator struct {
-	auth    x.Authenticator
-	control FeeController
+	auth x.Authenticator
+	ctrl CoinMover
 }
 
 const (
@@ -35,10 +35,10 @@ var _ weave.Decorator = FeeDecorator{}
 // NewFeeDecorator returns a FeeDecorator with the given
 // minimum fee, and all collected fees going to a
 // default address.
-func NewFeeDecorator(auth x.Authenticator, control FeeController) FeeDecorator {
+func NewFeeDecorator(auth x.Authenticator, ctrl CoinMover) FeeDecorator {
 	return FeeDecorator{
-		auth:    auth,
-		control: control,
+		auth: auth,
+		ctrl: ctrl,
 	}
 }
 
@@ -64,7 +64,7 @@ func (d FeeDecorator) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx,
 	}
 	// and have enough
 	collector := gconf.Address(store, GconfCollectorAddress)
-	err = d.control.MoveCoins(store, finfo.Payer, collector, *fee)
+	err = d.ctrl.MoveCoins(store, finfo.Payer, collector, *fee)
 	if err != nil {
 		return res, err
 	}
@@ -98,7 +98,7 @@ func (d FeeDecorator) Deliver(ctx weave.Context, store weave.KVStore, tx weave.T
 	}
 	// and subtract it from the account
 	collector := gconf.Address(store, GconfCollectorAddress)
-	err = d.control.MoveCoins(store, finfo.Payer, collector, *fee)
+	err = d.ctrl.MoveCoins(store, finfo.Payer, collector, *fee)
 	if err != nil {
 		return res, err
 	}
