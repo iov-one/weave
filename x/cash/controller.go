@@ -61,6 +61,12 @@ func (c BaseController) Balance(store weave.KVStore, src weave.Address) (coin.Co
 func (c BaseController) MoveCoins(store weave.KVStore,
 	src weave.Address, dest weave.Address, amount coin.Coin) error {
 
+	if amount.IsZero() {
+		// Moving no coins can be ignored as it should not change the
+		// sate.
+		return nil
+	}
+
 	if !amount.IsPositive() {
 		return errors.ErrInvalidAmount.Newf("non-positive SendMsg: %#v", &amount)
 	}
