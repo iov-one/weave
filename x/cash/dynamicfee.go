@@ -138,9 +138,10 @@ func (d DynamicFeeDecorator) Deliver(ctx weave.Context, store weave.KVStore, tx 
 }
 
 func (d DynamicFeeDecorator) chargeFee(store weave.KVStore, src weave.Address, amount coin.Coin) error {
+	if amount.IsZero() {
+		return nil
+	}
 	dest := gconf.Address(store, GconfCollectorAddress)
-	// Rely on MoveCoins implemnetation to ensure that the amount value is
-	// acceptable.
 	return d.ctrl.MoveCoins(store, src, dest, amount)
 }
 
