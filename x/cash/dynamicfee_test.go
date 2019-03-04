@@ -226,14 +226,14 @@ func (m *txMock) GetFees() *FeeInfo {
 var ErrTestingError = errors.Register(123456789, "testing error")
 
 type handlerMock struct {
-	weave.Handler
-
 	checkRes weave.CheckResult
 	checkErr error
 
 	deliverRes weave.DeliverResult
 	deliverErr error
 }
+
+var _ weave.Handler = (*handlerMock)(nil)
 
 func (m *handlerMock) Check(weave.Context, weave.KVStore, weave.Tx) (weave.CheckResult, error) {
 	return m.checkRes, m.checkErr
