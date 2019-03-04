@@ -97,10 +97,9 @@ func TestDynamicFeeDecorator(t *testing.T) {
 			initWallets: []orm.Object{
 				walletObj(perm1.Address(), 1, 0, "BTC"),
 			},
-			minimumFee:     coin.NewCoin(0, 23, ""),
-			txFee:          coin.NewCoin(0, 421, "ETH"),
-			wantCheckErr:   errors.ErrInsufficientAmount,
-			wantCheckTxFee: coin.NewCoin(0, 23, "BTC"),
+			minimumFee:   coin.NewCoin(0, 23, ""),
+			txFee:        coin.NewCoin(0, 421, "ETH"),
+			wantCheckErr: errors.ErrHuman,
 		},
 		"on a handler deliver failure only minimum fee is charged": {
 			signers: []weave.Condition{perm1},

@@ -43,7 +43,7 @@ import (
 
 type DynamicFeeDecorator struct {
 	auth x.Authenticator
-	ctrl Controller
+	ctrl CoinMover
 }
 
 var _ weave.Decorator = DynamicFeeDecorator{}
@@ -113,28 +113,13 @@ func (d DynamicFeeDecorator) chargeFee(store weave.KVStore, src weave.Address, a
 // chargeMinimalFee deduct an anty span fee from a given account.
 func (d DynamicFeeDecorator) chargeMinimalFee(store weave.KVStore, src weave.Address) error {
 	fee := gconf.Coin(store, GconfMinimalFee)
-
 	if fee.IsZero() {
 		return nil
 	}
-
-	// If a fee has no currency set any ticker is accepted.
 	if fee.Ticker == "" {
-		switch funds, err := d.ctrl.Balance(store, src); {
-		case err == nil:
-			// Any ticker will do.
-			fee.Ticker = funds[0].Ticker
-		case errors.Is(errors.ErrNotFound, err):
-			return errors.ErrInsufficientAmount.New("no funds")
-		default:
-			return errors.Wrap(err, "cannot introspect account balance")
-		}
+		return errors.ErrHuman.New("minimal fee without a ticker")
 	}
-
-	if err := d.chargeFee(store, src, fee); err != nil {
-		return errors.Wrap(err, "cannot charge mimal fee")
-	}
-	return nil
+	return d.chargeFee(store, src, fee)
 }
 
 // prepare is all shared setup between Check and Deliver. It computes the fee
@@ -190,9 +175,11 @@ func (d DynamicFeeDecorator) extractFee(ctx weave.Context, tx weave.Tx, store we
 	}
 
 	minFee := gconf.Coin(store, GconfMinimalFee)
-	// If the minimum fee has no currency accept anything.
+	if minFee.IsZero() {
+		return finfo, nil
+	}
 	if minFee.Ticker == "" {
-		minFee.Ticker = txFee.Ticker
+		return nil, errors.ErrHuman.New("minumal fee curency not set")
 	}
 	if !txFee.SameType(minFee) {
 		return nil, coin.ErrInvalidCurrency.Newf("min fee is %s and tx fee is %s", minFee.Ticker, txFee.Ticker)
