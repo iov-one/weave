@@ -114,6 +114,65 @@ func TestDynamicFeeDecorator(t *testing.T) {
 			wantDeliverErr:   ErrTestingError,
 			wantDeliverTxFee: coin.NewCoin(0, 11, "BTC"),
 		},
+		"success if we pay exactly required fee": {
+			signers: []weave.Condition{perm1},
+			handler: &handlerMock{deliverRes: weave.DeliverResult{RequiredFee: coin.NewCoin(0, 421, "IOV")}},
+			initWallets: []orm.Object{
+				walletObj(perm1.Address(), 1, 0, "IOV"),
+			},
+			minimumFee:       coin.NewCoin(0, 23, "IOV"),
+			txFee:            coin.NewCoin(0, 421, "IOV"),
+			wantCheckTxFee:   coin.NewCoin(0, 421, "IOV"),
+			wantDeliverTxFee: coin.NewCoin(0, 421, "IOV"),
+			wantGasPayment:   421,
+		},
+		"success if we pay more than required fee": {
+			signers: []weave.Condition{perm1},
+			handler: &handlerMock{deliverRes: weave.DeliverResult{RequiredFee: coin.NewCoin(0, 77, "IOV")}},
+			initWallets: []orm.Object{
+				walletObj(perm1.Address(), 1, 0, "IOV"),
+			},
+			minimumFee:       coin.NewCoin(0, 23, "IOV"),
+			txFee:            coin.NewCoin(0, 421, "IOV"),
+			wantCheckTxFee:   coin.NewCoin(0, 421, "IOV"),
+			wantDeliverTxFee: coin.NewCoin(0, 421, "IOV"),
+			wantGasPayment:   421,
+		},
+		"failure if we pay less than required fee": {
+			signers: []weave.Condition{perm1},
+			handler: &handlerMock{checkRes: weave.CheckResult{RequiredFee: coin.NewCoin(1, 0, "IOV")}},
+			initWallets: []orm.Object{
+				walletObj(perm1.Address(), 1, 0, "IOV"),
+			},
+			minimumFee:     coin.NewCoin(0, 23, "IOV"),
+			txFee:          coin.NewCoin(0, 421, "IOV"),
+			wantCheckErr:   errors.ErrInsufficientAmount,
+			wantCheckTxFee: coin.NewCoin(0, 23, "IOV"),
+		},
+		"failure if we pay different currency than required fee": {
+			signers: []weave.Condition{perm1},
+			handler: &handlerMock{checkRes: weave.CheckResult{RequiredFee: coin.NewCoin(0, 72, "ETH")}},
+			initWallets: []orm.Object{
+				walletObj(perm1.Address(), 1, 0, "IOV"),
+			},
+			minimumFee:     coin.NewCoin(0, 23, "IOV"),
+			txFee:          coin.NewCoin(0, 421, "IOV"),
+			wantCheckErr:   errors.ErrInsufficientAmount,
+			wantCheckTxFee: coin.NewCoin(0, 23, "IOV"),
+		},
+		"failure if we pay less than required fee also in delivettx": {
+			signers: []weave.Condition{perm1},
+			handler: &handlerMock{deliverRes: weave.DeliverResult{RequiredFee: coin.NewCoin(1, 0, "IOV")}},
+			initWallets: []orm.Object{
+				walletObj(perm1.Address(), 1, 0, "IOV"),
+			},
+			minimumFee:       coin.NewCoin(0, 23, "IOV"),
+			txFee:            coin.NewCoin(0, 421, "IOV"),
+			wantCheckTxFee:   coin.NewCoin(0, 421, "IOV"),
+			wantGasPayment:   421,
+			wantDeliverErr:   errors.ErrInsufficientAmount,
+			wantDeliverTxFee: coin.NewCoin(0, 23, "IOV"),
+		},
 	}
 
 	for testName, tc := range cases {
