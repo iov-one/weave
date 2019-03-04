@@ -57,7 +57,7 @@ func TestDynamicFeeDecorator(t *testing.T) {
 			minumumFee:       x.NewCoin(0, 23, "BTC"),
 			txFee:            x.NewCoin(0, 421, "BTC"),
 			wantCheckTxFee:   x.NewCoin(0, 421, "BTC"),
-			wantDeliverTxFee: x.NewCoin(0, 842, "BTC"),
+			wantDeliverTxFee: x.NewCoin(0, 421, "BTC"),
 			wantGasPayment:   421,
 		},
 		"on a handler check failure minumum fee is charged": {
@@ -112,7 +112,7 @@ func TestDynamicFeeDecorator(t *testing.T) {
 			wantGasPayment:   44, // This assimes that transaction fee was charged.
 			wantCheckTxFee:   x.NewCoin(0, 44, "BTC"),
 			wantDeliverErr:   ErrTestingError,
-			wantDeliverTxFee: x.NewCoin(0, 55, "BTC"),
+			wantDeliverTxFee: x.NewCoin(0, 11, "BTC"),
 		},
 	}
 
@@ -132,7 +132,9 @@ func TestDynamicFeeDecorator(t *testing.T) {
 
 			ensureWallets(t, db, tc.initWallets)
 
-			cRes, err := h.Check(nil, db, tx, tc.handler)
+			cache := db.CacheWrap()
+
+			cRes, err := h.Check(nil, cache, tx, tc.handler)
 			if !errors.Is(tc.wantCheckErr, err) {
 				t.Fatalf("got check error: %v", err)
 			}
@@ -140,20 +142,22 @@ func TestDynamicFeeDecorator(t *testing.T) {
 				t.Errorf("gas payment: %d", cRes.GasPayment)
 			}
 
-			assertCharged(t, db, ctrl, tc.wantCheckTxFee)
+			assertCharged(t, cache, ctrl, tc.wantCheckTxFee)
 
-			ensureWallets(t, db, tc.updateWallets)
+			ensureWallets(t, cache, tc.updateWallets)
 
 			// If the check failed, deliver must not be called.
 			if tc.wantCheckErr != nil {
 				return
 			}
 
-			if _, err = h.Deliver(nil, db, tx, tc.handler); !errors.Is(tc.wantDeliverErr, err) {
+			cache.Discard()
+
+			if _, err = h.Deliver(nil, cache, tx, tc.handler); !errors.Is(tc.wantDeliverErr, err) {
 				t.Fatalf("got deliver error: %v", err)
 			}
 
-			assertCharged(t, db, ctrl, tc.wantDeliverTxFee)
+			assertCharged(t, cache, ctrl, tc.wantDeliverTxFee)
 		})
 	}
 }
