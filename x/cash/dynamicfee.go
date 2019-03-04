@@ -58,14 +58,14 @@ func NewDynamicFeeDecorator(auth x.Authenticator, ctrl Controller) DynamicFeeDec
 }
 
 // Check verifies and deducts fees before calling down the stack
-func (d DynamicFeeDecorator) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx, next weave.Checker) (res weave.CheckResult, err error) {
+func (d DynamicFeeDecorator) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx, next weave.Checker) (res weave.CheckResult, ferr error) {
 	fee, payer, cache, err := d.prepare(ctx, store, tx)
 	if err != nil {
 		return res, errors.Wrap(err, "cannot prepare")
 	}
 
 	defer func() {
-		if err == nil {
+		if ferr == nil {
 			cache.Write()
 			res.GasPayment += toPayment(fee)
 		} else {
@@ -81,14 +81,14 @@ func (d DynamicFeeDecorator) Check(ctx weave.Context, store weave.KVStore, tx we
 }
 
 // Deliver verifies and deducts fees before calling down the stack
-func (d DynamicFeeDecorator) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx, next weave.Deliverer) (res weave.DeliverResult, err error) {
+func (d DynamicFeeDecorator) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx, next weave.Deliverer) (res weave.DeliverResult, ferr error) {
 	fee, payer, cache, err := d.prepare(ctx, store, tx)
 	if err != nil {
 		return res, errors.Wrap(err, "cannot prepare")
 	}
 
 	defer func() {
-		if err == nil {
+		if ferr == nil {
 			cache.Write()
 		} else {
 			cache.Discard()
