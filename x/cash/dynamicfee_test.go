@@ -36,7 +36,7 @@ func TestDynamicFeeDecorator(t *testing.T) {
 	cases := map[string]struct {
 		signers    []weave.Condition
 		handler    *handlerMock
-		minumumFee coin.Coin
+		minimumFee coin.Coin
 		txFee      coin.Coin
 		// Wallet state created before running Check
 		initWallets []orm.Object
@@ -55,60 +55,60 @@ func TestDynamicFeeDecorator(t *testing.T) {
 			initWallets: []orm.Object{
 				walletObj(perm1.Address(), 1, 0, "BTC"),
 			},
-			minumumFee:       coin.NewCoin(0, 23, "BTC"),
+			minimumFee:       coin.NewCoin(0, 23, "BTC"),
 			txFee:            coin.NewCoin(0, 421, "BTC"),
 			wantCheckTxFee:   coin.NewCoin(0, 421, "BTC"),
 			wantDeliverTxFee: coin.NewCoin(0, 421, "BTC"),
 			wantGasPayment:   421,
 		},
-		"on a handler check failure minumum fee is charged": {
+		"on a handler check failure minimum fee is charged": {
 			signers: []weave.Condition{perm1},
 			handler: &handlerMock{checkErr: ErrTestingError},
 			initWallets: []orm.Object{
 				walletObj(perm1.Address(), 1, 0, "BTC"),
 			},
-			minumumFee:     coin.NewCoin(0, 23, "BTC"),
+			minimumFee:     coin.NewCoin(0, 23, "BTC"),
 			txFee:          coin.NewCoin(0, 421, "BTC"),
 			wantCheckErr:   ErrTestingError,
 			wantCheckTxFee: coin.NewCoin(0, 23, "BTC"),
 		},
-		"on inssuficient fee funds minimum fee is charged": {
+		"on insufficient fee funds minimum fee is charged": {
 			signers: []weave.Condition{perm1},
 			initWallets: []orm.Object{
 				walletObj(perm1.Address(), 0, 100, "BTC"),
 			},
-			minumumFee:     coin.NewCoin(0, 23, "BTC"),
+			minimumFee:     coin.NewCoin(0, 23, "BTC"),
 			txFee:          coin.NewCoin(0, 421, "BTC"), // Wallet has not enough.
 			wantCheckErr:   errors.ErrInsufficientAmount,
 			wantCheckTxFee: coin.NewCoin(0, 23, "BTC"),
 		},
-		"on inssuficient funds minumum fee withdraw fails": {
+		"on inssuficient funds minimum fee withdraw fails": {
 			signers: []weave.Condition{perm1},
 			initWallets: []orm.Object{
 				walletObj(perm1.Address(), 0, 1, "BTC"),
 			},
-			minumumFee:     coin.NewCoin(0, 23, "BTC"),  // Wallet has not enough.
+			minimumFee:     coin.NewCoin(0, 23, "BTC"),  // Wallet has not enough.
 			txFee:          coin.NewCoin(0, 421, "BTC"), // Wallet has not enough.
 			wantCheckErr:   errors.ErrInsufficientAmount,
 			wantCheckTxFee: coin.Coin{},
 		},
-		"on transaction fee ticker missmatch minimum fee with no currency accepts anything": {
+		"on transaction fee ticker mismatch minimum fee with no currency accepts anything": {
 			signers: []weave.Condition{perm1},
 			initWallets: []orm.Object{
 				walletObj(perm1.Address(), 1, 0, "BTC"),
 			},
-			minumumFee:     coin.NewCoin(0, 23, ""),
+			minimumFee:     coin.NewCoin(0, 23, ""),
 			txFee:          coin.NewCoin(0, 421, "ETH"),
 			wantCheckErr:   errors.ErrInsufficientAmount,
 			wantCheckTxFee: coin.NewCoin(0, 23, "BTC"),
 		},
-		"on a handler deliver failure only minumum fee is charged": {
+		"on a handler deliver failure only minimum fee is charged": {
 			signers: []weave.Condition{perm1},
 			handler: &handlerMock{deliverErr: ErrTestingError},
 			initWallets: []orm.Object{
 				walletObj(perm1.Address(), 1, 0, "BTC"),
 			},
-			minumumFee:       coin.NewCoin(0, 11, "BTC"),
+			minimumFee:       coin.NewCoin(0, 11, "BTC"),
 			txFee:            coin.NewCoin(0, 44, "BTC"),
 			wantGasPayment:   44, // This assimes that transaction fee was charged.
 			wantCheckTxFee:   coin.NewCoin(0, 44, "BTC"),
@@ -129,7 +129,7 @@ func TestDynamicFeeDecorator(t *testing.T) {
 			db := store.MemStore()
 
 			gconf.SetValue(db, GconfCollectorAddress, collectorAddr)
-			gconf.SetValue(db, GconfMinimalFee, tc.minumumFee)
+			gconf.SetValue(db, GconfMinimalFee, tc.minimumFee)
 
 			ensureWallets(t, db, tc.initWallets)
 
@@ -183,7 +183,7 @@ func ensureWallets(t *testing.T, db weave.KVStore, wallets []orm.Object) {
 func assertCharged(t *testing.T, db weave.KVStore, ctrl Controller, want coin.Coin) {
 	t.Helper()
 
-	minumumFee := gconf.Coin(db, GconfMinimalFee)
+	minimumFee := gconf.Coin(db, GconfMinimalFee)
 	collectorAddr := gconf.Address(db, GconfCollectorAddress)
 
 	switch chargedFee, err := ctrl.Balance(db, collectorAddr); {
@@ -193,14 +193,14 @@ func assertCharged(t *testing.T, db weave.KVStore, ctrl Controller, want coin.Co
 			t.Errorf("charged fee: %v", chargedFee)
 		}
 	case errors.Is(errors.ErrNotFound, err):
-		if minumumFee.IsZero() {
+		if minimumFee.IsZero() {
 			// Minimal fee is zero so the collector account is zero
 			// as well (not even created). All good.
 		} else {
 			if want.IsZero() {
 				// This is a weird case when a transaction was
-				// submitted but the signed does not have
-				// enough funds to pay the minumum (anty spam)
+				// submitted but the signer does not have
+				// enough funds to pay the minimum (anty spam)
 				// fee.
 			} else {
 				t.Error("no fee charged")
