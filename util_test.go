@@ -2,9 +2,12 @@ package weave
 
 import (
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
+	"strings"
 	"testing"
 
+	"github.com/iov-one/weave/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -18,6 +21,27 @@ func TestHex(t *testing.T) {
 		{[]byte{01, 02}, `"0102"`, `"012"`},
 		{[]byte{0xFF, 0x14, 0x56}, `"FF1456"`, `FF1456`},
 		{[]byte{}, `""`, `"`},
+	}
+
+	unmarshalHex := func(bz []byte, out *[]byte) (err error) {
+		var s string
+		err = json.Unmarshal(bz, &s)
+		if err != nil {
+			return errors.Wrap(err, "parse string")
+		}
+		// and interpret that string as hex
+		val, err := hex.DecodeString(s)
+		if err != nil {
+			return err
+		}
+		// only update object on success
+		*out = val
+		return nil
+	}
+
+	marshalHex := func(bytes []byte) ([]byte, error) {
+		s := strings.ToUpper(hex.EncodeToString(bytes))
+		return json.Marshal(s)
 	}
 
 	for i, tc := range cases {

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"regexp"
 	"strings"
@@ -88,14 +89,54 @@ func (a Address) Equals(b Address) bool {
 // MarshalJSON provides a hex representation for JSON,
 // to override the standard base64 []byte encoding
 func (a Address) MarshalJSON() ([]byte, error) {
-	return marshalHex(a)
+	s := strings.ToUpper(hex.EncodeToString(a))
+	return json.Marshal(s)
 }
 
-// UnmarshalJSON parses JSON in hex representation,
-// to override the standard base64 []byte encoding
-func (a *Address) UnmarshalJSON(src []byte) error {
-	dst := (*[]byte)(a)
-	return unmarshalHex(src, dst)
+func (a *Address) UnmarshalJSON(raw []byte) error {
+	var enc string
+	if err := json.Unmarshal(raw, &enc); err != nil {
+		return errors.Wrap(err, "cannot decode json")
+	}
+
+	// If the encoded string starts with a prefix, cut it off and use
+	// specified decoding method instead of default one.
+	chunks := strings.SplitN(enc, ":", 2)
+	format := chunks[0]
+	if len(chunks) == 1 {
+		format = "hex"
+	} else {
+		enc = chunks[1]
+	}
+
+	// No value zero the address.
+	if len(enc) == 0 {
+		*a = nil
+		return nil
+	}
+
+	switch format {
+	case "hex":
+		val, err := hex.DecodeString(enc)
+		if err != nil {
+			return errors.Wrap(err, "cannot decode hex")
+		}
+		*a = val
+		return nil
+	case "cond":
+		args := strings.Split(enc, "/")
+		if len(args) != 3 {
+			return errors.ErrInvalidInput.Newf("invalid condition format")
+		}
+		data, err := hex.DecodeString(args[2])
+		if err != nil {
+			return errors.ErrInvalidInput.Newf("malformed condition data: %s", err)
+		}
+		*a = NewCondition(args[0], args[1], data).Address()
+		return nil
+	default:
+		return errors.ErrInvalidType.Newf("unknown format %q", chunks[0])
+	}
 }
 
 // String returns a human readable string.
