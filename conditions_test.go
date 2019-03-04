@@ -44,6 +44,14 @@ func TestAddressUnmarshalJSON(t *testing.T) {
 			json:     `"cond:foo/bar/636f6e646974696f6e64617461"`,
 			wantAddr: weave.NewCondition("foo", "bar", []byte("conditiondata")).Address(),
 		},
+		"invalid condition format": {
+			json:    `"cond:foo/636f6e646974696f6e64617461"`,
+			wantErr: errors.ErrInvalidInput,
+		},
+		"invalid condition data": {
+			json:    `"cond:foo/bar/zzzzz"`,
+			wantErr: errors.ErrInvalidInput,
+		},
 		"unknown format": {
 			json:    `"foobar:xxx"`,
 			wantErr: errors.ErrInvalidType,
