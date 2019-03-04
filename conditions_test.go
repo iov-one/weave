@@ -41,8 +41,8 @@ func TestAddressUnmarshalJSON(t *testing.T) {
 			wantAddr: weave.Address("hex-addr"),
 		},
 		"cond decoding": {
-			json:     `"cond:foo/bar/12:3"`,
-			wantAddr: weave.NewCondition("foo", "bar", []byte("12:3")).Address(),
+			json:     `"cond:foo/bar/636f6e646974696f6e64617461"`,
+			wantAddr: weave.NewCondition("foo", "bar", []byte("conditiondata")).Address(),
 		},
 		"unknown format": {
 			json:    `"foobar:xxx"`,

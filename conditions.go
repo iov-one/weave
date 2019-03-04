@@ -124,7 +124,15 @@ func (a *Address) UnmarshalJSON(raw []byte) error {
 		*a = val
 		return nil
 	case "cond":
-		*a = Condition(enc).Address()
+		args := strings.Split(enc, "/")
+		if len(args) != 3 {
+			return errors.ErrInvalidInput.Newf("invalid condition format")
+		}
+		data, err := hex.DecodeString(args[2])
+		if err != nil {
+			return errors.ErrInvalidInput.Newf("malformed condition data: %s", err)
+		}
+		*a = NewCondition(args[0], args[1], data).Address()
 		return nil
 	default:
 		return errors.ErrInvalidType.Newf("unknown format %q", chunks[0])
