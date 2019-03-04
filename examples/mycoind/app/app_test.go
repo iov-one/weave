@@ -38,7 +38,7 @@ func testInitChain(t *testing.T, myApp app.BaseApp, addr string) {
 			},
 		},
 		"gconf": dict{
-			cash.GconfCollectorAddress: "fake-collector-address",
+			cash.GconfCollectorAddress: "66616b652d636f6c6c6563746f722d61646472657373",
 			cash.GconfMinimalFee:       coin.Coin{Whole: 0}, // no fee
 		},
 	})

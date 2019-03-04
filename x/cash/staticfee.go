@@ -1,3 +1,18 @@
+/*
+
+FeeDecorator ensures that the fee can be deducted from the account. All
+deducted fees are send to the collector, which can be set to an address
+controlled by another extension ("smart contract").
+Collector address is configured via gconf package.
+
+Minimal fee is configured via gconf package. If minimal is zero, no fees
+required, but will speed processing. If a currency is set on minimal fee, then
+all fees must be paid in that currency
+
+It uses auth to verify the sender.
+
+*/
+
 package cash
 
 import (
@@ -8,25 +23,9 @@ import (
 	"github.com/iov-one/weave/x"
 )
 
-//----------------- FeeDecorator ----------------
-//
-// This is just a binding from the functionality into the
-// Application stack, not much business logic here.
-
-// FeeDecorator ensures that the fee can be deducted from
-// the account. All deducted fees are send to the collector,
-// which can be set to an address controlled by another
-// extension ("smart contract").
-// Collector address is configured via gconf package.
-//
-// Minimal fee is configured via gconf package. If minimal is zero, no fees
-// required, but will speed processing. If a currency is set on minimal fee,
-// then all fees must be paid in that currency
-//
-// It uses auth to verify the sender
 type FeeDecorator struct {
-	auth    x.Authenticator
-	control Controller
+	auth x.Authenticator
+	ctrl CoinMover
 }
 
 const (
@@ -39,10 +38,10 @@ var _ weave.Decorator = FeeDecorator{}
 // NewFeeDecorator returns a FeeDecorator with the given
 // minimum fee, and all collected fees going to a
 // default address.
-func NewFeeDecorator(auth x.Authenticator, control Controller) FeeDecorator {
+func NewFeeDecorator(auth x.Authenticator, ctrl CoinMover) FeeDecorator {
 	return FeeDecorator{
-		auth:    auth,
-		control: control,
+		auth: auth,
+		ctrl: ctrl,
 	}
 }
 
@@ -68,7 +67,7 @@ func (d FeeDecorator) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx,
 	}
 	// and have enough
 	collector := gconf.Address(store, GconfCollectorAddress)
-	err = d.control.MoveCoins(store, finfo.Payer, collector, *fee)
+	err = d.ctrl.MoveCoins(store, finfo.Payer, collector, *fee)
 	if err != nil {
 		return res, err
 	}
@@ -102,7 +101,7 @@ func (d FeeDecorator) Deliver(ctx weave.Context, store weave.KVStore, tx weave.T
 	}
 	// and subtract it from the account
 	collector := gconf.Address(store, GconfCollectorAddress)
-	err = d.control.MoveCoins(store, finfo.Payer, collector, *fee)
+	err = d.ctrl.MoveCoins(store, finfo.Payer, collector, *fee)
 	if err != nil {
 		return res, err
 	}
