@@ -58,16 +58,16 @@ func NewDynamicFeeDecorator(auth x.Authenticator, ctrl Controller) DynamicFeeDec
 }
 
 // Check verifies and deducts fees before calling down the stack
-func (d DynamicFeeDecorator) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx, next weave.Checker) (res weave.CheckResult, ferr error) {
+func (d DynamicFeeDecorator) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx, next weave.Checker) (cres weave.CheckResult, cerr error) {
 	fee, payer, cache, err := d.prepare(ctx, store, tx)
 	if err != nil {
-		return res, errors.Wrap(err, "cannot prepare")
+		return weave.CheckResult{}, errors.Wrap(err, "cannot prepare")
 	}
 
 	defer func() {
-		if ferr == nil {
+		if cerr == nil {
 			cache.Write()
-			res.GasPayment += toPayment(fee)
+			cres.GasPayment += toPayment(fee)
 		} else {
 			cache.Discard()
 			_ = d.chargeMinimalFee(store, payer)
@@ -75,20 +75,28 @@ func (d DynamicFeeDecorator) Check(ctx weave.Context, store weave.KVStore, tx we
 	}()
 
 	if err := d.chargeFee(cache, payer, fee); err != nil {
-		return res, errors.Wrap(err, "cannot charge fee")
+		return weave.CheckResult{}, errors.Wrap(err, "cannot charge fee")
 	}
-	return next.Check(ctx, cache, tx)
+	res, err := next.Check(ctx, cache, tx)
+	if err != nil {
+		return res, err
+	}
+	// if we have success, ensure that we paid at least the RequiredFee (IsGTE enforces the same token)
+	if !res.RequiredFee.IsZero() && !fee.IsGTE(res.RequiredFee) {
+		return weave.CheckResult{}, errors.ErrInsufficientAmount.Newf("Fee less than required fee of %#v", res.RequiredFee)
+	}
+	return res, nil
 }
 
 // Deliver verifies and deducts fees before calling down the stack
-func (d DynamicFeeDecorator) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx, next weave.Deliverer) (res weave.DeliverResult, ferr error) {
+func (d DynamicFeeDecorator) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx, next weave.Deliverer) (dres weave.DeliverResult, derr error) {
 	fee, payer, cache, err := d.prepare(ctx, store, tx)
 	if err != nil {
-		return res, errors.Wrap(err, "cannot prepare")
+		return weave.DeliverResult{}, errors.Wrap(err, "cannot prepare")
 	}
 
 	defer func() {
-		if ferr == nil {
+		if derr == nil {
 			cache.Write()
 		} else {
 			cache.Discard()
@@ -99,7 +107,15 @@ func (d DynamicFeeDecorator) Deliver(ctx weave.Context, store weave.KVStore, tx 
 	if err := d.chargeFee(cache, payer, fee); err != nil {
 		return weave.DeliverResult{}, errors.Wrap(err, "cannot charge fee")
 	}
-	return next.Deliver(ctx, cache, tx)
+	res, err := next.Deliver(ctx, cache, tx)
+	if err != nil {
+		return res, err
+	}
+	// if we have success, ensure that we paid at least the RequiredFee (IsGTE enforces the same token)
+	if !res.RequiredFee.IsZero() && !fee.IsGTE(res.RequiredFee) {
+		return weave.DeliverResult{}, errors.ErrInsufficientAmount.Newf("Fee less than required fee of %#v", res.RequiredFee)
+	}
+	return res, nil
 }
 
 func (d DynamicFeeDecorator) chargeFee(store weave.KVStore, src weave.Address, amount coin.Coin) error {
