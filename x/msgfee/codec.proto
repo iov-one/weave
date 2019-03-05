@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package msgfee;
+
+import "github.com/iov-one/weave/coin/codec.proto";
+import "github.com/gogo/protobuf/gogoproto/gogo.proto";
+
+// MsgFee represents a fee for a single message that must be paid in order for
+// the message to be processed.
+message MsgFee {
+	string msg_path = 1;
+	coin.Coin fee = 2;
+}
