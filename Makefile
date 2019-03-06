@@ -31,6 +31,9 @@ test:
 tf:
 	go test -short ./...
 
+bench:
+	for i in `seq 5`; do go test -bench=. -run=^$ -benchmem github.com/iov-one/weave/... | tee benchmark_$$i.txt; done
+
 cover:
 	@ go test -covermode=$(MODE) -coverprofile=coverage/allpackages.out ./...
 	@ # most of the tests in the app package are in examples/mycoind/app...
