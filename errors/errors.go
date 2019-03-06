@@ -185,6 +185,15 @@ func Wrap(err error, description string) TMError {
 	}
 }
 
+// Wrapf extends given error with an additional information.
+//
+// This function works like Wrap function with additional funtionality of
+// formatting the input as specified.
+func Wrapf(err error, format string, args ...interface{}) TMError {
+	desc := fmt.Sprintf(format, args...)
+	return Wrap(err, desc)
+}
+
 type wrappedError struct {
 	// This error layer description.
 	msg string

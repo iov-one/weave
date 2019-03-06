@@ -59,7 +59,7 @@ func (d *FeeDecorator) Deliver(ctx weave.Context, store weave.KVStore, tx weave.
 	if !coin.IsEmpty(fee) {
 		total, err := res.RequiredFee.Add(*fee)
 		if err != nil {
-			return res, errors.Wrap(err, "cannot apply message type fee to %v")
+			return res, errors.Wrapf(err, "cannot apply message type fee to %v", res.RequiredFee)
 		}
 		res.RequiredFee = total
 	}
