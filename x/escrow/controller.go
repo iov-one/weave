@@ -2,17 +2,17 @@ package escrow
 
 import (
 	"github.com/iov-one/weave"
-	coin "github.com/iov-one/weave/coin"
+	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/x/cash"
 )
 
 type controller struct {
-	cash   cash.Controller
+	cash   cash.CoinMover
 	bucket Bucket
 }
 
-func NewController(cash cash.Controller, bucket Bucket) *controller {
+func NewController(cash cash.CoinMover, bucket Bucket) *controller {
 	return &controller{
 		cash:   cash,
 		bucket: bucket,

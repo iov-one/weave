@@ -2,6 +2,7 @@ package username
 
 import (
 	"bytes"
+
 	"github.com/iov-one/weave/errors"
 
 	"github.com/iov-one/weave"

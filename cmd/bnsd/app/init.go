@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"path/filepath"
 
+	"github.com/iov-one/weave/x/escrow"
+
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/app"
 	"github.com/iov-one/weave/cmd/bnsd/x/nft/username"
@@ -102,6 +104,7 @@ func DecorateApp(application app.BaseApp, logger log.Logger) app.BaseApp {
 		&currency.Initializer{},
 		&validators.Initializer{},
 		&distribution.Initializer{},
+		&escrow.Initializer{},
 	))
 	application.WithLogger(logger)
 	return application
