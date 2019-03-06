@@ -32,10 +32,11 @@ func (d *FeeDecorator) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx
 		return res, err
 	}
 
-	switch fee, err := txFee(d.bucket, store, tx); {
-	case err != nil:
+	fee, err := txFee(d.bucket, store, tx)
+	if err != nil {
 		return res, err
-	case !coin.IsEmpty(fee):
+	}
+	if !coin.IsEmpty(fee) {
 		total, err := res.RequiredFee.Add(*fee)
 		if err != nil {
 			return res, errors.Wrap(err, "cannot apply message type fee")
@@ -51,10 +52,11 @@ func (d *FeeDecorator) Deliver(ctx weave.Context, store weave.KVStore, tx weave.
 		return res, err
 	}
 
-	switch fee, err := txFee(d.bucket, store, tx); {
-	case err != nil:
+	fee, err := txFee(d.bucket, store, tx)
+	if err != nil {
 		return res, err
-	case !coin.IsEmpty(fee):
+	}
+	if !coin.IsEmpty(fee) {
 		total, err := res.RequiredFee.Add(*fee)
 		if err != nil {
 			return res, errors.Wrap(err, "cannot apply message type fee to %v")
