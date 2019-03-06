@@ -17,7 +17,7 @@ func TestFeeDecorator(t *testing.T) {
 
 	_, err := bucket.Create(db, &MsgFee{
 		MsgPath: "foo/bar",
-		Fee:     coin.NewCoinp(0, 1234, "DOGE"),
+		Fee:     coin.NewCoin(0, 1234, "DOGE"),
 	})
 	if err != nil {
 		t.Fatalf("cannot create a transaction fee: %s", err)

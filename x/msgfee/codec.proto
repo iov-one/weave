@@ -9,5 +9,5 @@ import "github.com/gogo/protobuf/gogoproto/gogo.proto";
 // the message to be processed.
 message MsgFee {
 	string msg_path = 1;
-	coin.Coin fee = 2;
+	coin.Coin fee = 2 [(gogoproto.nullable) = false];
 }

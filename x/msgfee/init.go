@@ -30,7 +30,7 @@ func (*Initializer) FromGenesis(opts weave.Options, db weave.KVStore) error {
 	for i, f := range fees {
 		fee := MsgFee{
 			MsgPath: f.MsgPath,
-			Fee:     &f.Fee,
+			Fee:     f.Fee,
 		}
 		if err := fee.Validate(); err != nil {
 			return errors.Wrap(err, fmt.Sprintf("fee #%d is invalid", i))

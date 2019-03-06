@@ -13,7 +13,7 @@ func (mf *MsgFee) Validate() error {
 	if mf.MsgPath == "" {
 		return errors.Wrap(errors.ErrInvalidModel, "invalid message path")
 	}
-	if coin.IsEmpty(mf.Fee) {
+	if mf.Fee.IsZero() {
 		return errors.Wrap(errors.ErrInvalidModel, "invalid fee")
 	}
 	if err := mf.Fee.Validate(); err != nil {
@@ -25,7 +25,7 @@ func (mf *MsgFee) Validate() error {
 func (mf *MsgFee) Copy() orm.CloneableData {
 	return &MsgFee{
 		MsgPath: mf.MsgPath,
-		Fee:     mf.Fee.Clone(),
+		Fee:     *mf.Fee.Clone(),
 	}
 }
 
@@ -71,5 +71,5 @@ func (b *MsgFeeBucket) MessageFee(db weave.KVStore, msgPath string) (*coin.Coin,
 	if !ok {
 		return nil, errors.ErrInvalidModel.Newf("invalid type: %T", obj.Value())
 	}
-	return mf.Fee, nil
+	return &mf.Fee, nil
 }

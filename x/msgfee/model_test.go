@@ -16,28 +16,28 @@ func TestMsgFeeValidate(t *testing.T) {
 		"all good": {
 			mf: MsgFee{
 				MsgPath: "foo/bar",
-				Fee:     coin.NewCoinp(1, 2, "DOGE"),
+				Fee:     coin.NewCoin(1, 2, "DOGE"),
 			},
 			wantErr: nil,
 		},
 		"empty path": {
 			mf: MsgFee{
 				MsgPath: "",
-				Fee:     coin.NewCoinp(1, 2, "DOGE"),
+				Fee:     coin.NewCoin(1, 2, "DOGE"),
 			},
 			wantErr: errors.ErrInvalidModel,
 		},
-		"zero value fee": {
+		"zero value fee with a ticker": {
 			mf: MsgFee{
 				MsgPath: "foo/bar",
-				Fee:     coin.NewCoinp(0, 0, "DOGE"),
+				Fee:     coin.NewCoin(0, 0, "DOGE"),
 			},
 			wantErr: errors.ErrInvalidModel,
 		},
-		"nil fee": {
+		"zero value fee with no ticker": {
 			mf: MsgFee{
 				MsgPath: "foo/bar",
-				Fee:     nil,
+				Fee:     coin.Coin{},
 			},
 			wantErr: errors.ErrInvalidModel,
 		},
@@ -59,7 +59,7 @@ func TestBucketMessageFee(t *testing.T) {
 
 	_, err := b.Create(db, &MsgFee{
 		MsgPath: "a/b",
-		Fee:     coin.NewCoinp(1, 2, "DOGE"),
+		Fee:     coin.NewCoin(1, 2, "DOGE"),
 	})
 	if err != nil {
 		t.Fatalf("cannot create a fee: %s", err)
