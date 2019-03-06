@@ -20,7 +20,7 @@ func TestFeeDecorator(t *testing.T) {
 		WantDeliverErr error
 		WantDeliverFee coin.Coin
 	}{
-		"all good": {
+		"message fee with no previous fee": {
 			InitFees: []MsgFee{
 				{MsgPath: "foo/bar", Fee: coin.NewCoin(0, 1234, "DOGE")},
 			},
@@ -28,6 +28,18 @@ func TestFeeDecorator(t *testing.T) {
 			Tx:             &txMock{msg: &msgMock{path: "foo/bar"}},
 			WantCheckFee:   coin.NewCoin(0, 1234, "DOGE"),
 			WantDeliverFee: coin.NewCoin(0, 1234, "DOGE"),
+		},
+		"message fee with addded to existing value with the same currency": {
+			InitFees: []MsgFee{
+				{MsgPath: "foo/bar", Fee: coin.NewCoin(0, 22, "BTC")},
+			},
+			Handler: &handlerMock{
+				checkRes:   weave.CheckResult{RequiredFee: coin.NewCoin(1, 0, "BTC")},
+				deliverRes: weave.DeliverResult{RequiredFee: coin.NewCoin(1, 0, "BTC")},
+			},
+			Tx:             &txMock{msg: &msgMock{path: "foo/bar"}},
+			WantCheckFee:   coin.NewCoin(1, 22, "BTC"),
+			WantDeliverFee: coin.NewCoin(1, 22, "BTC"),
 		},
 		"delivery failure": {
 			InitFees: []MsgFee{
