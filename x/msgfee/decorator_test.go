@@ -29,7 +29,7 @@ func TestFeeDecorator(t *testing.T) {
 			WantCheckFee:   coin.NewCoin(0, 1234, "DOGE"),
 			WantDeliverFee: coin.NewCoin(0, 1234, "DOGE"),
 		},
-		"message fee with addded to existing value with the same currency": {
+		"message fee added to an existing value with the same currency": {
 			InitFees: []MsgFee{
 				{MsgPath: "foo/bar", Fee: coin.NewCoin(0, 22, "BTC")},
 			},
