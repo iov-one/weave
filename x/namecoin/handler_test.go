@@ -120,7 +120,7 @@ func TestNewTokenHandler(t *testing.T) {
 	added := NewToken(ticker, "my good token", 6)
 
 	// TODO: add queries to verify
-	cases := []struct {
+	cases := map[string]struct {
 		signers       []weave.Condition
 		issuer        weave.Address
 		initState     []orm.Object
@@ -131,37 +131,34 @@ func TestNewTokenHandler(t *testing.T) {
 		query    string
 		expected orm.Object
 	}{
-		// wrong message type
-		0: {nil, nil, nil, new(cash.SendMsg),
+		"proper issuer - happy path": {[]weave.Condition{perm}, addr, nil, msg,
+			noErr, noErr, ticker, added},
+		"wrong message type": {[]weave.Condition{perm}, addr, nil, new(cash.SendMsg),
 			errors.ErrInvalidMsg.Is, errors.ErrInvalidMsg.Is, "", nil},
-		// wrong currency values
-		1: {nil, nil, nil, BuildTokenMsg("YO", "digga", 7),
+		"invalid ticker symbol": {[]weave.Condition{perm}, addr, nil, BuildTokenMsg("YO", "digga", 7),
 			coin.ErrInvalidCurrency.Is, coin.ErrInvalidCurrency.Is, "", nil},
-		2: {nil, nil, nil, BuildTokenMsg("GOOD", "ill3glz!", 7),
+		"invalid token name": {[]weave.Condition{perm}, addr, nil, BuildTokenMsg("GOOD", "ill3glz!", 7),
 			errors.ErrInvalidInput.Is, errors.ErrInvalidInput.Is, "", nil},
-		3: {nil, nil, nil, BuildTokenMsg("GOOD", "my good token", 17),
+		"invalid sig figs": {[]weave.Condition{perm}, addr, nil, BuildTokenMsg("GOOD", "my good token", 17),
 			errors.ErrInvalidInput.Is, errors.ErrInvalidInput.Is, "", nil},
-		// valid message, done!
-		4: {nil, nil, nil, msg,
-			noErr, noErr, ticker, added},
-		// try to overwrite
-		5: {nil, nil, []orm.Object{NewToken(ticker, "i was here first", 4)}, msg,
+		"no issuer, unsigned": {nil, nil, nil, msg,
+			errors.ErrUnauthorized.Is, errors.ErrUnauthorized.Is, "", nil},
+		"no issuer, signed": {[]weave.Condition{perm2}, nil, nil, msg,
+			errors.ErrUnauthorized.Is, errors.ErrUnauthorized.Is, "", nil},
+		"cannot overwrite existing token": {[]weave.Condition{perm}, addr, []orm.Object{NewToken(ticker, "i was here first", 4)}, msg,
 			errors.ErrDuplicate.Is, errors.ErrDuplicate.Is, "", nil},
-		// different name is fine
-		6: {nil, nil, []orm.Object{NewToken("OTHR", "i was here first", 4)}, msg,
+		"can issue second token, different name": {[]weave.Condition{perm}, addr, []orm.Object{NewToken("OTHR", "i was here first", 4)}, msg,
 			noErr, noErr, ticker, added},
-		// not enough permissions
-		7: {nil, addr, nil, msg,
+		"no signature, real issuer": {nil, addr, nil, msg,
 			errors.ErrUnauthorized.Is, errors.ErrUnauthorized.Is, "", nil},
-		8: {[]weave.Condition{perm2, perm3}, addr, nil, msg,
+		"wrong signatures, real issuer": {[]weave.Condition{perm2, perm3}, addr, nil, msg,
 			errors.ErrUnauthorized.Is, errors.ErrUnauthorized.Is, "", nil},
-		// now have permission
-		9: {[]weave.Condition{perm2, perm3}, addr2, nil, msg,
+		"extra signatures, real issuer": {[]weave.Condition{perm2, perm3}, addr2, nil, msg,
 			noErr, noErr, ticker, added},
 	}
 
-	for i, tc := range cases {
-		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
+	for testname, tc := range cases {
+		t.Run(testname, func(t *testing.T) {
 			auth := helpers.Authenticate(tc.signers...)
 			// use default controller/bucket from namecoin
 			h := NewTokenHandler(auth, tc.issuer)

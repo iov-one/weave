@@ -115,7 +115,7 @@ func (h TokenHandler) validate(ctx weave.Context, db weave.KVStore,
 	}
 
 	// make sure we have permission if the issuer is set
-	if h.issuer != nil && !h.auth.HasAddress(ctx, h.issuer) {
+	if h.issuer == nil || !h.auth.HasAddress(ctx, h.issuer) {
 		return nil, errors.ErrUnauthorized.Newf("Token only issued by %s", h.issuer)
 	}
 
