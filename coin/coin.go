@@ -26,14 +26,18 @@ const (
 )
 
 // NewCoin creates a new coin object
-func NewCoin(whole int64, fractional int64,
-	ticker string) Coin {
-
+func NewCoin(whole int64, fractional int64, ticker string) Coin {
 	return Coin{
 		Whole:      whole,
 		Fractional: fractional,
 		Ticker:     ticker,
 	}
+}
+
+// NewCoinp returns a pointer to a new coin.
+func NewCoinp(whole, fractional int64, ticker string) *Coin {
+	c := NewCoin(whole, fractional, ticker)
+	return &c
 }
 
 // ID returns a coin ticker name.
@@ -128,10 +132,20 @@ func mul64(a, b int64) (int64, error) {
 // currencies, or if the combination would cause
 // an overflow
 func (c Coin) Add(o Coin) (Coin, error) {
+	// If any of the coins represents no value and does not have a ticker
+	// set then it has no influence on the addition result.
+	if c.Ticker == "" && c.IsZero() {
+		return o, nil
+	}
+	if o.Ticker == "" && o.IsZero() {
+		return c, nil
+	}
+
 	if !c.SameType(o) {
 		err := ErrInvalidCurrency.Newf("adding %s to %s", c.Ticker, o.Ticker)
 		return Coin{}, err
 	}
+
 	c.Whole += o.Whole
 	c.Fractional += o.Fractional
 	return c.normalize()
@@ -225,6 +239,9 @@ func (c Coin) SameType(o Coin) bool {
 
 // Clone provides an independent copy of a coin pointer
 func (c *Coin) Clone() *Coin {
+	if c == nil {
+		return nil
+	}
 	return &Coin{
 		Ticker:     c.Ticker,
 		Whole:      c.Whole,
