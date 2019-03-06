@@ -52,3 +52,28 @@ func TestGenesis(t *testing.T) {
 		t.Fatalf("got an unexpected fee value: %s", fee)
 	}
 }
+
+func TestGenesisWithInvalidFee(t *testing.T) {
+	cases := map[string]string{
+		"zero fee":  `[{"msg_path": "foo/bar", "fee": {"whole": 0, "fractional": 0, "ticker": "DOGE"}}]`,
+		"no ticker": `[{"msg_path": "foo/bar", "fee": {"whole": 1, "fractional": 0, "ticker": ""}}]`,
+		"no path":   `[{"fee": {"whole": 1, "fractional": 1, "ticker": "DOGE"}}]`,
+		"no fee":    `[{"msg_path": "foo/bar"}]`,
+	}
+	for testName, content := range cases {
+		t.Run(testName, func(t *testing.T) {
+			genesis := `{"msgfee": ` + content + `}`
+			var opts weave.Options
+			if err := json.Unmarshal([]byte(genesis), &opts); err != nil {
+				t.Fatalf("cannot unmarshal genesis: %s", err)
+			}
+
+			db := store.MemStore()
+			var ini Initializer
+			if err := ini.FromGenesis(opts, db); err == nil {
+				t.Fatal("no error")
+			}
+		})
+	}
+
+}
