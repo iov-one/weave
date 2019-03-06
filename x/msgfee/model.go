@@ -10,7 +10,16 @@ import (
 var _ orm.CloneableData = (*MsgFee)(nil)
 
 func (mf *MsgFee) Validate() error {
-	panic("todo")
+	if mf.MsgPath == "" {
+		return errors.Wrap(errors.ErrInvalidModel, "invalid message path")
+	}
+	if coin.IsEmpty(mf.Fee) {
+		return errors.Wrap(errors.ErrInvalidModel, "invalid fee")
+	}
+	if err := mf.Fee.Validate(); err != nil {
+		return errors.Wrap(err, "invalid fee")
+	}
+	return nil
 }
 
 func (mf *MsgFee) Copy() orm.CloneableData {
@@ -52,13 +61,11 @@ func (b *MsgFeeBucket) Save(db weave.KVStore, obj orm.Object) error {
 // and no error if the message fee is not declared.
 func (b *MsgFeeBucket) MessageFee(db weave.KVStore, msgPath string) (*coin.Coin, error) {
 	obj, err := b.Get(db, []byte(msgPath))
-	switch {
-	case err == nil:
-		// All good.
-	case obj == nil || obj.Value() == nil:
-		return nil, nil
-	default:
+	if err != nil {
 		return nil, errors.Wrap(err, "cannot get fee definition")
+	}
+	if obj == nil || obj.Value() == nil {
+		return nil, nil
 	}
 	mf, ok := obj.Value().(*MsgFee)
 	if !ok {
