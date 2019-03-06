@@ -48,8 +48,7 @@ For more details on the design goals, see the
 
 ## Prerequisites
 
-* [golang 1.9+](https://golang.org/doc/install)
-
+* [golang 1.10+](https://golang.org/doc/install)
 
 ## Instructions
 
