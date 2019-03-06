@@ -34,11 +34,11 @@ install:
   rm -rf ${GOPATH}/src/github.com/tendermint/tendermint
 
 script:
-- make bench
 - make lint
 - make build
 - make test
 - make dist
+- make bench
 
 after_script:
 - make cover
