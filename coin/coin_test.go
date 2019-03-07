@@ -155,44 +155,63 @@ func TestValidCoin(t *testing.T) {
 
 func TestAddCoin(t *testing.T) {
 	base := NewCoin(17, 2345566, "DEF")
-	cases := []struct {
-		a, b Coin
-		res  Coin
-		bad  bool
+	cases := map[string]struct {
+		a, b    Coin
+		wantRes Coin
+		wantErr error
 	}{
-		// plus and minus equals 0
-		{base, base.Negative(), NewCoin(0, 0, "DEF"), false},
-		// wrong types
-		{
-			NewCoin(1, 2, "FOO"),
-			NewCoin(2, 3, "BAR"),
-			Coin{},
-			true,
+		"plus and minus equals 0": {
+			a:       base,
+			b:       base.Negative(),
+			wantRes: NewCoin(0, 0, "DEF"),
 		},
-		// normal math
-		{
-			NewCoin(7, 5000, "ABC"),
-			NewCoin(-4, -12000, "ABC"),
-			NewCoin(2, 999993000, "ABC"),
-			false,
+		"wrong types": {
+			a:       NewCoin(1, 2, "FOO"),
+			b:       NewCoin(2, 3, "BAR"),
+			wantRes: Coin{},
+			wantErr: ErrInvalidCurrency,
 		},
-		// overflow
-		{
-			NewCoin(500500500123456, 0, "SEE"),
-			NewCoin(500500500123456, 0, "SEE"),
-			Coin{},
-			true,
+		"normal math": {
+			a:       NewCoin(7, 5000, "ABC"),
+			b:       NewCoin(-4, -12000, "ABC"),
+			wantRes: NewCoin(2, 999993000, "ABC"),
+		},
+		"overflow": {
+			a:       NewCoin(500500500123456, 0, "SEE"),
+			b:       NewCoin(500500500123456, 0, "SEE"),
+			wantRes: NewCoin(0, 0, ""),
+			wantErr: ErrInvalidCoin,
+		},
+		"adding to zero coin": {
+			a:       NewCoin(0, 0, ""),
+			b:       NewCoin(1, 0, "DOGE"),
+			wantRes: NewCoin(1, 0, "DOGE"),
+		},
+		"adding a zero coin": {
+			a:       NewCoin(1, 0, "DOGE"),
+			b:       NewCoin(0, 0, ""),
+			wantRes: NewCoin(1, 0, "DOGE"),
+		},
+		"adding a non zero coin without a ticker": {
+			a:       NewCoin(1, 0, "DOGE"),
+			b:       NewCoin(1, 0, ""),
+			wantErr: ErrInvalidCurrency,
+		},
+		"adding to non zero coin without a ticker": {
+			a:       NewCoin(1, 0, ""),
+			b:       NewCoin(1, 0, "DOGE"),
+			wantErr: ErrInvalidCurrency,
 		},
 	}
 
-	for idx, tc := range cases {
-		t.Run(fmt.Sprintf("case-%d", idx), func(t *testing.T) {
-			c, err := tc.a.Add(tc.b)
-			if tc.bad {
-				assert.Error(t, err)
-			} else {
-				assert.NoError(t, err)
-				assert.Equal(t, tc.res, c)
+	for testName, tc := range cases {
+		t.Run(testName, func(t *testing.T) {
+			res, err := tc.a.Add(tc.b)
+			if !errors.Is(tc.wantErr, err) {
+				t.Fatalf("got error: %v", err)
+			}
+			if tc.wantErr == nil {
+				assert.Equal(t, tc.wantRes, res)
 			}
 		})
 	}
