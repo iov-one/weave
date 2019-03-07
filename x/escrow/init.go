@@ -5,6 +5,7 @@ import (
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/coin"
+	"github.com/iov-one/weave/x/cash"
 	"github.com/pkg/errors"
 )
 
@@ -12,10 +13,12 @@ var _ weave.Initializer = (*Initializer)(nil)
 var burnAddress, _ = hex.DecodeString("0000000000000000000000000000000000000000")
 
 // Initializer fulfils the Initializer interface to load data from the genesis file
-type Initializer struct{}
+type Initializer struct {
+	Minter cash.CoinMinter
+}
 
 // FromGenesis will parse initial escrow  info from genesis and save it in the database.
-func (*Initializer) FromGenesis(opts weave.Options, db weave.KVStore) error {
+func (i *Initializer) FromGenesis(opts weave.Options, db weave.KVStore) error {
 	var escrows []struct {
 		Sender    weave.Address   `json:"sender"`
 		Arbiter   weave.Condition `json:"arbiter"`
@@ -29,7 +32,7 @@ func (*Initializer) FromGenesis(opts weave.Options, db weave.KVStore) error {
 	}
 
 	bucket := NewBucket()
-	for i, e := range escrows {
+	for j, e := range escrows {
 		escr := Escrow{
 			Sender:    e.Sender,
 			Arbiter:   e.Arbiter,
@@ -38,7 +41,7 @@ func (*Initializer) FromGenesis(opts weave.Options, db weave.KVStore) error {
 			Amount:    e.Amount,
 		}
 		if err := escr.Validate(); err != nil {
-			return errors.Wrapf(err, "invalid escrow at position: %d ", i)
+			return errors.Wrapf(err, "invalid escrow at position: %d ", j)
 		}
 		if !weave.Address(escr.Sender).Equals(burnAddress) {
 			// prevent any other address to not generate new money for an existing account (on timeout)
@@ -47,6 +50,12 @@ func (*Initializer) FromGenesis(opts weave.Options, db weave.KVStore) error {
 		obj := bucket.Build(db, &escr)
 		if err := bucket.Save(db, obj); err != nil {
 			return err
+		}
+		escAddr := Condition(obj.Key()).Address()
+		for _, c := range e.Amount {
+			if err := i.Minter.IssueCoins(db, escAddr, *c); err != nil {
+				return errors.Wrap(err, "failed to issue coins")
+			}
 		}
 	}
 	return nil

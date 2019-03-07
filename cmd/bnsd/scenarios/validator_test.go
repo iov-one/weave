@@ -24,7 +24,7 @@ func TestQueryValidatorUpdateSigner(t *testing.T) {
 	var accounts validators.Accounts
 	require.NoError(t, accounts.Unmarshal(r.Models[0].Value))
 	require.Len(t, accounts.Addresses, 1)
-	assert.Contains(t, accounts.Addresses, []byte(multiSigContractAddr))
+	assert.Contains(t, accounts.Addresses, []byte(multiSigContract.Address()), "multisig address not found")
 }
 
 func TestUpdateValidatorSet(t *testing.T) {
@@ -45,7 +45,8 @@ func TestUpdateValidatorSet(t *testing.T) {
 			Power: 1,
 		},
 	)
-	addValidatorTX.Multisig = [][]byte{multiSigContractID}
+	_, _, contractID, _ := multiSigContract.Parse()
+	addValidatorTX.Multisig = [][]byte{contractID}
 
 	seq, err := aNonce.Next()
 	require.NoError(t, err)
@@ -72,7 +73,7 @@ func TestUpdateValidatorSet(t *testing.T) {
 			Power: 0, // 0 for delete
 		},
 	)
-	delValidatorTX.Multisig = [][]byte{multiSigContractID}
+	delValidatorTX.Multisig = [][]byte{contractID}
 
 	// then
 	seq, err = aNonce.Next()

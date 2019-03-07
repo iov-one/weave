@@ -13,15 +13,19 @@ type CoinMover interface {
 	MoveCoins(store weave.KVStore, src weave.Address, dest weave.Address, amount coin.Coin) error
 }
 
+// CoinMinter is an interface to create new coins.
+type CoinMinter interface {
+	// IssueCoins increase the number of funds on given accouunt by a
+	// specified amount.
+	IssueCoins(weave.KVStore, weave.Address, coin.Coin) error
+}
+
 // Controller is the functionality needed by cash.Handler and cash.Decorator.
 // BaseController should work plenty fine, but you can add other logic if so
 // desired
 type Controller interface {
 	CoinMover
-
-	// IssueCoins increase the number of funds on given accouunt by a
-	// specified amount.
-	IssueCoins(weave.KVStore, weave.Address, coin.Coin) error
+	CoinMinter
 
 	// Balance returns the amount of funds stored under given account address.
 	Balance(weave.KVStore, weave.Address) (coin.Coins, error)

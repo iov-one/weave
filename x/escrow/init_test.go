@@ -6,6 +6,11 @@ import (
 	"encoding/json"
 	"testing"
 
+	"github.com/iov-one/weave/coin"
+	"github.com/iov-one/weave/x/cash"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/store"
 )
@@ -17,11 +22,15 @@ func TestGenesisKey(t *testing.T) {
     {
       "amount": [
         {
+          "ticker": "ALX",
+          "whole": 987654321
+        },
+        {
           "ticker": "IOV",
           "whole": 123456789
         }
       ],
-      "arbiter": "c2lncy9lZDI1NTE5Lyf1+0QFCd+nnsiDoFELyalhTD1EGIiB8MXkAomLS/PJ",
+      "arbiter": "bXVsdGlzaWcvdXNhZ2UvAAAAAAAAAAE=",
       "recipient": "C30A2424104F542576EF01FECA2FF558F5EAA61A",
       "sender": "0000000000000000000000000000000000000000",
       "timeout": 9223372036854775807
@@ -29,30 +38,39 @@ func TestGenesisKey(t *testing.T) {
   ]}`
 
 	var opts weave.Options
-	if err := json.Unmarshal([]byte(genesis), &opts); err != nil {
-		t.Fatalf("cannot unmarshal genesis: %s", err)
-	}
+	require.NoError(t, json.Unmarshal([]byte(genesis), &opts))
 
 	db := store.MemStore()
-	var ini Initializer
-	if err := ini.FromGenesis(opts, db); err != nil {
-		t.Fatalf("cannot load genesis: %s", err)
-	}
 
+	// when
+	cashCtrl := cash.NewController(cash.NewBucket())
+	ini := Initializer{Minter: cashCtrl}
+	require.NoError(t, ini.FromGenesis(opts, db))
+
+	// then
 	bucket := NewBucket()
 	obj, err := bucket.Get(db, seq(1))
-	if err != nil {
-		t.Fatalf("cannot fetch contract information: %s", err)
-	}
-	if obj == nil {
-		t.Fatal("contract information not found")
-	}
-	_, ok := obj.Value().(*Escrow)
-	if !ok {
-		t.Errorf("invalid object stored: %T", obj)
-	}
+	require.NoError(t, err)
+	require.NotNil(t, obj)
+	e, ok := obj.Value().(*Escrow)
+	require.True(t, ok)
 
-	// TODO: check results
+	require.Len(t, e.Amount, 2)
+	assert.Equal(t, coin.Coin{Ticker: "ALX", Whole: 987654321}, *e.Amount[0])
+	assert.Equal(t, coin.Coin{Ticker: "IOV", Whole: 123456789}, *e.Amount[1])
+	assert.Equal(t, int64(9223372036854775807), e.Timeout)
+	assert.Equal(t, "c30a2424104f542576ef01feca2ff558f5eaa61a", hex.EncodeToString(e.Recipient))
+	assert.Equal(t, "0000000000000000000000000000000000000000", hex.EncodeToString(e.Sender))
+
+	expArbiter := weave.NewCondition("multisig", "usage", seq(1))
+	assert.Equal(t, expArbiter, weave.Condition(e.Arbiter))
+
+	balance, err := cashCtrl.Balance(db, Condition(obj.Key()).Address())
+	require.NoError(t, err)
+	require.Len(t, e.Amount, 2)
+	assert.Equal(t, coin.Coin{Ticker: "ALX", Whole: 987654321}, *balance[0])
+	assert.Equal(t, coin.Coin{Ticker: "IOV", Whole: 123456789}, *balance[1])
+
 }
 
 // seq returns encoded sequence number as implemented in orm/sequence.go
@@ -60,13 +78,4 @@ func seq(val int64) []byte {
 	b := make([]byte, 8)
 	binary.BigEndian.PutUint64(b, uint64(val))
 	return b
-}
-
-func fromHex(t *testing.T, s string) []byte {
-	t.Helper()
-	raw, err := hex.DecodeString(s)
-	if err != nil {
-		t.Fatalf("cannot decode %q hex encoded data: %s", s, err)
-	}
-	return raw
 }
