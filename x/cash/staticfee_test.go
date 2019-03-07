@@ -98,11 +98,18 @@ func TestFees(t *testing.T) {
 			min:       min,
 			expect:    errors.ErrUnauthorized.Is,
 		},
-		"can pay in any fee": {
+		"fee without an empty ticker is not accepted": {
 			signers:   []weave.Condition{perm},
 			initState: []orm.Object{must(WalletWith(perm.Address(), &cash))},
 			fee:       &FeeInfo{Fees: &min},
 			min:       coin.NewCoin(0, 1000, ""),
+			expect:    coin.ErrInvalidCurrency.Is,
+		},
+		"no fee (zero value) is acceptable": {
+			signers:   []weave.Condition{perm},
+			initState: []orm.Object{must(WalletWith(perm.Address(), &cash))},
+			fee:       &FeeInfo{Fees: coin.NewCoinp(0, 1, "FOO")},
+			min:       coin.NewCoin(0, 0, ""),
 			expect:    noErr,
 		},
 		"wrong currency checked": {

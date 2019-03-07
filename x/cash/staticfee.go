@@ -133,10 +133,13 @@ func (d FeeDecorator) extractFee(ctx weave.Context, tx weave.Tx, store weave.KVS
 	}
 
 	cmp := gconf.Coin(store, GconfMinimalFee)
-	// minimum has no currency -> accept everything
-	if cmp.Ticker == "" {
-		cmp.Ticker = fee.Ticker
+	if cmp.IsZero() {
+		return finfo, nil
 	}
+	if cmp.Ticker == "" {
+		return nil, errors.Wrap(coin.ErrInvalidCurrency, "no ticker")
+	}
+
 	if !fee.SameType(cmp) {
 		return nil, coin.ErrInvalidCurrency.Newf("%s vs fee %s", cmp.Ticker, fee.Ticker)
 
