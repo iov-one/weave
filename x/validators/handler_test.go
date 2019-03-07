@@ -8,26 +8,23 @@ import (
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/store"
 	"github.com/iov-one/weave/weavetest"
-	"github.com/iov-one/weave/x"
 	"github.com/iov-one/weave/x/cash"
 	. "github.com/smartystreets/goconvey/convey"
 	"github.com/tendermint/tendermint/crypto/ed25519"
 )
 
 func TestHandler(t *testing.T) {
-	var helpers x.TestHelpers
-
 	Convey("Test handler works as intended", t, func() {
-		addr := ed25519.GenPrivKey().PubKey().(ed25519.PubKeyEd25519)
+		addr1 := ed25519.GenPrivKey().PubKey().(ed25519.PubKeyEd25519)
 		addr2 := ed25519.GenPrivKey().PubKey().(ed25519.PubKeyEd25519)
 
-		perm := weave.NewCondition("sig", "ed25519", addr[:])
+		perm1 := weave.NewCondition("sig", "ed25519", addr1[:])
 		perm2 := weave.NewCondition("sig", "ed25519", addr2[:])
 
-		auth := helpers.Authenticate(perm)
-		auth2 := helpers.Authenticate(perm2)
+		auth := &weavetest.Auth{Signer: perm1}
+		auth2 := &weavetest.Auth{Signer: perm2}
 
-		accts := WeaveAccounts{[]weave.Address{perm.Address()}}
+		accts := WeaveAccounts{[]weave.Address{perm1.Address()}}
 		accountsJson, err := json.Marshal(accts)
 		So(err, ShouldBeNil)
 
@@ -37,7 +34,7 @@ func TestHandler(t *testing.T) {
 		So(err, ShouldBeNil)
 		ctrl := NewController()
 		anUpdate := []*ValidatorUpdate{
-			{Pubkey: Pubkey{Data: addr[:], Type: "ed25519"}, Power: 10},
+			{Pubkey: Pubkey{Data: addr1[:], Type: "ed25519"}, Power: 10},
 		}
 
 		Convey("Check Deliver and Check", func() {

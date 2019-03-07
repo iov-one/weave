@@ -9,7 +9,6 @@ import (
 	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/store"
 	"github.com/iov-one/weave/weavetest"
-	"github.com/iov-one/weave/x"
 	"github.com/iov-one/weave/x/nft"
 	"github.com/iov-one/weave/x/nft/base"
 	. "github.com/smartystreets/goconvey/convey"
@@ -27,7 +26,6 @@ func TestApprovalOpsHandler(t *testing.T) {
 		bobWithAliceImmutableApproval := []byte("user4")
 		bobWithAliceTimeoutApproval := []byte("user5")
 
-		var helpers x.TestHelpers
 		alice := weavetest.NewCondition()
 		guest := weavetest.NewCondition()
 		bob := weavetest.NewCondition()
@@ -37,7 +35,7 @@ func TestApprovalOpsHandler(t *testing.T) {
 			username.ModelName: userBucket.Bucket,
 		}
 
-		handler := base.NewApprovalOpsHandler(helpers.Authenticate(bob), nil, nftBuckets)
+		handler := base.NewApprovalOpsHandler(&weavetest.Auth{Signer: bob}, nil, nftBuckets)
 
 		o, _ := userBucket.Create(db, bob.Address(), bobsUsername, nil, nil)
 		userBucket.Save(db, o)
@@ -123,7 +121,7 @@ func TestApprovalOpsHandler(t *testing.T) {
 				})
 
 				Convey("By guest", func() {
-					handler = base.NewApprovalOpsHandler(helpers.Authenticate(guest), nil, nftBuckets)
+					handler = base.NewApprovalOpsHandler(&weavetest.Auth{Signer: guest}, nil, nftBuckets)
 					msg.Address = bob.Address()
 					msg.ID = bobsUsername
 					tx := &weavetest.Tx{Msg: msg}
@@ -196,7 +194,7 @@ func TestApprovalOpsHandler(t *testing.T) {
 				//TODO: Should we allow approved to remove their own approvals? :)
 				Convey("By approved", func() {
 					t.Logf("alice address: %s", alice.Address())
-					handler = base.NewApprovalOpsHandler(helpers.Authenticate(alice), nil, nftBuckets)
+					handler = base.NewApprovalOpsHandler(&weavetest.Auth{Signer: alice}, nil, nftBuckets)
 					tx := &weavetest.Tx{Msg: msg}
 					_, err := handler.Check(ctx, db, tx)
 					So(err, ShouldBeNil)
@@ -222,7 +220,7 @@ func TestApprovalOpsHandler(t *testing.T) {
 				})
 
 				Convey("By guest", func() {
-					handler = base.NewApprovalOpsHandler(helpers.Authenticate(guest), nil, nftBuckets)
+					handler = base.NewApprovalOpsHandler(&weavetest.Auth{Signer: guest}, nil, nftBuckets)
 					msg.Address = bob.Address()
 					msg.ID = bobWithAliceApproval
 					tx := &weavetest.Tx{Msg: msg}
@@ -264,7 +262,7 @@ func TestApprovalOpsHandler(t *testing.T) {
 					msg.ID = bobWithAliceTimeoutApproval
 					tx := &weavetest.Tx{Msg: msg}
 					timeoutCtx := weave.WithHeight(context.Background(), 10)
-					handler = base.NewApprovalOpsHandler(helpers.Authenticate(guest), nil, nftBuckets)
+					handler = base.NewApprovalOpsHandler(&weavetest.Auth{Signer: guest}, nil, nftBuckets)
 					_, err := handler.Check(timeoutCtx, db, tx)
 					So(err, ShouldBeNil)
 					_, err = handler.Deliver(timeoutCtx, db, tx)

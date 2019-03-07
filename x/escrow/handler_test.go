@@ -19,8 +19,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-var helpers x.TestHelpers
-
 const Timeout = 12345
 
 // TestHandler runs a number of scenario of tx to make
@@ -758,8 +756,6 @@ func (p PreimageTx) GetPreimage() []byte {
 //-------------------------------------------------
 // specific helpers for these tests
 
-const authKey = "auth"
-
 type action struct {
 	perms  []weave.Condition
 	msg    weave.Msg
@@ -778,8 +774,8 @@ func (a action) ctx() weave.Context {
 
 // authenticator returns a default for all tests...
 // clean this up?
-func authenticator() x.CtxAuther {
-	return x.TestHelpers{}.CtxAuth(authKey)
+func authenticator() *weavetest.CtxAuth {
+	return &weavetest.CtxAuth{Key: "auth"}
 }
 
 // how to do a query... TODO: abstract this??

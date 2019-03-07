@@ -10,7 +10,6 @@ import (
 	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/store"
 	"github.com/iov-one/weave/weavetest"
-	"github.com/iov-one/weave/x"
 	"github.com/iov-one/weave/x/cash"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -31,8 +30,6 @@ func mo(obj orm.Object, err error) orm.Object {
 // TestSendHandler lightly adapted from x/cash to make sure code still
 // works with our new bucket implementation
 func TestSendHandler(t *testing.T) {
-	var helpers x.TestHelpers
-
 	foo := coin.NewCoin(100, 0, "FOO")
 	some := coin.NewCoin(300, 0, "SOME")
 
@@ -86,7 +83,7 @@ func TestSendHandler(t *testing.T) {
 
 	for i, tc := range cases {
 		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
-			auth := helpers.Authenticate(tc.signers...)
+			auth := &weavetest.Auth{Signers: tc.signers}
 			// use default controller/bucket from namecoin
 			h := NewSendHandler(auth)
 
@@ -108,8 +105,6 @@ func TestSendHandler(t *testing.T) {
 }
 
 func TestNewTokenHandler(t *testing.T) {
-	var helpers x.TestHelpers
-
 	perm1 := weavetest.NewCondition()
 	perm2 := weavetest.NewCondition()
 	perm3 := weavetest.NewCondition()
@@ -160,7 +155,7 @@ func TestNewTokenHandler(t *testing.T) {
 
 	for testname, tc := range cases {
 		t.Run(testname, func(t *testing.T) {
-			auth := helpers.Authenticate(tc.signers...)
+			auth := &weavetest.Auth{Signers: tc.signers}
 			// use default controller/bucket from namecoin
 			h := NewTokenHandler(auth, tc.issuer)
 
@@ -189,8 +184,6 @@ func TestNewTokenHandler(t *testing.T) {
 }
 
 func TestSetNameHandler(t *testing.T) {
-	var helpers x.TestHelpers
-
 	perm1 := weavetest.NewCondition()
 	perm2 := weavetest.NewCondition()
 	addr1 := perm1.Address()
@@ -248,11 +241,7 @@ func TestSetNameHandler(t *testing.T) {
 
 	for i, tc := range cases {
 		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
-			auth := helpers.Authenticate()
-			if tc.signer != nil {
-				auth = helpers.Authenticate(tc.signer)
-			}
-
+			auth := &weavetest.Auth{Signer: tc.signer}
 			// use default controller/bucket from namecoin
 			bucket := NewWalletBucket()
 			h := NewSetNameHandler(auth, bucket)

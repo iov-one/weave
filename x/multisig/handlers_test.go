@@ -12,14 +12,12 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-var helpers = x.TestHelpers{}
-
 // newContextWithAuth creates a context with perms as signers and sets the height
 func newContextWithAuth(perms ...weave.Condition) (weave.Context, x.Authenticator) {
 	ctx := context.Background()
 	// Set current block height to 100
 	ctx = weave.WithHeight(ctx, 100)
-	auth := helpers.CtxAuth("authKey")
+	auth := &weavetest.CtxAuth{Key: "authKey"}
 	// Create a new context and add addr to the list of signers
 	return auth.SetConditions(ctx, perms...), auth
 }

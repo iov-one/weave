@@ -10,7 +10,6 @@ import (
 	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/store"
 	"github.com/iov-one/weave/weavetest"
-	"github.com/iov-one/weave/x"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -20,8 +19,6 @@ type checkErr func(error) bool
 func noErr(err error) bool { return err == nil }
 
 func TestSend(t *testing.T) {
-	var helpers x.TestHelpers
-
 	foo := coin.NewCoin(100, 0, "FOO")
 	some := coin.NewCoin(300, 0, "SOME")
 
@@ -73,7 +70,7 @@ func TestSend(t *testing.T) {
 
 	for i, tc := range cases {
 		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
-			auth := helpers.Authenticate(tc.signers...)
+			auth := &weavetest.Auth{Signers: tc.signers}
 			controller := NewController(NewBucket())
 			h := NewSendHandler(auth, controller)
 

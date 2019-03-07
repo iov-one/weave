@@ -9,12 +9,9 @@ import (
 	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/store"
 	"github.com/iov-one/weave/weavetest"
-	"github.com/iov-one/weave/x"
 )
 
 func TestNewTokenInfoHandler(t *testing.T) {
-	var helpers x.TestHelpers
-
 	permA := weavetest.NewCondition()
 	permB := weavetest.NewCondition()
 
@@ -71,7 +68,7 @@ func TestNewTokenInfoHandler(t *testing.T) {
 				}
 			}
 
-			auth := helpers.Authenticate(tc.signers...)
+			auth := &weavetest.Auth{Signers: tc.signers}
 			h := NewTokenInfoHandler(auth, tc.issuer)
 			tx := &weavetest.Tx{Msg: tc.msg}
 			_, err := h.Check(nil, db, tx)
