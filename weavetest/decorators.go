@@ -2,12 +2,23 @@ package weavetest
 
 import "github.com/iov-one/weave"
 
+// Decorator is a mock implementation of the weave.Decorator interface.
+//
+// Set CheckErr or DeliverErr to force error response for corresponding method.
+// If error attributes are not set then wrapped handler method is called and
+// its result returned.
+// Each method call is counted. Regardless of the method call result the
+// counter is incremented.
 type Decorator struct {
 	checkCall int
-	CheckErr  error
+	// CheckErr if set is returned by the Check method before calling
+	// the wrapped handler.
+	CheckErr error
 
 	deliverCall int
-	DeliverErr  error
+	// DeliverErr if set is returned by the Deliver method before calling
+	// the wrapped handler.
+	DeliverErr error
 }
 
 var _ weave.Decorator = (*Decorator)(nil)

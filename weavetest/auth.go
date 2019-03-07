@@ -7,6 +7,12 @@ import (
 	"github.com/iov-one/weave"
 )
 
+// Auth is a mock implementing x.Authenticator interface.
+//
+// This structure authenticates any of referenced conditions.
+// You can use either Signer or Signers (or both) attributes to reference
+// conditions. This is for the convinience and each time all signers
+// (regardless which attribute) are considered.
 type Auth struct {
 	// Signer represents an authentication of a single signer. This is a
 	// convinience attribute when creating an authentication method for a
@@ -35,7 +41,12 @@ func (a *Auth) HasAddress(ctx weave.Context, addr weave.Address) bool {
 	return addr.Equals(a.Signer.Address())
 }
 
+// CtxAuth is a mock implementing x.Authenticator interface.
+//
+// This implementation is using context to store and retrieve permissions.
 type CtxAuth struct {
+	// Key used to set and retrieve conditions from the context. For
+	// convinience only string type keys are allowed.
 	Key string
 }
 

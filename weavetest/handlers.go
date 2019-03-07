@@ -2,14 +2,22 @@ package weavetest
 
 import "github.com/iov-one/weave"
 
+// Handler implements a mock of weave.Handler
+//
+// Use this handler in your tests. Set XxxResult and XxxErr to control what Xxx
+// method call returns. Each method call is counted.
 type Handler struct {
-	checkCall   int
+	checkCall int
+	// CheckResult is returned by Check method.
 	CheckResult weave.CheckResult
-	CheckErr    error
+	// CheckErr if set is returned by Check method.
+	CheckErr error
 
-	deliverCall   int
+	deliverCall int
+	// DeliverResult is returned by Deliver method.
 	DeliverResult weave.DeliverResult
-	DeliverErr    error
+	// DeliverErr if set is returned by Deliver method.
+	DeliverErr error
 }
 
 var _ weave.Handler = (*Handler)(nil)
