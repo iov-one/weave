@@ -5,15 +5,14 @@ import (
 	"testing"
 
 	"github.com/iov-one/weave/cmd/bnsd/x/nft/username"
-	"github.com/iov-one/weave/x"
+	"github.com/iov-one/weave/weavetest"
 	"github.com/iov-one/weave/x/nft"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestTokenClone(t *testing.T) {
-	var helpers x.TestHelpers
-	_, alice := helpers.MakeKey()
-	_, bob := helpers.MakeKey()
+	alice := weavetest.NewCondition()
+	bob := weavetest.NewCondition()
 
 	sources := []username.UsernameToken{
 		{ // happy path

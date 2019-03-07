@@ -44,19 +44,16 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/iov-one/weave/orm"
-
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/store"
+	"github.com/iov-one/weave/weavetest"
 	"github.com/iov-one/weave/x"
 	"github.com/stretchr/testify/require"
 )
 
-var (
-	newTx   = x.TestHelpers{}.MockTx
-	helpers = x.TestHelpers{}
-)
+var helpers = x.TestHelpers{}
 
 const longText = "We have created a room for live communication that is solely dedicated to high-level product discussions because this is a crucial support for fostering a technical user base within our broader community. Just as IOV is developing a full platform suite that includes retail products such as the universal wallet and B2B tools such as the BNS, each kind of community has a place in the movement toward mass adoption of blockchains which we aspire to lead.Another important reason that we established the #Developers room is that it provides a forum for users to receive help from our devs, and from each other, when playing with demos and live releases of IOV products in the future: as one can imagine, getting help with your test node or maintaining a highly dense conversation might be especially difficult in Telegram, depending on how many lambo memes and amusing gifs might be flying around at any given moment!We’re therefore happy to say that #Developers is launching with good timing — because community members who are interested in seeing our development progress for themselves can already try out our IOV-core release (read about it here!), and by the end of this month our public alphanet is launching! Keep your eyes open in coming weeks for this exciting release."
 
@@ -159,13 +156,13 @@ func testHandlerCheck(t *testing.T, testcases []testcase) {
 		// add dependencies
 		for _, dep := range test.Deps {
 			depHandler := dep.Handler(auth)
-			_, err := depHandler.Deliver(ctx, db, newTx(dep.Msg))
+			_, err := depHandler.Deliver(ctx, db, &weavetest.Tx{Msg: dep.Msg})
 			require.NoError(t, err, test.Name, fmt.Sprintf("failed to deliver dep %s\n", dep.Name))
 		}
 
 		//run test
 		handler := test.Handler(auth)
-		res, err := handler.Check(ctx, db, newTx(test.Msg))
+		res, err := handler.Check(ctx, db, &weavetest.Tx{Msg: test.Msg})
 		if test.Err == nil {
 			require.NoError(t, err, test.Name)
 			require.EqualValues(t, test.Res, res, test.Name)
@@ -188,13 +185,13 @@ func testHandlerDeliver(t *testing.T, testcases []testcase) {
 		// add dependencies
 		for _, dep := range test.Deps {
 			depHandler := dep.Handler(auth)
-			_, err := depHandler.Deliver(ctx, db, newTx(dep.Msg))
+			_, err := depHandler.Deliver(ctx, db, &weavetest.Tx{Msg: dep.Msg})
 			require.NoError(t, err, test.Name, fmt.Sprintf("failed to deliver dep %s\n", dep.Name))
 		}
 
 		//run test
 		handler := test.Handler(auth)
-		_, err := handler.Deliver(ctx, db, newTx(test.Msg))
+		_, err := handler.Deliver(ctx, db, &weavetest.Tx{Msg: test.Msg})
 		if test.Err == nil {
 			require.NoError(t, err, test.Name)
 			for _, obj := range test.Obj {
@@ -210,7 +207,7 @@ func testHandlerDeliver(t *testing.T, testcases []testcase) {
 	}
 }
 func TestCreateBlogMsgHandlerCheck(t *testing.T) {
-	_, signer := x.TestHelpers{}.MakeKey()
+	signer := weavetest.NewCondition()
 	testHandlerCheck(
 		t,
 		[]testcase{
@@ -308,8 +305,8 @@ func TestCreateBlogMsgHandlerCheck(t *testing.T) {
 	)
 }
 func TestCreateBlogMsgHandlerDeliver(t *testing.T) {
-	_, signer := x.TestHelpers{}.MakeKey()
-	_, author := x.TestHelpers{}.MakeKey()
+	signer := weavetest.NewCondition()
+	author := weavetest.NewCondition()
 	testHandlerDeliver(
 		t,
 		[]testcase{
@@ -357,8 +354,8 @@ func TestCreateBlogMsgHandlerDeliver(t *testing.T) {
 	)
 }
 func TestCreatePostMsgHandlerCheck(t *testing.T) {
-	_, signer := helpers.MakeKey()
-	_, unauthorised := helpers.MakeKey()
+	signer := weavetest.NewCondition()
+	unauthorised := weavetest.NewCondition()
 
 	testHandlerCheck(
 		t,
@@ -475,7 +472,7 @@ func TestCreatePostMsgHandlerCheck(t *testing.T) {
 	)
 }
 func TestCreatePostMsgHandlerDeliver(t *testing.T) {
-	_, signer := helpers.MakeKey()
+	signer := weavetest.NewCondition()
 	testHandlerDeliver(
 		t,
 		[]testcase{
@@ -524,7 +521,7 @@ func TestCreatePostMsgHandlerDeliver(t *testing.T) {
 	)
 }
 func TestRenameBlogMsgHandlerCheck(t *testing.T) {
-	_, signer := helpers.MakeKey()
+	signer := weavetest.NewCondition()
 	testHandlerCheck(
 		t,
 		[]testcase{
@@ -583,7 +580,7 @@ func TestRenameBlogMsgHandlerCheck(t *testing.T) {
 	)
 }
 func TestRenameBlogMsgHandlerDeliver(t *testing.T) {
-	_, signer := helpers.MakeKey()
+	signer := weavetest.NewCondition()
 	testHandlerDeliver(
 		t,
 		[]testcase{
@@ -621,9 +618,9 @@ func TestRenameBlogMsgHandlerDeliver(t *testing.T) {
 	)
 }
 func TestChangeBlogAuthorsMsgHandlerCheck(t *testing.T) {
-	_, signer := helpers.MakeKey()
-	_, newAuthor := helpers.MakeKey()
-	_, authorToRemove := helpers.MakeKey()
+	signer := weavetest.NewCondition()
+	newAuthor := weavetest.NewCondition()
+	authorToRemove := weavetest.NewCondition()
 	testHandlerCheck(
 		t,
 		[]testcase{
@@ -800,9 +797,9 @@ func TestChangeBlogAuthorsMsgHandlerCheck(t *testing.T) {
 	)
 }
 func TestChangeBlogAuthorsMsgHandlerDeliver(t *testing.T) {
-	_, signer := helpers.MakeKey()
-	_, newAuthor := helpers.MakeKey()
-	_, authorToRemove := helpers.MakeKey()
+	signer := weavetest.NewCondition()
+	newAuthor := weavetest.NewCondition()
+	authorToRemove := weavetest.NewCondition()
 	testHandlerDeliver(
 		t,
 		[]testcase{
@@ -872,8 +869,8 @@ func TestChangeBlogAuthorsMsgHandlerDeliver(t *testing.T) {
 	)
 }
 func TestSetProfileMsgHandlerCheck(t *testing.T) {
-	_, signer := helpers.MakeKey()
-	_, author := helpers.MakeKey()
+	signer := weavetest.NewCondition()
+	author := weavetest.NewCondition()
 
 	testHandlerCheck(
 		t,
@@ -914,7 +911,7 @@ func TestSetProfileMsgHandlerCheck(t *testing.T) {
 	)
 }
 func TestSetProfileMsgHandlerDeliver(t *testing.T) {
-	_, signer := helpers.MakeKey()
+	signer := weavetest.NewCondition()
 	testHandlerDeliver(
 		t,
 		[]testcase{

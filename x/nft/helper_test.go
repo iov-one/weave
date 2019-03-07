@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/weavetest"
 	"github.com/iov-one/weave/x"
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -14,9 +15,9 @@ func TestFindActor(t *testing.T) {
 		ctx := context.Background()
 
 		var helper x.TestHelpers
-		_, bob := helper.MakeKey()
-		_, alice := helper.MakeKey()
-		_, guest := helper.MakeKey()
+		bob := weavetest.NewCondition()
+		alice := weavetest.NewCondition()
+		guest := weavetest.NewCondition()
 
 		Convey("Test owner", func() {
 			token := &NonFungibleToken{

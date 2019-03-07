@@ -9,6 +9,7 @@ import (
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/store"
+	"github.com/iov-one/weave/weavetest"
 	"github.com/iov-one/weave/x"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -83,7 +84,7 @@ func TestSend(t *testing.T) {
 				require.NoError(t, err)
 			}
 
-			tx := helpers.MockTx(tc.msg)
+			tx := &weavetest.Tx{Msg: tc.msg}
 
 			_, err := h.Check(nil, kv, tx)
 			assert.True(t, tc.expectCheck(err), "%+v", err)

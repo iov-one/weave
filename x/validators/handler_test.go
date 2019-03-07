@@ -4,14 +4,14 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/tendermint/tendermint/crypto/ed25519"
-
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/store"
+	"github.com/iov-one/weave/weavetest"
 	"github.com/iov-one/weave/x"
 	"github.com/iov-one/weave/x/cash"
 	. "github.com/smartystreets/goconvey/convey"
+	"github.com/tendermint/tendermint/crypto/ed25519"
 )
 
 func TestHandler(t *testing.T) {
@@ -42,7 +42,7 @@ func TestHandler(t *testing.T) {
 
 		Convey("Check Deliver and Check", func() {
 			Convey("With a right address", func() {
-				tx := helpers.MockTx(&SetValidatorsMsg{ValidatorUpdates: anUpdate})
+				tx := &weavetest.Tx{Msg: &SetValidatorsMsg{ValidatorUpdates: anUpdate}}
 				handler := NewUpdateHandler(auth, ctrl, authCheckAddress)
 
 				res, err := handler.Deliver(nil, kv, tx)
@@ -54,7 +54,7 @@ func TestHandler(t *testing.T) {
 			})
 
 			Convey("With a wrong address", func() {
-				tx := helpers.MockTx(&SetValidatorsMsg{ValidatorUpdates: anUpdate})
+				tx := &weavetest.Tx{Msg: &SetValidatorsMsg{ValidatorUpdates: anUpdate}}
 				handler := NewUpdateHandler(auth2, ctrl, authCheckAddress)
 
 				_, err := handler.Deliver(nil, kv, tx)
@@ -66,7 +66,7 @@ func TestHandler(t *testing.T) {
 
 			Convey("With an invalid message", func() {
 				msg := &cash.SendMsg{}
-				tx := helpers.MockTx(msg)
+				tx := &weavetest.Tx{Msg: msg}
 				handler := NewUpdateHandler(auth2, ctrl, authCheckAddress)
 
 				_, err := handler.Deliver(nil, kv, tx)

@@ -3,7 +3,7 @@ package nft
 import (
 	"testing"
 
-	"github.com/iov-one/weave/x"
+	"github.com/iov-one/weave/weavetest"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -11,8 +11,7 @@ func TestApprovalMsg(t *testing.T) {
 	RegisterAction(DefaultActions...)
 
 	Convey("Test add/remove approvals msg validation", t, func() {
-		var helper x.TestHelpers
-		_, validKey := helper.MakeKey()
+		validKey := weavetest.NewCondition()
 		Convey("Test add approvals", func() {
 			Convey("Happy flow", func() {
 				msg := AddApprovalMsg{

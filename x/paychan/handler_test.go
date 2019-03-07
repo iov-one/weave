@@ -14,6 +14,7 @@ import (
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/store"
+	"github.com/iov-one/weave/weavetest"
 	"github.com/iov-one/weave/x"
 	"github.com/iov-one/weave/x/cash"
 )
@@ -33,10 +34,10 @@ func TestPaymentChannelHandlers(t *testing.T) {
 	cash.RegisterQuery(qr)
 	RegisterQuery(qr)
 
-	_, src := helper.MakeKey()
+	src := weavetest.NewCondition()
 	// Because it is allowed, use different public key to sign the message.
-	srcSig, _ := helper.MakeKey()
-	_, recipient := helper.MakeKey()
+	srcSig := weavetest.NewKey()
+	recipient := weavetest.NewCondition()
 
 	cases := map[string]struct {
 		actions []action
@@ -532,7 +533,7 @@ type action struct {
 }
 
 func (a *action) tx() weave.Tx {
-	return helper.MockTx(a.msg)
+	return &weavetest.Tx{Msg: a.msg}
 }
 
 func (a *action) ctx() weave.Context {

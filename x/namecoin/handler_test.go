@@ -9,6 +9,7 @@ import (
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/store"
+	"github.com/iov-one/weave/weavetest"
 	"github.com/iov-one/weave/x"
 	"github.com/iov-one/weave/x/cash"
 	"github.com/stretchr/testify/assert"
@@ -35,9 +36,9 @@ func TestSendHandler(t *testing.T) {
 	foo := coin.NewCoin(100, 0, "FOO")
 	some := coin.NewCoin(300, 0, "SOME")
 
-	perm := weave.NewCondition("sig", "ed25519", []byte{1, 2, 3})
+	perm1 := weave.NewCondition("sig", "ed25519", []byte{1, 2, 3})
 	perm2 := weave.NewCondition("sig", "ed25519", []byte{4, 5, 6})
-	addr := perm.Address()
+	addr1 := perm1.Address()
 	addr2 := perm2.Address()
 
 	cases := []struct {
@@ -53,31 +54,31 @@ func TestSendHandler(t *testing.T) {
 		3: {
 			nil,
 			nil,
-			&cash.SendMsg{Amount: &foo, Src: addr, Dest: addr2},
+			&cash.SendMsg{Amount: &foo, Src: addr1, Dest: addr2},
 			errors.ErrUnauthorized.Is,
 			errors.ErrUnauthorized.Is,
 		},
 		// sender has no account
 		4: {
-			[]weave.Condition{perm},
+			[]weave.Condition{perm1},
 			nil,
-			&cash.SendMsg{Amount: &foo, Src: addr, Dest: addr2},
+			&cash.SendMsg{Amount: &foo, Src: addr1, Dest: addr2},
 			noErr, // we don't check funds
 			errors.ErrEmpty.Is,
 		},
 		// sender too poor
 		5: {
-			[]weave.Condition{perm},
-			[]orm.Object{mo(WalletWith(addr, "", &some))},
-			&cash.SendMsg{Amount: &foo, Src: addr, Dest: addr2},
+			[]weave.Condition{perm1},
+			[]orm.Object{mo(WalletWith(addr1, "", &some))},
+			&cash.SendMsg{Amount: &foo, Src: addr1, Dest: addr2},
 			noErr, // we don't check funds
 			errors.ErrInsufficientAmount.Is,
 		},
 		// fool and his money are soon parted....
 		6: {
-			[]weave.Condition{perm},
-			[]orm.Object{mo(WalletWith(addr, "fool", &foo))},
-			&cash.SendMsg{Amount: &foo, Src: addr, Dest: addr2},
+			[]weave.Condition{perm1},
+			[]orm.Object{mo(WalletWith(addr1, "fool", &foo))},
+			&cash.SendMsg{Amount: &foo, Src: addr1, Dest: addr2},
 			noErr,
 			noErr,
 		},
@@ -96,7 +97,7 @@ func TestSendHandler(t *testing.T) {
 				require.NoError(t, err)
 			}
 
-			tx := helpers.MockTx(tc.msg)
+			tx := &weavetest.Tx{Msg: tc.msg}
 
 			_, err := h.Check(nil, kv, tx)
 			assert.True(t, tc.expectCheck(err), "%+v", err)
@@ -109,10 +110,10 @@ func TestSendHandler(t *testing.T) {
 func TestNewTokenHandler(t *testing.T) {
 	var helpers x.TestHelpers
 
-	_, perm := helpers.MakeKey()
-	_, perm2 := helpers.MakeKey()
-	_, perm3 := helpers.MakeKey()
-	addr := perm.Address()
+	perm1 := weavetest.NewCondition()
+	perm2 := weavetest.NewCondition()
+	perm3 := weavetest.NewCondition()
+	addr1 := perm1.Address()
 	addr2 := perm2.Address()
 
 	ticker := "GOOD"
@@ -131,27 +132,27 @@ func TestNewTokenHandler(t *testing.T) {
 		query    string
 		expected orm.Object
 	}{
-		"proper issuer - happy path": {[]weave.Condition{perm}, addr, nil, msg,
+		"proper issuer - happy path": {[]weave.Condition{perm1}, addr1, nil, msg,
 			noErr, noErr, ticker, added},
-		"wrong message type": {[]weave.Condition{perm}, addr, nil, new(cash.SendMsg),
+		"wrong message type": {[]weave.Condition{perm1}, addr1, nil, new(cash.SendMsg),
 			errors.ErrInvalidMsg.Is, errors.ErrInvalidMsg.Is, "", nil},
-		"invalid ticker symbol": {[]weave.Condition{perm}, addr, nil, BuildTokenMsg("YO", "digga", 7),
+		"invalid ticker symbol": {[]weave.Condition{perm1}, addr1, nil, BuildTokenMsg("YO", "digga", 7),
 			coin.ErrInvalidCurrency.Is, coin.ErrInvalidCurrency.Is, "", nil},
-		"invalid token name": {[]weave.Condition{perm}, addr, nil, BuildTokenMsg("GOOD", "ill3glz!", 7),
+		"invalid token name": {[]weave.Condition{perm1}, addr1, nil, BuildTokenMsg("GOOD", "ill3glz!", 7),
 			errors.ErrInvalidInput.Is, errors.ErrInvalidInput.Is, "", nil},
-		"invalid sig figs": {[]weave.Condition{perm}, addr, nil, BuildTokenMsg("GOOD", "my good token", 17),
+		"invalid sig figs": {[]weave.Condition{perm1}, addr1, nil, BuildTokenMsg("GOOD", "my good token", 17),
 			errors.ErrInvalidInput.Is, errors.ErrInvalidInput.Is, "", nil},
 		"no issuer, unsigned": {nil, nil, nil, msg,
 			errors.ErrUnauthorized.Is, errors.ErrUnauthorized.Is, "", nil},
 		"no issuer, signed": {[]weave.Condition{perm2}, nil, nil, msg,
 			errors.ErrUnauthorized.Is, errors.ErrUnauthorized.Is, "", nil},
-		"cannot overwrite existing token": {[]weave.Condition{perm}, addr, []orm.Object{NewToken(ticker, "i was here first", 4)}, msg,
+		"cannot overwrite existing token": {[]weave.Condition{perm1}, addr1, []orm.Object{NewToken(ticker, "i was here first", 4)}, msg,
 			errors.ErrDuplicate.Is, errors.ErrDuplicate.Is, "", nil},
-		"can issue second token, different name": {[]weave.Condition{perm}, addr, []orm.Object{NewToken("OTHR", "i was here first", 4)}, msg,
+		"can issue second token, different name": {[]weave.Condition{perm1}, addr1, []orm.Object{NewToken("OTHR", "i was here first", 4)}, msg,
 			noErr, noErr, ticker, added},
-		"no signature, real issuer": {nil, addr, nil, msg,
+		"no signature, real issuer": {nil, addr1, nil, msg,
 			errors.ErrUnauthorized.Is, errors.ErrUnauthorized.Is, "", nil},
-		"wrong signatures, real issuer": {[]weave.Condition{perm2, perm3}, addr, nil, msg,
+		"wrong signatures, real issuer": {[]weave.Condition{perm2, perm3}, addr1, nil, msg,
 			errors.ErrUnauthorized.Is, errors.ErrUnauthorized.Is, "", nil},
 		"extra signatures, real issuer": {[]weave.Condition{perm2, perm3}, addr2, nil, msg,
 			noErr, noErr, ticker, added},
@@ -170,7 +171,7 @@ func TestNewTokenHandler(t *testing.T) {
 				require.NoError(t, err)
 			}
 
-			tx := helpers.MockTx(tc.msg)
+			tx := &weavetest.Tx{Msg: tc.msg}
 
 			// note that this counts on checkDB *not* creating it
 			_, err := h.Check(nil, db, tx)
@@ -190,17 +191,17 @@ func TestNewTokenHandler(t *testing.T) {
 func TestSetNameHandler(t *testing.T) {
 	var helpers x.TestHelpers
 
-	_, perm := helpers.MakeKey()
-	_, perm2 := helpers.MakeKey()
-	addr := perm.Address()
+	perm1 := weavetest.NewCondition()
+	perm2 := weavetest.NewCondition()
+	addr1 := perm1.Address()
 	addr2 := perm2.Address()
 
 	coin := coin.NewCoin(100, 0, "FOO")
 	name := "carl"
 	// newUser + msg -> setUser
-	newUser := mo(WalletWith(addr, "", &coin))
-	setUser := mo(WalletWith(addr, name, &coin))
-	msg := BuildSetNameMsg(addr, name)
+	newUser := mo(WalletWith(addr1, "", &coin))
+	setUser := mo(WalletWith(addr1, name, &coin))
+	msg := BuildSetNameMsg(addr1, name)
 	// dupUser already claimed this name
 	dupUser := mo(WalletWith(addr2, name, &coin))
 
@@ -220,29 +221,29 @@ func TestSetNameHandler(t *testing.T) {
 		// invalid message
 		1: {nil, nil, BuildSetNameMsg([]byte{1, 2}, "johnny"),
 			errors.ErrInvalidInput.Is, errors.ErrInvalidInput.Is, nil, nil},
-		2: {nil, nil, BuildSetNameMsg(addr, "sh"),
+		2: {nil, nil, BuildSetNameMsg(addr1, "sh"),
 			errors.ErrInvalidInput.Is, errors.ErrInvalidInput.Is, nil, nil},
 		// no permission to change account
 		3: {nil, []orm.Object{newUser}, msg,
 			errors.ErrUnauthorized.Is, errors.ErrUnauthorized.Is, nil, nil},
 		// no account to change - only checked deliver
-		4: {perm, nil, msg,
+		4: {perm1, nil, msg,
 			noErr, errors.ErrNotFound.Is, nil, nil},
 		5: {perm2, []orm.Object{newUser}, msg,
 			errors.ErrUnauthorized.Is, errors.ErrUnauthorized.Is, nil, nil},
 		// yes, we changed it!
-		6: {perm, []orm.Object{newUser}, msg,
-			noErr, noErr, addr, setUser},
+		6: {perm1, []orm.Object{newUser}, msg,
+			noErr, noErr, addr1, setUser},
 		// cannot change already set - only checked deliver?
-		7: {perm, []orm.Object{setUser}, msg,
+		7: {perm1, []orm.Object{setUser}, msg,
 			noErr, errors.ErrCannotBeModified.Is, nil, nil},
 		// cannot create conflict - only checked deliver?
-		8: {perm, []orm.Object{newUser, dupUser}, msg,
+		8: {perm1, []orm.Object{newUser, dupUser}, msg,
 			noErr, errors.ErrDuplicate.Is, nil, nil},
-		// cannot change - no such a wallet (should should up by addr2 not addr)
-		9: {perm, []orm.Object{dupUser}, msg, noErr,
+		// cannot change - no such a wallet (should should up by addr2 not addr1)
+		9: {perm1, []orm.Object{dupUser}, msg, noErr,
 			func(err error) bool { return errors.ErrNotFound.Is(err) },
-			addr, nil},
+			addr1, nil},
 	}
 
 	for i, tc := range cases {
@@ -262,7 +263,7 @@ func TestSetNameHandler(t *testing.T) {
 				require.NoError(t, err)
 			}
 
-			tx := helpers.MockTx(tc.msg)
+			tx := &weavetest.Tx{Msg: tc.msg}
 
 			// note that this counts on checkDB *not* creating it
 			_, err := h.Check(nil, db, tx)

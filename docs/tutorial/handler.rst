@@ -33,9 +33,9 @@ and thus kick the deviating nodes out of consensus.
 (Note that *Check* may actually vary between nodes without breaking
 consensus rules, although we generally keep this deterministic as well).
 
-**This is a very powerful concept and means that when modifying a given state, 
-users must not worry about any concurrential access or writing collision 
-since by definition, any write access is garanteed to occur sequentially and 
+**This is a very powerful concept and means that when modifying a given state,
+users must not worry about any concurrential access or writing collision
+since by definition, any write access is garanteed to occur sequentially and
 in the same order on each node**.
 
 Writing a Handler
@@ -44,7 +44,7 @@ Writing a Handler
 We usually can write a separate handler for each message type,
 although you can register multiple messages with the same
 handler if you reuse most of the code. Let's focus on the
-simplest cases, and the handlers for creating a Blog and 
+simplest cases, and the handlers for creating a Blog and
 adding a Post to an existing blog.
 
 Note that we can generally assume that *Handlers* are wrapped
@@ -72,25 +72,25 @@ the blockchain state accordingly.
 Blog
 ~~~~
 
-Let us take a look at a first validation example when creating 
-a blog : 
+Let us take a look at a first validation example when creating
+a blog :
 
 .. literalinclude:: ../../examples/tutorial/x/blog/handlers.go
     :language: go
     :lines: 89-118
 
-Before anything, we want to make sure that the transaction is allowed 
-and in the case of Blog creation, we choose to consider the main Tx signer 
+Before anything, we want to make sure that the transaction is allowed
+and in the case of Blog creation, we choose to consider the main Tx signer
 as the blog author. This is easily achieved using existing util functions :
 
 .. literalinclude:: ../../examples/tutorial/x/blog/handlers.go
     :language: go
     :lines: 90-94
 
-Next comes the model validation as described in the 
-`Data Model section <https://weave.readthedocs.io/en/latest/tutorial/messages.html#validation>`_, 
-and finally we want to make sure that the blog is unique. The example below shows 
-how to do that by querying the BlogBucket  : 
+Next comes the model validation as described in the
+`Data Model section <https://weave.readthedocs.io/en/latest/tutorial/messages.html#validation>`_,
+and finally we want to make sure that the blog is unique. The example below shows
+how to do that by querying the BlogBucket  :
 
 .. literalinclude:: ../../examples/tutorial/x/blog/handlers.go
     :language: go
@@ -141,8 +141,8 @@ A blog costs one gas to create :
 Post
 ~~~~
 
-In the case of a Post creation, we decided to charge the author 1 gas 
-per mile characters with the first 1000 characters offered :  
+In the case of a Post creation, we decided to charge the author 1 gas
+per mile characters with the first 1000 characters offered :
 
 .. literalinclude:: ../../examples/tutorial/x/blog/handlers.go
     :language: go
@@ -157,7 +157,7 @@ checks.
 Blog
 ~~~~
 
-Before saving the blog into the blog bucket, ``Deliver`` checks if the main signer 
+Before saving the blog into the blog bucket, ``Deliver`` checks if the main signer
 of the Tx is part of the authorized authors for this blog and will add it if not.
 
 .. literalinclude:: ../../examples/tutorial/x/blog/handlers.go
@@ -181,12 +181,12 @@ header, which contains a timestamp,
     :language: go
     :lines: 141-171
 
-Let us recall that when incrementing the article count on the parent blog, we don't 
-have to worry about concurrential access, nor use any synchronisation mechanism : We are garanteed 
+Let us recall that when incrementing the article count on the parent blog, we don't
+have to worry about concurrential access, nor use any synchronisation mechanism : We are garanteed
 that each ``Check`` and ``Deliver`` method will be executed sequentially and in the same order on each node.
 
-Finally, note how we generate the composite key for the post by concatenating the blog slug and 
-the blog count : 
+Finally, note how we generate the composite key for the post by concatenating the blog slug and
+the blog count :
 
 .. literalinclude:: ../../examples/tutorial/x/blog/handlers.go
     :language: go
@@ -225,17 +225,17 @@ and attaching them to the *Router* to process the matching
 Testing Handlers
 ----------------
 
-In order to test a handler, we need four things : 
+In order to test a handler, we need four things :
  - A storage
  - A weave context
  - An Authenticator associated with our context
  - A Tx object to processs (eg. to check or to deliver)
 
-There is a ready to use in memory storage available in 
+There is a ready to use in memory storage available in
 the `store package <https://github.com/iov-one/weave/blob/master/store/btree.go#L31-L36>`_.
-There are also util functions available that we can use to create a weave context with a 
+There are also util functions available that we can use to create a weave context with a
 list of signers (eg. authorized addresses) via an `Authenticator <https://weave.readthedocs.io/en/latest/design/permissions.html>`_.
-The function below shows how to use them : 
+The function below shows how to use them :
 
 .. literalinclude:: ../../examples/tutorial/x/blog/handlers_test.go
     :language: go
@@ -247,10 +247,10 @@ Last but not least, there is a helper function allowing to create a Tx object fr
     :language: go
     :lines: 102-105
 
-Now that we have all the pieces, let us put them together and 
-write tests. 
+Now that we have all the pieces, let us put them together and
+write tests.
 
-First we start by defining a pattern that we will follow in all our tests to make 
+First we start by defining a pattern that we will follow in all our tests to make
 easier for the reader to navigate through them.
 A function to test a handler Check method would look like this :
 
@@ -260,9 +260,9 @@ A function to test a handler Check method would look like this :
 
         1 - generate keys to use in the test
 
-        _, k1 := helpers.MakeKey()
+        k1 := weavetest.NewCondition()
         // ...
-        _, kN := helpers.MakeKey()
+        kN := weavetest.NewCondition()
 
         2 - call testHandlerCheck withs testcases as below
 
@@ -284,9 +284,9 @@ And for the Deliver method, like that :
 
         1 - generate keys to use in the test
 
-        _, k1 := helpers.MakeKey()
+        k1 := weavetest.NewCondition()
         // ...
-        _, kN := helpers.MakeKey()
+        kN := weavetest.NewCondition()
 
         2 - call testHandlerDeliver withs testcases as below
 
@@ -300,47 +300,47 @@ And for the Deliver method, like that :
             })
     }
 
-Our test functions rely on small utilities defined at the top of the test file, mainly, 
-a ``testcase`` struct to hold the data required for a test : 
+Our test functions rely on small utilities defined at the top of the test file, mainly,
+a ``testcase`` struct to hold the data required for a test :
 
  .. literalinclude:: ../../examples/tutorial/x/blog/handlers_test.go
     :language: go
     :lines: 63-80
 
-A generic test runner for the ``Check`` method of a handler : 
+A generic test runner for the ``Check`` method of a handler :
 
  .. literalinclude:: ../../examples/tutorial/x/blog/handlers_test.go
     :language: go
     :lines: 151-177
 
-And one for the ``Deliver`` method of a handler : 
+And one for the ``Deliver`` method of a handler :
 
  .. literalinclude:: ../../examples/tutorial/x/blog/handlers_test.go
     :language: go
     :lines: 179-210
 
-The generic test runners help reducing boilerplates in tests by taking care of saving dependencies 
+The generic test runners help reducing boilerplates in tests by taking care of saving dependencies
 prior to running a test, and making asserts on the data returned upon completion.
 For example when creating a new Post, we need to save the corresponding Blog first, and upon completion,
 we need to retrieve both the Post and the Blog we saved to ensure they're inline with our expectations.
 
-Here is how a test would look like for the ``Check`` method of the ``CreateBlogMsg`` handler : 
+Here is how a test would look like for the ``Check`` method of the ``CreateBlogMsg`` handler :
 
 .. literalinclude:: ../../examples/tutorial/x/blog/handlers_test.go
     :language: go
     :lines: 211-308
 
-As stated above, the test implementation consists in defining the keys and test cases to be used. 
+As stated above, the test implementation consists in defining the keys and test cases to be used.
 Util functions take care of the remaining.
 
-Let's take a look at another example with the test for the ``Deliver`` method 
+Let's take a look at another example with the test for the ``Deliver`` method
 of the ``CreateBlogMsgHandler`` struct :
 
 .. literalinclude:: ../../examples/tutorial/x/blog/handlers_test.go
     :language: go
     :lines: 476-524
 
-It is very similar to what we saw before. One thing to notice here is that we specify 
-the dependencies required, in this case, a Blog object. 
-We also specify the objects we expect this test to deliver so we can assert wether 
+It is very similar to what we saw before. One thing to notice here is that we specify
+the dependencies required, in this case, a Blog object.
+We also specify the objects we expect this test to deliver so we can assert wether
 or not they have been delivered correctly.

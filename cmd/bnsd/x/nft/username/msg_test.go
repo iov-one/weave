@@ -5,13 +5,12 @@ import (
 	"testing"
 
 	"github.com/iov-one/weave/cmd/bnsd/x/nft/username"
-	"github.com/iov-one/weave/x"
+	"github.com/iov-one/weave/weavetest"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestIssueTokenMsgValidate(t *testing.T) {
-	var helpers x.TestHelpers
-	_, alice := helpers.MakeKey()
+	alice := weavetest.NewCondition()
 
 	specs := []struct {
 		msg      username.IssueTokenMsg

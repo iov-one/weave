@@ -8,7 +8,7 @@ import (
 	"github.com/iov-one/weave"
 	coin "github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/errors"
-	"github.com/iov-one/weave/x"
+	"github.com/iov-one/weave/weavetest"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -26,11 +26,9 @@ type checkErr func(error) bool
 func noErr(err error) bool { return err == nil }
 
 func TestCreateEscrowMsg(t *testing.T) {
-	var helpers x.TestHelpers
-
 	// good
-	_, a := helpers.MakeKey()
-	_, b := helpers.MakeKey()
+	a := weavetest.NewCondition()
+	b := weavetest.NewCondition()
 	c := weave.NewCondition("monkey", "gelato", []byte("berry"))
 	// invalid
 	d := weave.Condition("foobar")
@@ -254,16 +252,14 @@ func TestReturnEscrowMsg(t *testing.T) {
 }
 
 func TestUpdateEscrowMsg(t *testing.T) {
-	var helpers x.TestHelpers
-
 	// valid: fixed 8 byte id
 	escrow := []byte{0xf, 0, 0, 0xb, 0xa, 0xd, 7, 7}
 	// invalid: other size id
 	scarecrow := []byte{1, 2, 3, 4}
 
 	// good
-	_, a := helpers.MakeKey()
-	_, b := helpers.MakeKey()
+	a := weavetest.NewCondition()
+	b := weavetest.NewCondition()
 	c := weave.NewCondition("monkey", "gelato", []byte("berry"))
 	// invalid
 	d := weave.Condition("foobar")

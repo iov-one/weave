@@ -1,46 +1,44 @@
 package app
 
 import (
-	"fmt"
-	"github.com/iov-one/weave/errors"
 	"testing"
 
+	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/weavetest"
 	"github.com/stretchr/testify/assert"
-
-	"github.com/iov-one/weave/x"
 )
 
 func TestRouter(t *testing.T) {
-	var help x.TestHelpers
-
 	r := NewRouter()
-	good, bad, missing := "good", "bad", "missing"
-	msg := "foo"
+	const good, bad, missing = "good", "bad", "missing"
 
 	// register some routers
-	counter := help.CountingHandler()
-	r.Handle(good, counter)
-	r.Handle(bad, help.ErrorHandler(fmt.Errorf("foo")))
+	h := &weavetest.Handler{}
+	r.Handle(good, h)
+	r.Handle(bad, &weavetest.Handler{
+		CheckErr:   errors.ErrHuman,
+		DeliverErr: errors.ErrHuman,
+	})
 
 	// make sure invalid registrations panic
-	assert.Panics(t, func() { r.Handle(good, counter) })
-	assert.Panics(t, func() { r.Handle("l:7", counter) })
+	assert.Panics(t, func() { r.Handle(good, h) })
+	assert.Panics(t, func() { r.Handle("l:7", h) })
 
 	// check proper paths work
-	assert.Equal(t, 0, counter.GetCount())
+	assert.Equal(t, 0, h.CallCount())
 	_, err := r.Handler(good).Check(nil, nil, nil)
 	assert.NoError(t, err)
 	_, err = r.Handler(good).Deliver(nil, nil, nil)
 	assert.NoError(t, err)
 	// we count twice per decorator call
-	assert.Equal(t, 2, counter.GetCount())
+	assert.Equal(t, 2, h.CallCount())
 
 	// check errors handler is also looked up
 	_, err = r.Handler(bad).Deliver(nil, nil, nil)
 	assert.Error(t, err)
 	assert.False(t, errors.ErrNotFound.Is(err))
-	assert.Equal(t, msg, err.Error())
-	assert.Equal(t, 2, counter.GetCount())
+	assert.True(t, errors.ErrHuman.Is(err))
+	assert.Equal(t, 2, h.CallCount())
 
 	// make sure not found returns an error handler as well
 	_, err = r.Handler(missing).Deliver(nil, nil, nil)
@@ -49,5 +47,5 @@ func TestRouter(t *testing.T) {
 	_, err = r.Handler(missing).Check(nil, nil, nil)
 	assert.Error(t, err)
 	assert.True(t, errors.ErrNotFound.Is(err))
-	assert.Equal(t, 2, counter.GetCount())
+	assert.Equal(t, 2, h.CallCount())
 }

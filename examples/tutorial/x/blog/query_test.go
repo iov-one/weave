@@ -5,19 +5,21 @@ import (
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/store"
+	"github.com/iov-one/weave/weavetest"
 	"github.com/stretchr/testify/require"
 )
 
 func TestBlogQuery(t *testing.T) {
 	db := store.MemStore()
-	_, signer := helpers.MakeKey()
+	signer := weavetest.NewCondition()
 	ctx, auth := newContextWithAuth([]weave.Condition{signer})
-	_, err := createBlogMsgHandlerFn(auth).Deliver(ctx, db, newTx(
-		&CreateBlogMsg{
+	_, err := createBlogMsgHandlerFn(auth).Deliver(ctx, db, &weavetest.Tx{
+		Msg: &CreateBlogMsg{
 			Slug:    "this_is_a_blog",
 			Title:   "this is a blog title",
 			Authors: [][]byte{signer.Address()},
-		}))
+		},
+	})
 	require.NoError(t, err, "failed to deliver blog")
 
 	// setup QueryRouter
@@ -47,24 +49,26 @@ func TestBlogQuery(t *testing.T) {
 }
 func TestPostQuery(t *testing.T) {
 	db := store.MemStore()
-	_, signer := helpers.MakeKey()
+	signer := weavetest.NewCondition()
 	ctx, auth := newContextWithAuth([]weave.Condition{signer})
 
-	_, err := createBlogMsgHandlerFn(auth).Deliver(ctx, db, newTx(
-		&CreateBlogMsg{
+	_, err := createBlogMsgHandlerFn(auth).Deliver(ctx, db, &weavetest.Tx{
+		Msg: &CreateBlogMsg{
 			Slug:    "this_is_a_blog",
 			Title:   "this is a blog title",
 			Authors: [][]byte{signer.Address()},
-		}))
+		},
+	})
 	require.NoError(t, err)
 
-	_, err = createPostMsgHandlerFn(auth).Deliver(ctx, db, newTx(
-		&CreatePostMsg{
+	_, err = createPostMsgHandlerFn(auth).Deliver(ctx, db, &weavetest.Tx{
+		Msg: &CreatePostMsg{
 			Blog:   "this_is_a_blog",
 			Title:  "this is a post title",
 			Text:   longText,
 			Author: signer.Address(),
-		}))
+		},
+	})
 	require.NoError(t, err)
 
 	qr := weave.NewQueryRouter()
@@ -113,14 +117,14 @@ func TestPostQuery(t *testing.T) {
 }
 func TestProfile(t *testing.T) {
 	db := store.MemStore()
-	_, signer := helpers.MakeKey()
+	signer := weavetest.NewCondition()
 	ctx, auth := newContextWithAuth([]weave.Condition{signer})
-	_, err := SetProfileMsgHandlerFn(auth).Deliver(ctx, db, newTx(
-		&SetProfileMsg{
+	_, err := SetProfileMsgHandlerFn(auth).Deliver(ctx, db, &weavetest.Tx{
+		Msg: &SetProfileMsg{
 			Name:        "lehajam",
 			Description: "my profile description",
 		},
-	))
+	})
 	require.NoError(t, err)
 
 	qr := weave.NewQueryRouter()

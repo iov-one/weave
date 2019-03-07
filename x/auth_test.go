@@ -6,14 +6,15 @@ import (
 	"testing"
 
 	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/weavetest"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestAuth(t *testing.T) {
 	var helper TestHelpers
-	_, a := helper.MakeKey()
-	_, b := helper.MakeKey()
-	_, c := helper.MakeKey()
+	a := weavetest.NewCondition()
+	b := weavetest.NewCondition()
+	c := weavetest.NewCondition()
 
 	ctx1 := helper.CtxAuth("foo")
 	ctx2 := helper.CtxAuth("bar")

@@ -2,47 +2,54 @@ package hashlock
 
 import (
 	"context"
-	"fmt"
 	"testing"
-
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/store"
-	"github.com/iov-one/weave/x"
+	"github.com/iov-one/weave/weavetest"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestDecorator(t *testing.T) {
-	var helpers x.TestHelpers
-
 	h := new(HashCheckHandler)
 	d := NewDecorator()
-	stack := helpers.Wrap(d, h)
+	stack := weavetest.Decorate(h, d)
 
 	db := store.MemStore()
 	bg := context.Background()
 
 	hashTx := func(payload, preimage []byte) PreimageTx {
-		tx := helpers.MockTx(helpers.MockMsg(payload))
-		return PreimageTx{Tx: tx, Preimage: preimage}
+		return PreimageTx{
+			Tx: &weavetest.Tx{
+				Msg: &weavetest.Msg{Serialized: payload},
+			},
+			Preimage: preimage,
+		}
 	}
 
-	cases := []struct {
+	cases := map[string]struct {
 		tx    weave.Tx
 		perms []weave.Condition
 	}{
-		// doesn't support hashlock interface
-		{helpers.MockTx(helpers.MockMsg([]byte{1, 2, 3})), nil},
-		// Correct interface but no content
-		{hashTx([]byte("john"), nil), nil},
-		// Hash a preimage
-		{hashTx([]byte("foo"), []byte("bar")),
-			[]weave.Condition{PreimageCondition([]byte("bar"))}},
+		"doesn't support hashlock interface": {
+			tx: &weavetest.Tx{
+				Msg: &weavetest.Msg{
+					Serialized: []byte{1, 2, 3},
+				},
+			},
+		},
+		"Correct interface but no content": {
+			tx: hashTx([]byte("john"), nil),
+		},
+		"Hash a preimage": {
+			tx:    hashTx([]byte("foo"), []byte("bar")),
+			perms: []weave.Condition{PreimageCondition([]byte("bar"))},
+		},
 	}
 
-	for i, tc := range cases {
-		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
+	for testName, tc := range cases {
+		t.Run(testName, func(t *testing.T) {
 			_, err := stack.Check(bg, db, tc.tx)
 			require.NoError(t, err)
 			assert.Equal(t, tc.perms, h.Perms)
@@ -53,8 +60,6 @@ func TestDecorator(t *testing.T) {
 		})
 	}
 }
-
-//---------------- helpers --------
 
 // HashCheckHandler stores the seen permissions on each call
 type HashCheckHandler struct {

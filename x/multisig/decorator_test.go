@@ -2,28 +2,27 @@ package multisig
 
 import (
 	"fmt"
-	"github.com/iov-one/weave/errors"
 	"testing"
 
+	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/store"
+	"github.com/iov-one/weave/weavetest"
+	"github.com/iov-one/weave/x"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
-	"github.com/iov-one/weave"
-	"github.com/iov-one/weave/store"
-	"github.com/iov-one/weave/x"
 )
 
 func TestDecorator(t *testing.T) {
-	var helpers x.TestHelpers
 	db := store.MemStore()
 
 	// create some keys
-	_, a := helpers.MakeKey()
-	_, b := helpers.MakeKey()
-	_, c := helpers.MakeKey()
-	_, d := helpers.MakeKey()
-	_, e := helpers.MakeKey()
-	_, f := helpers.MakeKey()
+	a := weavetest.NewCondition()
+	b := weavetest.NewCondition()
+	c := weavetest.NewCondition()
+	d := weavetest.NewCondition()
+	e := weavetest.NewCondition()
+	f := weavetest.NewCondition()
 
 	// the contract we'll be using in our tests
 	contractID1 := withContract(t, db, CreateContractMsg{
@@ -48,7 +47,7 @@ func TestDecorator(t *testing.T) {
 
 	// helper to create a ContractTx
 	multisigTx := func(payload []byte, multisig ...[]byte) ContractTx {
-		tx := helpers.MockTx(helpers.MockMsg(payload))
+		tx := &weavetest.Tx{Msg: &weavetest.Msg{Serialized: payload}}
 		return ContractTx{Tx: tx, MultisigID: multisig}
 	}
 
@@ -60,7 +59,7 @@ func TestDecorator(t *testing.T) {
 	}{
 		// doesn't support multisig interface
 		{
-			helpers.MockTx(helpers.MockMsg([]byte{1, 2, 3})),
+			&weavetest.Tx{Msg: &weavetest.Msg{Serialized: []byte{1, 2, 3}}},
 			[]weave.Condition{a},
 			nil,
 			nil,
@@ -123,7 +122,7 @@ func TestDecorator(t *testing.T) {
 			ctx, auth := newContextWithAuth(tc.signers...)
 			d := NewDecorator(x.ChainAuth(auth, Authenticate{}))
 
-			stack := helpers.Wrap(d, h)
+			stack := weavetest.Decorate(h, d)
 			_, err := stack.Check(ctx, db, tc.tx)
 			if tc.err != nil {
 				require.EqualError(t, err, tc.err.Error())
