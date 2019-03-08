@@ -30,7 +30,7 @@ func TestGenesisKey(t *testing.T) {
           "whole": 123456789
         }
       ],
-      "arbiter": "cond:foo/bar/636f6e646974696f6e64617461",
+      "arbiter": "foo/bar/636f6e646974696f6e64617461",
       "recipient": "C30A2424104F542576EF01FECA2FF558F5EAA61A",
       "sender": "0000000000000000000000000000000000000000",
       "timeout": 9223372036854775807

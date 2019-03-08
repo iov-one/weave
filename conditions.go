@@ -80,7 +80,7 @@ func (c Condition) MarshalJSON() ([]byte, error) {
 	if c != nil {
 		serialized = c.String()
 	}
-	return json.Marshal(fmt.Sprintf("cond:%s", serialized))
+	return json.Marshal(serialized)
 }
 
 func (c *Condition) UnmarshalJSON(raw []byte) error {
@@ -88,45 +88,27 @@ func (c *Condition) UnmarshalJSON(raw []byte) error {
 	if err := json.Unmarshal(raw, &enc); err != nil {
 		return errors.Wrap(err, "cannot decode json")
 	}
+	return c.deserialize(enc)
+}
 
-	// If the encoded string starts with a prefix, cut it off and use
-	// specified decoding method instead of default one.
-	chunks := strings.SplitN(enc, ":", 2)
-	format := chunks[0]
-	if len(chunks) == 1 {
-		format = "hex"
-	} else {
-		enc = chunks[1]
-	}
-
+// deserialize from human readable string.
+func (c *Condition) deserialize(source string) error {
 	// No value zero the address.
-	if len(enc) == 0 {
+	if len(source) == 0 {
 		*c = nil
 		return nil
 	}
 
-	switch format {
-	case "hex":
-		val, err := hex.DecodeString(enc)
-		if err != nil {
-			return errors.Wrap(err, "cannot decode hex")
-		}
-		*c = val
-		return nil
-	case "cond":
-		args := strings.Split(enc, "/")
-		if len(args) != 3 {
-			return errors.ErrInvalidInput.Newf("invalid condition format")
-		}
-		data, err := hex.DecodeString(args[2])
-		if err != nil {
-			return errors.ErrInvalidInput.Newf("malformed condition data: %s", err)
-		}
-		*c = NewCondition(args[0], args[1], data)
-		return nil
-	default:
-		return errors.ErrInvalidType.Newf("unknown format %q", chunks[0])
+	args := strings.Split(source, "/")
+	if len(args) != 3 {
+		return errors.ErrInvalidInput.Newf("invalid condition format")
 	}
+	data, err := hex.DecodeString(args[2])
+	if err != nil {
+		return errors.ErrInvalidInput.Newf("malformed condition data: %s", err)
+	}
+	*c = NewCondition(args[0], args[1], data)
+	return nil
 }
 
 // Address represents a collision-free, one-way digest
@@ -179,7 +161,7 @@ func (a *Address) UnmarshalJSON(raw []byte) error {
 		return nil
 	case "cond":
 		var c Condition
-		if err := c.UnmarshalJSON(raw); err != nil {
+		if err := c.deserialize(enc); err != nil {
 			return err
 		}
 		*a = c.Address()

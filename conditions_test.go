@@ -93,39 +93,19 @@ func TestConditionUnmarshalJSON(t *testing.T) {
 		wantCondition weave.Condition
 	}{
 		"default decoding": {
-			json:          `"666F6F2F6261722F636F6E646974696F6E64617461"`,
-			wantCondition: weave.NewCondition("foo", "bar", []byte("conditiondata")),
-		},
-		"hex decoding": {
-			json:          `"hex:666F6F2F6261722F636F6E646974696F6E64617461"`,
-			wantCondition: weave.NewCondition("foo", "bar", []byte("conditiondata")),
-		},
-		"cond decoding": {
-			json:          `"cond:foo/bar/636f6e646974696f6e64617461"`,
+			json:          `"foo/bar/636f6e646974696f6e64617461"`,
 			wantCondition: weave.NewCondition("foo", "bar", []byte("conditiondata")),
 		},
 		"invalid condition format": {
-			json:    `"cond:foo/636f6e646974696f6e64617461"`,
+			json:    `"foo/636f6e646974696f6e64617461"`,
 			wantErr: errors.ErrInvalidInput,
 		},
 		"invalid condition data": {
-			json:    `"cond:foo/bar/zzzzz"`,
+			json:    `"foo/bar/zzzzz"`,
 			wantErr: errors.ErrInvalidInput,
-		},
-		"unknown format": {
-			json:    `"foobar:xxx"`,
-			wantErr: errors.ErrInvalidType,
 		},
 		"zero address": {
 			json:          `""`,
-			wantCondition: nil,
-		},
-		"zero hex address": {
-			json:          `"hex:"`,
-			wantCondition: nil,
-		},
-		"zero cond address": {
-			json:          `"cond:"`,
 			wantCondition: nil,
 		},
 	}
@@ -151,11 +131,11 @@ func TestConditionMarshalJSON(t *testing.T) {
 	}{
 		"cond encoding": {
 			source:   weave.NewCondition("foo", "bar", []byte("conditiondata")),
-			wantJson: `"cond:foo/bar/636F6E646974696F6E64617461"`,
+			wantJson: `"foo/bar/636F6E646974696F6E64617461"`,
 		},
 		"nil encoding": {
 			source:   nil,
-			wantJson: `"cond:"`,
+			wantJson: `""`,
 		},
 	}
 	for testName, tc := range cases {
