@@ -48,33 +48,4 @@ probably there. Just double check.
 * git
 * make
 * curl
-
-
-Install Iov-core
-================
-
-You will need node 8+ to run the example client. Unless you know what you
-are doing, stick to even numbered versions (6, 8, 10, ...), the odd numbers
-are unstable and get deprecated every few weeks it seems. For ease
-of updating later, I advise you to install `nvm <https://github.com/creationix/nvm#installation>`__ and then add the most recent stable version
-
-.. code-block:: console
-
-    nvm ls-remote | grep -v v9 | tail
-    nvm install v8.11.1 # or other recent version
-
-    # test it out
-    node --version
-    node
-    > let {x, y} = {x: 10, y:10}
-
-
-Node related tools
-------------------
-
-Yarn is a faster alternative to npm for installing modules, so
-we use that as default.
-
-.. code-block:: console
-
-    npm install -g yarn
+* jq
