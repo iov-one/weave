@@ -15,9 +15,9 @@ type CoinMover interface {
 
 // CoinMinter is an interface to create new coins.
 type CoinMinter interface {
-	// IssueCoins increase the number of funds on given accouunt by a
+	// CoinMint increase the number of funds on given accouunt by a
 	// specified amount.
-	IssueCoins(weave.KVStore, weave.Address, coin.Coin) error
+	CoinMint(weave.KVStore, weave.Address, coin.Coin) error
 }
 
 // Controller is the functionality needed by cash.Handler and cash.Decorator.
@@ -102,12 +102,12 @@ func (c BaseController) MoveCoins(store weave.KVStore,
 	return c.bucket.Save(store, recipient)
 }
 
-// IssueCoins attempts to add the given amount of coins to
+// CoinMint attempts to add the given amount of coins to
 // the destination address. Fails if it overflows the wallet.
 //
 // Note the amount may also be negative:
 // "the lord giveth and the lord taketh away"
-func (c BaseController) IssueCoins(store weave.KVStore,
+func (c BaseController) CoinMint(store weave.KVStore,
 	dest weave.Address, amount coin.Coin) error {
 
 	recipient, err := c.bucket.GetOrCreate(store, dest)

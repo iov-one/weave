@@ -1,15 +1,13 @@
 package scenarios
 
 import (
-	"testing"
-	"time"
-
 	"github.com/iov-one/weave/cmd/bnsd/app"
 	"github.com/iov-one/weave/cmd/bnsd/client"
 	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/x/escrow"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"testing"
 )
 
 func TestQueryEscrowExists(t *testing.T) {
@@ -33,7 +31,7 @@ func TestEscrowRelease(t *testing.T) {
 	// when releasing 1 IOV by the arbiter
 	_, _, escrowID, _ := escrowContract.Parse()
 
-	addValidatorTX := &app.Tx{
+	releaseEscrowTX := &app.Tx{
 		Sum: &app.Tx_ReleaseEscrowMsg{
 			&escrow.ReleaseEscrowMsg{
 				EscrowId: escrowID,
@@ -42,27 +40,21 @@ func TestEscrowRelease(t *testing.T) {
 		},
 	}
 	_, _, contractID, _ := multiSigContract.Parse()
-	addValidatorTX.Multisig = [][]byte{contractID}
+	releaseEscrowTX.Multisig = [][]byte{contractID}
 
 	seq, err := aNonce.Next()
 	require.NoError(t, err)
-	require.NoError(t, client.SignTx(addValidatorTX, alice, chainID, seq))
-	resp := bnsClient.BroadcastTx(addValidatorTX)
+	require.NoError(t, client.SignTx(releaseEscrowTX, alice, chainID, seq))
+	resp := bnsClient.BroadcastTx(releaseEscrowTX)
 
 	// then
 	require.NoError(t, resp.IsError())
 
 	// and check it was added to the distr account
-	for i := 0; 1 < 10; i++ {
-		walletResp, err = bnsClient.GetWallet(distrContractAddr)
-		require.NoError(t, err)
-		if walletResp.Height > resp.Response.Height {
-			break
-		}
-		time.Sleep(200 * time.Millisecond)
-	}
+	walletResp, err = bnsClient.GetWallet(distrContractAddr)
+	require.NoError(t, err)
 	require.NotNil(t, walletResp)
-	require.True(t, walletResp.Height > resp.Response.Height)
+	require.True(t, walletResp.Height >= resp.Response.Height)
 	require.True(t, len(walletResp.Wallet.Coins) == 1)
 	// new balance should be higher
 	assert.False(t, startBalance.IsGTE(*walletResp.Wallet.Coins[0]), "%s not > %s", *walletResp.Wallet.Coins[0], startBalance)

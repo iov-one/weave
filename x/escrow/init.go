@@ -53,7 +53,7 @@ func (i *Initializer) FromGenesis(opts weave.Options, db weave.KVStore) error {
 		}
 		escAddr := Condition(obj.Key()).Address()
 		for _, c := range e.Amount {
-			if err := i.Minter.IssueCoins(db, escAddr, *c); err != nil {
+			if err := i.Minter.CoinMint(db, escAddr, *c); err != nil {
 				return errors.Wrap(err, "failed to issue coins")
 			}
 		}
