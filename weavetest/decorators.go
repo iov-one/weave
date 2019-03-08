@@ -69,6 +69,5 @@ func (d *decoratedHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.T
 }
 
 func (d *decoratedHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (weave.DeliverResult, error) {
-
 	return d.dc.Deliver(ctx, db, tx, d.hn)
 }
