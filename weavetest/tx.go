@@ -18,12 +18,12 @@ func (tx *Tx) GetMsg() (weave.Msg, error) {
 	return tx.Msg, tx.Err
 }
 
-func (tx *Tx) Unmarshal([]byte) error {
-	panic("not implemented")
+func (tx *Tx) Unmarshal(raw []byte) error {
+	return tx.Msg.Unmarshal(raw)
 }
 
 func (tx *Tx) Marshal() ([]byte, error) {
-	panic("not implemented")
+	return tx.Msg.Marshal()
 }
 
 // Msg represents a weave message.
