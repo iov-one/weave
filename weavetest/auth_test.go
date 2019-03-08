@@ -8,6 +8,18 @@ import (
 	"github.com/iov-one/weave"
 )
 
+func TestAuthNoSigners(t *testing.T) {
+	var a Auth
+
+	if got := a.GetConditions(nil); got != nil {
+		t.Fatalf("unexpected conditions: %+v", got)
+	}
+
+	if a.HasAddress(nil, NewCondition().Address()) {
+		t.Fatal("random condition must not be present")
+	}
+}
+
 func TestAuthUsingSignerAndSigners(t *testing.T) {
 	conds := []weave.Condition{
 		NewCondition(),

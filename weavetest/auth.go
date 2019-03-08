@@ -38,6 +38,9 @@ func (a *Auth) HasAddress(ctx weave.Context, addr weave.Address) bool {
 			return true
 		}
 	}
+	if a.Signer == nil {
+		return false
+	}
 	return addr.Equals(a.Signer.Address())
 }
 
