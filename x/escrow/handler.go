@@ -24,8 +24,7 @@ type escrowOperations interface {
 
 // RegisterRoutes will instantiate and register
 // all handlers in this package
-func RegisterRoutes(r weave.Registry, auth x.Authenticator,
-	cashctrl cash.Controller) {
+func RegisterRoutes(r weave.Registry, auth x.Authenticator, cashctrl cash.Controller) {
 	bucket := NewBucket()
 	control := NewController(cashctrl, bucket)
 	r.Handle(pathCreateEscrowMsg, CreateEscrowHandler{auth, bucket, control})

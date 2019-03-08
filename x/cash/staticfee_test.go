@@ -9,6 +9,7 @@ import (
 	"github.com/iov-one/weave/gconf"
 	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/store"
+	"github.com/iov-one/weave/weavetest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -44,7 +45,6 @@ func must(obj orm.Object, err error) orm.Object {
 }
 
 func TestFees(t *testing.T) {
-
 	cash := coin.NewCoin(50, 0, "FOO")
 	min := coin.NewCoin(0, 1234, "FOO")
 	perm := weave.NewCondition("sigs", "ed25519", []byte{1, 2, 3})
@@ -130,7 +130,7 @@ func TestFees(t *testing.T) {
 
 	for testName, tc := range cases {
 		t.Run(testName, func(t *testing.T) {
-			auth := helpers.Authenticate(tc.signers...)
+			auth := &weavetest.Auth{Signers: tc.signers}
 			controller := NewController(NewBucket())
 			h := NewFeeDecorator(auth, controller)
 
@@ -147,9 +147,9 @@ func TestFees(t *testing.T) {
 
 			tx := &feeTx{tc.fee}
 
-			_, err := h.Check(nil, kv, tx, helpers.CountingHandler())
+			_, err := h.Check(nil, kv, tx, &weavetest.Handler{})
 			assert.True(t, tc.expect(err), "%+v", err)
-			_, err = h.Deliver(nil, kv, tx, helpers.CountingHandler())
+			_, err = h.Deliver(nil, kv, tx, &weavetest.Handler{})
 			assert.True(t, tc.expect(err), "%+v", err)
 		})
 	}

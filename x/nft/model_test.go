@@ -4,14 +4,13 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/iov-one/weave/x"
+	"github.com/iov-one/weave/weavetest"
 	"github.com/iov-one/weave/x/nft"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestNonFungibleTokenValidate(t *testing.T) {
-	var helpers x.TestHelpers
-	_, alice := helpers.MakeKey()
+	alice := weavetest.NewCondition()
 	specs := []struct {
 		token    nft.NonFungibleToken
 		expError bool

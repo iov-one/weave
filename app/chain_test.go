@@ -4,55 +4,78 @@ import (
 	"context"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
-
 	"github.com/iov-one/weave"
-	"github.com/iov-one/weave/x"
+	"github.com/iov-one/weave/weavetest"
 	"github.com/iov-one/weave/x/utils"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestChain(t *testing.T) {
-	var help x.TestHelpers
-	c1 := help.CountingDecorator()
-	c2 := help.CountingDecorator()
-	c3 := help.CountingDecorator()
-	h := help.CountingHandler()
+	c1 := &weavetest.Decorator{}
+	c2 := &weavetest.Decorator{}
+	c3 := &weavetest.Decorator{}
+	h := &weavetest.Handler{}
+
+	const panicHeight = 8
 
 	stack := ChainDecorators(
 		c1,
 		utils.NewLogging(),
 		utils.NewRecovery(),
 		c2,
-		help.PanicAtHeightDecorator(6),
+		panicAtHeightDecorator(panicHeight),
 		c3,
 	).WithHandler(h)
 
-	bg := context.Background()
+	// This height must not panic.
+	ctx := weave.WithHeight(context.Background(), panicHeight-2)
 
-	// make some calls, make sure it is fine
-	_, err := stack.Check(bg, nil, nil)
+	_, err := stack.Check(ctx, nil, nil)
 	assert.NoError(t, err)
-	ctx := weave.WithHeight(bg, 4)
+	assert.Equal(t, 1, c1.CheckCallCount())
+	assert.Equal(t, 1, c2.CheckCallCount())
+	assert.Equal(t, 1, c3.CheckCallCount())
+	assert.Equal(t, 1, h.CheckCallCount())
+
 	_, err = stack.Deliver(ctx, nil, nil)
 	assert.NoError(t, err)
+	assert.Equal(t, 1, c1.DeliverCallCount())
+	assert.Equal(t, 1, c2.DeliverCallCount())
+	assert.Equal(t, 1, c3.DeliverCallCount())
+	assert.Equal(t, 1, h.DeliverCallCount())
 
-	// decorators are counted double, once in, once out
-	assert.Equal(t, 4, c1.GetCount())
-	assert.Equal(t, 4, c2.GetCount())
-	assert.Equal(t, 4, c3.GetCount())
-	assert.Equal(t, 2, h.GetCount())
+	// Trigger a panic.
+	ctx = weave.WithHeight(context.Background(), panicHeight+2)
 
-	// now, let's trigger a panic
-	ctx = weave.WithHeight(bg, 8)
 	_, err = stack.Check(ctx, nil, nil)
 	assert.Error(t, err)
+	assert.Equal(t, 2, c1.CheckCallCount())
+	assert.Equal(t, 2, c2.CheckCallCount())
+	assert.Equal(t, 1, c3.CheckCallCount())
+	assert.Equal(t, 1, h.CheckCallCount())
+
 	_, err = stack.Deliver(ctx, nil, nil)
 	assert.Error(t, err)
+	assert.Equal(t, 2, c1.DeliverCallCount())
+	assert.Equal(t, 2, c2.DeliverCallCount())
+	assert.Equal(t, 1, c3.DeliverCallCount())
+	assert.Equal(t, 1, h.DeliverCallCount())
+}
 
-	assert.Equal(t, 8, c1.GetCount())
-	// note that c2 is called twice in, but not out
-	assert.Equal(t, 6, c2.GetCount())
-	// and those two ins don't make it to c3 due to panic
-	assert.Equal(t, 4, c3.GetCount())
-	assert.Equal(t, 2, h.GetCount())
+type panicAtHeightDecorator int64
+
+var _ weave.Decorator = panicAtHeightDecorator(0)
+
+func (ph panicAtHeightDecorator) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx, next weave.Checker) (weave.CheckResult, error) {
+	if val, _ := weave.GetHeight(ctx); val >= int64(ph) {
+		panic("too high")
+	}
+	return next.Check(ctx, db, tx)
+}
+
+func (ph panicAtHeightDecorator) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx, next weave.Deliverer) (weave.DeliverResult, error) {
+	if val, _ := weave.GetHeight(ctx); val >= int64(ph) {
+		panic("too high")
+	}
+	return next.Deliver(ctx, db, tx)
 }

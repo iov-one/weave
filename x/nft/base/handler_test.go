@@ -8,7 +8,7 @@ import (
 	"github.com/iov-one/weave/cmd/bnsd/x/nft/username"
 	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/store"
-	"github.com/iov-one/weave/x"
+	"github.com/iov-one/weave/weavetest"
 	"github.com/iov-one/weave/x/nft"
 	"github.com/iov-one/weave/x/nft/base"
 	. "github.com/smartystreets/goconvey/convey"
@@ -26,17 +26,16 @@ func TestApprovalOpsHandler(t *testing.T) {
 		bobWithAliceImmutableApproval := []byte("user4")
 		bobWithAliceTimeoutApproval := []byte("user5")
 
-		var helpers x.TestHelpers
-		_, alice := helpers.MakeKey()
-		_, guest := helpers.MakeKey()
-		_, bob := helpers.MakeKey()
+		alice := weavetest.NewCondition()
+		guest := weavetest.NewCondition()
+		bob := weavetest.NewCondition()
 		db := store.MemStore()
 		userBucket := username.NewBucket()
 		nftBuckets := map[string]orm.Bucket{
 			username.ModelName: userBucket.Bucket,
 		}
 
-		handler := base.NewApprovalOpsHandler(helpers.Authenticate(bob), nil, nftBuckets)
+		handler := base.NewApprovalOpsHandler(&weavetest.Auth{Signer: bob}, nil, nftBuckets)
 
 		o, _ := userBucket.Create(db, bob.Address(), bobsUsername, nil, nil)
 		userBucket.Save(db, o)
@@ -70,7 +69,7 @@ func TestApprovalOpsHandler(t *testing.T) {
 			}
 			Convey("Test happy", func() {
 				Convey("By owner", func() {
-					tx := helpers.MockTx(msg)
+					tx := &weavetest.Tx{Msg: msg}
 					_, err := handler.Check(ctx, db, tx)
 					So(err, ShouldBeNil)
 					_, err = handler.Deliver(ctx, db, tx)
@@ -86,7 +85,7 @@ func TestApprovalOpsHandler(t *testing.T) {
 				Convey("By approved", func() {
 					msg.Address = guest.Address()
 					msg.ID = aliceWithBobApproval
-					tx := helpers.MockTx(msg)
+					tx := &weavetest.Tx{Msg: msg}
 					_, err := handler.Check(ctx, db, tx)
 					So(err, ShouldBeNil)
 					_, err = handler.Deliver(ctx, db, tx)
@@ -106,7 +105,7 @@ func TestApprovalOpsHandler(t *testing.T) {
 
 			Convey("Test error", func() {
 				Convey("To owner", func() {
-					tx := helpers.MockTx(msg)
+					tx := &weavetest.Tx{Msg: msg}
 					msg.Address = bob.Address()
 					_, err := handler.Check(ctx, db, tx)
 					So(err, ShouldBeNil)
@@ -115,17 +114,17 @@ func TestApprovalOpsHandler(t *testing.T) {
 				})
 
 				Convey("Invalid", func() {
-					tx := helpers.MockTx(msg)
+					tx := &weavetest.Tx{Msg: msg}
 					msg.Options.Count = 0
 					_, err := handler.Check(ctx, db, tx)
 					So(err, ShouldNotBeNil)
 				})
 
 				Convey("By guest", func() {
-					handler = base.NewApprovalOpsHandler(helpers.Authenticate(guest), nil, nftBuckets)
+					handler = base.NewApprovalOpsHandler(&weavetest.Auth{Signer: guest}, nil, nftBuckets)
 					msg.Address = bob.Address()
 					msg.ID = bobsUsername
-					tx := helpers.MockTx(msg)
+					tx := &weavetest.Tx{Msg: msg}
 					_, err := handler.Check(ctx, db, tx)
 					So(err, ShouldBeNil)
 					_, err = handler.Deliver(ctx, db, tx)
@@ -133,7 +132,7 @@ func TestApprovalOpsHandler(t *testing.T) {
 				})
 
 				Convey("Exists", func() {
-					tx := helpers.MockTx(msg)
+					tx := &weavetest.Tx{Msg: msg}
 					_, err := handler.Check(ctx, db, tx)
 					So(err, ShouldBeNil)
 					_, err = handler.Deliver(ctx, db, tx)
@@ -144,7 +143,7 @@ func TestApprovalOpsHandler(t *testing.T) {
 
 				Convey("Unknown id", func() {
 					msg.ID = []byte("123")
-					tx := helpers.MockTx(msg)
+					tx := &weavetest.Tx{Msg: msg}
 					_, err := handler.Check(ctx, db, tx)
 					So(err, ShouldBeNil)
 					_, err = handler.Deliver(ctx, db, tx)
@@ -155,7 +154,7 @@ func TestApprovalOpsHandler(t *testing.T) {
 					timeoutCtx := weave.WithHeight(ctx, 10)
 					msg.Address = guest.Address()
 					msg.ID = aliceWithBobApproval
-					tx := helpers.MockTx(msg)
+					tx := &weavetest.Tx{Msg: msg}
 					_, err := handler.Check(timeoutCtx, db, tx)
 					So(err, ShouldBeNil)
 					_, err = handler.Deliver(timeoutCtx, db, tx)
@@ -179,7 +178,7 @@ func TestApprovalOpsHandler(t *testing.T) {
 			}
 			Convey("Test happy", func() {
 				Convey("By owner", func() {
-					tx := helpers.MockTx(msg)
+					tx := &weavetest.Tx{Msg: msg}
 					_, err := handler.Check(ctx, db, tx)
 					So(err, ShouldBeNil)
 					_, err = handler.Deliver(ctx, db, tx)
@@ -195,8 +194,8 @@ func TestApprovalOpsHandler(t *testing.T) {
 				//TODO: Should we allow approved to remove their own approvals? :)
 				Convey("By approved", func() {
 					t.Logf("alice address: %s", alice.Address())
-					handler = base.NewApprovalOpsHandler(helpers.Authenticate(alice), nil, nftBuckets)
-					tx := helpers.MockTx(msg)
+					handler = base.NewApprovalOpsHandler(&weavetest.Auth{Signer: alice}, nil, nftBuckets)
+					tx := &weavetest.Tx{Msg: msg}
 					_, err := handler.Check(ctx, db, tx)
 					So(err, ShouldBeNil)
 					_, err = handler.Deliver(ctx, db, tx)
@@ -212,7 +211,7 @@ func TestApprovalOpsHandler(t *testing.T) {
 
 			Convey("Test error", func() {
 				Convey("From owner", func() {
-					tx := helpers.MockTx(msg)
+					tx := &weavetest.Tx{Msg: msg}
 					msg.Address = bob.Address()
 					_, err := handler.Check(ctx, db, tx)
 					So(err, ShouldBeNil)
@@ -221,10 +220,10 @@ func TestApprovalOpsHandler(t *testing.T) {
 				})
 
 				Convey("By guest", func() {
-					handler = base.NewApprovalOpsHandler(helpers.Authenticate(guest), nil, nftBuckets)
+					handler = base.NewApprovalOpsHandler(&weavetest.Auth{Signer: guest}, nil, nftBuckets)
 					msg.Address = bob.Address()
 					msg.ID = bobWithAliceApproval
-					tx := helpers.MockTx(msg)
+					tx := &weavetest.Tx{Msg: msg}
 					_, err := handler.Check(ctx, db, tx)
 					So(err, ShouldBeNil)
 					_, err = handler.Deliver(ctx, db, tx)
@@ -232,7 +231,7 @@ func TestApprovalOpsHandler(t *testing.T) {
 				})
 
 				Convey("Does not exist", func() {
-					tx := helpers.MockTx(msg)
+					tx := &weavetest.Tx{Msg: msg}
 					_, err := handler.Check(ctx, db, tx)
 					So(err, ShouldBeNil)
 					_, err = handler.Deliver(ctx, db, tx)
@@ -243,7 +242,7 @@ func TestApprovalOpsHandler(t *testing.T) {
 
 				Convey("Unknown id", func() {
 					msg.ID = []byte("123")
-					tx := helpers.MockTx(msg)
+					tx := &weavetest.Tx{Msg: msg}
 					_, err := handler.Check(ctx, db, tx)
 					So(err, ShouldBeNil)
 					_, err = handler.Deliver(ctx, db, tx)
@@ -252,7 +251,7 @@ func TestApprovalOpsHandler(t *testing.T) {
 
 				Convey("Immutable", func() {
 					msg.ID = bobWithAliceImmutableApproval
-					tx := helpers.MockTx(msg)
+					tx := &weavetest.Tx{Msg: msg}
 					_, err := handler.Check(ctx, db, tx)
 					So(err, ShouldBeNil)
 					_, err = handler.Deliver(ctx, db, tx)
@@ -261,9 +260,9 @@ func TestApprovalOpsHandler(t *testing.T) {
 
 				Convey("Timeout", func() {
 					msg.ID = bobWithAliceTimeoutApproval
-					tx := helpers.MockTx(msg)
+					tx := &weavetest.Tx{Msg: msg}
 					timeoutCtx := weave.WithHeight(context.Background(), 10)
-					handler = base.NewApprovalOpsHandler(helpers.Authenticate(guest), nil, nftBuckets)
+					handler = base.NewApprovalOpsHandler(&weavetest.Auth{Signer: guest}, nil, nftBuckets)
 					_, err := handler.Check(timeoutCtx, db, tx)
 					So(err, ShouldBeNil)
 					_, err = handler.Deliver(timeoutCtx, db, tx)

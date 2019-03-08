@@ -8,7 +8,7 @@ import (
 	coin "github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/store"
-	"github.com/iov-one/weave/x"
+	"github.com/iov-one/weave/weavetest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -43,12 +43,8 @@ type checkCmd struct {
 }
 
 func TestIssueCoins(t *testing.T) {
-	var helpers x.TestHelpers
-
-	_, perm := helpers.MakeKey()
-	_, perm2 := helpers.MakeKey()
-	addr := perm.Address()
-	addr2 := perm2.Address()
+	addr1 := weavetest.NewCondition().Address()
+	addr2 := weavetest.NewCondition().Address()
 
 	controller := NewController(NewBucket())
 
@@ -63,25 +59,25 @@ func TestIssueCoins(t *testing.T) {
 	}{
 		// issue positive
 		{
-			issue: []issueCmd{{addr, plus, false}},
+			issue: []issueCmd{{addr1, plus, false}},
 			check: []checkCmd{
-				{addr, false, []coin.Coin{plus, total}, []coin.Coin{other}},
+				{addr1, false, []coin.Coin{plus, total}, []coin.Coin{other}},
 				{addr2, true, nil, nil},
 			},
 		},
 		// second issue negative
 		{
-			issue: []issueCmd{{addr, plus, false}, {addr, minus, false}},
+			issue: []issueCmd{{addr1, plus, false}, {addr1, minus, false}},
 			check: []checkCmd{
-				{addr, false, []coin.Coin{total}, []coin.Coin{plus, other}},
+				{addr1, false, []coin.Coin{total}, []coin.Coin{plus, other}},
 				{addr2, true, nil, nil},
 			},
 		},
 		// issue to two chains
 		{
-			issue: []issueCmd{{addr, total, false}, {addr2, other, false}},
+			issue: []issueCmd{{addr1, total, false}, {addr2, other, false}},
 			check: []checkCmd{
-				{addr, false, []coin.Coin{total}, []coin.Coin{plus, other}},
+				{addr1, false, []coin.Coin{total}, []coin.Coin{plus, other}},
 				{addr2, false, []coin.Coin{other}, []coin.Coin{plus, total}},
 			},
 		},
@@ -89,17 +85,17 @@ func TestIssueCoins(t *testing.T) {
 		{
 			issue: []issueCmd{{addr2, other, false}, {addr2, other.Negative(), false}},
 			check: []checkCmd{
-				{addr, true, nil, nil},
+				{addr1, true, nil, nil},
 				{addr2, true, nil, nil},
 			},
 		},
 		// set back to zero
 		{
 			issue: []issueCmd{
-				{addr, total, false},
-				{addr, coin.NewCoin(coin.MaxInt, 0, "FOO"), true}},
+				{addr1, total, false},
+				{addr1, coin.NewCoin(coin.MaxInt, 0, "FOO"), true}},
 			check: []checkCmd{
-				{addr, false, []coin.Coin{total}, []coin.Coin{plus, other}},
+				{addr1, false, []coin.Coin{total}, []coin.Coin{plus, other}},
 				{addr2, true, nil, nil},
 			},
 		},
@@ -138,14 +134,9 @@ func TestIssueCoins(t *testing.T) {
 }
 
 func TestMoveCoins(t *testing.T) {
-	var helpers x.TestHelpers
-
-	_, perm := helpers.MakeKey()
-	_, perm2 := helpers.MakeKey()
-	_, perm3 := helpers.MakeKey()
-	addr := perm.Address()
-	addr2 := perm2.Address()
-	addr3 := perm3.Address()
+	addr1 := weavetest.NewCondition().Address()
+	addr2 := weavetest.NewCondition().Address()
+	addr3 := weavetest.NewCondition().Address()
 
 	controller := NewController(NewBucket())
 
@@ -162,7 +153,7 @@ func TestMoveCoins(t *testing.T) {
 		// cannot move money that you don't have
 		{
 			issue: issueCmd{addr3, bank, false},
-			move:  moveCmd{addr, addr2, send, true},
+			move:  moveCmd{addr1, addr2, send, true},
 			check: []checkCmd{
 				{addr2, true, nil, nil},
 				{addr3, false, []coin.Coin{bank}, nil},
@@ -170,52 +161,52 @@ func TestMoveCoins(t *testing.T) {
 		},
 		// simple send
 		{
-			issue: issueCmd{addr, bank, false},
-			move:  moveCmd{addr, addr2, send, false},
+			issue: issueCmd{addr1, bank, false},
+			move:  moveCmd{addr1, addr2, send, false},
 			check: []checkCmd{
-				{addr, false, []coin.Coin{rem}, []coin.Coin{bank}},
+				{addr1, false, []coin.Coin{rem}, []coin.Coin{bank}},
 				{addr2, false, []coin.Coin{send}, []coin.Coin{bank}},
 			},
 		},
 		// cannot send negative
 		{
-			issue: issueCmd{addr, bank, false},
-			move:  moveCmd{addr, addr2, send.Negative(), true},
+			issue: issueCmd{addr1, bank, false},
+			move:  moveCmd{addr1, addr2, send.Negative(), true},
 			check: nil,
 		},
 		// cannot send more than you have
 		{
-			issue: issueCmd{addr, rem, false},
-			move:  moveCmd{addr, addr2, bank, true},
+			issue: issueCmd{addr1, rem, false},
+			move:  moveCmd{addr1, addr2, bank, true},
 			check: nil,
 		},
 		// cannot send zero
 		{
-			issue: issueCmd{addr, bank, false},
-			move:  moveCmd{addr, addr2, coin.NewCoin(0, 0, cc), true},
+			issue: issueCmd{addr1, bank, false},
+			move:  moveCmd{addr1, addr2, coin.NewCoin(0, 0, cc), true},
 			check: nil,
 		},
 		// cannot send wrong currency
 		{
-			issue: issueCmd{addr, bank, false},
-			move:  moveCmd{addr, addr2, coin.NewCoin(500, 0, "BAD"), true},
+			issue: issueCmd{addr1, bank, false},
+			move:  moveCmd{addr1, addr2, coin.NewCoin(500, 0, "BAD"), true},
 			check: nil,
 		},
 		// send everything
 		{
-			issue: issueCmd{addr, bank, false},
-			move:  moveCmd{addr, addr2, bank, false},
+			issue: issueCmd{addr1, bank, false},
+			move:  moveCmd{addr1, addr2, bank, false},
 			check: []checkCmd{
-				{addr, true, nil, nil},
+				{addr1, true, nil, nil},
 				{addr2, false, []coin.Coin{bank}, nil},
 			},
 		},
 		// send to self
 		{
-			issue: issueCmd{addr, rem, false},
-			move:  moveCmd{addr, addr, send, false},
+			issue: issueCmd{addr1, rem, false},
+			move:  moveCmd{addr1, addr1, send, false},
 			check: []checkCmd{
-				{addr, false, []coin.Coin{send, rem}, []coin.Coin{bank}},
+				{addr1, false, []coin.Coin{send, rem}, []coin.Coin{bank}},
 			},
 		},
 		// TODO: check overflow
@@ -258,23 +249,16 @@ func TestMoveCoins(t *testing.T) {
 }
 
 func TestBalance(t *testing.T) {
-	var helpers x.TestHelpers
-
-	newAddr := func() weave.Address {
-		_, a := helpers.MakeKey()
-		return a.Address()
-	}
-
 	store := store.MemStore()
 	ctrl := NewController(NewBucket())
 
-	addr1 := newAddr()
+	addr1 := weavetest.NewCondition().Address()
 	coin1 := coin.NewCoin(1, 20, "BTC")
 	if err := ctrl.IssueCoins(store, addr1, coin1); err != nil {
 		t.Fatalf("cannot issue coins: %s", err)
 	}
 
-	addr2 := newAddr()
+	addr2 := weavetest.NewCondition().Address()
 	coin2_1 := coin.NewCoin(3, 40, "ETH")
 	coin2_2 := coin.NewCoin(5, 0, "DOGE")
 	if err := ctrl.IssueCoins(store, addr2, coin2_1); err != nil {
@@ -290,7 +274,7 @@ func TestBalance(t *testing.T) {
 		wantErr   error
 	}{
 		"non exising account": {
-			addr:    newAddr(),
+			addr:    weavetest.NewCondition().Address(),
 			wantErr: errors.ErrNotFound,
 		},
 		"exising account with one coin": {

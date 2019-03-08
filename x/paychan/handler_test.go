@@ -14,17 +14,15 @@ import (
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/store"
-	"github.com/iov-one/weave/x"
+	"github.com/iov-one/weave/weavetest"
 	"github.com/iov-one/weave/x/cash"
 )
-
-var helper x.TestHelpers
 
 func TestPaymentChannelHandlers(t *testing.T) {
 	cashBucket := cash.NewBucket()
 	bankCtrl := cash.NewController(cashBucket)
 	payChanBucket := NewPaymentChannelBucket()
-	auth := helper.CtxAuth("auth")
+	auth := &weavetest.CtxAuth{Key: "auth"}
 
 	rt := app.NewRouter()
 	RegisterRoutes(rt, auth, bankCtrl)
@@ -33,10 +31,10 @@ func TestPaymentChannelHandlers(t *testing.T) {
 	cash.RegisterQuery(qr)
 	RegisterQuery(qr)
 
-	_, src := helper.MakeKey()
+	src := weavetest.NewCondition()
 	// Because it is allowed, use different public key to sign the message.
-	srcSig, _ := helper.MakeKey()
-	_, recipient := helper.MakeKey()
+	srcSig := weavetest.NewKey()
+	recipient := weavetest.NewCondition()
 
 	cases := map[string]struct {
 		actions []action
@@ -532,13 +530,14 @@ type action struct {
 }
 
 func (a *action) tx() weave.Tx {
-	return helper.MockTx(a.msg)
+	return &weavetest.Tx{Msg: a.msg}
 }
 
 func (a *action) ctx() weave.Context {
 	ctx := weave.WithHeight(context.Background(), a.blocksize)
 	ctx = weave.WithChainID(ctx, "testchain-123")
-	return helper.CtxAuth("auth").SetConditions(ctx, a.conditions...)
+	auth := &weavetest.CtxAuth{Key: "auth"}
+	return auth.SetConditions(ctx, a.conditions...)
 }
 
 // querycheck is a declaration of a query result. For given path and data

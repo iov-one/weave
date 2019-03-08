@@ -5,17 +5,14 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
-	"github.com/tendermint/tendermint/libs/common"
-
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/store"
-	"github.com/iov-one/weave/x"
+	"github.com/iov-one/weave/weavetest"
+	"github.com/stretchr/testify/assert"
+	"github.com/tendermint/tendermint/libs/common"
 )
 
 func TestKeyTagger(t *testing.T) {
-	var help x.TestHelpers
-
 	// always write ok, ov before calling functions
 	ok, ov := []byte("foo:demo"), []byte("data")
 	// some key, value to try to write
@@ -34,7 +31,7 @@ func TestKeyTagger(t *testing.T) {
 	}{
 		// return error doesn't add tags
 		0: {
-			help.WriteHandler(nk, nv, derr),
+			&writeHandler{key: nk, value: nv, err: derr},
 			true,
 			nil,
 			// note that these were writen as we had no SavePoint
@@ -43,7 +40,7 @@ func TestKeyTagger(t *testing.T) {
 		},
 		// with success records tags
 		1: {
-			help.WriteHandler(nk, nv, nil),
+			&writeHandler{key: nk, value: nv, err: nil},
 			false,
 			common.KVPairs{{Key: ntag, Value: nval}},
 			nk,
@@ -51,8 +48,9 @@ func TestKeyTagger(t *testing.T) {
 		},
 		// write multiple values (sorted order)
 		2: {
-			help.Wrap(help.WriteDecorator(ok, ov, true),
-				help.WriteHandler(nk, nv, nil)),
+			weavetest.Decorate(
+				&writeHandler{key: nk, value: nv, err: nil},
+				&writeDecorator{key: ok, value: ov, after: true}),
 			false,
 			common.KVPairs{{Key: ntag, Value: nval}, {Key: otag, Value: oval}},
 			nk,
@@ -60,8 +58,9 @@ func TestKeyTagger(t *testing.T) {
 		},
 		// savepoint must revert any writes
 		3: {
-			help.Wrap(NewSavepoint().OnDeliver(),
-				help.WriteHandler(nk, nv, derr)),
+			weavetest.Decorate(
+				&writeHandler{key: nk, value: nv, err: derr},
+				NewSavepoint().OnDeliver()),
 			true,
 			nil,
 			nk,
@@ -69,8 +68,9 @@ func TestKeyTagger(t *testing.T) {
 		},
 		// savepoint keeps writes on success
 		4: {
-			help.Wrap(NewSavepoint().OnDeliver(),
-				help.WriteHandler(nk, nv, nil)),
+			weavetest.Decorate(
+				&writeHandler{key: nk, value: nv, err: nil},
+				NewSavepoint().OnDeliver()),
 			false,
 			common.KVPairs{{Key: ntag, Value: nval}},
 			nk,
@@ -78,8 +78,9 @@ func TestKeyTagger(t *testing.T) {
 		},
 		// combine with other tags from the Handler
 		5: {
-			help.Wrap(help.WriteDecorator(ok, ov, false),
-				help.TagHandler(nk, nv, nil)),
+			weavetest.Decorate(
+				newTagHandler(nk, nv, nil),
+				&writeDecorator{key: ok, value: ov, after: false}),
 			false,
 			// note that the nk, nv set explicitly are not modified
 			common.KVPairs{{Key: nk, Value: nv}, {Key: otag, Value: oval}},
@@ -88,8 +89,9 @@ func TestKeyTagger(t *testing.T) {
 		},
 		// on error don't add tags, but leave original ones
 		6: {
-			help.Wrap(help.WriteDecorator(ok, ov, false),
-				help.TagHandler(nk, nv, derr)),
+			weavetest.Decorate(
+				newTagHandler(nk, nv, derr),
+				&writeDecorator{key: ok, value: ov, after: false}),
 			true,
 			common.KVPairs{{Key: nk, Value: nv}},
 			nk,
@@ -129,5 +131,49 @@ func TestKeyTagger(t *testing.T) {
 				assert.EqualValues(t, tc.v, v)
 			}
 		})
+	}
+}
+
+// writeDecorator writes the key, value pair.
+// either before or after calling the handlers
+type writeDecorator struct {
+	key   []byte
+	value []byte
+	after bool
+}
+
+var _ weave.Decorator = writeDecorator{}
+
+func (d writeDecorator) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx, next weave.Checker) (weave.CheckResult, error) {
+	if !d.after {
+		store.Set(d.key, d.value)
+	}
+	res, err := next.Check(ctx, store, tx)
+	if d.after && err == nil {
+		store.Set(d.key, d.value)
+	}
+	return res, err
+}
+
+func (d writeDecorator) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx, next weave.Deliverer) (weave.DeliverResult, error) {
+	if !d.after {
+		store.Set(d.key, d.value)
+	}
+	res, err := next.Deliver(ctx, store, tx)
+	if d.after && err == nil {
+		store.Set(d.key, d.value)
+	}
+	return res, err
+}
+
+func newTagHandler(key, value []byte, err error) weave.Handler {
+	return &weavetest.Handler{
+		CheckErr:   err,
+		DeliverErr: err,
+		DeliverResult: weave.DeliverResult{
+			Tags: common.KVPairs{
+				{Key: key, Value: value},
+			},
+		},
 	}
 }

@@ -4,19 +4,12 @@ import (
 	"context"
 	"testing"
 
-	"github.com/iov-one/weave/errors"
-
-	"github.com/stretchr/testify/require"
-
-	"github.com/iov-one/weave/store"
-
 	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/store"
+	"github.com/iov-one/weave/weavetest"
 	"github.com/iov-one/weave/x"
-)
-
-var (
-	newTx   = x.TestHelpers{}.MockTx
-	helpers = x.TestHelpers{}
+	"github.com/stretchr/testify/require"
 )
 
 // newContextWithAuth creates a context with perms as signers and sets the height
@@ -24,7 +17,7 @@ func newContextWithAuth(perms ...weave.Condition) (weave.Context, x.Authenticato
 	ctx := context.Background()
 	// Set current block height to 100
 	ctx = weave.WithHeight(ctx, 100)
-	auth := helpers.CtxAuth("authKey")
+	auth := &weavetest.CtxAuth{Key: "authKey"}
 	// Create a new context and add addr to the list of signers
 	return auth.SetConditions(ctx, perms...), auth
 }
@@ -54,21 +47,21 @@ func queryContract(t *testing.T, db weave.KVStore, bucket ContractBucket, id []b
 }
 
 func withContract(t *testing.T, db weave.KVStore, msg CreateContractMsg) []byte {
-	_, k := helpers.MakeKey()
+	k := weavetest.NewCondition()
 	ctx, auth := newContextWithAuth(k)
 	handler := CreateContractMsgHandler{auth, NewContractBucket()}
 	res, err := handler.Deliver(
 		ctx,
 		db,
-		newTx(&msg))
+		&weavetest.Tx{Msg: &msg})
 	require.NoError(t, err)
 	return res.Data
 }
 
 func TestCreateContractMsgHandler(t *testing.T) {
-	_, a := helpers.MakeKey()
-	_, b := helpers.MakeKey()
-	_, c := helpers.MakeKey()
+	a := weavetest.NewCondition()
+	b := weavetest.NewCondition()
+	c := weavetest.NewCondition()
 
 	testcases := []struct {
 		name string
@@ -124,14 +117,14 @@ func TestCreateContractMsgHandler(t *testing.T) {
 		ctx, auth := newContextWithAuth(a)
 		handler := CreateContractMsgHandler{auth, NewContractBucket()}
 
-		_, err := handler.Check(ctx, db, newTx(msg))
+		_, err := handler.Check(ctx, db, &weavetest.Tx{Msg: msg})
 		if test.err == nil {
 			require.NoError(t, err, test.name)
 		} else {
 			require.EqualError(t, err, test.err.Error(), test.name)
 		}
 
-		res, err := handler.Deliver(ctx, db, newTx(msg))
+		res, err := handler.Deliver(ctx, db, &weavetest.Tx{Msg: msg})
 		if test.err == nil {
 			require.NoError(t, err, test.name)
 			contract := queryContract(t, db, handler.bucket, res.Data)
@@ -150,11 +143,11 @@ func TestUpdateContractMsgHandler(t *testing.T) {
 	db := store.MemStore()
 
 	// addresses controlling contract
-	_, a := helpers.MakeKey()
-	_, b := helpers.MakeKey()
-	_, c := helpers.MakeKey()
-	_, d := helpers.MakeKey()
-	_, e := helpers.MakeKey()
+	a := weavetest.NewCondition()
+	b := weavetest.NewCondition()
+	c := weavetest.NewCondition()
+	d := weavetest.NewCondition()
+	e := weavetest.NewCondition()
 
 	mutableID := withContract(t, db,
 		CreateContractMsg{
@@ -227,14 +220,14 @@ func TestUpdateContractMsgHandler(t *testing.T) {
 		ctx, auth := newContextWithAuth(test.signers...)
 		handler := UpdateContractMsgHandler{auth, NewContractBucket()}
 
-		_, err := handler.Check(ctx, db, newTx(msg))
+		_, err := handler.Check(ctx, db, &weavetest.Tx{Msg: msg})
 		if test.err == nil {
 			require.NoError(t, err, test.name)
 		} else {
 			require.True(t, errors.Is(err, test.err), test.name)
 		}
 
-		_, err = handler.Deliver(ctx, db, newTx(msg))
+		_, err = handler.Deliver(ctx, db, &weavetest.Tx{Msg: msg})
 		if test.err == nil {
 			require.NoError(t, err, test.name)
 			contract := queryContract(t, db, handler.bucket, msg.Id)

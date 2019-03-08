@@ -8,7 +8,7 @@ import (
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/cmd/bnsd/x/nft/username"
 	"github.com/iov-one/weave/store"
-	"github.com/iov-one/weave/x"
+	"github.com/iov-one/weave/weavetest"
 	"github.com/iov-one/weave/x/nft"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -16,10 +16,9 @@ import (
 )
 
 func TestHandleIssueTokenMsg(t *testing.T) {
-	var helpers x.TestHelpers
-	_, anybody := helpers.MakeKey()
-	_, alice := helpers.MakeKey()
-	_, bob := helpers.MakeKey()
+	anybody := weavetest.NewCondition()
+	alice := weavetest.NewCondition()
+	bob := weavetest.NewCondition()
 
 	nft.RegisterAction(nft.DefaultActions...)
 
@@ -29,7 +28,8 @@ func TestHandleIssueTokenMsg(t *testing.T) {
 	o, _ := bucket.Create(db, bob.Address(), []byte("existing@example.com"), nil, []username.ChainAddress{{BlockchainID: []byte("myNet"), Address: "bobsChainAddress"}})
 	bucket.Save(db, o)
 
-	handler := username.NewIssueHandler(helpers.Authenticate(alice), nil, bucket)
+	handler := username.NewIssueHandler(
+		&weavetest.Auth{Signer: alice}, nil, bucket)
 	// when
 	myNewChainAddresses := []username.ChainAddress{{BlockchainID: []byte("myNet"), Address: "anyChainAddress"}}
 	specs := []struct {
@@ -118,12 +118,14 @@ func TestHandleIssueTokenMsg(t *testing.T) {
 			cache := db.CacheWrap()
 			defer cache.Discard()
 
-			tx := helpers.MockTx(&username.IssueTokenMsg{
-				Owner:     spec.owner,
-				ID:        spec.id,
-				Details:   spec.details,
-				Approvals: spec.approvals,
-			})
+			tx := &weavetest.Tx{
+				Msg: &username.IssueTokenMsg{
+					Owner:     spec.owner,
+					ID:        spec.id,
+					Details:   spec.details,
+					Approvals: spec.approvals,
+				},
+			}
 
 			// when
 			_, err := handler.Check(nil, cache, tx)
@@ -160,18 +162,20 @@ func TestHandleIssueTokenMsg(t *testing.T) {
 	}
 }
 func TestIssueUsernameTx(t *testing.T) {
-	var helpers x.TestHelpers
-	_, alice := helpers.MakeKey()
+	alice := weavetest.NewCondition()
 
 	db := store.MemStore()
-	handler := username.NewIssueHandler(helpers.Authenticate(alice), nil, username.NewBucket())
+	handler := username.NewIssueHandler(
+		&weavetest.Auth{Signer: alice}, nil, username.NewBucket())
 
 	// when
-	tx := helpers.MockTx(&username.IssueTokenMsg{
-		Owner:   alice.Address(),
-		ID:      []byte("any@example.com"),
-		Details: username.TokenDetails{Addresses: []username.ChainAddress{{BlockchainID: []byte("myNet"), Address: "myChainAddress"}}},
-	})
+	tx := &weavetest.Tx{
+		Msg: &username.IssueTokenMsg{
+			Owner:   alice.Address(),
+			ID:      []byte("any@example.com"),
+			Details: username.TokenDetails{Addresses: []username.ChainAddress{{BlockchainID: []byte("myNet"), Address: "myChainAddress"}}},
+		},
+	}
 	res, err := handler.Deliver(nil, db, tx)
 	// then
 	require.NoError(t, err)
@@ -180,9 +184,8 @@ func TestIssueUsernameTx(t *testing.T) {
 }
 
 func TestQueryUsernameToken(t *testing.T) {
-	var helpers x.TestHelpers
-	_, alice := helpers.MakeKey()
-	_, bob := helpers.MakeKey()
+	alice := weavetest.NewCondition()
+	bob := weavetest.NewCondition()
 	aliceAddress := []username.ChainAddress{{BlockchainID: []byte("myChainID"), Address: "aliceChainAddress"}}
 	bobAddress := []username.ChainAddress{{BlockchainID: []byte("myChainID"), Address: "bobChainAddress"}}
 
@@ -236,9 +239,8 @@ func TestQueryUsernameToken(t *testing.T) {
 
 //TODO: This needs to be extended with examples where we use approvals for different users
 func TestAddChainAddress(t *testing.T) {
-	var helpers x.TestHelpers
-	_, alice := helpers.MakeKey()
-	_, bob := helpers.MakeKey()
+	alice := weavetest.NewCondition()
+	bob := weavetest.NewCondition()
 
 	db := store.MemStore()
 	bucket := username.NewBucket()
@@ -258,7 +260,8 @@ func TestAddChainAddress(t *testing.T) {
 			Approvals: []nft.Approval{{Options: nft.ApprovalOptions{Count: 10, UntilBlockHeight: 5}, Address: alice.Address()}},
 		}}, myNextAddress)
 	bucket.Save(db, o)
-	handler := username.NewAddChainAddressHandler(helpers.Authenticate(alice), nil, bucket)
+	handler := username.NewAddChainAddressHandler(
+		&weavetest.Auth{Signer: alice}, nil, bucket)
 
 	specs := []struct {
 		id              []byte
@@ -340,11 +343,13 @@ func TestAddChainAddress(t *testing.T) {
 			cache := db.CacheWrap()
 			defer cache.Discard()
 
-			tx := helpers.MockTx(&username.AddChainAddressMsg{
-				UsernameID:   spec.id,
-				BlockchainID: spec.newChainID,
-				Address:      spec.newAddress,
-			})
+			tx := &weavetest.Tx{
+				Msg: &username.AddChainAddressMsg{
+					UsernameID:   spec.id,
+					BlockchainID: spec.newChainID,
+					Address:      spec.newAddress,
+				},
+			}
 
 			// when
 			_, err := handler.Check(spec.ctx, cache, tx)
@@ -384,8 +389,7 @@ func TestAddChainAddress(t *testing.T) {
 
 //TODO: This needs to be extended with examples where we use approvals for different users
 func TestRemoveChainAddress(t *testing.T) {
-	var helpers x.TestHelpers
-	_, alice := helpers.MakeKey()
+	alice := weavetest.NewCondition()
 	ctx := context.Background()
 
 	db := store.MemStore()
@@ -395,7 +399,8 @@ func TestRemoveChainAddress(t *testing.T) {
 	o, _ := bucket.Create(db, alice.Address(), []byte("alice@example.com"), nil, myAddresses)
 	bucket.Save(db, o)
 
-	handler := username.NewRemoveChainAddressHandler(helpers.Authenticate(alice), nil, bucket)
+	handler := username.NewRemoveChainAddressHandler(
+		&weavetest.Auth{Signer: alice}, nil, bucket)
 
 	specs := []struct {
 		id              []byte
@@ -434,11 +439,13 @@ func TestRemoveChainAddress(t *testing.T) {
 			cache := db.CacheWrap()
 			defer cache.Discard()
 
-			tx := helpers.MockTx(&username.RemoveChainAddressMsg{
-				UsernameID:   spec.id,
-				BlockchainID: spec.newChainID,
-				Address:      spec.newAddress,
-			})
+			tx := &weavetest.Tx{
+				Msg: &username.RemoveChainAddressMsg{
+					UsernameID:   spec.id,
+					BlockchainID: spec.newChainID,
+					Address:      spec.newAddress,
+				},
+			}
 
 			// when
 			_, err := handler.Check(ctx, cache, tx)

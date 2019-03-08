@@ -5,16 +5,12 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
-
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/store"
-	"github.com/iov-one/weave/x"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestSavepoint(t *testing.T) {
-	var help x.TestHelpers
-
 	// always write ok, ov before calling functions
 	ok, ov := []byte("demo"), []byte("data")
 	// some key, value to try to write
@@ -34,7 +30,7 @@ func TestSavepoint(t *testing.T) {
 		// savepoint disactivated, returns error, both written
 		0: {
 			NewSavepoint(),
-			help.WriteHandler(nk, nv, derr),
+			&writeHandler{key: nk, value: nv, err: derr},
 			true,
 			true,
 			[][]byte{ok, nk},
@@ -43,7 +39,7 @@ func TestSavepoint(t *testing.T) {
 		// savepoint activated, returns error, one written
 		1: {
 			NewSavepoint().OnCheck(),
-			help.WriteHandler(nk, nv, derr),
+			&writeHandler{key: nk, value: nv, err: derr},
 			true,
 			true,
 			[][]byte{ok},
@@ -52,7 +48,7 @@ func TestSavepoint(t *testing.T) {
 		// savepoint activated for deliver, returns error, one written
 		2: {
 			NewSavepoint().OnDeliver(),
-			help.WriteHandler(nk, nv, derr),
+			&writeHandler{key: nk, value: nv, err: derr},
 			false,
 			true,
 			[][]byte{ok},
@@ -61,7 +57,7 @@ func TestSavepoint(t *testing.T) {
 		// double-activation maintains both behaviors
 		3: {
 			NewSavepoint().OnDeliver().OnCheck(),
-			help.WriteHandler(nk, nv, derr),
+			&writeHandler{key: nk, value: nv, err: derr},
 			false,
 			true,
 			[][]byte{ok},
@@ -70,7 +66,7 @@ func TestSavepoint(t *testing.T) {
 		// savepoint check doesn't affect deliver
 		4: {
 			NewSavepoint().OnCheck(),
-			help.WriteHandler(nk, nv, derr),
+			&writeHandler{key: nk, value: nv, err: derr},
 			false,
 			true,
 			[][]byte{ok, nk},
@@ -79,7 +75,7 @@ func TestSavepoint(t *testing.T) {
 		// don't rollback when success returned
 		5: {
 			NewSavepoint().OnCheck().OnDeliver(),
-			help.WriteHandler(nk, nv, nil),
+			&writeHandler{key: nk, value: nv, err: nil},
 			false,
 			false,
 			[][]byte{ok, nk},
@@ -114,4 +110,21 @@ func TestSavepoint(t *testing.T) {
 			}
 		})
 	}
+}
+
+// writeHandler writes the key, value pair and returns the error (may be nil)
+type writeHandler struct {
+	key   []byte
+	value []byte
+	err   error
+}
+
+func (h writeHandler) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx) (weave.CheckResult, error) {
+	store.Set(h.key, h.value)
+	return weave.CheckResult{}, h.err
+}
+
+func (h writeHandler) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx) (weave.DeliverResult, error) {
+	store.Set(h.key, h.value)
+	return weave.DeliverResult{}, h.err
 }

@@ -11,6 +11,7 @@ import (
 	coin "github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/store"
+	"github.com/iov-one/weave/weavetest"
 	"github.com/iov-one/weave/x"
 	"github.com/iov-one/weave/x/cash"
 	"github.com/iov-one/weave/x/hashlock"
@@ -25,13 +26,11 @@ const Timeout = 12345
 //
 // I really should get quickcheck working....
 func TestHandler(t *testing.T) {
-	var helpers x.TestHelpers
-
-	_, a := helpers.MakeKey()
-	_, b := helpers.MakeKey()
-	_, c := helpers.MakeKey()
+	a := weavetest.NewCondition()
+	b := weavetest.NewCondition()
+	c := weavetest.NewCondition()
 	// d is just an observer, no role in escrow
-	_, d := helpers.MakeKey()
+	d := weavetest.NewCondition()
 
 	// good
 	all := mustCombineCoins(coin.NewCoin(100, 0, "FOO"))
@@ -602,13 +601,11 @@ func MustAddCoins(t *testing.T, a, b coin.Coins) coin.Coins {
 //
 // we tested timeout above, this is just about claiming
 func TestAtomicSwap(t *testing.T) {
-	var helpers x.TestHelpers
-
 	// a and b want to do a swap
-	_, a := helpers.MakeKey()
-	_, b := helpers.MakeKey()
+	a := weavetest.NewCondition()
+	b := weavetest.NewCondition()
 	// c is just an observer, no role in escrow
-	_, c := helpers.MakeKey()
+	c := weavetest.NewCondition()
 
 	foo := mustCombineCoins(coin.NewCoin(500, 0, "FOO"))
 	lilFoo := mustCombineCoins(coin.NewCoin(77, 0, "FOO"))
@@ -678,7 +675,7 @@ func TestAtomicSwap(t *testing.T) {
 	// middleware
 	r := app.NewRouter()
 	RegisterRoutes(r, auth, ctrl)
-	h := helpers.Wrap(hashlock.NewDecorator(), r)
+	h := weavetest.Decorate(r, hashlock.NewDecorator())
 
 	timeout := int64(1000)
 	ctx := weave.WithHeight(context.Background(), 500)
@@ -698,21 +695,21 @@ func TestAtomicSwap(t *testing.T) {
 			// create the offer
 			one := NewCreateMsg(a.Address(), b.Address(), tc.arbiter, tc.aSwap, timeout, "")
 			aCtx := setAuth(ctx, a)
-			res, err := h.Deliver(aCtx, db, helpers.MockTx(one))
+			res, err := h.Deliver(aCtx, db, &weavetest.Tx{Msg: one})
 			require.NoError(t, err)
 			esc1 := res.Data
 
 			// this is the response
 			two := NewCreateMsg(b.Address(), a.Address(), tc.arbiter, tc.bSwap, timeout, "")
 			bCtx := setAuth(ctx, b)
-			res, err = h.Deliver(bCtx, db, helpers.MockTx(two))
+			res, err = h.Deliver(bCtx, db, &weavetest.Tx{Msg: two})
 			require.NoError(t, err)
 			esc2 := res.Data
 
 			// now try to execute them, c with hashlock....
 			resCtx := setAuth(ctx, c)
 			resTx1 := PreimageTx{
-				Tx:       helpers.MockTx(&ReleaseEscrowMsg{EscrowId: esc1}),
+				Tx:       &weavetest.Tx{Msg: &ReleaseEscrowMsg{EscrowId: esc1}},
 				Preimage: tc.preimage,
 			}
 			_, err = h.Deliver(resCtx, db, resTx1)
@@ -722,7 +719,7 @@ func TestAtomicSwap(t *testing.T) {
 				require.NoError(t, err)
 			}
 			resTx2 := PreimageTx{
-				Tx:       helpers.MockTx(&ReleaseEscrowMsg{EscrowId: esc2}),
+				Tx:       &weavetest.Tx{Msg: &ReleaseEscrowMsg{EscrowId: esc2}},
 				Preimage: tc.preimage,
 			}
 			_, err = h.Deliver(resCtx, db, resTx2)
@@ -759,8 +756,6 @@ func (p PreimageTx) GetPreimage() []byte {
 //-------------------------------------------------
 // specific helpers for these tests
 
-const authKey = "auth"
-
 type action struct {
 	perms  []weave.Condition
 	msg    weave.Msg
@@ -768,8 +763,7 @@ type action struct {
 }
 
 func (a action) tx() weave.Tx {
-	var helpers x.TestHelpers
-	return helpers.MockTx(a.msg)
+	return &weavetest.Tx{Msg: a.msg}
 }
 
 func (a action) ctx() weave.Context {
@@ -780,8 +774,8 @@ func (a action) ctx() weave.Context {
 
 // authenticator returns a default for all tests...
 // clean this up?
-func authenticator() x.CtxAuther {
-	return x.TestHelpers{}.CtxAuth(authKey)
+func authenticator() *weavetest.CtxAuth {
+	return &weavetest.CtxAuth{Key: "auth"}
 }
 
 // how to do a query... TODO: abstract this??
@@ -832,7 +826,7 @@ func objToModel(obj orm.Object) (weave.Model, error) {
 		key = cash.NewBucket().DBKey(key)
 	}
 	bz, err := val.Marshal()
-	return weave.Model{key, bz}, err
+	return weave.Model{Key: key, Value: bz}, err
 }
 
 // mo = must object... takes (Object, error) result and

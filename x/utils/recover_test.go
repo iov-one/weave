@@ -2,33 +2,41 @@ package utils
 
 import (
 	"context"
-	"fmt"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
-
+	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/store"
-	"github.com/iov-one/weave/x"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestRecovery(t *testing.T) {
-	var help x.TestHelpers
-
-	pan := help.PanicHandler(fmt.Errorf("boom"))
+	var h panicHandler
 	r := NewRecovery()
 
 	ctx := context.Background()
 	store := store.MemStore()
 
-	// panic handler panics
-	assert.Panics(t, func() { pan.Check(ctx, store, nil) })
-	assert.Panics(t, func() { pan.Deliver(ctx, store, nil) })
+	// Panic handler panics. Test the test tool.
+	assert.Panics(t, func() { h.Check(ctx, store, nil) })
+	assert.Panics(t, func() { h.Deliver(ctx, store, nil) })
 
-	// recovery wrapped handler returns error
-	_, err := r.Check(ctx, store, nil, pan)
-	assert.Error(t, err)
-	assert.Equal(t, "boom: panic", err.Error())
-	_, err = r.Deliver(ctx, store, nil, pan)
-	assert.Error(t, err)
-	assert.Equal(t, "boom: panic", err.Error())
+	// Recovery wrapped handler returns an error.
+	_, err := r.Check(ctx, store, nil, h)
+	assert.True(t, errors.ErrPanic.Is(err))
+
+	_, err = r.Deliver(ctx, store, nil, h)
+	assert.True(t, errors.ErrPanic.Is(err))
+}
+
+type panicHandler struct{}
+
+var _ weave.Handler = panicHandler{}
+
+func (p panicHandler) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx) (weave.CheckResult, error) {
+	panic("check panic")
+}
+
+func (p panicHandler) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx) (weave.DeliverResult, error) {
+	panic("deliver panic")
 }

@@ -3,14 +3,13 @@ package sigs
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/crypto"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/store"
-	"github.com/iov-one/weave/x"
+	"github.com/iov-one/weave/weavetest"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestSignBytes(t *testing.T) {
@@ -183,10 +182,11 @@ var _ SignedTx = (*StdTx)(nil)
 var _ weave.Tx = (*StdTx)(nil)
 
 func NewStdTx(payload []byte) *StdTx {
-	var helpers x.TestHelpers
-	msg := helpers.MockMsg(payload)
-	tx := helpers.MockTx(msg)
-	return &StdTx{Tx: tx}
+	return &StdTx{
+		Tx: &weavetest.Tx{
+			Msg: &weavetest.Msg{Serialized: payload},
+		},
+	}
 }
 
 func (tx StdTx) GetSignatures() []*StdSignature {

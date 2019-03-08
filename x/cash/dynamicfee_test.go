@@ -9,7 +9,7 @@ import (
 	"github.com/iov-one/weave/gconf"
 	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/store"
-	"github.com/iov-one/weave/x"
+	"github.com/iov-one/weave/weavetest"
 )
 
 func TestDynamicFeeDecorator(t *testing.T) {
@@ -177,7 +177,7 @@ func TestDynamicFeeDecorator(t *testing.T) {
 
 	for testName, tc := range cases {
 		t.Run(testName, func(t *testing.T) {
-			auth := helpers.Authenticate(tc.signers...)
+			auth := &weavetest.Auth{Signers: tc.signers}
 			bucket := NewBucket()
 			ctrl := NewController(bucket)
 			h := NewDynamicFeeDecorator(auth, ctrl)
@@ -220,8 +220,6 @@ func TestDynamicFeeDecorator(t *testing.T) {
 		})
 	}
 }
-
-var helpers x.TestHelpers
 
 // ensureWallets persist state of given wallet objects in the database. If
 // a wallet already exist it is overwritten.
