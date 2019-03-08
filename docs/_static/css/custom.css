@@ -14,7 +14,6 @@
 
 .wy-nav-content, .wy-nav-content-wrap {
     background-color: #ffffff;
-    background-image: url("../img/paper.png");
 }
 
 .wy-nav-content-wrap {
@@ -22,15 +21,21 @@
 }
 
 .wy-nav-side {
-    background-color: rgba(8, 2, 8, 1);
-    background-image: url("../img/concrete-wall.png");
-    /*background-image: url("../img/cross-scratches.png");*/
+    background-color: #B8BCCC;
+    color: #65749A;
+}
+
+.wy-nav-side a:hover {
+    color: #B8BCCC;
+    background-color: #65749A;
 }
 
 .wy-side-nav-search {
-    background-color: #0e59f0;
-    background-image: url("../img/concrete-wall.png");
-    /*background-image: url("../img/cross-scratches.png");*/
+    background-color: #65749A;
+}
+
+.wy-nav-side .wy-side-nav-search a {
+    color: #31E6C9;
 }
 
 .wy-side-nav-search div.version {
