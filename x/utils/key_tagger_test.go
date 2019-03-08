@@ -79,7 +79,7 @@ func TestKeyTagger(t *testing.T) {
 		// combine with other tags from the Handler
 		5: {
 			weavetest.Decorate(
-				&tagHandler{key: nk, value: nv},
+				newTagHandler(nk, nv, nil),
 				&writeDecorator{key: ok, value: ov, after: false}),
 			false,
 			// note that the nk, nv set explicitly are not modified
@@ -90,7 +90,7 @@ func TestKeyTagger(t *testing.T) {
 		// on error don't add tags, but leave original ones
 		6: {
 			weavetest.Decorate(
-				&tagHandler{key: nk, value: nv, err: derr},
+				newTagHandler(nk, nv, derr),
 				&writeDecorator{key: ok, value: ov, after: false}),
 			true,
 			common.KVPairs{{Key: nk, Value: nv}},
@@ -166,23 +166,14 @@ func (d writeDecorator) Deliver(ctx weave.Context, store weave.KVStore, tx weave
 	return res, err
 }
 
-// tagHandler writes the key, value pair and returns the error (may be nil)
-type tagHandler struct {
-	key   []byte
-	value []byte
-	err   error
-}
-
-var _ weave.Handler = tagHandler{}
-
-func (h tagHandler) Check(ctx weave.Context, store weave.KVStore,
-	tx weave.Tx) (weave.CheckResult, error) {
-	return weave.CheckResult{}, h.err
-}
-
-func (h tagHandler) Deliver(ctx weave.Context, store weave.KVStore,
-	tx weave.Tx) (weave.DeliverResult, error) {
-
-	tags := common.KVPairs{{Key: h.key, Value: h.value}}
-	return weave.DeliverResult{Tags: tags}, h.err
+func newTagHandler(key, value []byte, err error) weave.Handler {
+	return &weavetest.Handler{
+		CheckErr:   err,
+		DeliverErr: err,
+		DeliverResult: weave.DeliverResult{
+			Tags: common.KVPairs{
+				{Key: key, Value: value},
+			},
+		},
+	}
 }
