@@ -1,8 +1,6 @@
 package escrow
 
 import (
-	"encoding/hex"
-
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/x/cash"
@@ -10,7 +8,6 @@ import (
 )
 
 var _ weave.Initializer = (*Initializer)(nil)
-var burnAddress, _ = hex.DecodeString("0000000000000000000000000000000000000000")
 
 // Initializer fulfils the Initializer interface to load data from the genesis file
 type Initializer struct {
@@ -42,10 +39,6 @@ func (i *Initializer) FromGenesis(opts weave.Options, db weave.KVStore) error {
 		}
 		if err := escr.Validate(); err != nil {
 			return errors.Wrapf(err, "invalid escrow at position: %d ", j)
-		}
-		if !weave.Address(escr.Sender).Equals(burnAddress) {
-			// prevent any other address to not generate new money for an existing account (on timeout)
-			return errors.New("genesis escrows must have burn address sender")
 		}
 		obj := bucket.Build(db, &escr)
 		if err := bucket.Save(db, obj); err != nil {

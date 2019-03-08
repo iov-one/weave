@@ -3,6 +3,8 @@ package weave_test
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"reflect"
 	"testing"
 
@@ -80,6 +82,87 @@ func TestAddressUnmarshalJSON(t *testing.T) {
 			if err == nil && !reflect.DeepEqual(a, tc.wantAddr) {
 				t.Fatalf("got address: %q", a)
 			}
+		})
+	}
+}
+
+func TestConditionUnmarshalJSON(t *testing.T) {
+	cases := map[string]struct {
+		json          string
+		wantErr       error
+		wantCondition weave.Condition
+	}{
+		"default decoding": {
+			json:          `"666F6F2F6261722F636F6E646974696F6E64617461"`,
+			wantCondition: weave.NewCondition("foo", "bar", []byte("conditiondata")),
+		},
+		"hex decoding": {
+			json:          `"hex:666F6F2F6261722F636F6E646974696F6E64617461"`,
+			wantCondition: weave.NewCondition("foo", "bar", []byte("conditiondata")),
+		},
+		"cond decoding": {
+			json:          `"cond:foo/bar/636f6e646974696f6e64617461"`,
+			wantCondition: weave.NewCondition("foo", "bar", []byte("conditiondata")),
+		},
+		"invalid condition format": {
+			json:    `"cond:foo/636f6e646974696f6e64617461"`,
+			wantErr: errors.ErrInvalidInput,
+		},
+		"invalid condition data": {
+			json:    `"cond:foo/bar/zzzzz"`,
+			wantErr: errors.ErrInvalidInput,
+		},
+		"unknown format": {
+			json:    `"foobar:xxx"`,
+			wantErr: errors.ErrInvalidType,
+		},
+		"zero address": {
+			json:          `""`,
+			wantCondition: nil,
+		},
+		"zero hex address": {
+			json:          `"hex:"`,
+			wantCondition: nil,
+		},
+		"zero cond address": {
+			json:          `"cond:"`,
+			wantCondition: nil,
+		},
+	}
+
+	for testName, tc := range cases {
+		t.Run(testName, func(t *testing.T) {
+			var got weave.Condition
+			err := json.Unmarshal([]byte(tc.json), &got)
+			if !errors.Is(tc.wantErr, err) {
+				t.Fatalf("got error: %+v", err)
+			}
+			if err == nil && !got.Equals(tc.wantCondition) {
+				t.Fatalf("expected %q but got condition: %q", tc.wantCondition, got)
+			}
+		})
+	}
+}
+
+func TestConditionMarshalJSON(t *testing.T) {
+	cases := map[string]struct {
+		source   weave.Condition
+		wantJson string
+	}{
+		"cond encoding": {
+			source:   weave.NewCondition("foo", "bar", []byte("conditiondata")),
+			wantJson: `"cond:foo/bar/636F6E646974696F6E64617461"`,
+		},
+		"nil encoding": {
+			source:   nil,
+			wantJson: `"cond:"`,
+		},
+	}
+	for testName, tc := range cases {
+		t.Run(testName, func(t *testing.T) {
+			got, err := json.Marshal(tc.source)
+			require.NoError(t, err)
+			assert.Equal(t, tc.wantJson, string(got))
 		})
 	}
 }

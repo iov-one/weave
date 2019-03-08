@@ -30,7 +30,7 @@ func TestGenesisKey(t *testing.T) {
           "whole": 123456789
         }
       ],
-      "arbiter": "bXVsdGlzaWcvdXNhZ2UvAAAAAAAAAAE=",
+      "arbiter": "cond:foo/bar/636f6e646974696f6e64617461",
       "recipient": "C30A2424104F542576EF01FECA2FF558F5EAA61A",
       "sender": "0000000000000000000000000000000000000000",
       "timeout": 9223372036854775807
@@ -62,7 +62,7 @@ func TestGenesisKey(t *testing.T) {
 	assert.Equal(t, "c30a2424104f542576ef01feca2ff558f5eaa61a", hex.EncodeToString(e.Recipient))
 	assert.Equal(t, "0000000000000000000000000000000000000000", hex.EncodeToString(e.Sender))
 
-	expArbiter := weave.NewCondition("multisig", "usage", seq(1))
+	expArbiter := weave.NewCondition("foo", "bar", []byte("conditiondata"))
 	assert.Equal(t, expArbiter, weave.Condition(e.Arbiter))
 
 	balance, err := cashCtrl.Balance(db, Condition(obj.Key()).Address())
@@ -70,7 +70,6 @@ func TestGenesisKey(t *testing.T) {
 	require.Len(t, e.Amount, 2)
 	assert.Equal(t, coin.Coin{Ticker: "ALX", Whole: 987654321}, *balance[0])
 	assert.Equal(t, coin.Coin{Ticker: "IOV", Whole: 123456789}, *balance[1])
-
 }
 
 // seq returns encoded sequence number as implemented in orm/sequence.go

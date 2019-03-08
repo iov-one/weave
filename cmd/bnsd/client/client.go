@@ -190,7 +190,7 @@ func (b *BnsClient) TxSearch(query string, prove bool, page, perPage int) (*ctyp
 	return b.conn.TxSearch(query, prove, page, perPage)
 }
 
-// BroadcastTxResponse is the result of submitting a transaction
+// BroadcastTxResponse is the result of submitting a transaction.
 type BroadcastTxResponse struct {
 	Error    error                           // not-nil if there was an error sending
 	Response *ctypes.ResultBroadcastTxCommit // not-nil if we got response from node
