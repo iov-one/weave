@@ -141,8 +141,6 @@ by various middlewares and used as *conditions* to assume
 given *permissions*. And one object / account could have
 multiple different permissions.
 
-**TODO** Add scopes? More ideas?
-
 Serialization
 -------------
 
@@ -161,7 +159,7 @@ And each extension and type may have different interpretations
 of the data.
 
 If we enforce simple text for extension and type, we could
-encode it as ``sprintf("%s/%s/%s", extension, type, data)``.
+encode it as ``sprintf("%s/%s/%X", extension, type, data)``.
 This is longer than the 20 bytes often used for addresses, and
 maybe we could hash it first, but then we loose information.
 I can envision a user wanting to know if an account is controlled
@@ -188,20 +186,21 @@ while generalizing what a condition is.
 
 ::
 
-    condition := sprintf("%s/%s/%s", extension, type, data)
+    condition := sprintf("%s/%s/%X", extension, type, data)
     address := sha256(condition)[:20]
 
 The questions is when and how to use each one. Any field that can
 declare an owner must decide if those bytes represent a condition
 or an address. The Authenticator can store fulfilled Conditions
 in the Context, and then allow clients to check for matches either
-by condition or by address. But where to use which one???
+by condition or by address. But where to use which one?
+
 Here are some rough guidelines:
 
 1. If we really need to save 20 bytes, use an *Address*. (But few places need that micro-optimization)
-2. If we want visibility of control, use *Condition* (multi-sig solutions, arbiters, etc)
+2. If we need visibility of control, use *Condition* (multi-sig solutions, arbiters, etc)
 3. If you want to obscure control (until first use), use *Address*
-4. Everything else, at your discression, just make sure it is compatible.
+4. Everything else, at your discression, but prefer *Address* when possible for consistency.
 
 I guess it is up to the extension developer, but I would generally
 use Conditions for anything stored in the value and Address for
@@ -212,8 +211,6 @@ fields that appear in the key, unless there is a reason otherwise.
 **Sigs**: Key is PublicKey (data section of Condition). We
 construct a condition from it, then can compute the address.
 
-**Escrow**: All participants are defined by Conditions
-
-I would love to hear opinions on where to use each type.
-What are your ideas?
-`Add it in github <https://github.com/iov-one/weave/issues/new>`__
+**Escrow**: Sender and Receiver are Addresses, arbiter is defined by a Condition
+in order to allow easy verification if it is a public key signature, a hash preimage,
+or a multisig contract controlling the escrow.
