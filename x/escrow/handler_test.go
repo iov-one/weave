@@ -499,14 +499,112 @@ func TestHandler(t *testing.T) {
 				},
 			},
 		},
+		"return overpaid amount and delete escrow": {
+			a.Address(),
+			mustCombineCoins(coin.NewCoin(2, 0, "FOO")),
+			[]action{
+				createAction(a, b, c, mustCombineCoins(coin.NewCoin(1, 0, "FOO")), ""),
+				{
+					perms: []weave.Condition{a},
+					msg: &cash.SendMsg{
+						Src:    a.Address(),
+						Dest:   escrowAddr(1),
+						Amount: &coin.Coin{Whole: 1, Ticker: "FOO"},
+					},
+				},
+			},
+			action{
+				perms: []weave.Condition{a},
+				msg: &ReturnEscrowMsg{
+					EscrowId: id(1),
+				},
+				height: Timeout + 1,
+			},
+			false,
+			[]query{
+				// verify escrow is deleted
+				{
+					"/escrows", "", id(1), false, nil, orm.Bucket{},
+				},
+				// escrow is empty
+				{"/wallets", "", escrowAddr(1), false,
+					[]orm.Object{
+						cash.NewWallet(escrowAddr(1)),
+					},
+					cash.NewBucket().Bucket,
+				},
+				// sender recover all his money
+				{"/wallets", "", a.Address(), false,
+					[]orm.Object{
+						mo(cash.WalletWith(a.Address(), mustCombineCoins(coin.NewCoin(2, 0, "FOO"))...)),
+					},
+					cash.NewBucket().Bucket,
+				},
+				// recipient doesn't get paid
+				{"/wallets", "", b.Address(), false, nil,
+					cash.NewBucket().Bucket,
+				},
+			},
+		},
+		"release overpaid amount and delete escrow": {
+			a.Address(),
+			mustCombineCoins(coin.NewCoin(2, 0, "FOO")),
+			[]action{
+				createAction(a, b, c, mustCombineCoins(coin.NewCoin(1, 0, "FOO")), ""),
+				{
+					perms: []weave.Condition{a},
+					msg: &cash.SendMsg{
+						Src:    a.Address(),
+						Dest:   escrowAddr(1),
+						Amount: &coin.Coin{Whole: 1, Ticker: "FOO"},
+					},
+				},
+			},
+			action{
+				perms: []weave.Condition{c},
+				msg: &ReleaseEscrowMsg{
+					EscrowId: id(1),
+				},
+				height: 2000,
+			},
+			false,
+			[]query{
+				// verify escrow is deleted
+				{
+					"/escrows", "", id(1), false, nil, orm.Bucket{},
+				},
+				// escrow is empty
+				{"/wallets", "", escrowAddr(1), false,
+					[]orm.Object{
+						cash.NewWallet(escrowAddr(1)),
+					},
+					cash.NewBucket().Bucket,
+				},
+				// sender is broke
+				{"/wallets", "", a.Address(), false,
+					[]orm.Object{
+						cash.NewWallet(a.Address()),
+					},
+					cash.NewBucket().Bucket,
+				},
+				// recipient has bank
+				{"/wallets", "", b.Address(), false,
+					[]orm.Object{
+						mo(cash.WalletWith(b.Address(), mustCombineCoins(coin.NewCoin(2, 0, "FOO"))...)),
+					},
+					cash.NewBucket().Bucket,
+				},
+			},
+		},
 	}
 
 	bank := cash.NewBucket()
 	ctrl := cash.NewController(bank)
 	auth := authenticator()
 	// create handler objects and query objects
-	h := app.NewRouter()
-	RegisterRoutes(h, auth, ctrl)
+	router := app.NewRouter()
+	RegisterRoutes(router, auth, ctrl)
+	cash.RegisterRoutes(router, auth, ctrl)
 	qr := weave.NewQueryRouter()
 	cash.RegisterQuery(qr)
 	RegisterQuery(qr)
@@ -525,15 +623,15 @@ func TestHandler(t *testing.T) {
 			for j, p := range tc.prep {
 				// try check
 				cache := db.CacheWrap()
-				_, err = h.Check(p.ctx(), cache, p.tx())
+				_, err = router.Check(p.ctx(), cache, p.tx())
 				require.NoError(t, err, "%d", j)
 				cache.Discard()
 
 				// then perform
-				_, err = h.Deliver(p.ctx(), db, p.tx())
+				_, err = router.Deliver(p.ctx(), db, p.tx())
 				require.NoError(t, err, "%d", j)
 			}
-			_, err = h.Deliver(tc.do.ctx(), db, tc.do.tx())
+			_, err = router.Deliver(tc.do.ctx(), db, tc.do.tx())
 			if tc.isError {
 				require.Error(t, err)
 			} else {
