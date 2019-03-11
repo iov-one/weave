@@ -8,7 +8,7 @@ import (
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/app"
-	coin "github.com/iov-one/weave/coin"
+	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/store"
 	"github.com/iov-one/weave/weavetest"
@@ -33,9 +33,12 @@ func TestHandler(t *testing.T) {
 	d := weavetest.NewCondition()
 
 	// good
-	all := mustCombineCoins(coin.NewCoin(100, 0, "FOO"))
-	some := mustCombineCoins(coin.NewCoin(32, 0, "FOO"))
-	remain := MustMinusCoins(t, all, some)
+	all := mustCombineCoins(coin.NewCoin(100, 0, "FOO"),
+		coin.NewCoin(10, 0, "BAR"))
+	some := mustCombineCoins(coin.NewCoin(32, 0, "FOO"),
+		coin.NewCoin(1, 0, "BAR"))
+	remain := mustCombineCoins(coin.NewCoin(68, 0, "FOO"),
+		coin.NewCoin(9, 0, "BAR"))
 
 	id := func(i int64) []byte {
 		bz := make([]byte, 8)
@@ -46,7 +49,7 @@ func TestHandler(t *testing.T) {
 		return Condition(id(i)).Address()
 	}
 
-	cases := []struct {
+	cases := map[string]struct {
 		// initial balance to set
 		account weave.Address
 		balance []*coin.Coin
@@ -59,8 +62,7 @@ func TestHandler(t *testing.T) {
 		// otherwise, a series of queries...
 		queries []query
 	}{
-		// simplest test, sending money we have creates an escrow
-		0: {
+		"simplest test, sending money we have creates an escrow": {
 			a.Address(),
 			all,
 			nil, // no prep, just one action
@@ -75,7 +77,7 @@ func TestHandler(t *testing.T) {
 					},
 					NewBucket().Bucket,
 				},
-				// cash deducted from sender
+				// bank deducted from sender
 				{"/wallets", "", a.Address(), false,
 					[]orm.Object{
 						cash.NewWallet(a.Address()),
@@ -91,8 +93,7 @@ func TestHandler(t *testing.T) {
 				},
 			},
 		},
-		// partial send, default sender taken from permissions
-		1: {
+		"partial send, default sender taken from permissions": {
 			a.Address(),
 			all,
 			nil, // no prep, just one action
@@ -139,7 +140,7 @@ func TestHandler(t *testing.T) {
 				{
 					"/escrows", "", id(2), false, nil, orm.Bucket{},
 				},
-				// cash deducted from sender
+				// bank deducted from sender
 				{"/wallets", "", a.Address(), false,
 					[]orm.Object{
 						mo(cash.WalletWith(a.Address(), remain...)),
@@ -155,8 +156,7 @@ func TestHandler(t *testing.T) {
 				},
 			},
 		},
-		// cannot send money we don't have
-		2: {
+		"cannot send money we don't have": {
 			a.Address(),
 			some,
 			nil, // no prep, just one action
@@ -164,8 +164,7 @@ func TestHandler(t *testing.T) {
 			true,
 			nil,
 		},
-		// cannot send money from other account
-		3: {
+		"cannot send money from other account": {
 			a.Address(),
 			all,
 			nil, // no prep, just one action
@@ -178,8 +177,7 @@ func TestHandler(t *testing.T) {
 			true,
 			nil,
 		},
-		// cannot set timeout in the past
-		4: {
+		"cannot set timeout in the past": {
 			a.Address(),
 			all,
 			nil, // no prep, just one action
@@ -192,8 +190,7 @@ func TestHandler(t *testing.T) {
 			true,
 			nil,
 		},
-		// arbiter can successfully release all
-		5: {
+		"arbiter can successfully release all": {
 			a.Address(),
 			all,
 			[]action{createAction(a, b, c, all, "")},
@@ -224,7 +221,7 @@ func TestHandler(t *testing.T) {
 					},
 					cash.NewBucket().Bucket,
 				},
-				// recipient has cash
+				// recipient has bank
 				{"/wallets", "", b.Address(), false,
 					[]orm.Object{
 						mo(cash.WalletWith(b.Address(), all...)),
@@ -233,8 +230,7 @@ func TestHandler(t *testing.T) {
 				},
 			},
 		},
-		// sender can successfully release part
-		6: {
+		"sender can successfully release part": {
 			a.Address(),
 			all,
 			[]action{createAction(a, b, c, all, "hello")},
@@ -279,8 +275,7 @@ func TestHandler(t *testing.T) {
 				},
 			},
 		},
-		// recipient cannot release
-		7: {
+		"recipient cannot release": {
 			a.Address(),
 			all,
 			[]action{createAction(a, b, c, all, "")},
@@ -294,8 +289,7 @@ func TestHandler(t *testing.T) {
 			true,
 			nil,
 		},
-		// cannot release after timeout
-		8: {
+		"cannot release after timeout": {
 			a.Address(),
 			all,
 			[]action{createAction(a, b, c, all, "")},
@@ -309,8 +303,7 @@ func TestHandler(t *testing.T) {
 			true,
 			nil,
 		},
-		// successful return after expired (can be done by anyone)
-		9: {
+		"successful return after expired (can be done by anyone)": {
 			a.Address(),
 			all,
 			[]action{createAction(a, b, c, all, "")},
@@ -347,8 +340,7 @@ func TestHandler(t *testing.T) {
 				},
 			},
 		},
-		// cannot return before timeout
-		10: {
+		"cannot return before timeout": {
 			a.Address(),
 			all,
 			[]action{createAction(a, b, c, all, "")},
@@ -362,9 +354,7 @@ func TestHandler(t *testing.T) {
 			true,
 			nil,
 		},
-		// we update the arbiter and then make sure
-		// the new actors are used
-		11: {
+		"we update the arbiter and then make sure the new actors are used": {
 			a.Address(),
 			all,
 			[]action{createAction(a, b, c, some, ""),
@@ -391,7 +381,7 @@ func TestHandler(t *testing.T) {
 				{
 					"/escrows", "", id(1), false, nil, orm.Bucket{},
 				},
-				// cash deducted from sender
+				// bank deducted from sender
 				{"/wallets", "", a.Address(), false,
 					[]orm.Object{
 						mo(cash.WalletWith(a.Address(), remain...)),
@@ -407,8 +397,7 @@ func TestHandler(t *testing.T) {
 				},
 			},
 		},
-		// after update, original arbiter cannot resolve
-		12: {
+		"after update, original arbiter cannot resolve": {
 			a.Address(),
 			all,
 			[]action{createAction(a, b, c, some, ""),
@@ -432,9 +421,7 @@ func TestHandler(t *testing.T) {
 			true,
 			nil,
 		},
-		// TODO: duplicate the above
-		// cannot update without proper permissions
-		13: {
+		"cannot update without proper permissions": {
 			a.Address(),
 			all,
 			[]action{createAction(a, b, c, some, "")},
@@ -449,8 +436,7 @@ func TestHandler(t *testing.T) {
 			true,
 			nil,
 		},
-		// cannot update parties after timeout
-		14: {
+		"cannot update parties after timeout": {
 			a.Address(),
 			all,
 			[]action{createAction(a, b, c, some, "")},
@@ -465,8 +451,7 @@ func TestHandler(t *testing.T) {
 			true,
 			nil,
 		},
-		// cannot claim escrow twice
-		15: {
+		"cannot claim escrow twice": {
 			a.Address(),
 			all,
 			[]action{
@@ -514,7 +499,6 @@ func TestHandler(t *testing.T) {
 				},
 			},
 		},
-		// TODO: multiple coins
 	}
 
 	bank := cash.NewBucket()
@@ -527,8 +511,8 @@ func TestHandler(t *testing.T) {
 	cash.RegisterQuery(qr)
 	RegisterQuery(qr)
 
-	for i, tc := range cases {
-		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
+	for descr, tc := range cases {
+		t.Run(descr, func(t *testing.T) {
 			db := store.MemStore()
 
 			// set initial data

@@ -20,15 +20,18 @@ type CoinMinter interface {
 	CoinMint(weave.KVStore, weave.Address, coin.Coin) error
 }
 
+// Balancer is an interface to query the amount of coins.
+type Balancer interface {
+	// Balance returns the amount of funds stored under given account address.
+	Balance(weave.KVStore, weave.Address) (coin.Coins, error)
+}
+
 // Controller is the functionality needed by cash.Handler and cash.Decorator.
 // BaseController should work plenty fine, but you can add other logic if so
 // desired
 type Controller interface {
 	CoinMover
-	CoinMinter
-
-	// Balance returns the amount of funds stored under given account address.
-	Balance(weave.KVStore, weave.Address) (coin.Coins, error)
+	Balancer
 }
 
 // BaseController implements Controller interface, using WalletBucket as the
