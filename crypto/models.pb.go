@@ -3,11 +3,12 @@
 
 package crypto
 
-import proto "github.com/gogo/protobuf/proto"
-import fmt "fmt"
-import math "math"
-
-import io "io"
+import (
+	fmt "fmt"
+	proto "github.com/gogo/protobuf/proto"
+	io "io"
+	math "math"
+)
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
@@ -23,16 +24,14 @@ const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
 type PublicKey struct {
 	// Types that are valid to be assigned to Pub:
 	//	*PublicKey_Ed25519
-	Pub                  isPublicKey_Pub `protobuf_oneof:"pub"`
-	XXX_NoUnkeyedLiteral struct{}        `json:"-"`
-	XXX_sizecache        int32           `json:"-"`
+	Pub isPublicKey_Pub `protobuf_oneof:"pub"`
 }
 
 func (m *PublicKey) Reset()         { *m = PublicKey{} }
 func (m *PublicKey) String() string { return proto.CompactTextString(m) }
 func (*PublicKey) ProtoMessage()    {}
 func (*PublicKey) Descriptor() ([]byte, []int) {
-	return fileDescriptor_models_240e24611ae90f59, []int{0}
+	return fileDescriptor_16c93fab133ec0b1, []int{0}
 }
 func (m *PublicKey) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -49,8 +48,8 @@ func (m *PublicKey) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 		return b[:n], nil
 	}
 }
-func (dst *PublicKey) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_PublicKey.Merge(dst, src)
+func (m *PublicKey) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_PublicKey.Merge(m, src)
 }
 func (m *PublicKey) XXX_Size() int {
 	return m.Size()
@@ -141,16 +140,14 @@ func _PublicKey_OneofSizer(msg proto.Message) (n int) {
 type PrivateKey struct {
 	// Types that are valid to be assigned to Priv:
 	//	*PrivateKey_Ed25519
-	Priv                 isPrivateKey_Priv `protobuf_oneof:"priv"`
-	XXX_NoUnkeyedLiteral struct{}          `json:"-"`
-	XXX_sizecache        int32             `json:"-"`
+	Priv isPrivateKey_Priv `protobuf_oneof:"priv"`
 }
 
 func (m *PrivateKey) Reset()         { *m = PrivateKey{} }
 func (m *PrivateKey) String() string { return proto.CompactTextString(m) }
 func (*PrivateKey) ProtoMessage()    {}
 func (*PrivateKey) Descriptor() ([]byte, []int) {
-	return fileDescriptor_models_240e24611ae90f59, []int{1}
+	return fileDescriptor_16c93fab133ec0b1, []int{1}
 }
 func (m *PrivateKey) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -167,8 +164,8 @@ func (m *PrivateKey) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 		return b[:n], nil
 	}
 }
-func (dst *PrivateKey) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_PrivateKey.Merge(dst, src)
+func (m *PrivateKey) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_PrivateKey.Merge(m, src)
 }
 func (m *PrivateKey) XXX_Size() int {
 	return m.Size()
@@ -259,16 +256,14 @@ func _PrivateKey_OneofSizer(msg proto.Message) (n int) {
 type Signature struct {
 	// Types that are valid to be assigned to Sig:
 	//	*Signature_Ed25519
-	Sig                  isSignature_Sig `protobuf_oneof:"sig"`
-	XXX_NoUnkeyedLiteral struct{}        `json:"-"`
-	XXX_sizecache        int32           `json:"-"`
+	Sig isSignature_Sig `protobuf_oneof:"sig"`
 }
 
 func (m *Signature) Reset()         { *m = Signature{} }
 func (m *Signature) String() string { return proto.CompactTextString(m) }
 func (*Signature) ProtoMessage()    {}
 func (*Signature) Descriptor() ([]byte, []int) {
-	return fileDescriptor_models_240e24611ae90f59, []int{2}
+	return fileDescriptor_16c93fab133ec0b1, []int{2}
 }
 func (m *Signature) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -285,8 +280,8 @@ func (m *Signature) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 		return b[:n], nil
 	}
 }
-func (dst *Signature) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_Signature.Merge(dst, src)
+func (m *Signature) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Signature.Merge(m, src)
 }
 func (m *Signature) XXX_Size() int {
 	return m.Size()
@@ -379,6 +374,23 @@ func init() {
 	proto.RegisterType((*PrivateKey)(nil), "crypto.PrivateKey")
 	proto.RegisterType((*Signature)(nil), "crypto.Signature")
 }
+
+func init() { proto.RegisterFile("crypto/models.proto", fileDescriptor_16c93fab133ec0b1) }
+
+var fileDescriptor_16c93fab133ec0b1 = []byte{
+	// 160 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x12, 0x4e, 0x2e, 0xaa, 0x2c,
+	0x28, 0xc9, 0xd7, 0xcf, 0xcd, 0x4f, 0x49, 0xcd, 0x29, 0xd6, 0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17,
+	0x62, 0x83, 0x08, 0x2a, 0xe9, 0x71, 0x71, 0x06, 0x94, 0x26, 0xe5, 0x64, 0x26, 0x7b, 0xa7, 0x56,
+	0x0a, 0x49, 0x71, 0xb1, 0xa7, 0xa6, 0x18, 0x99, 0x9a, 0x1a, 0x5a, 0x4a, 0x30, 0x2a, 0x30, 0x6a,
+	0xf0, 0x78, 0x30, 0x04, 0xc1, 0x04, 0x9c, 0x58, 0xb9, 0x98, 0x0b, 0x4a, 0x93, 0x94, 0x0c, 0xb8,
+	0xb8, 0x02, 0x8a, 0x32, 0xcb, 0x12, 0x4b, 0x52, 0x09, 0x69, 0x60, 0xe3, 0x62, 0x29, 0x28, 0xca,
+	0x2c, 0x03, 0xd9, 0x10, 0x9c, 0x99, 0x9e, 0x97, 0x58, 0x52, 0x5a, 0x94, 0x4a, 0xc8, 0x86, 0xe2,
+	0xcc, 0x74, 0x27, 0x89, 0x13, 0x8f, 0xe4, 0x18, 0x2f, 0x3c, 0x92, 0x63, 0x7c, 0xf0, 0x48, 0x8e,
+	0x71, 0xc2, 0x63, 0x39, 0x86, 0x0b, 0x8f, 0xe5, 0x18, 0x6e, 0x3c, 0x96, 0x63, 0x48, 0x62, 0x03,
+	0x3b, 0xdd, 0x18, 0x10, 0x00, 0x00, 0xff, 0xff, 0x29, 0x87, 0x23, 0x3e, 0xd1, 0x00, 0x00, 0x00,
+}
+
 func (m *PublicKey) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
@@ -494,6 +506,9 @@ func encodeVarintModels(dAtA []byte, offset int, v uint64) int {
 	return offset + 1
 }
 func (m *PublicKey) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	if m.Pub != nil {
@@ -503,6 +518,9 @@ func (m *PublicKey) Size() (n int) {
 }
 
 func (m *PublicKey_Ed25519) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	if m.Ed25519 != nil {
@@ -512,6 +530,9 @@ func (m *PublicKey_Ed25519) Size() (n int) {
 	return n
 }
 func (m *PrivateKey) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	if m.Priv != nil {
@@ -521,6 +542,9 @@ func (m *PrivateKey) Size() (n int) {
 }
 
 func (m *PrivateKey_Ed25519) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	if m.Ed25519 != nil {
@@ -530,6 +554,9 @@ func (m *PrivateKey_Ed25519) Size() (n int) {
 	return n
 }
 func (m *Signature) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	if m.Sig != nil {
@@ -539,6 +566,9 @@ func (m *Signature) Size() (n int) {
 }
 
 func (m *Signature_Ed25519) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	if m.Ed25519 != nil {
@@ -576,7 +606,7 @@ func (m *PublicKey) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -604,7 +634,7 @@ func (m *PublicKey) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				byteLen |= (int(b) & 0x7F) << shift
+				byteLen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -613,6 +643,9 @@ func (m *PublicKey) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthModels
 			}
 			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthModels
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -627,6 +660,9 @@ func (m *PublicKey) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthModels
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthModels
 			}
 			if (iNdEx + skippy) > l {
@@ -656,7 +692,7 @@ func (m *PrivateKey) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -684,7 +720,7 @@ func (m *PrivateKey) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				byteLen |= (int(b) & 0x7F) << shift
+				byteLen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -693,6 +729,9 @@ func (m *PrivateKey) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthModels
 			}
 			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthModels
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -707,6 +746,9 @@ func (m *PrivateKey) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthModels
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthModels
 			}
 			if (iNdEx + skippy) > l {
@@ -736,7 +778,7 @@ func (m *Signature) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -764,7 +806,7 @@ func (m *Signature) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				byteLen |= (int(b) & 0x7F) << shift
+				byteLen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -773,6 +815,9 @@ func (m *Signature) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthModels
 			}
 			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthModels
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -787,6 +832,9 @@ func (m *Signature) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthModels
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthModels
 			}
 			if (iNdEx + skippy) > l {
@@ -855,8 +903,11 @@ func skipModels(dAtA []byte) (n int, err error) {
 					break
 				}
 			}
-			iNdEx += length
 			if length < 0 {
+				return 0, ErrInvalidLengthModels
+			}
+			iNdEx += length
+			if iNdEx < 0 {
 				return 0, ErrInvalidLengthModels
 			}
 			return iNdEx, nil
@@ -887,6 +938,9 @@ func skipModels(dAtA []byte) (n int, err error) {
 					return 0, err
 				}
 				iNdEx = start + next
+				if iNdEx < 0 {
+					return 0, ErrInvalidLengthModels
+				}
 			}
 			return iNdEx, nil
 		case 4:
@@ -905,19 +959,3 @@ var (
 	ErrInvalidLengthModels = fmt.Errorf("proto: negative length found during unmarshaling")
 	ErrIntOverflowModels   = fmt.Errorf("proto: integer overflow")
 )
-
-func init() { proto.RegisterFile("crypto/models.proto", fileDescriptor_models_240e24611ae90f59) }
-
-var fileDescriptor_models_240e24611ae90f59 = []byte{
-	// 152 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x12, 0x4e, 0x2e, 0xaa, 0x2c,
-	0x28, 0xc9, 0xd7, 0xcf, 0xcd, 0x4f, 0x49, 0xcd, 0x29, 0xd6, 0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17,
-	0x62, 0x83, 0x08, 0x2a, 0xe9, 0x71, 0x71, 0x06, 0x94, 0x26, 0xe5, 0x64, 0x26, 0x7b, 0xa7, 0x56,
-	0x0a, 0x49, 0x71, 0xb1, 0xa7, 0xa6, 0x18, 0x99, 0x9a, 0x1a, 0x5a, 0x4a, 0x30, 0x2a, 0x30, 0x6a,
-	0xf0, 0x78, 0x30, 0x04, 0xc1, 0x04, 0x9c, 0x58, 0xb9, 0x98, 0x0b, 0x4a, 0x93, 0x94, 0x0c, 0xb8,
-	0xb8, 0x02, 0x8a, 0x32, 0xcb, 0x12, 0x4b, 0x52, 0x09, 0x69, 0x60, 0xe3, 0x62, 0x29, 0x28, 0xca,
-	0x2c, 0x03, 0xd9, 0x10, 0x9c, 0x99, 0x9e, 0x97, 0x58, 0x52, 0x5a, 0x94, 0x4a, 0xc8, 0x86, 0xe2,
-	0xcc, 0x74, 0x27, 0x81, 0x13, 0x8f, 0xe4, 0x18, 0x2f, 0x3c, 0x92, 0x63, 0x7c, 0xf0, 0x48, 0x8e,
-	0x71, 0xc2, 0x63, 0x39, 0x86, 0x24, 0x36, 0xb0, 0x93, 0x8d, 0x01, 0x01, 0x00, 0x00, 0xff, 0xff,
-	0xe1, 0x71, 0xa8, 0x1c, 0xc9, 0x00, 0x00, 0x00,
-}

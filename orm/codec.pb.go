@@ -3,11 +3,12 @@
 
 package orm
 
-import proto "github.com/gogo/protobuf/proto"
-import fmt "fmt"
-import math "math"
-
-import io "io"
+import (
+	fmt "fmt"
+	proto "github.com/gogo/protobuf/proto"
+	io "io"
+	math "math"
+)
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
@@ -22,16 +23,14 @@ const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
 
 // MultiRef contains a list of references to pks
 type MultiRef struct {
-	Refs                 [][]byte `protobuf:"bytes,1,rep,name=refs" json:"refs,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
+	Refs [][]byte `protobuf:"bytes,1,rep,name=refs,proto3" json:"refs,omitempty"`
 }
 
 func (m *MultiRef) Reset()         { *m = MultiRef{} }
 func (m *MultiRef) String() string { return proto.CompactTextString(m) }
 func (*MultiRef) ProtoMessage()    {}
 func (*MultiRef) Descriptor() ([]byte, []int) {
-	return fileDescriptor_codec_469e6b04ee8f908d, []int{0}
+	return fileDescriptor_4aef1e59ada91b17, []int{0}
 }
 func (m *MultiRef) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -48,8 +47,8 @@ func (m *MultiRef) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 		return b[:n], nil
 	}
 }
-func (dst *MultiRef) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MultiRef.Merge(dst, src)
+func (m *MultiRef) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MultiRef.Merge(m, src)
 }
 func (m *MultiRef) XXX_Size() int {
 	return m.Size()
@@ -69,16 +68,14 @@ func (m *MultiRef) GetRefs() [][]byte {
 
 // Counter could be used for sequence, but mainly just for test
 type Counter struct {
-	Count                int64    `protobuf:"varint,1,opt,name=count,proto3" json:"count,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
+	Count int64 `protobuf:"varint,1,opt,name=count,proto3" json:"count,omitempty"`
 }
 
 func (m *Counter) Reset()         { *m = Counter{} }
 func (m *Counter) String() string { return proto.CompactTextString(m) }
 func (*Counter) ProtoMessage()    {}
 func (*Counter) Descriptor() ([]byte, []int) {
-	return fileDescriptor_codec_469e6b04ee8f908d, []int{1}
+	return fileDescriptor_4aef1e59ada91b17, []int{1}
 }
 func (m *Counter) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -95,8 +92,8 @@ func (m *Counter) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 		return b[:n], nil
 	}
 }
-func (dst *Counter) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_Counter.Merge(dst, src)
+func (m *Counter) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Counter.Merge(m, src)
 }
 func (m *Counter) XXX_Size() int {
 	return m.Size()
@@ -118,6 +115,22 @@ func init() {
 	proto.RegisterType((*MultiRef)(nil), "orm.MultiRef")
 	proto.RegisterType((*Counter)(nil), "orm.Counter")
 }
+
+func init() { proto.RegisterFile("orm/codec.proto", fileDescriptor_4aef1e59ada91b17) }
+
+var fileDescriptor_4aef1e59ada91b17 = []byte{
+	// 134 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0xe2, 0xcf, 0x2f, 0xca, 0xd5,
+	0x4f, 0xce, 0x4f, 0x49, 0x4d, 0xd6, 0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17, 0x62, 0xce, 0x2f, 0xca,
+	0x55, 0x92, 0xe3, 0xe2, 0xf0, 0x2d, 0xcd, 0x29, 0xc9, 0x0c, 0x4a, 0x4d, 0x13, 0x12, 0xe2, 0x62,
+	0x29, 0x4a, 0x4d, 0x2b, 0x96, 0x60, 0x54, 0x60, 0xd6, 0xe0, 0x09, 0x02, 0xb3, 0x95, 0xe4, 0xb9,
+	0xd8, 0x9d, 0xf3, 0x4b, 0xf3, 0x4a, 0x52, 0x8b, 0x84, 0x44, 0xb8, 0x58, 0x93, 0x41, 0x4c, 0x09,
+	0x46, 0x05, 0x46, 0x0d, 0xe6, 0x20, 0x08, 0xc7, 0x49, 0xe2, 0xc4, 0x23, 0x39, 0xc6, 0x0b, 0x8f,
+	0xe4, 0x18, 0x1f, 0x3c, 0x92, 0x63, 0x9c, 0xf0, 0x58, 0x8e, 0xe1, 0xc2, 0x63, 0x39, 0x86, 0x1b,
+	0x8f, 0xe5, 0x18, 0x92, 0xd8, 0xc0, 0xd6, 0x18, 0x03, 0x02, 0x00, 0x00, 0xff, 0xff, 0xa6, 0x2f,
+	0x27, 0x53, 0x79, 0x00, 0x00, 0x00,
+}
+
 func (m *MultiRef) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
@@ -177,6 +190,9 @@ func encodeVarintCodec(dAtA []byte, offset int, v uint64) int {
 	return offset + 1
 }
 func (m *MultiRef) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	if len(m.Refs) > 0 {
@@ -189,6 +205,9 @@ func (m *MultiRef) Size() (n int) {
 }
 
 func (m *Counter) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	if m.Count != 0 {
@@ -225,7 +244,7 @@ func (m *MultiRef) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -253,7 +272,7 @@ func (m *MultiRef) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				byteLen |= (int(b) & 0x7F) << shift
+				byteLen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -262,6 +281,9 @@ func (m *MultiRef) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -275,6 +297,9 @@ func (m *MultiRef) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthCodec
 			}
 			if (iNdEx + skippy) > l {
@@ -304,7 +329,7 @@ func (m *Counter) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -332,7 +357,7 @@ func (m *Counter) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.Count |= (int64(b) & 0x7F) << shift
+				m.Count |= int64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -344,6 +369,9 @@ func (m *Counter) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthCodec
 			}
 			if (iNdEx + skippy) > l {
@@ -412,8 +440,11 @@ func skipCodec(dAtA []byte) (n int, err error) {
 					break
 				}
 			}
-			iNdEx += length
 			if length < 0 {
+				return 0, ErrInvalidLengthCodec
+			}
+			iNdEx += length
+			if iNdEx < 0 {
 				return 0, ErrInvalidLengthCodec
 			}
 			return iNdEx, nil
@@ -444,6 +475,9 @@ func skipCodec(dAtA []byte) (n int, err error) {
 					return 0, err
 				}
 				iNdEx = start + next
+				if iNdEx < 0 {
+					return 0, ErrInvalidLengthCodec
+				}
 			}
 			return iNdEx, nil
 		case 4:
@@ -462,17 +496,3 @@ var (
 	ErrInvalidLengthCodec = fmt.Errorf("proto: negative length found during unmarshaling")
 	ErrIntOverflowCodec   = fmt.Errorf("proto: integer overflow")
 )
-
-func init() { proto.RegisterFile("orm/codec.proto", fileDescriptor_codec_469e6b04ee8f908d) }
-
-var fileDescriptor_codec_469e6b04ee8f908d = []byte{
-	// 125 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0xe2, 0xcf, 0x2f, 0xca, 0xd5,
-	0x4f, 0xce, 0x4f, 0x49, 0x4d, 0xd6, 0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17, 0x62, 0xce, 0x2f, 0xca,
-	0x55, 0x92, 0xe3, 0xe2, 0xf0, 0x2d, 0xcd, 0x29, 0xc9, 0x0c, 0x4a, 0x4d, 0x13, 0x12, 0xe2, 0x62,
-	0x29, 0x4a, 0x4d, 0x2b, 0x96, 0x60, 0x54, 0x60, 0xd6, 0xe0, 0x09, 0x02, 0xb3, 0x95, 0xe4, 0xb9,
-	0xd8, 0x9d, 0xf3, 0x4b, 0xf3, 0x4a, 0x52, 0x8b, 0x84, 0x44, 0xb8, 0x58, 0x93, 0x41, 0x4c, 0x09,
-	0x46, 0x05, 0x46, 0x0d, 0xe6, 0x20, 0x08, 0xc7, 0x49, 0xe0, 0xc4, 0x23, 0x39, 0xc6, 0x0b, 0x8f,
-	0xe4, 0x18, 0x1f, 0x3c, 0x92, 0x63, 0x9c, 0xf0, 0x58, 0x8e, 0x21, 0x89, 0x0d, 0x6c, 0xbc, 0x31,
-	0x20, 0x00, 0x00, 0xff, 0xff, 0xa8, 0xc3, 0x7c, 0x5d, 0x71, 0x00, 0x00, 0x00,
-}
