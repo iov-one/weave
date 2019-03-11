@@ -279,7 +279,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 						Memo:         "start",
 					},
 					blocksize:      100,
-					wantDeliverErr: errors.ErrInsufficientAmount.New("funds"),
+					wantDeliverErr: errors.ErrInsufficientAmount,
 				},
 			},
 		},
@@ -482,7 +482,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 
 			for i, a := range tc.actions {
 				cache := db.CacheWrap()
-				if _, err := rt.Check(a.ctx(), cache, a.tx()); !errors.Is(err, a.wantCheckErr) {
+				if _, err := rt.Check(a.ctx(), cache, a.tx()); !a.wantCheckErr.Is(err) {
 					t.Logf("want: %+v", a.wantCheckErr)
 					t.Logf(" got: %+v", err)
 					t.Fatalf("action %d check (%T)", i, a.msg)
@@ -493,7 +493,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 					continue
 				}
 
-				if _, err := rt.Deliver(a.ctx(), db, a.tx()); !errors.Is(err, a.wantDeliverErr) {
+				if _, err := rt.Deliver(a.ctx(), db, a.tx()); !a.wantDeliverErr.Is(err) {
 					t.Logf("want: %+v", a.wantDeliverErr)
 					t.Logf(" got: %+v", err)
 					t.Fatalf("action %d delivery (%T)", i, a.msg)
@@ -516,8 +516,8 @@ type action struct {
 	conditions     []weave.Condition
 	msg            weave.Msg
 	blocksize      int64
-	wantCheckErr   error
-	wantDeliverErr error
+	wantCheckErr   *errors.Error
+	wantDeliverErr *errors.Error
 }
 
 func (a *action) tx() weave.Tx {

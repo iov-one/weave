@@ -196,7 +196,7 @@ func TestCoinsNormalize(t *testing.T) {
 	cases := map[string]struct {
 		coins     Coins
 		wantCoins Coins
-		wantErr   error
+		wantErr   *errors.Error
 	}{
 		"nil coins": {
 			coins:     nil,
@@ -277,7 +277,7 @@ func TestCoinsNormalize(t *testing.T) {
 	for testName, tc := range cases {
 		t.Run(testName, func(t *testing.T) {
 			got, err := NormalizeCoins(tc.coins)
-			if !errors.Is(tc.wantErr, err) {
+			if !tc.wantErr.Is(err) {
 				t.Fatalf("want %+v error, got %+v", tc.wantErr, err)
 			}
 			if tc.wantErr == nil {

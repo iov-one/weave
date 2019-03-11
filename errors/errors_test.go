@@ -180,6 +180,26 @@ func TestErrorIs(t *testing.T) {
 			b:      errors.Wrap(fmt.Errorf("stdlib error"), "w-rap"),
 			wantIs: true,
 		},
+		"nil is nil": {
+			a:      nil,
+			b:      nil,
+			wantIs: true,
+		},
+		"nil is any error nil": {
+			a:      nil,
+			b:      (*customError)(nil),
+			wantIs: true,
+		},
+		"nil is not not-nil": {
+			a:      nil,
+			b:      ErrNotFound,
+			wantIs: false,
+		},
+		"not-nil is not nil": {
+			a:      ErrNotFound,
+			b:      nil,
+			wantIs: false,
+		},
 	}
 
 	for testName, tc := range cases {
@@ -189,6 +209,13 @@ func TestErrorIs(t *testing.T) {
 			}
 		})
 	}
+}
+
+type customError struct {
+}
+
+func (customError) Error() string {
+	return "custom error"
 }
 
 func TestWrapEmpty(t *testing.T) {
@@ -272,34 +299,5 @@ func TestStackTrace(t *testing.T) {
 			// contains a link to where it was created, which must be here, not the Wrap() function
 			assert.True(t, strings.Contains(medium, "[iov-one/weave/errors/errors_test.go"))
 		})
-	}
-}
-
-// CheckErr is the type of all the check functions here
-type CheckErr func(error) bool
-
-// NoErr is useful for test cases when you want to fulfil the CheckErr type
-func NoErr(err error) bool {
-	return err == nil
-}
-
-// TestChecks make sure the Is and Err methods match
-func TestChecks(t *testing.T) {
-	cases := []struct {
-		err   error
-		check CheckErr
-		match bool
-	}{
-
-		// make sure lots of things match ErrInternal, but not everything
-		{Wrap(fmt.Errorf("internal"), "wrapped"),
-			func(err error) bool { return !Is(err, ErrInternal.New("wrapped")) }, true},
-		{nil, NoErr, true},
-		{Wrap(nil, "asd"), NoErr, true},
-	}
-
-	for i, tc := range cases {
-		match := tc.check(tc.err)
-		assert.Equal(t, tc.match, match, "%d", i)
 	}
 }

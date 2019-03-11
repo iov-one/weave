@@ -271,7 +271,7 @@ func TestBalance(t *testing.T) {
 	cases := map[string]struct {
 		addr      weave.Address
 		wantCoins coin.Coins
-		wantErr   error
+		wantErr   *errors.Error
 	}{
 		"non exising account": {
 			addr:    weavetest.NewCondition().Address(),
@@ -292,7 +292,7 @@ func TestBalance(t *testing.T) {
 	for testName, tc := range cases {
 		t.Run(testName, func(t *testing.T) {
 			coins, err := ctrl.Balance(store, tc.addr)
-			if !errors.Is(tc.wantErr, err) {
+			if !tc.wantErr.Is(err) {
 				t.Fatalf("want %q error, got %q", tc.wantErr, err)
 			}
 			if !tc.wantCoins.Equals(coins) {

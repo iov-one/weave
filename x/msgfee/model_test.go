@@ -11,7 +11,7 @@ import (
 func TestMsgFeeValidate(t *testing.T) {
 	cases := map[string]struct {
 		mf      MsgFee
-		wantErr error
+		wantErr *errors.Error
 	}{
 		"all good": {
 			mf: MsgFee{
@@ -46,7 +46,7 @@ func TestMsgFeeValidate(t *testing.T) {
 	for testName, tc := range cases {
 		t.Run(testName, func(t *testing.T) {
 			err := tc.mf.Validate()
-			if !errors.Is(tc.wantErr, err) {
+			if !tc.wantErr.Is(err) {
 				t.Fatalf("got %v", err)
 			}
 		})

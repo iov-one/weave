@@ -3,6 +3,7 @@ package errors
 import (
 	"fmt"
 	"io"
+	"reflect"
 	"runtime"
 	"strings"
 
@@ -156,10 +157,21 @@ func (kind *Error) Is(err error) bool {
 	type causer interface {
 		Cause() error
 	}
+
+	// Reflect usage is necessary to correctly compare with
+	// a nil implementation of an error.
+	if kind == nil {
+		if err == nil {
+			return true
+		}
+		return reflect.ValueOf(err).IsNil()
+	}
+
 	for {
 		if err == kind {
 			return true
 		}
+
 		if c, ok := err.(causer); ok {
 			err = c.Cause()
 		} else {
@@ -255,42 +267,8 @@ func (e *wrappedError) ABCILog() string {
 }
 
 func (e *wrappedError) Cause() error {
-	if e.parent == nil {
-		return e
-	}
-	return errors.Cause(e.parent)
+	return e.parent
 }
-
-// Is returns true if both errors represent the same class of issue. For
-// example, both errors' root cause is ErrNotFound.
-//
-// If two errors are not the same instance, Is always returns false if at least
-// one of the errors is internal. This is because all external errors (created
-// outside of weave package) are internal to the implementation and we cannot
-// reason about their equality.
-func Is(a, b error) bool {
-	if a == b {
-		return true
-	}
-
-	type coder interface {
-		ABCICode() uint32
-	}
-
-	// Two errors are equal only if none of them is internal and they have
-	// the same ABCICode.
-	ac, ok := a.(coder)
-	if !ok || ac.ABCICode() == ErrInternal.code {
-		return false
-	}
-	bc, ok := b.(coder)
-	if !ok || bc.ABCICode() == ErrInternal.code {
-		return false
-	}
-	return ac.ABCICode() == bc.ABCICode()
-}
-
-//---- Stacktrace formatting -----
 
 func matchesFile(f errors.Frame, substrs ...string) bool {
 	file, _ := fileLine(f)

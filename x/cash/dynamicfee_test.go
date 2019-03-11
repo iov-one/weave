@@ -38,9 +38,9 @@ func TestDynamicFeeDecorator(t *testing.T) {
 		// Wallet state applied after running Check but before running Deliver
 		updateWallets []orm.Object
 
-		wantCheckErr     error
+		wantCheckErr     *errors.Error
 		wantCheckTxFee   coin.Coin
-		wantDeliverErr   error
+		wantDeliverErr   *errors.Error
 		wantDeliverTxFee coin.Coin
 		wantGasPayment   int64
 	}{
@@ -189,7 +189,7 @@ func TestDynamicFeeDecorator(t *testing.T) {
 			cache := db.CacheWrap()
 
 			cRes, err := h.Check(nil, cache, tx, tc.handler)
-			if !errors.Is(tc.wantCheckErr, err) {
+			if !tc.wantCheckErr.Is(err) {
 				t.Fatalf("got check error: %v", err)
 			}
 			if tc.wantGasPayment != cRes.GasPayment {
@@ -207,7 +207,7 @@ func TestDynamicFeeDecorator(t *testing.T) {
 
 			cache.Discard()
 
-			if _, err = h.Deliver(nil, cache, tx, tc.handler); !errors.Is(tc.wantDeliverErr, err) {
+			if _, err = h.Deliver(nil, cache, tx, tc.handler); !tc.wantDeliverErr.Is(err) {
 				t.Fatalf("got deliver error: %v", err)
 			}
 
@@ -243,7 +243,7 @@ func assertCharged(t *testing.T, db weave.KVStore, ctrl Controller, want coin.Co
 		if !wantTx.Equals(chargedFee) {
 			t.Errorf("charged fee: %v", chargedFee)
 		}
-	case errors.Is(errors.ErrNotFound, err):
+	case errors.ErrNotFound.Is(err):
 		if minimumFee.IsZero() {
 			// Minimal fee is zero so the collector account is zero
 			// as well (not even created). All good.

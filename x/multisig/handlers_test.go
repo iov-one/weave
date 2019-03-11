@@ -167,7 +167,7 @@ func TestUpdateContractMsgHandler(t *testing.T) {
 		name    string
 		msg     *UpdateContractMsg
 		signers []weave.Condition
-		err     error
+		err     *errors.Error
 	}{
 		{
 			name: "authorized",
@@ -189,7 +189,7 @@ func TestUpdateContractMsgHandler(t *testing.T) {
 				AdminThreshold:      5,
 			},
 			signers: []weave.Condition{a},
-			err:     errors.ErrUnauthorized.Newf("contract=%X", mutableID),
+			err:     errors.ErrUnauthorized,
 		},
 		{
 			name: "immutable",
@@ -200,7 +200,7 @@ func TestUpdateContractMsgHandler(t *testing.T) {
 				AdminThreshold:      5,
 			},
 			signers: []weave.Condition{a, b, c, d, e},
-			err:     errors.ErrUnauthorized.Newf("contract=%X", immutableID),
+			err:     errors.ErrUnauthorized,
 		},
 		{
 			name: "bad change threshold",
@@ -211,7 +211,7 @@ func TestUpdateContractMsgHandler(t *testing.T) {
 				AdminThreshold:      0,
 			},
 			signers: []weave.Condition{a, b, c, d, e},
-			err:     errors.ErrInvalidMsg.New(invalidThreshold),
+			err:     errors.ErrInvalidMsg,
 		},
 	}
 
@@ -224,7 +224,7 @@ func TestUpdateContractMsgHandler(t *testing.T) {
 		if test.err == nil {
 			require.NoError(t, err, test.name)
 		} else {
-			require.True(t, errors.Is(err, test.err), test.name)
+			require.True(t, test.err.Is(err), test.name)
 		}
 
 		_, err = handler.Deliver(ctx, db, &weavetest.Tx{Msg: msg})
@@ -236,7 +236,7 @@ func TestUpdateContractMsgHandler(t *testing.T) {
 				contract,
 				test.name)
 		} else {
-			require.EqualError(t, err, test.err.Error(), test.name)
+			require.True(t, test.err.Is(err), test.name)
 		}
 	}
 }
