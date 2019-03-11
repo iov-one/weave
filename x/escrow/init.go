@@ -35,7 +35,6 @@ func (i *Initializer) FromGenesis(opts weave.Options, db weave.KVStore) error {
 			Arbiter:   e.Arbiter,
 			Recipient: e.Recipient,
 			Timeout:   e.Timeout,
-			Amount:    e.Amount,
 		}
 		if err := escr.Validate(); err != nil {
 			return errors.Wrapf(err, "invalid escrow at position: %d ", j)

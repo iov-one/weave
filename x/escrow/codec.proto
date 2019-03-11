@@ -16,8 +16,6 @@ message Escrow {
   bytes sender = 1;
   bytes arbiter = 2;
   bytes recipient = 3;
-  // amount may contain multiple token types
-  repeated coin.Coin amount = 4;
   // if unreleased before timeout, will return to sender
   // timeout stored here is absolute block height
   int64 timeout = 5;
