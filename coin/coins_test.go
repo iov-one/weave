@@ -193,11 +193,6 @@ func TestCombine(t *testing.T) {
 }
 
 func TestCoinsNormalize(t *testing.T) {
-	coinp := func(w, f int64, t string) *Coin {
-		c := NewCoin(w, f, t)
-		return &c
-	}
-
 	cases := map[string]struct {
 		coins     Coins
 		wantCoins Coins
@@ -212,68 +207,68 @@ func TestCoinsNormalize(t *testing.T) {
 			wantCoins: nil,
 		},
 		"one zero coin": {
-			coins:     Coins{coinp(0, 0, "BTC")},
+			coins:     Coins{NewCoinp(0, 0, "BTC")},
 			wantCoins: nil,
 		},
 		"one non zero coin": {
-			coins:     Coins{coinp(1, 1, "BTC")},
-			wantCoins: Coins{coinp(1, 1, "BTC")},
+			coins:     Coins{NewCoinp(1, 1, "BTC")},
+			wantCoins: Coins{NewCoinp(1, 1, "BTC")},
 		},
 		"coins sum to zero": {
 			coins: Coins{
-				coinp(1, 1, "BTC"),
-				coinp(-1, -1, "BTC"),
+				NewCoinp(1, 1, "BTC"),
+				NewCoinp(-1, -1, "BTC"),
 			},
 			wantCoins: nil,
 		},
 		"coins sum to non zero": {
 			coins: Coins{
-				coinp(1, 1, "BTC"),
-				coinp(2, 2, "BTC"),
+				NewCoinp(1, 1, "BTC"),
+				NewCoinp(2, 2, "BTC"),
 			},
 			wantCoins: []*Coin{
-				coinp(3, 3, "BTC"),
+				NewCoinp(3, 3, "BTC"),
 			},
 		},
 		"unordered coins": {
 			coins: Coins{
-				coinp(2, 0, "B"),
-				coinp(3, 0, "C"),
-				coinp(1, 0, "A"),
+				NewCoinp(2, 0, "B"),
+				NewCoinp(3, 0, "C"),
+				NewCoinp(1, 0, "A"),
 			},
 			wantCoins: []*Coin{
-				coinp(1, 0, "A"),
-				coinp(2, 0, "B"),
-				coinp(3, 0, "C"),
+				NewCoinp(1, 0, "A"),
+				NewCoinp(2, 0, "B"),
+				NewCoinp(3, 0, "C"),
 			},
 		},
 		"unordered and split value coins": {
 			coins: Coins{
-				coinp(1, 0, "B"),
-				coinp(1, 0, "C"),
-				coinp(1, 0, "B"),
-				coinp(1, 0, "A"),
-				coinp(1, 0, "C"),
-				coinp(1, 0, "C"),
+				NewCoinp(1, 0, "B"),
+				NewCoinp(1, 0, "C"),
+				NewCoinp(1, 0, "B"),
+				NewCoinp(1, 0, "A"),
+				NewCoinp(1, 0, "C"),
+				NewCoinp(1, 0, "C"),
 			},
 			wantCoins: []*Coin{
-				coinp(1, 0, "A"),
-				coinp(2, 0, "B"),
-				coinp(3, 0, "C"),
+				NewCoinp(1, 0, "A"),
+				NewCoinp(2, 0, "B"),
+				NewCoinp(3, 0, "C"),
 			},
 		},
 		"multiple coins sum to zero": {
 			coins: Coins{
-				coinp(1, 0, "DOGE"),
+				NewCoinp(1, 0, "DOGE"),
 
-				coinp(1, 0, "BTC"),
-				coinp(-1, 0, "BTC"),
+				NewCoinp(1, 0, "BTC"),
+				NewCoinp(-1, 0, "BTC"),
 
-				coinp(-1, 0, "ETH"),
-				coinp(2, 0, "ETH"),
-				coinp(-1, 0, "ETH"),
+				NewCoinp(-1, 0, "ETH"),
+				NewCoinp(2, 0, "ETH"),
+				NewCoinp(-1, 0, "ETH"),
 
-				coinp(-1, 0, "DOGE"),
+				NewCoinp(-1, 0, "DOGE"),
 			},
 			wantCoins: nil,
 		},
@@ -297,82 +292,77 @@ func TestCoinsNormalize(t *testing.T) {
 }
 
 func BenchmarkCoinsNormalize(b *testing.B) {
-	coinp := func(w, f int64, t string) *Coin {
-		c := NewCoin(w, f, t)
-		return &c
-	}
-
 	benchmarks := map[string]Coins{
 		"nil coins":      nil,
 		"zero len coins": make(Coins, 0),
-		"one coin":       Coins{coinp(1, 0, "ETH")},
+		"one coin":       Coins{NewCoinp(1, 0, "ETH")},
 		"two normalized coins": Coins{
-			coinp(1, 0, "A"),
-			coinp(1, 0, "B"),
+			NewCoinp(1, 0, "A"),
+			NewCoinp(1, 0, "B"),
 		},
 		"two unordered coins": Coins{
-			coinp(1, 0, "B"),
-			coinp(1, 0, "C"),
+			NewCoinp(1, 0, "B"),
+			NewCoinp(1, 0, "C"),
 		},
 		"two split coins": Coins{
-			coinp(1, 0, "BTC"),
-			coinp(1, 0, "BTC"),
+			NewCoinp(1, 0, "BTC"),
+			NewCoinp(1, 0, "BTC"),
 		},
 		"four normalized": Coins{
-			coinp(1, 0, "A"),
-			coinp(1, 0, "B"),
-			coinp(1, 0, "C"),
-			coinp(1, 0, "D"),
+			NewCoinp(1, 0, "A"),
+			NewCoinp(1, 0, "B"),
+			NewCoinp(1, 0, "C"),
+			NewCoinp(1, 0, "D"),
 		},
 		"four not normalized": Coins{
-			coinp(1, 0, "A"),
-			coinp(1, 0, "C"),
-			coinp(1, 0, "A"),
-			coinp(1, 0, "B"),
+			NewCoinp(1, 0, "A"),
+			NewCoinp(1, 0, "C"),
+			NewCoinp(1, 0, "A"),
+			NewCoinp(1, 0, "B"),
 		},
 		"six not normalized": Coins{
-			coinp(1, 0, "A"),
-			coinp(1, 0, "C"),
-			coinp(1, 0, "A"),
-			coinp(1, 0, "B"),
-			coinp(-1, 0, "B"),
-			coinp(1, 0, "D"),
+			NewCoinp(1, 0, "A"),
+			NewCoinp(1, 0, "C"),
+			NewCoinp(1, 0, "A"),
+			NewCoinp(1, 0, "B"),
+			NewCoinp(-1, 0, "B"),
+			NewCoinp(1, 0, "D"),
 		},
 		"six normalized": Coins{
-			coinp(1, 0, "A"),
-			coinp(1, 0, "B"),
-			coinp(1, 0, "C"),
-			coinp(1, 0, "D"),
-			coinp(-1, 0, "E"),
-			coinp(-1, 0, "F"),
+			NewCoinp(1, 0, "A"),
+			NewCoinp(1, 0, "B"),
+			NewCoinp(1, 0, "C"),
+			NewCoinp(1, 0, "D"),
+			NewCoinp(-1, 0, "E"),
+			NewCoinp(-1, 0, "F"),
 		},
 		"twelve normalized": Coins{
-			coinp(1, 0, "A"),
-			coinp(1, 0, "B"),
-			coinp(1, 0, "C"),
-			coinp(1, 0, "D"),
-			coinp(-1, 0, "E"),
-			coinp(-1, 0, "F"),
-			coinp(-1, 0, "G"),
-			coinp(-1, 0, "H"),
-			coinp(-1, 0, "I"),
-			coinp(-1, 0, "J"),
-			coinp(-1, 0, "K"),
-			coinp(-1, 0, "L"),
+			NewCoinp(1, 0, "A"),
+			NewCoinp(1, 0, "B"),
+			NewCoinp(1, 0, "C"),
+			NewCoinp(1, 0, "D"),
+			NewCoinp(-1, 0, "E"),
+			NewCoinp(-1, 0, "F"),
+			NewCoinp(-1, 0, "G"),
+			NewCoinp(-1, 0, "H"),
+			NewCoinp(-1, 0, "I"),
+			NewCoinp(-1, 0, "J"),
+			NewCoinp(-1, 0, "K"),
+			NewCoinp(-1, 0, "L"),
 		},
 		"twelve not normalized": Coins{
-			coinp(-1, 0, "G"),
-			coinp(-1, 0, "H"),
-			coinp(-1, 0, "A"),
-			coinp(-1, 0, "H"),
-			coinp(1, 0, "A"),
-			coinp(1, 0, "B"),
-			coinp(1, 0, "C"),
-			coinp(1, 0, "D"),
-			coinp(-1, 0, "E"),
-			coinp(-1, 0, "F"),
-			coinp(-1, 0, "A"),
-			coinp(-1, 0, "H"),
+			NewCoinp(-1, 0, "G"),
+			NewCoinp(-1, 0, "H"),
+			NewCoinp(-1, 0, "A"),
+			NewCoinp(-1, 0, "H"),
+			NewCoinp(1, 0, "A"),
+			NewCoinp(1, 0, "B"),
+			NewCoinp(1, 0, "C"),
+			NewCoinp(1, 0, "D"),
+			NewCoinp(-1, 0, "E"),
+			NewCoinp(-1, 0, "F"),
+			NewCoinp(-1, 0, "A"),
+			NewCoinp(-1, 0, "H"),
 		},
 	}
 
@@ -386,11 +376,6 @@ func BenchmarkCoinsNormalize(b *testing.B) {
 }
 
 func TestCoinsIsNormalized(t *testing.T) {
-	coinp := func(w, f int64, t string) *Coin {
-		c := NewCoin(w, f, t)
-		return &c
-	}
-
 	cases := map[string]struct {
 		coins Coins
 		want  bool
@@ -404,46 +389,46 @@ func TestCoinsIsNormalized(t *testing.T) {
 			want:  true,
 		},
 		"one non zero coin": {
-			coins: []*Coin{coinp(1, 0, "BTC")},
+			coins: []*Coin{NewCoinp(1, 0, "BTC")},
 			want:  true,
 		},
 		"one zero coin": {
-			coins: []*Coin{coinp(0, 0, "BTC")},
+			coins: []*Coin{NewCoinp(0, 0, "BTC")},
 			want:  false,
 		},
 		"normalized": {
 			coins: []*Coin{
-				coinp(1, 0, "A"),
-				coinp(0, 1, "B"),
-				coinp(0, 1, "C"),
-				coinp(1, 0, "D"),
+				NewCoinp(1, 0, "A"),
+				NewCoinp(0, 1, "B"),
+				NewCoinp(0, 1, "C"),
+				NewCoinp(1, 0, "D"),
 			},
 			want: true,
 		},
 		"unordered": {
 			coins: []*Coin{
-				coinp(1, 0, "A"),
-				coinp(0, 1, "C"),
-				coinp(0, 1, "B"),
-				coinp(1, 0, "D"),
+				NewCoinp(1, 0, "A"),
+				NewCoinp(0, 1, "C"),
+				NewCoinp(0, 1, "B"),
+				NewCoinp(1, 0, "D"),
 			},
 			want: false,
 		},
 		"repeating currency": {
 			coins: []*Coin{
-				coinp(1, 0, "A"),
-				coinp(0, 1, "A"),
-				coinp(0, 1, "B"),
-				coinp(1, 0, "C"),
+				NewCoinp(1, 0, "A"),
+				NewCoinp(0, 1, "A"),
+				NewCoinp(0, 1, "B"),
+				NewCoinp(1, 0, "C"),
 			},
 			want: false,
 		},
 		"one currency nil": {
 			coins: []*Coin{
-				coinp(1, 0, "A"),
+				NewCoinp(1, 0, "A"),
 				nil,
-				coinp(0, 1, "B"),
-				coinp(1, 0, "C"),
+				NewCoinp(0, 1, "B"),
+				NewCoinp(1, 0, "C"),
 			},
 			want: false,
 		},

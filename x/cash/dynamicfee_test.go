@@ -19,14 +19,9 @@ func TestDynamicFeeDecorator(t *testing.T) {
 
 	collectorAddr := perm3.Address()
 
-	coinp := func(w, f int64, t string) *coin.Coin {
-		c := coin.NewCoin(w, f, t)
-		return &c
-	}
-
 	walletObj := func(a weave.Address, w, f int64, ticker string) orm.Object {
 		t.Helper()
-		obj, err := WalletWith(a, coinp(w, f, ticker))
+		obj, err := WalletWith(a, coin.NewCoinp(w, f, ticker))
 		if err != nil {
 			t.Fatalf("cannot create a wallet: %s", err)
 		}
