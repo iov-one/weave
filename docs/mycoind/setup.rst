@@ -21,7 +21,7 @@ You will need to have the go tooling installed, version 1.9+.
 If you do not already have it, please
 `download <https://golang.org/dl/>`_ and
 `follow the instructions <https://golang.org/doc/install>`__
-from the official golang homepage. Make sure to read down
+from the official Go language homepage. Make sure to read down
 to `Test Your Installation <https://golang.org/doc/install#testing>`__.
 
 We assume a standard setup in the Makefiles, especially to

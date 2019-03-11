@@ -50,7 +50,7 @@ Or the `app/results.proto <https://github.com/iov-one/weave/blob/master/app/resu
     }
 
 Note that the package defined in the protobuf file must match the
-package name used by the golang code in the same directory.
+package name used by the Go language code in the same directory.
 
 You can also import types from one proto file into another.
 Make sure to use the full github path in order that the generated
@@ -128,7 +128,7 @@ resolved by adding ``-I=.`` as well:
     (e.g. absolute and relative) are equivalent (it's harder than you think).
 
 You are welcome to use other codecs than ``gogofaster``, you can also
-try the standard golang protobuf compiler. What this mode goes is
+try the standard Go language protobuf compiler. What this mode goes is
 auto-generate static code for serialization and deserialization of the
 type. It performs the introspection one time to generate efficient code
 allowing us to avoid the use of reflection at runtime and get ~10x
