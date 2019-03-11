@@ -3,14 +3,14 @@
 
 package distribution
 
-import proto "github.com/gogo/protobuf/proto"
-import fmt "fmt"
-import math "math"
-import _ "github.com/gogo/protobuf/gogoproto"
-
-import github_com_iov_one_weave "github.com/iov-one/weave"
-
-import io "io"
+import (
+	fmt "fmt"
+	_ "github.com/gogo/protobuf/gogoproto"
+	proto "github.com/gogo/protobuf/proto"
+	github_com_iov_one_weave "github.com/iov-one/weave"
+	io "io"
+	math "math"
+)
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
@@ -33,16 +33,14 @@ type Revenue struct {
 	Admin github_com_iov_one_weave.Address `protobuf:"bytes,1,opt,name=admin,proto3,casttype=github.com/iov-one/weave.Address" json:"admin,omitempty"`
 	// Recipients holds any number of addresses that the collected revenue is
 	// distributed to. Must be at least one.
-	Recipients           []*Recipient `protobuf:"bytes,2,rep,name=recipients" json:"recipients,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}     `json:"-"`
-	XXX_sizecache        int32        `json:"-"`
+	Recipients []*Recipient `protobuf:"bytes,2,rep,name=recipients,proto3" json:"recipients,omitempty"`
 }
 
 func (m *Revenue) Reset()         { *m = Revenue{} }
 func (m *Revenue) String() string { return proto.CompactTextString(m) }
 func (*Revenue) ProtoMessage()    {}
 func (*Revenue) Descriptor() ([]byte, []int) {
-	return fileDescriptor_codec_b923144db5f6ec1e, []int{0}
+	return fileDescriptor_186299c22854933b, []int{0}
 }
 func (m *Revenue) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -59,8 +57,8 @@ func (m *Revenue) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 		return b[:n], nil
 	}
 }
-func (dst *Revenue) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_Revenue.Merge(dst, src)
+func (m *Revenue) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Revenue.Merge(m, src)
 }
 func (m *Revenue) XXX_Size() int {
 	return m.Size()
@@ -96,16 +94,14 @@ type Recipient struct {
 	// the weight. For example, if there are two recipients with weights 1 and 2
 	// accordingly, distribution will be 1/3 to the first address and 2/3 to the
 	// second one.
-	Weight               int32    `protobuf:"varint,2,opt,name=weight,proto3" json:"weight,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
+	Weight int32 `protobuf:"varint,2,opt,name=weight,proto3" json:"weight,omitempty"`
 }
 
 func (m *Recipient) Reset()         { *m = Recipient{} }
 func (m *Recipient) String() string { return proto.CompactTextString(m) }
 func (*Recipient) ProtoMessage()    {}
 func (*Recipient) Descriptor() ([]byte, []int) {
-	return fileDescriptor_codec_b923144db5f6ec1e, []int{1}
+	return fileDescriptor_186299c22854933b, []int{1}
 }
 func (m *Recipient) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -122,8 +118,8 @@ func (m *Recipient) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 		return b[:n], nil
 	}
 }
-func (dst *Recipient) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_Recipient.Merge(dst, src)
+func (m *Recipient) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Recipient.Merge(m, src)
 }
 func (m *Recipient) XXX_Size() int {
 	return m.Size()
@@ -156,16 +152,14 @@ type NewRevenueMsg struct {
 	Admin github_com_iov_one_weave.Address `protobuf:"bytes,1,opt,name=admin,proto3,casttype=github.com/iov-one/weave.Address" json:"admin,omitempty"`
 	// Recipients holds any number of addresses that the collected revenue is
 	// distributed to. Must be at least one.
-	Recipients           []*Recipient `protobuf:"bytes,2,rep,name=recipients" json:"recipients,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}     `json:"-"`
-	XXX_sizecache        int32        `json:"-"`
+	Recipients []*Recipient `protobuf:"bytes,2,rep,name=recipients,proto3" json:"recipients,omitempty"`
 }
 
 func (m *NewRevenueMsg) Reset()         { *m = NewRevenueMsg{} }
 func (m *NewRevenueMsg) String() string { return proto.CompactTextString(m) }
 func (*NewRevenueMsg) ProtoMessage()    {}
 func (*NewRevenueMsg) Descriptor() ([]byte, []int) {
-	return fileDescriptor_codec_b923144db5f6ec1e, []int{2}
+	return fileDescriptor_186299c22854933b, []int{2}
 }
 func (m *NewRevenueMsg) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -182,8 +176,8 @@ func (m *NewRevenueMsg) XXX_Marshal(b []byte, deterministic bool) ([]byte, error
 		return b[:n], nil
 	}
 }
-func (dst *NewRevenueMsg) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_NewRevenueMsg.Merge(dst, src)
+func (m *NewRevenueMsg) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_NewRevenueMsg.Merge(m, src)
 }
 func (m *NewRevenueMsg) XXX_Size() int {
 	return m.Size()
@@ -214,16 +208,14 @@ func (m *NewRevenueMsg) GetRecipients() []*Recipient {
 type DistributeMsg struct {
 	// Revenue ID reference an ID of a revenue instance that the collected fees
 	// should be distributed between recipients.
-	RevenueID            []byte   `protobuf:"bytes,1,opt,name=revenue_id,json=revenueId,proto3" json:"revenue_id,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
+	RevenueID []byte `protobuf:"bytes,1,opt,name=revenue_id,json=revenueId,proto3" json:"revenue_id,omitempty"`
 }
 
 func (m *DistributeMsg) Reset()         { *m = DistributeMsg{} }
 func (m *DistributeMsg) String() string { return proto.CompactTextString(m) }
 func (*DistributeMsg) ProtoMessage()    {}
 func (*DistributeMsg) Descriptor() ([]byte, []int) {
-	return fileDescriptor_codec_b923144db5f6ec1e, []int{3}
+	return fileDescriptor_186299c22854933b, []int{3}
 }
 func (m *DistributeMsg) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -240,8 +232,8 @@ func (m *DistributeMsg) XXX_Marshal(b []byte, deterministic bool) ([]byte, error
 		return b[:n], nil
 	}
 }
-func (dst *DistributeMsg) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_DistributeMsg.Merge(dst, src)
+func (m *DistributeMsg) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_DistributeMsg.Merge(m, src)
 }
 func (m *DistributeMsg) XXX_Size() int {
 	return m.Size()
@@ -269,16 +261,14 @@ type ResetRevenueMsg struct {
 	RevenueID []byte `protobuf:"bytes,1,opt,name=revenue_id,json=revenueId,proto3" json:"revenue_id,omitempty"`
 	// Recipients holds any number of addresses that the collected revenue is
 	// distributed to. Must be at least one.
-	Recipients           []*Recipient `protobuf:"bytes,2,rep,name=recipients" json:"recipients,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}     `json:"-"`
-	XXX_sizecache        int32        `json:"-"`
+	Recipients []*Recipient `protobuf:"bytes,2,rep,name=recipients,proto3" json:"recipients,omitempty"`
 }
 
 func (m *ResetRevenueMsg) Reset()         { *m = ResetRevenueMsg{} }
 func (m *ResetRevenueMsg) String() string { return proto.CompactTextString(m) }
 func (*ResetRevenueMsg) ProtoMessage()    {}
 func (*ResetRevenueMsg) Descriptor() ([]byte, []int) {
-	return fileDescriptor_codec_b923144db5f6ec1e, []int{4}
+	return fileDescriptor_186299c22854933b, []int{4}
 }
 func (m *ResetRevenueMsg) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -295,8 +285,8 @@ func (m *ResetRevenueMsg) XXX_Marshal(b []byte, deterministic bool) ([]byte, err
 		return b[:n], nil
 	}
 }
-func (dst *ResetRevenueMsg) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ResetRevenueMsg.Merge(dst, src)
+func (m *ResetRevenueMsg) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ResetRevenueMsg.Merge(m, src)
 }
 func (m *ResetRevenueMsg) XXX_Size() int {
 	return m.Size()
@@ -328,6 +318,33 @@ func init() {
 	proto.RegisterType((*DistributeMsg)(nil), "distribution.DistributeMsg")
 	proto.RegisterType((*ResetRevenueMsg)(nil), "distribution.ResetRevenueMsg")
 }
+
+func init() { proto.RegisterFile("x/distribution/codec.proto", fileDescriptor_186299c22854933b) }
+
+var fileDescriptor_186299c22854933b = []byte{
+	// 313 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xc4, 0x92, 0xbf, 0x4a, 0xc3, 0x40,
+	0x1c, 0xc7, 0x7b, 0x95, 0xb6, 0xf4, 0x6c, 0x11, 0x32, 0x68, 0xe8, 0x70, 0x0d, 0xc1, 0x21, 0x83,
+	0x4d, 0x40, 0x07, 0x41, 0x50, 0xb0, 0x74, 0xe9, 0xa0, 0xc3, 0xbd, 0x80, 0x24, 0xb9, 0x9f, 0xe9,
+	0x0d, 0xcd, 0x95, 0xdc, 0x25, 0xe9, 0xe4, 0xe4, 0x03, 0xf8, 0x58, 0x8e, 0x1d, 0x9d, 0x8a, 0x24,
+	0x6f, 0xe1, 0x24, 0x5e, 0x12, 0xc9, 0x5a, 0x17, 0xb7, 0xfb, 0xf1, 0xfd, 0xc3, 0xe7, 0x0b, 0x87,
+	0x27, 0x5b, 0x8f, 0x71, 0xa9, 0x12, 0x1e, 0xa4, 0x8a, 0x8b, 0xd8, 0x0b, 0x05, 0x83, 0xd0, 0xdd,
+	0x24, 0x42, 0x09, 0x63, 0xd4, 0x56, 0x26, 0xb3, 0x88, 0xab, 0x55, 0x1a, 0xb8, 0xa1, 0x58, 0x7b,
+	0x91, 0x88, 0x84, 0xa7, 0x4d, 0x41, 0xfa, 0xac, 0x2f, 0x7d, 0xe8, 0x57, 0x15, 0xb6, 0x5f, 0xf0,
+	0x80, 0x42, 0x06, 0x71, 0x0a, 0xc6, 0x0d, 0xee, 0xf9, 0x6c, 0xcd, 0x63, 0x13, 0x59, 0xc8, 0x19,
+	0xcd, 0xcf, 0xbf, 0xf6, 0x53, 0xab, 0x55, 0xc6, 0x45, 0x36, 0x13, 0x31, 0x78, 0x39, 0xf8, 0x19,
+	0xb8, 0xf7, 0x8c, 0x25, 0x20, 0x25, 0xad, 0x22, 0xc6, 0x35, 0xc6, 0x09, 0x84, 0x7c, 0xc3, 0x21,
+	0x56, 0xd2, 0xec, 0x5a, 0x47, 0xce, 0xf1, 0xe5, 0x99, 0xdb, 0x06, 0x73, 0x69, 0xa3, 0xd3, 0x96,
+	0xd5, 0x0e, 0xf1, 0xf0, 0x57, 0x30, 0xee, 0xf0, 0xc0, 0xaf, 0x7a, 0x0f, 0x62, 0x68, 0x42, 0xc6,
+	0x29, 0xee, 0xe7, 0xc0, 0xa3, 0x95, 0x32, 0xbb, 0x16, 0x72, 0x7a, 0xb4, 0xbe, 0xec, 0x57, 0x84,
+	0xc7, 0x8f, 0x90, 0xd7, 0x43, 0x1f, 0x64, 0xf4, 0x3f, 0x5b, 0x6f, 0xf1, 0x78, 0xd1, 0xb8, 0x34,
+	0xc5, 0xc5, 0x4f, 0x93, 0x66, 0x7a, 0xe2, 0xac, 0x46, 0x19, 0x17, 0xfb, 0xe9, 0xb0, 0x26, 0x5d,
+	0x2e, 0xe8, 0xb0, 0x36, 0x2c, 0x99, 0xbd, 0xc5, 0x27, 0x14, 0x24, 0xa8, 0xd6, 0x8c, 0x83, 0x0a,
+	0xfe, 0x0c, 0x3e, 0x37, 0xdf, 0x0b, 0x82, 0x76, 0x05, 0x41, 0x9f, 0x05, 0x41, 0x6f, 0x25, 0xe9,
+	0xec, 0x4a, 0xd2, 0xf9, 0x28, 0x49, 0x27, 0xe8, 0xeb, 0x5f, 0x74, 0xf5, 0x1d, 0x00, 0x00, 0xff,
+	0xff, 0xd6, 0x63, 0x52, 0xb0, 0xa0, 0x02, 0x00, 0x00,
+}
+
 func (m *Revenue) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
@@ -499,6 +516,9 @@ func encodeVarintCodec(dAtA []byte, offset int, v uint64) int {
 	return offset + 1
 }
 func (m *Revenue) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	l = len(m.Admin)
@@ -515,6 +535,9 @@ func (m *Revenue) Size() (n int) {
 }
 
 func (m *Recipient) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	l = len(m.Address)
@@ -528,6 +551,9 @@ func (m *Recipient) Size() (n int) {
 }
 
 func (m *NewRevenueMsg) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	l = len(m.Admin)
@@ -544,6 +570,9 @@ func (m *NewRevenueMsg) Size() (n int) {
 }
 
 func (m *DistributeMsg) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	l = len(m.RevenueID)
@@ -554,6 +583,9 @@ func (m *DistributeMsg) Size() (n int) {
 }
 
 func (m *ResetRevenueMsg) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	l = len(m.RevenueID)
@@ -597,7 +629,7 @@ func (m *Revenue) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -625,7 +657,7 @@ func (m *Revenue) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				byteLen |= (int(b) & 0x7F) << shift
+				byteLen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -634,6 +666,9 @@ func (m *Revenue) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -656,7 +691,7 @@ func (m *Revenue) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -665,6 +700,9 @@ func (m *Revenue) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -680,6 +718,9 @@ func (m *Revenue) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthCodec
 			}
 			if (iNdEx + skippy) > l {
@@ -709,7 +750,7 @@ func (m *Recipient) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -737,7 +778,7 @@ func (m *Recipient) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				byteLen |= (int(b) & 0x7F) << shift
+				byteLen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -746,6 +787,9 @@ func (m *Recipient) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -768,7 +812,7 @@ func (m *Recipient) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.Weight |= (int32(b) & 0x7F) << shift
+				m.Weight |= int32(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -780,6 +824,9 @@ func (m *Recipient) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthCodec
 			}
 			if (iNdEx + skippy) > l {
@@ -809,7 +856,7 @@ func (m *NewRevenueMsg) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -837,7 +884,7 @@ func (m *NewRevenueMsg) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				byteLen |= (int(b) & 0x7F) << shift
+				byteLen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -846,6 +893,9 @@ func (m *NewRevenueMsg) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -868,7 +918,7 @@ func (m *NewRevenueMsg) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -877,6 +927,9 @@ func (m *NewRevenueMsg) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -892,6 +945,9 @@ func (m *NewRevenueMsg) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthCodec
 			}
 			if (iNdEx + skippy) > l {
@@ -921,7 +977,7 @@ func (m *DistributeMsg) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -949,7 +1005,7 @@ func (m *DistributeMsg) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				byteLen |= (int(b) & 0x7F) << shift
+				byteLen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -958,6 +1014,9 @@ func (m *DistributeMsg) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -973,6 +1032,9 @@ func (m *DistributeMsg) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthCodec
 			}
 			if (iNdEx + skippy) > l {
@@ -1002,7 +1064,7 @@ func (m *ResetRevenueMsg) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -1030,7 +1092,7 @@ func (m *ResetRevenueMsg) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				byteLen |= (int(b) & 0x7F) << shift
+				byteLen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -1039,6 +1101,9 @@ func (m *ResetRevenueMsg) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -1061,7 +1126,7 @@ func (m *ResetRevenueMsg) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -1070,6 +1135,9 @@ func (m *ResetRevenueMsg) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -1085,6 +1153,9 @@ func (m *ResetRevenueMsg) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthCodec
 			}
 			if (iNdEx + skippy) > l {
@@ -1153,8 +1224,11 @@ func skipCodec(dAtA []byte) (n int, err error) {
 					break
 				}
 			}
-			iNdEx += length
 			if length < 0 {
+				return 0, ErrInvalidLengthCodec
+			}
+			iNdEx += length
+			if iNdEx < 0 {
 				return 0, ErrInvalidLengthCodec
 			}
 			return iNdEx, nil
@@ -1185,6 +1259,9 @@ func skipCodec(dAtA []byte) (n int, err error) {
 					return 0, err
 				}
 				iNdEx = start + next
+				if iNdEx < 0 {
+					return 0, ErrInvalidLengthCodec
+				}
 			}
 			return iNdEx, nil
 		case 4:
@@ -1203,29 +1280,3 @@ var (
 	ErrInvalidLengthCodec = fmt.Errorf("proto: negative length found during unmarshaling")
 	ErrIntOverflowCodec   = fmt.Errorf("proto: integer overflow")
 )
-
-func init() { proto.RegisterFile("x/distribution/codec.proto", fileDescriptor_codec_b923144db5f6ec1e) }
-
-var fileDescriptor_codec_b923144db5f6ec1e = []byte{
-	// 305 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x92, 0xaa, 0xd0, 0x4f, 0xc9,
-	0x2c, 0x2e, 0x29, 0xca, 0x4c, 0x2a, 0x2d, 0xc9, 0xcc, 0xcf, 0xd3, 0x4f, 0xce, 0x4f, 0x49, 0x4d,
-	0xd6, 0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17, 0xe2, 0x41, 0x96, 0x91, 0xd2, 0x4d, 0xcf, 0x2c, 0xc9,
-	0x28, 0x4d, 0xd2, 0x4b, 0xce, 0xcf, 0xd5, 0x4f, 0xcf, 0x4f, 0xcf, 0xd7, 0x07, 0x2b, 0x4a, 0x2a,
-	0x4d, 0x03, 0xf3, 0xc0, 0x1c, 0x30, 0x0b, 0xa2, 0x59, 0xa9, 0x8e, 0x8b, 0x3d, 0x28, 0xb5, 0x2c,
-	0x35, 0xaf, 0x34, 0x55, 0xc8, 0x8a, 0x8b, 0x35, 0x31, 0x25, 0x37, 0x33, 0x4f, 0x82, 0x51, 0x81,
-	0x51, 0x83, 0xc7, 0x49, 0xe5, 0xd7, 0x3d, 0x79, 0x05, 0x24, 0xc3, 0x32, 0xf3, 0xcb, 0x74, 0xf3,
-	0xf3, 0x52, 0xf5, 0xcb, 0x53, 0x13, 0xcb, 0x52, 0xf5, 0x1c, 0x53, 0x52, 0x8a, 0x52, 0x8b, 0x8b,
-	0x83, 0x20, 0x5a, 0x84, 0xcc, 0xb9, 0xb8, 0x8a, 0x52, 0x93, 0x33, 0x0b, 0x32, 0x53, 0xf3, 0x4a,
-	0x8a, 0x25, 0x98, 0x14, 0x98, 0x35, 0xb8, 0x8d, 0xc4, 0xf5, 0x90, 0x1d, 0xa6, 0x17, 0x04, 0x93,
-	0x0f, 0x42, 0x52, 0xaa, 0x94, 0xcc, 0xc5, 0x09, 0x97, 0x10, 0xb2, 0xe3, 0x62, 0x4f, 0x84, 0x98,
-	0x4b, 0x92, 0x1b, 0x60, 0x9a, 0x84, 0xc4, 0xb8, 0xd8, 0xca, 0x53, 0x33, 0xd3, 0x33, 0x4a, 0x24,
-	0x98, 0x14, 0x18, 0x35, 0x58, 0x83, 0xa0, 0x3c, 0xa5, 0x16, 0x46, 0x2e, 0x5e, 0xbf, 0xd4, 0x72,
-	0xa8, 0x47, 0x7d, 0x8b, 0xd3, 0x07, 0xc6, 0xaf, 0xb6, 0x5c, 0xbc, 0x2e, 0x30, 0x55, 0x60, 0x57,
-	0xe8, 0x80, 0x4c, 0x02, 0xbb, 0x29, 0x3e, 0x33, 0x05, 0xea, 0x14, 0xde, 0x47, 0xf7, 0xe4, 0x39,
-	0xa1, 0x2e, 0xf5, 0x74, 0x09, 0xe2, 0x84, 0x2a, 0xf0, 0x4c, 0x51, 0xaa, 0xe0, 0xe2, 0x0f, 0x4a,
-	0x2d, 0x4e, 0x2d, 0x41, 0xf2, 0x06, 0x49, 0x06, 0x90, 0xed, 0x70, 0x27, 0x81, 0x13, 0x8f, 0xe4,
-	0x18, 0x2f, 0x3c, 0x92, 0x63, 0x7c, 0xf0, 0x48, 0x8e, 0x71, 0xc2, 0x63, 0x39, 0x86, 0x24, 0x36,
-	0x70, 0xea, 0x31, 0x06, 0x04, 0x00, 0x00, 0xff, 0xff, 0xa2, 0xc2, 0xc9, 0x96, 0x98, 0x02, 0x00,
-	0x00,
-}

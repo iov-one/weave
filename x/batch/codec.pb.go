@@ -3,11 +3,12 @@
 
 package batch
 
-import proto "github.com/gogo/protobuf/proto"
-import fmt "fmt"
-import math "math"
-
-import io "io"
+import (
+	fmt "fmt"
+	proto "github.com/gogo/protobuf/proto"
+	io "io"
+	math "math"
+)
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
@@ -21,16 +22,14 @@ var _ = math.Inf
 const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
 
 type ByteArrayList struct {
-	Elements             [][]byte `protobuf:"bytes,1,rep,name=elements" json:"elements,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
+	Elements [][]byte `protobuf:"bytes,1,rep,name=elements,proto3" json:"elements,omitempty"`
 }
 
 func (m *ByteArrayList) Reset()         { *m = ByteArrayList{} }
 func (m *ByteArrayList) String() string { return proto.CompactTextString(m) }
 func (*ByteArrayList) ProtoMessage()    {}
 func (*ByteArrayList) Descriptor() ([]byte, []int) {
-	return fileDescriptor_codec_8d81b7a4085ac21e, []int{0}
+	return fileDescriptor_d168b56d0e2865bf, []int{0}
 }
 func (m *ByteArrayList) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -47,8 +46,8 @@ func (m *ByteArrayList) XXX_Marshal(b []byte, deterministic bool) ([]byte, error
 		return b[:n], nil
 	}
 }
-func (dst *ByteArrayList) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ByteArrayList.Merge(dst, src)
+func (m *ByteArrayList) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ByteArrayList.Merge(m, src)
 }
 func (m *ByteArrayList) XXX_Size() int {
 	return m.Size()
@@ -69,6 +68,21 @@ func (m *ByteArrayList) GetElements() [][]byte {
 func init() {
 	proto.RegisterType((*ByteArrayList)(nil), "batch.ByteArrayList")
 }
+
+func init() { proto.RegisterFile("x/batch/codec.proto", fileDescriptor_d168b56d0e2865bf) }
+
+var fileDescriptor_d168b56d0e2865bf = []byte{
+	// 119 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x12, 0xae, 0xd0, 0x4f, 0x4a,
+	0x2c, 0x49, 0xce, 0xd0, 0x4f, 0xce, 0x4f, 0x49, 0x4d, 0xd6, 0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17,
+	0x62, 0x05, 0x0b, 0x29, 0x69, 0x73, 0xf1, 0x3a, 0x55, 0x96, 0xa4, 0x3a, 0x16, 0x15, 0x25, 0x56,
+	0xfa, 0x64, 0x16, 0x97, 0x08, 0x49, 0x71, 0x71, 0xa4, 0xe6, 0xa4, 0xe6, 0xa6, 0xe6, 0x95, 0x14,
+	0x4b, 0x30, 0x2a, 0x30, 0x6b, 0xf0, 0x04, 0xc1, 0xf9, 0x4e, 0x12, 0x27, 0x1e, 0xc9, 0x31, 0x5e,
+	0x78, 0x24, 0xc7, 0xf8, 0xe0, 0x91, 0x1c, 0xe3, 0x84, 0xc7, 0x72, 0x0c, 0x17, 0x1e, 0xcb, 0x31,
+	0xdc, 0x78, 0x2c, 0xc7, 0x90, 0xc4, 0x06, 0x36, 0xd4, 0x18, 0x10, 0x00, 0x00, 0xff, 0xff, 0x02,
+	0xb3, 0x69, 0x8e, 0x6b, 0x00, 0x00, 0x00,
+}
+
 func (m *ByteArrayList) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
@@ -105,6 +119,9 @@ func encodeVarintCodec(dAtA []byte, offset int, v uint64) int {
 	return offset + 1
 }
 func (m *ByteArrayList) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	if len(m.Elements) > 0 {
@@ -144,7 +161,7 @@ func (m *ByteArrayList) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -172,7 +189,7 @@ func (m *ByteArrayList) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				byteLen |= (int(b) & 0x7F) << shift
+				byteLen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -181,6 +198,9 @@ func (m *ByteArrayList) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -194,6 +214,9 @@ func (m *ByteArrayList) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthCodec
 			}
 			if (iNdEx + skippy) > l {
@@ -262,8 +285,11 @@ func skipCodec(dAtA []byte) (n int, err error) {
 					break
 				}
 			}
-			iNdEx += length
 			if length < 0 {
+				return 0, ErrInvalidLengthCodec
+			}
+			iNdEx += length
+			if iNdEx < 0 {
 				return 0, ErrInvalidLengthCodec
 			}
 			return iNdEx, nil
@@ -294,6 +320,9 @@ func skipCodec(dAtA []byte) (n int, err error) {
 					return 0, err
 				}
 				iNdEx = start + next
+				if iNdEx < 0 {
+					return 0, ErrInvalidLengthCodec
+				}
 			}
 			return iNdEx, nil
 		case 4:
@@ -312,16 +341,3 @@ var (
 	ErrInvalidLengthCodec = fmt.Errorf("proto: negative length found during unmarshaling")
 	ErrIntOverflowCodec   = fmt.Errorf("proto: integer overflow")
 )
-
-func init() { proto.RegisterFile("x/batch/codec.proto", fileDescriptor_codec_8d81b7a4085ac21e) }
-
-var fileDescriptor_codec_8d81b7a4085ac21e = []byte{
-	// 111 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x12, 0xae, 0xd0, 0x4f, 0x4a,
-	0x2c, 0x49, 0xce, 0xd0, 0x4f, 0xce, 0x4f, 0x49, 0x4d, 0xd6, 0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17,
-	0x62, 0x05, 0x0b, 0x29, 0x69, 0x73, 0xf1, 0x3a, 0x55, 0x96, 0xa4, 0x3a, 0x16, 0x15, 0x25, 0x56,
-	0xfa, 0x64, 0x16, 0x97, 0x08, 0x49, 0x71, 0x71, 0xa4, 0xe6, 0xa4, 0xe6, 0xa6, 0xe6, 0x95, 0x14,
-	0x4b, 0x30, 0x2a, 0x30, 0x6b, 0xf0, 0x04, 0xc1, 0xf9, 0x4e, 0x02, 0x27, 0x1e, 0xc9, 0x31, 0x5e,
-	0x78, 0x24, 0xc7, 0xf8, 0xe0, 0x91, 0x1c, 0xe3, 0x84, 0xc7, 0x72, 0x0c, 0x49, 0x6c, 0x60, 0xc3,
-	0x8c, 0x01, 0x01, 0x00, 0x00, 0xff, 0xff, 0xf6, 0x1e, 0x39, 0x05, 0x63, 0x00, 0x00, 0x00,
-}

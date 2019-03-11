@@ -3,19 +3,20 @@
 
 package app
 
-import proto "github.com/gogo/protobuf/proto"
-import fmt "fmt"
-import math "math"
-import _ "github.com/gogo/protobuf/gogoproto"
-import cash "github.com/iov-one/weave/x/cash"
-import currency "github.com/iov-one/weave/x/currency"
-import distribution "github.com/iov-one/weave/x/distribution"
-import escrow "github.com/iov-one/weave/x/escrow"
-import multisig "github.com/iov-one/weave/x/multisig"
-import sigs "github.com/iov-one/weave/x/sigs"
-import validators "github.com/iov-one/weave/x/validators"
-
-import io "io"
+import (
+	fmt "fmt"
+	_ "github.com/gogo/protobuf/gogoproto"
+	proto "github.com/gogo/protobuf/proto"
+	cash "github.com/iov-one/weave/x/cash"
+	currency "github.com/iov-one/weave/x/currency"
+	distribution "github.com/iov-one/weave/x/distribution"
+	escrow "github.com/iov-one/weave/x/escrow"
+	multisig "github.com/iov-one/weave/x/multisig"
+	sigs "github.com/iov-one/weave/x/sigs"
+	validators "github.com/iov-one/weave/x/validators"
+	io "io"
+	math "math"
+)
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
@@ -37,12 +38,12 @@ const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
 //   applications. For example, FeeInfo field is used by both and indexed at
 //   first position. Skip unused fields (leave index unused).
 type Tx struct {
-	Fees       *cash.FeeInfo        `protobuf:"bytes,1,opt,name=fees" json:"fees,omitempty"`
-	Signatures []*sigs.StdSignature `protobuf:"bytes,2,rep,name=signatures" json:"signatures,omitempty"`
+	Fees       *cash.FeeInfo        `protobuf:"bytes,1,opt,name=fees,proto3" json:"fees,omitempty"`
+	Signatures []*sigs.StdSignature `protobuf:"bytes,2,rep,name=signatures,proto3" json:"signatures,omitempty"`
 	// Preimage for hashlock.
 	Preimage []byte `protobuf:"bytes,3,opt,name=preimage,proto3" json:"preimage,omitempty"`
 	// ID of a multisig contract.
-	Multisig [][]byte `protobuf:"bytes,4,rep,name=multisig" json:"multisig,omitempty"`
+	Multisig [][]byte `protobuf:"bytes,4,rep,name=multisig,proto3" json:"multisig,omitempty"`
 	// msg is a sum type over all allowed messages on this chain.
 	//
 	// Types that are valid to be assigned to Sum:
@@ -59,16 +60,14 @@ type Tx struct {
 	//	*Tx_NewRevenueMsg
 	//	*Tx_DistributeMsg
 	//	*Tx_ResetRevenueMsg
-	Sum                  isTx_Sum `protobuf_oneof:"sum"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
+	Sum isTx_Sum `protobuf_oneof:"sum"`
 }
 
 func (m *Tx) Reset()         { *m = Tx{} }
 func (m *Tx) String() string { return proto.CompactTextString(m) }
 func (*Tx) ProtoMessage()    {}
 func (*Tx) Descriptor() ([]byte, []int) {
-	return fileDescriptor_codec_5c05d1f53681ab0a, []int{0}
+	return fileDescriptor_e43b82f4f03f64b8, []int{0}
 }
 func (m *Tx) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -85,8 +84,8 @@ func (m *Tx) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 		return b[:n], nil
 	}
 }
-func (dst *Tx) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_Tx.Merge(dst, src)
+func (m *Tx) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Tx.Merge(m, src)
 }
 func (m *Tx) XXX_Size() int {
 	return m.Size()
@@ -104,43 +103,43 @@ type isTx_Sum interface {
 }
 
 type Tx_SendMsg struct {
-	SendMsg *cash.SendMsg `protobuf:"bytes,51,opt,name=send_msg,json=sendMsg,oneof"`
+	SendMsg *cash.SendMsg `protobuf:"bytes,51,opt,name=send_msg,json=sendMsg,proto3,oneof"`
 }
 type Tx_CreateEscrowMsg struct {
-	CreateEscrowMsg *escrow.CreateEscrowMsg `protobuf:"bytes,52,opt,name=create_escrow_msg,json=createEscrowMsg,oneof"`
+	CreateEscrowMsg *escrow.CreateEscrowMsg `protobuf:"bytes,52,opt,name=create_escrow_msg,json=createEscrowMsg,proto3,oneof"`
 }
 type Tx_ReleaseEscrowMsg struct {
-	ReleaseEscrowMsg *escrow.ReleaseEscrowMsg `protobuf:"bytes,53,opt,name=release_escrow_msg,json=releaseEscrowMsg,oneof"`
+	ReleaseEscrowMsg *escrow.ReleaseEscrowMsg `protobuf:"bytes,53,opt,name=release_escrow_msg,json=releaseEscrowMsg,proto3,oneof"`
 }
 type Tx_ReturnEscrowMsg struct {
-	ReturnEscrowMsg *escrow.ReturnEscrowMsg `protobuf:"bytes,54,opt,name=return_escrow_msg,json=returnEscrowMsg,oneof"`
+	ReturnEscrowMsg *escrow.ReturnEscrowMsg `protobuf:"bytes,54,opt,name=return_escrow_msg,json=returnEscrowMsg,proto3,oneof"`
 }
 type Tx_UpdateEscrowMsg struct {
-	UpdateEscrowMsg *escrow.UpdateEscrowPartiesMsg `protobuf:"bytes,55,opt,name=update_escrow_msg,json=updateEscrowMsg,oneof"`
+	UpdateEscrowMsg *escrow.UpdateEscrowPartiesMsg `protobuf:"bytes,55,opt,name=update_escrow_msg,json=updateEscrowMsg,proto3,oneof"`
 }
 type Tx_CreateContractMsg struct {
-	CreateContractMsg *multisig.CreateContractMsg `protobuf:"bytes,56,opt,name=create_contract_msg,json=createContractMsg,oneof"`
+	CreateContractMsg *multisig.CreateContractMsg `protobuf:"bytes,56,opt,name=create_contract_msg,json=createContractMsg,proto3,oneof"`
 }
 type Tx_UpdateContractMsg struct {
-	UpdateContractMsg *multisig.UpdateContractMsg `protobuf:"bytes,57,opt,name=update_contract_msg,json=updateContractMsg,oneof"`
+	UpdateContractMsg *multisig.UpdateContractMsg `protobuf:"bytes,57,opt,name=update_contract_msg,json=updateContractMsg,proto3,oneof"`
 }
 type Tx_SetValidatorsMsg struct {
-	SetValidatorsMsg *validators.SetValidatorsMsg `protobuf:"bytes,58,opt,name=set_validators_msg,json=setValidatorsMsg,oneof"`
+	SetValidatorsMsg *validators.SetValidatorsMsg `protobuf:"bytes,58,opt,name=set_validators_msg,json=setValidatorsMsg,proto3,oneof"`
 }
 type Tx_NewTokenInfoMsg struct {
-	NewTokenInfoMsg *currency.NewTokenInfoMsg `protobuf:"bytes,59,opt,name=new_token_info_msg,json=newTokenInfoMsg,oneof"`
+	NewTokenInfoMsg *currency.NewTokenInfoMsg `protobuf:"bytes,59,opt,name=new_token_info_msg,json=newTokenInfoMsg,proto3,oneof"`
 }
 type Tx_BatchMsg struct {
-	BatchMsg *BatchMsg `protobuf:"bytes,60,opt,name=batch_msg,json=batchMsg,oneof"`
+	BatchMsg *BatchMsg `protobuf:"bytes,60,opt,name=batch_msg,json=batchMsg,proto3,oneof"`
 }
 type Tx_NewRevenueMsg struct {
-	NewRevenueMsg *distribution.NewRevenueMsg `protobuf:"bytes,66,opt,name=new_revenue_msg,json=newRevenueMsg,oneof"`
+	NewRevenueMsg *distribution.NewRevenueMsg `protobuf:"bytes,66,opt,name=new_revenue_msg,json=newRevenueMsg,proto3,oneof"`
 }
 type Tx_DistributeMsg struct {
-	DistributeMsg *distribution.DistributeMsg `protobuf:"bytes,67,opt,name=distribute_msg,json=distributeMsg,oneof"`
+	DistributeMsg *distribution.DistributeMsg `protobuf:"bytes,67,opt,name=distribute_msg,json=distributeMsg,proto3,oneof"`
 }
 type Tx_ResetRevenueMsg struct {
-	ResetRevenueMsg *distribution.ResetRevenueMsg `protobuf:"bytes,68,opt,name=reset_revenue_msg,json=resetRevenueMsg,oneof"`
+	ResetRevenueMsg *distribution.ResetRevenueMsg `protobuf:"bytes,68,opt,name=reset_revenue_msg,json=resetRevenueMsg,proto3,oneof"`
 }
 
 func (*Tx_SendMsg) isTx_Sum()           {}
@@ -568,16 +567,14 @@ func _Tx_OneofSizer(msg proto.Message) (n int) {
 
 // BatchMsg encapsulates multiple messages to support batch transaction
 type BatchMsg struct {
-	Messages             []BatchMsg_Union `protobuf:"bytes,1,rep,name=messages" json:"messages"`
-	XXX_NoUnkeyedLiteral struct{}         `json:"-"`
-	XXX_sizecache        int32            `json:"-"`
+	Messages []BatchMsg_Union `protobuf:"bytes,1,rep,name=messages,proto3" json:"messages"`
 }
 
 func (m *BatchMsg) Reset()         { *m = BatchMsg{} }
 func (m *BatchMsg) String() string { return proto.CompactTextString(m) }
 func (*BatchMsg) ProtoMessage()    {}
 func (*BatchMsg) Descriptor() ([]byte, []int) {
-	return fileDescriptor_codec_5c05d1f53681ab0a, []int{1}
+	return fileDescriptor_e43b82f4f03f64b8, []int{1}
 }
 func (m *BatchMsg) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -594,8 +591,8 @@ func (m *BatchMsg) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 		return b[:n], nil
 	}
 }
-func (dst *BatchMsg) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_BatchMsg.Merge(dst, src)
+func (m *BatchMsg) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_BatchMsg.Merge(m, src)
 }
 func (m *BatchMsg) XXX_Size() int {
 	return m.Size()
@@ -624,16 +621,14 @@ type BatchMsg_Union struct {
 	//	*BatchMsg_Union_UpdateContractMsg
 	//	*BatchMsg_Union_SetValidatorsMsg
 	//	*BatchMsg_Union_NewTokenInfoMsg
-	Sum                  isBatchMsg_Union_Sum `protobuf_oneof:"sum"`
-	XXX_NoUnkeyedLiteral struct{}             `json:"-"`
-	XXX_sizecache        int32                `json:"-"`
+	Sum isBatchMsg_Union_Sum `protobuf_oneof:"sum"`
 }
 
 func (m *BatchMsg_Union) Reset()         { *m = BatchMsg_Union{} }
 func (m *BatchMsg_Union) String() string { return proto.CompactTextString(m) }
 func (*BatchMsg_Union) ProtoMessage()    {}
 func (*BatchMsg_Union) Descriptor() ([]byte, []int) {
-	return fileDescriptor_codec_5c05d1f53681ab0a, []int{1, 0}
+	return fileDescriptor_e43b82f4f03f64b8, []int{1, 0}
 }
 func (m *BatchMsg_Union) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -650,8 +645,8 @@ func (m *BatchMsg_Union) XXX_Marshal(b []byte, deterministic bool) ([]byte, erro
 		return b[:n], nil
 	}
 }
-func (dst *BatchMsg_Union) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_BatchMsg_Union.Merge(dst, src)
+func (m *BatchMsg_Union) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_BatchMsg_Union.Merge(m, src)
 }
 func (m *BatchMsg_Union) XXX_Size() int {
 	return m.Size()
@@ -669,31 +664,31 @@ type isBatchMsg_Union_Sum interface {
 }
 
 type BatchMsg_Union_SendMsg struct {
-	SendMsg *cash.SendMsg `protobuf:"bytes,1,opt,name=send_msg,json=sendMsg,oneof"`
+	SendMsg *cash.SendMsg `protobuf:"bytes,1,opt,name=send_msg,json=sendMsg,proto3,oneof"`
 }
 type BatchMsg_Union_CreateEscrowMsg struct {
-	CreateEscrowMsg *escrow.CreateEscrowMsg `protobuf:"bytes,4,opt,name=create_escrow_msg,json=createEscrowMsg,oneof"`
+	CreateEscrowMsg *escrow.CreateEscrowMsg `protobuf:"bytes,4,opt,name=create_escrow_msg,json=createEscrowMsg,proto3,oneof"`
 }
 type BatchMsg_Union_ReleaseEscrowMsg struct {
-	ReleaseEscrowMsg *escrow.ReleaseEscrowMsg `protobuf:"bytes,5,opt,name=release_escrow_msg,json=releaseEscrowMsg,oneof"`
+	ReleaseEscrowMsg *escrow.ReleaseEscrowMsg `protobuf:"bytes,5,opt,name=release_escrow_msg,json=releaseEscrowMsg,proto3,oneof"`
 }
 type BatchMsg_Union_ReturnEscrowMsg struct {
-	ReturnEscrowMsg *escrow.ReturnEscrowMsg `protobuf:"bytes,6,opt,name=return_escrow_msg,json=returnEscrowMsg,oneof"`
+	ReturnEscrowMsg *escrow.ReturnEscrowMsg `protobuf:"bytes,6,opt,name=return_escrow_msg,json=returnEscrowMsg,proto3,oneof"`
 }
 type BatchMsg_Union_UpdateEscrowMsg struct {
-	UpdateEscrowMsg *escrow.UpdateEscrowPartiesMsg `protobuf:"bytes,7,opt,name=update_escrow_msg,json=updateEscrowMsg,oneof"`
+	UpdateEscrowMsg *escrow.UpdateEscrowPartiesMsg `protobuf:"bytes,7,opt,name=update_escrow_msg,json=updateEscrowMsg,proto3,oneof"`
 }
 type BatchMsg_Union_CreateContractMsg struct {
-	CreateContractMsg *multisig.CreateContractMsg `protobuf:"bytes,8,opt,name=create_contract_msg,json=createContractMsg,oneof"`
+	CreateContractMsg *multisig.CreateContractMsg `protobuf:"bytes,8,opt,name=create_contract_msg,json=createContractMsg,proto3,oneof"`
 }
 type BatchMsg_Union_UpdateContractMsg struct {
-	UpdateContractMsg *multisig.UpdateContractMsg `protobuf:"bytes,9,opt,name=update_contract_msg,json=updateContractMsg,oneof"`
+	UpdateContractMsg *multisig.UpdateContractMsg `protobuf:"bytes,9,opt,name=update_contract_msg,json=updateContractMsg,proto3,oneof"`
 }
 type BatchMsg_Union_SetValidatorsMsg struct {
-	SetValidatorsMsg *validators.SetValidatorsMsg `protobuf:"bytes,10,opt,name=set_validators_msg,json=setValidatorsMsg,oneof"`
+	SetValidatorsMsg *validators.SetValidatorsMsg `protobuf:"bytes,10,opt,name=set_validators_msg,json=setValidatorsMsg,proto3,oneof"`
 }
 type BatchMsg_Union_NewTokenInfoMsg struct {
-	NewTokenInfoMsg *currency.NewTokenInfoMsg `protobuf:"bytes,11,opt,name=new_token_info_msg,json=newTokenInfoMsg,oneof"`
+	NewTokenInfoMsg *currency.NewTokenInfoMsg `protobuf:"bytes,11,opt,name=new_token_info_msg,json=newTokenInfoMsg,proto3,oneof"`
 }
 
 func (*BatchMsg_Union_SendMsg) isBatchMsg_Union_Sum()           {}
@@ -988,6 +983,59 @@ func init() {
 	proto.RegisterType((*BatchMsg)(nil), "app.BatchMsg")
 	proto.RegisterType((*BatchMsg_Union)(nil), "app.BatchMsg.Union")
 }
+
+func init() { proto.RegisterFile("app/codec.proto", fileDescriptor_e43b82f4f03f64b8) }
+
+var fileDescriptor_e43b82f4f03f64b8 = []byte{
+	// 724 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x95, 0x4f, 0x4f, 0x13, 0x41,
+	0x18, 0xc6, 0x5b, 0xda, 0x42, 0x19, 0x44, 0x64, 0x38, 0x58, 0xab, 0xd6, 0xca, 0x89, 0xa8, 0x4c,
+	0x23, 0x88, 0xff, 0x4f, 0x05, 0x0c, 0x46, 0x30, 0x66, 0x0b, 0x5e, 0x9b, 0xe9, 0xee, 0xdb, 0x65,
+	0x23, 0x9d, 0xd9, 0xcc, 0xcc, 0xb6, 0xf8, 0x2d, 0x3c, 0xf9, 0x21, 0xfc, 0x24, 0x1c, 0x39, 0x1a,
+	0x0f, 0xc6, 0xc0, 0x17, 0x31, 0x33, 0xbb, 0x5b, 0x76, 0x1a, 0xd3, 0xa8, 0xd9, 0xdb, 0xce, 0xf3,
+	0x3e, 0xcf, 0xaf, 0x6f, 0xdf, 0x9d, 0xb7, 0x45, 0x4b, 0x34, 0x0c, 0x5b, 0x2e, 0xf7, 0xc0, 0x25,
+	0xa1, 0xe0, 0x8a, 0xe3, 0x12, 0x0d, 0xc3, 0xfa, 0xba, 0x1f, 0xa8, 0xe3, 0xa8, 0x47, 0x5c, 0x3e,
+	0x68, 0xf9, 0xdc, 0xe7, 0x2d, 0x53, 0xeb, 0x45, 0x7d, 0x73, 0x32, 0x07, 0xf3, 0x14, 0x67, 0xea,
+	0x0f, 0x33, 0xf6, 0x80, 0x0f, 0xd7, 0x39, 0x83, 0xd6, 0x08, 0xe8, 0x10, 0x5a, 0xa7, 0x2d, 0x97,
+	0xca, 0xe3, 0xec, 0x07, 0xd4, 0x5b, 0xd3, 0xcc, 0x91, 0x10, 0xc0, 0xdc, 0xcf, 0x56, 0x60, 0x7d,
+	0x4a, 0x00, 0xa4, 0x2b, 0xf8, 0xe8, 0xaf, 0xf9, 0x83, 0xe8, 0x44, 0x05, 0x32, 0xf0, 0xad, 0xc0,
+	0xb4, 0xee, 0x65, 0xe0, 0x4b, 0xcb, 0xfc, 0x78, 0x8a, 0x79, 0x48, 0x4f, 0x02, 0x8f, 0x2a, 0x2e,
+	0xec, 0xc8, 0xe6, 0x94, 0x88, 0x17, 0x48, 0x25, 0x82, 0x5e, 0xa4, 0x02, 0xce, 0xb2, 0xa1, 0xd5,
+	0x6f, 0x55, 0x34, 0x73, 0x78, 0x8a, 0xef, 0xa3, 0x72, 0x1f, 0x40, 0xd6, 0x8a, 0xcd, 0xe2, 0xda,
+	0xc2, 0xc6, 0x22, 0xd1, 0xd3, 0x24, 0x6f, 0x00, 0xde, 0xb2, 0x3e, 0x77, 0x4c, 0x09, 0x6f, 0x20,
+	0x24, 0x03, 0x9f, 0x51, 0x15, 0x09, 0x90, 0xb5, 0x99, 0x66, 0x69, 0x6d, 0x61, 0x03, 0x13, 0xdd,
+	0x38, 0xe9, 0x28, 0xaf, 0x93, 0x96, 0x9c, 0x8c, 0x0b, 0xd7, 0x51, 0x35, 0x14, 0x10, 0x0c, 0xa8,
+	0x0f, 0xb5, 0x52, 0xb3, 0xb8, 0x76, 0xcd, 0x19, 0x9f, 0x75, 0x2d, 0x1d, 0x53, 0xad, 0xdc, 0x2c,
+	0xe9, 0x5a, 0x7a, 0xc6, 0x0f, 0x50, 0x55, 0x02, 0xf3, 0xba, 0x03, 0xe9, 0xd7, 0x36, 0xb3, 0x2d,
+	0x75, 0x80, 0x79, 0x07, 0xd2, 0xdf, 0x2b, 0x38, 0x73, 0x32, 0x7e, 0xc4, 0xbb, 0x68, 0xd9, 0x15,
+	0x40, 0x15, 0x74, 0xe3, 0x97, 0x64, 0x42, 0x4f, 0x4c, 0xe8, 0x26, 0x89, 0x25, 0xb2, 0x6d, 0x0c,
+	0xbb, 0xe6, 0x10, 0xc7, 0x97, 0x5c, 0x5b, 0xc2, 0x7b, 0x08, 0x0b, 0x38, 0x01, 0x2a, 0x2d, 0xce,
+	0x96, 0xe1, 0xd4, 0x52, 0x8e, 0x13, 0x3b, 0xb2, 0xa0, 0x1b, 0x62, 0x42, 0xd3, 0x0d, 0x09, 0x50,
+	0x91, 0x60, 0x59, 0xd0, 0x53, 0xbb, 0x21, 0xc7, 0x18, 0xac, 0x86, 0x84, 0x2d, 0xe1, 0x7d, 0xb4,
+	0x1c, 0x85, 0xde, 0xc4, 0xf7, 0x7a, 0x66, 0x30, 0x8d, 0x14, 0x73, 0x64, 0x0c, 0x71, 0xe6, 0x03,
+	0x15, 0x2a, 0x00, 0x99, 0xd0, 0xa2, 0x4c, 0x45, 0xd3, 0x0e, 0xd0, 0x4a, 0x32, 0x25, 0x97, 0x33,
+	0x25, 0xa8, 0xab, 0x0c, 0xef, 0xb9, 0xe1, 0xdd, 0x26, 0xe9, 0xe4, 0x93, 0x49, 0x6d, 0x27, 0x9e,
+	0x18, 0x96, 0xcc, 0x37, 0x23, 0x6a, 0x5c, 0xd2, 0x9c, 0x85, 0x7b, 0x31, 0x89, 0x8b, 0x1b, 0x9c,
+	0xc0, 0x45, 0x93, 0x22, 0xde, 0x47, 0x58, 0x82, 0xea, 0x5e, 0x5d, 0x6c, 0x43, 0x7b, 0x69, 0x68,
+	0x77, 0xc8, 0x95, 0x4c, 0x3a, 0xa0, 0x3e, 0x8e, 0x4f, 0xc9, 0x0b, 0x90, 0x13, 0x9a, 0x7e, 0x95,
+	0x0c, 0x46, 0x5d, 0xc5, 0x3f, 0x01, 0xeb, 0x06, 0xac, 0xcf, 0x0d, 0xed, 0x95, 0xa1, 0xdd, 0x22,
+	0xe9, 0xee, 0x93, 0xf7, 0x30, 0x3a, 0xd4, 0x16, 0x7d, 0xc7, 0x93, 0xa9, 0x31, 0x5b, 0xc2, 0x8f,
+	0xd0, 0x7c, 0x8f, 0x2a, 0xf7, 0xd8, 0x00, 0x5e, 0x27, 0x17, 0x91, 0x86, 0x21, 0x69, 0x6b, 0x35,
+	0x0e, 0x55, 0x7b, 0xc9, 0x33, 0xde, 0x45, 0x1a, 0xd0, 0x15, 0x30, 0x04, 0x16, 0x81, 0xc9, 0xb4,
+	0x93, 0x81, 0x64, 0xf7, 0x4f, 0x7f, 0xb0, 0x13, 0x7b, 0x62, 0xc2, 0x22, 0xcb, 0x0a, 0x78, 0x07,
+	0x5d, 0x1f, 0xdb, 0x63, 0xca, 0xf6, 0x9f, 0x28, 0x3b, 0x63, 0x4f, 0x42, 0xf1, 0xb2, 0x02, 0x7e,
+	0xa7, 0x6f, 0xa1, 0x1e, 0x6a, 0xb6, 0x9d, 0x1d, 0x03, 0xba, 0x6b, 0x83, 0x1c, 0x6d, 0xb3, 0x1a,
+	0x5a, 0x12, 0xb6, 0xd4, 0xae, 0xa0, 0x92, 0x8c, 0x06, 0xab, 0x3f, 0x2a, 0xa8, 0x9a, 0x7e, 0x73,
+	0xbc, 0x85, 0xaa, 0x03, 0x90, 0x92, 0xfa, 0xe6, 0x67, 0x43, 0xff, 0x1a, 0xac, 0x58, 0xa3, 0x21,
+	0x47, 0x2c, 0xe0, 0xac, 0x5d, 0x3e, 0xfb, 0x79, 0xaf, 0xe0, 0x8c, 0xad, 0xf5, 0xaf, 0x15, 0x54,
+	0x31, 0x15, 0x6b, 0xc9, 0x8b, 0xff, 0xb3, 0xe4, 0xe5, 0x9c, 0x96, 0xbc, 0x92, 0xd7, 0x92, 0xcf,
+	0xe6, 0xb3, 0xe4, 0x73, 0x39, 0x2f, 0x79, 0x35, 0xdf, 0x25, 0x9f, 0xcf, 0x75, 0xc9, 0x51, 0xae,
+	0x4b, 0xbe, 0xf0, 0xef, 0x4b, 0x9e, 0x5c, 0xee, 0x76, 0xed, 0xec, 0xa2, 0x51, 0x3c, 0xbf, 0x68,
+	0x14, 0x7f, 0x5d, 0x34, 0x8a, 0x5f, 0x2e, 0x1b, 0x85, 0xf3, 0xcb, 0x46, 0xe1, 0xfb, 0x65, 0xa3,
+	0xd0, 0x9b, 0x35, 0x7f, 0x95, 0x9b, 0xbf, 0x03, 0x00, 0x00, 0xff, 0xff, 0xee, 0x86, 0xa4, 0x95,
+	0xc4, 0x08, 0x00, 0x00,
+}
+
 func (m *Tx) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
@@ -1448,6 +1496,9 @@ func encodeVarintCodec(dAtA []byte, offset int, v uint64) int {
 	return offset + 1
 }
 func (m *Tx) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	if m.Fees != nil {
@@ -1477,6 +1528,9 @@ func (m *Tx) Size() (n int) {
 }
 
 func (m *Tx_SendMsg) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	if m.SendMsg != nil {
@@ -1486,6 +1540,9 @@ func (m *Tx_SendMsg) Size() (n int) {
 	return n
 }
 func (m *Tx_CreateEscrowMsg) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	if m.CreateEscrowMsg != nil {
@@ -1495,6 +1552,9 @@ func (m *Tx_CreateEscrowMsg) Size() (n int) {
 	return n
 }
 func (m *Tx_ReleaseEscrowMsg) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	if m.ReleaseEscrowMsg != nil {
@@ -1504,6 +1564,9 @@ func (m *Tx_ReleaseEscrowMsg) Size() (n int) {
 	return n
 }
 func (m *Tx_ReturnEscrowMsg) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	if m.ReturnEscrowMsg != nil {
@@ -1513,6 +1576,9 @@ func (m *Tx_ReturnEscrowMsg) Size() (n int) {
 	return n
 }
 func (m *Tx_UpdateEscrowMsg) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	if m.UpdateEscrowMsg != nil {
@@ -1522,6 +1588,9 @@ func (m *Tx_UpdateEscrowMsg) Size() (n int) {
 	return n
 }
 func (m *Tx_CreateContractMsg) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	if m.CreateContractMsg != nil {
@@ -1531,6 +1600,9 @@ func (m *Tx_CreateContractMsg) Size() (n int) {
 	return n
 }
 func (m *Tx_UpdateContractMsg) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	if m.UpdateContractMsg != nil {
@@ -1540,6 +1612,9 @@ func (m *Tx_UpdateContractMsg) Size() (n int) {
 	return n
 }
 func (m *Tx_SetValidatorsMsg) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	if m.SetValidatorsMsg != nil {
@@ -1549,6 +1624,9 @@ func (m *Tx_SetValidatorsMsg) Size() (n int) {
 	return n
 }
 func (m *Tx_NewTokenInfoMsg) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	if m.NewTokenInfoMsg != nil {
@@ -1558,6 +1636,9 @@ func (m *Tx_NewTokenInfoMsg) Size() (n int) {
 	return n
 }
 func (m *Tx_BatchMsg) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	if m.BatchMsg != nil {
@@ -1567,6 +1648,9 @@ func (m *Tx_BatchMsg) Size() (n int) {
 	return n
 }
 func (m *Tx_NewRevenueMsg) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	if m.NewRevenueMsg != nil {
@@ -1576,6 +1660,9 @@ func (m *Tx_NewRevenueMsg) Size() (n int) {
 	return n
 }
 func (m *Tx_DistributeMsg) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	if m.DistributeMsg != nil {
@@ -1585,6 +1672,9 @@ func (m *Tx_DistributeMsg) Size() (n int) {
 	return n
 }
 func (m *Tx_ResetRevenueMsg) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	if m.ResetRevenueMsg != nil {
@@ -1594,6 +1684,9 @@ func (m *Tx_ResetRevenueMsg) Size() (n int) {
 	return n
 }
 func (m *BatchMsg) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	if len(m.Messages) > 0 {
@@ -1606,6 +1699,9 @@ func (m *BatchMsg) Size() (n int) {
 }
 
 func (m *BatchMsg_Union) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	if m.Sum != nil {
@@ -1615,6 +1711,9 @@ func (m *BatchMsg_Union) Size() (n int) {
 }
 
 func (m *BatchMsg_Union_SendMsg) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	if m.SendMsg != nil {
@@ -1624,6 +1723,9 @@ func (m *BatchMsg_Union_SendMsg) Size() (n int) {
 	return n
 }
 func (m *BatchMsg_Union_CreateEscrowMsg) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	if m.CreateEscrowMsg != nil {
@@ -1633,6 +1735,9 @@ func (m *BatchMsg_Union_CreateEscrowMsg) Size() (n int) {
 	return n
 }
 func (m *BatchMsg_Union_ReleaseEscrowMsg) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	if m.ReleaseEscrowMsg != nil {
@@ -1642,6 +1747,9 @@ func (m *BatchMsg_Union_ReleaseEscrowMsg) Size() (n int) {
 	return n
 }
 func (m *BatchMsg_Union_ReturnEscrowMsg) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	if m.ReturnEscrowMsg != nil {
@@ -1651,6 +1759,9 @@ func (m *BatchMsg_Union_ReturnEscrowMsg) Size() (n int) {
 	return n
 }
 func (m *BatchMsg_Union_UpdateEscrowMsg) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	if m.UpdateEscrowMsg != nil {
@@ -1660,6 +1771,9 @@ func (m *BatchMsg_Union_UpdateEscrowMsg) Size() (n int) {
 	return n
 }
 func (m *BatchMsg_Union_CreateContractMsg) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	if m.CreateContractMsg != nil {
@@ -1669,6 +1783,9 @@ func (m *BatchMsg_Union_CreateContractMsg) Size() (n int) {
 	return n
 }
 func (m *BatchMsg_Union_UpdateContractMsg) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	if m.UpdateContractMsg != nil {
@@ -1678,6 +1795,9 @@ func (m *BatchMsg_Union_UpdateContractMsg) Size() (n int) {
 	return n
 }
 func (m *BatchMsg_Union_SetValidatorsMsg) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	if m.SetValidatorsMsg != nil {
@@ -1687,6 +1807,9 @@ func (m *BatchMsg_Union_SetValidatorsMsg) Size() (n int) {
 	return n
 }
 func (m *BatchMsg_Union_NewTokenInfoMsg) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	if m.NewTokenInfoMsg != nil {
@@ -1724,7 +1847,7 @@ func (m *Tx) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -1752,7 +1875,7 @@ func (m *Tx) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -1761,6 +1884,9 @@ func (m *Tx) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -1785,7 +1911,7 @@ func (m *Tx) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -1794,6 +1920,9 @@ func (m *Tx) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -1816,7 +1945,7 @@ func (m *Tx) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				byteLen |= (int(b) & 0x7F) << shift
+				byteLen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -1825,6 +1954,9 @@ func (m *Tx) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -1847,7 +1979,7 @@ func (m *Tx) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				byteLen |= (int(b) & 0x7F) << shift
+				byteLen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -1856,6 +1988,9 @@ func (m *Tx) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -1876,7 +2011,7 @@ func (m *Tx) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -1885,6 +2020,9 @@ func (m *Tx) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -1908,7 +2046,7 @@ func (m *Tx) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -1917,6 +2055,9 @@ func (m *Tx) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -1940,7 +2081,7 @@ func (m *Tx) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -1949,6 +2090,9 @@ func (m *Tx) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -1972,7 +2116,7 @@ func (m *Tx) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -1981,6 +2125,9 @@ func (m *Tx) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -2004,7 +2151,7 @@ func (m *Tx) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -2013,6 +2160,9 @@ func (m *Tx) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -2036,7 +2186,7 @@ func (m *Tx) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -2045,6 +2195,9 @@ func (m *Tx) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -2068,7 +2221,7 @@ func (m *Tx) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -2077,6 +2230,9 @@ func (m *Tx) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -2100,7 +2256,7 @@ func (m *Tx) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -2109,6 +2265,9 @@ func (m *Tx) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -2132,7 +2291,7 @@ func (m *Tx) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -2141,6 +2300,9 @@ func (m *Tx) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -2164,7 +2326,7 @@ func (m *Tx) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -2173,6 +2335,9 @@ func (m *Tx) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -2196,7 +2361,7 @@ func (m *Tx) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -2205,6 +2370,9 @@ func (m *Tx) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -2228,7 +2396,7 @@ func (m *Tx) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -2237,6 +2405,9 @@ func (m *Tx) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -2260,7 +2431,7 @@ func (m *Tx) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -2269,6 +2440,9 @@ func (m *Tx) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -2285,6 +2459,9 @@ func (m *Tx) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthCodec
 			}
 			if (iNdEx + skippy) > l {
@@ -2314,7 +2491,7 @@ func (m *BatchMsg) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -2342,7 +2519,7 @@ func (m *BatchMsg) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -2351,6 +2528,9 @@ func (m *BatchMsg) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -2366,6 +2546,9 @@ func (m *BatchMsg) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthCodec
 			}
 			if (iNdEx + skippy) > l {
@@ -2395,7 +2578,7 @@ func (m *BatchMsg_Union) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -2423,7 +2606,7 @@ func (m *BatchMsg_Union) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -2432,6 +2615,9 @@ func (m *BatchMsg_Union) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -2455,7 +2641,7 @@ func (m *BatchMsg_Union) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -2464,6 +2650,9 @@ func (m *BatchMsg_Union) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -2487,7 +2676,7 @@ func (m *BatchMsg_Union) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -2496,6 +2685,9 @@ func (m *BatchMsg_Union) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -2519,7 +2711,7 @@ func (m *BatchMsg_Union) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -2528,6 +2720,9 @@ func (m *BatchMsg_Union) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -2551,7 +2746,7 @@ func (m *BatchMsg_Union) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -2560,6 +2755,9 @@ func (m *BatchMsg_Union) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -2583,7 +2781,7 @@ func (m *BatchMsg_Union) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -2592,6 +2790,9 @@ func (m *BatchMsg_Union) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -2615,7 +2816,7 @@ func (m *BatchMsg_Union) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -2624,6 +2825,9 @@ func (m *BatchMsg_Union) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -2647,7 +2851,7 @@ func (m *BatchMsg_Union) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -2656,6 +2860,9 @@ func (m *BatchMsg_Union) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -2679,7 +2886,7 @@ func (m *BatchMsg_Union) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -2688,6 +2895,9 @@ func (m *BatchMsg_Union) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -2704,6 +2914,9 @@ func (m *BatchMsg_Union) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthCodec
 			}
 			if (iNdEx + skippy) > l {
@@ -2772,8 +2985,11 @@ func skipCodec(dAtA []byte) (n int, err error) {
 					break
 				}
 			}
-			iNdEx += length
 			if length < 0 {
+				return 0, ErrInvalidLengthCodec
+			}
+			iNdEx += length
+			if iNdEx < 0 {
 				return 0, ErrInvalidLengthCodec
 			}
 			return iNdEx, nil
@@ -2804,6 +3020,9 @@ func skipCodec(dAtA []byte) (n int, err error) {
 					return 0, err
 				}
 				iNdEx = start + next
+				if iNdEx < 0 {
+					return 0, ErrInvalidLengthCodec
+				}
 			}
 			return iNdEx, nil
 		case 4:
@@ -2822,54 +3041,3 @@ var (
 	ErrInvalidLengthCodec = fmt.Errorf("proto: negative length found during unmarshaling")
 	ErrIntOverflowCodec   = fmt.Errorf("proto: integer overflow")
 )
-
-func init() { proto.RegisterFile("app/codec.proto", fileDescriptor_codec_5c05d1f53681ab0a) }
-
-var fileDescriptor_codec_5c05d1f53681ab0a = []byte{
-	// 715 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x95, 0x4f, 0x4f, 0x13, 0x41,
-	0x18, 0xc6, 0x29, 0x6d, 0xa1, 0x0c, 0x22, 0x30, 0x1c, 0xac, 0x55, 0x6b, 0xe5, 0x44, 0x54, 0xa6,
-	0x11, 0xc4, 0xff, 0xa7, 0x02, 0x06, 0x23, 0x18, 0xb3, 0x05, 0xaf, 0xcd, 0x74, 0xf7, 0xed, 0x32,
-	0x91, 0xce, 0x6c, 0x66, 0x66, 0x5b, 0xfc, 0x16, 0x9e, 0xfc, 0x10, 0x7e, 0x12, 0x8e, 0x9e, 0x3d,
-	0x18, 0x83, 0x5f, 0xc4, 0xcc, 0xec, 0x6e, 0xd9, 0x69, 0x4c, 0xa3, 0xa6, 0xb7, 0x9d, 0xe7, 0x7d,
-	0x9e, 0x5f, 0xdf, 0xbe, 0x3b, 0x6f, 0x8b, 0x96, 0x69, 0x14, 0x35, 0x7d, 0x11, 0x80, 0x4f, 0x22,
-	0x29, 0xb4, 0xc0, 0x45, 0x1a, 0x45, 0xb5, 0xcd, 0x90, 0xe9, 0xd3, 0xb8, 0x4b, 0x7c, 0xd1, 0x6f,
-	0x86, 0x22, 0x14, 0x4d, 0x5b, 0xeb, 0xc6, 0x3d, 0x7b, 0xb2, 0x07, 0xfb, 0x94, 0x64, 0x6a, 0x0f,
-	0x72, 0x76, 0x26, 0x06, 0x9b, 0x82, 0x43, 0x73, 0x08, 0x74, 0x00, 0xcd, 0xf3, 0xa6, 0x4f, 0xd5,
-	0x69, 0xfe, 0x03, 0x6a, 0xcd, 0x49, 0xe6, 0x58, 0x4a, 0xe0, 0xfe, 0x27, 0x27, 0xb0, 0x39, 0x21,
-	0x00, 0xca, 0x97, 0x62, 0xf8, 0xd7, 0xfc, 0x7e, 0x7c, 0xa6, 0x99, 0x62, 0xa1, 0x13, 0x98, 0xd4,
-	0xbd, 0x62, 0xa1, 0x72, 0xcc, 0x8f, 0x26, 0x98, 0x07, 0xf4, 0x8c, 0x05, 0x54, 0x0b, 0xe9, 0x46,
-	0xb6, 0x27, 0x44, 0x02, 0xa6, 0xb4, 0x64, 0xdd, 0x58, 0x33, 0xc1, 0xf3, 0xa1, 0xf5, 0xaf, 0x15,
-	0x34, 0x7b, 0x7c, 0x8e, 0xef, 0xa1, 0x52, 0x0f, 0x40, 0x55, 0x0b, 0x8d, 0xc2, 0xc6, 0xe2, 0xd6,
-	0x12, 0x31, 0xd3, 0x24, 0xaf, 0x01, 0xde, 0xf0, 0x9e, 0xf0, 0x6c, 0x09, 0x6f, 0x21, 0xa4, 0x58,
-	0xc8, 0xa9, 0x8e, 0x25, 0xa8, 0xea, 0x6c, 0xa3, 0xb8, 0xb1, 0xb8, 0x85, 0x89, 0x69, 0x9c, 0xb4,
-	0x75, 0xd0, 0xce, 0x4a, 0x5e, 0xce, 0x85, 0x6b, 0xa8, 0x12, 0x49, 0x60, 0x7d, 0x1a, 0x42, 0xb5,
-	0xd8, 0x28, 0x6c, 0x5c, 0xf3, 0x46, 0x67, 0x53, 0xcb, 0xc6, 0x54, 0x2d, 0x35, 0x8a, 0xa6, 0x96,
-	0x9d, 0xf1, 0x7d, 0x54, 0x51, 0xc0, 0x83, 0x4e, 0x5f, 0x85, 0xd5, 0xed, 0x7c, 0x4b, 0x6d, 0xe0,
-	0xc1, 0x91, 0x0a, 0x0f, 0x66, 0xbc, 0x79, 0x95, 0x3c, 0xe2, 0x7d, 0xb4, 0xea, 0x4b, 0xa0, 0x1a,
-	0x3a, 0xc9, 0x4b, 0xb2, 0xa1, 0xc7, 0x36, 0x74, 0x83, 0x24, 0x12, 0xd9, 0xb5, 0x86, 0x7d, 0x7b,
-	0x48, 0xe2, 0xcb, 0xbe, 0x2b, 0xe1, 0x03, 0x84, 0x25, 0x9c, 0x01, 0x55, 0x0e, 0x67, 0xc7, 0x72,
-	0xaa, 0x19, 0xc7, 0x4b, 0x1c, 0x79, 0xd0, 0x8a, 0x1c, 0xd3, 0x4c, 0x43, 0x12, 0x74, 0x2c, 0x79,
-	0x1e, 0xf4, 0xc4, 0x6d, 0xc8, 0xb3, 0x06, 0xa7, 0x21, 0xe9, 0x4a, 0xf8, 0x10, 0xad, 0xc6, 0x51,
-	0x30, 0xf6, 0xbd, 0x9e, 0x5a, 0x4c, 0x3d, 0xc3, 0x9c, 0x58, 0x43, 0x92, 0x79, 0x4f, 0xa5, 0x66,
-	0xa0, 0x52, 0x5a, 0x9c, 0xab, 0x18, 0xda, 0x11, 0x5a, 0x4b, 0xa7, 0xe4, 0x0b, 0xae, 0x25, 0xf5,
-	0xb5, 0xe5, 0x3d, 0xb3, 0xbc, 0x5b, 0x24, 0x9b, 0x7c, 0x3a, 0xa9, 0xdd, 0xd4, 0x93, 0xc0, 0xd2,
-	0xf9, 0xe6, 0x44, 0x83, 0x4b, 0x9b, 0x73, 0x70, 0xcf, 0xc7, 0x71, 0x49, 0x83, 0x63, 0xb8, 0x78,
-	0x5c, 0xc4, 0x87, 0x08, 0x2b, 0xd0, 0x9d, 0xab, 0x8b, 0x6d, 0x69, 0x2f, 0x2c, 0xed, 0x36, 0xb9,
-	0x92, 0x49, 0x1b, 0xf4, 0x87, 0xd1, 0x29, 0x7d, 0x01, 0x6a, 0x4c, 0x33, 0xaf, 0x92, 0xc3, 0xb0,
-	0xa3, 0xc5, 0x47, 0xe0, 0x1d, 0xc6, 0x7b, 0xc2, 0xd2, 0x5e, 0x5a, 0xda, 0x4d, 0x92, 0xed, 0x3e,
-	0x79, 0x07, 0xc3, 0x63, 0x63, 0x31, 0x77, 0x3c, 0x9d, 0x1a, 0x77, 0x25, 0xfc, 0x10, 0x2d, 0x74,
-	0xa9, 0xf6, 0x4f, 0x2d, 0xe0, 0x55, 0x7a, 0x11, 0x69, 0x14, 0x91, 0x96, 0x51, 0x93, 0x50, 0xa5,
-	0x9b, 0x3e, 0xe3, 0x7d, 0x64, 0x00, 0x1d, 0x09, 0x03, 0xe0, 0x31, 0xd8, 0x4c, 0x2b, 0x1d, 0x48,
-	0x7e, 0xff, 0xcc, 0x07, 0x7b, 0x89, 0x27, 0x21, 0x2c, 0xf1, 0xbc, 0x80, 0xf7, 0xd0, 0xf5, 0x91,
-	0x3d, 0xa1, 0xec, 0xfe, 0x89, 0xb2, 0x37, 0xf2, 0xa4, 0x94, 0x20, 0x2f, 0xe0, 0xb7, 0xe6, 0x16,
-	0x9a, 0xa1, 0xe6, 0xdb, 0xd9, 0xb3, 0xa0, 0x3b, 0x2e, 0xc8, 0x33, 0x36, 0xa7, 0xa1, 0x65, 0xe9,
-	0x4a, 0xad, 0x32, 0x2a, 0xaa, 0xb8, 0xbf, 0xfe, 0xbd, 0x8c, 0x2a, 0xd9, 0x37, 0xc7, 0x3b, 0xa8,
-	0xd2, 0x07, 0xa5, 0x68, 0x68, 0x7f, 0x36, 0xcc, 0xaf, 0xc1, 0x9a, 0x33, 0x1a, 0x72, 0xc2, 0x99,
-	0xe0, 0xad, 0xd2, 0xc5, 0x8f, 0xbb, 0x33, 0xde, 0xc8, 0x5a, 0xfb, 0x52, 0x46, 0x65, 0x5b, 0x71,
-	0x96, 0xbc, 0xf0, 0x3f, 0x4b, 0x5e, 0x9a, 0xd2, 0x92, 0x97, 0xa7, 0xb5, 0xe4, 0x73, 0xd3, 0x59,
-	0xf2, 0xf9, 0x29, 0x2f, 0x79, 0x65, 0xba, 0x4b, 0xbe, 0x30, 0xd5, 0x25, 0x47, 0x53, 0x5d, 0xf2,
-	0xc5, 0x7f, 0x5f, 0xf2, 0xf4, 0x72, 0xb7, 0x56, 0x2e, 0x2e, 0xeb, 0x85, 0x6f, 0x97, 0xf5, 0xc2,
-	0xcf, 0xcb, 0x7a, 0xe1, 0xf3, 0xaf, 0xfa, 0x4c, 0x77, 0xce, 0xfe, 0x45, 0x6e, 0xff, 0x0e, 0x00,
-	0x00, 0xff, 0xff, 0x5a, 0x41, 0x00, 0xb5, 0xbc, 0x08, 0x00, 0x00,
-}

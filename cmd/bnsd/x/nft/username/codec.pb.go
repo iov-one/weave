@@ -3,13 +3,14 @@
 
 package username
 
-import proto "github.com/gogo/protobuf/proto"
-import fmt "fmt"
-import math "math"
-import _ "github.com/gogo/protobuf/gogoproto"
-import nft "github.com/iov-one/weave/x/nft"
-
-import io "io"
+import (
+	fmt "fmt"
+	_ "github.com/gogo/protobuf/gogoproto"
+	proto "github.com/gogo/protobuf/proto"
+	nft "github.com/iov-one/weave/x/nft"
+	io "io"
+	math "math"
+)
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
@@ -23,17 +24,15 @@ var _ = math.Inf
 const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
 
 type UsernameToken struct {
-	Base                 *nft.NonFungibleToken `protobuf:"bytes,1,opt,name=base" json:"base,omitempty"`
-	Details              *TokenDetails         `protobuf:"bytes,2,opt,name=details" json:"details,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}              `json:"-"`
-	XXX_sizecache        int32                 `json:"-"`
+	Base    *nft.NonFungibleToken `protobuf:"bytes,1,opt,name=base,proto3" json:"base,omitempty"`
+	Details *TokenDetails         `protobuf:"bytes,2,opt,name=details,proto3" json:"details,omitempty"`
 }
 
 func (m *UsernameToken) Reset()         { *m = UsernameToken{} }
 func (m *UsernameToken) String() string { return proto.CompactTextString(m) }
 func (*UsernameToken) ProtoMessage()    {}
 func (*UsernameToken) Descriptor() ([]byte, []int) {
-	return fileDescriptor_codec_1e81983a361fbafc, []int{0}
+	return fileDescriptor_82026abd33a4836e, []int{0}
 }
 func (m *UsernameToken) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -50,8 +49,8 @@ func (m *UsernameToken) XXX_Marshal(b []byte, deterministic bool) ([]byte, error
 		return b[:n], nil
 	}
 }
-func (dst *UsernameToken) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_UsernameToken.Merge(dst, src)
+func (m *UsernameToken) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UsernameToken.Merge(m, src)
 }
 func (m *UsernameToken) XXX_Size() int {
 	return m.Size()
@@ -77,16 +76,14 @@ func (m *UsernameToken) GetDetails() *TokenDetails {
 }
 
 type TokenDetails struct {
-	Addresses            []ChainAddress `protobuf:"bytes,1,rep,name=addresses" json:"addresses"`
-	XXX_NoUnkeyedLiteral struct{}       `json:"-"`
-	XXX_sizecache        int32          `json:"-"`
+	Addresses []ChainAddress `protobuf:"bytes,1,rep,name=addresses,proto3" json:"addresses"`
 }
 
 func (m *TokenDetails) Reset()         { *m = TokenDetails{} }
 func (m *TokenDetails) String() string { return proto.CompactTextString(m) }
 func (*TokenDetails) ProtoMessage()    {}
 func (*TokenDetails) Descriptor() ([]byte, []int) {
-	return fileDescriptor_codec_1e81983a361fbafc, []int{1}
+	return fileDescriptor_82026abd33a4836e, []int{1}
 }
 func (m *TokenDetails) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -103,8 +100,8 @@ func (m *TokenDetails) XXX_Marshal(b []byte, deterministic bool) ([]byte, error)
 		return b[:n], nil
 	}
 }
-func (dst *TokenDetails) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_TokenDetails.Merge(dst, src)
+func (m *TokenDetails) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_TokenDetails.Merge(m, src)
 }
 func (m *TokenDetails) XXX_Size() int {
 	return m.Size()
@@ -131,16 +128,14 @@ type ChainAddress struct {
 	BlockchainID []byte `protobuf:"bytes,1,opt,name=blockchain_id,json=blockchainId,proto3" json:"blockchain_id,omitempty"`
 	// Address is a unique identifier of an account on the referenced
 	// blockchain.
-	Address              string   `protobuf:"bytes,2,opt,name=address,proto3" json:"address,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
+	Address string `protobuf:"bytes,2,opt,name=address,proto3" json:"address,omitempty"`
 }
 
 func (m *ChainAddress) Reset()         { *m = ChainAddress{} }
 func (m *ChainAddress) String() string { return proto.CompactTextString(m) }
 func (*ChainAddress) ProtoMessage()    {}
 func (*ChainAddress) Descriptor() ([]byte, []int) {
-	return fileDescriptor_codec_1e81983a361fbafc, []int{2}
+	return fileDescriptor_82026abd33a4836e, []int{2}
 }
 func (m *ChainAddress) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -157,8 +152,8 @@ func (m *ChainAddress) XXX_Marshal(b []byte, deterministic bool) ([]byte, error)
 		return b[:n], nil
 	}
 }
-func (dst *ChainAddress) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ChainAddress.Merge(dst, src)
+func (m *ChainAddress) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ChainAddress.Merge(m, src)
 }
 func (m *ChainAddress) XXX_Size() int {
 	return m.Size()
@@ -184,19 +179,17 @@ func (m *ChainAddress) GetAddress() string {
 }
 
 type IssueTokenMsg struct {
-	ID                   []byte                `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Owner                []byte                `protobuf:"bytes,2,opt,name=owner,proto3" json:"owner,omitempty"`
-	Approvals            []nft.ActionApprovals `protobuf:"bytes,3,rep,name=approvals" json:"approvals"`
-	Details              TokenDetails          `protobuf:"bytes,4,opt,name=details" json:"details"`
-	XXX_NoUnkeyedLiteral struct{}              `json:"-"`
-	XXX_sizecache        int32                 `json:"-"`
+	ID        []byte                `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Owner     []byte                `protobuf:"bytes,2,opt,name=owner,proto3" json:"owner,omitempty"`
+	Approvals []nft.ActionApprovals `protobuf:"bytes,3,rep,name=approvals,proto3" json:"approvals"`
+	Details   TokenDetails          `protobuf:"bytes,4,opt,name=details,proto3" json:"details"`
 }
 
 func (m *IssueTokenMsg) Reset()         { *m = IssueTokenMsg{} }
 func (m *IssueTokenMsg) String() string { return proto.CompactTextString(m) }
 func (*IssueTokenMsg) ProtoMessage()    {}
 func (*IssueTokenMsg) Descriptor() ([]byte, []int) {
-	return fileDescriptor_codec_1e81983a361fbafc, []int{3}
+	return fileDescriptor_82026abd33a4836e, []int{3}
 }
 func (m *IssueTokenMsg) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -213,8 +206,8 @@ func (m *IssueTokenMsg) XXX_Marshal(b []byte, deterministic bool) ([]byte, error
 		return b[:n], nil
 	}
 }
-func (dst *IssueTokenMsg) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_IssueTokenMsg.Merge(dst, src)
+func (m *IssueTokenMsg) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_IssueTokenMsg.Merge(m, src)
 }
 func (m *IssueTokenMsg) XXX_Size() int {
 	return m.Size()
@@ -254,18 +247,16 @@ func (m *IssueTokenMsg) GetDetails() TokenDetails {
 }
 
 type AddChainAddressMsg struct {
-	UsernameID           []byte   `protobuf:"bytes,1,opt,name=username_id,json=usernameId,proto3" json:"username_id,omitempty"`
-	BlockchainID         []byte   `protobuf:"bytes,2,opt,name=blockchain_id,json=blockchainId,proto3" json:"blockchain_id,omitempty"`
-	Address              string   `protobuf:"bytes,3,opt,name=address,proto3" json:"address,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
+	UsernameID   []byte `protobuf:"bytes,1,opt,name=username_id,json=usernameId,proto3" json:"username_id,omitempty"`
+	BlockchainID []byte `protobuf:"bytes,2,opt,name=blockchain_id,json=blockchainId,proto3" json:"blockchain_id,omitempty"`
+	Address      string `protobuf:"bytes,3,opt,name=address,proto3" json:"address,omitempty"`
 }
 
 func (m *AddChainAddressMsg) Reset()         { *m = AddChainAddressMsg{} }
 func (m *AddChainAddressMsg) String() string { return proto.CompactTextString(m) }
 func (*AddChainAddressMsg) ProtoMessage()    {}
 func (*AddChainAddressMsg) Descriptor() ([]byte, []int) {
-	return fileDescriptor_codec_1e81983a361fbafc, []int{4}
+	return fileDescriptor_82026abd33a4836e, []int{4}
 }
 func (m *AddChainAddressMsg) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -282,8 +273,8 @@ func (m *AddChainAddressMsg) XXX_Marshal(b []byte, deterministic bool) ([]byte, 
 		return b[:n], nil
 	}
 }
-func (dst *AddChainAddressMsg) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_AddChainAddressMsg.Merge(dst, src)
+func (m *AddChainAddressMsg) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_AddChainAddressMsg.Merge(m, src)
 }
 func (m *AddChainAddressMsg) XXX_Size() int {
 	return m.Size()
@@ -316,18 +307,16 @@ func (m *AddChainAddressMsg) GetAddress() string {
 }
 
 type RemoveChainAddressMsg struct {
-	UsernameID           []byte   `protobuf:"bytes,1,opt,name=username_id,json=usernameId,proto3" json:"username_id,omitempty"`
-	BlockchainID         []byte   `protobuf:"bytes,2,opt,name=blockchain_id,json=blockchainId,proto3" json:"blockchain_id,omitempty"`
-	Address              string   `protobuf:"bytes,3,opt,name=address,proto3" json:"address,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
+	UsernameID   []byte `protobuf:"bytes,1,opt,name=username_id,json=usernameId,proto3" json:"username_id,omitempty"`
+	BlockchainID []byte `protobuf:"bytes,2,opt,name=blockchain_id,json=blockchainId,proto3" json:"blockchain_id,omitempty"`
+	Address      string `protobuf:"bytes,3,opt,name=address,proto3" json:"address,omitempty"`
 }
 
 func (m *RemoveChainAddressMsg) Reset()         { *m = RemoveChainAddressMsg{} }
 func (m *RemoveChainAddressMsg) String() string { return proto.CompactTextString(m) }
 func (*RemoveChainAddressMsg) ProtoMessage()    {}
 func (*RemoveChainAddressMsg) Descriptor() ([]byte, []int) {
-	return fileDescriptor_codec_1e81983a361fbafc, []int{5}
+	return fileDescriptor_82026abd33a4836e, []int{5}
 }
 func (m *RemoveChainAddressMsg) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -344,8 +333,8 @@ func (m *RemoveChainAddressMsg) XXX_Marshal(b []byte, deterministic bool) ([]byt
 		return b[:n], nil
 	}
 }
-func (dst *RemoveChainAddressMsg) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_RemoveChainAddressMsg.Merge(dst, src)
+func (m *RemoveChainAddressMsg) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_RemoveChainAddressMsg.Merge(m, src)
 }
 func (m *RemoveChainAddressMsg) XXX_Size() int {
 	return m.Size()
@@ -385,6 +374,44 @@ func init() {
 	proto.RegisterType((*AddChainAddressMsg)(nil), "username.AddChainAddressMsg")
 	proto.RegisterType((*RemoveChainAddressMsg)(nil), "username.RemoveChainAddressMsg")
 }
+
+func init() {
+	proto.RegisterFile("cmd/bnsd/x/nft/username/codec.proto", fileDescriptor_82026abd33a4836e)
+}
+
+var fileDescriptor_82026abd33a4836e = []byte{
+	// 454 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xcc, 0x93, 0x4f, 0x8b, 0xd3, 0x40,
+	0x18, 0xc6, 0x3b, 0x69, 0xdd, 0xb5, 0xef, 0xa6, 0x22, 0xc3, 0xee, 0x12, 0xf6, 0x90, 0x2e, 0xf5,
+	0xa2, 0xc2, 0x66, 0x44, 0x51, 0xc4, 0x5b, 0x6b, 0x11, 0x22, 0xe8, 0x61, 0xd0, 0xf3, 0x32, 0xc9,
+	0x4c, 0xb3, 0xc3, 0xa6, 0x33, 0x25, 0x93, 0x74, 0xfd, 0x18, 0x9e, 0x04, 0x3f, 0x85, 0x5f, 0x63,
+	0x8f, 0x7b, 0xf4, 0x54, 0x24, 0xfd, 0x22, 0xb2, 0x93, 0x4e, 0x9b, 0x45, 0x10, 0xbc, 0x79, 0xcb,
+	0xfb, 0xbe, 0xbf, 0xf7, 0xcf, 0xf3, 0x84, 0x81, 0x47, 0xe9, 0x9c, 0x93, 0x44, 0x19, 0x4e, 0xbe,
+	0x10, 0x35, 0x2b, 0x49, 0x65, 0x44, 0xa1, 0xd8, 0x5c, 0x90, 0x54, 0x73, 0x91, 0x46, 0x8b, 0x42,
+	0x97, 0x1a, 0xdf, 0x77, 0xd9, 0x93, 0xb3, 0x4c, 0x96, 0x17, 0x55, 0x12, 0xa5, 0x7a, 0x4e, 0x32,
+	0x9d, 0x69, 0x62, 0x81, 0xa4, 0x9a, 0xd9, 0xc8, 0x06, 0xf6, 0xab, 0x69, 0x3c, 0x79, 0xda, 0xc2,
+	0xa5, 0x5e, 0x9e, 0x69, 0x25, 0xc8, 0x95, 0x60, 0x4b, 0xb1, 0xd9, 0xd6, 0x5a, 0x32, 0xca, 0x61,
+	0xf0, 0x79, 0xb3, 0xe6, 0x93, 0xbe, 0x14, 0x0a, 0x3f, 0x81, 0x5e, 0xc2, 0x8c, 0x08, 0xd0, 0x29,
+	0x7a, 0x7c, 0xf0, 0xfc, 0x28, 0x52, 0xb3, 0x32, 0xfa, 0xa8, 0xd5, 0xbb, 0x4a, 0x65, 0x32, 0xc9,
+	0x1b, 0x88, 0x5a, 0x04, 0x3f, 0x83, 0x7d, 0x2e, 0x4a, 0x26, 0x73, 0x13, 0x78, 0x96, 0x3e, 0x8e,
+	0xdc, 0xc9, 0x91, 0xe5, 0xa6, 0x4d, 0x95, 0x3a, 0x6c, 0xf4, 0x1e, 0xfc, 0x76, 0x01, 0xbf, 0x81,
+	0x3e, 0xe3, 0xbc, 0x10, 0xc6, 0x08, 0x13, 0xa0, 0xd3, 0xee, 0xdd, 0x19, 0x6f, 0x2f, 0x98, 0x54,
+	0xe3, 0xa6, 0x3e, 0xe9, 0x5d, 0xaf, 0x86, 0x1d, 0xba, 0xc3, 0x47, 0xe7, 0xe0, 0xb7, 0x01, 0xfc,
+	0x12, 0x06, 0x49, 0xae, 0xd3, 0xcb, 0xf4, 0x36, 0x79, 0x2e, 0xb9, 0x55, 0xe0, 0x4f, 0x1e, 0xd6,
+	0xab, 0xa1, 0x3f, 0xd9, 0x16, 0xe2, 0x29, 0xf5, 0x77, 0x58, 0xcc, 0x71, 0x00, 0xfb, 0x9b, 0x99,
+	0x56, 0x44, 0x9f, 0xba, 0x70, 0xf4, 0x03, 0xc1, 0x20, 0x36, 0xa6, 0x6a, 0x34, 0x7f, 0x30, 0x19,
+	0x3e, 0x06, 0x6f, 0x3b, 0x77, 0xaf, 0x5e, 0x0d, 0xbd, 0x78, 0x4a, 0x3d, 0xc9, 0xf1, 0x21, 0xdc,
+	0xd3, 0x57, 0x4a, 0x14, 0x76, 0x82, 0x4f, 0x9b, 0x00, 0xbf, 0x86, 0x3e, 0x5b, 0x2c, 0x0a, 0xbd,
+	0x64, 0xb9, 0x09, 0xba, 0x56, 0xdc, 0xa1, 0xb5, 0x73, 0x9c, 0x96, 0x52, 0xab, 0xb1, 0xab, 0x6d,
+	0xa5, 0xb9, 0x04, 0x7e, 0xb5, 0x33, 0xb6, 0xf7, 0x37, 0x63, 0x37, 0x9d, 0x5b, 0x7b, 0xbf, 0x21,
+	0xc0, 0x63, 0xce, 0xdb, 0xb6, 0xdc, 0x9e, 0x4d, 0xe0, 0xc0, 0xb5, 0xef, 0x7c, 0x79, 0x50, 0xaf,
+	0x86, 0xe0, 0x7e, 0x7d, 0x3c, 0xa5, 0xe0, 0x90, 0x98, 0xff, 0x69, 0xa5, 0xf7, 0xaf, 0x56, 0x76,
+	0xef, 0x5a, 0xf9, 0x1d, 0xc1, 0x11, 0x15, 0x73, 0xbd, 0x14, 0xff, 0xdd, 0x6d, 0x93, 0xe0, 0xba,
+	0x0e, 0xd1, 0x4d, 0x1d, 0xa2, 0x5f, 0x75, 0x88, 0xbe, 0xae, 0xc3, 0xce, 0xcd, 0x3a, 0xec, 0xfc,
+	0x5c, 0x87, 0x9d, 0x64, 0xcf, 0x3e, 0x91, 0x17, 0xbf, 0x03, 0x00, 0x00, 0xff, 0xff, 0xb9, 0xb2,
+	0xd1, 0xf9, 0xae, 0x03, 0x00, 0x00,
+}
+
 func (m *UsernameToken) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
@@ -615,6 +642,9 @@ func encodeVarintCodec(dAtA []byte, offset int, v uint64) int {
 	return offset + 1
 }
 func (m *UsernameToken) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	if m.Base != nil {
@@ -629,6 +659,9 @@ func (m *UsernameToken) Size() (n int) {
 }
 
 func (m *TokenDetails) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	if len(m.Addresses) > 0 {
@@ -641,6 +674,9 @@ func (m *TokenDetails) Size() (n int) {
 }
 
 func (m *ChainAddress) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	l = len(m.BlockchainID)
@@ -655,6 +691,9 @@ func (m *ChainAddress) Size() (n int) {
 }
 
 func (m *IssueTokenMsg) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	l = len(m.ID)
@@ -677,6 +716,9 @@ func (m *IssueTokenMsg) Size() (n int) {
 }
 
 func (m *AddChainAddressMsg) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	l = len(m.UsernameID)
@@ -695,6 +737,9 @@ func (m *AddChainAddressMsg) Size() (n int) {
 }
 
 func (m *RemoveChainAddressMsg) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	l = len(m.UsernameID)
@@ -740,7 +785,7 @@ func (m *UsernameToken) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -768,7 +813,7 @@ func (m *UsernameToken) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -777,6 +822,9 @@ func (m *UsernameToken) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -801,7 +849,7 @@ func (m *UsernameToken) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -810,6 +858,9 @@ func (m *UsernameToken) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -827,6 +878,9 @@ func (m *UsernameToken) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthCodec
 			}
 			if (iNdEx + skippy) > l {
@@ -856,7 +910,7 @@ func (m *TokenDetails) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -884,7 +938,7 @@ func (m *TokenDetails) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -893,6 +947,9 @@ func (m *TokenDetails) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -908,6 +965,9 @@ func (m *TokenDetails) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthCodec
 			}
 			if (iNdEx + skippy) > l {
@@ -937,7 +997,7 @@ func (m *ChainAddress) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -965,7 +1025,7 @@ func (m *ChainAddress) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				byteLen |= (int(b) & 0x7F) << shift
+				byteLen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -974,6 +1034,9 @@ func (m *ChainAddress) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -996,7 +1059,7 @@ func (m *ChainAddress) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= (uint64(b) & 0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -1006,6 +1069,9 @@ func (m *ChainAddress) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -1018,6 +1084,9 @@ func (m *ChainAddress) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthCodec
 			}
 			if (iNdEx + skippy) > l {
@@ -1047,7 +1116,7 @@ func (m *IssueTokenMsg) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -1075,7 +1144,7 @@ func (m *IssueTokenMsg) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				byteLen |= (int(b) & 0x7F) << shift
+				byteLen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -1084,6 +1153,9 @@ func (m *IssueTokenMsg) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -1106,7 +1178,7 @@ func (m *IssueTokenMsg) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				byteLen |= (int(b) & 0x7F) << shift
+				byteLen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -1115,6 +1187,9 @@ func (m *IssueTokenMsg) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -1137,7 +1212,7 @@ func (m *IssueTokenMsg) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -1146,6 +1221,9 @@ func (m *IssueTokenMsg) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -1168,7 +1246,7 @@ func (m *IssueTokenMsg) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -1177,6 +1255,9 @@ func (m *IssueTokenMsg) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -1191,6 +1272,9 @@ func (m *IssueTokenMsg) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthCodec
 			}
 			if (iNdEx + skippy) > l {
@@ -1220,7 +1304,7 @@ func (m *AddChainAddressMsg) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -1248,7 +1332,7 @@ func (m *AddChainAddressMsg) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				byteLen |= (int(b) & 0x7F) << shift
+				byteLen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -1257,6 +1341,9 @@ func (m *AddChainAddressMsg) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -1279,7 +1366,7 @@ func (m *AddChainAddressMsg) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				byteLen |= (int(b) & 0x7F) << shift
+				byteLen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -1288,6 +1375,9 @@ func (m *AddChainAddressMsg) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -1310,7 +1400,7 @@ func (m *AddChainAddressMsg) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= (uint64(b) & 0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -1320,6 +1410,9 @@ func (m *AddChainAddressMsg) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -1332,6 +1425,9 @@ func (m *AddChainAddressMsg) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthCodec
 			}
 			if (iNdEx + skippy) > l {
@@ -1361,7 +1457,7 @@ func (m *RemoveChainAddressMsg) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -1389,7 +1485,7 @@ func (m *RemoveChainAddressMsg) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				byteLen |= (int(b) & 0x7F) << shift
+				byteLen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -1398,6 +1494,9 @@ func (m *RemoveChainAddressMsg) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -1420,7 +1519,7 @@ func (m *RemoveChainAddressMsg) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				byteLen |= (int(b) & 0x7F) << shift
+				byteLen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -1429,6 +1528,9 @@ func (m *RemoveChainAddressMsg) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -1451,7 +1553,7 @@ func (m *RemoveChainAddressMsg) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= (uint64(b) & 0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -1461,6 +1563,9 @@ func (m *RemoveChainAddressMsg) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -1473,6 +1578,9 @@ func (m *RemoveChainAddressMsg) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthCodec
 			}
 			if (iNdEx + skippy) > l {
@@ -1541,8 +1649,11 @@ func skipCodec(dAtA []byte) (n int, err error) {
 					break
 				}
 			}
-			iNdEx += length
 			if length < 0 {
+				return 0, ErrInvalidLengthCodec
+			}
+			iNdEx += length
+			if iNdEx < 0 {
 				return 0, ErrInvalidLengthCodec
 			}
 			return iNdEx, nil
@@ -1573,6 +1684,9 @@ func skipCodec(dAtA []byte) (n int, err error) {
 					return 0, err
 				}
 				iNdEx = start + next
+				if iNdEx < 0 {
+					return 0, ErrInvalidLengthCodec
+				}
 			}
 			return iNdEx, nil
 		case 4:
@@ -1591,39 +1705,3 @@ var (
 	ErrInvalidLengthCodec = fmt.Errorf("proto: negative length found during unmarshaling")
 	ErrIntOverflowCodec   = fmt.Errorf("proto: integer overflow")
 )
-
-func init() {
-	proto.RegisterFile("cmd/bnsd/x/nft/username/codec.proto", fileDescriptor_codec_1e81983a361fbafc)
-}
-
-var fileDescriptor_codec_1e81983a361fbafc = []byte{
-	// 446 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xcc, 0x93, 0xdf, 0x6a, 0xd4, 0x40,
-	0x14, 0xc6, 0x3b, 0xd9, 0xb5, 0x75, 0x4f, 0xb3, 0x52, 0x86, 0xb6, 0x84, 0x5e, 0xec, 0x96, 0xf5,
-	0x46, 0x85, 0x66, 0x44, 0x51, 0xc4, 0xbb, 0x5d, 0x17, 0x21, 0x82, 0x5e, 0x0c, 0x7a, 0x5d, 0x26,
-	0x99, 0xd9, 0x74, 0x68, 0x76, 0x66, 0xc9, 0x24, 0x5b, 0x1f, 0xc3, 0x2b, 0xc1, 0xa7, 0xf0, 0x35,
-	0x7a, 0xe9, 0x13, 0x2c, 0x12, 0x5f, 0x44, 0x3a, 0xd9, 0x49, 0xb2, 0x08, 0x82, 0x77, 0xde, 0xe5,
-	0x9c, 0xf3, 0x3b, 0x7f, 0xbe, 0x2f, 0x0c, 0x3c, 0x4c, 0x96, 0x9c, 0xc4, 0xca, 0x70, 0xf2, 0x99,
-	0xa8, 0x45, 0x41, 0x4a, 0x23, 0x72, 0xc5, 0x96, 0x82, 0x24, 0x9a, 0x8b, 0x24, 0x5c, 0xe5, 0xba,
-	0xd0, 0xf8, 0xbe, 0xcb, 0x9e, 0x5d, 0xa4, 0xb2, 0xb8, 0x2a, 0xe3, 0x30, 0xd1, 0x4b, 0x92, 0xea,
-	0x54, 0x13, 0x0b, 0xc4, 0xe5, 0xc2, 0x46, 0x36, 0xb0, 0x5f, 0x75, 0xe3, 0xd9, 0x93, 0x0e, 0x2e,
-	0xf5, 0xfa, 0x42, 0x2b, 0x41, 0x6e, 0x04, 0x5b, 0x8b, 0xed, 0xb6, 0xce, 0x92, 0x49, 0x06, 0xc3,
-	0x4f, 0xdb, 0x35, 0x1f, 0xf5, 0xb5, 0x50, 0xf8, 0x31, 0xf4, 0x63, 0x66, 0x44, 0x80, 0xce, 0xd1,
-	0xa3, 0xc3, 0x67, 0x27, 0xa1, 0x5a, 0x14, 0xe1, 0x07, 0xad, 0xde, 0x96, 0x2a, 0x95, 0x71, 0x56,
-	0x43, 0xd4, 0x22, 0xf8, 0x29, 0x1c, 0x70, 0x51, 0x30, 0x99, 0x99, 0xc0, 0xb3, 0xf4, 0x69, 0xe8,
-	0x4e, 0x0e, 0x2d, 0x37, 0xaf, 0xab, 0xd4, 0x61, 0x93, 0x77, 0xe0, 0x77, 0x0b, 0xf8, 0x35, 0x0c,
-	0x18, 0xe7, 0xb9, 0x30, 0x46, 0x98, 0x00, 0x9d, 0xf7, 0x76, 0x67, 0xbc, 0xb9, 0x62, 0x52, 0x4d,
-	0xeb, 0xfa, 0xac, 0x7f, 0xbb, 0x19, 0xef, 0xd1, 0x16, 0x9f, 0x5c, 0x82, 0xdf, 0x05, 0xf0, 0x0b,
-	0x18, 0xc6, 0x99, 0x4e, 0xae, 0x93, 0xbb, 0xe4, 0xa5, 0xe4, 0x56, 0x81, 0x3f, 0x3b, 0xaa, 0x36,
-	0x63, 0x7f, 0xd6, 0x14, 0xa2, 0x39, 0xf5, 0x5b, 0x2c, 0xe2, 0x38, 0x80, 0x83, 0xed, 0x4c, 0x2b,
-	0x62, 0x40, 0x5d, 0x38, 0xf9, 0x8e, 0x60, 0x18, 0x19, 0x53, 0xd6, 0x9a, 0xdf, 0x9b, 0x14, 0x9f,
-	0x82, 0xd7, 0xcc, 0xdd, 0xaf, 0x36, 0x63, 0x2f, 0x9a, 0x53, 0x4f, 0x72, 0x7c, 0x0c, 0xf7, 0xf4,
-	0x8d, 0x12, 0xb9, 0x9d, 0xe0, 0xd3, 0x3a, 0xc0, 0xaf, 0x60, 0xc0, 0x56, 0xab, 0x5c, 0xaf, 0x59,
-	0x66, 0x82, 0x9e, 0x15, 0x77, 0x6c, 0xed, 0x9c, 0x26, 0x85, 0xd4, 0x6a, 0xea, 0x6a, 0x8d, 0x34,
-	0x97, 0xc0, 0x2f, 0x5b, 0x63, 0xfb, 0x7f, 0x33, 0x76, 0xdb, 0xd9, 0xd8, 0xfb, 0x15, 0x01, 0x9e,
-	0x72, 0xde, 0xb5, 0xe5, 0xee, 0x6c, 0x02, 0x87, 0xae, 0xbd, 0xf5, 0xe5, 0x41, 0xb5, 0x19, 0x83,
-	0xfb, 0xf5, 0xd1, 0x9c, 0x82, 0x43, 0x22, 0xfe, 0xa7, 0x95, 0xde, 0xbf, 0x5a, 0xd9, 0xdb, 0xb5,
-	0xf2, 0x1b, 0x82, 0x13, 0x2a, 0x96, 0x7a, 0x2d, 0xfe, 0xbb, 0xdb, 0x66, 0x47, 0xb7, 0xd5, 0x08,
-	0xfd, 0xa8, 0x46, 0xe8, 0x67, 0x35, 0x42, 0x5f, 0x7e, 0x8d, 0xf6, 0xe2, 0x7d, 0xfb, 0x34, 0x9e,
-	0xff, 0x0e, 0x00, 0x00, 0xff, 0xff, 0xff, 0x53, 0x0d, 0x12, 0xa6, 0x03, 0x00, 0x00,
-}

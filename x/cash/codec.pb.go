@@ -3,12 +3,13 @@
 
 package cash
 
-import proto "github.com/gogo/protobuf/proto"
-import fmt "fmt"
-import math "math"
-import coin "github.com/iov-one/weave/coin"
-
-import io "io"
+import (
+	fmt "fmt"
+	proto "github.com/gogo/protobuf/proto"
+	coin "github.com/iov-one/weave/coin"
+	io "io"
+	math "math"
+)
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
@@ -24,16 +25,14 @@ const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
 // Set may contain Coin of many different currencies.
 // It handles adding and subtracting sets of currencies.
 type Set struct {
-	Coins                []*coin.Coin `protobuf:"bytes,1,rep,name=coins" json:"coins,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}     `json:"-"`
-	XXX_sizecache        int32        `json:"-"`
+	Coins []*coin.Coin `protobuf:"bytes,1,rep,name=coins,proto3" json:"coins,omitempty"`
 }
 
 func (m *Set) Reset()         { *m = Set{} }
 func (m *Set) String() string { return proto.CompactTextString(m) }
 func (*Set) ProtoMessage()    {}
 func (*Set) Descriptor() ([]byte, []int) {
-	return fileDescriptor_codec_19037f7930b4baac, []int{0}
+	return fileDescriptor_7149e4b58e322390, []int{0}
 }
 func (m *Set) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -50,8 +49,8 @@ func (m *Set) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 		return b[:n], nil
 	}
 }
-func (dst *Set) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_Set.Merge(dst, src)
+func (m *Set) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Set.Merge(m, src)
 }
 func (m *Set) XXX_Size() int {
 	return m.Size()
@@ -77,20 +76,18 @@ func (m *Set) GetCoins() []*coin.Coin {
 type SendMsg struct {
 	Src    []byte     `protobuf:"bytes,1,opt,name=src,proto3" json:"src,omitempty"`
 	Dest   []byte     `protobuf:"bytes,2,opt,name=dest,proto3" json:"dest,omitempty"`
-	Amount *coin.Coin `protobuf:"bytes,3,opt,name=amount" json:"amount,omitempty"`
+	Amount *coin.Coin `protobuf:"bytes,3,opt,name=amount,proto3" json:"amount,omitempty"`
 	// max length 128 character
 	Memo string `protobuf:"bytes,4,opt,name=memo,proto3" json:"memo,omitempty"`
 	// max length 64 bytes
-	Ref                  []byte   `protobuf:"bytes,5,opt,name=ref,proto3" json:"ref,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
+	Ref []byte `protobuf:"bytes,5,opt,name=ref,proto3" json:"ref,omitempty"`
 }
 
 func (m *SendMsg) Reset()         { *m = SendMsg{} }
 func (m *SendMsg) String() string { return proto.CompactTextString(m) }
 func (*SendMsg) ProtoMessage()    {}
 func (*SendMsg) Descriptor() ([]byte, []int) {
-	return fileDescriptor_codec_19037f7930b4baac, []int{1}
+	return fileDescriptor_7149e4b58e322390, []int{1}
 }
 func (m *SendMsg) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -107,8 +104,8 @@ func (m *SendMsg) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 		return b[:n], nil
 	}
 }
-func (dst *SendMsg) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_SendMsg.Merge(dst, src)
+func (m *SendMsg) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SendMsg.Merge(m, src)
 }
 func (m *SendMsg) XXX_Size() int {
 	return m.Size()
@@ -157,17 +154,15 @@ func (m *SendMsg) GetRef() []byte {
 // FeeInfo records who pays what fees to have this
 // message processed
 type FeeInfo struct {
-	Payer                []byte     `protobuf:"bytes,1,opt,name=payer,proto3" json:"payer,omitempty"`
-	Fees                 *coin.Coin `protobuf:"bytes,2,opt,name=fees" json:"fees,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}   `json:"-"`
-	XXX_sizecache        int32      `json:"-"`
+	Payer []byte     `protobuf:"bytes,1,opt,name=payer,proto3" json:"payer,omitempty"`
+	Fees  *coin.Coin `protobuf:"bytes,2,opt,name=fees,proto3" json:"fees,omitempty"`
 }
 
 func (m *FeeInfo) Reset()         { *m = FeeInfo{} }
 func (m *FeeInfo) String() string { return proto.CompactTextString(m) }
 func (*FeeInfo) ProtoMessage()    {}
 func (*FeeInfo) Descriptor() ([]byte, []int) {
-	return fileDescriptor_codec_19037f7930b4baac, []int{2}
+	return fileDescriptor_7149e4b58e322390, []int{2}
 }
 func (m *FeeInfo) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -184,8 +179,8 @@ func (m *FeeInfo) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 		return b[:n], nil
 	}
 }
-func (dst *FeeInfo) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_FeeInfo.Merge(dst, src)
+func (m *FeeInfo) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_FeeInfo.Merge(m, src)
 }
 func (m *FeeInfo) XXX_Size() int {
 	return m.Size()
@@ -215,6 +210,30 @@ func init() {
 	proto.RegisterType((*SendMsg)(nil), "cash.SendMsg")
 	proto.RegisterType((*FeeInfo)(nil), "cash.FeeInfo")
 }
+
+func init() { proto.RegisterFile("x/cash/codec.proto", fileDescriptor_7149e4b58e322390) }
+
+var fileDescriptor_7149e4b58e322390 = []byte{
+	// 264 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x5c, 0x90, 0xb1, 0x4e, 0xc3, 0x30,
+	0x14, 0x45, 0x63, 0x92, 0xb4, 0xe2, 0xc1, 0x80, 0x2c, 0x06, 0x8b, 0xc1, 0x8a, 0xb2, 0x10, 0x06,
+	0x12, 0x09, 0x3e, 0x00, 0x09, 0x24, 0x24, 0x06, 0x96, 0xf4, 0x0b, 0x52, 0xe7, 0xa5, 0xcd, 0x10,
+	0xbf, 0x2a, 0x76, 0x0b, 0xfd, 0x0b, 0x3e, 0x8b, 0xb1, 0x23, 0x23, 0x4a, 0x7e, 0x04, 0xd9, 0xe9,
+	0x00, 0x6c, 0xf7, 0xdd, 0xab, 0x7b, 0x8f, 0xf4, 0x80, 0xbf, 0x17, 0xaa, 0x32, 0xeb, 0x42, 0x51,
+	0x8d, 0x2a, 0xdf, 0xf4, 0x64, 0x89, 0x47, 0xce, 0xb9, 0xba, 0x59, 0xb5, 0x76, 0xbd, 0x5d, 0xe6,
+	0x8a, 0xba, 0xa2, 0xa5, 0xdd, 0x2d, 0x69, 0x2c, 0xde, 0xb0, 0xda, 0x61, 0xa1, 0xa8, 0xd5, 0xbf,
+	0x0b, 0xe9, 0x35, 0x84, 0x0b, 0xb4, 0x3c, 0x81, 0xd8, 0x45, 0x46, 0xb0, 0x24, 0xcc, 0xce, 0xee,
+	0x20, 0x77, 0x57, 0xfe, 0x44, 0xad, 0x2e, 0xa7, 0x20, 0xdd, 0xc3, 0x7c, 0x81, 0xba, 0x7e, 0x35,
+	0x2b, 0x7e, 0x01, 0xa1, 0xe9, 0x95, 0x60, 0x09, 0xcb, 0xce, 0x4b, 0x27, 0x39, 0x87, 0xa8, 0x46,
+	0x63, 0xc5, 0x89, 0xb7, 0xbc, 0xe6, 0x29, 0xcc, 0xaa, 0x8e, 0xb6, 0xda, 0x8a, 0x30, 0x61, 0xff,
+	0x36, 0x8f, 0x89, 0xeb, 0x75, 0xd8, 0x91, 0x88, 0x12, 0x96, 0x9d, 0x96, 0x5e, 0xbb, 0xf5, 0x1e,
+	0x1b, 0x11, 0x4f, 0xeb, 0x3d, 0x36, 0xe9, 0x03, 0xcc, 0x9f, 0x11, 0x5f, 0x74, 0x43, 0xfc, 0x12,
+	0xe2, 0x4d, 0xb5, 0xc7, 0xfe, 0x08, 0x9f, 0x0e, 0x2e, 0x21, 0x6a, 0x10, 0x8d, 0xc7, 0xff, 0x05,
+	0x79, 0xff, 0x51, 0x7c, 0x0e, 0x92, 0x1d, 0x06, 0xc9, 0xbe, 0x07, 0xc9, 0x3e, 0x46, 0x19, 0x1c,
+	0x46, 0x19, 0x7c, 0x8d, 0x32, 0x58, 0xce, 0xfc, 0x17, 0xee, 0x7f, 0x02, 0x00, 0x00, 0xff, 0xff,
+	0xf6, 0x4b, 0x56, 0xe5, 0x4c, 0x01, 0x00, 0x00,
+}
+
 func (m *Set) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
@@ -341,6 +360,9 @@ func encodeVarintCodec(dAtA []byte, offset int, v uint64) int {
 	return offset + 1
 }
 func (m *Set) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	if len(m.Coins) > 0 {
@@ -353,6 +375,9 @@ func (m *Set) Size() (n int) {
 }
 
 func (m *SendMsg) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	l = len(m.Src)
@@ -379,6 +404,9 @@ func (m *SendMsg) Size() (n int) {
 }
 
 func (m *FeeInfo) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	l = len(m.Payer)
@@ -420,7 +448,7 @@ func (m *Set) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -448,7 +476,7 @@ func (m *Set) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -457,6 +485,9 @@ func (m *Set) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -472,6 +503,9 @@ func (m *Set) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthCodec
 			}
 			if (iNdEx + skippy) > l {
@@ -501,7 +535,7 @@ func (m *SendMsg) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -529,7 +563,7 @@ func (m *SendMsg) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				byteLen |= (int(b) & 0x7F) << shift
+				byteLen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -538,6 +572,9 @@ func (m *SendMsg) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -560,7 +597,7 @@ func (m *SendMsg) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				byteLen |= (int(b) & 0x7F) << shift
+				byteLen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -569,6 +606,9 @@ func (m *SendMsg) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -591,7 +631,7 @@ func (m *SendMsg) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -600,6 +640,9 @@ func (m *SendMsg) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -624,7 +667,7 @@ func (m *SendMsg) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= (uint64(b) & 0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -634,6 +677,9 @@ func (m *SendMsg) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -653,7 +699,7 @@ func (m *SendMsg) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				byteLen |= (int(b) & 0x7F) << shift
+				byteLen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -662,6 +708,9 @@ func (m *SendMsg) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -677,6 +726,9 @@ func (m *SendMsg) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthCodec
 			}
 			if (iNdEx + skippy) > l {
@@ -706,7 +758,7 @@ func (m *FeeInfo) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -734,7 +786,7 @@ func (m *FeeInfo) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				byteLen |= (int(b) & 0x7F) << shift
+				byteLen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -743,6 +795,9 @@ func (m *FeeInfo) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -765,7 +820,7 @@ func (m *FeeInfo) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -774,6 +829,9 @@ func (m *FeeInfo) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -791,6 +849,9 @@ func (m *FeeInfo) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthCodec
 			}
 			if (iNdEx + skippy) > l {
@@ -859,8 +920,11 @@ func skipCodec(dAtA []byte) (n int, err error) {
 					break
 				}
 			}
-			iNdEx += length
 			if length < 0 {
+				return 0, ErrInvalidLengthCodec
+			}
+			iNdEx += length
+			if iNdEx < 0 {
 				return 0, ErrInvalidLengthCodec
 			}
 			return iNdEx, nil
@@ -891,6 +955,9 @@ func skipCodec(dAtA []byte) (n int, err error) {
 					return 0, err
 				}
 				iNdEx = start + next
+				if iNdEx < 0 {
+					return 0, ErrInvalidLengthCodec
+				}
 			}
 			return iNdEx, nil
 		case 4:
@@ -909,26 +976,3 @@ var (
 	ErrInvalidLengthCodec = fmt.Errorf("proto: negative length found during unmarshaling")
 	ErrIntOverflowCodec   = fmt.Errorf("proto: integer overflow")
 )
-
-func init() { proto.RegisterFile("x/cash/codec.proto", fileDescriptor_codec_19037f7930b4baac) }
-
-var fileDescriptor_codec_19037f7930b4baac = []byte{
-	// 258 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x5c, 0x8f, 0xb1, 0x4e, 0xf3, 0x30,
-	0x14, 0x85, 0x7f, 0xff, 0x49, 0x5a, 0x71, 0x61, 0xa8, 0x2c, 0x06, 0x8b, 0x21, 0xb2, 0xb2, 0x10,
-	0x06, 0x62, 0x09, 0x1e, 0x00, 0x09, 0x24, 0x24, 0x06, 0x96, 0xf4, 0x09, 0x52, 0xe7, 0xa6, 0xcd,
-	0x10, 0xdf, 0xca, 0x76, 0x0b, 0x7d, 0x0b, 0x1e, 0x8b, 0x91, 0x47, 0x40, 0xe1, 0x45, 0x90, 0x9d,
-	0x0e, 0xc0, 0x76, 0xee, 0x39, 0x3a, 0xe7, 0xd3, 0x05, 0xfe, 0xaa, 0x74, 0xe3, 0x36, 0x4a, 0x53,
-	0x8b, 0xba, 0xda, 0x5a, 0xf2, 0xc4, 0xd3, 0xe0, 0x5c, 0x5c, 0xad, 0x7b, 0xbf, 0xd9, 0xad, 0x2a,
-	0x4d, 0x83, 0xea, 0x69, 0x7f, 0x4d, 0x06, 0xd5, 0x0b, 0x36, 0x7b, 0x54, 0x9a, 0x7a, 0xf3, 0xb3,
-	0x50, 0x5c, 0x42, 0xb2, 0x44, 0xcf, 0x25, 0x64, 0x21, 0x72, 0x82, 0xc9, 0xa4, 0x3c, 0xbd, 0x81,
-	0x2a, 0x5c, 0xd5, 0x03, 0xf5, 0xa6, 0x9e, 0x82, 0xe2, 0x00, 0xf3, 0x25, 0x9a, 0xf6, 0xd9, 0xad,
-	0xf9, 0x02, 0x12, 0x67, 0xb5, 0x60, 0x92, 0x95, 0x67, 0x75, 0x90, 0x9c, 0x43, 0xda, 0xa2, 0xf3,
-	0xe2, 0x7f, 0xb4, 0xa2, 0xe6, 0x05, 0xcc, 0x9a, 0x81, 0x76, 0xc6, 0x8b, 0x44, 0xb2, 0x3f, 0x9b,
-	0xc7, 0x24, 0xf4, 0x06, 0x1c, 0x48, 0xa4, 0x92, 0x95, 0x27, 0x75, 0xd4, 0x61, 0xdd, 0x62, 0x27,
-	0xb2, 0x69, 0xdd, 0x62, 0x57, 0xdc, 0xc1, 0xfc, 0x11, 0xf1, 0xc9, 0x74, 0xc4, 0xcf, 0x21, 0xdb,
-	0x36, 0x07, 0xb4, 0x47, 0xf8, 0x74, 0xf0, 0x1c, 0xd2, 0x0e, 0xd1, 0x45, 0xfc, 0x6f, 0x50, 0xf4,
-	0xef, 0x17, 0xef, 0x63, 0xce, 0x3e, 0xc6, 0x9c, 0x7d, 0x8e, 0x39, 0x7b, 0xfb, 0xca, 0xff, 0xad,
-	0x66, 0xf1, 0xfb, 0xdb, 0xef, 0x00, 0x00, 0x00, 0xff, 0xff, 0x2e, 0x03, 0xbf, 0xa5, 0x44, 0x01,
-	0x00, 0x00,
-}

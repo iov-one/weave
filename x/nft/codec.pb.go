@@ -3,12 +3,13 @@
 
 package nft
 
-import proto "github.com/gogo/protobuf/proto"
-import fmt "fmt"
-import math "math"
-import _ "github.com/gogo/protobuf/gogoproto"
-
-import io "io"
+import (
+	fmt "fmt"
+	_ "github.com/gogo/protobuf/gogoproto"
+	proto "github.com/gogo/protobuf/proto"
+	io "io"
+	math "math"
+)
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
@@ -30,16 +31,14 @@ type NonFungibleToken struct {
 	Owner []byte `protobuf:"bytes,2,opt,name=owner,proto3" json:"owner,omitempty"`
 	// Action approvals is a list of permissions. In order for operation to
 	// succeed, all action approvals validation must pass.
-	ActionApprovals      []ActionApprovals `protobuf:"bytes,3,rep,name=action_approvals,json=actionApprovals" json:"action_approvals"`
-	XXX_NoUnkeyedLiteral struct{}          `json:"-"`
-	XXX_sizecache        int32             `json:"-"`
+	ActionApprovals []ActionApprovals `protobuf:"bytes,3,rep,name=action_approvals,json=actionApprovals,proto3" json:"action_approvals"`
 }
 
 func (m *NonFungibleToken) Reset()         { *m = NonFungibleToken{} }
 func (m *NonFungibleToken) String() string { return proto.CompactTextString(m) }
 func (*NonFungibleToken) ProtoMessage()    {}
 func (*NonFungibleToken) Descriptor() ([]byte, []int) {
-	return fileDescriptor_codec_fd78a077c59ce03c, []int{0}
+	return fileDescriptor_d3e1ee58031e7f2d, []int{0}
 }
 func (m *NonFungibleToken) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -56,8 +55,8 @@ func (m *NonFungibleToken) XXX_Marshal(b []byte, deterministic bool) ([]byte, er
 		return b[:n], nil
 	}
 }
-func (dst *NonFungibleToken) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_NonFungibleToken.Merge(dst, src)
+func (m *NonFungibleToken) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_NonFungibleToken.Merge(m, src)
 }
 func (m *NonFungibleToken) XXX_Size() int {
 	return m.Size()
@@ -92,17 +91,15 @@ func (m *NonFungibleToken) GetActionApprovals() []ActionApprovals {
 // ActionApprovals are used to control permissions and validate that a user can
 // execute given operation.
 type ActionApprovals struct {
-	Action               Action     `protobuf:"bytes,1,opt,name=action,proto3,customtype=Action" json:"action"`
-	Approvals            []Approval `protobuf:"bytes,2,rep,name=approvals" json:"approvals"`
-	XXX_NoUnkeyedLiteral struct{}   `json:"-"`
-	XXX_sizecache        int32      `json:"-"`
+	Action    Action     `protobuf:"bytes,1,opt,name=action,proto3,customtype=Action" json:"action"`
+	Approvals []Approval `protobuf:"bytes,2,rep,name=approvals,proto3" json:"approvals"`
 }
 
 func (m *ActionApprovals) Reset()         { *m = ActionApprovals{} }
 func (m *ActionApprovals) String() string { return proto.CompactTextString(m) }
 func (*ActionApprovals) ProtoMessage()    {}
 func (*ActionApprovals) Descriptor() ([]byte, []int) {
-	return fileDescriptor_codec_fd78a077c59ce03c, []int{1}
+	return fileDescriptor_d3e1ee58031e7f2d, []int{1}
 }
 func (m *ActionApprovals) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -119,8 +116,8 @@ func (m *ActionApprovals) XXX_Marshal(b []byte, deterministic bool) ([]byte, err
 		return b[:n], nil
 	}
 }
-func (dst *ActionApprovals) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ActionApprovals.Merge(dst, src)
+func (m *ActionApprovals) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ActionApprovals.Merge(m, src)
 }
 func (m *ActionApprovals) XXX_Size() int {
 	return m.Size()
@@ -139,17 +136,15 @@ func (m *ActionApprovals) GetApprovals() []Approval {
 }
 
 type Approval struct {
-	Address              []byte          `protobuf:"bytes,1,opt,name=address,proto3" json:"address,omitempty"`
-	Options              ApprovalOptions `protobuf:"bytes,2,opt,name=options" json:"options"`
-	XXX_NoUnkeyedLiteral struct{}        `json:"-"`
-	XXX_sizecache        int32           `json:"-"`
+	Address []byte          `protobuf:"bytes,1,opt,name=address,proto3" json:"address,omitempty"`
+	Options ApprovalOptions `protobuf:"bytes,2,opt,name=options,proto3" json:"options"`
 }
 
 func (m *Approval) Reset()         { *m = Approval{} }
 func (m *Approval) String() string { return proto.CompactTextString(m) }
 func (*Approval) ProtoMessage()    {}
 func (*Approval) Descriptor() ([]byte, []int) {
-	return fileDescriptor_codec_fd78a077c59ce03c, []int{2}
+	return fileDescriptor_d3e1ee58031e7f2d, []int{2}
 }
 func (m *Approval) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -166,8 +161,8 @@ func (m *Approval) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 		return b[:n], nil
 	}
 }
-func (dst *Approval) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_Approval.Merge(dst, src)
+func (m *Approval) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Approval.Merge(m, src)
 }
 func (m *Approval) XXX_Size() int {
 	return m.Size()
@@ -204,16 +199,14 @@ type ApprovalOptions struct {
 	// Immutable is a flag that prevents an option to be modified. Once
 	// created, cannot be altered. For example, counter state cannot be
 	// changed.
-	Immutable            bool     `protobuf:"varint,3,opt,name=immutable,proto3" json:"immutable,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
+	Immutable bool `protobuf:"varint,3,opt,name=immutable,proto3" json:"immutable,omitempty"`
 }
 
 func (m *ApprovalOptions) Reset()         { *m = ApprovalOptions{} }
 func (m *ApprovalOptions) String() string { return proto.CompactTextString(m) }
 func (*ApprovalOptions) ProtoMessage()    {}
 func (*ApprovalOptions) Descriptor() ([]byte, []int) {
-	return fileDescriptor_codec_fd78a077c59ce03c, []int{3}
+	return fileDescriptor_d3e1ee58031e7f2d, []int{3}
 }
 func (m *ApprovalOptions) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -230,8 +223,8 @@ func (m *ApprovalOptions) XXX_Marshal(b []byte, deterministic bool) ([]byte, err
 		return b[:n], nil
 	}
 }
-func (dst *ApprovalOptions) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ApprovalOptions.Merge(dst, src)
+func (m *ApprovalOptions) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ApprovalOptions.Merge(m, src)
 }
 func (m *ApprovalOptions) XXX_Size() int {
 	return m.Size()
@@ -264,20 +257,18 @@ func (m *ApprovalOptions) GetImmutable() bool {
 }
 
 type AddApprovalMsg struct {
-	ID                   []byte          `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Address              []byte          `protobuf:"bytes,2,opt,name=address,proto3" json:"address,omitempty"`
-	Action               Action          `protobuf:"bytes,3,opt,name=action,proto3,customtype=Action" json:"action"`
-	Options              ApprovalOptions `protobuf:"bytes,4,opt,name=options" json:"options"`
-	T                    string          `protobuf:"bytes,5,opt,name=t,proto3" json:"t,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}        `json:"-"`
-	XXX_sizecache        int32           `json:"-"`
+	ID      []byte          `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Address []byte          `protobuf:"bytes,2,opt,name=address,proto3" json:"address,omitempty"`
+	Action  Action          `protobuf:"bytes,3,opt,name=action,proto3,customtype=Action" json:"action"`
+	Options ApprovalOptions `protobuf:"bytes,4,opt,name=options,proto3" json:"options"`
+	T       string          `protobuf:"bytes,5,opt,name=t,proto3" json:"t,omitempty"`
 }
 
 func (m *AddApprovalMsg) Reset()         { *m = AddApprovalMsg{} }
 func (m *AddApprovalMsg) String() string { return proto.CompactTextString(m) }
 func (*AddApprovalMsg) ProtoMessage()    {}
 func (*AddApprovalMsg) Descriptor() ([]byte, []int) {
-	return fileDescriptor_codec_fd78a077c59ce03c, []int{4}
+	return fileDescriptor_d3e1ee58031e7f2d, []int{4}
 }
 func (m *AddApprovalMsg) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -294,8 +285,8 @@ func (m *AddApprovalMsg) XXX_Marshal(b []byte, deterministic bool) ([]byte, erro
 		return b[:n], nil
 	}
 }
-func (dst *AddApprovalMsg) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_AddApprovalMsg.Merge(dst, src)
+func (m *AddApprovalMsg) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_AddApprovalMsg.Merge(m, src)
 }
 func (m *AddApprovalMsg) XXX_Size() int {
 	return m.Size()
@@ -335,19 +326,17 @@ func (m *AddApprovalMsg) GetT() string {
 }
 
 type RemoveApprovalMsg struct {
-	ID                   []byte   `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Address              []byte   `protobuf:"bytes,2,opt,name=address,proto3" json:"address,omitempty"`
-	Action               Action   `protobuf:"bytes,3,opt,name=action,proto3,customtype=Action" json:"action"`
-	T                    string   `protobuf:"bytes,4,opt,name=t,proto3" json:"t,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
+	ID      []byte `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Address []byte `protobuf:"bytes,2,opt,name=address,proto3" json:"address,omitempty"`
+	Action  Action `protobuf:"bytes,3,opt,name=action,proto3,customtype=Action" json:"action"`
+	T       string `protobuf:"bytes,4,opt,name=t,proto3" json:"t,omitempty"`
 }
 
 func (m *RemoveApprovalMsg) Reset()         { *m = RemoveApprovalMsg{} }
 func (m *RemoveApprovalMsg) String() string { return proto.CompactTextString(m) }
 func (*RemoveApprovalMsg) ProtoMessage()    {}
 func (*RemoveApprovalMsg) Descriptor() ([]byte, []int) {
-	return fileDescriptor_codec_fd78a077c59ce03c, []int{5}
+	return fileDescriptor_d3e1ee58031e7f2d, []int{5}
 }
 func (m *RemoveApprovalMsg) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -364,8 +353,8 @@ func (m *RemoveApprovalMsg) XXX_Marshal(b []byte, deterministic bool) ([]byte, e
 		return b[:n], nil
 	}
 }
-func (dst *RemoveApprovalMsg) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_RemoveApprovalMsg.Merge(dst, src)
+func (m *RemoveApprovalMsg) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_RemoveApprovalMsg.Merge(m, src)
 }
 func (m *RemoveApprovalMsg) XXX_Size() int {
 	return m.Size()
@@ -405,6 +394,41 @@ func init() {
 	proto.RegisterType((*AddApprovalMsg)(nil), "nft.AddApprovalMsg")
 	proto.RegisterType((*RemoveApprovalMsg)(nil), "nft.RemoveApprovalMsg")
 }
+
+func init() { proto.RegisterFile("x/nft/codec.proto", fileDescriptor_d3e1ee58031e7f2d) }
+
+var fileDescriptor_d3e1ee58031e7f2d = []byte{
+	// 441 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xbc, 0x93, 0xcd, 0x6e, 0xd3, 0x40,
+	0x14, 0x85, 0x33, 0x76, 0x9a, 0x36, 0x97, 0xd2, 0xa4, 0xa3, 0x0a, 0x59, 0x08, 0x39, 0x91, 0x17,
+	0x28, 0x0b, 0x88, 0xc5, 0xcf, 0x0b, 0xc4, 0x02, 0x04, 0x0b, 0x40, 0x1a, 0xb1, 0x62, 0x13, 0xf9,
+	0x67, 0xec, 0x8c, 0x6a, 0xcf, 0x58, 0xf6, 0xb8, 0x20, 0xf1, 0x00, 0x6c, 0x79, 0x12, 0x9e, 0xa3,
+	0xcb, 0x2e, 0x11, 0x8b, 0x08, 0x39, 0x2f, 0x82, 0x3c, 0x63, 0xe3, 0x36, 0x12, 0x88, 0x55, 0x77,
+	0xbe, 0xf7, 0x9c, 0x3b, 0xdf, 0xdc, 0x63, 0x0d, 0x9c, 0x7e, 0x76, 0x79, 0x2c, 0xdd, 0x50, 0x44,
+	0x34, 0x5c, 0xe6, 0x85, 0x90, 0x02, 0x9b, 0x3c, 0x96, 0xf7, 0x1f, 0x27, 0x4c, 0x6e, 0xaa, 0x60,
+	0x19, 0x8a, 0xcc, 0x4d, 0x44, 0x22, 0x5c, 0xa5, 0x05, 0x55, 0xac, 0x2a, 0x55, 0xa8, 0x2f, 0x3d,
+	0xe3, 0x7c, 0x45, 0x30, 0x7d, 0x27, 0xf8, 0xab, 0x8a, 0x27, 0x2c, 0x48, 0xe9, 0x07, 0x71, 0x4e,
+	0x39, 0xbe, 0x07, 0x06, 0x8b, 0x2c, 0x34, 0x47, 0x8b, 0x63, 0x6f, 0x54, 0x6f, 0x67, 0xc6, 0x9b,
+	0x17, 0xc4, 0x60, 0x11, 0x3e, 0x83, 0x03, 0xf1, 0x89, 0xd3, 0xc2, 0x32, 0x1a, 0x89, 0xe8, 0x02,
+	0xbf, 0x84, 0xa9, 0x1f, 0x4a, 0x26, 0xf8, 0xda, 0xcf, 0xf3, 0x42, 0x5c, 0xf8, 0x69, 0x69, 0x99,
+	0x73, 0x73, 0x71, 0xe7, 0xe9, 0xd9, 0x92, 0xc7, 0x72, 0xb9, 0x52, 0xe2, 0xaa, 0xd3, 0xbc, 0xe1,
+	0xe5, 0x76, 0x36, 0x20, 0x13, 0xff, 0x66, 0xdb, 0x49, 0x61, 0xb2, 0xe7, 0xc4, 0x0f, 0x61, 0xa4,
+	0x5d, 0xea, 0x2e, 0x63, 0xef, 0xa4, 0x99, 0xfc, 0xb9, 0x9d, 0x8d, 0xb4, 0x91, 0xb4, 0x2a, 0x7e,
+	0x02, 0xe3, 0x1e, 0x6d, 0x28, 0xf4, 0x5d, 0x8d, 0x6e, 0xbb, 0x2d, 0xb3, 0x77, 0x39, 0x1f, 0xe1,
+	0xa8, 0x13, 0xb1, 0x05, 0x87, 0x7e, 0x14, 0x15, 0xb4, 0x2c, 0xf5, 0xce, 0xa4, 0x2b, 0xf1, 0x73,
+	0x38, 0x14, 0x79, 0x83, 0x28, 0xd5, 0xca, 0x7f, 0x36, 0x6a, 0x27, 0xdf, 0x6b, 0xad, 0x3d, 0xbd,
+	0xb3, 0x3a, 0x25, 0x4c, 0xf6, 0x1c, 0xf8, 0x11, 0xe0, 0x8a, 0x4b, 0x96, 0xae, 0x83, 0x54, 0x84,
+	0xe7, 0xeb, 0x0d, 0x65, 0xc9, 0x46, 0x2a, 0x9a, 0x49, 0xa6, 0x4a, 0xf1, 0x1a, 0xe1, 0xb5, 0xea,
+	0x37, 0x39, 0x87, 0xa2, 0xe2, 0x52, 0x41, 0x4d, 0xa2, 0x0b, 0xfc, 0x00, 0xc6, 0x2c, 0xcb, 0x2a,
+	0xe9, 0x07, 0x29, 0xb5, 0xcc, 0x39, 0x5a, 0x1c, 0x91, 0xbe, 0xe1, 0x7c, 0x47, 0x70, 0xb2, 0x8a,
+	0xa2, 0x0e, 0xfc, 0xb6, 0x4c, 0xfe, 0xfa, 0x1b, 0xaf, 0xed, 0x6b, 0xdc, 0xdc, 0xb7, 0x0f, 0xdc,
+	0xfc, 0x67, 0xe0, 0xd7, 0x72, 0x19, 0xfe, 0x77, 0x2e, 0xf8, 0x18, 0x90, 0xb4, 0x0e, 0x9a, 0x83,
+	0x09, 0x92, 0xce, 0x17, 0x38, 0x25, 0x34, 0x13, 0x17, 0xf4, 0x76, 0xae, 0xac, 0xe0, 0xc3, 0x16,
+	0xee, 0x59, 0x97, 0xb5, 0x8d, 0xae, 0x6a, 0x1b, 0xfd, 0xaa, 0x6d, 0xf4, 0x6d, 0x67, 0x0f, 0xae,
+	0x76, 0xf6, 0xe0, 0xc7, 0xce, 0x1e, 0x04, 0x23, 0xf5, 0x2e, 0x9e, 0xfd, 0x0e, 0x00, 0x00, 0xff,
+	0xff, 0x21, 0xd5, 0x55, 0xfb, 0x60, 0x03, 0x00, 0x00,
+}
+
 func (m *NonFungibleToken) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
@@ -655,6 +679,9 @@ func encodeVarintCodec(dAtA []byte, offset int, v uint64) int {
 	return offset + 1
 }
 func (m *NonFungibleToken) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	l = len(m.ID)
@@ -675,6 +702,9 @@ func (m *NonFungibleToken) Size() (n int) {
 }
 
 func (m *ActionApprovals) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	l = len(m.Action)
@@ -691,6 +721,9 @@ func (m *ActionApprovals) Size() (n int) {
 }
 
 func (m *Approval) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	l = len(m.Address)
@@ -703,6 +736,9 @@ func (m *Approval) Size() (n int) {
 }
 
 func (m *ApprovalOptions) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	if m.UntilBlockHeight != 0 {
@@ -718,6 +754,9 @@ func (m *ApprovalOptions) Size() (n int) {
 }
 
 func (m *AddApprovalMsg) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	l = len(m.ID)
@@ -742,6 +781,9 @@ func (m *AddApprovalMsg) Size() (n int) {
 }
 
 func (m *RemoveApprovalMsg) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	l = len(m.ID)
@@ -791,7 +833,7 @@ func (m *NonFungibleToken) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -819,7 +861,7 @@ func (m *NonFungibleToken) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				byteLen |= (int(b) & 0x7F) << shift
+				byteLen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -828,6 +870,9 @@ func (m *NonFungibleToken) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -850,7 +895,7 @@ func (m *NonFungibleToken) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				byteLen |= (int(b) & 0x7F) << shift
+				byteLen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -859,6 +904,9 @@ func (m *NonFungibleToken) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -881,7 +929,7 @@ func (m *NonFungibleToken) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -890,6 +938,9 @@ func (m *NonFungibleToken) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -905,6 +956,9 @@ func (m *NonFungibleToken) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthCodec
 			}
 			if (iNdEx + skippy) > l {
@@ -934,7 +988,7 @@ func (m *ActionApprovals) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -962,7 +1016,7 @@ func (m *ActionApprovals) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= (uint64(b) & 0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -972,6 +1026,9 @@ func (m *ActionApprovals) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -991,7 +1048,7 @@ func (m *ActionApprovals) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -1000,6 +1057,9 @@ func (m *ActionApprovals) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -1015,6 +1075,9 @@ func (m *ActionApprovals) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthCodec
 			}
 			if (iNdEx + skippy) > l {
@@ -1044,7 +1107,7 @@ func (m *Approval) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -1072,7 +1135,7 @@ func (m *Approval) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				byteLen |= (int(b) & 0x7F) << shift
+				byteLen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -1081,6 +1144,9 @@ func (m *Approval) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -1103,7 +1169,7 @@ func (m *Approval) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -1112,6 +1178,9 @@ func (m *Approval) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -1126,6 +1195,9 @@ func (m *Approval) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthCodec
 			}
 			if (iNdEx + skippy) > l {
@@ -1155,7 +1227,7 @@ func (m *ApprovalOptions) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -1183,7 +1255,7 @@ func (m *ApprovalOptions) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.UntilBlockHeight |= (int64(b) & 0x7F) << shift
+				m.UntilBlockHeight |= int64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -1202,7 +1274,7 @@ func (m *ApprovalOptions) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.Count |= (int64(b) & 0x7F) << shift
+				m.Count |= int64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -1221,7 +1293,7 @@ func (m *ApprovalOptions) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				v |= (int(b) & 0x7F) << shift
+				v |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -1234,6 +1306,9 @@ func (m *ApprovalOptions) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthCodec
 			}
 			if (iNdEx + skippy) > l {
@@ -1263,7 +1338,7 @@ func (m *AddApprovalMsg) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -1291,7 +1366,7 @@ func (m *AddApprovalMsg) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				byteLen |= (int(b) & 0x7F) << shift
+				byteLen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -1300,6 +1375,9 @@ func (m *AddApprovalMsg) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -1322,7 +1400,7 @@ func (m *AddApprovalMsg) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				byteLen |= (int(b) & 0x7F) << shift
+				byteLen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -1331,6 +1409,9 @@ func (m *AddApprovalMsg) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -1353,7 +1434,7 @@ func (m *AddApprovalMsg) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= (uint64(b) & 0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -1363,6 +1444,9 @@ func (m *AddApprovalMsg) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -1382,7 +1466,7 @@ func (m *AddApprovalMsg) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -1391,6 +1475,9 @@ func (m *AddApprovalMsg) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -1412,7 +1499,7 @@ func (m *AddApprovalMsg) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= (uint64(b) & 0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -1422,6 +1509,9 @@ func (m *AddApprovalMsg) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -1434,6 +1524,9 @@ func (m *AddApprovalMsg) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthCodec
 			}
 			if (iNdEx + skippy) > l {
@@ -1463,7 +1556,7 @@ func (m *RemoveApprovalMsg) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -1491,7 +1584,7 @@ func (m *RemoveApprovalMsg) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				byteLen |= (int(b) & 0x7F) << shift
+				byteLen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -1500,6 +1593,9 @@ func (m *RemoveApprovalMsg) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -1522,7 +1618,7 @@ func (m *RemoveApprovalMsg) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				byteLen |= (int(b) & 0x7F) << shift
+				byteLen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -1531,6 +1627,9 @@ func (m *RemoveApprovalMsg) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -1553,7 +1652,7 @@ func (m *RemoveApprovalMsg) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= (uint64(b) & 0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -1563,6 +1662,9 @@ func (m *RemoveApprovalMsg) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -1582,7 +1684,7 @@ func (m *RemoveApprovalMsg) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= (uint64(b) & 0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -1592,6 +1694,9 @@ func (m *RemoveApprovalMsg) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -1604,6 +1709,9 @@ func (m *RemoveApprovalMsg) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthCodec
 			}
 			if (iNdEx + skippy) > l {
@@ -1672,8 +1780,11 @@ func skipCodec(dAtA []byte) (n int, err error) {
 					break
 				}
 			}
-			iNdEx += length
 			if length < 0 {
+				return 0, ErrInvalidLengthCodec
+			}
+			iNdEx += length
+			if iNdEx < 0 {
 				return 0, ErrInvalidLengthCodec
 			}
 			return iNdEx, nil
@@ -1704,6 +1815,9 @@ func skipCodec(dAtA []byte) (n int, err error) {
 					return 0, err
 				}
 				iNdEx = start + next
+				if iNdEx < 0 {
+					return 0, ErrInvalidLengthCodec
+				}
 			}
 			return iNdEx, nil
 		case 4:
@@ -1722,37 +1836,3 @@ var (
 	ErrInvalidLengthCodec = fmt.Errorf("proto: negative length found during unmarshaling")
 	ErrIntOverflowCodec   = fmt.Errorf("proto: integer overflow")
 )
-
-func init() { proto.RegisterFile("x/nft/codec.proto", fileDescriptor_codec_fd78a077c59ce03c) }
-
-var fileDescriptor_codec_fd78a077c59ce03c = []byte{
-	// 433 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xbc, 0x93, 0xcd, 0x8a, 0xd4, 0x40,
-	0x14, 0x85, 0xa7, 0x92, 0x9e, 0x9e, 0xe9, 0xeb, 0x38, 0x9d, 0x29, 0x06, 0x09, 0x22, 0xe9, 0x26,
-	0x0b, 0xe9, 0x85, 0x26, 0xf8, 0xf3, 0x02, 0x1d, 0x54, 0x74, 0xa1, 0x42, 0xe1, 0xca, 0x4d, 0x93,
-	0x9f, 0x4a, 0xba, 0x98, 0xa4, 0x2a, 0x24, 0x95, 0x51, 0xf0, 0x01, 0xdc, 0xfa, 0x24, 0x3e, 0xc7,
-	0x2c, 0x5d, 0xbb, 0x68, 0x24, 0xbe, 0x88, 0xa4, 0x2a, 0x31, 0x33, 0x0d, 0x8a, 0x2b, 0x77, 0xb9,
-	0xf7, 0x9c, 0x5b, 0x5f, 0xdd, 0x13, 0x0a, 0xce, 0x3e, 0xfa, 0x3c, 0x95, 0x7e, 0x2c, 0x12, 0x1a,
-	0x7b, 0x65, 0x25, 0xa4, 0xc0, 0x26, 0x4f, 0xe5, 0xdd, 0x87, 0x19, 0x93, 0xdb, 0x26, 0xf2, 0x62,
-	0x51, 0xf8, 0x99, 0xc8, 0x84, 0xaf, 0xb4, 0xa8, 0x49, 0x55, 0xa5, 0x0a, 0xf5, 0xa5, 0x67, 0xdc,
-	0xcf, 0x08, 0xac, 0x37, 0x82, 0xbf, 0x68, 0x78, 0xc6, 0xa2, 0x9c, 0xbe, 0x13, 0x17, 0x94, 0xe3,
-	0x3b, 0x60, 0xb0, 0xc4, 0x46, 0x4b, 0xb4, 0x3a, 0x09, 0xa6, 0xed, 0x6e, 0x61, 0xbc, 0x7a, 0x46,
-	0x0c, 0x96, 0xe0, 0x73, 0x38, 0x14, 0x1f, 0x38, 0xad, 0x6c, 0xa3, 0x93, 0x88, 0x2e, 0xf0, 0x73,
-	0xb0, 0xc2, 0x58, 0x32, 0xc1, 0x37, 0x61, 0x59, 0x56, 0xe2, 0x32, 0xcc, 0x6b, 0xdb, 0x5c, 0x9a,
-	0xab, 0x5b, 0x8f, 0xcf, 0x3d, 0x9e, 0x4a, 0x6f, 0xad, 0xc4, 0xf5, 0xa0, 0x05, 0x93, 0xab, 0xdd,
-	0xe2, 0x80, 0xcc, 0xc3, 0x9b, 0x6d, 0x37, 0x87, 0xf9, 0x9e, 0x13, 0xdf, 0x87, 0xa9, 0x76, 0xa9,
-	0xbb, 0xcc, 0x82, 0xd3, 0x6e, 0xf2, 0xfb, 0x6e, 0x31, 0xd5, 0x46, 0xd2, 0xab, 0xf8, 0x11, 0xcc,
-	0x46, 0xb4, 0xa1, 0xd0, 0xb7, 0x35, 0xba, 0xef, 0xf6, 0xcc, 0xd1, 0xe5, 0xbe, 0x87, 0xe3, 0x41,
-	0xc4, 0x36, 0x1c, 0x85, 0x49, 0x52, 0xd1, 0xba, 0xd6, 0x3b, 0x93, 0xa1, 0xc4, 0x4f, 0xe1, 0x48,
-	0x94, 0x1d, 0xa2, 0x56, 0x2b, 0xff, 0xde, 0xa8, 0x9f, 0x7c, 0xab, 0xb5, 0xfe, 0xf4, 0xc1, 0xea,
-	0xd6, 0x30, 0xdf, 0x73, 0xe0, 0x07, 0x80, 0x1b, 0x2e, 0x59, 0xbe, 0x89, 0x72, 0x11, 0x5f, 0x6c,
-	0xb6, 0x94, 0x65, 0x5b, 0xa9, 0x68, 0x26, 0xb1, 0x94, 0x12, 0x74, 0xc2, 0x4b, 0xd5, 0xef, 0x72,
-	0x8e, 0x45, 0xc3, 0xa5, 0x82, 0x9a, 0x44, 0x17, 0xf8, 0x1e, 0xcc, 0x58, 0x51, 0x34, 0x32, 0x8c,
-	0x72, 0x6a, 0x9b, 0x4b, 0xb4, 0x3a, 0x26, 0x63, 0xc3, 0xfd, 0x8a, 0xe0, 0x74, 0x9d, 0x24, 0x03,
-	0xf8, 0x75, 0x9d, 0xfd, 0xf1, 0x37, 0x5e, 0xdb, 0xd7, 0xb8, 0xb9, 0xef, 0x18, 0xb8, 0xf9, 0xd7,
-	0xc0, 0xaf, 0xe5, 0x32, 0xf9, 0xe7, 0x5c, 0xf0, 0x09, 0x20, 0x69, 0x1f, 0x76, 0x07, 0x13, 0x24,
-	0xdd, 0x4f, 0x70, 0x46, 0x68, 0x21, 0x2e, 0xe9, 0xff, 0xb9, 0xb2, 0x82, 0x4f, 0x7a, 0x78, 0x60,
-	0x5d, 0xb5, 0x0e, 0xfa, 0xd6, 0x3a, 0xe8, 0x47, 0xeb, 0xa0, 0x2f, 0x3f, 0x9d, 0x83, 0x68, 0xaa,
-	0xde, 0xc3, 0x93, 0x5f, 0x01, 0x00, 0x00, 0xff, 0xff, 0x20, 0x8b, 0x9d, 0x52, 0x58, 0x03, 0x00,
-	0x00,
-}

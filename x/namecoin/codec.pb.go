@@ -3,12 +3,13 @@
 
 package namecoin
 
-import proto "github.com/gogo/protobuf/proto"
-import fmt "fmt"
-import math "math"
-import coin "github.com/iov-one/weave/coin"
-
-import io "io"
+import (
+	fmt "fmt"
+	proto "github.com/gogo/protobuf/proto"
+	coin "github.com/iov-one/weave/coin"
+	io "io"
+	math "math"
+)
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
@@ -23,17 +24,15 @@ const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
 
 // Wallet has a name and a set of coins
 type Wallet struct {
-	Coins                []*coin.Coin `protobuf:"bytes,1,rep,name=coins" json:"coins,omitempty"`
-	Name                 string       `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}     `json:"-"`
-	XXX_sizecache        int32        `json:"-"`
+	Coins []*coin.Coin `protobuf:"bytes,1,rep,name=coins,proto3" json:"coins,omitempty"`
+	Name  string       `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
 }
 
 func (m *Wallet) Reset()         { *m = Wallet{} }
 func (m *Wallet) String() string { return proto.CompactTextString(m) }
 func (*Wallet) ProtoMessage()    {}
 func (*Wallet) Descriptor() ([]byte, []int) {
-	return fileDescriptor_codec_b635a706fffd4f91, []int{0}
+	return fileDescriptor_ccf98d5acdce0268, []int{0}
 }
 func (m *Wallet) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -50,8 +49,8 @@ func (m *Wallet) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 		return b[:n], nil
 	}
 }
-func (dst *Wallet) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_Wallet.Merge(dst, src)
+func (m *Wallet) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Wallet.Merge(m, src)
 }
 func (m *Wallet) XXX_Size() int {
 	return m.Size()
@@ -78,17 +77,15 @@ func (m *Wallet) GetName() string {
 
 // Token contains information about a registered currency
 type Token struct {
-	Name                 string   `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
-	SigFigs              int32    `protobuf:"varint,3,opt,name=sig_figs,json=sigFigs,proto3" json:"sig_figs,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
+	Name    string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	SigFigs int32  `protobuf:"varint,3,opt,name=sig_figs,json=sigFigs,proto3" json:"sig_figs,omitempty"`
 }
 
 func (m *Token) Reset()         { *m = Token{} }
 func (m *Token) String() string { return proto.CompactTextString(m) }
 func (*Token) ProtoMessage()    {}
 func (*Token) Descriptor() ([]byte, []int) {
-	return fileDescriptor_codec_b635a706fffd4f91, []int{1}
+	return fileDescriptor_ccf98d5acdce0268, []int{1}
 }
 func (m *Token) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -105,8 +102,8 @@ func (m *Token) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 		return b[:n], nil
 	}
 }
-func (dst *Token) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_Token.Merge(dst, src)
+func (m *Token) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Token.Merge(m, src)
 }
 func (m *Token) XXX_Size() int {
 	return m.Size()
@@ -135,18 +132,16 @@ func (m *Token) GetSigFigs() int32 {
 // This must not conflict with any existing ticker,
 // and should be limited to privledged users.
 type NewTokenMsg struct {
-	Ticker               string   `protobuf:"bytes,1,opt,name=ticker,proto3" json:"ticker,omitempty"`
-	Name                 string   `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
-	SigFigs              int32    `protobuf:"varint,3,opt,name=sig_figs,json=sigFigs,proto3" json:"sig_figs,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
+	Ticker  string `protobuf:"bytes,1,opt,name=ticker,proto3" json:"ticker,omitempty"`
+	Name    string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	SigFigs int32  `protobuf:"varint,3,opt,name=sig_figs,json=sigFigs,proto3" json:"sig_figs,omitempty"`
 }
 
 func (m *NewTokenMsg) Reset()         { *m = NewTokenMsg{} }
 func (m *NewTokenMsg) String() string { return proto.CompactTextString(m) }
 func (*NewTokenMsg) ProtoMessage()    {}
 func (*NewTokenMsg) Descriptor() ([]byte, []int) {
-	return fileDescriptor_codec_b635a706fffd4f91, []int{2}
+	return fileDescriptor_ccf98d5acdce0268, []int{2}
 }
 func (m *NewTokenMsg) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -163,8 +158,8 @@ func (m *NewTokenMsg) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) 
 		return b[:n], nil
 	}
 }
-func (dst *NewTokenMsg) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_NewTokenMsg.Merge(dst, src)
+func (m *NewTokenMsg) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_NewTokenMsg.Merge(m, src)
 }
 func (m *NewTokenMsg) XXX_Size() int {
 	return m.Size()
@@ -199,17 +194,15 @@ func (m *NewTokenMsg) GetSigFigs() int32 {
 // SetWalletNameMsg will set the name on an existing
 // wallet. Can only be performed if the wallet name is empty.
 type SetWalletNameMsg struct {
-	Address              []byte   `protobuf:"bytes,1,opt,name=address,proto3" json:"address,omitempty"`
-	Name                 string   `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
+	Address []byte `protobuf:"bytes,1,opt,name=address,proto3" json:"address,omitempty"`
+	Name    string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
 }
 
 func (m *SetWalletNameMsg) Reset()         { *m = SetWalletNameMsg{} }
 func (m *SetWalletNameMsg) String() string { return proto.CompactTextString(m) }
 func (*SetWalletNameMsg) ProtoMessage()    {}
 func (*SetWalletNameMsg) Descriptor() ([]byte, []int) {
-	return fileDescriptor_codec_b635a706fffd4f91, []int{3}
+	return fileDescriptor_ccf98d5acdce0268, []int{3}
 }
 func (m *SetWalletNameMsg) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -226,8 +219,8 @@ func (m *SetWalletNameMsg) XXX_Marshal(b []byte, deterministic bool) ([]byte, er
 		return b[:n], nil
 	}
 }
-func (dst *SetWalletNameMsg) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_SetWalletNameMsg.Merge(dst, src)
+func (m *SetWalletNameMsg) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SetWalletNameMsg.Merge(m, src)
 }
 func (m *SetWalletNameMsg) XXX_Size() int {
 	return m.Size()
@@ -258,6 +251,30 @@ func init() {
 	proto.RegisterType((*NewTokenMsg)(nil), "namecoin.NewTokenMsg")
 	proto.RegisterType((*SetWalletNameMsg)(nil), "namecoin.SetWalletNameMsg")
 }
+
+func init() { proto.RegisterFile("x/namecoin/codec.proto", fileDescriptor_ccf98d5acdce0268) }
+
+var fileDescriptor_ccf98d5acdce0268 = []byte{
+	// 265 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x12, 0xab, 0xd0, 0xcf, 0x4b,
+	0xcc, 0x4d, 0x4d, 0xce, 0xcf, 0xcc, 0xd3, 0x4f, 0xce, 0x4f, 0x49, 0x4d, 0xd6, 0x2b, 0x28, 0xca,
+	0x2f, 0xc9, 0x17, 0xe2, 0x80, 0x89, 0x4a, 0x69, 0xa6, 0x67, 0x96, 0x64, 0x94, 0x26, 0xe9, 0x25,
+	0xe7, 0xe7, 0xea, 0x67, 0xe6, 0x97, 0xe9, 0xe6, 0xe7, 0xa5, 0xea, 0x97, 0xa7, 0x26, 0x96, 0xa5,
+	0xea, 0xa3, 0x6b, 0x52, 0xb2, 0xe3, 0x62, 0x0b, 0x4f, 0xcc, 0xc9, 0x49, 0x2d, 0x11, 0x52, 0xe0,
+	0x62, 0x05, 0xc9, 0x16, 0x4b, 0x30, 0x2a, 0x30, 0x6b, 0x70, 0x1b, 0x71, 0xe9, 0x81, 0x78, 0x7a,
+	0xce, 0xf9, 0x99, 0x79, 0x41, 0x10, 0x09, 0x21, 0x21, 0x2e, 0x16, 0x90, 0x15, 0x12, 0x4c, 0x0a,
+	0x8c, 0x1a, 0x9c, 0x41, 0x60, 0xb6, 0x92, 0x19, 0x17, 0x6b, 0x48, 0x7e, 0x76, 0x6a, 0x1e, 0x36,
+	0x49, 0x21, 0x49, 0x2e, 0x8e, 0xe2, 0xcc, 0xf4, 0xf8, 0xb4, 0xcc, 0xf4, 0x62, 0x09, 0x66, 0x05,
+	0x46, 0x0d, 0xd6, 0x20, 0xf6, 0xe2, 0xcc, 0x74, 0xb7, 0xcc, 0xf4, 0x62, 0xa5, 0x10, 0x2e, 0x6e,
+	0xbf, 0xd4, 0x72, 0xb0, 0x56, 0xdf, 0xe2, 0x74, 0x21, 0x31, 0x2e, 0xb6, 0x92, 0xcc, 0xe4, 0xec,
+	0xd4, 0x22, 0x09, 0x46, 0xb0, 0x7e, 0x28, 0x8f, 0x54, 0x53, 0x1d, 0xb8, 0x04, 0x82, 0x53, 0x4b,
+	0x20, 0x1e, 0xf2, 0x4b, 0xcc, 0x4d, 0x05, 0x19, 0x2d, 0xc1, 0xc5, 0x9e, 0x98, 0x92, 0x52, 0x94,
+	0x5a, 0x5c, 0x0c, 0x36, 0x9b, 0x27, 0x08, 0xc6, 0xc5, 0x66, 0xb8, 0x93, 0xc4, 0x89, 0x47, 0x72,
+	0x8c, 0x17, 0x1e, 0xc9, 0x31, 0x3e, 0x78, 0x24, 0xc7, 0x38, 0xe1, 0xb1, 0x1c, 0xc3, 0x85, 0xc7,
+	0x72, 0x0c, 0x37, 0x1e, 0xcb, 0x31, 0x24, 0xb1, 0x81, 0x03, 0xcc, 0x18, 0x10, 0x00, 0x00, 0xff,
+	0xff, 0x10, 0xe8, 0x41, 0xa7, 0x7f, 0x01, 0x00, 0x00,
+}
+
 func (m *Wallet) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
@@ -398,6 +415,9 @@ func encodeVarintCodec(dAtA []byte, offset int, v uint64) int {
 	return offset + 1
 }
 func (m *Wallet) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	if len(m.Coins) > 0 {
@@ -414,6 +434,9 @@ func (m *Wallet) Size() (n int) {
 }
 
 func (m *Token) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	l = len(m.Name)
@@ -427,6 +450,9 @@ func (m *Token) Size() (n int) {
 }
 
 func (m *NewTokenMsg) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	l = len(m.Ticker)
@@ -444,6 +470,9 @@ func (m *NewTokenMsg) Size() (n int) {
 }
 
 func (m *SetWalletNameMsg) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	l = len(m.Address)
@@ -485,7 +514,7 @@ func (m *Wallet) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -513,7 +542,7 @@ func (m *Wallet) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -522,6 +551,9 @@ func (m *Wallet) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -544,7 +576,7 @@ func (m *Wallet) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= (uint64(b) & 0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -554,6 +586,9 @@ func (m *Wallet) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -566,6 +601,9 @@ func (m *Wallet) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthCodec
 			}
 			if (iNdEx + skippy) > l {
@@ -595,7 +633,7 @@ func (m *Token) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -623,7 +661,7 @@ func (m *Token) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= (uint64(b) & 0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -633,6 +671,9 @@ func (m *Token) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -652,7 +693,7 @@ func (m *Token) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.SigFigs |= (int32(b) & 0x7F) << shift
+				m.SigFigs |= int32(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -664,6 +705,9 @@ func (m *Token) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthCodec
 			}
 			if (iNdEx + skippy) > l {
@@ -693,7 +737,7 @@ func (m *NewTokenMsg) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -721,7 +765,7 @@ func (m *NewTokenMsg) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= (uint64(b) & 0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -731,6 +775,9 @@ func (m *NewTokenMsg) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -750,7 +797,7 @@ func (m *NewTokenMsg) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= (uint64(b) & 0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -760,6 +807,9 @@ func (m *NewTokenMsg) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -779,7 +829,7 @@ func (m *NewTokenMsg) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.SigFigs |= (int32(b) & 0x7F) << shift
+				m.SigFigs |= int32(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -791,6 +841,9 @@ func (m *NewTokenMsg) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthCodec
 			}
 			if (iNdEx + skippy) > l {
@@ -820,7 +873,7 @@ func (m *SetWalletNameMsg) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -848,7 +901,7 @@ func (m *SetWalletNameMsg) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				byteLen |= (int(b) & 0x7F) << shift
+				byteLen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -857,6 +910,9 @@ func (m *SetWalletNameMsg) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -879,7 +935,7 @@ func (m *SetWalletNameMsg) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= (uint64(b) & 0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -889,6 +945,9 @@ func (m *SetWalletNameMsg) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -901,6 +960,9 @@ func (m *SetWalletNameMsg) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthCodec
 			}
 			if (iNdEx + skippy) > l {
@@ -969,8 +1031,11 @@ func skipCodec(dAtA []byte) (n int, err error) {
 					break
 				}
 			}
-			iNdEx += length
 			if length < 0 {
+				return 0, ErrInvalidLengthCodec
+			}
+			iNdEx += length
+			if iNdEx < 0 {
 				return 0, ErrInvalidLengthCodec
 			}
 			return iNdEx, nil
@@ -1001,6 +1066,9 @@ func skipCodec(dAtA []byte) (n int, err error) {
 					return 0, err
 				}
 				iNdEx = start + next
+				if iNdEx < 0 {
+					return 0, ErrInvalidLengthCodec
+				}
 			}
 			return iNdEx, nil
 		case 4:
@@ -1019,26 +1087,3 @@ var (
 	ErrInvalidLengthCodec = fmt.Errorf("proto: negative length found during unmarshaling")
 	ErrIntOverflowCodec   = fmt.Errorf("proto: integer overflow")
 )
-
-func init() { proto.RegisterFile("x/namecoin/codec.proto", fileDescriptor_codec_b635a706fffd4f91) }
-
-var fileDescriptor_codec_b635a706fffd4f91 = []byte{
-	// 257 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x12, 0xab, 0xd0, 0xcf, 0x4b,
-	0xcc, 0x4d, 0x4d, 0xce, 0xcf, 0xcc, 0xd3, 0x4f, 0xce, 0x4f, 0x49, 0x4d, 0xd6, 0x2b, 0x28, 0xca,
-	0x2f, 0xc9, 0x17, 0xe2, 0x80, 0x89, 0x4a, 0x69, 0xa6, 0x67, 0x96, 0x64, 0x94, 0x26, 0xe9, 0x25,
-	0xe7, 0xe7, 0xea, 0x67, 0xe6, 0x97, 0xe9, 0xe6, 0xe7, 0xa5, 0xea, 0x97, 0xa7, 0x26, 0x96, 0xa5,
-	0xea, 0xa3, 0x6b, 0x52, 0xb2, 0xe3, 0x62, 0x0b, 0x4f, 0xcc, 0xc9, 0x49, 0x2d, 0x11, 0x52, 0xe0,
-	0x62, 0x05, 0xc9, 0x16, 0x4b, 0x30, 0x2a, 0x30, 0x6b, 0x70, 0x1b, 0x71, 0xe9, 0x81, 0x78, 0x7a,
-	0xce, 0xf9, 0x99, 0x79, 0x41, 0x10, 0x09, 0x21, 0x21, 0x2e, 0x16, 0x90, 0x15, 0x12, 0x4c, 0x0a,
-	0x8c, 0x1a, 0x9c, 0x41, 0x60, 0xb6, 0x92, 0x19, 0x17, 0x6b, 0x48, 0x7e, 0x76, 0x6a, 0x1e, 0x36,
-	0x49, 0x21, 0x49, 0x2e, 0x8e, 0xe2, 0xcc, 0xf4, 0xf8, 0xb4, 0xcc, 0xf4, 0x62, 0x09, 0x66, 0x05,
-	0x46, 0x0d, 0xd6, 0x20, 0xf6, 0xe2, 0xcc, 0x74, 0xb7, 0xcc, 0xf4, 0x62, 0xa5, 0x10, 0x2e, 0x6e,
-	0xbf, 0xd4, 0x72, 0xb0, 0x56, 0xdf, 0xe2, 0x74, 0x21, 0x31, 0x2e, 0xb6, 0x92, 0xcc, 0xe4, 0xec,
-	0xd4, 0x22, 0x09, 0x46, 0xb0, 0x7e, 0x28, 0x8f, 0x54, 0x53, 0x1d, 0xb8, 0x04, 0x82, 0x53, 0x4b,
-	0x20, 0x1e, 0xf2, 0x4b, 0xcc, 0x4d, 0x05, 0x19, 0x2d, 0xc1, 0xc5, 0x9e, 0x98, 0x92, 0x52, 0x94,
-	0x5a, 0x5c, 0x0c, 0x36, 0x9b, 0x27, 0x08, 0xc6, 0xc5, 0x66, 0xb8, 0x93, 0xc0, 0x89, 0x47, 0x72,
-	0x8c, 0x17, 0x1e, 0xc9, 0x31, 0x3e, 0x78, 0x24, 0xc7, 0x38, 0xe1, 0xb1, 0x1c, 0x43, 0x12, 0x1b,
-	0x38, 0xa0, 0x8c, 0x01, 0x01, 0x00, 0x00, 0xff, 0xff, 0x04, 0x4b, 0x79, 0x42, 0x77, 0x01, 0x00,
-	0x00,
-}
