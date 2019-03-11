@@ -16,6 +16,23 @@ quickly be imported in your custom chain, as well as a
 simple framework for adding the custom functionality unique
 to your project.
 
+Blockchain Basics
+-----------------
+
+Some background material to help you get oriented with the
+concepts behind blockchains in general and tendermint/weave
+in particular. It is quite helpful to have a basic
+understanding of these concepts before trying to build on weave.
+
+.. toctree::
+   :maxdepth: 2
+
+   basics/blockchain.rst
+   basics/consensus.rst
+   basics/authentication.rst
+   basics/state.rst
+
+
 Mycoin Tutorial
 -----------------
 
@@ -32,26 +49,8 @@ of the framework
 
    mycoind/setup.rst
    mycoind/installation.rst
-   mycoind/keys.rst
-   mycoind/query.rst
-   mycoind/tx.rst
-   mycoind/events.rst
+   mycoind/iovcore.rst
 
-Blockchain Basics
------------------
-
-Some background material to help you get oriented with the
-concepts behind blockchains in general and tendermint/weave
-in particular. It is quite helpful to have a basic
-understanding of these concepts before trying to build on weave.
-
-.. toctree::
-   :maxdepth: 2
-
-   basics/blockchain.rst
-   basics/consensus.rst
-   basics/authentication.rst
-   basics/state.rst
 
 Deployment
 ----------

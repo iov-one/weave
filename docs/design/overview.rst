@@ -140,9 +140,9 @@ However, for simplicity and cross-language parsing
 on the client size, we recommend to define ``.proto``
 files and compile them with protobuf.
 
-`gogo protobuf <github.com/gogo/protobuf>`__ will autogenerate
+`gogo protobuf <https://github.com/gogo/protobuf>`__ will autogenerate
 Marshal and Unmarshal functions requiring no reflection.
-See the `Makefile <../Makefile>`__ for ``tools`` and
+See the `Makefile <https://github.com/iov-one/weave/blob/master/Makefile>`__ for ``tools`` and
 ``protoc`` which show how to automate installing the
 protobuf compiler and compiling the files.
 
@@ -161,7 +161,7 @@ key value store <https://github.com/iov-one/weave/blob/master/store/iavl/adapter
 a simple interface, similar to LevelDB.
 
 When you create a `new BaseApp
-<https://github.com/iov-one/weave/blob/master/app/base.go#L21-L31>`__, you must provide:
+<https://github.com/iov-one/weave/blob/master/app/base.go#L22-L33>`__, you must provide:
 
 * a merkelized data store (default provided)
 * a txdecoder to parse the incoming transaction bytes
@@ -181,7 +181,8 @@ envelope. It implements the minimal ``Tx`` interface,
 and can also implement a number of additional
 interfaces to be compatible with the particular middleware
 stack in use in your application. For example, supporting
-the ``x/auth/Decorator`` or the ``x/coin/FeeDecorator``
+the `x/sigs/Decorator <https://github.com/iov-one/weave/blob/master/x/sigs/decorator.go#L53>`__ 
+or the `x/cash/FeeDecorator <https://github.com/iov-one/weave/blob/master/x/cash/staticfee.go#L114>`__
 require a Tx that fulfills interfaces to expose the signer
 or the fee information.
 
@@ -250,6 +251,11 @@ only triggered by actions identically on all nodes,
 meaning triggered by querying for certain conditions in the
 merkle store. We plan to provide some utilities to help
 store and execute these delayed tasks.
+
+*Note*: While the basic hooks are implemented to call such a ticker,
+this functionality is not in use in any of the apps in the weave
+repository, largely due to concerns of extra complexity and difficulty
+to prove correctness of extensions.
 
 Merkle Store
 ============
