@@ -10,6 +10,8 @@ NOVENDOR := $(shell go list ./...)
 MODE ?= set
 GOPATH ?= $$HOME/go
 
+PROTOC_FLAGS := -I=. -I=./vendor -I=$(GOPATH)/src
+
 all: deps build test
 
 dist:
@@ -63,24 +65,24 @@ endif
 
 # protoc: protodocs
 protoc:
-	protoc --gogofaster_out=. app/*.proto
-	protoc --gogofaster_out=. coin/*.proto
-	protoc --gogofaster_out=. crypto/*.proto
-	protoc --gogofaster_out=. orm/*.proto
+	protoc --gogofaster_out=. $(PROTOC_FLAGS) app/*.proto
+	protoc --gogofaster_out=. $(PROTOC_FLAGS) coin/*.proto
+	protoc --gogofaster_out=. $(PROTOC_FLAGS) crypto/*.proto
+	protoc --gogofaster_out=. $(PROTOC_FLAGS) orm/*.proto
 	# Note, you must include -I=./vendor when compiling files that use gogoprotobuf extensions
-	protoc --gogofaster_out=. -I=. -I=./vendor -I=$(GOPATH)/src x/nft/*.proto
-	protoc --gogofaster_out=. -I=. -I=./vendor -I=$(GOPATH)/src cmd/bnsd/x/nft/username/*.proto
-	protoc --gogofaster_out=. -I=. -I=$(GOPATH)/src x/cash/*.proto
-	protoc --gogofaster_out=. -I=. -I=$(GOPATH)/src x/sigs/*.proto
-	protoc --gogofaster_out=. -I=. -I=$(GOPATH)/src x/msgfee/*.proto
-	protoc --gogofaster_out=. -I=. -I=./vendor -I=$(GOPATH)/src x/multisig/*.proto
-	protoc --gogofaster_out=. -I=. -I=./vendor -I=$(GOPATH)/src x/validators/*.proto
-	protoc --gogofaster_out=. -I=. -I=$(GOPATH)/src x/batch/*.proto
-	protoc --gogofaster_out=. -I=. -I=./vendor -I=$(GOPATH)/src x/distribution/*.proto
-	protoc --gogofaster_out=. -I=. -I=$(GOPATH)/src -I=./vendor x/namecoin/*.proto
-	protoc --gogofaster_out=. -I=. -I=$(GOPATH)/src -I=./vendor x/escrow/*.proto
-	protoc --gogofaster_out=. -I=. -I=$(GOPATH)/src -I=./vendor x/paychan/*.proto
-	protoc --gogofaster_out=. -I=. -I=$(GOPATH)/src x/currency/*.proto
+	protoc --gogofaster_out=. $(PROTOC_FLAGS) x/nft/*.proto
+	protoc --gogofaster_out=. $(PROTOC_FLAGS) cmd/bnsd/x/nft/username/*.proto
+	protoc --gogofaster_out=. $(PROTOC_FLAGS) x/cash/*.proto
+	protoc --gogofaster_out=. $(PROTOC_FLAGS) x/sigs/*.proto
+	protoc --gogofaster_out=. $(PROTOC_FLAGS) x/msgfee/*.proto
+	protoc --gogofaster_out=. $(PROTOC_FLAGS) x/multisig/*.proto
+	protoc --gogofaster_out=. $(PROTOC_FLAGS) x/validators/*.proto
+	protoc --gogofaster_out=. $(PROTOC_FLAGS) x/batch/*.proto
+	protoc --gogofaster_out=. $(PROTOC_FLAGS) x/distribution/*.proto
+	protoc --gogofaster_out=. $(PROTOC_FLAGS) x/namecoin/*.proto
+	protoc --gogofaster_out=. $(PROTOC_FLAGS) x/escrow/*.proto
+	protoc --gogofaster_out=. $(PROTOC_FLAGS) x/paychan/*.proto
+	protoc --gogofaster_out=. $(PROTOC_FLAGS) x/currency/*.proto
 	for ex in $(EXAMPLES); do cd $$ex && make protoc && cd -; done
 
 protodocs:
