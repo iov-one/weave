@@ -95,11 +95,11 @@ type stackTracer interface {
 // twice. Attempt to reuse an error code results in panic.
 //
 // Use this function only during a program startup phase.
-func Register(code uint32, description string) Error {
+func Register(code uint32, description string) *Error {
 	if e, ok := usedCodes[code]; ok {
 		panic(fmt.Sprintf("error with code %d is already registered: %q", code, e.desc))
 	}
-	err := Error{
+	err := &Error{
 		code: code,
 		desc: description,
 	}
@@ -108,7 +108,7 @@ func Register(code uint32, description string) Error {
 }
 
 // usedCodes is keeping track of used codes to ensure uniqueness.
-var usedCodes = map[uint32]Error{}
+var usedCodes = map[uint32]*Error{}
 
 // Error represents a root error.
 //
@@ -125,32 +125,56 @@ type Error struct {
 }
 
 // Error returns the stored description
-func (e Error) Error() string { return e.desc }
+func (e *Error) Error() string { return e.desc }
 
 // ABCILog returns the stored description, same as Error()
-func (e Error) ABCILog() string { return e.desc }
+func (e *Error) ABCILog() string { return e.desc }
 
 // ABCICode returns the associated ABCICode
-func (e Error) ABCICode() uint32 { return e.code }
+func (e *Error) ABCICode() uint32 { return e.code }
 
 // New returns a new error. Returned instance is having the root cause set to
 // this error. Below two lines are equal
 //   e.New("my description")
 //   Wrap(e, "my description")
 // Allows sprintf format and vararg
-func (e Error) New(description string) error {
+func (e *Error) New(description string) error {
 	return Wrap(e, description)
 }
 
 // Newf is basically New with formatting capabilities
-func (e Error) Newf(description string, args ...interface{}) error {
+func (e *Error) Newf(description string, args ...interface{}) error {
 	return e.New(fmt.Sprintf(description, args...))
 }
 
-// Is is a proxy helper for global Is to be able to easily instantiate and match error codes
-// for example in tests
-func (e Error) Is(err error) bool {
-	return Is(e.New(""), err)
+// Is check if given error instance is of a given kind/type. This involves
+// unwrapping given error using the Cause method if available.
+//
+// Any non weave implementation of an error is tested positive for being
+// ErrInternal.
+func (kind *Error) Is(err error) bool {
+	type causer interface {
+		Cause() error
+	}
+	for {
+		if err == kind {
+			return true
+		}
+		if c, ok := err.(causer); ok {
+			err = c.Cause()
+		} else {
+
+			// As a last check, figure out if what we compare is an
+			// internal error with a non weave error.
+			if kind == ErrInternal {
+				if _, ok := err.(*Error); !ok {
+					return true
+				}
+			}
+
+			return false
+		}
+	}
 }
 
 // Wrap extends given error with an additional information.

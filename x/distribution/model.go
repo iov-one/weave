@@ -26,7 +26,7 @@ func (rev *Revenue) Validate() error {
 // having it abstracted saves repeating validation code.
 // Model validation returns different class of error than message validation,
 // that is why require base error class to be given.
-func validateRecipients(rs []*Recipient, baseErr errors.Error) error {
+func validateRecipients(rs []*Recipient, baseErr *errors.Error) error {
 	switch n := len(rs); {
 	case n == 0:
 		return baseErr.New("no recipients")

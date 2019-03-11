@@ -20,8 +20,8 @@ func TestNewTokenInfoHandler(t *testing.T) {
 		issuer          weave.Address
 		initState       []orm.Object
 		msg             weave.Msg
-		wantCheckErr    errors.Error
-		wantDeliverErr  errors.Error
+		wantCheckErr    *errors.Error
+		wantDeliverErr  *errors.Error
 		query           string
 		wantQueryResult orm.Object
 	}{

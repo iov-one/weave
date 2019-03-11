@@ -75,7 +75,7 @@ func TestRevenueValidate(t *testing.T) {
 func TestValidRecipients(t *testing.T) {
 	cases := map[string]struct {
 		recipients []*Recipient
-		baseErr    errors.Error
+		baseErr    *errors.Error
 		want       error
 	}{
 		"all good": {

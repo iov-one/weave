@@ -14,7 +14,7 @@ import (
 func TestErrors(t *testing.T) {
 	cases := map[string]struct {
 		err      error
-		wantRoot Error
+		wantRoot *Error
 		wantMsg  string
 		wantLog  string
 	}{
@@ -129,42 +129,62 @@ func TestCause(t *testing.T) {
 	}
 }
 
-func TestIs(t *testing.T) {
+func TestErrorIs(t *testing.T) {
 	cases := map[string]struct {
-		a      error
+		a      *Error
 		b      error
 		wantIs bool
 	}{
+		"instance of the same error": {
+			a:      ErrNotFound,
+			b:      ErrNotFound,
+			wantIs: true,
+		},
 		"instance of the same error, even if internal": {
 			a:      ErrInternal,
 			b:      ErrInternal,
 			wantIs: true,
-		},
-		"two different internal errors": {
-			a:      fmt.Errorf("one"),
-			b:      fmt.Errorf("two"),
-			wantIs: false,
 		},
 		"two different coded errors": {
 			a:      ErrNotFound,
 			b:      ErrInvalidModel,
 			wantIs: false,
 		},
-		"two different internal and wrapped  errors": {
-			a:      Wrap(fmt.Errorf("a not found"), "where is a?"),
-			b:      Wrap(ErrInternal, "b not found"),
+		"successful comparison to a wrapped error": {
+			a:      ErrNotFound,
+			b:      errors.Wrap(ErrNotFound, "gone"),
+			wantIs: true,
+		},
+		"unsuccessful comparison to a wrapped error": {
+			a:      ErrNotFound,
+			b:      errors.Wrap(ErrOverflow, "too big"),
 			wantIs: false,
 		},
-		"two equal coded errors": {
-			a:      Wrap(ErrNotFound, "a not found"),
-			b:      Wrap(ErrNotFound, "b not found"),
+		"not equal to stdlib error": {
+			a:      ErrNotFound,
+			b:      fmt.Errorf("stdlib error"),
+			wantIs: false,
+		},
+		"not equal to a wrapped stdlib error": {
+			a:      ErrNotFound,
+			b:      errors.Wrap(fmt.Errorf("stdlib error"), "wrapped"),
+			wantIs: false,
+		},
+		"internal error is equal to a stdlib error": {
+			a:      ErrInternal,
+			b:      fmt.Errorf("stdlib error"),
+			wantIs: true,
+		},
+		"internal error is equal to a wrapped stdlib error": {
+			a:      ErrInternal,
+			b:      errors.Wrap(fmt.Errorf("stdlib error"), "w-rap"),
 			wantIs: true,
 		},
 	}
 
 	for testName, tc := range cases {
 		t.Run(testName, func(t *testing.T) {
-			if got := Is(tc.a, tc.b); got != tc.wantIs {
+			if got := tc.a.Is(tc.b); got != tc.wantIs {
 				t.Fatal("unexpected result")
 			}
 		})
