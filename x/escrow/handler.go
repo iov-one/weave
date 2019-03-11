@@ -86,13 +86,10 @@ func (h CreateEscrowHandler) Deliver(ctx weave.Context, db weave.KVStore,
 
 	// deposit amounts
 	escrowAddr := Condition(obj.Key()).Address()
-	for _, c := range msg.Amount {
-		err := h.bank.MoveCoins(db, weave.Address(escrow.Sender), escrowAddr, *c)
-		if err != nil {
-			return res, err
-		}
+	senderAddr := weave.Address(escrow.Sender)
+	if err := moveCoins(db, h.bank, senderAddr, escrowAddr, msg.Amount); err != nil {
+		return res, err
 	}
-
 	// return id of escrow to use in future calls
 	res.Data = obj.Key()
 	return res, h.bucket.Save(db, obj)
@@ -183,12 +180,10 @@ func (h ReleaseEscrowHandler) Deliver(ctx weave.Context, db weave.KVStore,
 
 	// withdraw the money from escrow to recipient
 	recipientAddr := weave.Address(escrow.Recipient)
-	for _, c := range request {
-		err := h.bank.MoveCoins(db, escrowAddr, recipientAddr, *c)
-		if err != nil {
-			return res, err
-		}
+	if err := moveCoins(db, h.bank, escrowAddr, recipientAddr, request); err != nil {
+		return res, err
 	}
+
 	// clean up
 	remainingCoins, err := h.bank.Balance(db, escrowAddr)
 	switch {
@@ -286,11 +281,8 @@ func (h ReturnEscrowHandler) Deliver(ctx weave.Context, db weave.KVStore,
 
 	// withdraw all coins from escrow to the defined "sender"
 	dest := weave.Address(escrow.Sender)
-	for _, c := range available {
-		err := h.bank.MoveCoins(db, escrowAddr, dest, *c)
-		if err != nil {
-			return res, err
-		}
+	if err := moveCoins(db, h.bank, escrowAddr, dest, available); err != nil {
+		return res, err
 	}
 	return res, h.bucket.Delete(db, key)
 }
@@ -446,4 +438,14 @@ func loadEscrow(bucket Bucket, db weave.KVStore, escrowID []byte) (*Escrow, erro
 		return nil, errors.ErrEmpty.Newf("escrow %d", escrowID)
 	}
 	return escrow, nil
+}
+
+func moveCoins(db weave.KVStore, bank cash.CoinMover, src, dest weave.Address, amounts []*coin.Coin) error {
+	for _, c := range amounts {
+		err := bank.MoveCoins(db, src, dest, *c)
+		if err != nil {
+			return errors.Wrapf(err, "failed to move %q", c.String())
+		}
+	}
+	return nil
 }
