@@ -1,7 +1,6 @@
 package scenarios
 
 import (
-	"encoding/binary"
 	"encoding/hex"
 	"encoding/json"
 	"flag"
@@ -15,6 +14,7 @@ import (
 	"github.com/iov-one/weave/cmd/bnsd/app"
 	"github.com/iov-one/weave/cmd/bnsd/client"
 	"github.com/iov-one/weave/coin"
+	"github.com/iov-one/weave/weavetest"
 	"github.com/iov-one/weave/x/cash"
 	"github.com/iov-one/weave/x/distribution"
 	"github.com/iov-one/weave/x/escrow"
@@ -56,9 +56,9 @@ var (
 
 func TestMain(m *testing.M) {
 	flag.Parse()
-	multiSigContract = multisig.MultiSigCondition(asSeqID(1))
-	escrowContract = escrow.Condition(asSeqID(1))
-	distrContractAddr = distribution.RevenueAccount(asSeqID(1))
+	multiSigContract = multisig.MultiSigCondition(weavetest.SequenceID(1))
+	escrowContract = escrow.Condition(weavetest.SequenceID(1))
+	distrContractAddr = distribution.RevenueAccount(weavetest.SequenceID(1))
 
 	alice = derivePrivateKey(*hexSeed, *derivationPath)
 	logger.Error("Loaded Alice key", "addressID", alice.PublicKey().Address())
@@ -197,13 +197,6 @@ func initGenesis(filename string, addr weave.Address) (*tm.GenesisDoc, error) {
 	doc.AppState = appState
 	// save file
 	return doc, doc.SaveAs(filename)
-}
-
-// asSeqID converts the given id into big endian format used in storage layer
-func asSeqID(n uint64) []byte {
-	multiSigContractID := make([]byte, 8)
-	binary.BigEndian.PutUint64(multiSigContractID, n)
-	return multiSigContractID
 }
 
 // derivePrivateKey derive a private key from hex and given path. Path can be empty to not derive.

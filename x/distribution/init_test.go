@@ -7,6 +7,7 @@ import (
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/store"
+	"github.com/iov-one/weave/weavetest"
 )
 
 func TestGenesisKey(t *testing.T) {
@@ -38,7 +39,7 @@ func TestGenesisKey(t *testing.T) {
 	}
 
 	bucket := NewRevenueBucket()
-	rev, err := bucket.GetRevenue(db, asSeqID(1))
+	rev, err := bucket.GetRevenue(db, weavetest.SequenceID(1))
 	if err != nil {
 		t.Fatalf("cannot fetch revenue: %s", err)
 	} else if rev == nil {

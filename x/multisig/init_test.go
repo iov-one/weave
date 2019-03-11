@@ -1,7 +1,6 @@
 package multisig
 
 import (
-	"encoding/binary"
 	"encoding/hex"
 	"encoding/json"
 	"reflect"
@@ -9,6 +8,7 @@ import (
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/store"
+	"github.com/iov-one/weave/weavetest"
 )
 
 func TestGenesisKey(t *testing.T) {
@@ -42,7 +42,7 @@ func TestGenesisKey(t *testing.T) {
 	}
 
 	bucket := NewContractBucket()
-	obj, err := bucket.Get(db, seq(1))
+	obj, err := bucket.Get(db, weavetest.SequenceID(1))
 	if err != nil {
 		t.Fatalf("cannot fetch contract information: %s", err)
 	}
@@ -68,13 +68,6 @@ func TestGenesisKey(t *testing.T) {
 		t.Errorf("want signatures \n%#v\n, got \n%#v", wantSigs, c.Sigs)
 	}
 
-}
-
-// seq returns encoded sequence number as implemented in orm/sequence.go
-func seq(val int64) []byte {
-	b := make([]byte, 8)
-	binary.BigEndian.PutUint64(b, uint64(val))
-	return b
 }
 
 func fromHex(t *testing.T, s string) []byte {

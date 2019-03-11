@@ -1,12 +1,12 @@
 package distribution
 
 import (
-	"encoding/binary"
 	"math"
 	"testing"
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/weavetest"
 )
 
 func TestRevenueValidate(t *testing.T) {
@@ -119,10 +119,11 @@ func TestValidRecipients(t *testing.T) {
 
 func createRecipients(amount int) []*Recipient {
 	rs := make([]*Recipient, amount)
-	addr := make([]byte, 8)
 	for i := range rs {
-		binary.BigEndian.PutUint64(addr, uint64(i))
-		rs[i] = &Recipient{Address: addr, Weight: int32(i%100 + 1)}
+		rs[i] = &Recipient{
+			Address: weavetest.SequenceID(uint64(i)),
+			Weight:  int32(i%100 + 1),
+		}
 	}
 	return rs
 }

@@ -2,31 +2,25 @@ package multisig
 
 import (
 	"context"
-	"encoding/binary"
 	"fmt"
 	"testing"
 
 	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/weavetest"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestContext(t *testing.T) {
-	id := func(i int64) []byte {
-		bz := make([]byte, 8)
-		binary.BigEndian.PutUint64(bz, uint64(i))
-		return bz
-	}
-
 	// sig is a signature permission for contractID, not a contract ID
-	contractID := id(1)
+	contractID := weavetest.SequenceID(1)
 	sig := MultiSigCondition(contractID).Address()
 
 	// other is a signature permission for some "other" contract ID
-	otherContractID := id(2)
+	otherContractID := weavetest.SequenceID(2)
 	other := MultiSigCondition(otherContractID).Address()
 
 	// random address which does not represent anything in particular
-	random := weave.NewAddress(id(3))
+	random := weave.NewAddress(weavetest.SequenceID(3))
 
 	bg := context.Background()
 	cases := []struct {
@@ -56,8 +50,8 @@ func TestContext(t *testing.T) {
 			[]weave.Address{random},
 		},
 		{
-			withMultisig(bg, id(3)),
-			[]weave.Condition{MultiSigCondition(id(3))},
+			withMultisig(bg, weavetest.SequenceID(3)),
+			[]weave.Condition{MultiSigCondition(weavetest.SequenceID(3))},
 			nil,
 			[]weave.Address{sig, other, random},
 		},
