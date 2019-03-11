@@ -106,7 +106,7 @@ func TestIssueCoins(t *testing.T) {
 			kv := store.MemStore()
 
 			for j, issue := range tc.issue {
-				err := controller.IssueCoins(kv, issue.addr, issue.amount)
+				err := controller.CoinMint(kv, issue.addr, issue.amount)
 				if issue.isErr {
 					require.Error(t, err, "%d", j)
 				} else {
@@ -216,7 +216,7 @@ func TestMoveCoins(t *testing.T) {
 		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
 			kv := store.MemStore()
 
-			err := controller.IssueCoins(kv, tc.issue.addr, tc.issue.amount)
+			err := controller.CoinMint(kv, tc.issue.addr, tc.issue.amount)
 			if tc.issue.isErr {
 				require.Error(t, err)
 			} else {
@@ -254,17 +254,17 @@ func TestBalance(t *testing.T) {
 
 	addr1 := weavetest.NewCondition().Address()
 	coin1 := coin.NewCoin(1, 20, "BTC")
-	if err := ctrl.IssueCoins(store, addr1, coin1); err != nil {
+	if err := ctrl.CoinMint(store, addr1, coin1); err != nil {
 		t.Fatalf("cannot issue coins: %s", err)
 	}
 
 	addr2 := weavetest.NewCondition().Address()
 	coin2_1 := coin.NewCoin(3, 40, "ETH")
 	coin2_2 := coin.NewCoin(5, 0, "DOGE")
-	if err := ctrl.IssueCoins(store, addr2, coin2_1); err != nil {
+	if err := ctrl.CoinMint(store, addr2, coin2_1); err != nil {
 		t.Fatalf("cannot issue coins: %s", err)
 	}
-	if err := ctrl.IssueCoins(store, addr2, coin2_2); err != nil {
+	if err := ctrl.CoinMint(store, addr2, coin2_2); err != nil {
 		t.Fatalf("cannot issue coins: %s", err)
 	}
 

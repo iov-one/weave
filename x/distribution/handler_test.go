@@ -319,7 +319,7 @@ func TestHandlers(t *testing.T) {
 
 			for _, a := range tc.prepareAccounts {
 				for _, c := range a.coins {
-					if err := ctrl.IssueCoins(db, a.address, *c); err != nil {
+					if err := ctrl.CoinMint(db, a.address, *c); err != nil {
 						t.Fatalf("cannot issue %q to %s: %s", c, a.address, err)
 					}
 				}

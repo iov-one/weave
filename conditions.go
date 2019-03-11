@@ -75,6 +75,42 @@ func (c Condition) Validate() error {
 	return nil
 }
 
+func (c Condition) MarshalJSON() ([]byte, error) {
+	var serialized string
+	if c != nil {
+		serialized = c.String()
+	}
+	return json.Marshal(serialized)
+}
+
+func (c *Condition) UnmarshalJSON(raw []byte) error {
+	var enc string
+	if err := json.Unmarshal(raw, &enc); err != nil {
+		return errors.Wrap(err, "cannot decode json")
+	}
+	return c.deserialize(enc)
+}
+
+// deserialize from human readable string.
+func (c *Condition) deserialize(source string) error {
+	// No value zero the address.
+	if len(source) == 0 {
+		*c = nil
+		return nil
+	}
+
+	args := strings.Split(source, "/")
+	if len(args) != 3 {
+		return errors.ErrInvalidInput.Newf("invalid condition format")
+	}
+	data, err := hex.DecodeString(args[2])
+	if err != nil {
+		return errors.ErrInvalidInput.Newf("malformed condition data: %s", err)
+	}
+	*c = NewCondition(args[0], args[1], data)
+	return nil
+}
+
 // Address represents a collision-free, one-way digest
 // of a Condition
 //
@@ -124,15 +160,11 @@ func (a *Address) UnmarshalJSON(raw []byte) error {
 		*a = val
 		return nil
 	case "cond":
-		args := strings.Split(enc, "/")
-		if len(args) != 3 {
-			return errors.ErrInvalidInput.Newf("invalid condition format")
+		var c Condition
+		if err := c.deserialize(enc); err != nil {
+			return err
 		}
-		data, err := hex.DecodeString(args[2])
-		if err != nil {
-			return errors.ErrInvalidInput.Newf("malformed condition data: %s", err)
-		}
-		*a = NewCondition(args[0], args[1], data).Address()
+		*a = c.Address()
 		return nil
 	default:
 		return errors.ErrInvalidType.Newf("unknown format %q", chunks[0])

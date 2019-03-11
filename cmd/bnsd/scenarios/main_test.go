@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"flag"
+	"math"
 	"os"
 	"strings"
 	"testing"
@@ -15,13 +16,15 @@ import (
 	"github.com/iov-one/weave/cmd/bnsd/client"
 	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/x/cash"
+	"github.com/iov-one/weave/x/distribution"
+	"github.com/iov-one/weave/x/escrow"
 	"github.com/iov-one/weave/x/multisig"
 	"github.com/stellar/go/exp/crypto/derivation"
 	abci "github.com/tendermint/tendermint/abci/types"
 	cfg "github.com/tendermint/tendermint/config"
 	"github.com/tendermint/tendermint/libs/log"
 	nm "github.com/tendermint/tendermint/node"
-	rpctest "github.com/tendermint/tendermint/rpc/test"
+	"github.com/tendermint/tendermint/rpc/test"
 	tm "github.com/tendermint/tendermint/types"
 )
 
@@ -40,50 +43,29 @@ var (
 )
 
 var (
-	alice                *client.PrivateKey
-	node                 *nm.Node
-	logger               = log.NewTMLogger(os.Stdout) //log.NewNopLogger()
-	bnsClient            *client.BnsClient
-	chainID              string
-	rpcAddress           string
-	multiSigContractID   = make([]byte, 8) // first contractID
-	multiSigContractAddr weave.Address     // results to: "5AE2C58796B0AD48FFE7602EAC3353488C859A2B"
+	alice             *client.PrivateKey
+	node              *nm.Node
+	logger            = log.NewTMLogger(os.Stdout)
+	bnsClient         *client.BnsClient
+	chainID           string
+	rpcAddress        string
+	multiSigContract  weave.Condition
+	escrowContract    weave.Condition
+	distrContractAddr weave.Address
 )
 
 func TestMain(m *testing.M) {
 	flag.Parse()
-	binary.BigEndian.PutUint64(multiSigContractID, 1)
-	multiSigContractAddr = multisig.MultiSigCondition(multiSigContractID).Address()
-	var err error
-	aliceHexSeed := *hexSeed
-	if len(*derivationPath) != 0 {
-		b, err := hex.DecodeString(*hexSeed)
-		if err != nil {
-			logger.Error("Failed to decode private key", "cause", err)
-			os.Exit(1)
-		}
-		k, err := derivation.DeriveForPath(*derivationPath, b)
-		if err != nil {
-			logger.Error("Failed to derive private key", "cause", err, "derivationPath", *derivationPath)
-			os.Exit(1)
-		}
-		pubKey, err := k.PublicKey()
-		if err != nil {
-			logger.Error("Failed to derive public key", "cause", err)
-			os.Exit(1)
-		}
-		aliceHexSeed = hex.EncodeToString(append(k.Key, pubKey...))
-	}
+	multiSigContract = multisig.MultiSigCondition(asSeqID(1))
+	escrowContract = escrow.Condition(asSeqID(1))
+	distrContractAddr = distribution.RevenueAccount(asSeqID(1))
 
-	alice, err = client.DecodePrivateKeyFromSeed(aliceHexSeed)
-	if err != nil {
-		logger.Error("Failed to decode private key", "cause", err)
-		os.Exit(1)
-	}
+	alice = derivePrivateKey(*hexSeed, *derivationPath)
 	logger.Error("Loaded Alice key", "addressID", alice.PublicKey().Address())
 
 	if *tendermintAddress != testLocalAddress {
 		bnsClient = client.NewClient(client.NewHTTPConnection(*tendermintAddress))
+		var err error
 		chainID, err = bnsClient.ChainID()
 		if err != nil {
 			logger.Error("Failed to fetch chain id", "cause", err)
@@ -173,7 +155,7 @@ func initGenesis(filename string, addr weave.Address) (*tm.GenesisDoc, error) {
 		},
 		"update_validators": dict{
 			"addresses": []weave.Address{
-				multiSigContractAddr,
+				multiSigContract.Address(),
 			},
 		},
 		"multisig": []interface{}{
@@ -181,6 +163,27 @@ func initGenesis(filename string, addr weave.Address) (*tm.GenesisDoc, error) {
 				"sigs":                 []weave.Address{addr},
 				"activation_threshold": 1,
 				"admin_threshold":      1,
+			},
+		},
+		"distribution": []interface{}{
+			dict{
+				"admin": addr,
+				"recipients": []interface{}{
+					dict{"weight": 1, "address": alice.PublicKey().Address()},
+				},
+			},
+		},
+		"escrow": []interface{}{
+			dict{
+				"sender":    "0000000000000000000000000000000000000000",
+				"arbiter":   multiSigContract,
+				"recipient": distrContractAddr,
+				"amount": []interface{}{
+					dict{
+						"whole":  1000000,
+						"ticker": "IOV",
+					}},
+				"timeout": math.MaxInt64,
 			},
 		},
 		"gconf": map[string]interface{}{
@@ -191,8 +194,42 @@ func initGenesis(filename string, addr weave.Address) (*tm.GenesisDoc, error) {
 	if err != nil {
 		panic(err)
 	}
-
 	doc.AppState = appState
 	// save file
 	return doc, doc.SaveAs(filename)
+}
+
+// asSeqID converts the given id into big endian format used in storage layer
+func asSeqID(n uint64) []byte {
+	multiSigContractID := make([]byte, 8)
+	binary.BigEndian.PutUint64(multiSigContractID, n)
+	return multiSigContractID
+}
+
+// derivePrivateKey derive a private key from hex and given path. Path can be empty to not derive.
+func derivePrivateKey(hexSeed, path string) *client.PrivateKey {
+	if len(path) != 0 {
+		b, err := hex.DecodeString(path)
+		if err != nil {
+			logger.Error("Failed to decode private key", "cause", err)
+			os.Exit(1)
+		}
+		k, err := derivation.DeriveForPath(path, b)
+		if err != nil {
+			logger.Error("Failed to derive private key", "cause", err, "path", path)
+			os.Exit(1)
+		}
+		pubKey, err := k.PublicKey()
+		if err != nil {
+			logger.Error("Failed to derive public key", "cause", err)
+			os.Exit(1)
+		}
+		hexSeed = hex.EncodeToString(append(k.Key, pubKey...))
+	}
+	pk, err := client.DecodePrivateKeyFromSeed(hexSeed)
+	if err != nil {
+		logger.Error("Failed to decode private key", "cause", err)
+		os.Exit(1)
+	}
+	return pk
 }
