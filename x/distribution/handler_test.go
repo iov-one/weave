@@ -2,7 +2,6 @@ package distribution
 
 import (
 	"context"
-	"encoding/binary"
 	"reflect"
 	"testing"
 
@@ -26,9 +25,9 @@ func TestHandlers(t *testing.T) {
 	ctrl := cash.NewController(cashBucket)
 	RegisterRoutes(rt, auth, ctrl)
 
-	// In below cases, asSeqID(1) is used - this is the address of the
-	// first revenue instance created. Sequence is reset for each test
-	// case.
+	// In below cases, weavetest.SequenceID(1) is used - this is the
+	// address of the first revenue instance created. Sequence is reset for
+	// each test case.
 
 	cases := map[string]struct {
 		// prepareAccounts is used to set the funds for each declared
@@ -68,7 +67,7 @@ func TestHandlers(t *testing.T) {
 				{
 					conditions: []weave.Condition{src},
 					msg: &ResetRevenueMsg{
-						RevenueID:  asSeqID(1),
+						RevenueID:  weavetest.SequenceID(1),
 						Recipients: []*Recipient{},
 					},
 					blocksize:    102,
@@ -77,7 +76,7 @@ func TestHandlers(t *testing.T) {
 				{
 					conditions: []weave.Condition{src},
 					msg: &ResetRevenueMsg{
-						RevenueID: asSeqID(1),
+						RevenueID: weavetest.SequenceID(1),
 						Recipients: []*Recipient{
 							{Weight: 1, Address: addr1},
 							{Weight: 2, Address: addr2},
@@ -104,11 +103,11 @@ func TestHandlers(t *testing.T) {
 		},
 		"weights are normalized during distribution": {
 			prepareAccounts: []account{
-				{address: RevenueAccount(asSeqID(1)), coins: coin.Coins{coinp(0, 7, "BTC")}},
+				{address: RevenueAccount(weavetest.SequenceID(1)), coins: coin.Coins{coin.NewCoinp(0, 7, "BTC")}},
 			},
 			wantAccounts: []account{
 				// All funds must be transferred to the only recipient.
-				{address: addr1, coins: coin.Coins{coinp(0, 7, "BTC")}},
+				{address: addr1, coins: coin.Coins{coin.NewCoinp(0, 7, "BTC")}},
 			},
 			actions: []action{
 				{
@@ -127,7 +126,7 @@ func TestHandlers(t *testing.T) {
 				},
 				{
 					conditions:     []weave.Condition{src},
-					msg:            &DistributeMsg{RevenueID: asSeqID(1)},
+					msg:            &DistributeMsg{RevenueID: weavetest.SequenceID(1)},
 					blocksize:      101,
 					wantCheckErr:   nil,
 					wantDeliverErr: nil,
@@ -154,7 +153,7 @@ func TestHandlers(t *testing.T) {
 				{
 					conditions: []weave.Condition{src},
 					msg: &DistributeMsg{
-						RevenueID: asSeqID(1),
+						RevenueID: weavetest.SequenceID(1),
 					},
 					blocksize:      101,
 					wantCheckErr:   nil,
@@ -164,10 +163,10 @@ func TestHandlers(t *testing.T) {
 		},
 		"revenue with an account but without enough funds": {
 			prepareAccounts: []account{
-				{address: RevenueAccount(asSeqID(1)), coins: coin.Coins{coinp(0, 1, "BTC")}},
+				{address: RevenueAccount(weavetest.SequenceID(1)), coins: coin.Coins{coin.NewCoinp(0, 1, "BTC")}},
 			},
 			wantAccounts: []account{
-				{address: RevenueAccount(asSeqID(1)), coins: coin.Coins{coinp(0, 1, "BTC")}},
+				{address: RevenueAccount(weavetest.SequenceID(1)), coins: coin.Coins{coin.NewCoinp(0, 1, "BTC")}},
 			},
 			actions: []action{
 				{
@@ -186,7 +185,7 @@ func TestHandlers(t *testing.T) {
 				{
 					conditions: []weave.Condition{src},
 					msg: &DistributeMsg{
-						RevenueID: asSeqID(1),
+						RevenueID: weavetest.SequenceID(1),
 					},
 					blocksize:      101,
 					wantCheckErr:   nil,
@@ -196,12 +195,12 @@ func TestHandlers(t *testing.T) {
 		},
 		"distribute revenue with a leftover funds": {
 			prepareAccounts: []account{
-				{address: RevenueAccount(asSeqID(1)), coins: coin.Coins{coinp(0, 7, "BTC")}},
+				{address: RevenueAccount(weavetest.SequenceID(1)), coins: coin.Coins{coin.NewCoinp(0, 7, "BTC")}},
 			},
 			wantAccounts: []account{
-				{address: RevenueAccount(asSeqID(1)), coins: coin.Coins{coinp(0, 1, "BTC")}},
-				{address: addr1, coins: coin.Coins{coinp(0, 2, "BTC")}},
-				{address: addr2, coins: coin.Coins{coinp(0, 4, "BTC")}},
+				{address: RevenueAccount(weavetest.SequenceID(1)), coins: coin.Coins{coin.NewCoinp(0, 1, "BTC")}},
+				{address: addr1, coins: coin.Coins{coin.NewCoinp(0, 2, "BTC")}},
+				{address: addr2, coins: coin.Coins{coin.NewCoinp(0, 4, "BTC")}},
 			},
 			actions: []action{
 				{
@@ -220,7 +219,7 @@ func TestHandlers(t *testing.T) {
 				{
 					conditions: []weave.Condition{src},
 					msg: &DistributeMsg{
-						RevenueID: asSeqID(1),
+						RevenueID: weavetest.SequenceID(1),
 					},
 					blocksize:      101,
 					wantCheckErr:   nil,
@@ -230,12 +229,12 @@ func TestHandlers(t *testing.T) {
 		},
 		"distribute revenue with an account holding various tickers": {
 			prepareAccounts: []account{
-				{address: RevenueAccount(asSeqID(1)), coins: coin.Coins{coinp(0, 3, "BTC"), coinp(0, 7, "ETH")}},
+				{address: RevenueAccount(weavetest.SequenceID(1)), coins: coin.Coins{coin.NewCoinp(0, 3, "BTC"), coin.NewCoinp(0, 7, "ETH")}},
 			},
 			wantAccounts: []account{
-				{address: RevenueAccount(asSeqID(1)), coins: coin.Coins{coinp(0, 1, "ETH")}},
-				{address: addr1, coins: coin.Coins{coinp(0, 1, "BTC"), coinp(0, 2, "ETH")}},
-				{address: addr2, coins: coin.Coins{coinp(0, 2, "BTC"), coinp(0, 4, "ETH")}},
+				{address: RevenueAccount(weavetest.SequenceID(1)), coins: coin.Coins{coin.NewCoinp(0, 1, "ETH")}},
+				{address: addr1, coins: coin.Coins{coin.NewCoinp(0, 1, "BTC"), coin.NewCoinp(0, 2, "ETH")}},
+				{address: addr2, coins: coin.Coins{coin.NewCoinp(0, 2, "BTC"), coin.NewCoinp(0, 4, "ETH")}},
 			},
 			actions: []action{
 				{
@@ -254,7 +253,7 @@ func TestHandlers(t *testing.T) {
 				{
 					conditions: []weave.Condition{src},
 					msg: &DistributeMsg{
-						RevenueID: asSeqID(1),
+						RevenueID: weavetest.SequenceID(1),
 					},
 					blocksize:      101,
 					wantCheckErr:   nil,
@@ -264,12 +263,12 @@ func TestHandlers(t *testing.T) {
 		},
 		"updating a revenue is distributing the collected funds first": {
 			prepareAccounts: []account{
-				{address: RevenueAccount(asSeqID(1)), coins: coin.Coins{coinp(0, 3, "BTC")}},
+				{address: RevenueAccount(weavetest.SequenceID(1)), coins: coin.Coins{coin.NewCoinp(0, 3, "BTC")}},
 			},
 			wantAccounts: []account{
-				{address: addr1, coins: coin.Coins{coinp(0, 1, "BTC")}},
+				{address: addr1, coins: coin.Coins{coin.NewCoinp(0, 1, "BTC")}},
 				// Below is the state of the second account after ALL the actions applied.
-				{address: addr2, coins: coin.Coins{coinp(0, 2, "BTC")}},
+				{address: addr2, coins: coin.Coins{coin.NewCoinp(0, 2, "BTC")}},
 			},
 			actions: []action{
 				{
@@ -290,7 +289,7 @@ func TestHandlers(t *testing.T) {
 				{
 					conditions: []weave.Condition{src},
 					msg: &ResetRevenueMsg{
-						RevenueID: asSeqID(1),
+						RevenueID: weavetest.SequenceID(1),
 						Recipients: []*Recipient{
 							{Weight: 1234, Address: addr2},
 						},
@@ -303,7 +302,7 @@ func TestHandlers(t *testing.T) {
 				{
 					conditions: []weave.Condition{src},
 					msg: &DistributeMsg{
-						RevenueID: asSeqID(1),
+						RevenueID: weavetest.SequenceID(1),
 					},
 					blocksize:      103,
 					wantCheckErr:   nil,
@@ -386,19 +385,6 @@ func (a *action) ctx() weave.Context {
 	return auth.SetConditions(ctx, a.conditions...)
 }
 
-// asSeqID returns an ID encoded as if it was generated by the bucket sequence
-// call.
-func asSeqID(i int64) []byte {
-	b := make([]byte, 8)
-	binary.BigEndian.PutUint64(b, uint64(i))
-	return b
-}
-
-func coinp(w, f int64, ticker string) *coin.Coin {
-	c := coin.NewCoin(w, f, ticker)
-	return &c
-}
-
 func TestFindGdc(t *testing.T) {
 	cases := map[string]struct {
 		want   int32
@@ -470,7 +456,7 @@ func TestDistribute(t *testing.T) {
 				{Address: weave.Address("address-2"), Weight: 2},
 			},
 			ctrl: &testController{
-				balance: coin.Coins{coinp(0, 1, "ETH")},
+				balance: coin.Coins{coin.NewCoinp(0, 1, "ETH")},
 			},
 			wantErr: nil,
 		},
@@ -480,7 +466,7 @@ func TestDistribute(t *testing.T) {
 				{Address: weave.Address("address-2"), Weight: 2},
 			},
 			ctrl: &testController{
-				balance: coin.Coins{coinp(3, 0, "BTC")},
+				balance: coin.Coins{coin.NewCoinp(3, 0, "BTC")},
 			},
 			wantErr: nil,
 			wantMoves: []movecall{
@@ -494,7 +480,7 @@ func TestDistribute(t *testing.T) {
 				{Address: weave.Address("address-2"), Weight: 2},
 			},
 			ctrl: &testController{
-				balance: coin.Coins{coinp(1, 0, "BTC")},
+				balance: coin.Coins{coin.NewCoinp(1, 0, "BTC")},
 			},
 			wantErr: nil,
 			wantMoves: []movecall{
@@ -510,7 +496,7 @@ func TestDistribute(t *testing.T) {
 				{Address: weave.Address("address-2"), Weight: 2},
 			},
 			ctrl: &testController{
-				balance: coin.Coins{coinp(2, 0, "BTC")},
+				balance: coin.Coins{coin.NewCoinp(2, 0, "BTC")},
 			},
 			wantErr: nil,
 			wantMoves: []movecall{

@@ -3,7 +3,6 @@ package paychan
 import (
 	"bytes"
 	"context"
-	"encoding/binary"
 	"reflect"
 	"testing"
 
@@ -58,10 +57,10 @@ func TestPaymentChannelHandlers(t *testing.T) {
 			dbtests: []querycheck{
 				{
 					path:   "/paychans",
-					data:   asSeqID(1),
+					data:   weavetest.SequenceID(1),
 					bucket: payChanBucket.Bucket,
 					wantRes: []orm.Object{
-						orm.NewSimpleObj(asSeqID(1), &PaymentChannel{
+						orm.NewSimpleObj(weavetest.SequenceID(1), &PaymentChannel{
 							Src:          src.Address(),
 							Recipient:    recipient.Address(),
 							SenderPubkey: srcSig.PublicKey(),
@@ -86,10 +85,10 @@ func TestPaymentChannelHandlers(t *testing.T) {
 				// secured for future transactions.
 				{
 					path:   "/wallets",
-					data:   paymentChannelAccount(asSeqID(1)),
+					data:   paymentChannelAccount(weavetest.SequenceID(1)),
 					bucket: cashBucket.Bucket,
 					wantRes: []orm.Object{
-						mustObject(cash.WalletWith(paymentChannelAccount(asSeqID(1)), dogeCoin(10, 0))),
+						mustObject(cash.WalletWith(paymentChannelAccount(weavetest.SequenceID(1)), dogeCoin(10, 0))),
 					},
 				},
 			},
@@ -111,7 +110,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 				{
 					conditions: []weave.Condition{src},
 					msg: &ClosePaymentChannelMsg{
-						ChannelID: asSeqID(1),
+						ChannelID: weavetest.SequenceID(1),
 						Memo:      "end",
 					},
 					blocksize: 1001,
@@ -124,7 +123,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 				// an error, but returns nil instead.
 				{
 					path:    "/paychans",
-					data:    asSeqID(1),
+					data:    weavetest.SequenceID(1),
 					bucket:  payChanBucket.Bucket,
 					wantRes: nil,
 				},
@@ -159,7 +158,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 					msg: setSignature(srcSig, &TransferPaymentChannelMsg{
 						Payment: &Payment{
 							ChainID:   "testchain-123",
-							ChannelID: asSeqID(1),
+							ChannelID: weavetest.SequenceID(1),
 							Amount:    dogeCoin(2, 50),
 							Memo:      "much transfer",
 						},
@@ -171,7 +170,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 					msg: setSignature(srcSig, &TransferPaymentChannelMsg{
 						Payment: &Payment{
 							ChainID:   "testchain-123",
-							ChannelID: asSeqID(1),
+							ChannelID: weavetest.SequenceID(1),
 							Amount:    dogeCoin(3, 0),
 							Memo:      "such value",
 						},
@@ -182,10 +181,10 @@ func TestPaymentChannelHandlers(t *testing.T) {
 			dbtests: []querycheck{
 				{
 					path:   "/wallets",
-					data:   paymentChannelAccount(asSeqID(1)),
+					data:   paymentChannelAccount(weavetest.SequenceID(1)),
 					bucket: cashBucket.Bucket,
 					wantRes: []orm.Object{
-						mustObject(cash.WalletWith(paymentChannelAccount(asSeqID(1)), dogeCoin(7, 0))),
+						mustObject(cash.WalletWith(paymentChannelAccount(weavetest.SequenceID(1)), dogeCoin(7, 0))),
 					},
 				},
 				{
@@ -217,7 +216,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 					msg: setSignature(srcSig, &TransferPaymentChannelMsg{
 						Payment: &Payment{
 							ChainID:   "testchain-123",
-							ChannelID: asSeqID(1),
+							ChannelID: weavetest.SequenceID(1),
 							Amount:    dogeCoin(2, 0),
 							Memo:      "much transfer",
 						},
@@ -227,7 +226,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 				{
 					conditions: []weave.Condition{src},
 					msg: &ClosePaymentChannelMsg{
-						ChannelID: asSeqID(1),
+						ChannelID: weavetest.SequenceID(1),
 						Memo:      "end",
 					},
 					blocksize: 1001,
@@ -240,7 +239,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 				// an error, but returns nil instead.
 				{
 					path:    "/paychans",
-					data:    asSeqID(1),
+					data:    weavetest.SequenceID(1),
 					bucket:  payChanBucket.Bucket,
 					wantRes: nil,
 				},
@@ -303,7 +302,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 				{
 					conditions: []weave.Condition{src},
 					msg: &ClosePaymentChannelMsg{
-						ChannelID: asSeqID(1),
+						ChannelID: weavetest.SequenceID(1),
 						Memo:      "end",
 					},
 					blocksize:      104,
@@ -313,7 +312,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 				{
 					conditions: []weave.Condition{recipient},
 					msg: &ClosePaymentChannelMsg{
-						ChannelID: asSeqID(1),
+						ChannelID: weavetest.SequenceID(1),
 						Memo:      "end",
 					},
 					blocksize: 108,
@@ -339,7 +338,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 					msg: setSignature(srcSig, &TransferPaymentChannelMsg{
 						Payment: &Payment{
 							ChainID:   "another-chain-666",
-							ChannelID: asSeqID(1),
+							ChannelID: weavetest.SequenceID(1),
 							Amount:    dogeCoin(2, 50),
 							Memo:      "much transfer",
 						},
@@ -368,7 +367,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 					msg: setSignature(srcSig, &TransferPaymentChannelMsg{
 						Payment: &Payment{
 							ChainID:   "testchain-123",
-							ChannelID: asSeqID(1),
+							ChannelID: weavetest.SequenceID(1),
 							Amount:    dogeCoin(11, 50),
 							Memo:      "much transfer",
 						},
@@ -412,7 +411,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 				{
 					conditions: []weave.Condition{recipient},
 					msg: &ClosePaymentChannelMsg{
-						ChannelID: asSeqID(1),
+						ChannelID: weavetest.SequenceID(1),
 						Memo:      "end",
 					},
 					blocksize: 101,
@@ -422,7 +421,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 					msg: setSignature(srcSig, &TransferPaymentChannelMsg{
 						Payment: &Payment{
 							ChainID:   "testchain-123",
-							ChannelID: asSeqID(1),
+							ChannelID: weavetest.SequenceID(1),
 							Amount:    dogeCoin(11, 50),
 							Memo:      "much transfer",
 						},
@@ -456,7 +455,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 						},
 						Payment: &Payment{
 							ChainID:   "testchain-123",
-							ChannelID: asSeqID(1),
+							ChannelID: weavetest.SequenceID(1),
 							Amount:    dogeCoin(11, 50),
 							Memo:      "much transfer",
 						},
@@ -505,14 +504,6 @@ func TestPaymentChannelHandlers(t *testing.T) {
 			}
 		})
 	}
-}
-
-// asSeqID returns an ID encoded as if it was generated by the bucket sequence
-// call.
-func asSeqID(i int64) []byte {
-	b := make([]byte, 8)
-	binary.BigEndian.PutUint64(b, uint64(i))
-	return b
 }
 
 func dogeCoin(w, f int64) *coin.Coin {

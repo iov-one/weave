@@ -2,7 +2,6 @@ package escrow
 
 import (
 	"context"
-	"encoding/binary"
 	"fmt"
 	"testing"
 
@@ -37,13 +36,8 @@ func TestHandler(t *testing.T) {
 	some := mustCombineCoins(coin.NewCoin(32, 0, "FOO"))
 	remain := MustMinusCoins(t, all, some)
 
-	id := func(i int64) []byte {
-		bz := make([]byte, 8)
-		binary.BigEndian.PutUint64(bz, uint64(i))
-		return bz
-	}
-	escrowAddr := func(i int64) weave.Address {
-		return Condition(id(i)).Address()
+	escrowAddr := func(i uint64) weave.Address {
+		return Condition(weavetest.SequenceID(i)).Address()
 	}
 
 	cases := []struct {
@@ -69,9 +63,9 @@ func TestHandler(t *testing.T) {
 			[]query{
 				// verify escrow is stored
 				{
-					"/escrows", "", id(1), false,
+					"/escrows", "", weavetest.SequenceID(1), false,
 					[]orm.Object{
-						NewEscrow(id(1), a.Address(), b.Address(), c, all, Timeout, ""),
+						NewEscrow(weavetest.SequenceID(1), a.Address(), b.Address(), c, all, Timeout, ""),
 					},
 					NewBucket().Bucket,
 				},
@@ -101,9 +95,9 @@ func TestHandler(t *testing.T) {
 			[]query{
 				// verify escrow is stored
 				{
-					"/escrows", "", id(1), false,
+					"/escrows", "", weavetest.SequenceID(1), false,
 					[]orm.Object{
-						NewEscrow(id(1), a.Address(), b.Address(), c, some, Timeout, ""),
+						NewEscrow(weavetest.SequenceID(1), a.Address(), b.Address(), c, some, Timeout, ""),
 					},
 					NewBucket().Bucket,
 				},
@@ -111,7 +105,7 @@ func TestHandler(t *testing.T) {
 				{
 					"/escrows/sender", "", a.Address(), false,
 					[]orm.Object{
-						NewEscrow(id(1), a.Address(), b.Address(), c, some, Timeout, ""),
+						NewEscrow(weavetest.SequenceID(1), a.Address(), b.Address(), c, some, Timeout, ""),
 					},
 					NewBucket().Bucket,
 				},
@@ -119,7 +113,7 @@ func TestHandler(t *testing.T) {
 				{
 					"/escrows/recipient", "", b.Address(), false,
 					[]orm.Object{
-						NewEscrow(id(1), a.Address(), b.Address(), c, some, Timeout, ""),
+						NewEscrow(weavetest.SequenceID(1), a.Address(), b.Address(), c, some, Timeout, ""),
 					},
 					NewBucket().Bucket,
 				},
@@ -127,7 +121,7 @@ func TestHandler(t *testing.T) {
 				{
 					"/escrows/arbiter", "", c, false,
 					[]orm.Object{
-						NewEscrow(id(1), a.Address(), b.Address(), c, some, Timeout, ""),
+						NewEscrow(weavetest.SequenceID(1), a.Address(), b.Address(), c, some, Timeout, ""),
 					},
 					NewBucket().Bucket,
 				},
@@ -137,7 +131,7 @@ func TestHandler(t *testing.T) {
 				},
 				// others id are empty
 				{
-					"/escrows", "", id(2), false, nil, orm.Bucket{},
+					"/escrows", "", weavetest.SequenceID(2), false, nil, orm.Bucket{},
 				},
 				// cash deducted from sender
 				{"/wallets", "", a.Address(), false,
@@ -200,7 +194,7 @@ func TestHandler(t *testing.T) {
 			action{
 				perms: []weave.Condition{c},
 				msg: &ReleaseEscrowMsg{
-					EscrowId: id(1),
+					EscrowId: weavetest.SequenceID(1),
 				},
 				height: 2000,
 			},
@@ -208,7 +202,7 @@ func TestHandler(t *testing.T) {
 			[]query{
 				// verify escrow is deleted
 				{
-					"/escrows", "", id(1), false, nil, orm.Bucket{},
+					"/escrows", "", weavetest.SequenceID(1), false, nil, orm.Bucket{},
 				},
 				// escrow is empty
 				{"/wallets", "", escrowAddr(1), false,
@@ -241,7 +235,7 @@ func TestHandler(t *testing.T) {
 			action{
 				perms: []weave.Condition{a},
 				msg: &ReleaseEscrowMsg{
-					EscrowId: id(1),
+					EscrowId: weavetest.SequenceID(1),
 					Amount:   some,
 				},
 				height: 2000,
@@ -250,9 +244,9 @@ func TestHandler(t *testing.T) {
 			[]query{
 				// verify escrow balance is updated
 				{
-					"/escrows", "", id(1), false,
+					"/escrows", "", weavetest.SequenceID(1), false,
 					[]orm.Object{
-						NewEscrow(id(1), a.Address(), b.Address(), c, remain, 12345, "hello"),
+						NewEscrow(weavetest.SequenceID(1), a.Address(), b.Address(), c, remain, 12345, "hello"),
 					},
 					NewBucket().Bucket,
 				},
@@ -287,7 +281,7 @@ func TestHandler(t *testing.T) {
 			action{
 				perms: []weave.Condition{b},
 				msg: &ReleaseEscrowMsg{
-					EscrowId: id(1),
+					EscrowId: weavetest.SequenceID(1),
 				},
 				height: 2000,
 			},
@@ -302,7 +296,7 @@ func TestHandler(t *testing.T) {
 			action{
 				perms: []weave.Condition{c},
 				msg: &ReleaseEscrowMsg{
-					EscrowId: id(1),
+					EscrowId: weavetest.SequenceID(1),
 				},
 				height: Timeout + 1,
 			},
@@ -317,7 +311,7 @@ func TestHandler(t *testing.T) {
 			action{
 				perms: []weave.Condition{a},
 				msg: &ReturnEscrowMsg{
-					EscrowId: id(1),
+					EscrowId: weavetest.SequenceID(1),
 				},
 				height: Timeout + 1,
 			},
@@ -325,7 +319,7 @@ func TestHandler(t *testing.T) {
 			[]query{
 				// verify escrow is deleted
 				{
-					"/escrows", "", id(1), false, nil, orm.Bucket{},
+					"/escrows", "", weavetest.SequenceID(1), false, nil, orm.Bucket{},
 				},
 				// escrow is empty
 				{"/wallets", "", escrowAddr(1), false,
@@ -355,7 +349,7 @@ func TestHandler(t *testing.T) {
 			action{
 				perms: []weave.Condition{a},
 				msg: &ReturnEscrowMsg{
-					EscrowId: id(1),
+					EscrowId: weavetest.SequenceID(1),
 				},
 				height: Timeout - 1,
 			},
@@ -372,7 +366,7 @@ func TestHandler(t *testing.T) {
 					perms: []weave.Condition{c},
 					// c hands off to d
 					msg: &UpdateEscrowPartiesMsg{
-						EscrowId: id(1),
+						EscrowId: weavetest.SequenceID(1),
 						Arbiter:  d,
 					},
 					height: 2000,
@@ -381,7 +375,7 @@ func TestHandler(t *testing.T) {
 				// new arbiter can resolve
 				perms: []weave.Condition{d},
 				msg: &ReleaseEscrowMsg{
-					EscrowId: id(1),
+					EscrowId: weavetest.SequenceID(1),
 				},
 				height: 4000,
 			},
@@ -389,7 +383,7 @@ func TestHandler(t *testing.T) {
 			[]query{
 				// verify escrow is deleted (resolved)
 				{
-					"/escrows", "", id(1), false, nil, orm.Bucket{},
+					"/escrows", "", weavetest.SequenceID(1), false, nil, orm.Bucket{},
 				},
 				// cash deducted from sender
 				{"/wallets", "", a.Address(), false,
@@ -416,7 +410,7 @@ func TestHandler(t *testing.T) {
 					perms: []weave.Condition{c},
 					// c hands off to d
 					msg: &UpdateEscrowPartiesMsg{
-						EscrowId: id(1),
+						EscrowId: weavetest.SequenceID(1),
 						Arbiter:  d,
 					},
 					height: 200,
@@ -425,7 +419,7 @@ func TestHandler(t *testing.T) {
 				// original arbiter can no longer resolve
 				perms: []weave.Condition{c},
 				msg: &ReleaseEscrowMsg{
-					EscrowId: id(1),
+					EscrowId: weavetest.SequenceID(1),
 				},
 				height: 400,
 			},
@@ -441,7 +435,7 @@ func TestHandler(t *testing.T) {
 			action{
 				perms: []weave.Condition{a},
 				msg: &UpdateEscrowPartiesMsg{
-					EscrowId: id(1),
+					EscrowId: weavetest.SequenceID(1),
 					Arbiter:  a,
 				},
 				height: 2000,
@@ -457,7 +451,7 @@ func TestHandler(t *testing.T) {
 			action{
 				perms: []weave.Condition{a},
 				msg: &UpdateEscrowPartiesMsg{
-					EscrowId: id(1),
+					EscrowId: weavetest.SequenceID(1),
 					Sender:   d,
 				},
 				height: Timeout + 100,
@@ -474,14 +468,14 @@ func TestHandler(t *testing.T) {
 				{
 					perms: []weave.Condition{c},
 					msg: &ReleaseEscrowMsg{
-						EscrowId: id(1),
+						EscrowId: weavetest.SequenceID(1),
 					},
 					height: 2000,
 				}},
 			action{
 				perms: []weave.Condition{c},
 				msg: &ReleaseEscrowMsg{
-					EscrowId: id(1),
+					EscrowId: weavetest.SequenceID(1),
 				},
 				height: 2050,
 			},
@@ -489,7 +483,7 @@ func TestHandler(t *testing.T) {
 			[]query{
 				// verify escrow is deleted
 				{
-					"/escrows", "", id(1), false, nil, orm.Bucket{},
+					"/escrows", "", weavetest.SequenceID(1), false, nil, orm.Bucket{},
 				},
 				// escrow is empty
 				{"/wallets", "", escrowAddr(1), false,

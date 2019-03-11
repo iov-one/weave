@@ -1,18 +1,17 @@
 package escrow
 
 import (
-	"encoding/binary"
 	"encoding/hex"
 	"encoding/json"
 	"testing"
 
+	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/coin"
+	"github.com/iov-one/weave/store"
+	"github.com/iov-one/weave/weavetest"
 	"github.com/iov-one/weave/x/cash"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
-	"github.com/iov-one/weave"
-	"github.com/iov-one/weave/store"
 )
 
 func TestGenesisKey(t *testing.T) {
@@ -49,7 +48,7 @@ func TestGenesisKey(t *testing.T) {
 
 	// then
 	bucket := NewBucket()
-	obj, err := bucket.Get(db, seq(1))
+	obj, err := bucket.Get(db, weavetest.SequenceID(1))
 	require.NoError(t, err)
 	require.NotNil(t, obj)
 	e, ok := obj.Value().(*Escrow)
@@ -70,11 +69,4 @@ func TestGenesisKey(t *testing.T) {
 	require.Len(t, e.Amount, 2)
 	assert.Equal(t, coin.Coin{Ticker: "ALX", Whole: 987654321}, *balance[0])
 	assert.Equal(t, coin.Coin{Ticker: "IOV", Whole: 123456789}, *balance[1])
-}
-
-// seq returns encoded sequence number as implemented in orm/sequence.go
-func seq(val int64) []byte {
-	b := make([]byte, 8)
-	binary.BigEndian.PutUint64(b, uint64(val))
-	return b
 }
