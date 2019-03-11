@@ -510,7 +510,7 @@ func TestHandler(t *testing.T) {
 			action{
 				perms: []weave.Condition{a},
 				msg: &ReturnEscrowMsg{
-					EscrowId: id(1),
+					EscrowId: weavetest.SequenceID(1),
 				},
 				height: Timeout + 1,
 			},
@@ -518,7 +518,7 @@ func TestHandler(t *testing.T) {
 			[]query{
 				// verify escrow is deleted
 				{
-					"/escrows", "", id(1), false, nil, orm.Bucket{},
+					"/escrows", "", weavetest.SequenceID(1), false, nil, orm.Bucket{},
 				},
 				// escrow is empty
 				{"/wallets", "", escrowAddr(1), false,
@@ -557,7 +557,7 @@ func TestHandler(t *testing.T) {
 			action{
 				perms: []weave.Condition{c},
 				msg: &ReleaseEscrowMsg{
-					EscrowId: id(1),
+					EscrowId: weavetest.SequenceID(1),
 				},
 				height: 2000,
 			},
@@ -565,7 +565,7 @@ func TestHandler(t *testing.T) {
 			[]query{
 				// verify escrow is deleted
 				{
-					"/escrows", "", id(1), false, nil, orm.Bucket{},
+					"/escrows", "", weavetest.SequenceID(1), false, nil, orm.Bucket{},
 				},
 				// escrow is empty
 				{"/wallets", "", escrowAddr(1), false,
