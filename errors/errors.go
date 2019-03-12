@@ -126,13 +126,13 @@ type Error struct {
 }
 
 // Error returns the stored description
-func (e *Error) Error() string { return e.desc }
+func (e Error) Error() string { return e.desc }
 
 // ABCILog returns the stored description, same as Error()
-func (e *Error) ABCILog() string { return e.desc }
+func (e Error) ABCILog() string { return e.desc }
 
 // ABCICode returns the associated ABCICode
-func (e *Error) ABCICode() uint32 { return e.code }
+func (e Error) ABCICode() uint32 { return e.code }
 
 // New returns a new error. Returned instance is having the root cause set to
 // this error. Below two lines are equal
