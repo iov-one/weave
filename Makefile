@@ -93,14 +93,14 @@ protodocs:
 MYOS := $(shell uname -s)
 
 ifeq ($(MYOS),Darwin)  # Mac OS X
-	ZIP := protoc-3.4.0-osx-x86_64.zip
+	ZIP := protoc-3.7.0-osx-x86_64.zip
 endif
 ifeq ($(MYOS),Linux)
-	ZIP := protoc-3.4.0-linux-x86_64.zip
+	ZIP := protoc-3.7.0-linux-x86_64.zip
 endif
 
 /usr/local/bin/protoc:
-	@ curl -L https://github.com/google/protobuf/releases/download/v3.4.0/$(ZIP) > $(ZIP)
+	@ curl -L https://github.com/google/protobuf/releases/download/v3.7.0/$(ZIP) > $(ZIP)
 	@ unzip -q $(ZIP) -d protoc3
 	@ rm $(ZIP)
 	sudo mv protoc3/bin/protoc /usr/local/bin/
