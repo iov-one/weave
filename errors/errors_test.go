@@ -170,15 +170,15 @@ func TestErrorIs(t *testing.T) {
 			b:      errors.Wrap(fmt.Errorf("stdlib error"), "wrapped"),
 			wantIs: false,
 		},
-		"internal error is equal to a stdlib error": {
+		"internal error is not equal to a stdlib error": {
 			a:      ErrInternal,
 			b:      fmt.Errorf("stdlib error"),
-			wantIs: true,
+			wantIs: false,
 		},
-		"internal error is equal to a wrapped stdlib error": {
+		"internal error is not equal to a wrapped stdlib error": {
 			a:      ErrInternal,
 			b:      errors.Wrap(fmt.Errorf("stdlib error"), "w-rap"),
-			wantIs: true,
+			wantIs: false,
 		},
 		"nil is nil": {
 			a:      nil,

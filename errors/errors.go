@@ -175,15 +175,6 @@ func (kind *Error) Is(err error) bool {
 		if c, ok := err.(causer); ok {
 			err = c.Cause()
 		} else {
-
-			// As a last check, figure out if what we compare is an
-			// internal error with a non weave error.
-			if kind == ErrInternal {
-				if _, ok := err.(*Error); !ok {
-					return true
-				}
-			}
-
 			return false
 		}
 	}
