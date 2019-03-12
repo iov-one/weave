@@ -1,5 +1,5 @@
 #!/bin/bash
-set -o errexit -o nounset -o pipefail
+set -o errexit -o nounset -o pipefail -x
 command -v shellcheck > /dev/null && shellcheck "$0"
 
 # Usage: cleaned_protos.sh <outdir>
@@ -25,11 +25,19 @@ OUT_DIR="$1"
     echo "$filename"
     cp "$filename" "$outfile"
     # removes illegal ;; typos
-    sed -i 's/;;/;/' "$outfile"
-    # convert comments into doc comments
-    # sed -i 's|// |/// |' "$outfile"
-    # make all imports relative
-    sed -i 's|import "github.com/iov-one/weave/|import "|' "$outfile"
+    if [[ $(uname -s) == 'Darwin' ]]; then
+        sed -i '' 's/;;/;/' "$outfile"
+        # convert comments into doc comments
+        # sed -i 's|// |/// |' "$outfile"
+        # make all imports relative
+        sed -i '' 's|import "github.com/iov-one/weave/|import "|' "$outfile"
+    else
+        sed -i 's/;;/;/' "$outfile"
+        # convert comments into doc comments
+        # sed -i 's|// |/// |' "$outfile"
+        # make all imports relative
+        sed -i 's|import "github.com/iov-one/weave/|import "|' "$outfile"
+    fi
   done < tmp
   rm tmp
 )
