@@ -137,11 +137,13 @@ func (d FeeDecorator) extractFee(ctx weave.Context, tx weave.Tx, store weave.KVS
 		return finfo, nil
 	}
 	if cmp.Ticker == "" {
-		return nil, errors.Wrap(coin.ErrInvalidCurrency, "no ticker")
+		return nil, errors.Wrap(errors.ErrCurrency, "no ticker")
 	}
 
 	if !fee.SameType(cmp) {
-		return nil, coin.ErrInvalidCurrency.Newf("%s vs fee %s", cmp.Ticker, fee.Ticker)
+		err := errors.Wrapf(errors.ErrCurrency,
+			"%s vs fee %s", cmp.Ticker, fee.Ticker)
+		return nil, err
 
 	}
 	if !fee.IsGTE(cmp) {

@@ -103,7 +103,7 @@ func TestFees(t *testing.T) {
 			initState: []orm.Object{must(WalletWith(perm.Address(), &cash))},
 			fee:       &FeeInfo{Fees: &min},
 			min:       coin.NewCoin(0, 1000, ""),
-			expect:    coin.ErrInvalidCurrency.Is,
+			expect:    errors.ErrCurrency.Is,
 		},
 		"no fee (zero value) is acceptable": {
 			signers:   []weave.Condition{perm},
@@ -117,7 +117,7 @@ func TestFees(t *testing.T) {
 			initState: []orm.Object{must(WalletWith(perm.Address(), &cash))},
 			fee:       &FeeInfo{Fees: &min},
 			min:       coin.NewCoin(0, 1000, "NOT"),
-			expect:    coin.ErrInvalidCurrency.Is,
+			expect:    errors.ErrCurrency.Is,
 		},
 		"has the cash, but didn't offer enough fees": {
 			signers:   []weave.Condition{perm},

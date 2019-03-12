@@ -80,9 +80,9 @@ func TestFeeDecorator(t *testing.T) {
 				DeliverResult: weave.DeliverResult{RequiredFee: coin.NewCoin(1, 0, "BTC")},
 			},
 			Tx:             &weavetest.Tx{Msg: &weavetest.Msg{RoutePath: "foo/bar"}},
-			WantCheckErr:   coin.ErrInvalidCurrency,
+			WantCheckErr:   errors.ErrCurrency,
 			WantCheckFee:   coin.NewCoin(1, 0, "BTC"),
-			WantDeliverErr: coin.ErrInvalidCurrency,
+			WantDeliverErr: errors.ErrCurrency,
 			WantDeliverFee: coin.NewCoin(1, 0, "BTC"),
 		},
 	}

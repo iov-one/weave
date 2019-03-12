@@ -96,7 +96,7 @@ func TestCreateEscrowMsg(t *testing.T) {
 				Amount:    mixed,
 				Timeout:   52,
 			},
-			coin.ErrInvalidCurrency.Is,
+			errors.ErrCurrency.Is,
 		},
 		// missing amount
 		6: {
@@ -201,7 +201,7 @@ func TestReleaseEscrowMsg(t *testing.T) {
 				EscrowId: escrow,
 				Amount:   mixed,
 			},
-			coin.ErrInvalidCurrency.Is,
+			errors.ErrCurrency.Is,
 		},
 	}
 
