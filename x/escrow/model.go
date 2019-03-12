@@ -35,9 +35,6 @@ func (e *Escrow) Validate() error {
 	if len(e.Memo) > maxMemoSize {
 		return errors.ErrInvalidInput.Newf("memo %s", e.Memo)
 	}
-	if err := validateAmount(e.Amount); err != nil {
-		return err
-	}
 	if err := validateConditions(e.Arbiter); err != nil {
 		return err
 	}
@@ -50,7 +47,6 @@ func (e *Escrow) Copy() orm.CloneableData {
 		Sender:    e.Sender,
 		Arbiter:   e.Arbiter,
 		Recipient: e.Recipient,
-		Amount:    e.Amount,
 		Timeout:   e.Timeout,
 		Memo:      e.Memo,
 	}
@@ -73,7 +69,6 @@ func NewEscrow(id []byte, sender, rcpt weave.Address, arb weave.Condition,
 		Sender:    sender,
 		Arbiter:   arb,
 		Recipient: rcpt,
-		Amount:    amount,
 		Timeout:   timeout,
 		Memo:      memo,
 	}

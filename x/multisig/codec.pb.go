@@ -3,12 +3,13 @@
 
 package multisig
 
-import proto "github.com/gogo/protobuf/proto"
-import fmt "fmt"
-import math "math"
-import _ "github.com/gogo/protobuf/gogoproto"
-
-import io "io"
+import (
+	fmt "fmt"
+	_ "github.com/gogo/protobuf/gogoproto"
+	proto "github.com/gogo/protobuf/proto"
+	io "io"
+	math "math"
+)
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
@@ -23,20 +24,18 @@ const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
 
 type Contract struct {
 	// addresses to control it
-	Sigs [][]byte `protobuf:"bytes,1,rep,name=sigs" json:"sigs,omitempty"`
+	Sigs [][]byte `protobuf:"bytes,1,rep,name=sigs,proto3" json:"sigs,omitempty"`
 	// threshold needed to sign to activate it
 	ActivationThreshold int64 `protobuf:"varint,2,opt,name=activation_threshold,json=activationThreshold,proto3" json:"activation_threshold,omitempty"`
 	// threshold needed to sign to change it
-	AdminThreshold       int64    `protobuf:"varint,3,opt,name=admin_threshold,json=adminThreshold,proto3" json:"admin_threshold,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
+	AdminThreshold int64 `protobuf:"varint,3,opt,name=admin_threshold,json=adminThreshold,proto3" json:"admin_threshold,omitempty"`
 }
 
 func (m *Contract) Reset()         { *m = Contract{} }
 func (m *Contract) String() string { return proto.CompactTextString(m) }
 func (*Contract) ProtoMessage()    {}
 func (*Contract) Descriptor() ([]byte, []int) {
-	return fileDescriptor_codec_7e61cf6fb6bc9197, []int{0}
+	return fileDescriptor_e5080d98b87cf9a7, []int{0}
 }
 func (m *Contract) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -53,8 +52,8 @@ func (m *Contract) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 		return b[:n], nil
 	}
 }
-func (dst *Contract) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_Contract.Merge(dst, src)
+func (m *Contract) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Contract.Merge(m, src)
 }
 func (m *Contract) XXX_Size() int {
 	return m.Size()
@@ -88,20 +87,18 @@ func (m *Contract) GetAdminThreshold() int64 {
 
 type CreateContractMsg struct {
 	// addresses to control it
-	Sigs [][]byte `protobuf:"bytes,1,rep,name=sigs" json:"sigs,omitempty"`
+	Sigs [][]byte `protobuf:"bytes,1,rep,name=sigs,proto3" json:"sigs,omitempty"`
 	// threshold needed to sign to activate it
 	ActivationThreshold int64 `protobuf:"varint,2,opt,name=activation_threshold,json=activationThreshold,proto3" json:"activation_threshold,omitempty"`
 	// threshold needed to sign to change it
-	AdminThreshold       int64    `protobuf:"varint,3,opt,name=admin_threshold,json=adminThreshold,proto3" json:"admin_threshold,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
+	AdminThreshold int64 `protobuf:"varint,3,opt,name=admin_threshold,json=adminThreshold,proto3" json:"admin_threshold,omitempty"`
 }
 
 func (m *CreateContractMsg) Reset()         { *m = CreateContractMsg{} }
 func (m *CreateContractMsg) String() string { return proto.CompactTextString(m) }
 func (*CreateContractMsg) ProtoMessage()    {}
 func (*CreateContractMsg) Descriptor() ([]byte, []int) {
-	return fileDescriptor_codec_7e61cf6fb6bc9197, []int{1}
+	return fileDescriptor_e5080d98b87cf9a7, []int{1}
 }
 func (m *CreateContractMsg) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -118,8 +115,8 @@ func (m *CreateContractMsg) XXX_Marshal(b []byte, deterministic bool) ([]byte, e
 		return b[:n], nil
 	}
 }
-func (dst *CreateContractMsg) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_CreateContractMsg.Merge(dst, src)
+func (m *CreateContractMsg) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_CreateContractMsg.Merge(m, src)
 }
 func (m *CreateContractMsg) XXX_Size() int {
 	return m.Size()
@@ -155,20 +152,18 @@ type UpdateContractMsg struct {
 	// contract id
 	Id []byte `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	// addresses to control it
-	Sigs [][]byte `protobuf:"bytes,2,rep,name=sigs" json:"sigs,omitempty"`
+	Sigs [][]byte `protobuf:"bytes,2,rep,name=sigs,proto3" json:"sigs,omitempty"`
 	// threshold needed to sign to activate it
 	ActivationThreshold int64 `protobuf:"varint,3,opt,name=activation_threshold,json=activationThreshold,proto3" json:"activation_threshold,omitempty"`
 	// threshold needed to sign to change it
-	AdminThreshold       int64    `protobuf:"varint,4,opt,name=admin_threshold,json=adminThreshold,proto3" json:"admin_threshold,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
+	AdminThreshold int64 `protobuf:"varint,4,opt,name=admin_threshold,json=adminThreshold,proto3" json:"admin_threshold,omitempty"`
 }
 
 func (m *UpdateContractMsg) Reset()         { *m = UpdateContractMsg{} }
 func (m *UpdateContractMsg) String() string { return proto.CompactTextString(m) }
 func (*UpdateContractMsg) ProtoMessage()    {}
 func (*UpdateContractMsg) Descriptor() ([]byte, []int) {
-	return fileDescriptor_codec_7e61cf6fb6bc9197, []int{2}
+	return fileDescriptor_e5080d98b87cf9a7, []int{2}
 }
 func (m *UpdateContractMsg) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -185,8 +180,8 @@ func (m *UpdateContractMsg) XXX_Marshal(b []byte, deterministic bool) ([]byte, e
 		return b[:n], nil
 	}
 }
-func (dst *UpdateContractMsg) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_UpdateContractMsg.Merge(dst, src)
+func (m *UpdateContractMsg) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UpdateContractMsg.Merge(m, src)
 }
 func (m *UpdateContractMsg) XXX_Size() int {
 	return m.Size()
@@ -230,6 +225,29 @@ func init() {
 	proto.RegisterType((*CreateContractMsg)(nil), "multisig.CreateContractMsg")
 	proto.RegisterType((*UpdateContractMsg)(nil), "multisig.UpdateContractMsg")
 }
+
+func init() { proto.RegisterFile("x/multisig/codec.proto", fileDescriptor_e5080d98b87cf9a7) }
+
+var fileDescriptor_e5080d98b87cf9a7 = []byte{
+	// 255 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x12, 0xab, 0xd0, 0xcf, 0x2d,
+	0xcd, 0x29, 0xc9, 0x2c, 0xce, 0x4c, 0xd7, 0x4f, 0xce, 0x4f, 0x49, 0x4d, 0xd6, 0x2b, 0x28, 0xca,
+	0x2f, 0xc9, 0x17, 0xe2, 0x80, 0x89, 0x4a, 0xe9, 0xa6, 0x67, 0x96, 0x64, 0x94, 0x26, 0xe9, 0x25,
+	0xe7, 0xe7, 0xea, 0xa7, 0xe7, 0xa7, 0xe7, 0xeb, 0x83, 0x15, 0x24, 0x95, 0xa6, 0x81, 0x79, 0x60,
+	0x0e, 0x98, 0x05, 0xd1, 0xa8, 0x54, 0xc5, 0xc5, 0xe1, 0x9c, 0x9f, 0x57, 0x52, 0x94, 0x98, 0x5c,
+	0x22, 0x24, 0xc4, 0xc5, 0x52, 0x9c, 0x99, 0x5e, 0x2c, 0xc1, 0xa8, 0xc0, 0xac, 0xc1, 0x13, 0x04,
+	0x66, 0x0b, 0x19, 0x72, 0x89, 0x24, 0x26, 0x97, 0x64, 0x96, 0x25, 0x96, 0x64, 0xe6, 0xe7, 0xc5,
+	0x97, 0x64, 0x14, 0xa5, 0x16, 0x67, 0xe4, 0xe7, 0xa4, 0x48, 0x30, 0x29, 0x30, 0x6a, 0x30, 0x07,
+	0x09, 0x23, 0xe4, 0x42, 0x60, 0x52, 0x42, 0xea, 0x5c, 0xfc, 0x89, 0x29, 0xb9, 0x99, 0xc8, 0xaa,
+	0x99, 0xc1, 0xaa, 0xf9, 0xc0, 0xc2, 0x70, 0x85, 0x4a, 0xcd, 0x8c, 0x5c, 0x82, 0xce, 0x45, 0xa9,
+	0x89, 0x25, 0xa9, 0x30, 0x27, 0xf8, 0x16, 0xa7, 0xd3, 0xdd, 0x15, 0x93, 0x19, 0xb9, 0x04, 0x43,
+	0x0b, 0x52, 0xd0, 0x5c, 0xc1, 0xc7, 0xc5, 0x94, 0x99, 0x22, 0xc1, 0xa8, 0xc0, 0xa8, 0xc1, 0x13,
+	0xc4, 0x94, 0x99, 0x02, 0x77, 0x15, 0x13, 0x11, 0xae, 0x62, 0x26, 0xc9, 0x55, 0x2c, 0xd8, 0x5c,
+	0xe5, 0x24, 0x71, 0xe2, 0x91, 0x1c, 0xe3, 0x85, 0x47, 0x72, 0x8c, 0x0f, 0x1e, 0xc9, 0x31, 0x4e,
+	0x78, 0x2c, 0xc7, 0x70, 0xe1, 0xb1, 0x1c, 0xc3, 0x8d, 0xc7, 0x72, 0x0c, 0x49, 0x6c, 0xe0, 0x88,
+	0x33, 0x06, 0x04, 0x00, 0x00, 0xff, 0xff, 0x69, 0xa7, 0x2f, 0x9f, 0x0b, 0x02, 0x00, 0x00,
+}
+
 func (m *Contract) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
@@ -354,6 +372,9 @@ func encodeVarintCodec(dAtA []byte, offset int, v uint64) int {
 	return offset + 1
 }
 func (m *Contract) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	if len(m.Sigs) > 0 {
@@ -372,6 +393,9 @@ func (m *Contract) Size() (n int) {
 }
 
 func (m *CreateContractMsg) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	if len(m.Sigs) > 0 {
@@ -390,6 +414,9 @@ func (m *CreateContractMsg) Size() (n int) {
 }
 
 func (m *UpdateContractMsg) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	l = len(m.Id)
@@ -439,7 +466,7 @@ func (m *Contract) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -467,7 +494,7 @@ func (m *Contract) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				byteLen |= (int(b) & 0x7F) << shift
+				byteLen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -476,6 +503,9 @@ func (m *Contract) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -496,7 +526,7 @@ func (m *Contract) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.ActivationThreshold |= (int64(b) & 0x7F) << shift
+				m.ActivationThreshold |= int64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -515,7 +545,7 @@ func (m *Contract) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.AdminThreshold |= (int64(b) & 0x7F) << shift
+				m.AdminThreshold |= int64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -527,6 +557,9 @@ func (m *Contract) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthCodec
 			}
 			if (iNdEx + skippy) > l {
@@ -556,7 +589,7 @@ func (m *CreateContractMsg) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -584,7 +617,7 @@ func (m *CreateContractMsg) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				byteLen |= (int(b) & 0x7F) << shift
+				byteLen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -593,6 +626,9 @@ func (m *CreateContractMsg) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -613,7 +649,7 @@ func (m *CreateContractMsg) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.ActivationThreshold |= (int64(b) & 0x7F) << shift
+				m.ActivationThreshold |= int64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -632,7 +668,7 @@ func (m *CreateContractMsg) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.AdminThreshold |= (int64(b) & 0x7F) << shift
+				m.AdminThreshold |= int64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -644,6 +680,9 @@ func (m *CreateContractMsg) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthCodec
 			}
 			if (iNdEx + skippy) > l {
@@ -673,7 +712,7 @@ func (m *UpdateContractMsg) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -701,7 +740,7 @@ func (m *UpdateContractMsg) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				byteLen |= (int(b) & 0x7F) << shift
+				byteLen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -710,6 +749,9 @@ func (m *UpdateContractMsg) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -732,7 +774,7 @@ func (m *UpdateContractMsg) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				byteLen |= (int(b) & 0x7F) << shift
+				byteLen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -741,6 +783,9 @@ func (m *UpdateContractMsg) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -761,7 +806,7 @@ func (m *UpdateContractMsg) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.ActivationThreshold |= (int64(b) & 0x7F) << shift
+				m.ActivationThreshold |= int64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -780,7 +825,7 @@ func (m *UpdateContractMsg) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.AdminThreshold |= (int64(b) & 0x7F) << shift
+				m.AdminThreshold |= int64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -792,6 +837,9 @@ func (m *UpdateContractMsg) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthCodec
 			}
 			if (iNdEx + skippy) > l {
@@ -860,8 +908,11 @@ func skipCodec(dAtA []byte) (n int, err error) {
 					break
 				}
 			}
-			iNdEx += length
 			if length < 0 {
+				return 0, ErrInvalidLengthCodec
+			}
+			iNdEx += length
+			if iNdEx < 0 {
 				return 0, ErrInvalidLengthCodec
 			}
 			return iNdEx, nil
@@ -892,6 +943,9 @@ func skipCodec(dAtA []byte) (n int, err error) {
 					return 0, err
 				}
 				iNdEx = start + next
+				if iNdEx < 0 {
+					return 0, ErrInvalidLengthCodec
+				}
 			}
 			return iNdEx, nil
 		case 4:
@@ -910,25 +964,3 @@ var (
 	ErrInvalidLengthCodec = fmt.Errorf("proto: negative length found during unmarshaling")
 	ErrIntOverflowCodec   = fmt.Errorf("proto: integer overflow")
 )
-
-func init() { proto.RegisterFile("x/multisig/codec.proto", fileDescriptor_codec_7e61cf6fb6bc9197) }
-
-var fileDescriptor_codec_7e61cf6fb6bc9197 = []byte{
-	// 247 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x12, 0xab, 0xd0, 0xcf, 0x2d,
-	0xcd, 0x29, 0xc9, 0x2c, 0xce, 0x4c, 0xd7, 0x4f, 0xce, 0x4f, 0x49, 0x4d, 0xd6, 0x2b, 0x28, 0xca,
-	0x2f, 0xc9, 0x17, 0xe2, 0x80, 0x89, 0x4a, 0xe9, 0xa6, 0x67, 0x96, 0x64, 0x94, 0x26, 0xe9, 0x25,
-	0xe7, 0xe7, 0xea, 0xa7, 0xe7, 0xa7, 0xe7, 0xeb, 0x83, 0x15, 0x24, 0x95, 0xa6, 0x81, 0x79, 0x60,
-	0x0e, 0x98, 0x05, 0xd1, 0xa8, 0x54, 0xc5, 0xc5, 0xe1, 0x9c, 0x9f, 0x57, 0x52, 0x94, 0x98, 0x5c,
-	0x22, 0x24, 0xc4, 0xc5, 0x52, 0x9c, 0x99, 0x5e, 0x2c, 0xc1, 0xa8, 0xc0, 0xac, 0xc1, 0x13, 0x04,
-	0x66, 0x0b, 0x19, 0x72, 0x89, 0x24, 0x26, 0x97, 0x64, 0x96, 0x25, 0x96, 0x64, 0xe6, 0xe7, 0xc5,
-	0x97, 0x64, 0x14, 0xa5, 0x16, 0x67, 0xe4, 0xe7, 0xa4, 0x48, 0x30, 0x29, 0x30, 0x6a, 0x30, 0x07,
-	0x09, 0x23, 0xe4, 0x42, 0x60, 0x52, 0x42, 0xea, 0x5c, 0xfc, 0x89, 0x29, 0xb9, 0x99, 0xc8, 0xaa,
-	0x99, 0xc1, 0xaa, 0xf9, 0xc0, 0xc2, 0x70, 0x85, 0x4a, 0xcd, 0x8c, 0x5c, 0x82, 0xce, 0x45, 0xa9,
-	0x89, 0x25, 0xa9, 0x30, 0x27, 0xf8, 0x16, 0xa7, 0xd3, 0xdd, 0x15, 0x93, 0x19, 0xb9, 0x04, 0x43,
-	0x0b, 0x52, 0xd0, 0x5c, 0xc1, 0xc7, 0xc5, 0x94, 0x99, 0x22, 0xc1, 0xa8, 0xc0, 0xa8, 0xc1, 0x13,
-	0xc4, 0x94, 0x99, 0x02, 0x77, 0x15, 0x13, 0x11, 0xae, 0x62, 0x26, 0xc9, 0x55, 0x2c, 0xd8, 0x5c,
-	0xe5, 0x24, 0x70, 0xe2, 0x91, 0x1c, 0xe3, 0x85, 0x47, 0x72, 0x8c, 0x0f, 0x1e, 0xc9, 0x31, 0x4e,
-	0x78, 0x2c, 0xc7, 0x90, 0xc4, 0x06, 0x8e, 0x30, 0x63, 0x40, 0x00, 0x00, 0x00, 0xff, 0xff, 0x45,
-	0x6b, 0xdc, 0x85, 0x03, 0x02, 0x00, 0x00,
-}

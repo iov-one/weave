@@ -3,14 +3,15 @@
 
 package paychan
 
-import proto "github.com/gogo/protobuf/proto"
-import fmt "fmt"
-import math "math"
-import _ "github.com/gogo/protobuf/gogoproto"
-import coin "github.com/iov-one/weave/coin"
-import crypto "github.com/iov-one/weave/crypto"
-
-import io "io"
+import (
+	fmt "fmt"
+	_ "github.com/gogo/protobuf/gogoproto"
+	proto "github.com/gogo/protobuf/proto"
+	coin "github.com/iov-one/weave/coin"
+	crypto "github.com/iov-one/weave/crypto"
+	io "io"
+	math "math"
+)
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
@@ -30,13 +31,13 @@ type PaymentChannel struct {
 	// Sender public key is a key that must be used to verify signature of
 	// transfer message. Sender creates signed transfer messages and gives them
 	// to the recipient. Signature prevents from altering transfer message.
-	SenderPubkey *crypto.PublicKey `protobuf:"bytes,2,opt,name=sender_pubkey,json=senderPubkey" json:"sender_pubkey,omitempty"`
+	SenderPubkey *crypto.PublicKey `protobuf:"bytes,2,opt,name=sender_pubkey,json=senderPubkey,proto3" json:"sender_pubkey,omitempty"`
 	// Recipient is the party that receives payments through this channel
 	// (weave.Address).
 	Recipient []byte `protobuf:"bytes,3,opt,name=recipient,proto3" json:"recipient,omitempty"`
 	// Total represents a maximum value that can be transferred via this
 	// payment channel.
-	Total *coin.Coin `protobuf:"bytes,4,opt,name=total" json:"total,omitempty"`
+	Total *coin.Coin `protobuf:"bytes,4,opt,name=total,proto3" json:"total,omitempty"`
 	// Absolute block height value. If reached, channel can be closed by
 	// sender.
 	Timeout int64 `protobuf:"varint,5,opt,name=timeout,proto3" json:"timeout,omitempty"`
@@ -44,16 +45,14 @@ type PaymentChannel struct {
 	Memo string `protobuf:"bytes,6,opt,name=memo,proto3" json:"memo,omitempty"`
 	// Transferred represents total amount that was transferred using allocated
 	// (total) value. Transferred must never exceed total value.
-	Transferred          *coin.Coin `protobuf:"bytes,7,opt,name=transferred" json:"transferred,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}   `json:"-"`
-	XXX_sizecache        int32      `json:"-"`
+	Transferred *coin.Coin `protobuf:"bytes,7,opt,name=transferred,proto3" json:"transferred,omitempty"`
 }
 
 func (m *PaymentChannel) Reset()         { *m = PaymentChannel{} }
 func (m *PaymentChannel) String() string { return proto.CompactTextString(m) }
 func (*PaymentChannel) ProtoMessage()    {}
 func (*PaymentChannel) Descriptor() ([]byte, []int) {
-	return fileDescriptor_codec_b27b7a38866d8a21, []int{0}
+	return fileDescriptor_daf7b5492d84b22a, []int{0}
 }
 func (m *PaymentChannel) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -70,8 +69,8 @@ func (m *PaymentChannel) XXX_Marshal(b []byte, deterministic bool) ([]byte, erro
 		return b[:n], nil
 	}
 }
-func (dst *PaymentChannel) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_PaymentChannel.Merge(dst, src)
+func (m *PaymentChannel) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_PaymentChannel.Merge(m, src)
 }
 func (m *PaymentChannel) XXX_Size() int {
 	return m.Size()
@@ -140,25 +139,23 @@ type CreatePaymentChannelMsg struct {
 	// Sender address (weave.Address).
 	Src []byte `protobuf:"bytes,1,opt,name=src,proto3" json:"src,omitempty"`
 	// Sender public key is for validating transfer message signature.
-	SenderPubkey *crypto.PublicKey `protobuf:"bytes,2,opt,name=sender_pubkey,json=senderPubkey" json:"sender_pubkey,omitempty"`
+	SenderPubkey *crypto.PublicKey `protobuf:"bytes,2,opt,name=sender_pubkey,json=senderPubkey,proto3" json:"sender_pubkey,omitempty"`
 	// Recipient address  (weave.Address).
 	Recipient []byte `protobuf:"bytes,3,opt,name=recipient,proto3" json:"recipient,omitempty"`
 	// Maximum amount that can be transferred via this channel.
-	Total *coin.Coin `protobuf:"bytes,4,opt,name=total" json:"total,omitempty"`
+	Total *coin.Coin `protobuf:"bytes,4,opt,name=total,proto3" json:"total,omitempty"`
 	// Absolute block height value. If reached, channel can be closed by
 	// anyone.
 	Timeout int64 `protobuf:"varint,5,opt,name=timeout,proto3" json:"timeout,omitempty"`
 	// Max length 128 character.
-	Memo                 string   `protobuf:"bytes,6,opt,name=memo,proto3" json:"memo,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
+	Memo string `protobuf:"bytes,6,opt,name=memo,proto3" json:"memo,omitempty"`
 }
 
 func (m *CreatePaymentChannelMsg) Reset()         { *m = CreatePaymentChannelMsg{} }
 func (m *CreatePaymentChannelMsg) String() string { return proto.CompactTextString(m) }
 func (*CreatePaymentChannelMsg) ProtoMessage()    {}
 func (*CreatePaymentChannelMsg) Descriptor() ([]byte, []int) {
-	return fileDescriptor_codec_b27b7a38866d8a21, []int{1}
+	return fileDescriptor_daf7b5492d84b22a, []int{1}
 }
 func (m *CreatePaymentChannelMsg) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -175,8 +172,8 @@ func (m *CreatePaymentChannelMsg) XXX_Marshal(b []byte, deterministic bool) ([]b
 		return b[:n], nil
 	}
 }
-func (dst *CreatePaymentChannelMsg) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_CreatePaymentChannelMsg.Merge(dst, src)
+func (m *CreatePaymentChannelMsg) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_CreatePaymentChannelMsg.Merge(m, src)
 }
 func (m *CreatePaymentChannelMsg) XXX_Size() int {
 	return m.Size()
@@ -236,18 +233,16 @@ func (m *CreatePaymentChannelMsg) GetMemo() string {
 type Payment struct {
 	ChainID   string     `protobuf:"bytes,1,opt,name=chain_id,json=chainId,proto3" json:"chain_id,omitempty"`
 	ChannelID []byte     `protobuf:"bytes,2,opt,name=channel_id,json=channelId,proto3" json:"channel_id,omitempty"`
-	Amount    *coin.Coin `protobuf:"bytes,3,opt,name=amount" json:"amount,omitempty"`
+	Amount    *coin.Coin `protobuf:"bytes,3,opt,name=amount,proto3" json:"amount,omitempty"`
 	// Max length 128 character.
-	Memo                 string   `protobuf:"bytes,4,opt,name=memo,proto3" json:"memo,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
+	Memo string `protobuf:"bytes,4,opt,name=memo,proto3" json:"memo,omitempty"`
 }
 
 func (m *Payment) Reset()         { *m = Payment{} }
 func (m *Payment) String() string { return proto.CompactTextString(m) }
 func (*Payment) ProtoMessage()    {}
 func (*Payment) Descriptor() ([]byte, []int) {
-	return fileDescriptor_codec_b27b7a38866d8a21, []int{2}
+	return fileDescriptor_daf7b5492d84b22a, []int{2}
 }
 func (m *Payment) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -264,8 +259,8 @@ func (m *Payment) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 		return b[:n], nil
 	}
 }
-func (dst *Payment) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_Payment.Merge(dst, src)
+func (m *Payment) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Payment.Merge(m, src)
 }
 func (m *Payment) XXX_Size() int {
 	return m.Size()
@@ -308,17 +303,15 @@ func (m *Payment) GetMemo() string {
 // senders private key.
 // Signature is there to ensure that payment message was not altered.
 type TransferPaymentChannelMsg struct {
-	Payment              *Payment          `protobuf:"bytes,1,opt,name=payment" json:"payment,omitempty"`
-	Signature            *crypto.Signature `protobuf:"bytes,2,opt,name=signature" json:"signature,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}          `json:"-"`
-	XXX_sizecache        int32             `json:"-"`
+	Payment   *Payment          `protobuf:"bytes,1,opt,name=payment,proto3" json:"payment,omitempty"`
+	Signature *crypto.Signature `protobuf:"bytes,2,opt,name=signature,proto3" json:"signature,omitempty"`
 }
 
 func (m *TransferPaymentChannelMsg) Reset()         { *m = TransferPaymentChannelMsg{} }
 func (m *TransferPaymentChannelMsg) String() string { return proto.CompactTextString(m) }
 func (*TransferPaymentChannelMsg) ProtoMessage()    {}
 func (*TransferPaymentChannelMsg) Descriptor() ([]byte, []int) {
-	return fileDescriptor_codec_b27b7a38866d8a21, []int{3}
+	return fileDescriptor_daf7b5492d84b22a, []int{3}
 }
 func (m *TransferPaymentChannelMsg) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -335,8 +328,8 @@ func (m *TransferPaymentChannelMsg) XXX_Marshal(b []byte, deterministic bool) ([
 		return b[:n], nil
 	}
 }
-func (dst *TransferPaymentChannelMsg) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_TransferPaymentChannelMsg.Merge(dst, src)
+func (m *TransferPaymentChannelMsg) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_TransferPaymentChannelMsg.Merge(m, src)
 }
 func (m *TransferPaymentChannelMsg) XXX_Size() int {
 	return m.Size()
@@ -370,16 +363,14 @@ func (m *TransferPaymentChannelMsg) GetSignature() *crypto.Signature {
 type ClosePaymentChannelMsg struct {
 	ChannelID []byte `protobuf:"bytes,1,opt,name=channel_id,json=channelId,proto3" json:"channel_id,omitempty"`
 	// Max length 128 character.
-	Memo                 string   `protobuf:"bytes,2,opt,name=memo,proto3" json:"memo,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
+	Memo string `protobuf:"bytes,2,opt,name=memo,proto3" json:"memo,omitempty"`
 }
 
 func (m *ClosePaymentChannelMsg) Reset()         { *m = ClosePaymentChannelMsg{} }
 func (m *ClosePaymentChannelMsg) String() string { return proto.CompactTextString(m) }
 func (*ClosePaymentChannelMsg) ProtoMessage()    {}
 func (*ClosePaymentChannelMsg) Descriptor() ([]byte, []int) {
-	return fileDescriptor_codec_b27b7a38866d8a21, []int{4}
+	return fileDescriptor_daf7b5492d84b22a, []int{4}
 }
 func (m *ClosePaymentChannelMsg) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -396,8 +387,8 @@ func (m *ClosePaymentChannelMsg) XXX_Marshal(b []byte, deterministic bool) ([]by
 		return b[:n], nil
 	}
 }
-func (dst *ClosePaymentChannelMsg) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ClosePaymentChannelMsg.Merge(dst, src)
+func (m *ClosePaymentChannelMsg) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ClosePaymentChannelMsg.Merge(m, src)
 }
 func (m *ClosePaymentChannelMsg) XXX_Size() int {
 	return m.Size()
@@ -429,6 +420,44 @@ func init() {
 	proto.RegisterType((*TransferPaymentChannelMsg)(nil), "paychan.TransferPaymentChannelMsg")
 	proto.RegisterType((*ClosePaymentChannelMsg)(nil), "paychan.ClosePaymentChannelMsg")
 }
+
+func init() { proto.RegisterFile("x/paychan/codec.proto", fileDescriptor_daf7b5492d84b22a) }
+
+var fileDescriptor_daf7b5492d84b22a = []byte{
+	// 489 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xd4, 0x93, 0xc1, 0x6e, 0xd3, 0x40,
+	0x10, 0x86, 0xb3, 0x4d, 0x1a, 0xe3, 0x49, 0x8a, 0xca, 0x4a, 0x80, 0x89, 0x90, 0x1b, 0xe5, 0x80,
+	0x02, 0x4a, 0x6d, 0xa9, 0x48, 0x3c, 0x40, 0xd2, 0x4b, 0x84, 0x90, 0x22, 0xc3, 0x89, 0x4b, 0xb5,
+	0x59, 0x4f, 0x93, 0x15, 0xf1, 0x6e, 0xb4, 0x5e, 0x97, 0xe6, 0x2d, 0xb8, 0xf1, 0x4a, 0x1c, 0xcb,
+	0x8d, 0x53, 0x85, 0x9c, 0x77, 0xe0, 0x8c, 0xbc, 0x76, 0x48, 0x42, 0x41, 0x9c, 0xb9, 0xcd, 0xcc,
+	0xff, 0x7b, 0x3c, 0xdf, 0xac, 0x06, 0x1e, 0x5e, 0x87, 0x4b, 0xb6, 0xe2, 0x73, 0x26, 0x43, 0xae,
+	0x62, 0xe4, 0xc1, 0x52, 0x2b, 0xa3, 0xa8, 0x53, 0x15, 0x3b, 0xa7, 0x33, 0x61, 0xe6, 0xd9, 0x34,
+	0xe0, 0x2a, 0x09, 0x67, 0x6a, 0xa6, 0x42, 0xab, 0x4f, 0xb3, 0x4b, 0x9b, 0xd9, 0xc4, 0x46, 0xe5,
+	0x77, 0x9d, 0xe7, 0x3b, 0x76, 0xa1, 0xae, 0x4e, 0x95, 0xc4, 0xf0, 0x23, 0xb2, 0x2b, 0x0c, 0xb9,
+	0x12, 0x7b, 0xbf, 0xe8, 0x0c, 0xfe, 0x6e, 0xd5, 0xab, 0xa5, 0x51, 0x61, 0xa2, 0x62, 0x5c, 0xa4,
+	0xa5, 0xbb, 0xf7, 0x83, 0xc0, 0xfd, 0x09, 0x5b, 0x25, 0x28, 0xcd, 0x68, 0xce, 0xa4, 0xc4, 0x05,
+	0x3d, 0x86, 0x7a, 0xaa, 0xb9, 0x47, 0xba, 0xa4, 0xdf, 0x8e, 0x8a, 0x90, 0xbe, 0x82, 0xa3, 0x14,
+	0x65, 0x8c, 0xfa, 0x62, 0x99, 0x4d, 0x3f, 0xe0, 0xca, 0x3b, 0xe8, 0x92, 0x7e, 0xeb, 0xec, 0x41,
+	0x50, 0x76, 0x0c, 0x26, 0xd9, 0x74, 0x21, 0xf8, 0x6b, 0x5c, 0x45, 0xed, 0xd2, 0x37, 0xb1, 0x36,
+	0xfa, 0x14, 0x5c, 0x8d, 0x5c, 0x2c, 0x05, 0x4a, 0xe3, 0xd5, 0x6d, 0xbf, 0x6d, 0x81, 0x76, 0xe1,
+	0xd0, 0x28, 0xc3, 0x16, 0x5e, 0xc3, 0x76, 0x83, 0xa0, 0x40, 0x09, 0x46, 0x4a, 0xc8, 0xa8, 0x14,
+	0xa8, 0x07, 0x8e, 0x11, 0x09, 0xaa, 0xcc, 0x78, 0x87, 0x5d, 0xd2, 0xaf, 0x47, 0x9b, 0x94, 0x52,
+	0x68, 0x24, 0x98, 0x28, 0xaf, 0xd9, 0x25, 0x7d, 0x37, 0xb2, 0x31, 0x1d, 0x40, 0xcb, 0x68, 0x26,
+	0xd3, 0x4b, 0xd4, 0x1a, 0x63, 0xcf, 0xb9, 0xd3, 0x75, 0x57, 0xee, 0x7d, 0x25, 0xf0, 0x78, 0xa4,
+	0x91, 0x19, 0xdc, 0xc7, 0x7f, 0x93, 0xce, 0xfe, 0xd7, 0x0d, 0xf4, 0x3e, 0x13, 0x70, 0x2a, 0x1a,
+	0xfa, 0x0c, 0xee, 0xf1, 0x39, 0x13, 0xf2, 0x42, 0xc4, 0x16, 0xc4, 0x1d, 0xb6, 0xf2, 0xdb, 0x13,
+	0x67, 0x54, 0xd4, 0xc6, 0xe7, 0x91, 0x63, 0xc5, 0x71, 0x4c, 0x07, 0x00, 0xbc, 0x24, 0x2f, 0x9c,
+	0x05, 0x56, 0x7b, 0x78, 0x94, 0xdf, 0x9e, 0xb8, 0xd5, 0x3e, 0xc6, 0xe7, 0x91, 0x5b, 0x19, 0xc6,
+	0x31, 0xed, 0x41, 0x93, 0x25, 0x2a, 0xab, 0x60, 0xf6, 0x47, 0xae, 0x94, 0x5f, 0x93, 0x35, 0x76,
+	0x26, 0xbb, 0x86, 0x27, 0xef, 0xaa, 0xe5, 0xdf, 0x5d, 0xf7, 0x0b, 0x28, 0xce, 0xa2, 0x28, 0xda,
+	0x49, 0x5b, 0x67, 0xc7, 0x41, 0x75, 0x26, 0x41, 0x65, 0x8e, 0x36, 0x06, 0x1a, 0x82, 0x9b, 0x8a,
+	0x99, 0x64, 0x26, 0xd3, 0xf8, 0xfb, 0x23, 0xbc, 0xdd, 0x08, 0xd1, 0xd6, 0xd3, 0x7b, 0x0f, 0x8f,
+	0x46, 0x0b, 0x95, 0xfe, 0xe1, 0x95, 0xf7, 0xc9, 0xc9, 0x3f, 0xc8, 0x37, 0x54, 0x07, 0x5b, 0xaa,
+	0xa1, 0xf7, 0x25, 0xf7, 0xc9, 0x4d, 0xee, 0x93, 0xef, 0xb9, 0x4f, 0x3e, 0xad, 0xfd, 0xda, 0xcd,
+	0xda, 0xaf, 0x7d, 0x5b, 0xfb, 0xb5, 0x69, 0xd3, 0x5e, 0xd7, 0xcb, 0x9f, 0x01, 0x00, 0x00, 0xff,
+	0xff, 0xe5, 0x56, 0xa6, 0x91, 0x07, 0x04, 0x00, 0x00,
+}
+
 func (m *PaymentChannel) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
@@ -685,6 +714,9 @@ func encodeVarintCodec(dAtA []byte, offset int, v uint64) int {
 	return offset + 1
 }
 func (m *PaymentChannel) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	l = len(m.Src)
@@ -718,6 +750,9 @@ func (m *PaymentChannel) Size() (n int) {
 }
 
 func (m *CreatePaymentChannelMsg) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	l = len(m.Src)
@@ -747,6 +782,9 @@ func (m *CreatePaymentChannelMsg) Size() (n int) {
 }
 
 func (m *Payment) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	l = len(m.ChainID)
@@ -769,6 +807,9 @@ func (m *Payment) Size() (n int) {
 }
 
 func (m *TransferPaymentChannelMsg) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	if m.Payment != nil {
@@ -783,6 +824,9 @@ func (m *TransferPaymentChannelMsg) Size() (n int) {
 }
 
 func (m *ClosePaymentChannelMsg) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	l = len(m.ChannelID)
@@ -824,7 +868,7 @@ func (m *PaymentChannel) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -852,7 +896,7 @@ func (m *PaymentChannel) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				byteLen |= (int(b) & 0x7F) << shift
+				byteLen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -861,6 +905,9 @@ func (m *PaymentChannel) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -883,7 +930,7 @@ func (m *PaymentChannel) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -892,6 +939,9 @@ func (m *PaymentChannel) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -916,7 +966,7 @@ func (m *PaymentChannel) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				byteLen |= (int(b) & 0x7F) << shift
+				byteLen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -925,6 +975,9 @@ func (m *PaymentChannel) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -947,7 +1000,7 @@ func (m *PaymentChannel) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -956,6 +1009,9 @@ func (m *PaymentChannel) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -980,7 +1036,7 @@ func (m *PaymentChannel) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.Timeout |= (int64(b) & 0x7F) << shift
+				m.Timeout |= int64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -999,7 +1055,7 @@ func (m *PaymentChannel) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= (uint64(b) & 0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -1009,6 +1065,9 @@ func (m *PaymentChannel) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -1028,7 +1087,7 @@ func (m *PaymentChannel) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -1037,6 +1096,9 @@ func (m *PaymentChannel) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -1054,6 +1116,9 @@ func (m *PaymentChannel) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthCodec
 			}
 			if (iNdEx + skippy) > l {
@@ -1083,7 +1148,7 @@ func (m *CreatePaymentChannelMsg) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -1111,7 +1176,7 @@ func (m *CreatePaymentChannelMsg) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				byteLen |= (int(b) & 0x7F) << shift
+				byteLen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -1120,6 +1185,9 @@ func (m *CreatePaymentChannelMsg) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -1142,7 +1210,7 @@ func (m *CreatePaymentChannelMsg) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -1151,6 +1219,9 @@ func (m *CreatePaymentChannelMsg) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -1175,7 +1246,7 @@ func (m *CreatePaymentChannelMsg) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				byteLen |= (int(b) & 0x7F) << shift
+				byteLen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -1184,6 +1255,9 @@ func (m *CreatePaymentChannelMsg) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -1206,7 +1280,7 @@ func (m *CreatePaymentChannelMsg) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -1215,6 +1289,9 @@ func (m *CreatePaymentChannelMsg) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -1239,7 +1316,7 @@ func (m *CreatePaymentChannelMsg) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.Timeout |= (int64(b) & 0x7F) << shift
+				m.Timeout |= int64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -1258,7 +1335,7 @@ func (m *CreatePaymentChannelMsg) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= (uint64(b) & 0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -1268,6 +1345,9 @@ func (m *CreatePaymentChannelMsg) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -1280,6 +1360,9 @@ func (m *CreatePaymentChannelMsg) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthCodec
 			}
 			if (iNdEx + skippy) > l {
@@ -1309,7 +1392,7 @@ func (m *Payment) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -1337,7 +1420,7 @@ func (m *Payment) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= (uint64(b) & 0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -1347,6 +1430,9 @@ func (m *Payment) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -1366,7 +1452,7 @@ func (m *Payment) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				byteLen |= (int(b) & 0x7F) << shift
+				byteLen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -1375,6 +1461,9 @@ func (m *Payment) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -1397,7 +1486,7 @@ func (m *Payment) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -1406,6 +1495,9 @@ func (m *Payment) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -1430,7 +1522,7 @@ func (m *Payment) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= (uint64(b) & 0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -1440,6 +1532,9 @@ func (m *Payment) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -1452,6 +1547,9 @@ func (m *Payment) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthCodec
 			}
 			if (iNdEx + skippy) > l {
@@ -1481,7 +1579,7 @@ func (m *TransferPaymentChannelMsg) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -1509,7 +1607,7 @@ func (m *TransferPaymentChannelMsg) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -1518,6 +1616,9 @@ func (m *TransferPaymentChannelMsg) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -1542,7 +1643,7 @@ func (m *TransferPaymentChannelMsg) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -1551,6 +1652,9 @@ func (m *TransferPaymentChannelMsg) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -1568,6 +1672,9 @@ func (m *TransferPaymentChannelMsg) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthCodec
 			}
 			if (iNdEx + skippy) > l {
@@ -1597,7 +1704,7 @@ func (m *ClosePaymentChannelMsg) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -1625,7 +1732,7 @@ func (m *ClosePaymentChannelMsg) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				byteLen |= (int(b) & 0x7F) << shift
+				byteLen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -1634,6 +1741,9 @@ func (m *ClosePaymentChannelMsg) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -1656,7 +1766,7 @@ func (m *ClosePaymentChannelMsg) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= (uint64(b) & 0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -1666,6 +1776,9 @@ func (m *ClosePaymentChannelMsg) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -1678,6 +1791,9 @@ func (m *ClosePaymentChannelMsg) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthCodec
 			}
 			if (iNdEx + skippy) > l {
@@ -1746,8 +1862,11 @@ func skipCodec(dAtA []byte) (n int, err error) {
 					break
 				}
 			}
-			iNdEx += length
 			if length < 0 {
+				return 0, ErrInvalidLengthCodec
+			}
+			iNdEx += length
+			if iNdEx < 0 {
 				return 0, ErrInvalidLengthCodec
 			}
 			return iNdEx, nil
@@ -1778,6 +1897,9 @@ func skipCodec(dAtA []byte) (n int, err error) {
 					return 0, err
 				}
 				iNdEx = start + next
+				if iNdEx < 0 {
+					return 0, ErrInvalidLengthCodec
+				}
 			}
 			return iNdEx, nil
 		case 4:
@@ -1796,39 +1918,3 @@ var (
 	ErrInvalidLengthCodec = fmt.Errorf("proto: negative length found during unmarshaling")
 	ErrIntOverflowCodec   = fmt.Errorf("proto: integer overflow")
 )
-
-func init() { proto.RegisterFile("x/paychan/codec.proto", fileDescriptor_codec_b27b7a38866d8a21) }
-
-var fileDescriptor_codec_b27b7a38866d8a21 = []byte{
-	// 480 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xd4, 0x93, 0xc1, 0x6e, 0xd3, 0x40,
-	0x10, 0x86, 0xd9, 0x36, 0x8d, 0xf1, 0x24, 0x45, 0x61, 0x25, 0xc0, 0x44, 0x28, 0x8d, 0x72, 0x40,
-	0x01, 0xa5, 0xb6, 0x54, 0x24, 0x1e, 0x20, 0xe9, 0x25, 0x42, 0x48, 0x91, 0xe1, 0xc4, 0xa5, 0xda,
-	0xac, 0xa7, 0xc9, 0x0a, 0x7b, 0xd7, 0x5a, 0xaf, 0x4b, 0xfd, 0x16, 0xdc, 0x78, 0x25, 0x8e, 0xf0,
-	0x02, 0x15, 0x32, 0xef, 0xc0, 0x19, 0x79, 0xed, 0x90, 0x84, 0x82, 0x38, 0x73, 0x9b, 0x99, 0xff,
-	0xf7, 0x78, 0xbe, 0x59, 0x0d, 0x3c, 0xb8, 0x0e, 0x52, 0x56, 0xf0, 0x35, 0x93, 0x01, 0x57, 0x11,
-	0x72, 0x3f, 0xd5, 0xca, 0x28, 0xea, 0x34, 0xc5, 0xfe, 0xe9, 0x4a, 0x98, 0x75, 0xbe, 0xf4, 0xb9,
-	0x4a, 0x82, 0x95, 0x5a, 0xa9, 0xc0, 0xea, 0xcb, 0xfc, 0xd2, 0x66, 0x36, 0xb1, 0x51, 0xfd, 0x5d,
-	0xff, 0xd9, 0x8e, 0x5d, 0xa8, 0xab, 0x53, 0x25, 0x31, 0xf8, 0x80, 0xec, 0x0a, 0x03, 0xae, 0xc4,
-	0xde, 0x2f, 0xfa, 0x93, 0xbf, 0x5b, 0x75, 0x91, 0x1a, 0x15, 0x24, 0x2a, 0xc2, 0x38, 0xab, 0xdd,
-	0xa3, 0x1f, 0x04, 0xee, 0x2d, 0x58, 0x91, 0xa0, 0x34, 0xb3, 0x35, 0x93, 0x12, 0x63, 0xda, 0x83,
-	0xc3, 0x4c, 0x73, 0x8f, 0x0c, 0xc9, 0xb8, 0x1b, 0x56, 0x21, 0x7d, 0x09, 0xc7, 0x19, 0xca, 0x08,
-	0xf5, 0x45, 0x9a, 0x2f, 0xdf, 0x63, 0xe1, 0x1d, 0x0c, 0xc9, 0xb8, 0x73, 0x76, 0xdf, 0xaf, 0x3b,
-	0xfa, 0x8b, 0x7c, 0x19, 0x0b, 0xfe, 0x0a, 0x8b, 0xb0, 0x5b, 0xfb, 0x16, 0xd6, 0x46, 0x9f, 0x80,
-	0xab, 0x91, 0x8b, 0x54, 0xa0, 0x34, 0xde, 0xa1, 0xed, 0xb7, 0x2d, 0xd0, 0x21, 0x1c, 0x19, 0x65,
-	0x58, 0xec, 0xb5, 0x6c, 0x37, 0xf0, 0x2b, 0x14, 0x7f, 0xa6, 0x84, 0x0c, 0x6b, 0x81, 0x7a, 0xe0,
-	0x18, 0x91, 0xa0, 0xca, 0x8d, 0x77, 0x34, 0x24, 0xe3, 0xc3, 0x70, 0x93, 0x52, 0x0a, 0xad, 0x04,
-	0x13, 0xe5, 0xb5, 0x87, 0x64, 0xec, 0x86, 0x36, 0xa6, 0x13, 0xe8, 0x18, 0xcd, 0x64, 0x76, 0x89,
-	0x5a, 0x63, 0xe4, 0x39, 0xb7, 0xba, 0xee, 0xca, 0xa3, 0xaf, 0x04, 0x1e, 0xcd, 0x34, 0x32, 0x83,
-	0xfb, 0xf8, 0xaf, 0xb3, 0xd5, 0xff, 0xba, 0x81, 0xd1, 0x27, 0x02, 0x4e, 0x43, 0x43, 0x9f, 0xc2,
-	0x5d, 0xbe, 0x66, 0x42, 0x5e, 0x88, 0xc8, 0x82, 0xb8, 0xd3, 0x4e, 0x79, 0x73, 0xe2, 0xcc, 0xaa,
-	0xda, 0xfc, 0x3c, 0x74, 0xac, 0x38, 0x8f, 0xe8, 0x04, 0x80, 0xd7, 0xe4, 0x95, 0xb3, 0xc2, 0xea,
-	0x4e, 0x8f, 0xcb, 0x9b, 0x13, 0xb7, 0xd9, 0xc7, 0xfc, 0x3c, 0x74, 0x1b, 0xc3, 0x3c, 0xa2, 0x23,
-	0x68, 0xb3, 0x44, 0xe5, 0x0d, 0xcc, 0xfe, 0xc8, 0x8d, 0xf2, 0x6b, 0xb2, 0xd6, 0xce, 0x64, 0xd7,
-	0xf0, 0xf8, 0x6d, 0xb3, 0xfc, 0xdb, 0xeb, 0x7e, 0x0e, 0xd5, 0x59, 0x54, 0x45, 0x3b, 0x69, 0xe7,
-	0xac, 0xe7, 0x37, 0x67, 0xe2, 0x37, 0xe6, 0x70, 0x63, 0xa0, 0x01, 0xb8, 0x99, 0x58, 0x49, 0x66,
-	0x72, 0x8d, 0xbf, 0x3f, 0xc2, 0x9b, 0x8d, 0x10, 0x6e, 0x3d, 0xa3, 0x77, 0xf0, 0x70, 0x16, 0xab,
-	0xec, 0x0f, 0xaf, 0xbc, 0x4f, 0x4e, 0xfe, 0x41, 0xbe, 0xa1, 0x3a, 0xd8, 0x52, 0x4d, 0x7b, 0x9f,
-	0xcb, 0x01, 0xf9, 0x52, 0x0e, 0xc8, 0xb7, 0x72, 0x40, 0x3e, 0x7e, 0x1f, 0xdc, 0x59, 0xb6, 0xed,
-	0x55, 0xbd, 0xf8, 0x19, 0x00, 0x00, 0xff, 0xff, 0x03, 0x7e, 0x70, 0xda, 0xff, 0x03, 0x00, 0x00,
-}

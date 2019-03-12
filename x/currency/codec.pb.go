@@ -3,11 +3,12 @@
 
 package currency
 
-import proto "github.com/gogo/protobuf/proto"
-import fmt "fmt"
-import math "math"
-
-import io "io"
+import (
+	fmt "fmt"
+	proto "github.com/gogo/protobuf/proto"
+	io "io"
+	math "math"
+)
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
@@ -23,16 +24,14 @@ const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
 // TokenInfo contains information about a single currency. It is used as an
 // alternative solution to hardcoding supported currencies information.
 type TokenInfo struct {
-	Name                 string   `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
+	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 }
 
 func (m *TokenInfo) Reset()         { *m = TokenInfo{} }
 func (m *TokenInfo) String() string { return proto.CompactTextString(m) }
 func (*TokenInfo) ProtoMessage()    {}
 func (*TokenInfo) Descriptor() ([]byte, []int) {
-	return fileDescriptor_codec_835b3f18394bbd04, []int{0}
+	return fileDescriptor_540c9a7fd55dd714, []int{0}
 }
 func (m *TokenInfo) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -49,8 +48,8 @@ func (m *TokenInfo) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 		return b[:n], nil
 	}
 }
-func (dst *TokenInfo) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_TokenInfo.Merge(dst, src)
+func (m *TokenInfo) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_TokenInfo.Merge(m, src)
 }
 func (m *TokenInfo) XXX_Size() int {
 	return m.Size()
@@ -71,17 +70,15 @@ func (m *TokenInfo) GetName() string {
 // NewTokenInfoMsg will register a new currency. Ticker (currency symbol) can
 // be registered only once.
 type NewTokenInfoMsg struct {
-	Ticker               string   `protobuf:"bytes,1,opt,name=ticker,proto3" json:"ticker,omitempty"`
-	Name                 string   `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
+	Ticker string `protobuf:"bytes,1,opt,name=ticker,proto3" json:"ticker,omitempty"`
+	Name   string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
 }
 
 func (m *NewTokenInfoMsg) Reset()         { *m = NewTokenInfoMsg{} }
 func (m *NewTokenInfoMsg) String() string { return proto.CompactTextString(m) }
 func (*NewTokenInfoMsg) ProtoMessage()    {}
 func (*NewTokenInfoMsg) Descriptor() ([]byte, []int) {
-	return fileDescriptor_codec_835b3f18394bbd04, []int{1}
+	return fileDescriptor_540c9a7fd55dd714, []int{1}
 }
 func (m *NewTokenInfoMsg) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -98,8 +95,8 @@ func (m *NewTokenInfoMsg) XXX_Marshal(b []byte, deterministic bool) ([]byte, err
 		return b[:n], nil
 	}
 }
-func (dst *NewTokenInfoMsg) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_NewTokenInfoMsg.Merge(dst, src)
+func (m *NewTokenInfoMsg) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_NewTokenInfoMsg.Merge(m, src)
 }
 func (m *NewTokenInfoMsg) XXX_Size() int {
 	return m.Size()
@@ -128,6 +125,23 @@ func init() {
 	proto.RegisterType((*TokenInfo)(nil), "currency.TokenInfo")
 	proto.RegisterType((*NewTokenInfoMsg)(nil), "currency.NewTokenInfoMsg")
 }
+
+func init() { proto.RegisterFile("x/currency/codec.proto", fileDescriptor_540c9a7fd55dd714) }
+
+var fileDescriptor_540c9a7fd55dd714 = []byte{
+	// 145 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x12, 0xab, 0xd0, 0x4f, 0x2e,
+	0x2d, 0x2a, 0x4a, 0xcd, 0x4b, 0xae, 0xd4, 0x4f, 0xce, 0x4f, 0x49, 0x4d, 0xd6, 0x2b, 0x28, 0xca,
+	0x2f, 0xc9, 0x17, 0xe2, 0x80, 0x89, 0x2a, 0xc9, 0x73, 0x71, 0x86, 0xe4, 0x67, 0xa7, 0xe6, 0x79,
+	0xe6, 0xa5, 0xe5, 0x0b, 0x09, 0x71, 0xb1, 0xe4, 0x25, 0xe6, 0xa6, 0x4a, 0x30, 0x2a, 0x30, 0x6a,
+	0x70, 0x06, 0x81, 0xd9, 0x4a, 0xb6, 0x5c, 0xfc, 0x7e, 0xa9, 0xe5, 0x70, 0x35, 0xbe, 0xc5, 0xe9,
+	0x42, 0x62, 0x5c, 0x6c, 0x25, 0x99, 0xc9, 0xd9, 0xa9, 0x45, 0x50, 0x85, 0x50, 0x1e, 0x5c, 0x3b,
+	0x13, 0x42, 0xbb, 0x93, 0xc4, 0x89, 0x47, 0x72, 0x8c, 0x17, 0x1e, 0xc9, 0x31, 0x3e, 0x78, 0x24,
+	0xc7, 0x38, 0xe1, 0xb1, 0x1c, 0xc3, 0x85, 0xc7, 0x72, 0x0c, 0x37, 0x1e, 0xcb, 0x31, 0x24, 0xb1,
+	0x81, 0x9d, 0x62, 0x0c, 0x08, 0x00, 0x00, 0xff, 0xff, 0x6f, 0x69, 0xf0, 0x93, 0xa4, 0x00, 0x00,
+	0x00,
+}
+
 func (m *TokenInfo) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
@@ -192,6 +206,9 @@ func encodeVarintCodec(dAtA []byte, offset int, v uint64) int {
 	return offset + 1
 }
 func (m *TokenInfo) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	l = len(m.Name)
@@ -202,6 +219,9 @@ func (m *TokenInfo) Size() (n int) {
 }
 
 func (m *NewTokenInfoMsg) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	l = len(m.Ticker)
@@ -243,7 +263,7 @@ func (m *TokenInfo) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -271,7 +291,7 @@ func (m *TokenInfo) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= (uint64(b) & 0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -281,6 +301,9 @@ func (m *TokenInfo) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -293,6 +316,9 @@ func (m *TokenInfo) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthCodec
 			}
 			if (iNdEx + skippy) > l {
@@ -322,7 +348,7 @@ func (m *NewTokenInfoMsg) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -350,7 +376,7 @@ func (m *NewTokenInfoMsg) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= (uint64(b) & 0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -360,6 +386,9 @@ func (m *NewTokenInfoMsg) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -379,7 +408,7 @@ func (m *NewTokenInfoMsg) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= (uint64(b) & 0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -389,6 +418,9 @@ func (m *NewTokenInfoMsg) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -401,6 +433,9 @@ func (m *NewTokenInfoMsg) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthCodec
 			}
 			if (iNdEx + skippy) > l {
@@ -469,8 +504,11 @@ func skipCodec(dAtA []byte) (n int, err error) {
 					break
 				}
 			}
-			iNdEx += length
 			if length < 0 {
+				return 0, ErrInvalidLengthCodec
+			}
+			iNdEx += length
+			if iNdEx < 0 {
 				return 0, ErrInvalidLengthCodec
 			}
 			return iNdEx, nil
@@ -501,6 +539,9 @@ func skipCodec(dAtA []byte) (n int, err error) {
 					return 0, err
 				}
 				iNdEx = start + next
+				if iNdEx < 0 {
+					return 0, ErrInvalidLengthCodec
+				}
 			}
 			return iNdEx, nil
 		case 4:
@@ -519,18 +560,3 @@ var (
 	ErrInvalidLengthCodec = fmt.Errorf("proto: negative length found during unmarshaling")
 	ErrIntOverflowCodec   = fmt.Errorf("proto: integer overflow")
 )
-
-func init() { proto.RegisterFile("x/currency/codec.proto", fileDescriptor_codec_835b3f18394bbd04) }
-
-var fileDescriptor_codec_835b3f18394bbd04 = []byte{
-	// 137 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x12, 0xab, 0xd0, 0x4f, 0x2e,
-	0x2d, 0x2a, 0x4a, 0xcd, 0x4b, 0xae, 0xd4, 0x4f, 0xce, 0x4f, 0x49, 0x4d, 0xd6, 0x2b, 0x28, 0xca,
-	0x2f, 0xc9, 0x17, 0xe2, 0x80, 0x89, 0x2a, 0xc9, 0x73, 0x71, 0x86, 0xe4, 0x67, 0xa7, 0xe6, 0x79,
-	0xe6, 0xa5, 0xe5, 0x0b, 0x09, 0x71, 0xb1, 0xe4, 0x25, 0xe6, 0xa6, 0x4a, 0x30, 0x2a, 0x30, 0x6a,
-	0x70, 0x06, 0x81, 0xd9, 0x4a, 0xb6, 0x5c, 0xfc, 0x7e, 0xa9, 0xe5, 0x70, 0x35, 0xbe, 0xc5, 0xe9,
-	0x42, 0x62, 0x5c, 0x6c, 0x25, 0x99, 0xc9, 0xd9, 0xa9, 0x45, 0x50, 0x85, 0x50, 0x1e, 0x5c, 0x3b,
-	0x13, 0x42, 0xbb, 0x93, 0xc0, 0x89, 0x47, 0x72, 0x8c, 0x17, 0x1e, 0xc9, 0x31, 0x3e, 0x78, 0x24,
-	0xc7, 0x38, 0xe1, 0xb1, 0x1c, 0x43, 0x12, 0x1b, 0xd8, 0x09, 0xc6, 0x80, 0x00, 0x00, 0x00, 0xff,
-	0xff, 0x65, 0x86, 0x77, 0x4c, 0x9c, 0x00, 0x00, 0x00,
-}

@@ -3,12 +3,13 @@
 
 package sigs
 
-import proto "github.com/gogo/protobuf/proto"
-import fmt "fmt"
-import math "math"
-import crypto "github.com/iov-one/weave/crypto"
-
-import io "io"
+import (
+	fmt "fmt"
+	proto "github.com/gogo/protobuf/proto"
+	crypto "github.com/iov-one/weave/crypto"
+	io "io"
+	math "math"
+)
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
@@ -27,17 +28,15 @@ const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
 // Note: This should not be created from outside the module,
 // User is the entry point you want
 type UserData struct {
-	Pubkey               *crypto.PublicKey `protobuf:"bytes,1,opt,name=pubkey" json:"pubkey,omitempty"`
-	Sequence             int64             `protobuf:"varint,2,opt,name=sequence,proto3" json:"sequence,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}          `json:"-"`
-	XXX_sizecache        int32             `json:"-"`
+	Pubkey   *crypto.PublicKey `protobuf:"bytes,1,opt,name=pubkey,proto3" json:"pubkey,omitempty"`
+	Sequence int64             `protobuf:"varint,2,opt,name=sequence,proto3" json:"sequence,omitempty"`
 }
 
 func (m *UserData) Reset()         { *m = UserData{} }
 func (m *UserData) String() string { return proto.CompactTextString(m) }
 func (*UserData) ProtoMessage()    {}
 func (*UserData) Descriptor() ([]byte, []int) {
-	return fileDescriptor_codec_8a4a2ea66e77ba63, []int{0}
+	return fileDescriptor_1f3400434997a8ae, []int{0}
 }
 func (m *UserData) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -54,8 +53,8 @@ func (m *UserData) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 		return b[:n], nil
 	}
 }
-func (dst *UserData) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_UserData.Merge(dst, src)
+func (m *UserData) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UserData.Merge(m, src)
 }
 func (m *UserData) XXX_Size() int {
 	return m.Size()
@@ -87,18 +86,16 @@ func (m *UserData) GetSequence() int64 {
 // increasing by 1 each time (starting at 0)
 type StdSignature struct {
 	Sequence int64             `protobuf:"varint,1,opt,name=sequence,proto3" json:"sequence,omitempty"`
-	Pubkey   *crypto.PublicKey `protobuf:"bytes,2,opt,name=pubkey" json:"pubkey,omitempty"`
+	Pubkey   *crypto.PublicKey `protobuf:"bytes,2,opt,name=pubkey,proto3" json:"pubkey,omitempty"`
 	// Removed Address, Pubkey is more powerful
-	Signature            *crypto.Signature `protobuf:"bytes,4,opt,name=signature" json:"signature,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}          `json:"-"`
-	XXX_sizecache        int32             `json:"-"`
+	Signature *crypto.Signature `protobuf:"bytes,4,opt,name=signature,proto3" json:"signature,omitempty"`
 }
 
 func (m *StdSignature) Reset()         { *m = StdSignature{} }
 func (m *StdSignature) String() string { return proto.CompactTextString(m) }
 func (*StdSignature) ProtoMessage()    {}
 func (*StdSignature) Descriptor() ([]byte, []int) {
-	return fileDescriptor_codec_8a4a2ea66e77ba63, []int{1}
+	return fileDescriptor_1f3400434997a8ae, []int{1}
 }
 func (m *StdSignature) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -115,8 +112,8 @@ func (m *StdSignature) XXX_Marshal(b []byte, deterministic bool) ([]byte, error)
 		return b[:n], nil
 	}
 }
-func (dst *StdSignature) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_StdSignature.Merge(dst, src)
+func (m *StdSignature) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_StdSignature.Merge(m, src)
 }
 func (m *StdSignature) XXX_Size() int {
 	return m.Size()
@@ -152,6 +149,28 @@ func init() {
 	proto.RegisterType((*UserData)(nil), "sigs.UserData")
 	proto.RegisterType((*StdSignature)(nil), "sigs.StdSignature")
 }
+
+func init() { proto.RegisterFile("x/sigs/codec.proto", fileDescriptor_1f3400434997a8ae) }
+
+var fileDescriptor_1f3400434997a8ae = []byte{
+	// 233 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x12, 0xaa, 0xd0, 0x2f, 0xce,
+	0x4c, 0x2f, 0xd6, 0x4f, 0xce, 0x4f, 0x49, 0x4d, 0xd6, 0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17, 0x62,
+	0x01, 0x89, 0x48, 0xe9, 0xa4, 0x67, 0x96, 0x64, 0x94, 0x26, 0xe9, 0x25, 0xe7, 0xe7, 0xea, 0x67,
+	0xe6, 0x97, 0xe9, 0xe6, 0xe7, 0xa5, 0xea, 0x97, 0xa7, 0x26, 0x96, 0xa5, 0xea, 0x27, 0x17, 0x55,
+	0x16, 0x94, 0xe4, 0xeb, 0xe7, 0xe6, 0xa7, 0xa4, 0xe6, 0x14, 0x43, 0xf4, 0x28, 0x05, 0x72, 0x71,
+	0x84, 0x16, 0xa7, 0x16, 0xb9, 0x24, 0x96, 0x24, 0x0a, 0x69, 0x72, 0xb1, 0x15, 0x94, 0x26, 0x65,
+	0xa7, 0x56, 0x4a, 0x30, 0x2a, 0x30, 0x6a, 0x70, 0x1b, 0x09, 0xea, 0x41, 0x74, 0xe8, 0x05, 0x94,
+	0x26, 0xe5, 0x64, 0x26, 0x7b, 0xa7, 0x56, 0x06, 0x41, 0x15, 0x08, 0x49, 0x71, 0x71, 0x14, 0xa7,
+	0x16, 0x96, 0xa6, 0xe6, 0x25, 0xa7, 0x4a, 0x30, 0x29, 0x30, 0x6a, 0x30, 0x07, 0xc1, 0xf9, 0x4a,
+	0x6d, 0x8c, 0x5c, 0x3c, 0xc1, 0x25, 0x29, 0xc1, 0x99, 0xe9, 0x79, 0x89, 0x25, 0xa5, 0x45, 0xa9,
+	0x28, 0x8a, 0x19, 0x51, 0x15, 0x23, 0xd9, 0xc9, 0x44, 0xc8, 0x4e, 0x7d, 0x2e, 0xce, 0x62, 0x98,
+	0x99, 0x12, 0x2c, 0xa8, 0xaa, 0xe1, 0x96, 0x05, 0x21, 0xd4, 0x38, 0x49, 0x9c, 0x78, 0x24, 0xc7,
+	0x78, 0xe1, 0x91, 0x1c, 0xe3, 0x83, 0x47, 0x72, 0x8c, 0x13, 0x1e, 0xcb, 0x31, 0x5c, 0x78, 0x2c,
+	0xc7, 0x70, 0xe3, 0xb1, 0x1c, 0x43, 0x12, 0x1b, 0xd8, 0xf3, 0xc6, 0x80, 0x00, 0x00, 0x00, 0xff,
+	0xff, 0xd7, 0x10, 0x46, 0x50, 0x46, 0x01, 0x00, 0x00,
+}
+
 func (m *UserData) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
@@ -238,6 +257,9 @@ func encodeVarintCodec(dAtA []byte, offset int, v uint64) int {
 	return offset + 1
 }
 func (m *UserData) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	if m.Pubkey != nil {
@@ -251,6 +273,9 @@ func (m *UserData) Size() (n int) {
 }
 
 func (m *StdSignature) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	if m.Sequence != 0 {
@@ -295,7 +320,7 @@ func (m *UserData) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -323,7 +348,7 @@ func (m *UserData) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -332,6 +357,9 @@ func (m *UserData) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -356,7 +384,7 @@ func (m *UserData) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.Sequence |= (int64(b) & 0x7F) << shift
+				m.Sequence |= int64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -368,6 +396,9 @@ func (m *UserData) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthCodec
 			}
 			if (iNdEx + skippy) > l {
@@ -397,7 +428,7 @@ func (m *StdSignature) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -425,7 +456,7 @@ func (m *StdSignature) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.Sequence |= (int64(b) & 0x7F) << shift
+				m.Sequence |= int64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -444,7 +475,7 @@ func (m *StdSignature) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -453,6 +484,9 @@ func (m *StdSignature) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -477,7 +511,7 @@ func (m *StdSignature) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -486,6 +520,9 @@ func (m *StdSignature) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -503,6 +540,9 @@ func (m *StdSignature) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthCodec
 			}
 			if (iNdEx + skippy) > l {
@@ -571,8 +611,11 @@ func skipCodec(dAtA []byte) (n int, err error) {
 					break
 				}
 			}
-			iNdEx += length
 			if length < 0 {
+				return 0, ErrInvalidLengthCodec
+			}
+			iNdEx += length
+			if iNdEx < 0 {
 				return 0, ErrInvalidLengthCodec
 			}
 			return iNdEx, nil
@@ -603,6 +646,9 @@ func skipCodec(dAtA []byte) (n int, err error) {
 					return 0, err
 				}
 				iNdEx = start + next
+				if iNdEx < 0 {
+					return 0, ErrInvalidLengthCodec
+				}
 			}
 			return iNdEx, nil
 		case 4:
@@ -621,23 +667,3 @@ var (
 	ErrInvalidLengthCodec = fmt.Errorf("proto: negative length found during unmarshaling")
 	ErrIntOverflowCodec   = fmt.Errorf("proto: integer overflow")
 )
-
-func init() { proto.RegisterFile("x/sigs/codec.proto", fileDescriptor_codec_8a4a2ea66e77ba63) }
-
-var fileDescriptor_codec_8a4a2ea66e77ba63 = []byte{
-	// 224 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x12, 0xaa, 0xd0, 0x2f, 0xce,
-	0x4c, 0x2f, 0xd6, 0x4f, 0xce, 0x4f, 0x49, 0x4d, 0xd6, 0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17, 0x62,
-	0x01, 0x89, 0x48, 0xe9, 0xa4, 0x67, 0x96, 0x64, 0x94, 0x26, 0xe9, 0x25, 0xe7, 0xe7, 0xea, 0x67,
-	0xe6, 0x97, 0xe9, 0xe6, 0xe7, 0xa5, 0xea, 0x97, 0xa7, 0x26, 0x96, 0xa5, 0xea, 0x27, 0x17, 0x55,
-	0x16, 0x94, 0xe4, 0xeb, 0xe7, 0xe6, 0xa7, 0xa4, 0xe6, 0x14, 0x43, 0xf4, 0x28, 0x05, 0x72, 0x71,
-	0x84, 0x16, 0xa7, 0x16, 0xb9, 0x24, 0x96, 0x24, 0x0a, 0x69, 0x72, 0xb1, 0x15, 0x94, 0x26, 0x65,
-	0xa7, 0x56, 0x4a, 0x30, 0x2a, 0x30, 0x6a, 0x70, 0x1b, 0x09, 0xea, 0x41, 0x74, 0xe8, 0x05, 0x94,
-	0x26, 0xe5, 0x64, 0x26, 0x7b, 0xa7, 0x56, 0x06, 0x41, 0x15, 0x08, 0x49, 0x71, 0x71, 0x14, 0xa7,
-	0x16, 0x96, 0xa6, 0xe6, 0x25, 0xa7, 0x4a, 0x30, 0x29, 0x30, 0x6a, 0x30, 0x07, 0xc1, 0xf9, 0x4a,
-	0x6d, 0x8c, 0x5c, 0x3c, 0xc1, 0x25, 0x29, 0xc1, 0x99, 0xe9, 0x79, 0x89, 0x25, 0xa5, 0x45, 0xa9,
-	0x28, 0x8a, 0x19, 0x51, 0x15, 0x23, 0xd9, 0xc9, 0x44, 0xc8, 0x4e, 0x7d, 0x2e, 0xce, 0x62, 0x98,
-	0x99, 0x12, 0x2c, 0xa8, 0xaa, 0xe1, 0x96, 0x05, 0x21, 0xd4, 0x38, 0x09, 0x9c, 0x78, 0x24, 0xc7,
-	0x78, 0xe1, 0x91, 0x1c, 0xe3, 0x83, 0x47, 0x72, 0x8c, 0x13, 0x1e, 0xcb, 0x31, 0x24, 0xb1, 0x81,
-	0x3d, 0x6d, 0x0c, 0x08, 0x00, 0x00, 0xff, 0xff, 0xc4, 0xa8, 0xe4, 0x7c, 0x3e, 0x01, 0x00, 0x00,
-}

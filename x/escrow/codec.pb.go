@@ -3,12 +3,13 @@
 
 package escrow
 
-import proto "github.com/gogo/protobuf/proto"
-import fmt "fmt"
-import math "math"
-import coin "github.com/iov-one/weave/coin"
-
-import io "io"
+import (
+	fmt "fmt"
+	proto "github.com/gogo/protobuf/proto"
+	coin "github.com/iov-one/weave/coin"
+	io "io"
+	math "math"
+)
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
@@ -33,22 +34,18 @@ type Escrow struct {
 	Sender    []byte `protobuf:"bytes,1,opt,name=sender,proto3" json:"sender,omitempty"`
 	Arbiter   []byte `protobuf:"bytes,2,opt,name=arbiter,proto3" json:"arbiter,omitempty"`
 	Recipient []byte `protobuf:"bytes,3,opt,name=recipient,proto3" json:"recipient,omitempty"`
-	// amount may contain multiple token types
-	Amount []*coin.Coin `protobuf:"bytes,4,rep,name=amount" json:"amount,omitempty"`
 	// if unreleased before timeout, will return to sender
 	// timeout stored here is absolute block height
 	Timeout int64 `protobuf:"varint,5,opt,name=timeout,proto3" json:"timeout,omitempty"`
 	// max length 128 character
-	Memo                 string   `protobuf:"bytes,6,opt,name=memo,proto3" json:"memo,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
+	Memo string `protobuf:"bytes,6,opt,name=memo,proto3" json:"memo,omitempty"`
 }
 
 func (m *Escrow) Reset()         { *m = Escrow{} }
 func (m *Escrow) String() string { return proto.CompactTextString(m) }
 func (*Escrow) ProtoMessage()    {}
 func (*Escrow) Descriptor() ([]byte, []int) {
-	return fileDescriptor_codec_f219ed13388eed8a, []int{0}
+	return fileDescriptor_36017ee554579951, []int{0}
 }
 func (m *Escrow) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -65,8 +62,8 @@ func (m *Escrow) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 		return b[:n], nil
 	}
 }
-func (dst *Escrow) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_Escrow.Merge(dst, src)
+func (m *Escrow) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Escrow.Merge(m, src)
 }
 func (m *Escrow) XXX_Size() int {
 	return m.Size()
@@ -98,13 +95,6 @@ func (m *Escrow) GetRecipient() []byte {
 	return nil
 }
 
-func (m *Escrow) GetAmount() []*coin.Coin {
-	if m != nil {
-		return m.Amount
-	}
-	return nil
-}
-
 func (m *Escrow) GetTimeout() int64 {
 	if m != nil {
 		return m.Timeout
@@ -128,20 +118,18 @@ type CreateEscrowMsg struct {
 	Arbiter   []byte `protobuf:"bytes,2,opt,name=arbiter,proto3" json:"arbiter,omitempty"`
 	Recipient []byte `protobuf:"bytes,3,opt,name=recipient,proto3" json:"recipient,omitempty"`
 	// amount may contain multiple token types
-	Amount []*coin.Coin `protobuf:"bytes,4,rep,name=amount" json:"amount,omitempty"`
+	Amount []*coin.Coin `protobuf:"bytes,4,rep,name=amount,proto3" json:"amount,omitempty"`
 	// if unreleased before timeout, will return to sender
 	Timeout int64 `protobuf:"varint,5,opt,name=timeout,proto3" json:"timeout,omitempty"`
 	// max length 128 character
-	Memo                 string   `protobuf:"bytes,6,opt,name=memo,proto3" json:"memo,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
+	Memo string `protobuf:"bytes,6,opt,name=memo,proto3" json:"memo,omitempty"`
 }
 
 func (m *CreateEscrowMsg) Reset()         { *m = CreateEscrowMsg{} }
 func (m *CreateEscrowMsg) String() string { return proto.CompactTextString(m) }
 func (*CreateEscrowMsg) ProtoMessage()    {}
 func (*CreateEscrowMsg) Descriptor() ([]byte, []int) {
-	return fileDescriptor_codec_f219ed13388eed8a, []int{1}
+	return fileDescriptor_36017ee554579951, []int{1}
 }
 func (m *CreateEscrowMsg) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -158,8 +146,8 @@ func (m *CreateEscrowMsg) XXX_Marshal(b []byte, deterministic bool) ([]byte, err
 		return b[:n], nil
 	}
 }
-func (dst *CreateEscrowMsg) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_CreateEscrowMsg.Merge(dst, src)
+func (m *CreateEscrowMsg) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_CreateEscrowMsg.Merge(m, src)
 }
 func (m *CreateEscrowMsg) XXX_Size() int {
 	return m.Size()
@@ -217,17 +205,15 @@ func (m *CreateEscrowMsg) GetMemo() string {
 // If amount not provided, defaults to entire escrow,
 // May be a subset of the current balance.
 type ReleaseEscrowMsg struct {
-	EscrowId             []byte       `protobuf:"bytes,1,opt,name=escrow_id,json=escrowId,proto3" json:"escrow_id,omitempty"`
-	Amount               []*coin.Coin `protobuf:"bytes,2,rep,name=amount" json:"amount,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}     `json:"-"`
-	XXX_sizecache        int32        `json:"-"`
+	EscrowId []byte       `protobuf:"bytes,1,opt,name=escrow_id,json=escrowId,proto3" json:"escrow_id,omitempty"`
+	Amount   []*coin.Coin `protobuf:"bytes,2,rep,name=amount,proto3" json:"amount,omitempty"`
 }
 
 func (m *ReleaseEscrowMsg) Reset()         { *m = ReleaseEscrowMsg{} }
 func (m *ReleaseEscrowMsg) String() string { return proto.CompactTextString(m) }
 func (*ReleaseEscrowMsg) ProtoMessage()    {}
 func (*ReleaseEscrowMsg) Descriptor() ([]byte, []int) {
-	return fileDescriptor_codec_f219ed13388eed8a, []int{2}
+	return fileDescriptor_36017ee554579951, []int{2}
 }
 func (m *ReleaseEscrowMsg) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -244,8 +230,8 @@ func (m *ReleaseEscrowMsg) XXX_Marshal(b []byte, deterministic bool) ([]byte, er
 		return b[:n], nil
 	}
 }
-func (dst *ReleaseEscrowMsg) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ReleaseEscrowMsg.Merge(dst, src)
+func (m *ReleaseEscrowMsg) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ReleaseEscrowMsg.Merge(m, src)
 }
 func (m *ReleaseEscrowMsg) XXX_Size() int {
 	return m.Size()
@@ -273,16 +259,14 @@ func (m *ReleaseEscrowMsg) GetAmount() []*coin.Coin {
 // ReturnEscrowMsg returns the content to the sender.
 // Must be authorized by the sender or an expired timeout
 type ReturnEscrowMsg struct {
-	EscrowId             []byte   `protobuf:"bytes,1,opt,name=escrow_id,json=escrowId,proto3" json:"escrow_id,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
+	EscrowId []byte `protobuf:"bytes,1,opt,name=escrow_id,json=escrowId,proto3" json:"escrow_id,omitempty"`
 }
 
 func (m *ReturnEscrowMsg) Reset()         { *m = ReturnEscrowMsg{} }
 func (m *ReturnEscrowMsg) String() string { return proto.CompactTextString(m) }
 func (*ReturnEscrowMsg) ProtoMessage()    {}
 func (*ReturnEscrowMsg) Descriptor() ([]byte, []int) {
-	return fileDescriptor_codec_f219ed13388eed8a, []int{3}
+	return fileDescriptor_36017ee554579951, []int{3}
 }
 func (m *ReturnEscrowMsg) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -299,8 +283,8 @@ func (m *ReturnEscrowMsg) XXX_Marshal(b []byte, deterministic bool) ([]byte, err
 		return b[:n], nil
 	}
 }
-func (dst *ReturnEscrowMsg) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ReturnEscrowMsg.Merge(dst, src)
+func (m *ReturnEscrowMsg) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ReturnEscrowMsg.Merge(m, src)
 }
 func (m *ReturnEscrowMsg) XXX_Size() int {
 	return m.Size()
@@ -324,19 +308,17 @@ func (m *ReturnEscrowMsg) GetEscrowId() []byte {
 //
 // Represents delegating responsibility
 type UpdateEscrowPartiesMsg struct {
-	EscrowId             []byte   `protobuf:"bytes,1,opt,name=escrow_id,json=escrowId,proto3" json:"escrow_id,omitempty"`
-	Sender               []byte   `protobuf:"bytes,2,opt,name=sender,proto3" json:"sender,omitempty"`
-	Arbiter              []byte   `protobuf:"bytes,3,opt,name=arbiter,proto3" json:"arbiter,omitempty"`
-	Recipient            []byte   `protobuf:"bytes,4,opt,name=recipient,proto3" json:"recipient,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
+	EscrowId  []byte `protobuf:"bytes,1,opt,name=escrow_id,json=escrowId,proto3" json:"escrow_id,omitempty"`
+	Sender    []byte `protobuf:"bytes,2,opt,name=sender,proto3" json:"sender,omitempty"`
+	Arbiter   []byte `protobuf:"bytes,3,opt,name=arbiter,proto3" json:"arbiter,omitempty"`
+	Recipient []byte `protobuf:"bytes,4,opt,name=recipient,proto3" json:"recipient,omitempty"`
 }
 
 func (m *UpdateEscrowPartiesMsg) Reset()         { *m = UpdateEscrowPartiesMsg{} }
 func (m *UpdateEscrowPartiesMsg) String() string { return proto.CompactTextString(m) }
 func (*UpdateEscrowPartiesMsg) ProtoMessage()    {}
 func (*UpdateEscrowPartiesMsg) Descriptor() ([]byte, []int) {
-	return fileDescriptor_codec_f219ed13388eed8a, []int{4}
+	return fileDescriptor_36017ee554579951, []int{4}
 }
 func (m *UpdateEscrowPartiesMsg) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -353,8 +335,8 @@ func (m *UpdateEscrowPartiesMsg) XXX_Marshal(b []byte, deterministic bool) ([]by
 		return b[:n], nil
 	}
 }
-func (dst *UpdateEscrowPartiesMsg) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_UpdateEscrowPartiesMsg.Merge(dst, src)
+func (m *UpdateEscrowPartiesMsg) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UpdateEscrowPartiesMsg.Merge(m, src)
 }
 func (m *UpdateEscrowPartiesMsg) XXX_Size() int {
 	return m.Size()
@@ -400,6 +382,35 @@ func init() {
 	proto.RegisterType((*ReturnEscrowMsg)(nil), "escrow.ReturnEscrowMsg")
 	proto.RegisterType((*UpdateEscrowPartiesMsg)(nil), "escrow.UpdateEscrowPartiesMsg")
 }
+
+func init() { proto.RegisterFile("x/escrow/codec.proto", fileDescriptor_36017ee554579951) }
+
+var fileDescriptor_36017ee554579951 = []byte{
+	// 341 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x9c, 0x92, 0xcf, 0x4a, 0xf3, 0x40,
+	0x14, 0xc5, 0x3b, 0x4d, 0xbf, 0x7c, 0xf6, 0x2a, 0xb4, 0x0c, 0x52, 0x06, 0x95, 0x10, 0xb2, 0x8a,
+	0x0b, 0x13, 0xd0, 0x37, 0xb0, 0xb8, 0x70, 0x21, 0x48, 0xc4, 0xb5, 0xa4, 0x93, 0x4b, 0x1d, 0x30,
+	0x33, 0x65, 0x66, 0xd2, 0xfa, 0x02, 0xba, 0xf6, 0x45, 0x7c, 0x0f, 0x97, 0x5d, 0xba, 0x94, 0xf6,
+	0x45, 0xa4, 0x49, 0x6a, 0x8b, 0x50, 0xff, 0xed, 0xee, 0xbd, 0x87, 0x33, 0xfc, 0x38, 0x67, 0x60,
+	0xf7, 0x3e, 0x46, 0xc3, 0xb5, 0x9a, 0xc4, 0x5c, 0x65, 0xc8, 0xa3, 0x91, 0x56, 0x56, 0x51, 0xb7,
+	0xba, 0xed, 0x1d, 0x0e, 0x85, 0xbd, 0x2d, 0x06, 0x11, 0x57, 0x79, 0x2c, 0xd4, 0xf8, 0x48, 0x49,
+	0x8c, 0x27, 0x98, 0x8e, 0x31, 0xe6, 0x4a, 0xc8, 0x75, 0x4b, 0xf0, 0x48, 0xc0, 0x3d, 0x2b, 0x5d,
+	0xb4, 0x07, 0xae, 0x41, 0x99, 0xa1, 0x66, 0xc4, 0x27, 0xe1, 0x4e, 0x52, 0x6f, 0x94, 0xc1, 0xff,
+	0x54, 0x0f, 0x84, 0x45, 0xcd, 0x9a, 0xa5, 0xb0, 0x5c, 0xe9, 0x01, 0xb4, 0x35, 0x72, 0x31, 0x12,
+	0x28, 0x2d, 0x73, 0x4a, 0x6d, 0x75, 0x58, 0xf8, 0xac, 0xc8, 0x51, 0x15, 0x96, 0xfd, 0xf3, 0x49,
+	0xe8, 0x24, 0xcb, 0x95, 0x52, 0x68, 0xe5, 0x98, 0x2b, 0xe6, 0xfa, 0x24, 0x6c, 0x27, 0xe5, 0x1c,
+	0x3c, 0x13, 0xe8, 0xf4, 0x35, 0xa6, 0x16, 0x2b, 0x9c, 0x0b, 0x33, 0xa4, 0x5d, 0x70, 0x8c, 0xe6,
+	0x35, 0xce, 0x62, 0xfc, 0x33, 0x4b, 0x00, 0x6e, 0x9a, 0xab, 0x42, 0x5a, 0xd6, 0xf2, 0x9d, 0x70,
+	0xfb, 0x18, 0xa2, 0x45, 0x12, 0x51, 0x5f, 0x09, 0x99, 0xd4, 0xca, 0x2f, 0x79, 0xaf, 0xa0, 0x9b,
+	0xe0, 0x1d, 0xa6, 0x66, 0x8d, 0x77, 0x1f, 0xda, 0x55, 0x03, 0x37, 0x22, 0xab, 0xa9, 0xb7, 0xaa,
+	0xc3, 0x79, 0xb6, 0x86, 0xd0, 0xdc, 0x84, 0x10, 0x44, 0xd0, 0x49, 0xd0, 0x16, 0x5a, 0xfe, 0xec,
+	0xcd, 0xe0, 0x81, 0x40, 0xef, 0x7a, 0x94, 0x7d, 0x84, 0x76, 0x99, 0x6a, 0x2b, 0xd0, 0x7c, 0xcb,
+	0xb2, 0xaa, 0xba, 0xb9, 0xa9, 0x6a, 0xe7, 0x8b, 0x78, 0x5b, 0x9f, 0xe2, 0x3d, 0x65, 0x2f, 0x33,
+	0x8f, 0x4c, 0x67, 0x1e, 0x79, 0x9b, 0x79, 0xe4, 0x69, 0xee, 0x35, 0xa6, 0x73, 0xaf, 0xf1, 0x3a,
+	0xf7, 0x1a, 0x03, 0xb7, 0xfc, 0x66, 0x27, 0xef, 0x01, 0x00, 0x00, 0xff, 0xff, 0x85, 0xec, 0xbc,
+	0xf6, 0xb1, 0x02, 0x00, 0x00,
+}
+
 func (m *Escrow) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
@@ -432,18 +443,6 @@ func (m *Escrow) MarshalTo(dAtA []byte) (int, error) {
 		i++
 		i = encodeVarintCodec(dAtA, i, uint64(len(m.Recipient)))
 		i += copy(dAtA[i:], m.Recipient)
-	}
-	if len(m.Amount) > 0 {
-		for _, msg := range m.Amount {
-			dAtA[i] = 0x22
-			i++
-			i = encodeVarintCodec(dAtA, i, uint64(msg.Size()))
-			n, err := msg.MarshalTo(dAtA[i:])
-			if err != nil {
-				return 0, err
-			}
-			i += n
-		}
 	}
 	if m.Timeout != 0 {
 		dAtA[i] = 0x28
@@ -630,6 +629,9 @@ func encodeVarintCodec(dAtA []byte, offset int, v uint64) int {
 	return offset + 1
 }
 func (m *Escrow) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	l = len(m.Sender)
@@ -644,12 +646,6 @@ func (m *Escrow) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovCodec(uint64(l))
 	}
-	if len(m.Amount) > 0 {
-		for _, e := range m.Amount {
-			l = e.Size()
-			n += 1 + l + sovCodec(uint64(l))
-		}
-	}
 	if m.Timeout != 0 {
 		n += 1 + sovCodec(uint64(m.Timeout))
 	}
@@ -661,6 +657,9 @@ func (m *Escrow) Size() (n int) {
 }
 
 func (m *CreateEscrowMsg) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	l = len(m.Src)
@@ -692,6 +691,9 @@ func (m *CreateEscrowMsg) Size() (n int) {
 }
 
 func (m *ReleaseEscrowMsg) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	l = len(m.EscrowId)
@@ -708,6 +710,9 @@ func (m *ReleaseEscrowMsg) Size() (n int) {
 }
 
 func (m *ReturnEscrowMsg) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	l = len(m.EscrowId)
@@ -718,6 +723,9 @@ func (m *ReturnEscrowMsg) Size() (n int) {
 }
 
 func (m *UpdateEscrowPartiesMsg) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	l = len(m.EscrowId)
@@ -767,7 +775,7 @@ func (m *Escrow) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -795,7 +803,7 @@ func (m *Escrow) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				byteLen |= (int(b) & 0x7F) << shift
+				byteLen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -804,6 +812,9 @@ func (m *Escrow) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -826,7 +837,7 @@ func (m *Escrow) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				byteLen |= (int(b) & 0x7F) << shift
+				byteLen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -835,6 +846,9 @@ func (m *Escrow) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -857,7 +871,7 @@ func (m *Escrow) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				byteLen |= (int(b) & 0x7F) << shift
+				byteLen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -866,43 +880,15 @@ func (m *Escrow) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
 			m.Recipient = append(m.Recipient[:0], dAtA[iNdEx:postIndex]...)
 			if m.Recipient == nil {
 				m.Recipient = []byte{}
-			}
-			iNdEx = postIndex
-		case 4:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Amount", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowCodec
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthCodec
-			}
-			postIndex := iNdEx + msglen
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Amount = append(m.Amount, &coin.Coin{})
-			if err := m.Amount[len(m.Amount)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
 			}
 			iNdEx = postIndex
 		case 5:
@@ -919,7 +905,7 @@ func (m *Escrow) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.Timeout |= (int64(b) & 0x7F) << shift
+				m.Timeout |= int64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -938,7 +924,7 @@ func (m *Escrow) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= (uint64(b) & 0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -948,6 +934,9 @@ func (m *Escrow) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -960,6 +949,9 @@ func (m *Escrow) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthCodec
 			}
 			if (iNdEx + skippy) > l {
@@ -989,7 +981,7 @@ func (m *CreateEscrowMsg) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -1017,7 +1009,7 @@ func (m *CreateEscrowMsg) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				byteLen |= (int(b) & 0x7F) << shift
+				byteLen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -1026,6 +1018,9 @@ func (m *CreateEscrowMsg) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -1048,7 +1043,7 @@ func (m *CreateEscrowMsg) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				byteLen |= (int(b) & 0x7F) << shift
+				byteLen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -1057,6 +1052,9 @@ func (m *CreateEscrowMsg) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -1079,7 +1077,7 @@ func (m *CreateEscrowMsg) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				byteLen |= (int(b) & 0x7F) << shift
+				byteLen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -1088,6 +1086,9 @@ func (m *CreateEscrowMsg) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -1110,7 +1111,7 @@ func (m *CreateEscrowMsg) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -1119,6 +1120,9 @@ func (m *CreateEscrowMsg) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -1141,7 +1145,7 @@ func (m *CreateEscrowMsg) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.Timeout |= (int64(b) & 0x7F) << shift
+				m.Timeout |= int64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -1160,7 +1164,7 @@ func (m *CreateEscrowMsg) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= (uint64(b) & 0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -1170,6 +1174,9 @@ func (m *CreateEscrowMsg) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -1182,6 +1189,9 @@ func (m *CreateEscrowMsg) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthCodec
 			}
 			if (iNdEx + skippy) > l {
@@ -1211,7 +1221,7 @@ func (m *ReleaseEscrowMsg) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -1239,7 +1249,7 @@ func (m *ReleaseEscrowMsg) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				byteLen |= (int(b) & 0x7F) << shift
+				byteLen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -1248,6 +1258,9 @@ func (m *ReleaseEscrowMsg) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -1270,7 +1283,7 @@ func (m *ReleaseEscrowMsg) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -1279,6 +1292,9 @@ func (m *ReleaseEscrowMsg) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -1294,6 +1310,9 @@ func (m *ReleaseEscrowMsg) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthCodec
 			}
 			if (iNdEx + skippy) > l {
@@ -1323,7 +1342,7 @@ func (m *ReturnEscrowMsg) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -1351,7 +1370,7 @@ func (m *ReturnEscrowMsg) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				byteLen |= (int(b) & 0x7F) << shift
+				byteLen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -1360,6 +1379,9 @@ func (m *ReturnEscrowMsg) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -1375,6 +1397,9 @@ func (m *ReturnEscrowMsg) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthCodec
 			}
 			if (iNdEx + skippy) > l {
@@ -1404,7 +1429,7 @@ func (m *UpdateEscrowPartiesMsg) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -1432,7 +1457,7 @@ func (m *UpdateEscrowPartiesMsg) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				byteLen |= (int(b) & 0x7F) << shift
+				byteLen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -1441,6 +1466,9 @@ func (m *UpdateEscrowPartiesMsg) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -1463,7 +1491,7 @@ func (m *UpdateEscrowPartiesMsg) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				byteLen |= (int(b) & 0x7F) << shift
+				byteLen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -1472,6 +1500,9 @@ func (m *UpdateEscrowPartiesMsg) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -1494,7 +1525,7 @@ func (m *UpdateEscrowPartiesMsg) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				byteLen |= (int(b) & 0x7F) << shift
+				byteLen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -1503,6 +1534,9 @@ func (m *UpdateEscrowPartiesMsg) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -1525,7 +1559,7 @@ func (m *UpdateEscrowPartiesMsg) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				byteLen |= (int(b) & 0x7F) << shift
+				byteLen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -1534,6 +1568,9 @@ func (m *UpdateEscrowPartiesMsg) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthCodec
 			}
 			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -1549,6 +1586,9 @@ func (m *UpdateEscrowPartiesMsg) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			if skippy < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthCodec
 			}
 			if (iNdEx + skippy) > l {
@@ -1617,8 +1657,11 @@ func skipCodec(dAtA []byte) (n int, err error) {
 					break
 				}
 			}
-			iNdEx += length
 			if length < 0 {
+				return 0, ErrInvalidLengthCodec
+			}
+			iNdEx += length
+			if iNdEx < 0 {
 				return 0, ErrInvalidLengthCodec
 			}
 			return iNdEx, nil
@@ -1649,6 +1692,9 @@ func skipCodec(dAtA []byte) (n int, err error) {
 					return 0, err
 				}
 				iNdEx = start + next
+				if iNdEx < 0 {
+					return 0, ErrInvalidLengthCodec
+				}
 			}
 			return iNdEx, nil
 		case 4:
@@ -1667,30 +1713,3 @@ var (
 	ErrInvalidLengthCodec = fmt.Errorf("proto: negative length found during unmarshaling")
 	ErrIntOverflowCodec   = fmt.Errorf("proto: integer overflow")
 )
-
-func init() { proto.RegisterFile("x/escrow/codec.proto", fileDescriptor_codec_f219ed13388eed8a) }
-
-var fileDescriptor_codec_f219ed13388eed8a = []byte{
-	// 331 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xcc, 0x92, 0xc1, 0x4a, 0xc3, 0x40,
-	0x10, 0x86, 0xdd, 0xa6, 0x46, 0x3b, 0x0a, 0x2d, 0x8b, 0x94, 0x45, 0x25, 0x84, 0x9c, 0xe2, 0xc1,
-	0x04, 0xf4, 0x0d, 0x2c, 0x1e, 0x3c, 0x08, 0x12, 0xf1, 0x2c, 0xe9, 0x66, 0xa8, 0x0b, 0x66, 0xa7,
-	0x6c, 0x36, 0xad, 0x2f, 0xe0, 0xdd, 0xe7, 0x10, 0x7c, 0x0f, 0x8f, 0x3e, 0x82, 0xd4, 0x17, 0x91,
-	0x26, 0xa9, 0x2d, 0x42, 0xd5, 0xa3, 0xb7, 0x99, 0xf9, 0x99, 0xd9, 0x8f, 0x7f, 0x7f, 0xd8, 0x7b,
-	0x88, 0xb1, 0x90, 0x86, 0xa6, 0xb1, 0xa4, 0x0c, 0x65, 0x34, 0x36, 0x64, 0x89, 0xbb, 0xf5, 0x6c,
-	0xff, 0x68, 0xa4, 0xec, 0x5d, 0x39, 0x8c, 0x24, 0xe5, 0xb1, 0xa2, 0xc9, 0x31, 0x69, 0x8c, 0xa7,
-	0x98, 0x4e, 0x30, 0x96, 0xa4, 0xf4, 0xea, 0x4a, 0xf0, 0xcc, 0xc0, 0x3d, 0xaf, 0xb6, 0x78, 0x1f,
-	0xdc, 0x02, 0x75, 0x86, 0x46, 0x30, 0x9f, 0x85, 0xbb, 0x49, 0xd3, 0x71, 0x01, 0x5b, 0xa9, 0x19,
-	0x2a, 0x8b, 0x46, 0xb4, 0x2a, 0x61, 0xd1, 0xf2, 0x43, 0xe8, 0x18, 0x94, 0x6a, 0xac, 0x50, 0x5b,
-	0xe1, 0x54, 0xda, 0x72, 0xc0, 0x03, 0x70, 0xd3, 0x9c, 0x4a, 0x6d, 0x45, 0xdb, 0x77, 0xc2, 0x9d,
-	0x13, 0x88, 0xe6, 0xaf, 0x47, 0x03, 0x52, 0x3a, 0x69, 0x94, 0xf9, 0x6d, 0xab, 0x72, 0xa4, 0xd2,
-	0x8a, 0x4d, 0x9f, 0x85, 0x4e, 0xb2, 0x68, 0x39, 0x87, 0x76, 0x8e, 0x39, 0x09, 0xd7, 0x67, 0x61,
-	0x27, 0xa9, 0xea, 0xe0, 0x85, 0x41, 0x77, 0x60, 0x30, 0xb5, 0x58, 0x23, 0x5f, 0x16, 0x23, 0xde,
-	0x03, 0xa7, 0x30, 0xb2, 0x41, 0x9e, 0x97, 0xff, 0x88, 0xf7, 0x1a, 0x7a, 0x09, 0xde, 0x63, 0x5a,
-	0xac, 0xf0, 0x1e, 0x40, 0xa7, 0xfe, 0xa5, 0x5b, 0x95, 0x35, 0xd4, 0xdb, 0xf5, 0xe0, 0x22, 0x5b,
-	0x41, 0x68, 0xad, 0x43, 0x08, 0x22, 0xe8, 0x26, 0x68, 0x4b, 0xa3, 0xff, 0x76, 0x33, 0x78, 0x64,
-	0xd0, 0xbf, 0x19, 0x67, 0x5f, 0xa6, 0x5d, 0xa5, 0xc6, 0x2a, 0x2c, 0x7e, 0x65, 0x59, 0xc6, 0xa1,
-	0xb5, 0x2e, 0x0e, 0xce, 0x0f, 0xf6, 0xb6, 0xbf, 0xd9, 0x7b, 0xd6, 0x7b, 0x9d, 0x79, 0xec, 0x6d,
-	0xe6, 0xb1, 0xf7, 0x99, 0xc7, 0x9e, 0x3e, 0xbc, 0x8d, 0xa1, 0x5b, 0x45, 0xf0, 0xf4, 0x33, 0x00,
-	0x00, 0xff, 0xff, 0xa5, 0xc0, 0x71, 0xa1, 0xcd, 0x02, 0x00, 0x00,
-}

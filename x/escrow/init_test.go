@@ -54,9 +54,6 @@ func TestGenesisKey(t *testing.T) {
 	e, ok := obj.Value().(*Escrow)
 	require.True(t, ok)
 
-	require.Len(t, e.Amount, 2)
-	assert.Equal(t, coin.Coin{Ticker: "ALX", Whole: 987654321}, *e.Amount[0])
-	assert.Equal(t, coin.Coin{Ticker: "IOV", Whole: 123456789}, *e.Amount[1])
 	assert.Equal(t, int64(9223372036854775807), e.Timeout)
 	assert.Equal(t, "c30a2424104f542576ef01feca2ff558f5eaa61a", hex.EncodeToString(e.Recipient))
 	assert.Equal(t, "0000000000000000000000000000000000000000", hex.EncodeToString(e.Sender))
@@ -66,7 +63,7 @@ func TestGenesisKey(t *testing.T) {
 
 	balance, err := cashCtrl.Balance(db, Condition(obj.Key()).Address())
 	require.NoError(t, err)
-	require.Len(t, e.Amount, 2)
+	require.Len(t, balance, 2)
 	assert.Equal(t, coin.Coin{Ticker: "ALX", Whole: 987654321}, *balance[0])
 	assert.Equal(t, coin.Coin{Ticker: "IOV", Whole: 123456789}, *balance[1])
 }

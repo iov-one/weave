@@ -2,7 +2,7 @@ package escrow
 
 import (
 	"github.com/iov-one/weave"
-	coin "github.com/iov-one/weave/coin"
+	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/x"
@@ -17,19 +17,13 @@ const (
 	updateEscrowCost  int64 = 50
 )
 
-type escrowOperations interface {
-	Deposit(db weave.KVStore, escrow *Escrow, escrowID []byte, src weave.Address, amounts coin.Coins) error
-	Withdraw(db weave.KVStore, escrow *Escrow, escrowID []byte, dest weave.Address, amounts coin.Coins) error
-}
-
 // RegisterRoutes will instantiate and register
 // all handlers in this package
 func RegisterRoutes(r weave.Registry, auth x.Authenticator, cashctrl cash.Controller) {
 	bucket := NewBucket()
-	control := NewController(cashctrl, bucket)
-	r.Handle(pathCreateEscrowMsg, CreateEscrowHandler{auth, bucket, control})
-	r.Handle(pathReleaseEscrowMsg, ReleaseEscrowHandler{auth, bucket, control})
-	r.Handle(pathReturnEscrowMsg, ReturnEscrowHandler{auth, bucket, control})
+	r.Handle(pathCreateEscrowMsg, CreateEscrowHandler{auth, bucket, cashctrl})
+	r.Handle(pathReleaseEscrowMsg, ReleaseEscrowHandler{auth, bucket, cashctrl})
+	r.Handle(pathReturnEscrowMsg, ReturnEscrowHandler{auth, bucket, cashctrl})
 	r.Handle(pathUpdateEscrowPartiesMsg, UpdateEscrowHandler{auth, bucket})
 }
 
@@ -44,7 +38,7 @@ func RegisterQuery(qr weave.QueryRouter) {
 type CreateEscrowHandler struct {
 	auth   x.Authenticator
 	bucket Bucket
-	ops    escrowOperations
+	bank   cash.CoinMover
 }
 
 var _ weave.Handler = CreateEscrowHandler{}
@@ -64,7 +58,7 @@ func (h CreateEscrowHandler) Check(ctx weave.Context, db weave.KVStore,
 	return res, nil
 }
 
-// Deliver moves the tokens from sender to receiver if
+// Deliver moves the tokens from sender to the escrow account if
 // all preconditions are met
 func (h CreateEscrowHandler) Deliver(ctx weave.Context, db weave.KVStore,
 	tx weave.Tx) (weave.DeliverResult, error) {
@@ -89,12 +83,16 @@ func (h CreateEscrowHandler) Deliver(ctx weave.Context, db weave.KVStore,
 		Memo:      msg.Memo,
 	}
 	obj := h.bucket.Build(db, escrow)
-	if err := h.ops.Deposit(db, escrow, obj.Key(), sender, msg.Amount); err != nil {
+
+	// deposit amounts
+	escrowAddr := Condition(obj.Key()).Address()
+	senderAddr := weave.Address(escrow.Sender)
+	if err := moveCoins(db, h.bank, senderAddr, escrowAddr, msg.Amount); err != nil {
 		return res, err
 	}
 	// return id of escrow to use in future calls
 	res.Data = obj.Key()
-	return res, err
+	return res, h.bucket.Save(db, obj)
 }
 
 // validate does all common pre-processing between Check and Deliver
@@ -129,8 +127,6 @@ func (h CreateEscrowHandler) validate(ctx weave.Context, db weave.KVStore,
 		}
 	}
 
-	// TODO: check balance? or just error on deliver?
-
 	return msg, nil
 }
 
@@ -140,7 +136,7 @@ func (h CreateEscrowHandler) validate(ctx weave.Context, db weave.KVStore,
 type ReleaseEscrowHandler struct {
 	auth   x.Authenticator
 	bucket Bucket
-	ops    escrowOperations
+	bank   cash.Controller
 }
 
 var _ weave.Handler = ReleaseEscrowHandler{}
@@ -160,8 +156,8 @@ func (h ReleaseEscrowHandler) Check(ctx weave.Context, db weave.KVStore,
 	return res, nil
 }
 
-// Deliver moves the tokens from sender to receiver if
-// all preconditions are met
+// Deliver moves the tokens from escrow account to the receiver if
+// all preconditions are met. When the escrow account is empty it is deleted.
 func (h ReleaseEscrowHandler) Deliver(ctx weave.Context, db weave.KVStore,
 	tx weave.Tx) (weave.DeliverResult, error) {
 	var res weave.DeliverResult
@@ -172,25 +168,31 @@ func (h ReleaseEscrowHandler) Deliver(ctx weave.Context, db weave.KVStore,
 
 	// use amount in message, or
 	request := coin.Coins(msg.Amount)
-	available := coin.Coins(escrow.Amount)
+	key := msg.EscrowId
+	escrowAddr := Condition(key).Address()
 	if len(request) == 0 {
+		available, err := h.bank.Balance(db, escrowAddr)
+		if err != nil {
+			return res, err
+		}
 		request = available
-
-		// TODO: add functionality to compare two sets
-		// } else if !available.Contains(request) {
-		// 	// ensure there is enough to pay
-		// 	return res, cash.ErrInsufficientFundsLegacy()
 	}
 
-	// move the money from escrow to recipient
-	key := msg.EscrowId
-	dest := weave.Address(escrow.Recipient)
-	if err := h.ops.Withdraw(db, escrow, key, dest, request); err != nil {
+	// withdraw the money from escrow to recipient
+	recipientAddr := weave.Address(escrow.Recipient)
+	if err := moveCoins(db, h.bank, escrowAddr, recipientAddr, request); err != nil {
 		return res, err
 	}
 
-	if coin.Coins(escrow.Amount).IsPositive() {
+	// clean up
+	remainingCoins, err := h.bank.Balance(db, escrowAddr)
+	switch {
+	case err != nil:
+		return res, err
+	case remainingCoins.IsPositive():
 		res.Data = key
+	default: // delete escrow when empty
+		err = h.bucket.Delete(db, key)
 	}
 	return res, err
 }
@@ -240,7 +242,7 @@ func (h ReleaseEscrowHandler) validate(ctx weave.Context, db weave.KVStore,
 type ReturnEscrowHandler struct {
 	auth   x.Authenticator
 	bucket Bucket
-	ops    escrowOperations
+	bank   cash.Controller
 }
 
 var _ weave.Handler = ReturnEscrowHandler{}
@@ -260,8 +262,8 @@ func (h ReturnEscrowHandler) Check(ctx weave.Context, db weave.KVStore,
 	return res, nil
 }
 
-// Deliver moves the tokens from sender to receiver if
-// all preconditions are met
+// Deliver moves all the tokens from the escrow to the defined sender if
+// all preconditions are met. The escrow is deleted afterwards.
 func (h ReturnEscrowHandler) Deliver(ctx weave.Context, db weave.KVStore,
 	tx weave.Tx) (weave.DeliverResult, error) {
 	var res weave.DeliverResult
@@ -270,13 +272,19 @@ func (h ReturnEscrowHandler) Deliver(ctx weave.Context, db weave.KVStore,
 		return res, err
 	}
 
-	// move the money from escrow to recipient
-	dest := weave.Address(escrow.Sender)
-	if err := h.ops.Withdraw(db, escrow, key, dest, escrow.Amount); err != nil {
+	// query current escrow balance
+	escrowAddr := Condition(key).Address()
+	available, err := h.bank.Balance(db, escrowAddr)
+	if err != nil {
 		return res, err
 	}
-	// returns error if Delete failed
-	return res, err
+
+	// withdraw all coins from escrow to the defined "sender"
+	dest := weave.Address(escrow.Sender)
+	if err := moveCoins(db, h.bank, escrowAddr, dest, available); err != nil {
+		return res, err
+	}
+	return res, h.bucket.Delete(db, key)
 }
 
 // validate does all common pre-processing between Check and Deliver
@@ -337,8 +345,8 @@ func (h UpdateEscrowHandler) Check(ctx weave.Context, db weave.KVStore,
 	return res, nil
 }
 
-// Deliver moves the tokens from sender to receiver if
-// all preconditions are met
+// Deliver updates the any of the sender, recipient or arbiter if
+// all preconditions are met. No coins are moved.
 func (h UpdateEscrowHandler) Deliver(ctx weave.Context, db weave.KVStore,
 	tx weave.Tx) (weave.DeliverResult, error) {
 	var res weave.DeliverResult
@@ -430,4 +438,14 @@ func loadEscrow(bucket Bucket, db weave.KVStore, escrowID []byte) (*Escrow, erro
 		return nil, errors.ErrEmpty.Newf("escrow %d", escrowID)
 	}
 	return escrow, nil
+}
+
+func moveCoins(db weave.KVStore, bank cash.CoinMover, src, dest weave.Address, amounts []*coin.Coin) error {
+	for _, c := range amounts {
+		err := bank.MoveCoins(db, src, dest, *c)
+		if err != nil {
+			return errors.Wrapf(err, "failed to move %q", c.String())
+		}
+	}
+	return nil
 }
