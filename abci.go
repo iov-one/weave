@@ -1,8 +1,6 @@
 package weave
 
 import (
-	"fmt"
-
 	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/errors"
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -106,16 +104,10 @@ type TickResult struct {
 // preserving as much info as possible if it was already
 // a TMError
 func DeliverTxError(err error, debug bool) abci.ResponseDeliverTx {
-	clean := errors.Redact(err)
-	tm := errors.Wrap(clean, "cannot deliver tx")
-
-	log := tm.ABCILog()
-	if debug {
-		log = fmt.Sprintf("%v", tm)
-	}
-
+	err = errors.Redact(err, debug)
+	code, log := errors.ABCIInfo(err)
 	return abci.ResponseDeliverTx{
-		Code: tm.ABCICode(),
+		Code: code,
 		Log:  log,
 	}
 }
@@ -124,16 +116,10 @@ func DeliverTxError(err error, debug bool) abci.ResponseDeliverTx {
 // preserving as much info as possible if it was already
 // a TMError
 func CheckTxError(err error, debug bool) abci.ResponseCheckTx {
-	clean := errors.Redact(err)
-	tm := errors.Wrap(clean, "cannot check tx")
-
-	log := tm.ABCILog()
-	if debug {
-		log = fmt.Sprintf("%v", tm)
-	}
-
+	err = errors.Redact(err, debug)
+	code, log := errors.ABCIInfo(err)
 	return abci.ResponseCheckTx{
-		Code: tm.ABCICode(),
+		Code: code,
 		Log:  log,
 	}
 }

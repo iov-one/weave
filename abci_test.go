@@ -11,16 +11,18 @@ import (
 )
 
 func TestCreateErrorResult(t *testing.T) {
+	const internalCode = 1
+
 	cases := []struct {
 		err  error
 		msg  string
 		code uint32
 	}{
-		{errors.NormalizePanic("stdlib"), "internal", errors.ErrInternal.ABCICode()},
-		{fmt.Errorf("base"), "base", errors.ErrInternal.ABCICode()},
-		{pkerr.New("dave"), "dave", errors.ErrInternal.ABCICode()},
-		{errors.Wrap(fmt.Errorf("demo"), "wrapped"), "wrapped: demo", errors.ErrInternal.ABCICode()},
-		{errors.ErrInvalidInput.New("unable to decode"), errors.ErrInvalidInput.New("unable to decode").Error(), errors.ErrInvalidInput.ABCICode()},
+		{errors.ErrPanic, "internal", internalCode},
+		{fmt.Errorf("base"), "base", internalCode},
+		{pkerr.New("dave"), "dave", internalCode},
+		{errors.Wrap(fmt.Errorf("demo"), "wrapped"), "wrapped: demo", internalCode},
+		{errors.ErrInvalidInput.New("unable to decode"), errors.ErrInvalidInput.New("unable to decode").Error(), internalCode},
 	}
 
 	for i, tc := range cases {
