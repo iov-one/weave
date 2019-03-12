@@ -14,7 +14,7 @@ func TestRevenueValidate(t *testing.T) {
 
 	cases := map[string]struct {
 		model   Revenue
-		wantErr error
+		wantErr *errors.Error
 	}{
 		"valid model": {
 			model: Revenue{
@@ -63,7 +63,7 @@ func TestRevenueValidate(t *testing.T) {
 
 	for testName, tc := range cases {
 		t.Run(testName, func(t *testing.T) {
-			if err := tc.model.Validate(); !errors.Is(tc.wantErr, err) {
+			if err := tc.model.Validate(); !tc.wantErr.Is(err) {
 				t.Logf("want %q", tc.wantErr)
 				t.Logf("got %q", err)
 				t.Fatal("unexpected validation result")
@@ -75,8 +75,8 @@ func TestRevenueValidate(t *testing.T) {
 func TestValidRecipients(t *testing.T) {
 	cases := map[string]struct {
 		recipients []*Recipient
-		baseErr    errors.Error
-		want       error
+		baseErr    *errors.Error
+		want       *errors.Error
 	}{
 		"all good": {
 			recipients: []*Recipient{
@@ -110,7 +110,7 @@ func TestValidRecipients(t *testing.T) {
 
 	for testName, tc := range cases {
 		t.Run(testName, func(t *testing.T) {
-			if err := validateRecipients(tc.recipients, tc.baseErr); !errors.Is(tc.want, err) {
+			if err := validateRecipients(tc.recipients, tc.baseErr); !tc.want.Is(err) {
 				t.Fatalf("%+v", err)
 			}
 		})

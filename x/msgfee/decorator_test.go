@@ -15,9 +15,9 @@ func TestFeeDecorator(t *testing.T) {
 		InitFees       []MsgFee
 		Tx             weave.Tx
 		Handler        weave.Handler
-		WantCheckErr   error
+		WantCheckErr   *errors.Error
 		WantCheckFee   coin.Coin
-		WantDeliverErr error
+		WantDeliverErr *errors.Error
 		WantDeliverFee coin.Coin
 	}{
 		"message fee with no previous fee": {
@@ -100,7 +100,7 @@ func TestFeeDecorator(t *testing.T) {
 			}
 
 			cres, err := decorator.Check(nil, db, tc.Tx, tc.Handler)
-			if !errors.Is(tc.WantCheckErr, err) {
+			if !tc.WantCheckErr.Is(err) {
 				t.Fatalf("check returned an unexpected error: %v", err)
 			}
 			if !tc.WantCheckFee.Equals(cres.RequiredFee) {
@@ -108,7 +108,7 @@ func TestFeeDecorator(t *testing.T) {
 			}
 
 			dres, err := decorator.Deliver(nil, db, tc.Tx, tc.Handler)
-			if !errors.Is(tc.WantDeliverErr, err) {
+			if !tc.WantDeliverErr.Is(err) {
 				t.Fatalf("deliver returned an unexpected error: %v", err)
 			}
 			if !tc.WantDeliverFee.Equals(dres.RequiredFee) {

@@ -158,7 +158,7 @@ func TestAddCoin(t *testing.T) {
 	cases := map[string]struct {
 		a, b    Coin
 		wantRes Coin
-		wantErr error
+		wantErr *errors.Error
 	}{
 		"plus and minus equals 0": {
 			a:       base,
@@ -207,11 +207,11 @@ func TestAddCoin(t *testing.T) {
 	for testName, tc := range cases {
 		t.Run(testName, func(t *testing.T) {
 			res, err := tc.a.Add(tc.b)
-			if !errors.Is(tc.wantErr, err) {
+			if !tc.wantErr.Is(err) {
 				t.Fatalf("got error: %v", err)
 			}
-			if tc.wantErr == nil {
-				assert.Equal(t, tc.wantRes, res)
+			if tc.wantErr == nil && !tc.wantRes.Equals(res) {
+				t.Fatalf("unexepcted result: %v", res)
 			}
 		})
 	}
@@ -288,7 +288,7 @@ func TestCoinDivide(t *testing.T) {
 		pieces   int64
 		wantOne  Coin
 		wantRest Coin
-		wantErr  error
+		wantErr  *errors.Error
 	}{
 		"split into one piece": {
 			total:    NewCoin(7, 11, "BTC"),
@@ -351,7 +351,7 @@ func TestCoinDivide(t *testing.T) {
 			if !gotRest.Equals(tc.wantRest) {
 				t.Errorf("got rest %v", gotRest)
 			}
-			if !errors.Is(tc.wantErr, err) {
+			if !tc.wantErr.Is(err) {
 				t.Errorf("got err %+v", err)
 			}
 		})
@@ -363,7 +363,7 @@ func TestCoinMultiply(t *testing.T) {
 		coin    Coin
 		times   int64
 		want    Coin
-		wantErr error
+		wantErr *errors.Error
 	}{
 		"zero value coin": {
 			coin:  NewCoin(0, 0, "DOGE"),
@@ -429,14 +429,12 @@ func TestCoinMultiply(t *testing.T) {
 	for testName, tc := range cases {
 		t.Run(testName, func(t *testing.T) {
 			got, err := tc.coin.Multiply(tc.times)
-			if !errors.Is(tc.wantErr, err) {
+			if !tc.wantErr.Is(err) {
 				t.Logf("got coin: %+v", got)
 				t.Fatalf("got error %v", err)
 			}
-			if tc.wantErr == nil {
-				if !got.Equals(tc.want) {
-					t.Fatalf("got %v", got)
-				}
+			if !got.Equals(tc.want) {
+				t.Fatalf("got %v", got)
 			}
 		})
 	}

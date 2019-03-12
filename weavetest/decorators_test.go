@@ -31,12 +31,12 @@ func TestDecoratorWithError(t *testing.T) {
 	var handler weave.Handler = nil
 
 	_, err := d.Check(nil, nil, nil, handler)
-	if want := errors.ErrUnauthorized; !errors.Is(want, err) {
+	if want := errors.ErrUnauthorized; !want.Is(err) {
 		t.Errorf("want %q, got %q", want, err)
 	}
 
 	_, err = d.Deliver(nil, nil, nil, handler)
-	if want := errors.ErrNotFound; !errors.Is(want, err) {
+	if want := errors.ErrNotFound; !want.Is(err) {
 		t.Errorf("want %q, got %q", want, err)
 	}
 }

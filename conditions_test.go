@@ -3,14 +3,14 @@ package weave_test
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"reflect"
 	"testing"
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
 	. "github.com/smartystreets/goconvey/convey"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestAddressPrinting(t *testing.T) {
@@ -31,7 +31,7 @@ func TestAddressPrinting(t *testing.T) {
 func TestAddressUnmarshalJSON(t *testing.T) {
 	cases := map[string]struct {
 		json     string
-		wantErr  error
+		wantErr  *errors.Error
 		wantAddr weave.Address
 	}{
 		"default decoding": {
@@ -76,7 +76,7 @@ func TestAddressUnmarshalJSON(t *testing.T) {
 		t.Run(testName, func(t *testing.T) {
 			var a weave.Address
 			err := json.Unmarshal([]byte(tc.json), &a)
-			if !errors.Is(tc.wantErr, err) {
+			if !tc.wantErr.Is(err) {
 				t.Fatalf("got error: %+v", err)
 			}
 			if err == nil && !reflect.DeepEqual(a, tc.wantAddr) {
@@ -89,7 +89,7 @@ func TestAddressUnmarshalJSON(t *testing.T) {
 func TestConditionUnmarshalJSON(t *testing.T) {
 	cases := map[string]struct {
 		json          string
-		wantErr       error
+		wantErr       *errors.Error
 		wantCondition weave.Condition
 	}{
 		"default decoding": {
@@ -114,7 +114,7 @@ func TestConditionUnmarshalJSON(t *testing.T) {
 		t.Run(testName, func(t *testing.T) {
 			var got weave.Condition
 			err := json.Unmarshal([]byte(tc.json), &got)
-			if !errors.Is(tc.wantErr, err) {
+			if !tc.wantErr.Is(err) {
 				t.Fatalf("got error: %+v", err)
 			}
 			if err == nil && !got.Equals(tc.wantCondition) {

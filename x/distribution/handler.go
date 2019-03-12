@@ -250,7 +250,7 @@ func distribute(db weave.KVStore, ctrl CashController, source weave.Address, rec
 		if err != nil {
 			return errors.Wrap(err, "cannot normalize balance")
 		}
-	case errors.Is(errors.ErrNotFound, err):
+	case errors.ErrNotFound.Is(err):
 		// Account does not exist, so there is are no funds to split.
 		return nil
 	default:

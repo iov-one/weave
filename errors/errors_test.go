@@ -14,7 +14,7 @@ import (
 func TestErrors(t *testing.T) {
 	cases := map[string]struct {
 		err      error
-		wantRoot Error
+		wantRoot *Error
 		wantMsg  string
 		wantLog  string
 	}{
@@ -129,46 +129,93 @@ func TestCause(t *testing.T) {
 	}
 }
 
-func TestIs(t *testing.T) {
+func TestErrorIs(t *testing.T) {
 	cases := map[string]struct {
-		a      error
+		a      *Error
 		b      error
 		wantIs bool
 	}{
+		"instance of the same error": {
+			a:      ErrNotFound,
+			b:      ErrNotFound,
+			wantIs: true,
+		},
 		"instance of the same error, even if internal": {
 			a:      ErrInternal,
 			b:      ErrInternal,
 			wantIs: true,
-		},
-		"two different internal errors": {
-			a:      fmt.Errorf("one"),
-			b:      fmt.Errorf("two"),
-			wantIs: false,
 		},
 		"two different coded errors": {
 			a:      ErrNotFound,
 			b:      ErrInvalidModel,
 			wantIs: false,
 		},
-		"two different internal and wrapped  errors": {
-			a:      Wrap(fmt.Errorf("a not found"), "where is a?"),
-			b:      Wrap(ErrInternal, "b not found"),
+		"successful comparison to a wrapped error": {
+			a:      ErrNotFound,
+			b:      errors.Wrap(ErrNotFound, "gone"),
+			wantIs: true,
+		},
+		"unsuccessful comparison to a wrapped error": {
+			a:      ErrNotFound,
+			b:      errors.Wrap(ErrOverflow, "too big"),
 			wantIs: false,
 		},
-		"two equal coded errors": {
-			a:      Wrap(ErrNotFound, "a not found"),
-			b:      Wrap(ErrNotFound, "b not found"),
+		"not equal to stdlib error": {
+			a:      ErrNotFound,
+			b:      fmt.Errorf("stdlib error"),
+			wantIs: false,
+		},
+		"not equal to a wrapped stdlib error": {
+			a:      ErrNotFound,
+			b:      errors.Wrap(fmt.Errorf("stdlib error"), "wrapped"),
+			wantIs: false,
+		},
+		"internal error is not equal to a stdlib error": {
+			a:      ErrInternal,
+			b:      fmt.Errorf("stdlib error"),
+			wantIs: false,
+		},
+		"internal error is not equal to a wrapped stdlib error": {
+			a:      ErrInternal,
+			b:      errors.Wrap(fmt.Errorf("stdlib error"), "w-rap"),
+			wantIs: false,
+		},
+		"nil is nil": {
+			a:      nil,
+			b:      nil,
 			wantIs: true,
+		},
+		"nil is any error nil": {
+			a:      nil,
+			b:      (*customError)(nil),
+			wantIs: true,
+		},
+		"nil is not not-nil": {
+			a:      nil,
+			b:      ErrNotFound,
+			wantIs: false,
+		},
+		"not-nil is not nil": {
+			a:      ErrNotFound,
+			b:      nil,
+			wantIs: false,
 		},
 	}
 
 	for testName, tc := range cases {
 		t.Run(testName, func(t *testing.T) {
-			if got := Is(tc.a, tc.b); got != tc.wantIs {
+			if got := tc.a.Is(tc.b); got != tc.wantIs {
 				t.Fatal("unexpected result")
 			}
 		})
 	}
+}
+
+type customError struct {
+}
+
+func (customError) Error() string {
+	return "custom error"
 }
 
 func TestWrapEmpty(t *testing.T) {
@@ -252,34 +299,5 @@ func TestStackTrace(t *testing.T) {
 			// contains a link to where it was created, which must be here, not the Wrap() function
 			assert.True(t, strings.Contains(medium, "[iov-one/weave/errors/errors_test.go"))
 		})
-	}
-}
-
-// CheckErr is the type of all the check functions here
-type CheckErr func(error) bool
-
-// NoErr is useful for test cases when you want to fulfil the CheckErr type
-func NoErr(err error) bool {
-	return err == nil
-}
-
-// TestChecks make sure the Is and Err methods match
-func TestChecks(t *testing.T) {
-	cases := []struct {
-		err   error
-		check CheckErr
-		match bool
-	}{
-
-		// make sure lots of things match ErrInternal, but not everything
-		{Wrap(fmt.Errorf("internal"), "wrapped"),
-			func(err error) bool { return !Is(err, ErrInternal.New("wrapped")) }, true},
-		{nil, NoErr, true},
-		{Wrap(nil, "asd"), NoErr, true},
-	}
-
-	for i, tc := range cases {
-		match := tc.check(tc.err)
-		assert.Equal(t, tc.match, match, "%d", i)
 	}
 }

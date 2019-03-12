@@ -326,7 +326,7 @@ func TestHandlers(t *testing.T) {
 
 			for i, a := range tc.actions {
 				cache := db.CacheWrap()
-				if _, err := rt.Check(a.ctx(), cache, a.tx()); !errors.Is(err, a.wantCheckErr) {
+				if _, err := rt.Check(a.ctx(), cache, a.tx()); !a.wantCheckErr.Is(err) {
 					t.Logf("want: %+v", a.wantCheckErr)
 					t.Logf(" got: %+v", err)
 					t.Fatalf("action %d check (%T)", i, a.msg)
@@ -337,7 +337,7 @@ func TestHandlers(t *testing.T) {
 					continue
 				}
 
-				if _, err := rt.Deliver(a.ctx(), db, a.tx()); !errors.Is(err, a.wantDeliverErr) {
+				if _, err := rt.Deliver(a.ctx(), db, a.tx()); !a.wantDeliverErr.Is(err) {
 					t.Logf("want: %+v", a.wantDeliverErr)
 					t.Logf(" got: %+v", err)
 					t.Fatalf("action %d delivery (%T)", i, a.msg)
@@ -370,8 +370,8 @@ type action struct {
 	conditions     []weave.Condition
 	msg            weave.Msg
 	blocksize      int64
-	wantCheckErr   error
-	wantDeliverErr error
+	wantCheckErr   *errors.Error
+	wantDeliverErr *errors.Error
 }
 
 func (a *action) tx() weave.Tx {
@@ -438,7 +438,7 @@ func TestDistribute(t *testing.T) {
 		// of a movecall. Those can be used later to validate that
 		// certain MoveCoins calls were made.
 		wantMoves []movecall
-		wantErr   error
+		wantErr   *errors.Error
 	}{
 		"zero funds is not distributed": {
 			recipients: []*Recipient{
@@ -512,7 +512,7 @@ func TestDistribute(t *testing.T) {
 		t.Run(testName, func(t *testing.T) {
 			src := weave.Address("address-source")
 			err := distribute(nil, tc.ctrl, src, tc.recipients)
-			if !errors.Is(tc.wantErr, err) {
+			if !tc.wantErr.Is(err) {
 				t.Errorf("want %q error, got %q", tc.wantErr, err)
 			}
 			if !reflect.DeepEqual(tc.wantMoves, tc.ctrl.moves) {

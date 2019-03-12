@@ -15,12 +15,12 @@ func TestHandlerWithError(t *testing.T) {
 	}
 
 	_, err := h.Check(nil, nil, nil)
-	if want := errors.ErrUnauthorized; !errors.Is(want, err) {
+	if want := errors.ErrUnauthorized; !want.Is(err) {
 		t.Errorf("want %q, got %q", want, err)
 	}
 
 	_, err = h.Deliver(nil, nil, nil)
-	if want := errors.ErrNotFound; !errors.Is(want, err) {
+	if want := errors.ErrNotFound; !want.Is(err) {
 		t.Errorf("want %q, got %q", want, err)
 	}
 }
