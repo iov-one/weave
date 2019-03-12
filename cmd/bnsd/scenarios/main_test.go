@@ -190,31 +190,23 @@ func initGenesis(filename string, addr weave.Address) (*tm.GenesisDoc, error) {
 		"gconf": map[string]interface{}{
 			cash.GconfCollectorAddress: "cond:dist/revenue/0000000000000001",
 			cash.GconfMinimalFee:       antiSpamFee,
-			"msgfee": []interface{}{
-				dict{
-					"msg_path": "distribution/newrevenue",
-					"fee":      coin.Coin{Ticker: "IOV", Whole: 2},
-				},
-				dict{
-					"msg_path": "distribution/distribute",
-					"fee":      coin.Coin{Ticker: "IOV", Whole: 0, Fractional: 200000000},
-				},
-				dict{
-					"msg_path": "distribution/resetRevenue",
-					"fee":      coin.Coin{Ticker: "IOV", Whole: 1},
-				},
-				dict{
-					"msg_path": "escrow/release",
-					"fee":      coin.Coin{Ticker: "IOV", Whole: 0, Fractional: 100000000},
-				},
-				dict{
-					"msg_path": "escrow/return",
-					"fee":      coin.Coin{Ticker: "IOV", Whole: 0, Fractional: 100000000},
-				},
-				dict{
-					"msg_path": "validators/update",
-					"fee":      coin.Coin{Ticker: "IOV", Whole: 0},
-				},
+		},
+		"msgfee": []interface{}{
+			dict{
+				"msg_path": "distribution/newrevenue",
+				"fee":      coin.Coin{Ticker: "IOV", Whole: 2},
+			},
+			dict{
+				"msg_path": "distribution/distribute",
+				"fee":      coin.Coin{Ticker: "IOV", Whole: 0, Fractional: 200000000},
+			},
+			dict{
+				"msg_path": "distribution/resetRevenue",
+				"fee":      coin.Coin{Ticker: "IOV", Whole: 1},
+			},
+			dict{
+				"msg_path": "nft/username/issue",
+				"fee":      coin.Coin{Ticker: "IOV", Whole: 5},
 			},
 		},
 	}, "", "  ")

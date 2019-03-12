@@ -1,6 +1,7 @@
 package app_test
 
 import (
+	"github.com/iov-one/weave/coin"
 	"testing"
 
 	weave_app "github.com/iov-one/weave/app"
@@ -13,7 +14,7 @@ import (
 
 func TestIssueNfts(t *testing.T) {
 	appFixture := fixtures.NewApp()
-	isuserAddr := appFixture.GenesisKeyAddress
+	issuerAddr := appFixture.GenesisKeyAddress
 	issuerPrivKey := appFixture.GenesisKey
 
 	myApp := appFixture.Build()
@@ -23,7 +24,7 @@ func TestIssueNfts(t *testing.T) {
 		Sum: &app.Tx_IssueUsernameNftMsg{
 			IssueUsernameNftMsg: &username.IssueTokenMsg{
 				ID:    []byte("anybody@example.com"),
-				Owner: isuserAddr,
+				Owner: issuerAddr,
 				Details: username.TokenDetails{
 					Addresses: []username.ChainAddress{
 						{BlockchainID: myBlockchainID, Address: "myChainAddress"},
@@ -32,7 +33,7 @@ func TestIssueNfts(t *testing.T) {
 			},
 		},
 	}
-
+	tx.Fee(issuerAddr, coin.NewCoin(5, 0, "FRNK"))
 	res := signAndCommit(t, myApp, tx, []Signer{{issuerPrivKey, 0}}, appFixture.ChainID, 3)
 	require.EqualValues(t, 0, res.Code)
 
