@@ -6,6 +6,18 @@ import (
 	"reflect"
 )
 
+const (
+	// ABCI response use 0 to signal that the processing was successful and
+	// no error is returned.
+	successABCICode = 0
+
+	// All unclassified errors that do not provide an ABCI code are clubbed
+	// under an internal error code and a generic message instead of
+	// detailed error string.
+	internalABCICode = 1
+	internalABCILog  = "internal error"
+)
+
 // ABCIInfo returns the ABCI error information as consumed by the tenderemint
 // client. Returned code and log message should be used as a ABCI response.
 // Any error that does not provide ABCICode information is categorized as error
@@ -15,7 +27,7 @@ import (
 // without an ABCICode information as considered internal.
 func ABCIInfo(err error, debug bool) (uint32, string) {
 	if errIsNil(err) {
-		return notErrorCode, ""
+		return successABCICode, ""
 	}
 
 	// Only non-internal errors information can be exposed. Any error that
@@ -39,24 +51,12 @@ func ABCIInfo(err error, debug bool) (uint32, string) {
 	return internalABCICode, internalABCILog
 }
 
-const (
-	// ABCI response use 0 to signal that the processing was successful and
-	// no error is returned.
-	notErrorCode = 0
-
-	// All unclassified errors that do not provide an ABCI code are clubbed
-	// under an internal error code and a generic message instead of
-	// detailed error string.
-	internalABCICode = 1
-	internalABCILog  = "internal error"
-)
-
 // abciCode test if given error contains an ABCI code and returns the value of
 // it if available. This function is testing for the causer interface as well
 // and unwraps the error.
 func abciCode(err error) uint32 {
 	if errIsNil(err) {
-		return notErrorCode
+		return successABCICode
 	}
 
 	type coder interface {
