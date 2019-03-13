@@ -3,10 +3,9 @@ package currency
 import (
 	"regexp"
 
+	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/errors"
-
-	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/orm"
 )
 
@@ -56,7 +55,7 @@ func (b *TokenInfoBucket) Save(db weave.KVStore, obj orm.Object) error {
 		return errors.WithType(errors.ErrInvalidModel, obj.Value())
 	}
 	if n := string(obj.Key()); !coin.IsCC(n) {
-		return coin.ErrInvalidCurrency.New(n)
+		return errors.Wrapf(errors.ErrCurrency, "invalid ticker: %s", n)
 	}
 	return b.Bucket.Save(db, obj)
 }

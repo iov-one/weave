@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/iov-one/weave"
-	coin "github.com/iov-one/weave/coin"
+	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/store"
@@ -132,7 +132,7 @@ func TestNewTokenHandler(t *testing.T) {
 		"wrong message type": {[]weave.Condition{perm1}, addr1, nil, new(cash.SendMsg),
 			errors.ErrInvalidMsg.Is, errors.ErrInvalidMsg.Is, "", nil},
 		"invalid ticker symbol": {[]weave.Condition{perm1}, addr1, nil, BuildTokenMsg("YO", "digga", 7),
-			coin.ErrInvalidCurrency.Is, coin.ErrInvalidCurrency.Is, "", nil},
+			errors.ErrCurrency.Is, errors.ErrCurrency.Is, "", nil},
 		"invalid token name": {[]weave.Condition{perm1}, addr1, nil, BuildTokenMsg("GOOD", "ill3glz!", 7),
 			errors.ErrInvalidInput.Is, errors.ErrInvalidInput.Is, "", nil},
 		"invalid sig figs": {[]weave.Condition{perm1}, addr1, nil, BuildTokenMsg("GOOD", "my good token", 17),

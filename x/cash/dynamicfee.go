@@ -198,7 +198,9 @@ func (d DynamicFeeDecorator) extractFee(ctx weave.Context, tx weave.Tx, store we
 		return nil, errors.ErrHuman.New("minumal fee curency not set")
 	}
 	if !txFee.SameType(minFee) {
-		return nil, coin.ErrInvalidCurrency.Newf("min fee is %s and tx fee is %s", minFee.Ticker, txFee.Ticker)
+		err := errors.Wrapf(errors.ErrCurrency,
+			"min fee is %s and tx fee is %s", minFee.Ticker, txFee.Ticker)
+		return nil, err
 
 	}
 	if !txFee.IsGTE(minFee) {

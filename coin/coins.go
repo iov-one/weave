@@ -7,9 +7,8 @@ import (
 	"github.com/iov-one/weave/errors"
 )
 
-//--------------------- Coins -------------------------
-
-// Coins is a
+// Coins represents a set of coins. Most operations on the coin set require
+// normalized form. Make sure to normalize you collection before using.
 type Coins []*Coin
 
 // CombineCoins creates a Coins containing all given coins.
@@ -183,10 +182,10 @@ func (cs Coins) Validate() error {
 			return err
 		}
 		if c.IsZero() {
-			return ErrInvalidWallet.New("zero coins")
+			return errors.Wrap(errors.ErrInvalidState, "zero coins")
 		}
 		if c.Ticker < last {
-			return ErrInvalidWallet.New("not sorted")
+			return errors.Wrap(errors.ErrInvalidState, "not sorted")
 		}
 		last = c.Ticker
 	}

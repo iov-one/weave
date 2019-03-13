@@ -14,7 +14,7 @@ func (NewTokenInfoMsg) Path() string {
 
 func (t *NewTokenInfoMsg) Validate() error {
 	if !coin.IsCC(t.Ticker) {
-		return coin.ErrInvalidCurrency.New(t.Ticker)
+		return errors.Wrapf(errors.ErrCurrency, "invalid ticker: %s", t.Ticker)
 	}
 	if !isTokenName(t.Name) {
 		return errors.ErrInvalidState.Newf("invalid token name %v", t.Name)

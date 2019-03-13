@@ -56,7 +56,7 @@ func (c Coin) Divide(pieces int64) (Coin, Coin, error) {
 	// This is an invalid use of the method.
 	if pieces <= 0 {
 		zero := Coin{Ticker: c.Ticker}
-		return zero, zero, errors.ErrHuman.New("pieces must be greater than zero")
+		return zero, zero, errors.Wrap(errors.ErrInvalidInput, "pieces must be greater than zero")
 	}
 
 	// When dividing whole and there is a leftover then convert it to
@@ -142,7 +142,7 @@ func (c Coin) Add(o Coin) (Coin, error) {
 	}
 
 	if !c.SameType(o) {
-		err := ErrInvalidCurrency.Newf("adding %s to %s", c.Ticker, o.Ticker)
+		err := errors.Wrapf(errors.ErrCurrency, "adding %s to %s", c.Ticker, o.Ticker)
 		return Coin{}, err
 	}
 
@@ -255,18 +255,18 @@ func (c *Coin) Clone() *Coin {
 // logic
 func (c Coin) Validate() error {
 	if !IsCC(c.Ticker) {
-		return ErrInvalidCurrency.New(c.Ticker)
+		return errors.Wrapf(errors.ErrCurrency, "invalid currency: %s", c.Ticker)
 	}
 	if c.Whole < MinInt || c.Whole > MaxInt {
-		return ErrInvalidCoin.New(outOfRange)
+		return errors.ErrOverflow
 	}
 	if c.Fractional < MinFrac || c.Fractional > MaxFrac {
-		return ErrInvalidCoin.New(outOfRange)
+		return errors.ErrOverflow
 	}
 	// make sure signs match
 	if c.Whole != 0 && c.Fractional != 0 &&
 		((c.Whole > 0) != (c.Fractional > 0)) {
-		return ErrInvalidCoin.New("mismatched sign")
+		return errors.Wrap(errors.ErrInvalidState, "mismatched sign")
 	}
 
 	return nil
@@ -299,7 +299,7 @@ func (c Coin) normalize() (Coin, error) {
 
 	// return error if integer is out of range
 	if c.Whole < MinInt || c.Whole > MaxInt {
-		return Coin{}, ErrInvalidCoin.New(outOfRange)
+		return Coin{}, errors.ErrOverflow
 	}
 	return c, nil
 }
