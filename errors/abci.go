@@ -13,14 +13,15 @@ func ABCIInfo(err error) (uint32, string) {
 		return notErrorCode, ""
 	}
 
-	// All weave errors are considered public. Their content can be safely
-	// exposed to the client.
-	if e, ok := weaveErr(err); ok {
-		return e.code, err.Error()
+	// Only non-internal errors information can be exposed. Any error that
+	// does not explicitly expose its state by providing and ABCI error
+	// code must be silenced.
+	if code := abciCode(err); code != internalABCICode {
+		return code, err.Error()
 	}
 
-	// All non-weave errors are returning a generic result because their
-	// content is an implementation detail and must not be exposed.
+	// For internal errors hide the original error message and return
+	// generic data.
 	return internalABCICode, internalABCILog
 }
 
@@ -30,19 +31,27 @@ const (
 	internalABCILog  = "internal error"
 )
 
-// isWeaveErr test if given error represents an Error provided by this package.
-// This function is testing for the causer interface as well and unwraps the
-// error.
-func weaveErr(err error) (*Error, bool) {
+// abciCode test if given error contains an ABCI code and returns the value of
+// it if available. This function is testing for the causer interface as well
+// and unwraps the error.
+func abciCode(err error) uint32 {
+	if err == nil || reflect.ValueOf(err).IsNil() {
+		return notErrorCode
+	}
+
+	type coder interface {
+		ABCICode() uint32
+	}
+
 	for {
-		if e, ok := err.(*Error); ok {
-			return e, true
+		if c, ok := err.(coder); ok {
+			return c.ABCICode()
 		}
 
 		if c, ok := err.(causer); ok {
 			err = c.Cause()
 		} else {
-			return nil, false
+			return internalABCICode
 		}
 	}
 }
@@ -60,7 +69,7 @@ func Redact(err error, debug bool) error {
 	if ErrPanic.Is(err) {
 		return errors.New(internalABCILog)
 	}
-	if _, ok := weaveErr(err); !ok {
+	if abciCode(err) == internalABCICode {
 		return errors.New(internalABCILog)
 	}
 	return err

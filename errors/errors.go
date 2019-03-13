@@ -111,6 +111,10 @@ func (e Error) Error() string {
 	return e.desc
 }
 
+func (e Error) ABCICode() uint32 {
+	return e.code
+}
+
 // New returns a new error. Returned instance is having the root cause set to
 // this error. Below two lines are equal
 //   e.New("my description")
