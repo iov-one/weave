@@ -2,6 +2,7 @@ package errors
 
 import (
 	"errors"
+	"fmt"
 	"reflect"
 )
 
@@ -21,11 +22,16 @@ func ABCIInfo(err error, debug bool) (uint32, string) {
 	// does not explicitly expose its state by providing and ABCI error
 	// code must be silenced.
 	if code := abciCode(err); code != internalABCICode {
+		if debug {
+			// Try to trigger full information formatting. This
+			// might produce a stacktrace.
+			return code, fmt.Sprintf("%+v", err)
+		}
 		return code, err.Error()
 	}
 
 	if debug {
-		return internalABCICode, err.Error()
+		return internalABCICode, fmt.Sprintf("%+v", err)
 	}
 
 	// For internal errors hide the original error message and return

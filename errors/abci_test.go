@@ -3,6 +3,7 @@ package errors
 import (
 	"fmt"
 	"io"
+	"strings"
 	"testing"
 )
 
@@ -55,12 +56,14 @@ func TestABCInfo(t *testing.T) {
 			wantLog:  "internal error",
 			wantCode: 1,
 		},
-		"wrapped stdlib is a full message in debug mode": {
-			err:      Wrap(io.EOF, "cannot read file"),
-			debug:    true,
-			wantLog:  "cannot read file: EOF",
-			wantCode: 1,
-		},
+		// This is hard to test because of attached stacktrace. This
+		// case is tested in an another test.
+		//"wrapped stdlib is a full message in debug mode": {
+		//	err:      Wrap(io.EOF, "cannot read file"),
+		//	debug:    true,
+		//	wantLog:  "cannot read file: EOF",
+		//	wantCode: 1,
+		//},
 		"custom error": {
 			err:      customErr{},
 			debug:    false,
@@ -85,6 +88,70 @@ func TestABCInfo(t *testing.T) {
 				t.Errorf("want %q log, got %q", tc.wantLog, log)
 			}
 		})
+	}
+}
+
+func TestABCIInfoStacktrace(t *testing.T) {
+	cases := map[string]struct {
+		err            error
+		debug          bool
+		wantStacktrace bool
+		wantErrMsg     string
+	}{
+		"wrapped weave error in debug mode provides stracktrace": {
+			err:            Wrap(ErrNotFound, "wrapped"),
+			debug:          true,
+			wantStacktrace: true,
+			wantErrMsg:     "wrapped: not found",
+		},
+		"wrapped weave error in non-debug mode does not have stracktrace": {
+			err:            Wrap(ErrNotFound, "wrapped"),
+			debug:          false,
+			wantStacktrace: false,
+			wantErrMsg:     "wrapped: not found",
+		},
+		"wrapped stdlib error in debug mode provides stracktrace": {
+			err:            Wrap(fmt.Errorf("stdlib"), "wrapped"),
+			debug:          true,
+			wantStacktrace: true,
+			wantErrMsg:     "wrapped: stdlib",
+		},
+		"wrapped stdlib error in non-debug mode does not have stracktrace": {
+			err:            Wrap(fmt.Errorf("stdlib"), "wrapped"),
+			debug:          false,
+			wantStacktrace: false,
+			wantErrMsg:     "internal error",
+		},
+	}
+
+	const thisTestSrc = "github.com/iov-one/weave/errors.TestABCIInfoStacktrace"
+
+	for testName, tc := range cases {
+		t.Run(testName, func(t *testing.T) {
+			_, log := ABCIInfo(tc.err, tc.debug)
+			if tc.wantStacktrace {
+				if !strings.Contains(log, thisTestSrc) {
+					t.Errorf("log does not contain this file stack trace: %s", log)
+				}
+
+				if !strings.Contains(log, tc.wantErrMsg) {
+					t.Errorf("log does not contain expected error message: %s", log)
+				}
+			} else {
+				if log != tc.wantErrMsg {
+					t.Fatalf("unexpected log message: %s", log)
+				}
+			}
+		})
+	}
+}
+
+func TestABCIInfoHidesStacktrace(t *testing.T) {
+	err := Wrap(ErrNotFound, "wrapped")
+	_, log := ABCIInfo(err, false)
+
+	if log != "wrapped: not found" {
+		t.Fatalf("unexpected message in non debug mode: %s", log)
 	}
 }
 
