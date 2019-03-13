@@ -8,7 +8,7 @@ import (
 // ABCIInfo returns the ABCI error information as consumed by the tenderemint
 // client.
 // This function provides a full error infromation
-func ABCIInfo(err error) (uint32, string) {
+func ABCIInfo(err error, debug bool) (uint32, string) {
 	if err == nil || reflect.ValueOf(err).IsNil() {
 		return notErrorCode, ""
 	}
@@ -18,6 +18,10 @@ func ABCIInfo(err error) (uint32, string) {
 	// code must be silenced.
 	if code := abciCode(err); code != internalABCICode {
 		return code, err.Error()
+	}
+
+	if debug {
+		return internalABCICode, err.Error()
 	}
 
 	// For internal errors hide the original error message and return

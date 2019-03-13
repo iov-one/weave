@@ -45,7 +45,7 @@ func TestABCInfo(t *testing.T) {
 
 	for testName, tc := range cases {
 		t.Run(testName, func(t *testing.T) {
-			code, log := ABCIInfo(tc.err)
+			code, log := ABCIInfo(tc.err, false)
 			if code != tc.wantCode {
 				t.Errorf("want %d code, got %d", tc.wantCode, code)
 			}

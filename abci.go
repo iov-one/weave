@@ -105,9 +105,9 @@ type TickResult struct {
 // a TMError
 func DeliverTxError(err error, debug bool) abci.ResponseDeliverTx {
 	err = errors.Redact(err, debug)
-	code, log := errors.ABCIInfo(err)
+	code, log := errors.ABCIInfo(err, debug)
 	if code != 0 {
-		log = "cannot deliver tx" + log
+		log = "cannot deliver tx: " + log
 	}
 	return abci.ResponseDeliverTx{
 		Code: code,
@@ -120,9 +120,9 @@ func DeliverTxError(err error, debug bool) abci.ResponseDeliverTx {
 // a TMError
 func CheckTxError(err error, debug bool) abci.ResponseCheckTx {
 	err = errors.Redact(err, debug)
-	code, log := errors.ABCIInfo(err)
+	code, log := errors.ABCIInfo(err, debug)
 	if code != 0 {
-		log = "cannot check tx" + log
+		log = "cannot check tx: " + log
 	}
 	return abci.ResponseCheckTx{
 		Code: code,
