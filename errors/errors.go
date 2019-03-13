@@ -62,6 +62,10 @@ var (
 	// because the result value exceeds the type.
 	ErrOverflow = Register(16, "an operation cannot be completed due to value overflow")
 
+	// ErrCurrency is returned whenever an operation cannot be completed
+	// due to a currency issues.
+	ErrCurrency = Register(17, "currency")
+
 	// ErrPanic is only set when we recover from a panic, so we know to
 	// redact potentially sensitive system info
 	ErrPanic = Register(111222, "panic")

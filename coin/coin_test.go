@@ -169,7 +169,7 @@ func TestAddCoin(t *testing.T) {
 			a:       NewCoin(1, 2, "FOO"),
 			b:       NewCoin(2, 3, "BAR"),
 			wantRes: Coin{},
-			wantErr: ErrInvalidCurrency,
+			wantErr: errors.ErrCurrency,
 		},
 		"normal math": {
 			a:       NewCoin(7, 5000, "ABC"),
@@ -180,7 +180,7 @@ func TestAddCoin(t *testing.T) {
 			a:       NewCoin(500500500123456, 0, "SEE"),
 			b:       NewCoin(500500500123456, 0, "SEE"),
 			wantRes: NewCoin(0, 0, ""),
-			wantErr: ErrInvalidCoin,
+			wantErr: errors.ErrOverflow,
 		},
 		"adding to zero coin": {
 			a:       NewCoin(0, 0, ""),
@@ -195,12 +195,12 @@ func TestAddCoin(t *testing.T) {
 		"adding a non zero coin without a ticker": {
 			a:       NewCoin(1, 0, "DOGE"),
 			b:       NewCoin(1, 0, ""),
-			wantErr: ErrInvalidCurrency,
+			wantErr: errors.ErrCurrency,
 		},
 		"adding to non zero coin without a ticker": {
 			a:       NewCoin(1, 0, ""),
 			b:       NewCoin(1, 0, "DOGE"),
-			wantErr: ErrInvalidCurrency,
+			wantErr: errors.ErrCurrency,
 		},
 	}
 
@@ -325,14 +325,14 @@ func TestCoinDivide(t *testing.T) {
 			pieces:   0,
 			wantOne:  NewCoin(0, 0, "BTC"),
 			wantRest: NewCoin(0, 0, "BTC"),
-			wantErr:  errors.ErrHuman,
+			wantErr:  errors.ErrInvalidInput,
 		},
 		"negative pieces": {
 			total:    NewCoin(999, 0, "BTC"),
 			pieces:   -1,
 			wantOne:  NewCoin(0, 0, "BTC"),
 			wantRest: NewCoin(0, 0, "BTC"),
-			wantErr:  errors.ErrHuman,
+			wantErr:  errors.ErrInvalidInput,
 		},
 		"split fractional 2 by 3 should return 2 as leftover": {
 			total:    NewCoin(0, 2, "BTC"),

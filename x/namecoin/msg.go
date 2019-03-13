@@ -4,7 +4,7 @@ import (
 	"regexp"
 
 	"github.com/iov-one/weave"
-	coin "github.com/iov-one/weave/coin"
+	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/errors"
 )
 
@@ -37,7 +37,7 @@ func (NewTokenMsg) Path() string {
 // Validate makes sure that this is sensible
 func (t *NewTokenMsg) Validate() error {
 	if !coin.IsCC(t.Ticker) {
-		return coin.ErrInvalidCurrency.New(t.Ticker)
+		return errors.Wrapf(errors.ErrCurrency, "invalid ticker: %s", t.Ticker)
 	}
 	if !IsTokenName(t.Name) {
 		return errors.ErrInvalidInput.Newf(invalidTokenNameFmt, t.Name)
