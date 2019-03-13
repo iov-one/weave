@@ -39,6 +39,7 @@ func TestEscrowRelease(t *testing.T) {
 			},
 		},
 	}
+	releaseEscrowTX = releaseEscrowTX.WithFee(alice.PublicKey().Address(), antiSpamFee)
 	_, _, contractID, _ := multiSigContract.Parse()
 	releaseEscrowTX.Multisig = [][]byte{contractID}
 

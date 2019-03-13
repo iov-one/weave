@@ -1,5 +1,19 @@
 package app
 
+import (
+	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/coin"
+	"github.com/iov-one/weave/x/cash"
+)
+
+// WithFee returns a new Tx with FeeInfo set.
+func (tx Tx) WithFee(payer weave.Address, fee coin.Coin) *Tx {
+	tx.Fees = &cash.FeeInfo{
+		Payer: payer,
+		Fees:  &fee}
+	return &tx
+}
+
 //Commented out for a minimal feature-set release
 //import (
 //	"github.com/iov-one/weave"

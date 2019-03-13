@@ -51,6 +51,7 @@ var (
 	multiSigContract  weave.Condition
 	escrowContract    weave.Condition
 	distrContractAddr weave.Address
+	antiSpamFee       = coin.Coin{Ticker: "IOV", Whole: 0, Fractional: 100000000}
 )
 
 func TestMain(m *testing.M) {
@@ -186,7 +187,33 @@ func initGenesis(filename string, addr weave.Address) (*tm.GenesisDoc, error) {
 		},
 		"gconf": map[string]interface{}{
 			cash.GconfCollectorAddress: hex.EncodeToString(addr),
-			cash.GconfMinimalFee:       coin.Coin{Ticker: "IOV", Whole: 0, Fractional: 100000000},
+			cash.GconfMinimalFee:       antiSpamFee,
+			"msgfee": []interface{}{
+				dict{
+					"msg_path": "distribution/newrevenue",
+					"fee":      coin.Coin{Ticker: "IOV", Whole: 2},
+				},
+				dict{
+					"msg_path": "distribution/distribute",
+					"fee":      coin.Coin{Ticker: "IOV", Whole: 0, Fractional: 200000000},
+				},
+				dict{
+					"msg_path": "distribution/resetRevenue",
+					"fee":      coin.Coin{Ticker: "IOV", Whole: 1},
+				},
+				dict{
+					"msg_path": "escrow/release",
+					"fee":      coin.Coin{Ticker: "IOV", Whole: 0, Fractional: 100000000},
+				},
+				dict{
+					"msg_path": "escrow/return",
+					"fee":      coin.Coin{Ticker: "IOV", Whole: 0, Fractional: 100000000},
+				},
+				dict{
+					"msg_path": "validators/update",
+					"fee":      coin.Coin{Ticker: "IOV", Whole: 0},
+				},
+			},
 		},
 	}, "", "  ")
 	if err != nil {
@@ -223,4 +250,24 @@ func derivePrivateKey(hexSeed, path string) *client.PrivateKey {
 		os.Exit(1)
 	}
 	return pk
+}
+
+// seedAccountWithTokens acts as a faucet that sends tokens to the given address.
+func seedAccountWithTokens(dest weave.Address) {
+	cc := coin.NewCoin(10, 0, "IOV")
+	tx := client.BuildSendTx(alice.PublicKey().Address(), dest, cc, "faucet")
+	tx = tx.WithFee(alice.PublicKey().Address(), antiSpamFee)
+
+	aNonce := client.NewNonce(bnsClient, alice.PublicKey().Address())
+	seq, err := aNonce.Next()
+	if err != nil {
+		panic(err)
+	}
+	if err := client.SignTx(tx, alice, chainID, seq); err != nil {
+		panic(err)
+	}
+	resp := bnsClient.BroadcastTx(tx)
+	if err := resp.IsError(); err != nil {
+		panic(err)
+	}
 }

@@ -3,10 +3,8 @@ package scenarios
 import (
 	"testing"
 
-	"github.com/iov-one/weave/coin"
-	"github.com/iov-one/weave/x/cash"
-
 	"github.com/iov-one/weave/cmd/bnsd/client"
+	"github.com/iov-one/weave/coin"
 	"github.com/stretchr/testify/require"
 )
 
@@ -31,14 +29,7 @@ func TestSendTokenWithFee(t *testing.T) {
 		seq, err := aNonce.Next()
 		require.NoError(t, err)
 		tx := client.BuildSendTx(alice.PublicKey().Address(), emilia.PublicKey().Address(), cc, "test tx with fee")
-		tx.Fees = &cash.FeeInfo{
-			Payer: alice.PublicKey().Address(),
-			Fees: &coin.Coin{
-				Ticker:     "IOV",
-				Fractional: 100000000,
-				Whole:      0,
-			},
-		}
+		tx = tx.WithFee(alice.PublicKey().Address(), antiSpamFee)
 		require.NoError(t, client.SignTx(tx, alice, chainID, seq))
 		resp := bnsClient.BroadcastTx(tx)
 		require.NoError(t, resp.IsError())
