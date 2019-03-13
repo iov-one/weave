@@ -81,7 +81,7 @@ func (t *TokenDetails) Clone() *TokenDetails {
 
 func (t *TokenDetails) Validate() error {
 	if t == nil {
-		return errors.ErrInternal.New("token details must not be nil")
+		return errors.ErrInvalidInput.New("token details must not be nil")
 	}
 	dup := containsDuplicateChains(t.Addresses)
 	if dup != nil {

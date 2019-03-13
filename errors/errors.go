@@ -9,12 +9,6 @@ import (
 
 // Global error registry, codes 1-99 are reserved for global errors, 0 is reserved for non-errors
 var (
-
-	// ErrInternal represents a general case issue that cannot be
-	// categorized as any of the below cases.
-	// We start as 1 as 0 is reserved for non-errors
-	ErrInternal = Register(1, "internal")
-
 	// ErrUnauthorized is used whenever a request without sufficient
 	// authorization is handled.
 	ErrUnauthorized = Register(2, "unauthorized")
@@ -93,7 +87,9 @@ func Register(code uint32, description string) *Error {
 }
 
 // usedCodes is keeping track of used codes to ensure uniqueness.
-var usedCodes = map[uint32]*Error{}
+var usedCodes = map[uint32]*Error{
+	1: nil, // Error code 1 is restricted for non-weave errors and must not be used.
+}
 
 // Error represents a root error.
 //
@@ -129,9 +125,6 @@ func (e *Error) Newf(description string, args ...interface{}) error {
 
 // Is check if given error instance is of a given kind/type. This involves
 // unwrapping given error using the Cause method if available.
-//
-// Any non weave implementation of an error is tested positive for being
-// ErrInternal.
 func (kind *Error) Is(err error) bool {
 	// Reflect usage is necessary to correctly compare with
 	// a nil implementation of an error.

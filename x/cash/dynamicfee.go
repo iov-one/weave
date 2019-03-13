@@ -161,7 +161,7 @@ func (d DynamicFeeDecorator) prepare(ctx weave.Context, store weave.KVStore, tx 
 	// Ensure we can execute subtransactions (see check on utils.Savepoint).
 	cstore, ok := store.(weave.CacheableKVStore)
 	if !ok {
-		err = errors.ErrInternal.New("need cachable kvstore")
+		err = errors.ErrHuman.New("need cachable kvstore")
 		return fee, payer, cache, err
 	}
 	cache = cstore.CacheWrap()

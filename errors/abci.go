@@ -1,6 +1,7 @@
 package errors
 
 import (
+	"errors"
 	"reflect"
 )
 
@@ -42,9 +43,10 @@ func weaveErr(err error) (*Error, bool) {
 	}
 }
 
-// Redact replace all errors that do not initialize with a weave error with an
-// ErrInternal instance. This function is supposed to hide implementation
-// details errors and leave only those that weave framework originates.
+// Redact replace all errors that do not initialize with a weave error with a
+// generic internal error instance. This function is supposed to hide
+// implementation details errors and leave only those that weave framework
+// originates.
 //
 // This is a no-operation function when running in debug mode.
 func Redact(err error, debug bool) error {
@@ -52,10 +54,10 @@ func Redact(err error, debug bool) error {
 		return err
 	}
 	if ErrPanic.Is(err) {
-		return ErrInternal
+		return errors.New(genericABCILog)
 	}
 	if _, ok := weaveErr(err); !ok {
-		return ErrInternal
+		return errors.New(genericABCILog)
 	}
 	return err
 }

@@ -48,11 +48,6 @@ func TestErrorIs(t *testing.T) {
 			b:      ErrNotFound,
 			wantIs: true,
 		},
-		"instance of the same error, even if internal": {
-			a:      ErrInternal,
-			b:      ErrInternal,
-			wantIs: true,
-		},
 		"two different coded errors": {
 			a:      ErrNotFound,
 			b:      ErrInvalidModel,
@@ -76,16 +71,6 @@ func TestErrorIs(t *testing.T) {
 		"not equal to a wrapped stdlib error": {
 			a:      ErrNotFound,
 			b:      errors.Wrap(fmt.Errorf("stdlib error"), "wrapped"),
-			wantIs: false,
-		},
-		"internal error is not equal to a stdlib error": {
-			a:      ErrInternal,
-			b:      fmt.Errorf("stdlib error"),
-			wantIs: false,
-		},
-		"internal error is not equal to a wrapped stdlib error": {
-			a:      ErrInternal,
-			b:      errors.Wrap(fmt.Errorf("stdlib error"), "w-rap"),
 			wantIs: false,
 		},
 		"nil is nil": {

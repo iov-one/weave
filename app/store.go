@@ -111,7 +111,7 @@ func (s *StoreApp) parseAppState(data []byte, chainID string, init weave.Initial
 	var appState weave.Options
 	err := json.Unmarshal(data, &appState)
 	if err != nil {
-		return errors.ErrInternal.New(err.Error())
+		return errors.ErrInvalidState.New(err.Error())
 	}
 
 	err = s.storeChainID(chainID)
@@ -278,9 +278,9 @@ func splitPath(path string) (string, string) {
 }
 
 func queryError(err error) abci.ResponseQuery {
-	code, _ := errors.ABCIInfo(errors.ErrInternal)
+	code, log := errors.ABCIInfo(err)
 	return abci.ResponseQuery{
-		Log:  err.Error(),
+		Log:  log,
 		Code: code,
 	}
 }

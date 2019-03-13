@@ -78,7 +78,7 @@ func (m *RemoveChainAddressMsg) Validate() error {
 
 func validateID(id []byte) error {
 	if id == nil {
-		return errors.ErrInternal.New("must not be nil")
+		return errors.ErrInvalidInput.New("must not be nil")
 	}
 	if !isValidID(string(id)) {
 		return errors.ErrInvalidInput.Newf("id: %s", nft.PrintableID(id))
