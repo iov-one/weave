@@ -9,7 +9,7 @@ import (
 // client.
 // This function provides a full error infromation
 func ABCIInfo(err error, debug bool) (uint32, string) {
-	if err == nil || reflect.ValueOf(err).IsNil() {
+	if errIsNil(err) {
 		return notErrorCode, ""
 	}
 
@@ -30,7 +30,13 @@ func ABCIInfo(err error, debug bool) (uint32, string) {
 }
 
 const (
-	notErrorCode     = 0
+	// ABCI response use 0 to signal that the processing was successful and
+	// no error is returned.
+	notErrorCode = 0
+
+	// All unclassified errors that do not provide an ABCI code are clubbed
+	// under an internal error code and a generic message instead of
+	// detailed error string.
 	internalABCICode = 1
 	internalABCILog  = "internal error"
 )
@@ -39,7 +45,7 @@ const (
 // it if available. This function is testing for the causer interface as well
 // and unwraps the error.
 func abciCode(err error) uint32 {
-	if err == nil || reflect.ValueOf(err).IsNil() {
+	if errIsNil(err) {
 		return notErrorCode
 	}
 
@@ -58,6 +64,21 @@ func abciCode(err error) uint32 {
 			return internalABCICode
 		}
 	}
+}
+
+// errIsNil returns true if value represented by the given error is nil.
+//
+// Most of the time a simple == check is enough. There is a very narrowed
+// spectrum of cases (mostly in tests) where a more sophisticated check is
+// required.
+func errIsNil(err error) bool {
+	if err == nil {
+		return true
+	}
+	if val := reflect.ValueOf(err); val.Kind() == reflect.Ptr {
+		return val.IsNil()
+	}
+	return false
 }
 
 // Redact replace all errors that do not initialize with a weave error with a

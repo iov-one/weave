@@ -128,7 +128,7 @@ func TestCheckTxError(t *testing.T) {
 	}
 }
 
-// abciError is a custom implementation of an error that provides an ABCICode
+// notFoundErr is a custom implementation of an error that provides an ABCICode
 // method.
 type notFoundErr struct{}
 

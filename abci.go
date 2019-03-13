@@ -98,11 +98,9 @@ type TickResult struct {
 	Diff []abci.ValidatorUpdate
 }
 
-//---------- type safe error converters --------
-
-// DeliverTxError converts any error into a abci.ResponseDeliverTx,
-// preserving as much info as possible if it was already
-// a TMError
+// DeliverTxError converts any error into a abci.ResponseDeliverTx, preserving
+// as much info as possible.
+// When in debug mode always the full error information is returned.
 func DeliverTxError(err error, debug bool) abci.ResponseDeliverTx {
 	err = errors.Redact(err, debug)
 	code, log := errors.ABCIInfo(err, debug)
@@ -115,9 +113,9 @@ func DeliverTxError(err error, debug bool) abci.ResponseDeliverTx {
 	}
 }
 
-// CheckTxError converts any error into a abci.ResponseCheckTx,
-// preserving as much info as possible if it was already
-// a TMError
+// CheckTxError converts any error into a abci.ResponseCheckTx, preserving as
+// much info as possible.
+// When in debug mode always the full error information is returned.
 func CheckTxError(err error, debug bool) abci.ResponseCheckTx {
 	err = errors.Redact(err, debug)
 	code, log := errors.ABCIInfo(err, debug)
