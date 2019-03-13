@@ -10,20 +10,24 @@ import (
 // This function provides a full error infromation
 func ABCIInfo(err error) (uint32, string) {
 	if err == nil || reflect.ValueOf(err).IsNil() {
-		return 0, ""
+		return notErrorCode, ""
+	}
+
+	// All weave errors are considered public. Their content can be safely
+	// exposed to the client.
+	if e, ok := weaveErr(err); ok {
+		return e.code, err.Error()
 	}
 
 	// All non-weave errors are returning a generic result because their
 	// content is an implementation detail and must not be exposed.
-	if e, ok := weaveErr(err); ok {
-		return e.code, err.Error()
-	}
-	return genericABCICode, genericABCILog
+	return internalABCICode, internalABCILog
 }
 
 const (
-	genericABCICode = 1
-	genericABCILog  = "internal error"
+	notErrorCode     = 0
+	internalABCICode = 1
+	internalABCILog  = "internal error"
 )
 
 // isWeaveErr test if given error represents an Error provided by this package.
@@ -54,10 +58,10 @@ func Redact(err error, debug bool) error {
 		return err
 	}
 	if ErrPanic.Is(err) {
-		return errors.New(genericABCILog)
+		return errors.New(internalABCILog)
 	}
 	if _, ok := weaveErr(err); !ok {
-		return errors.New(genericABCILog)
+		return errors.New(internalABCILog)
 	}
 	return err
 }
