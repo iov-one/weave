@@ -38,7 +38,7 @@ var (
 	tendermintAddress = flag.String("address", testLocalAddress, "destination address of tendermint rpc")
 	hexSeed           = flag.String("seed", "d34c1970ae90acf3405f2d99dcaca16d0c7db379f4beafcfdf667b9d69ce350d27f5fb440509dfa79ec883a0510bc9a9614c3d44188881f0c5e402898b4bf3c9", "private key seed in hex")
 	delay             = flag.Duration("delay", time.Duration(0), "duration to wait between test cases for rate limits")
-	derivationPath    = flag.String("derivation", "", "bip44 derivation path: \"m/4804438'/0'\"")
+	derivationPath    = flag.String("derivation", "", "bip44 derivation path: \"m/44'/234'/0'\"")
 )
 
 var (
@@ -60,7 +60,7 @@ func TestMain(m *testing.M) {
 	distrContractAddr, _ = distribution.RevenueAccount(weavetest.SequenceID(1))
 
 	alice = derivePrivateKey(*hexSeed, *derivationPath)
-	logger.Error("Loaded Alice key", "addressID", alice.PublicKey().Address())
+	logger.Info("Loaded Alice key", "addressID", alice.PublicKey().Address().String(), "derivationPath", *derivationPath)
 
 	if *tendermintAddress != testLocalAddress {
 		bnsClient = client.NewClient(client.NewHTTPConnection(*tendermintAddress))
@@ -147,9 +147,8 @@ func initGenesis(filename string, addr weave.Address) (*tm.GenesisDoc, error) {
 		},
 		"currencies": []interface{}{
 			dict{
-				"ticker":   "IOV",
-				"name":     "Main token of this chain",
-				"sig_figs": 6,
+				"ticker": "IOV",
+				"name":   "Main token of this chain",
 			},
 		},
 		"update_validators": dict{
@@ -187,7 +186,7 @@ func initGenesis(filename string, addr weave.Address) (*tm.GenesisDoc, error) {
 		},
 		"gconf": map[string]interface{}{
 			cash.GconfCollectorAddress: hex.EncodeToString(addr),
-			cash.GconfMinimalFee:       coin.Coin{}, // no fee
+			cash.GconfMinimalFee:       coin.Coin{Ticker: "IOV", Whole: 0, Fractional: 100000000},
 		},
 	}, "", "  ")
 	if err != nil {
@@ -201,12 +200,12 @@ func initGenesis(filename string, addr weave.Address) (*tm.GenesisDoc, error) {
 // derivePrivateKey derive a private key from hex and given path. Path can be empty to not derive.
 func derivePrivateKey(hexSeed, path string) *client.PrivateKey {
 	if len(path) != 0 {
-		b, err := hex.DecodeString(path)
+		seed, err := hex.DecodeString(hexSeed)
 		if err != nil {
 			logger.Error("Failed to decode private key", "cause", err)
 			os.Exit(1)
 		}
-		k, err := derivation.DeriveForPath(path, b)
+		k, err := derivation.DeriveForPath(path, seed)
 		if err != nil {
 			logger.Error("Failed to derive private key", "cause", err, "path", path)
 			os.Exit(1)
