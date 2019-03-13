@@ -94,14 +94,3 @@ func TestNewTokenInfoHandler(t *testing.T) {
 		})
 	}
 }
-
-// errcode extract an error code from given error or returns 0.
-func errcode(err error) uint32 {
-	if err == nil {
-		return 0
-	}
-	if e, ok := err.(errors.TMError); ok {
-		return e.ABCICode()
-	}
-	return 0
-}
