@@ -1,6 +1,7 @@
 package errors
 
 import (
+	"fmt"
 	"io"
 	"testing"
 )
@@ -84,6 +85,38 @@ func TestABCInfo(t *testing.T) {
 				t.Errorf("want %q log, got %q", tc.wantLog, log)
 			}
 		})
+	}
+}
+
+func TestRedact(t *testing.T) {
+	if err := Redact(ErrPanic, false); ErrPanic.Is(err) {
+		t.Error("in non-debug mode, reduct must not pass through panic error")
+	}
+	if err := Redact(ErrPanic, true); !ErrPanic.Is(err) {
+		t.Error("in debug mode, reduct should pass through panic error")
+	}
+
+	if err := Redact(ErrNotFound, true); !ErrNotFound.Is(err) {
+		t.Error("in debug mode, reduct should pass through weave error")
+	}
+	if err := Redact(ErrNotFound, false); !ErrNotFound.Is(err) {
+		t.Error("in non-debug mode, reduct should pass through weave error")
+	}
+
+	var cerr customErr
+	if err := Redact(cerr, true); err != cerr {
+		t.Error("in debug mode, reduct should pass through ABCI code error")
+	}
+	if err := Redact(cerr, false); err != cerr {
+		t.Error("in non-debug mode, reduct should pass through ABCI code error")
+	}
+
+	serr := fmt.Errorf("stdlib error")
+	if err := Redact(serr, false); err == serr {
+		t.Error("in non-debug mode, reduct must not pass through a stdlib error")
+	}
+	if err := Redact(serr, true); err != serr {
+		t.Error("in debug mode, reduct should pass through a stdlib error")
 	}
 }
 
