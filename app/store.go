@@ -215,7 +215,7 @@ func (s *StoreApp) Query(reqQuery abci.RequestQuery) (resQuery abci.ResponseQuer
 	path, mod := splitPath(reqQuery.Path)
 	qh := s.queryRouter.Handler(path)
 	if qh == nil {
-		code, _ := errors.ABCIInfo(errors.ErrNotFound)
+		code, _ := errors.ABCIInfo(errors.ErrNotFound, false)
 		resQuery.Code = code
 		resQuery.Log = fmt.Sprintf("Unexpected Query path: %v", reqQuery.Path)
 		return
@@ -278,7 +278,7 @@ func splitPath(path string) (string, string) {
 }
 
 func queryError(err error) abci.ResponseQuery {
-	code, log := errors.ABCIInfo(err)
+	code, log := errors.ABCIInfo(err, false)
 	return abci.ResponseQuery{
 		Log:  log,
 		Code: code,
