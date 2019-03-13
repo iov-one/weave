@@ -7,7 +7,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-// Global error registry, codes 1-99 are reserved for global errors, 0 is reserved for non-errors
 var (
 	// ErrUnauthorized is used whenever a request without sufficient
 	// authorization is handled.
@@ -46,7 +45,8 @@ var (
 	// ErrInvalidType is returned whenever the type is not what was expected
 	ErrInvalidType = Register(11, "invalid type")
 
-	// ErrInsufficientAmount is returned when an amount of currency is insufficient, e.g. funds/fees
+	// ErrInsufficientAmount is returned when an amount of currency is
+	// insufficient, e.g. funds/fees
 	ErrInsufficientAmount = Register(12, "insufficient amount")
 
 	// ErrInvalidAmount stands for invalid amount of whatever
@@ -62,7 +62,8 @@ var (
 	// because the result value exceeds the type.
 	ErrOverflow = Register(16, "an operation cannot be completed due to value overflow")
 
-	// ErrPanic is only set when we recover from a panic, so we know to redact potentially sensitive system info
+	// ErrPanic is only set when we recover from a panic, so we know to
+	// redact potentially sensitive system info
 	ErrPanic = Register(111222, "panic")
 )
 
@@ -86,7 +87,8 @@ func Register(code uint32, description string) *Error {
 	return err
 }
 
-// usedCodes is keeping track of used codes to ensure uniqueness.
+// usedCodes is keeping track of used codes to ensure their uniqueness. No two
+// error instances should share the same error code.
 var usedCodes = map[uint32]*Error{
 	1: nil, // Error code 1 is restricted for non-weave errors and must not be used.
 }

@@ -89,6 +89,10 @@ func (e *wrappedError) Format(s fmt.State, verb rune) {
 // stackTrace returns the first found stack trace frame carried by given error
 // or any wrapped error. It returns nil if no stack trace is found.
 func stackTrace(err error) errors.StackTrace {
+	type stackTracer interface {
+		StackTrace() errors.StackTrace
+	}
+
 	for {
 		if st, ok := err.(stackTracer); ok {
 			return st.StackTrace()
@@ -100,10 +104,4 @@ func stackTrace(err error) errors.StackTrace {
 			return nil
 		}
 	}
-}
-
-// stackTracer interface is implement by any error that provides the stack
-// trace information.
-type stackTracer interface {
-	StackTrace() errors.StackTrace
 }
