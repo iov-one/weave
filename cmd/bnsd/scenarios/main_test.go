@@ -42,21 +42,25 @@ var (
 )
 
 var (
-	alice             *client.PrivateKey
-	node              *nm.Node
-	logger            = log.NewTMLogger(os.Stdout)
-	bnsClient         *client.BnsClient
-	chainID           string
-	rpcAddress        string
-	multiSigContract  weave.Condition
-	escrowContract    weave.Condition
-	distrContractAddr weave.Address
-	antiSpamFee       = coin.Coin{Ticker: "IOV", Whole: 0, Fractional: 100000000}
+	alice                          *client.PrivateKey
+	node                           *nm.Node
+	logger                         = log.NewTMLogger(os.Stdout)
+	bnsClient                      *client.BnsClient
+	chainID                        string
+	rpcAddress                     string
+	distrAdminMultiSigContract     weave.Condition
+	escrowArbiterMultiSigContract  weave.Condition
+	validatorAdminMultiSigContract weave.Condition
+	escrowContract                 weave.Condition
+	distrContractAddr              weave.Address
+	antiSpamFee                    = coin.Coin{Ticker: "IOV", Whole: 0, Fractional: 100000000}
 )
 
 func TestMain(m *testing.M) {
 	flag.Parse()
-	multiSigContract = multisig.MultiSigCondition(weavetest.SequenceID(1))
+	distrAdminMultiSigContract = multisig.MultiSigCondition(weavetest.SequenceID(1))
+	escrowArbiterMultiSigContract = multisig.MultiSigCondition(weavetest.SequenceID(2))
+	validatorAdminMultiSigContract = multisig.MultiSigCondition(weavetest.SequenceID(3))
 	escrowContract = escrow.Condition(weavetest.SequenceID(1))
 	distrContractAddr, _ = distribution.RevenueAccount(weavetest.SequenceID(1))
 
@@ -153,8 +157,8 @@ func initGenesis(filename string, addr weave.Address) (*tm.GenesisDoc, error) {
 			},
 		},
 		"update_validators": dict{
-			"addresses": []weave.Address{
-				multiSigContract.Address(),
+			"addresses": []interface{}{
+				"cond:multisig/usage/0000000000000003",
 			},
 		},
 		"multisig": []interface{}{
@@ -163,10 +167,20 @@ func initGenesis(filename string, addr weave.Address) (*tm.GenesisDoc, error) {
 				"activation_threshold": 1,
 				"admin_threshold":      1,
 			},
+			dict{
+				"sigs":                 []weave.Address{addr},
+				"activation_threshold": 1,
+				"admin_threshold":      1,
+			},
+			dict{
+				"sigs":                 []weave.Address{addr},
+				"activation_threshold": 1,
+				"admin_threshold":      1,
+			},
 		},
 		"distribution": []interface{}{
 			dict{
-				"admin": addr,
+				"admin": "cond:multisig/usage/0000000000000001",
 				"recipients": []interface{}{
 					dict{"weight": 1, "address": alice.PublicKey().Address()},
 				},
@@ -175,8 +189,8 @@ func initGenesis(filename string, addr weave.Address) (*tm.GenesisDoc, error) {
 		"escrow": []interface{}{
 			dict{
 				"sender":    "0000000000000000000000000000000000000000",
-				"arbiter":   multiSigContract,
-				"recipient": distrContractAddr,
+				"arbiter":   "multisig/usage/0000000000000002",
+				"recipient": "cond:distribution/revenue/0000000000000001",
 				"amount": []interface{}{
 					dict{
 						"whole":  1000000,
@@ -186,7 +200,7 @@ func initGenesis(filename string, addr weave.Address) (*tm.GenesisDoc, error) {
 			},
 		},
 		"gconf": map[string]interface{}{
-			cash.GconfCollectorAddress: hex.EncodeToString(addr),
+			cash.GconfCollectorAddress: "cond:distribution/revenue/0000000000000001",
 			cash.GconfMinimalFee:       antiSpamFee,
 			"msgfee": []interface{}{
 				dict{
