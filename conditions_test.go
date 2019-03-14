@@ -46,6 +46,11 @@ func TestAddressUnmarshalJSON(t *testing.T) {
 			json:     `"cond:foo/bar/636f6e646974696f6e64617461"`,
 			wantAddr: weave.NewCondition("foo", "bar", []byte("conditiondata")).Address(),
 		},
+		"bech32 decoding": {
+			// $ bech32  -e -h tiov 746573742d7061796c6f6164
+			json:     `"bech32:tiov1w3jhxapdwpshjmr0v9jqymqq4y"`,
+			wantAddr: weave.Address("test-payload"),
+		},
 		"invalid condition format": {
 			json:    `"cond:foo/636f6e646974696f6e64617461"`,
 			wantErr: errors.ErrInvalidInput,
@@ -80,7 +85,7 @@ func TestAddressUnmarshalJSON(t *testing.T) {
 				t.Fatalf("got error: %+v", err)
 			}
 			if err == nil && !reflect.DeepEqual(a, tc.wantAddr) {
-				t.Fatalf("got address: %q", a)
+				t.Fatalf("got address: %q (want %q)", a, tc.wantAddr)
 			}
 		})
 	}

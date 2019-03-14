@@ -9,6 +9,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/iov-one/weave/crypto/bech32"
 	"github.com/iov-one/weave/errors"
 )
 
@@ -165,6 +166,13 @@ func (a *Address) UnmarshalJSON(raw []byte) error {
 			return err
 		}
 		*a = c.Address()
+		return nil
+	case "bech32":
+		_, addr, err := bech32.Decode(enc)
+		if err != nil {
+			return errors.Wrapf(err, "deserialize bech32: %s", err)
+		}
+		*a = addr
 		return nil
 	default:
 		return errors.ErrInvalidType.Newf("unknown format %q", chunks[0])
