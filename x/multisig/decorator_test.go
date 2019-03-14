@@ -83,14 +83,14 @@ func TestDecorator(t *testing.T) {
 			multisigTx([]byte("foo"), contractID1),
 			[]weave.Condition{a},
 			nil,
-			errors.ErrUnauthorized.Newf("contract=%X", contractID1),
+			errors.Wrapf(errors.ErrUnauthorized, "contract=%X", contractID1),
 		},
 		// with invalid multisig contract ID
 		{
 			multisigTx([]byte("foo"), []byte("bad id")),
 			[]weave.Condition{a, b},
 			nil,
-			errors.ErrNotFound.Newf(contractNotFoundFmt, []byte("bad id")),
+			errors.Wrapf(errors.ErrNotFound, contractNotFoundFmt, []byte("bad id")),
 		},
 		// contractID3 is activated by contractID2
 		{
@@ -111,7 +111,7 @@ func TestDecorator(t *testing.T) {
 			multisigTx([]byte("foo"), contractID3),
 			[]weave.Condition{d, e}, // cconditions for ontractID2 are there but ontractID2 must be passed explicitly
 			nil,
-			errors.ErrUnauthorized.Newf("contract=%X", contractID3),
+			errors.Wrapf(errors.ErrUnauthorized, "contract=%X", contractID3),
 		},
 	}
 

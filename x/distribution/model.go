@@ -1,7 +1,6 @@
 package distribution
 
 import (
-	"fmt"
 	"math"
 
 	"github.com/iov-one/weave"
@@ -29,9 +28,9 @@ func (rev *Revenue) Validate() error {
 func validateRecipients(rs []*Recipient, baseErr *errors.Error) error {
 	switch n := len(rs); {
 	case n == 0:
-		return baseErr.New("no recipients")
+		return errors.Wrap(baseErr, "no recipients")
 	case n > maxRecipients:
-		return baseErr.New("too many recipients")
+		return errors.Wrap(baseErr, "too many recipients")
 	}
 
 	// Recipient address must not repeat. Repeating addresses would not
@@ -42,17 +41,17 @@ func validateRecipients(rs []*Recipient, baseErr *errors.Error) error {
 	for i, r := range rs {
 		switch {
 		case r.Weight <= 0:
-			return baseErr.New(fmt.Sprintf("recipient %d invalid weight", i))
+			return errors.Wrapf(baseErr, "recipient %d invalid weight", i)
 		case r.Weight > maxWeight:
-			return baseErr.New(fmt.Sprintf("weight must not be greater than %d", maxWeight))
+			return errors.Wrapf(baseErr, "weight must not be greater than %d", maxWeight)
 		}
 
 		if err := r.Address.Validate(); err != nil {
-			return errors.Wrap(err, fmt.Sprintf("recipient %d address", i))
+			return errors.Wrapf(err, "recipient %d address", i)
 		}
 		addr := r.Address.String()
 		if _, ok := addresses[addr]; ok {
-			return baseErr.New(fmt.Sprintf("address %q is not unique", addr))
+			return errors.Wrapf(baseErr, "address %q is not unique", addr)
 		}
 		addresses[addr] = struct{}{}
 
@@ -124,7 +123,7 @@ func RevenueAccount(revenueID []byte) weave.Address {
 // Save persists the state of a given revenue entity.
 func (b *RevenueBucket) Save(db weave.KVStore, obj orm.Object) error {
 	if _, ok := obj.Value().(*Revenue); !ok {
-		return errors.ErrInvalidModel.New(fmt.Sprintf("invalid type: %T", obj.Value()))
+		return errors.Wrapf(errors.ErrInvalidModel, "invalid type: %T", obj.Value())
 	}
 	return b.Bucket.Save(db, obj)
 }
@@ -136,11 +135,11 @@ func (b *RevenueBucket) GetRevenue(db weave.KVStore, revenueID []byte) (*Revenue
 		return nil, errors.Wrap(err, "no revenue")
 	}
 	if obj == nil || obj.Value() == nil {
-		return nil, errors.ErrNotFound.New("no revenue")
+		return nil, errors.Wrap(errors.ErrNotFound, "no revenue")
 	}
 	rev, ok := obj.Value().(*Revenue)
 	if !ok {
-		return nil, errors.ErrInvalidModel.New(fmt.Sprintf("invalid type: %T", obj.Value()))
+		return nil, errors.Wrapf(errors.ErrInvalidModel, "invalid type: %T", obj.Value())
 	}
 	return rev, nil
 }

@@ -12,11 +12,11 @@ import (
 )
 
 func makeError() error {
-	return errors.ErrNotFound.New("foo")
+	return errors.Wrap(errors.ErrNotFound, "foo")
 }
 
 func otherError() error {
-	return errors.ErrInvalidInput.New("unable to decode")
+	return errors.Wrap(errors.ErrInvalidInput, "unable to decode")
 }
 
 type foo struct {

@@ -39,10 +39,10 @@ func (o SimpleObj) Key() []byte {
 // And delegates to the value validator if present
 func (o SimpleObj) Validate() error {
 	if len(o.key) == 0 {
-		return errors.ErrEmpty.New("missing key")
+		return errors.Wrap(errors.ErrEmpty, "missing key")
 	}
 	if o.value == nil {
-		return errors.ErrEmpty.New("missing value")
+		return errors.Wrap(errors.ErrEmpty, "missing value")
 	}
 	return o.value.Validate()
 }

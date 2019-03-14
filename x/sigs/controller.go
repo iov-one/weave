@@ -77,7 +77,7 @@ func VerifySignature(db weave.KVStore, sig *StdSignature,
 
 	user := AsUser(obj)
 	if !user.Pubkey.Verify(toSign, sig.Signature) {
-		return nil, errors.ErrUnauthorized.New("invalid signature")
+		return nil, errors.Wrap(errors.ErrUnauthorized, "invalid signature")
 	}
 
 	err = user.CheckAndIncrementSequence(sig.Sequence)
@@ -105,10 +105,10 @@ the public key signing/verification step
 */
 func BuildSignBytes(signBytes []byte, chainID string, seq int64) ([]byte, error) {
 	if seq < 0 {
-		return nil, ErrInvalidSequence.New("negative")
+		return nil, errors.Wrap(ErrInvalidSequence, "negative")
 	}
 	if !weave.IsValidChainID(chainID) {
-		return nil, errors.ErrInvalidInput.Newf("chain id: %v", chainID)
+		return nil, errors.Wrapf(errors.ErrInvalidInput, "chain id: %v", chainID)
 	}
 
 	// encode nonce as 8 byte, big-endian

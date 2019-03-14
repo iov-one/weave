@@ -119,20 +119,6 @@ func (e Error) ABCICode() uint32 {
 	return e.code
 }
 
-// New returns a new error. Returned instance is having the root cause set to
-// this error. Below two lines are equal
-//   e.New("my description")
-//   Wrap(e, "my description")
-// Allows sprintf format and vararg
-func (e *Error) New(description string) error {
-	return Wrap(e, description)
-}
-
-// Newf is basically New with formatting capabilities
-func (e *Error) Newf(description string, args ...interface{}) error {
-	return e.New(fmt.Sprintf(description, args...))
-}
-
 // Is check if given error instance is of a given kind/type. This involves
 // unwrapping given error using the Cause method if available.
 func (kind *Error) Is(err error) bool {

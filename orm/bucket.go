@@ -15,12 +15,12 @@ For inspiration, look at [storm](https://github.com/asdine/storm) built on top o
 package orm
 
 import (
-	"errors"
 	"fmt"
 	"regexp"
 	"sort"
 
 	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/errors"
 )
 
 const (
@@ -117,7 +117,7 @@ func (b Bucket) Query(db weave.ReadOnlyKVStore, mod string,
 		prefix := b.DBKey(data)
 		return queryPrefix(db, prefix), nil
 	default:
-		return nil, errors.New("not implemented: " + mod)
+		return nil, fmt.Errorf("not implemented: %s", mod)
 	}
 }
 
@@ -248,7 +248,7 @@ func (b Bucket) WithMultiKeyIndex(name string, indexer MultiKeyIndexer, unique b
 func (b Bucket) GetIndexed(db weave.ReadOnlyKVStore, name string, key []byte) ([]Object, error) {
 	idx := b.indexes.Get(name)
 	if idx == nil {
-		return nil, ErrInvalidIndex.New(name)
+		return nil, errors.Wrap(ErrInvalidIndex, name)
 	}
 	refs, err := idx.GetAt(db, key)
 	if err != nil {
@@ -261,7 +261,7 @@ func (b Bucket) GetIndexed(db weave.ReadOnlyKVStore, name string, key []byte) ([
 func (b Bucket) GetIndexedLike(db weave.ReadOnlyKVStore, name string, pattern Object) ([]Object, error) {
 	idx := b.indexes.Get(name)
 	if idx == nil {
-		return nil, ErrInvalidIndex.New(name)
+		return nil, errors.Wrap(ErrInvalidIndex, name)
 	}
 	refs, err := idx.GetLike(db, pattern)
 	if err != nil {

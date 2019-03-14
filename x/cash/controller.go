@@ -55,7 +55,7 @@ func (c BaseController) Balance(store weave.KVStore, src weave.Address) (coin.Co
 		return nil, errors.Wrap(err, "cannot get account state")
 	}
 	if state == nil {
-		return nil, errors.ErrNotFound.New("no account")
+		return nil, errors.Wrap(errors.ErrNotFound, "no account")
 	}
 	return AsCoins(state), nil
 }
@@ -67,10 +67,10 @@ func (c BaseController) MoveCoins(store weave.KVStore,
 	src weave.Address, dest weave.Address, amount coin.Coin) error {
 
 	if amount.IsZero() {
-		return errors.ErrInvalidAmount.New("zero value")
+		return errors.Wrap(errors.ErrInvalidAmount, "zero value")
 	}
 	if !amount.IsPositive() {
-		return errors.ErrInvalidAmount.Newf("non-positive SendMsg: %#v", &amount)
+		return errors.Wrapf(errors.ErrInvalidAmount, "non-positive SendMsg: %#v", &amount)
 	}
 
 	// load sender, subtract funds, and save
@@ -79,10 +79,10 @@ func (c BaseController) MoveCoins(store weave.KVStore,
 		return err
 	}
 	if sender == nil {
-		return errors.ErrEmpty.Newf("empty account %#v", src)
+		return errors.Wrapf(errors.ErrEmpty, "empty account %#v", src)
 	}
 	if !AsCoins(sender).Contains(amount) {
-		return errors.ErrInsufficientAmount.New("funds")
+		return errors.Wrap(errors.ErrInsufficientAmount, "funds")
 	}
 	err = Subtract(AsCoinage(sender), amount)
 	if err != nil {

@@ -63,7 +63,7 @@ func (d FeeDecorator) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx,
 
 	// verify we have access to the money
 	if !d.auth.HasAddress(ctx, finfo.Payer) {
-		return res, errors.ErrUnauthorized.New("Fee payer signature missing")
+		return res, errors.Wrap(errors.ErrUnauthorized, "Fee payer signature missing")
 	}
 	// and have enough
 	collector := gconf.Address(store, GconfCollectorAddress)
@@ -97,7 +97,7 @@ func (d FeeDecorator) Deliver(ctx weave.Context, store weave.KVStore, tx weave.T
 
 	// verify we have access to the money
 	if !d.auth.HasAddress(ctx, finfo.Payer) {
-		return res, errors.ErrUnauthorized.New("Fee payer signature missing")
+		return res, errors.Wrap(errors.ErrUnauthorized, "Fee payer signature missing")
 	}
 	// and subtract it from the account
 	collector := gconf.Address(store, GconfCollectorAddress)
@@ -123,7 +123,7 @@ func (d FeeDecorator) extractFee(ctx weave.Context, tx weave.Tx, store weave.KVS
 		if minFee.IsZero() {
 			return finfo, nil
 		}
-		return nil, errors.ErrInsufficientAmount.Newf("fees %#v", fee)
+		return nil, errors.Wrapf(errors.ErrInsufficientAmount, "fees %#v", fee)
 	}
 
 	// make sure it is a valid fee (non-negative, going somewhere)
@@ -147,7 +147,7 @@ func (d FeeDecorator) extractFee(ctx weave.Context, tx weave.Tx, store weave.KVS
 
 	}
 	if !fee.IsGTE(cmp) {
-		return nil, errors.ErrInsufficientAmount.Newf("fees %#v", fee)
+		return nil, errors.Wrapf(errors.ErrInsufficientAmount, "fees %#v", fee)
 	}
 	return finfo, nil
 }

@@ -19,13 +19,13 @@ var _ orm.CloneableData = (*Contract)(nil)
 // Validate enforces sigs and threshold boundaries
 func (c *Contract) Validate() error {
 	if len(c.Sigs) == 0 {
-		return errors.ErrInvalidMsg.New("missing sigs")
+		return errors.Wrap(errors.ErrInvalidMsg, "missing sigs")
 	}
 	if c.ActivationThreshold <= 0 || int(c.ActivationThreshold) > len(c.Sigs) {
-		return errors.ErrInvalidMsg.New(invalidThreshold)
+		return errors.Wrap(errors.ErrInvalidMsg, invalidThreshold)
 	}
 	if c.AdminThreshold <= 0 {
-		return errors.ErrInvalidMsg.New(invalidThreshold)
+		return errors.Wrap(errors.ErrInvalidMsg, invalidThreshold)
 	}
 	for _, a := range c.Sigs {
 		if err := weave.Address(a).Validate(); err != nil {

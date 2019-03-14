@@ -19,21 +19,21 @@ var _ orm.CloneableData = (*Escrow)(nil)
 // Validate ensures the escrow is valid
 func (e *Escrow) Validate() error {
 	if e.Sender == nil {
-		return errors.ErrEmpty.New("sender")
+		return errors.Wrap(errors.ErrEmpty, "sender")
 	}
 	// Copied from CreateEscrowMsg.Validate
 	// TODO: code reuse???
 	if e.Arbiter == nil {
-		return errors.ErrEmpty.New("arbiter")
+		return errors.Wrap(errors.ErrEmpty, "arbiter")
 	}
 	if e.Recipient == nil {
-		return errors.ErrEmpty.New("recipient")
+		return errors.Wrap(errors.ErrEmpty, "recipient")
 	}
 	if e.Timeout <= 0 {
-		return errors.ErrInvalidInput.Newf("timeout: %d", e.Timeout)
+		return errors.Wrapf(errors.ErrInvalidInput, "timeout: %d", e.Timeout)
 	}
 	if len(e.Memo) > maxMemoSize {
-		return errors.ErrInvalidInput.Newf("memo %s", e.Memo)
+		return errors.Wrapf(errors.ErrInvalidInput, "memo %s", e.Memo)
 	}
 	if err := validateConditions(e.Arbiter); err != nil {
 		return err
@@ -119,11 +119,11 @@ func NewBucket() Bucket {
 
 func getEscrow(obj orm.Object) (*Escrow, error) {
 	if obj == nil {
-		return nil, errors.ErrHuman.New("Cannot take index of nil")
+		return nil, errors.Wrap(errors.ErrHuman, "Cannot take index of nil")
 	}
 	esc, ok := obj.Value().(*Escrow)
 	if !ok {
-		return nil, errors.ErrHuman.New("Can only take index of Escrow")
+		return nil, errors.Wrap(errors.ErrHuman, "Can only take index of Escrow")
 	}
 	return esc, nil
 }

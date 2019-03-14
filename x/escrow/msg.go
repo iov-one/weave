@@ -60,16 +60,16 @@ func NewCreateMsg(send, rcpt weave.Address, arb weave.Condition,
 // Validate makes sure that this is sensible
 func (m *CreateEscrowMsg) Validate() error {
 	if m.Arbiter == nil {
-		return errors.ErrEmpty.New("arbiter")
+		return errors.Wrap(errors.ErrEmpty, "arbiter")
 	}
 	if m.Recipient == nil {
-		return errors.ErrEmpty.New("recipient")
+		return errors.Wrap(errors.ErrEmpty, "recipient")
 	}
 	if m.Timeout <= 0 {
-		return errors.ErrInvalidInput.Newf("timeout: %d", m.Timeout)
+		return errors.Wrapf(errors.ErrInvalidInput, "timeout: %d", m.Timeout)
 	}
 	if len(m.Memo) > maxMemoSize {
-		return errors.ErrInvalidInput.Newf("memo %s", m.Memo)
+		return errors.Wrapf(errors.ErrInvalidInput, "memo %s", m.Memo)
 	}
 	if err := validateAmount(m.Amount); err != nil {
 		return err
@@ -107,7 +107,7 @@ func (m *UpdateEscrowPartiesMsg) Validate() error {
 	if m.Arbiter == nil &&
 		m.Sender == nil &&
 		m.Recipient == nil {
-		return errors.ErrEmpty.New("all conditions")
+		return errors.Wrap(errors.ErrEmpty, "all conditions")
 	}
 	err = validateConditions(m.Arbiter)
 	if err != nil {
@@ -146,7 +146,7 @@ func validateAmount(amount coin.Coins) error {
 	// we enforce this is positive
 	positive := amount.IsPositive()
 	if !positive {
-		return errors.ErrInvalidAmount.Newf("non-positive SendMsg: %#v", &amount)
+		return errors.Wrapf(errors.ErrInvalidAmount, "non-positive SendMsg: %#v", &amount)
 	}
 	// then make sure these are properly formatted coins
 	return amount.Validate()
@@ -154,7 +154,7 @@ func validateAmount(amount coin.Coins) error {
 
 func validateEscrowID(id []byte) error {
 	if len(id) != 8 {
-		return errors.ErrInvalidInput.Newf("escrow id: %X", id)
+		return errors.Wrapf(errors.ErrInvalidInput, "escrow id: %X", id)
 	}
 	return nil
 }

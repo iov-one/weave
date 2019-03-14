@@ -69,7 +69,7 @@ func (d Decorator) withMultisig(ctx weave.Context, store weave.KVStore, tx weave
 			// check sigs (can be sig or multisig)
 			authenticated := x.HasNAddresses(ctx, d.auth, sigs, int(contract.ActivationThreshold))
 			if !authenticated {
-				return ctx, errors.ErrUnauthorized.Newf("contract=%X", contractID)
+				return ctx, errors.Wrapf(errors.ErrUnauthorized, "contract=%X", contractID)
 			}
 
 			ctx = withMultisig(ctx, contractID)
@@ -86,7 +86,7 @@ func (d Decorator) getContract(store weave.KVStore, id []byte) (*Contract, error
 	}
 
 	if obj == nil || (obj != nil && obj.Value() == nil) {
-		return nil, errors.ErrNotFound.Newf(contractNotFoundFmt, id)
+		return nil, errors.Wrapf(errors.ErrNotFound, contractNotFoundFmt, id)
 	}
 
 	contract := obj.Value().(*Contract)

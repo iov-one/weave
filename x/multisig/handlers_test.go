@@ -80,7 +80,7 @@ func TestCreateContractMsgHandler(t *testing.T) {
 		{
 			name: "missing sigs",
 			msg:  &CreateContractMsg{},
-			err:  errors.ErrInvalidMsg.New("missing sigs"),
+			err:  errors.Wrap(errors.ErrInvalidMsg, "missing sigs"),
 		},
 		{
 			name: "bad activation threshold",
@@ -89,7 +89,7 @@ func TestCreateContractMsgHandler(t *testing.T) {
 				ActivationThreshold: 4,
 				AdminThreshold:      3,
 			},
-			err: errors.ErrInvalidMsg.New(invalidThreshold),
+			err: errors.Wrap(errors.ErrInvalidMsg, invalidThreshold),
 		},
 		{
 			name: "bad admin threshold",
@@ -98,7 +98,7 @@ func TestCreateContractMsgHandler(t *testing.T) {
 				ActivationThreshold: 1,
 				AdminThreshold:      -1,
 			},
-			err: errors.ErrInvalidMsg.New(invalidThreshold),
+			err: errors.Wrap(errors.ErrInvalidMsg, invalidThreshold),
 		},
 		{
 			name: "0 activation threshold",
@@ -107,7 +107,7 @@ func TestCreateContractMsgHandler(t *testing.T) {
 				ActivationThreshold: 0,
 				AdminThreshold:      1,
 			},
-			err: errors.ErrInvalidMsg.New(invalidThreshold),
+			err: errors.Wrap(errors.ErrInvalidMsg, invalidThreshold),
 		},
 	}
 

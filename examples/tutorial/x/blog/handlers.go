@@ -90,7 +90,7 @@ func (h CreateBlogMsgHandler) validate(ctx weave.Context, db weave.KVStore, tx w
 	// Retrieve tx main signer in this context
 	sender := x.MainSigner(ctx, h.auth)
 	if sender == nil {
-		return nil, errors.ErrUnauthorized.Newf(unauthorisedBlogAuthorFmt, nil)
+		return nil, errors.Wrapf(errors.ErrUnauthorized, unauthorisedBlogAuthorFmt, nil)
 	}
 
 	msg, err := tx.GetMsg()
@@ -111,7 +111,7 @@ func (h CreateBlogMsgHandler) validate(ctx weave.Context, db weave.KVStore, tx w
 	// Check the blog does not already exist
 	obj, err := h.bucket.Get(db, []byte(createBlogMsg.Slug))
 	if err != nil || (obj != nil && obj.Value() != nil) {
-		return nil, errors.ErrDuplicate.New("blog")
+		return nil, errors.Wrap(errors.ErrDuplicate, "blog")
 	}
 
 	return createBlogMsg, nil
@@ -184,7 +184,7 @@ func (h CreatePostMsgHandler) validate(ctx weave.Context, db weave.KVStore, tx w
 
 	// Check the author is one of the Tx signer
 	if !h.auth.HasAddress(ctx, createPostMsg.Author) {
-		return nil, nil, errors.ErrUnauthorized.Newf(unauthorisedPostAuthorFmt, weave.Address(createPostMsg.Author))
+		return nil, nil, errors.Wrapf(errors.ErrUnauthorized, unauthorisedPostAuthorFmt, weave.Address(createPostMsg.Author))
 	}
 
 	err = createPostMsg.Validate()
@@ -198,7 +198,7 @@ func (h CreatePostMsgHandler) validate(ctx weave.Context, db weave.KVStore, tx w
 		return nil, nil, err
 	}
 	if obj == nil || (obj != nil && obj.Value() == nil) {
-		return nil, nil, errors.ErrNotFound.New("blog")
+		return nil, nil, errors.Wrap(errors.ErrNotFound, "blog")
 	}
 
 	blog := obj.Value().(*Blog)
@@ -252,7 +252,7 @@ func (h RenameBlogMsgHandler) validate(ctx weave.Context, db weave.KVStore, tx w
 	// Retrieve tx main signer in this context
 	sender := x.MainSigner(ctx, h.auth)
 	if sender == nil {
-		return nil, nil, errors.ErrUnauthorized.Newf(unauthorisedBlogAuthorFmt, nil)
+		return nil, nil, errors.Wrapf(errors.ErrUnauthorized, unauthorisedBlogAuthorFmt, nil)
 	}
 
 	msg, err := tx.GetMsg()
@@ -277,13 +277,13 @@ func (h RenameBlogMsgHandler) validate(ctx weave.Context, db weave.KVStore, tx w
 		return nil, nil, err
 	}
 	if obj == nil || (obj != nil && obj.Value() == nil) {
-		return nil, nil, errors.ErrNotFound.New("blog")
+		return nil, nil, errors.Wrap(errors.ErrNotFound, "blog")
 	}
 
 	blog := obj.Value().(*Blog)
 	// Check main signer is one of the blog authors
 	if findAuthor(blog.Authors, sender.Address()) == -1 {
-		return nil, nil, errors.ErrUnauthorized.Newf(unauthorisedBlogAuthorFmt, sender.Address())
+		return nil, nil, errors.Wrapf(errors.ErrUnauthorized, unauthorisedBlogAuthorFmt, sender.Address())
 	}
 
 	return renameBlogMsg, blog, nil
@@ -345,7 +345,7 @@ func (h ChangeBlogAuthorsMsgHandler) validate(ctx weave.Context, db weave.KVStor
 	// Retrieve tx main signer in this context
 	sender := x.MainSigner(ctx, h.auth)
 	if sender == nil {
-		return nil, nil, errors.ErrUnauthorized.Newf(unauthorisedBlogAuthorFmt, nil)
+		return nil, nil, errors.Wrapf(errors.ErrUnauthorized, unauthorisedBlogAuthorFmt, nil)
 	}
 
 	msg, err := tx.GetMsg()
@@ -369,13 +369,13 @@ func (h ChangeBlogAuthorsMsgHandler) validate(ctx weave.Context, db weave.KVStor
 		return nil, nil, err
 	}
 	if obj == nil || (obj != nil && obj.Value() == nil) {
-		return nil, nil, errors.ErrNotFound.New("blog")
+		return nil, nil, errors.Wrap(errors.ErrNotFound, "blog")
 	}
 
 	blog := obj.Value().(*Blog)
 	// Check main signer is one of the blog authors
 	if findAuthor(blog.Authors, sender.Address()) == -1 {
-		return nil, nil, errors.ErrUnauthorized.Newf(unauthorisedBlogAuthorFmt, sender.Address())
+		return nil, nil, errors.Wrapf(errors.ErrUnauthorized, unauthorisedBlogAuthorFmt, sender.Address())
 	}
 
 	// Get the author index
@@ -383,7 +383,7 @@ func (h ChangeBlogAuthorsMsgHandler) validate(ctx weave.Context, db weave.KVStor
 	if changeBlogAuthorsMsg.Add {
 		// When removing an author we must ensure it does not exist already
 		if authorIdx >= 0 {
-			return nil, nil, errors.ErrDuplicate.Newf("author: %X", changeBlogAuthorsMsg.Author)
+			return nil, nil, errors.Wrapf(errors.ErrDuplicate, "author: %X", changeBlogAuthorsMsg.Author)
 		}
 	} else {
 		// When removing an author we must ensure :
@@ -391,11 +391,11 @@ func (h ChangeBlogAuthorsMsgHandler) validate(ctx weave.Context, db weave.KVStor
 		// 2 - There will be at least one other author left
 
 		if authorIdx == -1 {
-			return nil, nil, errors.ErrNotFound.Newf("author: %X", changeBlogAuthorsMsg.Author)
+			return nil, nil, errors.Wrapf(errors.ErrNotFound, "author: %X", changeBlogAuthorsMsg.Author)
 		}
 
 		if len(blog.Authors) == 1 {
-			return nil, nil, errors.ErrInvalidState.New("one author left")
+			return nil, nil, errors.Wrap(errors.ErrInvalidState, "one author left")
 		}
 	}
 
@@ -452,7 +452,7 @@ func (h SetProfileMsgHandler) validate(ctx weave.Context, db weave.KVStore, tx w
 	// Retrieve tx main signer in this context
 	sender := x.MainSigner(ctx, h.auth)
 	if sender == nil {
-		return nil, nil, errors.ErrUnauthorized.Newf(unauthorisedBlogAuthorFmt, nil)
+		return nil, nil, errors.Wrapf(errors.ErrUnauthorized, unauthorisedBlogAuthorFmt, nil)
 	}
 
 	msg, err := tx.GetMsg()
@@ -468,7 +468,7 @@ func (h SetProfileMsgHandler) validate(ctx weave.Context, db weave.KVStore, tx w
 	// if author is here we use it for authentication
 	if setProfileMsg.Author != nil {
 		if !h.auth.HasAddress(ctx, setProfileMsg.Author) {
-			return nil, nil, errors.ErrUnauthorized.Newf(unauthorisedPostAuthorFmt, weave.Address(setProfileMsg.Author))
+			return nil, nil, errors.Wrapf(errors.ErrUnauthorized, unauthorisedPostAuthorFmt, weave.Address(setProfileMsg.Author))
 		}
 	}
 
