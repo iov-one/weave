@@ -66,7 +66,7 @@ func (r Router) Check(ctx weave.Context, store weave.KVStore,
 
 	msg, _ := tx.GetMsg()
 	if msg == nil {
-		return weave.CheckResult{}, errors.ErrInvalidInput.New("unable to decode")
+		return weave.CheckResult{}, errors.Wrap(errors.ErrInvalidInput, "unable to decode")
 	}
 	path := msg.Path()
 	h := r.Handler(path)
@@ -79,7 +79,7 @@ func (r Router) Deliver(ctx weave.Context, store weave.KVStore,
 
 	msg, _ := tx.GetMsg()
 	if msg == nil {
-		return weave.DeliverResult{}, errors.ErrInvalidInput.New("unable to decode")
+		return weave.DeliverResult{}, errors.Wrap(errors.ErrInvalidInput, "unable to decode")
 	}
 	path := msg.Path()
 	h := r.Handler(path)
@@ -98,12 +98,12 @@ var _ weave.Handler = noSuchPathHandler{}
 func (h noSuchPathHandler) Check(ctx weave.Context, store weave.KVStore,
 	tx weave.Tx) (weave.CheckResult, error) {
 
-	return weave.CheckResult{}, errors.ErrNotFound.Newf("path: %s", h.path)
+	return weave.CheckResult{}, errors.Wrapf(errors.ErrNotFound, "path: %s", h.path)
 }
 
 // Deliver always returns ErrNoSuchPath
 func (h noSuchPathHandler) Deliver(ctx weave.Context, store weave.KVStore,
 	tx weave.Tx) (weave.DeliverResult, error) {
 
-	return weave.DeliverResult{}, errors.ErrNotFound.Newf("path: %s", h.path)
+	return weave.DeliverResult{}, errors.Wrapf(errors.ErrNotFound, "path: %s", h.path)
 }

@@ -70,7 +70,7 @@ func setWallets(db weave.KVStore, gens []GenesisAccount) error {
 	bucket := NewWalletBucket()
 	for _, gen := range gens {
 		if len(gen.Address) != weave.AddressLength {
-			return errors.ErrInvalidInput.Newf("address: %s", gen.Address)
+			return errors.Wrapf(errors.ErrInvalidInput, "address: %s", gen.Address)
 		}
 		wallet, err := WalletWith(gen.Address, gen.Name, gen.Wallet.Coins...)
 		if err != nil {

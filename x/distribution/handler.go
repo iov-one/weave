@@ -87,7 +87,7 @@ func (h *newRevenueHandler) validate(ctx weave.Context, db weave.KVStore, tx wea
 	}
 	msg, ok := rmsg.(*NewRevenueMsg)
 	if !ok {
-		return nil, errors.ErrInvalidMsg.New("unknown transaction type")
+		return nil, errors.Wrap(errors.ErrInvalidMsg, "unknown transaction type")
 	}
 	if err := msg.Validate(); err != nil {
 		return msg, err
@@ -141,7 +141,7 @@ func (h *distributeHandler) validate(ctx weave.Context, db weave.KVStore, tx wea
 	}
 	msg, ok := rmsg.(*DistributeMsg)
 	if !ok {
-		return nil, errors.ErrInvalidMsg.New("unknown transaction type")
+		return nil, errors.Wrap(errors.ErrInvalidMsg, "unknown transaction type")
 	}
 	if err := msg.Validate(); err != nil {
 		return msg, err
@@ -211,7 +211,7 @@ func (h *resetRevenueHandler) validate(ctx weave.Context, db weave.KVStore, tx w
 	}
 	msg, ok := rmsg.(*ResetRevenueMsg)
 	if !ok {
-		return nil, errors.ErrInvalidMsg.New("unknown transaction type")
+		return nil, errors.Wrap(errors.ErrInvalidMsg, "unknown transaction type")
 	}
 	if err := msg.Validate(); err != nil {
 		return msg, err

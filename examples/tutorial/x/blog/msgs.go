@@ -42,15 +42,15 @@ func (CreateBlogMsg) Path() string {
 func (s *CreateBlogMsg) Validate() error {
 	// validate the strings
 	if !IsValidName(s.Slug) {
-		return errors.ErrInvalidInput.New(invalidName)
+		return errors.Wrap(errors.ErrInvalidInput, invalidName)
 	}
 	if len(s.Title) < MinTitleLength || len(s.Title) > MaxTitleLength {
-		return errors.ErrInvalidInput.New(invalidTitle)
+		return errors.Wrap(errors.ErrInvalidInput, invalidTitle)
 	}
 	// check the number of authors
 	authors := len(s.Authors)
 	if authors < MinAuthors || authors > MaxAuthors {
-		return errors.ErrInvalidState.Newf("authors: %d", authors)
+		return errors.Wrapf(errors.ErrInvalidState, "authors: %d", authors)
 	}
 	// and validate all of them are valid addresses
 	for _, a := range s.Authors {
@@ -72,10 +72,10 @@ func (RenameBlogMsg) Path() string {
 // Validate makes sure that this is sensible
 func (s *RenameBlogMsg) Validate() error {
 	if !IsValidName(s.Slug) {
-		return errors.ErrInvalidInput.New(invalidName)
+		return errors.Wrap(errors.ErrInvalidInput, invalidName)
 	}
 	if len(s.Title) < MinTitleLength || len(s.Title) > MaxTitleLength {
-		return errors.ErrInvalidInput.New(invalidTitle)
+		return errors.Wrap(errors.ErrInvalidInput, invalidTitle)
 	}
 	return nil
 }
@@ -105,13 +105,13 @@ func (CreatePostMsg) Path() string {
 // Validate makes sure that this is sensible
 func (s *CreatePostMsg) Validate() error {
 	if !IsValidName(s.Blog) {
-		return errors.ErrInvalidInput.New(invalidName)
+		return errors.Wrap(errors.ErrInvalidInput, invalidName)
 	}
 	if len(s.Title) < MinTitleLength || len(s.Title) > MaxTitleLength {
-		return errors.ErrInvalidInput.New(invalidTitle)
+		return errors.Wrap(errors.ErrInvalidInput, invalidTitle)
 	}
 	if len(s.Text) < MinTextLength || len(s.Text) > MaxTextLength {
-		return errors.ErrInvalidInput.New(invalidText)
+		return errors.Wrap(errors.ErrInvalidInput, invalidText)
 	}
 
 	// if an author is present, validate it is a valid address
@@ -132,10 +132,10 @@ func (SetProfileMsg) Path() string {
 // Validate makes sure that this is sensible
 func (s *SetProfileMsg) Validate() error {
 	if !IsValidName(s.Name) {
-		return errors.ErrInvalidInput.New(invalidName)
+		return errors.Wrap(errors.ErrInvalidInput, invalidName)
 	}
 	if len(s.Description) > MaxDescriptionLength {
-		return errors.ErrInvalidInput.New(descriptionTooLong)
+		return errors.Wrap(errors.ErrInvalidInput, descriptionTooLong)
 	}
 	// if an author is present, validate it is a valid address
 	if len(s.Author) > 0 {

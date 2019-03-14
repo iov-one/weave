@@ -116,7 +116,7 @@ func (h CreateEscrowHandler) validate(ctx weave.Context, db weave.KVStore,
 	// verify that timeout is in the future
 	height, _ := weave.GetHeight(ctx)
 	if msg.Timeout <= height {
-		return nil, errors.ErrInvalidInput.Newf("timeout: %d", msg.Timeout)
+		return nil, errors.Wrapf(errors.ErrInvalidInput, "timeout: %d", msg.Timeout)
 	}
 
 	// sender must authorize this (if not set, defaults to MainSigner)
@@ -230,7 +230,7 @@ func (h ReleaseEscrowHandler) validate(ctx weave.Context, db weave.KVStore,
 	// timeout must not have expired
 	height, _ := weave.GetHeight(ctx)
 	if escrow.Timeout < height {
-		return nil, nil, errors.ErrExpired.Newf("escrow %d", escrow.Timeout)
+		return nil, nil, errors.Wrapf(errors.ErrExpired, "escrow %d", escrow.Timeout)
 	}
 
 	return msg, escrow, nil
@@ -314,7 +314,7 @@ func (h ReturnEscrowHandler) validate(ctx weave.Context, db weave.KVStore,
 	// timeout must have expired
 	height, _ := weave.GetHeight(ctx)
 	if height <= escrow.Timeout {
-		return nil, nil, errors.ErrInvalidState.Newf("escrow not expired %d", escrow.Timeout)
+		return nil, nil, errors.Wrapf(errors.ErrInvalidState, "escrow not expired %d", escrow.Timeout)
 	}
 
 	return msg.EscrowId, escrow, nil
@@ -401,7 +401,7 @@ func (h UpdateEscrowHandler) validate(ctx weave.Context, db weave.KVStore,
 	// timeout must not have expired
 	height, _ := weave.GetHeight(ctx)
 	if height > escrow.Timeout {
-		return nil, nil, errors.ErrExpired.Newf("escrow %d", escrow.Timeout)
+		return nil, nil, errors.Wrapf(errors.ErrExpired, "escrow %d", escrow.Timeout)
 	}
 
 	// we must have the permission for the items we want to change
@@ -435,7 +435,7 @@ func loadEscrow(bucket Bucket, db weave.KVStore, escrowID []byte) (*Escrow, erro
 	}
 	escrow := AsEscrow(obj)
 	if escrow == nil {
-		return nil, errors.ErrEmpty.Newf("escrow %d", escrowID)
+		return nil, errors.Wrapf(errors.ErrEmpty, "escrow %d", escrowID)
 	}
 	return escrow, nil
 }

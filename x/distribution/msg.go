@@ -26,7 +26,7 @@ func (NewRevenueMsg) Path() string {
 
 func (msg *DistributeMsg) Validate() error {
 	if len(msg.RevenueID) == 0 {
-		return errors.ErrInvalidMsg.New("revenue ID missing")
+		return errors.Wrap(errors.ErrInvalidMsg, "revenue ID missing")
 	}
 	return nil
 }

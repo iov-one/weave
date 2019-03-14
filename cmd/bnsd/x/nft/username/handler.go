@@ -82,11 +82,11 @@ func (h IssueHandler) validate(ctx weave.Context, tx weave.Tx) (*IssueTokenMsg, 
 	// check permissions
 	if h.issuer != nil {
 		if !h.auth.HasAddress(ctx, h.issuer) {
-			return nil, errors.ErrUnauthorized.New("")
+			return nil, errors.Wrap(errors.ErrUnauthorized, "")
 		}
 	} else {
 		if !h.auth.HasAddress(ctx, msg.Owner) {
-			return nil, errors.ErrUnauthorized.New("")
+			return nil, errors.Wrap(errors.ErrUnauthorized, "")
 		}
 	}
 	return msg, nil
@@ -122,7 +122,7 @@ func (h AddChainAddressHandler) Deliver(ctx weave.Context, store weave.KVStore, 
 
 	actor := nft.FindActor(h.auth, ctx, t, nft.UpdateDetails)
 	if actor == nil {
-		return res, errors.ErrUnauthorized.New("")
+		return res, errors.Wrap(errors.ErrUnauthorized, "")
 	}
 	allKeys := append(t.GetChainAddresses(), ChainAddress{BlockchainID: msg.GetBlockchainID(), Address: msg.GetAddress()})
 	if err := t.SetChainAddresses(actor, allKeys); err != nil {
@@ -177,10 +177,10 @@ func (h RemoveChainAddressHandler) Deliver(ctx weave.Context, store weave.KVStor
 
 	actor := nft.FindActor(h.auth, ctx, t, nft.UpdateDetails)
 	if actor == nil {
-		return res, errors.ErrUnauthorized.New("")
+		return res, errors.Wrap(errors.ErrUnauthorized, "")
 	}
 	if len(t.GetChainAddresses()) == 0 {
-		return res, errors.ErrInvalidInput.New("empty chain addresses")
+		return res, errors.Wrap(errors.ErrInvalidInput, "empty chain addresses")
 	}
 	obsoleteAddress := ChainAddress{BlockchainID: msg.GetBlockchainID(), Address: msg.GetAddress()}
 	newAddresses := make([]ChainAddress, 0, len(t.GetChainAddresses()))
@@ -190,7 +190,7 @@ func (h RemoveChainAddressHandler) Deliver(ctx weave.Context, store weave.KVStor
 		}
 	}
 	if len(newAddresses) == len(t.GetChainAddresses()) {
-		return res, errors.ErrNotFound.New("requested address not registered")
+		return res, errors.Wrap(errors.ErrNotFound, "requested address not registered")
 	}
 	if err := t.SetChainAddresses(actor, newAddresses); err != nil {
 		return res, err
@@ -219,7 +219,7 @@ func loadToken(h tokenHandler, store weave.KVStore, id []byte) (orm.Object, Toke
 	case err != nil:
 		return nil, nil, err
 	case o == nil:
-		return nil, nil, errors.ErrNotFound.Newf("username %s", nft.PrintableID(id))
+		return nil, nil, errors.Wrapf(errors.ErrNotFound, "username %s", nft.PrintableID(id))
 	}
 	t, e := AsUsername(o)
 	return o, t, e

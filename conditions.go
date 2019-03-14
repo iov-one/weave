@@ -39,7 +39,7 @@ func NewCondition(ext, typ string, data []byte) Condition {
 func (c Condition) Parse() (string, string, []byte, error) {
 	chunks := perm.FindSubmatch(c)
 	if len(chunks) == 0 {
-		return "", "", nil, errors.ErrInvalidInput.Newf("condition: %X", []byte(c))
+		return "", "", nil, errors.Wrapf(errors.ErrInvalidInput, "condition: %X", []byte(c))
 
 	}
 	// returns [all, match1, match2, match3]
@@ -70,7 +70,7 @@ func (c Condition) String() string {
 // Validate returns an error if the Condition is not the proper format
 func (c Condition) Validate() error {
 	if !perm.Match(c) {
-		return errors.ErrInvalidInput.Newf("condition: %X", []byte(c))
+		return errors.Wrapf(errors.ErrInvalidInput, "condition: %X", []byte(c))
 	}
 	return nil
 }
@@ -101,11 +101,11 @@ func (c *Condition) deserialize(source string) error {
 
 	args := strings.Split(source, "/")
 	if len(args) != 3 {
-		return errors.ErrInvalidInput.Newf("invalid condition format")
+		return errors.Wrapf(errors.ErrInvalidInput, "invalid condition format")
 	}
 	data, err := hex.DecodeString(args[2])
 	if err != nil {
-		return errors.ErrInvalidInput.Newf("malformed condition data: %s", err)
+		return errors.Wrapf(errors.ErrInvalidInput, "malformed condition data: %s", err)
 	}
 	*c = NewCondition(args[0], args[1], data)
 	return nil
@@ -167,7 +167,7 @@ func (a *Address) UnmarshalJSON(raw []byte) error {
 		*a = c.Address()
 		return nil
 	default:
-		return errors.ErrInvalidType.Newf("unknown format %q", chunks[0])
+		return errors.Wrapf(errors.ErrInvalidType, "unknown format %q", chunks[0])
 	}
 }
 
@@ -183,7 +183,7 @@ func (a Address) String() string {
 // Validate returns an error if the address is not the valid size
 func (a Address) Validate() error {
 	if len(a) != AddressLength {
-		return errors.ErrInvalidInput.Newf("address: %v", a)
+		return errors.Wrapf(errors.ErrInvalidInput, "address: %v", a)
 	}
 	return nil
 }

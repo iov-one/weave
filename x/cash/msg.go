@@ -26,7 +26,7 @@ func (SendMsg) Path() string {
 func (s *SendMsg) Validate() error {
 	amt := s.GetAmount()
 	if coin.IsEmpty(amt) || !amt.IsPositive() {
-		return errors.ErrInvalidAmount.Newf("non-positive SendMsg: %#v", amt)
+		return errors.Wrapf(errors.ErrInvalidAmount, "non-positive SendMsg: %#v", amt)
 
 	}
 	if err := amt.Validate(); err != nil {
@@ -39,10 +39,10 @@ func (s *SendMsg) Validate() error {
 		return err
 	}
 	if len(s.GetMemo()) > maxMemoSize {
-		return errors.ErrInvalidState.New("memo too long")
+		return errors.Wrap(errors.ErrInvalidState, "memo too long")
 	}
 	if len(s.GetRef()) > maxRefSize {
-		return errors.ErrInvalidState.New("ref too long")
+		return errors.Wrap(errors.ErrInvalidState, "ref too long")
 	}
 	return nil
 }
@@ -87,17 +87,17 @@ func (f *FeeInfo) DefaultPayer(addr []byte) *FeeInfo {
 // Note that fee must be present, even if 0
 func (f *FeeInfo) Validate() error {
 	if f == nil {
-		return errors.ErrInvalidInput.Newf("address: %v", nil)
+		return errors.Wrapf(errors.ErrInvalidInput, "address: %v", nil)
 	}
 	fee := f.GetFees()
 	if fee == nil {
-		return errors.ErrInvalidAmount.New("fees nil")
+		return errors.Wrap(errors.ErrInvalidAmount, "fees nil")
 	}
 	if err := fee.Validate(); err != nil {
 		return err
 	}
 	if !fee.IsNonNegative() {
-		return errors.ErrInvalidAmount.New("negative fees")
+		return errors.Wrap(errors.ErrInvalidAmount, "negative fees")
 	}
 	return weave.Address(f.Payer).Validate()
 }

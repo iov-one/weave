@@ -40,10 +40,10 @@ func (t *NewTokenMsg) Validate() error {
 		return errors.Wrapf(errors.ErrCurrency, "invalid ticker: %s", t.Ticker)
 	}
 	if !IsTokenName(t.Name) {
-		return errors.ErrInvalidInput.Newf(invalidTokenNameFmt, t.Name)
+		return errors.Wrapf(errors.ErrInvalidInput, invalidTokenNameFmt, t.Name)
 	}
 	if t.SigFigs < minSigFigs || t.SigFigs > maxSigFigs {
-		return errors.ErrInvalidInput.Newf(invalidSigFigsFmt, t.SigFigs)
+		return errors.Wrapf(errors.ErrInvalidInput, invalidSigFigsFmt, t.SigFigs)
 	}
 	return nil
 }
@@ -65,10 +65,10 @@ func (SetWalletNameMsg) Path() string {
 // Validate makes sure that this is sensible
 func (s *SetWalletNameMsg) Validate() error {
 	if len(s.Address) != weave.AddressLength {
-		return errors.ErrInvalidInput.Newf("address: %v", s.Address)
+		return errors.Wrapf(errors.ErrInvalidInput, "address: %v", s.Address)
 	}
 	if !IsWalletName(s.Name) {
-		return errors.ErrInvalidInput.Newf("wallet name: %v", s.Name)
+		return errors.Wrapf(errors.ErrInvalidInput, "wallet name: %v", s.Name)
 	}
 	return nil
 }

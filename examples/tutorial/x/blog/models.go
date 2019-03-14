@@ -14,13 +14,13 @@ var _ orm.CloneableData = (*Blog)(nil)
 // Validate enforces limits of title size and number of authors
 func (b *Blog) Validate() error {
 	if len(b.Title) > MaxTitleLength {
-		return errors.ErrInvalidInput.New(invalidTitle)
+		return errors.Wrap(errors.ErrInvalidInput, invalidTitle)
 	}
 	if len(b.Authors) > MaxAuthors || len(b.Authors) == 0 {
-		return errors.ErrInvalidState.Newf("authors: %d", len(b.Authors))
+		return errors.Wrapf(errors.ErrInvalidState, "authors: %d", len(b.Authors))
 	}
 	if b.NumArticles < 0 {
-		return errors.ErrInvalidModel.Newf("negative articles")
+		return errors.Wrapf(errors.ErrInvalidModel, "negative articles")
 	}
 	return nil
 }
@@ -45,16 +45,16 @@ var _ orm.CloneableData = (*Post)(nil)
 // Validate enforces limits of text and title size
 func (p *Post) Validate() error {
 	if len(p.Title) > MaxTitleLength {
-		return errors.ErrInvalidInput.New(invalidTitle)
+		return errors.Wrap(errors.ErrInvalidInput, invalidTitle)
 	}
 	if len(p.Text) > MaxTextLength {
-		return errors.ErrInvalidInput.New(invalidText)
+		return errors.Wrap(errors.ErrInvalidInput, invalidText)
 	}
 	if len(p.Author) == 0 {
-		return errors.ErrEmpty.New("author")
+		return errors.Wrap(errors.ErrEmpty, "author")
 	}
 	if p.CreationBlock < 0 {
-		return errors.ErrInvalidModel.Newf("negative creation")
+		return errors.Wrapf(errors.ErrInvalidModel, "negative creation")
 	}
 	return nil
 }
@@ -77,10 +77,10 @@ var _ orm.CloneableData = (*Profile)(nil)
 // Validate enforces limits of text and title size
 func (p *Profile) Validate() error {
 	if len(p.Name) > MaxNameLength {
-		return errors.ErrInvalidInput.New(invalidName)
+		return errors.Wrap(errors.ErrInvalidInput, invalidName)
 	}
 	if len(p.Description) > MaxDescriptionLength {
-		return errors.ErrInvalidInput.New(descriptionTooLong)
+		return errors.Wrap(errors.ErrInvalidInput, descriptionTooLong)
 	}
 	return nil
 }
@@ -148,11 +148,11 @@ func idxAuthor(obj orm.Object) ([]byte, error) {
 	// these should use proper errors, but they never occur
 	// except in case of developer error (wrong data in wrong bucket)
 	if obj == nil {
-		return nil, errors.ErrHuman.New("Cannot take index of nil")
+		return nil, errors.Wrap(errors.ErrHuman, "Cannot take index of nil")
 	}
 	post, ok := obj.Value().(*Post)
 	if !ok {
-		return nil, errors.ErrHuman.New("Can only take index of Post")
+		return nil, errors.Wrap(errors.ErrHuman, "Can only take index of Post")
 	}
 	return post.Author, nil
 }

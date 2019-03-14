@@ -23,7 +23,7 @@ func NewTokenInfo(ticker, name string) orm.Object {
 
 func (t *TokenInfo) Validate() error {
 	if !isTokenName(t.Name) {
-		return errors.ErrInvalidState.Newf("invalid token name %v", t.Name)
+		return errors.Wrapf(errors.ErrInvalidState, "invalid token name %v", t.Name)
 	}
 	return nil
 }

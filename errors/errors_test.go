@@ -19,7 +19,7 @@ func TestCause(t *testing.T) {
 			root: ErrNotFound,
 		},
 		"Wrap reveals root cause": {
-			err:  ErrNotFound.New("foo"),
+			err:  Wrap(ErrNotFound, "foo"),
 			root: ErrNotFound,
 		},
 		"Cause works for stderr as root": {

@@ -58,7 +58,7 @@ func (d Decorator) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx,
 		}
 	}
 	if len(signers) == 0 && !d.allowMissingSigs {
-		return res, errors.ErrUnauthorized.New("missing signature")
+		return res, errors.Wrap(errors.ErrUnauthorized, "missing signature")
 	}
 
 	ctx = withSigners(ctx, signers)
@@ -80,7 +80,7 @@ func (d Decorator) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx,
 		}
 	}
 	if len(signers) == 0 && !d.allowMissingSigs {
-		return res, errors.ErrUnauthorized.New("missing signature")
+		return res, errors.Wrap(errors.ErrUnauthorized, "missing signature")
 	}
 
 	ctx = withSigners(ctx, signers)

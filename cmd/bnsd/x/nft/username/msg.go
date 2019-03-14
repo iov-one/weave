@@ -78,10 +78,10 @@ func (m *RemoveChainAddressMsg) Validate() error {
 
 func validateID(id []byte) error {
 	if id == nil {
-		return errors.ErrInvalidInput.New("must not be nil")
+		return errors.Wrap(errors.ErrInvalidInput, "must not be nil")
 	}
 	if !isValidID(string(id)) {
-		return errors.ErrInvalidInput.Newf("id: %s", nft.PrintableID(id))
+		return errors.Wrapf(errors.ErrInvalidInput, "id: %s", nft.PrintableID(id))
 	}
 	return nil
 }

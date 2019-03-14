@@ -83,7 +83,7 @@ func (d DynamicFeeDecorator) Check(ctx weave.Context, store weave.KVStore, tx we
 	}
 	// if we have success, ensure that we paid at least the RequiredFee (IsGTE enforces the same token)
 	if !res.RequiredFee.IsZero() && !fee.IsGTE(res.RequiredFee) {
-		return weave.CheckResult{}, errors.ErrInsufficientAmount.Newf("Fee less than required fee of %#v", res.RequiredFee)
+		return weave.CheckResult{}, errors.Wrapf(errors.ErrInsufficientAmount, "Fee less than required fee of %#v", res.RequiredFee)
 	}
 	return res, nil
 }
@@ -113,7 +113,7 @@ func (d DynamicFeeDecorator) Deliver(ctx weave.Context, store weave.KVStore, tx 
 	}
 	// if we have success, ensure that we paid at least the RequiredFee (IsGTE enforces the same token)
 	if !res.RequiredFee.IsZero() && !fee.IsGTE(res.RequiredFee) {
-		return weave.DeliverResult{}, errors.ErrInsufficientAmount.Newf("Fee less than required fee of %#v", res.RequiredFee)
+		return weave.DeliverResult{}, errors.Wrapf(errors.ErrInsufficientAmount, "Fee less than required fee of %#v", res.RequiredFee)
 	}
 	return res, nil
 }
@@ -133,7 +133,7 @@ func (d DynamicFeeDecorator) chargeMinimalFee(store weave.KVStore, src weave.Add
 		return nil
 	}
 	if fee.Ticker == "" {
-		return errors.ErrHuman.New("minimal fee without a ticker")
+		return errors.Wrap(errors.ErrHuman, "minimal fee without a ticker")
 	}
 	return d.chargeFee(store, src, fee)
 }
@@ -154,14 +154,14 @@ func (d DynamicFeeDecorator) prepare(ctx weave.Context, store weave.KVStore, tx 
 
 	// Verify we have access to the money.
 	if !d.auth.HasAddress(ctx, payer) {
-		err := errors.ErrUnauthorized.New("fee payer signature missing")
+		err := errors.Wrap(errors.ErrUnauthorized, "fee payer signature missing")
 		return fee, payer, cache, err
 	}
 
 	// Ensure we can execute subtransactions (see check on utils.Savepoint).
 	cstore, ok := store.(weave.CacheableKVStore)
 	if !ok {
-		err = errors.ErrHuman.New("need cachable kvstore")
+		err = errors.Wrap(errors.ErrHuman, "need cachable kvstore")
 		return fee, payer, cache, err
 	}
 	cache = cstore.CacheWrap()
@@ -183,7 +183,7 @@ func (d DynamicFeeDecorator) extractFee(ctx weave.Context, tx weave.Tx, store we
 		if minFee.IsZero() {
 			return finfo, nil
 		}
-		return nil, errors.ErrInsufficientAmount.New("zero transaction fee is not allowed")
+		return nil, errors.Wrap(errors.ErrInsufficientAmount, "zero transaction fee is not allowed")
 	}
 
 	if err := finfo.Validate(); err != nil {
@@ -195,7 +195,7 @@ func (d DynamicFeeDecorator) extractFee(ctx weave.Context, tx weave.Tx, store we
 		return finfo, nil
 	}
 	if minFee.Ticker == "" {
-		return nil, errors.ErrHuman.New("minumal fee curency not set")
+		return nil, errors.Wrap(errors.ErrHuman, "minumal fee curency not set")
 	}
 	if !txFee.SameType(minFee) {
 		err := errors.Wrapf(errors.ErrCurrency,
@@ -204,7 +204,7 @@ func (d DynamicFeeDecorator) extractFee(ctx weave.Context, tx weave.Tx, store we
 
 	}
 	if !txFee.IsGTE(minFee) {
-		return nil, errors.ErrInsufficientAmount.Newf("transaction fee less than minimum: %v", txFee)
+		return nil, errors.Wrapf(errors.ErrInsufficientAmount, "transaction fee less than minimum: %v", txFee)
 	}
 	return finfo, nil
 }

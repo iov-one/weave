@@ -3,6 +3,7 @@ package sigs
 import (
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/crypto"
+	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/orm"
 )
 
@@ -19,10 +20,10 @@ var _ orm.CloneableData = (*UserData)(nil)
 func (u *UserData) Validate() error {
 	seq := u.Sequence
 	if seq < 0 {
-		return ErrInvalidSequence.Newf("Seq(%d)", seq)
+		return errors.Wrapf(ErrInvalidSequence, "Seq(%d)", seq)
 	}
 	if seq > 0 && u.Pubkey == nil {
-		return ErrInvalidSequence.Newf("Seq(%d) needs Pubkey", seq)
+		return errors.Wrapf(ErrInvalidSequence, "Seq(%d) needs Pubkey", seq)
 	}
 	return nil
 }
@@ -41,7 +42,7 @@ func (u *UserData) Copy() orm.CloneableData {
 // If not, it will not change the sequence, but return an error
 func (u *UserData) CheckAndIncrementSequence(check int64) error {
 	if u.Sequence != check {
-		return ErrInvalidSequence.Newf("Mismatch expected %d, got %d", check, u.Sequence)
+		return errors.Wrapf(ErrInvalidSequence, "mismatch expected %d, got %d", check, u.Sequence)
 	}
 	u.Sequence++
 	return nil
