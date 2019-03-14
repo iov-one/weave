@@ -1,5 +1,5 @@
 /*
-package main demonstrates how we can print out our TMErrors
+package main demonstrates how we can print out our errors
 
 meant for `go run .../demo.go`
 */
@@ -12,7 +12,7 @@ import (
 )
 
 func makeError() error {
-	return errors.ErrInternal.New("foo")
+	return errors.ErrNotFound.New("foo")
 }
 
 func otherError() error {

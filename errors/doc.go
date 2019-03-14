@@ -16,7 +16,7 @@ on the client side and act accordingly.
 There is also support for stacktraces. Please ensure you create the custom error using
 ErrXyz.New("...") or errors.Wrap(err, "...") at the point of creation to ensure we attach
 a stacktrace. If you wrap multiple times, we only record the first wrap with the stacktrace.
-(And don't do this as a global `var ErrFoo = errors.ErrInternal.New("foo")` or you will get a
+(And don't do this as a global `var ErrFoo = errors.ErrNotFound.New("foo")` or you will get a
 useless stacktrace).
 
 Once you have an error, you can use `fmt.Printf/Sprintf` to get more context for the error

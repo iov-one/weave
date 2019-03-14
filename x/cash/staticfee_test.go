@@ -30,11 +30,11 @@ func (f feeTx) GetFees() *FeeInfo {
 }
 
 func (f feeTx) Marshal() ([]byte, error) {
-	return nil, errors.ErrInternal.New("TODO: not implemented")
+	return nil, errors.ErrHuman.New("TODO: not implemented")
 }
 
 func (f *feeTx) Unmarshal([]byte) error {
-	return errors.ErrInternal.New("TODO: not implemented")
+	return errors.ErrHuman.New("TODO: not implemented")
 }
 
 func must(obj orm.Object, err error) orm.Object {

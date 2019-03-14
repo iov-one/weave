@@ -1,8 +1,6 @@
 package weave
 
 import (
-	"fmt"
-
 	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/errors"
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -100,40 +98,32 @@ type TickResult struct {
 	Diff []abci.ValidatorUpdate
 }
 
-//---------- type safe error converters --------
-
-// DeliverTxError converts any error into a abci.ResponseDeliverTx,
-// preserving as much info as possible if it was already
-// a TMError
+// DeliverTxError converts any error into a abci.ResponseDeliverTx, preserving
+// as much info as possible.
+// When in debug mode always the full error information is returned.
 func DeliverTxError(err error, debug bool) abci.ResponseDeliverTx {
-	clean := errors.Redact(err)
-	tm := errors.Wrap(clean, "cannot deliver tx")
-
-	log := tm.ABCILog()
-	if debug {
-		log = fmt.Sprintf("%v", tm)
+	err = errors.Redact(err, debug)
+	code, log := errors.ABCIInfo(err, debug)
+	if code != 0 {
+		log = "cannot deliver tx: " + log
 	}
-
 	return abci.ResponseDeliverTx{
-		Code: tm.ABCICode(),
+		Code: code,
 		Log:  log,
 	}
 }
 
-// CheckTxError converts any error into a abci.ResponseCheckTx,
-// preserving as much info as possible if it was already
-// a TMError
+// CheckTxError converts any error into a abci.ResponseCheckTx, preserving as
+// much info as possible.
+// When in debug mode always the full error information is returned.
 func CheckTxError(err error, debug bool) abci.ResponseCheckTx {
-	clean := errors.Redact(err)
-	tm := errors.Wrap(clean, "cannot check tx")
-
-	log := tm.ABCILog()
-	if debug {
-		log = fmt.Sprintf("%v", tm)
+	err = errors.Redact(err, debug)
+	code, log := errors.ABCIInfo(err, debug)
+	if code != 0 {
+		log = "cannot check tx: " + log
 	}
-
 	return abci.ResponseCheckTx{
-		Code: tm.ABCICode(),
+		Code: code,
 		Log:  log,
 	}
 }

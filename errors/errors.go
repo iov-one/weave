@@ -2,22 +2,12 @@ package errors
 
 import (
 	"fmt"
-	"io"
 	"reflect"
-	"runtime"
-	"strings"
 
 	"github.com/pkg/errors"
 )
 
-// Global error registry, codes 1-99 are reserved for global errors, 0 is reserved for non-errors
 var (
-
-	// ErrInternal represents a general case issue that cannot be
-	// categorized as any of the below cases.
-	// We start as 1 as 0 is reserved for non-errors
-	ErrInternal = Register(1, "internal")
-
 	// ErrUnauthorized is used whenever a request without sufficient
 	// authorization is handled.
 	ErrUnauthorized = Register(2, "unauthorized")
@@ -55,7 +45,8 @@ var (
 	// ErrInvalidType is returned whenever the type is not what was expected
 	ErrInvalidType = Register(11, "invalid type")
 
-	// ErrInsufficientAmount is returned when an amount of currency is insufficient, e.g. funds/fees
+	// ErrInsufficientAmount is returned when an amount of currency is
+	// insufficient, e.g. funds/fees
 	ErrInsufficientAmount = Register(12, "insufficient amount")
 
 	// ErrInvalidAmount stands for invalid amount of whatever
@@ -75,22 +66,10 @@ var (
 	// due to a currency issues.
 	ErrCurrency = Register(17, "currency")
 
-	// ErrPanic is only set when we recover from a panic, so we know to redact potentially sensitive system info
+	// ErrPanic is only set when we recover from a panic, so we know to
+	// redact potentially sensitive system info
 	ErrPanic = Register(111222, "panic")
 )
-
-// TMError is the tendermint abci return type with stack trace
-type TMError interface {
-	stackTracer
-	ABCICode() uint32
-	ABCILog() string
-}
-
-// stackTracer from pkg/errors
-type stackTracer interface {
-	error
-	StackTrace() errors.StackTrace
-}
 
 // Register returns an error instance that should be used as the base for
 // creating error instances during runtime.
@@ -112,8 +91,11 @@ func Register(code uint32, description string) *Error {
 	return err
 }
 
-// usedCodes is keeping track of used codes to ensure uniqueness.
-var usedCodes = map[uint32]*Error{}
+// usedCodes is keeping track of used codes to ensure their uniqueness. No two
+// error instances should share the same error code.
+var usedCodes = map[uint32]*Error{
+	1: nil, // Error code 1 is restricted for non-weave errors and must not be used.
+}
 
 // Error represents a root error.
 //
@@ -129,14 +111,13 @@ type Error struct {
 	desc string
 }
 
-// Error returns the stored description
-func (e Error) Error() string { return e.desc }
+func (e Error) Error() string {
+	return e.desc
+}
 
-// ABCILog returns the stored description, same as Error()
-func (e Error) ABCILog() string { return e.desc }
-
-// ABCICode returns the associated ABCICode
-func (e Error) ABCICode() uint32 { return e.code }
+func (e Error) ABCICode() uint32 {
+	return e.code
+}
 
 // New returns a new error. Returned instance is having the root cause set to
 // this error. Below two lines are equal
@@ -154,14 +135,7 @@ func (e *Error) Newf(description string, args ...interface{}) error {
 
 // Is check if given error instance is of a given kind/type. This involves
 // unwrapping given error using the Cause method if available.
-//
-// Any non weave implementation of an error is tested positive for being
-// ErrInternal.
 func (kind *Error) Is(err error) bool {
-	type causer interface {
-		Cause() error
-	}
-
 	// Reflect usage is necessary to correctly compare with
 	// a nil implementation of an error.
 	if kind == nil {
@@ -191,28 +165,21 @@ func (kind *Error) Is(err error) bool {
 //
 // If err is nil, this returns nil, avoiding the need for an if statement when
 // wrapping a error returned at the end of a function
-func Wrap(err error, description string) TMError {
+func Wrap(err error, description string) error {
 	if err == nil {
 		return nil
 	}
 
-	// take ABCICode from wrapped error, or default ErrInternal
-	code := ErrInternal.code
-	if p, ok := err.(coder); ok {
-		code = p.ABCICode()
-	}
-
-	// this will not fire on wrapping a wrappedError,
-	// but only on wrapping a registered Error, or stdlib error
-	st, ok := err.(stackTracer)
-	if !ok {
-		st = errors.WithStack(err).(stackTracer)
+	// If this error does not carry the stacktrace information yet, attach
+	// one. This should be done only once per error at the lowest frame
+	// possible (most inner wrap).
+	if stackTrace(err) == nil {
+		err = errors.WithStack(err)
 	}
 
 	return &wrappedError{
-		parent: st,
+		parent: err,
 		msg:    description,
-		code:   code,
 	}
 }
 
@@ -220,7 +187,7 @@ func Wrap(err error, description string) TMError {
 //
 // This function works like Wrap function with additional funtionality of
 // formatting the input as specified.
-func Wrapf(err error, format string, args ...interface{}) TMError {
+func Wrapf(err error, format string, args ...interface{}) error {
 	desc := fmt.Sprintf(format, args...)
 	return Wrap(err, desc)
 }
@@ -229,157 +196,33 @@ type wrappedError struct {
 	// This error layer description.
 	msg string
 	// The underlying error that triggered this one.
-	parent stackTracer
-	// The abci code, inherited from the parent
-	code uint32
-}
-
-type coder interface {
-	ABCICode() uint32
-}
-
-func (e *wrappedError) StackTrace() errors.StackTrace {
-	if e.parent == nil {
-		return nil
-	}
-	return e.parent.StackTrace()
+	parent error
 }
 
 func (e *wrappedError) Error() string {
-	// if we have a real error code, show all logs recursively
-	if e.parent == nil {
-		return e.msg
-	}
 	return fmt.Sprintf("%s: %s", e.msg, e.parent.Error())
-}
-
-func (e *wrappedError) ABCICode() uint32 {
-	return e.code
-}
-
-func (e *wrappedError) ABCILog() string {
-	return e.Error()
 }
 
 func (e *wrappedError) Cause() error {
 	return e.parent
 }
 
-func matchesFile(f errors.Frame, substrs ...string) bool {
-	file, _ := fileLine(f)
-	for _, sub := range substrs {
-		if strings.Contains(file, sub) {
-			return true
-		}
-	}
-	return false
-}
-
-func fileLine(f errors.Frame) (string, int) {
-	// this looks a bit like magic, but follows example here:
-	// https://github.com/pkg/errors/blob/v0.8.1/stack.go#L14-L27
-	// as this is where we get the Frames
-	pc := uintptr(f) - 1
-	fn := runtime.FuncForPC(pc)
-	if fn == nil {
-		return "unknown", 0
-	}
-	return fn.FileLine(pc)
-}
-
-func trimInternal(st errors.StackTrace) errors.StackTrace {
-	// trim our internal parts here
-	// manual error creation, or runtime for caught panics
-	for matchesFile(st[0],
-		// where we create errors
-		"weave/errors/errors.go",
-		// runtime are added on panics
-		"/runtime/",
-		// _test is defined in coverage tests, causing failure
-		"/_test/") {
-		st = st[1:]
-	}
-	// trim out outer wrappers (runtime.goexit and test library if present)
-	for l := len(st) - 1; matchesFile(st[l], "/runtime/", "src/testing/testing.go"); l-- {
-		st = st[:l]
-	}
-	return st
-}
-
-func writeSimpleFrame(s io.Writer, f errors.Frame) {
-	file, line := fileLine(f)
-	// cut file at "github.com/"
-	// TODO: generalize better for other hosts?
-	chunks := strings.SplitN(file, "github.com/", 2)
-	if len(chunks) == 2 {
-		file = chunks[1]
-	}
-	fmt.Fprintf(s, " [%s:%d]", file, line)
-}
-
-// Format works like pkg/errors, with additions.
-// %s is just the error message
-// %+v is the full stack trace
-// %v appends a compressed [filename:line] where the error
-//    was created
-//
-// Inspired by https://github.com/pkg/errors/blob/v0.8.1/errors.go#L162-L176
-func (e *wrappedError) Format(s fmt.State, verb rune) {
-	// normal output here....
-	if verb != 'v' {
-		fmt.Fprintf(s, e.ABCILog())
-		return
-	}
-	// work with the stack trace... whole or part
-	stack := trimInternal(e.StackTrace())
-	if s.Flag('+') {
-		fmt.Fprintf(s, "%+v\n", stack)
-		fmt.Fprintf(s, e.ABCILog())
-	} else {
-		fmt.Fprintf(s, e.ABCILog())
-		writeSimpleFrame(s, stack[0])
-	}
-}
-
-// hasErrorCode checks if this error would return the named error code
-// only used internally for Redact to avoid issues that have to do with
-// Is expecting the same reference for ErrInternal
-func hasErrorCode(err error, code uint32) bool {
-	if tm, ok := err.(coder); ok {
-		return tm.ABCICode() == code
-	}
-	return code == ErrInternal.ABCICode()
-}
-
-// NormalizePanic converts a panic into a redacted error
-//
-// We want the whole stack trace for logging
-// but should show nothing over the ABCI interface....
-func NormalizePanic(p interface{}) error {
-	// TODO, handle this better??? for stack traces
-	// if err, isErr := p.(error); isErr {
-	// 	return Wrap(err, "normalized panic")
-	// }
-	return ErrPanic.Newf("%v", p)
-}
-
-// Redact will replace all panic errors with a generic message
-func Redact(err error) error {
-	if hasErrorCode(err, ErrPanic.code) {
-		return ErrInternal
-	}
-	return err
-}
-
-// Recover takes a pointer to the returned error,
-// and sets it upon panic
+// Recover captures a panic and stop its propagation. If panic happens it is
+// transformed into a ErrPanic instance and assigned to given error. Call this
+// function using defer in order to work as expected.
 func Recover(err *error) {
 	if r := recover(); r != nil {
-		*err = NormalizePanic(r)
+		*err = Wrapf(ErrPanic, "%v", r)
 	}
 }
 
 // WithType is a helper to augment an error with a corresponding type message
 func WithType(err error, obj interface{}) error {
 	return Wrap(err, fmt.Sprintf("%T", obj))
+}
+
+// causer is an interface implemented by an error that supports wrapping. Use
+// it to test if an error wraps another error instance.
+type causer interface {
+	Cause() error
 }

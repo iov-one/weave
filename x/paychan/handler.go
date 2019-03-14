@@ -52,7 +52,7 @@ func (h *createPaymentChannelHandler) validate(ctx weave.Context, db weave.KVSto
 	}
 	msg, ok := rmsg.(*CreatePaymentChannelMsg)
 	if !ok {
-		return nil, errors.ErrInternal.New("unknown transaction type")
+		return nil, errors.ErrInvalidMsg.New("unknown transaction type")
 	}
 
 	if err := msg.Validate(); err != nil {
@@ -126,7 +126,7 @@ func (h *transferPaymentChannelHandler) validate(ctx weave.Context, db weave.KVS
 	}
 	msg, ok := rmsg.(*TransferPaymentChannelMsg)
 	if !ok {
-		return nil, errors.ErrInternal.New("unknown tx type")
+		return nil, errors.ErrInvalidMsg.New("unknown tx type")
 	}
 
 	if err := msg.Validate(); err != nil {
