@@ -256,7 +256,7 @@ func derivePrivateKey(hexSeed, path string) *client.PrivateKey {
 func seedAccountWithTokens(dest weave.Address) {
 	cc := coin.NewCoin(10, 0, "IOV")
 	tx := client.BuildSendTx(alice.PublicKey().Address(), dest, cc, "faucet")
-	tx = tx.WithFee(alice.PublicKey().Address(), antiSpamFee)
+	tx.Fee(alice.PublicKey().Address(), antiSpamFee)
 
 	aNonce := client.NewNonce(bnsClient, alice.PublicKey().Address())
 	seq, err := aNonce.Next()

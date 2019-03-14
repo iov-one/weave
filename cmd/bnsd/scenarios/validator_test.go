@@ -45,7 +45,7 @@ func TestUpdateValidatorSet(t *testing.T) {
 			Power: 1,
 		},
 	)
-	addValidatorTX = addValidatorTX.WithFee(alice.PublicKey().Address(), antiSpamFee)
+	addValidatorTX.Fee(alice.PublicKey().Address(), antiSpamFee)
 
 	_, _, contractID, _ := multiSigContract.Parse()
 	addValidatorTX.Multisig = [][]byte{contractID}
@@ -75,7 +75,7 @@ func TestUpdateValidatorSet(t *testing.T) {
 			Power: 0, // 0 for delete
 		},
 	)
-	delValidatorTX = delValidatorTX.WithFee(alice.PublicKey().Address(), antiSpamFee)
+	delValidatorTX.Fee(alice.PublicKey().Address(), antiSpamFee)
 	delValidatorTX.Multisig = [][]byte{contractID}
 
 	// then

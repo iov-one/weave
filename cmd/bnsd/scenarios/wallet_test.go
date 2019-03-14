@@ -29,7 +29,7 @@ func TestSendTokenWithFee(t *testing.T) {
 		seq, err := aNonce.Next()
 		require.NoError(t, err)
 		tx := client.BuildSendTx(alice.PublicKey().Address(), emilia.PublicKey().Address(), cc, "test tx with fee")
-		tx = tx.WithFee(alice.PublicKey().Address(), antiSpamFee)
+		tx.Fee(alice.PublicKey().Address(), antiSpamFee)
 		require.NoError(t, client.SignTx(tx, alice, chainID, seq))
 		resp := bnsClient.BroadcastTx(tx)
 		require.NoError(t, resp.IsError())

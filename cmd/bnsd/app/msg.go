@@ -6,12 +6,11 @@ import (
 	"github.com/iov-one/weave/x/cash"
 )
 
-// WithFee returns a new Tx with FeeInfo set.
-func (tx Tx) WithFee(payer weave.Address, fee coin.Coin) *Tx {
+// Fee sets the FeeInfo for this tx
+func (tx *Tx) Fee(payer weave.Address, fee coin.Coin) {
 	tx.Fees = &cash.FeeInfo{
 		Payer: payer,
 		Fees:  &fee}
-	return &tx
 }
 
 //Commented out for a minimal feature-set release
