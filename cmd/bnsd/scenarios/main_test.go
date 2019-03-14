@@ -103,7 +103,7 @@ func delayForRateLimits() {
 }
 
 func initApp(config *cfg.Config, addr weave.Address) (abci.Application, error) {
-	bnsd, err := app.GenerateApp(config.RootDir, logger, false)
+	bnsd, err := app.GenerateApp(config.RootDir, logger, true)
 	if err != nil {
 		return nil, err
 	}
