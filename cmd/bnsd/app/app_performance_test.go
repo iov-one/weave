@@ -81,7 +81,10 @@ func BenchmarkBNSD(b *testing.B) {
 					},
 				}
 
-				const nonce = 0 // ?!?!?!?
+				nonce, err := getNonce(wapp, alice.PublicKey().Condition().Address())
+				if err != nil {
+					return err
+				}
 
 				sig, err := sigs.SignTx(alice, &tx, "mychain", nonce)
 				if err != nil {
@@ -126,7 +129,7 @@ func newBnsd(t weavetest.Tester) abci.Application {
 	if err != nil {
 		t.Fatalf("cannot create a temporary directory: %s", err)
 	}
-	t.Logf("using home directory: %q", homeDir)
+	// t.Logf("using home directory: %q", homeDir)
 	bnsd, err := GenerateApp(homeDir, log.NewNopLogger(), false)
 	if err != nil {
 		t.Fatalf("cannot generate bnsd instance: %s", err)
