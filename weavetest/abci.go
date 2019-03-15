@@ -9,6 +9,7 @@ import (
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/app"
 	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/store"
 	abci "github.com/tendermint/tendermint/abci/types"
 )
 
@@ -150,6 +151,7 @@ func (w *WeaveRunner)Get(key []byte) []byte {
 	if query.Code != 0 {
 		panic(query.Log)
 	}
+	// TODO: avoid importing app
 	var value app.ResultSet
 	err := value.Unmarshal(query.Value)
 	if err != nil {
@@ -164,6 +166,42 @@ func (w *WeaveRunner)Get(key []byte) []byte {
 	return value.Results[0]
 }
 
+
+func (w *WeaveRunner)Has(key []byte) bool {
+	return len(w.Get(key)) > 0
+}
+
+func (w *WeaveRunner)Iterator(start, end []byte) weave.Iterator {
+	// TODO: support all prefix searches (later even more ranges)
+	// look at orm/query.go:prefixRange for an idea how we turn prefix->iterator,
+	// we should detect this case and reverse it so we can serialize over abci query
+	if start != nil || end != nil {
+		panic("Iterator only implemented for entire range")
+	}
+
+	query := w.app.Query(abci.RequestQuery{
+		Path: "/?prefix",
+		Data: nil,
+	})
+	// if only the interface supported returning errors....
+	if query.Code != 0 {
+		panic(query.Log)
+	}
+	models, err := toModels(query.Key, query.Value)
+	if err != nil {
+		// oh, for an error return here...
+		panic(errors.Wrap(err, "Cannot parse values"))
+	}
+	
+	// TODO: remove store dependency
+	return store.NewSliceIterator(models)
+}
+
+func (w *WeaveRunner)ReverseIterator(start, end []byte) weave.Iterator {
+	// TODO: load normal iterator but then play it backwards?
+	panic("Not implemented")
+}
+
 // TODO: we really don't want to import weave/app here, do we... but we need it to parse
 func toModels(keys []byte, values []byte) ([]weave.Model, error) {
 	var k, v app.ResultSet
@@ -176,16 +214,4 @@ func toModels(keys []byte, values []byte) ([]weave.Model, error) {
 		return nil, errors.Wrap(err, "Cannot parse values")
 	}
 	return app.JoinResults(&k, &v)
-}
-
-func (w *WeaveRunner)Has(key []byte) bool {
-	return len(w.Get(key)) > 0
-}
-
-func (w *WeaveRunner)Iterator(start, end []byte) weave.Iterator {
-	panic("Not implemented")
-}
-
-func (w *WeaveRunner)ReverseIterator(start, end []byte) weave.Iterator {
-	panic("Not implemented")
 }
