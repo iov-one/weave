@@ -1,6 +1,8 @@
 package escrow
 
 import (
+	"time"
+
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/x/cash"
@@ -20,7 +22,7 @@ func (i *Initializer) FromGenesis(opts weave.Options, db weave.KVStore) error {
 		Sender    weave.Address   `json:"sender"`
 		Arbiter   weave.Condition `json:"arbiter"`
 		Recipient weave.Address   `json:"recipient"`
-		Timeout   int64           `json:"timeout"`
+		Timeout   time.Time       `json:"timeout"`
 		Amount    []*coin.Coin    `json:"amount"`
 	}
 

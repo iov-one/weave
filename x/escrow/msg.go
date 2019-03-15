@@ -1,6 +1,8 @@
 package escrow
 
 import (
+	"time"
+
 	"github.com/iov-one/weave"
 	coin "github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/errors"
@@ -45,12 +47,18 @@ func (UpdateEscrowPartiesMsg) Path() string {
 //--------- Validation --------
 
 // NewCreateMsg is a helper to quickly build a create escrow message
-func NewCreateMsg(send, rcpt weave.Address, arb weave.Condition,
-	amount coin.Coins, timeout int64, memo string) *CreateEscrowMsg {
+func NewCreateMsg(
+	sender weave.Address,
+	recipient weave.Address,
+	arbiter weave.Condition,
+	amount coin.Coins,
+	timeout time.Time,
+	memo string,
+) *CreateEscrowMsg {
 	return &CreateEscrowMsg{
-		Src:       send,
-		Recipient: rcpt,
-		Arbiter:   arb,
+		Src:       sender,
+		Recipient: recipient,
+		Arbiter:   arbiter,
 		Amount:    amount,
 		Timeout:   timeout,
 		Memo:      memo,
@@ -65,8 +73,8 @@ func (m *CreateEscrowMsg) Validate() error {
 	if m.Recipient == nil {
 		return errors.Wrap(errors.ErrEmpty, "recipient")
 	}
-	if m.Timeout <= 0 {
-		return errors.Wrapf(errors.ErrInvalidInput, "timeout: %d", m.Timeout)
+	if m.Timeout.IsZero() {
+		return errors.Wrap(errors.ErrInvalidInput, "timeout in required")
 	}
 	if len(m.Memo) > maxMemoSize {
 		return errors.Wrapf(errors.ErrInvalidInput, "memo %s", m.Memo)
