@@ -1,53 +1,124 @@
 package app
 
 import (
-	"bytes"
-	"fmt"
+	"encoding/hex"
 	"io/ioutil"
 	"testing"
 	"time"
 
-	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/coin"
+	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/weavetest"
+	"github.com/iov-one/weave/x/cash"
+	"github.com/iov-one/weave/x/sigs"
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
 )
 
-func BenchmarkPerformance(b *testing.B) {
-	// TODO genesis
+func BenchmarkBNSD(b *testing.B) {
+	var (
+		alice = weavetest.NewKey()
+		benny = weavetest.NewKey()
+		carol = weavetest.NewKey()
+		david = weavetest.NewKey()
+	)
 
-	bnsd := newTestApplication(b)
-
-	ah := appHelper{
-		ChainID: "mychain",
-		t:       b,
-		app:     bnsd,
+	type dict map[string]interface{}
+	genesis := dict{
+		"cash": []interface{}{
+			dict{
+				"address": alice.PublicKey().Condition().Address(),
+				"coins": []interface{}{
+					dict{
+						"whole":  123456789,
+						"ticker": "IOV",
+					},
+				},
+			},
+		},
+		"currencies": []interface{}{
+			dict{
+				"ticker": "IOV",
+				"name":   "Main token of this chain",
+			},
+		},
+		"distribution": []interface{}{
+			dict{
+				"admin": alice.PublicKey().Condition().Address(),
+				"recipients": []interface{}{
+					dict{"weight": 1, "address": benny.PublicKey().Condition().Address()},
+				},
+			},
+		},
+		"gconf": map[string]interface{}{
+			cash.GconfCollectorAddress: hex.EncodeToString(david.PublicKey().Condition().Address()),
+			cash.GconfMinimalFee:       coin.Coin{}, // no fee
+		},
 	}
 
-	b.ResetTimer()
-	fmt.Printf("Running with %d\n", b.N)
-	for i := 0; i < b.N; i++ {
-		changed := ah.InBlock(emptyBlock)
-		if changed {
-			b.Fatalf("Should not change on empty block")
-		}
+	cases := map[string]struct {
+		ops         func(weavetest.WeaveApp) error
+		wantChanged bool
+	}{
+		"empty block": {
+			ops: func(weavetest.WeaveApp) error {
+				// Without sleep this test is locking the CPU.
+				time.Sleep(time.Microsecond * 1000)
+				return nil
+			},
+			wantChanged: false,
+		},
+		"send coins from alice to carol": {
+			ops: func(wapp weavetest.WeaveApp) error {
+				tx := Tx{
+					Sum: &Tx_SendMsg{
+						&cash.SendMsg{
+							Src:    alice.PublicKey().Condition().Address(),
+							Dest:   carol.PublicKey().Condition().Address(),
+							Amount: coin.NewCoinp(0, 100, "IOV"),
+						},
+					},
+				}
+
+				const nonce = 0 // ?!?!?!?
+
+				sig, err := sigs.SignTx(alice, &tx, "mychain", nonce)
+				if err != nil {
+					return errors.Wrap(err, "cannot sign transaction")
+				}
+				tx.Signatures = append(tx.Signatures, sig)
+
+				if err := wapp.CheckTx(&tx); err != nil {
+					return errors.Wrap(err, "cannot check tx")
+				}
+				if err := wapp.DeliverTx(&tx); err != nil {
+					return errors.Wrap(err, "cannot deliver tx")
+				}
+				return nil
+			},
+			wantChanged: true,
+		},
+	}
+
+	for testName, tc := range cases {
+		b.Run(testName, func(b *testing.B) {
+			bnsd := newBnsd(b)
+			runner := weavetest.NewWeaveRunner(b, bnsd, "mychain")
+			runner.InitChain(genesis)
+
+			b.ResetTimer()
+
+			for i := 0; i < b.N; i++ {
+				changed := runner.InBlock(tc.ops)
+				if changed != tc.wantChanged {
+					b.Fatal("unexpected change state")
+				}
+			}
+		})
 	}
 }
 
-func emptyBlock(app runner) error {
-	time.Sleep(time.Microsecond * 100)
-	return nil
-}
-
-func sendOneCoin(app runner) error {
-	return app.DeliverTx(nil)
-}
-
-type runner interface {
-	DeliverTx(tx weave.Tx) error
-	CheckTx(tx weave.Tx) error
-}
-
-func newTestApplication(t tester) abci.Application {
+func newBnsd(t weavetest.Tester) abci.Application {
 	t.Helper()
 
 	homeDir, err := ioutil.TempDir("", "bnsd_performance_home")
@@ -60,72 +131,4 @@ func newTestApplication(t tester) abci.Application {
 		t.Fatalf("cannot generate bnsd instance: %s", err)
 	}
 	return bnsd
-}
-
-type tester interface {
-	Helper()
-	Errorf(string, ...interface{})
-	Fatalf(string, ...interface{})
-	Logf(string, ...interface{})
-}
-
-type appHelper struct {
-	ChainID string
-	Height  int64
-	t       tester
-	app     abci.Application
-}
-
-var _ runner = (*appHelper)(nil)
-
-func (b *appHelper) CheckTx(tx weave.Tx) error {
-	bz, err := tx.Marshal()
-	if err != nil {
-		return err
-	}
-	res := b.app.CheckTx(bz)
-	if res.Code != 0 {
-		// take the result and turn it into an Error instance
-		// or just start with "(res.code) res.log"
-		return fmt.Errorf("%d: %s", res.Code, res.Log)
-	}
-	return nil
-}
-
-func (b *appHelper) DeliverTx(tx weave.Tx) error {
-	panic("todo")
-}
-
-type processBlock func(r runner) error
-
-// runs a block and returns a bool defining if the app hash (state)
-// changed after commiting this processBlock
-func (b *appHelper) InBlock(cb processBlock) bool {
-	b.t.Helper()
-
-	b.Height++
-	blockHash := b.app.Info(abci.RequestInfo{}).LastBlockAppHash
-
-	// BeginBlock will panic on error.
-	b.app.BeginBlock(abci.RequestBeginBlock{
-		Header: abci.Header{
-			ChainID: b.ChainID,
-			Height:  b.Height,
-		},
-	})
-
-	if err := cb(b); err != nil {
-		b.t.Fatalf("operation failed with %+v", err)
-	}
-
-	// EndBlock returns Validator diffs mainly,
-	// but not important for benchmarks just tests
-	b.app.EndBlock(abci.RequestEndBlock{
-		Height: b.Height,
-	})
-
-	// Commit returns new app hash... maybe we can check if this hash
-	// changed since last block and return that info here?
-	finalHash := b.app.Commit().Data
-	return !bytes.Equal(blockHash, finalHash)
 }
