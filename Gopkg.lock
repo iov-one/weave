@@ -161,14 +161,6 @@
   version = "v1.2.0"
 
 [[projects]]
-  digest = "1:797ad58a3838dd37d2e6fae09344f06ab927fa20974f0fd5198ece977246b44b"
-  name = "github.com/iov-one/tendermint"
-  packages = ["abci/types"]
-  pruneopts = "UT"
-  revision = "16d4ddac6684b3addbfdba525c3be852955e6301"
-  version = "v0.29.1"
-
-[[projects]]
   branch = "master"
   digest = "1:39b27d1381a30421f9813967a5866fba35dc1d4df43a6eefe3b7a5444cb07214"
   name = "github.com/jmhodges/levigo"
@@ -572,7 +564,6 @@
     "github.com/gogo/protobuf/types",
     "github.com/golang/protobuf/ptypes/timestamp",
     "github.com/google/btree",
-    "github.com/iov-one/tendermint/abci/types",
     "github.com/pkg/errors",
     "github.com/smartystreets/goconvey/convey",
     "github.com/stellar/go/exp/crypto/derivation",
