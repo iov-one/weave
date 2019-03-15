@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/app"
 	"github.com/iov-one/weave/errors"
 	abci "github.com/tendermint/tendermint/abci/types"
 )
@@ -49,6 +50,8 @@ type WeaveApp interface {
 	DeliverTx(weave.Tx) error
 	CheckTx(weave.Tx) error
 }
+
+var _ WeaveApp = (*WeaveRunner)(nil)
 
 // InitChain serialize to JSON given genesis and loads it. Loading a genesis is
 // causing a block creation.
@@ -134,4 +137,55 @@ func (w *WeaveRunner) InBlock(executeTx func(WeaveApp) error) bool {
 	// hash only if the state was modified.
 	finalHash := w.app.Commit().Data
 	return !bytes.Equal(initialHash, finalHash)
+}
+
+var _ weave.ReadOnlyKVStore = (*WeaveRunner)(nil)
+
+func (w *WeaveRunner)Get(key []byte) []byte {
+	query := w.app.Query(abci.RequestQuery{
+		Path: "/",
+		Data: key,
+	})
+	// if only the interface supported returning errors....
+	if query.Code != 0 {
+		panic(query.Log)
+	}
+	var value app.ResultSet
+	err := value.Unmarshal(query.Value)
+	if err != nil {
+		// oh, for an error return here...
+		panic(errors.Wrap(err, "Cannot parse values"))
+	}
+
+	if len(value.Results) == 0 {
+		return nil
+	}
+	// TODO: assert error if len > 1 ???
+	return value.Results[0]
+}
+
+// TODO: we really don't want to import weave/app here, do we... but we need it to parse
+func toModels(keys []byte, values []byte) ([]weave.Model, error) {
+	var k, v app.ResultSet
+	err := k.Unmarshal(keys)
+	if err != nil {
+		return nil, errors.Wrap(err, "Cannot parse keys")
+	}
+	err = v.Unmarshal(values)
+	if err != nil {
+		return nil, errors.Wrap(err, "Cannot parse values")
+	}
+	return app.JoinResults(&k, &v)
+}
+
+func (w *WeaveRunner)Has(key []byte) bool {
+	return len(w.Get(key)) > 0
+}
+
+func (w *WeaveRunner)Iterator(start, end []byte) weave.Iterator {
+	panic("Not implemented")
+}
+
+func (w *WeaveRunner)ReverseIterator(start, end []byte) weave.Iterator {
+	panic("Not implemented")
 }
