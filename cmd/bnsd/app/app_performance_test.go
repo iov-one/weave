@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/weavetest"
@@ -131,4 +132,19 @@ func newBnsd(t weavetest.Tester) abci.Application {
 		t.Fatalf("cannot generate bnsd instance: %s", err)
 	}
 	return bnsd
+}
+
+func getNonce(db weave.ReadOnlyKVStore, addr weave.Address) (int64, error) {
+	obj, err := sigs.NewBucket().Get(db, addr)
+	if err != nil {
+		return 0, errors.Wrap(err, "Cannot query nonce")
+	}
+	user := sigs.AsUser(obj)
+
+	// Nonce not found
+	if user == nil {
+		return 0, nil
+	}
+	// Otherwise, read the nonce
+	return user.Sequence, nil
 }
