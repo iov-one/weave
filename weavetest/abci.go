@@ -50,6 +50,8 @@ func NewWeaveRunner(t Tester, app abci.Application, chainID string) *WeaveRunner
 type WeaveApp interface {
 	DeliverTx(weave.Tx) error
 	CheckTx(weave.Tx) error
+	// we also allow standard queries... wrap into a bucket for ease of use
+	weave.ReadOnlyKVStore
 }
 
 var _ WeaveApp = (*WeaveRunner)(nil)
