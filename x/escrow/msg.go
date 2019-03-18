@@ -74,7 +74,7 @@ func (m *CreateEscrowMsg) Validate() error {
 		return errors.Wrap(errors.ErrEmpty, "recipient")
 	}
 	if m.Timeout.IsZero() {
-		return errors.Wrap(errors.ErrInvalidInput, "timeout in required")
+		return errors.Wrap(errors.ErrInvalidInput, "timeout is required")
 	}
 	if len(m.Memo) > maxMemoSize {
 		return errors.Wrapf(errors.ErrInvalidInput, "memo %s", m.Memo)
