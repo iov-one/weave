@@ -26,8 +26,8 @@ func TestIsExpired(t *testing.T) {
 func TestIsExpiredRequiresBlockTime(t *testing.T) {
 	hasPanic := make(chan bool)
 
-	func() {
-		go func() {
+	go func() {
+		defer func() {
 			p := recover()
 			hasPanic <- p != nil
 		}()
