@@ -137,33 +137,47 @@ func (w *WeaveRunner) InBlock(executeTx func(WeaveApp) error) bool {
 // ProcessAllTxs will run all included txs, split into blocksize.
 // It will Fail() if any tx returns an error, or if at any block,
 // the appHash does not change (if should change, otherwise, require it stable)
-func (w *WeaveRunner) ProcessAllTxs(txs []weave.Tx, txPerBlock int, shouldChange bool) {
-	numBlocks := numBlocks(len(txs), txPerBlock)
-	for i := 0; i < numBlocks; i++ {
+func (w *WeaveRunner) ProcessAllTxs(blocks [][]weave.Tx) {
+	for i := 0; i < len(blocks); i++ {
+		txs := blocks[i]
 		changed := w.InBlock(func(wapp WeaveApp) error {
-			numTxs := txsInBlock(len(txs), txPerBlock, i == numBlocks-1)
-			offset := i * txPerBlock
-
 			// let's do all CheckTx first
-			for j := 0; j < numTxs; j++ {
-				tx := txs[offset+j]
+			for j := 0; j < len(txs); j++ {
+				tx := txs[j]
 				if err := wapp.CheckTx(tx); err != nil {
 					return errors.Wrap(err, "cannot check tx")
 				}
 			}
 			// then all DeliverTx... as would be done in reality
-			for j := 0; j < numTxs; j++ {
-				tx := txs[offset+j]
+			for j := 0; j < len(txs); j++ {
+				tx := txs[j]
 				if err := wapp.DeliverTx(tx); err != nil {
 					return errors.Wrap(err, "cannot deliver tx")
 				}
 			}
 			return nil
 		})
-		if changed != shouldChange {
-			w.t.Fatal("unexpected change state")
+		if !changed {
+			w.t.Fatal("expected state to change")
 		}
 	}
+}
+
+// SplitTxs will break one slice of transactions into many slices,
+// one per block. It will fill up to txPerBlockx txs in each block
+// The last block may have less, if there is not enough for a full block
+func SplitTxs(txs []weave.Tx, txPerBlock int) [][]weave.Tx {
+	numBlocks := numBlocks(len(txs), txPerBlock)
+	res := make([][]weave.Tx, numBlocks)
+
+	// full chunks for all but the last block
+	for i := 0; i < numBlocks-1; i++ {
+		res[i], txs = txs[:txPerBlock], txs[txPerBlock:]
+	}
+
+	// remainder in the last block
+	res[numBlocks-1] = txs
+	return res
 }
 
 // numBlocks returns total number of blocks for benchmarks that split b.N
@@ -174,15 +188,6 @@ func numBlocks(totalTx, txPerBlock int) int {
 		return runs + 1
 	}
 	return runs
-}
-
-// txsInBlock will return the txPerBlock, unless this is the last block and there
-// is some remainder (so runs+1 above), where it will only return that extra, not a full block
-func txsInBlock(totalTx, txPerBlock int, lastBlock bool) int {
-	if lastBlock && (totalTx%txPerBlock > 0) {
-		return totalTx % txPerBlock
-	}
-	return txPerBlock
 }
 
 //----- mocking out ReadonlyKVStore -----//
