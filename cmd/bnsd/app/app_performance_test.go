@@ -27,7 +27,7 @@ func BenchmarkBnsdEmptyBlock(b *testing.B) {
 		},
 	}
 
-	bnsd, _ := newBnsd(b)
+	bnsd, cleanup := newBnsd(b)
 	runner := weavetest.NewWeaveRunner(b, bnsd, "mychain")
 	runner.InitChain(genesis)
 
@@ -43,6 +43,9 @@ func BenchmarkBnsdEmptyBlock(b *testing.B) {
 			b.Fatal("unexpected change state")
 		}
 	}
+
+	b.StopTimer()
+	cleanup()
 }
 
 func BenchmarkBNSDSendToken(b *testing.B) {
@@ -112,7 +115,7 @@ func BenchmarkBNSDSendToken(b *testing.B) {
 
 	for testName, tc := range cases {
 		b.Run(testName, func(b *testing.B) {
-			bnsd, _ := newBnsd(b)
+			bnsd, cleanup := newBnsd(b)
 			runner := weavetest.NewWeaveRunner(b, bnsd, "mychain")
 			runner.InitChain(makeGenesis(tc.fee))
 
@@ -156,6 +159,8 @@ func BenchmarkBNSDSendToken(b *testing.B) {
 			blocks := weavetest.SplitTxs(txs, tc.txPerBlock)
 			b.ResetTimer()
 			runner.ProcessAllTxs(blocks)
+			b.StopTimer()
+			cleanup()
 		})
 	}
 }
