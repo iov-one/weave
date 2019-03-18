@@ -142,6 +142,59 @@ func (w *WeaveRunner) InBlock(executeTx func(WeaveApp) error) bool {
 	return !bytes.Equal(initialHash, finalHash)
 }
 
+// ProcessAllTxs will run all included txs, split into blocksize.
+// It will Fail() if any tx returns an error, or if at any block,
+// the appHash does not change (if should change, otherwise, require it stable)
+func (w *WeaveRunner) ProcessAllTxs(txs []weave.Tx, txPerBlock int, shouldChange bool) {
+	numBlocks := numBlocks(len(txs), txPerBlock)
+	for i := 0; i < numBlocks; i++ {
+		changed := w.InBlock(func(wapp WeaveApp) error {
+			numTxs := txsInBlock(len(txs), txPerBlock, i == numBlocks-1)
+			offset := i * txPerBlock
+
+			// let's do all CheckTx first
+			for j := 0; j < numTxs; j++ {
+				tx := txs[offset+j]
+				if err := wapp.CheckTx(tx); err != nil {
+					return errors.Wrap(err, "cannot check tx")
+				}
+			}
+			// then all DeliverTx... as would be done in reality
+			for j := 0; j < numTxs; j++ {
+				tx := txs[offset+j]
+				if err := wapp.DeliverTx(tx); err != nil {
+					return errors.Wrap(err, "cannot deliver tx")
+				}
+			}
+			return nil
+		})
+		if changed != shouldChange {
+			w.t.Fatalf("unexpected change state")
+		}
+	}
+}
+
+// numBlocks returns total number of blocks for benchmarks that split b.N
+// into many smaller blocks
+func numBlocks(totalTx, txPerBlock int) int {
+	runs := totalTx / txPerBlock
+	if totalTx%txPerBlock > 0 {
+		return runs + 1
+	}
+	return runs
+}
+
+// txsInBlock will return the txPerBlock, unless this is the last block and there
+// is some remainder (so runs+1 above), where it will only return that extra, not a full block
+func txsInBlock(totalTx, txPerBlock int, lastBlock bool) int {
+	if lastBlock && (totalTx%txPerBlock > 0) {
+		return totalTx % txPerBlock
+	}
+	return txPerBlock
+}
+
+//----- mocking out ReadonlyKVStore -----//
+
 var _ weave.ReadOnlyKVStore = (*WeaveRunner)(nil)
 
 func (w *WeaveRunner) Get(key []byte) []byte {
