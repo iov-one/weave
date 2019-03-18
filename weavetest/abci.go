@@ -144,7 +144,7 @@ func (w *WeaveRunner) InBlock(executeTx func(WeaveApp) error) bool {
 
 var _ weave.ReadOnlyKVStore = (*WeaveRunner)(nil)
 
-func (w *WeaveRunner)Get(key []byte) []byte {
+func (w *WeaveRunner) Get(key []byte) []byte {
 	query := w.app.Query(abci.RequestQuery{
 		Path: "/",
 		Data: key,
@@ -158,7 +158,7 @@ func (w *WeaveRunner)Get(key []byte) []byte {
 	err := value.Unmarshal(query.Value)
 	if err != nil {
 		// oh, for an error return here...
-		panic(errors.Wrap(err, "Cannot parse values"))
+		panic(errors.Wrap(err, "cannot parse values"))
 	}
 
 	if len(value.Results) == 0 {
@@ -168,17 +168,16 @@ func (w *WeaveRunner)Get(key []byte) []byte {
 	return value.Results[0]
 }
 
-
-func (w *WeaveRunner)Has(key []byte) bool {
+func (w *WeaveRunner) Has(key []byte) bool {
 	return len(w.Get(key)) > 0
 }
 
-func (w *WeaveRunner)Iterator(start, end []byte) weave.Iterator {
+func (w *WeaveRunner) Iterator(start, end []byte) weave.Iterator {
 	// TODO: support all prefix searches (later even more ranges)
 	// look at orm/query.go:prefixRange for an idea how we turn prefix->iterator,
 	// we should detect this case and reverse it so we can serialize over abci query
 	if start != nil || end != nil {
-		panic("Iterator only implemented for entire range")
+		panic("iterator only implemented for entire range")
 	}
 
 	query := w.app.Query(abci.RequestQuery{
@@ -192,16 +191,16 @@ func (w *WeaveRunner)Iterator(start, end []byte) weave.Iterator {
 	models, err := toModels(query.Key, query.Value)
 	if err != nil {
 		// oh, for an error return here...
-		panic(errors.Wrap(err, "Cannot parse values"))
+		panic(errors.Wrap(err, "cannot parse values"))
 	}
-	
+
 	// TODO: remove store dependency
 	return store.NewSliceIterator(models)
 }
 
-func (w *WeaveRunner)ReverseIterator(start, end []byte) weave.Iterator {
+func (w *WeaveRunner) ReverseIterator(start, end []byte) weave.Iterator {
 	// TODO: load normal iterator but then play it backwards?
-	panic("Not implemented")
+	panic("not implemented")
 }
 
 // TODO: we really don't want to import weave/app here, do we... but we need it to parse
@@ -209,11 +208,11 @@ func toModels(keys []byte, values []byte) ([]weave.Model, error) {
 	var k, v app.ResultSet
 	err := k.Unmarshal(keys)
 	if err != nil {
-		return nil, errors.Wrap(err, "Cannot parse keys")
+		return nil, errors.Wrap(err, "cannot parse keys")
 	}
 	err = v.Unmarshal(values)
 	if err != nil {
-		return nil, errors.Wrap(err, "Cannot parse values")
+		return nil, errors.Wrap(err, "cannot parse values")
 	}
 	return app.JoinResults(&k, &v)
 }

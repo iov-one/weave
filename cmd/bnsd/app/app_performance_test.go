@@ -140,7 +140,7 @@ func newBnsd(t weavetest.Tester) abci.Application {
 func getNonce(db weave.ReadOnlyKVStore, addr weave.Address) (int64, error) {
 	obj, err := sigs.NewBucket().Get(db, addr)
 	if err != nil {
-		return 0, errors.Wrap(err, "Cannot query nonce")
+		return 0, errors.Wrap(err, "cannot query nonce")
 	}
 	user := sigs.AsUser(obj)
 
