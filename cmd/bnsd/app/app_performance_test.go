@@ -17,94 +17,80 @@ import (
 	"github.com/tendermint/tendermint/libs/log"
 )
 
-func BenchmarkBNSD(b *testing.B) {
-	var (
-		alice = weavetest.NewKey()
-		benny = weavetest.NewKey()
-		carol = weavetest.NewKey()
-		david = weavetest.NewKey()
-	)
-
-	// this is initialized in each test case
-	var aliceNonce *Nonce
+func BenchmarkBnsdEmptyBlock(b *testing.B) {
+	var aliceAddr = weavetest.NewKey().PublicKey().Address()
 
 	type dict map[string]interface{}
 	genesis := dict{
-		"cash": []interface{}{
-			dict{
-				"address": alice.PublicKey().Condition().Address(),
-				"coins": []interface{}{
-					dict{
-						"whole":  123456789,
-						"ticker": "IOV",
-					},
-				},
-			},
-		},
-		"currencies": []interface{}{
-			dict{
-				"ticker": "IOV",
-				"name":   "Main token of this chain",
-			},
-		},
-		"distribution": []interface{}{
-			dict{
-				"admin": alice.PublicKey().Condition().Address(),
-				"recipients": []interface{}{
-					dict{"weight": 1, "address": benny.PublicKey().Condition().Address()},
-				},
-			},
-		},
 		"gconf": map[string]interface{}{
-			cash.GconfCollectorAddress: hex.EncodeToString(david.PublicKey().Condition().Address()),
+			cash.GconfCollectorAddress: hex.EncodeToString(aliceAddr),
 			cash.GconfMinimalFee:       coin.Coin{}, // no fee
 		},
 	}
 
-	cases := map[string]struct {
-		ops         func(weavetest.WeaveApp) error
-		wantChanged bool
-	}{
-		"empty block": {
-			ops: func(weavetest.WeaveApp) error {
-				// Without sleep this test is locking the CPU.
-				time.Sleep(time.Microsecond * 300)
-				return nil
-			},
-			wantChanged: false,
-		},
-		"send coins from alice to carol": {
-			ops: func(wapp weavetest.WeaveApp) error {
-				tx := Tx{
-					Sum: &Tx_SendMsg{
-						&cash.SendMsg{
-							Src:    alice.PublicKey().Condition().Address(),
-							Dest:   carol.PublicKey().Condition().Address(),
-							Amount: coin.NewCoinp(0, 100, "IOV"),
+	bnsd := newBnsd(b)
+	runner := weavetest.NewWeaveRunner(b, bnsd, "mychain")
+	runner.InitChain(genesis)
+
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		changed := runner.InBlock(func(weavetest.WeaveApp) error {
+			// Without sleep this test is locking the CPU.
+			time.Sleep(time.Microsecond * 300)
+			return nil
+		})
+		if changed {
+			b.Fatal("unexpected change state")
+		}
+	}
+}
+
+func BenchmarkBNSDSendToken(b *testing.B) {
+	var (
+		alice = weavetest.NewKey()
+		benny = weavetest.NewKey()
+		carol = weavetest.NewKey()
+	)
+
+	type dict map[string]interface{}
+	makeGenesis := func(fee coin.Coin) dict {
+		return dict{
+			"cash": []interface{}{
+				dict{
+					"address": alice.PublicKey().Address(),
+					"coins": []interface{}{
+						dict{
+							"whole":  123456789,
+							"ticker": "IOV",
 						},
 					},
-				}
-
-				nonce, err := aliceNonce.Next()
-				if err != nil {
-					return err
-				}
-
-				sig, err := sigs.SignTx(alice, &tx, "mychain", nonce)
-				if err != nil {
-					return errors.Wrap(err, "cannot sign transaction")
-				}
-				tx.Signatures = append(tx.Signatures, sig)
-
-				if err := wapp.CheckTx(&tx); err != nil {
-					return errors.Wrap(err, "cannot check tx")
-				}
-				if err := wapp.DeliverTx(&tx); err != nil {
-					return errors.Wrap(err, "cannot deliver tx")
-				}
-				return nil
+				},
 			},
-			wantChanged: true,
+			"currencies": []interface{}{
+				dict{
+					"ticker": "IOV",
+					"name":   "Main token of this chain",
+				},
+			},
+			"gconf": dict{
+				cash.GconfCollectorAddress: hex.EncodeToString(carol.PublicKey().Address()),
+				cash.GconfMinimalFee:       fee,
+			},
+		}
+	}
+
+	cases := map[string]struct {
+		txPerBlock int
+		fee        coin.Coin
+	}{
+		"1 tx, no fee": {
+			txPerBlock: 1,
+			fee:        coin.Coin{},
+		},
+		"15 tx, no fee": {
+			txPerBlock: 15,
+			fee:        coin.Coin{},
 		},
 	}
 
@@ -112,15 +98,61 @@ func BenchmarkBNSD(b *testing.B) {
 		b.Run(testName, func(b *testing.B) {
 			bnsd := newBnsd(b)
 			runner := weavetest.NewWeaveRunner(b, bnsd, "mychain")
-			runner.InitChain(genesis)
+			runner.InitChain(makeGenesis(tc.fee))
 
-			aliceNonce = NewNonce(runner, alice.PublicKey().Condition().Address())
+			aliceNonce := NewNonce(runner, alice.PublicKey().Condition().Address())
 
 			b.ResetTimer()
 
-			for i := 0; i < b.N; i++ {
-				changed := runner.InBlock(tc.ops)
-				if changed != tc.wantChanged {
+			runs := b.N / tc.txPerBlock
+			rem := b.N % tc.txPerBlock
+			if rem > 0 {
+				runs++
+			}
+
+			// b.Logf("Testcase with %d txs", b.N)
+			for i := 0; i < runs; i++ {
+				changed := runner.InBlock(func(wapp weavetest.WeaveApp) error {
+					numTxs := tc.txPerBlock
+					if i == runs-1 && rem > 0 {
+						numTxs = rem
+					}
+					// b.Logf("Running block with %d tx", numTxs)
+
+					for j := 0; j < numTxs; j++ {
+
+						tx := Tx{
+							// TODO: select fee
+							Sum: &Tx_SendMsg{
+								&cash.SendMsg{
+									Src:    alice.PublicKey().Address(),
+									Dest:   benny.PublicKey().Address(),
+									Amount: coin.NewCoinp(0, 100, "IOV"),
+								},
+							},
+						}
+
+						nonce, err := aliceNonce.Next()
+						if err != nil {
+							return err
+						}
+
+						sig, err := sigs.SignTx(alice, &tx, "mychain", nonce)
+						if err != nil {
+							return errors.Wrap(err, "cannot sign transaction")
+						}
+						tx.Signatures = append(tx.Signatures, sig)
+
+						if err := wapp.CheckTx(&tx); err != nil {
+							return errors.Wrap(err, "cannot check tx")
+						}
+						if err := wapp.DeliverTx(&tx); err != nil {
+							return errors.Wrap(err, "cannot deliver tx")
+						}
+					}
+					return nil
+				})
+				if !changed {
 					b.Fatal("unexpected change state")
 				}
 			}
