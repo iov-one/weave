@@ -121,22 +121,12 @@ func BenchmarkBNSDSendToken(b *testing.B) {
 
 			b.ResetTimer()
 
-			runs := b.N / tc.txPerBlock
-			rem := b.N % tc.txPerBlock
-			if rem > 0 {
-				runs++
-			}
-
 			// b.Logf("Testcase with %d txs", b.N)
-			for i := 0; i < runs; i++ {
+			for i := NumBlocks(b.N, tc.txPerBlock); i > 0; i-- {
 				changed := runner.InBlock(func(wapp weavetest.WeaveApp) error {
-					numTxs := tc.txPerBlock
-					if i == runs-1 && rem > 0 {
-						numTxs = rem
-					}
+					numTxs := TxsInBlock(b.N, tc.txPerBlock, i == 1)
 					// b.Logf("Running block with %d tx", numTxs)
-
-					for j := 0; j < numTxs; j++ {
+					for j := numTxs; j > 0; j-- {
 						var fees *cash.FeeInfo
 						if !tc.fee.IsZero() {
 							fees = &cash.FeeInfo{
@@ -182,6 +172,25 @@ func BenchmarkBNSDSendToken(b *testing.B) {
 			}
 		})
 	}
+}
+
+// NumBlocks returns total number of blocks for benchmarks that split b.N
+// into many smaller blocks
+func NumBlocks(totalTx, txPerBlock int) int {
+	runs := totalTx / txPerBlock
+	if totalTx%txPerBlock > 0 {
+		return runs + 1
+	}
+	return runs
+}
+
+// TxsInBlock will return the txPerBlock, unless this is the last block and there
+// is some remainder (so runs+1 above), where it will only return that extra, not a full block
+func TxsInBlock(totalTx, txPerBlock int, lastBlock bool) int {
+	if lastBlock && (totalTx%txPerBlock > 0) {
+		return totalTx % txPerBlock
+	}
+	return txPerBlock
 }
 
 func newBnsd(t weavetest.Tester) abci.Application {
