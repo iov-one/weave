@@ -14,6 +14,21 @@ import (
 	abci "github.com/tendermint/tendermint/abci/types"
 )
 
+// Strategy defines which functions we call in ProcessAllTxs
+type Strategy int
+
+const (
+	// CheckOnly will only run Check
+	CheckOnly Strategy = iota
+	// DeliverOnly will only run Deliver
+	DeliverOnly
+	// CheckAndDeliver will call Check for all txs in a block, then Deliver for all txs
+	CheckAndDeliver
+	// TODO
+	// DeliverWithPrecheck will call Check *with timer stopped* then time Deliver for all txs
+	// DeliverWithPrecheck
+)
+
 // WeaveRunner provides a translation layer between an ABCI interface and a
 // weave application. It takes care of serializing messages and creating
 // blocks.
@@ -134,30 +149,37 @@ func (w *WeaveRunner) InBlock(executeTx func(WeaveApp) error) bool {
 	return !bytes.Equal(initialHash, finalHash)
 }
 
-// ProcessAllTxs will run all included txs, split into blocksize.
-// It will Fail() if any tx returns an error, or if at any block,
-// the appHash does not change (if should change, otherwise, require it stable)
-func (w *WeaveRunner) ProcessAllTxs(blocks [][]weave.Tx) {
-	for i := 0; i < len(blocks); i++ {
-		txs := blocks[i]
-		changed := w.InBlock(func(wapp WeaveApp) error {
-			// let's do all CheckTx first
-			for j := 0; j < len(txs); j++ {
-				tx := txs[j]
+func applyStategy(txs []weave.Tx, strategy Strategy) func(WeaveApp) error {
+	return func(wapp WeaveApp) error {
+		// let's do all CheckTx first
+		if strategy == CheckOnly || strategy == CheckAndDeliver {
+			for _, tx := range txs {
 				if err := wapp.CheckTx(tx); err != nil {
 					return errors.Wrap(err, "cannot check tx")
 				}
 			}
-			// then all DeliverTx... as would be done in reality
-			for j := 0; j < len(txs); j++ {
-				tx := txs[j]
+		}
+		// then all DeliverTx... as would be done in reality
+		if strategy == DeliverOnly || strategy == CheckAndDeliver {
+			for _, tx := range txs {
 				if err := wapp.DeliverTx(tx); err != nil {
 					return errors.Wrap(err, "cannot deliver tx")
 				}
 			}
-			return nil
-		})
-		if !changed {
+		}
+		return nil
+
+	}
+}
+
+// ProcessAllTxs will run all included txs, split into blocksize.
+// It will Fail() if any tx returns an error, or if at any block,
+// the appHash does not change (if should change, otherwise, require it stable)
+func (w *WeaveRunner) ProcessAllTxs(blocks [][]weave.Tx, strategy Strategy) {
+	for _, txs := range blocks {
+		changed := w.InBlock(applyStategy(txs, strategy))
+		// no change on CheckOnly, otherwise there must be change
+		if changed != (strategy != CheckOnly) {
 			w.t.Fatal("expected state to change")
 		}
 	}
