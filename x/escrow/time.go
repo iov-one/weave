@@ -13,8 +13,8 @@ import (
 // must never happen. The panic is here to prevent from broken setup to be
 // processing data incorrectly.
 func isExpired(ctx weave.Context, t time.Time) bool {
-	blockNow := weave.BlockTime(ctx)
-	if blockNow.IsZero() {
+	blockNow, ok := weave.BlockTime(ctx)
+	if !ok {
 		panic("block time is not present")
 	}
 	return t.Before(blockNow)

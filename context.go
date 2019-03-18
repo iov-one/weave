@@ -94,10 +94,17 @@ func WithBlockTime(ctx Context, t time.Time) Context {
 }
 
 // BlockTime returns current block wall clock time as declared in the context.
-// If time is not present in the context a zero time value is returned.
-func BlockTime(ctx Context) time.Time {
-	val, _ := ctx.Value(contextKeyTime).(time.Time)
-	return val
+// Zero time and false is returned if a block time is not present in the
+// context.
+func BlockTime(ctx Context) (time.Time, bool) {
+	val, ok := ctx.Value(contextKeyTime).(time.Time)
+	if ok && val.IsZero() {
+		// This is a special case when a zero time value was attached
+		// to the context. Even though it is present it is not a valid
+		// value.
+		return val, false
+	}
+	return val, ok
 }
 
 // WithChainID sets the chain id for the Context.
