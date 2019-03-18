@@ -155,34 +155,37 @@ func BenchmarkBNSDSendToken(b *testing.B) {
 			}
 
 			b.ResetTimer()
+			ProcessAllTxs(runner, b, txs, tc.txPerBlock, true)
+		})
+	}
+}
 
-			numBlocks := NumBlocks(b.N, tc.txPerBlock)
-			for i := 0; i < numBlocks; i++ {
-				changed := runner.InBlock(func(wapp weavetest.WeaveApp) error {
-					numTxs := TxsInBlock(b.N, tc.txPerBlock, i == numBlocks-1)
-					offset := i * tc.txPerBlock
+func ProcessAllTxs(runner *weavetest.WeaveRunner, b *testing.B, txs []weave.Tx, txPerBlock int, shouldChange bool) {
+	numBlocks := NumBlocks(len(txs), txPerBlock)
+	for i := 0; i < numBlocks; i++ {
+		changed := runner.InBlock(func(wapp weavetest.WeaveApp) error {
+			numTxs := TxsInBlock(len(txs), txPerBlock, i == numBlocks-1)
+			offset := i * txPerBlock
 
-					// let's do all CheckTx first
-					for j := 0; j < numTxs; j++ {
-						tx := txs[offset+j]
-						if err := wapp.CheckTx(tx); err != nil {
-							return errors.Wrap(err, "cannot check tx")
-						}
-					}
-					// then all DeliverTx... as would be done in reality
-					for j := 0; j < numTxs; j++ {
-						tx := txs[offset+j]
-						if err := wapp.DeliverTx(tx); err != nil {
-							return errors.Wrap(err, "cannot deliver tx")
-						}
-					}
-					return nil
-				})
-				if !changed {
-					b.Fatal("unexpected change state")
+			// let's do all CheckTx first
+			for j := 0; j < numTxs; j++ {
+				tx := txs[offset+j]
+				if err := wapp.CheckTx(tx); err != nil {
+					return errors.Wrap(err, "cannot check tx")
 				}
 			}
+			// then all DeliverTx... as would be done in reality
+			for j := 0; j < numTxs; j++ {
+				tx := txs[offset+j]
+				if err := wapp.DeliverTx(tx); err != nil {
+					return errors.Wrap(err, "cannot deliver tx")
+				}
+			}
+			return nil
 		})
+		if changed != shouldChange {
+			b.Fatal("unexpected change state")
+		}
 	}
 }
 
