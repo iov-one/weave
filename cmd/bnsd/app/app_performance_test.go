@@ -86,30 +86,42 @@ func BenchmarkBNSDSendToken(b *testing.B) {
 	cases := map[string]struct {
 		txPerBlock int
 		fee        coin.Coin
+		strategy   weavetest.Strategy
 	}{
 		"1 tx, no fee": {
 			txPerBlock: 1,
 			fee:        coin.Coin{},
+			strategy:   weavetest.CheckAndDeliver,
+		},
+		"1 tx, no fee (deliver only)": {
+			txPerBlock: 1,
+			fee:        coin.Coin{},
+			strategy:   weavetest.DeliverOnly,
 		},
 		"10 tx, no fee": {
 			txPerBlock: 10,
 			fee:        coin.Coin{},
+			strategy:   weavetest.CheckAndDeliver,
 		},
 		"100 tx, no fee": {
 			txPerBlock: 100,
 			fee:        coin.Coin{},
-		},
-		"1 tx, with fee": {
-			txPerBlock: 1,
-			fee:        coin.Coin{Whole: 1, Ticker: "IOV"},
-		},
-		"10 tx, with fee": {
-			txPerBlock: 10,
-			fee:        coin.Coin{Whole: 1, Ticker: "IOV"},
+			strategy:   weavetest.CheckAndDeliver,
 		},
 		"100 tx, with fee": {
 			txPerBlock: 100,
 			fee:        coin.Coin{Whole: 1, Ticker: "IOV"},
+			strategy:   weavetest.CheckAndDeliver,
+		},
+		// "100 tx, with fee (check only)": {
+		// 	txPerBlock: 100,
+		// 	fee:        coin.Coin{Whole: 1, Ticker: "IOV"},
+		// 	strategy:   weavetest.CheckOnly,
+		// },
+		"100 tx, with fee (deliver only)": {
+			txPerBlock: 100,
+			fee:        coin.Coin{Whole: 1, Ticker: "IOV"},
+			strategy:   weavetest.DeliverOnly,
 		},
 	}
 
@@ -158,7 +170,7 @@ func BenchmarkBNSDSendToken(b *testing.B) {
 
 			blocks := weavetest.SplitTxs(txs, tc.txPerBlock)
 			b.ResetTimer()
-			runner.ProcessAllTxs(blocks)
+			runner.ProcessAllTxs(blocks, tc.strategy)
 			b.StopTimer()
 			cleanup()
 		})
