@@ -5,30 +5,35 @@ package multisig;
 import "github.com/gogo/protobuf/gogoproto/gogo.proto";
 
 message Contract {
-  // addresses to control it
-  repeated bytes sigs = 1;
-  // threshold needed to sign to activate it
-  int64 activation_threshold = 2;
-  // threshold needed to sign to change it
-  int64 admin_threshold = 3;
+  // Participants defines a list of all signatures that are allowed to sign the
+  // contract.
+  repeated Participant participants = 1;
+  // Activation threshold defines the minimal weight value that must be
+  // provided from participants in order to activate the contract. Weight is
+  // computed as the sum of weights of all participating signatures.
+  uint32 activation_threshold = 2 [(gogoproto.casttype) = "Weight"];
+  // Admin threshold defines the minimal weight value that must be provided
+  // from participants in order to administrate the contract. Weight is
+  // computed as the sum of weights of all participating signatures.
+  uint32 admin_threshold = 3 [(gogoproto.casttype) = "Weight"];
+}
+
+// Participant clubs together a signature with a weight. The greater the weight
+// the greater the power of a signature.
+message Participant {
+  bytes signature = 1 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
+  uint32 power = 2 [(gogoproto.casttype) = "Weight"];
 }
 
 message CreateContractMsg {
-  // addresses to control it
-  repeated bytes sigs = 1;
-  // threshold needed to sign to activate it
-  int64 activation_threshold = 2;
-  // threshold needed to sign to change it
-  int64 admin_threshold = 3;
+  repeated Participant participants = 1;
+  uint32 activation_threshold = 2 [(gogoproto.casttype) = "Weight"];
+  uint32 admin_threshold = 3 [(gogoproto.casttype) = "Weight"];
 }
 
 message UpdateContractMsg {
-  // contract id
-  bytes id = 1;
-  // addresses to control it
-  repeated bytes sigs = 2;
-  // threshold needed to sign to activate it
-  int64 activation_threshold = 3;
-  // threshold needed to sign to change it
-  int64 admin_threshold = 4;
+  bytes contract_id = 1 [(gogoproto.customname) = "ContractID"];
+  repeated Participant participants = 2;
+  uint32 activation_threshold = 3 [(gogoproto.casttype) = "Weight"];
+  uint32 admin_threshold = 4 [(gogoproto.casttype) = "Weight"];
 }

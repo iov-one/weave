@@ -46,7 +46,7 @@ func (h CreateContractMsgHandler) Deliver(ctx weave.Context, db weave.KVStore, t
 	}
 
 	contract := &Contract{
-		Sigs:                msg.Sigs,
+		Participants:        msg.Participants,
 		ActivationThreshold: msg.ActivationThreshold,
 		AdminThreshold:      msg.AdminThreshold,
 	}
@@ -111,12 +111,12 @@ func (h UpdateContractMsgHandler) Deliver(ctx weave.Context, db weave.KVStore, t
 	}
 
 	contract := &Contract{
-		Sigs:                msg.Sigs,
+		Participants:        msg.Participants,
 		ActivationThreshold: msg.ActivationThreshold,
 		AdminThreshold:      msg.AdminThreshold,
 	}
 
-	obj := orm.NewSimpleObj(msg.Id, contract)
+	obj := orm.NewSimpleObj(msg.ContractID, contract)
 	err = h.bucket.Save(db, obj)
 	if err != nil {
 		return res, err
@@ -125,44 +125,37 @@ func (h UpdateContractMsgHandler) Deliver(ctx weave.Context, db weave.KVStore, t
 	return res, nil
 }
 
-// validate does all common pre-processing between Check and Deliver
 func (h UpdateContractMsgHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*UpdateContractMsg, error) {
-	msg, err := tx.GetMsg()
+	txmsg, err := tx.GetMsg()
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "cannot get transaction message")
 	}
 
-	updateContractMsg, ok := msg.(*UpdateContractMsg)
+	msg, ok := txmsg.(*UpdateContractMsg)
 	if !ok {
-		return nil, errors.WithType(errors.ErrInvalidMsg, msg)
+		return nil, errors.Wrapf(errors.ErrInvalidType, "%T", msg)
 	}
 
-	err = updateContractMsg.Validate()
+	// Using current version of the contract, ensure that enoguht
+	// participants with enought power/weight signed this transaction in
+	// order to run functionality that requires admin rights.
+	contract, err := h.bucket.GetContract(db, msg.ContractID)
 	if err != nil {
+		return nil, errors.Wrap(err, "bucket lookup")
+	}
+	var power Weight
+	for _, p := range contract.Participants {
+		if h.auth.HasAddress(ctx, p.Signature) {
+			power += p.Power
+		}
+	}
+	if power < contract.AdminThreshold {
+		return msg, errors.Wrapf(errors.ErrUnauthorized, "%d power is not enough", power)
+	}
+
+	if err := msg.Validate(); err != nil {
 		return nil, err
 	}
 
-	// load contract
-	obj, err := h.bucket.Get(db, updateContractMsg.Id)
-	if err != nil {
-		return nil, err
-	}
-	if obj == nil || (obj != nil && obj.Value() == nil) {
-		return nil, errors.Wrapf(errors.ErrNotFound, contractNotFoundFmt, updateContractMsg.Id)
-	}
-	contract := obj.Value().(*Contract)
-
-	// retrieve sigs
-	var sigs []weave.Address
-	for _, sig := range contract.Sigs {
-		sigs = append(sigs, sig)
-	}
-
-	// check sigs
-	authenticated := x.HasNAddresses(ctx, h.auth, sigs, int(contract.AdminThreshold))
-	if !authenticated {
-		return nil, errors.Wrapf(errors.ErrUnauthorized, "contract=%X", updateContractMsg.Id)
-	}
-
-	return updateContractMsg, nil
+	return msg, nil
 }

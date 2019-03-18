@@ -12,9 +12,12 @@ var _ weave.Initializer = (*Initializer)(nil)
 // database.
 func (*Initializer) FromGenesis(opts weave.Options, db weave.KVStore) error {
 	var contracts []struct {
-		Sigs                []weave.Address `json:"sigs"`
-		ActivationThreshold int64           `json:"activation_threshold"`
-		AdminThreshold      int64           `json:"admin_threshold"`
+		Participants []struct {
+			Signature weave.Address `json:"signature"`
+			Power     Weight        `json:"power"`
+		} `json:"participants"`
+		ActivationThreshold Weight `json:"activation_threshold"`
+		AdminThreshold      Weight `json:"admin_threshold"`
 	}
 	if err := opts.ReadOptions("multisig", &contracts); err != nil {
 		return err
@@ -22,12 +25,15 @@ func (*Initializer) FromGenesis(opts weave.Options, db weave.KVStore) error {
 
 	bucket := NewContractBucket()
 	for _, c := range contracts {
-		sigs := make([][]byte, 0, len(c.Sigs))
-		for _, s := range c.Sigs {
-			sigs = append(sigs, []byte(s))
+		ps := make([]*Participant, 0, len(c.Participants))
+		for _, p := range c.Participants {
+			ps = append(ps, &Participant{
+				Signature: p.Signature,
+				Power:     p.Power,
+			})
 		}
 		contract := Contract{
-			Sigs:                sigs,
+			Participants:        ps,
 			ActivationThreshold: c.ActivationThreshold,
 			AdminThreshold:      c.AdminThreshold,
 		}

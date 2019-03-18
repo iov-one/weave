@@ -22,7 +22,7 @@ func NewDecorator(auth x.Authenticator) Decorator {
 // Check enforce multisig contract before calling down the stack
 func (d Decorator) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx, next weave.Checker) (weave.CheckResult, error) {
 	var res weave.CheckResult
-	newCtx, err := d.withMultisig(ctx, store, tx)
+	newCtx, err := d.authMultisig(ctx, store, tx)
 	if err != nil {
 		return res, err
 	}
@@ -33,7 +33,7 @@ func (d Decorator) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx, ne
 // Deliver enforces multisig contract before calling down the stack
 func (d Decorator) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx, next weave.Deliverer) (weave.DeliverResult, error) {
 	var res weave.DeliverResult
-	newCtx, err := d.withMultisig(ctx, store, tx)
+	newCtx, err := d.authMultisig(ctx, store, tx)
 	if err != nil {
 		return res, err
 	}
@@ -41,54 +41,48 @@ func (d Decorator) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx, 
 	return next.Deliver(newCtx, store, tx)
 }
 
-func (d Decorator) withMultisig(ctx weave.Context, store weave.KVStore, tx weave.Tx) (weave.Context, error) {
-	if multisigContract, ok := tx.(MultiSigTx); ok {
-		ids := multisigContract.GetMultisig()
-		for _, contractID := range ids {
-			if contractID == nil {
-				return ctx, nil
-			}
+func (d Decorator) authMultisig(ctx weave.Context, store weave.KVStore, tx weave.Tx) (weave.Context, error) {
+	multisigContract, ok := tx.(multiSigTx)
+	if !ok {
+		return ctx, nil
+	}
 
-			// check if we already have it
-			if d.auth.HasAddress(ctx, MultiSigCondition(contractID).Address()) {
-				return ctx, nil
-			}
-
-			// load contract
-			contract, err := d.getContract(store, contractID)
-			if err != nil {
-				return ctx, err
-			}
-
-			// collect all sigs
-			sigs := make([]weave.Address, len(contract.Sigs))
-			for i, sig := range contract.Sigs {
-				sigs[i] = sig
-			}
-
-			// check sigs (can be sig or multisig)
-			authenticated := x.HasNAddresses(ctx, d.auth, sigs, int(contract.ActivationThreshold))
-			if !authenticated {
-				return ctx, errors.Wrapf(errors.ErrUnauthorized, "contract=%X", contractID)
-			}
-
-			ctx = withMultisig(ctx, contractID)
+	ids := multisigContract.GetMultisig()
+	for _, contractID := range ids {
+		if contractID == nil {
+			return ctx, nil
 		}
+
+		// If already authenticated it does not matter if multisig can
+		// authenticate as well. Any authentication method is enough.
+		if d.auth.HasAddress(ctx, MultiSigCondition(contractID).Address()) {
+			return ctx, nil
+		}
+
+		contract, err := d.bucket.GetContract(store, contractID)
+		if err != nil {
+			return ctx, err
+		}
+
+		var power Weight
+		for _, p := range contract.Participants {
+			if d.auth.HasAddress(ctx, p.Signature) {
+				power += p.Power
+			}
+		}
+		if power < contract.ActivationThreshold {
+			return ctx, errors.Wrapf(errors.ErrUnauthorized, "%d power is not enough", power)
+		}
+
+		ctx = withMultisig(ctx, contractID)
 	}
 
 	return ctx, nil
 }
 
-func (d Decorator) getContract(store weave.KVStore, id []byte) (*Contract, error) {
-	obj, err := d.bucket.Get(store, id)
-	if err != nil {
-		return nil, err
-	}
-
-	if obj == nil || (obj != nil && obj.Value() == nil) {
-		return nil, errors.Wrapf(errors.ErrNotFound, contractNotFoundFmt, id)
-	}
-
-	contract := obj.Value().(*Contract)
-	return contract, err
+// multiSigTx is an optional interface for a Tx that allows it to
+// support multisig contract. Multisig authentication can be done only
+// for transactions that do support this interface.
+type multiSigTx interface {
+	GetMultisig() [][]byte
 }
