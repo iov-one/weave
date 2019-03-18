@@ -40,7 +40,7 @@ func BenchmarkBnsdEmptyBlock(b *testing.B) {
 			return nil
 		})
 		if changed {
-			b.Fatalf("unexpected change state")
+			b.Fatal("unexpected change state")
 		}
 	}
 }
@@ -160,7 +160,7 @@ func BenchmarkBNSDSendToken(b *testing.B) {
 }
 
 // newBnsd returns the test application, along with a function to delete all testdata at the end
-func newBnsd(t weavetest.Tester) (abci.Application, func()) {
+func newBnsd(t testing.TB) (abci.Application, func()) {
 	t.Helper()
 
 	homeDir, err := ioutil.TempDir("", "bnsd_performance_home")

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"testing"
 	"time"
 
 	"github.com/iov-one/weave"
@@ -13,29 +14,20 @@ import (
 	abci "github.com/tendermint/tendermint/abci/types"
 )
 
-// Tester is implemented by both *testing.T and *testing.B. Use it instead of
-// the pointer type to allow notation to accept both objects.
-type Tester interface {
-	Helper()
-	Errorf(string, ...interface{})
-	Fatalf(string, ...interface{})
-	Logf(string, ...interface{})
-}
-
 // WeaveRunner provides a translation layer between an ABCI interface and a
 // weave application. It takes care of serializing messages and creating
 // blocks.
 type WeaveRunner struct {
 	chainID string
 	height  int64
-	t       Tester
+	t       testing.TB
 	app     abci.Application
 }
 
 // NewWeaveRunner creates a WeaveRunner instance that can be used to process
 // deliver and check transaction requests using weave API. This runner expects
 // all operations to succeed. Any error results in test failure.
-func NewWeaveRunner(t Tester, app abci.Application, chainID string) *WeaveRunner {
+func NewWeaveRunner(t testing.TB, app abci.Application, chainID string) *WeaveRunner {
 	return &WeaveRunner{
 		chainID: chainID,
 		height:  0,
@@ -64,19 +56,19 @@ func (w *WeaveRunner) InitChain(genesis interface{}) {
 		w.t.Fatalf("cannot JSON serialize genesis: %s", err)
 	}
 
-	// Load the genesis in a separate block.
-	changed := w.InBlock(func(WeaveApp) error {
-		w.app.InitChain(abci.RequestInitChain{
-			Time:          time.Now(),
-			ChainId:       w.chainID,
-			AppStateBytes: raw,
-		})
-		return nil
+	// InitChain must happen before any blocks are created
+	lastHeight := w.app.Info(abci.RequestInfo{}).LastBlockHeight
+	if lastHeight != 0 {
+		w.t.Fatalf("cannot initialize after a block, height=%d", lastHeight)
+	}
+	w.app.InitChain(abci.RequestInitChain{
+		Time:          time.Now(),
+		ChainId:       w.chainID,
+		AppStateBytes: raw,
 	})
 
-	if !changed {
-		w.t.Fatalf("genesis did not change the state")
-	}
+	// create initial block to commit state
+	w.InBlock(func(_ WeaveApp) error { return nil })
 }
 
 // CheckTx translates given weave transaction into ABCI interface and executes.
@@ -169,7 +161,7 @@ func (w *WeaveRunner) ProcessAllTxs(txs []weave.Tx, txPerBlock int, shouldChange
 			return nil
 		})
 		if changed != shouldChange {
-			w.t.Fatalf("unexpected change state")
+			w.t.Fatal("unexpected change state")
 		}
 	}
 }
