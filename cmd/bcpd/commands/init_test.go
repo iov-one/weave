@@ -23,7 +23,7 @@ func TestInit(t *testing.T) {
 	defer os.RemoveAll(home)
 
 	logger := log.NewNopLogger()
-	args := []string{"ETH", "ABCD123456789000DEADBEEF00ABCD123456789000"}
+	args := []string{"ETH", "a5dd251d3cd29dae900b089218ae9740165139fa"}
 	err := server.InitCmd(app.GenInitOptions, logger, home, args)
 	require.NoError(t, err)
 
