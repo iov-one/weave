@@ -48,9 +48,10 @@ func BenchmarkBnsdEmptyBlock(b *testing.B) {
 
 func BenchmarkBNSDSendToken(b *testing.B) {
 	var (
-		alice = weavetest.NewKey()
-		benny = weavetest.NewKey()
-		carol = weavetest.NewKey()
+		aliceKey = weavetest.NewKey()
+		alice    = aliceKey.PublicKey().Address()
+		benny    = weavetest.NewKey().PublicKey().Address()
+		carol    = weavetest.NewKey().PublicKey().Address()
 	)
 
 	type dict map[string]interface{}
@@ -58,7 +59,7 @@ func BenchmarkBNSDSendToken(b *testing.B) {
 		return dict{
 			"cash": []interface{}{
 				dict{
-					"address": alice.PublicKey().Address(),
+					"address": alice,
 					"coins": []interface{}{
 						dict{
 							"whole":  123456789,
@@ -74,7 +75,7 @@ func BenchmarkBNSDSendToken(b *testing.B) {
 				},
 			},
 			"gconf": dict{
-				cash.GconfCollectorAddress: hex.EncodeToString(carol.PublicKey().Address()),
+				cash.GconfCollectorAddress: hex.EncodeToString(carol),
 				cash.GconfMinimalFee:       fee,
 			},
 		}
@@ -88,9 +89,25 @@ func BenchmarkBNSDSendToken(b *testing.B) {
 			txPerBlock: 1,
 			fee:        coin.Coin{},
 		},
-		"15 tx, no fee": {
-			txPerBlock: 15,
+		"10 tx, no fee": {
+			txPerBlock: 10,
 			fee:        coin.Coin{},
+		},
+		"100 tx, no fee": {
+			txPerBlock: 100,
+			fee:        coin.Coin{},
+		},
+		"1 tx, with fee": {
+			txPerBlock: 1,
+			fee:        coin.Coin{Whole: 1, Ticker: "IOV"},
+		},
+		"10 tx, with fee": {
+			txPerBlock: 10,
+			fee:        coin.Coin{Whole: 1, Ticker: "IOV"},
+		},
+		"100 tx, with fee": {
+			txPerBlock: 100,
+			fee:        coin.Coin{Whole: 1, Ticker: "IOV"},
 		},
 	}
 
@@ -100,7 +117,7 @@ func BenchmarkBNSDSendToken(b *testing.B) {
 			runner := weavetest.NewWeaveRunner(b, bnsd, "mychain")
 			runner.InitChain(makeGenesis(tc.fee))
 
-			aliceNonce := NewNonce(runner, alice.PublicKey().Condition().Address())
+			aliceNonce := NewNonce(runner, alice)
 
 			b.ResetTimer()
 
@@ -120,13 +137,20 @@ func BenchmarkBNSDSendToken(b *testing.B) {
 					// b.Logf("Running block with %d tx", numTxs)
 
 					for j := 0; j < numTxs; j++ {
+						var fees *cash.FeeInfo
+						if !tc.fee.IsZero() {
+							fees = &cash.FeeInfo{
+								Payer: alice,
+								Fees:  &tc.fee,
+							}
+						}
 
 						tx := Tx{
-							// TODO: select fee
+							Fees: fees,
 							Sum: &Tx_SendMsg{
 								&cash.SendMsg{
-									Src:    alice.PublicKey().Address(),
-									Dest:   benny.PublicKey().Address(),
+									Src:    alice,
+									Dest:   benny,
 									Amount: coin.NewCoinp(0, 100, "IOV"),
 								},
 							},
@@ -137,7 +161,7 @@ func BenchmarkBNSDSendToken(b *testing.B) {
 							return err
 						}
 
-						sig, err := sigs.SignTx(alice, &tx, "mychain", nonce)
+						sig, err := sigs.SignTx(aliceKey, &tx, "mychain", nonce)
 						if err != nil {
 							return errors.Wrap(err, "cannot sign transaction")
 						}
