@@ -123,6 +123,11 @@ func BenchmarkBNSDSendToken(b *testing.B) {
 			fee:        coin.Coin{Whole: 1, Ticker: "IOV"},
 			strategy:   weavetest.DeliverOnly,
 		},
+		"100 tx, with fee (deliver with precheck)": {
+			txPerBlock: 100,
+			fee:        coin.Coin{Whole: 1, Ticker: "IOV"},
+			strategy:   weavetest.DeliverWithPrecheck,
+		},
 	}
 
 	for testName, tc := range cases {
