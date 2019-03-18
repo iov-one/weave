@@ -4,7 +4,6 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"flag"
-	"math"
 	"os"
 	"strings"
 	"testing"
@@ -183,7 +182,7 @@ func initGenesis(filename string, addr weave.Address) (*tm.GenesisDoc, error) {
 						"whole":  1000000,
 						"ticker": "IOV",
 					}},
-				"timeout": math.MaxInt64,
+				"timeout": time.Now().Add(10000 * time.Hour),
 			},
 		},
 		"gconf": map[string]interface{}{
