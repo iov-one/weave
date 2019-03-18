@@ -24,9 +24,8 @@ const (
 	DeliverOnly
 	// CheckAndDeliver will call Check for all txs in a block, then Deliver for all txs
 	CheckAndDeliver
-	// TODO
 	// DeliverWithPrecheck will call Check *with timer stopped* then time Deliver for all txs
-	// DeliverWithPrecheck
+	DeliverWithPrecheck
 )
 
 // WeaveRunner provides a translation layer between an ABCI interface and a
@@ -149,18 +148,27 @@ func (w *WeaveRunner) InBlock(executeTx func(WeaveApp) error) bool {
 	return !bytes.Equal(initialHash, finalHash)
 }
 
-func applyStategy(txs []weave.Tx, strategy Strategy) func(WeaveApp) error {
+func applyStategy(t testing.TB, txs []weave.Tx, strategy Strategy) func(WeaveApp) error {
+	b, ok := t.(*testing.B)
+	freezeCheck := ok && strategy == DeliverWithPrecheck
+
 	return func(wapp WeaveApp) error {
 		// let's do all CheckTx first
-		if strategy == CheckOnly || strategy == CheckAndDeliver {
+		if strategy != DeliverOnly {
+			if freezeCheck {
+				b.StopTimer()
+			}
 			for _, tx := range txs {
 				if err := wapp.CheckTx(tx); err != nil {
 					return errors.Wrap(err, "cannot check tx")
 				}
 			}
+			if freezeCheck {
+				b.StartTimer()
+			}
 		}
 		// then all DeliverTx... as would be done in reality
-		if strategy == DeliverOnly || strategy == CheckAndDeliver {
+		if strategy != CheckOnly {
 			for _, tx := range txs {
 				if err := wapp.DeliverTx(tx); err != nil {
 					return errors.Wrap(err, "cannot deliver tx")
@@ -177,7 +185,7 @@ func applyStategy(txs []weave.Tx, strategy Strategy) func(WeaveApp) error {
 // the appHash does not change (if should change, otherwise, require it stable)
 func (w *WeaveRunner) ProcessAllTxs(blocks [][]weave.Tx, strategy Strategy) {
 	for _, txs := range blocks {
-		changed := w.InBlock(applyStategy(txs, strategy))
+		changed := w.InBlock(applyStategy(w.t, txs, strategy))
 		// no change on CheckOnly, otherwise there must be change
 		if changed != (strategy != CheckOnly) {
 			w.t.Fatal("expected state to change")
