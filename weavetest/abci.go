@@ -7,7 +7,9 @@ import (
 	"time"
 
 	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/app"
 	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/store"
 	abci "github.com/tendermint/tendermint/abci/types"
 )
 
@@ -48,7 +50,11 @@ func NewWeaveRunner(t Tester, app abci.Application, chainID string) *WeaveRunner
 type WeaveApp interface {
 	DeliverTx(weave.Tx) error
 	CheckTx(weave.Tx) error
+	// we also allow standard queries... wrap into a bucket for ease of use
+	weave.ReadOnlyKVStore
 }
+
+var _ WeaveApp = (*WeaveRunner)(nil)
 
 // InitChain serialize to JSON given genesis and loads it. Loading a genesis is
 // causing a block creation.
@@ -134,4 +140,79 @@ func (w *WeaveRunner) InBlock(executeTx func(WeaveApp) error) bool {
 	// hash only if the state was modified.
 	finalHash := w.app.Commit().Data
 	return !bytes.Equal(initialHash, finalHash)
+}
+
+var _ weave.ReadOnlyKVStore = (*WeaveRunner)(nil)
+
+func (w *WeaveRunner) Get(key []byte) []byte {
+	query := w.app.Query(abci.RequestQuery{
+		Path: "/",
+		Data: key,
+	})
+	// if only the interface supported returning errors....
+	if query.Code != 0 {
+		panic(query.Log)
+	}
+	// TODO: avoid importing app
+	var value app.ResultSet
+	err := value.Unmarshal(query.Value)
+	if err != nil {
+		// oh, for an error return here...
+		panic(errors.Wrap(err, "cannot parse values"))
+	}
+
+	if len(value.Results) == 0 {
+		return nil
+	}
+	// TODO: assert error if len > 1 ???
+	return value.Results[0]
+}
+
+func (w *WeaveRunner) Has(key []byte) bool {
+	return len(w.Get(key)) > 0
+}
+
+func (w *WeaveRunner) Iterator(start, end []byte) weave.Iterator {
+	// TODO: support all prefix searches (later even more ranges)
+	// look at orm/query.go:prefixRange for an idea how we turn prefix->iterator,
+	// we should detect this case and reverse it so we can serialize over abci query
+	if start != nil || end != nil {
+		panic("iterator only implemented for entire range")
+	}
+
+	query := w.app.Query(abci.RequestQuery{
+		Path: "/?prefix",
+		Data: nil,
+	})
+	// if only the interface supported returning errors....
+	if query.Code != 0 {
+		panic(query.Log)
+	}
+	models, err := toModels(query.Key, query.Value)
+	if err != nil {
+		// oh, for an error return here...
+		panic(errors.Wrap(err, "cannot parse values"))
+	}
+
+	// TODO: remove store dependency
+	return store.NewSliceIterator(models)
+}
+
+func (w *WeaveRunner) ReverseIterator(start, end []byte) weave.Iterator {
+	// TODO: load normal iterator but then play it backwards?
+	panic("not implemented")
+}
+
+// TODO: we really don't want to import weave/app here, do we... but we need it to parse
+func toModels(keys []byte, values []byte) ([]weave.Model, error) {
+	var k, v app.ResultSet
+	err := k.Unmarshal(keys)
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot parse keys")
+	}
+	err = v.Unmarshal(values)
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot parse values")
+	}
+	return app.JoinResults(&k, &v)
 }
