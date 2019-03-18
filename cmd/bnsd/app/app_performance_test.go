@@ -4,7 +4,6 @@ import (
 	"encoding/hex"
 	"io/ioutil"
 	"os"
-	"sync"
 	"testing"
 	"time"
 
@@ -141,6 +140,7 @@ func BenchmarkBNSDSendToken(b *testing.B) {
 					},
 				}
 
+				// hmmm.... can we collapse this to the message and one line to get nonce and sign?
 				nonce, err := aliceNonce.Next()
 				if err != nil {
 					b.Fatalf("getting nonce failed with %+v", err)
@@ -183,7 +183,6 @@ func newBnsd(t weavetest.Tester) (abci.Application, func()) {
 // Nonce has a client/address pair, queries for the nonce
 // and caches recent nonce locally to quickly sign
 type Nonce struct {
-	mutex     sync.Mutex
 	db        weave.ReadOnlyKVStore
 	bucket    sigs.Bucket
 	addr      weave.Address
@@ -209,14 +208,12 @@ func (n *Nonce) Query() (int64, error) {
 	}
 	user := sigs.AsUser(obj)
 
-	n.mutex.Lock()
 	if user == nil { // Nonce not found
 		n.nonce = 0
 	} else {
 		n.nonce = user.Sequence
 	}
 	n.fromQuery = true
-	n.mutex.Unlock()
 	return n.nonce, nil
 }
 
@@ -226,16 +223,11 @@ func (n *Nonce) Query() (int64, error) {
 // you want to rapidly generate many tranasactions without
 // querying the blockchain each time
 func (n *Nonce) Next() (int64, error) {
-	n.mutex.Lock()
 	initializeFromBlockchain := !n.fromQuery && n.nonce == 0
-	n.mutex.Unlock()
 	if initializeFromBlockchain {
 		return n.Query()
 	}
-	n.mutex.Lock()
 	n.nonce++
 	n.fromQuery = false
-	result := n.nonce
-	n.mutex.Unlock()
-	return result, nil
+	return n.nonce, nil
 }
