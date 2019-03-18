@@ -3,6 +3,7 @@ package app
 import (
 	"encoding/hex"
 	"io/ioutil"
+	"os"
 	"sync"
 	"testing"
 	"time"
@@ -28,7 +29,7 @@ func BenchmarkBnsdEmptyBlock(b *testing.B) {
 		},
 	}
 
-	bnsd := newBnsd(b)
+	bnsd, _ := newBnsd(b)
 	runner := weavetest.NewWeaveRunner(b, bnsd, "mychain")
 	runner.InitChain(genesis)
 
@@ -113,54 +114,65 @@ func BenchmarkBNSDSendToken(b *testing.B) {
 
 	for testName, tc := range cases {
 		b.Run(testName, func(b *testing.B) {
-			bnsd := newBnsd(b)
+			bnsd, _ := newBnsd(b)
 			runner := weavetest.NewWeaveRunner(b, bnsd, "mychain")
 			runner.InitChain(makeGenesis(tc.fee))
 
+			// prepare some helpers
 			aliceNonce := NewNonce(runner, alice)
+			var fees *cash.FeeInfo
+			if !tc.fee.IsZero() {
+				fees = &cash.FeeInfo{
+					Payer: alice,
+					Fees:  &tc.fee,
+				}
+			}
+
+			// generate all transactions
+			txs := make([]weave.Tx, b.N)
+			for k := 0; k < b.N; k++ {
+				tx := &Tx{
+					Fees: fees,
+					Sum: &Tx_SendMsg{
+						&cash.SendMsg{
+							Src:    alice,
+							Dest:   benny,
+							Amount: coin.NewCoinp(0, 100, "IOV"),
+						},
+					},
+				}
+
+				nonce, err := aliceNonce.Next()
+				if err != nil {
+					b.Fatalf("getting nonce failed with %+v", err)
+				}
+				sig, err := sigs.SignTx(aliceKey, tx, "mychain", nonce)
+				if err != nil {
+					b.Fatalf("cannot sign transaction %+v", err)
+				}
+				tx.Signatures = append(tx.Signatures, sig)
+				txs[k] = tx
+			}
 
 			b.ResetTimer()
 
-			// b.Logf("Testcase with %d txs", b.N)
-			for i := NumBlocks(b.N, tc.txPerBlock); i > 0; i-- {
+			numBlocks := NumBlocks(b.N, tc.txPerBlock)
+			for i := 0; i < numBlocks; i++ {
 				changed := runner.InBlock(func(wapp weavetest.WeaveApp) error {
-					numTxs := TxsInBlock(b.N, tc.txPerBlock, i == 1)
-					// b.Logf("Running block with %d tx", numTxs)
-					for j := numTxs; j > 0; j-- {
-						var fees *cash.FeeInfo
-						if !tc.fee.IsZero() {
-							fees = &cash.FeeInfo{
-								Payer: alice,
-								Fees:  &tc.fee,
-							}
-						}
+					numTxs := TxsInBlock(b.N, tc.txPerBlock, i == numBlocks-1)
+					offset := i * tc.txPerBlock
 
-						tx := Tx{
-							Fees: fees,
-							Sum: &Tx_SendMsg{
-								&cash.SendMsg{
-									Src:    alice,
-									Dest:   benny,
-									Amount: coin.NewCoinp(0, 100, "IOV"),
-								},
-							},
-						}
-
-						nonce, err := aliceNonce.Next()
-						if err != nil {
-							return err
-						}
-
-						sig, err := sigs.SignTx(aliceKey, &tx, "mychain", nonce)
-						if err != nil {
-							return errors.Wrap(err, "cannot sign transaction")
-						}
-						tx.Signatures = append(tx.Signatures, sig)
-
-						if err := wapp.CheckTx(&tx); err != nil {
+					// let's do all CheckTx first
+					for j := 0; j < numTxs; j++ {
+						tx := txs[offset+j]
+						if err := wapp.CheckTx(tx); err != nil {
 							return errors.Wrap(err, "cannot check tx")
 						}
-						if err := wapp.DeliverTx(&tx); err != nil {
+					}
+					// then all DeliverTx... as would be done in reality
+					for j := 0; j < numTxs; j++ {
+						tx := txs[offset+j]
+						if err := wapp.DeliverTx(tx); err != nil {
 							return errors.Wrap(err, "cannot deliver tx")
 						}
 					}
@@ -193,7 +205,8 @@ func TxsInBlock(totalTx, txPerBlock int, lastBlock bool) int {
 	return txPerBlock
 }
 
-func newBnsd(t weavetest.Tester) abci.Application {
+// newBnsd returns the test application, along with a function to delete all testdata at the end
+func newBnsd(t weavetest.Tester) (abci.Application, func()) {
 	t.Helper()
 
 	homeDir, err := ioutil.TempDir("", "bnsd_performance_home")
@@ -204,7 +217,11 @@ func newBnsd(t weavetest.Tester) abci.Application {
 	if err != nil {
 		t.Fatalf("cannot generate bnsd instance: %s", err)
 	}
-	return bnsd
+
+	cleanup := func() {
+		os.RemoveAll(homeDir)
+	}
+	return bnsd, cleanup
 }
 
 // Nonce has a client/address pair, queries for the nonce
