@@ -1,6 +1,7 @@
 package weave_test
 
 import (
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"reflect"
@@ -29,27 +30,34 @@ func TestAddressPrinting(t *testing.T) {
 }
 
 func TestAddressUnmarshalJSON(t *testing.T) {
+	fromHex := func(s string) []byte {
+		b, err := hex.DecodeString(s)
+		if err != nil {
+			panic(err)
+		}
+		return b
+	}
+
 	cases := map[string]struct {
 		json     string
 		wantErr  *errors.Error
 		wantAddr weave.Address
 	}{
 		"default decoding": {
-			json:     `"6865782d61646472"`,
-			wantAddr: weave.Address("hex-addr"),
+			json:     `"8d0d55645f1241a7a16d84fc9561a51d518c0d36"`,
+			wantAddr: weave.Address(fromHex("8d0d55645f1241a7a16d84fc9561a51d518c0d36")),
 		},
 		"hex decoding": {
-			json:     `"hex:6865782d61646472"`,
-			wantAddr: weave.Address("hex-addr"),
+			json:     `"hex:8d0d55645f1241a7a16d84fc9561a51d518c0d36"`,
+			wantAddr: weave.Address(fromHex("8d0d55645f1241a7a16d84fc9561a51d518c0d36")),
 		},
 		"cond decoding": {
 			json:     `"cond:foo/bar/636f6e646974696f6e64617461"`,
 			wantAddr: weave.NewCondition("foo", "bar", []byte("conditiondata")).Address(),
 		},
 		"bech32 decoding": {
-			// $ bech32  -e -h tiov 746573742d7061796c6f6164
-			json:     `"bech32:tiov1w3jhxapdwpshjmr0v9jqymqq4y"`,
-			wantAddr: weave.Address("test-payload"),
+			json:     `"bech32:tiov135x42ezlzfq60gtdsn7f2cd9r4gccrfk6md5xz"`,
+			wantAddr: weave.Address(fromHex("8d0d55645f1241a7a16d84fc9561a51d518c0d36")),
 		},
 		"invalid condition format": {
 			json:    `"cond:foo/636f6e646974696f6e64617461"`,
@@ -74,6 +82,14 @@ func TestAddressUnmarshalJSON(t *testing.T) {
 		"zero cond address": {
 			json:     `"cond:"`,
 			wantAddr: nil,
+		},
+		"address to short (19 bytes)": {
+			json:    `"b339b5f6ae69570a1fd4d6c561c3ec1ce13450"`,
+			wantErr: errors.ErrInvalidInput,
+		},
+		"address to long (21 bytes)": {
+			json:    `"0a6e36d3553a0abfe7896243386b47b5215cb24312"`,
+			wantErr: errors.ErrInvalidInput,
 		},
 	}
 

@@ -158,6 +158,10 @@ func (a *Address) UnmarshalJSON(raw []byte) error {
 		if err != nil {
 			return errors.Wrap(err, "cannot decode hex")
 		}
+		addr := Address(val)
+		if err := Address(addr).Validate(); err != nil {
+			return err
+		}
 		*a = val
 		return nil
 	case "cond":
@@ -165,12 +169,19 @@ func (a *Address) UnmarshalJSON(raw []byte) error {
 		if err := c.deserialize(enc); err != nil {
 			return err
 		}
+		if err := c.Validate(); err != nil {
+			return err
+		}
 		*a = c.Address()
 		return nil
 	case "bech32":
-		_, addr, err := bech32.Decode(enc)
+		_, payload, err := bech32.Decode(enc)
 		if err != nil {
 			return errors.Wrapf(err, "deserialize bech32: %s", err)
+		}
+		addr := Address(payload)
+		if err := addr.Validate(); err != nil {
+			return err
 		}
 		*a = addr
 		return nil
