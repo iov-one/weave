@@ -79,7 +79,7 @@ func (h CreateEscrowHandler) Deliver(ctx weave.Context, db weave.KVStore,
 		Sender:    sender,
 		Arbiter:   msg.Arbiter,
 		Recipient: msg.Recipient,
-		Timeout:   msg.Timeout,
+		Timeout:   msg.Timeout.UTC(),
 		Memo:      msg.Memo,
 	}
 	obj := h.bucket.Build(db, escrow)

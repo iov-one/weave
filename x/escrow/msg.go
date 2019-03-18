@@ -60,7 +60,7 @@ func NewCreateMsg(
 		Recipient: recipient,
 		Arbiter:   arbiter,
 		Amount:    amount,
-		Timeout:   timeout,
+		Timeout:   timeout.UTC(),
 		Memo:      memo,
 	}
 }
