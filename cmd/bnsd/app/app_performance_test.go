@@ -153,8 +153,9 @@ func BenchmarkBNSDSendToken(b *testing.B) {
 				txs[k] = tx
 			}
 
+			blocks := weavetest.SplitTxs(txs, tc.txPerBlock)
 			b.ResetTimer()
-			runner.ProcessAllTxs(txs, tc.txPerBlock, true)
+			runner.ProcessAllTxs(blocks)
 		})
 	}
 }
