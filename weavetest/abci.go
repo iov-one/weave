@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"testing"
 	"time"
 
 	"github.com/iov-one/weave"
@@ -13,29 +14,20 @@ import (
 	abci "github.com/tendermint/tendermint/abci/types"
 )
 
-// Tester is implemented by both *testing.T and *testing.B. Use it instead of
-// the pointer type to allow notation to accept both objects.
-type Tester interface {
-	Helper()
-	Errorf(string, ...interface{})
-	Fatalf(string, ...interface{})
-	Logf(string, ...interface{})
-}
-
 // WeaveRunner provides a translation layer between an ABCI interface and a
 // weave application. It takes care of serializing messages and creating
 // blocks.
 type WeaveRunner struct {
 	chainID string
 	height  int64
-	t       Tester
+	t       testing.TB
 	app     abci.Application
 }
 
 // NewWeaveRunner creates a WeaveRunner instance that can be used to process
 // deliver and check transaction requests using weave API. This runner expects
 // all operations to succeed. Any error results in test failure.
-func NewWeaveRunner(t Tester, app abci.Application, chainID string) *WeaveRunner {
+func NewWeaveRunner(t testing.TB, app abci.Application, chainID string) *WeaveRunner {
 	return &WeaveRunner{
 		chainID: chainID,
 		height:  0,
@@ -64,19 +56,19 @@ func (w *WeaveRunner) InitChain(genesis interface{}) {
 		w.t.Fatalf("cannot JSON serialize genesis: %s", err)
 	}
 
-	// Load the genesis in a separate block.
-	changed := w.InBlock(func(WeaveApp) error {
-		w.app.InitChain(abci.RequestInitChain{
-			Time:          time.Now(),
-			ChainId:       w.chainID,
-			AppStateBytes: raw,
-		})
-		return nil
+	// InitChain must happen before any blocks are created
+	lastHeight := w.app.Info(abci.RequestInfo{}).LastBlockHeight
+	if lastHeight != 0 {
+		w.t.Fatalf("cannot initialize after a block, height=%d", lastHeight)
+	}
+	w.app.InitChain(abci.RequestInitChain{
+		Time:          time.Now(),
+		ChainId:       w.chainID,
+		AppStateBytes: raw,
 	})
 
-	if !changed {
-		w.t.Fatalf("genesis did not change the state")
-	}
+	// create initial block to commit state
+	w.InBlock(func(_ WeaveApp) error { return nil })
 }
 
 // CheckTx translates given weave transaction into ABCI interface and executes.
@@ -141,6 +133,64 @@ func (w *WeaveRunner) InBlock(executeTx func(WeaveApp) error) bool {
 	finalHash := w.app.Commit().Data
 	return !bytes.Equal(initialHash, finalHash)
 }
+
+// ProcessAllTxs will run all included txs, split into blocksize.
+// It will Fail() if any tx returns an error, or if at any block,
+// the appHash does not change (if should change, otherwise, require it stable)
+func (w *WeaveRunner) ProcessAllTxs(blocks [][]weave.Tx) {
+	for i := 0; i < len(blocks); i++ {
+		txs := blocks[i]
+		changed := w.InBlock(func(wapp WeaveApp) error {
+			// let's do all CheckTx first
+			for j := 0; j < len(txs); j++ {
+				tx := txs[j]
+				if err := wapp.CheckTx(tx); err != nil {
+					return errors.Wrap(err, "cannot check tx")
+				}
+			}
+			// then all DeliverTx... as would be done in reality
+			for j := 0; j < len(txs); j++ {
+				tx := txs[j]
+				if err := wapp.DeliverTx(tx); err != nil {
+					return errors.Wrap(err, "cannot deliver tx")
+				}
+			}
+			return nil
+		})
+		if !changed {
+			w.t.Fatal("expected state to change")
+		}
+	}
+}
+
+// SplitTxs will break one slice of transactions into many slices,
+// one per block. It will fill up to txPerBlockx txs in each block
+// The last block may have less, if there is not enough for a full block
+func SplitTxs(txs []weave.Tx, txPerBlock int) [][]weave.Tx {
+	numBlocks := numBlocks(len(txs), txPerBlock)
+	res := make([][]weave.Tx, numBlocks)
+
+	// full chunks for all but the last block
+	for i := 0; i < numBlocks-1; i++ {
+		res[i], txs = txs[:txPerBlock], txs[txPerBlock:]
+	}
+
+	// remainder in the last block
+	res[numBlocks-1] = txs
+	return res
+}
+
+// numBlocks returns total number of blocks for benchmarks that split b.N
+// into many smaller blocks
+func numBlocks(totalTx, txPerBlock int) int {
+	runs := totalTx / txPerBlock
+	if totalTx%txPerBlock > 0 {
+		return runs + 1
+	}
+	return runs
+}
+
+//----- mocking out ReadonlyKVStore -----//
 
 var _ weave.ReadOnlyKVStore = (*WeaveRunner)(nil)
 

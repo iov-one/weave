@@ -3,13 +3,12 @@ package app
 import (
 	"encoding/hex"
 	"io/ioutil"
-	"sync"
+	"os"
 	"testing"
 	"time"
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/coin"
-	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/weavetest"
 	"github.com/iov-one/weave/x/cash"
 	"github.com/iov-one/weave/x/sigs"
@@ -17,118 +16,157 @@ import (
 	"github.com/tendermint/tendermint/libs/log"
 )
 
-func BenchmarkBNSD(b *testing.B) {
-	var (
-		alice = weavetest.NewKey()
-		benny = weavetest.NewKey()
-		carol = weavetest.NewKey()
-		david = weavetest.NewKey()
-	)
-
-	// this is initialized in each test case
-	var aliceNonce *Nonce
+func BenchmarkBnsdEmptyBlock(b *testing.B) {
+	var aliceAddr = weavetest.NewKey().PublicKey().Address()
 
 	type dict map[string]interface{}
 	genesis := dict{
-		"cash": []interface{}{
-			dict{
-				"address": alice.PublicKey().Condition().Address(),
-				"coins": []interface{}{
-					dict{
-						"whole":  123456789,
-						"ticker": "IOV",
-					},
-				},
-			},
-		},
-		"currencies": []interface{}{
-			dict{
-				"ticker": "IOV",
-				"name":   "Main token of this chain",
-			},
-		},
-		"distribution": []interface{}{
-			dict{
-				"admin": alice.PublicKey().Condition().Address(),
-				"recipients": []interface{}{
-					dict{"weight": 1, "address": benny.PublicKey().Condition().Address()},
-				},
-			},
-		},
 		"gconf": map[string]interface{}{
-			cash.GconfCollectorAddress: hex.EncodeToString(david.PublicKey().Condition().Address()),
+			cash.GconfCollectorAddress: hex.EncodeToString(aliceAddr),
 			cash.GconfMinimalFee:       coin.Coin{}, // no fee
 		},
 	}
 
-	cases := map[string]struct {
-		ops         func(weavetest.WeaveApp) error
-		wantChanged bool
-	}{
-		"empty block": {
-			ops: func(weavetest.WeaveApp) error {
-				// Without sleep this test is locking the CPU.
-				time.Sleep(time.Microsecond * 300)
-				return nil
-			},
-			wantChanged: false,
-		},
-		"send coins from alice to carol": {
-			ops: func(wapp weavetest.WeaveApp) error {
-				tx := Tx{
-					Sum: &Tx_SendMsg{
-						&cash.SendMsg{
-							Src:    alice.PublicKey().Condition().Address(),
-							Dest:   carol.PublicKey().Condition().Address(),
-							Amount: coin.NewCoinp(0, 100, "IOV"),
+	bnsd, cleanup := newBnsd(b)
+	runner := weavetest.NewWeaveRunner(b, bnsd, "mychain")
+	runner.InitChain(genesis)
+
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		changed := runner.InBlock(func(weavetest.WeaveApp) error {
+			// Without sleep this test is locking the CPU.
+			time.Sleep(time.Microsecond * 300)
+			return nil
+		})
+		if changed {
+			b.Fatal("unexpected change state")
+		}
+	}
+
+	b.StopTimer()
+	cleanup()
+}
+
+func BenchmarkBNSDSendToken(b *testing.B) {
+	var (
+		aliceKey = weavetest.NewKey()
+		alice    = aliceKey.PublicKey().Address()
+		benny    = weavetest.NewKey().PublicKey().Address()
+		carol    = weavetest.NewKey().PublicKey().Address()
+	)
+
+	type dict map[string]interface{}
+	makeGenesis := func(fee coin.Coin) dict {
+		return dict{
+			"cash": []interface{}{
+				dict{
+					"address": alice,
+					"coins": []interface{}{
+						dict{
+							"whole":  123456789,
+							"ticker": "IOV",
 						},
 					},
-				}
-
-				nonce, err := aliceNonce.Next()
-				if err != nil {
-					return err
-				}
-
-				sig, err := sigs.SignTx(alice, &tx, "mychain", nonce)
-				if err != nil {
-					return errors.Wrap(err, "cannot sign transaction")
-				}
-				tx.Signatures = append(tx.Signatures, sig)
-
-				if err := wapp.CheckTx(&tx); err != nil {
-					return errors.Wrap(err, "cannot check tx")
-				}
-				if err := wapp.DeliverTx(&tx); err != nil {
-					return errors.Wrap(err, "cannot deliver tx")
-				}
-				return nil
+				},
 			},
-			wantChanged: true,
+			"currencies": []interface{}{
+				dict{
+					"ticker": "IOV",
+					"name":   "Main token of this chain",
+				},
+			},
+			"gconf": dict{
+				cash.GconfCollectorAddress: hex.EncodeToString(carol),
+				cash.GconfMinimalFee:       fee,
+			},
+		}
+	}
+
+	cases := map[string]struct {
+		txPerBlock int
+		fee        coin.Coin
+	}{
+		"1 tx, no fee": {
+			txPerBlock: 1,
+			fee:        coin.Coin{},
+		},
+		"10 tx, no fee": {
+			txPerBlock: 10,
+			fee:        coin.Coin{},
+		},
+		"100 tx, no fee": {
+			txPerBlock: 100,
+			fee:        coin.Coin{},
+		},
+		"1 tx, with fee": {
+			txPerBlock: 1,
+			fee:        coin.Coin{Whole: 1, Ticker: "IOV"},
+		},
+		"10 tx, with fee": {
+			txPerBlock: 10,
+			fee:        coin.Coin{Whole: 1, Ticker: "IOV"},
+		},
+		"100 tx, with fee": {
+			txPerBlock: 100,
+			fee:        coin.Coin{Whole: 1, Ticker: "IOV"},
 		},
 	}
 
 	for testName, tc := range cases {
 		b.Run(testName, func(b *testing.B) {
-			bnsd := newBnsd(b)
+			bnsd, cleanup := newBnsd(b)
 			runner := weavetest.NewWeaveRunner(b, bnsd, "mychain")
-			runner.InitChain(genesis)
+			runner.InitChain(makeGenesis(tc.fee))
 
-			aliceNonce = NewNonce(runner, alice.PublicKey().Condition().Address())
-
-			b.ResetTimer()
-
-			for i := 0; i < b.N; i++ {
-				changed := runner.InBlock(tc.ops)
-				if changed != tc.wantChanged {
-					b.Fatal("unexpected change state")
+			// prepare some helpers
+			aliceNonce := NewNonce(runner, alice)
+			var fees *cash.FeeInfo
+			if !tc.fee.IsZero() {
+				fees = &cash.FeeInfo{
+					Payer: alice,
+					Fees:  &tc.fee,
 				}
 			}
+
+			// generate all transactions
+			txs := make([]weave.Tx, b.N)
+			for k := 0; k < b.N; k++ {
+				tx := &Tx{
+					Fees: fees,
+					Sum: &Tx_SendMsg{
+						&cash.SendMsg{
+							Src:    alice,
+							Dest:   benny,
+							Amount: coin.NewCoinp(0, 100, "IOV"),
+						},
+					},
+				}
+
+				// hmmm.... can we collapse this to the message and one line to get nonce and sign?
+				nonce, err := aliceNonce.Next()
+				if err != nil {
+					b.Fatalf("getting nonce failed with %+v", err)
+				}
+				sig, err := sigs.SignTx(aliceKey, tx, "mychain", nonce)
+				if err != nil {
+					b.Fatalf("cannot sign transaction %+v", err)
+				}
+				tx.Signatures = append(tx.Signatures, sig)
+				txs[k] = tx
+			}
+
+			blocks := weavetest.SplitTxs(txs, tc.txPerBlock)
+			b.ResetTimer()
+			runner.ProcessAllTxs(blocks)
+			b.StopTimer()
+			cleanup()
 		})
 	}
 }
 
-func newBnsd(t weavetest.Tester) abci.Application {
+// newBnsd returns the test application, along with a function to delete all testdata at the end
+func newBnsd(t testing.TB) (abci.Application, func()) {
 	t.Helper()
 
 	homeDir, err := ioutil.TempDir("", "bnsd_performance_home")
@@ -139,13 +177,18 @@ func newBnsd(t weavetest.Tester) abci.Application {
 	if err != nil {
 		t.Fatalf("cannot generate bnsd instance: %s", err)
 	}
-	return bnsd
+
+	cleanup := func() {
+		os.RemoveAll(homeDir)
+	}
+	return bnsd, cleanup
 }
+
+//----- TODO: move Nonce to a better location.... ----//
 
 // Nonce has a client/address pair, queries for the nonce
 // and caches recent nonce locally to quickly sign
 type Nonce struct {
-	mutex     sync.Mutex
 	db        weave.ReadOnlyKVStore
 	bucket    sigs.Bucket
 	addr      weave.Address
@@ -171,14 +214,12 @@ func (n *Nonce) Query() (int64, error) {
 	}
 	user := sigs.AsUser(obj)
 
-	n.mutex.Lock()
 	if user == nil { // Nonce not found
 		n.nonce = 0
 	} else {
 		n.nonce = user.Sequence
 	}
 	n.fromQuery = true
-	n.mutex.Unlock()
 	return n.nonce, nil
 }
 
@@ -188,16 +229,11 @@ func (n *Nonce) Query() (int64, error) {
 // you want to rapidly generate many tranasactions without
 // querying the blockchain each time
 func (n *Nonce) Next() (int64, error) {
-	n.mutex.Lock()
 	initializeFromBlockchain := !n.fromQuery && n.nonce == 0
-	n.mutex.Unlock()
 	if initializeFromBlockchain {
 		return n.Query()
 	}
-	n.mutex.Lock()
 	n.nonce++
 	n.fromQuery = false
-	result := n.nonce
-	n.mutex.Unlock()
-	return result, nil
+	return n.nonce, nil
 }
