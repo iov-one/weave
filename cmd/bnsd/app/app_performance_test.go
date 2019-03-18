@@ -113,11 +113,11 @@ func BenchmarkBNSDSendToken(b *testing.B) {
 			fee:        coin.Coin{Whole: 1, Ticker: "IOV"},
 			strategy:   weavetest.CheckAndDeliver,
 		},
-		// "100 tx, with fee (check only)": {
-		// 	txPerBlock: 100,
-		// 	fee:        coin.Coin{Whole: 1, Ticker: "IOV"},
-		// 	strategy:   weavetest.CheckOnly,
-		// },
+		"100 tx, with fee (check only)": {
+			txPerBlock: 100,
+			fee:        coin.Coin{Whole: 1, Ticker: "IOV"},
+			strategy:   weavetest.CheckOnly,
+		},
 		"100 tx, with fee (deliver only)": {
 			txPerBlock: 100,
 			fee:        coin.Coin{Whole: 1, Ticker: "IOV"},
@@ -154,7 +154,6 @@ func BenchmarkBNSDSendToken(b *testing.B) {
 						},
 					},
 				}
-
 				// hmmm.... can we collapse this to the message and one line to get nonce and sign?
 				nonce, err := aliceNonce.Next()
 				if err != nil {
@@ -166,6 +165,11 @@ func BenchmarkBNSDSendToken(b *testing.B) {
 				}
 				tx.Signatures = append(tx.Signatures, sig)
 				txs[k] = tx
+
+				// must reset nonce per block for CheckOnly
+				if tc.strategy == weavetest.CheckOnly && (k+1)%tc.txPerBlock == 0 {
+					aliceNonce = NewNonce(runner, alice)
+				}
 			}
 
 			blocks := weavetest.SplitTxs(txs, tc.txPerBlock)
