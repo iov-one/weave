@@ -52,8 +52,8 @@ func BenchmarkBNSDSendToken(b *testing.B) {
 	var (
 		aliceKey = weavetest.NewKey()
 		alice    = aliceKey.PublicKey().Address()
-		benny    = weavetest.NewKey().PublicKey().Address()
-		carol    = weavetest.NewKey().PublicKey().Address()
+		benny    = weavetest.NewCondition().Address()
+		carol    = weavetest.NewCondition().Address()
 	)
 
 	type dict map[string]interface{}
@@ -136,8 +136,11 @@ func BenchmarkBNSDSendToken(b *testing.B) {
 			runner := weavetest.NewWeaveRunner(b, bnsd, "mychain")
 			runner.InitChain(makeGenesis(tc.fee))
 
-			// prepare some helpers
-			aliceNonce := NewNonce(runner, alice)
+			aliceNonce, err := sigs.NextNonce(runner, alice)
+			if err != nil {
+				b.Fatalf("cannot compute alice nonce: %s", err)
+			}
+
 			var fees *cash.FeeInfo
 			if !tc.fee.IsZero() {
 				fees = &cash.FeeInfo{
@@ -159,21 +162,16 @@ func BenchmarkBNSDSendToken(b *testing.B) {
 						},
 					},
 				}
-				// hmmm.... can we collapse this to the message and one line to get nonce and sign?
-				nonce, err := aliceNonce.Next()
-				if err != nil {
-					b.Fatalf("getting nonce failed with %+v", err)
-				}
-				sig, err := sigs.SignTx(aliceKey, tx, "mychain", nonce)
+				sig, err := sigs.SignTx(aliceKey, tx, "mychain", aliceNonce)
 				if err != nil {
 					b.Fatalf("cannot sign transaction %+v", err)
 				}
 				tx.Signatures = append(tx.Signatures, sig)
 				txs[k] = tx
 
-				// must reset nonce per block for CheckOnly
+				// When state has changed, the nonce is updated.
 				if !tc.strategy.Has(weavetest.ExecDeliver) && (k+1)%tc.txPerBlock == 0 {
-					aliceNonce = NewNonce(runner, alice)
+					aliceNonce++
 				}
 			}
 
@@ -203,58 +201,4 @@ func newBnsd(t testing.TB) (abci.Application, func()) {
 		os.RemoveAll(homeDir)
 	}
 	return bnsd, cleanup
-}
-
-//----- TODO: move Nonce to a better location.... ----//
-
-// Nonce has a client/address pair, queries for the nonce
-// and caches recent nonce locally to quickly sign
-type Nonce struct {
-	db        weave.ReadOnlyKVStore
-	bucket    sigs.Bucket
-	addr      weave.Address
-	nonce     int64
-	fromQuery bool
-}
-
-// NewNonce creates a nonce for a client / address pair.
-// Call Query to force a query, Next to use cache if possible
-func NewNonce(db weave.ReadOnlyKVStore, addr weave.Address) *Nonce {
-	return &Nonce{
-		db:     db,
-		addr:   addr,
-		bucket: sigs.NewBucket(),
-	}
-}
-
-// Query always queries the blockchain for the next nonce
-func (n *Nonce) Query() (int64, error) {
-	obj, err := n.bucket.Get(n.db, n.addr)
-	if err != nil {
-		return 0, err
-	}
-	user := sigs.AsUser(obj)
-
-	if user == nil { // Nonce not found
-		n.nonce = 0
-	} else {
-		n.nonce = user.Sequence
-	}
-	n.fromQuery = true
-	return n.nonce, nil
-}
-
-// Next will use a cached value if present, otherwise Query
-// It will always increment by 1, assuming last nonce
-// was properly used. This is designed for cases where
-// you want to rapidly generate many tranasactions without
-// querying the blockchain each time
-func (n *Nonce) Next() (int64, error) {
-	initializeFromBlockchain := !n.fromQuery && n.nonce == 0
-	if initializeFromBlockchain {
-		return n.Query()
-	}
-	n.nonce++
-	n.fromQuery = false
-	return n.nonce, nil
 }
