@@ -24,7 +24,7 @@ func TestQueryValidatorUpdateSigner(t *testing.T) {
 	var accounts validators.Accounts
 	require.NoError(t, accounts.Unmarshal(r.Models[0].Value))
 	require.Len(t, accounts.Addresses, 1)
-	assert.Contains(t, accounts.Addresses, []byte(validatorAdminMultiSigContract.Address()), "multisig address not found")
+	assert.Contains(t, accounts.Addresses, []byte(multiSigContract.Address()), "multisig address not found")
 }
 
 func TestUpdateValidatorSet(t *testing.T) {
@@ -47,7 +47,7 @@ func TestUpdateValidatorSet(t *testing.T) {
 	)
 	addValidatorTX.Fee(alice.PublicKey().Address(), antiSpamFee)
 
-	_, _, contractID, _ := validatorAdminMultiSigContract.Parse()
+	_, _, contractID, _ := multiSigContract.Parse()
 	addValidatorTX.Multisig = [][]byte{contractID}
 
 	seq, err := aNonce.Next()

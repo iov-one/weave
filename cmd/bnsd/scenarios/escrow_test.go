@@ -1,13 +1,14 @@
 package scenarios
 
 import (
+	"testing"
+
 	"github.com/iov-one/weave/cmd/bnsd/app"
 	"github.com/iov-one/weave/cmd/bnsd/client"
 	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/x/escrow"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func TestQueryEscrowExists(t *testing.T) {
@@ -40,7 +41,7 @@ func TestEscrowRelease(t *testing.T) {
 		},
 	}
 	releaseEscrowTX.Fee(alice.PublicKey().Address(), antiSpamFee)
-	_, _, contractID, _ := escrowArbiterMultiSigContract.Parse()
+	_, _, contractID, _ := multiSigContract.Parse()
 	releaseEscrowTX.Multisig = [][]byte{contractID}
 
 	seq, err := aNonce.Next()
