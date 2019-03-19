@@ -24,21 +24,13 @@ func TestIsExpired(t *testing.T) {
 }
 
 func TestIsExpiredRequiresBlockTime(t *testing.T) {
-	hasPanic := make(chan bool)
-
-	go func() {
-		defer func() {
-			p := recover()
-			hasPanic <- p != nil
-		}()
-
-		// Calling isExpected with a context without a block height
-		// attached is expected to panic.
-		ctx := context.Background()
-		isExpired(ctx, time.Now())
+	defer func() {
+		if recover() == nil {
+			t.Fatal("wanted a panic")
+		}
 	}()
 
-	if !<-hasPanic {
-		t.Fatal("no panic")
-	}
+	// Calling isExpected with a context without a block height
+	// attached is expected to panic.
+	isExpired(context.Background(), time.Now())
 }
