@@ -13,18 +13,29 @@ import (
 	abci "github.com/tendermint/tendermint/abci/types"
 )
 
-// Strategy defines which functions we call in ProcessAllTxs
-type Strategy int
+// Strategy defines which functions we call in ProcessAllTxs.
+type Strategy uint8
+
+// Has return true if this strategy contains given one - given strategry is a
+// subset of this one.
+func (s Strategy) Has(other Strategy) bool {
+	return s&other != 0
+}
 
 const (
-	// CheckOnly will only run Check
-	CheckOnly Strategy = iota
-	// DeliverOnly will only run Deliver
-	DeliverOnly
-	// CheckAndDeliver will call Check for all txs in a block, then Deliver for all txs
-	CheckAndDeliver
-	// DeliverWithPrecheck will call Check *with timer stopped* then time Deliver for all txs
-	DeliverWithPrecheck
+	// When set the CheckTx method is being executed for each transaction.
+	ExecCheck Strategy = 1 << iota
+
+	// When set and running as part of the benchmark, if the CheckTx method
+	// is executed then it is excluded from measurements. Benchmarks are
+	// being paused for the execution of the CheckTx.
+	NoBenchCheck
+
+	// When set the DeliverTx method is being executed for each
+	// transaction.
+	ExecDeliver
+
+	ExecCheckAndDeliver = ExecCheck | ExecDeliver
 )
 
 // WeaveRunner provides a translation layer between an ABCI interface and a
@@ -147,47 +158,45 @@ func (w *WeaveRunner) InBlock(executeTx func(WeaveApp) error) bool {
 	return !bytes.Equal(initialHash, finalHash)
 }
 
-func applyStategy(t testing.TB, txs []weave.Tx, strategy Strategy) func(WeaveApp) error {
-	b, ok := t.(*testing.B)
-	freezeCheck := ok && strategy == DeliverWithPrecheck
-
-	return func(wapp WeaveApp) error {
-		// let's do all CheckTx first
-		if strategy != DeliverOnly {
-			if freezeCheck {
-				b.StopTimer()
-			}
-			for _, tx := range txs {
-				if err := wapp.CheckTx(tx); err != nil {
-					return errors.Wrap(err, "cannot check tx")
-				}
-			}
-			if freezeCheck {
-				b.StartTimer()
-			}
-		}
-		// then all DeliverTx... as would be done in reality
-		if strategy != CheckOnly {
-			for _, tx := range txs {
-				if err := wapp.DeliverTx(tx); err != nil {
-					return errors.Wrap(err, "cannot deliver tx")
-				}
-			}
-		}
-		return nil
-
-	}
-}
-
 // ProcessAllTxs will run all included txs, split into blocksize.
 // It will Fail() if any tx returns an error, or if at any block,
 // the appHash does not change (if should change, otherwise, require it stable)
-func (w *WeaveRunner) ProcessAllTxs(blocks [][]weave.Tx, strategy Strategy) {
+func (w *WeaveRunner) ProcessAllTxs(blocks [][]weave.Tx, st Strategy) {
+	// When running as part of a benchmark an additional functionality can
+	// be provided.
+	b, isBench := w.t.(*testing.B)
+
 	for _, txs := range blocks {
-		changed := w.InBlock(applyStategy(w.t, txs, strategy))
-		// no change on CheckOnly, otherwise there must be change
-		if changed != (strategy != CheckOnly) {
-			w.t.Fatal("expected state to change")
+		changed := w.InBlock(func(wapp WeaveApp) error {
+			if st.Has(ExecCheck) {
+				if isBench && st.Has(NoBenchCheck) {
+					b.StopTimer()
+				}
+				for _, tx := range txs {
+					if err := wapp.CheckTx(tx); err != nil {
+						return errors.Wrap(err, "cannot check tx")
+					}
+				}
+				if isBench && st.Has(NoBenchCheck) {
+					b.StartTimer()
+				}
+			}
+
+			if st.Has(ExecDeliver) {
+				for _, tx := range txs {
+					if err := wapp.DeliverTx(tx); err != nil {
+						return errors.Wrap(err, "cannot deliver tx")
+					}
+				}
+			}
+			return nil
+
+		})
+
+		// If a delivery was made then the state must have changed.
+		wantChanged := st.Has(ExecDeliver)
+		if changed != wantChanged {
+			w.t.Fatalf("expected state to change: %v", wantChanged)
 		}
 	}
 }

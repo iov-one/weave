@@ -91,42 +91,42 @@ func BenchmarkBNSDSendToken(b *testing.B) {
 		"1 tx, no fee": {
 			txPerBlock: 1,
 			fee:        coin.Coin{},
-			strategy:   weavetest.CheckAndDeliver,
+			strategy:   weavetest.ExecCheckAndDeliver,
 		},
 		"1 tx, no fee (deliver only)": {
 			txPerBlock: 1,
 			fee:        coin.Coin{},
-			strategy:   weavetest.DeliverOnly,
+			strategy:   weavetest.ExecDeliver,
 		},
 		"10 tx, no fee": {
 			txPerBlock: 10,
 			fee:        coin.Coin{},
-			strategy:   weavetest.CheckAndDeliver,
+			strategy:   weavetest.ExecCheckAndDeliver,
 		},
 		"100 tx, no fee": {
 			txPerBlock: 100,
 			fee:        coin.Coin{},
-			strategy:   weavetest.CheckAndDeliver,
+			strategy:   weavetest.ExecCheckAndDeliver,
 		},
 		"100 tx, with fee": {
 			txPerBlock: 100,
 			fee:        coin.Coin{Whole: 1, Ticker: "IOV"},
-			strategy:   weavetest.CheckAndDeliver,
+			strategy:   weavetest.ExecCheckAndDeliver,
 		},
 		"100 tx, with fee (check only)": {
 			txPerBlock: 100,
 			fee:        coin.Coin{Whole: 1, Ticker: "IOV"},
-			strategy:   weavetest.CheckOnly,
+			strategy:   weavetest.ExecCheck,
 		},
 		"100 tx, with fee (deliver only)": {
 			txPerBlock: 100,
 			fee:        coin.Coin{Whole: 1, Ticker: "IOV"},
-			strategy:   weavetest.DeliverOnly,
+			strategy:   weavetest.ExecDeliver,
 		},
 		"100 tx, with fee (deliver with precheck)": {
 			txPerBlock: 100,
 			fee:        coin.Coin{Whole: 1, Ticker: "IOV"},
-			strategy:   weavetest.DeliverWithPrecheck,
+			strategy:   weavetest.ExecCheckAndDeliver | weavetest.NoBenchCheck,
 		},
 	}
 
@@ -172,7 +172,7 @@ func BenchmarkBNSDSendToken(b *testing.B) {
 				txs[k] = tx
 
 				// must reset nonce per block for CheckOnly
-				if tc.strategy == weavetest.CheckOnly && (k+1)%tc.txPerBlock == 0 {
+				if !tc.strategy.Has(weavetest.ExecDeliver) && (k+1)%tc.txPerBlock == 0 {
 					aliceNonce = NewNonce(runner, alice)
 				}
 			}
