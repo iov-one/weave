@@ -144,6 +144,15 @@ func initGenesis(filename string, addr weave.Address) (*tm.GenesisDoc, error) {
 					},
 				},
 			},
+			dict{
+				"address": "cond:escrow/seq/0000000000000001",
+				"coins": []interface{}{
+					dict{
+						"whole":  100000,
+						"ticker": "IOV",
+					},
+				},
+			},
 		},
 		"currencies": []interface{}{
 			dict{

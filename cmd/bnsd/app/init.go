@@ -103,7 +103,7 @@ func DecorateApp(application app.BaseApp, logger log.Logger) app.BaseApp {
 		&currency.Initializer{},
 		&validators.Initializer{},
 		&distribution.Initializer{},
-		&escrow.Initializer{Minter: cash.NewController(cash.NewBucket())},
+		&escrow.Initializer{},
 	))
 	application.WithLogger(logger)
 	return application

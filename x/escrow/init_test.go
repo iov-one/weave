@@ -6,10 +6,8 @@ import (
 	"testing"
 
 	"github.com/iov-one/weave"
-	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/store"
 	"github.com/iov-one/weave/weavetest"
-	"github.com/iov-one/weave/x/cash"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -19,16 +17,6 @@ func TestGenesisKey(t *testing.T) {
 {
   "escrow": [
     {
-      "amount": [
-        {
-          "ticker": "ALX",
-          "whole": 987654321
-        },
-        {
-          "ticker": "IOV",
-          "whole": 123456789
-        }
-      ],
       "arbiter": "foo/bar/636f6e646974696f6e64617461",
       "recipient": "C30A2424104F542576EF01FECA2FF558F5EAA61A",
       "sender": "0000000000000000000000000000000000000000",
@@ -42,8 +30,7 @@ func TestGenesisKey(t *testing.T) {
 	db := store.MemStore()
 
 	// when
-	cashCtrl := cash.NewController(cash.NewBucket())
-	ini := Initializer{Minter: cashCtrl}
+	ini := Initializer{}
 	require.NoError(t, ini.FromGenesis(opts, db))
 
 	// then
@@ -59,10 +46,4 @@ func TestGenesisKey(t *testing.T) {
 
 	expArbiter := weave.NewCondition("foo", "bar", []byte("conditiondata"))
 	assert.Equal(t, expArbiter, weave.Condition(e.Arbiter))
-
-	balance, err := cashCtrl.Balance(db, Condition(obj.Key()).Address())
-	require.NoError(t, err)
-	require.Len(t, balance, 2)
-	assert.Equal(t, coin.Coin{Ticker: "ALX", Whole: 987654321}, *balance[0])
-	assert.Equal(t, coin.Coin{Ticker: "IOV", Whole: 123456789}, *balance[1])
 }
