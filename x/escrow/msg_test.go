@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/iov-one/weave"
 	coin "github.com/iov-one/weave/coin"
@@ -33,6 +34,8 @@ func TestCreateEscrowMsg(t *testing.T) {
 	// invalid
 	d := weave.Condition("foobar")
 
+	timeout := time.Now()
+
 	// good
 	plus := mustCombineCoins(coin.NewCoin(100, 0, "FOO"))
 	// invalid
@@ -53,7 +56,7 @@ func TestCreateEscrowMsg(t *testing.T) {
 				Arbiter:   b,
 				Recipient: c.Address(),
 				Amount:    plus,
-				Timeout:   333,
+				Timeout:   timeout,
 			},
 			noErr,
 		},
@@ -63,7 +66,7 @@ func TestCreateEscrowMsg(t *testing.T) {
 				Arbiter:   c,
 				Recipient: c.Address(),
 				Amount:    plus,
-				Timeout:   52,
+				Timeout:   timeout,
 				Memo:      "some string",
 			},
 			noErr,
@@ -74,7 +77,7 @@ func TestCreateEscrowMsg(t *testing.T) {
 				Arbiter:   d,
 				Recipient: c.Address(),
 				Amount:    plus,
-				Timeout:   52,
+				Timeout:   timeout,
 			},
 			errors.ErrInvalidInput.Is,
 		},
@@ -84,7 +87,7 @@ func TestCreateEscrowMsg(t *testing.T) {
 				Arbiter:   b,
 				Recipient: c.Address(),
 				Amount:    minus,
-				Timeout:   52,
+				Timeout:   timeout,
 			},
 			errors.ErrInvalidAmount.Is,
 		},
@@ -94,7 +97,7 @@ func TestCreateEscrowMsg(t *testing.T) {
 				Arbiter:   b,
 				Recipient: c.Address(),
 				Amount:    mixed,
-				Timeout:   52,
+				Timeout:   timeout,
 			},
 			errors.ErrCurrency.Is,
 		},
@@ -103,7 +106,7 @@ func TestCreateEscrowMsg(t *testing.T) {
 			&CreateEscrowMsg{
 				Arbiter:   b,
 				Recipient: c.Address(),
-				Timeout:   52,
+				Timeout:   timeout,
 			},
 			errors.ErrInvalidAmount.Is,
 		},
@@ -113,7 +116,7 @@ func TestCreateEscrowMsg(t *testing.T) {
 				Arbiter:   b,
 				Recipient: c.Address(),
 				Amount:    plus,
-				Timeout:   52,
+				Timeout:   timeout,
 				Memo:      strings.Repeat("foo", 100),
 			},
 			errors.ErrInvalidInput.Is,
@@ -124,7 +127,7 @@ func TestCreateEscrowMsg(t *testing.T) {
 				Arbiter:   b,
 				Recipient: c.Address(),
 				Amount:    plus,
-				Timeout:   -8,
+				Timeout:   time.Time{},
 			},
 			errors.ErrInvalidInput.Is,
 		},

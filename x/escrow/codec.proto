@@ -2,7 +2,9 @@ syntax = "proto3";
 
 package escrow;
 
+import "github.com/gogo/protobuf/gogoproto/gogo.proto";
 import "github.com/iov-one/weave/coin/codec.proto";
+import "google/protobuf/timestamp.proto";
 
 // Escrow holds some coins.
 // The arbiter or sender can release them to the recipient.
@@ -16,9 +18,11 @@ message Escrow {
   bytes sender = 1;
   bytes arbiter = 2;
   bytes recipient = 3;
-  // if unreleased before timeout, will return to sender
-  // timeout stored here is absolute block height
-  int64 timeout = 5;
+
+  // If unreleased before timeout, escrow will return to sender.
+  // Timeout represents wall clock time as read from the block header.
+  google.protobuf.Timestamp timeout = 5 [(gogoproto.nullable) = false, (gogoproto.stdtime) = true];
+
   // max length 128 character
   string memo = 6;
 }
@@ -33,8 +37,8 @@ message CreateEscrowMsg {
   bytes recipient = 3;
   // amount may contain multiple token types
   repeated coin.Coin amount = 4;
-  // if unreleased before timeout, will return to sender
-  int64 timeout = 5;
+  // Timeout represents wall clock time.
+  google.protobuf.Timestamp timeout = 5 [(gogoproto.nullable) = false, (gogoproto.stdtime) = true];
   // max length 128 character
   string memo = 6;
 }

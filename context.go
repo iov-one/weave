@@ -26,6 +26,7 @@ import (
 	"context"
 	"fmt"
 	"regexp"
+	"time"
 
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
@@ -38,6 +39,7 @@ const (
 	contextKeyHeight
 	contextKeyChainID
 	contextKeyLogger
+	contextKeyTime
 )
 
 var (
@@ -82,6 +84,26 @@ func WithHeight(ctx Context, height int64) Context {
 // ok is false if no height set in this Context
 func GetHeight(ctx Context) (int64, bool) {
 	val, ok := ctx.Value(contextKeyHeight).(int64)
+	return val, ok
+}
+
+// WithBlockTime sets the block time for the context. Block time is always
+// represented in UTC.
+func WithBlockTime(ctx Context, t time.Time) Context {
+	return context.WithValue(ctx, contextKeyTime, t.UTC())
+}
+
+// BlockTime returns current block wall clock time as declared in the context.
+// Zero time and false is returned if a block time is not present in the
+// context.
+func BlockTime(ctx Context) (time.Time, bool) {
+	val, ok := ctx.Value(contextKeyTime).(time.Time)
+	if ok && val.IsZero() {
+		// This is a special case when a zero time value was attached
+		// to the context. Even though it is present it is not a valid
+		// value.
+		return val, false
+	}
 	return val, ok
 }
 
