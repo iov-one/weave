@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/iov-one/weave"
-	"github.com/iov-one/weave/app"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/store"
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -220,8 +219,6 @@ func numBlocks(totalTx, txPerBlock int) int {
 	return runs
 }
 
-//----- mocking out ReadonlyKVStore -----//
-
 var _ weave.ReadOnlyKVStore = (*WeaveRunner)(nil)
 
 func (w *WeaveRunner) Get(key []byte) []byte {
@@ -233,14 +230,10 @@ func (w *WeaveRunner) Get(key []byte) []byte {
 	if query.Code != 0 {
 		panic(query.Log)
 	}
-	// TODO: avoid importing app
-	var value app.ResultSet
-	err := value.Unmarshal(query.Value)
-	if err != nil {
-		// oh, for an error return here...
-		panic(errors.Wrap(err, "cannot parse values"))
+	var value ResultSet
+	if err := value.Unmarshal(query.Value); err != nil {
+		panic(errors.Wrap(err, "unmarshal result set"))
 	}
-
 	if len(value.Results) == 0 {
 		return nil
 	}
@@ -264,14 +257,12 @@ func (w *WeaveRunner) Iterator(start, end []byte) weave.Iterator {
 		Path: "/?prefix",
 		Data: nil,
 	})
-	// if only the interface supported returning errors....
 	if query.Code != 0 {
 		panic(query.Log)
 	}
 	models, err := toModels(query.Key, query.Value)
 	if err != nil {
-		// oh, for an error return here...
-		panic(errors.Wrap(err, "cannot parse values"))
+		panic(errors.Wrap(err, "cannot convert to model"))
 	}
 
 	// TODO: remove store dependency
@@ -283,16 +274,25 @@ func (w *WeaveRunner) ReverseIterator(start, end []byte) weave.Iterator {
 	panic("not implemented")
 }
 
-// TODO: we really don't want to import weave/app here, do we... but we need it to parse
-func toModels(keys []byte, values []byte) ([]weave.Model, error) {
-	var k, v app.ResultSet
-	err := k.Unmarshal(keys)
-	if err != nil {
-		return nil, errors.Wrap(err, "cannot parse keys")
+func toModels(keys, values []byte) ([]weave.Model, error) {
+	var k, v ResultSet
+	if err := k.Unmarshal(keys); err != nil {
+		return nil, errors.Wrap(err, "cannot unmarshal keys")
 	}
-	err = v.Unmarshal(values)
-	if err != nil {
-		return nil, errors.Wrap(err, "cannot parse values")
+	if err := v.Unmarshal(values); err != nil {
+		return nil, errors.Wrap(err, "cannot unmarshal values")
 	}
-	return app.JoinResults(&k, &v)
+
+	if len(k.Results) != len(v.Results) {
+		return nil, errors.Wrap(errors.ErrInvalidInput, "mismatches result set size")
+	}
+
+	mods := make([]weave.Model, len(k.Results))
+	for i := range mods {
+		mods[i] = weave.Model{
+			Key:   k.Results[i],
+			Value: v.Results[i],
+		}
+	}
+	return mods, nil
 }
