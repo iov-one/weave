@@ -1,0 +1,9 @@
+syntax = "proto3";
+
+package weavetest;
+
+// ResultSet contains a list of keys or values. This is a copy of app/ResultSet
+// and therefore it is binary compatible with it. Copied to avoid import.
+message ResultSet {
+  repeated bytes results = 1;
+}
