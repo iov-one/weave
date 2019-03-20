@@ -28,6 +28,10 @@ func BenchmarkBnsdEmptyBlock(b *testing.B) {
 	}
 
 	bnsd, cleanup := newBnsd(b)
+	defer func() {
+		b.StopTimer()
+		cleanup()
+	}()
 	runner := weavetest.NewWeaveRunner(b, bnsd, "mychain")
 	runner.InitChain(genesis)
 
@@ -43,9 +47,6 @@ func BenchmarkBnsdEmptyBlock(b *testing.B) {
 			b.Fatal("unexpected change state")
 		}
 	}
-
-	b.StopTimer()
-	cleanup()
 }
 
 func BenchmarkBNSDSendToken(b *testing.B) {
@@ -88,42 +89,42 @@ func BenchmarkBNSDSendToken(b *testing.B) {
 		fee        coin.Coin
 		strategy   weavetest.Strategy
 	}{
-		"1 tx, no fee": {
+		"1 tx block, no fee": {
 			txPerBlock: 1,
 			fee:        coin.Coin{},
 			strategy:   weavetest.ExecCheckAndDeliver,
 		},
-		"1 tx, no fee (deliver only)": {
+		"1 tx block, no fee (deliver only)": {
 			txPerBlock: 1,
 			fee:        coin.Coin{},
 			strategy:   weavetest.ExecDeliver,
 		},
-		"10 tx, no fee": {
+		"10 tx block, no fee": {
 			txPerBlock: 10,
 			fee:        coin.Coin{},
 			strategy:   weavetest.ExecCheckAndDeliver,
 		},
-		"100 tx, no fee": {
+		"100 tx block, no fee": {
 			txPerBlock: 100,
 			fee:        coin.Coin{},
 			strategy:   weavetest.ExecCheckAndDeliver,
 		},
-		"100 tx, with fee": {
+		"100 tx block with fee": {
 			txPerBlock: 100,
 			fee:        coin.Coin{Whole: 1, Ticker: "IOV"},
 			strategy:   weavetest.ExecCheckAndDeliver,
 		},
-		"100 tx, with fee (check only)": {
+		"100 tx block with fee, check only": {
 			txPerBlock: 100,
 			fee:        coin.Coin{Whole: 1, Ticker: "IOV"},
 			strategy:   weavetest.ExecCheck,
 		},
-		"100 tx, with fee (deliver only)": {
+		"100 tx block with fee, deliver only": {
 			txPerBlock: 100,
 			fee:        coin.Coin{Whole: 1, Ticker: "IOV"},
 			strategy:   weavetest.ExecDeliver,
 		},
-		"100 tx, with fee (deliver with precheck)": {
+		"100 tx block with fee, deliver with precheck": {
 			txPerBlock: 100,
 			fee:        coin.Coin{Whole: 1, Ticker: "IOV"},
 			strategy:   weavetest.ExecCheckAndDeliver | weavetest.NoBenchCheck,
@@ -133,6 +134,10 @@ func BenchmarkBNSDSendToken(b *testing.B) {
 	for testName, tc := range cases {
 		b.Run(testName, func(b *testing.B) {
 			bnsd, cleanup := newBnsd(b)
+			defer func() {
+				b.StopTimer()
+				cleanup()
+			}()
 			runner := weavetest.NewWeaveRunner(b, bnsd, "mychain")
 			runner.InitChain(makeGenesis(tc.fee))
 
@@ -149,7 +154,7 @@ func BenchmarkBNSDSendToken(b *testing.B) {
 				}
 			}
 
-			// generate all transactions
+			// Generate all transactions before measuring.
 			txs := make([]weave.Tx, b.N)
 			for k := 0; k < b.N; k++ {
 				tx := &Tx{
@@ -180,15 +185,15 @@ func BenchmarkBNSDSendToken(b *testing.B) {
 			}
 
 			blocks := weavetest.SplitTxs(txs, tc.txPerBlock)
+
 			b.ResetTimer()
 			runner.ProcessAllTxs(blocks, tc.strategy)
-			b.StopTimer()
-			cleanup()
 		})
 	}
 }
 
-// newBnsd returns the test application, along with a function to delete all testdata at the end
+// newBnsd returns the test application, along with a function to delete all
+// testdata at the end.
 func newBnsd(t testing.TB) (abci.Application, func()) {
 	t.Helper()
 
