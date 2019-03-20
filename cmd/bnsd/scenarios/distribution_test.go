@@ -42,7 +42,10 @@ func TestRevenueDistribution(t *testing.T) {
 	revenueID := weave.Address(resp.Response.DeliverTx.GetData())
 	t.Logf("new revenue stream id: %s", revenueID)
 
-	revenueAddress := distribution.RevenueAccount(revenueID)
+	revenueAddress, err := distribution.RevenueAccount(revenueID)
+	if err != nil {
+		t.Fatalf("cannot create a revenue account for %d: %s", revenueID, err)
+	}
 	t.Logf("new revenue stream account: %s", revenueAddress)
 
 	delayForRateLimits()

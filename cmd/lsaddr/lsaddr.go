@@ -21,7 +21,11 @@ var converters = map[string]converter{
 		return multisig.MultiSigCondition(seq(i)).Address()
 	},
 	"distribution": func(i int) weave.Address {
-		return distribution.RevenueAccount(seq(i))
+		a, err := distribution.RevenueAccount(seq(i))
+		if err != nil {
+			panic(err)
+		}
+		return a
 	},
 }
 
