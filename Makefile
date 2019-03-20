@@ -66,6 +66,7 @@ endif
 # protoc: protodocs
 protoc:
 	protoc --gogofaster_out=. $(PROTOC_FLAGS) app/*.proto
+	protoc --gogofaster_out=. $(PROTOC_FLAGS) weavetest/*.proto
 	protoc --gogofaster_out=. $(PROTOC_FLAGS) coin/*.proto
 	protoc --gogofaster_out=. $(PROTOC_FLAGS) crypto/*.proto
 	protoc --gogofaster_out=. $(PROTOC_FLAGS) orm/*.proto
