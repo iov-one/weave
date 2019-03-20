@@ -123,7 +123,7 @@ func (w *WeaveRunner) DeliverTx(tx weave.Tx) error {
 // InBlock begins a block and runs given function. All transactions executed
 // withing given function are part of newly created block. Upon success the
 // block is finished and changes commited.
-// InBlock returns true if the application state was modified. It returns true
+// InBlock returns true if the application state was modified. It returns false
 // if creating new block did not modify the state.
 //
 // Any failure is ending the test instantly.
