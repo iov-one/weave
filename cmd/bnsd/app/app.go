@@ -21,6 +21,7 @@ import (
 	"github.com/iov-one/weave/x/distribution"
 	"github.com/iov-one/weave/x/escrow"
 	"github.com/iov-one/weave/x/hashlock"
+	"github.com/iov-one/weave/x/msgfee"
 	"github.com/iov-one/weave/x/multisig"
 	"github.com/iov-one/weave/x/nft"
 	"github.com/iov-one/weave/x/nft/base"
@@ -51,6 +52,7 @@ func Chain(authFn x.Authenticator) app.Decorators {
 		sigs.NewDecorator(),
 		multisig.NewDecorator(authFn),
 		cash.NewDynamicFeeDecorator(authFn, ctrl),
+		msgfee.NewFeeDecorator(),
 		// cannot pay for fee with hashlock...
 		hashlock.NewDecorator(),
 		// batch commented out temporarily to minimize release features

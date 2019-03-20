@@ -18,6 +18,7 @@ import (
 	"github.com/iov-one/weave/x/currency"
 	"github.com/iov-one/weave/x/distribution"
 	"github.com/iov-one/weave/x/escrow"
+	"github.com/iov-one/weave/x/msgfee"
 	"github.com/iov-one/weave/x/multisig"
 	"github.com/iov-one/weave/x/validators"
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -103,6 +104,7 @@ func DecorateApp(application app.BaseApp, logger log.Logger) app.BaseApp {
 		&currency.Initializer{},
 		&validators.Initializer{},
 		&distribution.Initializer{},
+		&msgfee.Initializer{},
 		&escrow.Initializer{Minter: cash.NewController(cash.NewBucket())},
 	))
 	application.WithLogger(logger)
