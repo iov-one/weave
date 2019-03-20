@@ -38,7 +38,7 @@ var (
 	tendermintAddress = flag.String("address", testLocalAddress, "destination address of tendermint rpc")
 	hexSeed           = flag.String("seed", "d34c1970ae90acf3405f2d99dcaca16d0c7db379f4beafcfdf667b9d69ce350d27f5fb440509dfa79ec883a0510bc9a9614c3d44188881f0c5e402898b4bf3c9", "private key seed in hex")
 	delay             = flag.Duration("delay", time.Duration(0), "duration to wait between test cases for rate limits")
-	derivationPath    = flag.String("derivation", "", "bip44 derivation path: \"m/4804438'/0'\"")
+	derivationPath    = flag.String("derivation", "", "bip44 derivation path: \"m/44'/234'/0'\"")
 )
 
 var (
@@ -51,6 +51,7 @@ var (
 	multiSigContract  weave.Condition
 	escrowContract    weave.Condition
 	distrContractAddr weave.Address
+	antiSpamFee       = coin.Coin{Ticker: "IOV", Whole: 0, Fractional: 100000000}
 )
 
 func TestMain(m *testing.M) {
@@ -60,7 +61,7 @@ func TestMain(m *testing.M) {
 	distrContractAddr, _ = distribution.RevenueAccount(weavetest.SequenceID(1))
 
 	alice = derivePrivateKey(*hexSeed, *derivationPath)
-	logger.Error("Loaded Alice key", "addressID", alice.PublicKey().Address())
+	logger.Info("Loaded Alice key", "addressID", alice.PublicKey().Address().String(), "derivationPath", *derivationPath)
 
 	if *tendermintAddress != testLocalAddress {
 		bnsClient = client.NewClient(client.NewHTTPConnection(*tendermintAddress))
@@ -147,14 +148,13 @@ func initGenesis(filename string, addr weave.Address) (*tm.GenesisDoc, error) {
 		},
 		"currencies": []interface{}{
 			dict{
-				"ticker":   "IOV",
-				"name":     "Main token of this chain",
-				"sig_figs": 6,
+				"ticker": "IOV",
+				"name":   "Main token of this chain",
 			},
 		},
 		"update_validators": dict{
-			"addresses": []weave.Address{
-				multiSigContract.Address(),
+			"addresses": []interface{}{
+				"cond:multisig/usage/0000000000000001",
 			},
 		},
 		"multisig": []interface{}{
@@ -166,7 +166,7 @@ func initGenesis(filename string, addr weave.Address) (*tm.GenesisDoc, error) {
 		},
 		"distribution": []interface{}{
 			dict{
-				"admin": addr,
+				"admin": "cond:multisig/usage/0000000000000001",
 				"recipients": []interface{}{
 					dict{"weight": 1, "address": alice.PublicKey().Address()},
 				},
@@ -175,8 +175,8 @@ func initGenesis(filename string, addr weave.Address) (*tm.GenesisDoc, error) {
 		"escrow": []interface{}{
 			dict{
 				"sender":    "0000000000000000000000000000000000000000",
-				"arbiter":   multiSigContract,
-				"recipient": distrContractAddr,
+				"arbiter":   "multisig/usage/0000000000000001",
+				"recipient": "cond:dist/revenue/0000000000000001",
 				"amount": []interface{}{
 					dict{
 						"whole":  1000000,
@@ -186,8 +186,34 @@ func initGenesis(filename string, addr weave.Address) (*tm.GenesisDoc, error) {
 			},
 		},
 		"gconf": map[string]interface{}{
-			cash.GconfCollectorAddress: hex.EncodeToString(addr),
-			cash.GconfMinimalFee:       coin.Coin{}, // no fee
+			cash.GconfCollectorAddress: "cond:dist/revenue/0000000000000001",
+			cash.GconfMinimalFee:       antiSpamFee,
+			"msgfee": []interface{}{
+				dict{
+					"msg_path": "distribution/newrevenue",
+					"fee":      coin.Coin{Ticker: "IOV", Whole: 2},
+				},
+				dict{
+					"msg_path": "distribution/distribute",
+					"fee":      coin.Coin{Ticker: "IOV", Whole: 0, Fractional: 200000000},
+				},
+				dict{
+					"msg_path": "distribution/resetRevenue",
+					"fee":      coin.Coin{Ticker: "IOV", Whole: 1},
+				},
+				dict{
+					"msg_path": "escrow/release",
+					"fee":      coin.Coin{Ticker: "IOV", Whole: 0, Fractional: 100000000},
+				},
+				dict{
+					"msg_path": "escrow/return",
+					"fee":      coin.Coin{Ticker: "IOV", Whole: 0, Fractional: 100000000},
+				},
+				dict{
+					"msg_path": "validators/update",
+					"fee":      coin.Coin{Ticker: "IOV", Whole: 0},
+				},
+			},
 		},
 	}, "", "  ")
 	if err != nil {
@@ -201,12 +227,12 @@ func initGenesis(filename string, addr weave.Address) (*tm.GenesisDoc, error) {
 // derivePrivateKey derive a private key from hex and given path. Path can be empty to not derive.
 func derivePrivateKey(hexSeed, path string) *client.PrivateKey {
 	if len(path) != 0 {
-		b, err := hex.DecodeString(path)
+		seed, err := hex.DecodeString(hexSeed)
 		if err != nil {
 			logger.Error("Failed to decode private key", "cause", err)
 			os.Exit(1)
 		}
-		k, err := derivation.DeriveForPath(path, b)
+		k, err := derivation.DeriveForPath(path, seed)
 		if err != nil {
 			logger.Error("Failed to derive private key", "cause", err, "path", path)
 			os.Exit(1)
@@ -224,4 +250,24 @@ func derivePrivateKey(hexSeed, path string) *client.PrivateKey {
 		os.Exit(1)
 	}
 	return pk
+}
+
+// seedAccountWithTokens acts as a faucet that sends tokens to the given address.
+func seedAccountWithTokens(dest weave.Address) {
+	cc := coin.NewCoin(10, 0, "IOV")
+	tx := client.BuildSendTx(alice.PublicKey().Address(), dest, cc, "faucet")
+	tx.Fee(alice.PublicKey().Address(), antiSpamFee)
+
+	aNonce := client.NewNonce(bnsClient, alice.PublicKey().Address())
+	seq, err := aNonce.Next()
+	if err != nil {
+		panic(err)
+	}
+	if err := client.SignTx(tx, alice, chainID, seq); err != nil {
+		panic(err)
+	}
+	resp := bnsClient.BroadcastTx(tx)
+	if err := resp.IsError(); err != nil {
+		panic(err)
+	}
 }

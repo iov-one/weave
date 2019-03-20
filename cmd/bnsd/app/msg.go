@@ -1,5 +1,18 @@
 package app
 
+import (
+	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/coin"
+	"github.com/iov-one/weave/x/cash"
+)
+
+// Fee sets the FeeInfo for this tx
+func (tx *Tx) Fee(payer weave.Address, fee coin.Coin) {
+	tx.Fees = &cash.FeeInfo{
+		Payer: payer,
+		Fees:  &fee}
+}
+
 //Commented out for a minimal feature-set release
 //import (
 //	"github.com/iov-one/weave"

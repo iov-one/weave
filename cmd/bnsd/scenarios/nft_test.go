@@ -38,6 +38,7 @@ func TestIssueNfts(t *testing.T) {
 			// when
 			seq, err := aNonce.Next()
 			require.NoError(t, err)
+			tx.Fee(alice.PublicKey().Address(), antiSpamFee)
 			require.NoError(t, client.SignTx(tx, alice, chainID, seq))
 			resp := bnsClient.BroadcastTx(tx)
 			// then

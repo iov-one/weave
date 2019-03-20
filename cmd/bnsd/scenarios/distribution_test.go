@@ -12,6 +12,8 @@ import (
 
 func TestRevenueDistribution(t *testing.T) {
 	admin := client.GenPrivateKey()
+	seedAccountWithTokens(admin.PublicKey().Address())
+
 	recipients := []weave.Address{
 		client.GenPrivateKey().PublicKey().Address(),
 		client.GenPrivateKey().PublicKey().Address(),
@@ -27,6 +29,8 @@ func TestRevenueDistribution(t *testing.T) {
 			},
 		},
 	}
+	newRevenueTx.Fee(admin.PublicKey().Address(), coin.NewCoin(2, 0, "IOV"))
+
 	adminNonce := client.NewNonce(bnsClient, admin.PublicKey().Address())
 	seq, err := adminNonce.Next()
 	if err != nil {
@@ -58,6 +62,8 @@ func TestRevenueDistribution(t *testing.T) {
 		revenueAddress,
 		coin.NewCoin(0, 7, "IOV"),
 		"an income that is to be split using revenue distribution")
+	sendCoinsTx.Fee(alice.PublicKey().Address(), antiSpamFee)
+
 	aliceNonce := client.NewNonce(bnsClient, alice.PublicKey().Address())
 	seq, err = aliceNonce.Next()
 	if err != nil {
@@ -88,6 +94,7 @@ func TestRevenueDistribution(t *testing.T) {
 			},
 		},
 	}
+	resetRevenueTx.Fee(admin.PublicKey().Address(), coin.NewCoin(1, 0, "IOV"))
 	seq, err = adminNonce.Next()
 	if err != nil {
 		t.Fatalf("cannot acquire admin nonce sequence: %s", err)
@@ -113,6 +120,8 @@ func TestRevenueDistribution(t *testing.T) {
 		revenueAddress,
 		coin.NewCoin(0, 11, "IOV"),
 		"an income that is to be split using revenue distribution (2)")
+	sendCoinsTx.Fee(alice.PublicKey().Address(), antiSpamFee)
+
 	seq, err = aliceNonce.Next()
 	if err != nil {
 		t.Fatalf("cannot acquire alice nonce sequence: %s", err)
@@ -134,6 +143,8 @@ func TestRevenueDistribution(t *testing.T) {
 			},
 		},
 	}
+	distributeTx.Fee(admin.PublicKey().Address(), coin.NewCoin(0, 200000000, "IOV"))
+
 	seq, err = adminNonce.Next()
 	if err != nil {
 		t.Fatalf("cannot acquire admin nonce sequence: %s", err)
