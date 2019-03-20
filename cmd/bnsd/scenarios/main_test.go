@@ -176,7 +176,7 @@ func initGenesis(filename string, addr weave.Address) (*tm.GenesisDoc, error) {
 			dict{
 				"sender":    "0000000000000000000000000000000000000000",
 				"arbiter":   "multisig/usage/0000000000000001",
-				"recipient": "cond:distribution/revenue/0000000000000001",
+				"recipient": "cond:dist/revenue/0000000000000001",
 				"amount": []interface{}{
 					dict{
 						"whole":  1000000,
@@ -186,7 +186,7 @@ func initGenesis(filename string, addr weave.Address) (*tm.GenesisDoc, error) {
 			},
 		},
 		"gconf": map[string]interface{}{
-			cash.GconfCollectorAddress: "cond:distribution/revenue/0000000000000001",
+			cash.GconfCollectorAddress: "cond:dist/revenue/0000000000000001",
 			cash.GconfMinimalFee:       antiSpamFee,
 			"msgfee": []interface{}{
 				dict{
