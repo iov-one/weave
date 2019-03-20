@@ -136,10 +136,10 @@ func BenchmarkBNSDSendToken(b *testing.B) {
 			runner := weavetest.NewWeaveRunner(b, bnsd, "mychain")
 			runner.InitChain(makeGenesis(tc.fee))
 
-			aliceNonce, err := sigs.NextNonce(runner, alice)
-			if err != nil {
-				b.Fatalf("cannot compute alice nonce: %s", err)
-			}
+			// We are the only user of this bnsd instance so we can
+			// easily predict the nonce for alice. No need to ask
+			// the database.
+			var aliceNonce int64
 
 			var fees *cash.FeeInfo
 			if !tc.fee.IsZero() {
@@ -169,8 +169,12 @@ func BenchmarkBNSDSendToken(b *testing.B) {
 				tx.Signatures = append(tx.Signatures, sig)
 				txs[k] = tx
 
-				// When state has changed, the nonce is updated.
 				if !tc.strategy.Has(weavetest.ExecDeliver) && (k+1)%tc.txPerBlock == 0 {
+					// When the transaction is split into blocks and the previous block
+					// is not commited then the nonce value is reset. All previous
+					// changes were discarded so the nonce counting starts from zero again.
+					aliceNonce = 0
+				} else {
 					aliceNonce++
 				}
 			}
