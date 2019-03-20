@@ -128,7 +128,11 @@ func (h *distributeHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weav
 		return res, err
 	}
 
-	if err := distribute(db, h.ctrl, RevenueAccount(msg.RevenueID), rev.Recipients); err != nil {
+	racc, err := RevenueAccount(msg.RevenueID)
+	if err != nil {
+		return res, errors.Wrap(err, "invalid revenue account")
+	}
+	if err := distribute(db, h.ctrl, racc, rev.Recipients); err != nil {
 		return res, errors.Wrap(err, "cannot distribute")
 	}
 	return res, nil
@@ -187,12 +191,15 @@ func (h *resetRevenueHandler) Deliver(ctx weave.Context, db weave.KVStore, tx we
 	if err != nil {
 		return res, err
 	}
-
+	racc, err := RevenueAccount(msg.RevenueID)
+	if err != nil {
+		return res, errors.Wrap(err, "invalid revenue account")
+	}
 	// Before updating the revenue all funds must be distributed. Only a
 	// revenue with no funds can be updated, so that recipients trust us.
 	// Otherwise an admin could change who receives the money without the
 	// previously selected recepients ever being paid.
-	if err := distribute(db, h.ctrl, RevenueAccount(msg.RevenueID), rev.Recipients); err != nil {
+	if err := distribute(db, h.ctrl, racc, rev.Recipients); err != nil {
 		return res, errors.Wrap(err, "cannot distribute")
 	}
 

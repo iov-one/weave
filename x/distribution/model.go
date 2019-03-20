@@ -116,8 +116,12 @@ func (b *RevenueBucket) Create(db weave.KVStore, rev *Revenue) (orm.Object, erro
 
 // RevenueAccount returns an account address that is holding funds of a revenue
 // with given ID.
-func RevenueAccount(revenueID []byte) weave.Address {
-	return weave.NewCondition("distribution", "revenue", revenueID).Address()
+func RevenueAccount(revenueID []byte) (weave.Address, error) {
+	c := weave.NewCondition("dist", "revenue", revenueID)
+	if err := c.Validate(); err != nil {
+		return nil, errors.Wrap(err, "condition")
+	}
+	return c.Address(), nil
 }
 
 // Save persists the state of a given revenue entity.

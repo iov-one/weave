@@ -57,7 +57,7 @@ func TestMain(m *testing.M) {
 	flag.Parse()
 	multiSigContract = multisig.MultiSigCondition(weavetest.SequenceID(1))
 	escrowContract = escrow.Condition(weavetest.SequenceID(1))
-	distrContractAddr = distribution.RevenueAccount(weavetest.SequenceID(1))
+	distrContractAddr, _ = distribution.RevenueAccount(weavetest.SequenceID(1))
 
 	alice = derivePrivateKey(*hexSeed, *derivationPath)
 	logger.Error("Loaded Alice key", "addressID", alice.PublicKey().Address())
