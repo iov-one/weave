@@ -21,8 +21,8 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
 
-// ResultSet contains a list of keys or values. This is binary compatible with
-// weave/app.ResultSet
+// ResultSet contains a list of keys or values. This is a copy of app/ResultSet
+// and therefore it is binary compatible with it. Copied to avoid import.
 type ResultSet struct {
 	Results [][]byte `protobuf:"bytes,1,rep,name=results,proto3" json:"results,omitempty"`
 }

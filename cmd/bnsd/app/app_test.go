@@ -155,12 +155,26 @@ func sendToken(t *testing.T, baseApp weaveApp.BaseApp, chainID string, height in
 
 // createContract creates an immutable contract, signs the transaction and sends it
 // checks contract has been created correctly
-func createContract(t *testing.T, baseApp weaveApp.BaseApp, chainID string, height int64, signers []Signer,
-	activationThreshold int64, contractSigs ...[]byte) []byte {
+func createContract(
+	t *testing.T,
+	baseApp weaveApp.BaseApp,
+	chainID string,
+	height int64,
+	signers []Signer,
+	activationThreshold multisig.Weight,
+	contractSigs ...[]byte,
+) []byte {
+	participants := make([]*multisig.Participant, len(contractSigs))
+	for i, addr := range contractSigs {
+		participants[i] = &multisig.Participant{
+			Signature: addr,
+			Power:     1,
+		}
+	}
 	msg := &multisig.CreateContractMsg{
-		Sigs:                contractSigs,
+		Participants:        participants,
 		ActivationThreshold: activationThreshold,
-		AdminThreshold:      int64(len(contractSigs)) + 1, // immutable
+		AdminThreshold:      multisig.Weight(len(contractSigs)) + 1, // immutable
 	}
 
 	tx := &app.Tx{
@@ -173,9 +187,9 @@ func createContract(t *testing.T, baseApp weaveApp.BaseApp, chainID string, heig
 	contractID := dres.Data
 	queryAndCheckContract(t, baseApp, "/contracts", contractID,
 		multisig.Contract{
-			Sigs:                contractSigs,
+			Participants:        participants,
 			ActivationThreshold: activationThreshold,
-			AdminThreshold:      int64(len(contractSigs)) + 1,
+			AdminThreshold:      multisig.Weight(len(contractSigs)) + 1,
 		})
 
 	return contractID

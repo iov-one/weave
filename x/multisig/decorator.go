@@ -42,7 +42,7 @@ func (d Decorator) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx, 
 }
 
 func (d Decorator) authMultisig(ctx weave.Context, store weave.KVStore, tx weave.Tx) (weave.Context, error) {
-	multisigContract, ok := tx.(multiSigTx)
+	multisigContract, ok := tx.(MultiSigTx)
 	if !ok {
 		return ctx, nil
 	}
@@ -78,11 +78,4 @@ func (d Decorator) authMultisig(ctx weave.Context, store weave.KVStore, tx weave
 	}
 
 	return ctx, nil
-}
-
-// multiSigTx is an optional interface for a Tx that allows it to
-// support multisig contract. Multisig authentication can be done only
-// for transactions that do support this interface.
-type multiSigTx interface {
-	GetMultisig() [][]byte
 }

@@ -159,7 +159,7 @@ type ContractTx struct {
 	MultisigID [][]byte
 }
 
-var _ multiSigTx = ContractTx{}
+var _ MultiSigTx = ContractTx{}
 var _ weave.Tx = ContractTx{}
 
 func (p ContractTx) GetMultisig() [][]byte {

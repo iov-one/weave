@@ -249,7 +249,7 @@ func withWalletAppState(t require.TestingT, accounts []*account) string {
 type contract struct {
 	id          []byte
 	accountSigs []*account
-	threshold   int64
+	threshold   multisig.Weight
 }
 
 func (c *contract) address() []byte {
@@ -390,11 +390,28 @@ func sendBatch(t require.TestingT, fail bool, baseApp app.BaseApp, chainID strin
 
 // createContract creates an immutable contract, signs the transaction and sends it
 // checks contract has been created correctly
-func createContract(t require.TestingT, baseApp app.BaseApp, chainID string, height int64, signers []*account, activationThreshold int64, contractSigs ...[]byte) []byte {
+func createContract(
+	t testing.TB,
+	baseApp app.BaseApp,
+	chainID string,
+	height int64,
+	signers []*account,
+	activationThreshold multisig.Weight,
+	contractSigs ...[]byte,
+) []byte {
+	t.Helper()
+
+	participants := make([]*multisig.Participant, len(contractSigs))
+	for i, addr := range contractSigs {
+		participants[i] = &multisig.Participant{
+			Signature: addr,
+			Power:     1,
+		}
+	}
 	msg := &multisig.CreateContractMsg{
-		Sigs:                contractSigs,
+		Participants:        participants,
 		ActivationThreshold: activationThreshold,
-		AdminThreshold:      int64(len(contractSigs)) + 1, // immutable
+		AdminThreshold:      multisig.Weight(len(contractSigs)) + 1, // immutable
 	}
 
 	tx := &Tx{
@@ -407,9 +424,9 @@ func createContract(t require.TestingT, baseApp app.BaseApp, chainID string, hei
 	contractID := dres.Data
 	queryAndCheckContract(t, baseApp, "/contracts", contractID,
 		multisig.Contract{
-			Sigs:                contractSigs,
+			Participants:        participants,
 			ActivationThreshold: activationThreshold,
-			AdminThreshold:      int64(len(contractSigs)) + 1,
+			AdminThreshold:      multisig.Weight(len(contractSigs)) + 1,
 		})
 
 	return contractID
@@ -541,9 +558,16 @@ func makeSendTxMultisig(t require.TestingT, chainID string, sender, receiver *co
 	return txBytes
 }
 
-func makeCreateContractTx(t require.TestingT, chainID string, signers [][]byte, threshold int64) *Tx {
+func makeCreateContractTx(t require.TestingT, chainID string, signers [][]byte, threshold multisig.Weight) *Tx {
+	participants := make([]*multisig.Participant, len(signers))
+	for i, addr := range signers {
+		participants[i] = &multisig.Participant{
+			Signature: addr,
+			Power:     1,
+		}
+	}
 	msg := &multisig.CreateContractMsg{
-		Sigs:                signers,
+		Participants:        participants,
 		ActivationThreshold: threshold,
 		AdminThreshold:      threshold,
 	}
@@ -559,7 +583,7 @@ func makeCreateContractTx(t require.TestingT, chainID string, signers [][]byte, 
 // N * DeliverTx
 // EndBlock
 // Commit
-func benchmarkSendTxWithMultisig(b *testing.B, nbAccounts, blockSize, nbContracts, nbMultisigSigs int, threshold int64) {
+func benchmarkSendTxWithMultisig(b *testing.B, nbAccounts, blockSize, nbContracts, nbMultisigSigs int, threshold multisig.Weight) {
 	id := func(i int64) []byte {
 		bz := make([]byte, 8)
 		binary.BigEndian.PutUint64(bz, uint64(i))
@@ -707,7 +731,7 @@ func BenchmarkSendTxMultiSig(b *testing.B) {
 		blockSize int
 		contracts int
 		nbSigs    int
-		threshold int64
+		threshold multisig.Weight
 	}{
 		{10000, 100, 100, 2, 1},
 		{10000, 100, 100, 10, 5},
