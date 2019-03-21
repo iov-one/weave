@@ -60,7 +60,7 @@ func TestCreateContractHandler(t *testing.T) {
 					{Power: 3, Signature: cindy},
 				},
 				ActivationThreshold: 2,
-				AdminThreshold:      1000,
+				AdminThreshold:      maxWeightValue,
 			},
 		},
 		"cannot create if activation threshold is higher than admin threshold": {
@@ -196,7 +196,7 @@ func TestUpdateContractHandler(t *testing.T) {
 					{Power: 3, Signature: cindy},
 				},
 				ActivationThreshold: 1,
-				AdminThreshold:      10000,
+				AdminThreshold:      maxWeightValue,
 			},
 		},
 		"cannot update if activation threshold is higher than admin threshold": {

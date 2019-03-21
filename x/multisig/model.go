@@ -11,6 +11,11 @@ const (
 	BucketName = "contracts"
 	// SequenceName is an auto-increment ID counter for contracts
 	SequenceName = "id"
+
+	// Maximum value a weight value can be set to. This is uint8 capacity
+	// but because we use protobuf for serialization, weight is represented
+	// by uint32 and we must manually force the limit.
+	maxWeightValue = 255
 )
 
 // Weight represents the strength of a signature.
@@ -20,6 +25,10 @@ func (w Weight) Validate() error {
 	if w < 1 {
 		return errors.Wrap(errors.ErrInvalidState,
 			"weight must be greater than 0")
+	}
+	if w > maxWeightValue {
+		return errors.Wrapf(errors.ErrOverflow,
+			"weight is %d and must not be greater than %d", w, maxWeightValue)
 	}
 	return nil
 }
