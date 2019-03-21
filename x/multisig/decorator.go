@@ -6,6 +6,10 @@ import (
 	"github.com/iov-one/weave/x"
 )
 
+const (
+	multisigParticipantGasCost = 10
+)
+
 // Decorator checks multisig contract if available
 type Decorator struct {
 	auth   x.Authenticator
@@ -21,74 +25,64 @@ func NewDecorator(auth x.Authenticator) Decorator {
 
 // Check enforce multisig contract before calling down the stack
 func (d Decorator) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx, next weave.Checker) (weave.CheckResult, error) {
-	var res weave.CheckResult
-	newCtx, err := d.withMultisig(ctx, store, tx)
+	newCtx, cost, err := d.authMultisig(ctx, store, tx)
 	if err != nil {
-		return res, err
+		return weave.CheckResult{}, err
 	}
 
-	return next.Check(newCtx, store, tx)
+	res, err := next.Check(newCtx, store, tx)
+	res.GasPayment += cost
+	return res, err
 }
 
 // Deliver enforces multisig contract before calling down the stack
 func (d Decorator) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx, next weave.Deliverer) (weave.DeliverResult, error) {
-	var res weave.DeliverResult
-	newCtx, err := d.withMultisig(ctx, store, tx)
+	newCtx, _, err := d.authMultisig(ctx, store, tx)
 	if err != nil {
-		return res, err
+		return weave.DeliverResult{}, err
 	}
 
 	return next.Deliver(newCtx, store, tx)
 }
 
-func (d Decorator) withMultisig(ctx weave.Context, store weave.KVStore, tx weave.Tx) (weave.Context, error) {
-	if multisigContract, ok := tx.(MultiSigTx); ok {
-		ids := multisigContract.GetMultisig()
-		for _, contractID := range ids {
-			if contractID == nil {
-				return ctx, nil
-			}
+func (d Decorator) authMultisig(ctx weave.Context, store weave.KVStore, tx weave.Tx) (weave.Context, int64, error) {
+	multisigContract, ok := tx.(MultiSigTx)
+	if !ok {
+		return ctx, 0, nil
+	}
 
-			// check if we already have it
-			if d.auth.HasAddress(ctx, MultiSigCondition(contractID).Address()) {
-				return ctx, nil
-			}
-
-			// load contract
-			contract, err := d.getContract(store, contractID)
-			if err != nil {
-				return ctx, err
-			}
-
-			// collect all sigs
-			sigs := make([]weave.Address, len(contract.Sigs))
-			for i, sig := range contract.Sigs {
-				sigs[i] = sig
-			}
-
-			// check sigs (can be sig or multisig)
-			authenticated := x.HasNAddresses(ctx, d.auth, sigs, int(contract.ActivationThreshold))
-			if !authenticated {
-				return ctx, errors.Wrapf(errors.ErrUnauthorized, "contract=%X", contractID)
-			}
-
-			ctx = withMultisig(ctx, contractID)
+	var gasCost int64
+	ids := multisigContract.GetMultisig()
+	for _, contractID := range ids {
+		if contractID == nil {
+			continue
 		}
+
+		// A contract can be activated by another contract being fulfilled.
+		if d.auth.HasAddress(ctx, MultiSigCondition(contractID).Address()) {
+			continue
+		}
+
+		contract, err := d.bucket.GetContract(store, contractID)
+		if err != nil {
+			return ctx, 0, err
+		}
+
+		var power Weight
+		for _, p := range contract.Participants {
+			if d.auth.HasAddress(ctx, p.Signature) {
+				power += p.Power
+				gasCost += multisigParticipantGasCost
+			}
+		}
+		if power < contract.ActivationThreshold {
+			err := errors.Wrapf(errors.ErrUnauthorized,
+				"%d power is not enough to activate %q", power, contractID)
+			return ctx, 0, err
+		}
+
+		ctx = withMultisig(ctx, contractID)
 	}
 
-	return ctx, nil
-}
-
-func (d Decorator) getContract(store weave.KVStore, id []byte) (*Contract, error) {
-	obj, err := d.bucket.Get(store, id)
-	if err != nil {
-		return nil, err
-	}
-
-	if obj == nil || (obj != nil && obj.Value() == nil) {
-		return nil, errors.Wrapf(errors.ErrNotFound, contractNotFoundFmt, id)
-	}
-
-	contract := obj.Value().(*Contract)
-	return contract, err
+	return ctx, gasCost, nil
 }

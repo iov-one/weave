@@ -11,34 +11,53 @@ const (
 	BucketName = "contracts"
 	// SequenceName is an auto-increment ID counter for contracts
 	SequenceName = "id"
+
+	// Maximum value a weight value can be set to. This is uint8 capacity
+	// but because we use protobuf for serialization, weight is represented
+	// by uint32 and we must manually force the limit.
+	maxWeightValue = 255
 )
 
-// enforce that Contract fulfils desired interface compile-time
-var _ orm.CloneableData = (*Contract)(nil)
+// Weight represents the strength of a signature.
+type Weight uint32
 
-// Validate enforces sigs and threshold boundaries
-func (c *Contract) Validate() error {
-	if len(c.Sigs) == 0 {
-		return errors.Wrap(errors.ErrInvalidMsg, "missing sigs")
+func (w Weight) Validate() error {
+	if w < 1 {
+		return errors.Wrap(errors.ErrInvalidState,
+			"weight must be greater than 0")
 	}
-	if c.ActivationThreshold <= 0 || int(c.ActivationThreshold) > len(c.Sigs) {
-		return errors.Wrap(errors.ErrInvalidMsg, invalidThreshold)
-	}
-	if c.AdminThreshold <= 0 {
-		return errors.Wrap(errors.ErrInvalidMsg, invalidThreshold)
-	}
-	for _, a := range c.Sigs {
-		if err := weave.Address(a).Validate(); err != nil {
-			return err
-		}
+	if w > maxWeightValue {
+		return errors.Wrapf(errors.ErrOverflow,
+			"weight is %d and must not be greater than %d", w, maxWeightValue)
 	}
 	return nil
 }
 
-// Copy makes a new Profile with the same data
+var _ orm.CloneableData = (*Contract)(nil)
+
+func (c *Contract) Validate() error {
+	switch n := len(c.Participants); {
+	case n == 0:
+		return errors.Wrap(errors.ErrInvalidModel, "no participants")
+	case n > maxParticipantsAllowed:
+		return errors.Wrap(errors.ErrInvalidModel, "too many participants")
+	}
+	return validateWeights(errors.ErrInvalidModel,
+		c.Participants, c.ActivationThreshold, c.AdminThreshold)
+}
+
 func (c *Contract) Copy() orm.CloneableData {
+	ps := make([]*Participant, 0, len(c.Participants))
+	for _, p := range c.Participants {
+		sig := make(weave.Address, len(p.Signature))
+		copy(sig, p.Signature)
+		ps = append(ps, &Participant{
+			Signature: sig,
+			Power:     p.Power,
+		})
+	}
 	return &Contract{
-		Sigs:                c.Sigs,
+		Participants:        ps,
 		ActivationThreshold: c.ActivationThreshold,
 		AdminThreshold:      c.AdminThreshold,
 	}
@@ -76,4 +95,22 @@ func (b ContractBucket) Save(db weave.KVStore, obj orm.Object) error {
 func (b ContractBucket) Build(db weave.KVStore, c *Contract) orm.Object {
 	key := b.idSeq.NextVal(db)
 	return orm.NewSimpleObj(key, c)
+}
+
+// GetContract returns a contract with given ID.
+func (b ContractBucket) GetContract(store weave.KVStore, contractID []byte) (*Contract, error) {
+	obj, err := b.Get(store, contractID)
+	if err != nil {
+		return nil, errors.Wrap(err, "bucket lookup")
+	}
+
+	if obj == nil || obj.Value() == nil {
+		return nil, errors.Wrapf(errors.ErrNotFound, "contract id %q", contractID)
+	}
+
+	c, ok := obj.Value().(*Contract)
+	if !ok {
+		return nil, errors.Wrapf(errors.ErrInvalidModel, "invalid type: %T", obj.Value())
+	}
+	return c, nil
 }

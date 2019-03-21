@@ -18,13 +18,13 @@ func TestGenesisKey(t *testing.T) {
 		{
 			"multisig": [
 				{
-					"sigs": [
-						"e4c7e4c71a3b301a2521753ddd1d2c26fd6fe1bf",
-						"904bc35e341b428d4faa535022b553efbc443d49",
-						"91d66344d78599b66e1b504db958b1b07a8f5049"
+					"participants": [
+						{"power": 1, "signature": "e4c7e4c71a3b301a2521753ddd1d2c26fd6fe1bf"},
+						{"power": 2, "signature": "904bc35e341b428d4faa535022b553efbc443d49"},
+						{"power": 7, "signature": "91d66344d78599b66e1b504db958b1b07a8f5049"}
 					],
 					"activation_threshold": 2,
-					"admin_threshold": 2
+					"admin_threshold": 3
 				}
 			]
 		}
@@ -53,19 +53,19 @@ func TestGenesisKey(t *testing.T) {
 	if !ok {
 		t.Errorf("invalid object stored: %T", obj)
 	}
-	if want, got := int64(2), c.ActivationThreshold; want != got {
+	if want, got := Weight(2), c.ActivationThreshold; want != got {
 		t.Errorf("want activation threshold %d, got %d", want, got)
 	}
-	if want, got := int64(2), c.AdminThreshold; want != got {
+	if want, got := Weight(3), c.AdminThreshold; want != got {
 		t.Errorf("want admin threshold %d, got %d", want, got)
 	}
-	wantSigs := [][]byte{
-		fromHex(t, "e4c7e4c71a3b301a2521753ddd1d2c26fd6fe1bf"),
-		fromHex(t, "904bc35e341b428d4faa535022b553efbc443d49"),
-		fromHex(t, "91d66344d78599b66e1b504db958b1b07a8f5049"),
+	wantParticipants := []*Participant{
+		{Power: 1, Signature: fromHex(t, "e4c7e4c71a3b301a2521753ddd1d2c26fd6fe1bf")},
+		{Power: 2, Signature: fromHex(t, "904bc35e341b428d4faa535022b553efbc443d49")},
+		{Power: 7, Signature: fromHex(t, "91d66344d78599b66e1b504db958b1b07a8f5049")},
 	}
-	if !reflect.DeepEqual(wantSigs, c.Sigs) {
-		t.Errorf("want signatures \n%#v\n, got \n%#v", wantSigs, c.Sigs)
+	if !reflect.DeepEqual(wantParticipants, c.Participants) {
+		t.Errorf("want participants \n%#v\n, got \n%#v", wantParticipants, c.Participants)
 	}
 
 }

@@ -1,6 +1,8 @@
 package weavetest
 
-import "github.com/iov-one/weave"
+import (
+	"github.com/iov-one/weave"
+)
 
 // Handler implements a mock of weave.Handler
 //
