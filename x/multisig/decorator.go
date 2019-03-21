@@ -6,6 +6,10 @@ import (
 	"github.com/iov-one/weave/x"
 )
 
+const (
+	multisigParticipantGasCost = 10
+)
+
 // Decorator checks multisig contract if available
 type Decorator struct {
 	auth   x.Authenticator
@@ -21,62 +25,64 @@ func NewDecorator(auth x.Authenticator) Decorator {
 
 // Check enforce multisig contract before calling down the stack
 func (d Decorator) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx, next weave.Checker) (weave.CheckResult, error) {
-	var res weave.CheckResult
-	newCtx, err := d.authMultisig(ctx, store, tx)
+	newCtx, cost, err := d.authMultisig(ctx, store, tx)
 	if err != nil {
-		return res, err
+		return weave.CheckResult{}, err
 	}
 
-	return next.Check(newCtx, store, tx)
+	res, err := next.Check(newCtx, store, tx)
+	res.GasPayment += cost
+	return res, err
 }
 
 // Deliver enforces multisig contract before calling down the stack
 func (d Decorator) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx, next weave.Deliverer) (weave.DeliverResult, error) {
-	var res weave.DeliverResult
-	newCtx, err := d.authMultisig(ctx, store, tx)
+	newCtx, _, err := d.authMultisig(ctx, store, tx)
 	if err != nil {
-		return res, err
+		return weave.DeliverResult{}, err
 	}
 
 	return next.Deliver(newCtx, store, tx)
 }
 
-func (d Decorator) authMultisig(ctx weave.Context, store weave.KVStore, tx weave.Tx) (weave.Context, error) {
+func (d Decorator) authMultisig(ctx weave.Context, store weave.KVStore, tx weave.Tx) (weave.Context, int64, error) {
 	multisigContract, ok := tx.(MultiSigTx)
 	if !ok {
-		return ctx, nil
+		return ctx, 0, nil
 	}
 
+	var gasCost int64
 	ids := multisigContract.GetMultisig()
 	for _, contractID := range ids {
 		if contractID == nil {
-			return ctx, nil
+			continue
 		}
 
-		// If already authenticated it does not matter if multisig can
-		// authenticate as well. Any authentication method is enough.
+		// A contract can be activated by another contract being fulfilled.
 		if d.auth.HasAddress(ctx, MultiSigCondition(contractID).Address()) {
-			return ctx, nil
+			continue
 		}
 
 		contract, err := d.bucket.GetContract(store, contractID)
 		if err != nil {
-			return ctx, err
+			return ctx, 0, err
 		}
 
 		var power Weight
 		for _, p := range contract.Participants {
 			if d.auth.HasAddress(ctx, p.Signature) {
 				power += p.Power
+				gasCost += multisigParticipantGasCost
 			}
 		}
 		if power < contract.ActivationThreshold {
-			return ctx, errors.Wrapf(errors.ErrUnauthorized,
+			err := errors.Wrapf(errors.ErrUnauthorized,
 				"%d power is not enough to activate %q", power, contractID)
+			return ctx, 0, err
 		}
 
 		ctx = withMultisig(ctx, contractID)
 	}
 
-	return ctx, nil
+	return ctx, gasCost, nil
 }

@@ -54,7 +54,6 @@ func TestDecorator(t *testing.T) {
 		ActivationThreshold: 1,
 		AdminThreshold:      2,
 	})
-
 	// helper to create a ContractTx
 	multisigTx := func(payload []byte, multisig ...[]byte) ContractTx {
 		tx := &weavetest.Tx{Msg: &weavetest.Msg{Serialized: payload}}
@@ -65,6 +64,7 @@ func TestDecorator(t *testing.T) {
 		tx      weave.Tx
 		signers []weave.Condition
 		perms   []weave.Condition
+		wantGas int64
 		wantErr *errors.Error
 	}{
 		"does not support multisig interface": {
@@ -79,6 +79,7 @@ func TestDecorator(t *testing.T) {
 			tx:      multisigTx([]byte("foo"), contractID1),
 			signers: []weave.Condition{a, b},
 			perms:   []weave.Condition{MultiSigCondition(contractID1)},
+			wantGas: multisigParticipantGasCost * 2,
 		},
 		"with multisig contract but not enough signatures to activate": {
 			tx:      multisigTx([]byte("foo"), contractID1),
@@ -94,11 +95,13 @@ func TestDecorator(t *testing.T) {
 			tx:      multisigTx([]byte("foo"), contractID2, contractID3),
 			signers: []weave.Condition{d, e},
 			perms:   []weave.Condition{MultiSigCondition(contractID2), MultiSigCondition(contractID3)},
+			wantGas: multisigParticipantGasCost * 3,
 		},
 		"contractID3 is activated by a": {
 			tx:      multisigTx([]byte("foo"), contractID3),
 			signers: []weave.Condition{a},
 			perms:   []weave.Condition{MultiSigCondition(contractID3)},
+			wantGas: multisigParticipantGasCost * 1,
 		},
 		"contractID3 is not activated": {
 			tx: multisigTx([]byte("foo"), contractID3),
@@ -118,13 +121,16 @@ func TestDecorator(t *testing.T) {
 
 			var hn MultisigCheckHandler
 			stack := weavetest.Decorate(&hn, d)
-			_, err := stack.Check(ctx, db, tc.tx)
+
+			cres, err := stack.Check(ctx, db, tc.tx)
 			if !tc.wantErr.Is(err) {
 				t.Fatalf("unexpected error: %+v", err)
 			}
+			if cres.GasPayment != tc.wantGas {
+				t.Errorf("want %d gas payment, got %d", tc.wantGas, cres.GasPayment)
+			}
 
-			_, err = stack.Deliver(ctx, db, tc.tx)
-			if !tc.wantErr.Is(err) {
+			if _, err := stack.Deliver(ctx, db, tc.tx); !tc.wantErr.Is(err) {
 				t.Fatalf("unexpected error: %+v", err)
 			}
 		})
