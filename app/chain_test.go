@@ -79,3 +79,16 @@ func (ph panicAtHeightDecorator) Deliver(ctx weave.Context, db weave.KVStore, tx
 	}
 	return next.Deliver(ctx, db, tx)
 }
+
+func TestChainNilDecorator(t *testing.T) {
+	stack := ChainDecorators(nil, &weavetest.Decorator{}, nil, nil)
+	if want, got := 1, len(stack.chain); want != got {
+		t.Fatalf("want %d decorator, got %d", want, got)
+	}
+
+	stack = stack.Chain(nil, &weavetest.Decorator{}, nil, nil)
+	if want, got := 2, len(stack.chain); want != got {
+		t.Fatalf("want %d decorators, got %d", want, got)
+	}
+
+}
