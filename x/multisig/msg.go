@@ -10,6 +10,10 @@ const (
 
 	creationCost int64 = 300 // 3x more expensive than SendMsg
 	updateCost   int64 = 150 // Half the creation cost
+
+	// To avoid burning CPU, this is the maximum number of participants
+	// allowed to be part of a single contract.
+	maxParticipantsAllowed = 100
 )
 
 // Path fulfills weave.Msg interface to allow routing
@@ -22,7 +26,7 @@ func (c *CreateContractMsg) Validate() error {
 	switch n := len(c.Participants); {
 	case n == 0:
 		return errors.Wrap(errors.ErrInvalidMsg, "no participants")
-	case n > 100:
+	case n > maxParticipantsAllowed:
 		return errors.Wrap(errors.ErrInvalidMsg, "too many participants")
 	}
 	return validateWeights(errors.ErrInvalidMsg,
@@ -39,7 +43,7 @@ func (c *UpdateContractMsg) Validate() error {
 	switch n := len(c.Participants); {
 	case n == 0:
 		return errors.Wrap(errors.ErrInvalidMsg, "no participants")
-	case n > 100:
+	case n > maxParticipantsAllowed:
 		return errors.Wrap(errors.ErrInvalidMsg, "too many participants")
 	}
 	return validateWeights(errors.ErrInvalidMsg,

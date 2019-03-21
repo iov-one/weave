@@ -71,7 +71,8 @@ func (d Decorator) authMultisig(ctx weave.Context, store weave.KVStore, tx weave
 			}
 		}
 		if power < contract.ActivationThreshold {
-			return ctx, errors.Wrapf(errors.ErrUnauthorized, "%d power is not enough", power)
+			return ctx, errors.Wrapf(errors.ErrUnauthorized,
+				"%d power is not enough to activate %q", power, contractID)
 		}
 
 		ctx = withMultisig(ctx, contractID)

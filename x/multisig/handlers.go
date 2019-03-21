@@ -150,7 +150,8 @@ func (h UpdateContractMsgHandler) validate(ctx weave.Context, db weave.KVStore, 
 		}
 	}
 	if power < contract.AdminThreshold {
-		return msg, errors.Wrapf(errors.ErrUnauthorized, "%d power is not enough", power)
+		return msg, errors.Wrapf(errors.ErrUnauthorized,
+			"%d power is not enough to administrate %q", power, msg.ContractID)
 	}
 
 	if err := msg.Validate(); err != nil {

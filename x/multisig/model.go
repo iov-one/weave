@@ -29,9 +29,9 @@ var _ orm.CloneableData = (*Contract)(nil)
 func (c *Contract) Validate() error {
 	switch n := len(c.Participants); {
 	case n == 0:
-		return errors.Wrap(errors.ErrInvalidMsg, "no participants")
-	case n > 100:
-		return errors.Wrap(errors.ErrInvalidMsg, "too many participants")
+		return errors.Wrap(errors.ErrInvalidModel, "no participants")
+	case n > maxParticipantsAllowed:
+		return errors.Wrap(errors.ErrInvalidModel, "too many participants")
 	}
 	return validateWeights(errors.ErrInvalidModel,
 		c.Participants, c.ActivationThreshold, c.AdminThreshold)
