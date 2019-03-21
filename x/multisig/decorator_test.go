@@ -9,7 +9,6 @@ import (
 	"github.com/iov-one/weave/store"
 	"github.com/iov-one/weave/weavetest"
 	"github.com/iov-one/weave/x"
-	"github.com/stretchr/testify/require"
 )
 
 func TestDecorator(t *testing.T) {
@@ -24,7 +23,7 @@ func TestDecorator(t *testing.T) {
 	f := weavetest.NewCondition()
 
 	// the contract we'll be using in our tests
-	contractID1 := createContract(t, db, CreateContractMsg{
+	contractID1 := createContract(t, db, Contract{
 		Participants: []*Participant{
 			{Power: 1, Signature: a.Address()},
 			{Power: 1, Signature: b.Address()},
@@ -35,7 +34,7 @@ func TestDecorator(t *testing.T) {
 	})
 
 	// contractID2 is used as a sig for contractID3
-	contractID2 := createContract(t, db, CreateContractMsg{
+	contractID2 := createContract(t, db, Contract{
 		Participants: []*Participant{
 			{Power: 1, Signature: d.Address()},
 			{Power: 1, Signature: e.Address()},
@@ -46,7 +45,7 @@ func TestDecorator(t *testing.T) {
 	})
 
 	// contractID3 requires either sig for a or activation for contractID2
-	contractID3 := createContract(t, db, CreateContractMsg{
+	contractID3 := createContract(t, db, Contract{
 		Participants: []*Participant{
 			{Power: 1, Signature: a.Address()},
 			{Power: 1, Signature: MultiSigCondition(contractID2).Address()},
@@ -54,7 +53,7 @@ func TestDecorator(t *testing.T) {
 		ActivationThreshold: 1,
 		AdminThreshold:      2,
 	})
-	// helper to create a ContractTx
+
 	multisigTx := func(payload []byte, multisig ...[]byte) ContractTx {
 		tx := &weavetest.Tx{Msg: &weavetest.Msg{Serialized: payload}}
 		return ContractTx{Tx: tx, MultisigID: multisig}
@@ -172,17 +171,13 @@ func (p ContractTx) GetMultisig() [][]byte {
 	return p.MultisigID
 }
 
-func createContract(t *testing.T, db weave.KVStore, msg CreateContractMsg) []byte {
-	k := weavetest.NewCondition()
-	ctx := context.Background()
-	ctx = weave.WithHeight(ctx, 100)
-	auth := &weavetest.CtxAuth{Key: "authKey"}
-	ctx = auth.SetConditions(ctx, k)
-	handler := CreateContractMsgHandler{
-		auth:   auth,
-		bucket: NewContractBucket(),
+func createContract(t testing.TB, db weave.KVStore, c Contract) []byte {
+	t.Helper()
+
+	b := NewContractBucket()
+	obj := b.Build(db, &c)
+	if err := b.Save(db, obj); err != nil {
+		t.Fatalf("cannot create a contract: %s", err)
 	}
-	res, err := handler.Deliver(ctx, db, &weavetest.Tx{Msg: &msg})
-	require.NoError(t, err, "cannot deliver")
-	return res.Data
+	return obj.Key()
 }
