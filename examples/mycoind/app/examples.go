@@ -44,12 +44,12 @@ func Examples() []commands.Example {
 	tx.Signatures = []*sigs.StdSignature{sig}
 
 	return []commands.Example{
-		{"wallet", wallet},
-		{"priv_key", priv},
-		{"pub_key", pub},
-		{"user", user},
-		{"send_msg", msg},
-		{"unsigned_tx", &unsigned},
-		{"signed_tx", &tx},
+		{Filename: "wallet", Obj: wallet},
+		{Filename: "priv_key", Obj: priv},
+		{Filename: "pub_key", Obj: pub},
+		{Filename: "user", Obj: user},
+		{Filename: "send_msg", Obj: msg},
+		{Filename: "unsigned_tx", Obj: &unsigned},
+		{Filename: "signed_tx", Obj: &tx},
 	}
 }

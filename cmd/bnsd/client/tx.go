@@ -18,13 +18,16 @@ type Tx interface {
 // BuildSendTx will create an unsigned tx to move tokens
 func BuildSendTx(src, dest weave.Address, amount coin.Coin, memo string) *app.Tx {
 	return &app.Tx{
-		Sum: &app.Tx_SendMsg{&cash.SendMsg{
-			Src:    src,
-			Dest:   dest,
-			Amount: &amount,
-			Memo:   memo,
+		Sum: &app.Tx_SendMsg{
+			SendMsg: &cash.SendMsg{
+				Src:    src,
+				Dest:   dest,
+				Amount: &amount,
+				Memo:   memo,
+			},
+			// TODO: add fees, etc...
 		},
-		}}
+	}
 }
 
 // SignTx modifies the tx in-place, adding signatures
