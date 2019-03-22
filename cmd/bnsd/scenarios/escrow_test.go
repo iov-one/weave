@@ -34,7 +34,7 @@ func TestEscrowRelease(t *testing.T) {
 
 	releaseEscrowTX := &app.Tx{
 		Sum: &app.Tx_ReleaseEscrowMsg{
-			&escrow.ReleaseEscrowMsg{
+			ReleaseEscrowMsg: &escrow.ReleaseEscrowMsg{
 				EscrowId: escrowID,
 				Amount:   []*coin.Coin{{Ticker: "IOV", Whole: 1}},
 			},

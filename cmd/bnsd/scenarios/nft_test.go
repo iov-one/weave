@@ -21,15 +21,16 @@ func TestIssueNfts(t *testing.T) {
 	myUserName := []byte(fmt.Sprintf("alice-%d@example.com", uniqueSuffix))
 	nfts := []*app.Tx{
 		{
-			Sum: &app.Tx_IssueUsernameNftMsg{&username.IssueTokenMsg{
-				ID:    myUserName,
-				Owner: alice.PublicKey().Address(),
-				Details: username.TokenDetails{Addresses: []username.ChainAddress{{
-					BlockchainID: myBlockchainID,
-					Address:      alice.PublicKey().Address().String(),
+			Sum: &app.Tx_IssueUsernameNftMsg{
+				IssueUsernameNftMsg: &username.IssueTokenMsg{
+					ID:    myUserName,
+					Owner: alice.PublicKey().Address(),
+					Details: username.TokenDetails{Addresses: []username.ChainAddress{{
+						BlockchainID: myBlockchainID,
+						Address:      alice.PublicKey().Address().String(),
+					}},
+					},
 				}},
-				},
-			}},
 		},
 	}
 	aNonce := client.NewNonce(bnsClient, alice.PublicKey().Address())

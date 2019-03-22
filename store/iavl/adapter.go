@@ -1,10 +1,9 @@
 package iavl
 
 import (
+	"github.com/iov-one/weave/store"
 	"github.com/tendermint/iavl"
 	dbm "github.com/tendermint/tendermint/libs/db"
-
-	"github.com/iov-one/weave/store"
 )
 
 // TODO: make these configurable?
@@ -99,8 +98,8 @@ func (s CommitStore) LatestVersion() store.CommitID {
 // to rollback writes here, without throwing away the CommitStore
 // and re-loading from disk.
 func (s CommitStore) Adapter() store.CacheableKVStore {
-	var kv store.KVStore = adapter{s.tree}
-	return store.BTreeCacheable{kv}
+	var kv store.KVStore = adapter{tree: s.tree}
+	return store.BTreeCacheable{KVStore: kv}
 }
 
 // CacheWrap wraps the Adapter with a cache, so it may be written
