@@ -23,13 +23,27 @@ returns a Handler that will execute this whole stack.
   )
 */
 func ChainDecorators(chain ...weave.Decorator) Decorators {
+	chain = cutoffNil(chain)
 	return Decorators{}.Chain(chain...)
 }
 
 // Chain allows us to keep adding more Decorators to the chain
 func (d Decorators) Chain(chain ...weave.Decorator) Decorators {
+	chain = cutoffNil(chain)
 	newChain := append(d.chain, chain...)
 	return Decorators{newChain}
+}
+
+// cutoffNil will in-place remove all all nil values from given slice.
+func cutoffNil(ds []weave.Decorator) []weave.Decorator {
+	var cutoff int
+	for i := 0; i < len(ds); i++ {
+		ds[i-cutoff] = ds[i]
+		if ds[i] == nil {
+			cutoff++
+		}
+	}
+	return ds[:len(ds)-cutoff]
 }
 
 // WithHandler resolves the stack and returns a concrete Handler

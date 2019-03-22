@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"reflect"
 	"testing"
 
 	"github.com/iov-one/weave"
@@ -78,4 +79,78 @@ func (ph panicAtHeightDecorator) Deliver(ctx weave.Context, db weave.KVStore, tx
 		panic("too high")
 	}
 	return next.Deliver(ctx, db, tx)
+}
+
+func TestChainNilDecorator(t *testing.T) {
+	stack := ChainDecorators(nil, &weavetest.Decorator{}, nil, nil)
+	if want, got := 1, len(stack.chain); want != got {
+		t.Fatalf("want %d decorator, got %d", want, got)
+	}
+
+	stack = stack.Chain(nil, &weavetest.Decorator{}, nil, nil)
+	if want, got := 2, len(stack.chain); want != got {
+		t.Fatalf("want %d decorators, got %d", want, got)
+	}
+}
+
+func TestCutoffNil(t *testing.T) {
+	// D is a custom implementation that allows instances to can be
+	// compared by the ID.
+	type D struct {
+		weave.Decorator
+		ID int
+	}
+
+	cases := map[string]struct {
+		input []weave.Decorator
+		want  []weave.Decorator
+	}{
+		"nil input": {
+			input: nil,
+			want:  nil,
+		},
+		"empty input": {
+			input: []weave.Decorator{},
+			want:  []weave.Decorator{},
+		},
+		"only nil": {
+			input: []weave.Decorator{nil, nil},
+			want:  []weave.Decorator{},
+		},
+		"single decorator": {
+			input: []weave.Decorator{&D{ID: 1}},
+			want:  []weave.Decorator{&D{ID: 1}},
+		},
+		"order is preserved": {
+			input: []weave.Decorator{
+				nil, &D{ID: 1}, nil,
+				nil, &D{ID: 2}, nil,
+				nil, &D{ID: 3}, nil,
+			},
+			want: []weave.Decorator{
+				&D{ID: 1}, &D{ID: 2}, &D{ID: 3},
+			},
+		},
+		"surrounded by nil": {
+			input: []weave.Decorator{nil, &D{ID: 1}, nil},
+			want:  []weave.Decorator{&D{ID: 1}},
+		},
+		"nil on left": {
+			input: []weave.Decorator{nil, nil, nil, &D{ID: 1}},
+			want:  []weave.Decorator{&D{ID: 1}},
+		},
+		"nil on right": {
+			input: []weave.Decorator{&D{ID: 1}, nil, nil, nil},
+			want:  []weave.Decorator{&D{ID: 1}},
+		},
+	}
+
+	for testName, tc := range cases {
+		t.Run(testName, func(t *testing.T) {
+			got := cutoffNil(tc.input)
+			if !reflect.DeepEqual(tc.want, got) {
+				t.Fatalf("unexpected result: %s", tc.want)
+			}
+		})
+	}
 }
