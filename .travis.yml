@@ -16,13 +16,16 @@ os:
 go:
 - "1.10"
 - "1.11"
-# - tip
+#- "1.12"
+
 
 env:
-- GORACE="halt_on_error=1"
-  BUILD_VERSION=$(echo ${TRAVIS_COMMIT} | cut -c 1-10)
-  TM_VERSION=v0.27.4
-  FORCE_TM_TEST=1
+  global:
+    - TM_VERSION=v0.27.4
+    - BUILD_VERSION=$(echo ${TRAVIS_COMMIT} | cut -c 1-10)
+    - MAIN_GO_VERSION=1.11
+    - GORACE="halt_on_error=1"
+    - FORCE_TM_TEST=1
 
 install:
 - make deps
@@ -30,37 +33,48 @@ install:
   cd ${GOPATH}/src/github.com/tendermint/tendermint ;
   git checkout ${TM_VERSION} ;
   make get_tools && make check && make install ;
-  cd - ;
-  rm -rf ${GOPATH}/src/github.com/tendermint/tendermint
+  cd -;
+
+cache:
+  directories:
+    - $GOPATH
+    - $GOCACHE
 
 script:
-- make lint
-- make build
-- make test
-- make dist
+- make lint;
+- make test;
+- if [[ "$TRAVIS_GO_VERSION" == "$MAIN_GO_VERSION" ]]; then
+    make cover;
+    ./coverage/upload.sh;
+  fi;
+- if [[ "$TRAVIS_GO_VERSION" == "$MAIN_GO_VERSION" && "$TRAVIS_OS_NAME" == "linux" ]]; then
+    release_latest=$( [[ "$TRAVIS_BRANCH" == "master" && "$TRAVIS_TAG" == "" && "$TRAVIS_PULL_REQUEST_BRANCH" == "" ]] && echo "yes" || echo "no" );
+    release_tag=$( [[ "$TRAVIS_TAG" != "" ]] && echo "yes" || echo "no" );
 
-after_script:
-- make cover
-- ./coverage/upload.sh
+    if [[ $release_latest == "yes" || $release_tag == "yes" ]]; then
+      make dist;
+    fi
 
-after_success:
-- if [[ "$TRAVIS_GO_VERSION" == "1.10" ]] && [[ "$TRAVIS_OS_NAME" == "linux" ]] && [[ "$TRAVIS_BRANCH" == "master" ]] && [[ "$TRAVIS_TAG" == "" ]] && [[ "$TRAVIS_PULL_REQUEST_BRANCH" == "" ]]; then
-  docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD";
-  docker tag  "iov1/bcpd:${BUILD_VERSION}" "iov1/bcpd:latest" ;
-  docker push "iov1/bcpd:latest";
-  docker tag  "iov1/bnsd:${BUILD_VERSION}" "iov1/bnsd:latest" ;
-  docker push "iov1/bnsd:latest";
-  docker logout;
-  fi
-# build the tagged image
-- if [[ "$TRAVIS_GO_VERSION" == "1.10" ]] && [[ "$TRAVIS_OS_NAME" == "linux" ]] && [[ "$TRAVIS_TAG" != "" ]]; then
-  docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD";
-  docker tag  "iov1/bcpd:${BUILD_VERSION}" "iov1/bcpd:$TRAVIS_TAG" ;
-  docker push "iov1/bcpd:$TRAVIS_TAG";
-  docker tag  "iov1/bnsd:${BUILD_VERSION}" "iov1/bnsd:$TRAVIS_TAG" ;
-  docker push "iov1/bnsd:$TRAVIS_TAG";
-  docker logout;
-  fi
+    if [[ $release_latest == "yes" ]]; then
+      docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD";
+      docker tag  "iov1/bcpd:${BUILD_VERSION}" "iov1/bcpd:latest" ;
+      docker push "iov1/bcpd:latest";
+      docker tag  "iov1/bnsd:${BUILD_VERSION}" "iov1/bnsd:latest" ;
+      docker push "iov1/bnsd:latest";
+      docker logout;
+    fi;
+
+    if [[ $release_tag == "yes" ]]; then
+      docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD";
+      docker tag  "iov1/bcpd:${BUILD_VERSION}" "iov1/bcpd:$TRAVIS_TAG" ;
+      docker push "iov1/bcpd:$TRAVIS_TAG";
+      docker tag  "iov1/bnsd:${BUILD_VERSION}" "iov1/bnsd:$TRAVIS_TAG" ;
+      docker push "iov1/bnsd:$TRAVIS_TAG";
+      docker logout;
+    fi;
+  fi;
+
+
 notifications:
   email: false
 
