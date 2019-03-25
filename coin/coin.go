@@ -1,7 +1,10 @@
 package coin
 
 import (
+	"encoding/json"
+	fmt "fmt"
 	"regexp"
+	"strconv"
 
 	"github.com/iov-one/weave/errors"
 )
@@ -303,3 +306,72 @@ func (c Coin) normalize() (Coin, error) {
 	}
 	return c, nil
 }
+
+func (c *Coin) UnmarshalJSON(raw []byte) error {
+	// Prioritize human readable format that is a string in format
+	// "<whole>[.<fractional>] <ticker>"
+	var human string
+	if err := json.Unmarshal(raw, &human); err == nil {
+		whole, fract, ticker, err := parseHumanFormat(human)
+		if err == nil {
+			c.Whole = whole
+			c.Fractional = fract
+			c.Ticker = ticker
+		}
+		return err
+	}
+
+	// Fallback into the default unmarhaling. Because UnmarshalJSON method
+	// is provided, we can no longer use Coin type for this.
+	var coin struct {
+		Whole      int64
+		Fractional int64
+		Ticker     string
+	}
+	if err := json.Unmarshal(raw, &coin); err != nil {
+		return err
+	}
+	c.Whole = coin.Whole
+	c.Fractional = coin.Fractional
+	c.Ticker = coin.Ticker
+	return nil
+}
+
+// parseHumanFormat parse a human readable coin represenation. Accepted format
+// is a string:
+//   "<whole>[.<fractional>] <ticker>"
+func parseHumanFormat(h string) (int64, int64, string, error) {
+	results := humanCoinFormatRx.FindAllStringSubmatch(h, -1)
+	if len(results) != 1 {
+		return 0, 0, "", fmt.Errorf("invalid format")
+	}
+
+	result := results[0][1:]
+
+	whole, err := strconv.ParseInt(result[1], 10, 64)
+	if err != nil {
+		return 0, 0, "", fmt.Errorf("invalid whole value: %s", err)
+	}
+
+	var fract int64
+	if result[2] != "" {
+		val, err := strconv.ParseFloat(result[2], 64)
+		if err != nil {
+			return 0, 0, "", fmt.Errorf("invalid fractional value: %s", err)
+		}
+		// Max float64 value is around 1.7e+308 so I do not think we
+		// should bother with the overflow issue.
+		fract = int64(val * float64(FracUnit))
+	}
+
+	ticker := result[3]
+
+	if result[0] == "-" {
+		whole = -whole
+		fract = -fract
+	}
+
+	return whole, fract, ticker, nil
+}
+
+var humanCoinFormatRx = regexp.MustCompile(`^(\-?)\s*(\d+)(\.\d+)?\s*([A-Z]{3,4})$`)
