@@ -47,10 +47,9 @@ cover:
 	cat coverage/*.out > coverage/coverage.txt
 
 deps:
-	#rm -rf vendor/
-	ifndef $(shell command -v dep help > /dev/null)
-		go get github.com/golang/dep/cmd/dep
-	endif
+ifndef $(shell command -v dep help > /dev/null)
+	go get github.com/golang/dep/cmd/dep
+endif
 	dep ensure -vendor-only
 
 lint:
