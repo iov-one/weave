@@ -451,6 +451,18 @@ func TestCoinDeserialization(t *testing.T) {
 			serialized: `{"whole": 1, "fractional": 2, "ticker": "IOV"}`,
 			wantCoin:   NewCoin(1, 2, "IOV"),
 		},
+		"old format coin, only whole": {
+			serialized: `{"whole": 1}`,
+			wantCoin:   NewCoin(1, 0, ""),
+		},
+		"old format coin, only fractional": {
+			serialized: `{"fractional": 1}`,
+			wantCoin:   NewCoin(0, 1, ""),
+		},
+		"old format coin, only ticker": {
+			serialized: `{"ticker": "IOV"}`,
+			wantCoin:   NewCoin(0, 0, "IOV"),
+		},
 		"old format empty coin, that maps to fields directly": {
 			serialized: `{}`,
 			wantCoin:   NewCoin(0, 0, ""),
