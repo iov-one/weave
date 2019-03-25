@@ -1,4 +1,4 @@
-.PHONY: all install build test tf cover deps tools prototools protoc
+.PHONY: all install test tf cover deps prototools protoc govet
 
 EXAMPLES := examples/mycoind cmd/bcpd cmd/bnsd
 
@@ -12,18 +12,14 @@ GOPATH ?= $$HOME/go
 
 PROTOC_FLAGS := -I=. -I=./vendor -I=$(GOPATH)/src
 
-all: deps build test
+all: deps test
 
 dist:
-	cd cmd/bnsd ; make dist ; cd -
-	cd cmd/bcpd ; make dist ; cd -
+	cd cmd/bnsd && $(MAKE) dist
+	cd cmd/bcpd && $(MAKE) dist
 
 install:
 	for ex in $(EXAMPLES); do cd $$ex && make install && cd -; done
-
-# This is to make sure it all compiles
-build:
-	go build ./...
 
 test:
 	go vet ./...
@@ -50,16 +46,16 @@ cover:
 		github.com/iov-one/weave/cmd/bnsd/scenarios
 	cat coverage/*.out > coverage/coverage.txt
 
-deps: tools
-	@rm -rf vendor/
+deps:
+	#rm -rf vendor/
+	ifndef $(shell command -v dep help > /dev/null)
+		go get github.com/golang/dep/cmd/dep
+	endif
 	dep ensure -vendor-only
-
-tools:
-	@go get github.com/golang/dep/cmd/dep
 
 lint:
 ifndef $(shell command -v prototool help > /dev/null)
-	@go get github.com/uber/prototool/cmd/prototool
+	go get github.com/uber/prototool/cmd/prototool
 endif
 	prototool lint
 
