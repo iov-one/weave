@@ -1,6 +1,7 @@
 package coin
 
 import (
+	"encoding/json"
 	"fmt"
 	"math"
 	"testing"
@@ -435,6 +436,115 @@ func TestCoinMultiply(t *testing.T) {
 			}
 			if !got.Equals(tc.want) {
 				t.Fatalf("got %v", got)
+			}
+		})
+	}
+}
+
+func TestCoinDeserialization(t *testing.T) {
+	cases := map[string]struct {
+		serialized string
+		wantErr    bool
+		wantCoin   Coin
+	}{
+		"old format coin, that maps to fields directly": {
+			serialized: `{"whole": 1, "fractional": 2, "ticker": "IOV"}`,
+			wantCoin:   NewCoin(1, 2, "IOV"),
+		},
+		"old format coin, only whole": {
+			serialized: `{"whole": 1}`,
+			wantCoin:   NewCoin(1, 0, ""),
+		},
+		"old format coin, only fractional": {
+			serialized: `{"fractional": 1}`,
+			wantCoin:   NewCoin(0, 1, ""),
+		},
+		"old format coin, only ticker": {
+			serialized: `{"ticker": "IOV"}`,
+			wantCoin:   NewCoin(0, 0, "IOV"),
+		},
+		"old format empty coin, that maps to fields directly": {
+			serialized: `{}`,
+			wantCoin:   NewCoin(0, 0, ""),
+		},
+		"human readable format, whole without fractional": {
+			serialized: `"1IOV"`,
+			wantCoin:   NewCoin(1, 0, "IOV"),
+		},
+		"human readable format, whole without fractional, ticker space separated": {
+			serialized: `"1        IOV"`,
+			wantCoin:   NewCoin(1, 0, "IOV"),
+		},
+		"human readable format, whole and fractional": {
+			serialized: `"1.000000002IOV"`,
+			wantCoin:   NewCoin(1, 2, "IOV"),
+		},
+		"human readable format, whole and fractional, ticker space separated": {
+			serialized: `"1.000000002 IOV"`,
+			wantCoin:   NewCoin(1, 2, "IOV"),
+		},
+		"human readable format, zero whole and fractional": {
+			serialized: `"0.000000002IOV"`,
+			wantCoin:   NewCoin(0, 2, "IOV"),
+		},
+		"human readable format, missing whole": {
+			serialized: `".0000000002IOV"`,
+			wantErr:    true,
+		},
+		"human readable format, only whole": {
+			serialized: `"1"`,
+			wantErr:    true,
+		},
+		"human readable format, missing ticker": {
+			serialized: `"1.0000000002"`,
+			wantErr:    true,
+		},
+		"human readable format, only ticker": {
+			serialized: `"IOV"`,
+			wantErr:    true,
+		},
+		"human readable format, ticker too short": {
+			serialized: `"1 AB"`,
+			wantErr:    true,
+		},
+		"human readable format, ticker too long": {
+			serialized: `"1 ABCDE"`,
+			wantErr:    true,
+		},
+		"human readable format, negative value": {
+			serialized: `"-4.000000002 IOV"`,
+			wantCoin:   NewCoin(4, 2, "IOV").Negative(),
+		},
+		"human readable format, negative value, no whole": {
+			serialized: `"-0.000000002 IOV"`,
+			wantCoin:   NewCoin(0, 2, "IOV").Negative(),
+		},
+		"human readable format, negative zero": {
+			serialized: `"-0 IOV"`,
+			wantCoin:   NewCoin(0, 0, "IOV").Negative(),
+		},
+		"human readable format, zero": {
+			serialized: `"0 IOV"`,
+			wantCoin:   NewCoin(0, 0, "IOV"),
+		},
+		"human readable format, double negative": {
+			serialized: `"--1 IOV"`,
+			wantErr:    true,
+		},
+	}
+
+	for testName, tc := range cases {
+		t.Run(testName, func(t *testing.T) {
+			var got Coin
+			if err := json.Unmarshal([]byte(tc.serialized), &got); err != nil {
+				if !tc.wantErr {
+					t.Fatalf("cannot unmarshal: %s", err)
+				}
+				return
+			}
+
+			if !tc.wantCoin.Equals(got) {
+				t.Fatalf("unexpected coin result: %#v", got)
 			}
 		})
 	}
