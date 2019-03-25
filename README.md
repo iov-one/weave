@@ -86,17 +86,20 @@ Once it compiles, I highly suggest going through the
 
 | Weave | Tendermint |
 |--------|-----------|
+|v0.13.0 | v0.29.1|
+|v0.12.0 | v0.29.1|
 |v0.11.1 | v0.29.1|
 |v0.11.0 | v0.27.4|
 |v0.10.x | v0.27.4|
 |v0.9.3	| v0.25.0|
 
-| Weave | Protobuf compatible to previous version| Comments | 
+| Weave | Protobuf compatible to previous version| Comments |
 |--------|--------------------|------------------|
-|v0.12.0 | :question:| Currency no longer supports supplying SigFigs nor returns them |
-|v0.11.1 | :heavy_check_mark:||
+|v0.13.0 | :heavy_check_mark:| |
+|v0.12.0 | :x:| Currency no longer supports supplying SigFigs nor returns them. Changes in `x/escrow` |
+|v0.11.1 | :heavy_check_mark:| |
 |v0.11.0 | :heavy_check_mark:| |
-|v0.10.2 | :heavy_check_mark:| | 
+|v0.10.2 | :heavy_check_mark:| |
 |v0.10.1 | :x:| |
 |v0.10.0 | :x:| |
 |v0.9.3	| :heavy_check_mark:| |
