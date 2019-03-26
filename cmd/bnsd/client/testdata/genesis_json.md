@@ -102,9 +102,7 @@ The role of the arbiter requires therefore a lot of trust which can be modeled w
   "escrow": [
     {
       "amount": [
-        {
-          "ticker": "99999999 IOV"
-        }
+          "99999999 IOV"
       ],
       "arbiter": "multisig/usage/0000000000000001",
       "recipient": "cond:distribution/revenue/0000000000000001",
