@@ -95,8 +95,9 @@ Once it compiles, I highly suggest going through the
 
 | Weave | Protobuf compatible to previous version| Comments |
 |--------|--------------------|------------------|
-|v0.13.0 | :heavy_check_mark:| |
-|v0.12.0 | :x:| Currency no longer supports supplying SigFigs nor returns them. Changes in `x/escrow` |
+|v0.13.0 | :x:| Changes in `x/multisig` - signer weights added. |
+|v0.12.1 | :x:| Changes in `x/escrow` - wall clock timeout implemented. |
+|v0.12.0 | :x:| Currency no longer supports supplying SigFigs nor returns them. |
 |v0.11.1 | :heavy_check_mark:| |
 |v0.11.0 | :heavy_check_mark:| |
 |v0.10.2 | :heavy_check_mark:| |
