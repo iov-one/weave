@@ -46,7 +46,7 @@ func (d Decorator) AllowMissingSigs() Decorator {
 	return d
 }
 
-// Check verifies signatures before calling down the stack
+// Check verifies signatures before calling down the stack.
 func (d Decorator) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx, next weave.Checker) (weave.CheckResult, error) {
 	stx, ok := tx.(SignedTx)
 	if !ok {
@@ -74,22 +74,20 @@ func (d Decorator) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx, ne
 	return res, err
 }
 
-// Deliver verifies signatures before calling down the stack
-func (d Decorator) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx,
-	next weave.Deliverer) (weave.DeliverResult, error) {
+// Deliver verifies signatures before calling down the stack.
+func (d Decorator) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx, next weave.Deliverer) (weave.DeliverResult, error) {
+	stx, ok := tx.(SignedTx)
+	if !ok {
+		return next.Deliver(ctx, store, tx)
+	}
 
-	var res weave.DeliverResult
-	var err error
-	var signers []weave.Condition
-	if stx, ok := tx.(SignedTx); ok {
-		chainID := weave.GetChainID(ctx)
-		signers, err = VerifyTxSignatures(store, stx, chainID)
-		if err != nil {
-			return res, err
-		}
+	chainID := weave.GetChainID(ctx)
+	signers, err := VerifyTxSignatures(store, stx, chainID)
+	if err != nil {
+		return weave.DeliverResult{}, errors.Wrap(err, "cannot verify signatures")
 	}
 	if len(signers) == 0 && !d.allowMissingSigs {
-		return res, errors.Wrap(errors.ErrUnauthorized, "missing signature")
+		return weave.DeliverResult{}, errors.Wrap(errors.ErrUnauthorized, "missing signature")
 	}
 
 	ctx = withSigners(ctx, signers)
