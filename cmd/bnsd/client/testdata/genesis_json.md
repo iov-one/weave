@@ -19,13 +19,9 @@ A is an address for a public key or contract with currency tokens filled.
     {
       "address": "E28AE9A6EB94FC88B73EB7CBD6B87BF93EB9BEF0",
       "coins": [
-        {
-          "ticker": "123456789 IOV"
-        },
-        {
-          "ticker": "100.1 ALX"
-        }
-      ]
+          "123456789 IOV",
+          "100.1 ALX",
+        ]
     }
   ],
 ```
