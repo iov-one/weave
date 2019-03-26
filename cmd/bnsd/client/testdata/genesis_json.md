@@ -20,13 +20,10 @@ A is an address for a public key or contract with currency tokens filled.
       "address": "E28AE9A6EB94FC88B73EB7CBD6B87BF93EB9BEF0",
       "coins": [
         {
-          "ticker": "IOV",
-          "whole": 123456789
+          "ticker": "123456789 IOV"
         },
         {
-          "ticker": "ALX",
-          "whole": 100,
-          "fractional": 100000000,
+          "ticker": "100.1 ALX"
         }
       ]
     }
@@ -110,8 +107,7 @@ The role of the arbiter requires therefore a lot of trust which can be modeled w
     {
       "amount": [
         {
-          "ticker": "IOV",
-          "whole": 99999999
+          "ticker": "99999999 IOV"
         }
       ],
       "arbiter": "multisig/usage/0000000000000001",
@@ -137,14 +133,10 @@ can also point to a contract to distribute the amount within a group.
 ```json
   "gconf": {
     "cash:collector_address": "cond:distribution/revenue/0000000000000001",
-     "cash:minimal_fee": {
-          "fractional": 100000000,
-          "ticker": "IOV"
-        }
+     "cash:minimal_fee": "0.1 IOV"
   },
 ```
 * `"cash:collector_address": "cond:distribution/revenue/0000000000000001"`= distribution contract with ID=1
-* `"fractional": 100000000`= 1/10 of a whole
 
 ### Setting product fees
 Our internal protbuf messages are identified by a unique bath that maps to the type. This path is the reference key to assign
@@ -155,16 +147,15 @@ For Example 0.001 IOV for sending tokens; 10 IOV for a new escrow contract and 1
 	"msgfee": [
 		{
 			"msg_path": "cash/send",
-			"fee": {"whole": 0, "fractional": 001000000, "ticker": "IOV"}
+			"fee": "0.001 IOV"
 		},
 		{
 			"msg_path": "escrow/create",
-			"fee": {"whole": 10,  "ticker": "IOV"}
+			"fee": "10 IOV"
 		},
 		{
 			"msg_path": "escrow/update",
-			"fee": {"whole": 1,  "ticker": "IOV"}
+			"fee": "1 IOV"
 		},
 	]
 ```
-*  `"fractional": 001000000` = 1/1000 of a whole

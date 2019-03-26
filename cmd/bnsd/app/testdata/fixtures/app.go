@@ -8,7 +8,6 @@ import (
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/cmd/bnsd/app"
-	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/crypto"
 	"github.com/iov-one/weave/x/cash"
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -65,14 +64,7 @@ func appStateGenesis(keyAddress weave.Address) []byte {
 			dict{
 				"address": keyAddress,
 				"coins": []interface{}{
-					dict{
-						"whole":  50000,
-						"ticker": "ETH",
-					},
-					dict{
-						"whole":  1234,
-						"ticker": "FRNK",
-					},
+					"50000 ETH", "1234 FRNK",
 				},
 			},
 		},
@@ -113,34 +105,30 @@ func appStateGenesis(keyAddress weave.Address) []byte {
 				"sender":    "0000000000000000000000000000000000000000",
 				"arbiter":   "multisig/usage/0000000000000001",
 				"recipient": "cond:dist/revenue/0000000000000001",
-				"amount": []interface{}{
-					dict{
-						"whole":  1000000,
-						"ticker": "FRNK",
-					}},
-				"timeout": time.Now().Add(10000 * time.Hour),
+				"amount":    []interface{}{"1000000 FRNK"},
+				"timeout":   time.Now().Add(10000 * time.Hour),
 			},
 		},
 		"gconf": map[string]interface{}{
 			cash.GconfCollectorAddress: "cond:dist/revenue/0000000000000001",
-			cash.GconfMinimalFee:       coin.Coin{Ticker: "FRNK", Whole: 0, Fractional: 010000000},
+			cash.GconfMinimalFee:       "0.01 FRNK",
 		},
 		"msgfee": []interface{}{
 			dict{
 				"msg_path": "distribution/newrevenue",
-				"fee":      coin.Coin{Ticker: "FRNK", Whole: 2},
+				"fee":      "2 FRNK",
 			},
 			dict{
 				"msg_path": "distribution/distribute",
-				"fee":      coin.Coin{Ticker: "FRNK", Whole: 0, Fractional: 200000000},
+				"fee":      "0.2FRNK",
 			},
 			dict{
 				"msg_path": "distribution/resetRevenue",
-				"fee":      coin.Coin{Ticker: "FRNK", Whole: 1},
+				"fee":      "1 FRNK",
 			},
 			dict{
 				"msg_path": "nft/username/issue",
-				"fee":      coin.Coin{Ticker: "FRNK", Whole: 5},
+				"fee":      "5 FRNK",
 			},
 		},
 	}, "", "  ")
