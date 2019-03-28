@@ -3,6 +3,7 @@ package server
 import (
 	"flag"
 	"fmt"
+	"github.com/iov-one/weave/errors"
 
 	"github.com/iov-one/weave/coin"
 	"github.com/tendermint/tendermint/abci/server"
@@ -40,7 +41,7 @@ func parseFlags(args []string) (string, bool, *Options, error) {
 		return addr, debug, options, err
 	}
 
-	err = options.MinFee.UnmarshalJSON([]byte(minFeeStr))
+	err = options.MinFee.UnmarshalJSON([]byte(fmt.Sprintf(`"%s"`, minFeeStr)))
 
 	return addr, debug, options, err
 }
@@ -66,7 +67,7 @@ func StartCmd(gen AppGenerator, logger log.Logger, home string, args []string) e
 
 	svr, err := server.NewServer(addr, "socket", app)
 	if err != nil {
-		return fmt.Errorf("Error creating listener: %v\n", err)
+		return errors.Wrap(err, "failed to create a listener")
 	}
 	svr.SetLogger(logger.With("module", "abci-server"))
 	svr.Start()

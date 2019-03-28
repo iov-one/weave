@@ -9,9 +9,9 @@ import (
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/app"
-	"github.com/iov-one/weave/commands/server"
 	"github.com/iov-one/weave/cmd/bnsd/x/nft/username"
 	"github.com/iov-one/weave/coin"
+	"github.com/iov-one/weave/commands/server"
 	"github.com/iov-one/weave/crypto"
 	"github.com/iov-one/weave/gconf"
 	"github.com/iov-one/weave/orm"
