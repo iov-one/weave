@@ -68,7 +68,6 @@ func TestNewAntispamFeeDecorator(t *testing.T) {
 			DeliverErr:     errors.ErrNotFound,
 			WantDeliverErr: errors.ErrNotFound,
 		},
-
 		"check err propagates": {
 			ReqFee:       coin.NewCoin(0, 1234, "DOGE"),
 			Handler:      &weavetest.Handler{},

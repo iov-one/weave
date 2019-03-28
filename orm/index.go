@@ -213,7 +213,7 @@ func (i Index) Query(db weave.ReadOnlyKVStore, mod string,
 		}
 		return i.loadRefs(db, refs), nil
 	default:
-		return nil, errors.Wrap(errors.ErrHuman, "not implemented: " + mod)
+		return nil, errors.Wrap(errors.ErrHuman, "not implemented: "+mod)
 	}
 }
 
