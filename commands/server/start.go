@@ -47,7 +47,7 @@ func parseFlags(args []string) (string, bool, *Options, error) {
 
 // AppGenerator lets us lazily initialize app, using home dir
 // and logger potentially initialized with other flags
-type AppGenerator func(string, log.Logger, bool) (abci.Application, error)
+type AppGenerator func(string, log.Logger, *Options, bool) (abci.Application, error)
 
 // StartCmd initializes the application, and
 func StartCmd(gen AppGenerator, logger log.Logger, home string, args []string) error {
@@ -57,7 +57,7 @@ func StartCmd(gen AppGenerator, logger log.Logger, home string, args []string) e
 	}
 
 	// Generate the app in the proper dir
-	app, err := gen(home, logger, debug)
+	app, err := gen(home, logger, options, debug)
 	if err != nil {
 		return err
 	}

@@ -10,6 +10,7 @@ import (
 	"github.com/iov-one/weave/app"
 	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/crypto"
+	"github.com/iov-one/weave/commands/server"
 	"github.com/iov-one/weave/gconf"
 	"github.com/iov-one/weave/x/cash"
 	"github.com/iov-one/weave/x/currency"
@@ -69,7 +70,7 @@ func GenInitOptions(args []string) (json.RawMessage, error) {
 }
 
 // GenerateApp is used to create a stub for server/start.go command
-func GenerateApp(home string, logger log.Logger, debug bool) (abci.Application, error) {
+func GenerateApp(home string, logger log.Logger, options *server.Options, debug bool) (abci.Application, error) {
 	// db goes in a subdir, but "" -> "" for memdb
 	var dbPath string
 	if home != "" {
