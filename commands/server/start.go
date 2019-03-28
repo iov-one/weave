@@ -17,12 +17,18 @@ const (
 	flagMinFee = "min_fee"
 )
 
-func parseFlags(args []string) (string, bool, coin.Coin, error) {
+type Options struct {
+	MinFee coin.Coin
+}
+
+func parseFlags(args []string) (string, bool, *Options, error) {
 	// parse flagBind and return the result
 	var addr string
 	var debug bool
 	var minFeeStr string
-	minFee := coin.Coin{}
+	options := &Options{
+		MinFee: coin.Coin{},
+	}
 
 	startFlags := flag.NewFlagSet("start", flag.ExitOnError)
 	startFlags.StringVar(&addr, flagBind, "tcp://localhost:46658", "address server listens on")
@@ -31,12 +37,12 @@ func parseFlags(args []string) (string, bool, coin.Coin, error) {
 	err := startFlags.Parse(args)
 
 	if err != nil {
-		return addr, debug, minFee, err
+		return addr, debug, options, err
 	}
 
-	err = minFee.UnmarshalJSON([]byte(minFeeStr))
+	err = options.MinFee.UnmarshalJSON([]byte(minFeeStr))
 
-	return addr, debug, minFee, err
+	return addr, debug, options, err
 }
 
 // AppGenerator lets us lazily initialize app, using home dir
@@ -45,7 +51,7 @@ type AppGenerator func(string, log.Logger, bool) (abci.Application, error)
 
 // StartCmd initializes the application, and
 func StartCmd(gen AppGenerator, logger log.Logger, home string, args []string) error {
-	addr, debug, minFee, err := parseFlags(args)
+	addr, debug, options, err := parseFlags(args)
 	if err != nil {
 		return err
 	}
