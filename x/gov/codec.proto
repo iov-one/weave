@@ -1,0 +1,93 @@
+syntax = "proto3";
+
+package gov;
+
+import "github.com/gogo/protobuf/gogoproto/gogo.proto";
+import "github.com/iov-one/weave/coin/codec.proto";
+import "google/protobuf/timestamp.proto";
+
+// Electorate defines who may vote in an election. This same group can be used in many elections
+// and is stored for re-use
+message Electorate {
+    // Participants defines a list of all signatures that are allowed to participate in a vote
+    repeated Participant participants = 1 [(gogoproto.nullable) = false];
+}
+
+// Participant clubs together a signature with a weight. The greater the weight
+// the greater the power of a participant.
+message Participant {
+    bytes signature = 1 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
+    uint32 power = 2 [(gogoproto.casttype) = "Weight"];
+}
+
+// Election Rules defines how an election is run. A proposal must be voted upon via a pre-defined ruleset.
+message ElectionRules {
+    // Human readable title.
+    string title = 1;
+    // Reference to the electorate to define the group of possible voters.
+    bytes electorate_id = 2;
+    // Duration how long the voting period will take place.
+    uint32 voting_period_hours = 3;
+    // Required Vote this is percentage of all eligible voters, not the ones who voted.
+    // (integer in steps of 0.01%, so 10000 is 100%. should disallow anything below 5001)
+    uint32 required_votes = 4;
+}
+
+// A text form proposal for an on-chain governance process.
+message TextProposal {
+    // Human readable title.
+    string title = 1;
+    // Description of the proposal in text form.
+    string description = 2;
+    // Reference to the election rules
+    bytes election_rules_id = 3;
+    // Time of the block where the voting period starts. Header time of the votes must be greater than this
+    // start time.
+    google.protobuf.Timestamp voting_start_time = 4 [(gogoproto.nullable) = false, (gogoproto.stdtime) = true];
+    // Time of the block where the voting period ends. Header times of the votes must be before this end time
+    // to be included in the election.
+    google.protobuf.Timestamp voting_end_time = 5 [(gogoproto.nullable) = false, (gogoproto.stdtime) = true];
+    // Final result of the election.
+    TallyResult result = 6;
+}
+
+// Result of a tally. Contains sums of the votes and the final result.
+message TallyResult {
+    // Sum of weights of all the voters that approved the proposal
+    uint32 total_yes = 1;
+    // Sum of weights of all the voters that rejected the proposal
+    uint32 total_no = 2;
+    // Sum of weights of all the voters that voted abstain
+    uint32 total_abstain = 3;
+    // Sum of all weights in the electorate.
+    uint64 total_weight_electorate = 4;
+    // Final result based on the votes and election rules.
+    bool passed = 5;
+}
+
+// TBD
+message CreateProposal {
+    string title = 1;
+    string text = 2;
+    bytes election_rules_id = 3;
+
+    // Revisit with: https://github.com/iov-one/weave/issues/447
+    google.protobuf.Timestamp start_time = 4 [(gogoproto.nullable) = false, (gogoproto.stdtime) = true];
+}
+
+// TBD
+message Vote {
+    enum VoteOption {
+        ABSTAIN = 0;
+        YES = 1;
+        NO = 2;
+    }
+    bytes proposal_id = 1;
+    bytes voter = 2 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
+    VoteOption selected = 3;
+}
+
+// TBD
+message Tally {
+    bytes proposal_id = 1;
+}
