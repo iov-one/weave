@@ -2,7 +2,9 @@ package app_test
 
 import (
 	"encoding/hex"
-	"sort"
+	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/weavetest"
+	"github.com/tendermint/tendermint/libs/common"
 	"strings"
 	"testing"
 
@@ -26,8 +28,9 @@ func TestApp(t *testing.T) {
 	chainID := appFixture.ChainID
 	myApp := appFixture.Build()
 	// Query for my balance
-	key := cash.NewBucket().DBKey(appFixture.GenesisKeyAddress)
-	queryAndCheckAccount(t, myApp, "/", key, cash.Set{
+	dbKey := cash.NewBucket().DBKey(appFixture.GenesisKeyAddress)
+
+	queryAndCheckAccount(t, myApp, "/", dbKey, cash.Set{
 		Coins: coin.Coins{
 			{Ticker: "ETH", Whole: 50000},
 			{Ticker: "FRNK", Whole: 1234},
@@ -39,39 +42,48 @@ func TestApp(t *testing.T) {
 	addr2 := pk2.PublicKey().Address()
 	dres := sendToken(t, myApp, appFixture.ChainID, 2, []Signer{{pk, 0}}, addr, addr2, 2000, "ETH", "Have a great trip!")
 
-	// ensure 3 keys with proper values
-	if assert.Equal(t, 3, len(dres.Tags), "%#v", dres.Tags) {
-		wantKeys := []string{
-			toHex("cash:") + addr.String(),
-			toHex("cash:") + addr2.String(),
-			toHex("sigs:") + addr.String(),
+	// ensure 4 keys for all accounts that are modified by a transaction
+	require.Equal(t, 4, len(dres.Tags), tagsAsString(dres.Tags))
+	feeDistAddr := weave.NewCondition("dist", "revenue", weavetest.SequenceID(1)).
+		Address()
+	wantKeys := []string{
+		toHex("cash:") + addr.String(),        // sender balance decreased
+		toHex("cash:") + addr2.String(),       // receiver balance increased
+		toHex("sigs:") + addr.String(),        // sender sequence incremented
+		toHex("cash:") + feeDistAddr.String(), // fee destination
+	}
+	for _, want := range wantKeys {
+		var found bool
+		for i := 0; i < len(dres.Tags) && !found; i++ {
+			found = string(dres.Tags[i].Key) == want
 		}
-		sort.Strings(wantKeys)
-		gotKeys := []string{
-			string(dres.Tags[0].Key),
-			string(dres.Tags[1].Key),
-			string(dres.Tags[2].Key),
-		}
-		assert.Equal(t, wantKeys, gotKeys)
-
-		assert.Equal(t, []string{"s", "s", "s"}, []string{
-			string(dres.Tags[0].Value),
-			string(dres.Tags[1].Value),
-			string(dres.Tags[2].Value),
-		})
+		require.True(t, found, "not found tag %s in %s", want, tagsAsString(dres.Tags))
 	}
 
+	require.Equal(t, []string{"s", "s", "s", "s"}, []string{
+		string(dres.Tags[0].Value),
+		string(dres.Tags[1].Value),
+		string(dres.Tags[2].Value),
+		string(dres.Tags[3].Value),
+	})
+
+	// Query for fees stored
+	queryAndCheckAccount(t, myApp, "/wallets", feeDistAddr, cash.Set{
+		Coins: coin.Coins{
+			{Ticker: "FRNK", Whole: 1},
+		},
+	})
 	// Query for new balances (same query, new state)
-	queryAndCheckAccount(t, myApp, "/", key, cash.Set{
+	queryAndCheckAccount(t, myApp, "/", dbKey, cash.Set{
 		Coins: coin.Coins{
 			{Ticker: "ETH", Whole: 48000},
-			{Ticker: "FRNK", Whole: 1234},
+			{Ticker: "FRNK", Whole: 1233},
 		},
 	})
 
 	// make sure money arrived safely
-	key2 := cash.NewBucket().DBKey(addr2)
-	queryAndCheckAccount(t, myApp, "/", key2, cash.Set{
+	dbKeyReceiver := cash.NewBucket().DBKey(addr2)
+	queryAndCheckAccount(t, myApp, "/", dbKeyReceiver, cash.Set{
 		Coins: coin.Coins{
 			{
 				Ticker: "ETH",
@@ -109,18 +121,41 @@ func TestApp(t *testing.T) {
 	safeKeyContractAddr := multisig.MultiSigCondition(safeKeyContract).Address()
 	sendToken(t, myApp, chainID, 5, []Signer{{pk, 3}},
 		addr, safeKeyContractAddr, 2000, "ETH", "New wallet controlled by safeKeyContract")
+	sendToken(t, myApp, chainID, 6, []Signer{{pk, 4}},
+		addr, safeKeyContractAddr, 10, "FRNK", "Fees - New wallet controlled by safeKeyContract")
 
 	// build and sign a transaction using master key to activate safeKeyContract
 	receiver := crypto.GenPrivKeyEd25519()
-	sendToken(t, myApp, chainID, 6, []Signer{{masterKey, 0}},
+	sendToken(t, myApp, chainID, 7, []Signer{{masterKey, 0}},
 		safeKeyContractAddr, receiver.PublicKey().Address(), 1000, "ETH", "Gift from a contract!", safeKeyContract)
+	// verify money was received
+	queryAndCheckAccount(t, myApp, "/wallets", receiver.PublicKey().Address(), cash.Set{
+		Coins: coin.Coins{{Ticker: "ETH", Whole: 1000}},
+	})
 
 	// Now do the same operation but using recoveryContract to activate safeKeyContract
 	// create a new receiver so it is easy to check its balance (no need to remember previous one)
 	receiver = crypto.GenPrivKeyEd25519()
-	sendToken(t, myApp, chainID, 7, []Signer{{recovery1, 0}, {recovery2, 0}},
+	sendToken(t, myApp, chainID, 8, []Signer{{recovery1, 0}, {recovery2, 0}},
 		safeKeyContractAddr, receiver.PublicKey().Address(), 1000, "ETH", "Another gift from a contract!",
 		recoveryContract, safeKeyContract)
+	// verify money was received
+	queryAndCheckAccount(t, myApp, "/wallets", receiver.PublicKey().Address(), cash.Set{
+		Coins: coin.Coins{{Ticker: "ETH", Whole: 1000}},
+	})
+}
+
+func tagsAsString(pairs []common.KVPair) string {
+	r := make([]string, len(pairs))
+	for i, v := range pairs {
+		x, err := hex.DecodeString(string(v.Key))
+		if err != nil {
+			panic(err)
+		}
+		// decode prefix: 5 prefix in this scenarios
+		r[i] = string(x[0:5]) + string(v.Key[hex.EncodedLen(5):])
+	}
+	return strings.Join(r, ";")
 }
 
 func toHex(s string) string {
@@ -135,7 +170,7 @@ type Signer struct {
 
 // sendToken creates the transaction, signs it and sends it
 // checks money has arrived safely
-func sendToken(t *testing.T, baseApp weaveApp.BaseApp, chainID string, height int64, signers []Signer,
+func sendToken(t *testing.T, baseApp abci.Application, chainID string, height int64, signers []Signer,
 	from, to []byte, amount int64, ticker, memo string, contracts ...[]byte) abci.ResponseDeliverTx {
 	msg := &cash.SendMsg{
 		Src:    from,
@@ -147,9 +182,8 @@ func sendToken(t *testing.T, baseApp weaveApp.BaseApp, chainID string, height in
 		Sum:      &app.Tx_SendMsg{SendMsg: msg},
 		Multisig: contracts,
 	}
+	tx.Fee(from, coin.NewCoin(1, 0, "FRNK"))
 	res := signAndCommit(t, baseApp, tx, signers, chainID, height)
-	// make sure money arrived safely
-	queryAndCheckAccount(t, baseApp, "/wallets", to, cash.Set{Coins: coin.Coins{{Ticker: ticker, Whole: amount}}})
 	return res
 }
 
@@ -157,7 +191,7 @@ func sendToken(t *testing.T, baseApp weaveApp.BaseApp, chainID string, height in
 // checks contract has been created correctly
 func createContract(
 	t *testing.T,
-	baseApp weaveApp.BaseApp,
+	baseApp abci.Application,
 	chainID string,
 	height int64,
 	signers []Signer,
@@ -181,6 +215,7 @@ func createContract(
 		Sum: &app.Tx_CreateContractMsg{CreateContractMsg: msg},
 	}
 
+	tx.Fee(signers[0].pk.PublicKey().Address(), coin.NewCoin(1, 0, "FRNK"))
 	dres := signAndCommit(t, baseApp, tx, signers, chainID, height)
 
 	// retrieve contract ID and check contract was correctly created
@@ -199,7 +234,7 @@ func createContract(
 // asserts and fails the test in case of errors during the process
 func signAndCommit(
 	t *testing.T,
-	app weaveApp.BaseApp,
+	app abci.Application,
 	tx *app.Tx,
 	signers []Signer,
 	chainID string,
@@ -234,9 +269,8 @@ func signAndCommit(
 }
 
 // queryAndCheckAccount queries the wallet from the chain and check it is the one expected
-func queryAndCheckAccount(t *testing.T, baseApp weaveApp.BaseApp, path string, data []byte, expected cash.Set) {
+func queryAndCheckAccount(t *testing.T, baseApp abci.Application, path string, data []byte, expected cash.Set) {
 	t.Helper()
-
 	query := abci.RequestQuery{Path: path, Data: data}
 	res := baseApp.Query(query)
 
@@ -251,7 +285,7 @@ func queryAndCheckAccount(t *testing.T, baseApp weaveApp.BaseApp, path string, d
 }
 
 // queryAndCheckContract queries the contract from the chain and check it is the one expected
-func queryAndCheckContract(t *testing.T, baseApp weaveApp.BaseApp, path string, data []byte, expected multisig.Contract) {
+func queryAndCheckContract(t *testing.T, baseApp abci.Application, path string, data []byte, expected multisig.Contract) {
 	query := abci.RequestQuery{Path: path, Data: data}
 	res := baseApp.Query(query)
 

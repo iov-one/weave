@@ -289,8 +289,8 @@ func appStateGenesis(t require.TestingT, contracts []*contract) string {
 	state := dt{
 		"wallets": wallets,
 		"currencies": arr{
-			dt{"ticker": "ETH", "name": "Smells like ethereum", "sig_figs": 9},
-			dt{"ticker": "FRNK", "name": "Frankie", "sig_figs": 3},
+			dt{"ticker": "ETH", "name": "Smells like ethereum"},
+			dt{"ticker": "FRNK", "name": "Frankie"},
 		},
 		"gconf": dt{
 			"cash:collector_address": "66616b652d636f6c6c6563746f722d61646472657373",

@@ -4,17 +4,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"math/rand"
+	"time"
 
 	"github.com/iov-one/weave"
-	weaveApp "github.com/iov-one/weave/app"
 	"github.com/iov-one/weave/cmd/bnsd/app"
-	"github.com/iov-one/weave/cmd/bnsd/x/nft/username"
-	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/crypto"
-	"github.com/iov-one/weave/gconf"
-	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/x/cash"
-	"github.com/iov-one/weave/x/currency"
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
 )
@@ -38,23 +33,13 @@ func NewApp() *AppFixture {
 	}
 }
 
-func (f AppFixture) Build() weaveApp.BaseApp {
-	// setup app
-	stack := app.Stack(nil, map[string]orm.Bucket{
-		username.ModelName: username.NewBucket().Bucket,
-	})
-	myApp, err := app.Application(f.Name, stack, app.TxDecoder, "", true)
+func (f AppFixture) Build() abci.Application {
+	myApp, err := app.GenerateApp("", log.NewNopLogger(), true)
 	if err != nil {
 		panic(err)
 	}
-	myApp.WithInit(weaveApp.ChainInitializers(
-		&gconf.Initializer{},
-		&cash.Initializer{},
-		&currency.Initializer{},
-	))
-	myApp.WithLogger(log.NewNopLogger())
-	// load state
 
+	// setup app
 	myApp.InitChain(abci.RequestInitChain{
 		AppStateBytes: appStateGenesis(f.GenesisKeyAddress),
 		ChainId:       f.ChainID,
@@ -72,32 +57,83 @@ func (f AppFixture) Build() weaveApp.BaseApp {
 }
 
 func appStateGenesis(keyAddress weave.Address) []byte {
-	type wallet struct {
-		Address weave.Address `json:"address"`
-		Coins   coin.Coins    `json:"coins"`
-	}
+	type dict map[string]interface{}
 
-	state := struct {
-		Cash  []wallet               `json:"cash"`
-		Gconf map[string]interface{} `json:"gconf"`
-	}{
-		Cash: []wallet{
-			{
-				Address: keyAddress,
-				Coins: coin.Coins{
-					{Whole: 50000, Ticker: "ETH"},
-					{Whole: 1234, Ticker: "FRNK"},
+	appState, err := json.MarshalIndent(dict{
+		"cash": []interface{}{
+			dict{
+				"address": keyAddress,
+				"coins": []interface{}{
+					"50000 ETH", "1234 FRNK",
 				},
 			},
 		},
-		Gconf: map[string]interface{}{
-			cash.GconfCollectorAddress: "66616b652d636f6c6c6563746f722d61646472657373",
-			cash.GconfMinimalFee:       coin.Coin{Whole: 0}, // no fee
+		"currencies": []interface{}{
+			dict{
+				"ticker": "FRNK",
+				"name":   "Utility token of this chain",
+			},
+			dict{
+				"ticker": "ETH",
+				"name":   "Other token of this chain",
+			},
 		},
-	}
-	raw, err := json.MarshalIndent(state, "", "  ")
+		"update_validators": dict{
+			"addresses": []interface{}{
+				"cond:multisig/usage/0000000000000001",
+			},
+		},
+		"multisig": []interface{}{
+			dict{
+				"participants": []interface{}{
+					dict{"power": 1, "signature": keyAddress},
+				},
+				"activation_threshold": 1,
+				"admin_threshold":      1,
+			},
+		},
+		"distribution": []interface{}{
+			dict{
+				"admin": "cond:multisig/usage/0000000000000001",
+				"recipients": []interface{}{
+					dict{"weight": 1, "address": keyAddress},
+				},
+			},
+		},
+		"escrow": []interface{}{
+			dict{
+				"sender":    "0000000000000000000000000000000000000000",
+				"arbiter":   "multisig/usage/0000000000000001",
+				"recipient": "cond:dist/revenue/0000000000000001",
+				"amount":    []interface{}{"1000000 FRNK"},
+				"timeout":   time.Now().Add(10000 * time.Hour),
+			},
+		},
+		"gconf": map[string]interface{}{
+			cash.GconfCollectorAddress: "cond:dist/revenue/0000000000000001",
+			cash.GconfMinimalFee:       "0.01 FRNK",
+		},
+		"msgfee": []interface{}{
+			dict{
+				"msg_path": "distribution/newrevenue",
+				"fee":      "2 FRNK",
+			},
+			dict{
+				"msg_path": "distribution/distribute",
+				"fee":      "0.2FRNK",
+			},
+			dict{
+				"msg_path": "distribution/resetRevenue",
+				"fee":      "1 FRNK",
+			},
+			dict{
+				"msg_path": "nft/username/issue",
+				"fee":      "5 FRNK",
+			},
+		},
+	}, "", "  ")
 	if err != nil {
 		panic(err)
 	}
-	return raw
+	return appState
 }

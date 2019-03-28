@@ -2,6 +2,7 @@ package scenarios
 
 import (
 	"fmt"
+	"github.com/iov-one/weave/coin"
 	"math/rand"
 	"testing"
 	"time"
@@ -39,7 +40,7 @@ func TestIssueNfts(t *testing.T) {
 			// when
 			seq, err := aNonce.Next()
 			require.NoError(t, err)
-			tx.Fee(alice.PublicKey().Address(), antiSpamFee)
+			tx.Fee(alice.PublicKey().Address(), coin.NewCoin(6, 0, "IOV"))
 			require.NoError(t, client.SignTx(tx, alice, chainID, seq))
 			resp := bnsClient.BroadcastTx(tx)
 			// then
