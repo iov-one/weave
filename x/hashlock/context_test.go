@@ -2,11 +2,10 @@ package hashlock
 
 import (
 	"context"
-	"fmt"
 	"testing"
 
 	"github.com/iov-one/weave"
-	"github.com/stretchr/testify/assert"
+	"github.com/iov-one/weave/weavetest/assert"
 )
 
 func TestContext(t *testing.T) {
@@ -18,40 +17,45 @@ func TestContext(t *testing.T) {
 	random := weave.NewAddress(foo)
 
 	bg := context.Background()
-	cases := []struct {
+	cases := map[string]struct {
 		ctx   weave.Context
 		perms []weave.Condition
 		match []weave.Address
 		not   []weave.Address
 	}{
-		{bg, nil, nil, []weave.Address{sig, other, random}},
-		{
-			withPreimage(bg, foo),
-			[]weave.Condition{PreimageCondition(foo)},
-			[]weave.Address{other},
-			[]weave.Address{sig, random},
+		"empty context": {
+			ctx: bg,
+			not: []weave.Address{sig, other, random},
 		},
-		{
-			withPreimage(bg, []byte("one more time")),
-			[]weave.Condition{PreimageCondition([]byte("one more time"))},
-			nil,
-			[]weave.Address{sig, other, random},
+		"context with a preimage": {
+			ctx:   withPreimage(bg, foo),
+			perms: []weave.Condition{PreimageCondition(foo)},
+			match: []weave.Address{other},
+			not:   []weave.Address{sig, random},
+		},
+		"context with a preimage 2": {
+			ctx:   withPreimage(bg, []byte("one more time")),
+			perms: []weave.Condition{PreimageCondition([]byte("one more time"))},
+			not:   []weave.Address{sig, other, random},
 		},
 	}
 
 	auth := Authenticate{}
 
-	for i, tc := range cases {
-		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
-			perms := auth.GetConditions(tc.ctx)
-			assert.Equal(t, tc.perms, perms)
+	for testName, tc := range cases {
+		t.Run(testName, func(t *testing.T) {
+			assert.Equal(t, tc.perms, auth.GetConditions(tc.ctx))
 
 			for _, a := range tc.match {
-				assert.True(t, auth.HasAddress(tc.ctx, a))
+				if !auth.HasAddress(tc.ctx, a) {
+					t.Fatalf("address %q was not present", a)
+				}
 			}
 
 			for _, a := range tc.not {
-				assert.False(t, auth.HasAddress(tc.ctx, a))
+				if auth.HasAddress(tc.ctx, a) {
+					t.Fatalf("address %q must not be present", a)
+				}
 			}
 		})
 	}
