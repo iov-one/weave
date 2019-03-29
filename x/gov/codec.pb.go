@@ -308,7 +308,7 @@ type TextProposal struct {
 	VotingEndTime uint64 `protobuf:"varint,6,opt,name=voting_end_time,json=votingEndTime,proto3" json:"voting_end_time,omitempty"`
 	// Unix timestamp of the block where the proposal was added to the chain.
 	SubmissionTime uint64 `protobuf:"varint,7,opt,name=submission_time,json=submissionTime,proto3" json:"submission_time,omitempty"`
-	// Main signer address who created the proposal.
+	// Address of the author who created the proposal. If not set explicit on creation it will default to the main signer.
 	Author github_com_iov_one_weave.Address `protobuf:"bytes,8,opt,name=author,proto3,casttype=github.com/iov-one/weave.Address" json:"author,omitempty"`
 	// Final result of the election.
 	Result *TallyResult `protobuf:"bytes,9,opt,name=result,proto3" json:"result,omitempty"`
@@ -500,7 +500,7 @@ type CreateTextProposal struct {
 	ElectorateId   []byte `protobuf:"bytes,4,opt,name=electorate_id,json=electorateId,proto3" json:"electorate_id,omitempty"`
 	// Unix timestamp....
 	StartTime uint64 `protobuf:"varint,5,opt,name=start_time,json=startTime,proto3" json:"start_time,omitempty"`
-	// Optional field that will default  to the main signer if empty.
+	// Optional field that will default to the main signer if empty.
 	Author github_com_iov_one_weave.Address `protobuf:"bytes,8,opt,name=author,proto3,casttype=github.com/iov-one/weave.Address" json:"author,omitempty"`
 }
 

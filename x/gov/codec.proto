@@ -66,7 +66,7 @@ message TextProposal {
     uint64 voting_end_time = 6;
     // Unix timestamp of the block where the proposal was added to the chain.
     uint64 submission_time = 7;
-    // Main signer address who created the proposal.
+    // Address of the author who created the proposal. If not set explicit on creation it will default to the main signer.
     bytes author = 8 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
     // Final result of the election.
     TallyResult result = 9;
@@ -94,7 +94,7 @@ message CreateTextProposal {
     bytes electorate_id = 4;
     // Unix timestamp....
     uint64 start_time = 5;
-    // Optional field that will default  to the main signer if empty.
+    // Optional field that will default to the main signer if empty.
     bytes author = 8 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
 }
 
