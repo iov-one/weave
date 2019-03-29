@@ -30,9 +30,22 @@ message ElectionRules {
     string title = 1;
     // Duration how long the voting period will take place.
     uint32 voting_period_hours = 3;
-    // Required Vote this is the percent value of all eligible voters, not the ones who voted.
-    // (integer in steps of 0.01%, so 10000 is 100%. should disallow anything below 5001)
-    uint32 required_votes = 4;
+    // Threshold is the fraction of all eligible voters, not only the ones who voted. To accept a
+    // proposal this value must be exceeded.
+    // The formula is `(yes*denominator) > (numerator*voted)`.
+    Fraction threshold = 4 [(gogoproto.nullable) = false];
+}
+
+// The Fraction type represents a numerator and denominator to enable higher precision thresholds in
+// the election rules. For example:
+// numerator: 1, denominator: 2 => > 50%
+// numerator: 2, denominator: 3 => > 66.666..%
+// numerator: 6273, denominator: 10000 => > 62.73%
+message Fraction{
+    // The top number in a fraction.
+    uint32 numerator = 1;
+    // The bottom number
+    uint32 denominator =2;
 }
 
 // A text form proposal for an on-chain governance process.
