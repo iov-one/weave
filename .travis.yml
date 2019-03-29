@@ -35,11 +35,6 @@ install:
   make get_tools && make check && make install ;
   cd -;
 
-cache:
-  directories:
-    - $GOPATH
-    - $GOCACHE
-
 script:
 - make lint;
 - make test;
