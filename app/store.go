@@ -123,9 +123,9 @@ func (s *StoreApp) parseAppState(data []byte, chainID string, init weave.Initial
 }
 
 // store chainID and update context
-func (s *StoreApp) storeChainID(chainId string) error {
+func (s *StoreApp) storeChainID(chainID string) error {
 	// set the chainID
-	s.chainID = chainId
+	s.chainID = chainID
 	err := saveChainID(s.DeliverStore(), s.chainID)
 	if err != nil {
 		return err
