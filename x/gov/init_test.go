@@ -5,7 +5,6 @@ import (
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/store"
 	"github.com/iov-one/weave/weavetest"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"testing"
 )
@@ -50,19 +49,30 @@ func TestInitFromGenesis(t *testing.T) {
 	if err := ini.FromGenesis(opts, db); err != nil {
 		t.Fatalf("cannot load genesis: %s", err)
 	}
-
 	// then
-	eBucket := NewElectorateBucket()
-	e, err := eBucket.GetElectorate(db, weavetest.SequenceID(1))
-	require.NoError(t, err)
-	require.NotNil(t, e, "not found")
-	assert.Equal(t, "first", e.Title)
+	e, err := NewElectorateBucket().GetElectorate(db, weavetest.SequenceID(1))
+	if err != nil {
+		t.Fatalf("unexpected error: %s", err)
+	}
+	if e == nil {
+		t.Fatal("must not be nil")
+	}
+	if exp, got := "first", e.Title; exp != got {
+		t.Errorf("expected %v but got %v", exp, got)
+	}
+	if got, exp := 2, len(e.Participants); exp != got {
+		t.Errorf("expected %v but got %v", exp, got)
+	}
 
 	// and then
-	rBucket := NewElectionRulesBucket()
-	r, err := rBucket.GetElectionRule(db, weavetest.SequenceID(1))
-	require.NoError(t, err)
-	require.NotNil(t, r, "not found")
-	assert.Equal(t, "foo", r.Title)
-
+	r, err := NewElectionRulesBucket().GetElectionRule(db, weavetest.SequenceID(1))
+	if err != nil {
+		t.Fatalf("unexpected error: %s", err)
+	}
+	if r == nil {
+		t.Fatal("must not be nil")
+	}
+	if got, exp := "foo", r.Title; exp != got {
+		t.Errorf("expected %v but got %v", exp, got)
+	}
 }
