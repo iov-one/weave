@@ -97,12 +97,15 @@ message CreateTextProposal {
 }
 
 // TBD
+enum VoteOption {
+    VOTE_OPTION_INVALID = 0;
+    VOTE_OPTION_YES = 1;
+    VOTE_OPTION_NO = 2;
+    VOTE_OPTION_ABSTAIN = 3;
+}
+
+// TBD
 message Vote {
-    enum VoteOption {
-        ABSTAIN = 0;
-        YES = 1;
-        NO = 2;
-    }
     bytes proposal_id = 1;
     bytes voter = 2 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
     VoteOption selected = 3;
