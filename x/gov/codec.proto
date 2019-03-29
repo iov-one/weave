@@ -24,8 +24,8 @@ message Participant {
     uint32 weight = 2;
 }
 
-// Election Rules defines how an election is run. A proposal must be voted upon via a pre-defined ruleset.
-message ElectionRules {
+// Election Rule defines how an election is run. A proposal must be voted upon via a pre-defined ruleset.
+message ElectionRule {
     // Human readable title.
     string title = 1;
     // Duration how long the voting period will take place.
@@ -54,8 +54,8 @@ message TextProposal {
     string title = 1;
     // Description of the proposal in text form.
     string description = 2;
-    // Reference to the election rules
-    bytes election_rules_id = 3;
+    // Reference to the election rule
+    bytes election_rule_id = 3;
     // Reference to the electorate to define the group of possible voters.
     bytes electorate_id = 4;
     // Unix timestamp of the block where the voting period starts. Header time of the votes must be greater than or equal
@@ -67,7 +67,7 @@ message TextProposal {
     // Unix timestamp of the block where the proposal was added to the chain.
     uint64 submission_time = 7;
     // Main signer address who created the proposal.
-    bytes author = 8;
+    bytes author = 8 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
     // Final result of the election.
     TallyResult result = 9;
 }
@@ -82,7 +82,7 @@ message TallyResult {
     uint32 total_abstain = 3;
     // Sum of all weights in the electorate.
     uint64 total_weight_electorate = 4;
-    // Final result based on the votes and election rules.
+    // Final result based on the votes and election rule.
     bool passed = 5;
 }
 
@@ -90,10 +90,12 @@ message TallyResult {
 message CreateTextProposal {
     string title = 1;
     string description = 2;
-    bytes election_rules_id = 3;
+    bytes election_rule_id = 3;
     bytes electorate_id = 4;
     // Unix timestamp....
     uint64 start_time = 5;
+    // Optional field that will default  to the main signer if empty.
+    bytes author = 8 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
 }
 
 // TBD

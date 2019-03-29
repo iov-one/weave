@@ -620,7 +620,7 @@
                 </li>
               
                 <li>
-                  <a href="#gov.ElectionRules"><span class="badge">M</span>ElectionRules</a>
+                  <a href="#gov.ElectionRule"><span class="badge">M</span>ElectionRule</a>
                 </li>
               
                 <li>
@@ -3030,7 +3030,7 @@ sender. </p></td>
                 </tr>
               
                 <tr>
-                  <td>election_rules_id</td>
+                  <td>election_rule_id</td>
                   <td><a href="#bytes">bytes</a></td>
                   <td></td>
                   <td><p> </p></td>
@@ -3050,14 +3050,21 @@ sender. </p></td>
                   <td><p>Unix timestamp.... </p></td>
                 </tr>
               
+                <tr>
+                  <td>author</td>
+                  <td><a href="#bytes">bytes</a></td>
+                  <td></td>
+                  <td><p>Optional field that will default  to the main signer if empty. </p></td>
+                </tr>
+              
             </tbody>
           </table>
         
 
         
       
-        <h3 id="gov.ElectionRules">ElectionRules</h3>
-        <p>Election Rules defines how an election is run. A proposal must be voted upon via a pre-defined ruleset.</p>
+        <h3 id="gov.ElectionRule">ElectionRule</h3>
+        <p>Election Rule defines how an election is run. A proposal must be voted upon via a pre-defined ruleset.</p>
 
         
           <table class="field-table">
@@ -3250,7 +3257,7 @@ The formula is `(yes*denominator) &gt; (numerator*voted)`. </p></td>
                   <td>passed</td>
                   <td><a href="#bool">bool</a></td>
                   <td></td>
-                  <td><p>Final result based on the votes and election rules. </p></td>
+                  <td><p>Final result based on the votes and election rule. </p></td>
                 </tr>
               
             </tbody>
@@ -3284,10 +3291,10 @@ The formula is `(yes*denominator) &gt; (numerator*voted)`. </p></td>
                 </tr>
               
                 <tr>
-                  <td>election_rules_id</td>
+                  <td>election_rule_id</td>
                   <td><a href="#bytes">bytes</a></td>
                   <td></td>
-                  <td><p>Reference to the election rules </p></td>
+                  <td><p>Reference to the election rule </p></td>
                 </tr>
               
                 <tr>
