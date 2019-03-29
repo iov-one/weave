@@ -98,10 +98,10 @@ message CreateTextProposal {
 
 // TBD
 enum VoteOption {
-    VOTE_OPTION_INVALID = 0;
-    VOTE_OPTION_YES = 1;
-    VOTE_OPTION_NO = 2;
-    VOTE_OPTION_ABSTAIN = 3;
+    VOTE_OPTION_INVALID = 0 [(gogoproto.enumvalue_customname ) = "Invalid"];
+    VOTE_OPTION_YES = 1 [(gogoproto.enumvalue_customname ) = "Yes"];
+    VOTE_OPTION_NO = 2[(gogoproto.enumvalue_customname ) = "No"];
+    VOTE_OPTION_ABSTAIN = 3 [(gogoproto.enumvalue_customname ) = "Abstain"];
 }
 
 // TBD
