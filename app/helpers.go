@@ -3,7 +3,6 @@ package app
 import (
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
-	"github.com/iov-one/weave/store"
 	abci "github.com/tendermint/tendermint/abci/types"
 )
 
@@ -68,8 +67,7 @@ func (a *ABCIStore) Iterator(start, end []byte) weave.Iterator {
 		panic(errors.Wrap(err, "cannot convert to model"))
 	}
 
-	// TODO: remove store dependency
-	return store.NewSliceIterator(models)
+	return NewSliceIterator(models)
 }
 
 func (a *ABCIStore) ReverseIterator(start, end []byte) weave.Iterator {
@@ -86,4 +84,59 @@ func toModels(keys, values []byte) ([]weave.Model, error) {
 		return nil, errors.Wrap(err, "cannot unmarshal values")
 	}
 	return JoinResults(&k, &v)
+}
+
+// SliceIterator wraps an Iterator over a slice of models
+//
+// TODO: make this private and only expose Iterator interface????
+type SliceIterator struct {
+	data []weave.Model
+	idx  int
+	// TODO: add reverse field
+}
+
+var _ weave.Iterator = (*SliceIterator)(nil)
+
+// NewSliceIterator creates a new Iterator over this slice
+func NewSliceIterator(data []weave.Model) *SliceIterator {
+	return &SliceIterator{
+		data: data,
+	}
+}
+
+// Valid implements Iterator and returns true iff it can be read
+func (s *SliceIterator) Valid() bool {
+	return s.idx < len(s.data)
+}
+
+// Next moves the iterator to the next sequential key in the database, as
+// defined by order of iteration.
+//
+// If Valid returns false, this method will panic.
+func (s *SliceIterator) Next() {
+	s.assertValid()
+	s.idx++
+}
+
+func (s *SliceIterator) assertValid() {
+	if s.idx >= len(s.data) {
+		panic("Passed end of slice")
+	}
+}
+
+// Key returns the key of the cursor.
+func (s *SliceIterator) Key() (key []byte) {
+	s.assertValid()
+	return s.data[s.idx].Key
+}
+
+// Value returns the value of the cursor.
+func (s *SliceIterator) Value() (value []byte) {
+	s.assertValid()
+	return s.data[s.idx].Value
+}
+
+// Close releases the Iterator.
+func (s *SliceIterator) Close() {
+	s.data = nil
 }
