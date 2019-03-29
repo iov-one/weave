@@ -225,6 +225,21 @@
         
           
           <li>
+            <a href="#weavetest%2fresults.proto">weavetest/results.proto</a>
+            <ul>
+              
+                <li>
+                  <a href="#weavetest.ResultSet"><span class="badge">M</span>ResultSet</a>
+                </li>
+              
+              
+              
+              
+            </ul>
+          </li>
+        
+          
+          <li>
             <a href="#crypto%2fmodels.proto">crypto/models.proto</a>
             <ul>
               
@@ -425,6 +440,10 @@
                 </li>
               
                 <li>
+                  <a href="#multisig.Participant"><span class="badge">M</span>Participant</a>
+                </li>
+              
+                <li>
                   <a href="#multisig.UpdateContractMsg"><span class="badge">M</span>UpdateContractMsg</a>
                 </li>
               
@@ -585,6 +604,57 @@
                   <a href="#sigs.UserData"><span class="badge">M</span>UserData</a>
                 </li>
               
+              
+              
+              
+            </ul>
+          </li>
+        
+          
+          <li>
+            <a href="#x%2fgov%2fcodec.proto">x/gov/codec.proto</a>
+            <ul>
+              
+                <li>
+                  <a href="#gov.CreateTextProposal"><span class="badge">M</span>CreateTextProposal</a>
+                </li>
+              
+                <li>
+                  <a href="#gov.ElectionRules"><span class="badge">M</span>ElectionRules</a>
+                </li>
+              
+                <li>
+                  <a href="#gov.Electorate"><span class="badge">M</span>Electorate</a>
+                </li>
+              
+                <li>
+                  <a href="#gov.Fraction"><span class="badge">M</span>Fraction</a>
+                </li>
+              
+                <li>
+                  <a href="#gov.Participant"><span class="badge">M</span>Participant</a>
+                </li>
+              
+                <li>
+                  <a href="#gov.Tally"><span class="badge">M</span>Tally</a>
+                </li>
+              
+                <li>
+                  <a href="#gov.TallyResult"><span class="badge">M</span>TallyResult</a>
+                </li>
+              
+                <li>
+                  <a href="#gov.TextProposal"><span class="badge">M</span>TextProposal</a>
+                </li>
+              
+                <li>
+                  <a href="#gov.Vote"><span class="badge">M</span>Vote</a>
+                </li>
+              
+              
+                <li>
+                  <a href="#gov.Vote.VoteOption"><span class="badge">E</span>Vote.VoteOption</a>
+                </li>
               
               
               
@@ -976,6 +1046,43 @@ blockchain. </p></td>
                   <td>details</td>
                   <td><a href="#username.TokenDetails">TokenDetails</a></td>
                   <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+        
+
+        
+      
+
+      
+
+      
+
+      
+    
+      
+      <div class="file-heading">
+        <h2 id="weavetest/results.proto">weavetest/results.proto</h2><a href="#title">Top</a>
+      </div>
+      <p></p>
+
+      
+        <h3 id="weavetest.ResultSet">ResultSet</h3>
+        <p>ResultSet contains a list of keys or values. This is a copy of app/ResultSet</p><p>and therefore it is binary compatible with it. Copied to avoid import.</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>results</td>
+                  <td><a href="#bytes">bytes</a></td>
+                  <td>repeated</td>
                   <td><p> </p></td>
                 </tr>
               
@@ -1924,24 +2031,29 @@ distributed to. Must be at least one. </p></td>
             <tbody>
               
                 <tr>
-                  <td>sigs</td>
-                  <td><a href="#bytes">bytes</a></td>
+                  <td>participants</td>
+                  <td><a href="#multisig.Participant">Participant</a></td>
                   <td>repeated</td>
-                  <td><p>addresses to control it </p></td>
+                  <td><p>Participants defines a list of all signatures that are allowed to sign the
+contract. </p></td>
                 </tr>
               
                 <tr>
                   <td>activation_threshold</td>
-                  <td><a href="#int64">int64</a></td>
+                  <td><a href="#uint32">uint32</a></td>
                   <td></td>
-                  <td><p>threshold needed to sign to activate it </p></td>
+                  <td><p>Activation threshold defines the minimal weight value that must be
+provided from participants in order to activate the contract. Weight is
+computed as the sum of weights of all participating signatures. </p></td>
                 </tr>
               
                 <tr>
                   <td>admin_threshold</td>
-                  <td><a href="#int64">int64</a></td>
+                  <td><a href="#uint32">uint32</a></td>
                   <td></td>
-                  <td><p>threshold needed to sign to change it </p></td>
+                  <td><p>Admin threshold defines the minimal weight value that must be provided
+from participants in order to administrate the contract. Weight is
+computed as the sum of weights of all participating signatures. </p></td>
                 </tr>
               
             </tbody>
@@ -1961,24 +2073,54 @@ distributed to. Must be at least one. </p></td>
             <tbody>
               
                 <tr>
-                  <td>sigs</td>
-                  <td><a href="#bytes">bytes</a></td>
+                  <td>participants</td>
+                  <td><a href="#multisig.Participant">Participant</a></td>
                   <td>repeated</td>
-                  <td><p>addresses to control it </p></td>
+                  <td><p> </p></td>
                 </tr>
               
                 <tr>
                   <td>activation_threshold</td>
-                  <td><a href="#int64">int64</a></td>
+                  <td><a href="#uint32">uint32</a></td>
                   <td></td>
-                  <td><p>threshold needed to sign to activate it </p></td>
+                  <td><p> </p></td>
                 </tr>
               
                 <tr>
                   <td>admin_threshold</td>
-                  <td><a href="#int64">int64</a></td>
+                  <td><a href="#uint32">uint32</a></td>
                   <td></td>
-                  <td><p>threshold needed to sign to change it </p></td>
+                  <td><p> </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+        
+
+        
+      
+        <h3 id="multisig.Participant">Participant</h3>
+        <p>Participant clubs together a signature with a weight. The greater the weight</p><p>the greater the power of a signature.</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>signature</td>
+                  <td><a href="#bytes">bytes</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>power</td>
+                  <td><a href="#uint32">uint32</a></td>
+                  <td></td>
+                  <td><p> </p></td>
                 </tr>
               
             </tbody>
@@ -1998,31 +2140,31 @@ distributed to. Must be at least one. </p></td>
             <tbody>
               
                 <tr>
-                  <td>id</td>
+                  <td>contract_id</td>
                   <td><a href="#bytes">bytes</a></td>
                   <td></td>
-                  <td><p>contract id </p></td>
+                  <td><p> </p></td>
                 </tr>
               
                 <tr>
-                  <td>sigs</td>
-                  <td><a href="#bytes">bytes</a></td>
+                  <td>participants</td>
+                  <td><a href="#multisig.Participant">Participant</a></td>
                   <td>repeated</td>
-                  <td><p>addresses to control it </p></td>
+                  <td><p> </p></td>
                 </tr>
               
                 <tr>
                   <td>activation_threshold</td>
-                  <td><a href="#int64">int64</a></td>
+                  <td><a href="#uint32">uint32</a></td>
                   <td></td>
-                  <td><p>threshold needed to sign to activate it </p></td>
+                  <td><p> </p></td>
                 </tr>
               
                 <tr>
                   <td>admin_threshold</td>
-                  <td><a href="#int64">int64</a></td>
+                  <td><a href="#uint32">uint32</a></td>
                   <td></td>
-                  <td><p>threshold needed to sign to change it </p></td>
+                  <td><p> </p></td>
                 </tr>
               
             </tbody>
@@ -2166,9 +2308,9 @@ distributed to. Must be at least one. </p></td>
               
                 <tr>
                   <td>timeout</td>
-                  <td><a href="#int64">int64</a></td>
+                  <td><a href="#google.protobuf.Timestamp">google.protobuf.Timestamp</a></td>
                   <td></td>
-                  <td><p>if unreleased before timeout, will return to sender </p></td>
+                  <td><p>Timeout represents wall clock time. </p></td>
                 </tr>
               
                 <tr>
@@ -2217,10 +2359,10 @@ distributed to. Must be at least one. </p></td>
               
                 <tr>
                   <td>timeout</td>
-                  <td><a href="#int64">int64</a></td>
+                  <td><a href="#google.protobuf.Timestamp">google.protobuf.Timestamp</a></td>
                   <td></td>
-                  <td><p>if unreleased before timeout, will return to sender
-timeout stored here is absolute block height </p></td>
+                  <td><p>If unreleased before timeout, escrow will return to sender.
+Timeout represents wall clock time as read from the block header. </p></td>
                 </tr>
               
                 <tr>
@@ -2850,6 +2992,421 @@ sender. </p></td>
         
       
 
+      
+
+      
+
+      
+    
+      
+      <div class="file-heading">
+        <h2 id="x/gov/codec.proto">x/gov/codec.proto</h2><a href="#title">Top</a>
+      </div>
+      <p></p>
+
+      
+        <h3 id="gov.CreateTextProposal">CreateTextProposal</h3>
+        <p>TBD</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>title</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>description</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>election_rules_id</td>
+                  <td><a href="#bytes">bytes</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>electorate_id</td>
+                  <td><a href="#bytes">bytes</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>start_time</td>
+                  <td><a href="#uint64">uint64</a></td>
+                  <td></td>
+                  <td><p>Unix timestamp.... </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+        
+
+        
+      
+        <h3 id="gov.ElectionRules">ElectionRules</h3>
+        <p>Election Rules defines how an election is run. A proposal must be voted upon via a pre-defined ruleset.</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>title</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p>Human readable title. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>voting_period_hours</td>
+                  <td><a href="#uint32">uint32</a></td>
+                  <td></td>
+                  <td><p>Duration how long the voting period will take place. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>threshold</td>
+                  <td><a href="#gov.Fraction">Fraction</a></td>
+                  <td></td>
+                  <td><p>Threshold is the fraction of all eligible voters, not only the ones who voted. To accept a
+proposal this value must be exceeded.
+The formula is `(yes*denominator) &gt; (numerator*voted)`. </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+        
+
+        
+      
+        <h3 id="gov.Electorate">Electorate</h3>
+        <p>Electorate defines who may vote in an election. This same group can be used in many elections</p><p>and is stored for re-use</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>title</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p>Human readable title. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>participants</td>
+                  <td><a href="#gov.Participant">Participant</a></td>
+                  <td>repeated</td>
+                  <td><p>Participants defines a list of all signatures that are allowed to participate in a vote </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+        
+
+        
+      
+        <h3 id="gov.Fraction">Fraction</h3>
+        <p>The Fraction type represents a numerator and denominator to enable higher precision thresholds in</p><p>the election rules. For example:</p><p>numerator: 1, denominator: 2 => > 50%</p><p>numerator: 2, denominator: 3 => > 66.666..%</p><p>numerator: 6273, denominator: 10000 => > 62.73%</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>numerator</td>
+                  <td><a href="#uint32">uint32</a></td>
+                  <td></td>
+                  <td><p>The top number in a fraction. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>denominator</td>
+                  <td><a href="#uint32">uint32</a></td>
+                  <td></td>
+                  <td><p>The bottom number </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+        
+
+        
+      
+        <h3 id="gov.Participant">Participant</h3>
+        <p>Participant clubs together a signature with a weight. The greater the weight</p><p>the greater the power of a participant.</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>signature</td>
+                  <td><a href="#bytes">bytes</a></td>
+                  <td></td>
+                  <td><p>The address of the voter. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>weight</td>
+                  <td><a href="#uint32">uint32</a></td>
+                  <td></td>
+                  <td><p>Weight defines the power of the participants vote. max value is 65535 (2^16-1). </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+        
+
+        
+      
+        <h3 id="gov.Tally">Tally</h3>
+        <p>TBD</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>proposal_id</td>
+                  <td><a href="#bytes">bytes</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+        
+
+        
+      
+        <h3 id="gov.TallyResult">TallyResult</h3>
+        <p>Result of a tally. Contains sums of the votes and the final result.</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>total_yes</td>
+                  <td><a href="#uint32">uint32</a></td>
+                  <td></td>
+                  <td><p>Sum of weights of all the voters that approved the proposal </p></td>
+                </tr>
+              
+                <tr>
+                  <td>total_no</td>
+                  <td><a href="#uint32">uint32</a></td>
+                  <td></td>
+                  <td><p>Sum of weights of all the voters that rejected the proposal </p></td>
+                </tr>
+              
+                <tr>
+                  <td>total_abstain</td>
+                  <td><a href="#uint32">uint32</a></td>
+                  <td></td>
+                  <td><p>Sum of weights of all the voters that voted abstain </p></td>
+                </tr>
+              
+                <tr>
+                  <td>total_weight_electorate</td>
+                  <td><a href="#uint64">uint64</a></td>
+                  <td></td>
+                  <td><p>Sum of all weights in the electorate. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>passed</td>
+                  <td><a href="#bool">bool</a></td>
+                  <td></td>
+                  <td><p>Final result based on the votes and election rules. </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+        
+
+        
+      
+        <h3 id="gov.TextProposal">TextProposal</h3>
+        <p>A text form proposal for an on-chain governance process.</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>title</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p>Human readable title. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>description</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p>Description of the proposal in text form. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>election_rules_id</td>
+                  <td><a href="#bytes">bytes</a></td>
+                  <td></td>
+                  <td><p>Reference to the election rules </p></td>
+                </tr>
+              
+                <tr>
+                  <td>electorate_id</td>
+                  <td><a href="#bytes">bytes</a></td>
+                  <td></td>
+                  <td><p>Reference to the electorate to define the group of possible voters. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>voting_start_time</td>
+                  <td><a href="#uint64">uint64</a></td>
+                  <td></td>
+                  <td><p>Unix timestamp of the block where the voting period starts. Header time of the votes must be greater than or equal
+to this start time. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>voting_end_time</td>
+                  <td><a href="#uint64">uint64</a></td>
+                  <td></td>
+                  <td><p>Unix timestamp of the block where the voting period ends. Header times of the votes must be before this end time
+to be included in the election. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>submission_time</td>
+                  <td><a href="#uint64">uint64</a></td>
+                  <td></td>
+                  <td><p>Unix timestamp of the block where the proposal was added to the chain. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>author</td>
+                  <td><a href="#bytes">bytes</a></td>
+                  <td></td>
+                  <td><p>Main signer address who created the proposal. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>result</td>
+                  <td><a href="#gov.TallyResult">TallyResult</a></td>
+                  <td></td>
+                  <td><p>Final result of the election. </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+        
+
+        
+      
+        <h3 id="gov.Vote">Vote</h3>
+        <p>TBD</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>proposal_id</td>
+                  <td><a href="#bytes">bytes</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>voter</td>
+                  <td><a href="#bytes">bytes</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>selected</td>
+                  <td><a href="#gov.Vote.VoteOption">Vote.VoteOption</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+        
+
+        
+      
+
+      
+        <h3 id="gov.Vote.VoteOption">Vote.VoteOption</h3>
+        <p></p>
+        <table class="enum-table">
+          <thead>
+            <tr><td>Name</td><td>Number</td><td>Description</td></tr>
+          </thead>
+          <tbody>
+            
+              <tr>
+                <td>ABSTAIN</td>
+                <td>0</td>
+                <td><p></p></td>
+              </tr>
+            
+              <tr>
+                <td>YES</td>
+                <td>1</td>
+                <td><p></p></td>
+              </tr>
+            
+              <tr>
+                <td>NO</td>
+                <td>2</td>
+                <td><p></p></td>
+              </tr>
+            
+          </tbody>
+        </table>
       
 
       
