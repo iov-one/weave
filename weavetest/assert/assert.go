@@ -5,26 +5,30 @@ import (
 	"testing"
 )
 
-// NoErr fails the test if given error is not nil.
-func NoErr(t testing.TB, err error) {
+// Nil fails the test if given value is not nil.
+func Nil(t testing.TB, value interface{}) {
 	t.Helper()
-	if !errIsNil(err) {
-		t.Fatalf("want the error to be nil, got %+v", err)
+	if !isNil(value) {
+		t.Fatalf("want a nil value, got %#v", value)
 	}
 }
 
-// errIsNil returns true if value represented by the given error is nil.
-//
-// Most of the time a simple == check is enough. There is a very narrowed
-// spectrum of cases  where a more sophisticated check is required.
-func errIsNil(err error) bool {
-	if err == nil {
+func isNil(value interface{}) (isnil bool) {
+	if value == nil {
 		return true
 	}
-	if val := reflect.ValueOf(err); val.Kind() == reflect.Ptr {
-		return val.IsNil()
-	}
-	return false
+
+	defer func() {
+		if recover() != nil {
+			isnil = false
+		}
+	}()
+
+	// The argument must be a chan, func, interface, map, pointer, or slice
+	// value; if it is not, IsNil panics.
+	isnil = reflect.ValueOf(value).IsNil()
+
+	return isnil
 }
 
 // Equal fails the test if two values are not equal.

@@ -50,11 +50,11 @@ func TestDecorator(t *testing.T) {
 	for testName, tc := range cases {
 		t.Run(testName, func(t *testing.T) {
 			_, err := stack.Check(bg, db, tc.tx)
-			assert.NoErr(t, err)
+			assert.Nil(t, err)
 			assert.Equal(t, tc.perms, h.Perms)
 
 			_, err = stack.Deliver(bg, db, tc.tx)
-			assert.NoErr(t, err)
+			assert.Nil(t, err)
 			assert.Equal(t, tc.perms, h.Perms)
 		})
 	}
