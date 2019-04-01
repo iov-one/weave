@@ -1,0 +1,117 @@
+syntax = "proto3";
+
+package gov;
+
+import "github.com/gogo/protobuf/gogoproto/gogo.proto";
+
+// Electorate defines who may vote in an election. This same group can be used in many elections
+// and is stored for re-use
+message Electorate {
+    // Human readable title.
+    string title = 1;
+    // Participants defines a list of all signatures that are allowed to participate in a vote
+    repeated Participant participants = 2 [(gogoproto.nullable) = false];
+}
+
+// Participant clubs together a signature with a weight. The greater the weight
+// the greater the power of a participant.
+message Participant {
+    // The address of the voter.
+    bytes signature = 1 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
+    // Weight defines the power of the participants vote. max value is 65535 (2^16-1).
+    uint32 weight = 2;
+}
+
+// Election Rule defines how an election is run. A proposal must be voted upon via a pre-defined ruleset.
+message ElectionRule {
+    // Human readable title.
+    string title = 1;
+    // Duration how long the voting period will take place.
+    uint32 voting_period_hours = 3;
+    // Threshold is the fraction of all eligible voters, not only the ones who voted. To accept a
+    // proposal this value must be exceeded.
+    // The formula is `(yes*denominator) > (numerator*voted)`.
+    Fraction threshold = 4 [(gogoproto.nullable) = false];
+}
+
+// The Fraction type represents a numerator and denominator to enable higher precision thresholds in
+// the election rules. For example:
+// numerator: 1, denominator: 2 => > 50%
+// numerator: 2, denominator: 3 => > 66.666..%
+// numerator: 6273, denominator: 10000 => > 62.73%
+message Fraction{
+    // The top number in a fraction.
+    uint32 numerator = 1;
+    // The bottom number
+    uint32 denominator =2;
+}
+
+// A text form proposal for an on-chain governance process.
+message TextProposal {
+    // Human readable title.
+    string title = 1;
+    // Description of the proposal in text form.
+    string description = 2;
+    // Reference to the election rule
+    bytes election_rule_id = 3;
+    // Reference to the electorate to define the group of possible voters.
+    bytes electorate_id = 4;
+    // Unix timestamp of the block where the voting period starts. Header time of the votes must be greater than or equal
+    // to this start time.
+    uint64 voting_start_time = 5;
+    // Unix timestamp of the block where the voting period ends. Header times of the votes must be before this end time
+    // to be included in the election.
+    uint64 voting_end_time = 6;
+    // Unix timestamp of the block where the proposal was added to the chain.
+    uint64 submission_time = 7;
+    // Address of the author who created the proposal. If not set explicit on creation it will default to the main signer.
+    bytes author = 8 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
+    // Final result of the election.
+    TallyResult result = 9;
+}
+
+// Result of a tally. Contains sums of the votes and the final result.
+message TallyResult {
+    // Sum of weights of all the voters that approved the proposal
+    uint32 total_yes = 1;
+    // Sum of weights of all the voters that rejected the proposal
+    uint32 total_no = 2;
+    // Sum of weights of all the voters that voted abstain
+    uint32 total_abstain = 3;
+    // Sum of all weights in the electorate.
+    uint64 total_weight_electorate = 4;
+    // Final result based on the votes and election rule.
+    bool passed = 5;
+}
+
+// TBD
+message CreateTextProposal {
+    string title = 1;
+    string description = 2;
+    bytes election_rule_id = 3;
+    bytes electorate_id = 4;
+    // Unix timestamp....
+    uint64 start_time = 5;
+    // Optional field that will default to the main signer if empty.
+    bytes author = 8 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
+}
+
+// TBD
+enum VoteOption {
+    VOTE_OPTION_INVALID = 0 [(gogoproto.enumvalue_customname ) = "Invalid"];
+    VOTE_OPTION_YES = 1 [(gogoproto.enumvalue_customname ) = "Yes"];
+    VOTE_OPTION_NO = 2[(gogoproto.enumvalue_customname ) = "No"];
+    VOTE_OPTION_ABSTAIN = 3 [(gogoproto.enumvalue_customname ) = "Abstain"];
+}
+
+// TBD
+message Vote {
+    bytes proposal_id = 1;
+    bytes voter = 2 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
+    VoteOption selected = 3;
+}
+
+// TBD
+message Tally {
+    bytes proposal_id = 1;
+}
