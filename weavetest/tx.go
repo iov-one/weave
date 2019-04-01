@@ -47,6 +47,10 @@ func (m *Msg) Path() string {
 	return m.RoutePath
 }
 
+func (m *Msg) Validate() error {
+	return m.Err
+}
+
 func (m *Msg) Unmarshal(b []byte) error {
 	m.Serialized = b
 	return m.Err

@@ -23,6 +23,13 @@ type Msg interface {
 	//
 	// Must be alphanumeric [0-9A-Za-z_\-]+
 	Path() string
+
+	// Validate performs a sanity checks on this message. It returns an
+	// error if at least one test does not pass and message is considered
+	// invalid.
+	// This validation performs only tests that do not require external
+	// resources (ie a database).
+	Validate() error
 }
 
 // Marshaller is anything that can be represented in binary
@@ -105,4 +112,38 @@ func ExtractMsgFromSum(sum interface{}) (Msg, error) {
 		return nil, errors.Wrap(errors.ErrInvalidMsg, fmt.Sprintf("Unsupported message type: %T", field.Interface()))
 	}
 	return res, nil
+}
+
+// TxLoad extracts the message represented by given transaction into given
+// destination. Before retutning message validation method is called.
+func TxLoad(tx Tx, destination interface{}) error {
+	msg, err := tx.GetMsg()
+	if err != nil {
+		return errors.Wrap(err, "cannot get transaction message")
+	}
+
+	if err := msg.Validate(); err != nil {
+		return errors.Wrap(err, "invalid message")
+	}
+
+	dstVal := reflect.ValueOf(destination)
+	if dstVal.Kind() != reflect.Ptr {
+		return errors.Wrapf(errors.ErrInvalidType, "destination must be a pointer, got %T", destination)
+	}
+	dstVal = dstVal.Elem()
+	if !dstVal.IsValid() {
+		return errors.Wrap(errors.ErrInvalidType, "destination cannot be addressed")
+	}
+
+	srcVal := reflect.ValueOf(msg)
+	if srcVal.Kind() == reflect.Ptr {
+		srcVal = srcVal.Elem()
+	}
+
+	if srcVal.Type() != dstVal.Type() {
+		return errors.Wrapf(errors.ErrInvalidType, "want %T destination, got %T", msg, destination)
+	}
+
+	dstVal.Set(srcVal)
+	return nil
 }
