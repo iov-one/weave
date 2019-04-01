@@ -312,12 +312,10 @@ func (c *Coin) UnmarshalJSON(raw []byte) error {
 	// "<whole>[.<fractional>] <ticker>"
 	var human string
 	if err := json.Unmarshal(raw, &human); err == nil {
-		whole, fract, ticker, err := parseHumanFormat(human)
-		if err == nil {
-			c.Whole = whole
-			c.Fractional = fract
-			c.Ticker = ticker
-		}
+		parsedCoin, err := ParseHumanFormat(human)
+		c.Ticker = parsedCoin.Ticker
+		c.Fractional = parsedCoin.Fractional
+		c.Whole = parsedCoin.Whole
 		return err
 	}
 
@@ -337,27 +335,28 @@ func (c *Coin) UnmarshalJSON(raw []byte) error {
 	return nil
 }
 
-// parseHumanFormat parse a human readable coin represenation. Accepted format
+// ParseHumanFormat parse a human readable coin represenation. Accepted format
 // is a string:
 //   "<whole>[.<fractional>] <ticker>"
-func parseHumanFormat(h string) (int64, int64, string, error) {
+func ParseHumanFormat(h string) (Coin, error) {
+	var c Coin
 	results := humanCoinFormatRx.FindAllStringSubmatch(h, -1)
 	if len(results) != 1 {
-		return 0, 0, "", fmt.Errorf("invalid format")
+		return c, fmt.Errorf("invalid format")
 	}
 
 	result := results[0][1:]
 
 	whole, err := strconv.ParseInt(result[1], 10, 64)
 	if err != nil {
-		return 0, 0, "", fmt.Errorf("invalid whole value: %s", err)
+		return c, fmt.Errorf("invalid whole value: %s", err)
 	}
 
 	var fract int64
 	if result[2] != "" {
 		val, err := strconv.ParseFloat(result[2], 64)
 		if err != nil {
-			return 0, 0, "", fmt.Errorf("invalid fractional value: %s", err)
+			return c, fmt.Errorf("invalid fractional value: %s", err)
 		}
 		// Max float64 value is around 1.7e+308 so I do not think we
 		// should bother with the overflow issue.
@@ -371,7 +370,11 @@ func parseHumanFormat(h string) (int64, int64, string, error) {
 		fract = -fract
 	}
 
-	return whole, fract, ticker, nil
+	return Coin{
+		Ticker:     ticker,
+		Whole:      whole,
+		Fractional: fract,
+	}, nil
 }
 
 var humanCoinFormatRx = regexp.MustCompile(`^(\-?)\s*(\d+)(\.\d+)?\s*([A-Z]{3,4})$`)

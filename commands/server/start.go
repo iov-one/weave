@@ -2,10 +2,9 @@ package server
 
 import (
 	"flag"
-	"fmt"
-	"github.com/iov-one/weave/errors"
 
 	"github.com/iov-one/weave/coin"
+	"github.com/iov-one/weave/errors"
 	"github.com/tendermint/tendermint/abci/server"
 	abci "github.com/tendermint/tendermint/abci/types"
 	cmn "github.com/tendermint/tendermint/libs/common"
@@ -41,7 +40,7 @@ func parseFlags(args []string) (string, bool, *Options, error) {
 		return addr, debug, options, err
 	}
 
-	err = options.MinFee.UnmarshalJSON([]byte(fmt.Sprintf(`"%s"`, minFeeStr)))
+	options.MinFee, err = coin.ParseHumanFormat(minFeeStr)
 
 	return addr, debug, options, err
 }
