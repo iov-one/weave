@@ -78,22 +78,22 @@ func GenInitOptions(args []string) (json.RawMessage, error) {
 }
 
 // GenerateApp is used to create a stub for server/start.go command
-func GenerateApp(home string, logger log.Logger, options *server.Options, debug bool) (abci.Application, error) {
+func GenerateApp(options *server.Options) (abci.Application, error) {
 	// db goes in a subdir, but "" stays "" to use memdb
 	var dbPath string
-	if home != "" {
-		dbPath = filepath.Join(home, "bns.db")
+	if options.Home != "" {
+		dbPath = filepath.Join(options.Home, "bns.db")
 	}
 
 	nftBuckets := map[string]orm.Bucket{
 		username.ModelName: username.NewBucket().Bucket,
 	}
-	stack := Stack(nil, nftBuckets)
-	application, err := Application("bnsd", stack, TxDecoder, dbPath, debug)
+	stack := Stack(nil, nftBuckets, options.MinFee)
+	application, err := Application("bnsd", stack, TxDecoder, dbPath, options.Debug)
 	if err != nil {
 		return nil, err
 	}
-	return DecorateApp(application, logger), nil
+	return DecorateApp(application, options.Logger), nil
 }
 
 // DecorateApp adds initializers and Logger to an Application
@@ -117,7 +117,7 @@ func InlineApp(kv weave.CommitKVStore, logger log.Logger, debug bool) abci.Appli
 	nftBuckets := map[string]orm.Bucket{
 		username.ModelName: username.NewBucket().Bucket,
 	}
-	stack := Stack(nil, nftBuckets)
+	stack := Stack(nil, nftBuckets, coin.Coin{})
 	ctx := context.Background()
 	RegisterNft()
 	store := app.NewStoreApp("bnsd", kv, QueryRouter(), ctx)

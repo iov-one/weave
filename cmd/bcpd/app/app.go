@@ -12,6 +12,7 @@ import (
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/app"
+	"github.com/iov-one/weave/commands/server"
 	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/store/iavl"
 	"github.com/iov-one/weave/x"
@@ -101,7 +102,7 @@ func Stack(issuer weave.Address) weave.Handler {
 // the given arguments. If you are not sure what to use
 // for the Handler, just use Stack().
 func Application(name string, h weave.Handler,
-	tx weave.TxDecoder, dbPath string, debug bool) (app.BaseApp, error) {
+	tx weave.TxDecoder, dbPath string, options *server.Options) (app.BaseApp, error) {
 
 	ctx := context.Background()
 	kv, err := CommitKVStore(dbPath)
@@ -109,7 +110,7 @@ func Application(name string, h weave.Handler,
 		return app.BaseApp{}, err
 	}
 	store := app.NewStoreApp(name, kv, QueryRouter(), ctx)
-	base := app.NewBaseApp(store, tx, h, nil, debug)
+	base := app.NewBaseApp(store, tx, h, nil, options.Debug)
 	return base, nil
 }
 

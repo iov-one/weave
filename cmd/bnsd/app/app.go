@@ -7,6 +7,7 @@ package app
 import (
 	"context"
 	"fmt"
+	"github.com/iov-one/weave/coin"
 	"path/filepath"
 	"strings"
 
@@ -38,7 +39,7 @@ func Authenticator() x.Authenticator {
 
 // Chain returns a chain of decorators, to handle authentication,
 // fees, logging, and recovery
-func Chain(authFn x.Authenticator) app.Decorators {
+func Chain(authFn x.Authenticator, minFee coin.Coin) app.Decorators {
 	// ctrl can be initialized with any implementation, but must be used
 	// consistently everywhere.
 	var ctrl cash.Controller = cash.NewController(cash.NewBucket())
@@ -53,6 +54,7 @@ func Chain(authFn x.Authenticator) app.Decorators {
 		multisig.NewDecorator(authFn),
 		cash.NewDynamicFeeDecorator(authFn, ctrl),
 		msgfee.NewFeeDecorator(),
+		msgfee.NewAntispamFeeDecorator(minFee),
 		// cannot pay for fee with hashlock...
 		hashlock.NewDecorator(),
 		// batch commented out temporarily to minimize release features
@@ -111,9 +113,9 @@ func RegisterNft() {
 
 // Stack wires up a standard router with a standard decorator
 // chain. This can be passed into BaseApp.
-func Stack(issuer weave.Address, nftBuckets map[string]orm.Bucket) weave.Handler {
+func Stack(issuer weave.Address, nftBuckets map[string]orm.Bucket, minFee coin.Coin) weave.Handler {
 	authFn := Authenticator()
-	return Chain(authFn).WithHandler(Router(authFn, issuer, nftBuckets))
+	return Chain(authFn, minFee).WithHandler(Router(authFn, issuer, nftBuckets))
 }
 
 // Application constructs a basic ABCI application with

@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/commands/server"
 	"github.com/iov-one/weave/cmd/bnsd/app"
 	"github.com/iov-one/weave/crypto"
 	"github.com/iov-one/weave/x/cash"
@@ -34,7 +35,12 @@ func NewApp() *AppFixture {
 }
 
 func (f AppFixture) Build() abci.Application {
-	myApp, err := app.GenerateApp("", log.NewNopLogger(), true)
+	opts := &server.Options{
+		Home:"",
+		Logger: log.NewNopLogger(),
+		Debug: true,
+	}
+	myApp, err := app.GenerateApp(opts)
 	if err != nil {
 		panic(err)
 	}

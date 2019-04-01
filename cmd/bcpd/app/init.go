@@ -18,7 +18,6 @@ import (
 	"github.com/iov-one/weave/x/multisig"
 	"github.com/iov-one/weave/x/validators"
 	abci "github.com/tendermint/tendermint/abci/types"
-	"github.com/tendermint/tendermint/libs/log"
 )
 
 // GenInitOptions will produce some basic options for one rich
@@ -70,16 +69,16 @@ func GenInitOptions(args []string) (json.RawMessage, error) {
 }
 
 // GenerateApp is used to create a stub for server/start.go command
-func GenerateApp(home string, logger log.Logger, options *server.Options, debug bool) (abci.Application, error) {
+func GenerateApp(options *server.Options) (abci.Application, error) {
 	// db goes in a subdir, but "" -> "" for memdb
 	var dbPath string
-	if home != "" {
-		dbPath = filepath.Join(home, "bcp.db")
+	if options.Home != "" {
+		dbPath = filepath.Join(options.Home, "bcp.db")
 	}
 
 	// TODO: anyone can make a token????
 	stack := Stack(nil)
-	application, err := Application("bcp", stack, TxDecoder, dbPath, debug)
+	application, err := Application("bcp", stack, TxDecoder, dbPath, options)
 	if err != nil {
 		return nil, err
 	}
@@ -93,7 +92,7 @@ func GenerateApp(home string, logger log.Logger, options *server.Options, debug 
 	))
 
 	// set the logger and return
-	application.WithLogger(logger)
+	application.WithLogger(options.Logger)
 	return application, nil
 }
 

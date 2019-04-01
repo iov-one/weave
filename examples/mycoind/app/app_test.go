@@ -8,6 +8,7 @@ import (
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/app"
 	"github.com/iov-one/weave/coin"
+	"github.com/iov-one/weave/commands/server"
 	"github.com/iov-one/weave/crypto"
 	"github.com/iov-one/weave/x/cash"
 	"github.com/iov-one/weave/x/sigs"
@@ -122,7 +123,12 @@ func testSendTx(t *testing.T, myApp app.BaseApp, h int64,
 
 func TestApp(t *testing.T) {
 	// no minimum fee, in-memory data-store
-	abciApp, err := GenerateApp("", log.NewNopLogger(), true)
+	opts := &server.Options{
+		Home:   "",
+		Logger: log.NewNopLogger(),
+		Debug:  true,
+	}
+	abciApp, err := GenerateApp(opts)
 	require.NoError(t, err)
 	myApp := abciApp.(app.BaseApp)
 
