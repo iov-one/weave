@@ -109,7 +109,7 @@ Once it compiles, I highly suggest going through the
 
 We generate documentation from the *.proto files to keep it up to date.
 
-You can view the [documentation for all packages used in the `bns` app](http://htmlpreview.github.io/?https://github.com/iov-one/weave/blob/feature/proto-docs/docs/proto/index.html).
+You can view the [documentation for all packages used in the `bns` app](http://htmlpreview.github.io/?https://github.com/iov-one/weave/blob/master/docs/proto/index.html).
 
 Or generate it yourself:
 
