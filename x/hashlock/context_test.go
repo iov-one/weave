@@ -23,10 +23,6 @@ func TestContext(t *testing.T) {
 		match []weave.Address
 		not   []weave.Address
 	}{
-		"empty context": {
-			ctx: bg,
-			not: []weave.Address{sig, other, random},
-		},
 		"context with a preimage": {
 			ctx:   withPreimage(bg, foo),
 			perms: []weave.Condition{PreimageCondition(foo)},
@@ -37,6 +33,10 @@ func TestContext(t *testing.T) {
 			ctx:   withPreimage(bg, []byte("one more time")),
 			perms: []weave.Condition{PreimageCondition([]byte("one more time"))},
 			not:   []weave.Address{sig, other, random},
+		},
+		"empty context": {
+			ctx: bg,
+			not: []weave.Address{sig, other, random},
 		},
 	}
 
