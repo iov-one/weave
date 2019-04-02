@@ -119,6 +119,9 @@ func TxLoad(tx Tx, destination interface{}) error {
 	if err != nil {
 		return errors.Wrap(err, "cannot get transaction message")
 	}
+	if msg == nil {
+		return errors.Wrap(errors.ErrInvalidState, "nil message")
+	}
 
 	if err := msg.Validate(); err != nil {
 		return errors.Wrap(err, "invalid message")

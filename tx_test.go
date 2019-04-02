@@ -114,6 +114,10 @@ func TestTxLoad(t *testing.T) {
 			Dest:    &DemoMsg{},
 			WantMsg: &DemoMsg{Num: 102, Text: "foobar"},
 		},
+		"transaction contains a nil message": {
+			Tx:      &TxMock{Msg: nil},
+			WantErr: errors.ErrInvalidState,
+		},
 		"invalid destination message, not a pointer": {
 			Tx: &TxMock{
 				Msg: &DemoMsg{Num: 81421, Text: "foo"},
