@@ -124,6 +124,7 @@ func testSendTx(t *testing.T, myApp app.BaseApp, h int64,
 func TestApp(t *testing.T) {
 	// no minimum fee, in-memory data-store
 	opts := &server.Options{
+		MinFee: coin.Coin{},
 		Home:   "",
 		Logger: log.NewNopLogger(),
 		Debug:  true,

@@ -27,6 +27,7 @@ import (
 )
 
 var opts = &server.Options{
+	MinFee: coin.Coin{},
 	Debug:  true,
 	Logger: log.NewNopLogger(),
 	Home:   "",

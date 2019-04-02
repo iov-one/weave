@@ -64,6 +64,7 @@ func TestMain(m *testing.M) {
 
 func initApp(config *cfg.Config, addr weave.Address) (abci.Application, error) {
 	opts := &server.Options{
+		MinFee: coin.Coin{},
 		Home:   config.RootDir,
 		Logger: logger,
 		Debug:  false,

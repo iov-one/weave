@@ -78,7 +78,7 @@ func GenerateApp(options *server.Options) (abci.Application, error) {
 
 	// TODO: anyone can make a token????
 	stack := Stack(nil)
-	application, err := Application("bcp", stack, TxDecoder, dbPath, options)
+	application, err := Application("bcp", stack, TxDecoder, dbPath, options.Debug)
 	if err != nil {
 		return nil, err
 	}

@@ -203,6 +203,7 @@ func newBnsd(t testing.TB) (abci.Application, func()) {
 		t.Fatalf("cannot create a temporary directory: %s", err)
 	}
 	opts := &server.Options{
+		MinFee: coin.Coin{},
 		Home:   homeDir,
 		Logger: log.NewNopLogger(),
 		Debug:  false,

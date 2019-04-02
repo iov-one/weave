@@ -6,6 +6,7 @@ import (
 	"math/rand"
 	"time"
 
+	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/commands/server"
 	"github.com/iov-one/weave/cmd/bnsd/app"
@@ -36,6 +37,7 @@ func NewApp() *AppFixture {
 
 func (f AppFixture) Build() abci.Application {
 	opts := &server.Options{
+	MinFee: coin.Coin{},
 		Home:"",
 		Logger: log.NewNopLogger(),
 		Debug: true,
