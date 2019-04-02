@@ -1,12 +1,10 @@
 package weave
 
 import (
-	"fmt"
-	"reflect"
 	"testing"
 
 	"github.com/iov-one/weave/errors"
-	"github.com/stretchr/testify/assert"
+	"github.com/iov-one/weave/weavetest/assert"
 )
 
 // DemoMsg
@@ -35,37 +33,61 @@ type BadContents struct {
 	Data *Container
 }
 
-func TestExtractMsgFromSum(tt *testing.T) {
+func TestExtractMsgFromSum(t *testing.T) {
 	msg := &DemoMsg{
 		Num:  17,
 		Text: "hello world",
 	}
 
-	cases := []struct {
+	cases := map[string]struct {
 		input   interface{}
-		isError bool
-		msg     string // some text contained in the error message
+		wantErr *errors.Error
 	}{
-		{nil, true, "<nil>"},
-		{7, true, "invalid message container"},
-		{&Container{}, true, "message is <nil>"},
-		{Container{msg}, true, "invalid message container"},
-		{&Container{msg}, false, ""},
-		{&BigContainer{msg, "foo"}, true, "container field count"},
-		{&BadContents{&Container{}}, true, "invalid message"},
+		"success": {
+			input: &Container{msg},
+		},
+		"nil input is not allowed": {
+			input:   nil,
+			wantErr: errors.ErrInvalidInput,
+		},
+		"invalid input content, number": {
+			input:   7,
+			wantErr: errors.ErrInvalidInput,
+		},
+		"invalid input content, string": {
+			input:   "seven",
+			wantErr: errors.ErrInvalidInput,
+		},
+		"empty container": {
+			input:   &Container{},
+			wantErr: errors.ErrInvalidState,
+		},
+		"container must be a pointer": {
+			input:   Container{msg},
+			wantErr: errors.ErrInvalidInput,
+		},
+		"wrong number of fields": {
+			input:   &BigContainer{msg, "foo"},
+			wantErr: errors.ErrInvalidInput,
+		},
+		"haw?": {
+			input:   &BadContents{&Container{}},
+			wantErr: errors.ErrInvalidType,
+		},
 	}
 
-	for i, tc := range cases {
-		tt.Run(fmt.Sprintf("test-%d", i), func(t *testing.T) {
+	for testName, tc := range cases {
+		t.Run(testName, func(t *testing.T) {
 			res, err := ExtractMsgFromSum(tc.input)
-			if tc.isError {
-				assert.Nil(t, res)
-				if assert.Error(t, err) {
-					assert.Contains(t, err.Error(), tc.msg)
+			if !tc.wantErr.Is(err) {
+				t.Fatalf("unexpected error: %#v", err)
+			}
+			if tc.wantErr == nil {
+				if res == nil {
+					t.Fatal("nil result")
 				}
 			} else {
-				assert.NotNil(t, res)
-				assert.NoError(t, err)
+				assert.Nil(t, res)
 			}
 		})
 	}
@@ -142,9 +164,7 @@ func TestTxLoad(t *testing.T) {
 			}
 
 			if tc.WantErr == nil {
-				if !reflect.DeepEqual(tc.Dest, tc.WantMsg) {
-					t.Fatalf("want %#v message, got %#v", tc.WantMsg, tc.Dest)
-				}
+				assert.Equal(t, tc.WantMsg, tc.Dest)
 			}
 		})
 	}

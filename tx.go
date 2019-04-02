@@ -1,7 +1,6 @@
 package weave
 
 import (
-	"fmt"
 	"reflect"
 
 	"github.com/iov-one/weave/errors"
@@ -91,25 +90,24 @@ type TxDecoder func(txBytes []byte) (Tx, error)
 // and that field can be cast to a Msg.
 // Returns an error if it cannot succeed.
 func ExtractMsgFromSum(sum interface{}) (Msg, error) {
-	// TODO: add better error messages here with new refactor
 	if sum == nil {
-		return nil, errors.Wrap(errors.ErrInvalidMsg, "message container is <nil>")
+		return nil, errors.Wrap(errors.ErrInvalidInput, "message container is <nil>")
 	}
 	pval := reflect.ValueOf(sum)
 	if pval.Kind() != reflect.Ptr || pval.Elem().Kind() != reflect.Struct {
-		return nil, errors.Wrap(errors.ErrInvalidMsg, fmt.Sprintf("invalid message container value: %T", sum))
+		return nil, errors.Wrapf(errors.ErrInvalidInput, "invalid message container value: %T", sum)
 	}
 	val := pval.Elem()
 	if val.NumField() != 1 {
-		return nil, errors.Wrap(errors.ErrInvalidMsg, fmt.Sprintf("Unexpected message container field count: %d", val.NumField()))
+		return nil, errors.Wrapf(errors.ErrInvalidInput, "Unexpected message container field count: %d", val.NumField())
 	}
 	field := val.Field(0)
 	if field.IsNil() {
-		return nil, errors.Wrap(errors.ErrInvalidMsg, "message is <nil>")
+		return nil, errors.Wrap(errors.ErrInvalidState, "message is <nil>")
 	}
 	res, ok := field.Interface().(Msg)
 	if !ok {
-		return nil, errors.Wrap(errors.ErrInvalidMsg, fmt.Sprintf("Unsupported message type: %T", field.Interface()))
+		return nil, errors.Wrapf(errors.ErrInvalidType, "unsupported message type: %T", field.Interface())
 	}
 	return res, nil
 }
