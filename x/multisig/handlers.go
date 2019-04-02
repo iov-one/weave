@@ -59,30 +59,20 @@ func (h CreateContractMsgHandler) Deliver(ctx weave.Context, db weave.KVStore, t
 	return res, nil
 }
 
-// validate does all common pre-processing between Check and Deliver
+// validate does all common pre-processing between Check and Deliver.
 func (h CreateContractMsgHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*CreateContractMsg, error) {
-	// Retrieve tx main signer in this context
+	// Retrieve tx main signer in this context.
 	sender := x.MainSigner(ctx, h.auth)
 	if sender == nil {
-		return nil, errors.Wrap(errors.ErrUnauthorized, "No signer")
+		return nil, errors.Wrap(errors.ErrUnauthorized, "no signer")
 	}
 
-	msg, err := tx.GetMsg()
-	if err != nil {
-		return nil, err
+	var msg CreateContractMsg
+	if err := weave.LoadMsg(tx, &msg); err != nil {
+		return nil, errors.Wrap(err, "load msg")
 	}
 
-	createContractMsg, ok := msg.(*CreateContractMsg)
-	if !ok {
-		return nil, errors.WithType(errors.ErrInvalidMsg, msg)
-	}
-
-	err = createContractMsg.Validate()
-	if err != nil {
-		return nil, err
-	}
-
-	return createContractMsg, nil
+	return &msg, nil
 }
 
 type UpdateContractMsgHandler struct {
@@ -126,14 +116,9 @@ func (h UpdateContractMsgHandler) Deliver(ctx weave.Context, db weave.KVStore, t
 }
 
 func (h UpdateContractMsgHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*UpdateContractMsg, error) {
-	txmsg, err := tx.GetMsg()
-	if err != nil {
-		return nil, errors.Wrap(err, "cannot get transaction message")
-	}
-
-	msg, ok := txmsg.(*UpdateContractMsg)
-	if !ok {
-		return nil, errors.Wrapf(errors.ErrInvalidType, "%T", msg)
+	var msg UpdateContractMsg
+	if err := weave.LoadMsg(tx, &msg); err != nil {
+		return nil, errors.Wrap(err, "load msg")
 	}
 
 	// Using current version of the contract, ensure that enoguht
@@ -150,13 +135,8 @@ func (h UpdateContractMsgHandler) validate(ctx weave.Context, db weave.KVStore, 
 		}
 	}
 	if power < contract.AdminThreshold {
-		return msg, errors.Wrapf(errors.ErrUnauthorized,
+		return &msg, errors.Wrapf(errors.ErrUnauthorized,
 			"%d power is not enough to administrate %q", power, msg.ContractID)
 	}
-
-	if err := msg.Validate(); err != nil {
-		return nil, err
-	}
-
-	return msg, nil
+	return &msg, nil
 }

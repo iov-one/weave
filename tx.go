@@ -112,9 +112,9 @@ func ExtractMsgFromSum(sum interface{}) (Msg, error) {
 	return res, nil
 }
 
-// TxLoad extracts the message represented by given transaction into given
+// LoadMsg extracts the message represented by given transaction into given
 // destination. Before retutning message validation method is called.
-func TxLoad(tx Tx, destination interface{}) error {
+func LoadMsg(tx Tx, destination interface{}) error {
 	msg, err := tx.GetMsg()
 	if err != nil {
 		return errors.Wrap(err, "cannot get transaction message")

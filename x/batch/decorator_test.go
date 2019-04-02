@@ -25,6 +25,10 @@ func (wrongWeaveMsg) Unmarshal([]byte) error {
 	panic("implement me")
 }
 
+func (wrongWeaveMsg) Validate() error {
+	return nil
+}
+
 func (wrongWeaveMsg) Path() string {
 	panic("implement me")
 }

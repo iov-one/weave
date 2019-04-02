@@ -93,7 +93,7 @@ func TestExtractMsgFromSum(t *testing.T) {
 	}
 }
 
-func TestTxLoad(t *testing.T) {
+func TestLoadMsg(t *testing.T) {
 	cases := map[string]struct {
 		Tx      Tx
 		Dest    interface{}
@@ -163,7 +163,7 @@ func TestTxLoad(t *testing.T) {
 
 	for testName, tc := range cases {
 		t.Run(testName, func(t *testing.T) {
-			if err := TxLoad(tc.Tx, tc.Dest); !tc.WantErr.Is(err) {
+			if err := LoadMsg(tc.Tx, tc.Dest); !tc.WantErr.Is(err) {
 				t.Fatalf("want %q error, got %q", tc.WantErr, err)
 			}
 

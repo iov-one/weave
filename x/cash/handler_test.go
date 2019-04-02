@@ -32,7 +32,7 @@ func TestSend(t *testing.T) {
 		expectCheck   checkErr
 		expectDeliver checkErr
 	}{
-		0: {nil, nil, nil, errors.ErrInvalidMsg.Is, errors.ErrInvalidMsg.Is},
+		0: {nil, nil, nil, errors.ErrInvalidState.Is, errors.ErrInvalidState.Is},
 		1: {nil, nil, new(SendMsg), errors.ErrInvalidAmount.Is, errors.ErrInvalidAmount.Is},
 		2: {nil, nil, &SendMsg{Amount: &foo}, errors.ErrInvalidInput.Is, errors.ErrInvalidInput.Is},
 		3: {

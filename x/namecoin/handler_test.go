@@ -45,7 +45,7 @@ func TestSendHandler(t *testing.T) {
 		expectCheck   checkErr
 		expectDeliver checkErr
 	}{
-		0: {nil, nil, nil, errors.ErrInvalidMsg.Is, errors.ErrInvalidMsg.Is},
+		0: {nil, nil, nil, errors.ErrInvalidState.Is, errors.ErrInvalidState.Is},
 		1: {nil, nil, new(cash.SendMsg), errors.ErrInvalidAmount.Is, errors.ErrInvalidAmount.Is},
 		2: {nil, nil, &cash.SendMsg{Amount: &foo}, errors.ErrInvalidInput.Is, errors.ErrInvalidInput.Is},
 		3: {
@@ -130,7 +130,7 @@ func TestNewTokenHandler(t *testing.T) {
 		"proper issuer - happy path": {[]weave.Condition{perm1}, addr1, nil, msg,
 			noErr, noErr, ticker, added},
 		"wrong message type": {[]weave.Condition{perm1}, addr1, nil, new(cash.SendMsg),
-			errors.ErrInvalidMsg.Is, errors.ErrInvalidMsg.Is, "", nil},
+			errors.ErrInvalidAmount.Is, errors.ErrInvalidAmount.Is, "", nil},
 		"invalid ticker symbol": {[]weave.Condition{perm1}, addr1, nil, BuildTokenMsg("YO", "digga", 7),
 			errors.ErrCurrency.Is, errors.ErrCurrency.Is, "", nil},
 		"invalid token name": {[]weave.Condition{perm1}, addr1, nil, BuildTokenMsg("GOOD", "ill3glz!", 7),
@@ -210,7 +210,7 @@ func TestSetNameHandler(t *testing.T) {
 	}{
 		// wrong message type
 		0: {nil, nil, new(cash.SendMsg),
-			errors.ErrInvalidMsg.Is, errors.ErrInvalidMsg.Is, nil, nil},
+			errors.ErrInvalidAmount.Is, errors.ErrInvalidAmount.Is, nil, nil},
 		// invalid message
 		1: {nil, nil, BuildSetNameMsg([]byte{1, 2}, "johnny"),
 			errors.ErrInvalidInput.Is, errors.ErrInvalidInput.Is, nil, nil},
