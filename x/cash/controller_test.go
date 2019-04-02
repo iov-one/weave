@@ -1,7 +1,6 @@
 package cash
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/iov-one/weave"
@@ -9,37 +8,36 @@ import (
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/store"
 	"github.com/iov-one/weave/weavetest"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
-func getWallet(kv weave.KVStore, addr weave.Address) coin.Coins {
+func wallet(t testing.TB, kv weave.KVStore, addr weave.Address) coin.Coins {
+	t.Helper()
+
 	bucket := NewBucket()
 	res, err := bucket.Get(kv, addr)
 	if err != nil {
-		panic(err) // testing only
+		t.Fatalf("cannot get wallet for %q: %s", addr, err)
 	}
 	return AsCoins(res)
 }
 
 type issueCmd struct {
-	addr   weave.Address
-	amount coin.Coin
-	isErr  bool
+	addr    weave.Address
+	amount  coin.Coin
+	wantErr *errors.Error
 }
 
 type moveCmd struct {
-	sender weave.Address
-	rcpt   weave.Address
-	amount coin.Coin
-	isErr  bool
+	sender    weave.Address
+	recipient weave.Address
+	amount    coin.Coin
+	wantErr   *errors.Error
 }
 
 type checkCmd struct {
-	addr       weave.Address
-	isNil      bool
-	contains   []coin.Coin
-	notContain []coin.Coin
+	addr            weave.Address
+	wantInWallet    []coin.Coin
+	wantNotInWallet []coin.Coin
 }
 
 func TestIssueCoins(t *testing.T) {
@@ -53,78 +51,86 @@ func TestIssueCoins(t *testing.T) {
 	total := coin.NewCoin(100, 400, "FOO")
 	other := coin.NewCoin(1, 0, "DING")
 
-	cases := []struct {
+	cases := map[string]struct {
 		issue []issueCmd
 		check []checkCmd
 	}{
-		// issue positive
-		{
-			issue: []issueCmd{{addr1, plus, false}},
-			check: []checkCmd{
-				{addr1, false, []coin.Coin{plus, total}, []coin.Coin{other}},
-				{addr2, true, nil, nil},
-			},
-		},
-		// second issue negative
-		{
-			issue: []issueCmd{{addr1, plus, false}, {addr1, minus, false}},
-			check: []checkCmd{
-				{addr1, false, []coin.Coin{total}, []coin.Coin{plus, other}},
-				{addr2, true, nil, nil},
-			},
-		},
-		// issue to two chains
-		{
-			issue: []issueCmd{{addr1, total, false}, {addr2, other, false}},
-			check: []checkCmd{
-				{addr1, false, []coin.Coin{total}, []coin.Coin{plus, other}},
-				{addr2, false, []coin.Coin{other}, []coin.Coin{plus, total}},
-			},
-		},
-		// set back to zero
-		{
-			issue: []issueCmd{{addr2, other, false}, {addr2, other.Negative(), false}},
-			check: []checkCmd{
-				{addr1, true, nil, nil},
-				{addr2, true, nil, nil},
-			},
-		},
-		// set back to zero
-		{
+		"issue positive": {
 			issue: []issueCmd{
-				{addr1, total, false},
-				{addr1, coin.NewCoin(coin.MaxInt, 0, "FOO"), true}},
+				{addr: addr1, amount: plus},
+			},
 			check: []checkCmd{
-				{addr1, false, []coin.Coin{total}, []coin.Coin{plus, other}},
-				{addr2, true, nil, nil},
+				{addr: addr1, wantInWallet: []coin.Coin{plus, total}, wantNotInWallet: []coin.Coin{other}},
+				{addr: addr2},
+			},
+		},
+		"second issue negative": {
+			issue: []issueCmd{
+				{addr: addr1, amount: plus},
+				{addr: addr1, amount: minus},
+			},
+			check: []checkCmd{
+				{addr: addr1, wantInWallet: []coin.Coin{total}, wantNotInWallet: []coin.Coin{plus, other}},
+				{addr: addr2},
+			},
+		},
+		"issue to two chains": {
+			issue: []issueCmd{
+				{addr: addr1, amount: total},
+				{addr: addr2, amount: other},
+			},
+			check: []checkCmd{
+				{addr: addr1, wantInWallet: []coin.Coin{total}, wantNotInWallet: []coin.Coin{plus, other}},
+				{addr: addr2, wantInWallet: []coin.Coin{other}, wantNotInWallet: []coin.Coin{plus, total}},
+			},
+		},
+		"set back to zero": {
+			issue: []issueCmd{
+				{addr: addr2, amount: other},
+				{addr: addr2, amount: other.Negative()},
+			},
+			check: []checkCmd{
+				{addr: addr1},
+				{addr: addr2},
+			},
+		},
+		"set back to zero 2": {
+			issue: []issueCmd{
+				{addr: addr1, amount: total},
+				{addr: addr1, amount: coin.NewCoin(coin.MaxInt, 0, "FOO"), wantErr: errors.ErrOverflow},
+			},
+			check: []checkCmd{
+				{addr: addr1, wantInWallet: []coin.Coin{total}, wantNotInWallet: []coin.Coin{plus, other}},
+				{addr: addr2},
 			},
 		},
 	}
 
-	for i, tc := range cases {
-		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
+	for testName, tc := range cases {
+		t.Run(testName, func(t *testing.T) {
 			kv := store.MemStore()
 
-			for j, issue := range tc.issue {
-				err := controller.CoinMint(kv, issue.addr, issue.amount)
-				if issue.isErr {
-					require.Error(t, err, "%d", j)
-				} else {
-					require.NoError(t, err, "%d", j)
+			for i, issue := range tc.issue {
+				if err := controller.CoinMint(kv, issue.addr, issue.amount); !issue.wantErr.Is(err) {
+					t.Fatalf("issue #%d: unexpected error: %+v", i, err)
 				}
 			}
 
-			for j, check := range tc.check {
-				w := getWallet(kv, check.addr)
-				if check.isNil {
-					require.Nil(t, w, "%d", j)
-				} else {
-					require.NotNil(t, w, "%d", j)
-					for k, has := range check.contains {
-						assert.True(t, w.Contains(has), "%d/%d: %#v", j, k, w)
+			for i, check := range tc.check {
+				w := wallet(t, kv, check.addr)
+
+				if len(check.wantInWallet) == 0 && w != nil {
+					t.Errorf("check #%d: expected an empty wallet: %#v", i, w)
+				}
+
+				for _, coin := range check.wantInWallet {
+					if !w.Contains(coin) {
+						t.Errorf("check #%d: missing coin in the wallet: %v", i, coin)
 					}
-					for k, not := range check.notContain {
-						assert.False(t, w.Contains(not), "%d/%d: %#v", j, k, w)
+				}
+				for _, coin := range check.wantNotInWallet {
+					if w.Contains(coin) {
+						t.Errorf("check #%d: unwanted coin in the wallet: %v", i, coin)
 					}
 				}
 			}
@@ -145,102 +151,87 @@ func TestMoveCoins(t *testing.T) {
 	send := coin.NewCoin(300, 0, cc)
 	rem := coin.NewCoin(49700, 0, cc)
 
-	cases := []struct {
+	cases := map[string]struct {
 		issue issueCmd
 		move  moveCmd
 		check []checkCmd
 	}{
-		// cannot move money that you don't have
-		{
-			issue: issueCmd{addr3, bank, false},
-			move:  moveCmd{addr1, addr2, send, true},
+		"cannot move money that you don't have": {
+			issue: issueCmd{addr: addr3, amount: bank},
+			move:  moveCmd{sender: addr1, recipient: addr2, amount: send, wantErr: errors.ErrEmpty},
 			check: []checkCmd{
-				{addr2, true, nil, nil},
-				{addr3, false, []coin.Coin{bank}, nil},
+				{addr: addr2},
+				{addr: addr3, wantInWallet: []coin.Coin{bank}},
 			},
 		},
-		// simple send
-		{
-			issue: issueCmd{addr1, bank, false},
-			move:  moveCmd{addr1, addr2, send, false},
+		"simple send": {
+			issue: issueCmd{addr: addr1, amount: bank},
+			move:  moveCmd{sender: addr1, recipient: addr2, amount: send},
 			check: []checkCmd{
-				{addr1, false, []coin.Coin{rem}, []coin.Coin{bank}},
-				{addr2, false, []coin.Coin{send}, []coin.Coin{bank}},
+				{addr: addr1, wantInWallet: []coin.Coin{rem}, wantNotInWallet: []coin.Coin{bank}},
+				{addr: addr2, wantInWallet: []coin.Coin{send}, wantNotInWallet: []coin.Coin{bank}},
 			},
 		},
-		// cannot send negative
-		{
-			issue: issueCmd{addr1, bank, false},
-			move:  moveCmd{addr1, addr2, send.Negative(), true},
-			check: nil,
+		"cannot send negative": {
+			issue: issueCmd{addr: addr1, amount: bank},
+			move:  moveCmd{sender: addr1, recipient: addr2, amount: send.Negative(), wantErr: errors.ErrInvalidAmount},
 		},
-		// cannot send more than you have
-		{
-			issue: issueCmd{addr1, rem, false},
-			move:  moveCmd{addr1, addr2, bank, true},
-			check: nil,
+		"cannot send more than you have": {
+			issue: issueCmd{addr: addr1, amount: rem},
+			move:  moveCmd{sender: addr1, recipient: addr2, amount: bank, wantErr: errors.ErrInsufficientAmount},
 		},
-		// cannot send zero
-		{
-			issue: issueCmd{addr1, bank, false},
-			move:  moveCmd{addr1, addr2, coin.NewCoin(0, 0, cc), true},
-			check: nil,
+		"cannot send zero": {
+			issue: issueCmd{addr: addr1, amount: bank},
+			move:  moveCmd{sender: addr1, recipient: addr2, amount: coin.NewCoin(0, 0, cc), wantErr: errors.ErrInvalidAmount},
 		},
-		// cannot send wrong currency
-		{
-			issue: issueCmd{addr1, bank, false},
-			move:  moveCmd{addr1, addr2, coin.NewCoin(500, 0, "BAD"), true},
-			check: nil,
+		"cannot send wrong currency": {
+			issue: issueCmd{addr: addr1, amount: bank},
+			move:  moveCmd{sender: addr1, recipient: addr2, amount: coin.NewCoin(500, 0, "BAD"), wantErr: errors.ErrInsufficientAmount},
 		},
-		// send everything
-		{
-			issue: issueCmd{addr1, bank, false},
-			move:  moveCmd{addr1, addr2, bank, false},
+		"send everything": {
+			issue: issueCmd{addr: addr1, amount: bank},
+			move:  moveCmd{sender: addr1, recipient: addr2, amount: bank},
 			check: []checkCmd{
-				{addr1, true, nil, nil},
-				{addr2, false, []coin.Coin{bank}, nil},
+				{addr: addr1, wantNotInWallet: []coin.Coin{bank}},
+				{addr: addr2, wantInWallet: []coin.Coin{bank}},
 			},
 		},
-		// send to self
-		{
-			issue: issueCmd{addr1, rem, false},
-			move:  moveCmd{addr1, addr1, send, false},
+		"send to self": {
+			issue: issueCmd{addr: addr1, amount: rem},
+			move:  moveCmd{sender: addr1, recipient: addr1, amount: send},
 			check: []checkCmd{
-				{addr1, false, []coin.Coin{send, rem}, []coin.Coin{bank}},
+				{addr: addr1, wantInWallet: []coin.Coin{send, rem}, wantNotInWallet: []coin.Coin{bank}},
 			},
 		},
-		// TODO: check overflow
 	}
 
-	for i, tc := range cases {
-		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
+	for testName, tc := range cases {
+		t.Run(testName, func(t *testing.T) {
 			kv := store.MemStore()
 
-			err := controller.CoinMint(kv, tc.issue.addr, tc.issue.amount)
-			if tc.issue.isErr {
-				require.Error(t, err)
-			} else {
-				require.NoError(t, err)
+			if err := controller.CoinMint(kv, tc.issue.addr, tc.issue.amount); !tc.issue.wantErr.Is(err) {
+				t.Fatalf("unexpected coin minting error: %+v", err)
 			}
 
-			err = controller.MoveCoins(kv, tc.move.sender, tc.move.rcpt, tc.move.amount)
-			if tc.move.isErr {
-				require.Error(t, err)
-			} else {
-				require.NoError(t, err)
+			if err := controller.MoveCoins(kv, tc.move.sender, tc.move.recipient, tc.move.amount); !tc.move.wantErr.Is(err) {
+				t.Fatalf("unexpected coin transfer error: %+v", err)
 			}
 
-			for j, check := range tc.check {
-				w := getWallet(kv, check.addr)
-				if check.isNil {
-					require.Nil(t, w, "%d", j)
-				} else {
-					require.NotNil(t, w, "%d", j)
-					for k, has := range check.contains {
-						assert.True(t, w.Contains(has), "%d/%d: %#v", j, k, w)
+			for i, check := range tc.check {
+				w := wallet(t, kv, check.addr)
+
+				if len(check.wantInWallet) == 0 && w != nil {
+					t.Errorf("check #%d: expected an empty wallet: %#v", i, w)
+				}
+
+				for _, coin := range check.wantInWallet {
+					if !w.Contains(coin) {
+						t.Errorf("check #%d: missing coin in the wallet: %v", i, coin)
 					}
-					for k, not := range check.notContain {
-						assert.False(t, w.Contains(not), "%d/%d: %#v", j, k, w)
+				}
+				for _, coin := range check.wantNotInWallet {
+					if w.Contains(coin) {
+						t.Errorf("check #%d: unwanted coin in the wallet: %v", i, coin)
 					}
 				}
 			}

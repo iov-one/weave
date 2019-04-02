@@ -7,148 +7,158 @@ import (
 	"testing"
 
 	"github.com/iov-one/weave/errors"
-	"github.com/stretchr/testify/assert"
-)
-
-type cmp int
-
-const (
-	neg  cmp = -1
-	zero     = 0
-	pos      = 1
+	"github.com/iov-one/weave/weavetest/assert"
 )
 
 func TestCompareCoin(t *testing.T) {
-
-	cases := []struct {
-		a      Coin
-		b      Coin
-		expect int
-		aState cmp
-		bState cmp
+	cases := map[string]struct {
+		a       Coin
+		b       Coin
+		wantRes int
 	}{
-		{
-			NewCoin(20, 1234, "ABC"),
-			NewCoin(19, 999999999, "ABC"),
-			1,
-			pos,
-			pos,
+		"a greater than b": {
+			a:       NewCoin(20, 1234, "ABC"),
+			b:       NewCoin(19, 999999999, "ABC"),
+			wantRes: 1,
 		},
-		{
-			NewCoin(0, -2, "FOO"),
-			NewCoin(0, 1, "FOO"),
-			-1,
-			neg,
-			pos,
+		"a smaller than b": {
+			a:       NewCoin(0, -2, "FOO"),
+			b:       NewCoin(0, 1, "FOO"),
+			wantRes: -1,
 		},
-		{
-			NewCoin(-4, -2456, "BAR"),
-			NewCoin(-4, -4567, "BAR"),
-			1,
-			neg,
-			neg,
+		"a greater than b and both negative": {
+			a:       NewCoin(-4, -2456, "BAR"),
+			b:       NewCoin(-4, -4567, "BAR"),
+			wantRes: 1,
 		},
-		{
-			Coin{},
-			Coin{},
-			0,
-			zero,
-			zero,
+		"zero value coins": {
+			a:       Coin{},
+			b:       Coin{},
+			wantRes: 0,
 		},
 	}
 
-	for idx, tc := range cases {
-		t.Run(fmt.Sprintf("case-%d", idx), func(t *testing.T) {
-			// make sure both show proper results
-			assert.Equal(t, tc.a.IsZero(), tc.aState == zero)
-			assert.Equal(t, tc.a.IsPositive(), tc.aState == pos)
-			assert.Equal(t, !tc.a.IsNonNegative(), tc.aState == neg)
-
-			assert.Equal(t, tc.b.IsZero(), tc.bState == zero)
-			assert.Equal(t, tc.b.IsPositive(), tc.bState == pos)
-			assert.Equal(t, !tc.b.IsNonNegative(), tc.bState == neg)
-
-			// make sure compare is correct
-			assert.Equal(t, tc.a.Compare(tc.b), tc.expect)
-
-			assert.True(t, tc.a.SameType(tc.b))
+	for testName, tc := range cases {
+		t.Run(testName, func(t *testing.T) {
+			res := tc.a.Compare(tc.b)
+			assert.Equal(t, res, tc.wantRes)
 		})
 	}
 }
 
-func TestValidCoin(t *testing.T) {
-	cases := []struct {
-		coin            Coin
-		valid           bool
-		normalized      Coin
-		normalizedValid bool
+func TestCoinNegative(t *testing.T) {
+	a := NewCoin(456, 985, "ABC")
+
+	n := a.Negative()
+
+	assert.Equal(t, a.Ticker, n.Ticker)
+	assert.Equal(t, a.Whole, -n.Whole)
+	assert.Equal(t, a.Fractional, -n.Fractional)
+
+	if nn := a.Negative().Negative(); !a.Equals(nn) {
+		t.Fatal("double negation marform the coin")
+	}
+}
+
+func TestCoinIsPositive(t *testing.T) {
+	cases := map[string]struct {
+		c    Coin
+		want bool
 	}{
-		// interger and fraction with same sign
-		{
-			NewCoin(4, -123456789, "FOO"),
-			false,
-			NewCoin(3, 876543211, "FOO"),
-			true,
+		"zero value coin": {
+			c:    NewCoin(0, 0, "FOO"),
+			want: false,
 		},
-		// invalid coin id
-		{
-			NewCoin(1, 0, "eth2"),
-			false,
-			NewCoin(1, 0, "eth2"),
-			false,
+		"negative value coin": {
+			c:    NewCoin(1, 2, "FOO").Negative(),
+			want: false,
 		},
-		// make sure issuer is maintained throughout
-		{
-			NewCoin(2, -1500500500, "ABC"),
-			false,
-			NewCoin(0, 499499500, "ABC"),
-			true,
-		},
-		// from negative to positive rollover
-		{
-			NewCoin(-1, 1777888111, "ABC"),
-			false,
-			NewCoin(0, 777888111, "ABC"),
-			true,
-		},
-		{
-			NewCoin(0, -100, "DIN"),
-			true,
-			NewCoin(0, -100, "DIN"),
-			true,
-		},
-		{
-			NewCoin(MaxInt, FracUnit+4, "DIN"),
-			false,
-			Coin{},
-			false,
+		"positive value coin": {
+			c:    NewCoin(1, 2, "FOO"),
+			want: true,
 		},
 	}
 
-	for idx, tc := range cases {
-		t.Run(fmt.Sprintf("case-%d", idx), func(t *testing.T) {
+	for testName, tc := range cases {
+		t.Run(testName, func(t *testing.T) {
+			if got := tc.c.IsPositive(); got != tc.want {
+				t.Fatal("unexpected result")
+			}
+		})
+	}
+}
 
-			// Validate this one
-			err := tc.coin.Validate()
-			// normalize and check if there are still errors
-			nrm, nerr := tc.coin.normalize()
-			if nerr == nil {
-				nerr = nrm.Validate()
+func TestCoinValidationAndNormalization(t *testing.T) {
+	cases := map[string]struct {
+		coin                 Coin
+		wantValErr           *errors.Error
+		wantNormalized       Coin
+		wantNormalizationErr *errors.Error
+		wantNormValErr       *errors.Error
+	}{
+		"valid coin with a negative fractional": {
+			coin:                 NewCoin(0, -100, "DIN"),
+			wantValErr:           nil,
+			wantNormalized:       NewCoin(0, -100, "DIN"),
+			wantNormalizationErr: nil,
+			wantNormValErr:       nil,
+		},
+		"interger and fraction with different sign": {
+			coin:                 NewCoin(4, -123456789, "FOO"),
+			wantValErr:           errors.ErrInvalidState,
+			wantNormalized:       NewCoin(3, 876543211, "FOO"),
+			wantNormValErr:       nil,
+			wantNormalizationErr: nil,
+		},
+		"invalid ticker": {
+			coin:                 NewCoin(1, 2, "eth2"),
+			wantValErr:           errors.ErrCurrency,
+			wantNormalized:       NewCoin(1, 2, "eth2"),
+			wantNormalizationErr: nil,
+			wantNormValErr:       errors.ErrCurrency,
+		},
+		"make sure issuer is maintained throughout": {
+			coin:                 NewCoin(2, -1500500500, "ABC"),
+			wantValErr:           errors.ErrOverflow,
+			wantNormalized:       NewCoin(0, 499499500, "ABC"),
+			wantNormalizationErr: nil,
+			wantNormValErr:       nil,
+		},
+		"from negative to positive rollover": {
+			coin:                 NewCoin(-1, 1777888111, "ABC"),
+			wantValErr:           errors.ErrOverflow,
+			wantNormalized:       NewCoin(0, 777888111, "ABC"),
+			wantNormalizationErr: nil,
+			wantNormValErr:       nil,
+		},
+		"overflow": {
+			coin:                 NewCoin(MaxInt, FracUnit+4, "DIN"),
+			wantValErr:           errors.ErrOverflow,
+			wantNormalized:       Coin{},
+			wantNormalizationErr: errors.ErrOverflow,
+		},
+	}
+
+	for testName, tc := range cases {
+		t.Run(testName, func(t *testing.T) {
+			if err := tc.coin.Validate(); !tc.wantValErr.Is(err) {
+				t.Fatalf("unexpected coin validation error: %s", err)
 			}
 
-			if tc.valid {
-				assert.NoError(t, err)
-			} else {
-				assert.Error(t, err)
+			normalized, err := tc.coin.normalize()
+			if !tc.wantNormalizationErr.Is(err) {
+				t.Fatalf("unexpected normalization error: %s", err)
+			}
+			if tc.wantNormalizationErr != nil {
+				return
 			}
 
-			assert.Equal(t, tc.normalized, nrm)
-			assert.True(t, tc.normalized.Equals(nrm))
+			if err := normalized.Validate(); !tc.wantNormValErr.Is(err) {
+				t.Fatalf("unexpected normalized coin validation error: %s", err)
+			}
 
-			if tc.normalizedValid {
-				assert.NoError(t, nerr)
-			} else {
-				assert.Error(t, nerr)
+			if !tc.wantNormalized.Equals(normalized) {
+				t.Fatalf("unexpected normalized coin value: %#v", normalized)
 			}
 		})
 	}
