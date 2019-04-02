@@ -16,19 +16,19 @@ var authCheckAddress = func(auth x.Authenticator, ctx weave.Context) CheckAddres
 }
 
 // RegisterRoutes will instantiate and register
-// all handlers in this package
+// all handlers in this package.
 func RegisterRoutes(r weave.Registry, auth x.Authenticator,
 	control Controller) {
 
 	r.Handle(pathUpdate, NewUpdateHandler(auth, control, authCheckAddress))
 }
 
-// RegisterQuery will register this bucket as "/validators"
+// RegisterQuery will register this bucket as "/validators".
 func RegisterQuery(qr weave.QueryRouter) {
 	NewBucket().Register("validators", qr)
 }
 
-// UpdateHandler will handle sending coins
+// UpdateHandler will handle sending coins.
 type UpdateHandler struct {
 	auth             x.Authenticator
 	control          Controller
@@ -37,7 +37,7 @@ type UpdateHandler struct {
 
 var _ weave.Handler = UpdateHandler{}
 
-// NewUpdateHandler creates a handler for SendMsg
+// NewUpdateHandler creates a handler for SendMsg.
 func NewUpdateHandler(auth x.Authenticator, control Controller, checkAddr AuthCheckAddress) UpdateHandler {
 	return UpdateHandler{
 		auth:             auth,
@@ -46,18 +46,16 @@ func NewUpdateHandler(auth x.Authenticator, control Controller, checkAddr AuthCh
 	}
 }
 
-// Check verifies all the preconditions
-func (h UpdateHandler) Check(ctx weave.Context, store weave.KVStore,
-	tx weave.Tx) (weave.CheckResult, error) {
+// Check verifies all the preconditions.
+func (h UpdateHandler) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx) (weave.CheckResult, error) {
 	var res weave.CheckResult
 	_, err := h.validate(ctx, store, tx)
 	return res, err
 }
 
 // Deliver provides the diff given everything is okay with permissions and such
-// Check did the same job already, so we can assume stuff goes okay
-func (h UpdateHandler) Deliver(ctx weave.Context, store weave.KVStore,
-	tx weave.Tx) (weave.DeliverResult, error) {
+// Check did the same job already, so we can assume stuff goes okay.
+func (h UpdateHandler) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx) (weave.DeliverResult, error) {
 	// ensure type and validate...
 	var res weave.DeliverResult
 	diff, err := h.validate(ctx, store, tx)
@@ -69,18 +67,9 @@ func (h UpdateHandler) Deliver(ctx weave.Context, store weave.KVStore,
 }
 
 func (h UpdateHandler) validate(ctx weave.Context, store weave.KVStore, tx weave.Tx) ([]abci.ValidatorUpdate, error) {
-	rmsg, err := tx.GetMsg()
-	if err != nil {
-		return nil, err
+	var msg SetValidatorsMsg
+	if err := weave.LoadMsg(tx, &msg); err != nil {
+		return nil, errors.Wrap(err, "load msg")
 	}
-	msg, ok := rmsg.(*SetValidatorsMsg)
-	if !ok {
-		return nil, errors.WithType(errors.ErrInvalidMsg, rmsg)
-	}
-	err = msg.Validate()
-	if err != nil {
-		return nil, err
-	}
-
 	return h.control.CanUpdateValidators(store, h.authCheckAddress(h.auth, ctx), msg.AsABCI())
 }

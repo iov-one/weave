@@ -81,18 +81,11 @@ func (h *newRevenueHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weav
 }
 
 func (h *newRevenueHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*NewRevenueMsg, error) {
-	rmsg, err := tx.GetMsg()
-	if err != nil {
-		return nil, errors.Wrap(err, "cannot get message")
+	var msg NewRevenueMsg
+	if err := weave.LoadMsg(tx, &msg); err != nil {
+		return nil, errors.Wrap(err, "load msg")
 	}
-	msg, ok := rmsg.(*NewRevenueMsg)
-	if !ok {
-		return nil, errors.Wrap(errors.ErrInvalidMsg, "unknown transaction type")
-	}
-	if err := msg.Validate(); err != nil {
-		return msg, err
-	}
-	return msg, nil
+	return &msg, nil
 }
 
 type distributeHandler struct {
@@ -139,21 +132,14 @@ func (h *distributeHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weav
 }
 
 func (h *distributeHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*DistributeMsg, error) {
-	rmsg, err := tx.GetMsg()
-	if err != nil {
-		return nil, errors.Wrap(err, "cannot get message")
-	}
-	msg, ok := rmsg.(*DistributeMsg)
-	if !ok {
-		return nil, errors.Wrap(errors.ErrInvalidMsg, "unknown transaction type")
-	}
-	if err := msg.Validate(); err != nil {
-		return msg, err
+	var msg DistributeMsg
+	if err := weave.LoadMsg(tx, &msg); err != nil {
+		return nil, errors.Wrap(err, "load msg")
 	}
 	if _, err := h.bucket.GetRevenue(db, msg.RevenueID); err != nil {
 		return nil, errors.Wrap(err, "cannot get revenue")
 	}
-	return msg, nil
+	return &msg, nil
 }
 
 type resetRevenueHandler struct {
@@ -212,18 +198,11 @@ func (h *resetRevenueHandler) Deliver(ctx weave.Context, db weave.KVStore, tx we
 }
 
 func (h *resetRevenueHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*ResetRevenueMsg, error) {
-	rmsg, err := tx.GetMsg()
-	if err != nil {
-		return nil, errors.Wrap(err, "cannot get message")
+	var msg ResetRevenueMsg
+	if err := weave.LoadMsg(tx, &msg); err != nil {
+		return nil, errors.Wrap(err, "load msg")
 	}
-	msg, ok := rmsg.(*ResetRevenueMsg)
-	if !ok {
-		return nil, errors.Wrap(errors.ErrInvalidMsg, "unknown transaction type")
-	}
-	if err := msg.Validate(); err != nil {
-		return msg, err
-	}
-	return msg, nil
+	return &msg, nil
 }
 
 // distribute split the funds stored under the revenue address and distribute

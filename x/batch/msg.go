@@ -3,7 +3,6 @@ package batch
 import (
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
-	"github.com/iov-one/weave/x"
 )
 
 const (
@@ -12,7 +11,6 @@ const (
 
 type Msg interface {
 	weave.Msg
-	x.Validater
 	MsgList() ([]weave.Msg, error)
 }
 

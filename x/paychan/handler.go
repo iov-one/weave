@@ -46,29 +46,21 @@ func (h *createPaymentChannelHandler) Check(ctx weave.Context, db weave.KVStore,
 }
 
 func (h *createPaymentChannelHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*CreatePaymentChannelMsg, error) {
-	rmsg, err := tx.GetMsg()
-	if err != nil {
-		return nil, err
-	}
-	msg, ok := rmsg.(*CreatePaymentChannelMsg)
-	if !ok {
-		return nil, errors.Wrap(errors.ErrInvalidMsg, "unknown transaction type")
-	}
-
-	if err := msg.Validate(); err != nil {
-		return msg, err
+	var msg CreatePaymentChannelMsg
+	if err := weave.LoadMsg(tx, &msg); err != nil {
+		return nil, errors.Wrap(err, "load msg")
 	}
 
 	// Ensure that the timeout is in the future.
 	if height, _ := weave.GetHeight(ctx); msg.Timeout <= height {
-		return msg, errors.Wrap(errors.ErrInvalidMsg, "timeout in the past")
+		return &msg, errors.Wrap(errors.ErrInvalidMsg, "timeout in the past")
 	}
 
 	if !h.auth.HasAddress(ctx, msg.Src) {
-		return msg, errors.Wrap(errors.ErrUnauthorized, "invalid address")
+		return &msg, errors.Wrap(errors.ErrUnauthorized, "invalid address")
 	}
 
-	return msg, nil
+	return &msg, nil
 }
 
 func (h *createPaymentChannelHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (weave.DeliverResult, error) {
@@ -120,19 +112,10 @@ func (h *transferPaymentChannelHandler) Check(ctx weave.Context, db weave.KVStor
 }
 
 func (h *transferPaymentChannelHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*TransferPaymentChannelMsg, error) {
-	rmsg, err := tx.GetMsg()
-	if err != nil {
-		return nil, errors.Wrap(err, "cannot get message")
+	var msg TransferPaymentChannelMsg
+	if err := weave.LoadMsg(tx, &msg); err != nil {
+		return nil, errors.Wrap(err, "load msg")
 	}
-	msg, ok := rmsg.(*TransferPaymentChannelMsg)
-	if !ok {
-		return nil, errors.Wrap(errors.ErrInvalidMsg, "unknown tx type")
-	}
-
-	if err := msg.Validate(); err != nil {
-		return msg, err
-	}
-
 	if weave.GetChainID(ctx) != msg.Payment.ChainID {
 		return nil, errors.Wrap(errors.ErrInvalidMsg, "invalid chain ID")
 	}
@@ -148,24 +131,24 @@ func (h *transferPaymentChannelHandler) validate(ctx weave.Context, db weave.KVS
 		return nil, errors.Wrap(err, "cannot serialize payment")
 	}
 	if !pc.SenderPubkey.Verify(raw, msg.Signature) {
-		return msg, errors.Wrap(errors.ErrInvalidMsg, "invalid signature")
+		return &msg, errors.Wrap(errors.ErrInvalidMsg, "invalid signature")
 	}
 
 	if !msg.Payment.Amount.SameType(*pc.Total) {
-		return msg, errors.Wrap(errors.ErrInvalidMsg, "amount and total amount use different ticker")
+		return &msg, errors.Wrap(errors.ErrInvalidMsg, "amount and total amount use different ticker")
 	}
 
 	if msg.Payment.Amount.Compare(*pc.Total) > 0 {
-		return msg, errors.Wrap(errors.ErrInvalidMsg, "amount greater than total amount")
+		return &msg, errors.Wrap(errors.ErrInvalidMsg, "amount greater than total amount")
 	}
 	// Payment is representing a cumulative amount that is to be
 	// transferred to recipients account. Because it is cumulative, every
 	// transfer request must be greater than the previous one.
 	if msg.Payment.Amount.Compare(*pc.Transferred) <= 0 {
-		return msg, errors.Wrap(errors.ErrInvalidMsg, "amount must be greater than previously requested")
+		return &msg, errors.Wrap(errors.ErrInvalidMsg, "amount must be greater than previously requested")
 	}
 
-	return msg, nil
+	return &msg, nil
 }
 
 func (h *transferPaymentChannelHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (weave.DeliverResult, error) {
@@ -226,34 +209,35 @@ type closePaymentChannelHandler struct {
 var _ weave.Handler = (*closePaymentChannelHandler)(nil)
 
 func (h *closePaymentChannelHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (weave.CheckResult, error) {
-	var res weave.CheckResult
-	_, err := h.validate(ctx, db, tx)
-	return res, err
+	var msg ClosePaymentChannelMsg
+	if err := weave.LoadMsg(tx, &msg); err != nil {
+		return weave.CheckResult{}, errors.Wrap(err, "load msg")
+	}
+	return weave.CheckResult{}, nil
 }
 
 func (h *closePaymentChannelHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (weave.DeliverResult, error) {
-	var res weave.DeliverResult
-	msg, err := h.validate(ctx, db, tx)
-	if err != nil {
-		return res, err
+	var msg ClosePaymentChannelMsg
+	if err := weave.LoadMsg(tx, &msg); err != nil {
+		return weave.DeliverResult{}, errors.Wrap(err, "load msg")
 	}
 
 	pc, err := h.bucket.GetPaymentChannel(db, msg.ChannelID)
 	if err != nil {
-		return res, err
+		return weave.DeliverResult{}, err
 	}
 
 	// If payment channel funds were exhausted anyone is free to close it.
 	if pc.Total.Equals(*pc.Transferred) {
 		err := h.bucket.Delete(db, msg.ChannelID)
-		return res, err
+		return weave.DeliverResult{}, err
 	}
 
 	if height, _ := weave.GetHeight(ctx); pc.Timeout > height {
 		// If timeout was not reached, only the recipient is allowed to
 		// close the channel.
 		if !h.auth.HasAddress(ctx, pc.Recipient) {
-			return res, errors.Wrap(errors.ErrInvalidMsg, "only the recipient is allowed to close the channel")
+			return weave.DeliverResult{}, errors.Wrap(errors.ErrInvalidMsg, "only the recipient is allowed to close the channel")
 		}
 	}
 
@@ -261,27 +245,14 @@ func (h *closePaymentChannelHandler) Deliver(ctx weave.Context, db weave.KVStore
 	// that are still allocated on this payment channel account.
 	diff, err := pc.Total.Subtract(*pc.Transferred)
 	if err != nil {
-		return res, err
+		return weave.DeliverResult{}, err
 	}
 	src := paymentChannelAccount(msg.ChannelID)
 	if err := h.cash.MoveCoins(db, src, pc.Src, diff); err != nil {
-		return res, err
+		return weave.DeliverResult{}, err
 	}
 	err = h.bucket.Delete(db, msg.ChannelID)
-	return res, err
-}
-
-func (h *closePaymentChannelHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*ClosePaymentChannelMsg, error) {
-	rmsg, err := tx.GetMsg()
-	if err != nil {
-		return nil, err
-	}
-	msg, ok := rmsg.(*ClosePaymentChannelMsg)
-	if !ok {
-		return nil, errors.Wrap(errors.ErrInvalidMsg, "invalid message type")
-	}
-
-	return msg, msg.Validate()
+	return weave.DeliverResult{}, err
 }
 
 // paymentChannelAccount returns an account address for a payment channel with

@@ -50,17 +50,9 @@ func (h *TokenInfoHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave
 }
 
 func (h *TokenInfoHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*NewTokenInfoMsg, error) {
-	rmsg, err := tx.GetMsg()
-	if err != nil {
-		return nil, err
-	}
-	msg, ok := rmsg.(*NewTokenInfoMsg)
-	if !ok {
-		return nil, errors.WithType(errors.ErrInvalidMsg, rmsg)
-	}
-
-	if err := msg.Validate(); err != nil {
-		return nil, err
+	var msg NewTokenInfoMsg
+	if err := weave.LoadMsg(tx, &msg); err != nil {
+		return nil, errors.Wrap(err, "load msg")
 	}
 
 	// Ensure we have permission if the issuer is provided.
@@ -76,5 +68,5 @@ func (h *TokenInfoHandler) validate(ctx weave.Context, db weave.KVStore, tx weav
 		return nil, errors.Wrapf(errors.ErrDuplicate, "ticker %s", msg.Ticker)
 	}
 
-	return msg, nil
+	return &msg, nil
 }

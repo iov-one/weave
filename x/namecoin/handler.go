@@ -8,13 +8,13 @@ import (
 )
 
 // NewFeeDecorator customizes cash/FeeDecorator to use our
-// WalletBucket
+// WalletBucket.
 func NewFeeDecorator(auth x.Authenticator) weave.Decorator {
 	return cash.NewFeeDecorator(auth, NewController())
 }
 
 // NewSendHandler customizes cash/SendHandler to use our
-// WalletBucket
+// WalletBucket.
 func NewSendHandler(auth x.Authenticator) weave.Handler {
 	return cash.NewSendHandler(auth, NewController())
 }
@@ -41,7 +41,7 @@ func NewSetNameHandler(auth x.Authenticator, bucket NamedBucket) weave.Handler {
 }
 
 // RegisterRoutes will instantiate and register
-// all handlers in this package
+// all handlers in this package.
 func RegisterRoutes(r weave.Registry, auth x.Authenticator, issuer weave.Address) {
 	pathSend := cash.SendMsg{}.Path()
 	r.Handle(pathSend, NewSendHandler(auth))
@@ -50,13 +50,13 @@ func RegisterRoutes(r weave.Registry, auth x.Authenticator, issuer weave.Address
 }
 
 // RegisterQuery will register wallets as "/wallets"
-// and tokens as "/tokens"
+// and tokens as "/tokens".
 func RegisterQuery(qr weave.QueryRouter) {
 	NewWalletBucket().Register("wallets", qr)
 	NewTokenBucket().Register("tokens", qr)
 }
 
-// TokenHandler will handle creating new tokens
+// TokenHandler will handle creating new tokens.
 type TokenHandler struct {
 	auth   x.Authenticator
 	bucket TickerBucket
@@ -66,9 +66,8 @@ type TokenHandler struct {
 var _ weave.Handler = TokenHandler{}
 
 // Check just verifies it is properly formed and returns
-// the cost of executing it
-func (h TokenHandler) Check(ctx weave.Context, db weave.KVStore,
-	tx weave.Tx) (weave.CheckResult, error) {
+// the cost of executing it.
+func (h TokenHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (weave.CheckResult, error) {
 	var res weave.CheckResult
 	_, err := h.validate(ctx, db, tx)
 	if err != nil {
@@ -81,9 +80,8 @@ func (h TokenHandler) Check(ctx weave.Context, db weave.KVStore,
 }
 
 // Deliver moves the tokens from sender to receiver if
-// all preconditions are met
-func (h TokenHandler) Deliver(ctx weave.Context, db weave.KVStore,
-	tx weave.Tx) (weave.DeliverResult, error) {
+// all preconditions are met.
+func (h TokenHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (weave.DeliverResult, error) {
 	var res weave.DeliverResult
 	msg, err := h.validate(ctx, db, tx)
 	if err != nil {
@@ -97,29 +95,17 @@ func (h TokenHandler) Deliver(ctx weave.Context, db weave.KVStore,
 }
 
 // validate does all common pre-processing between Check and Deliver
-func (h TokenHandler) validate(ctx weave.Context, db weave.KVStore,
-	tx weave.Tx) (*NewTokenMsg, error) {
-
-	rmsg, err := tx.GetMsg()
-	if err != nil {
-		return nil, err
-	}
-	msg, ok := rmsg.(*NewTokenMsg)
-	if !ok {
-		return nil, errors.WithType(errors.ErrInvalidMsg, rmsg)
+func (h TokenHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*NewTokenMsg, error) {
+	var msg NewTokenMsg
+	if err := weave.LoadMsg(tx, &msg); err != nil {
+		return nil, errors.Wrap(err, "load msg")
 	}
 
-	err = msg.Validate()
-	if err != nil {
-		return nil, err
-	}
-
-	// make sure we have permission if the issuer is set
+	// Make sure we have permission if the issuer is set.
 	if h.issuer == nil || !h.auth.HasAddress(ctx, h.issuer) {
 		return nil, errors.Wrapf(errors.ErrUnauthorized, "Token only issued by %s", h.issuer)
 	}
 
-	// make sure no token there yet
 	obj, err := h.bucket.Get(db, msg.Ticker)
 	if err != nil {
 		return nil, err
@@ -128,10 +114,10 @@ func (h TokenHandler) validate(ctx weave.Context, db weave.KVStore,
 		return nil, errors.Wrapf(errors.ErrDuplicate, "token with ticker %s", msg.Ticker)
 	}
 
-	return msg, nil
+	return &msg, nil
 }
 
-// SetNameHandler will set a name for objects in this bucket
+// SetNameHandler will set a name for objects in this bucket.
 type SetNameHandler struct {
 	auth   x.Authenticator
 	bucket NamedBucket
@@ -140,31 +126,27 @@ type SetNameHandler struct {
 var _ weave.Handler = SetNameHandler{}
 
 // Check just verifies it is properly formed and returns
-// the cost of executing it
-func (h SetNameHandler) Check(ctx weave.Context, db weave.KVStore,
-	tx weave.Tx) (weave.CheckResult, error) {
+// the cost of executing it.
+func (h SetNameHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (weave.CheckResult, error) {
 	var res weave.CheckResult
 	_, err := h.validate(ctx, db, tx)
 	if err != nil {
 		return res, err
 	}
 
-	// return cost
 	res.GasAllocated += setNameCost
 	return res, nil
 }
 
 // Deliver moves the tokens from sender to receiver if
-// all preconditions are met
-func (h SetNameHandler) Deliver(ctx weave.Context, db weave.KVStore,
-	tx weave.Tx) (weave.DeliverResult, error) {
+// all preconditions are met.
+func (h SetNameHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (weave.DeliverResult, error) {
 	var res weave.DeliverResult
 	msg, err := h.validate(ctx, db, tx)
 	if err != nil {
 		return res, err
 	}
 
-	// set the token
 	obj, err := h.bucket.Get(db, msg.Address)
 	if err != nil {
 		return res, err
@@ -182,28 +164,17 @@ func (h SetNameHandler) Deliver(ctx weave.Context, db weave.KVStore,
 	return res, err
 }
 
-// validate does all common pre-processing between Check and Deliver
-func (h SetNameHandler) validate(ctx weave.Context, db weave.KVStore,
-	tx weave.Tx) (*SetWalletNameMsg, error) {
-
-	rmsg, err := tx.GetMsg()
-	if err != nil {
-		return nil, err
-	}
-	msg, ok := rmsg.(*SetWalletNameMsg)
-	if !ok {
-		return nil, errors.WithType(errors.ErrInvalidMsg, rmsg)
+// validate does all common pre-processing between Check and Deliver.
+func (h SetNameHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*SetWalletNameMsg, error) {
+	var msg SetWalletNameMsg
+	if err := weave.LoadMsg(tx, &msg); err != nil {
+		return nil, errors.Wrap(err, "load msg")
 	}
 
-	err = msg.Validate()
-	if err != nil {
-		return nil, err
-	}
-
-	// only wallet owner can set the name
+	// Only wallet owner can set the name.
 	if !h.auth.HasAddress(ctx, msg.Address) {
 		return nil, errors.Wrap(errors.ErrUnauthorized, "Not wallet owner")
 	}
 
-	return msg, nil
+	return &msg, nil
 }

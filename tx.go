@@ -1,7 +1,6 @@
 package weave
 
 import (
-	"fmt"
 	"reflect"
 
 	"github.com/iov-one/weave/errors"
@@ -23,6 +22,13 @@ type Msg interface {
 	//
 	// Must be alphanumeric [0-9A-Za-z_\-]+
 	Path() string
+
+	// Validate performs a sanity checks on this message. It returns an
+	// error if at least one test does not pass and message is considered
+	// invalid.
+	// This validation performs only tests that do not require external
+	// resources (ie a database).
+	Validate() error
 }
 
 // Marshaller is anything that can be represented in binary
@@ -84,25 +90,61 @@ type TxDecoder func(txBytes []byte) (Tx, error)
 // and that field can be cast to a Msg.
 // Returns an error if it cannot succeed.
 func ExtractMsgFromSum(sum interface{}) (Msg, error) {
-	// TODO: add better error messages here with new refactor
 	if sum == nil {
-		return nil, errors.Wrap(errors.ErrInvalidMsg, "message container is <nil>")
+		return nil, errors.Wrap(errors.ErrInvalidInput, "message container is <nil>")
 	}
 	pval := reflect.ValueOf(sum)
 	if pval.Kind() != reflect.Ptr || pval.Elem().Kind() != reflect.Struct {
-		return nil, errors.Wrap(errors.ErrInvalidMsg, fmt.Sprintf("invalid message container value: %T", sum))
+		return nil, errors.Wrapf(errors.ErrInvalidInput, "invalid message container value: %T", sum)
 	}
 	val := pval.Elem()
 	if val.NumField() != 1 {
-		return nil, errors.Wrap(errors.ErrInvalidMsg, fmt.Sprintf("Unexpected message container field count: %d", val.NumField()))
+		return nil, errors.Wrapf(errors.ErrInvalidInput, "Unexpected message container field count: %d", val.NumField())
 	}
 	field := val.Field(0)
 	if field.IsNil() {
-		return nil, errors.Wrap(errors.ErrInvalidMsg, "message is <nil>")
+		return nil, errors.Wrap(errors.ErrInvalidState, "message is <nil>")
 	}
 	res, ok := field.Interface().(Msg)
 	if !ok {
-		return nil, errors.Wrap(errors.ErrInvalidMsg, fmt.Sprintf("Unsupported message type: %T", field.Interface()))
+		return nil, errors.Wrapf(errors.ErrInvalidType, "unsupported message type: %T", field.Interface())
 	}
 	return res, nil
+}
+
+// LoadMsg extracts the message represented by given transaction into given
+// destination. Before retutning message validation method is called.
+func LoadMsg(tx Tx, destination interface{}) error {
+	msg, err := tx.GetMsg()
+	if err != nil {
+		return errors.Wrap(err, "cannot get transaction message")
+	}
+	if msg == nil {
+		return errors.Wrap(errors.ErrInvalidState, "nil message")
+	}
+
+	if err := msg.Validate(); err != nil {
+		return errors.Wrap(err, "invalid message")
+	}
+
+	dstVal := reflect.ValueOf(destination)
+	if dstVal.Kind() != reflect.Ptr {
+		return errors.Wrapf(errors.ErrInvalidType, "destination must be a pointer, got %T", destination)
+	}
+	dstVal = dstVal.Elem()
+	if !dstVal.IsValid() {
+		return errors.Wrap(errors.ErrInvalidType, "destination cannot be addressed")
+	}
+
+	srcVal := reflect.ValueOf(msg)
+	if srcVal.Kind() == reflect.Ptr {
+		srcVal = srcVal.Elem()
+	}
+
+	if srcVal.Type() != dstVal.Type() {
+		return errors.Wrapf(errors.ErrInvalidType, "want %T destination, got %T", msg, destination)
+	}
+
+	dstVal.Set(srcVal)
+	return nil
 }
