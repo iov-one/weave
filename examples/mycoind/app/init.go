@@ -8,11 +8,11 @@ import (
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/app"
 	"github.com/iov-one/weave/coin"
+	"github.com/iov-one/weave/commands/server"
 	"github.com/iov-one/weave/crypto"
 	"github.com/iov-one/weave/gconf"
 	"github.com/iov-one/weave/x/cash"
 	abci "github.com/tendermint/tendermint/abci/types"
-	"github.com/tendermint/tendermint/libs/log"
 )
 
 // GenInitOptions will produce some basic options for one rich
@@ -63,15 +63,15 @@ func GenInitOptions(args []string) (json.RawMessage, error) {
 }
 
 // GenerateApp is used to create a stub for server/start.go command
-func GenerateApp(home string, logger log.Logger, debug bool) (abci.Application, error) {
+func GenerateApp(options *server.Options) (abci.Application, error) {
 	// db goes in a subdir, but "" -> "" for memdb
 	var dbPath string
-	if home != "" {
-		dbPath = filepath.Join(home, "abci.db")
+	if options.Home != "" {
+		dbPath = filepath.Join(options.Home, "abci.db")
 	}
 
-	stack := Stack(coin.Coin{})
-	application, err := Application("mycoin", stack, TxDecoder, dbPath, debug)
+	stack := Stack(options.MinFee)
+	application, err := Application("mycoin", stack, TxDecoder, dbPath, options.Debug)
 	if err != nil {
 		return nil, err
 	}
@@ -81,7 +81,7 @@ func GenerateApp(home string, logger log.Logger, debug bool) (abci.Application, 
 	))
 
 	// set the logger and return
-	application.WithLogger(logger)
+	application.WithLogger(options.Logger)
 	return application, nil
 }
 

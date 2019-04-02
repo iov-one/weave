@@ -10,6 +10,7 @@ import (
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/cmd/bnsd/app"
 	"github.com/iov-one/weave/coin"
+	"github.com/iov-one/weave/commands/server"
 	"github.com/iov-one/weave/x/cash"
 	abci "github.com/tendermint/tendermint/abci/types"
 	cfg "github.com/tendermint/tendermint/config"
@@ -62,7 +63,13 @@ func TestMain(m *testing.M) {
 }
 
 func initApp(config *cfg.Config, addr weave.Address) (abci.Application, error) {
-	bcp, err := app.GenerateApp(config.RootDir, logger, false)
+	opts := &server.Options{
+		MinFee: coin.Coin{},
+		Home:   config.RootDir,
+		Logger: logger,
+		Debug:  false,
+	}
+	bcp, err := app.GenerateApp(opts)
 	if err != nil {
 		return nil, err
 	}

@@ -12,6 +12,7 @@ import (
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/app"
 	"github.com/iov-one/weave/coin"
+	"github.com/iov-one/weave/commands/server"
 	"github.com/iov-one/weave/crypto"
 	"github.com/iov-one/weave/x/batch"
 	"github.com/iov-one/weave/x/cash"
@@ -24,6 +25,13 @@ import (
 	cmn "github.com/tendermint/tendermint/libs/common"
 	"github.com/tendermint/tendermint/libs/log"
 )
+
+var opts = &server.Options{
+	MinFee: coin.Coin{},
+	Debug:  true,
+	Logger: log.NewNopLogger(),
+	Home:   "",
+}
 
 func TestSendTx(t *testing.T) {
 	chainID := "test-net-22"
@@ -179,7 +187,7 @@ func (a *account) address() []byte {
 // coins and tokens are the same across all accounts and calls
 func newTestApp(t require.TestingT, chainID string, accounts []*account) app.BaseApp {
 	// no minimum fee, in-memory data-store
-	abciApp, err := GenerateApp("", log.NewNopLogger(), true)
+	abciApp, err := GenerateApp(opts)
 	require.NoError(t, err)
 	myApp := abciApp.(app.BaseApp) // let's set up a genesis file with some cash
 	appState := withWalletAppState(t, accounts)
@@ -199,7 +207,7 @@ func newTestApp(t require.TestingT, chainID string, accounts []*account) app.Bas
 
 func newMultisigTestApp(t require.TestingT, chainID string, contracts []*contract) app.BaseApp {
 	// no minimum fee, in-memory data-store
-	abciApp, err := GenerateApp("", log.NewNopLogger(), true)
+	abciApp, err := GenerateApp(opts)
 	require.NoError(t, err)
 	myApp := abciApp.(app.BaseApp) // let's set up a genesis file with some cash
 	appState := appStateGenesis(t, contracts)

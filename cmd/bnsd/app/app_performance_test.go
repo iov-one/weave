@@ -9,6 +9,7 @@ import (
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/coin"
+	"github.com/iov-one/weave/commands/server"
 	"github.com/iov-one/weave/weavetest"
 	"github.com/iov-one/weave/x/cash"
 	"github.com/iov-one/weave/x/sigs"
@@ -201,7 +202,13 @@ func newBnsd(t testing.TB) (abci.Application, func()) {
 	if err != nil {
 		t.Fatalf("cannot create a temporary directory: %s", err)
 	}
-	bnsd, err := GenerateApp(homeDir, log.NewNopLogger(), false)
+	opts := &server.Options{
+		MinFee: coin.Coin{},
+		Home:   homeDir,
+		Logger: log.NewNopLogger(),
+		Debug:  false,
+	}
+	bnsd, err := GenerateApp(opts)
 	if err != nil {
 		t.Fatalf("cannot generate bnsd instance: %s", err)
 	}
