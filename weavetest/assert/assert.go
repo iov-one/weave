@@ -9,7 +9,9 @@ import (
 func Nil(t testing.TB, value interface{}) {
 	t.Helper()
 	if !isNil(value) {
-		t.Fatalf("want a nil value, got %#v", value)
+		// Use %+v so that if we are printing an error that supports
+		// stack traces then a full stack trace is shown.
+		t.Fatalf("want a nil value, got %+v", value)
 	}
 }
 
