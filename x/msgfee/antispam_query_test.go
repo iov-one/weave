@@ -4,20 +4,19 @@ import (
 	"testing"
 
 	"github.com/iov-one/weave/coin"
+	"github.com/iov-one/weave/weavetest/assert"
 )
 
 func TestAntiSpamQuery(t *testing.T) {
 	initialCoin := coin.Coin{
-		Whole:      0,
-		Fractional: 0,
+		Whole:      1,
+		Fractional: 3,
 		Ticker:     "DOGE",
 	}
 
 	q := NewAntiSpamQuery(initialCoin)
 	model, err := q.Query(nil, "", nil)
-	if err != nil {
-		t.Fatalf("unexpected error: %s ", err.Error())
-	}
+	assert.Nil(t, err)
 
 	modelNum := len(model)
 
@@ -27,11 +26,9 @@ func TestAntiSpamQuery(t *testing.T) {
 
 	c := coin.Coin{}
 	err = c.Unmarshal(model[0].Value)
-	if err != nil {
-		t.Fatalf("unexpected unmarshaling error: %s ", err.Error())
-	}
+	assert.Nil(t, err)
 
-	if !(c).Equals(initialCoin) {
+	if !c.Equals(initialCoin) {
 		t.Fatalf("expected coin %s to equal %s", c.String(), initialCoin.String())
 	}
 
