@@ -1,18 +1,24 @@
 package gov
 
 import (
+	"fmt"
+	"regexp"
+
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/orm"
 )
 
-const maxWeight = 2 ^ 16 - 1
+var validTitle = regexp.MustCompile(`^[a-zA-Z0-9_.-]{4,128}$`).MatchString
 
 func (m Electorate) Validate() error {
-	// todo: impl
+	if !validTitle(m.Title) {
+		return errors.Wrap(errors.ErrInvalidInput, fmt.Sprintf("title: %q", m.Title))
+	}
 	switch len(m.Participants) {
 	case 0:
 		return errors.Wrap(errors.ErrInvalidInput, "participants must  not be empty")
+
 		// TODO max number of participants?
 	}
 	for _, v := range m.Participants {
@@ -32,13 +38,19 @@ func (m Electorate) Copy() orm.CloneableData {
 	}
 }
 
+const maxWeight = 2 ^ 16 - 1
+
 func (m Participant) Validate() error {
-	if m.Weight > maxWeight {
+	switch {
+	case m.Weight > maxWeight:
 		return errors.Wrap(errors.ErrInvalidInput, "must not be greater max weight")
+	case m.Weight == 0:
+		return errors.Wrap(errors.ErrInvalidInput, "weight must not be empty")
 	}
-	return nil
+	return m.Signature.Validate()
 }
 
+// ElectorateBucket is the persistent bucket for Electorate object.
 type ElectorateBucket struct {
 	orm.Bucket
 	idSeq orm.Sequence
@@ -76,8 +88,21 @@ func (b *ElectorateBucket) GetElectorate(db weave.KVStore, id []byte) (*Electora
 	return rev, nil
 }
 
+const (
+	minVotingPeriodHours = 1
+	maxVotingPeriodHours = 365 * 24
+)
+
 func (m ElectionRule) Validate() error {
-	// TODO: implement
+	if !validTitle(m.Title) {
+		return errors.Wrap(errors.ErrInvalidInput, fmt.Sprintf("title: %q", m.Title))
+	}
+	switch {
+	case m.VotingPeriodHours < minVotingPeriodHours:
+		return errors.Wrap(errors.ErrInvalidInput, fmt.Sprintf("min hours: %d", minVotingPeriodHours))
+	case m.VotingPeriodHours > maxVotingPeriodHours:
+		return errors.Wrap(errors.ErrInvalidInput, fmt.Sprintf("max hours: %d", maxVotingPeriodHours))
+	}
 	return m.Threshold.Validate()
 }
 
@@ -94,11 +119,14 @@ func (m Fraction) Validate() error {
 	case m.Numerator == 0:
 		return errors.Wrap(errors.ErrInvalidInput, "numerator must not be 0")
 	case m.Denominator == 0:
-		return errors.Wrap(errors.ErrInvalidInput, "demumerator must not be 0")
+		return errors.Wrap(errors.ErrInvalidInput, "denominator must not be 0")
+	case m.Numerator/m.Denominator > 1:
+		return errors.Wrap(errors.ErrInvalidInput, "must not be greater 1")
 	}
 	return nil
 }
 
+// NewElectionRulesBucket is the persistent bucket for ElectionRules .
 type ElectionRulesBucket struct {
 	orm.Bucket
 	idSeq orm.Sequence
