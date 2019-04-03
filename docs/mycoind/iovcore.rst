@@ -40,9 +40,7 @@ Using Iov-Core
 
 Please refer to the offical `iov-core documentation <https://github.com/iov-one/iov-core/blob/master/packages/iov-core/README.md>`__
 Note that you can use the ``BnsConnection`` to connect to a ``mycoind`` blockchain, as long as you restrict it to just sending tokens
-and querying balances and nonces (it is a subset of bnsd). 
+and querying balances and nonces (it is a subset of bnsd).
 
-**TODO** integrate the following info?
-
-The`iov-core <https://iov-one.github.io/iov-core-docs/latest/iov-core/index.html>`__ library supports the concept of
+The `iov-core <https://iov-one.github.io/iov-core-docs/latest/iov-core/index.html>`__ library supports the concept of
 user profiles and identities. An identity is a `BIP39 <https://github.com/bitcoin/bips/tree/master/bip-0039>`__ derived key.

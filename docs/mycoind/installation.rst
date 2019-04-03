@@ -64,22 +64,6 @@ of the code, you may have to delete it to force go to rebuild:
     rm `which tendermint`
 
 
-
-Install client cli
-==================
-
-Node is much less picky as to where the code lives, so just
-find a nice place to store the client code examples
-
-.. code:: console
-
-    git clone https://github.com/iov-one/iov-core-examples
-    cd iov-core-examples
-    yarn install  # you did set this up earlier, right?
-
-After a bit, it should have pulled down all the required
-node modules including `iov-core`. Let's start the blockchain and return to the client
-
 Initialize the Blockchain
 =========================
 
@@ -140,21 +124,3 @@ one a second.
 Note: if you did anything funky during setup and managed to get yourself a rogue tendermint
 node running in the background, you might encounter errors like `panic: Error initializing DB: resource temporarily unavailable`.
 A quick ``killall tendermint`` should get you back on track.
-
-Run some Client examples
-========================
-
-Our `iov-core-examples` project contains examples how to generate keys or query accounts. It also sends transactions from
-an example wallets that are likely to fail due to insufficient funds or `Wallet already has a name`. Please ignore them for now.
-.. code:: javascript
-
-    yarn start
-
-You should see some output from the examples on the console including the **expected errors**. Let's use the printed generated
-account and update the transaction and setName examples accordingly. Before running the examples again,send some funds
-via the faucet:
-.. code:: console
-    curl --header "Content-Type: application/json" \
-      --request POST \
-      --data '{"address": "<your account id>", "tokens":[{"ticker":"IOV"}]}' \
-      https://faucet.${TESTNET_NAME}.iov.one/faucet
