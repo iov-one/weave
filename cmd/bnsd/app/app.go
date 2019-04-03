@@ -7,13 +7,14 @@ package app
 import (
 	"context"
 	"fmt"
-	"github.com/iov-one/weave/coin"
 	"path/filepath"
 	"strings"
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/app"
 	"github.com/iov-one/weave/cmd/bnsd/x/nft/username"
+	"github.com/iov-one/weave/coin"
+	"github.com/iov-one/weave/commands/server"
 	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/store/iavl"
 	"github.com/iov-one/weave/x"
@@ -88,8 +89,9 @@ func Router(authFn x.Authenticator, issuer weave.Address, nftBuckets map[string]
 // QueryRouter returns a default query router,
 // allowing access to "/wallets", "/auth", "/", "/escrows", "/nft/usernames",
 // "/nft/blockchains", "/nft/tickers", "/validators"
-func QueryRouter() weave.QueryRouter {
+func QueryRouter(minFee coin.Coin) weave.QueryRouter {
 	r := weave.NewQueryRouter()
+	antiSpamQuery := msgfee.NewAntiSpamQuery(minFee)
 
 	r.RegisterAll(
 		escrow.RegisterQuery,
@@ -101,6 +103,7 @@ func QueryRouter() weave.QueryRouter {
 		orm.RegisterQuery,
 		currency.RegisterQuery,
 		distribution.RegisterQuery,
+		antiSpamQuery.RegisterQuery,
 	)
 	return r
 }
@@ -122,7 +125,7 @@ func Stack(issuer weave.Address, nftBuckets map[string]orm.Bucket, minFee coin.C
 // the given arguments. If you are not sure what to use
 // for the Handler, just use Stack().
 func Application(name string, h weave.Handler,
-	tx weave.TxDecoder, dbPath string, debug bool) (app.BaseApp, error) {
+	tx weave.TxDecoder, dbPath string, options *server.Options) (app.BaseApp, error) {
 
 	ctx := context.Background()
 	kv, err := CommitKVStore(dbPath)
@@ -130,8 +133,8 @@ func Application(name string, h weave.Handler,
 		return app.BaseApp{}, err
 	}
 	RegisterNft()
-	store := app.NewStoreApp(name, kv, QueryRouter(), ctx)
-	base := app.NewBaseApp(store, tx, h, nil, debug)
+	store := app.NewStoreApp(name, kv, QueryRouter(options.MinFee), ctx)
+	base := app.NewBaseApp(store, tx, h, nil, options.Debug)
 	return base, nil
 }
 
