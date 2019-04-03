@@ -8,6 +8,7 @@ import (
 
 var _ weave.QueryHandler = (*AntiSpamQuery)(nil)
 
+// AntiSpamQuery allows querying currently set anti-spam fee
 type AntiSpamQuery struct {
 	minFee coin.Coin
 }
