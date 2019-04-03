@@ -60,6 +60,81 @@ func TestCoinNegative(t *testing.T) {
 	}
 }
 
+func TestIsZero(t *testing.T) {
+	cases := map[string]struct {
+		c    Coin
+		want bool
+	}{
+		"zero": {
+			c:    NewCoin(0, 0, "foo"),
+			want: true,
+		},
+		"positive": {
+			c:    NewCoin(0, 1, "foo"),
+			want: false,
+		},
+		"negative": {
+			c:    NewCoin(0, -1, "foo"),
+			want: false,
+		},
+	}
+	for testName, tc := range cases {
+		t.Run(testName, func(t *testing.T) {
+			assert.Equal(t, tc.c.IsZero(), tc.want)
+		})
+	}
+}
+
+func TestIsPositive(t *testing.T) {
+	cases := map[string]struct {
+		c    Coin
+		want bool
+	}{
+		"zero": {
+			c:    NewCoin(0, 0, "foo"),
+			want: false,
+		},
+		"positive": {
+			c:    NewCoin(0, 1, "foo"),
+			want: true,
+		},
+		"negative": {
+			c:    NewCoin(0, -1, "foo"),
+			want: false,
+		},
+	}
+	for testName, tc := range cases {
+		t.Run(testName, func(t *testing.T) {
+			assert.Equal(t, tc.c.IsPositive(), tc.want)
+		})
+	}
+}
+
+func TestIsNonNegative(t *testing.T) {
+	cases := map[string]struct {
+		c    Coin
+		want bool
+	}{
+		"zero": {
+			c:    NewCoin(0, 0, "foo"),
+			want: true,
+		},
+		"positive": {
+			c:    NewCoin(0, 1, "foo"),
+			want: true,
+		},
+		"negative": {
+			c:    NewCoin(0, -1, "foo"),
+			want: false,
+		},
+	}
+	for testName, tc := range cases {
+		t.Run(testName, func(t *testing.T) {
+			assert.Equal(t, tc.c.IsNonNegative(), tc.want)
+		})
+	}
+}
+
 func TestCoinIsPositive(t *testing.T) {
 	cases := map[string]struct {
 		c    Coin
@@ -103,7 +178,7 @@ func TestCoinValidationAndNormalization(t *testing.T) {
 			wantNormalizationErr: nil,
 			wantNormValErr:       nil,
 		},
-		"interger and fraction with different sign": {
+		"integer and fraction with different sign": {
 			coin:                 NewCoin(4, -123456789, "FOO"),
 			wantValErr:           errors.ErrInvalidState,
 			wantNormalized:       NewCoin(3, 876543211, "FOO"),
