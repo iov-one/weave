@@ -40,3 +40,15 @@ func Equal(t testing.TB, want, got interface{}) {
 		t.Fatalf("values not equal \nwant %v\n got %v", want, got)
 	}
 }
+
+// Panics will run given function and recover any panic. It will fail the test
+// if given function call did not panic.
+func Panics(t testing.TB, fn func()) {
+	t.Helper()
+	defer func() {
+		if recover() == nil {
+			t.Fatal("panic expected")
+		}
+	}()
+	fn()
+}

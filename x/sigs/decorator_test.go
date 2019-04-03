@@ -5,15 +5,13 @@ import (
 	"testing"
 
 	"github.com/iov-one/weave"
-	"github.com/iov-one/weave/crypto"
+	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/store"
 	"github.com/iov-one/weave/weavetest"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
+	"github.com/iov-one/weave/weavetest/assert"
 )
 
 func TestDecorator(t *testing.T) {
-
 	kv := store.MemStore()
 	checkKv := kv.CacheWrap()
 	signers := new(SigCheckHandler)
@@ -21,53 +19,69 @@ func TestDecorator(t *testing.T) {
 	chainID := "deco-rate"
 	ctx := weave.WithChainID(context.Background(), chainID)
 
-	priv := crypto.GenPrivKeyEd25519()
+	priv := weavetest.NewKey()
 	perms := []weave.Condition{priv.PublicKey().Condition()}
 
 	bz := []byte("art")
 	tx := NewStdTx(bz)
 	sig, err := SignTx(priv, tx, chainID, 0)
-	require.NoError(t, err)
+	assert.Nil(t, err)
 	sig1, err := SignTx(priv, tx, chainID, 1)
-	require.NoError(t, err)
+	assert.Nil(t, err)
 
-	deliver := func(dec weave.Decorator, my weave.Tx) error {
-		_, err := dec.Deliver(ctx, kv, my, signers)
-		return err
+	// Order of calling first check and then deliver is important.
+	cases := []struct {
+		name string
+		fn   func(weave.Decorator, weave.Tx) error
+	}{
+		{
+			name: "check",
+			fn: func(dec weave.Decorator, my weave.Tx) error {
+				_, err := dec.Check(ctx, checkKv, my, signers)
+				return err
+			},
+		},
+		{
+			name: "deliver",
+			fn: func(dec weave.Decorator, my weave.Tx) error {
+				_, err := dec.Deliver(ctx, kv, my, signers)
+				return err
+			},
+		},
 	}
-	check := func(dec weave.Decorator, my weave.Tx) error {
-		_, err := dec.Check(ctx, checkKv, my, signers)
-		return err
-	}
 
-	for i, fn := range []func(weave.Decorator, weave.Tx) error{check, deliver} {
-		// test with no sigs
-		tx.Signatures = nil
-		err := fn(d, tx)
-		assert.Error(t, err, "%d", i)
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			// test with no sigs
+			tx.Signatures = nil
+			if err := tc.fn(d, tx); !errors.ErrUnauthorized.Is(err) {
+				t.Fatalf("unexpected error: %+v", err)
+			}
 
-		// test with one
-		tx.Signatures = []*StdSignature{sig}
-		err = fn(d, tx)
-		assert.NoError(t, err, "%d", i)
-		assert.Equal(t, perms, signers.Signers)
+			// test with one
+			tx.Signatures = []*StdSignature{sig}
+			err = tc.fn(d, tx)
+			assert.Nil(t, err)
+			assert.Equal(t, perms, signers.Signers)
 
-		// test with replay
-		err = fn(d, tx)
-		assert.Error(t, err, "%d", i)
+			// test with replay
+			if err := tc.fn(d, tx); !ErrInvalidSequence.Is(err) {
+				t.Fatalf("unexpected errror: %+v", err)
+			}
 
-		// test allowing none
-		ad := d.AllowMissingSigs()
-		tx.Signatures = nil
-		err = fn(ad, tx)
-		assert.NoError(t, err, "%d", i)
-		assert.Equal(t, []weave.Condition{}, signers.Signers)
+			// test allowing none
+			ad := d.AllowMissingSigs()
+			tx.Signatures = nil
+			err = tc.fn(ad, tx)
+			assert.Nil(t, err)
+			assert.Equal(t, []weave.Condition{}, signers.Signers)
 
-		// test allowing, with next sequence
-		tx.Signatures = []*StdSignature{sig1}
-		err = fn(ad, tx)
-		assert.NoError(t, err, "%d", i)
-		assert.Equal(t, perms, signers.Signers)
+			// test allowing, with next sequence
+			tx.Signatures = []*StdSignature{sig1}
+			err = tc.fn(ad, tx)
+			assert.Nil(t, err)
+			assert.Equal(t, perms, signers.Signers)
+		})
 	}
 
 }
