@@ -114,8 +114,11 @@ The only thing left is to start this blockchain running.
 
 .. code:: console
 
-    tendermint node --home ~/.mycoind --p2p.skip_upnp > ~/.mycoind/tendermint.log &
+    tendermint node --home ~/.mycoind --p2p.upnp --proxy_app 'noop'> ~/.mycoind/tendermint.log &
     mycoind start
+
+.. hint: For help and explanations for the tendermint node commands:
+   `tendermint node --help`
 
 After a few seconds this should start seeing "Commit Synced" messages.
 That means the blockchain is working away and producing new blocks,
