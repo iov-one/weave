@@ -69,8 +69,17 @@ message TextProposal {
     uint64 submission_time = 7;
     // Address of the author who created the proposal. If not set explicit on creation it will default to the main signer.
     bytes author = 8 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
-    // Final result of the election.
-    TallyResult result = 9;
+    // Result of the election. Collect intermediate tally results while voting period is open.
+    TallyResult voteResult = 9 [(gogoproto.nullable) = false];
+
+    enum Status {
+        UNDEFINED = 0 [(gogoproto.enumvalue_customname ) = "Undefined"];
+        ACCEPTED = 1 [(gogoproto.enumvalue_customname ) = "Accepted"];
+        REJECTED = 2 [(gogoproto.enumvalue_customname ) = "Rejected"];
+    }
+
+    // Final result based on the votes and election rule.
+    Status status = 10 ;
 }
 
 // Result of a tally. Contains sums of the votes and the final result.
@@ -83,12 +92,10 @@ message TallyResult {
     uint32 total_abstain = 3;
     // Sum of all weights in the electorate.
     uint64 total_weight_electorate = 4;
-    // Final result based on the votes and election rule.
-    bool passed = 5;
 }
 
 // TBD
-message CreateTextProposal {
+message CreateTextProposalMsg {
     string title = 1;
     string description = 2;
     bytes election_rule_id = 3;
@@ -100,21 +107,19 @@ message CreateTextProposal {
 }
 
 // TBD
-enum VoteOption {
-    VOTE_OPTION_INVALID = 0 [(gogoproto.enumvalue_customname ) = "Invalid"];
-    VOTE_OPTION_YES = 1 [(gogoproto.enumvalue_customname ) = "Yes"];
-    VOTE_OPTION_NO = 2[(gogoproto.enumvalue_customname ) = "No"];
-    VOTE_OPTION_ABSTAIN = 3 [(gogoproto.enumvalue_customname ) = "Abstain"];
-}
-
-// TBD
-message Vote {
+message VoteMsg {
     bytes proposal_id = 1;
     bytes voter = 2 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
-    VoteOption selected = 3;
+    enum Option {
+        INVALID = 0 [(gogoproto.enumvalue_customname ) = "Invalid"];
+        YES = 1 [(gogoproto.enumvalue_customname ) = "Yes"];
+        NO = 2[(gogoproto.enumvalue_customname ) = "No"];
+        ABSTAIN = 3 [(gogoproto.enumvalue_customname ) = "Abstain"];
+    }
+    Option selected = 3;
 }
 
 // TBD
-message Tally {
+message TallyMsg {
     bytes proposal_id = 1;
 }

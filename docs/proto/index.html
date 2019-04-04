@@ -601,7 +601,7 @@
             <ul>
               
                 <li>
-                  <a href="#gov.CreateTextProposal"><span class="badge">M</span>CreateTextProposal</a>
+                  <a href="#gov.CreateTextProposalMsg"><span class="badge">M</span>CreateTextProposalMsg</a>
                 </li>
               
                 <li>
@@ -621,7 +621,7 @@
                 </li>
               
                 <li>
-                  <a href="#gov.Tally"><span class="badge">M</span>Tally</a>
+                  <a href="#gov.TallyMsg"><span class="badge">M</span>TallyMsg</a>
                 </li>
               
                 <li>
@@ -633,12 +633,16 @@
                 </li>
               
                 <li>
-                  <a href="#gov.Vote"><span class="badge">M</span>Vote</a>
+                  <a href="#gov.VoteMsg"><span class="badge">M</span>VoteMsg</a>
                 </li>
               
               
                 <li>
-                  <a href="#gov.VoteOption"><span class="badge">E</span>VoteOption</a>
+                  <a href="#gov.TextProposal.Status"><span class="badge">E</span>TextProposal.Status</a>
+                </li>
+              
+                <li>
+                  <a href="#gov.VoteMsg.Option"><span class="badge">E</span>VoteMsg.Option</a>
                 </li>
               
               
@@ -2953,7 +2957,7 @@ sender. </p></td>
       <p></p>
 
       
-        <h3 id="gov.CreateTextProposal">CreateTextProposal</h3>
+        <h3 id="gov.CreateTextProposalMsg">CreateTextProposalMsg</h3>
         <p>TBD</p>
 
         
@@ -3142,7 +3146,7 @@ of the eligible voters. </p></td>
 
         
       
-        <h3 id="gov.Tally">Tally</h3>
+        <h3 id="gov.TallyMsg">TallyMsg</h3>
         <p>TBD</p>
 
         
@@ -3201,13 +3205,6 @@ of the eligible voters. </p></td>
                   <td><a href="#uint64">uint64</a></td>
                   <td></td>
                   <td><p>Sum of all weights in the electorate. </p></td>
-                </tr>
-              
-                <tr>
-                  <td>passed</td>
-                  <td><a href="#bool">bool</a></td>
-                  <td></td>
-                  <td><p>Final result based on the votes and election rule. </p></td>
                 </tr>
               
             </tbody>
@@ -3285,10 +3282,17 @@ to be included in the election. </p></td>
                 </tr>
               
                 <tr>
-                  <td>result</td>
+                  <td>voteResult</td>
                   <td><a href="#gov.TallyResult">TallyResult</a></td>
                   <td></td>
-                  <td><p>Final result of the election. </p></td>
+                  <td><p>Result of the election. Collect intermediate tally results while voting period is open. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>status</td>
+                  <td><a href="#gov.TextProposal.Status">TextProposal.Status</a></td>
+                  <td></td>
+                  <td><p>Final result based on the votes and election rule. </p></td>
                 </tr>
               
             </tbody>
@@ -3297,7 +3301,7 @@ to be included in the election. </p></td>
 
         
       
-        <h3 id="gov.Vote">Vote</h3>
+        <h3 id="gov.VoteMsg">VoteMsg</h3>
         <p>TBD</p>
 
         
@@ -3323,7 +3327,7 @@ to be included in the election. </p></td>
               
                 <tr>
                   <td>selected</td>
-                  <td><a href="#gov.VoteOption">VoteOption</a></td>
+                  <td><a href="#gov.VoteMsg.Option">VoteMsg.Option</a></td>
                   <td></td>
                   <td><p> </p></td>
                 </tr>
@@ -3336,8 +3340,8 @@ to be included in the election. </p></td>
       
 
       
-        <h3 id="gov.VoteOption">VoteOption</h3>
-        <p>TBD</p>
+        <h3 id="gov.TextProposal.Status">TextProposal.Status</h3>
+        <p></p>
         <table class="enum-table">
           <thead>
             <tr><td>Name</td><td>Number</td><td>Description</td></tr>
@@ -3345,25 +3349,54 @@ to be included in the election. </p></td>
           <tbody>
             
               <tr>
-                <td>VOTE_OPTION_INVALID</td>
+                <td>UNDEFINED</td>
                 <td>0</td>
                 <td><p></p></td>
               </tr>
             
               <tr>
-                <td>VOTE_OPTION_YES</td>
+                <td>ACCEPTED</td>
                 <td>1</td>
                 <td><p></p></td>
               </tr>
             
               <tr>
-                <td>VOTE_OPTION_NO</td>
+                <td>REJECTED</td>
+                <td>2</td>
+                <td><p></p></td>
+              </tr>
+            
+          </tbody>
+        </table>
+      
+        <h3 id="gov.VoteMsg.Option">VoteMsg.Option</h3>
+        <p></p>
+        <table class="enum-table">
+          <thead>
+            <tr><td>Name</td><td>Number</td><td>Description</td></tr>
+          </thead>
+          <tbody>
+            
+              <tr>
+                <td>INVALID</td>
+                <td>0</td>
+                <td><p></p></td>
+              </tr>
+            
+              <tr>
+                <td>YES</td>
+                <td>1</td>
+                <td><p></p></td>
+              </tr>
+            
+              <tr>
+                <td>NO</td>
                 <td>2</td>
                 <td><p></p></td>
               </tr>
             
               <tr>
-                <td>VOTE_OPTION_ABSTAIN</td>
+                <td>ABSTAIN</td>
                 <td>3</td>
                 <td><p></p></td>
               </tr>
