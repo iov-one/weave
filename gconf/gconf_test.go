@@ -31,13 +31,6 @@ func TestDuration(t *testing.T) {
 	}
 }
 
-func TestStrings(t *testing.T) {
-	store := confStore(`["a", "b", "c"]`)
-	if want, got := []string{"a", "b", "c"}, Strings(store, "a"); !reflect.DeepEqual(got, want) {
-		t.Fatalf("want %v, got %v", want, got)
-	}
-}
-
 func TestAddress(t *testing.T) {
 	store := confStore(`"6161616161616161616161616161616161616161"`)
 	if want, got := weave.Address(`aaaaaaaaaaaaaaaaaaaa`), Address(store, "a"); !got.Equals(want) {

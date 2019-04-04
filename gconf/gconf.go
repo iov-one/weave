@@ -37,14 +37,6 @@ func String(confStore Store, propName string) string {
 	return value
 }
 
-// Strings returns an array of string value stored under given name.
-// This function panics if configuration cannot be acquired.
-func Strings(confStore Store, propName string) []string {
-	var value []string
-	loadInto(confStore, propName, &value)
-	return value
-}
-
 // Address returns an address value stored under given name.
 // This function panics if configuration cannot be acquired.
 func Address(confStore Store, propName string) weave.Address {

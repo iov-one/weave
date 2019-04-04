@@ -60,6 +60,7 @@ endif
 
 # protoc: protodocs
 protoc:
+	protoc --gogofaster_out=. $(PROTOC_FLAGS) gconf/*.proto
 	protoc --gogofaster_out=. $(PROTOC_FLAGS) app/*.proto
 	protoc --gogofaster_out=. $(PROTOC_FLAGS) coin/*.proto
 	protoc --gogofaster_out=. $(PROTOC_FLAGS) crypto/*.proto
