@@ -10,7 +10,6 @@ import (
 	"github.com/iov-one/weave/store"
 	"github.com/iov-one/weave/weavetest"
 	"github.com/iov-one/weave/weavetest/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestSignBytes(t *testing.T) {
@@ -31,9 +30,9 @@ func TestSignBytes(t *testing.T) {
 	// make sure sign bytes match tx
 	chainID := "test-sign-bytes"
 	c1, err := BuildSignBytesTx(tx, chainID, 17)
-	require.Nil(t, err)
+	assert.Nil(t, err)
 	c1a, err := BuildSignBytes(bz, chainID, 17)
-	require.Nil(t, err)
+	assert.Nil(t, err)
 	assert.Equal(t, c1, c1a)
 	if bytes.Equal(bz, c1) {
 		t.Fatal("")
@@ -41,17 +40,17 @@ func TestSignBytes(t *testing.T) {
 
 	// make sure sign bytes change on tx, chain_id and seq
 	ct, err := BuildSignBytes(bz2, chainID, 17)
-	require.Nil(t, err)
+	assert.Nil(t, err)
 	if bytes.Equal(c1, ct) {
 		t.Fatal("signature reproduced")
 	}
 	c2, err := BuildSignBytes(bz, chainID+"2", 17)
-	require.Nil(t, err)
+	assert.Nil(t, err)
 	if bytes.Equal(c1, c2) {
 		t.Fatal("signature reproduced")
 	}
 	c3, err := BuildSignBytes(bz, chainID, 18)
-	require.Nil(t, err)
+	assert.Nil(t, err)
 	if bytes.Equal(c1, c3) {
 		t.Fatal("signature reproduced")
 	}
@@ -68,18 +67,18 @@ func TestVerifySignature(t *testing.T) {
 	tx := NewStdTx(bz)
 
 	sig0, err := SignTx(priv, tx, chainID, 0)
-	require.Nil(t, err)
+	assert.Nil(t, err)
 	sig1, err := SignTx(priv, tx, chainID, 1)
-	require.Nil(t, err)
+	assert.Nil(t, err)
 	sig2, err := SignTx(priv, tx, chainID, 2)
-	require.Nil(t, err)
+	assert.Nil(t, err)
 	sig13, err := SignTx(priv, tx, chainID, 13)
-	require.Nil(t, err)
+	assert.Nil(t, err)
 	empty := new(StdSignature)
 
 	// signing should be deterministic
 	sig2a, err := SignTx(priv, tx, chainID, 2)
-	require.Nil(t, err)
+	assert.Nil(t, err)
 	assert.Equal(t, sig2, sig2a)
 
 	// the first one must have a signature in the store
@@ -135,24 +134,24 @@ func TestVerifyTxSignatures(t *testing.T) {
 	tx := NewStdTx(bz)
 	tx2 := NewStdTx([]byte(chainID))
 	tbz, err := tx.GetSignBytes()
-	require.Nil(t, err)
+	assert.Nil(t, err)
 	tbz2, err := tx2.GetSignBytes()
-	require.Nil(t, err)
+	assert.Nil(t, err)
 	if bytes.Equal(tbz, tbz2) {
 		t.Fatal("signaure repeated")
 	}
 
 	// two sigs from the first key
 	sig, err := SignTx(priv, tx, chainID, 0)
-	require.Nil(t, err)
+	assert.Nil(t, err)
 	sig1, err := SignTx(priv, tx, chainID, 1)
-	require.Nil(t, err)
+	assert.Nil(t, err)
 	// one from the second
 	sig2, err := SignTx(priv2, tx, chainID, 0)
-	require.Nil(t, err)
+	assert.Nil(t, err)
 	// and a signature of wrong info
 	badSig, err := SignTx(priv, tx2, chainID, 0)
-	require.Nil(t, err)
+	assert.Nil(t, err)
 
 	// no signers
 	signers, err := VerifyTxSignatures(kv, tx, chainID)

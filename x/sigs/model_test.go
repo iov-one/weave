@@ -33,6 +33,8 @@ func TestUserModel(t *testing.T) {
 	}
 	assert.Equal(t, int64(0), user.Sequence)
 
+	// Check the sequence several times to ensure that the incrementation
+	// works as expected.
 	for i := int64(0); i < 10; i++ {
 		if user.CheckAndIncrementSequence(i+10) == nil {
 			t.Fatalf("expected the block to be %d", i)
