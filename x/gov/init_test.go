@@ -53,7 +53,7 @@ func TestInitFromGenesis(t *testing.T) {
         "voting_period_hours": 2,
         "fraction": {
           "numerator": 1,
-          "denominator": 5
+          "denominator": 2
         }
       }
     ]
@@ -136,7 +136,7 @@ func TestInitFromGenesis(t *testing.T) {
 	if exp, got := uint32(2), r.VotingPeriodHours; exp != got {
 		t.Errorf("expected %v but got %v", exp, got)
 	}
-	if exp, got := (Fraction{Numerator: 1, Denominator: 5}), r.Threshold; exp != got {
+	if exp, got := (Fraction{Numerator: 1, Denominator: 2}), r.Threshold; exp != got {
 		t.Errorf("expected %v but got %v", exp, got)
 	}
 }
