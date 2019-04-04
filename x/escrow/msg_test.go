@@ -34,7 +34,7 @@ func TestCreateEscrowMsg(t *testing.T) {
 	// invalid
 	d := weave.Condition("foobar")
 
-	timeout := time.Now()
+	timeout := weave.AsUnixTime(time.Now())
 
 	// good
 	plus := mustCombineCoins(coin.NewCoin(100, 0, "FOO"))
@@ -127,7 +127,7 @@ func TestCreateEscrowMsg(t *testing.T) {
 				Arbiter:   b,
 				Recipient: c.Address(),
 				Amount:    plus,
-				Timeout:   time.Time{},
+				Timeout:   -1,
 			},
 			errors.ErrInvalidInput.Is,
 		},

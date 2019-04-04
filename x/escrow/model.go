@@ -1,8 +1,6 @@
 package escrow
 
 import (
-	"time"
-
 	"github.com/iov-one/weave"
 	coin "github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/errors"
@@ -71,7 +69,7 @@ func NewEscrow(
 	recipient weave.Address,
 	arbiter weave.Condition,
 	amount coin.Coins,
-	timeout time.Time,
+	timeout weave.UnixTime,
 	memo string,
 ) orm.Object {
 	esc := &Escrow{

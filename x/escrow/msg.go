@@ -1,8 +1,6 @@
 package escrow
 
 import (
-	"time"
-
 	"github.com/iov-one/weave"
 	coin "github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/errors"
@@ -52,7 +50,7 @@ func NewCreateMsg(
 	recipient weave.Address,
 	arbiter weave.Condition,
 	amount coin.Coins,
-	timeout time.Time,
+	timeout weave.UnixTime,
 	memo string,
 ) *CreateEscrowMsg {
 	return &CreateEscrowMsg{
@@ -60,7 +58,7 @@ func NewCreateMsg(
 		Recipient: recipient,
 		Arbiter:   arbiter,
 		Amount:    amount,
-		Timeout:   timeout.UTC(),
+		Timeout:   timeout,
 		Memo:      memo,
 	}
 }
@@ -73,7 +71,7 @@ func (m *CreateEscrowMsg) Validate() error {
 	if m.Recipient == nil {
 		return errors.Wrap(errors.ErrEmpty, "recipient")
 	}
-	if m.Timeout.IsZero() {
+	if m.Timeout.Validate() != nil {
 		return errors.Wrap(errors.ErrInvalidInput, "timeout is required")
 	}
 	if len(m.Memo) > maxMemoSize {
