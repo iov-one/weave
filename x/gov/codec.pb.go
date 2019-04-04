@@ -176,6 +176,8 @@ type ElectionRule struct {
 	// Threshold is the fraction of all eligible voters, not only the ones who voted. To accept a
 	// proposal this value must be exceeded.
 	// The formula is `(yes*denominator) > (numerator*voted)`.
+	// The valid range for the threshold value is `0.5` to `1` (inclusive) which allows any value between half and all
+	// of the eligible voters.
 	Threshold Fraction `protobuf:"bytes,4,opt,name=threshold,proto3" json:"threshold"`
 }
 
@@ -238,6 +240,7 @@ func (m *ElectionRule) GetThreshold() Fraction {
 // numerator: 1, denominator: 2 => > 50%
 // numerator: 2, denominator: 3 => > 66.666..%
 // numerator: 6273, denominator: 10000 => > 62.73%
+// Valid range of the fraction is 0.5 to 1.
 type Fraction struct {
 	// The top number in a fraction.
 	Numerator uint32 `protobuf:"varint,1,opt,name=numerator,proto3" json:"numerator,omitempty"`

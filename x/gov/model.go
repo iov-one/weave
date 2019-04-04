@@ -9,7 +9,7 @@ import (
 	"github.com/iov-one/weave/orm"
 )
 
-var validTitle = regexp.MustCompile(`^[a-zA-Z0-9_.-]{4,128}$`).MatchString
+var validTitle = regexp.MustCompile(`^[a-zA-Z0-9 _.-]{4,128}$`).MatchString
 
 func (m Electorate) Validate() error {
 	if !validTitle(m.Title) {
@@ -90,7 +90,7 @@ func (b *ElectorateBucket) GetElectorate(db weave.KVStore, id []byte) (*Electora
 
 const (
 	minVotingPeriodHours = 1
-	maxVotingPeriodHours = 365 * 24
+	maxVotingPeriodHours = 4 * 7 * 24 // 4 weeks
 )
 
 func (m ElectionRule) Validate() error {
@@ -120,6 +120,8 @@ func (m Fraction) Validate() error {
 		return errors.Wrap(errors.ErrInvalidInput, "numerator must not be 0")
 	case m.Denominator == 0:
 		return errors.Wrap(errors.ErrInvalidInput, "denominator must not be 0")
+	case m.Numerator*2 <= m.Denominator:
+		return errors.Wrap(errors.ErrInvalidInput, "must not be lower 0.5")
 	case m.Numerator/m.Denominator > 1:
 		return errors.Wrap(errors.ErrInvalidInput, "must not be greater 1")
 	}

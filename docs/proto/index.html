@@ -225,21 +225,6 @@
         
           
           <li>
-            <a href="#weavetest%2fresults.proto">weavetest/results.proto</a>
-            <ul>
-              
-                <li>
-                  <a href="#weavetest.ResultSet"><span class="badge">M</span>ResultSet</a>
-                </li>
-              
-              
-              
-              
-            </ul>
-          </li>
-        
-          
-          <li>
             <a href="#crypto%2fmodels.proto">crypto/models.proto</a>
             <ul>
               
@@ -1046,43 +1031,6 @@ blockchain. </p></td>
                   <td>details</td>
                   <td><a href="#username.TokenDetails">TokenDetails</a></td>
                   <td></td>
-                  <td><p> </p></td>
-                </tr>
-              
-            </tbody>
-          </table>
-        
-
-        
-      
-
-      
-
-      
-
-      
-    
-      
-      <div class="file-heading">
-        <h2 id="weavetest/results.proto">weavetest/results.proto</h2><a href="#title">Top</a>
-      </div>
-      <p></p>
-
-      
-        <h3 id="weavetest.ResultSet">ResultSet</h3>
-        <p>ResultSet contains a list of keys or values. This is a copy of app/ResultSet</p><p>and therefore it is binary compatible with it. Copied to avoid import.</p>
-
-        
-          <table class="field-table">
-            <thead>
-              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
-            </thead>
-            <tbody>
-              
-                <tr>
-                  <td>results</td>
-                  <td><a href="#bytes">bytes</a></td>
-                  <td>repeated</td>
                   <td><p> </p></td>
                 </tr>
               
@@ -3093,7 +3041,9 @@ sender. </p></td>
                   <td></td>
                   <td><p>Threshold is the fraction of all eligible voters, not only the ones who voted. To accept a
 proposal this value must be exceeded.
-The formula is `(yes*denominator) &gt; (numerator*voted)`. </p></td>
+The formula is `(yes*denominator) &gt; (numerator*voted)`.
+The valid range for the threshold value is `0.5` to `1` (inclusive) which allows any value between half and all
+of the eligible voters. </p></td>
                 </tr>
               
             </tbody>
@@ -3133,7 +3083,7 @@ The formula is `(yes*denominator) &gt; (numerator*voted)`. </p></td>
         
       
         <h3 id="gov.Fraction">Fraction</h3>
-        <p>The Fraction type represents a numerator and denominator to enable higher precision thresholds in</p><p>the election rules. For example:</p><p>numerator: 1, denominator: 2 => > 50%</p><p>numerator: 2, denominator: 3 => > 66.666..%</p><p>numerator: 6273, denominator: 10000 => > 62.73%</p>
+        <p>The Fraction type represents a numerator and denominator to enable higher precision thresholds in</p><p>the election rules. For example:</p><p>numerator: 1, denominator: 2 => > 50%</p><p>numerator: 2, denominator: 3 => > 66.666..%</p><p>numerator: 6273, denominator: 10000 => > 62.73%</p><p>Valid range of the fraction is 0.5 to 1.</p>
 
         
           <table class="field-table">
