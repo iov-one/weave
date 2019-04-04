@@ -9,13 +9,13 @@ import "github.com/gogo/protobuf/gogoproto/gogo.proto";
 message Electorate {
     // Human readable title.
     string title = 1;
-    // Participants defines a list of all signatures that are allowed to participate in a vote
-    repeated Participant participants = 2 [(gogoproto.nullable) = false];
+    // Elector defines a list of all signatures that are allowed to participate in a vote
+    repeated Elector electors = 2 [(gogoproto.nullable) = false];
 }
 
-// Participant clubs together a signature with a weight. The greater the weight
+// Elector clubs together a signature with a weight. The greater the weight
 // the greater the power of a participant.
-message Participant {
+message Elector {
     // The address of the voter.
     bytes signature = 1 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
     // Weight defines the power of the participants vote. max value is 65535 (2^16-1).
@@ -69,8 +69,11 @@ message TextProposal {
     uint64 submission_time = 7;
     // Address of the author who created the proposal. If not set explicit on creation it will default to the main signer.
     bytes author = 8 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
+
+    repeated Vote votes = 9;
+
     // Result of the election. Collect intermediate tally results while voting period is open.
-    TallyResult voteResult = 9 [(gogoproto.nullable) = false];
+    TallyResult voteResult = 10 [(gogoproto.nullable) = false];
 
     enum Status {
         UNDEFINED = 0 [(gogoproto.enumvalue_customname ) = "Undefined"];
@@ -79,7 +82,7 @@ message TextProposal {
     }
 
     // Final result based on the votes and election rule.
-    Status status = 10 ;
+    Status status = 11 ;
 }
 
 // Result of a tally. Contains sums of the votes and the final result.
@@ -94,6 +97,11 @@ message TallyResult {
     uint64 total_weight_electorate = 4;
 }
 
+message Vote {
+    Elector elector = 1 [(gogoproto.nullable) = false];
+    VoteOption voted = 2;
+}
+
 // TBD
 message CreateTextProposalMsg {
     string title = 1;
@@ -106,17 +114,18 @@ message CreateTextProposalMsg {
     bytes author = 8 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
 }
 
+enum VoteOption {
+    INVALID = 0 [(gogoproto.enumvalue_customname ) = "Invalid"];
+    YES = 1 [(gogoproto.enumvalue_customname ) = "Yes"];
+    NO = 2[(gogoproto.enumvalue_customname ) = "No"];
+    ABSTAIN = 3 [(gogoproto.enumvalue_customname ) = "Abstain"];
+}
+
 // TBD
 message VoteMsg {
     bytes proposal_id = 1;
     bytes voter = 2 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
-    enum Option {
-        INVALID = 0 [(gogoproto.enumvalue_customname ) = "Invalid"];
-        YES = 1 [(gogoproto.enumvalue_customname ) = "Yes"];
-        NO = 2[(gogoproto.enumvalue_customname ) = "No"];
-        ABSTAIN = 3 [(gogoproto.enumvalue_customname ) = "Abstain"];
-    }
-    Option selected = 3;
+    VoteOption selected = 3;
 }
 
 // TBD

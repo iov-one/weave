@@ -609,15 +609,15 @@
                 </li>
               
                 <li>
+                  <a href="#gov.Elector"><span class="badge">M</span>Elector</a>
+                </li>
+              
+                <li>
                   <a href="#gov.Electorate"><span class="badge">M</span>Electorate</a>
                 </li>
               
                 <li>
                   <a href="#gov.Fraction"><span class="badge">M</span>Fraction</a>
-                </li>
-              
-                <li>
-                  <a href="#gov.Participant"><span class="badge">M</span>Participant</a>
                 </li>
               
                 <li>
@@ -633,6 +633,10 @@
                 </li>
               
                 <li>
+                  <a href="#gov.Vote"><span class="badge">M</span>Vote</a>
+                </li>
+              
+                <li>
                   <a href="#gov.VoteMsg"><span class="badge">M</span>VoteMsg</a>
                 </li>
               
@@ -642,7 +646,7 @@
                 </li>
               
                 <li>
-                  <a href="#gov.VoteMsg.Option"><span class="badge">E</span>VoteMsg.Option</a>
+                  <a href="#gov.VoteOption"><span class="badge">E</span>VoteOption</a>
                 </li>
               
               
@@ -3056,6 +3060,36 @@ of the eligible voters. </p></td>
 
         
       
+        <h3 id="gov.Elector">Elector</h3>
+        <p>Elector clubs together a signature with a weight. The greater the weight</p><p>the greater the power of a participant.</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>signature</td>
+                  <td><a href="#bytes">bytes</a></td>
+                  <td></td>
+                  <td><p>The address of the voter. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>weight</td>
+                  <td><a href="#uint32">uint32</a></td>
+                  <td></td>
+                  <td><p>Weight defines the power of the participants vote. max value is 65535 (2^16-1). </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+        
+
+        
+      
         <h3 id="gov.Electorate">Electorate</h3>
         <p>Electorate defines who may vote in an election. This same group can be used in many elections</p><p>and is stored for re-use</p>
 
@@ -3074,10 +3108,10 @@ of the eligible voters. </p></td>
                 </tr>
               
                 <tr>
-                  <td>participants</td>
-                  <td><a href="#gov.Participant">Participant</a></td>
+                  <td>electors</td>
+                  <td><a href="#gov.Elector">Elector</a></td>
                   <td>repeated</td>
-                  <td><p>Participants defines a list of all signatures that are allowed to participate in a vote </p></td>
+                  <td><p>Elector defines a list of all signatures that are allowed to participate in a vote </p></td>
                 </tr>
               
             </tbody>
@@ -3108,36 +3142,6 @@ of the eligible voters. </p></td>
                   <td><a href="#uint32">uint32</a></td>
                   <td></td>
                   <td><p>The bottom number </p></td>
-                </tr>
-              
-            </tbody>
-          </table>
-        
-
-        
-      
-        <h3 id="gov.Participant">Participant</h3>
-        <p>Participant clubs together a signature with a weight. The greater the weight</p><p>the greater the power of a participant.</p>
-
-        
-          <table class="field-table">
-            <thead>
-              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
-            </thead>
-            <tbody>
-              
-                <tr>
-                  <td>signature</td>
-                  <td><a href="#bytes">bytes</a></td>
-                  <td></td>
-                  <td><p>The address of the voter. </p></td>
-                </tr>
-              
-                <tr>
-                  <td>weight</td>
-                  <td><a href="#uint32">uint32</a></td>
-                  <td></td>
-                  <td><p>Weight defines the power of the participants vote. max value is 65535 (2^16-1). </p></td>
                 </tr>
               
             </tbody>
@@ -3282,6 +3286,13 @@ to be included in the election. </p></td>
                 </tr>
               
                 <tr>
+                  <td>votes</td>
+                  <td><a href="#gov.Vote">Vote</a></td>
+                  <td>repeated</td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
                   <td>voteResult</td>
                   <td><a href="#gov.TallyResult">TallyResult</a></td>
                   <td></td>
@@ -3293,6 +3304,36 @@ to be included in the election. </p></td>
                   <td><a href="#gov.TextProposal.Status">TextProposal.Status</a></td>
                   <td></td>
                   <td><p>Final result based on the votes and election rule. </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+        
+
+        
+      
+        <h3 id="gov.Vote">Vote</h3>
+        <p></p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>elector</td>
+                  <td><a href="#gov.Elector">Elector</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>voted</td>
+                  <td><a href="#gov.VoteOption">VoteOption</a></td>
+                  <td></td>
+                  <td><p> </p></td>
                 </tr>
               
             </tbody>
@@ -3327,7 +3368,7 @@ to be included in the election. </p></td>
               
                 <tr>
                   <td>selected</td>
-                  <td><a href="#gov.VoteMsg.Option">VoteMsg.Option</a></td>
+                  <td><a href="#gov.VoteOption">VoteOption</a></td>
                   <td></td>
                   <td><p> </p></td>
                 </tr>
@@ -3369,7 +3410,7 @@ to be included in the election. </p></td>
           </tbody>
         </table>
       
-        <h3 id="gov.VoteMsg.Option">VoteMsg.Option</h3>
+        <h3 id="gov.VoteOption">VoteOption</h3>
         <p></p>
         <table class="enum-table">
           <thead>

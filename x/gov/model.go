@@ -11,19 +11,19 @@ import (
 
 var validTitle = regexp.MustCompile(`^[a-zA-Z0-9 _.-]{4,128}$`).MatchString
 
-const maxParticipants = 2000
+const maxElectors = 2000
 
 func (m Electorate) Validate() error {
 	if !validTitle(m.Title) {
 		return errors.Wrap(errors.ErrInvalidInput, fmt.Sprintf("title: %q", m.Title))
 	}
-	switch n := len(m.Participants); {
+	switch n := len(m.Electors); {
 	case n == 0:
-		return errors.Wrap(errors.ErrInvalidInput, "participants must not be empty")
-	case n > maxParticipants:
-		return errors.Wrap(errors.ErrInvalidInput, fmt.Sprintf("participants must not exceed: %d", maxParticipants))
+		return errors.Wrap(errors.ErrInvalidInput, "electors must not be empty")
+	case n > maxElectors:
+		return errors.Wrap(errors.ErrInvalidInput, fmt.Sprintf("electors must not exceed: %d", maxElectors))
 	}
-	for _, v := range m.Participants {
+	for _, v := range m.Electors {
 		if err := v.Validate(); err != nil {
 			return err
 		}
@@ -32,17 +32,28 @@ func (m Electorate) Validate() error {
 }
 
 func (m Electorate) Copy() orm.CloneableData {
-	p := make([]Participant, 0, len(m.Participants))
-	copy(p, m.Participants)
+	p := make([]Elector, 0, len(m.Electors))
+	copy(p, m.Electors)
 	return &Electorate{
-		Title:        m.Title,
-		Participants: p,
+		Title:    m.Title,
+		Electors: p,
 	}
+}
+
+// Weight return the weight for the given address is in the electors list and an ok flag which
+// is true when the address exists in the electors list only.
+func (m Electorate) Elector(a weave.Address) (*Elector, bool) {
+	for _, v := range m.Electors {
+		if v.Signature.Equals(a) {
+			return &v, true
+		}
+	}
+	return nil, false
 }
 
 const maxWeight = 2 ^ 16 - 1
 
-func (m Participant) Validate() error {
+func (m Elector) Validate() error {
 	switch {
 	case m.Weight > maxWeight:
 		return errors.Wrap(errors.ErrInvalidInput, "must not be greater max weight")
@@ -50,44 +61,6 @@ func (m Participant) Validate() error {
 		return errors.Wrap(errors.ErrInvalidInput, "weight must not be empty")
 	}
 	return m.Signature.Validate()
-}
-
-// ElectorateBucket is the persistent bucket for Electorate object.
-type ElectorateBucket struct {
-	orm.Bucket
-	idSeq orm.Sequence
-}
-
-// NewRevenueBucket returns a bucket for managing electorate.
-func NewElectorateBucket() *ElectorateBucket {
-	b := orm.NewBucket("electorate", orm.NewSimpleObj(nil, &Electorate{}))
-	return &ElectorateBucket{
-		Bucket: b,
-		idSeq:  b.Sequence("id"),
-	}
-}
-
-// Build assigns an ID to given electorate instance and returns it as an orm
-// Object. It does not persist the object in the store.
-func (b *ElectorateBucket) Build(db weave.KVStore, e *Electorate) orm.Object {
-	key := b.idSeq.NextVal(db)
-	return orm.NewSimpleObj(key, e)
-}
-
-// GetElectorate loads the electorate for the given id. If it does not exist then ErrNotFound is returned.
-func (b *ElectorateBucket) GetElectorate(db weave.KVStore, id []byte) (*Electorate, error) {
-	obj, err := b.Get(db, id)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to load electorate")
-	}
-	if obj == nil || obj.Value() == nil {
-		return nil, errors.Wrap(errors.ErrNotFound, "unknown id")
-	}
-	rev, ok := obj.Value().(*Electorate)
-	if !ok {
-		return nil, errors.Wrapf(errors.ErrInvalidModel, "invalid type: %T", obj.Value())
-	}
-	return rev, nil
 }
 
 const (
@@ -130,40 +103,36 @@ func (m Fraction) Validate() error {
 	return nil
 }
 
-// NewElectionRulesBucket is the persistent bucket for ElectionRules .
-type ElectionRulesBucket struct {
-	orm.Bucket
-	idSeq orm.Sequence
+func (m *TextProposal) Validate() error {
+	// TODO impl
+	return nil
 }
 
-// NewElectionRulesBucket returns a bucket for managing election rules.
-func NewElectionRulesBucket() *ElectionRulesBucket {
-	b := orm.NewBucket("electnrule", orm.NewSimpleObj(nil, &ElectionRule{}))
-	return &ElectionRulesBucket{
-		Bucket: b,
-		idSeq:  b.Sequence("id"),
-	}
+func (m TextProposal) Copy() orm.CloneableData {
+	// TODO impl
+	return &m
 }
 
-// Build assigns an ID to given election rule instance and returns it as an orm
-// Object. It does not persist the object in the store.
-func (b *ElectionRulesBucket) Build(db weave.KVStore, r *ElectionRule) orm.Object {
-	key := b.idSeq.NextVal(db)
-	return orm.NewSimpleObj(key, r)
+func (m *TextProposal) Vote(voted VoteOption, elector Elector) error {
+	switch voted {
+	case VoteOption_Yes:
+		m.VoteResult.TotalYes += elector.Weight
+	case VoteOption_No:
+		m.VoteResult.TotalNo += elector.Weight
+	case VoteOption_Abstain:
+		m.VoteResult.TotalAbstain += elector.Weight
+	default:
+		return errors.Wrap(errors.ErrInvalidInput, fmt.Sprintf("%q", m.String()))
+	}
+	m.Votes = append(m.Votes, &Vote{Elector: elector, Voted: voted})
+	return nil
 }
 
-// GetElectionRule loads the electorate for the given id. If it does not exist then ErrNotFound is returned.
-func (b *ElectionRulesBucket) GetElectionRule(db weave.KVStore, id []byte) (*ElectionRule, error) {
-	obj, err := b.Get(db, id)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to load election rule")
+func (m TextProposal) HasVoted(a weave.Address) bool {
+	for _, v := range m.Votes {
+		if v.Elector.Signature.Equals(a) {
+			return true
+		}
 	}
-	if obj == nil || obj.Value() == nil {
-		return nil, errors.Wrap(errors.ErrNotFound, "unknown id")
-	}
-	rev, ok := obj.Value().(*ElectionRule)
-	if !ok {
-		return nil, errors.Wrapf(errors.ErrInvalidModel, "invalid type: %T", obj.Value())
-	}
-	return rev, nil
+	return false
 }

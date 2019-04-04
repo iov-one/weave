@@ -18,11 +18,11 @@ var _ weave.Initializer = (*Initializer)(nil)
 func (*Initializer) FromGenesis(opts weave.Options, db weave.KVStore) error {
 	var governance struct {
 		Electorate []struct {
-			Title        string `json:"title"`
-			Participants []struct {
+			Title    string `json:"title"`
+			Electors []struct {
 				Signature weave.Address `json:"signature"`
 				Weight    uint32        `json:"weight"`
-			} `json:"participants"`
+			} `json:"electors"`
 		} `json:"electorate"`
 		Rules []struct {
 			Title             string `json:"title"`
@@ -39,16 +39,16 @@ func (*Initializer) FromGenesis(opts weave.Options, db weave.KVStore) error {
 	// handle electorate
 	electBucket := NewElectorateBucket()
 	for i, e := range governance.Electorate {
-		ps := make([]Participant, 0, len(e.Participants))
-		for _, p := range e.Participants {
-			ps = append(ps, Participant{
+		ps := make([]Elector, 0, len(e.Electors))
+		for _, p := range e.Electors {
+			ps = append(ps, Elector{
 				Signature: p.Signature,
 				Weight:    p.Weight,
 			})
 		}
 		electorate := Electorate{
-			Title:        e.Title,
-			Participants: ps,
+			Title:    e.Title,
+			Electors: ps,
 		}
 		if err := electorate.Validate(); err != nil {
 			return errors.Wrap(err, fmt.Sprintf("electorate #%d is invalid", i))
