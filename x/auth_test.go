@@ -71,7 +71,7 @@ func TestAuth(t *testing.T) {
 			}
 
 			if tc.wantNotInCtx != nil && tc.auth.HasAddress(tc.ctx, tc.wantNotInCtx.Address()) {
-				t.Fatal("conditino address that was expected not to be in context found")
+				t.Fatal("condition address that was expected not to be in context found")
 			}
 
 			all := tc.auth.GetConditions(tc.ctx)
