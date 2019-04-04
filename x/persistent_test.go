@@ -25,30 +25,20 @@ func TestPersistent(t *testing.T) {
 	MustUnmarshal(&got, rawGood)
 	assert.Equal(t, good, &got)
 
-	assertPanics(t, func() {
+	assert.Panics(t, func() {
 		MustUnmarshal(&got, garbage)
 	})
 
-	assertPanics(t, func() {
+	assert.Panics(t, func() {
 		MustValidate(bad)
 	})
 
 	MustValidate(good)
 
-	assertPanics(t, func() {
+	assert.Panics(t, func() {
 		MustMarshalValid(bad)
 	})
 
 	rebz := MustMarshalValid(good)
 	assert.Equal(t, rawGood, rebz)
-}
-
-func assertPanics(t testing.TB, fn func()) {
-	t.Helper()
-	defer func() {
-		if recover() == nil {
-			t.Fatal("panic expected")
-		}
-	}()
-	fn()
 }
