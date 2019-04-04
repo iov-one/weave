@@ -1,6 +1,7 @@
 package sigs
 
 import (
+	"bytes"
 	"testing"
 
 	"github.com/iov-one/weave"
@@ -8,8 +9,7 @@ import (
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/store"
 	"github.com/iov-one/weave/weavetest"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
+	"github.com/iov-one/weave/weavetest/assert"
 )
 
 func TestSignBytes(t *testing.T) {
@@ -21,31 +21,39 @@ func TestSignBytes(t *testing.T) {
 
 	// make sure the values out are sensible
 	tbz, err := tx.GetSignBytes()
-	assert.NoError(t, err)
+	assert.Nil(t, err)
 	assert.Equal(t, bz, tbz)
 	tbz2, err := tx2.GetSignBytes()
-	assert.NoError(t, err)
+	assert.Nil(t, err)
 	assert.Equal(t, bz2, tbz2)
 
 	// make sure sign bytes match tx
 	chainID := "test-sign-bytes"
 	c1, err := BuildSignBytesTx(tx, chainID, 17)
-	require.NoError(t, err)
+	assert.Nil(t, err)
 	c1a, err := BuildSignBytes(bz, chainID, 17)
-	require.NoError(t, err)
+	assert.Nil(t, err)
 	assert.Equal(t, c1, c1a)
-	assert.NotEqual(t, bz, c1)
+	if bytes.Equal(bz, c1) {
+		t.Fatal("")
+	}
 
 	// make sure sign bytes change on tx, chain_id and seq
 	ct, err := BuildSignBytes(bz2, chainID, 17)
-	require.NoError(t, err)
-	assert.NotEqual(t, c1, ct)
+	assert.Nil(t, err)
+	if bytes.Equal(c1, ct) {
+		t.Fatal("signature reproduced")
+	}
 	c2, err := BuildSignBytes(bz, chainID+"2", 17)
-	require.NoError(t, err)
-	assert.NotEqual(t, c1, c2)
+	assert.Nil(t, err)
+	if bytes.Equal(c1, c2) {
+		t.Fatal("signature reproduced")
+	}
 	c3, err := BuildSignBytes(bz, chainID, 18)
-	require.NoError(t, err)
-	assert.NotEqual(t, c1, c3)
+	assert.Nil(t, err)
+	if bytes.Equal(c1, c3) {
+		t.Fatal("signature reproduced")
+	}
 }
 
 func TestVerifySignature(t *testing.T) {
@@ -59,61 +67,66 @@ func TestVerifySignature(t *testing.T) {
 	tx := NewStdTx(bz)
 
 	sig0, err := SignTx(priv, tx, chainID, 0)
-	require.Nil(t, err)
+	assert.Nil(t, err)
 	sig1, err := SignTx(priv, tx, chainID, 1)
-	require.Nil(t, err)
+	assert.Nil(t, err)
 	sig2, err := SignTx(priv, tx, chainID, 2)
-	require.Nil(t, err)
+	assert.Nil(t, err)
 	sig13, err := SignTx(priv, tx, chainID, 13)
-	require.Nil(t, err)
+	assert.Nil(t, err)
 	empty := new(StdSignature)
 
 	// signing should be deterministic
 	sig2a, err := SignTx(priv, tx, chainID, 2)
-	require.Nil(t, err)
+	assert.Nil(t, err)
 	assert.Equal(t, sig2, sig2a)
 
 	// the first one must have a signature in the store
-	_, err = VerifySignature(kv, sig1, bz, chainID)
-	assert.Error(t, err)
+	if _, err := VerifySignature(kv, sig1, bz, chainID); !ErrInvalidSequence.Is(err) {
+		t.Fatalf("unexpected error: %s", err)
+	}
 
 	// empty sig
-	_, err = VerifySignature(kv, empty, bz, chainID)
-	assert.Error(t, err)
-	assert.True(t, errors.ErrUnauthorized.Is(err))
+	if _, err := VerifySignature(kv, empty, bz, chainID); !errors.ErrUnauthorized.Is(err) {
+		t.Fatalf("unexpected error: %s", err)
+	}
 
 	// must start with 0
 	sign, err := VerifySignature(kv, sig0, bz, chainID)
-	assert.NoError(t, err)
+	assert.Nil(t, err)
 	assert.Equal(t, perm, sign)
+
 	// we can advance one (store in kvstore)
 	sign, err = VerifySignature(kv, sig1, bz, chainID)
-	assert.NoError(t, err)
+	assert.Nil(t, err)
 	assert.Equal(t, perm, sign)
 
 	// jumping and replays are a no-no
-	_, err = VerifySignature(kv, sig1, bz, chainID)
-	assert.Error(t, err)
-	assert.True(t, ErrInvalidSequence.Is(err))
-	_, err = VerifySignature(kv, sig13, bz, chainID)
-	assert.Error(t, err)
-	assert.True(t, ErrInvalidSequence.Is(err))
+	if _, err := VerifySignature(kv, sig1, bz, chainID); !ErrInvalidSequence.Is(err) {
+		t.Fatalf("unexpected error: %s", err)
+	}
+	if _, err := VerifySignature(kv, sig13, bz, chainID); !ErrInvalidSequence.Is(err) {
+		t.Fatalf("unexpected error: %s", err)
+	}
 
 	// different chain doesn't match
-	_, err = VerifySignature(kv, sig2, bz, "metal")
-	assert.Error(t, err)
+	if _, err := VerifySignature(kv, sig2, bz, "metal"); !errors.ErrInvalidInput.Is(err) {
+		t.Fatalf("unexpected error: %s", err)
+	}
+
 	// doesn't match on bad sig
 	copy(sig2.Signature.GetEd25519(), []byte{42, 17, 99})
-	_, err = VerifySignature(kv, sig2, bz, chainID)
-	assert.Error(t, err)
+	if _, err := VerifySignature(kv, sig2, bz, chainID); !errors.ErrUnauthorized.Is(err) {
+		t.Fatalf("unexpected error: %s", err)
+	}
 }
 
 func TestVerifyTxSignatures(t *testing.T) {
 	kv := store.MemStore()
 
-	priv := crypto.GenPrivKeyEd25519()
+	priv := weavetest.NewKey()
 	addr := priv.PublicKey().Condition()
-	priv2 := crypto.GenPrivKeyEd25519()
+	priv2 := weavetest.NewKey()
 	addr2 := priv2.PublicKey().Condition()
 
 	chainID := "hot_summer_days"
@@ -121,57 +134,55 @@ func TestVerifyTxSignatures(t *testing.T) {
 	tx := NewStdTx(bz)
 	tx2 := NewStdTx([]byte(chainID))
 	tbz, err := tx.GetSignBytes()
-	require.NoError(t, err)
+	assert.Nil(t, err)
 	tbz2, err := tx2.GetSignBytes()
-	require.NoError(t, err)
-	assert.NotEqual(t, tbz, tbz2)
+	assert.Nil(t, err)
+	if bytes.Equal(tbz, tbz2) {
+		t.Fatal("signaure repeated")
+	}
 
 	// two sigs from the first key
 	sig, err := SignTx(priv, tx, chainID, 0)
-	require.NoError(t, err)
+	assert.Nil(t, err)
 	sig1, err := SignTx(priv, tx, chainID, 1)
-	require.NoError(t, err)
+	assert.Nil(t, err)
 	// one from the second
 	sig2, err := SignTx(priv2, tx, chainID, 0)
-	require.NoError(t, err)
+	assert.Nil(t, err)
 	// and a signature of wrong info
 	badSig, err := SignTx(priv, tx2, chainID, 0)
-	require.NoError(t, err)
+	assert.Nil(t, err)
 
 	// no signers
 	signers, err := VerifyTxSignatures(kv, tx, chainID)
-	assert.NoError(t, err)
-	assert.Empty(t, signers)
+	assert.Nil(t, err)
+	assert.Equal(t, len(signers), 0)
 
 	// bad signers
 	tx.Signatures = []*StdSignature{badSig}
 	signers, err = VerifyTxSignatures(kv, tx, chainID)
-	assert.Error(t, err)
+	if !errors.ErrUnauthorized.Is(err) {
+		t.Fatalf("unexpected error: %s", err)
+	}
 
 	// some signers
 	tx.Signatures = []*StdSignature{sig}
 	signers, err = VerifyTxSignatures(kv, tx, chainID)
-	assert.NoError(t, err)
-	if assert.Equal(t, 1, len(signers)) {
-		assert.Equal(t, addr, signers[0])
-	}
+	assert.Nil(t, err)
+	assert.Equal(t, []weave.Condition{addr}, signers)
 
 	// one signature as replay is blocked
 	tx.Signatures = []*StdSignature{sig, sig2}
-	signers, err = VerifyTxSignatures(kv, tx, chainID)
-	assert.Error(t, err)
+	if _, err := VerifyTxSignatures(kv, tx, chainID); !ErrInvalidSequence.Is(err) {
+		t.Fatalf("unexpected error: %s", err)
+	}
 
 	// now increment seq and it passes
 	tx.Signatures = []*StdSignature{sig1, sig2}
 	signers, err = VerifyTxSignatures(kv, tx, chainID)
-	assert.NoError(t, err)
-	if assert.Equal(t, 2, len(signers)) {
-		assert.Equal(t, addr, signers[0])
-		assert.Equal(t, addr2, signers[1])
-	}
+	assert.Nil(t, err)
+	assert.Equal(t, []weave.Condition{addr, addr2}, signers)
 }
-
-//----- mock objects for testing...
 
 type StdTx struct {
 	weave.Tx
