@@ -14,7 +14,6 @@ import (
 func TestDecorator(t *testing.T) {
 	db := store.MemStore()
 
-	// create some keys
 	a := weavetest.NewCondition()
 	b := weavetest.NewCondition()
 	c := weavetest.NewCondition()
@@ -135,8 +134,6 @@ func TestDecorator(t *testing.T) {
 		})
 	}
 }
-
-//---------------- helpers --------
 
 // MultisigCheckHandler stores the seen permissions on each call
 // for this extension's authenticator (ie. multisig.Authenticate)
