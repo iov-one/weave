@@ -7,6 +7,9 @@ import (
 	"github.com/iov-one/weave/errors"
 )
 
+// UNIX time value of 0001-01-01T00:00:00Z
+const zeroUnixTime = -62135596800
+
 // UnixTime represents a point in time as POSIX time.
 // This type comes in handy when dealing with protobuf messages. Instead of
 // using Go's time.Time that includes nanoseconds use primitive int64 type and
@@ -24,18 +27,16 @@ func (t UnixTime) Time() time.Time {
 	return time.Unix(int64(t), 0)
 }
 
-// IsZero returns true if this time represents a zero value.
-func (t UnixTime) IsZero() bool {
-	return t == 0
-}
-
 // Add modifies this UNIX time by given duration. This is compatible with
-// time.Time.Add method.
+// time.Time.Add method. Any duration value smaller than a second is ignored as
+// it cannot be represented by the UnixTime type.
 func (t UnixTime) Add(d time.Duration) UnixTime {
 	return t + UnixTime(d/time.Second)
 }
 
 // AsUnixTime converts given Time structure into its UNIX time representation.
+// All time information more granular than a second is dropped as it cannot be
+// represented by the UnixTime type.
 func AsUnixTime(t time.Time) UnixTime {
 	return UnixTime(t.Unix())
 }
@@ -43,21 +44,24 @@ func AsUnixTime(t time.Time) UnixTime {
 // UnmarshalJSON supports unmarshaling both as time.Time and from a number.
 // Usually a number is used as a representation of this time in JSON but it is
 // convinient to use a string format in configurations (ie genesis file).
+// Any granularity smaller than a second is dropped. For example, 1900
+// milliseconds will be narrowed to 1 second.
 func (t *UnixTime) UnmarshalJSON(raw []byte) error {
-	var unix int64
-	if err := json.Unmarshal(raw, &unix); err == nil {
-		if unix < 0 {
-			return errors.Wrap(errors.ErrInvalidInput, "time before epoch")
+	var n int64
+	if err := json.Unmarshal(raw, &n); err == nil {
+		unix := UnixTime(n)
+		if err := unix.Validate(); err != nil {
+			return err
 		}
-		*t = UnixTime(unix)
+		*t = unix
 		return nil
 	}
 
 	var stdtime time.Time
 	if err := json.Unmarshal(raw, &stdtime); err == nil {
 		unix := UnixTime(stdtime.Unix())
-		if unix < 0 {
-			return errors.Wrap(errors.ErrInvalidInput, "time before epoch")
+		if err := unix.Validate(); err != nil {
+			return err
 		}
 		*t = unix
 		return nil
@@ -68,8 +72,8 @@ func (t *UnixTime) UnmarshalJSON(raw []byte) error {
 
 // Validate returns an error if this time value is invalid.
 func (t UnixTime) Validate() error {
-	if t < 0 {
-		return errors.Wrap(errors.ErrInvalidState, "negative value")
+	if t < zeroUnixTime {
+		return errors.Wrap(errors.ErrInvalidState, "time must be an A.D. value")
 	}
 	return nil
 }

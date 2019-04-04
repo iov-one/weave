@@ -14,13 +14,21 @@ func TestUnixTimeUnmarshal(t *testing.T) {
 		wantTime UnixTime
 		wantErr  *errors.Error
 	}{
-		"zero time as number": {
+		"zero UNIX time as number": {
 			raw:      "0",
 			wantTime: 0,
 		},
-		"zero time as string": {
+		"zero UNIX time as string": {
 			raw:      `"1970-01-01T01:00:00+01:00"`,
 			wantTime: 0,
+		},
+		"zero time as number": {
+			raw:      "-62135596800",
+			wantTime: -62135596800,
+		},
+		"zero time as string": {
+			raw:      `"0001-01-01T00:00:00Z"`,
+			wantTime: -62135596800,
 		},
 		"a time as string": {
 			raw:      `"2019-04-04T11:35:40.89181085+02:00"`,
@@ -31,12 +39,12 @@ func TestUnixTimeUnmarshal(t *testing.T) {
 			wantTime: 1554370540,
 		},
 		"negative number": {
-			raw:     "-1",
-			wantErr: errors.ErrInvalidInput,
+			raw:      "-1",
+			wantTime: -1,
 		},
 		"negative time as string": {
-			raw:     `"1950-01-01T01:00:00+01:00"`,
-			wantErr: errors.ErrInvalidInput,
+			raw:      `"1970-01-01T00:59:59+01:00"`,
+			wantTime: -1,
 		},
 		"invalid string": {
 			raw:     `"not a time string"`,
@@ -59,13 +67,44 @@ func TestUnixTimeUnmarshal(t *testing.T) {
 }
 
 func TestUnixTimeAdd(t *testing.T) {
-	now := time.Now()
-	future := now.Add(time.Hour + 4*time.Second)
+	cases := map[string]struct {
+		base  UnixTime
+		delta time.Duration
+		want  UnixTime
+	}{
+		"zero delta": {
+			base:  123,
+			delta: 0,
+			want:  123,
+		},
+		"add less than a second must not modify the value": {
+			base:  123,
+			delta: 999 * time.Millisecond,
+			want:  123,
+		},
+		"subtract less than a second must not modify the value": {
+			base:  123,
+			delta: -999 * time.Millisecond,
+			want:  123,
+		},
+		"add more than a second must add only full seconds": {
+			base:  123,
+			delta: 2999 * time.Millisecond,
+			want:  125,
+		},
+		"subtract more than a second must subtract only full seconds": {
+			base:  123,
+			delta: -2999 * time.Millisecond,
+			want:  121,
+		},
+	}
 
-	unow := AsUnixTime(now)
-	ufuture := unow.Add(time.Hour + 4*time.Second)
-
-	if future.Unix() != int64(ufuture) {
-		t.Fatalf("want %d, got %d", future.Unix(), ufuture)
+	for testName, tc := range cases {
+		t.Run(testName, func(t *testing.T) {
+			got := tc.base.Add(tc.delta)
+			if got != tc.want {
+				t.Fatalf("unexpected result: %d", got)
+			}
+		})
 	}
 }

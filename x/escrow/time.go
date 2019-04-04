@@ -15,5 +15,5 @@ func isExpired(ctx weave.Context, t weave.UnixTime) bool {
 	if !ok {
 		panic("block time is not present")
 	}
-	return t.Time().Before(blockNow)
+	return t < weave.AsUnixTime(blockNow)
 }

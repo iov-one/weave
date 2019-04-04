@@ -121,13 +121,13 @@ func TestCreateEscrowMsg(t *testing.T) {
 			},
 			errors.ErrInvalidInput.Is,
 		},
-		// invalid timeout
+		// zero timeout
 		8: {
 			&CreateEscrowMsg{
 				Arbiter:   b,
 				Recipient: c.Address(),
 				Amount:    plus,
-				Timeout:   -1,
+				Timeout:   0,
 			},
 			errors.ErrInvalidInput.Is,
 		},
