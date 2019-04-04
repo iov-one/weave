@@ -17,7 +17,7 @@ figure out how to configure it manually.
 Tendermint Config
 =================
 
-Tendermint docs provide a `brief introduction <https://tendermint.readthedocs.io/en/master/using-tendermint.html>`__
+Tendermint docs provide a `brief introduction <https://tendermint.com/docs/introduction/>`__
 to the tendermint cli. By default all files are writen to
 the ``~/.tendermint`` directory, unless you override that with
 a different "HOME" directory by providing ``TMHOME=xyz`` or ``tendermint --home=xyz``.
@@ -66,8 +66,8 @@ these should be writen to the ``config.toml`` file or stored in
 environmental options in the service ini (if using 12-factor style).
 
 Dev:
-- ``--p2p.skip_upnp``: Don't try to determine external address.
-  Needed if running without internet (eg. in an airplane)
+- ``--p2p.upnp --proxy_app noop``: Don’t try to determine external address
+  (`noop` for local testing)
 - ``--log_level=p2p:info,evidence:debug,consensus:info,*:error``:
   Set the log levels for different subsystems (debug, info, error)
 - ``--tx_index.index_all_tags=true`` to enable indexing for search
