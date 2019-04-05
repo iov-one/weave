@@ -21,7 +21,7 @@ import (
 
 var (
 	blockNow = time.Now().UTC()
-	Timeout  = blockNow.Add(2 * time.Hour)
+	Timeout  = weave.AsUnixTime(blockNow.Add(2 * time.Hour))
 )
 
 // TestHandler runs a number of scenario of tx to make
@@ -182,8 +182,8 @@ func TestHandler(t *testing.T) {
 			action{
 				perms: []weave.Condition{a},
 				// defaults to sender!
-				msg:       NewCreateMsg(nil, b.Address(), c, all, blockNow.Add(-2*time.Hour), ""),
-				blockTime: Timeout.Add(-time.Hour),
+				msg:       NewCreateMsg(nil, b.Address(), c, all, weave.AsUnixTime(blockNow.Add(-2*time.Hour)), ""),
+				blockTime: Timeout.Time().Add(-time.Hour),
 			},
 			true,
 			nil,
@@ -293,7 +293,7 @@ func TestHandler(t *testing.T) {
 				msg: &ReleaseEscrowMsg{
 					EscrowId: weavetest.SequenceID(1),
 				},
-				blockTime: Timeout.Add(time.Hour),
+				blockTime: Timeout.Time().Add(time.Hour),
 			},
 			true,
 			nil,

@@ -1,8 +1,6 @@
 package escrow
 
 import (
-	"time"
-
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/x/cash"
@@ -22,7 +20,7 @@ func (i *Initializer) FromGenesis(opts weave.Options, db weave.KVStore) error {
 		Sender    weave.Address   `json:"sender"`
 		Arbiter   weave.Condition `json:"arbiter"`
 		Recipient weave.Address   `json:"recipient"`
-		Timeout   time.Time       `json:"timeout"`
+		Timeout   weave.UnixTime  `json:"timeout"`
 		Amount    []*coin.Coin    `json:"amount"`
 	}
 
@@ -36,7 +34,7 @@ func (i *Initializer) FromGenesis(opts weave.Options, db weave.KVStore) error {
 			Sender:    e.Sender,
 			Arbiter:   e.Arbiter,
 			Recipient: e.Recipient,
-			Timeout:   e.Timeout.UTC(),
+			Timeout:   e.Timeout,
 		}
 		if err := escr.Validate(); err != nil {
 			return errors.Wrapf(err, "invalid escrow at position: %d ", j)

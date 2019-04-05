@@ -1,8 +1,6 @@
 package escrow
 
 import (
-	"time"
-
 	"github.com/iov-one/weave"
 	coin "github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/errors"
@@ -31,8 +29,14 @@ func (e *Escrow) Validate() error {
 	if e.Recipient == nil {
 		return errors.Wrap(errors.ErrEmpty, "recipient")
 	}
-	if e.Timeout.IsZero() {
+	if e.Timeout == 0 {
+		// Zero timeout is a valid value that dates to 1970-01-01. We
+		// know that this value is in the past and makes no sense. Most
+		// likely value was not provided and a zero value remained.
 		return errors.Wrap(errors.ErrInvalidInput, "timeout in required")
+	}
+	if err := e.Timeout.Validate(); err != nil {
+		return errors.Wrap(err, "invalid timeout value")
 	}
 	if len(e.Memo) > maxMemoSize {
 		return errors.Wrapf(errors.ErrInvalidInput, "memo %s", e.Memo)
@@ -71,7 +75,7 @@ func NewEscrow(
 	recipient weave.Address,
 	arbiter weave.Condition,
 	amount coin.Coins,
-	timeout time.Time,
+	timeout weave.UnixTime,
 	memo string,
 ) orm.Object {
 	esc := &Escrow{
