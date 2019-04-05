@@ -113,6 +113,8 @@ func (m TextProposal) Copy() orm.CloneableData {
 	return &m
 }
 
+// Vote updates the intermediate tally result with the new vote and stores the elector in the
+// voter archive.
 func (m *TextProposal) Vote(voted VoteOption, elector Elector) error {
 	switch voted {
 	case VoteOption_Yes:
@@ -128,6 +130,8 @@ func (m *TextProposal) Vote(voted VoteOption, elector Elector) error {
 	return nil
 }
 
+// Tally calls the final calculation on the votes and sets the status of the proposal according to the
+// election rules threshold.
 func (m *TextProposal) Tally() error {
 	if m.VoteResult.Accepted() {
 		m.Status = TextProposal_Accepted
@@ -137,6 +141,7 @@ func (m *TextProposal) Tally() error {
 	return nil
 }
 
+// HasVoted returns if the given address has been in the voter archive for this proposal.
 func (m TextProposal) HasVoted(a weave.Address) bool {
 	for _, v := range m.Votes {
 		if v.Elector.Signature.Equals(a) {
@@ -146,6 +151,7 @@ func (m TextProposal) HasVoted(a weave.Address) bool {
 	return false
 }
 
+// Accepted returns the result of the `(yes*denominator) > (numerator*total_electors_weight)` calculation.
 func (m TallyResult) Accepted() bool {
 	return uint64(m.TotalYes)*uint64(m.Threshold.Denominator) > m.TotalWeightElectorate*uint64(m.Threshold.Numerator)
 }

@@ -4,12 +4,18 @@ import (
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/x"
+	"github.com/tendermint/tendermint/libs/common"
 )
 
 const (
 	newTextProposalCost = 0
 	voteCost            = 0
 	tallyCost           = 0
+)
+
+const (
+	tagProposerID = "proposal-id"
+	tagAction     = "action"
 )
 
 // RegisterQuery registers governance buckets for querying.
@@ -127,8 +133,14 @@ func (h TallyHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) 
 	if err := proposal.Tally(); err != nil {
 		return res, err
 	}
-	// todo: set tag to mark
-	return res, h.bucket.Update(db, msg.ProposalId, proposal)
+	if err := h.bucket.Update(db, msg.ProposalId, proposal); err != nil {
+		return res, err
+	}
+	res.Tags = append(res.Tags, []common.KVPair{
+		{Key: []byte(tagProposerID), Value: msg.ProposalId},
+		{Key: []byte(tagAction), Value: []byte("tally")},
+	}...)
+	return res, nil
 }
 
 func (h TallyHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*TallyMsg, *TextProposal, error) {

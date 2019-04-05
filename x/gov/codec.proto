@@ -98,7 +98,6 @@ message TallyResult {
     // Threshold is the fraction of all eligible voters, not only the ones who voted. To accept a
     // proposal this value must be exceeded.
     Fraction threshold = 5 [(gogoproto.nullable) = false];
-
 }
 
 // Vote combines the elector and his voted option to archive them.
