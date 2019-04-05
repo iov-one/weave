@@ -21,6 +21,10 @@ message Escrow {
   // If unreleased before timeout, escrow will return to sender.
   // Timeout represents wall clock time as read from the block header. Timeout
   // is represented using POSIX time format.
+  // Expiration time is inclusive meaning that the escrow expires as soon as
+  // the current time is equal or greater than timeout value.
+  // nonexpired: [created, timeout)
+  // expired: [timeout, infinity)
   int64 timeout = 5 [(gogoproto.casttype) = "github.com/iov-one/weave.UnixTime"];
 
   // max length 128 character

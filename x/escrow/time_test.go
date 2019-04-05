@@ -22,6 +22,10 @@ func TestIsExpired(t *testing.T) {
 	if !isExpired(ctx, past) {
 		t.Error("past is not expired")
 	}
+
+	if !isExpired(ctx, now) {
+		t.Fatal("when expiration time is equal to now it is expected to be expired")
+	}
 }
 
 func TestIsExpiredRequiresBlockTime(t *testing.T) {
