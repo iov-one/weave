@@ -1,8 +1,6 @@
 package gov
 
 import (
-	"time"
-
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/x"
@@ -74,10 +72,10 @@ func (h VoteHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) 
 	if !ok {
 		return nil, nil, nil, errors.Wrap(errors.ErrHuman, "block time not set")
 	}
-	if blockTime.Before(time.Unix(int64(proposal.VotingStartTime), 0)) {
+	if !blockTime.After(proposal.VotingStartTime.Time()) {
 		return nil, nil, nil, errors.Wrap(errors.ErrInvalidState, "vote before proposal start time")
 	}
-	if blockTime.After(time.Unix(int64(proposal.VotingEndTime), 0)) {
+	if !blockTime.Before(proposal.VotingEndTime.Time()) {
 		return nil, nil, nil, errors.Wrap(errors.ErrInvalidState, "vote after proposal end time")
 	}
 

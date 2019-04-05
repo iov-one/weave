@@ -21,7 +21,7 @@ var (
 func TestVote(t *testing.T) {
 	proposalID := weavetest.SequenceID(1)
 	specs := map[string]struct {
-		Mods           func(proposal *TextProposal)
+		Mods           func(weave.Context, *TextProposal)
 		Msg            VoteMsg
 		WantCheckErr   *errors.Error
 		WantDeliverErr *errors.Error
@@ -39,11 +39,11 @@ func TestVote(t *testing.T) {
 			Msg: VoteMsg{ProposalId: proposalID, Selected: VoteOption_Abstain, Voter: alice},
 			Exp: TallyResult{TotalAbstain: 1},
 		},
-		"Vote default to main signer when voter empty": {
+		"Vote defaults to main signer when no voter address submitted": {
 			Msg: VoteMsg{ProposalId: proposalID, Selected: VoteOption_Yes},
 			Exp: TallyResult{TotalYes: 1},
 		},
-		"Vote Invalid option": {
+		"Vote with invalid option": {
 			Msg:          VoteMsg{ProposalId: proposalID, Selected: VoteOption_Invalid, Voter: alice},
 			WantCheckErr: errors.ErrInvalidInput,
 		},
@@ -52,15 +52,33 @@ func TestVote(t *testing.T) {
 			WantCheckErr: errors.ErrUnauthorized,
 		},
 		"Vote before start date": {
-			Mods: func(proposal *TextProposal) {
-				proposal.VotingStartTime = uint64(time.Now().Add(time.Hour).Unix())
+			Mods: func(ctx weave.Context, proposal *TextProposal) {
+				blockTime, _ := weave.BlockTime(ctx)
+				proposal.VotingStartTime = weave.AsUnixTime(blockTime.Add(time.Second))
+			},
+			Msg:          VoteMsg{ProposalId: proposalID, Selected: VoteOption_Yes, Voter: alice},
+			WantCheckErr: errors.ErrInvalidState,
+		},
+		"Vote on start date": {
+			Mods: func(ctx weave.Context, proposal *TextProposal) {
+				blockTime, _ := weave.BlockTime(ctx)
+				proposal.VotingStartTime = weave.AsUnixTime(blockTime)
+			},
+			Msg:          VoteMsg{ProposalId: proposalID, Selected: VoteOption_Yes, Voter: alice},
+			WantCheckErr: errors.ErrInvalidState,
+		},
+		"Vote on end date": {
+			Mods: func(ctx weave.Context, proposal *TextProposal) {
+				blockTime, _ := weave.BlockTime(ctx)
+				proposal.VotingEndTime = weave.AsUnixTime(blockTime)
 			},
 			Msg:          VoteMsg{ProposalId: proposalID, Selected: VoteOption_Yes, Voter: alice},
 			WantCheckErr: errors.ErrInvalidState,
 		},
 		"Vote after end date": {
-			Mods: func(proposal *TextProposal) {
-				proposal.VotingEndTime = uint64(time.Now().Add(-1 * time.Second).Unix())
+			Mods: func(ctx weave.Context, proposal *TextProposal) {
+				blockTime, _ := weave.BlockTime(ctx)
+				proposal.VotingEndTime = weave.AsUnixTime(blockTime.Add(-1 * time.Second))
 			},
 			Msg:          VoteMsg{ProposalId: proposalID, Selected: VoteOption_Yes, Voter: alice},
 			WantCheckErr: errors.ErrInvalidState,
@@ -76,10 +94,10 @@ func TestVote(t *testing.T) {
 		t.Run(msg, func(t *testing.T) {
 			db := store.MemStore()
 			// given
-			pBucket := WithProposal(t, db, spec.Mods)
+			ctx := weave.WithBlockTime(context.Background(), time.Now().Round(time.Second))
+			pBucket := withProposal(t, db, ctx, spec.Mods)
 			cache := db.CacheWrap()
 
-			ctx := weave.WithBlockTime(context.Background(), time.Now())
 			tx := &weavetest.Tx{Msg: &spec.Msg}
 			if _, err := rt.Check(ctx, cache, tx); !spec.WantCheckErr.Is(err) {
 				t.Fatalf("check expected: %+v  but got %+v", spec.WantCheckErr, err)
@@ -107,7 +125,7 @@ func TestVote(t *testing.T) {
 
 }
 
-func WithProposal(t *testing.T, db store.CacheableKVStore, mods func(*TextProposal)) *ProposalBucket {
+func withProposal(t *testing.T, db store.CacheableKVStore, ctx weave.Context, mods func(weave.Context, *TextProposal)) *ProposalBucket {
 	// setup electorate
 	electorateBucket := NewElectorateBucket()
 	err := electorateBucket.Save(db, electorateBucket.Build(db, &Electorate{
@@ -134,11 +152,11 @@ func WithProposal(t *testing.T, db store.CacheableKVStore, mods func(*TextPropos
 		Title:           "My proposal",
 		ElectionRuleId:  weavetest.SequenceID(1),
 		ElectorateId:    weavetest.SequenceID(1),
-		VotingStartTime: uint64(time.Now().Add(-1 * time.Second).Unix()),
-		VotingEndTime:   uint64(time.Now().Add(time.Minute).Unix()),
+		VotingStartTime: weave.AsUnixTime(time.Now().Add(-1 * time.Second)),
+		VotingEndTime:   weave.AsUnixTime(time.Now().Add(time.Minute)),
 	}
 	if mods != nil {
-		mods(proposal)
+		mods(ctx, proposal)
 	}
 	err = pBucket.Save(db, pBucket.Build(db, proposal))
 	if err != nil {

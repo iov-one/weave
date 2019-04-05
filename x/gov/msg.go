@@ -34,7 +34,9 @@ func (m VoteMsg) Validate() error {
 	if len(m.ProposalId) == 0 {
 		return errors.Wrap(errors.ErrInvalidInput, "empty proposal id")
 	}
-
+	if err := m.Voter.Validate(); m.Voter != nil && err != nil {
+		return errors.Wrap(err, "invalid voter")
+	}
 	return nil
 }
 
