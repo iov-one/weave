@@ -28,6 +28,10 @@ func RegisterRoutes(r weave.Registry, auth x.Authenticator) {
 		propBucket: propBucket,
 		elecBucket: elecBucket,
 	})
+	r.Handle(pathTallyMsg, &TallyHandler{
+		auth:   auth,
+		bucket: propBucket,
+	})
 }
 
 type VoteHandler struct {
@@ -97,4 +101,54 @@ func (h VoteHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) 
 		return nil, nil, nil, errors.Wrap(errors.ErrUnauthorized, "not in participants list")
 	}
 	return &msg, proposal, elector, nil
+}
+
+type TallyHandler struct {
+	auth   x.Authenticator
+	bucket *ProposalBucket
+}
+
+func (h TallyHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (weave.CheckResult, error) {
+	var res weave.CheckResult
+	if _, _, err := h.validate(ctx, db, tx); err != nil {
+		return res, err
+	}
+	res.GasAllocated += tallyCost
+	return res, nil
+
+}
+
+func (h TallyHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (weave.DeliverResult, error) {
+	var res weave.DeliverResult
+	msg, proposal, err := h.validate(ctx, db, tx)
+	if err != nil {
+		return res, err
+	}
+	if err := proposal.Tally(); err != nil {
+		return res, err
+	}
+	// todo: set tag to mark
+	return res, h.bucket.Update(db, msg.ProposalId, proposal)
+}
+
+func (h TallyHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*TallyMsg, *TextProposal, error) {
+	var msg TallyMsg
+	if err := weave.LoadMsg(tx, &msg); err != nil {
+		return nil, nil, errors.Wrap(err, "load msg")
+	}
+	proposal, err := h.bucket.GetTextProposal(db, msg.ProposalId)
+	if err != nil {
+		return nil, nil, err
+	}
+	if proposal.Status != TextProposal_Undefined {
+		return nil, nil, errors.Wrap(errors.ErrInvalidState, "tally executed before")
+	}
+	blockTime, ok := weave.BlockTime(ctx)
+	if !ok {
+		return nil, nil, errors.Wrap(errors.ErrHuman, "block time not set")
+	}
+	if !blockTime.After(proposal.VotingEndTime.Time()) {
+		return nil, nil, errors.Wrap(errors.ErrInvalidState, "tally before proposal end time")
+	}
+	return &msg, proposal, nil
 }

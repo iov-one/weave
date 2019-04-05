@@ -128,6 +128,15 @@ func (m *TextProposal) Vote(voted VoteOption, elector Elector) error {
 	return nil
 }
 
+func (m *TextProposal) Tally() error {
+	if m.VoteResult.Accepted() {
+		m.Status = TextProposal_Accepted
+	} else {
+		m.Status = TextProposal_Rejected
+	}
+	return nil
+}
+
 func (m TextProposal) HasVoted(a weave.Address) bool {
 	for _, v := range m.Votes {
 		if v.Elector.Signature.Equals(a) {
@@ -135,4 +144,8 @@ func (m TextProposal) HasVoted(a weave.Address) bool {
 		}
 	}
 	return false
+}
+
+func (m TallyResult) Accepted() bool {
+	return uint64(m.TotalYes)*uint64(m.Threshold.Denominator) > m.TotalWeightElectorate*uint64(m.Threshold.Numerator)
 }
