@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/store"
 )
 
@@ -13,7 +14,10 @@ func TestGenesisInitializer(t *testing.T) {
 		{
 			"gconf": {
 				"a-string": "hello",
-				"an-int": 321
+				"an-int": 321,
+				"string-coin": "4 IOV",
+				"struct-coin": {"whole": 7, "ticker": "IOV"},
+				"an-address": "d2a1f84143a9754057e42db6d6c9f986fe0ff673"
 			}
 		}
 	`
@@ -30,9 +34,22 @@ func TestGenesisInitializer(t *testing.T) {
 	}
 
 	if got := String(db, "a-string"); got != "hello" {
-		t.Fatalf("unexpected value: %v", got)
+		t.Fatalf("unexpected string: %q", got)
 	}
+
 	if got := Int(db, "an-int"); got != 321 {
-		t.Fatalf("unexpected value: %v", got)
+		t.Fatalf("unexpected int: %v", got)
+	}
+
+	wantAddr := hexDecode(t, "d2a1f84143a9754057e42db6d6c9f986fe0ff673")
+	if got := Address(db, "an-address"); !wantAddr.Equals(got) {
+		t.Fatalf("unexpected address: %v", got)
+	}
+
+	if got := Coin(db, "string-coin"); !coin.NewCoin(4, 0, "IOV").Equals(got) {
+		t.Fatalf("unexpected coin: %v", got)
+	}
+	if got := Coin(db, "struct-coin"); !coin.NewCoin(7, 0, "IOV").Equals(got) {
+		t.Fatalf("unexpected coin: %v", got)
 	}
 }

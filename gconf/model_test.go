@@ -19,6 +19,14 @@ func TestBucketPrimitiveTypesGetSet(t *testing.T) {
 		"int64": {
 			val: int64(942),
 		},
+		"int32": {
+			val:     int32(724),
+			wantErr: errors.ErrInvalidType,
+		},
+		"uint64": {
+			val:     uint64(724),
+			wantErr: errors.ErrInvalidType,
+		},
 		"string": {
 			val: "foobar",
 		},
@@ -34,7 +42,7 @@ func TestBucketPrimitiveTypesGetSet(t *testing.T) {
 		t.Run(testName, func(t *testing.T) {
 			db := store.MemStore()
 			b := NewConfBucket()
-			propName := []byte(t.Name())
+			propName := t.Name()
 
 			obj, err := NewConf(propName, tc.val)
 			if !tc.wantErr.Is(err) {
@@ -65,7 +73,7 @@ func TestBucketPrimitiveTypesGetSet(t *testing.T) {
 func TestSetLoadAddress(t *testing.T) {
 	db := store.MemStore()
 	b := NewConfBucket()
-	propName := []byte(t.Name())
+	propName := t.Name()
 
 	addr := hexDecode(t, "a656a66d09a9c810019f7f96c91f423ccf81326f")
 
@@ -98,7 +106,7 @@ func hexDecode(t testing.TB, s string) weave.Address {
 func TestSetLoadCoinValue(t *testing.T) {
 	db := store.MemStore()
 	b := NewConfBucket()
-	propName := []byte(t.Name())
+	propName := t.Name()
 
 	obj, err := NewConf(propName, coin.NewCoin(1, 2, "IOV"))
 	if err != nil {
@@ -131,7 +139,7 @@ func TestSetLoadCoinValue(t *testing.T) {
 func TestSetLoadCoinPointer(t *testing.T) {
 	db := store.MemStore()
 	b := NewConfBucket()
-	propName := []byte(t.Name())
+	propName := t.Name()
 
 	obj, err := NewConf(propName, coin.NewCoinp(1, 2, "IOV"))
 	if err != nil {

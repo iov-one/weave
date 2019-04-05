@@ -2,80 +2,81 @@ package gconf
 
 import (
 	"bytes"
-	"reflect"
 	"testing"
 	"time"
 
-	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/coin"
+	"github.com/iov-one/weave/store"
+	"github.com/iov-one/weave/weavetest/assert"
 )
 
 func TestString(t *testing.T) {
-	store := confStore(`"foobar"`)
-	if want, got := "foobar", String(store, "a"); got != want {
-		t.Fatalf("want %q, got %q", want, got)
+	db := store.MemStore()
+	assert.Nil(t, SetValue(db, "x", "foobar"))
+	got := String(db, "x")
+	if got != "foobar" {
+		t.Fatalf("unexpected value: %q", got)
 	}
 }
 
 func TestInt(t *testing.T) {
-	store := confStore(`123`)
-	if want, got := 123, Int(store, "a"); got != want {
-		t.Fatalf("want %v, got %v", want, got)
+	db := store.MemStore()
+	assert.Nil(t, SetValue(db, "x", 851))
+	got := Int(db, "x")
+	if got != 851 {
+		t.Fatalf("unexpected value: %d", got)
 	}
 }
 
 func TestDuration(t *testing.T) {
-	store := confStore(`123`)
-	if want, got := 123*time.Nanosecond, Duration(store, "a"); got != want {
-		t.Fatalf("want %v, got %v", want, got)
+	db := store.MemStore()
+	assert.Nil(t, SetValue(db, "x", time.Hour+time.Minute))
+	got := Duration(db, "x")
+	if got != time.Hour+time.Minute {
+		t.Fatalf("unexpected value: %s", got)
 	}
 }
 
 func TestAddress(t *testing.T) {
-	store := confStore(`"6161616161616161616161616161616161616161"`)
-	if want, got := weave.Address(`aaaaaaaaaaaaaaaaaaaa`), Address(store, "a"); !got.Equals(want) {
-		t.Fatalf("want %v, got %v", want, got)
+	db := store.MemStore()
+	val := hexDecode(t, "6161616161616161616161616161616161616161")
+	assert.Nil(t, SetValue(db, "x", val))
+	got := Address(db, "x")
+	if !got.Equals(val) {
+		t.Fatalf("unexpected value: %q", got)
 	}
 }
 
 func TestBytes(t *testing.T) {
-	store := confStore(`"YWJjZA=="`)
-	if want, got := []byte("abcd"), Bytes(store, "a"); !bytes.Equal(got, want) {
-		t.Fatalf("want %q, got %q", want, got)
+	db := store.MemStore()
+	assert.Nil(t, SetValue(db, "x", []byte("abc123")))
+	got := Bytes(db, "x")
+	if !bytes.Equal(got, []byte("abc123")) {
+		t.Fatalf("unexpected value: %q", got)
 	}
 }
 
 func TestCoin(t *testing.T) {
-	store := confStore(`{"whole": 3, "fractional": 4, "ticker": "DOGE"}`)
-	want := coin.Coin{
-		Whole:      3,
-		Fractional: 4,
-		Ticker:     "DOGE",
-	}
-	if got := Coin(store, "a"); !reflect.DeepEqual(got, want) {
-		t.Fatalf("want %q, got %q", want, got)
+	db := store.MemStore()
+	val := coin.NewCoin(3, 4, "IOV")
+	assert.Nil(t, SetValue(db, "x", val))
+	got := Coin(db, "x")
+	if !got.Equals(val) {
+		t.Fatalf("unexpected value: %q", got)
 	}
 }
 
 func TestLoadingUnknownValuePanics(t *testing.T) {
-	var recovered bool
-	func() {
-		defer func() {
-			err := recover()
-			recovered = err != nil
-			t.Logf("recover(): %+v", err)
-		}()
-
-		loadInto(confStore(nil), "this-value-does-not-exist", nil)
-	}()
-
-	if !recovered {
-		t.Fatal("expected loadInto call to panic")
-	}
+	db := store.MemStore()
+	assert.Panics(t, func() {
+		String(db, "this-value-does-not-exist")
+	})
 }
 
-type confStore []byte
-
-func (cs confStore) Get([]byte) []byte {
-	return cs
+func TestLoadingWrongTypePanics(t *testing.T) {
+	db := store.MemStore()
+	assert.Nil(t, SetValue(db, "a-number", 87125))
+	assert.Panics(t, func() {
+		String(db, "a-number")
+	})
 }

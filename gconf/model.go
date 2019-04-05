@@ -2,6 +2,7 @@ package gconf
 
 import (
 	"reflect"
+	"time"
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/coin"
@@ -30,18 +31,24 @@ func NewConfBucket() *ConfBucket {
 	}
 }
 
-func NewConf(propName []byte, value interface{}) (orm.Object, error) {
+func NewConf(propName string, value interface{}) (orm.Object, error) {
 	var conf Conf
 
 	switch v := value.(type) {
 	case string:
 		conf.Value = &Conf_String_{String_: v}
+	case int:
+		// Support int type because this is what compiler type to any
+		// number without explicit casting.
+		conf.Value = &Conf_Int{Int: int64(v)}
 	case int64:
 		conf.Value = &Conf_Int{Int: v}
 	case []byte:
 		conf.Value = &Conf_Bytes{Bytes: v}
 	case weave.Address:
 		conf.Value = &Conf_Bytes{Bytes: v}
+	case time.Duration:
+		conf.Value = &Conf_Int{Int: int64(v)}
 	case *coin.Coin:
 		conf.Value = &Conf_Coin{Coin: v}
 	case coin.Coin:
@@ -50,10 +57,10 @@ func NewConf(propName []byte, value interface{}) (orm.Object, error) {
 		return nil, errors.Wrapf(errors.ErrInvalidType, "%T", value)
 	}
 
-	return orm.NewSimpleObj(propName, &conf), nil
+	return orm.NewSimpleObj([]byte(propName), &conf), nil
 }
 
-func (b *ConfBucket) Load(db weave.KVStore, propName []byte, dest interface{}) error {
+func (b *ConfBucket) Load(db weave.KVStore, propName string, dest interface{}) error {
 	val := reflect.ValueOf(dest)
 	if val.Kind() != reflect.Ptr {
 		return errors.Wrap(errors.ErrInvalidInput, "destination must be a pointer")
@@ -63,7 +70,7 @@ func (b *ConfBucket) Load(db weave.KVStore, propName []byte, dest interface{}) e
 		return errors.Wrap(errors.ErrInvalidInput, "destination cannot be set")
 	}
 
-	obj, err := b.Get(db, propName)
+	obj, err := b.Get(db, []byte(propName))
 	if err != nil {
 		return errors.Wrap(err, "cannot get from bucket")
 	}
@@ -87,7 +94,14 @@ func (b *ConfBucket) Load(db weave.KVStore, propName []byte, dest interface{}) e
 
 		switch c := c.Value.(type) {
 		case *Conf_Int:
-			val.Set(reflect.ValueOf(c.Int))
+			switch dest.(type) {
+			case *time.Duration:
+				val.Set(reflect.ValueOf(time.Duration(c.Int)))
+			case *int:
+				val.Set(reflect.ValueOf(int(c.Int)))
+			default:
+				val.Set(reflect.ValueOf(c.Int))
+			}
 		case *Conf_String_:
 			val.Set(reflect.ValueOf(c.String_))
 		case *Conf_Bytes:
