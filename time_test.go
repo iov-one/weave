@@ -50,6 +50,22 @@ func TestUnixTimeUnmarshal(t *testing.T) {
 			raw:     `"not a time string"`,
 			wantErr: errors.ErrInvalidInput,
 		},
+		"string as futuristic as it gets": {
+			raw:      `"9999-12-31T23:59:59Z"`,
+			wantTime: maxUnixTime,
+		},
+		"number as futuristic as it gets": {
+			raw:      "253402300799",
+			wantTime: maxUnixTime,
+		},
+		"string too much in the future": {
+			raw:     `"10000-01-01T01:01:01Z"`,
+			wantErr: errors.ErrInvalidInput,
+		},
+		"number too much in the future": {
+			raw:     "253402300800",
+			wantErr: errors.ErrInvalidState,
+		},
 	}
 
 	for testName, tc := range cases {

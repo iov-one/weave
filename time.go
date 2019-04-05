@@ -7,8 +7,13 @@ import (
 	"github.com/iov-one/weave/errors"
 )
 
-// UNIX time value of 0001-01-01T00:00:00Z
-const zeroUnixTime = -62135596800
+const (
+	// UNIX time value of 0001-01-01T00:00:00Z
+	minUnixTime = -62135596800
+
+	// UNIX time value of 9999-12-31T23:59:59Z
+	maxUnixTime = 253402300799
+)
 
 // UnixTime represents a point in time as POSIX time.
 // This type comes in handy when dealing with protobuf messages. Instead of
@@ -72,8 +77,11 @@ func (t *UnixTime) UnmarshalJSON(raw []byte) error {
 
 // Validate returns an error if this time value is invalid.
 func (t UnixTime) Validate() error {
-	if t < zeroUnixTime {
+	if t < minUnixTime {
 		return errors.Wrap(errors.ErrInvalidState, "time must be an A.D. value")
+	}
+	if t > maxUnixTime {
+		return errors.Wrap(errors.ErrInvalidState, "time must be an before year 10000")
 	}
 	return nil
 }
