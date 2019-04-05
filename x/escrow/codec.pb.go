@@ -39,6 +39,10 @@ type Escrow struct {
 	// If unreleased before timeout, escrow will return to sender.
 	// Timeout represents wall clock time as read from the block header. Timeout
 	// is represented using POSIX time format.
+	// Expiration time is inclusive meaning that the escrow expires as soon as
+	// the current time is equal or greater than timeout value.
+	// nonexpired: [created, timeout)
+	// expired: [timeout, infinity)
 	Timeout github_com_iov_one_weave.UnixTime `protobuf:"varint,5,opt,name=timeout,proto3,casttype=github.com/iov-one/weave.UnixTime" json:"timeout,omitempty"`
 	// max length 128 character
 	Memo string `protobuf:"bytes,6,opt,name=memo,proto3" json:"memo,omitempty"`
