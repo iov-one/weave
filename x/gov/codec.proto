@@ -72,13 +72,14 @@ message TextProposal {
     // Votes contain the list of individual votes with elector and voted option.
     repeated Vote votes = 9;
     // Result of the election. Contains intermediate tally results while voting period is open.
-    TallyResult voteResult = 10 [(gogoproto.nullable) = false];
+    TallyResult vote_result = 10 [(gogoproto.nullable) = false];
 
     // Status of the proposal base on the final tally result. `UNDEFINED` as initial value.
     enum Status {
-        UNDEFINED = 0 [(gogoproto.enumvalue_customname ) = "Undefined"];
-        ACCEPTED = 1 [(gogoproto.enumvalue_customname ) = "Accepted"];
-        REJECTED = 2 [(gogoproto.enumvalue_customname ) = "Rejected"];
+        TEXT_PROPOSAL_STATUS_INVALID = 0 [(gogoproto.enumvalue_customname ) = "Invalid"];
+        TEXT_PROPOSAL_STATUS_UNDEFINED = 1 [(gogoproto.enumvalue_customname ) = "Undefined"];
+        TEXT_PROPOSAL_STATUS_ACCEPTED = 2 [(gogoproto.enumvalue_customname ) = "Accepted"];
+        TEXT_PROPOSAL_STATUS_REJECTED = 3 [(gogoproto.enumvalue_customname ) = "Rejected"];
     }
     // status is the final result based on the votes and election rule.
     Status status = 11 ;
@@ -116,10 +117,10 @@ message CreateTextProposalMsg {
 
 // VoteOptions define possible values for a vote including the INVALID default.
 enum VoteOption {
-    INVALID = 0 [(gogoproto.enumvalue_customname ) = "Invalid"];
-    YES = 1 [(gogoproto.enumvalue_customname ) = "Yes"];
-    NO = 2[(gogoproto.enumvalue_customname ) = "No"];
-    ABSTAIN = 3 [(gogoproto.enumvalue_customname ) = "Abstain"];
+    VOTE_OPTION_INVALID = 0 [(gogoproto.enumvalue_customname ) = "Invalid"];
+    VOTE_OPTION_YES = 1 [(gogoproto.enumvalue_customname ) = "Yes"];
+    VOTE_OPTION_NO = 2[(gogoproto.enumvalue_customname ) = "No"];
+    VOTE_OPTION_ABSTAIN = 3 [(gogoproto.enumvalue_customname ) = "Abstain"];
 }
 
 // VoteMsg is the way to express a voice and participate in an election of a proposal on chain.

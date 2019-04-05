@@ -3294,7 +3294,7 @@ to be included in the election. </p></td>
                 </tr>
               
                 <tr>
-                  <td>voteResult</td>
+                  <td>vote_result</td>
                   <td><a href="#gov.TallyResult">TallyResult</a></td>
                   <td></td>
                   <td><p>Result of the election. Contains intermediate tally results while voting period is open. </p></td>
@@ -3392,20 +3392,26 @@ must be included in the electorate for a valid vote. </p></td>
           <tbody>
             
               <tr>
-                <td>UNDEFINED</td>
+                <td>TEXT_PROPOSAL_STATUS_INVALID</td>
                 <td>0</td>
                 <td><p></p></td>
               </tr>
             
               <tr>
-                <td>ACCEPTED</td>
+                <td>TEXT_PROPOSAL_STATUS_UNDEFINED</td>
                 <td>1</td>
                 <td><p></p></td>
               </tr>
             
               <tr>
-                <td>REJECTED</td>
+                <td>TEXT_PROPOSAL_STATUS_ACCEPTED</td>
                 <td>2</td>
+                <td><p></p></td>
+              </tr>
+            
+              <tr>
+                <td>TEXT_PROPOSAL_STATUS_REJECTED</td>
+                <td>3</td>
                 <td><p></p></td>
               </tr>
             
@@ -3421,25 +3427,25 @@ must be included in the electorate for a valid vote. </p></td>
           <tbody>
             
               <tr>
-                <td>INVALID</td>
+                <td>VOTE_OPTION_INVALID</td>
                 <td>0</td>
                 <td><p></p></td>
               </tr>
             
               <tr>
-                <td>YES</td>
+                <td>VOTE_OPTION_YES</td>
                 <td>1</td>
                 <td><p></p></td>
               </tr>
             
               <tr>
-                <td>NO</td>
+                <td>VOTE_OPTION_NO</td>
                 <td>2</td>
                 <td><p></p></td>
               </tr>
             
               <tr>
-                <td>ABSTAIN</td>
+                <td>VOTE_OPTION_ABSTAIN</td>
                 <td>3</td>
                 <td><p></p></td>
               </tr>
