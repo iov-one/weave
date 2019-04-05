@@ -21,6 +21,81 @@ var (
 	bobby     = aliceCond.Address()
 )
 
+func TestCreateProposal(t *testing.T) {
+	now := weave.AsUnixTime(time.Now())
+	specs := map[string]struct {
+		Mods           func(weave.Context, *TextProposal)
+		Msg            CreateTextProposalMsg
+		WantCheckErr   *errors.Error
+		WantDeliverErr *errors.Error
+		Exp            TextProposal
+	}{
+		"Happy path": {
+			Msg: CreateTextProposalMsg{
+				StartTime:      now.Add(time.Hour),
+				ElectorateId:   weavetest.SequenceID(1),
+				ElectionRuleId: weavetest.SequenceID(1),
+			},
+			Exp: TextProposal{
+				VotingStartTime: now.Add(time.Hour),
+				VotingEndTime:   now.Add(time.Hour),
+				// todo: continue here
+			},
+		},
+	}
+	auth := &weavetest.Auth{
+		Signer: aliceCond,
+	}
+	rt := app.NewRouter()
+	RegisterRoutes(rt, auth)
+
+	for msg, spec := range specs {
+		t.Run(msg, func(t *testing.T) {
+			db := store.MemStore()
+			// given
+			ctx := weave.WithBlockTime(context.Background(), time.Now().Round(time.Second))
+			pBucket := withProposal(t, db, ctx, spec.Mods)
+			cache := db.CacheWrap()
+
+			// when check is called
+			tx := &weavetest.Tx{Msg: &spec.Msg}
+			if _, err := rt.Check(ctx, cache, tx); !spec.WantCheckErr.Is(err) {
+				t.Fatalf("check expected: %+v  but got %+v", spec.WantCheckErr, err)
+			}
+
+			cache.Discard()
+
+			// and when deliver is called
+			res, err := rt.Deliver(ctx, db, tx)
+			if !spec.WantDeliverErr.Is(err) {
+				t.Fatalf("deliver expected: %+v  but got %+v", spec.WantCheckErr, err)
+			}
+			if spec.WantDeliverErr != nil {
+				return // skip further checks on expected error
+			}
+			// and check tags
+			exp := []common.KVPair{
+				{Key: []byte("proposal-id"), Value: weavetest.SequenceID(2)},
+				{Key: []byte("proposer"), Value: alice},
+				{Key: []byte("action"), Value: []byte("create")},
+			}
+			if got := res.Tags; !reflect.DeepEqual(exp, got) {
+				t.Errorf("expected tags %v but got %v", exp, got)
+			}
+			// and check persisted status
+			p, err := pBucket.GetTextProposal(cache, res.Data)
+			if err != nil {
+				t.Fatalf("unexpected error: %s", err)
+			}
+			if exp, got := p, spec.Exp; !reflect.DeepEqual(exp, got) {
+				t.Errorf("expected %v but got %v", exp, got)
+			}
+
+			cache.Discard()
+		})
+	}
+
+}
 func TestVote(t *testing.T) {
 	proposalID := weavetest.SequenceID(1)
 	specs := map[string]struct {

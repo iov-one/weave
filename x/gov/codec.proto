@@ -11,6 +11,8 @@ message Electorate {
     string title = 1;
     // Elector defines a list of all signatures that are allowed to participate in a vote
     repeated Elector electors = 2 [(gogoproto.nullable) = false];
+    // TotalWeightElectorate is the sum of all electors weights.
+    uint64 TotalWeightElectorate = 3;
 }
 
 // Elector clubs together a signature with a weight. The greater the weight
@@ -112,9 +114,10 @@ message CreateTextProposalMsg {
     string description = 2;
     bytes election_rule_id = 3;
     bytes electorate_id = 4;
-    // Unix timestamp....
+    // Unix timestamp when the proposal starts. Must be in the future.
     int64 start_time = 5 [(gogoproto.casttype) = "github.com/iov-one/weave.UnixTime"];
-    // Optional field that will default to the main signer if empty.
+    // Author is an optional field to set the address of the author with a proposal. The author must sign the message.
+    // When not set it will default to the main signer.
     bytes author = 8 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
 }
 

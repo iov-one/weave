@@ -3011,7 +3011,8 @@ sender. </p></td>
                   <td>author</td>
                   <td><a href="#bytes">bytes</a></td>
                   <td></td>
-                  <td><p>Optional field that will default to the main signer if empty. </p></td>
+                  <td><p>Author is an optional field to set the address of the author with a proposal. The author must sign the message.
+When not set it will default to the main signer. </p></td>
                 </tr>
               
             </tbody>
@@ -3113,6 +3114,13 @@ of the eligible voters. </p></td>
                   <td><a href="#gov.Elector">Elector</a></td>
                   <td>repeated</td>
                   <td><p>Elector defines a list of all signatures that are allowed to participate in a vote </p></td>
+                </tr>
+              
+                <tr>
+                  <td>TotalWeightElectorate</td>
+                  <td><a href="#uint64">uint64</a></td>
+                  <td></td>
+                  <td><p>TotalWeightElectorate is the sum of all electors weights. </p></td>
                 </tr>
               
             </tbody>

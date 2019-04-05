@@ -45,5 +45,8 @@ func (TallyMsg) Path() string {
 }
 
 func (m TallyMsg) Validate() error {
+	if len(m.ProposalId) == 0 {
+		return errors.Wrap(errors.ErrInvalidInput, "empty proposal id")
+	}
 	return nil
 }
