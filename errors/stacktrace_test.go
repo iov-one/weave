@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/iov-one/weave/weavetest/assert"
 )
 
 func TestStackTrace(t *testing.T) {
@@ -46,7 +46,9 @@ func TestStackTrace(t *testing.T) {
 		t.Run(testName, func(t *testing.T) {
 			assert.Equal(t, tc.err.Error(), tc.wantError)
 
-			assert.NotNil(t, stackTrace(tc.err))
+			if stackTrace(tc.err) == nil {
+				t.Fatal("expected a stack trace to be present")
+			}
 
 			fullStack := fmt.Sprintf("%+v", tc.err)
 			if !strings.Contains(fullStack, thisTestSrc) {
@@ -65,11 +67,17 @@ func TestStackTrace(t *testing.T) {
 			}
 
 			tinyStack := fmt.Sprintf("%v", tc.err)
-			assert.True(t, strings.HasPrefix(tinyStack, tc.wantError))
-			assert.False(t, strings.Contains(tinyStack, "\n"), "only one line is expected")
+			if !strings.HasPrefix(tinyStack, tc.wantError) {
+				t.Fatalf("prefix mimssing: %s", tinyStack)
+			}
+			if strings.Contains(tinyStack, "\n") {
+				t.Fatal("only one stack line is expected")
+			}
 			// contains a link to where it was created, which must
 			// be here, not the Wrap() function
-			assert.True(t, strings.Contains(tinyStack, "[iov-one/weave/errors/stacktrace_test.go"))
+			if !strings.Contains(tinyStack, "[iov-one/weave/errors/stacktrace_test.go") {
+				t.Fatal("this file missing in stack info")
+			}
 		})
 	}
 }
