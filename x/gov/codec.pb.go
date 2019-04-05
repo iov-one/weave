@@ -54,6 +54,7 @@ func (VoteOption) EnumDescriptor() ([]byte, []int) {
 	return fileDescriptor_24f6e3c5f1b82a85, []int{0}
 }
 
+// Status of the proposal base on the final tally result. `UNDEFINED` as initial value.
 type TextProposal_Status int32
 
 const (
@@ -342,8 +343,9 @@ type TextProposal struct {
 	SubmissionTime uint64 `protobuf:"varint,7,opt,name=submission_time,json=submissionTime,proto3" json:"submission_time,omitempty"`
 	// Address of the author who created the proposal. If not set explicit on creation it will default to the main signer.
 	Author github_com_iov_one_weave.Address `protobuf:"bytes,8,opt,name=author,proto3,casttype=github.com/iov-one/weave.Address" json:"author,omitempty"`
-	Votes  []*Vote                          `protobuf:"bytes,9,rep,name=votes,proto3" json:"votes,omitempty"`
-	// Result of the election. Collect intermediate tally results while voting period is open.
+	// Votes contain the list of individual votes with elector and voted option.
+	Votes []*Vote `protobuf:"bytes,9,rep,name=votes,proto3" json:"votes,omitempty"`
+	// Result of the election. Contains intermediate tally results while voting period is open.
 	VoteResult TallyResult `protobuf:"bytes,10,opt,name=voteResult,proto3" json:"voteResult"`
 	// Final result based on the votes and election rule.
 	Status TextProposal_Status `protobuf:"varint,11,opt,name=status,proto3,enum=gov.TextProposal_Status" json:"status,omitempty"`

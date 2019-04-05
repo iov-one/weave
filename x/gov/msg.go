@@ -28,12 +28,13 @@ func (VoteMsg) Path() string {
 }
 
 func (m VoteMsg) Validate() error {
-	if m.Selected == VoteOption_Invalid {
+	if m.Selected != VoteOption_Yes && m.Selected != VoteOption_No && m.Selected != VoteOption_Abstain {
 		return errors.Wrap(errors.ErrInvalidInput, "invalid option")
 	}
 	if len(m.ProposalId) == 0 {
 		return errors.Wrap(errors.ErrInvalidInput, "empty proposal id")
 	}
+
 	return nil
 }
 
