@@ -31,6 +31,8 @@ message ElectionRule {
     // Threshold is the fraction of all eligible voters, not only the ones who voted. To accept a
     // proposal this value must be exceeded.
     // The formula is `(yes*denominator) > (numerator*voted)`.
+    // The valid range for the threshold value is `0.5` to `1` (inclusive) which allows any value between half and all
+    // of the eligible voters.
     Fraction threshold = 4 [(gogoproto.nullable) = false];
 }
 
@@ -39,6 +41,7 @@ message ElectionRule {
 // numerator: 1, denominator: 2 => > 50%
 // numerator: 2, denominator: 3 => > 66.666..%
 // numerator: 6273, denominator: 10000 => > 62.73%
+// Valid range of the fraction is 0.5 to 1.
 message Fraction{
     // The top number in a fraction.
     uint32 numerator = 1;
