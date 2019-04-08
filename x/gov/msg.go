@@ -24,9 +24,9 @@ func (CreateTextProposalMsg) Path() string {
 func (m CreateTextProposalMsg) Validate() error {
 	err := m.Author.Validate()
 	switch {
-	case len(m.ElectorateId) == 0:
+	case len(m.ElectorateID) == 0:
 		return errors.Wrap(errors.ErrInvalidInput, "empty electorate id")
-	case len(m.ElectionRuleId) == 0:
+	case len(m.ElectionRuleID) == 0:
 		return errors.Wrap(errors.ErrInvalidInput, "empty election rules id")
 	case m.StartTime.Time().IsZero():
 		return errors.Wrap(errors.ErrInvalidInput, "empty start time")
@@ -50,7 +50,7 @@ func (m VoteMsg) Validate() error {
 	if m.Selected != VoteOption_Yes && m.Selected != VoteOption_No && m.Selected != VoteOption_Abstain {
 		return errors.Wrap(errors.ErrInvalidInput, "invalid option")
 	}
-	if len(m.ProposalId) == 0 {
+	if len(m.ProposalID) == 0 {
 		return errors.Wrap(errors.ErrInvalidInput, "empty proposal id")
 	}
 	if err := m.Voter.Validate(); m.Voter != nil && err != nil {
@@ -64,7 +64,7 @@ func (TallyMsg) Path() string {
 }
 
 func (m TallyMsg) Validate() error {
-	if len(m.ProposalId) == 0 {
+	if len(m.ProposalID) == 0 {
 		return errors.Wrap(errors.ErrInvalidInput, "empty proposal id")
 	}
 	return nil

@@ -232,15 +232,15 @@ func TestTextProposalValidation(t *testing.T) {
 			}),
 			Exp: errors.ErrInvalidInput,
 		},
-		"ElectorateId missing": {
+		"ElectorateID missing": {
 			Src: textProposalFixture(func(p *TextProposal) {
-				p.ElectorateId = nil
+				p.ElectorateID = nil
 			}),
 			Exp: errors.ErrInvalidInput,
 		},
-		"ElectionRuleId missing": {
+		"ElectionRuleID missing": {
 			Src: textProposalFixture(func(p *TextProposal) {
-				p.ElectionRuleId = nil
+				p.ElectionRuleID = nil
 			}),
 			Exp: errors.ErrInvalidInput,
 		},
@@ -273,8 +273,8 @@ func textProposalFixture(mods ...func(*TextProposal)) TextProposal {
 	proposal := TextProposal{
 		Title:           "My proposal",
 		Description:     "My description",
-		ElectionRuleId:  weavetest.SequenceID(1),
-		ElectorateId:    weavetest.SequenceID(1),
+		ElectionRuleID:  weavetest.SequenceID(1),
+		ElectorateID:    weavetest.SequenceID(1),
 		VotingStartTime: now.Add(-1 * time.Minute),
 		VotingEndTime:   now.Add(time.Minute),
 		SubmissionTime:  now.Add(-1 * time.Hour),

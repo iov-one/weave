@@ -2319,7 +2319,11 @@ computed as the sum of weights of all participating signatures. </p></td>
                   <td></td>
                   <td><p>If unreleased before timeout, escrow will return to sender.
 Timeout represents wall clock time as read from the block header. Timeout
-is represented using POSIX time format. </p></td>
+is represented using POSIX time format.
+Expiration time is inclusive meaning that the escrow expires as soon as
+the current time is equal or greater than timeout value.
+nonexpired: [created, timeout)
+expired: [timeout, infinity) </p></td>
                 </tr>
               
                 <tr>
@@ -2963,7 +2967,7 @@ sender. </p></td>
 
       
         <h3 id="gov.CreateTextProposalMsg">CreateTextProposalMsg</h3>
-        <p>TBD</p>
+        <p>CreateTextProposalMsg creates a new governance proposal.</p>
 
         
           <table class="field-table">
@@ -2976,35 +2980,35 @@ sender. </p></td>
                   <td>title</td>
                   <td><a href="#string">string</a></td>
                   <td></td>
-                  <td><p> </p></td>
+                  <td><p>Human readable title. Must match `^[a-zA-Z0-9 _.-]{4,128}$` </p></td>
                 </tr>
               
                 <tr>
                   <td>description</td>
                   <td><a href="#string">string</a></td>
                   <td></td>
-                  <td><p> </p></td>
+                  <td><p>Human readable description with 3 to 5000 chars. </p></td>
                 </tr>
               
                 <tr>
                   <td>election_rule_id</td>
                   <td><a href="#bytes">bytes</a></td>
                   <td></td>
-                  <td><p> </p></td>
+                  <td><p>Reference to the election rule </p></td>
                 </tr>
               
                 <tr>
                   <td>electorate_id</td>
                   <td><a href="#bytes">bytes</a></td>
                   <td></td>
-                  <td><p> </p></td>
+                  <td><p>Reference to the electorate to define the group of possible voters. </p></td>
                 </tr>
               
                 <tr>
                   <td>start_time</td>
                   <td><a href="#int64">int64</a></td>
                   <td></td>
-                  <td><p>Unix timestamp.... </p></td>
+                  <td><p>Unix timestamp when the proposal starts. Must be in the future. </p></td>
                 </tr>
               
                 <tr>
@@ -3160,7 +3164,7 @@ of the eligible voters. </p></td>
         
       
         <h3 id="gov.TallyMsg">TallyMsg</h3>
-        <p>TBD</p>
+        <p>TallyMsg can be sent after the voting period has ended to do the final tally and trigger any state changes.</p><p>A final tally can be execute only once. A second submission will fail with an invalid state error.</p>
 
         
           <table class="field-table">
@@ -3173,7 +3177,7 @@ of the eligible voters. </p></td>
                   <td>proposal_id</td>
                   <td><a href="#bytes">bytes</a></td>
                   <td></td>
-                  <td><p> </p></td>
+                  <td><p>ProposalID is UUID of the proposal to close. </p></td>
                 </tr>
               
             </tbody>

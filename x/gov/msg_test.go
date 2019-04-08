@@ -16,25 +16,25 @@ func TestVoteMsg(t *testing.T) {
 	}{
 
 		"Happy path": {
-			Msg: VoteMsg{ProposalId: weavetest.SequenceID(1), Selected: VoteOption_Yes, Voter: alice},
+			Msg: VoteMsg{ProposalID: weavetest.SequenceID(1), Selected: VoteOption_Yes, Voter: alice},
 		},
 		"Voter optional": {
-			Msg: VoteMsg{ProposalId: weavetest.SequenceID(1), Selected: VoteOption_Yes},
+			Msg: VoteMsg{ProposalID: weavetest.SequenceID(1), Selected: VoteOption_Yes},
 		},
 		"Proposal id missing": {
 			Msg: VoteMsg{Selected: VoteOption_Yes, Voter: alice},
 			Exp: errors.ErrInvalidInput,
 		},
 		"Vote option missing": {
-			Msg: VoteMsg{ProposalId: weavetest.SequenceID(1), Voter: alice},
+			Msg: VoteMsg{ProposalID: weavetest.SequenceID(1), Voter: alice},
 			Exp: errors.ErrInvalidInput,
 		},
 		"Invalid vote option": {
-			Msg: VoteMsg{ProposalId: weavetest.SequenceID(1), Selected: VoteOption(100), Voter: alice},
+			Msg: VoteMsg{ProposalID: weavetest.SequenceID(1), Selected: VoteOption(100), Voter: alice},
 			Exp: errors.ErrInvalidInput,
 		},
 		"Invalid voter address": {
-			Msg: VoteMsg{ProposalId: weavetest.SequenceID(1), Selected: VoteOption_Yes, Voter: weave.Address([]byte{0})},
+			Msg: VoteMsg{ProposalID: weavetest.SequenceID(1), Selected: VoteOption_Yes, Voter: weave.Address([]byte{0})},
 			Exp: errors.ErrInvalidInput,
 		},
 	}
@@ -54,7 +54,7 @@ func TestTallyMsg(t *testing.T) {
 		Exp *errors.Error
 	}{
 		"Happy path": {
-			Msg: TallyMsg{ProposalId: weavetest.SequenceID(1)},
+			Msg: TallyMsg{ProposalID: weavetest.SequenceID(1)},
 		},
 		"ID missing": {
 			Msg: TallyMsg{},
@@ -76,8 +76,8 @@ func TestCrateTextProposalMsg(t *testing.T) {
 		m := CreateTextProposalMsg{
 			Title:          "any title _.-",
 			Description:    "any description",
-			ElectorateId:   weavetest.SequenceID(1),
-			ElectionRuleId: weavetest.SequenceID(1),
+			ElectorateID:   weavetest.SequenceID(1),
+			ElectionRuleID: weavetest.SequenceID(1),
 			StartTime:      weave.AsUnixTime(time.Now()),
 			Author:         alice,
 		}
@@ -139,15 +139,15 @@ func TestCrateTextProposalMsg(t *testing.T) {
 			}),
 			Exp: errors.ErrInvalidInput,
 		},
-		"ElectorateId missing": {
+		"ElectorateID missing": {
 			Msg: buildMsg(func(p *CreateTextProposalMsg) {
-				p.ElectorateId = nil
+				p.ElectorateID = nil
 			}),
 			Exp: errors.ErrInvalidInput,
 		},
-		"ElectionRuleId missing": {
+		"ElectionRuleID missing": {
 			Msg: buildMsg(func(p *CreateTextProposalMsg) {
-				p.ElectionRuleId = nil
+				p.ElectionRuleID = nil
 			}),
 			Exp: errors.ErrInvalidInput,
 		},

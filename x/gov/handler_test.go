@@ -37,15 +37,15 @@ func TestCreateProposal(t *testing.T) {
 				Title:          "my proposal",
 				Description:    "my description",
 				StartTime:      now.Add(time.Hour),
-				ElectorateId:   weavetest.SequenceID(1),
-				ElectionRuleId: weavetest.SequenceID(1),
+				ElectorateID:   weavetest.SequenceID(1),
+				ElectionRuleID: weavetest.SequenceID(1),
 				Author:         bobby,
 			},
 			Exp: TextProposal{
 				Title:           "my proposal",
 				Description:     "my description",
-				ElectionRuleId:  weavetest.SequenceID(1),
-				ElectorateId:    weavetest.SequenceID(1),
+				ElectionRuleID:  weavetest.SequenceID(1),
+				ElectorateID:    weavetest.SequenceID(1),
 				VotingStartTime: now.Add(time.Hour),
 				VotingEndTime:   now.Add(2 * time.Hour),
 				Status:          TextProposal_Undefined,
@@ -64,14 +64,14 @@ func TestCreateProposal(t *testing.T) {
 				Title:          "my proposal",
 				Description:    "my description",
 				StartTime:      now.Add(time.Hour),
-				ElectorateId:   weavetest.SequenceID(1),
-				ElectionRuleId: weavetest.SequenceID(1),
+				ElectorateID:   weavetest.SequenceID(1),
+				ElectionRuleID: weavetest.SequenceID(1),
 			},
 			Exp: TextProposal{
 				Title:           "my proposal",
 				Description:     "my description",
-				ElectionRuleId:  weavetest.SequenceID(1),
-				ElectorateId:    weavetest.SequenceID(1),
+				ElectionRuleID:  weavetest.SequenceID(1),
+				ElectorateID:    weavetest.SequenceID(1),
 				VotingStartTime: now.Add(time.Hour),
 				VotingEndTime:   now.Add(2 * time.Hour),
 				Status:          TextProposal_Undefined,
@@ -85,44 +85,44 @@ func TestCreateProposal(t *testing.T) {
 			},
 			ExpProposer: alice,
 		},
-		"ElectionRuleId missing": {
+		"ElectionRuleID missing": {
 			Msg: CreateTextProposalMsg{
 				Title:        "my proposal",
 				Description:  "my description",
 				StartTime:    now.Add(time.Hour),
-				ElectorateId: weavetest.SequenceID(1),
+				ElectorateID: weavetest.SequenceID(1),
 			},
 			WantCheckErr:   errors.ErrInvalidInput,
 			WantDeliverErr: errors.ErrInvalidInput,
 		},
-		"ElectionRuleId invalid": {
+		"ElectionRuleID invalid": {
 			Msg: CreateTextProposalMsg{
 				Title:          "my proposal",
 				Description:    "my description",
 				StartTime:      now.Add(time.Hour),
-				ElectorateId:   weavetest.SequenceID(1),
-				ElectionRuleId: weavetest.SequenceID(10000),
+				ElectorateID:   weavetest.SequenceID(1),
+				ElectionRuleID: weavetest.SequenceID(10000),
 			},
 			WantCheckErr:   errors.ErrNotFound,
 			WantDeliverErr: errors.ErrNotFound,
 		},
-		"ElectorateId missing": {
+		"ElectorateID missing": {
 			Msg: CreateTextProposalMsg{
 				Title:          "my proposal",
 				Description:    "my description",
 				StartTime:      now.Add(time.Hour),
-				ElectionRuleId: weavetest.SequenceID(1),
+				ElectionRuleID: weavetest.SequenceID(1),
 			},
 			WantCheckErr:   errors.ErrInvalidInput,
 			WantDeliverErr: errors.ErrInvalidInput,
 		},
-		"ElectorateId invalid": {
+		"ElectorateID invalid": {
 			Msg: CreateTextProposalMsg{
 				Title:          "my proposal",
 				Description:    "my description",
 				StartTime:      now.Add(time.Hour),
-				ElectorateId:   weavetest.SequenceID(10000),
-				ElectionRuleId: weavetest.SequenceID(1),
+				ElectorateID:   weavetest.SequenceID(10000),
+				ElectionRuleID: weavetest.SequenceID(1),
 			},
 			WantCheckErr:   errors.ErrNotFound,
 			WantDeliverErr: errors.ErrNotFound,
@@ -132,8 +132,8 @@ func TestCreateProposal(t *testing.T) {
 				Title:          "my proposal",
 				Description:    "my description",
 				StartTime:      now.Add(time.Hour),
-				ElectorateId:   weavetest.SequenceID(1),
-				ElectionRuleId: weavetest.SequenceID(1),
+				ElectorateID:   weavetest.SequenceID(1),
+				ElectionRuleID: weavetest.SequenceID(1),
 				Author:         weavetest.NewCondition().Address(),
 			},
 			WantCheckErr:   errors.ErrUnauthorized,
@@ -144,8 +144,8 @@ func TestCreateProposal(t *testing.T) {
 				Title:          "my proposal",
 				Description:    "my description",
 				StartTime:      now,
-				ElectorateId:   weavetest.SequenceID(1),
-				ElectionRuleId: weavetest.SequenceID(1),
+				ElectorateID:   weavetest.SequenceID(1),
+				ElectionRuleID: weavetest.SequenceID(1),
 			},
 			WantCheckErr:   errors.ErrInvalidInput,
 			WantDeliverErr: errors.ErrInvalidInput,
@@ -214,28 +214,28 @@ func TestVote(t *testing.T) {
 		Exp            TallyResult
 	}{
 		"Vote Yes": {
-			Msg: VoteMsg{ProposalId: proposalID, Selected: VoteOption_Yes, Voter: alice},
+			Msg: VoteMsg{ProposalID: proposalID, Selected: VoteOption_Yes, Voter: alice},
 			Exp: TallyResult{TotalYes: 1},
 		},
 		"Vote No": {
-			Msg: VoteMsg{ProposalId: proposalID, Selected: VoteOption_No, Voter: alice},
+			Msg: VoteMsg{ProposalID: proposalID, Selected: VoteOption_No, Voter: alice},
 			Exp: TallyResult{TotalNo: 1},
 		},
 		"Vote Abstain": {
-			Msg: VoteMsg{ProposalId: proposalID, Selected: VoteOption_Abstain, Voter: alice},
+			Msg: VoteMsg{ProposalID: proposalID, Selected: VoteOption_Abstain, Voter: alice},
 			Exp: TallyResult{TotalAbstain: 1},
 		},
 		"Vote defaults to main signer when no voter address submitted": {
-			Msg: VoteMsg{ProposalId: proposalID, Selected: VoteOption_Yes},
+			Msg: VoteMsg{ProposalID: proposalID, Selected: VoteOption_Yes},
 			Exp: TallyResult{TotalYes: 1},
 		},
 		"Vote with invalid option": {
-			Msg:            VoteMsg{ProposalId: proposalID, Selected: VoteOption_Invalid, Voter: alice},
+			Msg:            VoteMsg{ProposalID: proposalID, Selected: VoteOption_Invalid, Voter: alice},
 			WantCheckErr:   errors.ErrInvalidInput,
 			WantDeliverErr: errors.ErrInvalidInput,
 		},
 		"Unauthorized voter": {
-			Msg:            VoteMsg{ProposalId: proposalID, Selected: VoteOption_Yes, Voter: weavetest.NewCondition().Address()},
+			Msg:            VoteMsg{ProposalID: proposalID, Selected: VoteOption_Yes, Voter: weavetest.NewCondition().Address()},
 			WantCheckErr:   errors.ErrUnauthorized,
 			WantDeliverErr: errors.ErrUnauthorized,
 		},
@@ -244,7 +244,7 @@ func TestVote(t *testing.T) {
 				blockTime, _ := weave.BlockTime(ctx)
 				proposal.VotingStartTime = weave.AsUnixTime(blockTime.Add(time.Second))
 			},
-			Msg:            VoteMsg{ProposalId: proposalID, Selected: VoteOption_Yes, Voter: alice},
+			Msg:            VoteMsg{ProposalID: proposalID, Selected: VoteOption_Yes, Voter: alice},
 			WantCheckErr:   errors.ErrInvalidState,
 			WantDeliverErr: errors.ErrInvalidState,
 		},
@@ -253,7 +253,7 @@ func TestVote(t *testing.T) {
 				blockTime, _ := weave.BlockTime(ctx)
 				proposal.VotingStartTime = weave.AsUnixTime(blockTime)
 			},
-			Msg:            VoteMsg{ProposalId: proposalID, Selected: VoteOption_Yes, Voter: alice},
+			Msg:            VoteMsg{ProposalID: proposalID, Selected: VoteOption_Yes, Voter: alice},
 			WantCheckErr:   errors.ErrInvalidState,
 			WantDeliverErr: errors.ErrInvalidState,
 		},
@@ -262,7 +262,7 @@ func TestVote(t *testing.T) {
 				blockTime, _ := weave.BlockTime(ctx)
 				proposal.VotingEndTime = weave.AsUnixTime(blockTime)
 			},
-			Msg:            VoteMsg{ProposalId: proposalID, Selected: VoteOption_Yes, Voter: alice},
+			Msg:            VoteMsg{ProposalID: proposalID, Selected: VoteOption_Yes, Voter: alice},
 			WantCheckErr:   errors.ErrInvalidState,
 			WantDeliverErr: errors.ErrInvalidState,
 		},
@@ -271,7 +271,7 @@ func TestVote(t *testing.T) {
 				blockTime, _ := weave.BlockTime(ctx)
 				proposal.VotingEndTime = weave.AsUnixTime(blockTime.Add(-1 * time.Second))
 			},
-			Msg:            VoteMsg{ProposalId: proposalID, Selected: VoteOption_Yes, Voter: alice},
+			Msg:            VoteMsg{ProposalID: proposalID, Selected: VoteOption_Yes, Voter: alice},
 			WantCheckErr:   errors.ErrInvalidState,
 			WantDeliverErr: errors.ErrInvalidState,
 		},
@@ -421,7 +421,7 @@ func TestTally(t *testing.T) {
 			cache := db.CacheWrap()
 
 			// when check is called
-			tx := &weavetest.Tx{Msg: &TallyMsg{ProposalId: weavetest.SequenceID(1)}}
+			tx := &weavetest.Tx{Msg: &TallyMsg{ProposalID: weavetest.SequenceID(1)}}
 			if _, err := rt.Check(ctx, cache, tx); !spec.WantCheckErr.Is(err) {
 				t.Fatalf("check expected: %+v  but got %+v", spec.WantCheckErr, err)
 			}

@@ -74,7 +74,7 @@ func (h VoteHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (
 	if err := proposal.Vote(vote.Selected, *elector); err != nil {
 		return res, err
 	}
-	return res, h.propBucket.Update(db, vote.ProposalId, proposal)
+	return res, h.propBucket.Update(db, vote.ProposalID, proposal)
 }
 
 func (h VoteHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*VoteMsg, *TextProposal, *Elector, error) {
@@ -82,7 +82,7 @@ func (h VoteHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) 
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, nil, nil, errors.Wrap(err, "load msg")
 	}
-	proposal, err := h.propBucket.GetTextProposal(db, msg.ProposalId)
+	proposal, err := h.propBucket.GetTextProposal(db, msg.ProposalID)
 	if err != nil {
 		return nil, nil, nil, errors.Wrap(err, "failed to load proposal")
 	}
@@ -106,7 +106,7 @@ func (h VoteHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) 
 		return nil, nil, nil, errors.Wrap(errors.ErrInvalidState, "already voted")
 	}
 
-	electorate, err := h.elecBucket.GetElectorate(db, proposal.ElectorateId)
+	electorate, err := h.elecBucket.GetElectorate(db, proposal.ElectorateID)
 	if err != nil {
 		return nil, nil, nil, errors.Wrap(err, "failed to load electorate")
 	}
@@ -142,11 +142,11 @@ func (h TallyHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) 
 	if err := proposal.Tally(); err != nil {
 		return res, err
 	}
-	if err := h.bucket.Update(db, msg.ProposalId, proposal); err != nil {
+	if err := h.bucket.Update(db, msg.ProposalID, proposal); err != nil {
 		return res, err
 	}
 	res.Tags = append(res.Tags, []common.KVPair{
-		{Key: []byte(tagProposerID), Value: msg.ProposalId},
+		{Key: []byte(tagProposerID), Value: msg.ProposalID},
 		{Key: []byte(tagAction), Value: []byte("tally")},
 	}...)
 	return res, nil
@@ -157,7 +157,7 @@ func (h TallyHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx)
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, nil, errors.Wrap(err, "load msg")
 	}
-	proposal, err := h.bucket.GetTextProposal(db, msg.ProposalId)
+	proposal, err := h.bucket.GetTextProposal(db, msg.ProposalID)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "failed to load proposal")
 	}
@@ -202,8 +202,8 @@ func (h TextProposalHandler) Deliver(ctx weave.Context, db weave.KVStore, tx wea
 	proposal := &TextProposal{
 		Title:           msg.Title,
 		Description:     msg.Description,
-		ElectionRuleId:  msg.ElectionRuleId,
-		ElectorateId:    msg.ElectorateId,
+		ElectionRuleID:  msg.ElectionRuleID,
+		ElectorateID:    msg.ElectorateID,
 		VotingStartTime: msg.StartTime,
 		VotingEndTime:   msg.StartTime.Add(time.Duration(rules.VotingPeriodHours) * time.Hour),
 		SubmissionTime:  weave.AsUnixTime(blockTime),
@@ -240,11 +240,11 @@ func (h TextProposalHandler) validate(ctx weave.Context, db weave.KVStore, tx we
 	if !msg.StartTime.Time().After(blockTime) {
 		return nil, nil, nil, errors.Wrap(errors.ErrInvalidInput, "start time must be in the future")
 	}
-	elect, err := h.elecBucket.GetElectorate(db, msg.ElectorateId)
+	elect, err := h.elecBucket.GetElectorate(db, msg.ElectorateID)
 	if err != nil {
 		return nil, nil, nil, errors.Wrap(err, "failed to load electorate")
 	}
-	rules, err := h.rulesBucket.GetElectionRule(db, msg.ElectionRuleId)
+	rules, err := h.rulesBucket.GetElectionRule(db, msg.ElectionRuleID)
 	if err != nil {
 		return nil, nil, nil, errors.Wrap(err, "failed to load election rules")
 	}
