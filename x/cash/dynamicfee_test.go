@@ -181,8 +181,13 @@ func TestDynamicFeeDecorator(t *testing.T) {
 
 			db := store.MemStore()
 
-			gconf.SetValue(db, GconfCollectorAddress, collectorAddr)
-			gconf.SetValue(db, GconfMinimalFee, tc.minimumFee)
+			config := Configuration{
+				CollectorAddress: collectorAddr,
+				MinimalFee:       tc.minimumFee,
+			}
+			if err := gconf.Save(db, &config); err != nil {
+				t.Fatalf("cannot save configuration: %s", err)
+			}
 
 			ensureWallets(t, db, tc.initWallets)
 
@@ -234,8 +239,8 @@ func ensureWallets(t *testing.T, db weave.KVStore, wallets []orm.Object) {
 func assertCharged(t *testing.T, db weave.KVStore, ctrl Controller, want coin.Coin) {
 	t.Helper()
 
-	minimumFee := gconf.Coin(db, GconfMinimalFee)
-	collectorAddr := gconf.Address(db, GconfCollectorAddress)
+	minimumFee := mustLoadConf(db).MinimalFee
+	collectorAddr := mustLoadConf(db).CollectorAddress
 
 	switch chargedFee, err := ctrl.Balance(db, collectorAddr); {
 	case err == nil:

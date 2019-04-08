@@ -19,7 +19,6 @@ import (
 	"github.com/iov-one/weave"
 	coin "github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/errors"
-	"github.com/iov-one/weave/gconf"
 	"github.com/iov-one/weave/x"
 )
 
@@ -27,11 +26,6 @@ type FeeDecorator struct {
 	auth x.Authenticator
 	ctrl CoinMover
 }
-
-const (
-	GconfCollectorAddress = "cash:collector_address"
-	GconfMinimalFee       = "cash:minimal_fee"
-)
 
 var _ weave.Decorator = FeeDecorator{}
 
@@ -66,7 +60,7 @@ func (d FeeDecorator) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx,
 		return res, errors.Wrap(errors.ErrUnauthorized, "Fee payer signature missing")
 	}
 	// and have enough
-	collector := gconf.Address(store, GconfCollectorAddress)
+	collector := mustLoadConf(store).CollectorAddress
 	err = d.ctrl.MoveCoins(store, finfo.Payer, collector, *fee)
 	if err != nil {
 		return res, err
@@ -100,7 +94,7 @@ func (d FeeDecorator) Deliver(ctx weave.Context, store weave.KVStore, tx weave.T
 		return res, errors.Wrap(errors.ErrUnauthorized, "Fee payer signature missing")
 	}
 	// and subtract it from the account
-	collector := gconf.Address(store, GconfCollectorAddress)
+	collector := mustLoadConf(store).CollectorAddress
 	err = d.ctrl.MoveCoins(store, finfo.Payer, collector, *fee)
 	if err != nil {
 		return res, err
@@ -119,7 +113,7 @@ func (d FeeDecorator) extractFee(ctx weave.Context, tx weave.Tx, store weave.KVS
 
 	fee := finfo.GetFees()
 	if coin.IsEmpty(fee) {
-		minFee := gconf.Coin(store, GconfMinimalFee)
+		minFee := mustLoadConf(store).MinimalFee
 		if minFee.IsZero() {
 			return finfo, nil
 		}
@@ -132,7 +126,7 @@ func (d FeeDecorator) extractFee(ctx weave.Context, tx weave.Tx, store weave.KVS
 		return nil, err
 	}
 
-	cmp := gconf.Coin(store, GconfMinimalFee)
+	cmp := mustLoadConf(store).MinimalFee
 	if cmp.IsZero() {
 		return finfo, nil
 	}

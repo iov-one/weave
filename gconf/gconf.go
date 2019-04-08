@@ -1,79 +1,62 @@
 package gconf
 
 import (
-	"encoding/json"
-	"fmt"
-	"time"
+	"reflect"
 
-	"github.com/iov-one/weave"
-	"github.com/iov-one/weave/coin"
+	"github.com/iov-one/weave/errors"
 )
 
 type Store interface {
 	Get([]byte) []byte
+	Set([]byte, []byte)
 }
 
-// Int returns an integer value stored under given name.
-// This function panics if configuration cannot be acquired.
-func Int(confStore Store, propName string) int {
-	var value int
-	loadInto(confStore, propName, &value)
-	return value
+func Save(db Store, src Marshaler) error {
+	key := []byte("configuration:" + pkgPath(src))
+	raw, err := src.Marshal()
+	if err != nil {
+		return errors.Wrapf(err, "marshal: key %q", key)
+	}
+	db.Set(key, raw)
+	return nil
 }
 
-// Duration returns a duration value stored under given name.
-// This function panics if configuration cannot be acquired.
-func Duration(confStore Store, propName string) time.Duration {
-	var value time.Duration
-	loadInto(confStore, propName, &value)
-	return value
+// Marshaler is implemented by object that can serialize itself to a binary
+// representation. This interface is implemented by all protobuf messages.
+type Marshaler interface {
+	Marshal() ([]byte, error)
 }
 
-// String returns a string value stored under given name.
-// This function panics if configuration cannot be acquired.
-func String(confStore Store, propName string) string {
-	var value string
-	loadInto(confStore, propName, &value)
-	return value
-}
-
-// Strings returns an array of string value stored under given name.
-// This function panics if configuration cannot be acquired.
-func Strings(confStore Store, propName string) []string {
-	var value []string
-	loadInto(confStore, propName, &value)
-	return value
-}
-
-// Address returns an address value stored under given name.
-// This function panics if configuration cannot be acquired.
-func Address(confStore Store, propName string) weave.Address {
-	var value weave.Address
-	loadInto(confStore, propName, &value)
-	return value
-}
-
-// Bytes returns a bytes value stored under given name.
-// This function panics if configuration cannot be acquired.
-func Bytes(confStore Store, propName string) []byte {
-	value := make([]byte, 0, 128)
-	loadInto(confStore, propName, &value)
-	return value
-}
-
-func Coin(confStore Store, propName string) coin.Coin {
-	var value coin.Coin
-	loadInto(confStore, propName, &value)
-	return value
-}
-
-func loadInto(confStore Store, propName string, dest interface{}) {
-	key := []byte("gconf:" + propName)
-	raw := confStore.Get(key)
+func Load(db Store, dst Unmarshaler) error {
+	key := []byte("configuration:" + pkgPath(dst))
+	raw := db.Get(key)
 	if raw == nil {
-		panic(fmt.Sprintf("cannot load %q configuration: not found", propName))
+		return errors.Wrapf(errors.ErrNotFound, "key %q", key)
 	}
-	if err := json.Unmarshal(raw, dest); err != nil {
-		panic(fmt.Sprintf("cannot load %q configuration: %s", propName, err))
+	if err := dst.Unmarshal(raw); err != nil {
+		return errors.Wrapf(err, "unmarhsal: key %q", key)
 	}
+	return nil
+}
+
+// Unmarshaler is implemented by object that can load their state from given
+// binary representation. This interface is implemented by all protobuf
+// messages.
+type Unmarshaler interface {
+	Unmarshal([]byte) error
+}
+
+// pkgPath returns the full package path that given structure belongs to. It
+// returns an empty string of non structure types.
+// Use full path instead of just the package name to avoid name collisions.
+// Each package is expected to have only one configuration object.
+func pkgPath(structure interface{}) string {
+	t := reflect.TypeOf(structure)
+	for t.Kind() == reflect.Ptr {
+		t = t.Elem()
+	}
+	if t.Kind() != reflect.Struct {
+		return ""
+	}
+	return t.PkgPath()
 }

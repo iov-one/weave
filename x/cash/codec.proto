@@ -3,6 +3,7 @@ syntax = "proto3";
 package cash;
 
 import "github.com/iov-one/weave/coin/codec.proto";
+import "github.com/gogo/protobuf/gogoproto/gogo.proto";
 
 // Set may contain Coin of many different currencies.
 // It handles adding and subtracting sets of currencies.
@@ -30,4 +31,10 @@ message SendMsg {
 message FeeInfo {
   bytes payer = 1;
   coin.Coin fees = 2;
+}
+
+
+message Configuration {
+  bytes collector_address = 1 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
+  coin.Coin minimal_fee = 2 [(gogoproto.nullable) = false];
 }

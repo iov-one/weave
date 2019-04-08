@@ -37,7 +37,6 @@ import (
 	"github.com/iov-one/weave"
 	coin "github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/errors"
-	"github.com/iov-one/weave/gconf"
 	"github.com/iov-one/weave/x"
 )
 
@@ -122,13 +121,13 @@ func (d DynamicFeeDecorator) chargeFee(store weave.KVStore, src weave.Address, a
 	if amount.IsZero() {
 		return nil
 	}
-	dest := gconf.Address(store, GconfCollectorAddress)
+	dest := mustLoadConf(store).CollectorAddress
 	return d.ctrl.MoveCoins(store, src, dest, amount)
 }
 
 // chargeMinimalFee deduct an anty span fee from a given account.
 func (d DynamicFeeDecorator) chargeMinimalFee(store weave.KVStore, src weave.Address) error {
-	fee := gconf.Coin(store, GconfMinimalFee)
+	fee := mustLoadConf(store).MinimalFee
 	if fee.IsZero() {
 		return nil
 	}
@@ -179,7 +178,7 @@ func (d DynamicFeeDecorator) extractFee(ctx weave.Context, tx weave.Tx, store we
 
 	txFee := finfo.GetFees()
 	if coin.IsEmpty(txFee) {
-		minFee := gconf.Coin(store, GconfMinimalFee)
+		minFee := mustLoadConf(store).MinimalFee
 		if minFee.IsZero() {
 			return finfo, nil
 		}
@@ -190,7 +189,7 @@ func (d DynamicFeeDecorator) extractFee(ctx weave.Context, tx weave.Tx, store we
 		return nil, errors.Wrap(err, "invalid fee")
 	}
 
-	minFee := gconf.Coin(store, GconfMinimalFee)
+	minFee := mustLoadConf(store).MinimalFee
 	if minFee.IsZero() {
 		return finfo, nil
 	}
