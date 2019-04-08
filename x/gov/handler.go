@@ -55,7 +55,6 @@ func (h VoteHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (
 	if err := proposal.Vote(vote.Selected, *elector); err != nil {
 		return res, err
 	}
-	// todo: set tag to mark voting ???
 	return res, h.propBucket.Update(db, vote.ProposalId, proposal)
 }
 
@@ -84,8 +83,6 @@ func (h VoteHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) 
 		voter = x.MainSigner(ctx, h.auth).Address()
 	}
 
-	// todo: should we move the votes into it's own bucket to make use of DB query features?
-	// would be the same for electors in electorate
 	if proposal.HasVoted(voter) {
 		return nil, nil, nil, errors.Wrap(errors.ErrInvalidState, "already voted")
 	}
@@ -94,7 +91,7 @@ func (h VoteHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) 
 	if err != nil {
 		return nil, nil, nil, err
 	}
-	// todo: would a decorator make sense for auth?
+
 	elector, ok := electorate.Elector(voter)
 	if !ok {
 		return nil, nil, nil, errors.Wrap(errors.ErrUnauthorized, "not in participants list")
