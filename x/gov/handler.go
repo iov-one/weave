@@ -238,7 +238,7 @@ func (h TextProposalHandler) validate(ctx weave.Context, db weave.KVStore, tx we
 		return nil, nil, nil, errors.Wrap(errors.ErrHuman, "block time not set")
 	}
 	if !msg.StartTime.Time().After(blockTime) {
-		return nil, nil, nil, errors.Wrap(errors.ErrInvalidState, "start time must be in the future")
+		return nil, nil, nil, errors.Wrap(errors.ErrInvalidInput, "start time must be in the future")
 	}
 	elect, err := h.elecBucket.GetElectorate(db, msg.ElectorateId)
 	if err != nil {
