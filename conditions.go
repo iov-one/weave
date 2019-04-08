@@ -193,6 +193,16 @@ func (a *Address) UnmarshalJSON(raw []byte) error {
 	}
 }
 
+// Clone provides an independent copy of an address.
+func (a Address) Clone() Address {
+	if a == nil {
+		return nil
+	}
+	cpy := make(Address, len(a))
+	copy(cpy, a)
+	return cpy
+}
+
 // String returns a human readable string.
 // Currently hex, may move to bech32
 func (a Address) String() string {
@@ -208,7 +218,7 @@ func (a Address) Validate() error {
 		return errors.ErrEmpty
 	}
 	if len(a) != AddressLength {
-		return errors.Wrapf(errors.ErrInvalidInput, "address: %v", a)
+		return errors.Wrapf(errors.ErrInvalidInput, "invalid address length: %v", a)
 	}
 	return nil
 }

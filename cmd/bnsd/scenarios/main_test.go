@@ -194,9 +194,9 @@ func initGenesis(filename string, addr weave.Address) (*tm.GenesisDoc, error) {
 				"timeout": time.Now().Add(10000 * time.Hour),
 			},
 		},
-		"gconf": map[string]interface{}{
-			cash.GconfCollectorAddress: "cond:dist/revenue/0000000000000001",
-			cash.GconfMinimalFee:       antiSpamFee,
+		"cashconf": cash.Configuration{
+			CollectorAddress: weave.Condition("dist/revenue/0000000000000001").Address(),
+			MinimalFee:       antiSpamFee,
 		},
 		"msgfee": []interface{}{
 			dict{

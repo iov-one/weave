@@ -136,8 +136,13 @@ func TestFees(t *testing.T) {
 
 			kv := store.MemStore()
 
-			gconf.SetValue(kv, GconfCollectorAddress, perm3.Address())
-			gconf.SetValue(kv, GconfMinimalFee, tc.min)
+			config := Configuration{
+				CollectorAddress: perm3.Address(),
+				MinimalFee:       tc.min,
+			}
+			if err := gconf.Save(kv, &config); err != nil {
+				t.Fatalf("cannot save configuration: %s", err)
+			}
 
 			bucket := NewBucket()
 			for _, wallet := range tc.initState {

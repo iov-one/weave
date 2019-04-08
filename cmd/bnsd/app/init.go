@@ -13,7 +13,6 @@ import (
 	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/commands/server"
 	"github.com/iov-one/weave/crypto"
-	"github.com/iov-one/weave/gconf"
 	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/x/cash"
 	"github.com/iov-one/weave/x/currency"
@@ -99,7 +98,6 @@ func GenerateApp(options *server.Options) (abci.Application, error) {
 // DecorateApp adds initializers and Logger to an Application
 func DecorateApp(application app.BaseApp, logger log.Logger) app.BaseApp {
 	application.WithInit(app.ChainInitializers(
-		&gconf.Initializer{},
 		&multisig.Initializer{},
 		&cash.Initializer{},
 		&currency.Initializer{},
