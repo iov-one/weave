@@ -3050,7 +3050,7 @@ sender. </p></td>
                   <td></td>
                   <td><p>Threshold is the fraction of all eligible voters, not only the ones who voted. To accept a
 proposal this value must be exceeded.
-The formula is `(yes*denominator) &gt; (numerator*voted)`.
+The formula is `(yes*denominator) &gt; (numerator*total_electors_weight)`.
 The valid range for the threshold value is `0.5` to `1` (inclusive) which allows any value between half and all
 of the eligible voters. </p></td>
                 </tr>
@@ -3175,7 +3175,7 @@ of the eligible voters. </p></td>
         
       
         <h3 id="gov.TallyResult">TallyResult</h3>
-        <p>TallyResut contains sums of the votes and the final result.</p>
+        <p>TallyResult contains sums of the votes and all data for the final result.</p>
 
         
           <table class="field-table">
@@ -3210,6 +3210,14 @@ of the eligible voters. </p></td>
                   <td><a href="#uint64">uint64</a></td>
                   <td></td>
                   <td><p>Sum of all weights in the electorate. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>threshold</td>
+                  <td><a href="#gov.Fraction">Fraction</a></td>
+                  <td></td>
+                  <td><p>Threshold is the fraction of all eligible voters, not only the ones who voted. To accept a
+proposal this value must be exceeded. </p></td>
                 </tr>
               
             </tbody>

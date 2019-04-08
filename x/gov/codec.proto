@@ -30,7 +30,7 @@ message ElectionRule {
     uint32 voting_period_hours = 3;
     // Threshold is the fraction of all eligible voters, not only the ones who voted. To accept a
     // proposal this value must be exceeded.
-    // The formula is `(yes*denominator) > (numerator*voted)`.
+    // The formula is `(yes*denominator) > (numerator*total_electors_weight)`.
     // The valid range for the threshold value is `0.5` to `1` (inclusive) which allows any value between half and all
     // of the eligible voters.
     Fraction threshold = 4 [(gogoproto.nullable) = false];
@@ -85,7 +85,7 @@ message TextProposal {
     Status status = 11 ;
 }
 
-// TallyResut contains sums of the votes and the final result.
+// TallyResult contains sums of the votes and all data for the final result.
 message TallyResult {
     // Sum of weights of all the voters that approved the proposal
     uint32 total_yes = 1;
@@ -95,6 +95,9 @@ message TallyResult {
     uint32 total_abstain = 3;
     // Sum of all weights in the electorate.
     uint64 total_weight_electorate = 4;
+    // Threshold is the fraction of all eligible voters, not only the ones who voted. To accept a
+    // proposal this value must be exceeded.
+    Fraction threshold = 5 [(gogoproto.nullable) = false];
 }
 
 // Vote combines the elector and his voted option to archive them.
