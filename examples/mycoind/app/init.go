@@ -1,6 +1,7 @@
 package app
 
 import (
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"path/filepath"
@@ -10,7 +11,7 @@ import (
 	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/commands/server"
 	"github.com/iov-one/weave/crypto"
-	"github.com/iov-one/weave/gconf"
+	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/x/cash"
 	abci "github.com/tendermint/tendermint/abci/types"
 )
@@ -43,6 +44,10 @@ func GenInitOptions(args []string) (json.RawMessage, error) {
 		dict  map[string]interface{}
 		array []interface{}
 	)
+	collectorAddr, err := hex.DecodeString("3b11c732b8fc1f09beb34031302fe2ab347c5c14")
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot hex decode collector address")
+	}
 	return json.Marshal(dict{
 		"cash": array{
 			dict{
@@ -55,9 +60,9 @@ func GenInitOptions(args []string) (json.RawMessage, error) {
 				},
 			},
 		},
-		"gconf": dict{
-			cash.GconfCollectorAddress: "66616b652d636f6c6c6563746f722d61646472657373",
-			cash.GconfMinimalFee:       coin.Coin{Whole: 0}, // no fee
+		"cashconf": cash.Configuration{
+			CollectorAddress: collectorAddr,
+			MinimalFee:       coin.Coin{Whole: 0}, // no fee
 		},
 	})
 }
@@ -76,7 +81,6 @@ func GenerateApp(options *server.Options) (abci.Application, error) {
 		return nil, err
 	}
 	application.WithInit(app.ChainInitializers(
-		&gconf.Initializer{},
 		&cash.Initializer{},
 	))
 

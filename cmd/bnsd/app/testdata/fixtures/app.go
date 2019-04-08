@@ -76,6 +76,10 @@ func appStateGenesis(keyAddress weave.Address) []byte {
 				},
 			},
 		},
+		"cashconf": cash.Configuration{
+			CollectorAddress: weave.Condition("dist/revenue/0000000000000001").Address(),
+			MinimalFee:       coin.NewCoin(0, 10000000, "FRNK"),
+		},
 		"currencies": []interface{}{
 			dict{
 				"ticker": "FRNK",
@@ -117,10 +121,6 @@ func appStateGenesis(keyAddress weave.Address) []byte {
 				"timeout":   time.Now().Add(10000 * time.Hour),
 			},
 		},
-		"cashconf": cash.Configuration{
-			CollectorAddress: weave.Condition("dist/revenue/0000000000000001").Address(),
-			MinimalFee:       coin.NewCoin(0, 10000000, "FRNK"),
-		},
 		"msgfee": []interface{}{
 			dict{
 				"msg_path": "distribution/newrevenue",
@@ -143,6 +143,5 @@ func appStateGenesis(keyAddress weave.Address) []byte {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println(string(appState))
 	return appState
 }
