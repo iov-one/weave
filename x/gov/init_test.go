@@ -18,7 +18,7 @@ func TestInitFromGenesis(t *testing.T) {
     "electorate": [
       {
         "title": "first",
-        "participants": [
+        "electors": [
           {
             "weight": 10,
             "signature": "1111111111111111111111111111111111111111"
@@ -31,7 +31,7 @@ func TestInitFromGenesis(t *testing.T) {
       },
       {
         "title": "second",
-        "participants": [
+        "electors": [
           {
             "weight": 1,
             "signature": "3333333333333333333333333333333333333333"
@@ -77,19 +77,19 @@ func TestInitFromGenesis(t *testing.T) {
 	if exp, got := "first", e.Title; exp != got {
 		t.Errorf("expected %v but got %v", exp, got)
 	}
-	if exp, got := 2, len(e.Participants); exp != got {
+	if exp, got := 2, len(e.Electors); exp != got {
 		t.Errorf("expected %v but got %v", exp, got)
 	}
-	if exp, got := addr("1111111111111111111111111111111111111111"), e.Participants[0].Signature; !exp.Equals(got) {
+	if exp, got := addr("1111111111111111111111111111111111111111"), e.Electors[0].Signature; !exp.Equals(got) {
 		t.Errorf("expected %X but got %X", exp, got)
 	}
-	if exp, got := uint32(10), e.Participants[0].Weight; exp != got {
+	if exp, got := uint32(10), e.Electors[0].Weight; exp != got {
 		t.Errorf("expected %v but got %v", exp, got)
 	}
-	if exp, got := addr("2222222222222222222222222222222222222222"), e.Participants[1].Signature; !exp.Equals(got) {
+	if exp, got := addr("2222222222222222222222222222222222222222"), e.Electors[1].Signature; !exp.Equals(got) {
 		t.Errorf("expected %X but got %X", exp, got)
 	}
-	if exp, got := uint32(11), e.Participants[1].Weight; exp != got {
+	if exp, got := uint32(11), e.Electors[1].Weight; exp != got {
 		t.Errorf("expected %v but got %v", exp, got)
 	}
 	// second electorate ok
@@ -100,13 +100,13 @@ func TestInitFromGenesis(t *testing.T) {
 	if exp, got := "second", e.Title; exp != got {
 		t.Errorf("expected %v but got %v", exp, got)
 	}
-	if exp, got := 1, len(e.Participants); exp != got {
+	if exp, got := 1, len(e.Electors); exp != got {
 		t.Errorf("expected %v but got %v", exp, got)
 	}
-	if exp, got := addr("3333333333333333333333333333333333333333"), e.Participants[0].Signature; !exp.Equals(got) {
+	if exp, got := addr("3333333333333333333333333333333333333333"), e.Electors[0].Signature; !exp.Equals(got) {
 		t.Errorf("expected %X but got %X", exp, got)
 	}
-	if exp, got := uint32(1), e.Participants[0].Weight; exp != got {
+	if exp, got := uint32(1), e.Electors[0].Weight; exp != got {
 		t.Errorf("expected %v but got %v", exp, got)
 	}
 

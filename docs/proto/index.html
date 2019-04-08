@@ -601,11 +601,15 @@
             <ul>
               
                 <li>
-                  <a href="#gov.CreateTextProposal"><span class="badge">M</span>CreateTextProposal</a>
+                  <a href="#gov.CreateTextProposalMsg"><span class="badge">M</span>CreateTextProposalMsg</a>
                 </li>
               
                 <li>
                   <a href="#gov.ElectionRule"><span class="badge">M</span>ElectionRule</a>
+                </li>
+              
+                <li>
+                  <a href="#gov.Elector"><span class="badge">M</span>Elector</a>
                 </li>
               
                 <li>
@@ -617,11 +621,7 @@
                 </li>
               
                 <li>
-                  <a href="#gov.Participant"><span class="badge">M</span>Participant</a>
-                </li>
-              
-                <li>
-                  <a href="#gov.Tally"><span class="badge">M</span>Tally</a>
+                  <a href="#gov.TallyMsg"><span class="badge">M</span>TallyMsg</a>
                 </li>
               
                 <li>
@@ -636,6 +636,14 @@
                   <a href="#gov.Vote"><span class="badge">M</span>Vote</a>
                 </li>
               
+                <li>
+                  <a href="#gov.VoteMsg"><span class="badge">M</span>VoteMsg</a>
+                </li>
+              
+              
+                <li>
+                  <a href="#gov.TextProposal.Status"><span class="badge">E</span>TextProposal.Status</a>
+                </li>
               
                 <li>
                   <a href="#gov.VoteOption"><span class="badge">E</span>VoteOption</a>
@@ -2256,7 +2264,7 @@ computed as the sum of weights of all participating signatures. </p></td>
               
                 <tr>
                   <td>timeout</td>
-                  <td><a href="#google.protobuf.Timestamp">google.protobuf.Timestamp</a></td>
+                  <td><a href="#int64">int64</a></td>
                   <td></td>
                   <td><p>Timeout represents wall clock time. </p></td>
                 </tr>
@@ -2307,10 +2315,11 @@ computed as the sum of weights of all participating signatures. </p></td>
               
                 <tr>
                   <td>timeout</td>
-                  <td><a href="#google.protobuf.Timestamp">google.protobuf.Timestamp</a></td>
+                  <td><a href="#int64">int64</a></td>
                   <td></td>
                   <td><p>If unreleased before timeout, escrow will return to sender.
-Timeout represents wall clock time as read from the block header. </p></td>
+Timeout represents wall clock time as read from the block header. Timeout
+is represented using POSIX time format. </p></td>
                 </tr>
               
                 <tr>
@@ -2953,7 +2962,7 @@ sender. </p></td>
       <p></p>
 
       
-        <h3 id="gov.CreateTextProposal">CreateTextProposal</h3>
+        <h3 id="gov.CreateTextProposalMsg">CreateTextProposalMsg</h3>
         <p>TBD</p>
 
         
@@ -2993,7 +3002,7 @@ sender. </p></td>
               
                 <tr>
                   <td>start_time</td>
-                  <td><a href="#uint64">uint64</a></td>
+                  <td><a href="#int64">int64</a></td>
                   <td></td>
                   <td><p>Unix timestamp.... </p></td>
                 </tr>
@@ -3052,6 +3061,36 @@ of the eligible voters. </p></td>
 
         
       
+        <h3 id="gov.Elector">Elector</h3>
+        <p>Elector clubs together a signature with a weight. The greater the weight</p><p>the greater the power of a participant.</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>signature</td>
+                  <td><a href="#bytes">bytes</a></td>
+                  <td></td>
+                  <td><p>The address of the voter. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>weight</td>
+                  <td><a href="#uint32">uint32</a></td>
+                  <td></td>
+                  <td><p>Weight defines the power of the participants vote. max value is 65535 (2^16-1). </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+        
+
+        
+      
         <h3 id="gov.Electorate">Electorate</h3>
         <p>Electorate defines who may vote in an election. This same group can be used in many elections</p><p>and is stored for re-use</p>
 
@@ -3070,10 +3109,10 @@ of the eligible voters. </p></td>
                 </tr>
               
                 <tr>
-                  <td>participants</td>
-                  <td><a href="#gov.Participant">Participant</a></td>
+                  <td>electors</td>
+                  <td><a href="#gov.Elector">Elector</a></td>
                   <td>repeated</td>
-                  <td><p>Participants defines a list of all signatures that are allowed to participate in a vote </p></td>
+                  <td><p>Elector defines a list of all signatures that are allowed to participate in a vote </p></td>
                 </tr>
               
             </tbody>
@@ -3112,37 +3151,7 @@ of the eligible voters. </p></td>
 
         
       
-        <h3 id="gov.Participant">Participant</h3>
-        <p>Participant clubs together a signature with a weight. The greater the weight</p><p>the greater the power of a participant.</p>
-
-        
-          <table class="field-table">
-            <thead>
-              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
-            </thead>
-            <tbody>
-              
-                <tr>
-                  <td>signature</td>
-                  <td><a href="#bytes">bytes</a></td>
-                  <td></td>
-                  <td><p>The address of the voter. </p></td>
-                </tr>
-              
-                <tr>
-                  <td>weight</td>
-                  <td><a href="#uint32">uint32</a></td>
-                  <td></td>
-                  <td><p>Weight defines the power of the participants vote. max value is 65535 (2^16-1). </p></td>
-                </tr>
-              
-            </tbody>
-          </table>
-        
-
-        
-      
-        <h3 id="gov.Tally">Tally</h3>
+        <h3 id="gov.TallyMsg">TallyMsg</h3>
         <p>TBD</p>
 
         
@@ -3166,7 +3175,7 @@ of the eligible voters. </p></td>
         
       
         <h3 id="gov.TallyResult">TallyResult</h3>
-        <p>Result of a tally. Contains sums of the votes and the final result.</p>
+        <p>TallyResut contains sums of the votes and the final result.</p>
 
         
           <table class="field-table">
@@ -3201,13 +3210,6 @@ of the eligible voters. </p></td>
                   <td><a href="#uint64">uint64</a></td>
                   <td></td>
                   <td><p>Sum of all weights in the electorate. </p></td>
-                </tr>
-              
-                <tr>
-                  <td>passed</td>
-                  <td><a href="#bool">bool</a></td>
-                  <td></td>
-                  <td><p>Final result based on the votes and election rule. </p></td>
                 </tr>
               
             </tbody>
@@ -3256,7 +3258,7 @@ of the eligible voters. </p></td>
               
                 <tr>
                   <td>voting_start_time</td>
-                  <td><a href="#uint64">uint64</a></td>
+                  <td><a href="#int64">int64</a></td>
                   <td></td>
                   <td><p>Unix timestamp of the block where the voting period starts. Header time of the votes must be greater than or equal
 to this start time. </p></td>
@@ -3264,7 +3266,7 @@ to this start time. </p></td>
               
                 <tr>
                   <td>voting_end_time</td>
-                  <td><a href="#uint64">uint64</a></td>
+                  <td><a href="#int64">int64</a></td>
                   <td></td>
                   <td><p>Unix timestamp of the block where the voting period ends. Header times of the votes must be before this end time
 to be included in the election. </p></td>
@@ -3272,7 +3274,7 @@ to be included in the election. </p></td>
               
                 <tr>
                   <td>submission_time</td>
-                  <td><a href="#uint64">uint64</a></td>
+                  <td><a href="#int64">int64</a></td>
                   <td></td>
                   <td><p>Unix timestamp of the block where the proposal was added to the chain. </p></td>
                 </tr>
@@ -3285,10 +3287,24 @@ to be included in the election. </p></td>
                 </tr>
               
                 <tr>
-                  <td>result</td>
+                  <td>votes</td>
+                  <td><a href="#gov.Vote">Vote</a></td>
+                  <td>repeated</td>
+                  <td><p>Votes contain the list of individual votes with elector and voted option. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>vote_result</td>
                   <td><a href="#gov.TallyResult">TallyResult</a></td>
                   <td></td>
-                  <td><p>Final result of the election. </p></td>
+                  <td><p>Result of the election. Contains intermediate tally results while voting period is open. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>status</td>
+                  <td><a href="#gov.TextProposal.Status">TextProposal.Status</a></td>
+                  <td></td>
+                  <td><p>status is the final result based on the votes and election rule. </p></td>
                 </tr>
               
             </tbody>
@@ -3298,7 +3314,37 @@ to be included in the election. </p></td>
         
       
         <h3 id="gov.Vote">Vote</h3>
-        <p>TBD</p>
+        <p>Vote combines the elector and his voted option to archive them.</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>elector</td>
+                  <td><a href="#gov.Elector">Elector</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>voted</td>
+                  <td><a href="#gov.VoteOption">VoteOption</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+        
+
+        
+      
+        <h3 id="gov.VoteMsg">VoteMsg</h3>
+        <p>VoteMsg is the way to express a voice and participate in an election of a proposal on chain.</p>
 
         
           <table class="field-table">
@@ -3311,21 +3357,22 @@ to be included in the election. </p></td>
                   <td>proposal_id</td>
                   <td><a href="#bytes">bytes</a></td>
                   <td></td>
-                  <td><p> </p></td>
+                  <td><p>The unique id of the proposal. </p></td>
                 </tr>
               
                 <tr>
                   <td>voter</td>
                   <td><a href="#bytes">bytes</a></td>
                   <td></td>
-                  <td><p> </p></td>
+                  <td><p>voter address is an optional field. When not set the main signer will be used as default. The voter address
+must be included in the electorate for a valid vote. </p></td>
                 </tr>
               
                 <tr>
                   <td>selected</td>
                   <td><a href="#gov.VoteOption">VoteOption</a></td>
                   <td></td>
-                  <td><p> </p></td>
+                  <td><p>Option for the vote. Must be Yes, No or Abstain for a valid vote. </p></td>
                 </tr>
               
             </tbody>
@@ -3336,8 +3383,43 @@ to be included in the election. </p></td>
       
 
       
+        <h3 id="gov.TextProposal.Status">TextProposal.Status</h3>
+        <p>Status of the proposal base on the final tally result. `UNDEFINED` as initial value.</p>
+        <table class="enum-table">
+          <thead>
+            <tr><td>Name</td><td>Number</td><td>Description</td></tr>
+          </thead>
+          <tbody>
+            
+              <tr>
+                <td>TEXT_PROPOSAL_STATUS_INVALID</td>
+                <td>0</td>
+                <td><p></p></td>
+              </tr>
+            
+              <tr>
+                <td>TEXT_PROPOSAL_STATUS_UNDEFINED</td>
+                <td>1</td>
+                <td><p></p></td>
+              </tr>
+            
+              <tr>
+                <td>TEXT_PROPOSAL_STATUS_ACCEPTED</td>
+                <td>2</td>
+                <td><p></p></td>
+              </tr>
+            
+              <tr>
+                <td>TEXT_PROPOSAL_STATUS_REJECTED</td>
+                <td>3</td>
+                <td><p></p></td>
+              </tr>
+            
+          </tbody>
+        </table>
+      
         <h3 id="gov.VoteOption">VoteOption</h3>
-        <p>TBD</p>
+        <p>VoteOptions define possible values for a vote including the INVALID default.</p>
         <table class="enum-table">
           <thead>
             <tr><td>Name</td><td>Number</td><td>Description</td></tr>
