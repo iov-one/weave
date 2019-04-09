@@ -151,13 +151,6 @@ func TestCrateTextProposalMsg(t *testing.T) {
 			}),
 			Exp: errors.ErrInvalidInput,
 		},
-		"StartTime missing": {
-			Msg: buildMsg(func(p *CreateTextProposalMsg) {
-				var unset time.Time
-				p.StartTime = weave.AsUnixTime(unset)
-			}),
-			Exp: errors.ErrInvalidInput,
-		},
 		"StartTime zero": {
 			Msg: buildMsg(func(p *CreateTextProposalMsg) {
 				p.StartTime = 0

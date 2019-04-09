@@ -26,7 +26,7 @@ func (m CreateTextProposalMsg) Validate() error {
 		return errors.Wrap(errors.ErrInvalidInput, "empty electorate id")
 	case len(m.ElectionRuleID) == 0:
 		return errors.Wrap(errors.ErrInvalidInput, "empty election rules id")
-	case m.StartTime == 0 || m.StartTime.Time().IsZero():
+	case m.StartTime == 0:
 		return errors.Wrap(errors.ErrInvalidInput, "empty start time")
 	case m.Author != nil && err != nil:
 		return errors.Wrap(err, "invalid author")
