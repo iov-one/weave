@@ -1,8 +1,6 @@
 package gov
 
 import (
-	"fmt"
-
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
 )
@@ -28,18 +26,18 @@ func (m CreateTextProposalMsg) Validate() error {
 		return errors.Wrap(errors.ErrInvalidInput, "empty electorate id")
 	case len(m.ElectionRuleID) == 0:
 		return errors.Wrap(errors.ErrInvalidInput, "empty election rules id")
-	case m.StartTime.Time().IsZero():
+	case m.StartTime == 0 || m.StartTime.Time().IsZero():
 		return errors.Wrap(errors.ErrInvalidInput, "empty start time")
 	case m.Author != nil && err != nil:
 		return errors.Wrap(err, "invalid author")
 	case !validTitle(m.Title):
-		return errors.Wrap(errors.ErrInvalidInput, fmt.Sprintf("title: %q", m.Title))
+		return errors.Wrapf(errors.ErrInvalidInput, "title: %q", m.Title)
 	case len(m.Description) < minDescriptionLength:
-		return errors.Wrap(errors.ErrInvalidInput, fmt.Sprintf("description length lower than minimum of: %d", minDescriptionLength))
+		return errors.Wrapf(errors.ErrInvalidInput, "description length lower than minimum of: %d", minDescriptionLength)
 	case len(m.Description) > maxDescriptionLength:
-		return errors.Wrap(errors.ErrInvalidInput, fmt.Sprintf("description length exceeds: %d", maxDescriptionLength))
+		return errors.Wrapf(errors.ErrInvalidInput, "description length exceeds: %d", maxDescriptionLength)
 	}
-	return nil
+	return m.StartTime.Validate()
 }
 
 func (VoteMsg) Path() string {

@@ -1,7 +1,6 @@
 package gov
 
 import (
-	"fmt"
 	"regexp"
 
 	"github.com/iov-one/weave"
@@ -18,9 +17,9 @@ func (m Electorate) Validate() error {
 	case n == 0:
 		return errors.Wrap(errors.ErrInvalidInput, "electors must not be empty")
 	case n > maxElectors:
-		return errors.Wrap(errors.ErrInvalidInput, fmt.Sprintf("electors must not exceed: %d", maxElectors))
+		return errors.Wrapf(errors.ErrInvalidInput, "electors must not exceed: %d", maxElectors)
 	case !validTitle(m.Title):
-		return errors.Wrap(errors.ErrInvalidInput, fmt.Sprintf("title: %q", m.Title))
+		return errors.Wrapf(errors.ErrInvalidInput, "title: %q", m.Title)
 	}
 
 	var totalWeight uint64
@@ -82,11 +81,11 @@ const (
 func (m ElectionRule) Validate() error {
 	switch {
 	case !validTitle(m.Title):
-		return errors.Wrap(errors.ErrInvalidInput, fmt.Sprintf("title: %q", m.Title))
+		return errors.Wrapf(errors.ErrInvalidInput, "title: %q", m.Title)
 	case m.VotingPeriodHours < minVotingPeriodHours:
-		return errors.Wrap(errors.ErrInvalidInput, fmt.Sprintf("min hours: %d", minVotingPeriodHours))
+		return errors.Wrapf(errors.ErrInvalidInput, "min hours: %d", minVotingPeriodHours)
 	case m.VotingPeriodHours > maxVotingPeriodHours:
-		return errors.Wrap(errors.ErrInvalidInput, fmt.Sprintf("max hours: %d", maxVotingPeriodHours))
+		return errors.Wrapf(errors.ErrInvalidInput, "max hours: %d", maxVotingPeriodHours)
 	}
 	return m.Threshold.Validate()
 }
@@ -121,19 +120,19 @@ const (
 func (m *TextProposal) Validate() error {
 	switch {
 	case !validTitle(m.Title):
-		return errors.Wrap(errors.ErrInvalidInput, fmt.Sprintf("title: %q", m.Title))
+		return errors.Wrapf(errors.ErrInvalidInput, "title: %q", m.Title)
 	case m.Status == TextProposal_Invalid:
 		return errors.Wrap(errors.ErrInvalidInput, "invalid status")
-	case !m.VotingStartTime.Time().Before(m.VotingEndTime.Time()):
+	case m.VotingStartTime >= m.VotingEndTime:
 		return errors.Wrap(errors.ErrInvalidInput, "start time must be before end time")
-	case !m.VotingStartTime.Time().After(m.SubmissionTime.Time()):
+	case m.VotingStartTime <= m.SubmissionTime:
 		return errors.Wrap(errors.ErrInvalidInput, "start time must be after submission time")
 	case len(m.Author) == 0:
 		return errors.Wrap(errors.ErrInvalidInput, "author required")
 	case len(m.Description) < minDescriptionLength:
-		return errors.Wrap(errors.ErrInvalidInput, fmt.Sprintf("description length lower than minimum of: %d", minDescriptionLength))
+		return errors.Wrapf(errors.ErrInvalidInput, "description length lower than minimum of: %d", minDescriptionLength)
 	case len(m.Description) > maxDescriptionLength:
-		return errors.Wrap(errors.ErrInvalidInput, fmt.Sprintf("description length exceeds: %d", maxDescriptionLength))
+		return errors.Wrapf(errors.ErrInvalidInput, "description length exceeds: %d", maxDescriptionLength)
 	case len(m.ElectorateID) == 0:
 		return errors.Wrap(errors.ErrInvalidInput, "empty electorate id")
 	case len(m.ElectionRuleID) == 0:
@@ -146,12 +145,12 @@ func (m *TextProposal) Validate() error {
 		err := v.Elector.Validate()
 		switch {
 		case err != nil:
-			return errors.Wrap(err, fmt.Sprintf("invalid elector in vote: %d", i))
+			return errors.Wrapf(err, "invalid elector in vote: %d", i)
 		case v.Voted == VoteOption_Invalid:
-			return errors.Wrap(errors.ErrInvalidInput, fmt.Sprintf("invalid option in vote: %d", i))
+			return errors.Wrapf(errors.ErrInvalidInput, "invalid option in vote: %d", i)
 		}
 		if _, exists := index[v.Elector.Signature.String()]; exists {
-			return errors.Wrap(errors.ErrInvalidInput, fmt.Sprintf("duplicate vote for address: %s", v.Elector.Signature.String()))
+			return errors.Wrapf(errors.ErrInvalidInput, "duplicate vote for address: %s", v.Elector.Signature.String())
 		}
 		index[v.Elector.Signature.String()] = struct{}{}
 	}
@@ -192,7 +191,7 @@ func (m *TextProposal) Vote(voted VoteOption, elector Elector) error {
 	case VoteOption_Abstain:
 		m.VoteResult.TotalAbstain += elector.Weight
 	default:
-		return errors.Wrap(errors.ErrInvalidInput, fmt.Sprintf("%q", m.String()))
+		return errors.Wrapf(errors.ErrInvalidInput, "%q", m.String())
 	}
 	m.Votes = append(m.Votes, &Vote{Elector: elector, Voted: voted})
 	return nil

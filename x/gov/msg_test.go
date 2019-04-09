@@ -158,6 +158,12 @@ func TestCrateTextProposalMsg(t *testing.T) {
 			}),
 			Exp: errors.ErrInvalidInput,
 		},
+		"StartTime zero": {
+			Msg: buildMsg(func(p *CreateTextProposalMsg) {
+				p.StartTime = 0
+			}),
+			Exp: errors.ErrInvalidInput,
+		},
 		"Invalid author address": {
 			Msg: buildMsg(func(p *CreateTextProposalMsg) {
 				p.Author = []byte{0, 0, 0, 0}

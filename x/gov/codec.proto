@@ -12,7 +12,7 @@ message Electorate {
     // Elector defines a list of all signatures that are allowed to participate in a vote
     repeated Elector electors = 2 [(gogoproto.nullable) = false];
     // TotalWeightElectorate is the sum of all electors weights.
-    uint64 TotalWeightElectorate = 3;
+    uint64 total_weight_electorate = 3;
 }
 
 // Elector clubs together a signature with a weight. The greater the weight
