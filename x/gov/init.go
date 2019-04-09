@@ -39,16 +39,19 @@ func (*Initializer) FromGenesis(opts weave.Options, db weave.KVStore) error {
 	// handle electorate
 	electBucket := NewElectorateBucket()
 	for i, e := range governance.Electorate {
-		ps := make([]Elector, 0, len(e.Electors))
-		for _, p := range e.Electors {
-			ps = append(ps, Elector{
+		ps := make([]Elector, len(e.Electors))
+		var total uint64
+		for i, p := range e.Electors {
+			ps[i] = Elector{
 				Signature: p.Signature,
 				Weight:    p.Weight,
-			})
+			}
+			total += uint64(p.Weight)
 		}
 		electorate := Electorate{
-			Title:    e.Title,
-			Electors: ps,
+			Title:                 e.Title,
+			Electors:              ps,
+			TotalWeightElectorate: total,
 		}
 		if err := electorate.Validate(); err != nil {
 			return errors.Wrap(err, fmt.Sprintf("electorate #%d is invalid", i))

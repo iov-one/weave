@@ -20,7 +20,24 @@ func (CreateTextProposalMsg) Path() string {
 }
 
 func (m CreateTextProposalMsg) Validate() error {
-	return nil
+	err := m.Author.Validate()
+	switch {
+	case len(m.ElectorateID) == 0:
+		return errors.Wrap(errors.ErrInvalidInput, "empty electorate id")
+	case len(m.ElectionRuleID) == 0:
+		return errors.Wrap(errors.ErrInvalidInput, "empty election rules id")
+	case m.StartTime == 0:
+		return errors.Wrap(errors.ErrInvalidInput, "empty start time")
+	case m.Author != nil && err != nil:
+		return errors.Wrap(err, "invalid author")
+	case !validTitle(m.Title):
+		return errors.Wrapf(errors.ErrInvalidInput, "title: %q", m.Title)
+	case len(m.Description) < minDescriptionLength:
+		return errors.Wrapf(errors.ErrInvalidInput, "description length lower than minimum of: %d", minDescriptionLength)
+	case len(m.Description) > maxDescriptionLength:
+		return errors.Wrapf(errors.ErrInvalidInput, "description length exceeds: %d", maxDescriptionLength)
+	}
+	return m.StartTime.Validate()
 }
 
 func (VoteMsg) Path() string {
@@ -31,7 +48,7 @@ func (m VoteMsg) Validate() error {
 	if m.Selected != VoteOption_Yes && m.Selected != VoteOption_No && m.Selected != VoteOption_Abstain {
 		return errors.Wrap(errors.ErrInvalidInput, "invalid option")
 	}
-	if len(m.ProposalId) == 0 {
+	if len(m.ProposalID) == 0 {
 		return errors.Wrap(errors.ErrInvalidInput, "empty proposal id")
 	}
 	if err := m.Voter.Validate(); m.Voter != nil && err != nil {
@@ -45,5 +62,8 @@ func (TallyMsg) Path() string {
 }
 
 func (m TallyMsg) Validate() error {
+	if len(m.ProposalID) == 0 {
+		return errors.Wrap(errors.ErrInvalidInput, "empty proposal id")
+	}
 	return nil
 }

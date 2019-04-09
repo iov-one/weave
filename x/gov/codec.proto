@@ -11,6 +11,8 @@ message Electorate {
     string title = 1;
     // Elector defines a list of all signatures that are allowed to participate in a vote
     repeated Elector electors = 2 [(gogoproto.nullable) = false];
+    // TotalWeightElectorate is the sum of all electors weights.
+    uint64 total_weight_electorate = 3;
 }
 
 // Elector clubs together a signature with a weight. The greater the weight
@@ -56,9 +58,9 @@ message TextProposal {
     // Description of the proposal in text form.
     string description = 2;
     // Reference to the election rule
-    bytes election_rule_id = 3;
+    bytes election_rule_id = 3 [(gogoproto.customname) = "ElectionRuleID"];
     // Reference to the electorate to define the group of possible voters.
-    bytes electorate_id = 4;
+    bytes electorate_id = 4 [(gogoproto.customname) = "ElectorateID"];
     // Unix timestamp of the block where the voting period starts. Header time of the votes must be greater than or equal
     // to this start time.
     int64 voting_start_time = 5 [(gogoproto.casttype) = "github.com/iov-one/weave.UnixTime"];
@@ -106,15 +108,20 @@ message Vote {
     VoteOption voted = 2;
 }
 
-// TBD
+// CreateTextProposalMsg creates a new governance proposal.
 message CreateTextProposalMsg {
+    // Human readable title. Must match `^[a-zA-Z0-9 _.-]{4,128}$`
     string title = 1;
+    // Human readable description with 3 to 5000 chars.
     string description = 2;
-    bytes election_rule_id = 3;
-    bytes electorate_id = 4;
-    // Unix timestamp....
+    // Reference to the election rule
+    bytes election_rule_id = 3 [(gogoproto.customname) = "ElectionRuleID"];
+    // Reference to the electorate to define the group of possible voters.
+    bytes electorate_id = 4 [(gogoproto.customname) = "ElectorateID"];
+    // Unix timestamp when the proposal starts. Must be in the future.
     int64 start_time = 5 [(gogoproto.casttype) = "github.com/iov-one/weave.UnixTime"];
-    // Optional field that will default to the main signer if empty.
+    // Author is an optional field to set the address of the author with a proposal. The author must sign the message.
+    // When not set it will default to the main signer.
     bytes author = 8 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
 }
 
@@ -129,7 +136,7 @@ enum VoteOption {
 // VoteMsg is the way to express a voice and participate in an election of a proposal on chain.
 message VoteMsg {
     // The unique id of the proposal.
-    bytes proposal_id = 1;
+    bytes proposal_id = 1[(gogoproto.customname) = "ProposalID"];
     // voter address is an optional field. When not set the main signer will be used as default. The voter address
     // must be included in the electorate for a valid vote.
     bytes voter = 2 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
@@ -137,7 +144,9 @@ message VoteMsg {
     VoteOption selected = 3;
 }
 
-// TBD
+// TallyMsg can be sent after the voting period has ended to do the final tally and trigger any state changes.
+// A final tally can be execute only once. A second submission will fail with an invalid state error.
 message TallyMsg {
-    bytes proposal_id = 1;
+    // ProposalID is UUID of the proposal to close.
+    bytes proposal_id = 1 [(gogoproto.customname) = "ProposalID"];
 }
