@@ -59,32 +59,36 @@ func TestBumpSequence(t *testing.T) {
 			},
 		},
 		"transaction with a missing signature is rejected": {
-			Msg:          BumpSequenceMsg{Increment: 1},
-			Signers:      nil,
-			WantCheckErr: errors.ErrUnauthorized,
+			Msg:            BumpSequenceMsg{Increment: 1},
+			Signers:        nil,
+			WantCheckErr:   errors.ErrUnauthorized,
+			WantDeliverErr: errors.ErrUnauthorized,
 		},
 		"message with a zero sequence increment is invalid": {
 			InitData: []*UserData{
 				{Pubkey: key1, Sequence: 1},
 			},
-			Msg:          BumpSequenceMsg{Increment: 0},
-			WantCheckErr: errors.ErrInvalidMsg,
+			Msg:            BumpSequenceMsg{Increment: 0},
+			WantCheckErr:   errors.ErrInvalidMsg,
+			WantDeliverErr: errors.ErrInvalidMsg,
 		},
 		"user that we increment the sequence of must exist": {
 			InitData: []*UserData{
 				{Pubkey: key2, Sequence: 4},
 			},
-			Signers:      []weave.Condition{key1.Condition()},
-			Msg:          BumpSequenceMsg{Increment: 421},
-			WantCheckErr: errors.ErrNotFound,
+			Signers:        []weave.Condition{key1.Condition()},
+			Msg:            BumpSequenceMsg{Increment: 421},
+			WantCheckErr:   errors.ErrNotFound,
+			WantDeliverErr: errors.ErrNotFound,
 		},
 		"sequence increment value must not be greater than 1000": {
 			InitData: []*UserData{
 				{Pubkey: key1, Sequence: 4},
 			},
-			Signers:      []weave.Condition{key1.Condition()},
-			Msg:          BumpSequenceMsg{Increment: 1001},
-			WantCheckErr: errors.ErrInvalidMsg,
+			Signers:        []weave.Condition{key1.Condition()},
+			Msg:            BumpSequenceMsg{Increment: 1001},
+			WantCheckErr:   errors.ErrInvalidMsg,
+			WantDeliverErr: errors.ErrInvalidMsg,
 		},
 		"sequence increment value can be 1000": {
 			InitData: []*UserData{
@@ -110,9 +114,10 @@ func TestBumpSequence(t *testing.T) {
 			InitData: []*UserData{
 				{Pubkey: key1, Sequence: math.MaxInt64 - 20},
 			},
-			Signers:      []weave.Condition{key1.Condition()},
-			Msg:          BumpSequenceMsg{Increment: 21},
-			WantCheckErr: errors.ErrOverflow,
+			Signers:        []weave.Condition{key1.Condition()},
+			Msg:            BumpSequenceMsg{Increment: 21},
+			WantCheckErr:   errors.ErrOverflow,
+			WantDeliverErr: errors.ErrOverflow,
 		},
 	}
 
@@ -143,12 +148,7 @@ func TestBumpSequence(t *testing.T) {
 			}
 			cache.Discard()
 
-			if tc.WantCheckErr != nil {
-				// If we expect an error than it makes no sense to continue the flow.
-				return
-			}
-
-			if _, err := handler.Deliver(ctx, db, &tx); !tc.WantCheckErr.Is(err) {
+			if _, err := handler.Deliver(ctx, db, &tx); !tc.WantDeliverErr.Is(err) {
 				t.Fatalf("unexpected check error: %+v", err)
 			}
 			if tc.WantDeliverErr != nil {
