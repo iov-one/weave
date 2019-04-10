@@ -4,16 +4,19 @@ import (
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/orm"
+	"github.com/iov-one/weave/x"
 )
 
-func RegisterRoutes(r weave.Registry) {
+func RegisterRoutes(r weave.Registry, auth x.Authenticator) {
 	r.Handle(pathBumpSequenceMsg, &bumpSequenceHandler{
-		b: NewBucket(),
+		b:    NewBucket(),
+		auth: auth,
 	})
 }
 
 type bumpSequenceHandler struct {
-	b Bucket
+	auth x.Authenticator
+	b    Bucket
 }
 
 func (h *bumpSequenceHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (weave.CheckResult, error) {
@@ -27,7 +30,14 @@ func (h *bumpSequenceHandler) Deliver(ctx weave.Context, db weave.KVStore, tx we
 		return weave.DeliverResult{}, err
 	}
 
-	user.Sequence += msg.Increment
+	// Each transaction processing bumps the sequence by one. Increment
+	// must represent the total increment value.
+	incr := int64(msg.Increment) - 1
+	if incr == 0 {
+		// Zero increment requires no modification.
+		return weave.DeliverResult{}, nil
+	}
+	user.Sequence += incr
 	obj := orm.NewSimpleObj(user.Pubkey.Address(), user)
 	if err := h.b.Save(db, obj); err != nil {
 		return weave.DeliverResult{}, errors.Wrap(err, "save user")
@@ -42,13 +52,23 @@ func (h *bumpSequenceHandler) validate(ctx weave.Context, db weave.KVStore, tx w
 		return nil, nil, errors.Wrap(err, "load msg")
 	}
 
-	obj, err := h.b.Get(db, msg.Pubkey.Address())
+	pubkey := x.MainSigner(ctx, h.auth)
+	if pubkey == nil {
+		return nil, nil, errors.Wrap(errors.ErrUnauthorized, "missing signature")
+	}
+	obj, err := h.b.Get(db, pubkey.Address())
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "bucket")
 	}
 	if obj == nil {
-		return nil, nil, errors.Wrap(errors.ErrNotFound, "unknown public key")
+		return nil, nil, errors.Wrap(errors.ErrNotFound, "no sequence")
 	}
 
-	return AsUser(obj), &msg, nil
+	user := AsUser(obj)
+
+	if user.Sequence+int64(msg.Increment) < user.Sequence {
+		return nil, nil, errors.Wrap(errors.ErrOverflow, "user sequence")
+	}
+
+	return user, &msg, nil
 }

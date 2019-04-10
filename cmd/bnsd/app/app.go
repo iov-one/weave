@@ -83,7 +83,7 @@ func Router(authFn x.Authenticator, issuer weave.Address, nftBuckets map[string]
 	validators.RegisterRoutes(r, authFn, validators.NewController())
 	distribution.RegisterRoutes(r, authFn, ctrl)
 	base.RegisterRoutes(r, authFn, issuer, nftBuckets)
-	sigs.RegisterRoutes(r)
+	sigs.RegisterRoutes(r, authFn)
 	return r
 }
 

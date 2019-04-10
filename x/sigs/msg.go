@@ -10,9 +10,6 @@ const (
 )
 
 func (msg *BumpSequenceMsg) Validate() error {
-	if msg.Pubkey == nil {
-		return errors.Wrap(errors.ErrInvalidMsg, "public key is required")
-	}
 	if msg.Increment < minSequenceIncrement {
 		return errors.Wrapf(errors.ErrInvalidMsg, "increment must be at least %d", minSequenceIncrement)
 	}
