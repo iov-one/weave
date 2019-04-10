@@ -88,7 +88,8 @@ func GenerateApp(options *server.Options) (abci.Application, error) {
 	nftBuckets := map[string]orm.Bucket{
 		username.ModelName: username.NewBucket().Bucket,
 	}
-	stack := Stack(nil, nftBuckets, options.MinFee)
+	var conf Configuration
+	stack := Stack(nil, nftBuckets, options.MinFee, &conf)
 	application, err := Application("bnsd", stack, TxDecoder, dbPath, options)
 	if err != nil {
 		return nil, err
@@ -99,7 +100,7 @@ func GenerateApp(options *server.Options) (abci.Application, error) {
 // DecorateApp adds initializers and Logger to an Application
 func DecorateApp(application app.BaseApp, logger log.Logger) app.BaseApp {
 	application.WithInit(app.ChainInitializers(
-		&gconf.Initializer{},
+		&gconf.Initializer{Conf: Configuration{}},
 		&multisig.Initializer{},
 		&cash.Initializer{},
 		&currency.Initializer{},
@@ -114,11 +115,12 @@ func DecorateApp(application app.BaseApp, logger log.Logger) app.BaseApp {
 
 // InlineApp will take a previously prepared CommitStore and return a complete Application
 func InlineApp(kv weave.CommitKVStore, logger log.Logger, debug bool) abci.Application {
+	var conf Configuration
 	minFee := coin.Coin{}
 	nftBuckets := map[string]orm.Bucket{
 		username.ModelName: username.NewBucket().Bucket,
 	}
-	stack := Stack(nil, nftBuckets, minFee)
+	stack := Stack(nil, nftBuckets, minFee, &conf)
 	ctx := context.Background()
 	RegisterNft()
 	store := app.NewStoreApp("bnsd", kv, QueryRouter(minFee), ctx)

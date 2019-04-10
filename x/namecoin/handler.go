@@ -9,8 +9,8 @@ import (
 
 // NewFeeDecorator customizes cash/FeeDecorator to use our
 // WalletBucket.
-func NewFeeDecorator(auth x.Authenticator) weave.Decorator {
-	return cash.NewFeeDecorator(auth, NewController())
+func NewFeeDecorator(auth x.Authenticator, conf cash.FeeConfigurator) weave.Decorator {
+	return cash.NewFeeDecorator(auth, NewController(), conf)
 }
 
 // NewSendHandler customizes cash/SendHandler to use our

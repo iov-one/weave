@@ -40,7 +40,7 @@ func Authenticator() x.Authenticator {
 
 // Chain returns a chain of decorators, to handle authentication,
 // fees, logging, and recovery
-func Chain(authFn x.Authenticator, minFee coin.Coin) app.Decorators {
+func Chain(authFn x.Authenticator, minFee coin.Coin, conf *Configuration) app.Decorators {
 	// ctrl can be initialized with any implementation, but must be used
 	// consistently everywhere.
 	var ctrl cash.Controller = cash.NewController(cash.NewBucket())
@@ -53,7 +53,7 @@ func Chain(authFn x.Authenticator, minFee coin.Coin) app.Decorators {
 		utils.NewSavepoint().OnCheck(),
 		sigs.NewDecorator(),
 		multisig.NewDecorator(authFn),
-		cash.NewDynamicFeeDecorator(authFn, ctrl),
+		cash.NewDynamicFeeDecorator(authFn, ctrl, conf),
 		msgfee.NewFeeDecorator(),
 		msgfee.NewAntispamFeeDecorator(minFee),
 		// cannot pay for fee with hashlock...
@@ -117,9 +117,9 @@ func RegisterNft() {
 
 // Stack wires up a standard router with a standard decorator
 // chain. This can be passed into BaseApp.
-func Stack(issuer weave.Address, nftBuckets map[string]orm.Bucket, minFee coin.Coin) weave.Handler {
+func Stack(issuer weave.Address, nftBuckets map[string]orm.Bucket, minFee coin.Coin, conf *Configuration) weave.Handler {
 	authFn := Authenticator()
-	return Chain(authFn, minFee).WithHandler(Router(authFn, issuer, nftBuckets))
+	return Chain(authFn, minFee, conf).WithHandler(Router(authFn, issuer, nftBuckets))
 }
 
 // Application constructs a basic ABCI application with
