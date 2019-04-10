@@ -58,14 +58,14 @@ ifndef $(shell command -v prototool help > /dev/null)
 endif
 	prototool lint
 
-protoc: protodocs
+protoc: #protodocs
 	protoc --gogofaster_out=. $(PROTOC_FLAGS) app/*.proto
 	protoc --gogofaster_out=. $(PROTOC_FLAGS) coin/*.proto
 	protoc --gogofaster_out=. $(PROTOC_FLAGS) crypto/*.proto
 	protoc --gogofaster_out=. $(PROTOC_FLAGS) orm/*.proto
+	protoc --gogofaster_out=. $(PROTOC_FLAGS) gconf/*.proto
 	# Note, you must include -I=./vendor when compiling files that use gogoprotobuf extensions
 	protoc --gogofaster_out=. $(PROTOC_FLAGS) x/nft/*.proto
-	protoc --gogofaster_out=. $(PROTOC_FLAGS) cmd/bnsd/x/nft/username/*.proto
 	protoc --gogofaster_out=. $(PROTOC_FLAGS) x/cash/*.proto
 	protoc --gogofaster_out=. $(PROTOC_FLAGS) x/sigs/*.proto
 	protoc --gogofaster_out=. $(PROTOC_FLAGS) x/msgfee/*.proto

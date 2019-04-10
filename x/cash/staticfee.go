@@ -3,11 +3,11 @@
 FeeDecorator ensures that the fee can be deducted from the account. All
 deducted fees are send to the collector, which can be set to an address
 controlled by another extension ("smart contract").
-Collector address is configured via gconf package.
+Collector address is configured via configurator instance.
 
-Minimal fee is configured via gconf package. If minimal is zero, no fees
-required, but will speed processing. If a currency is set on minimal fee, then
-all fees must be paid in that currency
+Minimal fee is configured via configurator instance. If minimal is zero, no
+fees required, but will speed processing. If a currency is set on minimal fee,
+then all fees must be paid in that currency
 
 It uses auth to verify the sender.
 
@@ -19,29 +19,40 @@ import (
 	"github.com/iov-one/weave"
 	coin "github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/errors"
-	"github.com/iov-one/weave/gconf"
 	"github.com/iov-one/weave/x"
 )
 
 type FeeDecorator struct {
 	auth x.Authenticator
 	ctrl CoinMover
+	conf FeeConfigurator
 }
 
-const (
-	GconfCollectorAddress = "cash:collector_address"
-	GconfMinimalFee       = "cash:minimal_fee"
-)
+// FeeConfigurator is implemented outside of this extension and provided by the
+// extension user in order to configure the functionality provided by a
+// FeeDecorator instance.
+// Although agains Go's style, all methods are prefixed with Get so that
+// protobuf message can be used out of the box. Protobuf compiler generates
+// getters like this.
+type FeeConfigurator interface {
+	// GetCollectorAddress returns an address that all fees are send to.
+	GetCollectorAddress() weave.Address
+
+	// GetMinimalFee returns an amount that is the minimal amount required
+	// as a fee for each transaction.
+	GetMinimalFee() coin.Coin
+}
 
 var _ weave.Decorator = FeeDecorator{}
 
 // NewFeeDecorator returns a FeeDecorator with the given
 // minimum fee, and all collected fees going to a
 // default address.
-func NewFeeDecorator(auth x.Authenticator, ctrl CoinMover) FeeDecorator {
+func NewFeeDecorator(auth x.Authenticator, ctrl CoinMover, conf FeeConfigurator) FeeDecorator {
 	return FeeDecorator{
 		auth: auth,
 		ctrl: ctrl,
+		conf: conf,
 	}
 }
 
@@ -66,7 +77,7 @@ func (d FeeDecorator) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx,
 		return res, errors.Wrap(errors.ErrUnauthorized, "Fee payer signature missing")
 	}
 	// and have enough
-	collector := gconf.Address(store, GconfCollectorAddress)
+	collector := d.conf.GetCollectorAddress()
 	err = d.ctrl.MoveCoins(store, finfo.Payer, collector, *fee)
 	if err != nil {
 		return res, err
@@ -100,7 +111,7 @@ func (d FeeDecorator) Deliver(ctx weave.Context, store weave.KVStore, tx weave.T
 		return res, errors.Wrap(errors.ErrUnauthorized, "Fee payer signature missing")
 	}
 	// and subtract it from the account
-	collector := gconf.Address(store, GconfCollectorAddress)
+	collector := d.conf.GetCollectorAddress()
 	err = d.ctrl.MoveCoins(store, finfo.Payer, collector, *fee)
 	if err != nil {
 		return res, err
@@ -119,7 +130,7 @@ func (d FeeDecorator) extractFee(ctx weave.Context, tx weave.Tx, store weave.KVS
 
 	fee := finfo.GetFees()
 	if coin.IsEmpty(fee) {
-		minFee := gconf.Coin(store, GconfMinimalFee)
+		minFee := d.conf.GetMinimalFee()
 		if minFee.IsZero() {
 			return finfo, nil
 		}
@@ -132,7 +143,7 @@ func (d FeeDecorator) extractFee(ctx weave.Context, tx weave.Tx, store weave.KVS
 		return nil, err
 	}
 
-	cmp := gconf.Coin(store, GconfMinimalFee)
+	cmp := d.conf.GetMinimalFee()
 	if cmp.IsZero() {
 		return finfo, nil
 	}

@@ -12,6 +12,18 @@ import "github.com/iov-one/weave/x/nft/codec.proto";
 import "github.com/iov-one/weave/x/sigs/codec.proto";
 import "github.com/iov-one/weave/x/validators/codec.proto";
 import "github.com/iov-one/weave/x/distribution/codec.proto";
+import "github.com/iov-one/weave/coin/codec.proto";
+
+
+// Configuration contains a dynamic configuration. Names of the attributes are
+// important as each extension requires certain interface to be implemented.
+// Protobuf compiler generates getter method for each attribute.
+message Configuration {
+    // Collector address is required by x/cash extension.
+    bytes collector_address = 1 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
+    // Minimal fee is required by x/cash extension.
+    coin.Coin minimal_fee = 2 [(gogoproto.nullable) = false];
+}
 
 // Tx contains the message.
 //

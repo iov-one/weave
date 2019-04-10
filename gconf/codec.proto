@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package gconf;
+
+import "github.com/iov-one/weave/coin/codec.proto";
+import "github.com/gogo/protobuf/gogoproto/gogo.proto";
+
+
+// Conf is a container to store a single value of one of supported types.
+message ConfigurationValue {
+	oneof value {
+		int64 int64 = 1;
+		string string = 2;
+		bytes address = 3 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
+		coin.Coin coin = 4;
+	}
+}
