@@ -70,6 +70,7 @@ func Router(authFn x.Authenticator, issuer weave.Address) app.Router {
 	multisig.RegisterRoutes(r, authFn)
 	validators.RegisterRoutes(r, authFn, validators.NewController())
 	distribution.RegisterRoutes(r, authFn, ctrl)
+	sigs.RegisterRoutes(r, authFn)
 	return r
 }
 
