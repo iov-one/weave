@@ -86,26 +86,22 @@ func toModels(keys, values []byte) ([]weave.Model, error) {
 	return JoinResults(&k, &v)
 }
 
-// SliceIterator wraps an Iterator over a slice of models
-//
-// TODO: make this private and only expose Iterator interface????
-type SliceIterator struct {
+// sliceIterator wraps an Iterator over a slice of models
+type sliceIterator struct {
 	data []weave.Model
 	idx  int
 	// TODO: add reverse field
 }
 
-var _ weave.Iterator = (*SliceIterator)(nil)
-
 // NewSliceIterator creates a new Iterator over this slice
-func NewSliceIterator(data []weave.Model) *SliceIterator {
-	return &SliceIterator{
+func NewSliceIterator(data []weave.Model) weave.Iterator {
+	return &sliceIterator{
 		data: data,
 	}
 }
 
 // Valid implements Iterator and returns true iff it can be read
-func (s *SliceIterator) Valid() bool {
+func (s *sliceIterator) Valid() bool {
 	return s.idx < len(s.data)
 }
 
@@ -113,30 +109,30 @@ func (s *SliceIterator) Valid() bool {
 // defined by order of iteration.
 //
 // If Valid returns false, this method will panic.
-func (s *SliceIterator) Next() {
+func (s *sliceIterator) Next() {
 	s.assertValid()
 	s.idx++
 }
 
-func (s *SliceIterator) assertValid() {
+func (s *sliceIterator) assertValid() {
 	if s.idx >= len(s.data) {
 		panic("Passed end of slice")
 	}
 }
 
 // Key returns the key of the cursor.
-func (s *SliceIterator) Key() (key []byte) {
+func (s *sliceIterator) Key() (key []byte) {
 	s.assertValid()
 	return s.data[s.idx].Key
 }
 
 // Value returns the value of the cursor.
-func (s *SliceIterator) Value() (value []byte) {
+func (s *sliceIterator) Value() (value []byte) {
 	s.assertValid()
 	return s.data[s.idx].Value
 }
 
 // Close releases the Iterator.
-func (s *SliceIterator) Close() {
+func (s *sliceIterator) Close() {
 	s.data = nil
 }
