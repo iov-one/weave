@@ -25,7 +25,7 @@ func TestEd25519Signing(t *testing.T) {
 	assert.Nil(t, err)
 
 	if bytes.Equal(bz, bz2) {
-		t.Fatal("marshaling different signatures produce the same binary")
+		t.Fatal("marshaling different signatures produce the same binary representation")
 	}
 
 	if !public.Verify(msg, sig) {
