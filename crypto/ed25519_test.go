@@ -1,10 +1,10 @@
 package crypto
 
 import (
+	"bytes"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
+	"github.com/iov-one/weave/weavetest/assert"
 )
 
 func TestEd25519Signing(t *testing.T) {
@@ -15,22 +15,39 @@ func TestEd25519Signing(t *testing.T) {
 	msg2 := []byte("dingbooms")
 
 	sig, err := private.Sign(msg)
-	require.NoError(t, err)
+	assert.Nil(t, err)
 	sig2, err := private.Sign(msg2)
-	require.NoError(t, err)
+	assert.Nil(t, err)
 
 	bz, err := sig.Marshal()
-	assert.NoError(t, err)
+	assert.Nil(t, err)
 	bz2, err := sig2.Marshal()
-	assert.NoError(t, err)
-	assert.NotEqual(t, bz, bz2)
+	assert.Nil(t, err)
 
-	assert.True(t, public.Verify(msg, sig))
-	assert.False(t, public.Verify(msg, sig2))
-	assert.False(t, public.Verify(msg2, sig))
-	assert.True(t, public.Verify(msg2, sig2))
-	assert.False(t, public.Verify(msg, new(Signature)))
-	assert.False(t, public.Verify(msg, nil))
+	if bytes.Equal(bz, bz2) {
+		t.Fatal("marshaling different signatures produce the same binary representation")
+	}
+
+	if !public.Verify(msg, sig) {
+		t.Fatal("cannot verify a message signed with this public key")
+	}
+	if !public.Verify(msg2, sig2) {
+		t.Fatal("cannot verify a message signed with this public key")
+	}
+
+	if public.Verify(msg, sig2) {
+		t.Fatal("verified message signature of the wrong message")
+	}
+	if public.Verify(msg2, sig) {
+		t.Fatal("verified message signature of the wrong message")
+	}
+
+	if public.Verify(msg, &Signature{}) {
+		t.Fatal("verified an empty signature of a message")
+	}
+	if public.Verify(msg, nil) {
+		t.Fatal("verified a nil signature of a message")
+	}
 }
 
 func TestEd25519Address(t *testing.T) {
@@ -38,16 +55,18 @@ func TestEd25519Address(t *testing.T) {
 	pub2 := GenPrivKeyEd25519().PublicKey()
 	empty := PublicKey{}
 
-	assert.NoError(t, pub.Condition().Validate())
-	assert.NoError(t, pub2.Condition().Validate())
-	assert.NotEqual(t, pub.Condition(), pub2.Condition())
+	assert.Nil(t, pub.Condition().Validate())
+	assert.Nil(t, pub2.Condition().Validate())
+	if bytes.Equal(pub.Condition(), pub2.Condition()) {
+		t.Fatal("dirrefent public keys produce the same condition")
+	}
 	assert.Nil(t, empty.Condition())
 	assert.Nil(t, empty.Address())
 
 	bz, err := pub.Marshal()
-	require.Nil(t, err)
+	assert.Nil(t, err)
 	var read PublicKey
 	err = read.Unmarshal(bz)
-	require.Nil(t, err)
+	assert.Nil(t, err)
 	assert.Equal(t, read.Condition(), pub.Condition())
 }
