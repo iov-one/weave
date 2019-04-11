@@ -1,24 +1,10 @@
 coverage:
-  precision: 1
-  round: down
-  range: "50...90"
-
   status:
     project:
       default:
        threshold: 2%
-    patch:
-      default:
-       threshold: 2%
-    changes:
-      default: off
 
-comment:
-  layout: ""
-  behavior: new
-  require_changes: no
-  require_base: no
-  require_head: yes
+comment: off
 
 ignore:
   - "**.pb.go$"
