@@ -14,7 +14,7 @@ coverage:
       default: off
 
 comment:
-  layout: "header, flags, files"
+  layout: "header"
   behavior: new
   require_changes: no
   require_base: no
