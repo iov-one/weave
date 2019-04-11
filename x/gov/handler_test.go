@@ -51,7 +51,6 @@ func TestCreateProposal(t *testing.T) {
 				Status:          TextProposal_Undefined,
 				SubmissionTime:  now,
 				Author:          bobby,
-				Votes:           make([]*Vote, 0),
 				VoteResult: TallyResult{
 					Threshold:             Fraction{Numerator: 1, Denominator: 2},
 					TotalWeightElectorate: 11,
@@ -77,7 +76,6 @@ func TestCreateProposal(t *testing.T) {
 				Status:          TextProposal_Undefined,
 				SubmissionTime:  now,
 				Author:          alice,
-				Votes:           make([]*Vote, 0),
 				VoteResult: TallyResult{
 					Threshold:             Fraction{Numerator: 1, Denominator: 2},
 					TotalWeightElectorate: 11,
@@ -207,7 +205,8 @@ func TestCreateProposal(t *testing.T) {
 func TestVote(t *testing.T) {
 	proposalID := weavetest.SequenceID(1)
 	specs := map[string]struct {
-		Mods           func(weave.Context, *TextProposal)
+		Init           func(ctx weave.Context, db store.KVStore) // executed before test fixtures
+		Mods           func(weave.Context, *TextProposal)        // modifies test fixtures before storing
 		Msg            VoteMsg
 		WantCheckErr   *errors.Error
 		WantDeliverErr *errors.Error
@@ -275,6 +274,18 @@ func TestVote(t *testing.T) {
 			WantCheckErr:   errors.ErrInvalidState,
 			WantDeliverErr: errors.ErrInvalidState,
 		},
+		"Voted already": {
+			Init: func(ctx weave.Context, db store.KVStore) {
+				vBucket := NewVoteBucket()
+				obj := vBucket.Build(db, proposalID, Vote{Voted: VoteOption_Yes, Elector: Elector{Signature: bobby, Weight: 10}})
+				if err := vBucket.Save(db, obj); err != nil {
+					panic(err)
+				}
+			},
+			Msg:            VoteMsg{ProposalID: proposalID, Selected: VoteOption_Yes, Voter: bobby},
+			WantCheckErr:   errors.ErrInvalidState,
+			WantDeliverErr: errors.ErrInvalidState,
+		},
 	}
 	auth := &weavetest.Auth{
 		Signer: aliceCond,
@@ -287,6 +298,9 @@ func TestVote(t *testing.T) {
 			db := store.MemStore()
 			// given
 			ctx := weave.WithBlockTime(context.Background(), time.Now().Round(time.Second))
+			if spec.Init != nil {
+				spec.Init(ctx, db)
+			}
 			pBucket := withProposal(t, db, ctx, spec.Mods)
 			cache := db.CacheWrap()
 

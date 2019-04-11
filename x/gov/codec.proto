@@ -71,8 +71,6 @@ message TextProposal {
     int64 submission_time = 7 [(gogoproto.casttype) = "github.com/iov-one/weave.UnixTime"];
     // Address of the author who created the proposal. If not set explicit on creation it will default to the main signer.
     bytes author = 8 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
-    // Votes contain the list of individual votes with elector and voted option.
-    repeated Vote votes = 9;
     // Result of the election. Contains intermediate tally results while voting period is open.
     TallyResult vote_result = 10 [(gogoproto.nullable) = false];
 

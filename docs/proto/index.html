@@ -582,6 +582,10 @@
             <ul>
               
                 <li>
+                  <a href="#sigs.BumpSequenceMsg"><span class="badge">M</span>BumpSequenceMsg</a>
+                </li>
+              
+                <li>
                   <a href="#sigs.StdSignature"><span class="badge">M</span>StdSignature</a>
                 </li>
               
@@ -2885,6 +2889,33 @@ sender. </p></td>
       <p></p>
 
       
+        <h3 id="sigs.BumpSequenceMsg">BumpSequenceMsg</h3>
+        <p>BumpSequenceMsg increments a sequence counter by given amount for a user</p><p>that signed the transaction.</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>increment</td>
+                  <td><a href="#uint32">uint32</a></td>
+                  <td></td>
+                  <td><p>Increment represents the value by which a sequence value will be
+increased. Minumum value is one and maxium value must not be greater than
+1000.
+Each transaction increments the sequence by one. This value represents the
+total increment value, including the default increment. </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+        
+
+        
+      
         <h3 id="sigs.StdSignature">StdSignature</h3>
         <p>StdSignature represents the signature, the identity of the signer</p><p>(the Pubkey), and a sequence number to prevent replay attacks.</p><p>A given signer must submit transactions with the sequence number</p><p>increasing by 1 each time (starting at 0)</p>
 
@@ -3304,13 +3335,6 @@ to be included in the election. </p></td>
                   <td><a href="#bytes">bytes</a></td>
                   <td></td>
                   <td><p>Address of the author who created the proposal. If not set explicit on creation it will default to the main signer. </p></td>
-                </tr>
-              
-                <tr>
-                  <td>votes</td>
-                  <td><a href="#gov.Vote">Vote</a></td>
-                  <td>repeated</td>
-                  <td><p>Votes contain the list of individual votes with elector and voted option. </p></td>
                 </tr>
               
                 <tr>

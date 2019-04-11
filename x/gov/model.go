@@ -139,28 +139,10 @@ func (m *TextProposal) Validate() error {
 		return errors.Wrap(errors.ErrInvalidInput, "empty election rules id")
 	}
 
-	// check for duplicate votes
-	index := make(map[string]struct{})
-	for i, v := range m.Votes {
-		err := v.Elector.Validate()
-		switch {
-		case err != nil:
-			return errors.Wrapf(err, "invalid elector in vote: %d", i)
-		case v.Voted == VoteOption_Invalid:
-			return errors.Wrapf(errors.ErrInvalidInput, "invalid option in vote: %d", i)
-		}
-		if _, exists := index[v.Elector.Signature.String()]; exists {
-			return errors.Wrapf(errors.ErrInvalidInput, "duplicate vote for address: %s", v.Elector.Signature.String())
-		}
-		index[v.Elector.Signature.String()] = struct{}{}
-	}
-
 	return nil
 }
 
 func (m TextProposal) Copy() orm.CloneableData {
-	votes := make([]*Vote, 0, len(m.Votes))
-	copy(votes, m.Votes)
 	electionRuleID := make([]byte, 0, len(m.ElectionRuleID))
 	copy(electionRuleID, m.ElectionRuleID)
 	electorateID := make([]byte, 0, len(m.ElectorateID))
@@ -174,7 +156,6 @@ func (m TextProposal) Copy() orm.CloneableData {
 		VotingEndTime:   m.VotingEndTime,
 		SubmissionTime:  m.SubmissionTime,
 		Author:          m.Author,
-		Votes:           votes,
 		VoteResult:      m.VoteResult,
 		Status:          m.Status,
 	}
@@ -182,18 +163,17 @@ func (m TextProposal) Copy() orm.CloneableData {
 
 // Vote updates the intermediate tally result with the new vote and stores the elector in the
 // voter archive.
-func (m *TextProposal) Vote(voted VoteOption, elector Elector) error {
-	switch voted {
+func (m *TextProposal) CountVote(vote Vote) error {
+	switch vote.Voted {
 	case VoteOption_Yes:
-		m.VoteResult.TotalYes += elector.Weight
+		m.VoteResult.TotalYes += vote.Elector.Weight
 	case VoteOption_No:
-		m.VoteResult.TotalNo += elector.Weight
+		m.VoteResult.TotalNo += vote.Elector.Weight
 	case VoteOption_Abstain:
-		m.VoteResult.TotalAbstain += elector.Weight
+		m.VoteResult.TotalAbstain += vote.Elector.Weight
 	default:
 		return errors.Wrapf(errors.ErrInvalidInput, "%q", m.String())
 	}
-	m.Votes = append(m.Votes, &Vote{Elector: elector, Voted: voted})
 	return nil
 }
 
@@ -208,17 +188,25 @@ func (m *TextProposal) Tally() error {
 	return nil
 }
 
-// HasVoted returns if the given address has been in the voter archive for this proposal.
-func (m TextProposal) HasVoted(a weave.Address) bool {
-	for _, v := range m.Votes {
-		if v.Elector.Signature.Equals(a) {
-			return true
-		}
-	}
-	return false
-}
-
 // Accepted returns the result of the `(yes*denominator) > (numerator*total_electors_weight)` calculation.
 func (m TallyResult) Accepted() bool {
 	return uint64(m.TotalYes)*uint64(m.Threshold.Denominator) > m.TotalWeightElectorate*uint64(m.Threshold.Numerator)
+}
+
+// Validate vote object contains valid elector and voted option
+func (m Vote) Validate() error {
+	if err := m.Elector.Validate(); err != nil {
+		return errors.Wrap(err, "invalid elector")
+	}
+	if m.Voted == VoteOption_Invalid {
+		return errors.Wrap(errors.ErrInvalidInput, "invalid vote option")
+	}
+	return nil
+}
+
+func (m Vote) Copy() orm.CloneableData {
+	return &Vote{
+		Elector: m.Elector,
+		Voted:   m.Voted,
+	}
 }
