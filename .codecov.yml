@@ -14,7 +14,7 @@ coverage:
       default: off
 
 comment:
-  layout: "header"
+  layout: ""
   behavior: new
   require_changes: no
   require_base: no
