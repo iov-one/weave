@@ -23,7 +23,7 @@ const (
 
 // RegisterQuery registers governance buckets for querying.
 func RegisterQuery(qr weave.QueryRouter) {
-	NewElectionRulesBucket().Register("electionrules", qr)
+	NewElectionRulesBucket().Register("electionRules", qr)
 	NewElectorateBucket().Register("electorates", qr)
 	NewProposalBucket().Register("proposal", qr)
 	NewVoteBucket().Register("vote", qr)

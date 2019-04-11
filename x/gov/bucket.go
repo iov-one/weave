@@ -133,25 +133,57 @@ type VoteBucket struct {
 	orm.Bucket
 }
 
+const (
+	indexNameProposal = "proposal"
+	indexNameElector  = "elector"
+)
+
 // NewProposalBucket returns a bucket for managing electorate.
 func NewVoteBucket() *VoteBucket {
-	b := orm.NewBucket("vote", orm.NewSimpleObj(nil, &Vote{}))
+	b := orm.NewBucket("vote", orm.NewSimpleObj(nil, &Vote{})).
+		WithIndex(indexNameProposal, indexProposal, false).
+		WithIndex(indexNameElector, indexElector, false)
 	return &VoteBucket{
 		Bucket: b,
 	}
 }
 
+func indexElector(obj orm.Object) (bytes []byte, e error) {
+	if obj == nil {
+		return nil, errors.Wrap(errors.ErrHuman, "cannot take index of nil")
+	}
+	v, ok := obj.Value().(*Vote)
+	if !ok {
+		return nil, errors.Wrap(errors.ErrHuman, "Can only take index of Vote")
+	}
+	return v.Elector.Signature, nil
+}
+
+func indexProposal(obj orm.Object) (bytes []byte, e error) {
+	if obj == nil {
+		return nil, errors.Wrap(errors.ErrHuman, "cannot take index of nil")
+	}
+	compositeKey := obj.Key()
+	if len(compositeKey) <= weave.AddressLength {
+		return nil, errors.Wrap(errors.ErrInvalidInput, "unsupported key type")
+	}
+	proposalID := compositeKey[weave.AddressLength:]
+	return proposalID, nil
+}
+
+// Build creates the orm object without storing it.
 func (b *VoteBucket) Build(db weave.KVStore, proposalID []byte, vote Vote) orm.Object {
 	compositeKey := compositeKey(proposalID, vote.Elector.Signature)
 	return orm.NewSimpleObj(compositeKey, &vote)
 }
 
 func compositeKey(proposalID []byte, address weave.Address) []byte {
-	return append(proposalID, address...)
+	return append(address, proposalID...)
 }
 
-func (b *VoteBucket) HasVoted(db weave.KVStore, proposalID []byte, elector weave.Address) (bool, error) {
-	obj, err := b.Get(db, compositeKey(proposalID, elector))
+// HasVote checks the bucket if any vote matching elector address and proposal id was stored.
+func (b *VoteBucket) HasVoted(db weave.KVStore, proposalID []byte, addr weave.Address) (bool, error) {
+	obj, err := b.Get(db, compositeKey(proposalID, addr))
 	if err != nil {
 		return false, errors.Wrap(err, "failed to load vote")
 	}
