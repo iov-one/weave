@@ -5,20 +5,21 @@ coverage:
 
   status:
     project:
-      default: on
+      default:
+       threshold: 0.05
     patch:
-      default: on
+      default:
+       threshold: 0.05
     changes:
       default: off
 
 comment:
-  layout: "header, reach, diff, flags, files, footer"
-  behavior: default
+  layout: "header, flags, files"
+  behavior: new
   require_changes: no
   require_base: no
   require_head: yes
 
 ignore:
   - "**.pb.go$"
-  - "examples/mycoind/main.go$"
-  - "examples/errors/demo.go$"
+  - "examples/**$"
