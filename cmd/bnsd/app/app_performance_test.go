@@ -1,7 +1,6 @@
 package app
 
 import (
-	"encoding/hex"
 	"io/ioutil"
 	"os"
 	"testing"
@@ -22,9 +21,9 @@ func BenchmarkBnsdEmptyBlock(b *testing.B) {
 
 	type dict map[string]interface{}
 	genesis := dict{
-		"gconf": map[string]interface{}{
-			cash.GconfCollectorAddress: hex.EncodeToString(aliceAddr),
-			cash.GconfMinimalFee:       coin.Coin{}, // no fee
+		"gconf": Configuration{
+			CollectorAddress: aliceAddr,
+			MinimalFee:       coin.Coin{}, // no fee
 		},
 	}
 
@@ -78,9 +77,9 @@ func BenchmarkBNSDSendToken(b *testing.B) {
 					"name":   "Main token of this chain",
 				},
 			},
-			"gconf": dict{
-				cash.GconfCollectorAddress: hex.EncodeToString(carol),
-				cash.GconfMinimalFee:       fee,
+			"gconf": Configuration{
+				CollectorAddress: carol,
+				MinimalFee:       coin.Coin{}, // no fee
 			},
 		}
 	}

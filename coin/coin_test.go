@@ -171,6 +171,10 @@ func TestCoinValidationAndNormalization(t *testing.T) {
 		wantNormalizationErr *errors.Error
 		wantNormValErr       *errors.Error
 	}{
+		"zero coin does not need a ticker to be valid": {
+			coin:           NewCoin(0, 0, ""),
+			wantNormalized: NewCoin(0, 0, ""),
+		},
 		"valid coin with a negative fractional": {
 			coin:                 NewCoin(0, -100, "DIN"),
 			wantValErr:           nil,
@@ -184,6 +188,13 @@ func TestCoinValidationAndNormalization(t *testing.T) {
 			wantNormalized:       NewCoin(3, 876543211, "FOO"),
 			wantNormValErr:       nil,
 			wantNormalizationErr: nil,
+		},
+		"missing ticker": {
+			coin:                 NewCoin(1, 2, ""),
+			wantValErr:           errors.ErrCurrency,
+			wantNormalized:       NewCoin(1, 2, ""),
+			wantNormalizationErr: nil,
+			wantNormValErr:       errors.ErrCurrency,
 		},
 		"invalid ticker": {
 			coin:                 NewCoin(1, 2, "eth2"),

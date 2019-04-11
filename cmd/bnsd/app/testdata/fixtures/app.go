@@ -6,12 +6,11 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave"
-	"github.com/iov-one/weave/commands/server"
 	"github.com/iov-one/weave/cmd/bnsd/app"
+	"github.com/iov-one/weave/coin"
+	"github.com/iov-one/weave/commands/server"
 	"github.com/iov-one/weave/crypto"
-	"github.com/iov-one/weave/x/cash"
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
 )
@@ -37,10 +36,10 @@ func NewApp() *AppFixture {
 
 func (f AppFixture) Build() abci.Application {
 	opts := &server.Options{
-	MinFee: coin.Coin{},
-		Home:"",
+		MinFee: coin.Coin{},
+		Home:   "",
 		Logger: log.NewNopLogger(),
-		Debug: true,
+		Debug:  true,
 	}
 	myApp, err := app.GenerateApp(opts)
 	if err != nil {
@@ -118,8 +117,10 @@ func appStateGenesis(keyAddress weave.Address) []byte {
 			},
 		},
 		"gconf": map[string]interface{}{
-			cash.GconfCollectorAddress: "cond:dist/revenue/0000000000000001",
-			cash.GconfMinimalFee:       "0.01 FRNK",
+			"gconf": app.Configuration{
+				CollectorAddress: weave.Condition("cond:dist/revenue/0000000000000001").Address(),
+				MinimalFee:       coin.NewCoin(0, 10000000, "FRNK"),
+			},
 		},
 		"msgfee": []interface{}{
 			dict{

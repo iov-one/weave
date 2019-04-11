@@ -257,7 +257,8 @@ func (c *Coin) Clone() *Coin {
 // so you may want to make other checks in your business
 // logic
 func (c Coin) Validate() error {
-	if !IsCC(c.Ticker) {
+	// Zero coin does not need to have a ticker set.
+	if c.Whole != 0 && c.Fractional != 0 && !IsCC(c.Ticker) {
 		return errors.Wrapf(errors.ErrCurrency, "invalid currency: %s", c.Ticker)
 	}
 	if c.Whole < MinInt || c.Whole > MaxInt {

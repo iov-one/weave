@@ -15,7 +15,6 @@ import (
 	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/commands/server"
 	"github.com/iov-one/weave/weavetest"
-	"github.com/iov-one/weave/x/cash"
 	"github.com/iov-one/weave/x/distribution"
 	"github.com/iov-one/weave/x/escrow"
 	"github.com/iov-one/weave/x/multisig"
@@ -194,9 +193,9 @@ func initGenesis(filename string, addr weave.Address) (*tm.GenesisDoc, error) {
 				"timeout": time.Now().Add(10000 * time.Hour),
 			},
 		},
-		"gconf": map[string]interface{}{
-			cash.GconfCollectorAddress: "cond:dist/revenue/0000000000000001",
-			cash.GconfMinimalFee:       antiSpamFee,
+		"gconf": app.Configuration{
+			CollectorAddress: weave.Condition("cond:dist/revenue/0000000000000001").Address(),
+			MinimalFee:       antiSpamFee,
 		},
 		"msgfee": []interface{}{
 			dict{

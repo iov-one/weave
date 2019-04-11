@@ -94,13 +94,13 @@ func GenerateApp(options *server.Options) (abci.Application, error) {
 	if err != nil {
 		return nil, err
 	}
-	return DecorateApp(application, options.Logger), nil
+	return DecorateApp(application, options.Logger, &conf), nil
 }
 
 // DecorateApp adds initializers and Logger to an Application
-func DecorateApp(application app.BaseApp, logger log.Logger) app.BaseApp {
+func DecorateApp(application app.BaseApp, logger log.Logger, conf *Configuration) app.BaseApp {
 	application.WithInit(app.ChainInitializers(
-		&gconf.Initializer{Conf: Configuration{}},
+		&gconf.Initializer{Conf: conf},
 		&multisig.Initializer{},
 		&cash.Initializer{},
 		&currency.Initializer{},
@@ -125,7 +125,7 @@ func InlineApp(kv weave.CommitKVStore, logger log.Logger, debug bool) abci.Appli
 	RegisterNft()
 	store := app.NewStoreApp("bnsd", kv, QueryRouter(minFee), ctx)
 	base := app.NewBaseApp(store, TxDecoder, stack, nil, debug)
-	return DecorateApp(base, logger)
+	return DecorateApp(base, logger, &conf)
 }
 
 type output struct {

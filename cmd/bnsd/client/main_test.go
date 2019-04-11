@@ -11,7 +11,7 @@ import (
 	"github.com/iov-one/weave/cmd/bnsd/app"
 	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/commands/server"
-	"github.com/iov-one/weave/x/cash"
+	"github.com/iov-one/weave/weavetest"
 	abci "github.com/tendermint/tendermint/abci/types"
 	cfg "github.com/tendermint/tendermint/config"
 	"github.com/tendermint/tendermint/libs/log"
@@ -91,9 +91,9 @@ func initGenesis(filename string, addr weave.Address) error {
 				"coins":   coin.Coins{&initBalance},
 			},
 		},
-		"gconf": map[string]interface{}{
-			cash.GconfCollectorAddress: "fake-collector-address",
-			cash.GconfMinimalFee:       coin.Coin{}, // no fee
+		"gconf": app.Configuration{
+			CollectorAddress: weavetest.RandomAddr(nil), // t is not present
+			MinimalFee:       coin.Coin{},               // no fee
 		},
 	})
 	if err != nil {
