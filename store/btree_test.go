@@ -3,12 +3,10 @@ package store
 import (
 	"bytes"
 	"crypto/rand"
-	"fmt"
 	"sort"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
+	"github.com/iov-one/weave/weavetest/assert"
 )
 
 // makeBase returns the base layer
@@ -31,33 +29,33 @@ func TestBTreeCacheGetSet(t *testing.T) {
 	// that are written to it
 	k, v := []byte("french"), []byte("fry")
 	assert.Nil(t, base.Get(k))
-	assert.False(t, base.Has(k))
+	assert.Equal(t, base.Has(k), false)
 	base.Set(k, v)
 	assert.Equal(t, v, base.Get(k))
-	assert.True(t, base.Has(k))
+	assert.Equal(t, base.Has(k), true)
 
 	// now layer another btree on top and make sure that we get
 	// base data
 	cache := base.CacheWrap()
 	assert.Equal(t, v, cache.Get(k))
-	assert.True(t, cache.Has(k))
+	assert.Equal(t, cache.Has(k), true)
 
 	// writing more data is only visible in the cache
 	k2, v2 := []byte("LA"), []byte("Dodgers")
 	assert.Nil(t, cache.Get(k2))
-	assert.False(t, cache.Has(k2))
+	assert.Equal(t, cache.Has(k2), false)
 	cache.Set(k2, v2)
 	assert.Equal(t, v2, cache.Get(k2))
 	assert.Nil(t, base.Get(k2))
-	assert.True(t, cache.Has(k2))
-	assert.False(t, base.Has(k2))
+	assert.Equal(t, cache.Has(k2), true)
+	assert.Equal(t, base.Has(k2), false)
 
 	// we can write the cache to the base layer...
 	cache.Write()
 	assert.Equal(t, v, base.Get(k))
 	assert.Equal(t, v2, base.Get(k2))
-	assert.True(t, base.Has(k))
-	assert.True(t, base.Has(k2))
+	assert.Equal(t, base.Has(k), true)
+	assert.Equal(t, base.Has(k2), true)
 
 	// we can discard one
 	k3, v3 := []byte("Bayern"), []byte("Munich")
@@ -87,14 +85,13 @@ func TestBTreeCacheConflicts(t *testing.T) {
 	ks := randKeys(10, 16)
 	vs := randKeys(20, 40)
 
-	cases := [...]struct {
+	cases := map[string]struct {
 		parentOps     []Op
 		childOps      []Op
-		parentQueries []Model // Key is what we query, Value is what we espect
-		childQueries  []Model // Key is what we query, Value is what we espect
+		parentQueries []Model // Key is what we query, Value is what we expect
+		childQueries  []Model // Key is what we query, Value is what we expect
 	}{
-		// overwrite one, delete another, add a third
-		0: {
+		"overwrite one, delete another, add a third": {
 			[]Op{SetOp(ks[1], vs[1]), SetOp(ks[2], vs[2])},
 			[]Op{SetOp(ks[1], vs[11]), SetOp(ks[3], vs[7]), DelOp(ks[2])},
 			[]Model{Pair(ks[1], vs[1]), Pair(ks[2], vs[2]), Pair(ks[3], nil)},
@@ -102,41 +99,43 @@ func TestBTreeCacheConflicts(t *testing.T) {
 		},
 	}
 
-	for i, tc := range cases {
-		parent := makeBase()
-		for _, op := range tc.parentOps {
-			op.Apply(parent)
-		}
+	for testName, tc := range cases {
+		t.Run(testName, func(t *testing.T) {
+			parent := makeBase()
+			for _, op := range tc.parentOps {
+				op.Apply(parent)
+			}
 
-		child := parent.CacheWrap()
-		for _, op := range tc.childOps {
-			op.Apply(child)
-		}
+			child := parent.CacheWrap()
+			for _, op := range tc.childOps {
+				op.Apply(child)
+			}
 
-		// now check the parent is unaffected
-		for j, q := range tc.parentQueries {
-			res := parent.Get(q.Key)
-			assert.Equal(t, q.Value, res, "%d / %d", i, j)
-			has := parent.Has(q.Key)
-			assert.Equal(t, q.Value != nil, has, "%d / %d", i, j)
-		}
+			// now check the parent is unaffected
+			for _, q := range tc.parentQueries {
+				res := parent.Get(q.Key)
+				assert.Equal(t, q.Value, res)
+				has := parent.Has(q.Key)
+				assert.Equal(t, q.Value != nil, has)
+			}
 
-		// the child shows changes
-		for j, q := range tc.childQueries {
-			res := child.Get(q.Key)
-			assert.Equal(t, q.Value, res, "%d / %d", i, j)
-			has := child.Has(q.Key)
-			assert.Equal(t, q.Value != nil, has, "%d / %d", i, j)
-		}
+			// the child shows changes
+			for _, q := range tc.childQueries {
+				res := child.Get(q.Key)
+				assert.Equal(t, q.Value, res)
+				has := child.Has(q.Key)
+				assert.Equal(t, q.Value != nil, has)
+			}
 
-		// write child to parent and make sure it also shows proper data
-		child.Write()
-		for j, q := range tc.childQueries {
-			res := parent.Get(q.Key)
-			assert.Equal(t, q.Value, res, "%d / %d", i, j)
-			has := parent.Has(q.Key)
-			assert.Equal(t, q.Value != nil, has, "%d / %d", i, j)
-		}
+			// write child to parent and make sure it also shows proper data
+			child.Write()
+			for _, q := range tc.childQueries {
+				res := parent.Get(q.Key)
+				assert.Equal(t, q.Value, res)
+				has := parent.Has(q.Key)
+				assert.Equal(t, q.Value != nil, has)
+			}
+		})
 	}
 }
 
@@ -161,9 +160,8 @@ func TestFuzzBTreeCacheIterator(t *testing.T) {
 
 	both := sortModels(append(toSet, parentSet...))
 
-	cases := [...]iterCase{
-		// just write to a child with empty parent
-		0: {
+	cases := map[string]iterCase{
+		"just write to a child with empty parent": {
 			pre:   nil,
 			child: ops,
 			queries: []rangeQuery{
@@ -180,8 +178,7 @@ func TestFuzzBTreeCacheIterator(t *testing.T) {
 				{expect[6].Key, expect[26].Key, true, reverse(expect[6:26])},
 			},
 		},
-		// iterator combines child and parent
-		1: {
+		"iterator combines child and parent": {
 			pre:   parentOps,
 			child: ops,
 			queries: []rangeQuery{
@@ -200,10 +197,11 @@ func TestFuzzBTreeCacheIterator(t *testing.T) {
 		},
 	}
 
-	for i, tc := range cases {
-		msg := fmt.Sprintf("FuzzBTreeCacheIterator: %d", i)
-		base := makeBase()
-		tc.verify(t, base, msg)
+	for testName, tc := range cases {
+		t.Run(testName, func(t *testing.T) {
+			base := makeBase()
+			tc.verify(t, base)
+		})
 	}
 }
 
@@ -237,9 +235,8 @@ func TestConflictBTreeCacheIterator(t *testing.T) {
 	expect0 := sortModels([]Model{a2, b2, c, d})
 	expect1 := []Model{c}
 
-	cases := [...]iterCase{
-		// overwrite data should show child data
-		0: {
+	cases := map[string]iterCase{
+		"overwrite data should show child data": {
 			pre:   makeSetOps(a, b, c),
 			child: makeSetOps(a2, b2, d),
 			queries: []rangeQuery{
@@ -250,8 +247,7 @@ func TestConflictBTreeCacheIterator(t *testing.T) {
 				{nil, nil, true, reverse(expect0)},
 			},
 		},
-		// overwrite data should show child data
-		1: {
+		"overwrite data should show child data 2": {
 			pre:   makeSetOps(a, c, d),
 			child: makeDelOps(a, b, d),
 			queries: []rangeQuery{
@@ -263,14 +259,13 @@ func TestConflictBTreeCacheIterator(t *testing.T) {
 		},
 	}
 
-	for i, tc := range cases {
-		msg := fmt.Sprintf("ConflictBTreeCacheIterator: %d", i)
-		base := makeBase()
-		tc.verify(t, base, msg)
+	for testName, tc := range cases {
+		t.Run(testName, func(t *testing.T) {
+			base := makeBase()
+			tc.verify(t, base)
+		})
 	}
 }
-
-//--------------------- lots of helpers ------------------
 
 func randBytes(length int) []byte {
 	res := make([]byte, length)
@@ -297,9 +292,6 @@ func randModels(count, keySize, valueSize int) []Model {
 	return models
 }
 
-////////////////////////////////////////////////////
-// helper methods to check queries
-
 // iterCase is a test case for iteration
 type iterCase struct {
 	pre     []Op
@@ -307,7 +299,7 @@ type iterCase struct {
 	queries []rangeQuery
 }
 
-func (i iterCase) verify(t *testing.T, base CacheableKVStore, msg string) {
+func (i iterCase) verify(t testing.TB, base CacheableKVStore) {
 	for _, op := range i.pre {
 		op.Apply(base)
 	}
@@ -317,9 +309,22 @@ func (i iterCase) verify(t *testing.T, base CacheableKVStore, msg string) {
 		op.Apply(base)
 	}
 
-	for j, q := range i.queries {
-		jmsg := fmt.Sprintf("%s (%d)", msg, j)
-		q.check(t, child, jmsg)
+	for _, q := range i.queries {
+		var iter Iterator
+		if q.reverse {
+			iter = child.ReverseIterator(q.start, q.end)
+		} else {
+			iter = child.Iterator(q.start, q.end)
+		}
+		// Make sure proper iteration works.
+		for i := 0; i < len(q.expected); i++ {
+			assert.Equal(t, iter.Valid(), true)
+			assert.Equal(t, q.expected[i].Key, iter.Key())
+			assert.Equal(t, q.expected[i].Value, iter.Value())
+			iter.Next()
+		}
+		assert.Equal(t, iter.Valid(), false)
+		iter.Close()
 	}
 }
 
@@ -329,28 +334,6 @@ type rangeQuery struct {
 	end      []byte
 	reverse  bool
 	expected []Model
-}
-
-func (q rangeQuery) check(t *testing.T, store KVStore, msg string) {
-	var iter Iterator
-	if q.reverse {
-		iter = store.ReverseIterator(q.start, q.end)
-	} else {
-		iter = store.Iterator(q.start, q.end)
-	}
-	verifyIterator(t, q.expected, iter, msg)
-}
-
-func verifyIterator(t *testing.T, models []Model, iter Iterator, msg string) {
-	// make sure proper iteration works
-	for i := 0; i < len(models); i++ {
-		require.True(t, iter.Valid(), msg)
-		assert.Equal(t, models[i].Key, iter.Key(), msg)
-		assert.Equal(t, models[i].Value, iter.Value(), msg)
-		iter.Next()
-	}
-	assert.False(t, iter.Valid())
-	iter.Close()
 }
 
 // reverse returns a copy of the slice with elements in reverse order
