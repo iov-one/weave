@@ -23,20 +23,20 @@ type Decorator struct {
 
 var _ weave.Decorator = (*Decorator)(nil)
 
-func (d *Decorator) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx, next weave.Checker) (weave.CheckResult, error) {
+func (d *Decorator) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx, next weave.Checker) (*weave.CheckResult, error) {
 	d.checkCall++
 
 	if d.CheckErr != nil {
-		return weave.CheckResult{}, d.CheckErr
+		return &weave.CheckResult{}, d.CheckErr
 	}
 	return next.Check(ctx, db, tx)
 }
 
-func (d *Decorator) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx, next weave.Deliverer) (weave.DeliverResult, error) {
+func (d *Decorator) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx, next weave.Deliverer) (*weave.DeliverResult, error) {
 	d.deliverCall++
 
 	if d.DeliverErr != nil {
-		return weave.DeliverResult{}, d.DeliverErr
+		return &weave.DeliverResult{}, d.DeliverErr
 	}
 	return next.Deliver(ctx, db, tx)
 }
@@ -64,10 +64,10 @@ type decoratedHandler struct {
 
 var _ weave.Handler = (*decoratedHandler)(nil)
 
-func (d *decoratedHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (weave.CheckResult, error) {
+func (d *decoratedHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
 	return d.dc.Check(ctx, db, tx, d.hn)
 }
 
-func (d *decoratedHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (weave.DeliverResult, error) {
+func (d *decoratedHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	return d.dc.Deliver(ctx, db, tx, d.hn)
 }

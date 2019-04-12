@@ -17,17 +17,13 @@ func NewRecovery() Recovery {
 }
 
 // Check turns panics into normal errors
-func (r Recovery) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx,
-	next weave.Checker) (res weave.CheckResult, err error) {
-
+func (r Recovery) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx, next weave.Checker) (_ *weave.CheckResult, err error) {
 	defer errors.Recover(&err)
 	return next.Check(ctx, store, tx)
 }
 
 // Deliver turns panics into normal errors
-func (r Recovery) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx,
-	next weave.Deliverer) (res weave.DeliverResult, err error) {
-
+func (r Recovery) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx, next weave.Deliverer) (_ *weave.DeliverResult, err error) {
 	defer errors.Recover(&err)
 	return next.Deliver(ctx, store, tx)
 }

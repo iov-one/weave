@@ -24,14 +24,20 @@ type Handler struct {
 
 var _ weave.Handler = (*Handler)(nil)
 
-func (h *Handler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (weave.CheckResult, error) {
+func (h *Handler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
 	h.checkCall++
-	return h.CheckResult, h.CheckErr
+	if h.CheckErr != nil {
+		return nil, h.CheckErr
+	}
+	return &h.CheckResult, nil
 }
 
-func (h *Handler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (weave.DeliverResult, error) {
+func (h *Handler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	h.deliverCall++
-	return h.DeliverResult, h.DeliverErr
+	if h.DeliverErr != nil {
+		return nil, h.DeliverErr
+	}
+	return &h.DeliverResult, nil
 }
 
 func (h *Handler) CheckCallCount() int {

@@ -17,22 +17,26 @@ func NewLogging() Logging {
 }
 
 // Check logs error -> info, success -> debug
-func (r Logging) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx,
-	next weave.Checker) (weave.CheckResult, error) {
-
+func (r Logging) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx, next weave.Checker) (*weave.CheckResult, error) {
 	start := time.Now()
 	res, err := next.Check(ctx, store, tx)
-	logDuration(ctx, start, res.Log, err, true)
+	var resLog string
+	if err == nil {
+		resLog = res.Log
+	}
+	logDuration(ctx, start, resLog, err, true)
 	return res, err
 }
 
 // Deliver logs error -> error, success -> info
-func (r Logging) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx,
-	next weave.Deliverer) (weave.DeliverResult, error) {
-
+func (r Logging) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx, next weave.Deliverer) (*weave.DeliverResult, error) {
 	start := time.Now()
 	res, err := next.Deliver(ctx, store, tx)
-	logDuration(ctx, start, res.Log, err, false)
+	var resLog string
+	if err == nil {
+		resLog = res.Log
+	}
+	logDuration(ctx, start, resLog, err, false)
 	return res, err
 }
 

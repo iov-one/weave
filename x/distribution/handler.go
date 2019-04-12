@@ -53,20 +53,17 @@ type newRevenueHandler struct {
 	ctrl   CashController
 }
 
-func (h *newRevenueHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (weave.CheckResult, error) {
-	var res weave.CheckResult
+func (h *newRevenueHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
 	if _, err := h.validate(ctx, db, tx); err != nil {
-		return res, err
+		return nil, err
 	}
-	res.GasAllocated += newRevenueCost
-	return res, nil
+	return &weave.CheckResult{GasAllocated: newRevenueCost}, nil
 }
 
-func (h *newRevenueHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (weave.DeliverResult, error) {
-	var res weave.DeliverResult
+func (h *newRevenueHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	msg, err := h.validate(ctx, db, tx)
 	if err != nil {
-		return res, err
+		return nil, err
 	}
 
 	obj, err := h.bucket.Create(db, &Revenue{
@@ -74,10 +71,9 @@ func (h *newRevenueHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weav
 		Recipients: msg.Recipients,
 	})
 	if err != nil {
-		return res, err
+		return nil, err
 	}
-	res.Data = obj.Key()
-	return res, nil
+	return &weave.DeliverResult{Data: obj.Key()}, nil
 }
 
 func (h *newRevenueHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*NewRevenueMsg, error) {
@@ -94,41 +90,41 @@ type distributeHandler struct {
 	ctrl   CashController
 }
 
-func (h *distributeHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (weave.CheckResult, error) {
-	var res weave.CheckResult
+func (h *distributeHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
 	msg, err := h.validate(ctx, db, tx)
 	if err != nil {
-		return res, err
+		return nil, err
 	}
 	rev, err := h.bucket.GetRevenue(db, msg.RevenueID)
 	if err != nil {
-		return res, err
+		return nil, err
 	}
 
-	res.GasAllocated += distributePerRecipientCost * int64(len(rev.Recipients))
-	return res, nil
+	res := weave.CheckResult{
+		GasAllocated: distributePerRecipientCost * int64(len(rev.Recipients)),
+	}
+	return &res, nil
 }
 
-func (h *distributeHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (weave.DeliverResult, error) {
-	var res weave.DeliverResult
+func (h *distributeHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	msg, err := h.validate(ctx, db, tx)
 	if err != nil {
-		return res, err
+		return nil, err
 	}
 
 	rev, err := h.bucket.GetRevenue(db, msg.RevenueID)
 	if err != nil {
-		return res, err
+		return nil, err
 	}
 
 	racc, err := RevenueAccount(msg.RevenueID)
 	if err != nil {
-		return res, errors.Wrap(err, "invalid revenue account")
+		return nil, errors.Wrap(err, "invalid revenue account")
 	}
 	if err := distribute(db, h.ctrl, racc, rev.Recipients); err != nil {
-		return res, errors.Wrap(err, "cannot distribute")
+		return nil, errors.Wrap(err, "cannot distribute")
 	}
-	return res, nil
+	return &weave.DeliverResult{}, nil
 }
 
 func (h *distributeHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*DistributeMsg, error) {
@@ -148,53 +144,53 @@ type resetRevenueHandler struct {
 	ctrl   CashController
 }
 
-func (h *resetRevenueHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (weave.CheckResult, error) {
-	var res weave.CheckResult
+func (h *resetRevenueHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
 	msg, err := h.validate(ctx, db, tx)
 	if err != nil {
-		return res, err
+		return nil, err
 	}
 
 	rev, err := h.bucket.GetRevenue(db, msg.RevenueID)
 	if err != nil {
-		return res, err
+		return nil, err
 	}
 
 	// Reseting a revenue cost is counterd per recipient, because this is a
 	// distribution operation as well.
-	res.GasAllocated += resetRevenuePerRecipientCost * int64(len(rev.Recipients))
-	return res, nil
+	res := weave.CheckResult{
+		GasAllocated: resetRevenuePerRecipientCost * int64(len(rev.Recipients)),
+	}
+	return &res, nil
 }
 
-func (h *resetRevenueHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (weave.DeliverResult, error) {
-	var res weave.DeliverResult
+func (h *resetRevenueHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	msg, err := h.validate(ctx, db, tx)
 	if err != nil {
-		return res, err
+		return nil, err
 	}
 
 	rev, err := h.bucket.GetRevenue(db, msg.RevenueID)
 	if err != nil {
-		return res, err
+		return nil, err
 	}
 	racc, err := RevenueAccount(msg.RevenueID)
 	if err != nil {
-		return res, errors.Wrap(err, "invalid revenue account")
+		return nil, errors.Wrap(err, "invalid revenue account")
 	}
 	// Before updating the revenue all funds must be distributed. Only a
 	// revenue with no funds can be updated, so that recipients trust us.
 	// Otherwise an admin could change who receives the money without the
 	// previously selected recepients ever being paid.
 	if err := distribute(db, h.ctrl, racc, rev.Recipients); err != nil {
-		return res, errors.Wrap(err, "cannot distribute")
+		return nil, errors.Wrap(err, "cannot distribute")
 	}
 
 	rev.Recipients = msg.Recipients
 	obj := orm.NewSimpleObj(msg.RevenueID, rev)
 	if err := h.bucket.Save(db, obj); err != nil {
-		return res, errors.Wrap(err, "cannot save")
+		return nil, errors.Wrap(err, "cannot save")
 	}
-	return res, nil
+	return &weave.DeliverResult{}, nil
 }
 
 func (h *resetRevenueHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*ResetRevenueMsg, error) {

@@ -33,10 +33,10 @@ type panicHandler struct{}
 
 var _ weave.Handler = panicHandler{}
 
-func (p panicHandler) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx) (weave.CheckResult, error) {
+func (p panicHandler) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
 	panic("check panic")
 }
 
-func (p panicHandler) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx) (weave.DeliverResult, error) {
+func (p panicHandler) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	panic("deliver panic")
 }

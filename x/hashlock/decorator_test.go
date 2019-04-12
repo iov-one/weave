@@ -67,16 +67,14 @@ type HashCheckHandler struct {
 
 var _ weave.Handler = (*HashCheckHandler)(nil)
 
-func (s *HashCheckHandler) Check(ctx weave.Context, store weave.KVStore,
-	tx weave.Tx) (res weave.CheckResult, err error) {
+func (s *HashCheckHandler) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
 	s.Perms = Authenticate{}.GetConditions(ctx)
-	return
+	return &weave.CheckResult{}, nil
 }
 
-func (s *HashCheckHandler) Deliver(ctx weave.Context, store weave.KVStore,
-	tx weave.Tx) (res weave.DeliverResult, err error) {
+func (s *HashCheckHandler) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	s.Perms = Authenticate{}.GetConditions(ctx)
-	return
+	return &weave.DeliverResult{}, nil
 }
 
 // PreimageTx fulfills the HashKeyTx interface to satisfy the decorator

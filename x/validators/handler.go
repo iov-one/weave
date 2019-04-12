@@ -47,23 +47,21 @@ func NewUpdateHandler(auth x.Authenticator, control Controller, checkAddr AuthCh
 }
 
 // Check verifies all the preconditions.
-func (h UpdateHandler) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx) (weave.CheckResult, error) {
-	var res weave.CheckResult
-	_, err := h.validate(ctx, store, tx)
-	return res, err
+func (h UpdateHandler) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
+	if _, err := h.validate(ctx, store, tx); err != nil {
+		return nil, err
+	}
+	return &weave.CheckResult{}, nil
 }
 
 // Deliver provides the diff given everything is okay with permissions and such
 // Check did the same job already, so we can assume stuff goes okay.
-func (h UpdateHandler) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx) (weave.DeliverResult, error) {
-	// ensure type and validate...
-	var res weave.DeliverResult
+func (h UpdateHandler) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	diff, err := h.validate(ctx, store, tx)
 	if err != nil {
-		return res, err
+		return nil, err
 	}
-	res.Diff = diff
-	return res, nil
+	return &weave.DeliverResult{Diff: diff}, nil
 }
 
 func (h UpdateHandler) validate(ctx weave.Context, store weave.KVStore, tx weave.Tx) ([]abci.ValidatorUpdate, error) {

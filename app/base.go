@@ -1,10 +1,9 @@
 package app
 
 import (
-	abci "github.com/tendermint/tendermint/abci/types"
-
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
+	abci "github.com/tendermint/tendermint/abci/types"
 )
 
 // BaseApp adds DeliverTx, CheckTx, and BeginBlock

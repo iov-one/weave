@@ -68,11 +68,11 @@ func assertHCounts(t *testing.T, h *Handler, wantCheck, wantDeliver int) {
 }
 
 func TestHandlerResult(t *testing.T) {
-	wantCres := weave.CheckResult{
+	wantCres := &weave.CheckResult{
 		Data:         []byte("foo"),
 		GasAllocated: 5,
 	}
-	wantDres := weave.DeliverResult{
+	wantDres := &weave.DeliverResult{
 		Data:    []byte("bar"),
 		GasUsed: 824,
 	}

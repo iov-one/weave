@@ -37,38 +37,38 @@ func NewSendHandler(auth x.Authenticator, control Controller) SendHandler {
 
 // Check just verifies it is properly formed and returns
 // the cost of executing it
-func (h SendHandler) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx) (weave.CheckResult, error) {
+func (h SendHandler) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
 	var msg SendMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
-		return weave.CheckResult{}, errors.Wrap(err, "load msg")
+		return nil, errors.Wrap(err, "load msg")
 	}
 
 	// Make sure we have permission from the senders
 	if !h.auth.HasAddress(ctx, msg.Src) {
-		return weave.CheckResult{}, errors.Wrap(errors.ErrUnauthorized, "Account owner signature missing")
+		return nil, errors.Wrap(errors.ErrUnauthorized, "Account owner signature missing")
 	}
 
 	res := weave.CheckResult{
 		GasAllocated: sendTxCost,
 	}
-	return res, nil
+	return &res, nil
 }
 
 // Deliver moves the tokens from sender to receiver if
 // all preconditions are met
-func (h SendHandler) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx) (weave.DeliverResult, error) {
+func (h SendHandler) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	var msg SendMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
-		return weave.DeliverResult{}, errors.Wrap(err, "load msg")
+		return nil, errors.Wrap(err, "load msg")
 	}
 
 	// Make sure we have permission from the sender.
 	if !h.auth.HasAddress(ctx, msg.Src) {
-		return weave.DeliverResult{}, errors.Wrap(errors.ErrUnauthorized, "Account owner signature missing")
+		return nil, errors.Wrap(errors.ErrUnauthorized, "Account owner signature missing")
 	}
 
 	if err := h.control.MoveCoins(store, msg.Src, msg.Dest, *msg.Amount); err != nil {
-		return weave.DeliverResult{}, err
+		return nil, err
 	}
-	return weave.DeliverResult{}, nil
+	return &weave.DeliverResult{}, nil
 }

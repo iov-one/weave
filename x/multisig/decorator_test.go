@@ -124,7 +124,7 @@ func TestDecorator(t *testing.T) {
 			if !tc.wantErr.Is(err) {
 				t.Fatalf("unexpected error: %+v", err)
 			}
-			if cres.GasPayment != tc.wantGas {
+			if err == nil && cres.GasPayment != tc.wantGas {
 				t.Errorf("want %d gas payment, got %d", tc.wantGas, cres.GasPayment)
 			}
 
@@ -143,16 +143,14 @@ type MultisigCheckHandler struct {
 
 var _ weave.Handler = (*MultisigCheckHandler)(nil)
 
-func (s *MultisigCheckHandler) Check(ctx weave.Context, store weave.KVStore,
-	tx weave.Tx) (res weave.CheckResult, err error) {
+func (s *MultisigCheckHandler) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
 	s.Perms = Authenticate{}.GetConditions(ctx)
-	return
+	return &weave.CheckResult{}, nil
 }
 
-func (s *MultisigCheckHandler) Deliver(ctx weave.Context, store weave.KVStore,
-	tx weave.Tx) (res weave.DeliverResult, err error) {
+func (s *MultisigCheckHandler) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	s.Perms = Authenticate{}.GetConditions(ctx)
-	return
+	return &weave.DeliverResult{}, nil
 }
 
 // ContractTx fulfills the MultiSigTx interface to satisfy the decorator

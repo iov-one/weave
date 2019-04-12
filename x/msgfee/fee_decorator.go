@@ -26,40 +26,40 @@ func NewFeeDecorator() *FeeDecorator {
 	}
 }
 
-func (d *FeeDecorator) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx, next weave.Checker) (weave.CheckResult, error) {
+func (d *FeeDecorator) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx, next weave.Checker) (*weave.CheckResult, error) {
 	res, err := next.Check(ctx, store, tx)
 	if err != nil {
-		return res, err
+		return nil, err
 	}
 
 	fee, err := txFee(d.bucket, store, tx)
 	if err != nil {
-		return res, err
+		return nil, err
 	}
 	if !coin.IsEmpty(fee) {
 		total, err := res.RequiredFee.Add(*fee)
 		if err != nil {
-			return res, errors.Wrap(err, "cannot apply message type fee")
+			return nil, errors.Wrap(err, "cannot apply message type fee")
 		}
 		res.RequiredFee = total
 	}
 	return res, nil
 }
 
-func (d *FeeDecorator) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx, next weave.Deliverer) (weave.DeliverResult, error) {
+func (d *FeeDecorator) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx, next weave.Deliverer) (*weave.DeliverResult, error) {
 	res, err := next.Deliver(ctx, store, tx)
 	if err != nil {
-		return res, err
+		return nil, err
 	}
 
 	fee, err := txFee(d.bucket, store, tx)
 	if err != nil {
-		return res, err
+		return nil, err
 	}
 	if !coin.IsEmpty(fee) {
 		total, err := res.RequiredFee.Add(*fee)
 		if err != nil {
-			return res, errors.Wrapf(err, "cannot apply message type fee to %v", res.RequiredFee)
+			return nil, errors.Wrapf(err, "cannot apply message type fee to %v", res.RequiredFee)
 		}
 		res.RequiredFee = total
 	}

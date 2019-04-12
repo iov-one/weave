@@ -21,28 +21,24 @@ func NewAntispamFeeDecorator(fee coin.Coin) *AntispamFeeDecorator {
 	return &AntispamFeeDecorator{fee: fee}
 }
 
-func (d *AntispamFeeDecorator) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx, next weave.Checker) (weave.CheckResult, error) {
+func (d *AntispamFeeDecorator) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx, next weave.Checker) (*weave.CheckResult, error) {
 	res, err := next.Check(ctx, store, tx)
 	if err != nil {
-		return res, err
+		return nil, err
 	}
-
 	if d.fee.IsZero() {
 		return res, nil
 	}
-
 	if !res.RequiredFee.SameType(d.fee) {
-		return res, errors.Wrapf(errors.ErrCurrency,
+		return nil, errors.Wrapf(errors.ErrCurrency,
 			"antispam fee has the wrong type: expected %s, got %s", res.RequiredFee.Ticker, d.fee.Ticker)
 	}
-
 	if !res.RequiredFee.IsGTE(d.fee) {
 		res.RequiredFee = d.fee
 	}
-
 	return res, nil
 }
 
-func (d *AntispamFeeDecorator) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx, next weave.Deliverer) (weave.DeliverResult, error) {
+func (d *AntispamFeeDecorator) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx, next weave.Deliverer) (*weave.DeliverResult, error) {
 	return next.Deliver(ctx, store, tx)
 }

@@ -4,10 +4,9 @@ import (
 	"encoding/hex"
 	"strings"
 
-	"github.com/tendermint/tendermint/libs/common"
-
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/store"
+	"github.com/tendermint/tendermint/libs/common"
 )
 
 // KeyTagger is a decorate that records all Set/Delete
@@ -31,22 +30,18 @@ func NewKeyTagger() KeyTagger {
 }
 
 // Check does nothing
-func (KeyTagger) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx,
-	next weave.Checker) (weave.CheckResult, error) {
+func (KeyTagger) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx, next weave.Checker) (*weave.CheckResult, error) {
 	return next.Check(ctx, db, tx)
 }
 
 // Deliver passes in a recording KVStore into the child and
 // uses that to calculate tags to add to DeliverResult
-func (KeyTagger) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx,
-	next weave.Deliverer) (weave.DeliverResult, error) {
-
+func (KeyTagger) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx, next weave.Deliverer) (*weave.DeliverResult, error) {
 	record := store.NewRecordingStore(db)
 	res, err := next.Deliver(ctx, record, tx)
 	if err != nil {
-		return res, err
+		return nil, err
 	}
-
 	res.Tags = append(res.Tags, kvPairs(record)...)
 	return res, nil
 }
@@ -60,8 +55,6 @@ func kvPairs(db weave.KVStore) common.KVPairs {
 	}
 	return changesToTags(r.KVPairs())
 }
-
-//----- helpers ---
 
 func changesToTags(changes map[string][]byte) common.KVPairs {
 	l := len(changes)
