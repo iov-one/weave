@@ -181,7 +181,7 @@ func compositeKey(proposalID []byte, address weave.Address) []byte {
 	return append(address, proposalID...)
 }
 
-// HasVote checks the bucket if any vote matching elector address and proposal id was stored.
+// HasVoted checks the bucket if any vote matching elector address and proposal id was stored.
 func (b *VoteBucket) HasVoted(db weave.KVStore, proposalID []byte, addr weave.Address) (bool, error) {
 	obj, err := b.Get(db, compositeKey(proposalID, addr))
 	if err != nil {
