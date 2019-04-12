@@ -211,22 +211,58 @@ func TestVote(t *testing.T) {
 		WantCheckErr   *errors.Error
 		WantDeliverErr *errors.Error
 		Exp            TallyResult
+		ExpVotedBy     weave.Address
 	}{
 		"Vote Yes": {
-			Msg: VoteMsg{ProposalID: proposalID, Selected: VoteOption_Yes, Voter: alice},
-			Exp: TallyResult{TotalYes: 1},
+			Msg:        VoteMsg{ProposalID: proposalID, Selected: VoteOption_Yes, Voter: alice},
+			Exp:        TallyResult{TotalYes: 1},
+			ExpVotedBy: alice,
 		},
 		"Vote No": {
-			Msg: VoteMsg{ProposalID: proposalID, Selected: VoteOption_No, Voter: alice},
-			Exp: TallyResult{TotalNo: 1},
+			Msg:        VoteMsg{ProposalID: proposalID, Selected: VoteOption_No, Voter: alice},
+			Exp:        TallyResult{TotalNo: 1},
+			ExpVotedBy: alice,
 		},
 		"Vote Abstain": {
-			Msg: VoteMsg{ProposalID: proposalID, Selected: VoteOption_Abstain, Voter: alice},
-			Exp: TallyResult{TotalAbstain: 1},
+			Msg:        VoteMsg{ProposalID: proposalID, Selected: VoteOption_Abstain, Voter: alice},
+			Exp:        TallyResult{TotalAbstain: 1},
+			ExpVotedBy: alice,
+		},
+		"Vote counts weights": {
+			Msg:        VoteMsg{ProposalID: proposalID, Selected: VoteOption_Abstain, Voter: bobby},
+			Exp:        TallyResult{TotalAbstain: 10},
+			ExpVotedBy: bobby,
 		},
 		"Vote defaults to main signer when no voter address submitted": {
-			Msg: VoteMsg{ProposalID: proposalID, Selected: VoteOption_Yes},
-			Exp: TallyResult{TotalYes: 1},
+			Msg:        VoteMsg{ProposalID: proposalID, Selected: VoteOption_Yes},
+			Exp:        TallyResult{TotalYes: 1},
+			ExpVotedBy: alice, // main signer
+		},
+		"Can change vote": {
+			Init: func(ctx weave.Context, db store.KVStore) {
+				vBucket := NewVoteBucket()
+				obj := vBucket.Build(db, proposalID, Vote{Voted: VoteOption_Yes, Elector: Elector{Signature: bobby, Weight: 10}})
+				vBucket.Save(db, obj)
+			},
+			Mods: func(ctx weave.Context, proposal *TextProposal) {
+				proposal.VoteResult.TotalYes = 10
+			},
+			Msg:        VoteMsg{ProposalID: proposalID, Selected: VoteOption_No, Voter: bobby},
+			Exp:        TallyResult{TotalNo: 10, TotalYes: 0},
+			ExpVotedBy: bobby,
+		},
+		"Can resubmit vote": {
+			Init: func(ctx weave.Context, db store.KVStore) {
+				vBucket := NewVoteBucket()
+				obj := vBucket.Build(db, proposalID, Vote{Voted: VoteOption_Yes, Elector: Elector{Signature: alice, Weight: 1}})
+				vBucket.Save(db, obj)
+			},
+			Mods: func(ctx weave.Context, proposal *TextProposal) {
+				proposal.VoteResult.TotalYes = 1
+			},
+			Msg:        VoteMsg{ProposalID: proposalID, Selected: VoteOption_Yes, Voter: alice},
+			Exp:        TallyResult{TotalYes: 1},
+			ExpVotedBy: alice,
 		},
 		"Vote with invalid option": {
 			Msg:            VoteMsg{ProposalID: proposalID, Selected: VoteOption_Invalid, Voter: alice},
@@ -274,17 +310,24 @@ func TestVote(t *testing.T) {
 			WantCheckErr:   errors.ErrInvalidState,
 			WantDeliverErr: errors.ErrInvalidState,
 		},
-		"Voted already": {
+		"Sanity check on count vote": {
+			Mods: func(ctx weave.Context, proposal *TextProposal) {
+				proposal.VoteResult.TotalYes = math.MaxUint32 // not a valid setup
+			},
+			Msg:            VoteMsg{ProposalID: proposalID, Selected: VoteOption_Yes, Voter: alice},
+			WantDeliverErr: errors.ErrHuman,
+		},
+		"Sanity check on undo count vote": {
 			Init: func(ctx weave.Context, db store.KVStore) {
 				vBucket := NewVoteBucket()
 				obj := vBucket.Build(db, proposalID, Vote{Voted: VoteOption_Yes, Elector: Elector{Signature: bobby, Weight: 10}})
-				if err := vBucket.Save(db, obj); err != nil {
-					panic(err)
-				}
+				vBucket.Save(db, obj)
 			},
-			Msg:            VoteMsg{ProposalID: proposalID, Selected: VoteOption_Yes, Voter: bobby},
-			WantCheckErr:   errors.ErrInvalidState,
-			WantDeliverErr: errors.ErrInvalidState,
+			Mods: func(ctx weave.Context, proposal *TextProposal) {
+				proposal.VoteResult.TotalYes = 0 // not a valid setup
+			},
+			Msg:            VoteMsg{ProposalID: proposalID, Selected: VoteOption_No, Voter: bobby},
+			WantDeliverErr: errors.ErrHuman,
 		},
 	}
 	auth := &weavetest.Auth{
@@ -319,7 +362,7 @@ func TestVote(t *testing.T) {
 			if spec.WantDeliverErr != nil {
 				return // skip further checks on expected error
 			}
-
+			// then tally updated
 			p, err := pBucket.GetTextProposal(cache, weavetest.SequenceID(1))
 			if err != nil {
 				t.Fatalf("unexpected error: %s", err)
@@ -327,10 +370,17 @@ func TestVote(t *testing.T) {
 			if exp, got := spec.Exp, p.VoteResult; exp != got {
 				t.Errorf("expected %v but got %v", exp, got)
 			}
+			// and vote persisted
+			v, err := NewVoteBucket().GetVote(cache, proposalID, spec.ExpVotedBy)
+			if err != nil {
+				t.Fatalf("unexpected error: %s", err)
+			}
+			if exp, got := spec.Msg.Selected, v.Voted; exp != got {
+				t.Errorf("expected %v but got %v", exp, got)
+			}
 			cache.Discard()
 		})
 	}
-
 }
 
 func TestTally(t *testing.T) {

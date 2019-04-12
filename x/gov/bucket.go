@@ -189,3 +189,20 @@ func (b *VoteBucket) HasVoted(db weave.KVStore, proposalID []byte, addr weave.Ad
 	}
 	return obj != nil && obj.Value() != nil, nil
 }
+
+// GetVote loads the vote from the archive for the given proposal id and elector address.
+// returns `errors.ErrNotFound` when not exists.
+func (b *VoteBucket) GetVote(db weave.KVStore, proposalID []byte, addr weave.Address) (*Vote, error) {
+	obj, err := b.Get(db, compositeKey(proposalID, addr))
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to load vote")
+	}
+	if obj == nil || obj.Value() == nil {
+		return nil, errors.Wrap(errors.ErrNotFound, "unknown id")
+	}
+	v, ok := obj.Value().(*Vote)
+	if !ok {
+		return nil, errors.Wrapf(errors.ErrInvalidModel, "invalid type: %T", obj.Value())
+	}
+	return v, nil
+}

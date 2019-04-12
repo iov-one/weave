@@ -161,9 +161,9 @@ func (m TextProposal) Copy() orm.CloneableData {
 	}
 }
 
-// Vote updates the intermediate tally result with the new vote and stores the elector in the
-// voter archive.
+// CountVote updates the intermediate tally result by adding the new vote weight.
 func (m *TextProposal) CountVote(vote Vote) error {
+	oldTotal := m.VoteResult.TotalVotes()
 	switch vote.Voted {
 	case VoteOption_Yes:
 		m.VoteResult.TotalYes += vote.Elector.Weight
@@ -173,6 +173,28 @@ func (m *TextProposal) CountVote(vote Vote) error {
 		m.VoteResult.TotalAbstain += vote.Elector.Weight
 	default:
 		return errors.Wrapf(errors.ErrInvalidInput, "%q", m.String())
+	}
+	if m.VoteResult.TotalVotes() <= oldTotal {
+		return errors.Wrap(errors.ErrHuman, "sanity overflow check failed")
+	}
+	return nil
+}
+
+// UndoCountVote updates the intermediate tally result by subtracting the given vote weight.
+func (m *TextProposal) UndoCountVote(vote Vote) error {
+	oldTotal := m.VoteResult.TotalVotes()
+	switch vote.Voted {
+	case VoteOption_Yes:
+		m.VoteResult.TotalYes -= vote.Elector.Weight
+	case VoteOption_No:
+		m.VoteResult.TotalNo -= vote.Elector.Weight
+	case VoteOption_Abstain:
+		m.VoteResult.TotalAbstain -= vote.Elector.Weight
+	default:
+		return errors.Wrapf(errors.ErrInvalidInput, "%q", m.String())
+	}
+	if m.VoteResult.TotalVotes() >= oldTotal {
+		return errors.Wrap(errors.ErrHuman, "sanity overflow check failed")
 	}
 	return nil
 }
@@ -191,6 +213,11 @@ func (m *TextProposal) Tally() error {
 // Accepted returns the result of the `(yes*denominator) > (numerator*total_electors_weight)` calculation.
 func (m TallyResult) Accepted() bool {
 	return uint64(m.TotalYes)*uint64(m.Threshold.Denominator) > m.TotalWeightElectorate*uint64(m.Threshold.Numerator)
+}
+
+// TotalVotes returns the sum of yes, no, abstain votes.
+func (m TallyResult) TotalVotes() uint64 {
+	return uint64(m.TotalYes) + uint64(m.TotalNo) + uint64(m.TotalAbstain)
 }
 
 // Validate vote object contains valid elector and voted option
