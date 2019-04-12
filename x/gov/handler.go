@@ -75,6 +75,16 @@ func (h VoteHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (
 		return res, err
 	}
 
+	switch oldVote, err := h.voteBucket.GetVote(db, voteMsg.ProposalID, vote.Elector.Signature); {
+	case errors.ErrNotFound.Is(err): // not voted before: skip undo
+	case err != nil:
+		return res, errors.Wrap(err, "failed to load vote")
+	default:
+		if err := proposal.UndoCountVote(*oldVote); err != nil {
+			return res, err
+		}
+	}
+
 	if err := proposal.CountVote(*vote); err != nil {
 		return res, err
 	}
@@ -108,13 +118,6 @@ func (h VoteHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) 
 	if voter == nil {
 		voter = x.MainSigner(ctx, h.auth).Address()
 	}
-	switch v, err := h.voteBucket.HasVoted(db, msg.ProposalID, voter); {
-	case err != nil:
-		return nil, nil, nil, errors.Wrap(err, "failed to load vote")
-	case v:
-		return nil, nil, nil, errors.Wrap(errors.ErrInvalidState, "already voted")
-	}
-
 	electorate, err := h.elecBucket.GetElectorate(db, proposal.ElectorateID)
 	if err != nil {
 		return nil, nil, nil, errors.Wrap(err, "failed to load electorate")
