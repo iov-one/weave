@@ -312,15 +312,17 @@ func TestVoteValidate(t *testing.T) {
 func textProposalFixture(mods ...func(*TextProposal)) TextProposal {
 	now := weave.AsUnixTime(time.Now())
 	proposal := TextProposal{
-		Title:           "My proposal",
-		Description:     "My description",
-		ElectionRuleID:  weavetest.SequenceID(1),
-		ElectorateID:    weavetest.SequenceID(1),
-		VotingStartTime: now.Add(-1 * time.Minute),
-		VotingEndTime:   now.Add(time.Minute),
-		SubmissionTime:  now.Add(-1 * time.Hour),
-		Status:          TextProposal_Undefined,
-		Author:          alice,
+		Title:               "My proposal",
+		Description:         "My description",
+		ElectionRuleID:      weavetest.SequenceID(1),
+		ElectionRuleVersion: 1,
+		ElectorateID:        weavetest.SequenceID(1),
+		ElectorateVersion:   1,
+		VotingStartTime:     now.Add(-1 * time.Minute),
+		VotingEndTime:       now.Add(time.Minute),
+		SubmissionTime:      now.Add(-1 * time.Hour),
+		Status:              TextProposal_Undefined,
+		Author:              alice,
 	}
 	for _, mod := range mods {
 		if mod != nil {

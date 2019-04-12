@@ -3091,6 +3091,20 @@ The valid range for the threshold value is `0.5` to `1` (inclusive) which allows
 of the eligible voters. </p></td>
                 </tr>
               
+                <tr>
+                  <td>id</td>
+                  <td><a href="#bytes">bytes</a></td>
+                  <td></td>
+                  <td><p>unique identifier of the Elector. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>version</td>
+                  <td><a href="#uint32">uint32</a></td>
+                  <td></td>
+                  <td><p>Document version </p></td>
+                </tr>
+              
             </tbody>
           </table>
         
@@ -3156,6 +3170,20 @@ of the eligible voters. </p></td>
                   <td><a href="#uint64">uint64</a></td>
                   <td></td>
                   <td><p>TotalWeightElectorate is the sum of all electors weights. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>id</td>
+                  <td><a href="#bytes">bytes</a></td>
+                  <td></td>
+                  <td><p>unique identifier of the electorate. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>version</td>
+                  <td><a href="#uint32">uint32</a></td>
+                  <td></td>
+                  <td><p>Document version </p></td>
                 </tr>
               
             </tbody>
@@ -3294,10 +3322,17 @@ proposal this value must be exceeded. </p></td>
                 </tr>
               
                 <tr>
-                  <td>election_rule_id</td>
+                  <td>election_rule_version_id</td>
                   <td><a href="#bytes">bytes</a></td>
                   <td></td>
                   <td><p>Reference to the election rule </p></td>
+                </tr>
+              
+                <tr>
+                  <td>election_rule_version</td>
+                  <td><a href="#uint32">uint32</a></td>
+                  <td></td>
+                  <td><p>The version points to a specific version in the election rule history. </p></td>
                 </tr>
               
                 <tr>
@@ -3305,6 +3340,13 @@ proposal this value must be exceeded. </p></td>
                   <td><a href="#bytes">bytes</a></td>
                   <td></td>
                   <td><p>Reference to the electorate to define the group of possible voters. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>electorate_version</td>
+                  <td><a href="#uint32">uint32</a></td>
+                  <td></td>
+                  <td><p>The version points to a specific version in the electorate history. </p></td>
                 </tr>
               
                 <tr>

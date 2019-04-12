@@ -51,17 +51,17 @@ type Bucket struct {
 var _ weave.QueryHandler = Bucket{}
 
 type namedIndex struct {
-	Index
+	RawIndex
 	publicName string
 }
 
 type namedIndexes []namedIndex
 
 // Get returns the index with the given (internal/db) name, or nil if not found
-func (n namedIndexes) Get(name string) *Index {
+func (n namedIndexes) Get(name string) RawIndex {
 	for _, ni := range n {
 		if ni.publicName == name {
-			return &ni.Index
+			return ni.RawIndex
 		}
 	}
 	return nil
@@ -95,7 +95,10 @@ func (b Bucket) Register(name string, r weave.QueryRouter) {
 	root := "/" + name
 	r.Register(root, b)
 	for _, ni := range b.indexes {
-		r.Register(root+"/"+ni.publicName, ni.Index)
+		r.Register(root+"/"+ni.publicName, IndexQueryAdapter{
+			RawIndex: RawIndex(ni.RawIndex),
+			bucket:   b,
+		})
 	}
 }
 
@@ -231,15 +234,24 @@ func (b Bucket) WithIndex(name string, indexer Indexer, unique bool) Bucket {
 }
 
 func (b Bucket) WithMultiKeyIndex(name string, indexer MultiKeyIndexer, unique bool) Bucket {
-	// no duplicate indexes! (panic on init)
-	if b.indexes.Has(name) {
-		panic(fmt.Sprintf("Index %s registered twice", name))
-	}
+	iname := b.MustBuildInternalIndexName(name)
+	idx := NewMultiKeyIndex(iname, indexer, unique)
+	return b.WithRawIndex(idx, name)
+}
 
-	iname := b.name + "_" + name
-	add := NewMultiKeyIndex(iname, indexer, unique, b.DBKey)
-	idxs := append(b.indexes, namedIndex{Index: add, publicName: name})
-	sort.Slice(idxs, func(i int, j int) bool { return idxs[i].name < idxs[j].name })
+// MustBuildInternalIndexName build a bucket specific internal name. Given name must not be used before with
+// a registered index or panics.
+func (b Bucket) MustBuildInternalIndexName(publicName string) string {
+	// no duplicate indexes! (panic on init)
+	if b.indexes.Has(publicName) {
+		panic(fmt.Sprintf("Index %s registered twice", publicName))
+	}
+	return b.name + "_" + publicName
+}
+
+func (b Bucket) WithRawIndex(idx RawIndex, publicName string) Bucket {
+	idxs := append(b.indexes, namedIndex{RawIndex: idx, publicName: publicName})
+	sort.Slice(idxs, func(i int, j int) bool { return idxs[i].publicName < idxs[j].publicName })
 	b.indexes = idxs
 	return b
 }

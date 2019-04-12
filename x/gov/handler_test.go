@@ -42,15 +42,17 @@ func TestCreateProposal(t *testing.T) {
 				Author:         bobby,
 			},
 			Exp: TextProposal{
-				Title:           "my proposal",
-				Description:     "my description",
-				ElectionRuleID:  weavetest.SequenceID(1),
-				ElectorateID:    weavetest.SequenceID(1),
-				VotingStartTime: now.Add(time.Hour),
-				VotingEndTime:   now.Add(2 * time.Hour),
-				Status:          TextProposal_Undefined,
-				SubmissionTime:  now,
-				Author:          bobby,
+				Title:               "my proposal",
+				Description:         "my description",
+				ElectionRuleID:      weavetest.SequenceID(1),
+				ElectorateID:        weavetest.SequenceID(1),
+				ElectorateVersion:   1,
+				ElectionRuleVersion: 1,
+				VotingStartTime:     now.Add(time.Hour),
+				VotingEndTime:       now.Add(2 * time.Hour),
+				Status:              TextProposal_Undefined,
+				SubmissionTime:      now,
+				Author:              bobby,
 				VoteResult: TallyResult{
 					Threshold:             Fraction{Numerator: 1, Denominator: 2},
 					TotalWeightElectorate: 11,
@@ -67,15 +69,17 @@ func TestCreateProposal(t *testing.T) {
 				ElectionRuleID: weavetest.SequenceID(1),
 			},
 			Exp: TextProposal{
-				Title:           "my proposal",
-				Description:     "my description",
-				ElectionRuleID:  weavetest.SequenceID(1),
-				ElectorateID:    weavetest.SequenceID(1),
-				VotingStartTime: now.Add(time.Hour),
-				VotingEndTime:   now.Add(2 * time.Hour),
-				Status:          TextProposal_Undefined,
-				SubmissionTime:  now,
-				Author:          alice,
+				Title:               "my proposal",
+				Description:         "my description",
+				ElectionRuleID:      weavetest.SequenceID(1),
+				ElectorateID:        weavetest.SequenceID(1),
+				ElectorateVersion:   1,
+				ElectionRuleVersion: 1,
+				VotingStartTime:     now.Add(time.Hour),
+				VotingEndTime:       now.Add(2 * time.Hour),
+				Status:              TextProposal_Undefined,
+				SubmissionTime:      now,
+				Author:              alice,
 				VoteResult: TallyResult{
 					Threshold:             Fraction{Numerator: 1, Denominator: 2},
 					TotalWeightElectorate: 11,
@@ -538,7 +542,7 @@ func withProposal(t *testing.T, db store.CacheableKVStore, ctx weave.Context, mo
 		TotalWeightElectorate: 11}),
 	)
 	if err != nil {
-		t.Fatalf("unexpected error: %s", err)
+		t.Fatalf("unexpected error: %+v", err)
 	}
 	// setup election rules
 	rulesBucket := NewElectionRulesBucket()
@@ -548,7 +552,7 @@ func withProposal(t *testing.T, db store.CacheableKVStore, ctx weave.Context, mo
 		Threshold:         Fraction{1, 2},
 	}))
 	if err != nil {
-		t.Fatalf("unexpected error: %s", err)
+		t.Fatalf("unexpected error: %+v", err)
 	}
 	// adapter to call fixture mutator with context
 	ctxMods := make([]func(*TextProposal), len(mods))

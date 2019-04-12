@@ -118,7 +118,7 @@ func (h VoteHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) 
 	if voter == nil {
 		voter = x.MainSigner(ctx, h.auth).Address()
 	}
-	electorate, err := h.elecBucket.GetElectorate(db, proposal.ElectorateID)
+	electorate, err := h.elecBucket.GetElectorateVersion(db, proposal.ElectorateID, proposal.ElectorateVersion)
 	if err != nil {
 		return nil, nil, nil, errors.Wrap(err, "failed to load electorate")
 	}
@@ -216,14 +216,16 @@ func (h TextProposalHandler) Deliver(ctx weave.Context, db weave.KVStore, tx wea
 	blockTime, _ := weave.BlockTime(ctx)
 
 	proposal := &TextProposal{
-		Title:           msg.Title,
-		Description:     msg.Description,
-		ElectionRuleID:  msg.ElectionRuleID,
-		ElectorateID:    msg.ElectorateID,
-		VotingStartTime: msg.StartTime,
-		VotingEndTime:   msg.StartTime.Add(time.Duration(rules.VotingPeriodHours) * time.Hour),
-		SubmissionTime:  weave.AsUnixTime(blockTime),
-		Author:          msg.Author,
+		Title:               msg.Title,
+		Description:         msg.Description,
+		ElectionRuleID:      msg.ElectionRuleID,
+		ElectionRuleVersion: rules.Version,
+		ElectorateID:        msg.ElectorateID,
+		ElectorateVersion:   electorate.Version,
+		VotingStartTime:     msg.StartTime,
+		VotingEndTime:       msg.StartTime.Add(time.Duration(rules.VotingPeriodHours) * time.Hour),
+		SubmissionTime:      weave.AsUnixTime(blockTime),
+		Author:              msg.Author,
 		VoteResult: TallyResult{
 			TotalWeightElectorate: electorate.TotalWeightElectorate,
 			Threshold:             rules.Threshold,
@@ -260,7 +262,7 @@ func (h TextProposalHandler) validate(ctx weave.Context, db weave.KVStore, tx we
 	if err != nil {
 		return nil, nil, nil, errors.Wrap(err, "failed to load electorate")
 	}
-	rules, err := h.rulesBucket.GetElectionRule(db, msg.ElectionRuleID)
+	rules, err := h.rulesBucket.GetLatestElectionRule(db, msg.ElectionRuleID)
 	if err != nil {
 		return nil, nil, nil, errors.Wrap(err, "failed to load election rules")
 	}

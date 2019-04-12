@@ -8,32 +8,78 @@ import (
 
 // ElectorateBucket is the persistent bucket for Electorate object.
 type ElectorateBucket struct {
-	orm.Bucket
+	Bucket
 	idSeq orm.Sequence
 }
 
 // NewRevenueBucket returns a bucket for managing electorate.
 func NewElectorateBucket() *ElectorateBucket {
-	b := orm.NewBucket("electorate", orm.NewSimpleObj(nil, &Electorate{}))
+	b := VersioningBucket(orm.NewBucket("electorate", orm.NewSimpleObj(nil, &Electorate{})))
+	//WithIndex("id", indexID, false).
+	//WithIndex("version", indexVersion, false).
+
 	return &ElectorateBucket{
 		Bucket: b,
 		idSeq:  b.Sequence("id"),
 	}
 }
 
+const indexName = "latest"
+
+type Bucket struct {
+	// todo: do not shadow orm.bucket
+	orm.Bucket
+}
+
+func VersioningBucket(b orm.Bucket) Bucket {
+	return Bucket{b.WithRawIndex(orm.NewVersionIndex(b.MustBuildInternalIndexName(indexName)), indexName)}
+}
+
+func (b Bucket) GetLatestVersion(db weave.ReadOnlyKVStore, id []byte) (orm.Object, error) {
+	objs, err := b.Bucket.GetIndexed(db, indexName, id)
+	switch {
+	case err != nil:
+		return nil, errors.Wrapf(err, "failed to load object with index: %q", indexName)
+	case len(objs) == 0:
+		return nil, errors.Wrap(errors.ErrNotFound, "unknown id")
+	case len(objs) == 1:
+		return objs[0], nil
+	}
+	return nil, errors.Wrap(errors.ErrHuman, "multiple values indexed")
+}
+
+func (b Bucket) GetVersion(db weave.ReadOnlyKVStore, id []byte, version uint32) (orm.Object, error) {
+	return b.Get(db, orm.VersionedKey(id, version))
+}
+
 // Build assigns an ID to given electorate instance and returns it as an orm
 // Object. It does not persist the object in the store.
 func (b *ElectorateBucket) Build(db weave.KVStore, e *Electorate) orm.Object {
-	key := b.idSeq.NextVal(db)
-	return orm.NewSimpleObj(key, e)
+	newID := b.idSeq.NextVal(db)
+	e.ID = newID
+	e.Version = 1
+	return orm.NewSimpleObj(orm.VersionedKey(newID, e.Version), e)
 }
 
-// GetElectorate loads the electorate for the given id. If it does not exist then ErrNotFound is returned.
+// GetElectorate loads the latest electorate for the given id. If none exist for the id then ErrNotFound is returned.
 func (b *ElectorateBucket) GetElectorate(db weave.KVStore, id []byte) (*Electorate, error) {
-	obj, err := b.Get(db, id)
+	obj, err := b.GetLatestVersion(db, id)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to load electorate")
 	}
+	return asElectorate(obj)
+}
+
+// GetElectorateVersion
+func (b *ElectorateBucket) GetElectorateVersion(db weave.KVStore, id []byte, version uint32) (*Electorate, error) {
+	obj, err := b.GetVersion(db, id, version)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to load electorate")
+	}
+	return asElectorate(obj)
+}
+
+func asElectorate(obj orm.Object) (*Electorate, error) {
 	if obj == nil || obj.Value() == nil {
 		return nil, errors.Wrap(errors.ErrNotFound, "unknown id")
 	}
@@ -46,13 +92,13 @@ func (b *ElectorateBucket) GetElectorate(db weave.KVStore, id []byte) (*Electora
 
 // NewElectionRulesBucket is the persistent bucket for ElectionRules .
 type ElectionRulesBucket struct {
-	orm.Bucket
+	Bucket
 	idSeq orm.Sequence
 }
 
 // NewElectionRulesBucket returns a bucket for managing election rules.
 func NewElectionRulesBucket() *ElectionRulesBucket {
-	b := orm.NewBucket("electnrule", orm.NewSimpleObj(nil, &ElectionRule{}))
+	b := VersioningBucket(orm.NewBucket("electnrule", orm.NewSimpleObj(nil, &ElectionRule{})))
 	return &ElectionRulesBucket{
 		Bucket: b,
 		idSeq:  b.Sequence("id"),
@@ -62,13 +108,15 @@ func NewElectionRulesBucket() *ElectionRulesBucket {
 // Build assigns an ID to given election rule instance and returns it as an orm
 // Object. It does not persist the object in the store.
 func (b *ElectionRulesBucket) Build(db weave.KVStore, r *ElectionRule) orm.Object {
-	key := b.idSeq.NextVal(db)
-	return orm.NewSimpleObj(key, r)
+	newID := b.idSeq.NextVal(db)
+	r.ID = newID
+	r.Version = 1
+	return orm.NewSimpleObj(orm.VersionedKey(newID, r.Version), r)
 }
 
-// GetElectionRule loads the electorate for the given id. If it does not exist then ErrNotFound is returned.
-func (b *ElectionRulesBucket) GetElectionRule(db weave.KVStore, id []byte) (*ElectionRule, error) {
-	obj, err := b.Get(db, id)
+// GetLatestElectionRule loads the electorate for the given id. If it does not exist then ErrNotFound is returned.
+func (b *ElectionRulesBucket) GetLatestElectionRule(db weave.KVStore, id []byte) (*ElectionRule, error) {
+	obj, err := b.GetLatestVersion(db, id)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to load election rule")
 	}
@@ -148,7 +196,7 @@ func NewVoteBucket() *VoteBucket {
 	}
 }
 
-func indexElector(obj orm.Object) (bytes []byte, e error) {
+func indexElector(obj orm.Object) ([]byte, error) {
 	if obj == nil {
 		return nil, errors.Wrap(errors.ErrHuman, "cannot take index of nil")
 	}
@@ -159,7 +207,7 @@ func indexElector(obj orm.Object) (bytes []byte, e error) {
 	return v.Elector.Signature, nil
 }
 
-func indexProposal(obj orm.Object) (bytes []byte, e error) {
+func indexProposal(obj orm.Object) ([]byte, error) {
 	if obj == nil {
 		return nil, errors.Wrap(errors.ErrHuman, "cannot take index of nil")
 	}

@@ -112,7 +112,7 @@ func TestInitFromGenesis(t *testing.T) {
 
 	// and then
 	// first election rule ok
-	r, err := NewElectionRulesBucket().GetElectionRule(db, weavetest.SequenceID(1))
+	r, err := NewElectionRulesBucket().GetLatestElectionRule(db, weavetest.SequenceID(1))
 	if err != nil || r == nil {
 		t.Fatalf("unexpected result: error: %s", err)
 	}
@@ -126,7 +126,7 @@ func TestInitFromGenesis(t *testing.T) {
 		t.Errorf("expected %v but got %v", exp, got)
 	}
 	// second election rule ok
-	r, err = NewElectionRulesBucket().GetElectionRule(db, weavetest.SequenceID(2))
+	r, err = NewElectionRulesBucket().GetLatestElectionRule(db, weavetest.SequenceID(2))
 	if err != nil || r == nil {
 		t.Fatalf("unexpected result: error: %s", err)
 	}

@@ -2,6 +2,8 @@ package orm
 
 import (
 	"bytes"
+	"fmt"
+	"regexp"
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
@@ -15,6 +17,13 @@ type Indexer func(Object) ([]byte, error)
 // MultiKeyIndexer calculates the secondary index keys for a given object
 type MultiKeyIndexer func(Object) ([][]byte, error)
 
+type RawIndex interface {
+	GetAt(db weave.ReadOnlyKVStore, index []byte) ([][]byte, error)
+	GetPrefix(db weave.ReadOnlyKVStore, prefix []byte) ([][]byte, error)
+	GetLike(db weave.ReadOnlyKVStore, pattern Object) ([][]byte, error)
+	Update(db weave.KVStore, prev Object, save Object) error
+}
+
 // Index represents a secondary index on some data.
 // It is indexed by an arbitrary key returned by Indexer.
 // The value is one primary key (unique),
@@ -24,33 +33,34 @@ type Index struct {
 	id     []byte
 	unique bool
 	index  MultiKeyIndexer
-	refKey func([]byte) []byte
+	//refKey func([]byte) []byte
 }
 
-var _ weave.QueryHandler = Index{}
+var _ weave.QueryHandler = IndexQueryAdapter{}
 
 // NewIndex constructs an index with single key Indexer.
 // Indexer calculates the index for an object
 // unique enforces a unique constraint on the index
 // refKey calculates the absolute dbkey for a ref
-func NewIndex(name string, indexer Indexer, unique bool,
-	refKey func([]byte) []byte) Index {
-	return NewMultiKeyIndex(name, asMultiKeyIndexer(indexer), unique, refKey)
+func NewIndex(name string, indexer Indexer, unique bool) Index {
+	return NewMultiKeyIndex(name, asMultiKeyIndexer(indexer), unique)
 }
+
+var validIndexName = regexp.MustCompile("^[a-z_]{2,20}$").MatchString
 
 // NewMultiKeyIndex constructs an index with multi key indexer.
 // Indexer calculates the index for an object
 // unique enforces a unique constraint on the index
 // refKey calculates the absolute dbkey for a ref
-func NewMultiKeyIndex(name string, indexer MultiKeyIndexer, unique bool,
-	refKey func([]byte) []byte) Index {
-	// TODO: index name must be [a-z_]
+func NewMultiKeyIndex(name string, indexer MultiKeyIndexer, unique bool) Index {
+	if !validIndexName(name) {
+		panic(fmt.Sprint("Illegal index name: ", name))
+	}
 	return Index{
 		name:   name,
 		id:     append(indPrefix, []byte(name+":")...),
 		index:  indexer,
 		unique: unique,
-		refKey: refKey,
 	}
 }
 
@@ -195,8 +205,18 @@ func (i Index) GetPrefix(db weave.ReadOnlyKVStore, prefix []byte) ([][]byte, err
 	return data, nil
 }
 
+// GetName returns the index name.
+func (i Index) GetName() string {
+	return i.name
+}
+
+type IndexQueryAdapter struct {
+	RawIndex
+	bucket Bucket
+}
+
 // Query handles queries from the QueryRouter
-func (i Index) Query(db weave.ReadOnlyKVStore, mod string,
+func (i IndexQueryAdapter) Query(db weave.ReadOnlyKVStore, mod string,
 	data []byte) ([]weave.Model, error) {
 
 	switch mod {
@@ -217,7 +237,7 @@ func (i Index) Query(db weave.ReadOnlyKVStore, mod string,
 	}
 }
 
-func (i Index) loadRefs(db weave.ReadOnlyKVStore,
+func (i IndexQueryAdapter) loadRefs(db weave.ReadOnlyKVStore,
 	refs [][]byte) []weave.Model {
 
 	if len(refs) == 0 {
@@ -225,7 +245,7 @@ func (i Index) loadRefs(db weave.ReadOnlyKVStore,
 	}
 	res := make([]weave.Model, len(refs))
 	for j, ref := range refs {
-		key := i.refKey(ref)
+		key := i.bucket.DBKey(ref)
 		res[j] = weave.Model{
 			Key:   key,
 			Value: db.Get(key),

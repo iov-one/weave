@@ -24,8 +24,8 @@ func count(obj Object) ([]byte, error) {
 }
 
 func TestCounterSingleKeyIndex(t *testing.T) {
-	multi := NewIndex("likes", count, false, nil)
-	uniq := NewIndex("magic", count, true, nil)
+	multi := NewIndex("likes", count, false)
+	uniq := NewIndex("magic", count, true)
 
 	// some keys to use
 	k1 := []byte("abc")
@@ -116,7 +116,7 @@ func TestCounterSingleKeyIndex(t *testing.T) {
 }
 
 func TestCounterMultiKeyIndex(t *testing.T) {
-	uniq := NewMultiKeyIndex("unique", evenOddIndexer, true, nil)
+	uniq := NewMultiKeyIndex("unique", evenOddIndexer, true)
 
 	specs := []struct {
 		index               Index
@@ -157,7 +157,7 @@ func TestCounterMultiKeyIndex(t *testing.T) {
 			expError: true,
 		},
 		{ // update without unique constraint
-			index:    NewMultiKeyIndex("multi", evenOddIndexer, false, nil),
+			index:    NewMultiKeyIndex("multi", evenOddIndexer, false),
 			store:    NewSimpleObj([]byte("even"), NewCounter(8)),
 			prev:     NewSimpleObj([]byte("my"), NewCounter(5)),
 			next:     NewSimpleObj([]byte("my"), NewCounter(6)),
@@ -223,7 +223,7 @@ func TestCounterMultiKeyIndex(t *testing.T) {
 
 func TestGetLikeWithMultiKeyIndex(t *testing.T) {
 	db := store.MemStore()
-	idx := NewMultiKeyIndex("multi", evenOddIndexer, false, nil)
+	idx := NewMultiKeyIndex("multi", evenOddIndexer, false)
 
 	persistentObjects := []Object{
 		NewSimpleObj([]byte("firstOdd"), NewCounter(5)),
@@ -317,7 +317,7 @@ func checkNil(t *testing.T, objs ...Object) {
 // TestNullableIndex ensures we don't write indexes for nil values
 // is that all wanted??
 func TestNullableIndex(t *testing.T) {
-	uniq := NewIndex("no-null", first, true, nil)
+	uniq := NewIndex("no_null", first, true)
 
 	// some keys to use
 	k1 := []byte("abc")
