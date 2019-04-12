@@ -58,7 +58,7 @@ ifndef $(shell command -v prototool help > /dev/null)
 endif
 	prototool lint
 
-protoc: protodocs
+protoc: #protodocs
 	protoc --gogofaster_out=. $(PROTOC_FLAGS) app/*.proto
 	protoc --gogofaster_out=. $(PROTOC_FLAGS) coin/*.proto
 	protoc --gogofaster_out=. $(PROTOC_FLAGS) crypto/*.proto

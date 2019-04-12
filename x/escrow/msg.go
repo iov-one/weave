@@ -65,11 +65,11 @@ func NewCreateMsg(
 
 // Validate makes sure that this is sensible
 func (m *CreateEscrowMsg) Validate() error {
-	if m.Arbiter == nil {
-		return errors.Wrap(errors.ErrEmpty, "arbiter")
+	if err := m.Arbiter.Validate(); err != nil {
+		return errors.Wrap(err, "arbiter")
 	}
-	if m.Recipient == nil {
-		return errors.Wrap(errors.ErrEmpty, "recipient")
+	if err := m.Recipient.Validate(); err != nil {
+		return errors.Wrap(err, "recipient")
 	}
 	if m.Timeout == 0 {
 		// Zero timeout is a valid value that dates to 1970-01-01. We
@@ -86,10 +86,7 @@ func (m *CreateEscrowMsg) Validate() error {
 	if err := validateAmount(m.Amount); err != nil {
 		return err
 	}
-	if err := validateConditions(m.Arbiter); err != nil {
-		return err
-	}
-	return validateAddresses(m.Src, m.Recipient)
+	return nil
 }
 
 // Validate makes sure that this is sensible
@@ -116,13 +113,10 @@ func (m *UpdateEscrowPartiesMsg) Validate() error {
 	if err != nil {
 		return err
 	}
-	if m.Arbiter == nil &&
-		m.Sender == nil &&
-		m.Recipient == nil {
+	if m.Arbiter == nil && m.Sender == nil && m.Recipient == nil {
 		return errors.Wrap(errors.ErrEmpty, "all conditions")
 	}
-	err = validateConditions(m.Arbiter)
-	if err != nil {
+	if err := validateConditions(m.Arbiter); err != nil {
 		return err
 	}
 	return validateAddresses(m.Sender, m.Recipient)

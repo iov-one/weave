@@ -32,10 +32,10 @@ func (s *SendMsg) Validate() error {
 	if err := amt.Validate(); err != nil {
 		return err
 	}
-	if err := weave.Address(s.Src).Validate(); err != nil {
+	if err := s.Src.Validate(); err != nil {
 		return err
 	}
-	if err := weave.Address(s.Dest).Validate(); err != nil {
+	if err := s.Dest.Validate(); err != nil {
 		return err
 	}
 	if len(s.GetMemo()) > maxMemoSize {
