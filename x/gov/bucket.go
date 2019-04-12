@@ -82,13 +82,13 @@ func (b *ElectionRulesBucket) GetElectionRule(db weave.KVStore, id []byte) (*Ele
 	return rev, nil
 }
 
-// TextProposalBucket is the persistent bucket for TextProposal objects.
+// ProposalBucket is the persistent bucket for governance proposal objects.
 type ProposalBucket struct {
 	orm.Bucket
 	idSeq orm.Sequence
 }
 
-// NewRevenueBucket returns a bucket for managing electorate.
+// NewProposalBucket returns a bucket for managing electorate.
 func NewProposalBucket() *ProposalBucket {
 	b := orm.NewBucket("proposal", orm.NewSimpleObj(nil, &TextProposal{}))
 	return &ProposalBucket{
@@ -104,7 +104,7 @@ func (b *ProposalBucket) Build(db weave.KVStore, e *TextProposal) orm.Object {
 	return orm.NewSimpleObj(key, e)
 }
 
-// GetElectionRule loads the electorate for the given id. If it does not exist then ErrNotFound is returned.
+// GetTextProposal loads the proposal for the given id. If it does not exist then ErrNotFound is returned.
 func (b *ProposalBucket) GetTextProposal(db weave.KVStore, id []byte) (*TextProposal, error) {
 	obj, err := b.Get(db, id)
 	if err != nil {
@@ -126,4 +126,66 @@ func (b *ProposalBucket) Update(db weave.KVStore, id []byte, obj *TextProposal) 
 		return errors.Wrap(err, "failed to save")
 	}
 	return nil
+}
+
+// VoteBucket is the persistence bucket.
+type VoteBucket struct {
+	orm.Bucket
+}
+
+const (
+	indexNameProposal = "proposal"
+	indexNameElector  = "elector"
+)
+
+// NewProposalBucket returns a bucket for managing electorate.
+func NewVoteBucket() *VoteBucket {
+	b := orm.NewBucket("vote", orm.NewSimpleObj(nil, &Vote{})).
+		WithIndex(indexNameProposal, indexProposal, false).
+		WithIndex(indexNameElector, indexElector, false)
+	return &VoteBucket{
+		Bucket: b,
+	}
+}
+
+func indexElector(obj orm.Object) (bytes []byte, e error) {
+	if obj == nil {
+		return nil, errors.Wrap(errors.ErrHuman, "cannot take index of nil")
+	}
+	v, ok := obj.Value().(*Vote)
+	if !ok {
+		return nil, errors.Wrap(errors.ErrHuman, "Can only take index of Vote")
+	}
+	return v.Elector.Signature, nil
+}
+
+func indexProposal(obj orm.Object) (bytes []byte, e error) {
+	if obj == nil {
+		return nil, errors.Wrap(errors.ErrHuman, "cannot take index of nil")
+	}
+	compositeKey := obj.Key()
+	if len(compositeKey) <= weave.AddressLength {
+		return nil, errors.Wrap(errors.ErrInvalidInput, "unsupported key type")
+	}
+	proposalID := compositeKey[weave.AddressLength:]
+	return proposalID, nil
+}
+
+// Build creates the orm object without storing it.
+func (b *VoteBucket) Build(db weave.KVStore, proposalID []byte, vote Vote) orm.Object {
+	compositeKey := compositeKey(proposalID, vote.Elector.Signature)
+	return orm.NewSimpleObj(compositeKey, &vote)
+}
+
+func compositeKey(proposalID []byte, address weave.Address) []byte {
+	return append(address, proposalID...)
+}
+
+// HasVoted checks the bucket if any vote matching elector address and proposal id was stored.
+func (b *VoteBucket) HasVoted(db weave.KVStore, proposalID []byte, addr weave.Address) (bool, error) {
+	obj, err := b.Get(db, compositeKey(proposalID, addr))
+	if err != nil {
+		return false, errors.Wrap(err, "failed to load vote")
+	}
+	return obj != nil && obj.Value() != nil, nil
 }

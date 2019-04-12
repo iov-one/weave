@@ -23,9 +23,10 @@ const (
 
 // RegisterQuery registers governance buckets for querying.
 func RegisterQuery(qr weave.QueryRouter) {
-	NewElectionRulesBucket().Register("electionrules", qr)
+	NewElectionRulesBucket().Register("electionRules", qr)
 	NewElectorateBucket().Register("electorates", qr)
 	NewProposalBucket().Register("proposal", qr)
+	NewVoteBucket().Register("vote", qr)
 }
 
 // RegisterRoutes registers handlers for governance message processing.
@@ -36,6 +37,7 @@ func RegisterRoutes(r weave.Registry, auth x.Authenticator) {
 		auth:       auth,
 		propBucket: propBucket,
 		elecBucket: elecBucket,
+		voteBucket: NewVoteBucket(),
 	})
 	r.Handle(pathTallyMsg, &TallyHandler{
 		auth:   auth,
@@ -53,6 +55,7 @@ type VoteHandler struct {
 	auth       x.Authenticator
 	elecBucket *ElectorateBucket
 	propBucket *ProposalBucket
+	voteBucket *VoteBucket
 }
 
 func (h VoteHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (weave.CheckResult, error) {
@@ -67,17 +70,21 @@ func (h VoteHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (we
 
 func (h VoteHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (weave.DeliverResult, error) {
 	var res weave.DeliverResult
-	vote, proposal, elector, err := h.validate(ctx, db, tx)
+	voteMsg, proposal, vote, err := h.validate(ctx, db, tx)
 	if err != nil {
 		return res, err
 	}
-	if err := proposal.Vote(vote.Selected, *elector); err != nil {
+
+	if err := proposal.CountVote(*vote); err != nil {
 		return res, err
 	}
-	return res, h.propBucket.Update(db, vote.ProposalID, proposal)
+	if err = h.voteBucket.Save(db, h.voteBucket.Build(db, voteMsg.ProposalID, *vote)); err != nil {
+		return res, errors.Wrap(err, "failed to store vote")
+	}
+	return res, h.propBucket.Update(db, voteMsg.ProposalID, proposal)
 }
 
-func (h VoteHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*VoteMsg, *TextProposal, *Elector, error) {
+func (h VoteHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*VoteMsg, *TextProposal, *Vote, error) {
 	var msg VoteMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, nil, nil, errors.Wrap(err, "load msg")
@@ -101,8 +108,10 @@ func (h VoteHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) 
 	if voter == nil {
 		voter = x.MainSigner(ctx, h.auth).Address()
 	}
-
-	if proposal.HasVoted(voter) {
+	switch v, err := h.voteBucket.HasVoted(db, msg.ProposalID, voter); {
+	case err != nil:
+		return nil, nil, nil, errors.Wrap(err, "failed to load vote")
+	case v:
 		return nil, nil, nil, errors.Wrap(errors.ErrInvalidState, "already voted")
 	}
 
@@ -115,7 +124,11 @@ func (h VoteHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) 
 	if !ok {
 		return nil, nil, nil, errors.Wrap(errors.ErrUnauthorized, "not in participants list")
 	}
-	return &msg, proposal, elector, nil
+	vote := &Vote{Elector: *elector, Voted: msg.Selected}
+	if err := vote.Validate(); err != nil {
+		return nil, nil, nil, err
+	}
+	return &msg, proposal, vote, nil
 }
 
 type TallyHandler struct {

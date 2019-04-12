@@ -268,6 +268,47 @@ func TestTextProposalValidation(t *testing.T) {
 	}
 }
 
+func TestVoteValidate(t *testing.T) {
+	specs := map[string]struct {
+		Src Vote
+		Exp *errors.Error
+	}{
+		"All good": {
+			Src: Vote{
+				Voted:   VoteOption_Yes,
+				Elector: Elector{Signature: bobby, Weight: 10},
+			},
+		},
+		"Voted option missing": {
+			Src: Vote{Elector: Elector{Signature: bobby, Weight: 10}},
+			Exp: errors.ErrInvalidInput,
+		},
+		"Elector missing": {
+			Src: Vote{Voted: VoteOption_Yes},
+			Exp: errors.ErrInvalidInput,
+		},
+		"Elector's weight missing": {
+			Src: Vote{Voted: VoteOption_Yes, Elector: Elector{Signature: bobby}},
+			Exp: errors.ErrInvalidInput,
+		},
+		"Elector's signature missing": {
+			Src: Vote{Voted: VoteOption_Yes, Elector: Elector{Weight: 1}},
+			Exp: errors.ErrInvalidInput,
+		},
+		"Invalid option": {
+			Src: Vote{Voted: VoteOption_Invalid, Elector: Elector{Signature: bobby, Weight: 1}},
+			Exp: errors.ErrInvalidInput,
+		},
+	}
+	for msg, spec := range specs {
+		t.Run(msg, func(t *testing.T) {
+			if exp, got := spec.Exp, spec.Src.Validate(); !exp.Is(got) {
+				t.Errorf("expected %v but got %v", exp, got)
+			}
+		})
+	}
+}
+
 func textProposalFixture(mods ...func(*TextProposal)) TextProposal {
 	now := weave.AsUnixTime(time.Now())
 	proposal := TextProposal{
