@@ -8,48 +8,20 @@ import (
 
 // ElectorateBucket is the persistent bucket for Electorate object.
 type ElectorateBucket struct {
-	Bucket
+	orm.VersioningBucket
 	idSeq orm.Sequence
 }
 
 // NewRevenueBucket returns a bucket for managing electorate.
 func NewElectorateBucket() *ElectorateBucket {
-	b := VersioningBucket(orm.NewBucket("electorate", orm.NewSimpleObj(nil, &Electorate{})))
+	b := orm.WithVersioning(orm.NewBucket("electorate", orm.NewSimpleObj(nil, &Electorate{})))
 	//WithIndex("id", indexID, false).
 	//WithIndex("version", indexVersion, false).
 
 	return &ElectorateBucket{
-		Bucket: b,
-		idSeq:  b.Sequence("id"),
+		VersioningBucket: b,
+		idSeq:            b.Sequence("id"),
 	}
-}
-
-const indexName = "latest"
-
-type Bucket struct {
-	// todo: do not shadow orm.bucket
-	orm.Bucket
-}
-
-func VersioningBucket(b orm.Bucket) Bucket {
-	return Bucket{b.WithRawIndex(orm.NewVersionIndex(b.MustBuildInternalIndexName(indexName)), indexName)}
-}
-
-func (b Bucket) GetLatestVersion(db weave.ReadOnlyKVStore, id []byte) (orm.Object, error) {
-	objs, err := b.Bucket.GetIndexed(db, indexName, id)
-	switch {
-	case err != nil:
-		return nil, errors.Wrapf(err, "failed to load object with index: %q", indexName)
-	case len(objs) == 0:
-		return nil, errors.Wrap(errors.ErrNotFound, "unknown id")
-	case len(objs) == 1:
-		return objs[0], nil
-	}
-	return nil, errors.Wrap(errors.ErrHuman, "multiple values indexed")
-}
-
-func (b Bucket) GetVersion(db weave.ReadOnlyKVStore, id []byte, version uint32) (orm.Object, error) {
-	return b.Get(db, orm.VersionedKey(id, version))
 }
 
 // Build assigns an ID to given electorate instance and returns it as an orm
@@ -92,16 +64,16 @@ func asElectorate(obj orm.Object) (*Electorate, error) {
 
 // NewElectionRulesBucket is the persistent bucket for ElectionRules .
 type ElectionRulesBucket struct {
-	Bucket
+	orm.VersioningBucket
 	idSeq orm.Sequence
 }
 
 // NewElectionRulesBucket returns a bucket for managing election rules.
 func NewElectionRulesBucket() *ElectionRulesBucket {
-	b := VersioningBucket(orm.NewBucket("electnrule", orm.NewSimpleObj(nil, &ElectionRule{})))
+	b := orm.WithVersioning(orm.NewBucket("electnrule", orm.NewSimpleObj(nil, &ElectionRule{})))
 	return &ElectionRulesBucket{
-		Bucket: b,
-		idSeq:  b.Sequence("id"),
+		VersioningBucket: b,
+		idSeq:            b.Sequence("id"),
 	}
 }
 
