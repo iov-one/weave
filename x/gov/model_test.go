@@ -7,6 +7,7 @@ import (
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/weavetest"
 )
 
@@ -234,13 +235,13 @@ func TestTextProposalValidation(t *testing.T) {
 		},
 		"ElectorateID missing": {
 			Src: textProposalFixture(func(p *TextProposal) {
-				p.ElectorateID = nil
+				p.ElectorateRef = orm.VersionedIDRef{}
 			}),
 			Exp: errors.ErrInvalidInput,
 		},
 		"ElectionRuleID missing": {
 			Src: textProposalFixture(func(p *TextProposal) {
-				p.ElectionRuleID = nil
+				p.ElectionRuleRef = orm.VersionedIDRef{}
 			}),
 			Exp: errors.ErrInvalidInput,
 		},
@@ -312,17 +313,15 @@ func TestVoteValidate(t *testing.T) {
 func textProposalFixture(mods ...func(*TextProposal)) TextProposal {
 	now := weave.AsUnixTime(time.Now())
 	proposal := TextProposal{
-		Title:               "My proposal",
-		Description:         "My description",
-		ElectionRuleID:      weavetest.SequenceID(1),
-		ElectionRuleVersion: 1,
-		ElectorateID:        weavetest.SequenceID(1),
-		ElectorateVersion:   1,
-		VotingStartTime:     now.Add(-1 * time.Minute),
-		VotingEndTime:       now.Add(time.Minute),
-		SubmissionTime:      now.Add(-1 * time.Hour),
-		Status:              TextProposal_Undefined,
-		Author:              alice,
+		Title:           "My proposal",
+		Description:     "My description",
+		ElectionRuleRef: orm.VersionedIDRef{ID: weavetest.SequenceID(1), Version: 1},
+		ElectorateRef:   orm.VersionedIDRef{ID: weavetest.SequenceID(1), Version: 1},
+		VotingStartTime: now.Add(-1 * time.Minute),
+		VotingEndTime:   now.Add(time.Minute),
+		SubmissionTime:  now.Add(-1 * time.Hour),
+		Status:          TextProposal_Undefined,
+		Author:          alice,
 	}
 	for _, mod := range mods {
 		if mod != nil {

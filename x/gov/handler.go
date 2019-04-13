@@ -5,6 +5,7 @@ import (
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/x"
 	"github.com/tendermint/tendermint/libs/common"
 )
@@ -118,7 +119,7 @@ func (h VoteHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) 
 	if voter == nil {
 		voter = x.MainSigner(ctx, h.auth).Address()
 	}
-	electorate, err := h.elecBucket.GetElectorateVersion(db, proposal.ElectorateID, proposal.ElectorateVersion)
+	electorate, err := h.elecBucket.GetElectorateVersion(db, proposal.ElectorateRef)
 	if err != nil {
 		return nil, nil, nil, errors.Wrap(err, "failed to load electorate")
 	}
@@ -216,16 +217,14 @@ func (h TextProposalHandler) Deliver(ctx weave.Context, db weave.KVStore, tx wea
 	blockTime, _ := weave.BlockTime(ctx)
 
 	proposal := &TextProposal{
-		Title:               msg.Title,
-		Description:         msg.Description,
-		ElectionRuleID:      msg.ElectionRuleID,
-		ElectionRuleVersion: rules.Version,
-		ElectorateID:        msg.ElectorateID,
-		ElectorateVersion:   electorate.Version,
-		VotingStartTime:     msg.StartTime,
-		VotingEndTime:       msg.StartTime.Add(time.Duration(rules.VotingPeriodHours) * time.Hour),
-		SubmissionTime:      weave.AsUnixTime(blockTime),
-		Author:              msg.Author,
+		Title:           msg.Title,
+		Description:     msg.Description,
+		ElectionRuleRef: orm.VersionedIDRef{ID: msg.ElectionRuleID, Version: rules.Version},
+		ElectorateRef:   orm.VersionedIDRef{ID: msg.ElectorateID, Version: electorate.Version},
+		VotingStartTime: msg.StartTime,
+		VotingEndTime:   msg.StartTime.Add(time.Duration(rules.VotingPeriodHours) * time.Hour),
+		SubmissionTime:  weave.AsUnixTime(blockTime),
+		Author:          msg.Author,
 		VoteResult: TallyResult{
 			TotalWeightElectorate: electorate.TotalWeightElectorate,
 			Threshold:             rules.Threshold,

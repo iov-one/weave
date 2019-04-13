@@ -28,9 +28,13 @@ func NewElectorateBucket() *ElectorateBucket {
 // Object. It does not persist the object in the store.
 func (b *ElectorateBucket) Build(db weave.KVStore, e *Electorate) orm.Object {
 	newID := b.idSeq.NextVal(db)
-	e.ID = newID
 	e.Version = 1
-	return orm.NewSimpleObj(orm.VersionedKey(newID, e.Version), e)
+	idRef := &orm.VersionedIDRef{ID: newID, Version: e.Version}
+	key, err := idRef.Marshal()
+	if err != nil {
+		panic(err) //TOOD: return err
+	}
+	return orm.NewSimpleObj(key, e)
 }
 
 // GetElectorate loads the latest electorate for the given id. If none exist for the id then ErrNotFound is returned.
@@ -43,8 +47,8 @@ func (b *ElectorateBucket) GetElectorate(db weave.KVStore, id []byte) (*Electora
 }
 
 // GetElectorateVersion
-func (b *ElectorateBucket) GetElectorateVersion(db weave.KVStore, id []byte, version uint32) (*Electorate, error) {
-	obj, err := b.GetVersion(db, id, version)
+func (b *ElectorateBucket) GetElectorateVersion(db weave.KVStore, ref orm.VersionedIDRef) (*Electorate, error) {
+	obj, err := b.GetVersion(db, ref)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to load electorate")
 	}
@@ -81,9 +85,13 @@ func NewElectionRulesBucket() *ElectionRulesBucket {
 // Object. It does not persist the object in the store.
 func (b *ElectionRulesBucket) Build(db weave.KVStore, r *ElectionRule) orm.Object {
 	newID := b.idSeq.NextVal(db)
-	r.ID = newID
 	r.Version = 1
-	return orm.NewSimpleObj(orm.VersionedKey(newID, r.Version), r)
+	idRef := &orm.VersionedIDRef{ID: newID, Version: r.Version}
+	key, err := idRef.Marshal()
+	if err != nil {
+		panic(err) //TOOD: return err
+	}
+	return orm.NewSimpleObj(key, r)
 }
 
 // GetLatestElectionRule loads the electorate for the given id. If it does not exist then ErrNotFound is returned.

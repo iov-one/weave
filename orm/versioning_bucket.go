@@ -29,6 +29,10 @@ func (b VersioningBucket) GetLatestVersion(db weave.ReadOnlyKVStore, id []byte) 
 	return nil, errors.Wrap(errors.ErrHuman, "multiple values indexed")
 }
 
-func (b VersioningBucket) GetVersion(db weave.ReadOnlyKVStore, id []byte, version uint32) (Object, error) {
-	return b.Get(db, VersionedKey(id, version))
+func (b VersioningBucket) GetVersion(db weave.ReadOnlyKVStore, ref VersionedIDRef) (Object, error) {
+	key, err := ref.Marshal()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to unmarshal version id key")
+	}
+	return b.Get(db, key)
 }

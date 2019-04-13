@@ -289,6 +289,10 @@
                   <a href="#orm.MultiRef"><span class="badge">M</span>MultiRef</a>
                 </li>
               
+                <li>
+                  <a href="#orm.VersionedIDRef"><span class="badge">M</span>VersionedIDRef</a>
+                </li>
+              
               
               
               
@@ -1277,6 +1281,36 @@ all Coins of the same currency can be combined </p></td>
                   <td><a href="#bytes">bytes</a></td>
                   <td>repeated</td>
                   <td><p> </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+        
+
+        
+      
+        <h3 id="orm.VersionedIDRef">VersionedIDRef</h3>
+        <p>VersionedID is the combination of document ID and version number.</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>id</td>
+                  <td><a href="#bytes">bytes</a></td>
+                  <td></td>
+                  <td><p>Unique identifier </p></td>
+                </tr>
+              
+                <tr>
+                  <td>version</td>
+                  <td><a href="#uint32">uint32</a></td>
+                  <td></td>
+                  <td><p>Document version, starting with 1. </p></td>
                 </tr>
               
             </tbody>
@@ -3092,13 +3126,6 @@ of the eligible voters. </p></td>
                 </tr>
               
                 <tr>
-                  <td>id</td>
-                  <td><a href="#bytes">bytes</a></td>
-                  <td></td>
-                  <td><p>unique identifier of the Elector. </p></td>
-                </tr>
-              
-                <tr>
                   <td>version</td>
                   <td><a href="#uint32">uint32</a></td>
                   <td></td>
@@ -3170,13 +3197,6 @@ of the eligible voters. </p></td>
                   <td><a href="#uint64">uint64</a></td>
                   <td></td>
                   <td><p>TotalWeightElectorate is the sum of all electors weights. </p></td>
-                </tr>
-              
-                <tr>
-                  <td>id</td>
-                  <td><a href="#bytes">bytes</a></td>
-                  <td></td>
-                  <td><p>unique identifier of the electorate. </p></td>
                 </tr>
               
                 <tr>
@@ -3322,31 +3342,17 @@ proposal this value must be exceeded. </p></td>
                 </tr>
               
                 <tr>
-                  <td>election_rule_version_id</td>
-                  <td><a href="#bytes">bytes</a></td>
+                  <td>election_rule_ref</td>
+                  <td><a href="#orm.VersionedIDRef">orm.VersionedIDRef</a></td>
                   <td></td>
                   <td><p>Reference to the election rule </p></td>
                 </tr>
               
                 <tr>
-                  <td>election_rule_version</td>
-                  <td><a href="#uint32">uint32</a></td>
-                  <td></td>
-                  <td><p>The version points to a specific version in the election rule history. </p></td>
-                </tr>
-              
-                <tr>
-                  <td>electorate_id</td>
-                  <td><a href="#bytes">bytes</a></td>
+                  <td>electorate_ref</td>
+                  <td><a href="#orm.VersionedIDRef">orm.VersionedIDRef</a></td>
                   <td></td>
                   <td><p>Reference to the electorate to define the group of possible voters. </p></td>
-                </tr>
-              
-                <tr>
-                  <td>electorate_version</td>
-                  <td><a href="#uint32">uint32</a></td>
-                  <td></td>
-                  <td><p>The version points to a specific version in the electorate history. </p></td>
                 </tr>
               
                 <tr>

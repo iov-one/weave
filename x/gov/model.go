@@ -133,9 +133,9 @@ func (m *TextProposal) Validate() error {
 		return errors.Wrapf(errors.ErrInvalidInput, "description length lower than minimum of: %d", minDescriptionLength)
 	case len(m.Description) > maxDescriptionLength:
 		return errors.Wrapf(errors.ErrInvalidInput, "description length exceeds: %d", maxDescriptionLength)
-	case len(m.ElectorateID) == 0:
+	case len(m.ElectorateRef.ID) == 0:
 		return errors.Wrap(errors.ErrInvalidInput, "empty electorate id")
-	case len(m.ElectionRuleID) == 0:
+	case len(m.ElectionRuleRef.ID) == 0:
 		return errors.Wrap(errors.ErrInvalidInput, "empty election rules id")
 	}
 
@@ -143,15 +143,15 @@ func (m *TextProposal) Validate() error {
 }
 
 func (m TextProposal) Copy() orm.CloneableData {
-	electionRuleID := make([]byte, 0, len(m.ElectionRuleID))
-	copy(electionRuleID, m.ElectionRuleID)
-	electorateID := make([]byte, 0, len(m.ElectorateID))
-	copy(electorateID, m.ElectorateID)
+	electionRuleID := make([]byte, 0, len(m.ElectionRuleRef.ID))
+	copy(electionRuleID, m.ElectionRuleRef.ID)
+	electorateID := make([]byte, 0, len(m.ElectorateRef.ID))
+	copy(electorateID, m.ElectorateRef.ID)
 	return &TextProposal{
 		Title:           m.Title,
 		Description:     m.Description,
-		ElectionRuleID:  electionRuleID,
-		ElectorateID:    electorateID,
+		ElectionRuleRef: orm.VersionedIDRef{ID: electionRuleID, Version: m.ElectionRuleRef.Version},
+		ElectorateRef:   orm.VersionedIDRef{ID: m.ElectorateRef.ID, Version: m.ElectorateRef.Version},
 		VotingStartTime: m.VotingStartTime,
 		VotingEndTime:   m.VotingEndTime,
 		SubmissionTime:  m.SubmissionTime,

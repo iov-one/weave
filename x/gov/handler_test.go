@@ -10,6 +10,7 @@ import (
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/app"
 	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/store"
 	"github.com/iov-one/weave/weavetest"
 	"github.com/tendermint/tendermint/libs/common"
@@ -42,17 +43,15 @@ func TestCreateProposal(t *testing.T) {
 				Author:         bobby,
 			},
 			Exp: TextProposal{
-				Title:               "my proposal",
-				Description:         "my description",
-				ElectionRuleID:      weavetest.SequenceID(1),
-				ElectorateID:        weavetest.SequenceID(1),
-				ElectorateVersion:   1,
-				ElectionRuleVersion: 1,
-				VotingStartTime:     now.Add(time.Hour),
-				VotingEndTime:       now.Add(2 * time.Hour),
-				Status:              TextProposal_Undefined,
-				SubmissionTime:      now,
-				Author:              bobby,
+				Title:           "my proposal",
+				Description:     "my description",
+				ElectionRuleRef: orm.VersionedIDRef{ID: weavetest.SequenceID(1), Version: 1},
+				ElectorateRef:   orm.VersionedIDRef{ID: weavetest.SequenceID(1), Version: 1},
+				VotingStartTime: now.Add(time.Hour),
+				VotingEndTime:   now.Add(2 * time.Hour),
+				Status:          TextProposal_Undefined,
+				SubmissionTime:  now,
+				Author:          bobby,
 				VoteResult: TallyResult{
 					Threshold:             Fraction{Numerator: 1, Denominator: 2},
 					TotalWeightElectorate: 11,
@@ -69,17 +68,15 @@ func TestCreateProposal(t *testing.T) {
 				ElectionRuleID: weavetest.SequenceID(1),
 			},
 			Exp: TextProposal{
-				Title:               "my proposal",
-				Description:         "my description",
-				ElectionRuleID:      weavetest.SequenceID(1),
-				ElectorateID:        weavetest.SequenceID(1),
-				ElectorateVersion:   1,
-				ElectionRuleVersion: 1,
-				VotingStartTime:     now.Add(time.Hour),
-				VotingEndTime:       now.Add(2 * time.Hour),
-				Status:              TextProposal_Undefined,
-				SubmissionTime:      now,
-				Author:              alice,
+				Title:           "my proposal",
+				Description:     "my description",
+				ElectionRuleRef: orm.VersionedIDRef{ID: weavetest.SequenceID(1), Version: 1},
+				ElectorateRef:   orm.VersionedIDRef{ID: weavetest.SequenceID(1), Version: 1},
+				VotingStartTime: now.Add(time.Hour),
+				VotingEndTime:   now.Add(2 * time.Hour),
+				Status:          TextProposal_Undefined,
+				SubmissionTime:  now,
+				Author:          alice,
 				VoteResult: TallyResult{
 					Threshold:             Fraction{Numerator: 1, Denominator: 2},
 					TotalWeightElectorate: 11,

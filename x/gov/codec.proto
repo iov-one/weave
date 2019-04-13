@@ -3,6 +3,8 @@ syntax = "proto3";
 package gov;
 
 import "github.com/gogo/protobuf/gogoproto/gogo.proto";
+import "github.com/iov-one/weave/orm/codec.proto";
+
 
 // Electorate defines who may vote in an election. This same group can be used in many elections
 // and is stored for re-use
@@ -13,10 +15,8 @@ message Electorate {
     repeated Elector electors = 2 [(gogoproto.nullable) = false];
     // TotalWeightElectorate is the sum of all electors weights.
     uint64 total_weight_electorate = 3;
-    // unique identifier of the electorate.
-    bytes id = 4 [(gogoproto.customname) = "ID"];
     // Document version
-    uint32 version = 5;
+    uint32 version = 4;
 
 }
 
@@ -41,10 +41,8 @@ message ElectionRule {
     // The valid range for the threshold value is `0.5` to `1` (inclusive) which allows any value between half and all
     // of the eligible voters.
     Fraction threshold = 4 [(gogoproto.nullable) = false];
-    // unique identifier of the Elector.
-    bytes id = 5 [(gogoproto.customname) = "ID"];
     // Document version
-    uint32 version = 6;
+    uint32 version = 5;
 }
 
 // The Fraction type represents a numerator and denominator to enable higher precision thresholds in
@@ -67,13 +65,9 @@ message TextProposal {
     // Description of the proposal in text form.
     string description = 2;
     // Reference to the election rule
-    bytes election_rule_version_id = 3 [(gogoproto.customname) = "ElectionRuleID"];
-    // The version points to a specific version in the election rule history.
-    uint32 election_rule_version = 12 ;
+    orm.VersionedIDRef election_rule_ref = 3 [(gogoproto.nullable) = false, (gogoproto.customname) = "ElectionRuleRef"];
     // Reference to the electorate to define the group of possible voters.
-    bytes electorate_id = 4 [(gogoproto.customname) = "ElectorateID"];
-    // The version points to a specific version in the electorate history.
-    uint32 electorate_version = 13 ;
+    orm.VersionedIDRef electorate_ref = 4 [(gogoproto.nullable) = false, (gogoproto.customname) = "ElectorateRef"];
     // Unix timestamp of the block where the voting period starts. Header time of the votes must be greater than or equal
     // to this start time.
     int64 voting_start_time = 5 [(gogoproto.casttype) = "github.com/iov-one/weave.UnixTime"];
