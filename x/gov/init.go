@@ -71,8 +71,7 @@ func (*Initializer) FromGenesis(opts weave.Options, db weave.KVStore) error {
 		if err := rule.Validate(); err != nil {
 			return errors.Wrap(err, fmt.Sprintf("eletionRule #%d is invalid", i))
 		}
-		obj := rulesBucket.Build(db, &rule)
-		if err := rulesBucket.Save(db, obj); err != nil {
+		if _, err := rulesBucket.Create(db, &rule); err != nil {
 			return err
 		}
 	}

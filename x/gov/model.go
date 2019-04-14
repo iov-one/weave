@@ -102,6 +102,10 @@ func (m ElectionRule) Copy() orm.CloneableData {
 	}
 }
 
+func (m *ElectionRule) SetVersion(v uint32) {
+	m.Version = v
+}
+
 func (m Fraction) Validate() error {
 	switch {
 	case m.Numerator == 0:

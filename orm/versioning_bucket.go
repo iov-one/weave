@@ -8,7 +8,6 @@ import (
 const latestVersionIndexName = "latest"
 
 type VersioningBucket struct {
-	// todo: do not shadow bucket
 	Bucket
 }
 

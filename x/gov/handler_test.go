@@ -542,11 +542,11 @@ func withProposal(t *testing.T, db store.CacheableKVStore, ctx weave.Context, mo
 	}
 	// setup election rules
 	rulesBucket := NewElectionRulesBucket()
-	err = rulesBucket.Save(db, rulesBucket.Build(db, &ElectionRule{
+	_, err = rulesBucket.Create(db, &ElectionRule{
 		Title:             "barr",
 		VotingPeriodHours: 1,
 		Threshold:         Fraction{1, 2},
-	}))
+	})
 	if err != nil {
 		t.Fatalf("unexpected error: %+v", err)
 	}
