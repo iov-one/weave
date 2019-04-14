@@ -56,8 +56,7 @@ func (*Initializer) FromGenesis(opts weave.Options, db weave.KVStore) error {
 		if err := electorate.Validate(); err != nil {
 			return errors.Wrap(err, fmt.Sprintf("electorate #%d is invalid", i))
 		}
-		obj := electBucket.Build(db, &electorate)
-		if err := electBucket.Save(db, obj); err != nil {
+		if _, err := electBucket.Create(db, &electorate); err != nil {
 			return err
 		}
 	}

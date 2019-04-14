@@ -50,6 +50,10 @@ func (m Electorate) Copy() orm.CloneableData {
 	}
 }
 
+func (m *Electorate) SetVersion(v uint32) {
+	m.Version = v
+}
+
 // Weight return the weight for the given address is in the electors list and an ok flag which
 // is true when the address exists in the electors list only.
 func (m Electorate) Elector(a weave.Address) (*Elector, bool) {

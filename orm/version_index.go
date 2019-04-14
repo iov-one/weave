@@ -7,13 +7,18 @@ import (
 	"github.com/iov-one/weave/errors"
 )
 
+type bucketGetter interface {
+	Get(db weave.ReadOnlyKVStore, key []byte) (Object, error)
+}
 type VersionIndex struct {
-	idx Index
+	idx    Index
+	bucket bucketGetter
 }
 
-func NewVersionIndex(name string) *VersionIndex {
+func NewVersionIndex(name string, b bucketGetter) *VersionIndex {
 	return &VersionIndex{
-		idx: NewIndex(name, nil, true),
+		idx:    NewIndex(name, nil, true),
+		bucket: b,
 	}
 }
 func (i VersionIndex) GetAt(db weave.ReadOnlyKVStore, index []byte) ([][]byte, error) {
@@ -44,45 +49,46 @@ func (i VersionIndex) Update(db weave.KVStore, prev Object, save Object) error {
 	switch sw {
 	case s{true, true}:
 		return errors.Wrap(errors.ErrHuman, "update requires at least one non-nil object")
-	case s{true, false}: // delete
+	case s{true, false}: // insert
 		idRef, err := versionID(save)
 		if err != nil {
 			return err
 		}
-		return i.idx.insert(db, idRef.ID, save.Key())
-	case s{false, true}: // insert
-		idRef, err := versionID(prev)
-		if err != nil {
-			return err
-		}
-		if v := db.Get(idRef.ID); v != nil {
-			return errors.ErrDuplicate
-		}
-		// TODO: revisit this: store empty ref key to mark deleted or drop value but that is not the same as never existed before
-		return i.move(db, idRef.ID, prev.Key(), []byte{})
-	case s{false, false}: // update
-		prevVersionID, err := versionID(prev)
-		if err != nil {
-			return err
-		}
-		saveVersionID, err := versionID(save)
+		objs, err := i.idx.GetAt(db, idRef.ID)
 		switch {
 		case err != nil:
 			return err
-		case !bytes.Equal(prevVersionID.ID, saveVersionID.ID):
+		case len(objs) == 0: // no existing entry
+			// then insert
+			return i.idx.insert(db, idRef.ID, save.Key())
+		case len(objs) != 1:
+			return errors.Wrap(errors.ErrHuman, "multiple values stored for index key")
+		}
+		// otherwise replace existing entry
+		obj, err := i.bucket.Get(db, objs[0])
+		switch {
+		case err != nil:
+			return err
+		case obj == nil:
+			return errors.Wrap(errors.ErrNotFound, "index references a non existing obj")
+		}
+		latest, err := versionID(obj)
+		switch {
+		case err != nil:
+			return err
+		case !bytes.Equal(latest.ID, idRef.ID):
 			return errors.Wrap(errors.ErrHuman, "non matching IDs")
-		case prevVersionID.Version >= saveVersionID.Version:
+		case latest.Version >= idRef.Version:
 			return errors.Wrap(errors.ErrHuman, "version not greater than previous")
 		}
-		return i.move(db, prevVersionID.ID, prev.Key(), save.Key())
+		return i.move(db, idRef.ID, obj.Key(), save.Key())
+	case s{false, false}: // update
+		return errors.Wrap(errors.ErrHuman, "create new version instead of update")
 	}
 	return errors.Wrap(errors.ErrHuman, "you have violated the rules of boolean logic")
 }
 
 func (i VersionIndex) move(db weave.KVStore, id []byte, prevKey []byte, newKey []byte) error {
-	if v := db.Get(id); v != nil {
-		return errors.ErrDuplicate
-	}
 	if err := i.idx.remove(db, id, prevKey); err != nil {
 		return err
 	}

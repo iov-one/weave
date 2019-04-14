@@ -8,8 +8,8 @@ import (
 
 // ElectorateBucket is the persistent bucket for Electorate object.
 type ElectorateBucket struct {
-	orm.VersioningBucket
-	idSeq orm.Sequence
+	vBucket orm.VersioningBucket
+	idSeq   orm.Sequence
 }
 
 // NewRevenueBucket returns a bucket for managing electorate.
@@ -19,27 +19,27 @@ func NewElectorateBucket() *ElectorateBucket {
 	//WithIndex("version", indexVersion, false).
 
 	return &ElectorateBucket{
-		VersioningBucket: b,
-		idSeq:            b.Sequence("id"),
+		vBucket: b,
+		idSeq:   b.Sequence("id"),
 	}
 }
 
-// Build assigns an ID to given electorate instance and returns it as an orm
+// Create assigns an ID to given electorate instance and returns it as an orm
 // Object. It does not persist the object in the store.
-func (b *ElectorateBucket) Build(db weave.KVStore, e *Electorate) orm.Object {
-	newID := b.idSeq.NextVal(db)
-	e.Version = 1
-	idRef := &orm.VersionedIDRef{ID: newID, Version: e.Version}
-	key, err := idRef.Marshal()
-	if err != nil {
-		panic(err) //TOOD: return err
+func (b *ElectorateBucket) Create(db weave.KVStore, e *Electorate) (orm.Object, error) {
+	if e.Version != 0 {
+		return nil, errors.Wrap(errors.ErrInvalidInput, "version must be 0 on create")
 	}
-	return orm.NewSimpleObj(key, e)
+	obj, err := b.vBucket.Build(db, b.idSeq.NextVal(db), e)
+	if err != nil {
+		return nil, err
+	}
+	return obj, b.vBucket.Save(db, obj)
 }
 
 // GetElectorate loads the latest electorate for the given id. If none exist for the id then ErrNotFound is returned.
 func (b *ElectorateBucket) GetElectorate(db weave.KVStore, id []byte) (*Electorate, error) {
-	obj, err := b.GetLatestVersion(db, id)
+	obj, err := b.vBucket.GetLatestVersion(db, id)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to load electorate")
 	}
@@ -48,11 +48,25 @@ func (b *ElectorateBucket) GetElectorate(db weave.KVStore, id []byte) (*Electora
 
 // GetElectorateVersion
 func (b *ElectorateBucket) GetElectorateVersion(db weave.KVStore, ref orm.VersionedIDRef) (*Electorate, error) {
-	obj, err := b.GetVersion(db, ref)
+	obj, err := b.vBucket.GetVersion(db, ref)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to load electorate")
 	}
 	return asElectorate(obj)
+}
+
+func (b *ElectorateBucket) Update(db weave.KVStore, oldKey orm.VersionedIDRef, elect *Electorate) (orm.VersionedIDRef, error) {
+	if elect.Version != oldKey.Version {
+		return oldKey, errors.Wrap(errors.ErrInvalidState, "versions not matching")
+	}
+	newKey := oldKey.NextVersion()
+	elect.Version = newKey.Version
+	key, err := newKey.Marshal()
+	if err != nil {
+		panic(err) //TOOD: return err
+	}
+
+	return newKey, b.vBucket.Save(db, orm.NewSimpleObj(key, elect))
 }
 
 func asElectorate(obj orm.Object) (*Electorate, error) {
@@ -64,6 +78,10 @@ func asElectorate(obj orm.Object) (*Electorate, error) {
 		return nil, errors.Wrapf(errors.ErrInvalidModel, "invalid type: %T", obj.Value())
 	}
 	return rev, nil
+}
+
+func (b *ElectorateBucket) Register(name string, r weave.QueryRouter) {
+	b.vBucket.Register(name, r)
 }
 
 // NewElectionRulesBucket is the persistent bucket for ElectionRules .

@@ -530,14 +530,13 @@ type ctxAwareMutator func(weave.Context, *TextProposal)
 func withProposal(t *testing.T, db store.CacheableKVStore, ctx weave.Context, mods ...ctxAwareMutator) *ProposalBucket {
 	// setup electorate
 	electorateBucket := NewElectorateBucket()
-	err := electorateBucket.Save(db, electorateBucket.Build(db, &Electorate{
+	_, err := electorateBucket.Create(db, &Electorate{
 		Title: "fooo",
 		Electors: []Elector{
 			{Signature: alice, Weight: 1},
 			{Signature: bobby, Weight: 10},
 		},
-		TotalWeightElectorate: 11}),
-	)
+		TotalWeightElectorate: 11})
 	if err != nil {
 		t.Fatalf("unexpected error: %+v", err)
 	}

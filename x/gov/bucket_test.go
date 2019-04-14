@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/store"
 	"github.com/iov-one/weave/weavetest"
 )
@@ -116,4 +117,52 @@ func byAddrSorter(src []*Vote) func(i int, j int) bool {
 		return src[i].Elector.Signature.String() < src[j].Elector.Signature.String()
 	}
 	return byAddressSorter
+}
+
+func TestUpdateCreatesNewVersion(t *testing.T) {
+	bucket := NewElectorateBucket()
+	db := store.MemStore()
+	orig := Electorate{
+		Title: "fooo",
+		Electors: []Elector{
+			{Signature: alice, Weight: 1},
+			{Signature: bobby, Weight: 10},
+		},
+		TotalWeightElectorate: 11}
+
+	if _, err := bucket.Create(db, &orig); err != nil {
+		t.Fatalf("unexpected error: %+v", err)
+	}
+	updated := orig
+	updated.Electors = []Elector{{Signature: alice, Weight: 1}}
+	updated.TotalWeightElectorate = 1
+	origVersionRef := orm.VersionedIDRef{ID: weavetest.SequenceID(1), Version: 1}
+
+	if _, err := bucket.Update(db, origVersionRef, &updated); err != nil {
+		t.Fatalf("unexpected error: %+v", err)
+	}
+	// then latest points to version 2
+	latest, err := bucket.GetElectorate(db, weavetest.SequenceID(1))
+	if err != nil {
+		t.Fatalf("unexpected error: %+v", err)
+	}
+	if exp, got := updated, *latest; !reflect.DeepEqual(exp, got) {
+		t.Errorf("expected %v but got %v", exp, got)
+	}
+	// and v1 still exists
+	v1, err := bucket.GetElectorateVersion(db, origVersionRef)
+	if err != nil {
+		t.Fatalf("unexpected error: %+v", err)
+	}
+	if exp, got := orig, *v1; !reflect.DeepEqual(exp, got) {
+		t.Errorf("expected %v but got %v", exp, got)
+	}
+	// and v2  exists
+	v2, err := bucket.GetElectorateVersion(db, orm.VersionedIDRef{ID: weavetest.SequenceID(1), Version: 2})
+	if err != nil {
+		t.Fatalf("unexpected error: %+v", err)
+	}
+	if exp, got := updated, *v2; !reflect.DeepEqual(exp, got) {
+		t.Errorf("expected %v but got %v", exp, got)
+	}
 }

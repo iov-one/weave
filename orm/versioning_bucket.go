@@ -13,7 +13,7 @@ type VersioningBucket struct {
 }
 
 func WithVersioning(b Bucket) VersioningBucket {
-	return VersioningBucket{b.WithRawIndex(NewVersionIndex(b.MustBuildInternalIndexName(latestVersionIndexName)), latestVersionIndexName)}
+	return VersioningBucket{b.WithRawIndex(NewVersionIndex(b.MustBuildInternalIndexName(latestVersionIndexName), b), latestVersionIndexName)}
 }
 
 func (b VersioningBucket) GetLatestVersion(db weave.ReadOnlyKVStore, id []byte) (Object, error) {
@@ -35,4 +35,25 @@ func (b VersioningBucket) GetVersion(db weave.ReadOnlyKVStore, ref VersionedIDRe
 		return nil, errors.Wrap(err, "failed to unmarshal version id key")
 	}
 	return b.Get(db, key)
+}
+
+type versioned interface {
+	GetVersion() uint32
+}
+type versionedData interface {
+	CloneableData
+	versioned
+	SetVersion(uint32)
+}
+
+// Build assigns an ID and initial version number to given electorate instance and returns it as an orm
+// Object. It does not persist the object in the store.
+func (b VersioningBucket) Build(db weave.KVStore, newID []byte, e versionedData) (Object, error) {
+	e.SetVersion(1)
+	idRef := &VersionedIDRef{ID: newID, Version: e.GetVersion()}
+	key, err := idRef.Marshal()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to marshall versioned id ref")
+	}
+	return NewSimpleObj(key, e), nil
 }
