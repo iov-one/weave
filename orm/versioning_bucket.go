@@ -8,11 +8,15 @@ import (
 const latestVersionIndexName = "latest"
 
 type VersioningBucket struct {
-	Bucket
+	IDGenBucket
 }
 
-func WithVersioning(b Bucket) VersioningBucket {
-	return VersioningBucket{b.WithRawIndex(NewVersionIndex(b.MustBuildInternalIndexName(latestVersionIndexName), b), latestVersionIndexName)}
+func WithVersioning(b IDGenBucket) VersioningBucket {
+	indexedBucket := b.withRawIndex(
+		NewVersionIndex(b.MustBuildInternalIndexName(latestVersionIndexName), b),
+		latestVersionIndexName,
+	)
+	return VersioningBucket{WithIDGenerator(indexedBucket, b.idGen)}
 }
 
 func (b VersioningBucket) GetLatestVersion(db weave.ReadOnlyKVStore, id []byte) (Object, error) {
@@ -45,14 +49,36 @@ type versionedData interface {
 	SetVersion(uint32)
 }
 
-// Build assigns an ID and initial version number to given electorate instance and returns it as an orm
-// Object. It does not persist the object in the store.
-func (b VersioningBucket) Build(db weave.KVStore, newID []byte, e versionedData) (Object, error) {
-	e.SetVersion(1)
-	idRef := &VersionedIDRef{ID: newID, Version: e.GetVersion()}
+// Create assigns an ID and initial version number to given object instance and returns it as an persisted orm
+// Object.
+func (b VersioningBucket) Create(db weave.KVStore, data versionedData) (Object, error) {
+	if data.GetVersion() != 0 {
+		return nil, errors.Wrap(errors.ErrInvalidInput, "version is set by create")
+	}
+	data.SetVersion(1)
+	idRef := &VersionedIDRef{ID: b.idGen.NextVal(db, data), Version: data.GetVersion()}
 	key, err := idRef.Marshal()
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to marshall versioned id ref")
 	}
-	return NewSimpleObj(key, e), nil
+	obj := NewSimpleObj(key, data)
+	return obj, b.IDGenBucket.Save(db, obj)
+}
+
+func (b VersioningBucket) Save(db weave.KVStore, model Object) error {
+	return errors.Wrap(errors.ErrHuman, "raw save not supported")
+}
+
+// Update persists the given data object with a new derived version key in the storage.
+func (b VersioningBucket) Update(db weave.KVStore, oldKey VersionedIDRef, data versionedData) (VersionedIDRef, error) {
+	if data.GetVersion() != oldKey.Version {
+		return oldKey, errors.Wrap(errors.ErrInvalidState, "versions not matching")
+	}
+	newKey := oldKey.NextVersion()
+	data.SetVersion(newKey.Version)
+	key, err := newKey.Marshal()
+	if err != nil {
+		return oldKey, errors.Wrap(err, "failed to marshal key")
+	}
+	return newKey, b.Bucket.Save(db, NewSimpleObj(key, data))
 }

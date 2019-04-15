@@ -236,7 +236,7 @@ func (b Bucket) WithIndex(name string, indexer Indexer, unique bool) Bucket {
 func (b Bucket) WithMultiKeyIndex(name string, indexer MultiKeyIndexer, unique bool) Bucket {
 	iname := b.MustBuildInternalIndexName(name)
 	idx := NewMultiKeyIndex(iname, indexer, unique)
-	return b.WithRawIndex(idx, name)
+	return b.withRawIndex(idx, name)
 }
 
 // MustBuildInternalIndexName build a bucket specific internal name. Given name must not be used before with
@@ -249,7 +249,7 @@ func (b Bucket) MustBuildInternalIndexName(publicName string) string {
 	return b.name + "_" + publicName
 }
 
-func (b Bucket) WithRawIndex(idx RawIndex, publicName string) Bucket {
+func (b Bucket) withRawIndex(idx RawIndex, publicName string) Bucket {
 	idxs := append(b.indexes, namedIndex{RawIndex: idx, publicName: publicName})
 	sort.Slice(idxs, func(i int, j int) bool { return idxs[i].publicName < idxs[j].publicName })
 	b.indexes = idxs
