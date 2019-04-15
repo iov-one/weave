@@ -151,6 +151,17 @@ func TestCreateProposal(t *testing.T) {
 			WantCheckErr:   errors.ErrInvalidInput,
 			WantDeliverErr: errors.ErrInvalidInput,
 		},
+		"Start time too far in the future": {
+			Msg: CreateTextProposalMsg{
+				Title:          "my proposal",
+				Description:    "my description",
+				StartTime:      now.Add(7*24*time.Hour + time.Second),
+				ElectorateID:   weavetest.SequenceID(1),
+				ElectionRuleID: weavetest.SequenceID(1),
+			},
+			WantCheckErr:   errors.ErrInvalidInput,
+			WantDeliverErr: errors.ErrInvalidInput,
+		},
 	}
 	auth := &weavetest.Auth{
 		Signers: []weave.Condition{aliceCond, bobbyCond},
@@ -592,6 +603,7 @@ func withProposal(t *testing.T, db store.CacheableKVStore, ctx weave.Context, mo
 	electorateBucket := NewElectorateBucket()
 	electorate, err := electorateBucket.Build(db, &Electorate{
 		Title: "fooo",
+		Admin: bobby,
 		Electors: []Elector{
 			{Address: alice, Weight: 1},
 			{Address: bobby, Weight: 10},
@@ -604,6 +616,7 @@ func withProposal(t *testing.T, db store.CacheableKVStore, ctx weave.Context, mo
 	rulesBucket := NewElectionRulesBucket()
 	rules, err := rulesBucket.Build(db, &ElectionRule{
 		Title:             "barr",
+		Admin:             bobby,
 		VotingPeriodHours: 1,
 		Threshold:         Fraction{1, 2},
 	})

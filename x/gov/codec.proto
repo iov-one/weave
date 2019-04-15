@@ -7,12 +7,14 @@ import "github.com/gogo/protobuf/gogoproto/gogo.proto";
 // Electorate defines who may vote in an election. This same group can be used in many elections
 // and is stored for re-use
 message Electorate {
+    // Admin is the address that is allowed ot modify an existing electorate.
+    bytes admin = 1 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
     // Human readable title.
-    string title = 1;
-    // Elector defines a list of all address that are allowed to participate in a vote
-    repeated Elector electors = 2 [(gogoproto.nullable) = false];
+    string title = 2;
+    // Elector defines a list of all signatures that are allowed to participate in a vote
+    repeated Elector electors = 3 [(gogoproto.nullable) = false];
     // TotalWeightElectorate is the sum of all electors weights.
-    uint64 total_weight_electorate = 3;
+    uint64 total_weight_electorate = 4;
 }
 
 // Elector clubs together a address with a weight. The greater the weight
@@ -26,8 +28,10 @@ message Elector {
 
 // Election Rule defines how an election is run. A proposal must be voted upon via a pre-defined ruleset.
 message ElectionRule {
+    // Admin is the address that is allowed ot modify an existing election rule.
+    bytes admin = 1 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
     // Human readable title.
-    string title = 1;
+    string title = 2;
     // Duration how long the voting period will take place.
     uint32 voting_period_hours = 3;
     // Threshold is the fraction of all eligible voters, not only the ones who voted. To accept a
@@ -164,4 +168,25 @@ message VoteMsg {
 message TallyMsg {
     // ProposalID is UUID of the proposal to close.
     bytes proposal_id = 1 [(gogoproto.customname) = "ProposalID"];
+}
+
+
+message UpdateElectorateMsg {
+    bytes electorate_id = 1 [(gogoproto.customname) = "ElectorateID"];
+
+    // Elector defines a list of all signatures that are allowed to participate in a vote
+    repeated Elector electors = 2 [(gogoproto.nullable) = false];
+}
+
+message UpdateElectionRuleMsg {
+    bytes election_rule_id = 1 [(gogoproto.customname) = "ElectionRuleID"];
+
+    // Duration how long the voting period will take place.
+    uint32 voting_period_hours = 2;
+    // Threshold is the fraction of all eligible voters, not only the ones who voted. To accept a
+    // proposal this value must be exceeded.
+    // The formula is `(yes*denominator) > (numerator*total_electors_weight)`.
+    // The valid range for the threshold value is `0.5` to `1` (inclusive) which allows any value between half and all
+    // of the eligible voters.
+    Fraction threshold = 3 [(gogoproto.nullable) = false];
 }

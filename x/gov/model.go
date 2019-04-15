@@ -2,6 +2,7 @@ package gov
 
 import (
 	"regexp"
+	"time"
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
@@ -37,6 +38,9 @@ func (m Electorate) Validate() error {
 
 	if m.TotalWeightElectorate != totalWeight {
 		return errors.Wrap(errors.ErrInvalidInput, "total weight does not match sum")
+	}
+	if err := m.Admin.Validate(); err != nil {
+		return errors.Wrap(err, "admin")
 	}
 	return nil
 }
@@ -87,6 +91,9 @@ func (m ElectionRule) Validate() error {
 	case m.VotingPeriodHours > maxVotingPeriodHours:
 		return errors.Wrapf(errors.ErrInvalidInput, "max hours: %d", maxVotingPeriodHours)
 	}
+	if err := m.Admin.Validate(); err != nil {
+		return errors.Wrap(err, "admin")
+	}
 	return m.Threshold.Validate()
 }
 
@@ -113,8 +120,9 @@ func (m Fraction) Validate() error {
 }
 
 const (
-	minDescriptionLength = 3
-	maxDescriptionLength = 5000
+	minDescriptionLength    = 3
+	maxDescriptionLength    = 5000
+	maxFutureStartTimeHours = 7 * 24 * time.Hour // 1 week
 )
 
 func (m *TextProposal) Validate() error {
@@ -229,7 +237,7 @@ func (m TallyResult) TotalVotes() uint64 {
 	return uint64(m.TotalYes) + uint64(m.TotalNo) + uint64(m.TotalAbstain)
 }
 
-// Validate vote object contains valid elector and voted option
+// validate vote object contains valid elector and voted option
 func (m Vote) Validate() error {
 	if err := m.Elector.Validate(); err != nil {
 		return errors.Wrap(err, "invalid elector")

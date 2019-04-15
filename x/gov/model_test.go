@@ -18,18 +18,21 @@ func TestElectorateValidation(t *testing.T) {
 		"All good with min electors count": {
 			Src: Electorate{
 				Title:                 "My Electorate",
+				Admin:                 alice,
 				Electors:              []Elector{{Address: alice, Weight: 1}},
 				TotalWeightElectorate: 1,
 			}},
 		"All good with max electors count": {
 			Src: Electorate{
 				Title:                 "My Electorate",
+				Admin:                 alice,
 				Electors:              buildElectors(2000),
 				TotalWeightElectorate: 2000,
 			}},
 		"Not enough electors": {
 			Src: Electorate{
 				Title:                 "My Electorate",
+				Admin:                 alice,
 				Electors:              []Elector{},
 				TotalWeightElectorate: 1,
 			},
@@ -38,6 +41,7 @@ func TestElectorateValidation(t *testing.T) {
 		"Too many electors": {
 			Src: Electorate{
 				Title:                 "My Electorate",
+				Admin:                 alice,
 				Electors:              buildElectors(2001),
 				TotalWeightElectorate: 2001,
 			},
@@ -46,6 +50,7 @@ func TestElectorateValidation(t *testing.T) {
 		"Duplicate electors": {
 			Src: Electorate{
 				Title:                 "My Electorate",
+				Admin:                 alice,
 				Electors:              []Elector{{Address: alice, Weight: 1}, {Address: alice, Weight: 1}},
 				TotalWeightElectorate: 2,
 			},
@@ -54,6 +59,7 @@ func TestElectorateValidation(t *testing.T) {
 		"Empty electors weight ": {
 			Src: Electorate{
 				Title:                 "My Electorate",
+				Admin:                 alice,
 				Electors:              []Elector{{Address: bobby, Weight: 0}, {Address: alice, Weight: 1}},
 				TotalWeightElectorate: 1,
 			},
@@ -62,6 +68,7 @@ func TestElectorateValidation(t *testing.T) {
 		"Electors weight exceeds max": {
 			Src: Electorate{
 				Title:                 "My Electorate",
+				Admin:                 alice,
 				Electors:              []Elector{{Address: alice, Weight: 65536}},
 				TotalWeightElectorate: 65536,
 			},
@@ -70,6 +77,7 @@ func TestElectorateValidation(t *testing.T) {
 		"Total weight mismatch": {
 			Src: Electorate{
 				Title:                 "My Electorate",
+				Admin:                 alice,
 				Electors:              []Elector{{Address: alice, Weight: 1}},
 				TotalWeightElectorate: 2,
 			},
@@ -78,6 +86,7 @@ func TestElectorateValidation(t *testing.T) {
 		"Title too short": {
 			Src: Electorate{
 				Title:                 "foo",
+				Admin:                 alice,
 				Electors:              []Elector{{Address: alice, Weight: 1}},
 				TotalWeightElectorate: 1,
 			},
@@ -86,10 +95,29 @@ func TestElectorateValidation(t *testing.T) {
 		"Title too long": {
 			Src: Electorate{
 				Title:                 BigString(129),
+				Admin:                 alice,
 				Electors:              []Elector{{Address: alice, Weight: 1}},
 				TotalWeightElectorate: 1,
 			},
 			Exp: errors.ErrInvalidInput,
+		},
+		"Admin must not be invalid": {
+			Src: Electorate{
+				Title:                 "My Electorate",
+				Admin:                 weave.Address{0x0, 0x1, 0x2},
+				Electors:              []Elector{{Address: alice, Weight: 1}},
+				TotalWeightElectorate: 1,
+			},
+			Exp: errors.ErrInvalidInput,
+		},
+		"Admin must not be empty": {
+			Src: Electorate{
+				Title:                 "My Electorate",
+				Admin:                 weave.Address{},
+				Electors:              []Elector{{Address: alice, Weight: 1}},
+				TotalWeightElectorate: 1,
+			},
+			Exp: errors.ErrEmpty,
 		},
 	}
 	for msg, spec := range specs {
@@ -109,6 +137,7 @@ func TestElectionRuleValidation(t *testing.T) {
 		"All good": {
 			Src: ElectionRule{
 				Title:             "My election rule",
+				Admin:             alice,
 				VotingPeriodHours: 1,
 				Threshold:         Fraction{Numerator: 1, Denominator: 2},
 			},
@@ -116,6 +145,7 @@ func TestElectionRuleValidation(t *testing.T) {
 		"Threshold fraction allowed at 0.5 ratio": {
 			Src: ElectionRule{
 				Title:             "My election rule",
+				Admin:             alice,
 				VotingPeriodHours: 1,
 				Threshold:         Fraction{Numerator: 1 << 31, Denominator: math.MaxUint32},
 			},
@@ -123,6 +153,7 @@ func TestElectionRuleValidation(t *testing.T) {
 		"Title too short": {
 			Src: ElectionRule{
 				Title:             "foo",
+				Admin:             alice,
 				VotingPeriodHours: 1,
 				Threshold:         Fraction{Numerator: 1, Denominator: 2},
 			},
@@ -131,6 +162,7 @@ func TestElectionRuleValidation(t *testing.T) {
 		"Title too long": {
 			Src: ElectionRule{
 				Title:             BigString(129),
+				Admin:             alice,
 				VotingPeriodHours: 1,
 				Threshold:         Fraction{Numerator: 1, Denominator: 2},
 			},
@@ -139,6 +171,7 @@ func TestElectionRuleValidation(t *testing.T) {
 		"Voting period empty": {
 			Src: ElectionRule{
 				Title:             "My election rule",
+				Admin:             alice,
 				VotingPeriodHours: 0,
 				Threshold:         Fraction{Numerator: 1, Denominator: 2},
 			},
@@ -147,6 +180,7 @@ func TestElectionRuleValidation(t *testing.T) {
 		"Voting period too long": {
 			Src: ElectionRule{
 				Title:             "My election rule",
+				Admin:             alice,
 				VotingPeriodHours: 673, // = 4 * 7 * 24 + 1
 				Threshold:         Fraction{Numerator: 1, Denominator: 2},
 			},
@@ -155,6 +189,7 @@ func TestElectionRuleValidation(t *testing.T) {
 		"Threshold must not be lower han 0.5": {
 			Src: ElectionRule{
 				Title:             "My election rule",
+				Admin:             alice,
 				VotingPeriodHours: 1,
 				Threshold:         Fraction{Numerator: 1<<31 - 1, Denominator: math.MaxUint32},
 			},
@@ -163,6 +198,7 @@ func TestElectionRuleValidation(t *testing.T) {
 		"Threshold fraction must not be higher than 1": {
 			Src: ElectionRule{
 				Title:             "My election rule",
+				Admin:             alice,
 				VotingPeriodHours: 1,
 				Threshold:         Fraction{Numerator: math.MaxUint32, Denominator: math.MaxUint32 - 1},
 			},
@@ -171,6 +207,7 @@ func TestElectionRuleValidation(t *testing.T) {
 		"Threshold fraction must not contain 0 numerator": {
 			Src: ElectionRule{
 				Title:             "My election rule",
+				Admin:             alice,
 				VotingPeriodHours: 1,
 				Threshold:         Fraction{Numerator: 0, Denominator: math.MaxUint32 - 1},
 			},
@@ -179,10 +216,29 @@ func TestElectionRuleValidation(t *testing.T) {
 		"Threshold fraction must not contain 0 denominator": {
 			Src: ElectionRule{
 				Title:             "My election rule",
+				Admin:             alice,
 				VotingPeriodHours: 1,
 				Threshold:         Fraction{Numerator: 1, Denominator: 0},
 			},
 			Exp: errors.ErrInvalidInput,
+		},
+		"Admin must not be invalid": {
+			Src: ElectionRule{
+				Title:             "My election rule",
+				Admin:             weave.Address{0x0, 0x1, 0x2},
+				VotingPeriodHours: 1,
+				Threshold:         Fraction{Numerator: 1, Denominator: 2},
+			},
+			Exp: errors.ErrInvalidInput,
+		},
+		"Admin must not be empty": {
+			Src: ElectionRule{
+				Title:             "My election rule",
+				Admin:             weave.Address{},
+				VotingPeriodHours: 1,
+				Threshold:         Fraction{Numerator: 1, Denominator: 2},
+			},
+			Exp: errors.ErrEmpty,
 		},
 	}
 	for msg, spec := range specs {
