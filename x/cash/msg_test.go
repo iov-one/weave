@@ -1,18 +1,18 @@
 package cash
 
 import (
-	"crypto/rand"
 	"strings"
 	"testing"
 
 	"github.com/iov-one/weave"
 	coin "github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/weavetest"
 )
 
 func TestValidateSendMsg(t *testing.T) {
-	addr1 := randomAddr(t)
-	addr2 := randomAddr(t)
+	addr1 := weavetest.NewCondition().Address()
+	addr2 := weavetest.NewCondition().Address()
 
 	cases := map[string]struct {
 		msg     weave.Msg
@@ -84,7 +84,7 @@ func TestValidateSendMsg(t *testing.T) {
 }
 
 func TestValidateFeeTx(t *testing.T) {
-	addr1 := randomAddr(t)
+	addr1 := weavetest.NewCondition().Address()
 
 	cases := map[string]struct {
 		info    *FeeInfo
@@ -136,15 +136,4 @@ func TestValidateFeeTx(t *testing.T) {
 			}
 		})
 	}
-}
-
-func randomAddr(t testing.TB) weave.Address {
-	a := make(weave.Address, weave.AddressLength)
-	if _, err := rand.Read(a); err != nil {
-		t.Fatalf("cannot read random data: %s", err)
-	}
-	if err := a.Validate(); err != nil {
-		t.Fatalf("generated address is not valid: %s", err)
-	}
-	return a
 }
