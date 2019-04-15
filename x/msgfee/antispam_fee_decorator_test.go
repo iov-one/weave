@@ -108,8 +108,7 @@ func TestNewAntispamFeeDecorator(t *testing.T) {
 				t.Fatalf("unexpected check fee: %v", cres.RequiredFee)
 			}
 
-			_, err = decorator.Deliver(nil, nil, tc.Tx, tc.Handler)
-			if tc.WantCheckErr == nil && !tc.WantDeliverErr.Is(err) {
+			if _, err := decorator.Deliver(nil, nil, tc.Tx, tc.Handler); !tc.WantDeliverErr.Is(err) {
 				t.Fatalf("deliver returned an unexpected error: %v", err)
 			}
 
