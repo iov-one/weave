@@ -68,11 +68,11 @@ func assertHCounts(t *testing.T, h *Handler, wantCheck, wantDeliver int) {
 }
 
 func TestHandlerResult(t *testing.T) {
-	wantCres := &weave.CheckResult{
+	wantCres := weave.CheckResult{
 		Data:         []byte("foo"),
 		GasAllocated: 5,
 	}
-	wantDres := &weave.DeliverResult{
+	wantDres := weave.DeliverResult{
 		Data:    []byte("bar"),
 		GasUsed: 824,
 	}
@@ -82,11 +82,11 @@ func TestHandlerResult(t *testing.T) {
 	}
 
 	gotCres, _ := h.Check(nil, nil, nil)
-	if !reflect.DeepEqual(wantCres, gotCres) {
+	if !reflect.DeepEqual(&wantCres, gotCres) {
 		t.Fatalf("got check result: %+v", gotCres)
 	}
 	gotDres, _ := h.Deliver(nil, nil, nil)
-	if !reflect.DeepEqual(wantDres, gotDres) {
+	if !reflect.DeepEqual(&wantDres, gotDres) {
 		t.Fatalf("got deliver result: %+v", gotDres)
 	}
 }

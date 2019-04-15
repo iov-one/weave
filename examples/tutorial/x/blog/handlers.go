@@ -52,22 +52,17 @@ func withSender(authors [][]byte, sender weave.Address) [][]byte {
 	return append(authors, sender)
 }
 
-func (h CreateBlogMsgHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (weave.CheckResult, error) {
-	var res weave.CheckResult
-	_, err := h.validate(ctx, db, tx)
-	if err != nil {
-		return res, err
+func (h CreateBlogMsgHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
+	if _, err := h.validate(ctx, db, tx); err != nil {
+		return nil, err
 	}
-
-	res.GasAllocated = newBlogCost
-	return res, nil
+	return &weave.CheckResult{GasAllocated: newBlogCost}, nil
 }
 
-func (h CreateBlogMsgHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (weave.DeliverResult, error) {
-	var res weave.DeliverResult
+func (h CreateBlogMsgHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	msg, err := h.validate(ctx, db, tx)
 	if err != nil {
-		return res, err
+		return nil, err
 	}
 
 	blog := &Blog{
@@ -79,10 +74,10 @@ func (h CreateBlogMsgHandler) Deliver(ctx weave.Context, db weave.KVStore, tx we
 	obj := orm.NewSimpleObj([]byte(msg.Slug), blog)
 	err = h.bucket.Save(db, obj)
 	if err != nil {
-		return res, err
+		return nil, err
 	}
 
-	return res, nil
+	return &weave.DeliverResult{}, nil
 }
 
 // validate does all common pre-processing between Check and Deliver
@@ -126,23 +121,23 @@ type CreatePostMsgHandler struct {
 
 var _ weave.Handler = CreatePostMsgHandler{}
 
-func (h CreatePostMsgHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (weave.CheckResult, error) {
-	var res weave.CheckResult
+func (h CreatePostMsgHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
 	msg, _, err := h.validate(ctx, db, tx)
 	if err != nil {
-		return res, err
+		return nil, err
 	}
 
 	// First 1000 chars for free then 1 gas per mile chars
-	res.GasAllocated = int64(len(msg.Text)) * newPostCost / postCostUnit
+	res := &weave.CheckResult{
+		GasAllocated: int64(len(msg.Text)) * newPostCost / postCostUnit,
+	}
 	return res, nil
 }
 
-func (h CreatePostMsgHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (weave.DeliverResult, error) {
-	var res weave.DeliverResult
+func (h CreatePostMsgHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	msg, blog, err := h.validate(ctx, db, tx)
 	if err != nil {
-		return res, err
+		return nil, err
 	}
 
 	height, _ := weave.GetHeight(ctx)
@@ -158,16 +153,16 @@ func (h CreatePostMsgHandler) Deliver(ctx weave.Context, db weave.KVStore, tx we
 	obj := orm.NewSimpleObj(postKey, post)
 	err = h.posts.Save(db, obj)
 	if err != nil {
-		return res, err
+		return nil, err
 	}
 
 	objParent := orm.NewSimpleObj([]byte(msg.Blog), blog)
 	err = h.blogs.Save(db, objParent)
 	if err != nil {
-		return res, err
+		return nil, err
 	}
 
-	return res, nil
+	return &weave.DeliverResult{}, nil
 }
 
 // validate does all common pre-processing between Check and Deliver
@@ -218,33 +213,28 @@ type RenameBlogMsgHandler struct {
 
 var _ weave.Handler = RenameBlogMsgHandler{}
 
-func (h RenameBlogMsgHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (weave.CheckResult, error) {
-	var res weave.CheckResult
-	_, _, err := h.validate(ctx, db, tx)
-	if err != nil {
-		return res, err
+func (h RenameBlogMsgHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
+	if _, _, err := h.validate(ctx, db, tx); err != nil {
+		return nil, err
 	}
-
 	// renaming costs the same as creating
-	res.GasAllocated = newBlogCost
-	return res, nil
+	return &weave.CheckResult{GasAllocated: newBlogCost}, nil
 }
 
-func (h RenameBlogMsgHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (weave.DeliverResult, error) {
-	var res weave.DeliverResult
+func (h RenameBlogMsgHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	msg, blog, err := h.validate(ctx, db, tx)
 	if err != nil {
-		return res, err
+		return nil, err
 	}
 
 	blog.Title = msg.Title
 	obj := orm.NewSimpleObj([]byte(msg.Slug), blog)
 	err = h.bucket.Save(db, obj)
 	if err != nil {
-		return res, err
+		return nil, err
 	}
 
-	return res, nil
+	return &weave.DeliverResult{}, nil
 }
 
 // validate does all common pre-processing between Check and Deliver
@@ -305,23 +295,18 @@ type ChangeBlogAuthorsMsgHandler struct {
 
 var _ weave.Handler = ChangeBlogAuthorsMsgHandler{}
 
-func (h ChangeBlogAuthorsMsgHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (weave.CheckResult, error) {
-	var res weave.CheckResult
-	_, _, err := h.validate(ctx, db, tx)
-	if err != nil {
-		return res, err
+func (h ChangeBlogAuthorsMsgHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
+	if _, _, err := h.validate(ctx, db, tx); err != nil {
+		return nil, err
 	}
-
 	// renaming costs the same as creating
-	res.GasAllocated = newBlogCost
-	return res, nil
+	return &weave.CheckResult{GasAllocated: newBlogCost}, nil
 }
 
-func (h ChangeBlogAuthorsMsgHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (weave.DeliverResult, error) {
-	var res weave.DeliverResult
+func (h ChangeBlogAuthorsMsgHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	msg, blog, err := h.validate(ctx, db, tx)
 	if err != nil {
-		return res, err
+		return nil, err
 	}
 
 	if msg.Add {
@@ -334,10 +319,10 @@ func (h ChangeBlogAuthorsMsgHandler) Deliver(ctx weave.Context, db weave.KVStore
 	obj := orm.NewSimpleObj([]byte(msg.Slug), blog)
 	err = h.bucket.Save(db, obj)
 	if err != nil {
-		return res, err
+		return nil, err
 	}
 
-	return res, nil
+	return &weave.DeliverResult{}, nil
 }
 
 // validate does all common pre-processing between Check and Deliver
@@ -409,23 +394,19 @@ type SetProfileMsgHandler struct {
 
 var _ weave.Handler = SetProfileMsgHandler{}
 
-func (h SetProfileMsgHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (weave.CheckResult, error) {
-	var res weave.CheckResult
-	_, _, err := h.validate(ctx, db, tx)
-	if err != nil {
-		return res, err
+func (h SetProfileMsgHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
+	if _, _, err := h.validate(ctx, db, tx); err != nil {
+		return nil, err
 	}
 
 	// renaming costs the same as creating
-	res.GasAllocated = newProfileCost
-	return res, nil
+	return &weave.CheckResult{GasAllocated: newProfileCost}, nil
 }
 
-func (h SetProfileMsgHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (weave.DeliverResult, error) {
-	var res weave.DeliverResult
+func (h SetProfileMsgHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	msg, profile, err := h.validate(ctx, db, tx)
 	if err != nil {
-		return res, err
+		return nil, err
 	}
 
 	if profile != nil { // update
@@ -441,10 +422,10 @@ func (h SetProfileMsgHandler) Deliver(ctx weave.Context, db weave.KVStore, tx we
 	obj := orm.NewSimpleObj([]byte(msg.Name), profile)
 	err = h.bucket.Save(db, obj)
 	if err != nil {
-		return res, err
+		return nil, err
 	}
 
-	return res, nil
+	return &weave.DeliverResult{}, nil
 }
 
 // validate does all common pre-processing between Check and Deliver

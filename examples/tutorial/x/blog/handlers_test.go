@@ -68,7 +68,7 @@ type testcase struct {
 	Perms   []weave.Condition
 	Deps    []testdep
 	Msg     weave.Msg
-	Res     weave.CheckResult
+	Res     *weave.CheckResult
 	Obj     []*orm.SimpleObj
 }
 
@@ -217,7 +217,7 @@ func TestCreateBlogMsgHandlerCheck(t *testing.T) {
 					Title:   "this is a blog title",
 					Authors: [][]byte{signer.Address()},
 				},
-				Res: weave.CheckResult{
+				Res: &weave.CheckResult{
 					GasAllocated: newBlogCost,
 				},
 			},
@@ -373,7 +373,7 @@ func TestCreatePostMsgHandlerCheck(t *testing.T) {
 						},
 					},
 				},
-				Res: weave.CheckResult{
+				Res: &weave.CheckResult{
 					GasAllocated: newPostCost,
 				},
 			},
@@ -532,7 +532,7 @@ func TestRenameBlogMsgHandlerCheck(t *testing.T) {
 						},
 					},
 				},
-				Res: weave.CheckResult{
+				Res: &weave.CheckResult{
 					GasAllocated: newBlogCost,
 				},
 			},
@@ -632,7 +632,7 @@ func TestChangeBlogAuthorsMsgHandlerCheck(t *testing.T) {
 						},
 					},
 				},
-				Res: weave.CheckResult{
+				Res: &weave.CheckResult{
 					GasAllocated: newBlogCost,
 				},
 			},
@@ -659,7 +659,7 @@ func TestChangeBlogAuthorsMsgHandlerCheck(t *testing.T) {
 						},
 					},
 				},
-				Res: weave.CheckResult{
+				Res: &weave.CheckResult{
 					GasAllocated: newBlogCost,
 				},
 			},
@@ -871,7 +871,7 @@ func TestSetProfileMsgHandlerCheck(t *testing.T) {
 					Name:        "lehajam",
 					Description: "my profile description",
 				},
-				Res: weave.CheckResult{
+				Res: &weave.CheckResult{
 					GasAllocated: newProfileCost,
 				},
 			},
