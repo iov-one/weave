@@ -1,138 +1,149 @@
 package cash
 
 import (
-	"strings"
+	"crypto/rand"
 	"testing"
 
 	"github.com/iov-one/weave"
 	coin "github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/errors"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestValidateSendMsg(t *testing.T) {
-	empty := new(SendMsg)
-	assert.Equal(t, pathSendMsg, empty.Path())
-	assert.Error(t, empty.Validate())
+	addr1 := randomAddr(t)
+	addr2 := randomAddr(t)
 
-	addr := weave.NewAddress([]byte{1, 2})
-	addr2 := weave.NewAddress([]byte{3, 4})
-	addr3 := weave.NewAddress([]byte{5, 6})
-
-	pos := coin.NewCoin(10, 0, "FOO")
-	noSrc := &SendMsg{
-		Amount: &pos,
-		Dest:   addr,
+	cases := map[string]struct {
+		msg     weave.Msg
+		wantErr *errors.Error
+	}{
+		"success": {
+			msg: &SendMsg{
+				Amount: coin.NewCoinp(10, 0, "FOO"),
+				Dest:   addr1,
+				Src:    addr2,
+				Memo:   "some memo message",
+				Ref:    []byte("some reference"),
+			},
+			wantErr: nil,
+		},
+		"success with minimal amount of data": {
+			msg: &SendMsg{
+				Amount: coin.NewCoinp(10, 0, "FOO"),
+				Dest:   addr1,
+				Src:    addr2,
+			},
+			wantErr: nil,
+		},
+		"empty message": {
+			msg:     &SendMsg{},
+			wantErr: errors.ErrInvalidAmount,
+		},
+		"missing source": {
+			msg: &SendMsg{
+				Amount: coin.NewCoinp(10, 0, "FOO"),
+				Dest:   addr1,
+			},
+			wantErr: errors.ErrEmpty,
+		},
+		"missing destination": {
+			msg: &SendMsg{
+				Amount: coin.NewCoinp(10, 0, "FOO"),
+				Src:    addr2,
+			},
+			wantErr: errors.ErrEmpty,
+		},
+		"reference too long": {
+			msg: &SendMsg{
+				Amount: coin.NewCoinp(10, 0, "FOO"),
+				Dest:   addr1,
+				Src:    addr2,
+				Ref:    []byte("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaB"),
+			},
+			wantErr: errors.ErrInvalidState,
+		},
+		"memo too long": {
+			msg: &SendMsg{
+				Amount: coin.NewCoinp(10, 0, "FOO"),
+				Dest:   addr1,
+				Src:    addr2,
+				Ref:    []byte("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaB"),
+			},
+			wantErr: errors.ErrInvalidState,
+		},
 	}
-	err := noSrc.Validate()
-	assert.Error(t, err)
-	assert.True(t, errors.ErrInvalidInput.Is(err))
 
-	// add a default source, so it validates
-	good := noSrc.DefaultSource(addr2)
-	assert.EqualValues(t, addr2, good.GetSrc())
-	assert.NoError(t, good.Validate())
-
-	// don't change source if already set
-	good2 := good.DefaultSource(addr3)
-	assert.EqualValues(t, addr2, good2.GetSrc())
-	assert.NoError(t, good2.Validate())
-
-	// try various error coniditons by modifying a good state
-	good2.Dest = []byte{1, 2, 3}
-	assert.Error(t, good2.Validate())
-
-	// test memo length
-	good3 := noSrc.DefaultSource(addr3)
-	assert.NoError(t, good3.Validate())
-	good3.Memo = "kfjuhewiufhgqwegf"
-	assert.NoError(t, good3.Validate())
-	good3.Memo = strings.Repeat("foo", 300)
-	err = good3.Validate()
-	assert.Error(t, err)
-	assert.True(t, errors.ErrInvalidState.Is(err))
-
-	// test ref length
-	good3.Memo = "short"
-	good3.Ref = []byte{1, 2, 3, 4, 5}
-	assert.NoError(t, good3.Validate())
-	good3.Ref = make([]byte, 68)
-	err = good3.Validate()
-	assert.Error(t, err)
-	assert.True(t, errors.ErrInvalidState.Is(err))
-
-	neg := coin.NewCoin(-3, 0, "FOO")
-	minus := &SendMsg{
-		Amount: &neg,
-		Dest:   addr2,
-		Src:    addr3,
+	for testName, tc := range cases {
+		t.Run(testName, func(t *testing.T) {
+			if err := tc.msg.Validate(); !tc.wantErr.Is(err) {
+				t.Fatalf("unexpected error: %+v", err)
+			}
+		})
 	}
-	err = minus.Validate()
-	assert.Error(t, err)
-	assert.True(t, errors.ErrInvalidAmount.Is(err))
-
-	bad := coin.NewCoin(3, 4, "fab9")
-	ugly := &SendMsg{
-		Amount: &bad,
-		Dest:   addr2,
-		Src:    addr3,
-	}
-	err = ugly.Validate()
-	assert.Error(t, err)
-	assert.True(t, errors.ErrCurrency.Is(err))
-
 }
 
 func TestValidateFeeTx(t *testing.T) {
-	var empty *FeeInfo
-	err := empty.Validate()
-	assert.Error(t, err)
-	assert.True(t, errors.ErrInvalidInput.Is(err))
+	addr1 := randomAddr(t)
 
-	addr := weave.NewAddress([]byte{8, 8})
-	addr2 := weave.NewAddress([]byte{7, 7})
-
-	nofee := &FeeInfo{Payer: addr}
-	err = nofee.Validate()
-	assert.Error(t, err)
-	assert.True(t, errors.ErrInvalidAmount.Is(err))
-
-	pos := coin.NewCoin(10, 0, "FOO")
-	plus := &FeeInfo{Fees: &pos}
-	err = plus.Validate()
-	assert.Error(t, err)
-	assert.True(t, errors.ErrInvalidInput.Is(err))
-
-	full := plus.DefaultPayer(addr)
-	assert.NoError(t, full.Validate())
-	assert.EqualValues(t, addr, full.GetPayer())
-
-	full2 := full.DefaultPayer(addr2)
-	assert.NoError(t, full2.Validate())
-	assert.EqualValues(t, addr, full2.GetPayer())
-
-	zero := &FeeInfo{
-		Payer: addr2,
-		Fees:  &coin.Coin{Ticker: "BAR"},
+	cases := map[string]struct {
+		info    *FeeInfo
+		wantErr *errors.Error
+	}{
+		"success": {
+			info: &FeeInfo{
+				Fees:  coin.NewCoinp(1, 0, "IOV"),
+				Payer: addr1,
+			},
+			wantErr: nil,
+		},
+		"empty": {
+			info:    &FeeInfo{},
+			wantErr: errors.ErrInvalidAmount,
+		},
+		"no fee": {
+			info: &FeeInfo{
+				Payer: addr1,
+			},
+			wantErr: errors.ErrInvalidAmount,
+		},
+		"no payer": {
+			info: &FeeInfo{
+				Fees: coin.NewCoinp(10, 0, "IOV"),
+			},
+			wantErr: errors.ErrEmpty,
+		},
+		"negative fee": {
+			info: &FeeInfo{
+				Fees:  coin.NewCoinp(-10, 0, "IOV"),
+				Payer: addr1,
+			},
+			wantErr: errors.ErrInvalidAmount,
+		},
+		"invalid fee ticker": {
+			info: &FeeInfo{
+				Fees:  coin.NewCoinp(10, 0, "foobar"),
+				Payer: addr1,
+			},
+			wantErr: errors.ErrCurrency,
+		},
 	}
-	assert.NoError(t, zero.Validate())
 
-	neg := coin.NewCoin(-3, 0, "FOO")
-	minus := &FeeInfo{
-		Payer: addr,
-		Fees:  &neg,
+	for testName, tc := range cases {
+		t.Run(testName, func(t *testing.T) {
+			if err := tc.info.Validate(); !tc.wantErr.Is(err) {
+				t.Fatalf("unexpected error: %+v", err)
+			}
+		})
 	}
-	err = minus.Validate()
-	assert.Error(t, err)
-	assert.True(t, errors.ErrInvalidAmount.Is(err))
+}
 
-	bad := coin.NewCoin(3, 0, "fab9")
-	ugly := &FeeInfo{
-		Payer: addr,
-		Fees:  &bad,
+func randomAddr(t testing.TB) weave.Address {
+	a := make(weave.Address, weave.AddressLength)
+	if _, err := rand.Read(a); err != nil {
+		t.Fatalf("cannot read random data: %s", err)
 	}
-	err = ugly.Validate()
-	assert.Error(t, err)
-	assert.True(t, errors.ErrCurrency.Is(err))
-
+	if err := a.Validate(); err != nil {
+		t.Fatalf("generated address is not valid: %s", err)
+	}
+	return a
 }

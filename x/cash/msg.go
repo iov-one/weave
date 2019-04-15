@@ -24,24 +24,23 @@ func (SendMsg) Path() string {
 
 // Validate makes sure that this is sensible
 func (s *SendMsg) Validate() error {
-	amt := s.GetAmount()
-	if coin.IsEmpty(amt) || !amt.IsPositive() {
-		return errors.Wrapf(errors.ErrInvalidAmount, "non-positive SendMsg: %#v", amt)
+	if coin.IsEmpty(s.Amount) || !s.Amount.IsPositive() {
+		return errors.Wrapf(errors.ErrInvalidAmount, "non-positive SendMsg: %#v", s.Amount)
 
 	}
-	if err := amt.Validate(); err != nil {
-		return err
+	if err := s.Amount.Validate(); err != nil {
+		return errors.Wrap(err, "amount")
 	}
 	if err := s.Src.Validate(); err != nil {
-		return err
+		return errors.Wrap(err, "src")
 	}
 	if err := s.Dest.Validate(); err != nil {
-		return err
+		return errors.Wrap(err, "dst")
 	}
-	if len(s.GetMemo()) > maxMemoSize {
+	if len(s.Memo) > maxMemoSize {
 		return errors.Wrap(errors.ErrInvalidState, "memo too long")
 	}
-	if len(s.GetRef()) > maxRefSize {
+	if len(s.Ref) > maxRefSize {
 		return errors.Wrap(errors.ErrInvalidState, "ref too long")
 	}
 	return nil
@@ -87,7 +86,7 @@ func (f *FeeInfo) DefaultPayer(addr []byte) *FeeInfo {
 // Note that fee must be present, even if 0
 func (f *FeeInfo) Validate() error {
 	if f == nil {
-		return errors.Wrapf(errors.ErrInvalidInput, "address: %v", nil)
+		return errors.Wrap(errors.ErrInvalidInput, "nil fee info")
 	}
 	fee := f.GetFees()
 	if fee == nil {

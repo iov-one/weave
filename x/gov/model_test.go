@@ -293,7 +293,7 @@ func TestVoteValidate(t *testing.T) {
 		},
 		"Elector's signature missing": {
 			Src: Vote{Voted: VoteOption_Yes, Elector: Elector{Weight: 1}},
-			Exp: errors.ErrInvalidInput,
+			Exp: errors.ErrEmpty,
 		},
 		"Invalid option": {
 			Src: Vote{Voted: VoteOption_Invalid, Elector: Elector{Signature: bobby, Weight: 1}},
