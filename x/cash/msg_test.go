@@ -2,6 +2,7 @@ package cash
 
 import (
 	"crypto/rand"
+	"strings"
 	"testing"
 
 	"github.com/iov-one/weave"
@@ -58,7 +59,7 @@ func TestValidateSendMsg(t *testing.T) {
 				Amount: coin.NewCoinp(10, 0, "FOO"),
 				Dest:   addr1,
 				Src:    addr2,
-				Ref:    []byte("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaB"),
+				Ref:    []byte(strings.Repeat("x", maxRefSize+1)),
 			},
 			wantErr: errors.ErrInvalidState,
 		},
@@ -67,7 +68,7 @@ func TestValidateSendMsg(t *testing.T) {
 				Amount: coin.NewCoinp(10, 0, "FOO"),
 				Dest:   addr1,
 				Src:    addr2,
-				Ref:    []byte("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaB"),
+				Memo:   strings.Repeat("x", maxMemoSize+1),
 			},
 			wantErr: errors.ErrInvalidState,
 		},
