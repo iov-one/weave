@@ -1,7 +1,6 @@
 package msgfee
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/iov-one/weave"
@@ -104,7 +103,6 @@ func TestFeeDecorator(t *testing.T) {
 			if !tc.WantCheckErr.Is(err) {
 				t.Fatalf("check returned an unexpected error: %v", err)
 			}
-			fmt.Println(t.Name(), err, cres)
 			if tc.WantCheckErr == nil && !tc.WantCheckFee.Equals(cres.RequiredFee) {
 				t.Fatalf("unexpected check fee: %v", cres.RequiredFee)
 			}

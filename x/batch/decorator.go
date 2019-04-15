@@ -79,9 +79,6 @@ func (*Decorator) combineChecks(checks []*weave.CheckResult) (*weave.CheckResult
 	var required coin.Coin
 	var err error
 	for i, r := range checks {
-		if r == nil {
-			continue
-		}
 		datas[i] = r.Data
 		logs[i] = r.Log
 		allocated += r.GasAllocated
@@ -147,9 +144,6 @@ func (*Decorator) combineDelivers(delivers []*weave.DeliverResult) (*weave.Deliv
 	var required coin.Coin
 	var err error
 	for i, r := range delivers {
-		if r == nil {
-			continue
-		}
 		datas[i] = r.Data
 		logs[i] = r.Log
 		payments += r.GasUsed
