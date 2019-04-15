@@ -47,7 +47,7 @@ func TestSendHandler(t *testing.T) {
 	}{
 		0: {nil, nil, nil, errors.ErrInvalidState.Is, errors.ErrInvalidState.Is},
 		1: {nil, nil, new(cash.SendMsg), errors.ErrInvalidAmount.Is, errors.ErrInvalidAmount.Is},
-		2: {nil, nil, &cash.SendMsg{Amount: &foo}, errors.ErrInvalidInput.Is, errors.ErrInvalidInput.Is},
+		2: {nil, nil, &cash.SendMsg{Amount: &foo}, errors.ErrEmpty.Is, errors.ErrEmpty.Is},
 		3: {
 			nil,
 			nil,
