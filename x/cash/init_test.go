@@ -38,6 +38,12 @@ func TestInitState(t *testing.T) {
 	rawConfig, err := json.Marshal(config)
 	require.NoError(t, err)
 
+	badConfig := Configuration{
+		MinimalFee: coin.NewCoin(0, 20, "food"),
+	}
+	rawInvalid, err := json.Marshal(badConfig)
+	require.NoError(t, err)
+
 	cases := [...]struct {
 		opts    weave.Options
 		isError bool
@@ -47,13 +53,15 @@ func TestInitState(t *testing.T) {
 		// no prob if no data
 		0: {weave.Options{"cashconf": rawConfig}, false, nil, Set{}},
 		1: {weave.Options{"foo": []byte(`"bar"`), "cashconf": rawConfig}, false, nil, Set{}},
-		// bad format
+		// unknown key
 		2: {weave.Options{"foo": []byte(`[{"address": "1234"}]`), "cashconf": rawConfig}, false, nil, Set{}},
 		// bad address
 		3: {weave.Options{"cash": []byte(`[{"coins": 123}]`), "cashconf": rawConfig}, true, nil, Set{}},
 		// get a real account
 		4: {weave.Options{"cash": bz, "cashconf": rawConfig}, false, addr, coins},
 		5: {weave.Options{"cash": bz2, "cashconf": rawConfig}, false, addr2, coins2},
+		// enforces valid config
+		6: {weave.Options{"cashconf": rawInvalid}, true, nil, Set{}},
 	}
 
 	init := Initializer{}
