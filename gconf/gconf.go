@@ -1,6 +1,7 @@
 package gconf
 
 import (
+	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
 )
 
@@ -51,4 +52,29 @@ func Load(db Store, pkg string, dst Unmarshaler) error {
 // messages.
 type Unmarshaler interface {
 	Unmarshal([]byte) error
+}
+
+type Configuration interface {
+	ValidMarshaler
+	Unmarshaler
+}
+
+// InitConfig will take opts["conf"][pkg], parse it into the given Configuration object
+// validate it, and store under the proper key in the database
+// Returns an error if anything goes wrong
+func InitConfig(db Store, opts weave.Options, pkg string, conf Configuration) error {
+	var confOptions weave.Options
+	if err := opts.ReadOptions("conf", &confOptions); err != nil {
+		return errors.Wrap(err, "read conf")
+	}
+	if confOptions[pkg] == nil {
+		return errors.Wrapf(errors.ErrInvalidInput, "No configuration for %s", pkg)
+	}
+	if err := confOptions.ReadOptions(pkg, conf); err != nil {
+		return errors.Wrapf(err, "read configuration for %s", pkg)
+	}
+	if err := Save(db, pkg, conf); err != nil {
+		return errors.Wrapf(err, "save configuration for %s", pkg)
+	}
+	return nil
 }
