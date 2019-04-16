@@ -14,7 +14,7 @@ func (c *Configuration) Validate() error {
 	}
 
 	if !c.MinimalFee.IsZero() {
-		if err := c.Validate(); err != nil {
+		if err := c.MinimalFee.Validate(); err != nil {
 			return errors.Wrap(err, "minimal fee")
 		}
 		if !c.MinimalFee.IsNonNegative() {
