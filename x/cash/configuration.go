@@ -26,7 +26,7 @@ func (c *Configuration) Validate() error {
 
 func mustLoadConf(db gconf.Store) Configuration {
 	var conf Configuration
-	if err := gconf.Load(db, &conf); err != nil {
+	if err := gconf.Load(db, "cash", &conf); err != nil {
 		err = errors.Wrap(err, "load configuration")
 		panic(err)
 	}

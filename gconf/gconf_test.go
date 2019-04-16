@@ -8,21 +8,13 @@ import (
 	"github.com/iov-one/weave/store"
 )
 
-func TestPackageOf(t *testing.T) {
-	type Foo struct {
-	}
-	if name := pkgPath(&Foo{}); name != "github.com/iov-one/weave/gconf" {
-		t.Fatalf("unexpected name: %q", name)
-	}
-}
-
 func TestLoadSave(t *testing.T) {
 	db := store.MemStore()
 	c := configuration{raw: "foobar"}
-	if err := Save(db, &c); err != nil {
+	if err := Save(db, "gconf", &c); err != nil {
 		t.Fatalf("cannot save configuration: %s", err)
 	}
-	if err := Load(db, &c); err != nil {
+	if err := Load(db, "gconf", &c); err != nil {
 		t.Fatalf("cannot load configuration: %s", err)
 	}
 }
@@ -43,5 +35,9 @@ func (c *configuration) Unmarshal(raw []byte) error {
 	if !bytes.Equal([]byte(c.raw), raw) {
 		return fmt.Errorf("expected %q, got %q", c.raw, raw)
 	}
+	return c.err
+}
+
+func (c *configuration) Validate() error {
 	return c.err
 }

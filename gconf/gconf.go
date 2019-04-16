@@ -1,18 +1,21 @@
 package gconf
 
 import (
-	"reflect"
-
 	"github.com/iov-one/weave/errors"
 )
 
+// Store is a subset of weave.KVStore
 type Store interface {
 	Get([]byte) []byte
 	Set([]byte, []byte)
 }
 
-func Save(db Store, src Marshaler) error {
-	key := []byte("configuration:" + pkgPath(src))
+// Save will validate code
+func Save(db Store, pkg string, src ValidMarshaler) error {
+	key := []byte("_c:" + pkg)
+	if err := src.Validate(); err != nil {
+		return errors.Wrap(err, "Saving gconf")
+	}
 	raw, err := src.Marshal()
 	if err != nil {
 		return errors.Wrapf(err, "marshal: key %q", key)
@@ -21,14 +24,18 @@ func Save(db Store, src Marshaler) error {
 	return nil
 }
 
-// Marshaler is implemented by object that can serialize itself to a binary
-// representation. This interface is implemented by all protobuf messages.
-type Marshaler interface {
+// ValidMarshaler is implemented by object that can serialize itself to a binary
+// representation. Marshal is implemented by all protobuf messages.
+// You must add your own Validate method
+//
+// Note duplicate of code in x/persistent.go
+type ValidMarshaler interface {
 	Marshal() ([]byte, error)
+	Validate() error
 }
 
-func Load(db Store, dst Unmarshaler) error {
-	key := []byte("configuration:" + pkgPath(dst))
+func Load(db Store, pkg string, dst Unmarshaler) error {
+	key := []byte("_c:" + pkg)
 	raw := db.Get(key)
 	if raw == nil {
 		return errors.Wrapf(errors.ErrNotFound, "key %q", key)
@@ -44,19 +51,4 @@ func Load(db Store, dst Unmarshaler) error {
 // messages.
 type Unmarshaler interface {
 	Unmarshal([]byte) error
-}
-
-// pkgPath returns the full package path that given structure belongs to. It
-// returns an empty string of non structure types.
-// Use full path instead of just the package name to avoid name collisions.
-// Each package is expected to have only one configuration object.
-func pkgPath(structure interface{}) string {
-	t := reflect.TypeOf(structure)
-	for t.Kind() == reflect.Ptr {
-		t = t.Elem()
-	}
-	if t.Kind() != reflect.Struct {
-		return ""
-	}
-	return t.PkgPath()
 }
