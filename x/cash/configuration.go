@@ -4,6 +4,7 @@ import (
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/gconf"
+	"github.com/iov-one/weave/x"
 )
 
 func (c *Configuration) Validate() error {
@@ -43,4 +44,9 @@ func (m *ConfigurationMsg) Validate() error {
 
 func (*ConfigurationMsg) Path() string {
 	return "cash/update_config"
+}
+
+func NewConfigHandler(auth x.Authenticator) weave.Handler {
+	var conf Configuration
+	return gconf.NewUpdateConfigurationHandler("cash", &conf, auth)
 }

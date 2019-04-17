@@ -84,8 +84,8 @@ func (h UpdateConfigurationHandler) patch(config OwnedConfig, payload OwnedConfi
 		return errors.Wrap(errors.ErrInvalidMsg, "config in message doesn't match store")
 	}
 
-	cval := reflect.ValueOf(config)
-	pval := reflect.ValueOf(payload)
+	cval := reflect.ValueOf(config).Elem()
+	pval := reflect.ValueOf(payload).Elem()
 
 	// TODO: do a patch here instead of overwriting... only non-zero fields
 	cval.Set(pval)
