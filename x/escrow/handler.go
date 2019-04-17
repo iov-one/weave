@@ -66,7 +66,7 @@ func (h CreateEscrowHandler) Deliver(ctx weave.Context, db weave.KVStore, tx wea
 	}
 
 	// apply a default for sender
-	sender := weave.Address(msg.Src)
+	sender := msg.Src
 	if sender == nil {
 		sender = x.MainSigner(ctx, h.auth).Address()
 	}
@@ -107,8 +107,7 @@ func (h CreateEscrowHandler) validate(ctx weave.Context, db weave.KVStore, tx we
 
 	// Sender must authorize this (if not set, defaults to MainSigner).
 	if msg.Src != nil {
-		sender := weave.Address(msg.Src)
-		if !h.auth.HasAddress(ctx, sender) {
+		if !h.auth.HasAddress(ctx, msg.Src) {
 			return nil, errors.ErrUnauthorized
 		}
 	}
@@ -157,8 +156,7 @@ func (h ReleaseEscrowHandler) Deliver(ctx weave.Context, db weave.KVStore, tx we
 	}
 
 	// withdraw the money from escrow to recipient
-	recipientAddr := weave.Address(escrow.Recipient)
-	if err := moveCoins(db, h.bank, escrowAddr, recipientAddr, request); err != nil {
+	if err := moveCoins(db, h.bank, escrowAddr, escrow.Recipient, request); err != nil {
 		return nil, err
 	}
 
@@ -188,9 +186,7 @@ func (h ReleaseEscrowHandler) validate(ctx weave.Context, db weave.KVStore, tx w
 	}
 
 	// Arbiter or sender must authorize this.
-	arb := weave.Condition(escrow.Arbiter).Address()
-	sender := weave.Address(escrow.Sender)
-	if !h.auth.HasAddress(ctx, arb) && !h.auth.HasAddress(ctx, sender) {
+	if !h.auth.HasAddress(ctx, escrow.Arbiter.Address()) && !h.auth.HasAddress(ctx, escrow.Sender) {
 		return nil, nil, errors.ErrUnauthorized
 	}
 
@@ -337,14 +333,12 @@ func (h UpdateEscrowHandler) validate(ctx weave.Context, db weave.KVStore, tx we
 		}
 	}
 	if msg.Recipient != nil {
-		rcpt := weave.Address(escrow.Recipient)
-		if !h.auth.HasAddress(ctx, rcpt) {
+		if !h.auth.HasAddress(ctx, escrow.Recipient) {
 			return nil, nil, errors.ErrUnauthorized
 		}
 	}
 	if msg.Arbiter != nil {
-		arbiter := weave.Condition(escrow.Arbiter).Address()
-		if !h.auth.HasAddress(ctx, arbiter) {
+		if !h.auth.HasAddress(ctx, escrow.Arbiter.Address()) {
 			return nil, nil, errors.ErrUnauthorized
 		}
 	}

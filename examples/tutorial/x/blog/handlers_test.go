@@ -166,7 +166,7 @@ func testHandlerCheck(t *testing.T, testcases []testcase) {
 			require.EqualValues(t, test.Res, res, test.Name)
 		} else {
 			require.Error(t, err, test.Name) // to avoid seg fault at the next line
-			require.True(t, test.Err.Is(err), test.Name)
+			require.True(t, test.Err.Is(err), "%s: %+v", test.Name, err)
 		}
 	}
 }
@@ -731,7 +731,7 @@ func TestChangeBlogAuthorsMsgHandlerCheck(t *testing.T) {
 			},
 			{
 				Name:    "adding with no author",
-				Err:     errors.ErrInvalidInput,
+				Err:     errors.ErrEmpty,
 				Handler: changeBlogAuthorsMsgHandlerFn,
 				Perms:   []weave.Condition{signer},
 				Msg: &ChangeBlogAuthorsMsg{
@@ -741,7 +741,7 @@ func TestChangeBlogAuthorsMsgHandlerCheck(t *testing.T) {
 			},
 			{
 				Name:    "removing with no author",
-				Err:     errors.ErrInvalidInput,
+				Err:     errors.ErrEmpty,
 				Handler: changeBlogAuthorsMsgHandlerFn,
 				Perms:   []weave.Condition{signer},
 				Msg: &ChangeBlogAuthorsMsg{

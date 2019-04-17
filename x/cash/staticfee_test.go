@@ -69,7 +69,7 @@ func TestFees(t *testing.T) {
 		"no signer given": {
 			fee:    &FeeInfo{Fees: &min},
 			min:    min,
-			expect: errors.ErrInvalidInput.Is,
+			expect: errors.ErrEmpty.Is,
 		},
 		"use default signer, but not enough money": {
 			signers: []weave.Condition{perm},

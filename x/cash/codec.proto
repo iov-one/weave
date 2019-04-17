@@ -3,6 +3,7 @@ syntax = "proto3";
 package cash;
 
 import "github.com/iov-one/weave/coin/codec.proto";
+import "github.com/gogo/protobuf/gogoproto/gogo.proto";
 
 // Set may contain Coin of many different currencies.
 // It handles adding and subtracting sets of currencies.
@@ -16,8 +17,8 @@ message Set {
 // ref is optional binary data, that can refer to another
 // eg. tx hash
 message SendMsg {
-  bytes src = 1;
-  bytes dest = 2;
+  bytes src = 1 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
+  bytes dest = 2 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
   coin.Coin amount = 3;
   // max length 128 character
   string memo = 4;
