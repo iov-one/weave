@@ -1,6 +1,7 @@
 package gconf
 
 import (
+	"fmt"
 	"reflect"
 
 	"github.com/iov-one/weave"
@@ -87,8 +88,12 @@ func (h UpdateConfigurationHandler) patch(config OwnedConfig, payload OwnedConfi
 	cval := reflect.ValueOf(config).Elem()
 	pval := reflect.ValueOf(payload).Elem()
 
-	// TODO: do a patch here instead of overwriting... only non-zero fields
-	cval.Set(pval)
+	for i := 0; i < cval.NumField(); i++ {
+		got := pval.Field(i)
+		fmt.Printf("field %d: %v\n", i, got)
+		cval.Field(i).Set(got)
+	}
+
 	return nil
 }
 
