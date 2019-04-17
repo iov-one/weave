@@ -1,7 +1,6 @@
 package gconf
 
 import (
-	"fmt"
 	"reflect"
 
 	"github.com/iov-one/weave"
@@ -34,8 +33,9 @@ func NewUpdateConfigurationHandler(pkg string, config OwnedConfig, auth x.Authen
 }
 
 func (h UpdateConfigurationHandler) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx) (weave.CheckResult, error) {
-	// TODO
-	return weave.CheckResult{}, nil
+	// same as deliver
+	_, err := h.Deliver(ctx, store, tx)
+	return weave.CheckResult{}, errors.Wrap(err, "check")
 }
 
 // Deliver demos my concepts
@@ -90,11 +90,17 @@ func (h UpdateConfigurationHandler) patch(config OwnedConfig, payload OwnedConfi
 
 	for i := 0; i < cval.NumField(); i++ {
 		got := pval.Field(i)
-		fmt.Printf("field %d: %v\n", i, got)
-		cval.Field(i).Set(got)
+		if !isZero(got) {
+			cval.Field(i).Set(got)
+		}
 	}
 
 	return nil
+}
+
+func isZero(val reflect.Value) bool {
+	zero := reflect.Zero(val.Type()).Interface()
+	return reflect.DeepEqual(val.Interface(), zero)
 }
 
 // getPayload expects the transaction to have a message with exactly one field (patch)
