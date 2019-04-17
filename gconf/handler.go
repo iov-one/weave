@@ -76,8 +76,17 @@ func (h UpdateConfigurationHandler) Deliver(ctx weave.Context, store weave.KVSto
 
 // we are guaranteed that config and payload are the same type from getPayload
 func (h UpdateConfigurationHandler) patch(config OwnedConfig, payload OwnedConfig) error {
+	// now we got this, ensure same type as the h.config
+	// TODO: test this
+	pType := reflect.TypeOf(payload)
+	cType := reflect.TypeOf(config)
+	if !pType.ConvertibleTo(cType) {
+		return errors.Wrap(errors.ErrInvalidMsg, "config in message doesn't match store")
+	}
+
 	cval := reflect.ValueOf(config)
 	pval := reflect.ValueOf(payload)
+
 	// TODO: do a patch here instead of overwriting... only non-zero fields
 	cval.Set(pval)
 	return nil
@@ -112,14 +121,6 @@ func (h UpdateConfigurationHandler) getPayload(tx weave.Tx) (OwnedConfig, error)
 	payload, ok := field.Interface().(OwnedConfig)
 	if !ok {
 		return nil, errors.Wrap(errors.ErrInvalidInput, "payload is not OwnedConfig")
-	}
-
-	// now we got this, ensure same type as the h.config
-	// TODO: test this
-	payloadType := reflect.TypeOf(payload)
-	configType := reflect.TypeOf(h.config)
-	if !payloadType.ConvertibleTo(configType) {
-		return nil, errors.Wrap(errors.ErrInvalidMsg, "config in message doesn't match store")
 	}
 
 	return payload, nil
