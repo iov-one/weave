@@ -44,8 +44,6 @@ func (r Logging) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx, ne
 func logDuration(ctx weave.Context, start time.Time, msg string, err error, lowPrio bool) {
 	delta := time.Now().Sub(start)
 	logger := weave.GetLogger(ctx).With("duration", delta/time.Microsecond)
-	if err != nil {
-	}
 
 	if err != nil {
 		logger = logger.With("err", err)
