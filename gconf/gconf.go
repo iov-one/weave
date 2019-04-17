@@ -11,11 +11,12 @@ type Store interface {
 	Set([]byte, []byte)
 }
 
-// Save will validate code
+// Save will Validate the object, before writing it to a special "configuration"
+// singleton for that package name.
 func Save(db Store, pkg string, src ValidMarshaler) error {
 	key := []byte("_c:" + pkg)
 	if err := src.Validate(); err != nil {
-		return errors.Wrap(err, "Saving gconf")
+		return errors.Wrap(err, "saving gconf")
 	}
 	raw, err := src.Marshal()
 	if err != nil {
@@ -42,7 +43,7 @@ func Load(db Store, pkg string, dst Unmarshaler) error {
 		return errors.Wrapf(errors.ErrNotFound, "key %q", key)
 	}
 	if err := dst.Unmarshal(raw); err != nil {
-		return errors.Wrapf(err, "unmarhsal: key %q", key)
+		return errors.Wrapf(err, "unmarshal: key %q", key)
 	}
 	return nil
 }
@@ -68,7 +69,7 @@ func InitConfig(db Store, opts weave.Options, pkg string, conf Configuration) er
 		return errors.Wrap(err, "read conf")
 	}
 	if confOptions[pkg] == nil {
-		return errors.Wrapf(errors.ErrInvalidInput, "No configuration for %s", pkg)
+		return errors.Wrapf(errors.ErrInvalidInput, "no configuration for %s", pkg)
 	}
 	if err := confOptions.ReadOptions(pkg, conf); err != nil {
 		return errors.Wrapf(err, "read configuration for %s", pkg)
