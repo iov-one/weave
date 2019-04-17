@@ -76,9 +76,11 @@ func appStateGenesis(keyAddress weave.Address) []byte {
 				},
 			},
 		},
-		"cashconf": cash.Configuration{
-			CollectorAddress: weave.Condition("dist/revenue/0000000000000001").Address(),
-			MinimalFee:       coin.NewCoin(0, 10000000, "FRNK"),
+		"conf": dict{
+			"cash": cash.Configuration{
+				CollectorAddress: weave.Condition("dist/revenue/0000000000000001").Address(),
+				MinimalFee:       coin.NewCoin(0, 10000000, "FRNK"),
+			},
 		},
 		"currencies": []interface{}{
 			dict{

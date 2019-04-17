@@ -240,13 +240,18 @@ func withWalletAppState(t testing.TB, accounts []*account) string {
 		Address weave.Address `json:"address"`
 		Coins   coin.Coins    `json:"coins"`
 	}
+	type conf struct {
+		Cash cash.Configuration `json:"cash"`
+	}
 	state := struct {
-		Cash     []wallet           `json:"cash"`
-		CashConf cash.Configuration `json:"cashconf"`
+		Cash []wallet `json:"cash"`
+		Conf conf     `json:"conf"`
 	}{
-		CashConf: cash.Configuration{
-			CollectorAddress: fromHex(t, "fe1132f9ed1fb1c2e9c09ff297b619654387bb4a"),
-			MinimalFee:       coin.Coin{}, // no fee
+		Conf: conf{
+			Cash: cash.Configuration{
+				CollectorAddress: fromHex(t, "fe1132f9ed1fb1c2e9c09ff297b619654387bb4a"),
+				MinimalFee:       coin.Coin{}, // no fee
+			},
 		},
 	}
 
