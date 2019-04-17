@@ -1,6 +1,7 @@
 package cash
 
 import (
+	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/gconf"
 )
@@ -31,4 +32,15 @@ func mustLoadConf(db gconf.Store) Configuration {
 		panic(err)
 	}
 	return conf
+}
+
+var _ weave.Msg = (*ConfigurationMsg)(nil)
+
+func (m *ConfigurationMsg) Validate() error {
+	// NOTE: you can add custom rules here, like requiring the CollectorAddress to not be set
+	return m.Patch.Validate()
+}
+
+func (*ConfigurationMsg) Path() string {
+	return "cash/update_config"
 }
