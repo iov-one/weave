@@ -60,9 +60,11 @@ func GenInitOptions(args []string) (json.RawMessage, error) {
 				},
 			},
 		},
-		"cashconf": cash.Configuration{
-			CollectorAddress: collectorAddr,
-			MinimalFee:       coin.Coin{Whole: 0}, // no fee
+		"conf": dict{
+			"cash": cash.Configuration{
+				CollectorAddress: collectorAddr,
+				MinimalFee:       coin.Coin{Whole: 0}, // no fee
+			},
 		},
 	})
 }
