@@ -36,8 +36,9 @@ message FeeInfo {
 
 message Configuration {
   // TODO: add schema uint32 here
-  bytes collector_address = 2 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
-  coin.Coin minimal_fee = 3 [(gogoproto.nullable) = false];
+  bytes owner = 2 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
+  bytes collector_address = 3 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
+  coin.Coin minimal_fee = 4 [(gogoproto.nullable) = false];
 }
 
 message ConfigurationMsg {
