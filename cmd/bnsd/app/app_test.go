@@ -2,7 +2,6 @@ package app_test
 
 import (
 	"encoding/hex"
-	"fmt"
 	"strings"
 	"testing"
 
@@ -52,7 +51,6 @@ func TestApp(t *testing.T) {
 		toHex("sigs:") + addr.String(),        // sender sequence incremented
 		toHex("cash:") + feeDistAddr.String(), // fee destination
 	}
-	fmt.Printf("%v\n", wantKeys)
 	for _, want := range wantKeys {
 		var found bool
 		for i := 0; i < len(dres.Tags) && !found; i++ {
