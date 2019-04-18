@@ -1,15 +1,25 @@
 /*
 
-Package gconf implements a configuration store intended to be used as a global,
-in-database configuration.
+Package gconf provides a toolset for managing an extension configuration.
 
-This package allows to load configuration from a genesis file and access it via
-set of helper functions (`String`, `Int`, `Duration` etc).
+Extension that defines a configuration object can use gconf package to load
+initial state from genesis, update configuration state via messages and to
+retrieve configuration object from the store.
 
-Not being able to get a configuration value is a critical condition for the
-application and there is no recovery path for the client. Application must be
-terminated and configured correctly. This is why any failure results in a
-panic.
+Each extension can declare and store only one configuration object.
+
+To use gconf you must follow a few simple principles.
+
+- Define your configuration as a protobuf message.
+- Define your configuration update message as a protobuf message. It must have
+  a `patch` field that holds the new configuration state.
+- Zero field values are ignored during the update message processing,
+- use `InitConfig` inside of your extension initializer to copy configuration
+  from the genesis into the database,
+- Use `Load` function to load your configuration state from the database,
+
+
+See existing extensions for an example of how to use this package.
 
 */
 package gconf
