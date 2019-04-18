@@ -592,7 +592,233 @@ func TestTally(t *testing.T) {
 			cache.Discard()
 		})
 	}
+}
 
+func TestUpdateElectorate(t *testing.T) {
+	electorateID := weavetest.SequenceID(1)
+
+	specs := map[string]struct {
+		Msg            UpdateElectorateMsg
+		SignedBy       weave.Condition
+		WantCheckErr   *errors.Error
+		WantDeliverErr *errors.Error
+		ExpModel       *Electorate
+	}{
+		"All good with update by owner": {
+			Msg: UpdateElectorateMsg{
+				ElectorateID: electorateID,
+				Electors:     []Elector{{Address: alice, Weight: 22}},
+			},
+			SignedBy: bobbyCond,
+			ExpModel: &Electorate{
+				Admin:                 bobby,
+				Title:                 "fooo",
+				Electors:              []Elector{{Address: alice, Weight: 22}},
+				TotalWeightElectorate: 22,
+			},
+		},
+		"Update by non owner should fail": {
+			Msg: UpdateElectorateMsg{
+				ElectorateID: electorateID,
+				Electors:     []Elector{{Address: alice, Weight: 22}},
+			},
+			SignedBy:       aliceCond,
+			WantCheckErr:   errors.ErrUnauthorized,
+			WantDeliverErr: errors.ErrUnauthorized,
+		},
+		"Update with too many electors should fail": {
+			Msg: UpdateElectorateMsg{
+				ElectorateID: electorateID,
+				Electors:     buildElectors(2001),
+			},
+			SignedBy:       bobbyCond,
+			WantCheckErr:   errors.ErrInvalidInput,
+			WantDeliverErr: errors.ErrInvalidInput,
+		},
+		"Update without electors should fail": {
+			Msg: UpdateElectorateMsg{
+				ElectorateID: electorateID,
+			},
+			SignedBy:       bobbyCond,
+			WantCheckErr:   errors.ErrEmpty,
+			WantDeliverErr: errors.ErrEmpty,
+		},
+		"Duplicate electors should fail": {
+			Msg: UpdateElectorateMsg{
+				ElectorateID: electorateID,
+				Electors:     []Elector{{Address: alice, Weight: 1}, {Address: alice, Weight: 2}},
+			},
+			SignedBy:       bobbyCond,
+			WantCheckErr:   errors.ErrInvalidInput,
+			WantDeliverErr: errors.ErrInvalidInput,
+		},
+		"Empty address in electors should fail": {
+			Msg: UpdateElectorateMsg{
+				ElectorateID: electorateID,
+				Electors:     []Elector{{Address: weave.Address{}, Weight: 1}},
+			},
+			SignedBy:       bobbyCond,
+			WantCheckErr:   errors.ErrEmpty,
+			WantDeliverErr: errors.ErrEmpty,
+		},
+	}
+	bucket := NewElectorateBucket()
+	for msg, spec := range specs {
+		t.Run(msg, func(t *testing.T) {
+			auth := &weavetest.Auth{
+				Signer: spec.SignedBy,
+			}
+			rt := app.NewRouter()
+			RegisterRoutes(rt, auth)
+			db := store.MemStore()
+			withElectorate(t, db)
+			cache := db.CacheWrap()
+
+			ctx := context.Background()
+			// when check is called
+			tx := &weavetest.Tx{Msg: &spec.Msg}
+			if _, err := rt.Check(ctx, cache, tx); !spec.WantCheckErr.Is(err) {
+				t.Fatalf("check expected: %+v  but got %+v", spec.WantCheckErr, err)
+			}
+
+			cache.Discard()
+
+			// and when deliver is called
+			res, err := rt.Deliver(ctx, db, tx)
+			if !spec.WantDeliverErr.Is(err) {
+				t.Fatalf("deliver expected: %+v  but got %+v", spec.WantCheckErr, err)
+			}
+			if spec.WantDeliverErr != nil {
+				return // skip further checks on expected error
+			}
+			e, err := bucket.GetElectorate(db, res.Data)
+			if err != nil {
+				t.Fatalf("unexpected error: %+v", err)
+			}
+			if exp, got := spec.ExpModel, e; !reflect.DeepEqual(exp, got) {
+				t.Errorf("expected %v but got %v", exp, got)
+			}
+		})
+	}
+}
+
+func TestUpdateElectionRules(t *testing.T) {
+	electionRulesID := weavetest.SequenceID(1)
+
+	specs := map[string]struct {
+		Msg            UpdateElectionRuleMsg
+		SignedBy       weave.Condition
+		WantCheckErr   *errors.Error
+		WantDeliverErr *errors.Error
+		ExpModel       *ElectionRule
+	}{
+		"All good with update by owner": {
+			Msg: UpdateElectionRuleMsg{
+				ElectionRuleID:    electionRulesID,
+				VotingPeriodHours: 12,
+				Threshold:         Fraction{Numerator: 2, Denominator: 3},
+			},
+			SignedBy: bobbyCond,
+			ExpModel: &ElectionRule{
+				Admin:             bobby,
+				Title:             "barr",
+				VotingPeriodHours: 12,
+				Threshold:         Fraction{Numerator: 2, Denominator: 3},
+			},
+		},
+		"Update with mMax voting time": {
+			Msg: UpdateElectionRuleMsg{
+				ElectionRuleID:    electionRulesID,
+				VotingPeriodHours: 4 * 7 * 24,
+				Threshold:         Fraction{Numerator: 2, Denominator: 3},
+			},
+			SignedBy: bobbyCond,
+			ExpModel: &ElectionRule{
+				Admin:             bobby,
+				Title:             "barr",
+				VotingPeriodHours: 4 * 7 * 24,
+				Threshold:         Fraction{Numerator: 2, Denominator: 3},
+			},
+		},
+		"Update by non owner should fail": {
+			Msg: UpdateElectionRuleMsg{
+				ElectionRuleID:    electionRulesID,
+				VotingPeriodHours: 12,
+				Threshold:         Fraction{Numerator: 2, Denominator: 3},
+			},
+			SignedBy:       aliceCond,
+			WantCheckErr:   errors.ErrUnauthorized,
+			WantDeliverErr: errors.ErrUnauthorized,
+		},
+		"Threshold must be valid": {
+			Msg: UpdateElectionRuleMsg{
+				ElectionRuleID:    electionRulesID,
+				VotingPeriodHours: 12,
+				Threshold:         Fraction{Numerator: 3, Denominator: 2},
+			},
+			SignedBy:       bobbyCond,
+			WantCheckErr:   errors.ErrInvalidInput,
+			WantDeliverErr: errors.ErrInvalidInput,
+		},
+		"voting period hours must not be empty": {
+			Msg: UpdateElectionRuleMsg{
+				ElectionRuleID:    electionRulesID,
+				VotingPeriodHours: 0,
+				Threshold:         Fraction{Numerator: 1, Denominator: 2},
+			},
+			SignedBy:       bobbyCond,
+			WantCheckErr:   errors.ErrInvalidInput,
+			WantDeliverErr: errors.ErrInvalidInput,
+		},
+		"voting period hours must not exceed max": {
+			Msg: UpdateElectionRuleMsg{
+				ElectionRuleID:    electionRulesID,
+				VotingPeriodHours: 4*7*24 + 1,
+				Threshold:         Fraction{Numerator: 1, Denominator: 2},
+			},
+			SignedBy:       bobbyCond,
+			WantCheckErr:   errors.ErrInvalidInput,
+			WantDeliverErr: errors.ErrInvalidInput,
+		},
+	}
+	bucket := NewElectionRulesBucket()
+	for msg, spec := range specs {
+		t.Run(msg, func(t *testing.T) {
+			auth := &weavetest.Auth{
+				Signer: spec.SignedBy,
+			}
+			rt := app.NewRouter()
+			RegisterRoutes(rt, auth)
+			db := store.MemStore()
+			withElectionRule(t, db)
+			cache := db.CacheWrap()
+
+			ctx := context.Background()
+			// when check is called
+			tx := &weavetest.Tx{Msg: &spec.Msg}
+			if _, err := rt.Check(ctx, cache, tx); !spec.WantCheckErr.Is(err) {
+				t.Fatalf("check expected: %+v  but got %+v", spec.WantCheckErr, err)
+			}
+
+			cache.Discard()
+
+			// and when deliver is called
+			res, err := rt.Deliver(ctx, db, tx)
+			if !spec.WantDeliverErr.Is(err) {
+				t.Fatalf("deliver expected: %+v  but got %+v", spec.WantCheckErr, err)
+			}
+			if spec.WantDeliverErr != nil {
+				return // skip further checks on expected error
+			}
+			e, err := bucket.GetElectionRule(db, res.Data)
+			if err != nil {
+				t.Fatalf("unexpected error: %+v", err)
+			}
+			if exp, got := spec.ExpModel, e; !reflect.DeepEqual(exp, got) {
+				t.Errorf("expected %v but got %v", exp, got)
+			}
+		})
+	}
 }
 
 // ctxAwareMutator is a call back interface to modify the passed proposal for test setup
@@ -600,29 +826,9 @@ type ctxAwareMutator func(weave.Context, *TextProposal)
 
 func withProposal(t *testing.T, db store.CacheableKVStore, ctx weave.Context, mods ...ctxAwareMutator) *ProposalBucket {
 	// setup electorate
-	electorateBucket := NewElectorateBucket()
-	electorate, err := electorateBucket.Build(db, &Electorate{
-		Title: "fooo",
-		Admin: bobby,
-		Electors: []Elector{
-			{Address: alice, Weight: 1},
-			{Address: bobby, Weight: 10},
-		},
-		TotalWeightElectorate: 11})
-	assert.Nil(t, err)
-	err = electorateBucket.Save(db, electorate)
-	assert.Nil(t, err)
+	withElectorate(t, db)
 	// setup election rules
-	rulesBucket := NewElectionRulesBucket()
-	rules, err := rulesBucket.Build(db, &ElectionRule{
-		Title:             "barr",
-		Admin:             bobby,
-		VotingPeriodHours: 1,
-		Threshold:         Fraction{1, 2},
-	})
-	assert.Nil(t, err)
-	err = rulesBucket.Save(db, rules)
-	assert.Nil(t, err)
+	withElectionRule(t, db)
 	// adapter to call fixture mutator with context
 	ctxMods := make([]func(*TextProposal), len(mods))
 	for i := 0; i < len(mods); i++ {
@@ -640,5 +846,41 @@ func withProposal(t *testing.T, db store.CacheableKVStore, ctx weave.Context, mo
 	assert.Nil(t, err)
 	err = pBucket.Save(db, pObj)
 	assert.Nil(t, err)
+
 	return pBucket
+}
+
+func withElectorate(t *testing.T, db store.CacheableKVStore) *Electorate {
+	electorate := &Electorate{
+		Title: "fooo",
+		Admin: bobby,
+		Electors: []Elector{
+			{Address: alice, Weight: 1},
+			{Address: bobby, Weight: 10},
+		},
+		TotalWeightElectorate: 11,
+	}
+	electorateBucket := NewElectorateBucket()
+	eObj, err :=electorateBucket.Build(db, electorate)
+	assert.Nil(t, err)
+	err = electorateBucket.Save(db, eObj)
+	assert.Nil(t, err)
+	return electorate
+}
+
+func withElectionRule(t *testing.T, db store.CacheableKVStore) *ElectionRule {
+	rulesBucket := NewElectionRulesBucket()
+	rule := &ElectionRule{
+		Title:             "barr",
+		Admin:             bobby,
+		VotingPeriodHours: 1,
+		Threshold:         Fraction{1, 2},
+	}
+
+	rObj, err := rulesBucket.Build(db, rule)
+	assert.Nil(t, err)
+	err = rulesBucket.Save(db, rObj)
+	assert.Nil(t, err)
+
+	return rule
 }

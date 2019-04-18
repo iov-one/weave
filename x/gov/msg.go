@@ -99,10 +99,15 @@ func (m UpdateElectorateMsg) Validate() error {
 	case len(m.Electors) > maxElectors:
 		return errors.Wrapf(errors.ErrInvalidInput, "electors must not exceed: %d", maxElectors)
 	}
+	index := map[string]struct{}{} // address index for duplicates
 	for i, v := range m.Electors {
 		if err := v.Validate(); err != nil {
 			return errors.Wrapf(err, "elector %d", i)
 		}
+		index[v.Address.String()] = struct{}{}
+	}
+	if len(index) != len(m.Electors) {
+		return errors.Wrap(errors.ErrInvalidInput, "duplicate addresses")
 	}
 	return nil
 }

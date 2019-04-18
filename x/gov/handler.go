@@ -327,7 +327,7 @@ func (h UpdateElectorateHandler) Deliver(ctx weave.Context, db weave.KVStore, tx
 	}
 	for _, v := range props {
 		if v.Status == TextProposal_Submitted {
-			return nil, errors.Wrapf(errors.ErrInvalidState, "open proposal exists: %q", v.Title)
+			return nil, errors.Wrapf(errors.ErrInvalidState, "open proposal using this electorate: %q", v.Title)
 		}
 	}
 	// all good, let's update

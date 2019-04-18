@@ -29,6 +29,13 @@ func TestElectorateValidation(t *testing.T) {
 				Electors:              buildElectors(2000),
 				TotalWeightElectorate: 2000,
 			}},
+		"All good with max weight count": {
+			Src: Electorate{
+				Title:                 "My Electorate",
+				Admin:                 alice,
+				Electors:              []Elector{{Address: alice, Weight: 65535}},
+				TotalWeightElectorate: 65535,
+			}},
 		"Not enough electors": {
 			Src: Electorate{
 				Title:                 "My Electorate",
@@ -73,6 +80,15 @@ func TestElectorateValidation(t *testing.T) {
 				TotalWeightElectorate: 65536,
 			},
 			Exp: errors.ErrInvalidInput,
+		},
+		"Electors address must not be empty": {
+			Src: Electorate{
+				Title:                 "My Electorate",
+				Admin:                 alice,
+				Electors:              []Elector{{Address: weave.Address{}, Weight: 1}},
+				TotalWeightElectorate: 1,
+			},
+			Exp: errors.ErrEmpty,
 		},
 		"Total weight mismatch": {
 			Src: Electorate{

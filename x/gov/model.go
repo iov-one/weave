@@ -30,12 +30,12 @@ func (m Electorate) Validate() error {
 			return err
 		}
 		totalWeight += uint64(v.Weight)
-		if _, exists := index[v.Address.String()]; exists {
+		addrKey := v.Address.String()
+		if _, exists := index[addrKey]; exists {
 			return errors.Wrap(errors.ErrInvalidInput, "duplicate elector entry")
 		}
-		index[v.Address.String()] = struct{}{}
+		index[addrKey] = struct{}{}
 	}
-
 	if m.TotalWeightElectorate != totalWeight {
 		return errors.Wrap(errors.ErrInvalidInput, "total weight does not match sum")
 	}
@@ -65,7 +65,7 @@ func (m Electorate) Elector(a weave.Address) (*Elector, bool) {
 	return nil, false
 }
 
-const maxWeight = 2 ^ 16 - 1
+const maxWeight = 1<<16 - 1
 
 func (m Elector) Validate() error {
 	switch {
