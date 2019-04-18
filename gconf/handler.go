@@ -8,7 +8,9 @@ import (
 	"github.com/iov-one/weave/x"
 )
 
-// OwnedConfig must have an Owner field in protobuf, which we can use to control who can update
+// OwnedConfig must have an Owner field in protobuf. A configuration update
+// message must be signed by an owner in order to be authorized to apply the
+// change.
 type OwnedConfig interface {
 	Unmarshaler
 	ValidMarshaler
@@ -17,12 +19,12 @@ type OwnedConfig interface {
 
 type UpdateConfigurationHandler struct {
 	pkg string
-	// we require this type to load the data
+	// We require this type to load the data.
 	config OwnedConfig
 	auth   x.Authenticator
 }
 
-var _ weave.Handler = UpdateConfigurationHandler{}
+var _ weave.Handler = (*UpdateConfigurationHandler)(nil)
 
 func NewUpdateConfigurationHandler(pkg string, config OwnedConfig, auth x.Authenticator) UpdateConfigurationHandler {
 	return UpdateConfigurationHandler{
@@ -33,51 +35,45 @@ func NewUpdateConfigurationHandler(pkg string, config OwnedConfig, auth x.Authen
 }
 
 func (h UpdateConfigurationHandler) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx) (weave.CheckResult, error) {
-	// same as deliver
-	_, err := h.Deliver(ctx, store, tx)
-	return weave.CheckResult{}, errors.Wrap(err, "check")
+	return weave.CheckResult{}, h.applyTx(ctx, store, tx)
 }
 
-// Deliver demos my concepts
 func (h UpdateConfigurationHandler) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx) (weave.DeliverResult, error) {
-	// Load the current config from the store
+	return weave.DeliverResult{}, h.applyTx(ctx, store, tx)
+}
+
+func (h UpdateConfigurationHandler) applyTx(ctx weave.Context, store weave.KVStore, tx weave.Tx) error {
 	if err := Load(store, h.pkg, h.config); err != nil {
-		return weave.DeliverResult{}, errors.Wrap(err, "load message")
+		return errors.Wrap(err, "load message")
 	}
 
-	// make sure we are allowed to update
+	// Configuration owner must sign the transaction in order to
+	// authenticate the change.
 	owner := h.config.GetOwner()
 	if owner == nil {
-		return weave.DeliverResult{}, errors.Wrap(errors.ErrUnauthorized, "owner signature required")
+		return errors.Wrap(errors.ErrUnauthorized, "owner signature required")
 	}
 	if !h.auth.HasAddress(ctx, owner) {
-		return weave.DeliverResult{}, errors.Wrap(errors.ErrUnauthorized, "owner did not sign transaction")
+		return errors.Wrap(errors.ErrUnauthorized, "owner did not sign transaction")
 	}
 
-	// Get the payload from the Tx
-	payload, err := h.getPayload(tx)
+	payload, err := patchPayload(tx)
 	if err != nil {
-		return weave.DeliverResult{}, errors.Wrap(err, "cannot get message payload")
+		return errors.Wrap(err, "cannot get message payload")
 	}
-	// patch current state
-	err = h.patch(h.config, payload)
-	if err != nil {
-		return weave.DeliverResult{}, errors.Wrap(err, "cannot patch config with message payload")
-	}
-	// save to disk
-	err = Save(store, h.pkg, h.config)
-	if err != nil {
-		return weave.DeliverResult{}, errors.Wrap(err, "cannot save updated config")
+	if err := patch(h.config, payload); err != nil {
+		return errors.Wrap(err, "cannot patch config with message payload")
 	}
 
-	// success!!!
-	return weave.DeliverResult{}, nil
+	if err := Save(store, h.pkg, h.config); err != nil {
+		return errors.Wrap(err, "cannot save updated config")
+	}
+	return nil
 }
 
-// we are guaranteed that config and payload are the same type from getPayload
-func (h UpdateConfigurationHandler) patch(config OwnedConfig, payload OwnedConfig) error {
-	// now we got this, ensure same type as the h.config
-	// TODO: test this
+func patch(config OwnedConfig, payload OwnedConfig) error {
+	// We are guaranteed that config and payload are the same type from
+	// patchPayload.
 	pType := reflect.TypeOf(payload)
 	cType := reflect.TypeOf(config)
 	if !pType.ConvertibleTo(cType) {
@@ -89,22 +85,28 @@ func (h UpdateConfigurationHandler) patch(config OwnedConfig, payload OwnedConfi
 
 	for i := 0; i < cval.NumField(); i++ {
 		got := pval.Field(i)
-		if !isZero(got) {
-			cval.Field(i).Set(got)
+
+		// Zero values do not update the original configurtion.
+		if isZero(got) {
+			continue
 		}
+
+		cval.Field(i).Set(got)
 	}
 
 	return nil
 }
 
+// isZero returns true if given value represents a zero value of a given type.
 func isZero(val reflect.Value) bool {
 	zero := reflect.Zero(val.Type()).Interface()
 	return reflect.DeepEqual(val.Interface(), zero)
 }
 
-// getPayload expects the transaction to have a message with exactly one field (patch)
-// it then ensures this field is the same as the config we have
-func (h UpdateConfigurationHandler) getPayload(tx weave.Tx) (OwnedConfig, error) {
+// patchPayload expects the transaction to have a message with "Patch" field of
+// the same type as the configuration. Content of this field is extracted and
+// returned.
+func patchPayload(tx weave.Tx) (OwnedConfig, error) {
 	msg, err := tx.GetMsg()
 	if err != nil {
 		return nil, err
@@ -115,23 +117,20 @@ func (h UpdateConfigurationHandler) getPayload(tx weave.Tx) (OwnedConfig, error)
 		return nil, err
 	}
 
-	// try to do (*Configuration).Patch and get the interface behind
+	// Try to do (*Configuration).Patch and get the interface behind.
 	pval := reflect.ValueOf(msg)
 	if pval.Kind() != reflect.Ptr || pval.Elem().Kind() != reflect.Struct {
 		return nil, errors.Wrapf(errors.ErrInvalidInput, "invalid message container value: %T", msg)
 	}
 	val := pval.Elem()
-	if val.NumField() != 1 {
-		return nil, errors.Wrapf(errors.ErrInvalidInput, "unexpected message container field count: %d", val.NumField())
-	}
-	field := val.Field(0)
+
+	field := val.FieldByName("Patch")
 	if field.IsNil() {
-		return nil, errors.Wrap(errors.ErrInvalidState, "payload is <nil>")
+		return nil, errors.Wrap(errors.ErrInvalidState, `"Patch" field is required`)
 	}
 	payload, ok := field.Interface().(OwnedConfig)
 	if !ok {
-		return nil, errors.Wrap(errors.ErrInvalidInput, "payload is not OwnedConfig")
+		return nil, errors.Wrap(errors.ErrInvalidInput, `"Patch" field is of a wrong type`)
 	}
-
 	return payload, nil
 }
