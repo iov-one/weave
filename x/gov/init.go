@@ -20,8 +20,8 @@ func (*Initializer) FromGenesis(opts weave.Options, db weave.KVStore) error {
 		Electorate []struct {
 			Title    string `json:"title"`
 			Electors []struct {
-				Signature weave.Address `json:"signature"`
-				Weight    uint32        `json:"weight"`
+				Address weave.Address `json:"address"`
+				Weight  uint32        `json:"weight"`
 			} `json:"electors"`
 		} `json:"electorate"`
 		Rules []struct {
@@ -43,8 +43,8 @@ func (*Initializer) FromGenesis(opts weave.Options, db weave.KVStore) error {
 		var total uint64
 		for i, p := range e.Electors {
 			ps[i] = Elector{
-				Signature: p.Signature,
-				Weight:    p.Weight,
+				Address: p.Address,
+				Weight:  p.Weight,
 			}
 			total += uint64(p.Weight)
 		}

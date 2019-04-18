@@ -29,10 +29,10 @@ func (m Electorate) Validate() error {
 			return err
 		}
 		totalWeight += uint64(v.Weight)
-		if _, exists := index[v.Signature.String()]; exists {
+		if _, exists := index[v.Address.String()]; exists {
 			return errors.Wrap(errors.ErrInvalidInput, "duplicate elector entry")
 		}
-		index[v.Signature.String()] = struct{}{}
+		index[v.Address.String()] = struct{}{}
 	}
 
 	if m.TotalWeightElectorate != totalWeight {
@@ -54,7 +54,7 @@ func (m Electorate) Copy() orm.CloneableData {
 // is true when the address exists in the electors list only.
 func (m Electorate) Elector(a weave.Address) (*Elector, bool) {
 	for _, v := range m.Electors {
-		if v.Signature.Equals(a) {
+		if v.Address.Equals(a) {
 			return &v, true
 		}
 	}
@@ -70,7 +70,7 @@ func (m Elector) Validate() error {
 	case m.Weight == 0:
 		return errors.Wrap(errors.ErrInvalidInput, "weight must not be empty")
 	}
-	return m.Signature.Validate()
+	return m.Address.Validate()
 }
 
 const (
@@ -119,8 +119,8 @@ const (
 
 func (m *TextProposal) Validate() error {
 	switch {
-	case !validTitle(m.Title):
-		return errors.Wrapf(errors.ErrInvalidInput, "title: %q", m.Title)
+	case m.Result == TextProposal_Empty:
+		return errors.Wrap(errors.ErrInvalidInput, "invalid result value")
 	case m.Status == TextProposal_Invalid:
 		return errors.Wrap(errors.ErrInvalidInput, "invalid status")
 	case m.VotingStartTime >= m.VotingEndTime:
@@ -137,8 +137,9 @@ func (m *TextProposal) Validate() error {
 		return errors.Wrap(errors.ErrInvalidInput, "empty electorate id")
 	case len(m.ElectionRuleID) == 0:
 		return errors.Wrap(errors.ErrInvalidInput, "empty election rules id")
+	case !validTitle(m.Title):
+		return errors.Wrapf(errors.ErrInvalidInput, "title: %q", m.Title)
 	}
-
 	return nil
 }
 
@@ -156,25 +157,26 @@ func (m TextProposal) Copy() orm.CloneableData {
 		VotingEndTime:   m.VotingEndTime,
 		SubmissionTime:  m.SubmissionTime,
 		Author:          m.Author,
-		VoteResult:      m.VoteResult,
+		VoteState:       m.VoteState,
 		Status:          m.Status,
+		Result:          m.Result,
 	}
 }
 
 // CountVote updates the intermediate tally result by adding the new vote weight.
 func (m *TextProposal) CountVote(vote Vote) error {
-	oldTotal := m.VoteResult.TotalVotes()
+	oldTotal := m.VoteState.TotalVotes()
 	switch vote.Voted {
 	case VoteOption_Yes:
-		m.VoteResult.TotalYes += vote.Elector.Weight
+		m.VoteState.TotalYes += vote.Elector.Weight
 	case VoteOption_No:
-		m.VoteResult.TotalNo += vote.Elector.Weight
+		m.VoteState.TotalNo += vote.Elector.Weight
 	case VoteOption_Abstain:
-		m.VoteResult.TotalAbstain += vote.Elector.Weight
+		m.VoteState.TotalAbstain += vote.Elector.Weight
 	default:
 		return errors.Wrapf(errors.ErrInvalidInput, "%q", m.String())
 	}
-	if m.VoteResult.TotalVotes() <= oldTotal {
+	if m.VoteState.TotalVotes() <= oldTotal {
 		return errors.Wrap(errors.ErrHuman, "sanity overflow check failed")
 	}
 	return nil
@@ -182,18 +184,18 @@ func (m *TextProposal) CountVote(vote Vote) error {
 
 // UndoCountVote updates the intermediate tally result by subtracting the given vote weight.
 func (m *TextProposal) UndoCountVote(vote Vote) error {
-	oldTotal := m.VoteResult.TotalVotes()
+	oldTotal := m.VoteState.TotalVotes()
 	switch vote.Voted {
 	case VoteOption_Yes:
-		m.VoteResult.TotalYes -= vote.Elector.Weight
+		m.VoteState.TotalYes -= vote.Elector.Weight
 	case VoteOption_No:
-		m.VoteResult.TotalNo -= vote.Elector.Weight
+		m.VoteState.TotalNo -= vote.Elector.Weight
 	case VoteOption_Abstain:
-		m.VoteResult.TotalAbstain -= vote.Elector.Weight
+		m.VoteState.TotalAbstain -= vote.Elector.Weight
 	default:
 		return errors.Wrapf(errors.ErrInvalidInput, "%q", m.String())
 	}
-	if m.VoteResult.TotalVotes() >= oldTotal {
+	if m.VoteState.TotalVotes() >= oldTotal {
 		return errors.Wrap(errors.ErrHuman, "sanity overflow check failed")
 	}
 	return nil
@@ -202,11 +204,18 @@ func (m *TextProposal) UndoCountVote(vote Vote) error {
 // Tally calls the final calculation on the votes and sets the status of the proposal according to the
 // election rules threshold.
 func (m *TextProposal) Tally() error {
-	if m.VoteResult.Accepted() {
-		m.Status = TextProposal_Accepted
-	} else {
-		m.Status = TextProposal_Rejected
+	if m.Result != TextProposal_Undefined {
+		return errors.Wrapf(errors.ErrInvalidState, "result exists: %q", m.Result.String())
 	}
+	if m.Status != TextProposal_Submitted {
+		return errors.Wrapf(errors.ErrInvalidState, "unexpected status: %q", m.Status.String())
+	}
+	if m.VoteState.Accepted() {
+		m.Result = TextProposal_Accepted
+	} else {
+		m.Result = TextProposal_Rejected
+	}
+	m.Status = TextProposal_Closed
 	return nil
 }
 
