@@ -21,9 +21,11 @@ func BenchmarkBnsdEmptyBlock(b *testing.B) {
 
 	type dict map[string]interface{}
 	genesis := dict{
-		"cashconf": cash.Configuration{
-			CollectorAddress: aliceAddr,
-			MinimalFee:       coin.Coin{}, // no fee
+		"conf": dict{
+			"cash": cash.Configuration{
+				CollectorAddress: aliceAddr,
+				MinimalFee:       coin.Coin{}, // no fee
+			},
 		},
 	}
 
@@ -77,9 +79,11 @@ func BenchmarkBNSDSendToken(b *testing.B) {
 					"name":   "Main token of this chain",
 				},
 			},
-			"cashconf": cash.Configuration{
-				CollectorAddress: carol,
-				MinimalFee:       fee,
+			"conf": dict{
+				"cash": cash.Configuration{
+					CollectorAddress: carol,
+					MinimalFee:       fee,
+				},
 			},
 		}
 	}
