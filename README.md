@@ -8,6 +8,8 @@
 [![ReadTheDocs](https://readthedocs.org/projects/weave/badge/?version=latest)](http://weave.readthedocs.io/en/latest/)
 [![license](https://img.shields.io/github/license/iov-one/weave.svg)](https://github.com/iov-one/weave/blob/master/LICENSE)
 
+![Weave Logo](./docs/_static/img/weave-logo.jpg)
+
 IOV Weave is a framework for quickly building your custom
 [ABCI application](https://github.com/tendermint/abci)
 to run a blockchain on top of the best-of-class
@@ -135,3 +137,5 @@ that organization in August 2018 to be developed further
 for their BNS blockchain, as well as a companion to
 [iov-core](https://github.com/iov-one/iov-core)
 client libraries that deprecated `confio/weave-js`
+
+Thanks for [newfinal100](https://github.com/newfinal100) for designing the weave logo.
