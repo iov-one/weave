@@ -9,17 +9,17 @@ import "github.com/gogo/protobuf/gogoproto/gogo.proto";
 message Electorate {
     // Human readable title.
     string title = 1;
-    // Elector defines a list of all signatures that are allowed to participate in a vote
+    // Elector defines a list of all address that are allowed to participate in a vote
     repeated Elector electors = 2 [(gogoproto.nullable) = false];
     // TotalWeightElectorate is the sum of all electors weights.
     uint64 total_weight_electorate = 3;
 }
 
-// Elector clubs together a signature with a weight. The greater the weight
+// Elector clubs together a address with a weight. The greater the weight
 // the greater the power of a participant.
 message Elector {
     // The address of the voter.
-    bytes signature = 1 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
+    bytes address = 1 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
     // Weight defines the power of the participants vote. max value is 65535 (2^16-1).
     uint32 weight = 2;
 }
@@ -44,11 +44,11 @@ message ElectionRule {
 // numerator: 2, denominator: 3 => > 66.666..%
 // numerator: 6273, denominator: 10000 => > 62.73%
 // Valid range of the fraction is 0.5 to 1.
-message Fraction{
+message Fraction {
     // The top number in a fraction.
     uint32 numerator = 1;
     // The bottom number
-    uint32 denominator =2;
+    uint32 denominator = 2;
 }
 
 // A text form proposal for an on-chain governance process.
@@ -72,17 +72,34 @@ message TextProposal {
     // Address of the author who created the proposal. If not set explicit on creation it will default to the main signer.
     bytes author = 8 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
     // Result of the election. Contains intermediate tally results while voting period is open.
-    TallyResult vote_result = 10 [(gogoproto.nullable) = false];
+    TallyResult vote_state = 10 [(gogoproto.nullable) = false];
 
-    // Status of the proposal base on the final tally result. `UNDEFINED` as initial value.
     enum Status {
+        // An empty value is invalid and not allowed
         TEXT_PROPOSAL_STATUS_INVALID = 0 [(gogoproto.enumvalue_customname ) = "Invalid"];
-        TEXT_PROPOSAL_STATUS_UNDEFINED = 1 [(gogoproto.enumvalue_customname ) = "Undefined"];
-        TEXT_PROPOSAL_STATUS_ACCEPTED = 2 [(gogoproto.enumvalue_customname ) = "Accepted"];
-        TEXT_PROPOSAL_STATUS_REJECTED = 3 [(gogoproto.enumvalue_customname ) = "Rejected"];
+        // Initial status of a proposal when persisted.
+        TEXT_PROPOSAL_STATUS_SUBMITTED = 1 [(gogoproto.enumvalue_customname ) = "Submitted"];
+        // Final status of a proposal when the tally was executed
+        TEXT_PROPOSAL_STATUS_CLOSED = 2 [(gogoproto.enumvalue_customname ) = "Closed"];
+        // A proposal can be deleted before the voting start time by the owner. When this happens the final status
+        // is Withdrawn.
+        TEXT_PROPOSAL_STATUS_WITHDRAWN = 3 [(gogoproto.enumvalue_customname ) = "Withdrawn"];
     }
-    // status is the final result based on the votes and election rule.
-    Status status = 11 ;
+    // Status represents the high level position in the life cycle of the proposal. Initial value is submitted.
+    Status status = 11;
+
+    enum Result {
+        // An empty value is invalid and not allowed
+        TEXT_PROPOSAL_RESULT_INVALID = 0 [(gogoproto.enumvalue_customname ) = "Empty"];
+        // Until a final tally has happened the status is undefined
+        TEXT_PROPOSAL_RESULT_UNDEFINED = 1 [(gogoproto.enumvalue_customname ) = "Undefined"];
+        // Final result of the tally
+        TEXT_PROPOSAL_RESULT_ACCEPTED = 2 [(gogoproto.enumvalue_customname ) = "Accepted"];
+        // Final result of the tally
+        TEXT_PROPOSAL_RESULT_REJECTED = 3 [(gogoproto.enumvalue_customname ) = "Rejected"];
+    }
+    // Result is the final result based on the votes and election rule. Initial value is Undefined.
+    Result result = 12;
 }
 
 // TallyResult contains sums of the votes and all data for the final result.
@@ -100,7 +117,7 @@ message TallyResult {
     Fraction threshold = 5 [(gogoproto.nullable) = false];
 }
 
-// Vote combines the elector and his voted option to archive them.
+// Vote combines the elector and his voted option to archive them. The proposalID and address is stored within the key.
 message Vote {
     Elector elector = 1 [(gogoproto.nullable) = false];
     VoteOption voted = 2;
@@ -127,14 +144,14 @@ message CreateTextProposalMsg {
 enum VoteOption {
     VOTE_OPTION_INVALID = 0 [(gogoproto.enumvalue_customname ) = "Invalid"];
     VOTE_OPTION_YES = 1 [(gogoproto.enumvalue_customname ) = "Yes"];
-    VOTE_OPTION_NO = 2[(gogoproto.enumvalue_customname ) = "No"];
+    VOTE_OPTION_NO = 2 [(gogoproto.enumvalue_customname ) = "No"];
     VOTE_OPTION_ABSTAIN = 3 [(gogoproto.enumvalue_customname ) = "Abstain"];
 }
 
 // VoteMsg is the way to express a voice and participate in an election of a proposal on chain.
 message VoteMsg {
     // The unique id of the proposal.
-    bytes proposal_id = 1[(gogoproto.customname) = "ProposalID"];
+    bytes proposal_id = 1 [(gogoproto.customname) = "ProposalID"];
     // voter address is an optional field. When not set the main signer will be used as default. The voter address
     // must be included in the electorate for a valid vote.
     bytes voter = 2 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];

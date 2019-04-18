@@ -21,11 +21,11 @@ func TestInitFromGenesis(t *testing.T) {
         "electors": [
           {
             "weight": 10,
-            "signature": "1111111111111111111111111111111111111111"
+            "address": "1111111111111111111111111111111111111111"
           },
           {
             "weight": 11,
-            "signature": "2222222222222222222222222222222222222222"
+            "address": "2222222222222222222222222222222222222222"
           }
         ]
       },
@@ -34,7 +34,7 @@ func TestInitFromGenesis(t *testing.T) {
         "electors": [
           {
             "weight": 1,
-            "signature": "3333333333333333333333333333333333333333"
+            "address": "3333333333333333333333333333333333333333"
           }
         ]
       }
@@ -80,13 +80,13 @@ func TestInitFromGenesis(t *testing.T) {
 	if exp, got := 2, len(e.Electors); exp != got {
 		t.Errorf("expected %v but got %v", exp, got)
 	}
-	if exp, got := addr("1111111111111111111111111111111111111111"), e.Electors[0].Signature; !exp.Equals(got) {
+	if exp, got := addr("1111111111111111111111111111111111111111"), e.Electors[0].Address; !exp.Equals(got) {
 		t.Errorf("expected %X but got %X", exp, got)
 	}
 	if exp, got := uint32(10), e.Electors[0].Weight; exp != got {
 		t.Errorf("expected %v but got %v", exp, got)
 	}
-	if exp, got := addr("2222222222222222222222222222222222222222"), e.Electors[1].Signature; !exp.Equals(got) {
+	if exp, got := addr("2222222222222222222222222222222222222222"), e.Electors[1].Address; !exp.Equals(got) {
 		t.Errorf("expected %X but got %X", exp, got)
 	}
 	if exp, got := uint32(11), e.Electors[1].Weight; exp != got {
@@ -103,7 +103,7 @@ func TestInitFromGenesis(t *testing.T) {
 	if exp, got := 1, len(e.Electors); exp != got {
 		t.Errorf("expected %v but got %v", exp, got)
 	}
-	if exp, got := addr("3333333333333333333333333333333333333333"), e.Electors[0].Signature; !exp.Equals(got) {
+	if exp, got := addr("3333333333333333333333333333333333333333"), e.Electors[0].Address; !exp.Equals(got) {
 		t.Errorf("expected %X but got %X", exp, got)
 	}
 	if exp, got := uint32(1), e.Electors[0].Weight; exp != got {

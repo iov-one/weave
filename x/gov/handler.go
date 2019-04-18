@@ -75,7 +75,7 @@ func (h VoteHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (
 		return res, err
 	}
 
-	switch oldVote, err := h.voteBucket.GetVote(db, voteMsg.ProposalID, vote.Elector.Signature); {
+	switch oldVote, err := h.voteBucket.GetVote(db, voteMsg.ProposalID, vote.Elector.Address); {
 	case errors.ErrNotFound.Is(err): // not voted before: skip undo
 	case err != nil:
 		return res, errors.Wrap(err, "failed to load vote")
@@ -103,6 +103,9 @@ func (h VoteHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) 
 	if err != nil {
 		return nil, nil, nil, errors.Wrap(err, "failed to load proposal")
 	}
+	if proposal.Status != TextProposal_Submitted {
+		return nil, nil, nil, errors.Wrap(errors.ErrInvalidState, "not in voting period")
+	}
 	blockTime, ok := weave.BlockTime(ctx)
 	if !ok {
 		return nil, nil, nil, errors.Wrap(errors.ErrHuman, "block time not set")
@@ -126,6 +129,9 @@ func (h VoteHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) 
 	elector, ok := electorate.Elector(voter)
 	if !ok {
 		return nil, nil, nil, errors.Wrap(errors.ErrUnauthorized, "not in participants list")
+	}
+	if !h.auth.HasAddress(ctx, voter) {
+		return nil, nil, nil, errors.Wrap(errors.ErrUnauthorized, "voter must sign msg")
 	}
 	vote := &Vote{Elector: *elector, Voted: msg.Selected}
 	if err := vote.Validate(); err != nil {
@@ -177,8 +183,8 @@ func (h TallyHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "failed to load proposal")
 	}
-	if proposal.Status != TextProposal_Undefined {
-		return nil, nil, errors.Wrap(errors.ErrInvalidState, "tally executed before")
+	if proposal.Status != TextProposal_Submitted {
+		return nil, nil, errors.Wrapf(errors.ErrInvalidState, "unexpected status: %s", proposal.Status.String())
 	}
 	blockTime, ok := weave.BlockTime(ctx)
 	if !ok {
@@ -224,11 +230,12 @@ func (h TextProposalHandler) Deliver(ctx weave.Context, db weave.KVStore, tx wea
 		VotingEndTime:   msg.StartTime.Add(time.Duration(rules.VotingPeriodHours) * time.Hour),
 		SubmissionTime:  weave.AsUnixTime(blockTime),
 		Author:          msg.Author,
-		VoteResult: TallyResult{
+		VoteState: TallyResult{
 			TotalWeightElectorate: electorate.TotalWeightElectorate,
 			Threshold:             rules.Threshold,
 		},
-		Status: TextProposal_Undefined,
+		Status: TextProposal_Submitted,
+		Result: TextProposal_Undefined,
 	}
 
 	obj := h.propBucket.Build(db, proposal)

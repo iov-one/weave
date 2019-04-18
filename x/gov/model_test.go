@@ -18,7 +18,7 @@ func TestElectorateValidation(t *testing.T) {
 		"All good with min electors count": {
 			Src: Electorate{
 				Title:                 "My Electorate",
-				Electors:              []Elector{{Signature: alice, Weight: 1}},
+				Electors:              []Elector{{Address: alice, Weight: 1}},
 				TotalWeightElectorate: 1,
 			}},
 		"All good with max electors count": {
@@ -46,7 +46,7 @@ func TestElectorateValidation(t *testing.T) {
 		"Duplicate electors": {
 			Src: Electorate{
 				Title:                 "My Electorate",
-				Electors:              []Elector{{Signature: alice, Weight: 1}, {Signature: alice, Weight: 1}},
+				Electors:              []Elector{{Address: alice, Weight: 1}, {Address: alice, Weight: 1}},
 				TotalWeightElectorate: 2,
 			},
 			Exp: errors.ErrInvalidInput,
@@ -54,7 +54,7 @@ func TestElectorateValidation(t *testing.T) {
 		"Empty electors weight ": {
 			Src: Electorate{
 				Title:                 "My Electorate",
-				Electors:              []Elector{{Signature: bobby, Weight: 0}, {Signature: alice, Weight: 1}},
+				Electors:              []Elector{{Address: bobby, Weight: 0}, {Address: alice, Weight: 1}},
 				TotalWeightElectorate: 1,
 			},
 			Exp: errors.ErrInvalidInput,
@@ -62,7 +62,7 @@ func TestElectorateValidation(t *testing.T) {
 		"Electors weight exceeds max": {
 			Src: Electorate{
 				Title:                 "My Electorate",
-				Electors:              []Elector{{Signature: alice, Weight: 65536}},
+				Electors:              []Elector{{Address: alice, Weight: 65536}},
 				TotalWeightElectorate: 65536,
 			},
 			Exp: errors.ErrInvalidInput,
@@ -70,7 +70,7 @@ func TestElectorateValidation(t *testing.T) {
 		"Total weight mismatch": {
 			Src: Electorate{
 				Title:                 "My Electorate",
-				Electors:              []Elector{{Signature: alice, Weight: 1}},
+				Electors:              []Elector{{Address: alice, Weight: 1}},
 				TotalWeightElectorate: 2,
 			},
 			Exp: errors.ErrInvalidInput,
@@ -78,7 +78,7 @@ func TestElectorateValidation(t *testing.T) {
 		"Title too short": {
 			Src: Electorate{
 				Title:                 "foo",
-				Electors:              []Elector{{Signature: alice, Weight: 1}},
+				Electors:              []Elector{{Address: alice, Weight: 1}},
 				TotalWeightElectorate: 1,
 			},
 			Exp: errors.ErrInvalidInput,
@@ -86,7 +86,7 @@ func TestElectorateValidation(t *testing.T) {
 		"Title too long": {
 			Src: Electorate{
 				Title:                 BigString(129),
-				Electors:              []Elector{{Signature: alice, Weight: 1}},
+				Electors:              []Elector{{Address: alice, Weight: 1}},
 				TotalWeightElectorate: 1,
 			},
 			Exp: errors.ErrInvalidInput,
@@ -258,6 +258,18 @@ func TestTextProposalValidation(t *testing.T) {
 			}),
 			Exp: errors.ErrInvalidInput,
 		},
+		"Status missing": {
+			Src: textProposalFixture(func(p *TextProposal) {
+				p.Status = TextProposal_Status(0)
+			}),
+			Exp: errors.ErrInvalidInput,
+		},
+		"Result missing": {
+			Src: textProposalFixture(func(p *TextProposal) {
+				p.Result = TextProposal_Result(0)
+			}),
+			Exp: errors.ErrInvalidInput,
+		},
 	}
 	for msg, spec := range specs {
 		t.Run(msg, func(t *testing.T) {
@@ -276,11 +288,11 @@ func TestVoteValidate(t *testing.T) {
 		"All good": {
 			Src: Vote{
 				Voted:   VoteOption_Yes,
-				Elector: Elector{Signature: bobby, Weight: 10},
+				Elector: Elector{Address: bobby, Weight: 10},
 			},
 		},
 		"Voted option missing": {
-			Src: Vote{Elector: Elector{Signature: bobby, Weight: 10}},
+			Src: Vote{Elector: Elector{Address: bobby, Weight: 10}},
 			Exp: errors.ErrInvalidInput,
 		},
 		"Elector missing": {
@@ -288,15 +300,15 @@ func TestVoteValidate(t *testing.T) {
 			Exp: errors.ErrInvalidInput,
 		},
 		"Elector's weight missing": {
-			Src: Vote{Voted: VoteOption_Yes, Elector: Elector{Signature: bobby}},
+			Src: Vote{Voted: VoteOption_Yes, Elector: Elector{Address: bobby}},
 			Exp: errors.ErrInvalidInput,
 		},
-		"Elector's signature missing": {
+		"Elector's Address missing": {
 			Src: Vote{Voted: VoteOption_Yes, Elector: Elector{Weight: 1}},
 			Exp: errors.ErrEmpty,
 		},
 		"Invalid option": {
-			Src: Vote{Voted: VoteOption_Invalid, Elector: Elector{Signature: bobby, Weight: 1}},
+			Src: Vote{Voted: VoteOption_Invalid, Elector: Elector{Address: bobby, Weight: 1}},
 			Exp: errors.ErrInvalidInput,
 		},
 	}
@@ -319,7 +331,8 @@ func textProposalFixture(mods ...func(*TextProposal)) TextProposal {
 		VotingStartTime: now.Add(-1 * time.Minute),
 		VotingEndTime:   now.Add(time.Minute),
 		SubmissionTime:  now.Add(-1 * time.Hour),
-		Status:          TextProposal_Undefined,
+		Status:          TextProposal_Submitted,
+		Result:          TextProposal_Undefined,
 		Author:          alice,
 	}
 	for _, mod := range mods {
@@ -333,7 +346,7 @@ func textProposalFixture(mods ...func(*TextProposal)) TextProposal {
 func buildElectors(n int) []Elector {
 	r := make([]Elector, n)
 	for i := 0; i < n; i++ {
-		r[i] = Elector{Weight: 1, Signature: weavetest.NewCondition().Address()}
+		r[i] = Elector{Weight: 1, Address: weavetest.NewCondition().Address()}
 	}
 	return r
 }

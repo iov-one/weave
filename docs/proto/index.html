@@ -646,6 +646,10 @@
               
               
                 <li>
+                  <a href="#gov.TextProposal.Result"><span class="badge">E</span>TextProposal.Result</a>
+                </li>
+              
+                <li>
                   <a href="#gov.TextProposal.Status"><span class="badge">E</span>TextProposal.Status</a>
                 </li>
               
@@ -2242,7 +2246,7 @@ computed as the sum of weights of all participating signatures. </p></td>
                   <td>src</td>
                   <td><a href="#bytes">bytes</a></td>
                   <td></td>
-                  <td><p>Sender, Arbiter, Recipient are all weave.Permission </p></td>
+                  <td><p> </p></td>
                 </tr>
               
                 <tr>
@@ -2300,7 +2304,7 @@ computed as the sum of weights of all participating signatures. </p></td>
                   <td>sender</td>
                   <td><a href="#bytes">bytes</a></td>
                   <td></td>
-                  <td><p>Sender, Arbiter, Recipient are all weave.Permission </p></td>
+                  <td><p> </p></td>
                 </tr>
               
                 <tr>
@@ -3098,7 +3102,7 @@ of the eligible voters. </p></td>
         
       
         <h3 id="gov.Elector">Elector</h3>
-        <p>Elector clubs together a signature with a weight. The greater the weight</p><p>the greater the power of a participant.</p>
+        <p>Elector clubs together a address with a weight. The greater the weight</p><p>the greater the power of a participant.</p>
 
         
           <table class="field-table">
@@ -3108,7 +3112,7 @@ of the eligible voters. </p></td>
             <tbody>
               
                 <tr>
-                  <td>signature</td>
+                  <td>address</td>
                   <td><a href="#bytes">bytes</a></td>
                   <td></td>
                   <td><p>The address of the voter. </p></td>
@@ -3148,7 +3152,7 @@ of the eligible voters. </p></td>
                   <td>electors</td>
                   <td><a href="#gov.Elector">Elector</a></td>
                   <td>repeated</td>
-                  <td><p>Elector defines a list of all signatures that are allowed to participate in a vote </p></td>
+                  <td><p>Elector defines a list of all address that are allowed to participate in a vote </p></td>
                 </tr>
               
                 <tr>
@@ -3338,7 +3342,7 @@ to be included in the election. </p></td>
                 </tr>
               
                 <tr>
-                  <td>vote_result</td>
+                  <td>vote_state</td>
                   <td><a href="#gov.TallyResult">TallyResult</a></td>
                   <td></td>
                   <td><p>Result of the election. Contains intermediate tally results while voting period is open. </p></td>
@@ -3348,7 +3352,14 @@ to be included in the election. </p></td>
                   <td>status</td>
                   <td><a href="#gov.TextProposal.Status">TextProposal.Status</a></td>
                   <td></td>
-                  <td><p>status is the final result based on the votes and election rule. </p></td>
+                  <td><p>Status represents the high level position in the life cycle of the proposal. Initial value is submitted. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>result</td>
+                  <td><a href="#gov.TextProposal.Result">TextProposal.Result</a></td>
+                  <td></td>
+                  <td><p>Result is the final result based on the votes and election rule. Initial value is Undefined. </p></td>
                 </tr>
               
             </tbody>
@@ -3358,7 +3369,7 @@ to be included in the election. </p></td>
         
       
         <h3 id="gov.Vote">Vote</h3>
-        <p>Vote combines the elector and his voted option to archive them.</p>
+        <p>Vote combines the elector and his voted option to archive them. The proposalID and address is stored within the key.</p>
 
         
           <table class="field-table">
@@ -3427,8 +3438,43 @@ must be included in the electorate for a valid vote. </p></td>
       
 
       
+        <h3 id="gov.TextProposal.Result">TextProposal.Result</h3>
+        <p></p>
+        <table class="enum-table">
+          <thead>
+            <tr><td>Name</td><td>Number</td><td>Description</td></tr>
+          </thead>
+          <tbody>
+            
+              <tr>
+                <td>TEXT_PROPOSAL_RESULT_INVALID</td>
+                <td>0</td>
+                <td><p>An empty value is invalid and not allowed</p></td>
+              </tr>
+            
+              <tr>
+                <td>TEXT_PROPOSAL_RESULT_UNDEFINED</td>
+                <td>1</td>
+                <td><p>Until a final tally has happened the status is undefined</p></td>
+              </tr>
+            
+              <tr>
+                <td>TEXT_PROPOSAL_RESULT_ACCEPTED</td>
+                <td>2</td>
+                <td><p>Final result of the tally</p></td>
+              </tr>
+            
+              <tr>
+                <td>TEXT_PROPOSAL_RESULT_REJECTED</td>
+                <td>3</td>
+                <td><p>Final result of the tally</p></td>
+              </tr>
+            
+          </tbody>
+        </table>
+      
         <h3 id="gov.TextProposal.Status">TextProposal.Status</h3>
-        <p>Status of the proposal base on the final tally result. `UNDEFINED` as initial value.</p>
+        <p></p>
         <table class="enum-table">
           <thead>
             <tr><td>Name</td><td>Number</td><td>Description</td></tr>
@@ -3438,25 +3484,26 @@ must be included in the electorate for a valid vote. </p></td>
               <tr>
                 <td>TEXT_PROPOSAL_STATUS_INVALID</td>
                 <td>0</td>
-                <td><p></p></td>
+                <td><p>An empty value is invalid and not allowed</p></td>
               </tr>
             
               <tr>
-                <td>TEXT_PROPOSAL_STATUS_UNDEFINED</td>
+                <td>TEXT_PROPOSAL_STATUS_SUBMITTED</td>
                 <td>1</td>
-                <td><p></p></td>
+                <td><p>Initial status of a proposal when persisted.</p></td>
               </tr>
             
               <tr>
-                <td>TEXT_PROPOSAL_STATUS_ACCEPTED</td>
+                <td>TEXT_PROPOSAL_STATUS_CLOSED</td>
                 <td>2</td>
-                <td><p></p></td>
+                <td><p>Final status of a proposal when the tally was executed</p></td>
               </tr>
             
               <tr>
-                <td>TEXT_PROPOSAL_STATUS_REJECTED</td>
+                <td>TEXT_PROPOSAL_STATUS_WITHDRAWN</td>
                 <td>3</td>
-                <td><p></p></td>
+                <td><p>A proposal can be deleted before the voting start time by the owner. When this happens the final status
+is Withdrawn.</p></td>
               </tr>
             
           </tbody>

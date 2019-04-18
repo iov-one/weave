@@ -14,7 +14,7 @@ func TestHasVoted(t *testing.T) {
 	db := store.MemStore()
 	vBucket := NewVoteBucket()
 	proposalID := weavetest.SequenceID(1)
-	obj := vBucket.Build(db, proposalID, Vote{Voted: VoteOption_Yes, Elector: Elector{Signature: bobby, Weight: 10}})
+	obj := vBucket.Build(db, proposalID, Vote{Voted: VoteOption_Yes, Elector: Elector{Address: bobby, Weight: 10}})
 	if err := vBucket.Save(db, obj); err != nil {
 		t.Fatalf("unexpected error: %s", err)
 	}
@@ -34,8 +34,8 @@ func TestQueryVotes(t *testing.T) {
 	vBucket := NewVoteBucket()
 
 	// given
-	bobbysVote := Vote{Voted: VoteOption_Yes, Elector: Elector{Signature: bobby, Weight: 1}}
-	aliceVote := Vote{Voted: VoteOption_No, Elector: Elector{Signature: alice, Weight: 10}}
+	bobbysVote := Vote{Voted: VoteOption_Yes, Elector: Elector{Address: bobby, Weight: 1}}
+	aliceVote := Vote{Voted: VoteOption_No, Elector: Elector{Address: alice, Weight: 10}}
 	for _, v := range []Vote{bobbysVote, aliceVote} {
 		obj := vBucket.Build(db, proposalID, v)
 		if err := vBucket.Save(db, obj); err != nil {
@@ -113,7 +113,7 @@ func TestQueryVotes(t *testing.T) {
 
 func byAddrSorter(src []*Vote) func(i int, j int) bool {
 	byAddressSorter := func(i, j int) bool {
-		return src[i].Elector.Signature.String() < src[j].Elector.Signature.String()
+		return src[i].Elector.Address.String() < src[j].Elector.Address.String()
 	}
 	return byAddressSorter
 }

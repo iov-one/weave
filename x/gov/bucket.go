@@ -156,7 +156,7 @@ func indexElector(obj orm.Object) (bytes []byte, e error) {
 	if !ok {
 		return nil, errors.Wrap(errors.ErrHuman, "Can only take index of Vote")
 	}
-	return v.Elector.Signature, nil
+	return v.Elector.Address, nil
 }
 
 func indexProposal(obj orm.Object) (bytes []byte, e error) {
@@ -173,7 +173,7 @@ func indexProposal(obj orm.Object) (bytes []byte, e error) {
 
 // Build creates the orm object without storing it.
 func (b *VoteBucket) Build(db weave.KVStore, proposalID []byte, vote Vote) orm.Object {
-	compositeKey := compositeKey(proposalID, vote.Elector.Signature)
+	compositeKey := compositeKey(proposalID, vote.Elector.Address)
 	return orm.NewSimpleObj(compositeKey, &vote)
 }
 
