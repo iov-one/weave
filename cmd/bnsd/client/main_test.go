@@ -91,9 +91,11 @@ func initGenesis(filename string, addr weave.Address) error {
 				"coins":   coin.Coins{&initBalance},
 			},
 		},
-		"gconf": map[string]interface{}{
-			cash.GconfCollectorAddress: "fake-collector-address",
-			cash.GconfMinimalFee:       coin.Coin{}, // no fee
+		"conf": map[string]interface{}{
+			"cash": cash.Configuration{
+				CollectorAddress: weave.NewAddress([]byte("fake-collector-address")),
+				MinimalFee:       coin.Coin{}, // no fee
+			},
 		},
 	})
 	if err != nil {

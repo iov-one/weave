@@ -98,13 +98,16 @@ func TestFees(t *testing.T) {
 			min:       min,
 			expect:    errors.ErrUnauthorized.Is,
 		},
-		"fee without an empty ticker is not accepted": {
-			signers:   []weave.Condition{perm},
-			initState: []orm.Object{must(WalletWith(perm.Address(), &cash))},
-			fee:       &FeeInfo{Fees: &min},
-			min:       coin.NewCoin(0, 1000, ""),
-			expect:    errors.ErrCurrency.Is,
-		},
+		/*
+			// this is now rejected in the initializer
+			"fee without an empty ticker is not accepted": {
+				signers:   []weave.Condition{perm},
+				initState: []orm.Object{must(WalletWith(perm.Address(), &cash))},
+				fee:       &FeeInfo{Fees: &min},
+				min:       coin.NewCoin(0, 1000, ""),
+				expect:    errors.ErrCurrency.Is,
+			},
+		*/
 		"no fee (zero value) is acceptable": {
 			signers:   []weave.Condition{perm},
 			initState: []orm.Object{must(WalletWith(perm.Address(), &cash))},
@@ -136,8 +139,13 @@ func TestFees(t *testing.T) {
 
 			kv := store.MemStore()
 
-			gconf.SetValue(kv, GconfCollectorAddress, perm3.Address())
-			gconf.SetValue(kv, GconfMinimalFee, tc.min)
+			config := Configuration{
+				CollectorAddress: perm3.Address(),
+				MinimalFee:       tc.min,
+			}
+			if err := gconf.Save(kv, "cash", &config); err != nil {
+				t.Fatalf("cannot save configuration: %s", err)
+			}
 
 			bucket := NewBucket()
 			for _, wallet := range tc.initState {

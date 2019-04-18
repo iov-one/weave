@@ -2,6 +2,7 @@ package app
 
 import (
 	"bytes"
+	"encoding/hex"
 	"encoding/json"
 	"testing"
 
@@ -38,9 +39,11 @@ func testInitChain(t *testing.T, myApp app.BaseApp, addr string) {
 				},
 			},
 		},
-		"gconf": dict{
-			cash.GconfCollectorAddress: "66616b652d636f6c6c6563746f722d61646472657373",
-			cash.GconfMinimalFee:       coin.Coin{Whole: 0}, // no fee
+		"conf": dict{
+			"cash": cash.Configuration{
+				CollectorAddress: fromHex(t, "3b11c732b8fc1f09beb34031302fe2ab347c5c14"),
+				MinimalFee:       coin.Coin{Whole: 0}, // no fee
+			},
 		},
 	})
 	if err != nil {
@@ -53,6 +56,15 @@ func testInitChain(t *testing.T, myApp app.BaseApp, addr string) {
 	})
 	assert.Equal(t, chainID, myApp.GetChainID())
 
+}
+
+func fromHex(t testing.TB, s string) weave.Address {
+	t.Helper()
+	raw, err := hex.DecodeString(s)
+	if err != nil {
+		t.Fatalf("cannot decode hex encoded address %q: %s", s, err)
+	}
+	return raw
 }
 
 // testCommit will commit at height h and return new hash

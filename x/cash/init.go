@@ -2,9 +2,9 @@ package cash
 
 import (
 	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/gconf"
 )
-
-const optKey = "cash"
 
 // GenesisAccount is used to parse the json from genesis file
 // use weave.Address, so address in hex, not base64
@@ -23,9 +23,8 @@ var _ weave.Initializer = Initializer{}
 // and save it to the database
 func (Initializer) FromGenesis(opts weave.Options, kv weave.KVStore) error {
 	accts := []GenesisAccount{}
-	err := opts.ReadOptions(optKey, &accts)
-	if err != nil {
-		return err
+	if err := opts.ReadOptions("cash", &accts); err != nil {
+		return errors.Wrap(err, "read cash attribute")
 	}
 	bucket := NewBucket()
 	for _, acct := range accts {
@@ -41,5 +40,10 @@ func (Initializer) FromGenesis(opts weave.Options, kv weave.KVStore) error {
 			return err
 		}
 	}
+
+	if err := gconf.InitConfig(kv, opts, "cash", &Configuration{}); err != nil {
+		return errors.Wrap(err, "init config")
+	}
+
 	return nil
 }

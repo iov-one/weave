@@ -6,10 +6,10 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave"
-	"github.com/iov-one/weave/commands/server"
 	"github.com/iov-one/weave/cmd/bnsd/app"
+	"github.com/iov-one/weave/coin"
+	"github.com/iov-one/weave/commands/server"
 	"github.com/iov-one/weave/crypto"
 	"github.com/iov-one/weave/x/cash"
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -37,10 +37,10 @@ func NewApp() *AppFixture {
 
 func (f AppFixture) Build() abci.Application {
 	opts := &server.Options{
-	MinFee: coin.Coin{},
-		Home:"",
+		MinFee: coin.Coin{},
+		Home:   "",
 		Logger: log.NewNopLogger(),
-		Debug: true,
+		Debug:  true,
 	}
 	myApp, err := app.GenerateApp(opts)
 	if err != nil {
@@ -74,6 +74,12 @@ func appStateGenesis(keyAddress weave.Address) []byte {
 				"coins": []interface{}{
 					"50000 ETH", "1234 FRNK",
 				},
+			},
+		},
+		"conf": dict{
+			"cash": cash.Configuration{
+				CollectorAddress: weave.Condition("dist/revenue/0000000000000001").Address(),
+				MinimalFee:       coin.NewCoin(0, 10000000, "FRNK"),
 			},
 		},
 		"currencies": []interface{}{
@@ -116,10 +122,6 @@ func appStateGenesis(keyAddress weave.Address) []byte {
 				"amount":    []interface{}{"1000000 FRNK"},
 				"timeout":   time.Now().Add(10000 * time.Hour),
 			},
-		},
-		"gconf": map[string]interface{}{
-			cash.GconfCollectorAddress: "cond:dist/revenue/0000000000000001",
-			cash.GconfMinimalFee:       "0.01 FRNK",
 		},
 		"msgfee": []interface{}{
 			dict{

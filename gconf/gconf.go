@@ -1,79 +1,81 @@
 package gconf
 
 import (
-	"encoding/json"
-	"fmt"
-	"time"
-
 	"github.com/iov-one/weave"
-	"github.com/iov-one/weave/coin"
+	"github.com/iov-one/weave/errors"
 )
 
+// Store is a subset of weave.KVStore.
 type Store interface {
 	Get([]byte) []byte
+	Set([]byte, []byte)
 }
 
-// Int returns an integer value stored under given name.
-// This function panics if configuration cannot be acquired.
-func Int(confStore Store, propName string) int {
-	var value int
-	loadInto(confStore, propName, &value)
-	return value
+// Save will Validate the object, before writing it to a special "configuration"
+// singleton for that package name.
+func Save(db Store, pkg string, src ValidMarshaler) error {
+	key := []byte("_c:" + pkg)
+	if err := src.Validate(); err != nil {
+		return errors.Wrapf(err, "validation: key %q", key)
+	}
+	raw, err := src.Marshal()
+	if err != nil {
+		return errors.Wrapf(err, "marshal: key %q", key)
+	}
+	db.Set(key, raw)
+	return nil
 }
 
-// Duration returns a duration value stored under given name.
-// This function panics if configuration cannot be acquired.
-func Duration(confStore Store, propName string) time.Duration {
-	var value time.Duration
-	loadInto(confStore, propName, &value)
-	return value
+// ValidMarshaler is implemented by object that can serialize itself to a binary
+// representation. Marshal is implemented by all protobuf messages.
+// You must add your own Validate method
+//
+// Note duplicate of code in x/persistent.go
+type ValidMarshaler interface {
+	Marshal() ([]byte, error)
+	Validate() error
 }
 
-// String returns a string value stored under given name.
-// This function panics if configuration cannot be acquired.
-func String(confStore Store, propName string) string {
-	var value string
-	loadInto(confStore, propName, &value)
-	return value
-}
-
-// Strings returns an array of string value stored under given name.
-// This function panics if configuration cannot be acquired.
-func Strings(confStore Store, propName string) []string {
-	var value []string
-	loadInto(confStore, propName, &value)
-	return value
-}
-
-// Address returns an address value stored under given name.
-// This function panics if configuration cannot be acquired.
-func Address(confStore Store, propName string) weave.Address {
-	var value weave.Address
-	loadInto(confStore, propName, &value)
-	return value
-}
-
-// Bytes returns a bytes value stored under given name.
-// This function panics if configuration cannot be acquired.
-func Bytes(confStore Store, propName string) []byte {
-	value := make([]byte, 0, 128)
-	loadInto(confStore, propName, &value)
-	return value
-}
-
-func Coin(confStore Store, propName string) coin.Coin {
-	var value coin.Coin
-	loadInto(confStore, propName, &value)
-	return value
-}
-
-func loadInto(confStore Store, propName string, dest interface{}) {
-	key := []byte("gconf:" + propName)
-	raw := confStore.Get(key)
+func Load(db Store, pkg string, dst Unmarshaler) error {
+	key := []byte("_c:" + pkg)
+	raw := db.Get(key)
 	if raw == nil {
-		panic(fmt.Sprintf("cannot load %q configuration: not found", propName))
+		return errors.Wrapf(errors.ErrNotFound, "key %q", key)
 	}
-	if err := json.Unmarshal(raw, dest); err != nil {
-		panic(fmt.Sprintf("cannot load %q configuration: %s", propName, err))
+	if err := dst.Unmarshal(raw); err != nil {
+		return errors.Wrapf(err, "unmarshal: key %q", key)
 	}
+	return nil
+}
+
+// Unmarshaler is implemented by object that can load their state from given
+// binary representation. This interface is implemented by all protobuf
+// messages.
+type Unmarshaler interface {
+	Unmarshal([]byte) error
+}
+
+type Configuration interface {
+	ValidMarshaler
+	Unmarshaler
+}
+
+// InitConfig will take opts["conf"][pkg], parse it into the given Configuration object
+// validate it, and store under the proper key in the database
+// Returns an error if anything goes wrong
+func InitConfig(db Store, opts weave.Options, pkg string, conf Configuration) error {
+	var confOptions weave.Options
+	if err := opts.ReadOptions("conf", &confOptions); err != nil {
+		return errors.Wrap(err, "read conf")
+	}
+	if confOptions[pkg] == nil {
+		return errors.Wrapf(errors.ErrInvalidInput, "no configuration for %s", pkg)
+	}
+	if err := confOptions.ReadOptions(pkg, conf); err != nil {
+		return errors.Wrapf(err, "read configuration for %s", pkg)
+	}
+	if err := Save(db, pkg, conf); err != nil {
+		return errors.Wrapf(err, "save configuration for %s", pkg)
+	}
+	return nil
 }

@@ -97,6 +97,16 @@ func toHex(s string) string {
 	return strings.ToUpper(h)
 }
 
+func fromHex(t testing.TB, s string) weave.Address {
+	t.Helper()
+
+	h, err := hex.DecodeString(s)
+	if err != nil {
+		t.Fatalf("cannot decode hex representation: %s", err)
+	}
+	return h
+}
+
 func TestQuery(t *testing.T) {
 	chainID := "test-net-22"
 	mainAccount := &account{pk: crypto.GenPrivKeyEd25519()}
@@ -185,7 +195,7 @@ func (a *account) address() []byte {
 
 // newTestApp creates a new app with a wallet for each account
 // coins and tokens are the same across all accounts and calls
-func newTestApp(t require.TestingT, chainID string, accounts []*account) app.BaseApp {
+func newTestApp(t testing.TB, chainID string, accounts []*account) app.BaseApp {
 	// no minimum fee, in-memory data-store
 	abciApp, err := GenerateApp(opts)
 	require.NoError(t, err)
@@ -205,7 +215,7 @@ func newTestApp(t require.TestingT, chainID string, accounts []*account) app.Bas
 	return myApp
 }
 
-func newMultisigTestApp(t require.TestingT, chainID string, contracts []*contract) app.BaseApp {
+func newMultisigTestApp(t testing.TB, chainID string, contracts []*contract) app.BaseApp {
 	// no minimum fee, in-memory data-store
 	abciApp, err := GenerateApp(opts)
 	require.NoError(t, err)
@@ -225,18 +235,23 @@ func newMultisigTestApp(t require.TestingT, chainID string, contracts []*contrac
 	return myApp
 }
 
-func withWalletAppState(t require.TestingT, accounts []*account) string {
+func withWalletAppState(t testing.TB, accounts []*account) string {
 	type wallet struct {
 		Address weave.Address `json:"address"`
 		Coins   coin.Coins    `json:"coins"`
 	}
+	type conf struct {
+		Cash cash.Configuration `json:"cash"`
+	}
 	state := struct {
-		Cash  []wallet               `json:"cash"`
-		Gconf map[string]interface{} `json:"gconf"`
+		Cash []wallet `json:"cash"`
+		Conf conf     `json:"conf"`
 	}{
-		Gconf: map[string]interface{}{
-			cash.GconfCollectorAddress: "66616b652d636f6c6c6563746f722d61646472657373",
-			cash.GconfMinimalFee:       coin.Coin{}, // no fee
+		Conf: conf{
+			Cash: cash.Configuration{
+				CollectorAddress: fromHex(t, "fe1132f9ed1fb1c2e9c09ff297b619654387bb4a"),
+				MinimalFee:       coin.Coin{}, // no fee
+			},
 		},
 	}
 
@@ -278,7 +293,7 @@ func (c *contract) signers() []*account {
 	return c.accountSigs[:c.threshold]
 }
 
-func appStateGenesis(t require.TestingT, contracts []*contract) string {
+func appStateGenesis(t testing.TB, contracts []*contract) string {
 	type dt map[string]interface{}
 	type arr []interface{}
 
@@ -300,8 +315,10 @@ func appStateGenesis(t require.TestingT, contracts []*contract) string {
 			dt{"ticker": "ETH", "name": "Smells like ethereum"},
 			dt{"ticker": "FRNK", "name": "Frankie"},
 		},
-		"gconf": dt{
-			"cash:collector_address": "66616b652d636f6c6c6563746f722d61646472657373",
+		"conf": dt{
+			"cash": cash.Configuration{
+				CollectorAddress: fromHex(t, "fe1132f9ed1fb1c2e9c09ff297b619654387bb4a"),
+			},
 		},
 	}
 

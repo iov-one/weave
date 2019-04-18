@@ -87,15 +87,18 @@ func TestDynamicFeeDecorator(t *testing.T) {
 			wantCheckErr:   errors.ErrInsufficientAmount,
 			wantCheckTxFee: coin.Coin{},
 		},
-		"on transaction fee ticker mismatch minimum fee with no currency accepts anything": {
-			signers: []weave.Condition{perm1},
-			initWallets: []orm.Object{
-				walletObj(perm1.Address(), 1, 0, "BTC"),
+		/*
+			// this now triggers an error on initialize - invalid data :)
+			"on transaction fee ticker mismatch minimum fee with no currency accepts anything": {
+				signers: []weave.Condition{perm1},
+				initWallets: []orm.Object{
+					walletObj(perm1.Address(), 1, 0, "BTC"),
+				},
+				minimumFee:   coin.NewCoin(0, 23, ""),
+				txFee:        coin.NewCoin(0, 421, "ETH"),
+				wantCheckErr: errors.ErrHuman,
 			},
-			minimumFee:   coin.NewCoin(0, 23, ""),
-			txFee:        coin.NewCoin(0, 421, "ETH"),
-			wantCheckErr: errors.ErrHuman,
-		},
+		*/
 		"on a handler deliver failure only minimum fee is charged": {
 			signers: []weave.Condition{perm1},
 			handler: &weavetest.Handler{DeliverErr: ErrTestingError},
@@ -191,8 +194,13 @@ func TestDynamicFeeDecorator(t *testing.T) {
 
 			db := store.MemStore()
 
-			gconf.SetValue(db, GconfCollectorAddress, collectorAddr)
-			gconf.SetValue(db, GconfMinimalFee, tc.minimumFee)
+			config := Configuration{
+				CollectorAddress: collectorAddr,
+				MinimalFee:       tc.minimumFee,
+			}
+			if err := gconf.Save(db, "cash", &config); err != nil {
+				t.Fatalf("cannot save configuration: %s", err)
+			}
 
 			ensureWallets(t, db, tc.initWallets)
 
@@ -244,8 +252,8 @@ func ensureWallets(t *testing.T, db weave.KVStore, wallets []orm.Object) {
 func assertCharged(t *testing.T, db weave.KVStore, ctrl Controller, want coin.Coin) {
 	t.Helper()
 
-	minimumFee := gconf.Coin(db, GconfMinimalFee)
-	collectorAddr := gconf.Address(db, GconfCollectorAddress)
+	minimumFee := mustLoadConf(db).MinimalFee
+	collectorAddr := mustLoadConf(db).CollectorAddress
 
 	switch chargedFee, err := ctrl.Balance(db, collectorAddr); {
 	case err == nil:
