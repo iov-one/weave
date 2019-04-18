@@ -24,22 +24,25 @@ func NewDecorator(auth x.Authenticator) Decorator {
 }
 
 // Check enforce multisig contract before calling down the stack
-func (d Decorator) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx, next weave.Checker) (weave.CheckResult, error) {
+func (d Decorator) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx, next weave.Checker) (*weave.CheckResult, error) {
 	newCtx, cost, err := d.authMultisig(ctx, store, tx)
 	if err != nil {
-		return weave.CheckResult{}, err
+		return nil, err
 	}
 
 	res, err := next.Check(newCtx, store, tx)
+	if err != nil {
+		return nil, err
+	}
 	res.GasPayment += cost
-	return res, err
+	return res, nil
 }
 
 // Deliver enforces multisig contract before calling down the stack
-func (d Decorator) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx, next weave.Deliverer) (weave.DeliverResult, error) {
+func (d Decorator) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx, next weave.Deliverer) (*weave.DeliverResult, error) {
 	newCtx, _, err := d.authMultisig(ctx, store, tx)
 	if err != nil {
-		return weave.DeliverResult{}, err
+		return nil, err
 	}
 
 	return next.Deliver(newCtx, store, tx)

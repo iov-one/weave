@@ -58,40 +58,40 @@ type VoteHandler struct {
 	voteBucket *VoteBucket
 }
 
-func (h VoteHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (weave.CheckResult, error) {
-	var res weave.CheckResult
+func (h VoteHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
 	if _, _, _, err := h.validate(ctx, db, tx); err != nil {
-		return res, err
+		return nil, err
 	}
-	res.GasAllocated += voteCost
-	return res, nil
+	return &weave.CheckResult{GasAllocated: voteCost}, nil
 
 }
 
-func (h VoteHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (weave.DeliverResult, error) {
-	var res weave.DeliverResult
+func (h VoteHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	voteMsg, proposal, vote, err := h.validate(ctx, db, tx)
 	if err != nil {
-		return res, err
+		return nil, err
 	}
 
 	switch oldVote, err := h.voteBucket.GetVote(db, voteMsg.ProposalID, vote.Elector.Signature); {
 	case errors.ErrNotFound.Is(err): // not voted before: skip undo
 	case err != nil:
-		return res, errors.Wrap(err, "failed to load vote")
+		return nil, errors.Wrap(err, "failed to load vote")
 	default:
 		if err := proposal.UndoCountVote(*oldVote); err != nil {
-			return res, err
+			return nil, err
 		}
 	}
 
 	if err := proposal.CountVote(*vote); err != nil {
-		return res, err
+		return nil, err
 	}
 	if err = h.voteBucket.Save(db, h.voteBucket.Build(db, voteMsg.ProposalID, *vote)); err != nil {
-		return res, errors.Wrap(err, "failed to store vote")
+		return nil, errors.Wrap(err, "failed to store vote")
 	}
-	return res, h.propBucket.Update(db, voteMsg.ProposalID, proposal)
+	if err := h.propBucket.Update(db, voteMsg.ProposalID, proposal); err != nil {
+		return nil, err
+	}
+	return &weave.DeliverResult{}, nil
 }
 
 func (h VoteHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*VoteMsg, *TextProposal, *Vote, error) {
@@ -139,32 +139,32 @@ type TallyHandler struct {
 	bucket *ProposalBucket
 }
 
-func (h TallyHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (weave.CheckResult, error) {
-	var res weave.CheckResult
+func (h TallyHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
 	if _, _, err := h.validate(ctx, db, tx); err != nil {
-		return res, err
+		return nil, err
 	}
-	res.GasAllocated += tallyCost
-	return res, nil
+	return &weave.CheckResult{GasAllocated: tallyCost}, nil
 
 }
 
-func (h TallyHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (weave.DeliverResult, error) {
-	var res weave.DeliverResult
+func (h TallyHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	msg, proposal, err := h.validate(ctx, db, tx)
 	if err != nil {
-		return res, err
+		return nil, err
 	}
 	if err := proposal.Tally(); err != nil {
-		return res, err
+		return nil, err
 	}
 	if err := h.bucket.Update(db, msg.ProposalID, proposal); err != nil {
-		return res, err
+		return nil, err
 	}
-	res.Tags = append(res.Tags, []common.KVPair{
-		{Key: []byte(tagProposerID), Value: msg.ProposalID},
-		{Key: []byte(tagAction), Value: []byte("tally")},
-	}...)
+
+	res := &weave.DeliverResult{
+		Tags: []common.KVPair{
+			{Key: []byte(tagProposerID), Value: msg.ProposalID},
+			{Key: []byte(tagAction), Value: []byte("tally")},
+		},
+	}
 	return res, nil
 }
 
@@ -197,21 +197,18 @@ type TextProposalHandler struct {
 	rulesBucket *ElectionRulesBucket
 }
 
-func (h TextProposalHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (weave.CheckResult, error) {
-	var res weave.CheckResult
+func (h TextProposalHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
 	if _, _, _, err := h.validate(ctx, db, tx); err != nil {
-		return res, err
+		return nil, err
 	}
-	res.GasAllocated += proposalCost
-	return res, nil
+	return &weave.CheckResult{GasAllocated: proposalCost}, nil
 
 }
 
-func (h TextProposalHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (weave.DeliverResult, error) {
-	var res weave.DeliverResult
+func (h TextProposalHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	msg, rules, electorate, err := h.validate(ctx, db, tx)
 	if err != nil {
-		return res, err
+		return nil, err
 	}
 	blockTime, _ := weave.BlockTime(ctx)
 
@@ -233,14 +230,17 @@ func (h TextProposalHandler) Deliver(ctx weave.Context, db weave.KVStore, tx wea
 
 	obj := h.propBucket.Build(db, proposal)
 	if err := h.propBucket.Save(db, obj); err != nil {
-		return res, errors.Wrap(err, "failed to persist proposal")
+		return nil, errors.Wrap(err, "failed to persist proposal")
 	}
-	res.Tags = append(res.Tags, []common.KVPair{
-		{Key: []byte(tagProposerID), Value: obj.Key()},
-		{Key: []byte(tagProposer), Value: msg.Author},
-		{Key: []byte(tagAction), Value: []byte("create")},
-	}...)
-	res.Data = obj.Key()
+
+	res := &weave.DeliverResult{
+		Data: obj.Key(),
+		Tags: []common.KVPair{
+			{Key: []byte(tagProposerID), Value: obj.Key()},
+			{Key: []byte(tagProposer), Value: msg.Author},
+			{Key: []byte(tagAction), Value: []byte("create")},
+		},
+	}
 	return res, nil
 }
 

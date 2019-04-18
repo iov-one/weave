@@ -43,13 +43,10 @@ func (tx *BatchTx) GetMsg() (weave.Msg, error) {
 
 // Check iterates through messages in a batch transaction and passes them
 // down the stack
-func (d Decorator) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx,
-	next weave.Checker) (weave.CheckResult, error) {
-	var res weave.CheckResult
-
+func (d Decorator) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx, next weave.Checker) (*weave.CheckResult, error) {
 	msg, err := tx.GetMsg()
 	if err != nil {
-		return res, err
+		return nil, err
 	}
 
 	batchMsg, ok := msg.(Msg)
@@ -58,16 +55,16 @@ func (d Decorator) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx,
 	}
 
 	if err = batchMsg.Validate(); err != nil {
-		return res, err
+		return nil, err
 	}
 
 	msgList, _ := batchMsg.MsgList()
 
-	checks := make([]weave.CheckResult, len(msgList))
+	checks := make([]*weave.CheckResult, len(msgList))
 	for i, msg := range msgList {
 		checks[i], err = next.Check(ctx, store, &BatchTx{Tx: tx, msg: msg})
 		if err != nil {
-			return res, err
+			return nil, err
 		}
 	}
 	return d.combineChecks(checks)
@@ -75,7 +72,7 @@ func (d Decorator) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx,
 
 // combines all data bytes as protobuf.
 // joins all log messages with \n
-func (*Decorator) combineChecks(checks []weave.CheckResult) (weave.CheckResult, error) {
+func (*Decorator) combineChecks(checks []*weave.CheckResult) (*weave.CheckResult, error) {
 	datas := make([][]byte, len(checks))
 	logs := make([]string, len(checks))
 	var allocated, payments int64
@@ -91,14 +88,14 @@ func (*Decorator) combineChecks(checks []weave.CheckResult) (weave.CheckResult, 
 		} else if !r.RequiredFee.IsZero() {
 			required, err = required.Add(r.RequiredFee)
 			if err != nil {
-				return weave.CheckResult{}, err
+				return nil, err
 			}
 		}
 	}
 
 	data, _ := (&ByteArrayList{Elements: datas}).Marshal()
 
-	return weave.CheckResult{
+	return &weave.CheckResult{
 		Data:         data,
 		Log:          strings.Join(logs, "\n"),
 		GasAllocated: allocated,
@@ -109,13 +106,10 @@ func (*Decorator) combineChecks(checks []weave.CheckResult) (weave.CheckResult, 
 
 // Deliver iterates through messages in a batch transaction and passes them
 // down the stack
-func (d Decorator) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx,
-	next weave.Deliverer) (weave.DeliverResult, error) {
-	var res weave.DeliverResult
-
+func (d Decorator) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx, next weave.Deliverer) (*weave.DeliverResult, error) {
 	msg, err := tx.GetMsg()
 	if err != nil {
-		return res, err
+		return nil, err
 	}
 
 	batchMsg, ok := msg.(Msg)
@@ -124,16 +118,16 @@ func (d Decorator) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx,
 	}
 
 	if err = batchMsg.Validate(); err != nil {
-		return res, err
+		return nil, err
 	}
 
 	msgList, _ := batchMsg.MsgList()
 
-	delivers := make([]weave.DeliverResult, len(msgList))
+	delivers := make([]*weave.DeliverResult, len(msgList))
 	for i, msg := range msgList {
 		delivers[i], err = next.Deliver(ctx, store, &BatchTx{Tx: tx, msg: msg})
 		if err != nil {
-			return res, err
+			return nil, err
 		}
 	}
 	return d.combineDelivers(delivers)
@@ -141,7 +135,7 @@ func (d Decorator) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx,
 
 // combines all data bytes as protobuf.
 // joins all log messages with \n
-func (*Decorator) combineDelivers(delivers []weave.DeliverResult) (weave.DeliverResult, error) {
+func (*Decorator) combineDelivers(delivers []*weave.DeliverResult) (*weave.DeliverResult, error) {
 	datas := make([][]byte, len(delivers))
 	logs := make([]string, len(delivers))
 	var payments int64
@@ -164,7 +158,7 @@ func (*Decorator) combineDelivers(delivers []weave.DeliverResult) (weave.Deliver
 		} else if !r.RequiredFee.IsZero() {
 			required, err = required.Add(r.RequiredFee)
 			if err != nil {
-				return weave.DeliverResult{}, err
+				return nil, err
 			}
 		}
 	}
@@ -172,7 +166,7 @@ func (*Decorator) combineDelivers(delivers []weave.DeliverResult) (weave.Deliver
 	data, _ := (&ByteArrayList{Elements: datas}).Marshal()
 	log := strings.Join(logs, "\n")
 
-	return weave.DeliverResult{
+	return &weave.DeliverResult{
 		Data:    data,
 		Log:     log,
 		GasUsed: payments,

@@ -61,12 +61,10 @@ func (r Router) Handler(path string) weave.Handler {
 }
 
 // Check dispatches to the proper handler based on path
-func (r Router) Check(ctx weave.Context, store weave.KVStore,
-	tx weave.Tx) (weave.CheckResult, error) {
-
+func (r Router) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
 	msg, _ := tx.GetMsg()
 	if msg == nil {
-		return weave.CheckResult{}, errors.Wrap(errors.ErrInvalidInput, "unable to decode")
+		return nil, errors.Wrap(errors.ErrInvalidInput, "unable to decode")
 	}
 	path := msg.Path()
 	h := r.Handler(path)
@@ -74,12 +72,10 @@ func (r Router) Check(ctx weave.Context, store weave.KVStore,
 }
 
 // Deliver dispatches to the proper handler based on path
-func (r Router) Deliver(ctx weave.Context, store weave.KVStore,
-	tx weave.Tx) (weave.DeliverResult, error) {
-
+func (r Router) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	msg, _ := tx.GetMsg()
 	if msg == nil {
-		return weave.DeliverResult{}, errors.Wrap(errors.ErrInvalidInput, "unable to decode")
+		return nil, errors.Wrap(errors.ErrInvalidInput, "unable to decode")
 	}
 	path := msg.Path()
 	h := r.Handler(path)
@@ -95,15 +91,11 @@ type noSuchPathHandler struct {
 var _ weave.Handler = noSuchPathHandler{}
 
 // Check always returns ErrNoSuchPath
-func (h noSuchPathHandler) Check(ctx weave.Context, store weave.KVStore,
-	tx weave.Tx) (weave.CheckResult, error) {
-
-	return weave.CheckResult{}, errors.Wrapf(errors.ErrNotFound, "path: %s", h.path)
+func (h noSuchPathHandler) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
+	return nil, errors.Wrapf(errors.ErrNotFound, "path: %s", h.path)
 }
 
 // Deliver always returns ErrNoSuchPath
-func (h noSuchPathHandler) Deliver(ctx weave.Context, store weave.KVStore,
-	tx weave.Tx) (weave.DeliverResult, error) {
-
-	return weave.DeliverResult{}, errors.Wrapf(errors.ErrNotFound, "path: %s", h.path)
+func (h noSuchPathHandler) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
+	return nil, errors.Wrapf(errors.ErrNotFound, "path: %s", h.path)
 }

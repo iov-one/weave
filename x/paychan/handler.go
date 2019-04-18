@@ -35,14 +35,12 @@ type createPaymentChannelHandler struct {
 
 var _ weave.Handler = (*createPaymentChannelHandler)(nil)
 
-func (h *createPaymentChannelHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (weave.CheckResult, error) {
-	var res weave.CheckResult
+func (h *createPaymentChannelHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
 	if _, err := h.validate(ctx, db, tx); err != nil {
-		return res, err
+		return nil, err
 	}
 
-	res.GasAllocated += createPaymentChannelCost
-	return res, nil
+	return &weave.CheckResult{GasAllocated: createPaymentChannelCost}, nil
 }
 
 func (h *createPaymentChannelHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*CreatePaymentChannelMsg, error) {
@@ -63,11 +61,10 @@ func (h *createPaymentChannelHandler) validate(ctx weave.Context, db weave.KVSto
 	return &msg, nil
 }
 
-func (h *createPaymentChannelHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (weave.DeliverResult, error) {
-	var res weave.DeliverResult
+func (h *createPaymentChannelHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	msg, err := h.validate(ctx, db, tx)
 	if err != nil {
-		return res, err
+		return nil, err
 	}
 
 	obj, err := h.bucket.Create(db, &PaymentChannel{
@@ -80,18 +77,16 @@ func (h *createPaymentChannelHandler) Deliver(ctx weave.Context, db weave.KVStor
 		Transferred:  &coin.Coin{Ticker: msg.Total.Ticker},
 	})
 	if err != nil {
-		return res, errors.Wrap(err, "cannot create a payment channel")
+		return nil, errors.Wrap(err, "cannot create a payment channel")
 	}
 
 	// Move coins from sender account and deposit total amount available on
 	// that channels account.
 	dst := paymentChannelAccount(obj.Key())
 	if err := h.cash.MoveCoins(db, msg.Src, dst, *msg.Total); err != nil {
-		return res, errors.Wrap(err, "cannot move coins")
+		return nil, errors.Wrap(err, "cannot move coins")
 	}
-
-	res.Data = obj.Key()
-	return res, nil
+	return &weave.DeliverResult{Data: obj.Key()}, nil
 }
 
 type transferPaymentChannelHandler struct {
@@ -102,13 +97,11 @@ type transferPaymentChannelHandler struct {
 
 var _ weave.Handler = (*transferPaymentChannelHandler)(nil)
 
-func (h *transferPaymentChannelHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (weave.CheckResult, error) {
-	var res weave.CheckResult
+func (h *transferPaymentChannelHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
 	if _, err := h.validate(ctx, db, tx); err != nil {
-		return res, err
+		return nil, err
 	}
-	res.GasAllocated += transferPaymentChannelCost
-	return res, nil
+	return &weave.CheckResult{GasAllocated: transferPaymentChannelCost}, nil
 }
 
 func (h *transferPaymentChannelHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*TransferPaymentChannelMsg, error) {
@@ -151,16 +144,15 @@ func (h *transferPaymentChannelHandler) validate(ctx weave.Context, db weave.KVS
 	return &msg, nil
 }
 
-func (h *transferPaymentChannelHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (weave.DeliverResult, error) {
-	var res weave.DeliverResult
+func (h *transferPaymentChannelHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	msg, err := h.validate(ctx, db, tx)
 	if err != nil {
-		return res, err
+		return nil, err
 	}
 
 	pc, err := h.bucket.GetPaymentChannel(db, msg.Payment.ChannelID)
 	if err != nil {
-		return res, err
+		return nil, err
 	}
 
 	// Payment amount is total amount that should be transferred from
@@ -168,12 +160,12 @@ func (h *transferPaymentChannelHandler) Deliver(ctx weave.Context, db weave.KVSt
 	// move only the difference.
 	diff, err := msg.Payment.Amount.Subtract(*pc.Transferred)
 	if err != nil || diff.IsZero() {
-		return res, errors.Wrap(errors.ErrInvalidMsg, "invalid amount")
+		return nil, errors.Wrap(errors.ErrInvalidMsg, "invalid amount")
 	}
 
 	src := paymentChannelAccount(msg.Payment.ChannelID)
 	if err := h.cash.MoveCoins(db, src, pc.Recipient, diff); err != nil {
-		return res, err
+		return nil, err
 	}
 
 	// Track total amount transferred from the payment channel to the
@@ -192,12 +184,14 @@ func (h *transferPaymentChannelHandler) Deliver(ctx weave.Context, db weave.KVSt
 	// waiting for the explicit close request.
 	if pc.Transferred.Equals(*pc.Total) {
 		err := h.bucket.Delete(db, msg.Payment.ChannelID)
-		return res, err
+		return nil, err
 	}
 
 	obj := orm.NewSimpleObj(msg.Payment.ChannelID, pc)
-	err = h.bucket.Save(db, obj)
-	return res, err
+	if err := h.bucket.Save(db, obj); err != nil {
+		return nil, err
+	}
+	return &weave.DeliverResult{}, nil
 }
 
 type closePaymentChannelHandler struct {
@@ -208,36 +202,36 @@ type closePaymentChannelHandler struct {
 
 var _ weave.Handler = (*closePaymentChannelHandler)(nil)
 
-func (h *closePaymentChannelHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (weave.CheckResult, error) {
+func (h *closePaymentChannelHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
 	var msg ClosePaymentChannelMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
-		return weave.CheckResult{}, errors.Wrap(err, "load msg")
+		return nil, errors.Wrap(err, "load msg")
 	}
-	return weave.CheckResult{}, nil
+	return &weave.CheckResult{}, nil
 }
 
-func (h *closePaymentChannelHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (weave.DeliverResult, error) {
+func (h *closePaymentChannelHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	var msg ClosePaymentChannelMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
-		return weave.DeliverResult{}, errors.Wrap(err, "load msg")
+		return nil, errors.Wrap(err, "load msg")
 	}
 
 	pc, err := h.bucket.GetPaymentChannel(db, msg.ChannelID)
 	if err != nil {
-		return weave.DeliverResult{}, err
+		return nil, err
 	}
 
 	// If payment channel funds were exhausted anyone is free to close it.
 	if pc.Total.Equals(*pc.Transferred) {
 		err := h.bucket.Delete(db, msg.ChannelID)
-		return weave.DeliverResult{}, err
+		return nil, err
 	}
 
 	if height, _ := weave.GetHeight(ctx); pc.Timeout > height {
 		// If timeout was not reached, only the recipient is allowed to
 		// close the channel.
 		if !h.auth.HasAddress(ctx, pc.Recipient) {
-			return weave.DeliverResult{}, errors.Wrap(errors.ErrInvalidMsg, "only the recipient is allowed to close the channel")
+			return nil, errors.Wrap(errors.ErrInvalidMsg, "only the recipient is allowed to close the channel")
 		}
 	}
 
@@ -245,14 +239,16 @@ func (h *closePaymentChannelHandler) Deliver(ctx weave.Context, db weave.KVStore
 	// that are still allocated on this payment channel account.
 	diff, err := pc.Total.Subtract(*pc.Transferred)
 	if err != nil {
-		return weave.DeliverResult{}, err
+		return nil, err
 	}
 	src := paymentChannelAccount(msg.ChannelID)
 	if err := h.cash.MoveCoins(db, src, pc.Src, diff); err != nil {
-		return weave.DeliverResult{}, err
+		return nil, err
 	}
-	err = h.bucket.Delete(db, msg.ChannelID)
-	return weave.DeliverResult{}, err
+	if err := h.bucket.Delete(db, msg.ChannelID); err != nil {
+		return nil, err
+	}
+	return &weave.DeliverResult{}, nil
 }
 
 // paymentChannelAccount returns an account address for a payment channel with

@@ -27,22 +27,19 @@ type CreateContractMsgHandler struct {
 
 var _ weave.Handler = CreateContractMsgHandler{}
 
-func (h CreateContractMsgHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (weave.CheckResult, error) {
-	var res weave.CheckResult
+func (h CreateContractMsgHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
 	_, err := h.validate(ctx, db, tx)
 	if err != nil {
-		return res, err
+		return nil, err
 	}
 
-	res.GasAllocated = creationCost
-	return res, nil
+	return &weave.CheckResult{GasAllocated: creationCost}, nil
 }
 
-func (h CreateContractMsgHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (weave.DeliverResult, error) {
-	var res weave.DeliverResult
+func (h CreateContractMsgHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	msg, err := h.validate(ctx, db, tx)
 	if err != nil {
-		return res, err
+		return nil, err
 	}
 
 	contract := &Contract{
@@ -53,10 +50,9 @@ func (h CreateContractMsgHandler) Deliver(ctx weave.Context, db weave.KVStore, t
 
 	obj := h.bucket.Build(db, contract)
 	if err = h.bucket.Save(db, obj); err != nil {
-		return res, err
+		return nil, err
 	}
-	res.Data = obj.Key()
-	return res, nil
+	return &weave.DeliverResult{Data: obj.Key()}, nil
 }
 
 // validate does all common pre-processing between Check and Deliver.
@@ -82,22 +78,18 @@ type UpdateContractMsgHandler struct {
 
 var _ weave.Handler = CreateContractMsgHandler{}
 
-func (h UpdateContractMsgHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (weave.CheckResult, error) {
-	var res weave.CheckResult
+func (h UpdateContractMsgHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
 	_, err := h.validate(ctx, db, tx)
 	if err != nil {
-		return res, err
+		return nil, err
 	}
-
-	res.GasAllocated = updateCost
-	return res, nil
+	return &weave.CheckResult{GasAllocated: updateCost}, nil
 }
 
-func (h UpdateContractMsgHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (weave.DeliverResult, error) {
-	var res weave.DeliverResult
+func (h UpdateContractMsgHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	msg, err := h.validate(ctx, db, tx)
 	if err != nil {
-		return res, err
+		return nil, err
 	}
 
 	contract := &Contract{
@@ -109,10 +101,10 @@ func (h UpdateContractMsgHandler) Deliver(ctx weave.Context, db weave.KVStore, t
 	obj := orm.NewSimpleObj(msg.ContractID, contract)
 	err = h.bucket.Save(db, obj)
 	if err != nil {
-		return res, err
+		return nil, err
 	}
 
-	return res, nil
+	return &weave.DeliverResult{}, nil
 }
 
 func (h UpdateContractMsgHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*UpdateContractMsg, error) {

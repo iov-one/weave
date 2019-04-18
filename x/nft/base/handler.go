@@ -66,51 +66,51 @@ func (h *ApprovalOpsHandler) Auth() x.Authenticator {
 	return h.auth
 }
 
-func (h *ApprovalOpsHandler) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx) (weave.CheckResult, error) {
-	var res weave.CheckResult
+func (h *ApprovalOpsHandler) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
 	if _, err := h.validate(ctx, tx); err != nil {
-		return res, err
+		return nil, err
 	}
-	res.GasAllocated += updateApprovalCost
-	return res, nil
+	return &weave.CheckResult{GasAllocated: updateApprovalCost}, nil
 }
 
-func (h *ApprovalOpsHandler) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx) (weave.DeliverResult, error) {
-	var res weave.DeliverResult
+func (h *ApprovalOpsHandler) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	msg, err := h.validate(ctx, tx)
 	if err != nil {
-		return res, err
+		return nil, err
 	}
 
 	bucket, ok := h.buckets[msg.GetT()]
 	if !ok {
-		return res, errors.Wrap(errors.ErrInvalidInput, nft.UnsupportedTokenType)
+		return nil, errors.Wrap(errors.ErrInvalidInput, nft.UnsupportedTokenType)
 	}
 
 	o, t, err := loadToken(bucket, store, msg.GetID())
 	if err != nil {
-		return res, err
+		return nil, err
 	}
 
 	actor := nft.FindActor(h.auth, ctx, t, nft.UpdateApprovals)
 	if actor == nil {
-		return res, errors.Wrap(errors.ErrUnauthorized, "Needs update approval")
+		return nil, errors.Wrap(errors.ErrUnauthorized, "Needs update approval")
 	}
 
 	switch v := msg.(type) {
 	case *nft.AddApprovalMsg:
 		err = t.Approvals().Grant(v.Action, v.Address, v.Options, 0)
 		if err != nil {
-			return res, err
+			return nil, err
 		}
 	case *nft.RemoveApprovalMsg:
 		err = t.Approvals().Revoke(v.Action, v.Address)
 		if err != nil {
-			return res, err
+			return nil, err
 		}
 	}
 
-	return res, bucket.Save(store, o)
+	if err := bucket.Save(store, o); err != nil {
+		return nil, err
+	}
+	return &weave.DeliverResult{}, nil
 }
 
 func (h *ApprovalOpsHandler) validate(ctx weave.Context, tx weave.Tx) (nft.ApprovalMsg, error) {

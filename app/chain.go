@@ -72,15 +72,11 @@ type step struct {
 var _ weave.Handler = step{}
 
 // Check passes the handler into the decorator, implements Handler
-func (s step) Check(ctx weave.Context, store weave.KVStore,
-	tx weave.Tx) (weave.CheckResult, error) {
-
+func (s step) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
 	return s.d.Check(ctx, store, tx, s.next)
 }
 
 // Deliver passes the handler into the decorator, implements Handler
-func (s step) Deliver(ctx weave.Context, store weave.KVStore,
-	tx weave.Tx) (weave.DeliverResult, error) {
-
+func (s step) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	return s.d.Deliver(ctx, store, tx, s.next)
 }

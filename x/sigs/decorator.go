@@ -47,7 +47,7 @@ func (d Decorator) AllowMissingSigs() Decorator {
 }
 
 // Check verifies signatures before calling down the stack.
-func (d Decorator) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx, next weave.Checker) (weave.CheckResult, error) {
+func (d Decorator) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx, next weave.Checker) (*weave.CheckResult, error) {
 	stx, ok := tx.(SignedTx)
 	if !ok {
 		return next.Check(ctx, store, tx)
@@ -56,26 +56,27 @@ func (d Decorator) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx, ne
 	chainID := weave.GetChainID(ctx)
 	signers, err := VerifyTxSignatures(store, stx, chainID)
 	if err != nil {
-		return weave.CheckResult{}, errors.Wrap(err, "cannot verify signatures")
+		return nil, errors.Wrap(err, "cannot verify signatures")
 	}
 	if len(signers) == 0 && !d.allowMissingSigs {
-		return weave.CheckResult{}, errors.Wrap(errors.ErrUnauthorized, "missing signature")
+		return nil, errors.Wrap(errors.ErrUnauthorized, "missing signature")
 	}
 
 	ctx = withSigners(ctx, signers)
 
 	res, err := next.Check(ctx, store, tx)
-
+	if err != nil {
+		return nil, err
+	}
 	// The most expensive operation is the signature validation. We must
 	// charge gas proportionally to the effort. We only charge for the
 	// valid signatures. Invalid signatures are ignored.
 	res.GasPayment += int64(len(signers) * signatureVerifyCost)
-
-	return res, err
+	return res, nil
 }
 
 // Deliver verifies signatures before calling down the stack.
-func (d Decorator) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx, next weave.Deliverer) (weave.DeliverResult, error) {
+func (d Decorator) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx, next weave.Deliverer) (*weave.DeliverResult, error) {
 	stx, ok := tx.(SignedTx)
 	if !ok {
 		return next.Deliver(ctx, store, tx)
@@ -84,10 +85,10 @@ func (d Decorator) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx, 
 	chainID := weave.GetChainID(ctx)
 	signers, err := VerifyTxSignatures(store, stx, chainID)
 	if err != nil {
-		return weave.DeliverResult{}, errors.Wrap(err, "cannot verify signatures")
+		return nil, errors.Wrap(err, "cannot verify signatures")
 	}
 	if len(signers) == 0 && !d.allowMissingSigs {
-		return weave.DeliverResult{}, errors.Wrap(errors.ErrUnauthorized, "missing signature")
+		return nil, errors.Wrap(errors.ErrUnauthorized, "missing signature")
 	}
 
 	ctx = withSigners(ctx, signers)

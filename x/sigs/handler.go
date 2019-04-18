@@ -19,15 +19,17 @@ type bumpSequenceHandler struct {
 	b    Bucket
 }
 
-func (h *bumpSequenceHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (weave.CheckResult, error) {
-	_, _, err := h.validate(ctx, db, tx)
-	return weave.CheckResult{}, err
+func (h *bumpSequenceHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
+	if _, _, err := h.validate(ctx, db, tx); err != nil {
+		return nil, err
+	}
+	return &weave.CheckResult{}, nil
 }
 
-func (h *bumpSequenceHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (weave.DeliverResult, error) {
+func (h *bumpSequenceHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	user, msg, err := h.validate(ctx, db, tx)
 	if err != nil {
-		return weave.DeliverResult{}, err
+		return nil, err
 	}
 
 	// Each transaction processing bumps the sequence by one. Increment
@@ -35,15 +37,15 @@ func (h *bumpSequenceHandler) Deliver(ctx weave.Context, db weave.KVStore, tx we
 	incr := int64(msg.Increment) - 1
 	if incr == 0 {
 		// Zero increment requires no modification.
-		return weave.DeliverResult{}, nil
+		return &weave.DeliverResult{}, nil
 	}
 	user.Sequence += incr
 	obj := orm.NewSimpleObj(user.Pubkey.Address(), user)
 	if err := h.b.Save(db, obj); err != nil {
-		return weave.DeliverResult{}, errors.Wrap(err, "save user")
+		return nil, errors.Wrap(err, "save user")
 	}
 
-	return weave.DeliverResult{}, nil
+	return &weave.DeliverResult{}, nil
 }
 
 func (h *bumpSequenceHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*UserData, *BumpSequenceMsg, error) {

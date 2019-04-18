@@ -67,31 +67,29 @@ var _ weave.Handler = TokenHandler{}
 
 // Check just verifies it is properly formed and returns
 // the cost of executing it.
-func (h TokenHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (weave.CheckResult, error) {
-	var res weave.CheckResult
+func (h TokenHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
 	_, err := h.validate(ctx, db, tx)
 	if err != nil {
-		return res, err
+		return nil, err
 	}
 
-	// return cost
-	res.GasAllocated += newTokenCost
-	return res, nil
+	return &weave.CheckResult{GasAllocated: newTokenCost}, nil
 }
 
 // Deliver moves the tokens from sender to receiver if
 // all preconditions are met.
-func (h TokenHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (weave.DeliverResult, error) {
-	var res weave.DeliverResult
+func (h TokenHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	msg, err := h.validate(ctx, db, tx)
 	if err != nil {
-		return res, err
+		return nil, err
 	}
 
 	// make the token
 	token := NewToken(msg.Ticker, msg.Name, msg.SigFigs)
-	err = h.bucket.Save(db, token)
-	return res, err
+	if err := h.bucket.Save(db, token); err != nil {
+		return nil, err
+	}
+	return &weave.DeliverResult{}, err
 }
 
 // validate does all common pre-processing between Check and Deliver
@@ -127,41 +125,40 @@ var _ weave.Handler = SetNameHandler{}
 
 // Check just verifies it is properly formed and returns
 // the cost of executing it.
-func (h SetNameHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (weave.CheckResult, error) {
-	var res weave.CheckResult
+func (h SetNameHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
 	_, err := h.validate(ctx, db, tx)
 	if err != nil {
-		return res, err
+		return nil, err
 	}
 
-	res.GasAllocated += setNameCost
-	return res, nil
+	return &weave.CheckResult{GasAllocated: setNameCost}, nil
 }
 
 // Deliver moves the tokens from sender to receiver if
 // all preconditions are met.
-func (h SetNameHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (weave.DeliverResult, error) {
-	var res weave.DeliverResult
+func (h SetNameHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	msg, err := h.validate(ctx, db, tx)
 	if err != nil {
-		return res, err
+		return nil, err
 	}
 
 	obj, err := h.bucket.Get(db, msg.Address)
 	if err != nil {
-		return res, err
+		return nil, err
 	}
 	if obj == nil {
-		return res, errors.Wrapf(errors.ErrNotFound, "wallet %s", msg.Address)
+		return nil, errors.Wrapf(errors.ErrNotFound, "wallet %s", msg.Address)
 	}
 	named := AsNamed(obj)
 	err = named.SetName(msg.Name)
 	if err != nil {
-		return res, err
+		return nil, err
 	}
 
-	err = h.bucket.Save(db, obj)
-	return res, err
+	if err := h.bucket.Save(db, obj); err != nil {
+		return nil, err
+	}
+	return &weave.DeliverResult{}, nil
 }
 
 // validate does all common pre-processing between Check and Deliver.

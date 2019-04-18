@@ -50,14 +50,14 @@ func (m *mockHelper) GetMsg() (weave.Msg, error) {
 	return args.Get(0).(weave.Msg), args.Error(1)
 }
 
-func (m *mockHelper) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx) (weave.CheckResult, error) {
+func (m *mockHelper) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
 	args := m.Called(ctx, store, tx)
-	return args.Get(0).(weave.CheckResult), args.Error(1)
+	return args.Get(0).(*weave.CheckResult), args.Error(1)
 }
 
-func (m *mockHelper) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx) (weave.DeliverResult, error) {
+func (m *mockHelper) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	args := m.Called(ctx, store, tx)
-	return args.Get(0).(weave.DeliverResult), args.Error(1)
+	return args.Get(0).(*weave.DeliverResult), args.Error(1)
 }
 
 func mockDiff(num int64) []types.ValidatorUpdate {
@@ -108,7 +108,7 @@ func TestDecorator(t *testing.T) {
 			msg.On("MsgList").Return(make([]weave.Msg, num), nil).Times(2)
 			helper.On("GetMsg").Return(msg, nil).Times(2)
 
-			helper.On("Check", nil, nil, mock.Anything).Return(weave.CheckResult{
+			helper.On("Check", nil, nil, mock.Anything).Return(&weave.CheckResult{
 				Data:         make([]byte, 1),
 				Log:          logVal,
 				GasAllocated: gas,
@@ -119,7 +119,7 @@ func TestDecorator(t *testing.T) {
 			checkRes, err := decorator.Check(nil, nil, helper, helper)
 			So(err, ShouldBeNil)
 			data, _ := mockData(num, dataContent).Marshal()
-			So(checkRes, ShouldResemble, weave.CheckResult{
+			So(checkRes, ShouldResemble, &weave.CheckResult{
 				Data:         data,
 				Log:          mockLog(num, logVal),
 				GasAllocated: gas * num,
@@ -127,7 +127,7 @@ func TestDecorator(t *testing.T) {
 				RequiredFee:  combinedFee,
 			})
 
-			helper.On("Deliver", nil, nil, mock.Anything).Return(weave.DeliverResult{
+			helper.On("Deliver", nil, nil, mock.Anything).Return(&weave.DeliverResult{
 				Data:        make([]byte, 1),
 				Log:         logVal,
 				GasUsed:     gas,
@@ -138,7 +138,7 @@ func TestDecorator(t *testing.T) {
 
 			deliverRes, err := decorator.Deliver(nil, nil, helper, helper)
 			So(err, ShouldBeNil)
-			So(deliverRes, ShouldResemble, weave.DeliverResult{
+			So(deliverRes, ShouldResemble, &weave.DeliverResult{
 				Data:        data,
 				Log:         mockLog(num, logVal),
 				GasUsed:     gas * num,
@@ -165,8 +165,8 @@ func TestDecorator(t *testing.T) {
 			msg.On("Validate").Return(nil).Times(2)
 			msg.On("MsgList").Return(make([]weave.Msg, 4), nil).Times(2)
 			helper.On("GetMsg").Return(msg, nil).Times(2)
-			makeRes := func(req coin.Coin) weave.DeliverResult {
-				return weave.DeliverResult{
+			makeRes := func(req coin.Coin) *weave.DeliverResult {
+				return &weave.DeliverResult{
 					Data:        dataContent,
 					Log:         logVal,
 					GasUsed:     gas,
@@ -184,7 +184,7 @@ func TestDecorator(t *testing.T) {
 			deliverRes, err := decorator.Deliver(nil, nil, helper, helper)
 			So(err, ShouldBeNil)
 			data, _ := mockData(num, dataContent).Marshal()
-			So(deliverRes, ShouldResemble, weave.DeliverResult{
+			So(deliverRes, ShouldResemble, &weave.DeliverResult{
 				Data:        data,
 				Log:         mockLog(num, logVal),
 				GasUsed:     gas * num,
@@ -196,8 +196,8 @@ func TestDecorator(t *testing.T) {
 
 		Convey("Wrong tx type", func() {
 			helper.On("GetMsg").Return(wrongWeaveMsg{}, nil).Times(2)
-			helper.On("Deliver", nil, nil, mock.Anything).Return(weave.DeliverResult{}, nil).Times(1)
-			helper.On("Check", nil, nil, mock.Anything).Return(weave.CheckResult{}, nil).Times(1)
+			helper.On("Deliver", nil, nil, mock.Anything).Return(&weave.DeliverResult{}, nil).Times(1)
+			helper.On("Check", nil, nil, mock.Anything).Return(&weave.CheckResult{}, nil).Times(1)
 
 			_, err := decorator.Check(nil, nil, helper, helper)
 			So(err, ShouldBeNil)
@@ -227,14 +227,14 @@ func TestDecorator(t *testing.T) {
 				helper.On("GetMsg").Return(msg, nil).Times(2)
 
 				// two different returns, with different fees
-				helper.On("Check", nil, nil, mock.Anything).Return(weave.CheckResult{
+				helper.On("Check", nil, nil, mock.Anything).Return(&weave.CheckResult{
 					Data:         make([]byte, 2),
 					Log:          logVal,
 					GasAllocated: gas,
 					GasPayment:   gas,
 					RequiredFee:  coin.Coin{Whole: 1, Ticker: "IOV"},
 				}, nil).Times(1)
-				helper.On("Check", nil, nil, mock.Anything).Return(weave.CheckResult{
+				helper.On("Check", nil, nil, mock.Anything).Return(&weave.CheckResult{
 					Data:         make([]byte, 1),
 					Log:          logVal,
 					GasAllocated: gas,
@@ -264,10 +264,8 @@ func TestDecorator(t *testing.T) {
 				helper.On("GetMsg").Return(msg, nil).Times(2)
 				msg.On("Validate").Return(nil).Times(2)
 				msg.On("MsgList").Return(make([]weave.Msg, 4), nil).Times(2)
-				helper.On("Deliver", nil, nil, mock.Anything).Return(weave.DeliverResult{},
-					expectedErr).Times(1)
-				helper.On("Check", nil, nil, mock.Anything).Return(weave.CheckResult{},
-					expectedErr).Times(1)
+				helper.On("Deliver", nil, nil, mock.Anything).Return((*weave.DeliverResult)(nil), expectedErr).Times(1)
+				helper.On("Check", nil, nil, mock.Anything).Return((*weave.CheckResult)(nil), expectedErr).Times(1)
 
 				_, err := decorator.Check(nil, nil, helper, helper)
 				So(err, ShouldEqual, expectedErr)

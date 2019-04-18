@@ -12,7 +12,7 @@ import (
 // DeliverOrError returns an abci response for DeliverTx,
 // converting the error message if present, or using the successful
 // DeliverResult
-func DeliverOrError(result DeliverResult, err error, debug bool) abci.ResponseDeliverTx {
+func DeliverOrError(result *DeliverResult, err error, debug bool) abci.ResponseDeliverTx {
 	if err != nil {
 		return DeliverTxError(err, debug)
 	}
@@ -22,7 +22,7 @@ func DeliverOrError(result DeliverResult, err error, debug bool) abci.ResponseDe
 // CheckOrError returns an abci response for CheckTx,
 // converting the error message if present, or using the successful
 // CheckResult
-func CheckOrError(result CheckResult, err error, debug bool) abci.ResponseCheckTx {
+func CheckOrError(result *CheckResult, err error, debug bool) abci.ResponseCheckTx {
 	if err != nil {
 		return CheckTxError(err, debug)
 	}

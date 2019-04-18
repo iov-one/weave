@@ -45,25 +45,24 @@ var _ weave.Handler = CreateEscrowHandler{}
 
 // Check just verifies it is properly formed and returns
 // the cost of executing it.
-func (h CreateEscrowHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (weave.CheckResult, error) {
-	var res weave.CheckResult
+func (h CreateEscrowHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
 	_, err := h.validate(ctx, db, tx)
 	if err != nil {
-		return res, err
+		return nil, err
 	}
 
-	// return cost
-	res.GasAllocated += createEscrowCost
+	res := &weave.CheckResult{
+		GasAllocated: createEscrowCost,
+	}
 	return res, nil
 }
 
 // Deliver moves the tokens from sender to the escrow account if
 // all preconditions are met.
-func (h CreateEscrowHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (weave.DeliverResult, error) {
-	var res weave.DeliverResult
+func (h CreateEscrowHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	msg, err := h.validate(ctx, db, tx)
 	if err != nil {
-		return res, err
+		return nil, err
 	}
 
 	// apply a default for sender
@@ -86,10 +85,12 @@ func (h CreateEscrowHandler) Deliver(ctx weave.Context, db weave.KVStore, tx wea
 	escrowAddr := Condition(obj.Key()).Address()
 	senderAddr := weave.Address(escrow.Sender)
 	if err := moveCoins(db, h.bank, senderAddr, escrowAddr, msg.Amount); err != nil {
-		return res, err
+		return nil, err
 	}
 	// return id of escrow to use in future calls
-	res.Data = obj.Key()
+	res := &weave.DeliverResult{
+		Data: obj.Key(),
+	}
 	return res, h.bucket.Save(db, obj)
 }
 
@@ -125,25 +126,21 @@ var _ weave.Handler = ReleaseEscrowHandler{}
 
 // Check just verifies it is properly formed and returns
 // the cost of executing it
-func (h ReleaseEscrowHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (weave.CheckResult, error) {
-	var res weave.CheckResult
+func (h ReleaseEscrowHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
 	_, _, err := h.validate(ctx, db, tx)
 	if err != nil {
-		return res, err
+		return nil, err
 	}
 
-	// return cost
-	res.GasAllocated += releaseEscrowCost
-	return res, nil
+	return &weave.CheckResult{GasAllocated: releaseEscrowCost}, nil
 }
 
 // Deliver moves the tokens from escrow account to the receiver if
 // all preconditions are met. When the escrow account is empty it is deleted.
-func (h ReleaseEscrowHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (weave.DeliverResult, error) {
-	var res weave.DeliverResult
+func (h ReleaseEscrowHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	msg, escrow, err := h.validate(ctx, db, tx)
 	if err != nil {
-		return res, err
+		return nil, err
 	}
 
 	// use amount in message, or
@@ -153,27 +150,28 @@ func (h ReleaseEscrowHandler) Deliver(ctx weave.Context, db weave.KVStore, tx we
 	if len(request) == 0 {
 		available, err := h.bank.Balance(db, escrowAddr)
 		if err != nil {
-			return res, err
+			return nil, err
 		}
 		request = available
 	}
 
 	// withdraw the money from escrow to recipient
 	if err := moveCoins(db, h.bank, escrowAddr, escrow.Recipient, request); err != nil {
-		return res, err
+		return nil, err
 	}
 
-	// clean up
 	remainingCoins, err := h.bank.Balance(db, escrowAddr)
-	switch {
-	case err != nil:
-		return res, err
-	case remainingCoins.IsPositive():
-		res.Data = key
-	default: // delete escrow when empty
-		err = h.bucket.Delete(db, key)
+	if err != nil {
+		return nil, err
 	}
-	return res, err
+	if remainingCoins.IsPositive() {
+		return &weave.DeliverResult{Data: key}, nil
+	}
+	// Delete escrow when empty.
+	if err := h.bucket.Delete(db, key); err != nil {
+		return nil, err
+	}
+	return &weave.DeliverResult{}, nil
 }
 
 // validate does all common pre-processing between Check and Deliver.
@@ -211,39 +209,38 @@ var _ weave.Handler = ReturnEscrowHandler{}
 
 // Check just verifies it is properly formed and returns
 // the cost of executing it.
-func (h ReturnEscrowHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (weave.CheckResult, error) {
-	var res weave.CheckResult
+func (h ReturnEscrowHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
 	_, _, err := h.validate(ctx, db, tx)
 	if err != nil {
-		return res, err
+		return nil, err
 	}
 
-	// return cost
-	res.GasAllocated += returnEscrowCost
-	return res, nil
+	return &weave.CheckResult{GasAllocated: returnEscrowCost}, nil
 }
 
 // Deliver moves all the tokens from the escrow to the defined sender if
 // all preconditions are met. The escrow is deleted afterwards.
-func (h ReturnEscrowHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (weave.DeliverResult, error) {
-	var res weave.DeliverResult
+func (h ReturnEscrowHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	key, escrow, err := h.validate(ctx, db, tx)
 	if err != nil {
-		return res, err
+		return nil, err
 	}
 
 	escrowAddr := Condition(key).Address()
 	available, err := h.bank.Balance(db, escrowAddr)
 	if err != nil {
-		return res, err
+		return nil, err
 	}
 
 	// withdraw all coins from escrow to the defined "sender"
 	dest := weave.Address(escrow.Sender)
 	if err := moveCoins(db, h.bank, escrowAddr, dest, available); err != nil {
-		return res, err
+		return nil, err
 	}
-	return res, h.bucket.Delete(db, key)
+	if err := h.bucket.Delete(db, key); err != nil {
+		return nil, err
+	}
+	return &weave.DeliverResult{}, nil
 }
 
 // validate does all common pre-processing between Check and Deliver.
@@ -275,25 +272,21 @@ var _ weave.Handler = UpdateEscrowHandler{}
 
 // Check just verifies it is properly formed and returns
 // the cost of executing it.
-func (h UpdateEscrowHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (weave.CheckResult, error) {
-	var res weave.CheckResult
+func (h UpdateEscrowHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
 	_, _, err := h.validate(ctx, db, tx)
 	if err != nil {
-		return res, err
+		return nil, err
 	}
 
-	// return cost
-	res.GasAllocated += updateEscrowCost
-	return res, nil
+	return &weave.CheckResult{GasAllocated: updateEscrowCost}, nil
 }
 
 // Deliver updates the any of the sender, recipient or arbiter if
 // all preconditions are met. No coins are moved.
-func (h UpdateEscrowHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (weave.DeliverResult, error) {
-	var res weave.DeliverResult
+func (h UpdateEscrowHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	msg, escrow, err := h.validate(ctx, db, tx)
 	if err != nil {
-		return res, err
+		return nil, err
 	}
 
 	// update the escrow with message values
@@ -310,10 +303,10 @@ func (h UpdateEscrowHandler) Deliver(ctx weave.Context, db weave.KVStore, tx wea
 	// save the updated escrow
 	key := msg.EscrowId
 	obj := orm.NewSimpleObj(key, escrow)
-	err = h.bucket.Save(db, obj)
-
-	// returns error if Save failed
-	return res, err
+	if err := h.bucket.Save(db, obj); err != nil {
+		return nil, err
+	}
+	return &weave.DeliverResult{}, nil
 }
 
 // validate does all common pre-processing between Check and Deliver.

@@ -46,13 +46,10 @@ func NewFeeDecorator(auth x.Authenticator, ctrl CoinMover) FeeDecorator {
 }
 
 // Check verifies and deducts fees before calling down the stack
-func (d FeeDecorator) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx,
-	next weave.Checker) (weave.CheckResult, error) {
-
-	var res weave.CheckResult
+func (d FeeDecorator) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx, next weave.Checker) (*weave.CheckResult, error) {
 	finfo, err := d.extractFee(ctx, tx, store)
 	if err != nil {
-		return res, err
+		return nil, err
 	}
 
 	// if nothing returned, but no error, just move along
@@ -63,30 +60,30 @@ func (d FeeDecorator) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx,
 
 	// verify we have access to the money
 	if !d.auth.HasAddress(ctx, finfo.Payer) {
-		return res, errors.Wrap(errors.ErrUnauthorized, "Fee payer signature missing")
+		return nil, errors.Wrap(errors.ErrUnauthorized, "Fee payer signature missing")
 	}
 	// and have enough
 	collector := gconf.Address(store, GconfCollectorAddress)
 	err = d.ctrl.MoveCoins(store, finfo.Payer, collector, *fee)
 	if err != nil {
-		return res, err
+		return nil, err
 	}
 
 	// now update the importance...
 	paid := toPayment(*fee)
-	res, err = next.Check(ctx, store, tx)
+	res, err := next.Check(ctx, store, tx)
+	if err != nil {
+		return nil, err
+	}
 	res.GasPayment += paid
-	return res, err
+	return res, nil
 }
 
 // Deliver verifies and deducts fees before calling down the stack
-func (d FeeDecorator) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx,
-	next weave.Deliverer) (weave.DeliverResult, error) {
-
-	var res weave.DeliverResult
+func (d FeeDecorator) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx, next weave.Deliverer) (*weave.DeliverResult, error) {
 	finfo, err := d.extractFee(ctx, tx, store)
 	if err != nil {
-		return res, err
+		return nil, err
 	}
 
 	// if nothing returned, but no error, just move along
@@ -97,13 +94,13 @@ func (d FeeDecorator) Deliver(ctx weave.Context, store weave.KVStore, tx weave.T
 
 	// verify we have access to the money
 	if !d.auth.HasAddress(ctx, finfo.Payer) {
-		return res, errors.Wrap(errors.ErrUnauthorized, "Fee payer signature missing")
+		return nil, errors.Wrap(errors.ErrUnauthorized, "Fee payer signature missing")
 	}
 	// and subtract it from the account
 	collector := gconf.Address(store, GconfCollectorAddress)
 	err = d.ctrl.MoveCoins(store, finfo.Payer, collector, *fee)
 	if err != nil {
-		return res, err
+		return nil, err
 	}
 
 	return next.Deliver(ctx, store, tx)

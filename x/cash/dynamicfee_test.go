@@ -30,7 +30,7 @@ func TestDynamicFeeDecorator(t *testing.T) {
 
 	cases := map[string]struct {
 		signers    []weave.Condition
-		handler    *handlerMock
+		handler    *weavetest.Handler
 		minimumFee coin.Coin
 		txFee      coin.Coin
 		// Wallet state created before running Check
@@ -46,7 +46,7 @@ func TestDynamicFeeDecorator(t *testing.T) {
 	}{
 		"on success full transaction fee is charged": {
 			signers: []weave.Condition{perm1},
-			handler: &handlerMock{},
+			handler: &weavetest.Handler{},
 			initWallets: []orm.Object{
 				walletObj(perm1.Address(), 1, 0, "BTC"),
 			},
@@ -58,7 +58,7 @@ func TestDynamicFeeDecorator(t *testing.T) {
 		},
 		"on a handler check failure minimum fee is charged": {
 			signers: []weave.Condition{perm1},
-			handler: &handlerMock{checkErr: ErrTestingError},
+			handler: &weavetest.Handler{CheckErr: ErrTestingError},
 			initWallets: []orm.Object{
 				walletObj(perm1.Address(), 1, 0, "BTC"),
 			},
@@ -98,7 +98,7 @@ func TestDynamicFeeDecorator(t *testing.T) {
 		},
 		"on a handler deliver failure only minimum fee is charged": {
 			signers: []weave.Condition{perm1},
-			handler: &handlerMock{deliverErr: ErrTestingError},
+			handler: &weavetest.Handler{DeliverErr: ErrTestingError},
 			initWallets: []orm.Object{
 				walletObj(perm1.Address(), 1, 0, "BTC"),
 			},
@@ -111,7 +111,9 @@ func TestDynamicFeeDecorator(t *testing.T) {
 		},
 		"success if we pay exactly required fee": {
 			signers: []weave.Condition{perm1},
-			handler: &handlerMock{deliverRes: weave.DeliverResult{RequiredFee: coin.NewCoin(0, 421, "IOV")}},
+			handler: &weavetest.Handler{
+				DeliverResult: weave.DeliverResult{RequiredFee: coin.NewCoin(0, 421, "IOV")},
+			},
 			initWallets: []orm.Object{
 				walletObj(perm1.Address(), 1, 0, "IOV"),
 			},
@@ -123,7 +125,9 @@ func TestDynamicFeeDecorator(t *testing.T) {
 		},
 		"success if we pay more than required fee": {
 			signers: []weave.Condition{perm1},
-			handler: &handlerMock{deliverRes: weave.DeliverResult{RequiredFee: coin.NewCoin(0, 77, "IOV")}},
+			handler: &weavetest.Handler{
+				DeliverResult: weave.DeliverResult{RequiredFee: coin.NewCoin(0, 77, "IOV")},
+			},
 			initWallets: []orm.Object{
 				walletObj(perm1.Address(), 1, 0, "IOV"),
 			},
@@ -135,7 +139,9 @@ func TestDynamicFeeDecorator(t *testing.T) {
 		},
 		"failure if we pay less than required fee": {
 			signers: []weave.Condition{perm1},
-			handler: &handlerMock{checkRes: weave.CheckResult{RequiredFee: coin.NewCoin(1, 0, "IOV")}},
+			handler: &weavetest.Handler{
+				CheckResult: weave.CheckResult{RequiredFee: coin.NewCoin(1, 0, "IOV")},
+			},
 			initWallets: []orm.Object{
 				walletObj(perm1.Address(), 1, 0, "IOV"),
 			},
@@ -146,7 +152,9 @@ func TestDynamicFeeDecorator(t *testing.T) {
 		},
 		"failure if we pay different currency than required fee": {
 			signers: []weave.Condition{perm1},
-			handler: &handlerMock{checkRes: weave.CheckResult{RequiredFee: coin.NewCoin(0, 72, "ETH")}},
+			handler: &weavetest.Handler{
+				CheckResult: weave.CheckResult{RequiredFee: coin.NewCoin(0, 72, "ETH")},
+			},
 			initWallets: []orm.Object{
 				walletObj(perm1.Address(), 1, 0, "IOV"),
 			},
@@ -157,7 +165,9 @@ func TestDynamicFeeDecorator(t *testing.T) {
 		},
 		"failure if we pay less than required fee also in delivettx": {
 			signers: []weave.Condition{perm1},
-			handler: &handlerMock{deliverRes: weave.DeliverResult{RequiredFee: coin.NewCoin(1, 0, "IOV")}},
+			handler: &weavetest.Handler{
+				DeliverResult: weave.DeliverResult{RequiredFee: coin.NewCoin(1, 0, "IOV")},
+			},
 			initWallets: []orm.Object{
 				walletObj(perm1.Address(), 1, 0, "IOV"),
 			},
@@ -192,7 +202,7 @@ func TestDynamicFeeDecorator(t *testing.T) {
 			if !tc.wantCheckErr.Is(err) {
 				t.Fatalf("got check error: %v", err)
 			}
-			if tc.wantGasPayment != cRes.GasPayment {
+			if err == nil && tc.wantGasPayment != cRes.GasPayment {
 				t.Errorf("gas payment: %d", cRes.GasPayment)
 			}
 
@@ -276,21 +286,3 @@ func (m *txMock) GetFees() *FeeInfo {
 // only in tests so there is no way it can be returned by the implementation by
 // an accident.
 var ErrTestingError = errors.Register(123456789, "testing error")
-
-type handlerMock struct {
-	checkRes weave.CheckResult
-	checkErr error
-
-	deliverRes weave.DeliverResult
-	deliverErr error
-}
-
-var _ weave.Handler = (*handlerMock)(nil)
-
-func (m *handlerMock) Check(weave.Context, weave.KVStore, weave.Tx) (weave.CheckResult, error) {
-	return m.checkRes, m.checkErr
-}
-
-func (m *handlerMock) Deliver(weave.Context, weave.KVStore, weave.Tx) (weave.DeliverResult, error) {
-	return m.deliverRes, m.deliverErr
-}

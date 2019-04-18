@@ -17,47 +17,48 @@ func NewLogging() Logging {
 }
 
 // Check logs error -> info, success -> debug
-func (r Logging) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx,
-	next weave.Checker) (weave.CheckResult, error) {
-
+func (r Logging) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx, next weave.Checker) (*weave.CheckResult, error) {
 	start := time.Now()
 	res, err := next.Check(ctx, store, tx)
-	logDuration(ctx, start, res.Log, err, true)
+	var resLog string
+	if err == nil {
+		resLog = res.Log
+	}
+	logDuration(ctx, start, resLog, err, true)
 	return res, err
 }
 
 // Deliver logs error -> error, success -> info
-func (r Logging) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx,
-	next weave.Deliverer) (weave.DeliverResult, error) {
-
+func (r Logging) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx, next weave.Deliverer) (*weave.DeliverResult, error) {
 	start := time.Now()
 	res, err := next.Deliver(ctx, store, tx)
-	logDuration(ctx, start, res.Log, err, false)
+	var resLog string
+	if err == nil {
+		resLog = res.Log
+	}
+	logDuration(ctx, start, resLog, err, false)
 	return res, err
 }
 
-// logDuration writes information about the time and result
-// to the logger
-func logDuration(ctx weave.Context, start time.Time, msg string,
-	err error, lowPrio bool) {
-
+// logDuration writes information about the time and result to the logger
+func logDuration(ctx weave.Context, start time.Time, msg string, err error, lowPrio bool) {
 	delta := time.Now().Sub(start)
-	logger := weave.GetLogger(ctx).With("duration", micros(delta))
+	logger := weave.GetLogger(ctx).With("duration", delta/time.Microsecond)
+
 	if err != nil {
 		logger = logger.With("err", err)
 	}
 
-	// now, write it
-	if err == nil && lowPrio {
-		logger.Debug(msg)
-	} else if err != nil && !lowPrio {
-		logger.Error(msg)
-	} else { // low prio error, or normal log message
-		logger.Info(msg)
-	}
-}
+	// Although message can be empty, we still want to emit a log entry
+	// because it contains other relevant information beside the message.
 
-// micros returns how many microseconds passed in a call
-func micros(d time.Duration) int {
-	return int(d.Seconds() * 1000000)
+	if err != nil {
+		logger.Error(msg)
+	} else {
+		if lowPrio {
+			logger.Debug(msg)
+		} else {
+			logger.Info(msg)
+		}
+	}
 }

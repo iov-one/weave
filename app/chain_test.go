@@ -67,14 +67,14 @@ type panicAtHeightDecorator int64
 
 var _ weave.Decorator = panicAtHeightDecorator(0)
 
-func (ph panicAtHeightDecorator) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx, next weave.Checker) (weave.CheckResult, error) {
+func (ph panicAtHeightDecorator) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx, next weave.Checker) (*weave.CheckResult, error) {
 	if val, _ := weave.GetHeight(ctx); val >= int64(ph) {
 		panic("too high")
 	}
 	return next.Check(ctx, db, tx)
 }
 
-func (ph panicAtHeightDecorator) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx, next weave.Deliverer) (weave.DeliverResult, error) {
+func (ph panicAtHeightDecorator) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx, next weave.Deliverer) (*weave.DeliverResult, error) {
 	if val, _ := weave.GetHeight(ctx); val >= int64(ph) {
 		panic("too high")
 	}

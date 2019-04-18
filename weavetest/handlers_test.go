@@ -82,11 +82,11 @@ func TestHandlerResult(t *testing.T) {
 	}
 
 	gotCres, _ := h.Check(nil, nil, nil)
-	if !reflect.DeepEqual(wantCres, gotCres) {
+	if !reflect.DeepEqual(&wantCres, gotCres) {
 		t.Fatalf("got check result: %+v", gotCres)
 	}
 	gotDres, _ := h.Deliver(nil, nil, nil)
-	if !reflect.DeepEqual(wantDres, gotDres) {
+	if !reflect.DeepEqual(&wantDres, gotDres) {
 		t.Fatalf("got deliver result: %+v", gotDres)
 	}
 }

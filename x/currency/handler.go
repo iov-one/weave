@@ -30,23 +30,20 @@ type TokenInfoHandler struct {
 	issuer weave.Address
 }
 
-func (h *TokenInfoHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (weave.CheckResult, error) {
-	var res weave.CheckResult
+func (h *TokenInfoHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
 	if _, err := h.validate(ctx, db, tx); err != nil {
-		return res, err
+		return nil, err
 	}
-	res.GasAllocated += newTokenInfoCost
-	return res, nil
+	return &weave.CheckResult{GasAllocated: newTokenInfoCost}, nil
 }
 
-func (h *TokenInfoHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (weave.DeliverResult, error) {
-	var res weave.DeliverResult
+func (h *TokenInfoHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	msg, err := h.validate(ctx, db, tx)
 	if err != nil {
-		return res, err
+		return nil, err
 	}
 	obj := NewTokenInfo(msg.Ticker, msg.Name)
-	return res, h.bucket.Save(db, obj)
+	return &weave.DeliverResult{}, h.bucket.Save(db, obj)
 }
 
 func (h *TokenInfoHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*NewTokenInfoMsg, error) {
