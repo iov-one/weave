@@ -41,15 +41,14 @@ func (h UpdateConfigurationHandler) Check(ctx weave.Context, store weave.KVStore
 // Deliver demos my concepts
 func (h UpdateConfigurationHandler) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx) (weave.DeliverResult, error) {
 	// Load the current config from the store
-	err := Load(store, h.pkg, h.config)
-	if err != nil {
-		return weave.DeliverResult{}, err
+	if err := Load(store, h.pkg, h.config); err != nil {
+		return weave.DeliverResult{}, errors.Wrap(err, "load message")
 	}
 
 	// make sure we are allowed to update
 	owner := h.config.GetOwner()
 	if owner == nil {
-		return weave.DeliverResult{}, errors.Wrap(errors.ErrUnauthorized, "no owner can update config")
+		return weave.DeliverResult{}, errors.Wrap(errors.ErrUnauthorized, "owner signature required")
 	}
 	if !h.auth.HasAddress(ctx, owner) {
 		return weave.DeliverResult{}, errors.Wrap(errors.ErrUnauthorized, "owner did not sign transaction")

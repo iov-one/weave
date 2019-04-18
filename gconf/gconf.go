@@ -5,7 +5,7 @@ import (
 	"github.com/iov-one/weave/errors"
 )
 
-// Store is a subset of weave.KVStore
+// Store is a subset of weave.KVStore.
 type Store interface {
 	Get([]byte) []byte
 	Set([]byte, []byte)
@@ -16,7 +16,7 @@ type Store interface {
 func Save(db Store, pkg string, src ValidMarshaler) error {
 	key := []byte("_c:" + pkg)
 	if err := src.Validate(); err != nil {
-		return errors.Wrap(err, "saving gconf")
+		return errors.Wrapf(err, "validation: key %q", key)
 	}
 	raw, err := src.Marshal()
 	if err != nil {
