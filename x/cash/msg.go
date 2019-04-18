@@ -10,8 +10,9 @@ import (
 var _ weave.Msg = (*SendMsg)(nil)
 
 const (
-	pathSendMsg       = "cash/send"
-	sendTxCost  int64 = 100
+	pathSendMsg                      = "cash/send"
+	pathConfigurationUpdateMsg       = "cash/update_config"
+	sendTxCost                 int64 = 100
 
 	maxMemoSize int = 128
 	maxRefSize  int = 64
@@ -99,4 +100,35 @@ func (f *FeeInfo) Validate() error {
 		return errors.Wrap(errors.ErrInvalidAmount, "negative fees")
 	}
 	return weave.Address(f.Payer).Validate()
+}
+
+var _ weave.Msg = (*ConfigurationMsg)(nil)
+
+// Validate will skip any zero fields and validate the set ones
+// TODO: we should make it easier to reuse code with Configuration
+func (m *ConfigurationMsg) Validate() error {
+	c := m.Patch
+	if len(c.Owner) != 0 {
+		if err := c.Owner.Validate(); err != nil {
+			return errors.Wrap(err, "owner address")
+		}
+	}
+	if len(c.CollectorAddress) != 0 {
+		if err := c.CollectorAddress.Validate(); err != nil {
+			return errors.Wrap(err, "collector address")
+		}
+	}
+	if !c.MinimalFee.IsZero() {
+		if err := c.MinimalFee.Validate(); err != nil {
+			return errors.Wrap(err, "minimal fee")
+		}
+		if !c.MinimalFee.IsNonNegative() {
+			return errors.Wrap(errors.ErrInvalidState, "minimal fee cannot be negative")
+		}
+	}
+	return nil
+}
+
+func (*ConfigurationMsg) Path() string {
+	return pathConfigurationUpdateMsg
 }

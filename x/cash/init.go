@@ -41,7 +41,9 @@ func (Initializer) FromGenesis(opts weave.Options, kv weave.KVStore) error {
 		}
 	}
 
-	var conf Configuration
-	err := gconf.InitConfig(kv, opts, "cash", &conf)
-	return err
+	if err := gconf.InitConfig(kv, opts, "cash", &Configuration{}); err != nil {
+		return errors.Wrap(err, "init config")
+	}
+
+	return nil
 }
