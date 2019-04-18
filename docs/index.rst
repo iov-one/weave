@@ -6,6 +6,10 @@
 Welcome to IOV Weave's documentation!
 ========================================
 
+.. image:: _static/img/weave-logo.jpg
+    :width: 800
+    :alt: Weave Logo
+
 `IOV Weave <https://github.com/iov-one/weave>`__
 is a framework to quickly build your custom
 `ABCI application <https://github.com/tendermint/abci>`__
