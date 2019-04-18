@@ -3,6 +3,9 @@
 
 ## HEAD
 
+- `gconf` package was reimplemented from scratch
+- `x/cash` is using new `gconf` package for configuration. New genesis path is
+  used.
 - Tests were cleaned up and no use testify or convey packages. A new package
   `weavetest/assert` contains test helpers
 - Simplify transaction message unpacking with `weave.LoadMsg`
