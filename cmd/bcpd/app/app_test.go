@@ -315,8 +315,10 @@ func appStateGenesis(t testing.TB, contracts []*contract) string {
 			dt{"ticker": "ETH", "name": "Smells like ethereum"},
 			dt{"ticker": "FRNK", "name": "Frankie"},
 		},
-		"cashconf": cash.Configuration{
-			CollectorAddress: fromHex(t, "fe1132f9ed1fb1c2e9c09ff297b619654387bb4a"),
+		"conf": dt{
+			"cash": cash.Configuration{
+				CollectorAddress: fromHex(t, "fe1132f9ed1fb1c2e9c09ff297b619654387bb4a"),
+			},
 		},
 	}
 
