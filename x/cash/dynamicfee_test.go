@@ -87,15 +87,18 @@ func TestDynamicFeeDecorator(t *testing.T) {
 			wantCheckErr:   errors.ErrInsufficientAmount,
 			wantCheckTxFee: coin.Coin{},
 		},
-		"on transaction fee ticker mismatch minimum fee with no currency accepts anything": {
-			signers: []weave.Condition{perm1},
-			initWallets: []orm.Object{
-				walletObj(perm1.Address(), 1, 0, "BTC"),
+		/*
+			// this now triggers an error on initialize - invalid data :)
+			"on transaction fee ticker mismatch minimum fee with no currency accepts anything": {
+				signers: []weave.Condition{perm1},
+				initWallets: []orm.Object{
+					walletObj(perm1.Address(), 1, 0, "BTC"),
+				},
+				minimumFee:   coin.NewCoin(0, 23, ""),
+				txFee:        coin.NewCoin(0, 421, "ETH"),
+				wantCheckErr: errors.ErrHuman,
 			},
-			minimumFee:   coin.NewCoin(0, 23, ""),
-			txFee:        coin.NewCoin(0, 421, "ETH"),
-			wantCheckErr: errors.ErrHuman,
-		},
+		*/
 		"on a handler deliver failure only minimum fee is charged": {
 			signers: []weave.Condition{perm1},
 			handler: &handlerMock{deliverErr: ErrTestingError},
@@ -185,7 +188,7 @@ func TestDynamicFeeDecorator(t *testing.T) {
 				CollectorAddress: collectorAddr,
 				MinimalFee:       tc.minimumFee,
 			}
-			if err := gconf.Save(db, &config); err != nil {
+			if err := gconf.Save(db, "cash", &config); err != nil {
 				t.Fatalf("cannot save configuration: %s", err)
 			}
 

@@ -39,9 +39,11 @@ func testInitChain(t *testing.T, myApp app.BaseApp, addr string) {
 				},
 			},
 		},
-		"cashconf": cash.Configuration{
-			CollectorAddress: fromHex(t, "3b11c732b8fc1f09beb34031302fe2ab347c5c14"),
-			MinimalFee:       coin.Coin{Whole: 0}, // no fee
+		"conf": dict{
+			"cash": cash.Configuration{
+				CollectorAddress: fromHex(t, "3b11c732b8fc1f09beb34031302fe2ab347c5c14"),
+				MinimalFee:       coin.Coin{Whole: 0}, // no fee
+			},
 		},
 	})
 	if err != nil {

@@ -2,11 +2,12 @@ package app_test
 
 import (
 	"encoding/hex"
-	"github.com/iov-one/weave"
-	"github.com/iov-one/weave/weavetest"
-	"github.com/tendermint/tendermint/libs/common"
+	"fmt"
 	"strings"
 	"testing"
+
+	"github.com/iov-one/weave"
+	"github.com/tendermint/tendermint/libs/common"
 
 	weaveApp "github.com/iov-one/weave/app"
 	"github.com/iov-one/weave/cmd/bnsd/app"
@@ -44,14 +45,14 @@ func TestApp(t *testing.T) {
 
 	// ensure 4 keys for all accounts that are modified by a transaction
 	require.Equal(t, 4, len(dres.Tags), tagsAsString(dres.Tags))
-	feeDistAddr := weave.NewCondition("dist", "revenue", weavetest.SequenceID(1)).
-		Address()
+	feeDistAddr := weave.Condition("dist/revenue/0000000000000001").Address()
 	wantKeys := []string{
 		toHex("cash:") + addr.String(),        // sender balance decreased
 		toHex("cash:") + addr2.String(),       // receiver balance increased
 		toHex("sigs:") + addr.String(),        // sender sequence incremented
 		toHex("cash:") + feeDistAddr.String(), // fee destination
 	}
+	fmt.Printf("%v\n", wantKeys)
 	for _, want := range wantKeys {
 		var found bool
 		for i := 0; i < len(dres.Tags) && !found; i++ {

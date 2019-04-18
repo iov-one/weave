@@ -24,7 +24,7 @@ import (
 	cfg "github.com/tendermint/tendermint/config"
 	"github.com/tendermint/tendermint/libs/log"
 	nm "github.com/tendermint/tendermint/node"
-	"github.com/tendermint/tendermint/rpc/test"
+	rpctest "github.com/tendermint/tendermint/rpc/test"
 	tm "github.com/tendermint/tendermint/types"
 )
 
@@ -194,9 +194,11 @@ func initGenesis(filename string, addr weave.Address) (*tm.GenesisDoc, error) {
 				"timeout": time.Now().Add(10000 * time.Hour),
 			},
 		},
-		"cashconf": cash.Configuration{
-			CollectorAddress: weave.Condition("dist/revenue/0000000000000001").Address(),
-			MinimalFee:       antiSpamFee,
+		"conf": dict{
+			"cash": cash.Configuration{
+				CollectorAddress: weave.Condition("dist/revenue/0000000000000001").Address(),
+				MinimalFee:       antiSpamFee,
+			},
 		},
 		"msgfee": []interface{}{
 			dict{

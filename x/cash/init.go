@@ -42,12 +42,6 @@ func (Initializer) FromGenesis(opts weave.Options, kv weave.KVStore) error {
 	}
 
 	var conf Configuration
-	if err := opts.ReadOptions("cashconf", &conf); err != nil {
-		return errors.Wrap(err, "read cashconf attribute")
-	}
-	if err := gconf.Save(kv, &conf); err != nil {
-		return errors.Wrap(err, "save configuration")
-	}
-
-	return nil
+	err := gconf.InitConfig(kv, opts, "cash", &conf)
+	return err
 }
