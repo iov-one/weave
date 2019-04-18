@@ -1,7 +1,6 @@
 package cash
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/iov-one/weave"
@@ -10,8 +9,6 @@ import (
 	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/store"
 	"github.com/iov-one/weave/weavetest"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 type checkErr func(error) bool
@@ -25,51 +22,67 @@ func TestSend(t *testing.T) {
 	perm := weave.NewCondition("sig", "ed25519", []byte{1, 2, 3})
 	perm2 := weave.NewCondition("sig", "ed25519", []byte{4, 5, 6})
 
-	cases := []struct {
-		signers       []weave.Condition
-		initState     []orm.Object
-		msg           weave.Msg
-		expectCheck   checkErr
-		expectDeliver checkErr
+	cases := map[string]struct {
+		signers        []weave.Condition
+		initState      []orm.Object
+		msg            weave.Msg
+		wantCheckErr   *errors.Error
+		wantDeliverErr *errors.Error
 	}{
-		0: {nil, nil, nil, errors.ErrInvalidState.Is, errors.ErrInvalidState.Is},
-		1: {nil, nil, new(SendMsg), errors.ErrInvalidAmount.Is, errors.ErrInvalidAmount.Is},
-		2: {nil, nil, &SendMsg{Amount: &foo}, errors.ErrInvalidInput.Is, errors.ErrInvalidInput.Is},
-		3: {
-			nil,
-			nil,
-			&SendMsg{Amount: &foo, Src: perm.Address(), Dest: perm2.Address()},
-			errors.ErrUnauthorized.Is,
-			errors.ErrUnauthorized.Is,
+		"nil message": {
+			wantCheckErr:   errors.ErrInvalidState,
+			wantDeliverErr: errors.ErrInvalidState,
 		},
-		// sender has no account
-		4: {
-			[]weave.Condition{perm},
-			nil,
-			&SendMsg{Amount: &foo, Src: perm.Address(), Dest: perm2.Address()},
-			noErr, // we don't check funds
-			errors.ErrEmpty.Is,
+		"empty message": {
+			msg:            &SendMsg{},
+			wantCheckErr:   errors.ErrInvalidAmount,
+			wantDeliverErr: errors.ErrInvalidAmount,
 		},
-		// sender too poor
-		5: {
-			[]weave.Condition{perm},
-			[]orm.Object{must(WalletWith(perm.Address(), &some))},
-			&SendMsg{Amount: &foo, Src: perm.Address(), Dest: perm2.Address()},
-			noErr, // we don't check funds
-			errors.ErrInsufficientAmount.Is,
+		"unauthorized": {
+			msg: &SendMsg{
+				Amount: &foo,
+				Src:    perm.Address(),
+				Dest:   perm2.Address(),
+			},
+			wantCheckErr:   errors.ErrUnauthorized,
+			wantDeliverErr: errors.ErrUnauthorized,
 		},
-		// sender got cash
-		6: {
-			[]weave.Condition{perm},
-			[]orm.Object{must(WalletWith(perm.Address(), &foo))},
-			&SendMsg{Amount: &foo, Src: perm.Address(), Dest: perm2.Address()},
-			noErr,
-			noErr,
+		"sender has no account": {
+			signers: []weave.Condition{perm},
+			msg: &SendMsg{
+				Amount: &foo,
+				Src:    perm.Address(),
+				Dest:   perm2.Address(),
+			},
+			wantDeliverErr: errors.ErrEmpty,
+		},
+		"sender too poor": {
+			signers: []weave.Condition{perm},
+			initState: []orm.Object{
+				must(WalletWith(perm.Address(), &some)),
+			},
+			msg: &SendMsg{
+				Amount: &foo,
+				Src:    perm.Address(),
+				Dest:   perm2.Address(),
+			},
+			wantDeliverErr: errors.ErrInsufficientAmount,
+		},
+		"sender got cash": {
+			signers: []weave.Condition{perm},
+			initState: []orm.Object{
+				must(WalletWith(perm.Address(), &foo)),
+			},
+			msg: &SendMsg{
+				Amount: &foo,
+				Src:    perm.Address(),
+				Dest:   perm2.Address(),
+			},
 		},
 	}
 
-	for i, tc := range cases {
-		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
+	for testName, tc := range cases {
+		t.Run(testName, func(t *testing.T) {
 			auth := &weavetest.Auth{Signers: tc.signers}
 			controller := NewController(NewBucket())
 			h := NewSendHandler(auth, controller)
@@ -77,16 +90,19 @@ func TestSend(t *testing.T) {
 			kv := store.MemStore()
 			bucket := NewBucket()
 			for _, wallet := range tc.initState {
-				err := bucket.Save(kv, wallet)
-				require.NoError(t, err)
+				if err := bucket.Save(kv, wallet); err != nil {
+					t.Fatalf("cannot save %q wallet: %s", wallet.Key(), err)
+				}
 			}
 
 			tx := &weavetest.Tx{Msg: tc.msg}
 
-			_, err := h.Check(nil, kv, tx)
-			assert.True(t, tc.expectCheck(err), "%+v", err)
-			_, err = h.Deliver(nil, kv, tx)
-			assert.True(t, tc.expectDeliver(err), "%+v", err)
+			if _, err := h.Check(nil, kv, tx); !tc.wantCheckErr.Is(err) {
+				t.Fatalf("unexpected check error: %+v", err)
+			}
+			if _, err := h.Deliver(nil, kv, tx); !tc.wantDeliverErr.Is(err) {
+				t.Fatalf("unexpected deliver error: %+v", err)
+			}
 		})
 	}
 }

@@ -48,6 +48,9 @@ func (m *SetValidatorsMsg) Validate() error {
 		return errors.Wrap(errors.ErrEmpty, "validator set")
 	}
 	for _, v := range m.ValidatorUpdates {
+		if v == nil {
+			return errors.Wrap(errors.ErrInvalidInput, "validator set must not contain nil ")
+		}
 		if err := v.Validate(); err != nil {
 			return err
 		}

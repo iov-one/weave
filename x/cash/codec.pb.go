@@ -76,9 +76,9 @@ func (m *Set) GetCoins() []*coin.Coin {
 // ref is optional binary data, that can refer to another
 // eg. tx hash
 type SendMsg struct {
-	Src    []byte     `protobuf:"bytes,1,opt,name=src,proto3" json:"src,omitempty"`
-	Dest   []byte     `protobuf:"bytes,2,opt,name=dest,proto3" json:"dest,omitempty"`
-	Amount *coin.Coin `protobuf:"bytes,3,opt,name=amount,proto3" json:"amount,omitempty"`
+	Src    github_com_iov_one_weave.Address `protobuf:"bytes,1,opt,name=src,proto3,casttype=github.com/iov-one/weave.Address" json:"src,omitempty"`
+	Dest   github_com_iov_one_weave.Address `protobuf:"bytes,2,opt,name=dest,proto3,casttype=github.com/iov-one/weave.Address" json:"dest,omitempty"`
+	Amount *coin.Coin                       `protobuf:"bytes,3,opt,name=amount,proto3" json:"amount,omitempty"`
 	// max length 128 character
 	Memo string `protobuf:"bytes,4,opt,name=memo,proto3" json:"memo,omitempty"`
 	// max length 64 bytes
@@ -118,14 +118,14 @@ func (m *SendMsg) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_SendMsg proto.InternalMessageInfo
 
-func (m *SendMsg) GetSrc() []byte {
+func (m *SendMsg) GetSrc() github_com_iov_one_weave.Address {
 	if m != nil {
 		return m.Src
 	}
 	return nil
 }
 
-func (m *SendMsg) GetDest() []byte {
+func (m *SendMsg) GetDest() github_com_iov_one_weave.Address {
 	if m != nil {
 		return m.Dest
 	}

@@ -3,33 +3,38 @@ package store
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/iov-one/weave/weavetest/assert"
 )
 
-// TestSliceIterator makes sure the basic slice iterator works
+// TestSliceIterator makes sure the basic slice iterator works.
 func TestSliceIterator(t *testing.T) {
-	const Size = 10
+	const size = 10
 
-	ks := randKeys(Size, 8)
-	vs := randKeys(Size, 40)
+	ks := randKeys(size, 8)
+	vs := randKeys(size, 40)
 
-	models := make([]Model, Size)
-	for i := 0; i < Size; i++ {
+	models := make([]Model, size)
+	for i := 0; i < size; i++ {
 		models[i].Key = ks[i]
 		models[i].Value = vs[i]
 	}
 
 	// make sure proper iteration works
 	for iter, i := NewSliceIterator(models), 0; iter.Valid(); iter.Next() {
-		assert.True(t, i < Size)
+		if i >= size {
+			t.Fatalf("iterator step greater than the size: %d >= %d", i, size)
+		}
 		assert.Equal(t, ks[i], iter.Key())
 		assert.Equal(t, vs[i], iter.Value())
 		i++
 	}
 
-	// iterator is invalid after close
-	trash := NewSliceIterator(models)
-	assert.True(t, trash.Valid())
-	trash.Close()
-	assert.False(t, trash.Valid())
+	it := NewSliceIterator(models)
+	if !it.Valid() {
+		t.Fatal("iterator expected to be valid")
+	}
+	it.Close()
+	if it.Valid() {
+		t.Fatal("closed iterator must be invalid")
+	}
 }

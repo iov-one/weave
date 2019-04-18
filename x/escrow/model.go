@@ -18,16 +18,14 @@ var _ orm.CloneableData = (*Escrow)(nil)
 
 // Validate ensures the escrow is valid
 func (e *Escrow) Validate() error {
-	if e.Sender == nil {
-		return errors.Wrap(errors.ErrEmpty, "sender")
+	if err := e.Sender.Validate(); err != nil {
+		return errors.Wrap(err, "sender")
 	}
-	// Copied from CreateEscrowMsg.Validate
-	// TODO: code reuse???
-	if e.Arbiter == nil {
-		return errors.Wrap(errors.ErrEmpty, "arbiter")
+	if err := e.Arbiter.Validate(); err != nil {
+		return errors.Wrap(err, "arbiter")
 	}
-	if e.Recipient == nil {
-		return errors.Wrap(errors.ErrEmpty, "recipient")
+	if err := e.Recipient.Validate(); err != nil {
+		return errors.Wrap(err, "recipient")
 	}
 	if e.Timeout == 0 {
 		// Zero timeout is a valid value that dates to 1970-01-01. We

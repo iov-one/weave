@@ -13,7 +13,7 @@ func (m *NonFungibleToken) Validate() error {
 		return errors.Wrapf(errors.ErrInvalidInput, "id: %s", PrintableID(m.ID))
 	}
 
-	if err := weave.Address(m.Owner).Validate(); err != nil {
+	if err := m.Owner.Validate(); err != nil {
 		return err
 	}
 
@@ -49,7 +49,7 @@ func (u *NonFungibleToken) OwnerAddress() weave.Address {
 }
 
 func (m *NonFungibleToken) Approvals() *ApprovalOps {
-	return NewApprovalOps(m.OwnerAddress(), &m.ActionApprovals)
+	return NewApprovalOps(m.Owner, &m.ActionApprovals)
 }
 
 func (m *NonFungibleToken) SetApprovals(a Approvals) {
@@ -57,7 +57,7 @@ func (m *NonFungibleToken) SetApprovals(a Approvals) {
 }
 
 func (m *NonFungibleToken) HasApproval(actor weave.Address, action Action) bool {
-	return !NewApprovalOps(m.OwnerAddress(), &m.ActionApprovals).
+	return !NewApprovalOps(m.Owner, &m.ActionApprovals).
 		List().ForAction(action).ForAddress(actor).IsEmpty()
 }
 

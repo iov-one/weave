@@ -634,3 +634,75 @@ func TestCoinDeserialization(t *testing.T) {
 		})
 	}
 }
+
+func TestCoinString(t *testing.T) {
+	cases := map[string]struct {
+		c    Coin
+		want string
+	}{
+		"zero coin": {
+			c:    Coin{},
+			want: "0",
+		},
+		"zero coin with a ticker": {
+			c:    Coin{Ticker: "FOO"},
+			want: "0 FOO",
+		},
+		"one IOV": {
+			c:    NewCoin(1, 0, "IOV"),
+			want: "1 IOV",
+		},
+		"fifty IOV": {
+			c:    NewCoin(50, 0, "IOV"),
+			want: "50 IOV",
+		},
+		"minus one IOV": {
+			c:    NewCoin(1, 0, "IOV").Negative(),
+			want: "-1 IOV",
+		},
+		"minus fifty IOV": {
+			c:    NewCoin(50, 0, "IOV").Negative(),
+			want: "-50 IOV",
+		},
+		"an IOV penny": {
+			c:    NewCoin(0, FracUnit/100, "IOV"),
+			want: "0.01 IOV",
+		},
+		"one fractional": {
+			c:    NewCoin(0, 1, "IOV"),
+			want: "0.000000001 IOV",
+		},
+		"biggest coin": {
+			c:    NewCoin(MaxInt, MaxFrac, "IOV"),
+			want: "999999999999999.999999999 IOV",
+		},
+		"smallest coin": {
+			c:    NewCoin(MinInt, MinFrac, "IOV"),
+			want: "-999999999999999.999999999 IOV",
+		},
+		"one without a ticker": {
+			c:    NewCoin(1, 0, ""),
+			want: "1",
+		},
+		"one and one penny without a ticker": {
+			c:    NewCoin(1, 1, ""),
+			want: "1.000000001",
+		},
+		"not normalized": {
+			c:    NewCoin(2, int64(102.3*float64(FracUnit)), "FOO"),
+			want: "104.3 FOO",
+		},
+		"whole value overflow": {
+			c:    NewCoin(MaxInt+1, 0, "FOO"),
+			want: fmt.Sprintf("%d FOO", MaxInt+1),
+		},
+	}
+
+	for testName, tc := range cases {
+		t.Run(testName, func(t *testing.T) {
+			if got := tc.c.String(); got != tc.want {
+				t.Fatalf("unexpected string representation: %q", got)
+			}
+		})
+	}
+}

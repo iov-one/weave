@@ -1,10 +1,13 @@
 package coin
 
 import (
+	"bytes"
 	"encoding/json"
 	fmt "fmt"
+	"io"
 	"regexp"
 	"strconv"
+	"strings"
 
 	"github.com/iov-one/weave/errors"
 )
@@ -333,6 +336,40 @@ func (c *Coin) UnmarshalJSON(raw []byte) error {
 	c.Fractional = coin.Fractional
 	c.Ticker = coin.Ticker
 	return nil
+}
+
+// String provides a human readable representation of the coin. This function
+// is meant mostly for testing and debugging. For a valid coin the result is a
+// valid human readable format that can be parsed back. For an invalid coin
+// (ie. without a ticker) a readable representation is returned but it cannot
+// be parsed back using the human readable format parser.
+func (c Coin) String() string {
+	var b bytes.Buffer
+
+	if n, err := c.normalize(); err == nil {
+		c = n
+	}
+
+	io.WriteString(&b, strconv.FormatInt(c.Whole, 10))
+
+	if f := c.Fractional; f != 0 {
+		if f < 0 {
+			f = -f
+		}
+		s := strconv.FormatInt(f, 10)
+		// Add leading zeros to convert it to a floating point number.
+		s = "." + strings.Repeat("0", 9-len(s)) + s
+		// Remove trailing zeros as they provide no information.
+		s = strings.TrimRight(s, "0")
+
+		io.WriteString(&b, s)
+	}
+
+	if c.Ticker != "" {
+		io.WriteString(&b, " "+c.Ticker)
+	}
+
+	return b.String()
 }
 
 // ParseHumanFormat parse a human readable coin represenation. Accepted format

@@ -1,7 +1,6 @@
 package gov
 
 import (
-	"fmt"
 	"regexp"
 
 	"github.com/iov-one/weave"
@@ -11,38 +10,60 @@ import (
 
 var validTitle = regexp.MustCompile(`^[a-zA-Z0-9 _.-]{4,128}$`).MatchString
 
-const maxParticipants = 2000
+const maxElectors = 2000
 
 func (m Electorate) Validate() error {
-	if !validTitle(m.Title) {
-		return errors.Wrap(errors.ErrInvalidInput, fmt.Sprintf("title: %q", m.Title))
-	}
-	switch n := len(m.Participants); {
+	switch n := len(m.Electors); {
 	case n == 0:
-		return errors.Wrap(errors.ErrInvalidInput, "participants must not be empty")
-	case n > maxParticipants:
-		return errors.Wrap(errors.ErrInvalidInput, fmt.Sprintf("participants must not exceed: %d", maxParticipants))
+		return errors.Wrap(errors.ErrInvalidInput, "electors must not be empty")
+	case n > maxElectors:
+		return errors.Wrapf(errors.ErrInvalidInput, "electors must not exceed: %d", maxElectors)
+	case !validTitle(m.Title):
+		return errors.Wrapf(errors.ErrInvalidInput, "title: %q", m.Title)
 	}
-	for _, v := range m.Participants {
+
+	var totalWeight uint64
+	index := make(map[string]struct{}) // check for duplicate votes
+	for _, v := range m.Electors {
 		if err := v.Validate(); err != nil {
 			return err
 		}
+		totalWeight += uint64(v.Weight)
+		if _, exists := index[v.Signature.String()]; exists {
+			return errors.Wrap(errors.ErrInvalidInput, "duplicate elector entry")
+		}
+		index[v.Signature.String()] = struct{}{}
+	}
+
+	if m.TotalWeightElectorate != totalWeight {
+		return errors.Wrap(errors.ErrInvalidInput, "total weight does not match sum")
 	}
 	return nil
 }
 
 func (m Electorate) Copy() orm.CloneableData {
-	p := make([]Participant, 0, len(m.Participants))
-	copy(p, m.Participants)
+	p := make([]Elector, 0, len(m.Electors))
+	copy(p, m.Electors)
 	return &Electorate{
-		Title:        m.Title,
-		Participants: p,
+		Title:    m.Title,
+		Electors: p,
 	}
+}
+
+// Weight return the weight for the given address is in the electors list and an ok flag which
+// is true when the address exists in the electors list only.
+func (m Electorate) Elector(a weave.Address) (*Elector, bool) {
+	for _, v := range m.Electors {
+		if v.Signature.Equals(a) {
+			return &v, true
+		}
+	}
+	return nil, false
 }
 
 const maxWeight = 2 ^ 16 - 1
 
-func (m Participant) Validate() error {
+func (m Elector) Validate() error {
 	switch {
 	case m.Weight > maxWeight:
 		return errors.Wrap(errors.ErrInvalidInput, "must not be greater max weight")
@@ -52,58 +73,19 @@ func (m Participant) Validate() error {
 	return m.Signature.Validate()
 }
 
-// ElectorateBucket is the persistent bucket for Electorate object.
-type ElectorateBucket struct {
-	orm.Bucket
-	idSeq orm.Sequence
-}
-
-// NewRevenueBucket returns a bucket for managing electorate.
-func NewElectorateBucket() *ElectorateBucket {
-	b := orm.NewBucket("electorate", orm.NewSimpleObj(nil, &Electorate{}))
-	return &ElectorateBucket{
-		Bucket: b,
-		idSeq:  b.Sequence("id"),
-	}
-}
-
-// Build assigns an ID to given electorate instance and returns it as an orm
-// Object. It does not persist the object in the store.
-func (b *ElectorateBucket) Build(db weave.KVStore, e *Electorate) orm.Object {
-	key := b.idSeq.NextVal(db)
-	return orm.NewSimpleObj(key, e)
-}
-
-// GetElectorate loads the electorate for the given id. If it does not exist then ErrNotFound is returned.
-func (b *ElectorateBucket) GetElectorate(db weave.KVStore, id []byte) (*Electorate, error) {
-	obj, err := b.Get(db, id)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to load electorate")
-	}
-	if obj == nil || obj.Value() == nil {
-		return nil, errors.Wrap(errors.ErrNotFound, "unknown id")
-	}
-	rev, ok := obj.Value().(*Electorate)
-	if !ok {
-		return nil, errors.Wrapf(errors.ErrInvalidModel, "invalid type: %T", obj.Value())
-	}
-	return rev, nil
-}
-
 const (
 	minVotingPeriodHours = 1
 	maxVotingPeriodHours = 4 * 7 * 24 // 4 weeks
 )
 
 func (m ElectionRule) Validate() error {
-	if !validTitle(m.Title) {
-		return errors.Wrap(errors.ErrInvalidInput, fmt.Sprintf("title: %q", m.Title))
-	}
 	switch {
+	case !validTitle(m.Title):
+		return errors.Wrapf(errors.ErrInvalidInput, "title: %q", m.Title)
 	case m.VotingPeriodHours < minVotingPeriodHours:
-		return errors.Wrap(errors.ErrInvalidInput, fmt.Sprintf("min hours: %d", minVotingPeriodHours))
+		return errors.Wrapf(errors.ErrInvalidInput, "min hours: %d", minVotingPeriodHours)
 	case m.VotingPeriodHours > maxVotingPeriodHours:
-		return errors.Wrap(errors.ErrInvalidInput, fmt.Sprintf("max hours: %d", maxVotingPeriodHours))
+		return errors.Wrapf(errors.ErrInvalidInput, "max hours: %d", maxVotingPeriodHours)
 	}
 	return m.Threshold.Validate()
 }
@@ -122,48 +104,136 @@ func (m Fraction) Validate() error {
 		return errors.Wrap(errors.ErrInvalidInput, "numerator must not be 0")
 	case m.Denominator == 0:
 		return errors.Wrap(errors.ErrInvalidInput, "denominator must not be 0")
-	case m.Numerator*2 < m.Denominator:
+	case uint64(m.Numerator)*2 < uint64(m.Denominator):
 		return errors.Wrap(errors.ErrInvalidInput, "must not be lower 0.5")
-	case m.Numerator/m.Denominator > 1:
+	case m.Numerator > m.Denominator:
 		return errors.Wrap(errors.ErrInvalidInput, "must not be greater 1")
 	}
 	return nil
 }
 
-// NewElectionRulesBucket is the persistent bucket for ElectionRules .
-type ElectionRulesBucket struct {
-	orm.Bucket
-	idSeq orm.Sequence
+const (
+	minDescriptionLength = 3
+	maxDescriptionLength = 5000
+)
+
+func (m *TextProposal) Validate() error {
+	switch {
+	case !validTitle(m.Title):
+		return errors.Wrapf(errors.ErrInvalidInput, "title: %q", m.Title)
+	case m.Status == TextProposal_Invalid:
+		return errors.Wrap(errors.ErrInvalidInput, "invalid status")
+	case m.VotingStartTime >= m.VotingEndTime:
+		return errors.Wrap(errors.ErrInvalidInput, "start time must be before end time")
+	case m.VotingStartTime <= m.SubmissionTime:
+		return errors.Wrap(errors.ErrInvalidInput, "start time must be after submission time")
+	case len(m.Author) == 0:
+		return errors.Wrap(errors.ErrInvalidInput, "author required")
+	case len(m.Description) < minDescriptionLength:
+		return errors.Wrapf(errors.ErrInvalidInput, "description length lower than minimum of: %d", minDescriptionLength)
+	case len(m.Description) > maxDescriptionLength:
+		return errors.Wrapf(errors.ErrInvalidInput, "description length exceeds: %d", maxDescriptionLength)
+	case len(m.ElectorateID) == 0:
+		return errors.Wrap(errors.ErrInvalidInput, "empty electorate id")
+	case len(m.ElectionRuleID) == 0:
+		return errors.Wrap(errors.ErrInvalidInput, "empty election rules id")
+	}
+
+	return nil
 }
 
-// NewElectionRulesBucket returns a bucket for managing election rules.
-func NewElectionRulesBucket() *ElectionRulesBucket {
-	b := orm.NewBucket("electnrule", orm.NewSimpleObj(nil, &ElectionRule{}))
-	return &ElectionRulesBucket{
-		Bucket: b,
-		idSeq:  b.Sequence("id"),
+func (m TextProposal) Copy() orm.CloneableData {
+	electionRuleID := make([]byte, 0, len(m.ElectionRuleID))
+	copy(electionRuleID, m.ElectionRuleID)
+	electorateID := make([]byte, 0, len(m.ElectorateID))
+	copy(electorateID, m.ElectorateID)
+	return &TextProposal{
+		Title:           m.Title,
+		Description:     m.Description,
+		ElectionRuleID:  electionRuleID,
+		ElectorateID:    electorateID,
+		VotingStartTime: m.VotingStartTime,
+		VotingEndTime:   m.VotingEndTime,
+		SubmissionTime:  m.SubmissionTime,
+		Author:          m.Author,
+		VoteResult:      m.VoteResult,
+		Status:          m.Status,
 	}
 }
 
-// Build assigns an ID to given election rule instance and returns it as an orm
-// Object. It does not persist the object in the store.
-func (b *ElectionRulesBucket) Build(db weave.KVStore, r *ElectionRule) orm.Object {
-	key := b.idSeq.NextVal(db)
-	return orm.NewSimpleObj(key, r)
+// CountVote updates the intermediate tally result by adding the new vote weight.
+func (m *TextProposal) CountVote(vote Vote) error {
+	oldTotal := m.VoteResult.TotalVotes()
+	switch vote.Voted {
+	case VoteOption_Yes:
+		m.VoteResult.TotalYes += vote.Elector.Weight
+	case VoteOption_No:
+		m.VoteResult.TotalNo += vote.Elector.Weight
+	case VoteOption_Abstain:
+		m.VoteResult.TotalAbstain += vote.Elector.Weight
+	default:
+		return errors.Wrapf(errors.ErrInvalidInput, "%q", m.String())
+	}
+	if m.VoteResult.TotalVotes() <= oldTotal {
+		return errors.Wrap(errors.ErrHuman, "sanity overflow check failed")
+	}
+	return nil
 }
 
-// GetElectionRule loads the electorate for the given id. If it does not exist then ErrNotFound is returned.
-func (b *ElectionRulesBucket) GetElectionRule(db weave.KVStore, id []byte) (*ElectionRule, error) {
-	obj, err := b.Get(db, id)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to load election rule")
+// UndoCountVote updates the intermediate tally result by subtracting the given vote weight.
+func (m *TextProposal) UndoCountVote(vote Vote) error {
+	oldTotal := m.VoteResult.TotalVotes()
+	switch vote.Voted {
+	case VoteOption_Yes:
+		m.VoteResult.TotalYes -= vote.Elector.Weight
+	case VoteOption_No:
+		m.VoteResult.TotalNo -= vote.Elector.Weight
+	case VoteOption_Abstain:
+		m.VoteResult.TotalAbstain -= vote.Elector.Weight
+	default:
+		return errors.Wrapf(errors.ErrInvalidInput, "%q", m.String())
 	}
-	if obj == nil || obj.Value() == nil {
-		return nil, errors.Wrap(errors.ErrNotFound, "unknown id")
+	if m.VoteResult.TotalVotes() >= oldTotal {
+		return errors.Wrap(errors.ErrHuman, "sanity overflow check failed")
 	}
-	rev, ok := obj.Value().(*ElectionRule)
-	if !ok {
-		return nil, errors.Wrapf(errors.ErrInvalidModel, "invalid type: %T", obj.Value())
+	return nil
+}
+
+// Tally calls the final calculation on the votes and sets the status of the proposal according to the
+// election rules threshold.
+func (m *TextProposal) Tally() error {
+	if m.VoteResult.Accepted() {
+		m.Status = TextProposal_Accepted
+	} else {
+		m.Status = TextProposal_Rejected
 	}
-	return rev, nil
+	return nil
+}
+
+// Accepted returns the result of the `(yes*denominator) > (numerator*total_electors_weight)` calculation.
+func (m TallyResult) Accepted() bool {
+	return uint64(m.TotalYes)*uint64(m.Threshold.Denominator) > m.TotalWeightElectorate*uint64(m.Threshold.Numerator)
+}
+
+// TotalVotes returns the sum of yes, no, abstain votes.
+func (m TallyResult) TotalVotes() uint64 {
+	return uint64(m.TotalYes) + uint64(m.TotalNo) + uint64(m.TotalAbstain)
+}
+
+// Validate vote object contains valid elector and voted option
+func (m Vote) Validate() error {
+	if err := m.Elector.Validate(); err != nil {
+		return errors.Wrap(err, "invalid elector")
+	}
+	if m.Voted == VoteOption_Invalid {
+		return errors.Wrap(errors.ErrInvalidInput, "invalid vote option")
+	}
+	return nil
+}
+
+func (m Vote) Copy() orm.CloneableData {
+	return &Vote{
+		Elector: m.Elector,
+		Voted:   m.Voted,
+	}
 }

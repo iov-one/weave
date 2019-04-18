@@ -1,77 +1,125 @@
 package validators
 
 import (
-	"encoding/json"
+	"context"
+	"reflect"
 	"testing"
 
 	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/app"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/store"
 	"github.com/iov-one/weave/weavetest"
-	. "github.com/smartystreets/goconvey/convey"
-	"github.com/tendermint/tendermint/crypto/ed25519"
+	abci "github.com/tendermint/tendermint/abci/types"
 )
 
 func TestHandler(t *testing.T) {
-	Convey("Test handler works as intended", t, func() {
-		addr1 := ed25519.GenPrivKey().PubKey().(ed25519.PubKeyEd25519)
-		addr2 := ed25519.GenPrivKey().PubKey().(ed25519.PubKeyEd25519)
+	alice := weavetest.NewKey()
+	bobby := weavetest.NewKey()
 
-		perm1 := weave.NewCondition("sig", "ed25519", addr1[:])
-		perm2 := weave.NewCondition("sig", "ed25519", addr2[:])
+	specs := map[string]struct {
+		Src           []*ValidatorUpdate
+		AuthzAddress  weave.Address
+		ExpCheckErr   *errors.Error
+		ExpDeliverErr *errors.Error
+		Exp           []abci.ValidatorUpdate
+	}{
+		"All good with authorized address": {
+			Src: []*ValidatorUpdate{{
+				Pubkey: Pubkey{Data: alice.PublicKey().GetEd25519(), Type: "ed25519"},
+				Power:  10,
+			}},
+			AuthzAddress: alice.PublicKey().Address(),
+			Exp: []abci.ValidatorUpdate{{
+				PubKey: abci.PubKey{Data: alice.PublicKey().GetEd25519(), Type: "ed25519"},
+				Power:  10,
+			}},
+		},
+		"Power 0 is allowed to remove a validator": {
+			Src: []*ValidatorUpdate{{
+				Pubkey: Pubkey{Data: alice.PublicKey().GetEd25519(), Type: "ed25519"},
+				Power:  0,
+			}},
+			AuthzAddress: alice.PublicKey().Address(),
+			Exp: []abci.ValidatorUpdate{{
+				PubKey: abci.PubKey{Data: alice.PublicKey().GetEd25519(), Type: "ed25519"},
+				Power:  0,
+			}},
+		},
+		"Negative power prohibited": {
+			Src: []*ValidatorUpdate{{
+				Pubkey: Pubkey{Data: alice.PublicKey().GetEd25519(), Type: "ed25519"},
+				Power:  -1,
+			}},
+			AuthzAddress:  alice.PublicKey().Address(),
+			ExpCheckErr:   ErrInvalidPower,
+			ExpDeliverErr: ErrInvalidPower,
+		},
+		"Invalid public key": {
+			Src: []*ValidatorUpdate{{
+				Pubkey: Pubkey{Data: []byte{0, 1, 2}, Type: "ed25519"},
+				Power:  10,
+			}},
+			AuthzAddress:  alice.PublicKey().Address(),
+			ExpCheckErr:   ErrInvalidPubKey,
+			ExpDeliverErr: ErrInvalidPubKey,
+		},
+		"Empty validator set prohibited": {
+			Src:           []*ValidatorUpdate{},
+			AuthzAddress:  alice.PublicKey().Address(),
+			ExpCheckErr:   errors.ErrEmpty,
+			ExpDeliverErr: errors.ErrEmpty,
+		},
+		"Invalid validator set prohibited": {
+			Src:           []*ValidatorUpdate{nil},
+			AuthzAddress:  alice.PublicKey().Address(),
+			ExpCheckErr:   errors.ErrInvalidInput,
+			ExpDeliverErr: errors.ErrInvalidInput,
+		},
+		"Unauthorized address should fail": {
+			Src: []*ValidatorUpdate{{
+				Pubkey: Pubkey{Data: alice.PublicKey().GetEd25519(), Type: "ed25519"},
+				Power:  10,
+			}},
+			AuthzAddress:  bobby.PublicKey().Address(),
+			ExpCheckErr:   errors.ErrUnauthorized,
+			ExpDeliverErr: errors.ErrUnauthorized,
+		},
+	}
 
-		auth := &weavetest.Auth{Signer: perm1}
-		auth2 := &weavetest.Auth{Signer: perm2}
+	auth := &weavetest.Auth{
+		Signer: alice.PublicKey().Condition(),
+	}
+	rt := app.NewRouter()
+	RegisterRoutes(rt, auth, NewController())
 
-		accts := WeaveAccounts{[]weave.Address{perm1.Address()}}
-		accountsJson, err := json.Marshal(accts)
-		So(err, ShouldBeNil)
+	for msg, spec := range specs {
+		t.Run(msg, func(t *testing.T) {
+			db := store.MemStore()
+			ctx := context.Background()
+			err := NewBucket().Save(db, AccountsWith(WeaveAccounts{Addresses: []weave.Address{spec.AuthzAddress}}))
+			if err != nil {
+				t.Fatalf("unexpected error: %s", err)
+			}
+			cache := db.CacheWrap()
+			tx := &weavetest.Tx{Msg: &SetValidatorsMsg{ValidatorUpdates: spec.Src}}
+			// when check is called
+			if _, err := rt.Check(ctx, cache, tx); !spec.ExpCheckErr.Is(err) {
+				t.Fatalf("check expected: %+v  but got %+v", spec.ExpCheckErr, err)
+			}
+			cache.Discard()
 
-		kv := store.MemStore()
-		init := Initializer{}
-		err = init.FromGenesis(weave.Options{optKey: accountsJson}, kv)
-		So(err, ShouldBeNil)
-		ctrl := NewController()
-		anUpdate := []*ValidatorUpdate{
-			{Pubkey: Pubkey{Data: addr1[:], Type: "ed25519"}, Power: 10},
-		}
-
-		Convey("Check Deliver and Check", func() {
-			Convey("With a right address", func() {
-				tx := &weavetest.Tx{Msg: &SetValidatorsMsg{ValidatorUpdates: anUpdate}}
-				handler := NewUpdateHandler(auth, ctrl, authCheckAddress)
-
-				res, err := handler.Deliver(nil, kv, tx)
-				So(err, ShouldBeNil)
-				So(len(res.Diff), ShouldEqual, 1)
-
-				_, err = handler.Check(nil, kv, tx)
-				So(err, ShouldBeNil)
-			})
-
-			Convey("With a wrong address", func() {
-				tx := &weavetest.Tx{Msg: &SetValidatorsMsg{ValidatorUpdates: anUpdate}}
-				handler := NewUpdateHandler(auth2, ctrl, authCheckAddress)
-
-				_, err := handler.Deliver(nil, kv, tx)
-				So(errors.ErrUnauthorized.Is(err), ShouldBeTrue)
-
-				_, err = handler.Check(nil, kv, tx)
-				So(errors.ErrUnauthorized.Is(err), ShouldBeTrue)
-			})
-
-			//Convey("With an invalid message", func() {
-			//	msg := &cash.SendMsg{}
-			//	tx := &weavetest.Tx{Msg: msg}
-			//	handler := NewUpdateHandler(auth2, ctrl, authCheckAddress)
-
-			//	_, err := handler.Deliver(nil, kv, tx)
-			//	So(err.Error(), ShouldResemble, errors.WithType(errors.ErrInvalidAmount, msg).Error())
-
-			//	_, err = handler.Check(nil, kv, tx)
-			//	So(err.Error(), ShouldResemble, errors.WithType(errors.ErrInvalidAmount, msg).Error())
-			//})
+			// and when deliver is called
+			res, err := rt.Deliver(ctx, db, tx)
+			if !spec.ExpDeliverErr.Is(err) {
+				t.Fatalf("deliver expected: %+v  but got %+v", spec.ExpCheckErr, err)
+			}
+			if spec.ExpDeliverErr != nil {
+				return // skip further checks on expected error
+			}
+			if exp, got := spec.Exp, res.Diff; !reflect.DeepEqual(exp, got) {
+				t.Errorf("expected %v but got %v", exp, got)
+			}
 		})
-	})
-
+	}
 }

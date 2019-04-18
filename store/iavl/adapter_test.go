@@ -9,10 +9,8 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-
 	"github.com/iov-one/weave/store"
+	"github.com/iov-one/weave/weavetest/assert"
 )
 
 type Model = store.Model
@@ -50,33 +48,33 @@ func TestCacheGetSet(t *testing.T) {
 	// that are written to it
 	k, v := []byte("french"), []byte("fry")
 	assert.Nil(t, base.Get(k))
-	assert.False(t, base.Has(k))
+	assert.Equal(t, base.Has(k), false)
 	base.Set(k, v)
 	assert.Equal(t, v, base.Get(k))
-	assert.True(t, base.Has(k))
+	assert.Equal(t, base.Has(k), true)
 
 	// now layer another btree on top and make sure that we get
 	// base data
 	cache := base.CacheWrap()
 	assert.Equal(t, v, cache.Get(k))
-	assert.True(t, cache.Has(k))
+	assert.Equal(t, cache.Has(k), true)
 
 	// writing more data is only visible in the cache
 	k2, v2 := []byte("LA"), []byte("Dodgers")
 	assert.Nil(t, cache.Get(k2))
-	assert.False(t, cache.Has(k2))
+	assert.Equal(t, cache.Has(k2), false)
 	cache.Set(k2, v2)
 	assert.Equal(t, v2, cache.Get(k2))
 	assert.Nil(t, base.Get(k2))
-	assert.True(t, cache.Has(k2))
-	assert.False(t, base.Has(k2))
+	assert.Equal(t, cache.Has(k2), true)
+	assert.Equal(t, base.Has(k2), false)
 
 	// we can write the cache to the base layer...
 	cache.Write()
 	assert.Equal(t, v, base.Get(k))
 	assert.Equal(t, v2, base.Get(k2))
-	assert.True(t, base.Has(k))
-	assert.True(t, base.Has(k2))
+	assert.Equal(t, base.Has(k), true)
+	assert.Equal(t, base.Has(k2), true)
 
 	// we can discard one
 	k3, v3 := []byte("Bayern"), []byte("Munich")
@@ -106,14 +104,13 @@ func TestCacheConflicts(t *testing.T) {
 	ks := randKeys(10, 16)
 	vs := randKeys(20, 40)
 
-	cases := [...]struct {
+	cases := map[string]struct {
 		parentOps     []Op
 		childOps      []Op
 		parentQueries []Model // Key is what we query, Value is what we espect
 		childQueries  []Model // Key is what we query, Value is what we espect
 	}{
-		// overwrite one, delete another, add a third
-		0: {
+		"overwrite one, delete another, add a third": {
 			[]Op{store.SetOp(ks[1], vs[1]), store.SetOp(ks[2], vs[2])},
 			[]Op{store.SetOp(ks[1], vs[11]), store.SetOp(ks[3], vs[7]), store.DelOp(ks[2])},
 			[]Model{store.Pair(ks[1], vs[1]), store.Pair(ks[2], vs[2]), store.Pair(ks[3], nil)},
@@ -121,44 +118,46 @@ func TestCacheConflicts(t *testing.T) {
 		},
 	}
 
-	for i, tc := range cases {
-		parent, close := makeBase()
+	for testName, tc := range cases {
+		t.Run(testName, func(t *testing.T) {
+			parent, close := makeBase()
 
-		for _, op := range tc.parentOps {
-			op.Apply(parent)
-		}
+			for _, op := range tc.parentOps {
+				op.Apply(parent)
+			}
 
-		child := parent.CacheWrap()
-		for _, op := range tc.childOps {
-			op.Apply(child)
-		}
+			child := parent.CacheWrap()
+			for _, op := range tc.childOps {
+				op.Apply(child)
+			}
 
-		// now check the parent is unaffected
-		for j, q := range tc.parentQueries {
-			res := parent.Get(q.Key)
-			assert.Equal(t, q.Value, res, "%d / %d", i, j)
-			has := parent.Has(q.Key)
-			assert.Equal(t, q.Value != nil, has, "%d / %d", i, j)
-		}
+			// now check the parent is unaffected
+			for _, q := range tc.parentQueries {
+				res := parent.Get(q.Key)
+				assert.Equal(t, q.Value, res)
+				has := parent.Has(q.Key)
+				assert.Equal(t, q.Value != nil, has)
+			}
 
-		// the child shows changes
-		for j, q := range tc.childQueries {
-			res := child.Get(q.Key)
-			assert.Equal(t, q.Value, res, "%d / %d", i, j)
-			has := child.Has(q.Key)
-			assert.Equal(t, q.Value != nil, has, "%d / %d", i, j)
-		}
+			// the child shows changes
+			for _, q := range tc.childQueries {
+				res := child.Get(q.Key)
+				assert.Equal(t, q.Value, res)
+				has := child.Has(q.Key)
+				assert.Equal(t, q.Value != nil, has)
+			}
 
-		// write child to parent and make sure it also shows proper data
-		child.Write()
-		for j, q := range tc.childQueries {
-			res := parent.Get(q.Key)
-			assert.Equal(t, q.Value, res, "%d / %d", i, j)
-			has := parent.Has(q.Key)
-			assert.Equal(t, q.Value != nil, has, "%d / %d", i, j)
-		}
+			// write child to parent and make sure it also shows proper data
+			child.Write()
+			for _, q := range tc.childQueries {
+				res := parent.Get(q.Key)
+				assert.Equal(t, q.Value, res)
+				has := parent.Has(q.Key)
+				assert.Equal(t, q.Value != nil, has)
+			}
 
-		close()
+			close()
+		})
 	}
 }
 
@@ -169,14 +168,13 @@ func TestCommitOverwrite(t *testing.T) {
 	ks := randKeys(10, 16)
 	vs := randKeys(20, 40)
 
-	cases := [...]struct {
+	cases := map[string]struct {
 		parentOps     []Op
 		childOps      []Op
 		parentQueries []Model // Key is what we query, Value is what we espect
 		childQueries  []Model // Key is what we query, Value is what we espect
 	}{
-		// overwrite one, delete another, add a third
-		0: {
+		"overwrite one, delete another, add a third": {
 			[]Op{store.SetOp(ks[1], vs[1]), store.SetOp(ks[2], vs[2])},
 			[]Op{store.SetOp(ks[1], vs[11]), store.SetOp(ks[3], vs[7]), store.DelOp(ks[2])},
 			[]Model{store.Pair(ks[1], vs[1]), store.Pair(ks[2], vs[2]), store.Pair(ks[3], nil)},
@@ -184,62 +182,68 @@ func TestCommitOverwrite(t *testing.T) {
 		},
 	}
 
-	for i, tc := range cases {
-		commit, close := makeCommitStore()
-		// only one to trigger a cleanup
-		commit.numHistory = 1
+	for testName, tc := range cases {
+		t.Run(testName, func(t *testing.T) {
+			commit, close := makeCommitStore()
+			// only one to trigger a cleanup
+			commit.numHistory = 1
 
-		id := commit.LatestVersion()
-		assert.Equal(t, int64(0), id.Version)
-		assert.Empty(t, id.Hash)
+			id := commit.LatestVersion()
+			assert.Equal(t, int64(0), id.Version)
+			if len(id.Hash) != 0 {
+				t.Fatal("hash is not empty")
+			}
 
-		parent := commit.CacheWrap()
-		for _, op := range tc.parentOps {
-			op.Apply(parent)
-		}
-		// write data to backing store
-		parent.Write()
-		id = commit.Commit()
-		assert.Equal(t, int64(1), id.Version)
-		assert.NotEmpty(t, id.Hash)
+			parent := commit.CacheWrap()
+			for _, op := range tc.parentOps {
+				op.Apply(parent)
+			}
+			// write data to backing store
+			parent.Write()
+			id = commit.Commit()
+			assert.Equal(t, int64(1), id.Version)
+			if len(id.Hash) == 0 {
+				t.Fatal("hash is empty")
+			}
 
-		// child also comes from commit
-		child := commit.CacheWrap()
-		for _, op := range tc.childOps {
-			op.Apply(child)
-		}
+			// child also comes from commit
+			child := commit.CacheWrap()
+			for _, op := range tc.childOps {
+				op.Apply(child)
+			}
 
-		// and a side-cache wrap to see they are in parallel
-		side := commit.CacheWrap()
+			// and a side-cache wrap to see they are in parallel
+			side := commit.CacheWrap()
 
-		// now check that side gets unmodified parent state
-		for j, q := range tc.parentQueries {
-			res := side.Get(q.Key)
-			assert.Equal(t, q.Value, res, "%d / %d", i, j)
-			has := side.Has(q.Key)
-			assert.Equal(t, q.Value != nil, has, "%d / %d", i, j)
-		}
+			// now check that side gets unmodified parent state
+			for _, q := range tc.parentQueries {
+				res := side.Get(q.Key)
+				assert.Equal(t, q.Value, res)
+				has := side.Has(q.Key)
+				assert.Equal(t, q.Value != nil, has)
+			}
 
-		// the child shows changes
-		for j, q := range tc.childQueries {
-			res := child.Get(q.Key)
-			assert.Equal(t, q.Value, res, "%d / %d", i, j)
-			has := child.Has(q.Key)
-			assert.Equal(t, q.Value != nil, has, "%d / %d", i, j)
-		}
+			// the child shows changes
+			for _, q := range tc.childQueries {
+				res := child.Get(q.Key)
+				assert.Equal(t, q.Value, res)
+				has := child.Has(q.Key)
+				assert.Equal(t, q.Value != nil, has)
+			}
 
-		// write child to parent and make sure it also shows proper data
-		child.Write()
-		for j, q := range tc.childQueries {
-			res := side.Get(q.Key)
-			assert.Equal(t, q.Value, res, "%d / %d", i, j)
-			has := side.Has(q.Key)
-			assert.Equal(t, q.Value != nil, has, "%d / %d", i, j)
-		}
-		id = commit.Commit()
-		assert.Equal(t, int64(2), id.Version)
+			// write child to parent and make sure it also shows proper data
+			child.Write()
+			for _, q := range tc.childQueries {
+				res := side.Get(q.Key)
+				assert.Equal(t, q.Value, res)
+				has := side.Has(q.Key)
+				assert.Equal(t, q.Value != nil, has)
+			}
+			id = commit.Commit()
+			assert.Equal(t, int64(2), id.Version)
 
-		close()
+			close()
+		})
 	}
 }
 
@@ -264,9 +268,8 @@ func TestFuzzCacheIterator(t *testing.T) {
 
 	both := sortModels(append(toSet, parentSet...))
 
-	cases := [...]iterCase{
-		// just write to a child with empty parent
-		0: {
+	cases := map[string]iterCase{
+		"just write to a child with empty parent": {
 			pre:   nil,
 			child: ops,
 			queries: []rangeQuery{
@@ -283,8 +286,7 @@ func TestFuzzCacheIterator(t *testing.T) {
 				{expect[6].Key, expect[26].Key, true, reverse(expect[6:26])},
 			},
 		},
-		// iterator combines child and parent
-		1: {
+		"iterator combines child and parent": {
 			pre:   parentOps,
 			child: ops,
 			queries: []rangeQuery{
@@ -303,13 +305,12 @@ func TestFuzzCacheIterator(t *testing.T) {
 		},
 	}
 
-	for i, tc := range cases {
-		func() {
-			msg := fmt.Sprintf("FuzzCacheIterator: %d", i)
+	for testName, tc := range cases {
+		t.Run(testName, func(t *testing.T) {
 			base, close := makeBase()
 			defer close()
-			tc.verify(t, base, msg)
-		}()
+			tc.verify(t, base, "FuzzCacheIterator")
+		})
 	}
 }
 
@@ -344,9 +345,8 @@ func TestConflictCacheIterator(t *testing.T) {
 	expect1 := sortModels([]Model{a2, b2, c, d})
 	expect2 := []Model{c}
 
-	cases := [...]iterCase{
-		// iterate in child only
-		0: {
+	cases := map[string]iterCase{
+		"iterate in child only": {
 			child: makeSetOps(a, b, c),
 			queries: []rangeQuery{
 				// query for the values in child
@@ -356,8 +356,7 @@ func TestConflictCacheIterator(t *testing.T) {
 				{nil, nil, true, reverse(expect0)},
 			},
 		},
-		// iterate over parent only
-		1: {
+		"iterate over parent only": {
 			pre: makeSetOps(a, b, c),
 			queries: []rangeQuery{
 				// query for the values in child
@@ -367,8 +366,7 @@ func TestConflictCacheIterator(t *testing.T) {
 				{nil, nil, true, reverse(expect0)},
 			},
 		},
-		// simple combination
-		2: {
+		"simple combination": {
 			pre:   makeSetOps(a, b),
 			child: makeSetOps(c),
 			queries: []rangeQuery{
@@ -379,8 +377,7 @@ func TestConflictCacheIterator(t *testing.T) {
 				{nil, nil, true, reverse(expect0)},
 			},
 		},
-		// overwrite data should show child data
-		3: {
+		"overwrite data should show child data": {
 			pre:   makeSetOps(a, b, c),
 			child: makeSetOps(a2, b2, d),
 			queries: []rangeQuery{
@@ -391,8 +388,7 @@ func TestConflictCacheIterator(t *testing.T) {
 				{nil, nil, true, reverse(expect1)},
 			},
 		},
-		// overwrite data should show child data
-		4: {
+		"overwrite data should show child data 2": {
 			pre:   makeSetOps(a, c, d),
 			child: makeDelOps(a, b, d),
 			queries: []rangeQuery{
@@ -404,17 +400,14 @@ func TestConflictCacheIterator(t *testing.T) {
 		},
 	}
 
-	for i, tc := range cases {
-		func() {
-			msg := fmt.Sprintf("FuzzCacheIterator: %d", i)
+	for testName, tc := range cases {
+		t.Run(testName, func(t *testing.T) {
 			base, close := makeBase()
 			defer close()
-			tc.verify(t, base, msg)
-		}()
+			tc.verify(t, base, "FuzzCacheIterator")
+		})
 	}
 }
-
-//--------------------- lots of helpers ------------------
 
 func randBytes(length int) []byte {
 	res := make([]byte, length)
@@ -440,9 +433,6 @@ func randModels(count, keySize, valueSize int) []Model {
 	}
 	return models
 }
-
-////////////////////////////////////////////////////
-// helper methods to check queries
 
 // iterCase is a test case for iteration
 type iterCase struct {
@@ -475,25 +465,25 @@ type rangeQuery struct {
 	expected []Model
 }
 
-func (q rangeQuery) check(t *testing.T, kv store.KVStore, msg string) {
+func (q rangeQuery) check(t testing.TB, kv store.KVStore, msg string) {
+	t.Helper()
 	var iter store.Iterator
 	if q.reverse {
 		iter = kv.ReverseIterator(q.start, q.end)
 	} else {
 		iter = kv.Iterator(q.start, q.end)
 	}
-	verifyIterator(t, q.expected, iter, msg)
-}
 
-func verifyIterator(t *testing.T, models []Model, iter store.Iterator, msg string) {
-	// make sure proper iteration works
-	for i := 0; i < len(models); i++ {
-		require.True(t, iter.Valid(), msg)
-		assert.Equal(t, models[i].Key, iter.Key(), msg)
-		assert.Equal(t, models[i].Value, iter.Value(), msg)
+	// Make sure proper iteration works.
+	for i := 0; i < len(q.expected); i++ {
+		assert.Equal(t, iter.Valid(), true)
+		assert.Equal(t, q.expected[i].Key, iter.Key())
+		assert.Equal(t, q.expected[i].Value, iter.Value())
 		iter.Next()
 	}
-	assert.False(t, iter.Valid())
+	if iter.Valid() {
+		t.Fatal("iterator is expected to not be valid")
+	}
 	iter.Close()
 }
 

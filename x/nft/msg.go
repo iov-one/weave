@@ -1,7 +1,6 @@
 package nft
 
 import (
-	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
 )
 
@@ -24,7 +23,7 @@ func (*RemoveApprovalMsg) Path() string {
 }
 
 func (m AddApprovalMsg) Validate() error {
-	if err := weave.Address(m.Address).Validate(); err != nil {
+	if err := m.Address.Validate(); err != nil {
 		return err
 	}
 	if !isValidAction(m.Action) {
@@ -37,7 +36,7 @@ func (m AddApprovalMsg) Validate() error {
 }
 
 func (m RemoveApprovalMsg) Validate() error {
-	if err := weave.Address(m.Address).Validate(); err != nil {
+	if err := m.Address.Validate(); err != nil {
 		return err
 	}
 	if !isValidAction(m.Action) {

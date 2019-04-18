@@ -70,6 +70,9 @@ func (c Condition) String() string {
 
 // Validate returns an error if the Condition is not the proper format
 func (c Condition) Validate() error {
+	if len(c) == 0 {
+		return errors.ErrEmpty
+	}
 	if !perm.Match(c) {
 		return errors.Wrapf(errors.ErrInvalidInput, "condition: %X", []byte(c))
 	}
@@ -211,6 +214,9 @@ func (a Address) String() string {
 
 // Validate returns an error if the address is not the valid size
 func (a Address) Validate() error {
+	if len(a) == 0 {
+		return errors.ErrEmpty
+	}
 	if len(a) != AddressLength {
 		return errors.Wrapf(errors.ErrInvalidInput, "invalid address length: %v", a)
 	}

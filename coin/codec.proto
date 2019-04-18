@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package coin;
 
+import "github.com/gogo/protobuf/gogoproto/gogo.proto";
+
 // Coin can hold any amount between -1 billion and +1 billion
 // at steps of 10^-9. It is a fixed-point decimal
 // representation and uses integers to avoid rounding
@@ -12,6 +14,8 @@ package coin;
 // If you want anything more complex, you should write your
 // own type, possibly borrowing from this code.
 message Coin {
+  option (gogoproto.goproto_stringer) = false;
+
   // Whole coins, -10^15 < integer < 10^15
   int64 whole = 1;
   // Billionth of coins. 0 <= abs(fractional) < 10^9
