@@ -2,8 +2,9 @@ package orm
 
 import (
 	"bytes"
-	"github.com/iov-one/weave/errors"
 	"sort"
+
+	"github.com/iov-one/weave/errors"
 )
 
 var _ CloneableData = (*MultiRef)(nil)
