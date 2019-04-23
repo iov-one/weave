@@ -28,9 +28,8 @@ func NewCommitStore(store weave.CommitKVStore) *CommitStore {
 }
 
 // CommitInfo returns the current height and hash
-func (cs *CommitStore) CommitInfo() (version int64, hash []byte) {
-	id := cs.committed.LatestVersion()
-	return id.Version, id.Hash
+func (cs *CommitStore) CommitInfo() (weave.CommitID, error) {
+	return cs.committed.LatestVersion()
 }
 
 // Commit will flush deliver to the underlying store and commit it
@@ -38,18 +37,21 @@ func (cs *CommitStore) CommitInfo() (version int64, hash []byte) {
 //
 // TODO: this should probably be protected by a mutex....
 // need to think what concurrency we expect
-func (cs *CommitStore) Commit() weave.CommitID {
+func (cs *CommitStore) Commit() (weave.CommitID, error) {
 	// flush deliver to store and discard check
 	cs.deliver.Write()
 	cs.check.Discard()
 
 	// write the store to disk
-	res := cs.committed.Commit()
+	res, err := cs.committed.Commit()
+	if err != nil {
+		return res, err
+	}
 
 	// set up new caches
 	cs.deliver = cs.committed.CacheWrap()
 	cs.check = cs.committed.CacheWrap()
-	return res
+	return res, nil
 }
 
 // CheckStore returns a store implementation that must be used during the
@@ -69,9 +71,13 @@ func (cs *CommitStore) DeliverStore() weave.CacheableKVStore {
 // _wv: is a prefix for weave internal data
 const chainIDKey = "_wv:chainID"
 
-// loadChainID returns the chain id stored if any
-func loadChainID(kv weave.KVStore) string {
-	v := kv.Get([]byte(chainIDKey))
+// mustLoadChainID returns the chain id stored if any
+// panics on db error
+func mustLoadChainID(kv weave.KVStore) string {
+	v, err := kv.Get([]byte(chainIDKey))
+	if err != nil {
+		panic(err)
+	}
 	return string(v)
 }
 
@@ -82,9 +88,16 @@ func saveChainID(kv weave.KVStore, chainID string) error {
 		return errors.Wrapf(errors.ErrInvalidInput, "chain id: %v", chainID)
 	}
 	k := []byte(chainIDKey)
-	if kv.Has(k) {
+	exists, err := kv.Has(k)
+	if err != nil {
+		return errors.Wrap(err, "load chainId")
+	}
+	if exists {
 		return errors.Wrap(errors.ErrUnauthorized, "can't modify chain id after genesis init")
 	}
-	kv.Set(k, []byte(chainID))
+	err = kv.Set(k, []byte(chainID))
+	if err != nil {
+		return errors.Wrap(err, "save chainId")
+	}
 	return nil
 }

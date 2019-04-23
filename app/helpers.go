@@ -1,6 +1,8 @@
 package app
 
 import (
+	fmt "fmt"
+
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -19,35 +21,39 @@ func NewABCIStore(app abci.Application) *ABCIStore {
 
 // Get will query for exactly one value over the abci store.
 // This can be wrapped with a bucket to reuse key/index/parse logic
-func (a *ABCIStore) Get(key []byte) []byte {
+func (a *ABCIStore) Get(key []byte) ([]byte, error) {
 	query := a.app.Query(abci.RequestQuery{
 		Path: "/",
 		Data: key,
 	})
 	// if only the interface supported returning errors....
 	if query.Code != 0 {
-		panic(query.Log)
+		return nil, fmt.Errorf(query.Log)
 	}
 	var value ResultSet
 	if err := value.Unmarshal(query.Value); err != nil {
-		panic(errors.Wrap(err, "unmarshal result set"))
+		return nil, errors.Wrap(err, "unmarshal result set")
 	}
 	if len(value.Results) == 0 {
-		return nil
+		return nil, nil
 	}
 	// TODO: assert error if len > 1 ???
-	return value.Results[0]
+	return value.Results[0], nil
 }
 
 // Has returns true if the given key in in the abci app store
-func (a *ABCIStore) Has(key []byte) bool {
-	return len(a.Get(key)) > 0
+func (a *ABCIStore) Has(key []byte) (bool, error) {
+	got, err := a.Get(key)
+	if err != nil {
+		return false, err
+	}
+	return len(got) > 0, nil
 }
 
 // Iterator attempts to do a range iteration over the store,
 // We only support prefix queries in the abci server for now.
 // This client only supports listing everything...
-func (a *ABCIStore) Iterator(start, end []byte) weave.Iterator {
+func (a *ABCIStore) Iterator(start, end []byte) (weave.Iterator, error) {
 	// TODO: support all prefix searches (later even more ranges)
 	// look at orm/query.go:prefixRange for an idea how we turn prefix->iterator,
 	// we should detect this case and reverse it so we can serialize over abci query
@@ -67,12 +73,12 @@ func (a *ABCIStore) Iterator(start, end []byte) weave.Iterator {
 		panic(errors.Wrap(err, "cannot convert to model"))
 	}
 
-	return NewSliceIterator(models)
+	return NewSliceIterator(models), nil
 }
 
-func (a *ABCIStore) ReverseIterator(start, end []byte) weave.Iterator {
+func (a *ABCIStore) ReverseIterator(start, end []byte) (weave.Iterator, error) {
 	// TODO: load normal iterator but then play it backwards?
-	panic("not implemented")
+	return nil, fmt.Errorf("not implemented")
 }
 
 func toModels(keys, values []byte) ([]weave.Model, error) {
@@ -87,12 +93,9 @@ func toModels(keys, values []byte) ([]weave.Model, error) {
 }
 
 // SliceIterator wraps an Iterator over a slice of models
-//
-// TODO: make this private and only expose Iterator interface????
 type SliceIterator struct {
 	data []weave.Model
 	idx  int
-	// TODO: add reverse field
 }
 
 var _ weave.Iterator = (*SliceIterator)(nil)
@@ -113,9 +116,10 @@ func (s *SliceIterator) Valid() bool {
 // defined by order of iteration.
 //
 // If Valid returns false, this method will panic.
-func (s *SliceIterator) Next() {
+func (s *SliceIterator) Next() error {
 	s.assertValid()
 	s.idx++
+	return nil
 }
 
 func (s *SliceIterator) assertValid() {
