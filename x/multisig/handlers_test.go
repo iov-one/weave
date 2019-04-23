@@ -9,6 +9,7 @@ import (
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/store"
 	"github.com/iov-one/weave/weavetest"
+	"github.com/iov-one/weave/weavetest/assert"
 )
 
 func TestCreateContractHandler(t *testing.T) {
@@ -245,7 +246,7 @@ func TestUpdateContractHandler(t *testing.T) {
 			tx := &weavetest.Tx{Msg: tc.Msg}
 
 			b := NewContractBucket()
-			err := b.Save(db, b.Build(db, &Contract{
+			contract, err := b.Build(db, &Contract{
 				Participants: []*Participant{
 					{Power: 1, Signature: alice},
 					{Power: 2, Signature: bobby},
@@ -253,10 +254,10 @@ func TestUpdateContractHandler(t *testing.T) {
 				},
 				ActivationThreshold: 2,
 				AdminThreshold:      3,
-			}))
-			if err != nil {
-				t.Fatalf("cannot create a contract: %s", err)
-			}
+			})
+			assert.Nil(t, err)
+			err = b.Save(db, contract)
+			assert.Nil(t, err)
 
 			cache := db.CacheWrap()
 			if _, err := rt.Check(ctx, cache, tx); !tc.WantCheckErr.Is(err) {

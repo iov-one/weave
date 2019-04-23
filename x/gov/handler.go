@@ -235,7 +235,10 @@ func (h TextProposalHandler) Deliver(ctx weave.Context, db weave.KVStore, tx wea
 		Result: TextProposal_Undefined,
 	}
 
-	obj := h.propBucket.Build(db, proposal)
+	obj, err := h.propBucket.Build(db, proposal)
+	if err != nil {
+		return nil, err
+	}
 	if err := h.propBucket.Save(db, obj); err != nil {
 		return nil, errors.Wrap(err, "failed to persist proposal")
 	}

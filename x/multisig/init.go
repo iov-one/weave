@@ -37,7 +37,10 @@ func (*Initializer) FromGenesis(opts weave.Options, db weave.KVStore) error {
 			ActivationThreshold: c.ActivationThreshold,
 			AdminThreshold:      c.AdminThreshold,
 		}
-		obj := bucket.Build(db, &contract)
+		obj, err := bucket.Build(db, &contract)
+		if err != nil {
+			return err
+		}
 		if err := bucket.Save(db, obj); err != nil {
 			return err
 		}

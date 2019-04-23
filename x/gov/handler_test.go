@@ -12,6 +12,7 @@ import (
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/store"
 	"github.com/iov-one/weave/weavetest"
+	"github.com/iov-one/weave/weavetest/assert"
 	"github.com/tendermint/tendermint/libs/common"
 )
 
@@ -589,27 +590,26 @@ type ctxAwareMutator func(weave.Context, *TextProposal)
 func withProposal(t *testing.T, db store.CacheableKVStore, ctx weave.Context, mods ...ctxAwareMutator) *ProposalBucket {
 	// setup electorate
 	electorateBucket := NewElectorateBucket()
-	err := electorateBucket.Save(db, electorateBucket.Build(db, &Electorate{
+	electorate, err := electorateBucket.Build(db, &Electorate{
 		Title: "fooo",
 		Electors: []Elector{
 			{Address: alice, Weight: 1},
 			{Address: bobby, Weight: 10},
 		},
-		TotalWeightElectorate: 11}),
-	)
-	if err != nil {
-		t.Fatalf("unexpected error: %s", err)
-	}
+		TotalWeightElectorate: 11})
+	assert.Nil(t, err)
+	err = electorateBucket.Save(db, electorate)
+	assert.Nil(t, err)
 	// setup election rules
 	rulesBucket := NewElectionRulesBucket()
-	err = rulesBucket.Save(db, rulesBucket.Build(db, &ElectionRule{
+	rules, err := rulesBucket.Build(db, &ElectionRule{
 		Title:             "barr",
 		VotingPeriodHours: 1,
 		Threshold:         Fraction{1, 2},
-	}))
-	if err != nil {
-		t.Fatalf("unexpected error: %s", err)
-	}
+	})
+	assert.Nil(t, err)
+	err = rulesBucket.Save(db, rules)
+	assert.Nil(t, err)
 	// adapter to call fixture mutator with context
 	ctxMods := make([]func(*TextProposal), len(mods))
 	for i := 0; i < len(mods); i++ {
@@ -623,9 +623,9 @@ func withProposal(t *testing.T, db store.CacheableKVStore, ctx weave.Context, mo
 	}
 	pBucket := NewProposalBucket()
 	proposal := textProposalFixture(ctxMods...)
-	err = pBucket.Save(db, pBucket.Build(db, &proposal))
-	if err != nil {
-		t.Fatalf("unexpected error: %s", err)
-	}
+	pObj, err := pBucket.Build(db, &proposal)
+	assert.Nil(t, err)
+	err = pBucket.Save(db, pObj)
+	assert.Nil(t, err)
 	return pBucket
 }
