@@ -123,7 +123,7 @@ func (h UpdateContractMsgHandler) validate(ctx weave.Context, db weave.KVStore, 
 	var power Weight
 	for _, p := range contract.Participants {
 		if h.auth.HasAddress(ctx, p.Signature) {
-			power += p.Power
+			power += p.Weight
 		}
 	}
 	if power < contract.AdminThreshold {

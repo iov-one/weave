@@ -19,9 +19,9 @@ func TestGenesisKey(t *testing.T) {
 			"multisig": [
 				{
 					"participants": [
-						{"power": 1, "signature": "e4c7e4c71a3b301a2521753ddd1d2c26fd6fe1bf"},
-						{"power": 2, "signature": "904bc35e341b428d4faa535022b553efbc443d49"},
-						{"power": 7, "signature": "91d66344d78599b66e1b504db958b1b07a8f5049"}
+						{"weight": 1, "signature": "e4c7e4c71a3b301a2521753ddd1d2c26fd6fe1bf"},
+						{"weight": 2, "signature": "904bc35e341b428d4faa535022b553efbc443d49"},
+						{"weight": 7, "signature": "91d66344d78599b66e1b504db958b1b07a8f5049"}
 					],
 					"activation_threshold": 2,
 					"admin_threshold": 3
@@ -60,9 +60,9 @@ func TestGenesisKey(t *testing.T) {
 		t.Errorf("want admin threshold %d, got %d", want, got)
 	}
 	wantParticipants := []*Participant{
-		{Power: 1, Signature: fromHex(t, "e4c7e4c71a3b301a2521753ddd1d2c26fd6fe1bf")},
-		{Power: 2, Signature: fromHex(t, "904bc35e341b428d4faa535022b553efbc443d49")},
-		{Power: 7, Signature: fromHex(t, "91d66344d78599b66e1b504db958b1b07a8f5049")},
+		{Weight: 1, Signature: fromHex(t, "e4c7e4c71a3b301a2521753ddd1d2c26fd6fe1bf")},
+		{Weight: 2, Signature: fromHex(t, "904bc35e341b428d4faa535022b553efbc443d49")},
+		{Weight: 7, Signature: fromHex(t, "91d66344d78599b66e1b504db958b1b07a8f5049")},
 	}
 	if !reflect.DeepEqual(wantParticipants, c.Participants) {
 		t.Errorf("want participants \n%#v\n, got \n%#v", wantParticipants, c.Participants)

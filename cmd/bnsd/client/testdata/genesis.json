@@ -50,7 +50,7 @@
        "activation_threshold": 1,
        "admin_threshold": 1,
        "participants": [
-         {"power": 1, "signature": "E28AE9A6EB94FC88B73EB7CBD6B87BF93EB9BEF0"}
+         {"weight": 1, "signature": "E28AE9A6EB94FC88B73EB7CBD6B87BF93EB9BEF0"}
        ]
      }
    ],

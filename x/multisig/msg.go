@@ -64,7 +64,7 @@ func validateWeights(
 	}
 
 	for _, p := range ps {
-		if err := p.Power.Validate(); err != nil {
+		if err := p.Weight.Validate(); err != nil {
 			return errors.Wrapf(err, "participant %s", p.Signature)
 		}
 		if err := p.Signature.Validate(); err != nil {
@@ -80,7 +80,7 @@ func validateWeights(
 
 	var total Weight
 	for _, p := range ps {
-		total += p.Power
+		total += p.Weight
 	}
 
 	if activationThreshold > total {

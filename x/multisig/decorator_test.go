@@ -24,9 +24,9 @@ func TestDecorator(t *testing.T) {
 	// the contract we'll be using in our tests
 	contractID1 := createContract(t, db, Contract{
 		Participants: []*Participant{
-			{Power: 1, Signature: a.Address()},
-			{Power: 1, Signature: b.Address()},
-			{Power: 1, Signature: c.Address()},
+			{Weight: 1, Signature: a.Address()},
+			{Weight: 1, Signature: b.Address()},
+			{Weight: 1, Signature: c.Address()},
 		},
 		ActivationThreshold: 2,
 		AdminThreshold:      3,
@@ -35,9 +35,9 @@ func TestDecorator(t *testing.T) {
 	// contractID2 is used as a sig for contractID3
 	contractID2 := createContract(t, db, Contract{
 		Participants: []*Participant{
-			{Power: 1, Signature: d.Address()},
-			{Power: 1, Signature: e.Address()},
-			{Power: 1, Signature: f.Address()},
+			{Weight: 1, Signature: d.Address()},
+			{Weight: 1, Signature: e.Address()},
+			{Weight: 1, Signature: f.Address()},
 		},
 		ActivationThreshold: 2,
 		AdminThreshold:      3,
@@ -46,8 +46,8 @@ func TestDecorator(t *testing.T) {
 	// contractID3 requires either sig for a or activation for contractID2
 	contractID3 := createContract(t, db, Contract{
 		Participants: []*Participant{
-			{Power: 1, Signature: a.Address()},
-			{Power: 1, Signature: MultiSigCondition(contractID2).Address()},
+			{Weight: 1, Signature: a.Address()},
+			{Weight: 1, Signature: MultiSigCondition(contractID2).Address()},
 		},
 		ActivationThreshold: 1,
 		AdminThreshold:      2,

@@ -74,7 +74,7 @@ func (d Decorator) authMultisig(ctx weave.Context, store weave.KVStore, tx weave
 		var power Weight
 		for _, p := range contract.Participants {
 			if d.auth.HasAddress(ctx, p.Signature) {
-				power += p.Power
+				power += p.Weight
 				gasCost += multisigParticipantGasCost
 			}
 		}
