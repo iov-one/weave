@@ -6,7 +6,7 @@ import (
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/store"
-	"github.com/stretchr/testify/assert"
+	"github.com/iov-one/weave/weavetest/assert"
 )
 
 func TestPrefixRange(t *testing.T) {
@@ -79,8 +79,9 @@ func TestQueryPrefix(t *testing.T) {
 				db.Set(m.Key, m.Value)
 			}
 
-			res := queryPrefix(db, tc.prefix)
-			assert.EqualValues(t, tc.expected, res)
+			res, err := queryPrefix(db, tc.prefix)
+			assert.Nil(t, err)
+			assert.Equal(t, tc.expected, res)
 		})
 	}
 }

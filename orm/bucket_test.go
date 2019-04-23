@@ -144,13 +144,16 @@ func TestBucketSequence(t *testing.T) {
 	// this operation several times.
 	for i := int64(1); i < 10; i++ {
 		sa := b1.Sequence("seq1")
-		a := sa.NextInt(db)
+		a, err := sa.NextInt(db)
+		assert.Nil(t, err)
 
 		sb := b1.Sequence("seq2") // The same bucket but different name.
-		b := sb.NextInt(db)
+		b, err := sb.NextInt(db)
+		assert.Nil(t, err)
 
 		sc := b2.Sequence("seq1") // The same name but different bucket.
-		c := sc.NextInt(db)
+		c, err := sc.NextInt(db)
+		assert.Nil(t, err)
 
 		if a != i || a != b || a != c {
 			t.Fatalf("different sequencces increment independently: a=%d b=%d c=%d", a, b, c)
@@ -480,9 +483,9 @@ func TestBucketIndexDeterministic(t *testing.T) {
 	assert.Equal(t, 3, len(ops))
 	assertOps(t, ops, 3, 0)
 
-	// Saving second item should update the item as well as the one index
-	// that changed (don't write constant index).
-	assert.Nil(t, bucket.Save(db, val2))
+	// saving second item should update the item as well as the one index that changed (don't write constant index)
+	err := bucket.Save(db, val2)
+	assert.Nil(t, err)
 	ops = log.ShowOps()
 	assert.Equal(t, 6, len(ops))
 	assertOps(t, ops, 5, 1)
