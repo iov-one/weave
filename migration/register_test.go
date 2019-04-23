@@ -54,17 +54,17 @@ func TestApply(t *testing.T) {
 	})
 
 	mymsg := &MyMsg{
-		Header:  &weave.Header{Schema: 1},
-		Content: "init ",
+		Metadata: &weave.Metadata{Schema: 1},
+		Content:  "init ",
 	}
 
 	// Running a migration can bring it up to any state in the future.
 	assert.Nil(t, reg.Apply(nil, nil, mymsg, 3))
-	assert.Equal(t, mymsg.Header.Schema, uint32(3))
+	assert.Equal(t, mymsg.Metadata.Schema, uint32(3))
 	assert.Equal(t, mymsg.Content, "init to2")
 
 	assert.Nil(t, reg.Apply(nil, nil, mymsg, 4))
-	assert.Equal(t, mymsg.Header.Schema, uint32(4))
+	assert.Equal(t, mymsg.Metadata.Schema, uint32(4))
 	assert.Equal(t, mymsg.Content, "init to2to4")
 }
 
@@ -75,8 +75,8 @@ func TestMigrateUnknownVersion(t *testing.T) {
 	reg.MustRegister(3, &MyMsg{}, NoModification)
 
 	mymsg := &MyMsg{
-		Header:  &weave.Header{Schema: 1},
-		Content: "init ",
+		Metadata: &weave.Metadata{Schema: 1},
+		Content:  "init ",
 	}
 
 	// Migration attempt to a non existing version must fail. It will
@@ -84,18 +84,18 @@ func TestMigrateUnknownVersion(t *testing.T) {
 	if err := reg.Apply(nil, nil, mymsg, 999); !errors.ErrInvalidState.Is(err) {
 		t.Fatalf("unexpected migration failure: %s", err)
 	}
-	assert.Equal(t, mymsg.Header.Schema, uint32(3))
+	assert.Equal(t, mymsg.Metadata.Schema, uint32(3))
 }
 
 type MyMsg struct {
-	Header *weave.Header
-	VErr   error
+	Metadata *weave.Metadata
+	VErr     error
 
 	Content string
 }
 
-func (msg *MyMsg) GetHeader() *weave.Header {
-	return msg.Header
+func (msg *MyMsg) GetMetadata() *weave.Metadata {
+	return msg.Metadata
 }
 
 func (msg *MyMsg) Validate() error {
