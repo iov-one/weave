@@ -1,6 +1,8 @@
 package iavl
 
 import (
+	"fmt"
+
 	"github.com/iov-one/weave/store"
 	"github.com/tendermint/iavl"
 	dbm "github.com/tendermint/tendermint/libs/db"
@@ -49,15 +51,19 @@ func MockCommitStore() CommitStore {
 }
 
 // Get returns the value at last committed state
-// returns nil iff key doesn't exist. Panics on nil key.
-func (s CommitStore) Get(key []byte) []byte {
+// Returns nil iff key doesn't exist.
+// Returns error on nil key.
+func (s CommitStore) Get(key []byte) ([]byte, error) {
+	if key == nil { // TODO: len(key) == 0 ?
+		return nil, fmt.Errorf("nil key")
+	}
 	version := int64(s.tree.Version())
 	_, val := s.tree.GetVersioned(key, version)
-	return val
+	return val, nil
 }
 
 // Commit the next version to disk, and returns info
-func (s CommitStore) Commit() store.CommitID {
+func (s CommitStore) Commit() (store.CommitID, error) {
 	hash, version, err := s.tree.SaveVersion()
 	if err != nil {
 		panic(err)
@@ -69,10 +75,11 @@ func (s CommitStore) Commit() store.CommitID {
 		s.tree.DeleteVersion(toRelease)
 	}
 
-	return store.CommitID{
+	c := store.CommitID{
 		Version: int64(version),
 		Hash:    hash,
 	}
+	return c, nil
 }
 
 // LoadLatestVersion loads the latest persisted version.
@@ -84,11 +91,12 @@ func (s CommitStore) LoadLatestVersion() error {
 }
 
 // LatestVersion returns info on the latest version saved to disk
-func (s CommitStore) LatestVersion() store.CommitID {
-	return store.CommitID{
+func (s CommitStore) LatestVersion() (store.CommitID, error) {
+	c := store.CommitID{
 		Version: int64(s.tree.Version()),
 		Hash:    s.tree.Hash(),
 	}
+	return c, nil
 }
 
 // Adapter returns a wrapped version of the tree.
@@ -122,24 +130,26 @@ type adapter struct {
 var _ store.KVStore = adapter{}
 
 // Get returns nil iff key doesn't exist. Panics on nil key.
-func (a adapter) Get(key []byte) []byte {
+func (a adapter) Get(key []byte) ([]byte, error) {
 	_, val := a.tree.Get(key)
-	return val
+	return val, nil
 }
 
 // Has checks if a key exists. Panics on nil key.
-func (a adapter) Has(key []byte) bool {
-	return a.tree.Has(key)
+func (a adapter) Has(key []byte) (bool, error) {
+	return a.tree.Has(key), nil
 }
 
 // Set adds a new value
-func (a adapter) Set(key, value []byte) {
+func (a adapter) Set(key, value []byte) error {
 	a.tree.Set(key, value)
+	return nil
 }
 
 // Delete removes from the tree
-func (a adapter) Delete(key []byte) {
+func (a adapter) Delete(key []byte) error {
 	a.tree.Remove(key)
+	return nil
 }
 
 // NewBatch returns a batch that can write multiple ops atomically
@@ -150,7 +160,7 @@ func (a adapter) NewBatch() store.Batch {
 // Iterator over a domain of keys in ascending order. End is exclusive.
 // Start must be less than end, or the Iterator is invalid.
 // CONTRACT: No writes may happen within a domain while an iterator exists over it.
-func (a adapter) Iterator(start, end []byte) store.Iterator {
+func (a adapter) Iterator(start, end []byte) (store.Iterator, error) {
 	var res []store.Model
 	add := func(key []byte, value []byte) bool {
 		m := store.Model{Key: key, Value: value}
@@ -158,13 +168,13 @@ func (a adapter) Iterator(start, end []byte) store.Iterator {
 		return false
 	}
 	a.tree.IterateRange(start, end, true, add)
-	return store.NewSliceIterator(res)
+	return store.NewSliceIterator(res), nil
 }
 
 // ReverseIterator over a domain of keys in descending order. End is exclusive.
 // Start must be greater than end, or the Iterator is invalid.
 // CONTRACT: No writes may happen within a domain while an iterator exists over it.
-func (a adapter) ReverseIterator(start, end []byte) store.Iterator {
+func (a adapter) ReverseIterator(start, end []byte) (store.Iterator, error) {
 	var res []store.Model
 	add := func(key []byte, value []byte) bool {
 		m := store.Model{Key: key, Value: value}
@@ -172,5 +182,5 @@ func (a adapter) ReverseIterator(start, end []byte) store.Iterator {
 		return false
 	}
 	a.tree.IterateRange(start, end, false, add)
-	return store.NewSliceIterator(res)
+	return store.NewSliceIterator(res), nil
 }
