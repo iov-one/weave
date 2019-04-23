@@ -31,9 +31,10 @@ func (s *SliceIterator) Valid() bool {
 // defined by order of iteration.
 //
 // If Valid returns false, this method will panic.
-func (s *SliceIterator) Next() {
+func (s *SliceIterator) Next() error {
 	s.assertValid()
 	s.idx++
+	return nil
 }
 
 func (s *SliceIterator) assertValid() {
@@ -68,25 +69,25 @@ type EmptyKVStore struct{}
 var _ KVStore = EmptyKVStore{}
 
 // Get always returns nil
-func (e EmptyKVStore) Get(key []byte) []byte { return nil }
+func (e EmptyKVStore) Get(key []byte) ([]byte, error) { return nil, nil }
 
 // Has always returns false
-func (e EmptyKVStore) Has(key []byte) bool { return false }
+func (e EmptyKVStore) Has(key []byte) (bool, error) { return false, nil }
 
 // Set is a noop
-func (e EmptyKVStore) Set(key, value []byte) {}
+func (e EmptyKVStore) Set(key, value []byte) error { return nil }
 
 // Delete is a noop
-func (e EmptyKVStore) Delete(key []byte) {}
+func (e EmptyKVStore) Delete(key []byte) error { return nil }
 
 // Iterator is always empty
-func (e EmptyKVStore) Iterator(start, end []byte) Iterator {
-	return NewSliceIterator(nil)
+func (e EmptyKVStore) Iterator(start, end []byte) (Iterator, error) {
+	return NewSliceIterator(nil), nil
 }
 
 // ReverseIterator is always empty
-func (e EmptyKVStore) ReverseIterator(start, end []byte) Iterator {
-	return NewSliceIterator(nil)
+func (e EmptyKVStore) ReverseIterator(start, end []byte) (Iterator, error) {
+	return NewSliceIterator(nil), nil
 }
 
 // NewBatch returns a batch that can write to this tree later
@@ -112,14 +113,14 @@ type Op struct {
 }
 
 // Apply performs the stored operation on a writeable store
-func (o Op) Apply(out SetDeleter) {
+func (o Op) Apply(out SetDeleter) error {
 	switch o.kind {
 	case setKind:
-		out.Set(o.key, o.value)
+		return out.Set(o.key, o.value)
 	case delKind:
-		out.Delete(o.key)
+		return out.Delete(o.key)
 	default:
-		panic(fmt.Sprintf("Unknown kind: %d", o.kind))
+		return fmt.Errorf("Unknown kind: %d", o.kind)
 	}
 }
 
@@ -153,8 +154,6 @@ func DelOp(key []byte) Op {
 // NonAtomicBatch just piles up ops and executes them later
 // on the underlying store. Can be used when there is no better
 // option (for in-memory stores).
-//
-// NOTE: Never use this for KVStores that are persistent
 type NonAtomicBatch struct {
 	out SetDeleter
 	ops []Op
@@ -171,30 +170,36 @@ func NewNonAtomicBatch(out SetDeleter) *NonAtomicBatch {
 }
 
 // Set adds a set operation to the batch
-func (b *NonAtomicBatch) Set(key, value []byte) {
+func (b *NonAtomicBatch) Set(key, value []byte) error {
 	set := Op{
 		kind:  setKind,
 		key:   key,
 		value: value,
 	}
 	b.ops = append(b.ops, set)
+	return nil
 }
 
 // Delete adds a delete operation to the batch
-func (b *NonAtomicBatch) Delete(key []byte) {
+func (b *NonAtomicBatch) Delete(key []byte) error {
 	del := Op{
 		kind: delKind,
 		key:  key,
 	}
 	b.ops = append(b.ops, del)
+	return nil
 }
 
 // Write writes all the ops to the underlying store and resets
-func (b *NonAtomicBatch) Write() {
+func (b *NonAtomicBatch) Write() error {
 	for _, Op := range b.ops {
-		Op.Apply(b.out)
+		err := Op.Apply(b.out)
+		if err != nil {
+			return err
+		}
 	}
 	b.ops = nil
+	return nil
 }
 
 // ShowOps is instrumentation for testing,

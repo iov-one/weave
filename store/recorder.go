@@ -40,22 +40,21 @@ var _ KVStore = (*recordingStore)(nil)
 // KVPairs returns the content of changes as KVPairs
 // Key is the merkle store key that changes.
 // Value is "s" or "d" for set or delete.
+// TODO: don't use map as return value!!
 func (r *recordingStore) KVPairs() map[string][]byte {
 	return r.changes
 }
 
 // Set records the changes while performing
-//
-// TODO: record new value???
-func (r *recordingStore) Set(key, value []byte) {
+func (r *recordingStore) Set(key, value []byte) error {
 	r.changes[string(key)] = value
-	r.KVStore.Set(key, value)
+	return r.KVStore.Set(key, value)
 }
 
 // Delete records the changes while performing
-func (r *recordingStore) Delete(key []byte) {
+func (r *recordingStore) Delete(key []byte) error {
 	r.changes[string(key)] = nil
-	r.KVStore.Delete(key)
+	return r.KVStore.Delete(key)
 }
 
 // NewBatch makes sure all writes go through this one
@@ -81,6 +80,7 @@ var _ CacheableKVStore = (*cacheableRecordingStore)(nil)
 // KVPairs returns the content of changes as KVPairs
 // Key is the merkle store key that changes.
 // Value is the value writen (for set), or nil (for delete)
+// TODO: don't use map as return value!!
 func (r *cacheableRecordingStore) KVPairs() map[string][]byte {
 	return r.changes
 }
@@ -88,15 +88,15 @@ func (r *cacheableRecordingStore) KVPairs() map[string][]byte {
 // Set records the changes while performing
 //
 // TODO: record new value???
-func (r *cacheableRecordingStore) Set(key, value []byte) {
+func (r *cacheableRecordingStore) Set(key, value []byte) error {
 	r.changes[string(key)] = value
-	r.CacheableKVStore.Set(key, value)
+	return r.CacheableKVStore.Set(key, value)
 }
 
 // Delete records the changes while performing
-func (r *cacheableRecordingStore) Delete(key []byte) {
+func (r *cacheableRecordingStore) Delete(key []byte) error {
 	r.changes[string(key)] = nil
-	r.CacheableKVStore.Delete(key)
+	return r.CacheableKVStore.Delete(key)
 }
 
 // NewBatch makes sure all writes go through this one
@@ -123,17 +123,17 @@ type recorderBatch struct {
 
 var _ Batch = (*recorderBatch)(nil)
 
-func (r *recorderBatch) Set(key, value []byte) {
+func (r *recorderBatch) Set(key, value []byte) error {
 	r.changes[string(key)] = value
-	r.b.Set(key, value)
+	return r.b.Set(key, value)
 }
 
 // Delete records the changes while performing
-func (r *recorderBatch) Delete(key []byte) {
+func (r *recorderBatch) Delete(key []byte) error {
 	r.changes[string(key)] = nil
-	r.b.Delete(key)
+	return r.b.Delete(key)
 }
 
-func (r *recorderBatch) Write() {
-	r.b.Write()
+func (r *recorderBatch) Write() error {
+	return r.b.Write()
 }
