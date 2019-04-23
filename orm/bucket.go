@@ -99,10 +99,8 @@ func (b Bucket) Register(name string, r weave.QueryRouter) {
 	}
 }
 
-// Query handles queries from the QueryRouter
-func (b Bucket) Query(db weave.ReadOnlyKVStore, mod string,
-	data []byte) ([]weave.Model, error) {
-
+// Query handles queries from the QueryRouter.
+func (b Bucket) Query(db weave.ReadOnlyKVStore, mod string, data []byte) ([]weave.Model, error) {
 	switch mod {
 	case weave.KeyQueryMod:
 		key := b.DBKey(data)
@@ -117,7 +115,7 @@ func (b Bucket) Query(db weave.ReadOnlyKVStore, mod string,
 		prefix := b.DBKey(data)
 		return queryPrefix(db, prefix), nil
 	default:
-		return nil, fmt.Errorf("not implemented: %s", mod)
+		return nil, errors.Wrapf(errors.ErrInvalidInput, "unknown mod: %s", mod)
 	}
 }
 
@@ -158,9 +156,12 @@ func (b Bucket) Get(db weave.ReadOnlyKVStore, key []byte) (Object, error) {
 // any code that wants to parse
 func (b Bucket) Parse(key, value []byte) (Object, error) {
 	obj := b.proto.Clone()
-	err := obj.Value().Unmarshal(value)
-	if err != nil {
-		return nil, err
+	if err := obj.Value().Unmarshal(value); err != nil {
+		// If the deserialization fails, this is due to corrupted data
+		// or more likely, wrong protobuf declaration being used.
+		// We can safely use the string representation of the original
+		// error as it carries no relevant information.
+		return nil, errors.Wrap(errors.ErrInvalidState, err.Error())
 	}
 	obj.SetKey(key)
 	return obj, nil
