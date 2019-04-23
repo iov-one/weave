@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package migration;
+
+import "github.com/iov-one/weave/codec.proto";
+
+// Schema declares the maxiumum supported schema version for a package.
+message Schema {
+  weave.Header header = 1;
+  // Pkg holds the name of the package that this migration is declared for.
+  // For example, for extension `x/myext` package value is `myext`
+  string pkg = 2;
+  // Version holds the highest supported schema version.
+  uint32 version = 3;
+}
+
+// UpgradeSchemaMsg is a request to upgrade schema version of a given package
+// by one version.
+message UpgradeSchemaMsg {
+  weave.Header header = 1;
+  // Name of the package that schema version upgrade is made for.
+  string pkg = 2;
+}
