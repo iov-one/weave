@@ -1,6 +1,6 @@
 package store
 
-import "fmt"
+import "github.com/iov-one/weave/errors"
 
 ////////////////////////////////////////////////
 // Slice -> Iterator
@@ -120,7 +120,7 @@ func (o Op) Apply(out SetDeleter) error {
 	case delKind:
 		return out.Delete(o.key)
 	default:
-		return fmt.Errorf("Unknown kind: %d", o.kind)
+		return errors.Wrapf(errors.ErrDatabase, "Unknown kind: %d", o.kind)
 	}
 }
 

@@ -189,8 +189,7 @@ func (b Bucket) Save(db weave.KVStore, model Object) error {
 	}
 
 	// now save this one
-	db.Set(b.DBKey(model.Key()), bz)
-	return nil
+	return db.Set(b.DBKey(model.Key()), bz)
 }
 
 // Delete will remove the value at a key
@@ -202,8 +201,7 @@ func (b Bucket) Delete(db weave.KVStore, key []byte) error {
 
 	// now save this one
 	dbkey := b.DBKey(key)
-	db.Delete(dbkey)
-	return nil
+	return db.Delete(dbkey)
 }
 
 func (b Bucket) updateIndexes(db weave.KVStore, key []byte, model Object) error {

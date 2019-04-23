@@ -1,8 +1,6 @@
 package app
 
 import (
-	fmt "fmt"
-
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -28,11 +26,11 @@ func (a *ABCIStore) Get(key []byte) ([]byte, error) {
 	})
 	// if only the interface supported returning errors....
 	if query.Code != 0 {
-		return nil, fmt.Errorf(query.Log)
+		return nil, errors.Wrap(errors.ErrDatabase, query.Log)
 	}
 	var value ResultSet
 	if err := value.Unmarshal(query.Value); err != nil {
-		return nil, errors.Wrap(err, "unmarshal result set")
+		return nil, errors.Wrapf(errors.ErrInvalidState, "unmarshal result set: %v", err.Error())
 	}
 	if len(value.Results) == 0 {
 		return nil, nil
@@ -58,7 +56,7 @@ func (a *ABCIStore) Iterator(start, end []byte) (weave.Iterator, error) {
 	// look at orm/query.go:prefixRange for an idea how we turn prefix->iterator,
 	// we should detect this case and reverse it so we can serialize over abci query
 	if start != nil || end != nil {
-		panic("iterator only implemented for entire range")
+		return nil, errors.Wrap(errors.ErrDatabase, "iterator only implemented for entire range")
 	}
 
 	query := a.app.Query(abci.RequestQuery{
@@ -66,11 +64,11 @@ func (a *ABCIStore) Iterator(start, end []byte) (weave.Iterator, error) {
 		Data: nil,
 	})
 	if query.Code != 0 {
-		panic(query.Log)
+		return nil, errors.Wrap(errors.ErrDatabase, query.Log)
 	}
 	models, err := toModels(query.Key, query.Value)
 	if err != nil {
-		panic(errors.Wrap(err, "cannot convert to model"))
+		return nil, errors.Wrapf(errors.ErrInvalidState, "cannot convert to model: %v", err.Error())
 	}
 
 	return NewSliceIterator(models), nil
@@ -78,16 +76,16 @@ func (a *ABCIStore) Iterator(start, end []byte) (weave.Iterator, error) {
 
 func (a *ABCIStore) ReverseIterator(start, end []byte) (weave.Iterator, error) {
 	// TODO: load normal iterator but then play it backwards?
-	return nil, fmt.Errorf("not implemented")
+	return nil, errors.Wrap(errors.ErrDatabase, "not implemented")
 }
 
 func toModels(keys, values []byte) ([]weave.Model, error) {
 	var k, v ResultSet
 	if err := k.Unmarshal(keys); err != nil {
-		return nil, errors.Wrap(err, "cannot unmarshal keys")
+		return nil, errors.Wrapf(errors.ErrInvalidState, "cannot unmarshal keys: %v", err.Error())
 	}
 	if err := v.Unmarshal(values); err != nil {
-		return nil, errors.Wrap(err, "cannot unmarshal values")
+		return nil, errors.Wrapf(errors.ErrInvalidState, "cannot unmarshal values: %v", err.Error())
 	}
 	return JoinResults(&k, &v)
 }
@@ -115,7 +113,7 @@ func (s *SliceIterator) Valid() bool {
 // Next moves the iterator to the next sequential key in the database, as
 // defined by order of iteration.
 //
-// If Valid returns false, this method will panic.
+// If Valid returns false, this method will panic.keys
 func (s *SliceIterator) Next() error {
 	s.assertValid()
 	s.idx++

@@ -66,6 +66,10 @@ var (
 	// due to a currency issues.
 	ErrCurrency = Register(17, "currency")
 
+	// ErrDatabase is returned whenever the underlying kvstore fails to
+	// process raw bytes (get/set/delete/write)
+	ErrDatabase = Register(18, "database")
+
 	// ErrPanic is only set when we recover from a panic, so we know to
 	// redact potentially sensitive system info
 	ErrPanic = Register(111222, "panic")

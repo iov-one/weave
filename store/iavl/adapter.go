@@ -1,11 +1,11 @@
 package iavl
 
 import (
-	"fmt"
-
-	"github.com/iov-one/weave/store"
 	"github.com/tendermint/iavl"
 	dbm "github.com/tendermint/tendermint/libs/db"
+
+	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/store"
 )
 
 // TODO: make these configurable?
@@ -54,8 +54,8 @@ func MockCommitStore() CommitStore {
 // Returns nil iff key doesn't exist.
 // Returns error on nil key.
 func (s CommitStore) Get(key []byte) ([]byte, error) {
-	if key == nil { // TODO: len(key) == 0 ?
-		return nil, fmt.Errorf("nil key")
+	if len(key) == 0 {
+		return nil, errors.Wrapf(errors.ErrDatabase, "nil key")
 	}
 	version := int64(s.tree.Version())
 	_, val := s.tree.GetVersioned(key, version)

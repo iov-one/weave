@@ -2,9 +2,9 @@ package store
 
 import (
 	"bytes"
-	"fmt"
 
 	"github.com/google/btree"
+	"github.com/iov-one/weave/errors"
 )
 
 const (
@@ -140,7 +140,7 @@ func (b BTreeCacheWrap) Get(key []byte) ([]byte, error) {
 		case deletedItem:
 			return nil, nil
 		default:
-			return nil, fmt.Errorf("Unknown item in btree: %#v", res)
+			return nil, errors.Wrapf(errors.ErrDatabase, "Unknown item in btree: %#v", res)
 		}
 	}
 	return b.back.Get(key)
@@ -156,7 +156,7 @@ func (b BTreeCacheWrap) Has(key []byte) (bool, error) {
 		case deletedItem:
 			return false, nil
 		default:
-			return false, fmt.Errorf("Unknown item in btree: %#v", res)
+			return false, errors.Wrapf(errors.ErrDatabase, "Unknown item in btree: %#v", res)
 		}
 	}
 	return b.back.Has(key)
