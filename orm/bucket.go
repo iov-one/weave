@@ -104,8 +104,10 @@ func (b Bucket) Query(db weave.ReadOnlyKVStore, mod string, data []byte) ([]weav
 	switch mod {
 	case weave.KeyQueryMod:
 		key := b.DBKey(data)
-		value := db.Get(key)
-		// return nothing on miss
+		value, err := db.Get(key)
+		if err != nil {
+			return nil, err
+		}
 		if value == nil {
 			return nil, nil
 		}
@@ -113,7 +115,7 @@ func (b Bucket) Query(db weave.ReadOnlyKVStore, mod string, data []byte) ([]weav
 		return res, nil
 	case weave.PrefixQueryMod:
 		prefix := b.DBKey(data)
-		return queryPrefix(db, prefix), nil
+		return queryPrefix(db, prefix)
 	default:
 		return nil, errors.Wrapf(errors.ErrInvalidInput, "unknown mod: %s", mod)
 	}
@@ -141,7 +143,10 @@ func (b Bucket) DBKey(key []byte) []byte {
 // Get one element
 func (b Bucket) Get(db weave.ReadOnlyKVStore, key []byte) (Object, error) {
 	dbkey := b.DBKey(key)
-	bz := db.Get(dbkey)
+	bz, err := db.Get(dbkey)
+	if err != nil {
+		return nil, err
+	}
 	if bz == nil {
 		return nil, nil
 	}

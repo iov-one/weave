@@ -24,24 +24,27 @@ func NewSequence(bucket, name string) Sequence {
 }
 
 // NextVal increments the sequence and returns its state as 8 bytes.
-func (s *Sequence) NextVal(db weave.KVStore) []byte {
-	_, bz := s.increment(db, 1)
-	return bz
+func (s *Sequence) NextVal(db weave.KVStore) ([]byte, error) {
+	_, bz, err := s.increment(db, 1)
+	return bz, err
 }
 
 // NextInt increments the sequence and returns its state as int.
-func (s *Sequence) NextInt(db weave.KVStore) int64 {
-	val, _ := s.increment(db, 1)
-	return val
+func (s *Sequence) NextInt(db weave.KVStore) (int64, error) {
+	val, _, err := s.increment(db, 1)
+	return val, err
 }
 
-func (s *Sequence) increment(db weave.KVStore, inc int64) (int64, []byte) {
-	raw := db.Get(s.id)
+func (s *Sequence) increment(db weave.KVStore, inc int64) (int64, []byte, error) {
+	raw, err := db.Get(s.id)
+	if err != nil {
+		return 0, nil, err
+	}
 	val := decodeSequence(raw)
 	val += inc
 	raw = encodeSequence(val)
-	db.Set(s.id, raw)
-	return val, raw
+	err = db.Set(s.id, raw)
+	return val, raw, err
 }
 
 func decodeSequence(bz []byte) int64 {
