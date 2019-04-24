@@ -65,7 +65,10 @@ func (c *Client) WatchTx(ctx context.Context, id TransactionID) (CommitResult, e
 // CommitTx will block on both Check and Deliver, returning when it is in a block
 func (c *Client) CommitTx(ctx context.Context, tx weave.Tx) (CommitResult, error) {
 	// This can be combined from other primatives
-	check := c.SubmitTx(ctx, tx)
+	check, err := c.SubmitTx(ctx, tx)
+	if err != nil {
+		return CommitResult{}, err
+	}
 	if check.Err != nil {
 		return check.AsCommitError(), nil
 	}
@@ -101,9 +104,13 @@ func (c *Client) WatchTxs(ctx context.Context, ids []TransactionID) ([]CommitRes
 // Ideally, all in the same block
 func (c *Client) CommitTxs(ctx context.Context, txs []weave.Tx) ([]CommitResult, error) {
 	// first submit them all (some may error), this should be in order
+	var err error
 	checks := make([]MempoolResult, len(txs))
 	for i, tx := range txs {
-		checks[i] = c.SubmitTx(ctx, tx)
+		checks[i], err = c.SubmitTx(ctx, tx)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	// make a list of all successful ones to block on Deliver (in parallel)

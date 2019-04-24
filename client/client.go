@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/errors"
 	rpcclient "github.com/tendermint/tendermint/rpc/client"
 	ctypes "github.com/tendermint/tendermint/rpc/core/types"
 	tmtypes "github.com/tendermint/tendermint/types"
@@ -38,9 +39,24 @@ func NewClient(conn rpcclient.Client) *Client {
 // SubmitTx will submit the tx to the mempool and then return with success or error
 // You will need to use WatchTx (easily parallelizable) to get the result.
 // CommitTx and CommitTxs provide helpers for common use cases
-func (c *Client) SubmitTx(ctx context.Context, tx weave.Tx) MempoolResult {
-	// TODO: submit to the node
-	return MempoolResult{}
+func (c *Client) SubmitTx(ctx context.Context, tx weave.Tx) (MempoolResult, error) {
+	bz, err := tx.Marshal()
+	if err != nil {
+		return MempoolResult{}, errors.Wrapf(errors.ErrInvalidMsg, "marshaling: %s", err.Error())
+	}
+	res, err := c.conn.BroadcastTxSync(bz)
+	if err != nil {
+		return MempoolResult{}, errors.Wrapf(errors.ErrNetwork, "submit tx: %s", err.Error())
+	}
+
+	if res.Code != 0 {
+		// TODO: lookup error codes
+		err = errors.Wrap(errors.ErrHuman, res.Log)
+	}
+	return MempoolResult{
+		ID:  res.Hash,
+		Err: err,
+	}, nil
 }
 
 // SearchTx will search for all committed transactions that match a query,
