@@ -2,6 +2,7 @@ package gov
 
 import (
 	"regexp"
+	"time"
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
@@ -29,14 +30,17 @@ func (m Electorate) Validate() error {
 			return err
 		}
 		totalWeight += uint64(v.Weight)
-		if _, exists := index[v.Address.String()]; exists {
+		addrKey := v.Address.String()
+		if _, exists := index[addrKey]; exists {
 			return errors.Wrap(errors.ErrInvalidInput, "duplicate elector entry")
 		}
-		index[v.Address.String()] = struct{}{}
+		index[addrKey] = struct{}{}
 	}
-
 	if m.TotalWeightElectorate != totalWeight {
 		return errors.Wrap(errors.ErrInvalidInput, "total weight does not match sum")
+	}
+	if err := m.Admin.Validate(); err != nil {
+		return errors.Wrap(err, "admin")
 	}
 	return nil
 }
@@ -61,7 +65,7 @@ func (m Electorate) Elector(a weave.Address) (*Elector, bool) {
 	return nil, false
 }
 
-const maxWeight = 2 ^ 16 - 1
+const maxWeight = 1<<16 - 1
 
 func (m Elector) Validate() error {
 	switch {
@@ -86,6 +90,9 @@ func (m ElectionRule) Validate() error {
 		return errors.Wrapf(errors.ErrInvalidInput, "min hours: %d", minVotingPeriodHours)
 	case m.VotingPeriodHours > maxVotingPeriodHours:
 		return errors.Wrapf(errors.ErrInvalidInput, "max hours: %d", maxVotingPeriodHours)
+	}
+	if err := m.Admin.Validate(); err != nil {
+		return errors.Wrap(err, "admin")
 	}
 	return m.Threshold.Validate()
 }
@@ -113,8 +120,9 @@ func (m Fraction) Validate() error {
 }
 
 const (
-	minDescriptionLength = 3
-	maxDescriptionLength = 5000
+	minDescriptionLength    = 3
+	maxDescriptionLength    = 5000
+	maxFutureStartTimeHours = 7 * 24 * time.Hour // 1 week
 )
 
 func (m *TextProposal) Validate() error {
@@ -229,7 +237,7 @@ func (m TallyResult) TotalVotes() uint64 {
 	return uint64(m.TotalYes) + uint64(m.TotalNo) + uint64(m.TotalAbstain)
 }
 
-// Validate vote object contains valid elector and voted option
+// validate vote object contains valid elector and voted option
 func (m Vote) Validate() error {
 	if err := m.Elector.Validate(); err != nil {
 		return errors.Wrap(err, "invalid elector")

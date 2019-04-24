@@ -17,6 +17,7 @@ func TestInitFromGenesis(t *testing.T) {
   "governance": {
     "electorate": [
       {
+        "admin": "0000000000000000000000000000000000000000",
         "title": "first",
         "electors": [
           {
@@ -31,6 +32,7 @@ func TestInitFromGenesis(t *testing.T) {
       },
       {
         "title": "second",
+        "admin": "cond:foo/bar/0000000000000001",
         "electors": [
           {
             "weight": 1,
@@ -41,6 +43,7 @@ func TestInitFromGenesis(t *testing.T) {
     ],
     "rules": [
       {
+		"admin":  "cond:foo/bar/0000000000000002",
         "title": "fooo",
         "voting_period_hours": 1,
         "fraction": {
@@ -49,6 +52,7 @@ func TestInitFromGenesis(t *testing.T) {
         }
       },
       {
+		"admin":  "4444444444444444444444444444444444444444",
         "title": "barr",
         "voting_period_hours": 2,
         "fraction": {
@@ -80,6 +84,9 @@ func TestInitFromGenesis(t *testing.T) {
 	if exp, got := 2, len(e.Electors); exp != got {
 		t.Errorf("expected %v but got %v", exp, got)
 	}
+	if exp, got := addr("0000000000000000000000000000000000000000"), e.Admin; !exp.Equals(got) {
+		t.Errorf("expected %X but got %X", exp, got)
+	}
 	if exp, got := addr("1111111111111111111111111111111111111111"), e.Electors[0].Address; !exp.Equals(got) {
 		t.Errorf("expected %X but got %X", exp, got)
 	}
@@ -100,6 +107,11 @@ func TestInitFromGenesis(t *testing.T) {
 	if exp, got := "second", e.Title; exp != got {
 		t.Errorf("expected %v but got %v", exp, got)
 	}
+	cond := weave.NewCondition("foo", "bar", weavetest.SequenceID(1)).Address()
+	if exp, got := cond, e.Admin; !exp.Equals(got) {
+		t.Errorf("expected %v but got %v", exp, got)
+	}
+
 	if exp, got := 1, len(e.Electors); exp != got {
 		t.Errorf("expected %v but got %v", exp, got)
 	}
@@ -119,6 +131,11 @@ func TestInitFromGenesis(t *testing.T) {
 	if got, exp := "fooo", r.Title; exp != got {
 		t.Errorf("expected %v but got %v", exp, got)
 	}
+	cond = weave.NewCondition("foo", "bar", weavetest.SequenceID(2)).Address()
+	if exp, got := cond, r.Admin; !exp.Equals(got) {
+		t.Errorf("expected %X but got %X", exp, got)
+	}
+
 	if exp, got := uint32(1), r.VotingPeriodHours; exp != got {
 		t.Errorf("expected %v but got %v", exp, got)
 	}
@@ -132,6 +149,9 @@ func TestInitFromGenesis(t *testing.T) {
 	}
 	if got, exp := "barr", r.Title; exp != got {
 		t.Errorf("expected %v but got %v", exp, got)
+	}
+	if exp, got := addr("4444444444444444444444444444444444444444"), r.Admin; !exp.Equals(got) {
+		t.Errorf("expected %X but got %X", exp, got)
 	}
 	if exp, got := uint32(2), r.VotingPeriodHours; exp != got {
 		t.Errorf("expected %v but got %v", exp, got)

@@ -5,14 +5,17 @@ import (
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/x"
 	"github.com/tendermint/tendermint/libs/common"
 )
 
 const (
-	proposalCost = 0
-	voteCost     = 0
-	tallyCost    = 0
+	proposalCost           = 0
+	voteCost               = 0
+	tallyCost              = 0
+	updateElectorateCost   = 0
+	updateElectionRuleCost = 0
 )
 
 const (
@@ -48,6 +51,16 @@ func RegisterRoutes(r weave.Registry, auth x.Authenticator) {
 		propBucket:  propBucket,
 		elecBucket:  elecBucket,
 		rulesBucket: NewElectionRulesBucket(),
+	})
+	r.Handle(pathUpdateElectorateMsg, &UpdateElectorateHandler{
+		auth:       auth,
+		propBucket: propBucket,
+		elecBucket: elecBucket,
+	})
+	r.Handle(pathUpdateElectionRulesMsg, &UpdateElectionRuleHandler{
+		auth:       auth,
+		propBucket: propBucket,
+		ruleBucket: NewElectionRulesBucket(),
 	})
 }
 
@@ -266,6 +279,9 @@ func (h TextProposalHandler) validate(ctx weave.Context, db weave.KVStore, tx we
 	if !msg.StartTime.Time().After(blockTime) {
 		return nil, nil, nil, errors.Wrap(errors.ErrInvalidInput, "start time must be in the future")
 	}
+	if blockTime.Add(maxFutureStartTimeHours).Before(msg.StartTime.Time()) {
+		return nil, nil, nil, errors.Wrapf(errors.ErrInvalidInput, "start time cam not be more than %d h in the future", maxFutureStartTimeHours)
+	}
 	elect, err := h.elecBucket.GetElectorate(db, msg.ElectorateID)
 	if err != nil {
 		return nil, nil, nil, errors.Wrap(err, "failed to load electorate")
@@ -284,4 +300,101 @@ func (h TextProposalHandler) validate(ctx weave.Context, db weave.KVStore, tx we
 	}
 	msg.Author = author
 	return &msg, rules, elect, nil
+}
+
+type UpdateElectorateHandler struct {
+	auth       x.Authenticator
+	propBucket *ProposalBucket
+	elecBucket *ElectorateBucket
+}
+
+func (h UpdateElectorateHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
+	_, _, err := h.validate(ctx, db, tx)
+	if err != nil {
+		return nil, err
+	}
+	return &weave.CheckResult{GasAllocated: updateElectorateCost}, nil
+}
+
+func (h UpdateElectorateHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
+	msg, elect, err := h.validate(ctx, db, tx)
+	if err != nil {
+		return nil, err
+	}
+	props, err := h.propBucket.GetByElectorate(db, msg.ElectorateID)
+	if err != nil {
+		return nil, err
+	}
+	for _, v := range props {
+		if v.Status == TextProposal_Submitted {
+			return nil, errors.Wrapf(errors.ErrInvalidState, "open proposal using this electorate: %q", v.Title)
+		}
+	}
+	// all good, let's update
+	elect.Electors = msg.Electors
+	elect.TotalWeightElectorate = 0
+	for _, v := range msg.Electors {
+		elect.TotalWeightElectorate += uint64(v.Weight)
+	}
+	if err := h.elecBucket.Save(db, orm.NewSimpleObj(msg.ElectorateID, elect)); err != nil {
+		return nil, errors.Wrap(err, "failed to store update")
+	}
+	return &weave.DeliverResult{Data: msg.ElectorateID}, nil
+}
+
+func (h UpdateElectorateHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*UpdateElectorateMsg, *Electorate, error) {
+	var msg UpdateElectorateMsg
+	if err := weave.LoadMsg(tx, &msg); err != nil {
+		return nil, nil, errors.Wrap(err, "load msg")
+	}
+	e, err := h.elecBucket.GetElectorate(db, msg.ElectorateID)
+	if err != nil {
+		return nil, nil, err
+	}
+	if !h.auth.HasAddress(ctx, e.Admin) {
+		return nil, nil, errors.ErrUnauthorized
+	}
+	return &msg, e, nil
+}
+
+type UpdateElectionRuleHandler struct {
+	auth       x.Authenticator
+	propBucket *ProposalBucket
+	ruleBucket *ElectionRulesBucket
+}
+
+func (h UpdateElectionRuleHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
+	_, _, err := h.validate(ctx, db, tx)
+	if err != nil {
+		return nil, err
+	}
+	return &weave.CheckResult{GasAllocated: updateElectionRuleCost}, nil
+}
+
+func (h UpdateElectionRuleHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
+	msg, rule, err := h.validate(ctx, db, tx)
+	if err != nil {
+		return nil, err
+	}
+	rule.Threshold = msg.Threshold
+	rule.VotingPeriodHours = msg.VotingPeriodHours
+	if err := h.ruleBucket.Save(db, orm.NewSimpleObj(msg.ElectionRuleID, rule)); err != nil {
+		return nil, errors.Wrap(err, "failed to store update")
+	}
+	return &weave.DeliverResult{Data: msg.ElectionRuleID}, nil
+}
+
+func (h UpdateElectionRuleHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*UpdateElectionRuleMsg, *ElectionRule, error) {
+	var msg UpdateElectionRuleMsg
+	if err := weave.LoadMsg(tx, &msg); err != nil {
+		return nil, nil, errors.Wrap(err, "load msg")
+	}
+	e, err := h.ruleBucket.GetElectionRule(db, msg.ElectionRuleID)
+	if err != nil {
+		return nil, nil, err
+	}
+	if !h.auth.HasAddress(ctx, e.Admin) {
+		return nil, nil, errors.ErrUnauthorized
+	}
+	return &msg, e, nil
 }
