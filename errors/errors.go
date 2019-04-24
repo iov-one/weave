@@ -112,13 +112,20 @@ func Register(code uint32, description string) *Error {
 // error instances should share the same error code.
 var usedCodes = map[uint32]*Error{}
 
-// Lookup will resolve the abci code to a root Error object
-// if nothing is registered for that code, return errInternal
-func Lookup(code uint32) *Error {
+// ABCIError will resolve an error code/log from an abci result into
+// an error message. If the code is registered, it will map it back to
+// the cannonical error, so we can do eg. ErrNotFound.Is(err) on something
+// we get back from an external API.
+//
+// This should *only* be used in clients, not in the server side.
+// The server (abci app / blockchain) should only refer to registered errors
+func ABCIError(code uint32, log string) error {
 	if e, ok := usedCodes[code]; ok {
-		return e
+		return Wrap(e, log)
 	}
-	return errInternal
+	// This is a unique error, will never match on .Is()
+	// Use Wrap here to get a stack trace
+	return Wrap(&Error{code: code}, log)
 }
 
 // Error represents a root error.

@@ -50,7 +50,7 @@ func (c *Client) SubmitTx(ctx context.Context, tx weave.Tx) (MempoolResult, erro
 	}
 
 	if res.Code != 0 {
-		err = errors.Wrap(errors.Lookup(res.Code), res.Log)
+		err = errors.ABCIError(res.Code, res.Log)
 	}
 	return MempoolResult{
 		ID:  res.Hash,
