@@ -32,11 +32,13 @@ func (s *Schema) Copy() orm.CloneableData {
 	}
 }
 
-// schemaID returns a detereministic ID of this schema instance.
+// schemaID returns a detereministic ID of this schema instance. Created IDs
+// can be sorted using lexographical order from the lowest to the highest
+// version.
 func schemaID(pkg string, version uint32) []byte {
 	raw := make([]byte, len(pkg)+4)
 	copy(raw, pkg)
-	binary.LittleEndian.PutUint32(raw[len(pkg):], version)
+	binary.BigEndian.PutUint32(raw[len(pkg):], version)
 	return raw
 }
 
