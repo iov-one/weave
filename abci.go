@@ -52,10 +52,26 @@ type DeliverResult struct {
 // ToABCI converts our internal type into an abci response
 func (d DeliverResult) ToABCI() abci.ResponseDeliverTx {
 	return abci.ResponseDeliverTx{
-		Data: d.Data,
-		Log:  d.Log,
-		Tags: d.Tags,
+		Data:    d.Data,
+		Log:     d.Log,
+		Tags:    d.Tags,
+		GasUsed: d.GasUsed,
 	}
+}
+
+// ParseDeliverOrError is the inverse of DeliverOrError
+// It will parse back the abci response to return our internal format, or return an error on failed tx
+func ParseDeliverOrError(res abci.ResponseDeliverTx) (*DeliverResult, error) {
+	if res.Code != 0 {
+		err := errors.ABCIError(res.Code, res.Log)
+		return nil, err
+	}
+	return &DeliverResult{
+		Data:    res.Data,
+		Log:     res.Log,
+		Tags:    res.Tags,
+		GasUsed: res.GasUsed,
+	}, nil
 }
 
 // CheckResult captures any non-error abci result
