@@ -7,11 +7,6 @@ import (
 	"github.com/iov-one/weave"
 )
 
-type resultOrError struct {
-	result CommitResult
-	err    error
-}
-
 // --- TODO: implement via lower level and move to wrapper.go
 
 // SearchTxByID will return 0 or 1 results (nil or result value)
@@ -22,10 +17,10 @@ func (c *Client) SearchTxByID(ctx context.Context, id TransactionID) (*CommitRes
 
 // SubscribeTxByID will block until there is a result, then return it
 // You must cancel the context to avoid blocking forever in some cases
-func (c *Client) SubscribeTxByID(ctx context.Context, id TransactionID) (CommitResult, error) {
+func (c *Client) SubscribeTxByID(ctx context.Context, id TransactionID) (*CommitResult, error) {
 	// TODO: subscribe
 	// TODO: how to handle context being cancelled???
-	return CommitResult{}, nil
+	return nil, nil
 }
 
 // ---- END TODO
@@ -33,7 +28,7 @@ func (c *Client) SubscribeTxByID(ctx context.Context, id TransactionID) (CommitR
 // WatchTx will block until this transaction makes it into a block
 // It will return immediately if the id was included in a block prior to the query, to avoid timing issues
 // You can use context.Context to pass in a timeout
-func (c *Client) WatchTx(ctx context.Context, id TransactionID) (CommitResult, error) {
+func (c *Client) WatchTx(ctx context.Context, id TransactionID) (*CommitResult, error) {
 	// TODO: combine subscribe tx and search tx (two other functions to be writen)
 	subctx, cancel := context.WithCancel(ctx)
 	defer cancel()
@@ -50,11 +45,8 @@ func (c *Client) WatchTx(ctx context.Context, id TransactionID) (CommitResult, e
 
 	// try to search and if successful, abort the subscription
 	search, err := c.SearchTxByID(ctx, id)
-	if err != nil {
-		return CommitResult{}, err
-	}
-	if search != nil {
-		return *search, nil
+	if err != nil || search != nil {
+		return search, err
 	}
 
 	// now we just wait until the subscription returns fruit
@@ -63,11 +55,11 @@ func (c *Client) WatchTx(ctx context.Context, id TransactionID) (CommitResult, e
 }
 
 // CommitTx will block on both Check and Deliver, returning when it is in a block
-func (c *Client) CommitTx(ctx context.Context, tx weave.Tx) (CommitResult, error) {
+func (c *Client) CommitTx(ctx context.Context, tx weave.Tx) (*CommitResult, error) {
 	// This can be combined from other primatives
 	check, err := c.SubmitTx(ctx, tx)
 	if err != nil {
-		return CommitResult{}, err
+		return nil, err
 	}
 	if check.Err != nil {
 		return check.AsCommitError(), nil
@@ -76,9 +68,9 @@ func (c *Client) CommitTx(ctx context.Context, tx weave.Tx) (CommitResult, error
 }
 
 // WatchTxs will watch a list of transactions in parallel
-func (c *Client) WatchTxs(ctx context.Context, ids []TransactionID) ([]CommitResult, error) {
+func (c *Client) WatchTxs(ctx context.Context, ids []TransactionID) ([]*CommitResult, error) {
 	var err error
-	res := make([]CommitResult, len(ids))
+	res := make([]*CommitResult, len(ids))
 
 	wg := sync.WaitGroup{}
 	for i, id := range ids {
@@ -102,10 +94,10 @@ func (c *Client) WatchTxs(ctx context.Context, ids []TransactionID) ([]CommitRes
 
 // CommitTxs will submit many transactions and wait until they are all included in blocks.
 // Ideally, all in the same block
-func (c *Client) CommitTxs(ctx context.Context, txs []weave.Tx) ([]CommitResult, error) {
+func (c *Client) CommitTxs(ctx context.Context, txs []weave.Tx) ([]*CommitResult, error) {
 	// first submit them all (some may error), this should be in order
 	var err error
-	checks := make([]MempoolResult, len(txs))
+	checks := make([]*MempoolResult, len(txs))
 	for i, tx := range txs {
 		checks[i], err = c.SubmitTx(ctx, tx)
 		if err != nil {
