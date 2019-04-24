@@ -2,6 +2,7 @@ package client
 
 import (
 	"context"
+	"sync"
 
 	"github.com/iov-one/weave"
 )
@@ -45,18 +46,26 @@ func (c *Client) SubmitTxAsync(ctx context.Context, tx weave.Tx) AsyncResult {
 // It will return immediatelt if the id was included in a block prior to the query, to avoid timing issues
 // You can use context.Context to pass in a timeout
 func (c *Client) WatchTx(ctx context.Context, id TransactionId) SyncResult {
+	// TODO: combine subscribe tx and search tx (two other functions to be writen)
 	return SyncResult{}
 }
 
 // WatchTxs will watch a list of transactions in parallel
 func (c *Client) WatchTxs(ctx context.Context, ids []TransactionId) []SyncResult {
-	// TODO: use go routines
 	res := make([]SyncResult, len(ids))
+	wg := sync.WaitGroup{}
 	for i, id := range ids {
 		if id != nil {
-			res[i] = c.WatchTx(ctx, id)
+			wg.Add(1)
+			// pass as args to avoid using same variables in multiple routines
+			go func(idx int, myid []byte) {
+				// all write to other location in slice, so should be safe
+				res[idx] = c.WatchTx(ctx, myid)
+				wg.Done()
+			}(i, id)
 		}
 	}
+	wg.Wait()
 	return res
 }
 
