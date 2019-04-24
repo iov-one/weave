@@ -17,6 +17,10 @@ type Object interface {
 	// state to save to the db (eg. field missing, out of range, ...)
 	x.Validater
 	Value() weave.Persistent
+
+	// GetMetadata is implemented by any protobuf message that provides a
+	// metadata attribute.
+	GetMetadata() *weave.Metadata
 }
 
 // Reader defines an interface that allows reading objects from the db

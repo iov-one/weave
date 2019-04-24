@@ -168,6 +168,9 @@ func (b Bucket) Parse(key, value []byte) (Object, error) {
 		// error as it carries no relevant information.
 		return nil, errors.Wrap(errors.ErrInvalidState, err.Error())
 	}
+
+	// TODO - ensure the value is migrated to the latest version
+
 	obj.SetKey(key)
 	return obj, nil
 }
@@ -187,6 +190,8 @@ func (b Bucket) Save(db weave.KVStore, model Object) error {
 	if err != nil {
 		return err
 	}
+
+	// TODO - ensure the metadata is set
 
 	// now save this one
 	return db.Set(b.DBKey(model.Key()), bz)
