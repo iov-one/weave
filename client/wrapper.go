@@ -5,19 +5,25 @@ import (
 	"sync"
 
 	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/errors"
 )
-
-// --- TODO: implement via lower level and move to wrapper.go
 
 // SubscribeTxByID will block until there is a result, then return it
 // You must cancel the context to avoid blocking forever in some cases
 func (c *Client) SubscribeTxByID(ctx context.Context, id TransactionID) (*CommitResult, error) {
-	// TODO: subscribe
-	// TODO: how to handle context being cancelled???
-	return nil, nil
-}
+	txs := make(chan CommitResult, 1)
+	err := c.SubscribeTx(ctx, QueryTxByID(id), txs)
+	if err != nil {
+		return nil, err
+	}
 
-// ---- END TODO
+	// wait on first value... channel may be closed if subscription cancelled first
+	res, ok := <-txs
+	if !ok {
+		return nil, errors.Wrap(errors.ErrTimeout, "unsubscribed before result")
+	}
+	return &res, nil
+}
 
 // WatchTx will block until this transaction makes it into a block
 // It will return immediately if the id was included in a block prior to the query, to avoid timing issues

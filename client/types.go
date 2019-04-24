@@ -1,9 +1,12 @@
 package client
 
 import (
+	"fmt"
+
 	"github.com/iov-one/weave"
 	abci "github.com/tendermint/tendermint/abci/types"
 	cmn "github.com/tendermint/tendermint/libs/common"
+	tmtypes "github.com/tendermint/tendermint/types"
 )
 
 // TransactionID is the hash used to identify the transaction
@@ -16,7 +19,7 @@ type RequestQuery = abci.RequestQuery
 type ResponseQuery = abci.ResponseQuery
 
 // TxQuery is some query to find transactions
-type TxQuery string
+type TxQuery = string
 
 // MempoolResult is returned from the mempool (CheckTx)
 // Result is only set on success codes, Err is set if it was a failure code
@@ -48,4 +51,9 @@ type CommitResult struct {
 type resultOrError struct {
 	result *CommitResult
 	err    error
+}
+
+// QueryTxByID makes a subscription string based on the transaction id
+func QueryTxByID(id TransactionID) TxQuery {
+	return fmt.Sprintf("%s='%s' AND %s='%X'", tmtypes.EventTypeKey, tmtypes.EventTx, tmtypes.TxHashKey, id)
 }
