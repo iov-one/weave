@@ -709,7 +709,7 @@ func TestUpdateElectorate(t *testing.T) {
 			RegisterRoutes(rt, auth)
 			db := store.MemStore()
 			withElectorate(t, db)
-			if spec.Mods != nil {
+			if spec.WithProposal {
 				withProposal(t, db, nil, spec.Mods)
 			}
 			cache := db.CacheWrap()
