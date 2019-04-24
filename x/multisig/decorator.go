@@ -71,16 +71,16 @@ func (d Decorator) authMultisig(ctx weave.Context, store weave.KVStore, tx weave
 			return ctx, 0, err
 		}
 
-		var power Weight
+		var weight Weight
 		for _, p := range contract.Participants {
 			if d.auth.HasAddress(ctx, p.Signature) {
-				power += p.Weight
+				weight += p.Weight
 				gasCost += multisigParticipantGasCost
 			}
 		}
-		if power < contract.ActivationThreshold {
+		if weight < contract.ActivationThreshold {
 			err := errors.Wrapf(errors.ErrUnauthorized,
-				"%d power is not enough to activate %q", power, contractID)
+				"%d weight is not enough to activate %q", weight, contractID)
 			return ctx, 0, err
 		}
 
