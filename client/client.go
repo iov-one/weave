@@ -58,19 +58,3 @@ func (c *Client) SubscribeTx(ctx context.Context, query TxQuery, results chan<- 
 	// TODO: return actual transaction content as well? not just ID and Result
 	return nil
 }
-
-// --- TODO: implement via lower level and move to wrapper.go
-
-// SearchTxByID will return 0 or 1 results (nil or result value)
-func (c *Client) SearchTxByID(ctx context.Context, id TransactionID) (*CommitResult, error) {
-	// TODO: search
-	return nil, nil
-}
-
-// SubscribeTxByID will block until there is a result, then return it
-// You must cancel the context to avoid blocking forever in some cases
-func (c *Client) SubscribeTxByID(ctx context.Context, id TransactionID) (CommitResult, error) {
-	// TODO: subscribe
-	// TODO: how to handle context being cancelled???
-	return CommitResult{}, nil
-}
