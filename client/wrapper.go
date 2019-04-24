@@ -9,12 +9,6 @@ import (
 
 // --- TODO: implement via lower level and move to wrapper.go
 
-// SearchTxByID will return 0 or 1 results (nil or result value)
-func (c *Client) SearchTxByID(ctx context.Context, id TransactionID) (*CommitResult, error) {
-	// TODO: search
-	return nil, nil
-}
-
 // SubscribeTxByID will block until there is a result, then return it
 // You must cancel the context to avoid blocking forever in some cases
 func (c *Client) SubscribeTxByID(ctx context.Context, id TransactionID) (*CommitResult, error) {
@@ -44,7 +38,7 @@ func (c *Client) WatchTx(ctx context.Context, id TransactionID) (*CommitResult, 
 	}()
 
 	// try to search and if successful, abort the subscription
-	search, err := c.SearchTxByID(ctx, id)
+	search, err := c.GetTxByID(ctx, id)
 	if err != nil || search != nil {
 		return search, err
 	}

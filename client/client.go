@@ -44,6 +44,7 @@ func (c *Client) SubmitTx(ctx context.Context, tx weave.Tx) (*MempoolResult, err
 	if err != nil {
 		return nil, errors.Wrapf(errors.ErrInvalidMsg, "marshaling: %s", err.Error())
 	}
+	// TODO: timeout here
 	res, err := c.conn.BroadcastTxSync(bz)
 	if err != nil {
 		return nil, errors.Wrapf(errors.ErrNetwork, "submit tx: %s", err.Error())
@@ -60,6 +61,8 @@ func (c *Client) SubmitTx(ctx context.Context, tx weave.Tx) (*MempoolResult, err
 
 // Query is meant to mirror the abci query interface exactly, so we can wrap it with app.ABCIStore
 // This will give us state from the application
+//
+// TODO: provide other Query interface that accepts context for timeout??
 func (c *Client) Query(query RequestQuery) ResponseQuery {
 	res, err := c.conn.ABCIQueryWithOptions(query.Path, query.Data, rpcclient.ABCIQueryOptions{Height: query.Height, Prove: query.Prove})
 	// network error reported as special error code
@@ -71,6 +74,22 @@ func (c *Client) Query(query RequestQuery) ResponseQuery {
 		}
 	}
 	return res.Response
+}
+
+// GetTxByID will return 0 or 1 results (nil or result value)
+func (c *Client) GetTxByID(ctx context.Context, id TransactionID) (*CommitResult, error) {
+	// TODO: add context timeout here
+	tx, err := c.conn.Tx(id, false) // FIXME: use proofs sometime
+	if err != nil {
+		return nil, errors.Wrapf(errors.ErrNetwork, "get tx: %s", err.Error())
+	}
+	res, err := weave.ParseDeliverOrError(tx.TxResult)
+	return &CommitResult{
+		ID:     id,
+		Height: tx.Height,
+		Result: res,
+		Err:    err,
+	}, nil
 }
 
 // SearchTx will search for all committed transactions that match a query,
