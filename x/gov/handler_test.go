@@ -26,7 +26,7 @@ var (
 func TestCreateProposal(t *testing.T) {
 	now := weave.AsUnixTime(time.Now())
 	specs := map[string]struct {
-		Mods           func(weave.Context, *TextProposal)
+		Mods           ctxAwareMutator
 		Msg            CreateTextProposalMsg
 		WantCheckErr   *errors.Error
 		WantDeliverErr *errors.Error
@@ -603,6 +603,7 @@ func TestUpdateElectorate(t *testing.T) {
 		WantCheckErr   *errors.Error
 		WantDeliverErr *errors.Error
 		ExpModel       *Electorate
+		Mods           ctxAwareMutator // modifies TextProposal test fixtures before storing
 	}{
 		"All good with update by owner": {
 			Msg: UpdateElectorateMsg{
@@ -625,6 +626,23 @@ func TestUpdateElectorate(t *testing.T) {
 			SignedBy:       aliceCond,
 			WantCheckErr:   errors.ErrUnauthorized,
 			WantDeliverErr: errors.ErrUnauthorized,
+		},
+		"Update with open proposal should fail": {
+			Msg: UpdateElectorateMsg{
+				ElectorateID: electorateID,
+				Electors:     []Elector{{Address: alice, Weight: 22}},
+			},
+			SignedBy: bobbyCond,
+			ExpModel: &Electorate{
+				Admin:                 bobby,
+				Title:                 "fooo",
+				Electors:              []Elector{{Address: alice, Weight: 22}},
+				TotalWeightElectorate: 22,
+			},
+			Mods: func(ctx weave.Context, proposal *TextProposal) {
+				proposal.Status = TextProposal_Submitted
+			},
+			WantDeliverErr: errors.ErrInvalidState,
 		},
 		"Update with too many electors should fail": {
 			Msg: UpdateElectorateMsg{
@@ -672,6 +690,9 @@ func TestUpdateElectorate(t *testing.T) {
 			RegisterRoutes(rt, auth)
 			db := store.MemStore()
 			withElectorate(t, db)
+			if spec.Mods != nil {
+				withProposal(t, db, nil, spec.Mods)
+			}
 			cache := db.CacheWrap()
 
 			ctx := context.Background()

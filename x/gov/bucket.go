@@ -112,7 +112,7 @@ func indexElectorate(obj orm.Object) ([]byte, error) {
 	}
 	v, ok := obj.Value().(*TextProposal)
 	if !ok {
-		return nil, errors.Wrap(errors.ErrHuman, "Can only take index of TextProposal")
+		return nil, errors.Wrap(errors.ErrHuman, "can only take index of TextProposal")
 	}
 	return v.ElectorateID, nil
 }
