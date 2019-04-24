@@ -42,15 +42,15 @@ only when all three together sign a modification to the contract it should be up
       "admin_threshold": 3,
         "participants": [
           {
-            "power": 1,
+            "weight": 1,
             "signature": "AAAA..."
           },
           {
-            "power": 1,
+            "weight": 1,
             "signature": "BBBB......"
           },
           {
-            "power": 1,
+            "weight": 1,
             "signature": "CCCC......"
           }
         ]
@@ -58,7 +58,7 @@ only when all three together sign a modification to the contract it should be up
     }
   ]
 ```
-* `"participants": [`= contains the members addressIDs with their power.
+* `"participants": [`= contains the members addressIDs with their weight.
 
 ### Creating the validator distribution
 The distribution contract can receive and collect tokens like any other account but then distribute them

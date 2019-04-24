@@ -22,7 +22,7 @@ message Contract {
 // the greater the power of a signature.
 message Participant {
   bytes signature = 1 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
-  uint32 power = 2 [(gogoproto.casttype) = "Weight"];
+  uint32 weight = 2 [(gogoproto.casttype) = "Weight"];
 }
 
 message CreateContractMsg {

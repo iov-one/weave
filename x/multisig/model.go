@@ -19,7 +19,7 @@ const (
 )
 
 // Weight represents the strength of a signature.
-type Weight uint32
+type Weight int32
 
 func (w Weight) Validate() error {
 	if w < 1 {
@@ -53,7 +53,7 @@ func (c *Contract) Copy() orm.CloneableData {
 		copy(sig, p.Signature)
 		ps = append(ps, &Participant{
 			Signature: sig,
-			Power:     p.Power,
+			Weight:    p.Weight,
 		})
 	}
 	return &Contract{

@@ -14,7 +14,7 @@ func (*Initializer) FromGenesis(opts weave.Options, db weave.KVStore) error {
 	var contracts []struct {
 		Participants []struct {
 			Signature weave.Address `json:"signature"`
-			Power     Weight        `json:"power"`
+			Weight    Weight        `json:"weight"`
 		} `json:"participants"`
 		ActivationThreshold Weight `json:"activation_threshold"`
 		AdminThreshold      Weight `json:"admin_threshold"`
@@ -29,7 +29,7 @@ func (*Initializer) FromGenesis(opts weave.Options, db weave.KVStore) error {
 		for _, p := range c.Participants {
 			ps = append(ps, &Participant{
 				Signature: p.Signature,
-				Power:     p.Power,
+				Weight:    p.Weight,
 			})
 		}
 		contract := Contract{

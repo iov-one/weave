@@ -100,7 +100,7 @@ func appStateGenesis(keyAddress weave.Address) []byte {
 		"multisig": []interface{}{
 			dict{
 				"participants": []interface{}{
-					dict{"power": 1, "signature": keyAddress},
+					dict{"weight": 1, "signature": keyAddress},
 				},
 				"activation_threshold": 1,
 				"admin_threshold":      1,

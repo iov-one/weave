@@ -363,6 +363,14 @@
             <ul>
               
                 <li>
+                  <a href="#cash.Configuration"><span class="badge">M</span>Configuration</a>
+                </li>
+              
+                <li>
+                  <a href="#cash.ConfigurationMsg"><span class="badge">M</span>ConfigurationMsg</a>
+                </li>
+              
+                <li>
                   <a href="#cash.FeeInfo"><span class="badge">M</span>FeeInfo</a>
                 </li>
               
@@ -1694,6 +1702,66 @@ succeed, all action approvals validation must pass. </p></td>
       <p></p>
 
       
+        <h3 id="cash.Configuration">Configuration</h3>
+        <p></p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>owner</td>
+                  <td><a href="#bytes">bytes</a></td>
+                  <td></td>
+                  <td><p>TODO: add schema uint32 here </p></td>
+                </tr>
+              
+                <tr>
+                  <td>collector_address</td>
+                  <td><a href="#bytes">bytes</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>minimal_fee</td>
+                  <td><a href="#coin.Coin">coin.Coin</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+        
+
+        
+      
+        <h3 id="cash.ConfigurationMsg">ConfigurationMsg</h3>
+        <p></p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>patch</td>
+                  <td><a href="#cash.Configuration">Configuration</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+        
+
+        
+      
         <h3 id="cash.FeeInfo">FeeInfo</h3>
         <p>FeeInfo records who pays what fees to have this</p><p>message processed</p>
 
@@ -2081,7 +2149,7 @@ computed as the sum of weights of all participating signatures. </p></td>
                 </tr>
               
                 <tr>
-                  <td>power</td>
+                  <td>weight</td>
                   <td><a href="#uint32">uint32</a></td>
                   <td></td>
                   <td><p> </p></td>
