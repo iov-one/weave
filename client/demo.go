@@ -10,10 +10,10 @@ import (
 type Client struct {
 }
 
-type TransactionId []byte
+type TransactionID []byte
 
 type MempoolResult struct {
-	ID     TransactionId
+	ID     TransactionID
 	Result *weave.CheckResult
 	Err    error
 }
@@ -26,7 +26,7 @@ func (a MempoolResult) AsCommitError() CommitResult {
 }
 
 type CommitResult struct {
-	ID     TransactionId
+	ID     TransactionID
 	Height int64
 	Result *weave.DeliverResult
 	Err    error
@@ -40,15 +40,15 @@ func (c *Client) SubmitTx(ctx context.Context, tx weave.Tx) MempoolResult {
 	return MempoolResult{}
 }
 
-// SearchTxById will return 0 or 1 results (nil or result value)
-func (c *Client) SearchTxById(ctx context.Context, id TransactionId) *CommitResult {
+// SearchTxByID will return 0 or 1 results (nil or result value)
+func (c *Client) SearchTxByID(ctx context.Context, id TransactionID) *CommitResult {
 	// TODO: search
 	return nil
 }
 
-// SubscribeTxById will block until there is a result, then return it
+// SubscribeTxByID will block until there is a result, then return it
 // You must cancel the context to avoid blocking forever in some cases
-func (c *Client) SubscribeTxById(ctx context.Context, id TransactionId) CommitResult {
+func (c *Client) SubscribeTxByID(ctx context.Context, id TransactionID) CommitResult {
 	// TODO: subscribe
 	// TODO: how to handle context being cancelled???
 	return CommitResult{}
@@ -57,7 +57,7 @@ func (c *Client) SubscribeTxById(ctx context.Context, id TransactionId) CommitRe
 // WatchTx will block until this transaction makes it into a block
 // It will return immediately if the id was included in a block prior to the query, to avoid timing issues
 // You can use context.Context to pass in a timeout
-func (c *Client) WatchTx(ctx context.Context, id TransactionId) CommitResult {
+func (c *Client) WatchTx(ctx context.Context, id TransactionID) CommitResult {
 	// TODO: combine subscribe tx and search tx (two other functions to be writen)
 	subctx, cancel := context.WithCancel(ctx)
 	defer cancel()
@@ -65,12 +65,12 @@ func (c *Client) WatchTx(ctx context.Context, id TransactionId) CommitResult {
 	// start a subscription
 	sub := make(chan CommitResult, 1)
 	go func() {
-		res := c.SubscribeTxById(subctx, id)
+		res := c.SubscribeTxByID(subctx, id)
 		sub <- res
 	}()
 
 	// try to search and if successful, abort the subscription
-	search := c.SearchTxById(ctx, id)
+	search := c.SearchTxByID(ctx, id)
 	if search != nil {
 		return *search
 	}
@@ -91,7 +91,7 @@ func (c *Client) CommitTx(ctx context.Context, tx weave.Tx) CommitResult {
 }
 
 // WatchTxs will watch a list of transactions in parallel
-func (c *Client) WatchTxs(ctx context.Context, ids []TransactionId) []CommitResult {
+func (c *Client) WatchTxs(ctx context.Context, ids []TransactionID) []CommitResult {
 	res := make([]CommitResult, len(ids))
 	wg := sync.WaitGroup{}
 	for i, id := range ids {
@@ -119,7 +119,7 @@ func (c *Client) CommitTxs(ctx context.Context, txs []weave.Tx) []CommitResult {
 	}
 
 	// make a list of all successful ones to block on Deliver (in parallel)
-	ids := make([]TransactionId, len(txs))
+	ids := make([]TransactionID, len(txs))
 	for i, check := range checks {
 		if check.Err == nil {
 			ids[i] = check.ID
