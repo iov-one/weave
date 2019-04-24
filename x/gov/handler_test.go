@@ -603,6 +603,7 @@ func TestUpdateElectorate(t *testing.T) {
 		WantCheckErr   *errors.Error
 		WantDeliverErr *errors.Error
 		ExpModel       *Electorate
+		WithProposal   bool            // enables the usage of mods to create a proposal
 		Mods           ctxAwareMutator // modifies TextProposal test fixtures before storing
 	}{
 		"All good with update by owner": {
@@ -639,10 +640,28 @@ func TestUpdateElectorate(t *testing.T) {
 				Electors:              []Elector{{Address: alice, Weight: 22}},
 				TotalWeightElectorate: 22,
 			},
+			WithProposal: true,
 			Mods: func(ctx weave.Context, proposal *TextProposal) {
 				proposal.Status = TextProposal_Submitted
 			},
 			WantDeliverErr: errors.ErrInvalidState,
+		},
+		"Update with closed proposal should succeed": {
+			Msg: UpdateElectorateMsg{
+				ElectorateID: electorateID,
+				Electors:     []Elector{{Address: alice, Weight: 22}},
+			},
+			SignedBy: bobbyCond,
+			ExpModel: &Electorate{
+				Admin:                 bobby,
+				Title:                 "fooo",
+				Electors:              []Elector{{Address: alice, Weight: 22}},
+				TotalWeightElectorate: 22,
+			},
+			WithProposal: true,
+			Mods: func(ctx weave.Context, proposal *TextProposal) {
+				proposal.Status = TextProposal_Closed
+			},
 		},
 		"Update with too many electors should fail": {
 			Msg: UpdateElectorateMsg{
@@ -882,7 +901,7 @@ func withElectorate(t *testing.T, db store.CacheableKVStore) *Electorate {
 		TotalWeightElectorate: 11,
 	}
 	electorateBucket := NewElectorateBucket()
-	eObj, err :=electorateBucket.Build(db, electorate)
+	eObj, err := electorateBucket.Build(db, electorate)
 	assert.Nil(t, err)
 	err = electorateBucket.Save(db, eObj)
 	assert.Nil(t, err)
