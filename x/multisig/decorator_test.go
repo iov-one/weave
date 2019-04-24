@@ -8,6 +8,7 @@ import (
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/store"
 	"github.com/iov-one/weave/weavetest"
+	"github.com/iov-one/weave/weavetest/assert"
 	"github.com/iov-one/weave/x"
 )
 
@@ -170,7 +171,8 @@ func createContract(t testing.TB, db weave.KVStore, c Contract) []byte {
 	t.Helper()
 
 	b := NewContractBucket()
-	obj := b.Build(db, &c)
+	obj, err := b.Build(db, &c)
+	assert.Nil(t, err)
 	if err := b.Save(db, obj); err != nil {
 		t.Fatalf("cannot create a contract: %s", err)
 	}

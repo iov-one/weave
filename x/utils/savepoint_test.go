@@ -7,7 +7,7 @@ import (
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/store"
-	"github.com/stretchr/testify/assert"
+	"github.com/iov-one/weave/weavetest/assert"
 )
 
 func TestSavepoint(t *testing.T) {
@@ -97,16 +97,26 @@ func TestSavepoint(t *testing.T) {
 			}
 
 			if tc.isError {
-				assert.Error(t, err)
+				if err == nil {
+					t.Fatalf("Expected error")
+				}
 			} else {
-				assert.NoError(t, err)
+				assert.Nil(t, err)
 			}
 
 			for _, k := range tc.written {
-				assert.True(t, kv.Has(k), "%x", k)
+				has, err := kv.Has(k)
+				assert.Nil(t, err)
+				if !has {
+					t.Errorf("Didn't write key: %X", k)
+				}
 			}
 			for _, k := range tc.missing {
-				assert.False(t, kv.Has(k), "%x", k)
+				has, err := kv.Has(k)
+				assert.Nil(t, err)
+				if has {
+					t.Errorf("Wrote missing value: %X", k)
+				}
 			}
 		})
 	}

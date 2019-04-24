@@ -11,18 +11,22 @@ func RegisterQuery(qr weave.QueryRouter) {
 
 // consumeIterator will read all remaining data into an
 // array and close the iterator
-func consumeIterator(itr weave.Iterator) []weave.Model {
+func consumeIterator(itr weave.Iterator) ([]weave.Model, error) {
 	defer itr.Close()
 
 	var res []weave.Model
-	for ; itr.Valid(); itr.Next() {
+	for itr.Valid() {
 		mod := weave.Model{
 			Key:   itr.Key(),
 			Value: itr.Value(),
 		}
 		res = append(res, mod)
+		err := itr.Next()
+		if err != nil {
+			return nil, err
+		}
 	}
-	return res
+	return res, nil
 }
 
 // prefixRange turns a prefix into (start, end) to create
@@ -53,6 +57,10 @@ func prefixRange(prefix []byte) ([]byte, []byte) {
 }
 
 // queryPrefix returns a prefix query as Models
-func queryPrefix(db weave.ReadOnlyKVStore, prefix []byte) []weave.Model {
-	return consumeIterator(db.Iterator(prefixRange(prefix)))
+func queryPrefix(db weave.ReadOnlyKVStore, prefix []byte) ([]weave.Model, error) {
+	iter, err := db.Iterator(prefixRange(prefix))
+	if err != nil {
+		return nil, err
+	}
+	return consumeIterator(iter)
 }

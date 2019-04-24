@@ -2,9 +2,9 @@ package store
 
 import (
 	"bytes"
-	"fmt"
 
 	"github.com/google/btree"
+	"github.com/iov-one/weave/errors"
 )
 
 const (
@@ -99,9 +99,10 @@ func (b BTreeCacheWrap) NewBatch() Batch {
 
 // Write syncs with the underlying store.
 // And then cleans up
-func (b BTreeCacheWrap) Write() {
-	b.batch.Write()
+func (b BTreeCacheWrap) Write() error {
+	err := b.batch.Write()
 	b.Discard()
+	return err
 }
 
 // Discard invalidates this CacheWrap and releases all data
@@ -116,44 +117,46 @@ func (b BTreeCacheWrap) Discard() {
 }
 
 // Set writes to the BTree and to the batch
-func (b BTreeCacheWrap) Set(key, value []byte) {
+func (b BTreeCacheWrap) Set(key, value []byte) error {
 	b.bt.ReplaceOrInsert(newSetItem(key, value))
 	b.batch.Set(key, value)
+	return nil
 }
 
 // Delete deletes from the BTree and to the batch
-func (b BTreeCacheWrap) Delete(key []byte) {
+func (b BTreeCacheWrap) Delete(key []byte) error {
 	b.bt.ReplaceOrInsert(newDeletedItem(key))
 	b.batch.Delete(key)
+	return nil
 }
 
 // Get reads from btree if there, else backing store
-func (b BTreeCacheWrap) Get(key []byte) []byte {
+func (b BTreeCacheWrap) Get(key []byte) ([]byte, error) {
 	res := b.bt.Get(bkey{key})
 	if res != nil {
 		switch t := res.(type) {
 		case setItem:
-			return t.value
+			return t.value, nil
 		case deletedItem:
-			return nil
+			return nil, nil
 		default:
-			panic(fmt.Sprintf("Unknown item in btree: %#v", res))
+			return nil, errors.Wrapf(errors.ErrDatabase, "Unknown item in btree: %#v", res)
 		}
 	}
 	return b.back.Get(key)
 }
 
 // Has reads from btree if there, else backing store
-func (b BTreeCacheWrap) Has(key []byte) bool {
+func (b BTreeCacheWrap) Has(key []byte) (bool, error) {
 	res := b.bt.Get(bkey{key})
 	if res != nil {
 		switch res.(type) {
 		case setItem:
-			return true
+			return true, nil
 		case deletedItem:
-			return false
+			return false, nil
 		default:
-			panic(fmt.Sprintf("Unknown item in btree: %#v", res))
+			return false, errors.Wrapf(errors.ErrDatabase, "Unknown item in btree: %#v", res)
 		}
 	}
 	return b.back.Has(key)
@@ -161,9 +164,12 @@ func (b BTreeCacheWrap) Has(key []byte) bool {
 
 // Iterator over a domain of keys in ascending order.
 // Combines results from btree and backing store
-func (b BTreeCacheWrap) Iterator(start, end []byte) Iterator {
+func (b BTreeCacheWrap) Iterator(start, end []byte) (Iterator, error) {
 	// take the backing iterator for start
-	parentIter := b.back.Iterator(start, end)
+	parentIter, err := b.back.Iterator(start, end)
+	if err != nil {
+		return nil, err
+	}
 	iter := newItemIter(parentIter)
 
 	if start == nil && end == nil {
@@ -177,14 +183,17 @@ func (b BTreeCacheWrap) Iterator(start, end []byte) Iterator {
 	}
 	iter.skipAllDeleted()
 
-	return iter
+	return iter, nil
 }
 
 // ReverseIterator over a domain of keys in descending order.
 // Combines results from btree and backing store
-func (b BTreeCacheWrap) ReverseIterator(start, end []byte) Iterator {
+func (b BTreeCacheWrap) ReverseIterator(start, end []byte) (Iterator, error) {
 	// take the backing iterator for start
-	parentIter := b.back.ReverseIterator(start, end)
+	parentIter, err := b.back.ReverseIterator(start, end)
+	if err != nil {
+		return nil, err
+	}
 	iter := newItemIter(parentIter)
 
 	if start == nil && end == nil {
@@ -198,7 +207,7 @@ func (b BTreeCacheWrap) ReverseIterator(start, end []byte) Iterator {
 	}
 	iter.skipAllDeleted()
 
-	return iter
+	return iter, nil
 }
 
 /////////////////////////////////////////////////////////
@@ -333,22 +342,25 @@ func (i *itemIter) Valid() bool {
 // defined by order of iteration.
 //
 // If Valid returns false, this method will panic.
-func (i *itemIter) Next() {
+func (i *itemIter) Next() error {
 	// advance either us, parent, or both
 	switch i.firstKey() {
 	case us:
 		i.idx++
-	case parent:
-		i.parent.Next()
 	case both:
 		i.idx++
-		i.parent.Next()
+		fallthrough
+	case parent:
+		err := i.parent.Next()
+		if err != nil {
+			return err
+		}
 	default:
 		panic("Advanced past the end!")
 	}
 
 	// keep advancing over all deleted entries
-	i.skipAllDeleted()
+	return i.skipAllDeleted()
 }
 
 // Key returns the key of the cursor.
@@ -381,14 +393,21 @@ func (i *itemIter) Close() {
 }
 
 // skipAllDeleted loops and skips any number of deleted items
-func (i *itemIter) skipAllDeleted() {
-	for i.skipDeleted() {
+func (i *itemIter) skipAllDeleted() error {
+	var err error
+	more := true
+	for more {
+		more, err = i.skipDeleted()
+		if err != nil {
+			return err
+		}
 	}
+	return nil
 }
 
 // skipDeleted jumps over all elements we can safely fast forward
 // return true if skipped, so we can skip again
-func (i *itemIter) skipDeleted() bool {
+func (i *itemIter) skipDeleted() (bool, error) {
 	src := i.firstKey()
 	if src == us || src == both {
 		// if our next is deleted, advance...
@@ -396,12 +415,15 @@ func (i *itemIter) skipDeleted() bool {
 			i.idx++
 			// if parent had the same key, advance parent as well
 			if src == both {
-				i.parent.Next()
+				err := i.parent.Next()
+				if err != nil {
+					return false, err
+				}
 			}
-			return true
+			return true, nil
 		}
 	}
-	return false
+	return false, nil
 }
 
 // get requires this is valid, gets what we are pointing at

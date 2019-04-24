@@ -61,7 +61,10 @@ func NewPaymentChannelBucket() PaymentChannelBucket {
 // Create adds given payment store entity to the store and returns the ID of
 // the newly inserted entity.
 func (b *PaymentChannelBucket) Create(db weave.KVStore, pc *PaymentChannel) (orm.Object, error) {
-	key := b.idSeq.NextVal(db)
+	key, err := b.idSeq.NextVal(db)
+	if err != nil {
+		return nil, err
+	}
 	obj := orm.NewSimpleObj(key, pc)
 	return obj, b.Bucket.Save(db, obj)
 }

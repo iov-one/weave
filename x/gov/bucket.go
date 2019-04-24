@@ -23,9 +23,12 @@ func NewElectorateBucket() *ElectorateBucket {
 
 // Build assigns an ID to given electorate instance and returns it as an orm
 // Object. It does not persist the object in the store.
-func (b *ElectorateBucket) Build(db weave.KVStore, e *Electorate) orm.Object {
-	key := b.idSeq.NextVal(db)
-	return orm.NewSimpleObj(key, e)
+func (b *ElectorateBucket) Build(db weave.KVStore, e *Electorate) (orm.Object, error) {
+	key, err := b.idSeq.NextVal(db)
+	if err != nil {
+		return nil, err
+	}
+	return orm.NewSimpleObj(key, e), nil
 }
 
 // GetElectorate loads the electorate for the given id. If it does not exist then ErrNotFound is returned.
@@ -61,9 +64,12 @@ func NewElectionRulesBucket() *ElectionRulesBucket {
 
 // Build assigns an ID to given election rule instance and returns it as an orm
 // Object. It does not persist the object in the store.
-func (b *ElectionRulesBucket) Build(db weave.KVStore, r *ElectionRule) orm.Object {
-	key := b.idSeq.NextVal(db)
-	return orm.NewSimpleObj(key, r)
+func (b *ElectionRulesBucket) Build(db weave.KVStore, r *ElectionRule) (orm.Object, error) {
+	key, err := b.idSeq.NextVal(db)
+	if err != nil {
+		return nil, err
+	}
+	return orm.NewSimpleObj(key, r), nil
 }
 
 // GetElectionRule loads the electorate for the given id. If it does not exist then ErrNotFound is returned.
@@ -99,9 +105,12 @@ func NewProposalBucket() *ProposalBucket {
 
 // Build assigns an ID to given proposal instance and returns it as an orm
 // Object. It does not persist the object in the store.
-func (b *ProposalBucket) Build(db weave.KVStore, e *TextProposal) orm.Object {
-	key := b.idSeq.NextVal(db)
-	return orm.NewSimpleObj(key, e)
+func (b *ProposalBucket) Build(db weave.KVStore, e *TextProposal) (orm.Object, error) {
+	key, err := b.idSeq.NextVal(db)
+	if err != nil {
+		return nil, err
+	}
+	return orm.NewSimpleObj(key, e), nil
 }
 
 // GetTextProposal loads the proposal for the given id. If it does not exist then ErrNotFound is returned.

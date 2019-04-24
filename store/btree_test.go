@@ -18,6 +18,16 @@ func makeBase() CacheableKVStore {
 	return MemStore()
 }
 
+func assertGetHas(t testing.TB, kv ReadOnlyKVStore, key, val []byte, has bool) {
+	t.Helper()
+	got, err := kv.Get(key)
+	assert.Nil(t, err)
+	assert.Equal(t, val, got)
+	exists, err := kv.Has(key)
+	assert.Nil(t, err)
+	assert.Equal(t, has, exists)
+}
+
 // TestBTreeCacheGetSet does basic sanity checks on our cache
 //
 // Other tests should handle deletes, setting same value,
@@ -28,54 +38,52 @@ func TestBTreeCacheGetSet(t *testing.T) {
 	// make sure the btree is empty at start but returns results
 	// that are written to it
 	k, v := []byte("french"), []byte("fry")
-	assert.Nil(t, base.Get(k))
-	assert.Equal(t, base.Has(k), false)
-	base.Set(k, v)
-	assert.Equal(t, v, base.Get(k))
-	assert.Equal(t, base.Has(k), true)
+	assertGetHas(t, base, k, nil, false)
+	err := base.Set(k, v)
+	assert.Nil(t, err)
+	assertGetHas(t, base, k, v, true)
 
 	// now layer another btree on top and make sure that we get
 	// base data
 	cache := base.CacheWrap()
-	assert.Equal(t, v, cache.Get(k))
-	assert.Equal(t, cache.Has(k), true)
+	assertGetHas(t, cache, k, v, true)
 
 	// writing more data is only visible in the cache
 	k2, v2 := []byte("LA"), []byte("Dodgers")
-	assert.Nil(t, cache.Get(k2))
-	assert.Equal(t, cache.Has(k2), false)
-	cache.Set(k2, v2)
-	assert.Equal(t, v2, cache.Get(k2))
-	assert.Nil(t, base.Get(k2))
-	assert.Equal(t, cache.Has(k2), true)
-	assert.Equal(t, base.Has(k2), false)
+	assertGetHas(t, cache, k2, nil, false)
+	err = cache.Set(k2, v2)
+	assert.Nil(t, err)
+	assertGetHas(t, cache, k2, v2, true)
+	assertGetHas(t, base, k2, nil, false)
 
 	// we can write the cache to the base layer...
-	cache.Write()
-	assert.Equal(t, v, base.Get(k))
-	assert.Equal(t, v2, base.Get(k2))
-	assert.Equal(t, base.Has(k), true)
-	assert.Equal(t, base.Has(k2), true)
+	err = cache.Write()
+	assert.Nil(t, err)
+	assertGetHas(t, base, k, v, true)
+	assertGetHas(t, base, k2, v2, true)
 
 	// we can discard one
 	k3, v3 := []byte("Bayern"), []byte("Munich")
 	c2 := base.CacheWrap()
-	assert.Equal(t, v, c2.Get(k))
-	assert.Equal(t, v2, c2.Get(k2))
-	c2.Set(k3, v3)
+	assertGetHas(t, c2, k, v, true)
+	assertGetHas(t, c2, k2, v2, true)
+	err = c2.Set(k3, v3)
+	assert.Nil(t, err)
 	c2.Discard()
 
 	// and commit another
 	c3 := base.CacheWrap()
-	assert.Equal(t, v, c3.Get(k))
-	assert.Equal(t, v2, c3.Get(k2))
-	c3.Delete(k)
-	c3.Write()
+	assertGetHas(t, c3, k, v, true)
+	assertGetHas(t, c3, k2, v2, true)
+	err = c3.Delete(k)
+	assert.Nil(t, err)
+	err = c3.Write()
+	assert.Nil(t, err)
 
 	// make sure it commits proper
-	assert.Nil(t, base.Get(k))
-	assert.Equal(t, v2, base.Get(k2))
-	assert.Nil(t, base.Get(k3))
+	assertGetHas(t, c2, k, nil, false)
+	assertGetHas(t, c2, k2, v2, true)
+	assertGetHas(t, c2, k3, nil, false)
 }
 
 // TestBTreeCacheConflicts checks that we can handle
@@ -92,10 +100,10 @@ func TestBTreeCacheConflicts(t *testing.T) {
 		childQueries  []Model // Key is what we query, Value is what we expect
 	}{
 		"overwrite one, delete another, add a third": {
-			[]Op{SetOp(ks[1], vs[1]), SetOp(ks[2], vs[2])},
-			[]Op{SetOp(ks[1], vs[11]), SetOp(ks[3], vs[7]), DelOp(ks[2])},
-			[]Model{Pair(ks[1], vs[1]), Pair(ks[2], vs[2]), Pair(ks[3], nil)},
-			[]Model{Pair(ks[1], vs[11]), Pair(ks[2], nil), Pair(ks[3], vs[7])},
+			parentOps:     []Op{SetOp(ks[1], vs[1]), SetOp(ks[2], vs[2])},
+			childOps:      []Op{SetOp(ks[1], vs[11]), SetOp(ks[3], vs[7]), DelOp(ks[2])},
+			parentQueries: []Model{Pair(ks[1], vs[1]), Pair(ks[2], vs[2]), Pair(ks[3], nil)},
+			childQueries:  []Model{Pair(ks[1], vs[11]), Pair(ks[2], nil), Pair(ks[3], vs[7])},
 		},
 	}
 
@@ -113,27 +121,18 @@ func TestBTreeCacheConflicts(t *testing.T) {
 
 			// now check the parent is unaffected
 			for _, q := range tc.parentQueries {
-				res := parent.Get(q.Key)
-				assert.Equal(t, q.Value, res)
-				has := parent.Has(q.Key)
-				assert.Equal(t, q.Value != nil, has)
+				assertGetHas(t, parent, q.Key, q.Value, q.Value != nil)
 			}
 
 			// the child shows changes
 			for _, q := range tc.childQueries {
-				res := child.Get(q.Key)
-				assert.Equal(t, q.Value, res)
-				has := child.Has(q.Key)
-				assert.Equal(t, q.Value != nil, has)
+				assertGetHas(t, child, q.Key, q.Value, q.Value != nil)
 			}
 
 			// write child to parent and make sure it also shows proper data
 			child.Write()
 			for _, q := range tc.childQueries {
-				res := parent.Get(q.Key)
-				assert.Equal(t, q.Value, res)
-				has := parent.Has(q.Key)
-				assert.Equal(t, q.Value != nil, has)
+				assertGetHas(t, parent, q.Key, q.Value, q.Value != nil)
 			}
 		})
 	}
@@ -311,11 +310,13 @@ func (i iterCase) verify(t testing.TB, base CacheableKVStore) {
 
 	for _, q := range i.queries {
 		var iter Iterator
+		var err error
 		if q.reverse {
-			iter = child.ReverseIterator(q.start, q.end)
+			iter, err = child.ReverseIterator(q.start, q.end)
 		} else {
-			iter = child.Iterator(q.start, q.end)
+			iter, err = child.Iterator(q.start, q.end)
 		}
+		assert.Nil(t, err)
 		// Make sure proper iteration works.
 		for i := 0; i < len(q.expected); i++ {
 			assert.Equal(t, iter.Valid(), true)

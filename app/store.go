@@ -75,14 +75,17 @@ func NewStoreApp(name string, store weave.CommitKVStore,
 	s = s.WithLogger(log.NewNopLogger())
 
 	// load the chainID from the db
-	s.chainID = loadChainID(s.DeliverStore())
+	s.chainID = mustLoadChainID(s.DeliverStore())
 	if s.chainID != "" {
 		s.baseContext = weave.WithChainID(s.baseContext, s.chainID)
 	}
 
 	// get the most recent height
-	height, _ := s.store.CommitInfo()
-	s.blockContext = weave.WithHeight(s.baseContext, height)
+	info, err := s.store.CommitInfo()
+	if err != nil {
+		panic(err)
+	}
+	s.blockContext = weave.WithHeight(s.baseContext, info.Version)
 	return s
 }
 
@@ -173,16 +176,20 @@ func (s *StoreApp) CheckStore() weave.CacheableKVStore {
 //
 // The height is the block that holds the transactions, not the apphash itself.
 func (s *StoreApp) Info(req abci.RequestInfo) abci.ResponseInfo {
-	height, hash := s.store.CommitInfo()
+	info, err := s.store.CommitInfo()
+	if err != nil {
+		// sorry, nothing else we can return to server
+		panic(err)
+	}
 
 	s.logger.Info("Info synced",
-		"height", height,
-		"hash", fmt.Sprintf("%X", hash))
+		"height", info.Version,
+		"hash", fmt.Sprintf("%X", info.Hash))
 
 	return abci.ResponseInfo{
 		Data:             s.name,
-		LastBlockHeight:  height,
-		LastBlockAppHash: hash,
+		LastBlockHeight:  info.Version,
+		LastBlockAppHash: info.Hash,
 	}
 }
 
@@ -231,8 +238,11 @@ func (s *StoreApp) Query(reqQuery abci.RequestQuery) (resQuery abci.ResponseQuer
 	// 		height = s.CommittedHeight()
 	// 	}
 	// }
-	height, _ := s.store.CommitInfo()
-	resQuery.Height = height
+	info, err := s.store.CommitInfo()
+	if err != nil {
+		return queryError(err)
+	}
+	resQuery.Height = info.Version
 	// TODO: better version handling!
 	db := s.store.committed.CacheWrap()
 
@@ -287,7 +297,11 @@ func queryError(err error) abci.ResponseQuery {
 
 // Commit implements abci.Application
 func (s *StoreApp) Commit() (res abci.ResponseCommit) {
-	commitID := s.store.Commit()
+	commitID, err := s.store.Commit()
+	if err != nil {
+		// abci interface doesn't allow returning errors here, so just die
+		panic(err)
+	}
 
 	s.logger.Debug("Commit synced",
 		"height", commitID.Version,

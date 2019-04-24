@@ -48,7 +48,10 @@ func (h CreateContractMsgHandler) Deliver(ctx weave.Context, db weave.KVStore, t
 		AdminThreshold:      msg.AdminThreshold,
 	}
 
-	obj := h.bucket.Build(db, contract)
+	obj, err := h.bucket.Build(db, contract)
+	if err != nil {
+		return nil, err
+	}
 	if err = h.bucket.Save(db, obj); err != nil {
 		return nil, err
 	}

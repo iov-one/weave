@@ -157,7 +157,10 @@ func deduplicate(s [][]byte) [][]byte {
 // GetAt returns a list of all pk at that index (may be empty), or an error
 func (i Index) GetAt(db weave.ReadOnlyKVStore, index []byte) ([][]byte, error) {
 	key := i.IndexKey(index)
-	val := db.Get(key)
+	val, err := db.Get(key)
+	if err != nil {
+		return nil, err
+	}
 	if val == nil {
 		return nil, nil
 	}
@@ -165,7 +168,7 @@ func (i Index) GetAt(db weave.ReadOnlyKVStore, index []byte) ([][]byte, error) {
 		return [][]byte{val}, nil
 	}
 	var data = new(MultiRef)
-	err := data.Unmarshal(val)
+	err = data.Unmarshal(val)
 	if err != nil {
 		return nil, err
 	}
@@ -176,7 +179,11 @@ func (i Index) GetAt(db weave.ReadOnlyKVStore, index []byte) ([][]byte, error) {
 // begins with a given prefix
 func (i Index) GetPrefix(db weave.ReadOnlyKVStore, prefix []byte) ([][]byte, error) {
 	dbPrefix := i.IndexKey(prefix)
-	itr := db.Iterator(prefixRange(dbPrefix))
+	itr, err := db.Iterator(prefixRange(dbPrefix))
+	if err != nil {
+		return nil, err
+	}
+
 	var data [][]byte
 
 	for ; itr.Valid(); itr.Next() {
@@ -205,33 +212,37 @@ func (i Index) Query(db weave.ReadOnlyKVStore, mod string,
 		if err != nil {
 			return nil, err
 		}
-		return i.loadRefs(db, refs), nil
+		return i.loadRefs(db, refs)
 	case weave.PrefixQueryMod:
 		refs, err := i.GetPrefix(db, data)
 		if err != nil {
 			return nil, err
 		}
-		return i.loadRefs(db, refs), nil
+		return i.loadRefs(db, refs)
 	default:
 		return nil, errors.Wrap(errors.ErrHuman, "not implemented: "+mod)
 	}
 }
 
 func (i Index) loadRefs(db weave.ReadOnlyKVStore,
-	refs [][]byte) []weave.Model {
+	refs [][]byte) ([]weave.Model, error) {
 
 	if len(refs) == 0 {
-		return nil
+		return nil, nil
 	}
 	res := make([]weave.Model, len(refs))
 	for j, ref := range refs {
 		key := i.refKey(ref)
+		value, err := db.Get(key)
+		if err != nil {
+			return nil, err
+		}
 		res[j] = weave.Model{
 			Key:   key,
-			Value: db.Get(key),
+			Value: value,
 		}
 	}
-	return res
+	return res, nil
 }
 
 func (i Index) move(db weave.KVStore, prev Object, save Object) error {
@@ -255,7 +266,10 @@ func (i Index) move(db weave.KVStore, prev Object, save Object) error {
 	for _, newKey := range keysToAdd {
 		if i.unique {
 			k := i.IndexKey(newKey)
-			val := db.Get(k)
+			val, err := db.Get(k)
+			if err != nil {
+				return err
+			}
 			if val != nil {
 				return errors.Wrap(errors.ErrDuplicate, i.name)
 			}
@@ -303,7 +317,10 @@ func (i Index) remove(db weave.KVStore, index []byte, pk []byte) error {
 	}
 
 	key := i.IndexKey(index)
-	cur := db.Get(key)
+	cur, err := db.Get(key)
+	if err != nil {
+		return err
+	}
 	if cur == nil {
 		return errors.Wrap(errors.ErrNotFound, "cannot remove index from nothing")
 	}
@@ -318,7 +335,7 @@ func (i Index) remove(db weave.KVStore, index []byte, pk []byte) error {
 
 	// otherwise, remove one from a list....
 	var data = new(MultiRef)
-	err := data.Unmarshal(cur)
+	err = data.Unmarshal(cur)
 	if err != nil {
 		return err
 	}
@@ -347,7 +364,10 @@ func (i Index) insert(db weave.KVStore, index []byte, pk []byte) error {
 	}
 
 	key := i.IndexKey(index)
-	cur := db.Get(key)
+	cur, err := db.Get(key)
+	if err != nil {
+		return err
+	}
 
 	if i.unique {
 		if cur != nil {
@@ -365,7 +385,7 @@ func (i Index) insert(db weave.KVStore, index []byte, pk []byte) error {
 			return err
 		}
 	}
-	err := data.Add(pk)
+	err = data.Add(pk)
 	if err != nil {
 		return err
 	}

@@ -39,7 +39,10 @@ func (i *Initializer) FromGenesis(opts weave.Options, db weave.KVStore) error {
 		if err := escr.Validate(); err != nil {
 			return errors.Wrapf(err, "invalid escrow at position: %d ", j)
 		}
-		obj := bucket.Build(db, &escr)
+		obj, err := bucket.Build(db, &escr)
+		if err != nil {
+			return err
+		}
 		if err := bucket.Save(db, obj); err != nil {
 			return err
 		}
