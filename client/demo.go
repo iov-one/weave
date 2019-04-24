@@ -12,57 +12,58 @@ type Client struct {
 
 type TransactionId []byte
 
-type AsyncResult struct {
+type MempoolResult struct {
 	ID     TransactionId
 	Result *weave.CheckResult
 	Err    error
 }
 
-func (a AsyncResult) AsSyncError() SyncResult {
-	return SyncResult{
+func (a MempoolResult) AsCommitError() CommitResult {
+	return CommitResult{
 		ID:  a.ID,
 		Err: a.Err,
 	}
 }
 
-type SyncResult struct {
+type CommitResult struct {
 	ID     TransactionId
 	Height int64
 	Result *weave.DeliverResult
 	Err    error
 }
 
-// This just blocks on Check, then returns result or error.
-// ID will always be set
-func (c *Client) SubmitTxAsync(ctx context.Context, tx weave.Tx) AsyncResult {
+// SubmitTx will submit the tx to the mempool and then return with success or error
+// You will need to use WatchTx (easily parallelizable) to get the result.
+// CommitTx and CommitTxs provide helpers for common use cases
+func (c *Client) SubmitTx(ctx context.Context, tx weave.Tx) MempoolResult {
 	// TODO: submit to the node
-	return AsyncResult{}
+	return MempoolResult{}
 }
 
 // SearchTxById will return 0 or 1 results (nil or result value)
-func (c *Client) SearchTxById(ctx context.Context, id TransactionId) *SyncResult {
+func (c *Client) SearchTxById(ctx context.Context, id TransactionId) *CommitResult {
 	// TODO: search
 	return nil
 }
 
 // SubscribeTxById will block until there is a result, then return it
 // You must cancel the context to avoid blocking forever in some cases
-func (c *Client) SubscribeTxById(ctx context.Context, id TransactionId) SyncResult {
+func (c *Client) SubscribeTxById(ctx context.Context, id TransactionId) CommitResult {
 	// TODO: subscribe
 	// TODO: how to handle context being cancelled???
-	return SyncResult{}
+	return CommitResult{}
 }
 
 // WatchTx will block until this transaction makes it into a block
-// It will return immediatelt if the id was included in a block prior to the query, to avoid timing issues
+// It will return immediately if the id was included in a block prior to the query, to avoid timing issues
 // You can use context.Context to pass in a timeout
-func (c *Client) WatchTx(ctx context.Context, id TransactionId) SyncResult {
+func (c *Client) WatchTx(ctx context.Context, id TransactionId) CommitResult {
 	// TODO: combine subscribe tx and search tx (two other functions to be writen)
 	subctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
 	// start a subscription
-	sub := make(chan SyncResult, 1)
+	sub := make(chan CommitResult, 1)
 	go func() {
 		res := c.SubscribeTxById(subctx, id)
 		sub <- res
@@ -79,19 +80,19 @@ func (c *Client) WatchTx(ctx context.Context, id TransactionId) SyncResult {
 	return result
 }
 
-// SubmitTx will block on both Check and Deliver, returning when it is in a block
-func (c *Client) SubmitTx(ctx context.Context, tx weave.Tx) SyncResult {
+// CommitTx will block on both Check and Deliver, returning when it is in a block
+func (c *Client) CommitTx(ctx context.Context, tx weave.Tx) CommitResult {
 	// This can be combined from other primatives
-	check := c.SubmitTxAsync(ctx, tx)
+	check := c.SubmitTx(ctx, tx)
 	if check.Err != nil {
-		return check.AsSyncError()
+		return check.AsCommitError()
 	}
 	return c.WatchTx(ctx, check.ID)
 }
 
 // WatchTxs will watch a list of transactions in parallel
-func (c *Client) WatchTxs(ctx context.Context, ids []TransactionId) []SyncResult {
-	res := make([]SyncResult, len(ids))
+func (c *Client) WatchTxs(ctx context.Context, ids []TransactionId) []CommitResult {
+	res := make([]CommitResult, len(ids))
 	wg := sync.WaitGroup{}
 	for i, id := range ids {
 		if id != nil {
@@ -108,13 +109,13 @@ func (c *Client) WatchTxs(ctx context.Context, ids []TransactionId) []SyncResult
 	return res
 }
 
-// SubmitTxs will submit many transactions and wait until they are all included in blocks.
+// CommitTxs will submit many transactions and wait until they are all included in blocks.
 // Ideally, all in the same block
-func (c *Client) SubmitTxs(ctx context.Context, txs []weave.Tx) []SyncResult {
+func (c *Client) CommitTxs(ctx context.Context, txs []weave.Tx) []CommitResult {
 	// first submit them all (some may error), this should be in order
-	checks := make([]AsyncResult, len(txs))
+	checks := make([]MempoolResult, len(txs))
 	for i, tx := range txs {
-		checks[i] = c.SubmitTxAsync(ctx, tx)
+		checks[i] = c.SubmitTx(ctx, tx)
 	}
 
 	// make a list of all successful ones to block on Deliver (in parallel)
@@ -129,7 +130,7 @@ func (c *Client) SubmitTxs(ctx context.Context, txs []weave.Tx) []SyncResult {
 	// now, we combine the check errors into the deliver results
 	for i, check := range checks {
 		if check.Err != nil {
-			results[i] = check.AsSyncError()
+			results[i] = check.AsCommitError()
 		}
 	}
 
