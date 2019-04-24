@@ -78,12 +78,8 @@ func (b *SchemaBucket) Save(db weave.KVStore, obj orm.Object) error {
 	if !ok {
 		return errors.Wrapf(errors.ErrInvalidModel, "invalid type: %T", obj.Value())
 	}
-	switch ver, err := b.CurrentSchema(db, s.Pkg); {
-	case err != nil:
-		return errors.Wrap(err, "current schema")
-	case ver+1 != s.Version:
-		// Schema versioning is sequential and the numbers must be incrementing.
-		return errors.Wrapf(errors.ErrInvalidInput, "previous schema is %d", ver)
+	if err := b.validateNextSchema(db, s); err != nil {
+		return err
 	}
 	return b.Bucket.Save(db, obj)
 }
@@ -91,13 +87,30 @@ func (b *SchemaBucket) Save(db weave.KVStore, obj orm.Object) error {
 // Create adds given schema instance to the store and returns the ID of the
 // newly inserted entity.
 func (b *SchemaBucket) Create(db weave.KVStore, s *Schema) (orm.Object, error) {
-	switch ver, err := b.CurrentSchema(db, s.Pkg); {
-	case err != nil:
-		return nil, errors.Wrap(err, "current schema")
-	case ver+1 != s.Version:
-		// Schema versioning is sequential and the numbers must be incrementing.
-		return nil, errors.Wrapf(errors.ErrInvalidInput, "previous schema is %d", ver)
+	if err := b.validateNextSchema(db, s); err != nil {
+		return nil, err
 	}
 	obj := orm.NewSimpleObj(schemaID(s.Pkg, s.Version), s)
 	return obj, b.Bucket.Save(db, obj)
+}
+
+// validateNextSchema returns an error if given Schema instance is does not
+// represent the next valid schema version.
+func (b *SchemaBucket) validateNextSchema(db weave.KVStore, next *Schema) error {
+	ver, err := b.CurrentSchema(db, next.Pkg)
+	if err != nil {
+		if errors.ErrNotFound.Is(err) {
+			ver = 0
+			if next.Version != 1 {
+				return errors.Wrap(errors.ErrInvalidInput, "schema not initialized with version 1")
+			}
+		} else {
+			return errors.Wrap(err, "current schema")
+		}
+	}
+	if ver+1 != next.Version {
+		// Schema versioning is sequential and the numbers must be incrementing.
+		return errors.Wrapf(errors.ErrInvalidInput, "previous schema is %d", ver)
+	}
+	return nil
 }
