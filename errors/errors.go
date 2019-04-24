@@ -8,6 +8,9 @@ import (
 )
 
 var (
+	// errInternal should never be exposed, but we reserve this code for non-specified errors
+	errInternal = Register(1, "internal")
+
 	// ErrUnauthorized is used whenever a request without sufficient
 	// authorization is handled.
 	ErrUnauthorized = Register(2, "unauthorized")
@@ -107,8 +110,15 @@ func Register(code uint32, description string) *Error {
 
 // usedCodes is keeping track of used codes to ensure their uniqueness. No two
 // error instances should share the same error code.
-var usedCodes = map[uint32]*Error{
-	1: nil, // Error code 1 is restricted for non-weave errors and must not be used.
+var usedCodes = map[uint32]*Error{}
+
+// Lookup will resolve the abci code to a root Error object
+// if nothing is registered for that code, return errInternal
+func Lookup(code uint32) *Error {
+	if e, ok := usedCodes[code]; ok {
+		return e
+	}
+	return errInternal
 }
 
 // Error represents a root error.
