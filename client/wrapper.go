@@ -69,7 +69,9 @@ func (c *Client) CommitTx(ctx context.Context, tx weave.Tx) (*CommitResult, erro
 
 // WatchTxs will watch a list of transactions in parallel
 func (c *Client) WatchTxs(ctx context.Context, ids []TransactionID) ([]*CommitResult, error) {
-	var err error
+	var mutex sync.Mutex
+	// FIXME: make this multierror when that exists
+	var gotErr error
 	res := make([]*CommitResult, len(ids))
 
 	wg := sync.WaitGroup{}
@@ -78,16 +80,23 @@ func (c *Client) WatchTxs(ctx context.Context, ids []TransactionID) ([]*CommitRe
 			wg.Add(1)
 			// pass as args to avoid using same variables in multiple routines
 			go func(idx int, myid []byte) {
-				// all write to other location in slice, so should be safe
-				res[idx], err = c.WatchTx(ctx, myid)
+				r, err := c.WatchTx(ctx, myid)
+
+				// storing these values outside of the go routine needs to be in a mutex
+				mutex.Lock()
+				res[idx] = r
+				if err != nil {
+					gotErr = err
+				}
+				mutex.Unlock()
 				wg.Done()
 			}(i, id)
 		}
 	}
 	wg.Wait()
 
-	if err != nil {
-		return nil, err
+	if gotErr != nil {
+		return nil, gotErr
 	}
 	return res, nil
 }
