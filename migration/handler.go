@@ -9,11 +9,15 @@ import (
 // RegisterRoutes registers handlers for feedlist message processing.
 func RegisterRoutes(r weave.Registry, auth x.Authenticator) {
 	bucket := NewSchemaBucket()
-	r.Handle(pathUpgradeSchemaMsg, &upgradeSchemaHandler{bucket: bucket})
+	r.Handle(pathUpgradeSchemaMsg, &upgradeSchemaHandler{
+		bucket: bucket,
+		auth:   auth,
+	})
 }
 
 type upgradeSchemaHandler struct {
 	bucket *SchemaBucket
+	auth   x.Authenticator
 }
 
 func (h *upgradeSchemaHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
@@ -48,5 +52,11 @@ func (h *upgradeSchemaHandler) validate(ctx weave.Context, db weave.KVStore, tx 
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, errors.Wrap(err, "load msg")
 	}
+
+	conf := mustLoadConfig(db)
+	if !h.auth.HasAddress(ctx, conf.Admin) {
+		return nil, errors.Wrap(errors.ErrUnauthorized, "admin signature required")
+	}
+
 	return &msg, nil
 }
