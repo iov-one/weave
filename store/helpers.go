@@ -32,26 +32,20 @@ func (s *SliceIterator) Valid() bool {
 //
 // If Valid returns false, this method will panic.
 func (s *SliceIterator) Next() error {
-	s.assertValid()
+	if s.idx >= len(s.data) {
+		return errors.Wrap(errors.ErrDatabase, "Passed end of slice")
+	}
 	s.idx++
 	return nil
 }
 
-func (s *SliceIterator) assertValid() {
-	if s.idx >= len(s.data) {
-		panic("Passed end of slice")
-	}
-}
-
 // Key returns the key of the cursor.
 func (s *SliceIterator) Key() (key []byte) {
-	s.assertValid()
 	return s.data[s.idx].Key
 }
 
 // Value returns the value of the cursor.
 func (s *SliceIterator) Value() (value []byte) {
-	s.assertValid()
 	return s.data[s.idx].Value
 }
 

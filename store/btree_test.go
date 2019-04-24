@@ -19,6 +19,7 @@ func makeBase() CacheableKVStore {
 }
 
 func assertGetHas(t testing.TB, kv ReadOnlyKVStore, key, val []byte, has bool) {
+	t.Helper()
 	got, err := kv.Get(key)
 	assert.Nil(t, err)
 	assert.Equal(t, val, got)

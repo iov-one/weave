@@ -55,7 +55,7 @@ func MockCommitStore() CommitStore {
 // Returns error on nil key.
 func (s CommitStore) Get(key []byte) ([]byte, error) {
 	if len(key) == 0 {
-		return nil, errors.Wrapf(errors.ErrDatabase, "nil key")
+		return nil, errors.Wrap(errors.ErrDatabase, "nil key")
 	}
 	version := int64(s.tree.Version())
 	_, val := s.tree.GetVersioned(key, version)
