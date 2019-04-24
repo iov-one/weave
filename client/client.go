@@ -39,20 +39,20 @@ func NewClient(conn rpcclient.Client) *Client {
 // SubmitTx will submit the tx to the mempool and then return with success or error
 // You will need to use WatchTx (easily parallelizable) to get the result.
 // CommitTx and CommitTxs provide helpers for common use cases
-func (c *Client) SubmitTx(ctx context.Context, tx weave.Tx) (MempoolResult, error) {
+func (c *Client) SubmitTx(ctx context.Context, tx weave.Tx) (*MempoolResult, error) {
 	bz, err := tx.Marshal()
 	if err != nil {
-		return MempoolResult{}, errors.Wrapf(errors.ErrInvalidMsg, "marshaling: %s", err.Error())
+		return nil, errors.Wrapf(errors.ErrInvalidMsg, "marshaling: %s", err.Error())
 	}
 	res, err := c.conn.BroadcastTxSync(bz)
 	if err != nil {
-		return MempoolResult{}, errors.Wrapf(errors.ErrNetwork, "submit tx: %s", err.Error())
+		return nil, errors.Wrapf(errors.ErrNetwork, "submit tx: %s", err.Error())
 	}
 
 	if res.Code != 0 {
 		err = errors.ABCIError(res.Code, res.Log)
 	}
-	return MempoolResult{
+	return &MempoolResult{
 		ID:  res.Hash,
 		Err: err,
 	}, nil
@@ -61,7 +61,7 @@ func (c *Client) SubmitTx(ctx context.Context, tx weave.Tx) (MempoolResult, erro
 // SearchTx will search for all committed transactions that match a query,
 // returning them as one large array.
 // It returns an error if the subscription request failed.
-func (c *Client) SearchTx(ctx context.Context, query TxQuery) ([]CommitResult, error) {
+func (c *Client) SearchTx(ctx context.Context, query TxQuery) ([]*CommitResult, error) {
 	// TODO: return actual transaction content as well? not just ID and Result
 	return nil, nil
 }

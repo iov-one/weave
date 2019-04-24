@@ -19,11 +19,11 @@ type MempoolResult struct {
 }
 
 // AsCommitError will turn an errored MempoolResult into a CommitResult
-func (a MempoolResult) AsCommitError() CommitResult {
+func (a *MempoolResult) AsCommitError() *CommitResult {
 	if a.Err == nil {
 		panic("failed assertion: AsCommitError can onyl be called on errors")
 	}
-	return CommitResult{
+	return &CommitResult{
 		ID:  a.ID,
 		Err: a.Err,
 	}
@@ -36,4 +36,9 @@ type CommitResult struct {
 	Height int64
 	Result *weave.DeliverResult
 	Err    error
+}
+
+type resultOrError struct {
+	result *CommitResult
+	err    error
 }
