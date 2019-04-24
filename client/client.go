@@ -58,6 +58,21 @@ func (c *Client) SubmitTx(ctx context.Context, tx weave.Tx) (*MempoolResult, err
 	}, nil
 }
 
+// Query is meant to mirror the abci query interface exactly, so we can wrap it with app.ABCIStore
+// This will give us state from the application
+func (c *Client) Query(query RequestQuery) ResponseQuery {
+	res, err := c.conn.ABCIQueryWithOptions(query.Path, query.Data, rpcclient.ABCIQueryOptions{Height: query.Height, Prove: query.Prove})
+	// network error reported as special error code
+	if err != nil {
+		code, log := errors.ABCIInfo(errors.Wrap(errors.ErrNetwork, err.Error()), false)
+		return ResponseQuery{
+			Code: code,
+			Log:  log,
+		}
+	}
+	return res.Response
+}
+
 // SearchTx will search for all committed transactions that match a query,
 // returning them as one large array.
 // It returns an error if the subscription request failed.

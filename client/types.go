@@ -2,11 +2,18 @@ package client
 
 import (
 	"github.com/iov-one/weave"
+	abci "github.com/tendermint/tendermint/abci/types"
 	cmn "github.com/tendermint/tendermint/libs/common"
 )
 
 // TransactionID is the hash used to identify the transaction
 type TransactionID = cmn.HexBytes
+
+// RequestQuery is used for the query interface to mirror the abci query interface
+type RequestQuery = abci.RequestQuery
+
+// ResponseQuery is used for the query interface to mirror the abci query interface
+type ResponseQuery = abci.ResponseQuery
 
 // TxQuery is some query to find transactions
 type TxQuery string

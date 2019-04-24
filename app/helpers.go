@@ -6,9 +6,14 @@ import (
 	abci "github.com/tendermint/tendermint/abci/types"
 )
 
+// Queryable is implemented by an abci.Application, but also weave/client.Client (over tendermint)
+type Queryable interface {
+	Query(query abci.RequestQuery) abci.ResponseQuery
+}
+
 // ABCIStore exposes the weave abci.Query interface as a ReadonlyKVStore
 type ABCIStore struct {
-	app abci.Application
+	app Queryable
 }
 
 var _ weave.ReadOnlyKVStore = (*ABCIStore)(nil)
