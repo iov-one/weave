@@ -1,9 +1,12 @@
 package client
 
-import "github.com/iov-one/weave"
+import (
+	"github.com/iov-one/weave"
+	cmn "github.com/tendermint/tendermint/libs/common"
+)
 
 // TransactionID is the hash used to identify the transaction
-type TransactionID []byte
+type TransactionID = cmn.HexBytes
 
 // TxQuery is some query to find transactions
 type TxQuery string
@@ -11,9 +14,8 @@ type TxQuery string
 // MempoolResult is returned from the mempool (CheckTx)
 // Result is only set on success codes, Err is set if it was a failure code
 type MempoolResult struct {
-	ID     TransactionID
-	Result *weave.CheckResult
-	Err    error
+	ID  TransactionID
+	Err error
 }
 
 // AsCommitError will turn an errored MempoolResult into a CommitResult

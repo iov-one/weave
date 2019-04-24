@@ -77,6 +77,9 @@ var (
 	// process raw bytes (get/set/delete/write)
 	ErrDatabase = Register(20, "database")
 
+	// ErrNetwork is returned on network failure
+	ErrNetwork = Register(19, "network")
+
 	// ErrPanic is only set when we recover from a panic, so we know to
 	// redact potentially sensitive system info
 	ErrPanic = Register(111222, "panic")
