@@ -5,6 +5,7 @@ import (
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
+	pubsub "github.com/tendermint/tendermint/libs/pubsub/query"
 	rpcclient "github.com/tendermint/tendermint/rpc/client"
 	ctypes "github.com/tendermint/tendermint/rpc/core/types"
 	tmtypes "github.com/tendermint/tendermint/types"
@@ -15,6 +16,8 @@ type Status = ctypes.ResultStatus
 type GenesisDoc = tmtypes.GenesisDoc
 
 var QueryNewBlockHeader = tmtypes.EventQueryNewBlockHeader
+
+const txPerPage = 50
 
 // Client is a tendermint client wrapped to provide
 // simple access to the basic data structures used in weave
@@ -32,7 +35,7 @@ func NewClient(conn rpcclient.Client) *Client {
 	return &Client{
 		conn: conn,
 		// TODO: make this random
-		subscriber: "tools-client",
+		subscriber: "weaveclient",
 	}
 }
 
@@ -83,13 +86,7 @@ func (c *Client) GetTxByID(ctx context.Context, id TransactionID) (*CommitResult
 	if err != nil {
 		return nil, errors.Wrapf(errors.ErrNetwork, "get tx: %s", err.Error())
 	}
-	res, err := weave.ParseDeliverOrError(tx.TxResult)
-	return &CommitResult{
-		ID:     id,
-		Height: tx.Height,
-		Result: res,
-		Err:    err,
-	}, nil
+	return resultTxToCommitResult(tx), nil
 }
 
 // SearchTx will search for all committed transactions that match a query,
@@ -97,13 +94,83 @@ func (c *Client) GetTxByID(ctx context.Context, id TransactionID) (*CommitResult
 // It returns an error if the subscription request failed.
 func (c *Client) SearchTx(ctx context.Context, query TxQuery) ([]*CommitResult, error) {
 	// TODO: return actual transaction content as well? not just ID and Result
-	return nil, nil
+	// TODO: add context timeout here
+	// FIXME: use proofs sometime
+	// FIXME: iterate over all search results and combine them if multiple pages
+	search, err := c.conn.TxSearch(query, false, 1, txPerPage)
+	if err != nil {
+		return nil, errors.Wrapf(errors.ErrNetwork, "search tx: %s", err.Error())
+	}
+
+	results := make([]*CommitResult, len(search.Txs))
+	for i, tx := range search.Txs {
+		results[i] = resultTxToCommitResult(tx)
+	}
+	return results, nil
 }
 
 // SubscribeTx will subscribe to all transactions that match a query, writing them to the
 // results channel as they arrive. It returns an error if the subscription request failed.
 // Once subscriptions start, the continue until the context is closed (or network error)
 func (c *Client) SubscribeTx(ctx context.Context, query TxQuery, results chan<- CommitResult) error {
-	// TODO: return actual transaction content as well? not just ID and Result
+	data, err := c.subscribe(ctx, query)
+	if err != nil {
+		return err
+	}
+
+	// start a go routine to parse the incoming data and feed to the results channel
+	go func(in <-chan interface{}) {
+		for elem := range in {
+			// TODO: return actual transaction content as well? not just ID and Result
+			// TODO: safer casting???
+			val := elem.(tmtypes.EventDataTx)
+			res := txResultToCommitResult(val.TxResult)
+			results <- res
+		}
+		close(results)
+	}(data)
+
 	return nil
+}
+
+// subscribe should be used internally, it wraps conn.Subscribe and uses ctx.Done() to trigger Unsubscription
+func (c *Client) subscribe(ctx context.Context, query string) (<-chan interface{}, error) {
+	q, err := pubsub.New(query)
+	if err != nil {
+		return nil, errors.Wrapf(errors.ErrInvalidInput, "Query '%s': %s", query, err.Error())
+	}
+
+	out := make(chan interface{}, 1)
+	err = c.conn.Subscribe(ctx, c.subscriber, q, out)
+	if err != nil {
+		return nil, errors.Wrapf(errors.ErrNetwork, "Subscribe to '%s': %s", query, err.Error())
+	}
+	// listen for context canceled to unsubscribe
+	// put all variables in local scope to prevent long-lived references
+	go func(stop <-chan struct{}, sub string, q *pubsub.Query) {
+		<-stop
+		c.conn.Unsubscribe(context.Background(), sub, q)
+	}(ctx.Done(), c.subscriber, q)
+
+	return out, nil
+}
+
+func resultTxToCommitResult(tx *ctypes.ResultTx) *CommitResult {
+	res, err := weave.ParseDeliverOrError(tx.TxResult)
+	return &CommitResult{
+		ID:     tx.Hash,
+		Height: tx.Height,
+		Result: res,
+		Err:    err,
+	}
+}
+
+func txResultToCommitResult(tx tmtypes.TxResult) CommitResult {
+	res, err := weave.ParseDeliverOrError(tx.Result)
+	return CommitResult{
+		ID:     tx.Tx.Hash(),
+		Height: tx.Height,
+		Result: res,
+		Err:    err,
+	}
 }
