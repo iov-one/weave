@@ -2,6 +2,7 @@ package client
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
@@ -155,7 +156,9 @@ func (c *Client) SubscribeHeaders(ctx context.Context, results chan<- Header) er
 // results channel as they arrive. It returns an error if the subscription request failed.
 // Once subscriptions start, the continue until the context is closed (or network error)
 func (c *Client) SubscribeTx(ctx context.Context, query TxQuery, results chan<- CommitResult) error {
-	data, err := c.subscribe(ctx, query)
+	q := fmt.Sprintf("%s='%s' AND %s", tmtypes.EventTypeKey, tmtypes.EventTx, query)
+
+	data, err := c.subscribe(ctx, q)
 	if err != nil {
 		return err
 	}

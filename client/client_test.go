@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/weavetest/assert"
@@ -111,6 +112,47 @@ func TestCommitTx(t *testing.T) {
 	assert.Equal(t, 2, len(tags))
 	assert.Equal(t, "app.key", string(tags[1].GetKey()))
 	assert.Equal(t, key, string(tags[1].GetValue()))
+}
+
+func TestSearchSubscribeTx(t *testing.T) {
+	c := NewClient(NewLocalConnection(node))
+	// 500 ms timeout so we don't hang forever on failed subscriptions
+	ctx, cancel := context.WithTimeout(context.Background(), 500*time.Millisecond)
+	defer cancel()
+
+	key := cmn.RandStr(10)
+	value := cmn.RandStr(10)
+	tx := &KvTx{Key: key, Value: value}
+
+	// start subscription before the commit
+	query := fmt.Sprintf("app.key='%s'", key)
+	sub := make(chan CommitResult, 2)
+	err := c.SubscribeTx(ctx, query, sub)
+	assert.Nil(t, err)
+
+	// wait until it is in the block
+	res, err := c.CommitTx(ctx, tx)
+	assert.Nil(t, err)
+	assert.Nil(t, res.Err)
+	assert.Equal(t, res.Result.Tags[1].Key, []byte("app.key"))
+	assert.Equal(t, res.Result.Tags[1].Value, []byte(key))
+
+	// now search for a transaction
+	matches, err := c.SearchTx(ctx, query)
+	assert.Nil(t, err)
+	assert.Equal(t, 1, len(matches))
+	fromSearch := matches[0]
+	assert.Nil(t, fromSearch.Err)
+	assert.Equal(t, tx.Hash(), fromSearch.ID)
+
+	// and make sure the same was received in subscription
+	fromSub, ok := <-sub
+	assert.Equal(t, true, ok)
+	assert.Nil(t, fromSub.Err)
+	assert.Equal(t, tx.Hash(), fromSub.ID)
+
+	// are they both identical
+	// assert.Equal(t, fromSub, *fromSearch)
 }
 
 type KvTx struct {

@@ -18,9 +18,11 @@ func getChainID() string {
 }
 
 func TestMain(m *testing.M) {
-	// TODO: check out config file...
 	config := rpctest.GetConfig()
+	// this is just for fun :)
 	config.Moniker = "WeaveClientTest"
+	// we must set these two to ensure that app.key is indexed (IndexTags non-empty overrides IndexAllTags)
+	config.TxIndex.IndexTags = ""
 	config.TxIndex.IndexAllTags = true
 
 	// run the default kvstore app inside a tendermint instance
