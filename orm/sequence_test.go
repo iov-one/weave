@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/iov-one/weave/store"
+	"github.com/iov-one/weave/weavetest/assert"
 )
 
 func TestSequence(t *testing.T) {
@@ -20,7 +21,8 @@ func TestSequence(t *testing.T) {
 		// Ensure that multiple sequences can be used within the same
 		// store.
 		for _, s := range sequences {
-			got := s.NextInt(db)
+			got, err := s.NextInt(db)
+			assert.Nil(t, err)
 			if got != want {
 				t.Fatalf("want %d, got %d", want, got)
 			}
@@ -34,7 +36,9 @@ func TestSequenceKeyFormat(t *testing.T) {
 	s.NextVal(db)
 	// As defined in NewSequence documentation
 	key := `_s.bucket:name`
-	if !db.Has([]byte(key)) {
+	has, err := db.Has([]byte(key))
+	assert.Nil(t, err)
+	if !has {
 		t.Fatal("sequence not found in store, invalid key?")
 	}
 

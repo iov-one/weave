@@ -7,8 +7,8 @@ import (
 
 // Store is a subset of weave.KVStore.
 type Store interface {
-	Get([]byte) []byte
-	Set([]byte, []byte)
+	Get([]byte) ([]byte, error)
+	Set([]byte, []byte) error
 }
 
 // Save will Validate the object, before writing it to a special "configuration"
@@ -22,8 +22,7 @@ func Save(db Store, pkg string, src ValidMarshaler) error {
 	if err != nil {
 		return errors.Wrapf(err, "marshal: key %q", key)
 	}
-	db.Set(key, raw)
-	return nil
+	return db.Set(key, raw)
 }
 
 // ValidMarshaler is implemented by object that can serialize itself to a binary
@@ -38,7 +37,10 @@ type ValidMarshaler interface {
 
 func Load(db Store, pkg string, dst Unmarshaler) error {
 	key := []byte("_c:" + pkg)
-	raw := db.Get(key)
+	raw, err := db.Get(key)
+	if err != nil {
+		return err
+	}
 	if raw == nil {
 		return errors.Wrapf(errors.ErrNotFound, "key %q", key)
 	}

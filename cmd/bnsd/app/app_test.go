@@ -201,7 +201,7 @@ func createContract(
 	for i, addr := range contractSigs {
 		participants[i] = &multisig.Participant{
 			Signature: addr,
-			Power:     1,
+			Weight:    1,
 		}
 	}
 	msg := &multisig.CreateContractMsg{

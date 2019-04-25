@@ -18,15 +18,17 @@ var _ weave.Initializer = (*Initializer)(nil)
 func (*Initializer) FromGenesis(opts weave.Options, db weave.KVStore) error {
 	var governance struct {
 		Electorate []struct {
-			Title    string `json:"title"`
+			Admin    weave.Address `json:"admin"`
+			Title    string        `json:"title"`
 			Electors []struct {
 				Address weave.Address `json:"address"`
 				Weight  uint32        `json:"weight"`
 			} `json:"electors"`
 		} `json:"electorate"`
 		Rules []struct {
-			Title             string `json:"title"`
-			VotingPeriodHours uint32 `json:"voting_period_hours"`
+			Admin             weave.Address `json:"admin"`
+			Title             string        `json:"title"`
+			VotingPeriodHours uint32        `json:"voting_period_hours"`
 			Fraction          struct {
 				Numerator   uint32 `json:"numerator"`
 				Denominator uint32 `json:"denominator"`
@@ -49,6 +51,7 @@ func (*Initializer) FromGenesis(opts weave.Options, db weave.KVStore) error {
 			total += uint64(p.Weight)
 		}
 		electorate := Electorate{
+			Admin:                 e.Admin,
 			Title:                 e.Title,
 			Electors:              ps,
 			TotalWeightElectorate: total,
@@ -56,7 +59,10 @@ func (*Initializer) FromGenesis(opts weave.Options, db weave.KVStore) error {
 		if err := electorate.Validate(); err != nil {
 			return errors.Wrap(err, fmt.Sprintf("electorate #%d is invalid", i))
 		}
-		obj := electBucket.Build(db, &electorate)
+		obj, err := electBucket.Build(db, &electorate)
+		if err != nil {
+			return err
+		}
 		if err := electBucket.Save(db, obj); err != nil {
 			return err
 		}
@@ -65,6 +71,7 @@ func (*Initializer) FromGenesis(opts weave.Options, db weave.KVStore) error {
 	rulesBucket := NewElectionRulesBucket()
 	for i, r := range governance.Rules {
 		rule := ElectionRule{
+			Admin:             r.Admin,
 			Title:             r.Title,
 			VotingPeriodHours: r.VotingPeriodHours,
 			Threshold:         Fraction{Numerator: r.Fraction.Numerator, Denominator: r.Fraction.Denominator},
@@ -72,7 +79,10 @@ func (*Initializer) FromGenesis(opts weave.Options, db weave.KVStore) error {
 		if err := rule.Validate(); err != nil {
 			return errors.Wrap(err, fmt.Sprintf("eletionRule #%d is invalid", i))
 		}
-		obj := rulesBucket.Build(db, &rule)
+		obj, err := rulesBucket.Build(db, &rule)
+		if err != nil {
+			return err
+		}
 		if err := rulesBucket.Save(db, obj); err != nil {
 			return err
 		}

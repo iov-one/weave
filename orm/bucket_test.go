@@ -2,14 +2,13 @@ package orm
 
 import (
 	"bytes"
-	"fmt"
+	"reflect"
 	"testing"
 
 	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/store"
-	"github.com/pkg/errors"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
+	"github.com/iov-one/weave/weavetest/assert"
 )
 
 type saver func(Object) error
@@ -18,141 +17,147 @@ type transformer func(Object, saver) error
 func set(key []byte, n int64) transformer {
 	return func(obj Object, save saver) error {
 		if obj != nil {
-			return errors.New("expected empty")
+			return errors.Wrap(errors.ErrInvalidState, "expected empty")
 		}
 		obj = NewSimpleObj(key, NewCounter(n))
 		return save(obj)
 	}
 }
 
-func addN(expect, n int64) transformer {
-	return func(obj Object, save saver) error {
-		if obj == nil {
-			return errors.New("expected non-nil value")
-		}
-		cntr, ok := obj.Value().(*Counter)
-		if !ok {
-			return errors.New("expected counter")
-		}
-		if cntr.Count != expect {
-			return errors.Errorf("Expected %d, got %d", expect, cntr.Count)
-		}
-		cntr.Count += n
-		return save(obj)
-	}
+func TestBucketName(t *testing.T) {
+	obj := NewSimpleObj(nil, &Counter{})
+
+	assert.Panics(t, func() {
+		// An invalid bucket name must crash.
+		NewBucket("l33t", obj)
+	})
 }
 
-func isEmpty(obj Object, save saver) error {
-	if obj != nil {
-		return errors.New("Expected empty object")
+func TestBucketNameCollision(t *testing.T) {
+	const bucketName = "mybucket"
+	var objkey = []byte("collision-key")
+
+	counter := &Counter{}
+	assert.Nil(t, counter.Validate())
+	o1 := NewSimpleObj(nil, counter)
+	o1.SetKey([]byte(objkey))
+	b1 := NewBucket(bucketName, o1)
+
+	multiref := &MultiRef{
+		Refs: [][]byte{
+			[]byte("foobar"),
+		},
 	}
-	return nil
-}
-
-// Test get/save on one bucket
-// Test get/save are independent between buckets
-// Test bucket names enforced
-func TestBucketStore(t *testing.T) {
-	// make some buckets for testing
-	counter := NewSimpleObj(nil, new(Counter))
-	multi := NewSimpleObj(nil, new(MultiRef))
-
-	count := NewBucket("some", counter)
-	count2 := NewBucket("somet", counter)
-	bad := NewBucket("some", multi)
-	assert.Panics(t, func() { NewBucket("l33t", counter) })
-
-	// default key to check for conflicts with names
-	k := []byte{'t', ':', 'b'}
-	k2 := []byte{'b'}
-
-	cases := []struct {
-		bucket    Bucket
-		get       []byte
-		transform transformer
-		isError   bool
-	}{
-		0: {count, k, isEmpty, false},
-		1: {count, k, set(k, 55), false},
-		2: {count, k, isEmpty, true},
-		3: {count, k, addN(55, 22), false},
-		// this reads wrong type, so makes error
-		4: {bad, k, nil, true},
-		5: {bad, k2, isEmpty, false},
-		// add more values and check no overlap
-		6:  {count, k2, set(k, 17), false},
-		7:  {count2, k, isEmpty, false},
-		8:  {count2, k2, isEmpty, false},
-		9:  {count2, k2, set(k2, 99), false},
-		10: {count2, k2, addN(99, 1), false},
-		11: {count2, k, isEmpty, false},
-		12: {count2, k2, isEmpty, true},
-		// make sure negaitves cannot be stored
-		13: {count, k2, addN(17, -20), true},
-	}
+	assert.Nil(t, multiref.Validate())
+	o2 := NewSimpleObj(nil, multiref)
+	o2.SetKey([]byte(objkey))
+	b2 := NewBucket(bucketName, o2)
 
 	db := store.MemStore()
-	for i, tc := range cases {
-		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
-			b := tc.bucket
-			s := func(o Object) error { return b.Save(db, o) }
+	assert.Nil(t, b1.Save(db, o1))
 
-			var obj Object
-			var err error
-			if tc.get != nil {
-				obj, err = b.Get(db, tc.get)
-				if err != nil {
-					require.True(t, tc.isError, "%v", err)
-					return
-				}
-			}
+	// Buckets do not know about each other. Saving an object under the
+	// same key overwrites and because there is no check of stored data,
+	// this operation does not fail.
+	if err := b2.Save(db, o2); err != nil {
+		t.Fatalf("unexpected error: %+v", err)
+	}
 
-			if tc.transform != nil {
-				err = tc.transform(obj, s)
-				if tc.isError {
-					require.Error(t, err)
-				} else {
-					require.NoError(t, err)
-				}
-			}
-		})
+	// Loading an object using the wrong bucket must fail because protobuf
+	// deserialization cannot happen.
+	if _, err := b1.Get(db, objkey); !errors.ErrInvalidState.Is(err) {
+		t.Fatalf("cannot get object: %+v", err)
 	}
 }
 
-// make sure we have independent sequences
+func TestBucketCannotSaveInvalid(t *testing.T) {
+	counter := &Counter{
+		Count: -999, // Negative value is not valid.
+	}
+	if err := counter.Validate(); !errors.ErrInvalidState.Is(err) {
+		t.Fatalf("unexpected error: %s", err)
+	}
+
+	o := NewSimpleObj(nil, counter)
+	o.SetKey([]byte("mykey"))
+	b := NewBucket("mybucket", o)
+
+	db := store.MemStore()
+	if err := b.Save(db, o); !errors.ErrInvalidState.Is(err) {
+		t.Fatalf("invalid object must not save: %s", err)
+	}
+}
+
+func TestBucketGetSave(t *testing.T) {
+	counter := NewCounter(848)
+	assert.Nil(t, counter.Validate())
+
+	o := NewSimpleObj(nil, counter)
+	o.SetKey([]byte("mykey"))
+	b := NewBucket("mybucket", o)
+
+	db := store.MemStore()
+	if err := b.Save(db, o); err != nil {
+		t.Fatalf("cannot save: %s", err)
+	}
+
+	res, err := b.Get(db, []byte("mykey"))
+	if err != nil {
+		t.Fatalf("cannot get object: %s", err)
+	}
+
+	c, ok := res.Value().(*Counter)
+	if !ok {
+		t.Fatalf("unexpected type: %s", err)
+	}
+	if c.Count != 848 {
+		t.Fatalf("unexpected counter state: %d", c.Count)
+	}
+
+	// Update the counter state. This is a reference so the data
+	// represented by `res` will be updated as well. Storing res in the
+	// bucket must save the new state.
+	c.Count = 59
+	if err := b.Save(db, res); err != nil {
+		t.Fatalf("cannot overwrite counter: %s", err)
+	}
+
+	res, err = b.Get(db, []byte("mykey"))
+	if err != nil {
+		t.Fatalf("cannot get overwritten object: %s", err)
+	}
+	if c, ok = res.Value().(*Counter); !ok {
+		t.Fatalf("unexpected type: %s", err)
+	} else if c.Count != 59 {
+		t.Fatalf("unexpected counter state: %d", c.Count)
+	}
+}
+
+// Make sure we have independent sequences.
 func TestBucketSequence(t *testing.T) {
-	// make some buckets for testing
-	counter := NewSimpleObj(nil, new(Counter))
-	a := NewBucket("many", counter)
-	b := NewBucket("man", counter)
-
-	s1 := "ard"
-	s2 := "yard"
-	cases := []struct {
-		bucket Bucket
-		seq    string
-		add    int64
-		expect int64
-	}{
-		// check the two sequences are both saved and independent
-		{a, s1, 5, 5},
-		{a, s1, 6, 11},
-		{a, s2, 7, 7},
-		{a, s2, 12, 19},
-		{a, s1, 6, 17},
-		// check there is no interplay between the two buckets
-		{b, s1, 22, 22},
-		{b, s2, 99, 99},
-		{b, s1, 118, 140},
-	}
+	b1 := NewBucket("aaa", NewSimpleObj(nil, &Counter{}))
+	b2 := NewBucket("bbb", NewSimpleObj(nil, &Counter{}))
 
 	db := store.MemStore()
-	for i, tc := range cases {
-		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
-			s := tc.bucket.Sequence(tc.seq)
-			res, _ := s.increment(db, tc.add)
-			assert.Equal(t, tc.expect, res)
-		})
+
+	// Ensure they are sequential and not affecting one another. Repeat
+	// this operation several times.
+	for i := int64(1); i < 10; i++ {
+		sa := b1.Sequence("seq1")
+		a, err := sa.NextInt(db)
+		assert.Nil(t, err)
+
+		sb := b1.Sequence("seq2") // The same bucket but different name.
+		b, err := sb.NextInt(db)
+		assert.Nil(t, err)
+
+		sc := b2.Sequence("seq1") // The same name but different bucket.
+		c, err := sc.NextInt(db)
+		assert.Nil(t, err)
+
+		if a != i || a != b || a != c {
+			t.Fatalf("different sequencces increment independently: a=%d b=%d c=%d", a, b, c)
+		}
 	}
 
 }
@@ -160,11 +165,11 @@ func TestBucketSequence(t *testing.T) {
 // countByte is another index we can use
 func countByte(obj Object) ([]byte, error) {
 	if obj == nil {
-		return nil, errors.New("Cannot take index of nil")
+		return nil, errors.Wrap(errors.ErrInvalidState, "Cannot take index of nil")
 	}
 	cntr, ok := obj.Value().(*Counter)
 	if !ok {
-		return nil, errors.New("Can only take index of Counter")
+		return nil, errors.Wrap(errors.ErrInvalidState, "Can only take index of Counter")
 	}
 	// last 8 bits...
 	return bc(cntr.Count), nil
@@ -174,35 +179,7 @@ func bc(i int64) []byte {
 	return []byte{byte(i % 256)}
 }
 
-// query will query either by pattern or key
-// verifies that the proper results are returned
-type query struct {
-	index   string
-	like    Object
-	at      []byte
-	res     []Object
-	isError bool
-}
-
-func (q query) check(t *testing.T, b Bucket, db weave.KVStore) {
-	var res []Object
-	var err error
-	if q.like != nil {
-		res, err = b.GetIndexedLike(db, q.index, q.like)
-	} else {
-		res, err = b.GetIndexed(db, q.index, q.at)
-	}
-	if q.isError {
-		require.Error(t, err)
-	} else {
-		require.NoError(t, err)
-		assert.EqualValues(t, q.res, res)
-	}
-}
-
-// Make sure secondary indexes work
-func TestBucketIndex(t *testing.T) {
-	// make some buckets for testing
+func TestBucketSecondaryIndex(t *testing.T) {
 	const uniq, mini = "uniq", "mini"
 
 	bucket := NewBucket("special", NewSimpleObj(nil, new(Counter))).
@@ -216,89 +193,111 @@ func TestBucketIndex(t *testing.T) {
 	ob2 := NewSimpleObj(b, NewCounter(245))
 	oc := NewSimpleObj(c, NewCounter(512+245))
 
-	cases := []struct {
-		bucket    Bucket
-		save      []Object
-		saveError bool
-		remove    [][]byte
-		queries   []query
+	type savecall struct {
+		obj     Object
+		wantErr *errors.Error
+	}
+
+	// query will query either by pattern or key
+	// verifies that the proper results are returned
+	type query struct {
+		index   string
+		like    Object
+		at      []byte
+		res     []Object
+		wantErr *errors.Error
+	}
+
+	cases := map[string]struct {
+		bucket  Bucket
+		save    []savecall
+		remove  [][]byte
+		queries []query
 	}{
-		// insert one object enters into both indexes
-		0: {
-			bucket, []Object{oa}, false, nil,
-			[]query{
-				{uniq, oa, nil, []Object{oa}, false},
-				{mini, oa, nil, []Object{oa}, false},
-				{"foo", oa, nil, nil, true},
+		"insert one object enters into both indexes": {
+			bucket: bucket,
+			save:   []savecall{{obj: oa}},
+			queries: []query{
+				{uniq, oa, nil, []Object{oa}, nil},
+				{mini, oa, nil, []Object{oa}, nil},
+				{"foo", oa, nil, nil, ErrInvalidIndex},
 			},
 		},
-		// add a second object and move one
-		1: {
-			bucket, []Object{oa, ob, oa2}, false, nil,
-			[]query{
-				{uniq, oa, nil, nil, false},
-				{uniq, oa2, nil, []Object{oa2}, false},
-				{uniq, ob, nil, []Object{ob}, false},
-				{mini, nil, []byte{5}, []Object{ob}, false},
-				{mini, nil, []byte{245}, []Object{oa2}, false},
+		"add a second object and move one": {
+			bucket: bucket,
+			save: []savecall{
+				{obj: oa},
+				{obj: ob},
+				{obj: oa2},
+			},
+			queries: []query{
+				{uniq, oa, nil, nil, nil},
+				{uniq, oa2, nil, []Object{oa2}, nil},
+				{uniq, ob, nil, []Object{ob}, nil},
+				{mini, nil, []byte{5}, []Object{ob}, nil},
+				{mini, nil, []byte{245}, []Object{oa2}, nil},
 			},
 		},
-		// prevent a conflicting save
-		2: {
-			bucket, []Object{oa2, ob2}, true, nil, nil,
+		"prevent a conflicting save": {
+			bucket: bucket,
+			save: []savecall{
+				{obj: oa2},
+				{obj: ob2, wantErr: errors.ErrDuplicate},
+			},
 		},
-		// update properly on delete as well
-		3: {
-			bucket, []Object{oa, ob2, oc}, false, [][]byte{b},
-			[]query{
-				{uniq, oa, nil, []Object{oa}, false},
-				{uniq, ob2, nil, nil, false},
-				{uniq, oc, nil, []Object{oc}, false},
-				{mini, nil, []byte{5}, []Object{oa}, false},
-				{mini, nil, []byte{245}, []Object{oc}, false},
+		"update properly on delete as well": {
+			bucket: bucket,
+			save: []savecall{
+				{obj: oa},
+				{obj: ob2},
+				{obj: oc},
+			},
+			remove: [][]byte{b},
+			queries: []query{
+				{uniq, oa, nil, []Object{oa}, nil},
+				{uniq, ob2, nil, nil, nil},
+				{uniq, oc, nil, []Object{oc}, nil},
+				{mini, nil, []byte{5}, []Object{oa}, nil},
+				{mini, nil, []byte{245}, []Object{oc}, nil},
 			},
 		},
 	}
 
-	for i, tc := range cases {
-		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
+	for testName, tc := range cases {
+		t.Run(testName, func(t *testing.T) {
 			db := store.MemStore()
-			b := tc.bucket
 
-			// add all initial objects and enforce
-			// error or no error
-			hasErr := false
-			for _, s := range tc.save {
-				err := b.Save(db, s)
-				if !tc.saveError {
-					require.NoError(t, err)
-				} else if err != nil {
-					hasErr = true
+			for i, call := range tc.save {
+				if err := tc.bucket.Save(db, call.obj); !call.wantErr.Is(err) {
+					t.Fatalf("unexpected %d save call error: %s", i, err)
 				}
 			}
-			if tc.saveError {
-				require.True(t, hasErr)
-				return
+
+			for i, rem := range tc.remove {
+				if err := tc.bucket.Delete(db, rem); err != nil {
+					t.Fatalf("cannot remove %d: %s", i, err)
+				}
 			}
 
-			// remove any if desired
-			for _, rem := range tc.remove {
-				err := b.Delete(db, rem)
-				require.NoError(t, err)
-			}
-
-			for _, q := range tc.queries {
-				q.check(t, b, db)
+			for i, q := range tc.queries {
+				var (
+					res []Object
+					err error
+				)
+				if q.like != nil {
+					res, err = tc.bucket.GetIndexedLike(db, q.index, q.like)
+				} else {
+					res, err = tc.bucket.GetIndexed(db, q.index, q.at)
+				}
+				if !q.wantErr.Is(err) {
+					t.Fatalf("unexpected %d query error: %s", i, err)
+				}
+				if !reflect.DeepEqual(q.res, res) {
+					t.Fatalf("unexpected %d query result: %+v", i, res)
+				}
 			}
 		})
 	}
-}
-
-func toModel(t *testing.T, bucket Bucket, obj Object) weave.Model {
-	dbkey := bucket.DBKey(obj.Key())
-	val, err := obj.Value().Marshal()
-	require.NoError(t, err)
-	return weave.Model{Key: dbkey, Value: val}
 }
 
 // Check query interface works, also with embedded indexes
@@ -327,126 +326,150 @@ func TestBucketQuery(t *testing.T) {
 	ob := NewSimpleObj(b, NewCounter(256+5))
 	oc := NewSimpleObj(c, NewCounter(2))
 	err := bucket.Save(db, oa)
-	require.NoError(t, err)
+	assert.Nil(t, err)
 	err = bucket.Save(db, ob)
-	require.NoError(t, err)
+	assert.Nil(t, err)
 	err = bucket.Save(db, oc)
-	require.NoError(t, err)
+	assert.Nil(t, err)
+
+	toModel := func(t testing.TB, bucket Bucket, obj Object) weave.Model {
+		t.Helper()
+
+		dbkey := bucket.DBKey(obj.Key())
+		val, err := obj.Value().Marshal()
+		assert.Nil(t, err)
+		return weave.Model{Key: dbkey, Value: val}
+	}
 
 	// these are the expected models with absolute keys
 	// and serialized data
 	dba := toModel(t, bucket, oa)
 	dbb := toModel(t, bucket, ob)
 	dbc := toModel(t, bucket, oc)
-	require.Equal(t, []byte("spec:aa"), dba.Key)
-	require.NotEqual(t, dba.Value, dbb.Value)
+	assert.Equal(t, []byte("spec:aa"), dba.Key)
+	if reflect.DeepEqual(dba.Value, dbb.Value) {
+		t.Fatalf("various models data mixed up")
+	}
 
 	// these are query strings for index
 	e5 := bc(5)
 	e2 := bc(2)
 	e77 := bc(77)
 
-	cases := []struct {
+	cases := map[string]struct {
 		path           string
 		mod            string
 		data           []byte
 		missingHandler bool
-		isError        bool
+		wantErr        *errors.Error
 		expected       []weave.Model
 	}{
-		// bad path
-		0: {
-			bPath + "/", "", a, true, true, nil,
+		"bad path": {
+			path:           bPath + "/",
+			missingHandler: true,
 		},
-		// bad mod
-		1: {
-			bPath, "foo", a, false, true, nil,
+		"bad mod": {
+			path:    bPath,
+			mod:     "foo",
+			data:    a,
+			wantErr: errors.ErrInvalidInput,
 		},
-		// simple query - hit
-		2: {
-			bPath, "", a, false, false, []weave.Model{dba},
+		"simple query - hit": {
+			path:     bPath,
+			data:     a,
+			expected: []weave.Model{dba},
 		},
-		// simple query - miss
-		3: {
-			bPath, "", []byte("a"), false, false, nil,
+		"simple query - miss": {
+			path: bPath,
+			data: []byte("a"),
 		},
-		// prefix query - multi hit
-		4: {
-			bPath, "prefix", []byte("a"), false, false,
-			[]weave.Model{dba, dbb},
+		"prefix query - multi hit": {
+			path:     bPath,
+			mod:      "prefix",
+			data:     []byte("a"),
+			expected: []weave.Model{dba, dbb},
 		},
-		// prefix query - miss
-		5: {
-			bPath, "prefix", []byte("cc"), false, false, nil,
+		"prefix query - miss": {
+			path: bPath,
+			mod:  "prefix",
+			data: []byte("cc"),
 		},
-		// prefix query - all
-		6: {
-			bPath, "prefix", nil, false, false,
-			[]weave.Model{dba, dbb, dbc},
+		"prefix query - all": {
+			path:     bPath,
+			mod:      "prefix",
+			expected: []weave.Model{dba, dbb, dbc},
 		},
-		// simple index - miss
-		7: {
-			iPath, "", e77, false, false, nil,
+		"simple index - miss": {
+			path: iPath,
+			data: e77,
 		},
-		// simple index - single hit
-		8: {
-			iPath, "", e5, false, false, []weave.Model{dba, dbb},
+		"simple index - single hit": {
+			path:     iPath,
+			data:     e5,
+			expected: []weave.Model{dba, dbb},
 		},
-		// simple index - multi
-		9: {
-			iPath, "", e2, false, false, []weave.Model{dbc},
+		"simple index - multi": {
+			path:     iPath,
+			data:     e2,
+			expected: []weave.Model{dbc},
 		},
-		// prefix index - miss
-		10: {
-			iPath, "prefix", e77, false, false, nil,
+		"prefix index - miss": {
+			path: iPath,
+			mod:  "prefix",
+			data: e77,
 		},
-		// prefix index - all (in order of index, last byte)
-		11: {
-			iPath, "prefix", nil, false, false, []weave.Model{dbc, dba, dbb},
+		"prefix index - all (in order of index, last byte)": {
+			path:     iPath,
+			mod:      "prefix",
+			expected: []weave.Model{dbc, dba, dbb},
 		},
-		// unique index - hit
-		12: {
-			uiPath, "", encodeSequence(256 + 5), false, false, []weave.Model{dbb},
+		"unique index - hit": {
+			path:     uiPath,
+			data:     encodeSequence(256 + 5),
+			expected: []weave.Model{dbb},
 		},
-		// unique prefix index - all (in order of index, full count)
-		13: {
-			uiPath, "prefix", nil, false, false, []weave.Model{dbc, dba, dbb},
+		"unique prefix index - all (in order of index, full count)": {
+			path:     uiPath,
+			mod:      "prefix",
+			expected: []weave.Model{dbc, dba, dbb},
 		},
 	}
 
-	for i, tc := range cases {
-		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
+	for testName, tc := range cases {
+		t.Run(testName, func(t *testing.T) {
 			qh := qr.Handler(tc.path)
 			if tc.missingHandler {
-				require.Nil(t, qh)
+				assert.Nil(t, qh)
 				return
 			}
-			require.NotNil(t, qh)
+			if qh == nil {
+				t.Fatal("nil query handler")
+			}
 
 			res, err := qh.Query(db, tc.mod, tc.data)
-			if tc.isError {
-				assert.Error(t, err)
+			if !tc.wantErr.Is(err) {
+				t.Fatalf("unexpected error: %s", err)
+			}
+			if err != nil {
 				return
 			}
-
-			assert.NoError(t, err)
-			assert.EqualValues(t, tc.expected, res)
+			assert.Equal(t, tc.expected, res)
 		})
 	}
 }
 
-// Make sure saving indexes is a deterministic process...
-// That is all writes happen in the same order
+// Make sure saving indexes is a deterministic process. That is all writes
+// happen in the same order.
 func TestBucketIndexDeterministic(t *testing.T) {
-
-	// Same as above, note there are two indexes.... we can check the save order
+	// Same as above, note there are two indexes. We can check the save
+	// order.
 	const uniq, mini = "uniq", "mini"
 	bucket := NewBucket("special", NewSimpleObj(nil, new(Counter))).
 		WithIndex(uniq, count, true).
 		WithIndex(mini, countByte, false)
 
 	key := []byte("key")
-	val := NewSimpleObj(key, NewCounter(5))
+	val1 := NewSimpleObj(key, NewCounter(5))
 	val2 := NewSimpleObj(key, NewCounter(256+5))
 
 	db, log := store.LogableStore()
@@ -454,37 +477,34 @@ func TestBucketIndexDeterministic(t *testing.T) {
 	ops := log.ShowOps()
 	assert.Equal(t, 0, len(ops))
 
-	// saving one item should update the item as well as two indexes
-	err := bucket.Save(db, val)
-	require.NoError(t, err)
+	// Saving one item should update the item as well as two indexes.
+	assert.Nil(t, bucket.Save(db, val1))
 	ops = log.ShowOps()
 	assert.Equal(t, 3, len(ops))
-	set, del := countOps(ops)
-	assert.Equal(t, 3, set)
-	assert.Equal(t, 0, del)
+	assertOps(t, ops, 3, 0)
 
 	// saving second item should update the item as well as the one index that changed (don't write constant index)
-	err = bucket.Save(db, val2)
-	require.NoError(t, err)
+	err := bucket.Save(db, val2)
+	assert.Nil(t, err)
 	ops = log.ShowOps()
 	assert.Equal(t, 6, len(ops))
-	set, del = countOps(ops)
-	assert.Equal(t, 5, set)
-	assert.Equal(t, 1, del)
+	assertOps(t, ops, 5, 1)
 
-	// now that we validated the "proper" ops, let's ensure all runs have the same
+	// Now that we validated the "proper" ops, let's ensure all runs have
+	// the same.
 	for i := 0; i < 20; i++ {
 		db2, log2 := store.LogableStore()
-		err = bucket.Save(db2, val)
-		require.NoError(t, err)
-		err = bucket.Save(db2, val2)
-		require.NoError(t, err)
+		assert.Nil(t, bucket.Save(db2, val1))
+		assert.Nil(t, bucket.Save(db2, val2))
 		ops2 := log2.ShowOps()
-		assert.NoError(t, sameOps(ops, ops2))
+		assertSameOps(t, ops, ops2)
 	}
 }
 
-func countOps(ops []store.Op) (set int, del int) {
+func assertOps(t testing.TB, ops []store.Op, wantSet, wantDel int) {
+	t.Helper()
+
+	var set, del int
 	for _, op := range ops {
 		if op.IsSetOp() {
 			set++
@@ -492,23 +512,30 @@ func countOps(ops []store.Op) (set int, del int) {
 			del++
 		}
 	}
-	return
+
+	if set != wantSet {
+		t.Errorf("want %d set operations, got %d", wantSet, set)
+	}
+	if del != wantDel {
+		t.Errorf("want %d del operations, got %d", wantDel, del)
+	}
 }
 
-// sameOps returns nil if they are the same, a helpful error if different
-func sameOps(a []store.Op, b []store.Op) error {
+func assertSameOps(t testing.TB, a, b []store.Op) {
+	t.Helper()
+
 	if len(a) != len(b) {
-		return fmt.Errorf("Different op count: %d vs %d", len(a), len(b))
+		t.Fatalf("different op count: %d != %d", len(a), len(b))
 	}
 
-	for i, opa := range a {
+	for i := range a {
+		opa := a[i]
 		opb := b[i]
 		if opa.IsSetOp() != opb.IsSetOp() {
-			return fmt.Errorf("Set vs. delete difference at index %d", i)
+			t.Fatalf("set vs. delete difference at index %d", i)
 		}
 		if !bytes.Equal(opa.Key(), opb.Key()) {
-			return fmt.Errorf("Different key at index %d: %X vs %X", i, opa.Key(), opb.Key())
+			t.Fatalf("different key at index %d: %X vs %X", i, opa.Key(), opb.Key())
 		}
 	}
-	return nil
 }

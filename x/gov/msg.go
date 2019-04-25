@@ -6,14 +6,18 @@ import (
 )
 
 const (
-	pathCreateTextProposalMsg = "gov/create"
-	pathVoteMsg               = "gov/vote"
-	pathTallyMsg              = "gov/tally"
+	pathCreateTextProposalMsg  = "gov/create"
+	pathDeleteTextProposalMsg  = "gov/delete"
+	pathVoteMsg                = "gov/vote"
+	pathTallyMsg               = "gov/tally"
+	pathUpdateElectorateMsg    = "gov/electorate/update"
+	pathUpdateElectionRulesMsg = "gov/electionRules/update"
 )
 
 var _ weave.Msg = (*CreateTextProposalMsg)(nil)
 var _ weave.Msg = (*VoteMsg)(nil)
 var _ weave.Msg = (*TallyMsg)(nil)
+var _ weave.Msg = (*DeleteTextProposalMsg)(nil)
 
 func (CreateTextProposalMsg) Path() string {
 	return pathCreateTextProposalMsg
@@ -40,6 +44,17 @@ func (m CreateTextProposalMsg) Validate() error {
 	return m.StartTime.Validate()
 }
 
+func (DeleteTextProposalMsg) Path() string {
+	return pathDeleteTextProposalMsg
+}
+
+func (m DeleteTextProposalMsg) Validate() error {
+	if len(m.ID) == 0 {
+		return errors.Wrap(errors.ErrInvalidInput, "empty proposal id")
+	}
+	return nil
+}
+
 func (VoteMsg) Path() string {
 	return pathVoteMsg
 }
@@ -64,6 +79,48 @@ func (TallyMsg) Path() string {
 func (m TallyMsg) Validate() error {
 	if len(m.ProposalID) == 0 {
 		return errors.Wrap(errors.ErrInvalidInput, "empty proposal id")
+	}
+	return nil
+}
+
+func (UpdateElectionRuleMsg) Path() string {
+	return pathUpdateElectionRulesMsg
+}
+
+func (m UpdateElectionRuleMsg) Validate() error {
+	switch {
+	case len(m.ElectionRuleID) == 0:
+		return errors.Wrap(errors.ErrEmpty, "id")
+	case m.VotingPeriodHours < minVotingPeriodHours:
+		return errors.Wrapf(errors.ErrInvalidInput, "min hours: %d", minVotingPeriodHours)
+	case m.VotingPeriodHours > maxVotingPeriodHours:
+		return errors.Wrapf(errors.ErrInvalidInput, "max hours: %d", maxVotingPeriodHours)
+	}
+	return m.Threshold.Validate()
+}
+
+func (UpdateElectorateMsg) Path() string {
+	return pathUpdateElectorateMsg
+}
+
+func (m UpdateElectorateMsg) Validate() error {
+	switch {
+	case len(m.ElectorateID) == 0:
+		return errors.Wrap(errors.ErrEmpty, "id")
+	case len(m.Electors) == 0:
+		return errors.Wrap(errors.ErrEmpty, "electors")
+	case len(m.Electors) > maxElectors:
+		return errors.Wrapf(errors.ErrInvalidInput, "electors must not exceed: %d", maxElectors)
+	}
+	index := map[string]struct{}{} // address index for duplicates
+	for i, v := range m.Electors {
+		if err := v.Validate(); err != nil {
+			return errors.Wrapf(err, "elector %d", i)
+		}
+		index[v.Address.String()] = struct{}{}
+	}
+	if len(index) != len(m.Electors) {
+		return errors.Wrap(errors.ErrInvalidInput, "duplicate addresses")
 	}
 	return nil
 }

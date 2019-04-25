@@ -165,9 +165,12 @@ func idxArbiter(obj orm.Object) ([]byte, error) {
 
 // Build assigns an ID to given escrow instance and returns it as an orm
 // Object. It does not persist the escrow in the store.
-func (b Bucket) Build(db weave.KVStore, escrow *Escrow) orm.Object {
-	key := b.idSeq.NextVal(db)
-	return orm.NewSimpleObj(key, escrow)
+func (b Bucket) Build(db weave.KVStore, escrow *Escrow) (orm.Object, error) {
+	key, err := b.idSeq.NextVal(db)
+	if err != nil {
+		return nil, err
+	}
+	return orm.NewSimpleObj(key, escrow), nil
 }
 
 // Save enforces the proper type

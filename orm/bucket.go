@@ -113,15 +113,15 @@ func (b bucket) Register(name string, r weave.QueryRouter) {
 	}
 }
 
-// Query handles queries from the QueryRouter
-func (b bucket) Query(db weave.ReadOnlyKVStore, mod string,
-	data []byte) ([]weave.Model, error) {
-
+// Query handles queries from the QueryRouter.
+func (b bucket) Query(db weave.ReadOnlyKVStore, mod string, data []byte) ([]weave.Model, error) {
 	switch mod {
 	case weave.KeyQueryMod:
 		key := b.DBKey(data)
-		value := db.Get(key)
-		// return nothing on miss
+		value, err := db.Get(key)
+		if err != nil {
+			return nil, err
+		}
 		if value == nil {
 			return nil, nil
 		}
@@ -129,9 +129,9 @@ func (b bucket) Query(db weave.ReadOnlyKVStore, mod string,
 		return res, nil
 	case weave.PrefixQueryMod:
 		prefix := b.DBKey(data)
-		return queryPrefix(db, prefix), nil
+		return queryPrefix(db, prefix)
 	default:
-		return nil, fmt.Errorf("not implemented: %s", mod)
+		return nil, errors.Wrapf(errors.ErrInvalidInput, "unknown mod: %s", mod)
 	}
 }
 
@@ -157,7 +157,10 @@ func (b bucket) DBKey(key []byte) []byte {
 // Get one element
 func (b bucket) Get(db weave.ReadOnlyKVStore, key []byte) (Object, error) {
 	dbkey := b.DBKey(key)
-	bz := db.Get(dbkey)
+	bz, err := db.Get(dbkey)
+	if err != nil {
+		return nil, err
+	}
 	if bz == nil {
 		return nil, nil
 	}
@@ -172,9 +175,12 @@ func (b bucket) Get(db weave.ReadOnlyKVStore, key []byte) (Object, error) {
 // any code that wants to parse
 func (b bucket) Parse(key, value []byte) (Object, error) {
 	obj := b.proto.Clone()
-	err := obj.Value().Unmarshal(value)
-	if err != nil {
-		return nil, err
+	if err := obj.Value().Unmarshal(value); err != nil {
+		// If the deserialization fails, this is due to corrupted data
+		// or more likely, wrong protobuf declaration being used.
+		// We can safely use the string representation of the original
+		// error as it carries no relevant information.
+		return nil, errors.Wrap(errors.ErrInvalidState, err.Error())
 	}
 
 	// TODO - ensure the value is migrated to the latest version
@@ -202,8 +208,7 @@ func (b bucket) Save(db weave.KVStore, model Object) error {
 	// TODO - ensure the metadata is set
 
 	// now save this one
-	db.Set(b.DBKey(model.Key()), bz)
-	return nil
+	return db.Set(b.DBKey(model.Key()), bz)
 }
 
 // Delete will remove the value at a key
@@ -215,8 +220,7 @@ func (b bucket) Delete(db weave.KVStore, key []byte) error {
 
 	// now save this one
 	dbkey := b.DBKey(key)
-	db.Delete(dbkey)
-	return nil
+	return db.Delete(dbkey)
 }
 
 func (b bucket) updateIndexes(db weave.KVStore, key []byte, model Object) error {

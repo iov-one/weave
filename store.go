@@ -8,27 +8,27 @@ package weave
 // ReadOnlyKVStore is a simple interface to query data.
 type ReadOnlyKVStore interface {
 	// Get returns nil iff key doesn't exist. Panics on nil key.
-	Get(key []byte) []byte
+	Get(key []byte) ([]byte, error)
 
 	// Has checks if a key exists. Panics on nil key.
-	Has(key []byte) bool
+	Has(key []byte) (bool, error)
 
 	// Iterator over a domain of keys in ascending order. End is exclusive.
 	// Start must be less than end, or the Iterator is invalid.
 	// CONTRACT: No writes may happen within a domain while an iterator exists over it.
-	Iterator(start, end []byte) Iterator
+	Iterator(start, end []byte) (Iterator, error)
 
 	// ReverseIterator over a domain of keys in descending order. End is exclusive.
 	// Start must be greater than end, or the Iterator is invalid.
 	// CONTRACT: No writes may happen within a domain while an iterator exists over it.
-	ReverseIterator(start, end []byte) Iterator
+	ReverseIterator(start, end []byte) (Iterator, error)
 }
 
 // SetDeleter is a minimal interface for writing,
 // Unifying KVStore and Batch
 type SetDeleter interface {
-	Set(key, value []byte) // CONTRACT: key, value readonly []byte
-	Delete(key []byte)     // CONTRACT: key readonly []byte
+	Set(key, value []byte) error // CONTRACT: key, value readonly []byte
+	Delete(key []byte) error     // CONTRACT: key readonly []byte
 }
 
 // KVStore is a simple interface to get/set data
@@ -46,7 +46,7 @@ type KVStore interface {
 // Batch can write multiple ops atomically to an underlying KVStore
 type Batch interface {
 	SetDeleter
-	Write()
+	Write() error
 }
 
 /*
@@ -62,6 +62,10 @@ keys. These may all be preloaded, or loaded on demand.
     k, v := itr.Key(); itr.Value()
     // ...
   }
+
+Note that Valid(), Key() and Value() are assumed to use a cached state
+(read on initialization or Next) and should never return errors.
+Next() may well return a read error.
 */
 type Iterator interface {
 	// Valid returns whether the current position is valid.
@@ -72,7 +76,7 @@ type Iterator interface {
 	// defined by order of iteration.
 	//
 	// If Valid returns false, this method will panic.
-	Next()
+	Next() error
 
 	// Key returns the key of the cursor.
 	// If Valid returns false, this method will panic.
@@ -118,7 +122,7 @@ type KVCacheWrap interface {
 	CacheableKVStore
 
 	// Write syncs with the underlying store.
-	Write()
+	Write() error
 
 	// Discard invalidates this CacheWrap and releases all data
 	Discard()
@@ -139,7 +143,7 @@ type KVCacheWrap interface {
 type CommitKVStore interface {
 	// Get returns the value at last committed state
 	// returns nil iff key doesn't exist. Panics on nil key.
-	Get(key []byte) []byte
+	Get(key []byte) ([]byte, error)
 
 	// TODO: Get with proof, also historical queries
 	// GetVersionedWithProof(key []byte, version int64) (value []byte)
@@ -158,7 +162,7 @@ type CommitKVStore interface {
 	CacheWrap() KVCacheWrap
 
 	// Commit the next version to disk, and returns info
-	Commit() CommitID
+	Commit() (CommitID, error)
 
 	// LoadLatestVersion loads the latest persisted version.
 	// If there was a crash during the last commit, it is guaranteed
@@ -166,7 +170,7 @@ type CommitKVStore interface {
 	LoadLatestVersion() error
 
 	// LatestVersion returns info on the latest version saved to disk
-	LatestVersion() CommitID
+	LatestVersion() (CommitID, error)
 
 	// ?????
 	// LoadVersion loads a specific persisted version.  When you load an old version, or

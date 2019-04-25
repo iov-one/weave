@@ -109,7 +109,10 @@ func NewRevenueBucket() *RevenueBucket {
 // Create adds given revenue instance to the store and returns the ID of the
 // newly inserted entity.
 func (b *RevenueBucket) Create(db weave.KVStore, rev *Revenue) (orm.Object, error) {
-	key := b.idSeq.NextVal(db)
+	key, err := b.idSeq.NextVal(db)
+	if err != nil {
+		return nil, err
+	}
 	obj := orm.NewSimpleObj(key, rev)
 	return obj, b.Bucket.Save(db, obj)
 }

@@ -363,6 +363,14 @@
             <ul>
               
                 <li>
+                  <a href="#cash.Configuration"><span class="badge">M</span>Configuration</a>
+                </li>
+              
+                <li>
+                  <a href="#cash.ConfigurationMsg"><span class="badge">M</span>ConfigurationMsg</a>
+                </li>
+              
+                <li>
                   <a href="#cash.FeeInfo"><span class="badge">M</span>FeeInfo</a>
                 </li>
               
@@ -609,6 +617,10 @@
                 </li>
               
                 <li>
+                  <a href="#gov.DeleteTextProposalMsg"><span class="badge">M</span>DeleteTextProposalMsg</a>
+                </li>
+              
+                <li>
                   <a href="#gov.ElectionRule"><span class="badge">M</span>ElectionRule</a>
                 </li>
               
@@ -634,6 +646,14 @@
               
                 <li>
                   <a href="#gov.TextProposal"><span class="badge">M</span>TextProposal</a>
+                </li>
+              
+                <li>
+                  <a href="#gov.UpdateElectionRuleMsg"><span class="badge">M</span>UpdateElectionRuleMsg</a>
+                </li>
+              
+                <li>
+                  <a href="#gov.UpdateElectorateMsg"><span class="badge">M</span>UpdateElectorateMsg</a>
                 </li>
               
                 <li>
@@ -1694,6 +1714,66 @@ succeed, all action approvals validation must pass. </p></td>
       <p></p>
 
       
+        <h3 id="cash.Configuration">Configuration</h3>
+        <p></p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>owner</td>
+                  <td><a href="#bytes">bytes</a></td>
+                  <td></td>
+                  <td><p>TODO: add schema uint32 here </p></td>
+                </tr>
+              
+                <tr>
+                  <td>collector_address</td>
+                  <td><a href="#bytes">bytes</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>minimal_fee</td>
+                  <td><a href="#coin.Coin">coin.Coin</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+        
+
+        
+      
+        <h3 id="cash.ConfigurationMsg">ConfigurationMsg</h3>
+        <p></p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>patch</td>
+                  <td><a href="#cash.Configuration">Configuration</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+        
+
+        
+      
         <h3 id="cash.FeeInfo">FeeInfo</h3>
         <p>FeeInfo records who pays what fees to have this</p><p>message processed</p>
 
@@ -2081,7 +2161,7 @@ computed as the sum of weights of all participating signatures. </p></td>
                 </tr>
               
                 <tr>
-                  <td>power</td>
+                  <td>weight</td>
                   <td><a href="#uint32">uint32</a></td>
                   <td></td>
                   <td><p> </p></td>
@@ -3060,6 +3140,29 @@ When not set it will default to the main signer. </p></td>
 
         
       
+        <h3 id="gov.DeleteTextProposalMsg">DeleteTextProposalMsg</h3>
+        <p>CreateTextProposalMsg deletes a governance proposal.</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>id</td>
+                  <td><a href="#bytes">bytes</a></td>
+                  <td></td>
+                  <td><p>Proposal id to delete </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+        
+
+        
+      
         <h3 id="gov.ElectionRule">ElectionRule</h3>
         <p>Election Rule defines how an election is run. A proposal must be voted upon via a pre-defined ruleset.</p>
 
@@ -3069,6 +3172,13 @@ When not set it will default to the main signer. </p></td>
               <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
             </thead>
             <tbody>
+              
+                <tr>
+                  <td>admin</td>
+                  <td><a href="#bytes">bytes</a></td>
+                  <td></td>
+                  <td><p>Admin is the address that is allowed ot modify an existing election rule. </p></td>
+                </tr>
               
                 <tr>
                   <td>title</td>
@@ -3142,6 +3252,13 @@ of the eligible voters. </p></td>
             <tbody>
               
                 <tr>
+                  <td>admin</td>
+                  <td><a href="#bytes">bytes</a></td>
+                  <td></td>
+                  <td><p>Admin is the address that is allowed ot modify an existing electorate. </p></td>
+                </tr>
+              
+                <tr>
                   <td>title</td>
                   <td><a href="#string">string</a></td>
                   <td></td>
@@ -3152,7 +3269,7 @@ of the eligible voters. </p></td>
                   <td>electors</td>
                   <td><a href="#gov.Elector">Elector</a></td>
                   <td>repeated</td>
-                  <td><p>Elector defines a list of all address that are allowed to participate in a vote </p></td>
+                  <td><p>Elector defines a list of all signatures that are allowed to participate in a vote </p></td>
                 </tr>
               
                 <tr>
@@ -3360,6 +3477,77 @@ to be included in the election. </p></td>
                   <td><a href="#gov.TextProposal.Result">TextProposal.Result</a></td>
                   <td></td>
                   <td><p>Result is the final result based on the votes and election rule. Initial value is Undefined. </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+        
+
+        
+      
+        <h3 id="gov.UpdateElectionRuleMsg">UpdateElectionRuleMsg</h3>
+        <p></p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>election_rule_id</td>
+                  <td><a href="#bytes">bytes</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>voting_period_hours</td>
+                  <td><a href="#uint32">uint32</a></td>
+                  <td></td>
+                  <td><p>Duration how long the voting period will take place. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>threshold</td>
+                  <td><a href="#gov.Fraction">Fraction</a></td>
+                  <td></td>
+                  <td><p>Threshold is the fraction of all eligible voters, not only the ones who voted. To accept a
+proposal this value must be exceeded.
+The formula is `(yes*denominator) &gt; (numerator*total_electors_weight)`.
+The valid range for the threshold value is `0.5` to `1` (inclusive) which allows any value between half and all
+of the eligible voters. </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+        
+
+        
+      
+        <h3 id="gov.UpdateElectorateMsg">UpdateElectorateMsg</h3>
+        <p></p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>electorate_id</td>
+                  <td><a href="#bytes">bytes</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>electors</td>
+                  <td><a href="#gov.Elector">Elector</a></td>
+                  <td>repeated</td>
+                  <td><p>Elector defines a list of all signatures that are allowed to participate in a vote </p></td>
                 </tr>
               
             </tbody>

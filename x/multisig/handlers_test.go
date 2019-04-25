@@ -9,6 +9,7 @@ import (
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/store"
 	"github.com/iov-one/weave/weavetest"
+	"github.com/iov-one/weave/weavetest/assert"
 )
 
 func TestCreateContractHandler(t *testing.T) {
@@ -24,9 +25,9 @@ func TestCreateContractHandler(t *testing.T) {
 		"successfully create a contract": {
 			Msg: &CreateContractMsg{
 				Participants: []*Participant{
-					{Power: 1, Signature: alice},
-					{Power: 2, Signature: bobby},
-					{Power: 3, Signature: cindy},
+					{Weight: 1, Signature: alice},
+					{Weight: 2, Signature: bobby},
+					{Weight: 3, Signature: cindy},
 				},
 				ActivationThreshold: 2,
 				AdminThreshold:      3,
@@ -43,9 +44,9 @@ func TestCreateContractHandler(t *testing.T) {
 		"cannot create if activation threshold is too high": {
 			Msg: &CreateContractMsg{
 				Participants: []*Participant{
-					{Power: 1, Signature: alice},
-					{Power: 2, Signature: bobby},
-					{Power: 3, Signature: cindy},
+					{Weight: 1, Signature: alice},
+					{Weight: 2, Signature: bobby},
+					{Weight: 3, Signature: cindy},
 				},
 				ActivationThreshold: 7, // higher than total
 				AdminThreshold:      3,
@@ -55,9 +56,9 @@ func TestCreateContractHandler(t *testing.T) {
 		"can create if admin threshold is higher than total participants power": {
 			Msg: &CreateContractMsg{
 				Participants: []*Participant{
-					{Power: 1, Signature: alice},
-					{Power: 2, Signature: bobby},
-					{Power: 3, Signature: cindy},
+					{Weight: 1, Signature: alice},
+					{Weight: 2, Signature: bobby},
+					{Weight: 3, Signature: cindy},
 				},
 				ActivationThreshold: 2,
 				AdminThreshold:      maxWeightValue,
@@ -66,8 +67,8 @@ func TestCreateContractHandler(t *testing.T) {
 		"cannot create if activation threshold is higher than admin threshold": {
 			Msg: &CreateContractMsg{
 				Participants: []*Participant{
-					{Power: 2, Signature: alice},
-					{Power: 2, Signature: bobby},
+					{Weight: 2, Signature: alice},
+					{Weight: 2, Signature: bobby},
 				},
 				ActivationThreshold: 2,
 				AdminThreshold:      1,
@@ -130,9 +131,9 @@ func TestUpdateContractHandler(t *testing.T) {
 			Msg: &UpdateContractMsg{
 				ContractID: weavetest.SequenceID(1),
 				Participants: []*Participant{
-					{Power: 1, Signature: alice},
-					{Power: 2, Signature: bobby},
-					{Power: 3, Signature: cindy},
+					{Weight: 1, Signature: alice},
+					{Weight: 2, Signature: bobby},
+					{Weight: 3, Signature: cindy},
 				},
 				ActivationThreshold: 2,
 				AdminThreshold:      3,
@@ -148,9 +149,9 @@ func TestUpdateContractHandler(t *testing.T) {
 			Msg: &UpdateContractMsg{
 				ContractID: weavetest.SequenceID(1),
 				Participants: []*Participant{
-					{Power: 1, Signature: alice},
-					{Power: 2, Signature: bobby},
-					{Power: 3, Signature: cindy},
+					{Weight: 1, Signature: alice},
+					{Weight: 2, Signature: bobby},
+					{Weight: 3, Signature: cindy},
 				},
 				ActivationThreshold: 1,
 				AdminThreshold:      1,
@@ -175,9 +176,9 @@ func TestUpdateContractHandler(t *testing.T) {
 			Msg: &UpdateContractMsg{
 				ContractID: weavetest.SequenceID(1),
 				Participants: []*Participant{
-					{Power: 1, Signature: alice},
-					{Power: 2, Signature: bobby},
-					{Power: 3, Signature: cindy},
+					{Weight: 1, Signature: alice},
+					{Weight: 2, Signature: bobby},
+					{Weight: 3, Signature: cindy},
 				},
 				ActivationThreshold: 100,
 				AdminThreshold:      3,
@@ -191,9 +192,9 @@ func TestUpdateContractHandler(t *testing.T) {
 			Msg: &UpdateContractMsg{
 				ContractID: weavetest.SequenceID(1),
 				Participants: []*Participant{
-					{Power: 1, Signature: alice},
-					{Power: 2, Signature: bobby},
-					{Power: 3, Signature: cindy},
+					{Weight: 1, Signature: alice},
+					{Weight: 2, Signature: bobby},
+					{Weight: 3, Signature: cindy},
 				},
 				ActivationThreshold: 1,
 				AdminThreshold:      maxWeightValue,
@@ -206,8 +207,8 @@ func TestUpdateContractHandler(t *testing.T) {
 			Msg: &UpdateContractMsg{
 				ContractID: weavetest.SequenceID(1),
 				Participants: []*Participant{
-					{Power: 2, Signature: alice},
-					{Power: 2, Signature: bobby},
+					{Weight: 2, Signature: alice},
+					{Weight: 2, Signature: bobby},
 				},
 				ActivationThreshold: 2,
 				AdminThreshold:      1,
@@ -222,9 +223,9 @@ func TestUpdateContractHandler(t *testing.T) {
 			Msg: &UpdateContractMsg{
 				ContractID: weavetest.SequenceID(1),
 				Participants: []*Participant{
-					{Power: 1, Signature: alice},
-					{Power: 2, Signature: bobby},
-					{Power: 3, Signature: cindy},
+					{Weight: 1, Signature: alice},
+					{Weight: 2, Signature: bobby},
+					{Weight: 3, Signature: cindy},
 				},
 				ActivationThreshold: 2,
 				AdminThreshold:      2,
@@ -245,18 +246,18 @@ func TestUpdateContractHandler(t *testing.T) {
 			tx := &weavetest.Tx{Msg: tc.Msg}
 
 			b := NewContractBucket()
-			err := b.Save(db, b.Build(db, &Contract{
+			contract, err := b.Build(db, &Contract{
 				Participants: []*Participant{
-					{Power: 1, Signature: alice},
-					{Power: 2, Signature: bobby},
-					{Power: 3, Signature: cindy},
+					{Weight: 1, Signature: alice},
+					{Weight: 2, Signature: bobby},
+					{Weight: 3, Signature: cindy},
 				},
 				ActivationThreshold: 2,
 				AdminThreshold:      3,
-			}))
-			if err != nil {
-				t.Fatalf("cannot create a contract: %s", err)
-			}
+			})
+			assert.Nil(t, err)
+			err = b.Save(db, contract)
+			assert.Nil(t, err)
 
 			cache := db.CacheWrap()
 			if _, err := rt.Check(ctx, cache, tx); !tc.WantCheckErr.Is(err) {

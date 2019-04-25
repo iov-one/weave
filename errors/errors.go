@@ -73,6 +73,10 @@ var (
 	// to an object schema version issue.
 	ErrSchema = Register(19, "schema")
 
+  // ErrDatabase is returned whenever the underlying kvstore fails to
+	// process raw bytes (get/set/delete/write)
+	ErrDatabase = Register(20, "database")
+
 	// ErrPanic is only set when we recover from a panic, so we know to
 	// redact potentially sensitive system info
 	ErrPanic = Register(111222, "panic")

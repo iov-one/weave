@@ -430,7 +430,7 @@ func createContract(
 	for i, addr := range contractSigs {
 		participants[i] = &multisig.Participant{
 			Signature: addr,
-			Power:     1,
+			Weight:    1,
 		}
 	}
 	msg := &multisig.CreateContractMsg{
@@ -588,7 +588,7 @@ func makeCreateContractTx(t require.TestingT, chainID string, signers [][]byte, 
 	for i, addr := range signers {
 		participants[i] = &multisig.Participant{
 			Signature: addr,
-			Power:     1,
+			Weight:    1,
 		}
 	}
 	msg := &multisig.CreateContractMsg{

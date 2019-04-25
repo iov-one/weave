@@ -48,7 +48,10 @@ func (h CreateContractMsgHandler) Deliver(ctx weave.Context, db weave.KVStore, t
 		AdminThreshold:      msg.AdminThreshold,
 	}
 
-	obj := h.bucket.Build(db, contract)
+	obj, err := h.bucket.Build(db, contract)
+	if err != nil {
+		return nil, err
+	}
 	if err = h.bucket.Save(db, obj); err != nil {
 		return nil, err
 	}
@@ -114,21 +117,21 @@ func (h UpdateContractMsgHandler) validate(ctx weave.Context, db weave.KVStore, 
 	}
 
 	// Using current version of the contract, ensure that enoguht
-	// participants with enought power/weight signed this transaction in
+	// participants with enough weight signed this transaction in
 	// order to run functionality that requires admin rights.
 	contract, err := h.bucket.GetContract(db, msg.ContractID)
 	if err != nil {
 		return nil, errors.Wrap(err, "bucket lookup")
 	}
-	var power Weight
+	var weight Weight
 	for _, p := range contract.Participants {
 		if h.auth.HasAddress(ctx, p.Signature) {
-			power += p.Power
+			weight += p.Weight
 		}
 	}
-	if power < contract.AdminThreshold {
+	if weight < contract.AdminThreshold {
 		return &msg, errors.Wrapf(errors.ErrUnauthorized,
-			"%d power is not enough to administrate %q", power, msg.ContractID)
+			"%d weight is not enough to administrate %q", weight, msg.ContractID)
 	}
 	return &msg, nil
 }

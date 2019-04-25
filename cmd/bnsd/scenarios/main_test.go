@@ -167,7 +167,7 @@ func initGenesis(filename string, addr weave.Address) (*tm.GenesisDoc, error) {
 		"multisig": []interface{}{
 			dict{
 				"participants": []interface{}{
-					dict{"power": 1, "signature": addr},
+					dict{"weight": 1, "signature": addr},
 				},
 				"activation_threshold": 1,
 				"admin_threshold":      1,

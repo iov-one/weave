@@ -8,7 +8,7 @@ import (
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/store"
 	"github.com/iov-one/weave/weavetest"
-	"github.com/stretchr/testify/assert"
+	"github.com/iov-one/weave/weavetest/assert"
 	"github.com/tendermint/tendermint/libs/common"
 )
 
@@ -26,7 +26,7 @@ func TestKeyTagger(t *testing.T) {
 	cases := [...]struct {
 		handler weave.Handler
 		isError bool // true iff we expect errors
-		tags    common.KVPairs
+		tags    []common.KVPair
 		k, v    []byte
 	}{
 		// return error doesn't add tags
@@ -42,7 +42,7 @@ func TestKeyTagger(t *testing.T) {
 		1: {
 			&writeHandler{key: nk, value: nv, err: nil},
 			false,
-			common.KVPairs{{Key: ntag, Value: nval}},
+			[]common.KVPair{{Key: ntag, Value: nval}},
 			nk,
 			nv,
 		},
@@ -52,7 +52,7 @@ func TestKeyTagger(t *testing.T) {
 				&writeHandler{key: nk, value: nv, err: nil},
 				&writeDecorator{key: ok, value: ov, after: true}),
 			false,
-			common.KVPairs{{Key: ntag, Value: nval}, {Key: otag, Value: oval}},
+			[]common.KVPair{{Key: ntag, Value: nval}, {Key: otag, Value: oval}},
 			nk,
 			nv,
 		},
@@ -72,7 +72,7 @@ func TestKeyTagger(t *testing.T) {
 				&writeHandler{key: nk, value: nv, err: nil},
 				NewSavepoint().OnDeliver()),
 			false,
-			common.KVPairs{{Key: ntag, Value: nval}},
+			[]common.KVPair{{Key: ntag, Value: nval}},
 			nk,
 			nv,
 		},
@@ -83,7 +83,7 @@ func TestKeyTagger(t *testing.T) {
 				&writeDecorator{key: ok, value: ov, after: false}),
 			false,
 			// note that the nk, nv set explicitly are not modified
-			common.KVPairs{{Key: nk, Value: nv}, {Key: otag, Value: oval}},
+			[]common.KVPair{{Key: nk, Value: nv}, {Key: otag, Value: oval}},
 			nk,
 			nil,
 		},
@@ -93,7 +93,7 @@ func TestKeyTagger(t *testing.T) {
 				newTagHandler(nk, nv, derr),
 				&writeDecorator{key: ok, value: ov, after: false}),
 			true,
-			common.KVPairs{{Key: nk, Value: nv}},
+			[]common.KVPair{{Key: nk, Value: nv}},
 			nk,
 			nil,
 		},
@@ -110,25 +110,31 @@ func TestKeyTagger(t *testing.T) {
 			check := db.CacheWrap()
 			_, err := tagger.Check(ctx, check, nil, tc.handler)
 			if tc.isError {
-				assert.Error(t, err)
+				if err == nil {
+					t.Fatalf("Expected error")
+				}
 			} else {
-				assert.NoError(t, err)
+				assert.Nil(t, err)
 			}
 
 			// try deliver - records tags and sets values on success
 			res, err := tagger.Deliver(ctx, db, nil, tc.handler)
 			if tc.isError {
-				assert.Error(t, err)
+				if err == nil {
+					t.Fatalf("Expected error")
+				}
 			} else {
-				assert.NoError(t, err)
+				assert.Nil(t, err)
 				// tags are set properly
-				assert.EqualValues(t, tc.tags, res.Tags)
+				fmt.Printf("%T vs %T\n", tc.tags, res.Tags)
+				assert.Equal(t, tc.tags, res.Tags)
 			}
 
 			// optionally check if data was writen to underlying db
 			if tc.k != nil {
-				v := db.Get(tc.k)
-				assert.EqualValues(t, tc.v, v)
+				v, err := db.Get(tc.k)
+				assert.Nil(t, err)
+				assert.Equal(t, tc.v, v)
 			}
 		})
 	}
@@ -171,7 +177,7 @@ func newTagHandler(key, value []byte, err error) weave.Handler {
 		CheckErr:   err,
 		DeliverErr: err,
 		DeliverResult: weave.DeliverResult{
-			Tags: common.KVPairs{
+			Tags: []common.KVPair{
 				{Key: key, Value: value},
 			},
 		},

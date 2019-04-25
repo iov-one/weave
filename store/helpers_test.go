@@ -37,4 +37,8 @@ func TestSliceIterator(t *testing.T) {
 	if it.Valid() {
 		t.Fatal("closed iterator must be invalid")
 	}
+	err := it.Next()
+	if err == nil {
+		t.Fatal("Callin Next on invalid iterator must return error")
+	}
 }

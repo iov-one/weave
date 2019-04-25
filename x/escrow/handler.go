@@ -79,7 +79,10 @@ func (h CreateEscrowHandler) Deliver(ctx weave.Context, db weave.KVStore, tx wea
 		Timeout:   msg.Timeout,
 		Memo:      msg.Memo,
 	}
-	obj := h.bucket.Build(db, escrow)
+	obj, err := h.bucket.Build(db, escrow)
+	if err != nil {
+		return nil, err
+	}
 
 	// deposit amounts
 	escrowAddr := Condition(obj.Key()).Address()
