@@ -13,6 +13,8 @@ type Bucket struct {
 	migrations  *register
 }
 
+var _ orm.Bucket = (*Bucket)(nil)
+
 func NewBucket(packageName string, bucketName string, model orm.Cloneable) Bucket {
 	return Bucket{
 		Bucket:      orm.NewBucket(bucketName, model),
@@ -22,7 +24,7 @@ func NewBucket(packageName string, bucketName string, model orm.Cloneable) Bucke
 	}
 }
 
-func (svb *Bucket) Get(db weave.ReadOnlyKVStore, key []byte) (orm.Object, error) {
+func (svb Bucket) Get(db weave.ReadOnlyKVStore, key []byte) (orm.Object, error) {
 	obj, err := svb.Bucket.Get(db, key)
 	if err != nil || obj == nil {
 		return obj, err
@@ -33,14 +35,14 @@ func (svb *Bucket) Get(db weave.ReadOnlyKVStore, key []byte) (orm.Object, error)
 	return obj, nil
 }
 
-func (svb *Bucket) Save(db weave.KVStore, obj orm.Object) error {
+func (svb Bucket) Save(db weave.KVStore, obj orm.Object) error {
 	if err := svb.migrate(db, obj); err != nil {
 		return errors.Wrap(err, "migrate")
 	}
 	return svb.Bucket.Save(db, obj)
 }
 
-func (svb *Bucket) migrate(db weave.ReadOnlyKVStore, obj orm.Object) error {
+func (svb Bucket) migrate(db weave.ReadOnlyKVStore, obj orm.Object) error {
 	m, ok := obj.Value().(Migratable)
 	if !ok {
 		return errors.Wrap(errors.ErrInvalidModel, "model cannot be migrated")
@@ -52,8 +54,16 @@ func (svb *Bucket) migrate(db weave.ReadOnlyKVStore, obj orm.Object) error {
 
 	meta := m.GetMetadata()
 	if meta == nil {
-		return errors.Wrap(errors.ErrMetadata, "nil")
+		return errors.Wrapf(errors.ErrMetadata, "%T metadata is nil", m)
 	}
+
+	// In case of schema not being set we assume the code is expecting the
+	// current version. We can therefore set the default to current schema
+	// version.
+	if meta.Schema == 0 {
+		meta.Schema = currSchemaVer
+	}
+
 	if meta.Schema > currSchemaVer {
 		return errors.Wrapf(errors.ErrSchema, "model schema higher than %d", currSchemaVer)
 	}

@@ -3,11 +3,18 @@ package paychan
 import (
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/migration"
 )
 
 var _ weave.Msg = (*CreatePaymentChannelMsg)(nil)
 var _ weave.Msg = (*TransferPaymentChannelMsg)(nil)
 var _ weave.Msg = (*ClosePaymentChannelMsg)(nil)
+
+func init() {
+	migration.MustRegister(1, &CreatePaymentChannelMsg{}, migration.NoModification)
+	migration.MustRegister(1, &TransferPaymentChannelMsg{}, migration.NoModification)
+	migration.MustRegister(1, &ClosePaymentChannelMsg{}, migration.NoModification)
+}
 
 const (
 	pathCreatePaymentChannelMsg   = "paychan/create"

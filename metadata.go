@@ -14,10 +14,10 @@ func (m *Metadata) Copy() *Metadata {
 
 func (m *Metadata) Validate() error {
 	if m == nil {
-		return errors.Wrap(errors.ErrMetadata, "nil")
+		return errors.Wrap(errors.ErrMetadata, "no metadata (nil)")
 	}
 	if m.Schema < 1 {
-		return errors.Wrap(errors.ErrMetadata, "schema")
+		return errors.Wrap(errors.ErrMetadata, "schema version less than 1")
 	}
 	return nil
 }

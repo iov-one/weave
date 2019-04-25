@@ -54,6 +54,22 @@ func NewSchemaBucket() *SchemaBucket {
 	return &SchemaBucket{Bucket: b}
 }
 
+// MustInitPkg initialize schema versioninig for a given package name. This
+// registers a version one schema.
+// This function panics if not successful. It is safe to call this function
+// many times as duplicate registrations are ignored.
+func MustInitPkg(db weave.KVStore, packageName string) {
+	_, err := NewSchemaBucket().Create(db, &Schema{
+		Metadata: &weave.Metadata{Schema: 1},
+		Pkg:      packageName,
+		Version:  1,
+	})
+	// Duplicated initializations are ignored.
+	if err != nil && !errors.ErrDuplicate.Is(err) {
+		panic(err)
+	}
+}
+
 // CurrentSchema returns the current version of the schema for a given package.
 // It returns ErrNotFound if no schema version was registered for this package.
 // Minimum schema version is 1.
@@ -113,7 +129,7 @@ func (b *SchemaBucket) validateNextSchema(db weave.KVStore, next *Schema) error 
 	}
 	if ver+1 != next.Version {
 		// Schema versioning is sequential and the numbers must be incrementing.
-		return errors.Wrapf(errors.ErrInvalidInput, "previous schema is %d", ver)
+		return errors.Wrapf(errors.ErrDuplicate, "previous schema is %d", ver)
 	}
 	return nil
 }

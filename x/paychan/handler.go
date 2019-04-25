@@ -4,6 +4,7 @@ import (
 	"github.com/iov-one/weave"
 	coin "github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/x"
 	"github.com/iov-one/weave/x/cash"
@@ -22,9 +23,12 @@ func RegisterQuery(qr weave.QueryRouter) {
 // RegisterRouters registers payment channel message handelers in given registry.
 func RegisterRoutes(r weave.Registry, auth x.Authenticator, cash cash.Controller) {
 	bucket := NewPaymentChannelBucket()
-	r.Handle(pathCreatePaymentChannelMsg, &createPaymentChannelHandler{auth: auth, bucket: bucket, cash: cash})
-	r.Handle(pathTransferPaymentChannelMsg, &transferPaymentChannelHandler{auth: auth, bucket: bucket, cash: cash})
-	r.Handle(pathClosePaymentChannelMsg, &closePaymentChannelHandler{auth: auth, bucket: bucket, cash: cash})
+	r.Handle(pathCreatePaymentChannelMsg, migration.SchemaMigratingHandler(
+		"paychan", &createPaymentChannelHandler{auth: auth, bucket: bucket, cash: cash}))
+	r.Handle(pathTransferPaymentChannelMsg, migration.SchemaMigratingHandler(
+		"paychan", &transferPaymentChannelHandler{auth: auth, bucket: bucket, cash: cash}))
+	r.Handle(pathClosePaymentChannelMsg, migration.SchemaMigratingHandler(
+		"paychan", &closePaymentChannelHandler{auth: auth, bucket: bucket, cash: cash}))
 }
 
 type createPaymentChannelHandler struct {
@@ -68,6 +72,7 @@ func (h *createPaymentChannelHandler) Deliver(ctx weave.Context, db weave.KVStor
 	}
 
 	obj, err := h.bucket.Create(db, &PaymentChannel{
+		Metadata:     &weave.Metadata{},
 		Src:          msg.Src,
 		SenderPubkey: msg.SenderPubkey,
 		Recipient:    msg.Recipient,

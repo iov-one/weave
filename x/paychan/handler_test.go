@@ -11,6 +11,7 @@ import (
 	coin "github.com/iov-one/weave/coin"
 	crypto "github.com/iov-one/weave/crypto"
 	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/store"
 	"github.com/iov-one/weave/weavetest"
@@ -44,6 +45,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 				{
 					conditions: []weave.Condition{src},
 					msg: &CreatePaymentChannelMsg{
+						Metadata:     &weave.Metadata{Schema: 1},
 						Src:          src.Address(),
 						Recipient:    recipient.Address(),
 						SenderPubkey: srcSig.PublicKey(),
@@ -61,6 +63,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 					bucket: payChanBucket.Bucket,
 					wantRes: []orm.Object{
 						orm.NewSimpleObj(weavetest.SequenceID(1), &PaymentChannel{
+							Metadata:     &weave.Metadata{Schema: 1},
 							Src:          src.Address(),
 							Recipient:    recipient.Address(),
 							SenderPubkey: srcSig.PublicKey(),
@@ -98,6 +101,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 				{
 					conditions: []weave.Condition{src},
 					msg: &CreatePaymentChannelMsg{
+						Metadata:     &weave.Metadata{Schema: 1},
 						Src:          src.Address(),
 						Recipient:    recipient.Address(),
 						SenderPubkey: srcSig.PublicKey(),
@@ -110,6 +114,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 				{
 					conditions: []weave.Condition{src},
 					msg: &ClosePaymentChannelMsg{
+						Metadata:  &weave.Metadata{Schema: 1},
 						ChannelID: weavetest.SequenceID(1),
 						Memo:      "end",
 					},
@@ -144,6 +149,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 				{
 					conditions: []weave.Condition{src},
 					msg: &CreatePaymentChannelMsg{
+						Metadata:     &weave.Metadata{Schema: 1},
 						Src:          src.Address(),
 						Recipient:    recipient.Address(),
 						SenderPubkey: srcSig.PublicKey(),
@@ -156,6 +162,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 				{
 					conditions: []weave.Condition{src},
 					msg: setSignature(srcSig, &TransferPaymentChannelMsg{
+						Metadata: &weave.Metadata{Schema: 1},
 						Payment: &Payment{
 							ChainID:   "testchain-123",
 							ChannelID: weavetest.SequenceID(1),
@@ -168,6 +175,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 				{
 					conditions: []weave.Condition{src},
 					msg: setSignature(srcSig, &TransferPaymentChannelMsg{
+						Metadata: &weave.Metadata{Schema: 1},
 						Payment: &Payment{
 							ChainID:   "testchain-123",
 							ChannelID: weavetest.SequenceID(1),
@@ -202,6 +210,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 				{
 					conditions: []weave.Condition{src},
 					msg: &CreatePaymentChannelMsg{
+						Metadata:     &weave.Metadata{Schema: 1},
 						Src:          src.Address(),
 						Recipient:    recipient.Address(),
 						SenderPubkey: srcSig.PublicKey(),
@@ -214,6 +223,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 				{
 					conditions: []weave.Condition{src},
 					msg: setSignature(srcSig, &TransferPaymentChannelMsg{
+						Metadata: &weave.Metadata{Schema: 1},
 						Payment: &Payment{
 							ChainID:   "testchain-123",
 							ChannelID: weavetest.SequenceID(1),
@@ -226,6 +236,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 				{
 					conditions: []weave.Condition{src},
 					msg: &ClosePaymentChannelMsg{
+						Metadata:  &weave.Metadata{Schema: 1},
 						ChannelID: weavetest.SequenceID(1),
 						Memo:      "end",
 					},
@@ -271,6 +282,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 				{
 					conditions: []weave.Condition{src},
 					msg: &CreatePaymentChannelMsg{
+						Metadata:     &weave.Metadata{Schema: 1},
 						Src:          src.Address(),
 						Recipient:    recipient.Address(),
 						SenderPubkey: srcSig.PublicKey(),
@@ -288,6 +300,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 				{
 					conditions: []weave.Condition{src},
 					msg: &CreatePaymentChannelMsg{
+						Metadata:     &weave.Metadata{Schema: 1},
 						Src:          src.Address(),
 						Recipient:    recipient.Address(),
 						SenderPubkey: srcSig.PublicKey(),
@@ -302,6 +315,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 				{
 					conditions: []weave.Condition{src},
 					msg: &ClosePaymentChannelMsg{
+						Metadata:  &weave.Metadata{Schema: 1},
 						ChannelID: weavetest.SequenceID(1),
 						Memo:      "end",
 					},
@@ -312,6 +326,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 				{
 					conditions: []weave.Condition{recipient},
 					msg: &ClosePaymentChannelMsg{
+						Metadata:  &weave.Metadata{Schema: 1},
 						ChannelID: weavetest.SequenceID(1),
 						Memo:      "end",
 					},
@@ -324,6 +339,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 				{
 					conditions: []weave.Condition{src},
 					msg: &CreatePaymentChannelMsg{
+						Metadata:     &weave.Metadata{Schema: 1},
 						Src:          src.Address(),
 						Recipient:    recipient.Address(),
 						SenderPubkey: srcSig.PublicKey(),
@@ -336,6 +352,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 				{
 					conditions: []weave.Condition{src},
 					msg: setSignature(srcSig, &TransferPaymentChannelMsg{
+						Metadata: &weave.Metadata{Schema: 1},
 						Payment: &Payment{
 							ChainID:   "another-chain-666",
 							ChannelID: weavetest.SequenceID(1),
@@ -353,6 +370,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 				{
 					conditions: []weave.Condition{src},
 					msg: &CreatePaymentChannelMsg{
+						Metadata:     &weave.Metadata{Schema: 1},
 						Src:          src.Address(),
 						Recipient:    recipient.Address(),
 						SenderPubkey: srcSig.PublicKey(),
@@ -365,6 +383,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 				{
 					conditions: []weave.Condition{src},
 					msg: setSignature(srcSig, &TransferPaymentChannelMsg{
+						Metadata: &weave.Metadata{Schema: 1},
 						Payment: &Payment{
 							ChainID:   "testchain-123",
 							ChannelID: weavetest.SequenceID(1),
@@ -382,6 +401,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 				{
 					conditions: []weave.Condition{src},
 					msg: &CreatePaymentChannelMsg{
+						Metadata:     &weave.Metadata{Schema: 1},
 						Src:          src.Address(),
 						Recipient:    recipient.Address(),
 						SenderPubkey: nil,
@@ -399,6 +419,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 				{
 					conditions: []weave.Condition{src},
 					msg: &CreatePaymentChannelMsg{
+						Metadata:     &weave.Metadata{Schema: 1},
 						Src:          src.Address(),
 						Recipient:    recipient.Address(),
 						SenderPubkey: srcSig.PublicKey(),
@@ -411,6 +432,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 				{
 					conditions: []weave.Condition{recipient},
 					msg: &ClosePaymentChannelMsg{
+						Metadata:  &weave.Metadata{Schema: 1},
 						ChannelID: weavetest.SequenceID(1),
 						Memo:      "end",
 					},
@@ -419,6 +441,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 				{
 					conditions: []weave.Condition{src},
 					msg: setSignature(srcSig, &TransferPaymentChannelMsg{
+						Metadata: &weave.Metadata{Schema: 1},
 						Payment: &Payment{
 							ChainID:   "testchain-123",
 							ChannelID: weavetest.SequenceID(1),
@@ -436,6 +459,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 				{
 					conditions: []weave.Condition{src},
 					msg: &CreatePaymentChannelMsg{
+						Metadata:     &weave.Metadata{Schema: 1},
 						Src:          src.Address(),
 						Recipient:    recipient.Address(),
 						SenderPubkey: srcSig.PublicKey(),
@@ -448,6 +472,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 				{
 					conditions: []weave.Condition{src},
 					msg: &TransferPaymentChannelMsg{
+						Metadata: &weave.Metadata{Schema: 1},
 						Signature: &crypto.Signature{
 							Sig: &crypto.Signature_Ed25519{
 								Ed25519: []byte("invalid signature"),
@@ -470,6 +495,8 @@ func TestPaymentChannelHandlers(t *testing.T) {
 	for testName, tc := range cases {
 		t.Run(testName, func(t *testing.T) {
 			db := store.MemStore()
+
+			migration.MustInitPkg(db, "paychan")
 
 			// Create a sender account with coins.
 			wallet, err := cash.WalletWith(src.Address(), dogeCoin(11, 22))
