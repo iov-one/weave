@@ -144,6 +144,12 @@ message CreateTextProposalMsg {
     bytes author = 8 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
 }
 
+// CreateTextProposalMsg deletes a governance proposal.
+message DeleteTextProposalMsg {
+    // Proposal id to delete
+    bytes id = 1;
+}
+
 // VoteOptions define possible values for a vote including the INVALID default.
 enum VoteOption {
     VOTE_OPTION_INVALID = 0 [(gogoproto.enumvalue_customname ) = "Invalid"];
