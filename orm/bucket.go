@@ -28,19 +28,33 @@ const (
 	SeqID = "id"
 )
 
-var (
-	isBucketName = regexp.MustCompile(`^[a-z_]{3,10}$`).MatchString
-)
+var isBucketName = regexp.MustCompile(`^[a-z_]{3,10}$`).MatchString
 
-// Bucket is a generic holder that stores data as well
+type Bucket interface {
+	weave.QueryHandler
+
+	DBKey(key []byte) []byte
+	Delete(db weave.KVStore, key []byte) error
+	Get(db weave.ReadOnlyKVStore, key []byte) (Object, error)
+	GetIndexed(db weave.ReadOnlyKVStore, name string, key []byte) ([]Object, error)
+	GetIndexedLike(db weave.ReadOnlyKVStore, name string, pattern Object) ([]Object, error)
+	Parse(key, value []byte) (Object, error)
+	Register(name string, r weave.QueryRouter)
+	Save(db weave.KVStore, model Object) error
+	Sequence(name string) Sequence
+	WithIndex(name string, indexer Indexer, unique bool) Bucket
+	WithMultiKeyIndex(name string, indexer MultiKeyIndexer, unique bool) Bucket
+}
+
+// bucket is a generic holder that stores data as well
 // as references to secondary indexes and sequences.
 //
 // This is a generic building block that should generally
 // be embedded in a type-safe wrapper to ensure all data
 // is the same type.
-// Bucket is a prefixed subspace of the DB
+// bucket is a prefixed subspace of the DB
 // proto defines the default Model, all elements of this type
-type Bucket struct {
+type bucket struct {
 	name   string
 	prefix []byte
 	proto  Cloneable
@@ -48,7 +62,7 @@ type Bucket struct {
 	indexes namedIndexes
 }
 
-var _ weave.QueryHandler = Bucket{}
+var _ Bucket = (*bucket)(nil)
 
 type namedIndex struct {
 	Index
@@ -78,7 +92,7 @@ func NewBucket(name string, proto Cloneable) Bucket {
 		panic(fmt.Sprintf("Illegal bucket: %s", name))
 	}
 
-	return Bucket{
+	return bucket{
 		name:   name,
 		prefix: append([]byte(name), ':'),
 		proto:  proto,
@@ -88,7 +102,7 @@ func NewBucket(name string, proto Cloneable) Bucket {
 // Register registers this Bucket and all indexes.
 // You can define a name here for queries, which is
 // different than the bucket name used to prefix the data
-func (b Bucket) Register(name string, r weave.QueryRouter) {
+func (b bucket) Register(name string, r weave.QueryRouter) {
 	if name == "" {
 		name = b.name
 	}
@@ -100,7 +114,7 @@ func (b Bucket) Register(name string, r weave.QueryRouter) {
 }
 
 // Query handles queries from the QueryRouter
-func (b Bucket) Query(db weave.ReadOnlyKVStore, mod string,
+func (b bucket) Query(db weave.ReadOnlyKVStore, mod string,
 	data []byte) ([]weave.Model, error) {
 
 	switch mod {
@@ -124,7 +138,7 @@ func (b Bucket) Query(db weave.ReadOnlyKVStore, mod string,
 // DBKey is the full key we store in the db, including prefix
 // We copy into a new array rather than use append, as we don't
 // want consequetive calls to overwrite the same byte array.
-func (b Bucket) DBKey(key []byte) []byte {
+func (b bucket) DBKey(key []byte) []byte {
 	// Long story: annoying bug... storing with keys "ABC" and "LED"
 	// would overwrite each other, also for queries.... huh?
 	// turns out name was 4 char,
@@ -141,7 +155,7 @@ func (b Bucket) DBKey(key []byte) []byte {
 }
 
 // Get one element
-func (b Bucket) Get(db weave.ReadOnlyKVStore, key []byte) (Object, error) {
+func (b bucket) Get(db weave.ReadOnlyKVStore, key []byte) (Object, error) {
 	dbkey := b.DBKey(key)
 	bz := db.Get(dbkey)
 	if bz == nil {
@@ -156,18 +170,21 @@ func (b Bucket) Get(db weave.ReadOnlyKVStore, key []byte) (Object, error) {
 // Used internally as part of Get.
 // It is exposed mainly as a test helper, but can work for
 // any code that wants to parse
-func (b Bucket) Parse(key, value []byte) (Object, error) {
+func (b bucket) Parse(key, value []byte) (Object, error) {
 	obj := b.proto.Clone()
 	err := obj.Value().Unmarshal(value)
 	if err != nil {
 		return nil, err
 	}
+
+	// TODO - ensure the value is migrated to the latest version
+
 	obj.SetKey(key)
 	return obj, nil
 }
 
 // Save will write a model, it must be of the same type as proto
-func (b Bucket) Save(db weave.KVStore, model Object) error {
+func (b bucket) Save(db weave.KVStore, model Object) error {
 	err := model.Validate()
 	if err != nil {
 		return err
@@ -182,13 +199,15 @@ func (b Bucket) Save(db weave.KVStore, model Object) error {
 		return err
 	}
 
+	// TODO - ensure the metadata is set
+
 	// now save this one
 	db.Set(b.DBKey(model.Key()), bz)
 	return nil
 }
 
 // Delete will remove the value at a key
-func (b Bucket) Delete(db weave.KVStore, key []byte) error {
+func (b bucket) Delete(db weave.KVStore, key []byte) error {
 	err := b.updateIndexes(db, key, nil)
 	if err != nil {
 		return err
@@ -200,7 +219,7 @@ func (b Bucket) Delete(db weave.KVStore, key []byte) error {
 	return nil
 }
 
-func (b Bucket) updateIndexes(db weave.KVStore, key []byte, model Object) error {
+func (b bucket) updateIndexes(db weave.KVStore, key []byte, model Object) error {
 	// update all indexes
 	if len(b.indexes) > 0 {
 		prev, err := b.Get(db, key)
@@ -218,7 +237,7 @@ func (b Bucket) updateIndexes(db weave.KVStore, key []byte, model Object) error 
 }
 
 // Sequence returns a Sequence by name
-func (b Bucket) Sequence(name string) Sequence {
+func (b bucket) Sequence(name string) Sequence {
 	return NewSequence(b.name, name)
 }
 
@@ -226,11 +245,11 @@ func (b Bucket) Sequence(name string) Sequence {
 // panics if it an index with that name is already registered.
 //
 // Designed to be chained.
-func (b Bucket) WithIndex(name string, indexer Indexer, unique bool) Bucket {
+func (b bucket) WithIndex(name string, indexer Indexer, unique bool) Bucket {
 	return b.WithMultiKeyIndex(name, asMultiKeyIndexer(indexer), unique)
 }
 
-func (b Bucket) WithMultiKeyIndex(name string, indexer MultiKeyIndexer, unique bool) Bucket {
+func (b bucket) WithMultiKeyIndex(name string, indexer MultiKeyIndexer, unique bool) Bucket {
 	// no duplicate indexes! (panic on init)
 	if b.indexes.Has(name) {
 		panic(fmt.Sprintf("Index %s registered twice", name))
@@ -245,7 +264,7 @@ func (b Bucket) WithMultiKeyIndex(name string, indexer MultiKeyIndexer, unique b
 }
 
 // GetIndexed queries the named index for the given key
-func (b Bucket) GetIndexed(db weave.ReadOnlyKVStore, name string, key []byte) ([]Object, error) {
+func (b bucket) GetIndexed(db weave.ReadOnlyKVStore, name string, key []byte) ([]Object, error) {
 	idx := b.indexes.Get(name)
 	if idx == nil {
 		return nil, errors.Wrap(ErrInvalidIndex, name)
@@ -258,7 +277,7 @@ func (b Bucket) GetIndexed(db weave.ReadOnlyKVStore, name string, key []byte) ([
 }
 
 // GetIndexedLike querys the named index with the given pattern
-func (b Bucket) GetIndexedLike(db weave.ReadOnlyKVStore, name string, pattern Object) ([]Object, error) {
+func (b bucket) GetIndexedLike(db weave.ReadOnlyKVStore, name string, pattern Object) ([]Object, error) {
 	idx := b.indexes.Get(name)
 	if idx == nil {
 		return nil, errors.Wrap(ErrInvalidIndex, name)
@@ -270,7 +289,7 @@ func (b Bucket) GetIndexedLike(db weave.ReadOnlyKVStore, name string, pattern Ob
 	return b.readRefs(db, refs)
 }
 
-func (b Bucket) readRefs(db weave.ReadOnlyKVStore, refs [][]byte) ([]Object, error) {
+func (b bucket) readRefs(db weave.ReadOnlyKVStore, refs [][]byte) ([]Object, error) {
 	if len(refs) == 0 {
 		return nil, nil
 	}

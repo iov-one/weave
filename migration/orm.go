@@ -1,0 +1,91 @@
+package migration
+
+import (
+	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/orm"
+)
+
+// Bucket is a storage engine that supports and requires schema versioning. I
+// enforce every model to contain schema version information and where needed
+// migrates objects on the fly, before returning to the user.
+type Bucket struct {
+	orm.Bucket
+	packageName string
+	schema      *SchemaBucket
+	migrations  *register
+}
+
+var _ orm.Bucket = (*Bucket)(nil)
+
+// NewBucket returns a new instance of a schema aware bucket implementation.
+// Package name is used to track schema version. Bucket name is the namespace
+// for the stored entity. Model is the type of the entity this bucket is
+// maintaining.
+func NewBucket(packageName string, bucketName string, model orm.Cloneable) Bucket {
+	return Bucket{
+		Bucket:      orm.NewBucket(bucketName, model),
+		packageName: packageName,
+		schema:      NewSchemaBucket(),
+		migrations:  reg,
+	}
+}
+
+// useRegister will update this bucket to use a custom register instance
+// instead of the global one. This is a private method meant to be used for
+// tests only.
+func (svb Bucket) useRegister(r *register) Bucket {
+	svb.migrations = r
+	return svb
+}
+
+func (svb Bucket) Get(db weave.ReadOnlyKVStore, key []byte) (orm.Object, error) {
+	obj, err := svb.Bucket.Get(db, key)
+	if err != nil || obj == nil {
+		return obj, err
+	}
+	if err := svb.migrate(db, obj); err != nil {
+		return obj, errors.Wrap(err, "migrate")
+	}
+	return obj, nil
+}
+
+func (svb Bucket) Save(db weave.KVStore, obj orm.Object) error {
+	if err := svb.migrate(db, obj); err != nil {
+		return errors.Wrap(err, "migrate")
+	}
+	return svb.Bucket.Save(db, obj)
+}
+
+func (svb Bucket) migrate(db weave.ReadOnlyKVStore, obj orm.Object) error {
+	m, ok := obj.Value().(Migratable)
+	if !ok {
+		return errors.Wrap(errors.ErrInvalidModel, "model cannot be migrated")
+	}
+	currSchemaVer, err := svb.schema.CurrentSchema(db, svb.packageName)
+	if err != nil {
+		return errors.Wrap(err, "current model schema")
+	}
+
+	meta := m.GetMetadata()
+	if meta == nil {
+		return errors.Wrapf(errors.ErrMetadata, "%T metadata is nil", m)
+	}
+
+	// In case of schema not being set we assume the code is expecting the
+	// current version. We can therefore set the default to current schema
+	// version.
+	if meta.Schema == 0 {
+		meta.Schema = currSchemaVer
+	}
+
+	if meta.Schema > currSchemaVer {
+		return errors.Wrapf(errors.ErrSchema, "model schema higher than %d", currSchemaVer)
+	}
+
+	// Migration is applied in place, directly modyfying the instance.
+	if err := svb.migrations.Apply(db, m, currSchemaVer); err != nil {
+		return errors.Wrap(err, "schema migration")
+	}
+	return nil
+}

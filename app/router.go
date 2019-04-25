@@ -68,6 +68,9 @@ func (r Router) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx) (*wea
 	}
 	path := msg.Path()
 	h := r.Handler(path)
+
+	// TODO - migrate message to the latest schema version
+
 	return h.Check(ctx, store, tx)
 }
 
@@ -79,6 +82,9 @@ func (r Router) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx) (*w
 	}
 	path := msg.Path()
 	h := r.Handler(path)
+
+	// TODO - migrate message to the latest schema version
+
 	return h.Deliver(ctx, store, tx)
 }
 
