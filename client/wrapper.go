@@ -180,5 +180,5 @@ func (c *Client) WaitForHeight(ctx context.Context, height int64) (*Header, erro
 // waitForTxIndex waits until all tx in last blocked are properly indexed for the queries
 // If you got a block header event, you need to wait a little bit untl you can search it
 func (c *Client) waitForTxIndex() {
-	time.Sleep(50 * time.Millisecond)
+	time.Sleep(100 * time.Millisecond)
 }
