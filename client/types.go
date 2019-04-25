@@ -48,6 +48,18 @@ type CommitResult struct {
 	Err    error
 }
 
+// Status is the current status of the node we connect to.
+// Latest block height is a useful info
+type Status struct {
+	Height     int64
+	CatchingUp bool
+}
+
+type Header = tmtypes.Header
+
+// type Status = ctypes.ResultStatus
+type GenesisDoc = tmtypes.GenesisDoc
+
 type resultOrError struct {
 	result *CommitResult
 	err    error
