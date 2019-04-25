@@ -1,8 +1,3 @@
-.. IOV Weave documentation master file, created by
-   sphinx-quickstart on Thu Apr  5 20:50:33 2018.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
 Welcome to IOV Weave's documentation!
 ========================================
 
@@ -20,100 +15,42 @@ quickly be imported in your custom chain, as well as a
 simple framework for adding the custom functionality unique
 to your project.
 
-Blockchain Basics
------------------
+**Some highlights**
 
-Some background material to help you get oriented with the
-concepts behind blockchains in general and tendermint/weave
-in particular. It is quite helpful to have a basic
-understanding of these concepts before trying to build on weave.
+* Merkle-tree backed data store
+* Highly configurable extension system, even for core logic like fees and signature validation
+* Powerful customizations via genesis file
+* Simple ORM on top of key-value store, with (proveable) secondary indexes
+* Flexible permissioning system to use contracts as first-class actors
+* "No empty blocks" for quick syncing on quiet chains
+* Optional "product fees" for transactions that need to charge more than anti-spam
 
-.. toctree::
-   :maxdepth: 2
+**Existing Modules**
 
-   basics/blockchain.rst
-   basics/consensus.rst
-   basics/authentication.rst
-   basics/state.rst
+* *cash* - wallets with multiple fungible tokens, fee deduction
+* *sigs* - validate ed25519 signatures
+* *multisig* - first-class multisig contracts, can modify membership
+* *escrow* - Arbiter can safely hold tokens, or use with timeout for eg. vesting period
+* *paychan* - Unidirectional payment channels, combine micro-payments with one on-chain settlement
+* *distribution* - Safely distribute income (eg. fees) among multiple participants with flexible settings
+* *batch* - Combine multiple transactions into one atomic operation (allow single-chain swap)
+* *nft* - Generic NFT module
+* *nft/username* - Part of cmd/bnsd, maps usernames to multiple chain-addresses, with reverse lookup
+* *valdiators* - Update validator sets PoA style, by multisig or via on-chain Elections
+* *msgfee* - Subjective minimum fees as quick anti-spam filter (set by each validator)
+* *utils* - Features like KeyTagger, to make all db keys subscribe-able
 
+**Coming soon**
 
-Mycoin Tutorial
------------------
+* Elections
+* Fully functional atomic swap module (currently made by joining escrow with a hashlock decorator)
+* Light client proofs
+* Custom token issuance
+* IBC
 
-Weave comes with a simple cryptocurrency application,
-``mycoin`` showing how to set up and use a blockchain with a
-multi-currency wallet. This is the basis on which many
-other applications can build and the simplest useful
-example to understand the tooling. For all those who like
-learning by doing, this will help you understand the power
-of the framework
-
-.. toctree::
-   :maxdepth: 2
-
-   mycoind/setup.rst
-   mycoind/installation.rst
-   mycoind/iovcore.rst
-
-
-Deployment
-----------
-
-A brief introduction into how to deploy a blockchain app.
-Once you compile the code, hwo do you run it?
+**More information**
 
 .. toctree::
    :maxdepth: 2
 
-   deployment/configuration.rst
-   deployment/validators.rst
-   deployment/tooling.rst
-
-
-Weave Architecture
-------------------
-
-Once you understand the concepts and can run and interact
-with a sample app, now it is time for you to extend the
-codebase and write your own blockchain-based application.
-Here is a primer to help you understand the architecture
-and the various components you will use
-
-.. toctree::
-   :maxdepth: 2
-
-   design/overview.rst
-   design/permissions.rst
-   design/queries.rst
-   design/extensions.rst
-
-
-Backend Development Tutorial
-----------------------------
-
-To make this theory more tangible, we will build a sample
-application alongside this tutorial, to demonstrate dealing
-with real-world constraints. The application is located in the
-`examples/tutorial package <https://github.com/iov-one/weave/tree/master/examples/tutorial>`_
-in the weave repository, but it is designed to be self-contained
-and could just as easily live in an external repo that imported
-weave.
-
-In this tutorial, you will learn how to serialize and model
-you data strucutres, define messages and handlers, expose
-queries, and read initial configuration from the genesis file.
-You will be able to build a new extension and tie it together
-with other extensions into a complete blockchain application.
-
-.. toctree::
-   :maxdepth: 2
-
-   tutorial/protobuf.rst
-   tutorial/datamodel.rst
-   tutorial/messages.rst
-   tutorial/handler.rst
-   tutorial/queries.rst
-   tutorial/init.rst
-   tutorial/integration.rst
-   tutorial/advanced.rst
-
+   index_old.rst
