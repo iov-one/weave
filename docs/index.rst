@@ -50,7 +50,7 @@ to your project.
 
 **More information**
 
-.. toctree::
-   :maxdepth: 2
-
-   index_old.rst
+We are in the process of doing a large overhaul on the docs.
+Until we are finshed, please look at the 
+`older version of the docs <index_old.rst>`__ for more complete (if outdated)
+information
