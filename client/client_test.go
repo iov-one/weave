@@ -73,10 +73,27 @@ func TestSubmitTx(t *testing.T) {
 
 	key := cmn.RandStr(10)
 	tx := &KvTx{Key: key}
-	res, err := c.SubmitTx(ctx, tx)
+	mem, err := c.SubmitTx(ctx, tx)
 	assert.Nil(t, err)
+	assert.Nil(t, mem.Err)
+	assert.Equal(t, tx.Hash(), mem.ID)
+
+	// it shouldn't be available at first
+	res, err := c.GetTxByID(ctx, mem.ID)
+	if err == nil {
+		t.Fatalf("No tx should exist yet")
+	}
+
+	// wait a block
+	_, err = c.WaitForNextBlock(ctx)
+	assert.Nil(t, err)
+	c.WaitForTxIndex()
+
+	// now it's there
+	res, err = c.GetTxByID(ctx, mem.ID)
+	assert.Nil(t, err)
+	assert.Equal(t, mem.ID, res.ID)
 	assert.Nil(t, res.Err)
-	assert.Equal(t, tx.Hash(), res.ID)
 }
 
 type KvTx struct {

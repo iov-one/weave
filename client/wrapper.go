@@ -3,6 +3,7 @@ package client
 import (
 	"context"
 	"sync"
+	"time"
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
@@ -173,4 +174,10 @@ func (c *Client) WaitForHeight(ctx context.Context, height int64) (*Header, erro
 		}
 	}
 	return nil, errors.Wrapf(errors.ErrNetwork, "Subscription closed before height %d", height)
+}
+
+// WaitForTxIndex waits until all tx in last blocked are properly indexed for the queries
+// If you got a block header event, you need to wait a little bit untl you can search it
+func (c *Client) WaitForTxIndex() {
+	time.Sleep(10 * time.Millisecond)
 }
