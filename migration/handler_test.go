@@ -21,9 +21,6 @@ func TestSchemaMigratingHandler(t *testing.T) {
 		msg.Content += " m2"
 		return msg.err
 	})
-	reg.MustRegister(3, &MyMsg{}, func(db weave.ReadOnlyKVStore, m Migratable) error {
-		panic("not implemented")
-	})
 
 	db := store.MemStore()
 
@@ -35,26 +32,26 @@ func TestSchemaMigratingHandler(t *testing.T) {
 	handler := SchemaMigratingHandler(thisPkgName, &weavetest.Handler{})
 	// Use custom register reference so that our test is not polluted by
 	// extenrnal registrations.
-	handler.(*schemaMigratingHandler).migrations = reg
+	useHandlerRegister(t, handler, reg)
 
 	var err error
 
 	// Message has the same schema version as currently active one. No
 	// migration should be applied.
-	// Handler is modyfing/migrating message in place so we can use `msg`
+	// Handler is modyfing/migrating message in place so we can use `msg1`
 	// reference to check migrated message state.
-	msg := &MyMsg{
+	msg1 := &MyMsg{
 		Metadata: &weave.Metadata{Schema: 1},
 		Content:  "foo",
 	}
-	_, err = handler.Check(nil, db, &weavetest.Tx{Msg: msg})
+	_, err = handler.Check(nil, db, &weavetest.Tx{Msg: msg1})
 	assert.Nil(t, err)
-	assert.Equal(t, msg.Metadata.Schema, uint32(1))
-	assert.Equal(t, msg.Content, "foo")
-	_, err = handler.Deliver(nil, db, &weavetest.Tx{Msg: msg})
+	assert.Equal(t, msg1.Metadata.Schema, uint32(1))
+	assert.Equal(t, msg1.Content, "foo")
+	_, err = handler.Deliver(nil, db, &weavetest.Tx{Msg: msg1})
 	assert.Nil(t, err)
-	assert.Equal(t, msg.Metadata.Schema, uint32(1))
-	assert.Equal(t, msg.Content, "foo")
+	assert.Equal(t, msg1.Metadata.Schema, uint32(1))
+	assert.Equal(t, msg1.Content, "foo")
 
 	// Upgrade the schema an ensure all further handler calls are migrating
 	// the schema as well.
@@ -62,28 +59,28 @@ func TestSchemaMigratingHandler(t *testing.T) {
 		t.Fatalf("cannot register schema version: %s", err)
 	}
 
-	_, err = handler.Check(nil, db, &weavetest.Tx{Msg: msg})
+	_, err = handler.Check(nil, db, &weavetest.Tx{Msg: msg1})
 	assert.Nil(t, err)
-	assert.Equal(t, msg.Metadata.Schema, uint32(2))
-	assert.Equal(t, msg.Content, "foo m2")
-	_, err = handler.Deliver(nil, db, &weavetest.Tx{Msg: msg})
+	assert.Equal(t, msg1.Metadata.Schema, uint32(2))
+	assert.Equal(t, msg1.Content, "foo m2")
+	_, err = handler.Deliver(nil, db, &weavetest.Tx{Msg: msg1})
 	assert.Nil(t, err)
-	assert.Equal(t, msg.Metadata.Schema, uint32(2))
-	assert.Equal(t, msg.Content, "foo m2")
+	assert.Equal(t, msg1.Metadata.Schema, uint32(2))
+	assert.Equal(t, msg1.Content, "foo m2")
 
 	// If a message is already migrated, it must not be upgraded.
-	msg = &MyMsg{
+	msg2 := &MyMsg{
 		Metadata: &weave.Metadata{Schema: 2},
 		Content:  "bar",
 	}
-	_, err = handler.Check(nil, db, &weavetest.Tx{Msg: msg})
+	_, err = handler.Check(nil, db, &weavetest.Tx{Msg: msg2})
 	assert.Nil(t, err)
-	assert.Equal(t, msg.Metadata.Schema, uint32(2))
-	assert.Equal(t, msg.Content, "bar")
-	_, err = handler.Deliver(nil, db, &weavetest.Tx{Msg: msg})
+	assert.Equal(t, msg2.Metadata.Schema, uint32(2))
+	assert.Equal(t, msg2.Content, "bar")
+	_, err = handler.Deliver(nil, db, &weavetest.Tx{Msg: msg2})
 	assert.Nil(t, err)
-	assert.Equal(t, msg.Metadata.Schema, uint32(2))
-	assert.Equal(t, msg.Content, "bar")
+	assert.Equal(t, msg2.Metadata.Schema, uint32(2))
+	assert.Equal(t, msg2.Content, "bar")
 }
 
 type MyMsg struct {
@@ -118,3 +115,15 @@ func (MyMsg) Path() string {
 
 var _ Migratable = (*MyMsg)(nil)
 var _ weave.Msg = (*MyMsg)(nil)
+
+// useHandlerRegister set a custom migration register for a given
+// schemaMigratingHandler. This function is needed to keep tests independent
+// and avoid influencing one other by modifying the global migrations register.
+func useHandlerRegister(t testing.TB, h weave.Handler, r *register) {
+	t.Helper()
+	handler, ok := h.(*schemaMigratingHandler)
+	if !ok {
+		t.Fatalf("only schemaMigratingHandler can use a register, got %T", h)
+	}
+	handler.migrations = r
+}

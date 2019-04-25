@@ -22,9 +22,6 @@ func TestSchemaVersionedBucket(t *testing.T) {
 		msg.Cnt += 2
 		return msg.err
 	})
-	reg.MustRegister(3, &MyModel{}, func(db weave.ReadOnlyKVStore, m Migratable) error {
-		panic("not implemented")
-	})
 
 	db := store.MemStore()
 
@@ -39,13 +36,13 @@ func TestSchemaVersionedBucket(t *testing.T) {
 
 	// Use custom register instead of the global one to avoid pollution
 	// from the application during tests.
-	b.Bucket.migrations = reg
+	b.Bucket = b.Bucket.useRegister(reg)
 
-	obj := orm.NewSimpleObj([]byte("schema_one"), &MyModel{
+	obj1 := orm.NewSimpleObj([]byte("schema_one"), &MyModel{
 		Metadata: &weave.Metadata{Schema: 1},
 		Cnt:      5,
 	})
-	assert.Nil(t, b.Save(db, obj))
+	assert.Nil(t, b.Save(db, obj1))
 
 	if m, err := b.GetMyModel(db, "schema_one"); err != nil {
 		t.Fatalf("cannot get model one: %s", err)
@@ -55,11 +52,11 @@ func TestSchemaVersionedBucket(t *testing.T) {
 
 	// Storing a model with a schema version higher than currently active
 	// is not allowed.
-	obj = orm.NewSimpleObj([]byte("schema_two"), &MyModel{
+	obj2 := orm.NewSimpleObj([]byte("schema_two"), &MyModel{
 		Metadata: &weave.Metadata{Schema: 2},
 		Cnt:      11,
 	})
-	if err := b.Save(db, obj); !errors.ErrSchema.Is(err) {
+	if err := b.Save(db, obj2); !errors.ErrSchema.Is(err) {
 		t.Fatalf("storing an object with an unknown schema version: %s", err)
 	}
 
@@ -68,7 +65,7 @@ func TestSchemaVersionedBucket(t *testing.T) {
 		t.Fatalf("cannot register schema version: %s", err)
 	}
 
-	if err := b.Save(db, obj); err != nil {
+	if err := b.Save(db, obj2); err != nil {
 		t.Fatalf("cannot save second object after schema version update: %s", err)
 	}
 
@@ -90,11 +87,11 @@ func TestSchemaVersionedBucket(t *testing.T) {
 
 	// Saving a model with an outdated schema must call the migration
 	// before writing to the database.
-	obj = orm.NewSimpleObj([]byte("schema_one_2"), &MyModel{
+	obj12 := orm.NewSimpleObj([]byte("schema_one_2"), &MyModel{
 		Metadata: &weave.Metadata{Schema: 1},
 		Cnt:      17,
 	})
-	assert.Nil(t, b.Save(db, obj))
+	assert.Nil(t, b.Save(db, obj12))
 }
 
 type MyModelBucket struct {
