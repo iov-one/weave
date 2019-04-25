@@ -11,10 +11,6 @@ import (
 	tmtypes "github.com/tendermint/tendermint/types"
 )
 
-type Header = tmtypes.Header
-type Status = ctypes.ResultStatus
-type GenesisDoc = tmtypes.GenesisDoc
-
 var QueryNewBlockHeader = tmtypes.EventQueryNewBlockHeader
 
 const txPerPage = 50
@@ -37,6 +33,18 @@ func NewClient(conn rpcclient.Client) *Client {
 		// TODO: make this random
 		subscriber: "weaveclient",
 	}
+}
+
+func (c *Client) Status(ctx context.Context) (*Status, error) {
+	// TODO: add context timeout here
+	status, err := c.conn.Status()
+	if err != nil {
+		return nil, errors.Wrapf(errors.ErrNetwork, "status: %s", err.Error())
+	}
+	return &Status{
+		Height:     status.SyncInfo.LatestBlockHeight,
+		CatchingUp: status.SyncInfo.CatchingUp,
+	}, nil
 }
 
 // SubmitTx will submit the tx to the mempool and then return with success or error

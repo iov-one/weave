@@ -83,6 +83,9 @@ var (
 	// ErrNetwork is returned on network failure (only for client libraries)
 	ErrNetwork = Register(100200, "network")
 
+	// ErrTimeout is returned on context timeout (only for client libraries)
+	ErrTimeout = Register(100300, "timeout")
+
 	// ErrPanic is only set when we recover from a panic, so we know to
 	// redact potentially sensitive system info
 	ErrPanic = Register(111222, "panic")
