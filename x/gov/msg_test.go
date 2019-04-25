@@ -174,6 +174,29 @@ func TestCrateTextProposalMsg(t *testing.T) {
 	}
 }
 
+func TestDeleteTestProposalMsg(t *testing.T) {
+	specs := map[string]struct {
+		Msg DeleteTextProposalMsg
+		Exp *errors.Error
+	}{
+		"Happy path": {
+			Msg: DeleteTextProposalMsg{ID: weavetest.SequenceID(1)},
+		},
+		"Empty ID": {
+			Msg: DeleteTextProposalMsg{},
+			Exp: errors.ErrInvalidInput,
+		},
+	}
+	for msg, spec := range specs {
+		t.Run(msg, func(t *testing.T) {
+			err := spec.Msg.Validate()
+			if !spec.Exp.Is(err) {
+				t.Fatalf("check expected: %v  but got %+v", spec.Exp, err)
+			}
+		})
+	}
+}
+
 func BigString(n int) string {
 	const randomChar = "a"
 	var r string

@@ -49,7 +49,7 @@ func (DeleteTextProposalMsg) Path() string {
 }
 
 func (m DeleteTextProposalMsg) Validate() error {
-	if len(m.Id) == 0 {
+	if len(m.ID) == 0 {
 		return errors.Wrap(errors.ErrInvalidInput, "empty proposal id")
 	}
 	return nil

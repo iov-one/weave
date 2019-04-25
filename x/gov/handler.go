@@ -321,9 +321,9 @@ func (h DeleteTextProposalHandler) validate(ctx weave.Context, db weave.KVStore,
 	if !ok {
 		return nil, nil, errors.Wrap(errors.ErrHuman, "block time not set")
 	}
-	prop, err := h.propBucket.GetTextProposal(db, msg.Id)
+	prop, err := h.propBucket.GetTextProposal(db, msg.ID)
 	if err != nil {
-		return nil, nil, errors.Wrapf(err, "failed to load a proposal with id %s", msg.Id)
+		return nil, nil, errors.Wrapf(err, "failed to load a proposal with id %s", msg.ID)
 	}
 	if prop.Status == TextProposal_Withdrawn {
 		return nil, nil, errors.Wrap(errors.ErrInvalidState, "this proposal is already withdrawn")
@@ -352,14 +352,14 @@ func (h DeleteTextProposalHandler) Deliver(ctx weave.Context, db weave.KVStore, 
 
 	prop.Status = TextProposal_Withdrawn
 
-	if err := h.propBucket.Update(db, msg.Id, prop); err != nil {
+	if err := h.propBucket.Update(db, msg.ID, prop); err != nil {
 		return nil, errors.Wrap(err, "failed to persist proposal")
 	}
 
 	res := &weave.DeliverResult{
-		Data: msg.Id,
+		Data: msg.ID,
 		Tags: []common.KVPair{
-			{Key: []byte(tagProposalID), Value: msg.Id},
+			{Key: []byte(tagProposalID), Value: msg.ID},
 			{Key: []byte(tagProposer), Value: prop.Author},
 			{Key: []byte(tagAction), Value: []byte("delete")},
 		},

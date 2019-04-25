@@ -147,7 +147,7 @@ message CreateTextProposalMsg {
 // CreateTextProposalMsg deletes a governance proposal.
 message DeleteTextProposalMsg {
     // Proposal id to delete
-    bytes id = 1;
+    bytes id = 1 [(gogoproto.customname) = "ID"];
 }
 
 // VoteOptions define possible values for a vote including the INVALID default.
