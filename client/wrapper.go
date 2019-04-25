@@ -135,3 +135,42 @@ func (c *Client) CommitTxs(ctx context.Context, txs []weave.Tx) ([]*CommitResult
 
 	return results, nil
 }
+
+func (c *Client) WaitForNextBlock(ctx context.Context) (*Header, error) {
+	// ensure we close subscription at function return
+	cctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
+	headers := make(chan Header, 1)
+	err := c.SubscribeHeaders(cctx, headers)
+	if err != nil {
+		return nil, err
+	}
+
+	// get the next incoming header
+	h, ok := <-headers
+	if !ok {
+		return nil, errors.Wrap(errors.ErrNetwork, "Subscription closed without returning any headers")
+	}
+	return &h, nil
+}
+
+func (c *Client) WaitForHeight(ctx context.Context, height int64) (*Header, error) {
+	// ensure we close subscription at function return
+	cctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
+	headers := make(chan Header, 2)
+	err := c.SubscribeHeaders(cctx, headers)
+	if err != nil {
+		return nil, err
+	}
+
+	// read headers until we find desired height
+	for h := range headers {
+		if h.Height >= height {
+			return &h, nil
+		}
+	}
+	return nil, errors.Wrapf(errors.ErrNetwork, "Subscription closed before height %d", height)
+}
