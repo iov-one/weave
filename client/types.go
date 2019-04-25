@@ -69,3 +69,12 @@ type resultOrError struct {
 func QueryTxByID(id TransactionID) TxQuery {
 	return fmt.Sprintf("%s='%s' AND %s='%X'", tmtypes.EventTypeKey, tmtypes.EventTx, tmtypes.TxHashKey, id)
 }
+
+// QueryForHeader is a subscription query for all new headers
+func QueryForHeader() string {
+	return queryForEvent(tmtypes.EventNewBlockHeader)
+}
+
+func queryForEvent(eventType string) string {
+	return fmt.Sprintf("%s='%s'", tmtypes.EventTypeKey, eventType)
+}
