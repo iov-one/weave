@@ -34,3 +34,30 @@ func TestHeader(t *testing.T) {
 		t.Fatalf("Expected error for non-existent height")
 	}
 }
+
+func TestSubscribeHeaders(t *testing.T) {
+	c := NewClient(NewLocalConnection(node))
+	back := context.Background()
+	ctx, cancel := context.WithCancel(back)
+
+	status, err := c.Status(ctx)
+	assert.Nil(t, err)
+	lastHeight := status.Height
+
+	headers := make(chan Header, 5)
+	err = c.SubscribeHeaders(ctx, headers)
+	assert.Nil(t, err)
+
+	// read three headers and ensure they are in order
+	for i := 0; i < 3; i++ {
+		h, ok := <-headers
+		assert.Equal(t, true, ok)
+		assert.Equal(t, lastHeight+1, h.Height)
+		lastHeight++
+	}
+
+	// cancel the context and ensure the channel is closed
+	cancel()
+	_, ok := <-headers
+	assert.Equal(t, false, ok)
+}

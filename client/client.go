@@ -129,6 +129,28 @@ func (c *Client) SearchTx(ctx context.Context, query TxQuery) ([]*CommitResult, 
 	return results, nil
 }
 
+// SubscribeHeaders will fills the channel with all new headers
+// Stops when the context is cancelled
+func (c *Client) SubscribeHeaders(ctx context.Context, results chan<- Header) error {
+	data, err := c.subscribe(ctx, QueryForHeader())
+	if err != nil {
+		return err
+	}
+
+	// start a go routine to parse the incoming data and feed to the results channel
+	go func(in <-chan interface{}) {
+		for elem := range in {
+			// TODO: return actual transaction content as well? not just ID and Result
+			// TODO: safer casting???
+			val := elem.(tmtypes.EventDataNewBlockHeader)
+			results <- val.Header
+		}
+		close(results)
+	}(data)
+
+	return nil
+}
+
 // SubscribeTx will subscribe to all transactions that match a query, writing them to the
 // results channel as they arrive. It returns an error if the subscription request failed.
 // Once subscriptions start, the continue until the context is closed (or network error)
