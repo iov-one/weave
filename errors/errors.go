@@ -66,9 +66,16 @@ var (
 	// due to a currency issues.
 	ErrCurrency = Register(17, "currency")
 
+	// ErrMetadata is returned whenever a weave.Metadata payload is invalid.
+	ErrMetadata = Register(18, "metadata")
+
+	// ErrSchema is returned whenever an operation cannot be completed due
+	// to an object schema version issue.
+	ErrSchema = Register(19, "schema")
+
 	// ErrDatabase is returned whenever the underlying kvstore fails to
 	// process raw bytes (get/set/delete/write)
-	ErrDatabase = Register(18, "database")
+	ErrDatabase = Register(20, "database")
 
 	// ErrPanic is only set when we recover from a panic, so we know to
 	// redact potentially sensitive system info

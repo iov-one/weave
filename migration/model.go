@@ -15,6 +15,9 @@ func init() {
 }
 
 func (s *Schema) Validate() error {
+	if err := s.Metadata.Validate(); err != nil {
+		return errors.Wrap(err, "metadata")
+	}
 	if s.Version < 1 {
 		return errors.Wrap(errors.ErrInvalidModel, "version must be greater than zero")
 	}
@@ -54,7 +57,7 @@ func NewSchemaBucket() *SchemaBucket {
 // CurrentSchema returns the current version of the schema for a given package.
 // It returns ErrNotFound if no schema version was registered for this package.
 // Minimum schema version is 1.
-func (b *SchemaBucket) CurrentSchema(db weave.KVStore, packageName string) (uint32, error) {
+func (b *SchemaBucket) CurrentSchema(db weave.ReadOnlyKVStore, packageName string) (uint32, error) {
 	for ver := uint32(1); ver < 10000; ver++ {
 		key := schemaID(packageName, ver)
 		obj, err := b.Bucket.Get(db, key)
