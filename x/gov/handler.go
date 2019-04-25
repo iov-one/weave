@@ -328,7 +328,7 @@ func (h DeleteTextProposalHandler) validate(ctx weave.Context, db weave.KVStore,
 	if prop.Status == TextProposal_Withdrawn {
 		return nil, nil, errors.Wrap(errors.ErrInvalidState, "this proposal is already withdrawn")
 	}
-	if prop.VotingStartTime.Time().After(blockTime) {
+	if prop.VotingStartTime.Time().Before(blockTime) {
 		return nil, nil, errors.Wrap(errors.ErrCannotBeModified, "voting has already started")
 	}
 	if !h.auth.HasAddress(ctx, prop.Author) {
