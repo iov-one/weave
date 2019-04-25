@@ -2,9 +2,14 @@ package client
 
 import (
 	"context"
+	"fmt"
+	"strings"
 	"testing"
 
+	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/weavetest/assert"
+	cmn "github.com/tendermint/tendermint/libs/common"
+	tmtypes "github.com/tendermint/tendermint/types"
 )
 
 func TestStatus(t *testing.T) {
@@ -60,4 +65,51 @@ func TestSubscribeHeaders(t *testing.T) {
 	cancel()
 	_, ok := <-headers
 	assert.Equal(t, false, ok)
+}
+
+func TestSubmitTx(t *testing.T) {
+	c := NewClient(NewLocalConnection(node))
+	ctx := context.Background()
+
+	key := cmn.RandStr(10)
+	tx := &KvTx{Key: key}
+	res, err := c.SubmitTx(ctx, tx)
+	assert.Nil(t, err)
+	assert.Nil(t, res.Err)
+	assert.Equal(t, tx.Hash(), res.ID)
+}
+
+type KvTx struct {
+	Key   string
+	Value string
+}
+
+var _ weave.Tx = (*KvTx)(nil)
+
+func (t *KvTx) GetMsg() (weave.Msg, error) {
+	return nil, nil
+}
+
+func (t *KvTx) Marshal() ([]byte, error) {
+	if t.Value == "" {
+		return []byte(t.Key), nil
+	}
+	return []byte(fmt.Sprintf("%s=%s", t.Key, t.Value)), nil
+}
+
+func (t *KvTx) Unmarshal(data []byte) error {
+	parts := strings.Split(string(data), "=")
+	if len(parts) == 2 {
+		t.Key = parts[0]
+		t.Value = parts[1]
+	} else {
+		t.Key = string(data)
+		t.Value = string(data)
+	}
+	return nil
+}
+
+func (t *KvTx) Hash() TransactionID {
+	bz, _ := t.Marshal()
+	return tmtypes.Tx(bz).Hash()
 }
