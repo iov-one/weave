@@ -1,7 +1,6 @@
 package client
 
 import (
-	"context"
 	"testing"
 
 	"github.com/iov-one/weave/weavetest/assert"
@@ -9,7 +8,8 @@ import (
 
 func TestWaitForNextBlock(t *testing.T) {
 	c := NewClient(NewLocalConnection(node))
-	ctx := context.Background()
+	ctx, cancel := timeoutCtx()
+	defer cancel()
 
 	status, err := c.Status(ctx)
 	assert.Nil(t, err)
@@ -22,7 +22,8 @@ func TestWaitForNextBlock(t *testing.T) {
 
 func TestWaitForHeight(t *testing.T) {
 	c := NewClient(NewLocalConnection(node))
-	ctx := context.Background()
+	ctx, cancel := timeoutCtx()
+	defer cancel()
 
 	cases := map[string]struct {
 		diff int64

@@ -13,9 +13,18 @@ import (
 	tmtypes "github.com/tendermint/tendermint/types"
 )
 
+// defaultTimeout avoids deadlocks
+var defaultTimeout = 1 * time.Second
+
+func timeoutCtx() (context.Context, func()) {
+	return context.WithTimeout(context.Background(), defaultTimeout)
+}
+
 func TestStatus(t *testing.T) {
 	c := NewClient(NewLocalConnection(node))
-	ctx := context.Background()
+	ctx, cancel := timeoutCtx()
+	defer cancel()
+
 	status, err := c.Status(ctx)
 	assert.Nil(t, err)
 	assert.Equal(t, false, status.CatchingUp)
@@ -26,7 +35,9 @@ func TestStatus(t *testing.T) {
 
 func TestHeader(t *testing.T) {
 	c := NewClient(NewLocalConnection(node))
-	ctx := context.Background()
+	ctx, cancel := timeoutCtx()
+	defer cancel()
+
 	status, err := c.Status(ctx)
 	assert.Nil(t, err)
 	maxHeight := status.Height
@@ -43,8 +54,8 @@ func TestHeader(t *testing.T) {
 
 func TestSubscribeHeaders(t *testing.T) {
 	c := NewClient(NewLocalConnection(node))
-	back := context.Background()
-	ctx, cancel := context.WithCancel(back)
+	ctx, cancel := timeoutCtx()
+	defer cancel()
 
 	status, err := c.Status(ctx)
 	assert.Nil(t, err)
@@ -70,7 +81,8 @@ func TestSubscribeHeaders(t *testing.T) {
 
 func TestSubmitTx(t *testing.T) {
 	c := NewClient(NewLocalConnection(node))
-	ctx := context.Background()
+	ctx, cancel := timeoutCtx()
+	defer cancel()
 
 	key := cmn.RandStr(10)
 	tx := &KvTx{Key: key}
@@ -97,7 +109,8 @@ func TestSubmitTx(t *testing.T) {
 
 func TestCommitTx(t *testing.T) {
 	c := NewClient(NewLocalConnection(node))
-	ctx := context.Background()
+	ctx, cancel := timeoutCtx()
+	defer cancel()
 
 	key := cmn.RandStr(10)
 	value := cmn.RandStr(10)
@@ -115,7 +128,8 @@ func TestCommitTx(t *testing.T) {
 
 func TestCommitTxs(t *testing.T) {
 	c := NewClient(NewLocalConnection(node))
-	ctx := context.Background()
+	ctx, cancel := timeoutCtx()
+	defer cancel()
 
 	txs := []weave.Tx{
 		&KvTx{Key: cmn.RandStr(10), Value: cmn.RandStr(10)},
@@ -139,8 +153,7 @@ func TestCommitTxs(t *testing.T) {
 
 func TestSearchSubscribeTx(t *testing.T) {
 	c := NewClient(NewLocalConnection(node))
-	// 500 ms timeout so we don't hang forever on failed subscriptions
-	ctx, cancel := context.WithTimeout(context.Background(), 500*time.Millisecond)
+	ctx, cancel := timeoutCtx()
 	defer cancel()
 
 	key := cmn.RandStr(10)
