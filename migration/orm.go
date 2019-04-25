@@ -6,6 +6,9 @@ import (
 	"github.com/iov-one/weave/orm"
 )
 
+// Bucket is a storage engine that supports and requires schema versioning. I
+// enforce every model to contain schema version information and where needed
+// migrates objects on the fly, before returning to the user.
 type Bucket struct {
 	orm.Bucket
 	packageName string
@@ -15,6 +18,10 @@ type Bucket struct {
 
 var _ orm.Bucket = (*Bucket)(nil)
 
+// NewBucket returns a new instance of a schema aware bucket implementation.
+// Package name is used to track schema version. Bucket name is the namespace
+// for the stored entity. Model is the type of the entity this bucket is
+// maintaining.
 func NewBucket(packageName string, bucketName string, model orm.Cloneable) Bucket {
 	return Bucket{
 		Bucket:      orm.NewBucket(bucketName, model),
@@ -22,6 +29,14 @@ func NewBucket(packageName string, bucketName string, model orm.Cloneable) Bucke
 		schema:      NewSchemaBucket(),
 		migrations:  reg,
 	}
+}
+
+// useRegister will update this bucket to use a custom register instance
+// instead of the global one. This is a private method meant to be used for
+// tests only.
+func (svb Bucket) useRegister(r *register) Bucket {
+	svb.migrations = r
+	return svb
 }
 
 func (svb Bucket) Get(db weave.ReadOnlyKVStore, key []byte) (orm.Object, error) {
