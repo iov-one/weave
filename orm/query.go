@@ -6,7 +6,7 @@ import "github.com/iov-one/weave"
 // under "/"
 func RegisterQuery(qr weave.QueryRouter) {
 	// this never writes, just used to query unprefixed keys
-	Bucket{}.Register("", qr)
+	bucket{}.Register("", qr)
 }
 
 // consumeIterator will read all remaining data into an

@@ -22,6 +22,8 @@ import (
 var (
 	blockNow = time.Now().UTC()
 	Timeout  = weave.AsUnixTime(blockNow.Add(2 * time.Hour))
+
+	zeroBucket = orm.NewBucket("zero", nil)
 )
 
 // TestHandler runs a number of scenario of tx to make
@@ -137,7 +139,7 @@ func TestHandler(t *testing.T) {
 				},
 				// others id are empty
 				{
-					"/escrows", "", weavetest.SequenceID(2), false, nil, orm.Bucket{},
+					"/escrows", "", weavetest.SequenceID(2), false, nil, zeroBucket,
 				},
 				// bank deducted from sender
 				{"/wallets", "", a.Address(), false,
@@ -202,7 +204,7 @@ func TestHandler(t *testing.T) {
 			[]query{
 				// verify escrow is deleted
 				{
-					"/escrows", "", weavetest.SequenceID(1), false, nil, orm.Bucket{},
+					"/escrows", "", weavetest.SequenceID(1), false, nil, zeroBucket,
 				},
 				// escrow is empty
 				{"/wallets", "", escrowAddr(1), false,
@@ -313,7 +315,7 @@ func TestHandler(t *testing.T) {
 		//	[]query{
 		//		// verify escrow is deleted
 		//		{
-		//			"/escrows", "", weavetest.SequenceID(1), false, nil, orm.Bucket{},
+		//			"/escrows", "", weavetest.SequenceID(1), false, nil, zeroBucket,
 		//		},
 		//		// escrow is empty
 		//		{"/wallets", "", escrowAddr(1), false,
@@ -372,7 +374,7 @@ func TestHandler(t *testing.T) {
 			[]query{
 				// verify escrow is deleted (resolved)
 				{
-					"/escrows", "", weavetest.SequenceID(1), false, nil, orm.Bucket{},
+					"/escrows", "", weavetest.SequenceID(1), false, nil, zeroBucket,
 				},
 				// bank deducted from sender
 				{"/wallets", "", a.Address(), false,
@@ -463,7 +465,7 @@ func TestHandler(t *testing.T) {
 			[]query{
 				// verify escrow is deleted
 				{
-					"/escrows", "", weavetest.SequenceID(1), false, nil, orm.Bucket{},
+					"/escrows", "", weavetest.SequenceID(1), false, nil, zeroBucket,
 				},
 				// escrow is empty
 				{"/wallets", "", escrowAddr(1), false,
@@ -513,7 +515,7 @@ func TestHandler(t *testing.T) {
 		//	[]query{
 		//		// verify escrow is deleted
 		//		{
-		//			"/escrows", "", weavetest.SequenceID(1), false, nil, orm.Bucket{},
+		//			"/escrows", "", weavetest.SequenceID(1), false, nil, zeroBucket,
 		//		},
 		//		// escrow is empty
 		//		{"/wallets", "", escrowAddr(1), false,
@@ -559,7 +561,7 @@ func TestHandler(t *testing.T) {
 			[]query{
 				// verify escrow is deleted
 				{
-					"/escrows", "", weavetest.SequenceID(1), false, nil, orm.Bucket{},
+					"/escrows", "", weavetest.SequenceID(1), false, nil, zeroBucket,
 				},
 				// escrow is empty
 				{"/wallets", "", escrowAddr(1), false,
