@@ -67,7 +67,7 @@ type resultOrError struct {
 
 // QueryTxByID makes a subscription string based on the transaction id
 func QueryTxByID(id TransactionID) TxQuery {
-	return fmt.Sprintf("%s='%s' AND %s='%X'", tmtypes.EventTypeKey, tmtypes.EventTx, tmtypes.TxHashKey, id)
+	return fmt.Sprintf("%s='%X'", tmtypes.TxHashKey, id)
 }
 
 // QueryForHeader is a subscription query for all new headers
