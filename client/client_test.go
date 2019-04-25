@@ -113,6 +113,30 @@ func TestCommitTx(t *testing.T) {
 	assert.Equal(t, key, string(tags[1].GetValue()))
 }
 
+func TestCommitTxs(t *testing.T) {
+	c := NewClient(NewLocalConnection(node))
+	ctx := context.Background()
+
+	txs := []weave.Tx{
+		&KvTx{Key: cmn.RandStr(10), Value: cmn.RandStr(10)},
+		&KvTx{Key: cmn.RandStr(10), Value: cmn.RandStr(10)},
+		&KvTx{Key: cmn.RandStr(10), Value: cmn.RandStr(10)},
+	}
+	res, err := c.CommitTxs(ctx, txs)
+	assert.Nil(t, err)
+	assert.Equal(t, 3, len(res))
+
+	for i, tx := range txs {
+		assert.Nil(t, res[i].Err)
+		kv := (tx).(*KvTx)
+		assert.Equal(t, kv.Hash(), res[i].ID)
+		tags := res[i].Result.Tags
+		assert.Equal(t, 2, len(tags))
+		assert.Equal(t, "app.key", string(tags[1].GetKey()))
+		assert.Equal(t, kv.Key, string(tags[1].GetValue()))
+	}
+}
+
 func TestSearchSubscribeTx(t *testing.T) {
 	c := NewClient(NewLocalConnection(node))
 	// 500 ms timeout so we don't hang forever on failed subscriptions
