@@ -47,6 +47,18 @@ func (c *Client) Status(ctx context.Context) (*Status, error) {
 	}, nil
 }
 
+func (c *Client) Header(ctx context.Context, height int64) (*Header, error) {
+	// TODO: add context timeout here
+	info, err := c.conn.BlockchainInfo(height, height)
+	if err != nil {
+		return nil, errors.Wrapf(errors.ErrNetwork, "status: %s", err.Error())
+	}
+	if len(info.BlockMetas) == 0 {
+		return nil, errors.Wrapf(errors.ErrInvalidInput, "no headers for height %d", height)
+	}
+	return &info.BlockMetas[0].Header, nil
+}
+
 // SubmitTx will submit the tx to the mempool and then return with success or error
 // You will need to use WatchTx (easily parallelizable) to get the result.
 // CommitTx and CommitTxs provide helpers for common use cases

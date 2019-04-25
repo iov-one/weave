@@ -17,3 +17,20 @@ func TestStatus(t *testing.T) {
 		t.Fatalf("Unexpected height from status: %d", status.Height)
 	}
 }
+
+func TestHeader(t *testing.T) {
+	c := NewClient(NewLocalConnection(node))
+	ctx := context.Background()
+	status, err := c.Status(ctx)
+	assert.Nil(t, err)
+	maxHeight := status.Height
+
+	header, err := c.Header(ctx, maxHeight)
+	assert.Nil(t, err)
+	assert.Equal(t, maxHeight, header.Height)
+
+	_, err = c.Header(ctx, maxHeight+20)
+	if err == nil {
+		t.Fatalf("Expected error for non-existent height")
+	}
+}
