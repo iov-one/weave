@@ -12,6 +12,7 @@ import (
 
 const (
 	proposalCost           = 0
+	deleteProposalCost     = 0
 	voteCost               = 0
 	tallyCost              = 0
 	updateElectorateCost   = 0
@@ -19,7 +20,7 @@ const (
 )
 
 const (
-	tagProposerID = "proposal-id"
+	tagProposalID = "proposal-id"
 	tagAction     = "action"
 	tagProposer   = "proposer"
 )
@@ -51,6 +52,10 @@ func RegisterRoutes(r weave.Registry, auth x.Authenticator) {
 		propBucket:  propBucket,
 		elecBucket:  elecBucket,
 		rulesBucket: NewElectionRulesBucket(),
+	})
+	r.Handle(pathDeleteTextProposalMsg, &DeleteTextProposalHandler{
+		auth:       auth,
+		propBucket: propBucket,
 	})
 	r.Handle(pathUpdateElectorateMsg, &UpdateElectorateHandler{
 		auth:       auth,
@@ -180,7 +185,7 @@ func (h TallyHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) 
 
 	res := &weave.DeliverResult{
 		Tags: []common.KVPair{
-			{Key: []byte(tagProposerID), Value: msg.ProposalID},
+			{Key: []byte(tagProposalID), Value: msg.ProposalID},
 			{Key: []byte(tagAction), Value: []byte("tally")},
 		},
 	}
@@ -259,7 +264,7 @@ func (h TextProposalHandler) Deliver(ctx weave.Context, db weave.KVStore, tx wea
 	res := &weave.DeliverResult{
 		Data: obj.Key(),
 		Tags: []common.KVPair{
-			{Key: []byte(tagProposerID), Value: obj.Key()},
+			{Key: []byte(tagProposalID), Value: obj.Key()},
 			{Key: []byte(tagProposer), Value: msg.Author},
 			{Key: []byte(tagAction), Value: []byte("create")},
 		},
@@ -300,6 +305,66 @@ func (h TextProposalHandler) validate(ctx weave.Context, db weave.KVStore, tx we
 	}
 	msg.Author = author
 	return &msg, rules, elect, nil
+}
+
+type DeleteTextProposalHandler struct {
+	auth       x.Authenticator
+	propBucket *ProposalBucket
+}
+
+func (h DeleteTextProposalHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*DeleteTextProposalMsg, *TextProposal, error) {
+	var msg DeleteTextProposalMsg
+	if err := weave.LoadMsg(tx, &msg); err != nil {
+		return nil, nil, errors.Wrap(err, "load msg")
+	}
+	blockTime, ok := weave.BlockTime(ctx)
+	if !ok {
+		return nil, nil, errors.Wrap(errors.ErrHuman, "block time not set")
+	}
+	prop, err := h.propBucket.GetTextProposal(db, msg.ID)
+	if err != nil {
+		return nil, nil, errors.Wrapf(err, "failed to load a proposal with id %s", msg.ID)
+	}
+	if prop.Status == TextProposal_Withdrawn {
+		return nil, nil, errors.Wrap(errors.ErrInvalidState, "this proposal is already withdrawn")
+	}
+	if prop.VotingStartTime.Time().Before(blockTime) {
+		return nil, nil, errors.Wrap(errors.ErrCannotBeModified, "voting has already started")
+	}
+	if !h.auth.HasAddress(ctx, prop.Author) {
+		return nil, nil, errors.Wrap(errors.ErrUnauthorized, "only the author can delete a proposal")
+	}
+	return &msg, prop, nil
+}
+
+func (h DeleteTextProposalHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
+	if _, _, err := h.validate(ctx, db, tx); err != nil {
+		return nil, err
+	}
+	return &weave.CheckResult{GasAllocated: deleteProposalCost}, nil
+}
+
+func (h DeleteTextProposalHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
+	msg, prop, err := h.validate(ctx, db, tx)
+	if err != nil {
+		return nil, err
+	}
+
+	prop.Status = TextProposal_Withdrawn
+
+	if err := h.propBucket.Update(db, msg.ID, prop); err != nil {
+		return nil, errors.Wrap(err, "failed to persist proposal")
+	}
+
+	res := &weave.DeliverResult{
+		Data: msg.ID,
+		Tags: []common.KVPair{
+			{Key: []byte(tagProposalID), Value: msg.ID},
+			{Key: []byte(tagProposer), Value: prop.Author},
+			{Key: []byte(tagAction), Value: []byte("delete")},
+		},
+	}
+	return res, nil
 }
 
 type UpdateElectorateHandler struct {

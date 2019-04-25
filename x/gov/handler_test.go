@@ -215,6 +215,97 @@ func TestCreateProposal(t *testing.T) {
 	}
 
 }
+func TestDeleteProposal(t *testing.T) {
+	proposalID := weavetest.SequenceID(1)
+	nonExistentProposalID := weavetest.SequenceID(2)
+	specs := map[string]struct {
+		Mods            func(weave.Context, *TextProposal) // modifies test fixtures before storing
+		ProposalDeleted bool
+		Msg             DeleteTextProposalMsg
+		SignedBy        weave.Condition
+		WantCheckErr    *errors.Error
+		WantDeliverErr  *errors.Error
+	}{
+		"Happy path": {
+			Msg:             DeleteTextProposalMsg{ID: proposalID},
+			SignedBy:        aliceCond,
+			ProposalDeleted: true,
+			Mods: func(ctx weave.Context, proposal *TextProposal) {
+				proposal.VotingStartTime = weave.AsUnixTime(time.Now().Add(1 * time.Hour))
+				proposal.VotingEndTime = weave.AsUnixTime(time.Now().Add(2 * time.Hour))
+			},
+		},
+		"Proposal does not exist": {
+			Msg:            DeleteTextProposalMsg{ID: nonExistentProposalID},
+			SignedBy:       aliceCond,
+			WantCheckErr:   errors.ErrNotFound,
+			WantDeliverErr: errors.ErrNotFound,
+		},
+		"Delete by non-author": {
+			Msg:            DeleteTextProposalMsg{ID: proposalID},
+			SignedBy:       bobbyCond,
+			WantCheckErr:   errors.ErrUnauthorized,
+			WantDeliverErr: errors.ErrUnauthorized,
+			Mods: func(ctx weave.Context, proposal *TextProposal) {
+				proposal.VotingStartTime = weave.AsUnixTime(time.Now().Add(1 * time.Hour))
+				proposal.VotingEndTime = weave.AsUnixTime(time.Now().Add(2 * time.Hour))
+			},
+		},
+		"Voting has started": {
+			Msg:      DeleteTextProposalMsg{ID: proposalID},
+			SignedBy: aliceCond,
+			Mods: func(ctx weave.Context, proposal *TextProposal) {
+				proposal.VotingStartTime = weave.AsUnixTime(time.Now().Add(-1 * time.Hour))
+				proposal.SubmissionTime = weave.AsUnixTime(time.Now().Add(-2 * time.Hour))
+			},
+			WantCheckErr:   errors.ErrCannotBeModified,
+			WantDeliverErr: errors.ErrCannotBeModified,
+		},
+	}
+
+	for msg, spec := range specs {
+		t.Run(msg, func(t *testing.T) {
+			db := store.MemStore()
+			auth := &weavetest.Auth{
+				Signer: spec.SignedBy,
+			}
+			rt := app.NewRouter()
+			RegisterRoutes(rt, auth)
+
+			// given
+			ctx := weave.WithBlockTime(context.Background(), time.Now().Round(time.Second))
+			pBucket := withProposal(t, db, ctx, spec.Mods)
+			cache := db.CacheWrap()
+
+			// when check
+			tx := &weavetest.Tx{Msg: &spec.Msg}
+			if _, err := rt.Check(ctx, cache, tx); !spec.WantCheckErr.Is(err) {
+				t.Fatalf("check expected: %+v  but got %+v", spec.WantCheckErr, err)
+			}
+
+			cache.Discard()
+			// and when deliver
+			if _, err := rt.Deliver(ctx, db, tx); !spec.WantDeliverErr.Is(err) {
+				t.Fatalf("deliver expected: %+v  but got %+v", spec.WantCheckErr, err)
+			}
+
+			if spec.WantDeliverErr != nil {
+				return // skip further checks on expected error
+			}
+
+			// check that proposal gets deleted as expected
+			p, err := pBucket.GetTextProposal(cache, weavetest.SequenceID(1))
+			assert.Nil(t, err)
+			if spec.ProposalDeleted {
+				assert.Equal(t, p.Status, TextProposal_Withdrawn)
+			} else {
+				assert.Equal(t, true, p.Status != TextProposal_Withdrawn)
+			}
+
+			cache.Discard()
+		})
+	}
+}
 func TestVote(t *testing.T) {
 	proposalID := weavetest.SequenceID(1)
 	nonElectorCond := weavetest.NewCondition()

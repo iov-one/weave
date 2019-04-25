@@ -7,6 +7,7 @@ import (
 
 const (
 	pathCreateTextProposalMsg  = "gov/create"
+	pathDeleteTextProposalMsg  = "gov/delete"
 	pathVoteMsg                = "gov/vote"
 	pathTallyMsg               = "gov/tally"
 	pathUpdateElectorateMsg    = "gov/electorate/update"
@@ -16,6 +17,7 @@ const (
 var _ weave.Msg = (*CreateTextProposalMsg)(nil)
 var _ weave.Msg = (*VoteMsg)(nil)
 var _ weave.Msg = (*TallyMsg)(nil)
+var _ weave.Msg = (*DeleteTextProposalMsg)(nil)
 
 func (CreateTextProposalMsg) Path() string {
 	return pathCreateTextProposalMsg
@@ -40,6 +42,17 @@ func (m CreateTextProposalMsg) Validate() error {
 		return errors.Wrapf(errors.ErrInvalidInput, "description length exceeds: %d", maxDescriptionLength)
 	}
 	return m.StartTime.Validate()
+}
+
+func (DeleteTextProposalMsg) Path() string {
+	return pathDeleteTextProposalMsg
+}
+
+func (m DeleteTextProposalMsg) Validate() error {
+	if len(m.ID) == 0 {
+		return errors.Wrap(errors.ErrInvalidInput, "empty proposal id")
+	}
+	return nil
 }
 
 func (VoteMsg) Path() string {
