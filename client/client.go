@@ -6,7 +6,8 @@ import (
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
-	pubsub "github.com/tendermint/tendermint/libs/pubsub/query"
+	cmn "github.com/tendermint/tendermint/libs/common"
+	tmquery "github.com/tendermint/tendermint/libs/pubsub/query"
 	rpcclient "github.com/tendermint/tendermint/rpc/client"
 	ctypes "github.com/tendermint/tendermint/rpc/core/types"
 	tmtypes "github.com/tendermint/tendermint/types"
@@ -181,22 +182,23 @@ func (c *Client) SubscribeTx(ctx context.Context, query TxQuery, results chan<- 
 
 // subscribe should be used internally, it wraps conn.Subscribe and uses ctx.Done() to trigger Unsubscription
 func (c *Client) subscribe(ctx context.Context, query string) (<-chan interface{}, error) {
-	q, err := pubsub.New(query)
+	q, err := tmquery.New(query)
 	if err != nil {
 		return nil, errors.Wrapf(errors.ErrInvalidInput, "Query '%s': %s", query, err.Error())
 	}
 
 	out := make(chan interface{}, 1)
-	err = c.conn.Subscribe(ctx, c.subscriber, q, out)
+	subscriber := cmn.RandStr(16)
+	err = c.conn.Subscribe(ctx, subscriber, q, out)
 	if err != nil {
 		return nil, errors.Wrapf(errors.ErrNetwork, "Subscribe to '%s': %s", query, err.Error())
 	}
 	// listen for context canceled to unsubscribe
 	// put all variables in local scope to prevent long-lived references
-	go func(stop <-chan struct{}, sub string, q *pubsub.Query) {
+	go func(stop <-chan struct{}, sub string, q *tmquery.Query) {
 		<-stop
 		c.conn.Unsubscribe(context.Background(), sub, q)
-	}(ctx.Done(), c.subscriber, q)
+	}(ctx.Done(), subscriber, q)
 
 	return out, nil
 }
