@@ -45,9 +45,10 @@ func (c *Client) WatchTx(ctx context.Context, id TransactionID) (*CommitResult, 
 	}()
 
 	// try to search and if successful, abort the subscription
-	search, err := c.GetTxByID(ctx, id)
-	if err != nil || search != nil {
-		return search, err
+	// we get an error for not found.... TODO: handle that differently
+	search, _ := c.GetTxByID(ctx, id)
+	if search != nil {
+		return search, nil
 	}
 
 	// now we just wait until the subscription returns fruit
@@ -137,6 +138,7 @@ func (c *Client) CommitTxs(ctx context.Context, txs []weave.Tx) ([]*CommitResult
 	return results, nil
 }
 
+// WaitForNextBlock will return the next block header to arrive (as subscription)
 func (c *Client) WaitForNextBlock(ctx context.Context) (*Header, error) {
 	// ensure we close subscription at function return
 	cctx, cancel := context.WithCancel(ctx)
@@ -153,9 +155,15 @@ func (c *Client) WaitForNextBlock(ctx context.Context) (*Header, error) {
 	if !ok {
 		return nil, errors.Wrap(errors.ErrNetwork, "Subscription closed without returning any headers")
 	}
+
+	// A short delay so all queries on that block work as expected
+	c.waitForTxIndex()
 	return &h, nil
 }
 
+// WaitForHeight subscribes to headers and returns as soon as a header arrives
+// equal to or greater than the given height. If the requested height is in the past,
+// it will still wait for the next block to arrive
 func (c *Client) WaitForHeight(ctx context.Context, height int64) (*Header, error) {
 	// ensure we close subscription at function return
 	cctx, cancel := context.WithCancel(ctx)
@@ -170,14 +178,16 @@ func (c *Client) WaitForHeight(ctx context.Context, height int64) (*Header, erro
 	// read headers until we find desired height
 	for h := range headers {
 		if h.Height >= height {
+			// A short delay so all queries on that block work as expected
+			c.waitForTxIndex()
 			return &h, nil
 		}
 	}
 	return nil, errors.Wrapf(errors.ErrNetwork, "Subscription closed before height %d", height)
 }
 
-// WaitForTxIndex waits until all tx in last blocked are properly indexed for the queries
+// waitForTxIndex waits until all tx in last blocked are properly indexed for the queries
 // If you got a block header event, you need to wait a little bit untl you can search it
-func (c *Client) WaitForTxIndex() {
+func (c *Client) waitForTxIndex() {
 	time.Sleep(10 * time.Millisecond)
 }

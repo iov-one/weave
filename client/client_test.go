@@ -87,13 +87,30 @@ func TestSubmitTx(t *testing.T) {
 	// wait a block
 	_, err = c.WaitForNextBlock(ctx)
 	assert.Nil(t, err)
-	c.WaitForTxIndex()
 
 	// now it's there
 	res, err = c.GetTxByID(ctx, mem.ID)
 	assert.Nil(t, err)
 	assert.Equal(t, mem.ID, res.ID)
 	assert.Nil(t, res.Err)
+}
+
+func TestCommitTx(t *testing.T) {
+	c := NewClient(NewLocalConnection(node))
+	ctx := context.Background()
+
+	key := cmn.RandStr(10)
+	value := cmn.RandStr(10)
+	tx := &KvTx{Key: key, Value: value}
+	res, err := c.CommitTx(ctx, tx)
+	assert.Nil(t, err)
+	assert.Nil(t, res.Err)
+	assert.Equal(t, tx.Hash(), res.ID)
+
+	tags := res.Result.Tags
+	assert.Equal(t, 2, len(tags))
+	assert.Equal(t, "app.key", string(tags[1].GetKey()))
+	assert.Equal(t, key, string(tags[1].GetValue()))
 }
 
 type KvTx struct {
