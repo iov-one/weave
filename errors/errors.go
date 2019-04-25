@@ -66,6 +66,13 @@ var (
 	// due to a currency issues.
 	ErrCurrency = Register(17, "currency")
 
+	// ErrMetadata is returned whenever a weave.Metadata payload is invalid.
+	ErrMetadata = Register(18, "metadata")
+
+	// ErrSchema is returned whenever an operation cannot be completed due
+	// to an object schema version issue.
+	ErrSchema = Register(19, "schema")
+
 	// ErrPanic is only set when we recover from a panic, so we know to
 	// redact potentially sensitive system info
 	ErrPanic = Register(111222, "panic")
