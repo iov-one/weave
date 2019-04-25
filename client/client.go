@@ -36,6 +36,7 @@ func NewClient(conn rpcclient.Client) *Client {
 	}
 }
 
+// Status returns current height and other (subjective) status info from this node
 func (c *Client) Status(ctx context.Context) (*Status, error) {
 	// TODO: add context timeout here
 	status, err := c.conn.Status()
@@ -48,6 +49,8 @@ func (c *Client) Status(ctx context.Context) (*Status, error) {
 	}, nil
 }
 
+// Header returns the block header at the given height.
+// Returns an error if no header exists yet for that height
 func (c *Client) Header(ctx context.Context, height int64) (*Header, error) {
 	// TODO: add context timeout here
 	info, err := c.conn.BlockchainInfo(height, height)
@@ -63,7 +66,7 @@ func (c *Client) Header(ctx context.Context, height int64) (*Header, error) {
 // SubmitTx will submit the tx to the mempool and then return with success or error
 // You will need to use WatchTx (easily parallelizable) to get the result.
 // CommitTx and CommitTxs provide helpers for common use cases
-func (c *Client) SubmitTx(ctx context.Context, tx weave.Tx) (*MempoolResult, error) {
+func (c *Client) SubmitTx(ctx context.Context, tx weave.Tx) (TransactionID, error) {
 	bz, err := tx.Marshal()
 	if err != nil {
 		return nil, errors.Wrapf(errors.ErrInvalidMsg, "marshaling: %s", err.Error())
@@ -74,13 +77,11 @@ func (c *Client) SubmitTx(ctx context.Context, tx weave.Tx) (*MempoolResult, err
 		return nil, errors.Wrapf(errors.ErrNetwork, "submit tx: %s", err.Error())
 	}
 
+	// a checktx error is handled like any other error... didn't make it into mempool... will not make it into block
 	if res.Code != 0 {
-		err = errors.ABCIError(res.Code, res.Log)
+		return nil, errors.ABCIError(res.Code, res.Log)
 	}
-	return &MempoolResult{
-		ID:  res.Hash,
-		Err: err,
-	}, nil
+	return res.Hash, nil
 }
 
 // Query is meant to mirror the abci query interface exactly, so we can wrap it with app.ABCIStore

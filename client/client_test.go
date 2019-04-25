@@ -74,13 +74,12 @@ func TestSubmitTx(t *testing.T) {
 
 	key := cmn.RandStr(10)
 	tx := &KvTx{Key: key}
-	mem, err := c.SubmitTx(ctx, tx)
+	id, err := c.SubmitTx(ctx, tx)
 	assert.Nil(t, err)
-	assert.Nil(t, mem.Err)
-	assert.Equal(t, tx.Hash(), mem.ID)
+	assert.Equal(t, tx.Hash(), id)
 
 	// it shouldn't be available at first
-	res, err := c.GetTxByID(ctx, mem.ID)
+	res, err := c.GetTxByID(ctx, id)
 	if err == nil {
 		t.Fatalf("No tx should exist yet")
 	}
@@ -90,9 +89,9 @@ func TestSubmitTx(t *testing.T) {
 	assert.Nil(t, err)
 
 	// now it's there
-	res, err = c.GetTxByID(ctx, mem.ID)
+	res, err = c.GetTxByID(ctx, id)
 	assert.Nil(t, err)
-	assert.Equal(t, mem.ID, res.ID)
+	assert.Equal(t, id, res.ID)
 	assert.Nil(t, res.Err)
 }
 
@@ -152,7 +151,7 @@ func TestSearchSubscribeTx(t *testing.T) {
 	assert.Equal(t, tx.Hash(), fromSub.ID)
 
 	// are they both identical
-	// assert.Equal(t, fromSub, *fromSearch)
+	assert.Equal(t, fromSub, *fromSearch)
 }
 
 type KvTx struct {

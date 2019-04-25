@@ -63,10 +63,12 @@ func (c *Client) CommitTx(ctx context.Context, tx weave.Tx) (*CommitResult, erro
 	if err != nil {
 		return nil, err
 	}
-	if check.Err != nil {
-		return check.AsCommitError(), nil
+	res, err := c.WatchTx(ctx, check)
+	if err == nil {
+		// on success wait a bit so index is updated
+		c.waitForTxIndex()
 	}
-	return c.WatchTx(ctx, check.ID)
+	return res, err
 }
 
 // WatchTxs will watch a list of transactions in parallel
@@ -104,35 +106,24 @@ func (c *Client) WatchTxs(ctx context.Context, ids []TransactionID) ([]*CommitRe
 }
 
 // CommitTxs will submit many transactions and wait until they are all included in blocks.
-// Ideally, all in the same block
+// Ideally, all in the same block.
+//
+// If any tx fails in mempool or network, this returns an error
+// TODO: improve error handling (maybe we need to use CommitResultOrError type?)
 func (c *Client) CommitTxs(ctx context.Context, txs []weave.Tx) ([]*CommitResult, error) {
 	// first submit them all (some may error), this should be in order
 	var err error
-	checks := make([]*MempoolResult, len(txs))
+	ids := make([]TransactionID, len(txs))
 	for i, tx := range txs {
-		checks[i], err = c.SubmitTx(ctx, tx)
+		ids[i], err = c.SubmitTx(ctx, tx)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	// make a list of all successful ones to block on Deliver (in parallel)
-	ids := make([]TransactionID, len(txs))
-	for i, check := range checks {
-		if check.Err == nil {
-			ids[i] = check.ID
-		}
-	}
 	results, err := c.WatchTxs(ctx, ids)
 	if err != nil {
 		return nil, err
-	}
-
-	// now, we combine the check errors into the deliver results
-	for i, check := range checks {
-		if check.Err != nil {
-			results[i] = check.AsCommitError()
-		}
 	}
 
 	return results, nil
