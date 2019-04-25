@@ -43,12 +43,89 @@ to your project.
 **Coming soon**
 
 * Elections
+* Smooth schema migrations / feature switches to easily allow hard and soft forks without stopping the chain
 * Fully functional atomic swap module (currently made by joining escrow with a hashlock decorator)
 * Light client proofs
 * Custom token issuance
 * IBC
 
-**More information**
+Basic Blockchain Terminology
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you are new to blockchains (or Tendermint), this is a
+crash course in just enough theory to follow the rest of the setup.
+
+.. toctree::
+   :maxdepth: 2
+
+   basics/blockchain.rst
+   basics/consensus.rst
+   basics/authentication.rst
+   basics/state.rst
+
+Running an Existing Application
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+**TODO**
+
+* Show how to query hugnet (and send tx) with iov-core (and generate addresses)
+* (Also golang client?)
+* Show to to compile bnsd, auto-init it, launch it with tendermint
+* Query local application
+* Running on a cloud server
+* Connecting to a testnet
+
+Configuration
+~~~~~~~~~~~~~
+
+**TODO**
+
+* Deep dive into the genesis file
+* Show the init formats for multiple extensions
+* Build custom init file
+* Use your custom configuration
+
+Understanding Weave
+~~~~~~~~~~~~~~~~~~~
+
+**TODO**
+Take much from *Backend Development Tutorial*
+
+* Working with Protobuf
+* Permission System and addresses
+* Models and Buckets
+* Messages and transactions
+* Migrations
+* Handlers and Decorators
+* Queries
+* Genesis Initialization
+* Error package
+
+Custom App from Existing Modules
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+**TODO**
+
+* Look at application construction in examples/mycoind
+* Look at more complex examples in cmd/bnsd
+* Make your own app (first tutorial) with payment channels and multisig
+* Compile and test the application
+* Use custom golang client to perform a few actions
+* Add custom iov-core connector
+* Use the chain with iov-core
+
+
+Coding a Custom Module (Tutorial Series)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+**TODO**
+Take much from *Backend Development Tutorial*
+
+* Design 
+* Implementation step by step
+
+Additional Reading
+~~~~~~~~~~~~~~~~~~
 
 We are in the process of doing a large overhaul on the docs.
 Until we are finshed, please look at the 
