@@ -21,6 +21,7 @@ func TestMain(m *testing.M) {
 	// TODO: check out config file...
 	config := rpctest.GetConfig()
 	config.Moniker = "WeaveClientTest"
+	config.TxIndex.IndexAllTags = true
 
 	// run the default kvstore app inside a tendermint instance
 	app := kvstore.NewKVStoreApplication()
