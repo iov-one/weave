@@ -331,7 +331,7 @@ func (h DeleteTextProposalHandler) validate(ctx weave.Context, db weave.KVStore,
 	if prop.VotingStartTime.Time().After(blockTime) {
 		return nil, nil, errors.Wrap(errors.ErrCannotBeModified, "voting has already started")
 	}
-	if h.auth.HasAddress(ctx, prop.Author) {
+	if !h.auth.HasAddress(ctx, prop.Author) {
 		return nil, nil, errors.Wrap(errors.ErrUnauthorized, "only the author can delete a proposal")
 	}
 	return &msg, prop, nil
