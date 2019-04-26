@@ -123,6 +123,7 @@ The only thing left is to start this blockchain running.
 Open a new window and type in ``tail -f  ~/.mycoind/tendermint.log`` and you will be able to see the output.
 That means the blockchain is working away and producing new blocks,
 one a second.
+
 .. image:: _static/img/tailf-log.png
         :width: 800
         :alt: Log file
