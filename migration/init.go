@@ -24,14 +24,23 @@ func (Initializer) FromGenesis(opts weave.Options, kv weave.KVStore) error {
 		return errors.Wrap(err, "initialize schema")
 	}
 
+	b := NewSchemaBucket()
+
 	// Before ensuring the schema of above packages is initialized force
 	// register migration package schema.
 	// This is solving a chicken-egg problem. We could not register any
 	// schema version without Schema model being enabled (schema registered
 	// with version one).
-	MustInitPkg(kv, "migration")
+	_, err := b.Create(kv, &Schema{
+		Metadata: &weave.Metadata{Schema: 1},
+		Pkg:      "migration",
+		Version:  1,
+	})
+	// Duplicated initializations are ignored.
+	if err != nil && !errors.ErrDuplicate.Is(err) {
+		return errors.Wrap(err, "initialize migration package schema")
+	}
 
-	b := NewSchemaBucket()
 	for _, name := range packages {
 		_, err := b.Create(kv, &Schema{
 			Metadata: &weave.Metadata{Schema: 1},
