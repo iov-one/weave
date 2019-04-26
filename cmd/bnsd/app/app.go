@@ -15,6 +15,7 @@ import (
 	"github.com/iov-one/weave/cmd/bnsd/x/nft/username"
 	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/commands/server"
+	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/store/iavl"
 	"github.com/iov-one/weave/x"
@@ -73,6 +74,7 @@ func Router(authFn x.Authenticator, issuer weave.Address, nftBuckets map[string]
 	// consistently everywhere.
 	var ctrl cash.Controller = cash.NewController(cash.NewBucket())
 
+	migration.RegisterRoutes(r, authFn)
 	cash.RegisterRoutes(r, authFn, ctrl)
 	escrow.RegisterRoutes(r, authFn, ctrl)
 	multisig.RegisterRoutes(r, authFn)
@@ -95,6 +97,7 @@ func QueryRouter(minFee coin.Coin) weave.QueryRouter {
 	antiSpamQuery := msgfee.NewAntiSpamQuery(minFee)
 
 	r.RegisterAll(
+		migration.RegisterQuery,
 		escrow.RegisterQuery,
 		cash.RegisterQuery,
 		sigs.RegisterQuery,

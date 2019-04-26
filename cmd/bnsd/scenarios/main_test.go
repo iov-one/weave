@@ -14,6 +14,7 @@ import (
 	"github.com/iov-one/weave/cmd/bnsd/client"
 	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/commands/server"
+	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/weavetest"
 	"github.com/iov-one/weave/x/cash"
 	"github.com/iov-one/weave/x/distribution"
@@ -199,6 +200,9 @@ func initGenesis(filename string, addr weave.Address) (*tm.GenesisDoc, error) {
 				CollectorAddress: weave.Condition("dist/revenue/0000000000000001").Address(),
 				MinimalFee:       antiSpamFee,
 			},
+			"migration": migration.Configuration{
+				Admin: weave.Condition("multisig/usage/0000000000000001").Address(),
+			},
 		},
 		"msgfee": []interface{}{
 			dict{
@@ -217,6 +221,23 @@ func initGenesis(filename string, addr weave.Address) (*tm.GenesisDoc, error) {
 				"msg_path": "nft/username/issue",
 				"fee":      coin.Coin{Ticker: "IOV", Whole: 5},
 			},
+		},
+		"initialize_schema": []string{
+			"batch",
+			"cash",
+			"currency",
+			"distribution",
+			"escrow",
+			"gov",
+			"hashlock",
+			"msgfee",
+			"multisig",
+			"namecoin",
+			"nft",
+			"paychan",
+			"sigs",
+			"utils",
+			"validators",
 		},
 	}, "", "  ")
 	if err != nil {

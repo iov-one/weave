@@ -142,3 +142,8 @@ func (b *SchemaBucket) validateNextSchema(db weave.KVStore, next *Schema) error 
 	}
 	return nil
 }
+
+// RegisterQuery registers schema bucket for querying.
+func RegisterQuery(qr weave.QueryRouter) {
+	NewSchemaBucket().Register("schemas", qr)
+}
