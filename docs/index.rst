@@ -42,7 +42,7 @@ to your project.
 
 **Coming soon**
 
-* Elections
+* Elections - manage the submission of proposals, and the voting functionality (setting quorums, voting, vote counting)
 * Smooth schema migrations / feature switches to easily allow hard and soft forks without stopping the chain
 * Fully functional atomic swap module (currently made by joining escrow with a hashlock decorator)
 * Light client proofs
