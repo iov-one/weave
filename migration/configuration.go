@@ -5,10 +5,6 @@ import (
 	"github.com/iov-one/weave/gconf"
 )
 
-func init() {
-	MustRegister(1, &Configuration{}, NoModification)
-}
-
 func (c *Configuration) Validate() error {
 	if err := c.Admin.Validate(); err != nil {
 		return errors.Wrap(err, "admin")
