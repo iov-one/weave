@@ -124,7 +124,7 @@ Open a new window and type in ``tail -f  ~/.mycoind/tendermint.log`` and you wil
 That means the blockchain is working away and producing new blocks,
 one a second.
 
-.. image:: _static/img/tailf-log.png
+.. image:: _static/img/tail-log.png
         :width: 800
         :alt: Log file
 
