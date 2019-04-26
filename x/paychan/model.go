@@ -42,7 +42,7 @@ func (pc *PaymentChannel) Validate() error {
 	return nil
 }
 
-// Copy returns a shallow copy of this PaymentChannel.
+// Copy returns a deep copy of this PaymentChannel.
 func (pc PaymentChannel) Copy() orm.CloneableData {
 	return &PaymentChannel{
 		Metadata:     pc.Metadata.Copy(),
