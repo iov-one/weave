@@ -120,9 +120,12 @@ The only thing left is to start this blockchain running.
 .. hint: For help and explanations for the tendermint node commands:
    `tendermint node --help`
 
-After a few seconds this should start seeing "Commit Synced" messages.
+Open a new window and type in ``tail -f  ~/.mycoind/tendermint.log`` and you will be able to see the output.
 That means the blockchain is working away and producing new blocks,
 one a second.
+.. image:: _static/img/tailf-log.png
+        :width: 800
+        :alt: Log file
 
 Note: if you did anything funky during setup and managed to get yourself a rogue tendermint
 node running in the background, you might encounter errors like `panic: Error initializing DB: resource temporarily unavailable`.
