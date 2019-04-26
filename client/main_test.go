@@ -11,6 +11,8 @@ import (
 )
 
 // useful values for test cases
+
+// an instance of tendermint node
 var node *nm.Node
 
 func getChainID() string {
