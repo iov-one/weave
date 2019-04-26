@@ -1,4 +1,6 @@
 .PHONY: all install test tf cover deps prototools protoc govet
+# make sure we turn on go modules
+export GO111MODULE := on
 
 EXAMPLES := examples/mycoind cmd/bcpd cmd/bnsd
 
