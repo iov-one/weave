@@ -16,7 +16,11 @@ func TestGenesisInitializeSchemaVersions(t *testing.T) {
 				"admin": "6a4832947079b0a851ec4daa3dae69de1f7741eb"
 			}
 		},
-		"initialize_schema": ["c", "b", "a"]
+		"initialize_schema": [
+			{"pkg": "two",    "ver": 2},
+			{"pkg": "seven",  "ver": 7},
+			{"pkg": "eleven", "ver": 11}
+		]
 	}
 	`
 
@@ -31,19 +35,21 @@ func TestGenesisInitializeSchemaVersions(t *testing.T) {
 		t.Fatalf("cannot load genesis: %s", err)
 	}
 
-	wantSchemaVersions := []string{
-		"a", "b", "c",
+	wantSchemaVersions := map[string]uint32{
+		"two":    2,
+		"seven":  7,
+		"eleven": 11,
 
 		// Running the initializer must always ensure the migration
 		// package schema version is at least one.
-		"migration",
+		"migration": 1,
 	}
-	for _, pkgName := range wantSchemaVersions {
+	for pkgName, wantVer := range wantSchemaVersions {
 		ver, err := NewSchemaBucket().CurrentSchema(db, pkgName)
 		if err != nil {
 			t.Fatalf("cannot get current schema for %q package: %s", pkgName, err)
 		}
-		if ver != 1 {
+		if ver != wantVer {
 			t.Fatalf("unexpected schema version for %q package: %d", pkgName, ver)
 		}
 	}
