@@ -17,7 +17,14 @@ import (
 var defaultTimeout = 1 * time.Second
 
 func timeoutCtx() (context.Context, func()) {
-	return context.WithTimeout(context.Background(), defaultTimeout)
+	ctx, cancel := context.WithTimeout(context.Background(), defaultTimeout)
+	cancelWithWait := func() {
+		cancel()
+		// this makes sure the unsubscribe is finished before next test runs
+		// in order to avoid multiple identical subscriptions (eg. on header) that leads to error
+		time.Sleep(50 * time.Millisecond)
+	}
+	return ctx, cancelWithWait
 }
 
 func TestStatus(t *testing.T) {

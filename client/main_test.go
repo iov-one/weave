@@ -1,6 +1,8 @@
 package client
 
 import (
+	"context"
+	"fmt"
 	"os"
 	"testing"
 	"time"
@@ -27,9 +29,25 @@ func TestMain(m *testing.M) {
 
 	// run the default kvstore app inside a tendermint instance
 	app := kvstore.NewKVStoreApplication()
+	fmt.Println("Starting tendermint...")
 	node = rpctest.StartTendermint(app)
-	time.Sleep(100 * time.Millisecond) // time to setup app context
-	code := m.Run()
+
+	// make sure tendermint is good to go before tests... a short static pause,
+	// then wait for one block to come in.
+	fmt.Println("Wait for first block...")
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+	h, err := NewClient(NewLocalConnection(node)).WaitForNextBlock(ctx)
+	fmt.Printf("Starting tests with block %d\n", h.Height)
+
+	// Run tests if tendermint started properly
+	var code int
+	if err == nil {
+		code = m.Run()
+	} else {
+		fmt.Printf("Failed to start tendermint: %s\n", err)
+		code = 1
+	}
 
 	// and shut down proper at the end
 	node.Stop()
