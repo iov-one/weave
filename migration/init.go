@@ -19,7 +19,10 @@ func (Initializer) FromGenesis(opts weave.Options, kv weave.KVStore) error {
 		return errors.Wrap(err, "migration config")
 	}
 
-	var packages []string
+	var packages []struct {
+		Ver uint32
+		Pkg string
+	}
 	if err := opts.ReadOptions("initialize_schema", &packages); err != nil {
 		return errors.Wrap(err, "initialize schema")
 	}
@@ -41,15 +44,17 @@ func (Initializer) FromGenesis(opts weave.Options, kv weave.KVStore) error {
 		return errors.Wrap(err, "initialize migration package schema")
 	}
 
-	for _, name := range packages {
-		_, err := b.Create(kv, &Schema{
-			Metadata: &weave.Metadata{Schema: 1},
-			Pkg:      name,
-			Version:  1,
-		})
-		// Duplicated initializations are ignored.
-		if err != nil && !errors.ErrDuplicate.Is(err) {
-			return errors.Wrapf(err, "initialize %q schema", name)
+	for _, schema := range packages {
+		for ver := uint32(1); ver <= schema.Ver; ver++ {
+			_, err := b.Create(kv, &Schema{
+				Metadata: &weave.Metadata{Schema: 1},
+				Pkg:      schema.Pkg,
+				Version:  ver,
+			})
+			// Duplicated initializations are ignored.
+			if err != nil && !errors.ErrDuplicate.Is(err) {
+				return errors.Wrapf(err, "initialize %q schema with version %d", schema.Pkg, ver)
+			}
 		}
 	}
 
