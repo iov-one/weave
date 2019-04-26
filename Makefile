@@ -1,4 +1,6 @@
 .PHONY: all install test tf cover deps prototools protoc govet
+# make sure we turn on go modules
+export GO111MODULE := on
 
 EXAMPLES := examples/mycoind cmd/bcpd cmd/bnsd
 
@@ -47,10 +49,7 @@ cover:
 	cat coverage/*.out > coverage/coverage.txt
 
 deps:
-ifndef $(shell command -v dep help > /dev/null)
-	go get github.com/golang/dep/cmd/dep
-endif
-	dep ensure -vendor-only
+	@ go mod vendor
 
 lint:
 ifndef $(shell command -v prototool help > /dev/null)

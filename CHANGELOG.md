@@ -11,6 +11,10 @@
   `weavetest/assert` contains test helpers
 - Simplify transaction message unpacking with `weave.LoadMsg`
 - Initial version of governance model
+- Introducing go modules instead of dep
+- Removed support for go 1.10
+- Added support for go 1.12
+- Bumped minimum required version of go to 1.11.4+ as otherwise some commands fail because of go mod constraints
 
 
 ## 0.13.0

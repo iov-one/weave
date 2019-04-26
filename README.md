@@ -19,7 +19,7 @@ quickly be imported in your custom chain, as well as a
 simple framework for adding the custom functionality unique
 to your project.
 
-**Note: Requires Go 1.9+**
+**Note: Requires Go 1.11.4+**
 
 It is inspired by the routing and middleware model of many web
 application frameworks, and informed by years of wrestling with

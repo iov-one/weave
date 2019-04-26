@@ -14,16 +14,15 @@ os:
 - linux
 
 go:
-- "1.10"
-- "1.11"
-#- "1.12"
+- "1.11.4"
+- "1.12"
 
 
 env:
   global:
     - TM_VERSION=v0.27.4
     - BUILD_VERSION=$(echo ${TRAVIS_COMMIT} | cut -c 1-10)
-    - MAIN_GO_VERSION=1.11
+    - MAIN_GO_VERSION=1.12
     - GORACE="halt_on_error=1"
     - FORCE_TM_TEST=1
 
