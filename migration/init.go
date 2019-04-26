@@ -20,8 +20,8 @@ func (Initializer) FromGenesis(opts weave.Options, kv weave.KVStore) error {
 	}
 
 	var packages []struct {
-		Ver uint32
-		Pkg string
+		Ver uint32 `json:"ver"`
+		Pkg string `json:"pkg"`
 	}
 	if err := opts.ReadOptions("initialize_schema", &packages); err != nil {
 		return errors.Wrap(err, "initialize schema")
