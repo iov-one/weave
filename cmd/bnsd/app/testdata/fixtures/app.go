@@ -11,6 +11,7 @@ import (
 	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/commands/server"
 	"github.com/iov-one/weave/crypto"
+	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/x/cash"
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
@@ -81,6 +82,26 @@ func appStateGenesis(keyAddress weave.Address) []byte {
 				CollectorAddress: weave.Condition("dist/revenue/0000000000000001").Address(),
 				MinimalFee:       coin.NewCoin(0, 10000000, "FRNK"),
 			},
+			"migration": migration.Configuration{
+				Admin: weave.Condition("multisig/usage/0000000000000001").Address(),
+			},
+		},
+		"initialize_schema": []dict{
+			dict{"ver": 1, "pkg": "batch"},
+			dict{"ver": 1, "pkg": "cash"},
+			dict{"ver": 1, "pkg": "currency"},
+			dict{"ver": 1, "pkg": "distribution"},
+			dict{"ver": 1, "pkg": "escrow"},
+			dict{"ver": 1, "pkg": "gov"},
+			dict{"ver": 1, "pkg": "hashlock"},
+			dict{"ver": 1, "pkg": "msgfee"},
+			dict{"ver": 1, "pkg": "multisig"},
+			dict{"ver": 1, "pkg": "namecoin"},
+			dict{"ver": 1, "pkg": "nft"},
+			dict{"ver": 1, "pkg": "paychan"},
+			dict{"ver": 1, "pkg": "sigs"},
+			dict{"ver": 1, "pkg": "utils"},
+			dict{"ver": 1, "pkg": "validators"},
 		},
 		"currencies": []interface{}{
 			dict{

@@ -3,21 +3,26 @@ package paychan
 import (
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/orm"
 )
+
+func init() {
+	migration.MustRegister(1, &PaymentChannel{}, migration.NoModification)
+}
 
 var _ orm.CloneableData = (*PaymentChannel)(nil)
 
 // Validate ensures the payment channel is valid.
 func (pc *PaymentChannel) Validate() error {
-	if pc.Src == nil {
-		return errors.Wrap(errors.ErrInvalidModel, "missing source")
+	if err := pc.Src.Validate(); err != nil {
+		return errors.Wrap(err, "src")
 	}
 	if pc.SenderPubkey == nil {
 		return errors.Wrap(errors.ErrInvalidModel, "missing sender public key")
 	}
-	if pc.Recipient == nil {
-		return errors.Wrap(errors.ErrInvalidModel, "missing recipient")
+	if err := pc.Recipient.Validate(); err != nil {
+		return errors.Wrap(err, "recipient")
 	}
 	if pc.Timeout <= 0 {
 		return errors.Wrap(errors.ErrInvalidModel, "timeout in the past")
@@ -37,21 +42,30 @@ func (pc *PaymentChannel) Validate() error {
 	return nil
 }
 
-// Copy returns a shallow copy of this PaymentChannel.
+// Copy returns a deep copy of this PaymentChannel.
 func (pc PaymentChannel) Copy() orm.CloneableData {
-	return &pc
+	return &PaymentChannel{
+		Metadata:     pc.Metadata.Copy(),
+		Src:          pc.Src.Clone(),
+		SenderPubkey: pc.SenderPubkey,
+		Recipient:    pc.Recipient.Clone(),
+		Total:        pc.Total.Clone(),
+		Timeout:      pc.Timeout,
+		Memo:         pc.Memo,
+		Transferred:  pc.Transferred.Clone(),
+	}
 }
 
 // PaymentChannelBucket is a wrapper over orm.Bucket that ensures that only
 // PaymentChannel entities can be persisted.
 type PaymentChannelBucket struct {
-	orm.Bucket
+	migration.Bucket
 	idSeq orm.Sequence
 }
 
 // NewPaymentChannelBucket returns a bucket for storing PaymentChannel state.
 func NewPaymentChannelBucket() PaymentChannelBucket {
-	b := orm.NewBucket("paychan", orm.NewSimpleObj(nil, &PaymentChannel{}))
+	b := migration.NewBucket("paychan", "paychan", orm.NewSimpleObj(nil, &PaymentChannel{}))
 	return PaymentChannelBucket{
 		Bucket: b,
 		idSeq:  b.Sequence("id"),

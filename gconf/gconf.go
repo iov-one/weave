@@ -71,7 +71,7 @@ func InitConfig(db Store, opts weave.Options, pkg string, conf Configuration) er
 		return errors.Wrap(err, "read conf")
 	}
 	if confOptions[pkg] == nil {
-		return errors.Wrapf(errors.ErrInvalidInput, "no configuration for %s", pkg)
+		return errors.Wrapf(errors.ErrNotFound, "no configuration in genesis for %q package", pkg)
 	}
 	if err := confOptions.ReadOptions(pkg, conf); err != nil {
 		return errors.Wrapf(err, "read configuration for %s", pkg)

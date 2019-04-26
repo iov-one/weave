@@ -11,6 +11,7 @@ import (
 	"github.com/iov-one/weave/cmd/bnsd/app"
 	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/commands/server"
+	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/x/cash"
 	abci "github.com/tendermint/tendermint/abci/types"
 	cfg "github.com/tendermint/tendermint/config"
@@ -86,16 +87,36 @@ func initGenesis(filename string, addr weave.Address) error {
 	}
 	appState, err := json.Marshal(map[string]interface{}{
 		"cash": []interface{}{
-			map[string]interface{}{
+			dict{
 				"address": addr,
 				"coins":   coin.Coins{&initBalance},
 			},
 		},
-		"conf": map[string]interface{}{
+		"conf": dict{
 			"cash": cash.Configuration{
 				CollectorAddress: weave.NewAddress([]byte("fake-collector-address")),
 				MinimalFee:       coin.Coin{}, // no fee
 			},
+			"migration": migration.Configuration{
+				Admin: weave.Condition("multisig/usage/0000000000000001").Address(),
+			},
+		},
+		"initialize_schema": []dict{
+			dict{"ver": 1, "pkg": "batch"},
+			dict{"ver": 1, "pkg": "cash"},
+			dict{"ver": 1, "pkg": "currency"},
+			dict{"ver": 1, "pkg": "distribution"},
+			dict{"ver": 1, "pkg": "escrow"},
+			dict{"ver": 1, "pkg": "gov"},
+			dict{"ver": 1, "pkg": "hashlock"},
+			dict{"ver": 1, "pkg": "msgfee"},
+			dict{"ver": 1, "pkg": "multisig"},
+			dict{"ver": 1, "pkg": "namecoin"},
+			dict{"ver": 1, "pkg": "nft"},
+			dict{"ver": 1, "pkg": "paychan"},
+			dict{"ver": 1, "pkg": "sigs"},
+			dict{"ver": 1, "pkg": "utils"},
+			dict{"ver": 1, "pkg": "validators"},
 		},
 	})
 	if err != nil {
@@ -104,3 +125,5 @@ func initGenesis(filename string, addr weave.Address) error {
 	doc.AppState = appState
 	return doc.SaveAs(filename)
 }
+
+type dict map[string]interface{}
