@@ -24,10 +24,7 @@ func TestSchemaMigratingHandler(t *testing.T) {
 
 	db := store.MemStore()
 
-	schema := NewSchemaBucket()
-	if _, err := schema.Create(db, &Schema{Metadata: &weave.Metadata{Schema: 1}, Pkg: thisPkgName, Version: 1}); err != nil {
-		t.Fatalf("cannot register schema version: %s", err)
-	}
+	ensureSchemaVersion(t, db, thisPkgName, 1)
 
 	handler := SchemaMigratingHandler(thisPkgName, &weavetest.Handler{})
 	// Use custom register reference so that our test is not polluted by
@@ -55,9 +52,7 @@ func TestSchemaMigratingHandler(t *testing.T) {
 
 	// Upgrade the schema an ensure all further handler calls are migrating
 	// the schema as well.
-	if _, err := schema.Create(db, &Schema{Metadata: &weave.Metadata{Schema: 1}, Pkg: thisPkgName, Version: 2}); err != nil {
-		t.Fatalf("cannot register schema version: %s", err)
-	}
+	ensureSchemaVersion(t, db, thisPkgName, 2)
 
 	_, err = handler.Check(nil, db, &weavetest.Tx{Msg: msg1})
 	assert.Nil(t, err)
