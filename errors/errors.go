@@ -8,6 +8,9 @@ import (
 )
 
 var (
+	// errInternal should never be exposed, but we reserve this code for non-specified errors
+	errInternal = Register(1, "internal")
+
 	// ErrUnauthorized is used whenever a request without sufficient
 	// authorization is handled.
 	ErrUnauthorized = Register(2, "unauthorized")
@@ -77,6 +80,12 @@ var (
 	// process raw bytes (get/set/delete/write)
 	ErrDatabase = Register(20, "database")
 
+	// ErrNetwork is returned on network failure (only for client libraries)
+	ErrNetwork = Register(100200, "network")
+
+	// ErrTimeout is returned on context timeout (only for client libraries)
+	ErrTimeout = Register(100300, "timeout")
+
 	// ErrPanic is only set when we recover from a panic, so we know to
 	// redact potentially sensitive system info
 	ErrPanic = Register(111222, "panic")
@@ -104,8 +113,22 @@ func Register(code uint32, description string) *Error {
 
 // usedCodes is keeping track of used codes to ensure their uniqueness. No two
 // error instances should share the same error code.
-var usedCodes = map[uint32]*Error{
-	1: nil, // Error code 1 is restricted for non-weave errors and must not be used.
+var usedCodes = map[uint32]*Error{}
+
+// ABCIError will resolve an error code/log from an abci result into
+// an error message. If the code is registered, it will map it back to
+// the cannonical error, so we can do eg. ErrNotFound.Is(err) on something
+// we get back from an external API.
+//
+// This should *only* be used in clients, not in the server side.
+// The server (abci app / blockchain) should only refer to registered errors
+func ABCIError(code uint32, log string) error {
+	if e, ok := usedCodes[code]; ok {
+		return Wrap(e, log)
+	}
+	// This is a unique error, will never match on .Is()
+	// Use Wrap here to get a stack trace
+	return Wrap(&Error{code: code}, log)
 }
 
 // Error represents a root error.
