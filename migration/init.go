@@ -16,7 +16,33 @@ var _ weave.Initializer = Initializer{}
 // and save it to the database
 func (Initializer) FromGenesis(opts weave.Options, kv weave.KVStore) error {
 	if err := gconf.InitConfig(kv, opts, "migration", &Configuration{}); err != nil {
-		return errors.Wrap(err, "init config")
+		return errors.Wrap(err, "migration config")
 	}
+
+	var packages []string
+	if err := opts.ReadOptions("initialize_schema", &packages); err != nil {
+		return errors.Wrap(err, "initialize schema")
+	}
+
+	// Before ensuring the schema of above packages is initialized force
+	// register migration package schema.
+	// This is solving a chicken-egg problem. We could not register any
+	// schema version without Schema model being enabled (schema registered
+	// with version one).
+	MustInitPkg(kv, "migration")
+
+	b := NewSchemaBucket()
+	for _, name := range packages {
+		_, err := b.Create(kv, &Schema{
+			Metadata: &weave.Metadata{Schema: 1},
+			Pkg:      name,
+			Version:  1,
+		})
+		// Duplicated initializations are ignored.
+		if err != nil && !errors.ErrDuplicate.Is(err) {
+			return errors.Wrapf(err, "initialize %q schema", name)
+		}
+	}
+
 	return nil
 }
