@@ -1,7 +1,7 @@
 Welcome to IOV Weave's documentation!
 ========================================
 
-.. image:: _static/img/weave-logo.jpg
+.. image:: ../_static/img/weave-logo.jpg
     :width: 800
     :alt: Weave Logo
 
@@ -68,12 +68,14 @@ Running an Existing Application
 
 **TODO**
 
+A good way to get familiar with setting up and running an application is to follow the steps in the `mycoin <mycoind/installation.html>`__ sample application. You can run this on your local machine.
+
+To run a version of the IOV testnet on a cloud server, the steps to set up an instance on Digital Ocean are explored in this blog `post <https://medium.com/iov-internet-of-values/a-guide-to-deploy-a-validator-on-hugnet-3335192e11d5>`__
+ 
 * Show how to query hugnet (and send tx) with iov-core (and generate addresses)
 * (Also golang client?)
 * Show to to compile bnsd, auto-init it, launch it with tendermint
 * Query local application
-* Running on a cloud server
-* Connecting to a testnet
 
 Configuration
 ~~~~~~~~~~~~~
