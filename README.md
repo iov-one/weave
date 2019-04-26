@@ -50,7 +50,7 @@ For more details on the design goals, see the
 
 ## Prerequisites
 
-* [golang 1.10+](https://golang.org/doc/install)
+* [golang 1.11.4+](https://golang.org/doc/install)
 
 ## Instructions
 
