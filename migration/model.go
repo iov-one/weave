@@ -50,6 +50,10 @@ type SchemaBucket struct {
 }
 
 func NewSchemaBucket() *SchemaBucket {
+	// Schema bucket is using plain orm.Bucket implementation so that is
+	// can insert entities without schema version being registered. It
+	// cannot use migration implementation bucket because it would cause
+	// circular dependency on itself.
 	b := orm.NewBucket("schema", orm.NewSimpleObj(nil, &Schema{}))
 	return &SchemaBucket{Bucket: b}
 }
@@ -89,6 +93,11 @@ func (b *SchemaBucket) CurrentSchema(db weave.ReadOnlyKVStore, packageName strin
 		return ver - 1, nil
 	}
 	return 0, errors.Wrap(errors.ErrInvalidState, "version too high")
+}
+
+func (b *SchemaBucket) Get(db weave.KVStore, key []byte) error {
+	// Prevent direct access to the bucket content. Use CurrentSchema method instead.
+	return errors.Wrap(errors.ErrHuman, "this bucket does not allow for a direct value access")
 }
 
 // Save persists the state of a given schema entity.
