@@ -26,7 +26,6 @@ env:
     - MAIN_GO_VERSION=1.11
     - GORACE="halt_on_error=1"
     - FORCE_TM_TEST=1
-    - GOCACHE=off # temp fix for go 1.11 builds
 
 install:
 - make deps
@@ -39,7 +38,7 @@ install:
 script:
 - make lint;
 - make test;
-- if [[ "$TRAVIS_GO_VERSION" == "$MAIN_GO_VERSION" ]]; then
+- if [[ "$TRAVIS_GO_VERSION" == "1.10" ]]; then
     make cover;
     ./coverage/upload.sh;
   fi;
