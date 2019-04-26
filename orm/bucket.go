@@ -114,7 +114,7 @@ func (b bucket) Register(name string, r weave.QueryRouter) {
 }
 
 // Query handles queries from the QueryRouter.
-func (b Bucket) Query(db weave.ReadOnlyKVStore, mod string, data []byte) ([]weave.Model, error) {
+func (b bucket) Query(db weave.ReadOnlyKVStore, mod string, data []byte) ([]weave.Model, error) {
 	switch mod {
 	case weave.KeyQueryMod:
 		key := b.DBKey(data)
