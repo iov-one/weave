@@ -6,7 +6,6 @@ import "github.com/iov-one/weave/codec.proto";
 import "github.com/gogo/protobuf/gogoproto/gogo.proto";
 
 message Configuration {
-  weave.Metadata metadata = 1;
   // Admin holds the address of the administrator allowed to upgrade schema
   // versions. If you wish to permit more than one entity to be an admin, use
   // multisig.
