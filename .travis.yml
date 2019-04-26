@@ -26,6 +26,7 @@ env:
     - MAIN_GO_VERSION=1.11
     - GORACE="halt_on_error=1"
     - FORCE_TM_TEST=1
+    - GOCACHE=off # temp fix for go 1.11 builds
 
 install:
 - make deps
