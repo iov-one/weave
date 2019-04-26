@@ -25,10 +25,7 @@ func TestSchemaVersionedBucket(t *testing.T) {
 
 	db := store.MemStore()
 
-	schema := NewSchemaBucket()
-	if _, err := schema.Create(db, &Schema{Metadata: &weave.Metadata{Schema: 1}, Pkg: thisPkgName, Version: 1}); err != nil {
-		t.Fatalf("cannot register schema version: %s", err)
-	}
+	ensureSchemaVersion(t, db, thisPkgName, 1)
 
 	b := &MyModelBucket{
 		Bucket: NewBucket(thisPkgName, "mymodel", orm.NewSimpleObj(nil, &MyModel{})),
@@ -61,9 +58,7 @@ func TestSchemaVersionedBucket(t *testing.T) {
 	}
 
 	// Bumping a schema should unlock saving entities with higher schema version.
-	if _, err := schema.Create(db, &Schema{Metadata: &weave.Metadata{Schema: 1}, Pkg: thisPkgName, Version: 2}); err != nil {
-		t.Fatalf("cannot register schema version: %s", err)
-	}
+	ensureSchemaVersion(t, db, thisPkgName, 2)
 
 	if err := b.Save(db, obj2); err != nil {
 		t.Fatalf("cannot save second object after schema version update: %s", err)
