@@ -6,6 +6,7 @@ import (
 	"github.com/iov-one/weave"
 	coin "github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/store"
 	"github.com/iov-one/weave/weavetest"
@@ -88,6 +89,7 @@ func TestSend(t *testing.T) {
 			h := NewSendHandler(auth, controller)
 
 			kv := store.MemStore()
+			migration.MustInitPkg(kv, "cash")
 			bucket := NewBucket()
 			for _, wallet := range tc.initState {
 				if err := bucket.Save(kv, wallet); err != nil {

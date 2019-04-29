@@ -496,7 +496,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 		t.Run(testName, func(t *testing.T) {
 			db := store.MemStore()
 
-			migration.MustInitPkg(db, "paychan")
+			migration.MustInitPkg(db, "paychan", "cash")
 
 			// Create a sender account with coins.
 			wallet, err := cash.WalletWith(src.Address(), dogeCoin(11, 22))

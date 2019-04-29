@@ -9,6 +9,7 @@ import (
 	"github.com/iov-one/weave/app"
 	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/store"
 	"github.com/iov-one/weave/weavetest"
 	"github.com/iov-one/weave/x/cash"
@@ -57,6 +58,7 @@ func TestHandlers(t *testing.T) {
 				{
 					conditions: []weave.Condition{src},
 					msg: &NewRevenueMsg{
+						Metadata:   &weave.Metadata{Schema: 1},
 						Admin:      []byte("f427d624ed29c1fae0e2"),
 						Recipients: []*Recipient{},
 					},
@@ -66,7 +68,8 @@ func TestHandlers(t *testing.T) {
 				{
 					conditions: []weave.Condition{src},
 					msg: &NewRevenueMsg{
-						Admin: []byte("f427d624ed29c1fae0e2"),
+						Metadata: &weave.Metadata{Schema: 1},
+						Admin:    []byte("f427d624ed29c1fae0e2"),
 						Recipients: []*Recipient{
 							{Weight: 1, Address: addr1},
 						},
@@ -76,6 +79,7 @@ func TestHandlers(t *testing.T) {
 				{
 					conditions: []weave.Condition{src},
 					msg: &ResetRevenueMsg{
+						Metadata:   &weave.Metadata{Schema: 1},
 						RevenueID:  weavetest.SequenceID(1),
 						Recipients: []*Recipient{},
 					},
@@ -85,6 +89,7 @@ func TestHandlers(t *testing.T) {
 				{
 					conditions: []weave.Condition{src},
 					msg: &ResetRevenueMsg{
+						Metadata:  &weave.Metadata{Schema: 1},
 						RevenueID: weavetest.SequenceID(1),
 						Recipients: []*Recipient{
 							{Weight: 1, Address: addr1},
@@ -102,6 +107,7 @@ func TestHandlers(t *testing.T) {
 				{
 					conditions: []weave.Condition{src},
 					msg: &DistributeMsg{
+						Metadata:  &weave.Metadata{Schema: 1},
 						RevenueID: []byte("revenue-with-this-id-does-not-exist"),
 					},
 					blocksize:      100,
@@ -122,7 +128,8 @@ func TestHandlers(t *testing.T) {
 				{
 					conditions: []weave.Condition{src},
 					msg: &NewRevenueMsg{
-						Admin: []byte("f427d624ed29c1fae0e2"),
+						Metadata: &weave.Metadata{Schema: 1},
+						Admin:    []byte("f427d624ed29c1fae0e2"),
 						Recipients: []*Recipient{
 							// There is only one recipient with a ridiculously high weight.
 							// All funds should be send to this account.
@@ -134,8 +141,11 @@ func TestHandlers(t *testing.T) {
 					wantDeliverErr: nil,
 				},
 				{
-					conditions:     []weave.Condition{src},
-					msg:            &DistributeMsg{RevenueID: weavetest.SequenceID(1)},
+					conditions: []weave.Condition{src},
+					msg: &DistributeMsg{
+						Metadata:  &weave.Metadata{Schema: 1},
+						RevenueID: weavetest.SequenceID(1),
+					},
 					blocksize:      101,
 					wantCheckErr:   nil,
 					wantDeliverErr: nil,
@@ -149,7 +159,8 @@ func TestHandlers(t *testing.T) {
 				{
 					conditions: []weave.Condition{src},
 					msg: &NewRevenueMsg{
-						Admin: []byte("f427d624ed29c1fae0e2"),
+						Metadata: &weave.Metadata{Schema: 1},
+						Admin:    []byte("f427d624ed29c1fae0e2"),
 						Recipients: []*Recipient{
 							{Weight: 1, Address: addr1},
 							{Weight: 2, Address: addr2},
@@ -162,6 +173,7 @@ func TestHandlers(t *testing.T) {
 				{
 					conditions: []weave.Condition{src},
 					msg: &DistributeMsg{
+						Metadata:  &weave.Metadata{Schema: 1},
 						RevenueID: weavetest.SequenceID(1),
 					},
 					blocksize:      101,
@@ -181,7 +193,8 @@ func TestHandlers(t *testing.T) {
 				{
 					conditions: []weave.Condition{src},
 					msg: &NewRevenueMsg{
-						Admin: []byte("f427d624ed29c1fae0e2"),
+						Metadata: &weave.Metadata{Schema: 1},
+						Admin:    []byte("f427d624ed29c1fae0e2"),
 						Recipients: []*Recipient{
 							{Weight: 1, Address: addr1},
 							{Weight: 2, Address: addr2},
@@ -194,6 +207,7 @@ func TestHandlers(t *testing.T) {
 				{
 					conditions: []weave.Condition{src},
 					msg: &DistributeMsg{
+						Metadata:  &weave.Metadata{Schema: 1},
 						RevenueID: weavetest.SequenceID(1),
 					},
 					blocksize:      101,
@@ -215,7 +229,8 @@ func TestHandlers(t *testing.T) {
 				{
 					conditions: []weave.Condition{src},
 					msg: &NewRevenueMsg{
-						Admin: []byte("f427d624ed29c1fae0e2"),
+						Metadata: &weave.Metadata{Schema: 1},
+						Admin:    []byte("f427d624ed29c1fae0e2"),
 						Recipients: []*Recipient{
 							{Weight: 10000, Address: addr1},
 							{Weight: 20000, Address: addr2},
@@ -228,6 +243,7 @@ func TestHandlers(t *testing.T) {
 				{
 					conditions: []weave.Condition{src},
 					msg: &DistributeMsg{
+						Metadata:  &weave.Metadata{Schema: 1},
 						RevenueID: weavetest.SequenceID(1),
 					},
 					blocksize:      101,
@@ -249,7 +265,8 @@ func TestHandlers(t *testing.T) {
 				{
 					conditions: []weave.Condition{src},
 					msg: &NewRevenueMsg{
-						Admin: []byte("f427d624ed29c1fae0e2"),
+						Metadata: &weave.Metadata{Schema: 1},
+						Admin:    []byte("f427d624ed29c1fae0e2"),
 						Recipients: []*Recipient{
 							{Weight: 1, Address: addr1},
 							{Weight: 2, Address: addr2},
@@ -262,6 +279,7 @@ func TestHandlers(t *testing.T) {
 				{
 					conditions: []weave.Condition{src},
 					msg: &DistributeMsg{
+						Metadata:  &weave.Metadata{Schema: 1},
 						RevenueID: weavetest.SequenceID(1),
 					},
 					blocksize:      101,
@@ -283,7 +301,8 @@ func TestHandlers(t *testing.T) {
 				{
 					conditions: []weave.Condition{src},
 					msg: &NewRevenueMsg{
-						Admin: []byte("f427d624ed29c1fae0e2"),
+						Metadata: &weave.Metadata{Schema: 1},
+						Admin:    []byte("f427d624ed29c1fae0e2"),
 						Recipients: []*Recipient{
 							{Weight: 20, Address: addr1},
 							{Weight: 20, Address: addr2},
@@ -298,6 +317,7 @@ func TestHandlers(t *testing.T) {
 				{
 					conditions: []weave.Condition{src},
 					msg: &ResetRevenueMsg{
+						Metadata:  &weave.Metadata{Schema: 1},
 						RevenueID: weavetest.SequenceID(1),
 						Recipients: []*Recipient{
 							{Weight: 1234, Address: addr2},
@@ -311,6 +331,7 @@ func TestHandlers(t *testing.T) {
 				{
 					conditions: []weave.Condition{src},
 					msg: &DistributeMsg{
+						Metadata:  &weave.Metadata{Schema: 1},
 						RevenueID: weavetest.SequenceID(1),
 					},
 					blocksize:      103,
@@ -324,6 +345,8 @@ func TestHandlers(t *testing.T) {
 	for testName, tc := range cases {
 		t.Run(testName, func(t *testing.T) {
 			db := store.MemStore()
+
+			migration.MustInitPkg(db, "cash", "distribution")
 
 			for _, a := range tc.prepareAccounts {
 				for _, c := range a.coins {

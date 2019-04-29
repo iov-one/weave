@@ -8,6 +8,7 @@ import (
 	_ "github.com/gogo/protobuf/gogoproto"
 	proto "github.com/gogo/protobuf/proto"
 	github_com_iov_one_weave "github.com/iov-one/weave"
+	weave "github.com/iov-one/weave"
 	coin "github.com/iov-one/weave/coin"
 	io "io"
 	math "math"
@@ -32,9 +33,10 @@ const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
 // Note that if the arbiter is a Hashlock permission, we have
 // an HTLC ;)
 type Escrow struct {
-	Sender    github_com_iov_one_weave.Address   `protobuf:"bytes,1,opt,name=sender,proto3,casttype=github.com/iov-one/weave.Address" json:"sender,omitempty"`
-	Arbiter   github_com_iov_one_weave.Condition `protobuf:"bytes,2,opt,name=arbiter,proto3,casttype=github.com/iov-one/weave.Condition" json:"arbiter,omitempty"`
-	Recipient github_com_iov_one_weave.Address   `protobuf:"bytes,3,opt,name=recipient,proto3,casttype=github.com/iov-one/weave.Address" json:"recipient,omitempty"`
+	Metadata  *weave.Metadata                    `protobuf:"bytes,1,opt,name=metadata,proto3" json:"metadata,omitempty"`
+	Sender    github_com_iov_one_weave.Address   `protobuf:"bytes,2,opt,name=sender,proto3,casttype=github.com/iov-one/weave.Address" json:"sender,omitempty"`
+	Arbiter   github_com_iov_one_weave.Condition `protobuf:"bytes,3,opt,name=arbiter,proto3,casttype=github.com/iov-one/weave.Condition" json:"arbiter,omitempty"`
+	Recipient github_com_iov_one_weave.Address   `protobuf:"bytes,4,opt,name=recipient,proto3,casttype=github.com/iov-one/weave.Address" json:"recipient,omitempty"`
 	// If unreleased before timeout, escrow will return to sender.
 	// Timeout represents wall clock time as read from the block header. Timeout
 	// is represented using POSIX time format.
@@ -80,6 +82,13 @@ func (m *Escrow) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_Escrow proto.InternalMessageInfo
 
+func (m *Escrow) GetMetadata() *weave.Metadata {
+	if m != nil {
+		return m.Metadata
+	}
+	return nil
+}
+
 func (m *Escrow) GetSender() github_com_iov_one_weave.Address {
 	if m != nil {
 		return m.Sender
@@ -119,15 +128,16 @@ func (m *Escrow) GetMemo() string {
 // If sender is not defined, it defaults to the first signer
 // The rest must be defined
 type CreateEscrowMsg struct {
-	Src       github_com_iov_one_weave.Address   `protobuf:"bytes,1,opt,name=src,proto3,casttype=github.com/iov-one/weave.Address" json:"src,omitempty"`
-	Arbiter   github_com_iov_one_weave.Condition `protobuf:"bytes,2,opt,name=arbiter,proto3,casttype=github.com/iov-one/weave.Condition" json:"arbiter,omitempty"`
-	Recipient github_com_iov_one_weave.Address   `protobuf:"bytes,3,opt,name=recipient,proto3,casttype=github.com/iov-one/weave.Address" json:"recipient,omitempty"`
+	Metadata  *weave.Metadata                    `protobuf:"bytes,1,opt,name=metadata,proto3" json:"metadata,omitempty"`
+	Src       github_com_iov_one_weave.Address   `protobuf:"bytes,2,opt,name=src,proto3,casttype=github.com/iov-one/weave.Address" json:"src,omitempty"`
+	Arbiter   github_com_iov_one_weave.Condition `protobuf:"bytes,3,opt,name=arbiter,proto3,casttype=github.com/iov-one/weave.Condition" json:"arbiter,omitempty"`
+	Recipient github_com_iov_one_weave.Address   `protobuf:"bytes,4,opt,name=recipient,proto3,casttype=github.com/iov-one/weave.Address" json:"recipient,omitempty"`
 	// amount may contain multiple token types
-	Amount []*coin.Coin `protobuf:"bytes,4,rep,name=amount,proto3" json:"amount,omitempty"`
+	Amount []*coin.Coin `protobuf:"bytes,5,rep,name=amount,proto3" json:"amount,omitempty"`
 	// Timeout represents wall clock time.
-	Timeout github_com_iov_one_weave.UnixTime `protobuf:"varint,5,opt,name=timeout,proto3,casttype=github.com/iov-one/weave.UnixTime" json:"timeout,omitempty"`
+	Timeout github_com_iov_one_weave.UnixTime `protobuf:"varint,6,opt,name=timeout,proto3,casttype=github.com/iov-one/weave.UnixTime" json:"timeout,omitempty"`
 	// max length 128 character
-	Memo string `protobuf:"bytes,6,opt,name=memo,proto3" json:"memo,omitempty"`
+	Memo string `protobuf:"bytes,7,opt,name=memo,proto3" json:"memo,omitempty"`
 }
 
 func (m *CreateEscrowMsg) Reset()         { *m = CreateEscrowMsg{} }
@@ -162,6 +172,13 @@ func (m *CreateEscrowMsg) XXX_DiscardUnknown() {
 }
 
 var xxx_messageInfo_CreateEscrowMsg proto.InternalMessageInfo
+
+func (m *CreateEscrowMsg) GetMetadata() *weave.Metadata {
+	if m != nil {
+		return m.Metadata
+	}
+	return nil
+}
 
 func (m *CreateEscrowMsg) GetSrc() github_com_iov_one_weave.Address {
 	if m != nil {
@@ -210,8 +227,9 @@ func (m *CreateEscrowMsg) GetMemo() string {
 // If amount not provided, defaults to entire escrow,
 // May be a subset of the current balance.
 type ReleaseEscrowMsg struct {
-	EscrowId []byte       `protobuf:"bytes,1,opt,name=escrow_id,json=escrowId,proto3" json:"escrow_id,omitempty"`
-	Amount   []*coin.Coin `protobuf:"bytes,2,rep,name=amount,proto3" json:"amount,omitempty"`
+	Metadata *weave.Metadata `protobuf:"bytes,1,opt,name=metadata,proto3" json:"metadata,omitempty"`
+	EscrowId []byte          `protobuf:"bytes,2,opt,name=escrow_id,json=escrowId,proto3" json:"escrow_id,omitempty"`
+	Amount   []*coin.Coin    `protobuf:"bytes,3,rep,name=amount,proto3" json:"amount,omitempty"`
 }
 
 func (m *ReleaseEscrowMsg) Reset()         { *m = ReleaseEscrowMsg{} }
@@ -247,6 +265,13 @@ func (m *ReleaseEscrowMsg) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_ReleaseEscrowMsg proto.InternalMessageInfo
 
+func (m *ReleaseEscrowMsg) GetMetadata() *weave.Metadata {
+	if m != nil {
+		return m.Metadata
+	}
+	return nil
+}
+
 func (m *ReleaseEscrowMsg) GetEscrowId() []byte {
 	if m != nil {
 		return m.EscrowId
@@ -264,7 +289,8 @@ func (m *ReleaseEscrowMsg) GetAmount() []*coin.Coin {
 // ReturnEscrowMsg returns the content to the sender.
 // Must be authorized by the sender or an expired timeout
 type ReturnEscrowMsg struct {
-	EscrowId []byte `protobuf:"bytes,1,opt,name=escrow_id,json=escrowId,proto3" json:"escrow_id,omitempty"`
+	Metadata *weave.Metadata `protobuf:"bytes,1,opt,name=metadata,proto3" json:"metadata,omitempty"`
+	EscrowId []byte          `protobuf:"bytes,2,opt,name=escrow_id,json=escrowId,proto3" json:"escrow_id,omitempty"`
 }
 
 func (m *ReturnEscrowMsg) Reset()         { *m = ReturnEscrowMsg{} }
@@ -300,6 +326,13 @@ func (m *ReturnEscrowMsg) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_ReturnEscrowMsg proto.InternalMessageInfo
 
+func (m *ReturnEscrowMsg) GetMetadata() *weave.Metadata {
+	if m != nil {
+		return m.Metadata
+	}
+	return nil
+}
+
 func (m *ReturnEscrowMsg) GetEscrowId() []byte {
 	if m != nil {
 		return m.EscrowId
@@ -313,10 +346,11 @@ func (m *ReturnEscrowMsg) GetEscrowId() []byte {
 //
 // Represents delegating responsibility
 type UpdateEscrowPartiesMsg struct {
-	EscrowId  []byte                             `protobuf:"bytes,1,opt,name=escrow_id,json=escrowId,proto3" json:"escrow_id,omitempty"`
-	Sender    github_com_iov_one_weave.Address   `protobuf:"bytes,2,opt,name=sender,proto3,casttype=github.com/iov-one/weave.Address" json:"sender,omitempty"`
-	Arbiter   github_com_iov_one_weave.Condition `protobuf:"bytes,3,opt,name=arbiter,proto3,casttype=github.com/iov-one/weave.Condition" json:"arbiter,omitempty"`
-	Recipient github_com_iov_one_weave.Address   `protobuf:"bytes,4,opt,name=recipient,proto3,casttype=github.com/iov-one/weave.Address" json:"recipient,omitempty"`
+	Metadata  *weave.Metadata                    `protobuf:"bytes,1,opt,name=metadata,proto3" json:"metadata,omitempty"`
+	EscrowId  []byte                             `protobuf:"bytes,2,opt,name=escrow_id,json=escrowId,proto3" json:"escrow_id,omitempty"`
+	Sender    github_com_iov_one_weave.Address   `protobuf:"bytes,3,opt,name=sender,proto3,casttype=github.com/iov-one/weave.Address" json:"sender,omitempty"`
+	Arbiter   github_com_iov_one_weave.Condition `protobuf:"bytes,4,opt,name=arbiter,proto3,casttype=github.com/iov-one/weave.Condition" json:"arbiter,omitempty"`
+	Recipient github_com_iov_one_weave.Address   `protobuf:"bytes,5,opt,name=recipient,proto3,casttype=github.com/iov-one/weave.Address" json:"recipient,omitempty"`
 }
 
 func (m *UpdateEscrowPartiesMsg) Reset()         { *m = UpdateEscrowPartiesMsg{} }
@@ -351,6 +385,13 @@ func (m *UpdateEscrowPartiesMsg) XXX_DiscardUnknown() {
 }
 
 var xxx_messageInfo_UpdateEscrowPartiesMsg proto.InternalMessageInfo
+
+func (m *UpdateEscrowPartiesMsg) GetMetadata() *weave.Metadata {
+	if m != nil {
+		return m.Metadata
+	}
+	return nil
+}
 
 func (m *UpdateEscrowPartiesMsg) GetEscrowId() []byte {
 	if m != nil {
@@ -391,34 +432,36 @@ func init() {
 func init() { proto.RegisterFile("x/escrow/codec.proto", fileDescriptor_36017ee554579951) }
 
 var fileDescriptor_36017ee554579951 = []byte{
-	// 421 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xcc, 0x94, 0xcf, 0x8a, 0xd4, 0x40,
-	0x10, 0xc6, 0xa7, 0x93, 0x31, 0xeb, 0xb4, 0xc2, 0x4a, 0x23, 0x12, 0x56, 0xc8, 0xc4, 0xa0, 0x32,
-	0x1e, 0x36, 0x01, 0x05, 0x4f, 0x82, 0x9a, 0xc1, 0x83, 0x07, 0x41, 0x5a, 0xf7, 0x2c, 0x49, 0xba,
-	0x8c, 0x0d, 0xa6, 0x6b, 0xe8, 0xee, 0xec, 0xee, 0x63, 0xf8, 0x0a, 0xbe, 0xcd, 0x1e, 0xf7, 0xe8,
-	0x69, 0x90, 0x99, 0xa7, 0x70, 0x4e, 0xb2, 0x9d, 0x5d, 0x37, 0x97, 0xa0, 0xe3, 0x1f, 0xf0, 0xd6,
-	0xdd, 0x95, 0x5f, 0xd5, 0xc7, 0x57, 0x55, 0xa1, 0x37, 0x8f, 0x33, 0x30, 0x95, 0xc6, 0xa3, 0xac,
-	0x42, 0x01, 0x55, 0xba, 0xd0, 0x68, 0x91, 0x05, 0xdd, 0xdb, 0xde, 0x7e, 0x2d, 0xed, 0x87, 0xb6,
-	0x4c, 0x2b, 0x6c, 0xb2, 0x1a, 0x6b, 0xcc, 0x5c, 0xb8, 0x6c, 0xdf, 0xbb, 0x9b, 0xbb, 0xb8, 0x53,
-	0x87, 0xed, 0x3d, 0xe8, 0x7d, 0x2e, 0xf1, 0x70, 0x1f, 0x15, 0x64, 0x47, 0x50, 0x1c, 0x42, 0x56,
-	0xa1, 0x54, 0xfd, 0x0a, 0xc9, 0x67, 0x8f, 0x06, 0x2f, 0x5c, 0x11, 0xf6, 0x84, 0x06, 0x06, 0x94,
-	0x00, 0x1d, 0x92, 0x98, 0xcc, 0xae, 0xe7, 0x77, 0x37, 0xcb, 0x69, 0x3c, 0x94, 0x29, 0x7d, 0x2e,
-	0x84, 0x06, 0x63, 0xf8, 0x39, 0xc3, 0x9e, 0xd1, 0x9d, 0x42, 0x97, 0xd2, 0x82, 0x0e, 0x3d, 0x87,
-	0xdf, 0xdf, 0x2c, 0xa7, 0xc9, 0x20, 0x3e, 0x47, 0x25, 0xa4, 0x95, 0xa8, 0xf8, 0x05, 0xc6, 0x72,
-	0x3a, 0xd1, 0x50, 0xc9, 0x85, 0x04, 0x65, 0x43, 0x7f, 0x0b, 0x09, 0x97, 0x18, 0x7b, 0x4a, 0x77,
-	0xac, 0x6c, 0x00, 0x5b, 0x1b, 0x5e, 0x89, 0xc9, 0xcc, 0xcf, 0xef, 0x6d, 0x96, 0xd3, 0x3b, 0x83,
-	0x19, 0x0e, 0x94, 0x3c, 0x7e, 0x2b, 0x1b, 0xe0, 0x17, 0x14, 0x63, 0x74, 0xdc, 0x40, 0x83, 0x61,
-	0x10, 0x93, 0xd9, 0x84, 0xbb, 0x73, 0x72, 0xe2, 0xd1, 0xdd, 0xb9, 0x86, 0xc2, 0x42, 0xe7, 0xd4,
-	0x2b, 0x53, 0xb3, 0xc7, 0xd4, 0x37, 0xba, 0xda, 0xca, 0xa9, 0x33, 0xe0, 0x3f, 0xb1, 0x29, 0xa1,
-	0x41, 0xd1, 0x60, 0xab, 0x6c, 0x38, 0x8e, 0xfd, 0xd9, 0xb5, 0x87, 0x34, 0x3d, 0x1b, 0x8c, 0x74,
-	0x8e, 0x52, 0xf1, 0xf3, 0xc8, 0xbf, 0xb1, 0xf2, 0x0d, 0xbd, 0xc1, 0xe1, 0x23, 0x14, 0xa6, 0x67,
-	0xe5, 0x6d, 0x3a, 0xe9, 0xc6, 0xfc, 0x9d, 0x14, 0x9d, 0xa1, 0xfc, 0x6a, 0xf7, 0xf0, 0x52, 0xf4,
-	0x94, 0x7a, 0x43, 0x4a, 0x93, 0x94, 0xee, 0x72, 0xb0, 0xad, 0x56, 0xbf, 0x96, 0x33, 0xf9, 0x46,
-	0xe8, 0xad, 0x83, 0x85, 0xf8, 0xd1, 0xcf, 0xd7, 0x85, 0xb6, 0x12, 0xcc, 0x4f, 0xb5, 0x5c, 0x2e,
-	0x88, 0xf7, 0x67, 0x0b, 0xe2, 0xff, 0x85, 0xce, 0x8f, 0x7f, 0xab, 0xf3, 0x79, 0x78, 0xb2, 0x8a,
-	0xc8, 0xe9, 0x2a, 0x22, 0x5f, 0x57, 0x11, 0xf9, 0xb4, 0x8e, 0x46, 0xa7, 0xeb, 0x68, 0xf4, 0x65,
-	0x1d, 0x8d, 0xca, 0xc0, 0xfd, 0x10, 0x1e, 0x7d, 0x0f, 0x00, 0x00, 0xff, 0xff, 0x5e, 0xbd, 0x0a,
-	0x93, 0x8a, 0x04, 0x00, 0x00,
+	// 463 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xcc, 0x94, 0x41, 0x6b, 0xd4, 0x40,
+	0x14, 0xc7, 0x77, 0x36, 0xdb, 0x6c, 0xf7, 0x55, 0x58, 0x09, 0x22, 0xa1, 0x42, 0x36, 0x86, 0x2a,
+	0x11, 0x69, 0x02, 0x15, 0x3c, 0x09, 0xea, 0x2e, 0x1e, 0x3c, 0x14, 0x64, 0xb0, 0x27, 0x0f, 0x32,
+	0x9b, 0x79, 0xae, 0x03, 0x66, 0x66, 0x99, 0x4c, 0xda, 0x1e, 0xfd, 0x08, 0x7e, 0x0a, 0x3f, 0x8b,
+	0x27, 0xe9, 0xd1, 0xd3, 0x22, 0xbb, 0x9f, 0xc1, 0xcb, 0x9e, 0x64, 0x27, 0xdb, 0x36, 0x1e, 0x22,
+	0x6c, 0x5b, 0xc1, 0xdb, 0xcc, 0xcb, 0xff, 0x9f, 0xbc, 0xf7, 0xe3, 0xff, 0x02, 0x77, 0x4e, 0x53,
+	0x2c, 0x32, 0xad, 0x4e, 0xd2, 0x4c, 0x71, 0xcc, 0x92, 0xa9, 0x56, 0x46, 0x79, 0x6e, 0x55, 0xdb,
+	0xdd, 0x9b, 0x08, 0xf3, 0xb1, 0x1c, 0x27, 0x99, 0xca, 0x53, 0xa1, 0x8e, 0xf7, 0x95, 0xc4, 0xf4,
+	0x04, 0xd9, 0x31, 0xd6, 0xd5, 0xbb, 0x8f, 0xfe, 0xa2, 0x12, 0xf2, 0x0f, 0xe9, 0x7e, 0x4d, 0x3a,
+	0x51, 0x13, 0x95, 0xda, 0xf2, 0xb8, 0xfc, 0x60, 0x6f, 0xf6, 0x62, 0x4f, 0x95, 0x3c, 0xfa, 0xde,
+	0x06, 0xf7, 0x95, 0x6d, 0xc5, 0x7b, 0x0c, 0xdb, 0x39, 0x1a, 0xc6, 0x99, 0x61, 0x3e, 0x09, 0x49,
+	0xbc, 0x73, 0xd0, 0x4f, 0xec, 0x47, 0x92, 0xc3, 0x75, 0x99, 0x5e, 0x08, 0xbc, 0x67, 0xe0, 0x16,
+	0x28, 0x39, 0x6a, 0xbf, 0x1d, 0x92, 0xf8, 0xd6, 0x70, 0x6f, 0x39, 0x1b, 0x84, 0x4d, 0x5d, 0x26,
+	0x2f, 0x39, 0xd7, 0x58, 0x14, 0x74, 0xed, 0xf1, 0x5e, 0x40, 0x97, 0xe9, 0xb1, 0x30, 0xa8, 0x7d,
+	0xc7, 0xda, 0x1f, 0x2e, 0x67, 0x83, 0xa8, 0xd1, 0x3e, 0x52, 0x92, 0x0b, 0x23, 0x94, 0xa4, 0xe7,
+	0x36, 0x6f, 0x08, 0x3d, 0x8d, 0x99, 0x98, 0x0a, 0x94, 0xc6, 0xef, 0x6c, 0xd0, 0xc2, 0xa5, 0xcd,
+	0x7b, 0x0e, 0x5d, 0x23, 0x72, 0x54, 0xa5, 0xf1, 0xb7, 0x42, 0x12, 0x3b, 0xc3, 0x07, 0xcb, 0xd9,
+	0xe0, 0x7e, 0xe3, 0x1b, 0x8e, 0xa4, 0x38, 0x7d, 0x2b, 0x72, 0xa4, 0xe7, 0x2e, 0xcf, 0x83, 0x4e,
+	0x8e, 0xb9, 0xf2, 0xdd, 0x90, 0xc4, 0x3d, 0x6a, 0xcf, 0xd1, 0xaf, 0x36, 0xf4, 0x47, 0x1a, 0x99,
+	0xc1, 0x0a, 0xeb, 0x61, 0x31, 0xd9, 0x8c, 0xec, 0x53, 0x70, 0x0a, 0x9d, 0x6d, 0x84, 0x75, 0x65,
+	0xf8, 0x4f, 0x98, 0x46, 0xe0, 0xb2, 0x5c, 0x95, 0x72, 0x85, 0xd4, 0x89, 0x77, 0x0e, 0x20, 0x59,
+	0x25, 0x34, 0x19, 0x29, 0x21, 0xe9, 0xfa, 0x49, 0x9d, 0xbb, 0x7b, 0x2d, 0xee, 0xdd, 0x1a, 0xf7,
+	0xcf, 0x04, 0x6e, 0x53, 0xfc, 0x84, 0xac, 0xb8, 0x2a, 0xf8, 0x7b, 0xd0, 0xab, 0x96, 0xf2, 0xbd,
+	0xe0, 0x15, 0x7e, 0xba, 0x5d, 0x15, 0x5e, 0xf3, 0xda, 0x5c, 0x4e, 0xd3, 0x5c, 0xd1, 0x3b, 0xe8,
+	0x53, 0x34, 0xa5, 0x96, 0xff, 0xa0, 0x81, 0xe8, 0x6b, 0x1b, 0xee, 0x1e, 0x4d, 0xf9, 0x45, 0xae,
+	0xde, 0x30, 0x6d, 0x04, 0x16, 0x37, 0x3b, 0xe5, 0xe5, 0x56, 0x3b, 0xd7, 0xdb, 0xea, 0xce, 0x0d,
+	0x24, 0x70, 0xeb, 0x4a, 0x09, 0x1c, 0xfa, 0xdf, 0xe6, 0x01, 0x39, 0x9b, 0x07, 0xe4, 0xe7, 0x3c,
+	0x20, 0x5f, 0x16, 0x41, 0xeb, 0x6c, 0x11, 0xb4, 0x7e, 0x2c, 0x82, 0xd6, 0xd8, 0xb5, 0xbf, 0xbc,
+	0x27, 0xbf, 0x03, 0x00, 0x00, 0xff, 0xff, 0x5d, 0x82, 0xf0, 0xf9, 0x92, 0x05, 0x00, 0x00,
 }
 
 func (m *Escrow) Marshal() (dAtA []byte, err error) {
@@ -436,20 +479,30 @@ func (m *Escrow) MarshalTo(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
-	if len(m.Sender) > 0 {
+	if m.Metadata != nil {
 		dAtA[i] = 0xa
+		i++
+		i = encodeVarintCodec(dAtA, i, uint64(m.Metadata.Size()))
+		n1, err := m.Metadata.MarshalTo(dAtA[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += n1
+	}
+	if len(m.Sender) > 0 {
+		dAtA[i] = 0x12
 		i++
 		i = encodeVarintCodec(dAtA, i, uint64(len(m.Sender)))
 		i += copy(dAtA[i:], m.Sender)
 	}
 	if len(m.Arbiter) > 0 {
-		dAtA[i] = 0x12
+		dAtA[i] = 0x1a
 		i++
 		i = encodeVarintCodec(dAtA, i, uint64(len(m.Arbiter)))
 		i += copy(dAtA[i:], m.Arbiter)
 	}
 	if len(m.Recipient) > 0 {
-		dAtA[i] = 0x1a
+		dAtA[i] = 0x22
 		i++
 		i = encodeVarintCodec(dAtA, i, uint64(len(m.Recipient)))
 		i += copy(dAtA[i:], m.Recipient)
@@ -483,27 +536,37 @@ func (m *CreateEscrowMsg) MarshalTo(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
-	if len(m.Src) > 0 {
+	if m.Metadata != nil {
 		dAtA[i] = 0xa
+		i++
+		i = encodeVarintCodec(dAtA, i, uint64(m.Metadata.Size()))
+		n2, err := m.Metadata.MarshalTo(dAtA[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += n2
+	}
+	if len(m.Src) > 0 {
+		dAtA[i] = 0x12
 		i++
 		i = encodeVarintCodec(dAtA, i, uint64(len(m.Src)))
 		i += copy(dAtA[i:], m.Src)
 	}
 	if len(m.Arbiter) > 0 {
-		dAtA[i] = 0x12
+		dAtA[i] = 0x1a
 		i++
 		i = encodeVarintCodec(dAtA, i, uint64(len(m.Arbiter)))
 		i += copy(dAtA[i:], m.Arbiter)
 	}
 	if len(m.Recipient) > 0 {
-		dAtA[i] = 0x1a
+		dAtA[i] = 0x22
 		i++
 		i = encodeVarintCodec(dAtA, i, uint64(len(m.Recipient)))
 		i += copy(dAtA[i:], m.Recipient)
 	}
 	if len(m.Amount) > 0 {
 		for _, msg := range m.Amount {
-			dAtA[i] = 0x22
+			dAtA[i] = 0x2a
 			i++
 			i = encodeVarintCodec(dAtA, i, uint64(msg.Size()))
 			n, err := msg.MarshalTo(dAtA[i:])
@@ -514,12 +577,12 @@ func (m *CreateEscrowMsg) MarshalTo(dAtA []byte) (int, error) {
 		}
 	}
 	if m.Timeout != 0 {
-		dAtA[i] = 0x28
+		dAtA[i] = 0x30
 		i++
 		i = encodeVarintCodec(dAtA, i, uint64(m.Timeout))
 	}
 	if len(m.Memo) > 0 {
-		dAtA[i] = 0x32
+		dAtA[i] = 0x3a
 		i++
 		i = encodeVarintCodec(dAtA, i, uint64(len(m.Memo)))
 		i += copy(dAtA[i:], m.Memo)
@@ -542,15 +605,25 @@ func (m *ReleaseEscrowMsg) MarshalTo(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
-	if len(m.EscrowId) > 0 {
+	if m.Metadata != nil {
 		dAtA[i] = 0xa
+		i++
+		i = encodeVarintCodec(dAtA, i, uint64(m.Metadata.Size()))
+		n3, err := m.Metadata.MarshalTo(dAtA[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += n3
+	}
+	if len(m.EscrowId) > 0 {
+		dAtA[i] = 0x12
 		i++
 		i = encodeVarintCodec(dAtA, i, uint64(len(m.EscrowId)))
 		i += copy(dAtA[i:], m.EscrowId)
 	}
 	if len(m.Amount) > 0 {
 		for _, msg := range m.Amount {
-			dAtA[i] = 0x12
+			dAtA[i] = 0x1a
 			i++
 			i = encodeVarintCodec(dAtA, i, uint64(msg.Size()))
 			n, err := msg.MarshalTo(dAtA[i:])
@@ -578,8 +651,18 @@ func (m *ReturnEscrowMsg) MarshalTo(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
-	if len(m.EscrowId) > 0 {
+	if m.Metadata != nil {
 		dAtA[i] = 0xa
+		i++
+		i = encodeVarintCodec(dAtA, i, uint64(m.Metadata.Size()))
+		n4, err := m.Metadata.MarshalTo(dAtA[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += n4
+	}
+	if len(m.EscrowId) > 0 {
+		dAtA[i] = 0x12
 		i++
 		i = encodeVarintCodec(dAtA, i, uint64(len(m.EscrowId)))
 		i += copy(dAtA[i:], m.EscrowId)
@@ -602,26 +685,36 @@ func (m *UpdateEscrowPartiesMsg) MarshalTo(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
-	if len(m.EscrowId) > 0 {
+	if m.Metadata != nil {
 		dAtA[i] = 0xa
+		i++
+		i = encodeVarintCodec(dAtA, i, uint64(m.Metadata.Size()))
+		n5, err := m.Metadata.MarshalTo(dAtA[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += n5
+	}
+	if len(m.EscrowId) > 0 {
+		dAtA[i] = 0x12
 		i++
 		i = encodeVarintCodec(dAtA, i, uint64(len(m.EscrowId)))
 		i += copy(dAtA[i:], m.EscrowId)
 	}
 	if len(m.Sender) > 0 {
-		dAtA[i] = 0x12
+		dAtA[i] = 0x1a
 		i++
 		i = encodeVarintCodec(dAtA, i, uint64(len(m.Sender)))
 		i += copy(dAtA[i:], m.Sender)
 	}
 	if len(m.Arbiter) > 0 {
-		dAtA[i] = 0x1a
+		dAtA[i] = 0x22
 		i++
 		i = encodeVarintCodec(dAtA, i, uint64(len(m.Arbiter)))
 		i += copy(dAtA[i:], m.Arbiter)
 	}
 	if len(m.Recipient) > 0 {
-		dAtA[i] = 0x22
+		dAtA[i] = 0x2a
 		i++
 		i = encodeVarintCodec(dAtA, i, uint64(len(m.Recipient)))
 		i += copy(dAtA[i:], m.Recipient)
@@ -644,6 +737,10 @@ func (m *Escrow) Size() (n int) {
 	}
 	var l int
 	_ = l
+	if m.Metadata != nil {
+		l = m.Metadata.Size()
+		n += 1 + l + sovCodec(uint64(l))
+	}
 	l = len(m.Sender)
 	if l > 0 {
 		n += 1 + l + sovCodec(uint64(l))
@@ -672,6 +769,10 @@ func (m *CreateEscrowMsg) Size() (n int) {
 	}
 	var l int
 	_ = l
+	if m.Metadata != nil {
+		l = m.Metadata.Size()
+		n += 1 + l + sovCodec(uint64(l))
+	}
 	l = len(m.Src)
 	if l > 0 {
 		n += 1 + l + sovCodec(uint64(l))
@@ -706,6 +807,10 @@ func (m *ReleaseEscrowMsg) Size() (n int) {
 	}
 	var l int
 	_ = l
+	if m.Metadata != nil {
+		l = m.Metadata.Size()
+		n += 1 + l + sovCodec(uint64(l))
+	}
 	l = len(m.EscrowId)
 	if l > 0 {
 		n += 1 + l + sovCodec(uint64(l))
@@ -725,6 +830,10 @@ func (m *ReturnEscrowMsg) Size() (n int) {
 	}
 	var l int
 	_ = l
+	if m.Metadata != nil {
+		l = m.Metadata.Size()
+		n += 1 + l + sovCodec(uint64(l))
+	}
 	l = len(m.EscrowId)
 	if l > 0 {
 		n += 1 + l + sovCodec(uint64(l))
@@ -738,6 +847,10 @@ func (m *UpdateEscrowPartiesMsg) Size() (n int) {
 	}
 	var l int
 	_ = l
+	if m.Metadata != nil {
+		l = m.Metadata.Size()
+		n += 1 + l + sovCodec(uint64(l))
+	}
 	l = len(m.EscrowId)
 	if l > 0 {
 		n += 1 + l + sovCodec(uint64(l))
@@ -801,6 +914,42 @@ func (m *Escrow) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Metadata", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Metadata == nil {
+				m.Metadata = &weave.Metadata{}
+			}
+			if err := m.Metadata.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Sender", wireType)
 			}
 			var byteLen int
@@ -833,7 +982,7 @@ func (m *Escrow) Unmarshal(dAtA []byte) error {
 				m.Sender = []byte{}
 			}
 			iNdEx = postIndex
-		case 2:
+		case 3:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Arbiter", wireType)
 			}
@@ -867,7 +1016,7 @@ func (m *Escrow) Unmarshal(dAtA []byte) error {
 				m.Arbiter = []byte{}
 			}
 			iNdEx = postIndex
-		case 3:
+		case 4:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Recipient", wireType)
 			}
@@ -1007,6 +1156,42 @@ func (m *CreateEscrowMsg) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Metadata", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Metadata == nil {
+				m.Metadata = &weave.Metadata{}
+			}
+			if err := m.Metadata.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Src", wireType)
 			}
 			var byteLen int
@@ -1039,7 +1224,7 @@ func (m *CreateEscrowMsg) Unmarshal(dAtA []byte) error {
 				m.Src = []byte{}
 			}
 			iNdEx = postIndex
-		case 2:
+		case 3:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Arbiter", wireType)
 			}
@@ -1073,7 +1258,7 @@ func (m *CreateEscrowMsg) Unmarshal(dAtA []byte) error {
 				m.Arbiter = []byte{}
 			}
 			iNdEx = postIndex
-		case 3:
+		case 4:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Recipient", wireType)
 			}
@@ -1107,7 +1292,7 @@ func (m *CreateEscrowMsg) Unmarshal(dAtA []byte) error {
 				m.Recipient = []byte{}
 			}
 			iNdEx = postIndex
-		case 4:
+		case 5:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Amount", wireType)
 			}
@@ -1141,7 +1326,7 @@ func (m *CreateEscrowMsg) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
-		case 5:
+		case 6:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Timeout", wireType)
 			}
@@ -1160,7 +1345,7 @@ func (m *CreateEscrowMsg) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
-		case 6:
+		case 7:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Memo", wireType)
 			}
@@ -1247,6 +1432,42 @@ func (m *ReleaseEscrowMsg) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Metadata", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Metadata == nil {
+				m.Metadata = &weave.Metadata{}
+			}
+			if err := m.Metadata.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field EscrowId", wireType)
 			}
 			var byteLen int
@@ -1279,7 +1500,7 @@ func (m *ReleaseEscrowMsg) Unmarshal(dAtA []byte) error {
 				m.EscrowId = []byte{}
 			}
 			iNdEx = postIndex
-		case 2:
+		case 3:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Amount", wireType)
 			}
@@ -1368,6 +1589,42 @@ func (m *ReturnEscrowMsg) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Metadata", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Metadata == nil {
+				m.Metadata = &weave.Metadata{}
+			}
+			if err := m.Metadata.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field EscrowId", wireType)
 			}
 			var byteLen int
@@ -1455,6 +1712,42 @@ func (m *UpdateEscrowPartiesMsg) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Metadata", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Metadata == nil {
+				m.Metadata = &weave.Metadata{}
+			}
+			if err := m.Metadata.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field EscrowId", wireType)
 			}
 			var byteLen int
@@ -1487,7 +1780,7 @@ func (m *UpdateEscrowPartiesMsg) Unmarshal(dAtA []byte) error {
 				m.EscrowId = []byte{}
 			}
 			iNdEx = postIndex
-		case 2:
+		case 3:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Sender", wireType)
 			}
@@ -1521,7 +1814,7 @@ func (m *UpdateEscrowPartiesMsg) Unmarshal(dAtA []byte) error {
 				m.Sender = []byte{}
 			}
 			iNdEx = postIndex
-		case 3:
+		case 4:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Arbiter", wireType)
 			}
@@ -1555,7 +1848,7 @@ func (m *UpdateEscrowPartiesMsg) Unmarshal(dAtA []byte) error {
 				m.Arbiter = []byte{}
 			}
 			iNdEx = postIndex
-		case 4:
+		case 5:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Recipient", wireType)
 			}

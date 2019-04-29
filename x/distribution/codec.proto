@@ -2,6 +2,7 @@ syntax = "proto3";
 
 package distribution;
 
+import "github.com/iov-one/weave/codec.proto";
 import "github.com/gogo/protobuf/gogoproto/gogo.proto";
 
 
@@ -9,13 +10,15 @@ import "github.com/gogo/protobuf/gogoproto/gogo.proto";
 // temporary account used for storing fees that are later distributed between
 // the owners.
 message Revenue {
+  weave.Metadata metadata = 1;
+
   // Admin key belongs to the governance entities. It can be used to transfer
   // stored amount to an another account.
   // While not enforced it is best to use a multisig contract here.
-  bytes admin = 1 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
+  bytes admin = 2 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
   // Recipients holds any number of addresses that the collected revenue is
   // distributed to. Must be at least one.
-  repeated Recipient recipients = 2;
+  repeated Recipient recipients = 3;
 }
 
 message Recipient {
@@ -35,22 +38,26 @@ message Recipient {
 
 // NewRevenueMsg is issuing the creation of a new revenue stream instance.
 message NewRevenueMsg {
+  weave.Metadata metadata = 1;
+
   // Admin key belongs to the governance entities. It can be used to transfer
   // stored amount to an another account.
   // While not enforced it is best to use a multisig contract here.
-  bytes admin = 1 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
+  bytes admin = 2 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
   // Recipients holds any number of addresses that the collected revenue is
   // distributed to. Must be at least one.
-  repeated Recipient recipients = 2;
+  repeated Recipient recipients = 3;
 }
 
 // DistributeMsg is a request to distribute all funds collected within a single
 // revenue instance. Revenue is distributed between recipients. Request must be
 // signed using admin key.
 message DistributeMsg {
+  weave.Metadata metadata = 1;
+
   // Revenue ID reference an ID of a revenue instance that the collected fees
   // should be distributed between recipients.
-  bytes revenue_id = 1 [(gogoproto.customname) = "RevenueID"];
+  bytes revenue_id = 2 [(gogoproto.customname) = "RevenueID"];
 }
 
 // ResetRevenueMsg change the configuration of a revenue instance.
@@ -59,9 +66,11 @@ message DistributeMsg {
 // the revenue account are distributed using old configuration. Only when the
 // collected revenue amount is equal to zero the change is applied.
 message ResetRevenueMsg {
+  weave.Metadata metadata = 1;
+
   // Revenue ID reference an ID of a revenue instance that is updated.
-  bytes revenue_id = 1 [(gogoproto.customname) = "RevenueID"];
+  bytes revenue_id = 2 [(gogoproto.customname) = "RevenueID"];
   // Recipients holds any number of addresses that the collected revenue is
   // distributed to. Must be at least one.
-  repeated Recipient recipients = 2;
+  repeated Recipient recipients = 3;
 }

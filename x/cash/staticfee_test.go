@@ -7,6 +7,7 @@ import (
 	coin "github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/gconf"
+	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/store"
 	"github.com/iov-one/weave/weavetest"
@@ -67,43 +68,62 @@ func TestFees(t *testing.T) {
 			expect: errors.ErrInsufficientAmount.Is,
 		},
 		"no signer given": {
-			fee:    &FeeInfo{Fees: &min},
+			fee: &FeeInfo{
+				Metadata: &weave.Metadata{Schema: 1},
+				Fees:     &min,
+			},
 			min:    min,
 			expect: errors.ErrEmpty.Is,
 		},
 		"use default signer, but not enough money": {
 			signers: []weave.Condition{perm},
-			fee:     &FeeInfo{Fees: &min},
-			min:     min,
-			expect:  errors.ErrEmpty.Is,
+			fee: &FeeInfo{
+				Metadata: &weave.Metadata{Schema: 1},
+				Fees:     &min,
+			},
+			min:    min,
+			expect: errors.ErrEmpty.Is,
 		},
 		"signer can cover min, but not pledge": {
 			signers:   []weave.Condition{perm},
 			initState: []orm.Object{must(WalletWith(perm.Address(), &min))},
-			fee:       &FeeInfo{Fees: &cash},
-			min:       min,
-			expect:    errors.ErrInsufficientAmount.Is,
+			fee: &FeeInfo{
+				Metadata: &weave.Metadata{Schema: 1},
+				Fees:     &cash,
+			},
+			min:    min,
+			expect: errors.ErrInsufficientAmount.Is,
 		},
 		"all proper": {
 			signers:   []weave.Condition{perm},
 			initState: []orm.Object{must(WalletWith(perm.Address(), &cash))},
-			fee:       &FeeInfo{Fees: &min},
-			min:       min,
-			expect:    noErr,
+			fee: &FeeInfo{
+				Metadata: &weave.Metadata{Schema: 1},
+				Fees:     &min,
+			},
+			min:    min,
+			expect: noErr,
 		},
 		"trying to pay from wrong account": {
 			signers:   []weave.Condition{perm},
 			initState: []orm.Object{must(WalletWith(perm2.Address(), &cash))},
-			fee:       &FeeInfo{Payer: perm2.Address(), Fees: &min},
-			min:       min,
-			expect:    errors.ErrUnauthorized.Is,
+			fee: &FeeInfo{
+				Metadata: &weave.Metadata{Schema: 1},
+				Payer:    perm2.Address(),
+				Fees:     &min,
+			},
+			min:    min,
+			expect: errors.ErrUnauthorized.Is,
 		},
 		/*
 			// this is now rejected in the initializer
 			"fee without an empty ticker is not accepted": {
 				signers:   []weave.Condition{perm},
 				initState: []orm.Object{must(WalletWith(perm.Address(), &cash))},
-				fee:       &FeeInfo{Fees: &min},
+				fee:       &FeeInfo{
+					Metadata: &weave.Metadata{Schema: 1},
+					Fees: &min,
+				},
 				min:       coin.NewCoin(0, 1000, ""),
 				expect:    errors.ErrCurrency.Is,
 			},
@@ -111,23 +131,32 @@ func TestFees(t *testing.T) {
 		"no fee (zero value) is acceptable": {
 			signers:   []weave.Condition{perm},
 			initState: []orm.Object{must(WalletWith(perm.Address(), &cash))},
-			fee:       &FeeInfo{Fees: coin.NewCoinp(0, 1, "FOO")},
-			min:       coin.NewCoin(0, 0, ""),
-			expect:    noErr,
+			fee: &FeeInfo{
+				Metadata: &weave.Metadata{Schema: 1},
+				Fees:     coin.NewCoinp(0, 1, "FOO"),
+			},
+			min:    coin.NewCoin(0, 0, ""),
+			expect: noErr,
 		},
 		"wrong currency checked": {
 			signers:   []weave.Condition{perm},
 			initState: []orm.Object{must(WalletWith(perm.Address(), &cash))},
-			fee:       &FeeInfo{Fees: &min},
-			min:       coin.NewCoin(0, 1000, "NOT"),
-			expect:    errors.ErrCurrency.Is,
+			fee: &FeeInfo{
+				Metadata: &weave.Metadata{Schema: 1},
+				Fees:     &min,
+			},
+			min:    coin.NewCoin(0, 1000, "NOT"),
+			expect: errors.ErrCurrency.Is,
 		},
 		"has the cash, but didn't offer enough fees": {
 			signers:   []weave.Condition{perm},
 			initState: []orm.Object{must(WalletWith(perm.Address(), &cash))},
-			fee:       &FeeInfo{Fees: &min},
-			min:       coin.NewCoin(0, 45000, "FOO"),
-			expect:    errors.ErrInsufficientAmount.Is,
+			fee: &FeeInfo{
+				Metadata: &weave.Metadata{Schema: 1},
+				Fees:     &min,
+			},
+			min:    coin.NewCoin(0, 45000, "FOO"),
+			expect: errors.ErrInsufficientAmount.Is,
 		},
 	}
 
@@ -138,6 +167,7 @@ func TestFees(t *testing.T) {
 			h := NewFeeDecorator(auth, controller)
 
 			kv := store.MemStore()
+			migration.MustInitPkg(kv, "cash")
 
 			config := Configuration{
 				CollectorAddress: perm3.Address(),

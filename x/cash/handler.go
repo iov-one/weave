@@ -4,15 +4,17 @@ import (
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/gconf"
+	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/x"
 )
 
 // RegisterRoutes will instantiate and register
 // all handlers in this package
 func RegisterRoutes(r weave.Registry, auth x.Authenticator, control Controller) {
-
-	r.Handle(pathSendMsg, NewSendHandler(auth, control))
-	r.Handle(pathConfigurationUpdateMsg, NewConfigHandler(auth))
+	r.Handle(pathSendMsg, migration.SchemaMigratingHandler("cash",
+		NewSendHandler(auth, control)))
+	r.Handle(pathConfigurationUpdateMsg, migration.SchemaMigratingHandler("cash",
+		NewConfigHandler(auth)))
 }
 
 // RegisterQuery will register this bucket as "/wallets"

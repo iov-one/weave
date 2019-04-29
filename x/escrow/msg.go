@@ -4,7 +4,15 @@ import (
 	"github.com/iov-one/weave"
 	coin "github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/migration"
 )
+
+func init() {
+	migration.MustRegister(1, &CreateEscrowMsg{}, migration.NoModification)
+	migration.MustRegister(1, &ReleaseEscrowMsg{}, migration.NoModification)
+	migration.MustRegister(1, &ReturnEscrowMsg{}, migration.NoModification)
+	migration.MustRegister(1, &UpdateEscrowPartiesMsg{}, migration.NoModification)
+}
 
 const (
 	pathCreateEscrowMsg        = "escrow/create"
@@ -54,6 +62,7 @@ func NewCreateMsg(
 	memo string,
 ) *CreateEscrowMsg {
 	return &CreateEscrowMsg{
+		Metadata:  &weave.Metadata{Schema: 1},
 		Src:       sender,
 		Recipient: recipient,
 		Arbiter:   arbiter,
@@ -65,6 +74,9 @@ func NewCreateMsg(
 
 // Validate makes sure that this is sensible
 func (m *CreateEscrowMsg) Validate() error {
+	if err := m.Metadata.Validate(); err != nil {
+		return errors.Wrap(err, "metadata")
+	}
 	if err := m.Arbiter.Validate(); err != nil {
 		return errors.Wrap(err, "arbiter")
 	}
@@ -91,6 +103,9 @@ func (m *CreateEscrowMsg) Validate() error {
 
 // Validate makes sure that this is sensible
 func (m *ReleaseEscrowMsg) Validate() error {
+	if err := m.Metadata.Validate(); err != nil {
+		return errors.Wrap(err, "metadata")
+	}
 	err := validateEscrowID(m.EscrowId)
 	if err != nil {
 		return err
@@ -103,12 +118,18 @@ func (m *ReleaseEscrowMsg) Validate() error {
 
 // Validate always returns true for no data
 func (m *ReturnEscrowMsg) Validate() error {
+	if err := m.Metadata.Validate(); err != nil {
+		return errors.Wrap(err, "metadata")
+	}
 	return validateEscrowID(m.EscrowId)
 }
 
 // Validate makes sure any included items are valid permissions
 // and there is at least one change
 func (m *UpdateEscrowPartiesMsg) Validate() error {
+	if err := m.Metadata.Validate(); err != nil {
+		return errors.Wrap(err, "metadata")
+	}
 	err := validateEscrowID(m.EscrowId)
 	if err != nil {
 		return err

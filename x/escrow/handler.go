@@ -4,6 +4,7 @@ import (
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/x"
 	"github.com/iov-one/weave/x/cash"
@@ -21,10 +22,11 @@ const (
 // all handlers in this package
 func RegisterRoutes(r weave.Registry, auth x.Authenticator, cashctrl cash.Controller) {
 	bucket := NewBucket()
-	r.Handle(pathCreateEscrowMsg, CreateEscrowHandler{auth, bucket, cashctrl})
-	r.Handle(pathReleaseEscrowMsg, ReleaseEscrowHandler{auth, bucket, cashctrl})
-	r.Handle(pathReturnEscrowMsg, ReturnEscrowHandler{auth, bucket, cashctrl})
-	r.Handle(pathUpdateEscrowPartiesMsg, UpdateEscrowHandler{auth, bucket})
+
+	r.Handle(pathCreateEscrowMsg, migration.SchemaMigratingHandler("escrow", CreateEscrowHandler{auth, bucket, cashctrl}))
+	r.Handle(pathReleaseEscrowMsg, migration.SchemaMigratingHandler("escrow", ReleaseEscrowHandler{auth, bucket, cashctrl}))
+	r.Handle(pathReturnEscrowMsg, migration.SchemaMigratingHandler("escrow", ReturnEscrowHandler{auth, bucket, cashctrl}))
+	r.Handle(pathUpdateEscrowPartiesMsg, migration.SchemaMigratingHandler("escrow", UpdateEscrowHandler{auth, bucket}))
 }
 
 // RegisterQuery will register this bucket as "/escrows"
@@ -73,6 +75,7 @@ func (h CreateEscrowHandler) Deliver(ctx weave.Context, db weave.KVStore, tx wea
 
 	// create an escrow object
 	escrow := &Escrow{
+		Metadata:  &weave.Metadata{},
 		Sender:    sender,
 		Arbiter:   msg.Arbiter,
 		Recipient: msg.Recipient,

@@ -31,6 +31,7 @@ func (i *Initializer) FromGenesis(opts weave.Options, db weave.KVStore) error {
 	bucket := NewBucket()
 	for j, e := range escrows {
 		escr := Escrow{
+			Metadata:  &weave.Metadata{Schema: 1},
 			Sender:    e.Sender,
 			Arbiter:   e.Arbiter,
 			Recipient: e.Recipient,

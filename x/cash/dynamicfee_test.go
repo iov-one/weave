@@ -7,6 +7,7 @@ import (
 	coin "github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/gconf"
+	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/store"
 	"github.com/iov-one/weave/weavetest"
@@ -193,6 +194,7 @@ func TestDynamicFeeDecorator(t *testing.T) {
 			tx := &txMock{info: &FeeInfo{Fees: &tc.txFee}}
 
 			db := store.MemStore()
+			migration.MustInitPkg(db, "cash")
 
 			config := Configuration{
 				CollectorAddress: collectorAddr,

@@ -3,6 +3,7 @@
 
 ## HEAD
 
+
 - Added `migration` package. Schema versioning can be implemented by relying on
   functionality provided by this package.
 - `gconf` package was reimplemented from scratch
@@ -18,6 +19,13 @@
 - Added support for go 1.12
 - Bumped minimum required version of go to 1.11.4+ as otherwise some commands
   fail because of go mod constraints
+
+Breaking changes
+
+- x/cash is using schema versioned model and messages
+- x/paychan is using schema versioned model and messages
+- x/escrow is using schema versioned model and messages
+- x/distribution is using schema versioned model and messages
 
 
 ## 0.13.0
