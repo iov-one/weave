@@ -6,6 +6,12 @@ import (
 	"github.com/iov-one/weave/x"
 )
 
+// SchemaMigratingHandler returns a weave handler that will ensure incomming
+// messages are in the curren schema version format. If a message in older
+// schema is handled then it is first being migrated. Messages that cannot be
+// migrated to current schema version are returning migration error. This
+// functionality is executed before the decorated handler and it is completely
+// transpared to the wrapped handler.
 func SchemaMigratingHandler(packageName string, h weave.Handler) weave.Handler {
 	return &schemaMigratingHandler{
 		handler:     h,
