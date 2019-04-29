@@ -10,13 +10,17 @@ Each extension can declare and store only one configuration object.
 
 To use gconf you must follow a few simple principles.
 
-- Define your configuration as a protobuf message.
-- Define your configuration update message as a protobuf message. It must have
-  a `patch` field that holds the new configuration state.
-- Zero field values are ignored during the update message processing,
-- use `InitConfig` inside of your extension initializer to copy configuration
-  from the genesis into the database,
-- Use `Load` function to load your configuration state from the database,
+1. Define your configuration as a protobuf message.
+
+2. Define your configuration update message as a protobuf message. It must have
+a `patch` field that holds the new configuration state.
+
+3. Zero field values are ignored during the update message processing,
+
+4. use `InitConfig` inside of your extension initializer to copy configuration
+from the genesis into the database,
+
+5. Use `Load` function to load your configuration state from the database,
 
 
 See existing extensions for an example of how to use this package.
