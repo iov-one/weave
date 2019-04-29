@@ -40,7 +40,7 @@ func TestStackTrace(t *testing.T) {
 		"github.com/iov-one/weave/errors.Error.Newf\n",
 		"runtime.goexit\n",
 	}
-	const thisTestSrc = "github.com/iov-one/weave/errors/stacktrace_test.go"
+	const thisTestSrc = "weave/errors/stacktrace_test.go"
 
 	for testName, tc := range cases {
 		t.Run(testName, func(t *testing.T) {
@@ -75,8 +75,8 @@ func TestStackTrace(t *testing.T) {
 			}
 			// contains a link to where it was created, which must
 			// be here, not the Wrap() function
-			if !strings.Contains(tinyStack, "[iov-one/weave/errors/stacktrace_test.go") {
-				t.Fatal("this file missing in stack info")
+			if !strings.Contains(tinyStack, thisTestSrc) {
+				t.Fatalf("this file missing in stack info:\n %s", tinyStack)
 			}
 		})
 	}
