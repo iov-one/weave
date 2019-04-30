@@ -57,3 +57,11 @@ message ReleaseSwapMsg {
     // raw preimage to unlock swap
     bytes preimage = 3;
 }
+
+// ReturnSwapMsg releases the tokens to the sender.
+// This operation only works if the Swap is expired.
+message ReturnSwapMsg {
+    weave.Metadata metadata = 1;
+
+    bytes escrow_id = 2;
+}
