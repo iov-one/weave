@@ -20,10 +20,11 @@ func BuildSendTx(src, dest weave.Address, amount coin.Coin, memo string) *app.Tx
 	return &app.Tx{
 		Sum: &app.Tx_SendMsg{
 			SendMsg: &cash.SendMsg{
-				Src:    src,
-				Dest:   dest,
-				Amount: &amount,
-				Memo:   memo,
+				Metadata: &weave.Metadata{Schema: 1},
+				Src:      src,
+				Dest:     dest,
+				Amount:   &amount,
+				Memo:     memo,
 			},
 			// TODO: add fees, etc...
 		},

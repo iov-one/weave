@@ -14,6 +14,7 @@ import (
 	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/commands/server"
 	"github.com/iov-one/weave/crypto"
+	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/x/batch"
 	"github.com/iov-one/weave/x/cash"
 	"github.com/iov-one/weave/x/escrow"
@@ -41,6 +42,7 @@ func TestSendTx(t *testing.T) {
 	// Query for my balance
 	key := cash.NewBucket().DBKey(mainAccount.address())
 	queryAndCheckWallet(t, false, myApp, "/", key, cash.Set{
+		Metadata: &weave.Metadata{Schema: 1},
 		Coins: coin.Coins{
 			{Ticker: "ETH", Whole: 50000},
 			{Ticker: "FRNK", Whole: 1234},
@@ -74,6 +76,7 @@ func TestSendTx(t *testing.T) {
 
 	queryBalance := func() {
 		queryAndCheckWallet(t, false, myApp, "/", key, cash.Set{
+			Metadata: &weave.Metadata{Schema: 1},
 			Coins: coin.Coins{
 				{Ticker: "ETH", Whole: 30000},
 				{Ticker: "FRNK", Whole: 1234},
@@ -120,6 +123,7 @@ func TestQuery(t *testing.T) {
 	// Query for new balances
 	key := cash.NewBucket().DBKey(mainAccount.address())
 	queryAndCheckWallet(t, false, myApp, "/", key, cash.Set{
+		Metadata: &weave.Metadata{Schema: 1},
 		Coins: coin.Coins{
 			{Ticker: "ETH", Whole: 48000},
 			{Ticker: "FRNK", Whole: 1234},
@@ -129,6 +133,7 @@ func TestQuery(t *testing.T) {
 	// make sure money arrived safely
 	key2 := cash.NewBucket().DBKey(addr2)
 	queryAndCheckWallet(t, false, myApp, "/", key2, cash.Set{
+		Metadata: &weave.Metadata{Schema: 1},
 		Coins: coin.Coins{
 			{Ticker: "ETH", Whole: 2000},
 		},
@@ -136,6 +141,7 @@ func TestQuery(t *testing.T) {
 
 	// make sure other paths also get this value....
 	queryAndCheckWallet(t, false, myApp, "/wallets", addr2, cash.Set{
+		Metadata: &weave.Metadata{Schema: 1},
 		Coins: coin.Coins{
 			{Ticker: "ETH", Whole: 2000},
 		},
@@ -241,17 +247,32 @@ func withWalletAppState(t testing.TB, accounts []*account) string {
 		Coins   coin.Coins    `json:"coins"`
 	}
 	type conf struct {
-		Cash cash.Configuration `json:"cash"`
+		Cash      cash.Configuration      `json:"cash"`
+		Migration migration.Configuration `json:"migration"`
+	}
+	type schemaVer struct {
+		Pkg string `json:"pkg"`
+		Ver uint32 `json:"ver"`
 	}
 	state := struct {
-		Cash []wallet `json:"cash"`
-		Conf conf     `json:"conf"`
+		Cash       []wallet    `json:"cash"`
+		Conf       conf        `json:"conf"`
+		InitSchema []schemaVer `json:"initialize_schema"`
 	}{
 		Conf: conf{
 			Cash: cash.Configuration{
 				CollectorAddress: fromHex(t, "fe1132f9ed1fb1c2e9c09ff297b619654387bb4a"),
 				MinimalFee:       coin.Coin{}, // no fee
 			},
+			Migration: migration.Configuration{
+				Admin: fromHex(t, "fe1132f9ed1fb1c2e9c09ff297b619654387bb4a"),
+			},
+		},
+		InitSchema: []schemaVer{
+			{Pkg: "cash", Ver: 1},
+			{Pkg: "paychan", Ver: 1},
+			{Pkg: "distribution", Ver: 1},
+			{Pkg: "escrow", Ver: 1},
 		},
 	}
 
@@ -334,8 +355,9 @@ func appStateGenesis(t testing.TB, contracts []*contract) string {
 func sendToken(t require.TestingT, baseApp app.BaseApp, chainID string, height int64, signers []*account,
 	from, to []byte, amount int64, ticker, memo string, contracts ...[]byte) abci.ResponseDeliverTx {
 	msg := &cash.SendMsg{
-		Src:  from,
-		Dest: to,
+		Metadata: &weave.Metadata{Schema: 1},
+		Src:      from,
+		Dest:     to,
 		Amount: &coin.Coin{
 			Whole:  amount,
 			Ticker: ticker,
@@ -352,6 +374,7 @@ func sendToken(t require.TestingT, baseApp app.BaseApp, chainID string, height i
 
 	// make sure money arrived safely
 	queryAndCheckWallet(t, false, baseApp, "/wallets", to, cash.Set{
+		Metadata: &weave.Metadata{Schema: 1},
 		Coins: coin.Coins{
 			{Ticker: ticker, Whole: amount},
 		},
@@ -364,8 +387,9 @@ func sendToken(t require.TestingT, baseApp app.BaseApp, chainID string, height i
 func sendBatch(t require.TestingT, fail bool, baseApp app.BaseApp, chainID string, height int64, signers []*account,
 	from, to []byte, amount int64, ticker, memo string, contracts ...[]byte) abci.ResponseDeliverTx {
 	msg := &cash.SendMsg{
-		Src:  from,
-		Dest: to,
+		Metadata: &weave.Metadata{Schema: 1},
+		Src:      from,
+		Dest:     to,
 		Amount: &coin.Coin{
 			Whole:  amount,
 			Ticker: ticker,
@@ -405,6 +429,7 @@ func sendBatch(t require.TestingT, fail bool, baseApp app.BaseApp, chainID strin
 
 	// make sure money arrived only for successful batch
 	queryAndCheckWallet(t, fail, baseApp, "/wallets", to, cash.Set{
+		Metadata: &weave.Metadata{Schema: 1},
 		Coins: coin.Coins{
 			{Ticker: ticker, Whole: checkAmount},
 		},
@@ -504,7 +529,9 @@ func queryAndCheckWallet(t require.TestingT, fail bool, baseApp app.BaseApp, pat
 	}
 	assert.NotEmpty(t, res.Value)
 
-	var actual cash.Set
+	actual := cash.Set{
+		Metadata: &weave.Metadata{Schema: 1},
+	}
 	err := app.UnmarshalOneResult(res.Value, &actual)
 	require.NoError(t, err)
 	require.Equal(t, expected, actual)
@@ -529,8 +556,9 @@ func queryAndCheckContract(t require.TestingT, baseApp app.BaseApp, path string,
 // this is used in our benchmark
 func makeSendTx(t require.TestingT, chainID string, sender, receiver *account, ticker, memo string, amount int64) []byte {
 	msg := &cash.SendMsg{
-		Src:  sender.address(),
-		Dest: receiver.address(),
+		Metadata: &weave.Metadata{Schema: 1},
+		Src:      sender.address(),
+		Dest:     receiver.address(),
 		Amount: &coin.Coin{
 			Whole:  amount,
 			Ticker: ticker,
@@ -556,8 +584,9 @@ func makeSendTx(t require.TestingT, chainID string, sender, receiver *account, t
 // this is used in our benchmark
 func makeSendTxMultisig(t require.TestingT, chainID string, sender, receiver *contract, ticker, memo string, amount int64) []byte {
 	msg := &cash.SendMsg{
-		Src:  sender.address(),
-		Dest: receiver.address(),
+		Metadata: &weave.Metadata{Schema: 1},
+		Src:      sender.address(),
+		Dest:     receiver.address(),
 		Amount: &coin.Coin{
 			Whole:  amount,
 			Ticker: ticker,

@@ -21,7 +21,8 @@ func TestRevenueDistribution(t *testing.T) {
 	newRevenueTx := &bnsdApp.Tx{
 		Sum: &bnsdApp.Tx_NewRevenueMsg{
 			NewRevenueMsg: &distribution.NewRevenueMsg{
-				Admin: admin.PublicKey().Address(),
+				Metadata: &weave.Metadata{Schema: 1},
+				Admin:    admin.PublicKey().Address(),
 				Recipients: []*distribution.Recipient{
 					{Address: recipients[0], Weight: 1},
 					{Address: recipients[1], Weight: 2},
@@ -87,6 +88,7 @@ func TestRevenueDistribution(t *testing.T) {
 	resetRevenueTx := &bnsdApp.Tx{
 		Sum: &bnsdApp.Tx_ResetRevenueMsg{
 			ResetRevenueMsg: &distribution.ResetRevenueMsg{
+				Metadata:  &weave.Metadata{Schema: 1},
 				RevenueID: revenueID,
 				Recipients: []*distribution.Recipient{
 					{Address: recipients[0], Weight: 321},
@@ -139,6 +141,7 @@ func TestRevenueDistribution(t *testing.T) {
 	distributeTx := &bnsdApp.Tx{
 		Sum: &bnsdApp.Tx_DistributeMsg{
 			DistributeMsg: &distribution.DistributeMsg{
+				Metadata:  &weave.Metadata{Schema: 1},
 				RevenueID: revenueID,
 			},
 		},

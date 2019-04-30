@@ -3,6 +3,7 @@ package scenarios
 import (
 	"testing"
 
+	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/cmd/bnsd/app"
 	"github.com/iov-one/weave/cmd/bnsd/client"
 	"github.com/iov-one/weave/coin"
@@ -35,6 +36,7 @@ func TestEscrowRelease(t *testing.T) {
 	releaseEscrowTX := &app.Tx{
 		Sum: &app.Tx_ReleaseEscrowMsg{
 			ReleaseEscrowMsg: &escrow.ReleaseEscrowMsg{
+				Metadata: &weave.Metadata{Schema: 1},
 				EscrowId: escrowID,
 				Amount:   []*coin.Coin{{Ticker: "IOV", Whole: 1}},
 			},
