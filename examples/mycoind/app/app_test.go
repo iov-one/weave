@@ -11,6 +11,7 @@ import (
 	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/commands/server"
 	"github.com/iov-one/weave/crypto"
+	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/x/cash"
 	"github.com/iov-one/weave/x/sigs"
 	"github.com/stretchr/testify/assert"
@@ -44,6 +45,26 @@ func testInitChain(t *testing.T, myApp app.BaseApp, addr string) {
 				CollectorAddress: fromHex(t, "3b11c732b8fc1f09beb34031302fe2ab347c5c14"),
 				MinimalFee:       coin.Coin{Whole: 0}, // no fee
 			},
+			"migration": migration.Configuration{
+				Admin: fromHex(t, "3b11c732b8fc1f09beb34031302fe2ab347c5c14"),
+			},
+		},
+		"initialize_schema": []dict{
+			dict{"ver": 1, "pkg": "batch"},
+			dict{"ver": 1, "pkg": "cash"},
+			dict{"ver": 1, "pkg": "currency"},
+			dict{"ver": 1, "pkg": "distribution"},
+			dict{"ver": 1, "pkg": "escrow"},
+			dict{"ver": 1, "pkg": "gov"},
+			dict{"ver": 1, "pkg": "hashlock"},
+			dict{"ver": 1, "pkg": "msgfee"},
+			dict{"ver": 1, "pkg": "multisig"},
+			dict{"ver": 1, "pkg": "namecoin"},
+			dict{"ver": 1, "pkg": "nft"},
+			dict{"ver": 1, "pkg": "paychan"},
+			dict{"ver": 1, "pkg": "sigs"},
+			dict{"ver": 1, "pkg": "utils"},
+			dict{"ver": 1, "pkg": "validators"},
 		},
 	})
 	if err != nil {
@@ -104,8 +125,9 @@ func testSendTx(t *testing.T, myApp app.BaseApp, h int64,
 	sender *crypto.PrivateKey, rcpt weave.Address, seq int64) abci.ResponseDeliverTx {
 
 	msg := &cash.SendMsg{
-		Src:  sender.PublicKey().Address(),
-		Dest: rcpt,
+		Metadata: &weave.Metadata{Schema: 1},
+		Src:      sender.PublicKey().Address(),
+		Dest:     rcpt,
 		Amount: &coin.Coin{
 			Whole:  amount,
 			Ticker: ticker,
