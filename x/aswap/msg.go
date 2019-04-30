@@ -1,0 +1,111 @@
+package aswap
+
+import (
+	"github.com/iov-one/weave"
+	coin "github.com/iov-one/weave/coin"
+	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/migration"
+)
+
+func init() {
+	// Migration needs to be registered for every message introduced in the codec.
+	// This is the convention to message versioning.
+	migration.MustRegister(1, &CreateSwapMsg{}, migration.NoModification)
+	migration.MustRegister(1, &ReleaseSwapMsg{}, migration.NoModification)
+	migration.MustRegister(1, &ReturnSwapMsg{}, migration.NoModification)
+}
+
+const (
+	pathCreateSwap      = "swap/create"
+	pathReleaseSwapMsg  = "swap/release"
+	pathReturnReturnMsg = "swap/return"
+
+	maxMemoSize      int = 128
+	// preimage size in bytes
+	preimageSize     int = 32
+	// preimageHash size in bytes
+	preimageHashSize int = 32
+)
+
+var _ weave.Msg = (*CreateSwapMsg)(nil)
+var _ weave.Msg = (*ReleaseSwapMsg)(nil)
+var _ weave.Msg = (*ReturnSwapMsg)(nil)
+
+// == ROUTING, Path method fulfills weave.Msg interface to allow routing
+
+func (CreateSwapMsg) Path() string {
+	return pathCreateSwap
+}
+
+func (ReleaseSwapMsg) Path() string {
+	return pathReleaseSwapMsg
+}
+
+func (ReturnSwapMsg) Path() string {
+	return pathReturnReturnMsg
+}
+
+// == VALIDATION, Validate method makes sure basic rules are enforced upon input data and fulfills weave.Msg interface
+
+func (m *CreateSwapMsg) Validate() error {
+	if err := m.Metadata.Validate(); err != nil {
+		return errors.Wrap(err, "metadata")
+	}
+
+	if len(m.PreimageHash) != preimageHashSize {
+		return errors.Wrapf(errors.ErrInvalidInput, "preimge hash is sha256 and therefore should be exactly "+
+			"%d bytes", preimageHashSize)
+	}
+
+	if err := m.Recipient.Validate(); err != nil {
+		return errors.Wrap(err, "recipient")
+	}
+	if m.Timeout == 0 {
+		// Zero timeout is a valid value that dates to 1970-01-01. We
+		// know that this value is in the past and makes no sense. Most
+		// likely value was not provided and a zero value remained.
+		return errors.Wrap(errors.ErrInvalidInput, "timeout is required")
+	}
+	if err := m.Timeout.Validate(); err != nil {
+		return errors.Wrap(err, "invalid timeout value")
+	}
+	if len(m.Memo) > maxMemoSize {
+		return errors.Wrapf(errors.ErrInvalidInput, "memo %s", m.Memo)
+	}
+	if err := validateAmount(m.Amount); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (m *ReleaseSwapMsg) Validate() error {
+	if err := m.Metadata.Validate(); err != nil {
+		return errors.Wrap(err, "metadata")
+	}
+	if len(m.SwapID) == 0 {
+		return errors.Wrap(errors.ErrInvalidInput, "empty swap id")
+	}
+	if len(m.Preimage) != preimageSize {
+		return errors.Wrapf(errors.ErrInvalidInput, "preimage should be exactly %d byte long", preimageSize)
+	}
+	return nil
+}
+
+func (m *ReturnSwapMsg) Validate() error {
+	if err := m.Metadata.Validate(); err != nil {
+		return errors.Wrap(err, "metadata")
+	}
+	if len(m.SwapID) == 0 {
+		return errors.Wrap(errors.ErrInvalidInput, "empty swap id")
+	}
+	return nil
+}
+
+// validateAmount makes sure the amount is positive and coins are of valid format
+func validateAmount(amount coin.Coins) error {
+	positive := amount.IsPositive()
+	if !positive {
+		return errors.Wrapf(errors.ErrInvalidAmount, "non-positive SendMsg: %#v", &amount)
+	}
+	return amount.Validate()
+}
