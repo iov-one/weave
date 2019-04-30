@@ -2,6 +2,7 @@ syntax = "proto3";
 
 package sigs;
 
+import "github.com/iov-one/weave/codec.proto";
 import "github.com/iov-one/weave/crypto/models.proto";
 
 // UserData just stores the data and is used for serialization.
@@ -10,8 +11,10 @@ import "github.com/iov-one/weave/crypto/models.proto";
 // Note: This should not be created from outside the module,
 // User is the entry point you want
 message UserData {
-  crypto.PublicKey pubkey = 1;
-  int64 sequence = 2;
+  weave.Metadata metadata = 1;
+
+  crypto.PublicKey pubkey = 2;
+  int64 sequence = 3;
 }
 
 // StdSignature represents the signature, the identity of the signer
@@ -20,8 +23,10 @@ message UserData {
 // A given signer must submit transactions with the sequence number
 // increasing by 1 each time (starting at 0)
 message StdSignature {
-  int64 sequence = 1;
-  crypto.PublicKey pubkey = 2;
+  weave.Metadata metadata = 1;
+
+  int64 sequence = 2;
+  crypto.PublicKey pubkey = 3;
   // Removed Address, Pubkey is more powerful
   crypto.Signature signature = 4;
 }
@@ -29,10 +34,12 @@ message StdSignature {
 // BumpSequenceMsg increments a sequence counter by given amount for a user
 // that signed the transaction.
 message BumpSequenceMsg {
+  weave.Metadata metadata = 1;
+
   // Increment represents the value by which a sequence value will be
   // increased. Minumum value is one and maxium value must not be greater than
   // 1000.
   // Each transaction increments the sequence by one. This value represents the
   // total increment value, including the default increment.
-  uint32 increment = 1;
+  uint32 increment = 2;
 }

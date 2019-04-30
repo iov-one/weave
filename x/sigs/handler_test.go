@@ -7,6 +7,7 @@ import (
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/store"
 	"github.com/iov-one/weave/weavetest"
@@ -33,89 +34,89 @@ func TestBumpSequence(t *testing.T) {
 	}{
 		"great success": {
 			InitData: []*UserData{
-				{Pubkey: key1, Sequence: 1},
-				{Pubkey: key2, Sequence: 9},
+				{Metadata: &weave.Metadata{Schema: 1}, Pubkey: key1, Sequence: 1},
+				{Metadata: &weave.Metadata{Schema: 1}, Pubkey: key2, Sequence: 9},
 			},
 			Signers: []weave.Condition{key1.Condition()},
-			Msg:     BumpSequenceMsg{Increment: 2},
+			Msg:     BumpSequenceMsg{Metadata: &weave.Metadata{Schema: 1}, Increment: 2},
 			WantSequences: []*UserData{
-				{Pubkey: key1, Sequence: 2},
-				{Pubkey: key2, Sequence: 9},
+				{Metadata: &weave.Metadata{Schema: 1}, Pubkey: key1, Sequence: 2},
+				{Metadata: &weave.Metadata{Schema: 1}, Pubkey: key2, Sequence: 9},
 			},
 		},
 		"incrementing sequence of the main signer": {
 			InitData: []*UserData{
-				{Pubkey: key1, Sequence: 1},
-				{Pubkey: key2, Sequence: 9},
+				{Metadata: &weave.Metadata{Schema: 1}, Pubkey: key1, Sequence: 1},
+				{Metadata: &weave.Metadata{Schema: 1}, Pubkey: key2, Sequence: 9},
 			},
 			Signers: []weave.Condition{
 				key2.Condition(), // Main signer.
 				key1.Condition(),
 			},
-			Msg: BumpSequenceMsg{Increment: 2},
+			Msg: BumpSequenceMsg{Metadata: &weave.Metadata{Schema: 1}, Increment: 2},
 			WantSequences: []*UserData{
-				{Pubkey: key1, Sequence: 1},
-				{Pubkey: key2, Sequence: 10},
+				{Metadata: &weave.Metadata{Schema: 1}, Pubkey: key1, Sequence: 1},
+				{Metadata: &weave.Metadata{Schema: 1}, Pubkey: key2, Sequence: 10},
 			},
 		},
 		"transaction with a missing signature is rejected": {
-			Msg:            BumpSequenceMsg{Increment: 1},
+			Msg:            BumpSequenceMsg{Metadata: &weave.Metadata{Schema: 1}, Increment: 1},
 			Signers:        nil,
 			WantCheckErr:   errors.ErrUnauthorized,
 			WantDeliverErr: errors.ErrUnauthorized,
 		},
 		"message with a zero sequence increment is invalid": {
 			InitData: []*UserData{
-				{Pubkey: key1, Sequence: 1},
+				{Metadata: &weave.Metadata{Schema: 1}, Pubkey: key1, Sequence: 1},
 			},
-			Msg:            BumpSequenceMsg{Increment: 0},
+			Msg:            BumpSequenceMsg{Metadata: &weave.Metadata{Schema: 1}, Increment: 0},
 			WantCheckErr:   errors.ErrInvalidMsg,
 			WantDeliverErr: errors.ErrInvalidMsg,
 		},
 		"user that we increment the sequence of must exist": {
 			InitData: []*UserData{
-				{Pubkey: key2, Sequence: 4},
+				{Metadata: &weave.Metadata{Schema: 1}, Pubkey: key2, Sequence: 4},
 			},
 			Signers:        []weave.Condition{key1.Condition()},
-			Msg:            BumpSequenceMsg{Increment: 421},
+			Msg:            BumpSequenceMsg{Metadata: &weave.Metadata{Schema: 1}, Increment: 421},
 			WantCheckErr:   errors.ErrNotFound,
 			WantDeliverErr: errors.ErrNotFound,
 		},
 		"sequence increment value must not be greater than 1000": {
 			InitData: []*UserData{
-				{Pubkey: key1, Sequence: 4},
+				{Metadata: &weave.Metadata{Schema: 1}, Pubkey: key1, Sequence: 4},
 			},
 			Signers:        []weave.Condition{key1.Condition()},
-			Msg:            BumpSequenceMsg{Increment: 1001},
+			Msg:            BumpSequenceMsg{Metadata: &weave.Metadata{Schema: 1}, Increment: 1001},
 			WantCheckErr:   errors.ErrInvalidMsg,
 			WantDeliverErr: errors.ErrInvalidMsg,
 		},
 		"sequence increment value can be 1000": {
 			InitData: []*UserData{
-				{Pubkey: key1, Sequence: 4},
+				{Metadata: &weave.Metadata{Schema: 1}, Pubkey: key1, Sequence: 4},
 			},
 			Signers: []weave.Condition{key1.Condition()},
-			Msg:     BumpSequenceMsg{Increment: 1000},
+			Msg:     BumpSequenceMsg{Metadata: &weave.Metadata{Schema: 1}, Increment: 1000},
 			WantSequences: []*UserData{
-				{Pubkey: key1, Sequence: 1003},
+				{Metadata: &weave.Metadata{Schema: 1}, Pubkey: key1, Sequence: 1003},
 			},
 		},
 		"successfull sequence increment before counter overflow": {
 			InitData: []*UserData{
-				{Pubkey: key1, Sequence: math.MaxInt64 - 20},
+				{Metadata: &weave.Metadata{Schema: 1}, Pubkey: key1, Sequence: math.MaxInt64 - 20},
 			},
 			Signers: []weave.Condition{key1.Condition()},
-			Msg:     BumpSequenceMsg{Increment: 20},
+			Msg:     BumpSequenceMsg{Metadata: &weave.Metadata{Schema: 1}, Increment: 20},
 			WantSequences: []*UserData{
-				{Pubkey: key1, Sequence: math.MaxInt64 - 1},
+				{Metadata: &weave.Metadata{Schema: 1}, Pubkey: key1, Sequence: math.MaxInt64 - 1},
 			},
 		},
 		"sequence increment value overflow": {
 			InitData: []*UserData{
-				{Pubkey: key1, Sequence: math.MaxInt64 - 20},
+				{Metadata: &weave.Metadata{Schema: 1}, Pubkey: key1, Sequence: math.MaxInt64 - 20},
 			},
 			Signers:        []weave.Condition{key1.Condition()},
-			Msg:            BumpSequenceMsg{Increment: 21},
+			Msg:            BumpSequenceMsg{Metadata: &weave.Metadata{Schema: 1}, Increment: 21},
 			WantCheckErr:   errors.ErrOverflow,
 			WantDeliverErr: errors.ErrOverflow,
 		},
@@ -125,6 +126,7 @@ func TestBumpSequence(t *testing.T) {
 		t.Run(testName, func(t *testing.T) {
 			bucket := NewBucket()
 			db := store.MemStore()
+			migration.MustInitPkg(db, "sigs")
 
 			for i, data := range tc.InitData {
 				obj := orm.NewSimpleObj(data.Pubkey.Address(), data)

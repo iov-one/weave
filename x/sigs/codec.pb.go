@@ -6,6 +6,7 @@ package sigs
 import (
 	fmt "fmt"
 	proto "github.com/gogo/protobuf/proto"
+	weave "github.com/iov-one/weave"
 	crypto "github.com/iov-one/weave/crypto"
 	io "io"
 	math "math"
@@ -28,8 +29,9 @@ const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
 // Note: This should not be created from outside the module,
 // User is the entry point you want
 type UserData struct {
-	Pubkey   *crypto.PublicKey `protobuf:"bytes,1,opt,name=pubkey,proto3" json:"pubkey,omitempty"`
-	Sequence int64             `protobuf:"varint,2,opt,name=sequence,proto3" json:"sequence,omitempty"`
+	Metadata *weave.Metadata   `protobuf:"bytes,1,opt,name=metadata,proto3" json:"metadata,omitempty"`
+	Pubkey   *crypto.PublicKey `protobuf:"bytes,2,opt,name=pubkey,proto3" json:"pubkey,omitempty"`
+	Sequence int64             `protobuf:"varint,3,opt,name=sequence,proto3" json:"sequence,omitempty"`
 }
 
 func (m *UserData) Reset()         { *m = UserData{} }
@@ -65,6 +67,13 @@ func (m *UserData) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_UserData proto.InternalMessageInfo
 
+func (m *UserData) GetMetadata() *weave.Metadata {
+	if m != nil {
+		return m.Metadata
+	}
+	return nil
+}
+
 func (m *UserData) GetPubkey() *crypto.PublicKey {
 	if m != nil {
 		return m.Pubkey
@@ -85,8 +94,9 @@ func (m *UserData) GetSequence() int64 {
 // A given signer must submit transactions with the sequence number
 // increasing by 1 each time (starting at 0)
 type StdSignature struct {
-	Sequence int64             `protobuf:"varint,1,opt,name=sequence,proto3" json:"sequence,omitempty"`
-	Pubkey   *crypto.PublicKey `protobuf:"bytes,2,opt,name=pubkey,proto3" json:"pubkey,omitempty"`
+	Metadata *weave.Metadata   `protobuf:"bytes,1,opt,name=metadata,proto3" json:"metadata,omitempty"`
+	Sequence int64             `protobuf:"varint,2,opt,name=sequence,proto3" json:"sequence,omitempty"`
+	Pubkey   *crypto.PublicKey `protobuf:"bytes,3,opt,name=pubkey,proto3" json:"pubkey,omitempty"`
 	// Removed Address, Pubkey is more powerful
 	Signature *crypto.Signature `protobuf:"bytes,4,opt,name=signature,proto3" json:"signature,omitempty"`
 }
@@ -124,6 +134,13 @@ func (m *StdSignature) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_StdSignature proto.InternalMessageInfo
 
+func (m *StdSignature) GetMetadata() *weave.Metadata {
+	if m != nil {
+		return m.Metadata
+	}
+	return nil
+}
+
 func (m *StdSignature) GetSequence() int64 {
 	if m != nil {
 		return m.Sequence
@@ -148,12 +165,13 @@ func (m *StdSignature) GetSignature() *crypto.Signature {
 // BumpSequenceMsg increments a sequence counter by given amount for a user
 // that signed the transaction.
 type BumpSequenceMsg struct {
+	Metadata *weave.Metadata `protobuf:"bytes,1,opt,name=metadata,proto3" json:"metadata,omitempty"`
 	// Increment represents the value by which a sequence value will be
 	// increased. Minumum value is one and maxium value must not be greater than
 	// 1000.
 	// Each transaction increments the sequence by one. This value represents the
 	// total increment value, including the default increment.
-	Increment uint32 `protobuf:"varint,1,opt,name=increment,proto3" json:"increment,omitempty"`
+	Increment uint32 `protobuf:"varint,2,opt,name=increment,proto3" json:"increment,omitempty"`
 }
 
 func (m *BumpSequenceMsg) Reset()         { *m = BumpSequenceMsg{} }
@@ -189,6 +207,13 @@ func (m *BumpSequenceMsg) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_BumpSequenceMsg proto.InternalMessageInfo
 
+func (m *BumpSequenceMsg) GetMetadata() *weave.Metadata {
+	if m != nil {
+		return m.Metadata
+	}
+	return nil
+}
+
 func (m *BumpSequenceMsg) GetIncrement() uint32 {
 	if m != nil {
 		return m.Increment
@@ -205,24 +230,26 @@ func init() {
 func init() { proto.RegisterFile("x/sigs/codec.proto", fileDescriptor_1f3400434997a8ae) }
 
 var fileDescriptor_1f3400434997a8ae = []byte{
-	// 266 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x84, 0x90, 0x4f, 0x4a, 0xc3, 0x40,
-	0x14, 0xc6, 0x33, 0xb5, 0x94, 0x76, 0x54, 0xc4, 0x59, 0x85, 0x22, 0x43, 0xc9, 0xaa, 0x82, 0x66,
-	0x40, 0x6f, 0x50, 0xdc, 0x89, 0xa0, 0x09, 0x1e, 0x20, 0x99, 0x3c, 0xe2, 0x60, 0x33, 0x33, 0xce,
-	0x9f, 0x6a, 0x2e, 0xe0, 0xda, 0x63, 0xb9, 0xec, 0xd2, 0xa5, 0x24, 0x17, 0x11, 0xdb, 0xda, 0x9a,
-	0x55, 0x97, 0xef, 0xe3, 0xf7, 0xbd, 0xdf, 0xe3, 0x61, 0xf2, 0xc6, 0xac, 0x28, 0x2d, 0xe3, 0xaa,
-	0x00, 0x1e, 0x6b, 0xa3, 0x9c, 0x22, 0xfd, 0xdf, 0x64, 0x7c, 0x51, 0x0a, 0xf7, 0xe4, 0xf3, 0x98,
-	0xab, 0x8a, 0x09, 0xb5, 0xb8, 0x54, 0x12, 0xd8, 0x2b, 0x64, 0x0b, 0x60, 0xdc, 0xd4, 0xda, 0x29,
-	0x56, 0xa9, 0x02, 0xe6, 0x76, 0xdd, 0x89, 0x1e, 0xf0, 0xf0, 0xd1, 0x82, 0xb9, 0xc9, 0x5c, 0x46,
-	0xce, 0xf1, 0x40, 0xfb, 0xfc, 0x19, 0xea, 0x10, 0x4d, 0xd0, 0xf4, 0xf0, 0xea, 0x34, 0x5e, 0x37,
-	0xe2, 0x7b, 0x9f, 0xcf, 0x05, 0xbf, 0x85, 0x3a, 0xd9, 0x00, 0x64, 0x8c, 0x87, 0x16, 0x5e, 0x3c,
-	0x48, 0x0e, 0x61, 0x6f, 0x82, 0xa6, 0x07, 0xc9, 0x76, 0x8e, 0xde, 0x11, 0x3e, 0x4a, 0x5d, 0x91,
-	0x8a, 0x52, 0x66, 0xce, 0x1b, 0xe8, 0xc0, 0xa8, 0x0b, 0xff, 0x73, 0xf6, 0xf6, 0x39, 0x19, 0x1e,
-	0xd9, 0xbf, 0x9d, 0x61, 0xbf, 0x4b, 0x6f, 0x65, 0xc9, 0x8e, 0x89, 0x18, 0x3e, 0x99, 0xf9, 0x4a,
-	0xa7, 0x1b, 0xd7, 0x9d, 0x2d, 0xc9, 0x19, 0x1e, 0x09, 0xc9, 0x0d, 0x54, 0x20, 0xdd, 0xea, 0x96,
-	0xe3, 0x64, 0x17, 0xcc, 0xc2, 0xcf, 0x86, 0xa2, 0x65, 0x43, 0xd1, 0x77, 0x43, 0xd1, 0x47, 0x4b,
-	0x83, 0x65, 0x4b, 0x83, 0xaf, 0x96, 0x06, 0xf9, 0x60, 0xf5, 0xad, 0xeb, 0x9f, 0x00, 0x00, 0x00,
-	0xff, 0xff, 0xa5, 0x22, 0xa7, 0xb5, 0x77, 0x01, 0x00, 0x00,
+	// 303 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x12, 0xaa, 0xd0, 0x2f, 0xce,
+	0x4c, 0x2f, 0xd6, 0x4f, 0xce, 0x4f, 0x49, 0x4d, 0xd6, 0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17, 0x62,
+	0x01, 0x89, 0x48, 0xa9, 0xa4, 0x67, 0x96, 0x64, 0x94, 0x26, 0xe9, 0x25, 0xe7, 0xe7, 0xea, 0x67,
+	0xe6, 0x97, 0xe9, 0xe6, 0xe7, 0xa5, 0xea, 0x97, 0xa7, 0x26, 0x96, 0xa5, 0x22, 0xab, 0x95, 0xd2,
+	0xc1, 0xad, 0xaa, 0xa8, 0xb2, 0xa0, 0x24, 0x5f, 0x3f, 0x37, 0x3f, 0x25, 0x35, 0xa7, 0x18, 0xa2,
+	0x5a, 0xa9, 0x8e, 0x8b, 0x23, 0xb4, 0x38, 0xb5, 0xc8, 0x25, 0xb1, 0x24, 0x51, 0x48, 0x9b, 0x8b,
+	0x23, 0x37, 0xb5, 0x24, 0x31, 0x25, 0xb1, 0x24, 0x51, 0x82, 0x51, 0x81, 0x51, 0x83, 0xdb, 0x88,
+	0x5f, 0x0f, 0xac, 0x53, 0xcf, 0x17, 0x2a, 0x1c, 0x04, 0x57, 0x20, 0xa4, 0xc9, 0xc5, 0x56, 0x50,
+	0x9a, 0x94, 0x9d, 0x5a, 0x29, 0xc1, 0x04, 0x56, 0x2a, 0xa8, 0x07, 0x31, 0x5e, 0x2f, 0xa0, 0x34,
+	0x29, 0x27, 0x33, 0xd9, 0x3b, 0xb5, 0x32, 0x08, 0xaa, 0x40, 0x48, 0x8a, 0x8b, 0xa3, 0x38, 0xb5,
+	0xb0, 0x34, 0x35, 0x2f, 0x39, 0x55, 0x82, 0x59, 0x81, 0x51, 0x83, 0x39, 0x08, 0xce, 0x57, 0xda,
+	0xcc, 0xc8, 0xc5, 0x13, 0x5c, 0x92, 0x12, 0x9c, 0x99, 0x9e, 0x97, 0x58, 0x52, 0x5a, 0x94, 0x4a,
+	0x9a, 0x23, 0x90, 0x4d, 0x66, 0x42, 0x35, 0x19, 0xc9, 0x81, 0xcc, 0x84, 0x1c, 0xa8, 0xcf, 0xc5,
+	0x59, 0x0c, 0x73, 0x80, 0x04, 0x0b, 0xaa, 0x6a, 0xb8, 0xcb, 0x82, 0x10, 0x6a, 0x94, 0x62, 0xb8,
+	0xf8, 0x9d, 0x4a, 0x73, 0x0b, 0x82, 0xa1, 0x76, 0xf9, 0x16, 0xa7, 0x93, 0xe6, 0x6e, 0x19, 0x2e,
+	0xce, 0xcc, 0xbc, 0xe4, 0xa2, 0xd4, 0xdc, 0xd4, 0xbc, 0x12, 0xb0, 0xc3, 0x79, 0x83, 0x10, 0x02,
+	0x4e, 0x12, 0x27, 0x1e, 0xc9, 0x31, 0x5e, 0x78, 0x24, 0xc7, 0xf8, 0xe0, 0x91, 0x1c, 0xe3, 0x84,
+	0xc7, 0x72, 0x0c, 0x17, 0x1e, 0xcb, 0x31, 0xdc, 0x78, 0x2c, 0xc7, 0x90, 0xc4, 0x06, 0x8e, 0x34,
+	0x63, 0x40, 0x00, 0x00, 0x00, 0xff, 0xff, 0x2e, 0x02, 0x0f, 0xa3, 0x24, 0x02, 0x00, 0x00,
 }
 
 func (m *UserData) Marshal() (dAtA []byte, err error) {
@@ -240,18 +267,28 @@ func (m *UserData) MarshalTo(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
-	if m.Pubkey != nil {
+	if m.Metadata != nil {
 		dAtA[i] = 0xa
 		i++
-		i = encodeVarintCodec(dAtA, i, uint64(m.Pubkey.Size()))
-		n1, err := m.Pubkey.MarshalTo(dAtA[i:])
+		i = encodeVarintCodec(dAtA, i, uint64(m.Metadata.Size()))
+		n1, err := m.Metadata.MarshalTo(dAtA[i:])
 		if err != nil {
 			return 0, err
 		}
 		i += n1
 	}
+	if m.Pubkey != nil {
+		dAtA[i] = 0x12
+		i++
+		i = encodeVarintCodec(dAtA, i, uint64(m.Pubkey.Size()))
+		n2, err := m.Pubkey.MarshalTo(dAtA[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += n2
+	}
 	if m.Sequence != 0 {
-		dAtA[i] = 0x10
+		dAtA[i] = 0x18
 		i++
 		i = encodeVarintCodec(dAtA, i, uint64(m.Sequence))
 	}
@@ -273,30 +310,40 @@ func (m *StdSignature) MarshalTo(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
+	if m.Metadata != nil {
+		dAtA[i] = 0xa
+		i++
+		i = encodeVarintCodec(dAtA, i, uint64(m.Metadata.Size()))
+		n3, err := m.Metadata.MarshalTo(dAtA[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += n3
+	}
 	if m.Sequence != 0 {
-		dAtA[i] = 0x8
+		dAtA[i] = 0x10
 		i++
 		i = encodeVarintCodec(dAtA, i, uint64(m.Sequence))
 	}
 	if m.Pubkey != nil {
-		dAtA[i] = 0x12
+		dAtA[i] = 0x1a
 		i++
 		i = encodeVarintCodec(dAtA, i, uint64(m.Pubkey.Size()))
-		n2, err := m.Pubkey.MarshalTo(dAtA[i:])
+		n4, err := m.Pubkey.MarshalTo(dAtA[i:])
 		if err != nil {
 			return 0, err
 		}
-		i += n2
+		i += n4
 	}
 	if m.Signature != nil {
 		dAtA[i] = 0x22
 		i++
 		i = encodeVarintCodec(dAtA, i, uint64(m.Signature.Size()))
-		n3, err := m.Signature.MarshalTo(dAtA[i:])
+		n5, err := m.Signature.MarshalTo(dAtA[i:])
 		if err != nil {
 			return 0, err
 		}
-		i += n3
+		i += n5
 	}
 	return i, nil
 }
@@ -316,8 +363,18 @@ func (m *BumpSequenceMsg) MarshalTo(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
+	if m.Metadata != nil {
+		dAtA[i] = 0xa
+		i++
+		i = encodeVarintCodec(dAtA, i, uint64(m.Metadata.Size()))
+		n6, err := m.Metadata.MarshalTo(dAtA[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += n6
+	}
 	if m.Increment != 0 {
-		dAtA[i] = 0x8
+		dAtA[i] = 0x10
 		i++
 		i = encodeVarintCodec(dAtA, i, uint64(m.Increment))
 	}
@@ -339,6 +396,10 @@ func (m *UserData) Size() (n int) {
 	}
 	var l int
 	_ = l
+	if m.Metadata != nil {
+		l = m.Metadata.Size()
+		n += 1 + l + sovCodec(uint64(l))
+	}
 	if m.Pubkey != nil {
 		l = m.Pubkey.Size()
 		n += 1 + l + sovCodec(uint64(l))
@@ -355,6 +416,10 @@ func (m *StdSignature) Size() (n int) {
 	}
 	var l int
 	_ = l
+	if m.Metadata != nil {
+		l = m.Metadata.Size()
+		n += 1 + l + sovCodec(uint64(l))
+	}
 	if m.Sequence != 0 {
 		n += 1 + sovCodec(uint64(m.Sequence))
 	}
@@ -375,6 +440,10 @@ func (m *BumpSequenceMsg) Size() (n int) {
 	}
 	var l int
 	_ = l
+	if m.Metadata != nil {
+		l = m.Metadata.Size()
+		n += 1 + l + sovCodec(uint64(l))
+	}
 	if m.Increment != 0 {
 		n += 1 + sovCodec(uint64(m.Increment))
 	}
@@ -425,6 +494,42 @@ func (m *UserData) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Metadata", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Metadata == nil {
+				m.Metadata = &weave.Metadata{}
+			}
+			if err := m.Metadata.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Pubkey", wireType)
 			}
 			var msglen int
@@ -459,7 +564,7 @@ func (m *UserData) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
-		case 2:
+		case 3:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Sequence", wireType)
 			}
@@ -532,6 +637,42 @@ func (m *StdSignature) Unmarshal(dAtA []byte) error {
 		}
 		switch fieldNum {
 		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Metadata", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Metadata == nil {
+				m.Metadata = &weave.Metadata{}
+			}
+			if err := m.Metadata.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Sequence", wireType)
 			}
@@ -550,7 +691,7 @@ func (m *StdSignature) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
-		case 2:
+		case 3:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Pubkey", wireType)
 			}
@@ -676,6 +817,42 @@ func (m *BumpSequenceMsg) Unmarshal(dAtA []byte) error {
 		}
 		switch fieldNum {
 		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Metadata", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Metadata == nil {
+				m.Metadata = &weave.Metadata{}
+			}
+			if err := m.Metadata.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Increment", wireType)
 			}

@@ -1,6 +1,13 @@
 package sigs
 
-import "github.com/iov-one/weave/errors"
+import (
+	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/migration"
+)
+
+func init() {
+	migration.MustRegister(1, &BumpSequenceMsg{}, migration.NoModification)
+}
 
 const (
 	pathBumpSequenceMsg = "sigs/bumpSequence"
@@ -10,6 +17,9 @@ const (
 )
 
 func (msg *BumpSequenceMsg) Validate() error {
+	if err := msg.Metadata.Validate(); err != nil {
+		return errors.Wrap(err, "metadata")
+	}
 	if msg.Increment < minSequenceIncrement {
 		return errors.Wrapf(errors.ErrInvalidMsg, "increment must be at least %d", minSequenceIncrement)
 	}

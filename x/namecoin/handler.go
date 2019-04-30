@@ -3,6 +3,7 @@ package namecoin
 import (
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/x"
 	"github.com/iov-one/weave/x/cash"
 )
@@ -44,9 +45,9 @@ func NewSetNameHandler(auth x.Authenticator, bucket NamedBucket) weave.Handler {
 // all handlers in this package.
 func RegisterRoutes(r weave.Registry, auth x.Authenticator, issuer weave.Address) {
 	pathSend := cash.SendMsg{}.Path()
-	r.Handle(pathSend, NewSendHandler(auth))
-	r.Handle(pathNewTokenMsg, NewTokenHandler(auth, issuer))
-	r.Handle(pathSetNameMsg, NewSetNameHandler(auth, NewWalletBucket()))
+	r.Handle(pathSend, migration.SchemaMigratingHandler("namecoin", NewSendHandler(auth)))
+	r.Handle(pathNewTokenMsg, migration.SchemaMigratingHandler("namecoin", NewTokenHandler(auth, issuer)))
+	r.Handle(pathSetNameMsg, migration.SchemaMigratingHandler("namecoin", NewSetNameHandler(auth, NewWalletBucket())))
 }
 
 // RegisterQuery will register wallets as "/wallets"

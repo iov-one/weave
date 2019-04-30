@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/store"
 	"github.com/iov-one/weave/weavetest"
 	"github.com/iov-one/weave/weavetest/assert"
@@ -11,6 +12,7 @@ import (
 
 func TestUserModel(t *testing.T) {
 	kv := store.MemStore()
+	migration.MustInitPkg(kv, "sigs")
 
 	bucket := NewBucket()
 	pub := weavetest.NewKey().PublicKey()
