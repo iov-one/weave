@@ -4,8 +4,13 @@ import (
 	"github.com/iov-one/weave"
 	coin "github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/orm"
 )
+
+func init() {
+	migration.MustRegister(1, &Token{}, migration.NoModification)
+}
 
 const (
 	// BucketNameToken is where we store the token definitions
@@ -20,11 +25,14 @@ var _ orm.CloneableData = (*Token)(nil)
 
 // Validate ensures the token is valid
 func (t *Token) Validate() error {
+	if err := t.Metadata.Validate(); err != nil {
+		return errors.Wrap(err, "metadata")
+	}
 	if !IsTokenName(t.Name) {
-		return errors.Wrapf(errors.ErrInvalidInput, invalidTokenNameFmt, t.Name)
+		return errors.Wrapf(errors.ErrInvalidInput, "invalid token name: %s", t.Name)
 	}
 	if t.SigFigs < minSigFigs || t.SigFigs > maxSigFigs {
-		return errors.Wrapf(errors.ErrInvalidInput, invalidSigFigsFmt, t.SigFigs)
+		return errors.Wrapf(errors.ErrInvalidInput, "invalid significant figures: %d", t.SigFigs)
 	}
 	return nil
 }
@@ -32,8 +40,9 @@ func (t *Token) Validate() error {
 // Copy makes a new set with the same coins
 func (t *Token) Copy() orm.CloneableData {
 	return &Token{
-		Name:    t.Name,
-		SigFigs: t.SigFigs,
+		Metadata: t.Metadata.Copy(),
+		Name:     t.Name,
+		SigFigs:  t.SigFigs,
 	}
 }
 
@@ -56,8 +65,9 @@ func AsTicker(obj orm.Object) string {
 // NewToken generates a new token object, using ticker as key
 func NewToken(ticker, name string, sigFigs int32) orm.Object {
 	value := &Token{
-		Name:    name,
-		SigFigs: sigFigs,
+		Metadata: &weave.Metadata{Schema: 1},
+		Name:     name,
+		SigFigs:  sigFigs,
 	}
 	return orm.NewSimpleObj([]byte(ticker), value)
 }
@@ -72,7 +82,7 @@ type TokenBucket struct {
 // NewTokenBucket initializes a TokenBucket with default name
 func NewTokenBucket() TokenBucket {
 	return TokenBucket{
-		Bucket: orm.NewBucket(BucketNameToken,
+		Bucket: migration.NewBucket("namecoin", BucketNameToken,
 			NewToken("", "", DefaultSigFigs)),
 		// orm.NewSimpleObj(nil, &Token{SigFigs: DefaultSigFigs})),
 	}
@@ -101,7 +111,7 @@ func (b TokenBucket) Save(db weave.KVStore, obj orm.Object) error {
 	}
 	name := string(obj.Key())
 	if !coin.IsCC(name) {
-		return errors.Wrapf(errors.ErrInvalidInput, invalidTokenNameFmt, name)
+		return errors.Wrapf(errors.ErrInvalidInput, "invalid token name: %s", name)
 	}
 	return b.Bucket.Save(db, obj)
 }

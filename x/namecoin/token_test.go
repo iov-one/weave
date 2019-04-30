@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/store"
 	"github.com/stretchr/testify/assert"
@@ -48,7 +49,7 @@ func TestTokenBucket(t *testing.T) {
 			[]orm.Object{NewToken("ABC", "Michael", 5)},
 			false,
 			[]string{"ABC", "LED"},
-			[]*Token{&Token{Name: "Michael", SigFigs: 5}, nil},
+			[]*Token{&Token{Metadata: &weave.Metadata{Schema: 1}, Name: "Michael", SigFigs: 5}, nil},
 		},
 		6: {
 			[]orm.Object{
@@ -57,13 +58,17 @@ func TestTokenBucket(t *testing.T) {
 			},
 			false,
 			[]string{"ABC", "LED"},
-			[]*Token{&Token{Name: "Jackson", SigFigs: 5}, &Token{Name: "Zeppelin", SigFigs: 4}},
+			[]*Token{
+				&Token{Metadata: &weave.Metadata{Schema: 1}, Name: "Jackson", SigFigs: 5},
+				&Token{Metadata: &weave.Metadata{Schema: 1}, Name: "Zeppelin", SigFigs: 4},
+			},
 		},
 	}
 
 	for i, tc := range cases {
 		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
 			db := store.MemStore()
+			migration.MustInitPkg(db, "namecoin")
 			err := saveAll(bucket, db, tc.set)
 			if tc.setError {
 				require.Error(t, err)

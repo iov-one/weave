@@ -6,7 +6,13 @@ import (
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/migration"
 )
+
+func init() {
+	migration.MustRegister(1, &NewTokenMsg{}, migration.NoModification)
+	migration.MustRegister(1, &SetWalletNameMsg{}, migration.NoModification)
+}
 
 // Ensure we implement the Msg interface
 var _ weave.Msg = (*NewTokenMsg)(nil)
@@ -36,14 +42,17 @@ func (NewTokenMsg) Path() string {
 
 // Validate makes sure that this is sensible
 func (t *NewTokenMsg) Validate() error {
+	if err := t.Metadata.Validate(); err != nil {
+		return errors.Wrap(err, "metadata")
+	}
 	if !coin.IsCC(t.Ticker) {
 		return errors.Wrapf(errors.ErrCurrency, "invalid ticker: %s", t.Ticker)
 	}
 	if !IsTokenName(t.Name) {
-		return errors.Wrapf(errors.ErrInvalidInput, invalidTokenNameFmt, t.Name)
+		return errors.Wrapf(errors.ErrInvalidInput, "invalid token name: %s", t.Name)
 	}
 	if t.SigFigs < minSigFigs || t.SigFigs > maxSigFigs {
-		return errors.Wrapf(errors.ErrInvalidInput, invalidSigFigsFmt, t.SigFigs)
+		return errors.Wrapf(errors.ErrInvalidInput, "invalid significant figures: %d", t.SigFigs)
 	}
 	return nil
 }
@@ -51,9 +60,10 @@ func (t *NewTokenMsg) Validate() error {
 // BuildTokenMsg is a compact constructor for *NewTokenMsg
 func BuildTokenMsg(ticker, name string, sigFigs int32) *NewTokenMsg {
 	return &NewTokenMsg{
-		Ticker:  ticker,
-		Name:    name,
-		SigFigs: sigFigs,
+		Metadata: &weave.Metadata{Schema: 1},
+		Ticker:   ticker,
+		Name:     name,
+		SigFigs:  sigFigs,
 	}
 }
 
@@ -64,6 +74,9 @@ func (SetWalletNameMsg) Path() string {
 
 // Validate makes sure that this is sensible
 func (s *SetWalletNameMsg) Validate() error {
+	if err := s.Metadata.Validate(); err != nil {
+		return errors.Wrap(err, "metadata")
+	}
 	if len(s.Address) != weave.AddressLength {
 		return errors.Wrapf(errors.ErrInvalidInput, "address: %v", s.Address)
 	}
@@ -76,7 +89,8 @@ func (s *SetWalletNameMsg) Validate() error {
 // BuildSetNameMsg is a compact constructor for *SetWalletNameMsg
 func BuildSetNameMsg(addr weave.Address, name string) *SetWalletNameMsg {
 	return &SetWalletNameMsg{
-		Address: addr,
-		Name:    name,
+		Metadata: &weave.Metadata{Schema: 1},
+		Address:  addr,
+		Name:     name,
 	}
 }

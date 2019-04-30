@@ -7,6 +7,7 @@ import (
 
 	"github.com/iov-one/weave"
 	coin "github.com/iov-one/weave/coin"
+	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/store"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -33,17 +34,17 @@ func TestInitState(t *testing.T) {
 	require.NoError(t, err)
 	// expected values
 	addr := []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 0x21, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27, 0x28, 0x29, 0x30}
-	wallet := &Wallet{Name: "lolz1793", Coins: mustCombineCoins(coin.NewCoin(50, 1234567, "FUN"))}
+	wallet := &Wallet{Metadata: &weave.Metadata{Schema: 1}, Name: "lolz1793", Coins: mustCombineCoins(coin.NewCoin(50, 1234567, "FUN"))}
 	ticker := "FUN"
-	token := &Token{Name: "The most fun coin", SigFigs: 7}
+	token := &Token{Metadata: &weave.Metadata{Schema: 1}, Name: "The most fun coin", SigFigs: 7}
 
 	// valid data
 	addr2 := []byte("12345678901234567890")
-	wallet2 := &Wallet{Coins: mustCombineCoins(coin.NewCoin(100, 5, "ATM"), coin.NewCoin(50, 0, "ETH"))}
+	wallet2 := &Wallet{Metadata: &weave.Metadata{Schema: 1}, Coins: mustCombineCoins(coin.NewCoin(100, 5, "ATM"), coin.NewCoin(50, 0, "ETH"))}
 	ticker2 := "ATM"
-	token2 := &Token{Name: "At the moment", SigFigs: 3}
+	token2 := &Token{Metadata: &weave.Metadata{Schema: 1}, Name: "At the moment", SigFigs: 3}
 	ticker2a := "ETH"
-	token2a := &Token{Name: "Eat the haters", SigFigs: 9}
+	token2a := &Token{Metadata: &weave.Metadata{Schema: 1}, Name: "Eat the haters", SigFigs: 9}
 	opts2, err := BuildGenesis(
 		[]GenesisAccount{{Address: addr2, Wallet: wallet2}},
 		[]GenesisToken{ToGenesisToken(ticker2, token2), ToGenesisToken(ticker2a, token2a)})
@@ -51,7 +52,7 @@ func TestInitState(t *testing.T) {
 
 	// invalid wallet
 	badCoin := coin.NewCoin(100, -5000, "ATM")
-	walletBad := &Wallet{Coins: []*coin.Coin{&badCoin}}
+	walletBad := &Wallet{Metadata: &weave.Metadata{Schema: 1}, Coins: []*coin.Coin{&badCoin}}
 	opts3, err := BuildGenesis(
 		[]GenesisAccount{{Address: addr2, Wallet: walletBad}},
 		[]GenesisToken{ToGenesisToken(ticker2, token2)})
@@ -91,6 +92,7 @@ func TestInitState(t *testing.T) {
 	for i, tc := range cases {
 		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
 			kv := store.MemStore()
+			migration.MustInitPkg(kv, "namecoin")
 			err := init.FromGenesis(tc.opts, kv)
 			if tc.isError {
 				require.Error(t, err)

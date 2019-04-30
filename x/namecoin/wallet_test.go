@@ -4,14 +4,14 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-
 	"github.com/iov-one/weave"
 	coin "github.com/iov-one/weave/coin"
+	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/store"
 	"github.com/iov-one/weave/x/cash"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 // BadBucket contains objects that won't satisfy Coinage interface
@@ -49,9 +49,21 @@ func TestWalletBucket(t *testing.T) {
 	cs := []*coin.Coin{&c}
 	c2 := coin.NewCoin(532, 235, "LRN")
 	cs2 := []*coin.Coin{&c2, &c}
-	alice := &Wallet{Name: "alice", Coins: cs}
-	alice2 := &Wallet{Name: "alice", Coins: cs2}
-	bob := &Wallet{Name: "bobby", Coins: cs2}
+	alice := &Wallet{
+		Metadata: &weave.Metadata{Schema: 1},
+		Name:     "alice",
+		Coins:    cs,
+	}
+	alice2 := &Wallet{
+		Metadata: &weave.Metadata{Schema: 1},
+		Name:     "alice",
+		Coins:    cs2,
+	}
+	bob := &Wallet{
+		Metadata: &weave.Metadata{Schema: 1},
+		Name:     "bobby",
+		Coins:    cs2,
+	}
 
 	cases := []struct {
 		set           []orm.Object
@@ -76,7 +88,7 @@ func TestWalletBucket(t *testing.T) {
 			nil, nil},
 		// allow empty wallet
 		3: {[]orm.Object{NewWallet(addr)}, false,
-			[]weave.Address{addr}, []*Wallet{&Wallet{}},
+			[]weave.Address{addr}, []*Wallet{&Wallet{Metadata: &weave.Metadata{Schema: 1}}},
 			[]string{"alice"}, []*Wallet{nil},
 		},
 		// invalid name
@@ -136,6 +148,7 @@ func TestWalletBucket(t *testing.T) {
 	for i, tc := range cases {
 		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
 			db := store.MemStore()
+			migration.MustInitPkg(db, "namecoin")
 			err := saveAll(bucket, db, tc.set)
 			if tc.setError {
 				require.Error(t, err)
