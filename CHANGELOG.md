@@ -28,6 +28,7 @@ Breaking changes
 - x/distribution is using schema versioned model and messages
 - x/namecoin is using schema versioned model and messages
 - x/sigs is using schema versioned model and messages
+- x/multisig is using schema versioned model and messages
 
 
 ## 0.13.0

@@ -3,6 +3,7 @@ package multisig
 import (
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/x"
 )
@@ -11,8 +12,8 @@ import (
 // all handlers in this package
 func RegisterRoutes(r weave.Registry, auth x.Authenticator) {
 	bucket := NewContractBucket()
-	r.Handle(pathCreateContractMsg, CreateContractMsgHandler{auth, bucket})
-	r.Handle(pathUpdateContractMsg, UpdateContractMsgHandler{auth, bucket})
+	r.Handle(pathCreateContractMsg, migration.SchemaMigratingHandler("multisig", CreateContractMsgHandler{auth, bucket}))
+	r.Handle(pathUpdateContractMsg, migration.SchemaMigratingHandler("multisig", UpdateContractMsgHandler{auth, bucket}))
 }
 
 // RegisterQuery register queries from buckets in this package
@@ -43,6 +44,7 @@ func (h CreateContractMsgHandler) Deliver(ctx weave.Context, db weave.KVStore, t
 	}
 
 	contract := &Contract{
+		Metadata:            &weave.Metadata{Schema: 1},
 		Participants:        msg.Participants,
 		ActivationThreshold: msg.ActivationThreshold,
 		AdminThreshold:      msg.AdminThreshold,
@@ -96,6 +98,7 @@ func (h UpdateContractMsgHandler) Deliver(ctx weave.Context, db weave.KVStore, t
 	}
 
 	contract := &Contract{
+		Metadata:            &weave.Metadata{Schema: 1},
 		Participants:        msg.Participants,
 		ActivationThreshold: msg.ActivationThreshold,
 		AdminThreshold:      msg.AdminThreshold,
