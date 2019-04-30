@@ -19,7 +19,10 @@ message NonFungibleToken {
 // ActionApprovals are used to control permissions and validate that a user can
 // execute given operation.
 message ActionApprovals {
-  string action = 1 [(gogoproto.customtype) = "Action", (gogoproto.nullable) = false];
+  string action = 1 [
+    (gogoproto.customtype) = "Action",
+    (gogoproto.nullable) = false
+  ];
   repeated Approval approvals = 2 [(gogoproto.nullable) = false];
 }
 
@@ -46,7 +49,10 @@ message ApprovalOptions {
 message AddApprovalMsg {
   bytes id = 1 [(gogoproto.customname) = "ID"];
   bytes address = 2 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
-  string action = 3 [(gogoproto.customtype) = "Action", (gogoproto.nullable) = false];
+  string action = 3 [
+    (gogoproto.customtype) = "Action",
+    (gogoproto.nullable) = false
+  ];
   ApprovalOptions options = 4 [(gogoproto.nullable) = false];
   string t = 5;
 }
@@ -54,6 +60,9 @@ message AddApprovalMsg {
 message RemoveApprovalMsg {
   bytes id = 1 [(gogoproto.customname) = "ID"];
   bytes address = 2 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
-  string action = 3 [(gogoproto.customtype) = "Action", (gogoproto.nullable) = false];
+  string action = 3 [
+    (gogoproto.customtype) = "Action",
+    (gogoproto.nullable) = false
+  ];
   string t = 4;
 }

@@ -2,16 +2,14 @@ syntax = "proto3";
 
 package cash;
 
+import "github.com/gogo/protobuf/gogoproto/gogo.proto";
 import "github.com/iov-one/weave/codec.proto";
 import "github.com/iov-one/weave/coin/codec.proto";
-
-import "github.com/gogo/protobuf/gogoproto/gogo.proto";
 
 // Set may contain Coin of many different currencies.
 // It handles adding and subtracting sets of currencies.
 message Set {
   weave.Metadata metadata = 1;
-
   repeated coin.Coin coins = 2;
 }
 
@@ -22,7 +20,6 @@ message Set {
 // eg. tx hash
 message SendMsg {
   weave.Metadata metadata = 1;
-
   bytes src = 2 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
   bytes dest = 3 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
   coin.Coin amount = 4;
@@ -36,11 +33,9 @@ message SendMsg {
 // message processed
 message FeeInfo {
   weave.Metadata metadata = 1;
-
   bytes payer = 2;
   coin.Coin fees = 3;
 }
-
 
 message Configuration {
   // TODO: add schema uint32 here

@@ -15,7 +15,6 @@ import "github.com/gogo/protobuf/gogoproto/gogo.proto";
 // own type, possibly borrowing from this code.
 message Coin {
   option (gogoproto.goproto_stringer) = false;
-
   // Whole coins, -10^15 < integer < 10^15
   int64 whole = 1;
   // Billionth of coins. 0 <= abs(fractional) < 10^9

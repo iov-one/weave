@@ -3,7 +3,6 @@ syntax = "proto3";
 package paychan;
 
 import "github.com/gogo/protobuf/gogoproto/gogo.proto";
-
 import "github.com/iov-one/weave/codec.proto";
 import "github.com/iov-one/weave/coin/codec.proto";
 import "github.com/iov-one/weave/crypto/models.proto";
@@ -11,9 +10,8 @@ import "github.com/iov-one/weave/crypto/models.proto";
 // PaymentChannel holds the state of a payment channel during its lifetime.
 message PaymentChannel {
   weave.Metadata metadata = 1;
-
   // Sender is the source that the founds are allocated from.
-  bytes src = 2 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];;
+  bytes src = 2 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
   // Sender public key is a key that must be used to verify signature of
   // transfer message. Sender creates signed transfer messages and gives them
   // to the recipient. Signature prevents from altering transfer message.
@@ -40,7 +38,6 @@ message PaymentChannel {
 // in the transactions done via created payment channel.
 message CreatePaymentChannelMsg {
   weave.Metadata metadata = 1;
-
   // Sender address (weave.Address).
   bytes src = 2 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
   // Sender public key is for validating transfer message signature.
@@ -73,7 +70,6 @@ message Payment {
 // Signature is there to ensure that payment message was not altered.
 message TransferPaymentChannelMsg {
   weave.Metadata metadata = 1;
-
   Payment payment = 2;
   crypto.Signature signature = 3;
 }
@@ -86,7 +82,6 @@ message TransferPaymentChannelMsg {
 // Sender can close channel only if the timeout chain height was reached.
 message ClosePaymentChannelMsg {
   weave.Metadata metadata = 1;
-
   bytes channel_id = 2 [(gogoproto.customname) = "ChannelID"];
   // Max length 128 character.
   string memo = 3;

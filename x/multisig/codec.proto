@@ -2,12 +2,11 @@ syntax = "proto3";
 
 package multisig;
 
-import "github.com/iov-one/weave/codec.proto";
 import "github.com/gogo/protobuf/gogoproto/gogo.proto";
+import "github.com/iov-one/weave/codec.proto";
 
 message Contract {
   weave.Metadata metadata = 1;
-
   // Participants defines a list of all signatures that are allowed to sign the
   // contract.
   repeated Participant participants = 2;
@@ -30,7 +29,6 @@ message Participant {
 
 message CreateContractMsg {
   weave.Metadata metadata = 1;
-
   repeated Participant participants = 2;
   uint32 activation_threshold = 3 [(gogoproto.casttype) = "Weight"];
   uint32 admin_threshold = 4 [(gogoproto.casttype) = "Weight"];
@@ -38,7 +36,6 @@ message CreateContractMsg {
 
 message UpdateContractMsg {
   weave.Metadata metadata = 1;
-
   bytes contract_id = 2 [(gogoproto.customname) = "ContractID"];
   repeated Participant participants = 3;
   uint32 activation_threshold = 4 [(gogoproto.casttype) = "Weight"];
