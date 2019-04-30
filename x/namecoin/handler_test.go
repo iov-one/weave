@@ -7,6 +7,7 @@ import (
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/store"
 	"github.com/iov-one/weave/weavetest"
@@ -51,7 +52,12 @@ func TestSendHandler(t *testing.T) {
 		3: {
 			nil,
 			nil,
-			&cash.SendMsg{Amount: &foo, Src: addr1, Dest: addr2},
+			&cash.SendMsg{
+				Metadata: &weave.Metadata{Schema: 1},
+				Amount:   &foo,
+				Src:      addr1,
+				Dest:     addr2,
+			},
 			errors.ErrUnauthorized.Is,
 			errors.ErrUnauthorized.Is,
 		},
@@ -59,7 +65,12 @@ func TestSendHandler(t *testing.T) {
 		4: {
 			[]weave.Condition{perm1},
 			nil,
-			&cash.SendMsg{Amount: &foo, Src: addr1, Dest: addr2},
+			&cash.SendMsg{
+				Metadata: &weave.Metadata{Schema: 1},
+				Amount:   &foo,
+				Src:      addr1,
+				Dest:     addr2,
+			},
 			noErr, // we don't check funds
 			errors.ErrEmpty.Is,
 		},
@@ -67,7 +78,12 @@ func TestSendHandler(t *testing.T) {
 		5: {
 			[]weave.Condition{perm1},
 			[]orm.Object{mo(WalletWith(addr1, "", &some))},
-			&cash.SendMsg{Amount: &foo, Src: addr1, Dest: addr2},
+			&cash.SendMsg{
+				Metadata: &weave.Metadata{Schema: 1},
+				Amount:   &foo,
+				Src:      addr1,
+				Dest:     addr2,
+			},
 			noErr, // we don't check funds
 			errors.ErrInsufficientAmount.Is,
 		},
@@ -75,7 +91,12 @@ func TestSendHandler(t *testing.T) {
 		6: {
 			[]weave.Condition{perm1},
 			[]orm.Object{mo(WalletWith(addr1, "fool", &foo))},
-			&cash.SendMsg{Amount: &foo, Src: addr1, Dest: addr2},
+			&cash.SendMsg{
+				Metadata: &weave.Metadata{Schema: 1},
+				Amount:   &foo,
+				Src:      addr1,
+				Dest:     addr2,
+			},
 			noErr,
 			noErr,
 		},
@@ -88,6 +109,7 @@ func TestSendHandler(t *testing.T) {
 			h := NewSendHandler(auth)
 
 			kv := store.MemStore()
+			migration.MustInitPkg(kv, "namecoin")
 			bucket := NewWalletBucket()
 			for _, wallet := range tc.initState {
 				err := bucket.Save(kv, wallet)
@@ -160,6 +182,7 @@ func TestNewTokenHandler(t *testing.T) {
 			h := NewTokenHandler(auth, tc.issuer)
 
 			db := store.MemStore()
+			migration.MustInitPkg(db, "namecoin")
 			bucket := NewTokenBucket()
 			for _, wallet := range tc.initState {
 				err := bucket.Save(db, wallet)
@@ -247,6 +270,7 @@ func TestSetNameHandler(t *testing.T) {
 			h := NewSetNameHandler(auth, bucket)
 
 			db := store.MemStore()
+			migration.MustInitPkg(db, "namecoin")
 			for _, wallet := range tc.initState {
 				err := bucket.Save(db, wallet)
 				require.NoError(t, err)

@@ -4,9 +4,14 @@ import (
 	"github.com/iov-one/weave"
 	coin "github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/x/cash"
 )
+
+func init() {
+	migration.MustRegister(1, &Wallet{}, migration.NoModification)
+}
 
 const (
 	// BucketNameWallet is where we store the balances
@@ -29,6 +34,9 @@ func (w *Wallet) SetCoins(coins []*coin.Coin) {
 
 // Validate requires that all coins are in alphabetical
 func (w *Wallet) Validate() error {
+	if err := w.Metadata.Validate(); err != nil {
+		return errors.Wrap(err, "metadata")
+	}
 	name := w.GetName()
 	if name != "" && !IsWalletName(name) {
 		return errors.Wrapf(errors.ErrInvalidInput, "wallet name: %v", name)
@@ -39,8 +47,9 @@ func (w *Wallet) Validate() error {
 // Copy makes a new set with the same coins
 func (w *Wallet) Copy() orm.CloneableData {
 	return &Wallet{
-		Name:  w.Name,
-		Coins: cash.XCoins(w).Clone(),
+		Metadata: w.Metadata.Copy(),
+		Name:     w.Name,
+		Coins:    cash.XCoins(w).Clone(),
 	}
 }
 
@@ -75,7 +84,9 @@ func AsNamed(obj orm.Object) Named {
 // NewWallet creates an empty wallet with this address
 // serves as an object for the bucket
 func NewWallet(key weave.Address) orm.Object {
-	return orm.NewSimpleObj(key, new(Wallet))
+	return orm.NewSimpleObj(key, &Wallet{
+		Metadata: &weave.Metadata{Schema: 1},
+	})
 }
 
 // WalletWith creates an wallet with a balance
@@ -107,7 +118,7 @@ var _ NamedBucket = WalletBucket{}
 // NewWalletBucket initializes a WalletBucket
 // and sets up a unique index by name
 func NewWalletBucket() WalletBucket {
-	b := orm.NewBucket(BucketNameWallet, NewWallet(nil)).
+	b := migration.NewBucket("namecoin", BucketNameWallet, NewWallet(nil)).
 		WithIndex(IndexName, nameIndex, true)
 	return WalletBucket{Bucket: b}
 }
