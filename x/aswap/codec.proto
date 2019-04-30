@@ -53,7 +53,7 @@ message CreateSwapMsg {
 message ReleaseSwapMsg {
     weave.Metadata metadata = 1;
 
-    bytes escrow_id = 2;
+    bytes swap_id = 2 [(gogoproto.customname) = "SwapID"];
     // raw preimage to unlock swap
     bytes preimage = 3;
 }
@@ -63,5 +63,5 @@ message ReleaseSwapMsg {
 message ReturnSwapMsg {
     weave.Metadata metadata = 1;
 
-    bytes escrow_id = 2;
+    bytes swap_id = 2 [(gogoproto.customname) = "SwapID"];
 }
