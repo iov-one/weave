@@ -20,9 +20,9 @@ const (
 	pathReleaseSwapMsg  = "swap/release"
 	pathReturnReturnMsg = "swap/return"
 
-	maxMemoSize      int = 128
+	maxMemoSize int = 128
 	// preimage size in bytes
-	preimageSize     int = 32
+	preimageSize int = 32
 	// preimageHash size in bytes
 	preimageHashSize int = 32
 )
