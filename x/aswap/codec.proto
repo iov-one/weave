@@ -15,7 +15,7 @@ message Swap {
     bytes sender = 2 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
     // preimage hash is a hash of user's secret preimage that would serve as a "password"
     // to unlock the coins in the swap should the transaction be a success
-    bytes preimage_hash = 3;
+    bytes preimage_hash = 3 [(gogoproto.casttype) = "github.com/iov-one/weave.Condition"];
     bytes recipient = 4 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
 
     // If unreleased before timeout, swap will return coins to sender.
