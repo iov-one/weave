@@ -5,12 +5,20 @@ import (
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/orm"
 )
+
+func init() {
+	migration.MustRegister(1, &Revenue{}, migration.NoModification)
+}
 
 var _ orm.CloneableData = (*Revenue)(nil)
 
 func (rev *Revenue) Validate() error {
+	if err := rev.Metadata.Validate(); err != nil {
+		return errors.Wrap(err, "invalid metadata")
+	}
 	if err := rev.Admin.Validate(); err != nil {
 		return errors.Wrap(err, "invalid admin signature")
 	}
@@ -74,6 +82,7 @@ const (
 
 func (rev *Revenue) Copy() orm.CloneableData {
 	cpy := &Revenue{
+		Metadata:   rev.Metadata.Copy(),
 		Admin:      copyAddr(rev.Admin),
 		Recipients: make([]*Recipient, len(rev.Recipients)),
 	}
@@ -99,7 +108,7 @@ type RevenueBucket struct {
 
 // NewRevenueBucket returns a bucket for managing revenues state.
 func NewRevenueBucket() *RevenueBucket {
-	b := orm.NewBucket("revenue", orm.NewSimpleObj(nil, &Revenue{}))
+	b := migration.NewBucket("distribution", "revenue", orm.NewSimpleObj(nil, &Revenue{}))
 	return &RevenueBucket{
 		Bucket: b,
 		idSeq:  b.Sequence("id"),

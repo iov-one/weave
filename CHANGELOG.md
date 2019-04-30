@@ -3,9 +3,12 @@
 
 ## HEAD
 
+
+- Added `migration` package. Schema versioning can be implemented by relying on
+  functionality provided by this package.
 - `gconf` package was reimplemented from scratch
 - `x/cash` is using new `gconf` package for configuration. New genesis path is
-  used. To update genesis file, replace "gconf": { "cash:xyz": "foo" } 
+  used. To update genesis file, replace "gconf": { "cash:xyz": "foo" }
   with "conf": { "cash": { "xyz": "foo" } }
 - Tests were cleaned up and no use testify or convey packages. A new package
   `weavetest/assert` contains test helpers
@@ -14,7 +17,15 @@
 - Introducing go modules instead of dep
 - Removed support for go 1.10
 - Added support for go 1.12
-- Bumped minimum required version of go to 1.11.4+ as otherwise some commands fail because of go mod constraints
+- Bumped minimum required version of go to 1.11.4+ as otherwise some commands
+  fail because of go mod constraints
+
+Breaking changes
+
+- x/cash is using schema versioned model and messages
+- x/paychan is using schema versioned model and messages
+- x/escrow is using schema versioned model and messages
+- x/distribution is using schema versioned model and messages
 
 
 ## 0.13.0

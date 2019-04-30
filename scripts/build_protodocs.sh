@@ -11,5 +11,5 @@ FILES=$(./scripts/cleaned_protos.sh "${OUT_DIR}")
 HERE=`pwd`
 (
     cd "$OUT_DIR"
-    protoc -I=. -I="$HERE/vendor" --doc_out="$HERE/docs/proto/" --doc_opt=html,index.html $FILES
+    protoc -I=. -I $GOPATH/src -I="$HERE/vendor" --doc_out="$HERE/docs/proto/" --doc_opt=html,index.html $FILES
 )

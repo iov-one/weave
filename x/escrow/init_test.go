@@ -7,6 +7,7 @@ import (
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/coin"
+	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/store"
 	"github.com/iov-one/weave/weavetest"
 	"github.com/iov-one/weave/x/cash"
@@ -40,6 +41,7 @@ func TestGenesisKey(t *testing.T) {
 	require.NoError(t, json.Unmarshal([]byte(genesis), &opts))
 
 	db := store.MemStore()
+	migration.MustInitPkg(db, "escrow", "cash")
 
 	// when
 	cashCtrl := cash.NewController(cash.NewBucket())

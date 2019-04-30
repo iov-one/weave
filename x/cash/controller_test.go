@@ -6,6 +6,7 @@ import (
 	"github.com/iov-one/weave"
 	coin "github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/store"
 	"github.com/iov-one/weave/weavetest"
 )
@@ -109,6 +110,7 @@ func TestIssueCoins(t *testing.T) {
 	for testName, tc := range cases {
 		t.Run(testName, func(t *testing.T) {
 			kv := store.MemStore()
+			migration.MustInitPkg(kv, "cash")
 
 			for i, issue := range tc.issue {
 				if err := controller.CoinMint(kv, issue.addr, issue.amount); !issue.wantErr.Is(err) {
@@ -208,6 +210,7 @@ func TestMoveCoins(t *testing.T) {
 	for testName, tc := range cases {
 		t.Run(testName, func(t *testing.T) {
 			kv := store.MemStore()
+			migration.MustInitPkg(kv, "cash")
 
 			if err := controller.CoinMint(kv, tc.issue.addr, tc.issue.amount); !tc.issue.wantErr.Is(err) {
 				t.Fatalf("unexpected coin minting error: %+v", err)
@@ -241,6 +244,8 @@ func TestMoveCoins(t *testing.T) {
 
 func TestBalance(t *testing.T) {
 	store := store.MemStore()
+	migration.MustInitPkg(store, "cash")
+
 	ctrl := NewController(NewBucket())
 
 	addr1 := weavetest.NewCondition().Address()

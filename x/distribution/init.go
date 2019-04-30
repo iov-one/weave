@@ -38,6 +38,7 @@ func (*Initializer) FromGenesis(opts weave.Options, db weave.KVStore) error {
 			})
 		}
 		revenue := Revenue{
+			Metadata:   &weave.Metadata{Schema: 1},
 			Admin:      r.Admin,
 			Recipients: recipients,
 		}

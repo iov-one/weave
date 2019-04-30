@@ -3,27 +3,39 @@ package cash
 import (
 	"github.com/iov-one/weave"
 	coin "github.com/iov-one/weave/coin"
+	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/store"
 )
 
+func init() {
+	migration.MustRegister(1, &Set{}, migration.NoModification)
+	migration.MustRegister(1, &FeeInfo{}, migration.NoModification)
+}
+
 // BucketName is where we store the balances
 const BucketName = "cash"
-
-//---- Set
 
 var _ orm.CloneableData = (*Set)(nil)
 var _ Coinage = (*Set)(nil)
 
 // Validate requires that all coins are in alphabetical
 func (s *Set) Validate() error {
-	return XCoins(s).Validate()
+	if err := s.Metadata.Validate(); err != nil {
+		return errors.Wrap(err, "metadata")
+	}
+	if err := XCoins(s).Validate(); err != nil {
+		return errors.Wrap(err, "coins")
+	}
+	return nil
 }
 
 // Copy makes a new set with the same coins
 func (s *Set) Copy() orm.CloneableData {
 	return &Set{
-		Coins: XCoins(s).Clone(),
+		Metadata: s.Metadata.Copy(),
+		Coins:    XCoins(s).Clone(),
 	}
 }
 
@@ -31,8 +43,6 @@ func (s *Set) Copy() orm.CloneableData {
 func (s *Set) SetCoins(coins []*coin.Coin) {
 	s.Coins = coins
 }
-
-//------ generic Coinage functionality
 
 // Coinage is any model that allows getting and setting coins,
 // Below functions work on these models
@@ -91,12 +101,13 @@ func Concat(cng Coinage, coins coin.Coins) error {
 	return nil
 }
 
-//------ NewWallet wraps Set into an object for the Bucket
-
-// NewWallet creates an empty wallet with this address
-// serves as an object for the bucket
+// NewWallet creates an empty wallet with this address serves as an object for
+// the bucket.
+// NewWallet wraps Set into an object for the Bucket.
 func NewWallet(key weave.Address) orm.Object {
-	return orm.NewSimpleObj(key, new(Set))
+	return orm.NewSimpleObj(key, &Set{
+		Metadata: &weave.Metadata{Schema: 1},
+	})
 }
 
 // WalletWith creates an wallet with a balance
@@ -109,8 +120,6 @@ func WalletWith(key weave.Address, coins ...*coin.Coin) (orm.Object, error) {
 	return obj, nil
 }
 
-//--- cash.Bucket - type-safe bucket
-
 // Bucket is a type-safe wrapper around orm.Bucket
 type Bucket struct {
 	orm.Bucket
@@ -121,7 +130,7 @@ var _ WalletBucket = Bucket{}
 // NewBucket initializes a cash.Bucket with default name
 func NewBucket() Bucket {
 	return Bucket{
-		Bucket: orm.NewBucket(BucketName, NewWallet(nil)),
+		Bucket: migration.NewBucket("cash", BucketName, NewWallet(nil)),
 	}
 }
 

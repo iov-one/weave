@@ -64,7 +64,7 @@ func (svb Bucket) migrate(db weave.ReadOnlyKVStore, obj orm.Object) error {
 	}
 	currSchemaVer, err := svb.schema.CurrentSchema(db, svb.packageName)
 	if err != nil {
-		return errors.Wrap(err, "current model schema")
+		return errors.Wrapf(err, "current schema version of package %q", svb.packageName)
 	}
 
 	meta := m.GetMetadata()
@@ -77,6 +77,7 @@ func (svb Bucket) migrate(db weave.ReadOnlyKVStore, obj orm.Object) error {
 	// version.
 	if meta.Schema == 0 {
 		meta.Schema = currSchemaVer
+		return nil
 	}
 
 	if meta.Schema > currSchemaVer {
@@ -88,4 +89,14 @@ func (svb Bucket) migrate(db weave.ReadOnlyKVStore, obj orm.Object) error {
 		return errors.Wrap(err, "schema migration")
 	}
 	return nil
+}
+
+func (svb Bucket) WithIndex(name string, indexer orm.Indexer, unique bool) orm.Bucket {
+	svb.Bucket = svb.Bucket.WithIndex(name, indexer, unique)
+	return svb
+}
+
+func (svb Bucket) WithMultiKeyIndex(name string, indexer orm.MultiKeyIndexer, unique bool) orm.Bucket {
+	svb.Bucket = svb.Bucket.WithMultiKeyIndex(name, indexer, unique)
+	return svb
 }

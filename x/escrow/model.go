@@ -4,8 +4,13 @@ import (
 	"github.com/iov-one/weave"
 	coin "github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/orm"
 )
+
+func init() {
+	migration.MustRegister(1, &Escrow{}, migration.NoModification)
+}
 
 const (
 	// BucketName is where we store the escrows
@@ -18,6 +23,9 @@ var _ orm.CloneableData = (*Escrow)(nil)
 
 // Validate ensures the escrow is valid
 func (e *Escrow) Validate() error {
+	if err := e.Metadata.Validate(); err != nil {
+		return errors.Wrap(err, "metadata")
+	}
 	if err := e.Sender.Validate(); err != nil {
 		return errors.Wrap(err, "sender")
 	}
@@ -48,6 +56,7 @@ func (e *Escrow) Validate() error {
 // Copy makes a new set with the same coins
 func (e *Escrow) Copy() orm.CloneableData {
 	return &Escrow{
+		Metadata:  e.Metadata.Copy(),
 		Sender:    e.Sender,
 		Arbiter:   e.Arbiter,
 		Recipient: e.Recipient,
@@ -77,6 +86,7 @@ func NewEscrow(
 	memo string,
 ) orm.Object {
 	esc := &Escrow{
+		Metadata:  &weave.Metadata{Schema: 1},
 		Sender:    sender,
 		Arbiter:   arbiter,
 		Recipient: recipient,
@@ -92,18 +102,6 @@ func Condition(key []byte) weave.Condition {
 	return weave.NewCondition("escrow", "seq", key)
 }
 
-// NewEscrow generates a new Escrow object
-// TODO: auto-generate sequence
-// func NewEscrow(ticker, name string, sigFigs int32) orm.Object {
-// 	value := &Escrow{
-// 		Name:    name,
-// 		SigFigs: sigFigs,
-// 	}
-// 	return orm.NewSimpleObj([]byte(ticker), value)
-// }
-
-//--- Bucket - handles escrows
-
 // Bucket is a type-safe wrapper around orm.Bucket
 type Bucket struct {
 	orm.Bucket
@@ -115,7 +113,7 @@ type Bucket struct {
 // inherit Get and Save from orm.Bucket
 // add Create
 func NewBucket() Bucket {
-	bucket := orm.NewBucket(BucketName,
+	bucket := migration.NewBucket("escrow", BucketName,
 		orm.NewSimpleObj(nil, new(Escrow))).
 		WithIndex("sender", idxSender, false).
 		WithIndex("recipient", idxRecipient, false).

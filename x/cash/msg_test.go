@@ -20,55 +20,63 @@ func TestValidateSendMsg(t *testing.T) {
 	}{
 		"success": {
 			msg: &SendMsg{
-				Amount: coin.NewCoinp(10, 0, "FOO"),
-				Dest:   addr1,
-				Src:    addr2,
-				Memo:   "some memo message",
-				Ref:    []byte("some reference"),
+				Metadata: &weave.Metadata{Schema: 1},
+				Amount:   coin.NewCoinp(10, 0, "FOO"),
+				Dest:     addr1,
+				Src:      addr2,
+				Memo:     "some memo message",
+				Ref:      []byte("some reference"),
 			},
 			wantErr: nil,
 		},
 		"success with minimal amount of data": {
 			msg: &SendMsg{
-				Amount: coin.NewCoinp(10, 0, "FOO"),
-				Dest:   addr1,
-				Src:    addr2,
+				Metadata: &weave.Metadata{Schema: 1},
+				Amount:   coin.NewCoinp(10, 0, "FOO"),
+				Dest:     addr1,
+				Src:      addr2,
 			},
 			wantErr: nil,
 		},
 		"empty message": {
-			msg:     &SendMsg{},
+			msg: &SendMsg{
+				Metadata: &weave.Metadata{Schema: 1},
+			},
 			wantErr: errors.ErrInvalidAmount,
 		},
 		"missing source": {
 			msg: &SendMsg{
-				Amount: coin.NewCoinp(10, 0, "FOO"),
-				Dest:   addr1,
+				Metadata: &weave.Metadata{Schema: 1},
+				Amount:   coin.NewCoinp(10, 0, "FOO"),
+				Dest:     addr1,
 			},
 			wantErr: errors.ErrEmpty,
 		},
 		"missing destination": {
 			msg: &SendMsg{
-				Amount: coin.NewCoinp(10, 0, "FOO"),
-				Src:    addr2,
+				Metadata: &weave.Metadata{Schema: 1},
+				Amount:   coin.NewCoinp(10, 0, "FOO"),
+				Src:      addr2,
 			},
 			wantErr: errors.ErrEmpty,
 		},
 		"reference too long": {
 			msg: &SendMsg{
-				Amount: coin.NewCoinp(10, 0, "FOO"),
-				Dest:   addr1,
-				Src:    addr2,
-				Ref:    []byte(strings.Repeat("x", maxRefSize+1)),
+				Metadata: &weave.Metadata{Schema: 1},
+				Amount:   coin.NewCoinp(10, 0, "FOO"),
+				Dest:     addr1,
+				Src:      addr2,
+				Ref:      []byte(strings.Repeat("x", maxRefSize+1)),
 			},
 			wantErr: errors.ErrInvalidState,
 		},
 		"memo too long": {
 			msg: &SendMsg{
-				Amount: coin.NewCoinp(10, 0, "FOO"),
-				Dest:   addr1,
-				Src:    addr2,
-				Memo:   strings.Repeat("x", maxMemoSize+1),
+				Metadata: &weave.Metadata{Schema: 1},
+				Amount:   coin.NewCoinp(10, 0, "FOO"),
+				Dest:     addr1,
+				Src:      addr2,
+				Memo:     strings.Repeat("x", maxMemoSize+1),
 			},
 			wantErr: errors.ErrInvalidState,
 		},
@@ -92,38 +100,45 @@ func TestValidateFeeTx(t *testing.T) {
 	}{
 		"success": {
 			info: &FeeInfo{
-				Fees:  coin.NewCoinp(1, 0, "IOV"),
-				Payer: addr1,
+				Metadata: &weave.Metadata{Schema: 1},
+				Fees:     coin.NewCoinp(1, 0, "IOV"),
+				Payer:    addr1,
 			},
 			wantErr: nil,
 		},
 		"empty": {
-			info:    &FeeInfo{},
+			info: &FeeInfo{
+				Metadata: &weave.Metadata{Schema: 1},
+			},
 			wantErr: errors.ErrInvalidAmount,
 		},
 		"no fee": {
 			info: &FeeInfo{
-				Payer: addr1,
+				Metadata: &weave.Metadata{Schema: 1},
+				Payer:    addr1,
 			},
 			wantErr: errors.ErrInvalidAmount,
 		},
 		"no payer": {
 			info: &FeeInfo{
-				Fees: coin.NewCoinp(10, 0, "IOV"),
+				Metadata: &weave.Metadata{Schema: 1},
+				Fees:     coin.NewCoinp(10, 0, "IOV"),
 			},
 			wantErr: errors.ErrEmpty,
 		},
 		"negative fee": {
 			info: &FeeInfo{
-				Fees:  coin.NewCoinp(-10, 0, "IOV"),
-				Payer: addr1,
+				Metadata: &weave.Metadata{Schema: 1},
+				Fees:     coin.NewCoinp(-10, 0, "IOV"),
+				Payer:    addr1,
 			},
 			wantErr: errors.ErrInvalidAmount,
 		},
 		"invalid fee ticker": {
 			info: &FeeInfo{
-				Fees:  coin.NewCoinp(10, 0, "foobar"),
-				Payer: addr1,
+				Metadata: &weave.Metadata{Schema: 1},
+				Fees:     coin.NewCoinp(10, 0, "foobar"),
+				Payer:    addr1,
 			},
 			wantErr: errors.ErrCurrency,
 		},

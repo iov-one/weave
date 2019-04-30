@@ -7,6 +7,7 @@ import (
 
 	"github.com/iov-one/weave"
 	coin "github.com/iov-one/weave/coin"
+	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/store"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -76,6 +77,7 @@ func TestInitState(t *testing.T) {
 	for i, tc := range cases {
 		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
 			kv := store.MemStore()
+			migration.MustInitPkg(kv, "cash")
 			bucket := NewBucket()
 			err := init.FromGenesis(tc.opts, kv)
 			if tc.isError {

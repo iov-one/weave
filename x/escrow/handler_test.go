@@ -9,6 +9,7 @@ import (
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/app"
 	"github.com/iov-one/weave/coin"
+	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/store"
 	"github.com/iov-one/weave/weavetest"
@@ -197,6 +198,7 @@ func TestHandler(t *testing.T) {
 			action{
 				perms: []weave.Condition{c},
 				msg: &ReleaseEscrowMsg{
+					Metadata: &weave.Metadata{Schema: 1},
 					EscrowId: weavetest.SequenceID(1),
 				},
 			},
@@ -236,6 +238,7 @@ func TestHandler(t *testing.T) {
 			action{
 				perms: []weave.Condition{a},
 				msg: &ReleaseEscrowMsg{
+					Metadata: &weave.Metadata{Schema: 1},
 					EscrowId: weavetest.SequenceID(1),
 					Amount:   some,
 				},
@@ -280,6 +283,7 @@ func TestHandler(t *testing.T) {
 			action{
 				perms: []weave.Condition{b},
 				msg: &ReleaseEscrowMsg{
+					Metadata: &weave.Metadata{Schema: 1},
 					EscrowId: weavetest.SequenceID(1),
 				},
 			},
@@ -293,6 +297,7 @@ func TestHandler(t *testing.T) {
 			action{
 				perms: []weave.Condition{c},
 				msg: &ReleaseEscrowMsg{
+					Metadata: &weave.Metadata{Schema: 1},
 					EscrowId: weavetest.SequenceID(1),
 				},
 				blockTime: Timeout.Time().Add(time.Hour),
@@ -359,6 +364,7 @@ func TestHandler(t *testing.T) {
 					perms: []weave.Condition{c},
 					// c hands off to d
 					msg: &UpdateEscrowPartiesMsg{
+						Metadata: &weave.Metadata{Schema: 1},
 						EscrowId: weavetest.SequenceID(1),
 						Arbiter:  d,
 					},
@@ -367,6 +373,7 @@ func TestHandler(t *testing.T) {
 				// new arbiter can resolve
 				perms: []weave.Condition{d},
 				msg: &ReleaseEscrowMsg{
+					Metadata: &weave.Metadata{Schema: 1},
 					EscrowId: weavetest.SequenceID(1),
 				},
 			},
@@ -400,6 +407,7 @@ func TestHandler(t *testing.T) {
 					perms: []weave.Condition{c},
 					// c hands off to d
 					msg: &UpdateEscrowPartiesMsg{
+						Metadata: &weave.Metadata{Schema: 1},
 						EscrowId: weavetest.SequenceID(1),
 						Arbiter:  d,
 					},
@@ -408,6 +416,7 @@ func TestHandler(t *testing.T) {
 				// original arbiter can no longer resolve
 				perms: []weave.Condition{c},
 				msg: &ReleaseEscrowMsg{
+					Metadata: &weave.Metadata{Schema: 1},
 					EscrowId: weavetest.SequenceID(1),
 				},
 			},
@@ -421,6 +430,7 @@ func TestHandler(t *testing.T) {
 			action{
 				perms: []weave.Condition{a},
 				msg: &UpdateEscrowPartiesMsg{
+					Metadata: &weave.Metadata{Schema: 1},
 					EscrowId: weavetest.SequenceID(1),
 					Arbiter:  a,
 				},
@@ -451,6 +461,7 @@ func TestHandler(t *testing.T) {
 				{
 					perms: []weave.Condition{c},
 					msg: &ReleaseEscrowMsg{
+						Metadata: &weave.Metadata{Schema: 1},
 						EscrowId: weavetest.SequenceID(1),
 					},
 				},
@@ -458,6 +469,7 @@ func TestHandler(t *testing.T) {
 			action{
 				perms: []weave.Condition{c},
 				msg: &ReleaseEscrowMsg{
+					Metadata: &weave.Metadata{Schema: 1},
 					EscrowId: weavetest.SequenceID(1),
 				},
 			},
@@ -545,15 +557,17 @@ func TestHandler(t *testing.T) {
 				{
 					perms: []weave.Condition{a},
 					msg: &cash.SendMsg{
-						Src:    a.Address(),
-						Dest:   escrowAddr(1),
-						Amount: &coin.Coin{Whole: 1, Ticker: "FOO"},
+						Metadata: &weave.Metadata{Schema: 1},
+						Src:      a.Address(),
+						Dest:     escrowAddr(1),
+						Amount:   &coin.Coin{Whole: 1, Ticker: "FOO"},
 					},
 				},
 			},
 			action{
 				perms: []weave.Condition{c},
 				msg: &ReleaseEscrowMsg{
+					Metadata: &weave.Metadata{Schema: 1},
 					EscrowId: weavetest.SequenceID(1),
 				},
 			},
@@ -602,6 +616,7 @@ func TestHandler(t *testing.T) {
 	for descr, tc := range cases {
 		t.Run(descr, func(t *testing.T) {
 			db := store.MemStore()
+			migration.MustInitPkg(db, "escrow", "cash")
 
 			// set initial data
 			acct, err := cash.WalletWith(tc.account, tc.balance...)
@@ -754,6 +769,7 @@ func TestAtomicSwap(t *testing.T) {
 		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
 			// start with the balance
 			db := store.MemStore()
+			migration.MustInitPkg(db, "escrow", "cash")
 			setBalance(t, db, a.Address(), tc.aInit)
 			setBalance(t, db, b.Address(), tc.bInit)
 
@@ -780,7 +796,10 @@ func TestAtomicSwap(t *testing.T) {
 			// now try to execute them, c with hashlock....
 			resCtx := setAuth(ctx, c)
 			resTx1 := PreimageTx{
-				Tx:       &weavetest.Tx{Msg: &ReleaseEscrowMsg{EscrowId: esc1}},
+				Tx: &weavetest.Tx{Msg: &ReleaseEscrowMsg{
+					Metadata: &weave.Metadata{Schema: 1},
+					EscrowId: esc1,
+				}},
 				Preimage: tc.preimage,
 			}
 			_, err = h.Deliver(resCtx, db, resTx1)
@@ -790,7 +809,10 @@ func TestAtomicSwap(t *testing.T) {
 				require.NoError(t, err)
 			}
 			resTx2 := PreimageTx{
-				Tx:       &weavetest.Tx{Msg: &ReleaseEscrowMsg{EscrowId: esc2}},
+				Tx: &weavetest.Tx{Msg: &ReleaseEscrowMsg{
+					Metadata: &weave.Metadata{Schema: 1},
+					EscrowId: esc2,
+				}},
 				Preimage: tc.preimage,
 			}
 			_, err = h.Deliver(resCtx, db, resTx2)
@@ -866,8 +888,8 @@ type query struct {
 	bucket   orm.Bucket
 }
 
-func (q query) check(t *testing.T, db weave.ReadOnlyKVStore,
-	qr weave.QueryRouter, msg ...interface{}) {
+func (q query) check(t testing.TB, db weave.ReadOnlyKVStore, qr weave.QueryRouter, msg ...interface{}) {
+	t.Helper()
 
 	h := qr.Handler(q.path)
 	require.NotNil(t, h)

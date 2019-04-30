@@ -11,6 +11,7 @@ import (
 	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/commands/server"
 	"github.com/iov-one/weave/crypto"
+	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/x/cash"
 	"github.com/iov-one/weave/x/currency"
 	"github.com/iov-one/weave/x/distribution"
@@ -82,6 +83,7 @@ func GenerateApp(options *server.Options) (abci.Application, error) {
 		return nil, err
 	}
 	application.WithInit(app.ChainInitializers(
+		&migration.Initializer{},
 		&multisig.Initializer{},
 		&cash.Initializer{},
 		&currency.Initializer{},

@@ -6,8 +6,6 @@ import (
 	"testing"
 
 	"github.com/iov-one/weave"
-	"github.com/tendermint/tendermint/libs/common"
-
 	weaveApp "github.com/iov-one/weave/app"
 	"github.com/iov-one/weave/cmd/bnsd/app"
 	"github.com/iov-one/weave/cmd/bnsd/app/testdata/fixtures"
@@ -19,6 +17,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	abci "github.com/tendermint/tendermint/abci/types"
+	"github.com/tendermint/tendermint/libs/common"
 )
 
 func TestApp(t *testing.T) {
@@ -31,6 +30,7 @@ func TestApp(t *testing.T) {
 	dbKey := cash.NewBucket().DBKey(appFixture.GenesisKeyAddress)
 
 	queryAndCheckAccount(t, myApp, "/", dbKey, cash.Set{
+		Metadata: &weave.Metadata{Schema: 1},
 		Coins: coin.Coins{
 			{Ticker: "ETH", Whole: 50000},
 			{Ticker: "FRNK", Whole: 1234},
@@ -74,6 +74,7 @@ func TestApp(t *testing.T) {
 	})
 	// Query for new balances (same query, new state)
 	queryAndCheckAccount(t, myApp, "/", dbKey, cash.Set{
+		Metadata: &weave.Metadata{Schema: 1},
 		Coins: coin.Coins{
 			{Ticker: "ETH", Whole: 48000},
 			{Ticker: "FRNK", Whole: 1233},
@@ -83,6 +84,7 @@ func TestApp(t *testing.T) {
 	// make sure money arrived safely
 	dbKeyReceiver := cash.NewBucket().DBKey(addr2)
 	queryAndCheckAccount(t, myApp, "/", dbKeyReceiver, cash.Set{
+		Metadata: &weave.Metadata{Schema: 1},
 		Coins: coin.Coins{
 			{
 				Ticker: "ETH",
@@ -93,11 +95,13 @@ func TestApp(t *testing.T) {
 
 	// make sure other paths also get this value....
 	queryAndCheckAccount(t, myApp, "/wallets", addr2, cash.Set{
-		Coins: coin.Coins{{Ticker: "ETH", Whole: 2000}},
+		Metadata: &weave.Metadata{Schema: 1},
+		Coins:    coin.Coins{{Ticker: "ETH", Whole: 2000}},
 	})
 
 	// make sure other paths also get this value....
 	queryAndCheckAccount(t, myApp, "/wallets?prefix", addr2[:15], cash.Set{
+		Metadata: &weave.Metadata{Schema: 1},
 		Coins: coin.Coins{
 			{Ticker: "ETH", Whole: 2000},
 		},
@@ -129,7 +133,8 @@ func TestApp(t *testing.T) {
 		safeKeyContractAddr, receiver.PublicKey().Address(), 1000, "ETH", "Gift from a contract!", safeKeyContract)
 	// verify money was received
 	queryAndCheckAccount(t, myApp, "/wallets", receiver.PublicKey().Address(), cash.Set{
-		Coins: coin.Coins{{Ticker: "ETH", Whole: 1000}},
+		Metadata: &weave.Metadata{Schema: 1},
+		Coins:    coin.Coins{{Ticker: "ETH", Whole: 1000}},
 	})
 
 	// Now do the same operation but using recoveryContract to activate safeKeyContract
@@ -140,7 +145,8 @@ func TestApp(t *testing.T) {
 		recoveryContract, safeKeyContract)
 	// verify money was received
 	queryAndCheckAccount(t, myApp, "/wallets", receiver.PublicKey().Address(), cash.Set{
-		Coins: coin.Coins{{Ticker: "ETH", Whole: 1000}},
+		Metadata: &weave.Metadata{Schema: 1},
+		Coins:    coin.Coins{{Ticker: "ETH", Whole: 1000}},
 	})
 }
 
@@ -172,10 +178,11 @@ type Signer struct {
 func sendToken(t *testing.T, baseApp abci.Application, chainID string, height int64, signers []Signer,
 	from, to []byte, amount int64, ticker, memo string, contracts ...[]byte) abci.ResponseDeliverTx {
 	msg := &cash.SendMsg{
-		Src:    from,
-		Dest:   to,
-		Amount: &coin.Coin{Whole: amount, Ticker: ticker},
-		Memo:   memo,
+		Metadata: &weave.Metadata{Schema: 1},
+		Src:      from,
+		Dest:     to,
+		Amount:   &coin.Coin{Whole: amount, Ticker: ticker},
+		Memo:     memo,
 	}
 	tx := &app.Tx{
 		Sum:      &app.Tx_SendMsg{SendMsg: msg},

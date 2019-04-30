@@ -4,7 +4,12 @@ import (
 	"github.com/iov-one/weave"
 	coin "github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/migration"
 )
+
+func init() {
+	migration.MustRegister(1, &SendMsg{}, migration.NoModification)
+}
 
 // Ensure we implement the Msg interface
 var _ weave.Msg = (*SendMsg)(nil)

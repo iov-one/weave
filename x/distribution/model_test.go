@@ -18,7 +18,8 @@ func TestRevenueValidate(t *testing.T) {
 	}{
 		"valid model": {
 			model: Revenue{
-				Admin: addr,
+				Metadata: &weave.Metadata{Schema: 1},
+				Admin:    addr,
 				Recipients: []*Recipient{
 					{Weight: 1, Address: addr},
 				},
@@ -27,7 +28,8 @@ func TestRevenueValidate(t *testing.T) {
 		},
 		"admin address must be present": {
 			model: Revenue{
-				Admin: nil,
+				Metadata: &weave.Metadata{Schema: 1},
+				Admin:    nil,
 				Recipients: []*Recipient{
 					{Weight: 1, Address: addr},
 				},
@@ -36,6 +38,7 @@ func TestRevenueValidate(t *testing.T) {
 		},
 		"at least one recipient must be given": {
 			model: Revenue{
+				Metadata:   &weave.Metadata{Schema: 1},
 				Admin:      addr,
 				Recipients: []*Recipient{},
 			},
@@ -43,7 +46,8 @@ func TestRevenueValidate(t *testing.T) {
 		},
 		"recipient weight must be greater than zero": {
 			model: Revenue{
-				Admin: addr,
+				Metadata: &weave.Metadata{Schema: 1},
+				Admin:    addr,
 				Recipients: []*Recipient{
 					{Weight: 0, Address: addr},
 				},
@@ -52,7 +56,8 @@ func TestRevenueValidate(t *testing.T) {
 		},
 		"recipient must have a valid address": {
 			model: Revenue{
-				Admin: addr,
+				Metadata: &weave.Metadata{Schema: 1},
+				Admin:    addr,
 				Recipients: []*Recipient{
 					{Weight: 2, Address: []byte("zzz")},
 				},
