@@ -6,6 +6,7 @@ import (
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/store"
 	"github.com/iov-one/weave/weavetest"
 )
@@ -22,7 +23,11 @@ func TestFeeDecorator(t *testing.T) {
 	}{
 		"message fee with no previous fee": {
 			InitFees: []MsgFee{
-				{MsgPath: "foo/bar", Fee: coin.NewCoin(0, 1234, "DOGE")},
+				{
+					Metadata: &weave.Metadata{Schema: 1},
+					MsgPath:  "foo/bar",
+					Fee:      coin.NewCoin(0, 1234, "DOGE"),
+				},
 			},
 			Handler:        &weavetest.Handler{},
 			Tx:             &weavetest.Tx{Msg: &weavetest.Msg{RoutePath: "foo/bar"}},
@@ -31,7 +36,11 @@ func TestFeeDecorator(t *testing.T) {
 		},
 		"message fee added to an existing value with the same currency": {
 			InitFees: []MsgFee{
-				{MsgPath: "foo/bar", Fee: coin.NewCoin(0, 22, "BTC")},
+				{
+					Metadata: &weave.Metadata{Schema: 1},
+					MsgPath:  "foo/bar",
+					Fee:      coin.NewCoin(0, 22, "BTC"),
+				},
 			},
 			Handler: &weavetest.Handler{
 				CheckResult:   weave.CheckResult{RequiredFee: coin.NewCoin(1, 0, "BTC")},
@@ -43,7 +52,11 @@ func TestFeeDecorator(t *testing.T) {
 		},
 		"delivery failure": {
 			InitFees: []MsgFee{
-				{MsgPath: "foo/bar", Fee: coin.NewCoin(0, 1234, "DOGE")},
+				{
+					Metadata: &weave.Metadata{Schema: 1},
+					MsgPath:  "foo/bar",
+					Fee:      coin.NewCoin(0, 1234, "DOGE"),
+				},
 			},
 			Handler: &weavetest.Handler{
 				DeliverErr: errors.ErrUnauthorized,
@@ -55,7 +68,11 @@ func TestFeeDecorator(t *testing.T) {
 		},
 		"check failure": {
 			InitFees: []MsgFee{
-				{MsgPath: "foo/bar", Fee: coin.NewCoin(0, 1234, "DOGE")},
+				{
+					Metadata: &weave.Metadata{Schema: 1},
+					MsgPath:  "foo/bar",
+					Fee:      coin.NewCoin(0, 1234, "DOGE"),
+				},
 			},
 			Handler: &weavetest.Handler{
 				CheckErr: errors.ErrUnauthorized,
@@ -73,7 +90,11 @@ func TestFeeDecorator(t *testing.T) {
 		},
 		"message fee with a different ticker than the existing fee": {
 			InitFees: []MsgFee{
-				{MsgPath: "foo/bar", Fee: coin.NewCoin(0, 1234, "DOGE")},
+				{
+					Metadata: &weave.Metadata{Schema: 1},
+					MsgPath:  "foo/bar",
+					Fee:      coin.NewCoin(0, 1234, "DOGE"),
+				},
 			},
 			Handler: &weavetest.Handler{
 				CheckResult:   weave.CheckResult{RequiredFee: coin.NewCoin(1, 0, "BTC")},
@@ -92,6 +113,7 @@ func TestFeeDecorator(t *testing.T) {
 			decorator := NewFeeDecorator()
 			bucket := NewMsgFeeBucket()
 			db := store.MemStore()
+			migration.MustInitPkg(db, "msgfee")
 
 			for _, f := range tc.InitFees {
 				if i, err := bucket.Create(db, &f); err != nil {

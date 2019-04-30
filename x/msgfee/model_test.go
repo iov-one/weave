@@ -3,8 +3,10 @@ package msgfee
 import (
 	"testing"
 
+	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/store"
 )
 
@@ -15,29 +17,33 @@ func TestMsgFeeValidate(t *testing.T) {
 	}{
 		"all good": {
 			mf: MsgFee{
-				MsgPath: "foo/bar",
-				Fee:     coin.NewCoin(1, 2, "DOGE"),
+				Metadata: &weave.Metadata{Schema: 1},
+				MsgPath:  "foo/bar",
+				Fee:      coin.NewCoin(1, 2, "DOGE"),
 			},
 			wantErr: nil,
 		},
 		"empty path": {
 			mf: MsgFee{
-				MsgPath: "",
-				Fee:     coin.NewCoin(1, 2, "DOGE"),
+				Metadata: &weave.Metadata{Schema: 1},
+				MsgPath:  "",
+				Fee:      coin.NewCoin(1, 2, "DOGE"),
 			},
 			wantErr: errors.ErrInvalidModel,
 		},
 		"zero value fee with a ticker": {
 			mf: MsgFee{
-				MsgPath: "foo/bar",
-				Fee:     coin.NewCoin(0, 0, "DOGE"),
+				Metadata: &weave.Metadata{Schema: 1},
+				MsgPath:  "foo/bar",
+				Fee:      coin.NewCoin(0, 0, "DOGE"),
 			},
 			wantErr: errors.ErrInvalidModel,
 		},
 		"zero value fee with no ticker": {
 			mf: MsgFee{
-				MsgPath: "foo/bar",
-				Fee:     coin.Coin{},
+				Metadata: &weave.Metadata{Schema: 1},
+				MsgPath:  "foo/bar",
+				Fee:      coin.Coin{},
 			},
 			wantErr: errors.ErrInvalidModel,
 		},
@@ -56,10 +62,12 @@ func TestMsgFeeValidate(t *testing.T) {
 func TestBucketMessageFee(t *testing.T) {
 	b := NewMsgFeeBucket()
 	db := store.MemStore()
+	migration.MustInitPkg(db, "msgfee")
 
 	_, err := b.Create(db, &MsgFee{
-		MsgPath: "a/b",
-		Fee:     coin.NewCoin(1, 2, "DOGE"),
+		Metadata: &weave.Metadata{Schema: 1},
+		MsgPath:  "a/b",
+		Fee:      coin.NewCoin(1, 2, "DOGE"),
 	})
 	if err != nil {
 		t.Fatalf("cannot create a fee: %s", err)
