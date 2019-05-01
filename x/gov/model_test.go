@@ -20,28 +20,28 @@ func TestElectorateValidation(t *testing.T) {
 				Title:                 "My Electorate",
 				Admin:                 alice,
 				Electors:              []Elector{{Address: alice, Weight: 1}},
-				TotalWeightElectorate: 1,
+				TotalElectorateWeight: 1,
 			}},
 		"All good with max electors count": {
 			Src: Electorate{
 				Title:                 "My Electorate",
 				Admin:                 alice,
 				Electors:              buildElectors(2000),
-				TotalWeightElectorate: 2000,
+				TotalElectorateWeight: 2000,
 			}},
 		"All good with max weight count": {
 			Src: Electorate{
 				Title:                 "My Electorate",
 				Admin:                 alice,
 				Electors:              []Elector{{Address: alice, Weight: 65535}},
-				TotalWeightElectorate: 65535,
+				TotalElectorateWeight: 65535,
 			}},
 		"Not enough electors": {
 			Src: Electorate{
 				Title:                 "My Electorate",
 				Admin:                 alice,
 				Electors:              []Elector{},
-				TotalWeightElectorate: 1,
+				TotalElectorateWeight: 1,
 			},
 			Exp: errors.ErrInvalidInput,
 		},
@@ -50,7 +50,7 @@ func TestElectorateValidation(t *testing.T) {
 				Title:                 "My Electorate",
 				Admin:                 alice,
 				Electors:              buildElectors(2001),
-				TotalWeightElectorate: 2001,
+				TotalElectorateWeight: 2001,
 			},
 			Exp: errors.ErrInvalidInput,
 		},
@@ -59,7 +59,7 @@ func TestElectorateValidation(t *testing.T) {
 				Title:                 "My Electorate",
 				Admin:                 alice,
 				Electors:              []Elector{{Address: alice, Weight: 1}, {Address: alice, Weight: 1}},
-				TotalWeightElectorate: 2,
+				TotalElectorateWeight: 2,
 			},
 			Exp: errors.ErrInvalidInput,
 		},
@@ -68,7 +68,7 @@ func TestElectorateValidation(t *testing.T) {
 				Title:                 "My Electorate",
 				Admin:                 alice,
 				Electors:              []Elector{{Address: bobby, Weight: 0}, {Address: alice, Weight: 1}},
-				TotalWeightElectorate: 1,
+				TotalElectorateWeight: 1,
 			},
 			Exp: errors.ErrInvalidInput,
 		},
@@ -77,7 +77,7 @@ func TestElectorateValidation(t *testing.T) {
 				Title:                 "My Electorate",
 				Admin:                 alice,
 				Electors:              []Elector{{Address: alice, Weight: 65536}},
-				TotalWeightElectorate: 65536,
+				TotalElectorateWeight: 65536,
 			},
 			Exp: errors.ErrInvalidInput,
 		},
@@ -86,7 +86,7 @@ func TestElectorateValidation(t *testing.T) {
 				Title:                 "My Electorate",
 				Admin:                 alice,
 				Electors:              []Elector{{Address: weave.Address{}, Weight: 1}},
-				TotalWeightElectorate: 1,
+				TotalElectorateWeight: 1,
 			},
 			Exp: errors.ErrEmpty,
 		},
@@ -95,7 +95,7 @@ func TestElectorateValidation(t *testing.T) {
 				Title:                 "My Electorate",
 				Admin:                 alice,
 				Electors:              []Elector{{Address: alice, Weight: 1}},
-				TotalWeightElectorate: 2,
+				TotalElectorateWeight: 2,
 			},
 			Exp: errors.ErrInvalidInput,
 		},
@@ -104,7 +104,7 @@ func TestElectorateValidation(t *testing.T) {
 				Title:                 "foo",
 				Admin:                 alice,
 				Electors:              []Elector{{Address: alice, Weight: 1}},
-				TotalWeightElectorate: 1,
+				TotalElectorateWeight: 1,
 			},
 			Exp: errors.ErrInvalidInput,
 		},
@@ -113,7 +113,7 @@ func TestElectorateValidation(t *testing.T) {
 				Title:                 BigString(129),
 				Admin:                 alice,
 				Electors:              []Elector{{Address: alice, Weight: 1}},
-				TotalWeightElectorate: 1,
+				TotalElectorateWeight: 1,
 			},
 			Exp: errors.ErrInvalidInput,
 		},
@@ -122,7 +122,7 @@ func TestElectorateValidation(t *testing.T) {
 				Title:                 "My Electorate",
 				Admin:                 weave.Address{0x0, 0x1, 0x2},
 				Electors:              []Elector{{Address: alice, Weight: 1}},
-				TotalWeightElectorate: 1,
+				TotalElectorateWeight: 1,
 			},
 			Exp: errors.ErrInvalidInput,
 		},
@@ -131,7 +131,7 @@ func TestElectorateValidation(t *testing.T) {
 				Title:                 "My Electorate",
 				Admin:                 weave.Address{},
 				Electors:              []Elector{{Address: alice, Weight: 1}},
-				TotalWeightElectorate: 1,
+				TotalElectorateWeight: 1,
 			},
 			Exp: errors.ErrEmpty,
 		},
@@ -238,11 +238,52 @@ func TestElectionRuleValidation(t *testing.T) {
 			},
 			Exp: errors.ErrInvalidInput,
 		},
+		"Quorum must not be lower han 0.5": {
+			Src: ElectionRule{
+				Title:             "My election rule",
+				Admin:             alice,
+				VotingPeriodHours: 1,
+				Quorum:            &Fraction{Numerator: 1<<31 - 1, Denominator: math.MaxUint32},
+				Threshold:         Fraction{Numerator: 1, Denominator: 2},
+			},
+			Exp: errors.ErrInvalidInput,
+		},
+		"Quorum fraction must not be higher than 1": {
+			Src: ElectionRule{
+				Title:             "My election rule",
+				Admin:             alice,
+				VotingPeriodHours: 1,
+				Quorum:            &Fraction{Numerator: math.MaxUint32, Denominator: math.MaxUint32 - 1},
+				Threshold:         Fraction{Numerator: 1, Denominator: 2},
+			},
+			Exp: errors.ErrInvalidInput,
+		},
+		"Quorum fraction must not contain 0 numerator": {
+			Src: ElectionRule{
+				Title:             "My election rule",
+				Admin:             alice,
+				VotingPeriodHours: 1,
+				Quorum:            &Fraction{Numerator: 0, Denominator: math.MaxUint32 - 1},
+				Threshold:         Fraction{Numerator: 1, Denominator: 2},
+			},
+			Exp: errors.ErrInvalidInput,
+		},
+		"Quorum fraction must not contain 0 denominator": {
+			Src: ElectionRule{
+				Title:             "My election rule",
+				Admin:             alice,
+				VotingPeriodHours: 1,
+				Quorum:            &Fraction{Numerator: 1, Denominator: 0},
+				Threshold:         Fraction{Numerator: 1, Denominator: 2},
+			},
+			Exp: errors.ErrInvalidInput,
+		},
 		"Admin must not be invalid": {
 			Src: ElectionRule{
 				Title:             "My election rule",
 				Admin:             weave.Address{0x0, 0x1, 0x2},
 				VotingPeriodHours: 1,
+				Quorum:            &Fraction{Numerator: 1, Denominator: 1},
 				Threshold:         Fraction{Numerator: 1, Denominator: 2},
 			},
 			Exp: errors.ErrInvalidInput,
@@ -252,6 +293,7 @@ func TestElectionRuleValidation(t *testing.T) {
 				Title:             "My election rule",
 				Admin:             weave.Address{},
 				VotingPeriodHours: 1,
+				Quorum:            &Fraction{Numerator: 1, Denominator: 1},
 				Threshold:         Fraction{Numerator: 1, Denominator: 2},
 			},
 			Exp: errors.ErrEmpty,
@@ -393,6 +435,52 @@ func TestVoteValidate(t *testing.T) {
 	}
 }
 
+func TestNewTallyResult(t *testing.T) {
+	specs := map[string]struct {
+		quorum                *Fraction
+		threshold             Fraction
+		totalElectorateWeight uint64
+		exp                   TallyResult
+	}{
+		"Threshold 1/2": {
+			threshold:             Fraction{Numerator: 1, Denominator: 2},
+			totalElectorateWeight: 9,
+			exp: TallyResult{
+				QuorumThresholdWeight:     4,
+				AcceptanceThresholdWeight: 4,
+				TotalElectorateWeight:     9,
+			},
+		},
+		"Threshold 1/1": {
+			threshold:             Fraction{Numerator: 1, Denominator: 1},
+			totalElectorateWeight: 9,
+			exp: TallyResult{
+				QuorumThresholdWeight:     8,
+				AcceptanceThresholdWeight: 8,
+				TotalElectorateWeight:     9,
+			},
+		},
+		"High values": {
+			threshold:             Fraction{Numerator: math.MaxUint32 - 1, Denominator: math.MaxUint32},
+			totalElectorateWeight: math.MaxUint64,
+			exp: TallyResult{
+				QuorumThresholdWeight:     math.MaxUint64 - 1,
+				AcceptanceThresholdWeight: math.MaxUint64 - 1,
+				TotalElectorateWeight:     math.MaxUint64,
+			},
+		},
+	}
+	for msg, spec := range specs {
+		t.Run(msg, func(t *testing.T) {
+			got := NewTallyResult(spec.quorum, spec.threshold, spec.totalElectorateWeight)
+			if got != spec.exp {
+				t.Errorf("expected %v but got %v", spec.exp, got)
+			}
+		})
+	}
+
+}
+
 func textProposalFixture(mods ...func(*TextProposal)) TextProposal {
 	now := weave.AsUnixTime(time.Now())
 	proposal := TextProposal{
@@ -406,6 +494,7 @@ func textProposalFixture(mods ...func(*TextProposal)) TextProposal {
 		Status:          TextProposal_Submitted,
 		Result:          TextProposal_Undefined,
 		Author:          alice,
+		VoteState:       NewTallyResult(nil, Fraction{1, 2}, 11),
 	}
 	for _, mod := range mods {
 		if mod != nil {

@@ -54,8 +54,9 @@ func TestCreateProposal(t *testing.T) {
 				SubmissionTime:  now,
 				Author:          bobby,
 				VoteState: TallyResult{
-					Threshold:             Fraction{Numerator: 1, Denominator: 2},
-					TotalWeightElectorate: 11,
+					AcceptanceThresholdWeight: 5,
+					QuorumThresholdWeight:     5,
+					TotalElectorateWeight:     11,
 				},
 			},
 			ExpProposer: bobby,
@@ -80,8 +81,9 @@ func TestCreateProposal(t *testing.T) {
 				SubmissionTime:  now,
 				Author:          alice,
 				VoteState: TallyResult{
-					Threshold:             Fraction{Numerator: 1, Denominator: 2},
-					TotalWeightElectorate: 11,
+					AcceptanceThresholdWeight: 5,
+					QuorumThresholdWeight:     5,
+					TotalElectorateWeight:     11,
 				},
 			},
 			ExpProposer: alice,
@@ -323,31 +325,31 @@ func TestVote(t *testing.T) {
 		"Vote Yes": {
 			Msg:        VoteMsg{ProposalID: proposalID, Selected: VoteOption_Yes, Voter: alice},
 			SignedBy:   aliceCond,
-			Exp:        TallyResult{TotalYes: 1},
+			Exp:        TallyResult{TotalYes: 1, AcceptanceThresholdWeight: 5, QuorumThresholdWeight: 5, TotalElectorateWeight: 11},
 			ExpVotedBy: alice,
 		},
 		"Vote No": {
 			Msg:        VoteMsg{ProposalID: proposalID, Selected: VoteOption_No, Voter: alice},
 			SignedBy:   aliceCond,
-			Exp:        TallyResult{TotalNo: 1},
+			Exp:        TallyResult{TotalNo: 1, AcceptanceThresholdWeight: 5, QuorumThresholdWeight: 5, TotalElectorateWeight: 11},
 			ExpVotedBy: alice,
 		},
 		"Vote Abstain": {
 			Msg:        VoteMsg{ProposalID: proposalID, Selected: VoteOption_Abstain, Voter: alice},
 			SignedBy:   aliceCond,
-			Exp:        TallyResult{TotalAbstain: 1},
+			Exp:        TallyResult{TotalAbstain: 1, AcceptanceThresholdWeight: 5, QuorumThresholdWeight: 5, TotalElectorateWeight: 11},
 			ExpVotedBy: alice,
 		},
 		"Vote counts weights": {
 			Msg:        VoteMsg{ProposalID: proposalID, Selected: VoteOption_Abstain, Voter: bobby},
 			SignedBy:   bobbyCond,
-			Exp:        TallyResult{TotalAbstain: 10},
+			Exp:        TallyResult{TotalAbstain: 10, AcceptanceThresholdWeight: 5, QuorumThresholdWeight: 5, TotalElectorateWeight: 11},
 			ExpVotedBy: bobby,
 		},
 		"Vote defaults to main signer when no voter address submitted": {
 			Msg:        VoteMsg{ProposalID: proposalID, Selected: VoteOption_Yes},
 			SignedBy:   aliceCond,
-			Exp:        TallyResult{TotalYes: 1},
+			Exp:        TallyResult{TotalYes: 1, AcceptanceThresholdWeight: 5, QuorumThresholdWeight: 5, TotalElectorateWeight: 11},
 			ExpVotedBy: alice,
 		},
 		"Can change vote": {
@@ -361,7 +363,7 @@ func TestVote(t *testing.T) {
 			},
 			Msg:        VoteMsg{ProposalID: proposalID, Selected: VoteOption_No, Voter: bobby},
 			SignedBy:   bobbyCond,
-			Exp:        TallyResult{TotalNo: 10, TotalYes: 0},
+			Exp:        TallyResult{TotalNo: 10, TotalYes: 0, AcceptanceThresholdWeight: 5, QuorumThresholdWeight: 5, TotalElectorateWeight: 11},
 			ExpVotedBy: bobby,
 		},
 		"Can resubmit vote": {
@@ -375,7 +377,7 @@ func TestVote(t *testing.T) {
 			},
 			Msg:        VoteMsg{ProposalID: proposalID, Selected: VoteOption_Yes, Voter: alice},
 			SignedBy:   aliceCond,
-			Exp:        TallyResult{TotalYes: 1},
+			Exp:        TallyResult{TotalYes: 1, AcceptanceThresholdWeight: 5, QuorumThresholdWeight: 5, TotalElectorateWeight: 11},
 			ExpVotedBy: alice,
 		},
 		"Voter must sign": {
@@ -456,7 +458,9 @@ func TestVote(t *testing.T) {
 		},
 		"Sanity check on count vote": {
 			Mods: func(ctx weave.Context, proposal *TextProposal) {
-				proposal.VoteState.TotalYes = math.MaxUint32 // not a valid setup
+				// not a valid setup
+				proposal.VoteState.TotalYes = math.MaxUint64
+				proposal.VoteState.TotalElectorateWeight = math.MaxUint64
 			},
 			Msg:            VoteMsg{ProposalID: proposalID, Selected: VoteOption_Yes, Voter: alice},
 			SignedBy:       aliceCond,
@@ -469,7 +473,9 @@ func TestVote(t *testing.T) {
 				vBucket.Save(db, obj)
 			},
 			Mods: func(ctx weave.Context, proposal *TextProposal) {
-				proposal.VoteState.TotalYes = 0 // not a valid setup
+				// not a valid setup
+				proposal.VoteState.TotalYes = 0
+				proposal.VoteState.TotalElectorateWeight = math.MaxUint64
 			},
 			Msg:            VoteMsg{ProposalID: proposalID, Selected: VoteOption_No, Voter: bobby},
 			SignedBy:       bobbyCond,
@@ -531,63 +537,169 @@ func TestVote(t *testing.T) {
 }
 
 func TestTally(t *testing.T) {
+	type tallySetup struct {
+		quorum                *Fraction
+		threshold             Fraction
+		totalWeightElectorate uint64
+		yes, no, abstain      uint64
+	}
 	specs := map[string]struct {
 		Mods           func(weave.Context, *TextProposal)
-		Src            TallyResult
+		Src            tallySetup
 		WantCheckErr   *errors.Error
 		WantDeliverErr *errors.Error
 		ExpResult      TextProposal_Result
 	}{
-		"Accepted with majority": {
-			Src: TallyResult{
-				TotalYes:              1,
-				TotalWeightElectorate: 1,
-				Threshold:             Fraction{Numerator: 1, Denominator: 2},
+		"Accepted with electorate majority": {
+			Src: tallySetup{
+				yes:                   5,
+				threshold:             Fraction{Numerator: 1, Denominator: 2},
+				totalWeightElectorate: 9,
 			},
 			ExpResult: TextProposal_Accepted,
 		},
-		"Rejected with majority": {
-			Src: TallyResult{
-				TotalNo:               1,
-				TotalWeightElectorate: 1,
-				Threshold:             Fraction{Numerator: 1, Denominator: 2},
+		"Accepted with all yes votes required": {
+			Src: tallySetup{
+				yes:                   9,
+				threshold:             Fraction{Numerator: 1, Denominator: 1},
+				totalWeightElectorate: 9,
+			},
+			ExpResult: TextProposal_Accepted,
+		},
+		"Rejected without enough votes": {
+			Src: tallySetup{
+				yes:                   4,
+				threshold:             Fraction{Numerator: 1, Denominator: 2},
+				totalWeightElectorate: 9,
 			},
 			ExpResult: TextProposal_Rejected,
 		},
-		"Rejected by abstained": {
-			Src: TallyResult{
-				TotalAbstain:          1,
-				TotalWeightElectorate: 1,
-				Threshold:             Fraction{Numerator: 1, Denominator: 2},
+		"Rejected when acceptance weight not reached": {
+			Src: tallySetup{
+				yes:                   4,
+				no:                    1,
+				threshold:             Fraction{Numerator: 1, Denominator: 2},
+				totalWeightElectorate: 9,
+			},
+			ExpResult: TextProposal_Rejected,
+		},
+		"Rejected on acceptance threshold": {
+			Src: tallySetup{
+				yes:                   4,
+				no:                    1,
+				abstain:               3,
+				threshold:             Fraction{Numerator: 1, Denominator: 2},
+				totalWeightElectorate: 9,
 			},
 			ExpResult: TextProposal_Rejected,
 		},
 		"Rejected without voters": {
-			Src: TallyResult{
-				TotalWeightElectorate: 1,
-				Threshold:             Fraction{Numerator: 1, Denominator: 2},
+			Src: tallySetup{
+				threshold:             Fraction{Numerator: 1, Denominator: 2},
+				totalWeightElectorate: 2,
 			},
 			ExpResult: TextProposal_Rejected,
 		},
-		"Rejected on threshold": {
-			Src: TallyResult{
-				TotalYes:              1,
-				TotalWeightElectorate: 2,
-				Threshold:             Fraction{Numerator: 1, Denominator: 2},
+		"Rejected without enough votes: 2/3": {
+			Src: tallySetup{
+				yes:                   6,
+				threshold:             Fraction{Numerator: 2, Denominator: 3},
+				totalWeightElectorate: 9,
 			},
 			ExpResult: TextProposal_Rejected,
+		},
+		"Accepted with quorum and acceptance thresholds exceeded: 5/9": {
+			Src: tallySetup{
+				yes:                   5,
+				quorum:                &Fraction{Numerator: 1, Denominator: 2},
+				threshold:             Fraction{Numerator: 1, Denominator: 2},
+				totalWeightElectorate: 9,
+			},
+			ExpResult: TextProposal_Accepted,
+		},
+		"Rejected with quorum thresholds not exceeded": {
+			Src: tallySetup{
+				yes:                   4,
+				quorum:                &Fraction{Numerator: 1, Denominator: 2},
+				threshold:             Fraction{Numerator: 1, Denominator: 2},
+				totalWeightElectorate: 9,
+			},
+			ExpResult: TextProposal_Rejected,
+		},
+		"Accepted with quorum and acceptance thresholds exceeded: 4/9": {
+			Src: tallySetup{
+				yes:                   4,
+				no:                    1,
+				quorum:                &Fraction{Numerator: 1, Denominator: 2},
+				threshold:             Fraction{Numerator: 1, Denominator: 2},
+				totalWeightElectorate: 9,
+			},
+			ExpResult: TextProposal_Accepted,
+		},
+		"Accepted with quorum and acceptance thresholds exceeded: 4/9 and majority No": {
+			Src: tallySetup{
+				yes:                   4,
+				no:                    5,
+				quorum:                &Fraction{Numerator: 1, Denominator: 2},
+				threshold:             Fraction{Numerator: 1, Denominator: 2},
+				totalWeightElectorate: 9,
+			},
+			ExpResult: TextProposal_Accepted,
+		},
+		"Accepted with quorum and acceptance thresholds exceeded: 3/9": {
+			Src: tallySetup{
+				yes:                   3,
+				abstain:               2,
+				quorum:                &Fraction{Numerator: 1, Denominator: 2},
+				threshold:             Fraction{Numerator: 1, Denominator: 2},
+				totalWeightElectorate: 9,
+			},
+			ExpResult: TextProposal_Accepted,
+		},
+		"Rejected with quorum but not acceptance thresholds exceeded: 2/9": {
+			Src: tallySetup{
+				yes:                   2,
+				abstain:               3,
+				quorum:                &Fraction{Numerator: 1, Denominator: 2},
+				threshold:             Fraction{Numerator: 1, Denominator: 2},
+				totalWeightElectorate: 9,
+			},
+			ExpResult: TextProposal_Rejected,
+		},
+		"Accepted with quorum and acceptance thresholds exceeded: 6/9": {
+			Src: tallySetup{
+				yes:                   6,
+				abstain:               1,
+				quorum:                &Fraction{Numerator: 2, Denominator: 3},
+				threshold:             Fraction{Numerator: 2, Denominator: 3},
+				totalWeightElectorate: 9,
+			},
+			ExpResult: TextProposal_Accepted,
+		},
+		"Accepted with quorum and acceptance thresholds exceeded: 9/9": {
+			Src: tallySetup{
+				yes:                   9,
+				quorum:                &Fraction{Numerator: 1, Denominator: 1},
+				threshold:             Fraction{Numerator: 1, Denominator: 1},
+				totalWeightElectorate: 9,
+			},
+			ExpResult: TextProposal_Accepted,
 		},
 		"Works with high values": {
-			Src: TallyResult{
-				TotalYes:              math.MaxUint32,
-				TotalWeightElectorate: math.MaxUint32,
-				Threshold:             Fraction{Numerator: math.MaxUint32 - 1, Denominator: math.MaxUint32},
+			Src: tallySetup{
+				yes:                   math.MaxUint64,
+				threshold:             Fraction{Numerator: math.MaxUint32 - 1, Denominator: math.MaxUint32},
+				totalWeightElectorate: math.MaxUint64,
 			},
 			ExpResult: TextProposal_Accepted,
 		},
 		"Fails on second tally": {
 			Mods: func(_ weave.Context, p *TextProposal) {
 				p.Status = TextProposal_Closed
+			},
+			Src: tallySetup{
+				threshold:             Fraction{Numerator: 1, Denominator: 2},
+				totalWeightElectorate: 11,
 			},
 			WantCheckErr:   errors.ErrInvalidState,
 			WantDeliverErr: errors.ErrInvalidState,
@@ -598,6 +710,10 @@ func TestTally(t *testing.T) {
 				blockTime, _ := weave.BlockTime(ctx)
 				p.VotingEndTime = weave.AsUnixTime(blockTime.Add(time.Second))
 			},
+			Src: tallySetup{
+				threshold:             Fraction{Numerator: 1, Denominator: 2},
+				totalWeightElectorate: 11,
+			},
 			WantCheckErr:   errors.ErrInvalidState,
 			WantDeliverErr: errors.ErrInvalidState,
 			ExpResult:      TextProposal_Undefined,
@@ -607,6 +723,10 @@ func TestTally(t *testing.T) {
 				blockTime, _ := weave.BlockTime(ctx)
 				p.VotingEndTime = weave.AsUnixTime(blockTime)
 			},
+			Src: tallySetup{
+				threshold:             Fraction{Numerator: 1, Denominator: 2},
+				totalWeightElectorate: 11,
+			},
 			WantCheckErr:   errors.ErrInvalidState,
 			WantDeliverErr: errors.ErrInvalidState,
 			ExpResult:      TextProposal_Undefined,
@@ -615,11 +735,9 @@ func TestTally(t *testing.T) {
 			Mods: func(ctx weave.Context, p *TextProposal) {
 				p.Status = TextProposal_Withdrawn
 			},
-
-			Src: TallyResult{
-				TotalYes:              1,
-				TotalWeightElectorate: 1,
-				Threshold:             Fraction{Numerator: 1, Denominator: 2},
+			Src: tallySetup{
+				threshold:             Fraction{Numerator: 1, Denominator: 2},
+				totalWeightElectorate: 11,
 			},
 			WantCheckErr:   errors.ErrInvalidState,
 			WantDeliverErr: errors.ErrInvalidState,
@@ -638,7 +756,10 @@ func TestTally(t *testing.T) {
 			// given
 			ctx := weave.WithBlockTime(context.Background(), time.Now().Round(time.Second))
 			setupForTally := func(_ weave.Context, p *TextProposal) {
-				p.VoteState = spec.Src
+				p.VoteState = NewTallyResult(spec.Src.quorum, spec.Src.threshold, spec.Src.totalWeightElectorate)
+				p.VoteState.TotalYes = spec.Src.yes
+				p.VoteState.TotalNo = spec.Src.no
+				p.VoteState.TotalAbstain = spec.Src.abstain
 				blockTime, _ := weave.BlockTime(ctx)
 				p.VotingEndTime = weave.AsUnixTime(blockTime.Add(-1 * time.Second))
 			}
@@ -675,7 +796,7 @@ func TestTally(t *testing.T) {
 				t.Fatalf("unexpected error: %s", err)
 			}
 			if exp, got := spec.ExpResult, p.Result; exp != got {
-				t.Errorf("expected %v but got %v", exp, got)
+				t.Errorf("expected %v but got %v: vote state: %#v", exp, got, p.VoteState)
 			}
 			if exp, got := TextProposal_Closed, p.Status; exp != got {
 				t.Errorf("expected %v but got %v", exp, got)
@@ -707,7 +828,7 @@ func TestUpdateElectorate(t *testing.T) {
 				Admin:                 bobby,
 				Title:                 "fooo",
 				Electors:              []Elector{{Address: alice, Weight: 22}},
-				TotalWeightElectorate: 22,
+				TotalElectorateWeight: 22,
 			},
 		},
 		"Update by non owner should fail": {
@@ -729,7 +850,7 @@ func TestUpdateElectorate(t *testing.T) {
 				Admin:                 bobby,
 				Title:                 "fooo",
 				Electors:              []Elector{{Address: alice, Weight: 22}},
-				TotalWeightElectorate: 22,
+				TotalElectorateWeight: 22,
 			},
 			WithProposal: true,
 			Mods: func(ctx weave.Context, proposal *TextProposal) {
@@ -747,7 +868,7 @@ func TestUpdateElectorate(t *testing.T) {
 				Admin:                 bobby,
 				Title:                 "fooo",
 				Electors:              []Elector{{Address: alice, Weight: 22}},
-				TotalWeightElectorate: 22,
+				TotalElectorateWeight: 22,
 			},
 			WithProposal: true,
 			Mods: func(ctx weave.Context, proposal *TextProposal) {
@@ -857,7 +978,7 @@ func TestUpdateElectionRules(t *testing.T) {
 				Threshold:         Fraction{Numerator: 2, Denominator: 3},
 			},
 		},
-		"Update with mMax voting time": {
+		"Update with max voting time": {
 			Msg: UpdateElectionRuleMsg{
 				ElectionRuleID:    electionRulesID,
 				VotingPeriodHours: 4 * 7 * 24,
@@ -989,7 +1110,7 @@ func withElectorate(t *testing.T, db store.CacheableKVStore) *Electorate {
 			{Address: alice, Weight: 1},
 			{Address: bobby, Weight: 10},
 		},
-		TotalWeightElectorate: 11,
+		TotalElectorateWeight: 11,
 	}
 	electorateBucket := NewElectorateBucket()
 	eObj, err := electorateBucket.Build(db, electorate)

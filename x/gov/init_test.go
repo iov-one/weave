@@ -46,7 +46,7 @@ func TestInitFromGenesis(t *testing.T) {
 		"admin":  "cond:foo/bar/0000000000000002",
         "title": "fooo",
         "voting_period_hours": 1,
-        "fraction": {
+        "threshold": {
           "numerator": 2,
           "denominator": 3
         }
@@ -55,9 +55,13 @@ func TestInitFromGenesis(t *testing.T) {
 		"admin":  "4444444444444444444444444444444444444444",
         "title": "barr",
         "voting_period_hours": 2,
-        "fraction": {
+        "threshold": {
           "numerator": 1,
           "denominator": 2
+        },
+        "quorum": {
+          "numerator": 2,
+          "denominator": 3
         }
       }
     ]
@@ -142,6 +146,10 @@ func TestInitFromGenesis(t *testing.T) {
 	if exp, got := (Fraction{Numerator: 2, Denominator: 3}), r.Threshold; exp != got {
 		t.Errorf("expected %v but got %v", exp, got)
 	}
+	if r.Quorum != nil {
+		t.Errorf("expected nil but got %v", r.Quorum)
+	}
+
 	// second election rule ok
 	r, err = NewElectionRulesBucket().GetElectionRule(db, weavetest.SequenceID(2))
 	if err != nil || r == nil {
@@ -158,6 +166,9 @@ func TestInitFromGenesis(t *testing.T) {
 	}
 	if exp, got := (Fraction{Numerator: 1, Denominator: 2}), r.Threshold; exp != got {
 		t.Errorf("expected %v but got %v", exp, got)
+	}
+	if exp, got := (Fraction{Numerator: 2, Denominator: 3}), *r.Quorum; exp != got {
+		t.Errorf("expected %#v but got %#v", exp, got)
 	}
 }
 

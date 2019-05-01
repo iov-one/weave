@@ -245,12 +245,9 @@ func (h TextProposalHandler) Deliver(ctx weave.Context, db weave.KVStore, tx wea
 		VotingEndTime:   msg.StartTime.Add(time.Duration(rules.VotingPeriodHours) * time.Hour),
 		SubmissionTime:  weave.AsUnixTime(blockTime),
 		Author:          msg.Author,
-		VoteState: TallyResult{
-			TotalWeightElectorate: electorate.TotalWeightElectorate,
-			Threshold:             rules.Threshold,
-		},
-		Status: TextProposal_Submitted,
-		Result: TextProposal_Undefined,
+		VoteState:       NewTallyResult(rules.Quorum, rules.Threshold, electorate.TotalElectorateWeight),
+		Status:          TextProposal_Submitted,
+		Result:          TextProposal_Undefined,
 	}
 
 	obj, err := h.propBucket.Build(db, proposal)
@@ -397,9 +394,9 @@ func (h UpdateElectorateHandler) Deliver(ctx weave.Context, db weave.KVStore, tx
 	}
 	// all good, let's update
 	elect.Electors = msg.Electors
-	elect.TotalWeightElectorate = 0
+	elect.TotalElectorateWeight = 0
 	for _, v := range msg.Electors {
-		elect.TotalWeightElectorate += uint64(v.Weight)
+		elect.TotalElectorateWeight += uint64(v.Weight)
 	}
 	if err := h.elecBucket.Save(db, orm.NewSimpleObj(msg.ElectorateID, elect)); err != nil {
 		return nil, errors.Wrap(err, "failed to store update")
