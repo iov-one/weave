@@ -13,8 +13,8 @@ message Electorate {
     string title = 2;
     // Elector defines a list of all signatures that are allowed to participate in a vote
     repeated Elector electors = 3 [(gogoproto.nullable) = false];
-    // TotalWeightElectorate is the sum of all electors weights.
-    uint64 total_weight_electorate = 4;
+    // TotalElectorateWeight is the sum of all electors weights.
+    uint64 total_electorate_weight = 4;
 }
 
 // Elector clubs together a address with a weight. The greater the weight
@@ -39,7 +39,11 @@ message ElectionRule {
     // The formula is `(yes*denominator) > (numerator*total_electors_weight)`.
     // The valid range for the threshold value is `0.5` to `1` (inclusive) which allows any value between half and all
     // of the eligible voters.
+
     Fraction threshold = 4 [(gogoproto.nullable) = false];
+    // The valid range for the threshold value is `0.5` to `1` (inclusive) which allows any value between half and all
+    // of the eligible voters.
+    Fraction quorum = 5;
 }
 
 // The Fraction type represents a numerator and denominator to enable higher precision thresholds in
@@ -109,16 +113,17 @@ message TextProposal {
 // TallyResult contains sums of the votes and all data for the final result.
 message TallyResult {
     // Sum of weights of all the voters that approved the proposal
-    uint32 total_yes = 1;
+    uint64 total_yes = 1;
     // Sum of weights of all the voters that rejected the proposal
-    uint32 total_no = 2;
+    uint64 total_no = 2;
     // Sum of weights of all the voters that voted abstain
-    uint32 total_abstain = 3;
+    uint64 total_abstain = 3;
     // Sum of all weights in the electorate.
-    uint64 total_weight_electorate = 4;
-    // Threshold is the fraction of all eligible voters, not only the ones who voted. To accept a
-    // proposal this value must be exceeded.
-    Fraction threshold = 5 [(gogoproto.nullable) = false];
+    uint64 total_electorate_weight = 4;
+    // Threshold of weights required in voting.
+    uint64 quorum_threshold_weight = 5;
+    // Threshold of weights quorum to accept a proposal when quorum threshold of voters was reached.
+    uint64 acceptance_threshold_weight = 6;
 }
 
 // Vote combines the elector and his voted option to archive them. The proposalID and address is stored within the key.
