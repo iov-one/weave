@@ -35,7 +35,7 @@ func RegisterQuery(qr weave.QueryRouter) {
 
 //---- create
 
-// CreateSwapHandler will set a name for objects in this bucket
+// CreateSwapHandler creates a swap
 type CreateSwapHandler struct {
 	auth   x.Authenticator
 	bucket Bucket
@@ -118,7 +118,7 @@ func (h CreateSwapHandler) validate(ctx weave.Context, db weave.KVStore, tx weav
 	return &msg, nil
 }
 
-// ReleaseSwapHandler will set a name for objects in this bucket.
+// ReleaseSwapHandler releases the amount to recipient.
 type ReleaseSwapHandler struct {
 	auth   x.Authenticator
 	bucket Bucket
@@ -194,7 +194,7 @@ func (h ReleaseSwapHandler) validate(ctx weave.Context, db weave.KVStore, tx wea
 	return &msg, swap, nil
 }
 
-// ReturnSwapHandler will set a name for objects in this bucket
+// ReturnSwapHandler returns funds to the sender when swap timed out.
 type ReturnSwapHandler struct {
 	auth   x.Authenticator
 	bucket Bucket
@@ -238,7 +238,9 @@ func (h ReturnSwapHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave
 	return &weave.DeliverResult{}, nil
 }
 
+
 // validate does all common pre-processing between Check and Deliver.
+// TODO: Do we need to check who initiates this? I would assume this would be the sender
 func (h ReturnSwapHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) ([]byte, *Swap, error) {
 	var msg ReturnSwapMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
