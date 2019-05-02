@@ -3,8 +3,13 @@ package validators
 import (
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/orm"
 )
+
+func init() {
+	migration.MustRegister(1, &Accounts{}, migration.NoModification)
+}
 
 const (
 	// BucketName contains address that are allowed to update validators
@@ -43,7 +48,10 @@ func AsAccounts(a WeaveAccounts) *Accounts {
 	for k, v := range a.Addresses {
 		addrs[k] = []byte(v)
 	}
-	return &Accounts{Addresses: addrs}
+	return &Accounts{
+		Metadata:  &weave.Metadata{Schema: 1},
+		Addresses: addrs,
+	}
 }
 
 // Copy makes new accounts object with the same addresses
@@ -55,11 +63,15 @@ func (m *Accounts) Copy() orm.CloneableData {
 		addrSlice[k] = addr
 	}
 	return &Accounts{
+		Metadata:  m.Metadata.Copy(),
 		Addresses: addrSlice,
 	}
 }
 
 func (m *Accounts) Validate() error {
+	if err := m.Metadata.Validate(); err != nil {
+		return errors.Wrap(err, "metadata")
+	}
 	return AsWeaveAccounts(m).Validate()
 }
 
@@ -93,7 +105,7 @@ func HasPermission(accts WeaveAccounts, checkAddress CheckAddress) bool {
 }
 
 func NewBucket() orm.Bucket {
-	return orm.NewBucket(BucketName, NewAccounts())
+	return migration.NewBucket("validators", BucketName, NewAccounts())
 }
 
 func AccountsWith(acct WeaveAccounts) orm.Object {
@@ -104,5 +116,5 @@ func AccountsWith(acct WeaveAccounts) orm.Object {
 // NewWallet creates an empty wallet with this address
 // serves as an object for the bucket
 func NewAccounts() orm.Object {
-	return orm.NewSimpleObj([]byte(Key), new(Accounts))
+	return orm.NewSimpleObj([]byte(Key), &Accounts{Metadata: &weave.Metadata{Schema: 1}})
 }

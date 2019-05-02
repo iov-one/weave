@@ -5,8 +5,13 @@ import (
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/migration"
 	abci "github.com/tendermint/tendermint/abci/types"
 )
+
+func init() {
+	migration.MustRegister(1, &SetValidatorsMsg{}, migration.NoModification)
+}
 
 // Ensure we implement the Msg interface
 var _ weave.Msg = (*SetValidatorsMsg)(nil)
@@ -44,6 +49,9 @@ func (m Pubkey) AsABCI() abci.PubKey {
 }
 
 func (m *SetValidatorsMsg) Validate() error {
+	if err := m.Metadata.Validate(); err != nil {
+		return errors.Wrap(err, "metadata")
+	}
 	if len(m.ValidatorUpdates) == 0 {
 		return errors.Wrap(errors.ErrEmpty, "validator set")
 	}

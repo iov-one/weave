@@ -6,6 +6,7 @@ import (
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/store"
 )
 
@@ -36,6 +37,7 @@ func TestInitState(t *testing.T) {
 	for msg, spec := range specs {
 		t.Run(msg, func(t *testing.T) {
 			kv := store.MemStore()
+			migration.MustInitPkg(kv, "validators")
 			bucket := NewBucket()
 			// when
 			err := Initializer{}.FromGenesis(spec.Src, kv)

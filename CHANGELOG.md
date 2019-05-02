@@ -32,6 +32,7 @@ Breaking changes
 - x/msgfee is using schema versioned model and messages
 - x/currency is using schema versioned model and messages
 - x/nft is using schema versioned model and messages
+- x/validators is using schema versioned model and messages
 
 
 ## 0.13.0

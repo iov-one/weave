@@ -3,6 +3,7 @@ package validators
 import (
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/x"
 	abci "github.com/tendermint/tendermint/abci/types"
 )
@@ -17,10 +18,8 @@ var authCheckAddress = func(auth x.Authenticator, ctx weave.Context) CheckAddres
 
 // RegisterRoutes will instantiate and register
 // all handlers in this package.
-func RegisterRoutes(r weave.Registry, auth x.Authenticator,
-	control Controller) {
-
-	r.Handle(pathUpdate, NewUpdateHandler(auth, control, authCheckAddress))
+func RegisterRoutes(r weave.Registry, auth x.Authenticator, control Controller) {
+	r.Handle(pathUpdate, migration.SchemaMigratingHandler("validators", NewUpdateHandler(auth, control, authCheckAddress)))
 }
 
 // RegisterQuery will register this bucket as "/validators".
