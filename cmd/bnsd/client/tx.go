@@ -56,6 +56,7 @@ func SetValidatorTx(u ...*validators.ValidatorUpdate) *app.Tx {
 	return &app.Tx{
 		Sum: &app.Tx_SetValidatorsMsg{
 			SetValidatorsMsg: &validators.SetValidatorsMsg{
+				Metadata:         &weave.Metadata{Schema: 1},
 				ValidatorUpdates: u,
 			},
 		},

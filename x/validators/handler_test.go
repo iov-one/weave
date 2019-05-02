@@ -8,6 +8,7 @@ import (
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/app"
 	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/store"
 	"github.com/iov-one/weave/weavetest"
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -96,13 +97,17 @@ func TestHandler(t *testing.T) {
 	for msg, spec := range specs {
 		t.Run(msg, func(t *testing.T) {
 			db := store.MemStore()
+			migration.MustInitPkg(db, "validators")
 			ctx := context.Background()
 			err := NewBucket().Save(db, AccountsWith(WeaveAccounts{Addresses: []weave.Address{spec.AuthzAddress}}))
 			if err != nil {
 				t.Fatalf("unexpected error: %s", err)
 			}
 			cache := db.CacheWrap()
-			tx := &weavetest.Tx{Msg: &SetValidatorsMsg{ValidatorUpdates: spec.Src}}
+			tx := &weavetest.Tx{Msg: &SetValidatorsMsg{
+				Metadata:         &weave.Metadata{Schema: 1},
+				ValidatorUpdates: spec.Src,
+			}}
 			// when check is called
 			if _, err := rt.Check(ctx, cache, tx); !spec.ExpCheckErr.Is(err) {
 				t.Fatalf("check expected: %+v  but got %+v", spec.ExpCheckErr, err)

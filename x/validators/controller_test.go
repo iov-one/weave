@@ -6,6 +6,7 @@ import (
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/store"
 	"github.com/iov-one/weave/x/cash"
 	. "github.com/smartystreets/goconvey/convey"
@@ -33,6 +34,7 @@ func TestController(t *testing.T) {
 		emptyDiff := make([]abci.ValidatorUpdate, 0)
 
 		kv := store.MemStore()
+		migration.MustInitPkg(kv, "validators")
 		bucket := NewBucket()
 		ctrl := BaseController{bucket: bucket}
 
