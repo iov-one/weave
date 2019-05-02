@@ -59,10 +59,7 @@ endif
 
 
 protofmt:
-ifndef $(shell command -v prototool help > /dev/null)
-	go get github.com/uber/prototool/cmd/prototool
-endif
-	find . -name '*proto' -exec prototool format -w {} \;
+	-find . -name '*proto' -exec prototool format -w {} \;
 
 protoc: protofmt protodocs
 	protoc --gogofaster_out=. $(PROTOC_FLAGS) codec.proto
