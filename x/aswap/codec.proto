@@ -17,6 +17,8 @@ message Swap {
     // to unlock the coins in the swap should the transaction be a success
     bytes preimage_hash = 3;
     bytes recipient = 4 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
+    // swap_address is used to hold funds
+    bytes swap_address = 5 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
 
     // If unreleased before timeout, swap will return coins to src.
     // Timeout represents wall clock time as read from the block header. Timeout
@@ -25,10 +27,10 @@ message Swap {
     // the current time is equal or greater than timeout value.
     // nonexpired: [created, timeout)
     // expired: [timeout, infinity)
-    int64 timeout = 5 [(gogoproto.casttype) = "github.com/iov-one/weave.UnixTime"];
+    int64 timeout = 6 [(gogoproto.casttype) = "github.com/iov-one/weave.UnixTime"];
 
     // max length 128 characters
-    string memo = 6;
+    string memo = 7;
 }
 
 // CreateSwapMsg creates a Swap with some coins.
@@ -52,10 +54,8 @@ message CreateSwapMsg {
 // This operation is authorized by preimage, which is sent raw and then hashed on the backend.
 message ReleaseSwapMsg {
     weave.Metadata metadata = 1;
-
-    bytes swap_id = 2 [(gogoproto.customname) = "SwapID"];
-    // raw preimage to unlock swap
-    bytes preimage = 3;
+    // raw preimage to unlock swap, also helpful to retrieve the swap by it's hashed version
+    bytes preimage = 2;
 }
 
 // ReturnSwapMsg releases the tokens to the src.
@@ -63,5 +63,5 @@ message ReleaseSwapMsg {
 message ReturnSwapMsg {
     weave.Metadata metadata = 1;
 
-    bytes swap_id = 2 [(gogoproto.customname) = "SwapID"];
+    bytes preimage_hash = 2;
 }

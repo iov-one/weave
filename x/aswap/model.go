@@ -80,7 +80,7 @@ func Condition(key []byte) weave.Condition {
 // Bucket is a type-safe wrapper around orm.Bucket
 type Bucket struct {
 	orm.Bucket
-	idSeq orm.Sequence
+	condSeq orm.Sequence
 }
 
 // NewBucket initializes a Bucket with default name
@@ -89,61 +89,23 @@ type Bucket struct {
 // add Create
 func NewBucket() Bucket {
 	bucket := migration.NewBucket("aswap", BucketName,
-		orm.NewSimpleObj(nil, &Swap{})).
-		WithIndex("src", idxSrc, false).
-		WithIndex("recipient", idxRecipient, false).
-		WithIndex("preimage_hash", idxPreimageHash, false)
+		orm.NewSimpleObj(nil, &Swap{}))
 
 	return Bucket{
 		Bucket: bucket,
-		idSeq:  bucket.Sequence(SequenceName),
+		condSeq:  bucket.Sequence(SequenceName),
 	}
-}
-
-func getSwap(obj orm.Object) (*Swap, error) {
-	if obj == nil {
-		return nil, errors.Wrap(errors.ErrHuman, "Cannot take index of nil")
-	}
-
-	swp, ok := obj.Value().(*Swap)
-	if !ok {
-		return nil, errors.Wrap(errors.ErrHuman, "Can only take index of Swap")
-	}
-	return swp, nil
-}
-
-func idxSrc(obj orm.Object) ([]byte, error) {
-	swp, err := getSwap(obj)
-	if err != nil {
-		return nil, err
-	}
-	return swp.Src, nil
-}
-
-func idxRecipient(obj orm.Object) ([]byte, error) {
-	swp, err := getSwap(obj)
-	if err != nil {
-		return nil, err
-	}
-	return swp.Recipient, nil
-}
-
-func idxPreimageHash(obj orm.Object) ([]byte, error) {
-	swp, err := getSwap(obj)
-	if err != nil {
-		return nil, err
-	}
-	return swp.PreimageHash, nil
 }
 
 // Build assigns an ID to given swap instance and returns it as an orm
 // Object. It does not persist the swap in the store.
 func (b Bucket) Build(db weave.KVStore, swap *Swap) (orm.Object, error) {
-	key, err := b.idSeq.NextVal(db)
+	seq, err := b.condSeq.NextVal(db)
 	if err != nil {
 		return nil, err
 	}
-	return orm.NewSimpleObj(key, swap), nil
+	swap.SwapAddress = weave.NewCondition("aswap", "seq", seq).Address()
+	return orm.NewSimpleObj(swap.PreimageHash, swap), nil
 }
 
 // Save enforces the proper type

@@ -81,9 +81,6 @@ func (m *ReleaseSwapMsg) Validate() error {
 	if err := m.Metadata.Validate(); err != nil {
 		return errors.Wrap(err, "metadata")
 	}
-	if len(m.SwapID) == 0 {
-		return errors.Wrap(errors.ErrInvalidInput, "empty swap id")
-	}
 	if len(m.Preimage) != preimageSize {
 		return errors.Wrapf(errors.ErrInvalidInput, "preimage should be exactly %d byte long", preimageSize)
 	}
@@ -94,10 +91,7 @@ func (m *ReturnSwapMsg) Validate() error {
 	if err := m.Metadata.Validate(); err != nil {
 		return errors.Wrap(err, "metadata")
 	}
-	if len(m.SwapID) == 0 {
-		return errors.Wrap(errors.ErrInvalidInput, "empty swap id")
-	}
-	return nil
+	return validatePreimageHash(m.PreimageHash)
 }
 
 // validateAmount makes sure the amount is positive and coins are of valid format

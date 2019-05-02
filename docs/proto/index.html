@@ -3034,17 +3034,10 @@ expired: [timeout, infinity) </p></td>
                 </tr>
               
                 <tr>
-                  <td>swap_id</td>
-                  <td><a href="#bytes">bytes</a></td>
-                  <td></td>
-                  <td><p> </p></td>
-                </tr>
-              
-                <tr>
                   <td>preimage</td>
                   <td><a href="#bytes">bytes</a></td>
                   <td></td>
-                  <td><p>raw preimage to unlock swap </p></td>
+                  <td><p>raw preimage to unlock swap, also helpful to retrieve the swap by it&#39;s hashed version </p></td>
                 </tr>
               
             </tbody>
@@ -3071,7 +3064,7 @@ expired: [timeout, infinity) </p></td>
                 </tr>
               
                 <tr>
-                  <td>swap_id</td>
+                  <td>preimage_hash</td>
                   <td><a href="#bytes">bytes</a></td>
                   <td></td>
                   <td><p> </p></td>
@@ -3117,6 +3110,13 @@ to unlock the coins in the swap should the transaction be a success </p></td>
               
                 <tr>
                   <td>recipient</td>
+                  <td><a href="#bytes">bytes</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>swap_address</td>
                   <td><a href="#bytes">bytes</a></td>
                   <td></td>
                   <td><p> </p></td>
