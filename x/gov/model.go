@@ -237,40 +237,43 @@ func (m *TextProposal) Tally() error {
 }
 
 func NewTallyResult(quorum *Fraction, threshold Fraction, totalElectorateWeight uint64) TallyResult {
-	var bQuorumThresholdWeight, bAcceptanceThresholdWeight *big.Int
-	bTotalElectorateWeight := new(big.Int).SetUint64(totalElectorateWeight)
-
-	if quorum != nil {
-		bQuorumThresholdWeight = new(big.Int).Mul(bTotalElectorateWeight, big.NewInt(int64(quorum.Numerator)))
-		bQuorumThresholdWeight = new(big.Int).Div(bQuorumThresholdWeight, big.NewInt(int64(quorum.Denominator)))
-		bAcceptanceThresholdWeight = new(big.Int).Mul(bQuorumThresholdWeight, big.NewInt(int64(threshold.Numerator)))
-		bAcceptanceThresholdWeight = new(big.Int).Div(bAcceptanceThresholdWeight, big.NewInt(int64(threshold.Denominator)))
-	} else {
-		bAcceptanceThresholdWeight = new(big.Int).Mul(bTotalElectorateWeight, big.NewInt(int64(threshold.Numerator)))
-		bAcceptanceThresholdWeight = new(big.Int).Div(bAcceptanceThresholdWeight, big.NewInt(int64(threshold.Denominator)))
-		bQuorumThresholdWeight = bAcceptanceThresholdWeight
-	}
-
-	quorumThresholdWeight := bQuorumThresholdWeight.Uint64()
-	acceptanceThresholdWeight := bAcceptanceThresholdWeight.Uint64()
-	// prevent threshold weights that can never be fulfilled
-	if quorumThresholdWeight >= totalElectorateWeight {
-		quorumThresholdWeight = totalElectorateWeight - 1
-	}
-	if acceptanceThresholdWeight >= totalElectorateWeight {
-		acceptanceThresholdWeight = totalElectorateWeight - 1
-	}
 	return TallyResult{
-		QuorumThresholdWeight:     quorumThresholdWeight,
-		AcceptanceThresholdWeight: acceptanceThresholdWeight,
-		TotalElectorateWeight:     totalElectorateWeight,
+		Quorum:                quorum,
+		Threshold:             threshold,
+		TotalElectorateWeight: totalElectorateWeight,
 	}
 }
 
-//Accepted returns the result of the
+//Accepted returns the result of the calculation if a proposal got enough votes or not.
 func (m TallyResult) Accepted() bool {
+	if m.TotalYes == m.TotalElectorateWeight { // handles 1/1 threshold
+		return true
+	}
+
 	total := m.TotalVotes()
-	return total > m.QuorumThresholdWeight && m.TotalYes > m.AcceptanceThresholdWeight
+	bTotalElectorateWeight := new(big.Int).SetUint64(m.TotalElectorateWeight)
+	bBaseWeight := bTotalElectorateWeight
+	if m.Quorum != nil {
+		// new base = total Yes + total No
+		bBaseWeight = new(big.Int).Add(new(big.Int).SetUint64(m.TotalYes), new(big.Int).SetUint64(m.TotalNo))
+
+		if total != m.TotalElectorateWeight { // handles non 1/1 quorums only
+			// quorum reached when
+			// totalVotes * quorumDenominator > electorate * quorumNumerator
+			bTotalVotes := new(big.Int).SetUint64(total)
+			p1 := new(big.Int).Mul(bTotalVotes, big.NewInt(int64(m.Quorum.Denominator)))
+			p2 := new(big.Int).Mul(bTotalElectorateWeight, big.NewInt(int64(m.Quorum.Numerator)))
+			if p1.Cmp(p2) < 1 {
+				return false
+			}
+		}
+	}
+
+	// (yes * denominator) > (base * numerator) with base total electorate weight or YesNo votes in case of quorum set
+	bTotalYes := new(big.Int).SetUint64(m.TotalYes)
+	p1 := new(big.Int).Mul(bTotalYes, big.NewInt(int64(m.Threshold.Denominator)))
+	p2 := new(big.Int).Mul(bBaseWeight, big.NewInt(int64(m.Threshold.Numerator)))
+	return p1.Cmp(p2) > 0
 }
 
 // TotalVotes returns the sum of yes, no, abstain votes weights.
@@ -279,13 +282,16 @@ func (m TallyResult) TotalVotes() uint64 {
 }
 
 func (m TallyResult) Validate() error {
-	switch {
-	case m.AcceptanceThresholdWeight == 0:
-		return errors.Wrap(errors.ErrInvalidState, "AcceptanceThresholdWeight")
-	case m.QuorumThresholdWeight == 0:
-		return errors.Wrap(errors.ErrInvalidState, "QuorumThresholdWeight")
-	case m.TotalVotes() > m.TotalElectorateWeight:
-		return errors.Wrapf(errors.ErrInvalidState, "more votes than electorate: %d <> %d", m.TotalVotes(), m.TotalElectorateWeight)
+	if err := m.Threshold.Validate(); err != nil {
+		return errors.Wrap(errors.ErrInvalidState, "threshold")
+	}
+	if m.Quorum != nil {
+		if err := m.Quorum.Validate(); err != nil {
+			return errors.Wrap(errors.ErrInvalidState, "quorum")
+		}
+	}
+	if m.TotalElectorateWeight == 0 {
+		return errors.Wrap(errors.ErrInvalidState, "TotalElectorateWeight")
 	}
 	return nil
 }
