@@ -6,6 +6,7 @@ import (
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/cmd/bnsd/x/nft/username"
+	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/store"
 	"github.com/iov-one/weave/weavetest"
@@ -30,6 +31,7 @@ func TestApprovalOpsHandler(t *testing.T) {
 		guest := weavetest.NewCondition()
 		bob := weavetest.NewCondition()
 		db := store.MemStore()
+		migration.MustInitPkg(db, "nft")
 		userBucket := username.NewBucket()
 		nftBuckets := map[string]orm.Bucket{
 			username.ModelName: userBucket.Bucket,
@@ -61,11 +63,13 @@ func TestApprovalOpsHandler(t *testing.T) {
 		userBucket.Save(db, o)
 
 		Convey("Test add", func() {
-			msg := &nft.AddApprovalMsg{ID: bobsUsername,
-				Address: alice.Address(),
-				Action:  nft.UpdateDetails,
-				Options: nft.ApprovalOptions{Count: nft.UnlimitedCount},
-				T:       username.ModelName,
+			msg := &nft.AddApprovalMsg{
+				Metadata: &weave.Metadata{Schema: 1},
+				ID:       bobsUsername,
+				Address:  alice.Address(),
+				Action:   nft.UpdateDetails,
+				Options:  nft.ApprovalOptions{Count: nft.UnlimitedCount},
+				T:        username.ModelName,
 			}
 			Convey("Test happy", func() {
 				Convey("By owner", func() {
@@ -171,10 +175,12 @@ func TestApprovalOpsHandler(t *testing.T) {
 		})
 
 		Convey("Test Remove", func() {
-			msg := &nft.RemoveApprovalMsg{ID: bobWithAliceApproval,
-				Address: alice.Address(),
-				Action:  nft.UpdateApprovals,
-				T:       username.ModelName,
+			msg := &nft.RemoveApprovalMsg{
+				Metadata: &weave.Metadata{Schema: 1},
+				ID:       bobWithAliceApproval,
+				Address:  alice.Address(),
+				Action:   nft.UpdateApprovals,
+				T:        username.ModelName,
 			}
 			Convey("Test happy", func() {
 				Convey("By owner", func() {

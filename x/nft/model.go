@@ -3,12 +3,20 @@ package nft
 import (
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/orm"
 )
+
+func init() {
+	migration.MustRegister(1, &NonFungibleToken{}, migration.NoModification)
+}
 
 var _ orm.CloneableData = (*NonFungibleToken)(nil)
 
 func (m *NonFungibleToken) Validate() error {
+	if err := m.Metadata.Validate(); err != nil {
+		return errors.Wrap(err, "metadata")
+	}
 	if !isValidTokenID(m.ID) {
 		return errors.Wrapf(errors.ErrInvalidInput, "id: %s", PrintableID(m.ID))
 	}
@@ -30,6 +38,7 @@ func (m *NonFungibleToken) Clone() *NonFungibleToken {
 		actionApprovals[i] = v.Clone()
 	}
 	return &NonFungibleToken{
+		Metadata:        m.Metadata.Copy(),
 		ID:              m.ID,
 		Owner:           m.Owner,
 		ActionApprovals: actionApprovals,
@@ -38,6 +47,7 @@ func (m *NonFungibleToken) Clone() *NonFungibleToken {
 
 func NewNonFungibleToken(key []byte, owner weave.Address, approvals []ActionApprovals) *NonFungibleToken {
 	return &NonFungibleToken{
+		Metadata:        &weave.Metadata{Schema: 1},
 		ID:              key,
 		Owner:           owner,
 		ActionApprovals: approvals,

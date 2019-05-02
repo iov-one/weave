@@ -8,6 +8,7 @@ import (
 	_ "github.com/gogo/protobuf/gogoproto"
 	proto "github.com/gogo/protobuf/proto"
 	github_com_iov_one_weave "github.com/iov-one/weave"
+	weave "github.com/iov-one/weave"
 	io "io"
 	math "math"
 )
@@ -26,13 +27,14 @@ const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
 // NonFungibleToken is a message that must be incuded by any concrete NFT
 // implementation. Usually it is the first attirbute called `base`.
 type NonFungibleToken struct {
+	Metadata *weave.Metadata `protobuf:"bytes,1,opt,name=metadata,proto3" json:"metadata,omitempty"`
 	// ID is the address of this token.
-	ID []byte `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	ID []byte `protobuf:"bytes,2,opt,name=id,proto3" json:"id,omitempty"`
 	// Owner is the address of the token owner.
-	Owner github_com_iov_one_weave.Address `protobuf:"bytes,2,opt,name=owner,proto3,casttype=github.com/iov-one/weave.Address" json:"owner,omitempty"`
+	Owner github_com_iov_one_weave.Address `protobuf:"bytes,3,opt,name=owner,proto3,casttype=github.com/iov-one/weave.Address" json:"owner,omitempty"`
 	// Action approvals is a list of permissions. In order for operation to
 	// succeed, all action approvals validation must pass.
-	ActionApprovals []ActionApprovals `protobuf:"bytes,3,rep,name=action_approvals,json=actionApprovals,proto3" json:"action_approvals"`
+	ActionApprovals []ActionApprovals `protobuf:"bytes,4,rep,name=action_approvals,json=actionApprovals,proto3" json:"action_approvals"`
 }
 
 func (m *NonFungibleToken) Reset()         { *m = NonFungibleToken{} }
@@ -67,6 +69,13 @@ func (m *NonFungibleToken) XXX_DiscardUnknown() {
 }
 
 var xxx_messageInfo_NonFungibleToken proto.InternalMessageInfo
+
+func (m *NonFungibleToken) GetMetadata() *weave.Metadata {
+	if m != nil {
+		return m.Metadata
+	}
+	return nil
+}
 
 func (m *NonFungibleToken) GetID() []byte {
 	if m != nil {
@@ -258,11 +267,12 @@ func (m *ApprovalOptions) GetImmutable() bool {
 }
 
 type AddApprovalMsg struct {
-	ID      []byte                           `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Address github_com_iov_one_weave.Address `protobuf:"bytes,2,opt,name=address,proto3,casttype=github.com/iov-one/weave.Address" json:"address,omitempty"`
-	Action  Action                           `protobuf:"bytes,3,opt,name=action,proto3,customtype=Action" json:"action"`
-	Options ApprovalOptions                  `protobuf:"bytes,4,opt,name=options,proto3" json:"options"`
-	T       string                           `protobuf:"bytes,5,opt,name=t,proto3" json:"t,omitempty"`
+	Metadata *weave.Metadata                  `protobuf:"bytes,1,opt,name=metadata,proto3" json:"metadata,omitempty"`
+	ID       []byte                           `protobuf:"bytes,2,opt,name=id,proto3" json:"id,omitempty"`
+	Address  github_com_iov_one_weave.Address `protobuf:"bytes,3,opt,name=address,proto3,casttype=github.com/iov-one/weave.Address" json:"address,omitempty"`
+	Action   Action                           `protobuf:"bytes,4,opt,name=action,proto3,customtype=Action" json:"action"`
+	Options  ApprovalOptions                  `protobuf:"bytes,5,opt,name=options,proto3" json:"options"`
+	T        string                           `protobuf:"bytes,6,opt,name=t,proto3" json:"t,omitempty"`
 }
 
 func (m *AddApprovalMsg) Reset()         { *m = AddApprovalMsg{} }
@@ -298,6 +308,13 @@ func (m *AddApprovalMsg) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_AddApprovalMsg proto.InternalMessageInfo
 
+func (m *AddApprovalMsg) GetMetadata() *weave.Metadata {
+	if m != nil {
+		return m.Metadata
+	}
+	return nil
+}
+
 func (m *AddApprovalMsg) GetID() []byte {
 	if m != nil {
 		return m.ID
@@ -327,10 +344,11 @@ func (m *AddApprovalMsg) GetT() string {
 }
 
 type RemoveApprovalMsg struct {
-	ID      []byte                           `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Address github_com_iov_one_weave.Address `protobuf:"bytes,2,opt,name=address,proto3,casttype=github.com/iov-one/weave.Address" json:"address,omitempty"`
-	Action  Action                           `protobuf:"bytes,3,opt,name=action,proto3,customtype=Action" json:"action"`
-	T       string                           `protobuf:"bytes,4,opt,name=t,proto3" json:"t,omitempty"`
+	Metadata *weave.Metadata                  `protobuf:"bytes,1,opt,name=metadata,proto3" json:"metadata,omitempty"`
+	ID       []byte                           `protobuf:"bytes,2,opt,name=id,proto3" json:"id,omitempty"`
+	Address  github_com_iov_one_weave.Address `protobuf:"bytes,3,opt,name=address,proto3,casttype=github.com/iov-one/weave.Address" json:"address,omitempty"`
+	Action   Action                           `protobuf:"bytes,4,opt,name=action,proto3,customtype=Action" json:"action"`
+	T        string                           `protobuf:"bytes,5,opt,name=t,proto3" json:"t,omitempty"`
 }
 
 func (m *RemoveApprovalMsg) Reset()         { *m = RemoveApprovalMsg{} }
@@ -366,6 +384,13 @@ func (m *RemoveApprovalMsg) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_RemoveApprovalMsg proto.InternalMessageInfo
 
+func (m *RemoveApprovalMsg) GetMetadata() *weave.Metadata {
+	if m != nil {
+		return m.Metadata
+	}
+	return nil
+}
+
 func (m *RemoveApprovalMsg) GetID() []byte {
 	if m != nil {
 		return m.ID
@@ -399,37 +424,39 @@ func init() {
 func init() { proto.RegisterFile("x/nft/codec.proto", fileDescriptor_d3e1ee58031e7f2d) }
 
 var fileDescriptor_d3e1ee58031e7f2d = []byte{
-	// 471 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xcc, 0x93, 0xcd, 0x6e, 0xd3, 0x40,
-	0x10, 0xc7, 0xb3, 0x71, 0x92, 0x36, 0x43, 0x69, 0xd2, 0x55, 0x85, 0x2c, 0x84, 0x9c, 0xc8, 0x42,
-	0x28, 0x07, 0x6a, 0x8b, 0x8f, 0x13, 0x07, 0xa4, 0x58, 0x80, 0xe0, 0x00, 0x48, 0x2b, 0x4e, 0x5c,
-	0x22, 0x7f, 0x6c, 0x9c, 0x55, 0x9d, 0x9d, 0x28, 0x5e, 0xa7, 0x3c, 0x06, 0xaf, 0xc0, 0x03, 0xf0,
-	0x1e, 0x3d, 0xf6, 0xc0, 0x01, 0x71, 0x88, 0x50, 0xf2, 0x16, 0x9c, 0x50, 0x76, 0xed, 0xba, 0x54,
-	0x02, 0xc1, 0x8d, 0x9b, 0x67, 0xfe, 0xff, 0xd9, 0xdf, 0x7c, 0xc8, 0x70, 0xf4, 0xc1, 0x97, 0x53,
-	0xe5, 0xc7, 0x98, 0xf0, 0xd8, 0x5b, 0x2c, 0x51, 0x21, 0xb5, 0xe4, 0x54, 0xdd, 0x3e, 0x49, 0x85,
-	0x9a, 0x15, 0x91, 0x17, 0xe3, 0xdc, 0x4f, 0x31, 0x45, 0x5f, 0x6b, 0x51, 0x31, 0xd5, 0x91, 0x0e,
-	0xf4, 0x97, 0xa9, 0x71, 0x3f, 0x13, 0xe8, 0xbf, 0x41, 0xf9, 0xa2, 0x90, 0xa9, 0x88, 0x32, 0xfe,
-	0x0e, 0x4f, 0xb9, 0xa4, 0xb7, 0xa0, 0x29, 0x12, 0x9b, 0x0c, 0xc9, 0xe8, 0x20, 0xe8, 0x6c, 0xd6,
-	0x83, 0xe6, 0xab, 0x67, 0xac, 0x29, 0x12, 0xfa, 0x04, 0xda, 0x78, 0x26, 0xf9, 0xd2, 0x6e, 0x6a,
-	0xe9, 0xee, 0x8f, 0xf5, 0x60, 0x78, 0x05, 0x27, 0x70, 0x75, 0x82, 0x92, 0xfb, 0x67, 0x3c, 0x5c,
-	0x71, 0x6f, 0x9c, 0x24, 0x4b, 0x9e, 0xe7, 0xcc, 0x94, 0xd0, 0xe7, 0xd0, 0x0f, 0x63, 0x25, 0x50,
-	0x4e, 0xc2, 0xc5, 0x62, 0x89, 0xab, 0x30, 0xcb, 0x6d, 0x6b, 0x68, 0x8d, 0x6e, 0x3c, 0x3c, 0xf6,
-	0xe4, 0x54, 0x79, 0x63, 0x2d, 0x8e, 0x2b, 0x2d, 0x68, 0x9d, 0xaf, 0x07, 0x0d, 0xd6, 0x0b, 0x7f,
-	0x4d, 0xbb, 0x19, 0xf4, 0xae, 0x39, 0xe9, 0x3d, 0xe8, 0x18, 0x97, 0xee, 0xb8, 0x1b, 0x1c, 0xee,
-	0x2a, 0xbf, 0xad, 0x07, 0x1d, 0x63, 0x64, 0xa5, 0x4a, 0x1f, 0x40, 0xb7, 0x46, 0x37, 0x35, 0xfa,
-	0xa6, 0x41, 0x97, 0xd9, 0x92, 0x59, 0xbb, 0xdc, 0xf7, 0xb0, 0x5f, 0x89, 0xd4, 0x86, 0xbd, 0xd0,
-	0x8c, 0x64, 0x36, 0xc3, 0xaa, 0x90, 0x3e, 0x86, 0x3d, 0x5c, 0xec, 0x10, 0xb9, 0x5e, 0xcc, 0xe5,
-	0x44, 0x65, 0xe5, 0x5b, 0xa3, 0x95, 0xaf, 0x57, 0x56, 0x37, 0x87, 0xde, 0x35, 0x07, 0xbd, 0x0f,
-	0xb4, 0x90, 0x4a, 0x64, 0x93, 0x28, 0xc3, 0xf8, 0x74, 0x32, 0xe3, 0x22, 0x9d, 0x29, 0x4d, 0xb3,
-	0x58, 0x5f, 0x2b, 0xc1, 0x4e, 0x78, 0xa9, 0xf3, 0xf4, 0x18, 0xda, 0x31, 0x16, 0x52, 0x69, 0xa8,
-	0xc5, 0x4c, 0x40, 0xef, 0x40, 0x57, 0xcc, 0xe7, 0x85, 0x0a, 0xa3, 0x8c, 0xdb, 0xd6, 0x90, 0x8c,
-	0xf6, 0x59, 0x9d, 0x70, 0xbf, 0x10, 0x38, 0x1c, 0x27, 0x49, 0x05, 0x7e, 0x9d, 0xa7, 0xbf, 0x3d,
-	0xf6, 0xd3, 0x7a, 0xde, 0x7f, 0x39, 0xf7, 0xe5, 0x56, 0xea, 0xb3, 0x58, 0x7f, 0x3c, 0xcb, 0x95,
-	0xed, 0xb5, 0xfe, 0x7a, 0x7b, 0xf4, 0x00, 0x88, 0xb2, 0xdb, 0xbb, 0x87, 0x19, 0x51, 0xee, 0x27,
-	0x02, 0x47, 0x8c, 0xcf, 0x71, 0xc5, 0xff, 0xa7, 0xc9, 0x74, 0x8f, 0xad, 0xb2, 0xc7, 0xc0, 0x3e,
-	0xdf, 0x38, 0xe4, 0x62, 0xe3, 0x90, 0xef, 0x1b, 0x87, 0x7c, 0xdc, 0x3a, 0x8d, 0x8b, 0xad, 0xd3,
-	0xf8, 0xba, 0x75, 0x1a, 0x51, 0x47, 0xff, 0x8a, 0x8f, 0x7e, 0x06, 0x00, 0x00, 0xff, 0xff, 0x5e,
-	0x46, 0x09, 0x3d, 0xd3, 0x03, 0x00, 0x00,
+	// 499 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xd4, 0x54, 0x41, 0x8b, 0xd3, 0x40,
+	0x14, 0xee, 0xa4, 0x6d, 0xb6, 0x7d, 0x5b, 0xb7, 0xdd, 0x61, 0x91, 0xb0, 0x48, 0x5a, 0xc2, 0x22,
+	0x05, 0xdd, 0x04, 0x57, 0x4f, 0x1e, 0x84, 0x06, 0x15, 0x3d, 0xac, 0xc2, 0xe0, 0xc9, 0x4b, 0x99,
+	0x24, 0xd3, 0x34, 0x6c, 0x32, 0x53, 0x9a, 0x49, 0xd7, 0xab, 0xff, 0xc0, 0x9f, 0xb5, 0x27, 0xd9,
+	0xa3, 0xec, 0xa1, 0x48, 0xfb, 0x2f, 0x3c, 0x49, 0x27, 0x49, 0x53, 0x17, 0x14, 0x05, 0x2f, 0x7b,
+	0xeb, 0x7b, 0xdf, 0xf7, 0xde, 0xd7, 0xef, 0x7b, 0x43, 0xe0, 0xf0, 0x93, 0xc3, 0x27, 0xd2, 0xf1,
+	0x45, 0xc0, 0x7c, 0x7b, 0x36, 0x17, 0x52, 0xe0, 0x3a, 0x9f, 0xc8, 0xe3, 0xd3, 0x30, 0x92, 0xd3,
+	0xcc, 0xb3, 0x7d, 0x91, 0x38, 0xa1, 0x08, 0x85, 0xa3, 0x30, 0x2f, 0x9b, 0xa8, 0x4a, 0x15, 0xea,
+	0x57, 0x3e, 0x73, 0x7c, 0xb2, 0x43, 0x8f, 0xc4, 0xe2, 0x54, 0x70, 0xe6, 0x5c, 0x32, 0xba, 0x60,
+	0xbb, 0x9b, 0xad, 0x1b, 0x04, 0xbd, 0x77, 0x82, 0xbf, 0xce, 0x78, 0x18, 0x79, 0x31, 0xfb, 0x20,
+	0x2e, 0x18, 0xc7, 0x8f, 0xa0, 0x95, 0x30, 0x49, 0x03, 0x2a, 0xa9, 0x81, 0x06, 0x68, 0xb8, 0x7f,
+	0xd6, 0xb5, 0xd5, 0xa8, 0x7d, 0x5e, 0xb4, 0xc9, 0x96, 0x80, 0xef, 0x83, 0x16, 0x05, 0x86, 0x36,
+	0x40, 0xc3, 0x8e, 0xab, 0xaf, 0x96, 0x7d, 0xed, 0xed, 0x4b, 0xa2, 0x45, 0x01, 0x7e, 0x0e, 0x4d,
+	0x71, 0xc9, 0xd9, 0xdc, 0xa8, 0x2b, 0xe8, 0xe4, 0xc7, 0xb2, 0x3f, 0xf8, 0xdd, 0x5f, 0xb2, 0x47,
+	0x41, 0x30, 0x67, 0x69, 0x4a, 0xf2, 0x11, 0xfc, 0x0a, 0x7a, 0xd4, 0x97, 0x91, 0xe0, 0x63, 0x3a,
+	0x9b, 0xcd, 0xc5, 0x82, 0xc6, 0xa9, 0xd1, 0x18, 0xd4, 0x87, 0xfb, 0x67, 0x47, 0x36, 0x9f, 0x48,
+	0x7b, 0xa4, 0xc0, 0x51, 0x89, 0xb9, 0x8d, 0xab, 0x65, 0xbf, 0x46, 0xba, 0xf4, 0xd7, 0xb6, 0x15,
+	0x43, 0xf7, 0x16, 0x13, 0x3f, 0x04, 0x3d, 0x67, 0x29, 0x63, 0x6d, 0xf7, 0x60, 0x33, 0x79, 0xb3,
+	0xec, 0xeb, 0x39, 0x91, 0x14, 0x28, 0x7e, 0x02, 0xed, 0x4a, 0x5a, 0x53, 0xd2, 0xf7, 0x72, 0xe9,
+	0xa2, 0x5b, 0x68, 0x56, 0x2c, 0xeb, 0x23, 0xb4, 0x4a, 0x10, 0x1b, 0xb0, 0x47, 0x73, 0x4b, 0x4a,
+	0xa7, 0x43, 0xca, 0x12, 0x3f, 0x83, 0x3d, 0x31, 0xdb, 0x48, 0xa4, 0x2a, 0xb3, 0xad, 0xa3, 0x62,
+	0xf2, 0x7d, 0x8e, 0x15, 0xdb, 0x4b, 0xaa, 0x95, 0x42, 0xf7, 0x16, 0x03, 0x3f, 0x06, 0x9c, 0x71,
+	0x19, 0xc5, 0x63, 0x2f, 0x16, 0xfe, 0xc5, 0x78, 0xca, 0xa2, 0x70, 0x2a, 0x95, 0x5a, 0x9d, 0xf4,
+	0x14, 0xe2, 0x6e, 0x80, 0x37, 0xaa, 0x8f, 0x8f, 0xa0, 0xe9, 0x8b, 0x8c, 0x4b, 0x25, 0x5a, 0x27,
+	0x79, 0x81, 0x1f, 0x40, 0x3b, 0x4a, 0x92, 0x4c, 0x52, 0x2f, 0x66, 0xea, 0x4e, 0x2d, 0x52, 0x35,
+	0xac, 0xcf, 0x1a, 0x1c, 0x8c, 0x82, 0xa0, 0x14, 0x3e, 0x4f, 0xc3, 0xff, 0xf3, 0x32, 0x5e, 0x54,
+	0xe1, 0xfc, 0xcb, 0xdb, 0xd8, 0x46, 0x58, 0xdd, 0xb0, 0xf1, 0xc7, 0x1b, 0xee, 0x44, 0xdd, 0xfc,
+	0xeb, 0xa8, 0x71, 0x07, 0x90, 0x34, 0xf4, 0xcd, 0x62, 0x82, 0xa4, 0xf5, 0x15, 0xc1, 0x21, 0x61,
+	0x89, 0x58, 0xb0, 0x3b, 0x1b, 0x83, 0x32, 0xd4, 0x2c, 0x0c, 0xb9, 0xc6, 0xd5, 0xca, 0x44, 0xd7,
+	0x2b, 0x13, 0x7d, 0x5f, 0x99, 0xe8, 0xcb, 0xda, 0xac, 0x5d, 0xaf, 0xcd, 0xda, 0xb7, 0xb5, 0x59,
+	0xf3, 0x74, 0xf5, 0x45, 0x78, 0xfa, 0x33, 0x00, 0x00, 0xff, 0xff, 0xcd, 0xe9, 0xb4, 0x0d, 0x80,
+	0x04, 0x00, 0x00,
 }
 
 func (m *NonFungibleToken) Marshal() (dAtA []byte, err error) {
@@ -447,21 +474,31 @@ func (m *NonFungibleToken) MarshalTo(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
-	if len(m.ID) > 0 {
+	if m.Metadata != nil {
 		dAtA[i] = 0xa
+		i++
+		i = encodeVarintCodec(dAtA, i, uint64(m.Metadata.Size()))
+		n1, err := m.Metadata.MarshalTo(dAtA[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += n1
+	}
+	if len(m.ID) > 0 {
+		dAtA[i] = 0x12
 		i++
 		i = encodeVarintCodec(dAtA, i, uint64(len(m.ID)))
 		i += copy(dAtA[i:], m.ID)
 	}
 	if len(m.Owner) > 0 {
-		dAtA[i] = 0x12
+		dAtA[i] = 0x1a
 		i++
 		i = encodeVarintCodec(dAtA, i, uint64(len(m.Owner)))
 		i += copy(dAtA[i:], m.Owner)
 	}
 	if len(m.ActionApprovals) > 0 {
 		for _, msg := range m.ActionApprovals {
-			dAtA[i] = 0x1a
+			dAtA[i] = 0x22
 			i++
 			i = encodeVarintCodec(dAtA, i, uint64(msg.Size()))
 			n, err := msg.MarshalTo(dAtA[i:])
@@ -534,11 +571,11 @@ func (m *Approval) MarshalTo(dAtA []byte) (int, error) {
 	dAtA[i] = 0x12
 	i++
 	i = encodeVarintCodec(dAtA, i, uint64(m.Options.Size()))
-	n1, err := m.Options.MarshalTo(dAtA[i:])
+	n2, err := m.Options.MarshalTo(dAtA[i:])
 	if err != nil {
 		return 0, err
 	}
-	i += n1
+	i += n2
 	return i, nil
 }
 
@@ -595,34 +632,44 @@ func (m *AddApprovalMsg) MarshalTo(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
-	if len(m.ID) > 0 {
+	if m.Metadata != nil {
 		dAtA[i] = 0xa
+		i++
+		i = encodeVarintCodec(dAtA, i, uint64(m.Metadata.Size()))
+		n3, err := m.Metadata.MarshalTo(dAtA[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += n3
+	}
+	if len(m.ID) > 0 {
+		dAtA[i] = 0x12
 		i++
 		i = encodeVarintCodec(dAtA, i, uint64(len(m.ID)))
 		i += copy(dAtA[i:], m.ID)
 	}
 	if len(m.Address) > 0 {
-		dAtA[i] = 0x12
+		dAtA[i] = 0x1a
 		i++
 		i = encodeVarintCodec(dAtA, i, uint64(len(m.Address)))
 		i += copy(dAtA[i:], m.Address)
 	}
 	if len(m.Action) > 0 {
-		dAtA[i] = 0x1a
+		dAtA[i] = 0x22
 		i++
 		i = encodeVarintCodec(dAtA, i, uint64(len(m.Action)))
 		i += copy(dAtA[i:], m.Action)
 	}
-	dAtA[i] = 0x22
+	dAtA[i] = 0x2a
 	i++
 	i = encodeVarintCodec(dAtA, i, uint64(m.Options.Size()))
-	n2, err := m.Options.MarshalTo(dAtA[i:])
+	n4, err := m.Options.MarshalTo(dAtA[i:])
 	if err != nil {
 		return 0, err
 	}
-	i += n2
+	i += n4
 	if len(m.T) > 0 {
-		dAtA[i] = 0x2a
+		dAtA[i] = 0x32
 		i++
 		i = encodeVarintCodec(dAtA, i, uint64(len(m.T)))
 		i += copy(dAtA[i:], m.T)
@@ -645,26 +692,36 @@ func (m *RemoveApprovalMsg) MarshalTo(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
-	if len(m.ID) > 0 {
+	if m.Metadata != nil {
 		dAtA[i] = 0xa
+		i++
+		i = encodeVarintCodec(dAtA, i, uint64(m.Metadata.Size()))
+		n5, err := m.Metadata.MarshalTo(dAtA[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += n5
+	}
+	if len(m.ID) > 0 {
+		dAtA[i] = 0x12
 		i++
 		i = encodeVarintCodec(dAtA, i, uint64(len(m.ID)))
 		i += copy(dAtA[i:], m.ID)
 	}
 	if len(m.Address) > 0 {
-		dAtA[i] = 0x12
+		dAtA[i] = 0x1a
 		i++
 		i = encodeVarintCodec(dAtA, i, uint64(len(m.Address)))
 		i += copy(dAtA[i:], m.Address)
 	}
 	if len(m.Action) > 0 {
-		dAtA[i] = 0x1a
+		dAtA[i] = 0x22
 		i++
 		i = encodeVarintCodec(dAtA, i, uint64(len(m.Action)))
 		i += copy(dAtA[i:], m.Action)
 	}
 	if len(m.T) > 0 {
-		dAtA[i] = 0x22
+		dAtA[i] = 0x2a
 		i++
 		i = encodeVarintCodec(dAtA, i, uint64(len(m.T)))
 		i += copy(dAtA[i:], m.T)
@@ -687,6 +744,10 @@ func (m *NonFungibleToken) Size() (n int) {
 	}
 	var l int
 	_ = l
+	if m.Metadata != nil {
+		l = m.Metadata.Size()
+		n += 1 + l + sovCodec(uint64(l))
+	}
 	l = len(m.ID)
 	if l > 0 {
 		n += 1 + l + sovCodec(uint64(l))
@@ -762,6 +823,10 @@ func (m *AddApprovalMsg) Size() (n int) {
 	}
 	var l int
 	_ = l
+	if m.Metadata != nil {
+		l = m.Metadata.Size()
+		n += 1 + l + sovCodec(uint64(l))
+	}
 	l = len(m.ID)
 	if l > 0 {
 		n += 1 + l + sovCodec(uint64(l))
@@ -789,6 +854,10 @@ func (m *RemoveApprovalMsg) Size() (n int) {
 	}
 	var l int
 	_ = l
+	if m.Metadata != nil {
+		l = m.Metadata.Size()
+		n += 1 + l + sovCodec(uint64(l))
+	}
 	l = len(m.ID)
 	if l > 0 {
 		n += 1 + l + sovCodec(uint64(l))
@@ -852,6 +921,42 @@ func (m *NonFungibleToken) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Metadata", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Metadata == nil {
+				m.Metadata = &weave.Metadata{}
+			}
+			if err := m.Metadata.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field ID", wireType)
 			}
 			var byteLen int
@@ -884,7 +989,7 @@ func (m *NonFungibleToken) Unmarshal(dAtA []byte) error {
 				m.ID = []byte{}
 			}
 			iNdEx = postIndex
-		case 2:
+		case 3:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Owner", wireType)
 			}
@@ -918,7 +1023,7 @@ func (m *NonFungibleToken) Unmarshal(dAtA []byte) error {
 				m.Owner = []byte{}
 			}
 			iNdEx = postIndex
-		case 3:
+		case 4:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field ActionApprovals", wireType)
 			}
@@ -1357,6 +1462,42 @@ func (m *AddApprovalMsg) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Metadata", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Metadata == nil {
+				m.Metadata = &weave.Metadata{}
+			}
+			if err := m.Metadata.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field ID", wireType)
 			}
 			var byteLen int
@@ -1389,7 +1530,7 @@ func (m *AddApprovalMsg) Unmarshal(dAtA []byte) error {
 				m.ID = []byte{}
 			}
 			iNdEx = postIndex
-		case 2:
+		case 3:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Address", wireType)
 			}
@@ -1423,7 +1564,7 @@ func (m *AddApprovalMsg) Unmarshal(dAtA []byte) error {
 				m.Address = []byte{}
 			}
 			iNdEx = postIndex
-		case 3:
+		case 4:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Action", wireType)
 			}
@@ -1455,7 +1596,7 @@ func (m *AddApprovalMsg) Unmarshal(dAtA []byte) error {
 			}
 			m.Action = Action(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 4:
+		case 5:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Options", wireType)
 			}
@@ -1488,7 +1629,7 @@ func (m *AddApprovalMsg) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
-		case 5:
+		case 6:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field T", wireType)
 			}
@@ -1575,6 +1716,42 @@ func (m *RemoveApprovalMsg) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Metadata", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Metadata == nil {
+				m.Metadata = &weave.Metadata{}
+			}
+			if err := m.Metadata.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field ID", wireType)
 			}
 			var byteLen int
@@ -1607,7 +1784,7 @@ func (m *RemoveApprovalMsg) Unmarshal(dAtA []byte) error {
 				m.ID = []byte{}
 			}
 			iNdEx = postIndex
-		case 2:
+		case 3:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Address", wireType)
 			}
@@ -1641,7 +1818,7 @@ func (m *RemoveApprovalMsg) Unmarshal(dAtA []byte) error {
 				m.Address = []byte{}
 			}
 			iNdEx = postIndex
-		case 3:
+		case 4:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Action", wireType)
 			}
@@ -1673,7 +1850,7 @@ func (m *RemoveApprovalMsg) Unmarshal(dAtA []byte) error {
 			}
 			m.Action = Action(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 4:
+		case 5:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field T", wireType)
 			}
