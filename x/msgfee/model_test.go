@@ -23,6 +23,13 @@ func TestMsgFeeValidate(t *testing.T) {
 			},
 			wantErr: nil,
 		},
+		"missing metadata": {
+			mf: MsgFee{
+				MsgPath: "foo/bar",
+				Fee:     coin.NewCoin(1, 2, "DOGE"),
+			},
+			wantErr: errors.ErrMetadata,
+		},
 		"empty path": {
 			mf: MsgFee{
 				Metadata: &weave.Metadata{Schema: 1},
