@@ -16,9 +16,9 @@ func init() {
 }
 
 const (
-	pathCreateSwap      = "swap/create"
-	pathReleaseSwapMsg  = "swap/release"
-	pathReturnReturnMsg = "swap/return"
+	pathCreateSwap   = "swap/create"
+	pathReleaseSwap  = "swap/release"
+	pathReturnReturn = "swap/return"
 
 	maxMemoSize int = 128
 	// preimage size in bytes
@@ -38,11 +38,11 @@ func (CreateSwapMsg) Path() string {
 }
 
 func (ReleaseSwapMsg) Path() string {
-	return pathReleaseSwapMsg
+	return pathReleaseSwap
 }
 
 func (ReturnSwapMsg) Path() string {
-	return pathReturnReturnMsg
+	return pathReturnReturn
 }
 
 // VALIDATION, Validate method makes sure basic rules are enforced upon input data and fulfills weave.Msg interface
@@ -51,9 +51,8 @@ func (m *CreateSwapMsg) Validate() error {
 	if err := m.Metadata.Validate(); err != nil {
 		return errors.Wrap(err, "metadata")
 	}
-	if len(m.PreimageHash) != preimageHashSize {
-		return errors.Wrapf(errors.ErrInvalidInput, "preimge hash is sha256 and therefore should be exactly "+
-			"%d bytes", preimageHashSize)
+	if err := validatePreimageHash(m.PreimageHash); err != nil {
+		return err
 	}
 	if err := m.Src.Validate(); err != nil {
 		return errors.Wrap(err, "recipient")
@@ -113,4 +112,12 @@ func validateAmount(amount coin.Coins) (coin.Coins, error) {
 		return c, errors.Wrapf(errors.ErrInvalidAmount, "non-positive CreateSwapMsg: %#v", &amount)
 	}
 	return c, amount.Validate()
+}
+
+func validatePreimageHash(preimageHash []byte) error {
+	if len(preimageHash) != preimageHashSize {
+		return errors.Wrapf(errors.ErrInvalidInput, "preimge hash is sha256 and therefore should be exactly "+
+			"%d bytes", preimageHashSize)
+	}
+	return nil
 }
