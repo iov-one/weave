@@ -241,6 +241,8 @@ func (h ReturnSwapHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave
 
 // validate does all common pre-processing between Check and Deliver.
 // TODO: Do we need to check who initiates this? I would assume this would be the sender
+// on the other hand I see no reasonable scenarios for abuse here, given the fee and the inability
+// to supply any parameters except for valid swapID
 func (h ReturnSwapHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) ([]byte, *Swap, error) {
 	var msg ReturnSwapMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
