@@ -35,11 +35,19 @@ message ElectionRule {
     // Duration how long the voting period will take place.
     uint32 voting_period_hours = 3;
     // Threshold is the fraction of all eligible voters, not only the ones who voted. To accept a
-    // proposal this value must be exceeded.
-    // The formula is `(yes*denominator) > (numerator*total_electors_weight)`.
+    // proposal this value must be exceeded with YES votes.
+    // The fraction of eligible voters is based on the total electorate weight unless a quorum is defined:
+    // The formula without quorum is `(yes*denominator) > (numerator*total_electors_weight)`.
+    //
+    // With a quorum fraction it is:
+    // `(yes*thresholdDenominator*quorumDenominator) > (total_electors_weight*thresholdNumerator*quorumNumerator)`.
+    //
     // The valid range for the threshold value is `0.5` to `1` (inclusive) which allows any value between half and all
     // of the eligible voters.
     Fraction threshold = 4 [(gogoproto.nullable) = false];
+    // The quorum fraction of eligible voters is based on the total electorate weight and defines a threshold of
+    // votes that must be exceeded before the acceptance threshold is applied.
+    // This value requires any kind of votes and not only YES.
     // The valid range for the threshold value is `0.5` to `1` (inclusive) which allows any value between half and all
     // of the eligible voters.
     Fraction quorum = 5;
@@ -109,18 +117,19 @@ message TextProposal {
 
 // TallyResult contains sums of the votes and all data for the final result.
 message TallyResult {
-  // Sum of weights of all the voters that approved the proposal
+  // TotalYes is the sum of weights of all the voters that approved the proposal
   uint64 total_yes = 1;
-  // Sum of weights of all the voters that rejected the proposal
+  // TotalNo is the sum of weights of all the voters that rejected the proposal
   uint64 total_no = 2;
-  // Sum of weights of all the voters that voted abstain
+  // TotalAbstain is the sum of weights of all the voters that voted abstain
   uint64 total_abstain = 3;
   // Sum of all weights in the electorate.
   uint64 total_electorate_weight = 4;
-  // Threshold of weights required in voting.
-    uint64 quorum_threshold_weight = 5;
-    // Threshold of weights quorum to accept a proposal when quorum threshold of voters was reached.
-    uint64 acceptance_threshold_weight = 6;
+  // QuorumThresholdWeight is the threshold in weights required to participate in the voting.
+  uint64 quorum_threshold_weight = 5;
+  // AcceptanceThresholdWeight is the threshold in weights to accept a proposal. This requires QuorumThresholdWeight
+  // exceeded in total of all votes for this proposal.
+  uint64 acceptance_threshold_weight = 6;
 }
 
 // Vote combines the elector and his voted option to archive them. The proposalID and address is stored within the key.

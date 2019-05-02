@@ -263,8 +263,21 @@ type ElectionRule struct {
 	// Human readable title.
 	Title string `protobuf:"bytes,2,opt,name=title,proto3" json:"title,omitempty"`
 	// Duration how long the voting period will take place.
-	VotingPeriodHours uint32   `protobuf:"varint,3,opt,name=voting_period_hours,json=votingPeriodHours,proto3" json:"voting_period_hours,omitempty"`
-	Threshold         Fraction `protobuf:"bytes,4,opt,name=threshold,proto3" json:"threshold"`
+	VotingPeriodHours uint32 `protobuf:"varint,3,opt,name=voting_period_hours,json=votingPeriodHours,proto3" json:"voting_period_hours,omitempty"`
+	// Threshold is the fraction of all eligible voters, not only the ones who voted. To accept a
+	// proposal this value must be exceeded with YES votes.
+	// The fraction of eligible voters is based on the total electorate weight unless a quorum is defined:
+	// The formula without quorum is `(yes*denominator) > (numerator*total_electors_weight)`.
+	//
+	// With a quorum fraction it is:
+	// `(yes*thresholdDenominator*quorumDenominator) > (total_electors_weight*thresholdNumerator*quorumNumerator)`.
+	//
+	// The valid range for the threshold value is `0.5` to `1` (inclusive) which allows any value between half and all
+	// of the eligible voters.
+	Threshold Fraction `protobuf:"bytes,4,opt,name=threshold,proto3" json:"threshold"`
+	// The quorum fraction of eligible voters is based on the total electorate weight and defines a threshold of
+	// votes that must be exceeded before the acceptance threshold is applied.
+	// This value requires any kind of votes and not only YES.
 	// The valid range for the threshold value is `0.5` to `1` (inclusive) which allows any value between half and all
 	// of the eligible voters.
 	Quorum *Fraction `protobuf:"bytes,5,opt,name=quorum,proto3" json:"quorum,omitempty"`
@@ -538,17 +551,18 @@ func (m *TextProposal) GetResult() TextProposal_Result {
 
 // TallyResult contains sums of the votes and all data for the final result.
 type TallyResult struct {
-	// Sum of weights of all the voters that approved the proposal
+	// TotalYes is the sum of weights of all the voters that approved the proposal
 	TotalYes uint64 `protobuf:"varint,1,opt,name=total_yes,json=totalYes,proto3" json:"total_yes,omitempty"`
-	// Sum of weights of all the voters that rejected the proposal
+	// TotalNo is the sum of weights of all the voters that rejected the proposal
 	TotalNo uint64 `protobuf:"varint,2,opt,name=total_no,json=totalNo,proto3" json:"total_no,omitempty"`
-	// Sum of weights of all the voters that voted abstain
+	// TotalAbstain is the sum of weights of all the voters that voted abstain
 	TotalAbstain uint64 `protobuf:"varint,3,opt,name=total_abstain,json=totalAbstain,proto3" json:"total_abstain,omitempty"`
 	// Sum of all weights in the electorate.
 	TotalElectorateWeight uint64 `protobuf:"varint,4,opt,name=total_electorate_weight,json=totalElectorateWeight,proto3" json:"total_electorate_weight,omitempty"`
-	// Threshold of weights required in voting.
+	// QuorumThresholdWeight is the threshold in weights required to participate in the voting.
 	QuorumThresholdWeight uint64 `protobuf:"varint,5,opt,name=quorum_threshold_weight,json=quorumThresholdWeight,proto3" json:"quorum_threshold_weight,omitempty"`
-	// Threshold of weights quorum to accept a proposal when quorum threshold of voters was reached.
+	// AcceptanceThresholdWeight is the threshold in weights to accept a proposal. This requires QuorumThresholdWeight
+	// exceeded in total of all votes for this proposal.
 	AcceptanceThresholdWeight uint64 `protobuf:"varint,6,opt,name=acceptance_threshold_weight,json=acceptanceThresholdWeight,proto3" json:"acceptance_threshold_weight,omitempty"`
 }
 
