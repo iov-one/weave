@@ -90,8 +90,6 @@ func NewBucket() Bucket {
 // Build generates a SwapAddress from PreimageHash, uses PreimageHash as the primary key and returns it as an orm
 // Object. It does not persist the swap in the store.
 func (b Bucket) Build(db weave.KVStore, swap *Swap) (orm.Object, error) {
-	swap.SwapAddress =
-		weave.NewCondition("aswap", "addr", swap.PreimageHash).Address()
 	return orm.NewSimpleObj(swap.PreimageHash, swap), nil
 }
 

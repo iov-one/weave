@@ -17,9 +17,6 @@ message Swap {
     // to unlock the coins in the swap should the transaction be a success
     bytes preimage_hash = 3;
     bytes recipient = 4 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
-    // swap_address is used to hold funds
-    bytes swap_address = 5 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
-
     // If unreleased before timeout, swap will return coins to src.
     // Timeout represents wall clock time as read from the block header. Timeout
     // is represented using POSIX time format.

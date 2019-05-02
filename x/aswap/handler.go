@@ -86,7 +86,7 @@ func (h CreateSwapHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave
 
 	// deposit amounts
 	senderAddr := swap.Src
-	if err := moveCoins(db, h.bank, senderAddr, swap.SwapAddress, msg.Amount); err != nil {
+	if err := moveCoins(db, h.bank, senderAddr, weave.NewAddress(swap.PreimageHash), msg.Amount); err != nil {
 		return nil, err
 	}
 	// return id of swap to use in future calls
@@ -145,13 +145,14 @@ func (h ReleaseSwapHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weav
 		return nil, err
 	}
 
-	amount, err := h.bank.Balance(db, swap.SwapAddress)
+	swapAddr := weave.NewAddress(swap.PreimageHash)
+	amount, err := h.bank.Balance(db, swapAddr)
 	if err != nil {
 		return nil, err
 	}
 
 	// withdraw the money from swap to recipient
-	if err := moveCoins(db, h.bank, swap.SwapAddress, swap.Recipient, amount); err != nil {
+	if err := moveCoins(db, h.bank, swapAddr, swap.Recipient, amount); err != nil {
 		return nil, err
 	}
 
@@ -218,13 +219,14 @@ func (h ReturnSwapHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave
 		return nil, err
 	}
 
-	available, err := h.bank.Balance(db, swap.SwapAddress)
+	swapAddr := weave.NewAddress(swap.PreimageHash)
+	available, err := h.bank.Balance(db, swapAddr)
 	if err != nil {
 		return nil, err
 	}
 
 	// withdraw all coins from swap to the defined "sender"
-	if err := moveCoins(db, h.bank, swap.SwapAddress, swap.Src, available); err != nil {
+	if err := moveCoins(db, h.bank, swapAddr, swap.Src, available); err != nil {
 		return nil, err
 	}
 	if err := h.bucket.Delete(db, swap.PreimageHash); err != nil {
