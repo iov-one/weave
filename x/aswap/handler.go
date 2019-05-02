@@ -3,6 +3,7 @@ package aswap
 import (
 	"bytes"
 	"crypto/sha256"
+
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/errors"
