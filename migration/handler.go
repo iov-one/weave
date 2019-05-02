@@ -96,7 +96,11 @@ func (h *upgradeSchemaHandler) Deliver(ctx weave.Context, db weave.KVStore, tx w
 		return nil, errors.Wrap(err, "current schema version")
 	}
 
-	schema := Schema{Pkg: msg.Pkg, Version: ver + 1}
+	schema := Schema{
+		Metadata: &weave.Metadata{Schema: 1},
+		Pkg:      msg.Pkg,
+		Version:  ver + 1,
+	}
 	obj, err := h.bucket.Create(db, &schema)
 	if err != nil {
 		return nil, errors.Wrap(err, "create schema version")
