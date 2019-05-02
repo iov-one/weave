@@ -14,8 +14,6 @@ func init() {
 const (
 	// BucketName is where we store the swaps
 	BucketName = "aswp"
-	// SequenceName is an auto-increment ID counter for swaps
-	SequenceName = "id"
 )
 
 var _ orm.CloneableData = (*Swap)(nil)
@@ -71,16 +69,9 @@ func AsSwap(obj orm.Object) *Swap {
 	return obj.Value().(*Swap)
 }
 
-// Condition calculates the address of a swap given
-// the key
-func Condition(key []byte) weave.Condition {
-	return weave.NewCondition("aswap", "seq", key)
-}
-
 // Bucket is a type-safe wrapper around orm.Bucket
 type Bucket struct {
 	orm.Bucket
-	condSeq orm.Sequence
 }
 
 // NewBucket initializes a Bucket with default name
@@ -92,19 +83,15 @@ func NewBucket() Bucket {
 		orm.NewSimpleObj(nil, &Swap{}))
 
 	return Bucket{
-		Bucket:  bucket,
-		condSeq: bucket.Sequence(SequenceName),
+		Bucket: bucket,
 	}
 }
 
-// Build assigns an ID to given swap instance and returns it as an orm
+// Build generates a SwapAddress from PreimageHash, uses PreimageHash as the primary key and returns it as an orm
 // Object. It does not persist the swap in the store.
 func (b Bucket) Build(db weave.KVStore, swap *Swap) (orm.Object, error) {
-	seq, err := b.condSeq.NextVal(db)
-	if err != nil {
-		return nil, err
-	}
-	swap.SwapAddress = weave.NewCondition("aswap", "seq", seq).Address()
+	swap.SwapAddress =
+		weave.NewCondition("aswap", "addr", swap.PreimageHash).Address()
 	return orm.NewSimpleObj(swap.PreimageHash, swap), nil
 }
 
