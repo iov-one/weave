@@ -18,7 +18,7 @@ message Swap {
     bytes preimage_hash = 3 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
     bytes recipient = 4 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
 
-    // If unreleased before timeout, swap will return coins to sender.
+    // If unreleased before timeout, swap will return coins to src.
     // Timeout represents wall clock time as read from the block header. Timeout
     // is represented using POSIX time format.
     // Expiration time is inclusive meaning that the swap expires as soon as
@@ -58,7 +58,7 @@ message ReleaseSwapMsg {
     bytes preimage = 3;
 }
 
-// ReturnSwapMsg releases the tokens to the sender.
+// ReturnSwapMsg releases the tokens to the src.
 // This operation only works if the Swap is expired.
 message ReturnSwapMsg {
     weave.Metadata metadata = 1;
