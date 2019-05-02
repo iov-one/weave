@@ -442,7 +442,7 @@ func TestNewTallyResult(t *testing.T) {
 		totalElectorateWeight uint64
 		exp                   TallyResult
 	}{
-		"Threshold 1/2": {
+		"Threshold value rounds down": {
 			threshold:             Fraction{Numerator: 1, Denominator: 2},
 			totalElectorateWeight: 9,
 			exp: TallyResult{
@@ -451,7 +451,7 @@ func TestNewTallyResult(t *testing.T) {
 				TotalElectorateWeight:     9,
 			},
 		},
-		"Threshold 1/1": {
+		"Threshold 1/1 should be less than total electorate weight": {
 			threshold:             Fraction{Numerator: 1, Denominator: 1},
 			totalElectorateWeight: 9,
 			exp: TallyResult{
@@ -460,12 +460,52 @@ func TestNewTallyResult(t *testing.T) {
 				TotalElectorateWeight:     9,
 			},
 		},
-		"High values": {
+		"High values do not overflow": {
 			threshold:             Fraction{Numerator: math.MaxUint32 - 1, Denominator: math.MaxUint32},
 			totalElectorateWeight: math.MaxUint64,
 			exp: TallyResult{
-				QuorumThresholdWeight:     math.MaxUint64 - 1,
-				AcceptanceThresholdWeight: math.MaxUint64 - 1,
+				QuorumThresholdWeight:     18446744069414584318, // (2^64-1) * (2^32-2)/(2^32-1)
+				AcceptanceThresholdWeight: 18446744069414584318,
+				TotalElectorateWeight:     math.MaxUint64,
+			},
+		},
+		"Quorum value rounds down": {
+			quorum:                &Fraction{Numerator: 1, Denominator: 2},
+			threshold:             Fraction{Numerator: 1, Denominator: 2},
+			totalElectorateWeight: 9,
+			exp: TallyResult{
+				QuorumThresholdWeight:     4,
+				AcceptanceThresholdWeight: 2,
+				TotalElectorateWeight:     9,
+			},
+		},
+		"Threshold on quorum value rounds down": {
+			quorum:                &Fraction{Numerator: 1, Denominator: 2},
+			threshold:             Fraction{Numerator: 1, Denominator: 2},
+			totalElectorateWeight: 10,
+			exp: TallyResult{
+				QuorumThresholdWeight:     5,
+				AcceptanceThresholdWeight: 2,
+				TotalElectorateWeight:     10,
+			},
+		},
+		"Quorum 1/1 should be less than total electorate weight": {
+			quorum:                &Fraction{Numerator: 1, Denominator: 1},
+			threshold:             Fraction{Numerator: 1, Denominator: 1},
+			totalElectorateWeight: 9,
+			exp: TallyResult{
+				QuorumThresholdWeight:     8,
+				AcceptanceThresholdWeight: 8,
+				TotalElectorateWeight:     9,
+			},
+		},
+		"Quorum values do not overflow": {
+			quorum:                &Fraction{Numerator: math.MaxUint32 - 1, Denominator: math.MaxUint32},
+			threshold:             Fraction{Numerator: math.MaxUint32 - 1, Denominator: math.MaxUint32},
+			totalElectorateWeight: math.MaxUint64,
+			exp: TallyResult{
+				QuorumThresholdWeight:     18446744069414584318, // (2^64-1) * (2^32-2)/(2^32-1)
+				AcceptanceThresholdWeight: 18446744065119617022, // (2^64-1) * (2^32-2)/(2^32-1) * (2^32-2)/(2^32-1)
 				TotalElectorateWeight:     math.MaxUint64,
 			},
 		},
@@ -478,7 +518,6 @@ func TestNewTallyResult(t *testing.T) {
 			}
 		})
 	}
-
 }
 
 func textProposalFixture(mods ...func(*TextProposal)) TextProposal {
