@@ -12,13 +12,14 @@ Note, that when swap timed out it is no longer possible for the recipient to ret
 the funds.
 
 The algorithm is as follows:
-1. Sender generates a preimage, stores it in a secure place
-2. Sender makes a sha256 hash out of the preimage
-3. With this hash sender creates a Swap
+1. Sender generates a preimage, stores it in a secure place.
+2. Sender makes a sha256 hash out of the preimage.
+3. With this hash sender creates a Swap.
 4. Sender can release the funds to the recipient by supplying a valid preimage, if the swap
-didn't time out
+didn't time out.
 5. If the swap timed out sender will be able to retrieve the funds from it just by sending a valid
-swapID
+swapID.
+6. Swap is deleted on successful retrieval for either step 4 or step 5.
 
 
 */
