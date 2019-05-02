@@ -3,13 +3,13 @@ package client
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-
 	"github.com/iov-one/weave/coin"
+	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/store"
 	"github.com/iov-one/weave/x/cash"
 	"github.com/iov-one/weave/x/sigs"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestSendTx(t *testing.T) {
@@ -28,6 +28,7 @@ func TestSendTx(t *testing.T) {
 
 	// make sure this validates
 	db := store.MemStore()
+	migration.MustInitPkg(db, "sigs")
 	conds, err := sigs.VerifyTxSignatures(db, tx, chainID)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(conds))

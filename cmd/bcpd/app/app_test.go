@@ -269,10 +269,21 @@ func withWalletAppState(t testing.TB, accounts []*account) string {
 			},
 		},
 		InitSchema: []schemaVer{
-			{Pkg: "cash", Ver: 1},
-			{Pkg: "paychan", Ver: 1},
-			{Pkg: "distribution", Ver: 1},
-			{Pkg: "escrow", Ver: 1},
+			{Ver: 1, Pkg: "batch"},
+			{Ver: 1, Pkg: "cash"},
+			{Ver: 1, Pkg: "currency"},
+			{Ver: 1, Pkg: "distribution"},
+			{Ver: 1, Pkg: "escrow"},
+			{Ver: 1, Pkg: "gov"},
+			{Ver: 1, Pkg: "hashlock"},
+			{Ver: 1, Pkg: "msgfee"},
+			{Ver: 1, Pkg: "multisig"},
+			{Ver: 1, Pkg: "namecoin"},
+			{Ver: 1, Pkg: "nft"},
+			{Ver: 1, Pkg: "paychan"},
+			{Ver: 1, Pkg: "sigs"},
+			{Ver: 1, Pkg: "utils"},
+			{Ver: 1, Pkg: "validators"},
 		},
 	}
 
@@ -459,6 +470,7 @@ func createContract(
 		}
 	}
 	msg := &multisig.CreateContractMsg{
+		Metadata:            &weave.Metadata{Schema: 1},
 		Participants:        participants,
 		ActivationThreshold: activationThreshold,
 		AdminThreshold:      multisig.Weight(len(contractSigs)) + 1, // immutable
@@ -474,6 +486,7 @@ func createContract(
 	contractID := dres.Data
 	queryAndCheckContract(t, baseApp, "/contracts", contractID,
 		multisig.Contract{
+			Metadata:            &weave.Metadata{Schema: 1},
 			Participants:        participants,
 			ActivationThreshold: activationThreshold,
 			AdminThreshold:      multisig.Weight(len(contractSigs)) + 1,
@@ -546,7 +559,9 @@ func queryAndCheckContract(t require.TestingT, baseApp app.BaseApp, path string,
 	require.Equal(t, uint32(0), res.Code, "%#v", res)
 	assert.NotEmpty(t, res.Value)
 
-	var actual multisig.Contract
+	actual := multisig.Contract{
+		Metadata: &weave.Metadata{Schema: 1},
+	}
 	err := app.UnmarshalOneResult(res.Value, &actual)
 	require.NoError(t, err)
 	require.Equal(t, expected, actual)

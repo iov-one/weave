@@ -212,6 +212,7 @@ func createContract(
 		}
 	}
 	msg := &multisig.CreateContractMsg{
+		Metadata:            &weave.Metadata{Schema: 1},
 		Participants:        participants,
 		ActivationThreshold: activationThreshold,
 		AdminThreshold:      multisig.Weight(len(contractSigs)) + 1, // immutable
@@ -228,6 +229,7 @@ func createContract(
 	contractID := dres.Data
 	queryAndCheckContract(t, baseApp, "/contracts", contractID,
 		multisig.Contract{
+			Metadata:            &weave.Metadata{Schema: 1},
 			Participants:        participants,
 			ActivationThreshold: activationThreshold,
 			AdminThreshold:      multisig.Weight(len(contractSigs)) + 1,
@@ -299,7 +301,9 @@ func queryAndCheckContract(t *testing.T, baseApp abci.Application, path string, 
 	require.Equal(t, uint32(0), res.Code, "%#v", res)
 	assert.NotEmpty(t, res.Value)
 
-	var actual multisig.Contract
+	actual := multisig.Contract{
+		Metadata: &weave.Metadata{Schema: 1},
+	}
 	err := weaveApp.UnmarshalOneResult(res.Value, &actual)
 	require.NoError(t, err)
 	require.Equal(t, expected, actual)

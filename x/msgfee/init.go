@@ -29,8 +29,9 @@ func (*Initializer) FromGenesis(opts weave.Options, db weave.KVStore) error {
 	bucket := NewMsgFeeBucket()
 	for i, f := range fees {
 		fee := MsgFee{
-			MsgPath: f.MsgPath,
-			Fee:     f.Fee,
+			Metadata: &weave.Metadata{Schema: 1},
+			MsgPath:  f.MsgPath,
+			Fee:      f.Fee,
 		}
 		if err := fee.Validate(); err != nil {
 			return errors.Wrap(err, fmt.Sprintf("fee #%d is invalid", i))

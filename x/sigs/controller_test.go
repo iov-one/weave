@@ -7,6 +7,7 @@ import (
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/crypto"
 	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/store"
 	"github.com/iov-one/weave/weavetest"
 	"github.com/iov-one/weave/weavetest/assert"
@@ -58,6 +59,7 @@ func TestSignBytes(t *testing.T) {
 
 func TestVerifySignature(t *testing.T) {
 	kv := store.MemStore()
+	migration.MustInitPkg(kv, "sigs")
 	priv := crypto.GenPrivKeyEd25519()
 	pub := priv.PublicKey()
 	perm := pub.Condition()
@@ -123,6 +125,7 @@ func TestVerifySignature(t *testing.T) {
 
 func TestVerifyTxSignatures(t *testing.T) {
 	kv := store.MemStore()
+	migration.MustInitPkg(kv, "sigs")
 
 	priv := weavetest.NewKey()
 	addr := priv.PublicKey().Condition()

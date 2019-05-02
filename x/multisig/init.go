@@ -33,6 +33,7 @@ func (*Initializer) FromGenesis(opts weave.Options, db weave.KVStore) error {
 			})
 		}
 		contract := Contract{
+			Metadata:            &weave.Metadata{Schema: 1},
 			Participants:        ps,
 			ActivationThreshold: c.ActivationThreshold,
 			AdminThreshold:      c.AdminThreshold,

@@ -3,7 +3,9 @@ package sigs
 import (
 	"testing"
 
+	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/store"
 	"github.com/iov-one/weave/weavetest"
 	"github.com/iov-one/weave/weavetest/assert"
@@ -11,6 +13,7 @@ import (
 
 func TestUserModel(t *testing.T) {
 	kv := store.MemStore()
+	migration.MustInitPkg(kv, "sigs")
 
 	bucket := NewBucket()
 	pub := weavetest.NewKey().PublicKey()
@@ -53,30 +56,67 @@ func TestUserModel(t *testing.T) {
 }
 
 func TestUserValidation(t *testing.T) {
+	cases := map[string]struct {
+		User    *UserData
+		WantErr *errors.Error
+	}{
+		"valid": {
+			User: &UserData{
+				Metadata: &weave.Metadata{Schema: 1},
+				Pubkey:   weavetest.NewKey().PublicKey(),
+				Sequence: 5,
+			},
+		},
+		"missing metadata": {
+			User: &UserData{
+				Pubkey:   weavetest.NewKey().PublicKey(),
+				Sequence: 5,
+			},
+			WantErr: errors.ErrMetadata,
+		},
+		"negative sequence": {
+			User: &UserData{
+				Metadata: &weave.Metadata{Schema: 1},
+				Pubkey:   weavetest.NewKey().PublicKey(),
+				Sequence: -5,
+			},
+			WantErr: ErrInvalidSequence,
+		},
+		"positive sequence without public key": {
+			User: &UserData{
+				Metadata: &weave.Metadata{Schema: 1},
+				Pubkey:   nil,
+				Sequence: 5,
+			},
+			WantErr: ErrInvalidSequence,
+		},
+	}
+
+	for testName, tc := range cases {
+		t.Run(testName, func(t *testing.T) {
+			err := tc.User.Validate()
+			if !tc.WantErr.Is(err) {
+				t.Fatalf("unexepcted error: %s", err)
+			}
+		})
+	}
+}
+
+func TestCannotSetUserPublicKeyTwice(t *testing.T) {
 	obj := NewUser(nil)
 	if err := obj.Validate(); !errors.ErrEmpty.Is(err) {
 		t.Fatalf("unexpected validation error: %s", err)
 	}
 
 	pub := weavetest.NewKey().PublicKey()
+
 	AsUser(obj).SetPubkey(pub)
 	if err := obj.Validate(); !errors.ErrEmpty.Is(err) {
 		t.Fatalf("unexpected validation error: %s", err)
 	}
 
-	obj.SetKey(pub.Address())
-	assert.Nil(t, obj.Validate())
-
 	// Cannot set pubkey a second time.
 	assert.Panics(t, func() {
 		AsUser(obj).SetPubkey(pub)
 	})
-
-	AsUser(obj).Sequence = -30
-	if err := obj.Validate(); !ErrInvalidSequence.Is(err) {
-		t.Fatalf("unexpected validation error: %s", err)
-	}
-
-	AsUser(obj).Sequence = 17
-	assert.Nil(t, obj.Validate())
 }

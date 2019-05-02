@@ -3,8 +3,13 @@ package multisig
 import (
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/orm"
 )
+
+func init() {
+	migration.MustRegister(1, &Contract{}, migration.NoModification)
+}
 
 const (
 	// BucketName is where we store the contracts
@@ -36,6 +41,9 @@ func (w Weight) Validate() error {
 var _ orm.CloneableData = (*Contract)(nil)
 
 func (c *Contract) Validate() error {
+	if err := c.Metadata.Validate(); err != nil {
+		return errors.Wrap(err, "metadata")
+	}
 	switch n := len(c.Participants); {
 	case n == 0:
 		return errors.Wrap(errors.ErrInvalidModel, "no participants")
@@ -57,6 +65,7 @@ func (c *Contract) Copy() orm.CloneableData {
 		})
 	}
 	return &Contract{
+		Metadata:            c.Metadata.Copy(),
 		Participants:        ps,
 		ActivationThreshold: c.ActivationThreshold,
 		AdminThreshold:      c.AdminThreshold,
@@ -74,7 +83,7 @@ type ContractBucket struct {
 // inherit Get and Save from orm.Bucket
 // add run-time check on Save
 func NewContractBucket() ContractBucket {
-	bucket := orm.NewBucket(BucketName,
+	bucket := migration.NewBucket("multisig", BucketName,
 		orm.NewSimpleObj(nil, new(Contract)))
 	return ContractBucket{
 		Bucket: bucket,

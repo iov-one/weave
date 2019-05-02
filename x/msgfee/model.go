@@ -4,12 +4,20 @@ import (
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/orm"
 )
+
+func init() {
+	migration.MustRegister(1, &MsgFee{}, migration.NoModification)
+}
 
 var _ orm.CloneableData = (*MsgFee)(nil)
 
 func (mf *MsgFee) Validate() error {
+	if err := mf.Metadata.Validate(); err != nil {
+		return errors.Wrap(err, "metadata")
+	}
 	if mf.MsgPath == "" {
 		return errors.Wrap(errors.ErrInvalidModel, "invalid message path")
 	}
@@ -24,8 +32,9 @@ func (mf *MsgFee) Validate() error {
 
 func (mf *MsgFee) Copy() orm.CloneableData {
 	return &MsgFee{
-		MsgPath: mf.MsgPath,
-		Fee:     *mf.Fee.Clone(),
+		Metadata: mf.Metadata.Copy(),
+		MsgPath:  mf.MsgPath,
+		Fee:      *mf.Fee.Clone(),
 	}
 }
 
@@ -36,7 +45,7 @@ type MsgFeeBucket struct {
 // NewMsgFeeBucket returns a bucket for keeping track of fees for eeach message
 // type. Message fees are indexed by the corresponding message path.
 func NewMsgFeeBucket() *MsgFeeBucket {
-	b := orm.NewBucket("msgfee", orm.NewSimpleObj(nil, &MsgFee{}))
+	b := migration.NewBucket("msgfee", "msgfee", orm.NewSimpleObj(nil, &MsgFee{}))
 	return &MsgFeeBucket{
 		Bucket: b,
 	}

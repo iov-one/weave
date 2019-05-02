@@ -6,6 +6,7 @@ import (
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/store"
 	"github.com/iov-one/weave/weavetest"
 	"github.com/iov-one/weave/weavetest/assert"
@@ -14,6 +15,7 @@ import (
 
 func TestDecorator(t *testing.T) {
 	db := store.MemStore()
+	migration.MustInitPkg(db, "multisig")
 
 	a := weavetest.NewCondition()
 	b := weavetest.NewCondition()
@@ -24,6 +26,7 @@ func TestDecorator(t *testing.T) {
 
 	// the contract we'll be using in our tests
 	contractID1 := createContract(t, db, Contract{
+		Metadata: &weave.Metadata{Schema: 1},
 		Participants: []*Participant{
 			{Weight: 1, Signature: a.Address()},
 			{Weight: 1, Signature: b.Address()},
@@ -35,6 +38,7 @@ func TestDecorator(t *testing.T) {
 
 	// contractID2 is used as a sig for contractID3
 	contractID2 := createContract(t, db, Contract{
+		Metadata: &weave.Metadata{Schema: 1},
 		Participants: []*Participant{
 			{Weight: 1, Signature: d.Address()},
 			{Weight: 1, Signature: e.Address()},
@@ -46,6 +50,7 @@ func TestDecorator(t *testing.T) {
 
 	// contractID3 requires either sig for a or activation for contractID2
 	contractID3 := createContract(t, db, Contract{
+		Metadata: &weave.Metadata{Schema: 1},
 		Participants: []*Participant{
 			{Weight: 1, Signature: a.Address()},
 			{Weight: 1, Signature: MultiSigCondition(contractID2).Address()},

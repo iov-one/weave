@@ -2,7 +2,13 @@ package multisig
 
 import (
 	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/migration"
 )
+
+func init() {
+	migration.MustRegister(1, &CreateContractMsg{}, migration.NoModification)
+	migration.MustRegister(1, &UpdateContractMsg{}, migration.NoModification)
+}
 
 const (
 	pathCreateContractMsg = "multisig/create"
@@ -23,6 +29,9 @@ func (CreateContractMsg) Path() string {
 
 // Validate enforces sigs and threshold boundaries
 func (c *CreateContractMsg) Validate() error {
+	if err := c.Metadata.Validate(); err != nil {
+		return errors.Wrap(err, "metadata")
+	}
 	switch n := len(c.Participants); {
 	case n == 0:
 		return errors.Wrap(errors.ErrInvalidMsg, "no participants")
@@ -40,6 +49,9 @@ func (UpdateContractMsg) Path() string {
 
 // Validate enforces sigs and threshold boundaries
 func (c *UpdateContractMsg) Validate() error {
+	if err := c.Metadata.Validate(); err != nil {
+		return errors.Wrap(err, "metadata")
+	}
 	switch n := len(c.Participants); {
 	case n == 0:
 		return errors.Wrap(errors.ErrInvalidMsg, "no participants")

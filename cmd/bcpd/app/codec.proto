@@ -5,11 +5,11 @@ package app;
 import "github.com/gogo/protobuf/gogoproto/gogo.proto";
 import "github.com/iov-one/weave/x/cash/codec.proto";
 import "github.com/iov-one/weave/x/currency/codec.proto";
+import "github.com/iov-one/weave/x/distribution/codec.proto";
 import "github.com/iov-one/weave/x/escrow/codec.proto";
 import "github.com/iov-one/weave/x/multisig/codec.proto";
 import "github.com/iov-one/weave/x/sigs/codec.proto";
 import "github.com/iov-one/weave/x/validators/codec.proto";
-import "github.com/iov-one/weave/x/distribution/codec.proto";
 
 // Tx contains the message.
 //

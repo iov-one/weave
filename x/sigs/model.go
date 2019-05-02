@@ -4,8 +4,13 @@ import (
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/crypto"
 	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/orm"
 )
+
+func init() {
+	migration.MustRegister(1, &UserData{}, migration.NoModification)
+}
 
 // BucketName is where we store the accounts
 const BucketName = "sigs"
@@ -18,6 +23,9 @@ var _ orm.CloneableData = (*UserData)(nil)
 
 // Validate requires that all coins are in alphabetical
 func (u *UserData) Validate() error {
+	if err := u.Metadata.Validate(); err != nil {
+		return errors.Wrap(err, "metadata")
+	}
 	seq := u.Sequence
 	if seq < 0 {
 		return errors.Wrapf(ErrInvalidSequence, "Seq(%d)", seq)
@@ -31,6 +39,7 @@ func (u *UserData) Validate() error {
 // Copy makes a new UserData with the same coins
 func (u *UserData) Copy() orm.CloneableData {
 	return &UserData{
+		Metadata: u.Metadata.Copy(),
 		Sequence: u.Sequence,
 		Pubkey:   u.Pubkey,
 	}
@@ -72,7 +81,10 @@ func AsUser(obj orm.Object) *UserData {
 // NewUser constructs an object from an address and pubkey
 func NewUser(pubkey *crypto.PublicKey) orm.Object {
 	var key weave.Address
-	value := &UserData{Pubkey: pubkey}
+	value := &UserData{
+		Metadata: &weave.Metadata{Schema: 1},
+		Pubkey:   pubkey,
+	}
 	if pubkey != nil {
 		key = pubkey.Address()
 	}
@@ -89,14 +101,12 @@ type Bucket struct {
 // NewBucket creates the proper bucket for this extension
 func NewBucket() Bucket {
 	return Bucket{
-		Bucket: orm.NewBucket(BucketName, NewUser(nil)),
+		Bucket: migration.NewBucket("sigs", BucketName, NewUser(nil)),
 	}
 }
 
 // GetOrCreate initializes a UserData if none exist for that key
-func (b Bucket) GetOrCreate(db weave.KVStore,
-	pubkey *crypto.PublicKey) (orm.Object, error) {
-
+func (b Bucket) GetOrCreate(db weave.KVStore, pubkey *crypto.PublicKey) (orm.Object, error) {
 	obj, err := b.Get(db, pubkey.Address())
 	if err == nil && obj == nil {
 		obj = NewUser(pubkey)

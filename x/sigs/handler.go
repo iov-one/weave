@@ -3,15 +3,17 @@ package sigs
 import (
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/x"
 )
 
 func RegisterRoutes(r weave.Registry, auth x.Authenticator) {
-	r.Handle(pathBumpSequenceMsg, &bumpSequenceHandler{
-		b:    NewBucket(),
-		auth: auth,
-	})
+	r.Handle(pathBumpSequenceMsg, migration.SchemaMigratingHandler("sigs",
+		&bumpSequenceHandler{
+			b:    NewBucket(),
+			auth: auth,
+		}))
 }
 
 type bumpSequenceHandler struct {

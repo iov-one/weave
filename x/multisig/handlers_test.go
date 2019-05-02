@@ -7,6 +7,7 @@ import (
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/app"
 	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/store"
 	"github.com/iov-one/weave/weavetest"
 	"github.com/iov-one/weave/weavetest/assert"
@@ -24,6 +25,7 @@ func TestCreateContractHandler(t *testing.T) {
 	}{
 		"successfully create a contract": {
 			Msg: &CreateContractMsg{
+				Metadata: &weave.Metadata{Schema: 1},
 				Participants: []*Participant{
 					{Weight: 1, Signature: alice},
 					{Weight: 2, Signature: bobby},
@@ -35,6 +37,7 @@ func TestCreateContractHandler(t *testing.T) {
 		},
 		"cannot create a contract without participants": {
 			Msg: &CreateContractMsg{
+				Metadata:            &weave.Metadata{Schema: 1},
 				Participants:        []*Participant{},
 				ActivationThreshold: 2,
 				AdminThreshold:      3,
@@ -43,6 +46,7 @@ func TestCreateContractHandler(t *testing.T) {
 		},
 		"cannot create if activation threshold is too high": {
 			Msg: &CreateContractMsg{
+				Metadata: &weave.Metadata{Schema: 1},
 				Participants: []*Participant{
 					{Weight: 1, Signature: alice},
 					{Weight: 2, Signature: bobby},
@@ -55,6 +59,7 @@ func TestCreateContractHandler(t *testing.T) {
 		},
 		"can create if admin threshold is higher than total participants power": {
 			Msg: &CreateContractMsg{
+				Metadata: &weave.Metadata{Schema: 1},
 				Participants: []*Participant{
 					{Weight: 1, Signature: alice},
 					{Weight: 2, Signature: bobby},
@@ -66,6 +71,7 @@ func TestCreateContractHandler(t *testing.T) {
 		},
 		"cannot create if activation threshold is higher than admin threshold": {
 			Msg: &CreateContractMsg{
+				Metadata: &weave.Metadata{Schema: 1},
 				Participants: []*Participant{
 					{Weight: 2, Signature: alice},
 					{Weight: 2, Signature: bobby},
@@ -86,6 +92,7 @@ func TestCreateContractHandler(t *testing.T) {
 	for testName, tc := range cases {
 		t.Run(testName, func(t *testing.T) {
 			db := store.MemStore()
+			migration.MustInitPkg(db, "multisig")
 			ctx := context.Background()
 			tx := &weavetest.Tx{Msg: tc.Msg}
 
@@ -129,6 +136,7 @@ func TestUpdateContractHandler(t *testing.T) {
 				cindyCond,
 			},
 			Msg: &UpdateContractMsg{
+				Metadata:   &weave.Metadata{Schema: 1},
 				ContractID: weavetest.SequenceID(1),
 				Participants: []*Participant{
 					{Weight: 1, Signature: alice},
@@ -147,6 +155,7 @@ func TestUpdateContractHandler(t *testing.T) {
 				bobbyCond,
 			},
 			Msg: &UpdateContractMsg{
+				Metadata:   &weave.Metadata{Schema: 1},
 				ContractID: weavetest.SequenceID(1),
 				Participants: []*Participant{
 					{Weight: 1, Signature: alice},
@@ -162,6 +171,7 @@ func TestUpdateContractHandler(t *testing.T) {
 				cindyCond,
 			},
 			Msg: &UpdateContractMsg{
+				Metadata:            &weave.Metadata{Schema: 1},
 				ContractID:          weavetest.SequenceID(1),
 				Participants:        []*Participant{},
 				ActivationThreshold: 2,
@@ -174,6 +184,7 @@ func TestUpdateContractHandler(t *testing.T) {
 				cindyCond,
 			},
 			Msg: &UpdateContractMsg{
+				Metadata:   &weave.Metadata{Schema: 1},
 				ContractID: weavetest.SequenceID(1),
 				Participants: []*Participant{
 					{Weight: 1, Signature: alice},
@@ -190,6 +201,7 @@ func TestUpdateContractHandler(t *testing.T) {
 				cindyCond,
 			},
 			Msg: &UpdateContractMsg{
+				Metadata:   &weave.Metadata{Schema: 1},
 				ContractID: weavetest.SequenceID(1),
 				Participants: []*Participant{
 					{Weight: 1, Signature: alice},
@@ -205,6 +217,7 @@ func TestUpdateContractHandler(t *testing.T) {
 				cindyCond,
 			},
 			Msg: &UpdateContractMsg{
+				Metadata:   &weave.Metadata{Schema: 1},
 				ContractID: weavetest.SequenceID(1),
 				Participants: []*Participant{
 					{Weight: 2, Signature: alice},
@@ -221,6 +234,7 @@ func TestUpdateContractHandler(t *testing.T) {
 				bobbyCond,
 			},
 			Msg: &UpdateContractMsg{
+				Metadata:   &weave.Metadata{Schema: 1},
 				ContractID: weavetest.SequenceID(1),
 				Participants: []*Participant{
 					{Weight: 1, Signature: alice},
@@ -241,12 +255,15 @@ func TestUpdateContractHandler(t *testing.T) {
 	for testName, tc := range cases {
 		t.Run(testName, func(t *testing.T) {
 			db := store.MemStore()
+			migration.MustInitPkg(db, "multisig")
+
 			ctx := context.Background()
 			ctx = auth.SetConditions(ctx, tc.Conditions...)
 			tx := &weavetest.Tx{Msg: tc.Msg}
 
 			b := NewContractBucket()
 			contract, err := b.Build(db, &Contract{
+				Metadata: &weave.Metadata{Schema: 1},
 				Participants: []*Participant{
 					{Weight: 1, Signature: alice},
 					{Weight: 2, Signature: bobby},

@@ -6,6 +6,7 @@ import (
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/store"
 	"github.com/iov-one/weave/weavetest"
 	"github.com/iov-one/weave/weavetest/assert"
@@ -13,6 +14,7 @@ import (
 
 func TestDecorator(t *testing.T) {
 	kv := store.MemStore()
+	migration.MustInitPkg(kv, "sigs")
 	checkKv := kv.CacheWrap()
 	signers := new(SigCheckHandler)
 	d := NewDecorator()
@@ -112,6 +114,7 @@ func TestGasPaymentPerSigner(t *testing.T) {
 	ctx := context.Background()
 	ctx = weave.WithChainID(ctx, "mychain")
 	db := store.MemStore()
+	migration.MustInitPkg(db, "sigs")
 
 	priv := weavetest.NewKey()
 	tx := NewStdTx([]byte("foo"))

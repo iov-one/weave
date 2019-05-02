@@ -2,10 +2,12 @@ package namecoin
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/iov-one/weave"
 	coin "github.com/iov-one/weave/coin"
+	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/store"
@@ -38,6 +40,72 @@ func TestValidateWalletBucket(t *testing.T) {
 	addr := weave.NewAddress([]byte{17, 93})
 	err := wb.Save(db, orm.NewSimpleObj(addr, new(Token)))
 	require.Error(t, err)
+}
+
+func TestValidateWallet(t *testing.T) {
+	cases := map[string]struct {
+		Wallet  *Wallet
+		WantErr *errors.Error
+	}{
+		"valid wallet": {
+			Wallet: &Wallet{
+				Metadata: &weave.Metadata{Schema: 1},
+				Coins: []*coin.Coin{
+					coin.NewCoinp(1, 0, "IOV"),
+				},
+				Name: "mywallet",
+			},
+			WantErr: nil,
+		},
+		"no coins": {
+			Wallet: &Wallet{
+				Metadata: &weave.Metadata{Schema: 1},
+				Coins:    nil,
+				Name:     "mywallet",
+			},
+			WantErr: nil,
+		},
+		"invalid coins": {
+			Wallet: &Wallet{
+				Metadata: &weave.Metadata{Schema: 1},
+				Coins: []*coin.Coin{
+					coin.NewCoinp(1, 0, "COIN-NAME-TOO-LONG"),
+				},
+				Name: "mywallet",
+			},
+			WantErr: errors.ErrCurrency,
+		},
+		"invalid wallet name": {
+			Wallet: &Wallet{
+				Metadata: &weave.Metadata{Schema: 1},
+				Name:     "INVALID",
+			},
+			WantErr: errors.ErrInvalidInput,
+		},
+		"wallet name too short": {
+			Wallet: &Wallet{
+				Metadata: &weave.Metadata{Schema: 1},
+				Name:     "abc",
+			},
+			WantErr: errors.ErrInvalidInput,
+		},
+		"wallet name too long": {
+			Wallet: &Wallet{
+				Metadata: &weave.Metadata{Schema: 1},
+				Name:     strings.Repeat("x", 21),
+			},
+			WantErr: errors.ErrInvalidInput,
+		},
+	}
+
+	for testName, tc := range cases {
+		t.Run(testName, func(t *testing.T) {
+			err := tc.Wallet.Validate()
+			if !tc.WantErr.Is(err) {
+				t.Fatalf("unexpected validation error: %s", err)
+			}
+		})
+	}
 }
 
 func TestWalletBucket(t *testing.T) {
