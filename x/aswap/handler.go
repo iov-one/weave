@@ -107,11 +107,9 @@ func (h CreateSwapHandler) validate(ctx weave.Context, db weave.KVStore, tx weav
 		return nil, errors.Wrap(errors.ErrInvalidInput, "timeout in the past")
 	}
 
-	// Sender must authorize this (if not set, defaults to MainSigner).
-	if msg.Src != nil {
-		if !h.auth.HasAddress(ctx, msg.Src) {
-			return nil, errors.ErrUnauthorized
-		}
+	// Sender must authorize this
+	if !h.auth.HasAddress(ctx, msg.Src) {
+		return nil, errors.ErrUnauthorized
 	}
 
 	// Leave the most expensive operation till we've sanity-checked everything else.
@@ -242,9 +240,6 @@ func (h ReturnSwapHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave
 }
 
 // validate does all common pre-processing between Check and Deliver.
-// TODO: Do we need to check who initiates this? I would assume this would be the sender
-// on the other hand I see no reasonable scenarios for abuse here, given the fee and the inability
-// to supply any parameters except for valid swapID
 func (h ReturnSwapHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*Swap, error) {
 	var msg ReturnSwapMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
@@ -256,6 +251,11 @@ func (h ReturnSwapHandler) validate(ctx weave.Context, db weave.KVStore, tx weav
 		return nil, err
 	}
 
+	// Sender must authorize this.
+	if !h.auth.HasAddress(ctx, swap.Src) {
+		return nil, errors.ErrUnauthorized
+	}
+
 	if !IsExpired(ctx, swap.Timeout) {
 		return nil, errors.Wrapf(errors.ErrInvalidState, "swap not expired %v", swap.Timeout)
 	}
@@ -264,14 +264,14 @@ func (h ReturnSwapHandler) validate(ctx weave.Context, db weave.KVStore, tx weav
 }
 
 // loadSwap loads swap and casts it, returns error if not present.
-func loadSwap(bucket Bucket, db weave.KVStore, swapID []byte) (*Swap, error) {
-	obj, err := bucket.Get(db, swapID)
+func loadSwap(bucket Bucket, db weave.KVStore, preimageHash []byte) (*Swap, error) {
+	obj, err := bucket.Get(db, preimageHash)
 	if err != nil {
 		return nil, err
 	}
 	swap := AsSwap(obj)
 	if swap == nil {
-		return nil, errors.Wrapf(errors.ErrEmpty, "swap %d", swapID)
+		return nil, errors.Wrapf(errors.ErrEmpty, "swap %d", preimageHash)
 	}
 	return swap, nil
 }
