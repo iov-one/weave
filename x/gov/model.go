@@ -282,16 +282,18 @@ func (m TallyResult) TotalVotes() uint64 {
 }
 
 func (m TallyResult) Validate() error {
-	if err := m.Threshold.Validate(); err != nil {
-		return errors.Wrap(errors.ErrInvalidState, "threshold")
-	}
-	if m.Quorum != nil {
+	switch {
+	case m.Quorum != nil:
 		if err := m.Quorum.Validate(); err != nil {
 			return errors.Wrap(errors.ErrInvalidState, "quorum")
 		}
+	case m.TotalElectorateWeight == 0:
+		return errors.Wrap(errors.ErrInvalidState, "totalElectorateWeight")
+	case m.TotalVotes() > m.TotalElectorateWeight:
+		return errors.Wrap(errors.ErrInvalidState, "votes must not exceed totalElectorateWeight")
 	}
-	if m.TotalElectorateWeight == 0 {
-		return errors.Wrap(errors.ErrInvalidState, "TotalElectorateWeight")
+	if err := m.Threshold.Validate(); err != nil {
+		return errors.Wrap(errors.ErrInvalidState, "threshold")
 	}
 	return nil
 }
