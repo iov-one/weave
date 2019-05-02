@@ -19,6 +19,9 @@ quickly be imported in your custom chain, as well as a
 simple framework for adding the custom functionality unique
 to your project.
 
+Join the Weave [community channel](https://riot.im/app/#/room/#weave:matrix.org) :loudspeaker:
+
+
 **Note: Requires Go 1.11.4+**
 
 It is inspired by the routing and middleware model of many web
