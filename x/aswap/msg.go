@@ -31,7 +31,7 @@ var _ weave.Msg = (*CreateSwapMsg)(nil)
 var _ weave.Msg = (*ReleaseSwapMsg)(nil)
 var _ weave.Msg = (*ReturnSwapMsg)(nil)
 
-// == ROUTING, Path method fulfills weave.Msg interface to allow routing
+// ROUTING, Path method fulfills weave.Msg interface to allow routing
 
 func (CreateSwapMsg) Path() string {
 	return pathCreateSwap
@@ -45,18 +45,19 @@ func (ReturnSwapMsg) Path() string {
 	return pathReturnReturnMsg
 }
 
-// == VALIDATION, Validate method makes sure basic rules are enforced upon input data and fulfills weave.Msg interface
+// VALIDATION, Validate method makes sure basic rules are enforced upon input data and fulfills weave.Msg interface
 
 func (m *CreateSwapMsg) Validate() error {
 	if err := m.Metadata.Validate(); err != nil {
 		return errors.Wrap(err, "metadata")
 	}
-
 	if len(m.PreimageHash) != preimageHashSize {
 		return errors.Wrapf(errors.ErrInvalidInput, "preimge hash is sha256 and therefore should be exactly "+
 			"%d bytes", preimageHashSize)
 	}
-
+	if err := m.Src.Validate(); err != nil {
+		return errors.Wrap(err, "recipient")
+	}
 	if err := m.Recipient.Validate(); err != nil {
 		return errors.Wrap(err, "recipient")
 	}
@@ -72,10 +73,9 @@ func (m *CreateSwapMsg) Validate() error {
 	if len(m.Memo) > maxMemoSize {
 		return errors.Wrapf(errors.ErrInvalidInput, "memo %s", m.Memo)
 	}
-	if err := validateAmount(m.Amount); err != nil {
-		return err
-	}
-	return nil
+	var err error
+	m.Amount, err = validateAmount(m.Amount)
+	return err
 }
 
 func (m *ReleaseSwapMsg) Validate() error {
@@ -102,10 +102,15 @@ func (m *ReturnSwapMsg) Validate() error {
 }
 
 // validateAmount makes sure the amount is positive and coins are of valid format
-func validateAmount(amount coin.Coins) error {
+func validateAmount(amount coin.Coins) (coin.Coins, error) {
+	c, err := coin.NormalizeCoins(amount)
+	if err != nil {
+		return c, errors.Wrap(err, "unable to normalize")
+	}
+
 	positive := amount.IsPositive()
 	if !positive {
-		return errors.Wrapf(errors.ErrInvalidAmount, "non-positive SendMsg: %#v", &amount)
+		return c, errors.Wrapf(errors.ErrInvalidAmount, "non-positive CreateSwapMsg: %#v", &amount)
 	}
-	return amount.Validate()
+	return c, amount.Validate()
 }

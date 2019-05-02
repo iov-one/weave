@@ -12,10 +12,10 @@ message Swap {
     // metadata is used for schema versioning support
     weave.Metadata metadata = 1;
 
-    bytes sender = 2 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
+    bytes src = 2 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
     // preimage hash is a hash of user's secret preimage that would serve as a "password"
     // to unlock the coins in the swap should the transaction be a success
-    bytes preimage_hash = 3 [(gogoproto.casttype) = "github.com/iov-one/weave.Condition"];
+    bytes preimage_hash = 3 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
     bytes recipient = 4 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
 
     // If unreleased before timeout, swap will return coins to sender.
@@ -35,9 +35,9 @@ message Swap {
 message CreateSwapMsg {
     weave.Metadata metadata = 1;
 
-    bytes sender = 2 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
+    bytes src = 2 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
     // sha256 hash of preimage
-    bytes preimage_hash = 3;
+    bytes preimage_hash = 3 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
     bytes recipient = 4 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
 
     // amount may contain multiple token types
@@ -48,7 +48,7 @@ message CreateSwapMsg {
     string memo = 7;
 }
 
-// ReleaseSwapMsg releases the tokens to the recepient.
+// ReleaseSwapMsg releases the tokens to the recipient.
 // This operation is authorized by preimage, which is sent raw and then hashed on the backend.
 message ReleaseSwapMsg {
     weave.Metadata metadata = 1;

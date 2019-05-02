@@ -41,6 +41,12 @@ func TestCreateSwapMsg(t *testing.T) {
 			},
 			Exp: errors.ErrEmpty,
 		},
+		"Invalid src": {
+			Mutator: func(msg *aswap.CreateSwapMsg) {
+				msg.Src = nil
+			},
+			Exp: errors.ErrEmpty,
+		},
 		"0 timeout": {
 			Mutator: func(msg *aswap.CreateSwapMsg) {
 				msg.Timeout = 0
@@ -74,7 +80,7 @@ func TestCreateSwapMsg(t *testing.T) {
 	}
 	for msg, spec := range specs {
 		baseMsg := aswap.CreateSwapMsg{Metadata: &weave.Metadata{Schema: 1},
-			Sender:       alice.Address(),
+			Src:          alice.Address(),
 			Recipient:    bob.Address(),
 			PreimageHash: make([]byte, 32),
 			Amount:       []*coin.Coin{&validCoin},
