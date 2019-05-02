@@ -15,7 +15,7 @@ message Swap {
     bytes src = 2 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
     // preimage hash is a hash of user's secret preimage that would serve as a "password"
     // to unlock the coins in the swap should the transaction be a success
-    bytes preimage_hash = 3 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
+    bytes preimage_hash = 3;
     bytes recipient = 4 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
 
     // If unreleased before timeout, swap will return coins to src.
@@ -37,7 +37,7 @@ message CreateSwapMsg {
 
     bytes src = 2 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
     // sha256 hash of preimage
-    bytes preimage_hash = 3 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
+    bytes preimage_hash = 3;
     bytes recipient = 4 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
 
     // amount may contain multiple token types
