@@ -6,6 +6,7 @@ import (
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/store"
 	"github.com/iov-one/weave/weavetest"
@@ -29,38 +30,61 @@ func TestNewTokenInfoHandler(t *testing.T) {
 			signers: []weave.Condition{permA, permB},
 			issuer:  permA.Address(),
 			initState: []orm.Object{
-				orm.NewSimpleObj([]byte("DOGE"), &TokenInfo{Name: "Doge Coin"}),
+				orm.NewSimpleObj([]byte("DOGE"), &TokenInfo{
+					Metadata: &weave.Metadata{Schema: 1},
+					Name:     "Doge Coin",
+				}),
 			},
-			msg:            &NewTokenInfoMsg{Ticker: "DOGE", Name: "Doge Coin"},
+			msg: &NewTokenInfoMsg{
+				Metadata: &weave.Metadata{Schema: 1},
+				Ticker:   "DOGE",
+				Name:     "Doge Coin",
+			},
 			wantCheckErr:   errors.ErrDuplicate,
 			wantDeliverErr: errors.ErrDuplicate,
 		},
 		"insufficient permission": {
-			signers:        []weave.Condition{permB},
-			issuer:         permA.Address(),
-			msg:            &NewTokenInfoMsg{Ticker: "DOGE", Name: "Doge Coin"},
+			signers: []weave.Condition{permB},
+			issuer:  permA.Address(),
+			msg: &NewTokenInfoMsg{
+				Metadata: &weave.Metadata{Schema: 1},
+				Ticker:   "DOGE",
+				Name:     "Doge Coin",
+			},
 			wantCheckErr:   errors.ErrUnauthorized,
 			wantDeliverErr: errors.ErrUnauthorized,
 		},
 		"query unknown ticker": {
-			signers:         []weave.Condition{permA, permB},
-			issuer:          permA.Address(),
-			msg:             &NewTokenInfoMsg{Ticker: "DOGE", Name: "Doge Coin"},
+			signers: []weave.Condition{permA, permB},
+			issuer:  permA.Address(),
+			msg: &NewTokenInfoMsg{
+				Metadata: &weave.Metadata{Schema: 1},
+				Ticker:   "DOGE",
+				Name:     "Doge Coin",
+			},
 			query:           "UNK",
 			wantQueryResult: nil,
 		},
 		"ok": {
-			signers:         []weave.Condition{permA, permB},
-			issuer:          permA.Address(),
-			msg:             &NewTokenInfoMsg{Ticker: "TKR", Name: "tikr"},
-			query:           "TKR",
-			wantQueryResult: orm.NewSimpleObj([]byte("TKR"), &TokenInfo{Name: "tikr"}),
+			signers: []weave.Condition{permA, permB},
+			issuer:  permA.Address(),
+			msg: &NewTokenInfoMsg{
+				Metadata: &weave.Metadata{Schema: 1},
+				Ticker:   "TKR",
+				Name:     "tikr",
+			},
+			query: "TKR",
+			wantQueryResult: orm.NewSimpleObj([]byte("TKR"), &TokenInfo{
+				Metadata: &weave.Metadata{Schema: 1},
+				Name:     "tikr",
+			}),
 		},
 	}
 
 	for testName, tc := range cases {
 		t.Run(testName, func(t *testing.T) {
 			db := store.MemStore()
+			migration.MustInitPkg(db, "currency")
 			bucket := NewTokenInfoBucket()
 			for _, obj := range tc.initState {
 				if err := bucket.Save(db, obj); err != nil {

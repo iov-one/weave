@@ -3,6 +3,7 @@ package base
 import (
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/x"
 	"github.com/iov-one/weave/x/nft"
@@ -15,7 +16,7 @@ const (
 
 // RegisterRoutes will instantiate and register all handlers in this package
 func RegisterRoutes(r weave.Registry, auth x.Authenticator, issuer weave.Address, buckets map[string]orm.Bucket) {
-	handler := NewApprovalOpsHandler(auth, issuer, buckets)
+	handler := migration.SchemaMigratingHandler("nft", NewApprovalOpsHandler(auth, issuer, buckets))
 	r.Handle(nft.PathAddApprovalMsg, handler)
 	r.Handle(nft.PathRemoveApprovalMsg, handler)
 }

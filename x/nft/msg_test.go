@@ -3,6 +3,7 @@ package nft
 import (
 	"testing"
 
+	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/weavetest"
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -15,9 +16,10 @@ func TestApprovalMsg(t *testing.T) {
 		Convey("Test add approvals", func() {
 			Convey("Happy flow", func() {
 				msg := AddApprovalMsg{
-					ID:      []byte("asdf"),
-					Address: validKey.Address(),
-					Action:  UpdateDetails,
+					Metadata: &weave.Metadata{Schema: 1},
+					ID:       []byte("asdf"),
+					Address:  validKey.Address(),
+					Action:   UpdateDetails,
 				}
 				Convey("Positive count", func() {
 					msg.Options = ApprovalOptions{Count: 1}
@@ -31,9 +33,10 @@ func TestApprovalMsg(t *testing.T) {
 
 			Convey("Testing various errors", func() {
 				msg := AddApprovalMsg{
-					ID:      []byte("asdf"),
-					Address: validKey.Address(),
-					Action:  UpdateDetails,
+					Metadata: &weave.Metadata{Schema: 1},
+					ID:       []byte("asdf"),
+					Address:  validKey.Address(),
+					Action:   UpdateDetails,
 				}
 
 				Convey("Invalid action", func() {
@@ -61,18 +64,20 @@ func TestApprovalMsg(t *testing.T) {
 		Convey("Test Remove approvals", func() {
 			Convey("Happy flow", func() {
 				msg := RemoveApprovalMsg{
-					ID:      []byte("asdf"),
-					Address: validKey.Address(),
-					Action:  UpdateDetails,
+					Metadata: &weave.Metadata{Schema: 1},
+					ID:       []byte("asdf"),
+					Address:  validKey.Address(),
+					Action:   UpdateDetails,
 				}
 				So(msg.Validate(), ShouldBeNil)
 			})
 
 			Convey("Testing various errors", func() {
 				msg := RemoveApprovalMsg{
-					ID:      []byte("asdf"),
-					Address: validKey.Address(),
-					Action:  UpdateDetails,
+					Metadata: &weave.Metadata{Schema: 1},
+					ID:       []byte("asdf"),
+					Address:  validKey.Address(),
+					Action:   UpdateDetails,
 				}
 
 				Convey("Invalid action", func() {

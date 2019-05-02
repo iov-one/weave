@@ -2,7 +2,13 @@ package nft
 
 import (
 	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/migration"
 )
+
+func init() {
+	migration.MustRegister(1, &AddApprovalMsg{}, migration.NoModification)
+	migration.MustRegister(1, &RemoveApprovalMsg{}, migration.NoModification)
+}
 
 const (
 	PathAddApprovalMsg    = "nft/approval/add"
@@ -23,6 +29,9 @@ func (*RemoveApprovalMsg) Path() string {
 }
 
 func (m AddApprovalMsg) Validate() error {
+	if err := m.Metadata.Validate(); err != nil {
+		return errors.Wrap(err, "metadata")
+	}
 	if err := m.Address.Validate(); err != nil {
 		return err
 	}
@@ -36,6 +45,9 @@ func (m AddApprovalMsg) Validate() error {
 }
 
 func (m RemoveApprovalMsg) Validate() error {
+	if err := m.Metadata.Validate(); err != nil {
+		return errors.Wrap(err, "metadata")
+	}
 	if err := m.Address.Validate(); err != nil {
 		return err
 	}

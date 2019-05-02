@@ -1,56 +1,64 @@
 package nft_test
 
 import (
-	"fmt"
 	"testing"
 
+	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/weavetest"
 	"github.com/iov-one/weave/x/nft"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestNonFungibleTokenValidate(t *testing.T) {
 	alice := weavetest.NewCondition()
-	specs := []struct {
-		token    nft.NonFungibleToken
-		expError bool
+	cases := map[string]struct {
+		Token   nft.NonFungibleToken
+		WantErr *errors.Error
 	}{
-		{ // happy path
-			token: nft.NonFungibleToken{
+		"valid model": {
+			Token: nft.NonFungibleToken{
+				Metadata: &weave.Metadata{Schema: 1},
+				ID:       []byte("anyID"),
+				Owner:    alice.Address(),
+			},
+			WantErr: nil,
+		},
+		"missing metadata": {
+			Token: nft.NonFungibleToken{
 				ID:    []byte("anyID"),
 				Owner: alice.Address(),
 			},
-			expError: false,
+			WantErr: errors.ErrMetadata,
 		},
-		{ // not an address
-			token: nft.NonFungibleToken{
-				ID:    []byte("anyID"),
-				Owner: []byte("not an address"),
+		"not an address": {
+			Token: nft.NonFungibleToken{
+				Metadata: &weave.Metadata{Schema: 1},
+				ID:       []byte("anyID"),
+				Owner:    []byte("not an address"),
 			},
-			expError: true,
+			WantErr: errors.ErrInvalidInput,
 		},
-		{ // id to small
-			token: nft.NonFungibleToken{
-				ID:    []byte("12"),
-				Owner: alice.Address(),
+		"id to small": {
+			Token: nft.NonFungibleToken{
+				Metadata: &weave.Metadata{Schema: 1},
+				ID:       []byte("12"),
+				Owner:    alice.Address(),
 			},
-			expError: true,
+			WantErr: errors.ErrInvalidInput,
 		},
-		{ // id too big
-			token: nft.NonFungibleToken{
-				ID:    anyIDWithLength(257),
-				Owner: alice.Address(),
+		"id too big": {
+			Token: nft.NonFungibleToken{
+				Metadata: &weave.Metadata{Schema: 1},
+				ID:       anyIDWithLength(257),
+				Owner:    alice.Address(),
 			},
-			expError: true,
+			WantErr: errors.ErrInvalidInput,
 		},
 	}
-	for i, spec := range specs {
-		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
-			err := spec.token.Validate()
-			if spec.expError {
-				assert.Error(t, err)
-			} else {
-				assert.NoError(t, err)
+	for testName, tc := range cases {
+		t.Run(testName, func(t *testing.T) {
+			if err := tc.Token.Validate(); !tc.WantErr.Is(err) {
+				t.Fatalf("unexpected validation error: %s", err)
 			}
 		})
 	}

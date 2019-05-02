@@ -3,6 +3,7 @@ package currency
 import (
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/x"
 )
 
@@ -13,7 +14,7 @@ func RegisterQuery(qr weave.QueryRouter) {
 }
 
 func RegisterRoutes(r weave.Registry, auth x.Authenticator, issuer weave.Address) {
-	r.Handle(NewTokenInfoMsg{}.Path(), NewTokenInfoHandler(auth, issuer))
+	r.Handle(NewTokenInfoMsg{}.Path(), migration.SchemaMigratingHandler("currency", NewTokenInfoHandler(auth, issuer)))
 }
 
 func NewTokenInfoHandler(auth x.Authenticator, issuer weave.Address) weave.Handler {
