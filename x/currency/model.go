@@ -6,8 +6,13 @@ import (
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/orm"
 )
+
+func init() {
+	migration.MustRegister(1, &TokenInfo{}, migration.NoModification)
+}
 
 var isTokenName = regexp.MustCompile(`^[A-Za-z0-9 \-_:]{3,32}$`).MatchString
 
@@ -17,11 +22,15 @@ var _ orm.CloneableData = (*TokenInfo)(nil)
 // object.
 func NewTokenInfo(ticker, name string) orm.Object {
 	return orm.NewSimpleObj([]byte(ticker), &TokenInfo{
-		Name: name,
+		Metadata: &weave.Metadata{Schema: 1},
+		Name:     name,
 	})
 }
 
 func (t *TokenInfo) Validate() error {
+	if err := t.Metadata.Validate(); err != nil {
+		return errors.Wrap(err, "metadata")
+	}
 	if !isTokenName(t.Name) {
 		return errors.Wrapf(errors.ErrInvalidState, "invalid token name %v", t.Name)
 	}
@@ -30,7 +39,8 @@ func (t *TokenInfo) Validate() error {
 
 func (t *TokenInfo) Copy() orm.CloneableData {
 	return &TokenInfo{
-		Name: t.Name,
+		Metadata: t.Metadata.Copy(),
+		Name:     t.Name,
 	}
 }
 
@@ -42,7 +52,7 @@ type TokenInfoBucket struct {
 
 func NewTokenInfoBucket() *TokenInfoBucket {
 	return &TokenInfoBucket{
-		Bucket: orm.NewBucket("tokeninfo", orm.NewSimpleObj(nil, &TokenInfo{})),
+		Bucket: migration.NewBucket("currency", "tokeninfo", orm.NewSimpleObj(nil, &TokenInfo{})),
 	}
 }
 

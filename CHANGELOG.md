@@ -30,6 +30,7 @@ Breaking changes
 - x/sigs is using schema versioned model and messages
 - x/multisig is using schema versioned model and messages
 - x/msgfee is using schema versioned model and messages
+- x/currency is using schema versioned model and messages
 
 
 ## 0.13.0

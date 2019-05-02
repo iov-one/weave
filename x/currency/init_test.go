@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/store"
 )
 
@@ -24,6 +25,7 @@ func TestGenesisKey(t *testing.T) {
 	}
 
 	db := store.MemStore()
+	migration.MustInitPkg(db, "currency")
 	var ini Initializer
 	if err := ini.FromGenesis(opts, db); err != nil {
 		t.Fatalf("cannot load genesis: %s", err)

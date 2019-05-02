@@ -4,13 +4,47 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/store"
 )
+
+func TestValidateTokenInfo(t *testing.T) {
+	cases := map[string]struct {
+		TokenInfo *TokenInfo
+		WantErr   *errors.Error
+	}{
+		"valid model": {
+			TokenInfo: &TokenInfo{
+				Metadata: &weave.Metadata{Schema: 1},
+				Name:     "foobar",
+			},
+			WantErr: nil,
+		},
+		"missing metadata": {
+			TokenInfo: &TokenInfo{
+				Name: "foobar",
+			},
+			WantErr: errors.ErrMetadata,
+		},
+	}
+
+	for testName, tc := range cases {
+		t.Run(testName, func(t *testing.T) {
+			if err := tc.TokenInfo.Validate(); !tc.WantErr.Is(err) {
+				t.Fatalf("unexpected validation errror: %s", err)
+			}
+		})
+	}
+
+}
 
 func TestTokenInfoBucketQuery(t *testing.T) {
 	bucket := NewTokenInfoBucket()
 
 	db := store.MemStore()
+	migration.MustInitPkg(db, "currency")
 
 	// Registration of invalid token must fail.
 	obj := NewTokenInfo("this is not a valid name", "Invalid Token")
