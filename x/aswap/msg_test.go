@@ -160,8 +160,8 @@ func TestReturnSwapMsg(t *testing.T) {
 	}
 	for msg, spec := range specs {
 		baseMsg := aswap.ReturnSwapMsg{
-			PreimageHash:   make([]byte, 32),
-			Metadata: &weave.Metadata{Schema: 1},
+			PreimageHash: make([]byte, 32),
+			Metadata:     &weave.Metadata{Schema: 1},
 		}
 
 		t.Run(msg, func(t *testing.T) {

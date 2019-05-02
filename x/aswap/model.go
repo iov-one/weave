@@ -92,8 +92,8 @@ func NewBucket() Bucket {
 		orm.NewSimpleObj(nil, &Swap{}))
 
 	return Bucket{
-		Bucket: bucket,
-		condSeq:  bucket.Sequence(SequenceName),
+		Bucket:  bucket,
+		condSeq: bucket.Sequence(SequenceName),
 	}
 }
 

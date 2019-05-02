@@ -233,7 +233,6 @@ func (h ReturnSwapHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave
 	return &weave.DeliverResult{}, nil
 }
 
-
 // validate does all common pre-processing between Check and Deliver.
 // TODO: Do we need to check who initiates this? I would assume this would be the sender
 // on the other hand I see no reasonable scenarios for abuse here, given the fee and the inability
@@ -278,7 +277,6 @@ func moveCoins(db weave.KVStore, bank cash.CoinMover, src, dest weave.Address, a
 	}
 	return nil
 }
-
 
 func hashPreimage(preimage []byte) []byte {
 	hash := sha256.Sum256(preimage)
