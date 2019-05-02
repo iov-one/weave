@@ -1,7 +1,6 @@
 package aswap
 
 import (
-	"bytes"
 	"crypto/sha256"
 
 	"github.com/iov-one/weave"
@@ -115,6 +114,15 @@ func (h CreateSwapHandler) validate(ctx weave.Context, db weave.KVStore, tx weav
 		}
 	}
 
+	// Leave the most expensive operation till we've sanity-checked everything else.
+	_, err := loadSwap(h.bucket, db, msg.PreimageHash)
+	switch {
+	case !errors.ErrEmpty.Is(err):
+		return nil, err
+	case err == nil:
+		return nil, errors.Wrap(errors.ErrDuplicate, "swap with the same preimage")
+	}
+
 	return &msg, nil
 }
 
@@ -170,7 +178,8 @@ func (h ReleaseSwapHandler) validate(ctx weave.Context, db weave.KVStore, tx wea
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, errors.Wrap(err, "load msg")
 	}
-	swap, err := loadSwap(h.bucket, db, msg.Preimage)
+
+	swap, err := loadSwap(h.bucket, db, hashPreimage(msg.Preimage))
 	if err != nil {
 		return nil, err
 	}
@@ -178,10 +187,6 @@ func (h ReleaseSwapHandler) validate(ctx weave.Context, db weave.KVStore, tx wea
 	// Sender must authorize this.
 	if !h.auth.HasAddress(ctx, swap.Src) {
 		return nil, errors.ErrUnauthorized
-	}
-
-	if !bytes.Equal(swap.PreimageHash, hashPreimage(msg.Preimage)) {
-		return nil, errors.Wrap(errors.ErrUnauthorized, "invalid preimage")
 	}
 
 	if IsExpired(ctx, swap.Timeout) {
