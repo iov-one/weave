@@ -176,14 +176,14 @@ func TestCrateTextProposalMsg(t *testing.T) {
 
 func TestDeleteTestProposalMsg(t *testing.T) {
 	specs := map[string]struct {
-		Msg DeleteTextProposalMsg
+		Msg DeleteProposalMsg
 		Exp *errors.Error
 	}{
 		"Happy path": {
-			Msg: DeleteTextProposalMsg{ID: weavetest.SequenceID(1)},
+			Msg: DeleteProposalMsg{ID: weavetest.SequenceID(1)},
 		},
 		"Empty ID": {
-			Msg: DeleteTextProposalMsg{},
+			Msg: DeleteProposalMsg{},
 			Exp: errors.ErrInvalidInput,
 		},
 	}

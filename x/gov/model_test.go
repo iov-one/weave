@@ -310,77 +310,77 @@ func TestElectionRuleValidation(t *testing.T) {
 
 func TestTextProposalValidation(t *testing.T) {
 	specs := map[string]struct {
-		Src TextProposal
+		Src Proposal
 		Exp *errors.Error
 	}{
 		"Happy path": {
 			Src: textProposalFixture(),
 		},
 		"Title too short": {
-			Src: textProposalFixture(func(p *TextProposal) {
+			Src: textProposalFixture(func(p *Proposal) {
 				p.Title = "foo"
 			}),
 			Exp: errors.ErrInvalidInput,
 		},
 		"Title too long": {
-			Src: textProposalFixture(func(p *TextProposal) {
+			Src: textProposalFixture(func(p *Proposal) {
 				p.Title = BigString(129)
 			}),
 			Exp: errors.ErrInvalidInput,
 		},
 		"Description empty": {
-			Src: textProposalFixture(func(p *TextProposal) {
+			Src: textProposalFixture(func(p *Proposal) {
 				p.Description = ""
 			}),
 			Exp: errors.ErrInvalidInput,
 		},
 		"Description too long": {
-			Src: textProposalFixture(func(p *TextProposal) {
+			Src: textProposalFixture(func(p *Proposal) {
 				p.Description = BigString(5001)
 			}),
 			Exp: errors.ErrInvalidInput,
 		},
 		"Author missing": {
-			Src: textProposalFixture(func(p *TextProposal) {
+			Src: textProposalFixture(func(p *Proposal) {
 				p.Author = nil
 			}),
 			Exp: errors.ErrInvalidInput,
 		},
 		"ElectorateID missing": {
-			Src: textProposalFixture(func(p *TextProposal) {
+			Src: textProposalFixture(func(p *Proposal) {
 				p.ElectorateID = nil
 			}),
 			Exp: errors.ErrInvalidInput,
 		},
 		"ElectionRuleID missing": {
-			Src: textProposalFixture(func(p *TextProposal) {
+			Src: textProposalFixture(func(p *Proposal) {
 				p.ElectionRuleID = nil
 			}),
 			Exp: errors.ErrInvalidInput,
 		},
 		"StartTime missing": {
-			Src: textProposalFixture(func(p *TextProposal) {
+			Src: textProposalFixture(func(p *Proposal) {
 				var unset time.Time
 				p.VotingStartTime = weave.AsUnixTime(unset)
 			}),
 			Exp: errors.ErrInvalidInput,
 		},
 		"EndTime missing": {
-			Src: textProposalFixture(func(p *TextProposal) {
+			Src: textProposalFixture(func(p *Proposal) {
 				var unset time.Time
 				p.VotingEndTime = weave.AsUnixTime(unset)
 			}),
 			Exp: errors.ErrInvalidInput,
 		},
 		"Status missing": {
-			Src: textProposalFixture(func(p *TextProposal) {
-				p.Status = TextProposal_Status(0)
+			Src: textProposalFixture(func(p *Proposal) {
+				p.Status = Proposal_Status(0)
 			}),
 			Exp: errors.ErrInvalidInput,
 		},
 		"Result missing": {
-			Src: textProposalFixture(func(p *TextProposal) {
-				p.Result = TextProposal_Result(0)
+			Src: textProposalFixture(func(p *Proposal) {
+				p.Result = Proposal_Result(0)
 			}),
 			Exp: errors.ErrInvalidInput,
 		},
@@ -435,9 +435,10 @@ func TestVoteValidate(t *testing.T) {
 	}
 }
 
-func textProposalFixture(mods ...func(*TextProposal)) TextProposal {
+func textProposalFixture(mods ...func(*Proposal)) Proposal {
 	now := weave.AsUnixTime(time.Now())
-	proposal := TextProposal{
+	proposal := Proposal{
+		Type:            Proposal_Text,
 		Title:           "My proposal",
 		Description:     "My description",
 		ElectionRuleID:  weavetest.SequenceID(1),
@@ -445,8 +446,8 @@ func textProposalFixture(mods ...func(*TextProposal)) TextProposal {
 		VotingStartTime: now.Add(-1 * time.Minute),
 		VotingEndTime:   now.Add(time.Minute),
 		SubmissionTime:  now.Add(-1 * time.Hour),
-		Status:          TextProposal_Submitted,
-		Result:          TextProposal_Undefined,
+		Status:          Proposal_Submitted,
+		Result:          Proposal_Undefined,
 		Author:          alice,
 		VoteState:       NewTallyResult(nil, Fraction{1, 2}, 11),
 	}

@@ -6,49 +6,37 @@ import (
 )
 
 const (
-	pathCreateTextProposalMsg  = "gov/create"
-	pathDeleteTextProposalMsg  = "gov/delete"
-	pathVoteMsg                = "gov/vote"
-	pathTallyMsg               = "gov/tally"
-	pathUpdateElectorateMsg    = "gov/electorate/update"
-	pathUpdateElectionRulesMsg = "gov/electionRules/update"
+	pathCreateTextProposalMsg             = "gov/create/text"
+	pathCreateElectorateUpdateProposalMsg = "gov/create/electorateUpdate"
+	pathDeleteTextProposalMsg             = "gov/delete"
+	pathVoteMsg                           = "gov/vote"
+	pathTallyMsg                          = "gov/tally"
+	pathUpdateElectorateMsg               = "gov/electorate/update"
+	pathUpdateElectionRulesMsg            = "gov/electionRules/update"
 )
 
 var _ weave.Msg = (*CreateTextProposalMsg)(nil)
 var _ weave.Msg = (*VoteMsg)(nil)
 var _ weave.Msg = (*TallyMsg)(nil)
-var _ weave.Msg = (*DeleteTextProposalMsg)(nil)
+var _ weave.Msg = (*DeleteProposalMsg)(nil)
+var _ weave.Msg = (*CreateElectorateUpdateProposalMsg)(nil)
 
 func (CreateTextProposalMsg) Path() string {
 	return pathCreateTextProposalMsg
 }
 
 func (m CreateTextProposalMsg) Validate() error {
-	err := m.Author.Validate()
-	switch {
-	case len(m.ElectorateID) == 0:
-		return errors.Wrap(errors.ErrInvalidInput, "empty electorate id")
-	case len(m.ElectionRuleID) == 0:
+	if len(m.ElectionRuleID) == 0 {
 		return errors.Wrap(errors.ErrInvalidInput, "empty election rules id")
-	case m.StartTime == 0:
-		return errors.Wrap(errors.ErrInvalidInput, "empty start time")
-	case m.Author != nil && err != nil:
-		return errors.Wrap(err, "invalid author")
-	case !validTitle(m.Title):
-		return errors.Wrapf(errors.ErrInvalidInput, "title: %q", m.Title)
-	case len(m.Description) < minDescriptionLength:
-		return errors.Wrapf(errors.ErrInvalidInput, "description length lower than minimum of: %d", minDescriptionLength)
-	case len(m.Description) > maxDescriptionLength:
-		return errors.Wrapf(errors.ErrInvalidInput, "description length exceeds: %d", maxDescriptionLength)
 	}
-	return m.StartTime.Validate()
+	return validateCreateProposal(&m)
 }
 
-func (DeleteTextProposalMsg) Path() string {
+func (DeleteProposalMsg) Path() string {
 	return pathDeleteTextProposalMsg
 }
 
-func (m DeleteTextProposalMsg) Validate() error {
+func (m DeleteProposalMsg) Validate() error {
 	if len(m.ID) == 0 {
 		return errors.Wrap(errors.ErrInvalidInput, "empty proposal id")
 	}
@@ -123,4 +111,48 @@ func (m UpdateElectorateMsg) Validate() error {
 		return errors.Wrap(errors.ErrInvalidInput, "duplicate addresses")
 	}
 	return nil
+}
+
+func (CreateElectorateUpdateProposalMsg) Path() string {
+	return pathCreateElectorateUpdateProposalMsg
+}
+
+func (m CreateElectorateUpdateProposalMsg) Validate() error {
+	for i, v := range m.DiffElectors {
+		if v.Weight > maxWeight {
+			return errors.Wrap(errors.ErrInvalidInput, "must not be greater max weight")
+		}
+		if err := v.Address.Validate(); err != nil {
+			return errors.Wrapf(err, "address at position: %d", i)
+		}
+	}
+	return validateCreateProposal(&m)
+}
+
+type commonCreateProposalData interface {
+	GetTitle() string
+	GetDescription() string
+	GetElectorateID() []byte
+	GetStartTime() weave.UnixTime
+	GetAuthor() weave.Address
+}
+
+func validateCreateProposal(m commonCreateProposalData) error {
+	err := m.GetAuthor().Validate()
+	switch {
+	case len(m.GetElectorateID()) == 0:
+		return errors.Wrap(errors.ErrInvalidInput, "empty electorate id")
+	case m.GetStartTime() == 0:
+		return errors.Wrap(errors.ErrInvalidInput, "empty start time")
+	case m.GetAuthor() != nil && err != nil:
+		return errors.Wrap(err, "invalid author")
+	case !validTitle(m.GetTitle()):
+		return errors.Wrapf(errors.ErrInvalidInput, "title: %q", m.GetTitle())
+	case len(m.GetDescription()) < minDescriptionLength:
+		return errors.Wrapf(errors.ErrInvalidInput, "description length lower than minimum of: %d", minDescriptionLength)
+	case len(m.GetDescription()) > maxDescriptionLength:
+		return errors.Wrapf(errors.ErrInvalidInput, "description length exceeds: %d", maxDescriptionLength)
+	}
+	return m.GetStartTime().Validate()
+
 }
