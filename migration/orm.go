@@ -9,6 +9,11 @@ import (
 // Bucket is a storage engine that supports and requires schema versioning. I
 // enforce every model to contain schema version information and where needed
 // migrates objects on the fly, before returning to the user.
+//
+// This bucket does not migrate on the fly the data returned by the queries.
+// Both Register and Query methods are using orm.Bucket implementation to
+// return data as stored in the database. This is important for the proof to
+// work. Query returned data must never be altered.
 type Bucket struct {
 	orm.Bucket
 	packageName string
