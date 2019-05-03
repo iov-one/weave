@@ -13,8 +13,8 @@ message Electorate {
   string title = 2;
   // Elector defines a list of all signatures that are allowed to participate in a vote
   repeated Elector electors = 3 [(gogoproto.nullable) = false];
-  // TotalWeightElectorate is the sum of all electors weights.
-  uint64 total_weight_electorate = 4;
+  // TotalElectorateWeight is the sum of all electors weights.
+  uint64 total_electorate_weight = 4;
 }
 
 // Elector clubs together a address with a weight. The greater the weight
@@ -34,12 +34,22 @@ message ElectionRule {
   string title = 2;
   // Duration how long the voting period will take place.
   uint32 voting_period_hours = 3;
-  // Threshold is the fraction of all eligible voters, not only the ones who voted. To accept a
-  // proposal this value must be exceeded.
-  // The formula is `(yes*denominator) > (numerator*total_electors_weight)`.
+  // Threshold is the fraction of either all eligible voters or in case of a quorum setup the fraction of all non
+  // abstained votes.
+  // To accept a proposal this value must be exceeded with Yes votes.
+  // The formula applied is:
+  // (yes * denominator) > (base * numerator) with base total electorate weight or Yes/No votes in case of quorum set
+  //
   // The valid range for the threshold value is `0.5` to `1` (inclusive) which allows any value between half and all
   // of the eligible voters.
   Fraction threshold = 4 [(gogoproto.nullable) = false];
+  // The quorum fraction of eligible voters is based on the total electorate weight and defines a threshold of
+  // votes that must be exceeded before the acceptance threshold is applied.
+  // This value requires any kind of votes and not only YES.
+  //
+  // The valid range for the threshold value is `0.5` to `1` (inclusive) which allows any value between half and all
+  // of the eligible voters.
+  Fraction quorum = 5;
 }
 
 // The Fraction type represents a numerator and denominator to enable higher precision thresholds in
@@ -106,17 +116,19 @@ message TextProposal {
 
 // TallyResult contains sums of the votes and all data for the final result.
 message TallyResult {
-  // Sum of weights of all the voters that approved the proposal
-  uint32 total_yes = 1;
-  // Sum of weights of all the voters that rejected the proposal
-  uint32 total_no = 2;
-  // Sum of weights of all the voters that voted abstain
-  uint32 total_abstain = 3;
-  // Sum of all weights in the electorate.
-  uint64 total_weight_electorate = 4;
-  // Threshold is the fraction of all eligible voters, not only the ones who voted. To accept a
-  // proposal this value must be exceeded.
-  Fraction threshold = 5 [(gogoproto.nullable) = false];
+  // TotalYes is the sum of weights of all the voters that approved the proposal
+  uint64 total_yes = 1;
+  // TotalNo is the sum of weights of all the voters that rejected the proposal
+  uint64 total_no = 2;
+  // TotalAbstain is the sum of weights of all the voters that voted abstain
+  uint64 total_abstain = 3;
+  // TotalElectorateWeight is the sum of all weights in the electorate.
+  uint64 total_electorate_weight = 4;
+  // Quorum when set is the fraction of the total electorate weight that must be exceeded by total votes weight.
+  Fraction quorum = 5;
+  // Threshold is the fraction of Yes votes of a base value that needs to be exceeded to accept the proposal.
+  // The base value is either the total electorate weight or the sum of Yes/No weights when a quorum is defined.
+  Fraction threshold = 6 [(gogoproto.nullable) = false];
 }
 
 // Vote combines the elector and his voted option to archive them. The proposalID and address is stored within the key.

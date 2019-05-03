@@ -1,6 +1,7 @@
 package gov
 
 import (
+	"math/big"
 	"regexp"
 	"time"
 
@@ -36,7 +37,7 @@ func (m Electorate) Validate() error {
 		}
 		index[addrKey] = struct{}{}
 	}
-	if m.TotalWeightElectorate != totalWeight {
+	if m.TotalElectorateWeight != totalWeight {
 		return errors.Wrap(errors.ErrInvalidInput, "total weight does not match sum")
 	}
 	if err := m.Admin.Validate(); err != nil {
@@ -94,7 +95,15 @@ func (m ElectionRule) Validate() error {
 	if err := m.Admin.Validate(); err != nil {
 		return errors.Wrap(err, "admin")
 	}
-	return m.Threshold.Validate()
+	if err := m.Threshold.Validate(); err != nil {
+		return errors.Wrap(err, "threshold")
+	}
+	if m.Quorum != nil {
+		if err := m.Quorum.Validate(); err != nil {
+			return errors.Wrap(err, "quorum")
+		}
+	}
+	return nil
 }
 
 func (m ElectionRule) Copy() orm.CloneableData {
@@ -148,7 +157,7 @@ func (m *TextProposal) Validate() error {
 	case !validTitle(m.Title):
 		return errors.Wrapf(errors.ErrInvalidInput, "title: %q", m.Title)
 	}
-	return nil
+	return m.VoteState.Validate()
 }
 
 func (m TextProposal) Copy() orm.CloneableData {
@@ -176,11 +185,11 @@ func (m *TextProposal) CountVote(vote Vote) error {
 	oldTotal := m.VoteState.TotalVotes()
 	switch vote.Voted {
 	case VoteOption_Yes:
-		m.VoteState.TotalYes += vote.Elector.Weight
+		m.VoteState.TotalYes += uint64(vote.Elector.Weight)
 	case VoteOption_No:
-		m.VoteState.TotalNo += vote.Elector.Weight
+		m.VoteState.TotalNo += uint64(vote.Elector.Weight)
 	case VoteOption_Abstain:
-		m.VoteState.TotalAbstain += vote.Elector.Weight
+		m.VoteState.TotalAbstain += uint64(vote.Elector.Weight)
 	default:
 		return errors.Wrapf(errors.ErrInvalidInput, "%q", m.String())
 	}
@@ -195,11 +204,11 @@ func (m *TextProposal) UndoCountVote(vote Vote) error {
 	oldTotal := m.VoteState.TotalVotes()
 	switch vote.Voted {
 	case VoteOption_Yes:
-		m.VoteState.TotalYes -= vote.Elector.Weight
+		m.VoteState.TotalYes -= uint64(vote.Elector.Weight)
 	case VoteOption_No:
-		m.VoteState.TotalNo -= vote.Elector.Weight
+		m.VoteState.TotalNo -= uint64(vote.Elector.Weight)
 	case VoteOption_Abstain:
-		m.VoteState.TotalAbstain -= vote.Elector.Weight
+		m.VoteState.TotalAbstain -= uint64(vote.Elector.Weight)
 	default:
 		return errors.Wrapf(errors.ErrInvalidInput, "%q", m.String())
 	}
@@ -227,14 +236,66 @@ func (m *TextProposal) Tally() error {
 	return nil
 }
 
-// Accepted returns the result of the `(yes*denominator) > (numerator*total_electors_weight)` calculation.
-func (m TallyResult) Accepted() bool {
-	return uint64(m.TotalYes)*uint64(m.Threshold.Denominator) > m.TotalWeightElectorate*uint64(m.Threshold.Numerator)
+func NewTallyResult(quorum *Fraction, threshold Fraction, totalElectorateWeight uint64) TallyResult {
+	return TallyResult{
+		Quorum:                quorum,
+		Threshold:             threshold,
+		TotalElectorateWeight: totalElectorateWeight,
+	}
 }
 
-// TotalVotes returns the sum of yes, no, abstain votes.
+//Accepted returns the result of the calculation if a proposal got enough votes or not.
+func (m TallyResult) Accepted() bool {
+	if m.TotalYes == m.TotalElectorateWeight { // handles 1/1 threshold
+		return true
+	}
+
+	total := m.TotalVotes()
+	bTotalElectorateWeight := new(big.Int).SetUint64(m.TotalElectorateWeight)
+	bBaseWeight := bTotalElectorateWeight
+	if m.Quorum != nil {
+		// new base = total Yes + total No
+		bBaseWeight = new(big.Int).Add(new(big.Int).SetUint64(m.TotalYes), new(big.Int).SetUint64(m.TotalNo))
+
+		if total != m.TotalElectorateWeight { // handles non 1/1 quorums only
+			// quorum reached when
+			// totalVotes * quorumDenominator > electorate * quorumNumerator
+			bTotalVotes := new(big.Int).SetUint64(total)
+			p1 := new(big.Int).Mul(bTotalVotes, big.NewInt(int64(m.Quorum.Denominator)))
+			p2 := new(big.Int).Mul(bTotalElectorateWeight, big.NewInt(int64(m.Quorum.Numerator)))
+			if p1.Cmp(p2) < 1 {
+				return false
+			}
+		}
+	}
+
+	// (yes * denominator) > (base * numerator) with base total electorate weight or YesNo votes in case of quorum set
+	bTotalYes := new(big.Int).SetUint64(m.TotalYes)
+	p1 := new(big.Int).Mul(bTotalYes, big.NewInt(int64(m.Threshold.Denominator)))
+	p2 := new(big.Int).Mul(bBaseWeight, big.NewInt(int64(m.Threshold.Numerator)))
+	return p1.Cmp(p2) > 0
+}
+
+// TotalVotes returns the sum of yes, no, abstain votes weights.
 func (m TallyResult) TotalVotes() uint64 {
-	return uint64(m.TotalYes) + uint64(m.TotalNo) + uint64(m.TotalAbstain)
+	return m.TotalYes + m.TotalNo + m.TotalAbstain
+}
+
+func (m TallyResult) Validate() error {
+	switch {
+	case m.Quorum != nil:
+		if err := m.Quorum.Validate(); err != nil {
+			return errors.Wrap(errors.ErrInvalidState, "quorum")
+		}
+	case m.TotalElectorateWeight == 0:
+		return errors.Wrap(errors.ErrInvalidState, "totalElectorateWeight")
+	case m.TotalVotes() > m.TotalElectorateWeight:
+		return errors.Wrap(errors.ErrInvalidState, "votes must not exceed totalElectorateWeight")
+	}
+	if err := m.Threshold.Validate(); err != nil {
+		return errors.Wrap(errors.ErrInvalidState, "threshold")
+	}
+	return nil
 }
 
 // validate vote object contains valid elector and voted option

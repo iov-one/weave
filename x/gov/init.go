@@ -16,6 +16,10 @@ var _ weave.Initializer = (*Initializer)(nil)
 // FromGenesis will parse initial governance electorate and election rules from genesis
 // and saves it in the database.
 func (*Initializer) FromGenesis(opts weave.Options, db weave.KVStore) error {
+	type fraction struct {
+		Numerator   uint32 `json:"numerator"`
+		Denominator uint32 `json:"denominator"`
+	}
 	var governance struct {
 		Electorate []struct {
 			Admin    weave.Address `json:"admin"`
@@ -29,10 +33,8 @@ func (*Initializer) FromGenesis(opts weave.Options, db weave.KVStore) error {
 			Admin             weave.Address `json:"admin"`
 			Title             string        `json:"title"`
 			VotingPeriodHours uint32        `json:"voting_period_hours"`
-			Fraction          struct {
-				Numerator   uint32 `json:"numerator"`
-				Denominator uint32 `json:"denominator"`
-			} `json:"fraction"`
+			Quorum            fraction      `json:"quorum"`
+			Threshold         fraction      `json:"threshold"`
 		} `json:"rules"`
 	}
 	if err := opts.ReadOptions("governance", &governance); err != nil {
@@ -54,7 +56,7 @@ func (*Initializer) FromGenesis(opts weave.Options, db weave.KVStore) error {
 			Admin:                 e.Admin,
 			Title:                 e.Title,
 			Electors:              ps,
-			TotalWeightElectorate: total,
+			TotalElectorateWeight: total,
 		}
 		if err := electorate.Validate(); err != nil {
 			return errors.Wrap(err, fmt.Sprintf("electorate #%d is invalid", i))
@@ -74,7 +76,10 @@ func (*Initializer) FromGenesis(opts weave.Options, db weave.KVStore) error {
 			Admin:             r.Admin,
 			Title:             r.Title,
 			VotingPeriodHours: r.VotingPeriodHours,
-			Threshold:         Fraction{Numerator: r.Fraction.Numerator, Denominator: r.Fraction.Denominator},
+			Threshold:         Fraction{Numerator: r.Threshold.Numerator, Denominator: r.Threshold.Denominator},
+		}
+		if r.Quorum.Numerator != 0 || r.Quorum.Denominator != 0 {
+			rule.Quorum = &Fraction{Numerator: r.Quorum.Numerator, Denominator: r.Quorum.Denominator}
 		}
 		if err := rule.Validate(); err != nil {
 			return errors.Wrap(err, fmt.Sprintf("eletionRule #%d is invalid", i))
