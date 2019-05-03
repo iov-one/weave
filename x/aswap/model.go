@@ -13,7 +13,7 @@ func init() {
 
 const (
 	// BucketName is where we store the swaps
-	BucketName = "aswp"
+	BucketName = "swap"
 )
 
 var _ orm.CloneableData = (*Swap)(nil)

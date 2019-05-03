@@ -115,10 +115,10 @@ func (h CreateSwapHandler) validate(ctx weave.Context, db weave.KVStore, tx weav
 	// Leave the most expensive operation till we've sanity-checked everything else.
 	_, err := loadSwap(h.bucket, db, msg.PreimageHash)
 	switch {
-	case !errors.ErrEmpty.Is(err):
-		return nil, err
 	case err == nil:
 		return nil, errors.Wrap(errors.ErrDuplicate, "swap with the same preimage")
+	case !errors.ErrEmpty.Is(err):
+		return nil, err
 	}
 
 	return &msg, nil

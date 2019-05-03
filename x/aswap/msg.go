@@ -101,11 +101,11 @@ func validateAmount(amount coin.Coins) (coin.Coins, error) {
 		return c, errors.Wrap(err, "unable to normalize")
 	}
 
-	positive := amount.IsPositive()
+	positive := c.IsPositive()
 	if !positive {
-		return c, errors.Wrapf(errors.ErrInvalidAmount, "non-positive CreateSwapMsg: %#v", &amount)
+		return c, errors.Wrapf(errors.ErrInvalidAmount, "non-positive CreateSwapMsg: %#v", &c)
 	}
-	return c, amount.Validate()
+	return c, c.Validate()
 }
 
 func validatePreimageHash(preimageHash []byte) error {
