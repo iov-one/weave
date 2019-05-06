@@ -43,11 +43,7 @@ func RegisterRoutes(r weave.Registry, auth x.Authenticator) {
 		elecBucket: elecBucket,
 		voteBucket: NewVoteBucket(),
 	})
-	r.Handle(pathTallyMsg, &TallyHandler{
-		auth:       auth,
-		bucket:     propBucket,
-		elecBucket: elecBucket,
-	})
+	r.Handle(pathTallyMsg, NewTallyHandler(auth, propBucket, elecBucket))
 	r.Handle(pathCreateTextProposalMsg, &TextProposalHandler{
 		auth:        auth,
 		propBucket:  propBucket,
@@ -166,9 +162,22 @@ func (h VoteHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) 
 }
 
 type TallyHandler struct {
-	auth       x.Authenticator
-	bucket     *ProposalBucket
-	elecBucket *ElectorateBucket
+	auth        x.Authenticator
+	propBucket  *ProposalBucket
+	elecBucket  *ElectorateBucket
+	typeHandler map[Proposal_Type]TallyResultExecutor
+}
+
+func NewTallyHandler(auth x.Authenticator, bucket *ProposalBucket, electBucket *ElectorateBucket) *TallyHandler {
+	return &TallyHandler{
+		auth:       auth,
+		propBucket: bucket,
+		elecBucket: electBucket,
+		typeHandler: map[Proposal_Type]TallyResultExecutor{
+			Proposal_Text:             noOpExecutor,
+			Proposal_UpdateElectorate: updateElectorateExecutor(electBucket),
+		},
+	}
 }
 
 func (h TallyHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
@@ -189,31 +198,15 @@ func (h TallyHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) 
 	}
 
 	if proposal.Result == Proposal_Accepted {
-		switch proposal.Type {
-		case Proposal_Text: //nothing to do
-		case Proposal_UpdateElectorate:
-			// hard coded here, revisit and maybe store in a map with callbacks
-			details := proposal.GetElectorateUpdateDetails()
-			if details == nil {
-				return nil, errors.Wrap(errors.ErrHuman, "details not set")
-			}
-			// merge
-			elect, err := h.elecBucket.GetElectorate(db, proposal.ElectorateID)
-			if err != nil {
-				return nil, errors.Wrap(err, "failed to load electorate")
-			}
-			merger := newMerger(elect.Electors)
-			// merge without validation
-			merger.merge(details.DiffElectors)
-			elect.Electors, elect.TotalElectorateWeight = merger.serialize()
-			if err := h.elecBucket.Save(db, orm.NewSimpleObj(proposal.ElectorateID, elect)); err != nil {
-				return nil, errors.Wrap(err, "failed to store update")
-			}
-		default:
+		exec, ok := h.typeHandler[proposal.Type]
+		if !ok {
 			return nil, errors.Wrapf(errors.ErrInvalidState, "unsupported type: %s", proposal.Type)
 		}
+		if err := exec(db, proposal); err != nil {
+			return nil, errors.Wrapf(err, "exution failed for type: %v", proposal.Type)
+		}
 	}
-	if err := h.bucket.Update(db, msg.ProposalID, proposal); err != nil {
+	if err := h.propBucket.Update(db, msg.ProposalID, proposal); err != nil {
 		return nil, err
 	}
 
@@ -231,7 +224,7 @@ func (h TallyHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx)
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, nil, errors.Wrap(err, "load msg")
 	}
-	proposal, err := h.bucket.GetProposal(db, msg.ProposalID)
+	proposal, err := h.propBucket.GetProposal(db, msg.ProposalID)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "failed to load proposal")
 	}
@@ -246,6 +239,36 @@ func (h TallyHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx)
 		return nil, nil, errors.Wrap(errors.ErrInvalidState, "tally before proposal end time")
 	}
 	return &msg, proposal, nil
+}
+
+// TallyResultExecutor functionality to be executed on successful proposal.
+type TallyResultExecutor func(db weave.KVStore, p *Proposal) error
+
+// noOpExecutor return nil without doing anything else
+func noOpExecutor(_ weave.KVStore, _ *Proposal) error {
+	return nil
+}
+
+// updateElectorateExecutor contains logic to update an electorate.
+func updateElectorateExecutor(elecBucket *ElectorateBucket) TallyResultExecutor {
+	return func(db weave.KVStore, proposal *Proposal) error {
+		details := proposal.GetElectorateUpdateDetails()
+		if details == nil {
+			return errors.Wrap(errors.ErrHuman, "details not set")
+		}
+		// merge diff
+		elect, err := elecBucket.GetElectorate(db, proposal.ElectorateID)
+		if err != nil {
+			return errors.Wrap(err, "failed to load electorate")
+		}
+		merger := newMerger(elect.Electors)
+		merger.merge(details.DiffElectors)
+		elect.Electors, elect.TotalElectorateWeight = merger.serialize()
+		if err := elecBucket.Save(db, orm.NewSimpleObj(proposal.ElectorateID, elect)); err != nil {
+			return errors.Wrap(err, "failed to store electorate update")
+		}
+		return nil
+	}
 }
 
 type TextProposalHandler struct {
