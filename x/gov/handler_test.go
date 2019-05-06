@@ -17,10 +17,12 @@ import (
 )
 
 var (
-	aliceCond = weavetest.NewCondition()
-	alice     = aliceCond.Address()
-	bobbyCond = weavetest.NewCondition()
-	bobby     = bobbyCond.Address()
+	aliceCond   = weavetest.NewCondition()
+	alice       = aliceCond.Address()
+	bobbyCond   = weavetest.NewCondition()
+	bobby       = bobbyCond.Address()
+	charlieCond = weavetest.NewCondition()
+	charlie     = charlieCond.Address()
 )
 
 func TestCreateProposal(t *testing.T) {
@@ -869,20 +871,46 @@ func TestUpdateElectorate(t *testing.T) {
 		"All good with update by owner": {
 			Msg: UpdateElectorateMsg{
 				ElectorateID: electorateID,
-				Electors:     []Elector{{Address: alice, Weight: 22}},
+				DiffElectors: []Elector{{Address: alice, Weight: 22}},
 			},
 			SignedBy: bobbyCond,
 			ExpModel: &Electorate{
 				Admin:                 bobby,
 				Title:                 "fooo",
-				Electors:              []Elector{{Address: alice, Weight: 22}},
-				TotalElectorateWeight: 22,
+				Electors:              []Elector{{Address: alice, Weight: 22}, {Address: bobby, Weight: 10}},
+				TotalElectorateWeight: 32,
+			},
+		},
+		"Update to remove address": {
+			Msg: UpdateElectorateMsg{
+				ElectorateID: electorateID,
+				DiffElectors: []Elector{{Address: alice, Weight: 0}},
+			},
+			SignedBy: bobbyCond,
+			ExpModel: &Electorate{
+				Admin:                 bobby,
+				Title:                 "fooo",
+				Electors:              []Elector{{Address: bobby, Weight: 10}},
+				TotalElectorateWeight: 10,
+			},
+		},
+		"Update to add a new address": {
+			Msg: UpdateElectorateMsg{
+				ElectorateID: electorateID,
+				DiffElectors: []Elector{{Address: charlie, Weight: 2}},
+			},
+			SignedBy: bobbyCond,
+			ExpModel: &Electorate{
+				Admin:                 bobby,
+				Title:                 "fooo",
+				Electors:              []Elector{{Address: alice, Weight: 1}, {Address: bobby, Weight: 10}, {Address: charlie, Weight: 2}},
+				TotalElectorateWeight: 13,
 			},
 		},
 		"Update by non owner should fail": {
 			Msg: UpdateElectorateMsg{
 				ElectorateID: electorateID,
-				Electors:     []Elector{{Address: alice, Weight: 22}},
+				DiffElectors: []Elector{{Address: alice, Weight: 22}},
 			},
 			SignedBy:       aliceCond,
 			WantCheckErr:   errors.ErrUnauthorized,
@@ -891,7 +919,7 @@ func TestUpdateElectorate(t *testing.T) {
 		"Update with open proposal should fail": {
 			Msg: UpdateElectorateMsg{
 				ElectorateID: electorateID,
-				Electors:     []Elector{{Address: alice, Weight: 22}},
+				DiffElectors: []Elector{{Address: alice, Weight: 22}},
 			},
 			SignedBy: bobbyCond,
 			ExpModel: &Electorate{
@@ -909,14 +937,14 @@ func TestUpdateElectorate(t *testing.T) {
 		"Update with closed proposal should succeed": {
 			Msg: UpdateElectorateMsg{
 				ElectorateID: electorateID,
-				Electors:     []Elector{{Address: alice, Weight: 22}},
+				DiffElectors: []Elector{{Address: alice, Weight: 22}, {Address: bobby}, {Address: charlie, Weight: 2}},
 			},
 			SignedBy: bobbyCond,
 			ExpModel: &Electorate{
 				Admin:                 bobby,
 				Title:                 "fooo",
-				Electors:              []Elector{{Address: alice, Weight: 22}},
-				TotalElectorateWeight: 22,
+				Electors:              []Elector{{Address: alice, Weight: 22}, {Address: charlie, Weight: 2}},
+				TotalElectorateWeight: 24,
 			},
 			WithProposal: true,
 			Mods: func(ctx weave.Context, proposal *Proposal) {
@@ -926,10 +954,9 @@ func TestUpdateElectorate(t *testing.T) {
 		"Update with too many electors should fail": {
 			Msg: UpdateElectorateMsg{
 				ElectorateID: electorateID,
-				Electors:     buildElectors(2001),
+				DiffElectors: buildElectors(2001),
 			},
 			SignedBy:       bobbyCond,
-			WantCheckErr:   errors.ErrInvalidInput,
 			WantDeliverErr: errors.ErrInvalidInput,
 		},
 		"Update without electors should fail": {
@@ -943,16 +970,16 @@ func TestUpdateElectorate(t *testing.T) {
 		"Duplicate electors should fail": {
 			Msg: UpdateElectorateMsg{
 				ElectorateID: electorateID,
-				Electors:     []Elector{{Address: alice, Weight: 1}, {Address: alice, Weight: 2}},
+				DiffElectors: []Elector{{Address: alice, Weight: 1}, {Address: alice, Weight: 2}},
 			},
 			SignedBy:       bobbyCond,
-			WantCheckErr:   errors.ErrInvalidInput,
-			WantDeliverErr: errors.ErrInvalidInput,
+			WantCheckErr:   errors.ErrDuplicate,
+			WantDeliverErr: errors.ErrDuplicate,
 		},
 		"Empty address in electors should fail": {
 			Msg: UpdateElectorateMsg{
 				ElectorateID: electorateID,
-				Electors:     []Elector{{Address: weave.Address{}, Weight: 1}},
+				DiffElectors: []Elector{{Address: weave.Address{}, Weight: 1}},
 			},
 			SignedBy:       bobbyCond,
 			WantCheckErr:   errors.ErrEmpty,
@@ -995,6 +1022,7 @@ func TestUpdateElectorate(t *testing.T) {
 			if err != nil {
 				t.Fatalf("unexpected error: %+v", err)
 			}
+			sortByAddress(spec.ExpModel.Electors)
 			if exp, got := spec.ExpModel, e; !reflect.DeepEqual(exp, got) {
 				t.Errorf("expected %v but got %v", exp, got)
 			}

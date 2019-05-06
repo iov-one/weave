@@ -65,6 +65,7 @@ func (*Initializer) FromGenesis(opts weave.Options, db weave.KVStore) error {
 		if err != nil {
 			return err
 		}
+		sortByAddress(electorate.Electors)
 		if err := electBucket.Save(db, obj); err != nil {
 			return err
 		}

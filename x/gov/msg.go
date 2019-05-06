@@ -95,20 +95,16 @@ func (m UpdateElectorateMsg) Validate() error {
 	switch {
 	case len(m.ElectorateID) == 0:
 		return errors.Wrap(errors.ErrEmpty, "id")
-	case len(m.Electors) == 0:
+	case len(m.DiffElectors) == 0:
 		return errors.Wrap(errors.ErrEmpty, "electors")
-	case len(m.Electors) > maxElectors:
-		return errors.Wrapf(errors.ErrInvalidInput, "electors must not exceed: %d", maxElectors)
 	}
-	index := map[string]struct{}{} // address index for duplicates
-	for i, v := range m.Electors {
-		if err := v.Validate(); err != nil {
-			return errors.Wrapf(err, "elector %d", i)
+	for i, v := range m.DiffElectors {
+		if v.Weight > maxWeight {
+			return errors.Wrap(errors.ErrInvalidInput, "must not be greater max weight")
 		}
-		index[v.Address.String()] = struct{}{}
-	}
-	if len(index) != len(m.Electors) {
-		return errors.Wrap(errors.ErrInvalidInput, "duplicate addresses")
+		if err := v.Address.Validate(); err != nil {
+			return errors.Wrapf(err, "address at position: %d", i)
+		}
 	}
 	return nil
 }

@@ -525,11 +525,10 @@ func (h UpdateElectorateHandler) Deliver(ctx weave.Context, db weave.KVStore, tx
 		}
 	}
 	// all good, let's update
-	elect.Electors = msg.Electors // TODO: use merger to send diff only
-	elect.TotalElectorateWeight = 0
-	for _, v := range msg.Electors {
-		elect.TotalElectorateWeight += uint64(v.Weight)
-	}
+	merger := newMerger(elect.Electors)
+	merger.merge(msg.DiffElectors)
+	elect.Electors, elect.TotalElectorateWeight = merger.serialize()
+
 	if err := h.elecBucket.Save(db, orm.NewSimpleObj(msg.ElectorateID, elect)); err != nil {
 		return nil, errors.Wrap(err, "failed to store update")
 	}
@@ -547,6 +546,10 @@ func (h UpdateElectorateHandler) validate(ctx weave.Context, db weave.KVStore, t
 	}
 	if !h.auth.HasAddress(ctx, e.Admin) {
 		return nil, nil, errors.ErrUnauthorized
+	}
+	merger := newMerger(e.Electors)
+	if err := merger.validate(msg.DiffElectors); err != nil {
+		return nil, nil, err
 	}
 	return &msg, e, nil
 }

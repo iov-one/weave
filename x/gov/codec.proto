@@ -231,8 +231,9 @@ message TallyMsg {
 
 message UpdateElectorateMsg {
   bytes electorate_id = 1 [(gogoproto.customname) = "ElectorateID"];
-  // Elector defines a list of all signatures that are allowed to participate in a vote
-  repeated Elector electors = 2 [(gogoproto.nullable) = false];
+  // DiffElectors contains the changes that should be applied. Adding an address should have a positive weight, removing
+  // with weight=0.
+  repeated Elector diff_electors = 2 [(gogoproto.nullable) = false];
 }
 
 message UpdateElectionRuleMsg {
