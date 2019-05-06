@@ -2979,7 +2979,7 @@ expired: [timeout, infinity) </p></td>
                   <td>preimage_hash</td>
                   <td><a href="#bytes">bytes</a></td>
                   <td></td>
-                  <td><p>sha256 hash of preimage </p></td>
+                  <td><p>sha256 hash of preimage, 32 bytes long </p></td>
                 </tr>
               
                 <tr>
@@ -3037,7 +3037,8 @@ expired: [timeout, infinity) </p></td>
                   <td>preimage</td>
                   <td><a href="#bytes">bytes</a></td>
                   <td></td>
-                  <td><p>raw preimage to unlock swap, also helpful to retrieve the swap by it&#39;s hashed version </p></td>
+                  <td><p>raw preimage to unlock swap, also helpful to retrieve the swap by it&#39;s hashed version
+should be exactly 32 bytes long </p></td>
                 </tr>
               
             </tbody>
@@ -3067,7 +3068,7 @@ expired: [timeout, infinity) </p></td>
                   <td>preimage_hash</td>
                   <td><a href="#bytes">bytes</a></td>
                   <td></td>
-                  <td><p> </p></td>
+                  <td><p>sha256 hash of preimage, 32 bytes long </p></td>
                 </tr>
               
             </tbody>
@@ -3101,11 +3102,10 @@ expired: [timeout, infinity) </p></td>
                 </tr>
               
                 <tr>
-                  <td>preimage_hash</td>
+                  <td>address</td>
                   <td><a href="#bytes">bytes</a></td>
                   <td></td>
-                  <td><p>preimage hash is a hash of user&#39;s secret preimage that would serve as a &#34;password&#34;
-to unlock the coins in the swap should the transaction be a success </p></td>
+                  <td><p>address is a swap address deduced from preimage_hash condition </p></td>
                 </tr>
               
                 <tr>

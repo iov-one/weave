@@ -26,11 +26,11 @@ func (s *Swap) Validate() error {
 	if err := s.Src.Validate(); err != nil {
 		return errors.Wrap(err, "src")
 	}
-	if err := validatePreimageHash(s.PreimageHash); err != nil {
-		return err
-	}
 	if err := s.Recipient.Validate(); err != nil {
 		return errors.Wrap(err, "recipient")
+	}
+	if err := s.Address.Validate(); err != nil {
+		return errors.Wrap(err, "address")
 	}
 	if s.Timeout == 0 {
 		// Zero timeout is a valid value that dates to 1970-01-01. We
@@ -50,12 +50,12 @@ func (s *Swap) Validate() error {
 // Copy makes a new swap with the same coins
 func (s *Swap) Copy() orm.CloneableData {
 	return &Swap{
-		Metadata:     s.Metadata.Copy(),
-		Src:          s.Src,
-		PreimageHash: s.PreimageHash,
-		Recipient:    s.Recipient,
-		Timeout:      s.Timeout,
-		Memo:         s.Memo,
+		Metadata:  s.Metadata.Copy(),
+		Src:       s.Src,
+		Address:   s.Address,
+		Recipient: s.Recipient,
+		Timeout:   s.Timeout,
+		Memo:      s.Memo,
 	}
 }
 
@@ -87,10 +87,10 @@ func NewBucket() Bucket {
 	}
 }
 
-// Build generates a SwapAddress from PreimageHash, uses PreimageHash as the primary key and returns it as an orm
+// Build uses preimageHash as the primary key and returns swap as an orm
 // Object. It does not persist the swap in the store.
-func (b Bucket) Build(db weave.KVStore, swap *Swap) (orm.Object, error) {
-	return orm.NewSimpleObj(swap.PreimageHash, swap), nil
+func (b Bucket) Build(db weave.KVStore, preimageHash []byte, swap *Swap) (orm.Object, error) {
+	return orm.NewSimpleObj(preimageHash, swap), nil
 }
 
 // Save enforces the proper type
