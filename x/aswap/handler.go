@@ -199,11 +199,6 @@ func (h ReleaseSwapHandler) validate(ctx weave.Context, db weave.KVStore, tx wea
 		return nil, nil, err
 	}
 
-	// Sender must authorize this.
-	if !h.auth.HasAddress(ctx, swap.Src) {
-		return nil, nil, errors.ErrUnauthorized
-	}
-
 	return preimageHash, swap, nil
 }
 
