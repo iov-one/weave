@@ -2,6 +2,7 @@ package aswap
 
 import (
 	"crypto/sha256"
+	"time"
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/coin"
@@ -19,8 +20,10 @@ const (
 	releaseSwapCost int64 = 0
 
 	// currently set to two days
-	dayInSeconds   = 86400
-	minTimeoutDays = 2
+	day = time.Hour * 24
+	// amount of days for minTimeout
+	timeoutDays = 2
+	minTimeout  = timeoutDays * day
 
 	tagSwapId string = "swap-id"
 	tagAction string = "action"
@@ -109,9 +112,9 @@ func (h CreateSwapHandler) validate(ctx weave.Context, db weave.KVStore, tx weav
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, errors.Wrap(err, "load msg")
 	}
-	if IsExpired(ctx, msg.Timeout-minTimeoutDays*dayInSeconds) {
+	if IsExpired(ctx, msg.Timeout.Add(-minTimeout)) {
 		return nil, errors.Wrapf(errors.ErrInvalidInput,
-			"timeout should be a minimum of %d days from now", minTimeoutDays)
+			"timeout should be a minimum of %d days from now", timeoutDays)
 	}
 	if IsExpired(ctx, msg.Timeout) {
 		return nil, errors.Wrap(errors.ErrInvalidInput, "timeout in the past")
