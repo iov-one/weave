@@ -450,6 +450,33 @@ func textProposalFixture(mods ...func(*Proposal)) Proposal {
 		Result:          Proposal_Undefined,
 		Author:          alice,
 		VoteState:       NewTallyResult(nil, Fraction{1, 2}, 11),
+		Details:         &Proposal_TextDetails{&TextProposalPayload{}},
+	}
+	for _, mod := range mods {
+		if mod != nil {
+			mod(&proposal)
+		}
+	}
+	return proposal
+}
+func updateElectoreateProposalFixture(mods ...func(*Proposal)) Proposal {
+	now := weave.AsUnixTime(time.Now())
+	proposal := Proposal{
+		Type:            Proposal_UpdateElectorate,
+		Title:           "My proposal",
+		Description:     "My description",
+		ElectionRuleID:  weavetest.SequenceID(1),
+		ElectorateID:    weavetest.SequenceID(1),
+		VotingStartTime: now.Add(-1 * time.Minute),
+		VotingEndTime:   now.Add(time.Minute),
+		SubmissionTime:  now.Add(-1 * time.Hour),
+		Status:          Proposal_Submitted,
+		Result:          Proposal_Undefined,
+		Author:          alice,
+		VoteState:       NewTallyResult(nil, Fraction{1, 2}, 11),
+		Details: &Proposal_ElectorateUpdateDetails{&ElectorateUpdatePayload{
+			[]Elector{{Address: alice, Weight: 10}},
+		}},
 	}
 	for _, mod := range mods {
 		if mod != nil {

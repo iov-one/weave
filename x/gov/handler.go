@@ -267,6 +267,16 @@ func (h TextProposalHandler) Deliver(ctx weave.Context, db weave.KVStore, tx wea
 	if err != nil {
 		return nil, err
 	}
+	// abort when an update electorate proposal exists for the one used
+	otherProposals, err := h.propBucket.GetByElectorate(db, msg.ElectorateID)
+	if err != nil {
+		return nil, err
+	}
+	for _, v := range otherProposals {
+		if v.Type == Proposal_UpdateElectorate && v.Status == Proposal_Submitted {
+			return nil, errors.Wrapf(errors.ErrInvalidState, "open proposal using this electorate: %q", v.Title)
+		}
+	}
 	blockTime, _ := weave.BlockTime(ctx)
 
 	proposal := &Proposal{
@@ -360,6 +370,16 @@ func (h ElectorateUpdateProposalHandler) Deliver(ctx weave.Context, db weave.KVS
 		return nil, err
 	}
 	blockTime, _ := weave.BlockTime(ctx)
+
+	props, err := h.propBucket.GetByElectorate(db, msg.ElectorateID)
+	if err != nil {
+		return nil, err
+	}
+	for _, v := range props {
+		if v.Status == Proposal_Submitted {
+			return nil, errors.Wrapf(errors.ErrInvalidState, "open proposal using this electorate: %q", v.Title)
+		}
+	}
 
 	proposal := &Proposal{
 		Type:            Proposal_UpdateElectorate,

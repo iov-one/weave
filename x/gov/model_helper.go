@@ -33,6 +33,9 @@ func (m merger) validate(diff []Elector) error {
 			return errors.Wrapf(errors.ErrDuplicate, "address %q already in electorate with same weight", v.Address)
 		}
 	}
+	if n := len(diff) - newMerger(diff).size(); n != 0 {
+		return errors.Wrapf(errors.ErrDuplicate, "total: %d", n)
+	}
 	return nil
 }
 
