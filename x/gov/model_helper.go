@@ -7,6 +7,7 @@ import (
 	"github.com/iov-one/weave/errors"
 )
 
+// merger is a helper struct to combine Elector sets.
 type merger struct {
 	index map[string]uint32
 }
@@ -21,6 +22,7 @@ func newMerger(e []Elector) *merger {
 	return r
 }
 
+// validate check if the given electors and weights are applicable to the managed elector set.
 func (m merger) validate(diff []Elector) error {
 	for _, v := range diff {
 		_, ok := m.index[string(v.Address)]
@@ -34,6 +36,7 @@ func (m merger) validate(diff []Elector) error {
 	return nil
 }
 
+// merge adds the given electors and weights to the managed elector set without the validation step.
 func (m *merger) merge(diff []Elector) {
 	for _, v := range diff {
 		switch v.Weight {
@@ -45,10 +48,12 @@ func (m *merger) merge(diff []Elector) {
 	}
 }
 
+// size returns the number of elements in this set.
 func (m merger) size() int {
 	return len(m.index)
 }
 
+// serialize converts this elector set in to a flat slice, sorted by the address for deterministic behaviour.
 func (m merger) serialize() ([]Elector, uint64) {
 	r := make([]Elector, 0, len(m.index))
 	var totalWeight uint64

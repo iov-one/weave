@@ -138,14 +138,11 @@ type commonCreateProposalData interface {
 }
 
 func validateCreateProposal(m commonCreateProposalData) error {
-	err := m.GetAuthor().Validate()
 	switch {
 	case len(m.GetElectorateID()) == 0:
 		return errors.Wrap(errors.ErrInvalidInput, "empty electorate id")
 	case m.GetStartTime() == 0:
 		return errors.Wrap(errors.ErrInvalidInput, "empty start time")
-	case m.GetAuthor() != nil && err != nil:
-		return errors.Wrap(err, "invalid author")
 	case !validTitle(m.GetTitle()):
 		return errors.Wrapf(errors.ErrInvalidInput, "title: %q", m.GetTitle())
 	case len(m.GetDescription()) < minDescriptionLength:
@@ -153,6 +150,13 @@ func validateCreateProposal(m commonCreateProposalData) error {
 	case len(m.GetDescription()) > maxDescriptionLength:
 		return errors.Wrapf(errors.ErrInvalidInput, "description length exceeds: %d", maxDescriptionLength)
 	}
-	return m.GetStartTime().Validate()
-
+	if err := m.GetStartTime().Validate(); err != nil {
+		return errors.Wrap(err, "start time")
+	}
+	if m.GetAuthor() != nil {
+		if err := m.GetAuthor().Validate(); err != nil {
+			return errors.Wrap(err, "author")
+		}
+	}
+	return nil
 }

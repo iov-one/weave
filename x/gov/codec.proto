@@ -73,7 +73,7 @@ message TextProposalPayload {}
 message ElectorateUpdatePayload {
   // DiffElectors contains the changes that should be applied. Adding an address should have a positive weight, removing
   // with weight=0.
-  repeated Elector diffElectors = 1 [(gogoproto.nullable) = false];
+  repeated Elector diff_electors = 1 [(gogoproto.nullable) = false];
 }
 
 // A generic proposal for an on-chain governance process.
@@ -134,8 +134,8 @@ message Proposal {
   Type type = 13;
   // details
   oneof details {
-    TextProposalPayload textDetails = 50;
-    ElectorateUpdatePayload electorateUpdateDetails = 51;
+    TextProposalPayload text_details = 50;
+    ElectorateUpdatePayload electorate_update_details = 51;
   }
 }
 
@@ -194,7 +194,7 @@ message CreateElectorateUpdateProposalMsg {
   bytes author = 8 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
   // DiffElectors contains the changes that should be applied. Adding an address should have a positive weight, removing
   // with weight=0.
-  repeated Elector diffElectors = 3 [(gogoproto.nullable) = false];
+  repeated Elector diff_electors = 3 [(gogoproto.nullable) = false];
 }
 
 // DeleteProposalMsg deletes a governance proposal.
