@@ -4,6 +4,7 @@ package app;
 
 import "github.com/gogo/protobuf/gogoproto/gogo.proto";
 import "github.com/iov-one/weave/cmd/bnsd/x/nft/username/codec.proto";
+import "github.com/iov-one/weave/migration/codec.proto";
 import "github.com/iov-one/weave/x/cash/codec.proto";
 import "github.com/iov-one/weave/x/currency/codec.proto";
 import "github.com/iov-one/weave/x/distribution/codec.proto";
@@ -49,6 +50,7 @@ message Tx {
     distribution.NewRevenueMsg new_revenue_msg = 66;
     distribution.DistributeMsg distribute_msg = 67;
     distribution.ResetRevenueMsg reset_revenue_msg = 68;
+    migration.UpgradeSchemaMsg upgrade_schema_msg = 69;
   }
 }
 
