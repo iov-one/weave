@@ -187,6 +187,7 @@ func (h TallyHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) 
 	if err := proposal.Tally(); err != nil {
 		return nil, err
 	}
+
 	if proposal.Result == Proposal_Accepted {
 		switch proposal.Type {
 		case Proposal_Text: //nothing to do

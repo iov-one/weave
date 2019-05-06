@@ -791,6 +791,7 @@ func TestTally(t *testing.T) {
 		WantCheckErr   *errors.Error
 		WantDeliverErr *errors.Error
 		ExpResult      Proposal_Result
+		PostChecks     func(t *testing.T, kvStore weave.KVStore)
 	}{
 		"Accepted with electorate majority": {
 			Src: tallySetup{
@@ -981,6 +982,67 @@ func TestTally(t *testing.T) {
 			},
 			ExpResult: Proposal_Rejected,
 		},
+		"Updates an electorate on success": {
+			Mods: func(ctx weave.Context, p *Proposal) {
+				update := updateElectoreateProposalFixture()
+				blockTime, _ := weave.BlockTime(ctx)
+				update.VotingEndTime = weave.AsUnixTime(blockTime.Add(-1 * time.Second))
+				update.VoteState = p.VoteState
+				*p = update
+			},
+			Src: tallySetup{
+				yes:                   10,
+				threshold:             Fraction{Numerator: 1, Denominator: 2},
+				totalWeightElectorate: 11,
+			},
+			ExpResult: Proposal_Accepted,
+			PostChecks: func(t *testing.T, db weave.KVStore) {
+				elect, err := NewElectorateBucket().GetElectorate(db, weavetest.SequenceID(1))
+				if err != nil {
+					t.Fatalf("unexpected error: %+v", err)
+				}
+				got := elect.Electors
+				exp := []Elector{{alice, 10}, {bobby, 10}}
+				sortByAddress(exp)
+				if !reflect.DeepEqual(exp, got) {
+					t.Errorf("expected %v but got %v", exp, got)
+				}
+				if exp, got := uint64(20), elect.TotalElectorateWeight; exp != got {
+					t.Errorf("expected %v but got %v", exp, got)
+				}
+			},
+		},
+		"Does not update an electorate when rejected": {
+			Mods: func(ctx weave.Context, p *Proposal) {
+				update := updateElectoreateProposalFixture()
+				blockTime, _ := weave.BlockTime(ctx)
+				update.VotingEndTime = weave.AsUnixTime(blockTime.Add(-1 * time.Second))
+				update.VoteState = p.VoteState
+				*p = update
+			},
+			Src: tallySetup{
+				yes:                   1,
+				no:                    10,
+				threshold:             Fraction{Numerator: 1, Denominator: 2},
+				totalWeightElectorate: 11,
+			},
+			ExpResult: Proposal_Rejected,
+			PostChecks: func(t *testing.T, db weave.KVStore) {
+				elect, err := NewElectorateBucket().GetElectorate(db, weavetest.SequenceID(1))
+				if err != nil {
+					t.Fatalf("unexpected error: %+v", err)
+				}
+				got := elect.Electors
+				exp := []Elector{{alice, 1}, {bobby, 10}}
+				sortByAddress(exp)
+				if !reflect.DeepEqual(exp, got) {
+					t.Errorf("expected %v but got %v", exp, got)
+				}
+				if exp, got := uint64(11), elect.TotalElectorateWeight; exp != got {
+					t.Errorf("expected %v but got %v", exp, got)
+				}
+			},
+		},
 		"Fails on second tally": {
 			Mods: func(_ weave.Context, p *Proposal) {
 				p.Status = Proposal_Closed
@@ -1089,6 +1151,10 @@ func TestTally(t *testing.T) {
 			if exp, got := Proposal_Closed, p.Status; exp != got {
 				t.Errorf("expected %v but got %v", exp, got)
 			}
+			if spec.PostChecks != nil {
+				spec.PostChecks(t, cache)
+			}
+
 			cache.Discard()
 		})
 	}
