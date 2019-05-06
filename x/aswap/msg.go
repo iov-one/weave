@@ -55,7 +55,7 @@ func (m *CreateSwapMsg) Validate() error {
 		return err
 	}
 	if err := m.Src.Validate(); err != nil {
-		return errors.Wrap(err, "recipient")
+		return errors.Wrap(err, "src")
 	}
 	if err := m.Recipient.Validate(); err != nil {
 		return errors.Wrap(err, "recipient")
