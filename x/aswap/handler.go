@@ -257,7 +257,7 @@ func (h ReturnSwapHandler) validate(ctx weave.Context, db weave.KVStore, tx weav
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, nil, errors.Wrap(err, "load msg")
 	}
-	weave.NewCondition("ext", "typ", []byte("hash"))
+
 	swap, err := loadSwap(h.bucket, db, msg.PreimageHash)
 	if err != nil {
 		return nil, nil, err
