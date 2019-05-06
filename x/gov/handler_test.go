@@ -1459,6 +1459,7 @@ func TestUpdateElectionRules(t *testing.T) {
 type ctxAwareMutator func(weave.Context, *Proposal)
 
 func withTextProposal(t *testing.T, db store.KVStore, ctx weave.Context, mods ...ctxAwareMutator) *ProposalBucket {
+	t.Helper()
 	// setup electorate
 	withElectorate(t, db)
 	// setup election rules
@@ -1483,33 +1484,9 @@ func withTextProposal(t *testing.T, db store.KVStore, ctx weave.Context, mods ..
 
 	return pBucket
 }
-func withElectorateUpdateProposal(t *testing.T, db store.KVStore, ctx weave.Context, mods ...ctxAwareMutator) *ProposalBucket {
-	// setup electorate
-	withElectorate(t, db)
-	// setup election rules
-	withElectionRule(t, db)
-	// adapter to call fixture mutator with context
-	ctxMods := make([]func(*Proposal), len(mods))
-	for i := 0; i < len(mods); i++ {
-		j := i
-		ctxMods[j] = func(p *Proposal) {
-			if mods[j] == nil {
-				return
-			}
-			mods[j](ctx, p)
-		}
-	}
-	pBucket := NewProposalBucket()
-	proposal := updateElectoreateProposalFixture(ctxMods...)
-	pObj, err := pBucket.Build(db, &proposal)
-	assert.Nil(t, err)
-	err = pBucket.Save(db, pObj)
-	assert.Nil(t, err)
-
-	return pBucket
-}
 
 func withElectorate(t *testing.T, db store.KVStore) *Electorate {
+	t.Helper()
 	electorate := &Electorate{
 		Title: "fooo",
 		Admin: bobby,
