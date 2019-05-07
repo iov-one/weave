@@ -461,6 +461,7 @@ func TestVoteValidate(t *testing.T) {
 func textProposalFixture(mods ...func(*Proposal)) Proposal {
 	now := weave.AsUnixTime(time.Now())
 	proposal := Proposal{
+		Metadata:        &weave.Metadata{Schema: 1},
 		Type:            Proposal_Text,
 		Title:           "My proposal",
 		Description:     "My description",
@@ -485,6 +486,7 @@ func textProposalFixture(mods ...func(*Proposal)) Proposal {
 func updateElectoreateProposalFixture(mods ...func(*Proposal)) Proposal {
 	now := weave.AsUnixTime(time.Now())
 	proposal := Proposal{
+		Metadata:        &weave.Metadata{Schema: 1},
 		Type:            Proposal_UpdateElectorate,
 		Title:           "My proposal",
 		Description:     "My description",

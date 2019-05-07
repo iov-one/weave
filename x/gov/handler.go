@@ -5,6 +5,7 @@ import (
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/x"
 )
@@ -18,6 +19,14 @@ const (
 	updateElectionRuleCost = 0
 )
 
+const (
+	tagProposalID = "proposal-id"
+	tagAction     = "action"
+	tagProposer   = "proposer"
+)
+
+const packageName = "gov"
+
 // RegisterQuery registers governance buckets for querying.
 func RegisterQuery(qr weave.QueryRouter) {
 	NewElectionRulesBucket().Register("electionRules", qr)
@@ -30,39 +39,40 @@ func RegisterQuery(qr weave.QueryRouter) {
 func RegisterRoutes(r weave.Registry, auth x.Authenticator) {
 	propBucket := NewProposalBucket()
 	elecBucket := NewElectorateBucket()
-	r.Handle(pathVoteMsg, &VoteHandler{
+	r.Handle(pathVoteMsg, migration.SchemaMigratingHandler(packageName, &VoteHandler{
 		auth:       auth,
 		propBucket: propBucket,
 		elecBucket: elecBucket,
 		voteBucket: NewVoteBucket(),
-	})
-	r.Handle(pathTallyMsg, NewTallyHandler(auth, propBucket, elecBucket))
-	r.Handle(pathCreateTextProposalMsg, &TextProposalHandler{
+	}))
+	r.Handle(pathTallyMsg, migration.SchemaMigratingHandler(packageName,
+		NewTallyHandler(auth, propBucket, elecBucket)))
+	r.Handle(pathCreateTextProposalMsg, migration.SchemaMigratingHandler(packageName, &TextProposalHandler{
 		auth:        auth,
 		propBucket:  propBucket,
 		elecBucket:  elecBucket,
 		rulesBucket: NewElectionRulesBucket(),
-	})
+	}))
 	r.Handle(pathCreateElectorateUpdateProposalMsg, &ElectorateUpdateProposalHandler{
 		auth:        auth,
 		propBucket:  propBucket,
 		elecBucket:  elecBucket,
 		rulesBucket: NewElectionRulesBucket(),
 	})
-	r.Handle(pathDeleteTextProposalMsg, &DeleteTextProposalHandler{
+	r.Handle(pathDeleteTextProposalMsg, migration.SchemaMigratingHandler(packageName, &DeleteTextProposalHandler{
 		auth:       auth,
 		propBucket: propBucket,
-	})
-	r.Handle(pathUpdateElectorateMsg, &UpdateElectorateHandler{
+	}))
+	r.Handle(pathUpdateElectorateMsg, migration.SchemaMigratingHandler(packageName, &UpdateElectorateHandler{
 		auth:       auth,
 		propBucket: propBucket,
 		elecBucket: elecBucket,
-	})
-	r.Handle(pathUpdateElectionRulesMsg, &UpdateElectionRuleHandler{
+	}))
+	r.Handle(pathUpdateElectionRulesMsg, migration.SchemaMigratingHandler(packageName, &UpdateElectionRuleHandler{
 		auth:       auth,
 		propBucket: propBucket,
 		ruleBucket: NewElectionRulesBucket(),
-	})
+	}))
 }
 
 type VoteHandler struct {
@@ -287,6 +297,7 @@ func (h TextProposalHandler) Deliver(ctx weave.Context, db weave.KVStore, tx wea
 	blockTime, _ := weave.BlockTime(ctx)
 
 	proposal := &Proposal{
+		Metadata:        &weave.Metadata{Schema: 1},
 		Type:            Proposal_Text,
 		Title:           msg.Title,
 		Description:     msg.Description,
@@ -381,6 +392,7 @@ func (h ElectorateUpdateProposalHandler) Deliver(ctx weave.Context, db weave.KVS
 	}
 
 	proposal := &Proposal{
+		Metadata:        &weave.Metadata{Schema: 1},
 		Type:            Proposal_UpdateElectorate,
 		Title:           msg.Title,
 		Description:     msg.Description,

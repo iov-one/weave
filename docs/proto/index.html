@@ -3793,6 +3793,13 @@ total increment value, including the default increment. </p></td>
             <tbody>
               
                 <tr>
+                  <td>metadata</td>
+                  <td><a href="#weave.Metadata">weave.Metadata</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
                   <td>title</td>
                   <td><a href="#string">string</a></td>
                   <td></td>
@@ -3810,7 +3817,7 @@ total increment value, including the default increment. </p></td>
                   <td>electorate_id</td>
                   <td><a href="#bytes">bytes</a></td>
                   <td></td>
-                  <td><p>Reference to the electorate to define the group of possible voters. </p></td>
+                  <td><p>ElectorateID is the reference to the electorate that defines the group of possible voters. </p></td>
                 </tr>
               
                 <tr>
@@ -3853,6 +3860,13 @@ with weight=0. </p></td>
             <tbody>
               
                 <tr>
+                  <td>metadata</td>
+                  <td><a href="#weave.Metadata">weave.Metadata</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
                   <td>title</td>
                   <td><a href="#string">string</a></td>
                   <td></td>
@@ -3870,14 +3884,14 @@ with weight=0. </p></td>
                   <td>election_rule_id</td>
                   <td><a href="#bytes">bytes</a></td>
                   <td></td>
-                  <td><p>Reference to the election rule </p></td>
+                  <td><p>ElectionRuleID is a reference to the election rule </p></td>
                 </tr>
               
                 <tr>
                   <td>electorate_id</td>
                   <td><a href="#bytes">bytes</a></td>
                   <td></td>
-                  <td><p>Reference to the electorate to define the group of possible voters. </p></td>
+                  <td><p>ElectorateID is the reference to the electorate to define the group of possible voters. </p></td>
                 </tr>
               
                 <tr>
@@ -3912,10 +3926,17 @@ When not set it will default to the main signer. </p></td>
             <tbody>
               
                 <tr>
+                  <td>metadata</td>
+                  <td><a href="#weave.Metadata">weave.Metadata</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
                   <td>id</td>
                   <td><a href="#bytes">bytes</a></td>
                   <td></td>
-                  <td><p>Proposal id to delete </p></td>
+                  <td><p>ID is the unique identifier of the proposal to delete </p></td>
                 </tr>
               
             </tbody>
@@ -3933,6 +3954,13 @@ When not set it will default to the main signer. </p></td>
               <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
             </thead>
             <tbody>
+              
+                <tr>
+                  <td>metadata</td>
+                  <td><a href="#weave.Metadata">weave.Metadata</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
               
                 <tr>
                   <td>admin</td>
@@ -4026,6 +4054,13 @@ of the eligible voters. </p></td>
               <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
             </thead>
             <tbody>
+              
+                <tr>
+                  <td>metadata</td>
+                  <td><a href="#weave.Metadata">weave.Metadata</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
               
                 <tr>
                   <td>admin</td>
@@ -4131,6 +4166,13 @@ with weight=0. </p></td>
               <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
             </thead>
             <tbody>
+              
+                <tr>
+                  <td>metadata</td>
+                  <td><a href="#weave.Metadata">weave.Metadata</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
               
                 <tr>
                   <td>title</td>
@@ -4249,6 +4291,13 @@ to be included in the election. </p></td>
             <tbody>
               
                 <tr>
+                  <td>metadata</td>
+                  <td><a href="#weave.Metadata">weave.Metadata</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
                   <td>proposal_id</td>
                   <td><a href="#bytes">bytes</a></td>
                   <td></td>
@@ -4338,10 +4387,17 @@ The base value is either the total electorate weight or the sum of Yes/No weight
             <tbody>
               
                 <tr>
+                  <td>metadata</td>
+                  <td><a href="#weave.Metadata">weave.Metadata</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
                   <td>election_rule_id</td>
                   <td><a href="#bytes">bytes</a></td>
                   <td></td>
-                  <td><p> </p></td>
+                  <td><p>ElectionRuleID is a reference to the election rule </p></td>
                 </tr>
               
                 <tr>
@@ -4379,10 +4435,17 @@ of the eligible voters. </p></td>
             <tbody>
               
                 <tr>
+                  <td>metadata</td>
+                  <td><a href="#weave.Metadata">weave.Metadata</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
                   <td>electorate_id</td>
                   <td><a href="#bytes">bytes</a></td>
                   <td></td>
-                  <td><p> </p></td>
+                  <td><p>ElectorateID is the reference to the electorate that defines the group of possible voters. </p></td>
                 </tr>
               
                 <tr>
@@ -4400,7 +4463,7 @@ with weight=0. </p></td>
         
       
         <h3 id="gov.Vote">Vote</h3>
-        <p>Vote combines the elector and his voted option to archive them. The proposalID and address is stored within the key.</p>
+        <p>Vote combines the elector and his voted option to archive them. The proposalID and address is stored within the key.</p><p>weave.Metadata metadata = 1;</p>
 
         
           <table class="field-table">
@@ -4438,6 +4501,13 @@ with weight=0. </p></td>
               <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
             </thead>
             <tbody>
+              
+                <tr>
+                  <td>metadata</td>
+                  <td><a href="#weave.Metadata">weave.Metadata</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
               
                 <tr>
                   <td>proposal_id</td>

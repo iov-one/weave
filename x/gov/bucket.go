@@ -3,6 +3,7 @@ package gov
 import (
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/orm"
 )
 
@@ -14,7 +15,7 @@ type ElectorateBucket struct {
 
 // NewRevenueBucket returns a bucket for managing electorate.
 func NewElectorateBucket() *ElectorateBucket {
-	b := orm.NewBucket("electorate", orm.NewSimpleObj(nil, &Electorate{}))
+	b := migration.NewBucket(packageName, "electorate", orm.NewSimpleObj(nil, &Electorate{}))
 	return &ElectorateBucket{
 		Bucket: b,
 		idSeq:  b.Sequence("id"),
@@ -55,7 +56,7 @@ type ElectionRulesBucket struct {
 
 // NewElectionRulesBucket returns a bucket for managing election rules.
 func NewElectionRulesBucket() *ElectionRulesBucket {
-	b := orm.NewBucket("electnrule", orm.NewSimpleObj(nil, &ElectionRule{}))
+	b := migration.NewBucket(packageName, "electnrule", orm.NewSimpleObj(nil, &ElectionRule{}))
 	return &ElectionRulesBucket{
 		Bucket: b,
 		idSeq:  b.Sequence("id"),
@@ -99,7 +100,7 @@ const indexNameAuthor = "author"
 
 // NewProposalBucket returns a bucket for managing electorate.
 func NewProposalBucket() *ProposalBucket {
-	b := orm.NewBucket("proposal", orm.NewSimpleObj(nil, &Proposal{})).
+	b := migration.NewBucket(packageName, "proposal", orm.NewSimpleObj(nil, &Proposal{})).
 		WithIndex(indexNameElectorate, indexElectorate, false).
 		WithIndex(indexNameAuthor, indexAuthor, false)
 	return &ProposalBucket{
@@ -190,6 +191,8 @@ const (
 
 // NewProposalBucket returns a bucket for managing electorate.
 func NewVoteBucket() *VoteBucket {
+	//b := migration.NewBucket(packageName,"vote", orm.NewSimpleObj(nil, &Vote{})).
+
 	b := orm.NewBucket("vote", orm.NewSimpleObj(nil, &Vote{})).
 		WithIndex(indexNameProposal, indexProposal, false).
 		WithIndex(indexNameElector, indexElector, false)

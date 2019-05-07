@@ -45,6 +45,7 @@ func (*Initializer) FromGenesis(opts weave.Options, db weave.KVStore) error {
 	rulesBucket := NewElectionRulesBucket()
 	for i, r := range governance.Rules {
 		rule := ElectionRule{
+			Metadata:          &weave.Metadata{Schema: 1},
 			Admin:             r.Admin,
 			Title:             r.Title,
 			VotingPeriodHours: r.VotingPeriodHours,
@@ -86,6 +87,7 @@ func (*Initializer) FromGenesis(opts weave.Options, db weave.KVStore) error {
 			return errors.Wrapf(errors.ErrNotFound, "rule id: %d", e.ElectionRuleID)
 		}
 		electorate := Electorate{
+			Metadata:              &weave.Metadata{Schema: 1},
 			Admin:                 e.Admin,
 			Title:                 e.Title,
 			Electors:              ps,

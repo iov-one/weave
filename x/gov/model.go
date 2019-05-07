@@ -7,12 +7,20 @@ import (
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/orm"
 )
 
+const maxElectors = 2000
+
 var validTitle = regexp.MustCompile(`^[a-zA-Z0-9 _.-]{4,128}$`).MatchString
 
-const maxElectors = 2000
+func init() {
+	migration.MustRegister(1, &Electorate{}, migration.NoModification)
+	migration.MustRegister(1, &ElectionRule{}, migration.NoModification)
+	migration.MustRegister(1, &Proposal{}, migration.NoModification)
+	//migration.MustRegister(1, &Vote{}, migration.NoModification)
+}
 
 func (m Electorate) Validate() error {
 	switch n := len(m.Electors); {

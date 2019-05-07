@@ -3,6 +3,7 @@ package gov
 import (
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/migration"
 )
 
 const (
@@ -15,11 +16,15 @@ const (
 	pathUpdateElectionRulesMsg            = "gov/electionRules/update"
 )
 
-var _ weave.Msg = (*CreateTextProposalMsg)(nil)
-var _ weave.Msg = (*VoteMsg)(nil)
-var _ weave.Msg = (*TallyMsg)(nil)
-var _ weave.Msg = (*DeleteProposalMsg)(nil)
-var _ weave.Msg = (*CreateElectorateUpdateProposalMsg)(nil)
+func init() {
+	migration.MustRegister(1, &CreateTextProposalMsg{}, migration.NoModification)
+	migration.MustRegister(1, &CreateElectorateUpdateProposalMsg{}, migration.NoModification)
+	migration.MustRegister(1, &VoteMsg{}, migration.NoModification)
+	migration.MustRegister(1, &TallyMsg{}, migration.NoModification)
+	migration.MustRegister(1, &DeleteProposalMsg{}, migration.NoModification)
+	migration.MustRegister(1, &UpdateElectionRuleMsg{}, migration.NoModification)
+	migration.MustRegister(1, &UpdateElectorateMsg{}, migration.NoModification)
+}
 
 func (CreateTextProposalMsg) Path() string {
 	return pathCreateTextProposalMsg
