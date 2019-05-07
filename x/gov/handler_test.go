@@ -607,7 +607,13 @@ func TestVote(t *testing.T) {
 		"Can change vote": {
 			Init: func(ctx weave.Context, db store.KVStore) {
 				vBucket := NewVoteBucket()
-				obj := vBucket.Build(db, proposalID, Vote{Voted: VoteOption_Yes, Elector: Elector{Address: bobby, Weight: 10}})
+				obj := vBucket.Build(db, proposalID,
+					Vote{
+						Metadata: &weave.Metadata{Schema: 1},
+						Voted:    VoteOption_Yes,
+						Elector:  Elector{Address: bobby, Weight: 10},
+					},
+				)
 				vBucket.Save(db, obj)
 			},
 			Mods: func(ctx weave.Context, proposal *Proposal) {
@@ -621,7 +627,13 @@ func TestVote(t *testing.T) {
 		"Can resubmit vote": {
 			Init: func(ctx weave.Context, db store.KVStore) {
 				vBucket := NewVoteBucket()
-				obj := vBucket.Build(db, proposalID, Vote{Voted: VoteOption_Yes, Elector: Elector{Address: alice, Weight: 1}})
+				obj := vBucket.Build(db, proposalID,
+					Vote{
+						Metadata: &weave.Metadata{Schema: 1},
+						Voted:    VoteOption_Yes,
+						Elector:  Elector{Address: alice, Weight: 1},
+					},
+				)
 				vBucket.Save(db, obj)
 			},
 			Mods: func(ctx weave.Context, proposal *Proposal) {
@@ -721,7 +733,13 @@ func TestVote(t *testing.T) {
 		"Sanity check on undo count vote": {
 			Init: func(ctx weave.Context, db store.KVStore) {
 				vBucket := NewVoteBucket()
-				obj := vBucket.Build(db, proposalID, Vote{Voted: VoteOption_Yes, Elector: Elector{Address: bobby, Weight: 10}})
+				obj := vBucket.Build(db, proposalID,
+					Vote{
+						Metadata: &weave.Metadata{Schema: 1},
+						Voted:    VoteOption_Yes,
+						Elector:  Elector{Address: bobby, Weight: 10},
+					},
+				)
 				vBucket.Save(db, obj)
 			},
 			Mods: func(ctx weave.Context, proposal *Proposal) {

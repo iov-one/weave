@@ -157,7 +157,11 @@ func (h VoteHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) 
 	if !h.auth.HasAddress(ctx, voter) {
 		return nil, nil, nil, errors.Wrap(errors.ErrUnauthorized, "voter must sign msg")
 	}
-	vote := &Vote{Elector: *elector, Voted: msg.Selected}
+	vote := &Vote{
+		Metadata: &weave.Metadata{Schema: 1},
+		Elector:  *elector,
+		Voted:    msg.Selected,
+	}
 	if err := vote.Validate(); err != nil {
 		return nil, nil, nil, err
 	}

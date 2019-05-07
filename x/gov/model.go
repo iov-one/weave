@@ -19,7 +19,7 @@ func init() {
 	migration.MustRegister(1, &Electorate{}, migration.NoModification)
 	migration.MustRegister(1, &ElectionRule{}, migration.NoModification)
 	migration.MustRegister(1, &Proposal{}, migration.NoModification)
-	//migration.MustRegister(1, &Vote{}, migration.NoModification)
+	migration.MustRegister(1, &Vote{}, migration.NoModification)
 }
 
 func (m Electorate) Validate() error {

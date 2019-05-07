@@ -6,15 +6,23 @@ import (
 	"testing"
 
 	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/store"
 	"github.com/iov-one/weave/weavetest"
 )
 
 func TestHasVoted(t *testing.T) {
 	db := store.MemStore()
+	migration.MustInitPkg(db, packageName)
 	vBucket := NewVoteBucket()
 	proposalID := weavetest.SequenceID(1)
-	obj := vBucket.Build(db, proposalID, Vote{Voted: VoteOption_Yes, Elector: Elector{Address: bobby, Weight: 10}})
+	obj := vBucket.Build(db, proposalID,
+		Vote{
+			Metadata: &weave.Metadata{Schema: 1},
+			Voted:    VoteOption_Yes,
+			Elector:  Elector{Address: bobby, Weight: 10},
+		},
+	)
 	if err := vBucket.Save(db, obj); err != nil {
 		t.Fatalf("unexpected error: %s", err)
 	}
@@ -30,12 +38,21 @@ func TestHasVoted(t *testing.T) {
 
 func TestQueryVotes(t *testing.T) {
 	db := store.MemStore()
+	migration.MustInitPkg(db, packageName)
 	proposalID := weavetest.SequenceID(1)
 	vBucket := NewVoteBucket()
 
 	// given
-	bobbysVote := Vote{Voted: VoteOption_Yes, Elector: Elector{Address: bobby, Weight: 1}}
-	aliceVote := Vote{Voted: VoteOption_No, Elector: Elector{Address: alice, Weight: 10}}
+	bobbysVote := Vote{
+		Metadata: &weave.Metadata{Schema: 1},
+		Voted:    VoteOption_Yes,
+		Elector:  Elector{Address: bobby, Weight: 1},
+	}
+	aliceVote := Vote{
+		Metadata: &weave.Metadata{Schema: 1},
+		Voted:    VoteOption_No,
+		Elector:  Elector{Address: alice, Weight: 10},
+	}
 	for _, v := range []Vote{bobbysVote, aliceVote} {
 		obj := vBucket.Build(db, proposalID, v)
 		if err := vBucket.Save(db, obj); err != nil {

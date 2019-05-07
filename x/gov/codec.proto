@@ -160,12 +160,13 @@ message TallyResult {
   Fraction threshold = 6 [(gogoproto.nullable) = false];
 }
 
-// Vote combines the elector and his voted option to archive them. The proposalID and address is stored within the key.
+// Vote combines the elector and their voted option to archive them. The proposalID and address is stored within the key.
 message Vote {
-  //  weave.Metadata metadata = 1;
-
-  Elector elector = 1 [(gogoproto.nullable) = false];
-  VoteOption voted = 2;
+  weave.Metadata metadata = 1;
+  // Elector is who voted
+  Elector elector = 2 [(gogoproto.nullable) = false];
+  // VoteOption is what they voted
+  VoteOption voted = 3;
 }
 
 // CreateTextProposalMsg creates a new governance proposal.

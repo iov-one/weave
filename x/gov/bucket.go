@@ -179,21 +179,19 @@ func (b *ProposalBucket) Update(db weave.KVStore, id []byte, obj *Proposal) erro
 	return nil
 }
 
-// VoteBucket is the persistence bucket.
-type VoteBucket struct {
-	orm.Bucket
-}
-
 const (
 	indexNameProposal = "proposal"
 	indexNameElector  = "elector"
 )
 
-// NewProposalBucket returns a bucket for managing electorate.
-func NewVoteBucket() *VoteBucket {
-	//b := migration.NewBucket(packageName,"vote", orm.NewSimpleObj(nil, &Vote{})).
+// VoteBucket is the persistence bucket for votes.
+type VoteBucket struct {
+	orm.Bucket
+}
 
-	b := orm.NewBucket("vote", orm.NewSimpleObj(nil, &Vote{})).
+// NewVoteBucket returns a bucket for managing electorate.
+func NewVoteBucket() *VoteBucket {
+	b := migration.NewBucket(packageName, "vote", orm.NewSimpleObj(nil, &Vote{})).
 		WithIndex(indexNameProposal, indexProposal, false).
 		WithIndex(indexNameElector, indexElector, false)
 	return &VoteBucket{

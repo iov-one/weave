@@ -4463,7 +4463,7 @@ with weight=0. </p></td>
         
       
         <h3 id="gov.Vote">Vote</h3>
-        <p>Vote combines the elector and his voted option to archive them. The proposalID and address is stored within the key.</p><p>weave.Metadata metadata = 1;</p>
+        <p>Vote combines the elector and their voted option to archive them. The proposalID and address is stored within the key.</p>
 
         
           <table class="field-table">
@@ -4473,17 +4473,24 @@ with weight=0. </p></td>
             <tbody>
               
                 <tr>
+                  <td>metadata</td>
+                  <td><a href="#weave.Metadata">weave.Metadata</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
                   <td>elector</td>
                   <td><a href="#gov.Elector">Elector</a></td>
                   <td></td>
-                  <td><p> </p></td>
+                  <td><p>Elector is who voted </p></td>
                 </tr>
               
                 <tr>
                   <td>voted</td>
                   <td><a href="#gov.VoteOption">VoteOption</a></td>
                   <td></td>
-                  <td><p> </p></td>
+                  <td><p>VoteOption is what they voted </p></td>
                 </tr>
               
             </tbody>
