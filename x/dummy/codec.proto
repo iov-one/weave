@@ -12,6 +12,7 @@ message CartonBox {
   weave.Metadata metadata = 1;
   int32 Width = 2;
   int32 Height = 3;
+  int32 Quality = 4;
 }
 
 
@@ -19,6 +20,7 @@ message CreateCartonBoxMsg {
   weave.Metadata metadata = 1;
   int32 Width = 2;
   int32 Height = 3;
+  int32 Quality = 4;
 }
 
 message InspectCartonBoxMsg {

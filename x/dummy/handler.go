@@ -39,6 +39,7 @@ func (h *createCartonBoxHandler) Deliver(ctx weave.Context, db weave.KVStore, tx
 		Metadata: &weave.Metadata{},
 		Width:    msg.Width,
 		Height:   msg.Height,
+		Quality:  msg.Quality,
 	})
 	if err != nil {
 		return nil, err

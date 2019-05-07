@@ -26,9 +26,43 @@ func TestDummySchemaMigration(t *testing.T) {
 	assert.Equal(t, firstCartonBox.Metadata.Schema, uint32(1))
 	assert.Equal(t, firstCartonBox.Width, int32(10))
 	assert.Equal(t, firstCartonBox.Height, int32(20))
+	assert.Equal(t, firstCartonBox.Quality, int32(0))
 
-	//bumpSchema(t, admin, "dummy")
+	bumpSchema(t, "dummy")
 
+	// Create with schema version 1 and expect it to be upgraded to version 2.
+	secondCartonBoxID := createCartonBox(t, admin, &dummy.CreateCartonBoxMsg{
+		Metadata: &weave.Metadata{Schema: 1},
+		Width:    10,
+		Height:   20,
+	})
+	secondCartonBox := inspectCartonBox(t, admin, secondCartonBoxID)
+	assert.Equal(t, secondCartonBox.Metadata.Schema, uint32(2))
+	assert.Equal(t, secondCartonBox.Width, int32(10))
+	assert.Equal(t, secondCartonBox.Height, int32(20))
+	assert.Equal(t, secondCartonBox.Quality, int32(100)) // Default quality.
+
+	// Getting the first carton box, although persisten in schema version 1
+	// must be migrated before processed.
+	firstCartonBox = inspectCartonBox(t, admin, firstCartonBoxID)
+	assert.Equal(t, firstCartonBox.Metadata.Schema, uint32(2))
+	assert.Equal(t, firstCartonBox.Width, int32(10))
+	assert.Equal(t, firstCartonBox.Height, int32(20))
+	assert.Equal(t, firstCartonBox.Quality, int32(100)) // Default quality.
+
+	// Create a carton box using the latest (2nd) schema version. This
+	// allows to set custom quality value.
+	thirdCartonBoxID := createCartonBox(t, admin, &dummy.CreateCartonBoxMsg{
+		Metadata: &weave.Metadata{Schema: 2},
+		Width:    11,
+		Height:   22,
+		Quality:  33,
+	})
+	thirdCartonBox := inspectCartonBox(t, admin, thirdCartonBoxID)
+	assert.Equal(t, thirdCartonBox.Metadata.Schema, uint32(2))
+	assert.Equal(t, thirdCartonBox.Width, int32(11))
+	assert.Equal(t, thirdCartonBox.Height, int32(22))
+	assert.Equal(t, thirdCartonBox.Quality, int32(33))
 }
 
 func createCartonBox(t testing.TB, admin *client.PrivateKey, box *dummy.CreateCartonBoxMsg) []byte {
@@ -94,7 +128,7 @@ func inspectCartonBox(t testing.TB, admin *client.PrivateKey, id []byte) *dummy.
 	return &box
 }
 
-func bumpSchema(t testing.TB, admin *client.PrivateKey, packageName string) {
+func bumpSchema(t testing.TB, packageName string) {
 	t.Helper()
 	tx := &bnsdApp.Tx{
 		Sum: &bnsdApp.Tx_UpgradeSchemaMsg{
@@ -106,10 +140,11 @@ func bumpSchema(t testing.TB, admin *client.PrivateKey, packageName string) {
 	}
 
 	tx.Fee(alice.PublicKey().Address(), coin.NewCoin(1, 0, "IOV"))
-	adminNonce := client.NewNonce(bnsClient, admin.PublicKey().Address())
-	seq, err := adminNonce.Next()
+
+	aliceNonce := client.NewNonce(bnsClient, alice.PublicKey().Address())
+	seq, err := aliceNonce.Next()
 	if err != nil {
-		t.Fatalf("cannot acquire admin nonce sequence: %s", err)
+		t.Fatalf("cannot acquire alice nonce sequence: %s", err)
 	}
 	if err := client.SignTx(tx, alice, chainID, seq); err != nil {
 		t.Fatalf("cannot sing schema upgrade transaction: %s", err)

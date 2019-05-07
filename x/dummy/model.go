@@ -7,8 +7,18 @@ import (
 	"github.com/iov-one/weave/orm"
 )
 
+const defaultCartonBoxQuality = 100
+
 func init() {
 	migration.MustRegister(1, &CartonBox{}, migration.NoModification)
+	migration.MustRegister(2, &CartonBox{}, func(db weave.ReadOnlyKVStore, m migration.Migratable) error {
+		c, ok := m.(*CartonBox)
+		if !ok {
+			return errors.Wrapf(errors.ErrInvalidType, "%T", m)
+		}
+		c.Quality = defaultCartonBoxQuality
+		return nil
+	})
 }
 
 func (m *CartonBox) Validate() error {
@@ -21,6 +31,15 @@ func (m *CartonBox) Validate() error {
 	if m.Height <= 0 {
 		return errors.Wrap(errors.ErrInvalidMsg, "width must be greater than zero")
 	}
+
+	if m.Metadata.Schema == 1 {
+		return nil
+	}
+
+	if m.Quality <= 0 {
+		return errors.Wrap(errors.ErrInvalidModel, "quality must be greater than zero")
+	}
+
 	return nil
 }
 

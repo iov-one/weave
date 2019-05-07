@@ -201,7 +201,7 @@ func initGenesis(filename string, addr weave.Address) (*tm.GenesisDoc, error) {
 				MinimalFee:       antiSpamFee,
 			},
 			"migration": migration.Configuration{
-				Admin: weave.Condition("multisig/usage/0000000000000001").Address(),
+				Admin: alice.PublicKey().Address(),
 			},
 		},
 		"msgfee": []interface{}{
