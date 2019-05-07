@@ -202,6 +202,10 @@ func (h ReleaseSwapHandler) validate(ctx weave.Context, db weave.KVStore, tx wea
 		return nil, nil, err
 	}
 
+	if IsExpired(ctx, swap.Timeout) {
+		return nil, nil, errors.Wrap(errors.ErrInvalidState, "swap is expired")
+	}
+
 	return preimageHash, swap, nil
 }
 
