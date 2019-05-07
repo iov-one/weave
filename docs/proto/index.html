@@ -289,6 +289,10 @@
                   <a href="#orm.MultiRef"><span class="badge">M</span>MultiRef</a>
                 </li>
               
+                <li>
+                  <a href="#orm.VersionedIDRef"><span class="badge">M</span>VersionedIDRef</a>
+                </li>
+              
               
               
               
@@ -1350,6 +1354,36 @@ If fractional != 0, must have same sign as integer </p></td>
                   <td></td>
                   <td><p>Ticker is 3-4 upper-case letters and
 all Coins of the same currency can be combined </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+        
+
+        
+      
+        <h3 id="orm.VersionedIDRef">VersionedIDRef</h3>
+        <p>VersionedID is the combination of document ID and version number.</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>id</td>
+                  <td><a href="#bytes">bytes</a></td>
+                  <td></td>
+                  <td><p>Unique identifier </p></td>
+                </tr>
+              
+                <tr>
+                  <td>version</td>
+                  <td><a href="#uint32">uint32</a></td>
+                  <td></td>
+                  <td><p>Document version, starting with 1. </p></td>
                 </tr>
               
             </tbody>
