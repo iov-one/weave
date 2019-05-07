@@ -1497,6 +1497,7 @@ func withElectorate(t *testing.T, db store.KVStore) *Electorate {
 		TotalElectorateWeight: 11,
 		UpdateElectionRuleID:  weavetest.SequenceID(1),
 	}
+	sortByAddress(electorate.Electors)
 	electorateBucket := NewElectorateBucket()
 	eObj, err := electorateBucket.Build(db, electorate)
 	assert.Nil(t, err)
