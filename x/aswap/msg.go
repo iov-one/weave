@@ -81,6 +81,11 @@ func (m *ReleaseSwapMsg) Validate() error {
 	if err := m.Metadata.Validate(); err != nil {
 		return errors.Wrap(err, "metadata")
 	}
+
+	if err := validateSwapID(m.SwapID); err != nil {
+		return errors.Wrap(err, "SwapID")
+	}
+
 	if len(m.Preimage) != preimageSize {
 		return errors.Wrapf(errors.ErrInvalidInput, "preimage should be exactly %d byte long", preimageSize)
 	}
@@ -90,6 +95,9 @@ func (m *ReleaseSwapMsg) Validate() error {
 func (m *ReturnSwapMsg) Validate() error {
 	if err := m.Metadata.Validate(); err != nil {
 		return errors.Wrap(err, "metadata")
+	}
+	if err := validateSwapID(m.SwapID); err != nil {
+		return errors.Wrap(err, "SwapID")
 	}
 	return validatePreimageHash(m.PreimageHash)
 }
@@ -112,6 +120,13 @@ func validatePreimageHash(preimageHash []byte) error {
 	if len(preimageHash) != preimageHashSize {
 		return errors.Wrapf(errors.ErrInvalidInput, "preimge hash is sha256 and therefore should be exactly "+
 			"%d bytes", preimageHashSize)
+	}
+	return nil
+}
+
+func validateSwapID(id []byte) error {
+	if len(id) != 8 {
+		return errors.Wrapf(errors.ErrInvalidInput, "SwapID: %X", id)
 	}
 	return nil
 }

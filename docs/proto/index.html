@@ -3034,6 +3034,13 @@ expired: [timeout, infinity) </p></td>
                 </tr>
               
                 <tr>
+                  <td>swap_id</td>
+                  <td><a href="#bytes">bytes</a></td>
+                  <td></td>
+                  <td><p>escrow_id to release </p></td>
+                </tr>
+              
+                <tr>
                   <td>preimage</td>
                   <td><a href="#bytes">bytes</a></td>
                   <td></td>
@@ -3062,6 +3069,13 @@ should be exactly 32 bytes long </p></td>
                   <td><a href="#weave.Metadata">weave.Metadata</a></td>
                   <td></td>
                   <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>swap_id</td>
+                  <td><a href="#bytes">bytes</a></td>
+                  <td></td>
+                  <td><p>escrow_id to return </p></td>
                 </tr>
               
                 <tr>
@@ -3095,10 +3109,17 @@ should be exactly 32 bytes long </p></td>
                 </tr>
               
                 <tr>
+                  <td>preimage_hash</td>
+                  <td><a href="#bytes">bytes</a></td>
+                  <td></td>
+                  <td><p>sha256 hash of preimage, 32 bytes long </p></td>
+                </tr>
+              
+                <tr>
                   <td>src</td>
                   <td><a href="#bytes">bytes</a></td>
                   <td></td>
-                  <td><p> </p></td>
+                  <td><p>src is a sender address </p></td>
                 </tr>
               
                 <tr>
@@ -3112,7 +3133,7 @@ should be exactly 32 bytes long </p></td>
                   <td>recipient</td>
                   <td><a href="#bytes">bytes</a></td>
                   <td></td>
-                  <td><p> </p></td>
+                  <td><p>recipient is an address of recipient </p></td>
                 </tr>
               
                 <tr>

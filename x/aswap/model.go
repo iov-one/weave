@@ -1,6 +1,7 @@
 package aswap
 
 import (
+	"bytes"
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/migration"
@@ -14,6 +15,9 @@ func init() {
 const (
 	// BucketName is where we store the swaps
 	BucketName = "swap"
+
+	// SequenceName is an auto-increment ID counter for swaps
+	SequenceName = "id"
 )
 
 var _ orm.CloneableData = (*Swap)(nil)
@@ -31,6 +35,10 @@ func (s *Swap) Validate() error {
 	}
 	if err := s.Address.Validate(); err != nil {
 		return errors.Wrap(err, "address")
+	}
+	if len(s.PreimageHash) != preimageHashSize {
+		return errors.Wrapf(errors.ErrInvalidInput,
+			"preimage hash has to be exactly %d bytes", preimageHashSize)
 	}
 	if s.Timeout == 0 {
 		// Zero timeout is a valid value that dates to 1970-01-01. We
@@ -72,6 +80,7 @@ func AsSwap(obj orm.Object) *Swap {
 // Bucket is a type-safe wrapper around orm.Bucket
 type Bucket struct {
 	orm.Bucket
+	idSeq orm.Sequence
 }
 
 // NewBucket initializes a Bucket with default name
@@ -80,17 +89,66 @@ type Bucket struct {
 // add Create
 func NewBucket() Bucket {
 	bucket := migration.NewBucket("aswap", BucketName,
-		orm.NewSimpleObj(nil, &Swap{}))
+		orm.NewSimpleObj(nil, &Swap{})).
+		WithIndex("src", idxSrc, false).
+		WithIndex("recipient", idxRecipient, false).
+		WithIndex("preimage_hash", idxPrehash, false)
 
 	return Bucket{
 		Bucket: bucket,
+		idSeq:  bucket.Sequence(SequenceName),
 	}
 }
 
-// Build uses preimageHash as the primary key and returns swap as an orm
+func getSwap(obj orm.Object) (*Swap, error) {
+	if obj == nil {
+		return nil, errors.Wrap(errors.ErrHuman, "Cannot take index of nil")
+	}
+	esc, ok := obj.Value().(*Swap)
+	if !ok {
+		return nil, errors.Wrap(errors.ErrHuman, "Can only take index of Swap")
+	}
+	return esc, nil
+}
+
+func idxSrc(obj orm.Object) ([]byte, error) {
+	swp, err := getSwap(obj)
+	if err != nil {
+		return nil, err
+	}
+	return swp.Src, nil
+}
+
+func idxRecipient(obj orm.Object) ([]byte, error) {
+	swp, err := getSwap(obj)
+	if err != nil {
+		return nil, err
+	}
+	return swp.Recipient, nil
+}
+
+func idxPrehash(obj orm.Object) ([]byte, error) {
+	swp, err := getSwap(obj)
+	if err != nil {
+		return nil, err
+	}
+	return swp.PreimageHash, nil
+}
+
+// Build generates primary key, uses that to generate a swap address and returns swap as an orm
 // Object. It does not persist the swap in the store.
-func (b Bucket) Build(db weave.KVStore, preimageHash []byte, swap *Swap) (orm.Object, error) {
-	return orm.NewSimpleObj(preimageHash, swap), nil
+func (b Bucket) Build(db weave.KVStore, swap *Swap) (orm.Object, error) {
+	key, err := b.idSeq.NextVal(db)
+	if err != nil {
+		return nil, err
+	}
+
+	// make sure we use swapID to avoid any address collisions between swaps with the same preimage
+	swapAddrHash := bytes.Join([][]byte{key, swap.PreimageHash}, []byte("|"))
+	// update swap address with a proper value
+	swap.Address = weave.NewCondition("aswap", "pre_hash", swapAddrHash).Address()
+
+	return orm.NewSimpleObj(key, swap), nil
 }
 
 // Save enforces the proper type

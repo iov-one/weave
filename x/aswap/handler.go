@@ -1,6 +1,7 @@
 package aswap
 
 import (
+	"bytes"
 	"crypto/sha256"
 	"time"
 
@@ -77,14 +78,14 @@ func (h CreateSwapHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave
 
 	// create a swap object
 	swap := &Swap{
-		Metadata:  &weave.Metadata{},
-		Src:       msg.Src,
-		Address:   weave.NewCondition("aswap", "pre_hash", msg.PreimageHash).Address(),
-		Recipient: msg.Recipient,
-		Timeout:   msg.Timeout,
-		Memo:      msg.Memo,
+		Metadata:     &weave.Metadata{},
+		Src:          msg.Src,
+		Recipient:    msg.Recipient,
+		Timeout:      msg.Timeout,
+		Memo:         msg.Memo,
+		PreimageHash: msg.PreimageHash,
 	}
-	obj, err := h.bucket.Build(db, msg.PreimageHash, swap)
+	obj, err := h.bucket.Build(db, swap)
 	if err != nil {
 		return nil, err
 	}
@@ -125,15 +126,6 @@ func (h CreateSwapHandler) validate(ctx weave.Context, db weave.KVStore, tx weav
 		return nil, errors.ErrUnauthorized
 	}
 
-	// Leave the most expensive operation till we've sanity-checked everything else.
-	_, err := loadSwap(h.bucket, db, msg.PreimageHash)
-	switch {
-	case err == nil:
-		return nil, errors.Wrap(errors.ErrDuplicate, "swap with the same preimage")
-	case !errors.ErrEmpty.Is(err):
-		return nil, err
-	}
-
 	return &msg, nil
 }
 
@@ -160,7 +152,7 @@ func (h ReleaseSwapHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.
 // Deliver moves the tokens from swap account to the receiver if
 // all preconditions are met. When the swap account is empty it is deleted.
 func (h ReleaseSwapHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
-	preimageHash, swap, err := h.validate(ctx, db, tx)
+	swapID, swap, err := h.validate(ctx, db, tx)
 	if err != nil {
 		return nil, err
 	}
@@ -176,13 +168,13 @@ func (h ReleaseSwapHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weav
 	}
 
 	// Delete swap when empty.
-	if err := h.bucket.Delete(db, preimageHash); err != nil {
+	if err := h.bucket.Delete(db, swapID); err != nil {
 		return nil, err
 	}
 
 	res := &weave.DeliverResult{
 		Tags: []common.KVPair{
-			{Key: []byte(tagSwapId), Value: preimageHash},
+			{Key: []byte(tagSwapId), Value: swapID},
 			{Key: []byte(tagAction), Value: []byte("release-swap")},
 		},
 	}
@@ -196,17 +188,22 @@ func (h ReleaseSwapHandler) validate(ctx weave.Context, db weave.KVStore, tx wea
 		return nil, nil, errors.Wrap(err, "load msg")
 	}
 
-	preimageHash := hashPreimage(msg.Preimage)
-	swap, err := loadSwap(h.bucket, db, preimageHash)
+	swap, err := loadSwap(h.bucket, db, msg.SwapID)
 	if err != nil {
 		return nil, nil, err
+	}
+
+	preimageHash := hashBytes(msg.Preimage)
+
+	if !bytes.Equal(swap.PreimageHash, preimageHash) {
+		return nil, nil, errors.Wrap(errors.ErrUnauthorized, "invalid preimageHash")
 	}
 
 	if IsExpired(ctx, swap.Timeout) {
 		return nil, nil, errors.Wrap(errors.ErrInvalidState, "swap is expired")
 	}
 
-	return preimageHash, swap, nil
+	return msg.SwapID, swap, nil
 }
 
 // ReturnSwapHandler returns funds to the sender when swap timed out.
@@ -265,9 +262,13 @@ func (h ReturnSwapHandler) validate(ctx weave.Context, db weave.KVStore, tx weav
 		return nil, nil, errors.Wrap(err, "load msg")
 	}
 
-	swap, err := loadSwap(h.bucket, db, msg.PreimageHash)
+	swap, err := loadSwap(h.bucket, db, msg.SwapID)
 	if err != nil {
 		return nil, nil, err
+	}
+
+	if !bytes.Equal(swap.PreimageHash, msg.PreimageHash) {
+		return nil, nil, errors.Wrap(errors.ErrUnauthorized, "invalid preimageHash")
 	}
 
 	if !IsExpired(ctx, swap.Timeout) {
@@ -278,14 +279,14 @@ func (h ReturnSwapHandler) validate(ctx weave.Context, db weave.KVStore, tx weav
 }
 
 // loadSwap loads swap and casts it, returns error if not present.
-func loadSwap(bucket Bucket, db weave.KVStore, preimageHash []byte) (*Swap, error) {
-	obj, err := bucket.Get(db, preimageHash)
+func loadSwap(bucket Bucket, db weave.KVStore, swapID []byte) (*Swap, error) {
+	obj, err := bucket.Get(db, swapID)
 	if err != nil {
 		return nil, err
 	}
 	swap := AsSwap(obj)
 	if swap == nil {
-		return nil, errors.Wrapf(errors.ErrEmpty, "swap %d", preimageHash)
+		return nil, errors.Wrapf(errors.ErrEmpty, "swap %d", swapID)
 	}
 	return swap, nil
 }
@@ -300,7 +301,7 @@ func moveCoins(db weave.KVStore, bank cash.CoinMover, src, dest weave.Address, a
 	return nil
 }
 
-func hashPreimage(preimage []byte) []byte {
+func hashBytes(preimage []byte) []byte {
 	hash := sha256.Sum256(preimage)
 	return hash[:]
 }

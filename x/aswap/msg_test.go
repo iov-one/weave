@@ -119,11 +119,18 @@ func TestReleaseSwapMsg(t *testing.T) {
 			},
 			Exp: errors.ErrInvalidInput,
 		},
+		"Invalid SwapID": {
+			Mutator: func(msg *aswap.ReleaseSwapMsg) {
+				msg.SwapID = make([]byte, 7)
+			},
+			Exp: errors.ErrInvalidInput,
+		},
 	}
 	for msg, spec := range specs {
 		baseMsg := aswap.ReleaseSwapMsg{
 			Preimage: make([]byte, 32),
 			Metadata: &weave.Metadata{Schema: 1},
+			SwapID:   make([]byte, 8),
 		}
 
 		t.Run(msg, func(t *testing.T) {
@@ -157,11 +164,18 @@ func TestReturnSwapMsg(t *testing.T) {
 			},
 			Exp: errors.ErrInvalidInput,
 		},
+		"Invalid SwapID": {
+			Mutator: func(msg *aswap.ReturnSwapMsg) {
+				msg.SwapID = make([]byte, 7)
+			},
+			Exp: errors.ErrInvalidInput,
+		},
 	}
 	for msg, spec := range specs {
 		baseMsg := aswap.ReturnSwapMsg{
 			PreimageHash: make([]byte, 32),
 			Metadata:     &weave.Metadata{Schema: 1},
+			SwapID:       make([]byte, 8),
 		}
 
 		t.Run(msg, func(t *testing.T) {
