@@ -72,6 +72,7 @@ protoc: protofmt protodocs
 	protoc --gogofaster_out=. $(PROTOC_FLAGS) x/nft/*.proto
 	protoc --gogofaster_out=. $(PROTOC_FLAGS) cmd/bnsd/x/nft/username/*.proto
 	protoc --gogofaster_out=. $(PROTOC_FLAGS) x/cash/*.proto
+	protoc --gogofaster_out=. $(PROTOC_FLAGS) x/dummy/*.proto
 	protoc --gogofaster_out=. $(PROTOC_FLAGS) x/sigs/*.proto
 	protoc --gogofaster_out=. $(PROTOC_FLAGS) x/msgfee/*.proto
 	protoc --gogofaster_out=. $(PROTOC_FLAGS) x/multisig/*.proto

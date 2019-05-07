@@ -238,6 +238,7 @@ func initGenesis(filename string, addr weave.Address) (*tm.GenesisDoc, error) {
 			dict{"ver": 1, "pkg": "sigs"},
 			dict{"ver": 1, "pkg": "utils"},
 			dict{"ver": 1, "pkg": "validators"},
+			dict{"ver": 1, "pkg": "dummy"},
 		},
 	}, "", "  ")
 	if err != nil {

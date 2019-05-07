@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package dummy;
+
+import "github.com/gogo/protobuf/gogoproto/gogo.proto";
+import "github.com/iov-one/weave/codec.proto";
+import "github.com/iov-one/weave/coin/codec.proto";
+
+// CartonBox represents an entity that can be best described with the following picture
+// https://upload.wikimedia.org/wikipedia/commons/thumb/8/8c/Umzugskarton.jpg/1200px-Umzugskarton.jpg
+message CartonBox {
+  weave.Metadata metadata = 1;
+  int32 Width = 2;
+  int32 Height = 3;
+}
+
+
+message CreateCartonBoxMsg {
+  weave.Metadata metadata = 1;
+  int32 Width = 2;
+  int32 Height = 3;
+}
+
+message InspectCartonBoxMsg {
+  weave.Metadata metadata = 1;
+  bytes carton_box_id = 2 [(gogoproto.customname) = "CartonBoxID"];;
+}

@@ -8,6 +8,7 @@ import "github.com/iov-one/weave/migration/codec.proto";
 import "github.com/iov-one/weave/x/cash/codec.proto";
 import "github.com/iov-one/weave/x/currency/codec.proto";
 import "github.com/iov-one/weave/x/distribution/codec.proto";
+import "github.com/iov-one/weave/x/dummy/codec.proto";
 import "github.com/iov-one/weave/x/escrow/codec.proto";
 import "github.com/iov-one/weave/x/multisig/codec.proto";
 import "github.com/iov-one/weave/x/nft/codec.proto";
@@ -51,6 +52,10 @@ message Tx {
     distribution.DistributeMsg distribute_msg = 67;
     distribution.ResetRevenueMsg reset_revenue_msg = 68;
     migration.UpgradeSchemaMsg upgrade_schema_msg = 69;
+    // dummy is not to be merged into master. Make it hight enough to allow a
+    // rebase without conflicts.
+    dummy.CreateCartonBoxMsg create_carton_box_msg = 200;
+    dummy.InspectCartonBoxMsg inspect_carton_box_msg = 201;
   }
 }
 
