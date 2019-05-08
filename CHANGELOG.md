@@ -3,7 +3,7 @@
 
 ## HEAD
 
-
+- Added `aswap` package. Atomic swap implementation is now separate from `escrow`
 - Added `migration` package. Schema versioning can be implemented by relying on
   functionality provided by this package.
 - `gconf` package was reimplemented from scratch
