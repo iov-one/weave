@@ -7,7 +7,6 @@ import (
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/x"
-	"github.com/tendermint/tendermint/libs/common"
 )
 
 const (
@@ -17,12 +16,6 @@ const (
 	tallyCost              = 0
 	updateElectorateCost   = 0
 	updateElectionRuleCost = 0
-)
-
-const (
-	tagProposalID = "proposal-id"
-	tagAction     = "action"
-	tagProposer   = "proposer"
 )
 
 // RegisterQuery registers governance buckets for querying.
@@ -206,17 +199,7 @@ func (h TallyHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) 
 			return nil, errors.Wrapf(err, "exution failed for type: %v", proposal.Type)
 		}
 	}
-	if err := h.propBucket.Update(db, msg.ProposalID, proposal); err != nil {
-		return nil, err
-	}
-
-	res := &weave.DeliverResult{
-		Tags: []common.KVPair{
-			{Key: []byte(tagProposalID), Value: msg.ProposalID},
-			{Key: []byte(tagAction), Value: []byte("tally")},
-		},
-	}
-	return res, nil
+	return &weave.DeliverResult{}, h.propBucket.Update(db, msg.ProposalID, proposal)
 }
 
 func (h TallyHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*TallyMsg, *Proposal, error) {
@@ -327,15 +310,7 @@ func (h TextProposalHandler) Deliver(ctx weave.Context, db weave.KVStore, tx wea
 		return nil, errors.Wrap(err, "failed to persist proposal")
 	}
 
-	res := &weave.DeliverResult{
-		Data: obj.Key(),
-		Tags: []common.KVPair{
-			{Key: []byte(tagProposalID), Value: obj.Key()},
-			{Key: []byte(tagProposer), Value: msg.Author},
-			{Key: []byte(tagAction), Value: []byte("create")},
-		},
-	}
-	return res, nil
+	return &weave.DeliverResult{Data: obj.Key()}, nil
 }
 
 func (h TextProposalHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*CreateTextProposalMsg, *ElectionRule, *Electorate, error) {
@@ -431,15 +406,7 @@ func (h ElectorateUpdateProposalHandler) Deliver(ctx weave.Context, db weave.KVS
 		return nil, errors.Wrap(err, "failed to persist proposal")
 	}
 
-	res := &weave.DeliverResult{
-		Data: obj.Key(),
-		Tags: []common.KVPair{
-			{Key: []byte(tagProposalID), Value: obj.Key()},
-			{Key: []byte(tagProposer), Value: msg.Author},
-			{Key: []byte(tagAction), Value: []byte("create")},
-		},
-	}
-	return res, nil
+	return &weave.DeliverResult{Data: obj.Key()}, nil
 }
 
 func (h ElectorateUpdateProposalHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*CreateElectorateUpdateProposalMsg, *ElectionRule, *Electorate, error) {
@@ -461,7 +428,7 @@ func (h ElectorateUpdateProposalHandler) validate(ctx weave.Context, db weave.KV
 	if err != nil {
 		return nil, nil, nil, errors.Wrap(err, "failed to load electorate")
 	}
-	if err := newMerger(elect.Electors).validate(msg.DiffElectors); err != nil {
+	if err := newMerger(elect.Electors).merge(msg.DiffElectors); err != nil {
 		return nil, nil, nil, err
 	}
 	rules, err := h.rulesBucket.GetElectionRule(db, elect.UpdateElectionRuleID)
@@ -529,15 +496,7 @@ func (h DeleteTextProposalHandler) Deliver(ctx weave.Context, db weave.KVStore, 
 		return nil, errors.Wrap(err, "failed to persist proposal")
 	}
 
-	res := &weave.DeliverResult{
-		Data: msg.ID,
-		Tags: []common.KVPair{
-			{Key: []byte(tagProposalID), Value: msg.ID},
-			{Key: []byte(tagProposer), Value: prop.Author},
-			{Key: []byte(tagAction), Value: []byte("delete")},
-		},
-	}
-	return res, nil
+	return &weave.DeliverResult{}, nil
 }
 
 type UpdateElectorateHandler struct {
@@ -591,8 +550,7 @@ func (h UpdateElectorateHandler) validate(ctx weave.Context, db weave.KVStore, t
 	if !h.auth.HasAddress(ctx, e.Admin) {
 		return nil, nil, errors.ErrUnauthorized
 	}
-	merger := newMerger(e.Electors)
-	if err := merger.validate(msg.DiffElectors); err != nil {
+	if err := newMerger(e.Electors).merge(msg.DiffElectors); err != nil {
 		return nil, nil, err
 	}
 	return &msg, e, nil

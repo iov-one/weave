@@ -10,6 +10,7 @@ import (
 // merger is a helper struct to combine Elector sets.
 type merger struct {
 	index map[string]uint32
+	error *error
 }
 
 func newMerger(e []Elector) *merger {
@@ -22,33 +23,26 @@ func newMerger(e []Elector) *merger {
 	return r
 }
 
-// validate check if the given electors and weights are applicable to the managed elector set.
-func (m merger) validate(diff []Elector) error {
+// merge adds the given electors and weights to the managed elector set.
+func (m *merger) merge(diff []Elector) error {
+	if n := len(diff) - newMerger(diff).size(); n != 0 {
+		return errors.Wrapf(errors.ErrDuplicate, "total: %d", n)
+	}
+
 	for _, v := range diff {
 		oldWeight, ok := m.index[string(v.Address)]
 		switch {
 		case v.Weight == 0 && !ok: // remove non existing
 			return errors.Wrapf(errors.ErrNotFound, "address %q not in electorate", v.Address)
-		case v.Weight == oldWeight && ok: // add existing
+		case v.Weight == oldWeight && ok: // do not add existing
 			return errors.Wrapf(errors.ErrDuplicate, "address %q already in electorate with same weight", v.Address)
-		}
-	}
-	if n := len(diff) - newMerger(diff).size(); n != 0 {
-		return errors.Wrapf(errors.ErrDuplicate, "total: %d", n)
-	}
-	return nil
-}
-
-// merge adds the given electors and weights to the managed elector set without the validation step.
-func (m *merger) merge(diff []Elector) {
-	for _, v := range diff {
-		switch v.Weight {
-		case 0:
+		case v.Weight == 0: // remove existing
 			delete(m.index, string(v.Address))
-		default:
+		default: // add or update
 			m.index[string(v.Address)] = v.Weight
 		}
 	}
+	return nil
 }
 
 // size returns the number of elements in this set.

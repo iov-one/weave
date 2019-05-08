@@ -13,7 +13,6 @@ import (
 	"github.com/iov-one/weave/store"
 	"github.com/iov-one/weave/weavetest"
 	"github.com/iov-one/weave/weavetest/assert"
-	"github.com/tendermint/tendermint/libs/common"
 )
 
 var (
@@ -228,15 +227,6 @@ func TestCreateTextProposal(t *testing.T) {
 			if spec.WantDeliverErr != nil {
 				return // skip further checks on expected error
 			}
-			// and check tags
-			exp := []common.KVPair{
-				{Key: []byte("proposal-id"), Value: weavetest.SequenceID(1)},
-				{Key: []byte("proposer"), Value: spec.ExpProposer},
-				{Key: []byte("action"), Value: []byte("create")},
-			}
-			if got := res.Tags; !reflect.DeepEqual(exp, got) {
-				t.Errorf("expected tags %v but got %v", exp, got)
-			}
 			// and check persisted status
 			p, err := NewProposalBucket().GetProposal(cache, res.Data)
 			if err != nil {
@@ -436,15 +426,6 @@ func TestCreateElectorateUpdateProposal(t *testing.T) {
 			}
 			if spec.WantDeliverErr != nil {
 				return // skip further checks on expected error
-			}
-			// and check tags
-			exp := []common.KVPair{
-				{Key: []byte("proposal-id"), Value: weavetest.SequenceID(1)},
-				{Key: []byte("proposer"), Value: spec.ExpProposer},
-				{Key: []byte("action"), Value: []byte("create")},
-			}
-			if got := res.Tags; !reflect.DeepEqual(exp, got) {
-				t.Errorf("expected tags %v but got %v", exp, got)
 			}
 			// and check persisted status
 			p, err := NewProposalBucket().GetProposal(cache, res.Data)
@@ -1125,20 +1106,12 @@ func TestTally(t *testing.T) {
 			cache.Discard()
 
 			// and when deliver is called
-			res, err := rt.Deliver(ctx, db, tx)
+			_, err := rt.Deliver(ctx, db, tx)
 			if !spec.WantDeliverErr.Is(err) {
 				t.Fatalf("deliver expected: %+v  but got %+v", spec.WantCheckErr, err)
 			}
 			if spec.WantDeliverErr != nil {
 				return // skip further checks on expected error
-			}
-			// and check tags
-			exp := []common.KVPair{
-				{Key: []byte("proposal-id"), Value: weavetest.SequenceID(1)},
-				{Key: []byte("action"), Value: []byte("tally")},
-			}
-			if got := res.Tags; !reflect.DeepEqual(exp, got) {
-				t.Errorf("expected tags %v but got %v", exp, got)
 			}
 			// and check persisted result
 			p, err := pBucket.GetProposal(cache, weavetest.SequenceID(1))

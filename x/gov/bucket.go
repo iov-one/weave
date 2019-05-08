@@ -95,11 +95,13 @@ type ProposalBucket struct {
 }
 
 const indexNameElectorate = "electorate"
+const indexNameAuthor = "author"
 
 // NewProposalBucket returns a bucket for managing electorate.
 func NewProposalBucket() *ProposalBucket {
 	b := orm.NewBucket("proposal", orm.NewSimpleObj(nil, &Proposal{})).
-		WithIndex(indexNameElectorate, indexElectorate, false)
+		WithIndex(indexNameElectorate, indexElectorate, false).
+		WithIndex(indexNameAuthor, indexAuthor, false)
 	return &ProposalBucket{
 		Bucket: b,
 		idSeq:  b.Sequence("id"),
@@ -107,14 +109,19 @@ func NewProposalBucket() *ProposalBucket {
 }
 
 func indexElectorate(obj orm.Object) ([]byte, error) {
-	if obj == nil {
-		return nil, errors.Wrap(errors.ErrHuman, "cannot take index of nil")
+	p, err := asProposal(obj)
+	if err != nil {
+		return nil, err
 	}
-	v, ok := obj.Value().(*Proposal)
-	if !ok {
-		return nil, errors.Wrap(errors.ErrHuman, "can only take index of TextProposal")
+	return p.ElectorateID, nil
+}
+
+func indexAuthor(obj orm.Object) ([]byte, error) {
+	p, err := asProposal(obj)
+	if err != nil {
+		return nil, err
 	}
-	return v.ElectorateID, nil
+	return p.Author, nil
 }
 
 // Build assigns an ID to given proposal instance and returns it as an orm

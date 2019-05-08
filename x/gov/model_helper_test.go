@@ -49,15 +49,13 @@ func TestMerger(t *testing.T) {
 	for msg, spec := range specs {
 		t.Run(msg, func(t *testing.T) {
 			m := newMerger(source)
-			// when validate
-			if err := m.validate(spec.diff); !spec.expValidateErr.Is(err) {
+			// when merge
+			if err := m.merge(spec.diff); !spec.expValidateErr.Is(err) {
 				t.Fatalf("unexpected error: %+v", err)
 			}
 			if spec.expValidateErr != nil {
 				return
 			}
-			// when merge
-			m.merge(spec.diff)
 			// then
 			gotElectors, gotTotalWeight := m.serialize()
 			sortByAddress(spec.expElectors)
