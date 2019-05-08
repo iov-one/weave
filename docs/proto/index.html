@@ -574,6 +574,33 @@
         
           
           <li>
+            <a href="#x%2faswap%2fcodec.proto">x/aswap/codec.proto</a>
+            <ul>
+              
+                <li>
+                  <a href="#aswap.CreateSwapMsg"><span class="badge">M</span>CreateSwapMsg</a>
+                </li>
+              
+                <li>
+                  <a href="#aswap.ReleaseSwapMsg"><span class="badge">M</span>ReleaseSwapMsg</a>
+                </li>
+              
+                <li>
+                  <a href="#aswap.ReturnSwapMsg"><span class="badge">M</span>ReturnSwapMsg</a>
+                </li>
+              
+                <li>
+                  <a href="#aswap.Swap"><span class="badge">M</span>Swap</a>
+                </li>
+              
+              
+              
+              
+            </ul>
+          </li>
+        
+          
+          <li>
             <a href="#x%2fpaychan%2fcodec.proto">x/paychan/codec.proto</a>
             <ul>
               
@@ -892,6 +919,27 @@
                 <tr>
                   <td>upgrade_schema_msg</td>
                   <td><a href="#migration.UpgradeSchemaMsg">migration.UpgradeSchemaMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>create_swap_msg</td>
+                  <td><a href="#aswap.CreateSwapMsg">aswap.CreateSwapMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>release_swap_msg</td>
+                  <td><a href="#aswap.ReleaseSwapMsg">aswap.ReleaseSwapMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>return_swap_msg</td>
+                  <td><a href="#aswap.ReturnSwapMsg">aswap.ReturnSwapMsg</a></td>
                   <td></td>
                   <td><p> </p></td>
                 </tr>
@@ -3000,6 +3048,217 @@ expired: [timeout, infinity) </p></td>
                   <td><a href="#int64">int64</a></td>
                   <td></td>
                   <td><p> </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+        
+
+        
+      
+
+      
+
+      
+
+      
+    
+      
+      <div class="file-heading">
+        <h2 id="x/aswap/codec.proto">x/aswap/codec.proto</h2><a href="#title">Top</a>
+      </div>
+      <p></p>
+
+      
+        <h3 id="aswap.CreateSwapMsg">CreateSwapMsg</h3>
+        <p>CreateSwapMsg creates a Swap with some coins.</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>metadata</td>
+                  <td><a href="#weave.Metadata">weave.Metadata</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>src</td>
+                  <td><a href="#bytes">bytes</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>preimage_hash</td>
+                  <td><a href="#bytes">bytes</a></td>
+                  <td></td>
+                  <td><p>sha256 hash of preimage, 32 bytes long </p></td>
+                </tr>
+              
+                <tr>
+                  <td>recipient</td>
+                  <td><a href="#bytes">bytes</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>amount</td>
+                  <td><a href="#coin.Coin">coin.Coin</a></td>
+                  <td>repeated</td>
+                  <td><p>amount may contain multiple token types </p></td>
+                </tr>
+              
+                <tr>
+                  <td>timeout</td>
+                  <td><a href="#int64">int64</a></td>
+                  <td></td>
+                  <td><p>Timeout represents wall clock time. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>memo</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p>max length 128 character </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+        
+
+        
+      
+        <h3 id="aswap.ReleaseSwapMsg">ReleaseSwapMsg</h3>
+        <p>ReleaseSwapMsg releases the tokens to the recipient.</p><p>This operation is authorized by preimage, which is sent raw and then hashed on the backend.</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>metadata</td>
+                  <td><a href="#weave.Metadata">weave.Metadata</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>swap_id</td>
+                  <td><a href="#bytes">bytes</a></td>
+                  <td></td>
+                  <td><p>swap_id to release </p></td>
+                </tr>
+              
+                <tr>
+                  <td>preimage</td>
+                  <td><a href="#bytes">bytes</a></td>
+                  <td></td>
+                  <td><p>raw preimage to unlock swap, also helpful to retrieve the swap by it&#39;s hashed version
+must be exactly 32 bytes long </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+        
+
+        
+      
+        <h3 id="aswap.ReturnSwapMsg">ReturnSwapMsg</h3>
+        <p>ReturnSwapMsg releases the tokens to the src.</p><p>This operation only works if the Swap is expired.</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>metadata</td>
+                  <td><a href="#weave.Metadata">weave.Metadata</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>swap_id</td>
+                  <td><a href="#bytes">bytes</a></td>
+                  <td></td>
+                  <td><p>swap_id to return </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+        
+
+        
+      
+        <h3 id="aswap.Swap">Swap</h3>
+        <p>Swap is designed to hold some coins for atomic swap, locked by preimage_hash</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>metadata</td>
+                  <td><a href="#weave.Metadata">weave.Metadata</a></td>
+                  <td></td>
+                  <td><p>metadata is used for schema versioning support </p></td>
+                </tr>
+              
+                <tr>
+                  <td>preimage_hash</td>
+                  <td><a href="#bytes">bytes</a></td>
+                  <td></td>
+                  <td><p>sha256 hash of preimage, 32 bytes long </p></td>
+                </tr>
+              
+                <tr>
+                  <td>src</td>
+                  <td><a href="#bytes">bytes</a></td>
+                  <td></td>
+                  <td><p>src is a sender address </p></td>
+                </tr>
+              
+                <tr>
+                  <td>recipient</td>
+                  <td><a href="#bytes">bytes</a></td>
+                  <td></td>
+                  <td><p>recipient is an address of recipient </p></td>
+                </tr>
+              
+                <tr>
+                  <td>timeout</td>
+                  <td><a href="#int64">int64</a></td>
+                  <td></td>
+                  <td><p>If unreleased before timeout, swap will return coins to src.
+Timeout represents wall clock time as read from the block header. Timeout
+is represented using POSIX time format.
+Expiration time is inclusive meaning that the swap expires as soon as
+the current time is equal or greater than timeout value.
+nonexpired: [created, timeout)
+expired: [timeout, infinity) </p></td>
+                </tr>
+              
+                <tr>
+                  <td>memo</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p>max length 128 characters </p></td>
                 </tr>
               
             </tbody>
