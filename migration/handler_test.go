@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/store"
 	"github.com/iov-one/weave/weavetest"
 	"github.com/iov-one/weave/weavetest/assert"
@@ -121,4 +122,126 @@ func useHandlerRegister(t testing.TB, h weave.Handler, r *register) {
 		t.Fatalf("only schemaMigratingHandler can use a register, got %T", h)
 	}
 	handler.migrations = r
+}
+
+func TestSchemaRoutingHandler(t *testing.T) {
+	cases := map[string]struct {
+		Tx      weave.Tx
+		Handler SchemaRoutingHandler
+		WantErr *errors.Error
+
+		// After handler call ensure that handler registered with given
+		// schema version was called given amount of times. This is
+		// possible because weavetest.Handler is counting method calls.
+		//
+		// Mapping of schema version->handler call count.
+		WantCalls map[int]int
+	}{
+		"router created without a handler": {
+			Tx: &weavetest.Tx{
+				Msg: &weavetest.Msg{},
+			},
+			Handler: SchemaRoutingHandler{},
+			WantErr: errors.ErrHuman,
+		},
+		"non migratable message": {
+			Tx: &weavetest.Tx{
+				Msg: &weavetest.Msg{},
+			},
+			Handler: SchemaRoutingHandler{
+				1: &weavetest.Handler{},
+			},
+			WantErr:   errors.ErrInvalidType,
+			WantCalls: map[int]int{1: 0},
+		},
+		"zero version schema handler is not a valid declaration": {
+			Tx: &weavetest.Tx{
+				Msg: &MigratableMsg{
+					Metadata: &weave.Metadata{Schema: 2},
+				},
+			},
+			Handler: SchemaRoutingHandler{
+				0: &weavetest.Handler{},
+			},
+			WantErr: errors.ErrHuman,
+		},
+		"route to handler by the exact match of message schema version": {
+			Tx: &weavetest.Tx{
+				Msg: &MigratableMsg{
+					Metadata: &weave.Metadata{Schema: 2},
+				},
+			},
+			Handler: SchemaRoutingHandler{
+				1: &weavetest.Handler{},
+				2: &weavetest.Handler{},
+			},
+			WantCalls: map[int]int{
+				1: 0,
+				2: 1,
+			},
+		},
+		"route to handler by selecting the highest available handler, but not higher than the schema version": {
+			Tx: &weavetest.Tx{
+				Msg: &MigratableMsg{
+					Metadata: &weave.Metadata{Schema: 20},
+				},
+			},
+			Handler: SchemaRoutingHandler{
+				1:   &weavetest.Handler{},
+				5:   &weavetest.Handler{},
+				100: &weavetest.Handler{},
+			},
+			WantCalls: map[int]int{
+				1: 0,
+				// 5 is the highest registered schema version
+				// handler that is not higher than 20. It must
+				// be used to route message with schema version
+				// 20.
+				5:   1,
+				100: 0,
+			},
+		},
+		"router with only high value schema handlers cannot route low version schema message": {
+			Tx: &weavetest.Tx{
+				Msg: &MigratableMsg{
+					Metadata: &weave.Metadata{Schema: 4},
+				},
+			},
+			Handler: SchemaRoutingHandler{
+				// It is allowed to register handlers for
+				// schema versions starting with a value
+				// greater than one. In this case, routing
+				// lower value schema message must fail.
+				10: &weavetest.Handler{},
+				14: &weavetest.Handler{},
+			},
+			WantErr: errors.ErrSchema,
+		},
+	}
+
+	for testName, tc := range cases {
+		t.Run(testName, func(t *testing.T) {
+			_, err := tc.Handler.Deliver(nil, nil, tc.Tx)
+			if !tc.WantErr.Is(err) {
+				t.Fatalf("unexpected error result: %s", err)
+			}
+			for ver, wantCnt := range tc.WantCalls {
+				cnt := tc.Handler[ver].(*weavetest.Handler).CallCount()
+				if cnt != wantCnt {
+					t.Errorf("for version %d handler want %d calls, got %d", ver, wantCnt, cnt)
+				}
+			}
+		})
+	}
+}
+
+type MigratableMsg struct {
+	weavetest.Msg
+	Metadata *weave.Metadata
+}
+
+var _ Migratable = (*MigratableMsg)(nil)
+
+func (m *MigratableMsg) GetMetadata() *weave.Metadata {
+	return m.Metadata
 }

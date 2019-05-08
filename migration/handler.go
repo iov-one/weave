@@ -122,3 +122,77 @@ func (h *upgradeSchemaHandler) validate(ctx weave.Context, db weave.KVStore, tx 
 
 	return &msg, nil
 }
+
+// SchemaRoutingHandler is a container that clubs toghether message handlers
+// for a single type message but different schema formats. Each handler is
+// registered together with the lowest schema version that it supports. For example
+//
+//   handler := SchemaRoutingHandler{
+//     1: &MyHandlerVersionAlpha{},
+//     7: &MyHandlerVersionBeta{},
+//   }
+//
+// In the above setup, messages with schema version 1 to 6 will be handled by
+// the alpha handler. Messages with schema version 7 and above are passed to
+// the beta handler.
+//
+// It is not allowed to use an empty SchemaRoutingHandler instance. It is not
+// allowed to register a handler for schema version zero.
+// All messages processed by this handler must implement Migratable interface.
+type SchemaRoutingHandler []weave.Handler
+
+var _ weave.Handler = (SchemaRoutingHandler)(nil)
+
+func (h SchemaRoutingHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
+	handler, err := h.selectHandler(tx)
+	if err != nil {
+		return nil, err
+	}
+	return handler.Check(ctx, db, tx)
+}
+
+func (h SchemaRoutingHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
+	handler, err := h.selectHandler(tx)
+	if err != nil {
+		return nil, err
+	}
+	return handler.Deliver(ctx, db, tx)
+}
+
+// selectHandler returns the best fitting handler to process given transaction,
+// selected by introspecting the transaction message schema version.
+func (h SchemaRoutingHandler) selectHandler(tx weave.Tx) (weave.Handler, error) {
+	if len(h) == 0 {
+		return nil, errors.Wrap(errors.ErrHuman, "no handler registered")
+	}
+	if h[0] != nil {
+		return nil, errors.Wrap(errors.ErrHuman, "zero schema version handler must not be registered")
+	}
+
+	msg, err := tx.GetMsg()
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot get transaction message")
+	}
+	m, ok := msg.(Migratable)
+	if !ok {
+		return nil, errors.Wrapf(errors.ErrInvalidType, "message %T does not support schema versioning", msg)
+	}
+	meta := m.GetMetadata()
+
+	var handler weave.Handler
+	for ver := uint32(1); ver < uint32(len(h)); ver++ {
+		// It is allowed to leave gaps between handler version mappings
+		// so it. If this is the case, the previously available version
+		// must be used.
+		if next := h[ver]; next != nil {
+			handler = next
+		}
+		if ver >= meta.Schema {
+			break
+		}
+	}
+	if handler == nil {
+		return nil, errors.Wrapf(errors.ErrSchema, "no matching handler for schema version %d", meta.Schema)
+	}
+	return handler, nil
+}
