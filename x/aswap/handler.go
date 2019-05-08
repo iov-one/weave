@@ -20,11 +20,7 @@ const (
 	returnSwapCost  int64 = 0
 	releaseSwapCost int64 = 0
 
-	// currently set to two days
-	day = time.Hour * 24
-	// amount of days for minTimeout
-	timeoutDays = 2
-	minTimeout  = timeoutDays * day
+	minTimeout = 24 * time.Hour
 
 	tagSwapId string = "swap-id"
 	tagAction string = "action"
@@ -78,7 +74,7 @@ func (h CreateSwapHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave
 
 	// create a swap object
 	swap := &Swap{
-		Metadata:     &weave.Metadata{},
+		Metadata:     msg.Metadata,
 		Src:          msg.Src,
 		Recipient:    msg.Recipient,
 		Timeout:      msg.Timeout,
@@ -99,7 +95,6 @@ func (h CreateSwapHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave
 	// return id of swap to use in future calls
 	res := &weave.DeliverResult{
 		Tags: []common.KVPair{
-			{Key: []byte(tagSwapId), Value: obj.Key()},
 			{Key: []byte(tagAction), Value: []byte("create-swap")},
 		},
 		Data: obj.Key(),
@@ -115,10 +110,7 @@ func (h CreateSwapHandler) validate(ctx weave.Context, db weave.KVStore, tx weav
 	}
 	if IsExpired(ctx, msg.Timeout.Add(-minTimeout)) {
 		return nil, errors.Wrapf(errors.ErrInvalidInput,
-			"timeout should be a minimum of %d days from now", timeoutDays)
-	}
-	if IsExpired(ctx, msg.Timeout) {
-		return nil, errors.Wrap(errors.ErrInvalidInput, "timeout in the past")
+			"timeout should be a minimum of %d hours from now", minTimeout/time.Hour)
 	}
 
 	// Sender must authorize this
@@ -265,10 +257,6 @@ func (h ReturnSwapHandler) validate(ctx weave.Context, db weave.KVStore, tx weav
 	swap, err := loadSwap(h.bucket, db, msg.SwapID)
 	if err != nil {
 		return nil, nil, err
-	}
-
-	if !bytes.Equal(swap.PreimageHash, msg.PreimageHash) {
-		return nil, nil, errors.Wrap(errors.ErrUnauthorized, "invalid preimageHash")
 	}
 
 	if !IsExpired(ctx, swap.Timeout) {
