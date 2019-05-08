@@ -40,6 +40,7 @@ var (
 func init() {
 	aswap.RegisterRoutes(r, auth, ctrl)
 }
+
 func TestCreateHandler(t *testing.T) {
 	initialCoins, err := coin.CombineCoins(coin.NewCoin(1, 1, "TEST"))
 	assert.Nil(t, err)
