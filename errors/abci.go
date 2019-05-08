@@ -7,9 +7,9 @@ import (
 )
 
 const (
-	// ABCI response use 0 to signal that the processing was successful and
-	// no error is returned.
-	successABCICode = 0
+	// SuccessABCICode declares an ABCI response use 0 to signal that the
+	// processing was successful and no error is returned.
+	SuccessABCICode = 0
 
 	// All unclassified errors that do not provide an ABCI code are clubbed
 	// under an internal error code and a generic message instead of
@@ -27,7 +27,7 @@ const (
 // without an ABCICode information as considered internal.
 func ABCIInfo(err error, debug bool) (uint32, string) {
 	if errIsNil(err) {
-		return successABCICode, ""
+		return SuccessABCICode, ""
 	}
 
 	// Only non-internal errors information can be exposed. Any error that
@@ -56,7 +56,7 @@ func ABCIInfo(err error, debug bool) (uint32, string) {
 // and unwraps the error.
 func abciCode(err error) uint32 {
 	if errIsNil(err) {
-		return successABCICode
+		return SuccessABCICode
 	}
 
 	type coder interface {
