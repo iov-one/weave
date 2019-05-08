@@ -3,7 +3,6 @@ package aswap
 import (
 	"bytes"
 	"crypto/sha256"
-	"github.com/iov-one/weave/orm"
 	"time"
 
 	"github.com/iov-one/weave"
@@ -46,7 +45,7 @@ func RegisterQuery(qr weave.QueryRouter) {
 // CreateSwapHandler creates a swap
 type CreateSwapHandler struct {
 	auth   x.Authenticator
-	bucket orm.IDGenBucket
+	bucket Bucket
 	bank   cash.CoinMover
 }
 
