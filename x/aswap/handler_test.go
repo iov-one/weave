@@ -25,34 +25,24 @@ var (
 	bob               = weavetest.NewCondition()
 	pete              = weavetest.NewCondition()
 	swapAmount        = coin.NewCoin(0, 1, "TEST")
+	preimage          = make([]byte, 32)
+	preimageHash      = aswap.HashBytes(preimage)
+
+	bank   = cash.NewBucket()
+	ctrl   = cash.NewController(bank)
+	bucket = aswap.NewBucket()
+
+	r             = app.NewRouter()
+	authenticator = &weavetest.CtxAuth{"auth"}
+	auth          = x.ChainAuth(authenticator)
 )
 
+func init() {
+	aswap.RegisterRoutes(r, auth, ctrl)
+}
 func TestCreateHandler(t *testing.T) {
 	initialCoins, err := coin.CombineCoins(coin.NewCoin(1, 1, "TEST"))
 	assert.Nil(t, err)
-
-	bank := cash.NewBucket()
-	ctrl := cash.NewController(bank)
-	bucket := aswap.NewBucket()
-
-	setBalance := func(t *testing.T, db weave.KVStore, addr weave.Address, coins coin.Coins) {
-		acct, err := cash.WalletWith(addr, coins...)
-		assert.Nil(t, err)
-		err = bank.Save(db, acct)
-		assert.Nil(t, err)
-	}
-
-	checkBalance := func(t *testing.T, db weave.KVStore, addr weave.Address) coin.Coins {
-		acct, err := bank.Get(db, addr)
-		assert.Nil(t, err)
-		coins := cash.AsCoins(acct)
-		return coins
-	}
-
-	r := app.NewRouter()
-	authenticator := &weavetest.CtxAuth{"auth"}
-	auth := x.ChainAuth(authenticator)
-	aswap.RegisterRoutes(r, auth, ctrl)
 
 	cases := map[string]struct {
 		setup          func(ctx weave.Context, db weave.KVStore) weave.Context
@@ -116,7 +106,7 @@ func TestCreateHandler(t *testing.T) {
 			Metadata:     &weave.Metadata{Schema: 1},
 			Src:          alice.Address(),
 			Recipient:    bob.Address(),
-			PreimageHash: make([]byte, 32),
+			PreimageHash: preimageHash,
 			Amount:       []*coin.Coin{&swapAmount},
 			Timeout:      weave.AsUnixTime(time.Now()).Add(aswap.MinTimeout + time.Second),
 		}
@@ -162,38 +152,12 @@ func TestCreateHandler(t *testing.T) {
 }
 
 func TestReleaseHandler(t *testing.T) {
-	preimage := make([]byte, 32)
-	preimageHash := aswap.HashBytes(preimage)
-
 	initialCoins, err := coin.CombineCoins(coin.NewCoin(1, 1, "TEST"))
 	assert.Nil(t, err)
 
-	bank := cash.NewBucket()
-	ctrl := cash.NewController(bank)
-	bucket := aswap.NewBucket()
-
-	setBalance := func(t *testing.T, db weave.KVStore, addr weave.Address, coins coin.Coins) {
-		acct, err := cash.WalletWith(addr, coins...)
-		assert.Nil(t, err)
-		err = bank.Save(db, acct)
-		assert.Nil(t, err)
-	}
-
-	checkBalance := func(t *testing.T, db weave.KVStore, addr weave.Address) coin.Coins {
-		acct, err := bank.Get(db, addr)
-		assert.Nil(t, err)
-		coins := cash.AsCoins(acct)
-		return coins
-	}
-
-	r := app.NewRouter()
-	authenticator := &weavetest.CtxAuth{"auth"}
-	auth := x.ChainAuth(authenticator)
-	aswap.RegisterRoutes(r, auth, ctrl)
-
 	cases := map[string]struct {
 		setup          func(ctx weave.Context, db weave.KVStore) weave.Context
-		check          func(t *testing.T, db weave.KVStore, msg *aswap.ReleaseSwapMsg)
+		check          func(t *testing.T, db weave.KVStore)
 		wantCheckErr   *errors.Error
 		wantDeliverErr *errors.Error
 		exp            aswap.Swap
@@ -203,7 +167,7 @@ func TestReleaseHandler(t *testing.T) {
 			wantDeliverErr: nil,
 			wantCheckErr:   nil,
 			mutator:        nil,
-			check: func(t *testing.T, db weave.KVStore, msg *aswap.ReleaseSwapMsg) {
+			check: func(t *testing.T, db weave.KVStore) {
 				obj, err := bucket.Get(db, defaultSequenceId)
 				assert.Nil(t, err)
 				assert.Nil(t, obj)
@@ -291,10 +255,130 @@ func TestReleaseHandler(t *testing.T) {
 				t.Fatalf("check expected: %+v  but got %+v", spec.wantDeliverErr, err)
 			}
 			if spec.check != nil {
-				spec.check(t, cache, releaseMsg)
+				spec.check(t, cache)
 			}
 
 		})
 	}
 
+}
+
+func TestReturnHandler(t *testing.T) {
+	initialCoins, err := coin.CombineCoins(swapAmount)
+	assert.Nil(t, err)
+
+	cases := map[string]struct {
+		setup          func(ctx weave.Context, db weave.KVStore) weave.Context
+		check          func(t *testing.T, db weave.KVStore)
+		wantCheckErr   *errors.Error
+		wantDeliverErr *errors.Error
+		exp            aswap.Swap
+		mutator        func(db *aswap.ReturnSwapMsg)
+	}{
+		"Happy Path, includes no auth check": {
+			setup: func(ctx weave.Context, db weave.KVStore) weave.Context {
+				return weave.WithBlockTime(ctx, time.Now().Add(aswap.MinTimeout*2))
+			},
+			wantDeliverErr: nil,
+			wantCheckErr:   nil,
+			mutator:        nil,
+			check: func(t *testing.T, db weave.KVStore) {
+				obj, err := bucket.Get(db, defaultSequenceId)
+				assert.Nil(t, err)
+				assert.Nil(t, obj)
+				coins := checkBalance(t, db, alice.Address())
+				amt, err := coin.CombineCoins(swapAmount)
+				assert.Nil(t, err)
+				assert.Equal(t, true, coins.Equals(amt))
+			},
+		},
+		"Invalid Msg": {
+			wantDeliverErr: errors.ErrInvalidInput,
+			wantCheckErr:   errors.ErrInvalidInput,
+			mutator: func(msg *aswap.ReturnSwapMsg) {
+				msg.SwapID = nil
+			},
+		},
+		"Invalid SwapID": {
+			wantDeliverErr: errors.ErrEmpty,
+			wantCheckErr:   errors.ErrEmpty,
+			mutator: func(msg *aswap.ReturnSwapMsg) {
+				msg.SwapID = weavetest.SequenceID(2)
+			},
+		},
+		"Not Expired": {
+			setup: func(ctx weave.Context, db weave.KVStore) weave.Context {
+				return weave.WithBlockTime(ctx, time.Now())
+			},
+			wantDeliverErr: errors.ErrInvalidState,
+			wantCheckErr:   errors.ErrInvalidState,
+		},
+	}
+
+	for name, spec := range cases {
+		createMsg := &aswap.CreateSwapMsg{
+			Metadata:     &weave.Metadata{Schema: 1},
+			Src:          alice.Address(),
+			Recipient:    bob.Address(),
+			PreimageHash: preimageHash,
+			Amount:       []*coin.Coin{&swapAmount},
+			Timeout:      weave.AsUnixTime(time.Now()).Add(aswap.MinTimeout + time.Second),
+		}
+		t.Run(name, func(t *testing.T) {
+			db := store.MemStore()
+			migration.MustInitPkg(db, "aswap", "cash")
+
+			ctx := weave.WithHeight(context.Background(), 500)
+			ctx = weave.WithBlockTime(ctx, blockNow)
+			// setup a swap
+			createCtx := authenticator.SetConditions(ctx, alice)
+			setBalance(t, db, alice.Address(), initialCoins)
+			tx := &weavetest.Tx{Msg: createMsg}
+			_, err = r.Deliver(createCtx, db, tx)
+			assert.Nil(t, err)
+
+			returnMsg := &aswap.ReturnSwapMsg{
+				Metadata: &weave.Metadata{Schema: 1},
+				SwapID:   defaultSequenceId,
+			}
+
+			if spec.setup != nil {
+				ctx = spec.setup(ctx, db)
+			}
+			if spec.mutator != nil {
+				spec.mutator(returnMsg)
+			}
+			cache := db.CacheWrap()
+
+			tx = &weavetest.Tx{Msg: returnMsg}
+			if _, err := r.Check(ctx, cache, tx); !spec.wantCheckErr.Is(err) {
+				t.Fatalf("check expected: %+v  but got %+v", spec.wantCheckErr, err)
+			}
+
+			cache.Discard()
+
+			if _, err := r.Deliver(ctx, cache, tx); !spec.wantDeliverErr.Is(err) {
+				t.Fatalf("check expected: %+v  but got %+v", spec.wantDeliverErr, err)
+			}
+			if spec.check != nil {
+				spec.check(t, cache)
+			}
+
+		})
+	}
+
+}
+
+func setBalance(t *testing.T, db weave.KVStore, addr weave.Address, coins coin.Coins) {
+	acct, err := cash.WalletWith(addr, coins...)
+	assert.Nil(t, err)
+	err = bank.Save(db, acct)
+	assert.Nil(t, err)
+}
+
+func checkBalance(t *testing.T, db weave.KVStore, addr weave.Address) coin.Coins {
+	acct, err := bank.Get(db, addr)
+	assert.Nil(t, err)
+	coins := cash.AsCoins(acct)
+	return coins
 }
