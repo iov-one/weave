@@ -17,6 +17,7 @@ func TestElectorateValidation(t *testing.T) {
 	}{
 		"All good with min electors count": {
 			Src: Electorate{
+				Metadata:              &weave.Metadata{Schema: 1},
 				Title:                 "My Electorate",
 				Admin:                 alice,
 				Electors:              []Elector{{Address: alice, Weight: 1}},
@@ -25,6 +26,7 @@ func TestElectorateValidation(t *testing.T) {
 			}},
 		"All good with max electors count": {
 			Src: Electorate{
+				Metadata:              &weave.Metadata{Schema: 1},
 				Title:                 "My Electorate",
 				Admin:                 alice,
 				Electors:              buildElectors(2000),
@@ -33,6 +35,7 @@ func TestElectorateValidation(t *testing.T) {
 			}},
 		"All good with max weight count": {
 			Src: Electorate{
+				Metadata:              &weave.Metadata{Schema: 1},
 				Title:                 "My Electorate",
 				Admin:                 alice,
 				Electors:              []Elector{{Address: alice, Weight: 65535}},
@@ -41,6 +44,7 @@ func TestElectorateValidation(t *testing.T) {
 			}},
 		"Not enough electors": {
 			Src: Electorate{
+				Metadata:              &weave.Metadata{Schema: 1},
 				Title:                 "My Electorate",
 				Admin:                 alice,
 				Electors:              []Elector{},
@@ -51,6 +55,7 @@ func TestElectorateValidation(t *testing.T) {
 		},
 		"Too many electors": {
 			Src: Electorate{
+				Metadata:              &weave.Metadata{Schema: 1},
 				Title:                 "My Electorate",
 				Admin:                 alice,
 				Electors:              buildElectors(2001),
@@ -61,6 +66,7 @@ func TestElectorateValidation(t *testing.T) {
 		},
 		"Duplicate electors": {
 			Src: Electorate{
+				Metadata:              &weave.Metadata{Schema: 1},
 				Title:                 "My Electorate",
 				Admin:                 alice,
 				Electors:              []Elector{{Address: alice, Weight: 1}, {Address: alice, Weight: 1}},
@@ -71,6 +77,7 @@ func TestElectorateValidation(t *testing.T) {
 		},
 		"Empty electors weight ": {
 			Src: Electorate{
+				Metadata:              &weave.Metadata{Schema: 1},
 				Title:                 "My Electorate",
 				Admin:                 alice,
 				Electors:              []Elector{{Address: bobby, Weight: 0}, {Address: alice, Weight: 1}},
@@ -81,6 +88,7 @@ func TestElectorateValidation(t *testing.T) {
 		},
 		"Electors weight exceeds max": {
 			Src: Electorate{
+				Metadata:              &weave.Metadata{Schema: 1},
 				Title:                 "My Electorate",
 				Admin:                 alice,
 				Electors:              []Elector{{Address: alice, Weight: 65536}},
@@ -91,6 +99,7 @@ func TestElectorateValidation(t *testing.T) {
 		},
 		"Electors address must not be empty": {
 			Src: Electorate{
+				Metadata:              &weave.Metadata{Schema: 1},
 				Title:                 "My Electorate",
 				Admin:                 alice,
 				Electors:              []Elector{{Address: weave.Address{}, Weight: 1}},
@@ -101,6 +110,7 @@ func TestElectorateValidation(t *testing.T) {
 		},
 		"Total weight mismatch": {
 			Src: Electorate{
+				Metadata:              &weave.Metadata{Schema: 1},
 				Title:                 "My Electorate",
 				Admin:                 alice,
 				Electors:              []Elector{{Address: alice, Weight: 1}},
@@ -111,6 +121,7 @@ func TestElectorateValidation(t *testing.T) {
 		},
 		"Title too short": {
 			Src: Electorate{
+				Metadata:              &weave.Metadata{Schema: 1},
 				Title:                 "foo",
 				Admin:                 alice,
 				Electors:              []Elector{{Address: alice, Weight: 1}},
@@ -121,6 +132,7 @@ func TestElectorateValidation(t *testing.T) {
 		},
 		"Title too long": {
 			Src: Electorate{
+				Metadata:              &weave.Metadata{Schema: 1},
 				Title:                 BigString(129),
 				Admin:                 alice,
 				Electors:              []Elector{{Address: alice, Weight: 1}},
@@ -131,6 +143,7 @@ func TestElectorateValidation(t *testing.T) {
 		},
 		"Admin must not be invalid": {
 			Src: Electorate{
+				Metadata:              &weave.Metadata{Schema: 1},
 				Title:                 "My Electorate",
 				Admin:                 weave.Address{0x0, 0x1, 0x2},
 				Electors:              []Elector{{Address: alice, Weight: 1}},
@@ -141,6 +154,7 @@ func TestElectorateValidation(t *testing.T) {
 		},
 		"Admin must not be empty": {
 			Src: Electorate{
+				Metadata:              &weave.Metadata{Schema: 1},
 				Title:                 "My Electorate",
 				Admin:                 weave.Address{},
 				Electors:              []Elector{{Address: alice, Weight: 1}},
@@ -151,12 +165,22 @@ func TestElectorateValidation(t *testing.T) {
 		},
 		"Update rule must not be empty": {
 			Src: Electorate{
+				Metadata:              &weave.Metadata{Schema: 1},
 				Title:                 "My Electorate",
 				Admin:                 alice,
 				Electors:              []Elector{{Address: alice, Weight: 1}},
 				TotalElectorateWeight: 1,
 			},
 			Exp: errors.ErrEmpty,
+		},
+		"Metadata missing": {
+			Src: Electorate{
+				Title:                 "My Electorate",
+				Admin:                 alice,
+				Electors:              []Elector{{Address: alice, Weight: 1}},
+				TotalElectorateWeight: 1,
+			},
+			Exp: errors.ErrMetadata,
 		},
 	}
 	for msg, spec := range specs {
@@ -175,6 +199,7 @@ func TestElectionRuleValidation(t *testing.T) {
 	}{
 		"All good": {
 			Src: ElectionRule{
+				Metadata:          &weave.Metadata{Schema: 1},
 				Title:             "My election rule",
 				Admin:             alice,
 				VotingPeriodHours: 1,
@@ -183,6 +208,7 @@ func TestElectionRuleValidation(t *testing.T) {
 		},
 		"Threshold fraction allowed at 0.5 ratio": {
 			Src: ElectionRule{
+				Metadata:          &weave.Metadata{Schema: 1},
 				Title:             "My election rule",
 				Admin:             alice,
 				VotingPeriodHours: 1,
@@ -191,6 +217,7 @@ func TestElectionRuleValidation(t *testing.T) {
 		},
 		"Title too short": {
 			Src: ElectionRule{
+				Metadata:          &weave.Metadata{Schema: 1},
 				Title:             "foo",
 				Admin:             alice,
 				VotingPeriodHours: 1,
@@ -200,6 +227,7 @@ func TestElectionRuleValidation(t *testing.T) {
 		},
 		"Title too long": {
 			Src: ElectionRule{
+				Metadata:          &weave.Metadata{Schema: 1},
 				Title:             BigString(129),
 				Admin:             alice,
 				VotingPeriodHours: 1,
@@ -209,6 +237,7 @@ func TestElectionRuleValidation(t *testing.T) {
 		},
 		"Voting period empty": {
 			Src: ElectionRule{
+				Metadata:          &weave.Metadata{Schema: 1},
 				Title:             "My election rule",
 				Admin:             alice,
 				VotingPeriodHours: 0,
@@ -218,6 +247,7 @@ func TestElectionRuleValidation(t *testing.T) {
 		},
 		"Voting period too long": {
 			Src: ElectionRule{
+				Metadata:          &weave.Metadata{Schema: 1},
 				Title:             "My election rule",
 				Admin:             alice,
 				VotingPeriodHours: 673, // = 4 * 7 * 24 + 1
@@ -227,6 +257,7 @@ func TestElectionRuleValidation(t *testing.T) {
 		},
 		"Threshold must not be lower han 0.5": {
 			Src: ElectionRule{
+				Metadata:          &weave.Metadata{Schema: 1},
 				Title:             "My election rule",
 				Admin:             alice,
 				VotingPeriodHours: 1,
@@ -236,6 +267,7 @@ func TestElectionRuleValidation(t *testing.T) {
 		},
 		"Threshold fraction must not be higher than 1": {
 			Src: ElectionRule{
+				Metadata:          &weave.Metadata{Schema: 1},
 				Title:             "My election rule",
 				Admin:             alice,
 				VotingPeriodHours: 1,
@@ -245,6 +277,7 @@ func TestElectionRuleValidation(t *testing.T) {
 		},
 		"Threshold fraction must not contain 0 numerator": {
 			Src: ElectionRule{
+				Metadata:          &weave.Metadata{Schema: 1},
 				Title:             "My election rule",
 				Admin:             alice,
 				VotingPeriodHours: 1,
@@ -254,6 +287,7 @@ func TestElectionRuleValidation(t *testing.T) {
 		},
 		"Threshold fraction must not contain 0 denominator": {
 			Src: ElectionRule{
+				Metadata:          &weave.Metadata{Schema: 1},
 				Title:             "My election rule",
 				Admin:             alice,
 				VotingPeriodHours: 1,
@@ -263,6 +297,7 @@ func TestElectionRuleValidation(t *testing.T) {
 		},
 		"Quorum must not be lower han 0.5": {
 			Src: ElectionRule{
+				Metadata:          &weave.Metadata{Schema: 1},
 				Title:             "My election rule",
 				Admin:             alice,
 				VotingPeriodHours: 1,
@@ -273,6 +308,7 @@ func TestElectionRuleValidation(t *testing.T) {
 		},
 		"Quorum fraction must not be higher than 1": {
 			Src: ElectionRule{
+				Metadata:          &weave.Metadata{Schema: 1},
 				Title:             "My election rule",
 				Admin:             alice,
 				VotingPeriodHours: 1,
@@ -283,6 +319,7 @@ func TestElectionRuleValidation(t *testing.T) {
 		},
 		"Quorum fraction must not contain 0 numerator": {
 			Src: ElectionRule{
+				Metadata:          &weave.Metadata{Schema: 1},
 				Title:             "My election rule",
 				Admin:             alice,
 				VotingPeriodHours: 1,
@@ -293,6 +330,7 @@ func TestElectionRuleValidation(t *testing.T) {
 		},
 		"Quorum fraction must not contain 0 denominator": {
 			Src: ElectionRule{
+				Metadata:          &weave.Metadata{Schema: 1},
 				Title:             "My election rule",
 				Admin:             alice,
 				VotingPeriodHours: 1,
@@ -303,6 +341,7 @@ func TestElectionRuleValidation(t *testing.T) {
 		},
 		"Admin must not be invalid": {
 			Src: ElectionRule{
+				Metadata:          &weave.Metadata{Schema: 1},
 				Title:             "My election rule",
 				Admin:             weave.Address{0x0, 0x1, 0x2},
 				VotingPeriodHours: 1,
@@ -313,6 +352,7 @@ func TestElectionRuleValidation(t *testing.T) {
 		},
 		"Admin must not be empty": {
 			Src: ElectionRule{
+				Metadata:          &weave.Metadata{Schema: 1},
 				Title:             "My election rule",
 				Admin:             weave.Address{},
 				VotingPeriodHours: 1,
@@ -320,6 +360,15 @@ func TestElectionRuleValidation(t *testing.T) {
 				Threshold:         Fraction{Numerator: 1, Denominator: 2},
 			},
 			Exp: errors.ErrEmpty,
+		},
+		"Missing metadat": {
+			Src: ElectionRule{
+				Title:             "My election rule",
+				Admin:             alice,
+				VotingPeriodHours: 1,
+				Threshold:         Fraction{Numerator: 1, Denominator: 2},
+			},
+			Exp: errors.ErrMetadata,
 		},
 	}
 	for msg, spec := range specs {
@@ -407,6 +456,12 @@ func TestTextProposalValidation(t *testing.T) {
 			}),
 			Exp: errors.ErrInput,
 		},
+		"Metadata missing": {
+			Src: textProposalFixture(func(p *Proposal) {
+				p.Metadata = nil
+			}),
+			Exp: errors.ErrMetadata,
+		},
 	}
 	for msg, spec := range specs {
 		t.Run(msg, func(t *testing.T) {
@@ -424,29 +479,37 @@ func TestVoteValidate(t *testing.T) {
 	}{
 		"All good": {
 			Src: Vote{
-				Voted:   VoteOption_Yes,
-				Elector: Elector{Address: bobby, Weight: 10},
+				Metadata: &weave.Metadata{Schema: 1},
+				Voted:    VoteOption_Yes,
+				Elector:  Elector{Address: bobby, Weight: 10},
 			},
 		},
 		"Voted option missing": {
-			Src: Vote{Elector: Elector{Address: bobby, Weight: 10}},
+			Src: Vote{Elector: Elector{Address: bobby, Weight: 10}, Metadata: &weave.Metadata{Schema: 1}},
 			Exp: errors.ErrInput,
 		},
 		"Elector missing": {
-			Src: Vote{Voted: VoteOption_Yes},
+			Src: Vote{Voted: VoteOption_Yes, Metadata: &weave.Metadata{Schema: 1}},
 			Exp: errors.ErrInput,
 		},
 		"Elector's weight missing": {
-			Src: Vote{Voted: VoteOption_Yes, Elector: Elector{Address: bobby}},
+			Src: Vote{Voted: VoteOption_Yes, Elector: Elector{Address: bobby}, Metadata: &weave.Metadata{Schema: 1}},
 			Exp: errors.ErrInput,
 		},
 		"Elector's Address missing": {
-			Src: Vote{Voted: VoteOption_Yes, Elector: Elector{Weight: 1}},
+			Src: Vote{Voted: VoteOption_Yes, Elector: Elector{Weight: 1}, Metadata: &weave.Metadata{Schema: 1}},
 			Exp: errors.ErrEmpty,
 		},
 		"Invalid option": {
-			Src: Vote{Voted: VoteOption_Invalid, Elector: Elector{Address: bobby, Weight: 1}},
+			Src: Vote{Voted: VoteOption_Invalid, Elector: Elector{Address: bobby, Weight: 1}, Metadata: &weave.Metadata{Schema: 1}},
 			Exp: errors.ErrInput,
+		},
+		"Metadata missing": {
+			Src: Vote{
+				Voted:   VoteOption_Yes,
+				Elector: Elector{Address: bobby, Weight: 10},
+			},
+			Exp: errors.ErrMetadata,
 		},
 	}
 	for msg, spec := range specs {

@@ -42,6 +42,10 @@ func (DeleteProposalMsg) Path() string {
 }
 
 func (m DeleteProposalMsg) Validate() error {
+	if err := m.Metadata.Validate(); err != nil {
+		return errors.Wrap(err, "invalid metadata")
+	}
+
 	if len(m.ID) == 0 {
 		return errors.Wrap(errors.ErrInput, "empty proposal id")
 	}
@@ -53,6 +57,9 @@ func (VoteMsg) Path() string {
 }
 
 func (m VoteMsg) Validate() error {
+	if err := m.Metadata.Validate(); err != nil {
+		return errors.Wrap(err, "invalid metadata")
+	}
 	if m.Selected != VoteOption_Yes && m.Selected != VoteOption_No && m.Selected != VoteOption_Abstain {
 		return errors.Wrap(errors.ErrInput, "invalid option")
 	}
@@ -70,6 +77,10 @@ func (TallyMsg) Path() string {
 }
 
 func (m TallyMsg) Validate() error {
+	if err := m.Metadata.Validate(); err != nil {
+		return errors.Wrap(err, "invalid metadata")
+	}
+
 	if len(m.ProposalID) == 0 {
 		return errors.Wrap(errors.ErrInput, "empty proposal id")
 	}
@@ -81,6 +92,9 @@ func (UpdateElectionRuleMsg) Path() string {
 }
 
 func (m UpdateElectionRuleMsg) Validate() error {
+	if err := m.Metadata.Validate(); err != nil {
+		return errors.Wrap(err, "invalid metadata")
+	}
 	switch {
 	case len(m.ElectionRuleID) == 0:
 		return errors.Wrap(errors.ErrEmpty, "id")
@@ -97,6 +111,10 @@ func (UpdateElectorateMsg) Path() string {
 }
 
 func (m UpdateElectorateMsg) Validate() error {
+	if err := m.Metadata.Validate(); err != nil {
+		return errors.Wrap(err, "invalid metadata")
+	}
+
 	switch {
 	case len(m.ElectorateID) == 0:
 		return errors.Wrap(errors.ErrEmpty, "id")
@@ -131,6 +149,7 @@ func (m CreateElectorateUpdateProposalMsg) Validate() error {
 }
 
 type commonCreateProposalData interface {
+	GetMetadata() *weave.Metadata
 	GetTitle() string
 	GetDescription() string
 	GetElectorateID() []byte
@@ -139,6 +158,10 @@ type commonCreateProposalData interface {
 }
 
 func validateCreateProposal(m commonCreateProposalData) error {
+	if err := m.GetMetadata().Validate(); err != nil {
+		return errors.Wrap(err, "invalid metadata")
+	}
+
 	switch {
 	case len(m.GetElectorateID()) == 0:
 		return errors.Wrap(errors.ErrInput, "empty electorate id")

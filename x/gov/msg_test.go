@@ -16,26 +16,30 @@ func TestVoteMsg(t *testing.T) {
 	}{
 
 		"Happy path": {
-			Msg: VoteMsg{ProposalID: weavetest.SequenceID(1), Selected: VoteOption_Yes, Voter: alice},
+			Msg: VoteMsg{ProposalID: weavetest.SequenceID(1), Selected: VoteOption_Yes, Voter: alice, Metadata: &weave.Metadata{Schema: 1}},
 		},
 		"Voter optional": {
-			Msg: VoteMsg{ProposalID: weavetest.SequenceID(1), Selected: VoteOption_Yes},
+			Msg: VoteMsg{ProposalID: weavetest.SequenceID(1), Selected: VoteOption_Yes, Metadata: &weave.Metadata{Schema: 1}},
 		},
 		"Proposal id missing": {
-			Msg: VoteMsg{Selected: VoteOption_Yes, Voter: alice},
+			Msg: VoteMsg{Selected: VoteOption_Yes, Voter: alice, Metadata: &weave.Metadata{Schema: 1}},
 			Exp: errors.ErrInput,
 		},
 		"Vote option missing": {
-			Msg: VoteMsg{ProposalID: weavetest.SequenceID(1), Voter: alice},
+			Msg: VoteMsg{ProposalID: weavetest.SequenceID(1), Voter: alice, Metadata: &weave.Metadata{Schema: 1}},
 			Exp: errors.ErrInput,
 		},
 		"Invalid vote option": {
-			Msg: VoteMsg{ProposalID: weavetest.SequenceID(1), Selected: VoteOption(100), Voter: alice},
+			Msg: VoteMsg{ProposalID: weavetest.SequenceID(1), Selected: VoteOption(100), Voter: alice, Metadata: &weave.Metadata{Schema: 1}},
 			Exp: errors.ErrInput,
 		},
 		"Invalid voter address": {
-			Msg: VoteMsg{ProposalID: weavetest.SequenceID(1), Selected: VoteOption_Yes, Voter: weave.Address([]byte{0})},
+			Msg: VoteMsg{ProposalID: weavetest.SequenceID(1), Selected: VoteOption_Yes, Voter: weave.Address([]byte{0}), Metadata: &weave.Metadata{Schema: 1}},
 			Exp: errors.ErrInput,
+		},
+		"Metadata missing": {
+			Msg: VoteMsg{ProposalID: weavetest.SequenceID(1), Selected: VoteOption_Yes, Voter: alice},
+			Exp: errors.ErrMetadata,
 		},
 	}
 	for msg, spec := range specs {
@@ -54,11 +58,15 @@ func TestTallyMsg(t *testing.T) {
 		Exp *errors.Error
 	}{
 		"Happy path": {
-			Msg: TallyMsg{ProposalID: weavetest.SequenceID(1)},
+			Msg: TallyMsg{ProposalID: weavetest.SequenceID(1), Metadata: &weave.Metadata{Schema: 1}},
 		},
 		"ID missing": {
-			Msg: TallyMsg{},
+			Msg: TallyMsg{Metadata: &weave.Metadata{Schema: 1}},
 			Exp: errors.ErrInput,
+		},
+		"Metadata missing": {
+			Msg: TallyMsg{ProposalID: weavetest.SequenceID(1)},
+			Exp: errors.ErrMetadata,
 		},
 	}
 	for msg, spec := range specs {
@@ -74,6 +82,7 @@ func TestTallyMsg(t *testing.T) {
 func TestCrateTextProposalMsg(t *testing.T) {
 	buildMsg := func(mods ...func(*CreateTextProposalMsg)) CreateTextProposalMsg {
 		m := CreateTextProposalMsg{
+			Metadata:       &weave.Metadata{Schema: 1},
 			Title:          "any title _.-",
 			Description:    "any description",
 			ElectorateID:   weavetest.SequenceID(1),
@@ -163,6 +172,12 @@ func TestCrateTextProposalMsg(t *testing.T) {
 			}),
 			Exp: errors.ErrInput,
 		},
+		"Metadata missing": {
+			Msg: buildMsg(func(p *CreateTextProposalMsg) {
+				p.Metadata = nil
+			}),
+			Exp: errors.ErrMetadata,
+		},
 	}
 	for msg, spec := range specs {
 		t.Run(msg, func(t *testing.T) {
@@ -180,11 +195,15 @@ func TestDeleteTestProposalMsg(t *testing.T) {
 		Exp *errors.Error
 	}{
 		"Happy path": {
-			Msg: DeleteProposalMsg{ID: weavetest.SequenceID(1)},
+			Msg: DeleteProposalMsg{ID: weavetest.SequenceID(1), Metadata: &weave.Metadata{Schema: 1}},
 		},
 		"Empty ID": {
-			Msg: DeleteProposalMsg{},
+			Msg: DeleteProposalMsg{Metadata: &weave.Metadata{Schema: 1}},
 			Exp: errors.ErrInput,
+		},
+		"Metadata missing": {
+			Msg: DeleteProposalMsg{ID: weavetest.SequenceID(1)},
+			Exp: errors.ErrMetadata,
 		},
 	}
 	for msg, spec := range specs {
