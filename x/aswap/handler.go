@@ -11,7 +11,6 @@ import (
 	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/x"
 	"github.com/iov-one/weave/x/cash"
-	"github.com/tendermint/tendermint/libs/common"
 )
 
 const (
@@ -20,9 +19,7 @@ const (
 	returnSwapCost  int64 = 0
 	releaseSwapCost int64 = 0
 
-	minTimeout = 24 * time.Hour
-
-	tagAction string = "action"
+	MinTimeout = 24 * time.Hour
 )
 
 // RegisterRoutes will instantiate and register
@@ -87,15 +84,12 @@ func (h CreateSwapHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave
 		return nil, err
 	}
 
-	if err := moveCoins(db, h.bank, swap.Src, swapAddr(obj.Key(), swap), msg.Amount); err != nil {
+	if err := moveCoins(db, h.bank, swap.Src, SwapAddr(obj.Key(), swap), msg.Amount); err != nil {
 		return nil, err
 	}
 
 	// return id of swap to use in future calls
 	res := &weave.DeliverResult{
-		Tags: []common.KVPair{
-			{Key: []byte(tagAction), Value: []byte("create-swap")},
-		},
 		Data: obj.Key(),
 	}
 	return res, nil
@@ -108,9 +102,9 @@ func (h CreateSwapHandler) validate(ctx weave.Context,
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, errors.Wrap(err, "load msg")
 	}
-	if IsExpired(ctx, msg.Timeout.Add(-minTimeout)) {
+	if IsExpired(ctx, msg.Timeout.Add(-MinTimeout)) {
 		return nil, errors.Wrapf(errors.ErrInvalidInput,
-			"timeout should be a minimum of %d hours from now", minTimeout/time.Hour)
+			"timeout should be a minimum of %d hours from now", MinTimeout/time.Hour)
 	}
 
 	// Sender must authorize this
@@ -149,7 +143,7 @@ func (h ReleaseSwapHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weav
 		return nil, err
 	}
 
-	swapAddr := swapAddr(swapID, swap)
+	swapAddr := SwapAddr(swapID, swap)
 
 	amount, err := h.bank.Balance(db, swapAddr)
 	if err != nil {
@@ -166,12 +160,7 @@ func (h ReleaseSwapHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weav
 		return nil, err
 	}
 
-	res := &weave.DeliverResult{
-		Tags: []common.KVPair{
-			{Key: []byte(tagAction), Value: []byte("release-swap")},
-		},
-	}
-	return res, nil
+	return &weave.DeliverResult{}, nil
 }
 
 // validate does all common pre-processing between Check and Deliver.
@@ -227,7 +216,7 @@ func (h ReturnSwapHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave
 		return nil, err
 	}
 
-	swapAddr := swapAddr(msg.SwapID, swap)
+	swapAddr := SwapAddr(msg.SwapID, swap)
 
 	available, err := h.bank.Balance(db, swapAddr)
 	if err != nil {
@@ -241,12 +230,8 @@ func (h ReturnSwapHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave
 	if err := h.bucket.Delete(db, msg.SwapID); err != nil {
 		return nil, err
 	}
-	res := &weave.DeliverResult{
-		Tags: []common.KVPair{
-			{Key: []byte(tagAction), Value: []byte("return-swap")},
-		},
-	}
-	return res, nil
+
+	return &weave.DeliverResult{}, nil
 }
 
 // validate does all common pre-processing between Check and Deliver.
@@ -296,7 +281,7 @@ func hashBytes(preimage []byte) []byte {
 	return hash[:]
 }
 
-func swapAddr(key []byte, swap *Swap) weave.Address {
+func SwapAddr(key []byte, swap *Swap) weave.Address {
 	swapAddrHash := bytes.Join([][]byte{key, swap.PreimageHash}, []byte("|"))
 	// update swap address with a proper value
 	return weave.NewCondition("aswap", "pre_hash", swapAddrHash).Address()
