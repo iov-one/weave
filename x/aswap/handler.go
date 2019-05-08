@@ -53,7 +53,7 @@ var _ weave.Handler = CreateSwapHandler{}
 
 // Check does the validation and sets the cost of the transaction
 func (h CreateSwapHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
-	_, _, err := h.validate(ctx, db, tx)
+	_, err := h.validate(ctx, db, tx)
 	if err != nil {
 		return nil, err
 	}
@@ -66,13 +66,12 @@ func (h CreateSwapHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.T
 
 // Deliver moves the tokens from sender to the swap account if all conditions are met.
 func (h CreateSwapHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
-	msg, cstore, err := h.validate(ctx, db, tx)
+	msg, err := h.validate(ctx, db, tx)
 
 	if err != nil {
 		return nil, err
 	}
 
-	cache := cstore.CacheWrap()
 	// create a swap object
 	swap := &Swap{
 		Metadata:     msg.Metadata,
@@ -83,13 +82,12 @@ func (h CreateSwapHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave
 		PreimageHash: msg.PreimageHash,
 	}
 
-	obj, err := h.bucket.Create(cache, swap)
+	obj, err := h.bucket.Create(db, swap)
 	if err != nil {
 		return nil, err
 	}
 
 	if err := moveCoins(db, h.bank, swap.Src, swapAddr(obj.Key(), swap), msg.Amount); err != nil {
-		cache.Discard()
 		return nil, err
 	}
 
@@ -100,33 +98,27 @@ func (h CreateSwapHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave
 		},
 		Data: obj.Key(),
 	}
-	return res, cache.Write()
+	return res, nil
 }
 
 // validate does all common pre-processing between Check and Deliver.
 func (h CreateSwapHandler) validate(ctx weave.Context,
-	db weave.KVStore, tx weave.Tx) (*CreateSwapMsg, weave.CacheableKVStore, error) {
+	db weave.KVStore, tx weave.Tx) (*CreateSwapMsg, error) {
 	var msg CreateSwapMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
-		return nil, nil, errors.Wrap(err, "load msg")
+		return nil, errors.Wrap(err, "load msg")
 	}
 	if IsExpired(ctx, msg.Timeout.Add(-minTimeout)) {
-		return nil, nil, errors.Wrapf(errors.ErrInvalidInput,
+		return nil, errors.Wrapf(errors.ErrInvalidInput,
 			"timeout should be a minimum of %d hours from now", minTimeout/time.Hour)
 	}
 
 	// Sender must authorize this
 	if !h.auth.HasAddress(ctx, msg.Src) {
-		return nil, nil, errors.ErrUnauthorized
+		return nil, errors.ErrUnauthorized
 	}
 
-	cstore, ok := db.(weave.CacheableKVStore)
-	if !ok {
-		err := errors.Wrap(errors.ErrHuman, "need cachable kvstore")
-		return nil, nil, err
-	}
-
-	return &msg, cstore, nil
+	return &msg, nil
 }
 
 // ReleaseSwapHandler releases the amount to recipient.
