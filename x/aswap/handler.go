@@ -166,7 +166,6 @@ func (h ReleaseSwapHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weav
 
 	res := &weave.DeliverResult{
 		Tags: []common.KVPair{
-			{Key: []byte(tagSwapId), Value: swapID},
 			{Key: []byte(tagAction), Value: []byte("release-swap")},
 		},
 	}
@@ -235,12 +234,11 @@ func (h ReturnSwapHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave
 	if err := moveCoins(db, h.bank, swap.Address, swap.Src, available); err != nil {
 		return nil, err
 	}
-	if err := h.bucket.Delete(db, msg.PreimageHash); err != nil {
+	if err := h.bucket.Delete(db, msg.SwapID); err != nil {
 		return nil, err
 	}
 	res := &weave.DeliverResult{
 		Tags: []common.KVPair{
-			{Key: []byte(tagSwapId), Value: msg.PreimageHash},
 			{Key: []byte(tagAction), Value: []byte("return-swap")},
 		},
 	}
