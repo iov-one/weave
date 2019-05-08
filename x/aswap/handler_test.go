@@ -33,7 +33,7 @@ var (
 	bucket = aswap.NewBucket()
 
 	r             = app.NewRouter()
-	authenticator = &weavetest.CtxAuth{"auth"}
+	authenticator = &weavetest.CtxAuth{Key: "auth"}
 	auth          = x.ChainAuth(authenticator)
 )
 
