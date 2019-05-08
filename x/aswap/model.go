@@ -50,14 +50,15 @@ func (s *Swap) Validate() error {
 	return nil
 }
 
-// Copy makes a new swap with the same coins
+// Copy makes a new swap
 func (s *Swap) Copy() orm.CloneableData {
 	return &Swap{
-		Metadata:  s.Metadata.Copy(),
-		Src:       s.Src,
-		Recipient: s.Recipient,
-		Timeout:   s.Timeout,
-		Memo:      s.Memo,
+		Metadata:     s.Metadata.Copy(),
+		PreimageHash: s.PreimageHash,
+		Src:          s.Src,
+		Recipient:    s.Recipient,
+		Timeout:      s.Timeout,
+		Memo:         s.Memo,
 	}
 }
 
