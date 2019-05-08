@@ -28,6 +28,13 @@ func NoModification(weave.ReadOnlyKVStore, Migratable) error {
 	return nil
 }
 
+// RefuseMigration is a migration function that always fails. Its use is
+// expected when there is no migration path to given version. This is accepted
+// migration callback function for messages but should be avoided for models.
+func RefuseMigration(weave.ReadOnlyKVStore, Migratable) error {
+	return errors.Wrap(errors.ErrSchema, "no migration path from given schema version")
+}
+
 func newRegister() *register {
 	return &register{
 		migrateTo: make(map[payloadVersion]Migrator),
