@@ -22,7 +22,6 @@ const (
 
 	minTimeout = 24 * time.Hour
 
-	tagSwapId string = "swap-id"
 	tagAction string = "action"
 )
 
