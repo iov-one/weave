@@ -179,20 +179,10 @@ func (h SchemaRoutingHandler) selectHandler(tx weave.Tx) (weave.Handler, error) 
 	}
 	meta := m.GetMetadata()
 
-	var handler weave.Handler
-	for ver := uint32(1); ver < uint32(len(h)); ver++ {
-		// It is allowed to leave gaps between handler version mappings
-		// so it. If this is the case, the previously available version
-		// must be used.
-		if next := h[ver]; next != nil {
-			handler = next
-		}
-		if ver >= meta.Schema {
-			break
+	for ver := meta.Schema; ver > 0; ver-- {
+		if h[ver] != nil {
+			return h[ver], nil
 		}
 	}
-	if handler == nil {
-		return nil, errors.Wrapf(errors.ErrSchema, "no matching handler for schema version %d", meta.Schema)
-	}
-	return handler, nil
+	return nil, errors.Wrapf(errors.ErrSchema, "no matching handler for schema version %d", meta.Schema)
 }
