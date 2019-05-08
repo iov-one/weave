@@ -175,7 +175,7 @@ func (h ReleaseSwapHandler) validate(ctx weave.Context, db weave.KVStore, tx wea
 		return nil, nil, err
 	}
 
-	preimageHash := hashBytes(msg.Preimage)
+	preimageHash := HashBytes(msg.Preimage)
 
 	if !bytes.Equal(swap.PreimageHash, preimageHash) {
 		return nil, nil, errors.Wrap(errors.ErrUnauthorized, "invalid preimageHash")
@@ -276,7 +276,7 @@ func moveCoins(db weave.KVStore, bank cash.CoinMover, src, dest weave.Address, a
 	return nil
 }
 
-func hashBytes(preimage []byte) []byte {
+func HashBytes(preimage []byte) []byte {
 	hash := sha256.Sum256(preimage)
 	return hash[:]
 }
