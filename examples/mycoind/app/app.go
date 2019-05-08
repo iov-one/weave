@@ -60,7 +60,7 @@ func Chain(minFee coin.Coin, authFn x.Authenticator) app.Decorators {
 func Router(authFn x.Authenticator) app.Router {
 	r := app.NewRouter()
 	cash.RegisterRoutes(r, authFn, CashControl())
-	validators.RegisterRoutes(r, authFn, validators.NewController())
+	validators.RegisterRoutes(r, authFn)
 	return r
 }
 
