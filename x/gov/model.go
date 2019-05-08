@@ -22,6 +22,9 @@ func (m Electorate) Validate() error {
 		return errors.Wrapf(errors.ErrInvalidInput, "electors must not exceed: %d", maxElectors)
 	case !validTitle(m.Title):
 		return errors.Wrapf(errors.ErrInvalidInput, "title: %q", m.Title)
+	case len(m.UpdateElectionRuleID) == 0:
+		return errors.Wrapf(errors.ErrEmpty, "update election rule id")
+
 	}
 
 	var totalWeight uint64

@@ -1,7 +1,7 @@
 package gov
 
 import (
-	"fmt"
+	"encoding/binary"
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
@@ -22,9 +22,10 @@ func (*Initializer) FromGenesis(opts weave.Options, db weave.KVStore) error {
 	}
 	var governance struct {
 		Electorate []struct {
-			Admin    weave.Address `json:"admin"`
-			Title    string        `json:"title"`
-			Electors []struct {
+			Admin          weave.Address `json:"admin"`
+			Title          string        `json:"title"`
+			ElectionRuleID uint64        `json:"update_rule_id"`
+			Electors       []struct {
 				Address weave.Address `json:"address"`
 				Weight  uint32        `json:"weight"`
 			} `json:"electors"`
@@ -40,36 +41,6 @@ func (*Initializer) FromGenesis(opts weave.Options, db weave.KVStore) error {
 	if err := opts.ReadOptions("governance", &governance); err != nil {
 		return err
 	}
-	// handle electorate
-	electBucket := NewElectorateBucket()
-	for i, e := range governance.Electorate {
-		ps := make([]Elector, len(e.Electors))
-		var total uint64
-		for i, p := range e.Electors {
-			ps[i] = Elector{
-				Address: p.Address,
-				Weight:  p.Weight,
-			}
-			total += uint64(p.Weight)
-		}
-		electorate := Electorate{
-			Admin:                 e.Admin,
-			Title:                 e.Title,
-			Electors:              ps,
-			TotalElectorateWeight: total,
-		}
-		if err := electorate.Validate(); err != nil {
-			return errors.Wrap(err, fmt.Sprintf("electorate #%d is invalid", i))
-		}
-		obj, err := electBucket.Build(db, &electorate)
-		if err != nil {
-			return err
-		}
-		sortByAddress(electorate.Electors)
-		if err := electBucket.Save(db, obj); err != nil {
-			return err
-		}
-	}
 	// handle election rules
 	rulesBucket := NewElectionRulesBucket()
 	for i, r := range governance.Rules {
@@ -83,7 +54,7 @@ func (*Initializer) FromGenesis(opts weave.Options, db weave.KVStore) error {
 			rule.Quorum = &Fraction{Numerator: r.Quorum.Numerator, Denominator: r.Quorum.Denominator}
 		}
 		if err := rule.Validate(); err != nil {
-			return errors.Wrap(err, fmt.Sprintf("eletionRule #%d is invalid", i))
+			return errors.Wrapf(err, "electionRule #%d is invalid", i)
 		}
 		obj, err := rulesBucket.Build(db, &rule)
 		if err != nil {
@@ -93,5 +64,51 @@ func (*Initializer) FromGenesis(opts weave.Options, db weave.KVStore) error {
 			return err
 		}
 	}
+
+	// handle electorate
+	electBucket := NewElectorateBucket()
+	for i, e := range governance.Electorate {
+		ps := make([]Elector, len(e.Electors))
+		var total uint64
+		for i, p := range e.Electors {
+			ps[i] = Elector{
+				Address: p.Address,
+				Weight:  p.Weight,
+			}
+			total += uint64(p.Weight)
+		}
+		ruleID := encodeSequence(e.ElectionRuleID)
+		o, err := rulesBucket.Get(db, ruleID)
+		if err != nil {
+			return errors.Wrapf(err, "failed to load rule with id: %d", e.ElectionRuleID)
+		}
+		if o == nil || o.Value() == nil {
+			return errors.Wrapf(errors.ErrNotFound, "rule id: %d", e.ElectionRuleID)
+		}
+		electorate := Electorate{
+			Admin:                 e.Admin,
+			Title:                 e.Title,
+			Electors:              ps,
+			TotalElectorateWeight: total,
+			UpdateElectionRuleID:  ruleID,
+		}
+		if err := electorate.Validate(); err != nil {
+			return errors.Wrapf(err, "electorate #%d is invalid", i)
+		}
+		obj, err := electBucket.Build(db, &electorate)
+		if err != nil {
+			return err
+		}
+		sortByAddress(electorate.Electors)
+		if err := electBucket.Save(db, obj); err != nil {
+			return err
+		}
+	}
 	return nil
+}
+
+func encodeSequence(val uint64) []byte {
+	bz := make([]byte, 8)
+	binary.BigEndian.PutUint64(bz, val)
+	return bz
 }
