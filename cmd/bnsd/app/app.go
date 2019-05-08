@@ -82,7 +82,7 @@ func Router(authFn x.Authenticator, issuer weave.Address, nftBuckets map[string]
 	// or implement a check
 	currency.RegisterRoutes(r, authFn, issuer)
 	username.RegisterRoutes(r, authFn, issuer)
-	validators.RegisterRoutes(r, authFn, validators.NewController())
+	validators.RegisterRoutes(r, authFn)
 	distribution.RegisterRoutes(r, authFn, ctrl)
 	base.RegisterRoutes(r, authFn, issuer, nftBuckets)
 	sigs.RegisterRoutes(r, authFn)
