@@ -1,8 +1,6 @@
 package aswap
 
 import (
-	"bytes"
-	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/orm"
@@ -33,9 +31,6 @@ func (s *Swap) Validate() error {
 	if err := s.Recipient.Validate(); err != nil {
 		return errors.Wrap(err, "recipient")
 	}
-	if err := s.Address.Validate(); err != nil {
-		return errors.Wrap(err, "address")
-	}
 	if len(s.PreimageHash) != preimageHashSize {
 		return errors.Wrapf(errors.ErrInvalidInput,
 			"preimage hash has to be exactly %d bytes", preimageHashSize)
@@ -60,7 +55,6 @@ func (s *Swap) Copy() orm.CloneableData {
 	return &Swap{
 		Metadata:  s.Metadata.Copy(),
 		Src:       s.Src,
-		Address:   s.Address,
 		Recipient: s.Recipient,
 		Timeout:   s.Timeout,
 		Memo:      s.Memo,
@@ -79,8 +73,7 @@ func AsSwap(obj orm.Object) *Swap {
 
 // Bucket is a type-safe wrapper around orm.Bucket
 type Bucket struct {
-	orm.Bucket
-	idSeq orm.Sequence
+	orm.IDGenBucket
 }
 
 // NewBucket initializes a Bucket with default name
@@ -95,8 +88,7 @@ func NewBucket() Bucket {
 		WithIndex("preimage_hash", idxPrehash, false)
 
 	return Bucket{
-		Bucket: bucket,
-		idSeq:  bucket.Sequence(SequenceName),
+		IDGenBucket: orm.WithSeqIDGenerator(bucket, SequenceName),
 	}
 }
 
@@ -133,28 +125,4 @@ func idxPrehash(obj orm.Object) ([]byte, error) {
 		return nil, err
 	}
 	return swp.PreimageHash, nil
-}
-
-// Build generates primary key, uses that to generate a swap address and returns swap as an orm
-// Object. It does not persist the swap in the store.
-func (b Bucket) Build(db weave.KVStore, swap *Swap) (orm.Object, error) {
-	key, err := b.idSeq.NextVal(db)
-	if err != nil {
-		return nil, err
-	}
-
-	// make sure we use swapID to avoid any address collisions between swaps with the same preimage
-	swapAddrHash := bytes.Join([][]byte{key, swap.PreimageHash}, []byte("|"))
-	// update swap address with a proper value
-	swap.Address = weave.NewCondition("aswap", "pre_hash", swapAddrHash).Address()
-
-	return orm.NewSimpleObj(key, swap), nil
-}
-
-// Save enforces the proper type
-func (b Bucket) Save(db weave.KVStore, obj orm.Object) error {
-	if _, ok := obj.Value().(*Swap); !ok {
-		return errors.WithType(errors.ErrInvalidModel, obj.Value())
-	}
-	return b.Bucket.Save(db, obj)
 }

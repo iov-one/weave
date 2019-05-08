@@ -3,6 +3,7 @@ package aswap
 import (
 	"bytes"
 	"crypto/sha256"
+	"github.com/iov-one/weave/orm"
 	"time"
 
 	"github.com/iov-one/weave"
@@ -45,7 +46,7 @@ func RegisterQuery(qr weave.QueryRouter) {
 // CreateSwapHandler creates a swap
 type CreateSwapHandler struct {
 	auth   x.Authenticator
-	bucket Bucket
+	bucket orm.IDGenBucket
 	bank   cash.CoinMover
 }
 
@@ -53,7 +54,7 @@ var _ weave.Handler = CreateSwapHandler{}
 
 // Check does the validation and sets the cost of the transaction
 func (h CreateSwapHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
-	_, err := h.validate(ctx, db, tx)
+	_, _, err := h.validate(ctx, db, tx)
 	if err != nil {
 		return nil, err
 	}
@@ -66,11 +67,13 @@ func (h CreateSwapHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.T
 
 // Deliver moves the tokens from sender to the swap account if all conditions are met.
 func (h CreateSwapHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
-	msg, err := h.validate(ctx, db, tx)
+	msg, cstore, err := h.validate(ctx, db, tx)
+
 	if err != nil {
 		return nil, err
 	}
 
+	cache := cstore.CacheWrap()
 	// create a swap object
 	swap := &Swap{
 		Metadata:     msg.Metadata,
@@ -80,14 +83,14 @@ func (h CreateSwapHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave
 		Memo:         msg.Memo,
 		PreimageHash: msg.PreimageHash,
 	}
-	obj, err := h.bucket.Build(db, swap)
+
+	obj, err := h.bucket.Create(cache, swap)
 	if err != nil {
 		return nil, err
 	}
 
-	// deposit amounts
-	senderAddr := swap.Src
-	if err := moveCoins(db, h.bank, senderAddr, swap.Address, msg.Amount); err != nil {
+	if err := moveCoins(db, h.bank, swap.Src, swapAddr(obj.Key(), swap), msg.Amount); err != nil {
+		cache.Discard()
 		return nil, err
 	}
 
@@ -98,26 +101,33 @@ func (h CreateSwapHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave
 		},
 		Data: obj.Key(),
 	}
-	return res, h.bucket.Save(db, obj)
+	return res, cache.Write()
 }
 
 // validate does all common pre-processing between Check and Deliver.
-func (h CreateSwapHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*CreateSwapMsg, error) {
+func (h CreateSwapHandler) validate(ctx weave.Context,
+	db weave.KVStore, tx weave.Tx) (*CreateSwapMsg, weave.CacheableKVStore, error) {
 	var msg CreateSwapMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
-		return nil, errors.Wrap(err, "load msg")
+		return nil, nil, errors.Wrap(err, "load msg")
 	}
 	if IsExpired(ctx, msg.Timeout.Add(-minTimeout)) {
-		return nil, errors.Wrapf(errors.ErrInvalidInput,
+		return nil, nil, errors.Wrapf(errors.ErrInvalidInput,
 			"timeout should be a minimum of %d hours from now", minTimeout/time.Hour)
 	}
 
 	// Sender must authorize this
 	if !h.auth.HasAddress(ctx, msg.Src) {
-		return nil, errors.ErrUnauthorized
+		return nil, nil, errors.ErrUnauthorized
 	}
 
-	return &msg, nil
+	cstore, ok := db.(weave.CacheableKVStore)
+	if !ok {
+		err := errors.Wrap(errors.ErrHuman, "need cachable kvstore")
+		return nil, nil, err
+	}
+
+	return &msg, cstore, nil
 }
 
 // ReleaseSwapHandler releases the amount to recipient.
@@ -148,13 +158,15 @@ func (h ReleaseSwapHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weav
 		return nil, err
 	}
 
-	amount, err := h.bank.Balance(db, swap.Address)
+	swapAddr := swapAddr(swapID, swap)
+
+	amount, err := h.bank.Balance(db, swapAddr)
 	if err != nil {
 		return nil, err
 	}
 
 	// withdraw the money from swap to recipient
-	if err := moveCoins(db, h.bank, swap.Address, swap.Recipient, amount); err != nil {
+	if err := moveCoins(db, h.bank, swapAddr, swap.Recipient, amount); err != nil {
 		return nil, err
 	}
 
@@ -224,13 +236,15 @@ func (h ReturnSwapHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave
 		return nil, err
 	}
 
-	available, err := h.bank.Balance(db, swap.Address)
+	swapAddr := swapAddr(msg.SwapID, swap)
+
+	available, err := h.bank.Balance(db, swapAddr)
 	if err != nil {
 		return nil, err
 	}
 
 	// withdraw all coins from swap to the defined "sender"
-	if err := moveCoins(db, h.bank, swap.Address, swap.Src, available); err != nil {
+	if err := moveCoins(db, h.bank, swapAddr, swap.Src, available); err != nil {
 		return nil, err
 	}
 	if err := h.bucket.Delete(db, msg.SwapID); err != nil {
@@ -289,4 +303,10 @@ func moveCoins(db weave.KVStore, bank cash.CoinMover, src, dest weave.Address, a
 func hashBytes(preimage []byte) []byte {
 	hash := sha256.Sum256(preimage)
 	return hash[:]
+}
+
+func swapAddr(key []byte, swap *Swap) weave.Address {
+	swapAddrHash := bytes.Join([][]byte{key, swap.PreimageHash}, []byte("|"))
+	// update swap address with a proper value
+	return weave.NewCondition("aswap", "pre_hash", swapAddrHash).Address()
 }

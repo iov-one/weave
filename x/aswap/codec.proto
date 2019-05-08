@@ -14,8 +14,6 @@ message Swap {
   bytes preimage_hash = 2;
   // src is a sender address
   bytes src = 3 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
-  // address is a swap address deduced from preimage_hash condition
-  bytes address = 4 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
   // recipient is an address of recipient
   bytes recipient = 5 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
   // If unreleased before timeout, swap will return coins to src.
