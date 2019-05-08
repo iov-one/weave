@@ -68,7 +68,7 @@ func Router(authFn x.Authenticator, issuer weave.Address) app.Router {
 	currency.RegisterRoutes(r, authFn, issuer)
 	escrow.RegisterRoutes(r, authFn, ctrl)
 	multisig.RegisterRoutes(r, authFn)
-	validators.RegisterRoutes(r, authFn, validators.NewController())
+	validators.RegisterRoutes(r, authFn)
 	distribution.RegisterRoutes(r, authFn, ctrl)
 	sigs.RegisterRoutes(r, authFn)
 	return r

@@ -38,7 +38,7 @@ func TestInitState(t *testing.T) {
 		t.Run(msg, func(t *testing.T) {
 			kv := store.MemStore()
 			migration.MustInitPkg(kv, "validators")
-			bucket := NewBucket()
+			bucket := NewAccountBucket()
 			// when
 			err := Initializer{}.FromGenesis(spec.Src, kv)
 			if !spec.ExpError.Is(err) {
@@ -47,7 +47,7 @@ func TestInitState(t *testing.T) {
 			if spec.Exp == nil {
 				return
 			}
-			accounts, err := GetAccounts(bucket, kv)
+			accounts, err := bucket.GetAccounts(kv)
 			if err != nil {
 				t.Fatalf("unexpected error: %s", err)
 			}
