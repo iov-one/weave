@@ -99,7 +99,7 @@ func (m *ReturnSwapMsg) Validate() error {
 	if err := validateSwapID(m.SwapID); err != nil {
 		return errors.Wrap(err, "SwapID")
 	}
-	return validatePreimageHash(m.PreimageHash)
+	return nil
 }
 
 // validateAmount makes sure the amount is positive and coins are of valid format
