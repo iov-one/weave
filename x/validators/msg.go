@@ -24,12 +24,11 @@ func (*SetValidatorsMsg) Path() string {
 }
 
 func (m ValidatorUpdate) Validate() error {
-	if len(m.Pubkey.Data) != 32 ||
-		strings.ToLower(m.Pubkey.Type) != "ed25519" {
-		return errors.Wrap(ErrInvalidPubKey, m.Pubkey.Type)
+	if len(m.Pubkey.Data) != 32 || strings.ToLower(m.Pubkey.Type) != "ed25519" {
+		return errors.Wrapf(errors.ErrInvalidType, "invalid public key: %T", m.Pubkey.Type)
 	}
 	if m.Power < 0 {
-		return errors.Wrapf(ErrInvalidPower, "%d", m.Power)
+		return errors.Wrapf(errors.ErrInvalidMsg, "power: %d", m.Power)
 	}
 	return nil
 }

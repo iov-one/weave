@@ -53,8 +53,8 @@ func TestHandler(t *testing.T) {
 				Power:  -1,
 			}},
 			AuthzAddress:  alice.PublicKey().Address(),
-			ExpCheckErr:   ErrInvalidPower,
-			ExpDeliverErr: ErrInvalidPower,
+			ExpCheckErr:   errors.ErrInvalidMsg,
+			ExpDeliverErr: errors.ErrInvalidMsg,
 		},
 		"Invalid public key": {
 			Src: []*ValidatorUpdate{{
@@ -62,8 +62,8 @@ func TestHandler(t *testing.T) {
 				Power:  10,
 			}},
 			AuthzAddress:  alice.PublicKey().Address(),
-			ExpCheckErr:   ErrInvalidPubKey,
-			ExpDeliverErr: ErrInvalidPubKey,
+			ExpCheckErr:   errors.ErrInvalidType,
+			ExpDeliverErr: errors.ErrInvalidType,
 		},
 		"Empty validator set prohibited": {
 			Src:           []*ValidatorUpdate{},
@@ -92,14 +92,14 @@ func TestHandler(t *testing.T) {
 		Signer: alice.PublicKey().Condition(),
 	}
 	rt := app.NewRouter()
-	RegisterRoutes(rt, auth, NewController())
+	RegisterRoutes(rt, auth)
 
 	for msg, spec := range specs {
 		t.Run(msg, func(t *testing.T) {
 			db := store.MemStore()
 			migration.MustInitPkg(db, "validators")
 			ctx := context.Background()
-			err := NewBucket().Save(db, AccountsWith(WeaveAccounts{Addresses: []weave.Address{spec.AuthzAddress}}))
+			err := NewAccountBucket().Save(db, AccountsWith(WeaveAccounts{Addresses: []weave.Address{spec.AuthzAddress}}))
 			if err != nil {
 				t.Fatalf("unexpected error: %s", err)
 			}

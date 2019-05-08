@@ -2,6 +2,7 @@ package validators
 
 import (
 	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/errors"
 )
 
 const optKey = "update_validators"
@@ -15,24 +16,17 @@ var _ weave.Initializer = Initializer{}
 // FromGenesis will parse initial account info from genesis
 // and save it to the database
 func (Initializer) FromGenesis(opts weave.Options, kv weave.KVStore) error {
-	accounts := WeaveAccounts{}
-	err := opts.ReadOptions(optKey, &accounts)
-	if err != nil {
-		return err
+	var accounts WeaveAccounts
+	if err := opts.ReadOptions(optKey, &accounts); err != nil {
+		return errors.Wrap(err, "cannot read genesis options")
 	}
-	bucket := NewBucket()
-
-	err = accounts.Validate()
-	if err != nil {
-		return err
+	if err := accounts.Validate(); err != nil {
+		return errors.Wrap(err, "accounts validation")
 	}
-
 	accts := AccountsWith(accounts)
-
-	err = bucket.Save(kv, accts)
-	if err != nil {
-		return err
+	bucket := NewAccountBucket()
+	if err := bucket.Save(kv, accts); err != nil {
+		return errors.Wrap(err, "bucket save")
 	}
-
 	return nil
 }
