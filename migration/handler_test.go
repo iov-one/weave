@@ -124,10 +124,24 @@ func useHandlerRegister(t testing.TB, h weave.Handler, r *register) {
 	handler.migrations = r
 }
 
+func TestSchemaRoutingHandlerCannotBeEmpty(t *testing.T) {
+	assert.Panics(t, func() {
+		SchemaRoutingHandler(nil)
+	})
+}
+
+func TestSchemaRoutingHandlerCannotRegisterZeroVersionHandler(t *testing.T) {
+	assert.Panics(t, func() {
+		SchemaRoutingHandler([]weave.Handler{
+			0: &weavetest.Handler{},
+		})
+	})
+}
+
 func TestSchemaRoutingHandler(t *testing.T) {
 	cases := map[string]struct {
 		Tx      weave.Tx
-		Handler SchemaRoutingHandler
+		Handler weave.Handler
 		WantErr *errors.Error
 
 		// After handler call ensure that handler registered with given
@@ -137,33 +151,15 @@ func TestSchemaRoutingHandler(t *testing.T) {
 		// Mapping of schema version->handler call count.
 		WantCalls map[int]int
 	}{
-		"router created without a handler": {
-			Tx: &weavetest.Tx{
-				Msg: &weavetest.Msg{},
-			},
-			Handler: SchemaRoutingHandler{},
-			WantErr: errors.ErrHuman,
-		},
 		"non migratable message": {
 			Tx: &weavetest.Tx{
 				Msg: &weavetest.Msg{},
 			},
-			Handler: SchemaRoutingHandler{
+			Handler: SchemaRoutingHandler([]weave.Handler{
 				1: &weavetest.Handler{},
-			},
+			}),
 			WantErr:   errors.ErrInvalidType,
 			WantCalls: map[int]int{1: 0},
-		},
-		"zero version schema handler is not a valid declaration": {
-			Tx: &weavetest.Tx{
-				Msg: &MigratableMsg{
-					Metadata: &weave.Metadata{Schema: 2},
-				},
-			},
-			Handler: SchemaRoutingHandler{
-				0: &weavetest.Handler{},
-			},
-			WantErr: errors.ErrHuman,
 		},
 		"route to handler by the exact match of message schema version": {
 			Tx: &weavetest.Tx{
@@ -171,10 +167,10 @@ func TestSchemaRoutingHandler(t *testing.T) {
 					Metadata: &weave.Metadata{Schema: 2},
 				},
 			},
-			Handler: SchemaRoutingHandler{
+			Handler: SchemaRoutingHandler([]weave.Handler{
 				1: &weavetest.Handler{},
 				2: &weavetest.Handler{},
-			},
+			}),
 			WantCalls: map[int]int{
 				1: 0,
 				2: 1,
@@ -186,11 +182,11 @@ func TestSchemaRoutingHandler(t *testing.T) {
 					Metadata: &weave.Metadata{Schema: 20},
 				},
 			},
-			Handler: SchemaRoutingHandler{
+			Handler: SchemaRoutingHandler([]weave.Handler{
 				1:   &weavetest.Handler{},
 				5:   &weavetest.Handler{},
 				100: &weavetest.Handler{},
-			},
+			}),
 			WantCalls: map[int]int{
 				1: 0,
 				// 5 is the highest registered schema version
@@ -207,14 +203,14 @@ func TestSchemaRoutingHandler(t *testing.T) {
 					Metadata: &weave.Metadata{Schema: 4},
 				},
 			},
-			Handler: SchemaRoutingHandler{
+			Handler: SchemaRoutingHandler([]weave.Handler{
 				// It is allowed to register handlers for
 				// schema versions starting with a value
 				// greater than one. In this case, routing
 				// lower value schema message must fail.
 				10: &weavetest.Handler{},
 				14: &weavetest.Handler{},
-			},
+			}),
 			WantErr: errors.ErrSchema,
 		},
 	}
@@ -226,7 +222,8 @@ func TestSchemaRoutingHandler(t *testing.T) {
 				t.Fatalf("unexpected error result: %s", err)
 			}
 			for ver, wantCnt := range tc.WantCalls {
-				cnt := tc.Handler[ver].(*weavetest.Handler).CallCount()
+				schemaHandler := tc.Handler.(schemaRoutingHandler)
+				cnt := schemaHandler[ver].(*weavetest.Handler).CallCount()
 				if cnt != wantCnt {
 					t.Errorf("for version %d handler want %d calls, got %d", ver, wantCnt, cnt)
 				}
