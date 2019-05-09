@@ -52,16 +52,12 @@ func (h *createPaymentChannelHandler) validate(ctx weave.Context, db weave.KVSto
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, errors.Wrap(err, "load msg")
 	}
-
-	// Ensure that the timeout is in the future.
-	if height, _ := weave.GetHeight(ctx); msg.Timeout <= height {
-		return &msg, errors.Wrap(errors.ErrMsg, "timeout in the past")
+	if weave.IsExpired(ctx, msg.Timeout) {
+		return nil, errors.Wrapf(errors.ErrExpired, "timeout in the past")
 	}
-
 	if !h.auth.HasAddress(ctx, msg.Src) {
 		return &msg, errors.Wrap(errors.ErrUnauthorized, "invalid address")
 	}
-
 	return &msg, nil
 }
 
@@ -232,7 +228,7 @@ func (h *closePaymentChannelHandler) Deliver(ctx weave.Context, db weave.KVStore
 		return nil, err
 	}
 
-	if height, _ := weave.GetHeight(ctx); pc.Timeout > height {
+	if !weave.IsExpired(ctx, pc.Timeout) {
 		// If timeout was not reached, only the recipient is allowed to
 		// close the channel.
 		if !h.auth.HasAddress(ctx, pc.Recipient) {

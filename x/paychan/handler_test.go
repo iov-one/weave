@@ -5,6 +5,7 @@ import (
 	"context"
 	"reflect"
 	"testing"
+	"time"
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/app"
@@ -17,6 +18,8 @@ import (
 	"github.com/iov-one/weave/weavetest"
 	"github.com/iov-one/weave/x/cash"
 )
+
+var now = time.Now().UTC()
 
 func TestPaymentChannelHandlers(t *testing.T) {
 	cashBucket := cash.NewBucket()
@@ -50,7 +53,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 						Recipient:    recipient.Address(),
 						SenderPubkey: srcSig.PublicKey(),
 						Total:        dogeCoin(10, 0),
-						Timeout:      1000,
+						Timeout:      weave.AsUnixTime(now.Add(time.Hour)),
 						Memo:         "start",
 					},
 					blocksize: 100,
@@ -68,7 +71,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 							Recipient:    recipient.Address(),
 							SenderPubkey: srcSig.PublicKey(),
 							Total:        dogeCoin(10, 0),
-							Timeout:      1000,
+							Timeout:      weave.AsUnixTime(now.Add(time.Hour)),
 							Memo:         "start",
 							Transferred:  dogeCoin(0, 0),
 						}),
@@ -106,19 +109,20 @@ func TestPaymentChannelHandlers(t *testing.T) {
 						Recipient:    recipient.Address(),
 						SenderPubkey: srcSig.PublicKey(),
 						Total:        dogeCoin(10, 0),
-						Timeout:      1000,
+						Timeout:      weave.AsUnixTime(now.Add(time.Hour)),
 						Memo:         "start",
 					},
 					blocksize: 100,
 				},
 				{
-					conditions: []weave.Condition{src},
+					conditions: []weave.Condition{}, // Timeout was reached so anyone can close it.
 					msg: &ClosePaymentChannelMsg{
 						Metadata:  &weave.Metadata{Schema: 1},
 						ChannelID: weavetest.SequenceID(1),
 						Memo:      "end",
 					},
 					blocksize: 1001,
+					blockTime: now.Add(123 * time.Hour),
 				},
 			},
 			dbtests: []querycheck{
@@ -154,7 +158,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 						Recipient:    recipient.Address(),
 						SenderPubkey: srcSig.PublicKey(),
 						Total:        dogeCoin(10, 0),
-						Timeout:      1000,
+						Timeout:      weave.AsUnixTime(now.Add(time.Hour)),
 						Memo:         "start",
 					},
 					blocksize: 100,
@@ -215,7 +219,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 						Recipient:    recipient.Address(),
 						SenderPubkey: srcSig.PublicKey(),
 						Total:        dogeCoin(10, 0),
-						Timeout:      1000,
+						Timeout:      weave.AsUnixTime(now.Add(time.Hour)),
 						Memo:         "start",
 					},
 					blocksize: 100,
@@ -234,13 +238,14 @@ func TestPaymentChannelHandlers(t *testing.T) {
 					blocksize: 104,
 				},
 				{
-					conditions: []weave.Condition{src},
+					conditions: []weave.Condition{}, // Timeout was reached so anyone can close it.
 					msg: &ClosePaymentChannelMsg{
 						Metadata:  &weave.Metadata{Schema: 1},
 						ChannelID: weavetest.SequenceID(1),
 						Memo:      "end",
 					},
 					blocksize: 1001,
+					blockTime: now.Add(5 * time.Hour),
 				},
 			},
 			dbtests: []querycheck{
@@ -287,7 +292,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 						Recipient:    recipient.Address(),
 						SenderPubkey: srcSig.PublicKey(),
 						Total:        dogeCoin(999, 0),
-						Timeout:      1000,
+						Timeout:      weave.AsUnixTime(now.Add(time.Hour)),
 						Memo:         "start",
 					},
 					blocksize:      100,
@@ -305,7 +310,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 						Recipient:    recipient.Address(),
 						SenderPubkey: srcSig.PublicKey(),
 						Total:        dogeCoin(10, 0),
-						Timeout:      500,
+						Timeout:      weave.AsUnixTime(now.Add(time.Hour)),
 						Memo:         "start",
 					},
 					blocksize: 100,
@@ -344,7 +349,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 						Recipient:    recipient.Address(),
 						SenderPubkey: srcSig.PublicKey(),
 						Total:        dogeCoin(10, 0),
-						Timeout:      1000,
+						Timeout:      weave.AsUnixTime(now.Add(time.Hour)),
 						Memo:         "start",
 					},
 					blocksize: 100,
@@ -375,7 +380,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 						Recipient:    recipient.Address(),
 						SenderPubkey: srcSig.PublicKey(),
 						Total:        dogeCoin(10, 0),
-						Timeout:      1000,
+						Timeout:      weave.AsUnixTime(now.Add(time.Hour)),
 						Memo:         "start",
 					},
 					blocksize: 100,
@@ -406,7 +411,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 						Recipient:    recipient.Address(),
 						SenderPubkey: nil,
 						Total:        dogeCoin(10, 0),
-						Timeout:      1000,
+						Timeout:      weave.AsUnixTime(now.Add(time.Hour)),
 						Memo:         "start",
 					},
 					blocksize:    100,
@@ -424,7 +429,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 						Recipient:    recipient.Address(),
 						SenderPubkey: srcSig.PublicKey(),
 						Total:        dogeCoin(10, 0),
-						Timeout:      1000,
+						Timeout:      weave.AsUnixTime(now.Add(time.Hour)),
 						Memo:         "start",
 					},
 					blocksize: 100,
@@ -464,7 +469,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 						Recipient:    recipient.Address(),
 						SenderPubkey: srcSig.PublicKey(),
 						Total:        dogeCoin(10, 0),
-						Timeout:      1000,
+						Timeout:      weave.AsUnixTime(now.Add(time.Hour)),
 						Memo:         "start",
 					},
 					blocksize: 100,
@@ -540,9 +545,11 @@ func dogeCoin(w, f int64) *coin.Coin {
 
 // action represents a single request call that is handled by a handler.
 type action struct {
-	conditions     []weave.Condition
-	msg            weave.Msg
-	blocksize      int64
+	conditions []weave.Condition
+	msg        weave.Msg
+	blocksize  int64
+	// if not zero, overwrites blockTime function for timeout
+	blockTime      time.Time
 	wantCheckErr   *errors.Error
 	wantDeliverErr *errors.Error
 }
@@ -554,6 +561,11 @@ func (a *action) tx() weave.Tx {
 func (a *action) ctx() weave.Context {
 	ctx := weave.WithHeight(context.Background(), a.blocksize)
 	ctx = weave.WithChainID(ctx, "testchain-123")
+	if !a.blockTime.IsZero() {
+		ctx = weave.WithBlockTime(ctx, a.blockTime)
+	} else {
+		ctx = weave.WithBlockTime(ctx, now)
+	}
 	auth := &weavetest.CtxAuth{Key: "auth"}
 	return auth.SetConditions(ctx, a.conditions...)
 }

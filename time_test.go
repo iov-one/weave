@@ -1,11 +1,13 @@
 package weave
 
 import (
+	"context"
 	"encoding/json"
 	"testing"
 	"time"
 
 	"github.com/iov-one/weave/errors"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestUnixTimeUnmarshal(t *testing.T) {
@@ -123,4 +125,32 @@ func TestUnixTimeAdd(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestIsExpired(t *testing.T) {
+	now := AsUnixTime(time.Now())
+	ctx := WithBlockTime(context.Background(), now.Time())
+
+	future := now.Add(5 * time.Minute)
+	if IsExpired(ctx, future) {
+		t.Error("future is expired")
+	}
+
+	past := now.Add(-5 * time.Minute)
+	if !IsExpired(ctx, past) {
+		t.Error("past is not expired")
+	}
+
+	if !IsExpired(ctx, now) {
+		t.Fatal("when expiration time is equal to now it is expected to be expired")
+	}
+}
+
+func TestIsExpiredRequiresBlockTime(t *testing.T) {
+	now := AsUnixTime(time.Now())
+	assert.Panics(t, func() {
+		// Calling isExpected with a context without a block height
+		// attached is expected to panic.
+		IsExpired(context.Background(), now)
+	})
 }

@@ -23,6 +23,9 @@ const (
 )
 
 func (m *CreatePaymentChannelMsg) Validate() error {
+	if err := m.Metadata.Validate(); err != nil {
+		return errors.Wrap(err, "metadata")
+	}
 	if m.Src == nil {
 		return errors.Wrap(errors.ErrMsg, "missing source")
 	}
@@ -35,8 +38,14 @@ func (m *CreatePaymentChannelMsg) Validate() error {
 	if m.Total == nil || m.Total.IsZero() {
 		return errors.Wrap(errors.ErrMsg, "invalid total amount")
 	}
-	if m.Timeout <= 0 {
-		return errors.Wrap(errors.ErrMsg, "invalid timeout value")
+	if m.Timeout == 0 {
+		// Zero timeout is a valid value that dates to 1970-01-01. We
+		// know that this value is in the past and makes no sense. Most
+		// likely value was not provided and a zero value remained.
+		return errors.Wrap(errors.ErrInput, "timeout is required")
+	}
+	if err := m.Timeout.Validate(); err != nil {
+		return errors.Wrap(err, "invalid timeout value")
 	}
 	if len(m.Memo) > 128 {
 		return errors.Wrap(errors.ErrMsg, "memo too long")
@@ -50,6 +59,9 @@ func (CreatePaymentChannelMsg) Path() string {
 }
 
 func (m *TransferPaymentChannelMsg) Validate() error {
+	if err := m.Metadata.Validate(); err != nil {
+		return errors.Wrap(err, "metadata")
+	}
 	if m.Signature == nil {
 		return errors.Wrap(errors.ErrMsg, "missing signature")
 	}
@@ -73,6 +85,9 @@ func (TransferPaymentChannelMsg) Path() string {
 }
 
 func (m *ClosePaymentChannelMsg) Validate() error {
+	if err := m.Metadata.Validate(); err != nil {
+		return errors.Wrap(err, "metadata")
+	}
 	if m.ChannelID == nil {
 		return errors.Wrap(errors.ErrMsg, "missing channel ID")
 	}
