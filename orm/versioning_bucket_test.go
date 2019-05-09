@@ -224,3 +224,62 @@ func TestDeleteWithVersioning(t *testing.T) {
 		})
 	}
 }
+
+func TestVersioningExists(t *testing.T) {
+	bucketImpl := NewBucket("any", NewSimpleObj(nil, &VersionedIDRef{}))
+	idGenBucket := WithSeqIDGenerator(bucketImpl, "id")
+	versionedBucket := WithVersioning(idGenBucket)
+
+	specs := map[string]struct {
+		init      func(*testing.T, weave.KVStore)
+		srcVID    VersionedIDRef
+		expErr    *errors.Error
+		expResult bool
+	}{
+		"True when exists": {
+			srcVID:    VersionedIDRef{ID: weavetest.SequenceID(1), Version: 1},
+			expResult: true,
+		},
+		"False with non existing id": {
+			srcVID:    VersionedIDRef{ID: []byte("nonExisting")},
+			expResult: false,
+		},
+		"False with non existing Version": {
+			srcVID:    VersionedIDRef{ID: []byte("nonExisting"), Version: 111},
+			expResult: false,
+		},
+		"Error when deleted": {
+			init: func(t *testing.T, db weave.KVStore) {
+				if _, err := versionedBucket.Delete(db, weavetest.SequenceID(1)); err != nil {
+					t.Fatalf("unexpected error: %+v", err)
+				}
+			},
+			srcVID: VersionedIDRef{ID: weavetest.SequenceID(1), Version: 2},
+			expErr: errors.ErrDeleted,
+		},
+	}
+	for msg, spec := range specs {
+		t.Run(msg, func(t *testing.T) {
+			db := store.MemStore()
+			// given
+			_, err := versionedBucket.Create(db, &VersionedIDRef{ID: []byte("anyValue")})
+			if err != nil {
+				t.Fatalf("unexpected error: %+v", err)
+			}
+			if spec.init != nil {
+				spec.init(t, db)
+			}
+			// when & then
+			result, err := versionedBucket.Exists(db, spec.srcVID)
+			if !spec.expErr.Is(err) {
+				t.Fatalf("expected %v but got %v", spec.expErr, err)
+			}
+			if spec.expErr != nil {
+				return
+			}
+			if exp, got := spec.expResult, result; exp != got {
+				t.Errorf("expected %v but got %v", exp, got)
+			}
+		})
+	}
+}
