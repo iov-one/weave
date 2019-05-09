@@ -1,5 +1,6 @@
+======================================
 Welcome to IOV Weave's documentation!
-========================================
+======================================
 
 .. image:: _static/img/weave-logo.jpg
     :width: 800
@@ -28,7 +29,7 @@ charge more than the basic anti-spam fees. We recently added support for
 on-chain feature switch transactions.
 
 Existing Modules
-----------------
+================
 
 =================   =======================================================================================================================================
    Module             Description
@@ -69,11 +70,11 @@ Utils_               A range of utility functions such as KeyTagger which is des
 Light client proofs, custom token issuance and support for IBC (Inter Blockchain Communication) are currently being designed.
 
 Basic Blockchain Terminology
-----------------------------
+============================
 
 .. toctree::
    :hidden:
-   :maxdepth: 2
+   :maxdepth: 1
 
    basics/blockchain.rst
    basics/consensus.rst
@@ -84,7 +85,8 @@ If you are new to blockchains (or Tendermint), this is a
 crash course in just enough theory to follow the rest of the setup.
 `Read all <basics/blockchain.html>`__
 
-**Immutable Event Log**
+Immutable Event Log
+-------------------
 
 If you are coming from working on typical databases, you can think
 of the  blockchain as an immutable
@@ -98,21 +100,24 @@ is a fault tolerant form of
 `state machine replication <https://en.wikipedia.org/wiki/State_machine_replication#Ordering_Inputs>`__ .
 `Read more <basics/blockchain.html#immutable-event-log>`__
 
-**General Purpose Computer**
+General Purpose Computer
+-------------------------
 
 Ethereum pioneered the second generation of blockchain, where they
 realized that we didn't have to limit ourselves to handling payments,
 but actually have a general purpose state machine.
 `Read more <basics/blockchain.html#general-purpose-computer>`__
 
-**Next Generation**
+Next Generation
+---------------
 
 Since that time, many groups are working on "next generation" solutions
 that take the learnings of Ethereum and attempt to build a highly scalable
 and secure blockchain that can run general purpose programs.
 `Read more <basics/blockchain.html#next-generation>`__
 
-**Eventual finality**
+Eventual finality
+-------------------------
 
 All Proof-of-Work systems use eventual finality, where the resource cost
 of creating a block is extremely high. After many blocks are gossiped,
@@ -120,21 +125,24 @@ the longest chain of blocks has the most work invested in it,
 and thus is the true chain.
 `Read more <basics/consensus.html#eventual-finality>`__
 
-**Immediate finality**
+Immediate finality
+-------------------------
 
 An alternative approach used to guarantee constency comes out of
 academic research into Byzantine Fault Tolerance from the 80s and 90s,
 which "culminated" in `PBFT <http://pmg.csail.mit.edu/papers/osdi99.pdf>`__ .
 `Read more <basics/consensus.html#immediate-finality>`__
 
-**Authentication**
+Authentication
+--------------
 
 One interesting attribute of blockchains is that there are no
 trusted nodes, and all transactions are publically visible
 and can be copied.
 `Read more <basics/authentication.html>`__
 
-**Upgrading the state machine**
+Upgrading the state machine
+-------------------------
 
 Of course, during the lifetime of the blockchain, we will want
 to update the software and expand functionality. However,
@@ -142,14 +150,16 @@ the new software must also be able to re-run all transactions
 since genesis.
 `Read more <basics/state.html#upgrading-the-state-machine>`__
 
-**UTXO vs Account Model**
+UTXO vs Account Model
+-------------------------
 
 There are two main models used to store the current state. 
 The main model for bitcoin and similar chains is called UTXO, or Unspent transaction output. 
 The account model creates one account per public key address and stores the information there. 
 `Read more <basics/state.html#utxo-vs-account-model>`__
 
-**Merkle Proofs**
+Merkle Proofs
+--------------
 
 Merkle trees are like binary trees, but hash the children at
 each level. This allows us to provide a
@@ -158,11 +168,11 @@ each level. This allows us to provide a
 
 
 Running an Existing Application
--------------------------------
+===============================
 
 .. toctree::
    :hidden:
-   :maxdepth: 1
+   :maxdepth: 0
 
    mycoind/setup.rst
    mycoind/installation.rst
