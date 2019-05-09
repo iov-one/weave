@@ -122,3 +122,74 @@ func (h *upgradeSchemaHandler) validate(ctx weave.Context, db weave.KVStore, tx 
 
 	return &msg, nil
 }
+
+// SchemaRoutingHandler clubs toghether message handlers for a single type
+// message but different schema formats. Each handler is registered together
+// with the lowest schema version that it supports. For example
+//
+//   handler := SchemaRoutingHandler([]weave.Handler{
+//     1: &MyHandlerVersionAlpha{},
+//     7: &MyHandlerVersionBeta{},
+//   })
+//
+// In the above setup, messages with schema version 1 to 6 will be handled by
+// the alpha handler. Messages with schema version 7 and above are passed to
+// the beta handler.
+//
+// It is not allowed to use an empty schemaRoutingHandler instance. It is not
+// allowed to register a handler for schema version zero. This function panics
+// if any of those requirements is not met.
+//
+// All messages processed by this handler must implement Migratable interface.
+func SchemaRoutingHandler(handlers []weave.Handler) weave.Handler {
+	if len(handlers) == 0 {
+		err := errors.Wrap(errors.ErrHuman, "no handler registered")
+		panic(err)
+	}
+	if handlers[0] != nil {
+		err := errors.Wrap(errors.ErrHuman, "zero schema version handler must not be registered")
+		panic(err)
+	}
+	return schemaRoutingHandler(handlers)
+}
+
+type schemaRoutingHandler []weave.Handler
+
+var _ weave.Handler = (schemaRoutingHandler)(nil)
+
+func (h schemaRoutingHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
+	handler, err := h.selectHandler(tx)
+	if err != nil {
+		return nil, err
+	}
+	return handler.Check(ctx, db, tx)
+}
+
+func (h schemaRoutingHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
+	handler, err := h.selectHandler(tx)
+	if err != nil {
+		return nil, err
+	}
+	return handler.Deliver(ctx, db, tx)
+}
+
+// selectHandler returns the best fitting handler to process given transaction,
+// selected by introspecting the transaction message schema version.
+func (h schemaRoutingHandler) selectHandler(tx weave.Tx) (weave.Handler, error) {
+	msg, err := tx.GetMsg()
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot get transaction message")
+	}
+	m, ok := msg.(Migratable)
+	if !ok {
+		return nil, errors.Wrapf(errors.ErrInvalidType, "message %T does not support schema versioning", msg)
+	}
+	meta := m.GetMetadata()
+
+	for ver := meta.Schema; ver > 0; ver-- {
+		if h[ver] != nil {
+			return h[ver], nil
+		}
+	}
+	return nil, errors.Wrapf(errors.ErrSchema, "no matching handler for schema version %d", meta.Schema)
+}
