@@ -74,11 +74,15 @@ func StartCmd(gen AppGenerator, logger log.Logger, home string, args []string) e
 	}
 	svr.SetLogger(logger.With("module", "abci-server"))
 	svr.Start()
-
-	// Wait forever
-	cmn.TrapSignal(func() {
+	done := make(chan bool)
+	cmn.TrapSignal(logger, func() {
 		// Cleanup
 		svr.Stop()
+		done <- true
 	})
+
+	// wait forever
+	<-done
+
 	return nil
 }

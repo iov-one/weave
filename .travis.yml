@@ -21,7 +21,7 @@ go:
 
 env:
   global:
-    - TM_VERSION=v0.27.4
+    - TM_VERSION=v0.31.5
     - BUILD_VERSION=$(echo ${TRAVIS_COMMIT} | cut -c 1-10)
     - MAIN_GO_VERSION=1.12
     - GORACE="halt_on_error=1"
@@ -38,12 +38,10 @@ install:
 script:
 - make lint;
 - make test;
-# make cover seems to hang on client tests, and we cannot debug them 
-# TODO: fix issue and re-enable
-# - if [[ "$TRAVIS_GO_VERSION" == "$MAIN_GO_VERSION" ]]; then
-#     make cover;
-#     ./coverage/upload.sh;
-#   fi;
+- if [[ "$TRAVIS_GO_VERSION" == "$MAIN_GO_VERSION" ]]; then
+     make cover;
+     ./coverage/upload.sh;
+   fi;
 - if [[ "$TRAVIS_GO_VERSION" == "$MAIN_GO_VERSION" && "$TRAVIS_OS_NAME" == "linux" ]]; then
     release_latest=$( [[ "$TRAVIS_BRANCH" == "master" && "$TRAVIS_TAG" == "" && "$TRAVIS_PULL_REQUEST_BRANCH" == "" ]] && echo "yes" || echo "no" );
     release_tag=$( [[ "$TRAVIS_TAG" != "" ]] && echo "yes" || echo "no" );

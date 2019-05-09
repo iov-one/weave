@@ -1,6 +1,7 @@
 package scenarios
 
 import (
+	"context"
 	"encoding/hex"
 	"encoding/json"
 	"flag"
@@ -10,6 +11,7 @@ import (
 	"time"
 
 	"github.com/iov-one/weave"
+	weaveClient "github.com/iov-one/weave/client"
 	"github.com/iov-one/weave/cmd/bnsd/app"
 	"github.com/iov-one/weave/cmd/bnsd/client"
 	"github.com/iov-one/weave/coin"
@@ -25,14 +27,13 @@ import (
 	cfg "github.com/tendermint/tendermint/config"
 	"github.com/tendermint/tendermint/libs/log"
 	nm "github.com/tendermint/tendermint/node"
-	rpctest "github.com/tendermint/tendermint/rpc/test"
+	"github.com/tendermint/tendermint/rpc/test"
 	tm "github.com/tendermint/tendermint/types"
 )
 
 // application version, will be set during compilation time
 
 const (
-	startupDelay     = 100 * time.Millisecond // for tendermint setup
 	testLocalAddress = "localhost:46657"
 )
 
@@ -91,8 +92,17 @@ func TestMain(m *testing.M) {
 	// run the app inside a tendermint instance
 	node = rpctest.StartTendermint(app)
 	bnsClient = client.NewClient(client.NewLocalConnection(node))
-	time.Sleep(startupDelay) // wait for chain
-	code := m.Run()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+	_, err = weaveClient.NewClient(weaveClient.NewLocalConnection(node)).WaitForNextBlock(ctx)
+
+	code := 0
+	if err == nil {
+		code = m.Run()
+	} else {
+		code = 1
+	}
 
 	// and shut down proper at the end
 	node.Stop()

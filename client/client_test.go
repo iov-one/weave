@@ -103,9 +103,11 @@ func TestSubmitTx(t *testing.T) {
 		t.Fatalf("No tx should exist yet")
 	}
 
-	// wait a block
-	_, err = c.WaitForNextBlock(ctx)
-	assert.Nil(t, err)
+	// wait 2 blocks, seems flaky on the ci with one
+	for i := 0; i < 2; i++ {
+		_, err = c.WaitForNextBlock(ctx)
+		assert.Nil(t, err)
+	}
 
 	// now it's there
 	res, err = c.GetTxByID(ctx, id)

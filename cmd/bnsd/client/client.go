@@ -265,11 +265,10 @@ func (b *BnsClient) BroadcastTxSync(tx weave.Tx, timeout time.Duration) Broadcas
 func (b *BnsClient) WaitForTxEvent(tx tmtypes.Tx, evtTyp string, timeout time.Duration) (tmtypes.TMEventData, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
-	evts := make(chan interface{}, 1)
 	query := tmtypes.EventQueryTxFor(tx)
 
 	uuid := hex.EncodeToString(append(tx.Hash(), cmn.RandBytes(2)...))
-	err := b.conn.Subscribe(ctx, uuid, query, evts)
+	evts, err := b.conn.Subscribe(ctx, uuid, query.String())
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to subscribe")
 	}
@@ -279,7 +278,7 @@ func (b *BnsClient) WaitForTxEvent(tx tmtypes.Tx, evtTyp string, timeout time.Du
 
 	select {
 	case evt := <-evts:
-		return evt.(tmtypes.TMEventData), nil
+		return evt.Data.(tmtypes.TMEventData), nil
 	case <-ctx.Done():
 		return nil, errors.New("timed out waiting for event")
 	}
@@ -310,14 +309,13 @@ func (b *BnsClient) BroadcastTxAsync(tx weave.Tx, out chan<- BroadcastTxResponse
 // Subscribe(QueryNewBlockHeader, out)
 func (b *BnsClient) SubscribeHeaders(out chan<- *Header) (func(), error) {
 	query := QueryNewBlockHeader
-	pipe := make(chan interface{}, 1)
-	cancel, err := b.Subscribe(query, pipe)
+	pipe, cancel, err := b.Subscribe(query)
 	if err != nil {
 		return nil, err
 	}
 	go func() {
 		for msg := range pipe {
-			evt, ok := msg.(tmtypes.EventDataNewBlockHeader)
+			evt, ok := msg.Data.(tmtypes.EventDataNewBlockHeader)
 			if !ok {
 				// TODO: something else?
 				panic("Unexpected event type")
@@ -333,16 +331,16 @@ func (b *BnsClient) SubscribeHeaders(out chan<- *Header) (func(), error) {
 // the given channel. If there is no error,
 // returns a cancel function that can be called to cancel
 // the subscription
-func (b *BnsClient) Subscribe(query tmpubsub.Query, out chan<- interface{}) (func(), error) {
+func (b *BnsClient) Subscribe(query tmpubsub.Query) (<-chan ctypes.ResultEvent, func(), error) {
 	ctx := context.Background()
-	err := b.conn.Subscribe(ctx, b.subscriber, query, out)
+	out, err := b.conn.Subscribe(ctx, b.subscriber, query.String())
 	if err != nil {
-		return nil, err
+		return out, nil, err
 	}
 	cancel := func() {
-		b.conn.Unsubscribe(ctx, b.subscriber, query)
+		b.conn.Unsubscribe(ctx, b.subscriber, query.String())
 	}
-	return cancel, nil
+	return out, cancel, nil
 }
 
 // UnsubscribeAll cancels all subscriptions
