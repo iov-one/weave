@@ -151,7 +151,7 @@ another method ``RegisterQueries``.
 Merkle Proofs
 =============
 
-**Proofs are not yet implemented as of weave v0.12**
+**Proofs are not yet implemented as of weave v0.14**
 This is both due to prioritization of other features,
 and also as we wish to provide a solid proof format that is
 useful for IBC as well, and watching cosmos-sdk development
