@@ -33,7 +33,7 @@ func parseFlags(args []string) (string, *Options, error) {
 	}
 
 	startFlags := flag.NewFlagSet("start", flag.ExitOnError)
-	startFlags.StringVar(&addr, flagBind, "tcp://localhost:46658", "address server listens on")
+	startFlags.StringVar(&addr, flagBind, "tcp://localhost:26658", "address server listens on")
 	startFlags.StringVar(&minFeeStr, flagMinFee, "0 IOV", "minimal anti-spam fee")
 	startFlags.BoolVar(&options.Debug, flagDebug, false, "call stack returned on error")
 	err := startFlags.Parse(args)
