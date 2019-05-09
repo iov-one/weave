@@ -21,7 +21,7 @@ go:
 
 env:
   global:
-    - TM_VERSION=v0.27.4
+    - TM_VERSION=v0.31.5
     - BUILD_VERSION=$(echo ${TRAVIS_COMMIT} | cut -c 1-10)
     - MAIN_GO_VERSION=1.12
     - GORACE="halt_on_error=1"
