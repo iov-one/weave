@@ -3,9 +3,10 @@
 "chain_id": "bns-zebranet",
 "validators": [],
 "consensus_params": {
-  "block_size": {
+  "block": {
     "max_bytes": "22020096",
-    "max_gas": "-1"
+    "max_gas": "-1",
+    "time_iota_ms": "10000"
   },
   "evidence": {
     "max_age": "100000"
