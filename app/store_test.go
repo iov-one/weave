@@ -37,8 +37,21 @@ func TestAddValChange(t *testing.T) {
 			{PubKey: pubKey, Power: 1},
 			{PubKey: pubKey2, Power: 2},
 		}
+
 		app.AddValChange(diff)
 		res := app.EndBlock(abci.RequestEndBlock{})
 		assert.Equal(t, res.ValidatorUpdates, diff[2:])
+	})
+
+	t.Run("A call with an empty diff does nothing", func(t *testing.T) {
+		diff := []abci.ValidatorUpdate{
+			{PubKey: pubKey, Power: 10},
+			{PubKey: pubKey2, Power: 15},
+		}
+		app.AddValChange(diff)
+		app.AddValChange(make([]abci.ValidatorUpdate, 0))
+
+		res := app.EndBlock(abci.RequestEndBlock{})
+		assert.Equal(t, diff, res.ValidatorUpdates)
 	})
 }
