@@ -19,7 +19,10 @@ import (
 	"github.com/iov-one/weave/x/cash"
 )
 
-var now = time.Now().UTC()
+var (
+	now       = time.Now().UTC()
+	inOneHour = now.Add(time.Hour)
+)
 
 func TestPaymentChannelHandlers(t *testing.T) {
 	cashBucket := cash.NewBucket()
@@ -53,7 +56,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 						Recipient:    recipient.Address(),
 						SenderPubkey: srcSig.PublicKey(),
 						Total:        dogeCoin(10, 0),
-						Timeout:      weave.AsUnixTime(now.Add(time.Hour)),
+						Timeout:      weave.AsUnixTime(inOneHour),
 						Memo:         "start",
 					},
 					blocksize: 100,
@@ -71,7 +74,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 							Recipient:    recipient.Address(),
 							SenderPubkey: srcSig.PublicKey(),
 							Total:        dogeCoin(10, 0),
-							Timeout:      weave.AsUnixTime(now.Add(time.Hour)),
+							Timeout:      weave.AsUnixTime(inOneHour),
 							Memo:         "start",
 							Transferred:  dogeCoin(0, 0),
 						}),
@@ -109,7 +112,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 						Recipient:    recipient.Address(),
 						SenderPubkey: srcSig.PublicKey(),
 						Total:        dogeCoin(10, 0),
-						Timeout:      weave.AsUnixTime(now.Add(time.Hour)),
+						Timeout:      weave.AsUnixTime(inOneHour),
 						Memo:         "start",
 					},
 					blocksize: 100,
@@ -158,7 +161,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 						Recipient:    recipient.Address(),
 						SenderPubkey: srcSig.PublicKey(),
 						Total:        dogeCoin(10, 0),
-						Timeout:      weave.AsUnixTime(now.Add(time.Hour)),
+						Timeout:      weave.AsUnixTime(inOneHour),
 						Memo:         "start",
 					},
 					blocksize: 100,
@@ -219,7 +222,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 						Recipient:    recipient.Address(),
 						SenderPubkey: srcSig.PublicKey(),
 						Total:        dogeCoin(10, 0),
-						Timeout:      weave.AsUnixTime(now.Add(time.Hour)),
+						Timeout:      weave.AsUnixTime(inOneHour),
 						Memo:         "start",
 					},
 					blocksize: 100,
@@ -292,7 +295,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 						Recipient:    recipient.Address(),
 						SenderPubkey: srcSig.PublicKey(),
 						Total:        dogeCoin(999, 0),
-						Timeout:      weave.AsUnixTime(now.Add(time.Hour)),
+						Timeout:      weave.AsUnixTime(inOneHour),
 						Memo:         "start",
 					},
 					blocksize:      100,
@@ -310,7 +313,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 						Recipient:    recipient.Address(),
 						SenderPubkey: srcSig.PublicKey(),
 						Total:        dogeCoin(10, 0),
-						Timeout:      weave.AsUnixTime(now.Add(time.Hour)),
+						Timeout:      weave.AsUnixTime(inOneHour),
 						Memo:         "start",
 					},
 					blocksize: 100,
@@ -349,7 +352,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 						Recipient:    recipient.Address(),
 						SenderPubkey: srcSig.PublicKey(),
 						Total:        dogeCoin(10, 0),
-						Timeout:      weave.AsUnixTime(now.Add(time.Hour)),
+						Timeout:      weave.AsUnixTime(inOneHour),
 						Memo:         "start",
 					},
 					blocksize: 100,
@@ -380,7 +383,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 						Recipient:    recipient.Address(),
 						SenderPubkey: srcSig.PublicKey(),
 						Total:        dogeCoin(10, 0),
-						Timeout:      weave.AsUnixTime(now.Add(time.Hour)),
+						Timeout:      weave.AsUnixTime(inOneHour),
 						Memo:         "start",
 					},
 					blocksize: 100,
@@ -411,7 +414,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 						Recipient:    recipient.Address(),
 						SenderPubkey: nil,
 						Total:        dogeCoin(10, 0),
-						Timeout:      weave.AsUnixTime(now.Add(time.Hour)),
+						Timeout:      weave.AsUnixTime(inOneHour),
 						Memo:         "start",
 					},
 					blocksize:    100,
@@ -429,7 +432,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 						Recipient:    recipient.Address(),
 						SenderPubkey: srcSig.PublicKey(),
 						Total:        dogeCoin(10, 0),
-						Timeout:      weave.AsUnixTime(now.Add(time.Hour)),
+						Timeout:      weave.AsUnixTime(inOneHour),
 						Memo:         "start",
 					},
 					blocksize: 100,
@@ -469,7 +472,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 						Recipient:    recipient.Address(),
 						SenderPubkey: srcSig.PublicKey(),
 						Total:        dogeCoin(10, 0),
-						Timeout:      weave.AsUnixTime(now.Add(time.Hour)),
+						Timeout:      weave.AsUnixTime(inOneHour),
 						Memo:         "start",
 					},
 					blocksize: 100,

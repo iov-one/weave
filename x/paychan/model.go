@@ -31,7 +31,7 @@ func (pc *PaymentChannel) Validate() error {
 		// Zero timeout is a valid value that dates to 1970-01-01. We
 		// know that this value is in the past and makes no sense. Most
 		// likely value was not provided and a zero value remained.
-		return errors.Wrap(errors.ErrInput, "timeout in required")
+		return errors.Wrap(errors.ErrInput, "timeout is required")
 	}
 	if err := pc.Timeout.Validate(); err != nil {
 		return errors.Wrap(err, "invalid timeout value")
