@@ -55,6 +55,60 @@ func TestUserModel(t *testing.T) {
 	assert.Equal(t, pub, user2.Pubkey)
 }
 
+func TestUserCheckAndIncrementSequence(t *testing.T) {
+	cases := map[string]struct {
+		User        *UserData
+		ExpectedSeq int64
+		WantErr     *errors.Error
+		WantSeq     int64
+	}{
+		"a successful first increment": {
+			User:        &UserData{Sequence: 0},
+			ExpectedSeq: 0,
+			WantErr:     nil,
+			WantSeq:     1,
+		},
+		"a successful increment": {
+			User:        &UserData{Sequence: 321},
+			ExpectedSeq: 321,
+			WantErr:     nil,
+			WantSeq:     322,
+		},
+		"the biggest supported sequence value": {
+			// This big number is 2^53 - 2
+			User:        &UserData{Sequence: 9007199254740990},
+			ExpectedSeq: 9007199254740990,
+			WantErr:     nil,
+			WantSeq:     9007199254740991,
+		},
+		"a sequence value overflow": {
+			// This big number is 2^53 - 1
+			User:        &UserData{Sequence: 9007199254740991},
+			ExpectedSeq: 9007199254740991,
+			WantErr:     errors.ErrOverflow,
+			WantSeq:     9007199254740991,
+		},
+		"a sequence value missmatch": {
+			User:        &UserData{Sequence: 333},
+			ExpectedSeq: 222,
+			WantErr:     ErrInvalidSequence,
+			WantSeq:     333,
+		},
+	}
+
+	for testName, tc := range cases {
+		t.Run(testName, func(t *testing.T) {
+			err := tc.User.CheckAndIncrementSequence(tc.ExpectedSeq)
+			if !tc.WantErr.Is(err) {
+				t.Fatalf("unexpected error: %s", err)
+			}
+			if tc.WantSeq != tc.User.Sequence {
+				t.Fatalf("want %v user sequence, got %v", tc.WantSeq, tc.User.Sequence)
+			}
+		})
+	}
+}
+
 func TestUserValidation(t *testing.T) {
 	cases := map[string]struct {
 		User    *UserData
