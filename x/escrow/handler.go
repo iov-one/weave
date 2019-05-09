@@ -107,7 +107,7 @@ func (h CreateEscrowHandler) validate(ctx weave.Context, db weave.KVStore, tx we
 		return nil, errors.Wrap(err, "load msg")
 	}
 
-	if isExpired(ctx, msg.Timeout) {
+	if weave.IsExpired(ctx, msg.Timeout) {
 		return nil, errors.Wrap(errors.ErrInput, "timeout in the past")
 	}
 
@@ -196,7 +196,7 @@ func (h ReleaseEscrowHandler) validate(ctx weave.Context, db weave.KVStore, tx w
 		return nil, nil, errors.ErrUnauthorized
 	}
 
-	if isExpired(ctx, escrow.Timeout) {
+	if weave.IsExpired(ctx, escrow.Timeout) {
 		err := errors.Wrapf(errors.ErrExpired, "escrow expired %v", escrow.Timeout)
 		return nil, nil, err
 	}
@@ -261,7 +261,7 @@ func (h ReturnEscrowHandler) validate(ctx weave.Context, db weave.KVStore, tx we
 		return nil, nil, err
 	}
 
-	if !isExpired(ctx, escrow.Timeout) {
+	if !weave.IsExpired(ctx, escrow.Timeout) {
 		return nil, nil, errors.Wrapf(errors.ErrState, "escrow not expired %v", escrow.Timeout)
 	}
 
@@ -327,7 +327,7 @@ func (h UpdateEscrowHandler) validate(ctx weave.Context, db weave.KVStore, tx we
 		return nil, nil, err
 	}
 
-	if isExpired(ctx, escrow.Timeout) {
+	if weave.IsExpired(ctx, escrow.Timeout) {
 		return nil, nil, errors.Wrapf(errors.ErrExpired, "escrow expired %v", escrow.Timeout)
 	}
 
