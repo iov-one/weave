@@ -16,8 +16,8 @@ of updating later, I advise you to install `nvm <https://github.com/creationix/n
 
 .. code-block:: console
 
-    nvm ls-remote | grep -v v9 | tail
-    nvm install v8.11.1 # or other recent version
+    # this install most recent v8 version, use lts/dubnium for v10 track
+    nvm install lts/carbon 
 
     # test it out
     node --version
