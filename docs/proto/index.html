@@ -1362,36 +1362,6 @@ all Coins of the same currency can be combined </p></td>
 
         
       
-        <h3 id="orm.VersionedIDRef">VersionedIDRef</h3>
-        <p>VersionedID is the combination of document ID and version number.</p>
-
-        
-          <table class="field-table">
-            <thead>
-              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
-            </thead>
-            <tbody>
-              
-                <tr>
-                  <td>id</td>
-                  <td><a href="#bytes">bytes</a></td>
-                  <td></td>
-                  <td><p>Unique identifier </p></td>
-                </tr>
-              
-                <tr>
-                  <td>version</td>
-                  <td><a href="#uint32">uint32</a></td>
-                  <td></td>
-                  <td><p>Document version, starting with 1. </p></td>
-                </tr>
-              
-            </tbody>
-          </table>
-        
-
-        
-      
 
       
 
@@ -1444,6 +1414,36 @@ all Coins of the same currency can be combined </p></td>
                   <td><a href="#bytes">bytes</a></td>
                   <td>repeated</td>
                   <td><p> </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+        
+
+        
+      
+        <h3 id="orm.VersionedIDRef">VersionedIDRef</h3>
+        <p>VersionedID is the combination of document ID and version number.</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>id</td>
+                  <td><a href="#bytes">bytes</a></td>
+                  <td></td>
+                  <td><p>Unique identifier </p></td>
+                </tr>
+              
+                <tr>
+                  <td>version</td>
+                  <td><a href="#uint32">uint32</a></td>
+                  <td></td>
+                  <td><p>Document version, starting with 1. </p></td>
                 </tr>
               
             </tbody>
@@ -4097,6 +4097,13 @@ of the eligible voters. </p></td>
                 </tr>
               
                 <tr>
+                  <td>version</td>
+                  <td><a href="#uint32">uint32</a></td>
+                  <td></td>
+                  <td><p>Document version </p></td>
+                </tr>
+              
+                <tr>
                   <td>admin</td>
                   <td><a href="#bytes">bytes</a></td>
                   <td></td>
@@ -4230,8 +4237,8 @@ with weight=0. </p></td>
                 </tr>
               
                 <tr>
-                  <td>electorate_id</td>
-                  <td><a href="#bytes">bytes</a></td>
+                  <td>electorate_ref</td>
+                  <td><a href="#orm.VersionedIDRef">orm.VersionedIDRef</a></td>
                   <td></td>
                   <td><p>Reference to the electorate to define the group of possible voters. </p></td>
                 </tr>

@@ -84,60 +84,62 @@ func TestInitFromGenesis(t *testing.T) {
 	}
 	// then
 	// first electorate ok
-	e, err := NewElectorateBucket().GetElectorate(db, weavetest.SequenceID(1))
-	if err != nil || e == nil {
+	_, obj, err := NewElectorateBucket().GetLatestVersion(db, weavetest.SequenceID(1))
+	if err != nil {
 		t.Fatalf("unexpected result: error: %s", err)
 	}
-	if exp, got := "first", e.Title; exp != got {
+	elect, _ := asElectorate(obj)
+	if exp, got := "first", elect.Title; exp != got {
 		t.Errorf("expected %v but got %v", exp, got)
 	}
-	if exp, got := uint32(1), e.Metadata.Schema; exp != got {
+	if exp, got := uint32(1), elect.Metadata.Schema; exp != got {
 		t.Errorf("expected %v but got %v", exp, got)
 	}
-	if exp, got := weavetest.SequenceID(1), e.UpdateElectionRuleID; !bytes.Equal(exp, got) {
+	if exp, got := weavetest.SequenceID(1), elect.UpdateElectionRuleID; !bytes.Equal(exp, got) {
 		t.Errorf("expected %v but got %v", exp, got)
 	}
-	if exp, got := 2, len(e.Electors); exp != got {
+	if exp, got := 2, len(elect.Electors); exp != got {
 		t.Errorf("expected %v but got %v", exp, got)
 	}
-	if exp, got := addr("0000000000000000000000000000000000000000"), e.Admin; !exp.Equals(got) {
+	if exp, got := addr("0000000000000000000000000000000000000000"), elect.Admin; !exp.Equals(got) {
 		t.Errorf("expected %X but got %X", exp, got)
 	}
-	if exp, got := addr("1111111111111111111111111111111111111111"), e.Electors[0].Address; !exp.Equals(got) {
+	if exp, got := addr("1111111111111111111111111111111111111111"), elect.Electors[0].Address; !exp.Equals(got) {
 		t.Errorf("expected %X but got %X", exp, got)
 	}
-	if exp, got := uint32(10), e.Electors[0].Weight; exp != got {
+	if exp, got := uint32(10), elect.Electors[0].Weight; exp != got {
 		t.Errorf("expected %v but got %v", exp, got)
 	}
-	if exp, got := addr("2222222222222222222222222222222222222222"), e.Electors[1].Address; !exp.Equals(got) {
+	if exp, got := addr("2222222222222222222222222222222222222222"), elect.Electors[1].Address; !exp.Equals(got) {
 		t.Errorf("expected %X but got %X", exp, got)
 	}
-	if exp, got := uint32(11), e.Electors[1].Weight; exp != got {
+	if exp, got := uint32(11), elect.Electors[1].Weight; exp != got {
 		t.Errorf("expected %v but got %v", exp, got)
 	}
 	// second electorate ok
-	e, err = NewElectorateBucket().GetElectorate(db, weavetest.SequenceID(2))
-	if err != nil || e == nil {
+	_, obj, err = NewElectorateBucket().GetLatestVersion(db, weavetest.SequenceID(2))
+	if err != nil || elect == nil {
 		t.Fatalf("unexpected result: error: %s", err)
 	}
-	if exp, got := "second", e.Title; exp != got {
+	elect, _ = asElectorate(obj)
+	if exp, got := "second", elect.Title; exp != got {
 		t.Errorf("expected %v but got %v", exp, got)
 	}
-	if exp, got := weavetest.SequenceID(2), e.UpdateElectionRuleID; !bytes.Equal(exp, got) {
+	if exp, got := weavetest.SequenceID(2), elect.UpdateElectionRuleID; !bytes.Equal(exp, got) {
 		t.Errorf("expected %v but got %v", exp, got)
 	}
 	cond := weave.NewCondition("foo", "bar", weavetest.SequenceID(1)).Address()
-	if exp, got := cond, e.Admin; !exp.Equals(got) {
+	if exp, got := cond, elect.Admin; !exp.Equals(got) {
 		t.Errorf("expected %v but got %v", exp, got)
 	}
 
-	if exp, got := 1, len(e.Electors); exp != got {
+	if exp, got := 1, len(elect.Electors); exp != got {
 		t.Errorf("expected %v but got %v", exp, got)
 	}
-	if exp, got := addr("3333333333333333333333333333333333333333"), e.Electors[0].Address; !exp.Equals(got) {
+	if exp, got := addr("3333333333333333333333333333333333333333"), elect.Electors[0].Address; !exp.Equals(got) {
 		t.Errorf("expected %X but got %X", exp, got)
 	}
-	if exp, got := uint32(1), e.Electors[0].Weight; exp != got {
+	if exp, got := uint32(1), elect.Electors[0].Weight; exp != got {
 		t.Errorf("expected %v but got %v", exp, got)
 	}
 

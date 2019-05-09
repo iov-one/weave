@@ -22,6 +22,10 @@ func init() {
 	migration.MustRegister(1, &Vote{}, migration.NoModification)
 }
 
+func (m *Electorate) SetVersion(v uint32) {
+	m.Version = v
+}
+
 func (m Electorate) Validate() error {
 	if err := m.Metadata.Validate(); err != nil {
 		return errors.Wrap(err, "invalid metadata")
@@ -36,7 +40,6 @@ func (m Electorate) Validate() error {
 		return errors.Wrapf(errors.ErrInput, "title: %q", m.Title)
 	case len(m.UpdateElectionRuleID) == 0:
 		return errors.Wrapf(errors.ErrEmpty, "update election rule id")
-
 	}
 
 	var totalWeight uint64
@@ -64,6 +67,7 @@ func (m Electorate) Copy() orm.CloneableData {
 	return &Electorate{
 		Title:    m.Title,
 		Electors: p,
+		Version:  m.Version,
 	}
 }
 
@@ -170,12 +174,13 @@ func (m *Proposal) Validate() error {
 		return errors.Wrapf(errors.ErrInput, "description length lower than minimum of: %d", minDescriptionLength)
 	case len(m.Description) > maxDescriptionLength:
 		return errors.Wrapf(errors.ErrInput, "description length exceeds: %d", maxDescriptionLength)
-	case len(m.ElectorateID) == 0:
-		return errors.Wrap(errors.ErrInput, "empty electorate id")
 	case len(m.ElectionRuleID) == 0:
 		return errors.Wrap(errors.ErrInput, "empty election rules id")
 	case !validTitle(m.Title):
 		return errors.Wrapf(errors.ErrInput, "title: %q", m.Title)
+	}
+	if err := m.ElectorateRef.Validate(); err != nil {
+		return errors.Wrap(err, "electorate reference")
 	}
 	// todo: validate details
 	return m.VoteState.Validate()
@@ -184,13 +189,11 @@ func (m *Proposal) Validate() error {
 func (m Proposal) Copy() orm.CloneableData {
 	electionRuleID := make([]byte, 0, len(m.ElectionRuleID))
 	copy(electionRuleID, m.ElectionRuleID)
-	electorateID := make([]byte, 0, len(m.ElectorateID))
-	copy(electorateID, m.ElectorateID)
 	return &Proposal{
 		Title:           m.Title,
 		Description:     m.Description,
 		ElectionRuleID:  electionRuleID,
-		ElectorateID:    electorateID,
+		ElectorateRef:   orm.VersionedIDRef{ID: m.ElectorateRef.ID, Version: m.ElectorateRef.Version},
 		VotingStartTime: m.VotingStartTime,
 		VotingEndTime:   m.VotingEndTime,
 		SubmissionTime:  m.SubmissionTime,
