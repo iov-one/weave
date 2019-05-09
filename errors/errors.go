@@ -76,6 +76,9 @@ var (
 	// process raw bytes (get/set/delete/write)
 	ErrDatabase = Register(20, "database")
 
+	// ErrDeleted is returned whenever a deleted object version is accessed.
+	ErrDeleted = Register(21, "content deleted")
+
 	// ErrNetwork is returned on network failure (only for client libraries)
 	ErrNetwork = Register(100200, "network")
 
