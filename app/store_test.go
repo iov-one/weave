@@ -29,7 +29,7 @@ func TestAddValChange(t *testing.T) {
 		res := app.EndBlock(abci.RequestEndBlock{})
 		assert.Equal(t, res.ValidatorUpdates, diff)
 	})
-
+	// trigger build
 	t.Run("Only produce last update to multiple validators", func(t *testing.T) {
 		diff := []abci.ValidatorUpdate{
 			{PubKey: pubKey, Power: 10},
