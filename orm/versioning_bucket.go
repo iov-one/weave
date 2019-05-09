@@ -1,8 +1,6 @@
 package orm
 
 import (
-	"fmt"
-
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
 )
@@ -22,7 +20,6 @@ func (b VersioningBucket) GetLatestVersion(db weave.ReadOnlyKVStore, id []byte) 
 		return nil, errors.Wrap(err, "failed to marshal versioned ID ref")
 	}
 	dbKeyLength := len(b.DBKey(prefix)) - len(prefix)
-	fmt.Printf("searching with: #%v\n", prefix)
 	matches, err := b.Query(db, weave.PrefixQueryMod, prefix)
 	if err != nil {
 		return nil, errors.Wrap(err, "prefix query")
@@ -33,8 +30,6 @@ func (b VersioningBucket) GetLatestVersion(db weave.ReadOnlyKVStore, id []byte) 
 	for _, m := range matches {
 		var vID VersionedIDRef
 		idData := m.Key[dbKeyLength:]
-		fmt.Printf("found : #%v\n", idData)
-
 		if err := vID.Unmarshal(idData); err != nil {
 			return nil, errors.Wrap(err, "wrong key type")
 		}
@@ -77,11 +72,12 @@ func (b VersioningBucket) Create(db weave.KVStore, data versionedData) (Object, 
 	if err != nil {
 		return nil, err
 	}
-	idRef := &VersionedIDRef{ID: newID, Version: data.GetVersion()}
+	idRef := VersionedIDRef{ID: newID, Version: data.GetVersion()}
 	key, err := idRef.Marshal()
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to marshall versioned id ref")
 	}
+	// store new obj
 	obj := NewSimpleObj(key, data)
 	return obj, b.IDGenBucket.Save(db, obj)
 }
@@ -92,18 +88,46 @@ func (b VersioningBucket) Save(db weave.KVStore, model Object) error {
 }
 
 // Update persists the given data object with a new derived version key in the storage.
-func (b VersioningBucket) Update(db weave.KVStore, oldKey VersionedIDRef, data versionedData) (VersionedIDRef, error) {
-	if data.GetVersion() != oldKey.Version {
-		return oldKey, errors.Wrap(errors.ErrInvalidState, "versions not matching")
+func (b VersioningBucket) Update(db weave.KVStore, currentKey VersionedIDRef, data versionedData) (VersionedIDRef, error) {
+	if data.GetVersion() != currentKey.Version {
+		return currentKey, errors.Wrap(errors.ErrInvalidState, "versions not matching")
 	}
-	newKey, err := oldKey.NextVersion()
+	newVersionKey, err := currentKey.NextVersion()
 	if err != nil {
-		return oldKey, err
+		return currentKey, err
 	}
-	data.SetVersion(newKey.Version)
-	key, err := newKey.Marshal()
+	data.SetVersion(newVersionKey.Version)
+
+	// prevent gaps
+	switch exists, err := b.Exists(db, currentKey); {
+	case err != nil:
+		return currentKey, err
+	case !exists:
+		return currentKey, errors.Wrap(errors.ErrNotFound, "current key")
+	}
+	// prevent overwrites
+	switch existingObj, err := b.Exists(db, newVersionKey); {
+	case err != nil:
+		return currentKey, err
+	case existingObj:
+		return currentKey, errors.Wrap(errors.ErrDuplicate, "exists already")
+	}
+	key, err := newVersionKey.Marshal()
 	if err != nil {
-		return oldKey, errors.Wrap(err, "failed to marshal key")
+		return currentKey, errors.Wrap(err, "failed to marshall versioned id ref")
 	}
-	return newKey, b.Bucket.Save(db, NewSimpleObj(key, data))
+	// store new version
+	return newVersionKey, b.Bucket.Save(db, NewSimpleObj(key, data))
+}
+
+func (b VersioningBucket) Exists(db weave.KVStore, idRef VersionedIDRef) (bool, error) {
+	key, err := idRef.Marshal()
+	if err != nil {
+		return false, errors.Wrap(err, "failed to marshall versioned id ref")
+	}
+	obj, err := b.Get(db, key)
+	if err != nil {
+		return false, errors.Wrap(err, "failed to load object")
+	}
+	return obj != nil && obj.Value() != nil, nil
 }
