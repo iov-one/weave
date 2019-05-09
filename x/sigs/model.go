@@ -64,7 +64,7 @@ func (u *UserData) CheckAndIncrementSequence(expected int64) error {
 	// client code.
 	const maxSequenceValue = (1 << 53) - 1
 	if next <= 0 || next > maxSequenceValue {
-		return errors.Wrapf(errors.ErrOverflow, "value exceeded: %v > %v", next, maxSequenceValue)
+		return errors.Wrap(errors.ErrOverflow, "sequence out of range")
 	}
 	u.Sequence = next
 	return nil
