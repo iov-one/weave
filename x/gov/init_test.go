@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/store"
 	"github.com/iov-one/weave/weavetest"
 	"github.com/stretchr/testify/require"
@@ -74,6 +75,8 @@ func TestInitFromGenesis(t *testing.T) {
 	require.NoError(t, json.Unmarshal([]byte(genesisSnippet), &opts))
 
 	db := store.MemStore()
+	migration.MustInitPkg(db, packageName)
+
 	// when
 	var ini Initializer
 	if err := ini.FromGenesis(opts, db); err != nil {
@@ -86,6 +89,9 @@ func TestInitFromGenesis(t *testing.T) {
 		t.Fatalf("unexpected result: error: %s", err)
 	}
 	if exp, got := "first", e.Title; exp != got {
+		t.Errorf("expected %v but got %v", exp, got)
+	}
+	if exp, got := uint32(1), e.Metadata.Schema; exp != got {
 		t.Errorf("expected %v but got %v", exp, got)
 	}
 	if exp, got := weavetest.SequenceID(1), e.UpdateElectionRuleID; !bytes.Equal(exp, got) {
@@ -141,6 +147,10 @@ func TestInitFromGenesis(t *testing.T) {
 	if err != nil || r == nil {
 		t.Fatalf("unexpected result: error: %s", err)
 	}
+	if exp, got := uint32(1), r.Metadata.Schema; exp != got {
+		t.Errorf("expected %v but got %v", exp, got)
+	}
+
 	if got, exp := "fooo", r.Title; exp != got {
 		t.Errorf("expected %v but got %v", exp, got)
 	}

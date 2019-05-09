@@ -7,14 +7,26 @@ import (
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/orm"
 )
 
-var validTitle = regexp.MustCompile(`^[a-zA-Z0-9 _.-]{4,128}$`).MatchString
-
 const maxElectors = 2000
 
+var validTitle = regexp.MustCompile(`^[a-zA-Z0-9 _.-]{4,128}$`).MatchString
+
+func init() {
+	migration.MustRegister(1, &Electorate{}, migration.NoModification)
+	migration.MustRegister(1, &ElectionRule{}, migration.NoModification)
+	migration.MustRegister(1, &Proposal{}, migration.NoModification)
+	migration.MustRegister(1, &Vote{}, migration.NoModification)
+}
+
 func (m Electorate) Validate() error {
+	if err := m.Metadata.Validate(); err != nil {
+		return errors.Wrap(err, "invalid metadata")
+	}
+
 	switch n := len(m.Electors); {
 	case n == 0:
 		return errors.Wrap(errors.ErrInput, "electors must not be empty")
@@ -84,6 +96,10 @@ const (
 )
 
 func (m ElectionRule) Validate() error {
+	if err := m.Metadata.Validate(); err != nil {
+		return errors.Wrap(err, "invalid metadata")
+	}
+
 	switch {
 	case !validTitle(m.Title):
 		return errors.Wrapf(errors.ErrInput, "title: %q", m.Title)
@@ -135,6 +151,10 @@ const (
 )
 
 func (m *Proposal) Validate() error {
+	if err := m.Metadata.Validate(); err != nil {
+		return errors.Wrap(err, "invalid metadata")
+	}
+
 	switch {
 	case m.Result == Proposal_Empty:
 		return errors.Wrap(errors.ErrInput, "invalid result value")
@@ -301,6 +321,9 @@ func (m TallyResult) Validate() error {
 
 // validate vote object contains valid elector and voted option
 func (m Vote) Validate() error {
+	if err := m.Metadata.Validate(); err != nil {
+		return errors.Wrap(err, "invalid metadata")
+	}
 	if err := m.Elector.Validate(); err != nil {
 		return errors.Wrap(err, "invalid elector")
 	}
