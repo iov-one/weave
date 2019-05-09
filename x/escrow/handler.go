@@ -108,7 +108,7 @@ func (h CreateEscrowHandler) validate(ctx weave.Context, db weave.KVStore, tx we
 	}
 
 	if isExpired(ctx, msg.Timeout) {
-		return nil, errors.Wrap(errors.ErrInvalidInput, "timeout in the past")
+		return nil, errors.Wrap(errors.ErrInput, "timeout in the past")
 	}
 
 	// Sender must authorize this (if not set, defaults to MainSigner).
@@ -262,7 +262,7 @@ func (h ReturnEscrowHandler) validate(ctx weave.Context, db weave.KVStore, tx we
 	}
 
 	if !isExpired(ctx, escrow.Timeout) {
-		return nil, nil, errors.Wrapf(errors.ErrInvalidState, "escrow not expired %v", escrow.Timeout)
+		return nil, nil, errors.Wrapf(errors.ErrState, "escrow not expired %v", escrow.Timeout)
 	}
 
 	return msg.EscrowId, escrow, nil

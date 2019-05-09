@@ -223,7 +223,7 @@ func TestCreateBlogMsgHandlerCheck(t *testing.T) {
 			},
 			{
 				Name:    "no authors",
-				Err:     errors.ErrInvalidState,
+				Err:     errors.ErrState,
 				Handler: createBlogMsgHandlerFn,
 				Perms:   []weave.Condition{signer},
 				Msg: &CreateBlogMsg{
@@ -233,7 +233,7 @@ func TestCreateBlogMsgHandlerCheck(t *testing.T) {
 			},
 			{
 				Name:    "no slug",
-				Err:     errors.ErrInvalidInput,
+				Err:     errors.ErrInput,
 				Handler: createBlogMsgHandlerFn,
 				Perms:   []weave.Condition{signer},
 				Msg: &CreateBlogMsg{
@@ -242,7 +242,7 @@ func TestCreateBlogMsgHandlerCheck(t *testing.T) {
 			},
 			{
 				Name:    "no title",
-				Err:     errors.ErrInvalidInput,
+				Err:     errors.ErrInput,
 				Handler: createBlogMsgHandlerFn,
 				Perms:   []weave.Condition{signer},
 				Msg: &CreateBlogMsg{
@@ -283,7 +283,7 @@ func TestCreateBlogMsgHandlerCheck(t *testing.T) {
 			},
 			{
 				Name:    "wrong msg type",
-				Err:     errors.ErrInvalidMsg,
+				Err:     errors.ErrMsg,
 				Handler: createBlogMsgHandlerFn,
 				Perms:   []weave.Condition{signer},
 				Msg: &CreatePostMsg{
@@ -379,7 +379,7 @@ func TestCreatePostMsgHandlerCheck(t *testing.T) {
 			},
 			{
 				Name:    "no title",
-				Err:     errors.ErrInvalidInput,
+				Err:     errors.ErrInput,
 				Handler: createPostMsgHandlerFn,
 				Perms:   []weave.Condition{signer},
 				Msg: &CreatePostMsg{
@@ -390,7 +390,7 @@ func TestCreatePostMsgHandlerCheck(t *testing.T) {
 			},
 			{
 				Name:    "no text",
-				Err:     errors.ErrInvalidInput,
+				Err:     errors.ErrInput,
 				Handler: createPostMsgHandlerFn,
 				Perms:   []weave.Condition{signer},
 				Msg: &CreatePostMsg{
@@ -447,7 +447,7 @@ func TestCreatePostMsgHandlerCheck(t *testing.T) {
 			},
 			{
 				Name:    "wrong msg type",
-				Err:     errors.ErrInvalidMsg,
+				Err:     errors.ErrMsg,
 				Handler: createPostMsgHandlerFn,
 				Perms:   []weave.Condition{signer},
 				Msg: &CreateBlogMsg{
@@ -538,7 +538,7 @@ func TestRenameBlogMsgHandlerCheck(t *testing.T) {
 			},
 			{
 				Name:    "no title",
-				Err:     errors.ErrInvalidInput,
+				Err:     errors.ErrInput,
 				Handler: renameBlogMsgHandlerFn,
 				Perms:   []weave.Condition{signer},
 				Msg: &RenameBlogMsg{
@@ -709,7 +709,7 @@ func TestChangeBlogAuthorsMsgHandlerCheck(t *testing.T) {
 			},
 			{
 				Name:    "removing last author",
-				Err:     errors.ErrInvalidState,
+				Err:     errors.ErrState,
 				Handler: changeBlogAuthorsMsgHandlerFn,
 				Perms:   []weave.Condition{authorToRemove},
 				Msg: &ChangeBlogAuthorsMsg{
@@ -877,7 +877,7 @@ func TestSetProfileMsgHandlerCheck(t *testing.T) {
 			},
 			{
 				Name:    "no name",
-				Err:     errors.ErrInvalidInput,
+				Err:     errors.ErrInput,
 				Handler: SetProfileMsgHandlerFn,
 				Perms:   []weave.Condition{signer},
 				Msg: &SetProfileMsg{

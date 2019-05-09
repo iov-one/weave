@@ -46,7 +46,7 @@ func TestValidateNewTokenMsg(t *testing.T) {
 				Name:     "foo",
 				SigFigs:  -1,
 			},
-			WantErr: errors.ErrInvalidInput,
+			WantErr: errors.ErrInput,
 		},
 		"sig figs too big": {
 			Msg: &NewTokenMsg{
@@ -55,7 +55,7 @@ func TestValidateNewTokenMsg(t *testing.T) {
 				Name:     "foo",
 				SigFigs:  10,
 			},
-			WantErr: errors.ErrInvalidInput,
+			WantErr: errors.ErrInput,
 		},
 	}
 
@@ -94,7 +94,7 @@ func TestValidateSetWalletNameMsg(t *testing.T) {
 				Address:  nil,
 				Name:     "foobar",
 			},
-			WantErr: errors.ErrInvalidInput,
+			WantErr: errors.ErrInput,
 		},
 		"invalid name": {
 			Msg: &SetWalletNameMsg{
@@ -102,7 +102,7 @@ func TestValidateSetWalletNameMsg(t *testing.T) {
 				Address:  weavetest.NewCondition().Address(),
 				Name:     "INVALID NAME",
 			},
-			WantErr: errors.ErrInvalidInput,
+			WantErr: errors.ErrInput,
 		},
 	}
 

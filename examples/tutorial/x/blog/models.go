@@ -14,13 +14,13 @@ var _ orm.CloneableData = (*Blog)(nil)
 // Validate enforces limits of title size and number of authors
 func (b *Blog) Validate() error {
 	if len(b.Title) > MaxTitleLength {
-		return errors.Wrap(errors.ErrInvalidInput, invalidTitle)
+		return errors.Wrap(errors.ErrInput, invalidTitle)
 	}
 	if len(b.Authors) > MaxAuthors || len(b.Authors) == 0 {
-		return errors.Wrapf(errors.ErrInvalidState, "authors: %d", len(b.Authors))
+		return errors.Wrapf(errors.ErrState, "authors: %d", len(b.Authors))
 	}
 	if b.NumArticles < 0 {
-		return errors.Wrapf(errors.ErrInvalidModel, "negative articles")
+		return errors.Wrapf(errors.ErrModel, "negative articles")
 	}
 	return nil
 }
@@ -45,16 +45,16 @@ var _ orm.CloneableData = (*Post)(nil)
 // Validate enforces limits of text and title size
 func (p *Post) Validate() error {
 	if len(p.Title) > MaxTitleLength {
-		return errors.Wrap(errors.ErrInvalidInput, invalidTitle)
+		return errors.Wrap(errors.ErrInput, invalidTitle)
 	}
 	if len(p.Text) > MaxTextLength {
-		return errors.Wrap(errors.ErrInvalidInput, invalidText)
+		return errors.Wrap(errors.ErrInput, invalidText)
 	}
 	if len(p.Author) == 0 {
 		return errors.Wrap(errors.ErrEmpty, "author")
 	}
 	if p.CreationBlock < 0 {
-		return errors.Wrapf(errors.ErrInvalidModel, "negative creation")
+		return errors.Wrapf(errors.ErrModel, "negative creation")
 	}
 	return nil
 }
@@ -77,10 +77,10 @@ var _ orm.CloneableData = (*Profile)(nil)
 // Validate enforces limits of text and title size
 func (p *Profile) Validate() error {
 	if len(p.Name) > MaxNameLength {
-		return errors.Wrap(errors.ErrInvalidInput, invalidName)
+		return errors.Wrap(errors.ErrInput, invalidName)
 	}
 	if len(p.Description) > MaxDescriptionLength {
-		return errors.Wrap(errors.ErrInvalidInput, descriptionTooLong)
+		return errors.Wrap(errors.ErrInput, descriptionTooLong)
 	}
 	return nil
 }
@@ -117,7 +117,7 @@ func NewBlogBucket() BlogBucket {
 // Save enforces the proper type
 func (b BlogBucket) Save(db weave.KVStore, obj orm.Object) error {
 	if _, ok := obj.Value().(*Blog); !ok {
-		return errors.WithType(errors.ErrInvalidModel, obj.Value())
+		return errors.WithType(errors.ErrModel, obj.Value())
 	}
 	return b.Bucket.Save(db, obj)
 }
@@ -160,7 +160,7 @@ func idxAuthor(obj orm.Object) ([]byte, error) {
 // Save enforces the proper type
 func (b PostBucket) Save(db weave.KVStore, obj orm.Object) error {
 	if _, ok := obj.Value().(*Post); !ok {
-		return errors.WithType(errors.ErrInvalidModel, obj.Value())
+		return errors.WithType(errors.ErrModel, obj.Value())
 	}
 	return b.Bucket.Save(db, obj)
 }
@@ -189,7 +189,7 @@ func NewProfileBucket() ProfileBucket {
 // Save enforces the proper type
 func (b ProfileBucket) Save(db weave.KVStore, obj orm.Object) error {
 	if _, ok := obj.Value().(*Profile); !ok {
-		return errors.WithType(errors.ErrInvalidModel, obj.Value())
+		return errors.WithType(errors.ErrModel, obj.Value())
 	}
 	return b.Bucket.Save(db, obj)
 }

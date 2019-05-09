@@ -46,8 +46,8 @@ func TestSendHandler(t *testing.T) {
 		expectCheck   checkErr
 		expectDeliver checkErr
 	}{
-		0: {nil, nil, nil, errors.ErrInvalidState.Is, errors.ErrInvalidState.Is},
-		1: {nil, nil, new(cash.SendMsg), errors.ErrInvalidAmount.Is, errors.ErrInvalidAmount.Is},
+		0: {nil, nil, nil, errors.ErrState.Is, errors.ErrState.Is},
+		1: {nil, nil, new(cash.SendMsg), errors.ErrAmount.Is, errors.ErrAmount.Is},
 		2: {nil, nil, &cash.SendMsg{Amount: &foo}, errors.ErrEmpty.Is, errors.ErrEmpty.Is},
 		3: {
 			nil,
@@ -85,7 +85,7 @@ func TestSendHandler(t *testing.T) {
 				Dest:     addr2,
 			},
 			noErr, // we don't check funds
-			errors.ErrInsufficientAmount.Is,
+			errors.ErrAmount.Is,
 		},
 		// fool and his money are soon parted....
 		6: {
@@ -152,13 +152,13 @@ func TestNewTokenHandler(t *testing.T) {
 		"proper issuer - happy path": {[]weave.Condition{perm1}, addr1, nil, msg,
 			noErr, noErr, ticker, added},
 		"wrong message type": {[]weave.Condition{perm1}, addr1, nil, new(cash.SendMsg),
-			errors.ErrInvalidAmount.Is, errors.ErrInvalidAmount.Is, "", nil},
+			errors.ErrAmount.Is, errors.ErrAmount.Is, "", nil},
 		"invalid ticker symbol": {[]weave.Condition{perm1}, addr1, nil, BuildTokenMsg("YO", "digga", 7),
 			errors.ErrCurrency.Is, errors.ErrCurrency.Is, "", nil},
 		"invalid token name": {[]weave.Condition{perm1}, addr1, nil, BuildTokenMsg("GOOD", "ill3glz!", 7),
-			errors.ErrInvalidInput.Is, errors.ErrInvalidInput.Is, "", nil},
+			errors.ErrInput.Is, errors.ErrInput.Is, "", nil},
 		"invalid sig figs": {[]weave.Condition{perm1}, addr1, nil, BuildTokenMsg("GOOD", "my good token", 17),
-			errors.ErrInvalidInput.Is, errors.ErrInvalidInput.Is, "", nil},
+			errors.ErrInput.Is, errors.ErrInput.Is, "", nil},
 		"no issuer, unsigned": {nil, nil, nil, msg,
 			errors.ErrUnauthorized.Is, errors.ErrUnauthorized.Is, "", nil},
 		"no issuer, signed": {[]weave.Condition{perm2}, nil, nil, msg,
@@ -233,12 +233,12 @@ func TestSetNameHandler(t *testing.T) {
 	}{
 		// wrong message type
 		0: {nil, nil, new(cash.SendMsg),
-			errors.ErrInvalidAmount.Is, errors.ErrInvalidAmount.Is, nil, nil},
+			errors.ErrAmount.Is, errors.ErrAmount.Is, nil, nil},
 		// invalid message
 		1: {nil, nil, BuildSetNameMsg([]byte{1, 2}, "johnny"),
-			errors.ErrInvalidInput.Is, errors.ErrInvalidInput.Is, nil, nil},
+			errors.ErrInput.Is, errors.ErrInput.Is, nil, nil},
 		2: {nil, nil, BuildSetNameMsg(addr1, "sh"),
-			errors.ErrInvalidInput.Is, errors.ErrInvalidInput.Is, nil, nil},
+			errors.ErrInput.Is, errors.ErrInput.Is, nil, nil},
 		// no permission to change account
 		3: {nil, []orm.Object{newUser}, msg,
 			errors.ErrUnauthorized.Is, errors.ErrUnauthorized.Is, nil, nil},
@@ -252,7 +252,7 @@ func TestSetNameHandler(t *testing.T) {
 			noErr, noErr, addr1, setUser},
 		// cannot change already set - only checked deliver?
 		7: {perm1, []orm.Object{setUser}, msg,
-			noErr, errors.ErrCannotBeModified.Is, nil, nil},
+			noErr, errors.ErrImmutable.Is, nil, nil},
 		// cannot create conflict - only checked deliver?
 		8: {perm1, []orm.Object{newUser, dupUser}, msg,
 			noErr, errors.ErrDuplicate.Is, nil, nil},

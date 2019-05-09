@@ -180,7 +180,7 @@ func TestCoinValidationAndNormalization(t *testing.T) {
 		},
 		"integer and fraction with different sign": {
 			coin:                 NewCoin(4, -123456789, "FOO"),
-			wantValErr:           errors.ErrInvalidState,
+			wantValErr:           errors.ErrState,
 			wantNormalized:       NewCoin(3, 876543211, "FOO"),
 			wantNormValErr:       nil,
 			wantNormalizationErr: nil,
@@ -411,14 +411,14 @@ func TestCoinDivide(t *testing.T) {
 			pieces:   0,
 			wantOne:  NewCoin(0, 0, "BTC"),
 			wantRest: NewCoin(0, 0, "BTC"),
-			wantErr:  errors.ErrInvalidInput,
+			wantErr:  errors.ErrInput,
 		},
 		"negative pieces": {
 			total:    NewCoin(999, 0, "BTC"),
 			pieces:   -1,
 			wantOne:  NewCoin(0, 0, "BTC"),
 			wantRest: NewCoin(0, 0, "BTC"),
-			wantErr:  errors.ErrInvalidInput,
+			wantErr:  errors.ErrInput,
 		},
 		"split fractional 2 by 3 should return 2 as leftover": {
 			total:    NewCoin(0, 2, "BTC"),

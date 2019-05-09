@@ -35,7 +35,7 @@ func (a *ABCIStore) Get(key []byte) ([]byte, error) {
 	}
 	var value ResultSet
 	if err := value.Unmarshal(query.Value); err != nil {
-		return nil, errors.Wrapf(errors.ErrInvalidState, "unmarshal result set: %v", err.Error())
+		return nil, errors.Wrapf(errors.ErrState, "unmarshal result set: %v", err.Error())
 	}
 	if len(value.Results) == 0 {
 		return nil, nil
@@ -87,10 +87,10 @@ func (a *ABCIStore) ReverseIterator(start, end []byte) (weave.Iterator, error) {
 func toModels(keys, values []byte) ([]weave.Model, error) {
 	var k, v ResultSet
 	if err := k.Unmarshal(keys); err != nil {
-		return nil, errors.Wrapf(errors.ErrInvalidState, "cannot unmarshal keys: %v", err.Error())
+		return nil, errors.Wrapf(errors.ErrState, "cannot unmarshal keys: %v", err.Error())
 	}
 	if err := v.Unmarshal(values); err != nil {
-		return nil, errors.Wrapf(errors.ErrInvalidState, "cannot unmarshal values: %v", err.Error())
+		return nil, errors.Wrapf(errors.ErrState, "cannot unmarshal values: %v", err.Error())
 	}
 	return JoinResults(&k, &v)
 }

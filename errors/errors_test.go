@@ -50,7 +50,7 @@ func TestErrorIs(t *testing.T) {
 		},
 		"two different coded errors": {
 			a:      ErrNotFound,
-			b:      ErrInvalidModel,
+			b:      ErrModel,
 			wantIs: false,
 		},
 		"successful comparison to a wrapped error": {

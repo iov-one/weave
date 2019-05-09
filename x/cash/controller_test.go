@@ -176,19 +176,19 @@ func TestMoveCoins(t *testing.T) {
 		},
 		"cannot send negative": {
 			issue: issueCmd{addr: addr1, amount: bank},
-			move:  moveCmd{sender: addr1, recipient: addr2, amount: send.Negative(), wantErr: errors.ErrInvalidAmount},
+			move:  moveCmd{sender: addr1, recipient: addr2, amount: send.Negative(), wantErr: errors.ErrAmount},
 		},
 		"cannot send more than you have": {
 			issue: issueCmd{addr: addr1, amount: rem},
-			move:  moveCmd{sender: addr1, recipient: addr2, amount: bank, wantErr: errors.ErrInsufficientAmount},
+			move:  moveCmd{sender: addr1, recipient: addr2, amount: bank, wantErr: errors.ErrAmount},
 		},
 		"cannot send zero": {
 			issue: issueCmd{addr: addr1, amount: bank},
-			move:  moveCmd{sender: addr1, recipient: addr2, amount: coin.NewCoin(0, 0, cc), wantErr: errors.ErrInvalidAmount},
+			move:  moveCmd{sender: addr1, recipient: addr2, amount: coin.NewCoin(0, 0, cc), wantErr: errors.ErrAmount},
 		},
 		"cannot send wrong currency": {
 			issue: issueCmd{addr: addr1, amount: bank},
-			move:  moveCmd{sender: addr1, recipient: addr2, amount: coin.NewCoin(500, 0, "BAD"), wantErr: errors.ErrInsufficientAmount},
+			move:  moveCmd{sender: addr1, recipient: addr2, amount: coin.NewCoin(500, 0, "BAD"), wantErr: errors.ErrAmount},
 		},
 		"send everything": {
 			issue: issueCmd{addr: addr1, amount: bank},

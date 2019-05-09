@@ -30,7 +30,7 @@ func TestInitState(t *testing.T) {
 		},
 		"Init fails with bad address": {
 			Src:      weave.Options{optKey: []byte(`{"addresses":["00"]}`)},
-			ExpError: errors.ErrInvalidInput,
+			ExpError: errors.ErrInput,
 		},
 	}
 

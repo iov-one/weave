@@ -112,7 +112,7 @@ func TestVerifySignature(t *testing.T) {
 	}
 
 	// different chain doesn't match
-	if _, err := VerifySignature(kv, sig2, bz, "metal"); !errors.ErrInvalidInput.Is(err) {
+	if _, err := VerifySignature(kv, sig2, bz, "metal"); !errors.ErrInput.Is(err) {
 		t.Fatalf("unexpected error: %s", err)
 	}
 

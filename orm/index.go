@@ -248,7 +248,7 @@ func (i Index) loadRefs(db weave.ReadOnlyKVStore,
 func (i Index) move(db weave.KVStore, prev Object, save Object) error {
 	// if the primary key is not equal, we have a problem
 	if !bytes.Equal(prev.Key(), save.Key()) {
-		return errors.Wrap(errors.ErrCannotBeModified, "cannot modify the primary key of an object")
+		return errors.Wrap(errors.ErrImmutable, "cannot modify the primary key of an object")
 	}
 
 	oldKeys, err := i.index(prev)

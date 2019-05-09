@@ -103,7 +103,7 @@ func (b *MyModelBucket) GetMyModel(db weave.KVStore, key string) (*MyModel, erro
 	}
 	m, ok := obj.Value().(*MyModel)
 	if !ok {
-		return nil, errors.Wrapf(errors.ErrInvalidModel, "invalid type: %T", obj.Value())
+		return nil, errors.Wrapf(errors.ErrModel, "invalid type: %T", obj.Value())
 	}
 	return m, nil
 }

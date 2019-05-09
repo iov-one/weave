@@ -85,7 +85,7 @@ func mustLoadChainID(kv weave.KVStore) string {
 // Returns error if already set, or invalid name
 func saveChainID(kv weave.KVStore, chainID string) error {
 	if !weave.IsValidChainID(chainID) {
-		return errors.Wrapf(errors.ErrInvalidInput, "chain id: %v", chainID)
+		return errors.Wrapf(errors.ErrInput, "chain id: %v", chainID)
 	}
 	k := []byte(chainIDKey)
 	exists, err := kv.Has(k)

@@ -31,14 +31,14 @@ func TextBumpSequenceValidate(t *testing.T) {
 				Metadata:  &weave.Metadata{Schema: 1},
 				Increment: 0,
 			},
-			WantErr: errors.ErrInvalidMsg,
+			WantErr: errors.ErrMsg,
 		},
 		"increment too big": {
 			Msg: &BumpSequenceMsg{
 				Metadata:  &weave.Metadata{Schema: 1},
 				Increment: 1001,
 			},
-			WantErr: errors.ErrInvalidMsg,
+			WantErr: errors.ErrMsg,
 		},
 	}
 

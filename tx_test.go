@@ -48,31 +48,31 @@ func TestExtractMsgFromSum(t *testing.T) {
 		},
 		"nil input is not allowed": {
 			input:   nil,
-			wantErr: errors.ErrInvalidInput,
+			wantErr: errors.ErrInput,
 		},
 		"invalid input content, number": {
 			input:   7,
-			wantErr: errors.ErrInvalidInput,
+			wantErr: errors.ErrInput,
 		},
 		"invalid input content, string": {
 			input:   "seven",
-			wantErr: errors.ErrInvalidInput,
+			wantErr: errors.ErrInput,
 		},
 		"empty container": {
 			input:   &Container{},
-			wantErr: errors.ErrInvalidState,
+			wantErr: errors.ErrState,
 		},
 		"container must be a pointer": {
 			input:   Container{msg},
-			wantErr: errors.ErrInvalidInput,
+			wantErr: errors.ErrInput,
 		},
 		"wrong number of fields": {
 			input:   &BigContainer{msg, "foo"},
-			wantErr: errors.ErrInvalidInput,
+			wantErr: errors.ErrInput,
 		},
 		"haw?": {
 			input:   &BadContents{&Container{}},
-			wantErr: errors.ErrInvalidType,
+			wantErr: errors.ErrType,
 		},
 	}
 
@@ -116,42 +116,42 @@ func TestLoadMsg(t *testing.T) {
 		},
 		"transaction contains a nil message": {
 			Tx:      &TxMock{Msg: nil},
-			WantErr: errors.ErrInvalidState,
+			WantErr: errors.ErrState,
 		},
 		"invalid destination message, not a pointer": {
 			Tx: &TxMock{
 				Msg: &DemoMsg{Num: 81421, Text: "foo"},
 			},
 			Dest:    MsgMock{},
-			WantErr: errors.ErrInvalidType,
+			WantErr: errors.ErrType,
 		},
 		"invalid destination message, wrong message type": {
 			Tx: &TxMock{
 				Msg: &DemoMsg{Num: 94151, Text: "foo"},
 			},
 			Dest:    &MsgMock{},
-			WantErr: errors.ErrInvalidType,
+			WantErr: errors.ErrType,
 		},
 		"invalid destination message, nil interface": {
 			Tx: &TxMock{
 				Msg: &MsgMock{ID: 45192},
 			},
 			Dest:    Msg(nil),
-			WantErr: errors.ErrInvalidType,
+			WantErr: errors.ErrType,
 		},
 		"invalid destination message, unaddressable": {
 			Tx: &TxMock{
 				Msg: &MsgMock{ID: 91841231},
 			},
 			Dest:    (*MsgMock)(nil),
-			WantErr: errors.ErrInvalidType,
+			WantErr: errors.ErrType,
 		},
 		"invalid destination message type, random value": {
 			Tx: &TxMock{
 				Msg: &MsgMock{ID: 2914},
 			},
 			Dest:    "foobar",
-			WantErr: errors.ErrInvalidType,
+			WantErr: errors.ErrType,
 		},
 		"invalid message in transaction, failed validation": {
 			Tx: &TxMock{

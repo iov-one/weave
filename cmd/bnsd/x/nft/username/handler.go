@@ -78,7 +78,7 @@ func (h IssueHandler) validate(ctx weave.Context, tx weave.Tx) (*IssueTokenMsg, 
 	}
 	msg, ok := rmsg.(*IssueTokenMsg)
 	if !ok {
-		return nil, errors.WithType(errors.ErrInvalidMsg, rmsg)
+		return nil, errors.WithType(errors.ErrMsg, rmsg)
 	}
 	if err := msg.Validate(); err != nil {
 		return nil, err
@@ -143,7 +143,7 @@ func (h *AddChainAddressHandler) validate(ctx weave.Context, tx weave.Tx) (*AddC
 	}
 	msg, ok := rmsg.(*AddChainAddressMsg)
 	if !ok {
-		return nil, errors.WithType(errors.ErrInvalidMsg, rmsg)
+		return nil, errors.WithType(errors.ErrMsg, rmsg)
 	}
 	if err := msg.Validate(); err != nil {
 		return nil, err
@@ -181,7 +181,7 @@ func (h RemoveChainAddressHandler) Deliver(ctx weave.Context, store weave.KVStor
 		return nil, errors.Wrap(errors.ErrUnauthorized, "")
 	}
 	if len(t.GetChainAddresses()) == 0 {
-		return nil, errors.Wrap(errors.ErrInvalidInput, "empty chain addresses")
+		return nil, errors.Wrap(errors.ErrInput, "empty chain addresses")
 	}
 	obsoleteAddress := ChainAddress{BlockchainID: msg.GetBlockchainID(), Address: msg.GetAddress()}
 	newAddresses := make([]ChainAddress, 0, len(t.GetChainAddresses()))
@@ -209,7 +209,7 @@ func (h *RemoveChainAddressHandler) validate(ctx weave.Context, tx weave.Tx) (*R
 	}
 	msg, ok := rmsg.(*RemoveChainAddressMsg)
 	if !ok {
-		return nil, errors.WithType(errors.ErrInvalidMsg, rmsg)
+		return nil, errors.WithType(errors.ErrMsg, rmsg)
 	}
 	if err := msg.Validate(); err != nil {
 		return nil, err

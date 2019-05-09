@@ -42,7 +42,7 @@ func (b *ElectorateBucket) GetElectorate(db weave.KVStore, id []byte) (*Electora
 	}
 	rev, ok := obj.Value().(*Electorate)
 	if !ok {
-		return nil, errors.Wrapf(errors.ErrInvalidModel, "invalid type: %T", obj.Value())
+		return nil, errors.Wrapf(errors.ErrModel, "invalid type: %T", obj.Value())
 	}
 	return rev, nil
 }
@@ -83,7 +83,7 @@ func (b *ElectionRulesBucket) GetElectionRule(db weave.KVStore, id []byte) (*Ele
 	}
 	rev, ok := obj.Value().(*ElectionRule)
 	if !ok {
-		return nil, errors.Wrapf(errors.ErrInvalidModel, "invalid type: %T", obj.Value())
+		return nil, errors.Wrapf(errors.ErrModel, "invalid type: %T", obj.Value())
 	}
 	return rev, nil
 }
@@ -149,7 +149,7 @@ func asProposal(obj orm.Object) (*Proposal, error) {
 	}
 	rev, ok := obj.Value().(*Proposal)
 	if !ok {
-		return nil, errors.Wrapf(errors.ErrInvalidModel, "invalid type: %T", obj.Value())
+		return nil, errors.Wrapf(errors.ErrModel, "invalid type: %T", obj.Value())
 	}
 	return rev, nil
 
@@ -215,7 +215,7 @@ func indexProposal(obj orm.Object) (bytes []byte, e error) {
 	}
 	compositeKey := obj.Key()
 	if len(compositeKey) <= weave.AddressLength {
-		return nil, errors.Wrap(errors.ErrInvalidInput, "unsupported key type")
+		return nil, errors.Wrap(errors.ErrInput, "unsupported key type")
 	}
 	proposalID := compositeKey[weave.AddressLength:]
 	return proposalID, nil
@@ -252,7 +252,7 @@ func (b *VoteBucket) GetVote(db weave.KVStore, proposalID []byte, addr weave.Add
 	}
 	v, ok := obj.Value().(*Vote)
 	if !ok {
-		return nil, errors.Wrapf(errors.ErrInvalidModel, "invalid type: %T", obj.Value())
+		return nil, errors.Wrapf(errors.ErrModel, "invalid type: %T", obj.Value())
 	}
 	return v, nil
 }

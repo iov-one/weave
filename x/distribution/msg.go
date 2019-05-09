@@ -24,7 +24,7 @@ func (msg *NewRevenueMsg) Validate() error {
 	if err := msg.Admin.Validate(); err != nil {
 		return errors.Wrap(err, "invalid admin address")
 	}
-	if err := validateRecipients(msg.Recipients, errors.ErrInvalidMsg); err != nil {
+	if err := validateRecipients(msg.Recipients, errors.ErrMsg); err != nil {
 		return err
 	}
 	return nil
@@ -39,7 +39,7 @@ func (msg *DistributeMsg) Validate() error {
 		return errors.Wrap(err, "invalid metadata")
 	}
 	if len(msg.RevenueID) == 0 {
-		return errors.Wrap(errors.ErrInvalidMsg, "revenue ID missing")
+		return errors.Wrap(errors.ErrMsg, "revenue ID missing")
 	}
 	return nil
 }
@@ -52,7 +52,7 @@ func (msg *ResetRevenueMsg) Validate() error {
 	if err := msg.Metadata.Validate(); err != nil {
 		return errors.Wrap(err, "invalid metadata")
 	}
-	if err := validateRecipients(msg.Recipients, errors.ErrInvalidMsg); err != nil {
+	if err := validateRecipients(msg.Recipients, errors.ErrMsg); err != nil {
 		return err
 	}
 	return nil

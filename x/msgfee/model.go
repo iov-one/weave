@@ -19,10 +19,10 @@ func (mf *MsgFee) Validate() error {
 		return errors.Wrap(err, "metadata")
 	}
 	if mf.MsgPath == "" {
-		return errors.Wrap(errors.ErrInvalidModel, "invalid message path")
+		return errors.Wrap(errors.ErrModel, "invalid message path")
 	}
 	if mf.Fee.IsZero() {
-		return errors.Wrap(errors.ErrInvalidModel, "invalid fee")
+		return errors.Wrap(errors.ErrModel, "invalid fee")
 	}
 	if err := mf.Fee.Validate(); err != nil {
 		return errors.Wrap(err, "invalid fee")
@@ -61,7 +61,7 @@ func (b *MsgFeeBucket) Create(db weave.KVStore, mf *MsgFee) (orm.Object, error) 
 // Save persists the state of a given revenue entity.
 func (b *MsgFeeBucket) Save(db weave.KVStore, obj orm.Object) error {
 	if _, ok := obj.Value().(*MsgFee); !ok {
-		return errors.Wrapf(errors.ErrInvalidModel, "invalid type: %T", obj.Value())
+		return errors.Wrapf(errors.ErrModel, "invalid type: %T", obj.Value())
 	}
 	return b.Bucket.Save(db, obj)
 }
@@ -78,7 +78,7 @@ func (b *MsgFeeBucket) MessageFee(db weave.KVStore, msgPath string) (*coin.Coin,
 	}
 	mf, ok := obj.Value().(*MsgFee)
 	if !ok {
-		return nil, errors.Wrapf(errors.ErrInvalidModel, "invalid type: %T", obj.Value())
+		return nil, errors.Wrapf(errors.ErrModel, "invalid type: %T", obj.Value())
 	}
 	return &mf.Fee, nil
 }

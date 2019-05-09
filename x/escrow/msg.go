@@ -87,13 +87,13 @@ func (m *CreateEscrowMsg) Validate() error {
 		// Zero timeout is a valid value that dates to 1970-01-01. We
 		// know that this value is in the past and makes no sense. Most
 		// likely value was not provided and a zero value remained.
-		return errors.Wrap(errors.ErrInvalidInput, "timeout is required")
+		return errors.Wrap(errors.ErrInput, "timeout is required")
 	}
 	if err := m.Timeout.Validate(); err != nil {
 		return errors.Wrap(err, "invalid timeout value")
 	}
 	if len(m.Memo) > maxMemoSize {
-		return errors.Wrapf(errors.ErrInvalidInput, "memo %s", m.Memo)
+		return errors.Wrapf(errors.ErrInput, "memo %s", m.Memo)
 	}
 	if err := validateAmount(m.Amount); err != nil {
 		return err
@@ -173,7 +173,7 @@ func validateAmount(amount coin.Coins) error {
 	// we enforce this is positive
 	positive := amount.IsPositive()
 	if !positive {
-		return errors.Wrapf(errors.ErrInvalidAmount, "non-positive SendMsg: %#v", &amount)
+		return errors.Wrapf(errors.ErrAmount, "non-positive SendMsg: %#v", &amount)
 	}
 	// then make sure these are properly formatted coins
 	return amount.Validate()
@@ -181,7 +181,7 @@ func validateAmount(amount coin.Coins) error {
 
 func validateEscrowID(id []byte) error {
 	if len(id) != 8 {
-		return errors.Wrapf(errors.ErrInvalidInput, "escrow id: %X", id)
+		return errors.Wrapf(errors.ErrInput, "escrow id: %X", id)
 	}
 	return nil
 }

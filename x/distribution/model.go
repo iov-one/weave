@@ -22,7 +22,7 @@ func (rev *Revenue) Validate() error {
 	if err := rev.Admin.Validate(); err != nil {
 		return errors.Wrap(err, "invalid admin signature")
 	}
-	if err := validateRecipients(rev.Recipients, errors.ErrInvalidModel); err != nil {
+	if err := validateRecipients(rev.Recipients, errors.ErrModel); err != nil {
 		return err
 	}
 	return nil
@@ -126,7 +126,7 @@ func RevenueAccount(revenueID []byte) (weave.Address, error) {
 // Save persists the state of a given revenue entity.
 func (b *RevenueBucket) Save(db weave.KVStore, obj orm.Object) error {
 	if _, ok := obj.Value().(*Revenue); !ok {
-		return errors.Wrapf(errors.ErrInvalidModel, "invalid type: %T", obj.Value())
+		return errors.Wrapf(errors.ErrModel, "invalid type: %T", obj.Value())
 	}
 	return b.Bucket.Save(db, obj)
 }
@@ -142,7 +142,7 @@ func (b *RevenueBucket) GetRevenue(db weave.KVStore, revenueID []byte) (*Revenue
 	}
 	rev, ok := obj.Value().(*Revenue)
 	if !ok {
-		return nil, errors.Wrapf(errors.ErrInvalidModel, "invalid type: %T", obj.Value())
+		return nil, errors.Wrapf(errors.ErrModel, "invalid type: %T", obj.Value())
 	}
 	return rev, nil
 }

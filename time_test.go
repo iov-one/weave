@@ -48,7 +48,7 @@ func TestUnixTimeUnmarshal(t *testing.T) {
 		},
 		"invalid string": {
 			raw:     `"not a time string"`,
-			wantErr: errors.ErrInvalidInput,
+			wantErr: errors.ErrInput,
 		},
 		"string as futuristic as it gets": {
 			raw:      `"9999-12-31T23:59:59Z"`,
@@ -60,11 +60,11 @@ func TestUnixTimeUnmarshal(t *testing.T) {
 		},
 		"string too much in the future": {
 			raw:     `"10000-01-01T01:01:01Z"`,
-			wantErr: errors.ErrInvalidInput,
+			wantErr: errors.ErrInput,
 		},
 		"number too much in the future": {
 			raw:     "253402300800",
-			wantErr: errors.ErrInvalidState,
+			wantErr: errors.ErrState,
 		},
 	}
 

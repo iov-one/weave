@@ -80,21 +80,21 @@ func TestValidateWallet(t *testing.T) {
 				Metadata: &weave.Metadata{Schema: 1},
 				Name:     "INVALID",
 			},
-			WantErr: errors.ErrInvalidInput,
+			WantErr: errors.ErrInput,
 		},
 		"wallet name too short": {
 			Wallet: &Wallet{
 				Metadata: &weave.Metadata{Schema: 1},
 				Name:     "abc",
 			},
-			WantErr: errors.ErrInvalidInput,
+			WantErr: errors.ErrInput,
 		},
 		"wallet name too long": {
 			Wallet: &Wallet{
 				Metadata: &weave.Metadata{Schema: 1},
 				Name:     strings.Repeat("x", 21),
 			},
-			WantErr: errors.ErrInvalidInput,
+			WantErr: errors.ErrInput,
 		},
 	}
 

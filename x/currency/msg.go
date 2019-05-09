@@ -25,7 +25,7 @@ func (t *NewTokenInfoMsg) Validate() error {
 		return errors.Wrapf(errors.ErrCurrency, "invalid ticker: %s", t.Ticker)
 	}
 	if !isTokenName(t.Name) {
-		return errors.Wrapf(errors.ErrInvalidState, "invalid token name %v", t.Name)
+		return errors.Wrapf(errors.ErrState, "invalid token name %v", t.Name)
 	}
 	return nil
 }

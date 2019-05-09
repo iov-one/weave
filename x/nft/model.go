@@ -18,7 +18,7 @@ func (m *NonFungibleToken) Validate() error {
 		return errors.Wrap(err, "metadata")
 	}
 	if !isValidTokenID(m.ID) {
-		return errors.Wrapf(errors.ErrInvalidInput, "id: %s", PrintableID(m.ID))
+		return errors.Wrapf(errors.ErrInput, "id: %s", PrintableID(m.ID))
 	}
 
 	if err := m.Owner.Validate(); err != nil {

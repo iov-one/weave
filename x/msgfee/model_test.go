@@ -36,7 +36,7 @@ func TestMsgFeeValidate(t *testing.T) {
 				MsgPath:  "",
 				Fee:      coin.NewCoin(1, 2, "DOGE"),
 			},
-			wantErr: errors.ErrInvalidModel,
+			wantErr: errors.ErrModel,
 		},
 		"zero value fee with a ticker": {
 			mf: MsgFee{
@@ -44,7 +44,7 @@ func TestMsgFeeValidate(t *testing.T) {
 				MsgPath:  "foo/bar",
 				Fee:      coin.NewCoin(0, 0, "DOGE"),
 			},
-			wantErr: errors.ErrInvalidModel,
+			wantErr: errors.ErrModel,
 		},
 		"zero value fee with no ticker": {
 			mf: MsgFee{
@@ -52,7 +52,7 @@ func TestMsgFeeValidate(t *testing.T) {
 				MsgPath:  "foo/bar",
 				Fee:      coin.Coin{},
 			},
-			wantErr: errors.ErrInvalidModel,
+			wantErr: errors.ErrModel,
 		},
 	}
 

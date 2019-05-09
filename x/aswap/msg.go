@@ -64,13 +64,13 @@ func (m *CreateSwapMsg) Validate() error {
 		// Zero timeout is a valid value that dates to 1970-01-01. We
 		// know that this value is in the past and makes no sense. Most
 		// likely value was not provided and a zero value remained.
-		return errors.Wrap(errors.ErrInvalidInput, "timeout is required")
+		return errors.Wrap(errors.ErrInput, "timeout is required")
 	}
 	if err := m.Timeout.Validate(); err != nil {
 		return errors.Wrap(err, "invalid timeout value")
 	}
 	if len(m.Memo) > maxMemoSize {
-		return errors.Wrapf(errors.ErrInvalidInput, "memo %s", m.Memo)
+		return errors.Wrapf(errors.ErrInput, "memo %s", m.Memo)
 	}
 	var err error
 	m.Amount, err = validateAmount(m.Amount)
@@ -87,7 +87,7 @@ func (m *ReleaseSwapMsg) Validate() error {
 	}
 
 	if len(m.Preimage) != preimageSize {
-		return errors.Wrapf(errors.ErrInvalidInput, "preimage should be exactly %d byte long", preimageSize)
+		return errors.Wrapf(errors.ErrInput, "preimage should be exactly %d byte long", preimageSize)
 	}
 	return nil
 }
@@ -111,14 +111,14 @@ func validateAmount(amount coin.Coins) (coin.Coins, error) {
 
 	positive := c.IsPositive()
 	if !positive {
-		return c, errors.Wrapf(errors.ErrInvalidAmount, "non-positive CreateSwapMsg: %#v", &c)
+		return c, errors.Wrapf(errors.ErrAmount, "non-positive CreateSwapMsg: %#v", &c)
 	}
 	return c, c.Validate()
 }
 
 func validatePreimageHash(preimageHash []byte) error {
 	if len(preimageHash) != preimageHashSize {
-		return errors.Wrapf(errors.ErrInvalidInput, "preimge hash is sha256 and therefore should be exactly "+
+		return errors.Wrapf(errors.ErrInput, "preimge hash is sha256 and therefore should be exactly "+
 			"%d bytes", preimageHashSize)
 	}
 	return nil
@@ -126,7 +126,7 @@ func validatePreimageHash(preimageHash []byte) error {
 
 func validateSwapID(id []byte) error {
 	if len(id) != 8 {
-		return errors.Wrapf(errors.ErrInvalidInput, "SwapID: %X", id)
+		return errors.Wrapf(errors.ErrInput, "SwapID: %X", id)
 	}
 	return nil
 }

@@ -19,13 +19,13 @@ var (
 	// due to missing data.
 	ErrNotFound = Register(3, "not found")
 
-	// ErrInvalidMsg is returned whenever an event is invalid and cannot be
+	// ErrMsg is returned whenever an event is invalid and cannot be
 	// handled.
-	ErrInvalidMsg = Register(4, "invalid message")
+	ErrMsg = Register(4, "invalid message")
 
-	// ErrInvalidModel is returned whenever a message is invalid and cannot
+	// ErrModel is returned whenever a message is invalid and cannot
 	// be used (ie. persisted).
-	ErrInvalidModel = Register(5, "invalid model")
+	ErrModel = Register(5, "invalid model")
 
 	// ErrDuplicate is returned when there is a record already that has the same
 	// unique key/index used
@@ -35,28 +35,24 @@ var (
 	// ever be reached if the code was written as expected by the framework
 	ErrHuman = Register(7, "coding error")
 
-	// ErrCannotBeModified is returned when something that is considered immutable
+	// ErrImmutable is returned when something that is considered immutable
 	// gets modified
-	ErrCannotBeModified = Register(8, "cannot be modified")
+	ErrImmutable = Register(8, "cannot be modified")
 
 	// ErrEmpty is returned when a value fails a not empty assertion
 	ErrEmpty = Register(9, "value is empty")
 
-	// ErrInvalidState is returned when an object is in invalid state
-	ErrInvalidState = Register(10, "invalid state")
+	// ErrState is returned when an object is in invalid state
+	ErrState = Register(10, "invalid state")
 
-	// ErrInvalidType is returned whenever the type is not what was expected
-	ErrInvalidType = Register(11, "invalid type")
+	// ErrType is returned whenever the type is not what was expected
+	ErrType = Register(11, "invalid type")
 
-	// ErrInsufficientAmount is returned when an amount of currency is
-	// insufficient, e.g. funds/fees
-	ErrInsufficientAmount = Register(12, "insufficient amount")
+	// ErrAmount is returned when processed amount is invalid.
+	ErrAmount = Register(13, "invalid amount")
 
-	// ErrInvalidAmount stands for invalid amount of whatever
-	ErrInvalidAmount = Register(13, "invalid amount")
-
-	// ErrInvalidInput stands for general input problems indication
-	ErrInvalidInput = Register(14, "invalid input")
+	// ErrInput stands for general input problems indication
+	ErrInput = Register(14, "invalid input")
 
 	// ErrExpired stands for expired entities, normally has to do with block height expirations
 	ErrExpired = Register(15, "expired")

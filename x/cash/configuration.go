@@ -13,7 +13,7 @@ func (c *Configuration) Validate() error {
 		}
 	}
 	if len(c.CollectorAddress) == 0 {
-		return errors.Wrap(errors.ErrInvalidState, "collector address missing")
+		return errors.Wrap(errors.ErrState, "collector address missing")
 	}
 	if err := c.CollectorAddress.Validate(); err != nil {
 		return errors.Wrap(err, "collector address")
@@ -24,7 +24,7 @@ func (c *Configuration) Validate() error {
 			return errors.Wrap(err, "minimal fee")
 		}
 		if !c.MinimalFee.IsNonNegative() {
-			return errors.Wrap(errors.ErrInvalidState, "minimal fee cannot be negative")
+			return errors.Wrap(errors.ErrState, "minimal fee cannot be negative")
 		}
 	}
 	return nil

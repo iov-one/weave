@@ -31,13 +31,13 @@ func TestSend(t *testing.T) {
 		wantDeliverErr *errors.Error
 	}{
 		"nil message": {
-			wantCheckErr:   errors.ErrInvalidState,
-			wantDeliverErr: errors.ErrInvalidState,
+			wantCheckErr:   errors.ErrState,
+			wantDeliverErr: errors.ErrState,
 		},
 		"empty message": {
 			msg:            &SendMsg{},
-			wantCheckErr:   errors.ErrInvalidAmount,
-			wantDeliverErr: errors.ErrInvalidAmount,
+			wantCheckErr:   errors.ErrAmount,
+			wantDeliverErr: errors.ErrAmount,
 		},
 		"unauthorized": {
 			msg: &SendMsg{
@@ -67,7 +67,7 @@ func TestSend(t *testing.T) {
 				Src:    perm.Address(),
 				Dest:   perm2.Address(),
 			},
-			wantDeliverErr: errors.ErrInsufficientAmount,
+			wantDeliverErr: errors.ErrAmount,
 		},
 		"sender got cash": {
 			signers: []weave.Condition{perm},

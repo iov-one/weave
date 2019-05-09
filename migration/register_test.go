@@ -11,10 +11,10 @@ import (
 func TestZeroMigrationIsNotAllowed(t *testing.T) {
 	reg := newRegister()
 
-	if err := reg.Register(0, &MyMsg{}, NoModification); !errors.ErrInvalidInput.Is(err) {
+	if err := reg.Register(0, &MyMsg{}, NoModification); !errors.ErrInput.Is(err) {
 		t.Fatalf("unexpected invalid version registration error: %s", err)
 	}
-	if err := reg.Apply(nil, &MyMsg{}, 0); !errors.ErrInvalidInput.Is(err) {
+	if err := reg.Apply(nil, &MyMsg{}, 0); !errors.ErrInput.Is(err) {
 		t.Fatalf("unexpected invalid version registration error: %s", err)
 	}
 }
@@ -23,14 +23,14 @@ func TestRegisterMigrationMustBeSequential(t *testing.T) {
 	reg := newRegister()
 
 	// Each migration must start with 1.
-	if err := reg.Register(2, &MyMsg{}, NoModification); !errors.ErrInvalidInput.Is(err) {
+	if err := reg.Register(2, &MyMsg{}, NoModification); !errors.ErrInput.Is(err) {
 		t.Fatalf("unexpected error when missing previous migration: %s", err)
 	}
 
 	reg.MustRegister(1, &MyMsg{}, NoModification)
 	reg.MustRegister(2, &MyMsg{}, NoModification)
 
-	if err := reg.Register(4, &MyMsg{}, NoModification); !errors.ErrInvalidInput.Is(err) {
+	if err := reg.Register(4, &MyMsg{}, NoModification); !errors.ErrInput.Is(err) {
 		t.Fatalf("unexpected error when missing previous migration: %s", err)
 	}
 

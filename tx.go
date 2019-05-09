@@ -91,23 +91,23 @@ type TxDecoder func(txBytes []byte) (Tx, error)
 // Returns an error if it cannot succeed.
 func ExtractMsgFromSum(sum interface{}) (Msg, error) {
 	if sum == nil {
-		return nil, errors.Wrap(errors.ErrInvalidInput, "message container is <nil>")
+		return nil, errors.Wrap(errors.ErrInput, "message container is <nil>")
 	}
 	pval := reflect.ValueOf(sum)
 	if pval.Kind() != reflect.Ptr || pval.Elem().Kind() != reflect.Struct {
-		return nil, errors.Wrapf(errors.ErrInvalidInput, "invalid message container value: %T", sum)
+		return nil, errors.Wrapf(errors.ErrInput, "invalid message container value: %T", sum)
 	}
 	val := pval.Elem()
 	if val.NumField() != 1 {
-		return nil, errors.Wrapf(errors.ErrInvalidInput, "Unexpected message container field count: %d", val.NumField())
+		return nil, errors.Wrapf(errors.ErrInput, "Unexpected message container field count: %d", val.NumField())
 	}
 	field := val.Field(0)
 	if field.IsNil() {
-		return nil, errors.Wrap(errors.ErrInvalidState, "message is <nil>")
+		return nil, errors.Wrap(errors.ErrState, "message is <nil>")
 	}
 	res, ok := field.Interface().(Msg)
 	if !ok {
-		return nil, errors.Wrapf(errors.ErrInvalidType, "unsupported message type: %T", field.Interface())
+		return nil, errors.Wrapf(errors.ErrType, "unsupported message type: %T", field.Interface())
 	}
 	return res, nil
 }
@@ -120,7 +120,7 @@ func LoadMsg(tx Tx, destination interface{}) error {
 		return errors.Wrap(err, "cannot get transaction message")
 	}
 	if msg == nil {
-		return errors.Wrap(errors.ErrInvalidState, "nil message")
+		return errors.Wrap(errors.ErrState, "nil message")
 	}
 
 	if err := msg.Validate(); err != nil {
@@ -129,11 +129,11 @@ func LoadMsg(tx Tx, destination interface{}) error {
 
 	dstVal := reflect.ValueOf(destination)
 	if dstVal.Kind() != reflect.Ptr {
-		return errors.Wrapf(errors.ErrInvalidType, "destination must be a pointer, got %T", destination)
+		return errors.Wrapf(errors.ErrType, "destination must be a pointer, got %T", destination)
 	}
 	dstVal = dstVal.Elem()
 	if !dstVal.IsValid() {
-		return errors.Wrap(errors.ErrInvalidType, "destination cannot be addressed")
+		return errors.Wrap(errors.ErrType, "destination cannot be addressed")
 	}
 
 	srcVal := reflect.ValueOf(msg)
@@ -142,7 +142,7 @@ func LoadMsg(tx Tx, destination interface{}) error {
 	}
 
 	if srcVal.Type() != dstVal.Type() {
-		return errors.Wrapf(errors.ErrInvalidType, "want %T destination, got %T", msg, destination)
+		return errors.Wrapf(errors.ErrType, "want %T destination, got %T", msg, destination)
 	}
 
 	dstVal.Set(srcVal)

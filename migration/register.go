@@ -59,7 +59,7 @@ func (r *register) MustRegister(migrationTo uint32, msgOrModel Migratable, fn Mi
 
 func (r *register) Register(migrationTo uint32, msgOrModel Migratable, fn Migrator) error {
 	if migrationTo < 1 {
-		return errors.Wrap(errors.ErrInvalidInput, "minimal allowed version is 1")
+		return errors.Wrap(errors.ErrInput, "minimal allowed version is 1")
 	}
 
 	tp := reflect.TypeOf(msgOrModel)
@@ -70,7 +70,7 @@ func (r *register) Register(migrationTo uint32, msgOrModel Migratable, fn Migrat
 			payload: tp,
 		}
 		if _, ok := r.migrateTo[prev]; !ok {
-			return errors.Wrapf(errors.ErrInvalidInput, "missing %d version migration", prev.version)
+			return errors.Wrapf(errors.ErrInput, "missing %d version migration", prev.version)
 		}
 	}
 
@@ -100,7 +100,7 @@ func (r *register) Register(migrationTo uint32, msgOrModel Migratable, fn Migrat
 // Validation method is called only on the final version of the object.
 func (r *register) Apply(db weave.ReadOnlyKVStore, m Migratable, migrateTo uint32) error {
 	if migrateTo < 1 {
-		return errors.Wrap(errors.ErrInvalidInput, "minimal allowed version is 1")
+		return errors.Wrap(errors.ErrInput, "minimal allowed version is 1")
 	}
 
 	meta := m.GetMetadata()

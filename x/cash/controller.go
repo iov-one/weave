@@ -67,10 +67,10 @@ func (c BaseController) MoveCoins(store weave.KVStore,
 	src weave.Address, dest weave.Address, amount coin.Coin) error {
 
 	if amount.IsZero() {
-		return errors.Wrap(errors.ErrInvalidAmount, "zero value")
+		return errors.Wrap(errors.ErrAmount, "zero value")
 	}
 	if !amount.IsPositive() {
-		return errors.Wrapf(errors.ErrInvalidAmount, "non-positive SendMsg: %#v", &amount)
+		return errors.Wrapf(errors.ErrAmount, "non-positive SendMsg: %#v", &amount)
 	}
 
 	// load sender, subtract funds, and save
@@ -82,7 +82,7 @@ func (c BaseController) MoveCoins(store weave.KVStore,
 		return errors.Wrapf(errors.ErrEmpty, "empty account %#v", src)
 	}
 	if !AsCoins(sender).Contains(amount) {
-		return errors.Wrap(errors.ErrInsufficientAmount, "funds")
+		return errors.Wrap(errors.ErrAmount, "funds")
 	}
 	err = Subtract(AsCoinage(sender), amount)
 	if err != nil {

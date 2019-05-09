@@ -122,7 +122,7 @@ func (c *Counter) Copy() CloneableData {
 // Validate returns error on negative numbers
 func (c *Counter) Validate() error {
 	if c.Count < 0 {
-		return errors.Wrap(errors.ErrInvalidState, "negative counter")
+		return errors.Wrap(errors.ErrState, "negative counter")
 	}
 	return nil
 }

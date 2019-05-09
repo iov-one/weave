@@ -42,7 +42,7 @@ func TestValidateSendMsg(t *testing.T) {
 			msg: &SendMsg{
 				Metadata: &weave.Metadata{Schema: 1},
 			},
-			wantErr: errors.ErrInvalidAmount,
+			wantErr: errors.ErrAmount,
 		},
 		"missing source": {
 			msg: &SendMsg{
@@ -68,7 +68,7 @@ func TestValidateSendMsg(t *testing.T) {
 				Src:      addr2,
 				Ref:      []byte(strings.Repeat("x", maxRefSize+1)),
 			},
-			wantErr: errors.ErrInvalidState,
+			wantErr: errors.ErrState,
 		},
 		"memo too long": {
 			msg: &SendMsg{
@@ -78,7 +78,7 @@ func TestValidateSendMsg(t *testing.T) {
 				Src:      addr2,
 				Memo:     strings.Repeat("x", maxMemoSize+1),
 			},
-			wantErr: errors.ErrInvalidState,
+			wantErr: errors.ErrState,
 		},
 	}
 
@@ -110,14 +110,14 @@ func TestValidateFeeTx(t *testing.T) {
 			info: &FeeInfo{
 				Metadata: &weave.Metadata{Schema: 1},
 			},
-			wantErr: errors.ErrInvalidAmount,
+			wantErr: errors.ErrAmount,
 		},
 		"no fee": {
 			info: &FeeInfo{
 				Metadata: &weave.Metadata{Schema: 1},
 				Payer:    addr1,
 			},
-			wantErr: errors.ErrInvalidAmount,
+			wantErr: errors.ErrAmount,
 		},
 		"no payer": {
 			info: &FeeInfo{
@@ -132,7 +132,7 @@ func TestValidateFeeTx(t *testing.T) {
 				Fees:     coin.NewCoinp(-10, 0, "IOV"),
 				Payer:    addr1,
 			},
-			wantErr: errors.ErrInvalidAmount,
+			wantErr: errors.ErrAmount,
 		},
 		"invalid fee ticker": {
 			info: &FeeInfo{

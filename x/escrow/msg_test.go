@@ -87,7 +87,7 @@ func TestCreateEscrowMsg(t *testing.T) {
 				Amount:    plus,
 				Timeout:   timeout,
 			},
-			errors.ErrInvalidInput.Is,
+			errors.ErrInput.Is,
 		},
 		// negative amount
 		4: {
@@ -98,7 +98,7 @@ func TestCreateEscrowMsg(t *testing.T) {
 				Amount:    minus,
 				Timeout:   timeout,
 			},
-			errors.ErrInvalidAmount.Is,
+			errors.ErrAmount.Is,
 		},
 		// improperly formatted amount
 		5: {
@@ -119,7 +119,7 @@ func TestCreateEscrowMsg(t *testing.T) {
 				Recipient: c.Address(),
 				Timeout:   timeout,
 			},
-			errors.ErrInvalidAmount.Is,
+			errors.ErrAmount.Is,
 		},
 		// invalid memo
 		7: {
@@ -131,7 +131,7 @@ func TestCreateEscrowMsg(t *testing.T) {
 				Timeout:   timeout,
 				Memo:      strings.Repeat("foo", 100),
 			},
-			errors.ErrInvalidInput.Is,
+			errors.ErrInput.Is,
 		},
 		// zero timeout
 		8: {
@@ -142,7 +142,7 @@ func TestCreateEscrowMsg(t *testing.T) {
 				Amount:    plus,
 				Timeout:   0,
 			},
-			errors.ErrInvalidInput.Is,
+			errors.ErrInput.Is,
 		},
 	}
 
@@ -177,7 +177,7 @@ func TestReleaseEscrowMsg(t *testing.T) {
 			&ReleaseEscrowMsg{
 				Metadata: &weave.Metadata{Schema: 1},
 			},
-			errors.ErrInvalidInput.Is,
+			errors.ErrInput.Is,
 		},
 		// proper: valid amount
 		1: {
@@ -202,7 +202,7 @@ func TestReleaseEscrowMsg(t *testing.T) {
 				Metadata: &weave.Metadata{Schema: 1},
 				EscrowId: scarecrow,
 			},
-			errors.ErrInvalidInput.Is,
+			errors.ErrInput.Is,
 		},
 		// missing id
 		4: {
@@ -210,7 +210,7 @@ func TestReleaseEscrowMsg(t *testing.T) {
 				Metadata: &weave.Metadata{Schema: 1},
 				Amount:   plus,
 			},
-			errors.ErrInvalidInput.Is,
+			errors.ErrInput.Is,
 		},
 		// negative amount
 		5: {
@@ -219,7 +219,7 @@ func TestReleaseEscrowMsg(t *testing.T) {
 				EscrowId: escrow,
 				Amount:   minus,
 			},
-			errors.ErrInvalidAmount.Is,
+			errors.ErrAmount.Is,
 		},
 		// improperly formatted amount
 		6: {
@@ -256,7 +256,7 @@ func TestReturnEscrowMsg(t *testing.T) {
 			&ReturnEscrowMsg{
 				Metadata: &weave.Metadata{Schema: 1},
 			},
-			errors.ErrInvalidInput.Is,
+			errors.ErrInput.Is,
 		},
 		// proper: valid id
 		1: {
@@ -272,7 +272,7 @@ func TestReturnEscrowMsg(t *testing.T) {
 				Metadata: &weave.Metadata{Schema: 1},
 				EscrowId: scarecrow,
 			},
-			errors.ErrInvalidInput.Is,
+			errors.ErrInput.Is,
 		},
 	}
 
@@ -307,7 +307,7 @@ func TestUpdateEscrowMsg(t *testing.T) {
 			&UpdateEscrowPartiesMsg{
 				Metadata: &weave.Metadata{Schema: 1},
 			},
-			errors.ErrInvalidInput.Is,
+			errors.ErrInput.Is,
 		},
 		// proper: valid id, one valid permission
 		1: {
@@ -333,7 +333,7 @@ func TestUpdateEscrowMsg(t *testing.T) {
 				EscrowId: scarecrow,
 				Sender:   a.Address(),
 			},
-			errors.ErrInvalidInput.Is,
+			errors.ErrInput.Is,
 		},
 		// allow multiple permissions
 		4: {
@@ -352,7 +352,7 @@ func TestUpdateEscrowMsg(t *testing.T) {
 				EscrowId: escrow,
 				Arbiter:  d,
 			},
-			errors.ErrInvalidInput.Is,
+			errors.ErrInput.Is,
 		},
 	}
 

@@ -73,15 +73,15 @@ func TestCreateHandler(t *testing.T) {
 			},
 		},
 		"Invalid Msg": {
-			wantDeliverErr: errors.ErrInvalidInput,
-			wantCheckErr:   errors.ErrInvalidInput,
+			wantDeliverErr: errors.ErrInput,
+			wantCheckErr:   errors.ErrInput,
 			mutator: func(msg *aswap.CreateSwapMsg) {
 				msg.PreimageHash = nil
 			},
 		},
 		"Invalid Timeout": {
-			wantDeliverErr: errors.ErrInvalidInput,
-			wantCheckErr:   errors.ErrInvalidInput,
+			wantDeliverErr: errors.ErrInput,
+			wantCheckErr:   errors.ErrInput,
 			mutator: func(msg *aswap.CreateSwapMsg) {
 				msg.Timeout = msg.Timeout.Add(-aswap.MinTimeout)
 			},
@@ -179,8 +179,8 @@ func TestReleaseHandler(t *testing.T) {
 			},
 		},
 		"Invalid Msg": {
-			wantDeliverErr: errors.ErrInvalidInput,
-			wantCheckErr:   errors.ErrInvalidInput,
+			wantDeliverErr: errors.ErrInput,
+			wantCheckErr:   errors.ErrInput,
 			mutator: func(msg *aswap.ReleaseSwapMsg) {
 				msg.Preimage = nil
 			},
@@ -204,8 +204,8 @@ func TestReleaseHandler(t *testing.T) {
 			setup: func(ctx weave.Context, db weave.KVStore) weave.Context {
 				return weave.WithBlockTime(ctx, time.Now().Add(aswap.MinTimeout*2))
 			},
-			wantDeliverErr: errors.ErrInvalidState,
-			wantCheckErr:   errors.ErrInvalidState,
+			wantDeliverErr: errors.ErrState,
+			wantCheckErr:   errors.ErrState,
 		},
 	}
 
@@ -294,8 +294,8 @@ func TestReturnHandler(t *testing.T) {
 			},
 		},
 		"Invalid Msg": {
-			wantDeliverErr: errors.ErrInvalidInput,
-			wantCheckErr:   errors.ErrInvalidInput,
+			wantDeliverErr: errors.ErrInput,
+			wantCheckErr:   errors.ErrInput,
 			mutator: func(msg *aswap.ReturnSwapMsg) {
 				msg.SwapID = nil
 			},
@@ -311,8 +311,8 @@ func TestReturnHandler(t *testing.T) {
 			setup: func(ctx weave.Context, db weave.KVStore) weave.Context {
 				return weave.WithBlockTime(ctx, time.Now())
 			},
-			wantDeliverErr: errors.ErrInvalidState,
-			wantCheckErr:   errors.ErrInvalidState,
+			wantDeliverErr: errors.ErrState,
+			wantCheckErr:   errors.ErrState,
 		},
 	}
 
