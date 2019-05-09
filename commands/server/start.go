@@ -76,7 +76,7 @@ func StartCmd(gen AppGenerator, logger log.Logger, home string, args []string) e
 	svr.Start()
 
 	// Wait forever
-	cmn.TrapSignal(func() {
+	cmn.TrapSignal(logger, func() {
 		// Cleanup
 		svr.Stop()
 	})

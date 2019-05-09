@@ -194,8 +194,7 @@ func TestSendMultipleTx(t *testing.T) {
 	prepH := prepResp.Response.Height
 
 	txResp := make(chan BroadcastTxResponse, 2)
-	headers := make(chan interface{}, 1)
-	cancel, err := bcp.Subscribe(QueryNewBlockHeader, headers)
+	headers, cancel, err := bcp.Subscribe(QueryNewBlockHeader)
 	require.NoError(t, err)
 
 	// to avoid race conditions, wait for a new header

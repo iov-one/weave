@@ -141,11 +141,11 @@ func (c *Client) SubscribeHeaders(ctx context.Context, results chan<- Header) er
 	}
 
 	// start a go routine to parse the incoming data and feed to the results channel
-	go func(in <-chan interface{}) {
+	go func(in <-chan ctypes.ResultEvent) {
 		for elem := range in {
 			// TODO: return actual transaction content as well? not just ID and Result
 			// TODO: safer casting???
-			val := elem.(tmtypes.EventDataNewBlockHeader)
+			val := elem.Data.(tmtypes.EventDataNewBlockHeader)
 			results <- val.Header
 		}
 		close(results)
@@ -166,11 +166,11 @@ func (c *Client) SubscribeTx(ctx context.Context, query TxQuery, results chan<- 
 	}
 
 	// start a go routine to parse the incoming data and feed to the results channel
-	go func(in <-chan interface{}) {
+	go func(in <-chan ctypes.ResultEvent) {
 		for elem := range in {
 			// TODO: return actual transaction content as well? not just ID and Result
 			// TODO: safer casting???
-			val := elem.(tmtypes.EventDataTx)
+			val := elem.Data.(tmtypes.EventDataTx)
 			res := txResultToCommitResult(val.TxResult)
 			results <- res
 		}
@@ -181,15 +181,14 @@ func (c *Client) SubscribeTx(ctx context.Context, query TxQuery, results chan<- 
 }
 
 // subscribe should be used internally, it wraps conn.Subscribe and uses ctx.Done() to trigger Unsubscription
-func (c *Client) subscribe(ctx context.Context, query string) (<-chan interface{}, error) {
+func (c *Client) subscribe(ctx context.Context, query string) (<-chan ctypes.ResultEvent, error) {
 	q, err := tmquery.New(query)
 	if err != nil {
 		return nil, errors.Wrapf(errors.ErrInvalidInput, "Query '%s': %s", query, err.Error())
 	}
 
-	out := make(chan interface{}, 1)
 	subscriber := cmn.RandStr(16)
-	err = c.conn.Subscribe(ctx, subscriber, q, out)
+	out, err := c.conn.Subscribe(ctx, subscriber, q.String())
 	if err != nil {
 		return nil, errors.Wrapf(errors.ErrNetwork, "Subscribe to '%s': %s", query, err.Error())
 	}
@@ -197,7 +196,7 @@ func (c *Client) subscribe(ctx context.Context, query string) (<-chan interface{
 	// put all variables in local scope to prevent long-lived references
 	go func(stop <-chan struct{}, sub string, q *tmquery.Query) {
 		<-stop
-		c.conn.Unsubscribe(context.Background(), sub, q)
+		c.conn.Unsubscribe(context.Background(), sub, q.String())
 	}(ctx.Done(), subscriber, q)
 
 	return out, nil
