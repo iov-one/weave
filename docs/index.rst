@@ -72,30 +72,117 @@ Light client proofs, custom token issuance and support for IBC (Inter Blockchain
 Basic Blockchain Terminology
 ----------------------------
 
-If you are new to blockchains (or Tendermint), this is a
-crash course in just enough theory to follow the rest of the setup.
-
 .. toctree::
-   :maxdepth: 2
+    :hidden:
+    :maxdepth: 2
 
    basics/blockchain.rst
    basics/consensus.rst
    basics/authentication.rst
    basics/state.rst
 
+If you are new to blockchains (or Tendermint), this is a
+crash course in just enough theory to follow the rest of the setup.
+`Read all <basics/blockchain.html>`__
+
+**Immutable Event Log**
+
+If you are coming from working on typical databases, you can think
+of the  blockchain as an immutable
+`transaction log <https://en.wikipedia.org/wiki/Transaction_log>`__ .
+If you have worked with
+`Event Sourcing <https://martinfowler.com/eaaDev/EventSourcing.html>`__
+you can consider a block as a set of events that can always be
+replayed to create a `materialized view <https://docs.microsoft.com/en-us/azure/architecture/patterns/materialized-view>`__ .
+Maybe you have a more theoretical background and recognize that a blockchain
+is a fault tolerant form of
+`state machine replication <https://en.wikipedia.org/wiki/State_machine_replication#Ordering_Inputs>`__ .
+`Read more <basics/blockchain.html#immutable-event-log>`__
+
+**General Purpose Computer**
+
+Ethereum pioneered the second generation of blockchain, where they
+realized that we didn't have to limit ourselves to handling payments,
+but actually have a general purpose state machine.
+`Read more <basics/blockchain.html#general-purpose-computer>`__
+
+**Next Generation**
+
+Since that time, many groups are working on "next generation" solutions
+that take the learnings of Ethereum and attempt to build a highly scalable
+and secure blockchain that can run general purpose programs.
+`Read more <basics/blockchain.html#next-generation>`__
+
+**Eventual finality**
+
+All Proof-of-Work systems use eventual finality, where the resource cost
+of creating a block is extremely high. After many blocks are gossiped,
+the longest chain of blocks has the most work invested in it,
+and thus is the true chain.
+`Read more <basics/consensus.html#eventual-finality>`__
+
+**Immediate finality**
+
+An alternative approach used to guarantee constency comes out of
+academic research into Byzantine Fault Tolerance from the 80s and 90s,
+which "culminated" in `PBFT <http://pmg.csail.mit.edu/papers/osdi99.pdf>`__ .
+`Read more <basics/consensus.html#immediate-finality>`__
+
+**Authentication**
+
+One interesting attribute of blockchains is that there are no
+trusted nodes, and all transactions are publically visible
+and can be copied.
+`Read more <basics/authentication.html>`__
+
+**Upgrading the state machine**
+
+Of course, during the lifetime of the blockchain, we will want
+to update the software and expand functionality. However,
+the new software must also be able to re-run all transactions
+since genesis.
+`Read more <basics/state.html#upgrading-the-state-machine>`__
+
+**UTXO vs Account Model**
+
+There are two main models used to store the current state. 
+The main model for bitcoin and similar chains is called UTXO, or Unspent transaction output. 
+The account model creates one account per public key address and stores the information there. 
+`Read more <basics/state.html#utxo-vs-account-model>`__
+
+**Merkle Proofs**
+
+Merkle trees are like binary trees, but hash the children at
+each level. This allows us to provide a
+`proof as a chain of hashes <https://www.certificate-transparency.org/log-proofs-work>`__.
+`Read more <basics/state.html#merkle-proofs>`__
+
+
 Running an Existing Application
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-------------------------------
 
-**TODO**
+.. toctree::
+    :hidden:
+    :maxdepth: 1
 
-A good way to get familiar with setting up and running an application is to follow the steps in the `mycoin <mycoind/installation.html>`__ sample application. You can run this on your local machine.
+   mycoind/setup.rst
+   mycoind/installation.rst
+   mycoind/iovcore.rst
 
-To run a version of the IOV testnet on a cloud server, the steps to set up an instance on Digital Ocean are explored in this blog `post <https://medium.com/iov-internet-of-values/a-guide-to-deploy-a-validator-on-hugnet-3335192e11d5>`__
- 
-* Show how to query hugnet (and send tx) with iov-core (and generate addresses)
-* (Also golang client?)
-* Show to to compile bnsd, auto-init it, launch it with tendermint
-* Query local application
+A good way to get familiar with setting up and running an application is t
+follow the steps in the `mycoin <mycoind/installation.html>`__ sample application. 
+You can run this on your local machine. If you don't have a modern go development environment
+already set up, please `follow these instructions <mycoind/setup.html>`__.
+
+To connect a node to the BNS testnet on a cloud server, 
+the steps to set up an instance on Digital Ocean are explored 
+in this `blog post <https://medium.com/iov-internet-of-values/a-guide-to-deploy-a-validator-on-hugnet-3335192e11d5>`__.
+
+Once you can run the blockchain, you will probably want to connect with it.
+You can view a sample wallet app for the BNS testnet at https://wallet.hugnet.iov.one
+Those that are comfortable with Javascript, should check out our
+`IOV Core Library <mycoind/iovcore.html>`__ which allows easy access to the blockchain
+from a browser or node environment.
 
 Configuration
 ~~~~~~~~~~~~~
