@@ -45,15 +45,28 @@ func (u *UserData) Copy() orm.CloneableData {
 	}
 }
 
-// CheckAndIncrementSequence checks if the current Sequence
-// matches the expected value.
-// If so, it will increase the sequence by one and return nil
-// If not, it will not change the sequence, but return an error
-func (u *UserData) CheckAndIncrementSequence(check int64) error {
-	if u.Sequence != check {
-		return errors.Wrapf(ErrInvalidSequence, "mismatch expected %d, got %d", check, u.Sequence)
+// CheckAndIncrementSequence implements check and increment operation.
+// If current sequence value is the same as given expected value then it is
+// incremented. Otherwise an error is returned.
+// Before incremening the sequence, this function is testing for a value
+// overflow.
+func (u *UserData) CheckAndIncrementSequence(expected int64) error {
+	if u.Sequence != expected {
+		return errors.Wrapf(ErrInvalidSequence, "mismatch expected %d, got %d", expected, u.Sequence)
 	}
-	u.Sequence++
+
+	next := u.Sequence + 1
+
+	// maxSequenceValue is limited by the client. The greatest supported
+	// nonce value at client side is
+	//   Number.MAX_SAFE_INTEGER = 9007199254740991 = 2^53 −  1
+	// If greater values must be supported, we get much more complicated
+	// client code.
+	const maxSequenceValue = (1 << 53) - 1
+	if next <= 0 || next > maxSequenceValue {
+		return errors.Wrapf(errors.ErrOverflow, "value exceeded: %v > %v", next, maxSequenceValue)
+	}
+	u.Sequence = next
 	return nil
 }
 
