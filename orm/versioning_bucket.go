@@ -21,11 +21,18 @@ type versionedData interface {
 	SetVersion(uint32)
 }
 
+// tombstone is a null value object used internally
+var tombstone = marker([]byte{})
+
+// WithVersioning add versioning functionality to the underlying bucket. This means objects can not be overwritten
+// anymore via Save function which must not be used with this type.
+// Instead Create and Update methods are provided to support a history of object versions.
 func WithVersioning(b IDGenBucket) VersioningBucket {
 	return VersioningBucket{b}
 }
 
-// Return
+// GetLatestVersion finds the latest version for the given id and returns the VersionedIDRef and loaded object.
+// Unlike the classic Get function it returns:
 //  - ErrNotFound when not found
 //  - ErrDeleted when deleted
 // Object won't be nil in success case
@@ -67,7 +74,9 @@ func (b VersioningBucket) GetLatestVersion(db weave.ReadOnlyKVStore, id []byte) 
 	return highestVersion, obj, err
 }
 
-// Return
+// Get works with a marshalled VersionedIDRef key. Direct usage should be avoided in favour of
+// GetVersion or GetLatestVersion.
+// Unlike the classic Get function it returns:
 //  - ErrNotFound when not found
 //  - ErrDeleted when deleted
 // Object won't be nil in success case
@@ -84,6 +93,12 @@ func (b VersioningBucket) Get(db weave.ReadOnlyKVStore, key []byte) (Object, err
 	return b.Parse(key, bz)
 }
 
+// GetVersion returns the stored object for the given VersionedIDRef.
+// Unlike the classic Get function it returns:
+//  - ErrNotFound when not found
+//  - ErrDeleted when deleted
+// Object won't be nil in success case
+
 func (b VersioningBucket) GetVersion(db weave.ReadOnlyKVStore, ref VersionedIDRef) (Object, error) {
 	key, err := ref.Marshal()
 	if err != nil {
@@ -92,8 +107,8 @@ func (b VersioningBucket) GetVersion(db weave.ReadOnlyKVStore, ref VersionedIDRe
 	return b.Get(db, key)
 }
 
-// Create assigns an ID and initial version number to given object instance and returns it as an persisted orm
-// Object.
+// Create stores a the given data. It assigns an ID and initial version number to the object instance and returns the
+// VersionedIDRef which won't be nil on success.
 func (b VersioningBucket) Create(db weave.KVStore, data versionedData) (*VersionedIDRef, error) {
 	if data.GetVersion() != 0 {
 		return nil, errors.Wrap(errors.ErrInvalidInput, "version is set on create")
@@ -113,6 +128,8 @@ func (b VersioningBucket) Save(db weave.KVStore, model Object) error {
 }
 
 // Update persists the given data object with a new derived version key in the storage.
+// The VersionedIDRef returned won't be nil on success and contains the new version number.
+// The currentKey must be the latest one in usage or an ErrDuplicate is returned.
 func (b VersioningBucket) Update(db weave.KVStore, currentKey VersionedIDRef, data versionedData) (*VersionedIDRef, error) {
 	if data.GetVersion() != currentKey.Version {
 		return nil, errors.Wrap(errors.ErrInvalidState, "versions not matching")
@@ -140,6 +157,7 @@ func (b VersioningBucket) Update(db weave.KVStore, currentKey VersionedIDRef, da
 	return b.safeUpdate(db, newVersionKey, data)
 }
 
+// safeUpdate expects all validations have happend before
 func (b VersioningBucket) safeUpdate(db weave.KVStore, newVersionKey VersionedIDRef, data CloneableData) (*VersionedIDRef, error) {
 	key, err := newVersionKey.Marshal()
 	if err != nil {
@@ -149,6 +167,8 @@ func (b VersioningBucket) safeUpdate(db weave.KVStore, newVersionKey VersionedID
 	return &newVersionKey, b.Bucket.Save(db, NewSimpleObj(key, data))
 }
 
+// Exists returns if an object is persisted for that given VersionedIDRef.
+// If it points to the tompstone as deletion marker, ErrDeleted is returned.
 func (b VersioningBucket) Exists(db weave.KVStore, idRef VersionedIDRef) (bool, error) {
 	_, err := b.GetVersion(db, idRef)
 	switch {
@@ -161,8 +181,9 @@ func (b VersioningBucket) Exists(db weave.KVStore, idRef VersionedIDRef) (bool, 
 	}
 }
 
-// Delete stores an nil value for the new highest version. It will return this key and nil on success.
-// It return ErrNotFound when id does not exist
+// Delete stores a tombstone value for the new highest version. It will return this key on success.
+// A version for the given ID must exists or ErrNotFound is returned.
+// When already deleted Err
 func (b VersioningBucket) Delete(db weave.KVStore, id []byte) (*VersionedIDRef, error) {
 	latestKey, _, err := b.GetLatestVersion(db, id)
 	if err != nil {
@@ -175,8 +196,7 @@ func (b VersioningBucket) Delete(db weave.KVStore, id []byte) (*VersionedIDRef, 
 	return b.safeUpdate(db, newVersionKey, tombstone)
 }
 
-var tombstone = marker([]byte{})
-
+// marker is a null value type that satisfies CloneableData.
 type marker []byte
 
 func (m marker) Validate() error {
