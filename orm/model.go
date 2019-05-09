@@ -27,7 +27,7 @@ func (m VersionedIDRef) Copy() CloneableData {
 // NextVersion returns a new VersionedIDRef with the same ID as current but version +1.
 func (m VersionedIDRef) NextVersion() (VersionedIDRef, error) {
 	if m.Version == math.MaxUint32 {
-		return VersionedIDRef{}, errors.Wrap(errors.ErrInvalidState, "max version exceeded")
+		return VersionedIDRef{}, errors.Wrap(errors.ErrState, "max version exceeded")
 	}
 	return VersionedIDRef{ID: m.ID, Version: m.Version + 1}, nil
 }

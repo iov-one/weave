@@ -111,7 +111,7 @@ func (b VersioningBucket) GetVersion(db weave.ReadOnlyKVStore, ref VersionedIDRe
 // VersionedIDRef which won't be nil on success.
 func (b VersioningBucket) Create(db weave.KVStore, data versionedData) (*VersionedIDRef, error) {
 	if data.GetVersion() != 0 {
-		return nil, errors.Wrap(errors.ErrInvalidInput, "version is set on create")
+		return nil, errors.Wrap(errors.ErrInput, "version is set on create")
 	}
 	data.SetVersion(1)
 	newID, err := b.idGen.NextVal(db, data)
@@ -132,7 +132,7 @@ func (b VersioningBucket) Save(db weave.KVStore, model Object) error {
 // The currentKey must be the latest one in usage or an ErrDuplicate is returned.
 func (b VersioningBucket) Update(db weave.KVStore, currentKey VersionedIDRef, data versionedData) (*VersionedIDRef, error) {
 	if data.GetVersion() != currentKey.Version {
-		return nil, errors.Wrap(errors.ErrInvalidState, "versions not matching")
+		return nil, errors.Wrap(errors.ErrState, "versions not matching")
 	}
 	// prevent gaps
 	switch exists, err := b.Exists(db, currentKey); {

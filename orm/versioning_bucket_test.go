@@ -59,7 +59,7 @@ func TestCreateWithVersioning(t *testing.T) {
 		},
 		"Fails with version set": {
 			src:    &VersionedIDRef{ID: []byte("anyValue"), Version: 1},
-			expErr: errors.ErrInvalidInput,
+			expErr: errors.ErrInput,
 		},
 	}
 	for msg, spec := range specs {
@@ -92,7 +92,7 @@ func TestUpdateWithVersioning(t *testing.T) {
 		"Fails with version mismatch": {
 			srcCurrentVersionKey: VersionedIDRef{ID: weavetest.SequenceID(1), Version: 1},
 			srcData:              &VersionedIDRef{ID: []byte("anyValue"), Version: 10},
-			expErr:               errors.ErrInvalidState,
+			expErr:               errors.ErrState,
 		},
 		"Fails when current key ID not exists": {
 			srcCurrentVersionKey: VersionedIDRef{ID: []byte("nonExisting"), Version: 1},
