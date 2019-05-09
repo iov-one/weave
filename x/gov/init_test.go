@@ -1,6 +1,7 @@
 package gov
 
 import (
+	"bytes"
 	"encoding/hex"
 	"encoding/json"
 	"testing"
@@ -19,6 +20,7 @@ func TestInitFromGenesis(t *testing.T) {
       {
         "admin": "0000000000000000000000000000000000000000",
         "title": "first",
+		"update_rule_id": 1,
         "electors": [
           {
             "weight": 10,
@@ -33,6 +35,7 @@ func TestInitFromGenesis(t *testing.T) {
       {
         "title": "second",
         "admin": "cond:foo/bar/0000000000000001",
+		"update_rule_id": 2,
         "electors": [
           {
             "weight": 1,
@@ -85,6 +88,9 @@ func TestInitFromGenesis(t *testing.T) {
 	if exp, got := "first", e.Title; exp != got {
 		t.Errorf("expected %v but got %v", exp, got)
 	}
+	if exp, got := weavetest.SequenceID(1), e.UpdateElectionRuleID; !bytes.Equal(exp, got) {
+		t.Errorf("expected %v but got %v", exp, got)
+	}
 	if exp, got := 2, len(e.Electors); exp != got {
 		t.Errorf("expected %v but got %v", exp, got)
 	}
@@ -109,6 +115,9 @@ func TestInitFromGenesis(t *testing.T) {
 		t.Fatalf("unexpected result: error: %s", err)
 	}
 	if exp, got := "second", e.Title; exp != got {
+		t.Errorf("expected %v but got %v", exp, got)
+	}
+	if exp, got := weavetest.SequenceID(2), e.UpdateElectionRuleID; !bytes.Equal(exp, got) {
 		t.Errorf("expected %v but got %v", exp, got)
 	}
 	cond := weave.NewCondition("foo", "bar", weavetest.SequenceID(1)).Address()

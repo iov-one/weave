@@ -22,20 +22,20 @@ func (m Electorate) Validate() error {
 		return errors.Wrapf(errors.ErrInvalidInput, "electors must not exceed: %d", maxElectors)
 	case !validTitle(m.Title):
 		return errors.Wrapf(errors.ErrInvalidInput, "title: %q", m.Title)
+	case len(m.UpdateElectionRuleID) == 0:
+		return errors.Wrapf(errors.ErrEmpty, "update election rule id")
+
 	}
 
 	var totalWeight uint64
-	index := make(map[string]struct{}) // check for duplicate votes
 	for _, v := range m.Electors {
 		if err := v.Validate(); err != nil {
 			return err
 		}
 		totalWeight += uint64(v.Weight)
-		addrKey := v.Address.String()
-		if _, exists := index[addrKey]; exists {
-			return errors.Wrap(errors.ErrInvalidInput, "duplicate elector entry")
-		}
-		index[addrKey] = struct{}{}
+	}
+	if diff := len(m.Electors) - newMerger(m.Electors).size(); diff != 0 {
+		return errors.Wrapf(errors.ErrInvalidInput, "duplicate electors: %d", diff)
 	}
 	if m.TotalElectorateWeight != totalWeight {
 		return errors.Wrap(errors.ErrInvalidInput, "total weight does not match sum")
@@ -134,11 +134,11 @@ const (
 	maxFutureStartTimeHours = 7 * 24 * time.Hour // 1 week
 )
 
-func (m *TextProposal) Validate() error {
+func (m *Proposal) Validate() error {
 	switch {
-	case m.Result == TextProposal_Empty:
+	case m.Result == Proposal_Empty:
 		return errors.Wrap(errors.ErrInvalidInput, "invalid result value")
-	case m.Status == TextProposal_Invalid:
+	case m.Status == Proposal_Invalid:
 		return errors.Wrap(errors.ErrInvalidInput, "invalid status")
 	case m.VotingStartTime >= m.VotingEndTime:
 		return errors.Wrap(errors.ErrInvalidInput, "start time must be before end time")
@@ -157,15 +157,16 @@ func (m *TextProposal) Validate() error {
 	case !validTitle(m.Title):
 		return errors.Wrapf(errors.ErrInvalidInput, "title: %q", m.Title)
 	}
+	// todo: validate details
 	return m.VoteState.Validate()
 }
 
-func (m TextProposal) Copy() orm.CloneableData {
+func (m Proposal) Copy() orm.CloneableData {
 	electionRuleID := make([]byte, 0, len(m.ElectionRuleID))
 	copy(electionRuleID, m.ElectionRuleID)
 	electorateID := make([]byte, 0, len(m.ElectorateID))
 	copy(electorateID, m.ElectorateID)
-	return &TextProposal{
+	return &Proposal{
 		Title:           m.Title,
 		Description:     m.Description,
 		ElectionRuleID:  electionRuleID,
@@ -181,7 +182,7 @@ func (m TextProposal) Copy() orm.CloneableData {
 }
 
 // CountVote updates the intermediate tally result by adding the new vote weight.
-func (m *TextProposal) CountVote(vote Vote) error {
+func (m *Proposal) CountVote(vote Vote) error {
 	oldTotal := m.VoteState.TotalVotes()
 	switch vote.Voted {
 	case VoteOption_Yes:
@@ -200,7 +201,7 @@ func (m *TextProposal) CountVote(vote Vote) error {
 }
 
 // UndoCountVote updates the intermediate tally result by subtracting the given vote weight.
-func (m *TextProposal) UndoCountVote(vote Vote) error {
+func (m *Proposal) UndoCountVote(vote Vote) error {
 	oldTotal := m.VoteState.TotalVotes()
 	switch vote.Voted {
 	case VoteOption_Yes:
@@ -220,19 +221,19 @@ func (m *TextProposal) UndoCountVote(vote Vote) error {
 
 // Tally calls the final calculation on the votes and sets the status of the proposal according to the
 // election rules threshold.
-func (m *TextProposal) Tally() error {
-	if m.Result != TextProposal_Undefined {
+func (m *Proposal) Tally() error {
+	if m.Result != Proposal_Undefined {
 		return errors.Wrapf(errors.ErrInvalidState, "result exists: %q", m.Result.String())
 	}
-	if m.Status != TextProposal_Submitted {
+	if m.Status != Proposal_Submitted {
 		return errors.Wrapf(errors.ErrInvalidState, "unexpected status: %q", m.Status.String())
 	}
 	if m.VoteState.Accepted() {
-		m.Result = TextProposal_Accepted
+		m.Result = Proposal_Accepted
 	} else {
-		m.Result = TextProposal_Rejected
+		m.Result = Proposal_Rejected
 	}
-	m.Status = TextProposal_Closed
+	m.Status = Proposal_Closed
 	return nil
 }
 

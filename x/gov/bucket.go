@@ -95,11 +95,13 @@ type ProposalBucket struct {
 }
 
 const indexNameElectorate = "electorate"
+const indexNameAuthor = "author"
 
 // NewProposalBucket returns a bucket for managing electorate.
 func NewProposalBucket() *ProposalBucket {
-	b := orm.NewBucket("proposal", orm.NewSimpleObj(nil, &TextProposal{})).
-		WithIndex(indexNameElectorate, indexElectorate, false)
+	b := orm.NewBucket("proposal", orm.NewSimpleObj(nil, &Proposal{})).
+		WithIndex(indexNameElectorate, indexElectorate, false).
+		WithIndex(indexNameAuthor, indexAuthor, false)
 	return &ProposalBucket{
 		Bucket: b,
 		idSeq:  b.Sequence("id"),
@@ -107,19 +109,24 @@ func NewProposalBucket() *ProposalBucket {
 }
 
 func indexElectorate(obj orm.Object) ([]byte, error) {
-	if obj == nil {
-		return nil, errors.Wrap(errors.ErrHuman, "cannot take index of nil")
+	p, err := asProposal(obj)
+	if err != nil {
+		return nil, err
 	}
-	v, ok := obj.Value().(*TextProposal)
-	if !ok {
-		return nil, errors.Wrap(errors.ErrHuman, "can only take index of TextProposal")
+	return p.ElectorateID, nil
+}
+
+func indexAuthor(obj orm.Object) ([]byte, error) {
+	p, err := asProposal(obj)
+	if err != nil {
+		return nil, err
 	}
-	return v.ElectorateID, nil
+	return p.Author, nil
 }
 
 // Build assigns an ID to given proposal instance and returns it as an orm
 // Object. It does not persist the object in the store.
-func (b *ProposalBucket) Build(db weave.KVStore, e *TextProposal) (orm.Object, error) {
+func (b *ProposalBucket) Build(db weave.KVStore, e *Proposal) (orm.Object, error) {
 	key, err := b.idSeq.NextVal(db)
 	if err != nil {
 		return nil, err
@@ -127,20 +134,20 @@ func (b *ProposalBucket) Build(db weave.KVStore, e *TextProposal) (orm.Object, e
 	return orm.NewSimpleObj(key, e), nil
 }
 
-// GetTextProposal loads the proposal for the given id. If it does not exist then ErrNotFound is returned.
-func (b *ProposalBucket) GetTextProposal(db weave.KVStore, id []byte) (*TextProposal, error) {
+// GetProposal loads the proposal for the given id. If it does not exist then ErrNotFound is returned.
+func (b *ProposalBucket) GetProposal(db weave.KVStore, id []byte) (*Proposal, error) {
 	obj, err := b.Get(db, id)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to load proposal")
 	}
-	return asTextProposal(obj)
+	return asProposal(obj)
 }
 
-func asTextProposal(obj orm.Object) (*TextProposal, error) {
+func asProposal(obj orm.Object) (*Proposal, error) {
 	if obj == nil || obj.Value() == nil {
 		return nil, errors.Wrap(errors.ErrNotFound, "unknown id")
 	}
-	rev, ok := obj.Value().(*TextProposal)
+	rev, ok := obj.Value().(*Proposal)
 	if !ok {
 		return nil, errors.Wrapf(errors.ErrInvalidModel, "invalid type: %T", obj.Value())
 	}
@@ -148,15 +155,15 @@ func asTextProposal(obj orm.Object) (*TextProposal, error) {
 
 }
 
-func (b *ProposalBucket) GetByElectorate(db weave.KVStore, id []byte) ([]*TextProposal, error) {
+func (b *ProposalBucket) GetByElectorate(db weave.KVStore, id []byte) ([]*Proposal, error) {
 	objs, err := b.GetIndexed(db, indexNameElectorate, id)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to find by electorate id")
 	}
-	r := make([]*TextProposal, len(objs))
+	r := make([]*Proposal, len(objs))
 	for i, v := range objs {
 		var err error
-		if r[i], err = asTextProposal(v); err != nil {
+		if r[i], err = asProposal(v); err != nil {
 			return nil, err
 		}
 	}
@@ -164,7 +171,7 @@ func (b *ProposalBucket) GetByElectorate(db weave.KVStore, id []byte) ([]*TextPr
 }
 
 // Update stores the given proposal and id in the persistence store.
-func (b *ProposalBucket) Update(db weave.KVStore, id []byte, obj *TextProposal) error {
+func (b *ProposalBucket) Update(db weave.KVStore, id []byte, obj *Proposal) error {
 	if err := b.Save(db, orm.NewSimpleObj(id, obj)); err != nil {
 		return errors.Wrap(err, "failed to save")
 	}

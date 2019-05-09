@@ -55,75 +55,106 @@ func (VoteOption) EnumDescriptor() ([]byte, []int) {
 	return fileDescriptor_24f6e3c5f1b82a85, []int{0}
 }
 
-type TextProposal_Status int32
+type Proposal_Status int32
 
 const (
 	// An empty value is invalid and not allowed
-	TextProposal_Invalid TextProposal_Status = 0
+	Proposal_Invalid Proposal_Status = 0
 	// Initial status of a proposal when persisted.
-	TextProposal_Submitted TextProposal_Status = 1
+	Proposal_Submitted Proposal_Status = 1
 	// Final status of a proposal when the tally was executed
-	TextProposal_Closed TextProposal_Status = 2
+	Proposal_Closed Proposal_Status = 2
 	// A proposal can be deleted before the voting start time by the owner. When this happens the final status
 	// is Withdrawn.
-	TextProposal_Withdrawn TextProposal_Status = 3
+	Proposal_Withdrawn Proposal_Status = 3
 )
 
-var TextProposal_Status_name = map[int32]string{
-	0: "TEXT_PROPOSAL_STATUS_INVALID",
-	1: "TEXT_PROPOSAL_STATUS_SUBMITTED",
-	2: "TEXT_PROPOSAL_STATUS_CLOSED",
-	3: "TEXT_PROPOSAL_STATUS_WITHDRAWN",
+var Proposal_Status_name = map[int32]string{
+	0: "PROPOSAL_STATUS_INVALID",
+	1: "PROPOSAL_STATUS_SUBMITTED",
+	2: "PROPOSAL_STATUS_CLOSED",
+	3: "PROPOSAL_STATUS_WITHDRAWN",
 }
 
-var TextProposal_Status_value = map[string]int32{
-	"TEXT_PROPOSAL_STATUS_INVALID":   0,
-	"TEXT_PROPOSAL_STATUS_SUBMITTED": 1,
-	"TEXT_PROPOSAL_STATUS_CLOSED":    2,
-	"TEXT_PROPOSAL_STATUS_WITHDRAWN": 3,
+var Proposal_Status_value = map[string]int32{
+	"PROPOSAL_STATUS_INVALID":   0,
+	"PROPOSAL_STATUS_SUBMITTED": 1,
+	"PROPOSAL_STATUS_CLOSED":    2,
+	"PROPOSAL_STATUS_WITHDRAWN": 3,
 }
 
-func (x TextProposal_Status) String() string {
-	return proto.EnumName(TextProposal_Status_name, int32(x))
+func (x Proposal_Status) String() string {
+	return proto.EnumName(Proposal_Status_name, int32(x))
 }
 
-func (TextProposal_Status) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_24f6e3c5f1b82a85, []int{4, 0}
+func (Proposal_Status) EnumDescriptor() ([]byte, []int) {
+	return fileDescriptor_24f6e3c5f1b82a85, []int{6, 0}
 }
 
-type TextProposal_Result int32
+type Proposal_Result int32
 
 const (
 	// An empty value is invalid and not allowed
-	TextProposal_Empty TextProposal_Result = 0
+	Proposal_Empty Proposal_Result = 0
 	// Until a final tally has happened the status is undefined
-	TextProposal_Undefined TextProposal_Result = 1
+	Proposal_Undefined Proposal_Result = 1
 	// Final result of the tally
-	TextProposal_Accepted TextProposal_Result = 2
+	Proposal_Accepted Proposal_Result = 2
 	// Final result of the tally
-	TextProposal_Rejected TextProposal_Result = 3
+	Proposal_Rejected Proposal_Result = 3
 )
 
-var TextProposal_Result_name = map[int32]string{
-	0: "TEXT_PROPOSAL_RESULT_INVALID",
-	1: "TEXT_PROPOSAL_RESULT_UNDEFINED",
-	2: "TEXT_PROPOSAL_RESULT_ACCEPTED",
-	3: "TEXT_PROPOSAL_RESULT_REJECTED",
+var Proposal_Result_name = map[int32]string{
+	0: "PROPOSAL_RESULT_INVALID",
+	1: "PROPOSAL_RESULT_UNDEFINED",
+	2: "PROPOSAL_RESULT_ACCEPTED",
+	3: "PROPOSAL_RESULT_REJECTED",
 }
 
-var TextProposal_Result_value = map[string]int32{
-	"TEXT_PROPOSAL_RESULT_INVALID":   0,
-	"TEXT_PROPOSAL_RESULT_UNDEFINED": 1,
-	"TEXT_PROPOSAL_RESULT_ACCEPTED":  2,
-	"TEXT_PROPOSAL_RESULT_REJECTED":  3,
+var Proposal_Result_value = map[string]int32{
+	"PROPOSAL_RESULT_INVALID":   0,
+	"PROPOSAL_RESULT_UNDEFINED": 1,
+	"PROPOSAL_RESULT_ACCEPTED":  2,
+	"PROPOSAL_RESULT_REJECTED":  3,
 }
 
-func (x TextProposal_Result) String() string {
-	return proto.EnumName(TextProposal_Result_name, int32(x))
+func (x Proposal_Result) String() string {
+	return proto.EnumName(Proposal_Result_name, int32(x))
 }
 
-func (TextProposal_Result) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_24f6e3c5f1b82a85, []int{4, 1}
+func (Proposal_Result) EnumDescriptor() ([]byte, []int) {
+	return fileDescriptor_24f6e3c5f1b82a85, []int{6, 1}
+}
+
+type Proposal_Type int32
+
+const (
+	// None is invalid and not allowed
+	Proposal_None Proposal_Type = 0
+	// Text
+	Proposal_Text Proposal_Type = 1
+	// UpdateElectorate
+	Proposal_UpdateElectorate Proposal_Type = 2
+)
+
+var Proposal_Type_name = map[int32]string{
+	0: "PROPOSAL_TYPE_INVALID",
+	1: "PROPOSAL_TYPE_TEXT",
+	2: "PROPOSAL_TYPE_UPDATE_ELECTORATE",
+}
+
+var Proposal_Type_value = map[string]int32{
+	"PROPOSAL_TYPE_INVALID":           0,
+	"PROPOSAL_TYPE_TEXT":              1,
+	"PROPOSAL_TYPE_UPDATE_ELECTORATE": 2,
+}
+
+func (x Proposal_Type) String() string {
+	return proto.EnumName(Proposal_Type_name, int32(x))
+}
+
+func (Proposal_Type) EnumDescriptor() ([]byte, []int) {
+	return fileDescriptor_24f6e3c5f1b82a85, []int{6, 2}
 }
 
 // Electorate defines who may vote in an election. This same group can be used in many elections
@@ -137,6 +168,8 @@ type Electorate struct {
 	Electors []Elector `protobuf:"bytes,3,rep,name=electors,proto3" json:"electors"`
 	// TotalElectorateWeight is the sum of all electors weights.
 	TotalElectorateWeight uint64 `protobuf:"varint,4,opt,name=total_electorate_weight,json=totalElectorateWeight,proto3" json:"total_electorate_weight,omitempty"`
+	// UpdateElectionRuleID reference the rule to update this electorate.
+	UpdateElectionRuleID []byte `protobuf:"bytes,5,opt,name=update_election_rule_id,json=updateElectionRuleId,proto3" json:"update_election_rule_id,omitempty"`
 }
 
 func (m *Electorate) Reset()         { *m = Electorate{} }
@@ -198,6 +231,13 @@ func (m *Electorate) GetTotalElectorateWeight() uint64 {
 		return m.TotalElectorateWeight
 	}
 	return 0
+}
+
+func (m *Electorate) GetUpdateElectionRuleID() []byte {
+	if m != nil {
+		return m.UpdateElectionRuleID
+	}
+	return nil
 }
 
 // Elector clubs together a address with a weight. The greater the weight
@@ -411,7 +451,90 @@ func (m *Fraction) GetDenominator() uint32 {
 }
 
 // A text form proposal for an on-chain governance process.
-type TextProposal struct {
+type TextProposalPayload struct {
+}
+
+func (m *TextProposalPayload) Reset()         { *m = TextProposalPayload{} }
+func (m *TextProposalPayload) String() string { return proto.CompactTextString(m) }
+func (*TextProposalPayload) ProtoMessage()    {}
+func (*TextProposalPayload) Descriptor() ([]byte, []int) {
+	return fileDescriptor_24f6e3c5f1b82a85, []int{4}
+}
+func (m *TextProposalPayload) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *TextProposalPayload) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_TextProposalPayload.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *TextProposalPayload) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_TextProposalPayload.Merge(m, src)
+}
+func (m *TextProposalPayload) XXX_Size() int {
+	return m.Size()
+}
+func (m *TextProposalPayload) XXX_DiscardUnknown() {
+	xxx_messageInfo_TextProposalPayload.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_TextProposalPayload proto.InternalMessageInfo
+
+type ElectorateUpdatePayload struct {
+	// DiffElectors contains the changes that should be applied. Adding an address should have a positive weight, removing
+	// with weight=0.
+	DiffElectors []Elector `protobuf:"bytes,1,rep,name=diff_electors,json=diffElectors,proto3" json:"diff_electors"`
+}
+
+func (m *ElectorateUpdatePayload) Reset()         { *m = ElectorateUpdatePayload{} }
+func (m *ElectorateUpdatePayload) String() string { return proto.CompactTextString(m) }
+func (*ElectorateUpdatePayload) ProtoMessage()    {}
+func (*ElectorateUpdatePayload) Descriptor() ([]byte, []int) {
+	return fileDescriptor_24f6e3c5f1b82a85, []int{5}
+}
+func (m *ElectorateUpdatePayload) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *ElectorateUpdatePayload) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_ElectorateUpdatePayload.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *ElectorateUpdatePayload) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ElectorateUpdatePayload.Merge(m, src)
+}
+func (m *ElectorateUpdatePayload) XXX_Size() int {
+	return m.Size()
+}
+func (m *ElectorateUpdatePayload) XXX_DiscardUnknown() {
+	xxx_messageInfo_ElectorateUpdatePayload.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ElectorateUpdatePayload proto.InternalMessageInfo
+
+func (m *ElectorateUpdatePayload) GetDiffElectors() []Elector {
+	if m != nil {
+		return m.DiffElectors
+	}
+	return nil
+}
+
+// A generic proposal for an on-chain governance process.
+type Proposal struct {
 	// Human readable title.
 	Title string `protobuf:"bytes,1,opt,name=title,proto3" json:"title,omitempty"`
 	// Description of the proposal in text form.
@@ -433,23 +556,30 @@ type TextProposal struct {
 	// Result of the election. Contains intermediate tally results while voting period is open.
 	VoteState TallyResult `protobuf:"bytes,10,opt,name=vote_state,json=voteState,proto3" json:"vote_state"`
 	// Status represents the high level position in the life cycle of the proposal. Initial value is submitted.
-	Status TextProposal_Status `protobuf:"varint,11,opt,name=status,proto3,enum=gov.TextProposal_Status" json:"status,omitempty"`
+	Status Proposal_Status `protobuf:"varint,11,opt,name=status,proto3,enum=gov.Proposal_Status" json:"status,omitempty"`
 	// Result is the final result based on the votes and election rule. Initial value is Undefined.
-	Result TextProposal_Result `protobuf:"varint,12,opt,name=result,proto3,enum=gov.TextProposal_Result" json:"result,omitempty"`
+	Result Proposal_Result `protobuf:"varint,12,opt,name=result,proto3,enum=gov.Proposal_Result" json:"result,omitempty"`
+	Type   Proposal_Type   `protobuf:"varint,13,opt,name=type,proto3,enum=gov.Proposal_Type" json:"type,omitempty"`
+	// details
+	//
+	// Types that are valid to be assigned to Details:
+	//	*Proposal_TextDetails
+	//	*Proposal_ElectorateUpdateDetails
+	Details isProposal_Details `protobuf_oneof:"details"`
 }
 
-func (m *TextProposal) Reset()         { *m = TextProposal{} }
-func (m *TextProposal) String() string { return proto.CompactTextString(m) }
-func (*TextProposal) ProtoMessage()    {}
-func (*TextProposal) Descriptor() ([]byte, []int) {
-	return fileDescriptor_24f6e3c5f1b82a85, []int{4}
+func (m *Proposal) Reset()         { *m = Proposal{} }
+func (m *Proposal) String() string { return proto.CompactTextString(m) }
+func (*Proposal) ProtoMessage()    {}
+func (*Proposal) Descriptor() ([]byte, []int) {
+	return fileDescriptor_24f6e3c5f1b82a85, []int{6}
 }
-func (m *TextProposal) XXX_Unmarshal(b []byte) error {
+func (m *Proposal) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *TextProposal) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *Proposal) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_TextProposal.Marshal(b, m, deterministic)
+		return xxx_messageInfo_Proposal.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalTo(b)
@@ -459,93 +589,211 @@ func (m *TextProposal) XXX_Marshal(b []byte, deterministic bool) ([]byte, error)
 		return b[:n], nil
 	}
 }
-func (m *TextProposal) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_TextProposal.Merge(m, src)
+func (m *Proposal) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Proposal.Merge(m, src)
 }
-func (m *TextProposal) XXX_Size() int {
+func (m *Proposal) XXX_Size() int {
 	return m.Size()
 }
-func (m *TextProposal) XXX_DiscardUnknown() {
-	xxx_messageInfo_TextProposal.DiscardUnknown(m)
+func (m *Proposal) XXX_DiscardUnknown() {
+	xxx_messageInfo_Proposal.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_TextProposal proto.InternalMessageInfo
+var xxx_messageInfo_Proposal proto.InternalMessageInfo
 
-func (m *TextProposal) GetTitle() string {
+type isProposal_Details interface {
+	isProposal_Details()
+	MarshalTo([]byte) (int, error)
+	Size() int
+}
+
+type Proposal_TextDetails struct {
+	TextDetails *TextProposalPayload `protobuf:"bytes,50,opt,name=text_details,json=textDetails,proto3,oneof"`
+}
+type Proposal_ElectorateUpdateDetails struct {
+	ElectorateUpdateDetails *ElectorateUpdatePayload `protobuf:"bytes,51,opt,name=electorate_update_details,json=electorateUpdateDetails,proto3,oneof"`
+}
+
+func (*Proposal_TextDetails) isProposal_Details()             {}
+func (*Proposal_ElectorateUpdateDetails) isProposal_Details() {}
+
+func (m *Proposal) GetDetails() isProposal_Details {
+	if m != nil {
+		return m.Details
+	}
+	return nil
+}
+
+func (m *Proposal) GetTitle() string {
 	if m != nil {
 		return m.Title
 	}
 	return ""
 }
 
-func (m *TextProposal) GetDescription() string {
+func (m *Proposal) GetDescription() string {
 	if m != nil {
 		return m.Description
 	}
 	return ""
 }
 
-func (m *TextProposal) GetElectionRuleID() []byte {
+func (m *Proposal) GetElectionRuleID() []byte {
 	if m != nil {
 		return m.ElectionRuleID
 	}
 	return nil
 }
 
-func (m *TextProposal) GetElectorateID() []byte {
+func (m *Proposal) GetElectorateID() []byte {
 	if m != nil {
 		return m.ElectorateID
 	}
 	return nil
 }
 
-func (m *TextProposal) GetVotingStartTime() github_com_iov_one_weave.UnixTime {
+func (m *Proposal) GetVotingStartTime() github_com_iov_one_weave.UnixTime {
 	if m != nil {
 		return m.VotingStartTime
 	}
 	return 0
 }
 
-func (m *TextProposal) GetVotingEndTime() github_com_iov_one_weave.UnixTime {
+func (m *Proposal) GetVotingEndTime() github_com_iov_one_weave.UnixTime {
 	if m != nil {
 		return m.VotingEndTime
 	}
 	return 0
 }
 
-func (m *TextProposal) GetSubmissionTime() github_com_iov_one_weave.UnixTime {
+func (m *Proposal) GetSubmissionTime() github_com_iov_one_weave.UnixTime {
 	if m != nil {
 		return m.SubmissionTime
 	}
 	return 0
 }
 
-func (m *TextProposal) GetAuthor() github_com_iov_one_weave.Address {
+func (m *Proposal) GetAuthor() github_com_iov_one_weave.Address {
 	if m != nil {
 		return m.Author
 	}
 	return nil
 }
 
-func (m *TextProposal) GetVoteState() TallyResult {
+func (m *Proposal) GetVoteState() TallyResult {
 	if m != nil {
 		return m.VoteState
 	}
 	return TallyResult{}
 }
 
-func (m *TextProposal) GetStatus() TextProposal_Status {
+func (m *Proposal) GetStatus() Proposal_Status {
 	if m != nil {
 		return m.Status
 	}
-	return TextProposal_Invalid
+	return Proposal_Invalid
 }
 
-func (m *TextProposal) GetResult() TextProposal_Result {
+func (m *Proposal) GetResult() Proposal_Result {
 	if m != nil {
 		return m.Result
 	}
-	return TextProposal_Empty
+	return Proposal_Empty
+}
+
+func (m *Proposal) GetType() Proposal_Type {
+	if m != nil {
+		return m.Type
+	}
+	return Proposal_None
+}
+
+func (m *Proposal) GetTextDetails() *TextProposalPayload {
+	if x, ok := m.GetDetails().(*Proposal_TextDetails); ok {
+		return x.TextDetails
+	}
+	return nil
+}
+
+func (m *Proposal) GetElectorateUpdateDetails() *ElectorateUpdatePayload {
+	if x, ok := m.GetDetails().(*Proposal_ElectorateUpdateDetails); ok {
+		return x.ElectorateUpdateDetails
+	}
+	return nil
+}
+
+// XXX_OneofFuncs is for the internal use of the proto package.
+func (*Proposal) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
+	return _Proposal_OneofMarshaler, _Proposal_OneofUnmarshaler, _Proposal_OneofSizer, []interface{}{
+		(*Proposal_TextDetails)(nil),
+		(*Proposal_ElectorateUpdateDetails)(nil),
+	}
+}
+
+func _Proposal_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
+	m := msg.(*Proposal)
+	// details
+	switch x := m.Details.(type) {
+	case *Proposal_TextDetails:
+		_ = b.EncodeVarint(50<<3 | proto.WireBytes)
+		if err := b.EncodeMessage(x.TextDetails); err != nil {
+			return err
+		}
+	case *Proposal_ElectorateUpdateDetails:
+		_ = b.EncodeVarint(51<<3 | proto.WireBytes)
+		if err := b.EncodeMessage(x.ElectorateUpdateDetails); err != nil {
+			return err
+		}
+	case nil:
+	default:
+		return fmt.Errorf("Proposal.Details has unexpected type %T", x)
+	}
+	return nil
+}
+
+func _Proposal_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
+	m := msg.(*Proposal)
+	switch tag {
+	case 50: // details.text_details
+		if wire != proto.WireBytes {
+			return true, proto.ErrInternalBadWireType
+		}
+		msg := new(TextProposalPayload)
+		err := b.DecodeMessage(msg)
+		m.Details = &Proposal_TextDetails{msg}
+		return true, err
+	case 51: // details.electorate_update_details
+		if wire != proto.WireBytes {
+			return true, proto.ErrInternalBadWireType
+		}
+		msg := new(ElectorateUpdatePayload)
+		err := b.DecodeMessage(msg)
+		m.Details = &Proposal_ElectorateUpdateDetails{msg}
+		return true, err
+	default:
+		return false, nil
+	}
+}
+
+func _Proposal_OneofSizer(msg proto.Message) (n int) {
+	m := msg.(*Proposal)
+	// details
+	switch x := m.Details.(type) {
+	case *Proposal_TextDetails:
+		s := proto.Size(x.TextDetails)
+		n += 2 // tag and wire
+		n += proto.SizeVarint(uint64(s))
+		n += s
+	case *Proposal_ElectorateUpdateDetails:
+		s := proto.Size(x.ElectorateUpdateDetails)
+		n += 2 // tag and wire
+		n += proto.SizeVarint(uint64(s))
+		n += s
+	case nil:
+	default:
+		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
+	}
+	return n
 }
 
 // TallyResult contains sums of the votes and all data for the final result.
@@ -569,7 +817,7 @@ func (m *TallyResult) Reset()         { *m = TallyResult{} }
 func (m *TallyResult) String() string { return proto.CompactTextString(m) }
 func (*TallyResult) ProtoMessage()    {}
 func (*TallyResult) Descriptor() ([]byte, []int) {
-	return fileDescriptor_24f6e3c5f1b82a85, []int{5}
+	return fileDescriptor_24f6e3c5f1b82a85, []int{7}
 }
 func (m *TallyResult) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -650,7 +898,7 @@ func (m *Vote) Reset()         { *m = Vote{} }
 func (m *Vote) String() string { return proto.CompactTextString(m) }
 func (*Vote) ProtoMessage()    {}
 func (*Vote) Descriptor() ([]byte, []int) {
-	return fileDescriptor_24f6e3c5f1b82a85, []int{6}
+	return fileDescriptor_24f6e3c5f1b82a85, []int{8}
 }
 func (m *Vote) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -714,7 +962,7 @@ func (m *CreateTextProposalMsg) Reset()         { *m = CreateTextProposalMsg{} }
 func (m *CreateTextProposalMsg) String() string { return proto.CompactTextString(m) }
 func (*CreateTextProposalMsg) ProtoMessage()    {}
 func (*CreateTextProposalMsg) Descriptor() ([]byte, []int) {
-	return fileDescriptor_24f6e3c5f1b82a85, []int{7}
+	return fileDescriptor_24f6e3c5f1b82a85, []int{9}
 }
 func (m *CreateTextProposalMsg) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -785,24 +1033,36 @@ func (m *CreateTextProposalMsg) GetAuthor() github_com_iov_one_weave.Address {
 	return nil
 }
 
-// CreateTextProposalMsg deletes a governance proposal.
-type DeleteTextProposalMsg struct {
-	// Proposal id to delete
-	ID []byte `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+// CreateElectorateUpdateProposalMsg creates a new governance proposal to update an electorate.
+type CreateElectorateUpdateProposalMsg struct {
+	// Human readable title. Must match `^[a-zA-Z0-9 _.-]{4,128}$`
+	Title string `protobuf:"bytes,1,opt,name=title,proto3" json:"title,omitempty"`
+	// Human readable description with 3 to 5000 chars.
+	Description string `protobuf:"bytes,2,opt,name=description,proto3" json:"description,omitempty"`
+	// Reference to the electorate to define the group of possible voters.
+	ElectorateID []byte `protobuf:"bytes,4,opt,name=electorate_id,json=electorateId,proto3" json:"electorate_id,omitempty"`
+	// Unix timestamp when the proposal starts. Must be in the future.
+	StartTime github_com_iov_one_weave.UnixTime `protobuf:"varint,5,opt,name=start_time,json=startTime,proto3,casttype=github.com/iov-one/weave.UnixTime" json:"start_time,omitempty"`
+	// Author is an optional field to set the address of the author with a proposal. The author must sign the message.
+	// When not set it will default to the main signer.
+	Author github_com_iov_one_weave.Address `protobuf:"bytes,8,opt,name=author,proto3,casttype=github.com/iov-one/weave.Address" json:"author,omitempty"`
+	// DiffElectors contains the changes that should be applied. Adding an address should have a positive weight, removing
+	// with weight=0.
+	DiffElectors []Elector `protobuf:"bytes,3,rep,name=diff_electors,json=diffElectors,proto3" json:"diff_electors"`
 }
 
-func (m *DeleteTextProposalMsg) Reset()         { *m = DeleteTextProposalMsg{} }
-func (m *DeleteTextProposalMsg) String() string { return proto.CompactTextString(m) }
-func (*DeleteTextProposalMsg) ProtoMessage()    {}
-func (*DeleteTextProposalMsg) Descriptor() ([]byte, []int) {
-	return fileDescriptor_24f6e3c5f1b82a85, []int{8}
+func (m *CreateElectorateUpdateProposalMsg) Reset()         { *m = CreateElectorateUpdateProposalMsg{} }
+func (m *CreateElectorateUpdateProposalMsg) String() string { return proto.CompactTextString(m) }
+func (*CreateElectorateUpdateProposalMsg) ProtoMessage()    {}
+func (*CreateElectorateUpdateProposalMsg) Descriptor() ([]byte, []int) {
+	return fileDescriptor_24f6e3c5f1b82a85, []int{10}
 }
-func (m *DeleteTextProposalMsg) XXX_Unmarshal(b []byte) error {
+func (m *CreateElectorateUpdateProposalMsg) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *DeleteTextProposalMsg) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *CreateElectorateUpdateProposalMsg) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_DeleteTextProposalMsg.Marshal(b, m, deterministic)
+		return xxx_messageInfo_CreateElectorateUpdateProposalMsg.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalTo(b)
@@ -812,19 +1072,100 @@ func (m *DeleteTextProposalMsg) XXX_Marshal(b []byte, deterministic bool) ([]byt
 		return b[:n], nil
 	}
 }
-func (m *DeleteTextProposalMsg) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_DeleteTextProposalMsg.Merge(m, src)
+func (m *CreateElectorateUpdateProposalMsg) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_CreateElectorateUpdateProposalMsg.Merge(m, src)
 }
-func (m *DeleteTextProposalMsg) XXX_Size() int {
+func (m *CreateElectorateUpdateProposalMsg) XXX_Size() int {
 	return m.Size()
 }
-func (m *DeleteTextProposalMsg) XXX_DiscardUnknown() {
-	xxx_messageInfo_DeleteTextProposalMsg.DiscardUnknown(m)
+func (m *CreateElectorateUpdateProposalMsg) XXX_DiscardUnknown() {
+	xxx_messageInfo_CreateElectorateUpdateProposalMsg.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_DeleteTextProposalMsg proto.InternalMessageInfo
+var xxx_messageInfo_CreateElectorateUpdateProposalMsg proto.InternalMessageInfo
 
-func (m *DeleteTextProposalMsg) GetID() []byte {
+func (m *CreateElectorateUpdateProposalMsg) GetTitle() string {
+	if m != nil {
+		return m.Title
+	}
+	return ""
+}
+
+func (m *CreateElectorateUpdateProposalMsg) GetDescription() string {
+	if m != nil {
+		return m.Description
+	}
+	return ""
+}
+
+func (m *CreateElectorateUpdateProposalMsg) GetElectorateID() []byte {
+	if m != nil {
+		return m.ElectorateID
+	}
+	return nil
+}
+
+func (m *CreateElectorateUpdateProposalMsg) GetStartTime() github_com_iov_one_weave.UnixTime {
+	if m != nil {
+		return m.StartTime
+	}
+	return 0
+}
+
+func (m *CreateElectorateUpdateProposalMsg) GetAuthor() github_com_iov_one_weave.Address {
+	if m != nil {
+		return m.Author
+	}
+	return nil
+}
+
+func (m *CreateElectorateUpdateProposalMsg) GetDiffElectors() []Elector {
+	if m != nil {
+		return m.DiffElectors
+	}
+	return nil
+}
+
+// DeleteProposalMsg deletes a governance proposal.
+type DeleteProposalMsg struct {
+	// Proposal id to delete
+	ID []byte `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+}
+
+func (m *DeleteProposalMsg) Reset()         { *m = DeleteProposalMsg{} }
+func (m *DeleteProposalMsg) String() string { return proto.CompactTextString(m) }
+func (*DeleteProposalMsg) ProtoMessage()    {}
+func (*DeleteProposalMsg) Descriptor() ([]byte, []int) {
+	return fileDescriptor_24f6e3c5f1b82a85, []int{11}
+}
+func (m *DeleteProposalMsg) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *DeleteProposalMsg) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_DeleteProposalMsg.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *DeleteProposalMsg) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_DeleteProposalMsg.Merge(m, src)
+}
+func (m *DeleteProposalMsg) XXX_Size() int {
+	return m.Size()
+}
+func (m *DeleteProposalMsg) XXX_DiscardUnknown() {
+	xxx_messageInfo_DeleteProposalMsg.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_DeleteProposalMsg proto.InternalMessageInfo
+
+func (m *DeleteProposalMsg) GetID() []byte {
 	if m != nil {
 		return m.ID
 	}
@@ -846,7 +1187,7 @@ func (m *VoteMsg) Reset()         { *m = VoteMsg{} }
 func (m *VoteMsg) String() string { return proto.CompactTextString(m) }
 func (*VoteMsg) ProtoMessage()    {}
 func (*VoteMsg) Descriptor() ([]byte, []int) {
-	return fileDescriptor_24f6e3c5f1b82a85, []int{9}
+	return fileDescriptor_24f6e3c5f1b82a85, []int{12}
 }
 func (m *VoteMsg) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -907,7 +1248,7 @@ func (m *TallyMsg) Reset()         { *m = TallyMsg{} }
 func (m *TallyMsg) String() string { return proto.CompactTextString(m) }
 func (*TallyMsg) ProtoMessage()    {}
 func (*TallyMsg) Descriptor() ([]byte, []int) {
-	return fileDescriptor_24f6e3c5f1b82a85, []int{10}
+	return fileDescriptor_24f6e3c5f1b82a85, []int{13}
 }
 func (m *TallyMsg) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -945,15 +1286,16 @@ func (m *TallyMsg) GetProposalID() []byte {
 
 type UpdateElectorateMsg struct {
 	ElectorateID []byte `protobuf:"bytes,1,opt,name=electorate_id,json=electorateId,proto3" json:"electorate_id,omitempty"`
-	// Elector defines a list of all signatures that are allowed to participate in a vote
-	Electors []Elector `protobuf:"bytes,2,rep,name=electors,proto3" json:"electors"`
+	// DiffElectors contains the changes that should be applied. Adding an address should have a positive weight, removing
+	// with weight=0.
+	DiffElectors []Elector `protobuf:"bytes,2,rep,name=diff_electors,json=diffElectors,proto3" json:"diff_electors"`
 }
 
 func (m *UpdateElectorateMsg) Reset()         { *m = UpdateElectorateMsg{} }
 func (m *UpdateElectorateMsg) String() string { return proto.CompactTextString(m) }
 func (*UpdateElectorateMsg) ProtoMessage()    {}
 func (*UpdateElectorateMsg) Descriptor() ([]byte, []int) {
-	return fileDescriptor_24f6e3c5f1b82a85, []int{11}
+	return fileDescriptor_24f6e3c5f1b82a85, []int{14}
 }
 func (m *UpdateElectorateMsg) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -989,9 +1331,9 @@ func (m *UpdateElectorateMsg) GetElectorateID() []byte {
 	return nil
 }
 
-func (m *UpdateElectorateMsg) GetElectors() []Elector {
+func (m *UpdateElectorateMsg) GetDiffElectors() []Elector {
 	if m != nil {
-		return m.Electors
+		return m.DiffElectors
 	}
 	return nil
 }
@@ -1012,7 +1354,7 @@ func (m *UpdateElectionRuleMsg) Reset()         { *m = UpdateElectionRuleMsg{} }
 func (m *UpdateElectionRuleMsg) String() string { return proto.CompactTextString(m) }
 func (*UpdateElectionRuleMsg) ProtoMessage()    {}
 func (*UpdateElectionRuleMsg) Descriptor() ([]byte, []int) {
-	return fileDescriptor_24f6e3c5f1b82a85, []int{12}
+	return fileDescriptor_24f6e3c5f1b82a85, []int{15}
 }
 func (m *UpdateElectionRuleMsg) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1064,17 +1406,21 @@ func (m *UpdateElectionRuleMsg) GetThreshold() Fraction {
 
 func init() {
 	proto.RegisterEnum("gov.VoteOption", VoteOption_name, VoteOption_value)
-	proto.RegisterEnum("gov.TextProposal_Status", TextProposal_Status_name, TextProposal_Status_value)
-	proto.RegisterEnum("gov.TextProposal_Result", TextProposal_Result_name, TextProposal_Result_value)
+	proto.RegisterEnum("gov.Proposal_Status", Proposal_Status_name, Proposal_Status_value)
+	proto.RegisterEnum("gov.Proposal_Result", Proposal_Result_name, Proposal_Result_value)
+	proto.RegisterEnum("gov.Proposal_Type", Proposal_Type_name, Proposal_Type_value)
 	proto.RegisterType((*Electorate)(nil), "gov.Electorate")
 	proto.RegisterType((*Elector)(nil), "gov.Elector")
 	proto.RegisterType((*ElectionRule)(nil), "gov.ElectionRule")
 	proto.RegisterType((*Fraction)(nil), "gov.Fraction")
-	proto.RegisterType((*TextProposal)(nil), "gov.TextProposal")
+	proto.RegisterType((*TextProposalPayload)(nil), "gov.TextProposalPayload")
+	proto.RegisterType((*ElectorateUpdatePayload)(nil), "gov.ElectorateUpdatePayload")
+	proto.RegisterType((*Proposal)(nil), "gov.Proposal")
 	proto.RegisterType((*TallyResult)(nil), "gov.TallyResult")
 	proto.RegisterType((*Vote)(nil), "gov.Vote")
 	proto.RegisterType((*CreateTextProposalMsg)(nil), "gov.CreateTextProposalMsg")
-	proto.RegisterType((*DeleteTextProposalMsg)(nil), "gov.DeleteTextProposalMsg")
+	proto.RegisterType((*CreateElectorateUpdateProposalMsg)(nil), "gov.CreateElectorateUpdateProposalMsg")
+	proto.RegisterType((*DeleteProposalMsg)(nil), "gov.DeleteProposalMsg")
 	proto.RegisterType((*VoteMsg)(nil), "gov.VoteMsg")
 	proto.RegisterType((*TallyMsg)(nil), "gov.TallyMsg")
 	proto.RegisterType((*UpdateElectorateMsg)(nil), "gov.UpdateElectorateMsg")
@@ -1084,84 +1430,99 @@ func init() {
 func init() { proto.RegisterFile("x/gov/codec.proto", fileDescriptor_24f6e3c5f1b82a85) }
 
 var fileDescriptor_24f6e3c5f1b82a85 = []byte{
-	// 1224 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xd4, 0x57, 0x4f, 0x8f, 0xdb, 0x44,
-	0x14, 0x5f, 0x27, 0xbb, 0xf9, 0xf3, 0xf2, 0x67, 0xd3, 0x29, 0x5b, 0x42, 0x5a, 0x12, 0x63, 0x5a,
-	0x69, 0x45, 0x69, 0x42, 0x17, 0x95, 0x03, 0x54, 0x48, 0xc9, 0xc6, 0x55, 0x5d, 0x6d, 0x93, 0x65,
-	0xe2, 0x74, 0xa9, 0x38, 0x58, 0xde, 0x78, 0x9a, 0x18, 0x39, 0x9e, 0x60, 0x4f, 0xd2, 0x56, 0xe2,
-	0x13, 0xe4, 0x84, 0xb8, 0x47, 0x42, 0xe2, 0x4b, 0xf0, 0x09, 0x50, 0xc5, 0xa9, 0x47, 0x4e, 0x11,
-	0x4a, 0x6f, 0x7c, 0x84, 0x8a, 0x03, 0xf2, 0x8c, 0x77, 0x63, 0xda, 0x2c, 0x64, 0x8b, 0x38, 0x70,
-	0xcb, 0xbc, 0xf7, 0x7e, 0xbf, 0x99, 0xf7, 0x7b, 0xcf, 0x6f, 0x26, 0x70, 0xe1, 0x49, 0xad, 0x4f,
-	0x27, 0xb5, 0x1e, 0xb5, 0x48, 0xaf, 0x3a, 0xf2, 0x28, 0xa3, 0x28, 0xde, 0xa7, 0x93, 0xd2, 0x8d,
-	0xbe, 0xcd, 0x06, 0xe3, 0xe3, 0x6a, 0x8f, 0x0e, 0x6b, 0x7d, 0xda, 0xa7, 0x35, 0xee, 0x3b, 0x1e,
-	0x3f, 0xe2, 0x2b, 0xbe, 0xe0, 0xbf, 0x04, 0x46, 0xf9, 0x59, 0x02, 0x50, 0x1d, 0xd2, 0x63, 0xd4,
-	0x33, 0x19, 0x41, 0x9f, 0xc2, 0x96, 0x69, 0x0d, 0x6d, 0xb7, 0x28, 0xc9, 0xd2, 0x6e, 0xb6, 0x71,
-	0xf5, 0xe5, 0xbc, 0x22, 0x47, 0x08, 0x6d, 0x3a, 0xb9, 0x41, 0x5d, 0x52, 0x7b, 0x4c, 0xcc, 0x09,
-	0xa9, 0xd6, 0x2d, 0xcb, 0x23, 0xbe, 0x8f, 0x05, 0x04, 0xbd, 0x05, 0x5b, 0xcc, 0x66, 0x0e, 0x29,
-	0xc6, 0x64, 0x69, 0x37, 0x8d, 0xc5, 0x02, 0x55, 0x21, 0x45, 0x04, 0xbf, 0x5f, 0x8c, 0xcb, 0xf1,
-	0xdd, 0xcc, 0x5e, 0xb6, 0xda, 0xa7, 0x93, 0x6a, 0xb8, 0x69, 0x63, 0xf3, 0xd9, 0xbc, 0xb2, 0x81,
-	0x4f, 0x63, 0xd0, 0x27, 0xf0, 0x36, 0xa3, 0xcc, 0x74, 0x0c, 0x72, 0x7a, 0x2a, 0xe3, 0x31, 0xb1,
-	0xfb, 0x03, 0x56, 0xdc, 0x94, 0xa5, 0xdd, 0x4d, 0xbc, 0xc3, 0xdd, 0xcb, 0x33, 0x1f, 0x71, 0xa7,
-	0x62, 0x42, 0x32, 0xb4, 0xa1, 0xcf, 0x21, 0x69, 0x8a, 0xa3, 0x9d, 0x2b, 0x8d, 0x13, 0x10, 0xba,
-	0x04, 0x89, 0x70, 0xc7, 0x20, 0x93, 0x1c, 0x0e, 0x57, 0xca, 0xef, 0x12, 0x64, 0xf9, 0x1e, 0x36,
-	0x75, 0xf1, 0xd8, 0xf9, 0x6f, 0xd4, 0xba, 0x38, 0xa1, 0xcc, 0x76, 0xfb, 0xc6, 0x88, 0x78, 0x36,
-	0xb5, 0x8c, 0x01, 0x1d, 0x73, 0xe1, 0x82, 0x73, 0x5c, 0x10, 0xae, 0x43, 0xee, 0xb9, 0x1b, 0x38,
-	0xd0, 0x4d, 0x48, 0xb3, 0x81, 0x47, 0xfc, 0x01, 0x75, 0x2c, 0xae, 0x4f, 0x66, 0x2f, 0xc7, 0xe5,
-	0xbd, 0xe3, 0x99, 0xfc, 0x9c, 0xa1, 0xbe, 0xcb, 0x28, 0x74, 0x0d, 0x12, 0xdf, 0x8c, 0xa9, 0x37,
-	0x1e, 0x16, 0xb7, 0x56, 0xc4, 0xe3, 0xd0, 0xa9, 0xdc, 0x83, 0xd4, 0x89, 0x0d, 0x5d, 0x81, 0xb4,
-	0x3b, 0x1e, 0x12, 0xcf, 0x64, 0xd4, 0xe3, 0xb9, 0xe6, 0xf0, 0xd2, 0x80, 0x64, 0xc8, 0x58, 0xc4,
-	0xa5, 0x43, 0xdb, 0xe5, 0x7e, 0xa1, 0x59, 0xd4, 0xa4, 0xfc, 0x90, 0x82, 0xac, 0x4e, 0x9e, 0xb0,
-	0x43, 0x8f, 0x8e, 0xa8, 0x6f, 0x3a, 0xcb, 0xe4, 0xa5, 0x68, 0xf2, 0x9c, 0xc8, 0xef, 0x79, 0xf6,
-	0x28, 0xd8, 0x35, 0x14, 0x26, 0x6a, 0x42, 0xb7, 0xa1, 0x40, 0xc2, 0x02, 0x18, 0xde, 0xd8, 0x21,
-	0x86, 0x6d, 0x71, 0x6d, 0xb2, 0x0d, 0xb4, 0x98, 0x57, 0xf2, 0xd1, 0xe2, 0x68, 0x4d, 0x9c, 0x27,
-	0xd1, 0xb5, 0x85, 0x6e, 0x41, 0x2e, 0xd2, 0x54, 0xb6, 0x10, 0x2c, 0xdb, 0x28, 0x2c, 0xe6, 0x95,
-	0xec, 0xb2, 0x9f, 0xb4, 0x26, 0xce, 0x2e, 0xc3, 0x34, 0x0b, 0x7d, 0x01, 0xa1, 0xf0, 0x86, 0xcf,
-	0x4c, 0x8f, 0x19, 0xcc, 0x1e, 0x12, 0xae, 0x5d, 0xbc, 0x71, 0xed, 0xe5, 0xbc, 0xf2, 0xde, 0x99,
-	0x15, 0xef, 0xba, 0xf6, 0x13, 0xdd, 0x1e, 0x12, 0xbc, 0x2d, 0xf0, 0x9d, 0x00, 0x1e, 0x18, 0xd0,
-	0x7d, 0x08, 0x4d, 0x06, 0x71, 0x2d, 0x41, 0x98, 0x38, 0x0f, 0x61, 0x4e, 0xa0, 0x55, 0xd7, 0xe2,
-	0x74, 0x2d, 0xd8, 0xf6, 0xc7, 0xc7, 0x43, 0xdb, 0xf7, 0x03, 0x61, 0x38, 0x5d, 0xf2, 0x3c, 0x74,
-	0xf9, 0x25, 0x9a, 0xf3, 0xdd, 0x86, 0x84, 0x39, 0x66, 0x03, 0xea, 0x15, 0x53, 0xe7, 0x68, 0xec,
-	0x10, 0x83, 0x6e, 0x01, 0x4c, 0x28, 0x23, 0x81, 0x5a, 0x8c, 0x14, 0x81, 0x37, 0x59, 0x81, 0x37,
-	0x99, 0x6e, 0x3a, 0xce, 0x53, 0x4c, 0xfc, 0xb1, 0xc3, 0x4e, 0xfa, 0x32, 0x88, 0xec, 0x04, 0x81,
-	0xe8, 0x23, 0x48, 0x04, 0x88, 0xb1, 0x5f, 0xcc, 0xc8, 0xd2, 0x6e, 0x7e, 0xaf, 0x28, 0x20, 0x91,
-	0xb6, 0xa9, 0x76, 0xb8, 0x1f, 0x87, 0x71, 0x01, 0xc2, 0xe3, 0x64, 0xc5, 0xec, 0x59, 0x08, 0xb1,
-	0x19, 0x0e, 0xe3, 0x94, 0x5f, 0x24, 0x48, 0x08, 0x12, 0x74, 0x03, 0xae, 0xe8, 0xea, 0x97, 0xba,
-	0x71, 0x88, 0xdb, 0x87, 0xed, 0x4e, 0xfd, 0xc0, 0xe8, 0xe8, 0x75, 0xbd, 0xdb, 0x31, 0xb4, 0xd6,
-	0x83, 0xfa, 0x81, 0xd6, 0x2c, 0x6c, 0x94, 0x32, 0xd3, 0x99, 0x9c, 0xd4, 0xdc, 0x89, 0xe9, 0xd8,
-	0x16, 0xba, 0x09, 0xe5, 0x95, 0xe1, 0x9d, 0x6e, 0xe3, 0xbe, 0xa6, 0xeb, 0x6a, 0xb3, 0x20, 0x95,
-	0x72, 0xd3, 0x99, 0x9c, 0xee, 0x04, 0x52, 0x32, 0x46, 0x2c, 0x74, 0x1d, 0x2e, 0xaf, 0x84, 0xec,
-	0x1f, 0xb4, 0x3b, 0x6a, 0xb3, 0x10, 0x2b, 0xc1, 0x74, 0x26, 0x27, 0xf6, 0x1d, 0xea, 0x93, 0xb3,
-	0xf9, 0x8f, 0x34, 0xfd, 0x6e, 0x13, 0xd7, 0x8f, 0x5a, 0x85, 0xb8, 0xe0, 0x3f, 0xb2, 0xd9, 0xc0,
-	0xf2, 0xcc, 0xc7, 0x2e, 0x4f, 0x46, 0xe4, 0x87, 0xae, 0xbf, 0x9a, 0x0c, 0x56, 0x3b, 0xdd, 0x03,
-	0x3d, 0x92, 0x4c, 0x7a, 0x3a, 0x93, 0xb7, 0xd4, 0xe1, 0x88, 0x3d, 0x7d, 0x7d, 0xab, 0x30, 0xb8,
-	0xdb, 0x6a, 0xaa, 0x77, 0xb4, 0xd6, 0x32, 0x95, 0xae, 0x6b, 0x91, 0x47, 0xb6, 0x4b, 0x2c, 0x54,
-	0x83, 0x77, 0x57, 0x42, 0xea, 0xfb, 0xfb, 0xea, 0xa1, 0xce, 0x93, 0xc9, 0x4e, 0x67, 0x72, 0xaa,
-	0xde, 0xeb, 0x91, 0x11, 0xfb, 0x1b, 0x00, 0x56, 0xef, 0xa9, 0xfb, 0x01, 0x20, 0x2e, 0x00, 0x98,
-	0x7c, 0x4d, 0x7a, 0x8c, 0x58, 0xca, 0x1f, 0x12, 0x64, 0x22, 0xed, 0x81, 0x2e, 0x43, 0x5a, 0x5c,
-	0x03, 0x4f, 0x89, 0x98, 0xe2, 0x9b, 0x38, 0xc5, 0x0d, 0x0f, 0x89, 0x8f, 0xde, 0x01, 0xf1, 0xdb,
-	0x70, 0x29, 0x9f, 0x12, 0x9b, 0x38, 0xc9, 0xd7, 0x2d, 0x8a, 0xde, 0x87, 0x9c, 0x70, 0x99, 0xc7,
-	0x3e, 0x33, 0x6d, 0x97, 0x8f, 0x87, 0x4d, 0x9c, 0xe5, 0xc6, 0xba, 0xb0, 0xbd, 0xe9, 0x1d, 0xb3,
-	0xe6, 0xe8, 0xfc, 0xeb, 0x50, 0x4e, 0xac, 0x33, 0x94, 0x95, 0xaf, 0x60, 0xf3, 0x01, 0x65, 0x04,
-	0x7d, 0x08, 0xc9, 0xf0, 0x4c, 0x3c, 0xe9, 0xd5, 0x97, 0xe5, 0x49, 0x08, 0xba, 0x06, 0x5b, 0xc1,
-	0xf7, 0x63, 0x71, 0x11, 0xf2, 0x7b, 0xdb, 0x3c, 0x36, 0xe0, 0x69, 0xf3, 0x71, 0x89, 0x85, 0x57,
-	0x79, 0x16, 0x83, 0x9d, 0x7d, 0x8f, 0x98, 0x8c, 0x44, 0xbf, 0x8d, 0xfb, 0x7e, 0xff, 0xff, 0x35,
-	0x87, 0x9b, 0x00, 0x6f, 0x3a, 0x80, 0xd3, 0xfe, 0xe9, 0xe8, 0xfd, 0x57, 0xb3, 0x4d, 0xa9, 0xc1,
-	0x4e, 0x93, 0x38, 0xe4, 0x75, 0x25, 0x2f, 0x41, 0xcc, 0xb6, 0xc2, 0x77, 0x40, 0x62, 0x31, 0xaf,
-	0xc4, 0xb4, 0x26, 0x8e, 0xd9, 0x96, 0xf2, 0xa3, 0x04, 0xc9, 0xa0, 0x22, 0x41, 0x4c, 0x0d, 0x32,
-	0xa3, 0x10, 0x62, 0x9c, 0x06, 0xe7, 0x17, 0xf3, 0x0a, 0x9c, 0x30, 0x69, 0x4d, 0x0c, 0x27, 0x21,
-	0x9a, 0x15, 0xbc, 0x2f, 0x82, 0x0a, 0x8a, 0x3b, 0x75, 0xed, 0xf7, 0x05, 0x87, 0xa0, 0xeb, 0x90,
-	0xf2, 0xb9, 0x7c, 0x44, 0x94, 0x66, 0x45, 0x7b, 0x9c, 0x06, 0x28, 0x9f, 0x41, 0x8a, 0x7f, 0x7c,
-	0x6f, 0x72, 0x4a, 0xe5, 0x5b, 0xb8, 0xd8, 0x1d, 0x59, 0x26, 0x23, 0xcb, 0xda, 0x05, 0x3c, 0xaf,
-	0x55, 0x59, 0x5a, 0xab, 0xca, 0xd1, 0xf7, 0x62, 0xec, 0x9f, 0xdf, 0x8b, 0xca, 0x4f, 0x12, 0xec,
-	0x44, 0xb6, 0x0f, 0xbb, 0x2c, 0x38, 0xc0, 0xaa, 0x26, 0x95, 0xd6, 0x6e, 0xd2, 0x33, 0x5e, 0x62,
-	0xb1, 0xb5, 0x5e, 0x62, 0xf1, 0x75, 0x3e, 0xfa, 0x0f, 0xbe, 0x97, 0x00, 0x96, 0xe5, 0x40, 0x57,
-	0xe1, 0xe2, 0x83, 0xb6, 0xae, 0x1a, 0xed, 0x43, 0x5d, 0x6b, 0xb7, 0xce, 0xba, 0x88, 0xae, 0xc0,
-	0x76, 0x34, 0xea, 0xa1, 0xda, 0x29, 0x48, 0xa5, 0xe4, 0x74, 0x26, 0xc7, 0x83, 0xc9, 0x58, 0x82,
-	0x7c, 0xd4, 0xdb, 0x6a, 0x17, 0x62, 0xa5, 0xc4, 0x74, 0x26, 0xc7, 0x5a, 0xf4, 0x55, 0xfe, 0x7a,
-	0xa3, 0xa3, 0xd7, 0xb5, 0xe0, 0x5e, 0xe1, 0xfc, 0xe1, 0x6c, 0x6c, 0x14, 0x9f, 0x2d, 0xca, 0xd2,
-	0xf3, 0x45, 0x59, 0xfa, 0x6d, 0x51, 0x96, 0xbe, 0x7b, 0x51, 0xde, 0x78, 0xfe, 0xa2, 0xbc, 0xf1,
-	0xeb, 0x8b, 0xf2, 0xc6, 0x71, 0x82, 0xff, 0x63, 0xf8, 0xf8, 0xcf, 0x00, 0x00, 0x00, 0xff, 0xff,
-	0x53, 0xc4, 0x18, 0xbe, 0x7a, 0x0c, 0x00, 0x00,
+	// 1457 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xd4, 0x57, 0xcd, 0x6e, 0x1b, 0x47,
+	0x12, 0xd6, 0x90, 0x14, 0x7f, 0x8a, 0xa4, 0x44, 0xb7, 0x24, 0x8b, 0xe6, 0x1a, 0xe2, 0x78, 0xfc,
+	0x03, 0xc1, 0x3f, 0x12, 0x56, 0x86, 0x77, 0xb1, 0xbb, 0xde, 0x05, 0x48, 0x71, 0x0c, 0xd1, 0x90,
+	0x49, 0x6e, 0x73, 0x68, 0xc5, 0xc9, 0x61, 0x30, 0xe2, 0xb4, 0xa8, 0x09, 0xc8, 0x69, 0x66, 0xa6,
+	0x49, 0x4b, 0x0f, 0x10, 0x20, 0xe0, 0x29, 0xc8, 0x25, 0x27, 0x9e, 0xf2, 0x0e, 0x41, 0x5e, 0x20,
+	0x80, 0x6f, 0xf1, 0x31, 0x27, 0x22, 0xa0, 0x6f, 0x79, 0x04, 0x23, 0x87, 0xa0, 0x7b, 0x86, 0x22,
+	0x45, 0x4a, 0x00, 0xe5, 0x24, 0x07, 0xdf, 0xa6, 0xab, 0xbe, 0xaa, 0xae, 0xae, 0xfa, 0xaa, 0xab,
+	0x07, 0xae, 0x9d, 0x6c, 0x37, 0x68, 0x77, 0xbb, 0x4e, 0x4d, 0x52, 0xdf, 0x6a, 0x3b, 0x94, 0x51,
+	0x14, 0x6c, 0xd0, 0x6e, 0xe6, 0x51, 0xc3, 0x62, 0xc7, 0x9d, 0xc3, 0xad, 0x3a, 0x6d, 0x6d, 0x37,
+	0x68, 0x83, 0x6e, 0x0b, 0xdd, 0x61, 0xe7, 0x48, 0xac, 0xc4, 0x42, 0x7c, 0x79, 0x36, 0xca, 0xb7,
+	0x01, 0x00, 0xb5, 0x49, 0xea, 0x8c, 0x3a, 0x06, 0x23, 0xe8, 0xdf, 0xb0, 0x68, 0x98, 0x2d, 0xcb,
+	0x4e, 0x4b, 0xb2, 0xb4, 0x99, 0xc8, 0xdf, 0x79, 0x3f, 0xc8, 0xca, 0x13, 0x0e, 0x2d, 0xda, 0x7d,
+	0x44, 0x6d, 0xb2, 0xfd, 0x9a, 0x18, 0x5d, 0xb2, 0x95, 0x33, 0x4d, 0x87, 0xb8, 0x2e, 0xf6, 0x4c,
+	0xd0, 0x2a, 0x2c, 0x32, 0x8b, 0x35, 0x49, 0x3a, 0x20, 0x4b, 0x9b, 0x31, 0xec, 0x2d, 0xd0, 0x16,
+	0x44, 0x89, 0xe7, 0xdf, 0x4d, 0x07, 0xe5, 0xe0, 0x66, 0x7c, 0x27, 0xb1, 0xd5, 0xa0, 0xdd, 0x2d,
+	0x7f, 0xd3, 0x7c, 0xe8, 0xcd, 0x20, 0xbb, 0x80, 0xcf, 0x30, 0xe8, 0x1f, 0xb0, 0xce, 0x28, 0x33,
+	0x9a, 0x3a, 0x39, 0x8b, 0x4a, 0x7f, 0x4d, 0xac, 0xc6, 0x31, 0x4b, 0x87, 0x64, 0x69, 0x33, 0x84,
+	0xd7, 0x84, 0x7a, 0x1c, 0xf3, 0x81, 0x50, 0xa2, 0x32, 0xac, 0x77, 0xda, 0x26, 0x47, 0x0b, 0x43,
+	0x8b, 0xda, 0xba, 0xd3, 0x69, 0x12, 0xdd, 0x32, 0xd3, 0x8b, 0xe2, 0x2c, 0xe9, 0xe1, 0x20, 0xbb,
+	0x5a, 0x13, 0x10, 0xd5, 0x47, 0xe0, 0x4e, 0x93, 0x14, 0x0b, 0x78, 0xb5, 0x33, 0x2b, 0x35, 0x15,
+	0x03, 0x22, 0xfe, 0x26, 0xe8, 0x7f, 0x10, 0x31, 0xbc, 0xb3, 0x5e, 0x29, 0x2f, 0x23, 0x23, 0x74,
+	0x1d, 0xc2, 0xfe, 0x11, 0x78, 0x6a, 0x92, 0xd8, 0x5f, 0x29, 0xbf, 0x4a, 0x90, 0x98, 0xdc, 0xf5,
+	0x2f, 0x49, 0xff, 0x4a, 0x97, 0x32, 0xcb, 0x6e, 0xe8, 0x6d, 0xe2, 0x58, 0xd4, 0xd4, 0x8f, 0x69,
+	0x47, 0x54, 0x82, 0xc7, 0x71, 0xcd, 0x53, 0x55, 0x84, 0x66, 0x8f, 0x2b, 0xd0, 0xdf, 0x21, 0xc6,
+	0x8e, 0x1d, 0xe2, 0x1e, 0xd3, 0xa6, 0x29, 0x12, 0x1e, 0xdf, 0x49, 0x8a, 0x7a, 0x3d, 0x73, 0x0c,
+	0x11, 0xa7, 0x5f, 0xb0, 0x31, 0x0a, 0xdd, 0x85, 0xf0, 0x17, 0x1d, 0xea, 0x74, 0x5a, 0x22, 0xd1,
+	0xd3, 0x78, 0xec, 0x2b, 0x95, 0xe7, 0x10, 0x1d, 0xc9, 0xd0, 0x4d, 0x88, 0xd9, 0x9d, 0x16, 0x71,
+	0x0c, 0x46, 0x1d, 0x71, 0xd6, 0x24, 0x1e, 0x0b, 0x90, 0x0c, 0x71, 0x93, 0xd8, 0xb4, 0x65, 0xd9,
+	0x42, 0xef, 0xe5, 0x6c, 0x52, 0xa4, 0xac, 0xc1, 0x8a, 0x46, 0x4e, 0x58, 0xc5, 0xa1, 0x6d, 0xea,
+	0x1a, 0xcd, 0x8a, 0x71, 0xda, 0xa4, 0x86, 0xa9, 0x60, 0x58, 0x1f, 0xf3, 0xc2, 0x2b, 0xb5, 0xaf,
+	0x42, 0xff, 0x84, 0xa4, 0x69, 0x1d, 0x1d, 0xe9, 0x67, 0x5c, 0x94, 0x2e, 0xe5, 0x62, 0x82, 0x03,
+	0x7d, 0x91, 0xab, 0xfc, 0x08, 0x10, 0x1d, 0xed, 0x33, 0xce, 0xb1, 0x34, 0x99, 0x63, 0x11, 0xaf,
+	0x5b, 0x77, 0xac, 0x36, 0x3f, 0x9c, 0x9f, 0xff, 0x49, 0x11, 0x7a, 0x0a, 0xa9, 0x19, 0x56, 0x06,
+	0x45, 0x89, 0xd1, 0x70, 0x90, 0x5d, 0x9a, 0xe2, 0xe3, 0x12, 0x39, 0xc7, 0x44, 0xf4, 0x04, 0x92,
+	0x13, 0xcd, 0x60, 0x79, 0x75, 0x49, 0xe4, 0x53, 0xc3, 0x41, 0x36, 0x31, 0x3e, 0x6f, 0xb1, 0x80,
+	0x13, 0x63, 0x58, 0xd1, 0x44, 0xff, 0x07, 0xbf, 0xbe, 0xba, 0xcb, 0x0c, 0x87, 0xe9, 0xcc, 0x6a,
+	0x11, 0x51, 0xa2, 0x60, 0xfe, 0xee, 0xfb, 0x41, 0xf6, 0xd6, 0xa5, 0xc4, 0xaa, 0xd9, 0xd6, 0x89,
+	0x66, 0xb5, 0x08, 0x5e, 0xf6, 0xec, 0xab, 0xdc, 0x9c, 0x0b, 0xd0, 0x0b, 0xf0, 0x45, 0x3a, 0xb1,
+	0x4d, 0xcf, 0x61, 0xf8, 0x2a, 0x0e, 0x93, 0x9e, 0xb5, 0x6a, 0x9b, 0xc2, 0x5d, 0x09, 0x96, 0xdd,
+	0xce, 0x61, 0xcb, 0x72, 0x5d, 0x9e, 0x18, 0xe1, 0x2e, 0x72, 0x15, 0x77, 0x4b, 0x63, 0x6b, 0xe1,
+	0xef, 0x29, 0x84, 0x8d, 0x0e, 0x3b, 0xa6, 0x4e, 0x3a, 0x7a, 0x85, 0xfe, 0xf1, 0x6d, 0xd0, 0x13,
+	0x80, 0x2e, 0x65, 0x84, 0x67, 0x8b, 0x91, 0x34, 0x08, 0x2e, 0xa7, 0x04, 0x3f, 0x34, 0xa3, 0xd9,
+	0x3c, 0xc5, 0xc4, 0xed, 0x34, 0xd9, 0x88, 0xfe, 0x1c, 0x59, 0xe5, 0x40, 0xf4, 0x10, 0xc2, 0xdc,
+	0xa2, 0xe3, 0xa6, 0xe3, 0xb2, 0xb4, 0xb9, 0xb4, 0xb3, 0x2a, 0x4c, 0x46, 0x94, 0xd9, 0xaa, 0x0a,
+	0x1d, 0xf6, 0x31, 0x1c, 0xed, 0x08, 0x47, 0xe9, 0xc4, 0x45, 0x68, 0x6f, 0x13, 0xec, 0x63, 0xd0,
+	0x3d, 0x08, 0xb1, 0xd3, 0x36, 0x49, 0x27, 0x05, 0x16, 0x9d, 0xc7, 0x6a, 0xa7, 0x6d, 0x82, 0x85,
+	0x1e, 0xfd, 0x17, 0x12, 0x8c, 0x9c, 0x30, 0xdd, 0x24, 0xcc, 0xb0, 0x9a, 0x6e, 0x7a, 0x47, 0x04,
+	0x9f, 0xf6, 0x82, 0x9f, 0x6d, 0x94, 0xbd, 0x05, 0x1c, 0xe7, 0xf8, 0x82, 0x07, 0x47, 0x9f, 0xc2,
+	0x8d, 0x09, 0x82, 0xf9, 0xd7, 0xe8, 0xc8, 0xd7, 0x63, 0xe1, 0xeb, 0xe6, 0x64, 0xa3, 0x4c, 0x77,
+	0xd7, 0xde, 0x02, 0x5e, 0x27, 0x53, 0x2a, 0xdf, 0xb7, 0xf2, 0xbd, 0x04, 0x61, 0x2f, 0x07, 0x68,
+	0x13, 0xd6, 0x2b, 0xb8, 0x5c, 0x29, 0x57, 0x73, 0xfb, 0x7a, 0x55, 0xcb, 0x69, 0xb5, 0xaa, 0x5e,
+	0x2c, 0xbd, 0xcc, 0xed, 0x17, 0x0b, 0xa9, 0x85, 0x4c, 0xbc, 0xd7, 0x97, 0x23, 0x45, 0xbb, 0x6b,
+	0x34, 0x2d, 0x13, 0x3d, 0x84, 0x1b, 0xd3, 0xc8, 0x6a, 0x2d, 0xff, 0xa2, 0xa8, 0x69, 0x6a, 0x21,
+	0x25, 0x65, 0x92, 0xbd, 0xbe, 0x1c, 0xab, 0xf2, 0xda, 0x33, 0x46, 0x4c, 0x74, 0x0f, 0xae, 0x4f,
+	0xa3, 0x77, 0xf7, 0xcb, 0x55, 0xb5, 0x90, 0x0a, 0x64, 0xa0, 0xd7, 0x97, 0xc3, 0xbb, 0x4d, 0xea,
+	0x92, 0x0b, 0xbd, 0x1e, 0x14, 0xb5, 0xbd, 0x02, 0xce, 0x1d, 0x94, 0x52, 0x41, 0xcf, 0xeb, 0x81,
+	0xc5, 0x8e, 0x4d, 0xc7, 0x78, 0x6d, 0x8b, 0xc0, 0xf1, 0xa8, 0x0c, 0xe3, 0xc0, 0xb1, 0x5a, 0xad,
+	0xed, 0x6b, 0x13, 0x81, 0xc7, 0x7a, 0x7d, 0x79, 0x51, 0x6d, 0xb5, 0xd9, 0xe9, 0xb9, 0x0d, 0x7c,
+	0x5c, 0xad, 0x54, 0x50, 0x9f, 0x15, 0x4b, 0xe3, 0xb0, 0x6b, 0xb6, 0x49, 0x8e, 0x2c, 0x9b, 0x98,
+	0xe8, 0x3e, 0xa4, 0xa7, 0xd1, 0xb9, 0xdd, 0x5d, 0xb5, 0xa2, 0x89, 0xc0, 0x13, 0xbd, 0xbe, 0x1c,
+	0xcd, 0xd5, 0xeb, 0xa4, 0xcd, 0x2e, 0xc6, 0x62, 0xf5, 0xb9, 0xba, 0xcb, 0xb1, 0x41, 0x0f, 0x8b,
+	0xc9, 0xe7, 0xa4, 0xce, 0x88, 0xa9, 0x7c, 0x25, 0x41, 0x88, 0x73, 0x03, 0xdd, 0x86, 0xb5, 0x33,
+	0x23, 0xed, 0x55, 0x45, 0x9d, 0x08, 0x3a, 0xda, 0xeb, 0xcb, 0xa1, 0x12, 0xb5, 0xf9, 0xe5, 0x85,
+	0xce, 0x83, 0x34, 0xf5, 0x13, 0x2d, 0x25, 0x79, 0x08, 0xce, 0x1d, 0xf4, 0x2f, 0xc8, 0x9e, 0x47,
+	0xd4, 0x2a, 0x85, 0x9c, 0xa6, 0xea, 0xea, 0xbe, 0xba, 0xab, 0x95, 0x71, 0x4e, 0x53, 0x53, 0x81,
+	0xcc, 0x6a, 0xaf, 0x2f, 0xa7, 0x26, 0xa6, 0xab, 0x60, 0x42, 0x3e, 0x06, 0x11, 0x9f, 0x46, 0xca,
+	0x6f, 0x12, 0xc4, 0x27, 0xfa, 0x08, 0xfd, 0x0d, 0x62, 0xde, 0x9c, 0x3f, 0x25, 0xde, 0x54, 0x0d,
+	0xe1, 0xa8, 0x10, 0xbc, 0x22, 0x2e, 0xba, 0x01, 0xde, 0xb7, 0x6e, 0x53, 0x71, 0x9d, 0x86, 0x70,
+	0x44, 0xac, 0x4b, 0x14, 0xdd, 0x86, 0xa4, 0xa7, 0x32, 0x0e, 0x5d, 0x66, 0x58, 0xb6, 0xb8, 0x47,
+	0x43, 0x38, 0x21, 0x84, 0x39, 0x4f, 0xf6, 0xc1, 0x8f, 0x88, 0xf9, 0x46, 0xd9, 0xf9, 0x21, 0x19,
+	0x9e, 0x67, 0x48, 0x2a, 0x9f, 0x41, 0xe8, 0x25, 0x15, 0xb7, 0x45, 0xc4, 0x8f, 0x49, 0x1c, 0xfa,
+	0xe2, 0x09, 0x34, 0x82, 0xa0, 0xbb, 0xb0, 0xc8, 0x2f, 0x1a, 0x53, 0x24, 0x61, 0x69, 0x67, 0x59,
+	0x60, 0xb9, 0x9f, 0xb2, 0x98, 0x2b, 0xd8, 0xd3, 0x2a, 0x6f, 0x02, 0xb0, 0xb6, 0xeb, 0x10, 0x83,
+	0x91, 0xc9, 0x66, 0x7f, 0xe1, 0x36, 0x3e, 0xae, 0x81, 0x55, 0x00, 0xf8, 0xd0, 0x49, 0x15, 0x73,
+	0xcf, 0x66, 0xd4, 0x1f, 0x1a, 0x02, 0xca, 0x4f, 0x01, 0xb8, 0xe5, 0xa5, 0x72, 0xe6, 0xae, 0xfb,
+	0x13, 0xd2, 0xfa, 0xf1, 0x26, 0x66, 0xf6, 0x01, 0x15, 0x9c, 0xf3, 0x01, 0xf5, 0x00, 0xae, 0x15,
+	0x48, 0x93, 0x9c, 0x4f, 0xe0, 0x75, 0x08, 0x58, 0xa6, 0xff, 0xca, 0x0d, 0x0f, 0x07, 0xd9, 0x40,
+	0xb1, 0x80, 0x03, 0x96, 0xa9, 0x7c, 0x27, 0x41, 0x84, 0xf3, 0x9b, 0x63, 0xb6, 0x21, 0xde, 0xf6,
+	0x4d, 0xf4, 0x33, 0xf0, 0xd2, 0x70, 0x90, 0x85, 0x91, 0xa7, 0x62, 0x01, 0xc3, 0x08, 0x52, 0x34,
+	0xf9, 0xeb, 0x99, 0xf7, 0x83, 0xf7, 0x62, 0x9c, 0xfb, 0xf5, 0x2c, 0x4c, 0xd0, 0x03, 0x88, 0xba,
+	0xe2, 0x68, 0xc4, 0x23, 0xfa, 0x05, 0xcd, 0x76, 0x06, 0x50, 0xfe, 0x03, 0x51, 0x71, 0x95, 0x7d,
+	0x48, 0x94, 0xca, 0x97, 0x12, 0xac, 0x4c, 0x5f, 0x94, 0xdc, 0xd1, 0x0c, 0x37, 0xa4, 0xb9, 0xb8,
+	0x31, 0x53, 0x97, 0xc0, 0x9c, 0x75, 0xf9, 0x41, 0x82, 0xb5, 0xd9, 0xdf, 0x21, 0x1e, 0xc9, 0x45,
+	0xcd, 0x2f, 0xcd, 0xdd, 0xfc, 0x97, 0xfc, 0x71, 0x04, 0xe6, 0xfa, 0xe3, 0x08, 0xce, 0x73, 0x99,
+	0xde, 0xff, 0x46, 0x02, 0x18, 0x17, 0x06, 0xdd, 0x81, 0x95, 0x97, 0x65, 0x4d, 0xd5, 0xcb, 0x15,
+	0xad, 0x58, 0x2e, 0x5d, 0xf6, 0xa6, 0xb8, 0x09, 0xcb, 0x93, 0xa8, 0x57, 0x6a, 0x35, 0x25, 0x65,
+	0x22, 0xbd, 0xbe, 0x1c, 0xe4, 0x13, 0x27, 0x03, 0x4b, 0x93, 0xda, 0x52, 0x39, 0x15, 0xc8, 0x84,
+	0x7b, 0x7d, 0x39, 0x50, 0xa2, 0xd3, 0xfe, 0x73, 0xf9, 0xaa, 0x96, 0x2b, 0xf2, 0x17, 0x83, 0xf0,
+	0xef, 0xcf, 0x9c, 0x7c, 0xfa, 0xcd, 0x70, 0x43, 0x7a, 0x3b, 0xdc, 0x90, 0x7e, 0x19, 0x6e, 0x48,
+	0x5f, 0xbf, 0xdb, 0x58, 0x78, 0xfb, 0x6e, 0x63, 0xe1, 0xe7, 0x77, 0x1b, 0x0b, 0x87, 0x61, 0xf1,
+	0xab, 0xfd, 0xf8, 0xf7, 0x00, 0x00, 0x00, 0xff, 0xff, 0x82, 0x5b, 0x58, 0x7d, 0xb3, 0x0f, 0x00,
+	0x00,
 }
 
 func (m *Electorate) Marshal() (dAtA []byte, err error) {
@@ -1207,6 +1568,12 @@ func (m *Electorate) MarshalTo(dAtA []byte) (int, error) {
 		dAtA[i] = 0x20
 		i++
 		i = encodeVarintCodec(dAtA, i, uint64(m.TotalElectorateWeight))
+	}
+	if len(m.UpdateElectionRuleID) > 0 {
+		dAtA[i] = 0x2a
+		i++
+		i = encodeVarintCodec(dAtA, i, uint64(len(m.UpdateElectionRuleID)))
+		i += copy(dAtA[i:], m.UpdateElectionRuleID)
 	}
 	return i, nil
 }
@@ -1321,7 +1688,7 @@ func (m *Fraction) MarshalTo(dAtA []byte) (int, error) {
 	return i, nil
 }
 
-func (m *TextProposal) Marshal() (dAtA []byte, err error) {
+func (m *TextProposalPayload) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalTo(dAtA)
@@ -1331,7 +1698,55 @@ func (m *TextProposal) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *TextProposal) MarshalTo(dAtA []byte) (int, error) {
+func (m *TextProposalPayload) MarshalTo(dAtA []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	return i, nil
+}
+
+func (m *ElectorateUpdatePayload) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalTo(dAtA)
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *ElectorateUpdatePayload) MarshalTo(dAtA []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	if len(m.DiffElectors) > 0 {
+		for _, msg := range m.DiffElectors {
+			dAtA[i] = 0xa
+			i++
+			i = encodeVarintCodec(dAtA, i, uint64(msg.Size()))
+			n, err := msg.MarshalTo(dAtA[i:])
+			if err != nil {
+				return 0, err
+			}
+			i += n
+		}
+	}
+	return i, nil
+}
+
+func (m *Proposal) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalTo(dAtA)
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *Proposal) MarshalTo(dAtA []byte) (int, error) {
 	var i int
 	_ = i
 	var l int
@@ -1399,9 +1814,53 @@ func (m *TextProposal) MarshalTo(dAtA []byte) (int, error) {
 		i++
 		i = encodeVarintCodec(dAtA, i, uint64(m.Result))
 	}
+	if m.Type != 0 {
+		dAtA[i] = 0x68
+		i++
+		i = encodeVarintCodec(dAtA, i, uint64(m.Type))
+	}
+	if m.Details != nil {
+		nn4, err := m.Details.MarshalTo(dAtA[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += nn4
+	}
 	return i, nil
 }
 
+func (m *Proposal_TextDetails) MarshalTo(dAtA []byte) (int, error) {
+	i := 0
+	if m.TextDetails != nil {
+		dAtA[i] = 0x92
+		i++
+		dAtA[i] = 0x3
+		i++
+		i = encodeVarintCodec(dAtA, i, uint64(m.TextDetails.Size()))
+		n5, err := m.TextDetails.MarshalTo(dAtA[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += n5
+	}
+	return i, nil
+}
+func (m *Proposal_ElectorateUpdateDetails) MarshalTo(dAtA []byte) (int, error) {
+	i := 0
+	if m.ElectorateUpdateDetails != nil {
+		dAtA[i] = 0x9a
+		i++
+		dAtA[i] = 0x3
+		i++
+		i = encodeVarintCodec(dAtA, i, uint64(m.ElectorateUpdateDetails.Size()))
+		n6, err := m.ElectorateUpdateDetails.MarshalTo(dAtA[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += n6
+	}
+	return i, nil
+}
 func (m *TallyResult) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
@@ -1441,20 +1900,20 @@ func (m *TallyResult) MarshalTo(dAtA []byte) (int, error) {
 		dAtA[i] = 0x2a
 		i++
 		i = encodeVarintCodec(dAtA, i, uint64(m.Quorum.Size()))
-		n4, err := m.Quorum.MarshalTo(dAtA[i:])
+		n7, err := m.Quorum.MarshalTo(dAtA[i:])
 		if err != nil {
 			return 0, err
 		}
-		i += n4
+		i += n7
 	}
 	dAtA[i] = 0x32
 	i++
 	i = encodeVarintCodec(dAtA, i, uint64(m.Threshold.Size()))
-	n5, err := m.Threshold.MarshalTo(dAtA[i:])
+	n8, err := m.Threshold.MarshalTo(dAtA[i:])
 	if err != nil {
 		return 0, err
 	}
-	i += n5
+	i += n8
 	return i, nil
 }
 
@@ -1476,11 +1935,11 @@ func (m *Vote) MarshalTo(dAtA []byte) (int, error) {
 	dAtA[i] = 0xa
 	i++
 	i = encodeVarintCodec(dAtA, i, uint64(m.Elector.Size()))
-	n6, err := m.Elector.MarshalTo(dAtA[i:])
+	n9, err := m.Elector.MarshalTo(dAtA[i:])
 	if err != nil {
 		return 0, err
 	}
-	i += n6
+	i += n9
 	if m.Voted != 0 {
 		dAtA[i] = 0x10
 		i++
@@ -1542,7 +2001,7 @@ func (m *CreateTextProposalMsg) MarshalTo(dAtA []byte) (int, error) {
 	return i, nil
 }
 
-func (m *DeleteTextProposalMsg) Marshal() (dAtA []byte, err error) {
+func (m *CreateElectorateUpdateProposalMsg) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalTo(dAtA)
@@ -1552,7 +2011,66 @@ func (m *DeleteTextProposalMsg) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *DeleteTextProposalMsg) MarshalTo(dAtA []byte) (int, error) {
+func (m *CreateElectorateUpdateProposalMsg) MarshalTo(dAtA []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	if len(m.Title) > 0 {
+		dAtA[i] = 0xa
+		i++
+		i = encodeVarintCodec(dAtA, i, uint64(len(m.Title)))
+		i += copy(dAtA[i:], m.Title)
+	}
+	if len(m.Description) > 0 {
+		dAtA[i] = 0x12
+		i++
+		i = encodeVarintCodec(dAtA, i, uint64(len(m.Description)))
+		i += copy(dAtA[i:], m.Description)
+	}
+	if len(m.DiffElectors) > 0 {
+		for _, msg := range m.DiffElectors {
+			dAtA[i] = 0x1a
+			i++
+			i = encodeVarintCodec(dAtA, i, uint64(msg.Size()))
+			n, err := msg.MarshalTo(dAtA[i:])
+			if err != nil {
+				return 0, err
+			}
+			i += n
+		}
+	}
+	if len(m.ElectorateID) > 0 {
+		dAtA[i] = 0x22
+		i++
+		i = encodeVarintCodec(dAtA, i, uint64(len(m.ElectorateID)))
+		i += copy(dAtA[i:], m.ElectorateID)
+	}
+	if m.StartTime != 0 {
+		dAtA[i] = 0x28
+		i++
+		i = encodeVarintCodec(dAtA, i, uint64(m.StartTime))
+	}
+	if len(m.Author) > 0 {
+		dAtA[i] = 0x42
+		i++
+		i = encodeVarintCodec(dAtA, i, uint64(len(m.Author)))
+		i += copy(dAtA[i:], m.Author)
+	}
+	return i, nil
+}
+
+func (m *DeleteProposalMsg) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalTo(dAtA)
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *DeleteProposalMsg) MarshalTo(dAtA []byte) (int, error) {
 	var i int
 	_ = i
 	var l int
@@ -1646,8 +2164,8 @@ func (m *UpdateElectorateMsg) MarshalTo(dAtA []byte) (int, error) {
 		i = encodeVarintCodec(dAtA, i, uint64(len(m.ElectorateID)))
 		i += copy(dAtA[i:], m.ElectorateID)
 	}
-	if len(m.Electors) > 0 {
-		for _, msg := range m.Electors {
+	if len(m.DiffElectors) > 0 {
+		for _, msg := range m.DiffElectors {
 			dAtA[i] = 0x12
 			i++
 			i = encodeVarintCodec(dAtA, i, uint64(msg.Size()))
@@ -1690,11 +2208,11 @@ func (m *UpdateElectionRuleMsg) MarshalTo(dAtA []byte) (int, error) {
 	dAtA[i] = 0x1a
 	i++
 	i = encodeVarintCodec(dAtA, i, uint64(m.Threshold.Size()))
-	n7, err := m.Threshold.MarshalTo(dAtA[i:])
+	n10, err := m.Threshold.MarshalTo(dAtA[i:])
 	if err != nil {
 		return 0, err
 	}
-	i += n7
+	i += n10
 	return i, nil
 }
 
@@ -1729,6 +2247,10 @@ func (m *Electorate) Size() (n int) {
 	}
 	if m.TotalElectorateWeight != 0 {
 		n += 1 + sovCodec(uint64(m.TotalElectorateWeight))
+	}
+	l = len(m.UpdateElectionRuleID)
+	if l > 0 {
+		n += 1 + l + sovCodec(uint64(l))
 	}
 	return n
 }
@@ -1790,7 +2312,31 @@ func (m *Fraction) Size() (n int) {
 	return n
 }
 
-func (m *TextProposal) Size() (n int) {
+func (m *TextProposalPayload) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	return n
+}
+
+func (m *ElectorateUpdatePayload) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if len(m.DiffElectors) > 0 {
+		for _, e := range m.DiffElectors {
+			l = e.Size()
+			n += 1 + l + sovCodec(uint64(l))
+		}
+	}
+	return n
+}
+
+func (m *Proposal) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -1833,9 +2379,39 @@ func (m *TextProposal) Size() (n int) {
 	if m.Result != 0 {
 		n += 1 + sovCodec(uint64(m.Result))
 	}
+	if m.Type != 0 {
+		n += 1 + sovCodec(uint64(m.Type))
+	}
+	if m.Details != nil {
+		n += m.Details.Size()
+	}
 	return n
 }
 
+func (m *Proposal_TextDetails) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.TextDetails != nil {
+		l = m.TextDetails.Size()
+		n += 2 + l + sovCodec(uint64(l))
+	}
+	return n
+}
+func (m *Proposal_ElectorateUpdateDetails) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.ElectorateUpdateDetails != nil {
+		l = m.ElectorateUpdateDetails.Size()
+		n += 2 + l + sovCodec(uint64(l))
+	}
+	return n
+}
 func (m *TallyResult) Size() (n int) {
 	if m == nil {
 		return 0
@@ -1909,7 +2485,41 @@ func (m *CreateTextProposalMsg) Size() (n int) {
 	return n
 }
 
-func (m *DeleteTextProposalMsg) Size() (n int) {
+func (m *CreateElectorateUpdateProposalMsg) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Title)
+	if l > 0 {
+		n += 1 + l + sovCodec(uint64(l))
+	}
+	l = len(m.Description)
+	if l > 0 {
+		n += 1 + l + sovCodec(uint64(l))
+	}
+	if len(m.DiffElectors) > 0 {
+		for _, e := range m.DiffElectors {
+			l = e.Size()
+			n += 1 + l + sovCodec(uint64(l))
+		}
+	}
+	l = len(m.ElectorateID)
+	if l > 0 {
+		n += 1 + l + sovCodec(uint64(l))
+	}
+	if m.StartTime != 0 {
+		n += 1 + sovCodec(uint64(m.StartTime))
+	}
+	l = len(m.Author)
+	if l > 0 {
+		n += 1 + l + sovCodec(uint64(l))
+	}
+	return n
+}
+
+func (m *DeleteProposalMsg) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -1965,8 +2575,8 @@ func (m *UpdateElectorateMsg) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovCodec(uint64(l))
 	}
-	if len(m.Electors) > 0 {
-		for _, e := range m.Electors {
+	if len(m.DiffElectors) > 0 {
+		for _, e := range m.DiffElectors {
 			l = e.Size()
 			n += 1 + l + sovCodec(uint64(l))
 		}
@@ -2153,6 +2763,40 @@ func (m *Electorate) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
+		case 5:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field UpdateElectionRuleID", wireType)
+			}
+			var byteLen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				byteLen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if byteLen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.UpdateElectionRuleID = append(m.UpdateElectionRuleID[:0], dAtA[iNdEx:postIndex]...)
+			if m.UpdateElectionRuleID == nil {
+				m.UpdateElectionRuleID = []byte{}
+			}
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipCodec(dAtA[iNdEx:])
@@ -2581,7 +3225,7 @@ func (m *Fraction) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *TextProposal) Unmarshal(dAtA []byte) error {
+func (m *TextProposalPayload) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -2604,10 +3248,150 @@ func (m *TextProposal) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: TextProposal: wiretype end group for non-group")
+			return fmt.Errorf("proto: TextProposalPayload: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: TextProposal: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: TextProposalPayload: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipCodec(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if (iNdEx + skippy) < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *ElectorateUpdatePayload) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowCodec
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: ElectorateUpdatePayload: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: ElectorateUpdatePayload: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field DiffElectors", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.DiffElectors = append(m.DiffElectors, Elector{})
+			if err := m.DiffElectors[len(m.DiffElectors)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipCodec(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if (iNdEx + skippy) < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *Proposal) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowCodec
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: Proposal: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: Proposal: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -2880,7 +3664,7 @@ func (m *TextProposal) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.Status |= TextProposal_Status(b&0x7F) << shift
+				m.Status |= Proposal_Status(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -2899,11 +3683,100 @@ func (m *TextProposal) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.Result |= TextProposal_Result(b&0x7F) << shift
+				m.Result |= Proposal_Result(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
+		case 13:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Type", wireType)
+			}
+			m.Type = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Type |= Proposal_Type(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 50:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field TextDetails", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			v := &TextProposalPayload{}
+			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			m.Details = &Proposal_TextDetails{v}
+			iNdEx = postIndex
+		case 51:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ElectorateUpdateDetails", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			v := &ElectorateUpdatePayload{}
+			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			m.Details = &Proposal_ElectorateUpdateDetails{v}
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipCodec(dAtA[iNdEx:])
@@ -3469,7 +4342,7 @@ func (m *CreateTextProposalMsg) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *DeleteTextProposalMsg) Unmarshal(dAtA []byte) error {
+func (m *CreateElectorateUpdateProposalMsg) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -3492,10 +4365,248 @@ func (m *DeleteTextProposalMsg) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: DeleteTextProposalMsg: wiretype end group for non-group")
+			return fmt.Errorf("proto: CreateElectorateUpdateProposalMsg: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: DeleteTextProposalMsg: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: CreateElectorateUpdateProposalMsg: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Title", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Title = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Description", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Description = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field DiffElectors", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.DiffElectors = append(m.DiffElectors, Elector{})
+			if err := m.DiffElectors[len(m.DiffElectors)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ElectorateID", wireType)
+			}
+			var byteLen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				byteLen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if byteLen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.ElectorateID = append(m.ElectorateID[:0], dAtA[iNdEx:postIndex]...)
+			if m.ElectorateID == nil {
+				m.ElectorateID = []byte{}
+			}
+			iNdEx = postIndex
+		case 5:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field StartTime", wireType)
+			}
+			m.StartTime = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.StartTime |= github_com_iov_one_weave.UnixTime(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 8:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Author", wireType)
+			}
+			var byteLen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				byteLen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if byteLen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Author = append(m.Author[:0], dAtA[iNdEx:postIndex]...)
+			if m.Author == nil {
+				m.Author = []byte{}
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipCodec(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if (iNdEx + skippy) < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *DeleteProposalMsg) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowCodec
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: DeleteProposalMsg: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: DeleteProposalMsg: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -3848,7 +4959,7 @@ func (m *UpdateElectorateMsg) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Electors", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field DiffElectors", wireType)
 			}
 			var msglen int
 			for shift := uint(0); ; shift += 7 {
@@ -3875,8 +4986,8 @@ func (m *UpdateElectorateMsg) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Electors = append(m.Electors, Elector{})
-			if err := m.Electors[len(m.Electors)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+			m.DiffElectors = append(m.DiffElectors, Elector{})
+			if err := m.DiffElectors[len(m.DiffElectors)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex

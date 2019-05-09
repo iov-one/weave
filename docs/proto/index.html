@@ -678,11 +678,15 @@
             <ul>
               
                 <li>
+                  <a href="#gov.CreateElectorateUpdateProposalMsg"><span class="badge">M</span>CreateElectorateUpdateProposalMsg</a>
+                </li>
+              
+                <li>
                   <a href="#gov.CreateTextProposalMsg"><span class="badge">M</span>CreateTextProposalMsg</a>
                 </li>
               
                 <li>
-                  <a href="#gov.DeleteTextProposalMsg"><span class="badge">M</span>DeleteTextProposalMsg</a>
+                  <a href="#gov.DeleteProposalMsg"><span class="badge">M</span>DeleteProposalMsg</a>
                 </li>
               
                 <li>
@@ -698,7 +702,15 @@
                 </li>
               
                 <li>
+                  <a href="#gov.ElectorateUpdatePayload"><span class="badge">M</span>ElectorateUpdatePayload</a>
+                </li>
+              
+                <li>
                   <a href="#gov.Fraction"><span class="badge">M</span>Fraction</a>
+                </li>
+              
+                <li>
+                  <a href="#gov.Proposal"><span class="badge">M</span>Proposal</a>
                 </li>
               
                 <li>
@@ -710,7 +722,7 @@
                 </li>
               
                 <li>
-                  <a href="#gov.TextProposal"><span class="badge">M</span>TextProposal</a>
+                  <a href="#gov.TextProposalPayload"><span class="badge">M</span>TextProposalPayload</a>
                 </li>
               
                 <li>
@@ -731,11 +743,15 @@
               
               
                 <li>
-                  <a href="#gov.TextProposal.Result"><span class="badge">E</span>TextProposal.Result</a>
+                  <a href="#gov.Proposal.Result"><span class="badge">E</span>Proposal.Result</a>
                 </li>
               
                 <li>
-                  <a href="#gov.TextProposal.Status"><span class="badge">E</span>TextProposal.Status</a>
+                  <a href="#gov.Proposal.Status"><span class="badge">E</span>Proposal.Status</a>
+                </li>
+              
+                <li>
+                  <a href="#gov.Proposal.Type"><span class="badge">E</span>Proposal.Type</a>
                 </li>
               
                 <li>
@@ -3766,6 +3782,66 @@ total increment value, including the default increment. </p></td>
       <p></p>
 
       
+        <h3 id="gov.CreateElectorateUpdateProposalMsg">CreateElectorateUpdateProposalMsg</h3>
+        <p>CreateElectorateUpdateProposalMsg creates a new governance proposal to update an electorate.</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>title</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p>Human readable title. Must match `^[a-zA-Z0-9 _.-]{4,128}$` </p></td>
+                </tr>
+              
+                <tr>
+                  <td>description</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p>Human readable description with 3 to 5000 chars. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>electorate_id</td>
+                  <td><a href="#bytes">bytes</a></td>
+                  <td></td>
+                  <td><p>Reference to the electorate to define the group of possible voters. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>start_time</td>
+                  <td><a href="#int64">int64</a></td>
+                  <td></td>
+                  <td><p>Unix timestamp when the proposal starts. Must be in the future. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>author</td>
+                  <td><a href="#bytes">bytes</a></td>
+                  <td></td>
+                  <td><p>Author is an optional field to set the address of the author with a proposal. The author must sign the message.
+When not set it will default to the main signer. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>diff_electors</td>
+                  <td><a href="#gov.Elector">Elector</a></td>
+                  <td>repeated</td>
+                  <td><p>DiffElectors contains the changes that should be applied. Adding an address should have a positive weight, removing
+with weight=0. </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+        
+
+        
+      
         <h3 id="gov.CreateTextProposalMsg">CreateTextProposalMsg</h3>
         <p>CreateTextProposalMsg creates a new governance proposal.</p>
 
@@ -3825,8 +3901,8 @@ When not set it will default to the main signer. </p></td>
 
         
       
-        <h3 id="gov.DeleteTextProposalMsg">DeleteTextProposalMsg</h3>
-        <p>CreateTextProposalMsg deletes a governance proposal.</p>
+        <h3 id="gov.DeleteProposalMsg">DeleteProposalMsg</h3>
+        <p>DeleteProposalMsg deletes a governance proposal.</p>
 
         
           <table class="field-table">
@@ -3979,6 +4055,37 @@ of the eligible voters. </p></td>
                   <td><p>TotalElectorateWeight is the sum of all electors weights. </p></td>
                 </tr>
               
+                <tr>
+                  <td>update_election_rule_id</td>
+                  <td><a href="#bytes">bytes</a></td>
+                  <td></td>
+                  <td><p>UpdateElectionRuleID reference the rule to update this electorate. </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+        
+
+        
+      
+        <h3 id="gov.ElectorateUpdatePayload">ElectorateUpdatePayload</h3>
+        <p></p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>diff_electors</td>
+                  <td><a href="#gov.Elector">Elector</a></td>
+                  <td>repeated</td>
+                  <td><p>DiffElectors contains the changes that should be applied. Adding an address should have a positive weight, removing
+with weight=0. </p></td>
+                </tr>
+              
             </tbody>
           </table>
         
@@ -4007,6 +4114,122 @@ of the eligible voters. </p></td>
                   <td><a href="#uint32">uint32</a></td>
                   <td></td>
                   <td><p>The bottom number </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+        
+
+        
+      
+        <h3 id="gov.Proposal">Proposal</h3>
+        <p>A generic proposal for an on-chain governance process.</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>title</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p>Human readable title. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>description</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p>Description of the proposal in text form. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>election_rule_id</td>
+                  <td><a href="#bytes">bytes</a></td>
+                  <td></td>
+                  <td><p>Reference to the election rule </p></td>
+                </tr>
+              
+                <tr>
+                  <td>electorate_id</td>
+                  <td><a href="#bytes">bytes</a></td>
+                  <td></td>
+                  <td><p>Reference to the electorate to define the group of possible voters. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>voting_start_time</td>
+                  <td><a href="#int64">int64</a></td>
+                  <td></td>
+                  <td><p>Unix timestamp of the block where the voting period starts. Header time of the votes must be greater than or equal
+to this start time. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>voting_end_time</td>
+                  <td><a href="#int64">int64</a></td>
+                  <td></td>
+                  <td><p>Unix timestamp of the block where the voting period ends. Header times of the votes must be before this end time
+to be included in the election. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>submission_time</td>
+                  <td><a href="#int64">int64</a></td>
+                  <td></td>
+                  <td><p>Unix timestamp of the block where the proposal was added to the chain. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>author</td>
+                  <td><a href="#bytes">bytes</a></td>
+                  <td></td>
+                  <td><p>Address of the author who created the proposal. If not set explicit on creation it will default to the main signer. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>vote_state</td>
+                  <td><a href="#gov.TallyResult">TallyResult</a></td>
+                  <td></td>
+                  <td><p>Result of the election. Contains intermediate tally results while voting period is open. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>status</td>
+                  <td><a href="#gov.Proposal.Status">Proposal.Status</a></td>
+                  <td></td>
+                  <td><p>Status represents the high level position in the life cycle of the proposal. Initial value is submitted. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>result</td>
+                  <td><a href="#gov.Proposal.Result">Proposal.Result</a></td>
+                  <td></td>
+                  <td><p>Result is the final result based on the votes and election rule. Initial value is Undefined. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>type</td>
+                  <td><a href="#gov.Proposal.Type">Proposal.Type</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>text_details</td>
+                  <td><a href="#gov.TextProposalPayload">TextProposalPayload</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>electorate_update_details</td>
+                  <td><a href="#gov.ElectorateUpdatePayload">ElectorateUpdatePayload</a></td>
+                  <td></td>
+                  <td><p> </p></td>
                 </tr>
               
             </tbody>
@@ -4097,97 +4320,9 @@ The base value is either the total electorate weight or the sum of Yes/No weight
 
         
       
-        <h3 id="gov.TextProposal">TextProposal</h3>
+        <h3 id="gov.TextProposalPayload">TextProposalPayload</h3>
         <p>A text form proposal for an on-chain governance process.</p>
 
-        
-          <table class="field-table">
-            <thead>
-              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
-            </thead>
-            <tbody>
-              
-                <tr>
-                  <td>title</td>
-                  <td><a href="#string">string</a></td>
-                  <td></td>
-                  <td><p>Human readable title. </p></td>
-                </tr>
-              
-                <tr>
-                  <td>description</td>
-                  <td><a href="#string">string</a></td>
-                  <td></td>
-                  <td><p>Description of the proposal in text form. </p></td>
-                </tr>
-              
-                <tr>
-                  <td>election_rule_id</td>
-                  <td><a href="#bytes">bytes</a></td>
-                  <td></td>
-                  <td><p>Reference to the election rule </p></td>
-                </tr>
-              
-                <tr>
-                  <td>electorate_id</td>
-                  <td><a href="#bytes">bytes</a></td>
-                  <td></td>
-                  <td><p>Reference to the electorate to define the group of possible voters. </p></td>
-                </tr>
-              
-                <tr>
-                  <td>voting_start_time</td>
-                  <td><a href="#int64">int64</a></td>
-                  <td></td>
-                  <td><p>Unix timestamp of the block where the voting period starts. Header time of the votes must be greater than or equal
-to this start time. </p></td>
-                </tr>
-              
-                <tr>
-                  <td>voting_end_time</td>
-                  <td><a href="#int64">int64</a></td>
-                  <td></td>
-                  <td><p>Unix timestamp of the block where the voting period ends. Header times of the votes must be before this end time
-to be included in the election. </p></td>
-                </tr>
-              
-                <tr>
-                  <td>submission_time</td>
-                  <td><a href="#int64">int64</a></td>
-                  <td></td>
-                  <td><p>Unix timestamp of the block where the proposal was added to the chain. </p></td>
-                </tr>
-              
-                <tr>
-                  <td>author</td>
-                  <td><a href="#bytes">bytes</a></td>
-                  <td></td>
-                  <td><p>Address of the author who created the proposal. If not set explicit on creation it will default to the main signer. </p></td>
-                </tr>
-              
-                <tr>
-                  <td>vote_state</td>
-                  <td><a href="#gov.TallyResult">TallyResult</a></td>
-                  <td></td>
-                  <td><p>Result of the election. Contains intermediate tally results while voting period is open. </p></td>
-                </tr>
-              
-                <tr>
-                  <td>status</td>
-                  <td><a href="#gov.TextProposal.Status">TextProposal.Status</a></td>
-                  <td></td>
-                  <td><p>Status represents the high level position in the life cycle of the proposal. Initial value is submitted. </p></td>
-                </tr>
-              
-                <tr>
-                  <td>result</td>
-                  <td><a href="#gov.TextProposal.Result">TextProposal.Result</a></td>
-                  <td></td>
-                  <td><p>Result is the final result based on the votes and election rule. Initial value is Undefined. </p></td>
-                </tr>
-              
-            </tbody>
-          </table>
         
 
         
@@ -4251,10 +4386,11 @@ of the eligible voters. </p></td>
                 </tr>
               
                 <tr>
-                  <td>electors</td>
+                  <td>diff_electors</td>
                   <td><a href="#gov.Elector">Elector</a></td>
                   <td>repeated</td>
-                  <td><p>Elector defines a list of all signatures that are allowed to participate in a vote </p></td>
+                  <td><p>DiffElectors contains the changes that should be applied. Adding an address should have a positive weight, removing
+with weight=0. </p></td>
                 </tr>
               
             </tbody>
@@ -4333,7 +4469,7 @@ must be included in the electorate for a valid vote. </p></td>
       
 
       
-        <h3 id="gov.TextProposal.Result">TextProposal.Result</h3>
+        <h3 id="gov.Proposal.Result">Proposal.Result</h3>
         <p></p>
         <table class="enum-table">
           <thead>
@@ -4342,25 +4478,25 @@ must be included in the electorate for a valid vote. </p></td>
           <tbody>
             
               <tr>
-                <td>TEXT_PROPOSAL_RESULT_INVALID</td>
+                <td>PROPOSAL_RESULT_INVALID</td>
                 <td>0</td>
                 <td><p>An empty value is invalid and not allowed</p></td>
               </tr>
             
               <tr>
-                <td>TEXT_PROPOSAL_RESULT_UNDEFINED</td>
+                <td>PROPOSAL_RESULT_UNDEFINED</td>
                 <td>1</td>
                 <td><p>Until a final tally has happened the status is undefined</p></td>
               </tr>
             
               <tr>
-                <td>TEXT_PROPOSAL_RESULT_ACCEPTED</td>
+                <td>PROPOSAL_RESULT_ACCEPTED</td>
                 <td>2</td>
                 <td><p>Final result of the tally</p></td>
               </tr>
             
               <tr>
-                <td>TEXT_PROPOSAL_RESULT_REJECTED</td>
+                <td>PROPOSAL_RESULT_REJECTED</td>
                 <td>3</td>
                 <td><p>Final result of the tally</p></td>
               </tr>
@@ -4368,7 +4504,7 @@ must be included in the electorate for a valid vote. </p></td>
           </tbody>
         </table>
       
-        <h3 id="gov.TextProposal.Status">TextProposal.Status</h3>
+        <h3 id="gov.Proposal.Status">Proposal.Status</h3>
         <p></p>
         <table class="enum-table">
           <thead>
@@ -4377,28 +4513,57 @@ must be included in the electorate for a valid vote. </p></td>
           <tbody>
             
               <tr>
-                <td>TEXT_PROPOSAL_STATUS_INVALID</td>
+                <td>PROPOSAL_STATUS_INVALID</td>
                 <td>0</td>
                 <td><p>An empty value is invalid and not allowed</p></td>
               </tr>
             
               <tr>
-                <td>TEXT_PROPOSAL_STATUS_SUBMITTED</td>
+                <td>PROPOSAL_STATUS_SUBMITTED</td>
                 <td>1</td>
                 <td><p>Initial status of a proposal when persisted.</p></td>
               </tr>
             
               <tr>
-                <td>TEXT_PROPOSAL_STATUS_CLOSED</td>
+                <td>PROPOSAL_STATUS_CLOSED</td>
                 <td>2</td>
                 <td><p>Final status of a proposal when the tally was executed</p></td>
               </tr>
             
               <tr>
-                <td>TEXT_PROPOSAL_STATUS_WITHDRAWN</td>
+                <td>PROPOSAL_STATUS_WITHDRAWN</td>
                 <td>3</td>
                 <td><p>A proposal can be deleted before the voting start time by the owner. When this happens the final status
 is Withdrawn.</p></td>
+              </tr>
+            
+          </tbody>
+        </table>
+      
+        <h3 id="gov.Proposal.Type">Proposal.Type</h3>
+        <p></p>
+        <table class="enum-table">
+          <thead>
+            <tr><td>Name</td><td>Number</td><td>Description</td></tr>
+          </thead>
+          <tbody>
+            
+              <tr>
+                <td>PROPOSAL_TYPE_INVALID</td>
+                <td>0</td>
+                <td><p>None is invalid and not allowed</p></td>
+              </tr>
+            
+              <tr>
+                <td>PROPOSAL_TYPE_TEXT</td>
+                <td>1</td>
+                <td><p>Text</p></td>
+              </tr>
+            
+              <tr>
+                <td>PROPOSAL_TYPE_UPDATE_ELECTORATE</td>
+                <td>2</td>
+                <td><p>UpdateElectorate</p></td>
               </tr>
             
           </tbody>

@@ -21,6 +21,7 @@ func TestElectorateValidation(t *testing.T) {
 				Admin:                 alice,
 				Electors:              []Elector{{Address: alice, Weight: 1}},
 				TotalElectorateWeight: 1,
+				UpdateElectionRuleID:  weavetest.SequenceID(1),
 			}},
 		"All good with max electors count": {
 			Src: Electorate{
@@ -28,6 +29,7 @@ func TestElectorateValidation(t *testing.T) {
 				Admin:                 alice,
 				Electors:              buildElectors(2000),
 				TotalElectorateWeight: 2000,
+				UpdateElectionRuleID:  weavetest.SequenceID(1),
 			}},
 		"All good with max weight count": {
 			Src: Electorate{
@@ -35,6 +37,7 @@ func TestElectorateValidation(t *testing.T) {
 				Admin:                 alice,
 				Electors:              []Elector{{Address: alice, Weight: 65535}},
 				TotalElectorateWeight: 65535,
+				UpdateElectionRuleID:  weavetest.SequenceID(1),
 			}},
 		"Not enough electors": {
 			Src: Electorate{
@@ -42,6 +45,7 @@ func TestElectorateValidation(t *testing.T) {
 				Admin:                 alice,
 				Electors:              []Elector{},
 				TotalElectorateWeight: 1,
+				UpdateElectionRuleID:  weavetest.SequenceID(1),
 			},
 			Exp: errors.ErrInvalidInput,
 		},
@@ -51,6 +55,7 @@ func TestElectorateValidation(t *testing.T) {
 				Admin:                 alice,
 				Electors:              buildElectors(2001),
 				TotalElectorateWeight: 2001,
+				UpdateElectionRuleID:  weavetest.SequenceID(1),
 			},
 			Exp: errors.ErrInvalidInput,
 		},
@@ -60,6 +65,7 @@ func TestElectorateValidation(t *testing.T) {
 				Admin:                 alice,
 				Electors:              []Elector{{Address: alice, Weight: 1}, {Address: alice, Weight: 1}},
 				TotalElectorateWeight: 2,
+				UpdateElectionRuleID:  weavetest.SequenceID(1),
 			},
 			Exp: errors.ErrInvalidInput,
 		},
@@ -69,6 +75,7 @@ func TestElectorateValidation(t *testing.T) {
 				Admin:                 alice,
 				Electors:              []Elector{{Address: bobby, Weight: 0}, {Address: alice, Weight: 1}},
 				TotalElectorateWeight: 1,
+				UpdateElectionRuleID:  weavetest.SequenceID(1),
 			},
 			Exp: errors.ErrInvalidInput,
 		},
@@ -78,6 +85,7 @@ func TestElectorateValidation(t *testing.T) {
 				Admin:                 alice,
 				Electors:              []Elector{{Address: alice, Weight: 65536}},
 				TotalElectorateWeight: 65536,
+				UpdateElectionRuleID:  weavetest.SequenceID(1),
 			},
 			Exp: errors.ErrInvalidInput,
 		},
@@ -87,6 +95,7 @@ func TestElectorateValidation(t *testing.T) {
 				Admin:                 alice,
 				Electors:              []Elector{{Address: weave.Address{}, Weight: 1}},
 				TotalElectorateWeight: 1,
+				UpdateElectionRuleID:  weavetest.SequenceID(1),
 			},
 			Exp: errors.ErrEmpty,
 		},
@@ -96,6 +105,7 @@ func TestElectorateValidation(t *testing.T) {
 				Admin:                 alice,
 				Electors:              []Elector{{Address: alice, Weight: 1}},
 				TotalElectorateWeight: 2,
+				UpdateElectionRuleID:  weavetest.SequenceID(1),
 			},
 			Exp: errors.ErrInvalidInput,
 		},
@@ -105,6 +115,7 @@ func TestElectorateValidation(t *testing.T) {
 				Admin:                 alice,
 				Electors:              []Elector{{Address: alice, Weight: 1}},
 				TotalElectorateWeight: 1,
+				UpdateElectionRuleID:  weavetest.SequenceID(1),
 			},
 			Exp: errors.ErrInvalidInput,
 		},
@@ -114,6 +125,7 @@ func TestElectorateValidation(t *testing.T) {
 				Admin:                 alice,
 				Electors:              []Elector{{Address: alice, Weight: 1}},
 				TotalElectorateWeight: 1,
+				UpdateElectionRuleID:  weavetest.SequenceID(1),
 			},
 			Exp: errors.ErrInvalidInput,
 		},
@@ -123,6 +135,7 @@ func TestElectorateValidation(t *testing.T) {
 				Admin:                 weave.Address{0x0, 0x1, 0x2},
 				Electors:              []Elector{{Address: alice, Weight: 1}},
 				TotalElectorateWeight: 1,
+				UpdateElectionRuleID:  weavetest.SequenceID(1),
 			},
 			Exp: errors.ErrInvalidInput,
 		},
@@ -130,6 +143,16 @@ func TestElectorateValidation(t *testing.T) {
 			Src: Electorate{
 				Title:                 "My Electorate",
 				Admin:                 weave.Address{},
+				Electors:              []Elector{{Address: alice, Weight: 1}},
+				TotalElectorateWeight: 1,
+				UpdateElectionRuleID:  weavetest.SequenceID(1),
+			},
+			Exp: errors.ErrEmpty,
+		},
+		"Update rule must not be empty": {
+			Src: Electorate{
+				Title:                 "My Electorate",
+				Admin:                 alice,
 				Electors:              []Elector{{Address: alice, Weight: 1}},
 				TotalElectorateWeight: 1,
 			},
@@ -310,77 +333,77 @@ func TestElectionRuleValidation(t *testing.T) {
 
 func TestTextProposalValidation(t *testing.T) {
 	specs := map[string]struct {
-		Src TextProposal
+		Src Proposal
 		Exp *errors.Error
 	}{
 		"Happy path": {
 			Src: textProposalFixture(),
 		},
 		"Title too short": {
-			Src: textProposalFixture(func(p *TextProposal) {
+			Src: textProposalFixture(func(p *Proposal) {
 				p.Title = "foo"
 			}),
 			Exp: errors.ErrInvalidInput,
 		},
 		"Title too long": {
-			Src: textProposalFixture(func(p *TextProposal) {
+			Src: textProposalFixture(func(p *Proposal) {
 				p.Title = BigString(129)
 			}),
 			Exp: errors.ErrInvalidInput,
 		},
 		"Description empty": {
-			Src: textProposalFixture(func(p *TextProposal) {
+			Src: textProposalFixture(func(p *Proposal) {
 				p.Description = ""
 			}),
 			Exp: errors.ErrInvalidInput,
 		},
 		"Description too long": {
-			Src: textProposalFixture(func(p *TextProposal) {
+			Src: textProposalFixture(func(p *Proposal) {
 				p.Description = BigString(5001)
 			}),
 			Exp: errors.ErrInvalidInput,
 		},
 		"Author missing": {
-			Src: textProposalFixture(func(p *TextProposal) {
+			Src: textProposalFixture(func(p *Proposal) {
 				p.Author = nil
 			}),
 			Exp: errors.ErrInvalidInput,
 		},
 		"ElectorateID missing": {
-			Src: textProposalFixture(func(p *TextProposal) {
+			Src: textProposalFixture(func(p *Proposal) {
 				p.ElectorateID = nil
 			}),
 			Exp: errors.ErrInvalidInput,
 		},
 		"ElectionRuleID missing": {
-			Src: textProposalFixture(func(p *TextProposal) {
+			Src: textProposalFixture(func(p *Proposal) {
 				p.ElectionRuleID = nil
 			}),
 			Exp: errors.ErrInvalidInput,
 		},
 		"StartTime missing": {
-			Src: textProposalFixture(func(p *TextProposal) {
+			Src: textProposalFixture(func(p *Proposal) {
 				var unset time.Time
 				p.VotingStartTime = weave.AsUnixTime(unset)
 			}),
 			Exp: errors.ErrInvalidInput,
 		},
 		"EndTime missing": {
-			Src: textProposalFixture(func(p *TextProposal) {
+			Src: textProposalFixture(func(p *Proposal) {
 				var unset time.Time
 				p.VotingEndTime = weave.AsUnixTime(unset)
 			}),
 			Exp: errors.ErrInvalidInput,
 		},
 		"Status missing": {
-			Src: textProposalFixture(func(p *TextProposal) {
-				p.Status = TextProposal_Status(0)
+			Src: textProposalFixture(func(p *Proposal) {
+				p.Status = Proposal_Status(0)
 			}),
 			Exp: errors.ErrInvalidInput,
 		},
 		"Result missing": {
-			Src: textProposalFixture(func(p *TextProposal) {
-				p.Result = TextProposal_Result(0)
+			Src: textProposalFixture(func(p *Proposal) {
+				p.Result = Proposal_Result(0)
 			}),
 			Exp: errors.ErrInvalidInput,
 		},
@@ -435,9 +458,10 @@ func TestVoteValidate(t *testing.T) {
 	}
 }
 
-func textProposalFixture(mods ...func(*TextProposal)) TextProposal {
+func textProposalFixture(mods ...func(*Proposal)) Proposal {
 	now := weave.AsUnixTime(time.Now())
-	proposal := TextProposal{
+	proposal := Proposal{
+		Type:            Proposal_Text,
 		Title:           "My proposal",
 		Description:     "My description",
 		ElectionRuleID:  weavetest.SequenceID(1),
@@ -445,10 +469,37 @@ func textProposalFixture(mods ...func(*TextProposal)) TextProposal {
 		VotingStartTime: now.Add(-1 * time.Minute),
 		VotingEndTime:   now.Add(time.Minute),
 		SubmissionTime:  now.Add(-1 * time.Hour),
-		Status:          TextProposal_Submitted,
-		Result:          TextProposal_Undefined,
+		Status:          Proposal_Submitted,
+		Result:          Proposal_Undefined,
 		Author:          alice,
 		VoteState:       NewTallyResult(nil, Fraction{1, 2}, 11),
+		Details:         &Proposal_TextDetails{&TextProposalPayload{}},
+	}
+	for _, mod := range mods {
+		if mod != nil {
+			mod(&proposal)
+		}
+	}
+	return proposal
+}
+func updateElectoreateProposalFixture(mods ...func(*Proposal)) Proposal {
+	now := weave.AsUnixTime(time.Now())
+	proposal := Proposal{
+		Type:            Proposal_UpdateElectorate,
+		Title:           "My proposal",
+		Description:     "My description",
+		ElectionRuleID:  weavetest.SequenceID(1),
+		ElectorateID:    weavetest.SequenceID(1),
+		VotingStartTime: now.Add(-1 * time.Minute),
+		VotingEndTime:   now.Add(time.Minute),
+		SubmissionTime:  now.Add(-1 * time.Hour),
+		Status:          Proposal_Submitted,
+		Result:          Proposal_Undefined,
+		Author:          alice,
+		VoteState:       NewTallyResult(nil, Fraction{1, 2}, 11),
+		Details: &Proposal_ElectorateUpdateDetails{&ElectorateUpdatePayload{
+			[]Elector{{Address: alice, Weight: 10}},
+		}},
 	}
 	for _, mod := range mods {
 		if mod != nil {
