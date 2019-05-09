@@ -114,10 +114,10 @@ func addGenesisOptions(filename string, options json.RawMessage, force, ignore b
 		return fmt.Errorf(ErrorAlreadyInitialised, FlagForce, FlagIgnore)
 	}
 
-	timeJson, _ := time.Now().MarshalJSON()
+	timeJSON, _ := time.Now().UTC().MarshalJSON()
 
 	doc[AppStateKey] = options
-	doc[GenesisTimeKey] = timeJson
+	doc[GenesisTimeKey] = timeJSON
 
 	out, err := json.MarshalIndent(doc, "", "  ")
 	if err != nil {
