@@ -47,7 +47,7 @@ func TestElectorateValidation(t *testing.T) {
 				TotalElectorateWeight: 1,
 				UpdateElectionRuleID:  weavetest.SequenceID(1),
 			},
-			Exp: errors.ErrInvalidInput,
+			Exp: errors.ErrInput,
 		},
 		"Too many electors": {
 			Src: Electorate{
@@ -57,7 +57,7 @@ func TestElectorateValidation(t *testing.T) {
 				TotalElectorateWeight: 2001,
 				UpdateElectionRuleID:  weavetest.SequenceID(1),
 			},
-			Exp: errors.ErrInvalidInput,
+			Exp: errors.ErrInput,
 		},
 		"Duplicate electors": {
 			Src: Electorate{
@@ -67,7 +67,7 @@ func TestElectorateValidation(t *testing.T) {
 				TotalElectorateWeight: 2,
 				UpdateElectionRuleID:  weavetest.SequenceID(1),
 			},
-			Exp: errors.ErrInvalidInput,
+			Exp: errors.ErrInput,
 		},
 		"Empty electors weight ": {
 			Src: Electorate{
@@ -77,7 +77,7 @@ func TestElectorateValidation(t *testing.T) {
 				TotalElectorateWeight: 1,
 				UpdateElectionRuleID:  weavetest.SequenceID(1),
 			},
-			Exp: errors.ErrInvalidInput,
+			Exp: errors.ErrInput,
 		},
 		"Electors weight exceeds max": {
 			Src: Electorate{
@@ -87,7 +87,7 @@ func TestElectorateValidation(t *testing.T) {
 				TotalElectorateWeight: 65536,
 				UpdateElectionRuleID:  weavetest.SequenceID(1),
 			},
-			Exp: errors.ErrInvalidInput,
+			Exp: errors.ErrInput,
 		},
 		"Electors address must not be empty": {
 			Src: Electorate{
@@ -107,7 +107,7 @@ func TestElectorateValidation(t *testing.T) {
 				TotalElectorateWeight: 2,
 				UpdateElectionRuleID:  weavetest.SequenceID(1),
 			},
-			Exp: errors.ErrInvalidInput,
+			Exp: errors.ErrInput,
 		},
 		"Title too short": {
 			Src: Electorate{
@@ -117,7 +117,7 @@ func TestElectorateValidation(t *testing.T) {
 				TotalElectorateWeight: 1,
 				UpdateElectionRuleID:  weavetest.SequenceID(1),
 			},
-			Exp: errors.ErrInvalidInput,
+			Exp: errors.ErrInput,
 		},
 		"Title too long": {
 			Src: Electorate{
@@ -127,7 +127,7 @@ func TestElectorateValidation(t *testing.T) {
 				TotalElectorateWeight: 1,
 				UpdateElectionRuleID:  weavetest.SequenceID(1),
 			},
-			Exp: errors.ErrInvalidInput,
+			Exp: errors.ErrInput,
 		},
 		"Admin must not be invalid": {
 			Src: Electorate{
@@ -137,7 +137,7 @@ func TestElectorateValidation(t *testing.T) {
 				TotalElectorateWeight: 1,
 				UpdateElectionRuleID:  weavetest.SequenceID(1),
 			},
-			Exp: errors.ErrInvalidInput,
+			Exp: errors.ErrInput,
 		},
 		"Admin must not be empty": {
 			Src: Electorate{
@@ -196,7 +196,7 @@ func TestElectionRuleValidation(t *testing.T) {
 				VotingPeriodHours: 1,
 				Threshold:         Fraction{Numerator: 1, Denominator: 2},
 			},
-			Exp: errors.ErrInvalidInput,
+			Exp: errors.ErrInput,
 		},
 		"Title too long": {
 			Src: ElectionRule{
@@ -205,7 +205,7 @@ func TestElectionRuleValidation(t *testing.T) {
 				VotingPeriodHours: 1,
 				Threshold:         Fraction{Numerator: 1, Denominator: 2},
 			},
-			Exp: errors.ErrInvalidInput,
+			Exp: errors.ErrInput,
 		},
 		"Voting period empty": {
 			Src: ElectionRule{
@@ -214,7 +214,7 @@ func TestElectionRuleValidation(t *testing.T) {
 				VotingPeriodHours: 0,
 				Threshold:         Fraction{Numerator: 1, Denominator: 2},
 			},
-			Exp: errors.ErrInvalidInput,
+			Exp: errors.ErrInput,
 		},
 		"Voting period too long": {
 			Src: ElectionRule{
@@ -223,7 +223,7 @@ func TestElectionRuleValidation(t *testing.T) {
 				VotingPeriodHours: 673, // = 4 * 7 * 24 + 1
 				Threshold:         Fraction{Numerator: 1, Denominator: 2},
 			},
-			Exp: errors.ErrInvalidInput,
+			Exp: errors.ErrInput,
 		},
 		"Threshold must not be lower han 0.5": {
 			Src: ElectionRule{
@@ -232,7 +232,7 @@ func TestElectionRuleValidation(t *testing.T) {
 				VotingPeriodHours: 1,
 				Threshold:         Fraction{Numerator: 1<<31 - 1, Denominator: math.MaxUint32},
 			},
-			Exp: errors.ErrInvalidInput,
+			Exp: errors.ErrInput,
 		},
 		"Threshold fraction must not be higher than 1": {
 			Src: ElectionRule{
@@ -241,7 +241,7 @@ func TestElectionRuleValidation(t *testing.T) {
 				VotingPeriodHours: 1,
 				Threshold:         Fraction{Numerator: math.MaxUint32, Denominator: math.MaxUint32 - 1},
 			},
-			Exp: errors.ErrInvalidInput,
+			Exp: errors.ErrInput,
 		},
 		"Threshold fraction must not contain 0 numerator": {
 			Src: ElectionRule{
@@ -250,7 +250,7 @@ func TestElectionRuleValidation(t *testing.T) {
 				VotingPeriodHours: 1,
 				Threshold:         Fraction{Numerator: 0, Denominator: math.MaxUint32 - 1},
 			},
-			Exp: errors.ErrInvalidInput,
+			Exp: errors.ErrInput,
 		},
 		"Threshold fraction must not contain 0 denominator": {
 			Src: ElectionRule{
@@ -259,7 +259,7 @@ func TestElectionRuleValidation(t *testing.T) {
 				VotingPeriodHours: 1,
 				Threshold:         Fraction{Numerator: 1, Denominator: 0},
 			},
-			Exp: errors.ErrInvalidInput,
+			Exp: errors.ErrInput,
 		},
 		"Quorum must not be lower han 0.5": {
 			Src: ElectionRule{
@@ -269,7 +269,7 @@ func TestElectionRuleValidation(t *testing.T) {
 				Quorum:            &Fraction{Numerator: 1<<31 - 1, Denominator: math.MaxUint32},
 				Threshold:         Fraction{Numerator: 1, Denominator: 2},
 			},
-			Exp: errors.ErrInvalidInput,
+			Exp: errors.ErrInput,
 		},
 		"Quorum fraction must not be higher than 1": {
 			Src: ElectionRule{
@@ -279,7 +279,7 @@ func TestElectionRuleValidation(t *testing.T) {
 				Quorum:            &Fraction{Numerator: math.MaxUint32, Denominator: math.MaxUint32 - 1},
 				Threshold:         Fraction{Numerator: 1, Denominator: 2},
 			},
-			Exp: errors.ErrInvalidInput,
+			Exp: errors.ErrInput,
 		},
 		"Quorum fraction must not contain 0 numerator": {
 			Src: ElectionRule{
@@ -289,7 +289,7 @@ func TestElectionRuleValidation(t *testing.T) {
 				Quorum:            &Fraction{Numerator: 0, Denominator: math.MaxUint32 - 1},
 				Threshold:         Fraction{Numerator: 1, Denominator: 2},
 			},
-			Exp: errors.ErrInvalidInput,
+			Exp: errors.ErrInput,
 		},
 		"Quorum fraction must not contain 0 denominator": {
 			Src: ElectionRule{
@@ -299,7 +299,7 @@ func TestElectionRuleValidation(t *testing.T) {
 				Quorum:            &Fraction{Numerator: 1, Denominator: 0},
 				Threshold:         Fraction{Numerator: 1, Denominator: 2},
 			},
-			Exp: errors.ErrInvalidInput,
+			Exp: errors.ErrInput,
 		},
 		"Admin must not be invalid": {
 			Src: ElectionRule{
@@ -309,7 +309,7 @@ func TestElectionRuleValidation(t *testing.T) {
 				Quorum:            &Fraction{Numerator: 1, Denominator: 1},
 				Threshold:         Fraction{Numerator: 1, Denominator: 2},
 			},
-			Exp: errors.ErrInvalidInput,
+			Exp: errors.ErrInput,
 		},
 		"Admin must not be empty": {
 			Src: ElectionRule{
@@ -343,69 +343,69 @@ func TestTextProposalValidation(t *testing.T) {
 			Src: textProposalFixture(func(p *Proposal) {
 				p.Title = "foo"
 			}),
-			Exp: errors.ErrInvalidInput,
+			Exp: errors.ErrInput,
 		},
 		"Title too long": {
 			Src: textProposalFixture(func(p *Proposal) {
 				p.Title = BigString(129)
 			}),
-			Exp: errors.ErrInvalidInput,
+			Exp: errors.ErrInput,
 		},
 		"Description empty": {
 			Src: textProposalFixture(func(p *Proposal) {
 				p.Description = ""
 			}),
-			Exp: errors.ErrInvalidInput,
+			Exp: errors.ErrInput,
 		},
 		"Description too long": {
 			Src: textProposalFixture(func(p *Proposal) {
 				p.Description = BigString(5001)
 			}),
-			Exp: errors.ErrInvalidInput,
+			Exp: errors.ErrInput,
 		},
 		"Author missing": {
 			Src: textProposalFixture(func(p *Proposal) {
 				p.Author = nil
 			}),
-			Exp: errors.ErrInvalidInput,
+			Exp: errors.ErrInput,
 		},
 		"ElectorateID missing": {
 			Src: textProposalFixture(func(p *Proposal) {
 				p.ElectorateID = nil
 			}),
-			Exp: errors.ErrInvalidInput,
+			Exp: errors.ErrInput,
 		},
 		"ElectionRuleID missing": {
 			Src: textProposalFixture(func(p *Proposal) {
 				p.ElectionRuleID = nil
 			}),
-			Exp: errors.ErrInvalidInput,
+			Exp: errors.ErrInput,
 		},
 		"StartTime missing": {
 			Src: textProposalFixture(func(p *Proposal) {
 				var unset time.Time
 				p.VotingStartTime = weave.AsUnixTime(unset)
 			}),
-			Exp: errors.ErrInvalidInput,
+			Exp: errors.ErrInput,
 		},
 		"EndTime missing": {
 			Src: textProposalFixture(func(p *Proposal) {
 				var unset time.Time
 				p.VotingEndTime = weave.AsUnixTime(unset)
 			}),
-			Exp: errors.ErrInvalidInput,
+			Exp: errors.ErrInput,
 		},
 		"Status missing": {
 			Src: textProposalFixture(func(p *Proposal) {
 				p.Status = Proposal_Status(0)
 			}),
-			Exp: errors.ErrInvalidInput,
+			Exp: errors.ErrInput,
 		},
 		"Result missing": {
 			Src: textProposalFixture(func(p *Proposal) {
 				p.Result = Proposal_Result(0)
 			}),
-			Exp: errors.ErrInvalidInput,
+			Exp: errors.ErrInput,
 		},
 	}
 	for msg, spec := range specs {
@@ -430,15 +430,15 @@ func TestVoteValidate(t *testing.T) {
 		},
 		"Voted option missing": {
 			Src: Vote{Elector: Elector{Address: bobby, Weight: 10}},
-			Exp: errors.ErrInvalidInput,
+			Exp: errors.ErrInput,
 		},
 		"Elector missing": {
 			Src: Vote{Voted: VoteOption_Yes},
-			Exp: errors.ErrInvalidInput,
+			Exp: errors.ErrInput,
 		},
 		"Elector's weight missing": {
 			Src: Vote{Voted: VoteOption_Yes, Elector: Elector{Address: bobby}},
-			Exp: errors.ErrInvalidInput,
+			Exp: errors.ErrInput,
 		},
 		"Elector's Address missing": {
 			Src: Vote{Voted: VoteOption_Yes, Elector: Elector{Weight: 1}},
@@ -446,7 +446,7 @@ func TestVoteValidate(t *testing.T) {
 		},
 		"Invalid option": {
 			Src: Vote{Voted: VoteOption_Invalid, Elector: Elector{Address: bobby, Weight: 1}},
-			Exp: errors.ErrInvalidInput,
+			Exp: errors.ErrInput,
 		},
 	}
 	for msg, spec := range specs {

@@ -114,7 +114,7 @@ func (s *StoreApp) parseAppState(data []byte, chainID string, init weave.Initial
 	var appState weave.Options
 	err := json.Unmarshal(data, &appState)
 	if err != nil {
-		return errors.Wrap(errors.ErrInvalidState, err.Error())
+		return errors.Wrap(errors.ErrState, err.Error())
 	}
 
 	err = s.storeChainID(chainID)

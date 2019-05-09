@@ -65,7 +65,7 @@ func (svb Bucket) Save(db weave.KVStore, obj orm.Object) error {
 func (svb Bucket) migrate(db weave.ReadOnlyKVStore, obj orm.Object) error {
 	m, ok := obj.Value().(Migratable)
 	if !ok {
-		return errors.Wrap(errors.ErrInvalidModel, "model cannot be migrated")
+		return errors.Wrap(errors.ErrModel, "model cannot be migrated")
 	}
 	currSchemaVer, err := svb.schema.CurrentSchema(db, svb.packageName)
 	if err != nil {

@@ -62,7 +62,7 @@ func (c Coin) Divide(pieces int64) (Coin, Coin, error) {
 	// This is an invalid use of the method.
 	if pieces <= 0 {
 		zero := Coin{Ticker: c.Ticker}
-		return zero, zero, errors.Wrap(errors.ErrInvalidInput, "pieces must be greater than zero")
+		return zero, zero, errors.Wrap(errors.ErrInput, "pieces must be greater than zero")
 	}
 
 	// When dividing whole and there is a leftover then convert it to
@@ -272,7 +272,7 @@ func (c Coin) Validate() error {
 	// make sure signs match
 	if c.Whole != 0 && c.Fractional != 0 &&
 		((c.Whole > 0) != (c.Fractional > 0)) {
-		return errors.Wrap(errors.ErrInvalidState, "mismatched sign")
+		return errors.Wrap(errors.ErrState, "mismatched sign")
 	}
 
 	return nil

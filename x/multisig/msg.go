@@ -34,11 +34,11 @@ func (c *CreateContractMsg) Validate() error {
 	}
 	switch n := len(c.Participants); {
 	case n == 0:
-		return errors.Wrap(errors.ErrInvalidMsg, "no participants")
+		return errors.Wrap(errors.ErrMsg, "no participants")
 	case n > maxParticipantsAllowed:
-		return errors.Wrap(errors.ErrInvalidMsg, "too many participants")
+		return errors.Wrap(errors.ErrMsg, "too many participants")
 	}
-	return validateWeights(errors.ErrInvalidMsg,
+	return validateWeights(errors.ErrMsg,
 		c.Participants, c.ActivationThreshold, c.AdminThreshold)
 }
 
@@ -54,11 +54,11 @@ func (c *UpdateContractMsg) Validate() error {
 	}
 	switch n := len(c.Participants); {
 	case n == 0:
-		return errors.Wrap(errors.ErrInvalidMsg, "no participants")
+		return errors.Wrap(errors.ErrMsg, "no participants")
 	case n > maxParticipantsAllowed:
-		return errors.Wrap(errors.ErrInvalidMsg, "too many participants")
+		return errors.Wrap(errors.ErrMsg, "too many participants")
 	}
-	return validateWeights(errors.ErrInvalidMsg,
+	return validateWeights(errors.ErrMsg,
 		c.Participants, c.ActivationThreshold, c.AdminThreshold)
 }
 

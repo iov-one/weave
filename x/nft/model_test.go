@@ -36,7 +36,7 @@ func TestNonFungibleTokenValidate(t *testing.T) {
 				ID:       []byte("anyID"),
 				Owner:    []byte("not an address"),
 			},
-			WantErr: errors.ErrInvalidInput,
+			WantErr: errors.ErrInput,
 		},
 		"id to small": {
 			Token: nft.NonFungibleToken{
@@ -44,7 +44,7 @@ func TestNonFungibleTokenValidate(t *testing.T) {
 				ID:       []byte("12"),
 				Owner:    alice.Address(),
 			},
-			WantErr: errors.ErrInvalidInput,
+			WantErr: errors.ErrInput,
 		},
 		"id too big": {
 			Token: nft.NonFungibleToken{
@@ -52,7 +52,7 @@ func TestNonFungibleTokenValidate(t *testing.T) {
 				ID:       anyIDWithLength(257),
 				Owner:    alice.Address(),
 			},
-			WantErr: errors.ErrInvalidInput,
+			WantErr: errors.ErrInput,
 		},
 	}
 	for testName, tc := range cases {

@@ -42,7 +42,7 @@ func TestCreateContractHandler(t *testing.T) {
 				ActivationThreshold: 2,
 				AdminThreshold:      3,
 			},
-			WantCheckErr: errors.ErrInvalidMsg,
+			WantCheckErr: errors.ErrMsg,
 		},
 		"cannot create if activation threshold is too high": {
 			Msg: &CreateContractMsg{
@@ -55,7 +55,7 @@ func TestCreateContractHandler(t *testing.T) {
 				ActivationThreshold: 7, // higher than total
 				AdminThreshold:      3,
 			},
-			WantCheckErr: errors.ErrInvalidMsg,
+			WantCheckErr: errors.ErrMsg,
 		},
 		"can create if admin threshold is higher than total participants power": {
 			Msg: &CreateContractMsg{
@@ -79,7 +79,7 @@ func TestCreateContractHandler(t *testing.T) {
 				ActivationThreshold: 2,
 				AdminThreshold:      1,
 			},
-			WantCheckErr: errors.ErrInvalidMsg,
+			WantCheckErr: errors.ErrMsg,
 		},
 	}
 
@@ -177,7 +177,7 @@ func TestUpdateContractHandler(t *testing.T) {
 				ActivationThreshold: 2,
 				AdminThreshold:      3,
 			},
-			WantCheckErr: errors.ErrInvalidMsg,
+			WantCheckErr: errors.ErrMsg,
 		},
 		"cannot update if activation threshold is too high": {
 			Conditions: []weave.Condition{
@@ -194,7 +194,7 @@ func TestUpdateContractHandler(t *testing.T) {
 				ActivationThreshold: 100,
 				AdminThreshold:      3,
 			},
-			WantCheckErr: errors.ErrInvalidMsg,
+			WantCheckErr: errors.ErrMsg,
 		},
 		"can update if admin threshold is higher than total participants power": {
 			Conditions: []weave.Condition{
@@ -226,7 +226,7 @@ func TestUpdateContractHandler(t *testing.T) {
 				ActivationThreshold: 2,
 				AdminThreshold:      1,
 			},
-			WantCheckErr: errors.ErrInvalidMsg,
+			WantCheckErr: errors.ErrMsg,
 		},
 		"admin power is required to update a contract": {
 			Conditions: []weave.Condition{

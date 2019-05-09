@@ -19,25 +19,25 @@ func (pc *PaymentChannel) Validate() error {
 		return errors.Wrap(err, "src")
 	}
 	if pc.SenderPubkey == nil {
-		return errors.Wrap(errors.ErrInvalidModel, "missing sender public key")
+		return errors.Wrap(errors.ErrModel, "missing sender public key")
 	}
 	if err := pc.Recipient.Validate(); err != nil {
 		return errors.Wrap(err, "recipient")
 	}
 	if pc.Timeout <= 0 {
-		return errors.Wrap(errors.ErrInvalidModel, "timeout in the past")
+		return errors.Wrap(errors.ErrModel, "timeout in the past")
 	}
 	if pc.Total == nil || !pc.Total.IsPositive() {
-		return errors.Wrap(errors.ErrInvalidModel, "negative total")
+		return errors.Wrap(errors.ErrModel, "negative total")
 	}
 	if len(pc.Memo) > 128 {
-		return errors.Wrap(errors.ErrInvalidModel, "memo too long")
+		return errors.Wrap(errors.ErrModel, "memo too long")
 	}
 
 	// Transfer value must not be greater than the Total value represented
 	// by the PaymentChannel.
 	if pc.Transferred == nil || !pc.Transferred.IsNonNegative() || pc.Transferred.Compare(*pc.Total) > 0 {
-		return errors.Wrap(errors.ErrInvalidModel, "invalid transferred value")
+		return errors.Wrap(errors.ErrModel, "invalid transferred value")
 	}
 	return nil
 }
@@ -86,7 +86,7 @@ func (b *PaymentChannelBucket) Create(db weave.KVStore, pc *PaymentChannel) (orm
 // Save updates the state of given PaymentChannel entity in the store.
 func (b *PaymentChannelBucket) Save(db weave.KVStore, obj orm.Object) error {
 	if _, ok := obj.Value().(*PaymentChannel); !ok {
-		return errors.WithType(errors.ErrInvalidModel, obj.Value())
+		return errors.WithType(errors.ErrModel, obj.Value())
 	}
 	return b.Bucket.Save(db, obj)
 }

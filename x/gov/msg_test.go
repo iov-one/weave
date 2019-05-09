@@ -23,19 +23,19 @@ func TestVoteMsg(t *testing.T) {
 		},
 		"Proposal id missing": {
 			Msg: VoteMsg{Selected: VoteOption_Yes, Voter: alice},
-			Exp: errors.ErrInvalidInput,
+			Exp: errors.ErrInput,
 		},
 		"Vote option missing": {
 			Msg: VoteMsg{ProposalID: weavetest.SequenceID(1), Voter: alice},
-			Exp: errors.ErrInvalidInput,
+			Exp: errors.ErrInput,
 		},
 		"Invalid vote option": {
 			Msg: VoteMsg{ProposalID: weavetest.SequenceID(1), Selected: VoteOption(100), Voter: alice},
-			Exp: errors.ErrInvalidInput,
+			Exp: errors.ErrInput,
 		},
 		"Invalid voter address": {
 			Msg: VoteMsg{ProposalID: weavetest.SequenceID(1), Selected: VoteOption_Yes, Voter: weave.Address([]byte{0})},
-			Exp: errors.ErrInvalidInput,
+			Exp: errors.ErrInput,
 		},
 	}
 	for msg, spec := range specs {
@@ -58,7 +58,7 @@ func TestTallyMsg(t *testing.T) {
 		},
 		"ID missing": {
 			Msg: TallyMsg{},
-			Exp: errors.ErrInvalidInput,
+			Exp: errors.ErrInput,
 		},
 	}
 	for msg, spec := range specs {
@@ -113,55 +113,55 @@ func TestCrateTextProposalMsg(t *testing.T) {
 			Msg: buildMsg(func(p *CreateTextProposalMsg) {
 				p.Title = "foo"
 			}),
-			Exp: errors.ErrInvalidInput,
+			Exp: errors.ErrInput,
 		},
 		"Title too long": {
 			Msg: buildMsg(func(p *CreateTextProposalMsg) {
 				p.Title = BigString(129)
 			}),
-			Exp: errors.ErrInvalidInput,
+			Exp: errors.ErrInput,
 		},
 		"Title with invalid chars": {
 			Msg: buildMsg(func(p *CreateTextProposalMsg) {
 				p.Title = "title with invalid char <"
 			}),
-			Exp: errors.ErrInvalidInput,
+			Exp: errors.ErrInput,
 		},
 		"Description too short": {
 			Msg: buildMsg(func(p *CreateTextProposalMsg) {
 				p.Title = "foo"
 			}),
-			Exp: errors.ErrInvalidInput,
+			Exp: errors.ErrInput,
 		},
 		"Description too long": {
 			Msg: buildMsg(func(p *CreateTextProposalMsg) {
 				p.Title = BigString(5001)
 			}),
-			Exp: errors.ErrInvalidInput,
+			Exp: errors.ErrInput,
 		},
 		"ElectorateID missing": {
 			Msg: buildMsg(func(p *CreateTextProposalMsg) {
 				p.ElectorateID = nil
 			}),
-			Exp: errors.ErrInvalidInput,
+			Exp: errors.ErrInput,
 		},
 		"ElectionRuleID missing": {
 			Msg: buildMsg(func(p *CreateTextProposalMsg) {
 				p.ElectionRuleID = nil
 			}),
-			Exp: errors.ErrInvalidInput,
+			Exp: errors.ErrInput,
 		},
 		"StartTime zero": {
 			Msg: buildMsg(func(p *CreateTextProposalMsg) {
 				p.StartTime = 0
 			}),
-			Exp: errors.ErrInvalidInput,
+			Exp: errors.ErrInput,
 		},
 		"Invalid author address": {
 			Msg: buildMsg(func(p *CreateTextProposalMsg) {
 				p.Author = []byte{0, 0, 0, 0}
 			}),
-			Exp: errors.ErrInvalidInput,
+			Exp: errors.ErrInput,
 		},
 	}
 	for msg, spec := range specs {
@@ -184,7 +184,7 @@ func TestDeleteTestProposalMsg(t *testing.T) {
 		},
 		"Empty ID": {
 			Msg: DeleteProposalMsg{},
-			Exp: errors.ErrInvalidInput,
+			Exp: errors.ErrInput,
 		},
 	}
 	for msg, spec := range specs {

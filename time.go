@@ -72,16 +72,16 @@ func (t *UnixTime) UnmarshalJSON(raw []byte) error {
 		return nil
 	}
 
-	return errors.Wrap(errors.ErrInvalidInput, "invalid time format")
+	return errors.Wrap(errors.ErrInput, "invalid time format")
 }
 
 // Validate returns an error if this time value is invalid.
 func (t UnixTime) Validate() error {
 	if t < minUnixTime {
-		return errors.Wrap(errors.ErrInvalidState, "time must be an A.D. value")
+		return errors.Wrap(errors.ErrState, "time must be an A.D. value")
 	}
 	if t > maxUnixTime {
-		return errors.Wrap(errors.ErrInvalidState, "time must be an before year 10000")
+		return errors.Wrap(errors.ErrState, "time must be an before year 10000")
 	}
 	return nil
 }

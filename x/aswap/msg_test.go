@@ -33,7 +33,7 @@ func TestCreateSwapMsg(t *testing.T) {
 			Mutator: func(msg *aswap.CreateSwapMsg) {
 				msg.PreimageHash = make([]byte, 31)
 			},
-			Exp: errors.ErrInvalidInput,
+			Exp: errors.ErrInput,
 		},
 		"Invalid recipient": {
 			Mutator: func(msg *aswap.CreateSwapMsg) {
@@ -51,25 +51,25 @@ func TestCreateSwapMsg(t *testing.T) {
 			Mutator: func(msg *aswap.CreateSwapMsg) {
 				msg.Timeout = 0
 			},
-			Exp: errors.ErrInvalidInput,
+			Exp: errors.ErrInput,
 		},
 		"Invalid timeout": {
 			Mutator: func(msg *aswap.CreateSwapMsg) {
 				msg.Timeout = math.MinInt64
 			},
-			Exp: errors.ErrInvalidState,
+			Exp: errors.ErrState,
 		},
 		"Invalid memo": {
 			Mutator: func(msg *aswap.CreateSwapMsg) {
 				msg.Memo = string(make([]byte, 129))
 			},
-			Exp: errors.ErrInvalidInput,
+			Exp: errors.ErrInput,
 		},
 		"Invalid amount": {
 			Mutator: func(msg *aswap.CreateSwapMsg) {
 				msg.Amount = nil
 			},
-			Exp: errors.ErrInvalidAmount,
+			Exp: errors.ErrAmount,
 		},
 		"Invalid coin": {
 			Mutator: func(msg *aswap.CreateSwapMsg) {
@@ -117,13 +117,13 @@ func TestReleaseSwapMsg(t *testing.T) {
 			Mutator: func(msg *aswap.ReleaseSwapMsg) {
 				msg.Preimage = make([]byte, 31)
 			},
-			Exp: errors.ErrInvalidInput,
+			Exp: errors.ErrInput,
 		},
 		"Invalid SwapID": {
 			Mutator: func(msg *aswap.ReleaseSwapMsg) {
 				msg.SwapID = make([]byte, 7)
 			},
-			Exp: errors.ErrInvalidInput,
+			Exp: errors.ErrInput,
 		},
 	}
 	for msg, spec := range specs {
@@ -162,7 +162,7 @@ func TestReturnSwapMsg(t *testing.T) {
 			Mutator: func(msg *aswap.ReturnSwapMsg) {
 				msg.SwapID = make([]byte, 7)
 			},
-			Exp: errors.ErrInvalidInput,
+			Exp: errors.ErrInput,
 		},
 	}
 	for msg, spec := range specs {

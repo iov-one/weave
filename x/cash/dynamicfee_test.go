@@ -75,7 +75,7 @@ func TestDynamicFeeDecorator(t *testing.T) {
 			},
 			minimumFee:     coin.NewCoin(0, 23, "BTC"),
 			txFee:          coin.NewCoin(0, 421, "BTC"), // Wallet has not enough.
-			wantCheckErr:   errors.ErrInsufficientAmount,
+			wantCheckErr:   errors.ErrAmount,
 			wantCheckTxFee: coin.NewCoin(0, 23, "BTC"),
 		},
 		"on inssuficient funds minimum fee withdraw fails": {
@@ -85,7 +85,7 @@ func TestDynamicFeeDecorator(t *testing.T) {
 			},
 			minimumFee:     coin.NewCoin(0, 23, "BTC"),  // Wallet has not enough.
 			txFee:          coin.NewCoin(0, 421, "BTC"), // Wallet has not enough.
-			wantCheckErr:   errors.ErrInsufficientAmount,
+			wantCheckErr:   errors.ErrAmount,
 			wantCheckTxFee: coin.Coin{},
 		},
 		/*
@@ -151,7 +151,7 @@ func TestDynamicFeeDecorator(t *testing.T) {
 			},
 			minimumFee:     coin.NewCoin(0, 23, "IOV"),
 			txFee:          coin.NewCoin(0, 421, "IOV"),
-			wantCheckErr:   errors.ErrInsufficientAmount,
+			wantCheckErr:   errors.ErrAmount,
 			wantCheckTxFee: coin.NewCoin(0, 23, "IOV"),
 		},
 		"failure if we pay different currency than required fee": {
@@ -164,7 +164,7 @@ func TestDynamicFeeDecorator(t *testing.T) {
 			},
 			minimumFee:     coin.NewCoin(0, 23, "IOV"),
 			txFee:          coin.NewCoin(0, 421, "IOV"),
-			wantCheckErr:   errors.ErrInsufficientAmount,
+			wantCheckErr:   errors.ErrAmount,
 			wantCheckTxFee: coin.NewCoin(0, 23, "IOV"),
 		},
 		"failure if we pay less than required fee also in delivettx": {
@@ -179,7 +179,7 @@ func TestDynamicFeeDecorator(t *testing.T) {
 			txFee:            coin.NewCoin(0, 421, "IOV"),
 			wantCheckTxFee:   coin.NewCoin(0, 421, "IOV"),
 			wantGasPayment:   421,
-			wantDeliverErr:   errors.ErrInsufficientAmount,
+			wantDeliverErr:   errors.ErrAmount,
 			wantDeliverTxFee: coin.NewCoin(0, 23, "IOV"),
 		},
 	}

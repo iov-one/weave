@@ -32,20 +32,20 @@ func (s *Swap) Validate() error {
 		return errors.Wrap(err, "recipient")
 	}
 	if len(s.PreimageHash) != preimageHashSize {
-		return errors.Wrapf(errors.ErrInvalidInput,
+		return errors.Wrapf(errors.ErrInput,
 			"preimage hash has to be exactly %d bytes", preimageHashSize)
 	}
 	if s.Timeout == 0 {
 		// Zero timeout is a valid value that dates to 1970-01-01. We
 		// know that this value is in the past and makes no sense. Most
 		// likely value was not provided and a zero value remained.
-		return errors.Wrap(errors.ErrInvalidInput, "timeout is required")
+		return errors.Wrap(errors.ErrInput, "timeout is required")
 	}
 	if err := s.Timeout.Validate(); err != nil {
 		return errors.Wrap(err, "invalid timeout value")
 	}
 	if len(s.Memo) > maxMemoSize {
-		return errors.Wrapf(errors.ErrInvalidInput, "memo %s", s.Memo)
+		return errors.Wrapf(errors.ErrInput, "memo %s", s.Memo)
 	}
 	return nil
 }

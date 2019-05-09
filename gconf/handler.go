@@ -83,7 +83,7 @@ func patch(config OwnedConfig, payload OwnedConfig) error {
 	pType := reflect.TypeOf(payload)
 	cType := reflect.TypeOf(config)
 	if !pType.ConvertibleTo(cType) {
-		return errors.Wrap(errors.ErrInvalidMsg, "config in message doesn't match store")
+		return errors.Wrap(errors.ErrMsg, "config in message doesn't match store")
 	}
 
 	cval := reflect.ValueOf(config).Elem()
@@ -126,17 +126,17 @@ func patchPayload(tx weave.Tx) (OwnedConfig, error) {
 	// Try to do (*Configuration).Patch and get the interface behind.
 	pval := reflect.ValueOf(msg)
 	if pval.Kind() != reflect.Ptr || pval.Elem().Kind() != reflect.Struct {
-		return nil, errors.Wrapf(errors.ErrInvalidInput, "invalid message container value: %T", msg)
+		return nil, errors.Wrapf(errors.ErrInput, "invalid message container value: %T", msg)
 	}
 	val := pval.Elem()
 
 	field := val.FieldByName("Patch")
 	if field.IsNil() {
-		return nil, errors.Wrap(errors.ErrInvalidState, `"Patch" field is required`)
+		return nil, errors.Wrap(errors.ErrState, `"Patch" field is required`)
 	}
 	payload, ok := field.Interface().(OwnedConfig)
 	if !ok {
-		return nil, errors.Wrap(errors.ErrInvalidInput, `"Patch" field is of a wrong type`)
+		return nil, errors.Wrap(errors.ErrInput, `"Patch" field is of a wrong type`)
 	}
 	return payload, nil
 }

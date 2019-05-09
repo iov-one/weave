@@ -39,13 +39,13 @@ func (e *Escrow) Validate() error {
 		// Zero timeout is a valid value that dates to 1970-01-01. We
 		// know that this value is in the past and makes no sense. Most
 		// likely value was not provided and a zero value remained.
-		return errors.Wrap(errors.ErrInvalidInput, "timeout in required")
+		return errors.Wrap(errors.ErrInput, "timeout in required")
 	}
 	if err := e.Timeout.Validate(); err != nil {
 		return errors.Wrap(err, "invalid timeout value")
 	}
 	if len(e.Memo) > maxMemoSize {
-		return errors.Wrapf(errors.ErrInvalidInput, "memo %s", e.Memo)
+		return errors.Wrapf(errors.ErrInput, "memo %s", e.Memo)
 	}
 	if err := validateConditions(e.Arbiter); err != nil {
 		return err
@@ -174,7 +174,7 @@ func (b Bucket) Build(db weave.KVStore, escrow *Escrow) (orm.Object, error) {
 // Save enforces the proper type
 func (b Bucket) Save(db weave.KVStore, obj orm.Object) error {
 	if _, ok := obj.Value().(*Escrow); !ok {
-		return errors.WithType(errors.ErrInvalidModel, obj.Value())
+		return errors.WithType(errors.ErrModel, obj.Value())
 	}
 	return b.Bucket.Save(db, obj)
 }

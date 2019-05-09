@@ -42,7 +42,7 @@ func TestRevenueValidate(t *testing.T) {
 				Admin:      addr,
 				Recipients: []*Recipient{},
 			},
-			wantErr: errors.ErrInvalidModel,
+			wantErr: errors.ErrModel,
 		},
 		"recipient weight must be greater than zero": {
 			model: Revenue{
@@ -52,7 +52,7 @@ func TestRevenueValidate(t *testing.T) {
 					{Weight: 0, Address: addr},
 				},
 			},
-			wantErr: errors.ErrInvalidModel,
+			wantErr: errors.ErrModel,
 		},
 		"recipient must have a valid address": {
 			model: Revenue{
@@ -62,7 +62,7 @@ func TestRevenueValidate(t *testing.T) {
 					{Weight: 2, Address: []byte("zzz")},
 				},
 			},
-			wantErr: errors.ErrInvalidInput,
+			wantErr: errors.ErrInput,
 		},
 	}
 
@@ -88,7 +88,7 @@ func TestValidRecipients(t *testing.T) {
 				{Address: weave.Address("f427d624ed29c1fae0e2"), Weight: 1},
 				{Address: weave.Address("aa27d624ed29c1fae0e2"), Weight: 2},
 			},
-			baseErr: errors.ErrInvalidModel,
+			baseErr: errors.ErrModel,
 			want:    nil,
 		},
 		"recipient address not unique": {
@@ -96,20 +96,20 @@ func TestValidRecipients(t *testing.T) {
 				{Address: weave.Address("f427d624ed29c1fae0e2"), Weight: 1},
 				{Address: weave.Address("f427d624ed29c1fae0e2"), Weight: 1},
 			},
-			baseErr: errors.ErrInvalidMsg,
-			want:    errors.ErrInvalidMsg,
+			baseErr: errors.ErrMsg,
+			want:    errors.ErrMsg,
 		},
 		"too many recipients": {
 			recipients: createRecipients(maxRecipients + 1),
-			baseErr:    errors.ErrInvalidModel,
-			want:       errors.ErrInvalidModel,
+			baseErr:    errors.ErrModel,
+			want:       errors.ErrModel,
 		},
 		"weight too big": {
 			recipients: []*Recipient{
 				{Address: weave.Address("f427d624ed29c1fae0e2"), Weight: math.MaxInt32 - 1},
 			},
-			baseErr: errors.ErrInvalidMsg,
-			want:    errors.ErrInvalidMsg,
+			baseErr: errors.ErrMsg,
+			want:    errors.ErrMsg,
 		},
 	}
 

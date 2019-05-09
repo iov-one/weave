@@ -17,7 +17,7 @@ type transformer func(Object, saver) error
 func set(key []byte, n int64) transformer {
 	return func(obj Object, save saver) error {
 		if obj != nil {
-			return errors.Wrap(errors.ErrInvalidState, "expected empty")
+			return errors.Wrap(errors.ErrState, "expected empty")
 		}
 		obj = NewSimpleObj(key, NewCounter(n))
 		return save(obj)
@@ -65,7 +65,7 @@ func TestBucketNameCollision(t *testing.T) {
 
 	// Loading an object using the wrong bucket must fail because protobuf
 	// deserialization cannot happen.
-	if _, err := b1.Get(db, objkey); !errors.ErrInvalidState.Is(err) {
+	if _, err := b1.Get(db, objkey); !errors.ErrState.Is(err) {
 		t.Fatalf("cannot get object: %+v", err)
 	}
 }
@@ -74,7 +74,7 @@ func TestBucketCannotSaveInvalid(t *testing.T) {
 	counter := &Counter{
 		Count: -999, // Negative value is not valid.
 	}
-	if err := counter.Validate(); !errors.ErrInvalidState.Is(err) {
+	if err := counter.Validate(); !errors.ErrState.Is(err) {
 		t.Fatalf("unexpected error: %s", err)
 	}
 
@@ -83,7 +83,7 @@ func TestBucketCannotSaveInvalid(t *testing.T) {
 	b := NewBucket("mybucket", o)
 
 	db := store.MemStore()
-	if err := b.Save(db, o); !errors.ErrInvalidState.Is(err) {
+	if err := b.Save(db, o); !errors.ErrState.Is(err) {
 		t.Fatalf("invalid object must not save: %s", err)
 	}
 }
@@ -165,11 +165,11 @@ func TestBucketSequence(t *testing.T) {
 // countByte is another index we can use
 func countByte(obj Object) ([]byte, error) {
 	if obj == nil {
-		return nil, errors.Wrap(errors.ErrInvalidState, "Cannot take index of nil")
+		return nil, errors.Wrap(errors.ErrState, "Cannot take index of nil")
 	}
 	cntr, ok := obj.Value().(*Counter)
 	if !ok {
-		return nil, errors.Wrap(errors.ErrInvalidState, "Can only take index of Counter")
+		return nil, errors.Wrap(errors.ErrState, "Can only take index of Counter")
 	}
 	// last 8 bits...
 	return bc(cntr.Count), nil
@@ -372,7 +372,7 @@ func TestBucketQuery(t *testing.T) {
 			path:    bPath,
 			mod:     "foo",
 			data:    a,
-			wantErr: errors.ErrInvalidInput,
+			wantErr: errors.ErrInput,
 		},
 		"simple query - hit": {
 			path:     bPath,

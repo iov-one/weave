@@ -182,10 +182,10 @@ func (cs Coins) Validate() error {
 			return err
 		}
 		if c.IsZero() {
-			return errors.Wrap(errors.ErrInvalidState, "zero coins")
+			return errors.Wrap(errors.ErrState, "zero coins")
 		}
 		if c.Ticker < last {
-			return errors.Wrap(errors.ErrInvalidState, "not sorted")
+			return errors.Wrap(errors.ErrState, "not sorted")
 		}
 		last = c.Ticker
 	}

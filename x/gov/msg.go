@@ -27,7 +27,7 @@ func (CreateTextProposalMsg) Path() string {
 
 func (m CreateTextProposalMsg) Validate() error {
 	if len(m.ElectionRuleID) == 0 {
-		return errors.Wrap(errors.ErrInvalidInput, "empty election rules id")
+		return errors.Wrap(errors.ErrInput, "empty election rules id")
 	}
 	return validateCreateProposal(&m)
 }
@@ -38,7 +38,7 @@ func (DeleteProposalMsg) Path() string {
 
 func (m DeleteProposalMsg) Validate() error {
 	if len(m.ID) == 0 {
-		return errors.Wrap(errors.ErrInvalidInput, "empty proposal id")
+		return errors.Wrap(errors.ErrInput, "empty proposal id")
 	}
 	return nil
 }
@@ -49,10 +49,10 @@ func (VoteMsg) Path() string {
 
 func (m VoteMsg) Validate() error {
 	if m.Selected != VoteOption_Yes && m.Selected != VoteOption_No && m.Selected != VoteOption_Abstain {
-		return errors.Wrap(errors.ErrInvalidInput, "invalid option")
+		return errors.Wrap(errors.ErrInput, "invalid option")
 	}
 	if len(m.ProposalID) == 0 {
-		return errors.Wrap(errors.ErrInvalidInput, "empty proposal id")
+		return errors.Wrap(errors.ErrInput, "empty proposal id")
 	}
 	if err := m.Voter.Validate(); m.Voter != nil && err != nil {
 		return errors.Wrap(err, "invalid voter")
@@ -66,7 +66,7 @@ func (TallyMsg) Path() string {
 
 func (m TallyMsg) Validate() error {
 	if len(m.ProposalID) == 0 {
-		return errors.Wrap(errors.ErrInvalidInput, "empty proposal id")
+		return errors.Wrap(errors.ErrInput, "empty proposal id")
 	}
 	return nil
 }
@@ -80,9 +80,9 @@ func (m UpdateElectionRuleMsg) Validate() error {
 	case len(m.ElectionRuleID) == 0:
 		return errors.Wrap(errors.ErrEmpty, "id")
 	case m.VotingPeriodHours < minVotingPeriodHours:
-		return errors.Wrapf(errors.ErrInvalidInput, "min hours: %d", minVotingPeriodHours)
+		return errors.Wrapf(errors.ErrInput, "min hours: %d", minVotingPeriodHours)
 	case m.VotingPeriodHours > maxVotingPeriodHours:
-		return errors.Wrapf(errors.ErrInvalidInput, "max hours: %d", maxVotingPeriodHours)
+		return errors.Wrapf(errors.ErrInput, "max hours: %d", maxVotingPeriodHours)
 	}
 	return m.Threshold.Validate()
 }
@@ -100,7 +100,7 @@ func (m UpdateElectorateMsg) Validate() error {
 	}
 	for i, v := range m.DiffElectors {
 		if v.Weight > maxWeight {
-			return errors.Wrap(errors.ErrInvalidInput, "must not be greater max weight")
+			return errors.Wrap(errors.ErrInput, "must not be greater max weight")
 		}
 		if err := v.Address.Validate(); err != nil {
 			return errors.Wrapf(err, "address at position: %d", i)
@@ -116,7 +116,7 @@ func (CreateElectorateUpdateProposalMsg) Path() string {
 func (m CreateElectorateUpdateProposalMsg) Validate() error {
 	for i, v := range m.DiffElectors {
 		if v.Weight > maxWeight {
-			return errors.Wrap(errors.ErrInvalidInput, "must not be greater max weight")
+			return errors.Wrap(errors.ErrInput, "must not be greater max weight")
 		}
 		if err := v.Address.Validate(); err != nil {
 			return errors.Wrapf(err, "address at position: %d", i)
@@ -136,15 +136,15 @@ type commonCreateProposalData interface {
 func validateCreateProposal(m commonCreateProposalData) error {
 	switch {
 	case len(m.GetElectorateID()) == 0:
-		return errors.Wrap(errors.ErrInvalidInput, "empty electorate id")
+		return errors.Wrap(errors.ErrInput, "empty electorate id")
 	case m.GetStartTime() == 0:
-		return errors.Wrap(errors.ErrInvalidInput, "empty start time")
+		return errors.Wrap(errors.ErrInput, "empty start time")
 	case !validTitle(m.GetTitle()):
-		return errors.Wrapf(errors.ErrInvalidInput, "title: %q", m.GetTitle())
+		return errors.Wrapf(errors.ErrInput, "title: %q", m.GetTitle())
 	case len(m.GetDescription()) < minDescriptionLength:
-		return errors.Wrapf(errors.ErrInvalidInput, "description length lower than minimum of: %d", minDescriptionLength)
+		return errors.Wrapf(errors.ErrInput, "description length lower than minimum of: %d", minDescriptionLength)
 	case len(m.GetDescription()) > maxDescriptionLength:
-		return errors.Wrapf(errors.ErrInvalidInput, "description length exceeds: %d", maxDescriptionLength)
+		return errors.Wrapf(errors.ErrInput, "description length exceeds: %d", maxDescriptionLength)
 	}
 	if err := m.GetStartTime().Validate(); err != nil {
 		return errors.Wrap(err, "start time")

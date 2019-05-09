@@ -103,7 +103,7 @@ func (h CreateSwapHandler) validate(ctx weave.Context,
 		return nil, errors.Wrap(err, "load msg")
 	}
 	if IsExpired(ctx, msg.Timeout.Add(-MinTimeout)) {
-		return nil, errors.Wrapf(errors.ErrInvalidInput,
+		return nil, errors.Wrapf(errors.ErrInput,
 			"timeout should be a minimum of %d hours from now", MinTimeout/time.Hour)
 	}
 
@@ -182,7 +182,7 @@ func (h ReleaseSwapHandler) validate(ctx weave.Context, db weave.KVStore, tx wea
 	}
 
 	if IsExpired(ctx, swap.Timeout) {
-		return nil, nil, errors.Wrap(errors.ErrInvalidState, "swap is expired")
+		return nil, nil, errors.Wrap(errors.ErrState, "swap is expired")
 	}
 
 	return msg.SwapID, swap, nil
@@ -247,7 +247,7 @@ func (h ReturnSwapHandler) validate(ctx weave.Context, db weave.KVStore, tx weav
 	}
 
 	if !IsExpired(ctx, swap.Timeout) {
-		return nil, nil, errors.Wrapf(errors.ErrInvalidState, "swap not expired %v", swap.Timeout)
+		return nil, nil, errors.Wrapf(errors.ErrState, "swap not expired %v", swap.Timeout)
 	}
 
 	return &msg, swap, nil

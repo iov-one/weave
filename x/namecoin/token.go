@@ -29,10 +29,10 @@ func (t *Token) Validate() error {
 		return errors.Wrap(err, "metadata")
 	}
 	if !IsTokenName(t.Name) {
-		return errors.Wrapf(errors.ErrInvalidInput, "invalid token name: %s", t.Name)
+		return errors.Wrapf(errors.ErrInput, "invalid token name: %s", t.Name)
 	}
 	if t.SigFigs < minSigFigs || t.SigFigs > maxSigFigs {
-		return errors.Wrapf(errors.ErrInvalidInput, "invalid significant figures: %d", t.SigFigs)
+		return errors.Wrapf(errors.ErrInput, "invalid significant figures: %d", t.SigFigs)
 	}
 	return nil
 }
@@ -107,11 +107,11 @@ func (b TokenBucket) Get(db weave.KVStore, ticker string) (orm.Object, error) {
 // Save enforces the proper type
 func (b TokenBucket) Save(db weave.KVStore, obj orm.Object) error {
 	if _, ok := obj.Value().(*Token); !ok {
-		return errors.WithType(errors.ErrInvalidModel, obj.Value())
+		return errors.WithType(errors.ErrModel, obj.Value())
 	}
 	name := string(obj.Key())
 	if !coin.IsCC(name) {
-		return errors.Wrapf(errors.ErrInvalidInput, "invalid token name: %s", name)
+		return errors.Wrapf(errors.ErrInput, "invalid token name: %s", name)
 	}
 	return b.Bucket.Save(db, obj)
 }

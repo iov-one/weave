@@ -81,7 +81,7 @@ func (t *TokenDetails) Clone() *TokenDetails {
 
 func (t *TokenDetails) Validate() error {
 	if t == nil {
-		return errors.Wrap(errors.ErrInvalidInput, "token details must not be nil")
+		return errors.Wrap(errors.ErrInput, "token details must not be nil")
 	}
 	dup := containsDuplicateChains(t.Addresses)
 	if dup != nil {
@@ -113,10 +113,10 @@ func (p ChainAddress) Equals(o ChainAddress) bool {
 
 func (p *ChainAddress) Validate() error {
 	if !validBlockchainID(p.BlockchainID) {
-		return errors.Wrapf(errors.ErrInvalidInput, "id: %s", nft.PrintableID(p.BlockchainID))
+		return errors.Wrapf(errors.ErrInput, "id: %s", nft.PrintableID(p.BlockchainID))
 	}
 	if n := len(p.Address); n < 2 || n > 50 {
-		return errors.Wrapf(errors.ErrInvalidInput, "address length: %s", p.Address)
+		return errors.Wrapf(errors.ErrInput, "address length: %s", p.Address)
 	}
 	return nil
 }
@@ -128,7 +128,7 @@ func AsUsername(obj orm.Object) (Token, error) {
 	}
 	x, ok := obj.Value().(*UsernameToken)
 	if !ok {
-		return nil, errors.Wrap(errors.ErrInvalidInput, nft.UnsupportedTokenType)
+		return nil, errors.Wrap(errors.ErrInput, nft.UnsupportedTokenType)
 	}
 	return x, nil
 }

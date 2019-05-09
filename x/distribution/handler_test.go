@@ -63,7 +63,7 @@ func TestHandlers(t *testing.T) {
 						Recipients: []*Recipient{},
 					},
 					blocksize:    100,
-					wantCheckErr: errors.ErrInvalidMsg,
+					wantCheckErr: errors.ErrMsg,
 				},
 				{
 					conditions: []weave.Condition{src},
@@ -84,7 +84,7 @@ func TestHandlers(t *testing.T) {
 						Recipients: []*Recipient{},
 					},
 					blocksize:    102,
-					wantCheckErr: errors.ErrInvalidMsg,
+					wantCheckErr: errors.ErrMsg,
 				},
 				{
 					conditions: []weave.Condition{src},

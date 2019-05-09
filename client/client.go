@@ -59,7 +59,7 @@ func (c *Client) Header(ctx context.Context, height int64) (*Header, error) {
 		return nil, errors.Wrapf(errors.ErrNetwork, "status: %s", err.Error())
 	}
 	if len(info.BlockMetas) == 0 {
-		return nil, errors.Wrapf(errors.ErrInvalidInput, "no headers for height %d", height)
+		return nil, errors.Wrapf(errors.ErrInput, "no headers for height %d", height)
 	}
 	return &info.BlockMetas[0].Header, nil
 }
@@ -70,7 +70,7 @@ func (c *Client) Header(ctx context.Context, height int64) (*Header, error) {
 func (c *Client) SubmitTx(ctx context.Context, tx weave.Tx) (TransactionID, error) {
 	bz, err := tx.Marshal()
 	if err != nil {
-		return nil, errors.Wrapf(errors.ErrInvalidMsg, "marshaling: %s", err.Error())
+		return nil, errors.Wrapf(errors.ErrMsg, "marshaling: %s", err.Error())
 	}
 	// TODO: timeout here
 	res, err := c.conn.BroadcastTxSync(bz)
@@ -184,7 +184,7 @@ func (c *Client) SubscribeTx(ctx context.Context, query TxQuery, results chan<- 
 func (c *Client) subscribe(ctx context.Context, query string) (<-chan interface{}, error) {
 	q, err := tmquery.New(query)
 	if err != nil {
-		return nil, errors.Wrapf(errors.ErrInvalidInput, "Query '%s': %s", query, err.Error())
+		return nil, errors.Wrapf(errors.ErrInput, "Query '%s': %s", query, err.Error())
 	}
 
 	out := make(chan interface{}, 1)

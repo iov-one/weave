@@ -19,10 +19,10 @@ func (s *Schema) Validate() error {
 		return errors.Wrap(err, "metadata")
 	}
 	if s.Version < 1 {
-		return errors.Wrap(errors.ErrInvalidModel, "version must be greater than zero")
+		return errors.Wrap(errors.ErrModel, "version must be greater than zero")
 	}
 	if s.Pkg == "" {
-		return errors.Wrap(errors.ErrInvalidModel, "pkg is required")
+		return errors.Wrap(errors.ErrModel, "pkg is required")
 	}
 	return nil
 }
@@ -94,7 +94,7 @@ func (b *SchemaBucket) CurrentSchema(db weave.ReadOnlyKVStore, packageName strin
 		}
 		return ver - 1, nil
 	}
-	return 0, errors.Wrap(errors.ErrInvalidState, "version too high")
+	return 0, errors.Wrap(errors.ErrState, "version too high")
 }
 
 func (b *SchemaBucket) Get(db weave.KVStore, key []byte) error {
@@ -106,7 +106,7 @@ func (b *SchemaBucket) Get(db weave.KVStore, key []byte) error {
 func (b *SchemaBucket) Save(db weave.KVStore, obj orm.Object) error {
 	s, ok := obj.Value().(*Schema)
 	if !ok {
-		return errors.Wrapf(errors.ErrInvalidModel, "invalid type: %T", obj.Value())
+		return errors.Wrapf(errors.ErrModel, "invalid type: %T", obj.Value())
 	}
 	if err := b.validateNextSchema(db, s); err != nil {
 		return err
@@ -132,7 +132,7 @@ func (b *SchemaBucket) validateNextSchema(db weave.KVStore, next *Schema) error 
 		if errors.ErrNotFound.Is(err) {
 			ver = 0
 			if next.Version != 1 {
-				return errors.Wrap(errors.ErrInvalidInput, "schema not initialized with version 1")
+				return errors.Wrap(errors.ErrInput, "schema not initialized with version 1")
 			}
 		} else {
 			return errors.Wrap(err, "current schema")

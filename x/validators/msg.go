@@ -25,10 +25,10 @@ func (*SetValidatorsMsg) Path() string {
 
 func (m ValidatorUpdate) Validate() error {
 	if len(m.Pubkey.Data) != 32 || strings.ToLower(m.Pubkey.Type) != "ed25519" {
-		return errors.Wrapf(errors.ErrInvalidType, "invalid public key: %T", m.Pubkey.Type)
+		return errors.Wrapf(errors.ErrType, "invalid public key: %T", m.Pubkey.Type)
 	}
 	if m.Power < 0 {
-		return errors.Wrapf(errors.ErrInvalidMsg, "power: %d", m.Power)
+		return errors.Wrapf(errors.ErrMsg, "power: %d", m.Power)
 	}
 	return nil
 }
@@ -56,7 +56,7 @@ func (m *SetValidatorsMsg) Validate() error {
 	}
 	for _, v := range m.ValidatorUpdates {
 		if v == nil {
-			return errors.Wrap(errors.ErrInvalidInput, "validator set must not contain nil ")
+			return errors.Wrap(errors.ErrInput, "validator set must not contain nil ")
 		}
 		if err := v.Validate(); err != nil {
 			return err

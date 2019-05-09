@@ -61,15 +61,15 @@ func TestAddressUnmarshalJSON(t *testing.T) {
 		},
 		"invalid condition format": {
 			json:    `"cond:foo/636f6e646974696f6e64617461"`,
-			wantErr: errors.ErrInvalidInput,
+			wantErr: errors.ErrInput,
 		},
 		"invalid condition data": {
 			json:    `"cond:foo/bar/zzzzz"`,
-			wantErr: errors.ErrInvalidInput,
+			wantErr: errors.ErrInput,
 		},
 		"unknown format": {
 			json:    `"foobar:xxx"`,
-			wantErr: errors.ErrInvalidType,
+			wantErr: errors.ErrType,
 		},
 		"zero address": {
 			json:     `""`,
@@ -85,11 +85,11 @@ func TestAddressUnmarshalJSON(t *testing.T) {
 		},
 		"address to short (19 bytes)": {
 			json:    `"b339b5f6ae69570a1fd4d6c561c3ec1ce13450"`,
-			wantErr: errors.ErrInvalidInput,
+			wantErr: errors.ErrInput,
 		},
 		"address to long (21 bytes)": {
 			json:    `"0a6e36d3553a0abfe7896243386b47b5215cb24312"`,
-			wantErr: errors.ErrInvalidInput,
+			wantErr: errors.ErrInput,
 		},
 	}
 
@@ -119,11 +119,11 @@ func TestConditionUnmarshalJSON(t *testing.T) {
 		},
 		"invalid condition format": {
 			json:    `"foo/636f6e646974696f6e64617461"`,
-			wantErr: errors.ErrInvalidInput,
+			wantErr: errors.ErrInput,
 		},
 		"invalid condition data": {
 			json:    `"foo/bar/zzzzz"`,
-			wantErr: errors.ErrInvalidInput,
+			wantErr: errors.ErrInput,
 		},
 		"zero address": {
 			json:          `""`,

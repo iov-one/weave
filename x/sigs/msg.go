@@ -21,10 +21,10 @@ func (msg *BumpSequenceMsg) Validate() error {
 		return errors.Wrap(err, "metadata")
 	}
 	if msg.Increment < minSequenceIncrement {
-		return errors.Wrapf(errors.ErrInvalidMsg, "increment must be at least %d", minSequenceIncrement)
+		return errors.Wrapf(errors.ErrMsg, "increment must be at least %d", minSequenceIncrement)
 	}
 	if msg.Increment > maxSequenceIncrement {
-		return errors.Wrapf(errors.ErrInvalidMsg, "increment must not be greater than %d", maxSequenceIncrement)
+		return errors.Wrapf(errors.ErrMsg, "increment must not be greater than %d", maxSequenceIncrement)
 	}
 	return nil
 }

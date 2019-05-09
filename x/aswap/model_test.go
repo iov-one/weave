@@ -30,7 +30,7 @@ func TestSwap(t *testing.T) {
 			Mutator: func(msg *aswap.Swap) {
 				msg.PreimageHash = make([]byte, 31)
 			},
-			Exp: errors.ErrInvalidInput,
+			Exp: errors.ErrInput,
 		},
 		"Invalid recipient": {
 			Mutator: func(msg *aswap.Swap) {
@@ -48,19 +48,19 @@ func TestSwap(t *testing.T) {
 			Mutator: func(msg *aswap.Swap) {
 				msg.Timeout = 0
 			},
-			Exp: errors.ErrInvalidInput,
+			Exp: errors.ErrInput,
 		},
 		"Invalid timeout": {
 			Mutator: func(msg *aswap.Swap) {
 				msg.Timeout = math.MinInt64
 			},
-			Exp: errors.ErrInvalidState,
+			Exp: errors.ErrState,
 		},
 		"Invalid memo": {
 			Mutator: func(msg *aswap.Swap) {
 				msg.Memo = string(make([]byte, 129))
 			},
-			Exp: errors.ErrInvalidInput,
+			Exp: errors.ErrInput,
 		},
 	}
 	for msg, spec := range specs {

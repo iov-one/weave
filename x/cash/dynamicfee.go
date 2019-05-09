@@ -82,7 +82,7 @@ func (d DynamicFeeDecorator) Check(ctx weave.Context, store weave.KVStore, tx we
 	}
 	// if we have success, ensure that we paid at least the RequiredFee (IsGTE enforces the same token)
 	if !cres.RequiredFee.IsZero() && !fee.IsGTE(cres.RequiredFee) {
-		return nil, errors.Wrapf(errors.ErrInsufficientAmount, "fee less than required fee of %#v", cres.RequiredFee)
+		return nil, errors.Wrapf(errors.ErrAmount, "fee less than required fee of %#v", cres.RequiredFee)
 	}
 	return cres, nil
 }
@@ -112,7 +112,7 @@ func (d DynamicFeeDecorator) Deliver(ctx weave.Context, store weave.KVStore, tx 
 	}
 	// if we have success, ensure that we paid at least the RequiredFee (IsGTE enforces the same token)
 	if !res.RequiredFee.IsZero() && !fee.IsGTE(res.RequiredFee) {
-		return nil, errors.Wrapf(errors.ErrInsufficientAmount, "Fee less than required fee of %#v", res.RequiredFee)
+		return nil, errors.Wrapf(errors.ErrAmount, "Fee less than required fee of %#v", res.RequiredFee)
 	}
 	return res, nil
 }
@@ -182,7 +182,7 @@ func (d DynamicFeeDecorator) extractFee(ctx weave.Context, tx weave.Tx, store we
 		if minFee.IsZero() {
 			return finfo, nil
 		}
-		return nil, errors.Wrap(errors.ErrInsufficientAmount, "zero transaction fee is not allowed")
+		return nil, errors.Wrap(errors.ErrAmount, "zero transaction fee is not allowed")
 	}
 
 	if err := finfo.Validate(); err != nil {
@@ -203,7 +203,7 @@ func (d DynamicFeeDecorator) extractFee(ctx weave.Context, tx weave.Tx, store we
 
 	}
 	if !txFee.IsGTE(minFee) {
-		return nil, errors.Wrapf(errors.ErrInsufficientAmount, "transaction fee less than minimum: %v", txFee)
+		return nil, errors.Wrapf(errors.ErrAmount, "transaction fee less than minimum: %v", txFee)
 	}
 	return finfo, nil
 }

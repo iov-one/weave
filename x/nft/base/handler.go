@@ -32,7 +32,7 @@ func asBase(obj orm.Object) (nft.BaseNFT, error) {
 	}
 	x, ok := obj.Value().(nft.BaseNFT)
 	if !ok {
-		return nil, errors.Wrap(errors.ErrInvalidInput, nft.UnsupportedTokenType)
+		return nil, errors.Wrap(errors.ErrInput, nft.UnsupportedTokenType)
 	}
 	return x, nil
 }
@@ -82,7 +82,7 @@ func (h *ApprovalOpsHandler) Deliver(ctx weave.Context, store weave.KVStore, tx 
 
 	bucket, ok := h.buckets[msg.GetT()]
 	if !ok {
-		return nil, errors.Wrap(errors.ErrInvalidInput, nft.UnsupportedTokenType)
+		return nil, errors.Wrap(errors.ErrInput, nft.UnsupportedTokenType)
 	}
 
 	o, t, err := loadToken(bucket, store, msg.GetID())
@@ -127,6 +127,6 @@ func (h *ApprovalOpsHandler) validate(ctx weave.Context, tx weave.Tx) (nft.Appro
 		}
 		return v.(nft.ApprovalMsg), nil
 	default:
-		return nil, errors.WithType(errors.ErrInvalidMsg, msg)
+		return nil, errors.WithType(errors.ErrMsg, msg)
 	}
 }

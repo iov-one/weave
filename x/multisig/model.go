@@ -28,7 +28,7 @@ type Weight int32
 
 func (w Weight) Validate() error {
 	if w < 1 {
-		return errors.Wrap(errors.ErrInvalidState,
+		return errors.Wrap(errors.ErrState,
 			"weight must be greater than 0")
 	}
 	if w > maxWeightValue {
@@ -46,11 +46,11 @@ func (c *Contract) Validate() error {
 	}
 	switch n := len(c.Participants); {
 	case n == 0:
-		return errors.Wrap(errors.ErrInvalidModel, "no participants")
+		return errors.Wrap(errors.ErrModel, "no participants")
 	case n > maxParticipantsAllowed:
-		return errors.Wrap(errors.ErrInvalidModel, "too many participants")
+		return errors.Wrap(errors.ErrModel, "too many participants")
 	}
-	return validateWeights(errors.ErrInvalidModel,
+	return validateWeights(errors.ErrModel,
 		c.Participants, c.ActivationThreshold, c.AdminThreshold)
 }
 
@@ -94,7 +94,7 @@ func NewContractBucket() ContractBucket {
 // Save enforces the proper type
 func (b ContractBucket) Save(db weave.KVStore, obj orm.Object) error {
 	if _, ok := obj.Value().(*Contract); !ok {
-		return errors.WithType(errors.ErrInvalidModel, obj.Value())
+		return errors.WithType(errors.ErrModel, obj.Value())
 	}
 	return b.Bucket.Save(db, obj)
 }
@@ -122,7 +122,7 @@ func (b ContractBucket) GetContract(store weave.KVStore, contractID []byte) (*Co
 
 	c, ok := obj.Value().(*Contract)
 	if !ok {
-		return nil, errors.Wrapf(errors.ErrInvalidModel, "invalid type: %T", obj.Value())
+		return nil, errors.Wrapf(errors.ErrModel, "invalid type: %T", obj.Value())
 	}
 	return c, nil
 }

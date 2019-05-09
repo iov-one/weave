@@ -97,7 +97,7 @@ func (b *AccountBucket) GetAccounts(kv weave.KVStore) (*Accounts, error) {
 	}
 	acc, ok := res.Value().(*Accounts)
 	if !ok {
-		return nil, errors.Wrapf(errors.ErrInvalidType, "%T", res.Value())
+		return nil, errors.Wrapf(errors.ErrType, "%T", res.Value())
 	}
 	return acc, nil
 }

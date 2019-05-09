@@ -98,8 +98,8 @@ func TestCreateTextProposal(t *testing.T) {
 				StartTime:    now.Add(time.Hour),
 				ElectorateID: weavetest.SequenceID(1),
 			},
-			WantCheckErr:   errors.ErrInvalidInput,
-			WantDeliverErr: errors.ErrInvalidInput,
+			WantCheckErr:   errors.ErrInput,
+			WantDeliverErr: errors.ErrInput,
 		},
 		"ElectionRuleID invalid": {
 			Msg: CreateTextProposalMsg{
@@ -119,8 +119,8 @@ func TestCreateTextProposal(t *testing.T) {
 				StartTime:      now.Add(time.Hour),
 				ElectionRuleID: weavetest.SequenceID(1),
 			},
-			WantCheckErr:   errors.ErrInvalidInput,
-			WantDeliverErr: errors.ErrInvalidInput,
+			WantCheckErr:   errors.ErrInput,
+			WantDeliverErr: errors.ErrInput,
 		},
 		"ElectorateID invalid": {
 			Msg: CreateTextProposalMsg{
@@ -153,8 +153,8 @@ func TestCreateTextProposal(t *testing.T) {
 				ElectorateID:   weavetest.SequenceID(1),
 				ElectionRuleID: weavetest.SequenceID(1),
 			},
-			WantCheckErr:   errors.ErrInvalidInput,
-			WantDeliverErr: errors.ErrInvalidInput,
+			WantCheckErr:   errors.ErrInput,
+			WantDeliverErr: errors.ErrInput,
 		},
 		"Start time too far in the future": {
 			Msg: CreateTextProposalMsg{
@@ -164,8 +164,8 @@ func TestCreateTextProposal(t *testing.T) {
 				ElectorateID:   weavetest.SequenceID(1),
 				ElectionRuleID: weavetest.SequenceID(1),
 			},
-			WantCheckErr:   errors.ErrInvalidInput,
-			WantDeliverErr: errors.ErrInvalidInput,
+			WantCheckErr:   errors.ErrInput,
+			WantDeliverErr: errors.ErrInput,
 		},
 		"Update electorate proposal exists": {
 			Init: func(ctx weave.Context, db store.KVStore) {
@@ -187,7 +187,7 @@ func TestCreateTextProposal(t *testing.T) {
 				ElectionRuleID: weavetest.SequenceID(1),
 				Author:         bobby,
 			},
-			WantDeliverErr: errors.ErrInvalidState,
+			WantDeliverErr: errors.ErrState,
 		},
 	}
 	auth := &weavetest.Auth{
@@ -319,8 +319,8 @@ func TestCreateElectorateUpdateProposal(t *testing.T) {
 				StartTime:    now.Add(time.Hour),
 				DiffElectors: []Elector{{alice, 10}},
 			},
-			WantCheckErr:   errors.ErrInvalidInput,
-			WantDeliverErr: errors.ErrInvalidInput,
+			WantCheckErr:   errors.ErrInput,
+			WantDeliverErr: errors.ErrInput,
 		},
 		"ElectorateID invalid": {
 			Msg: CreateElectorateUpdateProposalMsg{
@@ -353,8 +353,8 @@ func TestCreateElectorateUpdateProposal(t *testing.T) {
 				ElectorateID: weavetest.SequenceID(1),
 				DiffElectors: []Elector{{alice, 10}},
 			},
-			WantCheckErr:   errors.ErrInvalidInput,
-			WantDeliverErr: errors.ErrInvalidInput,
+			WantCheckErr:   errors.ErrInput,
+			WantDeliverErr: errors.ErrInput,
 		},
 		"Start time too far in the future": {
 			Msg: CreateElectorateUpdateProposalMsg{
@@ -364,8 +364,8 @@ func TestCreateElectorateUpdateProposal(t *testing.T) {
 				ElectorateID: weavetest.SequenceID(1),
 				DiffElectors: []Elector{{alice, 10}},
 			},
-			WantCheckErr:   errors.ErrInvalidInput,
-			WantDeliverErr: errors.ErrInvalidInput,
+			WantCheckErr:   errors.ErrInput,
+			WantDeliverErr: errors.ErrInput,
 		},
 		"open text proposal exists": {
 			Init: func(ctx weave.Context, db store.KVStore) {
@@ -387,7 +387,7 @@ func TestCreateElectorateUpdateProposal(t *testing.T) {
 				DiffElectors: []Elector{{alice, 10}},
 				Author:       bobby,
 			},
-			WantDeliverErr: errors.ErrInvalidState,
+			WantDeliverErr: errors.ErrState,
 		},
 	}
 	auth := &weavetest.Auth{
@@ -483,8 +483,8 @@ func TestDeleteProposal(t *testing.T) {
 				proposal.VotingStartTime = weave.AsUnixTime(time.Now().Add(-1 * time.Hour))
 				proposal.SubmissionTime = weave.AsUnixTime(time.Now().Add(-2 * time.Hour))
 			},
-			WantCheckErr:   errors.ErrCannotBeModified,
-			WantDeliverErr: errors.ErrCannotBeModified,
+			WantCheckErr:   errors.ErrImmutable,
+			WantDeliverErr: errors.ErrImmutable,
 		},
 	}
 
@@ -612,8 +612,8 @@ func TestVote(t *testing.T) {
 		"Vote with invalid option": {
 			Msg:            VoteMsg{ProposalID: proposalID, Selected: VoteOption_Invalid, Voter: alice},
 			SignedBy:       aliceCond,
-			WantCheckErr:   errors.ErrInvalidInput,
-			WantDeliverErr: errors.ErrInvalidInput,
+			WantCheckErr:   errors.ErrInput,
+			WantDeliverErr: errors.ErrInput,
 		},
 		"Voter not in electorate must be rejected": {
 			Msg:            VoteMsg{ProposalID: proposalID, Selected: VoteOption_Yes, Voter: nonElector},
@@ -628,8 +628,8 @@ func TestVote(t *testing.T) {
 			},
 			Msg:            VoteMsg{ProposalID: proposalID, Selected: VoteOption_Yes, Voter: alice},
 			SignedBy:       aliceCond,
-			WantCheckErr:   errors.ErrInvalidState,
-			WantDeliverErr: errors.ErrInvalidState,
+			WantCheckErr:   errors.ErrState,
+			WantDeliverErr: errors.ErrState,
 		},
 		"Vote on start date": {
 			Mods: func(ctx weave.Context, proposal *Proposal) {
@@ -638,8 +638,8 @@ func TestVote(t *testing.T) {
 			},
 			Msg:            VoteMsg{ProposalID: proposalID, Selected: VoteOption_Yes, Voter: alice},
 			SignedBy:       aliceCond,
-			WantCheckErr:   errors.ErrInvalidState,
-			WantDeliverErr: errors.ErrInvalidState,
+			WantCheckErr:   errors.ErrState,
+			WantDeliverErr: errors.ErrState,
 		},
 		"Vote on end date": {
 			Mods: func(ctx weave.Context, proposal *Proposal) {
@@ -648,8 +648,8 @@ func TestVote(t *testing.T) {
 			},
 			Msg:            VoteMsg{ProposalID: proposalID, Selected: VoteOption_Yes, Voter: alice},
 			SignedBy:       aliceCond,
-			WantCheckErr:   errors.ErrInvalidState,
-			WantDeliverErr: errors.ErrInvalidState,
+			WantCheckErr:   errors.ErrState,
+			WantDeliverErr: errors.ErrState,
 		},
 		"Vote after end date": {
 			Mods: func(ctx weave.Context, proposal *Proposal) {
@@ -658,8 +658,8 @@ func TestVote(t *testing.T) {
 			},
 			Msg:            VoteMsg{ProposalID: proposalID, Selected: VoteOption_Yes, Voter: alice},
 			SignedBy:       aliceCond,
-			WantCheckErr:   errors.ErrInvalidState,
-			WantDeliverErr: errors.ErrInvalidState,
+			WantCheckErr:   errors.ErrState,
+			WantDeliverErr: errors.ErrState,
 		},
 		"Vote on withdrawn proposal must fail": {
 			Mods: func(ctx weave.Context, proposal *Proposal) {
@@ -667,8 +667,8 @@ func TestVote(t *testing.T) {
 			},
 			Msg:            VoteMsg{ProposalID: proposalID, Selected: VoteOption_Yes, Voter: alice},
 			SignedBy:       aliceCond,
-			WantCheckErr:   errors.ErrInvalidState,
-			WantDeliverErr: errors.ErrInvalidState,
+			WantCheckErr:   errors.ErrState,
+			WantDeliverErr: errors.ErrState,
 		},
 		"Vote on closed proposal must fail": {
 			Mods: func(ctx weave.Context, proposal *Proposal) {
@@ -676,8 +676,8 @@ func TestVote(t *testing.T) {
 			},
 			Msg:            VoteMsg{ProposalID: proposalID, Selected: VoteOption_Yes, Voter: alice},
 			SignedBy:       aliceCond,
-			WantCheckErr:   errors.ErrInvalidState,
-			WantDeliverErr: errors.ErrInvalidState,
+			WantCheckErr:   errors.ErrState,
+			WantDeliverErr: errors.ErrState,
 		},
 		"Sanity check on count vote": {
 			Mods: func(ctx weave.Context, proposal *Proposal) {
@@ -1032,8 +1032,8 @@ func TestTally(t *testing.T) {
 				threshold:             Fraction{Numerator: 1, Denominator: 2},
 				totalWeightElectorate: 11,
 			},
-			WantCheckErr:   errors.ErrInvalidState,
-			WantDeliverErr: errors.ErrInvalidState,
+			WantCheckErr:   errors.ErrState,
+			WantDeliverErr: errors.ErrState,
 			ExpResult:      Proposal_Accepted,
 		},
 		"Fails on tally before end date": {
@@ -1045,8 +1045,8 @@ func TestTally(t *testing.T) {
 				threshold:             Fraction{Numerator: 1, Denominator: 2},
 				totalWeightElectorate: 11,
 			},
-			WantCheckErr:   errors.ErrInvalidState,
-			WantDeliverErr: errors.ErrInvalidState,
+			WantCheckErr:   errors.ErrState,
+			WantDeliverErr: errors.ErrState,
 			ExpResult:      Proposal_Undefined,
 		},
 		"Fails on tally at end date": {
@@ -1058,8 +1058,8 @@ func TestTally(t *testing.T) {
 				threshold:             Fraction{Numerator: 1, Denominator: 2},
 				totalWeightElectorate: 11,
 			},
-			WantCheckErr:   errors.ErrInvalidState,
-			WantDeliverErr: errors.ErrInvalidState,
+			WantCheckErr:   errors.ErrState,
+			WantDeliverErr: errors.ErrState,
 			ExpResult:      Proposal_Undefined,
 		},
 		"Fails on withdrawn proposal": {
@@ -1070,8 +1070,8 @@ func TestTally(t *testing.T) {
 				threshold:             Fraction{Numerator: 1, Denominator: 2},
 				totalWeightElectorate: 11,
 			},
-			WantCheckErr:   errors.ErrInvalidState,
-			WantDeliverErr: errors.ErrInvalidState,
+			WantCheckErr:   errors.ErrState,
+			WantDeliverErr: errors.ErrState,
 			ExpResult:      Proposal_Undefined,
 		},
 	}
@@ -1210,7 +1210,7 @@ func TestUpdateElectorate(t *testing.T) {
 				UpdateElectionRuleID:  weavetest.SequenceID(1),
 			},
 			WithProposal:   true,
-			WantDeliverErr: errors.ErrInvalidState,
+			WantDeliverErr: errors.ErrState,
 		},
 		"Update with closed proposal should succeed": {
 			Msg: UpdateElectorateMsg{
@@ -1236,7 +1236,7 @@ func TestUpdateElectorate(t *testing.T) {
 				DiffElectors: buildElectors(2001),
 			},
 			SignedBy:       bobbyCond,
-			WantDeliverErr: errors.ErrInvalidInput,
+			WantDeliverErr: errors.ErrInput,
 		},
 		"Update without electors should fail": {
 			Msg: UpdateElectorateMsg{
@@ -1364,8 +1364,8 @@ func TestUpdateElectionRules(t *testing.T) {
 				Threshold:         Fraction{Numerator: 3, Denominator: 2},
 			},
 			SignedBy:       bobbyCond,
-			WantCheckErr:   errors.ErrInvalidInput,
-			WantDeliverErr: errors.ErrInvalidInput,
+			WantCheckErr:   errors.ErrInput,
+			WantDeliverErr: errors.ErrInput,
 		},
 		"voting period hours must not be empty": {
 			Msg: UpdateElectionRuleMsg{
@@ -1374,8 +1374,8 @@ func TestUpdateElectionRules(t *testing.T) {
 				Threshold:         Fraction{Numerator: 1, Denominator: 2},
 			},
 			SignedBy:       bobbyCond,
-			WantCheckErr:   errors.ErrInvalidInput,
-			WantDeliverErr: errors.ErrInvalidInput,
+			WantCheckErr:   errors.ErrInput,
+			WantDeliverErr: errors.ErrInput,
 		},
 		"voting period hours must not exceed max": {
 			Msg: UpdateElectionRuleMsg{
@@ -1384,8 +1384,8 @@ func TestUpdateElectionRules(t *testing.T) {
 				Threshold:         Fraction{Numerator: 1, Denominator: 2},
 			},
 			SignedBy:       bobbyCond,
-			WantCheckErr:   errors.ErrInvalidInput,
-			WantDeliverErr: errors.ErrInvalidInput,
+			WantCheckErr:   errors.ErrInput,
+			WantDeliverErr: errors.ErrInput,
 		},
 	}
 	bucket := NewElectionRulesBucket()

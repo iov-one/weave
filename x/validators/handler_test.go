@@ -53,8 +53,8 @@ func TestHandler(t *testing.T) {
 				Power:  -1,
 			}},
 			AuthzAddress:  alice.PublicKey().Address(),
-			ExpCheckErr:   errors.ErrInvalidMsg,
-			ExpDeliverErr: errors.ErrInvalidMsg,
+			ExpCheckErr:   errors.ErrMsg,
+			ExpDeliverErr: errors.ErrMsg,
 		},
 		"Invalid public key": {
 			Src: []*ValidatorUpdate{{
@@ -62,8 +62,8 @@ func TestHandler(t *testing.T) {
 				Power:  10,
 			}},
 			AuthzAddress:  alice.PublicKey().Address(),
-			ExpCheckErr:   errors.ErrInvalidType,
-			ExpDeliverErr: errors.ErrInvalidType,
+			ExpCheckErr:   errors.ErrType,
+			ExpDeliverErr: errors.ErrType,
 		},
 		"Empty validator set prohibited": {
 			Src:           []*ValidatorUpdate{},
@@ -74,8 +74,8 @@ func TestHandler(t *testing.T) {
 		"Invalid validator set prohibited": {
 			Src:           []*ValidatorUpdate{nil},
 			AuthzAddress:  alice.PublicKey().Address(),
-			ExpCheckErr:   errors.ErrInvalidInput,
-			ExpDeliverErr: errors.ErrInvalidInput,
+			ExpCheckErr:   errors.ErrInput,
+			ExpDeliverErr: errors.ErrInput,
 		},
 		"Unauthorized address should fail": {
 			Src: []*ValidatorUpdate{{

@@ -26,7 +26,7 @@ var _ sigs.SignedTx = (*Tx)(nil)
 func (tx *Tx) GetMsg() (weave.Msg, error) {
 	sum := tx.GetSum()
 	if sum == nil {
-		return nil, errors.Wrap(errors.ErrInvalidInput, "unable to decode")
+		return nil, errors.Wrap(errors.ErrInput, "unable to decode")
 	}
 
 	// make sure to cover all messages defined in protobuf

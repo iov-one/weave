@@ -50,7 +50,7 @@ func (h *schemaMigratingHandler) migrate(db weave.ReadOnlyKVStore, tx weave.Tx) 
 
 	m, ok := msg.(Migratable)
 	if !ok {
-		return errors.Wrap(errors.ErrInvalidMsg, "message cannot be migrated")
+		return errors.Wrap(errors.ErrMsg, "message cannot be migrated")
 	}
 	currSchemaVer, err := h.schema.CurrentSchema(db, h.packageName)
 	if err != nil {
@@ -182,7 +182,7 @@ func (h schemaRoutingHandler) selectHandler(tx weave.Tx) (weave.Handler, error) 
 	}
 	m, ok := msg.(Migratable)
 	if !ok {
-		return nil, errors.Wrapf(errors.ErrInvalidType, "message %T does not support schema versioning", msg)
+		return nil, errors.Wrapf(errors.ErrType, "message %T does not support schema versioning", msg)
 	}
 	meta := m.GetMetadata()
 

@@ -16,7 +16,7 @@ func makeError() error {
 }
 
 func otherError() error {
-	return errors.Wrap(errors.ErrInvalidInput, "unable to decode")
+	return errors.Wrap(errors.ErrInput, "unable to decode")
 }
 
 type foo struct {
@@ -24,7 +24,7 @@ type foo struct {
 }
 
 func fullError() error {
-	return errors.WithType(errors.ErrInvalidMsg, &foo{7})
+	return errors.WithType(errors.ErrMsg, &foo{7})
 }
 
 func panicError() (err error) {

@@ -158,7 +158,7 @@ func TestSchemaRoutingHandler(t *testing.T) {
 			Handler: SchemaRoutingHandler([]weave.Handler{
 				1: &weavetest.Handler{},
 			}),
-			WantErr:   errors.ErrInvalidType,
+			WantErr:   errors.ErrType,
 			WantCalls: map[int]int{1: 0},
 		},
 		"route to handler by the exact match of message schema version": {

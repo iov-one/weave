@@ -65,7 +65,7 @@ func TestFees(t *testing.T) {
 		},
 		"no fee given, something expected": {
 			min:    min,
-			expect: errors.ErrInsufficientAmount.Is,
+			expect: errors.ErrAmount.Is,
 		},
 		"no signer given": {
 			fee: &FeeInfo{
@@ -92,7 +92,7 @@ func TestFees(t *testing.T) {
 				Fees:     &cash,
 			},
 			min:    min,
-			expect: errors.ErrInsufficientAmount.Is,
+			expect: errors.ErrAmount.Is,
 		},
 		"all proper": {
 			signers:   []weave.Condition{perm},
@@ -156,7 +156,7 @@ func TestFees(t *testing.T) {
 				Fees:     &min,
 			},
 			min:    coin.NewCoin(0, 45000, "FOO"),
-			expect: errors.ErrInsufficientAmount.Is,
+			expect: errors.ErrAmount.Is,
 		},
 	}
 

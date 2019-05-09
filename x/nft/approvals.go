@@ -69,7 +69,7 @@ func (a ApprovalOptions) EqualsAfterUse(used ApprovalOptions) bool {
 
 func (a ApprovalOptions) Validate() error {
 	if a.Count == 0 || a.Count < UnlimitedCount {
-		return errors.Wrap(errors.ErrInvalidInput, "Approval count should either be unlimited or above zero")
+		return errors.Wrap(errors.ErrInput, "Approval count should either be unlimited or above zero")
 	}
 	return nil
 }
@@ -84,11 +84,11 @@ func (m Approvals) Validate(actionMaps ...map[Action]int32) error {
 		}
 
 		if !isValidAction(action) {
-			return errors.Wrap(errors.ErrInvalidInput, fmt.Sprintf("illegal action: %s", action))
+			return errors.Wrap(errors.ErrInput, fmt.Sprintf("illegal action: %s", action))
 		}
 		for _, actionMap := range actionMaps {
 			if _, ok := actionMap[action]; ok {
-				return errors.Wrap(errors.ErrInvalidInput, fmt.Sprintf("illegal action: %s", action))
+				return errors.Wrap(errors.ErrInput, fmt.Sprintf("illegal action: %s", action))
 			}
 		}
 	}

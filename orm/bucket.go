@@ -131,7 +131,7 @@ func (b bucket) Query(db weave.ReadOnlyKVStore, mod string, data []byte) ([]weav
 		prefix := b.DBKey(data)
 		return queryPrefix(db, prefix)
 	default:
-		return nil, errors.Wrapf(errors.ErrInvalidInput, "unknown mod: %s", mod)
+		return nil, errors.Wrapf(errors.ErrInput, "unknown mod: %s", mod)
 	}
 }
 
@@ -180,7 +180,7 @@ func (b bucket) Parse(key, value []byte) (Object, error) {
 		// or more likely, wrong protobuf declaration being used.
 		// We can safely use the string representation of the original
 		// error as it carries no relevant information.
-		return nil, errors.Wrap(errors.ErrInvalidState, err.Error())
+		return nil, errors.Wrap(errors.ErrState, err.Error())
 	}
 
 	// TODO - ensure the value is migrated to the latest version

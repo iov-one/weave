@@ -32,7 +32,7 @@ func (t *TokenInfo) Validate() error {
 		return errors.Wrap(err, "metadata")
 	}
 	if !isTokenName(t.Name) {
-		return errors.Wrapf(errors.ErrInvalidState, "invalid token name %v", t.Name)
+		return errors.Wrapf(errors.ErrState, "invalid token name %v", t.Name)
 	}
 	return nil
 }
@@ -62,7 +62,7 @@ func (b *TokenInfoBucket) Get(db weave.KVStore, ticker string) (orm.Object, erro
 
 func (b *TokenInfoBucket) Save(db weave.KVStore, obj orm.Object) error {
 	if _, ok := obj.Value().(*TokenInfo); !ok {
-		return errors.WithType(errors.ErrInvalidModel, obj.Value())
+		return errors.WithType(errors.ErrModel, obj.Value())
 	}
 	if n := string(obj.Key()); !coin.IsCC(n) {
 		return errors.Wrapf(errors.ErrCurrency, "invalid ticker: %s", n)

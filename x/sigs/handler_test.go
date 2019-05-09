@@ -70,8 +70,8 @@ func TestBumpSequence(t *testing.T) {
 				{Metadata: &weave.Metadata{Schema: 1}, Pubkey: key1, Sequence: 1},
 			},
 			Msg:            BumpSequenceMsg{Metadata: &weave.Metadata{Schema: 1}, Increment: 0},
-			WantCheckErr:   errors.ErrInvalidMsg,
-			WantDeliverErr: errors.ErrInvalidMsg,
+			WantCheckErr:   errors.ErrMsg,
+			WantDeliverErr: errors.ErrMsg,
 		},
 		"user that we increment the sequence of must exist": {
 			InitData: []*UserData{
@@ -88,8 +88,8 @@ func TestBumpSequence(t *testing.T) {
 			},
 			Signers:        []weave.Condition{key1.Condition()},
 			Msg:            BumpSequenceMsg{Metadata: &weave.Metadata{Schema: 1}, Increment: 1001},
-			WantCheckErr:   errors.ErrInvalidMsg,
-			WantDeliverErr: errors.ErrInvalidMsg,
+			WantCheckErr:   errors.ErrMsg,
+			WantDeliverErr: errors.ErrMsg,
 		},
 		"sequence increment value can be 1000": {
 			InitData: []*UserData{
