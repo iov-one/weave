@@ -28,7 +28,7 @@ charge more than the basic anti-spam fees. We recently added support for
 on-chain feature switch transactions.
 
 Existing Modules
-~~~~~~~~~~~~~~~~
+----------------
 
 =================   =======================================================================================================================================
    Module             Description
@@ -64,8 +64,7 @@ Utils_               A range of utility functions such as KeyTagger which is des
 .. _Utils: https://github.com/iov-one/weave/tree/master/x/utils
 .. _IOV Atomic Swap Spec: https://github.com/iov-one/iov-core/blob/master/docs/atomic-swap-protocol-v1.md
 
-In Progress
-~~~~~~~~~~~
+**In Progress**
 
 Light client proofs, custom token issuance and support for IBC (Inter Blockchain Communication) are currently being designed.
 
@@ -162,8 +161,8 @@ Running an Existing Application
 -------------------------------
 
 .. toctree::
-    :hidden:
-    :maxdepth: 1
+   :hidden:
+   :maxdepth: 1
 
    mycoind/setup.rst
    mycoind/installation.rst
@@ -184,57 +183,41 @@ Those that are comfortable with Javascript, should check out our
 `IOV Core Library <mycoind/iovcore.html>`__ which allows easy access to the blockchain
 from a browser or node environment.
 
-Configuration
-~~~~~~~~~~~~~
+.. Configuration
+    * Deep dive into the genesis file
+    * Show the init formats for multiple extensions
+    * Build custom init file
+    * Use your custom configuration
 
-**TODO**
+.. Understanding Weave
+    Take much from *Backend Development Tutorial*
+    * Working with Protobuf
+    * Permission System and addresses
+    * Models and Buckets
+    * Messages and transactions
+    * Migrations
+    * Handlers and Decorators
+    * Queries
+    * Genesis Initialization
+    * Error package
 
-* Deep dive into the genesis file
-* Show the init formats for multiple extensions
-* Build custom init file
-* Use your custom configuration
-
-Understanding Weave
-~~~~~~~~~~~~~~~~~~~
-
-**TODO**
-Take much from *Backend Development Tutorial*
-
-* Working with Protobuf
-* Permission System and addresses
-* Models and Buckets
-* Messages and transactions
-* Migrations
-* Handlers and Decorators
-* Queries
-* Genesis Initialization
-* Error package
-
-Custom App from Existing Modules
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-**TODO**
-
-* Look at application construction in examples/mycoind
-* Look at more complex examples in cmd/bnsd
-* Make your own app (first tutorial) with payment channels and multisig
-* Compile and test the application
-* Use custom golang client to perform a few actions
-* Add custom iov-core connector
-* Use the chain with iov-core
+.. Custom App from Existing Modules
+    * Look at application construction in examples/mycoind
+    * Look at more complex examples in cmd/bnsd
+    * Make your own app (first tutorial) with payment channels and multisig
+    * Compile and test the application
+    * Use custom golang client to perform a few actions
+    * Add custom iov-core connector
+    * Use the chain with iov-core
 
 
-Coding a Custom Module (Tutorial Series)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-**TODO**
-Take much from *Backend Development Tutorial*
-
-* Design 
-* Implementation step by step
+.. Coding a Custom Module (Tutorial Series)
+    Take much from *Backend Development Tutorial*
+    * Design 
+    * Implementation step by step
 
 Additional Reading
-~~~~~~~~~~~~~~~~~~
+------------------
 
 We are in the process of doing a large overhaul on the docs.
 Until we are finshed, please look at the 
