@@ -9,7 +9,7 @@
     ],
     "consensus_params": {
         "block": {
-            "time_iota_ms": "10000",
+            "time_iota_ms": "1000",
             "max_bytes": "22020096",
             "max_gas": "-1"
 	}
