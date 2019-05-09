@@ -142,11 +142,18 @@ func (c *Client) SubscribeHeaders(ctx context.Context, results chan<- Header) er
 
 	// start a go routine to parse the incoming data and feed to the results channel
 	go func(in <-chan ctypes.ResultEvent) {
-		for elem := range in {
-			// TODO: return actual transaction content as well? not just ID and Result
-			// TODO: safer casting???
-			val := elem.Data.(tmtypes.EventDataNewBlockHeader)
-			results <- val.Header
+	EventLoop:
+		for {
+			select {
+			case <-ctx.Done():
+				break EventLoop
+			case msg := <-in:
+				// TODO: return actual transaction content as well? not just ID and Result
+				// TODO: safer casting???
+				val := msg.Data.(tmtypes.EventDataNewBlockHeader)
+				results <- val.Header
+
+			}
 		}
 		close(results)
 	}(data)
@@ -167,12 +174,19 @@ func (c *Client) SubscribeTx(ctx context.Context, query TxQuery, results chan<- 
 
 	// start a go routine to parse the incoming data and feed to the results channel
 	go func(in <-chan ctypes.ResultEvent) {
-		for elem := range in {
-			// TODO: return actual transaction content as well? not just ID and Result
-			// TODO: safer casting???
-			val := elem.Data.(tmtypes.EventDataTx)
-			res := txResultToCommitResult(val.TxResult)
-			results <- res
+	EventLoop:
+		for {
+			select {
+			case <-ctx.Done():
+				break EventLoop
+			case msg := <-in:
+				// TODO: return actual transaction content as well? not just ID and Result
+				// TODO: safer casting???
+				val := msg.Data.(tmtypes.EventDataTx)
+				res := txResultToCommitResult(val.TxResult)
+				results <- res
+
+			}
 		}
 		close(results)
 	}(data)
