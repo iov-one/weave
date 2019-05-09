@@ -1,7 +1,7 @@
 Welcome to IOV Weave's documentation!
 ========================================
 
-.. image:: ../_static/img/weave-logo.jpg
+.. image:: _static/img/weave-logo.jpg
     :width: 800
     :alt: Weave Logo
 
@@ -15,42 +15,62 @@ quickly be imported in your custom chain, as well as a
 simple framework for adding the custom functionality unique
 to your project.
 
-**Some highlights**
+Some of the highlights of Weave include a Merkle-tree backed data store, 
+a highly configurable extension system that also applies to the core logic such
+as fees and signature validation. Weave also brings powerful customizations 
+initialised from the genesis file. In addition there is a simple ORM 
+which sits on top of a key-value store that also has proveable secondary indexes.
+There is a flexible permissioning system to use contracts as first-class actors, 
+“No empty blocks” for quick synchronizing on quiet chains, 
+and the ability to introduce “product fees” for transactions that need to
+charge more than the basic anti-spam fees. We recently added support for
+"migrations" that can switch on modules, or enable logic updates, via
+on-chain feature switch transactions.
 
-* Merkle-tree backed data store
-* Highly configurable extension system, even for core logic like fees and signature validation
-* Powerful customizations via genesis file
-* Simple ORM on top of key-value store, with (proveable) secondary indexes
-* Flexible permissioning system to use contracts as first-class actors
-* "No empty blocks" for quick syncing on quiet chains
-* Optional "product fees" for transactions that need to charge more than anti-spam
+Existing Modules
+~~~~~~~~~~~~~~~~
 
-**Existing Modules**
+=================   =======================================================================================================================================
+   Module             Description
+=================   =======================================================================================================================================
+Cash_                Wallets that support fungible tokens and fee deduction functionality
+Sigs_                Validate ed25519 signatures
+Multisig_            Supports first-class multiple signature contracts, and allow modification of membership
+AtomicSwap_          Supports HTLC for cross-chain atomic swaps, according to the `IOV Atomic Swap Spec`_
+Escrow_              The arbiter can safely hold tokens, or use with timeouts to release on vesting schedule
+Governance_          Hold on-chain elections for text proposals, or directly modify application parameters
+PaymentChannels_     Unidirectional payment channels, combine micro-payments with one on-chain settlement
+Distribution_        Allows the safe distribution of income among multiple participants using configurations. This can be used to distribute fee income.
+Batch_               Used for combining multiple transactions into one atomic operation. A powerful example is in creating single-chain swaps.
+Validators_          Used in a PoA context to update the validator set using either multisig or the on-chain elections module
+NFT_                 A generic Non Fungible Token module
+NFT/Username_        Example nft used by bnsd. Maps usernames to multiple chain addresses, including reverse lookups
+MessageFee_          Validator-subjective minimum fee module, designed as an anti-spam measure.
+Utils_               A range of utility functions such as KeyTagger which is designed to enable subscriptions to database.
+=================   =======================================================================================================================================
 
-* *cash* - wallets with multiple fungible tokens, fee deduction
-* *sigs* - validate ed25519 signatures
-* *multisig* - first-class multisig contracts, can modify membership
-* *escrow* - Arbiter can safely hold tokens, or use with timeout for eg. vesting period
-* *paychan* - Unidirectional payment channels, combine micro-payments with one on-chain settlement
-* *distribution* - Safely distribute income (eg. fees) among multiple participants with flexible settings
-* *batch* - Combine multiple transactions into one atomic operation (allow single-chain swap)
-* *nft* - Generic NFT module
-* *nft/username* - Part of cmd/bnsd, maps usernames to multiple chain-addresses, with reverse lookup
-* *valdiators* - Update validator sets PoA style, by multisig or via on-chain Elections
-* *msgfee* - Subjective minimum fees as quick anti-spam filter (set by each validator)
-* *utils* - Features like KeyTagger, to make all db keys subscribe-able
+.. _Cash: https://github.com/iov-one/weave/tree/master/x/cash
+.. _Sigs: https://github.com/iov-one/weave/tree/master/x/sigs
+.. _Multisig: https://github.com/iov-one/weave/tree/master/x/multisig
+.. _AtomicSwap: https://github.com/iov-one/weave/tree/master/x/aswap
+.. _Escrow: https://github.com/iov-one/weave/tree/master/x/escrow
+.. _Governance: https://github.com/iov-one/weave/tree/master/x/gov
+.. _PaymentChannels: https://github.com/iov-one/weave/tree/master/x/paychan
+.. _Distribution: https://github.com/iov-one/weave/tree/master/x/distribution
+.. _Batch: https://github.com/iov-one/weave/tree/master/x/batch
+.. _NFT: https://github.com/iov-one/weave/tree/master/x/nft
+.. _Username: https://github.com/iov-one/weave/tree/master/cmd/bnsd/x/nft/username
+.. _MessageFee: https://github.com/iov-one/weave/tree/master/x/msgfee
+.. _Utils: https://github.com/iov-one/weave/tree/master/x/utils
+.. _IOV Atomic Swap Spec: https://github.com/iov-one/iov-core/blob/master/docs/atomic-swap-protocol-v1.md
 
-**Coming soon**
+In Progress
+~~~~~~~~~~~
 
-* Elections - manage the submission of proposals, and the voting functionality (setting quorums, voting, vote counting)
-* Smooth schema migrations / feature switches to easily allow hard and soft forks without stopping the chain
-* Fully functional atomic swap module (currently made by joining escrow with a hashlock decorator)
-* Light client proofs
-* Custom token issuance
-* IBC
+Light client proofs, custom token issuance and support for IBC (Inter Blockchain Communication) are currently being designed.
 
 Basic Blockchain Terminology
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+----------------------------
 
 If you are new to blockchains (or Tendermint), this is a
 crash course in just enough theory to follow the rest of the setup.
