@@ -131,6 +131,9 @@ func (b VersioningBucket) Save(db weave.KVStore, model Object) error {
 // The VersionedIDRef returned won't be nil on success and contains the new version number.
 // The currentKey must be the latest one in usage or an ErrDuplicate is returned.
 func (b VersioningBucket) Update(db weave.KVStore, id []byte, data versionedData) (*VersionedIDRef, error) {
+	if data.GetVersion() == 0 {
+		return nil, errors.Wrap(errors.ErrEmpty, "version not set")
+	}
 	currentKey := VersionedIDRef{ID: id, Version: data.GetVersion()}
 	// prevent gaps
 	switch exists, err := b.Exists(db, currentKey); {

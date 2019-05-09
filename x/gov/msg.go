@@ -115,21 +115,10 @@ func (m UpdateElectorateMsg) Validate() error {
 		return errors.Wrap(err, "invalid metadata")
 	}
 
-	switch {
-	case len(m.ElectorateID) == 0:
+	if len(m.ElectorateID) == 0 {
 		return errors.Wrap(errors.ErrEmpty, "id")
-	case len(m.DiffElectors) == 0:
-		return errors.Wrap(errors.ErrEmpty, "electors")
 	}
-	for i, v := range m.DiffElectors {
-		if v.Weight > maxWeight {
-			return errors.Wrap(errors.ErrInput, "must not be greater max weight")
-		}
-		if err := v.Address.Validate(); err != nil {
-			return errors.Wrapf(err, "address at position: %d", i)
-		}
-	}
-	return nil
+	return ElectorsDiff(m.DiffElectors).Validate()
 }
 
 func (CreateElectorateUpdateProposalMsg) Path() string {
@@ -137,13 +126,8 @@ func (CreateElectorateUpdateProposalMsg) Path() string {
 }
 
 func (m CreateElectorateUpdateProposalMsg) Validate() error {
-	for i, v := range m.DiffElectors {
-		if v.Weight > maxWeight {
-			return errors.Wrap(errors.ErrInput, "must not be greater max weight")
-		}
-		if err := v.Address.Validate(); err != nil {
-			return errors.Wrapf(err, "address at position: %d", i)
-		}
+	if err := ElectorsDiff(m.DiffElectors).Validate(); err != nil {
+		return err
 	}
 	return validateCreateProposal(&m)
 }

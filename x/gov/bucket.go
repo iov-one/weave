@@ -9,26 +9,18 @@ import (
 
 // ElectorateBucket is the persistent bucket for Electorate object.
 type ElectorateBucket struct {
-	orm.IDGenBucket
+	orm.VersioningBucket
 }
 
 // NewRevenueBucket returns a bucket for managing electorate.
 func NewElectorateBucket() *ElectorateBucket {
 	b := migration.NewBucket(packageName, "electorate", orm.NewSimpleObj(nil, &Electorate{}))
 	return &ElectorateBucket{
-		IDGenBucket: orm.WithSeqIDGenerator(b, "id"),
+		VersioningBucket: orm.WithVersioning(orm.WithSeqIDGenerator(b, "id")),
 	}
 }
 
-// GetElectorate loads the electorate for the given id. If it does not exist then ErrNotFound is returned.
-func (b *ElectorateBucket) GetElectorate(db weave.KVStore, id []byte) (*Electorate, error) {
-	obj, err := b.Get(db, id)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to load electorate")
-	}
-	if obj == nil || obj.Value() == nil {
-		return nil, errors.Wrap(errors.ErrNotFound, "unknown id")
-	}
+func asElectorate(obj orm.Object) (*Electorate, error) {
 	rev, ok := obj.Value().(*Electorate)
 	if !ok {
 		return nil, errors.Wrapf(errors.ErrModel, "invalid type: %T", obj.Value())
@@ -70,25 +62,15 @@ type ProposalBucket struct {
 	orm.IDGenBucket
 }
 
-const indexNameElectorate = "electorate"
 const indexNameAuthor = "author"
 
 // NewProposalBucket returns a bucket for managing electorate.
 func NewProposalBucket() *ProposalBucket {
 	b := migration.NewBucket(packageName, "proposal", orm.NewSimpleObj(nil, &Proposal{})).
-		WithIndex(indexNameElectorate, indexElectorate, false).
 		WithIndex(indexNameAuthor, indexAuthor, false)
 	return &ProposalBucket{
 		IDGenBucket: orm.WithSeqIDGenerator(b, "id"),
 	}
-}
-
-func indexElectorate(obj orm.Object) ([]byte, error) {
-	p, err := asProposal(obj)
-	if err != nil {
-		return nil, err
-	}
-	return p.ElectorateID, nil
 }
 
 func indexAuthor(obj orm.Object) ([]byte, error) {
@@ -117,22 +99,6 @@ func asProposal(obj orm.Object) (*Proposal, error) {
 		return nil, errors.Wrapf(errors.ErrModel, "invalid type: %T", obj.Value())
 	}
 	return rev, nil
-
-}
-
-func (b *ProposalBucket) GetByElectorate(db weave.KVStore, id []byte) ([]*Proposal, error) {
-	objs, err := b.GetIndexed(db, indexNameElectorate, id)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to find by electorate id")
-	}
-	r := make([]*Proposal, len(objs))
-	for i, v := range objs {
-		var err error
-		if r[i], err = asProposal(v); err != nil {
-			return nil, err
-		}
-	}
-	return r, nil
 }
 
 // Update stores the given proposal and id in the persistence store.

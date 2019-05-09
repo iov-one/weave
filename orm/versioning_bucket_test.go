@@ -94,6 +94,11 @@ func TestUpdateWithVersioning(t *testing.T) {
 			srcData: &VersionedIDRef{ID: []byte("anyValue"), Version: 1},
 			expErr:  errors.ErrNotFound,
 		},
+		"Fails when version not set": {
+			srcID:   weavetest.SequenceID(0),
+			srcData: &VersionedIDRef{ID: []byte("anyValue"), Version: 0},
+			expErr:  errors.ErrEmpty,
+		},
 		"Fails when current key version not exists": {
 			srcID:   weavetest.SequenceID(1),
 			srcData: &VersionedIDRef{ID: []byte("anyValue"), Version: 100},

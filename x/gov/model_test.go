@@ -7,6 +7,7 @@ import (
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/weavetest"
 )
 
@@ -361,7 +362,7 @@ func TestElectionRuleValidation(t *testing.T) {
 			},
 			Exp: errors.ErrEmpty,
 		},
-		"Missing metadat": {
+		"Missing metadata": {
 			Src: ElectionRule{
 				Title:             "My election rule",
 				Admin:             alice,
@@ -418,11 +419,11 @@ func TestTextProposalValidation(t *testing.T) {
 			}),
 			Exp: errors.ErrInput,
 		},
-		"ElectorateID missing": {
+		"ElectorateRef invalid": {
 			Src: textProposalFixture(func(p *Proposal) {
-				p.ElectorateID = nil
+				p.ElectorateRef = orm.VersionedIDRef{}
 			}),
-			Exp: errors.ErrInput,
+			Exp: errors.ErrEmpty,
 		},
 		"ElectionRuleID missing": {
 			Src: textProposalFixture(func(p *Proposal) {
@@ -461,6 +462,24 @@ func TestTextProposalValidation(t *testing.T) {
 				p.Metadata = nil
 			}),
 			Exp: errors.ErrMetadata,
+		},
+		"Details missing": {
+			Src: updateElectorateProposalFixture(func(p *Proposal) {
+				p.Details = nil
+			}),
+			Exp: errors.ErrEmpty,
+		},
+		"Electorate diff missing": {
+			Src: updateElectorateProposalFixture(func(p *Proposal) {
+				p.GetElectorateUpdateDetails().DiffElectors = nil
+			}),
+			Exp: errors.ErrEmpty,
+		},
+		"Electorate invalid ": {
+			Src: updateElectorateProposalFixture(func(p *Proposal) {
+				p.GetElectorateUpdateDetails().DiffElectors = []Elector{{Address: alice, Weight: math.MaxUint32}}
+			}),
+			Exp: errors.ErrInput,
 		},
 	}
 	for msg, spec := range specs {
@@ -529,7 +548,7 @@ func textProposalFixture(mods ...func(*Proposal)) Proposal {
 		Title:           "My proposal",
 		Description:     "My description",
 		ElectionRuleID:  weavetest.SequenceID(1),
-		ElectorateID:    weavetest.SequenceID(1),
+		ElectorateRef:   orm.VersionedIDRef{ID: weavetest.SequenceID(1), Version: 1},
 		VotingStartTime: now.Add(-1 * time.Minute),
 		VotingEndTime:   now.Add(time.Minute),
 		SubmissionTime:  now.Add(-1 * time.Hour),
@@ -546,7 +565,8 @@ func textProposalFixture(mods ...func(*Proposal)) Proposal {
 	}
 	return proposal
 }
-func updateElectoreateProposalFixture(mods ...func(*Proposal)) Proposal {
+
+func updateElectorateProposalFixture(mods ...func(*Proposal)) Proposal {
 	now := weave.AsUnixTime(time.Now())
 	proposal := Proposal{
 		Metadata:        &weave.Metadata{Schema: 1},
@@ -554,7 +574,7 @@ func updateElectoreateProposalFixture(mods ...func(*Proposal)) Proposal {
 		Title:           "My proposal",
 		Description:     "My description",
 		ElectionRuleID:  weavetest.SequenceID(1),
-		ElectorateID:    weavetest.SequenceID(1),
+		ElectorateRef:   orm.VersionedIDRef{ID: weavetest.SequenceID(1), Version: 1},
 		VotingStartTime: now.Add(-1 * time.Minute),
 		VotingEndTime:   now.Add(time.Minute),
 		SubmissionTime:  now.Add(-1 * time.Hour),
