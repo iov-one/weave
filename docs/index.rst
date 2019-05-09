@@ -73,8 +73,8 @@ Basic Blockchain Terminology
 ----------------------------
 
 .. toctree::
-    :hidden:
-    :maxdepth: 2
+   :hidden:
+   :maxdepth: 2
 
    basics/blockchain.rst
    basics/consensus.rst
