@@ -38,7 +38,6 @@ install:
 script:
 - make lint;
 - make test;
-# trigger build
 - if [[ "$TRAVIS_GO_VERSION" == "$MAIN_GO_VERSION" ]]; then
      make cover;
      ./coverage/upload.sh;
