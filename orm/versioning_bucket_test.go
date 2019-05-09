@@ -31,7 +31,7 @@ func TestGetLatestVersion(t *testing.T) {
 		anyUniquePayload := make([]byte, 32)
 		rand.Read(anyUniquePayload)
 		persistentValue := VersionedIDRef{ID: anyUniquePayload, Version: uint32(i)}
-		vID, err = versionedBucket.Update(db, *vID, &persistentValue)
+		vID, err = versionedBucket.Update(db, vID.ID, &persistentValue)
 		if err != nil {
 			t.Fatalf("unexpected error: %+v", err)
 		}
@@ -80,29 +80,24 @@ func TestUpdateWithVersioning(t *testing.T) {
 	versionedBucket := WithVersioning(idGenBucket)
 
 	specs := map[string]struct {
-		init                 func(*testing.T, weave.KVStore)
-		srcCurrentVersionKey VersionedIDRef
-		srcData              versionedData
-		expErr               *errors.Error
+		init    func(*testing.T, weave.KVStore)
+		srcID   []byte
+		srcData versionedData
+		expErr  *errors.Error
 	}{
 		"Happy path": {
-			srcCurrentVersionKey: VersionedIDRef{ID: weavetest.SequenceID(1), Version: 1},
-			srcData:              &VersionedIDRef{ID: []byte("otherValue"), Version: 1},
-		},
-		"Fails with version mismatch": {
-			srcCurrentVersionKey: VersionedIDRef{ID: weavetest.SequenceID(1), Version: 1},
-			srcData:              &VersionedIDRef{ID: []byte("anyValue"), Version: 10},
-			expErr:               errors.ErrState,
+			srcID:   weavetest.SequenceID(1),
+			srcData: &VersionedIDRef{ID: []byte("otherValue"), Version: 1},
 		},
 		"Fails when current key ID not exists": {
-			srcCurrentVersionKey: VersionedIDRef{ID: []byte("nonExisting"), Version: 1},
-			srcData:              &VersionedIDRef{ID: []byte("anyValue"), Version: 1},
-			expErr:               errors.ErrNotFound,
+			srcID:   []byte("nonExisting"),
+			srcData: &VersionedIDRef{ID: []byte("anyValue"), Version: 1},
+			expErr:  errors.ErrNotFound,
 		},
 		"Fails when current key version not exists": {
-			srcCurrentVersionKey: VersionedIDRef{ID: weavetest.SequenceID(1), Version: 100},
-			srcData:              &VersionedIDRef{ID: []byte("anyValue"), Version: 100},
-			expErr:               errors.ErrNotFound,
+			srcID:   weavetest.SequenceID(1),
+			srcData: &VersionedIDRef{ID: []byte("anyValue"), Version: 100},
+			expErr:  errors.ErrNotFound,
 		},
 		"Fails when already deleted": {
 			init: func(t *testing.T, db weave.KVStore) {
@@ -110,9 +105,9 @@ func TestUpdateWithVersioning(t *testing.T) {
 					t.Fatalf("unexpected error: %+v", err)
 				}
 			},
-			srcCurrentVersionKey: VersionedIDRef{ID: weavetest.SequenceID(1), Version: 1},
-			srcData:              &VersionedIDRef{ID: []byte("otherValue"), Version: 1},
-			expErr:               errors.ErrDeleted,
+			srcID:   weavetest.SequenceID(1),
+			srcData: &VersionedIDRef{ID: []byte("otherValue"), Version: 1},
+			expErr:  errors.ErrDeleted,
 		},
 	}
 	for msg, spec := range specs {
@@ -126,7 +121,7 @@ func TestUpdateWithVersioning(t *testing.T) {
 				spec.init(t, db)
 			}
 			// when
-			newKey, err := versionedBucket.Update(db, spec.srcCurrentVersionKey, spec.srcData)
+			newKey, err := versionedBucket.Update(db, spec.srcID, spec.srcData)
 			if !spec.expErr.Is(err) {
 				t.Fatalf("expected %v but got %v", spec.expErr, err)
 			}
@@ -134,7 +129,7 @@ func TestUpdateWithVersioning(t *testing.T) {
 				return
 			}
 			// then
-			if exp, got := spec.srcCurrentVersionKey.ID, newKey.ID; !bytes.Equal(exp, got) {
+			if exp, got := spec.srcID, newKey.ID; !bytes.Equal(exp, got) {
 				t.Errorf("expected %v but got %v", exp, got)
 			}
 			if exp, got := uint32(2), newKey.Version; exp != got {
@@ -150,7 +145,7 @@ func TestUpdateWithVersioning(t *testing.T) {
 			}
 
 			// and validate old version still exists
-			obj, err = versionedBucket.GetVersion(db, spec.srcCurrentVersionKey)
+			obj, err = versionedBucket.GetVersion(db, VersionedIDRef{ID: spec.srcID, Version: 1})
 			if err != nil {
 				t.Fatalf("unexpected error: %+v", err)
 			}

@@ -36,16 +36,16 @@ func WithVersioning(b IDGenBucket) VersioningBucket {
 //  - ErrNotFound when not found
 //  - ErrDeleted when deleted
 // Object won't be nil in success case
-func (b VersioningBucket) GetLatestVersion(db weave.ReadOnlyKVStore, id []byte) (VersionedIDRef, Object, error) {
+func (b VersioningBucket) GetLatestVersion(db weave.ReadOnlyKVStore, id []byte) (*VersionedIDRef, Object, error) {
 	idWithoutVersion := VersionedIDRef{ID: id}
 	prefix, err := idWithoutVersion.Marshal()
 	if err != nil {
-		return idWithoutVersion, nil, errors.Wrap(err, "failed to marshal versioned ID ref")
+		return nil, nil, errors.Wrap(err, "failed to marshal versioned ID ref")
 	}
 	dbKeyLength := len(b.DBKey(prefix)) - len(prefix)
 	matches, err := b.Query(db, weave.PrefixQueryMod, prefix)
 	if err != nil {
-		return idWithoutVersion, nil, errors.Wrap(err, "prefix query")
+		return nil, nil, errors.Wrap(err, "prefix query")
 	}
 	// find highest version for that ID
 	var highestVersion VersionedIDRef
@@ -54,7 +54,7 @@ func (b VersioningBucket) GetLatestVersion(db weave.ReadOnlyKVStore, id []byte) 
 		var vID VersionedIDRef
 		idData := m.Key[dbKeyLength:]
 		if err := vID.Unmarshal(idData); err != nil {
-			return idWithoutVersion, nil, errors.Wrap(err, "wrong key type")
+			return nil, nil, errors.Wrap(err, "wrong key type")
 		}
 		if vID.Version > highestVersion.Version {
 			highestVersion = vID
@@ -62,16 +62,16 @@ func (b VersioningBucket) GetLatestVersion(db weave.ReadOnlyKVStore, id []byte) 
 		}
 	}
 	if len(found.Key) == 0 {
-		return idWithoutVersion, nil, errors.Wrap(errors.ErrNotFound, "unknown id")
+		return nil, nil, errors.Wrap(errors.ErrNotFound, "unknown id")
 	}
 	if tombstone.Equal(found.Value) {
-		return idWithoutVersion, nil, errors.ErrDeleted
+		return nil, nil, errors.ErrDeleted
 	}
 	obj, err := b.Parse(found.Key, found.Value)
 	if err != nil {
-		return idWithoutVersion, nil, err
+		return nil, nil, err
 	}
-	return highestVersion, obj, err
+	return &highestVersion, obj, err
 }
 
 // Get works with a marshalled VersionedIDRef key. Direct usage should be avoided in favour of
@@ -130,10 +130,8 @@ func (b VersioningBucket) Save(db weave.KVStore, model Object) error {
 // Update persists the given data object with a new derived version key in the storage.
 // The VersionedIDRef returned won't be nil on success and contains the new version number.
 // The currentKey must be the latest one in usage or an ErrDuplicate is returned.
-func (b VersioningBucket) Update(db weave.KVStore, currentKey VersionedIDRef, data versionedData) (*VersionedIDRef, error) {
-	if data.GetVersion() != currentKey.Version {
-		return nil, errors.Wrap(errors.ErrState, "versions not matching")
-	}
+func (b VersioningBucket) Update(db weave.KVStore, id []byte, data versionedData) (*VersionedIDRef, error) {
+	currentKey := VersionedIDRef{ID: id, Version: data.GetVersion()}
 	// prevent gaps
 	switch exists, err := b.Exists(db, currentKey); {
 	case err != nil:
