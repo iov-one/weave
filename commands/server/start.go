@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"flag"
 
 	"github.com/iov-one/weave/coin"
@@ -74,11 +75,18 @@ func StartCmd(gen AppGenerator, logger log.Logger, home string, args []string) e
 	}
 	svr.SetLogger(logger.With("module", "abci-server"))
 	svr.Start()
-
-	// Wait forever
+	ctx, cancel := context.WithCancel(context.Background())
 	cmn.TrapSignal(logger, func() {
 		// Cleanup
 		svr.Stop()
+		cancel()
 	})
-	return nil
+
+	// Wait forever
+	for {
+		select {
+		case <-ctx.Done():
+			return nil
+		}
+	}
 }
