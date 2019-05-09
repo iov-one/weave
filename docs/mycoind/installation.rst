@@ -97,12 +97,9 @@ so we can search for our transactions by id (default state is off).
 But rather than have you fiddle with the config files by hand,
 you can just run this to do the setup:
 
-
-**TODO**: show real address
-
 .. code:: console
 
-    mycoind init CASH 0123456789012345678901234567890123456789
+    mycoind init CASH bech32:tiov1qrw95py2x7fzjw25euuqlj6dq6t0jahe7rh8wp
 
 Make sure you enter the same hex address, this account gets the tokens.
 You can take another look at ``~/.mycoind/config/genesis.json`` after running
@@ -112,28 +109,43 @@ keep it simple for now and get something working. Feel free to
 wipe out the directory later and reinitialize another blockchain with
 custom configuration to experiment.
 
+You may ask where this address comes from. It is a demo account derived from our test
+mnemonic: ``dad kiss slogan offer outer bomb usual dream awkward jeans enlist mansion``
+using the hd derivation path: ``m/44'/234'/0'``. This is the path used by our wallet,
+so you can enter your mnemonic in our web-wallet and see this account.
+Note that you can define the addresses both in *hex:* and *bech32:* formats
+(if prefix is ommitted, hex is assumed)
+
+
 Start the Blockchain
 ====================
 
 We have a private key and setup all the configuration.
 The only thing left is to start this blockchain running.
 
-**TODO** fix these commands... fix code so they run
-
 .. code:: console
 
-    tendermint node --home ~/.mycoind --p2p.upnp --proxy_app 'noop' > ~/.mycoind/tendermint.log &
+    tendermint node --home ~/.mycoind > ~/.mycoind/tendermint.log &
     mycoind start
 
 .. hint: For help and explanations for the tendermint node commands:
-   `tendermint node --help`
+   ``tendermint node --help``
+
+This connects over tcp://localhost:26658 by default, to use unix sockets
+(arguably more secure), try the following:
+
+.. code:: console
+
+    tendermint node --home ~/.mycoind --proxy_app=unix://$HOME/abci.socket > ~/.mycoind/tendermint.log &
+    mycoind start -bind=unix://$HOME/abci.socket
+
 
 Open a new window and type in ``tail -f  ~/.mycoind/tendermint.log`` and you will be able to see the output.
 That means the blockchain is working away and producing new blocks,
 one a second.
 
 .. image:: ../_static/img/tail-log.png
-        :width: 800
+        :width: 1200
         :alt: Log file
 
 Note: if you did anything funky during setup and managed to get yourself a rogue tendermint

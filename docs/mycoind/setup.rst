@@ -34,8 +34,10 @@ and you must add the default install directory to your ``PATH``.
 .. code-block:: console
 
     # these two lines should be in .bashrc or similar
-    export GOPATH=$HOME/go
-    export PATH=$PATH:$GOPATH/bin
+    export GOPATH="$HOME/go"
+    export PATH="$PATH:$GOPATH/bin"
+    # this must report 1.11.4+
+    go version
     # this will properly place the code in $HOME/go/src/github.com/iov-one/weave
     go get github.com/iov-one/weave
 
@@ -45,7 +47,7 @@ Go related tools
 
 You must also make sure to have a few other developer tools
 installed. If you are a developer in any language, they are
-probably there. Just double check. 
+probably there. Just double check.
 If not, a simple ``sudo apt get`` should provide them.
 
 * git
