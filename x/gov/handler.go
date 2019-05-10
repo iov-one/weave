@@ -251,7 +251,7 @@ func updateElectorateExecutor(elecBucket *ElectorateBucket) TallyResultExecutor 
 			return errors.Wrap(errors.ErrHuman, "details not set")
 		}
 		// merge diff
-		obj, err := elecBucket.GetVersion(db, proposal.ElectorateRef)
+		_, obj, err := elecBucket.GetLatestVersion(db, proposal.ElectorateRef.ID)
 		if err != nil {
 			return errors.Wrap(err, "failed to load electorate")
 		}
@@ -260,7 +260,9 @@ func updateElectorateExecutor(elecBucket *ElectorateBucket) TallyResultExecutor 
 			return err
 		}
 		merger := newMerger(elect.Electors)
-		_ = merger.merge(details.DiffElectors)
+		if err := merger.merge(details.DiffElectors); err != nil {
+			return errors.Wrap(err, "merge failed")
+		}
 		elect.Electors, elect.TotalElectorateWeight = merger.serialize()
 		if _, err := elecBucket.Update(db, proposal.ElectorateRef.ID, elect); err != nil {
 			return errors.Wrap(err, "failed to store electorate update")

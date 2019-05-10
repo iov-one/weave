@@ -776,7 +776,8 @@ func TestTally(t *testing.T) {
 		WantCheckErr   *errors.Error
 		WantDeliverErr *errors.Error
 		ExpResult      Proposal_Result
-		PostChecks     func(t *testing.T, kvStore weave.KVStore)
+		PostChecks     func(t *testing.T, db weave.KVStore)
+		Init           func(t *testing.T, db weave.KVStore)
 	}{
 		"Accepted with electorate majority": {
 			Src: tallySetup{
@@ -967,7 +968,22 @@ func TestTally(t *testing.T) {
 			},
 			ExpResult: Proposal_Rejected,
 		},
-		"Updates an electorate on success": {
+		"Updates latest electorate on success": {
+			Init: func(t *testing.T, db weave.KVStore) {
+				// update electorate for a new version
+				bucket := NewElectorateBucket()
+				_, obj, err := bucket.GetLatestVersion(db, weavetest.SequenceID(1))
+				if err != nil {
+					t.Fatalf("unexpected error: %+v", err)
+				}
+				e, _ := asElectorate(obj)
+				e.Electors = []Elector{{alice, 1}, {bobby, 10}, {charlie, 2}}
+				e.TotalElectorateWeight = 13
+
+				if _, err := bucket.Update(db, weavetest.SequenceID(1), e); err != nil {
+					t.Fatalf("unexpected error: %+v", err)
+				}
+			},
 			Mods: func(ctx weave.Context, p *Proposal) {
 				update := updateElectorateProposalFixture()
 				blockTime, _ := weave.BlockTime(ctx)
@@ -987,16 +1003,50 @@ func TestTally(t *testing.T) {
 					t.Fatalf("unexpected error: %+v", err)
 				}
 				elect, _ := asElectorate(obj)
+				if exp, got := uint32(3), elect.Version; exp != got {
+					t.Errorf("expected %v but got %v", exp, got)
+				}
 				got := elect.Electors
-				exp := []Elector{{alice, 10}, {bobby, 10}}
+				exp := []Elector{{alice, 10}, {bobby, 10}, {charlie, 2}}
 				sortByAddress(exp)
 				if !reflect.DeepEqual(exp, got) {
 					t.Errorf("expected %v but got %v", exp, got)
 				}
-				if exp, got := uint64(20), elect.TotalElectorateWeight; exp != got {
+				if exp, got := uint64(22), elect.TotalElectorateWeight; exp != got {
 					t.Errorf("expected %v but got %v", exp, got)
 				}
 			},
+		},
+		"Does not complete tally when executor fails": {
+			Init: func(t *testing.T, db weave.KVStore) {
+				// update electorate for a new version without Alice
+				bucket := NewElectorateBucket()
+				_, obj, err := bucket.GetLatestVersion(db, weavetest.SequenceID(1))
+				if err != nil {
+					t.Fatalf("unexpected error: %+v", err)
+				}
+				e, _ := asElectorate(obj)
+				e.Electors = []Elector{{bobby, 10}}
+				e.TotalElectorateWeight = 10
+
+				if _, err := bucket.Update(db, weavetest.SequenceID(1), e); err != nil {
+					t.Fatalf("unexpected error: %+v", err)
+				}
+			},
+			Mods: func(ctx weave.Context, p *Proposal) {
+				update := updateElectorateProposalFixture()
+				blockTime, _ := weave.BlockTime(ctx)
+				update.GetElectorateUpdateDetails().DiffElectors = []Elector{{alice, 0}}
+				update.VotingEndTime = weave.AsUnixTime(blockTime.Add(-1 * time.Second))
+				update.VoteState = p.VoteState
+				*p = update
+			},
+			Src: tallySetup{
+				yes:                   10,
+				threshold:             Fraction{Numerator: 1, Denominator: 2},
+				totalWeightElectorate: 11,
+			},
+			WantDeliverErr: errors.ErrNotFound,
 		},
 		"Does not update an electorate when rejected": {
 			Mods: func(ctx weave.Context, p *Proposal) {
@@ -1103,6 +1153,9 @@ func TestTally(t *testing.T) {
 				p.VotingEndTime = weave.AsUnixTime(blockTime.Add(-1 * time.Second))
 			}
 			pBucket := withTextProposal(t, db, ctx, append([]ctxAwareMutator{setupForTally}, spec.Mods)...)
+			if spec.Init != nil {
+				spec.Init(t, db)
+			}
 			cache := db.CacheWrap()
 
 			// when check is called
