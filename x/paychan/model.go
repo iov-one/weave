@@ -15,6 +15,9 @@ var _ orm.CloneableData = (*PaymentChannel)(nil)
 
 // Validate ensures the payment channel is valid.
 func (pc *PaymentChannel) Validate() error {
+	if err := pc.Metadata.Validate(); err != nil {
+		return errors.Wrap(err, "metadata")
+	}
 	if err := pc.Src.Validate(); err != nil {
 		return errors.Wrap(err, "src")
 	}
@@ -24,8 +27,11 @@ func (pc *PaymentChannel) Validate() error {
 	if err := pc.Recipient.Validate(); err != nil {
 		return errors.Wrap(err, "recipient")
 	}
-	if pc.Timeout <= 0 {
-		return errors.Wrap(errors.ErrModel, "timeout in the past")
+	if pc.Timeout < inThePast {
+		return errors.Wrap(errors.ErrInput, "timeout is required")
+	}
+	if err := pc.Timeout.Validate(); err != nil {
+		return errors.Wrap(err, "invalid timeout value")
 	}
 	if pc.Total == nil || !pc.Total.IsPositive() {
 		return errors.Wrap(errors.ErrModel, "negative total")

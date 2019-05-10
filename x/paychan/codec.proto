@@ -21,9 +21,13 @@ message PaymentChannel {
   // Total represents a maximum value that can be transferred via this
   // payment channel.
   coin.Coin total = 5;
-  // Absolute block height value. If reached, channel can be closed by
-  // sender.
-  int64 timeout = 6;
+  // Timeout represents wall clock time as read from the block header. Timeout
+  // is represented using POSIX time format.
+  // Expiration time is inclusive meaning that the paychan expires as soon as
+  // the current time is equal or greater than timeout value.
+  // nonexpired: [created, timeout)
+  // expired: [timeout, infinity)
+  int64 timeout = 6 [(gogoproto.casttype) = "github.com/iov-one/weave.UnixTime"];
   // Max length 128 character.
   string memo = 7;
   // Transferred represents total amount that was transferred using allocated
@@ -46,9 +50,8 @@ message CreatePaymentChannelMsg {
   bytes recipient = 4 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
   // Maximum amount that can be transferred via this channel.
   coin.Coin total = 5;
-  // Absolute block height value. If reached, channel can be closed by
-  // anyone.
-  int64 timeout = 6;
+  // If reached, channel can be closed by anyone.
+  int64 timeout = 6 [(gogoproto.casttype) = "github.com/iov-one/weave.UnixTime"];
   // Max length 128 character.
   string memo = 7;
 }
@@ -79,7 +82,7 @@ message TransferPaymentChannelMsg {
 //
 // Recipient account can close channel at any moment.
 //
-// Sender can close channel only if the timeout chain height was reached.
+// Sender can close channel only if the timeout was reached.
 message ClosePaymentChannelMsg {
   weave.Metadata metadata = 1;
   bytes channel_id = 2 [(gogoproto.customname) = "ChannelID"];

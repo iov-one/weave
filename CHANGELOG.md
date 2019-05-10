@@ -22,6 +22,7 @@
 
 Breaking changes
 
+- x/paychan is using a wall clock timeout instead of block height
 - x/cash is using schema versioned model and messages
 - x/paychan is using schema versioned model and messages
 - x/escrow is using schema versioned model and messages

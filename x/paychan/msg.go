@@ -23,6 +23,9 @@ const (
 )
 
 func (m *CreatePaymentChannelMsg) Validate() error {
+	if err := m.Metadata.Validate(); err != nil {
+		return errors.Wrap(err, "metadata")
+	}
 	if m.Src == nil {
 		return errors.Wrap(errors.ErrMsg, "missing source")
 	}
@@ -35,8 +38,11 @@ func (m *CreatePaymentChannelMsg) Validate() error {
 	if m.Total == nil || m.Total.IsZero() {
 		return errors.Wrap(errors.ErrMsg, "invalid total amount")
 	}
-	if m.Timeout <= 0 {
-		return errors.Wrap(errors.ErrMsg, "invalid timeout value")
+	if m.Timeout < inThePast {
+		return errors.Wrap(errors.ErrInput, "timeout is in the past")
+	}
+	if err := m.Timeout.Validate(); err != nil {
+		return errors.Wrap(err, "invalid timeout value")
 	}
 	if len(m.Memo) > 128 {
 		return errors.Wrap(errors.ErrMsg, "memo too long")
@@ -50,6 +56,9 @@ func (CreatePaymentChannelMsg) Path() string {
 }
 
 func (m *TransferPaymentChannelMsg) Validate() error {
+	if err := m.Metadata.Validate(); err != nil {
+		return errors.Wrap(err, "metadata")
+	}
 	if m.Signature == nil {
 		return errors.Wrap(errors.ErrMsg, "missing signature")
 	}
@@ -73,6 +82,9 @@ func (TransferPaymentChannelMsg) Path() string {
 }
 
 func (m *ClosePaymentChannelMsg) Validate() error {
+	if err := m.Metadata.Validate(); err != nil {
+		return errors.Wrap(err, "metadata")
+	}
 	if m.ChannelID == nil {
 		return errors.Wrap(errors.ErrMsg, "missing channel ID")
 	}
@@ -99,3 +111,12 @@ func validateAddresses(addrs ...weave.Address) error {
 	}
 	return nil
 }
+
+// inThePast represents time value for Monday, January 1, 2018 2:00:00 AM GMT+01:00
+//
+// Assumption of this extension is that year 2018 is always in the past and it
+// is safe to use as a broad border between the past and the future. This does
+// not have to be a precise value as it should be used only for initial
+// validation. Proper time validation must be done once the exact current time
+// is available.
+var inThePast weave.UnixTime = 1514768400
