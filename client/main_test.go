@@ -1,6 +1,7 @@
 package client
 
 import (
+	"os"
 	"testing"
 
 	"github.com/tendermint/tendermint/abci/example/kvstore"
@@ -25,7 +26,8 @@ func TestMain(m *testing.M) {
 
 	// run the default kvstore app inside a tendermint instance
 	app := kvstore.NewKVStoreApplication()
-	TestWithTendermint(app, func(n *nm.Node) {
+	code := TestWithTendermint(app, func(n *nm.Node) {
 		node = n
 	}, m)
+	os.Exit(code)
 }

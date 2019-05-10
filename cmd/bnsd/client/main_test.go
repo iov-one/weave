@@ -3,6 +3,7 @@ package client
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/iov-one/weave"
@@ -51,9 +52,10 @@ func TestMain(m *testing.M) {
 		panic(err) // what else to do???
 	}
 
-	weaveClient.TestWithTendermint(app, func(n *nm.Node) {
+	code := weaveClient.TestWithTendermint(app, func(n *nm.Node) {
 		node = n
 	}, m)
+	os.Exit(code)
 
 }
 

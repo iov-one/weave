@@ -87,10 +87,12 @@ func TestMain(m *testing.M) {
 		logger.Error("Failed to init app", "cause", err)
 		os.Exit(1)
 	}
-	weaveClient.TestWithTendermint(app, func(n *nm.Node) {
+
+	code := weaveClient.TestWithTendermint(app, func(n *nm.Node) {
 		node = n
 		bnsClient = client.NewClient(client.NewLocalConnection(node))
 	}, m)
+	os.Exit(code)
 
 }
 

@@ -3,8 +3,6 @@ package client
 import (
 	"context"
 	"fmt"
-	"os"
-	"testing"
 	"time"
 
 	"github.com/tendermint/tendermint/abci/types"
@@ -12,10 +10,16 @@ import (
 	"github.com/tendermint/tendermint/rpc/test"
 )
 
+// Runner is an interface that would allow us more flexibility in terms of
+// types passed to the helper
+type Runner interface {
+	Run() int
+}
+
 // TestWithTendermint provides adaptive startup capabilities and allows
 // supplying a callback to initialize test resources dependent on tendermint
 // node
-func TestWithTendermint(app types.Application, cb func(*nm.Node), m *testing.M) {
+func TestWithTendermint(app types.Application, cb func(*nm.Node), m Runner) int {
 	n := rpctest.StartTendermint(app)
 	cb(n)
 
@@ -37,5 +41,5 @@ func TestWithTendermint(app types.Application, cb func(*nm.Node), m *testing.M) 
 	// and shut down proper at the end
 	n.Stop()
 	n.Wait()
-	os.Exit(code)
+	return code
 }
