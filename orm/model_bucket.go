@@ -34,7 +34,16 @@ type ModelBucket interface {
 	// is returned.
 	One(db weave.ReadOnlyKVStore, key []byte, dest Model) error
 
-	// Put saves given model in the database.
+	// Many returns all objects that secondary index with given name is
+	// given key. Main index is always unique but secondary indexes can
+	// return more than one value for the same key.
+	// All matching entities are appended to given destination slice. If no
+	// result was found, no error is retured and destination slice is not
+	// modified.
+	Many(db weave.ReadOnlyKVStore, indexName string, key []byte, dest *[]Model) error
+
+	// Put saves given model in the database. Before inserting into
+	// database, model is validated using its Validate method.
 	Put(db weave.KVStore, key []byte, m Model) error
 
 	// Delete removes an entity with given primary key from the database.
@@ -71,6 +80,27 @@ func (mb *modelBucket) One(db weave.ReadOnlyKVStore, key []byte, dest Model) err
 
 	reflect.ValueOf(dest).Elem().Set(reflect.ValueOf(res).Elem())
 	return nil
+}
+
+func (mb *modelBucket) Many(db weave.ReadOnlyKVStore, indexName string, key []byte, dest *[]Model) error {
+	objs, err := mb.b.GetIndexed(db, indexName, key)
+	if err != nil {
+		return err
+	}
+	if len(objs) == 0 {
+		return nil
+	}
+
+	for _, obj := range objs {
+		if obj == nil || obj.Value() == nil {
+			continue
+		}
+		var model Model
+		reflect.ValueOf(&model).Elem().Set(reflect.ValueOf(obj.Value()))
+		*dest = append(*dest, model)
+	}
+	return nil
+
 }
 
 func (mb *modelBucket) Put(db weave.KVStore, key []byte, m Model) error {
