@@ -84,6 +84,7 @@ protoc: protofmt protodocs
 	protoc --gogofaster_out=. $(PROTOC_FLAGS) x/currency/*.proto
 	protoc --gogofaster_out=. $(PROTOC_FLAGS) x/gov/*.proto
 	protoc --gogofaster_out=. $(PROTOC_FLAGS) x/aswap/*.proto
+	protoc --gogofaster_out=. $(PROTOC_FLAGS) x/demo/*.proto
 	for ex in $(EXAMPLES); do cd $$ex && make protoc && cd -; done
 
 protodocs:
