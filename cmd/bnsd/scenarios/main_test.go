@@ -1,7 +1,6 @@
 package scenarios
 
 import (
-	"context"
 	"encoding/hex"
 	"encoding/json"
 	"flag"
@@ -88,26 +87,11 @@ func TestMain(m *testing.M) {
 		logger.Error("Failed to init app", "cause", err)
 		os.Exit(1)
 	}
+	weaveClient.TestWithTendermint(app, func(n *nm.Node) {
+		node = n
+		bnsClient = client.NewClient(client.NewLocalConnection(node))
+	}, m)
 
-	// run the app inside a tendermint instance
-	node = rpctest.StartTendermint(app)
-	bnsClient = client.NewClient(client.NewLocalConnection(node))
-
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
-	defer cancel()
-	_, err = weaveClient.NewClient(weaveClient.NewLocalConnection(node)).WaitForNextBlock(ctx)
-
-	code := 0
-	if err == nil {
-		code = m.Run()
-	} else {
-		code = 1
-	}
-
-	// and shut down proper at the end
-	node.Stop()
-	node.Wait()
-	os.Exit(code)
 }
 
 func delayForRateLimits() {
