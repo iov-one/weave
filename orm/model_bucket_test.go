@@ -40,63 +40,44 @@ func TestModelBucket(t *testing.T) {
 	}
 }
 
-func TestModelBucketMany(t *testing.T) {
+func TestModelBucketByIndex(t *testing.T) {
 	cases := map[string]struct {
-		IndexName string
-		QueryKey  string
-		Dest      []Model
-		WantErr   *errors.Error
-		WantRes   []Model
+		IndexName  string
+		QueryKey   string
+		DestFn     func() ModelSlice
+		WantErr    *errors.Error
+		WantResPtr []*Counter
+		WantRes    []Counter
 	}{
 		"find none": {
-			IndexName: "value",
-			QueryKey:  "124089710947120",
-			Dest:      nil,
-			WantErr:   nil,
-			WantRes:   nil,
+			IndexName:  "value",
+			QueryKey:   "124089710947120",
+			WantErr:    nil,
+			WantResPtr: nil,
+			WantRes:    nil,
 		},
 		"find one": {
 			IndexName: "value",
 			QueryKey:  "1111",
-			Dest:      nil,
 			WantErr:   nil,
-			WantRes: []Model{
+			WantResPtr: []*Counter{
 				&Counter{Count: 1111},
 			},
+			WantRes: []Counter{
+				Counter{Count: 1111},
+			},
 		},
-		"find two with nil destination": {
+		"find two": {
 			IndexName: "value",
 			QueryKey:  "4444",
-			Dest:      []Model{},
 			WantErr:   nil,
-			WantRes: []Model{
+			WantResPtr: []*Counter{
 				&Counter{Count: 4444},
 				&Counter{Count: 4444},
 			},
-		},
-		"find two with allocated destination": {
-			IndexName: "value",
-			QueryKey:  "4444",
-			Dest:      make([]Model, 0, 10),
-			WantErr:   nil,
-			WantRes: []Model{
-				&Counter{Count: 4444},
-				&Counter{Count: 4444},
-			},
-		},
-		"find two with non empty destination": {
-			IndexName: "value",
-			QueryKey:  "4444",
-			Dest: []Model{
-				&Counter{Count: 007},
-			},
-			WantErr: nil,
-			WantRes: []Model{
-				// Destination is always appended to.
-				&Counter{Count: 007},
-
-				&Counter{Count: 4444},
-				&Counter{Count: 4444},
+			WantRes: []Counter{
+				Counter{Count: 4444},
+				Counter{Count: 4444},
 			},
 		},
 		"non existing index name": {
@@ -134,11 +115,19 @@ func TestModelBucketMany(t *testing.T) {
 				t.Fatalf("cannot save counter instance: %s", err)
 			}
 
-			err := b.Many(db, tc.IndexName, []byte(tc.QueryKey), &tc.Dest)
+			var dest []Counter
+			err := b.ByIndex(db, tc.IndexName, []byte(tc.QueryKey), &dest)
 			if !tc.WantErr.Is(err) {
 				t.Fatalf("unexpected error: %s", err)
 			}
-			assert.Equal(t, tc.WantRes, tc.Dest)
+			assert.Equal(t, tc.WantRes, dest)
+
+			var destPtr []*Counter
+			err = b.ByIndex(db, tc.IndexName, []byte(tc.QueryKey), &destPtr)
+			if !tc.WantErr.Is(err) {
+				t.Fatalf("unexpected error: %s", err)
+			}
+			assert.Equal(t, tc.WantResPtr, destPtr)
 		})
 	}
 }

@@ -37,7 +37,7 @@ func isNil(value interface{}) (isnil bool) {
 func Equal(t testing.TB, want, got interface{}) {
 	t.Helper()
 	if !reflect.DeepEqual(want, got) {
-		t.Fatalf("values not equal \nwant %v\n got %v", want, got)
+		t.Fatalf("values not equal \nwant %T %v\n got %T %v", want, want, got, got)
 	}
 }
 
