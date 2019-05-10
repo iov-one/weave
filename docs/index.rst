@@ -247,9 +247,51 @@ important part of the blockchain security.
 `Read More <configuration/validators.html>`__
 
 
-.. Deploying the code -> where does that go?
+Building your own Application
+=============================
 
+.. toctree::
+   :hidden:
+   :maxdepth: 1
 
+   design/overview.rst
+
+Before we get into the strucutre of the application, there are
+a few design principles for weave (but also tendermint apps in general)
+that we must keep in mind.
+
+Determinism
+-----------
+
+The big key to blockchain development is determinism.
+Two binaries with the same state must **ALWAYS** produce
+the same result when passed a given transaction.
+`Read More <design/overview.html#determinism>`__
+
+Abstract Block Chain Interface (ABCI)
+-------------------------------------
+
+To understand this design, you should first understand
+what an ABCI application is and how that level blockchain
+abstraction works. ABCI is the interface between the
+tendermint daemon and the state machine that processes
+the transactions, something akin to wsgi as the interface
+between apache/nginx and a django application.
+`Read More <design/overview.html#abci>`__
+
+Persistence
+-----------
+
+All data structures that go over the wire (passed on any
+external interface, or saved to the key value store),
+must be able to be serialized and deserialized. An
+application may have any custom binary format it wants,
+although all standard weave extensions use protobuf.
+`Read More <design/overview.html#persistence>`__
+
+.. TODO: step through mycoind app top to bottom
+
+.. TODO: tutorial with sample app (out of repo)
 
 .. Understanding Weave
     Take much from *Backend Development Tutorial*
@@ -278,8 +320,12 @@ important part of the blockchain security.
     * Design 
     * Implementation step by step
 
+.. Deploying the code -> where does that go?
+
+
+
 Additional Reading
-------------------
+==================
 
 We are in the process of doing a large overhaul on the docs.
 Until we are finshed, please look at the 
