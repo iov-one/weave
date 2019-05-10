@@ -20,8 +20,11 @@ message Electorate {
   repeated Elector electors = 5 [(gogoproto.nullable) = false];
   // TotalElectorateWeight is the sum of all electors weights.
   uint64 total_electorate_weight = 6;
-  // UpdateElectionRuleID reference the rule to update this electorate.
-  bytes update_election_rule_id = 7 [(gogoproto.customname) = "UpdateElectionRuleID"];
+  // UpdateElectionRuleRef reference the rule to update this electorate.
+  orm.VersionedIDRef update_election_rule_ref = 7 [
+    (gogoproto.customname) = "UpdateElectionRuleRef",
+    (gogoproto.nullable) = false
+  ];
 }
 
 // Elector clubs together a address with a weight. The greater the weight
@@ -36,12 +39,14 @@ message Elector {
 // Election Rule defines how an election is run. A proposal must be voted upon via a pre-defined ruleset.
 message ElectionRule {
   weave.Metadata metadata = 1;
+  // Document version
+  uint32 version = 2;
   // Admin is the address that is allowed ot modify an existing election rule.
-  bytes admin = 2 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
+  bytes admin = 3 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
   // Human readable title.
-  string title = 3;
+  string title = 4;
   // Duration how long the voting period will take place.
-  uint32 voting_period_hours = 4;
+  uint32 voting_period_hours = 5;
   // Threshold is the fraction of either all eligible voters or in case of a quorum setup the fraction of all non
   // abstained votes.
   // To accept a proposal this value must be exceeded with Yes votes.
@@ -50,14 +55,14 @@ message ElectionRule {
   //
   // The valid range for the threshold value is `0.5` to `1` (inclusive) which allows any value between half and all
   // of the eligible voters.
-  Fraction threshold = 5 [(gogoproto.nullable) = false];
+  Fraction threshold = 6 [(gogoproto.nullable) = false];
   // The quorum fraction of eligible voters is based on the total electorate weight and defines a threshold of
   // votes that must be exceeded before the acceptance threshold is applied.
   // This value requires any kind of votes and not only YES.
   //
   // The valid range for the threshold value is `0.5` to `1` (inclusive) which allows any value between half and all
   // of the eligible voters.
-  Fraction quorum = 6;
+  Fraction quorum = 7;
 }
 
 // The Fraction type represents a numerator and denominator to enable higher precision thresholds in
@@ -89,8 +94,11 @@ message Proposal {
   string title = 2;
   // Description of the proposal in text form.
   string description = 3;
-  // Reference to the election rule
-  bytes election_rule_id = 4 [(gogoproto.customname) = "ElectionRuleID"];
+  // ElectionRuleRef is a reference to the election rule
+  orm.VersionedIDRef election_rule_ref = 4 [
+    (gogoproto.customname) = "ElectionRuleRef",
+    (gogoproto.nullable) = false
+  ];
   // Reference to the electorate to define the group of possible voters.
   orm.VersionedIDRef electorate_ref = 5 [(gogoproto.nullable) = false];
   // Unix timestamp of the block where the voting period starts. Header time of the votes must be greater than or equal

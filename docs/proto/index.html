@@ -4000,6 +4000,13 @@ When not set it will default to the main signer. </p></td>
                 </tr>
               
                 <tr>
+                  <td>version</td>
+                  <td><a href="#uint32">uint32</a></td>
+                  <td></td>
+                  <td><p>Document version </p></td>
+                </tr>
+              
+                <tr>
                   <td>admin</td>
                   <td><a href="#bytes">bytes</a></td>
                   <td></td>
@@ -4135,10 +4142,10 @@ of the eligible voters. </p></td>
                 </tr>
               
                 <tr>
-                  <td>update_election_rule_id</td>
-                  <td><a href="#bytes">bytes</a></td>
+                  <td>update_election_rule_ref</td>
+                  <td><a href="#orm.VersionedIDRef">orm.VersionedIDRef</a></td>
                   <td></td>
-                  <td><p>UpdateElectionRuleID reference the rule to update this electorate. </p></td>
+                  <td><p>UpdateElectionRuleRef reference the rule to update this electorate. </p></td>
                 </tr>
               
             </tbody>
@@ -4233,10 +4240,10 @@ with weight=0. </p></td>
                 </tr>
               
                 <tr>
-                  <td>election_rule_id</td>
-                  <td><a href="#bytes">bytes</a></td>
+                  <td>election_rule_ref</td>
+                  <td><a href="#orm.VersionedIDRef">orm.VersionedIDRef</a></td>
                   <td></td>
-                  <td><p>Reference to the election rule </p></td>
+                  <td><p>ElectionRuleRef is a reference to the election rule </p></td>
                 </tr>
               
                 <tr>

@@ -30,26 +30,18 @@ func asElectorate(obj orm.Object) (*Electorate, error) {
 
 // NewElectionRulesBucket is the persistent bucket for ElectionRules .
 type ElectionRulesBucket struct {
-	orm.IDGenBucket
+	orm.VersioningBucket
 }
 
 // NewElectionRulesBucket returns a bucket for managing election rules.
 func NewElectionRulesBucket() *ElectionRulesBucket {
 	b := migration.NewBucket(packageName, "electnrule", orm.NewSimpleObj(nil, &ElectionRule{}))
 	return &ElectionRulesBucket{
-		IDGenBucket: orm.WithSeqIDGenerator(b, "id"),
+		VersioningBucket: orm.WithVersioning(orm.WithSeqIDGenerator(b, "id")),
 	}
 }
 
-// GetElectionRule loads the electorate for the given id. If it does not exist then ErrNotFound is returned.
-func (b *ElectionRulesBucket) GetElectionRule(db weave.KVStore, id []byte) (*ElectionRule, error) {
-	obj, err := b.Get(db, id)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to load election rule")
-	}
-	if obj == nil || obj.Value() == nil {
-		return nil, errors.Wrap(errors.ErrNotFound, "unknown id")
-	}
+func asElectionRule(obj orm.Object) (*ElectionRule, error) {
 	rev, ok := obj.Value().(*ElectionRule)
 	if !ok {
 		return nil, errors.Wrapf(errors.ErrModel, "invalid type: %T", obj.Value())

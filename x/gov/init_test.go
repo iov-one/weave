@@ -95,7 +95,10 @@ func TestInitFromGenesis(t *testing.T) {
 	if exp, got := uint32(1), elect.Metadata.Schema; exp != got {
 		t.Errorf("expected %v but got %v", exp, got)
 	}
-	if exp, got := weavetest.SequenceID(1), elect.UpdateElectionRuleID; !bytes.Equal(exp, got) {
+	if exp, got := weavetest.SequenceID(1), elect.UpdateElectionRuleRef.ID; !bytes.Equal(exp, got) {
+		t.Errorf("expected %v but got %v", exp, got)
+	}
+	if exp, got := uint32(1), elect.UpdateElectionRuleRef.Version; exp != got {
 		t.Errorf("expected %v but got %v", exp, got)
 	}
 	if exp, got := 2, len(elect.Electors); exp != got {
@@ -125,7 +128,10 @@ func TestInitFromGenesis(t *testing.T) {
 	if exp, got := "second", elect.Title; exp != got {
 		t.Errorf("expected %v but got %v", exp, got)
 	}
-	if exp, got := weavetest.SequenceID(2), elect.UpdateElectionRuleID; !bytes.Equal(exp, got) {
+	if exp, got := weavetest.SequenceID(2), elect.UpdateElectionRuleRef.ID; !bytes.Equal(exp, got) {
+		t.Errorf("expected %v but got %v", exp, got)
+	}
+	if exp, got := uint32(1), elect.UpdateElectionRuleRef.Version; exp != got {
 		t.Errorf("expected %v but got %v", exp, got)
 	}
 	cond := weave.NewCondition("foo", "bar", weavetest.SequenceID(1)).Address()
@@ -145,14 +151,17 @@ func TestInitFromGenesis(t *testing.T) {
 
 	// and then
 	// first election rule ok
-	r, err := NewElectionRulesBucket().GetElectionRule(db, weavetest.SequenceID(1))
-	if err != nil || r == nil {
+	_, rObj, err := NewElectionRulesBucket().GetLatestVersion(db, weavetest.SequenceID(1))
+	if err != nil {
 		t.Fatalf("unexpected result: error: %s", err)
 	}
+	r, _ := asElectionRule(rObj)
 	if exp, got := uint32(1), r.Metadata.Schema; exp != got {
 		t.Errorf("expected %v but got %v", exp, got)
 	}
-
+	if exp, got := uint32(1), r.Version; exp != got {
+		t.Errorf("expected %v but got %v", exp, got)
+	}
 	if got, exp := "fooo", r.Title; exp != got {
 		t.Errorf("expected %v but got %v", exp, got)
 	}
@@ -172,13 +181,21 @@ func TestInitFromGenesis(t *testing.T) {
 	}
 
 	// second election rule ok
-	r, err = NewElectionRulesBucket().GetElectionRule(db, weavetest.SequenceID(2))
-	if err != nil || r == nil {
+	_, rObj, err = NewElectionRulesBucket().GetLatestVersion(db, weavetest.SequenceID(2))
+	if err != nil {
 		t.Fatalf("unexpected result: error: %s", err)
+	}
+	r, _ = asElectionRule(rObj)
+	if exp, got := uint32(1), r.Metadata.Schema; exp != got {
+		t.Errorf("expected %v but got %v", exp, got)
+	}
+	if exp, got := uint32(1), r.Version; exp != got {
+		t.Errorf("expected %v but got %v", exp, got)
 	}
 	if got, exp := "barr", r.Title; exp != got {
 		t.Errorf("expected %v but got %v", exp, got)
 	}
+
 	if exp, got := addr("4444444444444444444444444444444444444444"), r.Admin; !exp.Equals(got) {
 		t.Errorf("expected %X but got %X", exp, got)
 	}

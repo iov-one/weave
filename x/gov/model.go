@@ -38,8 +38,9 @@ func (m Electorate) Validate() error {
 		return errors.Wrapf(errors.ErrInput, "electors must not exceed: %d", maxElectors)
 	case !validTitle(m.Title):
 		return errors.Wrapf(errors.ErrInput, "title: %q", m.Title)
-	case len(m.UpdateElectionRuleID) == 0:
-		return errors.Wrapf(errors.ErrEmpty, "update election rule id")
+	}
+	if err := m.UpdateElectionRuleRef.Validate(); err != nil {
+		return errors.Wrapf(errors.ErrEmpty, "update election rule")
 	}
 
 	var totalWeight uint64
@@ -98,6 +99,10 @@ const (
 	minVotingPeriodHours = 1
 	maxVotingPeriodHours = 4 * 7 * 24 // 4 weeks
 )
+
+func (m *ElectionRule) SetVersion(v uint32) {
+	m.Version = v
+}
 
 func (m ElectionRule) Validate() error {
 	if err := m.Metadata.Validate(); err != nil {
@@ -174,11 +179,13 @@ func (m *Proposal) Validate() error {
 		return errors.Wrapf(errors.ErrInput, "description length lower than minimum of: %d", minDescriptionLength)
 	case len(m.Description) > maxDescriptionLength:
 		return errors.Wrapf(errors.ErrInput, "description length exceeds: %d", maxDescriptionLength)
-	case len(m.ElectionRuleID) == 0:
-		return errors.Wrap(errors.ErrInput, "empty election rules id")
 	case !validTitle(m.Title):
 		return errors.Wrapf(errors.ErrInput, "title: %q", m.Title)
 	}
+	if err := m.ElectionRuleRef.Validate(); err != nil {
+		return errors.Wrap(err, "election rule reference")
+	}
+
 	if err := m.ElectorateRef.Validate(); err != nil {
 		return errors.Wrap(err, "electorate reference")
 	}
@@ -196,12 +203,10 @@ func (m *Proposal) Validate() error {
 }
 
 func (m Proposal) Copy() orm.CloneableData {
-	electionRuleID := make([]byte, 0, len(m.ElectionRuleID))
-	copy(electionRuleID, m.ElectionRuleID)
 	return &Proposal{
 		Title:           m.Title,
 		Description:     m.Description,
-		ElectionRuleID:  electionRuleID,
+		ElectionRuleRef: orm.VersionedIDRef{ID: m.ElectionRuleRef.ID, Version: m.ElectionRuleRef.Version},
 		ElectorateRef:   orm.VersionedIDRef{ID: m.ElectorateRef.ID, Version: m.ElectorateRef.Version},
 		VotingStartTime: m.VotingStartTime,
 		VotingEndTime:   m.VotingEndTime,
