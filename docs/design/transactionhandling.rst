@@ -16,7 +16,7 @@ When you create a `new BaseApp
 * a handler that processes ``CheckTx`` and ``DeliverTx`` (like ``http.Handler``)
 * and optionally a ``Ticker`` that is called every ``BeginBlock`` if you have repeated tasks.
 
-The merkelized data store automatically supports ``Querys``
+The merkelized data store automatically supports ``Queries``
 (with proofs), and the initial handshake to sync with
 tendermint on startup.
 
@@ -57,8 +57,8 @@ is registered with it.
 .. code-block:: go
 
     type Handler interface {
-        Check(ctx Context, store KVStore, tx Tx) (CheckResult, error)
-        Deliver(ctx Context, store KVStore, tx Tx) (DeliverResult, error)
+        Check(ctx context.Context, store weave.KVStore, tx weave.Tx) (*weave.CheckResult, error)
+        Deliver(ctx context.Context, store weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error)
     }
 
 The ``Handler`` is provided with the key-value store

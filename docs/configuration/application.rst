@@ -31,22 +31,11 @@ Sample to set the balances of a few accounts:
     "cash": [
       {
         "address": "849f0f5d8796f30fa95e8057f0ca596049112977",
-        "coins": [
-          {
-            "whole": 88888888,
-            "ticker": "BNS"
-          }
-        ]
+        "coins": [ "88888888 BNS" ]
       },
       {
         "address": "9729455c431911c8da3f5745a251a6a399ccd6ed",
-        "coins": [
-          {
-            "whole": 7777777,
-            "fractional": 666666,
-            "ticker": "IOV"
-          }
-        ]
+        "coins": [ "7777777.666666 IOV" ]
       }
     ]
   }
