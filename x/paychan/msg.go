@@ -38,11 +38,8 @@ func (m *CreatePaymentChannelMsg) Validate() error {
 	if m.Total == nil || m.Total.IsZero() {
 		return errors.Wrap(errors.ErrMsg, "invalid total amount")
 	}
-	if m.Timeout == 0 {
-		// Zero timeout is a valid value that dates to 1970-01-01. We
-		// know that this value is in the past and makes no sense. Most
-		// likely value was not provided and a zero value remained.
-		return errors.Wrap(errors.ErrInput, "timeout is required")
+	if m.Timeout < inThePast {
+		return errors.Wrap(errors.ErrInput, "timeout is in the past")
 	}
 	if err := m.Timeout.Validate(); err != nil {
 		return errors.Wrap(err, "invalid timeout value")
@@ -114,3 +111,12 @@ func validateAddresses(addrs ...weave.Address) error {
 	}
 	return nil
 }
+
+// inThePast represents time value for Monday, January 1, 2018 2:00:00 AM GMT+01:00
+//
+// Assumption of this extension is that year 2018 is always in the past and it
+// is safe to use as a broad border between the past and the future. This does
+// not have to be a precise value as it should be used only for initial
+// validation. Proper time validation must be done once the exact current time
+// is available.
+var inThePast weave.UnixTime = 1514768400
