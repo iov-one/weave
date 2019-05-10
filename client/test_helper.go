@@ -12,6 +12,9 @@ import (
 	"github.com/tendermint/tendermint/rpc/test"
 )
 
+// TestWithTendermint provides adaptive startup capabilities and allows
+// supplying a callback to initialize test resources dependent on tendermint
+// node
 func TestWithTendermint(app types.Application, f func(*nm.Node), m *testing.M) {
 	n := rpctest.StartTendermint(app)
 	f(n)
