@@ -69,7 +69,7 @@ func TestSubscribeHeaders(t *testing.T) {
 	lastHeight := status.Height
 
 	headers := make(chan Header, 5)
-	err = c.SubscribeHeaders(ctx, headers)
+	err = c.SubscribeHeaders(ctx, headers, OptionCapacity{2})
 	assert.Nil(t, err)
 
 	// read three headers and ensure they are in order

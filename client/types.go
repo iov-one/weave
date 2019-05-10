@@ -48,6 +48,21 @@ type resultOrError struct {
 	err    error
 }
 
+// Option represents an option supplied to subscription
+type Option interface {
+	isOption()
+}
+
+// OptionCapacity is used for setting channel outCapacity for
+// subscriptions
+type OptionCapacity struct {
+	Capacity int
+}
+
+func (_ OptionCapacity) isOption() {
+	// just satisfies the interface
+}
+
 // QueryTxByID makes a subscription string based on the transaction id
 func QueryTxByID(id TransactionID) TxQuery {
 	return fmt.Sprintf("%s='%X'", tmtypes.TxHashKey, id)
