@@ -92,10 +92,7 @@ message Proposal {
   // Reference to the election rule
   bytes election_rule_id = 4 [(gogoproto.customname) = "ElectionRuleID"];
   // Reference to the electorate to define the group of possible voters.
-  orm.VersionedIDRef electorate_ref = 5 [
-    (gogoproto.customname) = "ElectorateRef",
-    (gogoproto.nullable) = false
-  ];
+  orm.VersionedIDRef electorate_ref = 5 [(gogoproto.nullable) = false];
   // Unix timestamp of the block where the voting period starts. Header time of the votes must be greater than or equal
   // to this start time.
   int64 voting_start_time = 6 [(gogoproto.casttype) = "github.com/iov-one/weave.UnixTime"];
