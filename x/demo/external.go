@@ -52,3 +52,6 @@ func LoadOptions(data []byte) (weave.Msg, error) {
 	}
 	return opt.GetMsg()
 }
+
+// assert type check
+var _ OptionLoader = LoadOptions

@@ -23,18 +23,134 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
 
-// Request is the generic request, knowledge how to parse out options is externally defined
-type Request struct {
+// CreateRequestMsg will store the request in the db to be approved later
+type CreateRequestMsg struct {
 	Metadata  *weave.Metadata `protobuf:"bytes,1,opt,name=metadata,proto3" json:"metadata,omitempty"`
 	Title     string          `protobuf:"bytes,2,opt,name=title,proto3" json:"title,omitempty"`
 	RawOption []byte          `protobuf:"bytes,3,opt,name=raw_option,json=rawOption,proto3" json:"raw_option,omitempty"`
+}
+
+func (m *CreateRequestMsg) Reset()         { *m = CreateRequestMsg{} }
+func (m *CreateRequestMsg) String() string { return proto.CompactTextString(m) }
+func (*CreateRequestMsg) ProtoMessage()    {}
+func (*CreateRequestMsg) Descriptor() ([]byte, []int) {
+	return fileDescriptor_f74a8f56bed9fdeb, []int{0}
+}
+func (m *CreateRequestMsg) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *CreateRequestMsg) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_CreateRequestMsg.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *CreateRequestMsg) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_CreateRequestMsg.Merge(m, src)
+}
+func (m *CreateRequestMsg) XXX_Size() int {
+	return m.Size()
+}
+func (m *CreateRequestMsg) XXX_DiscardUnknown() {
+	xxx_messageInfo_CreateRequestMsg.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_CreateRequestMsg proto.InternalMessageInfo
+
+func (m *CreateRequestMsg) GetMetadata() *weave.Metadata {
+	if m != nil {
+		return m.Metadata
+	}
+	return nil
+}
+
+func (m *CreateRequestMsg) GetTitle() string {
+	if m != nil {
+		return m.Title
+	}
+	return ""
+}
+
+func (m *CreateRequestMsg) GetRawOption() []byte {
+	if m != nil {
+		return m.RawOption
+	}
+	return nil
+}
+
+// ApproveRequestMessage increments the Request.Approvals by one
+// When the Approvals reaches 2, the Request is executed
+type ApproveRequestMsg struct {
+	Metadata  *weave.Metadata `protobuf:"bytes,1,opt,name=metadata,proto3" json:"metadata,omitempty"`
+	RequestId []byte          `protobuf:"bytes,2,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
+}
+
+func (m *ApproveRequestMsg) Reset()         { *m = ApproveRequestMsg{} }
+func (m *ApproveRequestMsg) String() string { return proto.CompactTextString(m) }
+func (*ApproveRequestMsg) ProtoMessage()    {}
+func (*ApproveRequestMsg) Descriptor() ([]byte, []int) {
+	return fileDescriptor_f74a8f56bed9fdeb, []int{1}
+}
+func (m *ApproveRequestMsg) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *ApproveRequestMsg) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_ApproveRequestMsg.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *ApproveRequestMsg) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ApproveRequestMsg.Merge(m, src)
+}
+func (m *ApproveRequestMsg) XXX_Size() int {
+	return m.Size()
+}
+func (m *ApproveRequestMsg) XXX_DiscardUnknown() {
+	xxx_messageInfo_ApproveRequestMsg.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ApproveRequestMsg proto.InternalMessageInfo
+
+func (m *ApproveRequestMsg) GetMetadata() *weave.Metadata {
+	if m != nil {
+		return m.Metadata
+	}
+	return nil
+}
+
+func (m *ApproveRequestMsg) GetRequestId() []byte {
+	if m != nil {
+		return m.RequestId
+	}
+	return nil
+}
+
+// Request is the current model stored to disk, knowledge how to parse out options is externally defined
+type Request struct {
+	Metadata  *weave.Metadata `protobuf:"bytes,1,opt,name=metadata,proto3" json:"metadata,omitempty"`
+	Title     string          `protobuf:"bytes,2,opt,name=title,proto3" json:"title,omitempty"`
+	Approvals int32           `protobuf:"varint,3,opt,name=approvals,proto3" json:"approvals,omitempty"`
+	RawOption []byte          `protobuf:"bytes,4,opt,name=raw_option,json=rawOption,proto3" json:"raw_option,omitempty"`
 }
 
 func (m *Request) Reset()         { *m = Request{} }
 func (m *Request) String() string { return proto.CompactTextString(m) }
 func (*Request) ProtoMessage()    {}
 func (*Request) Descriptor() ([]byte, []int) {
-	return fileDescriptor_f74a8f56bed9fdeb, []int{0}
+	return fileDescriptor_f74a8f56bed9fdeb, []int{2}
 }
 func (m *Request) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -77,6 +193,13 @@ func (m *Request) GetTitle() string {
 	return ""
 }
 
+func (m *Request) GetApprovals() int32 {
+	if m != nil {
+		return m.Approvals
+	}
+	return 0
+}
+
 func (m *Request) GetRawOption() []byte {
 	if m != nil {
 		return m.RawOption
@@ -85,30 +208,36 @@ func (m *Request) GetRawOption() []byte {
 }
 
 func init() {
+	proto.RegisterType((*CreateRequestMsg)(nil), "demo.CreateRequestMsg")
+	proto.RegisterType((*ApproveRequestMsg)(nil), "demo.ApproveRequestMsg")
 	proto.RegisterType((*Request)(nil), "demo.Request")
 }
 
 func init() { proto.RegisterFile("x/demo/codec.proto", fileDescriptor_f74a8f56bed9fdeb) }
 
 var fileDescriptor_f74a8f56bed9fdeb = []byte{
-	// 217 bytes of a gzipped FileDescriptorProto
+	// 285 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x12, 0xaa, 0xd0, 0x4f, 0x49,
 	0xcd, 0xcd, 0xd7, 0x4f, 0xce, 0x4f, 0x49, 0x4d, 0xd6, 0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17, 0x62,
 	0x01, 0x89, 0x48, 0xe9, 0xa6, 0x67, 0x96, 0x64, 0x94, 0x26, 0xe9, 0x25, 0xe7, 0xe7, 0xea, 0xa7,
 	0xe7, 0xa7, 0xe7, 0xeb, 0x83, 0x25, 0x93, 0x4a, 0xd3, 0xc0, 0x3c, 0x30, 0x07, 0xcc, 0x82, 0x68,
 	0x92, 0x52, 0x41, 0x52, 0x9e, 0x99, 0x5f, 0xa6, 0x9b, 0x9f, 0x97, 0xaa, 0x5f, 0x9e, 0x9a, 0x58,
-	0x96, 0x8a, 0x6c, 0xb4, 0x52, 0x36, 0x17, 0x7b, 0x50, 0x6a, 0x61, 0x69, 0x6a, 0x71, 0x89, 0x90,
-	0x36, 0x17, 0x47, 0x6e, 0x6a, 0x49, 0x62, 0x4a, 0x62, 0x49, 0xa2, 0x04, 0xa3, 0x02, 0xa3, 0x06,
-	0xb7, 0x11, 0xbf, 0x1e, 0x58, 0x83, 0x9e, 0x2f, 0x54, 0x38, 0x08, 0xae, 0x40, 0x48, 0x84, 0x8b,
-	0xb5, 0x24, 0xb3, 0x24, 0x27, 0x55, 0x82, 0x49, 0x81, 0x51, 0x83, 0x33, 0x08, 0xc2, 0x11, 0x92,
-	0xe5, 0xe2, 0x2a, 0x4a, 0x2c, 0x8f, 0xcf, 0x2f, 0x28, 0xc9, 0xcc, 0xcf, 0x93, 0x60, 0x56, 0x60,
-	0xd4, 0xe0, 0x09, 0xe2, 0x2c, 0x4a, 0x2c, 0xf7, 0x07, 0x0b, 0x38, 0x49, 0x9c, 0x78, 0x24, 0xc7,
-	0x78, 0xe1, 0x91, 0x1c, 0xe3, 0x83, 0x47, 0x72, 0x8c, 0x13, 0x1e, 0xcb, 0x31, 0x5c, 0x78, 0x2c,
-	0xc7, 0x70, 0xe3, 0xb1, 0x1c, 0x43, 0x12, 0x1b, 0xd8, 0x35, 0xc6, 0x80, 0x00, 0x00, 0x00, 0xff,
-	0xff, 0x70, 0x66, 0x7e, 0x40, 0xfe, 0x00, 0x00, 0x00,
+	0x96, 0x8a, 0x6c, 0xb4, 0x52, 0x09, 0x97, 0x80, 0x73, 0x51, 0x6a, 0x62, 0x49, 0x6a, 0x50, 0x6a,
+	0x61, 0x69, 0x6a, 0x71, 0x89, 0x6f, 0x71, 0xba, 0x90, 0x36, 0x17, 0x47, 0x6e, 0x6a, 0x49, 0x62,
+	0x4a, 0x62, 0x49, 0xa2, 0x04, 0xa3, 0x02, 0xa3, 0x06, 0xb7, 0x11, 0xbf, 0x1e, 0x58, 0xa7, 0x9e,
+	0x2f, 0x54, 0x38, 0x08, 0xae, 0x40, 0x48, 0x84, 0x8b, 0xb5, 0x24, 0xb3, 0x24, 0x27, 0x55, 0x82,
+	0x49, 0x81, 0x51, 0x83, 0x33, 0x08, 0xc2, 0x11, 0x92, 0xe5, 0xe2, 0x2a, 0x4a, 0x2c, 0x8f, 0xcf,
+	0x2f, 0x28, 0xc9, 0xcc, 0xcf, 0x93, 0x60, 0x56, 0x60, 0xd4, 0xe0, 0x09, 0xe2, 0x2c, 0x4a, 0x2c,
+	0xf7, 0x07, 0x0b, 0x28, 0xc5, 0x73, 0x09, 0x3a, 0x16, 0x14, 0x14, 0xe5, 0x97, 0x91, 0x6d, 0x2d,
+	0xc8, 0x02, 0x88, 0xd6, 0xf8, 0xcc, 0x14, 0xb0, 0xdd, 0x20, 0x0b, 0x20, 0x22, 0x9e, 0x29, 0x4a,
+	0x9d, 0x8c, 0x5c, 0xec, 0x50, 0xa3, 0xa9, 0xe1, 0x1d, 0x19, 0x2e, 0xce, 0x44, 0xb0, 0x7b, 0x13,
+	0x73, 0x8a, 0xc1, 0xbe, 0x61, 0x0d, 0x42, 0x08, 0xa0, 0x79, 0x96, 0x05, 0xcd, 0xb3, 0x4e, 0x12,
+	0x27, 0x1e, 0xc9, 0x31, 0x5e, 0x78, 0x24, 0xc7, 0xf8, 0xe0, 0x91, 0x1c, 0xe3, 0x84, 0xc7, 0x72,
+	0x0c, 0x17, 0x1e, 0xcb, 0x31, 0xdc, 0x78, 0x2c, 0xc7, 0x90, 0xc4, 0x06, 0x8e, 0x03, 0x63, 0x40,
+	0x00, 0x00, 0x00, 0xff, 0xff, 0xaa, 0x47, 0x54, 0xe9, 0xf4, 0x01, 0x00, 0x00,
 }
 
-func (m *Request) Marshal() (dAtA []byte, err error) {
+func (m *CreateRequestMsg) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalTo(dAtA)
@@ -118,7 +247,7 @@ func (m *Request) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *Request) MarshalTo(dAtA []byte) (int, error) {
+func (m *CreateRequestMsg) MarshalTo(dAtA []byte) (int, error) {
 	var i int
 	_ = i
 	var l int
@@ -148,6 +277,85 @@ func (m *Request) MarshalTo(dAtA []byte) (int, error) {
 	return i, nil
 }
 
+func (m *ApproveRequestMsg) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalTo(dAtA)
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *ApproveRequestMsg) MarshalTo(dAtA []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	if m.Metadata != nil {
+		dAtA[i] = 0xa
+		i++
+		i = encodeVarintCodec(dAtA, i, uint64(m.Metadata.Size()))
+		n2, err := m.Metadata.MarshalTo(dAtA[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += n2
+	}
+	if len(m.RequestId) > 0 {
+		dAtA[i] = 0x12
+		i++
+		i = encodeVarintCodec(dAtA, i, uint64(len(m.RequestId)))
+		i += copy(dAtA[i:], m.RequestId)
+	}
+	return i, nil
+}
+
+func (m *Request) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalTo(dAtA)
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *Request) MarshalTo(dAtA []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	if m.Metadata != nil {
+		dAtA[i] = 0xa
+		i++
+		i = encodeVarintCodec(dAtA, i, uint64(m.Metadata.Size()))
+		n3, err := m.Metadata.MarshalTo(dAtA[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += n3
+	}
+	if len(m.Title) > 0 {
+		dAtA[i] = 0x12
+		i++
+		i = encodeVarintCodec(dAtA, i, uint64(len(m.Title)))
+		i += copy(dAtA[i:], m.Title)
+	}
+	if m.Approvals != 0 {
+		dAtA[i] = 0x18
+		i++
+		i = encodeVarintCodec(dAtA, i, uint64(m.Approvals))
+	}
+	if len(m.RawOption) > 0 {
+		dAtA[i] = 0x22
+		i++
+		i = encodeVarintCodec(dAtA, i, uint64(len(m.RawOption)))
+		i += copy(dAtA[i:], m.RawOption)
+	}
+	return i, nil
+}
+
 func encodeVarintCodec(dAtA []byte, offset int, v uint64) int {
 	for v >= 1<<7 {
 		dAtA[offset] = uint8(v&0x7f | 0x80)
@@ -157,7 +365,7 @@ func encodeVarintCodec(dAtA []byte, offset int, v uint64) int {
 	dAtA[offset] = uint8(v)
 	return offset + 1
 }
-func (m *Request) Size() (n int) {
+func (m *CreateRequestMsg) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -178,6 +386,47 @@ func (m *Request) Size() (n int) {
 	return n
 }
 
+func (m *ApproveRequestMsg) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Metadata != nil {
+		l = m.Metadata.Size()
+		n += 1 + l + sovCodec(uint64(l))
+	}
+	l = len(m.RequestId)
+	if l > 0 {
+		n += 1 + l + sovCodec(uint64(l))
+	}
+	return n
+}
+
+func (m *Request) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Metadata != nil {
+		l = m.Metadata.Size()
+		n += 1 + l + sovCodec(uint64(l))
+	}
+	l = len(m.Title)
+	if l > 0 {
+		n += 1 + l + sovCodec(uint64(l))
+	}
+	if m.Approvals != 0 {
+		n += 1 + sovCodec(uint64(m.Approvals))
+	}
+	l = len(m.RawOption)
+	if l > 0 {
+		n += 1 + l + sovCodec(uint64(l))
+	}
+	return n
+}
+
 func sovCodec(x uint64) (n int) {
 	for {
 		n++
@@ -190,6 +439,284 @@ func sovCodec(x uint64) (n int) {
 }
 func sozCodec(x uint64) (n int) {
 	return sovCodec(uint64((x << 1) ^ uint64((int64(x) >> 63))))
+}
+func (m *CreateRequestMsg) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowCodec
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: CreateRequestMsg: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: CreateRequestMsg: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Metadata", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Metadata == nil {
+				m.Metadata = &weave.Metadata{}
+			}
+			if err := m.Metadata.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Title", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Title = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field RawOption", wireType)
+			}
+			var byteLen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				byteLen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if byteLen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.RawOption = append(m.RawOption[:0], dAtA[iNdEx:postIndex]...)
+			if m.RawOption == nil {
+				m.RawOption = []byte{}
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipCodec(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if (iNdEx + skippy) < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *ApproveRequestMsg) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowCodec
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: ApproveRequestMsg: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: ApproveRequestMsg: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Metadata", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Metadata == nil {
+				m.Metadata = &weave.Metadata{}
+			}
+			if err := m.Metadata.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field RequestId", wireType)
+			}
+			var byteLen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				byteLen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if byteLen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.RequestId = append(m.RequestId[:0], dAtA[iNdEx:postIndex]...)
+			if m.RequestId == nil {
+				m.RequestId = []byte{}
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipCodec(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if (iNdEx + skippy) < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
 }
 func (m *Request) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
@@ -289,6 +816,25 @@ func (m *Request) Unmarshal(dAtA []byte) error {
 			m.Title = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Approvals", wireType)
+			}
+			m.Approvals = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Approvals |= int32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 4:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field RawOption", wireType)
 			}

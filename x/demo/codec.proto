@@ -5,10 +5,24 @@ package demo;
 import "github.com/gogo/protobuf/gogoproto/gogo.proto";
 import "github.com/iov-one/weave/codec.proto";
 
-// Request is the generic request, knowledge how to parse out options is externally defined
-message Request {
+// CreateRequestMsg will store the request in the db to be approved later
+message CreateRequestMsg {
     weave.Metadata metadata = 1;
     string title = 2;
     bytes raw_option = 3;
 }
 
+// ApproveRequestMessage increments the Request.Approvals by one
+// When the Approvals reaches 2, the Request is executed
+message ApproveRequestMsg {
+    weave.Metadata metadata = 1;
+    bytes request_id = 2;
+}
+
+// Request is the current model stored to disk, knowledge how to parse out options is externally defined
+message Request {
+    weave.Metadata metadata = 1;
+    string title = 2;
+    int32 approvals = 3;
+    bytes raw_option = 4;
+}
