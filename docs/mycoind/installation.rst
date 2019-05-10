@@ -89,7 +89,7 @@ validator to sign blocks, and a default config file.
 You can take a look in this directory if you are curious. The most
 important piece for us is ``~/.mycoind/config/genesis.json``.
 You may also notice ``~/.mycoind/config/config.toml`` with lots
-of `options to set <https://tendermint.readthedocs.io/en/master/using-tendermint.html#configuration>`__ for power users.
+of `options to set <https://tendermint.com/docs/tendermint-core/configuration.html#options>`__ for power users.
 
 We want to add a bunch of tokens to the account we just made before
 launching the blockchain. And we'd also like to enable the indexer,

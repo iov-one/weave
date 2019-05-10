@@ -40,7 +40,7 @@ Using Iov-Core
 
 Please refer to the offical `iov-core documentation <https://github.com/iov-one/iov-core/blob/master/packages/iov-core/README.md>`__
 Note that you can use the ``BnsConnection`` to connect to a ``mycoind`` blockchain, as long as you restrict it to just sending tokens
-and querying balances and nonces (it is a subset of bnsd). You may also find
+and querying balances and nonces (it is a subset of ``bnsd``). You may also find
 `iov-cli <https://github.com/iov-one/iov-core/blob/master/packages/iov-cli/README.md>`__ a useful debug tool.
 It is an enhanced version of the standard node REPL (interactive coding shell), but with support for
 top-level ``await`` and type-checks on all function calls (you can code in typescript).

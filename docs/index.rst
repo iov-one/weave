@@ -24,7 +24,7 @@ which sits on top of a key-value store that also has proveable secondary indexes
 There is a flexible permissioning system to use contracts as first-class actors, 
 “No empty blocks” for quick synchronizing on quiet chains, 
 and the ability to introduce “product fees” for transactions that need to
-charge more than the basic anti-spam fees. We recently added support for
+charge more than the basic anti-spam fees. We have also added support for
 "migrations" that can switch on modules, or enable logic updates, via
 on-chain feature switch transactions.
 
@@ -178,9 +178,9 @@ Running an Existing Application
    mycoind/installation.rst
    mycoind/iovcore.rst
 
-A good way to get familiar with setting up and running an application is t
+A good way to get familiar with setting up and running an application is to
 follow the steps in the `mycoin <mycoind/installation.html>`__ sample application. 
-You can run this on your local machine. If you don't have a modern go development environment
+You can run this on your local machine. If you don't have a modern Go development environment
 already set up, please `follow these instructions <mycoind/setup.html>`__.
 
 To connect a node to the BNS testnet on a cloud server, 
