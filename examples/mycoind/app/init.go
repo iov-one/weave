@@ -14,6 +14,7 @@ import (
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/x/cash"
+	"github.com/iov-one/weave/x/validators"
 	abci "github.com/tendermint/tendermint/abci/types"
 )
 
@@ -66,6 +67,15 @@ func GenInitOptions(args []string) (json.RawMessage, error) {
 				CollectorAddress: collectorAddr,
 				MinimalFee:       coin.Coin{Whole: 0}, // no fee
 			},
+			"migration": dict{
+				"admin": addr,
+			},
+		},
+		"initialize_schema": []dict{
+			{"pkg": "cash", "ver": 1},
+			{"pkg": "sigs", "ver": 1},
+			{"pkg": "validators", "ver": 1},
+			{"pkg": "utils", "ver": 1},
 		},
 	})
 }
@@ -86,6 +96,7 @@ func GenerateApp(options *server.Options) (abci.Application, error) {
 	application.WithInit(app.ChainInitializers(
 		&migration.Initializer{},
 		&cash.Initializer{},
+		&validators.Initializer{},
 	))
 
 	// set the logger and return
