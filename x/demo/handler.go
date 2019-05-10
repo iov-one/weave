@@ -12,9 +12,16 @@ const (
 	requiredApprovals = 2
 )
 
+// RegisterRoutes will instantiate and register all handlers in this package
+func RegisterRoutes(r weave.Registry, loader OptionLoader, executor Executor) {
+	bucket := NewRequestBucket()
+	r.Handle(pathCreateRequest, CreateRequestHandler{bucket, loader})
+	r.Handle(pathApproveRequest, ApproveRequestHandler{bucket, loader, executor})
+}
+
 // CreateRequestHandler stores an initial request
 type CreateRequestHandler struct {
-	bucket RequestBucket
+	bucket *RequestBucket
 	loader OptionLoader
 }
 
@@ -82,7 +89,7 @@ func (h CreateRequestHandler) validate(ctx weave.Context, tx weave.Tx) (*CreateR
 // ApproveRequestHandler will add an approval to an existing request,
 // executing it when it hits needed approvals
 type ApproveRequestHandler struct {
-	bucket   RequestBucket
+	bucket   *RequestBucket
 	loader   OptionLoader
 	executor Executor
 }
