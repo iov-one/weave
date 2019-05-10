@@ -22,6 +22,10 @@ func init() {
 	migration.MustRegister(1, &Vote{}, migration.NoModification)
 }
 
+func (m *Electorate) SetVersion(v uint32) {
+	m.Version = v
+}
+
 func (m Electorate) Validate() error {
 	if err := m.Metadata.Validate(); err != nil {
 		return errors.Wrap(err, "invalid metadata")
@@ -36,7 +40,6 @@ func (m Electorate) Validate() error {
 		return errors.Wrapf(errors.ErrInput, "title: %q", m.Title)
 	case len(m.UpdateElectionRuleID) == 0:
 		return errors.Wrapf(errors.ErrEmpty, "update election rule id")
-
 	}
 
 	var totalWeight uint64
@@ -64,6 +67,7 @@ func (m Electorate) Copy() orm.CloneableData {
 	return &Electorate{
 		Title:    m.Title,
 		Electors: p,
+		Version:  m.Version,
 	}
 }
 
@@ -170,27 +174,35 @@ func (m *Proposal) Validate() error {
 		return errors.Wrapf(errors.ErrInput, "description length lower than minimum of: %d", minDescriptionLength)
 	case len(m.Description) > maxDescriptionLength:
 		return errors.Wrapf(errors.ErrInput, "description length exceeds: %d", maxDescriptionLength)
-	case len(m.ElectorateID) == 0:
-		return errors.Wrap(errors.ErrInput, "empty electorate id")
 	case len(m.ElectionRuleID) == 0:
 		return errors.Wrap(errors.ErrInput, "empty election rules id")
 	case !validTitle(m.Title):
 		return errors.Wrapf(errors.ErrInput, "title: %q", m.Title)
 	}
-	// todo: validate details
+	if err := m.ElectorateRef.Validate(); err != nil {
+		return errors.Wrap(err, "electorate reference")
+	}
+	// validate details
+	switch m.Type {
+	case Proposal_Text:
+	case Proposal_UpdateElectorate:
+		if err := m.GetElectorateUpdateDetails().Validate(); err != nil {
+			return err
+		}
+	default:
+		return errors.Wrapf(errors.ErrState, "unsupported type: %v", m.Type)
+	}
 	return m.VoteState.Validate()
 }
 
 func (m Proposal) Copy() orm.CloneableData {
 	electionRuleID := make([]byte, 0, len(m.ElectionRuleID))
 	copy(electionRuleID, m.ElectionRuleID)
-	electorateID := make([]byte, 0, len(m.ElectorateID))
-	copy(electorateID, m.ElectorateID)
 	return &Proposal{
 		Title:           m.Title,
 		Description:     m.Description,
 		ElectionRuleID:  electionRuleID,
-		ElectorateID:    electorateID,
+		ElectorateRef:   orm.VersionedIDRef{ID: m.ElectorateRef.ID, Version: m.ElectorateRef.Version},
 		VotingStartTime: m.VotingStartTime,
 		VotingEndTime:   m.VotingEndTime,
 		SubmissionTime:  m.SubmissionTime,
@@ -338,4 +350,30 @@ func (m Vote) Copy() orm.CloneableData {
 		Elector: m.Elector,
 		Voted:   m.Voted,
 	}
+}
+
+func (m *ElectorateUpdatePayload) Validate() error {
+	if m == nil {
+		return errors.ErrEmpty
+	}
+	return ElectorsDiff(m.DiffElectors).Validate()
+}
+
+// DiffElectors contains the changes that should be applied. Adding an address should have a positive weight, removing
+// with weight=0.
+type ElectorsDiff []Elector
+
+func (e ElectorsDiff) Validate() error {
+	if len(e) == 0 {
+		return errors.Wrap(errors.ErrEmpty, "electors")
+	}
+	for i, v := range e {
+		if v.Weight > maxWeight {
+			return errors.Wrap(errors.ErrInput, "must not be greater max weight")
+		}
+		if err := v.Address.Validate(); err != nil {
+			return errors.Wrapf(err, "address at position: %d", i)
+		}
+	}
+	return nil
 }

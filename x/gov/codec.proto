@@ -4,21 +4,24 @@ package gov;
 
 import "github.com/gogo/protobuf/gogoproto/gogo.proto";
 import "github.com/iov-one/weave/codec.proto";
+import "github.com/iov-one/weave/orm/codec.proto";
 
 // Electorate defines who may vote in an election. This same group can be used in many elections
 // and is stored for re-use
 message Electorate {
   weave.Metadata metadata = 1;
+  // Document version
+  uint32 version = 2;
   // Admin is the address that is allowed ot modify an existing electorate.
-  bytes admin = 2 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
+  bytes admin = 3 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
   // Human readable title.
-  string title = 3;
+  string title = 4;
   // Elector defines a list of all signatures that are allowed to participate in a vote
-  repeated Elector electors = 4 [(gogoproto.nullable) = false];
+  repeated Elector electors = 5 [(gogoproto.nullable) = false];
   // TotalElectorateWeight is the sum of all electors weights.
-  uint64 total_electorate_weight = 5;
+  uint64 total_electorate_weight = 6;
   // UpdateElectionRuleID reference the rule to update this electorate.
-  bytes update_election_rule_id = 6 [(gogoproto.customname) = "UpdateElectionRuleID"];
+  bytes update_election_rule_id = 7 [(gogoproto.customname) = "UpdateElectionRuleID"];
 }
 
 // Elector clubs together a address with a weight. The greater the weight
@@ -89,7 +92,7 @@ message Proposal {
   // Reference to the election rule
   bytes election_rule_id = 4 [(gogoproto.customname) = "ElectionRuleID"];
   // Reference to the electorate to define the group of possible voters.
-  bytes electorate_id = 5 [(gogoproto.customname) = "ElectorateID"];
+  orm.VersionedIDRef electorate_ref = 5 [(gogoproto.nullable) = false];
   // Unix timestamp of the block where the voting period starts. Header time of the votes must be greater than or equal
   // to this start time.
   int64 voting_start_time = 6 [(gogoproto.casttype) = "github.com/iov-one/weave.UnixTime"];
