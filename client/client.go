@@ -38,6 +38,8 @@ func NewClient(conn rpcclient.Client) *Client {
 	}
 }
 
+// NewLocalClient is simply a shorthand for a client
+// with local connection
 func NewLocalClient(node *nm.Node) *Client {
 	return NewClient(NewLocalConnection(node))
 }
