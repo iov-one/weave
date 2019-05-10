@@ -21,10 +21,7 @@ message Electorate {
   // TotalElectorateWeight is the sum of all electors weights.
   uint64 total_electorate_weight = 6;
   // UpdateElectionRuleRef reference the rule to update this electorate.
-  orm.VersionedIDRef update_election_rule_ref = 7 [
-    (gogoproto.customname) = "UpdateElectionRuleRef",
-    (gogoproto.nullable) = false
-  ];
+  orm.VersionedIDRef update_election_rule_ref = 7 [(gogoproto.nullable) = false];
 }
 
 // Elector clubs together a address with a weight. The greater the weight
@@ -95,10 +92,7 @@ message Proposal {
   // Description of the proposal in text form.
   string description = 3;
   // ElectionRuleRef is a reference to the election rule
-  orm.VersionedIDRef election_rule_ref = 4 [
-    (gogoproto.customname) = "ElectionRuleRef",
-    (gogoproto.nullable) = false
-  ];
+  orm.VersionedIDRef election_rule_ref = 4 [(gogoproto.nullable) = false];
   // Reference to the electorate to define the group of possible voters.
   orm.VersionedIDRef electorate_ref = 5 [(gogoproto.nullable) = false];
   // Unix timestamp of the block where the voting period starts. Header time of the votes must be greater than or equal
