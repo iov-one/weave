@@ -50,22 +50,17 @@ type resultOrError struct {
 
 // Option represents an option supplied to subscription
 type Option interface {
-	Get() interface{}
-}
-
-// NewOptionCapacity instantiates OptionCapacity
-func NewOptionCapacity(cap int) Option {
-	return OptionCapacity{capacity: cap}
+	isOption()
 }
 
 // OptionCapacity is used for setting channel outCapacity for
 // subscriptions
 type OptionCapacity struct {
-	capacity int
+	Capacity int
 }
 
-func (o OptionCapacity) Get() interface{} {
-	return o.capacity
+func (_ OptionCapacity) isOption() {
+	// just satisfies the interface
 }
 
 // QueryTxByID makes a subscription string based on the transaction id

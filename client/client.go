@@ -198,9 +198,9 @@ func (c *Client) SubscribeTx(ctx context.Context, query TxQuery, results chan<- 
 func (c *Client) subscribe(ctx context.Context, query string, options ...Option) (<-chan ctypes.ResultEvent, error) {
 	var outCapacity []int
 	for _, option := range options {
-		switch option.(type) {
+		switch o := option.(type) {
 		case OptionCapacity:
-			outCapacity = append(outCapacity, option.Get().(int))
+			outCapacity = []int{o.Capacity}
 		}
 	}
 	q, err := tmquery.New(query)
