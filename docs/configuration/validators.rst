@@ -1,6 +1,6 @@
-----------
-Validators
-----------
+----------------------
+Setting the Validators
+----------------------
 
 Since Tendermint uses a traditional BFT algorithm to reach
 consensus on blocks, signatures from specified validator keys
@@ -11,7 +11,7 @@ should have strong security in place to avoid their private keys
 being copied or stolen.
 
 Static Validators
------------------
+=================
 
 In the simplest setup, every node can generate a private key with
 ``tendermint init``. Note that this is stored as a clear-text file
@@ -56,7 +56,7 @@ set proper ``--p2p.seeds`` in order to connect all the nodes and
 get enough signatures gathered to mint the first block.
 
 HSMs
-----
+====
 
 If we really care about security, clearly a plaintext file on our
 machine is not the best solution, regardless of the firewall
@@ -76,13 +76,11 @@ repos to see the current state:
   is a work in progress to connect these crates via sockets
   to a tendermint node.
 
-It is too early now to try this technology, but it should be ready
-for cosmos mainnet launch, and anyone building on weave should
-follow these developments if they wish to have a secure validator
-setup for their own mainnet launch.
+**TODO** Update with current docs, now that cosmos mainnet is live 
+and some people are actually using this.
 
 Dynamic Validators
--------------------
+==================
 
 A static validator set in the genesis file is quite useless for
 a real network that is not just a testnet. Tendermint allows
@@ -110,10 +108,15 @@ For each of these general approaches there is a wide range
 of tuning of incentives and punishments in order to acheive
 the desired level of usability and security.
 
-As extensions implementing any of these algorithms are implemented
-as a weave extension, they should be linked to from here. Previous
+The only current implementaton shipping with weave is
+a `POA implementation <https://godoc.org/github.com/iov-one/weave/x/validators#SetValidatorsMsg>`__
+allowing some master key (can be a multisig or even an election) update the validator
+set. This can support systems from testnets to those with strong on-chain governance,
+but doesn't work for the PoS fluid market-based solution.
+
+If you wish to build an extension supporting PoS, previous
 related work from cosmos-sdk can be found in their
-`simple stake <https://github.com/cosmos/cosmos-sdk/tree/master/x/simplestake>`__
+`simple stake <https://github.com/cosmos/cosmos-sdk/tree/v0.15.1/x/simplestake>`__
 implementation and the
-`more complicated DPoS implementation <https://github.com/cosmos/cosmos-sdk/tree/master/x/stake>`__
+`more complicated DPoS implementation <https://github.com/cosmos/cosmos-sdk/tree/master/x/staking>`__
 with incentive mechanisms.

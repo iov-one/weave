@@ -172,7 +172,7 @@ Running an Existing Application
 
 .. toctree::
    :hidden:
-   :maxdepth: 0
+   :maxdepth: 1
 
    mycoind/setup.rst
    mycoind/installation.rst
@@ -193,11 +193,63 @@ Those that are comfortable with Javascript, should check out our
 `IOV Core Library <mycoind/iovcore.html>`__ which allows easy access to the blockchain
 from a browser or node environment.
 
-.. Configuration
-    * Deep dive into the genesis file
-    * Show the init formats for multiple extensions
-    * Build custom init file
-    * Use your custom configuration
+
+Configuring your Blockchain
+===========================
+
+.. toctree::
+   :hidden:
+   :maxdepth: 1
+
+   configuration/tendermint.rst
+   configuration/application.rst
+   configuration/validators.rst
+
+When you ran the ``mycoind`` tutorial, you ran the following lines
+to configure the blockchain:
+
+.. code-block:: console
+
+  tendermint init --home ~/.mycoind
+  mycoind init CASH bech32:tiov1qrw95py2x7fzjw25euuqlj6dq6t0jahe7rh8wp
+
+This is nice for automatic initialization for dev mode, but for
+deploying a real network, we need to look under the hood and
+figure out how to configure it manually.
+
+Tendermint Configuration
+------------------------
+
+Tendermint docs provide a brief introduction to the tendermint cli.
+Here we highlight some of the more important options and 
+explain the interplay between cli flags, environmental variables,
+and config files, which all provide a way to customize
+the behavior of the tendermint daemon. 
+`Read More <configuration/tendermint.html>`__
+
+Application State Configuration
+-------------------------------
+
+The application is fed ``genesis.json`` the first time it starts up
+via the ``InitChain`` ABCI message. There are three fields that
+the application cares about: ``chain_id``, ``app_state``,
+and ``validators``. To learn more about these fields
+`Read More <configuration/application.html>`__
+
+Setting the Validators
+----------------------
+
+Since Tendermint uses a traditional BFT algorithm to reach
+consensus on blocks, signatures from specified validator keys
+replace hashes used to mine blocks in typical PoW chains.
+This also means that the selection of validators is an extremely
+important part of the blockchain security.
+`Read More <configuration/validators.html>`__
+
+
+.. Deploying the code -> where does that go?
+
+
 
 .. Understanding Weave
     Take much from *Backend Development Tutorial*
