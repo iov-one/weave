@@ -38,7 +38,7 @@ type ModelBucket interface {
 	// is returned.
 	One(db weave.ReadOnlyKVStore, key []byte, dest Model) error
 
-	// ByIndex returns all objects that secondary index with given name is
+	// ByIndex returns all objects that secondary index with given name and
 	// given key. Main index is always unique but secondary indexes can
 	// return more than one value for the same key.
 	// All matching entities are appended to given destination slice. If no
