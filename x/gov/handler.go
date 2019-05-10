@@ -19,12 +19,6 @@ const (
 	updateElectionRuleCost = 0
 )
 
-const (
-	tagProposalID = "proposal-id"
-	tagAction     = "action"
-	tagProposer   = "proposer"
-)
-
 const packageName = "gov"
 
 // RegisterQuery registers governance buckets for querying.
@@ -317,11 +311,8 @@ func (h TextProposalHandler) Deliver(ctx weave.Context, db weave.KVStore, tx wea
 		Details:         &Proposal_TextDetails{&TextProposalPayload{}},
 	}
 
-	obj, err := h.propBucket.Build(db, proposal)
+	obj, err := h.propBucket.Create(db, proposal)
 	if err != nil {
-		return nil, err
-	}
-	if err := h.propBucket.Save(db, obj); err != nil {
 		return nil, errors.Wrap(err, "failed to persist proposal")
 	}
 
@@ -414,11 +405,8 @@ func (h ElectorateUpdateProposalHandler) Deliver(ctx weave.Context, db weave.KVS
 		}},
 	}
 
-	obj, err := h.propBucket.Build(db, proposal)
+	obj, err := h.propBucket.Create(db, proposal)
 	if err != nil {
-		return nil, err
-	}
-	if err := h.propBucket.Save(db, obj); err != nil {
 		return nil, errors.Wrap(err, "failed to persist proposal")
 	}
 

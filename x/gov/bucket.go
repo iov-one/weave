@@ -9,27 +9,15 @@ import (
 
 // ElectorateBucket is the persistent bucket for Electorate object.
 type ElectorateBucket struct {
-	orm.Bucket
-	idSeq orm.Sequence
+	orm.IDGenBucket
 }
 
 // NewRevenueBucket returns a bucket for managing electorate.
 func NewElectorateBucket() *ElectorateBucket {
 	b := migration.NewBucket(packageName, "electorate", orm.NewSimpleObj(nil, &Electorate{}))
 	return &ElectorateBucket{
-		Bucket: b,
-		idSeq:  b.Sequence("id"),
+		IDGenBucket: orm.WithSeqIDGenerator(b, "id"),
 	}
-}
-
-// Build assigns an ID to given electorate instance and returns it as an orm
-// Object. It does not persist the object in the store.
-func (b *ElectorateBucket) Build(db weave.KVStore, e *Electorate) (orm.Object, error) {
-	key, err := b.idSeq.NextVal(db)
-	if err != nil {
-		return nil, err
-	}
-	return orm.NewSimpleObj(key, e), nil
 }
 
 // GetElectorate loads the electorate for the given id. If it does not exist then ErrNotFound is returned.
@@ -50,27 +38,15 @@ func (b *ElectorateBucket) GetElectorate(db weave.KVStore, id []byte) (*Electora
 
 // NewElectionRulesBucket is the persistent bucket for ElectionRules .
 type ElectionRulesBucket struct {
-	orm.Bucket
-	idSeq orm.Sequence
+	orm.IDGenBucket
 }
 
 // NewElectionRulesBucket returns a bucket for managing election rules.
 func NewElectionRulesBucket() *ElectionRulesBucket {
 	b := migration.NewBucket(packageName, "electnrule", orm.NewSimpleObj(nil, &ElectionRule{}))
 	return &ElectionRulesBucket{
-		Bucket: b,
-		idSeq:  b.Sequence("id"),
+		IDGenBucket: orm.WithSeqIDGenerator(b, "id"),
 	}
-}
-
-// Build assigns an ID to given election rule instance and returns it as an orm
-// Object. It does not persist the object in the store.
-func (b *ElectionRulesBucket) Build(db weave.KVStore, r *ElectionRule) (orm.Object, error) {
-	key, err := b.idSeq.NextVal(db)
-	if err != nil {
-		return nil, err
-	}
-	return orm.NewSimpleObj(key, r), nil
 }
 
 // GetElectionRule loads the electorate for the given id. If it does not exist then ErrNotFound is returned.
@@ -91,8 +67,7 @@ func (b *ElectionRulesBucket) GetElectionRule(db weave.KVStore, id []byte) (*Ele
 
 // ProposalBucket is the persistent bucket for governance proposal objects.
 type ProposalBucket struct {
-	orm.Bucket
-	idSeq orm.Sequence
+	orm.IDGenBucket
 }
 
 const indexNameElectorate = "electorate"
@@ -104,8 +79,7 @@ func NewProposalBucket() *ProposalBucket {
 		WithIndex(indexNameElectorate, indexElectorate, false).
 		WithIndex(indexNameAuthor, indexAuthor, false)
 	return &ProposalBucket{
-		Bucket: b,
-		idSeq:  b.Sequence("id"),
+		IDGenBucket: orm.WithSeqIDGenerator(b, "id"),
 	}
 }
 
@@ -123,16 +97,6 @@ func indexAuthor(obj orm.Object) ([]byte, error) {
 		return nil, err
 	}
 	return p.Author, nil
-}
-
-// Build assigns an ID to given proposal instance and returns it as an orm
-// Object. It does not persist the object in the store.
-func (b *ProposalBucket) Build(db weave.KVStore, e *Proposal) (orm.Object, error) {
-	key, err := b.idSeq.NextVal(db)
-	if err != nil {
-		return nil, err
-	}
-	return orm.NewSimpleObj(key, e), nil
 }
 
 // GetProposal loads the proposal for the given id. If it does not exist then ErrNotFound is returned.

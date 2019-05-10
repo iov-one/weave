@@ -183,11 +183,8 @@ func TestCreateTextProposal(t *testing.T) {
 			Init: func(ctx weave.Context, db store.KVStore) {
 				bucket := NewProposalBucket()
 				blocking := updateElectoreateProposalFixture()
-				obj, err := bucket.Build(db, &blocking)
-				if err != nil {
-					t.Fatalf("unexpected error: %+v", err)
-				}
-				if err := bucket.Save(db, obj); err != nil {
+
+				if _, err := bucket.Create(db, &blocking); err != nil {
 					t.Fatalf("unexpected error: %+v", err)
 				}
 			},
@@ -395,11 +392,7 @@ func TestCreateElectorateUpdateProposal(t *testing.T) {
 			Init: func(ctx weave.Context, db store.KVStore) {
 				bucket := NewProposalBucket()
 				blocking := textProposalFixture()
-				obj, err := bucket.Build(db, &blocking)
-				if err != nil {
-					t.Fatalf("unexpected error: %+v", err)
-				}
-				if err := bucket.Save(db, obj); err != nil {
+				if _, err := bucket.Create(db, &blocking); err != nil {
 					t.Fatalf("unexpected error: %+v", err)
 				}
 			},
@@ -1528,11 +1521,9 @@ func withTextProposal(t *testing.T, db store.KVStore, ctx weave.Context, mods ..
 	}
 	pBucket := NewProposalBucket()
 	proposal := textProposalFixture(ctxMods...)
-	pObj, err := pBucket.Build(db, &proposal)
-	assert.Nil(t, err)
-	err = pBucket.Save(db, pObj)
-	assert.Nil(t, err)
-
+	if _, err := pBucket.Create(db, &proposal); err != nil {
+		t.Fatalf("unexpected error: %+v", err)
+	}
 	return pBucket
 }
 
@@ -1551,14 +1542,15 @@ func withElectorate(t *testing.T, db store.KVStore) *Electorate {
 	}
 	sortByAddress(electorate.Electors)
 	electorateBucket := NewElectorateBucket()
-	eObj, err := electorateBucket.Build(db, electorate)
-	assert.Nil(t, err)
-	err = electorateBucket.Save(db, eObj)
-	assert.Nil(t, err)
+
+	if _, err := electorateBucket.Create(db, electorate); err != nil {
+		t.Fatalf("unexpected error: %+v", err)
+	}
 	return electorate
 }
 
 func withElectionRule(t *testing.T, db store.KVStore) *ElectionRule {
+	t.Helper()
 	rulesBucket := NewElectionRulesBucket()
 	rule := &ElectionRule{
 		Metadata:          &weave.Metadata{Schema: 1},
@@ -1568,10 +1560,8 @@ func withElectionRule(t *testing.T, db store.KVStore) *ElectionRule {
 		Threshold:         Fraction{1, 2},
 	}
 
-	rObj, err := rulesBucket.Build(db, rule)
-	assert.Nil(t, err)
-	err = rulesBucket.Save(db, rObj)
-	assert.Nil(t, err)
-
+	if _, err := rulesBucket.Create(db, rule); err != nil {
+		t.Fatalf("unexpected error: %+v", err)
+	}
 	return rule
 }
