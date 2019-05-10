@@ -8,6 +8,7 @@ import (
 	"github.com/iov-one/weave/errors"
 	cmn "github.com/tendermint/tendermint/libs/common"
 	tmquery "github.com/tendermint/tendermint/libs/pubsub/query"
+	nm "github.com/tendermint/tendermint/node"
 	rpcclient "github.com/tendermint/tendermint/rpc/client"
 	ctypes "github.com/tendermint/tendermint/rpc/core/types"
 	tmtypes "github.com/tendermint/tendermint/types"
@@ -35,6 +36,12 @@ func NewClient(conn rpcclient.Client) *Client {
 		// TODO: make this random
 		subscriber: "weaveclient",
 	}
+}
+
+// NewLocalClient is simply a shorthand for a client
+// with local connection
+func NewLocalClient(node *nm.Node) *Client {
+	return NewClient(NewLocalConnection(node))
 }
 
 // Status returns current height and other (subjective) status info from this node

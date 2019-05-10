@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"os"
 	"testing"
-	"time"
 
 	"github.com/iov-one/weave"
+	weaveClient "github.com/iov-one/weave/client"
 	"github.com/iov-one/weave/cmd/bnsd/app"
 	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/commands/server"
@@ -52,15 +52,11 @@ func TestMain(m *testing.M) {
 		panic(err) // what else to do???
 	}
 
-	// run the app inside a tendermint instance
-	node = rpctest.StartTendermint(app)
-	time.Sleep(100 * time.Millisecond) // time to setup app context
-	code := m.Run()
-
-	// and shut down proper at the end
-	node.Stop()
-	node.Wait()
+	code := weaveClient.TestWithTendermint(app, func(n *nm.Node) {
+		node = n
+	}, m)
 	os.Exit(code)
+
 }
 
 func initApp(config *cfg.Config, addr weave.Address) (abci.Application, error) {
