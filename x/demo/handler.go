@@ -1,6 +1,8 @@
 package demo
 
 import (
+	fmt "fmt"
+
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
 )
@@ -130,7 +132,7 @@ func (h ApproveRequestHandler) Deliver(ctx weave.Context, db weave.KVStore, tx w
 	request.Approvals++
 	if request.Approvals < requiredApprovals {
 		err := h.bucket.Save(db, obj)
-		return &weave.DeliverResult{}, err
+		return &weave.DeliverResult{Log: fmt.Sprintf("Approvals: %d", request.Approvals)}, err
 	}
 
 	// here we will execute it
