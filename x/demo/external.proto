@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package demo;
+
+import "github.com/gogo/protobuf/gogoproto/gogo.proto";
+
+// Option is intended to be externally defined.
+// Grouping together all possible options
+message Options {
+    oneof option {
+        OptionOne one = 1;
+        OptionTwo two = 2;
+    }
+}
+
+// OptionOne is a possible option (externally defined)
+// Fulfills Msg interface
+message OptionOne {
+    string name = 1;
+    int32 age = 2;
+}
+
+// OptionTwo is a possible option (externally defined)
+// Fulfills Msg interface
+message OptionTwo {
+    repeated int32 data = 1;
+}

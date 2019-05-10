@@ -5,28 +5,6 @@ package demo;
 import "github.com/gogo/protobuf/gogoproto/gogo.proto";
 import "github.com/iov-one/weave/codec.proto";
 
-// Option is intended to be externally defined.
-// Grouping together all possible options
-message Options {
-    oneof option {
-        OptionOne one = 1;
-        OptionTwo two = 2;
-    }
-}
-
-// OptionOne is a possible option (externally defined)
-// Fulfills Msg interface
-message OptionOne {
-    string name = 1;
-    int32 age = 2;
-}
-
-// OptionTwo is a possible option (externally defined)
-// Fulfills Msg interface
-message OptionTwo {
-    repeated int32 data = 1;
-}
-
 // Request is the generic request, knowledge how to parse out options is externally defined
 message Request {
     weave.Metadata metadata = 1;
