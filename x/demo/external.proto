@@ -3,6 +3,7 @@ syntax = "proto3";
 package demo;
 
 import "github.com/gogo/protobuf/gogoproto/gogo.proto";
+import "github.com/iov-one/weave/codec.proto";
 
 // Option is intended to be externally defined.
 // Grouping together all possible options
@@ -25,3 +26,12 @@ message OptionOne {
 message OptionTwo {
     repeated int32 data = 1;
 }
+
+// AppCreateRequestMsg knows the set of options, for easier parsing
+// But is byte compatible with CreateRequestMsg
+message AppCreateRequestMsg {
+    weave.Metadata metadata = 1;
+    string title = 2;
+    Options options = 3;
+}
+

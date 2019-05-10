@@ -16,7 +16,7 @@ func TestCreateAndApprove(t *testing.T) {
 	create, approve, counter := testHandlers()
 	assert.Equal(t, int32(0), counter.Count)
 
-	opt, err := rawOptionsOne("Fred", 37)
+	opt, err := optionsOne("Fred", 37).Marshal()
 	assert.Nil(t, err)
 
 	db := store.MemStore()
@@ -74,6 +74,29 @@ func TestCreateAndApprove(t *testing.T) {
 
 }
 
+// Test if the helper class AppCreateRequestMsg works right
+func TestByteCompatibility(t *testing.T) {
+	opt, err := optionsOne("Fred", 37).Marshal()
+	assert.Nil(t, err)
+	createMsg := &CreateRequestMsg{
+		Metadata:  &weave.Metadata{Schema: 1},
+		Title:     "FooBar",
+		RawOption: opt,
+	}
+	bz, err := createMsg.Marshal()
+	assert.Nil(t, err)
+
+	fullMsg := &AppCreateRequestMsg{
+		Metadata: &weave.Metadata{Schema: 1},
+		Title:    "FooBar",
+		Options:  optionsOne("Fred", 37),
+	}
+	fullbz, err := fullMsg.Marshal()
+	assert.Nil(t, err)
+
+	assert.Equal(t, bz, fullbz)
+}
+
 func testHandlers() (CreateRequestHandler, ApproveRequestHandler, *Counter) {
 	bucket := NewRequestBucket()
 	loader := LoadOptions
@@ -83,7 +106,7 @@ func testHandlers() (CreateRequestHandler, ApproveRequestHandler, *Counter) {
 	return h, h2, &counter
 }
 
-func rawOptionsOne(name string, age int32) ([]byte, error) {
+func optionsOne(name string, age int32) *Options {
 	one := &OptionOne{
 		Name: name,
 		Age:  age,
@@ -93,10 +116,10 @@ func rawOptionsOne(name string, age int32) ([]byte, error) {
 			One: one,
 		},
 	}
-	return options.Marshal()
+	return options
 }
 
-func rawOptionsTwo(data []int32) ([]byte, error) {
+func optionsTwo(data []int32) *Options {
 	two := &OptionTwo{
 		Data: data,
 	}
@@ -105,7 +128,7 @@ func rawOptionsTwo(data []int32) ([]byte, error) {
 			Two: two,
 		},
 	}
-	return options.Marshal()
+	return options
 }
 
 type Counter struct {
