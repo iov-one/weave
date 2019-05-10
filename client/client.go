@@ -134,8 +134,8 @@ func (c *Client) SearchTx(ctx context.Context, query TxQuery) ([]*CommitResult, 
 
 // SubscribeHeaders will fills the channel with all new headers
 // Stops when the context is cancelled
-func (c *Client) SubscribeHeaders(ctx context.Context, results chan<- Header) error {
-	data, err := c.subscribe(ctx, QueryForHeader())
+func (c *Client) SubscribeHeaders(ctx context.Context, results chan<- Header, options ...Option) error {
+	data, err := c.subscribe(ctx, QueryForHeader(), options...)
 	if err != nil {
 		return err
 	}
@@ -164,10 +164,10 @@ func (c *Client) SubscribeHeaders(ctx context.Context, results chan<- Header) er
 // SubscribeTx will subscribe to all transactions that match a query, writing them to the
 // results channel as they arrive. It returns an error if the subscription request failed.
 // Once subscriptions start, the continue until the context is closed (or network error)
-func (c *Client) SubscribeTx(ctx context.Context, query TxQuery, results chan<- CommitResult) error {
+func (c *Client) SubscribeTx(ctx context.Context, query TxQuery, results chan<- CommitResult, options ...Option) error {
 	q := fmt.Sprintf("%s='%s' AND %s", tmtypes.EventTypeKey, tmtypes.EventTx, query)
 
-	data, err := c.subscribe(ctx, q)
+	data, err := c.subscribe(ctx, q, options...)
 	if err != nil {
 		return err
 	}
@@ -195,14 +195,21 @@ func (c *Client) SubscribeTx(ctx context.Context, query TxQuery, results chan<- 
 }
 
 // subscribe should be used internally, it wraps conn.Subscribe and uses ctx.Done() to trigger Unsubscription
-func (c *Client) subscribe(ctx context.Context, query string) (<-chan ctypes.ResultEvent, error) {
+func (c *Client) subscribe(ctx context.Context, query string, options ...Option) (<-chan ctypes.ResultEvent, error) {
+	var outCapacity []int
+	for _, option := range options {
+		switch option.(type) {
+		case OptionCapacity:
+			outCapacity = append(outCapacity, option.Get().(int))
+		}
+	}
 	q, err := tmquery.New(query)
 	if err != nil {
 		return nil, errors.Wrapf(errors.ErrInput, "Query '%s': %s", query, err.Error())
 	}
 
 	subscriber := cmn.RandStr(16)
-	out, err := c.conn.Subscribe(ctx, subscriber, q.String())
+	out, err := c.conn.Subscribe(ctx, subscriber, q.String(), outCapacity...)
 	if err != nil {
 		return nil, errors.Wrapf(errors.ErrNetwork, "Subscribe to '%s': %s", query, err.Error())
 	}
