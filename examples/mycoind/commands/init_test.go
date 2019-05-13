@@ -2,7 +2,6 @@ package commands
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
@@ -11,6 +10,7 @@ import (
 	"time"
 
 	"github.com/iov-one/weave/commands/server"
+	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/examples/mycoind/app"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -48,7 +48,7 @@ func TestInit(t *testing.T) {
 	assert.Contains(t, string(doc[server.AppStateKey]), `"ticker": "ETH"`)
 
 	err = server.InitCmd(app.GenInitOptions, logger, home, args)
-	assert.EqualValues(t, fmt.Errorf(server.ErrorAlreadyInitialised, server.FlagForce, server.FlagIgnore), err)
+	assert.EqualValues(t, errors.ErrState.Is(err), true)
 }
 
 // setupConfig creates a homedir to run inside,

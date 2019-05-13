@@ -12,6 +12,7 @@ import (
 	"github.com/tendermint/tendermint/types"
 
 	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/errors"
 	iavlstore "github.com/iov-one/weave/store/iavl"
 )
 
@@ -30,7 +31,8 @@ type retryArgs struct {
 
 func parseRetryArgs(args []string) (retryArgs, error) {
 	if len(args) < 2 {
-		return retryArgs{}, fmt.Errorf("Usage: cmd retry <path to abci.db> <path to block.json> [-debug] [-error] [-max=N]")
+		return retryArgs{}, errors.Wrap(errors.ErrInput,
+			"usage: cmd retry <path to abci.db> <path to block.json> [-debug] [-error] [-max=N]")
 	}
 	res := retryArgs{
 		dbPath:    args[0],
@@ -80,11 +82,12 @@ func RetryCmd(makeApp InlineAppGenerator, logger log.Logger, home string, args [
 	fmt.Println("--> Loading Database")
 	tree, ver, err := readTree(flags.dbPath, 0)
 	if err != nil {
-		return fmt.Errorf("error reading abci data: %s", err)
+		return errors.Wrap(err, "error reading abci data")
 	}
 
 	if ver != block.Header.Height {
-		return fmt.Errorf("Height mismatch - block=%d, abcistore=%d", block.Header.Height, ver)
+		return errors.Wrapf(errors.ErrState,
+			"height mismatch - block=%d, abcistore=%d", block.Header.Height, ver)
 	}
 
 	builder := wrapInlineAppGenerator(makeApp, logger, flags.debug)
@@ -99,7 +102,7 @@ func readTree(dir string, version int) (*iavl.MutableTree, int64, error) {
 	tree := iavl.NewMutableTree(db, 10000) // cache size 10000
 	ver, err := tree.LoadVersion(int64(version))
 	if ver == 0 {
-		return nil, 0, fmt.Errorf("iavl tree is empty")
+		return nil, 0, errors.Wrap(errors.ErrState, "iavl tree is empty")
 	}
 	return tree, ver, err
 }

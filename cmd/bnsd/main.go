@@ -63,7 +63,7 @@ func main() {
 	case "start":
 		err = server.StartCmd(app.GenerateApp, logger, *varHome, rest)
 	case "getblock":
-		err = server.GetBlockCmd(logger, *varHome, rest)
+		err = server.GetBlockCmd(rest)
 	case "retry":
 		err = server.RetryCmd(app.InlineApp, logger, *varHome, rest)
 	case "testgen":
