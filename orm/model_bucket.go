@@ -22,9 +22,11 @@ type Model interface {
 	Copy() CloneableData
 }
 
-// ModelSlice represents a slice of models. Think of it as []Model
-// Because of Go type system, using []Model would not work for us.
-type ModelSlice interface{}
+// ModelSlicePtr represents a pointer to a slice of models. Think of it as
+// *[]Model Because of Go type system, using []Model would not work for us.
+// Instead we use a placeholder type and the validation is done during the
+// runtime.
+type ModelSlicePtr interface{}
 
 // ModelBucket is implemented by buckets that operates on Models rather than
 // Objects.
@@ -44,11 +46,15 @@ type ModelBucket interface {
 	// All matching entities are appended to given destination slice. If no
 	// result was found, no error is retured and destination slice is not
 	// modified.
-	ByIndex(db weave.ReadOnlyKVStore, indexName string, key []byte, dest ModelSlice) error
+	ByIndex(db weave.ReadOnlyKVStore, indexName string, key []byte, dest ModelSlicePtr) error
 
 	// Put saves given model in the database. Before inserting into
 	// database, model is validated using its Validate method.
-	Put(db weave.KVStore, key []byte, m Model) error
+	// If the key is nil or zero length then a sequence generator is used
+	// to create a unique key value.
+	// Using a key that alreayd exists in the database cause the value to
+	// be overwritten.
+	Put(db weave.KVStore, key []byte, m Model) ([]byte, error)
 
 	// Delete removes an entity with given primary key from the database.
 	// It returns ErrNotFound if an entity with given key does not exist.
@@ -60,12 +66,14 @@ type ModelBucket interface {
 // KVStore instead.
 func NewModelBucket(b Bucket) ModelBucket {
 	return &modelBucket{
-		b: b,
+		b:     b,
+		idSeq: b.Sequence("id"),
 	}
 }
 
 type modelBucket struct {
-	b Bucket
+	b     Bucket
+	idSeq Sequence
 }
 
 func (mb *modelBucket) One(db weave.ReadOnlyKVStore, key []byte, dest Model) error {
@@ -86,7 +94,7 @@ func (mb *modelBucket) One(db weave.ReadOnlyKVStore, key []byte, dest Model) err
 	return nil
 }
 
-func (mb *modelBucket) ByIndex(db weave.ReadOnlyKVStore, indexName string, key []byte, destination ModelSlice) error {
+func (mb *modelBucket) ByIndex(db weave.ReadOnlyKVStore, indexName string, key []byte, destination ModelSlicePtr) error {
 	objs, err := mb.b.GetIndexed(db, indexName, key)
 	if err != nil {
 		return err
@@ -124,15 +132,24 @@ func (mb *modelBucket) ByIndex(db weave.ReadOnlyKVStore, indexName string, key [
 
 }
 
-func (mb *modelBucket) Put(db weave.KVStore, key []byte, m Model) error {
+func (mb *modelBucket) Put(db weave.KVStore, key []byte, m Model) ([]byte, error) {
 	if err := m.Validate(); err != nil {
-		return errors.Wrap(err, "invalid model")
+		return nil, errors.Wrap(err, "invalid model")
 	}
+
+	if len(key) == 0 {
+		var err error
+		key, err = mb.idSeq.NextVal(db)
+		if err != nil {
+			return nil, errors.Wrap(err, "ID sequence")
+		}
+	}
+
 	obj := NewSimpleObj(key, m)
 	if err := mb.b.Save(db, obj); err != nil {
-		return errors.Wrap(err, "cannot store in the database")
+		return nil, errors.Wrap(err, "cannot store in the database")
 	}
-	return nil
+	return key, nil
 }
 
 func (mb *modelBucket) Delete(db weave.KVStore, key []byte) error {

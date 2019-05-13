@@ -6,6 +6,7 @@ import (
 
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/store"
+	"github.com/iov-one/weave/weavetest"
 	"github.com/iov-one/weave/weavetest/assert"
 )
 
@@ -17,7 +18,7 @@ func TestModelBucket(t *testing.T) {
 
 	b := NewModelBucket(objBucket)
 
-	if err := b.Put(db, []byte("c1"), &Counter{Count: 1}); err != nil {
+	if _, err := b.Put(db, []byte("c1"), &Counter{Count: 1}); err != nil {
 		t.Fatalf("cannot save counter instance: %s", err)
 	}
 
@@ -37,6 +38,46 @@ func TestModelBucket(t *testing.T) {
 	}
 	if err := b.One(db, []byte("c1"), &c1); !errors.ErrNotFound.Is(err) {
 		t.Fatalf("unexpected error for an unknown model get: %s", err)
+	}
+}
+
+func TestModelBucketPutSequence(t *testing.T) {
+	db := store.MemStore()
+
+	obj := NewSimpleObj(nil, &Counter{})
+	objBucket := NewBucket("cnts", obj)
+
+	b := NewModelBucket(objBucket)
+
+	// Using a nil key should cause the sequence ID to be used.
+	if _, err := b.Put(db, nil, &Counter{Count: 111}); err != nil {
+		t.Fatalf("cannot save counter instance: %s", err)
+	}
+
+	// Inserting an entity with a key provided must not modify the ID
+	// generation counter.
+	if _, err := b.Put(db, []byte("mycnt"), &Counter{Count: 12345}); err != nil {
+		t.Fatalf("cannot save counter instance: %s", err)
+	}
+
+	if _, err := b.Put(db, nil, &Counter{Count: 222}); err != nil {
+		t.Fatalf("cannot save counter instance: %s", err)
+	}
+
+	var c1 Counter
+	if err := b.One(db, weavetest.SequenceID(1), &c1); err != nil {
+		t.Fatalf("cannot get first counter: %s", err)
+	}
+	if c1.Count != 111 {
+		t.Fatalf("unexpected counter state: %d", c1)
+	}
+
+	var c2 Counter
+	if err := b.One(db, weavetest.SequenceID(2), &c2); err != nil {
+		t.Fatalf("cannot get first counter: %s", err)
+	}
+	if c2.Count != 222 {
+		t.Fatalf("unexpected counter state: %d", c2)
 	}
 }
 
@@ -102,16 +143,16 @@ func TestModelBucketByIndex(t *testing.T) {
 				WithIndex("value", indexByValue, false)
 			b := NewModelBucket(objBucket)
 
-			if err := b.Put(db, []byte("c1"), &Counter{Count: 4444}); err != nil {
+			if _, err := b.Put(db, nil, &Counter{Count: 4444}); err != nil {
 				t.Fatalf("cannot save counter instance: %s", err)
 			}
-			if err := b.Put(db, []byte("c2"), &Counter{Count: 4444}); err != nil {
+			if _, err := b.Put(db, nil, &Counter{Count: 4444}); err != nil {
 				t.Fatalf("cannot save counter instance: %s", err)
 			}
-			if err := b.Put(db, []byte("c3"), &Counter{Count: 1111}); err != nil {
+			if _, err := b.Put(db, nil, &Counter{Count: 1111}); err != nil {
 				t.Fatalf("cannot save counter instance: %s", err)
 			}
-			if err := b.Put(db, []byte("c4"), &Counter{Count: 99999}); err != nil {
+			if _, err := b.Put(db, nil, &Counter{Count: 99999}); err != nil {
 				t.Fatalf("cannot save counter instance: %s", err)
 			}
 
