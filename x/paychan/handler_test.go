@@ -27,7 +27,7 @@ var (
 func TestPaymentChannelHandlers(t *testing.T) {
 	cashBucket := cash.NewBucket()
 	bankCtrl := cash.NewController(cashBucket)
-	payChanBucket := NewPaymentChannelBucket()
+	payChanBucket := newPaymentChannelObjectBucket()
 	auth := &weavetest.CtxAuth{Key: "auth"}
 
 	rt := app.NewRouter()
@@ -66,7 +66,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 				{
 					path:   "/paychans",
 					data:   weavetest.SequenceID(1),
-					bucket: payChanBucket.Bucket,
+					bucket: payChanBucket,
 					wantRes: []orm.Object{
 						orm.NewSimpleObj(weavetest.SequenceID(1), &PaymentChannel{
 							Metadata:     &weave.Metadata{Schema: 1},
@@ -136,7 +136,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 				{
 					path:    "/paychans",
 					data:    weavetest.SequenceID(1),
-					bucket:  payChanBucket.Bucket,
+					bucket:  payChanBucket,
 					wantRes: nil,
 				},
 				// Query senders wallet to ensure money was
@@ -259,7 +259,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 				{
 					path:    "/paychans",
 					data:    weavetest.SequenceID(1),
-					bucket:  payChanBucket.Bucket,
+					bucket:  payChanBucket,
 					wantRes: nil,
 				},
 				// Query senders wallet to ensure that the

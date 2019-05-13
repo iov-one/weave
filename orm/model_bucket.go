@@ -59,6 +59,10 @@ type ModelBucket interface {
 	// Delete removes an entity with given primary key from the database.
 	// It returns ErrNotFound if an entity with given key does not exist.
 	Delete(db weave.KVStore, key []byte) error
+
+	// Register registers this buckets content to be accessable via query
+	// requests under the given name.
+	Register(name string, r weave.QueryRouter)
 }
 
 // NewModelBucket returns a ModelBucket instance. This implementation relies on
@@ -74,6 +78,10 @@ func NewModelBucket(b Bucket) ModelBucket {
 type modelBucket struct {
 	b     Bucket
 	idSeq Sequence
+}
+
+func (mb *modelBucket) Register(name string, r weave.QueryRouter) {
+	mb.b.Register(name, r)
 }
 
 func (mb *modelBucket) One(db weave.ReadOnlyKVStore, key []byte, dest Model) error {

@@ -98,6 +98,10 @@ func NewModelBucket(packageName string, b orm.ModelBucket) *ModelBucket {
 	}
 }
 
+func (m *ModelBucket) Register(name string, r weave.QueryRouter) {
+	m.b.Register(name, r)
+}
+
 func (m *ModelBucket) One(db weave.ReadOnlyKVStore, key []byte, dest orm.Model) error {
 	if err := m.b.One(db, key, dest); err != nil {
 		return err

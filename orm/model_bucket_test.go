@@ -85,7 +85,7 @@ func TestModelBucketByIndex(t *testing.T) {
 	cases := map[string]struct {
 		IndexName  string
 		QueryKey   string
-		DestFn     func() ModelSlice
+		DestFn     func() ModelSlicePtr
 		WantErr    *errors.Error
 		WantResPtr []*Counter
 		WantRes    []Counter
