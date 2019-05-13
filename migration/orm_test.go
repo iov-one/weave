@@ -144,3 +144,106 @@ func (m *MyModel) Unmarshal(raw []byte) error {
 
 var _ Migratable = (*MyModel)(nil)
 var _ orm.CloneableData = (*MyModel)(nil)
+
+func TestSchemaVersionedModelBucket(t *testing.T) {
+	const thisPkgName = "testpkg"
+
+	reg := newRegister()
+
+	reg.MustRegister(1, &MyModel{}, NoModification)
+	reg.MustRegister(2, &MyModel{}, func(db weave.ReadOnlyKVStore, m Migratable) error {
+		msg := m.(*MyModel)
+		msg.Cnt += 2
+		return msg.err
+	})
+
+	db := store.MemStore()
+
+	ensureSchemaVersion(t, db, thisPkgName, 1)
+
+	b := NewModelBucket(
+		thisPkgName,
+		orm.NewModelBucket(
+			orm.NewBucket("mymodel", orm.NewSimpleObj(nil, &MyModel{})).
+				// Regardless the object, club all together.
+				WithIndex("const", func(orm.Object) ([]byte, error) { return []byte("all"), nil }, false),
+		),
+	)
+
+	// Use custom register instead of the global one to avoid pollution
+	// from the application during tests.
+	b.useRegister(reg)
+
+	m1 := MyModel{
+		Metadata: &weave.Metadata{Schema: 1},
+		Cnt:      5,
+	}
+	k1, err := b.Put(db, nil, &m1)
+	assert.Nil(t, err)
+
+	var res MyModel
+	if err := b.One(db, k1, &res); err != nil {
+		t.Fatalf("cannot fetch the first model: %s", err)
+	}
+	assertMyModelState(t, &res, 1, 5)
+
+	// Bumping a schema should unlock saving entities with higher schema version.
+	ensureSchemaVersion(t, db, thisPkgName, 2)
+
+	if err := b.One(db, k1, &res); err != nil {
+		t.Fatalf("cannot fetch the first model: %s", err)
+	}
+	// Schema migration callback must update the model.
+	assertMyModelState(t, &res, 2, 7)
+
+	m2 := MyModel{
+		Metadata: &weave.Metadata{Schema: 2},
+		Cnt:      11,
+	}
+	k2, err := b.Put(db, nil, &m2)
+	assert.Nil(t, err)
+	if err := b.One(db, k2, &res); err != nil {
+		t.Fatalf("cannot fetch the second model: %s", err)
+	}
+	// This model was stored with the second schema version so it must not
+	// be updated.
+	assertMyModelState(t, &res, 2, 11)
+
+	// ByIndex must support destination being slice of values.
+	var setp []*MyModel
+	if err := b.ByIndex(db, "const", []byte("all"), &setp); err != nil {
+		t.Fatalf("cannot query by index: %s", err)
+	}
+	wantp := []*MyModel{
+		{Metadata: &weave.Metadata{Schema: 2}, Cnt: 7},
+		{Metadata: &weave.Metadata{Schema: 2}, Cnt: 11},
+	}
+	assert.Equal(t, wantp, setp)
+
+	// ByIndex must support destination being slice of pointers.
+	var setv []MyModel
+	if err := b.ByIndex(db, "const", []byte("all"), &setv); err != nil {
+		t.Fatalf("cannot query by index: %s", err)
+	}
+	wantv := []MyModel{
+		{Metadata: &weave.Metadata{Schema: 2}, Cnt: 7},
+		{Metadata: &weave.Metadata{Schema: 2}, Cnt: 11},
+	}
+	assert.Equal(t, wantv, setv)
+
+}
+
+func assertMyModelState(t testing.TB, m *MyModel, wantSchemaVersion uint32, wantCnt int) {
+	if m == nil {
+		t.Fatal("MyModel instance is nil")
+	}
+	if m.Metadata == nil {
+		t.Fatal("MyModel.Metadata is nil")
+	}
+	if m.Metadata.Schema != wantSchemaVersion {
+		t.Fatalf("want schema version %d, got %d", wantSchemaVersion, m.Metadata.Schema)
+	}
+	if m.Cnt != wantCnt {
+		t.Fatalf("want cnt %d, got %d", wantCnt, m.Cnt)
+	}
+}
