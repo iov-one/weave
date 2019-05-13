@@ -55,6 +55,7 @@ func Chain(authFn x.Authenticator, minFee coin.Coin) app.Decorators {
 		utils.NewSavepoint().OnCheck(),
 		sigs.NewDecorator(),
 		multisig.NewDecorator(authFn),
+		// note: this also embeds utils.NewSavepoint().OnDeliver()
 		cash.NewDynamicFeeDecorator(authFn, ctrl),
 		msgfee.NewFeeDecorator(),
 		msgfee.NewAntispamFeeDecorator(minFee),
