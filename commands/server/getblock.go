@@ -3,12 +3,13 @@ package server
 import (
 	"flag"
 	"fmt"
+	"os"
 	"strings"
 
-	amino "github.com/tendermint/go-amino"
+	"github.com/iov-one/weave/errors"
+	"github.com/tendermint/go-amino"
 	"github.com/tendermint/tendermint/blockchain"
 	dbm "github.com/tendermint/tendermint/libs/db"
-	"github.com/tendermint/tendermint/libs/log"
 	ctypes "github.com/tendermint/tendermint/rpc/core/types"
 )
 
@@ -24,7 +25,7 @@ func init() {
 
 func parseGetBlockArgs(args []string) (string, int64, error) {
 	if len(args) == 0 {
-		return "", 0, fmt.Errorf("Usage: cmd getblock <path to blockstore.db> [-height=H]")
+		return "", 0, errors.Wrap(errors.ErrInput, "usage: cmd getblock <path to blockstore.db> [-height=H]")
 	}
 	var height int
 	getBlockFlags := flag.NewFlagSet("getblock", flag.ExitOnError)
@@ -36,7 +37,7 @@ func parseGetBlockArgs(args []string) (string, int64, error) {
 // GetBlockCmd extracts a block from a blockstore.db and outputs as json
 // It takes the last block unless -height is explicitly specified
 // It writes the json to stdout
-func GetBlockCmd(logger log.Logger, home string, args []string) error {
+func GetBlockCmd(args []string) error {
 	dbPath, height, err := parseGetBlockArgs(args)
 	if err != nil {
 		return err
@@ -53,17 +54,18 @@ func GetBlockCmd(logger log.Logger, home string, args []string) error {
 }
 
 func openDb(dir string) (dbm.DB, error) {
+	separatorStr := string(os.PathSeparator)
 	if strings.HasSuffix(dir, ".db") {
 		dir = dir[:len(dir)-3]
-	} else if strings.HasSuffix(dir, ".db/") {
+	} else if strings.HasSuffix(dir, ".db"+separatorStr) {
 		dir = dir[:len(dir)-4]
 	} else {
-		return nil, fmt.Errorf("Database directory must end with .db")
+		return nil, errors.Wrapf(errors.ErrInput, "Database directory must end with .db")
 	}
-	// TODO: doesn't work on windows!
-	cut := strings.LastIndex(dir, "/")
+
+	cut := strings.LastIndex(dir, separatorStr)
 	if cut == -1 {
-		return nil, fmt.Errorf("Cannot cut paths on %s", dir)
+		return nil, errors.Wrapf(errors.ErrInput, "cannot cut paths on %s", dir)
 	}
 	name := dir[cut+1:]
 	db, err := dbm.NewGoLevelDB(name, dir[:cut])
@@ -76,7 +78,7 @@ func openDb(dir string) (dbm.DB, error) {
 func printBlock(store *blockchain.BlockStore, height int64) error {
 	block := store.LoadBlock(height)
 	if block == nil {
-		return fmt.Errorf("No block for height: %d", height)
+		return errors.Wrapf(errors.ErrState, "no block for height: %d", height)
 	}
 	js, err := cdc.MarshalJSONIndent(block, "", "  ")
 	if err != nil {
