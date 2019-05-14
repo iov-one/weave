@@ -44,6 +44,7 @@ func (o Options) GetMsg() (weave.Msg, error) {
 }
 
 // LoadOptions knows how to deal with the raw_options and parse it out
+// TODO: should we add a helper to auto-build this from a protobuf model?
 func LoadOptions(data []byte) (weave.Msg, error) {
 	var opt Options
 	err := opt.Unmarshal(data)

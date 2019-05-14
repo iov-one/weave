@@ -140,6 +140,11 @@ func (h ApproveRequestHandler) Deliver(ctx weave.Context, db weave.KVStore, tx w
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to parse loaded request options")
 	}
+
+	// TODO: how to set up context properly?
+	// set some request/election speicific authorization
+	// remove other auths (like the signer of the last approval)
+	// keep block height, time, etc....
 	return h.executor(ctx, db, opt)
 }
 

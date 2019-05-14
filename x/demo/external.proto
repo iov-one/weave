@@ -29,6 +29,7 @@ message OptionTwo {
 
 // AppCreateRequestMsg knows the set of options, for easier parsing
 // But is byte compatible with CreateRequestMsg
+// TODO: does this make sense?
 message AppCreateRequestMsg {
     weave.Metadata metadata = 1;
     string title = 2;
