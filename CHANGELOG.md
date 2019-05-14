@@ -11,10 +11,6 @@
 - `x/cash` is using new `gconf` package for configuration. New genesis path is
   used. To update genesis file, replace "gconf": { "cash:xyz": "foo" }
   with "conf": { "cash": { "xyz": "foo" } }
-- Tests were cleaned up and no use testify or convey packages. A new package
-  `weavetest/assert` contains test helpers
-- Simplify transaction message unpacking with `weave.LoadMsg`
-- Initial version of governance model
 - Introducing go modules instead of dep
 - Removed support for go 1.10
 - Added support for go 1.12
@@ -35,6 +31,24 @@ Breaking changes
 - x/currency is using schema versioned model and messages
 - x/nft is using schema versioned model and messages
 - x/validators is using schema versioned model and messages
+
+## 0.14.0
+- Tests were cleaned up and no use testify or convey packages. A new package
+  `weavetest/assert` contains test helpers
+- Simplify transaction message unpacking with weave.LoadMsg
+- Initial version of governance model
+- crypto package improvements #495
+- Weave documentation : References to IOV-CORE examples need removing #464
+- Reduce timeout resolution in client/backend interface #447
+- Move timeout point to expired state (for atomic swaps) #446
+- Simplify validation logic in Handlers #437
+- Charge gas in x/sigs #429
+- New bump sequence Tx #388
+- Anti-spam fee changes    
+  
+Breaking changes  
+  
+- Move Memo and ChainID to top level Tx codec #435
 
 
 ## 0.13.0
