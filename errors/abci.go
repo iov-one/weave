@@ -14,7 +14,7 @@ const (
 	// All unclassified errors that do not provide an ABCI code are clubbed
 	// under an internal error code and a generic message instead of
 	// detailed error string.
-	internalABCICode = 1
+	internalABCICode uint32 =  1
 	internalABCILog  = "internal error"
 )
 
@@ -51,16 +51,16 @@ func ABCIInfo(err error, debug bool) (uint32, string) {
 	return internalABCICode, internalABCILog
 }
 
+type coder interface {
+	ABCICode() uint32
+}
+
 // abciCode test if given error contains an ABCI code and returns the value of
 // it if available. This function is testing for the causer interface as well
 // and unwraps the error.
 func abciCode(err error) uint32 {
 	if errIsNil(err) {
 		return SuccessABCICode
-	}
-
-	type coder interface {
-		ABCICode() uint32
 	}
 
 	for {
