@@ -5,18 +5,23 @@ import (
 	"strings"
 )
 
+var _ coder = (*multiErr)(nil)
+var _ causer = (*multiErr)(nil)
+var _ Multi = (*multiErr)(nil)
+var _ error = (*multiErr)(nil)
+
 type Multi interface {
 	Add(err error)
 	AddNamed(name string, err error)
 	Named(name string) error
-	Is(err error) bool
+	is(err func(error) bool) bool
 }
 
 // multiErr is a default implementation of errors.Multi.
 // It does not support flattening in order to maintain consistent
 // behaviour of named errors
 type multiErr struct {
-	errors []error
+	errors     []error
 	errorNames map[string]int
 }
 
@@ -44,7 +49,7 @@ func (me *multiErr) Named(name string) error {
 	return nil
 }
 
-func(me *multiErr) Error() string {
+func (me *multiErr) Error() string {
 	if len(me.errors) == 1 {
 		return fmt.Sprintf("1 error occurred:\n\t* %s\n\n", me.errors[0])
 	}
@@ -59,18 +64,16 @@ func(me *multiErr) Error() string {
 		len(me.errors), strings.Join(points, "\n\t"))
 }
 
-func (me *multiErr) Is(err error) error {
-	if merr, ok := err.(multiErr); ok {
-
+// is provides a helper for Error.Is to work with multiErr
+func (me *multiErr) is(isFunc func(error) bool) bool {
+	for _, err := range me.errors {
+		res := isFunc(err)
+		if res {
+			return res
+		}
 	}
+	return isFunc(nil)
 }
-
-var _ coder = (*multiErr)(nil)
-var _ causer = (*multiErr)(nil)
-var _ Multi = (*multiErr)(nil)
-var _ error = (*multiErr)(nil)
-
-
 
 // ABCICode returns the error code of a first error consistent with fail-fast approach or falls back to
 // internalError code if the error does not satisfy the coder interface.
@@ -80,11 +83,7 @@ func (me *multiErr) ABCICode() uint32 {
 		return SuccessABCICode
 	}
 
-	c, ok := me.errors[0].(coder)
-	if ok {
-		return c.ABCICode()
-	}
-	return internalABCICode
+	return abciCode(me.errors[0])
 }
 
 // Cause returns the cause of a first error consistent with ABCICode
@@ -100,5 +99,3 @@ func (me *multiErr) Cause() error {
 	}
 	return errInternal
 }
-
-
