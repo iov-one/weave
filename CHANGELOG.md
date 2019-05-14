@@ -16,7 +16,6 @@
 - Added support for go 1.12
 - Bumped minimum required version of go to 1.11.4+ as otherwise some commands
   fail because of go mod constraints
-- Governance changes
 
 Breaking changes
 
