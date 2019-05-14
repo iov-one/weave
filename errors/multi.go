@@ -108,3 +108,17 @@ func (me *multiErr) Cause() error {
 	}
 	return errInternal
 }
+
+// MultiAdd allows to create a multiErr from an error
+func MultiAdd(err error) Multi {
+	mErr := &multiErr{}
+	mErr.Add(err)
+	return mErr
+}
+
+// MultiAddNamed creates a multiErr from a named error
+func MultiAddNamed(name string, err error) Multi {
+	mErr := &multiErr{}
+	mErr.AddNamed(name, err)
+	return mErr
+}
