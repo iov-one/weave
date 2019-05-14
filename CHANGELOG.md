@@ -38,19 +38,13 @@ Breaking changes
   `weavetest/assert` contains test helpers
 - Simplify transaction message unpacking with weave.LoadMsg
 - Initial version of governance model
-- crypto package improvements #495
-- Weave documentation : References to IOV-CORE examples need removing #464
+- Crypto package improvements #495
 - Reduce timeout resolution in client/backend interface #447
 - Move timeout point to expired state (for atomic swaps) #446
 - Simplify validation logic in Handlers #437
 - Charge gas in x/sigs #429
 - New bump sequence Tx #388
 - Anti-spam fee changes    
-  
-Breaking changes  
-  
-- Move Memo and ChainID to top level Tx codec #435
-
 
 ## 0.13.0
 
