@@ -10,11 +10,15 @@ var _ causer = (*multiErr)(nil)
 var _ Multi = (*multiErr)(nil)
 var _ error = (*multiErr)(nil)
 
+// Multi is an interface for multiErr to avoid exposing actual implementation
+// to the rest of the app.
 type Multi interface {
+	// Add adds an error to this multiErr
 	Add(err error)
+	// AddNamed adds an error that could later be retrieved by name
 	AddNamed(name string, err error)
+	// Named returns a named error or nil
 	Named(name string) error
-	is(err func(error) bool) bool
 }
 
 // multiErr is a default implementation of errors.Multi.
@@ -29,18 +33,22 @@ func (me *multiErr) isEmpty() bool {
 	return len(me.errors) == 0
 }
 
-// Add adds an error to this multiErr
+func (me *multiErr) first() error {
+	if me.isEmpty() {
+		return nil
+	}
+	return me.errors[0]
+}
+
 func (me *multiErr) Add(err error) {
 	me.errors = append(me.errors, err)
 }
 
-// AddNamed adds an error that could later be retrieved by name
 func (me *multiErr) AddNamed(name string, err error) {
 	me.errors = append(me.errors, err)
 	me.errorNames[name] = len(me.errors) - 1
 }
 
-// Named returns a named error or nil
 func (me *multiErr) Named(name string) error {
 	index, ok := me.errorNames[name]
 	if ok {
@@ -79,11 +87,7 @@ func (me *multiErr) is(isFunc func(error) bool) bool {
 // internalError code if the error does not satisfy the coder interface.
 // Returns success code if the multiErr is empty
 func (me *multiErr) ABCICode() uint32 {
-	if me.isEmpty() {
-		return SuccessABCICode
-	}
-
-	return abciCode(me.errors[0])
+	return abciCode(me.first())
 }
 
 // Cause returns the cause of a first error consistent with ABCICode
@@ -93,7 +97,8 @@ func (me *multiErr) Cause() error {
 	if me.isEmpty() {
 		return nil
 	}
-	c, ok := me.errors[0].(causer)
+
+	c, ok := me.first().(causer)
 	if ok {
 		return c.Cause()
 	}
