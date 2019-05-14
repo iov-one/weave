@@ -23,7 +23,7 @@ type Multi interface {
 
 // multiErr is a default implementation of errors.Multi.
 // It does not support flattening in order to maintain consistent
-// behaviour of named errors
+// behaviour of named errors. The implementation is not thread-safe
 type multiErr struct {
 	errors     []error
 	errorNames map[string]int
