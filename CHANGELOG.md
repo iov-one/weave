@@ -2,48 +2,45 @@
 
 ## HEAD
 
+
 ## 0.15.0
-- Upgrade to tendermint version 0.31.5, minor interface changes for subscriptions and commands
-- Added `aswap` package. Atomic swap implementation is now separate from `escrow`.
-- Added `migration` package. Schema versioning can be implemented by relying on
-  functionality provided by this package.
-- `gconf` package was reimplemented from scratch
-- `x/cash` is using new `gconf` package for configuration. New genesis path is
-  used. To update genesis file, replace "gconf": { "cash:xyz": "foo" }
-  with "conf": { "cash": { "xyz": "foo" } }
-- Introducing go modules instead of dep
-- Removed support for go 1.10
-- Added support for go 1.12
-- Bumped minimum required version of go to 1.11.4+ as otherwise some commands
-  fail because of go mod constraints
+
+- Tendermint is upgraded to version 0.31.5
+- New `x/aswap` extension implementing atomic swap functionality. Atomic swap
+  implementation is separated from `x/escrow`
+- `x/cash` is using the new `gconf` package for configuration. New genesis path
+  is used. To update genesis file, replace `"gconf": { "cash:xyz": "foo" }` with
+  `"conf": { "cash": { "xyz": "foo" } }`
+- Removed support for Go 1.10. Minimal required version is not 1.11.4.
+- Added support for Go 1.12
 
 Breaking changes
 
-- x/paychan is using a wall clock timeout instead of block height
-- x/cash is using schema versioned model and messages
-- x/paychan is using schema versioned model and messages
-- x/escrow is using schema versioned model and messages
-- x/distribution is using schema versioned model and messages
-- x/namecoin is using schema versioned model and messages
-- x/sigs is using schema versioned model and messages
-- x/multisig is using schema versioned model and messages
-- x/msgfee is using schema versioned model and messages
-- x/currency is using schema versioned model and messages
-- x/nft is using schema versioned model and messages
-- x/validators is using schema versioned model and messages
+- Dependency management was migrated to Go modules. `dep` is no longer used or
+  supported.
+- `x/paychan` extension is using a wall clock for the timeout functionality
+  instead of relying on the block height
+- `gconf` package was reimplemented from scratch. Configuration can be changed
+  during the runtime using messages.
+
 
 ## 0.14.0
-- Tests were cleaned up and no use testify or convey packages. A new package
-  `weavetest/assert` contains test helpers
-- Simplify transaction message unpacking with weave.LoadMsg
-- Initial version of governance model
-- Crypto package improvements #495
-- Reduce timeout resolution in client/backend interface #447
-- Move timeout point to expired state (for atomic swaps) #446
-- Simplify validation logic in Handlers #437
-- Charge gas in x/sigs #429
-- New bump sequence Tx #388
-- Anti-spam fee changes    
+
+- Simplify transaction message unpacking with `weave.LoadMsg`
+- Initial version of the governance extension (`x/gov`)
+- Signature verification in `x/sigs` extension costs gas now
+- A new message `BumpSequenceMsg` for incrementing a user sequence value in
+  `x/sigs` extension
+- New `migration` package. Schema versioning for models and messages can be
+  implemented by relying on functionality provided by this package.
+
+Breaking changes
+
+- Many extensions where updated to provide `weave.Metadata` and support schema
+  versioning as implemeneted by `migrations` package. Updated extensions are:
+  x/cash`, `x/currency`, `x/distribution`, `x/escrow`, `x/msgfee`,
+  `x/multisig`, `x/namecoin`, `x/nft`, `x/paychan`, `x/sigs`, `x/validators`
+
 
 ## 0.13.0
 
