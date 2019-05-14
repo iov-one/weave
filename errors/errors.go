@@ -164,6 +164,15 @@ func (kind *Error) Is(err error) bool {
 		return reflect.ValueOf(err).IsNil()
 	}
 
+	// For multiErr, "Is" is used recursively, so there is no need
+	// to proceed with causer logic after this block.
+	if mErr, ok := err.(*multiErr); ok {
+		if mErr.is(kind.Is) {
+			return true
+		}
+		return false
+	}
+
 	for {
 		if err == kind {
 			return true

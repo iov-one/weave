@@ -14,8 +14,8 @@ const (
 	// All unclassified errors that do not provide an ABCI code are clubbed
 	// under an internal error code and a generic message instead of
 	// detailed error string.
-	internalABCICode uint32 =  1
-	internalABCILog  = "internal error"
+	internalABCICode uint32 = 1
+	internalABCILog         = "internal error"
 )
 
 // ABCIInfo returns the ABCI error information as consumed by the tenderemint
