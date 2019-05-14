@@ -51,7 +51,7 @@ func TestCreateTextProposal(t *testing.T) {
 				Type:            Proposal_Text,
 				Title:           "my proposal",
 				Description:     "my description",
-				ElectionRuleID:  weavetest.SequenceID(1),
+				ElectionRuleRef: orm.VersionedIDRef{ID: weavetest.SequenceID(1), Version: 1},
 				ElectorateRef:   orm.VersionedIDRef{ID: weavetest.SequenceID(1), Version: 1},
 				VotingStartTime: now.Add(time.Hour),
 				VotingEndTime:   now.Add(2 * time.Hour),
@@ -81,7 +81,7 @@ func TestCreateTextProposal(t *testing.T) {
 				Type:            Proposal_Text,
 				Title:           "my proposal",
 				Description:     "my description",
-				ElectionRuleID:  weavetest.SequenceID(1),
+				ElectionRuleRef: orm.VersionedIDRef{ID: weavetest.SequenceID(1), Version: 1},
 				ElectorateRef:   orm.VersionedIDRef{ID: weavetest.SequenceID(1), Version: 1},
 				VotingStartTime: now.Add(time.Hour),
 				VotingEndTime:   now.Add(2 * time.Hour),
@@ -259,7 +259,7 @@ func TestCreateElectorateUpdateProposal(t *testing.T) {
 				Type:            Proposal_UpdateElectorate,
 				Title:           "my proposal",
 				Description:     "my description",
-				ElectionRuleID:  weavetest.SequenceID(1),
+				ElectionRuleRef: orm.VersionedIDRef{ID: weavetest.SequenceID(1), Version: 1},
 				ElectorateRef:   orm.VersionedIDRef{ID: weavetest.SequenceID(1), Version: 1},
 				VotingStartTime: now.Add(time.Hour),
 				VotingEndTime:   now.Add(2 * time.Hour),
@@ -291,7 +291,7 @@ func TestCreateElectorateUpdateProposal(t *testing.T) {
 				Type:            Proposal_UpdateElectorate,
 				Title:           "my proposal",
 				Description:     "my description",
-				ElectionRuleID:  weavetest.SequenceID(1),
+				ElectionRuleRef: orm.VersionedIDRef{ID: weavetest.SequenceID(1), Version: 1},
 				ElectorateRef:   orm.VersionedIDRef{ID: weavetest.SequenceID(1), Version: 1},
 				VotingStartTime: now.Add(time.Hour),
 				VotingEndTime:   now.Add(2 * time.Hour),
@@ -1219,7 +1219,7 @@ func TestUpdateElectorate(t *testing.T) {
 				Title:                 "fooo",
 				Electors:              []Elector{{Address: alice, Weight: 22}, {Address: bobby, Weight: 10}},
 				TotalElectorateWeight: 32,
-				UpdateElectionRuleID:  weavetest.SequenceID(1),
+				UpdateElectionRuleRef: orm.VersionedIDRef{ID: weavetest.SequenceID(1), Version: 1},
 				Version:               2,
 			},
 		},
@@ -1236,7 +1236,7 @@ func TestUpdateElectorate(t *testing.T) {
 				Title:                 "fooo",
 				Electors:              []Elector{{Address: bobby, Weight: 10}},
 				TotalElectorateWeight: 10,
-				UpdateElectionRuleID:  weavetest.SequenceID(1),
+				UpdateElectionRuleRef: orm.VersionedIDRef{ID: weavetest.SequenceID(1), Version: 1},
 				Version:               2,
 			},
 		},
@@ -1253,7 +1253,7 @@ func TestUpdateElectorate(t *testing.T) {
 				Title:                 "fooo",
 				Electors:              []Elector{{Address: alice, Weight: 1}, {Address: bobby, Weight: 10}, {Address: charlie, Weight: 2}},
 				TotalElectorateWeight: 13,
-				UpdateElectionRuleID:  weavetest.SequenceID(1),
+				UpdateElectionRuleRef: orm.VersionedIDRef{ID: weavetest.SequenceID(1), Version: 1},
 				Version:               2,
 			},
 		},
@@ -1373,6 +1373,7 @@ func TestUpdateElectionRules(t *testing.T) {
 			SignedBy: bobbyCond,
 			ExpModel: &ElectionRule{
 				Metadata:          &weave.Metadata{Schema: 1},
+				Version:           2,
 				Admin:             bobby,
 				Title:             "barr",
 				VotingPeriodHours: 12,
@@ -1389,6 +1390,7 @@ func TestUpdateElectionRules(t *testing.T) {
 			SignedBy: bobbyCond,
 			ExpModel: &ElectionRule{
 				Metadata:          &weave.Metadata{Schema: 1},
+				Version:           2,
 				Admin:             bobby,
 				Title:             "barr",
 				VotingPeriodHours: 4 * 7 * 24,
@@ -1471,10 +1473,11 @@ func TestUpdateElectionRules(t *testing.T) {
 			if spec.WantDeliverErr != nil {
 				return // skip further checks on expected error
 			}
-			e, err := bucket.GetElectionRule(db, res.Data)
+			_, obj, err := bucket.GetLatestVersion(db, res.Data)
 			if err != nil {
 				t.Fatalf("unexpected error: %+v", err)
 			}
+			e, _ := asElectionRule(obj)
 			if exp, got := spec.ExpModel, e; !reflect.DeepEqual(exp, got) {
 				t.Errorf("expected %v but got %v", exp, got)
 			}
@@ -1521,7 +1524,7 @@ func withElectorate(t *testing.T, db store.KVStore) *Electorate {
 			{Address: bobby, Weight: 10},
 		},
 		TotalElectorateWeight: 11,
-		UpdateElectionRuleID:  weavetest.SequenceID(1),
+		UpdateElectionRuleRef: orm.VersionedIDRef{ID: weavetest.SequenceID(1), Version: 1},
 	}
 	sortByAddress(electorate.Electors)
 	electorateBucket := NewElectorateBucket()

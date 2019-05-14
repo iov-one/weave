@@ -75,12 +75,9 @@ func (*Initializer) FromGenesis(opts weave.Options, db weave.KVStore) error {
 			total += uint64(p.Weight)
 		}
 		ruleID := encodeSequence(e.ElectionRuleID)
-		o, err := rulesBucket.Get(db, ruleID)
+		ruleIDRef, _, err := rulesBucket.GetLatestVersion(db, ruleID)
 		if err != nil {
 			return errors.Wrapf(err, "failed to load rule with id: %d", e.ElectionRuleID)
-		}
-		if o == nil || o.Value() == nil {
-			return errors.Wrapf(errors.ErrNotFound, "rule id: %d", e.ElectionRuleID)
 		}
 		electorate := Electorate{
 			Metadata:              &weave.Metadata{Schema: 1},
@@ -88,7 +85,7 @@ func (*Initializer) FromGenesis(opts weave.Options, db weave.KVStore) error {
 			Title:                 e.Title,
 			Electors:              ps,
 			TotalElectorateWeight: total,
-			UpdateElectionRuleID:  ruleID,
+			UpdateElectionRuleRef: *ruleIDRef,
 		}
 		if err := electorate.Validate(); err != nil {
 			return errors.Wrapf(err, "electorate #%d is invalid", i)

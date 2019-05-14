@@ -287,7 +287,7 @@ func (h TextProposalHandler) Check(ctx weave.Context, db weave.KVStore, tx weave
 }
 
 func (h TextProposalHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
-	msg, rules, electorate, err := h.validate(ctx, db, tx)
+	msg, rule, electorate, err := h.validate(ctx, db, tx)
 	if err != nil {
 		return nil, err
 	}
@@ -299,13 +299,13 @@ func (h TextProposalHandler) Deliver(ctx weave.Context, db weave.KVStore, tx wea
 		Type:            Proposal_Text,
 		Title:           msg.Title,
 		Description:     msg.Description,
-		ElectionRuleID:  msg.ElectionRuleID,
+		ElectionRuleRef: orm.VersionedIDRef{ID: msg.ElectionRuleID, Version: rule.Version},
 		ElectorateRef:   orm.VersionedIDRef{ID: msg.ElectorateID, Version: electorate.Version},
 		VotingStartTime: msg.StartTime,
-		VotingEndTime:   msg.StartTime.Add(time.Duration(rules.VotingPeriodHours) * time.Hour),
+		VotingEndTime:   msg.StartTime.Add(time.Duration(rule.VotingPeriodHours) * time.Hour),
 		SubmissionTime:  weave.AsUnixTime(blockTime),
 		Author:          msg.Author,
-		VoteState:       NewTallyResult(rules.Quorum, rules.Threshold, electorate.TotalElectorateWeight),
+		VoteState:       NewTallyResult(rule.Quorum, rule.Threshold, electorate.TotalElectorateWeight),
 		Status:          Proposal_Submitted,
 		Result:          Proposal_Undefined,
 		Details:         &Proposal_TextDetails{&TextProposalPayload{}},
@@ -344,9 +344,13 @@ func (h TextProposalHandler) validate(ctx weave.Context, db weave.KVStore, tx we
 		return nil, nil, nil, errors.Wrap(err, "electorate")
 	}
 
-	rules, err := h.rulesBucket.GetElectionRule(db, msg.ElectionRuleID)
+	_, rObj, err := h.rulesBucket.GetLatestVersion(db, msg.ElectionRuleID)
 	if err != nil {
-		return nil, nil, nil, errors.Wrap(err, "failed to load election rules")
+		return nil, nil, nil, errors.Wrap(err, "failed to load election rule")
+	}
+	rule, err := asElectionRule(rObj)
+	if err != nil {
+		return nil, nil, nil, err
 	}
 	author := msg.Author
 	if author != nil {
@@ -357,7 +361,7 @@ func (h TextProposalHandler) validate(ctx weave.Context, db weave.KVStore, tx we
 		author = x.MainSigner(ctx, h.auth).Address()
 	}
 	msg.Author = author
-	return &msg, rules, elect, nil
+	return &msg, rule, elect, nil
 }
 
 type ElectorateUpdateProposalHandler struct {
@@ -387,7 +391,7 @@ func (h ElectorateUpdateProposalHandler) Deliver(ctx weave.Context, db weave.KVS
 		Type:            Proposal_UpdateElectorate,
 		Title:           msg.Title,
 		Description:     msg.Description,
-		ElectionRuleID:  electorate.UpdateElectionRuleID,
+		ElectionRuleRef: electorate.UpdateElectionRuleRef,
 		ElectorateRef:   orm.VersionedIDRef{ID: msg.ElectorateID, Version: electorate.Version},
 		VotingStartTime: msg.StartTime,
 		VotingEndTime:   msg.StartTime.Add(time.Duration(rules.VotingPeriodHours) * time.Hour),
@@ -433,14 +437,19 @@ func (h ElectorateUpdateProposalHandler) validate(ctx weave.Context, db weave.KV
 	if err != nil {
 		return nil, nil, nil, errors.Wrap(err, "electorate")
 	}
-
 	if err := newMerger(elect.Electors).merge(msg.DiffElectors); err != nil {
 		return nil, nil, nil, err
 	}
-	rules, err := h.rulesBucket.GetElectionRule(db, elect.UpdateElectionRuleID)
+	// get associated rule
+	rObj, err := h.rulesBucket.GetVersion(db, elect.UpdateElectionRuleRef)
 	if err != nil {
-		return nil, nil, nil, errors.Wrap(err, "failed to load election rules")
+		return nil, nil, nil, errors.Wrap(err, "failed to load election rule")
 	}
+	rule, err := asElectionRule(rObj)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
 	author := msg.Author
 	if author != nil {
 		if !h.auth.HasAddress(ctx, author) {
@@ -450,7 +459,7 @@ func (h ElectorateUpdateProposalHandler) validate(ctx weave.Context, db weave.KV
 		author = x.MainSigner(ctx, h.auth).Address()
 	}
 	msg.Author = author
-	return &msg, rules, elect, nil
+	return &msg, rule, elect, nil
 }
 
 type DeleteTextProposalHandler struct {
@@ -580,7 +589,7 @@ func (h UpdateElectionRuleHandler) Deliver(ctx weave.Context, db weave.KVStore, 
 	}
 	rule.Threshold = msg.Threshold
 	rule.VotingPeriodHours = msg.VotingPeriodHours
-	if err := h.ruleBucket.Save(db, orm.NewSimpleObj(msg.ElectionRuleID, rule)); err != nil {
+	if _, err := h.ruleBucket.Update(db, msg.ElectionRuleID, rule); err != nil {
 		return nil, errors.Wrap(err, "failed to store update")
 	}
 	return &weave.DeliverResult{Data: msg.ElectionRuleID}, nil
@@ -591,12 +600,16 @@ func (h UpdateElectionRuleHandler) validate(ctx weave.Context, db weave.KVStore,
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, nil, errors.Wrap(err, "load msg")
 	}
-	e, err := h.ruleBucket.GetElectionRule(db, msg.ElectionRuleID)
+	_, obj, err := h.ruleBucket.GetLatestVersion(db, msg.ElectionRuleID)
 	if err != nil {
 		return nil, nil, err
 	}
-	if !h.auth.HasAddress(ctx, e.Admin) {
+	rule, err := asElectionRule(obj)
+	if err != nil {
+		return nil, nil, err
+	}
+	if !h.auth.HasAddress(ctx, rule.Admin) {
 		return nil, nil, errors.ErrUnauthorized
 	}
-	return &msg, e, nil
+	return &msg, rule, nil
 }
