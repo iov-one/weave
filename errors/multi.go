@@ -44,6 +44,9 @@ func (me *multiErr) Add(err error) {
 	me.errors = append(me.errors, err)
 }
 
+// This AddNamed implementation would overwrite a pointer to
+// a named error if the same name is used twice, while keeping
+// the original error in the container for matching.
 func (me *multiErr) AddNamed(name string, err error) {
 	me.errors = append(me.errors, err)
 	me.errorNames[name] = len(me.errors) - 1
