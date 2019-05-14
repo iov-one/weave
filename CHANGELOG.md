@@ -1,7 +1,8 @@
 # Changelog
 
-
 ## HEAD
+
+## 0.15.0
 - Upgrade to tendermint version 0.31.5, minor interface changes for subscriptions and commands
 - Added `aswap` package. Atomic swap implementation is now separate from `escrow`.
 - Added `migration` package. Schema versioning can be implemented by relying on
