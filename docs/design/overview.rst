@@ -5,7 +5,7 @@ Guiding Design Principles
 Before we get into the strucutre of the application, there are
 a few design principles for weave (but also tendermint apps in general)
 that we must keep in mind. If you are coming from developing
-web servers or microservices, some of there are counter-intuitive.
+web servers or microservices, some of these are counter-intuitive.
 (Eg. you cannot make external API calls and concurrency is limited)
 
 Determinism
@@ -43,8 +43,8 @@ tendermint daemon and the state machine that processes
 the transactions, something akin to wsgi as the interface
 between apache/nginx and a django application.
 
- There is a
-`deeper reference <https://tendermint.readthedocs.io/en/master/app-development.html>`__
+ There is an
+`in-depth reference <https://tendermint.readthedocs.io/en/master/app-development.html>`__
 to the ABCI protocol, but in short, an ABCI application
 is a state machine that responds to messages sent from one
 client (the tendermint consensus engine). It is run in

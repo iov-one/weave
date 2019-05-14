@@ -82,7 +82,7 @@ based on the information stored in the ``Msg`` and the
 current state in the KVStore. ``Context`` should be used
 to validate and possibly reject transactions, but outside
 of querying the block height if needed, really should not
-have any influence in the actual data writen to the
+have any influence on the actual data written to the
 data store.
 
 Ticker
