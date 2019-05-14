@@ -58,18 +58,22 @@ func (me *multiErr) Named(name string) error {
 }
 
 func (me *multiErr) Error() string {
-	if len(me.errors) == 1 {
-		return fmt.Sprintf("1 error occurred:\n\t* %s\n\n", me.errors[0])
+	if me.isEmpty() {
+		return ""
 	}
 
-	points := make([]string, len(me.errors))
+	if len(me.errors) == 1 {
+		return me.first().Error()
+	}
+
+	errs := make([]string, len(me.errors))
 	for i, err := range me.errors {
-		points[i] = fmt.Sprintf("* %s", err)
+		errs[i] = fmt.Sprintf("* %s", err)
 	}
 
 	return fmt.Sprintf(
 		"%d errors occurred:\n\t%s\n\n",
-		len(me.errors), strings.Join(points, "\n\t"))
+		len(me.errors), strings.Join(errs, "\n\t"))
 }
 
 // is provides a helper for Error.Is to work with multiErr
