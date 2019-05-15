@@ -182,3 +182,57 @@ func TestModelBucketByIndex(t *testing.T) {
 		})
 	}
 }
+
+func TestModelBucketPutWrongModelType(t *testing.T) {
+	db := store.MemStore()
+	obj := NewSimpleObj(nil, &Counter{})
+	objBucket := NewBucket("cnts", obj)
+	b := NewModelBucket(objBucket)
+
+	if _, err := b.Put(db, nil, &MultiRef{Refs: [][]byte{[]byte("foo")}}); !errors.ErrType.Is(err) {
+		t.Fatalf("unexpected error when trying to store wrong model type value: %s", err)
+	}
+}
+
+func TestModelBucketOneWrongModelType(t *testing.T) {
+	db := store.MemStore()
+	obj := NewSimpleObj(nil, &Counter{})
+	objBucket := NewBucket("cnts", obj)
+	b := NewModelBucket(objBucket)
+
+	if _, err := b.Put(db, []byte("counter"), &Counter{Count: 1}); err != nil {
+		t.Fatalf("cannot save counter instance: %s", err)
+	}
+
+	var ref MultiRef
+	if err := b.One(db, []byte("counter"), &ref); !errors.ErrType.Is(err) {
+		t.Fatalf("unexpected error when trying to get wrong model type value: %s", err)
+	}
+}
+
+func TestModelBucketByIndexWrongModelType(t *testing.T) {
+	db := store.MemStore()
+	obj := NewSimpleObj(nil, &Counter{})
+	objBucket := NewBucket("cnts", obj).
+		WithIndex("x", func(o Object) ([]byte, error) { return []byte("x"), nil }, false)
+	b := NewModelBucket(objBucket)
+
+	if _, err := b.Put(db, []byte("counter"), &Counter{Count: 1}); err != nil {
+		t.Fatalf("cannot save counter instance: %s", err)
+	}
+
+	var refs []MultiRef
+	if err := b.ByIndex(db, "x", []byte("x"), &refs); !errors.ErrType.Is(err) {
+		t.Fatalf("unexpected error when trying to find wrong model type value: %s: %v", err, refs)
+	}
+
+	var refsPtr []*MultiRef
+	if err := b.ByIndex(db, "x", []byte("x"), &refsPtr); !errors.ErrType.Is(err) {
+		t.Fatalf("unexpected error when trying to find wrong model type value: %s: %v", err, refs)
+	}
+
+	var refsPtrPtr []**MultiRef
+	if err := b.ByIndex(db, "x", []byte("x"), &refsPtrPtr); !errors.ErrType.Is(err) {
+		t.Fatalf("unexpected error when trying to find wrong model type value: %s: %v", err, refs)
+	}
+}

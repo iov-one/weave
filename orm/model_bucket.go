@@ -126,6 +126,16 @@ func (mb *modelBucket) ByIndex(db weave.ReadOnlyKVStore, indexName string, key [
 	// It is allowed to pass destination as both []MyModel and []*MyModel
 	sliceOfPointers := dest.Type().Elem().Kind() == reflect.Ptr
 
+	if tp, ok := mb.modelType(); ok {
+		allowed := dest.Type().Elem()
+		if sliceOfPointers {
+			allowed = allowed.Elem()
+		}
+		if tp != allowed {
+			return errors.Wrapf(errors.ErrType, "this bucket operates on %s model and cannot return %s", tp, allowed)
+		}
+	}
+
 	for _, obj := range objs {
 		if obj == nil || obj.Value() == nil {
 			continue
@@ -141,6 +151,16 @@ func (mb *modelBucket) ByIndex(db weave.ReadOnlyKVStore, indexName string, key [
 }
 
 func (mb *modelBucket) Put(db weave.KVStore, key []byte, m Model) ([]byte, error) {
+	mTp := reflect.TypeOf(m)
+	if mTp.Kind() != reflect.Ptr {
+		return nil, errors.Wrap(errors.ErrType, "model destination must be a pointer")
+	}
+	if tp, ok := mb.modelType(); ok {
+		if tp != mTp.Elem() {
+			return nil, errors.Wrapf(errors.ErrType, "cannot store %T type in this bucket", m)
+		}
+	}
+
 	if err := m.Validate(); err != nil {
 		return nil, errors.Wrap(err, "invalid model")
 	}
@@ -169,6 +189,23 @@ func (mb *modelBucket) Delete(db weave.KVStore, key []byte) error {
 		return errors.ErrNotFound
 	}
 	return mb.b.Delete(db, key)
+}
+
+// modelType returns the type of the model that this bucket manage. This is not
+// so clean implementation due to dependence on the bucket, which does not
+// expose this information. It can be done much better once this bucket
+// implementation has a direct access to the model reference.
+func (mb *modelBucket) modelType() (reflect.Type, bool) {
+	b, ok := mb.b.(bucket)
+	if !ok {
+		return nil, false
+	}
+	v := b.proto.Clone().Value()
+	tp := reflect.TypeOf(v)
+	for tp.Kind() == reflect.Ptr {
+		tp = tp.Elem()
+	}
+	return tp, true
 }
 
 var _ ModelBucket = (*modelBucket)(nil)
