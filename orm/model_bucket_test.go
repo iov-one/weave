@@ -1,6 +1,7 @@
 package orm
 
 import (
+	"bytes"
 	"strconv"
 	"testing"
 
@@ -50,8 +51,12 @@ func TestModelBucketPutSequence(t *testing.T) {
 	b := NewModelBucket(objBucket)
 
 	// Using a nil key should cause the sequence ID to be used.
-	if _, err := b.Put(db, nil, &Counter{Count: 111}); err != nil {
+	key, err := b.Put(db, nil, &Counter{Count: 111})
+	if err != nil {
 		t.Fatalf("cannot save counter instance: %s", err)
+	}
+	if !bytes.Equal(key, weavetest.SequenceID(1)) {
+		t.Fatalf("first sequence key should be 1, instead got %d", key)
 	}
 
 	// Inserting an entity with a key provided must not modify the ID
@@ -60,8 +65,12 @@ func TestModelBucketPutSequence(t *testing.T) {
 		t.Fatalf("cannot save counter instance: %s", err)
 	}
 
-	if _, err := b.Put(db, nil, &Counter{Count: 222}); err != nil {
+	key, err = b.Put(db, nil, &Counter{Count: 222})
+	if err != nil {
 		t.Fatalf("cannot save counter instance: %s", err)
+	}
+	if !bytes.Equal(key, weavetest.SequenceID(2)) {
+		t.Fatalf("second sequence key should be 2, instead got %d", key)
 	}
 
 	var c1 Counter
