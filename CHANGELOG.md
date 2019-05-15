@@ -11,7 +11,7 @@
 - `x/cash` is using the new `gconf` package for configuration. New genesis path
   is used. To update genesis file, replace `"gconf": { "cash:xyz": "foo" }` with
   `"conf": { "cash": { "xyz": "foo" } }`
-- Removed support for Go 1.10. Minimal required version is not 1.11.4.
+- Removed support for Go 1.10. Minimal required version is now 1.11.4.
 - Added support for Go 1.12
 
 Breaking changes
@@ -33,6 +33,9 @@ Breaking changes
   `x/sigs` extension
 - New `migration` package. Schema versioning for models and messages can be
   implemented by relying on functionality provided by this package.
+- When considering expiration in `x/escrow` extension, expiration time is now
+  inclusive
+- A new validator subjective anti-spam fee was added
 
 Breaking changes
 
