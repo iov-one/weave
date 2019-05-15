@@ -163,10 +163,8 @@ func TestSchemaVersionedModelBucket(t *testing.T) {
 
 	b := NewModelBucket(
 		thisPkgName,
-		orm.NewModelBucket(
-			orm.NewBucket("mymodel", orm.NewSimpleObj(nil, &MyModel{})).
-				// Regardless the object, club all together.
-				WithIndex("const", func(orm.Object) ([]byte, error) { return []byte("all"), nil }, false),
+		orm.NewModelBucket("mymodel", &MyModel{},
+			orm.WithIndex("const", func(orm.Object) ([]byte, error) { return []byte("all"), nil }, false),
 		),
 	)
 

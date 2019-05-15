@@ -14,10 +14,7 @@ import (
 func TestModelBucket(t *testing.T) {
 	db := store.MemStore()
 
-	obj := NewSimpleObj(nil, &Counter{})
-	objBucket := NewBucket("cnts", obj)
-
-	b := NewModelBucket(objBucket)
+	b := NewModelBucket("cnts", &Counter{})
 
 	if _, err := b.Put(db, []byte("c1"), &Counter{Count: 1}); err != nil {
 		t.Fatalf("cannot save counter instance: %s", err)
@@ -45,10 +42,7 @@ func TestModelBucket(t *testing.T) {
 func TestModelBucketPutSequence(t *testing.T) {
 	db := store.MemStore()
 
-	obj := NewSimpleObj(nil, &Counter{})
-	objBucket := NewBucket("cnts", obj)
-
-	b := NewModelBucket(objBucket)
+	b := NewModelBucket("cnts", &Counter{})
 
 	// Using a nil key should cause the sequence ID to be used.
 	key, err := b.Put(db, nil, &Counter{Count: 111})
@@ -149,9 +143,7 @@ func TestModelBucketByIndex(t *testing.T) {
 				raw := strconv.FormatInt(c.Count/1000, 10)
 				return []byte(raw), nil
 			}
-			objBucket := NewBucket("cnts", NewSimpleObj(nil, &Counter{})).
-				WithIndex("value", indexByBigValue, false)
-			b := NewModelBucket(objBucket)
+			b := NewModelBucket("cnts", &Counter{}, WithIndex("value", indexByBigValue, false))
 
 			if _, err := b.Put(db, nil, &Counter{Count: 4001}); err != nil {
 				t.Fatalf("cannot save counter instance: %s", err)
@@ -185,9 +177,7 @@ func TestModelBucketByIndex(t *testing.T) {
 
 func TestModelBucketPutWrongModelType(t *testing.T) {
 	db := store.MemStore()
-	obj := NewSimpleObj(nil, &Counter{})
-	objBucket := NewBucket("cnts", obj)
-	b := NewModelBucket(objBucket)
+	b := NewModelBucket("cnts", &Counter{})
 
 	if _, err := b.Put(db, nil, &MultiRef{Refs: [][]byte{[]byte("foo")}}); !errors.ErrType.Is(err) {
 		t.Fatalf("unexpected error when trying to store wrong model type value: %s", err)
@@ -196,9 +186,7 @@ func TestModelBucketPutWrongModelType(t *testing.T) {
 
 func TestModelBucketOneWrongModelType(t *testing.T) {
 	db := store.MemStore()
-	obj := NewSimpleObj(nil, &Counter{})
-	objBucket := NewBucket("cnts", obj)
-	b := NewModelBucket(objBucket)
+	b := NewModelBucket("cnts", &Counter{})
 
 	if _, err := b.Put(db, []byte("counter"), &Counter{Count: 1}); err != nil {
 		t.Fatalf("cannot save counter instance: %s", err)
@@ -212,10 +200,8 @@ func TestModelBucketOneWrongModelType(t *testing.T) {
 
 func TestModelBucketByIndexWrongModelType(t *testing.T) {
 	db := store.MemStore()
-	obj := NewSimpleObj(nil, &Counter{})
-	objBucket := NewBucket("cnts", obj).
-		WithIndex("x", func(o Object) ([]byte, error) { return []byte("x"), nil }, false)
-	b := NewModelBucket(objBucket)
+	b := NewModelBucket("cnts", &Counter{},
+		WithIndex("x", func(o Object) ([]byte, error) { return []byte("x"), nil }, false))
 
 	if _, err := b.Put(db, []byte("counter"), &Counter{Count: 1}); err != nil {
 		t.Fatalf("cannot save counter instance: %s", err)

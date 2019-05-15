@@ -68,16 +68,47 @@ type ModelBucket interface {
 // NewModelBucket returns a ModelBucket instance. This implementation relies on
 // a bucket instance. Final implementation should operate directly on the
 // KVStore instead.
-func NewModelBucket(b Bucket) ModelBucket {
-	return &modelBucket{
+func NewModelBucket(name string, m Model, opts ...ModelBucketOption) ModelBucket {
+	b := NewBucket(name, NewSimpleObj(nil, m))
+
+	tp := reflect.TypeOf(m)
+	if tp.Kind() == reflect.Ptr {
+		tp = tp.Elem()
+	}
+
+	mb := &modelBucket{
 		b:     b,
 		idSeq: b.Sequence("id"),
+		model: tp,
+	}
+	for _, fn := range opts {
+		fn(mb)
+	}
+	return mb
+}
+
+// ModelBucketOption is implemented by any function that can configure
+// ModelBucket during creation.
+type ModelBucketOption func(mb *modelBucket)
+
+// WithIndex configures the bucket to build an index with given name. All
+// entities stored in the bucket are indexed using value returned by the
+// indexer function. If an index is unique, there can be only one entity
+// referenced per index value.
+func WithIndex(name string, indexer Indexer, unique bool) ModelBucketOption {
+	return func(mb *modelBucket) {
+		mb.b = mb.b.WithIndex(name, indexer, unique)
 	}
 }
 
 type modelBucket struct {
 	b     Bucket
 	idSeq Sequence
+
+	// model is referencing the structure type. Event if the structure
+	// pointer is implementing Model interface, this variable references
+	// the structure directly and not the structure's pointer type.
+	model reflect.Type
 }
 
 func (mb *modelBucket) Register(name string, r weave.QueryRouter) {
@@ -126,14 +157,12 @@ func (mb *modelBucket) ByIndex(db weave.ReadOnlyKVStore, indexName string, key [
 	// It is allowed to pass destination as both []MyModel and []*MyModel
 	sliceOfPointers := dest.Type().Elem().Kind() == reflect.Ptr
 
-	if tp, ok := mb.modelType(); ok {
-		allowed := dest.Type().Elem()
-		if sliceOfPointers {
-			allowed = allowed.Elem()
-		}
-		if tp != allowed {
-			return errors.Wrapf(errors.ErrType, "this bucket operates on %s model and cannot return %s", tp, allowed)
-		}
+	allowed := dest.Type().Elem()
+	if sliceOfPointers {
+		allowed = allowed.Elem()
+	}
+	if mb.model != allowed {
+		return errors.Wrapf(errors.ErrType, "this bucket operates on %s model and cannot return %s", mb.model, allowed)
 	}
 
 	for _, obj := range objs {
@@ -155,10 +184,8 @@ func (mb *modelBucket) Put(db weave.KVStore, key []byte, m Model) ([]byte, error
 	if mTp.Kind() != reflect.Ptr {
 		return nil, errors.Wrap(errors.ErrType, "model destination must be a pointer")
 	}
-	if tp, ok := mb.modelType(); ok {
-		if tp != mTp.Elem() {
-			return nil, errors.Wrapf(errors.ErrType, "cannot store %T type in this bucket", m)
-		}
+	if mb.model != mTp.Elem() {
+		return nil, errors.Wrapf(errors.ErrType, "cannot store %T type in this bucket", m)
 	}
 
 	if err := m.Validate(); err != nil {
@@ -189,23 +216,6 @@ func (mb *modelBucket) Delete(db weave.KVStore, key []byte) error {
 		return errors.ErrNotFound
 	}
 	return mb.b.Delete(db, key)
-}
-
-// modelType returns the type of the model that this bucket manage. This is not
-// so clean implementation due to dependence on the bucket, which does not
-// expose this information. It can be done much better once this bucket
-// implementation has a direct access to the model reference.
-func (mb *modelBucket) modelType() (reflect.Type, bool) {
-	b, ok := mb.b.(bucket)
-	if !ok {
-		return nil, false
-	}
-	v := b.proto.Clone().Value()
-	tp := reflect.TypeOf(v)
-	for tp.Kind() == reflect.Ptr {
-		tp = tp.Elem()
-	}
-	return tp, true
 }
 
 var _ ModelBucket = (*modelBucket)(nil)

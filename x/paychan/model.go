@@ -63,8 +63,8 @@ func (pc PaymentChannel) Copy() orm.CloneableData {
 
 // NewPaymentChannelBucket returns a bucket for storing PaymentChannel state.
 func NewPaymentChannelBucket() orm.ModelBucket {
-	b := newPaymentChannelObjectBucket()
-	return migration.NewModelBucket("paychan", orm.NewModelBucket(b))
+	b := orm.NewModelBucket("paychan", &PaymentChannel{})
+	return migration.NewModelBucket("paychan", b)
 }
 
 func newPaymentChannelObjectBucket() orm.Bucket {
