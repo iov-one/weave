@@ -108,26 +108,26 @@ func TestModelBucketByIndex(t *testing.T) {
 		},
 		"find one": {
 			IndexName: "value",
-			QueryKey:  "1111",
+			QueryKey:  "1",
 			WantErr:   nil,
 			WantResPtr: []*Counter{
-				&Counter{Count: 1111},
+				&Counter{Count: 1001},
 			},
 			WantRes: []Counter{
-				Counter{Count: 1111},
+				Counter{Count: 1001},
 			},
 		},
 		"find two": {
 			IndexName: "value",
-			QueryKey:  "4444",
+			QueryKey:  "4",
 			WantErr:   nil,
 			WantResPtr: []*Counter{
-				&Counter{Count: 4444},
-				&Counter{Count: 4444},
+				&Counter{Count: 4001},
+				&Counter{Count: 4002},
 			},
 			WantRes: []Counter{
-				Counter{Count: 4444},
-				Counter{Count: 4444},
+				Counter{Count: 4001},
+				Counter{Count: 4002},
 			},
 		},
 		"non existing index name": {
@@ -140,28 +140,29 @@ func TestModelBucketByIndex(t *testing.T) {
 		t.Run(testName, func(t *testing.T) {
 			db := store.MemStore()
 
-			indexByValue := func(obj Object) ([]byte, error) {
+			indexByBigValue := func(obj Object) ([]byte, error) {
 				c, ok := obj.Value().(*Counter)
 				if !ok {
 					return nil, errors.Wrapf(errors.ErrType, "%T", obj.Value())
 				}
-				raw := strconv.FormatInt(c.Count, 10)
+				// Index by the value, ignoring anything belowe 1k.
+				raw := strconv.FormatInt(c.Count/1000, 10)
 				return []byte(raw), nil
 			}
 			objBucket := NewBucket("cnts", NewSimpleObj(nil, &Counter{})).
-				WithIndex("value", indexByValue, false)
+				WithIndex("value", indexByBigValue, false)
 			b := NewModelBucket(objBucket)
 
-			if _, err := b.Put(db, nil, &Counter{Count: 4444}); err != nil {
+			if _, err := b.Put(db, nil, &Counter{Count: 4001}); err != nil {
 				t.Fatalf("cannot save counter instance: %s", err)
 			}
-			if _, err := b.Put(db, nil, &Counter{Count: 4444}); err != nil {
+			if _, err := b.Put(db, nil, &Counter{Count: 4002}); err != nil {
 				t.Fatalf("cannot save counter instance: %s", err)
 			}
-			if _, err := b.Put(db, nil, &Counter{Count: 1111}); err != nil {
+			if _, err := b.Put(db, nil, &Counter{Count: 1001}); err != nil {
 				t.Fatalf("cannot save counter instance: %s", err)
 			}
-			if _, err := b.Put(db, nil, &Counter{Count: 99999}); err != nil {
+			if _, err := b.Put(db, nil, &Counter{Count: 2001}); err != nil {
 				t.Fatalf("cannot save counter instance: %s", err)
 			}
 
