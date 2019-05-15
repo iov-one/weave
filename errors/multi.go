@@ -8,7 +8,6 @@ import (
 var _ coder = (*multiErr)(nil)
 var _ causer = (*multiErr)(nil)
 var _ Multi = (*multiErr)(nil)
-var _ error = (*multiErr)(nil)
 
 // Multi is an interface for multiErr to avoid exposing actual implementation
 // to the rest of the app.
@@ -19,6 +18,7 @@ type Multi interface {
 	AddNamed(name string, err error)
 	// Named returns a named error or nil
 	Named(name string) error
+	error
 }
 
 // multiErr is a default implementation of errors.Multi.
@@ -81,13 +81,18 @@ func (me *multiErr) Error() string {
 
 // is provides a helper for Error.Is to work with multiErr
 func (me *multiErr) is(isFunc func(error) bool) bool {
+	if me.isEmpty() {
+		return isFunc(nil)
+	}
+
+	res := false
 	for _, err := range me.errors {
-		res := isFunc(err)
+		res = isFunc(err)
 		if res {
 			return res
 		}
 	}
-	return isFunc(nil)
+	return res
 }
 
 // ABCICode returns the error code of a first error consistent with fail-fast approach or falls back to
@@ -97,7 +102,7 @@ func (me *multiErr) ABCICode() uint32 {
 	return abciCode(me.first())
 }
 
-// Cause returns the cause of a first error consistent with ABCICode
+// Cause returns the first error consistent with ABCICode
 // if the interface is not satisfied - it returns errInternal
 // in case multiErr is empty - we return a nil
 func (me *multiErr) Cause() error {
@@ -105,23 +110,25 @@ func (me *multiErr) Cause() error {
 		return nil
 	}
 
-	c, ok := me.first().(causer)
-	if ok {
-		return c.Cause()
-	}
-	return errInternal
+	return me.first()
 }
 
-// MultiAdd allows to create a multiErr from an error
-func MultiAdd(err error) Multi {
-	mErr := &multiErr{}
-	mErr.Add(err)
+// MultiAdd allows to create a multiErr with an optional list of errors
+func MultiAdd(errs ...error) Multi {
+	mErr := &multiErr{
+		errorNames: make(map[string]int, 0),
+	}
+	for _, err := range errs {
+		mErr.Add(err)
+	}
 	return mErr
 }
 
 // MultiAddNamed creates a multiErr from a named error
 func MultiAddNamed(name string, err error) Multi {
-	mErr := &multiErr{}
+	mErr := &multiErr{
+		errorNames: make(map[string]int, 0),
+	}
 	mErr.AddNamed(name, err)
 	return mErr
 }
