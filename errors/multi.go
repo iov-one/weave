@@ -113,11 +113,15 @@ func (me *multiErr) Cause() error {
 	return me.first()
 }
 
-// MultiAdd allows to create a multiErr with an optional list of errors
-func MultiAdd(errs ...error) Multi {
-	mErr := &multiErr{
+func newMulti() *multiErr {
+	return &multiErr{
 		errorNames: make(map[string]int, 0),
 	}
+}
+
+// MultiAdd allows to create a multiErr with an optional list of errors
+func MultiAdd(errs ...error) Multi {
+	mErr := newMulti()
 	for _, err := range errs {
 		mErr.Add(err)
 	}
@@ -126,9 +130,7 @@ func MultiAdd(errs ...error) Multi {
 
 // MultiAddNamed creates a multiErr from a named error
 func MultiAddNamed(name string, err error) Multi {
-	mErr := &multiErr{
-		errorNames: make(map[string]int, 0),
-	}
+	mErr := newMulti()
 	mErr.AddNamed(name, err)
 	return mErr
 }
