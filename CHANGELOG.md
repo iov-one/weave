@@ -13,6 +13,8 @@
   `"conf": { "cash": { "xyz": "foo" } }`
 - Removed support for Go 1.10. Minimal required version is now 1.11.4.
 - Added support for Go 1.12
+- New `migration` package. Schema versioning for models and messages can be
+  implemented by relying on functionality provided by this package.
 
 Breaking changes
 
@@ -22,6 +24,12 @@ Breaking changes
   instead of relying on the block height
 - `gconf` package was reimplemented from scratch. Configuration can be changed
   during the runtime using messages.
+- Many extensions where updated to provide `weave.Metadata` and support schema
+  versioning as implemented by `migrations` package. Protobuf messages are
+  using new schema and are not binary compatible with old ones. Updated
+  extensions are: x/cash`, `x/currency`, `x/distribution`, `x/escrow`,
+  `x/msgfee`, `x/multisig`, `x/namecoin`,
+  `x/nft`, `x/paychan`, `x/sigs`, `x/validators`
 
 
 ## 0.14.0
@@ -31,18 +39,9 @@ Breaking changes
 - Signature verification in `x/sigs` extension costs gas now
 - A new message `BumpSequenceMsg` for incrementing a user sequence value in
   `x/sigs` extension
-- New `migration` package. Schema versioning for models and messages can be
-  implemented by relying on functionality provided by this package.
 - When considering expiration in `x/escrow` extension, expiration time is now
   inclusive
 - A new validator subjective anti-spam fee was added
-
-Breaking changes
-
-- Many extensions where updated to provide `weave.Metadata` and support schema
-  versioning as implemeneted by `migrations` package. Updated extensions are:
-  x/cash`, `x/currency`, `x/distribution`, `x/escrow`, `x/msgfee`,
-  `x/multisig`, `x/namecoin`, `x/nft`, `x/paychan`, `x/sigs`, `x/validators`
 
 
 ## 0.13.0
