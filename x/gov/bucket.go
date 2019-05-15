@@ -70,7 +70,7 @@ func indexAuthor(obj orm.Object) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	return p.Author, nil
+	return p.Common.Author, nil
 }
 
 // GetProposal loads the proposal for the given id. If it does not exist then ErrNotFound is returned.
