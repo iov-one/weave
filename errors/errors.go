@@ -167,10 +167,7 @@ func (kind *Error) Is(err error) bool {
 	// For multiErr, "Is" is used recursively, so there is no need
 	// to proceed with causer logic after this block.
 	if mErr, ok := err.(*multiErr); ok {
-		if mErr.is(kind.Is) {
-			return true
-		}
-		return false
+		return mErr.is(kind.Is)
 	}
 
 	for {
