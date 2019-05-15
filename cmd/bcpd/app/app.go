@@ -48,7 +48,7 @@ func Chain(authFn x.Authenticator) app.Decorators {
 		utils.NewSavepoint().OnCheck(),
 		sigs.NewDecorator(),
 		multisig.NewDecorator(authFn),
-		// note: this also embeds utils.NewSavepoint().OnDeliver()
+		// cash.NewDynamicFeeDecorator embeds utils.NewSavepoint().OnDeliver()
 		cash.NewDynamicFeeDecorator(authFn, ctrl),
 		// cannot pay for fee with hashlock...
 		hashlock.NewDecorator(),
