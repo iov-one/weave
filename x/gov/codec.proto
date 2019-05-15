@@ -193,7 +193,7 @@ message CreateProposalBase {
 // Metadata is from CreateProposalBase, actual proposal details from app-specific raw_option
 message CreateProposalMsg {
   weave.Metadata metadata = 1;
-  CreateProposalBase common = 2;
+  CreateProposalBase base = 2;
   bytes raw_option = 3;
 }
 
