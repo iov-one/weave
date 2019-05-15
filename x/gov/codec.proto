@@ -84,9 +84,12 @@ message ElectorateUpdatePayload {
   repeated Elector diff_electors = 1 [(gogoproto.nullable) = false];
 }
 
-// A generic proposal for an on-chain governance process.
-message Proposal {
-  weave.Metadata metadata = 1;
+// ProposalCommon contains all the generic fields for the lifetime of the proposal,
+// separate from the actual details of what is being voted on
+message ProposalCommon {
+  // TODO: reflect if we want Metadata, as this is designed to be embedded in a model with Metadata anyway
+  //   weave.Metadata metadata = 1;
+
   // Human readable title.
   string title = 2;
   // Description of the proposal in text form.
@@ -132,20 +135,14 @@ message Proposal {
   }
   // Result is the final result based on the votes and election rule. Initial value is Undefined.
   Result result = 12;
-  enum Type {
-    // None is invalid and not allowed
-    PROPOSAL_TYPE_INVALID = 0 [(gogoproto.enumvalue_customname) = "None"];
-    // Text
-    PROPOSAL_TYPE_TEXT = 1 [(gogoproto.enumvalue_customname) = "Text"];
-    // UpdateElectorate
-    PROPOSAL_TYPE_UPDATE_ELECTORATE = 2 [(gogoproto.enumvalue_customname) = "UpdateElectorate"];
-  }
-  Type type = 13;
-  // details
-  oneof details {
-    TextProposalPayload text_details = 50;
-    ElectorateUpdatePayload electorate_update_details = 51;
-  }
+}
+
+// A generic proposal for an on-chain governance process.
+message Proposal {
+  weave.Metadata metadata = 1;
+  ProposalCommon common = 2;
+  // raw_option is app-specific and can be parsed by an OptionLoader
+  bytes raw_option = 3;
 }
 
 // TallyResult contains sums of the votes and all data for the final result.
@@ -174,13 +171,13 @@ message Vote {
   VoteOption voted = 3;
 }
 
-// CreateTextProposalMsg creates a new governance proposal.
-message CreateTextProposalMsg {
-  weave.Metadata metadata = 1;
+message CreateProposalBase {
   // Human readable title. Must match `^[a-zA-Z0-9 _.-]{4,128}$`
   string title = 2;
   // Human readable description with 3 to 5000 chars.
   string description = 3;
+  // TODO: simplify this - election rule then contains the id being referenced
+
   // ElectionRuleID is a reference to the election rule
   bytes election_rule_id = 4 [(gogoproto.customname) = "ElectionRuleID"];
   // ElectorateID is the reference to the electorate to define the group of possible voters.
@@ -192,24 +189,16 @@ message CreateTextProposalMsg {
   bytes author = 7 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
 }
 
-// CreateElectorateUpdateProposalMsg creates a new governance proposal to update an electorate.
-message CreateElectorateUpdateProposalMsg {
+// CreateProposalMsg creates a new governance proposal.
+// Metadata is from CreateProposalBase, actual proposal details from app-specific raw_option
+message CreateProposalMsg {
   weave.Metadata metadata = 1;
-  // Human readable title. Must match `^[a-zA-Z0-9 _.-]{4,128}$`
-  string title = 2;
-  // Human readable description with 3 to 5000 chars.
-  string description = 3;
-  // ElectorateID is the reference to the electorate that defines the group of possible voters.
-  bytes electorate_id = 4 [(gogoproto.customname) = "ElectorateID"];
-  // Unix timestamp when the proposal starts. Must be in the future.
-  int64 start_time = 5 [(gogoproto.casttype) = "github.com/iov-one/weave.UnixTime"];
-  // Author is an optional field to set the address of the author with a proposal. The author must sign the message.
-  // When not set it will default to the main signer.
-  bytes author = 6 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
-  // DiffElectors contains the changes that should be applied. Adding an address should have a positive weight, removing
-  // with weight=0.
-  repeated Elector diff_electors = 7 [(gogoproto.nullable) = false];
+  CreateProposalBase common = 2;
+  bytes raw_option = 3;
 }
+
+// TODO: for update electorate proposal
+// repeated Elector diff_electors = 7 [(gogoproto.nullable) = false];
 
 // DeleteProposalMsg deletes a governance proposal.
 message DeleteProposalMsg {
