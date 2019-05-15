@@ -16,13 +16,17 @@ type Msg interface {
 
 func Validate(msg Msg) error {
 	l, err := msg.MsgList()
-	if err != nil {
-		return errors.Wrap(err, "cannot retrieve batch message")
-	}
+	multiErr := errors.MultiAddNamed("Message", errors.Wrap(err, "cannot retrieve batch message"))
 
 	msgNum := len(l)
 	if msgNum > MaxBatchMessages {
-		return errors.Wrapf(errors.ErrInput, "transaction is too large, max: %d vs current: %d", MaxBatchMessages, msgNum)
+		multiErr.AddNamed("Size", errors.Wrapf(errors.ErrInput,
+			"transaction is too large, max: %d vs current: %d", MaxBatchMessages, msgNum))
 	}
-	return nil
+
+	if multiErr.IsEmpty() {
+		return nil
+	}
+
+	return multiErr
 }
