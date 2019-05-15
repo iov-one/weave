@@ -151,6 +151,10 @@ func (m *ModelBucket) Delete(db weave.KVStore, key []byte) error {
 	return m.b.Delete(db, key)
 }
 
+func (m *ModelBucket) Has(db weave.KVStore, key []byte) error {
+	return m.b.Has(db, key)
+}
+
 // useRegister will update this bucket to use a custom register instance
 // instead of the global one. This is a private method meant to be used for
 // tests only.

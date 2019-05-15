@@ -60,6 +60,12 @@ type ModelBucket interface {
 	// It returns ErrNotFound if an entity with given key does not exist.
 	Delete(db weave.KVStore, key []byte) error
 
+	// Has returns nil if an entity with given primary key value exists. It
+	// returns ErrNotFound if no entity can be found.
+	// Has is a cheap operation that that does not read the data and only
+	// checks the existence of it.
+	Has(db weave.KVStore, key []byte) error
+
 	// Register registers this buckets content to be accessable via query
 	// requests under the given name.
 	Register(name string, r weave.QueryRouter)
@@ -208,14 +214,30 @@ func (mb *modelBucket) Put(db weave.KVStore, key []byte, m Model) ([]byte, error
 }
 
 func (mb *modelBucket) Delete(db weave.KVStore, key []byte) error {
-	obj, err := mb.b.Get(db, key)
+	if err := mb.Has(db, key); err != nil {
+		return err
+	}
+	return mb.b.Delete(db, key)
+}
+
+func (mb *modelBucket) Has(db weave.KVStore, key []byte) error {
+	if key == nil {
+		// nil key is a special case that would cause the store API to panic.
+		return errors.ErrNotFound
+	}
+
+	// As long as we rely on the Bucket implementation to access the
+	// database, we must refine the key.
+	key = mb.b.DBKey(key)
+
+	ok, err := db.Has(key)
 	if err != nil {
 		return err
 	}
-	if obj == nil || obj.Value() == nil {
+	if !ok {
 		return errors.ErrNotFound
 	}
-	return mb.b.Delete(db, key)
+	return nil
 }
 
 var _ ModelBucket = (*modelBucket)(nil)

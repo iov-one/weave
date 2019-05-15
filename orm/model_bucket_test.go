@@ -222,3 +222,24 @@ func TestModelBucketByIndexWrongModelType(t *testing.T) {
 		t.Fatalf("unexpected error when trying to find wrong model type value: %s: %v", err, refs)
 	}
 }
+
+func TestModelBucketHas(t *testing.T) {
+	db := store.MemStore()
+	b := NewModelBucket("cnts", &Counter{})
+
+	if _, err := b.Put(db, []byte("counter"), &Counter{Count: 1}); err != nil {
+		t.Fatalf("cannot save counter instance: %s", err)
+	}
+
+	if err := b.Has(db, []byte("counter")); err != nil {
+		t.Fatalf("an existing entity must return no error: %s", err)
+	}
+
+	if err := b.Has(db, nil); !errors.ErrNotFound.Is(err) {
+		t.Fatalf("a nil key must return ErrNotFound: %s", err)
+	}
+
+	if err := b.Has(db, []byte("does-not-exist")); !errors.ErrNotFound.Is(err) {
+		t.Fatalf("a non exists entity must return ErrNotFound: %s", err)
+	}
+}
