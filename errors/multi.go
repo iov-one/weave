@@ -18,6 +18,9 @@ type Multi interface {
 	AddNamed(name string, err error)
 	// Named returns a named error or nil
 	Named(name string) error
+	// IsEmpty returns true if there are no actual errors registered,
+	// this would also return true when registering a bunch of nil errors
+	IsEmpty() bool
 	error
 }
 
@@ -29,18 +32,21 @@ type multiErr struct {
 	errorNames map[string]int
 }
 
-func (me *multiErr) isEmpty() bool {
+func (me *multiErr) IsEmpty() bool {
 	return len(me.errors) == 0
 }
 
 func (me *multiErr) first() error {
-	if me.isEmpty() {
+	if me.IsEmpty() {
 		return nil
 	}
 	return me.errors[0]
 }
 
 func (me *multiErr) Add(err error) {
+	if err == nil {
+		return
+	}
 	me.errors = append(me.errors, err)
 }
 
@@ -48,6 +54,9 @@ func (me *multiErr) Add(err error) {
 // a named error if the same name is used twice, while keeping
 // the original error in the container for matching.
 func (me *multiErr) AddNamed(name string, err error) {
+	if err == nil {
+		return
+	}
 	me.errors = append(me.errors, err)
 	me.errorNames[name] = len(me.errors) - 1
 }
@@ -61,7 +70,7 @@ func (me *multiErr) Named(name string) error {
 }
 
 func (me *multiErr) Error() string {
-	if me.isEmpty() {
+	if me.IsEmpty() {
 		return ""
 	}
 
@@ -81,7 +90,7 @@ func (me *multiErr) Error() string {
 
 // is provides a helper for Error.Is to work with multiErr
 func (me *multiErr) is(isFunc func(error) bool) bool {
-	if me.isEmpty() {
+	if me.IsEmpty() {
 		return isFunc(nil)
 	}
 
@@ -106,7 +115,7 @@ func (me *multiErr) ABCICode() uint32 {
 // if the interface is not satisfied - it returns errInternal
 // in case multiErr is empty - we return a nil
 func (me *multiErr) Cause() error {
-	if me.isEmpty() {
+	if me.IsEmpty() {
 		return nil
 	}
 

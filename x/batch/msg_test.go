@@ -1,10 +1,11 @@
 package batch_test
 
 import (
-	"errors"
 	"testing"
 
 	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/weavetest/assert"
 	"github.com/iov-one/weave/x/batch"
 	. "github.com/smartystreets/goconvey/convey"
 	"github.com/stretchr/testify/mock"
@@ -19,17 +20,14 @@ func TestMsg(t *testing.T) {
 			msg.AssertExpectations(t)
 		})
 
-		Convey("Test list too long", func() {
-			msg.On("MsgList").Return(make([]weave.Msg, 11), nil)
-			So(batch.Validate(msg), ShouldNotBeNil)
+		Convey("Test validation errors", func() {
+			msg.On("MsgList").Return(make([]weave.Msg, 11), errors.ErrEmpty)
+			err := batch.Validate(msg).(errors.Multi)
+			assert.Equal(t, errors.ErrEmpty.Is(err.Named("Message")), true)
+			assert.Equal(t, errors.ErrInput.Is(err.Named("Size")), true)
 			msg.AssertExpectations(t)
 		})
 
-		Convey("Test error", func() {
-			msg.On("MsgList").Return(make([]weave.Msg, 10), errors.New("whatever"))
-			So(batch.Validate(msg), ShouldNotBeNil)
-			msg.AssertExpectations(t)
-		})
 	})
 }
 

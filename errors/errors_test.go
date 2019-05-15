@@ -17,6 +17,13 @@ func TestMultiErr(t *testing.T) {
 			assert.Equal(t, err.Named(name), ErrEmpty)
 			assert.Equal(t, err.Named("random"), nil)
 		},
+		"IsEmpty": func(t *testing.T) {
+			name := "Test"
+			err := MultiAdd()
+			assert.Equal(t, err.IsEmpty(), true)
+			err.AddNamed(name, nil)
+			assert.Equal(t, err.IsEmpty(), true)
+		},
 		"Named error override": func(t *testing.T) {
 			name := "Test"
 			err := MultiAddNamed(name, ErrEmpty)
