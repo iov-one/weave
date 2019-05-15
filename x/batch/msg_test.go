@@ -22,7 +22,7 @@ func TestMsg(t *testing.T) {
 
 		Convey("Test validation errors", func() {
 			msg.On("MsgList").Return(make([]weave.Msg, 11), errors.ErrEmpty)
-			err := batch.Validate(msg).(errors.Multi)
+			err := errors.AsMulti(batch.Validate(msg))
 			assert.Equal(t, errors.ErrEmpty.Is(err.Named("Message")), true)
 			assert.Equal(t, errors.ErrInput.Is(err.Named("Size")), true)
 			msg.AssertExpectations(t)

@@ -143,3 +143,17 @@ func MultiAddNamed(name string, err error) Multi {
 	mErr.AddNamed(name, err)
 	return mErr
 }
+
+// AsMulti is a nil-safe cast for working with multiErr
+// in tests
+func AsMulti(err error) Multi {
+	if err == nil {
+		return newMulti()
+	}
+
+	if v, ok := err.(Multi); ok {
+		return v
+	}
+
+	return MultiAdd(err)
+}
