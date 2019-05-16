@@ -92,6 +92,7 @@ func TestModelBucketByIndex(t *testing.T) {
 		WantErr    *errors.Error
 		WantResPtr []*Counter
 		WantRes    []Counter
+		WantKeys   [][]byte
 	}{
 		"find none": {
 			IndexName:  "value",
@@ -99,6 +100,7 @@ func TestModelBucketByIndex(t *testing.T) {
 			WantErr:    nil,
 			WantResPtr: nil,
 			WantRes:    nil,
+			WantKeys:   nil,
 		},
 		"find one": {
 			IndexName: "value",
@@ -109,6 +111,9 @@ func TestModelBucketByIndex(t *testing.T) {
 			},
 			WantRes: []Counter{
 				Counter{Count: 1001},
+			},
+			WantKeys: [][]byte{
+				weavetest.SequenceID(1),
 			},
 		},
 		"find two": {
@@ -122,6 +127,10 @@ func TestModelBucketByIndex(t *testing.T) {
 			WantRes: []Counter{
 				Counter{Count: 4001},
 				Counter{Count: 4002},
+			},
+			WantKeys: [][]byte{
+				weavetest.SequenceID(3),
+				weavetest.SequenceID(4),
 			},
 		},
 		"non existing index name": {
@@ -145,31 +154,33 @@ func TestModelBucketByIndex(t *testing.T) {
 			}
 			b := NewModelBucket("cnts", &Counter{}, WithIndex("value", indexByBigValue, false))
 
-			if _, err := b.Put(db, nil, &Counter{Count: 4001}); err != nil {
-				t.Fatalf("cannot save counter instance: %s", err)
-			}
-			if _, err := b.Put(db, nil, &Counter{Count: 4002}); err != nil {
-				t.Fatalf("cannot save counter instance: %s", err)
-			}
 			if _, err := b.Put(db, nil, &Counter{Count: 1001}); err != nil {
 				t.Fatalf("cannot save counter instance: %s", err)
 			}
 			if _, err := b.Put(db, nil, &Counter{Count: 2001}); err != nil {
 				t.Fatalf("cannot save counter instance: %s", err)
 			}
+			if _, err := b.Put(db, nil, &Counter{Count: 4001}); err != nil {
+				t.Fatalf("cannot save counter instance: %s", err)
+			}
+			if _, err := b.Put(db, nil, &Counter{Count: 4002}); err != nil {
+				t.Fatalf("cannot save counter instance: %s", err)
+			}
 
 			var dest []Counter
-			err := b.ByIndex(db, tc.IndexName, []byte(tc.QueryKey), &dest)
+			keys, err := b.ByIndex(db, tc.IndexName, []byte(tc.QueryKey), &dest)
 			if !tc.WantErr.Is(err) {
 				t.Fatalf("unexpected error: %s", err)
 			}
+			assert.Equal(t, tc.WantKeys, keys)
 			assert.Equal(t, tc.WantRes, dest)
 
 			var destPtr []*Counter
-			err = b.ByIndex(db, tc.IndexName, []byte(tc.QueryKey), &destPtr)
+			keys, err = b.ByIndex(db, tc.IndexName, []byte(tc.QueryKey), &destPtr)
 			if !tc.WantErr.Is(err) {
 				t.Fatalf("unexpected error: %s", err)
 			}
+			assert.Equal(t, tc.WantKeys, keys)
 			assert.Equal(t, tc.WantResPtr, destPtr)
 		})
 	}
@@ -208,17 +219,17 @@ func TestModelBucketByIndexWrongModelType(t *testing.T) {
 	}
 
 	var refs []MultiRef
-	if err := b.ByIndex(db, "x", []byte("x"), &refs); !errors.ErrType.Is(err) {
+	if _, err := b.ByIndex(db, "x", []byte("x"), &refs); !errors.ErrType.Is(err) {
 		t.Fatalf("unexpected error when trying to find wrong model type value: %s: %v", err, refs)
 	}
 
 	var refsPtr []*MultiRef
-	if err := b.ByIndex(db, "x", []byte("x"), &refsPtr); !errors.ErrType.Is(err) {
+	if _, err := b.ByIndex(db, "x", []byte("x"), &refsPtr); !errors.ErrType.Is(err) {
 		t.Fatalf("unexpected error when trying to find wrong model type value: %s: %v", err, refs)
 	}
 
 	var refsPtrPtr []**MultiRef
-	if err := b.ByIndex(db, "x", []byte("x"), &refsPtrPtr); !errors.ErrType.Is(err) {
+	if _, err := b.ByIndex(db, "x", []byte("x"), &refsPtrPtr); !errors.ErrType.Is(err) {
 		t.Fatalf("unexpected error when trying to find wrong model type value: %s: %v", err, refs)
 	}
 }

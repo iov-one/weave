@@ -46,7 +46,7 @@ type ModelBucket interface {
 	// All matching entities are appended to given destination slice. If no
 	// result was found, no error is retured and destination slice is not
 	// modified.
-	ByIndex(db weave.ReadOnlyKVStore, indexName string, key []byte, dest ModelSlicePtr) error
+	ByIndex(db weave.ReadOnlyKVStore, indexName string, key []byte, dest ModelSlicePtr) (keys [][]byte, err error)
 
 	// Put saves given model in the database. Before inserting into
 	// database, model is validated using its Validate method.
@@ -139,25 +139,25 @@ func (mb *modelBucket) One(db weave.ReadOnlyKVStore, key []byte, dest Model) err
 	return nil
 }
 
-func (mb *modelBucket) ByIndex(db weave.ReadOnlyKVStore, indexName string, key []byte, destination ModelSlicePtr) error {
+func (mb *modelBucket) ByIndex(db weave.ReadOnlyKVStore, indexName string, key []byte, destination ModelSlicePtr) ([][]byte, error) {
 	objs, err := mb.b.GetIndexed(db, indexName, key)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if len(objs) == 0 {
-		return nil
+		return nil, nil
 	}
 
 	dest := reflect.ValueOf(destination)
 	if dest.Kind() != reflect.Ptr {
-		return errors.Wrap(errors.ErrType, "destination must be a pointer to slice of models")
+		return nil, errors.Wrap(errors.ErrType, "destination must be a pointer to slice of models")
 	}
 	if dest.IsNil() {
-		return errors.Wrap(errors.ErrImmutable, "got nil pointer")
+		return nil, errors.Wrap(errors.ErrImmutable, "got nil pointer")
 	}
 	dest = dest.Elem()
 	if dest.Kind() != reflect.Slice {
-		return errors.Wrap(errors.ErrType, "destination must be a pointer to slice of models")
+		return nil, errors.Wrap(errors.ErrType, "destination must be a pointer to slice of models")
 	}
 
 	// It is allowed to pass destination as both []MyModel and []*MyModel
@@ -168,9 +168,10 @@ func (mb *modelBucket) ByIndex(db weave.ReadOnlyKVStore, indexName string, key [
 		allowed = allowed.Elem()
 	}
 	if mb.model != allowed {
-		return errors.Wrapf(errors.ErrType, "this bucket operates on %s model and cannot return %s", mb.model, allowed)
+		return nil, errors.Wrapf(errors.ErrType, "this bucket operates on %s model and cannot return %s", mb.model, allowed)
 	}
 
+	keys := make([][]byte, 0, len(objs))
 	for _, obj := range objs {
 		if obj == nil || obj.Value() == nil {
 			continue
@@ -180,8 +181,9 @@ func (mb *modelBucket) ByIndex(db weave.ReadOnlyKVStore, indexName string, key [
 			val = val.Elem()
 		}
 		dest.Set(reflect.Append(dest, val))
+		keys = append(keys, obj.Key())
 	}
-	return nil
+	return keys, nil
 
 }
 
