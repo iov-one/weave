@@ -14,7 +14,7 @@ func TestMultiErr(t *testing.T) {
 		"Named error": func(t *testing.T) {
 			name := "Test"
 			err := MultiAddNamed(name, ErrEmpty)
-			assert.Equal(t, err.Named(name), ErrEmpty)
+			assert.Equal(t, ErrEmpty.Is(err.Named(name)), true)
 			assert.Equal(t, err.Named("random"), nil)
 		},
 		"IsEmpty": func(t *testing.T) {
@@ -24,16 +24,17 @@ func TestMultiErr(t *testing.T) {
 			err.AddNamed(name, nil)
 			assert.Equal(t, err.IsEmpty(), true)
 		},
-		"Named error override": func(t *testing.T) {
+		"Named errors accumulate": func(t *testing.T) {
 			name := "Test"
 			err := MultiAddNamed(name, ErrEmpty).AddNamed(name, ErrState)
-			assert.Equal(t, err.Named(name), ErrState)
+			assert.Equal(t, ErrState.Is(err.Named(name)), true)
+			assert.Equal(t, ErrEmpty.Is(err.Named(name)), true)
 		},
 		"ABCICode is consistent with that of a normal error": func(t *testing.T) {
 			err := MultiAdd(ErrEmpty)
 			assert.Equal(t, err.(coder).ABCICode(), ErrEmpty.ABCICode())
 		},
-		"Tests wraps work properly": func(t *testing.T) {
+		"Nested wraps and multierr work properly": func(t *testing.T) {
 			multiErr := MultiAdd(ErrEmpty)
 			err := Wrap(Wrap(MultiAdd(Wrap(multiErr, "descr")), "descr"), "descr")
 			assert.Equal(t, ErrEmpty.Is(err), true)
@@ -42,10 +43,10 @@ func TestMultiErr(t *testing.T) {
 			err := MultiAdd()
 			assert.Equal(t, err.Error(), "")
 
-			err.Add(ErrEmpty)
+			_ = err.Add(ErrEmpty)
 			assert.Equal(t, strings.Contains(err.Error(), ErrEmpty.Error()), true)
 
-			err.Add(ErrState)
+			_ = err.Add(ErrState)
 			assert.Equal(t, strings.Contains(err.Error(), ErrEmpty.Error()), true)
 			assert.Equal(t, strings.Contains(err.Error(), ErrState.Error()), true)
 			assert.Equal(t, strings.Contains(err.Error(), "2"), true)

@@ -29,7 +29,7 @@ type Multi interface {
 // behaviour of named errors. The implementation is not thread-safe
 type multiErr struct {
 	errors     []error
-	errorNames map[string]int
+	errorNames map[string][]int
 }
 
 func (me *multiErr) IsEmpty() bool {
@@ -59,14 +59,18 @@ func (me *multiErr) AddNamed(name string, err error) Multi {
 		return me
 	}
 	me.errors = append(me.errors, err)
-	me.errorNames[name] = len(me.errors) - 1
+	me.errorNames[name] = append(me.errorNames[name], len(me.errors)-1)
 	return me
 }
 
 func (me *multiErr) Named(name string) error {
-	index, ok := me.errorNames[name]
+	indices, ok := me.errorNames[name]
 	if ok {
-		return me.errors[index]
+		multi := MultiAdd()
+		for _, index := range indices {
+			_ = multi.Add(me.errors[index])
+		}
+		return multi
 	}
 	return nil
 }
@@ -126,7 +130,7 @@ func (me *multiErr) Cause() error {
 
 func newMulti() *multiErr {
 	return &multiErr{
-		errorNames: make(map[string]int, 0),
+		errorNames: make(map[string][]int, 0),
 	}
 }
 
@@ -134,7 +138,7 @@ func newMulti() *multiErr {
 func MultiAdd(errs ...error) Multi {
 	mErr := newMulti()
 	for _, err := range errs {
-		mErr.Add(err)
+		_ = mErr.Add(err)
 	}
 	return mErr
 }
@@ -142,8 +146,7 @@ func MultiAdd(errs ...error) Multi {
 // MultiAddNamed creates a multiErr from a named error
 func MultiAddNamed(name string, err error) Multi {
 	mErr := newMulti()
-	mErr.AddNamed(name, err)
-	return mErr
+	return mErr.AddNamed(name, err)
 }
 
 // AsMulti is a nil-safe cast for working with multiErr
