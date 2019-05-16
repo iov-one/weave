@@ -112,9 +112,10 @@ func (m *ModelBucket) One(db weave.ReadOnlyKVStore, key []byte, dest orm.Model) 
 	return nil
 }
 
-func (m *ModelBucket) ByIndex(db weave.ReadOnlyKVStore, indexName string, key []byte, dest orm.ModelSlicePtr) error {
-	if err := m.b.ByIndex(db, indexName, key, dest); err != nil {
-		return err
+func (m *ModelBucket) ByIndex(db weave.ReadOnlyKVStore, indexName string, key []byte, dest orm.ModelSlicePtr) ([][]byte, error) {
+	keys, err := m.b.ByIndex(db, indexName, key, dest)
+	if err != nil {
+		return nil, err
 	}
 
 	// The correct type of the dest was already validated by the
@@ -134,10 +135,10 @@ func (m *ModelBucket) ByIndex(db weave.ReadOnlyKVStore, indexName string, key []
 		}
 
 		if err := m.migrate(db, model); err != nil {
-			return errors.Wrapf(err, "migrade %d element", i)
+			return nil, errors.Wrapf(err, "migrade %d element", i)
 		}
 	}
-	return nil
+	return keys, nil
 }
 
 func (m *ModelBucket) Put(db weave.KVStore, key []byte, model orm.Model) ([]byte, error) {
