@@ -21,7 +21,7 @@ func TestMultiErr(t *testing.T) {
 			name := "Test"
 			err := MultiAdd()
 			assert.Equal(t, err.IsEmpty(), true)
-			err.AddNamed(name, nil)
+			_ = err.AddNamed(name, nil)
 			assert.Equal(t, err.IsEmpty(), true)
 		},
 		"Named errors accumulate": func(t *testing.T) {
