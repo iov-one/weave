@@ -90,6 +90,15 @@ func (s CommitStore) LoadLatestVersion() error {
 	return err
 }
 
+// LoadVersion loads a specific persisted version.  When you load an old version, or
+// when the last commit attempt didn't complete, the next commit after
+// loading must be idempotent (return the same commit id).  Otherwise the
+// behavior is undefined.
+func (s CommitStore) LoadVersion(version int64) error {
+	_, err := s.tree.LoadVersion(version)
+	return err
+}
+
 // LatestVersion returns info on the latest version saved to disk
 func (s CommitStore) LatestVersion() (store.CommitID, error) {
 	c := store.CommitID{
