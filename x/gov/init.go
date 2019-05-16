@@ -22,16 +22,16 @@ func (*Initializer) FromGenesis(opts weave.Options, db weave.KVStore) error {
 	}
 	var governance struct {
 		Electorate []struct {
-			Admin          weave.Address `json:"admin"`
-			Title          string        `json:"title"`
-			ElectionRuleID uint64        `json:"update_rule_id"`
-			Electors       []struct {
+			Admin    weave.Address `json:"admin"`
+			Title    string        `json:"title"`
+			Electors []struct {
 				Address weave.Address `json:"address"`
 				Weight  uint32        `json:"weight"`
 			} `json:"electors"`
 		} `json:"electorate"`
 		Rules []struct {
 			Admin             weave.Address `json:"admin"`
+			ElectorateID      uint64        `json:"electorate_id"`
 			Title             string        `json:"title"`
 			VotingPeriodHours uint32        `json:"voting_period_hours"`
 			Quorum            fraction      `json:"quorum"`
@@ -41,15 +41,50 @@ func (*Initializer) FromGenesis(opts weave.Options, db weave.KVStore) error {
 	if err := opts.ReadOptions("governance", &governance); err != nil {
 		return err
 	}
+
+	// handle electorate first, as rules refer to them
+	electBucket := NewElectorateBucket()
+	for i, e := range governance.Electorate {
+		ps := make([]Elector, len(e.Electors))
+		var total uint64
+		for i, p := range e.Electors {
+			ps[i] = Elector{
+				Address: p.Address,
+				Weight:  p.Weight,
+			}
+			total += uint64(p.Weight)
+		}
+		electorate := Electorate{
+			Metadata:              &weave.Metadata{Schema: 1},
+			Admin:                 e.Admin,
+			Title:                 e.Title,
+			Electors:              ps,
+			TotalElectorateWeight: total,
+		}
+		if err := electorate.Validate(); err != nil {
+			return errors.Wrapf(err, "electorate #%d is invalid", i)
+		}
+		sortByAddress(electorate.Electors)
+		if _, err := electBucket.Create(db, &electorate); err != nil {
+			return err
+		}
+	}
+
 	// handle election rules
 	rulesBucket := NewElectionRulesBucket()
 	for i, r := range governance.Rules {
+		electorateID := encodeSequence(r.ElectorateID)
+		_, _, err := electBucket.GetLatestVersion(db, electorateID)
+		if err != nil {
+			return errors.Wrapf(err, "failed to load electorate with id: %d", r.ElectorateID)
+		}
 		rule := ElectionRule{
 			Metadata:          &weave.Metadata{Schema: 1},
 			Admin:             r.Admin,
 			Title:             r.Title,
 			VotingPeriodHours: r.VotingPeriodHours,
 			Threshold:         Fraction{Numerator: r.Threshold.Numerator, Denominator: r.Threshold.Denominator},
+			ElectorateID:      electorateID,
 		}
 		if r.Quorum.Numerator != 0 || r.Quorum.Denominator != 0 {
 			rule.Quorum = &Fraction{Numerator: r.Quorum.Numerator, Denominator: r.Quorum.Denominator}
@@ -62,39 +97,6 @@ func (*Initializer) FromGenesis(opts weave.Options, db weave.KVStore) error {
 		}
 	}
 
-	// handle electorate
-	electBucket := NewElectorateBucket()
-	for i, e := range governance.Electorate {
-		ps := make([]Elector, len(e.Electors))
-		var total uint64
-		for i, p := range e.Electors {
-			ps[i] = Elector{
-				Address: p.Address,
-				Weight:  p.Weight,
-			}
-			total += uint64(p.Weight)
-		}
-		ruleID := encodeSequence(e.ElectionRuleID)
-		ruleIDRef, _, err := rulesBucket.GetLatestVersion(db, ruleID)
-		if err != nil {
-			return errors.Wrapf(err, "failed to load rule with id: %d", e.ElectionRuleID)
-		}
-		electorate := Electorate{
-			Metadata:              &weave.Metadata{Schema: 1},
-			Admin:                 e.Admin,
-			Title:                 e.Title,
-			Electors:              ps,
-			TotalElectorateWeight: total,
-			UpdateElectionRuleRef: *ruleIDRef,
-		}
-		if err := electorate.Validate(); err != nil {
-			return errors.Wrapf(err, "electorate #%d is invalid", i)
-		}
-		sortByAddress(electorate.Electors)
-		if _, err := electBucket.Create(db, &electorate); err != nil {
-			return err
-		}
-	}
 	return nil
 }
 

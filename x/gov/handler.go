@@ -282,7 +282,7 @@ func (h CreateProposalHandler) Deliver(ctx weave.Context, db weave.KVStore, tx w
 			Title:           base.Title,
 			Description:     base.Description,
 			ElectionRuleRef: orm.VersionedIDRef{ID: base.ElectionRuleID, Version: rule.Version},
-			ElectorateRef:   orm.VersionedIDRef{ID: base.ElectorateID, Version: electorate.Version},
+			ElectorateRef:   orm.VersionedIDRef{ID: rule.ElectorateID, Version: electorate.Version},
 			VotingStartTime: base.StartTime,
 			VotingEndTime:   base.StartTime.Add(time.Duration(rule.VotingPeriodHours) * time.Hour),
 			SubmissionTime:  weave.AsUnixTime(blockTime),
@@ -322,15 +322,6 @@ func (h CreateProposalHandler) validate(ctx weave.Context, db weave.KVStore, tx 
 	if blockTime.Add(maxFutureStartTimeHours).Before(base.StartTime.Time()) {
 		return nil, nil, nil, errors.Wrapf(errors.ErrInput, "start time cam not be more than %d h in the future", maxFutureStartTimeHours)
 	}
-	// get latest electorate version
-	_, obj, err := h.elecBucket.GetLatestVersion(db, base.ElectorateID)
-	if err != nil {
-		return nil, nil, nil, errors.Wrap(err, "failed to load electorate")
-	}
-	elect, err := asElectorate(obj)
-	if err != nil {
-		return nil, nil, nil, errors.Wrap(err, "electorate")
-	}
 
 	_, rObj, err := h.rulesBucket.GetLatestVersion(db, base.ElectionRuleID)
 	if err != nil {
@@ -340,6 +331,16 @@ func (h CreateProposalHandler) validate(ctx weave.Context, db weave.KVStore, tx 
 	if err != nil {
 		return nil, nil, nil, err
 	}
+
+	_, obj, err := h.elecBucket.GetLatestVersion(db, rule.ElectorateID)
+	if err != nil {
+		return nil, nil, nil, errors.Wrap(err, "failed to load electorate")
+	}
+	elect, err := asElectorate(obj)
+	if err != nil {
+		return nil, nil, nil, errors.Wrap(err, "electorate")
+	}
+
 	author := base.Author
 	if author != nil {
 		if !h.auth.HasAddress(ctx, author) {
@@ -480,9 +481,9 @@ func (h DeleteProposalHandler) validate(ctx weave.Context, db weave.KVStore, tx 
 	if !ok {
 		return nil, nil, errors.Wrap(errors.ErrHuman, "block time not set")
 	}
-	prop, err := h.propBucket.GetProposal(db, msg.ID)
+	prop, err := h.propBucket.GetProposal(db, msg.ProposalID)
 	if err != nil {
-		return nil, nil, errors.Wrapf(err, "failed to load a proposal with id %s", msg.ID)
+		return nil, nil, errors.Wrapf(err, "failed to load a proposal with id %s", msg.ProposalID)
 	}
 	common := prop.Common
 	if common == nil {
@@ -516,7 +517,7 @@ func (h DeleteProposalHandler) Deliver(ctx weave.Context, db weave.KVStore, tx w
 
 	prop.Common.Status = ProposalCommon_Withdrawn
 
-	if err := h.propBucket.Update(db, msg.ID, prop); err != nil {
+	if err := h.propBucket.Update(db, msg.ProposalID, prop); err != nil {
 		return nil, errors.Wrap(err, "failed to persist proposal")
 	}
 

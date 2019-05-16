@@ -39,9 +39,6 @@ func (m Electorate) Validate() error {
 	case !validTitle(m.Title):
 		return errors.Wrapf(errors.ErrInput, "title: %q", m.Title)
 	}
-	if err := m.UpdateElectionRuleRef.Validate(); err != nil {
-		return errors.Wrapf(errors.ErrEmpty, "update election rule")
-	}
 
 	var totalWeight uint64
 	for _, v := range m.Electors {
@@ -107,6 +104,10 @@ func (m *ElectionRule) SetVersion(v uint32) {
 func (m ElectionRule) Validate() error {
 	if err := m.Metadata.Validate(); err != nil {
 		return errors.Wrap(err, "invalid metadata")
+	}
+
+	if len(m.ElectorateID) != 8 {
+		return errors.Wrapf(errors.ErrInput, "must refer to electorate with 8 byte id")
 	}
 
 	switch {
@@ -363,13 +364,6 @@ func (m Vote) Copy() orm.CloneableData {
 		Elector: m.Elector,
 		Voted:   m.Voted,
 	}
-}
-
-func (m *ElectorateUpdatePayload) Validate() error {
-	if m == nil {
-		return errors.ErrEmpty
-	}
-	return ElectorsDiff(m.DiffElectors).Validate()
 }
 
 // DiffElectors contains the changes that should be applied. Adding an address should have a positive weight, removing

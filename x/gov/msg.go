@@ -42,16 +42,10 @@ func (m *CreateProposalBase) Validate() error {
 		return errors.Wrap(errors.ErrInput, "missing base proposal msg info")
 	}
 
-	// TODO: is this only for text proposal?
-	// need to rethink this rules/electorate split
-	if len(m.ElectionRuleID) == 0 {
-		return errors.Wrap(errors.ErrInput, "empty election rules id")
-	}
-
 	// Really... why not a series of if statements??
 	switch {
-	case len(m.GetElectorateID()) == 0:
-		return errors.Wrap(errors.ErrInput, "empty electorate id")
+	case len(m.GetElectionRuleID()) == 0:
+		return errors.Wrap(errors.ErrInput, "empty election rules id")
 	case m.GetStartTime() == 0:
 		return errors.Wrap(errors.ErrInput, "empty start time")
 	case !validTitle(m.GetTitle()):
@@ -81,8 +75,8 @@ func (m DeleteProposalMsg) Validate() error {
 		return errors.Wrap(err, "invalid metadata")
 	}
 
-	if len(m.ID) == 0 {
-		return errors.Wrap(errors.ErrInput, "empty proposal id")
+	if len(m.ProposalID) != 8 {
+		return errors.Wrap(errors.ErrInput, "proposal ids must be 8 bytes (sequence)")
 	}
 	return nil
 }
