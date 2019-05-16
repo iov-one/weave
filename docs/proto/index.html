@@ -448,56 +448,6 @@
         
           
           <li>
-            <a href="#x%2fdemo%2fexternal.proto">x/demo/external.proto</a>
-            <ul>
-              
-                <li>
-                  <a href="#demo.AppCreateRequestMsg"><span class="badge">M</span>AppCreateRequestMsg</a>
-                </li>
-              
-                <li>
-                  <a href="#demo.OptionOne"><span class="badge">M</span>OptionOne</a>
-                </li>
-              
-                <li>
-                  <a href="#demo.OptionTwo"><span class="badge">M</span>OptionTwo</a>
-                </li>
-              
-                <li>
-                  <a href="#demo.Options"><span class="badge">M</span>Options</a>
-                </li>
-              
-              
-              
-              
-            </ul>
-          </li>
-        
-          
-          <li>
-            <a href="#x%2fdemo%2fcodec.proto">x/demo/codec.proto</a>
-            <ul>
-              
-                <li>
-                  <a href="#demo.ApproveRequestMsg"><span class="badge">M</span>ApproveRequestMsg</a>
-                </li>
-              
-                <li>
-                  <a href="#demo.CreateRequestMsg"><span class="badge">M</span>CreateRequestMsg</a>
-                </li>
-              
-                <li>
-                  <a href="#demo.Request"><span class="badge">M</span>Request</a>
-                </li>
-              
-              
-              
-              
-            </ul>
-          </li>
-        
-          
-          <li>
             <a href="#x%2fnamecoin%2fcodec.proto">x/namecoin/codec.proto</a>
             <ul>
               
@@ -637,10 +587,6 @@
                 </li>
               
                 <li>
-                  <a href="#gov.ElectorateUpdatePayload"><span class="badge">M</span>ElectorateUpdatePayload</a>
-                </li>
-              
-                <li>
                   <a href="#gov.Fraction"><span class="badge">M</span>Fraction</a>
                 </li>
               
@@ -658,10 +604,6 @@
               
                 <li>
                   <a href="#gov.TallyResult"><span class="badge">M</span>TallyResult</a>
-                </li>
-              
-                <li>
-                  <a href="#gov.TextProposalPayload"><span class="badge">M</span>TextProposalPayload</a>
                 </li>
               
                 <li>
@@ -2580,265 +2522,6 @@ distributed to. Must be at least one. </p></td>
     
       
       <div class="file-heading">
-        <h2 id="x/demo/external.proto">x/demo/external.proto</h2><a href="#title">Top</a>
-      </div>
-      <p></p>
-
-      
-        <h3 id="demo.AppCreateRequestMsg">AppCreateRequestMsg</h3>
-        <p>AppCreateRequestMsg knows the set of options, for easier parsing</p><p>But is byte compatible with CreateRequestMsg</p><p>TODO: does this make sense?</p>
-
-        
-          <table class="field-table">
-            <thead>
-              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
-            </thead>
-            <tbody>
-              
-                <tr>
-                  <td>metadata</td>
-                  <td><a href="#weave.Metadata">weave.Metadata</a></td>
-                  <td></td>
-                  <td><p> </p></td>
-                </tr>
-              
-                <tr>
-                  <td>title</td>
-                  <td><a href="#string">string</a></td>
-                  <td></td>
-                  <td><p> </p></td>
-                </tr>
-              
-                <tr>
-                  <td>options</td>
-                  <td><a href="#demo.Options">Options</a></td>
-                  <td></td>
-                  <td><p> </p></td>
-                </tr>
-              
-            </tbody>
-          </table>
-        
-
-        
-      
-        <h3 id="demo.OptionOne">OptionOne</h3>
-        <p>OptionOne is a possible option (externally defined)</p><p>Fulfills Msg interface</p>
-
-        
-          <table class="field-table">
-            <thead>
-              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
-            </thead>
-            <tbody>
-              
-                <tr>
-                  <td>name</td>
-                  <td><a href="#string">string</a></td>
-                  <td></td>
-                  <td><p> </p></td>
-                </tr>
-              
-                <tr>
-                  <td>age</td>
-                  <td><a href="#int32">int32</a></td>
-                  <td></td>
-                  <td><p> </p></td>
-                </tr>
-              
-            </tbody>
-          </table>
-        
-
-        
-      
-        <h3 id="demo.OptionTwo">OptionTwo</h3>
-        <p>OptionTwo is a possible option (externally defined)</p><p>Fulfills Msg interface</p>
-
-        
-          <table class="field-table">
-            <thead>
-              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
-            </thead>
-            <tbody>
-              
-                <tr>
-                  <td>data</td>
-                  <td><a href="#int32">int32</a></td>
-                  <td>repeated</td>
-                  <td><p> </p></td>
-                </tr>
-              
-            </tbody>
-          </table>
-        
-
-        
-      
-        <h3 id="demo.Options">Options</h3>
-        <p>Option is intended to be externally defined.</p><p>Grouping together all possible options</p>
-
-        
-          <table class="field-table">
-            <thead>
-              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
-            </thead>
-            <tbody>
-              
-                <tr>
-                  <td>one</td>
-                  <td><a href="#demo.OptionOne">OptionOne</a></td>
-                  <td></td>
-                  <td><p> </p></td>
-                </tr>
-              
-                <tr>
-                  <td>two</td>
-                  <td><a href="#demo.OptionTwo">OptionTwo</a></td>
-                  <td></td>
-                  <td><p> </p></td>
-                </tr>
-              
-            </tbody>
-          </table>
-        
-
-        
-      
-
-      
-
-      
-
-      
-    
-      
-      <div class="file-heading">
-        <h2 id="x/demo/codec.proto">x/demo/codec.proto</h2><a href="#title">Top</a>
-      </div>
-      <p></p>
-
-      
-        <h3 id="demo.ApproveRequestMsg">ApproveRequestMsg</h3>
-        <p>ApproveRequestMessage increments the Request.Approvals by one</p><p>When the Approvals reaches 2, the Request is executed</p>
-
-        
-          <table class="field-table">
-            <thead>
-              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
-            </thead>
-            <tbody>
-              
-                <tr>
-                  <td>metadata</td>
-                  <td><a href="#weave.Metadata">weave.Metadata</a></td>
-                  <td></td>
-                  <td><p> </p></td>
-                </tr>
-              
-                <tr>
-                  <td>request_id</td>
-                  <td><a href="#bytes">bytes</a></td>
-                  <td></td>
-                  <td><p> </p></td>
-                </tr>
-              
-            </tbody>
-          </table>
-        
-
-        
-      
-        <h3 id="demo.CreateRequestMsg">CreateRequestMsg</h3>
-        <p>CreateRequestMsg will store the request in the db to be approved later</p>
-
-        
-          <table class="field-table">
-            <thead>
-              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
-            </thead>
-            <tbody>
-              
-                <tr>
-                  <td>metadata</td>
-                  <td><a href="#weave.Metadata">weave.Metadata</a></td>
-                  <td></td>
-                  <td><p> </p></td>
-                </tr>
-              
-                <tr>
-                  <td>title</td>
-                  <td><a href="#string">string</a></td>
-                  <td></td>
-                  <td><p> </p></td>
-                </tr>
-              
-                <tr>
-                  <td>raw_option</td>
-                  <td><a href="#bytes">bytes</a></td>
-                  <td></td>
-                  <td><p> </p></td>
-                </tr>
-              
-            </tbody>
-          </table>
-        
-
-        
-      
-        <h3 id="demo.Request">Request</h3>
-        <p>Request is the current model stored to disk, knowledge how to parse out options is externally defined</p>
-
-        
-          <table class="field-table">
-            <thead>
-              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
-            </thead>
-            <tbody>
-              
-                <tr>
-                  <td>metadata</td>
-                  <td><a href="#weave.Metadata">weave.Metadata</a></td>
-                  <td></td>
-                  <td><p> </p></td>
-                </tr>
-              
-                <tr>
-                  <td>title</td>
-                  <td><a href="#string">string</a></td>
-                  <td></td>
-                  <td><p> </p></td>
-                </tr>
-              
-                <tr>
-                  <td>approvals</td>
-                  <td><a href="#int32">int32</a></td>
-                  <td></td>
-                  <td><p> </p></td>
-                </tr>
-              
-                <tr>
-                  <td>raw_option</td>
-                  <td><a href="#bytes">bytes</a></td>
-                  <td></td>
-                  <td><p> </p></td>
-                </tr>
-              
-            </tbody>
-          </table>
-        
-
-        
-      
-
-      
-
-      
-
-      
-    
-      
-      <div class="file-heading">
         <h2 id="x/namecoin/codec.proto">x/namecoin/codec.proto</h2><a href="#title">Top</a>
       </div>
       <p></p>
@@ -3492,7 +3175,7 @@ total increment value, including the default increment. </p></td>
 
       
         <h3 id="gov.CreateProposalBase">CreateProposalBase</h3>
-        <p></p>
+        <p>CreateProposalBase is the common info in all proposals.</p><p>This is separated out to easily be included in an app-specific CreateProposalMsg</p>
 
         
           <table class="field-table">
@@ -3512,9 +3195,7 @@ total increment value, including the default increment. </p></td>
                   <td>description</td>
                   <td><a href="#string">string</a></td>
                   <td></td>
-                  <td><p>Human readable description with 3 to 5000 chars.
-
-TODO: simplify this - election rule then contains the id being referenced </p></td>
+                  <td><p>Human readable description with 3 to 5000 chars. </p></td>
                 </tr>
               
                 <tr>
@@ -3522,13 +3203,6 @@ TODO: simplify this - election rule then contains the id being referenced </p></
                   <td><a href="#bytes">bytes</a></td>
                   <td></td>
                   <td><p>ElectionRuleID is a reference to the election rule </p></td>
-                </tr>
-              
-                <tr>
-                  <td>electorate_id</td>
-                  <td><a href="#bytes">bytes</a></td>
-                  <td></td>
-                  <td><p>ElectorateID is the reference to the electorate to define the group of possible voters. </p></td>
                 </tr>
               
                 <tr>
@@ -3607,10 +3281,10 @@ When not set it will default to the main signer. </p></td>
                 </tr>
               
                 <tr>
-                  <td>id</td>
+                  <td>proposal_id</td>
                   <td><a href="#bytes">bytes</a></td>
                   <td></td>
-                  <td><p>ID is the unique identifier of the proposal to delete </p></td>
+                  <td><p>ProposalID is the unique identifier of the proposal to delete </p></td>
                 </tr>
               
             </tbody>
@@ -3648,6 +3322,13 @@ When not set it will default to the main signer. </p></td>
                   <td><a href="#bytes">bytes</a></td>
                   <td></td>
                   <td><p>Admin is the address that is allowed ot modify an existing election rule. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>electorate_id</td>
+                  <td><a href="#bytes">bytes</a></td>
+                  <td></td>
+                  <td><p>ElectorateID references the electorate using this rule (without version, as changing electorate changes the rule) </p></td>
                 </tr>
               
                 <tr>
@@ -3778,37 +3459,6 @@ of the eligible voters. </p></td>
                   <td><p>TotalElectorateWeight is the sum of all electors weights. </p></td>
                 </tr>
               
-                <tr>
-                  <td>update_election_rule_ref</td>
-                  <td><a href="#orm.VersionedIDRef">orm.VersionedIDRef</a></td>
-                  <td></td>
-                  <td><p>UpdateElectionRuleRef reference the rule to update this electorate. </p></td>
-                </tr>
-              
-            </tbody>
-          </table>
-        
-
-        
-      
-        <h3 id="gov.ElectorateUpdatePayload">ElectorateUpdatePayload</h3>
-        <p></p>
-
-        
-          <table class="field-table">
-            <thead>
-              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
-            </thead>
-            <tbody>
-              
-                <tr>
-                  <td>diff_electors</td>
-                  <td><a href="#gov.Elector">Elector</a></td>
-                  <td>repeated</td>
-                  <td><p>DiffElectors contains the changes that should be applied. Adding an address should have a positive weight, removing
-with weight=0. </p></td>
-                </tr>
-              
             </tbody>
           </table>
         
@@ -3883,7 +3533,7 @@ with weight=0. </p></td>
         
       
         <h3 id="gov.ProposalCommon">ProposalCommon</h3>
-        <p>ProposalCommon contains all the generic fields for the lifetime of the proposal,</p><p>separate from the actual details of what is being voted on</p><p>TODO: reflect if we want Metadata, as this is designed to be embedded in a model with Metadata anyway</p><p>weave.Metadata metadata = 1;</p>
+        <p>ProposalCommon contains all the generic fields for the lifetime of the proposal,</p><p>separate from the actual details of what is being voted on</p>
 
         
           <table class="field-table">
@@ -4066,13 +3716,6 @@ The base value is either the total electorate weight or the sum of Yes/No weight
 
         
       
-        <h3 id="gov.TextProposalPayload">TextProposalPayload</h3>
-        <p>A text form proposal for an on-chain governance process.</p>
-
-        
-
-        
-      
         <h3 id="gov.UpdateElectionRuleMsg">UpdateElectionRuleMsg</h3>
         <p></p>
 
@@ -4160,7 +3803,7 @@ with weight=0. </p></td>
         
       
         <h3 id="gov.Vote">Vote</h3>
-        <p>Vote combines the elector and their voted option to archive them. The proposalID and address is stored within the key.</p>
+        <p>Vote combines the elector and their voted option to archive them.</p><p>The proposalID and address is stored within the key.</p>
 
         
           <table class="field-table">

@@ -20,8 +20,6 @@ message Electorate {
   repeated Elector electors = 5 [(gogoproto.nullable) = false];
   // TotalElectorateWeight is the sum of all electors weights.
   uint64 total_electorate_weight = 6;
-  // UpdateElectionRuleRef reference the rule to update this electorate.
-  orm.VersionedIDRef update_election_rule_ref = 7 [(gogoproto.nullable) = false];
 }
 
 // Elector clubs together a address with a weight. The greater the weight
@@ -40,10 +38,12 @@ message ElectionRule {
   uint32 version = 2;
   // Admin is the address that is allowed ot modify an existing election rule.
   bytes admin = 3 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
+  // ElectorateID references the electorate using this rule (without version, as changing electorate changes the rule)
+  bytes electorate_id = 4 [(gogoproto.customname) = "ElectorateID"];
   // Human readable title.
-  string title = 4;
+  string title = 5;
   // Duration how long the voting period will take place.
-  uint32 voting_period_hours = 5;
+  uint32 voting_period_hours = 6;
   // Threshold is the fraction of either all eligible voters or in case of a quorum setup the fraction of all non
   // abstained votes.
   // To accept a proposal this value must be exceeded with Yes votes.
@@ -52,14 +52,14 @@ message ElectionRule {
   //
   // The valid range for the threshold value is `0.5` to `1` (inclusive) which allows any value between half and all
   // of the eligible voters.
-  Fraction threshold = 6 [(gogoproto.nullable) = false];
+  Fraction threshold = 7 [(gogoproto.nullable) = false];
   // The quorum fraction of eligible voters is based on the total electorate weight and defines a threshold of
   // votes that must be exceeded before the acceptance threshold is applied.
   // This value requires any kind of votes and not only YES.
   //
   // The valid range for the threshold value is `0.5` to `1` (inclusive) which allows any value between half and all
   // of the eligible voters.
-  Fraction quorum = 7;
+  Fraction quorum = 8;
 }
 
 // The Fraction type represents a numerator and denominator to enable higher precision thresholds in
@@ -73,15 +73,6 @@ message Fraction {
   uint32 numerator = 1;
   // The bottom number
   uint32 denominator = 2;
-}
-
-// A text form proposal for an on-chain governance process.
-message TextProposalPayload {}
-
-message ElectorateUpdatePayload {
-  // DiffElectors contains the changes that should be applied. Adding an address should have a positive weight, removing
-  // with weight=0.
-  repeated Elector diff_electors = 1 [(gogoproto.nullable) = false];
 }
 
 // ProposalCommon contains all the generic fields for the lifetime of the proposal,
@@ -159,7 +150,8 @@ message TallyResult {
   Fraction threshold = 6 [(gogoproto.nullable) = false];
 }
 
-// Vote combines the elector and their voted option to archive them. The proposalID and address is stored within the key.
+// Vote combines the elector and their voted option to archive them.
+// The proposalID and address is stored within the key.
 message Vote {
   weave.Metadata metadata = 1;
   // Elector is who voted
@@ -168,22 +160,20 @@ message Vote {
   VoteOption voted = 3;
 }
 
+// CreateProposalBase is the common info in all proposals.
+// This is separated out to easily be included in an app-specific CreateProposalMsg
 message CreateProposalBase {
   // Human readable title. Must match `^[a-zA-Z0-9 _.-]{4,128}$`
-  string title = 2;
+  string title = 1;
   // Human readable description with 3 to 5000 chars.
-  string description = 3;
-  // TODO: simplify this - election rule then contains the id being referenced
-
+  string description = 2;
   // ElectionRuleID is a reference to the election rule
-  bytes election_rule_id = 4 [(gogoproto.customname) = "ElectionRuleID"];
-  // ElectorateID is the reference to the electorate to define the group of possible voters.
-  bytes electorate_id = 5 [(gogoproto.customname) = "ElectorateID"];
+  bytes election_rule_id = 3 [(gogoproto.customname) = "ElectionRuleID"];
   // Unix timestamp when the proposal starts. Must be in the future.
-  int64 start_time = 6 [(gogoproto.casttype) = "github.com/iov-one/weave.UnixTime"];
+  int64 start_time = 4 [(gogoproto.casttype) = "github.com/iov-one/weave.UnixTime"];
   // Author is an optional field to set the address of the author with a proposal. The author must sign the message.
   // When not set it will default to the main signer.
-  bytes author = 7 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
+  bytes author = 5 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
 }
 
 // CreateProposalMsg creates a new governance proposal.
@@ -197,8 +187,8 @@ message CreateProposalMsg {
 // DeleteProposalMsg deletes a governance proposal.
 message DeleteProposalMsg {
   weave.Metadata metadata = 1;
-  // ID is the unique identifier of the proposal to delete
-  bytes id = 2 [(gogoproto.customname) = "ID"];
+  // ProposalID is the unique identifier of the proposal to delete
+  bytes proposal_id = 2 [(gogoproto.customname) = "ProposalID"];
 }
 
 // VoteOptions define possible values for a vote including the INVALID default.
