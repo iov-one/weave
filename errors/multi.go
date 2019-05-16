@@ -13,9 +13,9 @@ var _ Multi = (*multiErr)(nil)
 // to the rest of the app.
 type Multi interface {
 	// Add adds an error to this multiErr
-	Add(err error)
+	Add(err error) Multi
 	// AddNamed adds an error that could later be retrieved by name
-	AddNamed(name string, err error)
+	AddNamed(name string, err error) Multi
 	// Named returns a named error or nil
 	Named(name string) error
 	// IsEmpty returns true if there are no actual errors registered,
@@ -43,22 +43,24 @@ func (me *multiErr) first() error {
 	return me.errors[0]
 }
 
-func (me *multiErr) Add(err error) {
+func (me *multiErr) Add(err error) Multi {
 	if err == nil {
-		return
+		return me
 	}
 	me.errors = append(me.errors, err)
+	return me
 }
 
 // This AddNamed implementation would overwrite a pointer to
 // a named error if the same name is used twice, while keeping
 // the original error in the container for matching.
-func (me *multiErr) AddNamed(name string, err error) {
+func (me *multiErr) AddNamed(name string, err error) Multi {
 	if err == nil {
-		return
+		return me
 	}
 	me.errors = append(me.errors, err)
 	me.errorNames[name] = len(me.errors) - 1
+	return me
 }
 
 func (me *multiErr) Named(name string) error {
