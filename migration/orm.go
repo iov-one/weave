@@ -1,6 +1,8 @@
 package migration
 
 import (
+	"reflect"
+
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/orm"
@@ -63,13 +65,122 @@ func (svb Bucket) Save(db weave.KVStore, obj orm.Object) error {
 }
 
 func (svb Bucket) migrate(db weave.ReadOnlyKVStore, obj orm.Object) error {
-	m, ok := obj.Value().(Migratable)
+	return migrate(svb.migrations, svb.schema, svb.packageName, db, obj.Value())
+}
+
+func (svb Bucket) WithIndex(name string, indexer orm.Indexer, unique bool) orm.Bucket {
+	svb.Bucket = svb.Bucket.WithIndex(name, indexer, unique)
+	return svb
+}
+
+func (svb Bucket) WithMultiKeyIndex(name string, indexer orm.MultiKeyIndexer, unique bool) orm.Bucket {
+	svb.Bucket = svb.Bucket.WithMultiKeyIndex(name, indexer, unique)
+	return svb
+}
+
+// ModelBucket implementes the orm.ModelBucket interface and provides the same
+// functionality with additional model schema migration.
+type ModelBucket struct {
+	b           orm.ModelBucket
+	packageName string
+	schema      *SchemaBucket
+	migrations  *register
+}
+
+var _ orm.ModelBucket = (*ModelBucket)(nil)
+
+func NewModelBucket(packageName string, b orm.ModelBucket) *ModelBucket {
+	return &ModelBucket{
+		b:           b,
+		packageName: packageName,
+		schema:      NewSchemaBucket(),
+		migrations:  reg,
+	}
+}
+
+func (m *ModelBucket) Register(name string, r weave.QueryRouter) {
+	m.b.Register(name, r)
+}
+
+func (m *ModelBucket) One(db weave.ReadOnlyKVStore, key []byte, dest orm.Model) error {
+	if err := m.b.One(db, key, dest); err != nil {
+		return err
+	}
+	if err := m.migrate(db, dest); err != nil {
+		return errors.Wrap(err, "migrate")
+	}
+	return nil
+}
+
+func (m *ModelBucket) ByIndex(db weave.ReadOnlyKVStore, indexName string, key []byte, dest orm.ModelSlicePtr) ([][]byte, error) {
+	keys, err := m.b.ByIndex(db, indexName, key, dest)
+	if err != nil {
+		return nil, err
+	}
+
+	// The correct type of the dest was already validated by the
+	// ModelBucket when getting data by index. We can safely skip checks -
+	// dest is a slice of models.
+	slice := reflect.ValueOf(dest).Elem()
+	for i := 0; i < slice.Len(); i++ {
+		item := slice.Index(i)
+
+		// Slice can be both of values and pointer to values. This
+		// method must support both notations.
+		var model orm.Model
+		if m, ok := item.Interface().(orm.Model); ok {
+			model = m
+		} else {
+			model = item.Addr().Interface().(orm.Model)
+		}
+
+		if err := m.migrate(db, model); err != nil {
+			return nil, errors.Wrapf(err, "migrate %d element", i)
+		}
+	}
+	return keys, nil
+}
+
+func (m *ModelBucket) Put(db weave.KVStore, key []byte, model orm.Model) ([]byte, error) {
+	if err := m.migrate(db, model); err != nil {
+		return nil, errors.Wrap(err, "migrate")
+	}
+	return m.b.Put(db, key, model)
+}
+
+func (m *ModelBucket) Delete(db weave.KVStore, key []byte) error {
+	return m.b.Delete(db, key)
+}
+
+func (m *ModelBucket) Has(db weave.KVStore, key []byte) error {
+	return m.b.Has(db, key)
+}
+
+// useRegister will update this bucket to use a custom register instance
+// instead of the global one. This is a private method meant to be used for
+// tests only.
+func (m *ModelBucket) useRegister(r *register) {
+	m.migrations = r
+}
+
+func (m *ModelBucket) migrate(db weave.ReadOnlyKVStore, model orm.Model) error {
+	return migrate(m.migrations, m.schema, m.packageName, db, model)
+}
+
+func migrate(
+	migrations *register,
+	schema *SchemaBucket,
+	packageName string,
+	db weave.ReadOnlyKVStore,
+	value interface{},
+) error {
+	m, ok := value.(Migratable)
 	if !ok {
 		return errors.Wrap(errors.ErrModel, "model cannot be migrated")
 	}
-	currSchemaVer, err := svb.schema.CurrentSchema(db, svb.packageName)
+	currSchemaVer, err := schema.CurrentSchema(db, packageName)
 	if err != nil {
-		return errors.Wrapf(err, "current schema version of package %q", svb.packageName)
+		return errors.Wrapf(err, "current schema version of package %q", packageName)
 	}
 
 	meta := m.GetMetadata()
@@ -90,18 +201,8 @@ func (svb Bucket) migrate(db weave.ReadOnlyKVStore, obj orm.Object) error {
 	}
 
 	// Migration is applied in place, directly modyfying the instance.
-	if err := svb.migrations.Apply(db, m, currSchemaVer); err != nil {
+	if err := migrations.Apply(db, m, currSchemaVer); err != nil {
 		return errors.Wrap(err, "schema migration")
 	}
 	return nil
-}
-
-func (svb Bucket) WithIndex(name string, indexer orm.Indexer, unique bool) orm.Bucket {
-	svb.Bucket = svb.Bucket.WithIndex(name, indexer, unique)
-	return svb
-}
-
-func (svb Bucket) WithMultiKeyIndex(name string, indexer orm.MultiKeyIndexer, unique bool) orm.Bucket {
-	svb.Bucket = svb.Bucket.WithMultiKeyIndex(name, indexer, unique)
-	return svb
 }

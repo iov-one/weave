@@ -33,7 +33,7 @@ func RegisterRoutes(r weave.Registry, auth x.Authenticator, cash cash.Controller
 
 type createPaymentChannelHandler struct {
 	auth   x.Authenticator
-	bucket PaymentChannelBucket
+	bucket orm.ModelBucket
 	cash   cash.Controller
 }
 
@@ -67,7 +67,7 @@ func (h *createPaymentChannelHandler) Deliver(ctx weave.Context, db weave.KVStor
 		return nil, err
 	}
 
-	obj, err := h.bucket.Create(db, &PaymentChannel{
+	key, err := h.bucket.Put(db, nil, &PaymentChannel{
 		Metadata:     &weave.Metadata{},
 		Src:          msg.Src,
 		SenderPubkey: msg.SenderPubkey,
@@ -83,16 +83,16 @@ func (h *createPaymentChannelHandler) Deliver(ctx weave.Context, db weave.KVStor
 
 	// Move coins from sender account and deposit total amount available on
 	// that channels account.
-	dst := paymentChannelAccount(obj.Key())
+	dst := paymentChannelAccount(key)
 	if err := h.cash.MoveCoins(db, msg.Src, dst, *msg.Total); err != nil {
 		return nil, errors.Wrap(err, "cannot move coins")
 	}
-	return &weave.DeliverResult{Data: obj.Key()}, nil
+	return &weave.DeliverResult{Data: key}, nil
 }
 
 type transferPaymentChannelHandler struct {
 	auth   x.Authenticator
-	bucket PaymentChannelBucket
+	bucket orm.ModelBucket
 	cash   cash.Controller
 }
 
@@ -114,8 +114,8 @@ func (h *transferPaymentChannelHandler) validate(ctx weave.Context, db weave.KVS
 		return nil, errors.Wrap(errors.ErrMsg, "invalid chain ID")
 	}
 
-	pc, err := h.bucket.GetPaymentChannel(db, msg.Payment.ChannelID)
-	if err != nil {
+	var pc PaymentChannel
+	if err := h.bucket.One(db, msg.Payment.ChannelID, &pc); err != nil {
 		return nil, err
 	}
 
@@ -151,8 +151,8 @@ func (h *transferPaymentChannelHandler) Deliver(ctx weave.Context, db weave.KVSt
 		return nil, err
 	}
 
-	pc, err := h.bucket.GetPaymentChannel(db, msg.Payment.ChannelID)
-	if err != nil {
+	var pc PaymentChannel
+	if err := h.bucket.One(db, msg.Payment.ChannelID, &pc); err != nil {
 		return nil, err
 	}
 
@@ -188,8 +188,7 @@ func (h *transferPaymentChannelHandler) Deliver(ctx weave.Context, db weave.KVSt
 		return nil, err
 	}
 
-	obj := orm.NewSimpleObj(msg.Payment.ChannelID, pc)
-	if err := h.bucket.Save(db, obj); err != nil {
+	if _, err := h.bucket.Put(db, msg.Payment.ChannelID, &pc); err != nil {
 		return nil, err
 	}
 	return &weave.DeliverResult{}, nil
@@ -197,7 +196,7 @@ func (h *transferPaymentChannelHandler) Deliver(ctx weave.Context, db weave.KVSt
 
 type closePaymentChannelHandler struct {
 	auth   x.Authenticator
-	bucket PaymentChannelBucket
+	bucket orm.ModelBucket
 	cash   cash.Controller
 }
 
@@ -217,8 +216,8 @@ func (h *closePaymentChannelHandler) Deliver(ctx weave.Context, db weave.KVStore
 		return nil, errors.Wrap(err, "load msg")
 	}
 
-	pc, err := h.bucket.GetPaymentChannel(db, msg.ChannelID)
-	if err != nil {
+	var pc PaymentChannel
+	if err := h.bucket.One(db, msg.ChannelID, &pc); err != nil {
 		return nil, err
 	}
 
