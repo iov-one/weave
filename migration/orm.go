@@ -135,7 +135,7 @@ func (m *ModelBucket) ByIndex(db weave.ReadOnlyKVStore, indexName string, key []
 		}
 
 		if err := m.migrate(db, model); err != nil {
-			return nil, errors.Wrapf(err, "migrade %d element", i)
+			return nil, errors.Wrapf(err, "migrate %d element", i)
 		}
 	}
 	return keys, nil
