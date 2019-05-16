@@ -209,7 +209,7 @@ func TestSchemaVersionedModelBucket(t *testing.T) {
 
 	// ByIndex must support destination being slice of values.
 	var setp []*MyModel
-	if err := b.ByIndex(db, "const", []byte("all"), &setp); err != nil {
+	if _, err := b.ByIndex(db, "const", []byte("all"), &setp); err != nil {
 		t.Fatalf("cannot query by index: %s", err)
 	}
 	wantp := []*MyModel{
@@ -220,7 +220,7 @@ func TestSchemaVersionedModelBucket(t *testing.T) {
 
 	// ByIndex must support destination being slice of pointers.
 	var setv []MyModel
-	if err := b.ByIndex(db, "const", []byte("all"), &setv); err != nil {
+	if _, err := b.ByIndex(db, "const", []byte("all"), &setv); err != nil {
 		t.Fatalf("cannot query by index: %s", err)
 	}
 	wantv := []MyModel{
