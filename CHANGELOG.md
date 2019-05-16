@@ -2,6 +2,11 @@
 
 ## HEAD
 
+- A new bucket implementation `orm.ModelBucket` was added that provides an
+  easier to use interface when dealing with a single entity type.
+- `migration` package was updated to provide `orm.ModelBucket` wrapper for
+  transparent schema version migrations
+
 
 ## 0.15.0
 
