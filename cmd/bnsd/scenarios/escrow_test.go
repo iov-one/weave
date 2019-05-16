@@ -6,6 +6,7 @@ import (
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/cmd/bnsd/app"
 	"github.com/iov-one/weave/cmd/bnsd/client"
+	"github.com/iov-one/weave/cmd/bnsd/scenarios/bnsdtest"
 	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/x/escrow"
 	"github.com/stretchr/testify/assert"
@@ -13,7 +14,10 @@ import (
 )
 
 func TestQueryEscrowExists(t *testing.T) {
-	walletResp, err := bnsClient.GetWallet(escrowContract.Address())
+	env, cleanup := bnsdtest.StartBnsd(t)
+	defer cleanup()
+
+	walletResp, err := env.Client.GetWallet(env.EscrowContract.Address())
 	// then
 	require.NoError(t, err)
 	require.NotNil(t, walletResp)
@@ -22,16 +26,22 @@ func TestQueryEscrowExists(t *testing.T) {
 }
 
 func TestEscrowRelease(t *testing.T) {
+	env, cleanup := bnsdtest.StartBnsd(t)
+	defer cleanup()
+
 	// query distribution accounts start balance
-	walletResp, err := bnsClient.GetWallet(distrContractAddr)
+	walletResp, err := env.Client.GetWallet(env.DistrContractAddr)
 	require.NoError(t, err)
 	startBalance := coin.Coin{Ticker: "IOV"}
 	if walletResp != nil {
 		startBalance = *walletResp.Wallet.Coins[0]
 	}
-	aNonce := client.NewNonce(bnsClient, alice.PublicKey().Address())
+	aNonce := client.NewNonce(env.Client, env.Alice.PublicKey().Address())
 	// when releasing 1 IOV by the arbiter
-	_, _, escrowID, _ := escrowContract.Parse()
+	_, _, escrowID, err := env.EscrowContract.Parse()
+	if err != nil {
+		t.Fatalf("cannot parse escrow contract: %s", err)
+	}
 
 	releaseEscrowTX := &app.Tx{
 		Sum: &app.Tx_ReleaseEscrowMsg{
@@ -42,20 +52,20 @@ func TestEscrowRelease(t *testing.T) {
 			},
 		},
 	}
-	releaseEscrowTX.Fee(alice.PublicKey().Address(), antiSpamFee)
-	_, _, contractID, _ := multiSigContract.Parse()
+	releaseEscrowTX.Fee(env.Alice.PublicKey().Address(), env.AntiSpamFee)
+	_, _, contractID, _ := env.MultiSigContract.Parse()
 	releaseEscrowTX.Multisig = [][]byte{contractID}
 
 	seq, err := aNonce.Next()
 	require.NoError(t, err)
-	require.NoError(t, client.SignTx(releaseEscrowTX, alice, chainID, seq))
-	resp := bnsClient.BroadcastTx(releaseEscrowTX)
+	require.NoError(t, client.SignTx(releaseEscrowTX, env.Alice, env.ChainID, seq))
+	resp := env.Client.BroadcastTx(releaseEscrowTX)
 
 	// then
 	require.NoError(t, resp.IsError())
 
 	// and check it was added to the distr account
-	walletResp, err = bnsClient.GetWallet(distrContractAddr)
+	walletResp, err = env.Client.GetWallet(env.DistrContractAddr)
 	require.NoError(t, err)
 	require.NotNil(t, walletResp)
 	require.True(t, walletResp.Height >= resp.Response.Height)

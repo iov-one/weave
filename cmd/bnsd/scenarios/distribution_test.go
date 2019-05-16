@@ -6,17 +6,22 @@ import (
 	"github.com/iov-one/weave"
 	bnsdApp "github.com/iov-one/weave/cmd/bnsd/app"
 	"github.com/iov-one/weave/cmd/bnsd/client"
+	"github.com/iov-one/weave/cmd/bnsd/scenarios/bnsdtest"
 	"github.com/iov-one/weave/coin"
+	"github.com/iov-one/weave/weavetest"
 	"github.com/iov-one/weave/x/distribution"
 )
 
 func TestRevenueDistribution(t *testing.T) {
+	env, cleanup := bnsdtest.StartBnsd(t)
+	defer cleanup()
+
 	admin := client.GenPrivateKey()
-	seedAccountWithTokens(admin.PublicKey().Address())
+	bnsdtest.SeedAccountWithTokens(t, env, admin.PublicKey().Address())
 
 	recipients := []weave.Address{
-		client.GenPrivateKey().PublicKey().Address(),
-		client.GenPrivateKey().PublicKey().Address(),
+		weavetest.NewKey().PublicKey().Address(),
+		weavetest.NewKey().PublicKey().Address(),
 	}
 	newRevenueTx := &bnsdApp.Tx{
 		Sum: &bnsdApp.Tx_NewRevenueMsg{
@@ -32,15 +37,15 @@ func TestRevenueDistribution(t *testing.T) {
 	}
 	newRevenueTx.Fee(admin.PublicKey().Address(), coin.NewCoin(2, 0, "IOV"))
 
-	adminNonce := client.NewNonce(bnsClient, admin.PublicKey().Address())
+	adminNonce := client.NewNonce(env.Client, admin.PublicKey().Address())
 	seq, err := adminNonce.Next()
 	if err != nil {
 		t.Fatalf("cannot acquire admin nonce sequence: %s", err)
 	}
-	if err := client.SignTx(newRevenueTx, admin, chainID, seq); err != nil {
+	if err := client.SignTx(newRevenueTx, admin, env.ChainID, seq); err != nil {
 		t.Fatalf("cannot sing revenue creation transaction: %s", err)
 	}
-	resp := bnsClient.BroadcastTx(newRevenueTx)
+	resp := env.Client.BroadcastTx(newRevenueTx)
 	if err := resp.IsError(); err != nil {
 		t.Fatalf("cannot broadcast new revenue transaction: %s", err)
 	}
@@ -53,34 +58,30 @@ func TestRevenueDistribution(t *testing.T) {
 	}
 	t.Logf("new revenue stream account: %s", revenueAddress)
 
-	delayForRateLimits()
-
 	// Now that we know what is the revenue stream account address we can
 	// send coins there for later distribution.
 	// Alice has plenty of money.
 	sendCoinsTx := client.BuildSendTx(
-		alice.PublicKey().Address(),
+		env.Alice.PublicKey().Address(),
 		revenueAddress,
 		coin.NewCoin(0, 7, "IOV"),
 		"an income that is to be split using revenue distribution")
-	sendCoinsTx.Fee(alice.PublicKey().Address(), antiSpamFee)
+	sendCoinsTx.Fee(env.Alice.PublicKey().Address(), env.AntiSpamFee)
 
-	aliceNonce := client.NewNonce(bnsClient, alice.PublicKey().Address())
+	aliceNonce := client.NewNonce(env.Client, env.Alice.PublicKey().Address())
 	seq, err = aliceNonce.Next()
 	if err != nil {
 		t.Fatalf("cannot acquire alice nonce sequence: %s", err)
 	}
-	if err := client.SignTx(sendCoinsTx, alice, chainID, seq); err != nil {
+	if err := client.SignTx(sendCoinsTx, env.Alice, env.ChainID, seq); err != nil {
 		t.Fatalf("alice cannot sign coin transfer transaction: %s", err)
 	}
-	resp = bnsClient.BroadcastTx(sendCoinsTx)
+	resp = env.Client.BroadcastTx(sendCoinsTx)
 	if err := resp.IsError(); err != nil {
 		t.Fatalf("cannot broadcast coin sending transaction from alice: %s", err)
 	}
 	t.Logf("alice transferred funds to revenue %s account: %s", revenueID, string(resp.Response.DeliverTx.GetData()))
-	assertWalletCoins(t, revenueAddress, 7)
-
-	delayForRateLimits()
+	assertWalletCoins(t, env, revenueAddress, 7)
 
 	// Revenue reset must distribute the funds before changing the
 	// configuration.
@@ -101,10 +102,10 @@ func TestRevenueDistribution(t *testing.T) {
 	if err != nil {
 		t.Fatalf("cannot acquire admin nonce sequence: %s", err)
 	}
-	if err := client.SignTx(resetRevenueTx, admin, chainID, seq); err != nil {
+	if err := client.SignTx(resetRevenueTx, admin, env.ChainID, seq); err != nil {
 		t.Fatalf("cannot sing revenue distribution transaction: %s", err)
 	}
-	if err := bnsClient.BroadcastTx(resetRevenueTx).IsError(); err != nil {
+	if err := env.Client.BroadcastTx(resetRevenueTx).IsError(); err != nil {
 		t.Fatalf("cannot broadcast revenue distribution transaction: %s", err)
 	}
 
@@ -112,31 +113,31 @@ func TestRevenueDistribution(t *testing.T) {
 	// requested. Funds should be split proportianally to their weights
 	// between the recepients and moved to their accounts.
 	// 7 IOV cents should be split between parties.
-	assertWalletCoins(t, revenueAddress, 1)
-	assertWalletCoins(t, recipients[0], 2)
-	assertWalletCoins(t, recipients[1], 4)
+	assertWalletCoins(t, env, revenueAddress, 1)
+	assertWalletCoins(t, env, recipients[0], 2)
+	assertWalletCoins(t, env, recipients[1], 4)
 
 	// Send more coins to the revenue account.
 	sendCoinsTx = client.BuildSendTx(
-		alice.PublicKey().Address(),
+		env.Alice.PublicKey().Address(),
 		revenueAddress,
 		coin.NewCoin(0, 11, "IOV"),
 		"an income that is to be split using revenue distribution (2)")
-	sendCoinsTx.Fee(alice.PublicKey().Address(), antiSpamFee)
+	sendCoinsTx.Fee(env.Alice.PublicKey().Address(), env.AntiSpamFee)
 
 	seq, err = aliceNonce.Next()
 	if err != nil {
 		t.Fatalf("cannot acquire alice nonce sequence: %s", err)
 	}
-	if err := client.SignTx(sendCoinsTx, alice, chainID, seq); err != nil {
+	if err := client.SignTx(sendCoinsTx, env.Alice, env.ChainID, seq); err != nil {
 		t.Fatalf("alice cannot sign coin transfer transaction: %s", err)
 	}
-	resp = bnsClient.BroadcastTx(sendCoinsTx)
+	resp = env.Client.BroadcastTx(sendCoinsTx)
 	if err := resp.IsError(); err != nil {
 		t.Fatalf("cannot broadcast coin sending transaction from alice: %s", err)
 	}
 	t.Logf("alice transferred funds to revenue %s account: %s", revenueID, string(resp.Response.DeliverTx.GetData()))
-	assertWalletCoins(t, revenueAddress, 12) // 11 + 1 leftover
+	assertWalletCoins(t, env, revenueAddress, 12) // 11 + 1 leftover
 
 	distributeTx := &bnsdApp.Tx{
 		Sum: &bnsdApp.Tx_DistributeMsg{
@@ -152,24 +153,22 @@ func TestRevenueDistribution(t *testing.T) {
 	if err != nil {
 		t.Fatalf("cannot acquire admin nonce sequence: %s", err)
 	}
-	if err := client.SignTx(distributeTx, admin, chainID, seq); err != nil {
+	if err := client.SignTx(distributeTx, admin, env.ChainID, seq); err != nil {
 		t.Fatalf("cannot sing revenue distribution transaction: %s", err)
 	}
-	if err := bnsClient.BroadcastTx(distributeTx).IsError(); err != nil {
+	if err := env.Client.BroadcastTx(distributeTx).IsError(); err != nil {
 		t.Fatalf("cannot broadcast revenue distribution transaction: %s", err)
 	}
 
-	delayForRateLimits()
-
-	assertWalletCoins(t, revenueAddress, 0)
-	assertWalletCoins(t, recipients[0], 14)
-	assertWalletCoins(t, recipients[1], 4)
+	assertWalletCoins(t, env, revenueAddress, 0)
+	assertWalletCoins(t, env, recipients[0], 14)
+	assertWalletCoins(t, env, recipients[1], 4)
 }
 
-func assertWalletCoins(t *testing.T, account weave.Address, wantIOVCents int64) {
+func assertWalletCoins(t *testing.T, env *bnsdtest.EnvConf, account weave.Address, wantIOVCents int64) {
 	t.Helper()
 
-	w, err := bnsClient.GetWallet(account)
+	w, err := env.Client.GetWallet(account)
 	if err != nil {
 		t.Fatalf("cannot get first recipients wallet: %s", err)
 	}
