@@ -30,38 +30,14 @@ func RegisterQuery(qr weave.QueryRouter) {
 }
 
 // RegisterRoutes registers handlers for governance message processing.
-func RegisterRoutes(r weave.Registry, auth x.Authenticator) {
-	propBucket := NewProposalBucket()
-	elecBucket := NewElectorateBucket()
-
+func RegisterRoutes(r weave.Registry, auth x.Authenticator, loader OptionLoader, executor Executor) {
 	r = migration.SchemaMigratingRegistry(packageName, r)
-	r.Handle(pathVoteMsg, &VoteHandler{
-		auth:       auth,
-		propBucket: propBucket,
-		elecBucket: elecBucket,
-		voteBucket: NewVoteBucket(),
-	})
-	r.Handle(pathTallyMsg, NewTallyHandler(auth, propBucket, elecBucket))
-	r.Handle(pathCreateProposalMsg, &CreateProposalHandler{
-		auth:        auth,
-		propBucket:  propBucket,
-		elecBucket:  elecBucket,
-		rulesBucket: NewElectionRulesBucket(),
-	})
-	r.Handle(pathDeleteProposalMsg, &DeleteProposalHandler{
-		auth:       auth,
-		propBucket: propBucket,
-	})
-	r.Handle(pathUpdateElectorateMsg, &UpdateElectorateHandler{
-		auth:       auth,
-		propBucket: propBucket,
-		elecBucket: elecBucket,
-	})
-	r.Handle(pathUpdateElectionRulesMsg, &UpdateElectionRuleHandler{
-		auth:       auth,
-		propBucket: propBucket,
-		ruleBucket: NewElectionRulesBucket(),
-	})
+	r.Handle(pathVoteMsg, NewVoteHandler(auth))
+	r.Handle(pathTallyMsg, NewTallyHandler(auth, loader, executor))
+	r.Handle(pathCreateProposalMsg, NewCreateProposalHandler(auth, loader))
+	r.Handle(pathDeleteProposalMsg, NewDeleteProposalHandler(auth))
+	r.Handle(pathUpdateElectorateMsg, NewUpdateElectorateHandler(auth))
+	r.Handle(pathUpdateElectionRulesMsg, NewUpdateElectionRuleHandler(auth))
 }
 
 type VoteHandler struct {
@@ -69,6 +45,15 @@ type VoteHandler struct {
 	elecBucket *ElectorateBucket
 	propBucket *ProposalBucket
 	voteBucket *VoteBucket
+}
+
+func NewVoteHandler(auth x.Authenticator) *VoteHandler {
+	return &VoteHandler{
+		auth:       auth,
+		elecBucket: NewElectorateBucket(),
+		propBucket: NewProposalBucket(),
+		voteBucket: NewVoteBucket(),
+	}
 }
 
 func (h VoteHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
@@ -173,12 +158,13 @@ type TallyHandler struct {
 	executor   Executor
 }
 
-func NewTallyHandler(auth x.Authenticator, bucket *ProposalBucket, electBucket *ElectorateBucket) *TallyHandler {
+func NewTallyHandler(auth x.Authenticator, loader OptionLoader, executor Executor) *TallyHandler {
 	return &TallyHandler{
 		auth:       auth,
-		propBucket: bucket,
-		elecBucket: electBucket,
-		// TODO: loader and executor
+		propBucket: NewProposalBucket(),
+		elecBucket: NewElectorateBucket(),
+		loader:     loader,
+		executor:   executor,
 	}
 }
 
@@ -204,17 +190,25 @@ func (h TallyHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) 
 		return nil, err
 	}
 
-	if common.Result == ProposalCommon_Accepted {
-		// TODO: rewrite this logic based on demo
-		// exec, ok := h.typeHandler[proposal.Type]
-		// if !ok {
-		// 	return nil, errors.Wrapf(errors.ErrState, "unsupported type: %s", proposal.Type)
-		// }
-		// if err := exec(db, proposal); err != nil {
-		// 	return nil, errors.Wrapf(err, "execution failed for type: %v", proposal.Type)
-		// }
+	if err := h.propBucket.Update(db, msg.ProposalID, proposal); err != nil {
+		return nil, err
 	}
-	return &weave.DeliverResult{}, h.propBucket.Update(db, msg.ProposalID, proposal)
+
+	if common.Result != ProposalCommon_Accepted {
+		return &weave.DeliverResult{}, nil
+	}
+
+	opts, err := h.loader(proposal.RawOption)
+	if err != nil {
+		return nil, errors.Wrap(errors.ErrState, "cannot parse raw options")
+	}
+	if err := opts.Validate(); err != nil {
+		return nil, errors.Wrap(err, "options invalid")
+	}
+
+	// TODO: what do we use for ctx here???
+	// we need to add the election rules somehow
+	return h.executor(ctx, db, opts)
 }
 
 func (h TallyHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*TallyMsg, *Proposal, error) {
@@ -243,46 +237,22 @@ func (h TallyHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx)
 	return &msg, proposal, nil
 }
 
-// TODO: this needs to be redone
-// // updateElectorateExecutor contains logic to update an electorate.
-// func updateElectorateExecutor(elecBucket *ElectorateBucket) TallyResultExecutor {
-// 	return func(db weave.KVStore, proposal *Proposal) error {
-// 		common := proposal.Common
-// 		if common == nil {
-// 			return errors.Wrap(errors.ErrState, "missing base proposal information")
-// 		}
-
-// 		details := common.GetElectorateUpdateDetails()
-// 		if details == nil {
-// 			return errors.Wrap(errors.ErrHuman, "details not set")
-// 		}
-// 		// merge diff
-// 		_, obj, err := elecBucket.GetLatestVersion(db, proposal.ElectorateRef.ID)
-// 		if err != nil {
-// 			return errors.Wrap(err, "failed to load electorate")
-// 		}
-// 		elect, err := asElectorate(obj)
-// 		if err != nil {
-// 			return err
-// 		}
-// 		merger := newMerger(elect.Electors)
-// 		if err := merger.merge(details.DiffElectors); err != nil {
-// 			return errors.Wrap(err, "merge failed")
-// 		}
-// 		elect.Electors, elect.TotalElectorateWeight = merger.serialize()
-// 		if _, err := elecBucket.Update(db, proposal.ElectorateRef.ID, elect); err != nil {
-// 			return errors.Wrap(err, "failed to store electorate update")
-// 		}
-// 		return nil
-// 	}
-// }
-
 type CreateProposalHandler struct {
 	auth        x.Authenticator
+	loader      OptionLoader
 	elecBucket  *ElectorateBucket
 	propBucket  *ProposalBucket
 	rulesBucket *ElectionRulesBucket
-	loader      OptionLoader
+}
+
+func NewCreateProposalHandler(auth x.Authenticator, loader OptionLoader) *CreateProposalHandler {
+	return &CreateProposalHandler{
+		auth:        auth,
+		loader:      loader,
+		elecBucket:  NewElectorateBucket(),
+		propBucket:  NewProposalBucket(),
+		rulesBucket: NewElectionRulesBucket(),
+	}
 }
 
 func (h CreateProposalHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
@@ -380,7 +350,14 @@ func (h CreateProposalHandler) validate(ctx weave.Context, db weave.KVStore, tx 
 	}
 	base.Author = author
 
-	// TODO: validate RawOptions using OptionsLoader
+	opts, err := h.loader(msg.RawOption)
+	if err != nil {
+		return nil, nil, nil, errors.Wrap(errors.ErrInput, "cannot parse raw options")
+	}
+	if err := opts.Validate(); err != nil {
+		return nil, nil, nil, errors.Wrap(err, "options invalid")
+	}
+
 	return &msg, rule, elect, nil
 }
 
@@ -487,6 +464,13 @@ type DeleteProposalHandler struct {
 	propBucket *ProposalBucket
 }
 
+func NewDeleteProposalHandler(auth x.Authenticator) *DeleteProposalHandler {
+	return &DeleteProposalHandler{
+		auth:       auth,
+		propBucket: NewProposalBucket(),
+	}
+}
+
 func (h DeleteProposalHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*DeleteProposalMsg, *Proposal, error) {
 	var msg DeleteProposalMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
@@ -545,6 +529,14 @@ type UpdateElectorateHandler struct {
 	elecBucket *ElectorateBucket
 }
 
+func NewUpdateElectorateHandler(auth x.Authenticator) *UpdateElectorateHandler {
+	return &UpdateElectorateHandler{
+		auth:       auth,
+		propBucket: NewProposalBucket(),
+		elecBucket: NewElectorateBucket(),
+	}
+}
+
 func (h UpdateElectorateHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
 	_, _, err := h.validate(ctx, db, tx)
 	if err != nil {
@@ -597,6 +589,14 @@ type UpdateElectionRuleHandler struct {
 	auth       x.Authenticator
 	propBucket *ProposalBucket
 	ruleBucket *ElectionRulesBucket
+}
+
+func NewUpdateElectionRuleHandler(auth x.Authenticator) *UpdateElectionRuleHandler {
+	return &UpdateElectionRuleHandler{
+		auth:       auth,
+		propBucket: NewProposalBucket(),
+		ruleBucket: NewElectionRulesBucket(),
+	}
 }
 
 func (h UpdateElectionRuleHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {

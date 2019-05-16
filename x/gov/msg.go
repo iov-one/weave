@@ -43,6 +43,7 @@ func (m *CreateProposalBase) Validate() error {
 	}
 
 	// TODO: is this only for text proposal?
+	// need to rethink this rules/electorate split
 	if len(m.ElectionRuleID) == 0 {
 		return errors.Wrap(errors.ErrInput, "empty election rules id")
 	}

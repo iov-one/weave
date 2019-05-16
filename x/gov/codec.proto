@@ -87,9 +87,6 @@ message ElectorateUpdatePayload {
 // ProposalCommon contains all the generic fields for the lifetime of the proposal,
 // separate from the actual details of what is being voted on
 message ProposalCommon {
-  // TODO: reflect if we want Metadata, as this is designed to be embedded in a model with Metadata anyway
-  //   weave.Metadata metadata = 1;
-
   // Human readable title.
   string title = 2;
   // Description of the proposal in text form.
@@ -196,9 +193,6 @@ message CreateProposalMsg {
   CreateProposalBase base = 2;
   bytes raw_option = 3;
 }
-
-// TODO: for update electorate proposal
-// repeated Elector diff_electors = 7 [(gogoproto.nullable) = false];
 
 // DeleteProposalMsg deletes a governance proposal.
 message DeleteProposalMsg {
