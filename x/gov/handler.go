@@ -90,12 +90,12 @@ func (h VoteHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (
 	case err != nil:
 		return nil, errors.Wrap(err, "failed to load vote")
 	default:
-		if err := proposal.UndoCountVote(*oldVote); err != nil {
+		if err := proposal.Common.UndoCountVote(*oldVote); err != nil {
 			return nil, err
 		}
 	}
 
-	if err := proposal.CountVote(*vote); err != nil {
+	if err := proposal.Common.CountVote(*vote); err != nil {
 		return nil, err
 	}
 	if err = h.voteBucket.Save(db, h.voteBucket.Build(db, voteMsg.ProposalID, *vote)); err != nil {
@@ -195,12 +195,13 @@ func (h TallyHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) 
 	if err != nil {
 		return nil, err
 	}
-	if err := proposal.Tally(); err != nil {
-		return nil, err
-	}
 	common := proposal.Common
 	if common == nil {
 		return nil, errors.Wrap(errors.ErrState, "missing base proposal information")
+	}
+
+	if err := common.Tally(); err != nil {
+		return nil, err
 	}
 
 	if common.Result == ProposalCommon_Accepted {

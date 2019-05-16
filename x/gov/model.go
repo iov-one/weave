@@ -163,24 +163,42 @@ func (m *Proposal) Validate() error {
 	if err := m.Metadata.Validate(); err != nil {
 		return errors.Wrap(err, "invalid metadata")
 	}
+	if len(m.RawOption) == 0 {
+		return errors.Wrap(errors.ErrState, "missing raw options")
+	}
+	return m.Common.Validate()
+}
 
+func (m Proposal) Copy() orm.CloneableData {
+	optionCopy := append([]byte{}, m.RawOption...)
+	return &Proposal{
+		Metadata:  m.Metadata.Copy(),
+		Common:    m.Common.Copy().(*ProposalCommon),
+		RawOption: optionCopy,
+	}
+}
+
+func (m *ProposalCommon) Validate() error {
+	if m == nil {
+		return errors.Wrap(errors.ErrState, "proposal common data missing")
+	}
 	switch {
-	case m.Result == Proposal_Empty:
-		return errors.Wrap(errors.ErrInput, "invalid result value")
-	case m.Status == Proposal_Invalid:
-		return errors.Wrap(errors.ErrInput, "invalid status")
+	case m.Result == ProposalCommon_Empty:
+		return errors.Wrap(errors.ErrState, "invalid result value")
+	case m.Status == ProposalCommon_Invalid:
+		return errors.Wrap(errors.ErrState, "invalid status")
 	case m.VotingStartTime >= m.VotingEndTime:
-		return errors.Wrap(errors.ErrInput, "start time must be before end time")
+		return errors.Wrap(errors.ErrState, "start time must be before end time")
 	case m.VotingStartTime <= m.SubmissionTime:
-		return errors.Wrap(errors.ErrInput, "start time must be after submission time")
+		return errors.Wrap(errors.ErrState, "start time must be after submission time")
 	case len(m.Author) == 0:
-		return errors.Wrap(errors.ErrInput, "author required")
+		return errors.Wrap(errors.ErrState, "author required")
 	case len(m.Description) < minDescriptionLength:
-		return errors.Wrapf(errors.ErrInput, "description length lower than minimum of: %d", minDescriptionLength)
+		return errors.Wrapf(errors.ErrState, "description length lower than minimum of: %d", minDescriptionLength)
 	case len(m.Description) > maxDescriptionLength:
-		return errors.Wrapf(errors.ErrInput, "description length exceeds: %d", maxDescriptionLength)
+		return errors.Wrapf(errors.ErrState, "description length exceeds: %d", maxDescriptionLength)
 	case !validTitle(m.Title):
-		return errors.Wrapf(errors.ErrInput, "title: %q", m.Title)
+		return errors.Wrapf(errors.ErrState, "title: %q", m.Title)
 	}
 	if err := m.ElectionRuleRef.Validate(); err != nil {
 		return errors.Wrap(err, "election rule reference")
@@ -189,21 +207,11 @@ func (m *Proposal) Validate() error {
 	if err := m.ElectorateRef.Validate(); err != nil {
 		return errors.Wrap(err, "electorate reference")
 	}
-	// validate details
-	switch m.Type {
-	case Proposal_Text:
-	case Proposal_UpdateElectorate:
-		if err := m.GetElectorateUpdateDetails().Validate(); err != nil {
-			return err
-		}
-	default:
-		return errors.Wrapf(errors.ErrState, "unsupported type: %v", m.Type)
-	}
 	return m.VoteState.Validate()
 }
 
-func (m Proposal) Copy() orm.CloneableData {
-	return &Proposal{
+func (m ProposalCommon) Copy() orm.CloneableData {
+	return &ProposalCommon{
 		Title:           m.Title,
 		Description:     m.Description,
 		ElectionRuleRef: orm.VersionedIDRef{ID: m.ElectionRuleRef.ID, Version: m.ElectionRuleRef.Version},
@@ -219,7 +227,7 @@ func (m Proposal) Copy() orm.CloneableData {
 }
 
 // CountVote updates the intermediate tally result by adding the new vote weight.
-func (m *Proposal) CountVote(vote Vote) error {
+func (m *ProposalCommon) CountVote(vote Vote) error {
 	oldTotal := m.VoteState.TotalVotes()
 	switch vote.Voted {
 	case VoteOption_Yes:
@@ -238,7 +246,7 @@ func (m *Proposal) CountVote(vote Vote) error {
 }
 
 // UndoCountVote updates the intermediate tally result by subtracting the given vote weight.
-func (m *Proposal) UndoCountVote(vote Vote) error {
+func (m *ProposalCommon) UndoCountVote(vote Vote) error {
 	oldTotal := m.VoteState.TotalVotes()
 	switch vote.Voted {
 	case VoteOption_Yes:
@@ -258,19 +266,19 @@ func (m *Proposal) UndoCountVote(vote Vote) error {
 
 // Tally calls the final calculation on the votes and sets the status of the proposal according to the
 // election rules threshold.
-func (m *Proposal) Tally() error {
-	if m.Result != Proposal_Undefined {
+func (m *ProposalCommon) Tally() error {
+	if m.Result != ProposalCommon_Undefined {
 		return errors.Wrapf(errors.ErrState, "result exists: %q", m.Result.String())
 	}
-	if m.Status != Proposal_Submitted {
+	if m.Status != ProposalCommon_Submitted {
 		return errors.Wrapf(errors.ErrState, "unexpected status: %q", m.Status.String())
 	}
 	if m.VoteState.Accepted() {
-		m.Result = Proposal_Accepted
+		m.Result = ProposalCommon_Accepted
 	} else {
-		m.Result = Proposal_Rejected
+		m.Result = ProposalCommon_Rejected
 	}
-	m.Status = Proposal_Closed
+	m.Status = ProposalCommon_Closed
 	return nil
 }
 

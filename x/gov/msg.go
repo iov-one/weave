@@ -24,12 +24,22 @@ func init() {
 }
 
 func (CreateProposalMsg) Path() string {
-	return pathCreateTextProposalMsg
+	return pathCreateProposalMsg
 }
 
 func (m CreateProposalMsg) Validate() error {
 	if err := m.GetMetadata().Validate(); err != nil {
 		return errors.Wrap(err, "invalid metadata")
+	}
+	if len(m.RawOption) == 0 {
+		return errors.Wrap(errors.ErrState, "missing raw options")
+	}
+	return m.Base.Validate()
+}
+
+func (m *CreateProposalBase) Validate() error {
+	if m == nil {
+		return errors.Wrap(errors.ErrInput, "missing base proposal msg info")
 	}
 
 	// TODO: is this only for text proposal?
@@ -62,7 +72,7 @@ func (m CreateProposalMsg) Validate() error {
 }
 
 func (DeleteProposalMsg) Path() string {
-	return pathDeleteTextProposalMsg
+	return pathDeleteProposalMsg
 }
 
 func (m DeleteProposalMsg) Validate() error {
