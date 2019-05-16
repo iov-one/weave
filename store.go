@@ -172,12 +172,11 @@ type CommitKVStore interface {
 	// LatestVersion returns info on the latest version saved to disk
 	LatestVersion() (CommitID, error)
 
-	// ?????
 	// LoadVersion loads a specific persisted version.  When you load an old version, or
 	// when the last commit attempt didn't complete, the next commit after
 	// loading must be idempotent (return the same commit id).  Otherwise the
 	// behavior is undefined.
-	// LoadVersion(ver int64) error
+	LoadVersion(ver int64) error
 }
 
 // CommitID contains the tree version number and its merkle root.

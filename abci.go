@@ -1,6 +1,8 @@
 package weave
 
 import (
+	"fmt"
+
 	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/errors"
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -62,7 +64,7 @@ func (d DeliverResult) ToABCI() abci.ResponseDeliverTx {
 // ParseDeliverOrError is the inverse of DeliverOrError
 // It will parse back the abci response to return our internal format, or return an error on failed tx
 func ParseDeliverOrError(res abci.ResponseDeliverTx) (*DeliverResult, error) {
-	if res.Code != 0 {
+	if res.Code != errors.SuccessABCICode {
 		err := errors.ABCIError(res.Code, res.Log)
 		return nil, err
 	}
@@ -120,8 +122,8 @@ type TickResult struct {
 func DeliverTxError(err error, debug bool) abci.ResponseDeliverTx {
 	err = errors.Redact(err, debug)
 	code, log := errors.ABCIInfo(err, debug)
-	if code != 0 {
-		log = "cannot deliver tx: " + log
+	if code != errors.SuccessABCICode {
+		log = fmt.Sprintf("cannot deliver tx: %s", log)
 	}
 	return abci.ResponseDeliverTx{
 		Code: code,
@@ -135,8 +137,8 @@ func DeliverTxError(err error, debug bool) abci.ResponseDeliverTx {
 func CheckTxError(err error, debug bool) abci.ResponseCheckTx {
 	err = errors.Redact(err, debug)
 	code, log := errors.ABCIInfo(err, debug)
-	if code != 0 {
-		log = "cannot check tx: " + log
+	if code != errors.SuccessABCICode {
+		log = fmt.Sprintf("cannot check tx: %s", log)
 	}
 	return abci.ResponseCheckTx{
 		Code: code,
