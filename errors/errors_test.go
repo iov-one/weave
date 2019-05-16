@@ -26,13 +26,17 @@ func TestMultiErr(t *testing.T) {
 		},
 		"Named error override": func(t *testing.T) {
 			name := "Test"
-			err := MultiAddNamed(name, ErrEmpty)
-			err.AddNamed(name, ErrState)
+			err := MultiAddNamed(name, ErrEmpty).AddNamed(name, ErrState)
 			assert.Equal(t, err.Named(name), ErrState)
 		},
 		"ABCICode is consistent with that of a normal error": func(t *testing.T) {
 			err := MultiAdd(ErrEmpty)
 			assert.Equal(t, err.(coder).ABCICode(), ErrEmpty.ABCICode())
+		},
+		"Tests wraps work properly": func(t *testing.T) {
+			multiErr := MultiAdd(ErrEmpty)
+			err := Wrap(Wrap(MultiAdd(Wrap(multiErr, "descr")), "descr"), "descr")
+			assert.Equal(t, ErrEmpty.Is(err), true)
 		},
 		"Error() works as expected": func(t *testing.T) {
 			err := MultiAdd()

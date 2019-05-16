@@ -155,6 +155,15 @@ func (e Error) ABCICode() uint32 {
 // Is check if given error instance is of a given kind/type. This involves
 // unwrapping given error using the Cause method if available.
 func (kind *Error) Is(err error) bool {
+	// multiIs checks if the error is a multiErr
+	// and returns it's check result if so.
+	multiIs := func(err error) (bool, bool) {
+		mErr, ok := err.(*multiErr)
+		if ok {
+			return mErr.is(kind.Is), ok
+		}
+		return false, ok
+	}
 	// Reflect usage is necessary to correctly compare with
 	// a nil implementation of an error.
 	if kind == nil {
@@ -166,8 +175,8 @@ func (kind *Error) Is(err error) bool {
 
 	// For multiErr, "Is" is used recursively, so there is no need
 	// to proceed with causer logic after this block.
-	if mErr, ok := err.(*multiErr); ok {
-		return mErr.is(kind.Is)
+	if res, ok := multiIs(err); ok {
+		return res
 	}
 
 	for {
@@ -177,6 +186,11 @@ func (kind *Error) Is(err error) bool {
 
 		if c, ok := err.(causer); ok {
 			err = c.Cause()
+			// As multiIs is used recursively there is no need to continue
+			// this loop.
+			if res, ok := multiIs(err); ok {
+				return res
+			}
 		} else {
 			return false
 		}
