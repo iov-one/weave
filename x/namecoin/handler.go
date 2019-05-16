@@ -44,10 +44,11 @@ func NewSetNameHandler(auth x.Authenticator, bucket NamedBucket) weave.Handler {
 // RegisterRoutes will instantiate and register
 // all handlers in this package.
 func RegisterRoutes(r weave.Registry, auth x.Authenticator, issuer weave.Address) {
+	r = migration.SchemaMigratingRegistry("namecoin", r)
 	pathSend := cash.SendMsg{}.Path()
-	r.Handle(pathSend, migration.SchemaMigratingHandler("namecoin", NewSendHandler(auth)))
-	r.Handle(pathNewTokenMsg, migration.SchemaMigratingHandler("namecoin", NewTokenHandler(auth, issuer)))
-	r.Handle(pathSetNameMsg, migration.SchemaMigratingHandler("namecoin", NewSetNameHandler(auth, NewWalletBucket())))
+	r.Handle(pathSend, NewSendHandler(auth))
+	r.Handle(pathNewTokenMsg, NewTokenHandler(auth, issuer))
+	r.Handle(pathSetNameMsg, NewSetNameHandler(auth, NewWalletBucket()))
 }
 
 // RegisterQuery will register wallets as "/wallets"

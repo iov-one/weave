@@ -33,40 +33,41 @@ func RegisterQuery(qr weave.QueryRouter) {
 func RegisterRoutes(r weave.Registry, auth x.Authenticator) {
 	propBucket := NewProposalBucket()
 	elecBucket := NewElectorateBucket()
-	r.Handle(pathVoteMsg, migration.SchemaMigratingHandler(packageName, &VoteHandler{
+
+	r = migration.SchemaMigratingRegistry(packageName, r)
+	r.Handle(pathVoteMsg, &VoteHandler{
 		auth:       auth,
 		propBucket: propBucket,
 		elecBucket: elecBucket,
 		voteBucket: NewVoteBucket(),
-	}))
-	r.Handle(pathTallyMsg, migration.SchemaMigratingHandler(packageName,
-		NewTallyHandler(auth, propBucket, elecBucket)))
-	r.Handle(pathCreateTextProposalMsg, migration.SchemaMigratingHandler(packageName, &TextProposalHandler{
+	})
+	r.Handle(pathTallyMsg, NewTallyHandler(auth, propBucket, elecBucket))
+	r.Handle(pathCreateTextProposalMsg, &TextProposalHandler{
 		auth:        auth,
 		propBucket:  propBucket,
 		elecBucket:  elecBucket,
 		rulesBucket: NewElectionRulesBucket(),
-	}))
+	})
 	r.Handle(pathCreateElectorateUpdateProposalMsg, &ElectorateUpdateProposalHandler{
 		auth:        auth,
 		propBucket:  propBucket,
 		elecBucket:  elecBucket,
 		rulesBucket: NewElectionRulesBucket(),
 	})
-	r.Handle(pathDeleteTextProposalMsg, migration.SchemaMigratingHandler(packageName, &DeleteTextProposalHandler{
+	r.Handle(pathDeleteTextProposalMsg, &DeleteTextProposalHandler{
 		auth:       auth,
 		propBucket: propBucket,
-	}))
-	r.Handle(pathUpdateElectorateMsg, migration.SchemaMigratingHandler(packageName, &UpdateElectorateHandler{
+	})
+	r.Handle(pathUpdateElectorateMsg, &UpdateElectorateHandler{
 		auth:       auth,
 		propBucket: propBucket,
 		elecBucket: elecBucket,
-	}))
-	r.Handle(pathUpdateElectionRulesMsg, migration.SchemaMigratingHandler(packageName, &UpdateElectionRuleHandler{
+	})
+	r.Handle(pathUpdateElectionRulesMsg, &UpdateElectionRuleHandler{
 		auth:       auth,
 		propBucket: propBucket,
 		ruleBucket: NewElectionRulesBucket(),
-	}))
+	})
 }
 
 type VoteHandler struct {

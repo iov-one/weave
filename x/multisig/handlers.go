@@ -11,9 +11,10 @@ import (
 // RegisterRoutes will instantiate and register
 // all handlers in this package
 func RegisterRoutes(r weave.Registry, auth x.Authenticator) {
+	r = migration.SchemaMigratingRegistry("multisig", r)
 	bucket := NewContractBucket()
-	r.Handle(pathCreateContractMsg, migration.SchemaMigratingHandler("multisig", CreateContractMsgHandler{auth, bucket}))
-	r.Handle(pathUpdateContractMsg, migration.SchemaMigratingHandler("multisig", UpdateContractMsgHandler{auth, bucket}))
+	r.Handle(pathCreateContractMsg, CreateContractMsgHandler{auth, bucket})
+	r.Handle(pathUpdateContractMsg, UpdateContractMsgHandler{auth, bucket})
 }
 
 // RegisterQuery register queries from buckets in this package
