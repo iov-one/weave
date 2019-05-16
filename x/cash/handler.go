@@ -11,10 +11,10 @@ import (
 // RegisterRoutes will instantiate and register
 // all handlers in this package
 func RegisterRoutes(r weave.Registry, auth x.Authenticator, control Controller) {
-	r.Handle(pathSendMsg, migration.SchemaMigratingHandler("cash",
-		NewSendHandler(auth, control)))
-	r.Handle(pathConfigurationUpdateMsg, migration.SchemaMigratingHandler("cash",
-		NewConfigHandler(auth)))
+	r = migration.SchemaMigratingRegistry("cash", r)
+
+	r.Handle(pathSendMsg, NewSendHandler(auth, control))
+	r.Handle(pathConfigurationUpdateMsg, NewConfigHandler(auth))
 }
 
 // RegisterQuery will register this bucket as "/wallets"

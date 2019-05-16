@@ -25,11 +25,12 @@ const (
 // RegisterRoutes will instantiate and register
 // all handlers in this package
 func RegisterRoutes(r weave.Registry, auth x.Authenticator, cashctrl cash.Controller) {
+	r = migration.SchemaMigratingRegistry("aswap", r)
 	bucket := NewBucket()
 
-	r.Handle(pathCreateSwap, migration.SchemaMigratingHandler("aswap", CreateSwapHandler{auth, bucket, cashctrl}))
-	r.Handle(pathReleaseSwap, migration.SchemaMigratingHandler("aswap", ReleaseSwapHandler{auth, bucket, cashctrl}))
-	r.Handle(pathReturnReturn, migration.SchemaMigratingHandler("aswap", ReturnSwapHandler{auth, bucket, cashctrl}))
+	r.Handle(pathCreateSwap, CreateSwapHandler{auth, bucket, cashctrl})
+	r.Handle(pathReleaseSwap, ReleaseSwapHandler{auth, bucket, cashctrl})
+	r.Handle(pathReturnReturn, ReturnSwapHandler{auth, bucket, cashctrl})
 }
 
 // RegisterQuery will register this bucket as "/aswaps"

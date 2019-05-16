@@ -21,12 +21,13 @@ const (
 // RegisterRoutes will instantiate and register
 // all handlers in this package
 func RegisterRoutes(r weave.Registry, auth x.Authenticator, cashctrl cash.Controller) {
+	r = migration.SchemaMigratingRegistry("escrow", r)
 	bucket := NewBucket()
 
-	r.Handle(pathCreateEscrowMsg, migration.SchemaMigratingHandler("escrow", CreateEscrowHandler{auth, bucket, cashctrl}))
-	r.Handle(pathReleaseEscrowMsg, migration.SchemaMigratingHandler("escrow", ReleaseEscrowHandler{auth, bucket, cashctrl}))
-	r.Handle(pathReturnEscrowMsg, migration.SchemaMigratingHandler("escrow", ReturnEscrowHandler{auth, bucket, cashctrl}))
-	r.Handle(pathUpdateEscrowPartiesMsg, migration.SchemaMigratingHandler("escrow", UpdateEscrowHandler{auth, bucket}))
+	r.Handle(pathCreateEscrowMsg, CreateEscrowHandler{auth, bucket, cashctrl})
+	r.Handle(pathReleaseEscrowMsg, ReleaseEscrowHandler{auth, bucket, cashctrl})
+	r.Handle(pathReturnEscrowMsg, ReturnEscrowHandler{auth, bucket, cashctrl})
+	r.Handle(pathUpdateEscrowPartiesMsg, UpdateEscrowHandler{auth, bucket})
 }
 
 // RegisterQuery will register this bucket as "/escrows"

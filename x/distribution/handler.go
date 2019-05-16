@@ -30,25 +30,23 @@ type CashController interface {
 
 // RegisterRoutes registers handlers for feedlist message processing.
 func RegisterRoutes(r weave.Registry, auth x.Authenticator, ctrl CashController) {
+	r = migration.SchemaMigratingRegistry("distribution", r)
 	bucket := NewRevenueBucket()
-	r.Handle(pathNewRevenueMsg, migration.SchemaMigratingHandler("distribution",
-		&newRevenueHandler{
-			auth:   auth,
-			bucket: bucket,
-			ctrl:   ctrl,
-		}))
-	r.Handle(pathDistributeMsg, migration.SchemaMigratingHandler("distribution",
-		&distributeHandler{
-			auth:   auth,
-			bucket: bucket,
-			ctrl:   ctrl,
-		}))
-	r.Handle(pathResetRevenueMsg, migration.SchemaMigratingHandler("distribution",
-		&resetRevenueHandler{
-			auth:   auth,
-			bucket: bucket,
-			ctrl:   ctrl,
-		}))
+	r.Handle(pathNewRevenueMsg, &newRevenueHandler{
+		auth:   auth,
+		bucket: bucket,
+		ctrl:   ctrl,
+	})
+	r.Handle(pathDistributeMsg, &distributeHandler{
+		auth:   auth,
+		bucket: bucket,
+		ctrl:   ctrl,
+	})
+	r.Handle(pathResetRevenueMsg, &resetRevenueHandler{
+		auth:   auth,
+		bucket: bucket,
+		ctrl:   ctrl,
+	})
 }
 
 type newRevenueHandler struct {

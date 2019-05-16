@@ -22,13 +22,15 @@ func RegisterQuery(qr weave.QueryRouter) {
 
 // RegisterRouters registers payment channel message handelers in given registry.
 func RegisterRoutes(r weave.Registry, auth x.Authenticator, cash cash.Controller) {
+	r = migration.SchemaMigratingRegistry("paychan", r)
+
 	bucket := NewPaymentChannelBucket()
-	r.Handle(pathCreatePaymentChannelMsg, migration.SchemaMigratingHandler(
-		"paychan", &createPaymentChannelHandler{auth: auth, bucket: bucket, cash: cash}))
-	r.Handle(pathTransferPaymentChannelMsg, migration.SchemaMigratingHandler(
-		"paychan", &transferPaymentChannelHandler{auth: auth, bucket: bucket, cash: cash}))
-	r.Handle(pathClosePaymentChannelMsg, migration.SchemaMigratingHandler(
-		"paychan", &closePaymentChannelHandler{auth: auth, bucket: bucket, cash: cash}))
+	r.Handle(pathCreatePaymentChannelMsg,
+		&createPaymentChannelHandler{auth: auth, bucket: bucket, cash: cash})
+	r.Handle(pathTransferPaymentChannelMsg,
+		&transferPaymentChannelHandler{auth: auth, bucket: bucket, cash: cash})
+	r.Handle(pathClosePaymentChannelMsg,
+		&closePaymentChannelHandler{auth: auth, bucket: bucket, cash: cash})
 }
 
 type createPaymentChannelHandler struct {

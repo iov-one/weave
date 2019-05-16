@@ -6,6 +6,29 @@ import (
 	"github.com/iov-one/weave/x"
 )
 
+// SchemaMigratingRegistry decorates given registry to always migrate schema of
+// an incoming message, before passing it down to a registered handler.
+// Decorating a registry with this function is equivalent to using a raw
+// registry and wrapping each handler with SchemaMigratingHandler before
+// registering.
+// This function force all registration to use schema migraration and must not
+// be used together with SchemaRoutingHandler functionality.
+func SchemaMigratingRegistry(packageName string, r weave.Registry) weave.Registry {
+	return &schemaMigratingRegistry{
+		packageName: packageName,
+		reg:         r,
+	}
+}
+
+type schemaMigratingRegistry struct {
+	packageName string
+	reg         weave.Registry
+}
+
+func (r *schemaMigratingRegistry) Handle(path string, h weave.Handler) {
+	r.reg.Handle(path, SchemaMigratingHandler(r.packageName, h))
+}
+
 // SchemaMigratingHandler returns a weave handler that will ensure incomming
 // messages are in the curren schema version format. If a message in older
 // schema is handled then it is first being migrated. Messages that cannot be
