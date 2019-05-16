@@ -206,9 +206,10 @@ func (h TallyHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) 
 		return nil, errors.Wrap(err, "options invalid")
 	}
 
-	// TODO: what do we use for ctx here???
-	// we need to add the election rules somehow
-	return h.executor(ctx, db, opts)
+	// we add the vote ctx here, to authenticate results in the executor
+	// ensure that the gov.Authenticator is used in those Handlers
+	voteCtx := withElectionSuccess(ctx, common.ElectionRuleRef.ID)
+	return h.executor(voteCtx, db, opts)
 }
 
 func (h TallyHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*TallyMsg, *Proposal, error) {
