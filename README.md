@@ -1,4 +1,4 @@
-# Iov Weave
+# IOV Weave
 [![Build Status TravisCI](https://api.travis-ci.com/iov-one/weave.svg?branch=master)](https://travis-ci.com/iov-one/weave)
 [![codecov](https://codecov.io/gh/iov-one/weave/branch/master/graph/badge.svg)](https://codecov.io/gh/iov-one/weave/branch/master)
 [![LoC](https://tokei.rs/b1/github/iov-one/weave)](https://github.com/iov-one/weave)
