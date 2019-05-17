@@ -29,6 +29,7 @@ var QueryNewBlockHeader = tmtypes.EventQueryNewBlockHeader
 
 // Client is an interface to interact with bcp
 type Client interface {
+	TendermintClient() client.Client
 	GetUser(addr weave.Address) (*UserResponse, error)
 	GetWallet(addr weave.Address) (*WalletResponse, error)
 	BroadcastTx(tx weave.Tx) BroadcastTxResponse
@@ -52,6 +53,10 @@ func NewClient(conn client.Client) *BnsClient {
 		// TODO: make this random
 		subscriber: "tools-client",
 	}
+}
+
+func (bc *BnsClient) TendermintClient() client.Client {
+	return bc.conn
 }
 
 // Nonce has a client/address pair, queries for the nonce

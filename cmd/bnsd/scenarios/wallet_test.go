@@ -48,7 +48,7 @@ func TestQueryCurrencies(t *testing.T) {
 	env, cleanup := bnsdtest.StartBnsd(t)
 	defer cleanup()
 
-	l, err := env.Client.Currencies()
+	l, err := client.NewClient(env.Client.TendermintClient()).Currencies()
 	require.NoError(t, err)
 	require.NotNil(t, l, "no currencies found")
 	require.True(t, len(l.Currencies) > 0)

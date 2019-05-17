@@ -19,7 +19,7 @@ func TestQueryValidatorUpdateSigner(t *testing.T) {
 	env, cleanup := bnsdtest.StartBnsd(t)
 	defer cleanup()
 
-	r, err := env.Client.AbciQuery("/validators", []byte("accounts"))
+	r, err := client.NewClient(env.Client.TendermintClient()).AbciQuery("/validators", []byte("accounts"))
 	require.NoError(t, err)
 	require.Len(t, r.Models, 1)
 
@@ -33,7 +33,7 @@ func TestUpdateValidatorSet(t *testing.T) {
 	env, cleanup := bnsdtest.StartBnsd(t)
 	defer cleanup()
 
-	current, err := client.Admin(env.Client).GetValidators(client.CurrentHeight)
+	current, err := client.Admin(client.NewClient(env.Client.TendermintClient())).GetValidators(client.CurrentHeight)
 	require.NoError(t, err)
 
 	newValidator := ed25519.GenPrivKey()
@@ -104,7 +104,7 @@ func TestUpdateValidatorSet(t *testing.T) {
 }
 
 func awaitValidatorUpdate(env *bnsdtest.EnvConf, height int64) *ctypes.ResultValidators {
-	admin := client.Admin(env.Client)
+	admin := client.Admin(client.NewClient(env.Client.TendermintClient()))
 	for i := 0; i < 15; i++ {
 		v, err := admin.GetValidators(height)
 		if err == nil {

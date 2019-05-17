@@ -26,38 +26,23 @@ import (
 	"github.com/iov-one/weave/x/multisig"
 	"github.com/stellar/go/exp/crypto/derivation"
 	"github.com/tendermint/tendermint/libs/log"
-	nm "github.com/tendermint/tendermint/node"
 	tm "github.com/tendermint/tendermint/types"
 )
 
-// EnvConf is a work in progress collection of previously global variables.
-// This is to be cleaned up in the following updates.
-type EnvConf struct {
-	Alice       *client.PrivateKey
-	ChainID     string
-	AntiSpamFee coin.Coin
-	MinFee      coin.Coin
-
-	// TODO: client must be throttled because limitForThreshold was removed
-	Client *client.BnsClient
-
-	MultiSigContract  weave.Condition
-	EscrowContract    weave.Condition
-	DistrContractAddr weave.Address
-	Node              *nm.Node
-	Logger            log.Logger
-	RpcAddress        string
-}
-
-func StartBnsd(t testing.TB) (env *EnvConf, cleanup func()) {
+func StartBnsd(t testing.TB, opts ...StartBnsdOption) (env *EnvConf, cleanup func()) {
 	env = &EnvConf{
 		MinFee:           coin.Coin{},
 		Alice:            derivePrivateKey(t, *hexSeed, *derivationPath),
 		Logger:           log.NewTMLogger(ioutil.Discard),
 		MultiSigContract: multisig.MultiSigCondition(weavetest.SequenceID(1)),
 		EscrowContract:   escrow.Condition(weavetest.SequenceID(1)),
+		clientThrottle:   *delay,
 	}
 	env.DistrContractAddr, _ = distribution.RevenueAccount(weavetest.SequenceID(1))
+
+	for _, fn := range opts {
+		fn(env)
+	}
 
 	if *tendermintAddress == TendermintLocalAddr {
 		return env, startLocalBnsd(t, env)
@@ -65,17 +50,23 @@ func StartBnsd(t testing.TB) (env *EnvConf, cleanup func()) {
 	return env, startRemoteBnsd(t, env)
 }
 
-func startRemoteBnsd(t testing.TB, env *EnvConf) (cleanup func()) {
-	env.Client = client.NewClient(client.NewHTTPConnection(*tendermintAddress))
+type StartBnsdOption func(*EnvConf)
 
-	if chainID, err := env.Client.ChainID(); err != nil {
+func startRemoteBnsd(t testing.TB, env *EnvConf) (cleanup func()) {
+	cli := client.NewClient(client.NewHTTPConnection(*tendermintAddress))
+	thCli := throttle(cli, env.clientThrottle)
+	env.Client = thCli
+
+	if chainID, err := cli.ChainID(); err != nil {
 		t.Fatalf("failed to fetch chain id: %s", err)
 	} else {
 		env.ChainID = chainID
 	}
 
 	env.RpcAddress = *tendermintAddress
-	return func() {}
+	return func() {
+		thCli.Close()
+	}
 }
 
 func startLocalBnsd(t testing.TB, env *EnvConf) (cleanup func()) {
@@ -113,9 +104,12 @@ func startLocalBnsd(t testing.TB, env *EnvConf) (cleanup func()) {
 		t.Fatalf("cannot start tendermint application: %s", err)
 	}
 
-	env.Client = client.NewClient(client.NewLocalConnection(env.Node))
+	cli := client.NewClient(client.NewLocalConnection(env.Node))
+	thCli := throttle(cli, env.clientThrottle)
+	env.Client = thCli
 
 	return func() {
+		thCli.Close()
 		env.Node.Stop()
 		env.Node.Wait()
 		os.RemoveAll(tmWorkDir)
@@ -127,7 +121,7 @@ const TendermintLocalAddr = "localhost:46657"
 var (
 	tendermintAddress = flag.String("address", TendermintLocalAddr, "destination address of tendermint rpc")
 	hexSeed           = flag.String("seed", "d34c1970ae90acf3405f2d99dcaca16d0c7db379f4beafcfdf667b9d69ce350d27f5fb440509dfa79ec883a0510bc9a9614c3d44188881f0c5e402898b4bf3c9", "private key seed in hex")
-	delay             = flag.Duration("delay", time.Duration(0), "duration to wait between test cases for rate limits")
+	delay             = flag.Duration("delay", 10*time.Millisecond, "duration to wait between test cases for rate limits")
 	derivationPath    = flag.String("derivation", "", "bip44 derivation path: \"m/44'/234'/0'\"")
 )
 
