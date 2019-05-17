@@ -2,6 +2,7 @@ package gov
 
 import (
 	"testing"
+	"time"
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
@@ -9,12 +10,7 @@ import (
 )
 
 func TestVoteMsg(t *testing.T) {
-	aliceCond := weavetest.NewCondition()
-	alice := aliceCond.Address()
-	// 	bobbyCond   = weavetest.NewCondition()
-	// 	bobby       = bobbyCond.Address()
-	// 	charlieCond = weavetest.NewCondition()
-	// 	charlie     = charlieCond.Address()
+	alice := weavetest.NewCondition().Address()
 
 	specs := map[string]struct {
 		Msg VoteMsg
@@ -86,115 +82,119 @@ func TestTallyMsg(t *testing.T) {
 }
 
 // TODO: enable
-// func TestCrateTextProposalMsg(t *testing.T) {
-// 	buildMsg := func(mods ...func(*CreateTextProposalMsg)) CreateTextProposalMsg {
-// 		m := CreateTextProposalMsg{
-// 			Metadata:       &weave.Metadata{Schema: 1},
-// 			Title:          "any title _.-",
-// 			Description:    "any description",
-// 			ElectorateID:   weavetest.SequenceID(1),
-// 			ElectionRuleID: weavetest.SequenceID(1),
-// 			StartTime:      weave.AsUnixTime(time.Now()),
-// 			Author:         alice,
-// 		}
-// 		for _, mod := range mods {
-// 			mod(&m)
-// 		}
-// 		return m
-// 	}
+func TestCreateProposalMsg(t *testing.T) {
+	alice := weavetest.NewCondition().Address()
 
-// 	specs := map[string]struct {
-// 		Msg CreateTextProposalMsg
-// 		Exp *errors.Error
-// 	}{
-// 		"Happy path": {
-// 			Msg: buildMsg(),
-// 		},
-// 		"Author is optional": {
-// 			Msg: buildMsg(func(p *CreateTextProposalMsg) {
-// 				p.Author = nil
-// 			}),
-// 		},
-// 		"Short title within range": {
-// 			Msg: buildMsg(func(p *CreateTextProposalMsg) {
-// 				p.Title = "fooo"
-// 			}),
-// 		},
-// 		"Long title within range": {
-// 			Msg: buildMsg(func(p *CreateTextProposalMsg) {
-// 				p.Title = BigString(128)
-// 			}),
-// 		},
-// 		"Title too short": {
-// 			Msg: buildMsg(func(p *CreateTextProposalMsg) {
-// 				p.Title = "foo"
-// 			}),
-// 			Exp: errors.ErrInput,
-// 		},
-// 		"Title too long": {
-// 			Msg: buildMsg(func(p *CreateTextProposalMsg) {
-// 				p.Title = BigString(129)
-// 			}),
-// 			Exp: errors.ErrInput,
-// 		},
-// 		"Title with invalid chars": {
-// 			Msg: buildMsg(func(p *CreateTextProposalMsg) {
-// 				p.Title = "title with invalid char <"
-// 			}),
-// 			Exp: errors.ErrInput,
-// 		},
-// 		"Description too short": {
-// 			Msg: buildMsg(func(p *CreateTextProposalMsg) {
-// 				p.Title = "foo"
-// 			}),
-// 			Exp: errors.ErrInput,
-// 		},
-// 		"Description too long": {
-// 			Msg: buildMsg(func(p *CreateTextProposalMsg) {
-// 				p.Title = BigString(5001)
-// 			}),
-// 			Exp: errors.ErrInput,
-// 		},
-// 		"ElectorateID missing": {
-// 			Msg: buildMsg(func(p *CreateTextProposalMsg) {
-// 				p.ElectorateID = nil
-// 			}),
-// 			Exp: errors.ErrInput,
-// 		},
-// 		"ElectionRuleID missing": {
-// 			Msg: buildMsg(func(p *CreateTextProposalMsg) {
-// 				p.ElectionRuleID = nil
-// 			}),
-// 			Exp: errors.ErrInput,
-// 		},
-// 		"StartTime zero": {
-// 			Msg: buildMsg(func(p *CreateTextProposalMsg) {
-// 				p.StartTime = 0
-// 			}),
-// 			Exp: errors.ErrInput,
-// 		},
-// 		"Invalid author address": {
-// 			Msg: buildMsg(func(p *CreateTextProposalMsg) {
-// 				p.Author = []byte{0, 0, 0, 0}
-// 			}),
-// 			Exp: errors.ErrInput,
-// 		},
-// 		"Metadata missing": {
-// 			Msg: buildMsg(func(p *CreateTextProposalMsg) {
-// 				p.Metadata = nil
-// 			}),
-// 			Exp: errors.ErrMetadata,
-// 		},
-// 	}
-// 	for msg, spec := range specs {
-// 		t.Run(msg, func(t *testing.T) {
-// 			err := spec.Msg.Validate()
-// 			if !spec.Exp.Is(err) {
-// 				t.Fatalf("check expected: %v  but got %+v", spec.Exp, err)
-// 			}
-// 		})
-// 	}
-// }
+	buildMsg := func(mods ...func(*CreateProposalMsg)) CreateProposalMsg {
+		m := CreateProposalMsg{
+			Metadata: &weave.Metadata{Schema: 1},
+			Base: &CreateProposalMsgBase{
+				Title:          "any title _.-",
+				Description:    "any description",
+				ElectionRuleID: weavetest.SequenceID(1),
+				StartTime:      weave.AsUnixTime(time.Now()),
+				Author:         alice,
+			},
+			RawOption: []byte("random text, not decoded"),
+		}
+		for _, mod := range mods {
+			mod(&m)
+		}
+		return m
+	}
+
+	specs := map[string]struct {
+		Msg CreateProposalMsg
+		Exp *errors.Error
+	}{
+		"Happy path": {
+			Msg: buildMsg(),
+		},
+		"Author is optional": {
+			Msg: buildMsg(func(p *CreateProposalMsg) {
+				p.Base.Author = nil
+			}),
+		},
+		"Short title within range": {
+			Msg: buildMsg(func(p *CreateProposalMsg) {
+				p.Base.Title = "fooo"
+			}),
+		},
+		"Long title within range": {
+			Msg: buildMsg(func(p *CreateProposalMsg) {
+				p.Base.Title = BigString(128)
+			}),
+		},
+		"Title too short": {
+			Msg: buildMsg(func(p *CreateProposalMsg) {
+				p.Base.Title = "foo"
+			}),
+			Exp: errors.ErrInput,
+		},
+		"Title too long": {
+			Msg: buildMsg(func(p *CreateProposalMsg) {
+				p.Base.Title = BigString(129)
+			}),
+			Exp: errors.ErrInput,
+		},
+		"Title with invalid chars": {
+			Msg: buildMsg(func(p *CreateProposalMsg) {
+				p.Base.Title = "title with invalid char <"
+			}),
+			Exp: errors.ErrInput,
+		},
+		"Description too short": {
+			Msg: buildMsg(func(p *CreateProposalMsg) {
+				p.Base.Title = "foo"
+			}),
+			Exp: errors.ErrInput,
+		},
+		"Description too long": {
+			Msg: buildMsg(func(p *CreateProposalMsg) {
+				p.Base.Title = BigString(5001)
+			}),
+			Exp: errors.ErrInput,
+		},
+		"ElectionRuleID missing": {
+			Msg: buildMsg(func(p *CreateProposalMsg) {
+				p.Base.ElectionRuleID = nil
+			}),
+			Exp: errors.ErrInput,
+		},
+		"StartTime zero": {
+			Msg: buildMsg(func(p *CreateProposalMsg) {
+				p.Base.StartTime = 0
+			}),
+			Exp: errors.ErrInput,
+		},
+		"Invalid author address": {
+			Msg: buildMsg(func(p *CreateProposalMsg) {
+				p.Base.Author = []byte{0, 0, 0, 0}
+			}),
+			Exp: errors.ErrInput,
+		},
+		"Metadata missing": {
+			Msg: buildMsg(func(p *CreateProposalMsg) {
+				p.Metadata = nil
+			}),
+			Exp: errors.ErrMetadata,
+		},
+		"Options missing": {
+			Msg: buildMsg(func(p *CreateProposalMsg) {
+				p.RawOption = nil
+			}),
+			Exp: errors.ErrEmpty,
+		},
+	}
+	for msg, spec := range specs {
+		t.Run(msg, func(t *testing.T) {
+			err := spec.Msg.Validate()
+			if !spec.Exp.Is(err) {
+				t.Fatalf("check expected: %v  but got %+v", spec.Exp, err)
+			}
+		})
+	}
+}
 
 func TestDeleteProposalMsg(t *testing.T) {
 	specs := map[string]struct {

@@ -33,7 +33,7 @@ func (m CreateProposalMsg) Validate() error {
 		return errors.Wrap(err, "invalid metadata")
 	}
 	if len(m.RawOption) == 0 {
-		return errors.Wrap(errors.ErrState, "missing raw options")
+		return errors.Wrap(errors.ErrEmpty, "missing raw options")
 	}
 	return m.Base.Validate()
 }
