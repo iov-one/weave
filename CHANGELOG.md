@@ -32,7 +32,7 @@ Breaking changes
 - Many extensions where updated to provide `weave.Metadata` and support schema
   versioning as implemented by `migrations` package. Protobuf messages are
   using new schema and are not binary compatible with old ones. Updated
-  extensions are: x/cash`, `x/currency`, `x/distribution`, `x/escrow`,
+  extensions are: `x/cash`, `x/currency`, `x/distribution`, `x/escrow`,
   `x/msgfee`, `x/multisig`, `x/namecoin`,
   `x/nft`, `x/paychan`, `x/sigs`, `x/validators`
 
@@ -44,10 +44,13 @@ Breaking changes
 - Signature verification in `x/sigs` extension costs gas now
 - A new message `BumpSequenceMsg` for incrementing a user sequence value in
   `x/sigs` extension
-- When considering expiration in `x/escrow` extension, expiration time is now
-  inclusive
 - A new validator subjective anti-spam fee was added
 
+Breaking changes
+
+- Timeout types in `x/escrow` changed to UNIX timestamps
+- When considering expiration in `x/escrow` extension, expiration time is now
+  inclusive
 
 ## 0.13.0
 
