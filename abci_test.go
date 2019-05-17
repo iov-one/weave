@@ -26,8 +26,6 @@ func TestCreateResults(t *testing.T) {
 	assert.Equal(t, log, ac.Log)
 	assert.Equal(t, gas, ac.GasWanted)
 	assert.Empty(t, ac.Data)
-	assert.Empty(t, ac.Data)
-
 }
 
 func TestDeliverTxError(t *testing.T) {
