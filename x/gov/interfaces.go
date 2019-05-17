@@ -3,7 +3,6 @@ package gov
 import (
 	weave "github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
-	weavetest "github.com/iov-one/weave/weavetest"
 )
 
 // OptionDecoder is needed to parse the raw_options data
@@ -36,7 +35,26 @@ type Executor func(ctx weave.Context, store weave.KVStore, msg weave.Msg) (*weav
 // that does not care about the extra Tx info besides Msg
 func HandlerAsExecutor(h weave.Handler) Executor {
 	return func(ctx weave.Context, store weave.KVStore, msg weave.Msg) (*weave.DeliverResult, error) {
-		tx := &weavetest.Tx{Msg: msg}
+		tx := &fakeTx{msg: msg}
 		return h.Deliver(ctx, store, tx)
 	}
+}
+
+type fakeTx struct {
+	msg weave.Msg
+}
+
+var _ weave.Tx = (*fakeTx)(nil)
+
+func (tx fakeTx) GetMsg() (weave.Msg, error) {
+	return tx.msg, nil
+}
+
+func (tx fakeTx) Marshal() ([]byte, error) {
+	return tx.msg.Marshal()
+}
+
+func (tx *fakeTx) Unmarshal(data []byte) error {
+	// note this will panic if actually run
+	return tx.msg.Unmarshal(data)
 }
