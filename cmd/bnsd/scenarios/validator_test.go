@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/iov-one/weave/cmd/bnsd/client"
+	"github.com/iov-one/weave/cmd/bnsd/scenarios/bnsdtest"
 	"github.com/iov-one/weave/x/validators"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -15,25 +16,29 @@ import (
 )
 
 func TestQueryValidatorUpdateSigner(t *testing.T) {
-	// when
-	r, err := bnsClient.AbciQuery("/validators", []byte("accounts"))
-	// then
+	env, cleanup := bnsdtest.StartBnsd(t)
+	defer cleanup()
+
+	r, err := client.NewClient(env.Client.TendermintClient()).AbciQuery("/validators", []byte("accounts"))
 	require.NoError(t, err)
 	require.Len(t, r.Models, 1)
 
 	var accounts validators.Accounts
 	require.NoError(t, accounts.Unmarshal(r.Models[0].Value))
 	require.Len(t, accounts.Addresses, 1)
-	assert.Contains(t, accounts.Addresses, []byte(multiSigContract.Address()), "multisig address not found")
+	assert.Contains(t, accounts.Addresses, []byte(env.MultiSigContract.Address()), "multisig address not found")
 }
 
 func TestUpdateValidatorSet(t *testing.T) {
-	current, err := client.Admin(bnsClient).GetValidators(client.CurrentHeight)
+	env, cleanup := bnsdtest.StartBnsd(t)
+	defer cleanup()
+
+	current, err := client.Admin(client.NewClient(env.Client.TendermintClient())).GetValidators(client.CurrentHeight)
 	require.NoError(t, err)
 
 	newValidator := ed25519.GenPrivKey()
 	keyEd25519 := newValidator.PubKey().(ed25519.PubKeyEd25519)
-	aNonce := client.NewNonce(bnsClient, alice.PublicKey().Address())
+	aNonce := client.NewNonce(env.Client, env.Alice.PublicKey().Address())
 
 	// when adding a new validator
 	addValidatorTX := client.SetValidatorTx(
@@ -45,22 +50,25 @@ func TestUpdateValidatorSet(t *testing.T) {
 			Power: 1,
 		},
 	)
-	addValidatorTX.Fee(alice.PublicKey().Address(), antiSpamFee)
+	addValidatorTX.Fee(env.Alice.PublicKey().Address(), env.AntiSpamFee)
 
-	_, _, contractID, _ := multiSigContract.Parse()
+	_, _, contractID, err := env.MultiSigContract.Parse()
+	if err != nil {
+		t.Fatalf("cannot parse multisig contract: %s", err)
+	}
 	addValidatorTX.Multisig = [][]byte{contractID}
 
 	seq, err := aNonce.Next()
 	require.NoError(t, err)
-	require.NoError(t, client.SignTx(addValidatorTX, alice, chainID, seq))
-	resp := bnsClient.BroadcastTx(addValidatorTX)
+	require.NoError(t, client.SignTx(addValidatorTX, env.Alice, env.ChainID, seq))
+	resp := env.Client.BroadcastTx(addValidatorTX)
 
 	// then
 	t.Logf("Adding validator: %X\n", keyEd25519)
 	require.NoError(t, resp.IsError())
 
 	// and tendermint validator set is updated
-	tmValidatorSet := awaitValidatorUpdate(resp.Response.Height + 2)
+	tmValidatorSet := awaitValidatorUpdate(env, resp.Response.Height+2)
 	require.NotNil(t, tmValidatorSet)
 	require.Len(t, tmValidatorSet.Validators, len(current.Validators)+1)
 	require.True(t, contains(tmValidatorSet.Validators, newValidator.PubKey()))
@@ -75,28 +83,28 @@ func TestUpdateValidatorSet(t *testing.T) {
 			Power: 0, // 0 for delete
 		},
 	)
-	delValidatorTX.Fee(alice.PublicKey().Address(), antiSpamFee)
+	delValidatorTX.Fee(env.Alice.PublicKey().Address(), env.AntiSpamFee)
 	delValidatorTX.Multisig = [][]byte{contractID}
 
 	// then
 	seq, err = aNonce.Next()
 	require.NoError(t, err)
-	require.NoError(t, client.SignTx(delValidatorTX, alice, chainID, seq))
-	resp = bnsClient.BroadcastTx(delValidatorTX)
+	require.NoError(t, client.SignTx(delValidatorTX, env.Alice, env.ChainID, seq))
+	resp = env.Client.BroadcastTx(delValidatorTX)
 
 	// then
 	require.NoError(t, resp.IsError())
 	t.Logf("Removed validator: %X\n", keyEd25519)
 
 	// and tendermint validator set is updated
-	tmValidatorSet = awaitValidatorUpdate(resp.Response.Height + 2)
+	tmValidatorSet = awaitValidatorUpdate(env, resp.Response.Height+2)
 	require.NotNil(t, tmValidatorSet)
 	require.Len(t, tmValidatorSet.Validators, len(current.Validators))
 	assert.False(t, contains(tmValidatorSet.Validators, newValidator.PubKey()))
 }
 
-func awaitValidatorUpdate(height int64) *ctypes.ResultValidators {
-	admin := client.Admin(bnsClient)
+func awaitValidatorUpdate(env *bnsdtest.EnvConf, height int64) *ctypes.ResultValidators {
+	admin := client.Admin(client.NewClient(env.Client.TendermintClient()))
 	for i := 0; i < 15; i++ {
 		v, err := admin.GetValidators(height)
 		if err == nil {

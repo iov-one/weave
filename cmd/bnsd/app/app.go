@@ -57,8 +57,8 @@ func Chain(authFn x.Authenticator, minFee coin.Coin) app.Decorators {
 		multisig.NewDecorator(authFn),
 		// cash.NewDynamicFeeDecorator embeds utils.NewSavepoint().OnDeliver()
 		cash.NewDynamicFeeDecorator(authFn, ctrl),
-		msgfee.NewFeeDecorator(),
 		msgfee.NewAntispamFeeDecorator(minFee),
+		msgfee.NewFeeDecorator(),
 		// cannot pay for fee with hashlock...
 		hashlock.NewDecorator(),
 		// batch commented out temporarily to minimize release features

@@ -36,22 +36,26 @@ go test github.com/iov-one/weave/cmd/bnsd/scenarios \
 Each test must fulfill [go testing framework
 requirements](https://golang.org/pkg/testing/#pkg-overview).
 
-All tests are sharing a configuration that is setup in the `main_test.go`. You
-can find there definitions of useful flags and variables. When testing using a
-local `bnsd` instance a genesis defined in this file is loaded.
 
-In `main_test.go` a `bnsClient` global variable is defined and initialized. It
-is configured to connect to the right `bnsd` node. Use it to interact with the
-network, for example to sign or broadcast a transaction.
+All test should call `bnsdtest.StartBnsd` to create an independent bnsd
+instance. Many commonly used values are returned as part of the `EnvConf`.
+
+Returned `env` contains `Client` attribute. It is configured to connect to the
+right `bnsd` node. Use it to interact with the network, for example to sign or
+broadcast a transaction.
 
 To acquire a transaction sequence, use `client` nonce functionality.
 
 ```go
-aliceNonce := client.NewNonce(bnsClient, alice.PublicKey().Address())
+env, cleanup := bnsdtest.StartBnsd(t)
+defer cleanup()
+
+aliceNonce := client.NewNonce(env.Client, env.Alice.PublicKey().Address())
 seq, err := aliceNonce.Next()
 ```
 
-If you need coins, transfer them from the `alice` account.
+If you need coins, transfer them from the `env.Alice` account together with
+`bnsdtest.SeedAccountWithTokens` function.
 
 > Rule of thumb is to do smoke tests. If a message is not rejected there is no
 > need to check all the details as we have unit test coverage for that in

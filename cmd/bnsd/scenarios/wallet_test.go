@@ -4,15 +4,19 @@ import (
 	"testing"
 
 	"github.com/iov-one/weave/cmd/bnsd/client"
+	"github.com/iov-one/weave/cmd/bnsd/scenarios/bnsdtest"
 	"github.com/iov-one/weave/coin"
 	"github.com/stretchr/testify/require"
 )
 
 func TestSendTokenWithFee(t *testing.T) {
-	emilia := client.GenPrivateKey()
-	aNonce := client.NewNonce(bnsClient, alice.PublicKey().Address())
+	env, cleanup := bnsdtest.StartBnsd(t)
+	defer cleanup()
 
-	walletResp, err := bnsClient.GetWallet(alice.PublicKey().Address())
+	emilia := client.GenPrivateKey()
+	aNonce := client.NewNonce(env.Client, env.Alice.PublicKey().Address())
+
+	walletResp, err := env.Client.GetWallet(env.Alice.PublicKey().Address())
 	require.NoError(t, err)
 	require.NotNil(t, walletResp, "address not found")
 	require.NotEmpty(t, walletResp.Wallet.Coins)
@@ -28,21 +32,23 @@ func TestSendTokenWithFee(t *testing.T) {
 
 		seq, err := aNonce.Next()
 		require.NoError(t, err)
-		tx := client.BuildSendTx(alice.PublicKey().Address(), emilia.PublicKey().Address(), cc, "test tx with fee")
-		tx.Fee(alice.PublicKey().Address(), antiSpamFee)
-		require.NoError(t, client.SignTx(tx, alice, chainID, seq))
-		resp := bnsClient.BroadcastTx(tx)
+		tx := client.BuildSendTx(env.Alice.PublicKey().Address(), emilia.PublicKey().Address(), cc, "test tx with fee")
+		tx.Fee(env.Alice.PublicKey().Address(), env.AntiSpamFee)
+		require.NoError(t, client.SignTx(tx, env.Alice, env.ChainID, seq))
+		resp := env.Client.BroadcastTx(tx)
 		require.NoError(t, resp.IsError())
 		heights[i] = resp.Response.Height
-		delayForRateLimits()
 	}
-	walletResp, err = bnsClient.GetWallet(emilia.PublicKey().Address())
+	walletResp, err = env.Client.GetWallet(emilia.PublicKey().Address())
 	require.NoError(t, err)
 	t.Log("message", "done", "height", heights, "coins", walletResp.Wallet.Coins)
 }
 
 func TestQueryCurrencies(t *testing.T) {
-	l, err := bnsClient.Currencies()
+	env, cleanup := bnsdtest.StartBnsd(t)
+	defer cleanup()
+
+	l, err := client.NewClient(env.Client.TendermintClient()).Currencies()
 	require.NoError(t, err)
 	require.NotNil(t, l, "no currencies found")
 	require.True(t, len(l.Currencies) > 0)
