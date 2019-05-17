@@ -7,20 +7,15 @@ import (
 	"github.com/iov-one/weave/x"
 )
 
-type contextKey int // local to the gov module
+type contextKey int
 
 const (
+	// private type creates an interface key for Context that cannot be accessed by any other package
 	contextKeyGov contextKey = iota
 )
 
-// withElectionSuccess is a private method, as only this module
-// can add a gov signer
 func withElectionSuccess(ctx weave.Context, ruleID []byte) weave.Context {
 	val, _ := ctx.Value(contextKeyGov).([]weave.Condition)
-	if val == nil {
-		return context.WithValue(ctx, contextKeyGov, []weave.Condition{ElectionCondition(ruleID)})
-	}
-
 	return context.WithValue(ctx, contextKeyGov, append(val, ElectionCondition(ruleID)))
 }
 
@@ -39,9 +34,6 @@ var _ x.Authenticator = Authenticate{}
 func (a Authenticate) GetConditions(ctx weave.Context) []weave.Condition {
 	// (val, ok) form to return nil instead of panic if unset
 	val, _ := ctx.Value(contextKeyGov).([]weave.Condition)
-	if val == nil {
-		return nil
-	}
 	return val
 }
 

@@ -6,19 +6,19 @@ import (
 	weavetest "github.com/iov-one/weave/weavetest"
 )
 
-// OptionLoader is needed to parse the raw_options data
-type OptionLoader func(raw []byte) (weave.Msg, error)
+// OptionDecoder is needed to parse the raw_options data
+type OptionDecoder func(raw []byte) (weave.Msg, error)
 
 // ProtoSum is a basic interface for a protobuf model containing a Sum (oneof) type
-// Given this, we can auto-generate an OptionLoader
+// Given this, we can auto-generate an OptionDecoder
 type ProtoSum interface {
 	Unmarshal([]byte) error
 	GetSum() interface{}
 }
 
-// LoadFromProtoSum will generate an OptionLoader from a protobuf object with a Sum oneof type
+// LoadFromProtoSum will generate an OptionDecoder from a protobuf object with a Sum oneof type
 // where all elements of the oneof can be cast to weave.Msg
-func LoadFromProtoSum(model ProtoSum) OptionLoader {
+func LoadFromProtoSum(model ProtoSum) OptionDecoder {
 	return func(raw []byte) (weave.Msg, error) {
 		err := model.Unmarshal(raw)
 		if err != nil {

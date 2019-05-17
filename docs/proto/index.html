@@ -563,11 +563,11 @@
             <ul>
               
                 <li>
-                  <a href="#gov.CreateProposalBase"><span class="badge">M</span>CreateProposalBase</a>
+                  <a href="#gov.CreateProposalMsg"><span class="badge">M</span>CreateProposalMsg</a>
                 </li>
               
                 <li>
-                  <a href="#gov.CreateProposalMsg"><span class="badge">M</span>CreateProposalMsg</a>
+                  <a href="#gov.CreateProposalMsgBase"><span class="badge">M</span>CreateProposalMsgBase</a>
                 </li>
               
                 <li>
@@ -3174,8 +3174,45 @@ total increment value, including the default increment. </p></td>
       <p></p>
 
       
-        <h3 id="gov.CreateProposalBase">CreateProposalBase</h3>
-        <p>CreateProposalBase is the common info in all proposals.</p><p>This is separated out to easily be included in an app-specific CreateProposalMsg</p>
+        <h3 id="gov.CreateProposalMsg">CreateProposalMsg</h3>
+        <p>CreateProposalMsg creates a new governance proposal.</p><p>Metadata is from CreateProposalMsgBase, actual proposal details from app-specific raw_option</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>metadata</td>
+                  <td><a href="#weave.Metadata">weave.Metadata</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>base</td>
+                  <td><a href="#gov.CreateProposalMsgBase">CreateProposalMsgBase</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>raw_option</td>
+                  <td><a href="#bytes">bytes</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+        
+
+        
+      
+        <h3 id="gov.CreateProposalMsgBase">CreateProposalMsgBase</h3>
+        <p>CreateProposalMsgBase is the common info in all proposals.</p><p>This is separated out to easily be included in an app-specific CreateProposalMsg</p>
 
         
           <table class="field-table">
@@ -3218,43 +3255,6 @@ total increment value, including the default increment. </p></td>
                   <td></td>
                   <td><p>Author is an optional field to set the address of the author with a proposal. The author must sign the message.
 When not set it will default to the main signer. </p></td>
-                </tr>
-              
-            </tbody>
-          </table>
-        
-
-        
-      
-        <h3 id="gov.CreateProposalMsg">CreateProposalMsg</h3>
-        <p>CreateProposalMsg creates a new governance proposal.</p><p>Metadata is from CreateProposalBase, actual proposal details from app-specific raw_option</p>
-
-        
-          <table class="field-table">
-            <thead>
-              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
-            </thead>
-            <tbody>
-              
-                <tr>
-                  <td>metadata</td>
-                  <td><a href="#weave.Metadata">weave.Metadata</a></td>
-                  <td></td>
-                  <td><p> </p></td>
-                </tr>
-              
-                <tr>
-                  <td>base</td>
-                  <td><a href="#gov.CreateProposalBase">CreateProposalBase</a></td>
-                  <td></td>
-                  <td><p> </p></td>
-                </tr>
-              
-                <tr>
-                  <td>raw_option</td>
-                  <td><a href="#bytes">bytes</a></td>
-                  <td></td>
-                  <td><p> </p></td>
                 </tr>
               
             </tbody>
@@ -3523,7 +3523,7 @@ of the eligible voters. </p></td>
                   <td>raw_option</td>
                   <td><a href="#bytes">bytes</a></td>
                   <td></td>
-                  <td><p>raw_option is app-specific and can be parsed by an OptionLoader </p></td>
+                  <td><p>raw_option is app-specific and can be parsed by an OptionDecoder </p></td>
                 </tr>
               
             </tbody>

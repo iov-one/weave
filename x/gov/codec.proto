@@ -129,7 +129,7 @@ message ProposalCommon {
 message Proposal {
   weave.Metadata metadata = 1;
   ProposalCommon common = 2;
-  // raw_option is app-specific and can be parsed by an OptionLoader
+  // raw_option is app-specific and can be parsed by an OptionDecoder
   bytes raw_option = 3;
 }
 
@@ -160,9 +160,9 @@ message Vote {
   VoteOption voted = 3;
 }
 
-// CreateProposalBase is the common info in all proposals.
+// CreateProposalMsgBase is the common info in all proposals.
 // This is separated out to easily be included in an app-specific CreateProposalMsg
-message CreateProposalBase {
+message CreateProposalMsgBase {
   // Human readable title. Must match `^[a-zA-Z0-9 _.-]{4,128}$`
   string title = 1;
   // Human readable description with 3 to 5000 chars.
@@ -177,10 +177,10 @@ message CreateProposalBase {
 }
 
 // CreateProposalMsg creates a new governance proposal.
-// Metadata is from CreateProposalBase, actual proposal details from app-specific raw_option
+// Metadata is from CreateProposalMsgBase, actual proposal details from app-specific raw_option
 message CreateProposalMsg {
   weave.Metadata metadata = 1;
-  CreateProposalBase base = 2;
+  CreateProposalMsgBase base = 2;
   bytes raw_option = 3;
 }
 

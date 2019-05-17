@@ -37,7 +37,7 @@ func (m CreateProposalMsg) Validate() error {
 	return m.Base.Validate()
 }
 
-func (m *CreateProposalBase) Validate() error {
+func (m *CreateProposalMsgBase) Validate() error {
 	if m == nil {
 		return errors.Wrap(errors.ErrInput, "missing base proposal msg info")
 	}

@@ -30,11 +30,11 @@ func RegisterQuery(qr weave.QueryRouter) {
 }
 
 // RegisterRoutes registers handlers for governance message processing.
-func RegisterRoutes(r weave.Registry, auth x.Authenticator, loader OptionLoader, executor Executor) {
+func RegisterRoutes(r weave.Registry, auth x.Authenticator, decoder OptionDecoder, executor Executor) {
 	r = migration.SchemaMigratingRegistry(packageName, r)
 	r.Handle(pathVoteMsg, NewVoteHandler(auth))
-	r.Handle(pathTallyMsg, NewTallyHandler(auth, loader, executor))
-	r.Handle(pathCreateProposalMsg, NewCreateProposalHandler(auth, loader))
+	r.Handle(pathTallyMsg, NewTallyHandler(auth, decoder, executor))
+	r.Handle(pathCreateProposalMsg, NewCreateProposalHandler(auth, decoder))
 	r.Handle(pathDeleteProposalMsg, NewDeleteProposalHandler(auth))
 	r.Handle(pathUpdateElectorateMsg, NewUpdateElectorateHandler(auth))
 	r.Handle(pathUpdateElectionRulesMsg, NewUpdateElectionRuleHandler(auth))
@@ -154,16 +154,16 @@ type TallyHandler struct {
 	auth       x.Authenticator
 	propBucket *ProposalBucket
 	elecBucket *ElectorateBucket
-	loader     OptionLoader
+	decoder    OptionDecoder
 	executor   Executor
 }
 
-func NewTallyHandler(auth x.Authenticator, loader OptionLoader, executor Executor) *TallyHandler {
+func NewTallyHandler(auth x.Authenticator, decoder OptionDecoder, executor Executor) *TallyHandler {
 	return &TallyHandler{
 		auth:       auth,
 		propBucket: NewProposalBucket(),
 		elecBucket: NewElectorateBucket(),
-		loader:     loader,
+		decoder:    decoder,
 		executor:   executor,
 	}
 }
@@ -198,7 +198,7 @@ func (h TallyHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) 
 		return &weave.DeliverResult{}, nil
 	}
 
-	opts, err := h.loader(proposal.RawOption)
+	opts, err := h.decoder(proposal.RawOption)
 	if err != nil {
 		return nil, errors.Wrap(errors.ErrState, "cannot parse raw options")
 	}
@@ -240,16 +240,16 @@ func (h TallyHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx)
 
 type CreateProposalHandler struct {
 	auth        x.Authenticator
-	loader      OptionLoader
+	decoder     OptionDecoder
 	elecBucket  *ElectorateBucket
 	propBucket  *ProposalBucket
 	rulesBucket *ElectionRulesBucket
 }
 
-func NewCreateProposalHandler(auth x.Authenticator, loader OptionLoader) *CreateProposalHandler {
+func NewCreateProposalHandler(auth x.Authenticator, decoder OptionDecoder) *CreateProposalHandler {
 	return &CreateProposalHandler{
 		auth:        auth,
-		loader:      loader,
+		decoder:     decoder,
 		elecBucket:  NewElectorateBucket(),
 		propBucket:  NewProposalBucket(),
 		rulesBucket: NewElectionRulesBucket(),
@@ -352,7 +352,7 @@ func (h CreateProposalHandler) validate(ctx weave.Context, db weave.KVStore, tx 
 	}
 	base.Author = author
 
-	opts, err := h.loader(msg.RawOption)
+	opts, err := h.decoder(msg.RawOption)
 	if err != nil {
 		return nil, nil, nil, errors.Wrap(errors.ErrInput, "cannot parse raw options")
 	}
