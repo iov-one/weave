@@ -28,12 +28,12 @@ env:
     - FORCE_TM_TEST=1
 
 install:
-- make deps
-- go get -d github.com/tendermint/tendermint/... ;
-  cd ${GOPATH}/src/github.com/tendermint/tendermint ;
-  git checkout ${TM_VERSION} ;
-  make get_tools && make check && make install ;
-  cd -;
+#- make deps
+#- go get -d github.com/tendermint/tendermint/... ;
+#  cd ${GOPATH}/src/github.com/tendermint/tendermint ;
+#  git checkout ${TM_VERSION} ;
+#  make get_tools && make check && make install ;
+#  cd -;
 
 script:
 #- make lint;
