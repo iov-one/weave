@@ -128,6 +128,11 @@ make protodocs
 open ./docs/proto/index.html
 ```
 
+## Contributions
+When opening a PR with a minor fix that does not need a CHANGELOG.md entry
+make sure to add `#trivial` to the title/description of said PR.  
+That's only needed if you are changing any of the `*.go` files in the repo.
+
 ## History
 
 The original version, until `v0.6.0` was released under
