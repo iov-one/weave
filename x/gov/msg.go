@@ -10,6 +10,7 @@ const (
 	pathDeleteProposalMsg      = "gov/delete"
 	pathVoteMsg                = "gov/vote"
 	pathTallyMsg               = "gov/tally"
+	pathTextResolutionMsg      = "gov/resolution"
 	pathUpdateElectorateMsg    = "gov/electorate/update"
 	pathUpdateElectionRulesMsg = "gov/electionRules/update"
 )
@@ -138,6 +139,21 @@ func (m UpdateElectionRuleMsg) Validate() error {
 	return m.Threshold.Validate()
 }
 
+func (TextResolutionMsg) Path() string {
+	return pathTextResolutionMsg
+}
+
+func (m TextResolutionMsg) Validate() error {
+	if err := m.Metadata.Validate(); err != nil {
+		return errors.Wrap(err, "invalid metadata")
+	}
+
+	if len(m.Resolution) == 0 {
+		return errors.Wrap(errors.ErrEmpty, "resolution")
+	}
+	return nil
+}
+
 func (UpdateElectorateMsg) Path() string {
 	return pathUpdateElectorateMsg
 }
@@ -148,7 +164,7 @@ func (m UpdateElectorateMsg) Validate() error {
 	}
 
 	if len(m.ElectorateID) == 0 {
-		return errors.Wrap(errors.ErrEmpty, "id")
+		return errors.Wrap(errors.ErrEmpty, "electorate id")
 	}
 	return ElectorsDiff(m.DiffElectors).Validate()
 }
