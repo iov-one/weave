@@ -18,6 +18,7 @@ func DeliverOrError(result *DeliverResult, err error, debug bool) abci.ResponseD
 	if err != nil {
 		return DeliverTxError(err, debug)
 	}
+	fmt.Println("CI")
 	return result.ToABCI()
 }
 
