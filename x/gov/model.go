@@ -107,6 +107,9 @@ func (m ElectionRule) Validate() error {
 		return errors.Wrap(err, "invalid metadata")
 	}
 
+	if len(m.ElectorateID) == 0 {
+		return errors.Wrapf(errors.ErrEmpty, "electorate id is missing")
+	}
 	if len(m.ElectorateID) != 8 {
 		return errors.Wrapf(errors.ErrInput, "must refer to electorate with 8 byte id")
 	}

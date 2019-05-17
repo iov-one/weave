@@ -1,84 +1,91 @@
 package gov
 
-// import (
-// 	"testing"
-// 	"time"
+import (
+	"testing"
 
-// 	"github.com/iov-one/weave"
-// 	"github.com/iov-one/weave/errors"
-// 	"github.com/iov-one/weave/weavetest"
-// )
+	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/weavetest"
+)
 
-// func TestVoteMsg(t *testing.T) {
-// 	specs := map[string]struct {
-// 		Msg VoteMsg
-// 		Exp *errors.Error
-// 	}{
+func TestVoteMsg(t *testing.T) {
+	aliceCond := weavetest.NewCondition()
+	alice := aliceCond.Address()
+	// 	bobbyCond   = weavetest.NewCondition()
+	// 	bobby       = bobbyCond.Address()
+	// 	charlieCond = weavetest.NewCondition()
+	// 	charlie     = charlieCond.Address()
 
-// 		"Happy path": {
-// 			Msg: VoteMsg{ProposalID: weavetest.SequenceID(1), Selected: VoteOption_Yes, Voter: alice, Metadata: &weave.Metadata{Schema: 1}},
-// 		},
-// 		"Voter optional": {
-// 			Msg: VoteMsg{ProposalID: weavetest.SequenceID(1), Selected: VoteOption_Yes, Metadata: &weave.Metadata{Schema: 1}},
-// 		},
-// 		"Proposal id missing": {
-// 			Msg: VoteMsg{Selected: VoteOption_Yes, Voter: alice, Metadata: &weave.Metadata{Schema: 1}},
-// 			Exp: errors.ErrInput,
-// 		},
-// 		"Vote option missing": {
-// 			Msg: VoteMsg{ProposalID: weavetest.SequenceID(1), Voter: alice, Metadata: &weave.Metadata{Schema: 1}},
-// 			Exp: errors.ErrInput,
-// 		},
-// 		"Invalid vote option": {
-// 			Msg: VoteMsg{ProposalID: weavetest.SequenceID(1), Selected: VoteOption(100), Voter: alice, Metadata: &weave.Metadata{Schema: 1}},
-// 			Exp: errors.ErrInput,
-// 		},
-// 		"Invalid voter address": {
-// 			Msg: VoteMsg{ProposalID: weavetest.SequenceID(1), Selected: VoteOption_Yes, Voter: weave.Address([]byte{0}), Metadata: &weave.Metadata{Schema: 1}},
-// 			Exp: errors.ErrInput,
-// 		},
-// 		"Metadata missing": {
-// 			Msg: VoteMsg{ProposalID: weavetest.SequenceID(1), Selected: VoteOption_Yes, Voter: alice},
-// 			Exp: errors.ErrMetadata,
-// 		},
-// 	}
-// 	for msg, spec := range specs {
-// 		t.Run(msg, func(t *testing.T) {
-// 			err := spec.Msg.Validate()
-// 			if !spec.Exp.Is(err) {
-// 				t.Fatalf("check expected: %v  but got %+v", spec.Exp, err)
-// 			}
-// 		})
-// 	}
-// }
+	specs := map[string]struct {
+		Msg VoteMsg
+		Exp *errors.Error
+	}{
 
-// func TestTallyMsg(t *testing.T) {
-// 	specs := map[string]struct {
-// 		Msg TallyMsg
-// 		Exp *errors.Error
-// 	}{
-// 		"Happy path": {
-// 			Msg: TallyMsg{ProposalID: weavetest.SequenceID(1), Metadata: &weave.Metadata{Schema: 1}},
-// 		},
-// 		"ID missing": {
-// 			Msg: TallyMsg{Metadata: &weave.Metadata{Schema: 1}},
-// 			Exp: errors.ErrInput,
-// 		},
-// 		"Metadata missing": {
-// 			Msg: TallyMsg{ProposalID: weavetest.SequenceID(1)},
-// 			Exp: errors.ErrMetadata,
-// 		},
-// 	}
-// 	for msg, spec := range specs {
-// 		t.Run(msg, func(t *testing.T) {
-// 			err := spec.Msg.Validate()
-// 			if !spec.Exp.Is(err) {
-// 				t.Fatalf("check expected: %v  but got %+v", spec.Exp, err)
-// 			}
-// 		})
-// 	}
-// }
+		"Happy path": {
+			Msg: VoteMsg{ProposalID: weavetest.SequenceID(1), Selected: VoteOption_Yes, Voter: alice, Metadata: &weave.Metadata{Schema: 1}},
+		},
+		"Voter optional": {
+			Msg: VoteMsg{ProposalID: weavetest.SequenceID(1), Selected: VoteOption_Yes, Metadata: &weave.Metadata{Schema: 1}},
+		},
+		"Proposal id missing": {
+			Msg: VoteMsg{Selected: VoteOption_Yes, Voter: alice, Metadata: &weave.Metadata{Schema: 1}},
+			Exp: errors.ErrInput,
+		},
+		"Vote option missing": {
+			Msg: VoteMsg{ProposalID: weavetest.SequenceID(1), Voter: alice, Metadata: &weave.Metadata{Schema: 1}},
+			Exp: errors.ErrInput,
+		},
+		"Invalid vote option": {
+			Msg: VoteMsg{ProposalID: weavetest.SequenceID(1), Selected: VoteOption(100), Voter: alice, Metadata: &weave.Metadata{Schema: 1}},
+			Exp: errors.ErrInput,
+		},
+		"Invalid voter address": {
+			Msg: VoteMsg{ProposalID: weavetest.SequenceID(1), Selected: VoteOption_Yes, Voter: weave.Address([]byte{0}), Metadata: &weave.Metadata{Schema: 1}},
+			Exp: errors.ErrInput,
+		},
+		"Metadata missing": {
+			Msg: VoteMsg{ProposalID: weavetest.SequenceID(1), Selected: VoteOption_Yes, Voter: alice},
+			Exp: errors.ErrMetadata,
+		},
+	}
+	for msg, spec := range specs {
+		t.Run(msg, func(t *testing.T) {
+			err := spec.Msg.Validate()
+			if !spec.Exp.Is(err) {
+				t.Fatalf("check expected: %v  but got %+v", spec.Exp, err)
+			}
+		})
+	}
+}
 
+func TestTallyMsg(t *testing.T) {
+	specs := map[string]struct {
+		Msg TallyMsg
+		Exp *errors.Error
+	}{
+		"Happy path": {
+			Msg: TallyMsg{ProposalID: weavetest.SequenceID(1), Metadata: &weave.Metadata{Schema: 1}},
+		},
+		"ID missing": {
+			Msg: TallyMsg{Metadata: &weave.Metadata{Schema: 1}},
+			Exp: errors.ErrInput,
+		},
+		"Metadata missing": {
+			Msg: TallyMsg{ProposalID: weavetest.SequenceID(1)},
+			Exp: errors.ErrMetadata,
+		},
+	}
+	for msg, spec := range specs {
+		t.Run(msg, func(t *testing.T) {
+			err := spec.Msg.Validate()
+			if !spec.Exp.Is(err) {
+				t.Fatalf("check expected: %v  but got %+v", spec.Exp, err)
+			}
+		})
+	}
+}
+
+// TODO: enable
 // func TestCrateTextProposalMsg(t *testing.T) {
 // 	buildMsg := func(mods ...func(*CreateTextProposalMsg)) CreateTextProposalMsg {
 // 		m := CreateTextProposalMsg{
@@ -189,38 +196,38 @@ package gov
 // 	}
 // }
 
-// func TestDeleteTestProposalMsg(t *testing.T) {
-// 	specs := map[string]struct {
-// 		Msg DeleteProposalMsg
-// 		Exp *errors.Error
-// 	}{
-// 		"Happy path": {
-// 			Msg: DeleteProposalMsg{ID: weavetest.SequenceID(1), Metadata: &weave.Metadata{Schema: 1}},
-// 		},
-// 		"Empty ID": {
-// 			Msg: DeleteProposalMsg{Metadata: &weave.Metadata{Schema: 1}},
-// 			Exp: errors.ErrInput,
-// 		},
-// 		"Metadata missing": {
-// 			Msg: DeleteProposalMsg{ID: weavetest.SequenceID(1)},
-// 			Exp: errors.ErrMetadata,
-// 		},
-// 	}
-// 	for msg, spec := range specs {
-// 		t.Run(msg, func(t *testing.T) {
-// 			err := spec.Msg.Validate()
-// 			if !spec.Exp.Is(err) {
-// 				t.Fatalf("check expected: %v  but got %+v", spec.Exp, err)
-// 			}
-// 		})
-// 	}
-// }
+func TestDeleteProposalMsg(t *testing.T) {
+	specs := map[string]struct {
+		Msg DeleteProposalMsg
+		Exp *errors.Error
+	}{
+		"Happy path": {
+			Msg: DeleteProposalMsg{ProposalID: weavetest.SequenceID(1), Metadata: &weave.Metadata{Schema: 1}},
+		},
+		"Empty ID": {
+			Msg: DeleteProposalMsg{Metadata: &weave.Metadata{Schema: 1}},
+			Exp: errors.ErrInput,
+		},
+		"Metadata missing": {
+			Msg: DeleteProposalMsg{ProposalID: weavetest.SequenceID(1)},
+			Exp: errors.ErrMetadata,
+		},
+	}
+	for msg, spec := range specs {
+		t.Run(msg, func(t *testing.T) {
+			err := spec.Msg.Validate()
+			if !spec.Exp.Is(err) {
+				t.Fatalf("check expected: %v  but got %+v", spec.Exp, err)
+			}
+		})
+	}
+}
 
-// func BigString(n int) string {
-// 	const randomChar = "a"
-// 	var r string
-// 	for i := 0; i < n; i++ {
-// 		r += randomChar
-// 	}
-// 	return r
-// }
+func BigString(n int) string {
+	const randomChar = "a"
+	var r string
+	for i := 0; i < n; i++ {
+		r += randomChar
+	}
+	return r
+}
