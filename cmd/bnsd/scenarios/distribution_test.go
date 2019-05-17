@@ -13,7 +13,11 @@ import (
 )
 
 func TestRevenueDistribution(t *testing.T) {
-	env, cleanup := bnsdtest.StartBnsd(t)
+	env, cleanup := bnsdtest.StartBnsd(t,
+		bnsdtest.WithMsgFee("distribution/newrevenue", coin.NewCoin(2, 0, "IOV")),
+		bnsdtest.WithMsgFee("distribution/distribute", coin.NewCoin(0, 200000000, "IOV")),
+		bnsdtest.WithMsgFee("distribution/resetRevenue", coin.NewCoin(1, 0, "IOV")),
+	)
 	defer cleanup()
 
 	admin := client.GenPrivateKey()

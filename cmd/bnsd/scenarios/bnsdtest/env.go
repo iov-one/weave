@@ -19,6 +19,8 @@ type EnvConf struct {
 	AntiSpamFee coin.Coin
 	MinFee      coin.Coin
 
+	msgfees map[string]coin.Coin
+
 	Client         client.Client
 	clientThrottle time.Duration
 
@@ -30,20 +32,32 @@ type EnvConf struct {
 	RpcAddress        string
 }
 
-func EnvMinFee(c coin.Coin) StartBnsdOption {
+func WithMinFee(c coin.Coin) StartBnsdOption {
 	return func(env *EnvConf) {
 		env.MinFee = c
 	}
 }
 
-func EnvLogger(out io.Writer) StartBnsdOption {
+func WithAntiSpamFee(c coin.Coin) StartBnsdOption {
+	return func(env *EnvConf) {
+		env.AntiSpamFee = c
+	}
+}
+
+func WithLogger(out io.Writer) StartBnsdOption {
 	return func(env *EnvConf) {
 		env.Logger = log.NewTMLogger(out)
 	}
 }
 
-func EnvThrottle(frequency time.Duration) StartBnsdOption {
+func WithThrottle(frequency time.Duration) StartBnsdOption {
 	return func(env *EnvConf) {
 		env.clientThrottle = frequency
+	}
+}
+
+func WithMsgFee(msgPath string, fee coin.Coin) StartBnsdOption {
+	return func(env *EnvConf) {
+		env.msgfees[msgPath] = fee
 	}
 }

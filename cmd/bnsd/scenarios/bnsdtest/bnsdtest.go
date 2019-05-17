@@ -32,11 +32,13 @@ import (
 func StartBnsd(t testing.TB, opts ...StartBnsdOption) (env *EnvConf, cleanup func()) {
 	env = &EnvConf{
 		MinFee:           coin.Coin{},
+		AntiSpamFee:      coin.Coin{},
 		Alice:            derivePrivateKey(t, *hexSeed, *derivationPath),
 		Logger:           log.NewTMLogger(ioutil.Discard),
 		MultiSigContract: multisig.MultiSigCondition(weavetest.SequenceID(1)),
 		EscrowContract:   escrow.Condition(weavetest.SequenceID(1)),
 		clientThrottle:   *delay,
+		msgfees:          make(map[string]coin.Coin),
 	}
 	env.DistrContractAddr, _ = distribution.RevenueAccount(weavetest.SequenceID(1))
 
@@ -159,6 +161,11 @@ func initGenesis(t testing.TB, env *EnvConf, filename string) {
 
 	type dict map[string]interface{}
 
+	msgfees := make([]dict, 0, len(env.msgfees))
+	for path, fee := range env.msgfees {
+		msgfees = append(msgfees, dict{"msg_path": path, "fee": fee})
+	}
+
 	appState, err := json.MarshalIndent(dict{
 		"cash": []interface{}{
 			dict{
@@ -230,24 +237,7 @@ func initGenesis(t testing.TB, env *EnvConf, filename string) {
 				Admin: weave.Condition("multisig/usage/0000000000000001").Address(),
 			},
 		},
-		"msgfee": []interface{}{
-			dict{
-				"msg_path": "distribution/newrevenue",
-				"fee":      coin.Coin{Ticker: "IOV", Whole: 2},
-			},
-			dict{
-				"msg_path": "distribution/distribute",
-				"fee":      coin.Coin{Ticker: "IOV", Whole: 0, Fractional: 200000000},
-			},
-			dict{
-				"msg_path": "distribution/resetRevenue",
-				"fee":      coin.Coin{Ticker: "IOV", Whole: 1},
-			},
-			dict{
-				"msg_path": "nft/username/issue",
-				"fee":      coin.Coin{Ticker: "IOV", Whole: 5},
-			},
-		},
+		"msgfee": msgfees,
 		"initialize_schema": []dict{
 			dict{"ver": 1, "pkg": "batch"},
 			dict{"ver": 1, "pkg": "cash"},

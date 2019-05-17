@@ -15,7 +15,9 @@ import (
 )
 
 func TestIssueNfts(t *testing.T) {
-	env, cleanup := bnsdtest.StartBnsd(t)
+	env, cleanup := bnsdtest.StartBnsd(t,
+		bnsdtest.WithMsgFee("nft/username/issue", coin.NewCoin(5, 0, "IOV")),
+	)
 	defer cleanup()
 
 	// Ensure suffix is never less than 100, but never more than 10000 (3 or 4 chars)

@@ -29,9 +29,12 @@ func (d *AntispamFeeDecorator) Check(ctx weave.Context, store weave.KVStore, tx 
 	if d.fee.IsZero() {
 		return res, nil
 	}
+	if res.RequiredFee.IsZero() {
+		return nil, errors.Wrap(errors.ErrEmpty, "required must not be zero")
+	}
 	if !res.RequiredFee.SameType(d.fee) {
 		return nil, errors.Wrapf(errors.ErrCurrency,
-			"antispam fee has the wrong type: expected %s, got %s", res.RequiredFee.Ticker, d.fee.Ticker)
+			"antispam fee has the wrong type: expected %q, got %q", d.fee.Ticker, res.RequiredFee.Ticker)
 	}
 	if !res.RequiredFee.IsGTE(d.fee) {
 		res.RequiredFee = d.fee
