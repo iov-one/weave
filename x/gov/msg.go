@@ -42,17 +42,19 @@ func (m *CreateProposalMsgBase) Validate() error {
 		return errors.Wrap(errors.ErrInput, "missing base proposal msg info")
 	}
 
-	// Really... why not a series of if statements??
-	switch {
-	case len(m.GetElectionRuleID()) == 0:
+	if len(m.GetElectionRuleID()) == 0 {
 		return errors.Wrap(errors.ErrInput, "empty election rules id")
-	case m.GetStartTime() == 0:
+	}
+	if m.GetStartTime() == 0 {
 		return errors.Wrap(errors.ErrInput, "empty start time")
-	case !validTitle(m.GetTitle()):
+	}
+	if !validTitle(m.GetTitle()) {
 		return errors.Wrapf(errors.ErrInput, "title: %q", m.GetTitle())
-	case len(m.GetDescription()) < minDescriptionLength:
+	}
+	if len(m.GetDescription()) < minDescriptionLength {
 		return errors.Wrapf(errors.ErrInput, "description length lower than minimum of: %d", minDescriptionLength)
-	case len(m.GetDescription()) > maxDescriptionLength:
+	}
+	if len(m.GetDescription()) > maxDescriptionLength {
 		return errors.Wrapf(errors.ErrInput, "description length exceeds: %d", maxDescriptionLength)
 	}
 	if err := m.GetStartTime().Validate(); err != nil {
@@ -124,12 +126,13 @@ func (m UpdateElectionRuleMsg) Validate() error {
 	if err := m.Metadata.Validate(); err != nil {
 		return errors.Wrap(err, "invalid metadata")
 	}
-	switch {
-	case len(m.ElectionRuleID) == 0:
+	if len(m.ElectionRuleID) == 0 {
 		return errors.Wrap(errors.ErrEmpty, "id")
-	case m.VotingPeriodHours < minVotingPeriodHours:
+	}
+	if m.VotingPeriodHours < minVotingPeriodHours {
 		return errors.Wrapf(errors.ErrInput, "min hours: %d", minVotingPeriodHours)
-	case m.VotingPeriodHours > maxVotingPeriodHours:
+	}
+	if m.VotingPeriodHours > maxVotingPeriodHours {
 		return errors.Wrapf(errors.ErrInput, "max hours: %d", maxVotingPeriodHours)
 	}
 	return m.Threshold.Validate()

@@ -70,14 +70,12 @@ func (h VoteHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (
 		return nil, err
 	}
 
-	switch oldVote, err := h.voteBucket.GetVote(db, voteMsg.ProposalID, vote.Elector.Address); {
-	case errors.ErrNotFound.Is(err): // not voted before: skip undo
-	case err != nil:
+	oldVote, err := h.voteBucket.GetVote(db, voteMsg.ProposalID, vote.Elector.Address)
+	if err != nil && !errors.ErrNotFound.Is(err) {
 		return nil, errors.Wrap(err, "failed to load vote")
-	default:
-		if err := proposal.Common.UndoCountVote(*oldVote); err != nil {
-			return nil, err
-		}
+	}
+	if err := proposal.Common.UndoCountVote(*oldVote); err != nil {
+		return nil, err
 	}
 
 	if err := proposal.Common.CountVote(*vote); err != nil {

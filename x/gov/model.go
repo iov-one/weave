@@ -31,12 +31,13 @@ func (m Electorate) Validate() error {
 		return errors.Wrap(err, "invalid metadata")
 	}
 
-	switch n := len(m.Electors); {
-	case n == 0:
+	if len(m.Electors) == 0 {
 		return errors.Wrap(errors.ErrInput, "electors must not be empty")
-	case n > maxElectors:
+	}
+	if len(m.Electors) > maxElectors {
 		return errors.Wrapf(errors.ErrInput, "electors must not exceed: %d", maxElectors)
-	case !validTitle(m.Title):
+	}
+	if !validTitle(m.Title) {
 		return errors.Wrapf(errors.ErrInput, "title: %q", m.Title)
 	}
 
@@ -83,10 +84,10 @@ func (m Electorate) Elector(a weave.Address) (*Elector, bool) {
 const maxWeight = 1<<16 - 1
 
 func (m Elector) Validate() error {
-	switch {
-	case m.Weight > maxWeight:
+	if m.Weight > maxWeight {
 		return errors.Wrap(errors.ErrInput, "must not be greater max weight")
-	case m.Weight == 0:
+	}
+	if m.Weight == 0 {
 		return errors.Wrap(errors.ErrInput, "weight must not be empty")
 	}
 	return m.Address.Validate()
@@ -109,15 +110,16 @@ func (m ElectionRule) Validate() error {
 	if len(m.ElectorateID) != 8 {
 		return errors.Wrapf(errors.ErrInput, "must refer to electorate with 8 byte id")
 	}
-
-	switch {
-	case !validTitle(m.Title):
+	if !validTitle(m.Title) {
 		return errors.Wrapf(errors.ErrInput, "title: %q", m.Title)
-	case m.VotingPeriodHours < minVotingPeriodHours:
+	}
+	if m.VotingPeriodHours < minVotingPeriodHours {
 		return errors.Wrapf(errors.ErrInput, "min hours: %d", minVotingPeriodHours)
-	case m.VotingPeriodHours > maxVotingPeriodHours:
+	}
+	if m.VotingPeriodHours > maxVotingPeriodHours {
 		return errors.Wrapf(errors.ErrInput, "max hours: %d", maxVotingPeriodHours)
 	}
+
 	if err := m.Admin.Validate(); err != nil {
 		return errors.Wrap(err, "admin")
 	}
@@ -141,14 +143,16 @@ func (m ElectionRule) Copy() orm.CloneableData {
 }
 
 func (m Fraction) Validate() error {
-	switch {
-	case m.Numerator == 0:
+	if m.Numerator == 0 {
 		return errors.Wrap(errors.ErrInput, "numerator must not be 0")
-	case m.Denominator == 0:
+	}
+	if m.Denominator == 0 {
 		return errors.Wrap(errors.ErrInput, "denominator must not be 0")
-	case uint64(m.Numerator)*2 < uint64(m.Denominator):
+	}
+	if uint64(m.Numerator)*2 < uint64(m.Denominator) {
 		return errors.Wrap(errors.ErrInput, "must not be lower 0.5")
-	case m.Numerator > m.Denominator:
+	}
+	if m.Numerator > m.Denominator {
 		return errors.Wrap(errors.ErrInput, "must not be greater 1")
 	}
 	return nil
@@ -183,22 +187,28 @@ func (m *ProposalCommon) Validate() error {
 	if m == nil {
 		return errors.Wrap(errors.ErrState, "proposal common data missing")
 	}
-	switch {
-	case m.Result == ProposalCommon_Empty:
+	if m.Result == ProposalCommon_Empty {
 		return errors.Wrap(errors.ErrState, "invalid result value")
-	case m.Status == ProposalCommon_Invalid:
+	}
+	if m.Status == ProposalCommon_Invalid {
 		return errors.Wrap(errors.ErrState, "invalid status")
-	case m.VotingStartTime >= m.VotingEndTime:
+	}
+	if m.VotingStartTime >= m.VotingEndTime {
 		return errors.Wrap(errors.ErrState, "start time must be before end time")
-	case m.VotingStartTime <= m.SubmissionTime:
+	}
+	if m.VotingStartTime <= m.SubmissionTime {
 		return errors.Wrap(errors.ErrState, "start time must be after submission time")
-	case len(m.Author) == 0:
+	}
+	if len(m.Author) == 0 {
 		return errors.Wrap(errors.ErrState, "author required")
-	case len(m.Description) < minDescriptionLength:
+	}
+	if len(m.Description) < minDescriptionLength {
 		return errors.Wrapf(errors.ErrState, "description length lower than minimum of: %d", minDescriptionLength)
-	case len(m.Description) > maxDescriptionLength:
+	}
+	if len(m.Description) > maxDescriptionLength {
 		return errors.Wrapf(errors.ErrState, "description length exceeds: %d", maxDescriptionLength)
-	case !validTitle(m.Title):
+	}
+	if !validTitle(m.Title) {
 		return errors.Wrapf(errors.ErrState, "title: %q", m.Title)
 	}
 	if err := m.ElectionRuleRef.Validate(); err != nil {
@@ -329,14 +339,15 @@ func (m TallyResult) TotalVotes() uint64 {
 }
 
 func (m TallyResult) Validate() error {
-	switch {
-	case m.Quorum != nil:
+	if m.Quorum != nil {
 		if err := m.Quorum.Validate(); err != nil {
 			return errors.Wrap(errors.ErrState, "quorum")
 		}
-	case m.TotalElectorateWeight == 0:
+	}
+	if m.TotalElectorateWeight == 0 {
 		return errors.Wrap(errors.ErrState, "totalElectorateWeight")
-	case m.TotalVotes() > m.TotalElectorateWeight:
+	}
+	if m.TotalVotes() > m.TotalElectorateWeight {
 		return errors.Wrap(errors.ErrState, "votes must not exceed totalElectorateWeight")
 	}
 	if err := m.Threshold.Validate(); err != nil {

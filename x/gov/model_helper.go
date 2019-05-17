@@ -31,14 +31,16 @@ func (m *merger) merge(diff []Elector) error {
 
 	for _, v := range diff {
 		oldWeight, ok := m.index[string(v.Address)]
-		switch {
-		case v.Weight == 0 && !ok: // remove non existing
+		if v.Weight == 0 && !ok { // remove non existing
 			return errors.Wrapf(errors.ErrNotFound, "address %q not in electorate", v.Address)
-		case v.Weight == oldWeight && ok: // do not add existing
+		}
+		if v.Weight == oldWeight && ok { // do not add existing
 			return errors.Wrapf(errors.ErrDuplicate, "address %q already in electorate with same weight", v.Address)
-		case v.Weight == 0: // remove existing
+		}
+
+		if v.Weight == 0 { // remove existing
 			delete(m.index, string(v.Address))
-		default: // add or update
+		} else { // add or update
 			m.index[string(v.Address)] = v.Weight
 		}
 	}
