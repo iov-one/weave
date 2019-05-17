@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package gov;
+
+import "github.com/gogo/protobuf/gogoproto/gogo.proto";
+import "github.com/iov-one/weave/codec.proto";
+import "x/gov/codec.proto";
+
+// ProposalOptions is a sum type of all possible messages that
+// may be dispatched via a governance proposal.
+//
+// For the test case, we only refer to package-internal messages
+// and handlers, but an application can reference messages from any package.
+message ProposalOptions {
+  oneof option {
+    TextResolutionMsg text = 1;
+    UpdateElectorateMsg electorate = 2;
+    UpdateElectionRuleMsg rule = 3;
+  }
+}
+
+// AppCreateProposalMsg is byte compatible with CreateProposalMsg
+// assuming we use DecodeFromProtoSum(&ProposalOptions{}).
+//
+// It is here to demonstrate a clean app-level usage of proposals
+message AppCreateProposalMsg {
+  weave.Metadata metadata = 1;
+  CreateProposalMsgBase base = 2;
+  ProposalOptions options = 3;
+}

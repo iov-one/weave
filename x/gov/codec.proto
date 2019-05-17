@@ -219,6 +219,14 @@ message TallyMsg {
   bytes proposal_id = 2 [(gogoproto.customname) = "ProposalID"];
 }
 
+// TextResolutionMsg is only intended to be dispatched internally from election
+// results. It adds a resolution to the list of "approved" resolutions,
+// with a reference to the electorate that approved it
+message TextResolutionMsg {
+  weave.Metadata metadata = 1;
+  string resolution = 2;
+}
+
 message UpdateElectorateMsg {
   weave.Metadata metadata = 1;
   // ElectorateID is the reference to the electorate that defines the group of possible voters.

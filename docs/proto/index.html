@@ -559,6 +559,25 @@
         
           
           <li>
+            <a href="#x%2fgov%2fsample_test.proto">x/gov/sample_test.proto</a>
+            <ul>
+              
+                <li>
+                  <a href="#gov.AppCreateProposalMsg"><span class="badge">M</span>AppCreateProposalMsg</a>
+                </li>
+              
+                <li>
+                  <a href="#gov.ProposalOptions"><span class="badge">M</span>ProposalOptions</a>
+                </li>
+              
+              
+              
+              
+            </ul>
+          </li>
+        
+          
+          <li>
             <a href="#x%2fgov%2fcodec.proto">x/gov/codec.proto</a>
             <ul>
               
@@ -604,6 +623,10 @@
               
                 <li>
                   <a href="#gov.TallyResult"><span class="badge">M</span>TallyResult</a>
+                </li>
+              
+                <li>
+                  <a href="#gov.TextResolutionMsg"><span class="badge">M</span>TextResolutionMsg</a>
                 </li>
               
                 <li>
@@ -3169,6 +3192,94 @@ total increment value, including the default increment. </p></td>
     
       
       <div class="file-heading">
+        <h2 id="x/gov/sample_test.proto">x/gov/sample_test.proto</h2><a href="#title">Top</a>
+      </div>
+      <p></p>
+
+      
+        <h3 id="gov.AppCreateProposalMsg">AppCreateProposalMsg</h3>
+        <p>AppCreateProposalMsg is byte compatible with CreateProposalMsg</p><p>assuming we use DecodeFromProtoSum(&ProposalOptions{}).</p><p>It is here to demonstrate a clean app-level usage of proposals</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>metadata</td>
+                  <td><a href="#weave.Metadata">weave.Metadata</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>base</td>
+                  <td><a href="#gov.CreateProposalMsgBase">CreateProposalMsgBase</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>options</td>
+                  <td><a href="#gov.ProposalOptions">ProposalOptions</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+        
+
+        
+      
+        <h3 id="gov.ProposalOptions">ProposalOptions</h3>
+        <p>ProposalOptions is a sum type of all possible messages that</p><p>may be dispatched via a governance proposal.</p><p>For the test case, we only refer to package-internal messages</p><p>and handlers, but an application can reference messages from any package.</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>text</td>
+                  <td><a href="#gov.TextResolutionMsg">TextResolutionMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>electorate</td>
+                  <td><a href="#gov.UpdateElectorateMsg">UpdateElectorateMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>rule</td>
+                  <td><a href="#gov.UpdateElectionRuleMsg">UpdateElectionRuleMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+        
+
+        
+      
+
+      
+
+      
+
+      
+    
+      
+      <div class="file-heading">
         <h2 id="x/gov/codec.proto">x/gov/codec.proto</h2><a href="#title">Top</a>
       </div>
       <p></p>
@@ -3708,6 +3819,36 @@ to be included in the election. </p></td>
                   <td></td>
                   <td><p>Threshold is the fraction of Yes votes of a base value that needs to be exceeded to accept the proposal.
 The base value is either the total electorate weight or the sum of Yes/No weights when a quorum is defined. </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+        
+
+        
+      
+        <h3 id="gov.TextResolutionMsg">TextResolutionMsg</h3>
+        <p>TextResolutionMsg is only intended to be dispatched internally from election</p><p>results. It adds a resolution to the list of "approved" resolutions,</p><p>with a reference to the electorate that approved it</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>metadata</td>
+                  <td><a href="#weave.Metadata">weave.Metadata</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>resolution</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p> </p></td>
                 </tr>
               
             </tbody>
