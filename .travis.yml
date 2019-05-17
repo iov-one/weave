@@ -43,7 +43,7 @@ script:
      ./coverage/upload.sh;
    fi;
 - printenv | grep -Ev "PATH|path|GEM" > env.list
-- docker run -it --rm --env-file env.list -v "$(pwd):/usr/src/app" pyar6329/danger:5.4.1 > danger.out; cat danger.out; grep -q 'Errors' danger.out && exit 1
+- docker run -it --rm --env-file env.list -v "$(pwd):/usr/src/app" iov1ops/danger:latest > danger.out; cat danger.out; grep -q 'Errors' danger.out && exit 1
 - if [[ "$TRAVIS_GO_VERSION" == "$MAIN_GO_VERSION" && "$TRAVIS_OS_NAME" == "linux" ]]; then
     release_latest=$( [[ "$TRAVIS_BRANCH" == "master" && "$TRAVIS_TAG" == "" && "$TRAVIS_PULL_REQUEST_BRANCH" == "" ]] && echo "yes" || echo "no" );
     release_tag=$( [[ "$TRAVIS_TAG" != "" ]] && echo "yes" || echo "no" );
