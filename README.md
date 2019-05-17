@@ -91,6 +91,8 @@ Once it compiles, I highly suggest going through the
 
 | Weave | Tendermint |
 |--------|-----------|
+|v0.15.x | v0.31.5|
+|v0.14.x | v0.29.1|
 |v0.13.0 | v0.29.1|
 |v0.12.0 | v0.29.1|
 |v0.11.1 | v0.29.1|
@@ -100,6 +102,8 @@ Once it compiles, I highly suggest going through the
 
 | Weave | Protobuf compatible to previous version| Comments |
 |--------|--------------------|------------------|
+|v0.15.0 | :x:| See [CHANGELOG for 0.15.0](https://github.com/iov-one/weave/blob/master/CHANGELOG.md#0150) |
+|v0.14.0 | :x:| See [CHANGELOG for 0.14.0](https://github.com/iov-one/weave/blob/master/CHANGELOG.md#0140) |
 |v0.13.0 | :x:| Changes in `x/multisig` - signer weights added. |
 |v0.12.1 | :x:| Changes in `x/escrow` - wall clock timeout implemented. |
 |v0.12.0 | :x:| Currency no longer supports supplying SigFigs nor returns them. |
