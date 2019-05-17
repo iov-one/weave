@@ -81,7 +81,6 @@ func TestTallyMsg(t *testing.T) {
 	}
 }
 
-// TODO: enable
 func TestCreateProposalMsg(t *testing.T) {
 	alice := weavetest.NewCondition().Address()
 

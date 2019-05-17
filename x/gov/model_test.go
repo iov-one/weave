@@ -3,9 +3,11 @@ package gov
 import (
 	"math"
 	"testing"
+	"time"
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/weavetest"
 )
 
@@ -398,116 +400,103 @@ func TestElectionRuleValidation(t *testing.T) {
 	}
 }
 
-// TODO: re-enable test
-// func TestTextProposalValidation(t *testing.T) {
-// 	specs := map[string]struct {
-// 		Src Proposal
-// 		Exp *errors.Error
-// 	}{
-// 		"Happy path": {
-// 			Src: textProposalFixture(),
-// 		},
-// 		"Title too short": {
-// 			Src: textProposalFixture(func(p *Proposal) {
-// 				p.Title = "foo"
-// 			}),
-// 			Exp: errors.ErrInput,
-// 		},
-// 		"Title too long": {
-// 			Src: textProposalFixture(func(p *Proposal) {
-// 				p.Title = BigString(129)
-// 			}),
-// 			Exp: errors.ErrInput,
-// 		},
-// 		"Description empty": {
-// 			Src: textProposalFixture(func(p *Proposal) {
-// 				p.Description = ""
-// 			}),
-// 			Exp: errors.ErrInput,
-// 		},
-// 		"Description too long": {
-// 			Src: textProposalFixture(func(p *Proposal) {
-// 				p.Description = BigString(5001)
-// 			}),
-// 			Exp: errors.ErrInput,
-// 		},
-// 		"Author missing": {
-// 			Src: textProposalFixture(func(p *Proposal) {
-// 				p.Author = nil
-// 			}),
-// 			Exp: errors.ErrInput,
-// 		},
-// 		"ElectorateRef invalid": {
-// 			Src: textProposalFixture(func(p *Proposal) {
-// 				p.ElectorateRef = orm.VersionedIDRef{}
-// 			}),
-// 			Exp: errors.ErrEmpty,
-// 		},
-// 		"ElectionRuleID missing": {
-// 			Src: textProposalFixture(func(p *Proposal) {
-// 				p.ElectionRuleRef = orm.VersionedIDRef{}
-// 			}),
-// 			Exp: errors.ErrEmpty,
-// 		},
-// 		"StartTime missing": {
-// 			Src: textProposalFixture(func(p *Proposal) {
-// 				var unset time.Time
-// 				p.VotingStartTime = weave.AsUnixTime(unset)
-// 			}),
-// 			Exp: errors.ErrInput,
-// 		},
-// 		"EndTime missing": {
-// 			Src: textProposalFixture(func(p *Proposal) {
-// 				var unset time.Time
-// 				p.VotingEndTime = weave.AsUnixTime(unset)
-// 			}),
-// 			Exp: errors.ErrInput,
-// 		},
-// 		"Status missing": {
-// 			Src: textProposalFixture(func(p *Proposal) {
-// 				p.Status = Proposal_Status(0)
-// 			}),
-// 			Exp: errors.ErrInput,
-// 		},
-// 		"Result missing": {
-// 			Src: textProposalFixture(func(p *Proposal) {
-// 				p.Result = Proposal_Result(0)
-// 			}),
-// 			Exp: errors.ErrInput,
-// 		},
-// 		"Metadata missing": {
-// 			Src: textProposalFixture(func(p *Proposal) {
-// 				p.Metadata = nil
-// 			}),
-// 			Exp: errors.ErrMetadata,
-// 		},
-// 		"Details missing": {
-// 			Src: updateElectorateProposalFixture(func(p *Proposal) {
-// 				p.Details = nil
-// 			}),
-// 			Exp: errors.ErrEmpty,
-// 		},
-// 		"Electorate diff missing": {
-// 			Src: updateElectorateProposalFixture(func(p *Proposal) {
-// 				p.GetElectorateUpdateDetails().DiffElectors = nil
-// 			}),
-// 			Exp: errors.ErrEmpty,
-// 		},
-// 		"Electorate invalid ": {
-// 			Src: updateElectorateProposalFixture(func(p *Proposal) {
-// 				p.GetElectorateUpdateDetails().DiffElectors = []Elector{{Address: alice, Weight: math.MaxUint32}}
-// 			}),
-// 			Exp: errors.ErrInput,
-// 		},
-// 	}
-// 	for msg, spec := range specs {
-// 		t.Run(msg, func(t *testing.T) {
-// 			if exp, got := spec.Exp, spec.Src.Validate(); !exp.Is(got) {
-// 				t.Errorf("expected %v but got %v", exp, got)
-// 			}
-// 		})
-// 	}
-// }
+func TestProposalValidation(t *testing.T) {
+	alice := weavetest.NewCondition().Address()
+
+	specs := map[string]struct {
+		Src Proposal
+		Exp *errors.Error
+	}{
+		"Happy path": {
+			Src: proposalFixture(alice),
+		},
+		"Title too short": {
+			Src: proposalFixture(alice, func(p *Proposal) {
+				p.Common.Title = "foo"
+			}),
+			Exp: errors.ErrState,
+		},
+		"Title too long": {
+			Src: proposalFixture(alice, func(p *Proposal) {
+				p.Common.Title = BigString(129)
+			}),
+			Exp: errors.ErrState,
+		},
+		"Description empty": {
+			Src: proposalFixture(alice, func(p *Proposal) {
+				p.Common.Description = ""
+			}),
+			Exp: errors.ErrState,
+		},
+		"Description too long": {
+			Src: proposalFixture(alice, func(p *Proposal) {
+				p.Common.Description = BigString(5001)
+			}),
+			Exp: errors.ErrState,
+		},
+		"Author missing": {
+			Src: proposalFixture(nil),
+			Exp: errors.ErrState,
+		},
+		"ElectorateRef invalid": {
+			Src: proposalFixture(alice, func(p *Proposal) {
+				p.Common.ElectorateRef = orm.VersionedIDRef{}
+			}),
+			Exp: errors.ErrEmpty,
+		},
+		"ElectionRuleID missing": {
+			Src: proposalFixture(alice, func(p *Proposal) {
+				p.Common.ElectionRuleRef = orm.VersionedIDRef{}
+			}),
+			Exp: errors.ErrEmpty,
+		},
+		"StartTime missing": {
+			Src: proposalFixture(alice, func(p *Proposal) {
+				var unset time.Time
+				p.Common.VotingStartTime = weave.AsUnixTime(unset)
+			}),
+			Exp: errors.ErrState,
+		},
+		"EndTime missing": {
+			Src: proposalFixture(alice, func(p *Proposal) {
+				var unset time.Time
+				p.Common.VotingEndTime = weave.AsUnixTime(unset)
+			}),
+			Exp: errors.ErrState,
+		},
+		"Status missing": {
+			Src: proposalFixture(alice, func(p *Proposal) {
+				p.Common.Status = ProposalCommon_Status(0)
+			}),
+			Exp: errors.ErrState,
+		},
+		"Result missing": {
+			Src: proposalFixture(alice, func(p *Proposal) {
+				p.Common.Result = ProposalCommon_Result(0)
+			}),
+			Exp: errors.ErrState,
+		},
+		"Metadata missing": {
+			Src: proposalFixture(alice, func(p *Proposal) {
+				p.Metadata = nil
+			}),
+			Exp: errors.ErrMetadata,
+		},
+		"Options missing": {
+			Src: proposalFixture(alice, func(p *Proposal) {
+				p.RawOption = nil
+			}),
+			Exp: errors.ErrState,
+		},
+	}
+	for msg, spec := range specs {
+		t.Run(msg, func(t *testing.T) {
+			if exp, got := spec.Exp, spec.Src.Validate(); !exp.Is(got) {
+				t.Errorf("expected %v but got %v", exp, got)
+			}
+		})
+	}
+}
 
 func TestVoteValidate(t *testing.T) {
 	bobby := weavetest.NewCondition().Address()
@@ -560,59 +549,32 @@ func TestVoteValidate(t *testing.T) {
 	}
 }
 
-// func textProposalFixture(mods ...func(*Proposal)) Proposal {
-// 	now := weave.AsUnixTime(time.Now())
-// 	proposal := Proposal{
-// 		Metadata:        &weave.Metadata{Schema: 1},
-// 		Type:            Proposal_Text,
-// 		Title:           "My proposal",
-// 		Description:     "My description",
-// 		ElectionRuleRef: orm.VersionedIDRef{ID: weavetest.SequenceID(1), Version: 1},
-// 		ElectorateRef:   orm.VersionedIDRef{ID: weavetest.SequenceID(1), Version: 1},
-// 		VotingStartTime: now.Add(-1 * time.Minute),
-// 		VotingEndTime:   now.Add(time.Minute),
-// 		SubmissionTime:  now.Add(-1 * time.Hour),
-// 		Status:          Proposal_Submitted,
-// 		Result:          Proposal_Undefined,
-// 		Author:          alice,
-// 		VoteState:       NewTallyResult(nil, Fraction{1, 2}, 11),
-// 		Details:         &Proposal_TextDetails{&TextProposalPayload{}},
-// 	}
-// 	for _, mod := range mods {
-// 		if mod != nil {
-// 			mod(&proposal)
-// 		}
-// 	}
-// 	return proposal
-// }
-
-// func updateElectorateProposalFixture(mods ...func(*Proposal)) Proposal {
-// 	now := weave.AsUnixTime(time.Now())
-// 	proposal := Proposal{
-// 		Metadata:        &weave.Metadata{Schema: 1},
-// 		Type:            Proposal_UpdateElectorate,
-// 		Title:           "My proposal",
-// 		Description:     "My description",
-// 		ElectionRuleRef: orm.VersionedIDRef{ID: weavetest.SequenceID(1), Version: 1},
-// 		ElectorateRef:   orm.VersionedIDRef{ID: weavetest.SequenceID(1), Version: 1},
-// 		VotingStartTime: now.Add(-1 * time.Minute),
-// 		VotingEndTime:   now.Add(time.Minute),
-// 		SubmissionTime:  now.Add(-1 * time.Hour),
-// 		Status:          Proposal_Submitted,
-// 		Result:          Proposal_Undefined,
-// 		Author:          alice,
-// 		VoteState:       NewTallyResult(nil, Fraction{1, 2}, 11),
-// 		Details: &Proposal_ElectorateUpdateDetails{&ElectorateUpdatePayload{
-// 			[]Elector{{Address: alice, Weight: 10}},
-// 		}},
-// 	}
-// 	for _, mod := range mods {
-// 		if mod != nil {
-// 			mod(&proposal)
-// 		}
-// 	}
-// 	return proposal
-// }
+func proposalFixture(alice weave.Address, mods ...func(*Proposal)) Proposal {
+	now := weave.AsUnixTime(time.Now())
+	proposal := Proposal{
+		Metadata: &weave.Metadata{Schema: 1},
+		Common: &ProposalCommon{
+			Title:           "My proposal",
+			Description:     "My description",
+			ElectionRuleRef: orm.VersionedIDRef{ID: weavetest.SequenceID(1), Version: 1},
+			ElectorateRef:   orm.VersionedIDRef{ID: weavetest.SequenceID(1), Version: 1},
+			VotingStartTime: now.Add(-1 * time.Minute),
+			VotingEndTime:   now.Add(time.Minute),
+			SubmissionTime:  now.Add(-1 * time.Hour),
+			Status:          ProposalCommon_Submitted,
+			Result:          ProposalCommon_Undefined,
+			Author:          alice,
+			VoteState:       NewTallyResult(nil, Fraction{1, 2}, 11),
+		},
+		RawOption: []byte("some awesome msg to execute"),
+	}
+	for _, mod := range mods {
+		if mod != nil {
+			mod(&proposal)
+		}
+	}
+	return proposal
+}
 
 func buildElectors(n int) []Elector {
 	r := make([]Elector, n)
