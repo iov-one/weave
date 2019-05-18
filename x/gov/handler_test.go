@@ -1,237 +1,264 @@
 package gov
 
-// import (
-// 	"context"
-// 	"math"
-// 	"reflect"
-// 	"testing"
-// 	"time"
+import (
+	"context"
+	"reflect"
+	"testing"
+	"time"
 
-// 	"github.com/iov-one/weave"
-// 	"github.com/iov-one/weave/app"
-// 	"github.com/iov-one/weave/errors"
-// 	"github.com/iov-one/weave/migration"
-// 	"github.com/iov-one/weave/orm"
-// 	"github.com/iov-one/weave/store"
-// 	"github.com/iov-one/weave/weavetest"
-// 	"github.com/iov-one/weave/weavetest/assert"
-// )
+	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/app"
+	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/migration"
+	"github.com/iov-one/weave/orm"
+	"github.com/iov-one/weave/store"
+	"github.com/iov-one/weave/weavetest"
+	"github.com/iov-one/weave/weavetest/assert"
+)
 
-// var (
-// 	aliceCond   = weavetest.NewCondition()
-// 	alice       = aliceCond.Address()
-// 	bobbyCond   = weavetest.NewCondition()
-// 	bobby       = bobbyCond.Address()
-// 	charlieCond = weavetest.NewCondition()
-// 	charlie     = charlieCond.Address()
-// )
+var (
+	aliceCond   = weavetest.NewCondition()
+	alice       = aliceCond.Address()
+	bobbyCond   = weavetest.NewCondition()
+	bobby       = bobbyCond.Address()
+	charlieCond = weavetest.NewCondition()
+	charlie     = charlieCond.Address()
+)
 
-// func TestCreateTextProposal(t *testing.T) {
-// 	now := weave.AsUnixTime(time.Now())
-// 	specs := map[string]struct {
-// 		Init           func(ctx weave.Context, db store.KVStore) // executed before test fixtures
-// 		Msg            CreateTextProposalMsg
-// 		WantCheckErr   *errors.Error
-// 		WantDeliverErr *errors.Error
-// 		Exp            Proposal
-// 		ExpProposer    weave.Address
-// 	}{
-// 		"Happy path": {
-// 			Msg: CreateTextProposalMsg{
-// 				Metadata:       &weave.Metadata{Schema: 1},
-// 				Title:          "my proposal",
-// 				Description:    "my description",
-// 				StartTime:      now.Add(time.Hour),
-// 				ElectorateID:   weavetest.SequenceID(1),
-// 				ElectionRuleID: weavetest.SequenceID(1),
-// 				Author:         bobby,
-// 			},
-// 			Exp: Proposal{
-// 				Metadata:        &weave.Metadata{Schema: 1},
-// 				Type:            Proposal_Text,
-// 				Title:           "my proposal",
-// 				Description:     "my description",
-// 				ElectionRuleRef: orm.VersionedIDRef{ID: weavetest.SequenceID(1), Version: 1},
-// 				ElectorateRef:   orm.VersionedIDRef{ID: weavetest.SequenceID(1), Version: 1},
-// 				VotingStartTime: now.Add(time.Hour),
-// 				VotingEndTime:   now.Add(2 * time.Hour),
-// 				Status:          Proposal_Submitted,
-// 				Result:          Proposal_Undefined,
-// 				SubmissionTime:  now,
-// 				Author:          bobby,
-// 				VoteState: TallyResult{
-// 					Threshold:             Fraction{Numerator: 1, Denominator: 2},
-// 					TotalElectorateWeight: 11,
-// 				},
-// 				Details: &Proposal_TextDetails{&TextProposalPayload{}},
-// 			},
-// 			ExpProposer: bobby,
-// 		},
-// 		"All good with main signer as author": {
-// 			Msg: CreateTextProposalMsg{
-// 				Metadata:       &weave.Metadata{Schema: 1},
-// 				Title:          "my proposal",
-// 				Description:    "my description",
-// 				StartTime:      now.Add(time.Hour),
-// 				ElectorateID:   weavetest.SequenceID(1),
-// 				ElectionRuleID: weavetest.SequenceID(1),
-// 			},
-// 			Exp: Proposal{
-// 				Metadata:        &weave.Metadata{Schema: 1},
-// 				Type:            Proposal_Text,
-// 				Title:           "my proposal",
-// 				Description:     "my description",
-// 				ElectionRuleRef: orm.VersionedIDRef{ID: weavetest.SequenceID(1), Version: 1},
-// 				ElectorateRef:   orm.VersionedIDRef{ID: weavetest.SequenceID(1), Version: 1},
-// 				VotingStartTime: now.Add(time.Hour),
-// 				VotingEndTime:   now.Add(2 * time.Hour),
-// 				Status:          Proposal_Submitted,
-// 				Result:          Proposal_Undefined,
-// 				SubmissionTime:  now,
-// 				Author:          alice,
-// 				VoteState: TallyResult{
-// 					Threshold:             Fraction{Numerator: 1, Denominator: 2},
-// 					TotalElectorateWeight: 11,
-// 				},
-// 				Details: &Proposal_TextDetails{&TextProposalPayload{}},
-// 			},
-// 			ExpProposer: alice,
-// 		},
-// 		"ElectionRuleID missing": {
-// 			Msg: CreateTextProposalMsg{
-// 				Metadata:     &weave.Metadata{Schema: 1},
-// 				Title:        "my proposal",
-// 				Description:  "my description",
-// 				StartTime:    now.Add(time.Hour),
-// 				ElectorateID: weavetest.SequenceID(1),
-// 			},
-// 			WantCheckErr:   errors.ErrInput,
-// 			WantDeliverErr: errors.ErrInput,
-// 		},
-// 		"ElectionRuleID invalid": {
-// 			Msg: CreateTextProposalMsg{
-// 				Metadata:       &weave.Metadata{Schema: 1},
-// 				Title:          "my proposal",
-// 				Description:    "my description",
-// 				StartTime:      now.Add(time.Hour),
-// 				ElectorateID:   weavetest.SequenceID(1),
-// 				ElectionRuleID: weavetest.SequenceID(10000),
-// 			},
-// 			WantCheckErr:   errors.ErrNotFound,
-// 			WantDeliverErr: errors.ErrNotFound,
-// 		},
-// 		"ElectorateID missing": {
-// 			Msg: CreateTextProposalMsg{
-// 				Metadata:       &weave.Metadata{Schema: 1},
-// 				Title:          "my proposal",
-// 				Description:    "my description",
-// 				StartTime:      now.Add(time.Hour),
-// 				ElectionRuleID: weavetest.SequenceID(1),
-// 			},
-// 			WantCheckErr:   errors.ErrInput,
-// 			WantDeliverErr: errors.ErrInput,
-// 		},
-// 		"ElectorateID invalid": {
-// 			Msg: CreateTextProposalMsg{
-// 				Metadata:       &weave.Metadata{Schema: 1},
-// 				Title:          "my proposal",
-// 				Description:    "my description",
-// 				StartTime:      now.Add(time.Hour),
-// 				ElectorateID:   weavetest.SequenceID(10000),
-// 				ElectionRuleID: weavetest.SequenceID(1),
-// 			},
-// 			WantCheckErr:   errors.ErrNotFound,
-// 			WantDeliverErr: errors.ErrNotFound,
-// 		},
-// 		"Author has not signed so message should be rejected": {
-// 			Msg: CreateTextProposalMsg{
-// 				Metadata:       &weave.Metadata{Schema: 1},
-// 				Title:          "my proposal",
-// 				Description:    "my description",
-// 				StartTime:      now.Add(time.Hour),
-// 				ElectorateID:   weavetest.SequenceID(1),
-// 				ElectionRuleID: weavetest.SequenceID(1),
-// 				Author:         weavetest.NewCondition().Address(),
-// 			},
-// 			WantCheckErr:   errors.ErrUnauthorized,
-// 			WantDeliverErr: errors.ErrUnauthorized,
-// 		},
-// 		"Start time not in the future": {
-// 			Msg: CreateTextProposalMsg{
-// 				Metadata:       &weave.Metadata{Schema: 1},
-// 				Title:          "my proposal",
-// 				Description:    "my description",
-// 				StartTime:      now,
-// 				ElectorateID:   weavetest.SequenceID(1),
-// 				ElectionRuleID: weavetest.SequenceID(1),
-// 			},
-// 			WantCheckErr:   errors.ErrInput,
-// 			WantDeliverErr: errors.ErrInput,
-// 		},
-// 		"Start time too far in the future": {
-// 			Msg: CreateTextProposalMsg{
-// 				Metadata:       &weave.Metadata{Schema: 1},
-// 				Title:          "my proposal",
-// 				Description:    "my description",
-// 				StartTime:      now.Add(7*24*time.Hour + time.Second),
-// 				ElectorateID:   weavetest.SequenceID(1),
-// 				ElectionRuleID: weavetest.SequenceID(1),
-// 			},
-// 			WantCheckErr:   errors.ErrInput,
-// 			WantDeliverErr: errors.ErrInput,
-// 		},
-// 	}
-// 	auth := &weavetest.Auth{
-// 		Signers: []weave.Condition{aliceCond, bobbyCond},
-// 	}
-// 	rt := app.NewRouter()
-// 	RegisterRoutes(rt, auth)
+func decodeProposalOptions(raw []byte) (weave.Msg, error) {
+	model := ProposalOptions{}
+	err := model.Unmarshal(raw)
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot parse data into Options struct")
+	}
+	return weave.ExtractMsgFromSum(model.Option)
+}
 
-// 	for msg, spec := range specs {
-// 		t.Run(msg, func(t *testing.T) {
-// 			db := store.MemStore()
-// 			migration.MustInitPkg(db, packageName)
+func TestCreateTextProposal(t *testing.T) {
+	now := weave.AsUnixTime(time.Now())
 
-// 			// given
-// 			ctx := weave.WithBlockTime(context.Background(), now.Time())
-// 			if spec.Init != nil {
-// 				spec.Init(ctx, db)
-// 			}
-// 			// setup election rules
-// 			withElectionRule(t, db)
-// 			// setup electorate
-// 			withElectorate(t, db)
+	opts := &ProposalOptions{
+		Option: &ProposalOptions_Text{
+			Text: &TextResolutionMsg{
+				Metadata:   &weave.Metadata{Schema: 1},
+				Resolution: "CI must be green before merging",
+			},
+		},
+	}
+	textOption, err := opts.Marshal()
+	assert.Nil(t, err)
 
-// 			cache := db.CacheWrap()
+	specs := map[string]struct {
+		Init           func(ctx weave.Context, db store.KVStore) // executed before test fixtures
+		Msg            CreateProposalMsg
+		WantCheckErr   *errors.Error
+		WantDeliverErr *errors.Error
+		Exp            Proposal
+		ExpProposer    weave.Address
+	}{
+		"Happy path": {
+			Msg: CreateProposalMsg{
+				Metadata: &weave.Metadata{Schema: 1},
+				Base: &CreateProposalMsgBase{
+					Title:          "my proposal",
+					Description:    "my description",
+					StartTime:      now.Add(time.Hour),
+					ElectionRuleID: weavetest.SequenceID(1),
+					Author:         bobby,
+				},
+				RawOption: textOption,
+			},
+			Exp: Proposal{
+				Metadata: &weave.Metadata{Schema: 1},
+				Common: &ProposalCommon{
+					Title:           "my proposal",
+					Description:     "my description",
+					ElectionRuleRef: orm.VersionedIDRef{ID: weavetest.SequenceID(1), Version: 1},
+					ElectorateRef:   orm.VersionedIDRef{ID: weavetest.SequenceID(1), Version: 1},
+					VotingStartTime: now.Add(time.Hour),
+					VotingEndTime:   now.Add(2 * time.Hour),
+					Status:          ProposalCommon_Submitted,
+					Result:          ProposalCommon_Undefined,
+					SubmissionTime:  now,
+					Author:          bobby,
+					VoteState: TallyResult{
+						Threshold:             Fraction{Numerator: 1, Denominator: 2},
+						TotalElectorateWeight: 11,
+					},
+				},
+				RawOption: textOption,
+			},
+			ExpProposer: bobby,
+		},
+		// "All good with main signer as author": {
+		// 	Msg: CreateTextProposalMsg{
+		// 		Metadata:       &weave.Metadata{Schema: 1},
+		// 		Title:          "my proposal",
+		// 		Description:    "my description",
+		// 		StartTime:      now.Add(time.Hour),
+		// 		ElectorateID:   weavetest.SequenceID(1),
+		// 		ElectionRuleID: weavetest.SequenceID(1),
+		// 	},
+		// 	Exp: Proposal{
+		// 		Metadata:        &weave.Metadata{Schema: 1},
+		// 		Type:            Proposal_Text,
+		// 		Title:           "my proposal",
+		// 		Description:     "my description",
+		// 		ElectionRuleRef: orm.VersionedIDRef{ID: weavetest.SequenceID(1), Version: 1},
+		// 		ElectorateRef:   orm.VersionedIDRef{ID: weavetest.SequenceID(1), Version: 1},
+		// 		VotingStartTime: now.Add(time.Hour),
+		// 		VotingEndTime:   now.Add(2 * time.Hour),
+		// 		Status:          Proposal_Submitted,
+		// 		Result:          Proposal_Undefined,
+		// 		SubmissionTime:  now,
+		// 		Author:          alice,
+		// 		VoteState: TallyResult{
+		// 			Threshold:             Fraction{Numerator: 1, Denominator: 2},
+		// 			TotalElectorateWeight: 11,
+		// 		},
+		// 		Details: &Proposal_TextDetails{&TextProposalPayload{}},
+		// 	},
+		// 	ExpProposer: alice,
+		// },
+		// "ElectionRuleID missing": {
+		// 	Msg: CreateTextProposalMsg{
+		// 		Metadata:     &weave.Metadata{Schema: 1},
+		// 		Title:        "my proposal",
+		// 		Description:  "my description",
+		// 		StartTime:    now.Add(time.Hour),
+		// 		ElectorateID: weavetest.SequenceID(1),
+		// 	},
+		// 	WantCheckErr:   errors.ErrInput,
+		// 	WantDeliverErr: errors.ErrInput,
+		// },
+		// "ElectionRuleID invalid": {
+		// 	Msg: CreateTextProposalMsg{
+		// 		Metadata:       &weave.Metadata{Schema: 1},
+		// 		Title:          "my proposal",
+		// 		Description:    "my description",
+		// 		StartTime:      now.Add(time.Hour),
+		// 		ElectorateID:   weavetest.SequenceID(1),
+		// 		ElectionRuleID: weavetest.SequenceID(10000),
+		// 	},
+		// 	WantCheckErr:   errors.ErrNotFound,
+		// 	WantDeliverErr: errors.ErrNotFound,
+		// },
+		// "ElectorateID missing": {
+		// 	Msg: CreateTextProposalMsg{
+		// 		Metadata:       &weave.Metadata{Schema: 1},
+		// 		Title:          "my proposal",
+		// 		Description:    "my description",
+		// 		StartTime:      now.Add(time.Hour),
+		// 		ElectionRuleID: weavetest.SequenceID(1),
+		// 	},
+		// 	WantCheckErr:   errors.ErrInput,
+		// 	WantDeliverErr: errors.ErrInput,
+		// },
+		// "ElectorateID invalid": {
+		// 	Msg: CreateTextProposalMsg{
+		// 		Metadata:       &weave.Metadata{Schema: 1},
+		// 		Title:          "my proposal",
+		// 		Description:    "my description",
+		// 		StartTime:      now.Add(time.Hour),
+		// 		ElectorateID:   weavetest.SequenceID(10000),
+		// 		ElectionRuleID: weavetest.SequenceID(1),
+		// 	},
+		// 	WantCheckErr:   errors.ErrNotFound,
+		// 	WantDeliverErr: errors.ErrNotFound,
+		// },
+		// "Author has not signed so message should be rejected": {
+		// 	Msg: CreateTextProposalMsg{
+		// 		Metadata:       &weave.Metadata{Schema: 1},
+		// 		Title:          "my proposal",
+		// 		Description:    "my description",
+		// 		StartTime:      now.Add(time.Hour),
+		// 		ElectorateID:   weavetest.SequenceID(1),
+		// 		ElectionRuleID: weavetest.SequenceID(1),
+		// 		Author:         weavetest.NewCondition().Address(),
+		// 	},
+		// 	WantCheckErr:   errors.ErrUnauthorized,
+		// 	WantDeliverErr: errors.ErrUnauthorized,
+		// },
+		// "Start time not in the future": {
+		// 	Msg: CreateTextProposalMsg{
+		// 		Metadata:       &weave.Metadata{Schema: 1},
+		// 		Title:          "my proposal",
+		// 		Description:    "my description",
+		// 		StartTime:      now,
+		// 		ElectorateID:   weavetest.SequenceID(1),
+		// 		ElectionRuleID: weavetest.SequenceID(1),
+		// 	},
+		// 	WantCheckErr:   errors.ErrInput,
+		// 	WantDeliverErr: errors.ErrInput,
+		// },
+		"Start time too far in the future": {
+			Msg: CreateProposalMsg{
+				Metadata: &weave.Metadata{Schema: 1},
+				Base: &CreateProposalMsgBase{
+					Title:          "my proposal",
+					Description:    "my description",
+					StartTime:      now.Add(7*24*time.Hour + time.Second),
+					ElectionRuleID: weavetest.SequenceID(1),
+					Author:         bobby,
+				},
+				RawOption: textOption,
+			},
+			WantCheckErr:   errors.ErrInput,
+			WantDeliverErr: errors.ErrInput,
+		},
+	}
+	auth := &weavetest.Auth{
+		Signers: []weave.Condition{aliceCond, bobbyCond},
+	}
+	rt := app.NewRouter()
+	// we don't run the executor here, so we can safely pass in nil
+	RegisterRoutes(rt, auth, decodeProposalOptions, nil)
 
-// 			// when check is called
-// 			tx := &weavetest.Tx{Msg: &spec.Msg}
-// 			if _, err := rt.Check(ctx, cache, tx); !spec.WantCheckErr.Is(err) {
-// 				t.Fatalf("check expected: %+v  but got %+v", spec.WantCheckErr, err)
-// 			}
+	for msg, spec := range specs {
+		t.Run(msg, func(t *testing.T) {
+			db := store.MemStore()
+			migration.MustInitPkg(db, packageName)
 
-// 			cache.Discard()
+			// given
+			ctx := weave.WithBlockTime(context.Background(), now.Time())
+			if spec.Init != nil {
+				spec.Init(ctx, db)
+			}
+			// setup election rules
+			withElectionRule(t, db)
+			// setup electorate
+			withElectorate(t, db)
 
-// 			// and when deliver is called
-// 			res, err := rt.Deliver(ctx, db, tx)
-// 			if !spec.WantDeliverErr.Is(err) {
-// 				t.Fatalf("deliver expected: %+v  but got %+v", spec.WantCheckErr, err)
-// 			}
-// 			if spec.WantDeliverErr != nil {
-// 				return // skip further checks on expected error
-// 			}
-// 			// and check persisted status
-// 			p, err := NewProposalBucket().GetProposal(cache, res.Data)
-// 			if err != nil {
-// 				t.Fatalf("unexpected error: %s", err)
-// 			}
-// 			if exp, got := p, &spec.Exp; !reflect.DeepEqual(exp, got) {
-// 				t.Errorf("expected %#v but got %#v", exp, got)
-// 			}
-// 			cache.Discard()
-// 		})
-// 	}
-// }
+			cache := db.CacheWrap()
+
+			// when check is called
+			tx := &weavetest.Tx{Msg: &spec.Msg}
+			if _, err := rt.Check(ctx, cache, tx); !spec.WantCheckErr.Is(err) {
+				t.Fatalf("check expected: %+v  but got %+v", spec.WantCheckErr, err)
+			}
+
+			cache.Discard()
+
+			// and when deliver is called
+			res, err := rt.Deliver(ctx, db, tx)
+			if !spec.WantDeliverErr.Is(err) {
+				t.Fatalf("deliver expected: %+v  but got %+v", spec.WantCheckErr, err)
+			}
+			if spec.WantDeliverErr != nil {
+				return // skip further checks on expected error
+			}
+			// and check persisted status
+			p, err := NewProposalBucket().GetProposal(cache, res.Data)
+			if err != nil {
+				t.Fatalf("unexpected error: %s", err)
+			}
+			if exp, got := p, &spec.Exp; !reflect.DeepEqual(exp, got) {
+				t.Errorf("expected %#v but got %#v", exp, got)
+			}
+			cache.Discard()
+		})
+	}
+}
 
 // func TestCreateElectorateUpdateProposal(t *testing.T) {
 // 	now := weave.AsUnixTime(time.Now())
@@ -1513,41 +1540,41 @@ package gov
 // 	return pBucket
 // }
 
-// func withElectorate(t *testing.T, db store.KVStore) *Electorate {
-// 	t.Helper()
-// 	electorate := &Electorate{
-// 		Metadata: &weave.Metadata{Schema: 1},
-// 		Title:    "fooo",
-// 		Admin:    bobby,
-// 		Electors: []Elector{
-// 			{Address: alice, Weight: 1},
-// 			{Address: bobby, Weight: 10},
-// 		},
-// 		TotalElectorateWeight: 11,
-// 		UpdateElectionRuleRef: orm.VersionedIDRef{ID: weavetest.SequenceID(1), Version: 1},
-// 	}
-// 	sortByAddress(electorate.Electors)
-// 	electorateBucket := NewElectorateBucket()
+func withElectorate(t *testing.T, db store.KVStore) *Electorate {
+	t.Helper()
+	electorate := &Electorate{
+		Metadata: &weave.Metadata{Schema: 1},
+		Title:    "fooo",
+		Admin:    bobby,
+		Electors: []Elector{
+			{Address: alice, Weight: 1},
+			{Address: bobby, Weight: 10},
+		},
+		TotalElectorateWeight: 11,
+	}
+	sortByAddress(electorate.Electors)
+	electorateBucket := NewElectorateBucket()
 
-// 	if _, err := electorateBucket.Create(db, electorate); err != nil {
-// 		t.Fatalf("unexpected error: %+v", err)
-// 	}
-// 	return electorate
-// }
+	if _, err := electorateBucket.Create(db, electorate); err != nil {
+		t.Fatalf("unexpected error: %+v", err)
+	}
+	return electorate
+}
 
-// func withElectionRule(t *testing.T, db store.KVStore) *ElectionRule {
-// 	t.Helper()
-// 	rulesBucket := NewElectionRulesBucket()
-// 	rule := &ElectionRule{
-// 		Metadata:          &weave.Metadata{Schema: 1},
-// 		Title:             "barr",
-// 		Admin:             bobby,
-// 		VotingPeriodHours: 1,
-// 		Threshold:         Fraction{1, 2},
-// 	}
+func withElectionRule(t *testing.T, db store.KVStore) *ElectionRule {
+	t.Helper()
+	rulesBucket := NewElectionRulesBucket()
+	rule := &ElectionRule{
+		Metadata:          &weave.Metadata{Schema: 1},
+		Title:             "barr",
+		Admin:             bobby,
+		VotingPeriodHours: 1,
+		Threshold:         Fraction{1, 2},
+		ElectorateID:      weavetest.SequenceID(1),
+	}
 
-// 	if _, err := rulesBucket.Create(db, rule); err != nil {
-// 		t.Fatalf("unexpected error: %+v", err)
-// 	}
-// 	return rule
-// }
+	if _, err := rulesBucket.Create(db, rule); err != nil {
+		t.Fatalf("unexpected error: %+v", err)
+	}
+	return rule
+}

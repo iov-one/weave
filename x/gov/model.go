@@ -224,7 +224,10 @@ func (m *ProposalCommon) Validate() error {
 	return m.VoteState.Validate()
 }
 
-func (m ProposalCommon) Copy() orm.CloneableData {
+func (m *ProposalCommon) Copy() orm.CloneableData {
+	if m == nil {
+		return &ProposalCommon{}
+	}
 	return &ProposalCommon{
 		Title:           m.Title,
 		Description:     m.Description,
