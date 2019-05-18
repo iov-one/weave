@@ -411,99 +411,100 @@ func TestCreateTextProposal(t *testing.T) {
 	}
 }
 
-// func TestDeleteProposal(t *testing.T) {
-// 	proposalID := weavetest.SequenceID(1)
-// 	nonExistentProposalID := weavetest.SequenceID(2)
-// 	specs := map[string]struct {
-// 		Mods            func(weave.Context, *Proposal) // modifies test fixtures before storing
-// 		ProposalDeleted bool
-// 		Msg             DeleteProposalMsg
-// 		SignedBy        weave.Condition
-// 		WantCheckErr    *errors.Error
-// 		WantDeliverErr  *errors.Error
-// 	}{
-// 		"Happy path": {
-// 			Msg:             DeleteProposalMsg{Metadata: &weave.Metadata{Schema: 1}, ID: proposalID},
-// 			SignedBy:        hAliceCond,
-// 			ProposalDeleted: true,
-// 			Mods: func(ctx weave.Context, proposal *Proposal) {
-// 				proposal.VotingStartTime = weave.AsUnixTime(time.Now().Add(1 * time.Hour))
-// 				proposal.VotingEndTime = weave.AsUnixTime(time.Now().Add(2 * time.Hour))
-// 			},
-// 		},
-// 		"Proposal does not exist": {
-// 			Msg:            DeleteProposalMsg{Metadata: &weave.Metadata{Schema: 1}, ID: nonExistentProposalID},
-// 			SignedBy:       hAliceCond,
-// 			WantCheckErr:   errors.ErrNotFound,
-// 			WantDeliverErr: errors.ErrNotFound,
-// 		},
-// 		"Delete by non-author": {
-// 			Msg:            DeleteProposalMsg{Metadata: &weave.Metadata{Schema: 1}, ID: proposalID},
-// 			SignedBy:       hBobbyCond,
-// 			WantCheckErr:   errors.ErrUnauthorized,
-// 			WantDeliverErr: errors.ErrUnauthorized,
-// 			Mods: func(ctx weave.Context, proposal *Proposal) {
-// 				proposal.VotingStartTime = weave.AsUnixTime(time.Now().Add(1 * time.Hour))
-// 				proposal.VotingEndTime = weave.AsUnixTime(time.Now().Add(2 * time.Hour))
-// 			},
-// 		},
-// 		"Voting has started": {
-// 			Msg:      DeleteProposalMsg{Metadata: &weave.Metadata{Schema: 1}, ID: proposalID},
-// 			SignedBy: hAliceCond,
-// 			Mods: func(ctx weave.Context, proposal *Proposal) {
-// 				proposal.VotingStartTime = weave.AsUnixTime(time.Now().Add(-1 * time.Hour))
-// 				proposal.SubmissionTime = weave.AsUnixTime(time.Now().Add(-2 * time.Hour))
-// 			},
-// 			WantCheckErr:   errors.ErrImmutable,
-// 			WantDeliverErr: errors.ErrImmutable,
-// 		},
-// 	}
+func TestDeleteProposal(t *testing.T) {
+	proposalID := weavetest.SequenceID(1)
+	nonExistentProposalID := weavetest.SequenceID(2)
+	specs := map[string]struct {
+		Mods            func(weave.Context, *Proposal) // modifies test fixtures before storing
+		ProposalDeleted bool
+		Msg             DeleteProposalMsg
+		SignedBy        weave.Condition
+		WantCheckErr    *errors.Error
+		WantDeliverErr  *errors.Error
+	}{
+		"Happy path": {
+			Msg:             DeleteProposalMsg{Metadata: &weave.Metadata{Schema: 1}, ProposalID: proposalID},
+			SignedBy:        hAliceCond,
+			ProposalDeleted: true,
+			Mods: func(ctx weave.Context, proposal *Proposal) {
+				proposal.Common.VotingStartTime = weave.AsUnixTime(time.Now().Add(1 * time.Hour))
+				proposal.Common.VotingEndTime = weave.AsUnixTime(time.Now().Add(2 * time.Hour))
+			},
+		},
+		"Proposal does not exist": {
+			Msg:            DeleteProposalMsg{Metadata: &weave.Metadata{Schema: 1}, ProposalID: nonExistentProposalID},
+			SignedBy:       hAliceCond,
+			WantCheckErr:   errors.ErrNotFound,
+			WantDeliverErr: errors.ErrNotFound,
+		},
+		"Delete by non-author": {
+			Msg:            DeleteProposalMsg{Metadata: &weave.Metadata{Schema: 1}, ProposalID: proposalID},
+			SignedBy:       hBobbyCond,
+			WantCheckErr:   errors.ErrUnauthorized,
+			WantDeliverErr: errors.ErrUnauthorized,
+			Mods: func(ctx weave.Context, proposal *Proposal) {
+				proposal.Common.VotingStartTime = weave.AsUnixTime(time.Now().Add(1 * time.Hour))
+				proposal.Common.VotingEndTime = weave.AsUnixTime(time.Now().Add(2 * time.Hour))
+			},
+		},
+		"Voting has started": {
+			Msg:      DeleteProposalMsg{Metadata: &weave.Metadata{Schema: 1}, ProposalID: proposalID},
+			SignedBy: hAliceCond,
+			Mods: func(ctx weave.Context, proposal *Proposal) {
+				proposal.Common.VotingStartTime = weave.AsUnixTime(time.Now().Add(-1 * time.Hour))
+				proposal.Common.SubmissionTime = weave.AsUnixTime(time.Now().Add(-2 * time.Hour))
+			},
+			WantCheckErr:   errors.ErrImmutable,
+			WantDeliverErr: errors.ErrImmutable,
+		},
+	}
 
-// 	for msg, spec := range specs {
-// 		t.Run(msg, func(t *testing.T) {
-// 			db := store.MemStore()
-// 			migration.MustInitPkg(db, packageName)
+	for msg, spec := range specs {
+		t.Run(msg, func(t *testing.T) {
+			db := store.MemStore()
+			migration.MustInitPkg(db, packageName)
 
-// 			auth := &weavetest.Auth{
-// 				Signer: spec.SignedBy,
-// 			}
-// 			rt := app.NewRouter()
-// 			RegisterRoutes(rt, auth)
+			auth := &weavetest.Auth{
+				Signer: spec.SignedBy,
+			}
+			rt := app.NewRouter()
+			RegisterRoutes(rt, auth, decodeProposalOptions, nil)
 
-// 			// given
-// 			ctx := weave.WithBlockTime(context.Background(), time.Now().Round(time.Second))
-// 			pBucket := withTextProposal(t, db, ctx, spec.Mods)
-// 			cache := db.CacheWrap()
+			// given
+			ctx := weave.WithBlockTime(context.Background(), time.Now().Round(time.Second))
+			pBucket := withTextProposal(t, db, ctx, spec.Mods)
+			cache := db.CacheWrap()
 
-// 			// when check
-// 			tx := &weavetest.Tx{Msg: &spec.Msg}
-// 			if _, err := rt.Check(ctx, cache, tx); !spec.WantCheckErr.Is(err) {
-// 				t.Fatalf("check expected: %+v  but got %+v", spec.WantCheckErr, err)
-// 			}
+			// when check
+			tx := &weavetest.Tx{Msg: &spec.Msg}
+			if _, err := rt.Check(ctx, cache, tx); !spec.WantCheckErr.Is(err) {
+				t.Fatalf("check expected: %+v  but got %+v", spec.WantCheckErr, err)
+			}
 
-// 			cache.Discard()
-// 			// and when deliver
-// 			if _, err := rt.Deliver(ctx, db, tx); !spec.WantDeliverErr.Is(err) {
-// 				t.Fatalf("deliver expected: %+v  but got %+v", spec.WantCheckErr, err)
-// 			}
+			cache.Discard()
+			// and when deliver
+			if _, err := rt.Deliver(ctx, db, tx); !spec.WantDeliverErr.Is(err) {
+				t.Fatalf("deliver expected: %+v  but got %+v", spec.WantCheckErr, err)
+			}
 
-// 			if spec.WantDeliverErr != nil {
-// 				return // skip further checks on expected error
-// 			}
+			if spec.WantDeliverErr != nil {
+				return // skip further checks on expected error
+			}
 
-// 			// check that proposal gets deleted as expected
-// 			p, err := pBucket.GetProposal(cache, weavetest.SequenceID(1))
-// 			assert.Nil(t, err)
-// 			if spec.ProposalDeleted {
-// 				assert.Equal(t, p.Status, Proposal_Withdrawn)
-// 			} else {
-// 				assert.Equal(t, true, p.Status != Proposal_Withdrawn)
-// 			}
+			// check that proposal gets deleted as expected
+			p, err := pBucket.GetProposal(cache, weavetest.SequenceID(1))
+			assert.Nil(t, err)
+			if spec.ProposalDeleted {
+				assert.Equal(t, p.Common.Status, ProposalCommon_Withdrawn)
+			} else {
+				assert.Equal(t, true, p.Common.Status != ProposalCommon_Withdrawn)
+			}
 
-// 			cache.Discard()
-// 		})
-// 	}
-// }
+			cache.Discard()
+		})
+	}
+}
+
 // func TestVote(t *testing.T) {
 // 	proposalID := weavetest.SequenceID(1)
 // 	nonElectorCond := weavetest.NewCondition()
@@ -1474,33 +1475,41 @@ func TestCreateTextProposal(t *testing.T) {
 // 	}
 // }
 
-// // ctxAwareMutator is a call back interface to modify the passed proposal for test setup
-// type ctxAwareMutator func(weave.Context, *Proposal)
+// ctxAwareMutator is a call back interface to modify the passed proposal for test setup
+type ctxAwareMutator func(weave.Context, *Proposal)
 
-// func withTextProposal(t *testing.T, db store.KVStore, ctx weave.Context, mods ...ctxAwareMutator) *ProposalBucket {
-// 	t.Helper()
-// 	// setup electorate
-// 	withElectorate(t, db)
-// 	// setup election rules
-// 	withElectionRule(t, db)
-// 	// adapter to call fixture mutator with context
-// 	ctxMods := make([]func(*Proposal), len(mods))
-// 	for i := 0; i < len(mods); i++ {
-// 		j := i
-// 		ctxMods[j] = func(p *Proposal) {
-// 			if mods[j] == nil {
-// 				return
-// 			}
-// 			mods[j](ctx, p)
-// 		}
-// 	}
-// 	pBucket := NewProposalBucket()
-// 	proposal := textProposalFixture(ctxMods...)
-// 	if _, err := pBucket.Create(db, &proposal); err != nil {
-// 		t.Fatalf("unexpected error: %+v", err)
-// 	}
-// 	return pBucket
-// }
+func withTextProposal(t *testing.T, db store.KVStore, ctx weave.Context, mods ...ctxAwareMutator) *ProposalBucket {
+	t.Helper()
+	// setup electorate
+	withElectorate(t, db)
+	// setup election rules
+	withElectionRule(t, db)
+	textOptions, _, _ := generateOptions(t)
+
+	// adapter to call fixture mutator with context
+	ctxMods := make([]func(*Proposal), len(mods)+1)
+	// give a valid option here
+	// TODO: merge into proposalFixture
+	ctxMods[0] = func(p *Proposal) {
+		p.RawOption = textOptions
+	}
+	for i := 0; i < len(mods); i++ {
+		j := i
+		ctxMods[j+1] = func(p *Proposal) {
+			if mods[j] == nil {
+				return
+			}
+			mods[j](ctx, p)
+		}
+	}
+	pBucket := NewProposalBucket()
+	proposal := proposalFixture(hAlice, ctxMods...)
+
+	if _, err := pBucket.Create(db, &proposal); err != nil {
+		t.Fatalf("unexpected error: %+v", err)
+	}
+	return pBucket
+}
 
 func withElectorate(t *testing.T, db store.KVStore) *Electorate {
 	t.Helper()
