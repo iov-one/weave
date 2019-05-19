@@ -20,18 +20,12 @@ func withTextProposal(t *testing.T, db store.KVStore, ctx weave.Context, mods ..
 	withElectorate(t, db)
 	// setup election rules
 	withElectionRule(t, db)
-	textOptions, _, _ := generateOptions(t)
 
 	// adapter to call fixture mutator with context
-	ctxMods := make([]func(*Proposal), len(mods)+1)
-	// give a valid option here
-	// TODO: merge into proposalFixture
-	ctxMods[0] = func(p *Proposal) {
-		p.RawOption = textOptions
-	}
+	ctxMods := make([]func(*Proposal), len(mods))
 	for i := 0; i < len(mods); i++ {
 		j := i
-		ctxMods[j+1] = func(p *Proposal) {
+		ctxMods[j] = func(p *Proposal) {
 			if mods[j] == nil {
 				return
 			}
@@ -88,6 +82,19 @@ func withElectionRule(t *testing.T, db store.KVStore) *ElectionRule {
 
 func proposalFixture(alice weave.Address, mods ...func(*Proposal)) Proposal {
 	now := weave.AsUnixTime(time.Now())
+	textOpts := &ProposalOptions{
+		Option: &ProposalOptions_Text{
+			Text: &TextResolutionMsg{
+				Metadata:   &weave.Metadata{Schema: 1},
+				Resolution: "Lower tx fees for all!",
+			},
+		},
+	}
+	textOption, err := textOpts.Marshal()
+	if err != nil {
+		panic(err)
+	}
+
 	proposal := Proposal{
 		Metadata: &weave.Metadata{Schema: 1},
 		Common: &ProposalCommon{
@@ -103,7 +110,7 @@ func proposalFixture(alice weave.Address, mods ...func(*Proposal)) Proposal {
 			Author:          alice,
 			VoteState:       NewTallyResult(nil, Fraction{1, 2}, 11),
 		},
-		RawOption: []byte("some awesome msg to execute"),
+		RawOption: textOption,
 	}
 	for _, mod := range mods {
 		if mod != nil {
