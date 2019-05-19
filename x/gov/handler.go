@@ -42,6 +42,14 @@ func RegisterRoutes(r weave.Registry, auth x.Authenticator, decoder OptionDecode
 	// Note: we do NOT register the TextResultionHandler here... this is only for the proposal Executor
 }
 
+// RegisterBasicProposalRouters register the routes we accept for executing governance decisions
+func RegisterBasicProposalRouters(r weave.Registry, auth x.Authenticator) {
+	r = migration.SchemaMigratingRegistry(packageName, r)
+	r.Handle(pathUpdateElectorateMsg, NewUpdateElectorateHandler(auth))
+	r.Handle(pathUpdateElectionRulesMsg, NewUpdateElectionRuleHandler(auth))
+	r.Handle(pathTextResolutionMsg, NewTextResolutionHandler(auth))
+}
+
 type VoteHandler struct {
 	auth       x.Authenticator
 	elecBucket *ElectorateBucket

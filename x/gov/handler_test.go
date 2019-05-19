@@ -679,436 +679,436 @@ func TestVote(t *testing.T) {
 	}
 }
 
-// func TestTally(t *testing.T) {
-// 	type tallySetup struct {
-// 		quorum                *Fraction
-// 		threshold             Fraction
-// 		totalWeightElectorate uint64
-// 		yes, no, abstain      uint64
-// 	}
-// 	specs := map[string]struct {
-// 		Mods           func(weave.Context, *Proposal)
-// 		Src            tallySetup
-// 		WantCheckErr   *errors.Error
-// 		WantDeliverErr *errors.Error
-// 		ExpResult      ProposalCommon_Result
-// 		PostChecks     func(t *testing.T, db weave.KVStore)
-// 		Init           func(t *testing.T, db weave.KVStore)
-// 	}{
-// 		"Accepted with electorate majority": {
-// 			Src: tallySetup{
-// 				yes:                   5,
-// 				threshold:             Fraction{Numerator: 1, Denominator: 2},
-// 				totalWeightElectorate: 9,
-// 			},
-// 			ExpResult: ProposalCommon_Accepted,
-// 		},
-// 		"Accepted with all yes votes required": {
-// 			Src: tallySetup{
-// 				yes:                   9,
-// 				threshold:             Fraction{Numerator: 1, Denominator: 1},
-// 				totalWeightElectorate: 9,
-// 			},
-// 			ExpResult: ProposalCommon_Accepted,
-// 		},
-// 		"Rejected without enough Yes votes": {
-// 			Src: tallySetup{
-// 				yes:                   4,
-// 				abstain:               5,
-// 				threshold:             Fraction{Numerator: 1, Denominator: 2},
-// 				totalWeightElectorate: 9,
-// 			},
-// 			ExpResult: ProposalCommon_Rejected,
-// 		},
-// 		"Rejected on acceptance threshold value": {
-// 			Src: tallySetup{
-// 				yes:                   4,
-// 				no:                    1,
-// 				abstain:               3,
-// 				threshold:             Fraction{Numerator: 1, Denominator: 2},
-// 				totalWeightElectorate: 9,
-// 			},
-// 			ExpResult: ProposalCommon_Rejected,
-// 		},
-// 		"Rejected without voters": {
-// 			Src: tallySetup{
-// 				threshold:             Fraction{Numerator: 1, Denominator: 2},
-// 				totalWeightElectorate: 2,
-// 			},
-// 			ExpResult: ProposalCommon_Rejected,
-// 		},
-// 		"Rejected without enough votes: 2/3": {
-// 			Src: tallySetup{
-// 				yes:                   6,
-// 				threshold:             Fraction{Numerator: 2, Denominator: 3},
-// 				totalWeightElectorate: 9,
-// 			},
-// 			ExpResult: ProposalCommon_Rejected,
-// 		},
-// 		"Accepted with quorum and acceptance thresholds exceeded: 5/9": {
-// 			Src: tallySetup{
-// 				yes:                   5,
-// 				quorum:                &Fraction{Numerator: 1, Denominator: 2},
-// 				threshold:             Fraction{Numerator: 1, Denominator: 2},
-// 				totalWeightElectorate: 9,
-// 			},
-// 			ExpResult: ProposalCommon_Accepted,
-// 		},
-// 		"Rejected with quorum thresholds not exceeded": {
-// 			Src: tallySetup{
-// 				yes:                   4,
-// 				quorum:                &Fraction{Numerator: 1, Denominator: 2},
-// 				threshold:             Fraction{Numerator: 1, Denominator: 2},
-// 				totalWeightElectorate: 9,
-// 			},
-// 			ExpResult: ProposalCommon_Rejected,
-// 		},
-// 		"Accepted with quorum and acceptance thresholds exceeded: 4/9": {
-// 			Src: tallySetup{
-// 				yes:                   4,
-// 				no:                    1,
-// 				quorum:                &Fraction{Numerator: 1, Denominator: 2},
-// 				threshold:             Fraction{Numerator: 1, Denominator: 2},
-// 				totalWeightElectorate: 9,
-// 			},
-// 			ExpResult: ProposalCommon_Accepted,
-// 		},
-// 		"Rejected with majority No": {
-// 			Src: tallySetup{
-// 				yes:                   4,
-// 				no:                    5,
-// 				quorum:                &Fraction{Numerator: 1, Denominator: 2},
-// 				threshold:             Fraction{Numerator: 1, Denominator: 2},
-// 				totalWeightElectorate: 9,
-// 			},
-// 			ExpResult: ProposalCommon_Rejected,
-// 		},
-// 		"Rejected by single No when unanimity required": {
-// 			Src: tallySetup{
-// 				yes:                   8,
-// 				no:                    1,
-// 				quorum:                &Fraction{Numerator: 1, Denominator: 2},
-// 				threshold:             Fraction{Numerator: 1, Denominator: 1},
-// 				totalWeightElectorate: 9,
-// 			},
-// 			ExpResult: ProposalCommon_Rejected,
-// 		},
-// 		"Rejected by missing vote when all required": {
-// 			Src: tallySetup{
-// 				yes:                   8,
-// 				quorum:                &Fraction{Numerator: 1, Denominator: 1},
-// 				threshold:             Fraction{Numerator: 1, Denominator: 2},
-// 				totalWeightElectorate: 9,
-// 			},
-// 			ExpResult: ProposalCommon_Rejected,
-// 		},
-// 		"Accept on quorum fraction 1/1": {
-// 			Src: tallySetup{
-// 				yes:                   8,
-// 				abstain:               1,
-// 				quorum:                &Fraction{Numerator: 1, Denominator: 1},
-// 				threshold:             Fraction{Numerator: 1, Denominator: 2},
-// 				totalWeightElectorate: 9,
-// 			},
-// 			ExpResult: ProposalCommon_Accepted,
-// 		},
-// 		"Accepted with quorum and acceptance thresholds exceeded: 3/9": {
-// 			Src: tallySetup{
-// 				yes:                   3,
-// 				abstain:               2,
-// 				quorum:                &Fraction{Numerator: 1, Denominator: 2},
-// 				threshold:             Fraction{Numerator: 1, Denominator: 2},
-// 				totalWeightElectorate: 9,
-// 			},
-// 			ExpResult: ProposalCommon_Accepted,
-// 		},
-// 		"Accepted by single Yes and neutral abstains": {
-// 			Src: tallySetup{
-// 				yes:                   1,
-// 				abstain:               4,
-// 				quorum:                &Fraction{Numerator: 1, Denominator: 2},
-// 				threshold:             Fraction{Numerator: 1, Denominator: 2},
-// 				totalWeightElectorate: 9,
-// 			},
-// 			ExpResult: ProposalCommon_Accepted,
-// 		},
-// 		"Rejected without Yes majority and neutral abstains": {
-// 			Src: tallySetup{
-// 				yes:                   2,
-// 				no:                    2,
-// 				abstain:               2,
-// 				quorum:                &Fraction{Numerator: 1, Denominator: 2},
-// 				threshold:             Fraction{Numerator: 1, Denominator: 2},
-// 				totalWeightElectorate: 9,
-// 			},
-// 			ExpResult: ProposalCommon_Rejected,
-// 		},
-// 		"Accepted with acceptance thresholds < quorum": {
-// 			Src: tallySetup{
-// 				yes:                   2,
-// 				abstain:               5,
-// 				quorum:                &Fraction{Numerator: 2, Denominator: 3},
-// 				threshold:             Fraction{Numerator: 1, Denominator: 2},
-// 				totalWeightElectorate: 9,
-// 			},
-// 			ExpResult: ProposalCommon_Accepted,
-// 		},
-// 		"Accepted with quorum and acceptance thresholds require all votes": {
-// 			Src: tallySetup{
-// 				yes:                   9,
-// 				quorum:                &Fraction{Numerator: 1, Denominator: 1},
-// 				threshold:             Fraction{Numerator: 1, Denominator: 1},
-// 				totalWeightElectorate: 9,
-// 			},
-// 			ExpResult: ProposalCommon_Accepted,
-// 		},
-// 		"Works with high values: accept": {
-// 			Src: tallySetup{
-// 				yes:                   math.MaxUint64,
-// 				no:                    math.MaxUint64/2 - 1, // less than 1/2 yes
-// 				abstain:               math.MaxUint64,
-// 				quorum:                &Fraction{Numerator: math.MaxUint32 - 1, Denominator: math.MaxUint32},
-// 				threshold:             Fraction{Numerator: math.MaxUint32 - 1, Denominator: math.MaxUint32},
-// 				totalWeightElectorate: math.MaxUint64,
-// 			},
-// 			ExpResult: ProposalCommon_Accepted,
-// 		},
-// 		"Works with high values: reject": {
-// 			Src: tallySetup{
-// 				yes:                   math.MaxUint64 - 1, // less than total electorate
-// 				no:                    math.MaxUint64 - 1,
-// 				abstain:               math.MaxUint64,
-// 				quorum:                &Fraction{Numerator: math.MaxUint32 - 1, Denominator: math.MaxUint32},
-// 				threshold:             Fraction{Numerator: math.MaxUint32 - 1, Denominator: math.MaxUint32},
-// 				totalWeightElectorate: math.MaxUint64,
-// 			},
-// 			ExpResult: ProposalCommon_Rejected,
-// 		},
-// 		"Updates latest electorate on success": {
-// 			Init: func(t *testing.T, db weave.KVStore) {
-// 				// update electorate for a new version
-// 				bucket := NewElectorateBucket()
-// 				_, obj, err := bucket.GetLatestVersion(db, weavetest.SequenceID(1))
-// 				if err != nil {
-// 					t.Fatalf("unexpected error: %+v", err)
-// 				}
-// 				e, _ := asElectorate(obj)
-// 				e.Electors = []Elector{{hAlice, 1}, {hBobby, 10}, {hCharlie, 2}}
-// 				e.TotalElectorateWeight = 13
+func TestTally(t *testing.T) {
+	type tallySetup struct {
+		quorum                *Fraction
+		threshold             Fraction
+		totalWeightElectorate uint64
+		yes, no, abstain      uint64
+	}
+	specs := map[string]struct {
+		Mods           func(weave.Context, *Proposal)
+		Src            tallySetup
+		WantCheckErr   *errors.Error
+		WantDeliverErr *errors.Error
+		ExpResult      ProposalCommon_Result
+		PostChecks     func(t *testing.T, db weave.KVStore)
+		Init           func(t *testing.T, db weave.KVStore)
+	}{
+		"Accepted with electorate majority": {
+			Src: tallySetup{
+				yes:                   5,
+				threshold:             Fraction{Numerator: 1, Denominator: 2},
+				totalWeightElectorate: 9,
+			},
+			ExpResult: ProposalCommon_Accepted,
+		},
+		"Accepted with all yes votes required": {
+			Src: tallySetup{
+				yes:                   9,
+				threshold:             Fraction{Numerator: 1, Denominator: 1},
+				totalWeightElectorate: 9,
+			},
+			ExpResult: ProposalCommon_Accepted,
+		},
+		"Rejected without enough Yes votes": {
+			Src: tallySetup{
+				yes:                   4,
+				abstain:               5,
+				threshold:             Fraction{Numerator: 1, Denominator: 2},
+				totalWeightElectorate: 9,
+			},
+			ExpResult: ProposalCommon_Rejected,
+		},
+		"Rejected on acceptance threshold value": {
+			Src: tallySetup{
+				yes:                   4,
+				no:                    1,
+				abstain:               3,
+				threshold:             Fraction{Numerator: 1, Denominator: 2},
+				totalWeightElectorate: 9,
+			},
+			ExpResult: ProposalCommon_Rejected,
+		},
+		"Rejected without voters": {
+			Src: tallySetup{
+				threshold:             Fraction{Numerator: 1, Denominator: 2},
+				totalWeightElectorate: 2,
+			},
+			ExpResult: ProposalCommon_Rejected,
+		},
+		"Rejected without enough votes: 2/3": {
+			Src: tallySetup{
+				yes:                   6,
+				threshold:             Fraction{Numerator: 2, Denominator: 3},
+				totalWeightElectorate: 9,
+			},
+			ExpResult: ProposalCommon_Rejected,
+		},
+		"Accepted with quorum and acceptance thresholds exceeded: 5/9": {
+			Src: tallySetup{
+				yes:                   5,
+				quorum:                &Fraction{Numerator: 1, Denominator: 2},
+				threshold:             Fraction{Numerator: 1, Denominator: 2},
+				totalWeightElectorate: 9,
+			},
+			ExpResult: ProposalCommon_Accepted,
+		},
+		"Rejected with quorum thresholds not exceeded": {
+			Src: tallySetup{
+				yes:                   4,
+				quorum:                &Fraction{Numerator: 1, Denominator: 2},
+				threshold:             Fraction{Numerator: 1, Denominator: 2},
+				totalWeightElectorate: 9,
+			},
+			ExpResult: ProposalCommon_Rejected,
+		},
+		"Accepted with quorum and acceptance thresholds exceeded: 4/9": {
+			Src: tallySetup{
+				yes:                   4,
+				no:                    1,
+				quorum:                &Fraction{Numerator: 1, Denominator: 2},
+				threshold:             Fraction{Numerator: 1, Denominator: 2},
+				totalWeightElectorate: 9,
+			},
+			ExpResult: ProposalCommon_Accepted,
+		},
+		"Rejected with majority No": {
+			Src: tallySetup{
+				yes:                   4,
+				no:                    5,
+				quorum:                &Fraction{Numerator: 1, Denominator: 2},
+				threshold:             Fraction{Numerator: 1, Denominator: 2},
+				totalWeightElectorate: 9,
+			},
+			ExpResult: ProposalCommon_Rejected,
+		},
+		"Rejected by single No when unanimity required": {
+			Src: tallySetup{
+				yes:                   8,
+				no:                    1,
+				quorum:                &Fraction{Numerator: 1, Denominator: 2},
+				threshold:             Fraction{Numerator: 1, Denominator: 1},
+				totalWeightElectorate: 9,
+			},
+			ExpResult: ProposalCommon_Rejected,
+		},
+		"Rejected by missing vote when all required": {
+			Src: tallySetup{
+				yes:                   8,
+				quorum:                &Fraction{Numerator: 1, Denominator: 1},
+				threshold:             Fraction{Numerator: 1, Denominator: 2},
+				totalWeightElectorate: 9,
+			},
+			ExpResult: ProposalCommon_Rejected,
+		},
+		"Accept on quorum fraction 1/1": {
+			Src: tallySetup{
+				yes:                   8,
+				abstain:               1,
+				quorum:                &Fraction{Numerator: 1, Denominator: 1},
+				threshold:             Fraction{Numerator: 1, Denominator: 2},
+				totalWeightElectorate: 9,
+			},
+			ExpResult: ProposalCommon_Accepted,
+		},
+		"Accepted with quorum and acceptance thresholds exceeded: 3/9": {
+			Src: tallySetup{
+				yes:                   3,
+				abstain:               2,
+				quorum:                &Fraction{Numerator: 1, Denominator: 2},
+				threshold:             Fraction{Numerator: 1, Denominator: 2},
+				totalWeightElectorate: 9,
+			},
+			ExpResult: ProposalCommon_Accepted,
+		},
+		"Accepted by single Yes and neutral abstains": {
+			Src: tallySetup{
+				yes:                   1,
+				abstain:               4,
+				quorum:                &Fraction{Numerator: 1, Denominator: 2},
+				threshold:             Fraction{Numerator: 1, Denominator: 2},
+				totalWeightElectorate: 9,
+			},
+			ExpResult: ProposalCommon_Accepted,
+		},
+		"Rejected without Yes majority and neutral abstains": {
+			Src: tallySetup{
+				yes:                   2,
+				no:                    2,
+				abstain:               2,
+				quorum:                &Fraction{Numerator: 1, Denominator: 2},
+				threshold:             Fraction{Numerator: 1, Denominator: 2},
+				totalWeightElectorate: 9,
+			},
+			ExpResult: ProposalCommon_Rejected,
+		},
+		"Accepted with acceptance thresholds < quorum": {
+			Src: tallySetup{
+				yes:                   2,
+				abstain:               5,
+				quorum:                &Fraction{Numerator: 2, Denominator: 3},
+				threshold:             Fraction{Numerator: 1, Denominator: 2},
+				totalWeightElectorate: 9,
+			},
+			ExpResult: ProposalCommon_Accepted,
+		},
+		"Accepted with quorum and acceptance thresholds require all votes": {
+			Src: tallySetup{
+				yes:                   9,
+				quorum:                &Fraction{Numerator: 1, Denominator: 1},
+				threshold:             Fraction{Numerator: 1, Denominator: 1},
+				totalWeightElectorate: 9,
+			},
+			ExpResult: ProposalCommon_Accepted,
+		},
+		"Works with high values: accept": {
+			Src: tallySetup{
+				yes:                   math.MaxUint64,
+				no:                    math.MaxUint64/2 - 1, // less than 1/2 yes
+				abstain:               math.MaxUint64,
+				quorum:                &Fraction{Numerator: math.MaxUint32 - 1, Denominator: math.MaxUint32},
+				threshold:             Fraction{Numerator: math.MaxUint32 - 1, Denominator: math.MaxUint32},
+				totalWeightElectorate: math.MaxUint64,
+			},
+			ExpResult: ProposalCommon_Accepted,
+		},
+		"Works with high values: reject": {
+			Src: tallySetup{
+				yes:                   math.MaxUint64 - 1, // less than total electorate
+				no:                    math.MaxUint64 - 1,
+				abstain:               math.MaxUint64,
+				quorum:                &Fraction{Numerator: math.MaxUint32 - 1, Denominator: math.MaxUint32},
+				threshold:             Fraction{Numerator: math.MaxUint32 - 1, Denominator: math.MaxUint32},
+				totalWeightElectorate: math.MaxUint64,
+			},
+			ExpResult: ProposalCommon_Rejected,
+		},
+		// "Updates latest electorate on success": {
+		// 	Init: func(t *testing.T, db weave.KVStore) {
+		// 		// update electorate for a new version
+		// 		bucket := NewElectorateBucket()
+		// 		_, obj, err := bucket.GetLatestVersion(db, weavetest.SequenceID(1))
+		// 		if err != nil {
+		// 			t.Fatalf("unexpected error: %+v", err)
+		// 		}
+		// 		e, _ := asElectorate(obj)
+		// 		e.Electors = []Elector{{hAlice, 1}, {hBobby, 10}, {hCharlie, 2}}
+		// 		e.TotalElectorateWeight = 13
 
-// 				if _, err := bucket.Update(db, weavetest.SequenceID(1), e); err != nil {
-// 					t.Fatalf("unexpected error: %+v", err)
-// 				}
-// 			},
-// 			Mods: func(ctx weave.Context, p *Proposal) {
-// 				update := updateElectorateProposalFixture()
-// 				blockTime, _ := weave.BlockTime(ctx)
-// 				update.VotingEndTime = weave.AsUnixTime(blockTime.Add(-1 * time.Second))
-// 				update.VoteState = p.VoteState
-// 				*p = update
-// 			},
-// 			Src: tallySetup{
-// 				yes:                   10,
-// 				threshold:             Fraction{Numerator: 1, Denominator: 2},
-// 				totalWeightElectorate: 11,
-// 			},
-// 			ExpResult: ProposalCommon_Accepted,
-// 			PostChecks: func(t *testing.T, db weave.KVStore) {
-// 				_, obj, err := NewElectorateBucket().GetLatestVersion(db, weavetest.SequenceID(1))
-// 				if err != nil {
-// 					t.Fatalf("unexpected error: %+v", err)
-// 				}
-// 				elect, _ := asElectorate(obj)
-// 				if exp, got := uint32(3), elect.Version; exp != got {
-// 					t.Errorf("expected %v but got %v", exp, got)
-// 				}
-// 				got := elect.Electors
-// 				exp := []Elector{{hAlice, 10}, {hBobby, 10}, {hCharlie, 2}}
-// 				sortByAddress(exp)
-// 				if !reflect.DeepEqual(exp, got) {
-// 					t.Errorf("expected %v but got %v", exp, got)
-// 				}
-// 				if exp, got := uint64(22), elect.TotalElectorateWeight; exp != got {
-// 					t.Errorf("expected %v but got %v", exp, got)
-// 				}
-// 			},
-// 		},
-// 		"Does not complete tally when executor fails": {
-// 			Init: func(t *testing.T, db weave.KVStore) {
-// 				// update electorate for a new version without Alice
-// 				bucket := NewElectorateBucket()
-// 				_, obj, err := bucket.GetLatestVersion(db, weavetest.SequenceID(1))
-// 				if err != nil {
-// 					t.Fatalf("unexpected error: %+v", err)
-// 				}
-// 				e, _ := asElectorate(obj)
-// 				e.Electors = []Elector{{hBobby, 10}}
-// 				e.TotalElectorateWeight = 10
+		// 		if _, err := bucket.Update(db, weavetest.SequenceID(1), e); err != nil {
+		// 			t.Fatalf("unexpected error: %+v", err)
+		// 		}
+		// 	},
+		// 	Mods: func(ctx weave.Context, p *Proposal) {
+		// 		update := updateElectorateProposalFixture()
+		// 		blockTime, _ := weave.BlockTime(ctx)
+		// 		update.VotingEndTime = weave.AsUnixTime(blockTime.Add(-1 * time.Second))
+		// 		update.VoteState = p.VoteState
+		// 		*p = update
+		// 	},
+		// 	Src: tallySetup{
+		// 		yes:                   10,
+		// 		threshold:             Fraction{Numerator: 1, Denominator: 2},
+		// 		totalWeightElectorate: 11,
+		// 	},
+		// 	ExpResult: ProposalCommon_Accepted,
+		// 	PostChecks: func(t *testing.T, db weave.KVStore) {
+		// 		_, obj, err := NewElectorateBucket().GetLatestVersion(db, weavetest.SequenceID(1))
+		// 		if err != nil {
+		// 			t.Fatalf("unexpected error: %+v", err)
+		// 		}
+		// 		elect, _ := asElectorate(obj)
+		// 		if exp, got := uint32(3), elect.Version; exp != got {
+		// 			t.Errorf("expected %v but got %v", exp, got)
+		// 		}
+		// 		got := elect.Electors
+		// 		exp := []Elector{{hAlice, 10}, {hBobby, 10}, {hCharlie, 2}}
+		// 		sortByAddress(exp)
+		// 		if !reflect.DeepEqual(exp, got) {
+		// 			t.Errorf("expected %v but got %v", exp, got)
+		// 		}
+		// 		if exp, got := uint64(22), elect.TotalElectorateWeight; exp != got {
+		// 			t.Errorf("expected %v but got %v", exp, got)
+		// 		}
+		// 	},
+		// },
+		// "Does not complete tally when executor fails": {
+		// 	Init: func(t *testing.T, db weave.KVStore) {
+		// 		// update electorate for a new version without Alice
+		// 		bucket := NewElectorateBucket()
+		// 		_, obj, err := bucket.GetLatestVersion(db, weavetest.SequenceID(1))
+		// 		if err != nil {
+		// 			t.Fatalf("unexpected error: %+v", err)
+		// 		}
+		// 		e, _ := asElectorate(obj)
+		// 		e.Electors = []Elector{{hBobby, 10}}
+		// 		e.TotalElectorateWeight = 10
 
-// 				if _, err := bucket.Update(db, weavetest.SequenceID(1), e); err != nil {
-// 					t.Fatalf("unexpected error: %+v", err)
-// 				}
-// 			},
-// 			Mods: func(ctx weave.Context, p *Proposal) {
-// 				update := updateElectorateProposalFixture()
-// 				blockTime, _ := weave.BlockTime(ctx)
-// 				update.GetElectorateUpdateDetails().DiffElectors = []Elector{{hAlice, 0}}
-// 				update.VotingEndTime = weave.AsUnixTime(blockTime.Add(-1 * time.Second))
-// 				update.VoteState = p.VoteState
-// 				*p = update
-// 			},
-// 			Src: tallySetup{
-// 				yes:                   10,
-// 				threshold:             Fraction{Numerator: 1, Denominator: 2},
-// 				totalWeightElectorate: 11,
-// 			},
-// 			WantDeliverErr: errors.ErrNotFound,
-// 		},
-// 		"Does not update an electorate when rejected": {
-// 			Mods: func(ctx weave.Context, p *Proposal) {
-// 				update := updateElectorateProposalFixture()
-// 				blockTime, _ := weave.BlockTime(ctx)
-// 				update.VotingEndTime = weave.AsUnixTime(blockTime.Add(-1 * time.Second))
-// 				update.VoteState = p.VoteState
-// 				*p = update
-// 			},
-// 			Src: tallySetup{
-// 				yes:                   1,
-// 				no:                    10,
-// 				threshold:             Fraction{Numerator: 1, Denominator: 2},
-// 				totalWeightElectorate: 11,
-// 			},
-// 			ExpResult: ProposalCommon_Rejected,
-// 			PostChecks: func(t *testing.T, db weave.KVStore) {
-// 				_, obj, err := NewElectorateBucket().GetLatestVersion(db, weavetest.SequenceID(1))
-// 				if err != nil {
-// 					t.Fatalf("unexpected error: %+v", err)
-// 				}
-// 				elect, _ := asElectorate(obj)
-// 				got := elect.Electors
-// 				exp := []Elector{{hAlice, 1}, {hBobby, 10}}
-// 				sortByAddress(exp)
-// 				if !reflect.DeepEqual(exp, got) {
-// 					t.Errorf("expected %v but got %v", exp, got)
-// 				}
-// 				if exp, got := uint64(11), elect.TotalElectorateWeight; exp != got {
-// 					t.Errorf("expected %v but got %v", exp, got)
-// 				}
-// 			},
-// 		},
-// 		"Fails on second tally": {
-// 			Mods: func(_ weave.Context, p *Proposal) {
-// 				p.Status = ProposalCommon_Closed
-// 			},
-// 			Src: tallySetup{
-// 				threshold:             Fraction{Numerator: 1, Denominator: 2},
-// 				totalWeightElectorate: 11,
-// 			},
-// 			WantCheckErr:   errors.ErrState,
-// 			WantDeliverErr: errors.ErrState,
-// 			ExpResult:      ProposalCommon_Accepted,
-// 		},
-// 		"Fails on tally before end date": {
-// 			Mods: func(ctx weave.Context, p *Proposal) {
-// 				blockTime, _ := weave.BlockTime(ctx)
-// 				p.VotingEndTime = weave.AsUnixTime(blockTime.Add(time.Second))
-// 			},
-// 			Src: tallySetup{
-// 				threshold:             Fraction{Numerator: 1, Denominator: 2},
-// 				totalWeightElectorate: 11,
-// 			},
-// 			WantCheckErr:   errors.ErrState,
-// 			WantDeliverErr: errors.ErrState,
-// 			ExpResult:      ProposalCommon_Undefined,
-// 		},
-// 		"Fails on tally at end date": {
-// 			Mods: func(ctx weave.Context, p *Proposal) {
-// 				blockTime, _ := weave.BlockTime(ctx)
-// 				p.VotingEndTime = weave.AsUnixTime(blockTime)
-// 			},
-// 			Src: tallySetup{
-// 				threshold:             Fraction{Numerator: 1, Denominator: 2},
-// 				totalWeightElectorate: 11,
-// 			},
-// 			WantCheckErr:   errors.ErrState,
-// 			WantDeliverErr: errors.ErrState,
-// 			ExpResult:      ProposalCommon_Undefined,
-// 		},
-// 		"Fails on withdrawn proposal": {
-// 			Mods: func(ctx weave.Context, p *Proposal) {
-// 				p.Status = ProposalCommon_Withdrawn
-// 			},
-// 			Src: tallySetup{
-// 				threshold:             Fraction{Numerator: 1, Denominator: 2},
-// 				totalWeightElectorate: 11,
-// 			},
-// 			WantCheckErr:   errors.ErrState,
-// 			WantDeliverErr: errors.ErrState,
-// 			ExpResult:      ProposalCommon_Undefined,
-// 		},
-// 	}
-// 	auth := &weavetest.Auth{
-// 		Signer: hAliceCond,
-// 	}
-// 	rt := app.NewRouter()
-// 	RegisterRoutes(rt, auth)
+		// 		if _, err := bucket.Update(db, weavetest.SequenceID(1), e); err != nil {
+		// 			t.Fatalf("unexpected error: %+v", err)
+		// 		}
+		// 	},
+		// 	Mods: func(ctx weave.Context, p *Proposal) {
+		// 		update := updateElectorateProposalFixture()
+		// 		blockTime, _ := weave.BlockTime(ctx)
+		// 		update.GetElectorateUpdateDetails().DiffElectors = []Elector{{hAlice, 0}}
+		// 		update.VotingEndTime = weave.AsUnixTime(blockTime.Add(-1 * time.Second))
+		// 		update.VoteState = p.VoteState
+		// 		*p = update
+		// 	},
+		// 	Src: tallySetup{
+		// 		yes:                   10,
+		// 		threshold:             Fraction{Numerator: 1, Denominator: 2},
+		// 		totalWeightElectorate: 11,
+		// 	},
+		// 	WantDeliverErr: errors.ErrNotFound,
+		// },
+		// "Does not update an electorate when rejected": {
+		// 	Mods: func(ctx weave.Context, p *Proposal) {
+		// 		update := updateElectorateProposalFixture()
+		// 		blockTime, _ := weave.BlockTime(ctx)
+		// 		update.VotingEndTime = weave.AsUnixTime(blockTime.Add(-1 * time.Second))
+		// 		update.VoteState = p.VoteState
+		// 		*p = update
+		// 	},
+		// 	Src: tallySetup{
+		// 		yes:                   1,
+		// 		no:                    10,
+		// 		threshold:             Fraction{Numerator: 1, Denominator: 2},
+		// 		totalWeightElectorate: 11,
+		// 	},
+		// 	ExpResult: ProposalCommon_Rejected,
+		// 	PostChecks: func(t *testing.T, db weave.KVStore) {
+		// 		_, obj, err := NewElectorateBucket().GetLatestVersion(db, weavetest.SequenceID(1))
+		// 		if err != nil {
+		// 			t.Fatalf("unexpected error: %+v", err)
+		// 		}
+		// 		elect, _ := asElectorate(obj)
+		// 		got := elect.Electors
+		// 		exp := []Elector{{hAlice, 1}, {hBobby, 10}}
+		// 		sortByAddress(exp)
+		// 		if !reflect.DeepEqual(exp, got) {
+		// 			t.Errorf("expected %v but got %v", exp, got)
+		// 		}
+		// 		if exp, got := uint64(11), elect.TotalElectorateWeight; exp != got {
+		// 			t.Errorf("expected %v but got %v", exp, got)
+		// 		}
+		// 	},
+		// },
+		"Fails on second tally": {
+			Mods: func(_ weave.Context, p *Proposal) {
+				p.Common.Status = ProposalCommon_Closed
+			},
+			Src: tallySetup{
+				threshold:             Fraction{Numerator: 1, Denominator: 2},
+				totalWeightElectorate: 11,
+			},
+			WantCheckErr:   errors.ErrState,
+			WantDeliverErr: errors.ErrState,
+			ExpResult:      ProposalCommon_Accepted,
+		},
+		"Fails on tally before end date": {
+			Mods: func(ctx weave.Context, p *Proposal) {
+				blockTime, _ := weave.BlockTime(ctx)
+				p.Common.VotingEndTime = weave.AsUnixTime(blockTime.Add(time.Second))
+			},
+			Src: tallySetup{
+				threshold:             Fraction{Numerator: 1, Denominator: 2},
+				totalWeightElectorate: 11,
+			},
+			WantCheckErr:   errors.ErrState,
+			WantDeliverErr: errors.ErrState,
+			ExpResult:      ProposalCommon_Undefined,
+		},
+		"Fails on tally at end date": {
+			Mods: func(ctx weave.Context, p *Proposal) {
+				blockTime, _ := weave.BlockTime(ctx)
+				p.Common.VotingEndTime = weave.AsUnixTime(blockTime)
+			},
+			Src: tallySetup{
+				threshold:             Fraction{Numerator: 1, Denominator: 2},
+				totalWeightElectorate: 11,
+			},
+			WantCheckErr:   errors.ErrState,
+			WantDeliverErr: errors.ErrState,
+			ExpResult:      ProposalCommon_Undefined,
+		},
+		"Fails on withdrawn proposal": {
+			Mods: func(ctx weave.Context, p *Proposal) {
+				p.Common.Status = ProposalCommon_Withdrawn
+			},
+			Src: tallySetup{
+				threshold:             Fraction{Numerator: 1, Denominator: 2},
+				totalWeightElectorate: 11,
+			},
+			WantCheckErr:   errors.ErrState,
+			WantDeliverErr: errors.ErrState,
+			ExpResult:      ProposalCommon_Undefined,
+		},
+	}
+	auth := &weavetest.Auth{
+		Signer: hAliceCond,
+	}
+	rt := app.NewRouter()
+	RegisterRoutes(rt, auth, decodeProposalOptions, proposalOptionsExecutor())
 
-// 	for msg, spec := range specs {
-// 		t.Run(msg, func(t *testing.T) {
-// 			db := store.MemStore()
-// 			migration.MustInitPkg(db, packageName)
+	for msg, spec := range specs {
+		t.Run(msg, func(t *testing.T) {
+			db := store.MemStore()
+			migration.MustInitPkg(db, packageName)
 
-// 			// given
-// 			ctx := weave.WithBlockTime(context.Background(), time.Now().Round(time.Second))
-// 			setupForTally := func(_ weave.Context, p *Proposal) {
-// 				p.VoteState = NewTallyResult(spec.Src.quorum, spec.Src.threshold, spec.Src.totalWeightElectorate)
-// 				p.VoteState.TotalYes = spec.Src.yes
-// 				p.VoteState.TotalNo = spec.Src.no
-// 				p.VoteState.TotalAbstain = spec.Src.abstain
-// 				blockTime, _ := weave.BlockTime(ctx)
-// 				p.VotingEndTime = weave.AsUnixTime(blockTime.Add(-1 * time.Second))
-// 			}
-// 			pBucket := withTextProposal(t, db, ctx, append([]ctxAwareMutator{setupForTally}, spec.Mods)...)
-// 			if spec.Init != nil {
-// 				spec.Init(t, db)
-// 			}
-// 			cache := db.CacheWrap()
+			// given
+			ctx := weave.WithBlockTime(context.Background(), time.Now().Round(time.Second))
+			setupForTally := func(_ weave.Context, p *Proposal) {
+				p.Common.VoteState = NewTallyResult(spec.Src.quorum, spec.Src.threshold, spec.Src.totalWeightElectorate)
+				p.Common.VoteState.TotalYes = spec.Src.yes
+				p.Common.VoteState.TotalNo = spec.Src.no
+				p.Common.VoteState.TotalAbstain = spec.Src.abstain
+				blockTime, _ := weave.BlockTime(ctx)
+				p.Common.VotingEndTime = weave.AsUnixTime(blockTime.Add(-1 * time.Second))
+			}
+			pBucket := withTextProposal(t, db, ctx, append([]ctxAwareMutator{setupForTally}, spec.Mods)...)
+			if spec.Init != nil {
+				spec.Init(t, db)
+			}
+			cache := db.CacheWrap()
 
-// 			// when check is called
-// 			tx := &weavetest.Tx{Msg: &TallyMsg{Metadata: &weave.Metadata{Schema: 1}, ProposalID: weavetest.SequenceID(1)}}
-// 			if _, err := rt.Check(ctx, cache, tx); !spec.WantCheckErr.Is(err) {
-// 				t.Fatalf("check expected: %+v  but got %+v", spec.WantCheckErr, err)
-// 			}
+			// when check is called
+			tx := &weavetest.Tx{Msg: &TallyMsg{Metadata: &weave.Metadata{Schema: 1}, ProposalID: weavetest.SequenceID(1)}}
+			if _, err := rt.Check(ctx, cache, tx); !spec.WantCheckErr.Is(err) {
+				t.Fatalf("check expected: %+v  but got %+v", spec.WantCheckErr, err)
+			}
 
-// 			cache.Discard()
+			cache.Discard()
 
-// 			// and when deliver is called
-// 			_, err := rt.Deliver(ctx, db, tx)
-// 			if !spec.WantDeliverErr.Is(err) {
-// 				t.Fatalf("deliver expected: %+v  but got %+v", spec.WantCheckErr, err)
-// 			}
-// 			if spec.WantDeliverErr != nil {
-// 				return // skip further checks on expected error
-// 			}
-// 			// and check persisted result
-// 			p, err := pBucket.GetProposal(cache, weavetest.SequenceID(1))
-// 			if err != nil {
-// 				t.Fatalf("unexpected error: %s", err)
-// 			}
-// 			if exp, got := spec.ExpResult, p.Result; exp != got {
-// 				t.Errorf("expected %v but got %v: vote state: %#v", exp, got, p.VoteState)
-// 			}
-// 			if exp, got := ProposalCommon_Closed, p.Status; exp != got {
-// 				t.Errorf("expected %v but got %v", exp, got)
-// 			}
-// 			if spec.PostChecks != nil {
-// 				spec.PostChecks(t, cache)
-// 			}
+			// and when deliver is called
+			_, err := rt.Deliver(ctx, db, tx)
+			if !spec.WantDeliverErr.Is(err) {
+				t.Fatalf("deliver expected: %+v  but got %+v", spec.WantCheckErr, err)
+			}
+			if spec.WantDeliverErr != nil {
+				return // skip further checks on expected error
+			}
+			// and check persisted result
+			p, err := pBucket.GetProposal(cache, weavetest.SequenceID(1))
+			if err != nil {
+				t.Fatalf("unexpected error: %s", err)
+			}
+			if exp, got := spec.ExpResult, p.Common.Result; exp != got {
+				t.Errorf("expected %v but got %v: vote state: %#v", exp, got, p.Common.VoteState)
+			}
+			if exp, got := ProposalCommon_Closed, p.Common.Status; exp != got {
+				t.Errorf("expected %v but got %v", exp, got)
+			}
+			if spec.PostChecks != nil {
+				spec.PostChecks(t, cache)
+			}
 
-// 			cache.Discard()
-// 		})
-// 	}
-// }
+			cache.Discard()
+		})
+	}
+}
 
 func TestUpdateElectorate(t *testing.T) {
 	electorateID := weavetest.SequenceID(1)
