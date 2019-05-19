@@ -548,38 +548,3 @@ func TestVoteValidate(t *testing.T) {
 		})
 	}
 }
-
-func proposalFixture(alice weave.Address, mods ...func(*Proposal)) Proposal {
-	now := weave.AsUnixTime(time.Now())
-	proposal := Proposal{
-		Metadata: &weave.Metadata{Schema: 1},
-		Common: &ProposalCommon{
-			Title:           "My proposal",
-			Description:     "My description",
-			ElectionRuleRef: orm.VersionedIDRef{ID: weavetest.SequenceID(1), Version: 1},
-			ElectorateRef:   orm.VersionedIDRef{ID: weavetest.SequenceID(1), Version: 1},
-			VotingStartTime: now.Add(-1 * time.Minute),
-			VotingEndTime:   now.Add(time.Minute),
-			SubmissionTime:  now.Add(-1 * time.Hour),
-			Status:          ProposalCommon_Submitted,
-			Result:          ProposalCommon_Undefined,
-			Author:          alice,
-			VoteState:       NewTallyResult(nil, Fraction{1, 2}, 11),
-		},
-		RawOption: []byte("some awesome msg to execute"),
-	}
-	for _, mod := range mods {
-		if mod != nil {
-			mod(&proposal)
-		}
-	}
-	return proposal
-}
-
-func buildElectors(n int) []Elector {
-	r := make([]Elector, n)
-	for i := 0; i < n; i++ {
-		r[i] = Elector{Weight: 1, Address: weavetest.NewCondition().Address()}
-	}
-	return r
-}
