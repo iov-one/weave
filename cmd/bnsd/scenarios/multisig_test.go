@@ -52,9 +52,11 @@ func TestMultisigCanPayFees(t *testing.T) {
 	newMultisigTx.Fee(bob.PublicKey().Address(), coin.NewCoin(1, 1, "IOV"))
 
 	bobNonce := client.NewNonce(env.Client, bob.PublicKey().Address())
-	if seq, err := bobNonce.Next(); err != nil {
+	seq, err := bobNonce.Next()
+	if err != nil {
 		t.Fatalf("cannot acquire bob nonce sequence: %s", err)
-	} else if err := client.SignTx(newMultisigTx, bob, env.ChainID, seq); err != nil {
+	}
+	if err := client.SignTx(newMultisigTx, bob, env.ChainID, seq); err != nil {
 		t.Fatalf("cannot sing revenue creation transaction: %s", err)
 	}
 
@@ -103,9 +105,11 @@ func TestMultisigCanPayFees(t *testing.T) {
 	anotherNewMultisigTx.Fee(multisigAddr, coin.NewCoin(1, 1, "IOV"))
 
 	carlNonce := client.NewNonce(env.Client, carl.PublicKey().Address())
-	if seq, err := carlNonce.Next(); err != nil {
+	seq, err = carlNonce.Next()
+	if err != nil {
 		t.Fatalf("cannot acquire carl nonce sequence: %s", err)
-	} else if err := client.SignTx(anotherNewMultisigTx, carl, env.ChainID, seq); err != nil {
+	}
+	if err := client.SignTx(anotherNewMultisigTx, carl, env.ChainID, seq); err != nil {
 		t.Fatalf("cannot sing revenue creation transaction: %s", err)
 	}
 	resp = env.Client.BroadcastTx(anotherNewMultisigTx)
