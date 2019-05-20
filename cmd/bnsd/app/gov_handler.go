@@ -24,12 +24,11 @@ func decodeProposalOptions(raw []byte) (weave.Msg, error) {
 
 // proposalOptionsExecutor will set up an executor to allow governance-internal actions
 // such a setup can be easily extended to allow many more actions in other modules.
-func proposalOptionsExecutor() gov.Executor {
+func proposalOptionsExecutor(ctrl cash.Controller) gov.Executor {
 	r := app.NewRouter()
 
 	// we only allow these to be authenticated by the governance context, not by sigs or other items
 	auth := gov.Authenticate{}
-	ctrl := cash.NewController(cash.NewBucket())
 
 	// Make sure to register for all items in ProposalOptions
 	cash.RegisterRoutes(r, auth, ctrl)
