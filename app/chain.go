@@ -1,6 +1,10 @@
 package app
 
-import "github.com/iov-one/weave"
+import (
+	"reflect"
+
+	"github.com/iov-one/weave"
+)
 
 // Decorators holds a chain of decorators, not yet resolved by a Handler
 type Decorators struct {
@@ -39,7 +43,7 @@ func cutoffNil(ds []weave.Decorator) []weave.Decorator {
 	var cutoff int
 	for i := 0; i < len(ds); i++ {
 		ds[i-cutoff] = ds[i]
-		if ds[i] == nil {
+		if ds[i] == nil || (reflect.ValueOf(ds[i]).Kind() == reflect.Ptr && reflect.ValueOf(ds[i]).IsNil()) {
 			cutoff++
 		}
 	}

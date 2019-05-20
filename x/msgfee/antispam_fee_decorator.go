@@ -18,16 +18,23 @@ var _ weave.Decorator = (*AntispamFeeDecorator)(nil)
 
 // NewAntispamFeeDecorator returns an AntispamFeeDecorator
 func NewAntispamFeeDecorator(fee coin.Coin) *AntispamFeeDecorator {
+	if fee.IsZero() {
+		// Returning a nil is a way to inform weave to ignore this
+		// decorator. Instead of checking during the runtime if the fee
+		// is zero, we can create a no operation (ignored) decorator
+		// instance instead.
+		return nil
+	}
 	return &AntispamFeeDecorator{fee: fee}
 }
 
 func (d *AntispamFeeDecorator) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx, next weave.Checker) (*weave.CheckResult, error) {
 	res, err := next.Check(ctx, store, tx)
+	if d == nil { // Since NewAntispamFeeDecorator can return nil, let's be graceful here
+		return res, err
+	}
 	if err != nil {
 		return nil, err
-	}
-	if d.fee.IsZero() {
-		return res, nil
 	}
 	if res.RequiredFee.IsZero() {
 		return nil, errors.Wrap(errors.ErrEmpty, "required must not be zero")
