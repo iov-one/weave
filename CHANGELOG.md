@@ -18,6 +18,7 @@
   a [future issue](https://github.com/iov-one/weave/issues/649))
 - Enabled `x/batch` in bnsd. You can now send a batch of messages, which are
   executed atomically as one unit (all succeed, or no changes committed).
+- Enabled `x/gov` in bnsd
 
 Breaking changes  
 - Escrow does not support atomic swap anymore: preimage is removed from Tx and, haslock extension removed
