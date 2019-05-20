@@ -232,6 +232,14 @@
             <ul>
               
                 <li>
+                  <a href="#app.BatchMsg"><span class="badge">M</span>BatchMsg</a>
+                </li>
+              
+                <li>
+                  <a href="#app.BatchMsg.Union"><span class="badge">M</span>BatchMsg.Union</a>
+                </li>
+              
+                <li>
                   <a href="#app.Tx"><span class="badge">M</span>Tx</a>
                 </li>
               
@@ -955,6 +963,193 @@
       <p></p>
 
       
+        <h3 id="app.BatchMsg">BatchMsg</h3>
+        <p>BatchMsg encapsulates multiple messages to support batch transaction</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>messages</td>
+                  <td><a href="#app.BatchMsg.Union">BatchMsg.Union</a></td>
+                  <td>repeated</td>
+                  <td><p> </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+        
+
+        
+      
+        <h3 id="app.BatchMsg.Union">BatchMsg.Union</h3>
+        <p></p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>send_msg</td>
+                  <td><a href="#cash.SendMsg">cash.SendMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>create_escrow_msg</td>
+                  <td><a href="#escrow.CreateEscrowMsg">escrow.CreateEscrowMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>release_escrow_msg</td>
+                  <td><a href="#escrow.ReleaseEscrowMsg">escrow.ReleaseEscrowMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>return_escrow_msg</td>
+                  <td><a href="#escrow.ReturnEscrowMsg">escrow.ReturnEscrowMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>update_escrow_msg</td>
+                  <td><a href="#escrow.UpdateEscrowPartiesMsg">escrow.UpdateEscrowPartiesMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>create_contract_msg</td>
+                  <td><a href="#multisig.CreateContractMsg">multisig.CreateContractMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>update_contract_msg</td>
+                  <td><a href="#multisig.UpdateContractMsg">multisig.UpdateContractMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>set_validators_msg</td>
+                  <td><a href="#validators.SetValidatorsMsg">validators.SetValidatorsMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>new_token_info_msg</td>
+                  <td><a href="#currency.NewTokenInfoMsg">currency.NewTokenInfoMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>add_approval_msg</td>
+                  <td><a href="#nft.AddApprovalMsg">nft.AddApprovalMsg</a></td>
+                  <td></td>
+                  <td><p>No recursive batches!
+BatchMsg batch_msg = 60; </p></td>
+                </tr>
+              
+                <tr>
+                  <td>remove_approval_msg</td>
+                  <td><a href="#nft.RemoveApprovalMsg">nft.RemoveApprovalMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>issue_username_nft_msg</td>
+                  <td><a href="#username.IssueTokenMsg">username.IssueTokenMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>add_username_address_nft_msg</td>
+                  <td><a href="#username.AddChainAddressMsg">username.AddChainAddressMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>remove_username_address_msg</td>
+                  <td><a href="#username.RemoveChainAddressMsg">username.RemoveChainAddressMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>new_revenue_msg</td>
+                  <td><a href="#distribution.NewRevenueMsg">distribution.NewRevenueMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>distribute_msg</td>
+                  <td><a href="#distribution.DistributeMsg">distribution.DistributeMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>reset_revenue_msg</td>
+                  <td><a href="#distribution.ResetRevenueMsg">distribution.ResetRevenueMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>upgrade_schema_msg</td>
+                  <td><a href="#migration.UpgradeSchemaMsg">migration.UpgradeSchemaMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>create_swap_msg</td>
+                  <td><a href="#aswap.CreateSwapMsg">aswap.CreateSwapMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>release_swap_msg</td>
+                  <td><a href="#aswap.ReleaseSwapMsg">aswap.ReleaseSwapMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>return_swap_msg</td>
+                  <td><a href="#aswap.ReturnSwapMsg">aswap.ReturnSwapMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+        
+
+        
+      
         <h3 id="app.Tx">Tx</h3>
         <p>Tx contains the message.</p><p>When extending Tx, follow the rules:</p><p>- range 1-50 is reserved for middlewares,</p><p>- range 51-inf is reserved for different message types,</p><p>- keep the same numbers for the same message types in both bcpd and bnsd</p><p>applications. For example, FeeInfo field is used by both and indexed at</p><p>first position. Skip unused fields (leave index unused or comment out for</p><p>clarity).</p>
 
@@ -1057,10 +1252,17 @@
                 </tr>
               
                 <tr>
+                  <td>batch_msg</td>
+                  <td><a href="#app.BatchMsg">BatchMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
                   <td>add_approval_msg</td>
                   <td><a href="#nft.AddApprovalMsg">nft.AddApprovalMsg</a></td>
                   <td></td>
-                  <td><p>BatchMsg batch_msg = 60; </p></td>
+                  <td><p> </p></td>
                 </tr>
               
                 <tr>

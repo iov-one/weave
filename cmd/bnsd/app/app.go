@@ -20,6 +20,7 @@ import (
 	"github.com/iov-one/weave/store/iavl"
 	"github.com/iov-one/weave/x"
 	"github.com/iov-one/weave/x/aswap"
+	"github.com/iov-one/weave/x/batch"
 	"github.com/iov-one/weave/x/cash"
 	"github.com/iov-one/weave/x/currency"
 	"github.com/iov-one/weave/x/distribution"
@@ -61,9 +62,7 @@ func Chain(authFn x.Authenticator, minFee coin.Coin) app.Decorators {
 		msgfee.NewFeeDecorator(),
 		// cannot pay for fee with hashlock...
 		hashlock.NewDecorator(),
-		// batch commented out temporarily to minimize release features
-		// make sure we execute all the transactions in batch before the save point
-		//batch.NewDecorator(),
+		batch.NewDecorator(),
 	)
 }
 

@@ -42,7 +42,7 @@ message Tx {
     multisig.UpdateContractMsg update_contract_msg = 57;
     validators.SetValidatorsMsg set_validators_msg = 58;
     currency.NewTokenInfoMsg new_token_info_msg = 59;
-    // BatchMsg batch_msg = 60;
+    BatchMsg batch_msg = 60;
     nft.AddApprovalMsg add_approval_msg = 61;
     nft.RemoveApprovalMsg remove_approval_msg = 62;
     username.IssueTokenMsg issue_username_nft_msg = 63;
@@ -58,33 +58,34 @@ message Tx {
   }
 }
 
-//Commented out for a minimal feature-set release
 // BatchMsg encapsulates multiple messages to support batch transaction
-//message BatchMsg {
-//    message Union {
-//        oneof sum {
-//            cash.SendMsg send_msg = 1;
-//            // escrow actions
-//            escrow.CreateEscrowMsg create_escrow_msg = 4;
-//            escrow.ReleaseEscrowMsg release_escrow_msg = 5;
-//            escrow.ReturnEscrowMsg return_escrow_msg = 6;
-//            escrow.UpdateEscrowPartiesMsg update_escrow_msg = 7;
-//            // multisig contract
-//            multisig.CreateContractMsg create_contract_msg = 8;
-//            multisig.UpdateContractMsg update_contract_msg = 9;
-//            // validators actions
-//            validators.SetValidatorsMsg set_validators_msg = 10;
-//            // nft actions
-//            nft.AddApprovalMsg add_approval_msg = 11;
-//            nft.RemoveApprovalMsg remove_approval_msg = 12;
-//            username.IssueTokenMsg issue_username_nft_msg = 13;
-//            username.AddChainAddressMsg add_username_address_nft_msg = 14;
-//            username.RemoveChainAddressMsg remove_username_address_msg = 15;
-//            blockchain.IssueTokenMsg issue_blockchain_nft_msg = 16;
-//            ticker.IssueTokenMsg issue_ticker_nft_msg = 17;
-//            bootstrap_node.IssueTokenMsg issue_bootstrap_node_nft_msg = 18;
-//        }
-//    }
-//
-//    repeated Union messages = 1 [(gogoproto.nullable) = false];
-//}
+message BatchMsg {
+  message Union {
+    oneof sum {
+      cash.SendMsg send_msg = 51;
+      escrow.CreateEscrowMsg create_escrow_msg = 52;
+      escrow.ReleaseEscrowMsg release_escrow_msg = 53;
+      escrow.ReturnEscrowMsg return_escrow_msg = 54;
+      escrow.UpdateEscrowPartiesMsg update_escrow_msg = 55;
+      multisig.CreateContractMsg create_contract_msg = 56;
+      multisig.UpdateContractMsg update_contract_msg = 57;
+      validators.SetValidatorsMsg set_validators_msg = 58;
+      currency.NewTokenInfoMsg new_token_info_msg = 59;
+      // No recursive batches!
+      // BatchMsg batch_msg = 60;
+      nft.AddApprovalMsg add_approval_msg = 61;
+      nft.RemoveApprovalMsg remove_approval_msg = 62;
+      username.IssueTokenMsg issue_username_nft_msg = 63;
+      username.AddChainAddressMsg add_username_address_nft_msg = 64;
+      username.RemoveChainAddressMsg remove_username_address_msg = 65;
+      distribution.NewRevenueMsg new_revenue_msg = 66;
+      distribution.DistributeMsg distribute_msg = 67;
+      distribution.ResetRevenueMsg reset_revenue_msg = 68;
+      migration.UpgradeSchemaMsg upgrade_schema_msg = 69;
+      aswap.CreateSwapMsg create_swap_msg = 70;
+      aswap.ReleaseSwapMsg release_swap_msg = 71;
+      aswap.ReturnSwapMsg return_swap_msg = 72;
+    }
+  }
+  repeated Union messages = 1 [(gogoproto.nullable) = false];
+}
