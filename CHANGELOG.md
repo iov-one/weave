@@ -16,6 +16,8 @@
   (so we update the Proposal state properly), but is rolled back independently
   and noted in `DeliverResult.Log` (reporting to be improved in
   a [future issue](https://github.com/iov-one/weave/issues/649))
+- Enabled `x/batch` in bnsd. You can now send a batch of messages, which are
+  executed atomically as one unit (all succeed, or no changes committed).
 
 
 ## 0.15.0
