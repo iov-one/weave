@@ -232,11 +232,31 @@
             <ul>
               
                 <li>
+                  <a href="#app.AppCreateProposalMsg"><span class="badge">M</span>AppCreateProposalMsg</a>
+                </li>
+              
+                <li>
+                  <a href="#app.AppProposal"><span class="badge">M</span>AppProposal</a>
+                </li>
+              
+                <li>
                   <a href="#app.BatchMsg"><span class="badge">M</span>BatchMsg</a>
                 </li>
               
                 <li>
                   <a href="#app.BatchMsg.Union"><span class="badge">M</span>BatchMsg.Union</a>
+                </li>
+              
+                <li>
+                  <a href="#app.ProposalBatchMsg"><span class="badge">M</span>ProposalBatchMsg</a>
+                </li>
+              
+                <li>
+                  <a href="#app.ProposalBatchMsg.Union"><span class="badge">M</span>ProposalBatchMsg.Union</a>
+                </li>
+              
+                <li>
+                  <a href="#app.ProposalOptions"><span class="badge">M</span>ProposalOptions</a>
                 </li>
               
                 <li>
@@ -963,6 +983,80 @@
       <p></p>
 
       
+        <h3 id="app.AppCreateProposalMsg">AppCreateProposalMsg</h3>
+        <p>AppCreateProposalMsg is byte compatible with CreateProposalMsg</p><p>assuming we use decodeProposalOptions.</p><p>It is here to demonstrate a clean app-level usage of proposals.</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>metadata</td>
+                  <td><a href="#weave.Metadata">weave.Metadata</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>base</td>
+                  <td><a href="#gov.CreateProposalMsgBase">gov.CreateProposalMsgBase</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>options</td>
+                  <td><a href="#app.ProposalOptions">ProposalOptions</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+        
+
+        
+      
+        <h3 id="app.AppProposal">AppProposal</h3>
+        <p>AppProposal is byte compatible with Proposal</p><p>assuming we use decodeProposalOptions.</p><p>It is here to demonstrate a clean app-level usage of proposals.</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>metadata</td>
+                  <td><a href="#weave.Metadata">weave.Metadata</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>common</td>
+                  <td><a href="#gov.ProposalCommon">gov.ProposalCommon</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>options</td>
+                  <td><a href="#app.ProposalOptions">ProposalOptions</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+        
+
+        
+      
         <h3 id="app.BatchMsg">BatchMsg</h3>
         <p>BatchMsg encapsulates multiple messages to support batch transaction</p>
 
@@ -1063,8 +1157,7 @@
                   <td>add_approval_msg</td>
                   <td><a href="#nft.AddApprovalMsg">nft.AddApprovalMsg</a></td>
                   <td></td>
-                  <td><p>No recursive batches!
-BatchMsg batch_msg = 60; </p></td>
+                  <td><p>No recursive batches! </p></td>
                 </tr>
               
                 <tr>
@@ -1113,6 +1206,188 @@ BatchMsg batch_msg = 60; </p></td>
                   <td>reset_revenue_msg</td>
                   <td><a href="#distribution.ResetRevenueMsg">distribution.ResetRevenueMsg</a></td>
                   <td></td>
+                  <td><p>upgrade schema is important enough, it should be a solo action
+aswap and gov don&#39;t make much sense as part of a batch (no vote buying) </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+        
+
+        
+      
+        <h3 id="app.ProposalBatchMsg">ProposalBatchMsg</h3>
+        <p></p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>messages</td>
+                  <td><a href="#app.ProposalBatchMsg.Union">ProposalBatchMsg.Union</a></td>
+                  <td>repeated</td>
+                  <td><p> </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+        
+
+        
+      
+        <h3 id="app.ProposalBatchMsg.Union">ProposalBatchMsg.Union</h3>
+        <p></p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>send_msg</td>
+                  <td><a href="#cash.SendMsg">cash.SendMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>release_escrow_msg</td>
+                  <td><a href="#escrow.ReleaseEscrowMsg">escrow.ReleaseEscrowMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>update_escrow_msg</td>
+                  <td><a href="#escrow.UpdateEscrowPartiesMsg">escrow.UpdateEscrowPartiesMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>set_validators_msg</td>
+                  <td><a href="#validators.SetValidatorsMsg">validators.SetValidatorsMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>new_revenue_msg</td>
+                  <td><a href="#distribution.NewRevenueMsg">distribution.NewRevenueMsg</a></td>
+                  <td></td>
+                  <td><p>no recursive batches </p></td>
+                </tr>
+              
+                <tr>
+                  <td>distribute_msg</td>
+                  <td><a href="#distribution.DistributeMsg">distribution.DistributeMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>reset_revenue_msg</td>
+                  <td><a href="#distribution.ResetRevenueMsg">distribution.ResetRevenueMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>update_electorate_msg</td>
+                  <td><a href="#gov.UpdateElectorateMsg">gov.UpdateElectorateMsg</a></td>
+                  <td></td>
+                  <td><p>don&#39;t allow UpgradeSchema as part of a batch, as effects are too confusing </p></td>
+                </tr>
+              
+                <tr>
+                  <td>update_election_rule_msg</td>
+                  <td><a href="#gov.UpdateElectionRuleMsg">gov.UpdateElectionRuleMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>text_resolution_msg</td>
+                  <td><a href="#gov.TextResolutionMsg">gov.TextResolutionMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+        
+
+        
+      
+        <h3 id="app.ProposalOptions">ProposalOptions</h3>
+        <p>ProposalOptions are possible items that can be enacted by a governance vote</p><p>Trimmed down somewhat arbitrary to what is believed to be reasonable</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>send_msg</td>
+                  <td><a href="#cash.SendMsg">cash.SendMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>release_escrow_msg</td>
+                  <td><a href="#escrow.ReleaseEscrowMsg">escrow.ReleaseEscrowMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>update_escrow_msg</td>
+                  <td><a href="#escrow.UpdateEscrowPartiesMsg">escrow.UpdateEscrowPartiesMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>set_validators_msg</td>
+                  <td><a href="#validators.SetValidatorsMsg">validators.SetValidatorsMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>batch_msg</td>
+                  <td><a href="#app.ProposalBatchMsg">ProposalBatchMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>new_revenue_msg</td>
+                  <td><a href="#distribution.NewRevenueMsg">distribution.NewRevenueMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>distribute_msg</td>
+                  <td><a href="#distribution.DistributeMsg">distribution.DistributeMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>reset_revenue_msg</td>
+                  <td><a href="#distribution.ResetRevenueMsg">distribution.ResetRevenueMsg</a></td>
+                  <td></td>
                   <td><p> </p></td>
                 </tr>
               
@@ -1124,22 +1399,22 @@ BatchMsg batch_msg = 60; </p></td>
                 </tr>
               
                 <tr>
-                  <td>create_swap_msg</td>
-                  <td><a href="#aswap.CreateSwapMsg">aswap.CreateSwapMsg</a></td>
+                  <td>update_electorate_msg</td>
+                  <td><a href="#gov.UpdateElectorateMsg">gov.UpdateElectorateMsg</a></td>
                   <td></td>
                   <td><p> </p></td>
                 </tr>
               
                 <tr>
-                  <td>release_swap_msg</td>
-                  <td><a href="#aswap.ReleaseSwapMsg">aswap.ReleaseSwapMsg</a></td>
+                  <td>update_election_rule_msg</td>
+                  <td><a href="#gov.UpdateElectionRuleMsg">gov.UpdateElectionRuleMsg</a></td>
                   <td></td>
                   <td><p> </p></td>
                 </tr>
               
                 <tr>
-                  <td>return_swap_msg</td>
-                  <td><a href="#aswap.ReturnSwapMsg">aswap.ReturnSwapMsg</a></td>
+                  <td>text_resolution_msg</td>
+                  <td><a href="#gov.TextResolutionMsg">gov.TextResolutionMsg</a></td>
                   <td></td>
                   <td><p> </p></td>
                 </tr>
@@ -1333,6 +1608,48 @@ BatchMsg batch_msg = 60; </p></td>
                   <td><a href="#aswap.ReturnSwapMsg">aswap.ReturnSwapMsg</a></td>
                   <td></td>
                   <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>create_proposal_msg</td>
+                  <td><a href="#gov.CreateProposalMsg">gov.CreateProposalMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>delete_proposal_msg</td>
+                  <td><a href="#gov.DeleteProposalMsg">gov.DeleteProposalMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>vote_msg</td>
+                  <td><a href="#gov.VoteMsg">gov.VoteMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>tally_msg</td>
+                  <td><a href="#gov.TallyMsg">gov.TallyMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>update_electorate_msg</td>
+                  <td><a href="#gov.UpdateElectorateMsg">gov.UpdateElectorateMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>update_election_rule_msg</td>
+                  <td><a href="#gov.UpdateElectionRuleMsg">gov.UpdateElectionRuleMsg</a></td>
+                  <td></td>
+                  <td><p>79 is reserved (see ProposalOptions: TextResolutionMsg) </p></td>
                 </tr>
               
             </tbody>
