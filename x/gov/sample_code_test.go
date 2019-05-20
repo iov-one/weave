@@ -6,7 +6,7 @@ import (
 	"github.com/iov-one/weave/errors"
 )
 
-// decodeProposalOptions is a sample code for a Decoder
+// decodeProposalOptions is a sample code for a Decoder.
 func decodeProposalOptions(raw []byte) (weave.Msg, error) {
 	model := ProposalOptions{}
 	err := model.Unmarshal(raw)
@@ -17,7 +17,7 @@ func decodeProposalOptions(raw []byte) (weave.Msg, error) {
 }
 
 // proposalOptionsExecutor will set up an executor to allow governance-internal actions
-// such a setup can be easily extended to allow many more actions in other modules
+// such a setup can be easily extended to allow many more actions in other modules.
 func proposalOptionsExecutor() Executor {
 	r := app.NewRouter()
 	// we only allow these to be authenticated by the governance context, not by sigs or other items

@@ -8,7 +8,7 @@ import (
 )
 
 // Initializer fulfils the Initializer interface to load data from the genesis
-// file
+// file.
 type Initializer struct{}
 
 var _ weave.Initializer = (*Initializer)(nil)

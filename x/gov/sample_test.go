@@ -211,9 +211,9 @@ func _ProposalOptions_OneofSizer(msg proto.Message) (n int) {
 }
 
 // AppCreateProposalMsg is byte compatible with CreateProposalMsg
-// assuming we use decodeProposalOptions
+// assuming we use decodeProposalOptions.
 //
-// It is here to demonstrate a clean app-level usage of proposals
+// It is here to demonstrate a clean app-level usage of proposals.
 type AppCreateProposalMsg struct {
 	Metadata *weave.Metadata        `protobuf:"bytes,1,opt,name=metadata,proto3" json:"metadata,omitempty"`
 	Base     *CreateProposalMsgBase `protobuf:"bytes,2,opt,name=base,proto3" json:"base,omitempty"`
@@ -275,9 +275,9 @@ func (m *AppCreateProposalMsg) GetOptions() *ProposalOptions {
 }
 
 // AppProposal is byte compatible with Proposal
-// assuming we use decodeProposalOptions
+// assuming we use decodeProposalOptions.
 //
-// It is here to demonstrate a clean app-level usage of proposals
+// It is here to demonstrate a clean app-level usage of proposals.
 type AppProposal struct {
 	Metadata *weave.Metadata  `protobuf:"bytes,1,opt,name=metadata,proto3" json:"metadata,omitempty"`
 	Common   *ProposalCommon  `protobuf:"bytes,2,opt,name=common,proto3" json:"common,omitempty"`
