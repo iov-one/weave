@@ -128,10 +128,9 @@ func buildElectors(n int) []Elector {
 	return r
 }
 
-// returns TextResolutionMsg, UpdateElectorateMsg, UpdateElectionRuleMsg
-func generateOptions(t *testing.T) ([]byte, []byte, []byte) {
+// returns TextResolutionMsg
+func genTextOptions(t *testing.T) []byte {
 	t.Helper()
-
 	textOpts := &ProposalOptions{
 		Option: &ProposalOptions_Text{
 			Text: &TextResolutionMsg{
@@ -142,22 +141,36 @@ func generateOptions(t *testing.T) ([]byte, []byte, []byte) {
 	}
 	textOption, err := textOpts.Marshal()
 	assert.Nil(t, err)
+	return textOption
+}
+
+// returns UpdateElectorateMsg
+func genElectorateOptions(t *testing.T, diff ...Elector) []byte {
+	t.Helper()
+	if len(diff) == 0 {
+		diff = []Elector{{
+			Address: hCharlie,
+			Weight:  22,
+		}}
+	}
 
 	electorateOpts := &ProposalOptions{
 		Option: &ProposalOptions_Electorate{
 			Electorate: &UpdateElectorateMsg{
 				Metadata:     &weave.Metadata{Schema: 1},
 				ElectorateID: weavetest.SequenceID(1),
-				DiffElectors: []Elector{{
-					Address: hCharlie,
-					Weight:  22,
-				}},
+				DiffElectors: diff,
 			},
 		},
 	}
 	electorateOption, err := electorateOpts.Marshal()
 	assert.Nil(t, err)
+	return electorateOption
+}
 
+// returns UpdateElectionRuleMsg
+func genRuleOptions(t *testing.T) []byte {
+	t.Helper()
 	ruleOpts := &ProposalOptions{
 		Option: &ProposalOptions_Rule{
 			Rule: &UpdateElectionRuleMsg{
@@ -173,8 +186,7 @@ func generateOptions(t *testing.T) ([]byte, []byte, []byte) {
 	}
 	ruleOption, err := ruleOpts.Marshal()
 	assert.Nil(t, err)
-
-	return textOption, electorateOption, ruleOption
+	return ruleOption
 }
 
 // returns decodable struct that fails Validate(), bytes that cannot decode
