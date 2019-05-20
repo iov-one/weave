@@ -11,6 +11,7 @@ protoc:
   # By default, the directory of the config file is included,
   # or the current directory if there is no config file.
   includes:
+    - .
     - ./vendor
     - ../../..
 
