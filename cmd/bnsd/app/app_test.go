@@ -222,7 +222,7 @@ func sendBatch(t *testing.T, fail bool, baseApp weaveApp.BaseApp, chainID string
 	if fail == true {
 		messages[batch.MaxBatchMessages-1] = app.BatchMsg_Union{
 			Sum: &app.BatchMsg_Union_CreateEscrowMsg{
-				&escrow.CreateEscrowMsg{},
+				CreateEscrowMsg: &escrow.CreateEscrowMsg{},
 			},
 		}
 	}
