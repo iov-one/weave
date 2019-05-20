@@ -15,62 +15,62 @@ import (
 
 func TestInitFromGenesis(t *testing.T) {
 	const genesisSnippet = `
-{
-  "governance": {
-    "electorate": [
-      {
-        "admin": "0000000000000000000000000000000000000000",
-        "title": "first",
-		"update_rule_id": 1,
-        "electors": [
-          {
-            "weight": 10,
-            "address": "1111111111111111111111111111111111111111"
-          },
-          {
-            "weight": 11,
-            "address": "2222222222222222222222222222222222222222"
-          }
-        ]
-      },
-      {
-        "title": "second",
-        "admin": "cond:foo/bar/0000000000000001",
-		"update_rule_id": 2,
-        "electors": [
-          {
-            "weight": 1,
-            "address": "3333333333333333333333333333333333333333"
-          }
-        ]
-      }
-    ],
-    "rules": [
-      {
-		"admin":  "cond:foo/bar/0000000000000002",
-        "title": "fooo",
-        "voting_period_hours": 1,
-        "threshold": {
-          "numerator": 2,
-          "denominator": 3
-        }
-      },
-      {
-		"admin":  "4444444444444444444444444444444444444444",
-        "title": "barr",
-        "voting_period_hours": 2,
-        "threshold": {
-          "numerator": 1,
-          "denominator": 2
-        },
-        "quorum": {
-          "numerator": 2,
-          "denominator": 3
-        }
-      }
-    ]
-  }
-}`
+	{
+		"governance": {
+			"electorate": [
+				{
+					"admin": "0000000000000000000000000000000000000000",
+					"title": "first",
+					"electors": [
+						{
+							"weight": 10,
+							"address": "1111111111111111111111111111111111111111"
+						},
+						{
+							"weight": 11,
+							"address": "2222222222222222222222222222222222222222"
+						}
+					]
+				},
+				{
+					"title": "second",
+					"admin": "cond:foo/bar/0000000000000001",
+					"electors": [
+						{
+							"weight": 1,
+							"address": "3333333333333333333333333333333333333333"
+						}
+					]
+				}
+			],
+			"rules": [
+				{
+					"admin": "cond:foo/bar/0000000000000002",
+					"title": "fooo",
+					"voting_period_hours": 1,
+					"threshold": {
+						"numerator": 2,
+						"denominator": 3
+					},
+					"electorate_id": 1
+				},
+				{
+					"admin": "4444444444444444444444444444444444444444",
+					"title": "barr",
+					"voting_period_hours": 2,
+					"threshold": {
+						"numerator": 1,
+						"denominator": 2
+					},
+					"quorum": {
+						"numerator": 2,
+						"denominator": 3
+					},
+					"electorate_id": 2
+				}
+			]
+		}
+	}`
 	var opts weave.Options
 	require.NoError(t, json.Unmarshal([]byte(genesisSnippet), &opts))
 
@@ -93,12 +93,6 @@ func TestInitFromGenesis(t *testing.T) {
 		t.Errorf("expected %v but got %v", exp, got)
 	}
 	if exp, got := uint32(1), elect.Metadata.Schema; exp != got {
-		t.Errorf("expected %v but got %v", exp, got)
-	}
-	if exp, got := weavetest.SequenceID(1), elect.UpdateElectionRuleRef.ID; !bytes.Equal(exp, got) {
-		t.Errorf("expected %v but got %v", exp, got)
-	}
-	if exp, got := uint32(1), elect.UpdateElectionRuleRef.Version; exp != got {
 		t.Errorf("expected %v but got %v", exp, got)
 	}
 	if exp, got := 2, len(elect.Electors); exp != got {
@@ -126,12 +120,6 @@ func TestInitFromGenesis(t *testing.T) {
 	}
 	elect, _ = asElectorate(obj)
 	if exp, got := "second", elect.Title; exp != got {
-		t.Errorf("expected %v but got %v", exp, got)
-	}
-	if exp, got := weavetest.SequenceID(2), elect.UpdateElectionRuleRef.ID; !bytes.Equal(exp, got) {
-		t.Errorf("expected %v but got %v", exp, got)
-	}
-	if exp, got := uint32(1), elect.UpdateElectionRuleRef.Version; exp != got {
 		t.Errorf("expected %v but got %v", exp, got)
 	}
 	cond := weave.NewCondition("foo", "bar", weavetest.SequenceID(1)).Address()
@@ -169,7 +157,6 @@ func TestInitFromGenesis(t *testing.T) {
 	if exp, got := cond, r.Admin; !exp.Equals(got) {
 		t.Errorf("expected %X but got %X", exp, got)
 	}
-
 	if exp, got := uint32(1), r.VotingPeriodHours; exp != got {
 		t.Errorf("expected %v but got %v", exp, got)
 	}
@@ -178,6 +165,9 @@ func TestInitFromGenesis(t *testing.T) {
 	}
 	if r.Quorum != nil {
 		t.Errorf("expected nil but got %v", r.Quorum)
+	}
+	if exp, got := weavetest.SequenceID(1), r.ElectorateID; !bytes.Equal(exp, got) {
+		t.Errorf("expected %v but got %v", exp, got)
 	}
 
 	// second election rule ok
@@ -207,6 +197,9 @@ func TestInitFromGenesis(t *testing.T) {
 	}
 	if exp, got := (Fraction{Numerator: 2, Denominator: 3}), *r.Quorum; exp != got {
 		t.Errorf("expected %#v but got %#v", exp, got)
+	}
+	if exp, got := weavetest.SequenceID(2), r.ElectorateID; !bytes.Equal(exp, got) {
+		t.Errorf("expected %v but got %v", exp, got)
 	}
 }
 

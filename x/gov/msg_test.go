@@ -10,6 +10,8 @@ import (
 )
 
 func TestVoteMsg(t *testing.T) {
+	alice := weavetest.NewCondition().Address()
+
 	specs := map[string]struct {
 		Msg VoteMsg
 		Exp *errors.Error
@@ -79,16 +81,20 @@ func TestTallyMsg(t *testing.T) {
 	}
 }
 
-func TestCrateTextProposalMsg(t *testing.T) {
-	buildMsg := func(mods ...func(*CreateTextProposalMsg)) CreateTextProposalMsg {
-		m := CreateTextProposalMsg{
-			Metadata:       &weave.Metadata{Schema: 1},
-			Title:          "any title _.-",
-			Description:    "any description",
-			ElectorateID:   weavetest.SequenceID(1),
-			ElectionRuleID: weavetest.SequenceID(1),
-			StartTime:      weave.AsUnixTime(time.Now()),
-			Author:         alice,
+func TestCreateProposalMsg(t *testing.T) {
+	alice := weavetest.NewCondition().Address()
+
+	buildMsg := func(mods ...func(*CreateProposalMsg)) CreateProposalMsg {
+		m := CreateProposalMsg{
+			Metadata: &weave.Metadata{Schema: 1},
+			Base: &CreateProposalMsgBase{
+				Title:          "any title _.-",
+				Description:    "any description",
+				ElectionRuleID: weavetest.SequenceID(1),
+				StartTime:      weave.AsUnixTime(time.Now()),
+				Author:         alice,
+			},
+			RawOption: []byte("random text, not decoded"),
 		}
 		for _, mod := range mods {
 			mod(&m)
@@ -97,86 +103,86 @@ func TestCrateTextProposalMsg(t *testing.T) {
 	}
 
 	specs := map[string]struct {
-		Msg CreateTextProposalMsg
+		Msg CreateProposalMsg
 		Exp *errors.Error
 	}{
 		"Happy path": {
 			Msg: buildMsg(),
 		},
 		"Author is optional": {
-			Msg: buildMsg(func(p *CreateTextProposalMsg) {
-				p.Author = nil
+			Msg: buildMsg(func(p *CreateProposalMsg) {
+				p.Base.Author = nil
 			}),
 		},
 		"Short title within range": {
-			Msg: buildMsg(func(p *CreateTextProposalMsg) {
-				p.Title = "fooo"
+			Msg: buildMsg(func(p *CreateProposalMsg) {
+				p.Base.Title = "fooo"
 			}),
 		},
 		"Long title within range": {
-			Msg: buildMsg(func(p *CreateTextProposalMsg) {
-				p.Title = BigString(128)
+			Msg: buildMsg(func(p *CreateProposalMsg) {
+				p.Base.Title = BigString(128)
 			}),
 		},
 		"Title too short": {
-			Msg: buildMsg(func(p *CreateTextProposalMsg) {
-				p.Title = "foo"
+			Msg: buildMsg(func(p *CreateProposalMsg) {
+				p.Base.Title = "foo"
 			}),
 			Exp: errors.ErrInput,
 		},
 		"Title too long": {
-			Msg: buildMsg(func(p *CreateTextProposalMsg) {
-				p.Title = BigString(129)
+			Msg: buildMsg(func(p *CreateProposalMsg) {
+				p.Base.Title = BigString(129)
 			}),
 			Exp: errors.ErrInput,
 		},
 		"Title with invalid chars": {
-			Msg: buildMsg(func(p *CreateTextProposalMsg) {
-				p.Title = "title with invalid char <"
+			Msg: buildMsg(func(p *CreateProposalMsg) {
+				p.Base.Title = "title with invalid char <"
 			}),
 			Exp: errors.ErrInput,
 		},
 		"Description too short": {
-			Msg: buildMsg(func(p *CreateTextProposalMsg) {
-				p.Title = "foo"
+			Msg: buildMsg(func(p *CreateProposalMsg) {
+				p.Base.Title = "foo"
 			}),
 			Exp: errors.ErrInput,
 		},
 		"Description too long": {
-			Msg: buildMsg(func(p *CreateTextProposalMsg) {
-				p.Title = BigString(5001)
-			}),
-			Exp: errors.ErrInput,
-		},
-		"ElectorateID missing": {
-			Msg: buildMsg(func(p *CreateTextProposalMsg) {
-				p.ElectorateID = nil
+			Msg: buildMsg(func(p *CreateProposalMsg) {
+				p.Base.Title = BigString(5001)
 			}),
 			Exp: errors.ErrInput,
 		},
 		"ElectionRuleID missing": {
-			Msg: buildMsg(func(p *CreateTextProposalMsg) {
-				p.ElectionRuleID = nil
+			Msg: buildMsg(func(p *CreateProposalMsg) {
+				p.Base.ElectionRuleID = nil
 			}),
 			Exp: errors.ErrInput,
 		},
 		"StartTime zero": {
-			Msg: buildMsg(func(p *CreateTextProposalMsg) {
-				p.StartTime = 0
+			Msg: buildMsg(func(p *CreateProposalMsg) {
+				p.Base.StartTime = 0
 			}),
 			Exp: errors.ErrInput,
 		},
 		"Invalid author address": {
-			Msg: buildMsg(func(p *CreateTextProposalMsg) {
-				p.Author = []byte{0, 0, 0, 0}
+			Msg: buildMsg(func(p *CreateProposalMsg) {
+				p.Base.Author = []byte{0, 0, 0, 0}
 			}),
 			Exp: errors.ErrInput,
 		},
 		"Metadata missing": {
-			Msg: buildMsg(func(p *CreateTextProposalMsg) {
+			Msg: buildMsg(func(p *CreateProposalMsg) {
 				p.Metadata = nil
 			}),
 			Exp: errors.ErrMetadata,
+		},
+		"Options missing": {
+			Msg: buildMsg(func(p *CreateProposalMsg) {
+				p.RawOption = nil
+			}),
+			Exp: errors.ErrEmpty,
 		},
 	}
 	for msg, spec := range specs {
@@ -189,20 +195,20 @@ func TestCrateTextProposalMsg(t *testing.T) {
 	}
 }
 
-func TestDeleteTestProposalMsg(t *testing.T) {
+func TestDeleteProposalMsg(t *testing.T) {
 	specs := map[string]struct {
 		Msg DeleteProposalMsg
 		Exp *errors.Error
 	}{
 		"Happy path": {
-			Msg: DeleteProposalMsg{ID: weavetest.SequenceID(1), Metadata: &weave.Metadata{Schema: 1}},
+			Msg: DeleteProposalMsg{ProposalID: weavetest.SequenceID(1), Metadata: &weave.Metadata{Schema: 1}},
 		},
 		"Empty ID": {
 			Msg: DeleteProposalMsg{Metadata: &weave.Metadata{Schema: 1}},
 			Exp: errors.ErrInput,
 		},
 		"Metadata missing": {
-			Msg: DeleteProposalMsg{ID: weavetest.SequenceID(1)},
+			Msg: DeleteProposalMsg{ProposalID: weavetest.SequenceID(1)},
 			Exp: errors.ErrMetadata,
 		},
 	}

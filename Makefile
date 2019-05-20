@@ -82,8 +82,12 @@ protoc: protofmt protodocs
 	protoc --gogofaster_out=. $(PROTOC_FLAGS) x/escrow/*.proto
 	protoc --gogofaster_out=. $(PROTOC_FLAGS) x/paychan/*.proto
 	protoc --gogofaster_out=. $(PROTOC_FLAGS) x/currency/*.proto
-	protoc --gogofaster_out=. $(PROTOC_FLAGS) x/gov/*.proto
 	protoc --gogofaster_out=. $(PROTOC_FLAGS) x/aswap/*.proto
+	# a bit of playing around to rename output, so it is only available for testcode
+	rm -f x/gov/sample_test.go
+	protoc --gogofaster_out=. $(PROTOC_FLAGS) x/gov/*.proto
+	mv x/gov/sample_test.pb.go x/gov/sample_test.go
+	# now build all examples
 	for ex in $(EXAMPLES); do cd $$ex && make protoc && cd -; done
 
 protodocs:

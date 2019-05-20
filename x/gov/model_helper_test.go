@@ -5,9 +5,14 @@ import (
 	"testing"
 
 	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/weavetest"
 )
 
 func TestMerger(t *testing.T) {
+
+	alice := weavetest.NewCondition().Address()
+	bobby := weavetest.NewCondition().Address()
+	charlie := weavetest.NewCondition().Address()
 
 	specs := map[string]struct {
 		diff           []Elector

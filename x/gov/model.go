@@ -31,16 +31,14 @@ func (m Electorate) Validate() error {
 		return errors.Wrap(err, "invalid metadata")
 	}
 
-	switch n := len(m.Electors); {
-	case n == 0:
+	if len(m.Electors) == 0 {
 		return errors.Wrap(errors.ErrInput, "electors must not be empty")
-	case n > maxElectors:
-		return errors.Wrapf(errors.ErrInput, "electors must not exceed: %d", maxElectors)
-	case !validTitle(m.Title):
-		return errors.Wrapf(errors.ErrInput, "title: %q", m.Title)
 	}
-	if err := m.UpdateElectionRuleRef.Validate(); err != nil {
-		return errors.Wrapf(errors.ErrEmpty, "update election rule")
+	if len(m.Electors) > maxElectors {
+		return errors.Wrapf(errors.ErrInput, "electors must not exceed: %d", maxElectors)
+	}
+	if !validTitle(m.Title) {
+		return errors.Wrapf(errors.ErrInput, "title: %q", m.Title)
 	}
 
 	var totalWeight uint64
@@ -86,10 +84,10 @@ func (m Electorate) Elector(a weave.Address) (*Elector, bool) {
 const maxWeight = 1<<16 - 1
 
 func (m Elector) Validate() error {
-	switch {
-	case m.Weight > maxWeight:
+	if m.Weight > maxWeight {
 		return errors.Wrap(errors.ErrInput, "must not be greater max weight")
-	case m.Weight == 0:
+	}
+	if m.Weight == 0 {
 		return errors.Wrap(errors.ErrInput, "weight must not be empty")
 	}
 	return m.Address.Validate()
@@ -109,14 +107,22 @@ func (m ElectionRule) Validate() error {
 		return errors.Wrap(err, "invalid metadata")
 	}
 
-	switch {
-	case !validTitle(m.Title):
+	if len(m.ElectorateID) == 0 {
+		return errors.Wrapf(errors.ErrEmpty, "electorate id is missing")
+	}
+	if len(m.ElectorateID) != 8 {
+		return errors.Wrapf(errors.ErrInput, "must refer to electorate with 8 byte id")
+	}
+	if !validTitle(m.Title) {
 		return errors.Wrapf(errors.ErrInput, "title: %q", m.Title)
-	case m.VotingPeriodHours < minVotingPeriodHours:
+	}
+	if m.VotingPeriodHours < minVotingPeriodHours {
 		return errors.Wrapf(errors.ErrInput, "min hours: %d", minVotingPeriodHours)
-	case m.VotingPeriodHours > maxVotingPeriodHours:
+	}
+	if m.VotingPeriodHours > maxVotingPeriodHours {
 		return errors.Wrapf(errors.ErrInput, "max hours: %d", maxVotingPeriodHours)
 	}
+
 	if err := m.Admin.Validate(); err != nil {
 		return errors.Wrap(err, "admin")
 	}
@@ -140,14 +146,16 @@ func (m ElectionRule) Copy() orm.CloneableData {
 }
 
 func (m Fraction) Validate() error {
-	switch {
-	case m.Numerator == 0:
+	if m.Numerator == 0 {
 		return errors.Wrap(errors.ErrInput, "numerator must not be 0")
-	case m.Denominator == 0:
+	}
+	if m.Denominator == 0 {
 		return errors.Wrap(errors.ErrInput, "denominator must not be 0")
-	case uint64(m.Numerator)*2 < uint64(m.Denominator):
+	}
+	if uint64(m.Numerator)*2 < uint64(m.Denominator) {
 		return errors.Wrap(errors.ErrInput, "must not be lower 0.5")
-	case m.Numerator > m.Denominator:
+	}
+	if m.Numerator > m.Denominator {
 		return errors.Wrap(errors.ErrInput, "must not be greater 1")
 	}
 	return nil
@@ -163,24 +171,48 @@ func (m *Proposal) Validate() error {
 	if err := m.Metadata.Validate(); err != nil {
 		return errors.Wrap(err, "invalid metadata")
 	}
+	if len(m.RawOption) == 0 {
+		return errors.Wrap(errors.ErrState, "missing raw options")
+	}
+	return m.Common.Validate()
+}
 
-	switch {
-	case m.Result == Proposal_Empty:
-		return errors.Wrap(errors.ErrInput, "invalid result value")
-	case m.Status == Proposal_Invalid:
-		return errors.Wrap(errors.ErrInput, "invalid status")
-	case m.VotingStartTime >= m.VotingEndTime:
-		return errors.Wrap(errors.ErrInput, "start time must be before end time")
-	case m.VotingStartTime <= m.SubmissionTime:
-		return errors.Wrap(errors.ErrInput, "start time must be after submission time")
-	case len(m.Author) == 0:
-		return errors.Wrap(errors.ErrInput, "author required")
-	case len(m.Description) < minDescriptionLength:
-		return errors.Wrapf(errors.ErrInput, "description length lower than minimum of: %d", minDescriptionLength)
-	case len(m.Description) > maxDescriptionLength:
-		return errors.Wrapf(errors.ErrInput, "description length exceeds: %d", maxDescriptionLength)
-	case !validTitle(m.Title):
-		return errors.Wrapf(errors.ErrInput, "title: %q", m.Title)
+func (m Proposal) Copy() orm.CloneableData {
+	optionCopy := append([]byte{}, m.RawOption...)
+	return &Proposal{
+		Metadata:  m.Metadata.Copy(),
+		Common:    m.Common.Copy().(*ProposalCommon),
+		RawOption: optionCopy,
+	}
+}
+
+func (m *ProposalCommon) Validate() error {
+	if m == nil {
+		return errors.Wrap(errors.ErrState, "proposal common data missing")
+	}
+	if m.Result == ProposalCommon_Empty {
+		return errors.Wrap(errors.ErrState, "invalid result value")
+	}
+	if m.Status == ProposalCommon_Invalid {
+		return errors.Wrap(errors.ErrState, "invalid status")
+	}
+	if m.VotingStartTime >= m.VotingEndTime {
+		return errors.Wrap(errors.ErrState, "start time must be before end time")
+	}
+	if m.VotingStartTime <= m.SubmissionTime {
+		return errors.Wrap(errors.ErrState, "start time must be after submission time")
+	}
+	if len(m.Author) == 0 {
+		return errors.Wrap(errors.ErrState, "author required")
+	}
+	if len(m.Description) < minDescriptionLength {
+		return errors.Wrapf(errors.ErrState, "description length lower than minimum of: %d", minDescriptionLength)
+	}
+	if len(m.Description) > maxDescriptionLength {
+		return errors.Wrapf(errors.ErrState, "description length exceeds: %d", maxDescriptionLength)
+	}
+	if !validTitle(m.Title) {
+		return errors.Wrapf(errors.ErrState, "title: %q", m.Title)
 	}
 	if err := m.ElectionRuleRef.Validate(); err != nil {
 		return errors.Wrap(err, "election rule reference")
@@ -189,21 +221,14 @@ func (m *Proposal) Validate() error {
 	if err := m.ElectorateRef.Validate(); err != nil {
 		return errors.Wrap(err, "electorate reference")
 	}
-	// validate details
-	switch m.Type {
-	case Proposal_Text:
-	case Proposal_UpdateElectorate:
-		if err := m.GetElectorateUpdateDetails().Validate(); err != nil {
-			return err
-		}
-	default:
-		return errors.Wrapf(errors.ErrState, "unsupported type: %v", m.Type)
-	}
 	return m.VoteState.Validate()
 }
 
-func (m Proposal) Copy() orm.CloneableData {
-	return &Proposal{
+func (m *ProposalCommon) Copy() orm.CloneableData {
+	if m == nil {
+		return &ProposalCommon{}
+	}
+	return &ProposalCommon{
 		Title:           m.Title,
 		Description:     m.Description,
 		ElectionRuleRef: orm.VersionedIDRef{ID: m.ElectionRuleRef.ID, Version: m.ElectionRuleRef.Version},
@@ -219,7 +244,7 @@ func (m Proposal) Copy() orm.CloneableData {
 }
 
 // CountVote updates the intermediate tally result by adding the new vote weight.
-func (m *Proposal) CountVote(vote Vote) error {
+func (m *ProposalCommon) CountVote(vote Vote) error {
 	oldTotal := m.VoteState.TotalVotes()
 	switch vote.Voted {
 	case VoteOption_Yes:
@@ -238,7 +263,7 @@ func (m *Proposal) CountVote(vote Vote) error {
 }
 
 // UndoCountVote updates the intermediate tally result by subtracting the given vote weight.
-func (m *Proposal) UndoCountVote(vote Vote) error {
+func (m *ProposalCommon) UndoCountVote(vote Vote) error {
 	oldTotal := m.VoteState.TotalVotes()
 	switch vote.Voted {
 	case VoteOption_Yes:
@@ -258,19 +283,19 @@ func (m *Proposal) UndoCountVote(vote Vote) error {
 
 // Tally calls the final calculation on the votes and sets the status of the proposal according to the
 // election rules threshold.
-func (m *Proposal) Tally() error {
-	if m.Result != Proposal_Undefined {
+func (m *ProposalCommon) Tally() error {
+	if m.Result != ProposalCommon_Undefined {
 		return errors.Wrapf(errors.ErrState, "result exists: %q", m.Result.String())
 	}
-	if m.Status != Proposal_Submitted {
+	if m.Status != ProposalCommon_Submitted {
 		return errors.Wrapf(errors.ErrState, "unexpected status: %q", m.Status.String())
 	}
 	if m.VoteState.Accepted() {
-		m.Result = Proposal_Accepted
+		m.Result = ProposalCommon_Accepted
 	} else {
-		m.Result = Proposal_Rejected
+		m.Result = ProposalCommon_Rejected
 	}
-	m.Status = Proposal_Closed
+	m.Status = ProposalCommon_Closed
 	return nil
 }
 
@@ -320,14 +345,15 @@ func (m TallyResult) TotalVotes() uint64 {
 }
 
 func (m TallyResult) Validate() error {
-	switch {
-	case m.Quorum != nil:
+	if m.Quorum != nil {
 		if err := m.Quorum.Validate(); err != nil {
 			return errors.Wrap(errors.ErrState, "quorum")
 		}
-	case m.TotalElectorateWeight == 0:
+	}
+	if m.TotalElectorateWeight == 0 {
 		return errors.Wrap(errors.ErrState, "totalElectorateWeight")
-	case m.TotalVotes() > m.TotalElectorateWeight:
+	}
+	if m.TotalVotes() > m.TotalElectorateWeight {
 		return errors.Wrap(errors.ErrState, "votes must not exceed totalElectorateWeight")
 	}
 	if err := m.Threshold.Validate(); err != nil {
@@ -355,13 +381,6 @@ func (m Vote) Copy() orm.CloneableData {
 		Elector: m.Elector,
 		Voted:   m.Voted,
 	}
-}
-
-func (m *ElectorateUpdatePayload) Validate() error {
-	if m == nil {
-		return errors.ErrEmpty
-	}
-	return ElectorsDiff(m.DiffElectors).Validate()
 }
 
 // DiffElectors contains the changes that should be applied. Adding an address should have a positive weight, removing

@@ -17,6 +17,7 @@ const (
 	tallyCost              = 0
 	updateElectorateCost   = 0
 	updateElectionRuleCost = 0
+	textResolutionCost     = 0
 )
 
 const packageName = "gov"
@@ -30,44 +31,23 @@ func RegisterQuery(qr weave.QueryRouter) {
 }
 
 // RegisterRoutes registers handlers for governance message processing.
-func RegisterRoutes(r weave.Registry, auth x.Authenticator) {
-	propBucket := NewProposalBucket()
-	elecBucket := NewElectorateBucket()
-
+func RegisterRoutes(r weave.Registry, auth x.Authenticator, decoder OptionDecoder, executor Executor) {
 	r = migration.SchemaMigratingRegistry(packageName, r)
-	r.Handle(pathVoteMsg, &VoteHandler{
-		auth:       auth,
-		propBucket: propBucket,
-		elecBucket: elecBucket,
-		voteBucket: NewVoteBucket(),
-	})
-	r.Handle(pathTallyMsg, NewTallyHandler(auth, propBucket, elecBucket))
-	r.Handle(pathCreateTextProposalMsg, &TextProposalHandler{
-		auth:        auth,
-		propBucket:  propBucket,
-		elecBucket:  elecBucket,
-		rulesBucket: NewElectionRulesBucket(),
-	})
-	r.Handle(pathCreateElectorateUpdateProposalMsg, &ElectorateUpdateProposalHandler{
-		auth:        auth,
-		propBucket:  propBucket,
-		elecBucket:  elecBucket,
-		rulesBucket: NewElectionRulesBucket(),
-	})
-	r.Handle(pathDeleteTextProposalMsg, &DeleteTextProposalHandler{
-		auth:       auth,
-		propBucket: propBucket,
-	})
-	r.Handle(pathUpdateElectorateMsg, &UpdateElectorateHandler{
-		auth:       auth,
-		propBucket: propBucket,
-		elecBucket: elecBucket,
-	})
-	r.Handle(pathUpdateElectionRulesMsg, &UpdateElectionRuleHandler{
-		auth:       auth,
-		propBucket: propBucket,
-		ruleBucket: NewElectionRulesBucket(),
-	})
+	r.Handle(pathVoteMsg, newVoteHandler(auth))
+	r.Handle(pathTallyMsg, newTallyHandler(auth, decoder, executor))
+	r.Handle(pathCreateProposalMsg, newCreateProposalHandler(auth, decoder))
+	r.Handle(pathDeleteProposalMsg, newDeleteProposalHandler(auth))
+	r.Handle(pathUpdateElectorateMsg, newUpdateElectorateHandler(auth))
+	r.Handle(pathUpdateElectionRulesMsg, newUpdateElectionRuleHandler(auth))
+	// We do NOT register the TextResultionHandler here... this is only for the proposal Executor
+}
+
+// RegisterBasicProposalRouters register the routes we accept for executing governance decisions.
+func RegisterBasicProposalRouters(r weave.Registry, auth x.Authenticator) {
+	r = migration.SchemaMigratingRegistry(packageName, r)
+	r.Handle(pathUpdateElectorateMsg, newUpdateElectorateHandler(auth))
+	r.Handle(pathUpdateElectionRulesMsg, newUpdateElectionRuleHandler(auth))
+	r.Handle(pathTextResolutionMsg, newTextResolutionHandler(auth))
 }
 
 type VoteHandler struct {
@@ -75,6 +55,15 @@ type VoteHandler struct {
 	elecBucket *ElectorateBucket
 	propBucket *ProposalBucket
 	voteBucket *VoteBucket
+}
+
+func newVoteHandler(auth x.Authenticator) *VoteHandler {
+	return &VoteHandler{
+		auth:       auth,
+		elecBucket: NewElectorateBucket(),
+		propBucket: NewProposalBucket(),
+		voteBucket: NewVoteBucket(),
+	}
 }
 
 func (h VoteHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
@@ -91,17 +80,17 @@ func (h VoteHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (
 		return nil, err
 	}
 
-	switch oldVote, err := h.voteBucket.GetVote(db, voteMsg.ProposalID, vote.Elector.Address); {
-	case errors.ErrNotFound.Is(err): // not voted before: skip undo
-	case err != nil:
-		return nil, errors.Wrap(err, "failed to load vote")
-	default:
-		if err := proposal.UndoCountVote(*oldVote); err != nil {
+	oldVote, err := h.voteBucket.GetVote(db, voteMsg.ProposalID, vote.Elector.Address)
+	if !errors.ErrNotFound.Is(err) { // we only need to "UndoCount" if there was a previous vote
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to load vote")
+		}
+		if err := proposal.Common.UndoCountVote(*oldVote); err != nil {
 			return nil, err
 		}
 	}
 
-	if err := proposal.CountVote(*vote); err != nil {
+	if err := proposal.Common.CountVote(*vote); err != nil {
 		return nil, err
 	}
 	if err = h.voteBucket.Save(db, h.voteBucket.Build(db, voteMsg.ProposalID, *vote)); err != nil {
@@ -122,17 +111,22 @@ func (h VoteHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) 
 	if err != nil {
 		return nil, nil, nil, errors.Wrap(err, "failed to load proposal")
 	}
-	if proposal.Status != Proposal_Submitted {
+	common := proposal.Common
+	if common == nil {
+		return nil, nil, nil, errors.Wrap(errors.ErrState, "proposal doesn't have common values set")
+	}
+
+	if common.Status != ProposalCommon_Submitted {
 		return nil, nil, nil, errors.Wrap(errors.ErrState, "not in voting period")
 	}
 	blockTime, ok := weave.BlockTime(ctx)
 	if !ok {
 		return nil, nil, nil, errors.Wrap(errors.ErrHuman, "block time not set")
 	}
-	if !blockTime.After(proposal.VotingStartTime.Time()) {
+	if !blockTime.After(common.VotingStartTime.Time()) {
 		return nil, nil, nil, errors.Wrap(errors.ErrState, "vote before proposal start time")
 	}
-	if !blockTime.Before(proposal.VotingEndTime.Time()) {
+	if !blockTime.Before(common.VotingEndTime.Time()) {
 		return nil, nil, nil, errors.Wrap(errors.ErrState, "vote after proposal end time")
 	}
 
@@ -140,7 +134,7 @@ func (h VoteHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) 
 	if voter == nil {
 		voter = x.MainSigner(ctx, h.auth).Address()
 	}
-	obj, err := h.elecBucket.GetVersion(db, proposal.ElectorateRef)
+	obj, err := h.elecBucket.GetVersion(db, common.ElectorateRef)
 	if err != nil {
 		return nil, nil, nil, errors.Wrap(err, "failed to load electorate")
 	}
@@ -167,21 +161,20 @@ func (h VoteHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) 
 }
 
 type TallyHandler struct {
-	auth        x.Authenticator
-	propBucket  *ProposalBucket
-	elecBucket  *ElectorateBucket
-	typeHandler map[Proposal_Type]TallyResultExecutor
+	auth       x.Authenticator
+	propBucket *ProposalBucket
+	elecBucket *ElectorateBucket
+	decoder    OptionDecoder
+	executor   Executor
 }
 
-func NewTallyHandler(auth x.Authenticator, bucket *ProposalBucket, electBucket *ElectorateBucket) *TallyHandler {
+func newTallyHandler(auth x.Authenticator, decoder OptionDecoder, executor Executor) *TallyHandler {
 	return &TallyHandler{
 		auth:       auth,
-		propBucket: bucket,
-		elecBucket: electBucket,
-		typeHandler: map[Proposal_Type]TallyResultExecutor{
-			Proposal_Text:             noOpExecutor,
-			Proposal_UpdateElectorate: updateElectorateExecutor(electBucket),
-		},
+		propBucket: NewProposalBucket(),
+		elecBucket: NewElectorateBucket(),
+		decoder:    decoder,
+		executor:   executor,
 	}
 }
 
@@ -198,20 +191,35 @@ func (h TallyHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) 
 	if err != nil {
 		return nil, err
 	}
-	if err := proposal.Tally(); err != nil {
+	common := proposal.Common
+	if common == nil {
+		return nil, errors.Wrap(errors.ErrState, "missing base proposal information")
+	}
+
+	if err := common.Tally(); err != nil {
 		return nil, err
 	}
 
-	if proposal.Result == Proposal_Accepted {
-		exec, ok := h.typeHandler[proposal.Type]
-		if !ok {
-			return nil, errors.Wrapf(errors.ErrState, "unsupported type: %s", proposal.Type)
-		}
-		if err := exec(db, proposal); err != nil {
-			return nil, errors.Wrapf(err, "execution failed for type: %v", proposal.Type)
-		}
+	if err := h.propBucket.Update(db, msg.ProposalID, proposal); err != nil {
+		return nil, err
 	}
-	return &weave.DeliverResult{}, h.propBucket.Update(db, msg.ProposalID, proposal)
+
+	if common.Result != ProposalCommon_Accepted {
+		return &weave.DeliverResult{}, nil
+	}
+
+	opts, err := h.decoder(proposal.RawOption)
+	if err != nil {
+		return nil, errors.Wrap(errors.ErrState, "cannot parse raw options")
+	}
+	if err := opts.Validate(); err != nil {
+		return nil, errors.Wrap(err, "options invalid")
+	}
+
+	// we add the vote ctx here, to authenticate results in the executor
+	// ensure that the gov.Authenticator is used in those Handlers
+	voteCtx := withElectionSuccess(ctx, common.ElectionRuleRef.ID)
+	return h.executor(voteCtx, db, opts)
 }
 
 func (h TallyHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*TallyMsg, *Proposal, error) {
@@ -223,63 +231,42 @@ func (h TallyHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "failed to load proposal")
 	}
-	if proposal.Status != Proposal_Submitted {
-		return nil, nil, errors.Wrapf(errors.ErrState, "unexpected status: %s", proposal.Status.String())
+	common := proposal.Common
+	if common == nil {
+		return nil, nil, errors.Wrap(errors.ErrState, "missing base proposal information")
+	}
+	if common.Status != ProposalCommon_Submitted {
+		return nil, nil, errors.Wrapf(errors.ErrState, "unexpected status: %s", common.Status.String())
 	}
 	blockTime, ok := weave.BlockTime(ctx)
 	if !ok {
 		return nil, nil, errors.Wrap(errors.ErrHuman, "block time not set")
 	}
-	if !blockTime.After(proposal.VotingEndTime.Time()) {
+	if !blockTime.After(common.VotingEndTime.Time()) {
 		return nil, nil, errors.Wrap(errors.ErrState, "tally before proposal end time")
 	}
 	return &msg, proposal, nil
 }
 
-// TallyResultExecutor functionality to be executed on successful proposal.
-type TallyResultExecutor func(db weave.KVStore, p *Proposal) error
-
-// noOpExecutor return nil without doing anything else
-func noOpExecutor(_ weave.KVStore, _ *Proposal) error {
-	return nil
-}
-
-// updateElectorateExecutor contains logic to update an electorate.
-func updateElectorateExecutor(elecBucket *ElectorateBucket) TallyResultExecutor {
-	return func(db weave.KVStore, proposal *Proposal) error {
-		details := proposal.GetElectorateUpdateDetails()
-		if details == nil {
-			return errors.Wrap(errors.ErrHuman, "details not set")
-		}
-		// merge diff
-		_, obj, err := elecBucket.GetLatestVersion(db, proposal.ElectorateRef.ID)
-		if err != nil {
-			return errors.Wrap(err, "failed to load electorate")
-		}
-		elect, err := asElectorate(obj)
-		if err != nil {
-			return err
-		}
-		merger := newMerger(elect.Electors)
-		if err := merger.merge(details.DiffElectors); err != nil {
-			return errors.Wrap(err, "merge failed")
-		}
-		elect.Electors, elect.TotalElectorateWeight = merger.serialize()
-		if _, err := elecBucket.Update(db, proposal.ElectorateRef.ID, elect); err != nil {
-			return errors.Wrap(err, "failed to store electorate update")
-		}
-		return nil
-	}
-}
-
-type TextProposalHandler struct {
+type CreateProposalHandler struct {
 	auth        x.Authenticator
+	decoder     OptionDecoder
 	elecBucket  *ElectorateBucket
 	propBucket  *ProposalBucket
 	rulesBucket *ElectionRulesBucket
 }
 
-func (h TextProposalHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
+func newCreateProposalHandler(auth x.Authenticator, decoder OptionDecoder) *CreateProposalHandler {
+	return &CreateProposalHandler{
+		auth:        auth,
+		decoder:     decoder,
+		elecBucket:  NewElectorateBucket(),
+		propBucket:  NewProposalBucket(),
+		rulesBucket: NewElectionRulesBucket(),
+	}
+}
+
+func (h CreateProposalHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
 	if _, _, _, err := h.validate(ctx, db, tx); err != nil {
 		return nil, err
 	}
@@ -287,7 +274,7 @@ func (h TextProposalHandler) Check(ctx weave.Context, db weave.KVStore, tx weave
 
 }
 
-func (h TextProposalHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
+func (h CreateProposalHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	msg, rule, electorate, err := h.validate(ctx, db, tx)
 	if err != nil {
 		return nil, err
@@ -295,21 +282,27 @@ func (h TextProposalHandler) Deliver(ctx weave.Context, db weave.KVStore, tx wea
 	// abort when an update electorate proposal exists for the one used
 	blockTime, _ := weave.BlockTime(ctx)
 
+	base := msg.Base
+	if base == nil {
+		return nil, errors.Wrap(errors.ErrInput, "missing base create proposal info")
+	}
+
 	proposal := &Proposal{
-		Metadata:        &weave.Metadata{Schema: 1},
-		Type:            Proposal_Text,
-		Title:           msg.Title,
-		Description:     msg.Description,
-		ElectionRuleRef: orm.VersionedIDRef{ID: msg.ElectionRuleID, Version: rule.Version},
-		ElectorateRef:   orm.VersionedIDRef{ID: msg.ElectorateID, Version: electorate.Version},
-		VotingStartTime: msg.StartTime,
-		VotingEndTime:   msg.StartTime.Add(time.Duration(rule.VotingPeriodHours) * time.Hour),
-		SubmissionTime:  weave.AsUnixTime(blockTime),
-		Author:          msg.Author,
-		VoteState:       NewTallyResult(rule.Quorum, rule.Threshold, electorate.TotalElectorateWeight),
-		Status:          Proposal_Submitted,
-		Result:          Proposal_Undefined,
-		Details:         &Proposal_TextDetails{&TextProposalPayload{}},
+		Metadata: &weave.Metadata{Schema: 1},
+		Common: &ProposalCommon{
+			Title:           base.Title,
+			Description:     base.Description,
+			ElectionRuleRef: orm.VersionedIDRef{ID: base.ElectionRuleID, Version: rule.Version},
+			ElectorateRef:   orm.VersionedIDRef{ID: rule.ElectorateID, Version: electorate.Version},
+			VotingStartTime: base.StartTime,
+			VotingEndTime:   base.StartTime.Add(time.Duration(rule.VotingPeriodHours) * time.Hour),
+			SubmissionTime:  weave.AsUnixTime(blockTime),
+			Author:          base.Author,
+			VoteState:       NewTallyResult(rule.Quorum, rule.Threshold, electorate.TotalElectorateWeight),
+			Status:          ProposalCommon_Submitted,
+			Result:          ProposalCommon_Undefined,
+		},
+		RawOption: msg.RawOption,
 	}
 
 	obj, err := h.propBucket.Create(db, proposal)
@@ -320,129 +313,28 @@ func (h TextProposalHandler) Deliver(ctx weave.Context, db weave.KVStore, tx wea
 	return &weave.DeliverResult{Data: obj.Key()}, nil
 }
 
-func (h TextProposalHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*CreateTextProposalMsg, *ElectionRule, *Electorate, error) {
-	var msg CreateTextProposalMsg
+func (h CreateProposalHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*CreateProposalMsg, *ElectionRule, *Electorate, error) {
+	var msg CreateProposalMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, nil, nil, errors.Wrap(err, "load msg")
 	}
+	base := msg.Base
+	if base == nil {
+		return nil, nil, nil, errors.Wrap(errors.ErrInput, "missing base create proposal info")
+	}
+
 	blockTime, ok := weave.BlockTime(ctx)
 	if !ok {
 		return nil, nil, nil, errors.Wrap(errors.ErrHuman, "block time not set")
 	}
-	if !msg.StartTime.Time().After(blockTime) {
+	if !base.StartTime.Time().After(blockTime) {
 		return nil, nil, nil, errors.Wrap(errors.ErrInput, "start time must be in the future")
 	}
-	if blockTime.Add(maxFutureStartTimeHours).Before(msg.StartTime.Time()) {
+	if blockTime.Add(maxFutureStartTimeHours).Before(base.StartTime.Time()) {
 		return nil, nil, nil, errors.Wrapf(errors.ErrInput, "start time cam not be more than %d h in the future", maxFutureStartTimeHours)
 	}
-	// get latest electorate version
-	_, obj, err := h.elecBucket.GetLatestVersion(db, msg.ElectorateID)
-	if err != nil {
-		return nil, nil, nil, errors.Wrap(err, "failed to load electorate")
-	}
-	elect, err := asElectorate(obj)
-	if err != nil {
-		return nil, nil, nil, errors.Wrap(err, "electorate")
-	}
 
-	_, rObj, err := h.rulesBucket.GetLatestVersion(db, msg.ElectionRuleID)
-	if err != nil {
-		return nil, nil, nil, errors.Wrap(err, "failed to load election rule")
-	}
-	rule, err := asElectionRule(rObj)
-	if err != nil {
-		return nil, nil, nil, err
-	}
-	author := msg.Author
-	if author != nil {
-		if !h.auth.HasAddress(ctx, author) {
-			return nil, nil, nil, errors.Wrap(errors.ErrUnauthorized, "author's signature required")
-		}
-	} else {
-		author = x.MainSigner(ctx, h.auth).Address()
-	}
-	msg.Author = author
-	return &msg, rule, elect, nil
-}
-
-type ElectorateUpdateProposalHandler struct {
-	auth        x.Authenticator
-	elecBucket  *ElectorateBucket
-	propBucket  *ProposalBucket
-	rulesBucket *ElectionRulesBucket
-}
-
-func (h ElectorateUpdateProposalHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
-	if _, _, _, err := h.validate(ctx, db, tx); err != nil {
-		return nil, err
-	}
-	return &weave.CheckResult{GasAllocated: proposalCost}, nil
-
-}
-
-func (h ElectorateUpdateProposalHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
-	msg, rules, electorate, err := h.validate(ctx, db, tx)
-	if err != nil {
-		return nil, err
-	}
-	blockTime, _ := weave.BlockTime(ctx)
-
-	proposal := &Proposal{
-		Metadata:        &weave.Metadata{Schema: 1},
-		Type:            Proposal_UpdateElectorate,
-		Title:           msg.Title,
-		Description:     msg.Description,
-		ElectionRuleRef: electorate.UpdateElectionRuleRef,
-		ElectorateRef:   orm.VersionedIDRef{ID: msg.ElectorateID, Version: electorate.Version},
-		VotingStartTime: msg.StartTime,
-		VotingEndTime:   msg.StartTime.Add(time.Duration(rules.VotingPeriodHours) * time.Hour),
-		SubmissionTime:  weave.AsUnixTime(blockTime),
-		Author:          msg.Author,
-		VoteState:       NewTallyResult(rules.Quorum, rules.Threshold, electorate.TotalElectorateWeight),
-		Status:          Proposal_Submitted,
-		Result:          Proposal_Undefined,
-		Details: &Proposal_ElectorateUpdateDetails{&ElectorateUpdatePayload{
-			msg.DiffElectors,
-		}},
-	}
-
-	obj, err := h.propBucket.Create(db, proposal)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to persist proposal")
-	}
-
-	return &weave.DeliverResult{Data: obj.Key()}, nil
-}
-
-func (h ElectorateUpdateProposalHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*CreateElectorateUpdateProposalMsg, *ElectionRule, *Electorate, error) {
-	var msg CreateElectorateUpdateProposalMsg
-	if err := weave.LoadMsg(tx, &msg); err != nil {
-		return nil, nil, nil, errors.Wrap(err, "load msg")
-	}
-	blockTime, ok := weave.BlockTime(ctx)
-	if !ok {
-		return nil, nil, nil, errors.Wrap(errors.ErrHuman, "block time not set")
-	}
-	if !msg.StartTime.Time().After(blockTime) {
-		return nil, nil, nil, errors.Wrap(errors.ErrInput, "start time must be in the future")
-	}
-	if blockTime.Add(maxFutureStartTimeHours).Before(msg.StartTime.Time()) {
-		return nil, nil, nil, errors.Wrapf(errors.ErrInput, "start time cam not be more than %d h in the future", maxFutureStartTimeHours)
-	}
-	// get latest electorate version
-	_, obj, err := h.elecBucket.GetLatestVersion(db, msg.ElectorateID)
-	if err != nil {
-		return nil, nil, nil, errors.Wrap(err, "failed to load electorate")
-	}
-	elect, err := asElectorate(obj)
-	if err != nil {
-		return nil, nil, nil, errors.Wrap(err, "electorate")
-	}
-	if err := newMerger(elect.Electors).merge(msg.DiffElectors); err != nil {
-		return nil, nil, nil, err
-	}
-	// get associated rule
-	rObj, err := h.rulesBucket.GetVersion(db, elect.UpdateElectionRuleRef)
+	_, rObj, err := h.rulesBucket.GetLatestVersion(db, base.ElectionRuleID)
 	if err != nil {
 		return nil, nil, nil, errors.Wrap(err, "failed to load election rule")
 	}
@@ -451,7 +343,16 @@ func (h ElectorateUpdateProposalHandler) validate(ctx weave.Context, db weave.KV
 		return nil, nil, nil, err
 	}
 
-	author := msg.Author
+	_, obj, err := h.elecBucket.GetLatestVersion(db, rule.ElectorateID)
+	if err != nil {
+		return nil, nil, nil, errors.Wrap(err, "failed to load electorate")
+	}
+	elect, err := asElectorate(obj)
+	if err != nil {
+		return nil, nil, nil, errors.Wrap(err, "electorate")
+	}
+
+	author := base.Author
 	if author != nil {
 		if !h.auth.HasAddress(ctx, author) {
 			return nil, nil, nil, errors.Wrap(errors.ErrUnauthorized, "author's signature required")
@@ -459,16 +360,32 @@ func (h ElectorateUpdateProposalHandler) validate(ctx weave.Context, db weave.KV
 	} else {
 		author = x.MainSigner(ctx, h.auth).Address()
 	}
-	msg.Author = author
+	base.Author = author
+
+	opts, err := h.decoder(msg.RawOption)
+	if err != nil {
+		return nil, nil, nil, errors.Wrap(errors.ErrInput, "cannot parse raw options")
+	}
+	if err := opts.Validate(); err != nil {
+		return nil, nil, nil, errors.Wrap(err, "options invalid")
+	}
+
 	return &msg, rule, elect, nil
 }
 
-type DeleteTextProposalHandler struct {
+type DeleteProposalHandler struct {
 	auth       x.Authenticator
 	propBucket *ProposalBucket
 }
 
-func (h DeleteTextProposalHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*DeleteProposalMsg, *Proposal, error) {
+func newDeleteProposalHandler(auth x.Authenticator) *DeleteProposalHandler {
+	return &DeleteProposalHandler{
+		auth:       auth,
+		propBucket: NewProposalBucket(),
+	}
+}
+
+func (h DeleteProposalHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*DeleteProposalMsg, *Proposal, error) {
 	var msg DeleteProposalMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, nil, errors.Wrap(err, "load msg")
@@ -477,38 +394,43 @@ func (h DeleteTextProposalHandler) validate(ctx weave.Context, db weave.KVStore,
 	if !ok {
 		return nil, nil, errors.Wrap(errors.ErrHuman, "block time not set")
 	}
-	prop, err := h.propBucket.GetProposal(db, msg.ID)
+	prop, err := h.propBucket.GetProposal(db, msg.ProposalID)
 	if err != nil {
-		return nil, nil, errors.Wrapf(err, "failed to load a proposal with id %s", msg.ID)
+		return nil, nil, errors.Wrapf(err, "failed to load a proposal with id %s", msg.ProposalID)
 	}
-	if prop.Status == Proposal_Withdrawn {
+	common := prop.Common
+	if common == nil {
+		return nil, nil, errors.Wrap(errors.ErrState, "proposal missing common data")
+	}
+
+	if common.Status == ProposalCommon_Withdrawn {
 		return nil, nil, errors.Wrap(errors.ErrState, "this proposal is already withdrawn")
 	}
-	if prop.VotingStartTime.Time().Before(blockTime) {
+	if common.VotingStartTime.Time().Before(blockTime) {
 		return nil, nil, errors.Wrap(errors.ErrImmutable, "voting has already started")
 	}
-	if !h.auth.HasAddress(ctx, prop.Author) {
+	if !h.auth.HasAddress(ctx, common.Author) {
 		return nil, nil, errors.Wrap(errors.ErrUnauthorized, "only the author can delete a proposal")
 	}
 	return &msg, prop, nil
 }
 
-func (h DeleteTextProposalHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
+func (h DeleteProposalHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
 	if _, _, err := h.validate(ctx, db, tx); err != nil {
 		return nil, err
 	}
 	return &weave.CheckResult{GasAllocated: deleteProposalCost}, nil
 }
 
-func (h DeleteTextProposalHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
+func (h DeleteProposalHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	msg, prop, err := h.validate(ctx, db, tx)
 	if err != nil {
 		return nil, err
 	}
 
-	prop.Status = Proposal_Withdrawn
+	prop.Common.Status = ProposalCommon_Withdrawn
 
-	if err := h.propBucket.Update(db, msg.ID, prop); err != nil {
+	if err := h.propBucket.Update(db, msg.ProposalID, prop); err != nil {
 		return nil, errors.Wrap(err, "failed to persist proposal")
 	}
 
@@ -519,6 +441,14 @@ type UpdateElectorateHandler struct {
 	auth       x.Authenticator
 	propBucket *ProposalBucket
 	elecBucket *ElectorateBucket
+}
+
+func newUpdateElectorateHandler(auth x.Authenticator) *UpdateElectorateHandler {
+	return &UpdateElectorateHandler{
+		auth:       auth,
+		propBucket: NewProposalBucket(),
+		elecBucket: NewElectorateBucket(),
+	}
 }
 
 func (h UpdateElectorateHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
@@ -575,6 +505,14 @@ type UpdateElectionRuleHandler struct {
 	ruleBucket *ElectionRulesBucket
 }
 
+func newUpdateElectionRuleHandler(auth x.Authenticator) *UpdateElectionRuleHandler {
+	return &UpdateElectionRuleHandler{
+		auth:       auth,
+		propBucket: NewProposalBucket(),
+		ruleBucket: NewElectionRulesBucket(),
+	}
+}
+
 func (h UpdateElectionRuleHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
 	_, _, err := h.validate(ctx, db, tx)
 	if err != nil {
@@ -613,4 +551,44 @@ func (h UpdateElectionRuleHandler) validate(ctx weave.Context, db weave.KVStore,
 		return nil, nil, errors.ErrUnauthorized
 	}
 	return &msg, rule, nil
+}
+
+type TextResolutionHandler struct {
+	auth x.Authenticator
+}
+
+func newTextResolutionHandler(auth x.Authenticator) *TextResolutionHandler {
+	// TODO: actually add a bucket to store resolutions
+	return &TextResolutionHandler{
+		auth: auth,
+	}
+}
+
+func (h TextResolutionHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
+	_, err := h.validate(ctx, db, tx)
+	if err != nil {
+		return nil, err
+	}
+	return &weave.CheckResult{GasAllocated: textResolutionCost}, nil
+}
+
+func (h TextResolutionHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
+	_, err := h.validate(ctx, db, tx)
+	if err != nil {
+		return nil, err
+	}
+	// TODO: store this resolution somewhere
+	return &weave.DeliverResult{}, nil
+}
+
+func (h TextResolutionHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*TextResolutionMsg, error) {
+	var msg TextResolutionMsg
+	if err := weave.LoadMsg(tx, &msg); err != nil {
+		return nil, errors.Wrap(err, "load msg")
+	}
+	// TODO: some auth?
+	// if !h.auth.HasAddress(ctx, rule.Admin) {
+	// 	return nil, errors.ErrUnauthorized
+	// }
+	return &msg, nil
 }
