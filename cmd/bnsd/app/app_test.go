@@ -11,7 +11,9 @@ import (
 	"github.com/iov-one/weave/cmd/bnsd/app/testdata/fixtures"
 	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/crypto"
+	"github.com/iov-one/weave/x/batch"
 	"github.com/iov-one/weave/x/cash"
+	"github.com/iov-one/weave/x/escrow"
 	"github.com/iov-one/weave/x/multisig"
 	"github.com/iov-one/weave/x/sigs"
 	"github.com/stretchr/testify/assert"
@@ -190,6 +192,65 @@ func sendToken(t *testing.T, baseApp abci.Application, chainID string, height in
 	}
 	tx.Fee(from, coin.NewCoin(1, 0, "FRNK"))
 	res := signAndCommit(t, baseApp, tx, signers, chainID, height)
+	return res
+}
+
+// checks batchWorks
+func sendBatch(t *testing.T, fail bool, baseApp weaveApp.BaseApp, chainID string, height int64, signers []Signer,
+	from, to []byte, amount int64, ticker, memo string, contracts ...[]byte) abci.ResponseDeliverTx {
+	msg := &cash.SendMsg{
+		Metadata: &weave.Metadata{Schema: 1},
+		Src:      from,
+		Dest:     to,
+		Amount: &coin.Coin{
+			Whole:  amount,
+			Ticker: ticker,
+		},
+		Memo: memo,
+	}
+
+	var messages []app.BatchMsg_Union
+	for i := 0; i < batch.MaxBatchMessages; i++ {
+		messages = append(messages,
+			app.BatchMsg_Union{
+				Sum: &app.BatchMsg_Union_SendMsg{
+					SendMsg: msg,
+				},
+			})
+	}
+
+	if fail == true {
+		messages[batch.MaxBatchMessages-1] = app.BatchMsg_Union{
+			Sum: &app.BatchMsg_Union_CreateEscrowMsg{
+				&escrow.CreateEscrowMsg{},
+			},
+		}
+	}
+
+	tx := &app.Tx{
+		Sum: &app.Tx_BatchMsg{
+			BatchMsg: &app.BatchMsg{
+				Messages: messages,
+			},
+		},
+		Multisig: contracts,
+	}
+
+	res := signAndCommit(t, baseApp, tx, signers, chainID, height)
+
+	checkAmount := amount * batch.MaxBatchMessages
+	if fail {
+		checkAmount = 0
+	}
+
+	// make sure money arrived only for successful batch
+	queryAndCheckAccount(t, baseApp, "/wallets", to, cash.Set{
+		Metadata: &weave.Metadata{Schema: 1},
+		Coins: coin.Coins{
+			{Ticker: ticker, Whole: checkAmount},
+		},
+	})
+
 	return res
 }
 
