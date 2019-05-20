@@ -1,8 +1,6 @@
 package msgfee
 
 import (
-	"fmt"
-
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/errors"
@@ -75,7 +73,6 @@ func txFee(bucket *MsgFeeBucket, store weave.KVStore, tx weave.Tx) (*coin.Coin, 
 		return nil, errors.Wrap(err, "cannot get message")
 	}
 	fee, err := bucket.MessageFee(store, msg.Path())
-	fmt.Println(">>>>>>>>>>", msg.Path(), fee, err)
 	if err != nil {
 		return nil, errors.Wrap(err, "cannot get fee")
 	}
