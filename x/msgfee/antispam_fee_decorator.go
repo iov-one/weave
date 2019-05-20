@@ -30,6 +30,9 @@ func NewAntispamFeeDecorator(fee coin.Coin) *AntispamFeeDecorator {
 
 func (d *AntispamFeeDecorator) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx, next weave.Checker) (*weave.CheckResult, error) {
 	res, err := next.Check(ctx, store, tx)
+	if d == nil { // Since NewAntispamFeeDecorator can return nil, let's be graceful here
+		return res, err
+	}
 	if err != nil {
 		return nil, err
 	}
