@@ -81,7 +81,7 @@ func (h VoteHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (
 	}
 
 	oldVote, err := h.voteBucket.GetVote(db, voteMsg.ProposalID, vote.Elector.Address)
-	if !errors.ErrNotFound.Is(err) { // just skip on NotFound
+	if !errors.ErrNotFound.Is(err) { // we only need to "UndoCount" if there was a previous vote
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to load vote")
 		}
