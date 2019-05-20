@@ -9,8 +9,9 @@ import (
 	"github.com/iov-one/weave/weavetest/assert"
 )
 
-// Test if the helper class AppCreateProposalMsg is byte compatible with CreateProposalMsg
-func TestAppCreateProposalMsg(t *testing.T) {
+// TestAppCreateProposalMsgByteCompatible tests if the helper class
+// AppCreateProposalMsg is byte compatible with CreateProposalMsg
+func TestAppCreateProposalMsgByteCompatible(t *testing.T) {
 	electorateOpts := &ProposalOptions{
 		Option: &ProposalOptions_Electorate{
 			Electorate: &UpdateElectorateMsg{
@@ -57,10 +58,10 @@ func TestAppCreateProposalMsg(t *testing.T) {
 	assert.Equal(t, proposalMsg, loadMsg)
 }
 
-// Test if the helper class AppProposal is byte compatible with Proposal
-func TestAppProposal(t *testing.T) {
+// TestAppProposalByteCompatible tests if the helper class AppProposal is byte compatible with Proposal
+func TestAppProposalByteCompatible(t *testing.T) {
 	alice := weavetest.NewCondition().Address()
-	proposal := proposalFixture(alice)
+	proposal := proposalFixture(t, alice)
 
 	appProposal := AppProposal{
 		Metadata: proposal.Metadata,

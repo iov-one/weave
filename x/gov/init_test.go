@@ -15,62 +15,62 @@ import (
 
 func TestInitFromGenesis(t *testing.T) {
 	const genesisSnippet = `
-{
-  "governance": {
-    "electorate": [
-      {
-        "admin": "0000000000000000000000000000000000000000",
-        "title": "first",
-        "electors": [
-          {
-            "weight": 10,
-            "address": "1111111111111111111111111111111111111111"
-          },
-          {
-            "weight": 11,
-            "address": "2222222222222222222222222222222222222222"
-          }
-        ]
-      },
-      {
-        "title": "second",
-        "admin": "cond:foo/bar/0000000000000001",
-        "electors": [
-          {
-            "weight": 1,
-            "address": "3333333333333333333333333333333333333333"
-          }
-        ]
-      }
-    ],
-    "rules": [
-      {
-				"admin":  "cond:foo/bar/0000000000000002",
-        "title": "fooo",
-        "voting_period_hours": 1,
-        "threshold": {
-          "numerator": 2,
-          "denominator": 3
+	{
+		"governance": {
+			"electorate": [
+				{
+					"admin": "0000000000000000000000000000000000000000",
+					"title": "first",
+					"electors": [
+						{
+							"weight": 10,
+							"address": "1111111111111111111111111111111111111111"
+						},
+						{
+							"weight": 11,
+							"address": "2222222222222222222222222222222222222222"
+						}
+					]
 				},
-				"electorate_id": 1
-      },
-      {
-				"admin":  "4444444444444444444444444444444444444444",
-        "title": "barr",
-        "voting_period_hours": 2,
-        "threshold": {
-          "numerator": 1,
-          "denominator": 2
-        },
-        "quorum": {
-          "numerator": 2,
-          "denominator": 3
-        },
-				"electorate_id": 2
-      }
-    ]
-  }
-}`
+				{
+					"title": "second",
+					"admin": "cond:foo/bar/0000000000000001",
+					"electors": [
+						{
+							"weight": 1,
+							"address": "3333333333333333333333333333333333333333"
+						}
+					]
+				}
+			],
+			"rules": [
+				{
+					"admin": "cond:foo/bar/0000000000000002",
+					"title": "fooo",
+					"voting_period_hours": 1,
+					"threshold": {
+						"numerator": 2,
+						"denominator": 3
+					},
+					"electorate_id": 1
+				},
+				{
+					"admin": "4444444444444444444444444444444444444444",
+					"title": "barr",
+					"voting_period_hours": 2,
+					"threshold": {
+						"numerator": 1,
+						"denominator": 2
+					},
+					"quorum": {
+						"numerator": 2,
+						"denominator": 3
+					},
+					"electorate_id": 2
+				}
+			]
+		}
+	}`
 	var opts weave.Options
 	require.NoError(t, json.Unmarshal([]byte(genesisSnippet), &opts))
 

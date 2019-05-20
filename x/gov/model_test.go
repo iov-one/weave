@@ -408,82 +408,82 @@ func TestProposalValidation(t *testing.T) {
 		Exp *errors.Error
 	}{
 		"Happy path": {
-			Src: proposalFixture(alice),
+			Src: proposalFixture(t, alice),
 		},
 		"Title too short": {
-			Src: proposalFixture(alice, func(p *Proposal) {
+			Src: proposalFixture(t, alice, func(p *Proposal) {
 				p.Common.Title = "foo"
 			}),
 			Exp: errors.ErrState,
 		},
 		"Title too long": {
-			Src: proposalFixture(alice, func(p *Proposal) {
+			Src: proposalFixture(t, alice, func(p *Proposal) {
 				p.Common.Title = BigString(129)
 			}),
 			Exp: errors.ErrState,
 		},
 		"Description empty": {
-			Src: proposalFixture(alice, func(p *Proposal) {
+			Src: proposalFixture(t, alice, func(p *Proposal) {
 				p.Common.Description = ""
 			}),
 			Exp: errors.ErrState,
 		},
 		"Description too long": {
-			Src: proposalFixture(alice, func(p *Proposal) {
+			Src: proposalFixture(t, alice, func(p *Proposal) {
 				p.Common.Description = BigString(5001)
 			}),
 			Exp: errors.ErrState,
 		},
 		"Author missing": {
-			Src: proposalFixture(nil),
+			Src: proposalFixture(t, nil),
 			Exp: errors.ErrState,
 		},
 		"ElectorateRef invalid": {
-			Src: proposalFixture(alice, func(p *Proposal) {
+			Src: proposalFixture(t, alice, func(p *Proposal) {
 				p.Common.ElectorateRef = orm.VersionedIDRef{}
 			}),
 			Exp: errors.ErrEmpty,
 		},
 		"ElectionRuleID missing": {
-			Src: proposalFixture(alice, func(p *Proposal) {
+			Src: proposalFixture(t, alice, func(p *Proposal) {
 				p.Common.ElectionRuleRef = orm.VersionedIDRef{}
 			}),
 			Exp: errors.ErrEmpty,
 		},
 		"StartTime missing": {
-			Src: proposalFixture(alice, func(p *Proposal) {
+			Src: proposalFixture(t, alice, func(p *Proposal) {
 				var unset time.Time
 				p.Common.VotingStartTime = weave.AsUnixTime(unset)
 			}),
 			Exp: errors.ErrState,
 		},
 		"EndTime missing": {
-			Src: proposalFixture(alice, func(p *Proposal) {
+			Src: proposalFixture(t, alice, func(p *Proposal) {
 				var unset time.Time
 				p.Common.VotingEndTime = weave.AsUnixTime(unset)
 			}),
 			Exp: errors.ErrState,
 		},
 		"Status missing": {
-			Src: proposalFixture(alice, func(p *Proposal) {
+			Src: proposalFixture(t, alice, func(p *Proposal) {
 				p.Common.Status = ProposalCommon_Status(0)
 			}),
 			Exp: errors.ErrState,
 		},
 		"Result missing": {
-			Src: proposalFixture(alice, func(p *Proposal) {
+			Src: proposalFixture(t, alice, func(p *Proposal) {
 				p.Common.Result = ProposalCommon_Result(0)
 			}),
 			Exp: errors.ErrState,
 		},
 		"Metadata missing": {
-			Src: proposalFixture(alice, func(p *Proposal) {
+			Src: proposalFixture(t, alice, func(p *Proposal) {
 				p.Metadata = nil
 			}),
 			Exp: errors.ErrMetadata,
 		},
 		"Options missing": {
-			Src: proposalFixture(alice, func(p *Proposal) {
+			Src: proposalFixture(t, alice, func(p *Proposal) {
 				p.RawOption = nil
 			}),
 			Exp: errors.ErrState,

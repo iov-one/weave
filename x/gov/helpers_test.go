@@ -33,7 +33,7 @@ func withTextProposal(t *testing.T, db store.KVStore, ctx weave.Context, mods ..
 		}
 	}
 	pBucket := NewProposalBucket()
-	proposal := proposalFixture(hAlice, ctxMods...)
+	proposal := proposalFixture(t, hAlice, ctxMods...)
 
 	if _, err := pBucket.Create(db, &proposal); err != nil {
 		t.Fatalf("unexpected error: %+v", err)
@@ -80,7 +80,7 @@ func withElectionRule(t *testing.T, db store.KVStore) *ElectionRule {
 	return rule
 }
 
-func proposalFixture(alice weave.Address, mods ...func(*Proposal)) Proposal {
+func proposalFixture(t testing.TB, alice weave.Address, mods ...func(*Proposal)) Proposal {
 	now := weave.AsUnixTime(time.Now())
 	textOpts := &ProposalOptions{
 		Option: &ProposalOptions_Text{
@@ -91,9 +91,7 @@ func proposalFixture(alice weave.Address, mods ...func(*Proposal)) Proposal {
 		},
 	}
 	textOption, err := textOpts.Marshal()
-	if err != nil {
-		panic(err)
-	}
+	assert.Nil(t, err)
 
 	proposal := Proposal{
 		Metadata: &weave.Metadata{Schema: 1},

@@ -33,21 +33,21 @@ func RegisterQuery(qr weave.QueryRouter) {
 // RegisterRoutes registers handlers for governance message processing.
 func RegisterRoutes(r weave.Registry, auth x.Authenticator, decoder OptionDecoder, executor Executor) {
 	r = migration.SchemaMigratingRegistry(packageName, r)
-	r.Handle(pathVoteMsg, NewVoteHandler(auth))
-	r.Handle(pathTallyMsg, NewTallyHandler(auth, decoder, executor))
-	r.Handle(pathCreateProposalMsg, NewCreateProposalHandler(auth, decoder))
-	r.Handle(pathDeleteProposalMsg, NewDeleteProposalHandler(auth))
-	r.Handle(pathUpdateElectorateMsg, NewUpdateElectorateHandler(auth))
-	r.Handle(pathUpdateElectionRulesMsg, NewUpdateElectionRuleHandler(auth))
-	// Note: we do NOT register the TextResultionHandler here... this is only for the proposal Executor
+	r.Handle(pathVoteMsg, newVoteHandler(auth))
+	r.Handle(pathTallyMsg, newTallyHandler(auth, decoder, executor))
+	r.Handle(pathCreateProposalMsg, newCreateProposalHandler(auth, decoder))
+	r.Handle(pathDeleteProposalMsg, newDeleteProposalHandler(auth))
+	r.Handle(pathUpdateElectorateMsg, newUpdateElectorateHandler(auth))
+	r.Handle(pathUpdateElectionRulesMsg, newUpdateElectionRuleHandler(auth))
+	// We do NOT register the TextResultionHandler here... this is only for the proposal Executor
 }
 
 // RegisterBasicProposalRouters register the routes we accept for executing governance decisions
 func RegisterBasicProposalRouters(r weave.Registry, auth x.Authenticator) {
 	r = migration.SchemaMigratingRegistry(packageName, r)
-	r.Handle(pathUpdateElectorateMsg, NewUpdateElectorateHandler(auth))
-	r.Handle(pathUpdateElectionRulesMsg, NewUpdateElectionRuleHandler(auth))
-	r.Handle(pathTextResolutionMsg, NewTextResolutionHandler(auth))
+	r.Handle(pathUpdateElectorateMsg, newUpdateElectorateHandler(auth))
+	r.Handle(pathUpdateElectionRulesMsg, newUpdateElectionRuleHandler(auth))
+	r.Handle(pathTextResolutionMsg, newTextResolutionHandler(auth))
 }
 
 type VoteHandler struct {
@@ -57,7 +57,7 @@ type VoteHandler struct {
 	voteBucket *VoteBucket
 }
 
-func NewVoteHandler(auth x.Authenticator) *VoteHandler {
+func newVoteHandler(auth x.Authenticator) *VoteHandler {
 	return &VoteHandler{
 		auth:       auth,
 		elecBucket: NewElectorateBucket(),
@@ -168,7 +168,7 @@ type TallyHandler struct {
 	executor   Executor
 }
 
-func NewTallyHandler(auth x.Authenticator, decoder OptionDecoder, executor Executor) *TallyHandler {
+func newTallyHandler(auth x.Authenticator, decoder OptionDecoder, executor Executor) *TallyHandler {
 	return &TallyHandler{
 		auth:       auth,
 		propBucket: NewProposalBucket(),
@@ -256,7 +256,7 @@ type CreateProposalHandler struct {
 	rulesBucket *ElectionRulesBucket
 }
 
-func NewCreateProposalHandler(auth x.Authenticator, decoder OptionDecoder) *CreateProposalHandler {
+func newCreateProposalHandler(auth x.Authenticator, decoder OptionDecoder) *CreateProposalHandler {
 	return &CreateProposalHandler{
 		auth:        auth,
 		decoder:     decoder,
@@ -378,7 +378,7 @@ type DeleteProposalHandler struct {
 	propBucket *ProposalBucket
 }
 
-func NewDeleteProposalHandler(auth x.Authenticator) *DeleteProposalHandler {
+func newDeleteProposalHandler(auth x.Authenticator) *DeleteProposalHandler {
 	return &DeleteProposalHandler{
 		auth:       auth,
 		propBucket: NewProposalBucket(),
@@ -443,7 +443,7 @@ type UpdateElectorateHandler struct {
 	elecBucket *ElectorateBucket
 }
 
-func NewUpdateElectorateHandler(auth x.Authenticator) *UpdateElectorateHandler {
+func newUpdateElectorateHandler(auth x.Authenticator) *UpdateElectorateHandler {
 	return &UpdateElectorateHandler{
 		auth:       auth,
 		propBucket: NewProposalBucket(),
@@ -505,7 +505,7 @@ type UpdateElectionRuleHandler struct {
 	ruleBucket *ElectionRulesBucket
 }
 
-func NewUpdateElectionRuleHandler(auth x.Authenticator) *UpdateElectionRuleHandler {
+func newUpdateElectionRuleHandler(auth x.Authenticator) *UpdateElectionRuleHandler {
 	return &UpdateElectionRuleHandler{
 		auth:       auth,
 		propBucket: NewProposalBucket(),
@@ -557,7 +557,7 @@ type TextResolutionHandler struct {
 	auth x.Authenticator
 }
 
-func NewTextResolutionHandler(auth x.Authenticator) *TextResolutionHandler {
+func newTextResolutionHandler(auth x.Authenticator) *TextResolutionHandler {
 	// TODO: actually add a bucket to store resolutions
 	return &TextResolutionHandler{
 		auth: auth,
