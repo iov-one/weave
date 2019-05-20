@@ -1,4 +1,4 @@
-package msgfee_test
+package msgfee
 
 import (
 	"testing"
@@ -7,8 +7,14 @@ import (
 	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/weavetest"
-	"github.com/iov-one/weave/x/msgfee"
 )
+
+func TestNewAntispamFeeDecoratorZero(t *testing.T) {
+	d := NewAntispamFeeDecorator(coin.Coin{})
+	if d != nil {
+		t.Fatalf("zero fee must return a nil decorator: %v", d)
+	}
+}
 
 func TestNewAntispamFeeDecorator(t *testing.T) {
 	cases := map[string]struct {
@@ -88,7 +94,7 @@ func TestNewAntispamFeeDecorator(t *testing.T) {
 
 	for testName, tc := range cases {
 		t.Run(testName, func(t *testing.T) {
-			decorator := msgfee.NewAntispamFeeDecorator(tc.AntiSpamFee)
+			decorator := NewAntispamFeeDecorator(tc.AntiSpamFee)
 			tc.Handler.CheckResult = weave.CheckResult{
 				RequiredFee: tc.ReqFee,
 			}
