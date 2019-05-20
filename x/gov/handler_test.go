@@ -4,6 +4,7 @@ import (
 	"context"
 	math "math"
 	"reflect"
+	"strings"
 	"testing"
 	"time"
 
@@ -691,6 +692,7 @@ func TestTally(t *testing.T) {
 		Src            tallySetup
 		WantCheckErr   *errors.Error
 		WantDeliverErr *errors.Error
+		WantDeliverLog string
 		ExpResult      ProposalCommon_Result
 		PostChecks     func(t *testing.T, db weave.KVStore)
 		Init           func(t *testing.T, db weave.KVStore)
@@ -965,7 +967,10 @@ func TestTally(t *testing.T) {
 				threshold:             Fraction{Numerator: 1, Denominator: 2},
 				totalWeightElectorate: 11,
 			},
-			WantDeliverErr: errors.ErrNotFound,
+			// Even if the execution failed, we update the tally state properly
+			ExpResult:      ProposalCommon_Accepted,
+			WantDeliverErr: nil,
+			WantDeliverLog: "Proposal accepted: execution error:",
 		},
 		"Does not update an electorate when rejected": {
 			Mods: func(ctx weave.Context, p *Proposal) {
@@ -1084,12 +1089,15 @@ func TestTally(t *testing.T) {
 			cache.Discard()
 
 			// and when deliver is called
-			_, err := rt.Deliver(ctx, db, tx)
+			dres, err := rt.Deliver(ctx, db, tx)
 			if !spec.WantDeliverErr.Is(err) {
-				t.Fatalf("deliver expected: %+v  but got %+v", spec.WantCheckErr, err)
+				t.Fatalf("deliver expected: %+v  but got %+v", spec.WantDeliverErr, err)
 			}
 			if spec.WantDeliverErr != nil {
 				return // skip further checks on expected error
+			}
+			if spec.WantDeliverLog != "" && !strings.HasPrefix(dres.Log, spec.WantDeliverLog) {
+				t.Errorf("want Log: %s\ngot Log: %s", spec.WantDeliverLog, dres.Log)
 			}
 			// and check persisted result
 			p, err := pBucket.GetProposal(cache, weavetest.SequenceID(1))
