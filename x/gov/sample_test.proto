@@ -20,11 +20,21 @@ message ProposalOptions {
 }
 
 // AppCreateProposalMsg is byte compatible with CreateProposalMsg
-// assuming we use DecodeFromProtoSum(&ProposalOptions{}).
+// assuming we use decodeProposalOptions
 //
 // It is here to demonstrate a clean app-level usage of proposals
 message AppCreateProposalMsg {
   weave.Metadata metadata = 1;
   CreateProposalMsgBase base = 2;
+  ProposalOptions options = 3;
+}
+
+// AppProposal is byte compatible with Proposal
+// assuming we use decodeProposalOptions
+//
+// It is here to demonstrate a clean app-level usage of proposals
+message AppProposal {
+  weave.Metadata metadata = 1;
+  ProposalCommon common = 2;
   ProposalOptions options = 3;
 }
