@@ -6,6 +6,16 @@
   easier to use interface when dealing with a single entity type.
 - `migration` package was updated to provide `orm.ModelBucket` wrapper for
   transparent schema version migrations
+- `x/gov` package was added, which maintains multiple versioned Electorates
+  and ElectionRules that define voting rules (quorum, threshold, voting period)
+  for a given Electorate. Votes can be talliesd at the end and execute an
+  application-defined action which is passed in to the constructor. This
+  is compatible with standard handler interfaces and sample application-level
+  setup is demonstrated in the test code (and all `sample*_test.go` code).
+- Failed execution of the Proposal intent does not result in a failed transaction
+  (so we update the Proposal state properly), but is rolled back independently
+  and noted in `DeliverResult.Log` (reporting to be improved in
+  a [future issue](https://github.com/iov-one/weave/issues/649))
 
 
 ## 0.15.0

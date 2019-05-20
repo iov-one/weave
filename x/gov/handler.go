@@ -1,6 +1,7 @@
 package gov
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/iov-one/weave"
@@ -205,21 +206,42 @@ func (h TallyHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) 
 	}
 
 	if common.Result != ProposalCommon_Accepted {
-		return &weave.DeliverResult{}, nil
+		return &weave.DeliverResult{Log: "Proposal not accepted"}, nil
 	}
 
+	// we only execute the store options upon success
+	// if this fails... we should still return no error, so the tally update works
+	// we just return the info from the executor in logs (tags?)
 	opts, err := h.decoder(proposal.RawOption)
 	if err != nil {
-		return nil, errors.Wrap(errors.ErrState, "cannot parse raw options")
+		return &weave.DeliverResult{Log: "Proposal accepted: error: cannot parse raw options"}, nil
 	}
 	if err := opts.Validate(); err != nil {
-		return nil, errors.Wrap(err, "options invalid")
+		return &weave.DeliverResult{Log: "Proposal accepted: error: options invalid"}, nil
 	}
 
 	// we add the vote ctx here, to authenticate results in the executor
 	// ensure that the gov.Authenticator is used in those Handlers
 	voteCtx := withElectionSuccess(ctx, common.ElectionRuleRef.ID)
-	return h.executor(voteCtx, db, opts)
+	cstore, ok := db.(weave.CacheableKVStore)
+	if !ok {
+		return &weave.DeliverResult{Log: "Proposal accepted: error: need cachable kvstore"}, nil
+	}
+	subDB := cstore.CacheWrap()
+
+	res, err := h.executor(voteCtx, subDB, opts)
+	if err != nil {
+		subDB.Discard()
+		log := fmt.Sprintf("Proposal accepted: execution error: %v", err)
+		return &weave.DeliverResult{Log: log}, nil
+	}
+	if err := subDB.Write(); err != nil {
+		log := fmt.Sprintf("Proposal accepted: commit error: %v", err)
+		return &weave.DeliverResult{Log: log}, nil
+	}
+
+	res.Log = "Proposal accepted: execution success"
+	return res, nil
 }
 
 func (h TallyHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*TallyMsg, *Proposal, error) {
