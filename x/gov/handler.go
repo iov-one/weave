@@ -350,7 +350,7 @@ func (h CreateProposalHandler) validate(ctx weave.Context, db weave.KVStore, tx 
 		return nil, nil, nil, errors.Wrap(errors.ErrHuman, "block time not set")
 	}
 	if !base.StartTime.Time().After(blockTime) {
-		return nil, nil, nil, errors.Wrap(errors.ErrInput, "start time must be in the future")
+		return nil, nil, nil, errors.Wrapf(errors.ErrInput, "start time must be in the future: %s < %s", base.StartTime, blockTime)
 	}
 	if blockTime.Add(maxFutureStartTimeHours).Before(base.StartTime.Time()) {
 		return nil, nil, nil, errors.Wrapf(errors.ErrInput, "start time cam not be more than %d h in the future", maxFutureStartTimeHours)
