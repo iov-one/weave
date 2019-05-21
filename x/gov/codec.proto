@@ -42,8 +42,8 @@ message ElectionRule {
   bytes electorate_id = 4 [(gogoproto.customname) = "ElectorateID"];
   // Human readable title.
   string title = 5;
-  // Duration how long the voting period will take place.
-  uint32 voting_period_hours = 6;
+  // Duration in seconds of how long the voting period will take place.
+  uint32 voting_period = 6 [(gogoproto.casttype) = "github.com/iov-one/weave.UnixDuration"];
   // Threshold is the fraction of either all eligible voters or in case of a quorum setup the fraction of all non
   // abstained votes.
   // To accept a proposal this value must be exceeded with Yes votes.
@@ -240,8 +240,8 @@ message UpdateElectionRuleMsg {
   weave.Metadata metadata = 1;
   // ElectionRuleID is a reference to the election rule
   bytes election_rule_id = 2 [(gogoproto.customname) = "ElectionRuleID"];
-  // Duration how long the voting period will take place.
-  uint32 voting_period_hours = 3;
+  // Duration in seconds of how long the voting period will take place.
+  uint32 voting_period = 3 [(gogoproto.casttype) = "github.com/iov-one/weave.UnixDuration"];
   // Threshold is the fraction of all eligible voters, not only the ones who voted. To accept a
   // proposal this value must be exceeded.
   // The formula is `(yes*denominator) > (numerator*total_electors_weight)`.

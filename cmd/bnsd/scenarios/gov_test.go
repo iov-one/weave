@@ -24,11 +24,13 @@ func TestGovProposalCreateAndExecute(t *testing.T) {
 	env, cleanup := bnsdtest.StartBnsd(t,
 		bnsdtest.WithMinFee(coin.NewCoin(0, 0, "IOV")),
 		bnsdtest.WithAntiSpamFee(coin.NewCoin(0, 0, "IOV")),
-		bnsdtest.WithElectorate([]weave.Address{
-			alice.PublicKey().Address(),
-			bobby.PublicKey().Address(),
-			carl.PublicKey().Address(),
-		}),
+		bnsdtest.WithGovernance(
+			weave.AsUnixDuration(120*time.Second),
+			[]weave.Address{
+				alice.PublicKey().Address(),
+				bobby.PublicKey().Address(),
+				carl.PublicKey().Address(),
+			}),
 	)
 	defer cleanup()
 
