@@ -52,9 +52,11 @@ func TestMultisigCanPayFees(t *testing.T) {
 	newMultisigTx.Fee(bob.PublicKey().Address(), coin.NewCoin(1, 1, "IOV"))
 
 	bobNonce := client.NewNonce(env.Client, bob.PublicKey().Address())
-	if seq, err := bobNonce.Next(); err != nil {
-		t.Fatalf("cannot acquire admin nonce sequence: %s", err)
-	} else if err := client.SignTx(newMultisigTx, bob, env.ChainID, seq); err != nil {
+	seq, err := bobNonce.Next()
+	if err != nil {
+		t.Fatalf("cannot acquire bob nonce sequence: %s", err)
+	}
+	if err := client.SignTx(newMultisigTx, bob, env.ChainID, seq); err != nil {
 		t.Fatalf("cannot sing revenue creation transaction: %s", err)
 	}
 
@@ -63,4 +65,57 @@ func TestMultisigCanPayFees(t *testing.T) {
 		t.Fatalf("cannot broadcast new revenue transaction: %s", err)
 	}
 
+	multisigID := resp.Response.DeliverTx.Data
+	t.Logf("multisig created with id: %x", multisigID)
+
+	// Final step is to put coins on the newly created multisig account so
+	// that it can be used to pay with by the members.
+	multisigAddr := multisig.MultiSigCondition(multisigID).Address()
+	bnsdtest.SeedAccountWithTokens(t, env, multisigAddr)
+
+	// Test setup is done, now the actual test.
+	//
+	// User Carl does not have any funds but multisig does. Ensure that
+	// Carl using multisig can execute operations that will collect fee
+	// from the multisig account.
+	// Let us create an another multisig instance as this operation
+	// requires a fee payment.
+
+	anotherNewMultisigTx := &bnsdApp.Tx{
+		// When using a multisig, transaction must be configured
+		// additionally. Decorators are looking into extra fields,
+		// never into the message content.
+		Multisig: [][]byte{multisigID},
+
+		Sum: &bnsdApp.Tx_CreateContractMsg{
+			CreateContractMsg: &multisig.CreateContractMsg{
+				Metadata: &weave.Metadata{Schema: 1},
+				Participants: []*multisig.Participant{
+					&multisig.Participant{
+						Signature: carl.PublicKey().Address(),
+						Weight:    1,
+					},
+				},
+				ActivationThreshold: 1,
+				AdminThreshold:      1,
+			},
+		},
+	}
+
+	anotherNewMultisigTx.Fee(multisigAddr, coin.NewCoin(1, 1, "IOV"))
+
+	carlNonce := client.NewNonce(env.Client, carl.PublicKey().Address())
+	seq, err = carlNonce.Next()
+	if err != nil {
+		t.Fatalf("cannot acquire carl nonce sequence: %s", err)
+	}
+	if err := client.SignTx(anotherNewMultisigTx, carl, env.ChainID, seq); err != nil {
+		t.Fatalf("cannot sing revenue creation transaction: %s", err)
+	}
+	resp = env.Client.BroadcastTx(anotherNewMultisigTx)
+	if err := resp.IsError(); err != nil {
+		t.Fatalf("cannot broadcast new revenue transaction: %s", err)
+	}
+	anotherMultisigID := resp.Response.DeliverTx.Data
+	t.Logf("another multisig created with id: %x", anotherMultisigID)
 }
