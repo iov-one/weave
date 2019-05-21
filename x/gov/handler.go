@@ -67,6 +67,9 @@ func newVoteHandler(auth x.Authenticator) *VoteHandler {
 }
 
 func (h VoteHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
+	t, _ := weave.BlockTime(ctx)
+	fmt.Println("check vote handler", t)
+
 	if _, _, _, err := h.validate(ctx, db, tx); err != nil {
 		return nil, err
 	}
@@ -75,6 +78,9 @@ func (h VoteHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*w
 }
 
 func (h VoteHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
+	t, _ := weave.BlockTime(ctx)
+	fmt.Println("deliver vote handler", t)
+
 	voteMsg, proposal, vote, err := h.validate(ctx, db, tx)
 	if err != nil {
 		return nil, err
@@ -288,6 +294,9 @@ func newCreateProposalHandler(auth x.Authenticator, decoder OptionDecoder) *Crea
 }
 
 func (h CreateProposalHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
+	t, _ := weave.BlockTime(ctx)
+	fmt.Println("check create proposal handler", t)
+
 	if _, _, _, err := h.validate(ctx, db, tx); err != nil {
 		return nil, err
 	}
@@ -296,6 +305,9 @@ func (h CreateProposalHandler) Check(ctx weave.Context, db weave.KVStore, tx wea
 }
 
 func (h CreateProposalHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
+	t, _ := weave.BlockTime(ctx)
+	fmt.Println("deliver create proposal handler", t)
+
 	msg, rule, electorate, err := h.validate(ctx, db, tx)
 	if err != nil {
 		return nil, err
