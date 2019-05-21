@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"testing"
+	"time"
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/migration"
@@ -47,7 +48,7 @@ func TestInitFromGenesis(t *testing.T) {
 				{
 					"admin": "cond:foo/bar/0000000000000002",
 					"title": "fooo",
-					"voting_period_hours": 1,
+					"voting_period": "1h",
 					"threshold": {
 						"numerator": 2,
 						"denominator": 3
@@ -57,7 +58,7 @@ func TestInitFromGenesis(t *testing.T) {
 				{
 					"admin": "4444444444444444444444444444444444444444",
 					"title": "barr",
-					"voting_period_hours": 2,
+					"voting_period": "2h",
 					"threshold": {
 						"numerator": 1,
 						"denominator": 2
@@ -157,7 +158,7 @@ func TestInitFromGenesis(t *testing.T) {
 	if exp, got := cond, r.Admin; !exp.Equals(got) {
 		t.Errorf("expected %X but got %X", exp, got)
 	}
-	if exp, got := uint32(1), r.VotingPeriodHours; exp != got {
+	if exp, got := weave.AsUnixDuration(time.Hour), r.VotingPeriod; exp != got {
 		t.Errorf("expected %v but got %v", exp, got)
 	}
 	if exp, got := (Fraction{Numerator: 2, Denominator: 3}), r.Threshold; exp != got {
@@ -189,7 +190,7 @@ func TestInitFromGenesis(t *testing.T) {
 	if exp, got := addr("4444444444444444444444444444444444444444"), r.Admin; !exp.Equals(got) {
 		t.Errorf("expected %X but got %X", exp, got)
 	}
-	if exp, got := uint32(2), r.VotingPeriodHours; exp != got {
+	if exp, got := weave.AsUnixDuration(2*time.Hour), r.VotingPeriod; exp != got {
 		t.Errorf("expected %v but got %v", exp, got)
 	}
 	if exp, got := (Fraction{Numerator: 1, Denominator: 2}), r.Threshold; exp != got {

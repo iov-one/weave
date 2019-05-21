@@ -2,6 +2,7 @@ package weave
 
 import (
 	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/iov-one/weave/errors"
@@ -105,4 +106,49 @@ func IsExpired(ctx Context, t UnixTime) bool {
 		panic("block time is not present")
 	}
 	return t <= AsUnixTime(blockNow)
+}
+
+// UnixDuration represents a time duration with granularity of a second. This
+// type should be used mostly for protobuf message declarations.
+type UnixDuration int32
+
+// AsUnixDuration converts given Duration into UnixDuration. Because of the
+// UnixDuration granularity precision of the value is narrowed to seconds.
+func AsUnixDuration(d time.Duration) UnixDuration {
+	return UnixDuration(d / time.Second)
+}
+
+// Duration returns the time.Duration representation of this value.
+func (d UnixDuration) Duration() time.Duration {
+	return time.Duration(d) * time.Second
+}
+
+// UnmarshalJSON loads JSON serialized representation into this value. JSON
+// serialized value can be represented as both number of seconds and a human
+// redable string with time unit as used by the time package.
+func (d *UnixDuration) UnmarshalJSON(raw []byte) error {
+	var s string
+	if err := json.Unmarshal(raw, &s); err == nil {
+		dur, err := time.ParseDuration(s)
+		if err != nil {
+			return fmt.Errorf("invalid duration string: %s", err)
+		}
+		*d = AsUnixDuration(dur)
+		return nil
+	}
+
+	var n int32
+	if err := json.Unmarshal(raw, &n); err != nil {
+		return err
+	}
+	*d = UnixDuration(n)
+	return nil
+}
+
+func (d UnixDuration) MarshalJSON() ([]byte, error) {
+	return json.Marshal(int32(d))
+}
+
+func (d UnixDuration) String() string {
+	return d.Duration().String()
 }

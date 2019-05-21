@@ -2,7 +2,6 @@ package gov
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
@@ -128,7 +127,7 @@ func (h VoteHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) 
 		return nil, nil, nil, errors.Wrap(errors.ErrState, "vote before proposal start time")
 	}
 	if !blockTime.Before(common.VotingEndTime.Time()) {
-		return nil, nil, nil, errors.Wrap(errors.ErrState, "vote after proposal end time")
+		return nil, nil, nil, errors.Wrapf(errors.ErrState, "vote after proposal end time: %s < %s", common.VotingEndTime, blockTime)
 	}
 
 	voter := msg.Voter
@@ -317,7 +316,7 @@ func (h CreateProposalHandler) Deliver(ctx weave.Context, db weave.KVStore, tx w
 			ElectionRuleRef: orm.VersionedIDRef{ID: base.ElectionRuleID, Version: rule.Version},
 			ElectorateRef:   orm.VersionedIDRef{ID: rule.ElectorateID, Version: electorate.Version},
 			VotingStartTime: base.StartTime,
-			VotingEndTime:   base.StartTime.Add(time.Duration(rule.VotingPeriodHours) * time.Hour),
+			VotingEndTime:   base.StartTime.Add(rule.VotingPeriod.Duration()),
 			SubmissionTime:  weave.AsUnixTime(blockTime),
 			Author:          base.Author,
 			VoteState:       NewTallyResult(rule.Quorum, rule.Threshold, electorate.TotalElectorateWeight),
@@ -352,8 +351,8 @@ func (h CreateProposalHandler) validate(ctx weave.Context, db weave.KVStore, tx 
 	if !base.StartTime.Time().After(blockTime) {
 		return nil, nil, nil, errors.Wrapf(errors.ErrInput, "start time must be in the future: %s < %s", base.StartTime, blockTime)
 	}
-	if blockTime.Add(maxFutureStartTimeHours).Before(base.StartTime.Time()) {
-		return nil, nil, nil, errors.Wrapf(errors.ErrInput, "start time cam not be more than %d h in the future", maxFutureStartTimeHours)
+	if blockTime.Add(maxFutureStart).Before(base.StartTime.Time()) {
+		return nil, nil, nil, errors.Wrapf(errors.ErrInput, "start time cam not be more than %s h in the future", maxFutureStart)
 	}
 
 	_, rObj, err := h.rulesBucket.GetLatestVersion(db, base.ElectionRuleID)
@@ -549,7 +548,7 @@ func (h UpdateElectionRuleHandler) Deliver(ctx weave.Context, db weave.KVStore, 
 		return nil, err
 	}
 	rule.Threshold = msg.Threshold
-	rule.VotingPeriodHours = msg.VotingPeriodHours
+	rule.VotingPeriod = msg.VotingPeriod
 	if _, err := h.ruleBucket.Update(db, msg.ElectionRuleID, rule); err != nil {
 		return nil, errors.Wrap(err, "failed to store update")
 	}

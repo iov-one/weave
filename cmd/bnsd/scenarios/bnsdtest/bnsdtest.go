@@ -41,8 +41,11 @@ func StartBnsd(t testing.TB, opts ...StartBnsdOption) (env *EnvConf, cleanup fun
 		EscrowContract:   escrow.Condition(weavetest.SequenceID(1)),
 		clientThrottle:   *delay,
 		msgfees:          make(map[string]coin.Coin),
-		electors: []weave.Address{
-			weavetest.NewCondition().Address(),
+		governance: governance{
+			votingPeriod: weave.AsUnixDuration(time.Hour),
+			electors: []weave.Address{
+				weavetest.NewCondition().Address(),
+			},
 		},
 	}
 	env.DistrContractAddr, _ = distribution.RevenueAccount(weavetest.SequenceID(1))
@@ -171,11 +174,11 @@ func initGenesis(t testing.TB, env *EnvConf, filename string) {
 		msgfees = append(msgfees, dict{"msg_path": path, "fee": fee})
 	}
 
-	if len(env.electors) == 0 {
+	if len(env.governance.electors) == 0 {
 		t.Fatal("gov electorate is empty")
 	}
 	electors := make([]dict, 0)
-	for _, e := range env.electors {
+	for _, e := range env.governance.electors {
 		electors = append(electors, dict{
 			"weight":  1,
 			"address": e,
@@ -257,15 +260,15 @@ func initGenesis(t testing.TB, env *EnvConf, filename string) {
 			"electorate": []interface{}{
 				dict{
 					"title":    "first electorate",
-					"admin":    env.electors[0],
+					"admin":    env.governance.electors[0],
 					"electors": electors,
 				},
 			},
 			"rules": []interface{}{
 				dict{
-					"admin":               env.electors[0],
-					"title":               "first rule",
-					"voting_period_hours": 1,
+					"admin":         env.governance.electors[0],
+					"title":         "first rule",
+					"voting_period": env.governance.votingPeriod,
 					"threshold": dict{
 						// Almost rules of majority (50%)
 						"numerator":   1,
