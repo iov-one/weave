@@ -14,6 +14,10 @@ GOPATH ?= $$HOME/go
 
 PROTOC_FLAGS := -I=. -I=./vendor -I=$(GOPATH)/src
 
+# HAS_PROTOTOOL will be set to prototool path if available, "" if not
+HAS_PROTOTOOL := $(shell which prototool)
+
+
 all: deps test
 
 dist:
@@ -52,7 +56,7 @@ deps:
 	@ go mod vendor
 
 lint:
-ifndef $(shell command -v prototool help > /dev/null)
+ifeq (,$(HAS_PROTOTOOL))
 	go get github.com/uber/prototool/cmd/prototool
 endif
 	prototool lint
