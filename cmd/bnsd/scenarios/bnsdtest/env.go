@@ -19,7 +19,8 @@ type EnvConf struct {
 	AntiSpamFee coin.Coin
 	MinFee      coin.Coin
 
-	msgfees map[string]coin.Coin
+	msgfees  map[string]coin.Coin
+	electors []weave.Address
 
 	Client         client.Client
 	clientThrottle time.Duration
@@ -59,5 +60,14 @@ func WithThrottle(frequency time.Duration) StartBnsdOption {
 func WithMsgFee(msgPath string, fee coin.Coin) StartBnsdOption {
 	return func(env *EnvConf) {
 		env.msgfees[msgPath] = fee
+	}
+}
+
+// WithElectorate set given group of weave addresses as the electorate for the
+// first electorate instance created. First address is used as the admin as
+// well.
+func WithElectorate(electors []weave.Address) StartBnsdOption {
+	return func(env *EnvConf) {
+		env.electors = electors
 	}
 }

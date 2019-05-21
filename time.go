@@ -89,7 +89,7 @@ func (t UnixTime) Validate() error {
 // String returns the usual string representation of this time as the time.Time
 // structure would.
 func (t UnixTime) String() string {
-	return t.Time().String()
+	return t.Time().UTC().String()
 }
 
 // IsExpired returns true if given time is in the past as compared to the "now"
