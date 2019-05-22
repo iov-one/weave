@@ -17,9 +17,8 @@ func TestMultisigCanPayFees(t *testing.T) {
 	//  transaction (eg. send) authorized by the multisig X, such that the
 	//  multisig X pays the fees.
 	env, cleanup := bnsdtest.StartBnsd(t,
-		bnsdtest.WithMinFee(coin.NewCoin(1, 0, "IOV")),
-		bnsdtest.WithAntiSpamFee(coin.NewCoin(1, 0, "IOV")),
-		bnsdtest.WithMsgFee("cash/send", coin.NewCoin(1, 0, "IOV")),
+		bnsdtest.WithMinFee(coin.NewCoin(0, 20000000, "IOV")),
+		bnsdtest.WithMsgFee("cash/send", coin.NewCoin(0, 10000000, "IOV")),
 		bnsdtest.WithMsgFee("multisig/create", coin.NewCoin(1, 0, "IOV")),
 	)
 	defer cleanup()

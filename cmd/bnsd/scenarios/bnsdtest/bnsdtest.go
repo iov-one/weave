@@ -32,7 +32,7 @@ import (
 func StartBnsd(t testing.TB, opts ...StartBnsdOption) (env *EnvConf, cleanup func()) {
 	env = &EnvConf{
 		MinFee:           coin.Coin{},
-		AntiSpamFee:      coin.Coin{},
+		AntiSpamFee:      coin.Coin{Whole: 0, Fractional: 50000000, Ticker: "IOV"},
 		Alice:            derivePrivateKey(t, *hexSeed, *derivationPath),
 		Logger:           log.NewTMLogger(ioutil.Discard),
 		MultiSigContract: multisig.MultiSigCondition(weavetest.SequenceID(1)),
