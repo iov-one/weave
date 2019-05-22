@@ -25,7 +25,7 @@ func TestGovProposalCreateAndExecute(t *testing.T) {
 		bnsdtest.WithMinFee(coin.NewCoin(0, 0, "IOV")),
 		bnsdtest.WithAntiSpamFee(coin.NewCoin(0, 0, "IOV")),
 		bnsdtest.WithGovernance(
-			weave.AsUnixDuration(2*time.Second),
+			weave.AsUnixDuration(3*time.Second),
 			[]weave.Address{
 				alice.PublicKey().Address(),
 				bobby.PublicKey().Address(),
@@ -40,7 +40,7 @@ func TestGovProposalCreateAndExecute(t *testing.T) {
 
 	// Why that much in the future?
 	// See https://github.com/tendermint/tendermint/blob/v0.31.5/state/state.go#L146-L150
-	proposalStartTime := time.Now().UTC().Add(1 * time.Second)
+	proposalStartTime := time.Now().UTC().Add(2 * time.Second) // todo: if remote test make sure this is far enough in the future
 	contractAddr := gov.ElectionCondition(weavetest.SequenceID(1)).Address()
 	bnsdtest.SeedAccountWithTokens(t, env, contractAddr)
 	proposalTx := &bnsdApp.Tx{
@@ -128,13 +128,14 @@ func TestGovProposalCreateAndExecute(t *testing.T) {
 	if err := x.Unmarshal(r.Models[0].Value); err != nil {
 		t.Fatalf("unexpected error: %+v", err)
 	}
+	// TODO: stop here when remote test as we voting period is likely too long to wait
 
 	wait = x.Common.VotingEndTime.Time().Sub(time.Now()) + time.Second
-	t.Logf("waiting for %s so that proposal voting period has ende", wait)
+	t.Logf("waiting for %s so that proposal voting period has ended", wait)
 	time.Sleep(wait)
 
 	resp := bnsdtest.MustBroadcastTx(t, env, tallyTx)
-	if len(resp.DeliverTx.Log) != 0 {
+	if resp.DeliverTx.Log != "Proposal accepted: execution success" {
 		t.Fatalf(string(resp.DeliverTx.Log))
 	}
 
