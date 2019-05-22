@@ -91,7 +91,7 @@ func (h CreateEscrowHandler) Deliver(ctx weave.Context, db weave.KVStore, tx wea
 	// deposit amounts
 	escrowAddr := Condition(obj.Key()).Address()
 	senderAddr := weave.Address(escrow.Sender)
-	if err := moveCoins(db, h.bank, senderAddr, escrowAddr, msg.Amount); err != nil {
+	if err := cash.MoveCoins(db, h.bank, senderAddr, escrowAddr, msg.Amount); err != nil {
 		return nil, err
 	}
 	// return id of escrow to use in future calls
@@ -163,7 +163,7 @@ func (h ReleaseEscrowHandler) Deliver(ctx weave.Context, db weave.KVStore, tx we
 	}
 
 	// withdraw the money from escrow to recipient
-	if err := moveCoins(db, h.bank, escrowAddr, escrow.Recipient, request); err != nil {
+	if err := cash.MoveCoins(db, h.bank, escrowAddr, escrow.Recipient, request); err != nil {
 		return nil, err
 	}
 
@@ -193,7 +193,7 @@ func (h ReleaseEscrowHandler) validate(ctx weave.Context, db weave.KVStore, tx w
 	}
 
 	// Arbiter or sender must authorize this.
-	if !h.auth.HasAddress(ctx, escrow.Arbiter.Address()) && !h.auth.HasAddress(ctx, escrow.Sender) {
+	if !h.auth.HasAddress(ctx, escrow.Arbiter) && !h.auth.HasAddress(ctx, escrow.Sender) {
 		return nil, nil, errors.ErrUnauthorized
 	}
 
@@ -241,7 +241,7 @@ func (h ReturnEscrowHandler) Deliver(ctx weave.Context, db weave.KVStore, tx wea
 
 	// withdraw all coins from escrow to the defined "sender"
 	dest := weave.Address(escrow.Sender)
-	if err := moveCoins(db, h.bank, escrowAddr, dest, available); err != nil {
+	if err := cash.MoveCoins(db, h.bank, escrowAddr, dest, available); err != nil {
 		return nil, err
 	}
 	if err := h.bucket.Delete(db, key); err != nil {
@@ -345,7 +345,7 @@ func (h UpdateEscrowHandler) validate(ctx weave.Context, db weave.KVStore, tx we
 		}
 	}
 	if msg.Arbiter != nil {
-		if !h.auth.HasAddress(ctx, escrow.Arbiter.Address()) {
+		if !h.auth.HasAddress(ctx, escrow.Arbiter) {
 			return nil, nil, errors.ErrUnauthorized
 		}
 	}
@@ -364,14 +364,4 @@ func loadEscrow(bucket Bucket, db weave.KVStore, escrowID []byte) (*Escrow, erro
 		return nil, errors.Wrapf(errors.ErrEmpty, "escrow %d", escrowID)
 	}
 	return escrow, nil
-}
-
-func moveCoins(db weave.KVStore, bank cash.CoinMover, src, dest weave.Address, amounts []*coin.Coin) error {
-	for _, c := range amounts {
-		err := bank.MoveCoins(db, src, dest, *c)
-		if err != nil {
-			return errors.Wrapf(err, "failed to move %q", c.String())
-		}
-	}
-	return nil
 }

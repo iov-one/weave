@@ -93,7 +93,6 @@ func appStateGenesis(keyAddress weave.Address) []byte {
 			dict{"ver": 1, "pkg": "distribution"},
 			dict{"ver": 1, "pkg": "escrow"},
 			dict{"ver": 1, "pkg": "gov"},
-			dict{"ver": 1, "pkg": "hashlock"},
 			dict{"ver": 1, "pkg": "msgfee"},
 			dict{"ver": 1, "pkg": "multisig"},
 			dict{"ver": 1, "pkg": "namecoin"},
@@ -138,7 +137,7 @@ func appStateGenesis(keyAddress weave.Address) []byte {
 		"escrow": []interface{}{
 			dict{
 				"sender":    "0000000000000000000000000000000000000000",
-				"arbiter":   "multisig/usage/0000000000000001",
+				"arbiter":   weave.NewCondition("multisig", "usage", []byte("0000000000000001")).Address(),
 				"recipient": "cond:dist/revenue/0000000000000001",
 				"amount":    []interface{}{"1000000 FRNK"},
 				"timeout":   time.Now().Add(10000 * time.Hour),

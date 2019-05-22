@@ -10,13 +10,10 @@ import "github.com/iov-one/weave/coin/codec.proto";
 // The arbiter or sender can release them to the recipient.
 // The recipient can return them to the sender.
 // Upon timeout, they will be returned to the sender.
-//
-// Note that if the arbiter is a Hashlock permission, we have
-// an HTLC ;)
 message Escrow {
   weave.Metadata metadata = 1;
   bytes sender = 2 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
-  bytes arbiter = 3 [(gogoproto.casttype) = "github.com/iov-one/weave.Condition"];
+  bytes arbiter = 3 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
   bytes recipient = 4 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
   // If unreleased before timeout, escrow will return to sender.
   // Timeout represents wall clock time as read from the block header. Timeout
@@ -36,7 +33,7 @@ message Escrow {
 message CreateEscrowMsg {
   weave.Metadata metadata = 1;
   bytes src = 2 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
-  bytes arbiter = 3 [(gogoproto.casttype) = "github.com/iov-one/weave.Condition"];
+  bytes arbiter = 3 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
   bytes recipient = 4 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
   // amount may contain multiple token types
   repeated coin.Coin amount = 5;
@@ -72,6 +69,6 @@ message UpdateEscrowPartiesMsg {
   weave.Metadata metadata = 1;
   bytes escrow_id = 2;
   bytes sender = 3 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
-  bytes arbiter = 4 [(gogoproto.casttype) = "github.com/iov-one/weave.Condition"];
+  bytes arbiter = 4 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
   bytes recipient = 5 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
 }

@@ -24,11 +24,11 @@ import "github.com/iov-one/weave/x/validators/codec.proto";
 //   applications. For example, FeeInfo field is used by both and indexed at
 //   first position. Skip unused fields (leave index unused or comment out for
 //   clarity).
+// When there is a gap in message sequence numbers - that most likely means some
+// old fields got deprecated. This is done to maintain binary compatibility.
 message Tx {
   cash.FeeInfo fees = 1;
   repeated sigs.StdSignature signatures = 2;
-  // Preimage for hashlock.
-  bytes preimage = 3;
   // ID of a multisig contract.
   repeated bytes multisig = 4;
   // msg is a sum type over all allowed messages on this chain.

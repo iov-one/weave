@@ -2,7 +2,6 @@ package escrow
 
 import (
 	"context"
-	"fmt"
 	"testing"
 	"time"
 
@@ -13,9 +12,7 @@ import (
 	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/store"
 	"github.com/iov-one/weave/weavetest"
-	"github.com/iov-one/weave/x"
 	"github.com/iov-one/weave/x/cash"
-	"github.com/iov-one/weave/x/hashlock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -75,7 +72,7 @@ func TestHandler(t *testing.T) {
 				{
 					"/escrows", "", weavetest.SequenceID(1), false,
 					[]orm.Object{
-						NewEscrow(weavetest.SequenceID(1), a.Address(), b.Address(), c, all, Timeout, ""),
+						NewEscrow(weavetest.SequenceID(1), a.Address(), b.Address(), c.Address(), all, Timeout, ""),
 					},
 					NewBucket().Bucket,
 				},
@@ -106,7 +103,7 @@ func TestHandler(t *testing.T) {
 				{
 					"/escrows", "", weavetest.SequenceID(1), false,
 					[]orm.Object{
-						NewEscrow(weavetest.SequenceID(1), a.Address(), b.Address(), c, some, Timeout, ""),
+						NewEscrow(weavetest.SequenceID(1), a.Address(), b.Address(), c.Address(), some, Timeout, ""),
 					},
 					NewBucket().Bucket,
 				},
@@ -114,7 +111,7 @@ func TestHandler(t *testing.T) {
 				{
 					"/escrows/sender", "", a.Address(), false,
 					[]orm.Object{
-						NewEscrow(weavetest.SequenceID(1), a.Address(), b.Address(), c, some, Timeout, ""),
+						NewEscrow(weavetest.SequenceID(1), a.Address(), b.Address(), c.Address(), some, Timeout, ""),
 					},
 					NewBucket().Bucket,
 				},
@@ -122,15 +119,15 @@ func TestHandler(t *testing.T) {
 				{
 					"/escrows/recipient", "", b.Address(), false,
 					[]orm.Object{
-						NewEscrow(weavetest.SequenceID(1), a.Address(), b.Address(), c, some, Timeout, ""),
+						NewEscrow(weavetest.SequenceID(1), a.Address(), b.Address(), c.Address(), some, Timeout, ""),
 					},
 					NewBucket().Bucket,
 				},
 				// make sure arbiter index works
 				{
-					"/escrows/arbiter", "", c, false,
+					"/escrows/arbiter", "", c.Address(), false,
 					[]orm.Object{
-						NewEscrow(weavetest.SequenceID(1), a.Address(), b.Address(), c, some, Timeout, ""),
+						NewEscrow(weavetest.SequenceID(1), a.Address(), b.Address(), c.Address(), some, Timeout, ""),
 					},
 					NewBucket().Bucket,
 				},
@@ -173,7 +170,7 @@ func TestHandler(t *testing.T) {
 			action{
 				// note permission is not the sender!
 				perms: []weave.Condition{b},
-				msg:   NewCreateMsg(a.Address(), b.Address(), c, some, Timeout, ""),
+				msg:   NewCreateMsg(a.Address(), b.Address(), c.Address(), some, Timeout, ""),
 			},
 			true,
 			nil,
@@ -185,7 +182,7 @@ func TestHandler(t *testing.T) {
 			action{
 				perms: []weave.Condition{a},
 				// defaults to sender!
-				msg:       NewCreateMsg(nil, b.Address(), c, all, weave.AsUnixTime(blockNow.Add(-2*time.Hour)), ""),
+				msg:       NewCreateMsg(nil, b.Address(), c.Address(), all, weave.AsUnixTime(blockNow.Add(-2*time.Hour)), ""),
 				blockTime: Timeout.Time().Add(-time.Hour),
 			},
 			true,
@@ -249,7 +246,7 @@ func TestHandler(t *testing.T) {
 				{
 					"/escrows", "", weavetest.SequenceID(1), false,
 					[]orm.Object{
-						NewEscrow(weavetest.SequenceID(1), a.Address(), b.Address(), c, remain, Timeout, "hello"),
+						NewEscrow(weavetest.SequenceID(1), a.Address(), b.Address(), c.Address(), remain, Timeout, "hello"),
 					},
 					NewBucket().Bucket,
 				},
@@ -366,7 +363,7 @@ func TestHandler(t *testing.T) {
 					msg: &UpdateEscrowPartiesMsg{
 						Metadata: &weave.Metadata{Schema: 1},
 						EscrowId: weavetest.SequenceID(1),
-						Arbiter:  d,
+						Arbiter:  d.Address(),
 					},
 				}},
 			action{
@@ -409,7 +406,7 @@ func TestHandler(t *testing.T) {
 					msg: &UpdateEscrowPartiesMsg{
 						Metadata: &weave.Metadata{Schema: 1},
 						EscrowId: weavetest.SequenceID(1),
-						Arbiter:  d,
+						Arbiter:  d.Address(),
 					},
 				}},
 			action{
@@ -432,7 +429,7 @@ func TestHandler(t *testing.T) {
 				msg: &UpdateEscrowPartiesMsg{
 					Metadata: &weave.Metadata{Schema: 1},
 					EscrowId: weavetest.SequenceID(1),
-					Arbiter:  a,
+					Arbiter:  a.Address(),
 				},
 			},
 			true,
@@ -655,7 +652,7 @@ func TestHandler(t *testing.T) {
 func createAction(sender, rcpt, arbiter weave.Condition, amount coin.Coins, memo string) action {
 	return action{
 		perms: []weave.Condition{sender},
-		msg:   NewCreateMsg(sender.Address(), rcpt.Address(), arbiter, amount, Timeout, memo),
+		msg:   NewCreateMsg(sender.Address(), rcpt.Address(), arbiter.Address(), amount, Timeout, memo),
 	}
 }
 
@@ -680,170 +677,6 @@ func MustAddCoins(t *testing.T, a, b coin.Coins) coin.Coins {
 	res, err := a.Combine(b)
 	require.NoError(t, err)
 	return res
-}
-
-// TestAtomicSwap combines hash and escrow to perform
-// atomic swap...
-//
-// we tested timeout above, this is just about claiming
-func TestAtomicSwap(t *testing.T) {
-	// a and b want to do a swap
-	a := weavetest.NewCondition()
-	b := weavetest.NewCondition()
-	// c is just an observer, no role in escrow
-	c := weavetest.NewCondition()
-
-	foo := mustCombineCoins(coin.NewCoin(500, 0, "FOO"))
-	lilFoo := mustCombineCoins(coin.NewCoin(77, 0, "FOO"))
-	leftFoo := MustMinusCoins(t, foo, lilFoo)
-	bar := mustCombineCoins(coin.NewCoin(1100, 0, "BAR"))
-	lilBar := mustCombineCoins(coin.NewCoin(250, 0, "BAR"))
-	leftBar := MustMinusCoins(t, bar, lilBar)
-
-	cases := []struct {
-		// initial values
-		aInit, bInit coin.Coins
-		// amount we wish to swap
-		aSwap, bSwap coin.Coins
-		// arbiter, same on both
-		arbiter weave.Condition
-		// preimage used in claim
-		preimage []byte
-		// does the release cause an error?
-		isError        bool
-		aFinal, bFinal coin.Coins
-	}{
-		// good preimage
-		0: {
-			foo, bar,
-			lilFoo, lilBar,
-			hashlock.PreimageCondition([]byte{7, 8, 9}),
-			[]byte{7, 8, 9},
-			false,
-			// the coins were properly released
-			MustAddCoins(t, leftFoo, lilBar),
-			MustAddCoins(t, leftBar, lilFoo),
-		},
-		// bad preimage
-		1: {
-			foo, bar,
-			lilFoo, lilBar,
-			hashlock.PreimageCondition([]byte{1, 2, 3}),
-			[]byte("foo"),
-			true,
-			// money stayed in escrow
-			leftFoo,
-			leftBar,
-		},
-	}
-
-	bank := cash.NewBucket()
-	ctrl := cash.NewController(bank)
-
-	setBalance := func(t *testing.T, db weave.KVStore, addr weave.Address, coins coin.Coins) {
-		acct, err := cash.WalletWith(addr, coins...)
-		require.NoError(t, err)
-		err = bank.Save(db, acct)
-		require.NoError(t, err)
-	}
-	checkBalance := func(t *testing.T, db weave.KVStore, addr weave.Address) coin.Coins {
-		acct, err := bank.Get(db, addr)
-		require.NoError(t, err)
-		coins := cash.AsCoins(acct)
-		return coins
-	}
-
-	// use both context auth and hashlock auth
-	auth := x.ChainAuth(authenticator(), hashlock.Authenticate{})
-	setAuth := authenticator().SetConditions
-
-	// route the escrow commands, and wrap with the hashlock
-	// middleware
-	r := app.NewRouter()
-	RegisterRoutes(r, auth, ctrl)
-	h := weavetest.Decorate(r, hashlock.NewDecorator())
-
-	ctx := weave.WithHeight(context.Background(), 500)
-	ctx = weave.WithBlockTime(ctx, blockNow)
-	for i, tc := range cases {
-		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
-			// start with the balance
-			db := store.MemStore()
-			migration.MustInitPkg(db, "escrow", "cash")
-			setBalance(t, db, a.Address(), tc.aInit)
-			setBalance(t, db, b.Address(), tc.bInit)
-
-			// make sure this works at all....
-			abal := checkBalance(t, db, a.Address())
-			require.Equal(t, tc.aInit, abal)
-			bbal := checkBalance(t, db, b.Address())
-			require.Equal(t, tc.bInit, bbal)
-
-			// create the offer
-			one := NewCreateMsg(a.Address(), b.Address(), tc.arbiter, tc.aSwap, Timeout, "")
-			aCtx := setAuth(ctx, a)
-			res, err := h.Deliver(aCtx, db, &weavetest.Tx{Msg: one})
-			require.NoError(t, err)
-			esc1 := res.Data
-
-			// this is the response
-			two := NewCreateMsg(b.Address(), a.Address(), tc.arbiter, tc.bSwap, Timeout, "")
-			bCtx := setAuth(ctx, b)
-			res, err = h.Deliver(bCtx, db, &weavetest.Tx{Msg: two})
-			require.NoError(t, err)
-			esc2 := res.Data
-
-			// now try to execute them, c with hashlock....
-			resCtx := setAuth(ctx, c)
-			resTx1 := PreimageTx{
-				Tx: &weavetest.Tx{Msg: &ReleaseEscrowMsg{
-					Metadata: &weave.Metadata{Schema: 1},
-					EscrowId: esc1,
-				}},
-				Preimage: tc.preimage,
-			}
-			_, err = h.Deliver(resCtx, db, resTx1)
-			if tc.isError {
-				require.Error(t, err)
-			} else {
-				require.NoError(t, err)
-			}
-			resTx2 := PreimageTx{
-				Tx: &weavetest.Tx{Msg: &ReleaseEscrowMsg{
-					Metadata: &weave.Metadata{Schema: 1},
-					EscrowId: esc2,
-				}},
-				Preimage: tc.preimage,
-			}
-			_, err = h.Deliver(resCtx, db, resTx2)
-			if tc.isError {
-				require.Error(t, err)
-			} else {
-				require.NoError(t, err)
-			}
-
-			// make sure final balance is proper....
-			abal = checkBalance(t, db, a.Address())
-			require.Equal(t, tc.aFinal, abal)
-			bbal = checkBalance(t, db, b.Address())
-			require.Equal(t, tc.bFinal, bbal)
-		})
-	}
-}
-
-// --- cut and paste from hashlock/decorator_test.go :(
-
-// PreimageTx fulfills the HashKeyTx interface to satisfy the decorator
-type PreimageTx struct {
-	weave.Tx
-	Preimage []byte
-}
-
-var _ hashlock.HashKeyTx = PreimageTx{}
-var _ weave.Tx = PreimageTx{}
-
-func (p PreimageTx) GetPreimage() []byte {
-	return p.Preimage
 }
 
 //-------------------------------------------------
@@ -911,21 +744,6 @@ func (q query) check(t testing.TB, db weave.ReadOnlyKVStore, qr weave.QueryRoute
 			assert.EqualValues(t, ex.Value(), got.Value(), msg...)
 		}
 	}
-}
-
-// for test, panics if cannot convert to model....
-func objToModel(obj orm.Object) (weave.Model, error) {
-	// ugh, we need the full on length...
-	key := obj.Key()
-	val := obj.Value()
-	// this is soo ugly....
-	if _, ok := val.(*Escrow); ok {
-		key = NewBucket().DBKey(key)
-	} else if _, ok := val.(*cash.Set); ok {
-		key = cash.NewBucket().DBKey(key)
-	}
-	bz, err := val.Marshal()
-	return weave.Model{Key: key, Value: bz}, err
 }
 
 // mo = must object... takes (Object, error) result and

@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/iov-one/weave"
-	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/x"
@@ -85,7 +84,7 @@ func (h CreateSwapHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave
 		return nil, err
 	}
 
-	if err := moveCoins(db, h.bank, swap.Src, SwapAddr(obj.Key(), swap), msg.Amount); err != nil {
+	if err := cash.MoveCoins(db, h.bank, swap.Src, SwapAddr(obj.Key(), swap), msg.Amount); err != nil {
 		return nil, err
 	}
 
@@ -152,7 +151,7 @@ func (h ReleaseSwapHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weav
 	}
 
 	// withdraw the money from swap to recipient
-	if err := moveCoins(db, h.bank, swapAddr, swap.Recipient, amount); err != nil {
+	if err := cash.MoveCoins(db, h.bank, swapAddr, swap.Recipient, amount); err != nil {
 		return nil, err
 	}
 
@@ -225,7 +224,7 @@ func (h ReturnSwapHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave
 	}
 
 	// withdraw all coins from swap to the defined "sender"
-	if err := moveCoins(db, h.bank, swapAddr, swap.Src, available); err != nil {
+	if err := cash.MoveCoins(db, h.bank, swapAddr, swap.Src, available); err != nil {
 		return nil, err
 	}
 	if err := h.bucket.Delete(db, msg.SwapID); err != nil {
@@ -265,16 +264,6 @@ func loadSwap(bucket Bucket, db weave.KVStore, swapID []byte) (*Swap, error) {
 		return nil, errors.Wrapf(errors.ErrEmpty, "swap %d", swapID)
 	}
 	return swap, nil
-}
-
-func moveCoins(db weave.KVStore, bank cash.CoinMover, src, dest weave.Address, amounts []*coin.Coin) error {
-	for _, c := range amounts {
-		err := bank.MoveCoins(db, src, dest, *c)
-		if err != nil {
-			return errors.Wrapf(err, "failed to move %q", c.String())
-		}
-	}
-	return nil
 }
 
 func HashBytes(preimage []byte) []byte {

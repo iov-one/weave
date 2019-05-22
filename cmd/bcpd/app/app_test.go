@@ -275,7 +275,6 @@ func withWalletAppState(t testing.TB, accounts []*account) string {
 			{Ver: 1, Pkg: "distribution"},
 			{Ver: 1, Pkg: "escrow"},
 			{Ver: 1, Pkg: "gov"},
-			{Ver: 1, Pkg: "hashlock"},
 			{Ver: 1, Pkg: "msgfee"},
 			{Ver: 1, Pkg: "multisig"},
 			{Ver: 1, Pkg: "namecoin"},

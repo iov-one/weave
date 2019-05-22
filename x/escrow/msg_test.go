@@ -31,8 +31,6 @@ func TestCreateEscrowMsg(t *testing.T) {
 	a := weavetest.NewCondition()
 	b := weavetest.NewCondition()
 	c := weave.NewCondition("monkey", "gelato", []byte("berry"))
-	// invalid
-	d := weave.Condition("foobar")
 
 	timeout := weave.AsUnixTime(time.Now())
 
@@ -59,7 +57,7 @@ func TestCreateEscrowMsg(t *testing.T) {
 			&CreateEscrowMsg{
 				Metadata:  &weave.Metadata{Schema: 1},
 				Src:       a.Address(),
-				Arbiter:   b,
+				Arbiter:   b.Address(),
 				Recipient: c.Address(),
 				Amount:    plus,
 				Timeout:   timeout,
@@ -70,7 +68,7 @@ func TestCreateEscrowMsg(t *testing.T) {
 		2: {
 			&CreateEscrowMsg{
 				Metadata:  &weave.Metadata{Schema: 1},
-				Arbiter:   c,
+				Arbiter:   c.Address(),
 				Recipient: c.Address(),
 				Amount:    plus,
 				Timeout:   timeout,
@@ -78,22 +76,11 @@ func TestCreateEscrowMsg(t *testing.T) {
 			},
 			noErr,
 		},
-		// invalid permissions
+		// negative amount
 		3: {
 			&CreateEscrowMsg{
 				Metadata:  &weave.Metadata{Schema: 1},
-				Arbiter:   d,
-				Recipient: c.Address(),
-				Amount:    plus,
-				Timeout:   timeout,
-			},
-			errors.ErrInput.Is,
-		},
-		// negative amount
-		4: {
-			&CreateEscrowMsg{
-				Metadata:  &weave.Metadata{Schema: 1},
-				Arbiter:   b,
+				Arbiter:   b.Address(),
 				Recipient: c.Address(),
 				Amount:    minus,
 				Timeout:   timeout,
@@ -101,10 +88,10 @@ func TestCreateEscrowMsg(t *testing.T) {
 			errors.ErrAmount.Is,
 		},
 		// improperly formatted amount
-		5: {
+		4: {
 			&CreateEscrowMsg{
 				Metadata:  &weave.Metadata{Schema: 1},
-				Arbiter:   b,
+				Arbiter:   b.Address(),
 				Recipient: c.Address(),
 				Amount:    mixed,
 				Timeout:   timeout,
@@ -112,20 +99,20 @@ func TestCreateEscrowMsg(t *testing.T) {
 			errors.ErrCurrency.Is,
 		},
 		// missing amount
-		6: {
+		5: {
 			&CreateEscrowMsg{
 				Metadata:  &weave.Metadata{Schema: 1},
-				Arbiter:   b,
+				Arbiter:   b.Address(),
 				Recipient: c.Address(),
 				Timeout:   timeout,
 			},
 			errors.ErrAmount.Is,
 		},
 		// invalid memo
-		7: {
+		6: {
 			&CreateEscrowMsg{
 				Metadata:  &weave.Metadata{Schema: 1},
-				Arbiter:   b,
+				Arbiter:   b.Address(),
 				Recipient: c.Address(),
 				Amount:    plus,
 				Timeout:   timeout,
@@ -134,10 +121,10 @@ func TestCreateEscrowMsg(t *testing.T) {
 			errors.ErrInput.Is,
 		},
 		// zero timeout
-		8: {
+		7: {
 			&CreateEscrowMsg{
 				Metadata:  &weave.Metadata{Schema: 1},
-				Arbiter:   b,
+				Arbiter:   b.Address(),
 				Recipient: c.Address(),
 				Amount:    plus,
 				Timeout:   0,
@@ -295,8 +282,6 @@ func TestUpdateEscrowMsg(t *testing.T) {
 	a := weavetest.NewCondition()
 	b := weavetest.NewCondition()
 	c := weave.NewCondition("monkey", "gelato", []byte("berry"))
-	// invalid
-	d := weave.Condition("foobar")
 
 	cases := []struct {
 		msg   *UpdateEscrowPartiesMsg
@@ -341,18 +326,9 @@ func TestUpdateEscrowMsg(t *testing.T) {
 				Metadata:  &weave.Metadata{Schema: 1},
 				EscrowId:  escrow,
 				Recipient: b.Address(),
-				Arbiter:   c,
+				Arbiter:   c.Address(),
 			},
 			noErr,
-		},
-		// check for valid permissions
-		5: {
-			&UpdateEscrowPartiesMsg{
-				Metadata: &weave.Metadata{Schema: 1},
-				EscrowId: escrow,
-				Arbiter:  d,
-			},
-			errors.ErrInput.Is,
 		},
 	}
 

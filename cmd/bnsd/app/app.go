@@ -24,7 +24,6 @@ import (
 	"github.com/iov-one/weave/x/currency"
 	"github.com/iov-one/weave/x/distribution"
 	"github.com/iov-one/weave/x/escrow"
-	"github.com/iov-one/weave/x/hashlock"
 	"github.com/iov-one/weave/x/msgfee"
 	"github.com/iov-one/weave/x/multisig"
 	"github.com/iov-one/weave/x/nft"
@@ -37,7 +36,7 @@ import (
 // Authenticator returns the typical authentication,
 // just using public key signatures
 func Authenticator() x.Authenticator {
-	return x.ChainAuth(sigs.Authenticate{}, hashlock.Authenticate{}, multisig.Authenticate{})
+	return x.ChainAuth(sigs.Authenticate{}, multisig.Authenticate{})
 }
 
 // Chain returns a chain of decorators, to handle authentication,
@@ -59,8 +58,6 @@ func Chain(authFn x.Authenticator, minFee coin.Coin) app.Decorators {
 		cash.NewDynamicFeeDecorator(authFn, ctrl),
 		msgfee.NewAntispamFeeDecorator(minFee),
 		msgfee.NewFeeDecorator(),
-		// cannot pay for fee with hashlock...
-		hashlock.NewDecorator(),
 		// batch commented out temporarily to minimize release features
 		// make sure we execute all the transactions in batch before the save point
 		//batch.NewDecorator(),

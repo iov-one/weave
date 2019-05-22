@@ -104,7 +104,6 @@ func initGenesis(filename string, addr weave.Address) error {
 			dict{"ver": 1, "pkg": "distribution"},
 			dict{"ver": 1, "pkg": "escrow"},
 			dict{"ver": 1, "pkg": "gov"},
-			dict{"ver": 1, "pkg": "hashlock"},
 			dict{"ver": 1, "pkg": "msgfee"},
 			dict{"ver": 1, "pkg": "multisig"},
 			dict{"ver": 1, "pkg": "namecoin"},

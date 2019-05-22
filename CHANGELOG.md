@@ -1,7 +1,7 @@
 # Changelog
 
 ## HEAD
-
+- Cleanup escrow: removed the support for atomic swap
 - A new bucket implementation `orm.ModelBucket` was added that provides an
   easier to use interface when dealing with a single entity type.
 - `migration` package was updated to provide `orm.ModelBucket` wrapper for
@@ -16,6 +16,11 @@
   (so we update the Proposal state properly), but is rolled back independently
   and noted in `DeliverResult.Log` (reporting to be improved in
   a [future issue](https://github.com/iov-one/weave/issues/649))
+
+Breaking changes  
+- Escrow does not support atomic swap anymore: preimage is removed from Tx and, haslock extension removed
+and arbiter now must be an Address and not a Condition 
+
 
 
 ## 0.15.0
