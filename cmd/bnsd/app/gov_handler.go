@@ -10,6 +10,7 @@ import (
 	"github.com/iov-one/weave/x/distribution"
 	"github.com/iov-one/weave/x/escrow"
 	"github.com/iov-one/weave/x/gov"
+	"github.com/iov-one/weave/x/validators"
 )
 
 // decodeProposalOptions is a sample code for a Decoder.
@@ -17,7 +18,7 @@ func decodeProposalOptions(raw []byte) (weave.Msg, error) {
 	model := ProposalOptions{}
 	err := model.Unmarshal(raw)
 	if err != nil {
-		return nil, errors.Wrap(err, "cannot parse data into Options struct")
+		return nil, errors.Wrap(err, "cannot parse data into ProposalOptions struct")
 	}
 	return weave.ExtractMsgFromSum(model.Option)
 }
@@ -32,6 +33,7 @@ func proposalOptionsExecutor(ctrl cash.Controller) gov.Executor {
 
 	// Make sure to register for all items in ProposalOptions
 	cash.RegisterRoutes(r, auth, ctrl)
+	validators.RegisterRoutes(r, auth)
 	escrow.RegisterRoutes(r, auth, ctrl)
 	distribution.RegisterRoutes(r, auth, ctrl)
 	migration.RegisterRoutes(r, auth)
