@@ -72,7 +72,7 @@ func TestHandler(t *testing.T) {
 				{
 					"/escrows", "", weavetest.SequenceID(1), false,
 					[]orm.Object{
-						NewEscrow(weavetest.SequenceID(1), a.Address(), b.Address(), c, all, Timeout, ""),
+						NewEscrow(weavetest.SequenceID(1), a.Address(), b.Address(), c.Address(), all, Timeout, ""),
 					},
 					NewBucket().Bucket,
 				},
@@ -103,7 +103,7 @@ func TestHandler(t *testing.T) {
 				{
 					"/escrows", "", weavetest.SequenceID(1), false,
 					[]orm.Object{
-						NewEscrow(weavetest.SequenceID(1), a.Address(), b.Address(), c, some, Timeout, ""),
+						NewEscrow(weavetest.SequenceID(1), a.Address(), b.Address(), c.Address(), some, Timeout, ""),
 					},
 					NewBucket().Bucket,
 				},
@@ -111,7 +111,7 @@ func TestHandler(t *testing.T) {
 				{
 					"/escrows/sender", "", a.Address(), false,
 					[]orm.Object{
-						NewEscrow(weavetest.SequenceID(1), a.Address(), b.Address(), c, some, Timeout, ""),
+						NewEscrow(weavetest.SequenceID(1), a.Address(), b.Address(), c.Address(), some, Timeout, ""),
 					},
 					NewBucket().Bucket,
 				},
@@ -119,15 +119,15 @@ func TestHandler(t *testing.T) {
 				{
 					"/escrows/recipient", "", b.Address(), false,
 					[]orm.Object{
-						NewEscrow(weavetest.SequenceID(1), a.Address(), b.Address(), c, some, Timeout, ""),
+						NewEscrow(weavetest.SequenceID(1), a.Address(), b.Address(), c.Address(), some, Timeout, ""),
 					},
 					NewBucket().Bucket,
 				},
 				// make sure arbiter index works
 				{
-					"/escrows/arbiter", "", c, false,
+					"/escrows/arbiter", "", c.Address(), false,
 					[]orm.Object{
-						NewEscrow(weavetest.SequenceID(1), a.Address(), b.Address(), c, some, Timeout, ""),
+						NewEscrow(weavetest.SequenceID(1), a.Address(), b.Address(), c.Address(), some, Timeout, ""),
 					},
 					NewBucket().Bucket,
 				},
@@ -170,7 +170,7 @@ func TestHandler(t *testing.T) {
 			action{
 				// note permission is not the sender!
 				perms: []weave.Condition{b},
-				msg:   NewCreateMsg(a.Address(), b.Address(), c, some, Timeout, ""),
+				msg:   NewCreateMsg(a.Address(), b.Address(), c.Address(), some, Timeout, ""),
 			},
 			true,
 			nil,
@@ -182,7 +182,7 @@ func TestHandler(t *testing.T) {
 			action{
 				perms: []weave.Condition{a},
 				// defaults to sender!
-				msg:       NewCreateMsg(nil, b.Address(), c, all, weave.AsUnixTime(blockNow.Add(-2*time.Hour)), ""),
+				msg:       NewCreateMsg(nil, b.Address(), c.Address(), all, weave.AsUnixTime(blockNow.Add(-2*time.Hour)), ""),
 				blockTime: Timeout.Time().Add(-time.Hour),
 			},
 			true,
@@ -246,7 +246,7 @@ func TestHandler(t *testing.T) {
 				{
 					"/escrows", "", weavetest.SequenceID(1), false,
 					[]orm.Object{
-						NewEscrow(weavetest.SequenceID(1), a.Address(), b.Address(), c, remain, Timeout, "hello"),
+						NewEscrow(weavetest.SequenceID(1), a.Address(), b.Address(), c.Address(), remain, Timeout, "hello"),
 					},
 					NewBucket().Bucket,
 				},
@@ -363,7 +363,7 @@ func TestHandler(t *testing.T) {
 					msg: &UpdateEscrowPartiesMsg{
 						Metadata: &weave.Metadata{Schema: 1},
 						EscrowId: weavetest.SequenceID(1),
-						Arbiter:  d,
+						Arbiter:  d.Address(),
 					},
 				}},
 			action{
@@ -406,7 +406,7 @@ func TestHandler(t *testing.T) {
 					msg: &UpdateEscrowPartiesMsg{
 						Metadata: &weave.Metadata{Schema: 1},
 						EscrowId: weavetest.SequenceID(1),
-						Arbiter:  d,
+						Arbiter:  d.Address(),
 					},
 				}},
 			action{
@@ -429,7 +429,7 @@ func TestHandler(t *testing.T) {
 				msg: &UpdateEscrowPartiesMsg{
 					Metadata: &weave.Metadata{Schema: 1},
 					EscrowId: weavetest.SequenceID(1),
-					Arbiter:  a,
+					Arbiter:  a.Address(),
 				},
 			},
 			true,
@@ -652,7 +652,7 @@ func TestHandler(t *testing.T) {
 func createAction(sender, rcpt, arbiter weave.Condition, amount coin.Coins, memo string) action {
 	return action{
 		perms: []weave.Condition{sender},
-		msg:   NewCreateMsg(sender.Address(), rcpt.Address(), arbiter, amount, Timeout, memo),
+		msg:   NewCreateMsg(sender.Address(), rcpt.Address(), arbiter.Address(), amount, Timeout, memo),
 	}
 }
 

@@ -30,7 +30,7 @@ func TestGenesisKey(t *testing.T) {
           "whole": 123456789
         }
       ],
-      "arbiter": "foo/bar/636f6e646974696f6e64617461",
+      "arbiter": "0000000000000000000000000000000000000001",
       "recipient": "C30A2424104F542576EF01FECA2FF558F5EAA61A",
       "sender": "0000000000000000000000000000000000000000",
       "timeout": "2034-11-10T23:00:00Z"
@@ -58,9 +58,8 @@ func TestGenesisKey(t *testing.T) {
 
 	assert.Equal(t, "c30a2424104f542576ef01feca2ff558f5eaa61a", hex.EncodeToString(e.Recipient))
 	assert.Equal(t, "0000000000000000000000000000000000000000", hex.EncodeToString(e.Sender))
+	assert.Equal(t, "0000000000000000000000000000000000000001", hex.EncodeToString(e.Arbiter))
 
-	expArbiter := weave.NewCondition("foo", "bar", []byte("conditiondata"))
-	assert.Equal(t, expArbiter, weave.Condition(e.Arbiter))
 
 	balance, err := cashCtrl.Balance(db, Condition(obj.Key()).Address())
 	require.NoError(t, err)

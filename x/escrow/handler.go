@@ -193,7 +193,7 @@ func (h ReleaseEscrowHandler) validate(ctx weave.Context, db weave.KVStore, tx w
 	}
 
 	// Arbiter or sender must authorize this.
-	if !h.auth.HasAddress(ctx, escrow.Arbiter.Address()) && !h.auth.HasAddress(ctx, escrow.Sender) {
+	if !h.auth.HasAddress(ctx, escrow.Arbiter) && !h.auth.HasAddress(ctx, escrow.Sender) {
 		return nil, nil, errors.ErrUnauthorized
 	}
 
@@ -345,7 +345,7 @@ func (h UpdateEscrowHandler) validate(ctx weave.Context, db weave.KVStore, tx we
 		}
 	}
 	if msg.Arbiter != nil {
-		if !h.auth.HasAddress(ctx, escrow.Arbiter.Address()) {
+		if !h.auth.HasAddress(ctx, escrow.Arbiter) {
 			return nil, nil, errors.ErrUnauthorized
 		}
 	}

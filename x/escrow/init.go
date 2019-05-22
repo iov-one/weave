@@ -18,7 +18,7 @@ type Initializer struct {
 func (i *Initializer) FromGenesis(opts weave.Options, db weave.KVStore) error {
 	var escrows []struct {
 		Sender    weave.Address   `json:"sender"`
-		Arbiter   weave.Condition `json:"arbiter"`
+		Arbiter   weave.Address `json:"arbiter"`
 		Recipient weave.Address   `json:"recipient"`
 		Timeout   weave.UnixTime  `json:"timeout"`
 		Amount    []*coin.Coin    `json:"amount"`

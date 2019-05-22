@@ -56,7 +56,7 @@ func (UpdateEscrowPartiesMsg) Path() string {
 func NewCreateMsg(
 	sender weave.Address,
 	recipient weave.Address,
-	arbiter weave.Condition,
+	arbiter weave.Address,
 	amount coin.Coins,
 	timeout weave.UnixTime,
 	memo string,
@@ -137,23 +137,8 @@ func (m *UpdateEscrowPartiesMsg) Validate() error {
 	if m.Arbiter == nil && m.Sender == nil && m.Recipient == nil {
 		return errors.Wrap(errors.ErrEmpty, "all conditions")
 	}
-	if err := validateConditions(m.Arbiter); err != nil {
-		return err
-	}
-	return validateAddresses(m.Sender, m.Recipient)
-}
 
-// validateConditions returns an error if any permission doesn't validate
-// nil is considered valid here
-func validateConditions(perms ...weave.Condition) error {
-	for _, p := range perms {
-		if p != nil {
-			if err := p.Validate(); err != nil {
-				return err
-			}
-		}
-	}
-	return nil
+	return validateAddresses(m.Sender, m.Recipient, m.Arbiter)
 }
 
 // validateAddresses returns an error if any address doesn't validate

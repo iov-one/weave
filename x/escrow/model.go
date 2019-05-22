@@ -47,9 +47,6 @@ func (e *Escrow) Validate() error {
 	if len(e.Memo) > maxMemoSize {
 		return errors.Wrapf(errors.ErrInput, "memo %s", e.Memo)
 	}
-	if err := validateConditions(e.Arbiter); err != nil {
-		return err
-	}
 	return validateAddresses(e.Sender, e.Recipient)
 }
 
@@ -80,7 +77,7 @@ func NewEscrow(
 	id []byte,
 	sender weave.Address,
 	recipient weave.Address,
-	arbiter weave.Condition,
+	arbiter weave.Address,
 	amount coin.Coins,
 	timeout weave.UnixTime,
 	memo string,
