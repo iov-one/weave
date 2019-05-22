@@ -93,9 +93,9 @@ func (m Elector) Validate() error {
 	return m.Address.Validate()
 }
 
-const (
-	minVotingPeriodHours = 1
-	maxVotingPeriodHours = 4 * 7 * 24 // 4 weeks
+var (
+	minVotingPeriod = time.Second
+	maxVotingPeriod = 4 * 7 * 24 * time.Hour // 4 weeks
 )
 
 func (m *ElectionRule) SetVersion(v uint32) {
@@ -116,11 +116,11 @@ func (m ElectionRule) Validate() error {
 	if !validTitle(m.Title) {
 		return errors.Wrapf(errors.ErrInput, "title: %q", m.Title)
 	}
-	if m.VotingPeriodHours < minVotingPeriodHours {
-		return errors.Wrapf(errors.ErrInput, "min hours: %d", minVotingPeriodHours)
+	if m.VotingPeriod.Duration() < minVotingPeriod {
+		return errors.Wrapf(errors.ErrInput, "min %s", minVotingPeriod)
 	}
-	if m.VotingPeriodHours > maxVotingPeriodHours {
-		return errors.Wrapf(errors.ErrInput, "max hours: %d", maxVotingPeriodHours)
+	if m.VotingPeriod.Duration() > maxVotingPeriod {
+		return errors.Wrapf(errors.ErrInput, "max %s", maxVotingPeriod)
 	}
 
 	if err := m.Admin.Validate(); err != nil {
@@ -139,9 +139,9 @@ func (m ElectionRule) Validate() error {
 
 func (m ElectionRule) Copy() orm.CloneableData {
 	return &ElectionRule{
-		Title:             m.Title,
-		VotingPeriodHours: m.VotingPeriodHours,
-		Threshold:         m.Threshold,
+		Title:        m.Title,
+		VotingPeriod: m.VotingPeriod,
+		Threshold:    m.Threshold,
 	}
 }
 
@@ -162,9 +162,9 @@ func (m Fraction) Validate() error {
 }
 
 const (
-	minDescriptionLength    = 3
-	maxDescriptionLength    = 5000
-	maxFutureStartTimeHours = 7 * 24 * time.Hour // 1 week
+	minDescriptionLength = 3
+	maxDescriptionLength = 5000
+	maxFutureStart       = 7 * 24 * time.Hour // 1 week
 )
 
 func (m *Proposal) Validate() error {

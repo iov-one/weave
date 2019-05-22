@@ -19,7 +19,8 @@ type EnvConf struct {
 	AntiSpamFee coin.Coin
 	MinFee      coin.Coin
 
-	msgfees map[string]coin.Coin
+	msgfees    map[string]coin.Coin
+	governance governance
 
 	Client         client.Client
 	clientThrottle time.Duration
@@ -30,6 +31,11 @@ type EnvConf struct {
 	Node              *nm.Node
 	Logger            log.Logger
 	RpcAddress        string
+}
+
+type governance struct {
+	electors     []weave.Address
+	votingPeriod weave.UnixDuration
 }
 
 func WithMinFee(c coin.Coin) StartBnsdOption {
@@ -59,5 +65,15 @@ func WithThrottle(frequency time.Duration) StartBnsdOption {
 func WithMsgFee(msgPath string, fee coin.Coin) StartBnsdOption {
 	return func(env *EnvConf) {
 		env.msgfees[msgPath] = fee
+	}
+}
+
+// WithGovernance sets given group of weave addresses as the electorate for the
+// first electorate instance created. First address is used as the admin for
+// the electorate and the governance rule.
+func WithGovernance(votingPeriod weave.UnixDuration, electors []weave.Address) StartBnsdOption {
+	return func(env *EnvConf) {
+		env.governance.votingPeriod = votingPeriod
+		env.governance.electors = electors
 	}
 }

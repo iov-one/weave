@@ -66,12 +66,12 @@ func withElectionRule(t *testing.T, db store.KVStore) *ElectionRule {
 	t.Helper()
 	rulesBucket := NewElectionRulesBucket()
 	rule := &ElectionRule{
-		Metadata:          &weave.Metadata{Schema: 1},
-		Title:             "barr",
-		Admin:             hBobby,
-		VotingPeriodHours: 1,
-		Threshold:         Fraction{1, 2},
-		ElectorateID:      weavetest.SequenceID(1),
+		Metadata:     &weave.Metadata{Schema: 1},
+		Title:        "barr",
+		Admin:        hBobby,
+		VotingPeriod: weave.AsUnixDuration(time.Hour),
+		Threshold:    Fraction{1, 2},
+		ElectorateID: weavetest.SequenceID(1),
 	}
 
 	if _, err := rulesBucket.Create(db, rule); err != nil {
@@ -172,9 +172,9 @@ func genRuleOptions(t *testing.T) []byte {
 	ruleOpts := &ProposalOptions{
 		Option: &ProposalOptions_Rule{
 			Rule: &UpdateElectionRuleMsg{
-				Metadata:          &weave.Metadata{Schema: 1},
-				ElectionRuleID:    weavetest.SequenceID(1),
-				VotingPeriodHours: 5,
+				Metadata:       &weave.Metadata{Schema: 1},
+				ElectionRuleID: weavetest.SequenceID(1),
+				VotingPeriod:   weave.AsUnixDuration(5 * time.Hour),
 				Threshold: Fraction{
 					Numerator:   5,
 					Denominator: 8,
