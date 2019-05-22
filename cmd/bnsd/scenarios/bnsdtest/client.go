@@ -86,3 +86,7 @@ func (t *ThrottledClient) BroadcastTxSync(tx weave.Tx, timeout time.Duration) cl
 	}
 	return t.cli.BroadcastTxSync(tx, timeout)
 }
+
+func (t *ThrottledClient) AbciQuery(path string, data []byte) (client.AbciResponse, error) {
+	return t.cli.AbciQuery(path, data)
+}

@@ -270,7 +270,7 @@ func (h TallyHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx)
 		return nil, nil, errors.Wrap(errors.ErrHuman, "block time not set")
 	}
 	if !blockTime.After(common.VotingEndTime.Time()) {
-		return nil, nil, errors.Wrap(errors.ErrState, "tally before proposal end time")
+		return nil, nil, errors.Wrapf(errors.ErrState, "tally before proposal end time: block time: %v < end time: %v", blockTime, common.VotingEndTime.Time())
 	}
 	return &msg, proposal, nil
 }

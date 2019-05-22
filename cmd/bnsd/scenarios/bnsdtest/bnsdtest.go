@@ -166,7 +166,7 @@ func initGenesis(t testing.TB, env *EnvConf, filename string) {
 	if err != nil {
 		t.Fatalf("failed to load genesis from the file: %s", err)
 	}
-
+	doc.ConsensusParams.Block.TimeIotaMs = int64(1)
 	type dict map[string]interface{}
 
 	msgfees := make([]dict, 0, len(env.msgfees))
