@@ -3,7 +3,6 @@ package app
 import (
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/x/cash"
-	"github.com/iov-one/weave/x/hashlock"
 	"github.com/iov-one/weave/x/multisig"
 	"github.com/iov-one/weave/x/sigs"
 )
@@ -27,7 +26,6 @@ func TxDecoder(bz []byte) (weave.Tx, error) {
 var _ weave.Tx = (*Tx)(nil)
 var _ cash.FeeTx = (*Tx)(nil)
 var _ sigs.SignedTx = (*Tx)(nil)
-var _ hashlock.HashKeyTx = (*Tx)(nil)
 var _ multisig.MultiSigTx = (*Tx)(nil)
 
 // GetMsg switches over all types defined in the protobuf file

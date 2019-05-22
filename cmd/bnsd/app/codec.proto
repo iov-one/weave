@@ -27,10 +27,8 @@ import "github.com/iov-one/weave/x/validators/codec.proto";
 message Tx {
   cash.FeeInfo fees = 1;
   repeated sigs.StdSignature signatures = 2;
-  // Preimage for hashlock.
-  bytes preimage = 3;
   // ID of a multisig contract.
-  repeated bytes multisig = 4;
+  repeated bytes multisig = 3;
   // msg is a sum type over all allowed messages on this chain.
   oneof sum {
     cash.SendMsg send_msg = 51;
