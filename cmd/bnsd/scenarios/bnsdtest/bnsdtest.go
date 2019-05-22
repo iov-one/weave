@@ -218,7 +218,7 @@ func initGenesis(t testing.TB, env *EnvConf, filename string) {
 		"escrow": []interface{}{
 			dict{
 				"sender":    "0000000000000000000000000000000000000000",
-				"arbiter":   "multisig/usage/0000000000000001",
+				"arbiter":   env.MultiSigContract.Address(),
 				"recipient": "cond:dist/revenue/0000000000000001",
 				"amount": []interface{}{
 					dict{

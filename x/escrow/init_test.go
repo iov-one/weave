@@ -60,7 +60,6 @@ func TestGenesisKey(t *testing.T) {
 	assert.Equal(t, "0000000000000000000000000000000000000000", hex.EncodeToString(e.Sender))
 	assert.Equal(t, "0000000000000000000000000000000000000001", hex.EncodeToString(e.Arbiter))
 
-
 	balance, err := cashCtrl.Balance(db, Condition(obj.Key()).Address())
 	require.NoError(t, err)
 	require.Len(t, balance, 2)

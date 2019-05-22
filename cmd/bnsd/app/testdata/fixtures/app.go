@@ -137,7 +137,7 @@ func appStateGenesis(keyAddress weave.Address) []byte {
 		"escrow": []interface{}{
 			dict{
 				"sender":    "0000000000000000000000000000000000000000",
-				"arbiter":   "multisig/usage/0000000000000001",
+				"arbiter":   weave.Condition("cond:multisig/usage/0000000000000001").Address(),
 				"recipient": "cond:dist/revenue/0000000000000001",
 				"amount":    []interface{}{"1000000 FRNK"},
 				"timeout":   time.Now().Add(10000 * time.Hour),
