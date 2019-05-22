@@ -236,19 +236,22 @@ func sendBatch(t *testing.T, baseApp abci.Application, chainID string, height in
 	dres := signAndCommit(t, baseApp, tx, signers, chainID, height)
 
 	// make sure the tags are only present once (not once per item)
-	if len(dres.Tags) != 3 {
+	feeDistAddr := weave.Condition("dist/revenue/0000000000000001").Address()
+	if len(dres.Tags) != 4 {
 		t.Fatalf("%#v", dres.Tags)
 	}
 	wantKeys := []string{
 		toHex("cash:") + from.String(),
 		toHex("cash:") + to.String(),
 		toHex("sigs:") + from.String(),
+		toHex("cash:") + feeDistAddr.String(), // fee destination
 	}
 	sort.Strings(wantKeys)
 	gotKeys := []string{
 		string(dres.Tags[0].Key),
 		string(dres.Tags[1].Key),
 		string(dres.Tags[2].Key),
+		string(dres.Tags[3].Key),
 	}
 	assert.Equal(t, wantKeys, gotKeys)
 
