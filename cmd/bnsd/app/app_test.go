@@ -2,6 +2,7 @@ package app_test
 
 import (
 	"encoding/hex"
+	"sort"
 	"strings"
 	"testing"
 
@@ -11,6 +12,7 @@ import (
 	"github.com/iov-one/weave/cmd/bnsd/app/testdata/fixtures"
 	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/crypto"
+	"github.com/iov-one/weave/x/batch"
 	"github.com/iov-one/weave/x/cash"
 	"github.com/iov-one/weave/x/multisig"
 	"github.com/iov-one/weave/x/sigs"
@@ -148,6 +150,11 @@ func TestApp(t *testing.T) {
 		Metadata: &weave.Metadata{Schema: 1},
 		Coins:    coin.Coins{{Ticker: "ETH", Whole: 1000}},
 	})
+
+	// Now we send a batch request to a new recipient
+	batchReceiver := crypto.GenPrivKeyEd25519()
+	batchAddr := batchReceiver.PublicKey().Address()
+	sendBatch(t, myApp, chainID, 9, []Signer{{pk, 5}}, addr, batchAddr, 20, "ETH", "And the cash keeps flowing")
 }
 
 func tagsAsString(pairs []common.KVPair) string {
@@ -191,6 +198,72 @@ func sendToken(t *testing.T, baseApp abci.Application, chainID string, height in
 	tx.Fee(from, coin.NewCoin(1, 0, "FRNK"))
 	res := signAndCommit(t, baseApp, tx, signers, chainID, height)
 	return res
+}
+
+// checks batch works
+func sendBatch(t *testing.T, baseApp abci.Application, chainID string, height int64, signers []Signer,
+	from, to weave.Address, amount int64, ticker, memo string, contracts ...[]byte) {
+	msg := &cash.SendMsg{
+		Metadata: &weave.Metadata{Schema: 1},
+		Src:      from,
+		Dest:     to,
+		Amount: &coin.Coin{
+			Whole:  amount,
+			Ticker: ticker,
+		},
+		Memo: memo,
+	}
+
+	var messages []app.BatchMsg_Union
+	for i := 0; i < batch.MaxBatchMessages; i++ {
+		messages = append(messages,
+			app.BatchMsg_Union{
+				Sum: &app.BatchMsg_Union_SendMsg{
+					SendMsg: msg,
+				},
+			})
+	}
+
+	tx := &app.Tx{
+		Sum: &app.Tx_BatchMsg{
+			BatchMsg: &app.BatchMsg{
+				Messages: messages,
+			},
+		},
+	}
+	tx.Fee(from, coin.NewCoin(1, 0, "FRNK"))
+
+	dres := signAndCommit(t, baseApp, tx, signers, chainID, height)
+
+	// make sure the tags are only present once (not once per item)
+	feeDistAddr := weave.Condition("dist/revenue/0000000000000001").Address()
+	if len(dres.Tags) != 4 {
+		t.Fatalf("%#v", dres.Tags)
+	}
+	wantKeys := []string{
+		toHex("cash:") + from.String(),
+		toHex("cash:") + to.String(),
+		toHex("sigs:") + from.String(),
+		toHex("cash:") + feeDistAddr.String(), // fee destination
+	}
+	sort.Strings(wantKeys)
+	gotKeys := []string{
+		string(dres.Tags[0].Key),
+		string(dres.Tags[1].Key),
+		string(dres.Tags[2].Key),
+		string(dres.Tags[3].Key),
+	}
+	assert.Equal(t, wantKeys, gotKeys)
+
+	checkAmount := amount * batch.MaxBatchMessages
+
+	// make sure money arrived only for successful batch
+	queryAndCheckAccount(t, baseApp, "/wallets", to, cash.Set{
+		Metadata: &weave.Metadata{Schema: 1},
+		Coins: coin.Coins{
+			{Ticker: ticker, Whole: checkAmount},
+		},
+	})
 }
 
 // createContract creates an immutable contract, signs the transaction and sends it
