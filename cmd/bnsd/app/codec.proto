@@ -4,7 +4,6 @@ package app;
 
 import "github.com/gogo/protobuf/gogoproto/gogo.proto";
 import "github.com/iov-one/weave/cmd/bnsd/x/nft/username/codec.proto";
-import "github.com/iov-one/weave/codec.proto";
 import "github.com/iov-one/weave/migration/codec.proto";
 import "github.com/iov-one/weave/x/aswap/codec.proto";
 import "github.com/iov-one/weave/x/cash/codec.proto";
@@ -135,24 +134,4 @@ message ProposalBatchMsg {
     }
   }
   repeated Union messages = 1 [(gogoproto.nullable) = false];
-}
-
-// AppCreateProposalMsg is byte compatible with CreateProposalMsg
-// assuming we use decodeProposalOptions.
-//
-// It is here to demonstrate a clean app-level usage of proposals.
-message AppCreateProposalMsg {
-  weave.Metadata metadata = 1;
-  gov.CreateProposalMsgBase base = 2;
-  ProposalOptions options = 3;
-}
-
-// AppProposal is byte compatible with Proposal
-// assuming we use decodeProposalOptions.
-//
-// It is here to demonstrate a clean app-level usage of proposals.
-message AppProposal {
-  weave.Metadata metadata = 1;
-  gov.ProposalCommon common = 2;
-  ProposalOptions options = 3;
 }
