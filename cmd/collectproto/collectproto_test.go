@@ -48,6 +48,7 @@ message SendMsg {
 	}
 
 	const wantDecl = `
+
 // This is an example protobuf file.
 
 
