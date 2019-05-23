@@ -18,7 +18,7 @@ func main() {
 
 	// Syntax declaration is never rewritten. Initialize combined file with
 	// one as it is required.
-	fmt.Fprintln(&out, "syntax proto3;")
+	fmt.Fprintln(&out, "syntax = proto3;")
 
 	// Stack of all files that are to be processed.
 	protofiles := append([]string{}, os.Args[1:]...)
@@ -111,6 +111,12 @@ func collect(in io.Reader, out io.Writer) ([]string, error) {
 			}
 			// Syntax declaration are not rewritten as it should be provided only once.
 			if next, err := rd.Peek(7); err == nil && bytes.Equal(next, []byte("syntax ")) {
+				rd.ReadString('\n')
+				continue
+			}
+
+			// Any options declared on the message are ignored.
+			if next, err := rd.Peek(12); err == nil && bytes.HasPrefix(bytes.TrimLeft(next, " \t"), []byte("option")) {
 				rd.ReadString('\n')
 				continue
 			}
