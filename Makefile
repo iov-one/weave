@@ -12,10 +12,8 @@ NOVENDOR := $(shell go list ./...)
 MODE ?= set
 GOPATH ?= $$HOME/go
 
-PROTOC_FLAGS := -I=. -I=./vendor -I=$(GOPATH)/src
-
-# HAS_PROTOTOOL will be set to prototool path if available, "" if not
-HAS_PROTOTOOL := $(shell which prototool)
+# USER for dockerized prototool
+USER := $(shell id -u):$(shell id -g)
 
 
 all: deps test
@@ -56,16 +54,14 @@ deps:
 	@ go mod vendor
 
 lint:
-ifeq (,$(HAS_PROTOTOOL))
-	go get github.com/uber/prototool/cmd/prototool
-endif
-	prototool lint
+	echo $(USER)
+	# prototool lint
 
 
 protofmt:
 	-find . -name '*proto' -exec prototool format -w {} \;
 
-protoc: protofmt protodocs
+protoc: protofmt #protodocs
 	protoc --gogofaster_out=. $(PROTOC_FLAGS) codec.proto
 	protoc --gogofaster_out=. $(PROTOC_FLAGS) app/*.proto
 	protoc --gogofaster_out=. $(PROTOC_FLAGS) migration/*.proto
@@ -96,39 +92,3 @@ protoc: protofmt protodocs
 
 protodocs:
 	@./scripts/build_protodocs.sh
-
-### cross-platform check for installing protoc ###
-
-MYOS := $(shell uname -s)
-
-ifeq ($(MYOS),Darwin)  # Mac OS X
-	ZIP := protoc-3.7.0-osx-x86_64.zip
-endif
-ifeq ($(MYOS),Linux)
-	ZIP := protoc-3.7.0-linux-x86_64.zip
-endif
-
-/usr/local/bin/protoc:
-	@ curl -L https://github.com/google/protobuf/releases/download/v3.7.0/$(ZIP) > $(ZIP)
-	@ unzip -q $(ZIP) -d protoc3
-	@ rm $(ZIP)
-	sudo mv protoc3/bin/protoc /usr/local/bin/
-	@ sudo mv protoc3/include/* /usr/local/include/
-	@ sudo chown `whoami` /usr/local/bin/protoc
-	@ sudo chown -R `whoami` /usr/local/include/google
-	@ rm -rf protoc3
-
-prototools: /usr/local/bin/protoc deps
-	# install all tools from our vendored dependencies
-	@go install ./vendor/github.com/gogo/protobuf/proto
-	@go install ./vendor/github.com/gogo/protobuf/gogoproto
-	@go install ./vendor/github.com/gogo/protobuf/protoc-gen-gogofaster
-	# these are for custom extensions
-	@ # @go install ./vendor/github.com/gogo/protobuf/proto
-	@ # @go install ./vendor/github.com/gogo/protobuf/jsonpb
-	@ # @go install ./vendor/github.com/gogo/protobuf/protoc-gen-gogo
-	@ # go get github.com/golang/protobuf/protoc-gen-go
-	# docs
-	@go get -u github.com/pseudomuto/protoc-gen-doc/cmd/protoc-gen-doc
-
-
