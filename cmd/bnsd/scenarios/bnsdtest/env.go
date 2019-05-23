@@ -33,6 +33,11 @@ type EnvConf struct {
 	RpcAddress        string
 }
 
+// IsRemote returns true if we connect to a remote chain (not local CI test), in order to skip some tests
+func (e *EnvConf) IsRemote() bool {
+	return e.Node == nil
+}
+
 type governance struct {
 	electors     []weave.Address
 	votingPeriod weave.UnixDuration

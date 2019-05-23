@@ -40,7 +40,13 @@ func TestGovProposalCreateAndExecute(t *testing.T) {
 
 	// Why that much in the future?
 	// See https://github.com/tendermint/tendermint/blob/v0.31.5/state/state.go#L146-L150
-	proposalStartTime := time.Now().UTC().Add(2 * time.Second) // todo: if remote test make sure this is far enough in the future
+	// We want 2 * the block time to be safe (1 sec for local)
+	startDelay := 2 * time.Second
+	if env.IsRemote() {
+		// 10 seconds should be enough for any reasonable block time on remote chain
+		startDelay = 10 * time.Second
+	}
+	proposalStartTime := time.Now().UTC().Add(startDelay)
 	contractAddr := gov.ElectionCondition(weavetest.SequenceID(1)).Address()
 	bnsdtest.SeedAccountWithTokens(t, env, contractAddr)
 	proposalTx := &bnsdApp.Tx{
@@ -128,7 +134,11 @@ func TestGovProposalCreateAndExecute(t *testing.T) {
 	if err := x.Unmarshal(r.Models[0].Value); err != nil {
 		t.Fatalf("unexpected error: %+v", err)
 	}
-	// TODO: stop here when remote test as we voting period is likely too long to wait
+
+	// the rest of the test depends on much timing information as is impossible to execute remotely
+	if env.IsRemote() {
+		return
+	}
 
 	wait = x.Common.VotingEndTime.Time().Sub(time.Now()) + time.Second
 	t.Logf("waiting for %s so that proposal voting period has ended", wait)
