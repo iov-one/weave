@@ -1,4 +1,4 @@
-.PHONY: all install test tf cover deps prototools protoc govet
+.PHONY: all dist install test tf cover lint protofmt protoc protodocs novendor
 
 # make sure we turn on go modules
 export GO111MODULE := on
@@ -48,13 +48,13 @@ cover:
 		github.com/iov-one/weave/cmd/bnsd/scenarios
 	cat coverage/*.out > coverage/coverage.txt
 
-deps:
-	@ go mod vendor
+novendor:
+	@rm -rf ./vendor
 
-lint:
+lint: novendor
 	$(PROTOTOOL) lint
 
-protofmt:
+protofmt: novendor
 	$(PROTOTOOL) format -w
 
 protoc: protofmt #protodocs
