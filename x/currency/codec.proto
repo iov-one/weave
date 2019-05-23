@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package currency;
 
-import "github.com/iov-one/weave/codec.proto";
+import "codec.proto";
 
 // TokenInfo contains information about a single currency. It is used as an
 // alternative solution to hardcoding supported currencies information.

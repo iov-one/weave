@@ -2,8 +2,8 @@ syntax = "proto3";
 
 package gov;
 
-import "github.com/gogo/protobuf/gogoproto/gogo.proto";
 import "codec.proto";
+import "gogoproto/gogo.proto";
 import "orm/codec.proto";
 
 // Electorate defines who may vote in an election. This same group can be used in many elections

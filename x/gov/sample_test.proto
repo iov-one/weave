@@ -2,7 +2,8 @@ syntax = "proto3";
 
 package gov;
 
-import "github.com/gogo/protobuf/gogoproto/gogo.proto";
+import "codec.proto";
+import "gogoproto/gogo.proto";
 import "x/gov/codec.proto";
 
 // ProposalOptions is a sum type of all possible messages that

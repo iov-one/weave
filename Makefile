@@ -14,7 +14,7 @@ GOPATH ?= $$HOME/go
 
 # USER for dockerized prototool
 USER := $(shell id -u):$(shell id -g)
-
+PROTOTOOL := docker run -it --rm --user $(USER) --mount type=bind,source="$(shell pwd)",target=/work --tmpfs /tmp:exec charithe/prototool-docker prototool
 
 all: deps test
 
@@ -54,9 +54,7 @@ deps:
 	@ go mod vendor
 
 lint:
-	echo $(USER)
-	# prototool lint
-
+	$(PROTOTOOL) lint
 
 protofmt:
 	-find . -name '*proto' -exec prototool format -w {} \;

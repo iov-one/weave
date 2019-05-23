@@ -2,10 +2,10 @@ syntax = "proto3";
 
 package paychan;
 
-import "github.com/gogo/protobuf/gogoproto/gogo.proto";
-import "github.com/iov-one/weave/codec.proto";
-import "github.com/iov-one/weave/coin/codec.proto";
-import "github.com/iov-one/weave/crypto/models.proto";
+import "codec.proto";
+import "coin/codec.proto";
+import "crypto/models.proto";
+import "gogoproto/gogo.proto";
 
 // PaymentChannel holds the state of a payment channel during its lifetime.
 message PaymentChannel {

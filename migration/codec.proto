@@ -2,8 +2,8 @@ syntax = "proto3";
 
 package migration;
 
-import "github.com/gogo/protobuf/gogoproto/gogo.proto";
-import "github.com/iov-one/weave/codec.proto";
+import "codec.proto";
+import "gogoproto/gogo.proto";
 
 message Configuration {
   // Admin holds the address of the administrator allowed to upgrade schema

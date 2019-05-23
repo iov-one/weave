@@ -2,9 +2,9 @@ syntax = "proto3";
 
 package escrow;
 
-import "github.com/gogo/protobuf/gogoproto/gogo.proto";
-import "github.com/iov-one/weave/codec.proto";
-import "github.com/iov-one/weave/coin/codec.proto";
+import "codec.proto";
+import "coin/codec.proto";
+import "gogoproto/gogo.proto";
 
 // Escrow holds some coins.
 // The arbiter or sender can release them to the recipient.

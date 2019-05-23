@@ -2,8 +2,8 @@ syntax = "proto3";
 
 package multisig;
 
-import "github.com/gogo/protobuf/gogoproto/gogo.proto";
-import "github.com/iov-one/weave/codec.proto";
+import "codec.proto";
+import "gogoproto/gogo.proto";
 
 message Contract {
   weave.Metadata metadata = 1;

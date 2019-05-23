@@ -2,8 +2,8 @@ syntax = "proto3";
 
 package username;
 
-import "github.com/gogo/protobuf/gogoproto/gogo.proto";
-import "github.com/iov-one/weave/x/nft/codec.proto";
+import "gogoproto/gogo.proto";
+import "x/nft/codec.proto";
 
 message UsernameToken {
   nft.NonFungibleToken base = 1;

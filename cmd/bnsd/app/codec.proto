@@ -2,19 +2,18 @@ syntax = "proto3";
 
 package app;
 
-import "github.com/gogo/protobuf/gogoproto/gogo.proto";
-import "github.com/iov-one/weave/cmd/bnsd/x/nft/username/codec.proto";
-import "github.com/iov-one/weave/migration/codec.proto";
-import "github.com/iov-one/weave/x/aswap/codec.proto";
-import "github.com/iov-one/weave/x/cash/codec.proto";
-import "github.com/iov-one/weave/x/currency/codec.proto";
-import "github.com/iov-one/weave/x/distribution/codec.proto";
-import "github.com/iov-one/weave/x/escrow/codec.proto";
-import "github.com/iov-one/weave/x/gov/codec.proto";
-import "github.com/iov-one/weave/x/multisig/codec.proto";
-import "github.com/iov-one/weave/x/nft/codec.proto";
-import "github.com/iov-one/weave/x/sigs/codec.proto";
-import "github.com/iov-one/weave/x/validators/codec.proto";
+import "cmd/bnsd/x/nft/username/codec.proto";
+import "gogoproto/gogo.proto";
+import "migration/codec.proto";
+import "x/aswap/codec.proto";
+import "x/cash/codec.proto";
+import "x/currency/codec.proto";
+import "x/distribution/codec.proto";
+import "x/escrow/codec.proto";
+import "x/multisig/codec.proto";
+import "x/nft/codec.proto";
+import "x/sigs/codec.proto";
+import "x/validators/codec.proto";
 
 // Tx contains the message.
 //

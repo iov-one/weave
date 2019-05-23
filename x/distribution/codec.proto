@@ -2,8 +2,8 @@ syntax = "proto3";
 
 package distribution;
 
-import "github.com/gogo/protobuf/gogoproto/gogo.proto";
-import "github.com/iov-one/weave/codec.proto";
+import "codec.proto";
+import "gogoproto/gogo.proto";
 
 // Revenue represents an account with funds collected from the fees. This is a
 // temporary account used for storing fees that are later distributed between
