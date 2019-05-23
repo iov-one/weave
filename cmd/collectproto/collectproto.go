@@ -18,7 +18,7 @@ func main() {
 
 	// Syntax declaration is never rewritten. Initialize combined file with
 	// one as it is required.
-	fmt.Fprintln(&out, "syntax = proto3;")
+	fmt.Fprintln(&out, `syntax = "proto3";`)
 
 	// Stack of all files that are to be processed.
 	protofiles := append([]string{}, os.Args[1:]...)
