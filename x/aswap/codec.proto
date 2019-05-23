@@ -1,10 +1,11 @@
 syntax = "proto3";
 
 package aswap;
+option go_package = "github.com/iov-one/weave/x/aswap";
 
-import "github.com/gogo/protobuf/gogoproto/gogo.proto";
-import "github.com/iov-one/weave/codec.proto";
-import "github.com/iov-one/weave/coin/codec.proto";
+import "gogoproto/gogo.proto";
+import "codec.proto";
+import "coin/codec.proto";
 
 // Swap is designed to hold some coins for atomic swap, locked by preimage_hash
 message Swap {

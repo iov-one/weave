@@ -1,10 +1,11 @@
 syntax = "proto3";
 
 package app;
+option go_package = "github.com/iov-one/weave/examples/mycoind/app";
 
-import "github.com/iov-one/weave/x/cash/codec.proto";
-import "github.com/iov-one/weave/x/sigs/codec.proto";
-import "github.com/iov-one/weave/x/validators/codec.proto";
+import "x/cash/codec.proto";
+import "x/sigs/codec.proto";
+import "x/validators/codec.proto";
 
 // Tx contains the message
 message Tx {

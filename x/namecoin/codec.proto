@@ -1,9 +1,10 @@
 syntax = "proto3";
 
 package namecoin;
+option go_package = "github.com/iov-one/weave/x/namecoin";
 
-import "github.com/iov-one/weave/codec.proto";
-import "github.com/iov-one/weave/coin/codec.proto";
+import "codec.proto";
+import "coin/codec.proto";
 
 // Wallet has a name and a set of coins
 message Wallet {

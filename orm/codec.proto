@@ -1,8 +1,9 @@
 syntax = "proto3";
 
 package orm;
+option go_package = "github.com/iov-one/weave/orm";
 
-import "github.com/gogo/protobuf/gogoproto/gogo.proto";
+import "gogoproto/gogo.proto";
 
 // MultiRef contains a list of references to pks
 message MultiRef {

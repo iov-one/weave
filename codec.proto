@@ -1,6 +1,7 @@
 syntax = "proto3";
 
 package weave;
+option go_package = "github.com/iov-one/weave";
 
 // Metadata is expected to be the first argument of every message or model. It
 // contains all essential attributes.

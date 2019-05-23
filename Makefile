@@ -12,8 +12,6 @@ NOVENDOR := $(shell go list ./...)
 MODE ?= set
 GOPATH ?= $$HOME/go
 
-PROTOC_FLAGS := -I=. -I=./vendor -I=$(GOPATH)/src
-
 # HAS_PROTOTOOL will be set to prototool path if available, "" if not
 HAS_PROTOTOOL := $(shell which prototool)
 
@@ -62,40 +60,22 @@ endif
 	prototool lint
 
 
+PROTO_INCLUDE := -I=. -I $(shell go list -f '{{ .Dir }}' -m github.com/golang/protobuf)  -I $(shell go list -f '{{ .Dir }}' -m github.com/gogo/protobuf)  -I $(shell go list -f '{{ .Dir }}' -m github.com/gogo/protobuf)/protobuf -I $(shell go list -f '{{ .Dir }}' -m github.com/iov-one/weave)
+
+
 protofmt:
+	#
 	-find . -name '*proto' -exec prototool format -w {} \;
 
-protoc: protofmt protodocs
-	protoc --gogofaster_out=. $(PROTOC_FLAGS) codec.proto
-	protoc --gogofaster_out=. $(PROTOC_FLAGS) app/*.proto
-	protoc --gogofaster_out=. $(PROTOC_FLAGS) migration/*.proto
-	protoc --gogofaster_out=. $(PROTOC_FLAGS) coin/*.proto
-	protoc --gogofaster_out=. $(PROTOC_FLAGS) crypto/*.proto
-	protoc --gogofaster_out=. $(PROTOC_FLAGS) orm/*.proto
-	# Note, you must include -I=./vendor when compiling files that use gogoprotobuf extensions
-	protoc --gogofaster_out=. $(PROTOC_FLAGS) x/nft/*.proto
-	protoc --gogofaster_out=. $(PROTOC_FLAGS) cmd/bnsd/x/nft/username/*.proto
-	protoc --gogofaster_out=. $(PROTOC_FLAGS) x/cash/*.proto
-	protoc --gogofaster_out=. $(PROTOC_FLAGS) x/sigs/*.proto
-	protoc --gogofaster_out=. $(PROTOC_FLAGS) x/msgfee/*.proto
-	protoc --gogofaster_out=. $(PROTOC_FLAGS) x/multisig/*.proto
-	protoc --gogofaster_out=. $(PROTOC_FLAGS) x/validators/*.proto
-	protoc --gogofaster_out=. $(PROTOC_FLAGS) x/batch/*.proto
-	protoc --gogofaster_out=. $(PROTOC_FLAGS) x/distribution/*.proto
-	protoc --gogofaster_out=. $(PROTOC_FLAGS) x/namecoin/*.proto
-	protoc --gogofaster_out=. $(PROTOC_FLAGS) x/escrow/*.proto
-	protoc --gogofaster_out=. $(PROTOC_FLAGS) x/paychan/*.proto
-	protoc --gogofaster_out=. $(PROTOC_FLAGS) x/currency/*.proto
-	protoc --gogofaster_out=. $(PROTOC_FLAGS) x/aswap/*.proto
-	# a bit of playing around to rename output, so it is only available for testcode
-	rm -f x/gov/sample_test.go
-	protoc --gogofaster_out=. $(PROTOC_FLAGS) x/gov/*.proto
-	mv x/gov/sample_test.pb.go x/gov/sample_test.go
-	# now build all examples
-	for ex in $(EXAMPLES); do cd $$ex && make protoc && cd -; done
+protoc: #protodocs protofmt
+	find . -iname '*.proto' -exec \
+		protoc --gogofaster_out=paths=source_relative:.  $(PROTO_INCLUDE) {} \;
+
+	@# a bit of playing around to rename output, so it is only available for testcode
+	-@mv x/gov/sample_test.pb.go x/gov/sample_test.go
 
 protodocs:
-	@./scripts/build_protodocs.sh
+	-protoc $(PROTO_INCLUDE) --doc_out="./docs/proto/" --doc_opt=html,index.html combined_proto_todo.proto
 
 ### cross-platform check for installing protoc ###
 
