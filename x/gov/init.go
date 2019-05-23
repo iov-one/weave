@@ -30,12 +30,12 @@ func (*Initializer) FromGenesis(opts weave.Options, db weave.KVStore) error {
 			} `json:"electors"`
 		} `json:"electorate"`
 		Rules []struct {
-			Admin             weave.Address `json:"admin"`
-			ElectorateID      uint64        `json:"electorate_id"`
-			Title             string        `json:"title"`
-			VotingPeriodHours uint32        `json:"voting_period_hours"`
-			Quorum            fraction      `json:"quorum"`
-			Threshold         fraction      `json:"threshold"`
+			Admin        weave.Address      `json:"admin"`
+			ElectorateID uint64             `json:"electorate_id"`
+			Title        string             `json:"title"`
+			VotingPeriod weave.UnixDuration `json:"voting_period"`
+			Quorum       fraction           `json:"quorum"`
+			Threshold    fraction           `json:"threshold"`
 		} `json:"rules"`
 	}
 	if err := opts.ReadOptions("governance", &governance); err != nil {
@@ -79,12 +79,12 @@ func (*Initializer) FromGenesis(opts weave.Options, db weave.KVStore) error {
 			return errors.Wrapf(err, "failed to load electorate with id: %d", r.ElectorateID)
 		}
 		rule := ElectionRule{
-			Metadata:          &weave.Metadata{Schema: 1},
-			Admin:             r.Admin,
-			Title:             r.Title,
-			VotingPeriodHours: r.VotingPeriodHours,
-			Threshold:         Fraction{Numerator: r.Threshold.Numerator, Denominator: r.Threshold.Denominator},
-			ElectorateID:      electorateID,
+			Metadata:     &weave.Metadata{Schema: 1},
+			Admin:        r.Admin,
+			Title:        r.Title,
+			VotingPeriod: r.VotingPeriod,
+			Threshold:    Fraction{Numerator: r.Threshold.Numerator, Denominator: r.Threshold.Denominator},
+			ElectorateID: electorateID,
 		}
 		if r.Quorum.Numerator != 0 || r.Quorum.Denominator != 0 {
 			rule.Quorum = &Fraction{Numerator: r.Quorum.Numerator, Denominator: r.Quorum.Denominator}

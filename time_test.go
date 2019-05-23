@@ -154,3 +154,49 @@ func TestIsExpiredRequiresBlockTime(t *testing.T) {
 		IsExpired(context.Background(), now)
 	})
 }
+
+func TestUnixDurationJSONUnmarshal(t *testing.T) {
+	cases := map[string]struct {
+		raw     string
+		wantDur UnixDuration
+		wantErr *errors.Error
+	}{
+		"zero string ": {
+			raw:     `"0s"`,
+			wantDur: 0,
+		},
+		"zero number ": {
+			raw:     `0`,
+			wantDur: 0,
+		},
+		"string notation": {
+			raw:     `"2h"`,
+			wantDur: AsUnixDuration(2 * time.Hour),
+		},
+		"negative string notation": {
+			raw:     `"-2m"`,
+			wantDur: AsUnixDuration(-2 * time.Minute),
+		},
+		"number notation": {
+			raw:     `2`,
+			wantDur: AsUnixDuration(2 * time.Second),
+		},
+		"negative number notation": {
+			raw:     `-123`,
+			wantDur: AsUnixDuration(-123 * time.Second),
+		},
+	}
+
+	for testName, tc := range cases {
+		t.Run(testName, func(t *testing.T) {
+			var got UnixDuration
+			err := json.Unmarshal([]byte(tc.raw), &got)
+			if !tc.wantErr.Is(err) {
+				t.Fatalf("unexpected error: %s", err)
+			}
+			if got != tc.wantDur {
+				t.Fatalf("want %s duration, got %s", tc.wantDur, got)
+			}
+		})
+	}
+}

@@ -18,6 +18,10 @@
   a [future issue](https://github.com/iov-one/weave/issues/649))
 - Enabled `x/batch` in bnsd. You can now send a batch of messages, which are
   executed atomically as one unit (all succeed, or no changes committed).
+- `x/gov` methods are exposed in bnsd application. The list of messages that
+  are eligible for proposals is in `cmd/bnsd/app/codec.go.ProposalOptions`.
+  Note that you can also use a batch message with a subset of possible actions,
+  to make multiple SendTx as part of a governance vote, for example.
 
 Breaking changes  
 - Escrow does not support atomic swap anymore: preimage is removed from Tx and, haslock extension removed

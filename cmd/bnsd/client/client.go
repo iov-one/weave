@@ -35,6 +35,7 @@ type Client interface {
 	BroadcastTx(tx weave.Tx) BroadcastTxResponse
 	BroadcastTxAsync(tx weave.Tx, out chan<- BroadcastTxResponse)
 	BroadcastTxSync(tx weave.Tx, timeout time.Duration) BroadcastTxResponse
+	AbciQuery(path string, data []byte) (AbciResponse, error)
 }
 
 // BnsClient is a tendermint client wrapped to provide

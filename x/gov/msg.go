@@ -130,11 +130,11 @@ func (m UpdateElectionRuleMsg) Validate() error {
 	if len(m.ElectionRuleID) == 0 {
 		return errors.Wrap(errors.ErrEmpty, "id")
 	}
-	if m.VotingPeriodHours < minVotingPeriodHours {
-		return errors.Wrapf(errors.ErrInput, "min hours: %d", minVotingPeriodHours)
+	if m.VotingPeriod.Duration() < minVotingPeriod {
+		return errors.Wrapf(errors.ErrInput, "min %s", minVotingPeriod)
 	}
-	if m.VotingPeriodHours > maxVotingPeriodHours {
-		return errors.Wrapf(errors.ErrInput, "max hours: %d", maxVotingPeriodHours)
+	if m.VotingPeriod.Duration() > maxVotingPeriod {
+		return errors.Wrapf(errors.ErrInput, "max %s", maxVotingPeriod)
 	}
 	return m.Threshold.Validate()
 }

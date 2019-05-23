@@ -18,6 +18,7 @@ import (
 	"github.com/iov-one/weave/cmd/bnsd/client"
 	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/commands/server"
+	"github.com/iov-one/weave/crypto"
 	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/weavetest"
 	"github.com/iov-one/weave/x/cash"
@@ -26,6 +27,7 @@ import (
 	"github.com/iov-one/weave/x/multisig"
 	"github.com/stellar/go/exp/crypto/derivation"
 	"github.com/tendermint/tendermint/libs/log"
+	coretypes "github.com/tendermint/tendermint/rpc/core/types"
 	tm "github.com/tendermint/tendermint/types"
 )
 
@@ -39,6 +41,12 @@ func StartBnsd(t testing.TB, opts ...StartBnsdOption) (env *EnvConf, cleanup fun
 		EscrowContract:   escrow.Condition(weavetest.SequenceID(1)),
 		clientThrottle:   *delay,
 		msgfees:          make(map[string]coin.Coin),
+		governance: governance{
+			votingPeriod: weave.AsUnixDuration(time.Hour),
+			electors: []weave.Address{
+				weavetest.NewCondition().Address(),
+			},
+		},
 	}
 	env.DistrContractAddr, _ = distribution.RevenueAccount(weavetest.SequenceID(1))
 
@@ -158,12 +166,23 @@ func initGenesis(t testing.TB, env *EnvConf, filename string) {
 	if err != nil {
 		t.Fatalf("failed to load genesis from the file: %s", err)
 	}
-
+	doc.ConsensusParams.Block.TimeIotaMs = int64(1)
 	type dict map[string]interface{}
 
 	msgfees := make([]dict, 0, len(env.msgfees))
 	for path, fee := range env.msgfees {
 		msgfees = append(msgfees, dict{"msg_path": path, "fee": fee})
+	}
+
+	if len(env.governance.electors) == 0 {
+		t.Fatal("gov electorate is empty")
+	}
+	electors := make([]dict, 0)
+	for _, e := range env.governance.electors {
+		electors = append(electors, dict{
+			"weight":  1,
+			"address": e,
+		})
 	}
 
 	appState, err := json.MarshalIndent(dict{
@@ -237,6 +256,28 @@ func initGenesis(t testing.TB, env *EnvConf, filename string) {
 				Admin: weave.Condition("multisig/usage/0000000000000001").Address(),
 			},
 		},
+		"governance": dict{
+			"electorate": []interface{}{
+				dict{
+					"title":    "first electorate",
+					"admin":    env.governance.electors[0],
+					"electors": electors,
+				},
+			},
+			"rules": []interface{}{
+				dict{
+					"admin":         env.governance.electors[0],
+					"title":         "first rule",
+					"voting_period": env.governance.votingPeriod,
+					"threshold": dict{
+						// Almost rules of majority (50%)
+						"numerator":   1,
+						"denominator": 2,
+					},
+					"electorate_id": 1,
+				},
+			},
+		},
 		"msgfee": msgfees,
 		"initialize_schema": []dict{
 			dict{"ver": 1, "pkg": "batch"},
@@ -284,4 +325,41 @@ func SeedAccountWithTokens(t testing.TB, env *EnvConf, dest weave.Address) {
 	if err := resp.IsError(); err != nil {
 		t.Fatalf("transaction failed: %s", err)
 	}
+}
+
+// MustSignTx will modify given transaction by signing it with provided private
+// key. This function fails the test if any operation was not successful.
+func MustSignTx(t testing.TB, env *EnvConf, tx *app.Tx, pk *crypto.PrivateKey) {
+	t.Helper()
+
+	nonce := client.NewNonce(env.Client, pk.PublicKey().Address())
+	seq, err := nonce.Next()
+	if err != nil {
+		t.Fatalf("cannot acquire nonce sequence: %s", err)
+	}
+	if err := client.SignTx(tx, pk, env.ChainID, seq); err != nil {
+		msg, _ := tx.GetMsg()
+		t.Fatalf("cannot sing %T transaction: %s", msg, err)
+	}
+}
+
+// MustBroadcastTx submits given transaction to the network and returns
+// broadcast response. This function fails the test if any operation was not
+// successful or broadcast response contain an error.
+func MustBroadcastTx(t testing.TB, env *EnvConf, tx *app.Tx) *coretypes.ResultBroadcastTxCommit {
+	t.Helper()
+
+	resp := env.Client.BroadcastTx(tx)
+	if resp.Error != nil {
+		t.Fatalf("cannot broadcast: %s", resp.Error)
+	}
+	if resp.Response.CheckTx.IsErr() {
+		r := resp.Response.CheckTx
+		t.Fatalf("CheckTx failed with code %d: %s", r.Code, r.Log)
+	}
+	if resp.Response.DeliverTx.IsErr() {
+		r := resp.Response.DeliverTx
+		t.Fatalf("DeliverTx failed with code %d: %s", r.Code, r.Log)
+	}
+	return resp.Response
 }
