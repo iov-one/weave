@@ -1,6 +1,7 @@
 # Changelog
 
 ## HEAD
+
 - Cleanup escrow: removed the support for atomic swap
 - A new bucket implementation `orm.ModelBucket` was added that provides an
   easier to use interface when dealing with a single entity type.
@@ -22,10 +23,13 @@
   are eligible for proposals is in `cmd/bnsd/app/codec.go.ProposalOptions`.
   Note that you can also use a batch message with a subset of possible actions,
   to make multiple SendTx as part of a governance vote, for example.
+- Dockerize all the protobuf tooling for easier developer experience and
+  reproducible builds
 
-Breaking changes  
+Breaking changes
+
 - Escrow does not support atomic swap anymore: preimage is removed from Tx and, haslock extension removed
-and arbiter now must be an Address and not a Condition 
+and arbiter now must be an Address and not a Condition
 
 
 
