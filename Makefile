@@ -1,18 +1,16 @@
 .PHONY: all install test tf cover deps prototools protoc govet
+
 # make sure we turn on go modules
 export GO111MODULE := on
 
 EXAMPLES := examples/mycoind cmd/bcpd cmd/bnsd
-
-# dont use `` in the makefile for windows compatibility
-NOVENDOR := $(shell go list ./...)
 
 # MODE=count records heat map in test coverage
 # MODE=set just records which lines were hit by one test
 MODE ?= set
 GOPATH ?= $$HOME/go
 
-# USER for dockerized prototool
+# for dockerized prototool
 USER := $(shell id -u):$(shell id -g)
 PROTOTOOL := docker run -it --rm --user $(USER) --mount type=bind,source="$(shell pwd)",target=/work --tmpfs /tmp:exec charithe/prototool-docker prototool
 
@@ -57,36 +55,12 @@ lint:
 	$(PROTOTOOL) lint
 
 protofmt:
-	-find . -name '*proto' -exec prototool format -w {} \;
+	$(PROTOTOOL) format -w
 
 protoc: protofmt #protodocs
-	protoc --gogofaster_out=. $(PROTOC_FLAGS) codec.proto
-	protoc --gogofaster_out=. $(PROTOC_FLAGS) app/*.proto
-	protoc --gogofaster_out=. $(PROTOC_FLAGS) migration/*.proto
-	protoc --gogofaster_out=. $(PROTOC_FLAGS) coin/*.proto
-	protoc --gogofaster_out=. $(PROTOC_FLAGS) crypto/*.proto
-	protoc --gogofaster_out=. $(PROTOC_FLAGS) orm/*.proto
-	# Note, you must include -I=./vendor when compiling files that use gogoprotobuf extensions
-	protoc --gogofaster_out=. $(PROTOC_FLAGS) x/nft/*.proto
-	protoc --gogofaster_out=. $(PROTOC_FLAGS) cmd/bnsd/x/nft/username/*.proto
-	protoc --gogofaster_out=. $(PROTOC_FLAGS) x/cash/*.proto
-	protoc --gogofaster_out=. $(PROTOC_FLAGS) x/sigs/*.proto
-	protoc --gogofaster_out=. $(PROTOC_FLAGS) x/msgfee/*.proto
-	protoc --gogofaster_out=. $(PROTOC_FLAGS) x/multisig/*.proto
-	protoc --gogofaster_out=. $(PROTOC_FLAGS) x/validators/*.proto
-	protoc --gogofaster_out=. $(PROTOC_FLAGS) x/batch/*.proto
-	protoc --gogofaster_out=. $(PROTOC_FLAGS) x/distribution/*.proto
-	protoc --gogofaster_out=. $(PROTOC_FLAGS) x/namecoin/*.proto
-	protoc --gogofaster_out=. $(PROTOC_FLAGS) x/escrow/*.proto
-	protoc --gogofaster_out=. $(PROTOC_FLAGS) x/paychan/*.proto
-	protoc --gogofaster_out=. $(PROTOC_FLAGS) x/currency/*.proto
-	protoc --gogofaster_out=. $(PROTOC_FLAGS) x/aswap/*.proto
+	$(PROTOTOOL) generate
 	# a bit of playing around to rename output, so it is only available for testcode
-	rm -f x/gov/sample_test.go
-	protoc --gogofaster_out=. $(PROTOC_FLAGS) x/gov/*.proto
-	mv x/gov/sample_test.pb.go x/gov/sample_test.go
-	# now build all examples
-	for ex in $(EXAMPLES); do cd $$ex && make protoc && cd -; done
+	@mv x/gov/sample_test.pb.go x/gov/sample_test.go
 
 protodocs:
 	@./scripts/build_protodocs.sh

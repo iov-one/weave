@@ -14,13 +14,9 @@ generate:
     import_path: github.com/iov-one/weave
 
   plugins:
-    - name: gogofast
+    - name: gogofaster
       type: gogo
-      flags: plugins=grpc
-      output: ./go/pkg/gen
-    - name: validate
-      flags: lang=go
-      output: ./go/pkg/gen
+      output: .
 
 lint:
   rules:

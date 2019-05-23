@@ -18,3 +18,7 @@ coverage
 
 # sphinx / readthedocs
 _build
+
+
+# IDES
+.vscode
