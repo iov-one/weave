@@ -10,6 +10,7 @@ import "x/cash/codec.proto";
 import "x/currency/codec.proto";
 import "x/distribution/codec.proto";
 import "x/escrow/codec.proto";
+import "x/gov/codec.proto";
 import "x/multisig/codec.proto";
 import "x/nft/codec.proto";
 import "x/sigs/codec.proto";

@@ -2,7 +2,6 @@ syntax = "proto3";
 
 package gov;
 
-import "codec.proto";
 import "gogoproto/gogo.proto";
 import "x/gov/codec.proto";
 

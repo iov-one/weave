@@ -59,7 +59,7 @@ protofmt:
 
 protoc: protofmt #protodocs
 	$(PROTOTOOL) generate
-	# a bit of playing around to rename output, so it is only available for testcode
+	@# a bit of playing around to rename output, so it is only available for testcode
 	@mv x/gov/sample_test.pb.go x/gov/sample_test.go
 
 protodocs:
