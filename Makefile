@@ -64,12 +64,13 @@ PROTO_INCLUDE := -I=. -I $(shell go list -f '{{ .Dir }}' -m github.com/golang/pr
 
 
 protofmt:
-	#
 	-find . -name '*proto' -exec prototool format -w {} \;
 
 protoc: #protodocs protofmt
-	find . -iname '*.proto' -exec \
-		protoc --gogofaster_out=paths=source_relative:.  $(PROTO_INCLUDE) {} \;
+	find . \
+		-iname '*.proto' \
+		-path ./vendor -prune \
+		-exec protoc --gogofaster_out=paths=source_relative:.  $(PROTO_INCLUDE) {} \;
 
 	@# a bit of playing around to rename output, so it is only available for testcode
 	-@mv x/gov/sample_test.pb.go x/gov/sample_test.go
