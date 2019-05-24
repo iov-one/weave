@@ -11,7 +11,10 @@ MODE ?= set
 
 # for dockerized prototool
 USER := $(shell id -u):$(shell id -g)
-PROTOTOOL := docker run -it --rm --user $(USER) --mount type=bind,source="$(shell pwd)",target=/work --tmpfs /tmp:exec iov1/prototool-docker prototool
+DOCKER_BASE := docker run --rm --user $(USER) --mount type=bind,source="$(shell pwd)",target=/work --tmpfs /tmp:exec iov1/prototool-docker 
+PROTOTOOL := $(DOCKER_BASE) prototool
+PROTOC := $(DOCKER_BASE) protoc
+
 
 all: deps test
 
@@ -56,11 +59,13 @@ lint: novendor
 protofmt: novendor
 	$(PROTOTOOL) format -w
 
-# protoc: protofmt #protodocs
-protoc:
+protoc: protofmt
 	$(PROTOTOOL) generate --debug
 	@# a bit of playing around to rename output, so it is only available for testcode
 	@mv x/gov/sample_test.pb.go x/gov/sample_test.go
 
+protofiles:
+	$(PROTOTOOL) files | grep -v examples | grep -v cmd/bcpd | sort
+
 protodocs:
-	@./scripts/build_protodocs.sh
+	./scripts/build_protodocs_docker.sh
