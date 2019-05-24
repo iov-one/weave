@@ -11,7 +11,7 @@ MODE ?= set
 
 # for dockerized prototool
 USER := $(shell id -u):$(shell id -g)
-PROTOTOOL := docker run -it --rm --user $(USER) --mount type=bind,source="$(shell pwd)",target=/work --tmpfs /tmp:exec charithe/prototool-docker prototool
+PROTOTOOL := docker run -it --rm --user $(USER) --mount type=bind,source="$(shell pwd)",target=/work --tmpfs /tmp:exec iov1/prototool-docker prototool
 
 all: deps test
 
@@ -56,8 +56,9 @@ lint: novendor
 protofmt: novendor
 	$(PROTOTOOL) format -w
 
-protoc: protofmt #protodocs
-	$(PROTOTOOL) generate
+# protoc: protofmt #protodocs
+protoc:
+	$(PROTOTOOL) generate --debug
 	@# a bit of playing around to rename output, so it is only available for testcode
 	@mv x/gov/sample_test.pb.go x/gov/sample_test.go
 
