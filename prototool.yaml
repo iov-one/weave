@@ -17,10 +17,6 @@ generate:
     - name: gogofaster
       type: gogo
       output: .
-    - name: docs
-      path: protoc-gen-doc
-      output: docs/proto/
-      flags: html,index.html
 
 lint:
   rules:

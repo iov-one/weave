@@ -59,13 +59,10 @@ lint: novendor
 protofmt: novendor
 	$(PROTOTOOL) format -w
 
-protoc: protofmt
-	$(PROTOTOOL) generate --debug
+protoc: protofmt protodocs
+	$(PROTOTOOL) generate
 	@# a bit of playing around to rename output, so it is only available for testcode
 	@mv x/gov/sample_test.pb.go x/gov/sample_test.go
-
-protofiles:
-	$(PROTOTOOL) files | grep -v examples | grep -v cmd/bcpd | sort
 
 protodocs:
 	./scripts/build_protodocs_docker.sh
