@@ -2,8 +2,8 @@ syntax = "proto3";
 
 package nft;
 
-import "github.com/gogo/protobuf/gogoproto/gogo.proto";
-import "github.com/iov-one/weave/codec.proto";
+import "codec.proto";
+import "gogoproto/gogo.proto";
 
 // NonFungibleToken is a message that must be incuded by any concrete NFT
 // implementation. Usually it is the first attirbute called `base`.

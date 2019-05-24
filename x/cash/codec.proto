@@ -2,9 +2,9 @@ syntax = "proto3";
 
 package cash;
 
-import "github.com/gogo/protobuf/gogoproto/gogo.proto";
-import "github.com/iov-one/weave/codec.proto";
-import "github.com/iov-one/weave/coin/codec.proto";
+import "codec.proto";
+import "coin/codec.proto";
+import "gogoproto/gogo.proto";
 
 // Set may contain Coin of many different currencies.
 // It handles adding and subtracting sets of currencies.

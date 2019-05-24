@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package orm;
 
-import "github.com/gogo/protobuf/gogoproto/gogo.proto";
+import "gogoproto/gogo.proto";
 
 // MultiRef contains a list of references to pks
 message MultiRef {
