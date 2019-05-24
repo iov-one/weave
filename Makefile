@@ -8,7 +8,6 @@ EXAMPLES := examples/mycoind cmd/bcpd cmd/bnsd
 # MODE=count records heat map in test coverage
 # MODE=set just records which lines were hit by one test
 MODE ?= set
-GOPATH ?= $$HOME/go
 
 # for dockerized prototool
 USER := $(shell id -u):$(shell id -g)
