@@ -34,7 +34,7 @@ message Coin {
 message SendMsg {
   weave.Metadata metadata = 1;
   bytes src = 2 [
-	  (gogoproto.casttype) = "github.com/iov-one/weave.Address"
+	  (gogoproto.casttype) = "github.com/iov-one/weave.Address",
 	  (gogoproto.customname) = "Source"
   ];
   bytes dest = 3 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
