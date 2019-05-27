@@ -11,8 +11,11 @@ func TestFormat(t *testing.T) {
 // This is an example protobuf file.
 package foobar;
 
+import "github.com/iov-one/weave/x/paychan/codec.proto";
 import "github.com/gogo/protobuf/gogoproto/gogo.proto";
 import "github.com/iov-one/weave/cmd/bnsd/x/nft/username/codec.proto";
+
+option go_package = "foobar";
 
 // SendMsg is a request to move these coins from the given
 // source to the given destination address.
@@ -49,7 +52,7 @@ message SendMsg {
 // This is an example protobuf file.
 package foobar;
 
-import "github.com/gogo/protobuf/gogoproto/gogo.proto";
+import "github.com/iov-one/weave/x/paychan/codec.proto";
 import "github.com/iov-one/weave/cmd/bnsd/x/nft/username/codec.proto";
 
 // SendMsg is a request to move these coins from the given

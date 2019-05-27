@@ -64,12 +64,6 @@ func cleanup(in io.Reader, out io.Writer) error {
 			// Comments are always single line.
 			inComment = false
 
-			// Any options declared on the message are ignored.
-			if next, err := rd.Peek(12); err == nil && bytes.HasPrefix(bytes.TrimLeft(next, " \t"), []byte("option")) {
-				rd.ReadString(';')
-				continue
-			}
-
 			if inComment || !inPluginDecl {
 				if next, err := rd.Peek(2); err == nil && next[0] == '\n' && next[1] == '\n' {
 					// Avoid double empty lines.
@@ -77,6 +71,37 @@ func cleanup(in io.Reader, out io.Writer) error {
 					_ = wr.WriteByte(c)
 				}
 			}
+
+			if next, err := rd.Peek(12); err == nil {
+				line := bytes.TrimSpace(next)
+
+				// Any options declared on the message are ignored.
+				if bytes.HasPrefix(line, []byte("option")) {
+					rd.ReadString(';')
+					if next, _ := rd.Peek(1); next[0] == '\n' {
+						rd.ReadByte()
+					}
+				}
+
+				if bytes.HasPrefix(line, []byte("import")) {
+					// This is an import declaration. Read
+					// the whole line and rewrite only if
+					// it is not a gogoproto import.
+					line, err := rd.ReadBytes(';')
+					if err != nil {
+						if err == io.EOF {
+							return nil
+						}
+						return fmt.Errorf("cannot read: %s", err)
+					}
+					if !bytes.HasSuffix(line, []byte(`gogoproto/gogo.proto";`)) {
+						_, _ = wr.Write(line)
+					} else if next, _ := rd.Peek(1); next[0] == '\n' {
+						rd.ReadByte()
+					}
+				}
+			}
+
 		case '\\':
 			if next, err := rd.Peek(1); err == nil && next[0] == '\\' {
 				// The rest of the line is a comment.
