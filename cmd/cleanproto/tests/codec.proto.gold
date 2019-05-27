@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package coin;
 
-import "github.com/iov-one/weave/codec.proto";
+import "codec.proto";
 
 // Coin can hold any amount between -1 billion and +1 billion
 // at steps of 10^-9. It is a fixed-point decimal
