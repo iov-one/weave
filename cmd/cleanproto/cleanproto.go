@@ -64,7 +64,7 @@ func cleanup(in io.Reader, out io.Writer) error {
 			// Comments are always single line.
 			inComment = false
 
-			if inComment || !inPluginDecl {
+			if !inPluginDecl {
 				if next, err := rd.Peek(2); err == nil && next[0] == '\n' && next[1] == '\n' {
 					// Avoid double empty lines.
 				} else {
