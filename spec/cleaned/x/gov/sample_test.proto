@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package gov;
+import "x/gov/codec.proto";
+
+// ProposalOptions is a sum type of all possible messages that
+// may be dispatched via a governance proposal.
+//
+// For the test case, we only refer to package-internal messages
+// and handlers, but an application can reference messages from any package.
+message ProposalOptions {
+  oneof option {
+    TextResolutionMsg text = 1;
+    UpdateElectorateMsg electorate = 2;
+    UpdateElectionRuleMsg rule = 3;
+  }
+}

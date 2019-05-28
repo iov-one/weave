@@ -1,0 +1,250 @@
+syntax = "proto3";
+
+package gov;
+
+import "codec.proto";
+import "orm/codec.proto";
+
+// Electorate defines who may vote in an election. This same group can be used in many elections
+// and is stored for re-use
+message Electorate {
+  weave.Metadata metadata = 1;
+  // Document version
+  uint32 version = 2;
+  // Admin is the address that is allowed ot modify an existing electorate.
+  bytes admin = 3 ;
+  // Human readable title.
+  string title = 4;
+  // Elector defines a list of all signatures that are allowed to participate in a vote
+  repeated Elector electors = 5 ;
+  // TotalElectorateWeight is the sum of all electors weights.
+  uint64 total_electorate_weight = 6;
+}
+
+// Elector clubs together a address with a weight. The greater the weight
+// the greater the power of a participant.
+message Elector {
+  // The address of the voter.
+  bytes address = 1 ;
+  // Weight defines the power of the participants vote. max value is 65535 (2^16-1).
+  uint32 weight = 2;
+}
+
+// Election Rule defines how an election is run. A proposal must be voted upon via a pre-defined ruleset.
+message ElectionRule {
+  weave.Metadata metadata = 1;
+  // Document version
+  uint32 version = 2;
+  // Admin is the address that is allowed ot modify an existing election rule.
+  bytes admin = 3 ;
+  // ElectorateID references the electorate using this rule (without version, as changing electorate changes the rule)
+  bytes electorate_id = 4 ;
+  // Human readable title.
+  string title = 5;
+  // Duration in seconds of how long the voting period will take place.
+  uint32 voting_period = 6 ;
+  // Threshold is the fraction of either all eligible voters or in case of a quorum setup the fraction of all non
+  // abstained votes.
+  // To accept a proposal this value must be exceeded with Yes votes.
+  // The formula applied is:
+  // (yes * denominator) > (base * numerator) with base total electorate weight or Yes/No votes in case of quorum set
+  //
+  // The valid range for the threshold value is `0.5` to `1` (inclusive) which allows any value between half and all
+  // of the eligible voters.
+  Fraction threshold = 7 ;
+  // The quorum fraction of eligible voters is based on the total electorate weight and defines a threshold of
+  // votes that must be exceeded before the acceptance threshold is applied.
+  // This value requires any kind of votes and not only YES.
+  //
+  // The valid range for the threshold value is `0.5` to `1` (inclusive) which allows any value between half and all
+  // of the eligible voters.
+  Fraction quorum = 8;
+}
+
+// The Fraction type represents a numerator and denominator to enable higher precision thresholds in
+// the election rules. For example:
+// numerator: 1, denominator: 2 => > 50%
+// numerator: 2, denominator: 3 => > 66.666..%
+// numerator: 6273, denominator: 10000 => > 62.73%
+// Valid range of the fraction is 0.5 to 1.
+message Fraction {
+  // The top number in a fraction.
+  uint32 numerator = 1;
+  // The bottom number
+  uint32 denominator = 2;
+}
+
+// ProposalCommon contains all the generic fields for the lifetime of the proposal,
+// separate from the actual details of what is being voted on
+message ProposalCommon {
+  // Human readable title.
+  string title = 2;
+  // Description of the proposal in text form.
+  string description = 3;
+  // ElectionRuleRef is a reference to the election rule
+  orm.VersionedIDRef election_rule_ref = 4 ;
+  // Reference to the electorate to define the group of possible voters.
+  orm.VersionedIDRef electorate_ref = 5 ;
+  // Unix timestamp of the block where the voting period starts. Header time of the votes must be greater than or equal
+  // to this start time.
+  int64 voting_start_time = 6 ;
+  // Unix timestamp of the block where the voting period ends. Header times of the votes must be before this end time
+  // to be included in the election.
+  int64 voting_end_time = 7 ;
+  // Unix timestamp of the block where the proposal was added to the chain.
+  int64 submission_time = 8 ;
+  // Address of the author who created the proposal. If not set explicit on creation it will default to the main signer.
+  bytes author = 9 ;
+  // Result of the election. Contains intermediate tally results while voting period is open.
+  TallyResult vote_state = 10 ;
+  enum Status {
+    // An empty value is invalid and not allowed
+    PROPOSAL_COMMON_STATUS_INVALID = 0 ;
+    // Initial status of a proposal when persisted.
+    PROPOSAL_COMMON_STATUS_SUBMITTED = 1 ;
+    // Final status of a proposal when the tally was executed
+    PROPOSAL_COMMON_STATUS_CLOSED = 2 ;
+    // A proposal can be deleted before the voting start time by the owner. When this happens the final status
+    // is Withdrawn.
+    PROPOSAL_COMMON_STATUS_WITHDRAWN = 3 ;
+  }
+  // Status represents the high level position in the life cycle of the proposal. Initial value is submitted.
+  Status status = 11;
+  enum Result {
+    // An empty value is invalid and not allowed
+    PROPOSAL_COMMON_RESULT_INVALID = 0 ;
+    // Until a final tally has happened the status is undefined
+    PROPOSAL_COMMON_RESULT_UNDEFINED = 1 ;
+    // Final result of the tally
+    PROPOSAL_COMMON_RESULT_ACCEPTED = 2 ;
+    // Final result of the tally
+    PROPOSAL_COMMON_RESULT_REJECTED = 3 ;
+  }
+  // Result is the final result based on the votes and election rule. Initial value is Undefined.
+  Result result = 12;
+}
+
+// A generic proposal for an on-chain governance process.
+message Proposal {
+  weave.Metadata metadata = 1;
+  ProposalCommon common = 2;
+  // raw_option is app-specific and can be parsed by an OptionDecoder
+  bytes raw_option = 3;
+}
+
+// TallyResult contains sums of the votes and all data for the final result.
+message TallyResult {
+  // TotalYes is the sum of weights of all the voters that approved the proposal
+  uint64 total_yes = 1;
+  // TotalNo is the sum of weights of all the voters that rejected the proposal
+  uint64 total_no = 2;
+  // TotalAbstain is the sum of weights of all the voters that voted abstain
+  uint64 total_abstain = 3;
+  // TotalElectorateWeight is the sum of all weights in the electorate.
+  uint64 total_electorate_weight = 4;
+  // Quorum when set is the fraction of the total electorate weight that must be exceeded by total votes weight.
+  Fraction quorum = 5;
+  // Threshold is the fraction of Yes votes of a base value that needs to be exceeded to accept the proposal.
+  // The base value is either the total electorate weight or the sum of Yes/No weights when a quorum is defined.
+  Fraction threshold = 6 ;
+}
+
+// Vote combines the elector and their voted option to archive them.
+// The proposalID and address is stored within the key.
+message Vote {
+  weave.Metadata metadata = 1;
+  // Elector is who voted
+  Elector elector = 2 ;
+  // VoteOption is what they voted
+  VoteOption voted = 3;
+}
+
+// CreateProposalMsgBase is the common info in all proposals.
+// This is separated out to easily be included in an app-specific CreateProposalMsg
+message CreateProposalMsgBase {
+  // Human readable title. Must match `^{4,128}$`
+  string title = 1;
+  // Human readable description with 3 to 5000 chars.
+  string description = 2;
+  // ElectionRuleID is a reference to the election rule
+  bytes election_rule_id = 3 ;
+  // Unix timestamp when the proposal starts. Must be in the future.
+  int64 start_time = 4 ;
+  // Author is an optional field to set the address of the author with a proposal. The author must sign the message.
+  // When not set it will default to the main signer.
+  bytes author = 5 ;
+}
+
+// CreateProposalMsg creates a new governance proposal.
+// Metadata is from CreateProposalMsgBase, actual proposal details from app-specific raw_option
+message CreateProposalMsg {
+  weave.Metadata metadata = 1;
+  CreateProposalMsgBase base = 2;
+  bytes raw_option = 3;
+}
+
+// DeleteProposalMsg deletes a governance proposal.
+message DeleteProposalMsg {
+  weave.Metadata metadata = 1;
+  // ProposalID is the unique identifier of the proposal to delete
+  bytes proposal_id = 2 ;
+}
+
+// VoteOptions define possible values for a vote including the INVALID default.
+enum VoteOption {
+  VOTE_OPTION_INVALID = 0 ;
+  VOTE_OPTION_YES = 1 ;
+  VOTE_OPTION_NO = 2 ;
+  VOTE_OPTION_ABSTAIN = 3 ;
+}
+
+// VoteMsg is the way to express a voice and participate in an election of a proposal on chain.
+message VoteMsg {
+  weave.Metadata metadata = 1;
+  // The unique id of the proposal.
+  bytes proposal_id = 2 ;
+  // voter address is an optional field. When not set the main signer will be used as default. The voter address
+  // must be included in the electorate for a valid vote.
+  bytes voter = 3 ;
+  // Option for the vote. Must be Yes, No or Abstain for a valid vote.
+  VoteOption selected = 4;
+}
+
+// TallyMsg can be sent after the voting period has ended to do the final tally and trigger any state changes.
+// A final tally can be execute only once. A second submission will fail with an invalid state error.
+message TallyMsg {
+  weave.Metadata metadata = 1;
+  // ProposalID is UUID of the proposal to close.
+  bytes proposal_id = 2 ;
+}
+
+// TextResolutionMsg is only intended to be dispatched internally from election
+// results. It adds a resolution to the list of "approved" resolutions,
+// with a reference to the electorate that approved it
+message TextResolutionMsg {
+  weave.Metadata metadata = 1;
+  string resolution = 2;
+}
+
+message UpdateElectorateMsg {
+  weave.Metadata metadata = 1;
+  // ElectorateID is the reference to the electorate that defines the group of possible voters.
+  bytes electorate_id = 2 ;
+  // DiffElectors contains the changes that should be applied. Adding an address should have a positive weight, removing
+  // with weight=0.
+  repeated Elector diff_electors = 3 ;
+}
+
+message UpdateElectionRuleMsg {
+  weave.Metadata metadata = 1;
+  // ElectionRuleID is a reference to the election rule
+  bytes election_rule_id = 2 ;
+  // Duration in seconds of how long the voting period will take place.
+  uint32 voting_period = 3 ;
+  // Threshold is the fraction of all eligible voters, not only the ones who voted. To accept a
+  // proposal this value must be exceeded.
+  // The formula is `(yes*denominator) > (numerator*total_electors_weight)`.
+  // The valid range for the threshold value is `0.5` to `1` (inclusive) which allows any value between half and all
+  // of the eligible voters.
+  Fraction threshold = 4 ;
+}

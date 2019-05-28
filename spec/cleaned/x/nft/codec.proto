@@ -1,0 +1,62 @@
+syntax = "proto3";
+
+package nft;
+
+import "codec.proto";
+
+// NonFungibleToken is a message that must be incuded by any concrete NFT
+// implementation. Usually it is the first attirbute called `base`.
+message NonFungibleToken {
+  weave.Metadata metadata = 1;
+  // ID is the address of this token.
+  bytes id = 2 ;
+  // Owner is the address of the token owner.
+  bytes owner = 3 ;
+  // Action approvals is a list of permissions. In order for operation to
+  // succeed, all action approvals validation must pass.
+  repeated ActionApprovals action_approvals = 4 ;
+}
+
+// ActionApprovals are used to control permissions and validate that a user can
+// execute given operation.
+message ActionApprovals {
+  string action = 1 ;
+  repeated Approval approvals = 2 ;
+}
+
+message Approval {
+  bytes address = 1;
+  ApprovalOptions options = 2 ;
+}
+
+message ApprovalOptions {
+  // Until block height is used to mark blochain height until which an
+  // approval is valid. This can be used to define an approval expiration.
+  int64 until_block_height = 1;
+  // Count is defining how many times an approval can be used. Each approval
+  // test decrese the counter. Once the counter reaches value 0, an approval
+  // is considered expired and can no longer be used.
+  // Use -1 to bypass count expiration.
+  int64 count = 2;
+  // Immutable is a flag that prevents an option to be modified. Once
+  // created, cannot be altered. For example, counter state cannot be
+  // changed.
+  bool immutable = 3;
+}
+
+message AddApprovalMsg {
+  weave.Metadata metadata = 1;
+  bytes id = 2 ;
+  bytes address = 3 ;
+  string action = 4 ;
+  ApprovalOptions options = 5 ;
+  string t = 6;
+}
+
+message RemoveApprovalMsg {
+  weave.Metadata metadata = 1;
+  bytes id = 2 ;
+  bytes address = 3 ;
+  string action = 4 ;
+  string t = 5;
+}

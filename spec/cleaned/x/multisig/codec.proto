@@ -1,0 +1,42 @@
+syntax = "proto3";
+
+package multisig;
+
+import "codec.proto";
+
+message Contract {
+  weave.Metadata metadata = 1;
+  // Participants defines a list of all signatures that are allowed to sign the
+  // contract.
+  repeated Participant participants = 2;
+  // Activation threshold defines the minimal weight value that must be
+  // provided from participants in order to activate the contract. Weight is
+  // computed as the sum of weights of all participating signatures.
+  uint32 activation_threshold = 3 ;
+  // Admin threshold defines the minimal weight value that must be provided
+  // from participants in order to administrate the contract. Weight is
+  // computed as the sum of weights of all participating signatures.
+  uint32 admin_threshold = 4 ;
+}
+
+// Participant clubs together a signature with a weight. The greater the weight
+// the greater the power of a signature.
+message Participant {
+  bytes signature = 1 ;
+  uint32 weight = 2 ;
+}
+
+message CreateContractMsg {
+  weave.Metadata metadata = 1;
+  repeated Participant participants = 2;
+  uint32 activation_threshold = 3 ;
+  uint32 admin_threshold = 4 ;
+}
+
+message UpdateContractMsg {
+  weave.Metadata metadata = 1;
+  bytes contract_id = 2 ;
+  repeated Participant participants = 3;
+  uint32 activation_threshold = 4 ;
+  uint32 admin_threshold = 5 ;
+}

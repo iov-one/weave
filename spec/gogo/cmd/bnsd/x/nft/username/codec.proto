@@ -1,0 +1,46 @@
+syntax = "proto3";
+
+package username;
+
+import "gogoproto/gogo.proto";
+import "x/nft/codec.proto";
+
+message UsernameToken {
+  nft.NonFungibleToken base = 1;
+  TokenDetails details = 2;
+}
+
+message TokenDetails {
+  repeated ChainAddress addresses = 1 [(gogoproto.nullable) = false];
+}
+
+// ChainAddress is an address bind to a specific blockchain chain.
+message ChainAddress {
+  // An arbitrary blockchain ID. Original design was assuming a relation to our
+  // internal blockchain ID, but to simplify the implementation, we no longer
+  // register blckchain. Instead we allow to pass any value here, withouth
+  // validating it.
+  bytes blockchain_id = 1 [(gogoproto.customname) = "BlockchainID"];
+  // Address is a unique identifier of an account on the referenced
+  // blockchain.
+  string address = 2;
+}
+
+message IssueTokenMsg {
+  bytes id = 1 [(gogoproto.customname) = "ID"];
+  bytes owner = 2;
+  repeated nft.ActionApprovals approvals = 3 [(gogoproto.nullable) = false];
+  TokenDetails details = 4 [(gogoproto.nullable) = false];
+}
+
+message AddChainAddressMsg {
+  bytes username_id = 1 [(gogoproto.customname) = "UsernameID"];
+  bytes blockchain_id = 2 [(gogoproto.customname) = "BlockchainID"];
+  string address = 3;
+}
+
+message RemoveChainAddressMsg {
+  bytes username_id = 1 [(gogoproto.customname) = "UsernameID"];
+  bytes blockchain_id = 2 [(gogoproto.customname) = "BlockchainID"];
+  string address = 3;
+}

@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package crypto;
+
+message PublicKey {
+  oneof pub {
+    bytes ed25519 = 1;
+  }
+}
+
+message PrivateKey {
+  oneof priv {
+    bytes ed25519 = 1;
+  }
+}
+
+message Signature {
+  oneof sig {
+    bytes ed25519 = 1;
+  }
+}

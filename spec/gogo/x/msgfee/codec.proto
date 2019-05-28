@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package msgfee;
+
+import "codec.proto";
+import "coin/codec.proto";
+import "gogoproto/gogo.proto";
+
+// MsgFee represents a fee for a single message that must be paid in order for
+// the message to be processed.
+message MsgFee {
+  weave.Metadata metadata = 1;
+  string msg_path = 2;
+  coin.Coin fee = 3 [(gogoproto.nullable) = false];
+}

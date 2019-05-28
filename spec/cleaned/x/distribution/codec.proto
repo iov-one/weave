@@ -1,0 +1,69 @@
+syntax = "proto3";
+
+package distribution;
+
+import "codec.proto";
+
+// Revenue represents an account with funds collected from the fees. This is a
+// temporary account used for storing fees that are later distributed between
+// the owners.
+message Revenue {
+  weave.Metadata metadata = 1;
+  // Admin key belongs to the governance entities. It can be used to transfer
+  // stored amount to an another account.
+  // While not enforced it is best to use a multisig contract here.
+  bytes admin = 2 ;
+  // Recipients holds any number of addresses that the collected revenue is
+  // distributed to. Must be at least one.
+  repeated Recipient recipients = 3;
+}
+
+message Recipient {
+  // An address that the funds should be transferred to.
+  // This should not be the validator addresses, as the keys used to sign
+  // blocks should never be in a wallet. This can be the wallets of the admins
+  // of the validators.
+  bytes address = 1 ;
+  // Weight defines what part of the total revenue goes to this recipient.
+  // Each recipient receives part of the total revenue amount proportional to
+  // the weight. For example, if there are two recipients with weights 1 and 2
+  // accordingly, distribution will be 1/3 to the first address and 2/3 to the
+  // second one.
+  int32 weight = 2;
+}
+
+// NewRevenueMsg is issuing the creation of a new revenue stream instance.
+message NewRevenueMsg {
+  weave.Metadata metadata = 1;
+  // Admin key belongs to the governance entities. It can be used to transfer
+  // stored amount to an another account.
+  // While not enforced it is best to use a multisig contract here.
+  bytes admin = 2 ;
+  // Recipients holds any number of addresses that the collected revenue is
+  // distributed to. Must be at least one.
+  repeated Recipient recipients = 3;
+}
+
+// DistributeMsg is a request to distribute all funds collected within a single
+// revenue instance. Revenue is distributed between recipients. Request must be
+// signed using admin key.
+message DistributeMsg {
+  weave.Metadata metadata = 1;
+  // Revenue ID reference an ID of a revenue instance that the collected fees
+  // should be distributed between recipients.
+  bytes revenue_id = 2 ;
+}
+
+// ResetRevenueMsg change the configuration of a revenue instance.
+// To assure recipients that they will receive money, every revenue update is
+// forcing funds distribution. Before applying any change all funds stored by
+// the revenue account are distributed using old configuration. Only when the
+// collected revenue amount is equal to zero the change is applied.
+message ResetRevenueMsg {
+  weave.Metadata metadata = 1;
+  // Revenue ID reference an ID of a revenue instance that is updated.
+  bytes revenue_id = 2 ;
+  // Recipients holds any number of addresses that the collected revenue is
+  // distributed to. Must be at least one.
+  repeated Recipient recipients = 3;
+}

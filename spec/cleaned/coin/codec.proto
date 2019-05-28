@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package coin;
+
+// Coin can hold any amount between -1 billion and +1 billion
+// at steps of 10^-9. It is a fixed-point decimal
+// representation and uses integers to avoid rounding
+// associated with floats.
+//
+// Every code has a denomination, which is just a
+//
+// If you want anything more complex, you should write your
+// own type, possibly borrowing from this code.
+message Coin {
+  // Whole coins, -10^15 < integer < 10^15
+  int64 whole = 1;
+  // Billionth of coins. 0 <= abs(fractional) < 10^9
+  // If fractional != 0, must have same sign as integer
+  int64 fractional = 2;
+  // Ticker is 3-4 upper-case letters and
+  // all Coins of the same currency can be combined
+  string ticker = 3;
+}

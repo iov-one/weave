@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package weave;
+
+// Metadata is expected to be the first argument of every message or model. It
+// contains all essential attributes.
+// Each protobuf message should be declared with the first attribute being
+//
+//   weave.Metadata metadata = 1;
+message Metadata {
+  uint32 schema = 1;
+}

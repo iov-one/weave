@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package orm;
+
+import "gogoproto/gogo.proto";
+
+// MultiRef contains a list of references to pks
+message MultiRef {
+  repeated bytes refs = 1;
+}
+
+// Counter could be used for sequence, but mainly just for test
+message Counter {
+  int64 count = 1;
+}
+
+// VersionedID is the combination of document ID and version number.
+message VersionedIDRef {
+  // Unique identifier
+  bytes id = 4 [(gogoproto.customname) = "ID"];
+  // Document version, starting with 1.
+  uint32 version = 5;
+}

@@ -1,0 +1,50 @@
+syntax = "proto3";
+
+package cash;
+
+import "codec.proto";
+import "coin/codec.proto";
+import "gogoproto/gogo.proto";
+
+// Set may contain Coin of many different currencies.
+// It handles adding and subtracting sets of currencies.
+message Set {
+  weave.Metadata metadata = 1;
+  repeated coin.Coin coins = 2;
+}
+
+// SendMsg is a request to move these coins from the given
+// source to the given destination address.
+// memo is an optional human-readable message
+// ref is optional binary data, that can refer to another
+// eg. tx hash
+message SendMsg {
+  weave.Metadata metadata = 1;
+  bytes src = 2 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
+  bytes dest = 3 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
+  coin.Coin amount = 4;
+  // max length 128 character
+  string memo = 5;
+  // max length 64 bytes
+  bytes ref = 6;
+}
+
+// FeeInfo records who pays what fees to have this
+// message processed
+message FeeInfo {
+  weave.Metadata metadata = 1;
+  bytes payer = 2;
+  coin.Coin fees = 3;
+}
+
+message Configuration {
+  // TODO: add schema uint32 here
+  bytes owner = 2 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
+  bytes collector_address = 3 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
+  coin.Coin minimal_fee = 4 [(gogoproto.nullable) = false];
+}
+
+message ConfigurationMsg {
+  // TODO: add schema uint32 here
+  Configuration patch = 2;
+}

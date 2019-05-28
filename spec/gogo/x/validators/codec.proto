@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+package validators;
+
+import "codec.proto";
+import "gogoproto/gogo.proto";
+
+// ValidatorUpdate
+message ValidatorUpdate {
+  Pubkey pubkey = 1 [(gogoproto.nullable) = false];
+  int64 power = 2;
+}
+
+message Pubkey {
+  string type = 1;
+  bytes data = 2;
+}
+
+// This message is designed to update validator power
+message SetValidatorsMsg {
+  weave.Metadata metadata = 1;
+  repeated ValidatorUpdate validator_updates = 2;
+}
+
+// Accounts is a list of accounts allowed to update validators
+message Accounts {
+  weave.Metadata metadata = 1;
+  repeated bytes addresses = 2;
+}

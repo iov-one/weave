@@ -1,0 +1,38 @@
+syntax = "proto3";
+
+package namecoin;
+
+import "codec.proto";
+import "coin/codec.proto";
+
+// Wallet has a name and a set of coins
+message Wallet {
+  weave.Metadata metadata = 1;
+  repeated coin.Coin coins = 2;
+  string name = 3;
+}
+
+// Token contains information about a registered currency
+message Token {
+  weave.Metadata metadata = 1;
+  string name = 2;
+  int32 sig_figs = 3;
+}
+
+// NewTokenMsg will register a new token.
+// This must not conflict with any existing ticker,
+// and should be limited to privledged users.
+message NewTokenMsg {
+  weave.Metadata metadata = 1;
+  string ticker = 2;
+  string name = 3;
+  int32 sig_figs = 4;
+}
+
+// SetWalletNameMsg will set the name on an existing
+// wallet. Can only be performed if the wallet name is empty.
+message SetWalletNameMsg {
+  weave.Metadata metadata = 1;
+  bytes address = 2;
+  string name = 3;
+}
