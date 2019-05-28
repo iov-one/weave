@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"testing"
+	"time"
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/app"
@@ -90,7 +91,10 @@ func fromHex(t testing.TB, s string) weave.Address {
 // testCommit will commit at height h and return new hash
 func testCommit(t *testing.T, myApp app.BaseApp, h int64) []byte {
 	// Commit first block, make sure non-nil hash
-	header := abci.Header{Height: h}
+	header := abci.Header{
+		Height: h,
+		Time:   time.Now(),
+	}
 	myApp.BeginBlock(abci.RequestBeginBlock{Header: header})
 	myApp.EndBlock(abci.RequestEndBlock{})
 	cres := myApp.Commit()
@@ -144,7 +148,10 @@ func testSendTx(t *testing.T, myApp app.BaseApp, h int64,
 	require.NotEmpty(t, txBytes)
 
 	// Submit to the chain
-	header := abci.Header{Height: h}
+	header := abci.Header{
+		Height: h,
+		Time:   time.Now(),
+	}
 	myApp.BeginBlock(abci.RequestBeginBlock{Header: header})
 	// check and deliver must pass
 	chres := myApp.CheckTx(txBytes)

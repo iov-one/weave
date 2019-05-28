@@ -333,10 +333,13 @@ func (s *StoreApp) BeginBlock(req abci.RequestBeginBlock) (res abci.ResponseBegi
 	// set the begin block context
 	ctx := weave.WithHeader(s.baseContext, req.Header)
 	ctx = weave.WithHeight(ctx, req.Header.GetHeight())
-	ctx = weave.WithBlockTime(ctx, req.Header.GetTime())
+	now := req.Header.GetTime()
+	if now.IsZero() {
+		panic("current time not found in the block header")
+	}
+	ctx = weave.WithBlockTime(ctx, now)
 	s.blockContext = ctx
-
-	return
+	return res
 }
 
 // EndBlock - ABCI

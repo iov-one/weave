@@ -8,6 +8,7 @@ import (
 	"sort"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/app"
@@ -210,7 +211,10 @@ func newTestApp(t testing.TB, chainID string, accounts []*account) app.BaseApp {
 
 	// Commit first block, make sure non-nil hash
 	myApp.InitChain(abci.RequestInitChain{AppStateBytes: []byte(appState), ChainId: chainID})
-	header := abci.Header{Height: 1}
+	header := abci.Header{
+		Height: 1,
+		Time:   time.Now(),
+	}
 	myApp.BeginBlock(abci.RequestBeginBlock{Header: header})
 	myApp.EndBlock(abci.RequestEndBlock{})
 	cres := myApp.Commit()
@@ -230,7 +234,10 @@ func newMultisigTestApp(t testing.TB, chainID string, contracts []*contract) app
 
 	// Commit first block, make sure non-nil hash
 	myApp.InitChain(abci.RequestInitChain{AppStateBytes: []byte(appState), ChainId: chainID})
-	header := abci.Header{Height: 1}
+	header := abci.Header{
+		Height: 1,
+		Time:   time.Now(),
+	}
 	myApp.BeginBlock(abci.RequestBeginBlock{Header: header})
 	myApp.EndBlock(abci.RequestEndBlock{})
 	cres := myApp.Commit()
@@ -508,7 +515,10 @@ func signAndCommit(t require.TestingT, fail bool, app app.BaseApp, tx *Tx, signe
 	require.NotEmpty(t, txBytes)
 
 	// Submit to the chain
-	header := abci.Header{Height: height}
+	header := abci.Header{
+		Height: height,
+		Time:   time.Now(),
+	}
 	app.BeginBlock(abci.RequestBeginBlock{Header: header})
 	// check and deliver must pass
 	chres := app.CheckTx(txBytes)
@@ -692,6 +702,7 @@ func benchmarkSendTxWithMultisig(b *testing.B, nbAccounts, blockSize, nbContract
 	// iterate through Txs
 	// start at one to not trigger block creation at the first iteration
 	height := 0
+	now := time.Now()
 	for i := 1; i <= b.N; i++ {
 		chres := myApp.CheckTx(txs[i-1])
 		require.Equal(b, uint32(0), chres.Code, chres.Log)
@@ -701,7 +712,10 @@ func benchmarkSendTxWithMultisig(b *testing.B, nbAccounts, blockSize, nbContract
 		// a final block at the end with the remaining txs
 		if i%blockSize == 0 || i == b.N {
 			height++
-			header := abci.Header{Height: int64(height + nbContracts + 1)}
+			header := abci.Header{
+				Height: int64(height + nbContracts + 1),
+				Time:   now.Add(time.Duration(i) * time.Second),
+			}
 			myApp.BeginBlock(abci.RequestBeginBlock{Header: header})
 
 			// deliver from the first tx following previous block (or 0) to the current tx
@@ -744,6 +758,7 @@ func benchmarkSendTx(b *testing.B, nbAccounts, blockSize int) {
 	// iterate through Txs
 	// start at one to not trigger block creation at the first iteration
 	height := 0
+	now := time.Now()
 	for i := 1; i <= b.N; i++ {
 		chres := myApp.CheckTx(txs[i-1])
 		require.Equal(b, uint32(0), chres.Code, chres.Log)
@@ -753,7 +768,10 @@ func benchmarkSendTx(b *testing.B, nbAccounts, blockSize int) {
 		// a final block at the end with the remaining txs
 		if i%blockSize == 0 || i == b.N {
 			height++
-			header := abci.Header{Height: int64(height + 1)}
+			header := abci.Header{
+				Height: int64(height + 1),
+				Time:   now.Add(time.Duration(i) * time.Second),
+			}
 			myApp.BeginBlock(abci.RequestBeginBlock{Header: header})
 
 			for k := (height - 1) * blockSize; k < i; k++ {
