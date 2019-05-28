@@ -28,6 +28,7 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/iov-one/weave/errors"
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
 )
@@ -94,17 +95,20 @@ func WithBlockTime(ctx Context, t time.Time) Context {
 }
 
 // BlockTime returns current block wall clock time as declared in the context.
-// Zero time and false is returned if a block time is not present in the
-// context.
-func BlockTime(ctx Context) (time.Time, bool) {
+// An error is returned if a block time is not present in the context or if the
+// zero time value is found.
+func BlockTime(ctx Context) (time.Time, error) {
 	val, ok := ctx.Value(contextKeyTime).(time.Time)
-	if ok && val.IsZero() {
+	if !ok {
+		return time.Time{}, errors.Wrap(errors.ErrHuman, "block time not present in the context")
+	}
+	if val.IsZero() {
 		// This is a special case when a zero time value was attached
 		// to the context. Even though it is present it is not a valid
 		// value.
-		return val, false
+		return val, errors.Wrap(errors.ErrHuman, "zero value block time in the context")
 	}
-	return val, ok
+	return val, nil
 }
 
 // WithChainID sets the chain id for the Context.

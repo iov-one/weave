@@ -200,3 +200,37 @@ func TestUnixDurationJSONUnmarshal(t *testing.T) {
 		})
 	}
 }
+
+func TestInThePast(t *testing.T) {
+	now := time.Now()
+	ctx := WithBlockTime(context.Background(), now)
+
+	assert.Equal(t, false, InThePast(ctx, now))
+	assert.Equal(t, false, InThePast(ctx, now.Add(time.Second)))
+	assert.Equal(t, true, InThePast(ctx, now.Add(-time.Second)))
+}
+
+func TestInThePastRequiresBlockTime(t *testing.T) {
+	assert.Panics(t, func() {
+		// Calling isExpected with a context without a block height
+		// attached is expected to panic.
+		InThePast(context.Background(), time.Now())
+	})
+}
+
+func TestInTheFuture(t *testing.T) {
+	now := time.Now()
+	ctx := WithBlockTime(context.Background(), now)
+
+	assert.Equal(t, false, InTheFuture(ctx, now))
+	assert.Equal(t, true, InTheFuture(ctx, now.Add(time.Second)))
+	assert.Equal(t, false, InTheFuture(ctx, now.Add(-time.Second)))
+}
+
+func TestInTheFutureRequiresBlockTime(t *testing.T) {
+	assert.Panics(t, func() {
+		// Calling isExpected with a context without a block height
+		// attached is expected to panic.
+		InTheFuture(context.Background(), time.Now())
+	})
+}

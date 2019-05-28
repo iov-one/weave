@@ -536,8 +536,7 @@ func TestVote(t *testing.T) {
 		},
 		"Vote before start date": {
 			Mods: func(ctx weave.Context, proposal *Proposal) {
-				blockTime, _ := weave.BlockTime(ctx)
-				proposal.Common.VotingStartTime = weave.AsUnixTime(blockTime.Add(time.Second))
+				proposal.Common.VotingStartTime = unixBlockTime(t, ctx) + 1
 			},
 			Msg:            VoteMsg{Metadata: &weave.Metadata{Schema: 1}, ProposalID: proposalID, Selected: VoteOption_Yes, Voter: hAlice},
 			SignedBy:       hAliceCond,
@@ -546,8 +545,7 @@ func TestVote(t *testing.T) {
 		},
 		"Vote on start date": {
 			Mods: func(ctx weave.Context, proposal *Proposal) {
-				blockTime, _ := weave.BlockTime(ctx)
-				proposal.Common.VotingStartTime = weave.AsUnixTime(blockTime)
+				proposal.Common.VotingStartTime = unixBlockTime(t, ctx)
 			},
 			Msg:            VoteMsg{Metadata: &weave.Metadata{Schema: 1}, ProposalID: proposalID, Selected: VoteOption_Yes, Voter: hAlice},
 			SignedBy:       hAliceCond,
@@ -556,8 +554,7 @@ func TestVote(t *testing.T) {
 		},
 		"Vote on end date": {
 			Mods: func(ctx weave.Context, proposal *Proposal) {
-				blockTime, _ := weave.BlockTime(ctx)
-				proposal.Common.VotingEndTime = weave.AsUnixTime(blockTime)
+				proposal.Common.VotingEndTime = unixBlockTime(t, ctx)
 			},
 			Msg:            VoteMsg{Metadata: &weave.Metadata{Schema: 1}, ProposalID: proposalID, Selected: VoteOption_Yes, Voter: hAlice},
 			SignedBy:       hAliceCond,
@@ -566,8 +563,7 @@ func TestVote(t *testing.T) {
 		},
 		"Vote after end date": {
 			Mods: func(ctx weave.Context, proposal *Proposal) {
-				blockTime, _ := weave.BlockTime(ctx)
-				proposal.Common.VotingEndTime = weave.AsUnixTime(blockTime.Add(-1 * time.Second))
+				proposal.Common.VotingEndTime = unixBlockTime(t, ctx) - 1
 			},
 			Msg:            VoteMsg{Metadata: &weave.Metadata{Schema: 1}, ProposalID: proposalID, Selected: VoteOption_Yes, Voter: hAlice},
 			SignedBy:       hAliceCond,
@@ -907,8 +903,7 @@ func TestTally(t *testing.T) {
 			},
 			Mods: func(ctx weave.Context, p *Proposal) {
 				p.RawOption = genElectorateOptions(t, Elector{hAlice, 10})
-				blockTime, _ := weave.BlockTime(ctx)
-				p.Common.VotingEndTime = weave.AsUnixTime(blockTime.Add(-1 * time.Second))
+				p.Common.VotingEndTime = unixBlockTime(t, ctx) - 1
 			},
 			Src: tallySetup{
 				yes:                   10,
@@ -959,8 +954,7 @@ func TestTally(t *testing.T) {
 			},
 			Mods: func(ctx weave.Context, p *Proposal) {
 				p.RawOption = genElectorateOptions(t, Elector{hAlice, 0})
-				blockTime, _ := weave.BlockTime(ctx)
-				p.Common.VotingEndTime = weave.AsUnixTime(blockTime.Add(-1 * time.Second))
+				p.Common.VotingEndTime = unixBlockTime(t, ctx) - 1
 			},
 			Src: tallySetup{
 				yes:                   10,
@@ -975,8 +969,7 @@ func TestTally(t *testing.T) {
 		"Does not update an electorate when rejected": {
 			Mods: func(ctx weave.Context, p *Proposal) {
 				p.RawOption = genElectorateOptions(t, Elector{hAlice, 10})
-				blockTime, _ := weave.BlockTime(ctx)
-				p.Common.VotingEndTime = weave.AsUnixTime(blockTime.Add(-1 * time.Second))
+				p.Common.VotingEndTime = unixBlockTime(t, ctx) - 1
 			},
 			Src: tallySetup{
 				yes:                   1,
@@ -1016,8 +1009,7 @@ func TestTally(t *testing.T) {
 		},
 		"Fails on tally before end date": {
 			Mods: func(ctx weave.Context, p *Proposal) {
-				blockTime, _ := weave.BlockTime(ctx)
-				p.Common.VotingEndTime = weave.AsUnixTime(blockTime.Add(time.Second))
+				p.Common.VotingEndTime = unixBlockTime(t, ctx) + 1
 			},
 			Src: tallySetup{
 				threshold:             Fraction{Numerator: 1, Denominator: 2},
@@ -1029,8 +1021,7 @@ func TestTally(t *testing.T) {
 		},
 		"Fails on tally at end date": {
 			Mods: func(ctx weave.Context, p *Proposal) {
-				blockTime, _ := weave.BlockTime(ctx)
-				p.Common.VotingEndTime = weave.AsUnixTime(blockTime)
+				p.Common.VotingEndTime = unixBlockTime(t, ctx)
 			},
 			Src: tallySetup{
 				threshold:             Fraction{Numerator: 1, Denominator: 2},
@@ -1071,8 +1062,7 @@ func TestTally(t *testing.T) {
 				p.Common.VoteState.TotalYes = spec.Src.yes
 				p.Common.VoteState.TotalNo = spec.Src.no
 				p.Common.VoteState.TotalAbstain = spec.Src.abstain
-				blockTime, _ := weave.BlockTime(ctx)
-				p.Common.VotingEndTime = weave.AsUnixTime(blockTime.Add(-1 * time.Second))
+				p.Common.VotingEndTime = unixBlockTime(t, ctx) - 1
 			}
 			pBucket := withTextProposal(t, db, ctx, append([]ctxAwareMutator{setupForTally}, spec.Mods)...)
 			if spec.Init != nil {
@@ -1407,4 +1397,12 @@ func TestUpdateElectionRules(t *testing.T) {
 			}
 		})
 	}
+}
+
+func unixBlockTime(t testing.TB, ctx context.Context) weave.UnixTime {
+	now, err := weave.BlockTime(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return weave.AsUnixTime(now)
 }
