@@ -9,6 +9,9 @@ protoc:
     - .
     - /usr/include
 
+excludes:
+  - .git
+
 generate:
   go_options:
     import_path: github.com/iov-one/weave
