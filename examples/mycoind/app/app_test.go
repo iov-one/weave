@@ -12,10 +12,9 @@ import (
 	"github.com/iov-one/weave/commands/server"
 	"github.com/iov-one/weave/crypto"
 	"github.com/iov-one/weave/migration"
+	"github.com/iov-one/weave/weavetest/assert"
 	"github.com/iov-one/weave/x/cash"
 	"github.com/iov-one/weave/x/sigs"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
 )
@@ -95,7 +94,9 @@ func testCommit(t *testing.T, myApp app.BaseApp, h int64) []byte {
 	myApp.EndBlock(abci.RequestEndBlock{})
 	cres := myApp.Commit()
 	hash := cres.Data
-	assert.NotEmpty(t, hash)
+	if len(hash) == 0 {
+		t.Fatalf("hash value must not be empty")
+	}
 	return hash
 }
 
@@ -106,17 +107,19 @@ func testQuery(t *testing.T, myApp app.BaseApp, path string, key []byte, obj wea
 		Data: key,
 	}
 	qres := myApp.Query(query)
-	require.Equal(t, uint32(0), qres.Code, "%#v", qres)
-	assert.NotEmpty(t, qres.Value)
-	if path == "/" {
+	assert.Equal(t, uint32(0), qres.Code)
+	if len(qres.Value) == 0 {
+		t.Fatalf("query value must not be empty")
+	}
+	if path == "/" && len(key)+2 != len(qres.Key) {
 		// the original key will be embedded in a result set
 		// this should add two bytes to it
-		assert.Equal(t, len(key)+2, len(qres.Key), "%x", qres.Key)
+		t.Fatalf("key too long %x", qres.Key)
 	}
 	// unpack the ResultSet
 	// parse it and check it is not empty
 	err := app.UnmarshalOneResult(qres.Value, obj)
-	require.NoError(t, err)
+	assert.Nil(t, err)
 }
 
 func testSendTx(t *testing.T, myApp app.BaseApp, h int64,
@@ -137,20 +140,22 @@ func testSendTx(t *testing.T, myApp app.BaseApp, h int64,
 		Sum: &Tx_SendMsg{msg},
 	}
 	sig, err := sigs.SignTx(sender, tx, myApp.GetChainID(), seq)
-	require.NoError(t, err)
+	assert.Nil(t, err)
 	tx.Signatures = []*sigs.StdSignature{sig}
 	txBytes, err := tx.Marshal()
-	require.NoError(t, err)
-	require.NotEmpty(t, txBytes)
+	assert.Nil(t, err)
+	if len(txBytes) == 0 {
+		t.Fatalf("txBytes must not be empty")
+	}
 
 	// Submit to the chain
 	header := abci.Header{Height: h}
 	myApp.BeginBlock(abci.RequestBeginBlock{Header: header})
 	// check and deliver must pass
 	chres := myApp.CheckTx(txBytes)
-	require.Equal(t, uint32(0), chres.Code, chres.Log)
+	assert.Equal(t, uint32(0), chres.Code)
 	dres := myApp.DeliverTx(txBytes)
-	require.Equal(t, uint32(0), dres.Code, dres.Log)
+	assert.Equal(t, uint32(0), dres.Code)
 	return dres
 }
 
@@ -163,7 +168,7 @@ func TestApp(t *testing.T) {
 		Debug:  true,
 	}
 	abciApp, err := GenerateApp(opts)
-	require.NoError(t, err)
+	assert.Nil(t, err)
 	myApp := abciApp.(app.BaseApp)
 
 	// let's set up a genesis file with some cash
@@ -176,7 +181,7 @@ func TestApp(t *testing.T) {
 	var acct cash.Set
 	key := cash.NewBucket().DBKey(addr)
 	testQuery(t, myApp, "/", key, &acct)
-	require.Equal(t, 2, len(acct.Coins))
+	assert.Equal(t, 2, len(acct.Coins))
 	assert.Equal(t, int64(50000), acct.Coins[0].Whole)
 	assert.Equal(t, "FRNK", acct.Coins[1].Ticker)
 
@@ -186,34 +191,35 @@ func TestApp(t *testing.T) {
 	dres := testSendTx(t, myApp, 2, 2000, "ETH", pk, addr2, 0)
 	// and commit the block
 	hash2 := testCommit(t, myApp, 2)
-	assert.NotEqual(t, hash1, hash2)
+	if bytes.Equal(hash1, hash2) {
+		t.Fatal("Hash must change after commit")
+	}
 
 	// ensure 3 keys with proper values
-	if assert.Equal(t, 3, len(dres.Tags), "%#v", dres.Tags) {
-		// three keys we expect, in order
-		keys := make([][]byte, 3)
-		vals := [][]byte{[]byte("s"), []byte("s"), []byte("s")}
-		hexCash := []byte("636173683A")
-		hexSigs := []byte("736967733A")
-		keys[0] = append(hexCash, []byte(addr.String())...)
-		keys[1] = append(hexCash, []byte(addr2.String())...)
-		keys[2] = append(hexSigs, []byte(addr.String())...)
-		if bytes.Compare(addr2, addr) < 0 {
-			keys[0], keys[1] = keys[1], keys[0]
-		}
-		// make sure the DeliverResult matches expections
-		assert.Equal(t, keys[0], dres.Tags[0].Key)
-		assert.Equal(t, keys[1], dres.Tags[1].Key)
-		assert.Equal(t, keys[2], dres.Tags[2].Key)
-		assert.Equal(t, vals[0], dres.Tags[0].Value)
-		assert.Equal(t, vals[1], dres.Tags[1].Value)
-		assert.Equal(t, vals[2], dres.Tags[2].Value)
+	assert.Equal(t, 3, len(dres.Tags))
+	// three keys we expect, in order
+	keys := make([][]byte, 3)
+	vals := [][]byte{[]byte("s"), []byte("s"), []byte("s")}
+	hexCash := []byte("636173683A")
+	hexSigs := []byte("736967733A")
+	keys[0] = append(hexCash, []byte(addr.String())...)
+	keys[1] = append(hexCash, []byte(addr2.String())...)
+	keys[2] = append(hexSigs, []byte(addr.String())...)
+	if bytes.Compare(addr2, addr) < 0 {
+		keys[0], keys[1] = keys[1], keys[0]
 	}
+	// make sure the DeliverResult matches expections
+	assert.Equal(t, keys[0], dres.Tags[0].Key)
+	assert.Equal(t, keys[1], dres.Tags[1].Key)
+	assert.Equal(t, keys[2], dres.Tags[2].Key)
+	assert.Equal(t, vals[0], dres.Tags[0].Value)
+	assert.Equal(t, vals[1], dres.Tags[1].Value)
+	assert.Equal(t, vals[2], dres.Tags[2].Value)
 
 	// Query for new balances (same key, new state)
 	var acct2 cash.Set
 	testQuery(t, myApp, "/", key, &acct2)
-	require.Equal(t, 2, len(acct2.Coins))
+	assert.Equal(t, 2, len(acct2.Coins))
 	assert.Equal(t, int64(48000), acct2.Coins[0].Whole)
 	assert.Equal(t, int64(1234), acct2.Coins[1].Whole)
 
@@ -221,21 +227,21 @@ func TestApp(t *testing.T) {
 	var acct3 cash.Set
 	key2 := cash.NewBucket().DBKey(addr2)
 	testQuery(t, myApp, "/", key2, &acct3)
-	require.Equal(t, 1, len(acct3.Coins))
+	assert.Equal(t, 1, len(acct3.Coins))
 	assert.Equal(t, int64(2000), acct3.Coins[0].Whole)
 	assert.Equal(t, "ETH", acct3.Coins[0].Ticker)
 
 	// make sure other paths also get this value....
 	var acct4 cash.Set
 	testQuery(t, myApp, "/wallets", addr2, &acct4)
-	require.Equal(t, 1, len(acct4.Coins))
+	assert.Equal(t, 1, len(acct4.Coins))
 	assert.Equal(t, int64(2000), acct4.Coins[0].Whole)
 	assert.Equal(t, "ETH", acct4.Coins[0].Ticker)
 
 	// prefix scan works
 	var acct5 cash.Set
 	testQuery(t, myApp, "/wallets?prefix", addr, &acct5)
-	require.Equal(t, 2, len(acct2.Coins))
+	assert.Equal(t, 2, len(acct2.Coins))
 	assert.Equal(t, int64(48000), acct2.Coins[0].Whole)
 	assert.Equal(t, int64(1234), acct2.Coins[1].Whole)
 
@@ -243,11 +249,13 @@ func TestApp(t *testing.T) {
 	testSendTx(t, myApp, 3, 100, "FRNK", pk, addr2, 1)
 	// and commit the block
 	hash3 := testCommit(t, myApp, 3)
-	assert.NotEqual(t, hash2, hash3)
+	if bytes.Equal(hash2, hash3) {
+		t.Fatal("Hash must change after commit")
+	}
 
 	var second cash.Set
 	testQuery(t, myApp, "/wallets", addr2, &second)
-	require.Equal(t, 2, len(second.Coins))
+	assert.Equal(t, 2, len(second.Coins))
 	assert.Equal(t, int64(2000), second.Coins[0].Whole)
 	assert.Equal(t, "ETH", second.Coins[0].Ticker)
 	assert.Equal(t, int64(100), second.Coins[1].Whole)
