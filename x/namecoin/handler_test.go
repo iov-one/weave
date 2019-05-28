@@ -1,7 +1,6 @@
 package namecoin
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/iov-one/weave"
@@ -11,9 +10,8 @@ import (
 	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/store"
 	"github.com/iov-one/weave/weavetest"
+	"github.com/iov-one/weave/weavetest/assert"
 	"github.com/iov-one/weave/x/cash"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 type checkErr func(error) bool
@@ -39,89 +37,100 @@ func TestSendHandler(t *testing.T) {
 	addr1 := perm1.Address()
 	addr2 := perm2.Address()
 
-	cases := []struct {
-		signers       []weave.Condition
-		initState     []orm.Object
-		msg           weave.Msg
-		expectCheck   checkErr
-		expectDeliver checkErr
+	cases := map[string]struct {
+		signers     []weave.Condition
+		initState   []orm.Object
+		msg         weave.Msg
+		wantCheck   *errors.Error
+		wantDeliver *errors.Error
 	}{
-		0: {nil, nil, nil, errors.ErrState.Is, errors.ErrState.Is},
-		1: {nil, nil, new(cash.SendMsg), errors.ErrAmount.Is, errors.ErrAmount.Is},
-		2: {nil, nil, &cash.SendMsg{Amount: &foo}, errors.ErrEmpty.Is, errors.ErrEmpty.Is},
-		3: {
-			nil,
-			nil,
-			&cash.SendMsg{
+		"success": {
+			signers: []weave.Condition{perm1},
+			initState: []orm.Object{
+				mo(WalletWith(addr1, "fool", &foo)),
+			},
+			msg: &cash.SendMsg{
 				Metadata: &weave.Metadata{Schema: 1},
 				Amount:   &foo,
 				Src:      addr1,
 				Dest:     addr2,
 			},
-			errors.ErrUnauthorized.Is,
-			errors.ErrUnauthorized.Is,
+			wantCheck:   nil,
+			wantDeliver: nil,
 		},
-		// sender has no account
-		4: {
-			[]weave.Condition{perm1},
-			nil,
-			&cash.SendMsg{
-				Metadata: &weave.Metadata{Schema: 1},
-				Amount:   &foo,
-				Src:      addr1,
-				Dest:     addr2,
-			},
-			noErr, // we don't check funds
-			errors.ErrEmpty.Is,
+		"nil message": {
+			wantCheck:   errors.ErrState,
+			wantDeliver: errors.ErrState,
 		},
-		// sender too poor
-		5: {
-			[]weave.Condition{perm1},
-			[]orm.Object{mo(WalletWith(addr1, "", &some))},
-			&cash.SendMsg{
-				Metadata: &weave.Metadata{Schema: 1},
-				Amount:   &foo,
-				Src:      addr1,
-				Dest:     addr2,
-			},
-			noErr, // we don't check funds
-			errors.ErrAmount.Is,
+		"empty message": {
+			msg:         &cash.SendMsg{},
+			wantCheck:   errors.ErrAmount,
+			wantDeliver: errors.ErrAmount,
 		},
-		// fool and his money are soon parted....
-		6: {
-			[]weave.Condition{perm1},
-			[]orm.Object{mo(WalletWith(addr1, "fool", &foo))},
-			&cash.SendMsg{
+		"invalid message": {
+			msg:         &cash.SendMsg{Amount: &foo},
+			wantCheck:   errors.ErrEmpty,
+			wantDeliver: errors.ErrEmpty,
+		},
+		"missing signature": {
+			msg: &cash.SendMsg{
 				Metadata: &weave.Metadata{Schema: 1},
 				Amount:   &foo,
 				Src:      addr1,
 				Dest:     addr2,
 			},
-			noErr,
-			noErr,
+			wantCheck:   errors.ErrUnauthorized,
+			wantDeliver: errors.ErrUnauthorized,
+		},
+		"sender has no account": {
+			signers: []weave.Condition{perm1},
+			msg: &cash.SendMsg{
+				Metadata: &weave.Metadata{Schema: 1},
+				Amount:   &foo,
+				Src:      addr1,
+				Dest:     addr2,
+			},
+			wantCheck:   nil,
+			wantDeliver: errors.ErrEmpty,
+		},
+		"sender too poor": {
+			signers: []weave.Condition{perm1},
+			initState: []orm.Object{
+				mo(WalletWith(addr1, "", &some)),
+			},
+			msg: &cash.SendMsg{
+				Metadata: &weave.Metadata{Schema: 1},
+				Amount:   &foo,
+				Src:      addr1,
+				Dest:     addr2,
+			},
+			wantCheck:   nil,
+			wantDeliver: errors.ErrAmount,
 		},
 	}
 
-	for i, tc := range cases {
-		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
+	for testName, tc := range cases {
+		t.Run(testName, func(t *testing.T) {
 			auth := &weavetest.Auth{Signers: tc.signers}
-			// use default controller/bucket from namecoin
+			// Use default controller/bucket from namecoin.
 			h := NewSendHandler(auth)
 
 			kv := store.MemStore()
 			migration.MustInitPkg(kv, "namecoin")
 			bucket := NewWalletBucket()
-			for _, wallet := range tc.initState {
-				err := bucket.Save(kv, wallet)
-				require.NoError(t, err)
+			for i, wallet := range tc.initState {
+				if err := bucket.Save(kv, wallet); err != nil {
+					t.Fatalf("cannot initialize state: wallet %d: %s", i, err)
+				}
 			}
 
 			tx := &weavetest.Tx{Msg: tc.msg}
-
-			_, err := h.Check(nil, kv, tx)
-			assert.True(t, tc.expectCheck(err), "%+v", err)
-			_, err = h.Deliver(nil, kv, tx)
-			assert.True(t, tc.expectDeliver(err), "%+v", err)
+			if _, err := h.Check(nil, kv, tx); !tc.wantCheck.Is(err) {
+				t.Fatalf("unexpected check result: %s", err)
+			}
+			if _, err := h.Deliver(nil, kv, tx); !tc.wantDeliver.Is(err) {
+				t.Fatalf("unexpected deliver result: %s", err)
+			}
 		})
 	}
 }
@@ -139,67 +148,132 @@ func TestNewTokenHandler(t *testing.T) {
 
 	// TODO: add queries to verify
 	cases := map[string]struct {
-		signers       []weave.Condition
-		issuer        weave.Address
-		initState     []orm.Object
-		msg           weave.Msg
-		expectCheck   checkErr
-		expectDeliver checkErr
+		signers     []weave.Condition
+		issuer      weave.Address
+		initState   []orm.Object
+		msg         weave.Msg
+		wantCheck   *errors.Error
+		wantDeliver *errors.Error
 		// query and expected are performed only if query non-empty
 		query    string
 		expected orm.Object
 	}{
-		"proper issuer - happy path": {[]weave.Condition{perm1}, addr1, nil, msg,
-			noErr, noErr, ticker, added},
-		"wrong message type": {[]weave.Condition{perm1}, addr1, nil, new(cash.SendMsg),
-			errors.ErrAmount.Is, errors.ErrAmount.Is, "", nil},
-		"invalid ticker symbol": {[]weave.Condition{perm1}, addr1, nil, BuildTokenMsg("YO", "digga", 7),
-			errors.ErrCurrency.Is, errors.ErrCurrency.Is, "", nil},
-		"invalid token name": {[]weave.Condition{perm1}, addr1, nil, BuildTokenMsg("GOOD", "ill3glz!", 7),
-			errors.ErrInput.Is, errors.ErrInput.Is, "", nil},
-		"invalid sig figs": {[]weave.Condition{perm1}, addr1, nil, BuildTokenMsg("GOOD", "my good token", 17),
-			errors.ErrInput.Is, errors.ErrInput.Is, "", nil},
-		"no issuer, unsigned": {nil, nil, nil, msg,
-			errors.ErrUnauthorized.Is, errors.ErrUnauthorized.Is, "", nil},
-		"no issuer, signed": {[]weave.Condition{perm2}, nil, nil, msg,
-			errors.ErrUnauthorized.Is, errors.ErrUnauthorized.Is, "", nil},
-		"cannot overwrite existing token": {[]weave.Condition{perm1}, addr1, []orm.Object{NewToken(ticker, "i was here first", 4)}, msg,
-			errors.ErrDuplicate.Is, errors.ErrDuplicate.Is, "", nil},
-		"can issue second token, different name": {[]weave.Condition{perm1}, addr1, []orm.Object{NewToken("OTHR", "i was here first", 4)}, msg,
-			noErr, noErr, ticker, added},
-		"no signature, real issuer": {nil, addr1, nil, msg,
-			errors.ErrUnauthorized.Is, errors.ErrUnauthorized.Is, "", nil},
-		"wrong signatures, real issuer": {[]weave.Condition{perm2, perm3}, addr1, nil, msg,
-			errors.ErrUnauthorized.Is, errors.ErrUnauthorized.Is, "", nil},
-		"extra signatures, real issuer": {[]weave.Condition{perm2, perm3}, addr2, nil, msg,
-			noErr, noErr, ticker, added},
+		"proper issuer - happy path": {
+			signers:  []weave.Condition{perm1},
+			issuer:   addr1,
+			msg:      msg,
+			query:    ticker,
+			expected: added,
+		},
+		"wrong message type": {
+			signers:     []weave.Condition{perm1},
+			issuer:      addr1,
+			msg:         &cash.SendMsg{},
+			wantCheck:   errors.ErrAmount,
+			wantDeliver: errors.ErrAmount,
+		},
+		"invalid ticker symbol": {
+			signers:     []weave.Condition{perm1},
+			issuer:      addr1,
+			msg:         BuildTokenMsg("YO", "digga", 7),
+			wantCheck:   errors.ErrCurrency,
+			wantDeliver: errors.ErrCurrency,
+		},
+		"invalid token name": {
+			signers:     []weave.Condition{perm1},
+			issuer:      addr1,
+			msg:         BuildTokenMsg("GOOD", "ill3glz!", 7),
+			wantCheck:   errors.ErrInput,
+			wantDeliver: errors.ErrInput,
+		},
+		"invalid sig figs": {
+			signers:     []weave.Condition{perm1},
+			issuer:      addr1,
+			msg:         BuildTokenMsg("GOOD", "my good token", 17),
+			wantCheck:   errors.ErrInput,
+			wantDeliver: errors.ErrInput,
+		},
+		"no issuer, unsigned": {
+			msg:         msg,
+			wantCheck:   errors.ErrUnauthorized,
+			wantDeliver: errors.ErrUnauthorized,
+		},
+		"no issuer, signed": {
+			signers:     []weave.Condition{perm2},
+			msg:         msg,
+			wantCheck:   errors.ErrUnauthorized,
+			wantDeliver: errors.ErrUnauthorized,
+		},
+		"cannot overwrite existing token": {
+			signers: []weave.Condition{perm1},
+			issuer:  addr1,
+			initState: []orm.Object{
+				NewToken(ticker, "i was here first", 4),
+			},
+			msg:         msg,
+			wantCheck:   errors.ErrDuplicate,
+			wantDeliver: errors.ErrDuplicate,
+		},
+		"can issue second token, different name": {
+			signers: []weave.Condition{perm1},
+			issuer:  addr1,
+			initState: []orm.Object{
+				NewToken("OTHR", "i was here first", 4),
+			},
+			msg:      msg,
+			query:    ticker,
+			expected: added,
+		},
+		"no signature, real issuer": {
+			issuer:      addr1,
+			msg:         msg,
+			wantCheck:   errors.ErrUnauthorized,
+			wantDeliver: errors.ErrUnauthorized,
+		},
+		"wrong signatures, real issuer": {
+			signers:     []weave.Condition{perm2, perm3},
+			issuer:      addr1,
+			msg:         msg,
+			wantCheck:   errors.ErrUnauthorized,
+			wantDeliver: errors.ErrUnauthorized,
+		},
+		"extra signatures, real issuer": {
+			signers:  []weave.Condition{perm2, perm3},
+			issuer:   addr2,
+			msg:      msg,
+			query:    ticker,
+			expected: added,
+		},
 	}
 
 	for testname, tc := range cases {
 		t.Run(testname, func(t *testing.T) {
 			auth := &weavetest.Auth{Signers: tc.signers}
-			// use default controller/bucket from namecoin
+			// Use default controller/bucket from namecoin.
 			h := NewTokenHandler(auth, tc.issuer)
 
 			db := store.MemStore()
 			migration.MustInitPkg(db, "namecoin")
 			bucket := NewTokenBucket()
-			for _, wallet := range tc.initState {
-				err := bucket.Save(db, wallet)
-				require.NoError(t, err)
+			for i, wallet := range tc.initState {
+				if err := bucket.Save(db, wallet); err != nil {
+					t.Fatalf("cannot initialize state: wallet %d: %s", i, err)
+				}
 			}
 
 			tx := &weavetest.Tx{Msg: tc.msg}
-
-			// note that this counts on checkDB *not* creating it
-			_, err := h.Check(nil, db, tx)
-			assert.True(t, tc.expectCheck(err), "%+v", err)
-			_, err = h.Deliver(nil, db, tx)
-			assert.True(t, tc.expectDeliver(err), "%+v", err)
+			if _, err := h.Check(nil, db, tx); !tc.wantCheck.Is(err) {
+				t.Fatalf("unexpected check result: %s", err)
+			}
+			if _, err := h.Deliver(nil, db, tx); !tc.wantDeliver.Is(err) {
+				t.Fatalf("unexpected deliver result: %s", err)
+			}
 
 			if tc.query != "" {
 				res, err := bucket.Get(db, tc.query)
-				require.NoError(t, err)
+				if err != nil {
+					t.Fatalf("bucket lookup failed: %s", err)
+				}
 				assert.Equal(t, tc.expected, res)
 			}
 		})
@@ -221,72 +295,105 @@ func TestSetNameHandler(t *testing.T) {
 	// dupUser already claimed this name
 	dupUser := mo(WalletWith(addr2, name, &coin))
 
-	cases := []struct {
-		signer        weave.Condition
-		initState     []orm.Object
-		msg           weave.Msg
-		expectCheck   checkErr
-		expectDeliver checkErr
+	cases := map[string]struct {
+		signer      weave.Condition
+		initState   []orm.Object
+		msg         weave.Msg
+		wantCheck   *errors.Error
+		wantDeliver *errors.Error
 		// query and expected are performed only after successful deliver
 		query    weave.Address
 		expected orm.Object
 	}{
-		// wrong message type
-		0: {nil, nil, new(cash.SendMsg),
-			errors.ErrAmount.Is, errors.ErrAmount.Is, nil, nil},
-		// invalid message
-		1: {nil, nil, BuildSetNameMsg([]byte{1, 2}, "johnny"),
-			errors.ErrInput.Is, errors.ErrInput.Is, nil, nil},
-		2: {nil, nil, BuildSetNameMsg(addr1, "sh"),
-			errors.ErrInput.Is, errors.ErrInput.Is, nil, nil},
-		// no permission to change account
-		3: {nil, []orm.Object{newUser}, msg,
-			errors.ErrUnauthorized.Is, errors.ErrUnauthorized.Is, nil, nil},
-		// no account to change - only checked deliver
-		4: {perm1, nil, msg,
-			noErr, errors.ErrNotFound.Is, nil, nil},
-		5: {perm2, []orm.Object{newUser}, msg,
-			errors.ErrUnauthorized.Is, errors.ErrUnauthorized.Is, nil, nil},
-		// yes, we changed it!
-		6: {perm1, []orm.Object{newUser}, msg,
-			noErr, noErr, addr1, setUser},
-		// cannot change already set - only checked deliver?
-		7: {perm1, []orm.Object{setUser}, msg,
-			noErr, errors.ErrImmutable.Is, nil, nil},
-		// cannot create conflict - only checked deliver?
-		8: {perm1, []orm.Object{newUser, dupUser}, msg,
-			noErr, errors.ErrDuplicate.Is, nil, nil},
-		// cannot change - no such a wallet (should should up by addr2 not addr1)
-		9: {perm1, []orm.Object{dupUser}, msg, noErr,
-			func(err error) bool { return errors.ErrNotFound.Is(err) },
-			addr1, nil},
+		"success": {
+			signer:    perm1,
+			initState: []orm.Object{newUser},
+			msg:       msg,
+			query:     addr1,
+			expected:  setUser,
+		},
+		"wrong message type": {
+			msg:         &cash.SendMsg{},
+			wantCheck:   errors.ErrAmount,
+			wantDeliver: errors.ErrAmount,
+		},
+		"invalid message": {
+			msg:         BuildSetNameMsg([]byte{1, 2}, "johnny"),
+			wantCheck:   errors.ErrInput,
+			wantDeliver: errors.ErrInput,
+		},
+		"invalid message data": {
+			msg:         BuildSetNameMsg(addr1, "sh"),
+			wantCheck:   errors.ErrInput,
+			wantDeliver: errors.ErrInput,
+		},
+		"no permission to change account": {
+			initState:   []orm.Object{newUser},
+			msg:         msg,
+			wantCheck:   errors.ErrUnauthorized,
+			wantDeliver: errors.ErrUnauthorized,
+		},
+		"no account to change - only checked deliver": {
+			signer:      perm1,
+			msg:         msg,
+			wantDeliver: errors.ErrNotFound,
+		},
+		"not authorized": {
+			signer:      perm2,
+			initState:   []orm.Object{newUser},
+			msg:         msg,
+			wantCheck:   errors.ErrUnauthorized,
+			wantDeliver: errors.ErrUnauthorized,
+		},
+		"cannot change already set - only checked deliver?": {
+			signer:      perm1,
+			initState:   []orm.Object{setUser},
+			msg:         msg,
+			wantDeliver: errors.ErrImmutable,
+		},
+		"cannot create conflict - only checked deliver?": {
+			signer:      perm1,
+			initState:   []orm.Object{newUser, dupUser},
+			msg:         msg,
+			wantDeliver: errors.ErrDuplicate,
+		},
+		"cannot change - no such a wallet (should should up by addr2 not addr1)": {
+			signer:      perm1,
+			initState:   []orm.Object{dupUser},
+			msg:         msg,
+			wantDeliver: errors.ErrNotFound,
+			query:       addr1,
+		},
 	}
 
-	for i, tc := range cases {
-		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
+	for testName, tc := range cases {
+		t.Run(testName, func(t *testing.T) {
 			auth := &weavetest.Auth{Signer: tc.signer}
-			// use default controller/bucket from namecoin
+			// Use default controller/bucket from namecoin.
 			bucket := NewWalletBucket()
 			h := NewSetNameHandler(auth, bucket)
 
 			db := store.MemStore()
 			migration.MustInitPkg(db, "namecoin")
-			for _, wallet := range tc.initState {
-				err := bucket.Save(db, wallet)
-				require.NoError(t, err)
+			for i, wallet := range tc.initState {
+				if err := bucket.Save(db, wallet); err != nil {
+					t.Fatalf("cannot initialize state: wallet %d: %s", i, err)
+				}
 			}
 
 			tx := &weavetest.Tx{Msg: tc.msg}
-
-			// note that this counts on checkDB *not* creating it
-			_, err := h.Check(nil, db, tx)
-			assert.True(t, tc.expectCheck(err), "%+v", err)
-			_, err = h.Deliver(nil, db, tx)
-			assert.True(t, tc.expectDeliver(err), "%+v", err)
+			if _, err := h.Check(nil, db, tx); !tc.wantCheck.Is(err) {
+				t.Fatalf("unexpected check result: %s", err)
+			}
+			if _, err := h.Deliver(nil, db, tx); !tc.wantDeliver.Is(err) {
+				t.Fatalf("unexpected deliver result: %s", err)
+			}
 
 			if tc.query != nil {
 				res, err := bucket.Get(db, tc.query)
-				require.NoError(t, err)
+				if err != nil {
+					t.Fatalf("bucket lookup failed: %s", err)
+				}
 				assert.Equal(t, tc.expected, res)
 			}
 		})
