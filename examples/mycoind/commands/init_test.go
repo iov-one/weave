@@ -6,15 +6,16 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/iov-one/weave/commands/server"
 	"github.com/iov-one/weave/errors"
-	"github.com/iov-one/weave/examples/mycoind/app"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
+	"github.com/iov-one/weave/weavetest/assert"
 	"github.com/tendermint/tendermint/libs/log"
+
+	"github.com/iov-one/weave/examples/mycoind/app"
 )
 
 func TestInit(t *testing.T) {
@@ -24,31 +25,37 @@ func TestInit(t *testing.T) {
 	logger := log.NewNopLogger()
 	args := []string{"ETH", "ABCD123456789000DEADBEEF00ABCD123456789000"}
 	err := server.InitCmd(app.GenInitOptions, logger, home, args)
-	require.NoError(t, err)
+	assert.Nil(t, err)
 
 	// make sure we set proper data
 	genFile := filepath.Join(home, "config", "genesis.json")
 
 	var doc server.GenesisDoc
 	bz, err := ioutil.ReadFile(genFile)
-	require.NoError(t, err)
+	assert.Nil(t, err)
 	err = json.Unmarshal(bz, &doc)
-	require.NoError(t, err)
+	assert.Nil(t, err)
 	// keep old values, and add our values
-	assert.EqualValues(t, []byte(`"test-chain-tspYJj"`),
+	assert.Equal(t, json.RawMessage(`"test-chain-tspYJj"`),
 		doc["chain_id"])
-	assert.NotEmpty(t, doc["validators"])
-	assert.NotEmpty(t, doc[server.AppStateKey])
+	if doc["validators"] == nil || len(doc["validators"]) == 0 {
+		t.Fatalf("genesis validators not defined")
+	}
+	if doc[server.AppStateKey] == nil || len(doc[server.AppStateKey]) == 0 {
+		t.Fatalf("genesis app state not defined")
+	}
 
 	gTime := time.Time{}
 	err = gTime.UnmarshalJSON(doc[server.GenesisTimeKey])
-	require.NoError(t, err)
-	assert.True(t, gTime.After(time.Now().Add(-10*time.Minute)))
+	assert.Nil(t, err)
+	assert.Equal(t, true, gTime.After(time.Now().Add(-10*time.Minute)))
 
-	assert.Contains(t, string(doc[server.AppStateKey]), `"ticker": "ETH"`)
+	if !strings.Contains(string(doc[server.AppStateKey]), `"ticker": "ETH"`) {
+		t.Fatalf("Missing ETH ticker in genesis app state")
+	}
 
 	err = server.InitCmd(app.GenInitOptions, logger, home, args)
-	assert.EqualValues(t, errors.ErrState.Is(err), true)
+	assert.Equal(t, errors.ErrState.Is(err), true)
 }
 
 // setupConfig creates a homedir to run inside,
@@ -58,9 +65,9 @@ func TestInit(t *testing.T) {
 // via `tendermint init`. Current version v0.16.0
 func setupConfig(t *testing.T) string {
 	rootDir, err := ioutil.TempDir("", "mock-sdk-cmd")
-	require.NoError(t, err)
+	assert.Nil(t, err)
 	err = copyConfigFiles(rootDir)
-	require.NoError(t, err)
+	assert.Nil(t, err)
 	return rootDir
 }
 
