@@ -49,7 +49,7 @@ defaults and best practices for many choices, while allowing
 extreme flexibility in business logic and data modelling.
 
 For more details on the design goals, see the
-[Design Document](./docs/design.rst)
+[Design Document](./docs/design/overview.rst)
 
 ## Prerequisites
 
