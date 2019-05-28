@@ -5,7 +5,6 @@ set -o errexit -o nounset -o pipefail
 # This is a version of build_protodocs, which uses docker images to build, and includes gogoproto support,
 # so it doesn't need the pre-clean step
 
-user=$(id -u):$(id -g)
 protoc="docker run --rm -v $(pwd):/work iov1/prototool:v0.2.0 protoc"
 prototool="docker run --rm -v $(pwd):/work iov1/prototool:v0.2.0 prototool"
 
