@@ -1,6 +1,7 @@
 package weave
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"time"
@@ -101,11 +102,43 @@ func (t UnixTime) String() string {
 // must never happen. The panic is here to prevent from broken setup to be
 // processing data incorrectly.
 func IsExpired(ctx Context, t UnixTime) bool {
-	blockNow, ok := BlockTime(ctx)
-	if !ok {
-		panic("block time is not present")
+	blockNow, err := BlockTime(ctx)
+	if err != nil {
+		panic(fmt.Sprintf("%+v", err))
 	}
 	return t <= AsUnixTime(blockNow)
+}
+
+// InThePast returns true if given time is in the past compared to the current
+// time as declared in the context. Context "now" should come from the block
+// header.
+// Keep in mind that this function is not inclusive of current time. It given
+// time is equal to "now" then this function returns false.
+// This function panic if the block time is not provided in the context. This
+// must never happen. The panic is here to prevent from broken setup to be
+// processing data incorrectly.
+func InThePast(ctx context.Context, t time.Time) bool {
+	now, err := BlockTime(ctx)
+	if err != nil {
+		panic(fmt.Sprintf("%+v", err))
+	}
+	return t.Before(now)
+}
+
+// InTheFuture returns true if given time is in the future compared to the
+// current time as declared in the context. Context "now" should come from the
+// block header.
+// Keep in mind that this function is not inclusive of current time. It given
+// time is equal to "now" then this function returns false.
+// This function panic if the block time is not provided in the context. This
+// must never happen. The panic is here to prevent from broken setup to be
+// processing data incorrectly.
+func InTheFuture(ctx context.Context, t time.Time) bool {
+	now, err := BlockTime(ctx)
+	if err != nil {
+		panic(fmt.Sprintf("%+v", err))
+	}
+	return t.After(now)
 }
 
 // UnixDuration represents a time duration with granularity of a second. This

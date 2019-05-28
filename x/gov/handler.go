@@ -119,15 +119,11 @@ func (h VoteHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) 
 	if common.Status != ProposalCommon_Submitted {
 		return nil, nil, nil, errors.Wrap(errors.ErrState, "not in voting period")
 	}
-	blockTime, ok := weave.BlockTime(ctx)
-	if !ok {
-		return nil, nil, nil, errors.Wrap(errors.ErrHuman, "block time not set")
-	}
-	if !blockTime.After(common.VotingStartTime.Time()) {
+	if !weave.InThePast(ctx, common.VotingStartTime.Time()) {
 		return nil, nil, nil, errors.Wrap(errors.ErrState, "vote before proposal start time")
 	}
-	if !blockTime.Before(common.VotingEndTime.Time()) {
-		return nil, nil, nil, errors.Wrapf(errors.ErrState, "vote after proposal end time: %s < %s", common.VotingEndTime, blockTime)
+	if !weave.InTheFuture(ctx, common.VotingEndTime.Time()) {
+		return nil, nil, nil, errors.Wrap(errors.ErrState, "vote after proposal end time")
 	}
 
 	voter := msg.Voter
@@ -259,12 +255,8 @@ func (h TallyHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx)
 	if common.Status != ProposalCommon_Submitted {
 		return nil, nil, errors.Wrapf(errors.ErrState, "unexpected status: %s", common.Status.String())
 	}
-	blockTime, ok := weave.BlockTime(ctx)
-	if !ok {
-		return nil, nil, errors.Wrap(errors.ErrHuman, "block time not set")
-	}
-	if !blockTime.After(common.VotingEndTime.Time()) {
-		return nil, nil, errors.Wrapf(errors.ErrState, "tally before proposal end time: block time: %v < end time: %v", blockTime, common.VotingEndTime.Time())
+	if !weave.InThePast(ctx, common.VotingEndTime.Time()) {
+		return nil, nil, errors.Wrap(errors.ErrState, "tally before proposal end time: block time")
 	}
 	return &msg, proposal, nil
 }
@@ -300,8 +292,10 @@ func (h CreateProposalHandler) Deliver(ctx weave.Context, db weave.KVStore, tx w
 	if err != nil {
 		return nil, err
 	}
-	// abort when an update electorate proposal exists for the one used
-	blockTime, _ := weave.BlockTime(ctx)
+	blockTime, err := weave.BlockTime(ctx)
+	if err != nil {
+		return nil, errors.Wrap(err, "block time")
+	}
 
 	base := msg.Base
 	if base == nil {
@@ -344,14 +338,10 @@ func (h CreateProposalHandler) validate(ctx weave.Context, db weave.KVStore, tx 
 		return nil, nil, nil, errors.Wrap(errors.ErrInput, "missing base create proposal info")
 	}
 
-	blockTime, ok := weave.BlockTime(ctx)
-	if !ok {
-		return nil, nil, nil, errors.Wrap(errors.ErrHuman, "block time not set")
+	if !weave.InTheFuture(ctx, base.StartTime.Time()) {
+		return nil, nil, nil, errors.Wrap(errors.ErrInput, "start time must be in the future")
 	}
-	if !base.StartTime.Time().After(blockTime) {
-		return nil, nil, nil, errors.Wrapf(errors.ErrInput, "start time must be in the future: %s < %s", base.StartTime, blockTime)
-	}
-	if blockTime.Add(maxFutureStart).Before(base.StartTime.Time()) {
+	if weave.InTheFuture(ctx, base.StartTime.Time().Add(-maxFutureStart)) {
 		return nil, nil, nil, errors.Wrapf(errors.ErrInput, "start time cam not be more than %s h in the future", maxFutureStart)
 	}
 
@@ -411,10 +401,6 @@ func (h DeleteProposalHandler) validate(ctx weave.Context, db weave.KVStore, tx 
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, nil, errors.Wrap(err, "load msg")
 	}
-	blockTime, ok := weave.BlockTime(ctx)
-	if !ok {
-		return nil, nil, errors.Wrap(errors.ErrHuman, "block time not set")
-	}
 	prop, err := h.propBucket.GetProposal(db, msg.ProposalID)
 	if err != nil {
 		return nil, nil, errors.Wrapf(err, "failed to load a proposal with id %s", msg.ProposalID)
@@ -427,7 +413,8 @@ func (h DeleteProposalHandler) validate(ctx weave.Context, db weave.KVStore, tx 
 	if common.Status == ProposalCommon_Withdrawn {
 		return nil, nil, errors.Wrap(errors.ErrState, "this proposal is already withdrawn")
 	}
-	if common.VotingStartTime.Time().Before(blockTime) {
+
+	if weave.InThePast(ctx, common.VotingStartTime.Time()) {
 		return nil, nil, errors.Wrap(errors.ErrImmutable, "voting has already started")
 	}
 	if !h.auth.HasAddress(ctx, common.Author) {

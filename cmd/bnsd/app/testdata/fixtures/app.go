@@ -53,7 +53,10 @@ func (f AppFixture) Build() abci.Application {
 		AppStateBytes: appStateGenesis(f.GenesisKeyAddress),
 		ChainId:       f.ChainID,
 	})
-	header := abci.Header{Height: 1}
+	header := abci.Header{
+		Height: 1,
+		Time:   time.Now(),
+	}
 	myApp.BeginBlock(abci.RequestBeginBlock{Header: header})
 	myApp.EndBlock(abci.RequestEndBlock{})
 	cres := myApp.Commit()

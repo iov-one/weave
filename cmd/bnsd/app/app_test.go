@@ -5,6 +5,7 @@ import (
 	"sort"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/iov-one/weave"
 	weaveApp "github.com/iov-one/weave/app"
@@ -334,7 +335,10 @@ func signAndCommit(
 	require.NotEmpty(t, txBytes)
 
 	// Submit to the chain
-	header := abci.Header{Height: height}
+	header := abci.Header{
+		Height: height,
+		Time:   time.Now(),
+	}
 	app.BeginBlock(abci.RequestBeginBlock{Header: header})
 	// check and deliver must pass
 	chres := app.CheckTx(txBytes)
