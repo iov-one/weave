@@ -164,7 +164,7 @@ func TestCounterMultiKeyIndex(t *testing.T) {
 			expKeys:  [][]byte{encodeSequence(6), []byte("even")},
 			expError: false,
 		},
-		{ // id miss-match
+		{ // id missmatch
 			index:    uniq,
 			prev:     NewSimpleObj([]byte("my"), NewCounter(5)),
 			next:     NewSimpleObj([]byte("bar"), NewCounter(7)),
