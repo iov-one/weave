@@ -5,7 +5,21 @@ import (
 	"strings"
 )
 
-const multiErrCode uint32 = 100
+// Append combines two errors. Any value can be nil.
+// When both are nil then nil is returned, too.
+// When only one is not nil, that one is returned.
+// Otherwise the result is of type multiErr.
+func Append(src, new error) error {
+	switch {
+	case new == nil:
+		return src
+	case src == nil:
+		return new
+	}
+	return multiErr{}.with(src).with(new)
+}
+
+const multiErrCode uint32 = 1000
 
 var _ coder = (*multiErr)(nil)
 
@@ -16,14 +30,31 @@ func (e multiErr) IsEmpty() bool {
 	return len(e) == 0
 }
 
-// With returns a new multiErr instance with the given error added.
+// with returns a new multiErr instance with the given error added.
 // Nil values are ignored and multiErr flattened.
-func (e multiErr) With(source error) multiErr {
+func (e multiErr) with(source error) multiErr {
 	switch err := source.(type) {
 	case nil:
 		return e
 	case multiErr:
 		return e.append(err...)
+	case *wrappedError:
+		root, msgs := unWrap(err)
+
+		me, ok := root.(multiErr)
+		if !ok {
+			return e.append(source)
+		}
+		// flatten and re-wrap errors
+		result := e
+		for _, v := range me {
+			rErr := v
+			for _, m := range msgs {
+				rErr = Wrap(rErr, m)
+			}
+			result = append(result, rErr)
+		}
+		return result
 	}
 	return e.append(source)
 }
@@ -51,7 +82,7 @@ func (e multiErr) Error() string {
 		len(e), strings.Join(errs, "\n\t"))
 }
 
-// ABCICode returns 100
+// ABCICode returns 1000
 func (e multiErr) ABCICode() uint32 {
 	return multiErrCode
 }

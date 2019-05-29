@@ -5,37 +5,55 @@ import (
 	"testing"
 
 	"github.com/iov-one/weave/weavetest/assert"
+	"github.com/pkg/errors"
 )
 
 func TestAddToMulitiErr(t *testing.T) {
+	var (
+		// create errors with stacktrace for equal comparision
+		myErrNotFound = errors.WithStack(ErrNotFound)
+		myErrState    = errors.WithStack(ErrState)
+		myErrMsg      = errors.WithStack(ErrMsg)
+	)
 	specs := map[string]struct {
-		src multiErr
-		add []error
-		exp multiErr
+		src error
+		add error
+		exp error
 	}{
-		"Add single error": {src: MultiErr, add: []error{ErrNotFound}, exp: multiErr{ErrNotFound}},
-		"Add multiple":     {src: MultiErr, add: []error{ErrNotFound, ErrMsg}, exp: multiErr{ErrNotFound, ErrMsg}},
-		"Add multiErr should be flattened": {
-			src: MultiErr, add: []error{MultiErr.With(ErrNotFound).With(ErrMsg)}, exp: multiErr{ErrNotFound, ErrMsg},
+		"Append with first nil":    {src: nil, add: myErrNotFound, exp: myErrNotFound},
+		"Append with second nil":   {src: myErrNotFound, add: nil, exp: myErrNotFound},
+		"Append with both nil":     {src: nil, add: nil, exp: nil},
+		"Append with both not nil": {src: myErrNotFound, add: myErrMsg, exp: multiErr{myErrNotFound, myErrMsg}},
+		"Append multiErr should be flattened": {
+			src: myErrNotFound, add: Append(myErrState, myErrMsg), exp: multiErr{myErrNotFound, myErrState, myErrMsg},
 		},
-		"Add empty multiErr should be skipped": {
-			src: MultiErr, add: []error{MultiErr}, exp: multiErr{},
+		"Append first wrapped multiErr should be flattened": {
+			src: Wrap(Append(myErrState, myErrMsg), "test"),
+			add: ErrHuman,
+			exp: multiErr{Wrap(myErrState, "test"), Wrap(myErrMsg, "test"), ErrHuman},
 		},
-		"Add duplicates":            {src: MultiErr, add: []error{ErrNotFound, ErrNotFound}, exp: multiErr{ErrNotFound, ErrNotFound}},
-		"Add nothing":               {src: MultiErr, exp: multiErr{}},
-		"Add nil should be skipped": {src: MultiErr, add: []error{nil}, exp: multiErr{}},
+		"Append second wrapped multiErr should be flattened": {
+			src: myErrNotFound,
+			add: Wrap(Append(myErrState, myErrMsg), "test"),
+			exp: multiErr{myErrNotFound, Wrap(myErrState, "test"), Wrap(myErrMsg, "test")},
+		},
+		"Append double wrapped multiErr should be flattened": {
+			src: myErrNotFound,
+			add: Wrap(Wrap(Append(myErrState, myErrMsg), "first"), "second"),
+			exp: multiErr{
+				myErrNotFound,
+				Wrap(Wrap(myErrState, "first"), "second"),
+				Wrap(Wrap(myErrMsg, "first"), "second"),
+			},
+		},
 	}
 	for msg, spec := range specs {
 		t.Run(msg, func(t *testing.T) {
-			me := spec.src
-			for _, v := range spec.add {
-				me = me.With(v)
-			}
+			mErr := Append(spec.src, spec.add)
 			// then
-			if exp, got := spec.exp, me; !reflect.DeepEqual(exp, got) {
-				t.Errorf("expected %v but got %v", exp, got)
+			if exp, got := spec.exp, mErr; !reflect.DeepEqual(exp, got) {
+				t.Errorf("expected %#v but got %#v", exp, got)
 			}
-
 		})
 	}
 }
@@ -45,8 +63,9 @@ func TestMulitiErrIsEmpty(t *testing.T) {
 		src multiErr
 		exp bool
 	}{
-		"Single error": {src: MultiErr.With(ErrNotFound), exp: false},
-		"Empty":        {src: MultiErr, exp: true},
+		"Single error": {src: multiErr{ErrNotFound}, exp: false},
+		"Empty":        {src: multiErr{}, exp: true},
+		"nil":          {src: nil, exp: true},
 	}
 	for msg, spec := range specs {
 		t.Run(msg, func(t *testing.T) {
@@ -60,7 +79,8 @@ func TestMulitiErrIsEmpty(t *testing.T) {
 }
 
 func TestMulitiErrABCICode(t *testing.T) {
-	if exp, got := uint32(100), MultiErr.ABCICode(); exp != got {
+	var mErr multiErr
+	if exp, got := uint32(1000), mErr.ABCICode(); exp != got {
 		t.Errorf("expected %v but got %v", exp, got)
 	}
 }

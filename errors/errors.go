@@ -82,10 +82,8 @@ var (
 	// ErrNetwork is returned on network failure (only for client libraries)
 	ErrNetwork = Register(100200, "network")
 
-	// reserve code 100
+	// reserve code
 	_ = Register(multiErrCode, "multi error")
-
-	MultiErr = multiErr{}
 
 	// ErrTimeout is returned on context timeout (only for client libraries)
 	ErrTimeout = Register(100300, "timeout")
@@ -166,6 +164,9 @@ func (kind *Error) Is(err error) bool {
 		if err == nil {
 			return true
 		}
+		if reflect.ValueOf(err).Kind() == reflect.Struct {
+			return false
+		}
 		return reflect.ValueOf(err).IsNil()
 	}
 	if me, ok := err.(multiErr); ok {
@@ -208,6 +209,23 @@ func Wrap(err error, description string) error {
 		parent: err,
 		msg:    description,
 	}
+}
+func unWrap(err error) (error, []string) {
+	if err == nil {
+		return nil, nil
+	}
+
+	if werr, ok := err.(*wrappedError); ok {
+		e, d := unWrap(werr.parent)
+		return e, append(d, werr.msg)
+	}
+	// unwrap stackTrace
+	if st := stackTrace(err); st != nil {
+		if c, ok := err.(causer); ok {
+			err = c.Cause()
+		}
+	}
+	return err, nil
 }
 
 // Wrapf extends given error with an additional information.

@@ -3,8 +3,10 @@ package errors
 import (
 	stdlib "errors"
 	"fmt"
-	"github.com/pkg/errors"
+	"reflect"
 	"testing"
+
+	"github.com/pkg/errors"
 )
 
 func TestCause(t *testing.T) {
@@ -95,32 +97,32 @@ func TestErrorIs(t *testing.T) {
 		},
 		"multierr with the same error": {
 			a:      ErrNotFound,
-			b:      MultiErr.With(ErrNotFound).With(ErrState),
+			b:      Append(ErrNotFound, ErrState),
 			wantIs: true,
 		},
 		"multierr with random order": {
 			a:      ErrNotFound,
-			b:      MultiErr.With(ErrState).With(ErrNotFound),
+			b:      Append(ErrState, ErrNotFound),
 			wantIs: true,
 		},
 		"multierr with wrapped err": {
 			a:      ErrNotFound,
-			b:      MultiErr.With(Wrap(ErrNotFound, "test")),
+			b:      Append(ErrState, Wrap(ErrNotFound, "test")),
 			wantIs: true,
 		},
 		"multierr with nil error": {
 			a:      ErrNotFound,
-			b:      MultiErr.With(nil),
+			b:      Append(nil, nil),
 			wantIs: false,
 		},
 		"multierr with different error": {
 			a:      ErrNotFound,
-			b:      MultiErr.With(ErrState),
+			b:      Append(ErrState, nil),
 			wantIs: false,
 		},
 		"multierr from nil": {
 			a:      nil,
-			b:      MultiErr.With(ErrState),
+			b:      Append(ErrState, ErrNotFound),
 			wantIs: false,
 		},
 	}
@@ -128,6 +130,30 @@ func TestErrorIs(t *testing.T) {
 		t.Run(testName, func(t *testing.T) {
 			if got := tc.a.Is(tc.b); got != tc.wantIs {
 				t.Fatalf("unexpected result - got:%v want: %v", got, tc.wantIs)
+			}
+		})
+	}
+}
+
+func TestUnwrap(t *testing.T) {
+	specs := map[string]struct {
+		src    error
+		expErr error
+		expMsg []string
+	}{
+		"Wrapped":        {src: Wrap(ErrNotFound, "myMsg"), expErr: ErrNotFound, expMsg: []string{"myMsg"}},
+		"Double wrapped": {src: Wrap(Wrap(ErrNotFound, "first"), "second"), expErr: ErrNotFound, expMsg: []string{"first", "second"}},
+		"Not Wrapped":    {src: ErrNotFound, expErr: ErrNotFound},
+		"Nil":            {src: nil, expErr: nil},
+	}
+	for msg, spec := range specs {
+		t.Run(msg, func(t *testing.T) {
+			root, msgs := unWrap(spec.src)
+			if exp, got := spec.expErr, root; !reflect.DeepEqual(exp, got) {
+				t.Errorf("expected %T but got %T", exp, got)
+			}
+			if exp, got := spec.expMsg, msgs; !reflect.DeepEqual(exp, got) {
+				t.Errorf("expected %v but got %v", exp, got)
 			}
 		})
 	}
