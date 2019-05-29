@@ -19,11 +19,12 @@ import (
 )
 
 var (
-	hAliceCond = weavetest.NewCondition()
-	hAlice     = hAliceCond.Address()
-	hBobbyCond = weavetest.NewCondition()
-	hBobby     = hBobbyCond.Address()
-	hCharlie   = weavetest.NewCondition().Address()
+	hAliceCond   = weavetest.NewCondition()
+	hAlice       = hAliceCond.Address()
+	hBobbyCond   = weavetest.NewCondition()
+	hBobby       = hBobbyCond.Address()
+	hCharlieCond = weavetest.NewCondition()
+	hCharlie     = hCharlieCond.Address()
 )
 
 func TestCreateTextProposal(t *testing.T) {
@@ -33,8 +34,9 @@ func TestCreateTextProposal(t *testing.T) {
 	invalidOption, garbageOption := generateInvalidOptions(t)
 
 	specs := map[string]struct {
-		Init           func(ctx weave.Context, db store.KVStore) // executed before test fixtures
+		Init           func(t *testing.T, db store.KVStore)
 		Msg            CreateProposalMsg
+		Signers        []weave.Condition
 		WantCheckErr   *errors.Error
 		WantDeliverErr *errors.Error
 		Exp            Proposal
@@ -52,6 +54,7 @@ func TestCreateTextProposal(t *testing.T) {
 				},
 				RawOption: textOption,
 			},
+			Signers: []weave.Condition{hAliceCond, hBobbyCond},
 			Exp: Proposal{
 				Metadata: &weave.Metadata{Schema: 1},
 				Common: &ProposalCommon{
@@ -86,6 +89,7 @@ func TestCreateTextProposal(t *testing.T) {
 				},
 				RawOption: electorateOption,
 			},
+			Signers: []weave.Condition{hAliceCond, hBobbyCond},
 			Exp: Proposal{
 				Metadata: &weave.Metadata{Schema: 1},
 				Common: &ProposalCommon{
@@ -120,6 +124,7 @@ func TestCreateTextProposal(t *testing.T) {
 				},
 				RawOption: ruleOption,
 			},
+			Signers: []weave.Condition{hAliceCond, hBobbyCond},
 			Exp: Proposal{
 				Metadata: &weave.Metadata{Schema: 1},
 				Common: &ProposalCommon{
@@ -153,6 +158,7 @@ func TestCreateTextProposal(t *testing.T) {
 				},
 				RawOption: textOption,
 			},
+			Signers: []weave.Condition{hAliceCond, hBobbyCond},
 			Exp: Proposal{
 				Metadata: &weave.Metadata{Schema: 1},
 				Common: &ProposalCommon{
@@ -187,6 +193,7 @@ func TestCreateTextProposal(t *testing.T) {
 				},
 				RawOption: invalidOption,
 			},
+			Signers:        []weave.Condition{hAliceCond, hBobbyCond},
 			ExpProposer:    hBobby,
 			WantCheckErr:   errors.ErrEmpty,
 			WantDeliverErr: errors.ErrEmpty,
@@ -203,6 +210,7 @@ func TestCreateTextProposal(t *testing.T) {
 				},
 				RawOption: garbageOption,
 			},
+			Signers:        []weave.Condition{hAliceCond, hBobbyCond},
 			ExpProposer:    hBobby,
 			WantCheckErr:   errors.ErrInput,
 			WantDeliverErr: errors.ErrInput,
@@ -218,6 +226,7 @@ func TestCreateTextProposal(t *testing.T) {
 				},
 				RawOption: textOption,
 			},
+			Signers:        []weave.Condition{hAliceCond, hBobbyCond},
 			ExpProposer:    hBobby,
 			WantCheckErr:   errors.ErrInput,
 			WantDeliverErr: errors.ErrInput,
@@ -234,6 +243,7 @@ func TestCreateTextProposal(t *testing.T) {
 				},
 				RawOption: textOption,
 			},
+			Signers:        []weave.Condition{hAliceCond, hBobbyCond},
 			ExpProposer:    hBobby,
 			WantCheckErr:   errors.ErrNotFound,
 			WantDeliverErr: errors.ErrNotFound,
@@ -250,6 +260,7 @@ func TestCreateTextProposal(t *testing.T) {
 				},
 				RawOption: textOption,
 			},
+			Signers:        []weave.Condition{hAliceCond, hBobbyCond},
 			ExpProposer:    hBobby,
 			WantCheckErr:   errors.ErrUnauthorized,
 			WantDeliverErr: errors.ErrUnauthorized,
@@ -266,6 +277,7 @@ func TestCreateTextProposal(t *testing.T) {
 				},
 				RawOption: textOption,
 			},
+			Signers:        []weave.Condition{hAliceCond, hBobbyCond},
 			WantCheckErr:   errors.ErrInput,
 			WantDeliverErr: errors.ErrInput,
 		},
@@ -281,26 +293,104 @@ func TestCreateTextProposal(t *testing.T) {
 				},
 				RawOption: textOption,
 			},
+			Signers:        []weave.Condition{hAliceCond, hBobbyCond},
 			WantCheckErr:   errors.ErrInput,
 			WantDeliverErr: errors.ErrInput,
 		},
+		"A proposal creation is restricted to electorate members only": {
+			Init: func(t *testing.T, db weave.KVStore) {
+				createElectorate(t, db, []weave.Address{
+					hAlice,
+				})
+				createElectorate(t, db, []weave.Address{
+					hBobby,
+					hCharlie,
+				})
+			},
+			Msg: CreateProposalMsg{
+				Metadata: &weave.Metadata{Schema: 1},
+				Base: &CreateProposalMsgBase{
+					Title:          "my proposal",
+					Description:    "my description",
+					StartTime:      now.Add(time.Hour),
+					ElectionRuleID: weavetest.SequenceID(1),
+					Author:         hBobby,
+				},
+				RawOption: textOption,
+			},
+			// Both signers are from the second electorate while
+			// the proposal is created for the first one.
+			Signers:        []weave.Condition{hBobbyCond, hCharlieCond},
+			WantCheckErr:   errors.ErrUnauthorized,
+			WantDeliverErr: errors.ErrUnauthorized,
+		},
+		"A proposal creation can be signed by any electorate member": {
+			Init: func(t *testing.T, db weave.KVStore) {
+				createElectorate(t, db, []weave.Address{
+					hAlice,
+					hCharlie,
+				})
+				createElectorate(t, db, []weave.Address{
+					hBobby,
+					hCharlie,
+				})
+			},
+			Msg: CreateProposalMsg{
+				Metadata: &weave.Metadata{Schema: 1},
+				Base: &CreateProposalMsgBase{
+					Title:          "my proposal",
+					Description:    "my description",
+					StartTime:      now.Add(time.Hour),
+					ElectionRuleID: weavetest.SequenceID(1),
+					Author:         hBobby,
+				},
+				RawOption: textOption,
+			},
+			// Both signers are from the second electorate while
+			// the proposal is created for the first one.
+			Signers:        []weave.Condition{hBobbyCond, hCharlieCond},
+			WantCheckErr:   nil,
+			WantDeliverErr: nil,
+			Exp: Proposal{
+				Metadata: &weave.Metadata{Schema: 1},
+				Common: &ProposalCommon{
+					Title:           "my proposal",
+					Description:     "my description",
+					ElectionRuleRef: orm.VersionedIDRef{ID: weavetest.SequenceID(1), Version: 1},
+					ElectorateRef:   orm.VersionedIDRef{ID: weavetest.SequenceID(1), Version: 1},
+					VotingStartTime: now.Add(time.Hour),
+					VotingEndTime:   now.Add(2 * time.Hour),
+					Status:          ProposalCommon_Submitted,
+					Result:          ProposalCommon_Undefined,
+					SubmissionTime:  now,
+					Author:          hBobby,
+					VoteState: TallyResult{
+						Threshold:             Fraction{Numerator: 1, Denominator: 2},
+						TotalElectorateWeight: 3,
+					},
+				},
+				RawOption: textOption,
+			},
+			ExpProposer: hBobby,
+		},
 	}
-	auth := &weavetest.Auth{
-		Signers: []weave.Condition{hAliceCond, hBobbyCond},
-	}
-	rt := app.NewRouter()
-	// we don't run the executor here, so we can safely pass in nil
-	RegisterRoutes(rt, auth, decodeProposalOptions, nil)
 
-	for msg, spec := range specs {
-		t.Run(msg, func(t *testing.T) {
+	for testName, spec := range specs {
+		t.Run(testName, func(t *testing.T) {
+			auth := &weavetest.Auth{
+				Signers: spec.Signers,
+			}
+			rt := app.NewRouter()
+			// We don't run the executor here, so we can safely pass in nil.
+			RegisterRoutes(rt, auth, decodeProposalOptions, nil)
+
 			db := store.MemStore()
 			migration.MustInitPkg(db, packageName)
 
 			// given
 			ctx := weave.WithBlockTime(context.Background(), now.Time())
 			if spec.Init != nil {
-				spec.Init(ctx, db)
+				spec.Init(t, db)
 			}
 			// setup election rules
 			withElectionRule(t, db)
@@ -331,7 +421,9 @@ func TestCreateTextProposal(t *testing.T) {
 				t.Fatalf("unexpected error: %s", err)
 			}
 			if exp, got := p, &spec.Exp; !reflect.DeepEqual(exp, got) {
-				t.Errorf("expected %#v but got %#v", exp, got)
+				t.Logf("exp: %+v", exp)
+				t.Logf("got: %+v", got)
+				t.Fatal("unexpected proposal state")
 			}
 			cache.Discard()
 		})

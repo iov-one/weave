@@ -62,6 +62,36 @@ func withElectorate(t *testing.T, db store.KVStore) *Electorate {
 	return electorate
 }
 
+// createElectorate persists a new Electorate in given store. Electorate is
+// build using given set of addresses. First address is used as an admin
+// account.
+func createElectorate(t testing.TB, db store.KVStore, electors []weave.Address) {
+	t.Helper()
+
+	if len(electors) == 0 {
+		t.Fatal("no electors given")
+	}
+
+	members := make([]Elector, 0)
+	var total uint64
+	for i, addr := range electors {
+		weight := uint32(i) + 1
+		members = append(members, Elector{Address: addr, Weight: weight})
+		total += uint64(weight)
+	}
+
+	e := &Electorate{
+		Metadata:              &weave.Metadata{Schema: 1},
+		Title:                 "my electorate",
+		Admin:                 electors[0],
+		Electors:              members,
+		TotalElectorateWeight: total,
+	}
+	if _, err := NewElectorateBucket().Create(db, e); err != nil {
+		t.Fatalf("cannot store electorate: %+v", err)
+	}
+}
+
 func withElectionRule(t *testing.T, db store.KVStore) *ElectionRule {
 	t.Helper()
 	rulesBucket := NewElectionRulesBucket()

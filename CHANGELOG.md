@@ -2,6 +2,8 @@
 
 ## HEAD
 
+- Creation of a new proposal in `x/gov` extension is now restricted to only
+  members of the electorate that this proposal is created for.
 - Cleanup escrow: removed the support for atomic swap
 - A new bucket implementation `orm.ModelBucket` was added that provides an
   easier to use interface when dealing with a single entity type.
