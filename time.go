@@ -50,7 +50,7 @@ func AsUnixTime(t time.Time) UnixTime {
 
 // UnmarshalJSON supports unmarshaling both as time.Time and from a number.
 // Usually a number is used as a representation of this time in JSON but it is
-// convinient to use a string format in configurations (ie genesis file).
+// convenient to use a string format in configurations (ie genesis file).
 // Any granularity smaller than a second is dropped. For example, 1900
 // milliseconds will be narrowed to 1 second.
 func (t *UnixTime) UnmarshalJSON(raw []byte) error {
@@ -158,7 +158,7 @@ func (d UnixDuration) Duration() time.Duration {
 
 // UnmarshalJSON loads JSON serialized representation into this value. JSON
 // serialized value can be represented as both number of seconds and a human
-// redable string with time unit as used by the time package.
+// readable string with time unit as used by the time package.
 func (d *UnixDuration) UnmarshalJSON(raw []byte) error {
 	var s string
 	if err := json.Unmarshal(raw, &s); err == nil {

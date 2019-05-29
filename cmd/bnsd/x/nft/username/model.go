@@ -10,7 +10,7 @@ import (
 	"github.com/iov-one/weave/x/nft"
 )
 
-// ModelName is used to recognize the model provided by this NFT impementation.
+// ModelName is used to recognize the model provided by this NFT implementation.
 // It can be used by the nft/base extension to register a handler.
 const ModelName = "username"
 

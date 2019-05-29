@@ -20,7 +20,7 @@ func TestLoadSave(t *testing.T) {
 }
 
 // configuration is a mock of a protobuf configuration object. It does not
-// marhsal/unmarshal itself properly but rather ensures that the right bytes
+// marshal/unmarshal itself properly but rather ensures that the right bytes
 // were passed around.
 type configuration struct {
 	err error

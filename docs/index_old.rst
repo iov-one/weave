@@ -100,7 +100,7 @@ and could just as easily live in an external repo that imported
 weave.
 
 In this tutorial, you will learn how to serialize and model
-you data strucutres, define messages and handlers, expose
+you data structures, define messages and handlers, expose
 queries, and read initial configuration from the genesis file.
 You will be able to build a new extension and tie it together
 with other extensions into a complete blockchain application.

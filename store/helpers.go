@@ -106,7 +106,7 @@ type Op struct {
 	value []byte // only for set
 }
 
-// Apply performs the stored operation on a writeable store
+// Apply performs the stored operation on a writable store
 func (o Op) Apply(out SetDeleter) error {
 	switch o.kind {
 	case setKind:

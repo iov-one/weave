@@ -56,7 +56,7 @@ func TestCoinNegative(t *testing.T) {
 	assert.Equal(t, a.Fractional, -n.Fractional)
 
 	if nn := a.Negative().Negative(); !a.Equals(nn) {
-		t.Fatal("double negation marform the coin")
+		t.Fatal("double negation malformed the coin")
 	}
 }
 

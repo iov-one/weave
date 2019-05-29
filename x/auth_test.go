@@ -81,7 +81,7 @@ func TestAuth(t *testing.T) {
 				t.Fatal("has all conditions check failed")
 			}
 			if HasAllConditions(tc.ctx, tc.auth, append(all, tc.wantNotInCtx)) {
-				t.Fatal("has all condition succeded after adding non existing condition")
+				t.Fatal("has all condition succeeded after adding non existing condition")
 			}
 
 			if len(all) > 0 {

@@ -8,7 +8,7 @@ import (
 	"github.com/iov-one/weave/errors"
 )
 
-// DefaultRouterSize preallocates this much space to hold routes
+// DefaultRouterSize pre-allocates this much space to hold routes
 const DefaultRouterSize = 10
 
 // isPath is the RegExp to ensure the routes make sense

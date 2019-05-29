@@ -16,7 +16,7 @@ to update the software and expand functionality. However,
 the new software must also be able to re-run all transactions
 since genesis (the birth of the chain) and produce the same
 state as the active network that keeps updating software over time.
-That means all historical blocks must be interpretted the same
+That means all historical blocks must be interpreted the same
 by new and old clients.
 
 Bitcoin classifies various approaches to upgrading as

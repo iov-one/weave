@@ -109,7 +109,7 @@ func TestDecorator(t *testing.T) {
 		},
 		"contractID3 is not activated": {
 			tx: multisigTx([]byte("foo"), contractID3),
-			// cconditions for ontractID2 are there but ontractID2 must be passed explicitly
+			// conditions for ontractID2 are there but ontractID2 must be passed explicitly
 			signers: []weave.Condition{d, e},
 			wantErr: errors.ErrUnauthorized,
 		},

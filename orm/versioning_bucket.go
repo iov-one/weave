@@ -158,7 +158,7 @@ func (b VersioningBucket) Update(db weave.KVStore, id []byte, data versionedData
 	return b.safeUpdate(db, newVersionKey, data)
 }
 
-// safeUpdate expects all validations have happend before
+// safeUpdate expects all validations have happened before
 func (b VersioningBucket) safeUpdate(db weave.KVStore, newVersionKey VersionedIDRef, data CloneableData) (*VersionedIDRef, error) {
 	key, err := newVersionKey.Marshal()
 	if err != nil {
@@ -169,7 +169,7 @@ func (b VersioningBucket) safeUpdate(db weave.KVStore, newVersionKey VersionedID
 }
 
 // Exists returns if an object is persisted for that given VersionedIDRef.
-// If it points to the tompstone as deletion marker, ErrDeleted is returned.
+// If it points to the tombstone as deletion marker, ErrDeleted is returned.
 func (b VersioningBucket) Exists(db weave.KVStore, idRef VersionedIDRef) (bool, error) {
 	_, err := b.GetVersion(db, idRef)
 	switch {

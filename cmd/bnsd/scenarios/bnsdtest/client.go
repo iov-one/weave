@@ -22,7 +22,7 @@ func throttle(c client.Client, frequency time.Duration) *ThrottledClient {
 	}
 }
 
-// ThrottleClient implemnets bnsd Client interface. All operations are
+// ThrottleClient implements bnsd Client interface. All operations are
 // throttled and executed at most with given frequency to avoid server
 // throttling. Throttling is transparent for the client as all method calls are
 // blocking.

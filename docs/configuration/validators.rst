@@ -97,7 +97,7 @@ select the validators, such as:
   their tokens to an escrow for the right to select a validator.
   Each  validator has a voting power proportional to how much is
   staked. These staked tokens also receive some share of the block
-  rewards as compensantion for the work and risk.
+  rewards as compensation for the work and risk.
 - ``DPoS`` where users can either bond tokens to their own
   validator, or "delegate" their tokens to a validator run by
   someone else. Everyone gets some share of the block rewards, but
@@ -105,10 +105,10 @@ select the validators, such as:
   commission on the delegated rewards, as they must perform real work.
 
 For each of these general approaches there is a wide range
-of tuning of incentives and punishments in order to acheive
+of tuning of incentives and punishments in order to achieve
 the desired level of usability and security.
 
-The only current implementaton shipping with weave is
+The only current implementation shipping with weave is
 a `POA implementation <https://godoc.org/github.com/iov-one/weave/x/validators#SetValidatorsMsg>`__
 allowing some master key (can be a multisig or even an election) update the validator
 set. This can support systems from testnets to those with strong on-chain governance,

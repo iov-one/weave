@@ -29,7 +29,7 @@ to `Test Your Installation <https://golang.org/doc/install#testing>`__.
 We assume a standard setup in the Makefiles, especially to
 build tendermint nicely. With ``go mod`` much of the go
 configuration is unnecessary, but make sure to have the default
-"install" diectory in your ``PATH``, so you can run the binaries
+"install" directory in your ``PATH``, so you can run the binaries
 after compilation.
 
 .. code-block:: console

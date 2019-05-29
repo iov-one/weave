@@ -59,7 +59,7 @@ func EncodePrivateKey(key *PrivateKey) (string, error) {
 }
 
 // LoadPrivateKey will load a private key from a file,
-// Which was previously writen by SavePrivateKey
+// Which was previously written by SavePrivateKey
 func LoadPrivateKey(filename string) (*PrivateKey, error) {
 	raw, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -68,7 +68,7 @@ func LoadPrivateKey(filename string) (*PrivateKey, error) {
 	return DecodePrivateKey(string(raw))
 }
 
-// SavePrivateKey will encode the privatekey in hex and write to
+// SavePrivateKey will encode the private key in hex and write to
 // the named file
 //
 // Refuses to overwrite a file unless force is true
@@ -85,7 +85,7 @@ func SavePrivateKey(key *PrivateKey, filename string, force bool) error {
 }
 
 // LoadPrivateKeys will load an array of private keys from a file,
-// Which was previously writen by SavePrivateKeys
+// Which was previously written by SavePrivateKeys
 func LoadPrivateKeys(filename string) ([]*PrivateKey, error) {
 	raw, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -109,7 +109,7 @@ func LoadPrivateKeys(filename string) ([]*PrivateKey, error) {
 	return keys, nil
 }
 
-// SavePrivateKeys will encode an array of privatekeys
+// SavePrivateKeys will encode an array of private keys
 // as a json array of hex strings and
 // write to the named file
 //

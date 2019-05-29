@@ -372,7 +372,7 @@ func (c Coin) String() string {
 	return b.String()
 }
 
-// ParseHumanFormat parse a human readable coin represenation. Accepted format
+// ParseHumanFormat parse a human readable coin representation. Accepted format
 // is a string:
 //   "<whole>[.<fractional>] <ticker>"
 func ParseHumanFormat(h string) (Coin, error) {

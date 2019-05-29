@@ -98,25 +98,25 @@ func TestABCIInfoStacktrace(t *testing.T) {
 		wantStacktrace bool
 		wantErrMsg     string
 	}{
-		"wrapped weave error in debug mode provides stracktrace": {
+		"wrapped weave error in debug mode provides stacktrace": {
 			err:            Wrap(ErrNotFound, "wrapped"),
 			debug:          true,
 			wantStacktrace: true,
 			wantErrMsg:     "wrapped: not found",
 		},
-		"wrapped weave error in non-debug mode does not have stracktrace": {
+		"wrapped weave error in non-debug mode does not have stacktrace": {
 			err:            Wrap(ErrNotFound, "wrapped"),
 			debug:          false,
 			wantStacktrace: false,
 			wantErrMsg:     "wrapped: not found",
 		},
-		"wrapped stdlib error in debug mode provides stracktrace": {
+		"wrapped stdlib error in debug mode provides stacktrace": {
 			err:            Wrap(fmt.Errorf("stdlib"), "wrapped"),
 			debug:          true,
 			wantStacktrace: true,
 			wantErrMsg:     "wrapped: stdlib",
 		},
-		"wrapped stdlib error in non-debug mode does not have stracktrace": {
+		"wrapped stdlib error in non-debug mode does not have stacktrace": {
 			err:            Wrap(fmt.Errorf("stdlib"), "wrapped"),
 			debug:          false,
 			wantStacktrace: false,
@@ -157,33 +157,33 @@ func TestABCIInfoHidesStacktrace(t *testing.T) {
 
 func TestRedact(t *testing.T) {
 	if err := Redact(ErrPanic, false); ErrPanic.Is(err) {
-		t.Error("in non-debug mode, reduct must not pass through panic error")
+		t.Error("in non-debug mode, redact must not pass through panic error")
 	}
 	if err := Redact(ErrPanic, true); !ErrPanic.Is(err) {
-		t.Error("in debug mode, reduct should pass through panic error")
+		t.Error("in debug mode, redact should pass through panic error")
 	}
 
 	if err := Redact(ErrNotFound, true); !ErrNotFound.Is(err) {
-		t.Error("in debug mode, reduct should pass through weave error")
+		t.Error("in debug mode, redact should pass through weave error")
 	}
 	if err := Redact(ErrNotFound, false); !ErrNotFound.Is(err) {
-		t.Error("in non-debug mode, reduct should pass through weave error")
+		t.Error("in non-debug mode, redact should pass through weave error")
 	}
 
 	var cerr customErr
 	if err := Redact(cerr, true); err != cerr {
-		t.Error("in debug mode, reduct should pass through ABCI code error")
+		t.Error("in debug mode, redact should pass through ABCI code error")
 	}
 	if err := Redact(cerr, false); err != cerr {
-		t.Error("in non-debug mode, reduct should pass through ABCI code error")
+		t.Error("in non-debug mode, redact should pass through ABCI code error")
 	}
 
 	serr := fmt.Errorf("stdlib error")
 	if err := Redact(serr, false); err == serr {
-		t.Error("in non-debug mode, reduct must not pass through a stdlib error")
+		t.Error("in non-debug mode, redact must not pass through a stdlib error")
 	}
 	if err := Redact(serr, true); err != serr {
-		t.Error("in debug mode, reduct should pass through a stdlib error")
+		t.Error("in debug mode, redact should pass through a stdlib error")
 	}
 }
 

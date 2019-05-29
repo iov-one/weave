@@ -15,7 +15,7 @@ type CoinMover interface {
 
 // CoinMinter is an interface to create new coins.
 type CoinMinter interface {
-	// CoinMint increase the number of funds on given accouunt by a
+	// CoinMint increase the number of funds on given account by a
 	// specified amount.
 	CoinMint(weave.KVStore, weave.Address, coin.Coin) error
 }

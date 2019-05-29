@@ -137,7 +137,7 @@ func (b bucket) Query(db weave.ReadOnlyKVStore, mod string, data []byte) ([]weav
 
 // DBKey is the full key we store in the db, including prefix
 // We copy into a new array rather than use append, as we don't
-// want consequetive calls to overwrite the same byte array.
+// want consecutive calls to overwrite the same byte array.
 func (b bucket) DBKey(key []byte) []byte {
 	// Long story: annoying bug... storing with keys "ABC" and "LED"
 	// would overwrite each other, also for queries.... huh?
@@ -280,7 +280,7 @@ func (b bucket) GetIndexed(db weave.ReadOnlyKVStore, name string, key []byte) ([
 	return b.readRefs(db, refs)
 }
 
-// GetIndexedLike querys the named index with the given pattern
+// GetIndexedLike queries the named index with the given pattern
 func (b bucket) GetIndexedLike(db weave.ReadOnlyKVStore, name string, pattern Object) ([]Object, error) {
 	idx := b.indexes.Get(name)
 	if idx == nil {

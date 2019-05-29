@@ -2,7 +2,7 @@
 Guiding Design Principles
 -------------------------
 
-Before we get into the strucutre of the application, there are
+Before we get into the structure of the application, there are
 a few design principles for weave (but also tendermint apps in general)
 that we must keep in mind. If you are coming from developing
 web servers or microservices, some of these are counter-intuitive.
@@ -128,7 +128,7 @@ Persistence
 
 All data structures that go over the wire (passed on any
 external interface, or saved to the key value store),
-must be able to be serialized and deserialized. An
+must be able to be serialized and de-serialized. An
 application may have any custom binary format it wants,
 and to support this flexibility, we provide a ``Persistent``
 interface to handle marshaling similar to the

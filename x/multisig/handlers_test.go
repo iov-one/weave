@@ -166,7 +166,7 @@ func TestUpdateContractHandler(t *testing.T) {
 				AdminThreshold:      1,
 			},
 		},
-		"cannot updat a contract without participants": {
+		"cannot update a contract without participants": {
 			Conditions: []weave.Condition{
 				cindyCond,
 			},

@@ -148,7 +148,7 @@ func TestModelBucketByIndex(t *testing.T) {
 				if !ok {
 					return nil, errors.Wrapf(errors.ErrType, "%T", obj.Value())
 				}
-				// Index by the value, ignoring anything belowe 1k.
+				// Index by the value, ignoring anything below 1k.
 				raw := strconv.FormatInt(c.Count/1000, 10)
 				return []byte(raw), nil
 			}

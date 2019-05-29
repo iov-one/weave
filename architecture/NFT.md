@@ -53,7 +53,7 @@ two-three generic ones: `issue` which is a constructor and
 actually an action on the species, not a given token.
 `transfer` which changes the owner of the token (this could
 be a two-step sequence). and possibly `revoke` to destroy
-a token, if there is some privledged judicial body.
+a token, if there is some privileged judicial body.
 
 But each species may have it's own special actions.
 A human-name token with a fixed name may have a special
@@ -107,7 +107,7 @@ There are concepts of some metadata that would also accompany it.
 
 `timeout: int` ? : The approval may automatically expire at some block height (or timestamp?). This will not trigger a cron job, but usage after the timeout will just error (and trigger a cleanup maybe?)
 
-`immutable: boolean` ? : If ownership of the NFT is transfered,
+`immutable: boolean` ? : If ownership of the NFT is transferred,
 it may be normal for all Approvals to be revoked, so the new owner
 can re-issue them as needed. If I buy your domain name, I certainly
 don't expect your sysadmins to be able to set my DNS records.

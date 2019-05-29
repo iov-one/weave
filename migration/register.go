@@ -23,7 +23,7 @@ type Migrator func(weave.ReadOnlyKVStore, Migratable) error
 
 // NoModification is a migration function that migrates data that requires no
 // change. It should be used to register migrations that do not require any
-// modyfications.
+// modifications.
 func NoModification(weave.ReadOnlyKVStore, Migratable) error {
 	return nil
 }
@@ -87,7 +87,7 @@ func (r *register) Register(migrationTo uint32, msgOrModel Migratable, fn Migrat
 }
 
 // Apply updates the object by applying all missing data migrations. Even a no
-// modyfication migration is updating the metadata to point to the latest data
+// modification migration is updating the metadata to point to the latest data
 // format version.
 //
 // Because changes are applied directly on the passed object (in place), even
@@ -136,7 +136,7 @@ var reg *register = newRegister()
 // Migration function will be called when migrating data from a version one
 // less than migrationTo value.
 // Minimal allowed migrationTo version is 1. Version upgrades for each type
-// must be registered in sequentional order.
+// must be registered in sequential order.
 func MustRegister(migrationTo uint32, msgOrModel Migratable, fn Migrator) {
 	reg.MustRegister(migrationTo, msgOrModel, fn)
 }

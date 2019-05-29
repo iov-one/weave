@@ -6,7 +6,7 @@ import (
 )
 
 func (c *Configuration) Validate() error {
-	// owner field is optional... possible to make it immutible
+	// owner field is optional... possible to make it immutable
 	if len(c.Owner) != 0 {
 		if err := c.Owner.Validate(); err != nil {
 			return errors.Wrap(err, "owner address")

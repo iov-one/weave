@@ -164,7 +164,7 @@ func TestCounterMultiKeyIndex(t *testing.T) {
 			expKeys:  [][]byte{encodeSequence(6), []byte("even")},
 			expError: false,
 		},
-		{ // id missmatch
+		{ // id miss-match
 			index:    uniq,
 			prev:     NewSimpleObj([]byte("my"), NewCounter(5)),
 			next:     NewSimpleObj([]byte("bar"), NewCounter(7)),
@@ -348,7 +348,7 @@ func TestNullableIndex(t *testing.T) {
 		0: {[]Object{o1}, nil, o2, false},
 		1: {[]Object{o1, o2}, nil, o3, true},
 		2: {[]Object{o1, o2}, o1, o1a, false},
-		// make sure nil doens't cause conflicts
+		// make sure nil doesn't cause conflicts
 		3: {[]Object{}, nil, n1, false},
 		4: {[]Object{n1}, nil, n2, false},
 		5: {[]Object{n1}, nil, n3, false},

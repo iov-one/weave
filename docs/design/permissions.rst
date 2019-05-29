@@ -200,7 +200,7 @@ Here are some rough guidelines:
 1. If we really need to save 20 bytes, use an *Address*. (But few places need that micro-optimization)
 2. If we need visibility of control, use *Condition* (multi-sig solutions, arbiters, etc)
 3. If you want to obscure control (until first use), use *Address*
-4. Everything else, at your discression, but prefer *Address* when possible for consistency.
+4. Everything else, at your discretion, but prefer *Address* when possible for consistency.
 
 I guess it is up to the extension developer, but I would generally
 use Conditions for anything stored in the value and Address for

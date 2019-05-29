@@ -114,8 +114,8 @@ func TestRevenueDistribution(t *testing.T) {
 	}
 
 	// Revenue stream received funds from alice and its distribution was
-	// requested. Funds should be split proportianally to their weights
-	// between the recepients and moved to their accounts.
+	// requested. Funds should be split proportionally to their weights
+	// between the recipients and moved to their accounts.
 	// 7 IOV cents should be split between parties.
 	assertWalletCoins(t, env, revenueAddress, 1)
 	assertWalletCoins(t, env, recipients[0], 2)

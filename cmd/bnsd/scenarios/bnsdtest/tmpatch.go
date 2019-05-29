@@ -7,7 +7,7 @@ package bnsdtest
 // helpers.
 //
 // This file contains mostly copy/paste code with small adjustments to not rely
-// on the gloal configuration.
+// on the global configuration.
 
 import (
 	"context"
@@ -69,7 +69,7 @@ func waitForGRPC(t testing.TB, c *cfg.Config) {
 	}
 }
 
-// Do not use rpctest.StartTenderming or NewTentermint as they rely on a global
+// Do not use rpctest.StartTendermint or NewTendermint as they rely on a global
 // state and cannot be used more than once.
 func newTendermint(t testing.TB, config *cfg.Config, app abci.Application) *nm.Node {
 	logger := log.NewTMLogger(log.NewSyncWriter(os.Stdout))

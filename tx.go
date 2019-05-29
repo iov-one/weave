@@ -113,7 +113,7 @@ func ExtractMsgFromSum(sum interface{}) (Msg, error) {
 }
 
 // LoadMsg extracts the message represented by given transaction into given
-// destination. Before retutning message validation method is called.
+// destination. Before returning message validation method is called.
 func LoadMsg(tx Tx, destination interface{}) error {
 	msg, err := tx.GetMsg()
 	if err != nil {

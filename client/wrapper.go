@@ -58,7 +58,7 @@ func (c *Client) WatchTx(ctx context.Context, id TransactionID) (*CommitResult, 
 
 // CommitTx will block on both Check and Deliver, returning when it is in a block
 func (c *Client) CommitTx(ctx context.Context, tx weave.Tx) (*CommitResult, error) {
-	// This can be combined from other primatives
+	// This can be combined from other primitives
 	check, err := c.SubmitTx(ctx, tx)
 	if err != nil {
 		return nil, err

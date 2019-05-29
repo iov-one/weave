@@ -58,7 +58,7 @@ func TestEd25519Address(t *testing.T) {
 	assert.Nil(t, pub.Condition().Validate())
 	assert.Nil(t, pub2.Condition().Validate())
 	if bytes.Equal(pub.Condition(), pub2.Condition()) {
-		t.Fatal("dirrefent public keys produce the same condition")
+		t.Fatal("different public keys produce the same condition")
 	}
 	assert.Nil(t, empty.Condition())
 	assert.Nil(t, empty.Address())
