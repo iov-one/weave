@@ -22,7 +22,7 @@ all requests. Each extension is responsible for registering it's
 *Bucket* (or *Buckets*) under appropriate paths. Here we see how
 the escrow extension
 `registers its bucket <https://github.com/iov-one/bcp-demo/blob/master/x/escrow/handler.go#L31-L35>`_
-to handle all querys for the ``/escrows`` path:
+to handle all queries for the ``/escrows`` path:
 
 .. code:: go
 

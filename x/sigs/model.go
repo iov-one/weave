@@ -48,7 +48,7 @@ func (u *UserData) Copy() orm.CloneableData {
 // CheckAndIncrementSequence implements check and increment operation.
 // If current sequence value is the same as given expected value then it is
 // incremented. Otherwise an error is returned.
-// Before incremening the sequence, this function is testing for a value
+// Before incrementing the sequence, this function is testing for a value
 // overflow.
 func (u *UserData) CheckAndIncrementSequence(expected int64) error {
 	if u.Sequence != expected {

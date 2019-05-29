@@ -116,7 +116,7 @@ var usedCodes = map[uint32]*Error{}
 
 // ABCIError will resolve an error code/log from an abci result into
 // an error message. If the code is registered, it will map it back to
-// the cannonical error, so we can do eg. ErrNotFound.Is(err) on something
+// the canonical error, so we can do eg. ErrNotFound.Is(err) on something
 // we get back from an external API.
 //
 // This should *only* be used in clients, not in the server side.
@@ -204,7 +204,7 @@ func Wrap(err error, description string) error {
 
 // Wrapf extends given error with an additional information.
 //
-// This function works like Wrap function with additional funtionality of
+// This function works like Wrap function with additional functionality of
 // formatting the input as specified.
 func Wrapf(err error, format string, args ...interface{}) error {
 	desc := fmt.Sprintf(format, args...)

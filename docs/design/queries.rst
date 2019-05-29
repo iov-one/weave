@@ -70,7 +70,7 @@ Weave Request Types
 As we see above, the request format doesn't actually define what
 possible types are for either ``Path`` or ``Data`` and leaves it up to
 the application. This is good for a generic query interface,
-but to allow better code reuse between weave extenstions, as
+but to allow better code reuse between weave extensions, as
 well as ease of development of weave clients, we define a
 standard here for all weave modules.
 
@@ -131,7 +131,7 @@ to iterate over the pairs joined into Models.
 Usage In Extensions
 ===================
 
-A given app can hardcode the handler for ``/``, and ``?prefix``,
+A given app can hard-code the handler for ``/``, and ``?prefix``,
 but we need a way to register these with the root handler.
 The ``app.StoreApp.Query`` method can use a lookup from ``Path``
 to handler. It will strip of the modifier (if any first), and

@@ -26,7 +26,7 @@ var DefaultActions = []Action{
 // RegisterAction introduce an Action to the extension.
 //
 // Every action must be registered before being used. This is a mandatory step
-// so that the validation process can regcognise known actions. Registration is
+// so that the validation process can recognise known actions. Registration is
 // global.
 // Registration should be done during the program initialization phase. Failed
 // registration result in panic.

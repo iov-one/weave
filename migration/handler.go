@@ -11,7 +11,7 @@ import (
 // Decorating a registry with this function is equivalent to using a raw
 // registry and wrapping each handler with SchemaMigratingHandler before
 // registering.
-// This function force all registration to use schema migraration and must not
+// This function force all registration to use schema migration and must not
 // be used together with SchemaRoutingHandler functionality.
 func SchemaMigratingRegistry(packageName string, r weave.Registry) weave.Registry {
 	return &schemaMigratingRegistry{
@@ -29,12 +29,12 @@ func (r *schemaMigratingRegistry) Handle(path string, h weave.Handler) {
 	r.reg.Handle(path, SchemaMigratingHandler(r.packageName, h))
 }
 
-// SchemaMigratingHandler returns a weave handler that will ensure incomming
-// messages are in the curren schema version format. If a message in older
+// SchemaMigratingHandler returns a weave handler that will ensure incoming
+// messages are in the current schema version format. If a message in older
 // schema is handled then it is first being migrated. Messages that cannot be
 // migrated to current schema version are returning migration error. This
 // functionality is executed before the decorated handler and it is completely
-// transpared to the wrapped handler.
+// transparent to the wrapped handler.
 func SchemaMigratingHandler(packageName string, h weave.Handler) weave.Handler {
 	return &schemaMigratingHandler{
 		handler:     h,
@@ -80,7 +80,7 @@ func (h *schemaMigratingHandler) migrate(db weave.ReadOnlyKVStore, tx weave.Tx) 
 		return errors.Wrap(err, "current message schema")
 	}
 
-	// Migration is applied in place, directly modyfying the instance.
+	// Migration is applied in place, directly modifying the instance.
 	if err := h.migrations.Apply(db, m, currSchemaVer); err != nil {
 		return errors.Wrap(err, "schema migration")
 	}
@@ -146,7 +146,7 @@ func (h *upgradeSchemaHandler) validate(ctx weave.Context, db weave.KVStore, tx 
 	return &msg, nil
 }
 
-// SchemaRoutingHandler clubs toghether message handlers for a single type
+// SchemaRoutingHandler clubs together message handlers for a single type
 // message but different schema formats. Each handler is registered together
 // with the lowest schema version that it supports. For example
 //

@@ -69,7 +69,7 @@ func asMultiKeyIndexer(indexer Indexer) MultiKeyIndexer {
 
 // IndexKey is the full key we store in the db, including prefix
 // We copy into a new array rather than use append, as we don't
-// want consequetive calls to overwrite the same byte array.
+// want consecutive calls to overwrite the same byte array.
 func (i Index) IndexKey(key []byte) []byte {
 	l := len(i.id)
 	out := make([]byte, l+len(key))

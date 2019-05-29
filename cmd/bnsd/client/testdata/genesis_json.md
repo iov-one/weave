@@ -94,7 +94,7 @@ For example Alice and Bert get 1/4 each, Charlie 1/2
 ### Creating the block reward contract
 An escrow account can be setup in the genesis with an initial total amount of tokens that could be distributed.
 In combination with a distribution account this can be used to release tokens to a group of people. With a timeout
-set that "never" expires the arbiter is in the only entity in control of this process. They can be released in chuncks
+set that "never" expires the arbiter is in the only entity in control of this process. They can be released in chunks
 for example either to the recipient to distribute them or the sender to burn them.
 The role of the arbiter requires therefore a lot of trust which can be modeled well with a multisig contract.     
 
@@ -113,7 +113,7 @@ The role of the arbiter requires therefore a lot of trust which can be modeled w
 ```
 
 * `"whole": 99999999` = total amount to distribute
-* `"arbiter": "multisig/usage/0000000000000001",` = multisig contract to relase or burn tokens
+* `"arbiter": "multisig/usage/0000000000000001",` = multisig contract to release or burn tokens
 * `"recipient": "cond:distribution/revenue/0000000000000001",` = a distribution contract
 * `"sender": "0000000000000000000000000000000000000000",` = non existing burn address
 * `"timeout": 9223372036854775807` = very very high block height to never expire

@@ -44,7 +44,7 @@ func (t *TokenInfo) Copy() orm.CloneableData {
 	}
 }
 
-// TockenInfoBucket stores TokenInfo instances, using ticker name (currency
+// TokenInfoBucket stores TokenInfo instances, using ticker name (currency
 // symbol) as the key.
 type TokenInfoBucket struct {
 	orm.Bucket

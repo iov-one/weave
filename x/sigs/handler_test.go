@@ -101,7 +101,7 @@ func TestBumpSequence(t *testing.T) {
 				{Metadata: &weave.Metadata{Schema: 1}, Pubkey: key1, Sequence: 1003},
 			},
 		},
-		"successfull sequence increment before counter overflow": {
+		"successful sequence increment before counter overflow": {
 			InitData: []*UserData{
 				{Metadata: &weave.Metadata{Schema: 1}, Pubkey: key1, Sequence: math.MaxInt64 - 20},
 			},

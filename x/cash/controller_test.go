@@ -269,15 +269,15 @@ func TestBalance(t *testing.T) {
 		wantCoins coin.Coins
 		wantErr   *errors.Error
 	}{
-		"non exising account": {
+		"non existing account": {
 			addr:    weavetest.NewCondition().Address(),
 			wantErr: errors.ErrNotFound,
 		},
-		"exising account with one coin": {
+		"existing account with one coin": {
 			addr:      addr1,
 			wantCoins: coin.Coins{&coin1},
 		},
-		"exising account with two coins": {
+		"existing account with two coins": {
 			addr: addr2,
 			// Coins are stored in normalized form
 			// https://github.com/iov-one/weave/pull/316#discussion_r256763396

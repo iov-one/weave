@@ -78,7 +78,7 @@ func TestDynamicFeeDecorator(t *testing.T) {
 			wantCheckErr:   errors.ErrAmount,
 			wantCheckTxFee: coin.NewCoin(0, 23, "BTC"),
 		},
-		"on inssuficient funds minimum fee withdraw fails": {
+		"on insufficient funds minimum fee withdraw fails": {
 			signers: []weave.Condition{perm1},
 			initWallets: []orm.Object{
 				walletObj(perm1.Address(), 0, 1, "BTC"),
@@ -108,7 +108,7 @@ func TestDynamicFeeDecorator(t *testing.T) {
 			},
 			minimumFee:       coin.NewCoin(0, 11, "BTC"),
 			txFee:            coin.NewCoin(0, 44, "BTC"),
-			wantGasPayment:   44, // This assimes that transaction fee was charged.
+			wantGasPayment:   44, // This assumes that transaction fee was charged.
 			wantCheckTxFee:   coin.NewCoin(0, 44, "BTC"),
 			wantDeliverErr:   ErrTestingError,
 			wantDeliverTxFee: coin.NewCoin(0, 11, "BTC"),
@@ -271,7 +271,7 @@ func assertCharged(t *testing.T, db weave.KVStore, ctrl Controller, want coin.Co
 			if want.IsZero() {
 				// This is a weird case when a transaction was
 				// submitted but the signer does not have
-				// enough funds to pay the minimum (anty spam)
+				// enough funds to pay the minimum (anti spam)
 				// fee.
 			} else {
 				t.Error("no fee charged")

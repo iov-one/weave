@@ -3,7 +3,7 @@ Using IOV-Core Client
 ---------------------
 
 While the blockchain code is in the Go language, we have developed a TypeScript (javascript-compatible) client side sdk
-in order to access the funcitonality of the blockchain. Iov-Core works for many blockchains, not just weave
+in order to access the functionality of the blockchain. Iov-Core works for many blockchains, not just weave
 (mycoind and bnsd), so take a look, it is useful for more than this demo
 
 Installing Tooling

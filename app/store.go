@@ -203,7 +203,7 @@ func (s *StoreApp) SetOption(res abci.RequestSetOption) abci.ResponseSetOption {
 Query gets data from the app store.
 A query request has the following elements:
 * Path - the type of query
-* Data - what to query, interpretted based on Path
+* Data - what to query, interpreted based on Path
 * Height - the block height to query (if 0 most recent)
 * Prove - if true, also return a proof
 

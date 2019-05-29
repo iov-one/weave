@@ -3,10 +3,10 @@ Authentication
 --------------
 
 One interesting attribute of blockchains is that there are no
-trusted nodes, and all transactions are publically visible
+trusted nodes, and all transactions are publicly visible
 and can be copied. This naturally provides problem for
 traditional means of authentication like passwords and cookies.
-If you use your password to authorize one transation, someone
+If you use your password to authorize one transaction, someone
 can copy it to run any other. Or a node in the middle can even
 change your transaction before writing to a block.
 

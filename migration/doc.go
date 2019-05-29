@@ -10,7 +10,7 @@ Global preparation.
 1. update application genesis to provide "migration" configuration. You can
 find documented configuration declaration in the protobuf declaration file,
 
-2. register migration messge handlers using `RegisterRouters` function
+2. register migration message handlers using `RegisterRouters` function
 
 3. register migration bucket query using `RegisterQuery` function
 

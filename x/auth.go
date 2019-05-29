@@ -7,7 +7,7 @@ import (
 // Authenticator is an interface we can use to extract authentication info
 // from the context. This should be passed into the constructor of
 // handlers, so we can plug in another authentication system,
-// rather than hardcoding x/auth for all extensions.
+// rather than hard-coding x/auth for all extensions.
 type Authenticator interface {
 	// GetConditions reveals all Conditions fulfilled,
 	// you may want GetAddresses helper
@@ -28,7 +28,7 @@ func ChainAuth(impls ...Authenticator) MultiAuth {
 	return MultiAuth{impls}
 }
 
-// GetConditions combines all Conditions from all Authenenticators
+// GetConditions combines all Conditions from all Authenticators
 func (m MultiAuth) GetConditions(ctx weave.Context) []weave.Condition {
 	var res []weave.Condition
 	for _, impl := range m.impls {
@@ -116,7 +116,7 @@ func HasNConditions(ctx weave.Context, auth Authenticator, requested []weave.Con
 	}
 	perms := auth.GetConditions(ctx)
 	// NOTE: optimize this with sort from N^2 to N*log N (?)
-	// low-prio, as N is always small, better that it works
+	// low-priority, as N is always small, better that it works
 	for _, perm := range requested {
 		if hasPerm(perms, perm) {
 			n--

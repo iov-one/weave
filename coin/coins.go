@@ -153,7 +153,7 @@ func (cs Coins) IsNonNegative() bool {
 	return true
 }
 
-// Equals returns true if both Coinss contain same coins
+// Equals returns true if both Coins contain same coins
 func (cs Coins) Equals(o Coins) bool {
 	if len(cs) != len(o) {
 		return false

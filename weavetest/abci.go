@@ -15,7 +15,7 @@ import (
 // Strategy defines which functions we call in ProcessAllTxs.
 type Strategy uint8
 
-// Has return true if this strategy contains given one - given strategry is a
+// Has return true if this strategy contains given one - given strategy is a
 // subset of this one.
 func (s Strategy) Has(other Strategy) bool {
 	return s&other != 0
@@ -117,7 +117,7 @@ func (w *WeaveRunner) DeliverTx(tx weave.Tx) error {
 
 // InBlock begins a block and runs given function. All transactions executed
 // withing given function are part of newly created block. Upon success the
-// block is finished and changes commited.
+// block is finished and changes committed.
 // InBlock returns true if the application state was modified. It returns false
 // if creating new block did not modify the state.
 //
@@ -197,7 +197,7 @@ func (w *WeaveRunner) ProcessAllTxs(blocks [][]weave.Tx, st Strategy) {
 }
 
 // SplitTxs will break one slice of transactions into many slices,
-// one per block. It will fill up to txPerBlockx txs in each block
+// one per block. It will fill up to txPerBlock txs in each block
 // The last block may have less, if there is not enough for a full block
 func SplitTxs(txs []weave.Tx, txPerBlock int) [][]weave.Tx {
 	numBlocks := numBlocks(len(txs), txPerBlock)

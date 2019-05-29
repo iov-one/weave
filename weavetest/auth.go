@@ -11,11 +11,11 @@ import (
 //
 // This structure authenticates any of referenced conditions.
 // You can use either Signer or Signers (or both) attributes to reference
-// conditions. This is for the convinience and each time all signers
+// conditions. This is for the convenience and each time all signers
 // (regardless which attribute) are considered.
 type Auth struct {
 	// Signer represents an authentication of a single signer. This is a
-	// convinience attribute when creating an authentication method for a
+	// convenience attribute when creating an authentication method for a
 	// single signer.
 	// When authenticating all signers declared on this structure are
 	// considered.
@@ -49,7 +49,7 @@ func (a *Auth) HasAddress(ctx weave.Context, addr weave.Address) bool {
 // This implementation is using context to store and retrieve permissions.
 type CtxAuth struct {
 	// Key used to set and retrieve conditions from the context. For
-	// convinience only string type keys are allowed.
+	// convenience only string type keys are allowed.
 	Key string
 }
 

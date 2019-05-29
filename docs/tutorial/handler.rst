@@ -11,17 +11,17 @@ which we have registered for this application.
 Check vs Deliver
 ----------------
 
-If you look at the definiton of a *Handler*, you will see it is
+If you look at the definition of a *Handler*, you will see it is
 responsible for *Check* and *Deliver*. These are similar logic, but
 there is an important distinction. *Check* is performed when
 a client proposes the transaction to the mempool, before it is
 added to a block. It is meant as a quick filter to weed out garbage
 transactions before writing them to the blockchain. The state it
 provides is a scratch buffer around the last committed state and
-will be discarded next block, so any writes here are never writen
+will be discarded next block, so any writes here are never written
 to disk.
 
-*Deliver* is performed after the transaction was writen to
+*Deliver* is performed after the transaction was written to
 the block. Upon consensus, every node will process the block
 by calling *BeginBlock*, *Deliver* for every transaction in the block,
 and finally *EndBlock* and *Commit*. *Deliver* will be called in
@@ -34,8 +34,8 @@ and thus kick the deviating nodes out of consensus.
 consensus rules, although we generally keep this deterministic as well).
 
 **This is a very powerful concept and means that when modifying a given state,
-users must not worry about any concurrential access or writing collision
-since by definition, any write access is garanteed to occur sequentially and
+users must not worry about any concurrent access or writing collision
+since by definition, any write access is guaranteed to occur sequentially and
 in the same order on each node**.
 
 Writing a Handler
@@ -66,7 +66,7 @@ preconditions are fulfilled by the transaction, and possibly
 check the current state of the blockchain to see if the action
 is allowed. If the *validate* method doesn't return an error,
 then *Check* will return the expected cost of the transaction,
-while *Deliver* will actually peform the action and update
+while *Deliver* will actually perform the action and update
 the blockchain state accordingly.
 
 Blog
@@ -182,7 +182,7 @@ header, which contains a timestamp,
     :lines: 141-171
 
 Let us recall that when incrementing the article count on the parent blog, we don't
-have to worry about concurrential access, nor use any synchronisation mechanism : We are garanteed
+have to worry about concurrential access, nor use any synchronisation mechanism : We are guaranteed
 that each ``Check`` and ``Deliver`` method will be executed sequentially and in the same order on each node.
 
 Finally, note how we generate the composite key for the post by concatenating the blog slug and
@@ -229,7 +229,7 @@ In order to test a handler, we need four things :
  - A storage
  - A weave context
  - An Authenticator associated with our context
- - A Tx object to processs (eg. to check or to deliver)
+ - A Tx object to process (eg. to check or to deliver)
 
 There is a ready to use in memory storage available in
 the `store package <https://github.com/iov-one/weave/blob/master/store/btree.go#L31-L36>`_.
@@ -342,5 +342,5 @@ of the ``CreateBlogMsgHandler`` struct :
 
 It is very similar to what we saw before. One thing to notice here is that we specify
 the dependencies required, in this case, a Blog object.
-We also specify the objects we expect this test to deliver so we can assert wether
+We also specify the objects we expect this test to deliver so we can assert whether
 or not they have been delivered correctly.

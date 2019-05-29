@@ -141,7 +141,7 @@ func TestVerifyTxSignatures(t *testing.T) {
 	tbz2, err := tx2.GetSignBytes()
 	assert.Nil(t, err)
 	if bytes.Equal(tbz, tbz2) {
-		t.Fatal("signaure repeated")
+		t.Fatal("signature repeated")
 	}
 
 	// two sigs from the first key

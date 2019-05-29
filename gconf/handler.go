@@ -92,7 +92,7 @@ func patch(config OwnedConfig, payload OwnedConfig) error {
 	for i := 0; i < cval.NumField(); i++ {
 		got := pval.Field(i)
 
-		// Zero values do not update the original configurtion.
+		// Zero values do not update the original configuration.
 		if isZero(got) {
 			continue
 		}

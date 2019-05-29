@@ -115,8 +115,8 @@ func TestCacheConflicts(t *testing.T) {
 	cases := map[string]struct {
 		parentOps     []Op
 		childOps      []Op
-		parentQueries []Model // Key is what we query, Value is what we espect
-		childQueries  []Model // Key is what we query, Value is what we espect
+		parentQueries []Model // Key is what we query, Value is what we expect
+		childQueries  []Model // Key is what we query, Value is what we expect
 	}{
 		"overwrite one, delete another, add a third": {
 			[]Op{store.SetOp(ks[1], vs[1]), store.SetOp(ks[2], vs[2])},
@@ -169,8 +169,8 @@ func TestCommitOverwrite(t *testing.T) {
 	cases := map[string]struct {
 		parentOps     []Op
 		childOps      []Op
-		parentQueries []Model // Key is what we query, Value is what we espect
-		childQueries  []Model // Key is what we query, Value is what we espect
+		parentQueries []Model // Key is what we query, Value is what we expect
+		childQueries  []Model // Key is what we query, Value is what we expect
 	}{
 		"overwrite one, delete another, add a third": {
 			[]Op{store.SetOp(ks[1], vs[1]), store.SetOp(ks[2], vs[2])},

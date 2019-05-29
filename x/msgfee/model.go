@@ -42,7 +42,7 @@ type MsgFeeBucket struct {
 	orm.Bucket
 }
 
-// NewMsgFeeBucket returns a bucket for keeping track of fees for eeach message
+// NewMsgFeeBucket returns a bucket for keeping track of fees for each message
 // type. Message fees are indexed by the corresponding message path.
 func NewMsgFeeBucket() *MsgFeeBucket {
 	b := migration.NewBucket("msgfee", "msgfee", orm.NewSimpleObj(nil, &MsgFee{}))

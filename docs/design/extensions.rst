@@ -15,7 +15,7 @@ mycoind and just use the building blocks to build an
 entirely different system (like utxo chain).
 
 Note that even pieces as fundamental as
-`signature valdation <https://github.com/iov-one/weave/tree/master/x/sigs>`_
+`signature validation <https://github.com/iov-one/weave/tree/master/x/sigs>`_
 or `isolating failed transactions <https://github.com/iov-one/weave/blob/master/x/utils/savepoint.go>`_ are implemented as importable modules and wired up
 together when you `construct the application <https://github.com/iov-one/weave/blob/master/examples/mycoind/app/app.go#L41-L56>`_.
 

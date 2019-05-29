@@ -7,7 +7,7 @@ import (
 )
 
 // FeeDecorator implements a decorator that for each processed transaction
-// attach an additional fee to the result. Each fee is declarated per
+// attach an additional fee to the result. Each fee is declared per
 // transaction type. If fee is not set (zero value) then this decorator does
 // not increase the required fee value.
 // Additional fee is attached to only those transaction results that represent

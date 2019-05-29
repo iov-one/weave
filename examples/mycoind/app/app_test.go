@@ -215,7 +215,7 @@ func TestApp(t *testing.T) {
 	if bytes.Compare(addr2, addr) < 0 {
 		keys[0], keys[1] = keys[1], keys[0]
 	}
-	// make sure the DeliverResult matches expections
+	// make sure the DeliverResult matches expectations
 	assert.Equal(t, keys[0], dres.Tags[0].Key)
 	assert.Equal(t, keys[1], dres.Tags[1].Key)
 	assert.Equal(t, keys[2], dres.Tags[2].Key)

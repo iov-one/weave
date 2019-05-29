@@ -27,7 +27,7 @@ func TestSavepoint(t *testing.T) {
 		written [][]byte // keys to find
 		missing [][]byte // keys not to find
 	}{
-		// savepoint disactivated, returns error, both written
+		// savepoint dis-activated, returns error, both written
 		0: {
 			NewSavepoint(),
 			&writeHandler{key: nk, value: nv, err: derr},

@@ -50,7 +50,7 @@ to blocks at the same height (a fork) if less than one third of the
 nodes are actively collaborating to break the system. This is possibly the
 strongest guarantee of any production blockchain consensus algorithm.
 
-The benefit of this approach is that any block that has over two thrids
+The benefit of this approach is that any block that has over two thirds
 of the signature is `provably correct by light clients <https://blog.cosmos.network/light-clients-in-tendermint-consensus-1237cfbda104>`__
 The state is never rolled back and clients can take actions based on that
 state. This opens the possibility of blockchain payments to be settled

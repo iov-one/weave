@@ -180,7 +180,7 @@ func BenchmarkBNSDSendToken(b *testing.B) {
 
 				if !tc.strategy.Has(weavetest.ExecDeliver) && (k+1)%tc.txPerBlock == 0 {
 					// When the transaction is split into blocks and the previous block
-					// is not commited then the nonce value is reset. All previous
+					// is not committed then the nonce value is reset. All previous
 					// changes were discarded so the nonce counting starts from zero again.
 					aliceNonce = 0
 				} else {

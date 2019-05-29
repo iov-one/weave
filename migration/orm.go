@@ -78,7 +78,7 @@ func (svb Bucket) WithMultiKeyIndex(name string, indexer orm.MultiKeyIndexer, un
 	return svb
 }
 
-// ModelBucket implementes the orm.ModelBucket interface and provides the same
+// ModelBucket implements the orm.ModelBucket interface and provides the same
 // functionality with additional model schema migration.
 type ModelBucket struct {
 	b           orm.ModelBucket
@@ -200,7 +200,7 @@ func migrate(
 		return errors.Wrapf(errors.ErrSchema, "model schema higher than %d", currSchemaVer)
 	}
 
-	// Migration is applied in place, directly modyfying the instance.
+	// Migration is applied in place, directly modifying the instance.
 	if err := migrations.Apply(db, m, currSchemaVer); err != nil {
 		return errors.Wrap(err, "schema migration")
 	}

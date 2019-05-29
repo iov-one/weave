@@ -172,7 +172,7 @@ func TestCombine(t *testing.T) {
 			bc := tc.b.Count()
 
 			res, err := tc.a.Combine(tc.b)
-			// don't modify original Coinss
+			// don't modify original Coins
 			assert.Equal(t, ac, tc.a.Count())
 			assert.Equal(t, bc, tc.b.Count())
 			if tc.isErr {

@@ -9,7 +9,7 @@
   transparent schema version migrations
 - `x/gov` package was added, which maintains multiple versioned Electorates
   and ElectionRules that define voting rules (quorum, threshold, voting period)
-  for a given Electorate. Votes can be talliesd at the end and execute an
+  for a given Electorate. Votes can be tallied at the end and execute an
   application-defined action which is passed in to the constructor. This
   is compatible with standard handler interfaces and sample application-level
   setup is demonstrated in the test code (and all `sample*_test.go` code).

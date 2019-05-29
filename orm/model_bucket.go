@@ -12,7 +12,7 @@ import (
 // - do not use Bucket but directly access KVStore
 // - register for queries
 
-// Model is impelemented by any entity that can be stored using ModelBucket.
+// Model is implemented by any entity that can be stored using ModelBucket.
 //
 // This is the same interface as CloneableData. Using the right type names
 // provides an easier to read API.
@@ -44,7 +44,7 @@ type ModelBucket interface {
 	// given key. Main index is always unique but secondary indexes can
 	// return more than one value for the same key.
 	// All matching entities are appended to given destination slice. If no
-	// result was found, no error is retured and destination slice is not
+	// result was found, no error is returned and destination slice is not
 	// modified.
 	ByIndex(db weave.ReadOnlyKVStore, indexName string, key []byte, dest ModelSlicePtr) (keys [][]byte, err error)
 
@@ -52,7 +52,7 @@ type ModelBucket interface {
 	// database, model is validated using its Validate method.
 	// If the key is nil or zero length then a sequence generator is used
 	// to create a unique key value.
-	// Using a key that alreayd exists in the database cause the value to
+	// Using a key that already exists in the database cause the value to
 	// be overwritten.
 	Put(db weave.KVStore, key []byte, m Model) ([]byte, error)
 
@@ -66,7 +66,7 @@ type ModelBucket interface {
 	// checks the existence of it.
 	Has(db weave.KVStore, key []byte) error
 
-	// Register registers this buckets content to be accessable via query
+	// Register registers this buckets content to be accessible via query
 	// requests under the given name.
 	Register(name string, r weave.QueryRouter)
 }

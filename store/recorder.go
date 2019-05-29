@@ -79,7 +79,7 @@ var _ CacheableKVStore = (*cacheableRecordingStore)(nil)
 
 // KVPairs returns the content of changes as KVPairs
 // Key is the merkle store key that changes.
-// Value is the value writen (for set), or nil (for delete)
+// Value is the value written (for set), or nil (for delete)
 // TODO: don't use map as return value!!
 func (r *cacheableRecordingStore) KVPairs() map[string][]byte {
 	return r.changes

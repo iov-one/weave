@@ -181,12 +181,12 @@ What is with these ``ErrXYZ()`` calls you may think? Well, we
 could return a "normal" error like ``errors.New("fail")``,
 but we wanted two more features. First of all, it helps
 debugging enormously to have a stack trace of where the error
-originally occured. For this we use
+originally occurred. For this we use
 `pkg/errors <https://github.com/pkg/errors>`_
 that attaches a stacktrace to the error that can optionally
 be printed later with a ``Printf("%+v", err)``.
 We also want to return a unique abci error code, which may be
-interpretted by client applications, either programmatically
+interpreted by client applications, either programmatically
 or to provide translations of the error message client side.
 
 For these reasons, weave provides some utility methods
@@ -238,7 +238,7 @@ We want to enforce the data consistency on the buckets. All
 data is validated before saving, but we also need to make sure
 that all data is the proper type of object before saving.
 Unfortunately, this is quite difficult to do compile-time
-without generic, so a typical apporach is to embed the
+without generic, so a typical approach is to embed the
 `orm.Bucket <https://godoc.org/github.com/iov-one/weave/orm#Bucket>`_
 in another struct and just force validation of the object type
 runtime before save.

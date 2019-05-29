@@ -27,7 +27,7 @@ var (
 // TestHandler runs a number of scenario of tx to make
 // sure they work as expected.
 //
-// I really should get quickcheck working....
+// I really should get quick-check working....
 func TestHandler(t *testing.T) {
 
 	a := weavetest.NewCondition()

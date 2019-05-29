@@ -81,7 +81,7 @@ Testnet:
 - ``--consensus.create_empty_blocks_interval=300`` to create a block
   every 300s even if no tx
 - ``--consensus.timeout_commit=5000`` to set block interval to 5s (5000ms)
-  + time it takes to acheive consensus (which is generally quite small
+  + time it takes to achieve consensus (which is generally quite small
   with < 20 or so well-connected validators)
 
 Production:

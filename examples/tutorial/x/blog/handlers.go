@@ -113,7 +113,7 @@ func (h CreateBlogMsgHandler) validate(ctx weave.Context, db weave.KVStore, tx w
 }
 
 type CreatePostMsgHandler struct {
-	// error occurs during parsing the object found so thats also a ErrBlogExistError
+	// error occurs during parsing the object found so that's also a ErrBlogExistError
 	auth  x.Authenticator
 	posts PostBucket
 	blogs BlogBucket
@@ -261,7 +261,7 @@ func (h RenameBlogMsgHandler) validate(ctx weave.Context, db weave.KVStore, tx w
 	}
 
 	// Check the blog does not already exist
-	// error occurs during parsing the object found so thats also a ErrBlogExistError
+	// error occurs during parsing the object found so that's also a ErrBlogExistError
 	obj, err := h.bucket.Get(db, []byte(renameBlogMsg.Slug))
 	if err != nil {
 		return nil, nil, err

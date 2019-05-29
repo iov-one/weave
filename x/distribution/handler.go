@@ -183,7 +183,7 @@ func (h *resetRevenueHandler) Deliver(ctx weave.Context, db weave.KVStore, tx we
 	// Before updating the revenue all funds must be distributed. Only a
 	// revenue with no funds can be updated, so that recipients trust us.
 	// Otherwise an admin could change who receives the money without the
-	// previously selected recepients ever being paid.
+	// previously selected recipients ever being paid.
 	if err := distribute(db, h.ctrl, racc, rev.Recipients); err != nil {
 		return nil, errors.Wrap(err, "cannot distribute")
 	}

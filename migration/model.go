@@ -35,8 +35,8 @@ func (s *Schema) Copy() orm.CloneableData {
 	}
 }
 
-// schemaID returns a detereministic ID of this schema instance. Created IDs
-// can be sorted using lexographical order from the lowest to the highest
+// schemaID returns a deterministic ID of this schema instance. Created IDs
+// can be sorted using lexicographical order from the lowest to the highest
 // version.
 func schemaID(pkg string, version uint32) []byte {
 	raw := make([]byte, len(pkg)+4)
@@ -58,7 +58,7 @@ func NewSchemaBucket() *SchemaBucket {
 	return &SchemaBucket{Bucket: b}
 }
 
-// MustInitPkg initialize schema versioninig for given package names. This
+// MustInitPkg initialize schema versioning for given package names. This
 // registers a version one schema.
 // This function panics if not successful. It is safe to call this function
 // many times as duplicate registrations are ignored.

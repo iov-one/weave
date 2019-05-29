@@ -18,12 +18,12 @@ const (
 	internalABCILog  = "internal error"
 )
 
-// ABCIInfo returns the ABCI error information as consumed by the tenderemint
+// ABCIInfo returns the ABCI error information as consumed by the tendermint
 // client. Returned code and log message should be used as a ABCI response.
 // Any error that does not provide ABCICode information is categorized as error
 // with code 1.
-// When not running in a debug mode all messsages of errors that do not provice
-// ABCICode infromation are replaced with generic "internal error". Errors
+// When not running in a debug mode all messages of errors that do not provide
+// ABCICode information are replaced with generic "internal error". Errors
 // without an ABCICode information as considered internal.
 func ABCIInfo(err error, debug bool) (uint32, string) {
 	if errIsNil(err) {
