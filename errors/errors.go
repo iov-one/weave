@@ -82,6 +82,11 @@ var (
 	// ErrNetwork is returned on network failure (only for client libraries)
 	ErrNetwork = Register(100200, "network")
 
+	// reserve code 100
+	_ = Register(multiErrCode, "multi error")
+
+	MultiErr = multiErr{}
+
 	// ErrTimeout is returned on context timeout (only for client libraries)
 	ErrTimeout = Register(100300, "timeout")
 
@@ -155,15 +160,6 @@ func (e Error) ABCICode() uint32 {
 // Is check if given error instance is of a given kind/type. This involves
 // unwrapping given error using the Cause method if available.
 func (kind *Error) Is(err error) bool {
-	// multiIs checks if the error is a multiErr
-	// and returns it's check result if so.
-	multiIs := func(err error) (bool, bool) {
-		mErr, ok := err.(*multiErr)
-		if ok {
-			return mErr.is(kind.Is), ok
-		}
-		return false, ok
-	}
 	// Reflect usage is necessary to correctly compare with
 	// a nil implementation of an error.
 	if kind == nil {
@@ -172,11 +168,8 @@ func (kind *Error) Is(err error) bool {
 		}
 		return reflect.ValueOf(err).IsNil()
 	}
-
-	// For multiErr, "Is" is used recursively, so there is no need
-	// to proceed with causer logic after this block.
-	if res, ok := multiIs(err); ok {
-		return res
+	if me, ok := err.(multiErr); ok {
+		return me.Contains(kind)
 	}
 
 	for {
@@ -186,11 +179,6 @@ func (kind *Error) Is(err error) bool {
 
 		if c, ok := err.(causer); ok {
 			err = c.Cause()
-			// As multiIs is used recursively there is no need to continue
-			// this loop.
-			if res, ok := multiIs(err); ok {
-				return res
-			}
 		} else {
 			return false
 		}

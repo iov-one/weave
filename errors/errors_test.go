@@ -1,65 +1,14 @@
 package errors
 
 import (
+	stdlib "errors"
 	"fmt"
-	"strings"
-	"testing"
-
-	"github.com/iov-one/weave/weavetest/assert"
 	"github.com/pkg/errors"
+	"testing"
 )
 
-func TestMultiErr(t *testing.T) {
-	cases := map[string]func(t *testing.T){
-		"Named error": func(t *testing.T) {
-			name := "Test"
-			err := MultiAddNamed(name, ErrEmpty)
-			assert.Equal(t, ErrEmpty.Is(err.Named(name)), true)
-			assert.Equal(t, err.Named("random"), nil)
-		},
-		"IsEmpty": func(t *testing.T) {
-			name := "Test"
-			err := MultiAdd()
-			assert.Equal(t, err.IsEmpty(), true)
-			_ = err.AddNamed(name, nil)
-			assert.Equal(t, err.IsEmpty(), true)
-		},
-		"Named errors accumulate": func(t *testing.T) {
-			name := "Test"
-			err := MultiAddNamed(name, ErrEmpty).AddNamed(name, ErrState)
-			assert.Equal(t, ErrState.Is(err.Named(name)), true)
-			assert.Equal(t, ErrEmpty.Is(err.Named(name)), true)
-		},
-		"ABCICode is consistent with that of a normal error": func(t *testing.T) {
-			err := MultiAdd(ErrEmpty)
-			assert.Equal(t, err.(coder).ABCICode(), ErrEmpty.ABCICode())
-		},
-		"Nested wraps and multierr work properly": func(t *testing.T) {
-			multiErr := MultiAdd(ErrEmpty)
-			err := Wrap(Wrap(MultiAdd(Wrap(multiErr, "descr")), "descr"), "descr")
-			assert.Equal(t, ErrEmpty.Is(err), true)
-		},
-		"Error() works as expected": func(t *testing.T) {
-			err := MultiAdd()
-			assert.Equal(t, err.Error(), "")
-
-			_ = err.Add(ErrEmpty)
-			assert.Equal(t, strings.Contains(err.Error(), ErrEmpty.Error()), true)
-
-			_ = err.Add(ErrState)
-			assert.Equal(t, strings.Contains(err.Error(), ErrEmpty.Error()), true)
-			assert.Equal(t, strings.Contains(err.Error(), ErrState.Error()), true)
-			assert.Equal(t, strings.Contains(err.Error(), "2"), true)
-		},
-	}
-
-	for testName, tc := range cases {
-		t.Run(testName, tc)
-	}
-}
-
 func TestCause(t *testing.T) {
-	std := fmt.Errorf("This is stdlib error")
+	std := stdlib.New("this is a stdlib error")
 
 	cases := map[string]struct {
 		err  error
@@ -76,14 +25,6 @@ func TestCause(t *testing.T) {
 		"Cause works for stderr as root": {
 			err:  Wrap(std, "Some helpful text"),
 			root: std,
-		},
-		"multierr cause is the first error": {
-			err:  MultiAdd(ErrState, ErrEmpty),
-			root: ErrState,
-		},
-		"empty multierr cause is nil": {
-			err:  MultiAdd(),
-			root: nil,
 		},
 	}
 
@@ -154,25 +95,39 @@ func TestErrorIs(t *testing.T) {
 		},
 		"multierr with the same error": {
 			a:      ErrNotFound,
-			b:      MultiAdd(ErrNotFound, ErrState),
+			b:      MultiErr.With(ErrNotFound).With(ErrState),
+			wantIs: true,
+		},
+		"multierr with random order": {
+			a:      ErrNotFound,
+			b:      MultiErr.With(ErrState).With(ErrNotFound),
+			wantIs: true,
+		},
+		"multierr with wrapped err": {
+			a:      ErrNotFound,
+			b:      MultiErr.With(Wrap(ErrNotFound, "test")),
 			wantIs: true,
 		},
 		"multierr with nil error": {
 			a:      ErrNotFound,
-			b:      MultiAdd(nil),
+			b:      MultiErr.With(nil),
 			wantIs: false,
 		},
 		"multierr with different error": {
 			a:      ErrNotFound,
-			b:      MultiAdd(ErrState),
+			b:      MultiErr.With(ErrState),
+			wantIs: false,
+		},
+		"multierr from nil": {
+			a:      nil,
+			b:      MultiErr.With(ErrState),
 			wantIs: false,
 		},
 	}
-
 	for testName, tc := range cases {
 		t.Run(testName, func(t *testing.T) {
 			if got := tc.a.Is(tc.b); got != tc.wantIs {
-				t.Fatal("unexpected result")
+				t.Fatalf("unexpected result - got:%v want: %v", got, tc.wantIs)
 			}
 		})
 	}
