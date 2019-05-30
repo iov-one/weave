@@ -278,11 +278,11 @@ func (m *Elector) GetWeight() uint32 {
 // Election Rule defines how an election is run. A proposal must be voted upon via a pre-defined ruleset.
 type ElectionRule struct {
 	Metadata *weave.Metadata `protobuf:"bytes,1,opt,name=metadata,proto3" json:"metadata,omitempty"`
-	// Document version
+	// Document version.
 	Version uint32 `protobuf:"varint,2,opt,name=version,proto3" json:"version,omitempty"`
-	// Admin is the address that is allowed ot modify an existing election rule.
+	// Admin is the address that is allowed to modify an existing election rule.
 	Admin github_com_iov_one_weave.Address `protobuf:"bytes,3,opt,name=admin,proto3,casttype=github.com/iov-one/weave.Address" json:"admin,omitempty"`
-	// ElectorateID references the electorate using this rule (without version, as changing electorate changes the rule)
+	// ElectorateID references the electorate using this rule (without version, as changing electorate changes the rule).
 	ElectorateID []byte `protobuf:"bytes,4,opt,name=electorate_id,json=electorateId,proto3" json:"electorate_id,omitempty"`
 	// Human readable title.
 	Title string `protobuf:"bytes,5,opt,name=title,proto3" json:"title,omitempty"`

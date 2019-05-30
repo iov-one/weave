@@ -33,11 +33,11 @@ message Elector {
 // Election Rule defines how an election is run. A proposal must be voted upon via a pre-defined ruleset.
 message ElectionRule {
   weave.Metadata metadata = 1;
-  // Document version
+  // Document version.
   uint32 version = 2;
-  // Admin is the address that is allowed ot modify an existing election rule.
+  // Admin is the address that is allowed to modify an existing election rule.
   bytes admin = 3 ;
-  // ElectorateID references the electorate using this rule (without version, as changing electorate changes the rule)
+  // ElectorateID references the electorate using this rule (without version, as changing electorate changes the rule).
   bytes electorate_id = 4 ;
   // Human readable title.
   string title = 5;
