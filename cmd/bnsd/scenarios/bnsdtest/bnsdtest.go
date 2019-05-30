@@ -19,9 +19,7 @@ import (
 	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/commands/server"
 	"github.com/iov-one/weave/crypto"
-	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/weavetest"
-	"github.com/iov-one/weave/x/cash"
 	"github.com/iov-one/weave/x/distribution"
 	"github.com/iov-one/weave/x/escrow"
 	"github.com/iov-one/weave/x/multisig"
@@ -190,22 +188,10 @@ func initGenesis(t testing.TB, env *EnvConf, filename string) {
 			dict{
 				"address": env.Alice.PublicKey().Address(),
 				"coins": []interface{}{
-					dict{
-						"whole":  123456789,
-						"ticker": "IOV",
-					},
-					dict{
-						"whole":  123456789,
-						"ticker": "CASH",
-					},
-					dict{
-						"whole":  123456789,
-						"ticker": "ALX",
-					},
-					dict{
-						"whole":  123456789,
-						"ticker": "PAJA",
-					},
+					"123456789 IOV",
+					"123456789 CASH",
+					"123456789 ALX",
+					"123456789 PAJA",
 				},
 			},
 		},
@@ -213,9 +199,12 @@ func initGenesis(t testing.TB, env *EnvConf, filename string) {
 			dict{
 				"ticker": "IOV",
 				"name":   "Main token of this chain",
-			}}, "update_validators": dict{"addresses": []interface{}{
-			"cond:multisig/usage/0000000000000001",
+			},
 		},
+		"update_validators": dict{
+			"addresses": []interface{}{
+				"seq:multisig/usage/1",
+			},
 		},
 		"multisig": []interface{}{
 			dict{
@@ -228,7 +217,7 @@ func initGenesis(t testing.TB, env *EnvConf, filename string) {
 		},
 		"distribution": []interface{}{
 			dict{
-				"admin": "cond:multisig/usage/0000000000000001",
+				"admin": "seq:multisig/usage/1",
 				"recipients": []interface{}{
 					dict{"weight": 1, "address": env.Alice.PublicKey().Address()},
 				},
@@ -237,23 +226,21 @@ func initGenesis(t testing.TB, env *EnvConf, filename string) {
 		"escrow": []interface{}{
 			dict{
 				"sender":    "0000000000000000000000000000000000000000",
-				"arbiter":   env.MultiSigContract.Address(),
-				"recipient": "cond:dist/revenue/0000000000000001",
+				"arbiter":   "seq:multisig/usage/1",
+				"recipient": "seq:dist/revenue/1",
 				"amount": []interface{}{
-					dict{
-						"whole":  1000000,
-						"ticker": "IOV",
-					}},
+					"1000000 IOV",
+				},
 				"timeout": time.Now().Add(10000 * time.Hour),
 			},
 		},
 		"conf": dict{
-			"cash": cash.Configuration{
-				CollectorAddress: weave.Condition("dist/revenue/0000000000000001").Address(),
-				MinimalFee:       env.AntiSpamFee,
+			"cash": dict{
+				"collector_address": "seq:dist/revenue/1",
+				"minimal_fee":       env.AntiSpamFee,
 			},
-			"migration": migration.Configuration{
-				Admin: weave.Condition("multisig/usage/0000000000000001").Address(),
+			"migration": dict{
+				"admin": "seq:multisig/usage/1",
 			},
 		},
 		"governance": dict{
