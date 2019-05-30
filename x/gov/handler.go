@@ -363,8 +363,8 @@ func (h CreateProposalHandler) validate(ctx weave.Context, db weave.KVStore, tx 
 		return nil, nil, nil, errors.Wrap(err, "electorate")
 	}
 
-	// A proposal can be created only by a person that belongs to the
-	// electorats group. At least one signature must be present in order to
+	// A proposal can be created only by an entity that belongs to the
+	// electorate group. At least one signature must be present in order to
 	// be authorized to create a new proposal.
 	authorized := false
 	for _, e := range elect.Electors {
