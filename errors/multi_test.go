@@ -8,7 +8,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func TestAddToMulitiErr(t *testing.T) {
+func TestAddToMultiErr(t *testing.T) {
 	var (
 		// create errors with stacktrace for equal comparision
 		myErrNotFound = errors.WithStack(ErrNotFound)
@@ -58,7 +58,7 @@ func TestAddToMulitiErr(t *testing.T) {
 	}
 }
 
-func TestMulitiErrIsEmpty(t *testing.T) {
+func TestMultiErrIsEmpty(t *testing.T) {
 	specs := map[string]struct {
 		src multiErr
 		exp bool
@@ -78,14 +78,14 @@ func TestMulitiErrIsEmpty(t *testing.T) {
 	}
 }
 
-func TestMulitiErrABCICode(t *testing.T) {
+func TestMultiErrABCICode(t *testing.T) {
 	var mErr multiErr
 	if exp, got := uint32(1000), mErr.ABCICode(); exp != got {
 		t.Errorf("expected %v but got %v", exp, got)
 	}
 }
 
-func TestMulitiErrABCICodeRegisterd(t *testing.T) {
+func TestMultiErrABCICodeRegistered(t *testing.T) {
 	assert.Panics(t, func() {
 		Register(multiErrCode, "fails")
 	})
