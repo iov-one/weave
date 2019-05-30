@@ -1,0 +1,71 @@
+syntax = "proto3";
+
+package escrow;
+
+import "codec.proto";
+import "coin/codec.proto";
+
+// Escrow holds some coins.
+// The arbiter or sender can release them to the recipient.
+// The recipient can return them to the sender.
+// Upon timeout, they will be returned to the sender.
+message Escrow {
+  weave.Metadata metadata = 1;
+  bytes sender = 2 ;
+  bytes arbiter = 3 ;
+  bytes recipient = 4 ;
+  // If unreleased before timeout, escrow will return to sender.
+  // Timeout represents wall clock time as read from the block header. Timeout
+  // is represented using POSIX time format.
+  // Expiration time is inclusive meaning that the escrow expires as soon as
+  // the current time is equal or greater than timeout value.
+  // nonexpired: ;
+  // max length 128 character
+  string memo = 6;
+}
+
+// CreateEscrowMsg is a request to create an Escrow with some tokens.
+// If sender is not defined, it defaults to the first signer
+// The rest must be defined
+message CreateEscrowMsg {
+  weave.Metadata metadata = 1;
+  bytes src = 2 ;
+  bytes arbiter = 3 ;
+  bytes recipient = 4 ;
+  // amount may contain multiple token types
+  repeated coin.Coin amount = 5;
+  // Timeout represents wall clock time.
+  int64 timeout = 6 ;
+  // max length 128 character
+  string memo = 7;
+}
+
+// ReleaseEscrowMsg releases the content to the recipient.
+// Must be authorized by sender or arbiter.
+// If amount not provided, defaults to entire escrow,
+// May be a subset of the current balance.
+message ReleaseEscrowMsg {
+  weave.Metadata metadata = 1;
+  bytes escrow_id = 2;
+  repeated coin.Coin amount = 3;
+}
+
+// ReturnEscrowMsg returns the content to the sender.
+// Must be authorized by the sender or an expired timeout
+message ReturnEscrowMsg {
+  weave.Metadata metadata = 1;
+  bytes escrow_id = 2;
+}
+
+// UpdateEscrowPartiesMsg changes any of the parties of the escrow:
+// sender, arbiter, recipient. This must be authorized by the current
+// holder of that position (eg. only sender can update sender).
+//
+// Represents delegating responsibility
+message UpdateEscrowPartiesMsg {
+  weave.Metadata metadata = 1;
+  bytes escrow_id = 2;
+  bytes sender = 3 ;
+  bytes arbiter = 4 ;
+  bytes recipient = 5 ;
+}

@@ -1,0 +1,63 @@
+syntax = "proto3";
+
+package aswap;
+
+import "codec.proto";
+import "coin/codec.proto";
+import "gogoproto/gogo.proto";
+
+// Swap is designed to hold some coins for atomic swap, locked by preimage_hash
+message Swap {
+  // metadata is used for schema versioning support
+  weave.Metadata metadata = 1;
+  // sha256 hash of preimage, 32 bytes long
+  bytes preimage_hash = 2;
+  // src is a sender address
+  bytes src = 3 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
+  // recipient is an address of recipient
+  bytes recipient = 5 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
+  // If unreleased before timeout, swap will return coins to src.
+  // Timeout represents wall clock time as read from the block header. Timeout
+  // is represented using POSIX time format.
+  // Expiration time is inclusive meaning that the swap expires as soon as
+  // the current time is equal or greater than timeout value.
+  // nonexpired: [created, timeout)
+  // expired: [timeout, infinity)
+  int64 timeout = 6 [(gogoproto.casttype) = "github.com/iov-one/weave.UnixTime"];
+  // max length 128 characters
+  string memo = 7;
+}
+
+// CreateSwapMsg creates a Swap with some coins.
+message CreateSwapMsg {
+  weave.Metadata metadata = 1;
+  bytes src = 2 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
+  // sha256 hash of preimage, 32 bytes long
+  bytes preimage_hash = 3;
+  bytes recipient = 4 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
+  // amount may contain multiple token types
+  repeated coin.Coin amount = 5;
+  // Timeout represents wall clock time.
+  int64 timeout = 6 [(gogoproto.casttype) = "github.com/iov-one/weave.UnixTime"];
+  // max length 128 character
+  string memo = 7;
+}
+
+// ReleaseSwapMsg releases the tokens to the recipient.
+// This operation is authorized by preimage, which is sent raw and then hashed on the backend.
+message ReleaseSwapMsg {
+  weave.Metadata metadata = 1;
+  // swap_id to release
+  bytes swap_id = 2 [(gogoproto.customname) = "SwapID"];
+  // raw preimage to unlock swap, also helpful to retrieve the swap by it's hashed version
+  // must be exactly 32 bytes long
+  bytes preimage = 3;
+}
+
+// ReturnSwapMsg releases the tokens to the src.
+// This operation only works if the Swap is expired.
+message ReturnSwapMsg {
+  weave.Metadata metadata = 1;
+  // swap_id to return
+  bytes swap_id = 2 [(gogoproto.customname) = "SwapID"];
+}

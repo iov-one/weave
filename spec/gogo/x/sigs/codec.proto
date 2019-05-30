@@ -1,0 +1,42 @@
+syntax = "proto3";
+
+package sigs;
+
+import "codec.proto";
+import "crypto/models.proto";
+
+// UserData just stores the data and is used for serialization.
+// Key is the Address (PubKey.Permission().Address())
+//
+// Note: This should not be created from outside the module,
+// User is the entry point you want
+message UserData {
+  weave.Metadata metadata = 1;
+  crypto.PublicKey pubkey = 2;
+  int64 sequence = 3;
+}
+
+// StdSignature represents the signature, the identity of the signer
+// (the Pubkey), and a sequence number to prevent replay attacks.
+//
+// A given signer must submit transactions with the sequence number
+// increasing by 1 each time (starting at 0)
+message StdSignature {
+  weave.Metadata metadata = 1;
+  int64 sequence = 2;
+  crypto.PublicKey pubkey = 3;
+  // Removed Address, Pubkey is more powerful
+  crypto.Signature signature = 4;
+}
+
+// BumpSequenceMsg increments a sequence counter by given amount for a user
+// that signed the transaction.
+message BumpSequenceMsg {
+  weave.Metadata metadata = 1;
+  // Increment represents the value by which a sequence value will be
+  // increased. Minumum value is one and maxium value must not be greater than
+  // 1000.
+  // Each transaction increments the sequence by one. This value represents the
+  // total increment value, including the default increment.
+  uint32 increment = 2;
+}

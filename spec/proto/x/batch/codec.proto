@@ -1,0 +1,7 @@
+syntax = "proto3";
+
+package batch;
+
+message ByteArrayList {
+  repeated bytes elements = 1;
+}

@@ -1,0 +1,136 @@
+syntax = "proto3";
+
+package app;
+
+import "cmd/bnsd/x/nft/username/codec.proto";
+import "migration/codec.proto";
+import "x/aswap/codec.proto";
+import "x/cash/codec.proto";
+import "x/currency/codec.proto";
+import "x/distribution/codec.proto";
+import "x/escrow/codec.proto";
+import "x/gov/codec.proto";
+import "x/multisig/codec.proto";
+import "x/nft/codec.proto";
+import "x/sigs/codec.proto";
+import "x/validators/codec.proto";
+
+// Tx contains the message.
+//
+// When extending Tx, follow the rules:
+// - range 1-50 is reserved for middlewares,
+// - range 51-inf is reserved for different message types,
+// - keep the same numbers for the same message types in both bcpd and bnsd
+//   applications. For example, FeeInfo field is used by both and indexed at
+//   first position. Skip unused fields (leave index unused or comment out for
+//   clarity).
+// When there is a gap in message sequence numbers - that most likely means some
+// old fields got deprecated. This is done to maintain binary compatibility.
+message Tx {
+  cash.FeeInfo fees = 1;
+  repeated sigs.StdSignature signatures = 2;
+  // ID of a multisig contract.
+  repeated bytes multisig = 4;
+  // msg is a sum type over all allowed messages on this chain.
+  oneof sum {
+    cash.SendMsg send_msg = 51;
+    escrow.CreateEscrowMsg create_escrow_msg = 52;
+    escrow.ReleaseEscrowMsg release_escrow_msg = 53;
+    escrow.ReturnEscrowMsg return_escrow_msg = 54;
+    escrow.UpdateEscrowPartiesMsg update_escrow_msg = 55;
+    multisig.CreateContractMsg create_contract_msg = 56;
+    multisig.UpdateContractMsg update_contract_msg = 57;
+    validators.SetValidatorsMsg set_validators_msg = 58;
+    currency.NewTokenInfoMsg new_token_info_msg = 59;
+    BatchMsg batch_msg = 60;
+    nft.AddApprovalMsg add_approval_msg = 61;
+    nft.RemoveApprovalMsg remove_approval_msg = 62;
+    username.IssueTokenMsg issue_username_nft_msg = 63;
+    username.AddChainAddressMsg add_username_address_nft_msg = 64;
+    username.RemoveChainAddressMsg remove_username_address_msg = 65;
+    distribution.NewRevenueMsg new_revenue_msg = 66;
+    distribution.DistributeMsg distribute_msg = 67;
+    distribution.ResetRevenueMsg reset_revenue_msg = 68;
+    migration.UpgradeSchemaMsg upgrade_schema_msg = 69;
+    aswap.CreateSwapMsg create_swap_msg = 70;
+    aswap.ReleaseSwapMsg release_swap_msg = 71;
+    aswap.ReturnSwapMsg return_swap_msg = 72;
+    gov.CreateProposalMsg create_proposal_msg = 73;
+    gov.DeleteProposalMsg delete_proposal_msg = 74;
+    gov.VoteMsg vote_msg = 75;
+    gov.TallyMsg tally_msg = 76;
+    gov.UpdateElectorateMsg update_electorate_msg = 77;
+    gov.UpdateElectionRuleMsg update_election_rule_msg = 78;
+    // 79 is reserved (see ProposalOptions: TextResolutionMsg)
+
+  }
+}
+
+// BatchMsg encapsulates multiple messages to support batch transaction
+message BatchMsg {
+  message Union {
+    oneof sum {
+      cash.SendMsg send_msg = 51;
+      escrow.CreateEscrowMsg create_escrow_msg = 52;
+      escrow.ReleaseEscrowMsg release_escrow_msg = 53;
+      escrow.ReturnEscrowMsg return_escrow_msg = 54;
+      escrow.UpdateEscrowPartiesMsg update_escrow_msg = 55;
+      multisig.CreateContractMsg create_contract_msg = 56;
+      multisig.UpdateContractMsg update_contract_msg = 57;
+      validators.SetValidatorsMsg set_validators_msg = 58;
+      currency.NewTokenInfoMsg new_token_info_msg = 59;
+      // No recursive batches!
+      nft.AddApprovalMsg add_approval_msg = 61;
+      nft.RemoveApprovalMsg remove_approval_msg = 62;
+      username.IssueTokenMsg issue_username_nft_msg = 63;
+      username.AddChainAddressMsg add_username_address_nft_msg = 64;
+      username.RemoveChainAddressMsg remove_username_address_msg = 65;
+      distribution.NewRevenueMsg new_revenue_msg = 66;
+      distribution.DistributeMsg distribute_msg = 67;
+      distribution.ResetRevenueMsg reset_revenue_msg = 68;
+      // upgrade schema is important enough, it should be a solo action
+      // aswap and gov don't make much sense as part of a batch (no vote buying)
+
+    }
+  }
+  repeated Union messages = 1 ;
+}
+
+// ProposalOptions are possible items that can be enacted by a governance vote
+// Trimmed down somewhat arbitrary to what is believed to be reasonable
+message ProposalOptions {
+  oneof option {
+    cash.SendMsg send_msg = 51;
+    escrow.ReleaseEscrowMsg release_escrow_msg = 53;
+    escrow.UpdateEscrowPartiesMsg update_escrow_msg = 55;
+    validators.SetValidatorsMsg set_validators_msg = 58;
+    ProposalBatchMsg batch_msg = 60;
+    distribution.NewRevenueMsg new_revenue_msg = 66;
+    distribution.DistributeMsg distribute_msg = 67;
+    distribution.ResetRevenueMsg reset_revenue_msg = 68;
+    migration.UpgradeSchemaMsg upgrade_schema_msg = 69;
+    gov.UpdateElectorateMsg update_electorate_msg = 77;
+    gov.UpdateElectionRuleMsg update_election_rule_msg = 78;
+    gov.TextResolutionMsg text_resolution_msg = 79;
+  }
+}
+
+message ProposalBatchMsg {
+  message Union {
+    oneof sum {
+      cash.SendMsg send_msg = 51;
+      escrow.ReleaseEscrowMsg release_escrow_msg = 53;
+      escrow.UpdateEscrowPartiesMsg update_escrow_msg = 55;
+      validators.SetValidatorsMsg set_validators_msg = 58;
+      // no recursive batches
+      distribution.NewRevenueMsg new_revenue_msg = 66;
+      distribution.DistributeMsg distribute_msg = 67;
+      distribution.ResetRevenueMsg reset_revenue_msg = 68;
+      // don't allow UpgradeSchema as part of a batch, as effects are too confusing
+      gov.UpdateElectorateMsg update_electorate_msg = 77;
+      gov.UpdateElectionRuleMsg update_election_rule_msg = 78;
+      gov.TextResolutionMsg text_resolution_msg = 79;
+    }
+  }
+  repeated Union messages = 1 ;
+}

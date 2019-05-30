@@ -1,0 +1,8 @@
+syntax = "proto3";
+
+package app;
+
+// ResultSet contains a list of keys or values
+message ResultSet {
+  repeated bytes results = 1;
+}

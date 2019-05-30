@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+package migration;
+
+import "codec.proto";
+import "gogoproto/gogo.proto";
+
+message Configuration {
+  // Admin holds the address of the administrator allowed to upgrade schema
+  // versions. If you wish to permit more than one entity to be an admin, use
+  // multisig.
+  bytes admin = 2 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
+}
+
+// Schema declares the maxiumum supported schema version for a package.
+message Schema {
+  weave.Metadata metadata = 1;
+  // Pkg holds the name of the package that this migration is declared for.
+  // For example, for extension `x/myext` package value is `myext`
+  string pkg = 2;
+  // Version holds the highest supported schema version.
+  uint32 version = 3;
+}
+
+// UpgradeSchemaMsg is a request to upgrade schema version of a given package
+// by one version.
+message UpgradeSchemaMsg {
+  weave.Metadata metadata = 1;
+  // Name of the package that schema version upgrade is made for.
+  string pkg = 2;
+}

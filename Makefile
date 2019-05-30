@@ -62,7 +62,8 @@ protofmt: novendor
 protoc: protofmt protodocs protolint
 	$(PROTOTOOL) generate
 	@# a bit of playing around to rename output, so it is only available for testcode
-	@mv x/gov/sample_test.pb.go x/gov/sample_test.go
+	@mv -f x/gov/sample_test.pb.go x/gov/sample_test.go
 
 protodocs:
+	./scripts/clean_protos.sh
 	./scripts/build_protodocs_docker.sh

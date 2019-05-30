@@ -11,6 +11,7 @@ protoc:
 
 excludes:
   - .git
+  - spec
 
 generate:
   go_options:

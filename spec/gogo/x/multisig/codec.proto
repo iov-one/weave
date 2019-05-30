@@ -1,0 +1,43 @@
+syntax = "proto3";
+
+package multisig;
+
+import "codec.proto";
+import "gogoproto/gogo.proto";
+
+message Contract {
+  weave.Metadata metadata = 1;
+  // Participants defines a list of all signatures that are allowed to sign the
+  // contract.
+  repeated Participant participants = 2;
+  // Activation threshold defines the minimal weight value that must be
+  // provided from participants in order to activate the contract. Weight is
+  // computed as the sum of weights of all participating signatures.
+  uint32 activation_threshold = 3 [(gogoproto.casttype) = "Weight"];
+  // Admin threshold defines the minimal weight value that must be provided
+  // from participants in order to administrate the contract. Weight is
+  // computed as the sum of weights of all participating signatures.
+  uint32 admin_threshold = 4 [(gogoproto.casttype) = "Weight"];
+}
+
+// Participant clubs together a signature with a weight. The greater the weight
+// the greater the power of a signature.
+message Participant {
+  bytes signature = 1 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
+  uint32 weight = 2 [(gogoproto.casttype) = "Weight"];
+}
+
+message CreateContractMsg {
+  weave.Metadata metadata = 1;
+  repeated Participant participants = 2;
+  uint32 activation_threshold = 3 [(gogoproto.casttype) = "Weight"];
+  uint32 admin_threshold = 4 [(gogoproto.casttype) = "Weight"];
+}
+
+message UpdateContractMsg {
+  weave.Metadata metadata = 1;
+  bytes contract_id = 2 [(gogoproto.customname) = "ContractID"];
+  repeated Participant participants = 3;
+  uint32 activation_threshold = 4 [(gogoproto.casttype) = "Weight"];
+  uint32 admin_threshold = 5 [(gogoproto.casttype) = "Weight"];
+}
