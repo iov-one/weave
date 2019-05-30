@@ -55,6 +55,10 @@ func TestAddressUnmarshalJSON(t *testing.T) {
 			json:     `"cond:foo/bar/636f6e646974696f6e64617461"`,
 			wantAddr: weave.NewCondition("foo", "bar", []byte("conditiondata")).Address(),
 		},
+		"seq decoding": {
+			json:     `"seq:with/seq/12345"`,
+			wantAddr: weave.NewCondition("with", "seq", []byte{0, 0, 0, 0, 0, 0, 0x30, 0x39}).Address(),
+		},
 		"bech32 decoding": {
 			json:     `"bech32:tiov135x42ezlzfq60gtdsn7f2cd9r4gccrfk6md5xz"`,
 			wantAddr: weave.Address(fromHex("8d0d55645f1241a7a16d84fc9561a51d518c0d36")),

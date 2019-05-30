@@ -3,10 +3,12 @@ package weave
 import (
 	"bytes"
 	"crypto/sha256"
+	"encoding/binary"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/iov-one/weave/crypto/bech32"
@@ -105,7 +107,7 @@ func (c *Condition) deserialize(source string) error {
 
 	args := strings.Split(source, "/")
 	if len(args) != 3 {
-		return errors.Wrapf(errors.ErrInput, "invalid condition format")
+		return errors.Wrap(errors.ErrInput, "invalid condition format")
 	}
 	data, err := hex.DecodeString(args[2])
 	if err != nil {
@@ -172,6 +174,23 @@ func (a *Address) UnmarshalJSON(raw []byte) error {
 		if err := c.deserialize(enc); err != nil {
 			return err
 		}
+		if err := c.Validate(); err != nil {
+			return err
+		}
+		*a = c.Address()
+		return nil
+	case "seq":
+		chunks := strings.Split(string(enc), "/")
+		if len(chunks) != 3 {
+			return errors.Wrap(errors.ErrInput, "invalid condition format")
+		}
+		seqInt, err := strconv.Atoi(chunks[2])
+		if err != nil {
+			return errors.Wrap(err, "sequence number is not a valid integer")
+		}
+		data := make([]byte, 8)
+		binary.BigEndian.PutUint64(data, uint64(seqInt))
+		c := NewCondition(chunks[0], chunks[1], data)
 		if err := c.Validate(); err != nil {
 			return err
 		}
