@@ -133,6 +133,13 @@ message Proposal {
   bytes raw_option = 3;
 }
 
+// Resolution contains TextResolution and an electorate reference.
+message Resolution {
+  weave.Metadata metadata = 1;
+  orm.VersionedIDRef electorate_ref = 2 [(gogoproto.nullable) = false];
+  string resolution = 3;
+}
+
 // TallyResult contains sums of the votes and all data for the final result.
 message TallyResult {
   // TotalYes is the sum of weights of all the voters that approved the proposal
@@ -224,7 +231,8 @@ message TallyMsg {
 // with a reference to the electorate that approved it
 message TextResolutionMsg {
   weave.Metadata metadata = 1;
-  string resolution = 2;
+  bytes electorate_id = 2 [(gogoproto.customname) = "ElectorateID"];
+  string resolution = 3;
 }
 
 message UpdateElectorateMsg {
