@@ -10,7 +10,7 @@ command -v shellcheck > /dev/null && shellcheck "$0"
 #
 # We produce two versions
 # - spec/gogo verbatim copy for use by other go repos
-# - spec/cleaned cleaned up by cleanproto for use in other languages.
+# - spec/proto proto up by cleanproto for use in other languages.
 
 
 (cd cmd/cleanproto && make build)
@@ -31,7 +31,7 @@ rm -rf ${OUT_DIR}
     mkdir -p "$outdir"
     cp "$filename" "$outfile"
 
-    cleanfile="$OUT_DIR/cleaned/$filename"
+    cleanfile="$OUT_DIR/proto/$filename"
     cleandir=$(dirname "$cleanfile")
     mkdir -p "$cleandir"
     ${CLEAN} < "$filename" > "$cleanfile"
