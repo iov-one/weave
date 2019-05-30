@@ -11,8 +11,6 @@ import (
 	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/commands/server"
 	"github.com/iov-one/weave/crypto"
-	"github.com/iov-one/weave/migration"
-	"github.com/iov-one/weave/x/cash"
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
 )
@@ -71,7 +69,7 @@ func (f AppFixture) Build() abci.Application {
 func appStateGenesis(keyAddress weave.Address) []byte {
 	type dict map[string]interface{}
 
-	appState, err := json.MarshalIndent(dict{
+	state := dict{
 		"cash": []interface{}{
 			dict{
 				"address": keyAddress,
@@ -81,12 +79,12 @@ func appStateGenesis(keyAddress weave.Address) []byte {
 			},
 		},
 		"conf": dict{
-			"cash": cash.Configuration{
-				CollectorAddress: weave.Condition("dist/revenue/0000000000000001").Address(),
-				MinimalFee:       coin.NewCoin(0, 10000000, "FRNK"),
+			"cash": dict{
+				"collector_address": "seq:dist/revenue/1",
+				"minimal_fee":       "0.01 FRNK",
 			},
-			"migration": migration.Configuration{
-				Admin: weave.Condition("multisig/usage/0000000000000001").Address(),
+			"migration": dict{
+				"admin": "seq:multisig/usage/1",
 			},
 		},
 		"initialize_schema": []dict{
@@ -117,7 +115,7 @@ func appStateGenesis(keyAddress weave.Address) []byte {
 		},
 		"update_validators": dict{
 			"addresses": []interface{}{
-				"cond:multisig/usage/0000000000000001",
+				"seq:multisig/usage/1",
 			},
 		},
 		"multisig": []interface{}{
@@ -131,7 +129,7 @@ func appStateGenesis(keyAddress weave.Address) []byte {
 		},
 		"distribution": []interface{}{
 			dict{
-				"admin": "cond:multisig/usage/0000000000000001",
+				"admin": "seq:multisig/usage/1",
 				"recipients": []interface{}{
 					dict{"weight": 1, "address": keyAddress},
 				},
@@ -140,8 +138,8 @@ func appStateGenesis(keyAddress weave.Address) []byte {
 		"escrow": []interface{}{
 			dict{
 				"sender":    "0000000000000000000000000000000000000000",
-				"arbiter":   weave.NewCondition("multisig", "usage", []byte("0000000000000001")).Address(),
-				"recipient": "cond:dist/revenue/0000000000000001",
+				"arbiter":   "seq:multisig/usage/1",
+				"recipient": "seq:dist/revenue/1",
 				"amount":    []interface{}{"1000000 FRNK"},
 				"timeout":   time.Now().Add(10000 * time.Hour),
 			},
@@ -164,7 +162,8 @@ func appStateGenesis(keyAddress weave.Address) []byte {
 				"fee":      "5 FRNK",
 			},
 		},
-	}, "", "  ")
+	}
+	appState, err := json.MarshalIndent(state, "", "  ")
 	if err != nil {
 		panic(err)
 	}
