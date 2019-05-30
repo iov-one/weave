@@ -1,7 +1,7 @@
 .PHONY: build test
 
 build:
-	CGO_ENABLED=0 GOOS=linux go build -a -ldflags '-extldflags "-static"' -o cleanproto .
+	CGO_ENABLED=0 go build -o cleanproto .
 
 test:
 	go test . -v -race
