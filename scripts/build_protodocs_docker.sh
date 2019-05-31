@@ -5,8 +5,8 @@ set -o errexit -o nounset -o pipefail
 # This is a version of build_protodocs, which uses docker images to build, and includes gogoproto support,
 # so it doesn't need the pre-clean step
 
-protoc="docker run --rm -v $(pwd):/work iov1/prototool:v0.2.1 protoc"
-prototool="docker run --rm -v $(pwd):/work iov1/prototool:v0.2.1 prototool"
+protoc="docker run --rm -v $(pwd):/work iov1/prototool:v0.2.2 protoc"
+prototool="docker run --rm -v $(pwd):/work iov1/prototool:v0.2.2 prototool"
 
 files=$(${prototool} files | grep -v examples | grep -v cmd/bcpd | sort)
 ${protoc} -I . -I /usr/include --doc_out=docs/proto --doc_opt=html,index.html ${files}
