@@ -11,7 +11,7 @@ MODE ?= set
 
 # for dockerized prototool
 USER := $(shell id -u):$(shell id -g)
-DOCKER_BASE := docker run --rm -v $(shell pwd):/work iov1/prototool:v0.2.0
+DOCKER_BASE := docker run --rm -v $(shell pwd):/work iov1/prototool:0.2.1
 PROTOTOOL := $(DOCKER_BASE) prototool
 PROTOC := $(DOCKER_BASE) protoc
 
