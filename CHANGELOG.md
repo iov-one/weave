@@ -29,6 +29,7 @@
   reproducible builds
 - You can use "seq:multisig/usage/1" or similar in the genesis file to easily create addresses
   without manually encoding everything into 16 hex digits
+- Introduce `errors.Append` function to combine errors into a new multi error type
 
 Breaking changes
 
