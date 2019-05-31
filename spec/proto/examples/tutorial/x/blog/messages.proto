@@ -1,0 +1,54 @@
+syntax = "proto3";
+
+package blog;
+
+// CreateBlogMsg starts a new blog with a set of authors
+message CreateBlogMsg {
+  // slug is a short, unique string used as primary key
+  string slug = 1;
+  // title is longer text used for display
+  string title = 2;
+  // initial set of authors (must be 1 - MaxAuthors)
+  repeated bytes authors = 3;
+}
+
+// RenameBlogMsg updates the title of an existing blog
+message RenameBlogMsg {
+  // slug is a short, unique string used as primary key
+  string slug = 1;
+  // title is longer text used for display
+  string title = 2;
+}
+
+// ChangeBlogAuthorsMsg adds or removes an author from the blog's
+// authorized author list
+message ChangeBlogAuthorsMsg {
+  // slug is a short, unique string used as primary key
+  string slug = 1;
+  // whether we add or remove them
+  bool add = 2;
+  // author to add or remove
+  bytes author = 3;
+}
+
+// CreatePostMsg adds a post to a blog
+message CreatePostMsg {
+  // blog is the slug of the blog this post belongs to
+  string blog = 1;
+  string title = 2;
+  string text = 3;
+  // author is optional, by default the first signer,
+  // only needed if it is multisig
+  bytes author = 4;
+  // creation height is added by handler
+
+}
+
+// SetProfileMsg will create or update a profile
+message SetProfileMsg {
+  string name = 1;
+  string description = 2;
+  // author is optional, by default the first signer,
+  // only needed if it is multisig
+  bytes author = 3;
+}
