@@ -1,6 +1,7 @@
 package errors
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 )
@@ -95,4 +96,30 @@ func (e multiErr) Contains(err *Error) bool {
 		}
 	}
 	return false
+}
+
+// abciLogFrame defines the frame type
+type abciLogFrame struct {
+	Data []abciLogElement `json:"data"`
+}
+
+// abciLogElement represents an error element of the multiErr
+type abciLogElement struct {
+	Code uint32 `json:"code"`
+	Log  string `json:"log"`
+}
+
+// serializeMultiErr converts the given error into a json structured byte string
+func serializeMultiErr(source multiErr, enc errEncoder) string {
+	logs := make([]abciLogElement, len(source))
+	for i, err := range source {
+		code := abciCode(err)
+		logs[i] = abciLogElement{Code: code, Log: enc(err)}
+	}
+
+	b, err := json.Marshal(abciLogFrame{Data: logs})
+	if err != nil { // return empty but valid json
+		return "{}"
+	}
+	return string(b)
 }
