@@ -6,8 +6,6 @@ import (
 	"io"
 	"strings"
 	"testing"
-
-	"github.com/pkg/errors"
 )
 
 func TestABCInfo(t *testing.T) {
@@ -180,9 +178,9 @@ func TestRedact(t *testing.T) {
 func TestABCIInfoSerializeErr(t *testing.T) {
 	var (
 		// create errors with stacktrace for equal comparision
-		myErrState          = errors.WithStack(ErrState)
-		myErrMsg            = errors.WithStack(ErrMsg)
-		myPanic             = errors.WithStack(ErrPanic)
+		myErrState          = Wrap(ErrState, "test")
+		myErrMsg            = Wrap(ErrMsg, "test")
+		myPanic             = ErrPanic
 		myErrStateSTJson, _ = json.Marshal(fmt.Sprintf("%+v", myErrState))
 		myErrMsgSTJson, _   = json.Marshal(fmt.Sprintf("%+v", myErrMsg))
 	)
@@ -195,7 +193,7 @@ func TestABCIInfoSerializeErr(t *testing.T) {
 		"single error": {
 			src:   myErrMsg,
 			debug: false,
-			exp:   "invalid message",
+			exp:   "test: invalid message",
 		},
 		"single error with debug": {
 			src:   myErrMsg,
@@ -204,11 +202,11 @@ func TestABCIInfoSerializeErr(t *testing.T) {
 		},
 		"multiErr default encoder": {
 			src: Append(myErrMsg, myErrState),
-			exp: `{"data":[{"code":4,"log":"invalid message"},{"code":10,"log":"invalid state"}]}`,
+			exp: `{"data":[{"code":4,"log":"test: invalid message"},{"code":10,"log":"test: invalid state"}]}`,
 		},
 		"multiErr default with internal": {
 			src: Append(myErrMsg, myPanic),
-			exp: `{"data":[{"code":4,"log":"invalid message"},{"code":111222,"log":"internal error"}]}`,
+			exp: `{"data":[{"code":4,"log":"test: invalid message"},{"code":111222,"log":"internal error"}]}`,
 		},
 		"multiErr debug": {
 			src:   Append(myErrMsg, myErrState),

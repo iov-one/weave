@@ -50,7 +50,7 @@ func debugErrEncoder(err error) string {
 	return fmt.Sprintf("%+v", err)
 }
 
-// The debugErrEncoder applies Redact on the error before encoding it with its internal error message.
+// The defaultErrEncoder applies Redact on the error before encoding it with its internal error message.
 func defaultErrEncoder(err error) string {
 	return Redact(err).Error()
 }
