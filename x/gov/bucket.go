@@ -59,7 +59,7 @@ const indexNameAuthor = "author"
 // NewProposalBucket returns a bucket for managing electorate.
 func NewProposalBucket() *ProposalBucket {
 	b := migration.NewBucket(packageName, "proposal", orm.NewSimpleObj(nil, &Proposal{})).
-		WithIndex(indexNameElectorate, indexAuthor, false)
+		WithIndex(indexNameAuthor, indexAuthor, false)
 	return &ProposalBucket{
 		IDGenBucket: orm.WithSeqIDGenerator(b, "id"),
 	}
@@ -112,7 +112,7 @@ type ResolutionBucket struct {
 
 func NewResolutionBucket() *ResolutionBucket {
 	b := migration.NewBucket(packageName, "resolution", orm.NewSimpleObj(nil, &Resolution{})).
-		WithIndex(indexNameAuthor, indexElectorate, false)
+		WithIndex(indexNameElectorate, indexElectorate, false)
 	return &ResolutionBucket{
 		IDGenBucket: orm.WithSeqIDGenerator(b, "id"),
 	}
