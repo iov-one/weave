@@ -59,7 +59,7 @@ protolint: novendor
 protofmt: novendor
 	$(PROTOTOOL) format -w
 
-protoc: protofmt protodocs protolint
+protoc: protofmt protodocs testvectors protolint
 	$(PROTOTOOL) generate
 	@# a bit of playing around to rename output, so it is only available for testcode
 	@mv -f x/gov/sample_test.pb.go x/gov/sample_test.go
@@ -69,4 +69,5 @@ protodocs:
 	./scripts/build_protodocs_docker.sh
 
 testvectors:
+	@mkdir -p spec/testvectors
 	go run ./cmd/bnsd/main.go testgen spec/testvectors > spec/testvectors/ADDRESS.txt

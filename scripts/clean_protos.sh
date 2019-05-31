@@ -1,5 +1,5 @@
 #!/bin/bash
-set -o errexit -o nounset -o pipefail -x
+set -o errexit -o nounset -o pipefail
 command -v shellcheck > /dev/null && shellcheck "$0"
 
 
