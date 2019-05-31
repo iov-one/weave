@@ -27,6 +27,8 @@
   to make multiple SendTx as part of a governance vote, for example.
 - Dockerize all the protobuf tooling for easier developer experience and
   reproducible builds
+- You can use "seq:multisig/usage/1" or similar in the genesis file to easily create addresses
+  without manually encoding everything into 16 hex digits
 
 Breaking changes
 

@@ -47,7 +47,7 @@ func TestApp(t *testing.T) {
 
 	// ensure 4 keys for all accounts that are modified by a transaction
 	require.Equal(t, 4, len(dres.Tags), tagsAsString(dres.Tags))
-	feeDistAddr := weave.Condition("dist/revenue/0000000000000001").Address()
+	feeDistAddr := weave.NewCondition("dist", "revenue", []byte{0, 0, 0, 0, 0, 0, 0, 1}).Address()
 	wantKeys := []string{
 		toHex("cash:") + addr.String(),        // sender balance decreased
 		toHex("cash:") + addr2.String(),       // receiver balance increased
@@ -237,7 +237,7 @@ func sendBatch(t *testing.T, baseApp abci.Application, chainID string, height in
 	dres := signAndCommit(t, baseApp, tx, signers, chainID, height)
 
 	// make sure the tags are only present once (not once per item)
-	feeDistAddr := weave.Condition("dist/revenue/0000000000000001").Address()
+	feeDistAddr := weave.NewCondition("dist", "revenue", []byte{0, 0, 0, 0, 0, 0, 0, 1}).Address()
 	if len(dres.Tags) != 4 {
 		t.Fatalf("%#v", dres.Tags)
 	}
