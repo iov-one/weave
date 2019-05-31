@@ -61,3 +61,15 @@ func GenPrivKeyEd25519() *PrivateKey {
 		},
 	}
 }
+
+// PrivKeyEd25519FromSeed will deterministically generate a private key from
+// a given seed. Use if you have a strong source of external randomness,
+// or for deterministic keys in test cases.
+func PrivKeyEd25519FromSeed(seed []byte) *PrivateKey {
+	priv := ed25519.NewKeyFromSeed(seed)
+	return &PrivateKey{
+		Priv: &PrivateKey_Ed25519{
+			Ed25519: priv,
+		},
+	}
+}

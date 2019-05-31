@@ -67,3 +67,6 @@ protoc: protofmt protodocs protolint
 protodocs:
 	./scripts/clean_protos.sh
 	./scripts/build_protodocs_docker.sh
+
+testvectors:
+	go run ./cmd/bnsd/main.go testgen spec/testvectors > spec/testvectors/ADDRESS.txt
