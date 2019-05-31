@@ -30,6 +30,8 @@
 - You can use "seq:multisig/usage/1" or similar in the genesis file to easily create addresses
   without manually encoding everything into 16 hex digits
 - Introduce `errors.Append` function to combine errors into a new multi error type
+- `spec` directory now contains protobuf files and testvectors formatted by use with
+  client code, or projects that import weave.
 
 Breaking changes
 
