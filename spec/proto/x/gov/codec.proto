@@ -231,8 +231,7 @@ message TallyMsg {
 // with a reference to the electorate that approved it
 message TextResolutionMsg {
   weave.Metadata metadata = 1;
-  bytes proposal_id = 2 ;
-  string resolution = 3;
+  string resolution = 2;
 }
 
 message UpdateElectorateMsg {

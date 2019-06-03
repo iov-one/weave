@@ -147,11 +147,6 @@ func (m TextResolutionMsg) Validate() error {
 	if err := m.Metadata.Validate(); err != nil {
 		return errors.Wrap(err, "invalid metadata")
 	}
-
-	if len(m.ProposalID) == 0 {
-		return errors.Wrap(errors.ErrEmpty, "proposal_id")
-	}
-
 	if len(m.Resolution) == 0 {
 		return errors.Wrap(errors.ErrEmpty, "resolution")
 	}
