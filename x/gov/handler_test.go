@@ -791,7 +791,8 @@ func TestTally(t *testing.T) {
 				threshold:             Fraction{Numerator: 1, Denominator: 2},
 				totalWeightElectorate: 9,
 			},
-			ExpResult: ProposalCommon_Accepted,
+			ExpResult:      ProposalCommon_Accepted,
+			WantDeliverLog: "Proposal accepted: execution success",
 		},
 		"Accepted with all yes votes required": {
 			Src: tallySetup{
@@ -799,7 +800,8 @@ func TestTally(t *testing.T) {
 				threshold:             Fraction{Numerator: 1, Denominator: 1},
 				totalWeightElectorate: 9,
 			},
-			ExpResult: ProposalCommon_Accepted,
+			ExpResult:      ProposalCommon_Accepted,
+			WantDeliverLog: "Proposal accepted: execution success",
 		},
 		"Rejected without enough Yes votes": {
 			Src: tallySetup{
@@ -808,7 +810,8 @@ func TestTally(t *testing.T) {
 				threshold:             Fraction{Numerator: 1, Denominator: 2},
 				totalWeightElectorate: 9,
 			},
-			ExpResult: ProposalCommon_Rejected,
+			ExpResult:      ProposalCommon_Rejected,
+			WantDeliverLog: "Proposal not accepted",
 		},
 		"Rejected on acceptance threshold value": {
 			Src: tallySetup{
@@ -818,14 +821,16 @@ func TestTally(t *testing.T) {
 				threshold:             Fraction{Numerator: 1, Denominator: 2},
 				totalWeightElectorate: 9,
 			},
-			ExpResult: ProposalCommon_Rejected,
+			ExpResult:      ProposalCommon_Rejected,
+			WantDeliverLog: "Proposal not accepted",
 		},
 		"Rejected without voters": {
 			Src: tallySetup{
 				threshold:             Fraction{Numerator: 1, Denominator: 2},
 				totalWeightElectorate: 2,
 			},
-			ExpResult: ProposalCommon_Rejected,
+			ExpResult:      ProposalCommon_Rejected,
+			WantDeliverLog: "Proposal not accepted",
 		},
 		"Rejected without enough votes: 2/3": {
 			Src: tallySetup{
@@ -833,7 +838,8 @@ func TestTally(t *testing.T) {
 				threshold:             Fraction{Numerator: 2, Denominator: 3},
 				totalWeightElectorate: 9,
 			},
-			ExpResult: ProposalCommon_Rejected,
+			ExpResult:      ProposalCommon_Rejected,
+			WantDeliverLog: "Proposal not accepted",
 		},
 		"Accepted with quorum and acceptance thresholds exceeded: 5/9": {
 			Src: tallySetup{
@@ -842,7 +848,8 @@ func TestTally(t *testing.T) {
 				threshold:             Fraction{Numerator: 1, Denominator: 2},
 				totalWeightElectorate: 9,
 			},
-			ExpResult: ProposalCommon_Accepted,
+			ExpResult:      ProposalCommon_Accepted,
+			WantDeliverLog: "Proposal accepted: execution success",
 		},
 		"Rejected with quorum thresholds not exceeded": {
 			Src: tallySetup{
@@ -851,7 +858,8 @@ func TestTally(t *testing.T) {
 				threshold:             Fraction{Numerator: 1, Denominator: 2},
 				totalWeightElectorate: 9,
 			},
-			ExpResult: ProposalCommon_Rejected,
+			ExpResult:      ProposalCommon_Rejected,
+			WantDeliverLog: "Proposal not accepted",
 		},
 		"Accepted with quorum and acceptance thresholds exceeded: 4/9": {
 			Src: tallySetup{
@@ -861,7 +869,8 @@ func TestTally(t *testing.T) {
 				threshold:             Fraction{Numerator: 1, Denominator: 2},
 				totalWeightElectorate: 9,
 			},
-			ExpResult: ProposalCommon_Accepted,
+			ExpResult:      ProposalCommon_Accepted,
+			WantDeliverLog: "Proposal accepted: execution success",
 		},
 		"Rejected with majority No": {
 			Src: tallySetup{
@@ -871,7 +880,8 @@ func TestTally(t *testing.T) {
 				threshold:             Fraction{Numerator: 1, Denominator: 2},
 				totalWeightElectorate: 9,
 			},
-			ExpResult: ProposalCommon_Rejected,
+			ExpResult:      ProposalCommon_Rejected,
+			WantDeliverLog: "Proposal not accepted",
 		},
 		"Rejected by single No when unanimity required": {
 			Src: tallySetup{
@@ -881,7 +891,8 @@ func TestTally(t *testing.T) {
 				threshold:             Fraction{Numerator: 1, Denominator: 1},
 				totalWeightElectorate: 9,
 			},
-			ExpResult: ProposalCommon_Rejected,
+			ExpResult:      ProposalCommon_Rejected,
+			WantDeliverLog: "Proposal not accepted",
 		},
 		"Rejected by missing vote when all required": {
 			Src: tallySetup{
@@ -890,7 +901,8 @@ func TestTally(t *testing.T) {
 				threshold:             Fraction{Numerator: 1, Denominator: 2},
 				totalWeightElectorate: 9,
 			},
-			ExpResult: ProposalCommon_Rejected,
+			ExpResult:      ProposalCommon_Rejected,
+			WantDeliverLog: "Proposal not accepted",
 		},
 		"Accept on quorum fraction 1/1": {
 			Src: tallySetup{
@@ -900,7 +912,8 @@ func TestTally(t *testing.T) {
 				threshold:             Fraction{Numerator: 1, Denominator: 2},
 				totalWeightElectorate: 9,
 			},
-			ExpResult: ProposalCommon_Accepted,
+			ExpResult:      ProposalCommon_Accepted,
+			WantDeliverLog: "Proposal accepted: execution success",
 		},
 		"Accepted with quorum and acceptance thresholds exceeded: 3/9": {
 			Src: tallySetup{
@@ -910,7 +923,8 @@ func TestTally(t *testing.T) {
 				threshold:             Fraction{Numerator: 1, Denominator: 2},
 				totalWeightElectorate: 9,
 			},
-			ExpResult: ProposalCommon_Accepted,
+			ExpResult:      ProposalCommon_Accepted,
+			WantDeliverLog: "Proposal accepted: execution success",
 		},
 		"Accepted by single Yes and neutral abstains": {
 			Src: tallySetup{
@@ -920,7 +934,8 @@ func TestTally(t *testing.T) {
 				threshold:             Fraction{Numerator: 1, Denominator: 2},
 				totalWeightElectorate: 9,
 			},
-			ExpResult: ProposalCommon_Accepted,
+			ExpResult:      ProposalCommon_Accepted,
+			WantDeliverLog: "Proposal accepted: execution success",
 		},
 		"Rejected without Yes majority and neutral abstains": {
 			Src: tallySetup{
@@ -931,7 +946,8 @@ func TestTally(t *testing.T) {
 				threshold:             Fraction{Numerator: 1, Denominator: 2},
 				totalWeightElectorate: 9,
 			},
-			ExpResult: ProposalCommon_Rejected,
+			ExpResult:      ProposalCommon_Rejected,
+			WantDeliverLog: "Proposal not accepted",
 		},
 		"Accepted with acceptance thresholds < quorum": {
 			Src: tallySetup{
@@ -941,7 +957,8 @@ func TestTally(t *testing.T) {
 				threshold:             Fraction{Numerator: 1, Denominator: 2},
 				totalWeightElectorate: 9,
 			},
-			ExpResult: ProposalCommon_Accepted,
+			ExpResult:      ProposalCommon_Accepted,
+			WantDeliverLog: "Proposal accepted: execution success",
 		},
 		"Accepted with quorum and acceptance thresholds require all votes": {
 			Src: tallySetup{
@@ -950,7 +967,8 @@ func TestTally(t *testing.T) {
 				threshold:             Fraction{Numerator: 1, Denominator: 1},
 				totalWeightElectorate: 9,
 			},
-			ExpResult: ProposalCommon_Accepted,
+			ExpResult:      ProposalCommon_Accepted,
+			WantDeliverLog: "Proposal accepted: execution success",
 		},
 		"Works with high values: accept": {
 			Src: tallySetup{
@@ -961,7 +979,8 @@ func TestTally(t *testing.T) {
 				threshold:             Fraction{Numerator: math.MaxUint32 - 1, Denominator: math.MaxUint32},
 				totalWeightElectorate: math.MaxUint64,
 			},
-			ExpResult: ProposalCommon_Accepted,
+			ExpResult:      ProposalCommon_Accepted,
+			WantDeliverLog: "Proposal accepted: execution success",
 		},
 		"Works with high values: reject": {
 			Src: tallySetup{
@@ -972,7 +991,8 @@ func TestTally(t *testing.T) {
 				threshold:             Fraction{Numerator: math.MaxUint32 - 1, Denominator: math.MaxUint32},
 				totalWeightElectorate: math.MaxUint64,
 			},
-			ExpResult: ProposalCommon_Rejected,
+			ExpResult:      ProposalCommon_Rejected,
+			WantDeliverLog: "Proposal not accepted",
 		},
 		"Updates latest electorate on success": {
 			Init: func(t *testing.T, db weave.KVStore) {
@@ -1022,8 +1042,9 @@ func TestTally(t *testing.T) {
 					t.Errorf("expected %v but got %v", exp, got)
 				}
 			},
+			WantDeliverLog: "Proposal accepted: execution success",
 		},
-		"Does not complete tally when executor fails": {
+		"Completes tally even when executor fails": {
 			Init: func(t *testing.T, db weave.KVStore) {
 				// update electorate for a new version without Alice
 				bucket := NewElectorateBucket()
@@ -1086,6 +1107,7 @@ func TestTally(t *testing.T) {
 					t.Errorf("expected %v but got %v", exp, got)
 				}
 			},
+			WantDeliverLog: "Proposal not accepted",
 		},
 		"Fails on second tally": {
 			Mods: func(_ weave.Context, p *Proposal) {
@@ -1098,6 +1120,7 @@ func TestTally(t *testing.T) {
 			WantCheckErr:   errors.ErrState,
 			WantDeliverErr: errors.ErrState,
 			ExpResult:      ProposalCommon_Accepted,
+			WantDeliverLog: "Proposal not accepted",
 		},
 		"Fails on tally before end date": {
 			Mods: func(ctx weave.Context, p *Proposal) {
@@ -1110,6 +1133,7 @@ func TestTally(t *testing.T) {
 			WantCheckErr:   errors.ErrState,
 			WantDeliverErr: errors.ErrState,
 			ExpResult:      ProposalCommon_Undefined,
+			WantDeliverLog: "Proposal not accepted",
 		},
 		"Fails on tally at end date": {
 			Mods: func(ctx weave.Context, p *Proposal) {
@@ -1122,6 +1146,7 @@ func TestTally(t *testing.T) {
 			WantCheckErr:   errors.ErrState,
 			WantDeliverErr: errors.ErrState,
 			ExpResult:      ProposalCommon_Undefined,
+			WantDeliverLog: "Proposal not accepted",
 		},
 		"Fails on withdrawn proposal": {
 			Mods: func(ctx weave.Context, p *Proposal) {
@@ -1134,6 +1159,7 @@ func TestTally(t *testing.T) {
 			WantCheckErr:   errors.ErrState,
 			WantDeliverErr: errors.ErrState,
 			ExpResult:      ProposalCommon_Undefined,
+			WantDeliverLog: "Proposal not accepted",
 		},
 	}
 	auth := &weavetest.Auth{
