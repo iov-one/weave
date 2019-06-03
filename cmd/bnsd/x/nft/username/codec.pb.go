@@ -7,6 +7,7 @@ import (
 	fmt "fmt"
 	_ "github.com/gogo/protobuf/gogoproto"
 	proto "github.com/gogo/protobuf/proto"
+	weave "github.com/iov-one/weave"
 	nft "github.com/iov-one/weave/x/nft"
 	io "io"
 	math "math"
@@ -24,8 +25,9 @@ var _ = math.Inf
 const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
 
 type UsernameToken struct {
-	Base    *nft.NonFungibleToken `protobuf:"bytes,1,opt,name=base,proto3" json:"base,omitempty"`
-	Details *TokenDetails         `protobuf:"bytes,2,opt,name=details,proto3" json:"details,omitempty"`
+	Metadata *weave.Metadata       `protobuf:"bytes,1,opt,name=metadata,proto3" json:"metadata,omitempty"`
+	Base     *nft.NonFungibleToken `protobuf:"bytes,2,opt,name=base,proto3" json:"base,omitempty"`
+	Details  *TokenDetails         `protobuf:"bytes,3,opt,name=details,proto3" json:"details,omitempty"`
 }
 
 func (m *UsernameToken) Reset()         { *m = UsernameToken{} }
@@ -60,6 +62,13 @@ func (m *UsernameToken) XXX_DiscardUnknown() {
 }
 
 var xxx_messageInfo_UsernameToken proto.InternalMessageInfo
+
+func (m *UsernameToken) GetMetadata() *weave.Metadata {
+	if m != nil {
+		return m.Metadata
+	}
+	return nil
+}
 
 func (m *UsernameToken) GetBase() *nft.NonFungibleToken {
 	if m != nil {
@@ -179,10 +188,11 @@ func (m *ChainAddress) GetAddress() string {
 }
 
 type IssueTokenMsg struct {
-	ID        []byte                `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Owner     []byte                `protobuf:"bytes,2,opt,name=owner,proto3" json:"owner,omitempty"`
-	Approvals []nft.ActionApprovals `protobuf:"bytes,3,rep,name=approvals,proto3" json:"approvals"`
-	Details   TokenDetails          `protobuf:"bytes,4,opt,name=details,proto3" json:"details"`
+	Metadata  *weave.Metadata       `protobuf:"bytes,1,opt,name=metadata,proto3" json:"metadata,omitempty"`
+	ID        []byte                `protobuf:"bytes,2,opt,name=id,proto3" json:"id,omitempty"`
+	Owner     []byte                `protobuf:"bytes,3,opt,name=owner,proto3" json:"owner,omitempty"`
+	Approvals []nft.ActionApprovals `protobuf:"bytes,4,rep,name=approvals,proto3" json:"approvals"`
+	Details   TokenDetails          `protobuf:"bytes,5,opt,name=details,proto3" json:"details"`
 }
 
 func (m *IssueTokenMsg) Reset()         { *m = IssueTokenMsg{} }
@@ -218,6 +228,13 @@ func (m *IssueTokenMsg) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_IssueTokenMsg proto.InternalMessageInfo
 
+func (m *IssueTokenMsg) GetMetadata() *weave.Metadata {
+	if m != nil {
+		return m.Metadata
+	}
+	return nil
+}
+
 func (m *IssueTokenMsg) GetID() []byte {
 	if m != nil {
 		return m.ID
@@ -247,9 +264,10 @@ func (m *IssueTokenMsg) GetDetails() TokenDetails {
 }
 
 type AddChainAddressMsg struct {
-	UsernameID   []byte `protobuf:"bytes,1,opt,name=username_id,json=usernameId,proto3" json:"username_id,omitempty"`
-	BlockchainID []byte `protobuf:"bytes,2,opt,name=blockchain_id,json=blockchainId,proto3" json:"blockchain_id,omitempty"`
-	Address      string `protobuf:"bytes,3,opt,name=address,proto3" json:"address,omitempty"`
+	Metadata     *weave.Metadata `protobuf:"bytes,1,opt,name=metadata,proto3" json:"metadata,omitempty"`
+	UsernameID   []byte          `protobuf:"bytes,2,opt,name=username_id,json=usernameId,proto3" json:"username_id,omitempty"`
+	BlockchainID []byte          `protobuf:"bytes,3,opt,name=blockchain_id,json=blockchainId,proto3" json:"blockchain_id,omitempty"`
+	Address      string          `protobuf:"bytes,4,opt,name=address,proto3" json:"address,omitempty"`
 }
 
 func (m *AddChainAddressMsg) Reset()         { *m = AddChainAddressMsg{} }
@@ -285,6 +303,13 @@ func (m *AddChainAddressMsg) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_AddChainAddressMsg proto.InternalMessageInfo
 
+func (m *AddChainAddressMsg) GetMetadata() *weave.Metadata {
+	if m != nil {
+		return m.Metadata
+	}
+	return nil
+}
+
 func (m *AddChainAddressMsg) GetUsernameID() []byte {
 	if m != nil {
 		return m.UsernameID
@@ -307,9 +332,10 @@ func (m *AddChainAddressMsg) GetAddress() string {
 }
 
 type RemoveChainAddressMsg struct {
-	UsernameID   []byte `protobuf:"bytes,1,opt,name=username_id,json=usernameId,proto3" json:"username_id,omitempty"`
-	BlockchainID []byte `protobuf:"bytes,2,opt,name=blockchain_id,json=blockchainId,proto3" json:"blockchain_id,omitempty"`
-	Address      string `protobuf:"bytes,3,opt,name=address,proto3" json:"address,omitempty"`
+	Metadata     *weave.Metadata `protobuf:"bytes,1,opt,name=metadata,proto3" json:"metadata,omitempty"`
+	UsernameID   []byte          `protobuf:"bytes,2,opt,name=username_id,json=usernameId,proto3" json:"username_id,omitempty"`
+	BlockchainID []byte          `protobuf:"bytes,3,opt,name=blockchain_id,json=blockchainId,proto3" json:"blockchain_id,omitempty"`
+	Address      string          `protobuf:"bytes,4,opt,name=address,proto3" json:"address,omitempty"`
 }
 
 func (m *RemoveChainAddressMsg) Reset()         { *m = RemoveChainAddressMsg{} }
@@ -344,6 +370,13 @@ func (m *RemoveChainAddressMsg) XXX_DiscardUnknown() {
 }
 
 var xxx_messageInfo_RemoveChainAddressMsg proto.InternalMessageInfo
+
+func (m *RemoveChainAddressMsg) GetMetadata() *weave.Metadata {
+	if m != nil {
+		return m.Metadata
+	}
+	return nil
+}
 
 func (m *RemoveChainAddressMsg) GetUsernameID() []byte {
 	if m != nil {
@@ -380,34 +413,36 @@ func init() {
 }
 
 var fileDescriptor_82026abd33a4836e = []byte{
-	// 426 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xcc, 0x93, 0x41, 0x6b, 0xd4, 0x40,
-	0x18, 0x86, 0x77, 0xb2, 0x6b, 0xeb, 0x7e, 0xcd, 0x8a, 0x0e, 0xdb, 0x12, 0x7a, 0x48, 0x4a, 0xbc,
-	0xe8, 0x25, 0x11, 0x45, 0x11, 0x6f, 0x89, 0x41, 0x88, 0xa0, 0x87, 0x41, 0xcf, 0x25, 0xc9, 0x4c,
-	0x63, 0x68, 0x76, 0x66, 0xc9, 0x64, 0xab, 0x3f, 0xc3, 0x93, 0xe0, 0xaf, 0xf0, 0x6f, 0xf4, 0xd8,
-	0xa3, 0xa7, 0x20, 0xd9, 0x3f, 0x22, 0x3b, 0xd9, 0x49, 0x52, 0x04, 0xc1, 0x9b, 0xb7, 0x9d, 0xef,
-	0x7d, 0xdf, 0x8f, 0xef, 0x7d, 0x96, 0xc0, 0xc3, 0x6c, 0x45, 0xfd, 0x94, 0x4b, 0xea, 0x7f, 0xf1,
-	0xf9, 0x45, 0xed, 0x6f, 0x24, 0xab, 0x78, 0xb2, 0x62, 0x7e, 0x26, 0x28, 0xcb, 0xbc, 0x75, 0x25,
-	0x6a, 0x81, 0xef, 0xea, 0xe9, 0xe9, 0x32, 0x17, 0xb9, 0x50, 0x43, 0x7f, 0xf7, 0xab, 0xd3, 0x4f,
-	0x1f, 0x74, 0xd9, 0x51, 0xc4, 0x2d, 0x61, 0xf1, 0x71, 0x1f, 0xfa, 0x20, 0x2e, 0x19, 0xc7, 0x8f,
-	0x61, 0x96, 0x26, 0x92, 0x59, 0xe8, 0x0c, 0x3d, 0x3a, 0x7a, 0x7a, 0xec, 0xf1, 0x8b, 0xda, 0x7b,
-	0x2f, 0xf8, 0x9b, 0x0d, 0xcf, 0x8b, 0xb4, 0xec, 0x4c, 0x44, 0x59, 0xf0, 0x13, 0x38, 0xa4, 0xac,
-	0x4e, 0x8a, 0x52, 0x5a, 0x86, 0x72, 0x9f, 0x78, 0xfa, 0x00, 0x4f, 0xf9, 0xa2, 0x4e, 0x25, 0xda,
-	0xe6, 0xbe, 0x05, 0x73, 0x2c, 0xe0, 0x57, 0x30, 0x4f, 0x28, 0xad, 0x98, 0x94, 0x4c, 0x5a, 0xe8,
-	0x6c, 0x7a, 0x7b, 0xc7, 0xeb, 0x4f, 0x49, 0xc1, 0x83, 0x4e, 0x0f, 0x67, 0xd7, 0x8d, 0x33, 0x21,
-	0x83, 0xdd, 0x3d, 0x07, 0x73, 0x6c, 0xc0, 0xcf, 0x61, 0x91, 0x96, 0x22, 0xbb, 0xcc, 0x76, 0xc3,
-	0xf3, 0x82, 0xaa, 0x06, 0x66, 0x78, 0xbf, 0x6d, 0x1c, 0x33, 0xec, 0x85, 0x38, 0x22, 0xe6, 0x60,
-	0x8b, 0x29, 0xb6, 0xe0, 0x70, 0xbf, 0x53, 0x95, 0x98, 0x13, 0xfd, 0x74, 0x7f, 0x20, 0x58, 0xc4,
-	0x52, 0x6e, 0xba, 0xce, 0xef, 0x64, 0x8e, 0x4f, 0xc0, 0xe8, 0xf7, 0x1e, 0xb4, 0x8d, 0x63, 0xc4,
-	0x11, 0x31, 0x0a, 0x8a, 0x97, 0x70, 0x47, 0x7c, 0xe6, 0xac, 0x52, 0x1b, 0x4c, 0xd2, 0x3d, 0xf0,
-	0x4b, 0x98, 0x27, 0xeb, 0x75, 0x25, 0xae, 0x92, 0x52, 0x5a, 0x53, 0x55, 0x6e, 0xa9, 0x70, 0x06,
-	0x59, 0x5d, 0x08, 0x1e, 0x68, 0xad, 0xaf, 0xa6, 0x07, 0xf8, 0xc5, 0x00, 0x76, 0xf6, 0x37, 0xb0,
-	0xfb, 0x64, 0x8f, 0xf7, 0x1b, 0x02, 0x1c, 0x50, 0x3a, 0xc6, 0xb2, 0x3b, 0xdb, 0x87, 0x23, 0x1d,
-	0x1f, 0xb8, 0xdc, 0x6b, 0x1b, 0x07, 0xf4, 0x5f, 0x1f, 0x47, 0x04, 0xb4, 0x25, 0xa6, 0x7f, 0xa2,
-	0x34, 0xfe, 0x15, 0xe5, 0xf4, 0x36, 0xca, 0xef, 0x08, 0x8e, 0x09, 0x5b, 0x89, 0x2b, 0xf6, 0xdf,
-	0xdd, 0x16, 0x5a, 0xd7, 0xad, 0x8d, 0x6e, 0x5a, 0x1b, 0xfd, 0x6a, 0x6d, 0xf4, 0x75, 0x6b, 0x4f,
-	0x6e, 0xb6, 0xf6, 0xe4, 0xe7, 0xd6, 0x9e, 0xa4, 0x07, 0xea, 0x13, 0x79, 0xf6, 0x3b, 0x00, 0x00,
-	0xff, 0xff, 0x4a, 0x07, 0xd2, 0xe1, 0x7c, 0x03, 0x00, 0x00,
+	// 462 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xd4, 0x93, 0x4f, 0x8b, 0xd3, 0x40,
+	0x18, 0xc6, 0x3b, 0x6d, 0xf7, 0x4f, 0xdf, 0xa6, 0xfe, 0x19, 0xba, 0x4b, 0xd8, 0x43, 0xba, 0xd4,
+	0x8b, 0x22, 0x24, 0xa2, 0x28, 0xe2, 0xad, 0xb1, 0x08, 0x11, 0xd6, 0xc3, 0xa0, 0xe7, 0x32, 0xc9,
+	0xcc, 0xd6, 0xb0, 0xcd, 0x4c, 0xc9, 0xa4, 0x5d, 0x3f, 0x86, 0x57, 0x3f, 0x8f, 0x20, 0x7b, 0xdc,
+	0xa3, 0x07, 0x09, 0x92, 0x7e, 0x11, 0xd9, 0x49, 0x26, 0x4d, 0x11, 0x84, 0x1e, 0xbd, 0xcd, 0xbc,
+	0xef, 0xaf, 0x4f, 0xf3, 0x3c, 0x4f, 0x02, 0x8f, 0xa2, 0x84, 0x79, 0xa1, 0x50, 0xcc, 0xfb, 0xe2,
+	0x89, 0xcb, 0xcc, 0x5b, 0x29, 0x9e, 0x0a, 0x9a, 0x70, 0x2f, 0x92, 0x8c, 0x47, 0xee, 0x32, 0x95,
+	0x99, 0xc4, 0xc7, 0x66, 0x7a, 0xd6, 0x6f, 0x8c, 0xcf, 0x86, 0x73, 0x39, 0x97, 0xfa, 0xe8, 0xdd,
+	0x9d, 0xaa, 0xe9, 0xc3, 0x52, 0xa8, 0x01, 0x8e, 0xbf, 0x21, 0x18, 0x7c, 0xaa, 0x24, 0x3e, 0xca,
+	0x2b, 0x2e, 0xf0, 0x53, 0x38, 0x4e, 0x78, 0x46, 0x19, 0xcd, 0xa8, 0x8d, 0xce, 0xd1, 0xe3, 0xfe,
+	0xf3, 0xfb, 0xee, 0x35, 0xa7, 0x6b, 0xee, 0x5e, 0x54, 0x63, 0x52, 0x03, 0xf8, 0x09, 0x74, 0x43,
+	0xaa, 0xb8, 0xdd, 0xd6, 0xe0, 0x89, 0x2b, 0x2e, 0x33, 0xf7, 0x83, 0x14, 0xef, 0x56, 0x62, 0x1e,
+	0x87, 0x8b, 0x52, 0x91, 0x68, 0x04, 0x3f, 0x83, 0x23, 0xc6, 0x33, 0x1a, 0x2f, 0x94, 0xdd, 0xd1,
+	0xf4, 0xa9, 0x6b, 0x9e, 0xdd, 0xd5, 0xdc, 0xb4, 0xdc, 0x12, 0x83, 0x8d, 0xdf, 0x83, 0xd5, 0x5c,
+	0xe0, 0x37, 0xd0, 0xa3, 0x8c, 0xa5, 0x5c, 0x29, 0xae, 0x6c, 0x74, 0xde, 0xd9, 0xd5, 0x78, 0xfb,
+	0x99, 0xc6, 0x62, 0x52, 0xee, 0xfd, 0xee, 0x4d, 0x3e, 0x6a, 0x91, 0x2d, 0x3e, 0x9e, 0x81, 0xd5,
+	0x04, 0xf0, 0x4b, 0x18, 0x84, 0x0b, 0x19, 0x5d, 0x45, 0x77, 0xc3, 0x59, 0xcc, 0xb4, 0x55, 0xcb,
+	0x7f, 0x50, 0xe4, 0x23, 0xcb, 0xaf, 0x17, 0xc1, 0x94, 0x58, 0x5b, 0x2c, 0x60, 0xd8, 0x86, 0xa3,
+	0x4a, 0x53, 0x5b, 0xee, 0x11, 0x73, 0x1d, 0xff, 0x42, 0x30, 0x08, 0x94, 0x5a, 0x95, 0x9e, 0x2f,
+	0xd4, 0x7c, 0xbf, 0x20, 0x4f, 0xa1, 0x1d, 0x33, 0xad, 0x69, 0xf9, 0x87, 0x45, 0x3e, 0x6a, 0x07,
+	0x53, 0xd2, 0x8e, 0x19, 0x1e, 0xc2, 0x81, 0xbc, 0x16, 0x3c, 0xd5, 0x99, 0x59, 0xa4, 0xbc, 0xe0,
+	0xd7, 0xd0, 0xa3, 0xcb, 0x65, 0x2a, 0xd7, 0x74, 0xa1, 0xec, 0xae, 0x4e, 0x62, 0xa8, 0xb3, 0x9f,
+	0x44, 0x59, 0x2c, 0xc5, 0xc4, 0xec, 0xea, 0x1c, 0xcc, 0x00, 0xbf, 0xda, 0xb6, 0x70, 0xf0, 0xaf,
+	0x16, 0xaa, 0x5f, 0xd6, 0x5d, 0x7c, 0x47, 0x80, 0x27, 0x8c, 0x35, 0x33, 0xdc, 0xdb, 0xa3, 0x07,
+	0x7d, 0xf3, 0x5f, 0xb3, 0xda, 0xec, 0xbd, 0x22, 0x1f, 0x81, 0x79, 0x03, 0x83, 0x29, 0x01, 0x83,
+	0x04, 0xec, 0xef, 0x92, 0x3a, 0xfb, 0x96, 0xd4, 0xdd, 0x2d, 0xe9, 0x07, 0x82, 0x13, 0xc2, 0x13,
+	0xb9, 0xe6, 0xff, 0xb7, 0x11, 0xdf, 0xbe, 0x29, 0x1c, 0x74, 0x5b, 0x38, 0xe8, 0x77, 0xe1, 0xa0,
+	0xaf, 0x1b, 0xa7, 0x75, 0xbb, 0x71, 0x5a, 0x3f, 0x37, 0x4e, 0x2b, 0x3c, 0xd4, 0xdf, 0xf5, 0x8b,
+	0x3f, 0x01, 0x00, 0x00, 0xff, 0xff, 0xa3, 0xbf, 0x11, 0x6f, 0x3e, 0x04, 0x00, 0x00,
 }
 
 func (m *UsernameToken) Marshal() (dAtA []byte, err error) {
@@ -425,25 +460,35 @@ func (m *UsernameToken) MarshalTo(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
-	if m.Base != nil {
+	if m.Metadata != nil {
 		dAtA[i] = 0xa
 		i++
-		i = encodeVarintCodec(dAtA, i, uint64(m.Base.Size()))
-		n1, err := m.Base.MarshalTo(dAtA[i:])
+		i = encodeVarintCodec(dAtA, i, uint64(m.Metadata.Size()))
+		n1, err := m.Metadata.MarshalTo(dAtA[i:])
 		if err != nil {
 			return 0, err
 		}
 		i += n1
 	}
-	if m.Details != nil {
+	if m.Base != nil {
 		dAtA[i] = 0x12
 		i++
-		i = encodeVarintCodec(dAtA, i, uint64(m.Details.Size()))
-		n2, err := m.Details.MarshalTo(dAtA[i:])
+		i = encodeVarintCodec(dAtA, i, uint64(m.Base.Size()))
+		n2, err := m.Base.MarshalTo(dAtA[i:])
 		if err != nil {
 			return 0, err
 		}
 		i += n2
+	}
+	if m.Details != nil {
+		dAtA[i] = 0x1a
+		i++
+		i = encodeVarintCodec(dAtA, i, uint64(m.Details.Size()))
+		n3, err := m.Details.MarshalTo(dAtA[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += n3
 	}
 	return i, nil
 }
@@ -523,21 +568,31 @@ func (m *IssueTokenMsg) MarshalTo(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
-	if len(m.ID) > 0 {
+	if m.Metadata != nil {
 		dAtA[i] = 0xa
+		i++
+		i = encodeVarintCodec(dAtA, i, uint64(m.Metadata.Size()))
+		n4, err := m.Metadata.MarshalTo(dAtA[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += n4
+	}
+	if len(m.ID) > 0 {
+		dAtA[i] = 0x12
 		i++
 		i = encodeVarintCodec(dAtA, i, uint64(len(m.ID)))
 		i += copy(dAtA[i:], m.ID)
 	}
 	if len(m.Owner) > 0 {
-		dAtA[i] = 0x12
+		dAtA[i] = 0x1a
 		i++
 		i = encodeVarintCodec(dAtA, i, uint64(len(m.Owner)))
 		i += copy(dAtA[i:], m.Owner)
 	}
 	if len(m.Approvals) > 0 {
 		for _, msg := range m.Approvals {
-			dAtA[i] = 0x1a
+			dAtA[i] = 0x22
 			i++
 			i = encodeVarintCodec(dAtA, i, uint64(msg.Size()))
 			n, err := msg.MarshalTo(dAtA[i:])
@@ -547,14 +602,14 @@ func (m *IssueTokenMsg) MarshalTo(dAtA []byte) (int, error) {
 			i += n
 		}
 	}
-	dAtA[i] = 0x22
+	dAtA[i] = 0x2a
 	i++
 	i = encodeVarintCodec(dAtA, i, uint64(m.Details.Size()))
-	n3, err := m.Details.MarshalTo(dAtA[i:])
+	n5, err := m.Details.MarshalTo(dAtA[i:])
 	if err != nil {
 		return 0, err
 	}
-	i += n3
+	i += n5
 	return i, nil
 }
 
@@ -573,20 +628,30 @@ func (m *AddChainAddressMsg) MarshalTo(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
-	if len(m.UsernameID) > 0 {
+	if m.Metadata != nil {
 		dAtA[i] = 0xa
+		i++
+		i = encodeVarintCodec(dAtA, i, uint64(m.Metadata.Size()))
+		n6, err := m.Metadata.MarshalTo(dAtA[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += n6
+	}
+	if len(m.UsernameID) > 0 {
+		dAtA[i] = 0x12
 		i++
 		i = encodeVarintCodec(dAtA, i, uint64(len(m.UsernameID)))
 		i += copy(dAtA[i:], m.UsernameID)
 	}
 	if len(m.BlockchainID) > 0 {
-		dAtA[i] = 0x12
+		dAtA[i] = 0x1a
 		i++
 		i = encodeVarintCodec(dAtA, i, uint64(len(m.BlockchainID)))
 		i += copy(dAtA[i:], m.BlockchainID)
 	}
 	if len(m.Address) > 0 {
-		dAtA[i] = 0x1a
+		dAtA[i] = 0x22
 		i++
 		i = encodeVarintCodec(dAtA, i, uint64(len(m.Address)))
 		i += copy(dAtA[i:], m.Address)
@@ -609,20 +674,30 @@ func (m *RemoveChainAddressMsg) MarshalTo(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
-	if len(m.UsernameID) > 0 {
+	if m.Metadata != nil {
 		dAtA[i] = 0xa
+		i++
+		i = encodeVarintCodec(dAtA, i, uint64(m.Metadata.Size()))
+		n7, err := m.Metadata.MarshalTo(dAtA[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += n7
+	}
+	if len(m.UsernameID) > 0 {
+		dAtA[i] = 0x12
 		i++
 		i = encodeVarintCodec(dAtA, i, uint64(len(m.UsernameID)))
 		i += copy(dAtA[i:], m.UsernameID)
 	}
 	if len(m.BlockchainID) > 0 {
-		dAtA[i] = 0x12
+		dAtA[i] = 0x1a
 		i++
 		i = encodeVarintCodec(dAtA, i, uint64(len(m.BlockchainID)))
 		i += copy(dAtA[i:], m.BlockchainID)
 	}
 	if len(m.Address) > 0 {
-		dAtA[i] = 0x1a
+		dAtA[i] = 0x22
 		i++
 		i = encodeVarintCodec(dAtA, i, uint64(len(m.Address)))
 		i += copy(dAtA[i:], m.Address)
@@ -645,6 +720,10 @@ func (m *UsernameToken) Size() (n int) {
 	}
 	var l int
 	_ = l
+	if m.Metadata != nil {
+		l = m.Metadata.Size()
+		n += 1 + l + sovCodec(uint64(l))
+	}
 	if m.Base != nil {
 		l = m.Base.Size()
 		n += 1 + l + sovCodec(uint64(l))
@@ -694,6 +773,10 @@ func (m *IssueTokenMsg) Size() (n int) {
 	}
 	var l int
 	_ = l
+	if m.Metadata != nil {
+		l = m.Metadata.Size()
+		n += 1 + l + sovCodec(uint64(l))
+	}
 	l = len(m.ID)
 	if l > 0 {
 		n += 1 + l + sovCodec(uint64(l))
@@ -719,6 +802,10 @@ func (m *AddChainAddressMsg) Size() (n int) {
 	}
 	var l int
 	_ = l
+	if m.Metadata != nil {
+		l = m.Metadata.Size()
+		n += 1 + l + sovCodec(uint64(l))
+	}
 	l = len(m.UsernameID)
 	if l > 0 {
 		n += 1 + l + sovCodec(uint64(l))
@@ -740,6 +827,10 @@ func (m *RemoveChainAddressMsg) Size() (n int) {
 	}
 	var l int
 	_ = l
+	if m.Metadata != nil {
+		l = m.Metadata.Size()
+		n += 1 + l + sovCodec(uint64(l))
+	}
 	l = len(m.UsernameID)
 	if l > 0 {
 		n += 1 + l + sovCodec(uint64(l))
@@ -799,6 +890,42 @@ func (m *UsernameToken) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Metadata", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Metadata == nil {
+				m.Metadata = &weave.Metadata{}
+			}
+			if err := m.Metadata.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Base", wireType)
 			}
 			var msglen int
@@ -833,7 +960,7 @@ func (m *UsernameToken) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
-		case 2:
+		case 3:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Details", wireType)
 			}
@@ -1130,6 +1257,42 @@ func (m *IssueTokenMsg) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Metadata", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Metadata == nil {
+				m.Metadata = &weave.Metadata{}
+			}
+			if err := m.Metadata.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field ID", wireType)
 			}
 			var byteLen int
@@ -1162,7 +1325,7 @@ func (m *IssueTokenMsg) Unmarshal(dAtA []byte) error {
 				m.ID = []byte{}
 			}
 			iNdEx = postIndex
-		case 2:
+		case 3:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Owner", wireType)
 			}
@@ -1196,7 +1359,7 @@ func (m *IssueTokenMsg) Unmarshal(dAtA []byte) error {
 				m.Owner = []byte{}
 			}
 			iNdEx = postIndex
-		case 3:
+		case 4:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Approvals", wireType)
 			}
@@ -1230,7 +1393,7 @@ func (m *IssueTokenMsg) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
-		case 4:
+		case 5:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Details", wireType)
 			}
@@ -1318,6 +1481,42 @@ func (m *AddChainAddressMsg) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Metadata", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Metadata == nil {
+				m.Metadata = &weave.Metadata{}
+			}
+			if err := m.Metadata.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field UsernameID", wireType)
 			}
 			var byteLen int
@@ -1350,7 +1549,7 @@ func (m *AddChainAddressMsg) Unmarshal(dAtA []byte) error {
 				m.UsernameID = []byte{}
 			}
 			iNdEx = postIndex
-		case 2:
+		case 3:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field BlockchainID", wireType)
 			}
@@ -1384,7 +1583,7 @@ func (m *AddChainAddressMsg) Unmarshal(dAtA []byte) error {
 				m.BlockchainID = []byte{}
 			}
 			iNdEx = postIndex
-		case 3:
+		case 4:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Address", wireType)
 			}
@@ -1471,6 +1670,42 @@ func (m *RemoveChainAddressMsg) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Metadata", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Metadata == nil {
+				m.Metadata = &weave.Metadata{}
+			}
+			if err := m.Metadata.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field UsernameID", wireType)
 			}
 			var byteLen int
@@ -1503,7 +1738,7 @@ func (m *RemoveChainAddressMsg) Unmarshal(dAtA []byte) error {
 				m.UsernameID = []byte{}
 			}
 			iNdEx = postIndex
-		case 2:
+		case 3:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field BlockchainID", wireType)
 			}
@@ -1537,7 +1772,7 @@ func (m *RemoveChainAddressMsg) Unmarshal(dAtA []byte) error {
 				m.BlockchainID = []byte{}
 			}
 			iNdEx = postIndex
-		case 3:
+		case 4:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Address", wireType)
 			}

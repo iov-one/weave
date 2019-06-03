@@ -1,11 +1,14 @@
 syntax = "proto3";
 
 package username;
+
+import "codec.proto";
 import "x/nft/codec.proto";
 
 message UsernameToken {
-  nft.NonFungibleToken base = 1;
-  TokenDetails details = 2;
+  weave.Metadata metadata = 1;
+  nft.NonFungibleToken base = 2;
+  TokenDetails details = 3;
 }
 
 message TokenDetails {
@@ -25,20 +28,23 @@ message ChainAddress {
 }
 
 message IssueTokenMsg {
-  bytes id = 1 ;
-  bytes owner = 2;
-  repeated nft.ActionApprovals approvals = 3 ;
-  TokenDetails details = 4 ;
+  weave.Metadata metadata = 1;
+  bytes id = 2 ;
+  bytes owner = 3;
+  repeated nft.ActionApprovals approvals = 4 ;
+  TokenDetails details = 5 ;
 }
 
 message AddChainAddressMsg {
-  bytes username_id = 1 ;
-  bytes blockchain_id = 2 ;
-  string address = 3;
+  weave.Metadata metadata = 1;
+  bytes username_id = 2 ;
+  bytes blockchain_id = 3 ;
+  string address = 4;
 }
 
 message RemoveChainAddressMsg {
-  bytes username_id = 1 ;
-  bytes blockchain_id = 2 ;
-  string address = 3;
+  weave.Metadata metadata = 1;
+  bytes username_id = 2 ;
+  bytes blockchain_id = 3 ;
+  string address = 4;
 }
