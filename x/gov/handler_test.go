@@ -793,6 +793,14 @@ func TestTally(t *testing.T) {
 			},
 			ExpResult:      ProposalCommon_Accepted,
 			WantDeliverLog: "Proposal accepted: execution success",
+			PostChecks: func(t *testing.T, db weave.KVStore) {
+				obj, err := NewResolutionBucket().Get(db, weavetest.SequenceID(1))
+				assert.Nil(t, err)
+				res, err := asResolution(obj)
+				assert.Nil(t, err)
+				assert.Equal(t, res.ElectorateRef, orm.VersionedIDRef{ID: weavetest.SequenceID(1), Version: 1})
+				assert.Equal(t, res.Resolution, fixtureResolution)
+			},
 		},
 		"Accepted with all yes votes required": {
 			Src: tallySetup{
@@ -812,6 +820,12 @@ func TestTally(t *testing.T) {
 			},
 			ExpResult:      ProposalCommon_Rejected,
 			WantDeliverLog: "Proposal not accepted",
+			PostChecks: func(t *testing.T, db weave.KVStore) {
+				obj, err := NewResolutionBucket().Get(db, weavetest.SequenceID(1))
+				assert.Nil(t, obj)
+				// NotFound objects return nil, nil (why not errors.ErrNotFound??)
+				assert.Nil(t, err)
+			},
 		},
 		"Rejected on acceptance threshold value": {
 			Src: tallySetup{
@@ -1207,6 +1221,7 @@ func TestTally(t *testing.T) {
 			if spec.WantDeliverLog != "" && !strings.HasPrefix(dres.Log, spec.WantDeliverLog) {
 				t.Errorf("want Log: %s\ngot Log: %s", spec.WantDeliverLog, dres.Log)
 			}
+
 			// and check persisted result
 			p, err := pBucket.GetProposal(cache, weavetest.SequenceID(1))
 			if err != nil {

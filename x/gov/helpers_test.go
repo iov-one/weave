@@ -110,13 +110,15 @@ func withElectionRule(t *testing.T, db store.KVStore) *ElectionRule {
 	return rule
 }
 
+const fixtureResolution = "Lower tx fees for all!"
+
 func proposalFixture(t testing.TB, alice weave.Address, mods ...func(*Proposal)) Proposal {
 	now := weave.AsUnixTime(time.Now())
 	textOpts := &ProposalOptions{
 		Option: &ProposalOptions_Text{
 			Text: &TextResolutionMsg{
 				Metadata:   &weave.Metadata{Schema: 1},
-				Resolution: "Lower tx fees for all!",
+				Resolution: fixtureResolution,
 			},
 		},
 	}

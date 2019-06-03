@@ -602,8 +602,6 @@ func (h TextResolutionHandler) Deliver(ctx weave.Context, db weave.KVStore, tx w
 	if err != nil {
 		return nil, err
 	}
-	// dummy path
-	return &weave.DeliverResult{}, nil
 
 	proposal := CtxProposal(ctx)
 	if proposal == nil {
