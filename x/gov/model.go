@@ -304,6 +304,7 @@ func (r *Resolution) Validate() error {
 	if err := r.Metadata.Validate(); err != nil {
 		return errors.Wrap(err, "invalid metadata")
 	}
+	// TODO: validate proposal ID when we set it
 	if err := r.ElectorateRef.Validate(); err != nil {
 		return errors.Wrap(err, "invalid electorate_ref")
 	}
@@ -315,6 +316,8 @@ func (r *Resolution) Validate() error {
 
 func (r Resolution) Copy() orm.CloneableData {
 	return &Resolution{
+		Metadata:      r.Metadata.Copy(),
+		ProposalID:    r.ProposalID,
 		ElectorateRef: r.ElectorateRef,
 		Resolution:    r.Resolution,
 	}
