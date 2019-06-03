@@ -24,8 +24,10 @@ var (
 	guest  = makePrivKey("00CAFE00F00D").PublicKey().Address()
 )
 
-// this repeats the string as long as needed to get 64 digits, then
-// parses it as hex. It uses this as a "random" seed for the private key.
+// makePrivKey repeats the string as long as needed to get 64 digits, then
+// parses it as hex. It uses this repeated string as a "random" seed
+// for the private key.
+//
 // nothing random about it, but at least it gives us variety
 func makePrivKey(seed string) *crypto.PrivateKey {
 	rep := 64/len(seed) + 1
