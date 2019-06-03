@@ -26,7 +26,7 @@ Make sure to collect enough signatures before submitting the transaction.
 		fl.PrintDefaults()
 	}
 	var (
-		tmAddrFl = fl.String("tm", "https://bns.NETWORK.iov.one:443", "Tendermint node address. Use proper NETWORK name.")
+		tmAddrFl = fl.String("tm", env("TM_ADDR", "https://bns.NETWORK.iov.one:443"), "Tendermint node address. Use proper NETWORK name.")
 	)
 	fl.Parse(args)
 

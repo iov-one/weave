@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"flag"
@@ -31,17 +30,17 @@ content.
 		fl.PrintDefaults()
 	}
 	var (
-		tmAddrFl = fl.String("tm", "https://bns.NETWORK.iov.one:443", "Tendermint node address. Use proper NETWORK name.")
-		keyFl    = fl.String("key", "", "Hex encoded, private key that transaction should be signed with.")
+		tmAddrFl  = fl.String("tm", env("TM_ADDR", "https://bns.NETWORK.iov.one:443"), "Tendermint node address. Use proper NETWORK name.")
+		keyPathFl = fl.String("key", env("SIGN_KEY_PATH", ""), "Path to the private key file that transaction should be signed with.")
 	)
 	fl.Parse(args)
 
-	if *keyFl == "" {
+	if *keyPathFl == "" {
 		return errors.New("private key is required")
 	}
-	key, err := decodePrivateKey(*keyFl)
+	key, err := decodePrivateKey(*keyPathFl)
 	if err != nil {
-		return fmt.Errorf("cannot decode private key: %s", err)
+		return fmt.Errorf("cannot load private key: %s", err)
 	}
 
 	raw, err := ioutil.ReadAll(input)
@@ -77,10 +76,10 @@ content.
 	return err
 }
 
-func decodePrivateKey(hexSeed string) (*crypto.PrivateKey, error) {
-	data, err := hex.DecodeString(hexSeed)
+func decodePrivateKey(filepath string) (*crypto.PrivateKey, error) {
+	data, err := ioutil.ReadFile(filepath)
 	if err != nil {
-		return nil, fmt.Errorf("cannot hex decode: %s", err)
+		return nil, fmt.Errorf("cannot read %q file: %s", filepath, err)
 	}
 	if len(data) != 64 {
 		return nil, errors.New("invalid key length")
