@@ -12,6 +12,7 @@ type contextKey int
 const (
 	// private type creates an interface key for Context that cannot be accessed by any other package
 	contextKeyGov contextKey = iota
+	contextKeyProposal
 )
 
 func withElectionSuccess(ctx weave.Context, ruleID []byte) weave.Context {
@@ -45,4 +46,14 @@ func (a Authenticate) HasAddress(ctx weave.Context, addr weave.Address) bool {
 		}
 	}
 	return false
+}
+
+func withProposal(ctx weave.Context, proposal *Proposal) weave.Context {
+	return context.WithValue(ctx, contextKeyProposal, proposal)
+}
+
+// CtxProposal reads the context from the proposal (only set for executor)
+func CtxProposal(ctx weave.Context) *Proposal {
+	val, _ := ctx.Value(contextKeyProposal).(*Proposal)
+	return val
 }

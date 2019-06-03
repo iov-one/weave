@@ -217,7 +217,8 @@ func (h TallyHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) 
 
 	// we add the vote ctx here, to authenticate results in the executor
 	// ensure that the gov.Authenticator is used in those Handlers
-	voteCtx := withElectionSuccess(ctx, common.ElectionRuleRef.ID)
+	// we also add the proposal that was passed that can be accessed via CtxProposal()
+	voteCtx := withProposal(withElectionSuccess(ctx, common.ElectionRuleRef.ID), proposal)
 	cstore, ok := db.(weave.CacheableKVStore)
 	if !ok {
 		return &weave.DeliverResult{Log: "Proposal accepted: error: need cachable kvstore"}, nil
