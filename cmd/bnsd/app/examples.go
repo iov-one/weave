@@ -1,7 +1,9 @@
 package app
 
 import (
+	"encoding/hex"
 	"fmt"
+	"strings"
 
 	"github.com/iov-one/weave/cmd/bnsd/x/nft/username"
 	"github.com/iov-one/weave/coin"
@@ -12,6 +14,30 @@ import (
 	"github.com/iov-one/weave/x/nft"
 	"github.com/iov-one/weave/x/sigs"
 )
+
+// we fix the private keys here for deterministic output with the same encoding
+// these are not secure at all, but the only point is to check the format,
+// which is easier when everything is reproduceable.
+var (
+	sender = makePrivKey("1234567890")
+	dst    = makePrivKey("F00BA411").PublicKey().Address()
+	guest  = makePrivKey("00CAFE00F00D").PublicKey().Address()
+)
+
+// makePrivKey repeats the string as long as needed to get 64 digits, then
+// parses it as hex. It uses this repeated string as a "random" seed
+// for the private key.
+//
+// nothing random about it, but at least it gives us variety
+func makePrivKey(seed string) *crypto.PrivateKey {
+	rep := 64/len(seed) + 1
+	in := strings.Repeat(seed, rep)[:64]
+	bin, err := hex.DecodeString(in)
+	if err != nil {
+		panic(err)
+	}
+	return crypto.PrivKeyEd25519FromSeed(bin)
+}
 
 // Examples generates some example structs to dump out with testgen
 func Examples() []commands.Example {
@@ -28,15 +54,13 @@ func Examples() []commands.Example {
 		SigFigs: 8,
 	}
 
-	priv := crypto.GenPrivKeyEd25519()
-	pub := priv.PublicKey()
+	pub := sender.PublicKey()
 	addr := pub.Address()
 	user := &sigs.UserData{
 		Pubkey:   pub,
 		Sequence: 17,
 	}
 
-	dst := crypto.GenPrivKeyEd25519().PublicKey().Address()
 	amt := coin.NewCoin(250, 0, "ETH")
 	msg := &cash.SendMsg{
 		Amount: &amt,
@@ -60,13 +84,12 @@ func Examples() []commands.Example {
 		Sum: &Tx_SendMsg{msg},
 	}
 	tx := unsigned
-	sig, err := sigs.SignTx(priv, &tx, "test-123", 17)
+	sig, err := sigs.SignTx(sender, &tx, "test-123", 17)
 	if err != nil {
 		panic(err)
 	}
 	tx.Signatures = []*sigs.StdSignature{sig}
 
-	guest := crypto.GenPrivKeyEd25519().PublicKey().Address()
 	issueUsernameMsg := &username.IssueTokenMsg{
 		ID:    []byte("alice@example.com"),
 		Owner: addr,
@@ -98,7 +121,7 @@ func Examples() []commands.Example {
 	return []commands.Example{
 		{Filename: "wallet", Obj: wallet},
 		{Filename: "token", Obj: token},
-		{Filename: "priv_key", Obj: priv},
+		{Filename: "priv_key", Obj: sender},
 		{Filename: "pub_key", Obj: pub},
 		{Filename: "user", Obj: user},
 		{Filename: "send_msg", Obj: msg},

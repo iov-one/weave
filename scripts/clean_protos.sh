@@ -1,5 +1,5 @@
 #!/bin/bash
-set -o errexit -o nounset -o pipefail -x
+set -o errexit -o nounset -o pipefail
 command -v shellcheck > /dev/null && shellcheck "$0"
 
 
@@ -19,12 +19,13 @@ CLEAN=./cmd/cleanproto/cleanproto
 # OUT_DIR=${1:-spec}
 OUT_DIR=spec
 rm -rf ${OUT_DIR}
+echo "Outputing protobuf files:"
 
 (
-  find . -name '*.proto' -not -path '*/vendor/*' -not -path '*/examples/*' -not -path '*/cmd/bcpd/*' -not -path spec > tmp
+  find . -name '*.proto' -not -path '*/vendor/*' -not -path spec | sort > tmp
   while IFS= read -r filename
   do
-    echo "$filename"
+    echo "    $filename"
 
     outfile="$OUT_DIR/gogo/$filename"
     outdir=$(dirname "$outfile")
