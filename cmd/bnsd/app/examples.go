@@ -53,7 +53,7 @@ func Examples() []commands.Example {
 		},
 	}
 
-	eth := &coin.Coin{Whole: 50000, Fractional: 50000, Ticker: "ETH"}
+	eth := &coin.Coin{Whole: 50000, Fractional: 12345, Ticker: "ETH"}
 
 	token := &namecoin.Token{
 		Metadata: metadata,
