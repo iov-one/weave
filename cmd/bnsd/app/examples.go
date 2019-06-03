@@ -3,6 +3,7 @@ package app
 import (
 	"fmt"
 
+	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/cmd/bnsd/x/nft/username"
 	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/commands"
@@ -15,23 +16,30 @@ import (
 
 // Examples generates some example structs to dump out with testgen
 func Examples() []commands.Example {
+	metadata := &weave.Metadata{Schema: 1}
+
 	wallet := &namecoin.Wallet{
-		Name: "example",
+		Metadata: metadata,
+		Name:     "example",
 		Coins: []*coin.Coin{
 			&coin.Coin{Whole: 50000, Ticker: "ETH"},
 			&coin.Coin{Whole: 150, Fractional: 567000, Ticker: "BTC"},
 		},
 	}
 
+	eth := &coin.Coin{Whole: 50000, Fractional: 50000, Ticker: "ETH"}
+
 	token := &namecoin.Token{
-		Name:    "My special coin",
-		SigFigs: 8,
+		Metadata: metadata,
+		Name:     "My special coin",
+		SigFigs:  8,
 	}
 
 	priv := crypto.GenPrivKeyEd25519()
 	pub := priv.PublicKey()
 	addr := pub.Address()
 	user := &sigs.UserData{
+		Metadata: metadata,
 		Pubkey:   pub,
 		Sequence: 17,
 	}
@@ -39,21 +47,24 @@ func Examples() []commands.Example {
 	dst := crypto.GenPrivKeyEd25519().PublicKey().Address()
 	amt := coin.NewCoin(250, 0, "ETH")
 	msg := &cash.SendMsg{
-		Amount: &amt,
-		Dest:   dst,
-		Src:    addr,
-		Memo:   "Test payment",
+		Metadata: metadata,
+		Amount:   &amt,
+		Dest:     dst,
+		Src:      addr,
+		Memo:     "Test payment",
 	}
 
 	nameMsg := &namecoin.SetWalletNameMsg{
-		Address: addr,
-		Name:    "myname",
+		Metadata: metadata,
+		Address:  addr,
+		Name:     "myname",
 	}
 
 	tokenMsg := &namecoin.NewTokenMsg{
-		Ticker:  "ATM",
-		Name:    "At the moment",
-		SigFigs: 3,
+		Metadata: metadata,
+		Ticker:   "ATM",
+		Name:     "At the moment",
+		SigFigs:  3,
 	}
 
 	unsigned := Tx{
@@ -97,6 +108,7 @@ func Examples() []commands.Example {
 	fmt.Printf("Address: %s\n", addr)
 	return []commands.Example{
 		{Filename: "wallet", Obj: wallet},
+		{Filename: "coin", Obj: eth},
 		{Filename: "token", Obj: token},
 		{Filename: "priv_key", Obj: priv},
 		{Filename: "pub_key", Obj: pub},
