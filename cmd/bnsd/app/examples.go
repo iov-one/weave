@@ -53,6 +53,8 @@ func Examples() []commands.Example {
 		},
 	}
 
+	eth := &coin.Coin{Whole: 50000, Fractional: 50000, Ticker: "ETH"}
+
 	token := &namecoin.Token{
 		Metadata: metadata,
 		Name:     "My special coin",
@@ -131,6 +133,7 @@ func Examples() []commands.Example {
 	fmt.Printf("Address: %s\n", addr)
 	return []commands.Example{
 		{Filename: "wallet", Obj: wallet},
+		{Filename: "coin", Obj: eth},
 		{Filename: "token", Obj: token},
 		{Filename: "priv_key", Obj: sender},
 		{Filename: "pub_key", Obj: pub},
