@@ -5,15 +5,14 @@ import (
 	"testing"
 
 	"github.com/iov-one/weave/weavetest/assert"
-	"github.com/pkg/errors"
 )
 
 func TestAddToMultiErr(t *testing.T) {
 	var (
 		// create errors with stacktrace for equal comparision
-		myErrNotFound = errors.WithStack(ErrNotFound)
-		myErrState    = errors.WithStack(ErrState)
-		myErrMsg      = errors.WithStack(ErrMsg)
+		myErrNotFound = Wrap(ErrNotFound, "test")
+		myErrState    = Wrap(ErrState, "test")
+		myErrMsg      = Wrap(ErrMsg, "test")
 	)
 	specs := map[string]struct {
 		src error

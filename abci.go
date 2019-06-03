@@ -120,7 +120,6 @@ type TickResult struct {
 // as much info as possible.
 // When in debug mode always the full error information is returned.
 func DeliverTxError(err error, debug bool) abci.ResponseDeliverTx {
-	err = errors.Redact(err, debug)
 	code, log := errors.ABCIInfo(err, debug)
 	if code != errors.SuccessABCICode {
 		log = fmt.Sprintf("cannot deliver tx: %s", log)
@@ -135,7 +134,6 @@ func DeliverTxError(err error, debug bool) abci.ResponseDeliverTx {
 // much info as possible.
 // When in debug mode always the full error information is returned.
 func CheckTxError(err error, debug bool) abci.ResponseCheckTx {
-	err = errors.Redact(err, debug)
 	code, log := errors.ABCIInfo(err, debug)
 	if code != errors.SuccessABCICode {
 		log = fmt.Sprintf("cannot check tx: %s", log)

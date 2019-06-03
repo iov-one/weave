@@ -1,6 +1,7 @@
 package errors
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"strings"
@@ -156,34 +157,79 @@ func TestABCIInfoHidesStacktrace(t *testing.T) {
 }
 
 func TestRedact(t *testing.T) {
-	if err := Redact(ErrPanic, false); ErrPanic.Is(err) {
-		t.Error("in non-debug mode, redact must not pass through panic error")
+	if err := Redact(ErrPanic); ErrPanic.Is(err) {
+		t.Error("reduct must not pass through panic error")
 	}
-	if err := Redact(ErrPanic, true); !ErrPanic.Is(err) {
-		t.Error("in debug mode, redact should pass through panic error")
-	}
-
-	if err := Redact(ErrNotFound, true); !ErrNotFound.Is(err) {
-		t.Error("in debug mode, redact should pass through weave error")
-	}
-	if err := Redact(ErrNotFound, false); !ErrNotFound.Is(err) {
-		t.Error("in non-debug mode, redact should pass through weave error")
+	if err := Redact(ErrNotFound); !ErrNotFound.Is(err) {
+		t.Error("reduct should pass through weave error")
 	}
 
 	var cerr customErr
-	if err := Redact(cerr, true); err != cerr {
-		t.Error("in debug mode, redact should pass through ABCI code error")
-	}
-	if err := Redact(cerr, false); err != cerr {
-		t.Error("in non-debug mode, redact should pass through ABCI code error")
+	if err := Redact(cerr); err != cerr {
+		t.Error("reduct should pass through ABCI code error")
 	}
 
 	serr := fmt.Errorf("stdlib error")
-	if err := Redact(serr, false); err == serr {
-		t.Error("in non-debug mode, redact must not pass through a stdlib error")
+	if err := Redact(serr); err == serr {
+		t.Error("reduct must not pass through a stdlib error")
 	}
-	if err := Redact(serr, true); err != serr {
-		t.Error("in debug mode, redact should pass through a stdlib error")
+}
+
+func TestABCIInfoSerializeErr(t *testing.T) {
+	var (
+		// create errors with stacktrace for equal comparision
+		myErrState          = Wrap(ErrState, "test")
+		myErrMsg            = Wrap(ErrMsg, "test")
+		myPanic             = ErrPanic
+		myErrStateSTJson, _ = json.Marshal(fmt.Sprintf("%+v", myErrState))
+		myErrMsgSTJson, _   = json.Marshal(fmt.Sprintf("%+v", myErrMsg))
+	)
+
+	specs := map[string]struct {
+		src   error
+		debug bool
+		exp   string
+	}{
+		"single error": {
+			src:   myErrMsg,
+			debug: false,
+			exp:   "test: invalid message",
+		},
+		"single error with debug": {
+			src:   myErrMsg,
+			debug: true,
+			exp:   fmt.Sprintf("%+v", myErrMsg),
+		},
+		"multiErr default encoder": {
+			src: Append(myErrMsg, myErrState),
+			exp: `{"data":[{"code":4,"log":"test: invalid message"},{"code":10,"log":"test: invalid state"}]}`,
+		},
+		"multiErr default with internal": {
+			src: Append(myErrMsg, myPanic),
+			exp: `{"data":[{"code":4,"log":"test: invalid message"},{"code":111222,"log":"internal error"}]}`,
+		},
+		"multiErr debug": {
+			src:   Append(myErrMsg, myErrState),
+			debug: true,
+			exp:   fmt.Sprintf(`{"data":[{"code":4,"log":%s},{"code":10,"log":%s}]}`, string(myErrMsgSTJson), string(myErrStateSTJson)),
+		},
+		"redact in default encoder": {
+			src: myPanic,
+			exp: internalABCILog,
+		},
+		"do not redact in debug encoder": {
+			src:   myPanic,
+			debug: true,
+			exp:   fmt.Sprintf("%+v", myPanic),
+		},
+	}
+	for msg, spec := range specs {
+		t.Run(msg, func(t *testing.T) {
+			_, log := ABCIInfo(spec.src, spec.debug)
+			if exp, got := spec.exp, log; exp != got {
+				t.Errorf("expected %v but got %v", exp, got)
+			}
+		})
 	}
 }
 

@@ -30,25 +30,40 @@ func ABCIInfo(err error, debug bool) (uint32, string) {
 		return SuccessABCICode, ""
 	}
 
-	// Only non-internal errors information can be exposed. Any error that
-	// does not explicitly expose its state by providing and ABCI error
-	// code must be silenced.
-	if code := abciCode(err); code != internalABCICode {
-		if debug {
-			// Try to trigger full information formatting. This
-			// might produce a stacktrace.
-			return code, fmt.Sprintf("%+v", err)
-		}
-		return code, err.Error()
-	}
-
+	encode := defaultErrEncoder
 	if debug {
-		return internalABCICode, fmt.Sprintf("%+v", err)
+		encode = debugErrEncoder
+	}
+	code := abciCode(err)
+	if code == multiErrCode {
+		encode = multiErrEncoder(encode)
 	}
 
-	// For internal errors hide the original error message and return
-	// generic data.
-	return internalABCICode, internalABCILog
+	return code, encode(err)
+}
+
+// The errEncoder converts an error into a string string representation
+type errEncoder func(error) string
+
+// The debugErrEncoder encodes the error with a stacktrace.
+func debugErrEncoder(err error) string {
+	return fmt.Sprintf("%+v", err)
+}
+
+// The defaultErrEncoder applies Redact on the error before encoding it with its internal error message.
+func defaultErrEncoder(err error) string {
+	return Redact(err).Error()
+}
+
+// The multiErrEncoder wraps an encoder with support for multiErr type
+func multiErrEncoder(enc errEncoder) errEncoder {
+	return func(err error) string {
+		mErr, ok := err.(multiErr)
+		if !ok {
+			return enc(err)
+		}
+		return serializeMultiErr(mErr, enc)
+	}
 }
 
 type coder interface {
@@ -95,12 +110,7 @@ func errIsNil(err error) bool {
 // generic internal error instance. This function is supposed to hide
 // implementation details errors and leave only those that weave framework
 // originates.
-//
-// This is a no-operation function when running in debug mode.
-func Redact(err error, debug bool) error {
-	if debug {
-		return err
-	}
+func Redact(err error) error {
 	if ErrPanic.Is(err) {
 		return errors.New(internalABCILog)
 	}
