@@ -32,12 +32,13 @@ import (
 //   $ bnscli escrow-proposal -escrow 1 | bnscli sign | bnscli submit
 //
 var commands = map[string]func(input io.Reader, output io.Writer, args []string) error{
-	"transfer-proposal": cmdNewTransferProposal,
 	"escrow-proposal":   cmdNewEscrowProposal,
+	"reset-revenue":     cmdResetRevenue,
 	"sign":              cmdSignTransaction,
 	"submit":            cmdSubmitTransaction,
-	"view":              cmdTransactionView,
+	"transfer-proposal": cmdNewTransferProposal,
 	"version":           cmdVersion,
+	"view":              cmdTransactionView,
 }
 
 func main() {
