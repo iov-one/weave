@@ -27,7 +27,7 @@ import (
 // should provide a single functionality. A unix pipe can be used to construct
 // a pipeline. For example, there are 3 separate functions for creating a
 // transaction, signing and submitting. They can be combined into a single
-// pipeline line this:
+// pipeline line:
 //
 //   $ bnscli escrow-proposal -escrow 1 | bnscli sign | bnscli submit
 //
