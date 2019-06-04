@@ -137,6 +137,7 @@ func proposalFixture(t testing.TB, alice weave.Address, mods ...func(*Proposal))
 			SubmissionTime:  now.Add(-1 * time.Hour),
 			Status:          ProposalCommon_Submitted,
 			Result:          ProposalCommon_Undefined,
+			ExecutorResult:  ProposalCommon_NotRun,
 			Author:          alice,
 			VoteState:       NewTallyResult(nil, Fraction{1, 2}, 11),
 		},
