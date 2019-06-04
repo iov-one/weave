@@ -59,7 +59,10 @@ protolint: novendor
 protofmt: novendor
 	$(PROTOTOOL) format -w
 
-protoc: protofmt protodocs testvectors protolint
+protoc: protofmt protolint protodocs protogen testvectors
+	@# protoc will clean protobuf, generate new code, then create testvectors
+
+protogen:
 	$(PROTOTOOL) generate
 	@# a bit of playing around to rename output, so it is only available for testcode
 	@mv -f x/gov/sample_test.pb.go x/gov/sample_test.go

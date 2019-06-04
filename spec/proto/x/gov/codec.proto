@@ -122,6 +122,18 @@ message ProposalCommon {
   }
   // Result is the final result based on the votes and election rule. Initial value is Undefined.
   Result result = 12;
+  enum ExecutorResult {
+    // An empty value is not allowed
+    PROPOSAL_COMMON_EXECUTOR_RESULT_INVALID = 0 ;
+    // We have not yet run the executor
+    PROPOSAL_COMMON_EXECUTOR_RESULT_NOT_RUN = 1 ;
+    // The executor was successful and proposed action updated state
+    PROPOSAL_COMMON_EXECUTOR_RESULT_SUCCESS = 2 ;
+    // The executor returned an error and proposed action didn't update state
+    PROPOSAL_COMMON_EXECUTOR_RESULT_FAILURE = 3 ;
+  }
+  // Result is the final result based on the votes and election rule. Initial value is Undefined.
+  ExecutorResult executor_result = 13;
 }
 
 // A generic proposal for an on-chain governance process.

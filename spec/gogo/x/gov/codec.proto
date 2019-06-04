@@ -123,6 +123,18 @@ message ProposalCommon {
   }
   // Result is the final result based on the votes and election rule. Initial value is Undefined.
   Result result = 12;
+  enum ExecutorResult {
+    // An empty value is not allowed
+    PROPOSAL_COMMON_EXECUTOR_RESULT_INVALID = 0 [(gogoproto.enumvalue_customname) = "ExEmpty"];
+    // We have not yet run the executor
+    PROPOSAL_COMMON_EXECUTOR_RESULT_NOT_RUN = 1 [(gogoproto.enumvalue_customname) = "NotRun"];
+    // The executor was successful and proposed action updated state
+    PROPOSAL_COMMON_EXECUTOR_RESULT_SUCCESS = 2 [(gogoproto.enumvalue_customname) = "Success"];
+    // The executor returned an error and proposed action didn't update state
+    PROPOSAL_COMMON_EXECUTOR_RESULT_FAILURE = 3 [(gogoproto.enumvalue_customname) = "Failure"];
+  }
+  // Result is the final result based on the votes and election rule. Initial value is Undefined.
+  ExecutorResult executor_result = 13;
 }
 
 // A generic proposal for an on-chain governance process.
