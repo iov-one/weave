@@ -14,7 +14,7 @@ import (
 // It can be used by the nft/base extension to register a handler.
 const ModelName = "username"
 
-var validBlockchainID = regexp.MustCompile(`^[a-zA-Z0-9_.-]{4,128}$`).Match
+var validBlockchainID = regexp.MustCompile(`^[a-zA-Z0-9_.-]{4,32}$`).Match
 
 type Token interface {
 	nft.BaseNFT
