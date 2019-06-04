@@ -304,7 +304,9 @@ func (r *Resolution) Validate() error {
 	if err := r.Metadata.Validate(); err != nil {
 		return errors.Wrap(err, "invalid metadata")
 	}
-	// TODO: validate proposal ID when we set it
+	if len(r.ProposalID) == 0 {
+		return errors.Wrapf(errors.ErrEmpty, "proposal id is missing")
+	}
 	if err := r.ElectorateRef.Validate(); err != nil {
 		return errors.Wrap(err, "invalid electorate_ref")
 	}
