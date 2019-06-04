@@ -15,6 +15,11 @@ const (
 	contextKeyProposal
 )
 
+type proposalWrapper struct {
+	proposal   *Proposal
+	proposalID []byte
+}
+
 func withElectionSuccess(ctx weave.Context, ruleID []byte) weave.Context {
 	val, _ := ctx.Value(contextKeyGov).([]weave.Condition)
 	return context.WithValue(ctx, contextKeyGov, append(val, ElectionCondition(ruleID)))
@@ -48,12 +53,12 @@ func (a Authenticate) HasAddress(ctx weave.Context, addr weave.Address) bool {
 	return false
 }
 
-func withProposal(ctx weave.Context, proposal *Proposal) weave.Context {
-	return context.WithValue(ctx, contextKeyProposal, proposal)
+func withProposal(ctx weave.Context, proposal *Proposal, proposalID []byte) weave.Context {
+	return context.WithValue(ctx, contextKeyProposal, proposalWrapper{proposal: proposal, proposalID: proposalID})
 }
 
 // CtxProposal reads the context from the proposal (only set for executor)
-func CtxProposal(ctx weave.Context) *Proposal {
-	val, _ := ctx.Value(contextKeyProposal).(*Proposal)
-	return val
+func CtxProposal(ctx weave.Context) (*Proposal, []byte) {
+	val, _ := ctx.Value(contextKeyProposal).(proposalWrapper)
+	return val.proposal, val.proposalID
 }

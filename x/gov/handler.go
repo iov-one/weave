@@ -217,8 +217,8 @@ func (h TallyHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) 
 
 	// we add the vote ctx here, to authenticate results in the executor
 	// ensure that the gov.Authenticator is used in those Handlers
-	// we also add the proposal that was passed that can be accessed via CtxProposal()
-	voteCtx := withProposal(withElectionSuccess(ctx, common.ElectionRuleRef.ID), proposal)
+	// we also add the proposal with id that was passed that can be accessed via CtxProposal()
+	voteCtx := withProposal(withElectionSuccess(ctx, common.ElectionRuleRef.ID), proposal, msg.ProposalID)
 	cstore, ok := db.(weave.CacheableKVStore)
 	if !ok {
 		return &weave.DeliverResult{Log: "Proposal accepted: error: need cachable kvstore"}, nil
@@ -603,14 +603,13 @@ func (h TextResolutionHandler) Deliver(ctx weave.Context, db weave.KVStore, tx w
 		return nil, err
 	}
 
-	proposal := CtxProposal(ctx)
+	proposal, proposalID := CtxProposal(ctx)
 	if proposal == nil {
 		return nil, errors.Wrap(errors.ErrNotFound, "no proposal set for passed resolution")
 	}
 	resolution := &Resolution{
-		Metadata: msg.Metadata,
-		// Note: right here is where I wish to have ID in the model
-		// ProposalID: proposal.,
+		Metadata:      msg.Metadata,
+		ProposalID:    proposalID,
 		ElectorateRef: proposal.Common.ElectorateRef,
 		Resolution:    msg.Resolution,
 	}
