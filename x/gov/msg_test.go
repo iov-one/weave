@@ -222,6 +222,33 @@ func TestDeleteProposalMsg(t *testing.T) {
 	}
 }
 
+func TestTextResolutionMsg(t *testing.T) {
+	specs := map[string]struct {
+		Msg TextResolutionMsg
+		Exp *errors.Error
+	}{
+		"Happy path": {
+			Msg: TextResolutionMsg{Resolution: "123", Metadata: &weave.Metadata{Schema: 1}},
+		},
+		"Empty resolution": {
+			Msg: TextResolutionMsg{Metadata: &weave.Metadata{Schema: 1}},
+			Exp: errors.ErrEmpty,
+		},
+		"Metadata missing": {
+			Msg: TextResolutionMsg{Resolution: "123"},
+			Exp: errors.ErrMetadata,
+		},
+	}
+	for msg, spec := range specs {
+		t.Run(msg, func(t *testing.T) {
+			err := spec.Msg.Validate()
+			if !spec.Exp.Is(err) {
+				t.Fatalf("check expected: %v  but got %+v", spec.Exp, err)
+			}
+		})
+	}
+}
+
 func BigString(n int) string {
 	const randomChar = "a"
 	var r string
