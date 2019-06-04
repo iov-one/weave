@@ -582,7 +582,6 @@ type TextResolutionHandler struct {
 }
 
 func newTextResolutionHandler(auth x.Authenticator) *TextResolutionHandler {
-	// TODO: actually add a bucket to store resolutions
 	return &TextResolutionHandler{
 		auth:   auth,
 		bucket: NewResolutionBucket(),

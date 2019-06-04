@@ -2,7 +2,7 @@ package gov
 
 import (
 	"context"
-	math "math"
+	"math"
 	"reflect"
 	"strings"
 	"testing"
@@ -519,6 +519,71 @@ func TestDeleteProposal(t *testing.T) {
 				assert.Equal(t, true, p.Common.Status != ProposalCommon_Withdrawn)
 			}
 
+			cache.Discard()
+		})
+	}
+}
+
+func TestCreateResolution(t *testing.T) {
+	ID := weavetest.SequenceID(1)
+	proposal := Proposal{Common: &ProposalCommon{ElectorateRef: orm.VersionedIDRef{ID: ID, Version: 1}}}
+
+	specs := map[string]struct {
+		ctx            weave.Context
+		Msg            TextResolutionMsg
+		WantCheckErr   *errors.Error
+		WantDeliverErr *errors.Error
+	}{
+		"Happy path": {
+			Msg: TextResolutionMsg{Metadata: &weave.Metadata{Schema: 1}, Resolution: "123"},
+			ctx: withProposal(context.Background(), &proposal, ID),
+		},
+		"Proposal not in context": {
+			Msg:            TextResolutionMsg{Metadata: &weave.Metadata{Schema: 1}, Resolution: "123"},
+			ctx:            context.Background(),
+			WantDeliverErr: errors.ErrNotFound,
+		},
+		"Invalid Resolution": {
+			Msg:            TextResolutionMsg{Metadata: &weave.Metadata{Schema: 1}, Resolution: ""},
+			ctx:            withProposal(context.Background(), &proposal, ID),
+			WantDeliverErr: errors.ErrEmpty,
+			WantCheckErr:   errors.ErrEmpty,
+		},
+	}
+
+	for msg, spec := range specs {
+		t.Run(msg, func(t *testing.T) {
+			db := store.MemStore()
+			migration.MustInitPkg(db, packageName)
+
+			auth := &weavetest.Auth{}
+			rt := app.NewRouter()
+			RegisterBasicProposalRouters(rt, auth)
+
+			// given
+			bucket := NewResolutionBucket()
+			cache := db.CacheWrap()
+
+			// when check
+			tx := &weavetest.Tx{Msg: &spec.Msg}
+			if _, err := rt.Check(spec.ctx, cache, tx); !spec.WantCheckErr.Is(err) {
+				t.Fatalf("check expected: %+v  but got %+v", spec.WantCheckErr, err)
+			}
+
+			cache.Discard()
+			// and when deliver
+			if _, err := rt.Deliver(spec.ctx, db, tx); !spec.WantDeliverErr.Is(err) {
+				t.Fatalf("deliver expected: %+v  but got %+v", spec.WantCheckErr, err)
+			}
+
+			if spec.WantDeliverErr != nil {
+				return // skip further checks on expected error
+			}
+
+			// check that resolution gets created
+			r, err := bucket.GetResolution(cache, weavetest.SequenceID(1))
+			assert.Nil(t, err)
+			assert.Equal(t, r != nil, true)
 			cache.Discard()
 		})
 	}
