@@ -22,7 +22,6 @@ message UserData {
 // A given signer must submit transactions with the sequence number
 // increasing by 1 each time (starting at 0)
 message StdSignature {
-  weave.Metadata metadata = 1;
   int64 sequence = 2;
   crypto.PublicKey pubkey = 3;
   // Removed Address, Pubkey is more powerful
