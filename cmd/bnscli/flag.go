@@ -65,6 +65,9 @@ func flHex(fl *flag.FlagSet, name, defaultVal, usage string) *flagbytes {
 	return &fb
 }
 
+// flagbytes is created to be used as a byte array that implements flag.Value
+// interface. It is using hex encoding to transform into a string
+// representation.
 type flagbytes []byte
 
 func (b flagbytes) String() string {

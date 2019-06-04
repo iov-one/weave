@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/binary"
 	"flag"
 	"fmt"
 	"io"
@@ -29,7 +30,7 @@ Create a proposal transaction for transfering funds from source account to the d
 		memoFl   = fl.String("memo", "", "A short message attached to the transfer operation.")
 		titleFl  = fl.String("title", "Transfer funds to distribution account", "The proposal title.")
 		descFl   = fl.String("description", "Transfer funds to distribution account", "The proposal description.")
-		eRuleFl  = fl.String("electionrule", "", "The ID of the election rule to be used.")
+		eRuleFl  = fl.Uint64("electionrule", 0, "The ID of the election rule to be used.")
 	)
 	fl.Parse(args)
 
@@ -57,7 +58,7 @@ Create a proposal transaction for transfering funds from source account to the d
 					Title:          *titleFl,
 					Description:    *descFl,
 					StartTime:      weave.AsUnixTime(time.Now().Add(time.Minute)),
-					ElectionRuleID: []byte(*eRuleFl),
+					ElectionRuleID: sequenceID(*eRuleFl),
 				},
 				RawOption: rawOption,
 			},
@@ -84,7 +85,7 @@ Create a proposal transaction for releasing funds from given escrow.
 		amountFl = flCoin(fl, "amount", "", "Optional amount that is to be transferred from the escrow. The whole escrow hold amount is used if no value is provided.")
 		titleFl  = fl.String("title", "Transfer funds to distribution account", "The proposal title.")
 		descFl   = fl.String("description", "Transfer funds to distribution account", "The proposal description.")
-		eRuleFl  = fl.String("electionrule", "", "The ID of the election rule to be used.")
+		eRuleFl  = fl.Uint64("electionrule", 0, "The ID of the election rule to be used.")
 	)
 	fl.Parse(args)
 
@@ -113,7 +114,7 @@ Create a proposal transaction for releasing funds from given escrow.
 					Title:          *titleFl,
 					Description:    *descFl,
 					StartTime:      weave.AsUnixTime(time.Now().Add(time.Minute)),
-					ElectionRuleID: []byte(*eRuleFl),
+					ElectionRuleID: sequenceID(*eRuleFl),
 				},
 				RawOption: rawOption,
 			},
@@ -125,4 +126,12 @@ Create a proposal transaction for releasing funds from given escrow.
 	}
 	_, err = output.Write(raw)
 	return err
+}
+
+// sequenceID returns a sequence value encoded as implemented in the orm
+// package.
+func sequenceID(n uint64) []byte {
+	b := make([]byte, 8)
+	binary.BigEndian.PutUint64(b, n)
+	return b
 }
