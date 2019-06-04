@@ -217,7 +217,8 @@ func (h TallyHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) 
 
 	// we add the vote ctx here, to authenticate results in the executor
 	// ensure that the gov.Authenticator is used in those Handlers
-	voteCtx := withElectionSuccess(ctx, common.ElectionRuleRef.ID)
+	// we also add the proposal with id that was passed that can be accessed via CtxProposal()
+	voteCtx := withProposal(withElectionSuccess(ctx, common.ElectionRuleRef.ID), proposal, msg.ProposalID)
 	cstore, ok := db.(weave.CacheableKVStore)
 	if !ok {
 		return &weave.DeliverResult{Log: "Proposal accepted: error: need cachable kvstore"}, nil
@@ -576,13 +577,14 @@ func (h UpdateElectionRuleHandler) validate(ctx weave.Context, db weave.KVStore,
 }
 
 type TextResolutionHandler struct {
-	auth x.Authenticator
+	auth   x.Authenticator
+	bucket *ResolutionBucket
 }
 
 func newTextResolutionHandler(auth x.Authenticator) *TextResolutionHandler {
-	// TODO: actually add a bucket to store resolutions
 	return &TextResolutionHandler{
-		auth: auth,
+		auth:   auth,
+		bucket: NewResolutionBucket(),
 	}
 }
 
@@ -595,12 +597,28 @@ func (h TextResolutionHandler) Check(ctx weave.Context, db weave.KVStore, tx wea
 }
 
 func (h TextResolutionHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
-	_, err := h.validate(ctx, db, tx)
+	msg, err := h.validate(ctx, db, tx)
 	if err != nil {
 		return nil, err
 	}
-	// TODO: store this resolution somewhere
-	return &weave.DeliverResult{}, nil
+
+	proposal, proposalID := CtxProposal(ctx)
+	if proposal == nil {
+		return nil, errors.Wrap(errors.ErrNotFound, "no proposal set for passed resolution")
+	}
+	resolution := &Resolution{
+		Metadata:      &weave.Metadata{},
+		ProposalID:    proposalID,
+		ElectorateRef: proposal.Common.ElectorateRef,
+		Resolution:    msg.Resolution,
+	}
+
+	// Use IDGenBucket auto-id
+	obj, err := h.bucket.Create(db, resolution)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to persist proposal")
+	}
+	return &weave.DeliverResult{Data: obj.Key()}, nil
 }
 
 func (h TextResolutionHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*TextResolutionMsg, error) {
@@ -608,9 +626,6 @@ func (h TextResolutionHandler) validate(ctx weave.Context, db weave.KVStore, tx 
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, errors.Wrap(err, "load msg")
 	}
-	// TODO: some auth?
-	// if !h.auth.HasAddress(ctx, rule.Admin) {
-	// 	return nil, errors.ErrUnauthorized
-	// }
+	// No auth, this can only be executed by gov proposal, and that info is stored alongside the resolution
 	return &msg, nil
 }

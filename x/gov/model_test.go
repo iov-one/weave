@@ -548,3 +548,50 @@ func TestVoteValidate(t *testing.T) {
 		})
 	}
 }
+
+func TestResolutionValidate(t *testing.T) {
+	specs := map[string]struct {
+		Mutator func(r *Resolution)
+		Exp     *errors.Error
+	}{
+		"Happy path": {},
+		"Empty resolution": {
+			Mutator: func(r *Resolution) {
+				r.Resolution = ""
+			},
+			Exp: errors.ErrEmpty,
+		},
+		"Metadata missing": {
+			Mutator: func(r *Resolution) {
+				r.Metadata = nil
+			},
+			Exp: errors.ErrMetadata,
+		},
+		"ProposalID missing": {
+			Mutator: func(r *Resolution) {
+				r.ProposalID = nil
+			},
+			Exp: errors.ErrInput,
+		},
+		"ElectorateRef invalid": {
+			Mutator: func(r *Resolution) {
+				r.ElectorateRef.Version = 0
+			},
+			Exp: errors.ErrEmpty,
+		},
+	}
+	for msg, spec := range specs {
+		resolution := Resolution{Resolution: "123", Metadata: &weave.Metadata{Schema: 1},
+			ProposalID:    weavetest.SequenceID(1),
+			ElectorateRef: orm.VersionedIDRef{ID: weavetest.SequenceID(1), Version: 1}}
+		t.Run(msg, func(t *testing.T) {
+			if spec.Mutator != nil {
+				spec.Mutator(&resolution)
+			}
+			err := resolution.Validate()
+			if !spec.Exp.Is(err) {
+				t.Fatalf("check expected: %v  but got %+v", spec.Exp, err)
+			}
+		})
+	}
+}

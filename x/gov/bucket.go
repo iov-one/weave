@@ -102,6 +102,51 @@ func (b *ProposalBucket) Update(db weave.KVStore, id []byte, obj *Proposal) erro
 }
 
 const (
+	indexNameElectorate = "electorate"
+)
+
+// ResolutionBucket is the persistence bucket for resolutions.
+type ResolutionBucket struct {
+	orm.IDGenBucket
+}
+
+func NewResolutionBucket() *ResolutionBucket {
+	b := migration.NewBucket(packageName, "resolution", orm.NewSimpleObj(nil, &Resolution{})).
+		WithIndex(indexNameElectorate, electorateIDIndexer, false)
+	return &ResolutionBucket{
+		IDGenBucket: orm.WithSeqIDGenerator(b, "id"),
+	}
+}
+
+func electorateIDIndexer(obj orm.Object) ([]byte, error) {
+	r, err := asResolution(obj)
+	if err != nil {
+		return nil, err
+	}
+	return r.ElectorateRef.ID, nil
+}
+
+// GetResolution loads the resolution for the given id. If it does not exist then ErrNotFound is returned.
+func (b *ResolutionBucket) GetResolution(db weave.KVStore, id []byte) (*Resolution, error) {
+	obj, err := b.Get(db, id)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to load resolution")
+	}
+	return asResolution(obj)
+}
+
+func asResolution(obj orm.Object) (*Resolution, error) {
+	if obj == nil || obj.Value() == nil {
+		return nil, errors.Wrap(errors.ErrNotFound, "unknown id")
+	}
+	rev, ok := obj.Value().(*Resolution)
+	if !ok {
+		return nil, errors.Wrapf(errors.ErrModel, "invalid type: %T", obj.Value())
+	}
+	return rev, nil
+}
+
+const (
 	indexNameProposal = "proposal"
 	indexNameElector  = "elector"
 )

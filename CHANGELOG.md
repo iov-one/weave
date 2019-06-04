@@ -20,6 +20,10 @@
   transaction (so we update the Proposal state properly), but is rolled back
   independently and noted in `DeliverResult.Log` (reporting to be improved in a
   [future issue](https://github.com/iov-one/weave/issues/649))
+- `x/gov` adds three internal transations: UpdateElectorate, UpdateElectionRule,
+  and TextResolution. TextResolutions can only be created by elections and
+  the text is stored in a bucket along with a reference to the electorate
+  and proposal that they refer to.
 - Enabled `x/batch` in bnsd. You can now send a batch of messages, which are
   executed atomically as one unit (all succeed, or no changes committed).
 - `x/gov` methods are exposed in bnsd application. The list of messages that

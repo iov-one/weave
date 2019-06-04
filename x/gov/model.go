@@ -19,6 +19,7 @@ func init() {
 	migration.MustRegister(1, &Electorate{}, migration.NoModification)
 	migration.MustRegister(1, &ElectionRule{}, migration.NoModification)
 	migration.MustRegister(1, &Proposal{}, migration.NoModification)
+	migration.MustRegister(1, &Resolution{}, migration.NoModification)
 	migration.MustRegister(1, &Vote{}, migration.NoModification)
 }
 
@@ -297,6 +298,31 @@ func (m *ProposalCommon) Tally() error {
 	}
 	m.Status = ProposalCommon_Closed
 	return nil
+}
+
+func (r *Resolution) Validate() error {
+	if err := r.Metadata.Validate(); err != nil {
+		return errors.Wrap(err, "invalid metadata")
+	}
+	if len(r.ProposalID) != 8 {
+		return errors.Wrapf(errors.ErrInput, "proposal id is invalid")
+	}
+	if err := r.ElectorateRef.Validate(); err != nil {
+		return errors.Wrap(err, "invalid electorate_ref")
+	}
+	if len(r.Resolution) == 0 {
+		return errors.Wrap(errors.ErrEmpty, "resolution")
+	}
+	return nil
+}
+
+func (r Resolution) Copy() orm.CloneableData {
+	return &Resolution{
+		Metadata:      r.Metadata.Copy(),
+		ProposalID:    r.ProposalID,
+		ElectorateRef: r.ElectorateRef,
+		Resolution:    r.Resolution,
+	}
 }
 
 func NewTallyResult(quorum *Fraction, threshold Fraction, totalElectorateWeight uint64) TallyResult {
