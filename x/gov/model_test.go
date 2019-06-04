@@ -571,7 +571,7 @@ func TestResolutionValidate(t *testing.T) {
 			Mutator: func(r *Resolution) {
 				r.ProposalID = nil
 			},
-			Exp: errors.ErrEmpty,
+			Exp: errors.ErrInput,
 		},
 		"ElectorateRef invalid": {
 			Mutator: func(r *Resolution) {

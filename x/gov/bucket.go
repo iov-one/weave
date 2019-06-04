@@ -112,13 +112,13 @@ type ResolutionBucket struct {
 
 func NewResolutionBucket() *ResolutionBucket {
 	b := migration.NewBucket(packageName, "resolution", orm.NewSimpleObj(nil, &Resolution{})).
-		WithIndex(indexNameElectorate, indexElectorate, false)
+		WithIndex(indexNameElectorate, electorateIDIndexer, false)
 	return &ResolutionBucket{
 		IDGenBucket: orm.WithSeqIDGenerator(b, "id"),
 	}
 }
 
-func indexElectorate(obj orm.Object) ([]byte, error) {
+func electorateIDIndexer(obj orm.Object) ([]byte, error) {
 	r, err := asResolution(obj)
 	if err != nil {
 		return nil, err

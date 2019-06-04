@@ -57,7 +57,7 @@ func withProposal(ctx weave.Context, proposal *Proposal, proposalID []byte) weav
 	return context.WithValue(ctx, contextKeyProposal, proposalWrapper{proposal: proposal, proposalID: proposalID})
 }
 
-// CtxProposal reads the context from the proposal (only set for executor)
+// CtxProposal reads the the proposal and it's id from the context
 func CtxProposal(ctx weave.Context) (*Proposal, []byte) {
 	val, _ := ctx.Value(contextKeyProposal).(proposalWrapper)
 	return val.proposal, val.proposalID

@@ -533,10 +533,12 @@ func TestCreateResolution(t *testing.T) {
 		Msg            TextResolutionMsg
 		WantCheckErr   *errors.Error
 		WantDeliverErr *errors.Error
+		created        bool
 	}{
 		"Happy path": {
-			Msg: TextResolutionMsg{Metadata: &weave.Metadata{Schema: 1}, Resolution: "123"},
-			ctx: withProposal(context.Background(), &proposal, ID),
+			Msg:     TextResolutionMsg{Metadata: &weave.Metadata{Schema: 1}, Resolution: "123"},
+			ctx:     withProposal(context.Background(), &proposal, ID),
+			created: true,
 		},
 		"Proposal not in context": {
 			Msg:            TextResolutionMsg{Metadata: &weave.Metadata{Schema: 1}, Resolution: "123"},
@@ -583,7 +585,12 @@ func TestCreateResolution(t *testing.T) {
 			// check that resolution gets created
 			r, err := bucket.GetResolution(cache, weavetest.SequenceID(1))
 			assert.Nil(t, err)
-			assert.Equal(t, r != nil, true)
+			if spec.created {
+				assert.Equal(t, r != nil, true)
+			} else {
+				assert.Equal(t, r == nil, true)
+			}
+
 			cache.Discard()
 		})
 	}
