@@ -15,8 +15,21 @@ import (
 // responsibility of the command function to parse the arguments. Use os.Stderr
 // to write error messages.
 //
-// TODO - document here how to create a command function. They all must follow
-// the same convention. Ie use flag package and provide help information.
+// A command function is an independent runable that is taking input and output
+// being stdin and stdout. Given args are the command line arguments, without
+// the program name, that should be parsed using the flag package.
+// A command function is expected to read and write only to provided input and
+// output. In a special case of an invalid argument a message to os.Stderr and
+// os.Exit(2) call are allowed.
+//
+// When implementing a command function, keep it simple. A command function
+// should provide a single functionality. A unix pipe can be used to construct
+// a pipeline. For example, there are 3 separate functions for creating a
+// transaction, signing and submitting. They can be combined into a single
+// pipeline line this:
+//
+//   $ bnscli escrow-proposal -escrow 1 | bnscli sign | bnscli submit
+//
 var commands = map[string]func(input io.Reader, output io.Writer, args []string) error{
 	"transfer-proposal": cmdNewTransferProposal,
 	"escrow-proposal":   cmdNewEscrowProposal,
