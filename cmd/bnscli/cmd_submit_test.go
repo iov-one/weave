@@ -34,7 +34,7 @@ func TestCmdSubmitTxHappyPath(t *testing.T) {
 		"-tm", tm.URL,
 	}
 
-	if err := cmdSubmitTx(input, &output, args); err != nil {
+	if err := cmdSubmitTransaction(input, &output, args); err != nil {
 		t.Fatalf("cannot submit the transaction: %s", err)
 	}
 	if !*submitted {

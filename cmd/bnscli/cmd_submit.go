@@ -11,11 +11,7 @@ import (
 	"github.com/iov-one/weave/cmd/bnsd/client"
 )
 
-func cmdSubmitTx(
-	input io.Reader,
-	output io.Writer,
-	args []string,
-) error {
+func cmdSubmitTransaction(input io.Reader, output io.Writer, args []string) error {
 	fl := flag.NewFlagSet("", flag.ExitOnError)
 	fl.Usage = func() {
 		fmt.Fprint(flag.CommandLine.Output(), `

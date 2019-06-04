@@ -12,6 +12,7 @@ import (
 	"github.com/iov-one/weave/cmd/bnsd/app"
 	"github.com/iov-one/weave/cmd/bnsd/client"
 	"github.com/iov-one/weave/crypto"
+	"github.com/iov-one/weave/x/sigs"
 )
 
 func cmdSignTransaction(
@@ -67,7 +68,11 @@ content.
 	if seq, err := aNonce.Next(); err != nil {
 		return fmt.Errorf("cannot get the next sequence number: %s", err)
 	} else {
-		client.SignTx(&tx, key, genesis.ChainID, seq)
+		sig, err := sigs.SignTx(key, &tx, genesis.ChainID, seq)
+		if err != nil {
+			return fmt.Errorf("cannot sign transaction: %s", err)
+		}
+		tx.Signatures = append(tx.Signatures, sig)
 	}
 
 	if raw, err := tx.Marshal(); err != nil {

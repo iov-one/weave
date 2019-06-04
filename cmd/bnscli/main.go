@@ -35,7 +35,8 @@ var commands = map[string]func(input io.Reader, output io.Writer, args []string)
 	"transfer-proposal": cmdNewTransferProposal,
 	"escrow-proposal":   cmdNewEscrowProposal,
 	"sign":              cmdSignTransaction,
-	"submit":            cmdSubmitTx,
+	"submit":            cmdSubmitTransaction,
+	"view":              cmdTransactionView,
 	"version":           cmdVersion,
 }
 
