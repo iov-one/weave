@@ -608,7 +608,7 @@ func (h TextResolutionHandler) Deliver(ctx weave.Context, db weave.KVStore, tx w
 		return nil, errors.Wrap(errors.ErrNotFound, "no proposal set for passed resolution")
 	}
 	resolution := &Resolution{
-		Metadata:      msg.Metadata,
+		Metadata:      &weave.Metadata{},
 		ProposalID:    proposalID,
 		ElectorateRef: proposal.Common.ElectorateRef,
 		Resolution:    msg.Resolution,
