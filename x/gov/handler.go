@@ -182,7 +182,7 @@ func (h TallyHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*
 
 }
 
-func (h TallyHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
+func (h TallyHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (resOut *weave.DeliverResult, errOut error) {
 	msg, proposal, err := h.validate(ctx, db, tx)
 	if err != nil {
 		return nil, err
@@ -196,9 +196,13 @@ func (h TallyHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) 
 		return nil, err
 	}
 
-	if err := h.propBucket.Update(db, msg.ProposalID, proposal); err != nil {
-		return nil, err
-	}
+	// store the proposal when done processing it, via whatever path
+	defer func() {
+		if err := h.propBucket.Update(db, msg.ProposalID, proposal); err != nil {
+			resOut = nil
+			errOut = err
+		}
+	}()
 
 	if common.Result != ProposalCommon_Accepted {
 		return &weave.DeliverResult{Log: "Proposal not accepted"}, nil
@@ -209,6 +213,7 @@ func (h TallyHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) 
 	// we just return the info from the executor in logs (tags?)
 	opts, err := h.decoder(proposal.RawOption)
 	if err != nil {
+		proposal.Common.ExecutorResult = ProposalCommon_Failure
 		return &weave.DeliverResult{Log: "Proposal accepted: error: cannot parse raw options"}, nil
 	}
 	if err := opts.Validate(); err != nil {
@@ -221,6 +226,7 @@ func (h TallyHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) 
 	voteCtx := withProposal(withElectionSuccess(ctx, common.ElectionRuleRef.ID), proposal, msg.ProposalID)
 	cstore, ok := db.(weave.CacheableKVStore)
 	if !ok {
+		proposal.Common.ExecutorResult = ProposalCommon_Failure
 		return &weave.DeliverResult{Log: "Proposal accepted: error: need cachable kvstore"}, nil
 	}
 	subDB := cstore.CacheWrap()
@@ -229,13 +235,16 @@ func (h TallyHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) 
 	if err != nil {
 		subDB.Discard()
 		log := fmt.Sprintf("Proposal accepted: execution error: %v", err)
+		proposal.Common.ExecutorResult = ProposalCommon_Failure
 		return &weave.DeliverResult{Log: log}, nil
 	}
 	if err := subDB.Write(); err != nil {
 		log := fmt.Sprintf("Proposal accepted: commit error: %v", err)
+		proposal.Common.ExecutorResult = ProposalCommon_Failure
 		return &weave.DeliverResult{Log: log}, nil
 	}
 
+	proposal.Common.ExecutorResult = ProposalCommon_Success
 	res.Log = "Proposal accepted: execution success"
 	return res, nil
 }
@@ -317,6 +326,7 @@ func (h CreateProposalHandler) Deliver(ctx weave.Context, db weave.KVStore, tx w
 			VoteState:       NewTallyResult(rule.Quorum, rule.Threshold, electorate.TotalElectorateWeight),
 			Status:          ProposalCommon_Submitted,
 			Result:          ProposalCommon_Undefined,
+			ExecutorResult:  ProposalCommon_NotRun,
 		},
 		RawOption: msg.RawOption,
 	}

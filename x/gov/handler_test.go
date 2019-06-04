@@ -66,6 +66,7 @@ func TestCreateTextProposal(t *testing.T) {
 					VotingEndTime:   now.Add(2 * time.Hour),
 					Status:          ProposalCommon_Submitted,
 					Result:          ProposalCommon_Undefined,
+					ExecutorResult:  ProposalCommon_NotRun,
 					SubmissionTime:  now,
 					Author:          hBobby,
 					VoteState: TallyResult{
@@ -101,6 +102,7 @@ func TestCreateTextProposal(t *testing.T) {
 					VotingEndTime:   now.Add(2 * time.Hour),
 					Status:          ProposalCommon_Submitted,
 					Result:          ProposalCommon_Undefined,
+					ExecutorResult:  ProposalCommon_NotRun,
 					SubmissionTime:  now,
 					Author:          hBobby,
 					VoteState: TallyResult{
@@ -136,6 +138,7 @@ func TestCreateTextProposal(t *testing.T) {
 					VotingEndTime:   now.Add(2 * time.Hour),
 					Status:          ProposalCommon_Submitted,
 					Result:          ProposalCommon_Undefined,
+					ExecutorResult:  ProposalCommon_NotRun,
 					SubmissionTime:  now,
 					Author:          hBobby,
 					VoteState: TallyResult{
@@ -170,6 +173,7 @@ func TestCreateTextProposal(t *testing.T) {
 					VotingEndTime:   now.Add(2 * time.Hour),
 					Status:          ProposalCommon_Submitted,
 					Result:          ProposalCommon_Undefined,
+					ExecutorResult:  ProposalCommon_NotRun,
 					SubmissionTime:  now,
 					Author:          hAlice,
 					VoteState: TallyResult{
@@ -362,6 +366,7 @@ func TestCreateTextProposal(t *testing.T) {
 					VotingEndTime:   now.Add(2 * time.Hour),
 					Status:          ProposalCommon_Submitted,
 					Result:          ProposalCommon_Undefined,
+					ExecutorResult:  ProposalCommon_NotRun,
 					SubmissionTime:  now,
 					Author:          hBobby,
 					VoteState: TallyResult{
