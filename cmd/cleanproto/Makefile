@@ -1,8 +1,8 @@
 .PHONY: build test
 
 build:
-	CGO_ENABLED=0 go build -o cleanproto .
+	CGO_ENABLED=0 go build -mod=readonly -o cleanproto .
 
 test:
-	go test . -v -race
+	go test -mod=readonly . -v -race
 	./tests/test.sh
