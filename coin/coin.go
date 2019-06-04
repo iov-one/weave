@@ -415,3 +415,14 @@ func ParseHumanFormat(h string) (Coin, error) {
 }
 
 var humanCoinFormatRx = regexp.MustCompile(`^(\-?)\s*(\d+)(\.\d+)?\s*([A-Z]{3,4})$`)
+
+// Set updates this coin value to what is provided. This method implements
+// flag.Value interface.
+func (c *Coin) Set(raw string) error {
+	val, err := ParseHumanFormat(raw)
+	if err != nil {
+		return err
+	}
+	*c = val
+	return nil
+}

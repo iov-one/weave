@@ -2,6 +2,7 @@
 
 ## HEAD
 
+- A new tool `cmd/bnscli` for interacting with a BNS node was created.
 - Creation of a new proposal in `x/gov` extension is now restricted to only
   members of the electorate that this proposal is created for.
 - Cleanup escrow: removed the support for atomic swap
@@ -9,16 +10,16 @@
   easier to use interface when dealing with a single entity type.
 - `migration` package was updated to provide `orm.ModelBucket` wrapper for
   transparent schema version migrations
-- `x/gov` package was added, which maintains multiple versioned Electorates
-  and ElectionRules that define voting rules (quorum, threshold, voting period)
-  for a given Electorate. Votes can be tallied at the end and execute an
-  application-defined action which is passed in to the constructor. This
-  is compatible with standard handler interfaces and sample application-level
+- `x/gov` package was added, which maintains multiple versioned Electorates and
+  ElectionRules that define voting rules (quorum, threshold, voting period) for
+  a given Electorate. Votes can be tallied at the end and execute an
+  application-defined action which is passed in to the constructor. This is
+  compatible with standard handler interfaces and sample application-level
   setup is demonstrated in the test code (and all `sample*_test.go` code).
-- Failed execution of the Proposal intent does not result in a failed transaction
-  (so we update the Proposal state properly), but is rolled back independently
-  and noted in `DeliverResult.Log` (reporting to be improved in
-  a [future issue](https://github.com/iov-one/weave/issues/649))
+- Failed execution of the Proposal intent does not result in a failed
+  transaction (so we update the Proposal state properly), but is rolled back
+  independently and noted in `DeliverResult.Log` (reporting to be improved in a
+  [future issue](https://github.com/iov-one/weave/issues/649))
 - Enabled `x/batch` in bnsd. You can now send a batch of messages, which are
   executed atomically as one unit (all succeed, or no changes committed).
 - `x/gov` methods are exposed in bnsd application. The list of messages that
@@ -27,17 +28,19 @@
   to make multiple SendTx as part of a governance vote, for example.
 - Dockerize all the protobuf tooling for easier developer experience and
   reproducible builds
-- You can use "seq:multisig/usage/1" or similar in the genesis file to easily create addresses
-  without manually encoding everything into 16 hex digits
-- Introduce `errors.Append` function to combine errors into a new multi error type
-- `spec` directory now contains protobuf files and testvectors (standard api objects
-  in both json and binary encodings) to enable easier bindings and unit tests in
-  client code, and projects that import weave.
+- You can use "seq:multisig/usage/1" or similar in the genesis file to easily
+  create addresses without manually encoding everything into 16 hex digits
+- Introduce `errors.Append` function to combine errors into a new multi error
+  type
+- `spec` directory now contains protobuf files and testvectors (standard api
+  objects in both json and binary encodings) to enable easier bindings and unit
+  tests in client code, and projects that import weave.
 
 Breaking changes
 
-- Escrow does not support atomic swap anymore: preimage is removed from Tx and, haslock extension removed
-and arbiter now must be an Address and not a Condition
+- Escrow does not support atomic swap anymore: preimage is removed from Tx and,
+  haslock extension removed and arbiter now must be an Address and not a
+  Condition
 
 
 
@@ -47,8 +50,8 @@ and arbiter now must be an Address and not a Condition
 - New `x/aswap` extension implementing atomic swap functionality. Atomic swap
   implementation is separated from `x/escrow`
 - `x/cash` is using the new `gconf` package for configuration. New genesis path
-  is used. To update genesis file, replace `"gconf": { "cash:xyz": "foo" }` with
-  `"conf": { "cash": { "xyz": "foo" } }`
+  is used. To update genesis file, replace `"gconf": { "cash:xyz": "foo" }`
+  with `"conf": { "cash": { "xyz": "foo" } }`
 - Removed support for Go 1.10. Minimal required version is now 1.11.4.
 - Added support for Go 1.12
 - New `migration` package. Schema versioning for models and messages can be

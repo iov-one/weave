@@ -3,7 +3,7 @@
 # make sure we turn on go modules
 export GO111MODULE := on
 
-EXAMPLES := examples/mycoind cmd/bcpd cmd/bnsd
+TOOLS := cmd/bcpd cmd/bnsd cmd/bnscli
 
 # MODE=count records heat map in test coverage
 # MODE=set just records which lines were hit by one test
@@ -23,7 +23,7 @@ dist:
 	cd cmd/bcpd && $(MAKE) dist
 
 install:
-	for ex in $(EXAMPLES); do cd $$ex && make install && cd -; done
+	for ex in $(TOOLS); do cd $$ex && make install && cd -; done
 
 test:
 	go vet ./...

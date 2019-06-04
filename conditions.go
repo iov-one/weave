@@ -140,7 +140,16 @@ func (a *Address) UnmarshalJSON(raw []byte) error {
 	if err := json.Unmarshal(raw, &enc); err != nil {
 		return errors.Wrap(err, "cannot decode json")
 	}
+	val, err := ParseAddress(enc)
+	if err != nil {
+		return err
+	}
+	*a = val
+	return nil
+}
 
+// ParseAddress accepts address in a string format and unmarshals it.
+func ParseAddress(enc string) (Address, error) {
 	// If the encoded string starts with a prefix, cut it off and use
 	// specified decoding method instead of default one.
 	chunks := strings.SplitN(enc, ":", 2)
@@ -153,62 +162,56 @@ func (a *Address) UnmarshalJSON(raw []byte) error {
 
 	// No value zero the address.
 	if len(enc) == 0 {
-		*a = nil
-		return nil
+		return nil, nil
 	}
-
 	switch format {
 	case "hex":
 		val, err := hex.DecodeString(enc)
 		if err != nil {
-			return errors.Wrap(err, "cannot decode hex")
+			return nil, errors.Wrap(err, "cannot decode hex")
 		}
 		addr := Address(val)
 		if err := Address(addr).Validate(); err != nil {
-			return err
+			return nil, err
 		}
-		*a = val
-		return nil
+		return val, nil
 	case "cond":
 		var c Condition
 		if err := c.deserialize(enc); err != nil {
-			return err
+			return nil, err
 		}
 		if err := c.Validate(); err != nil {
-			return err
+			return nil, err
 		}
-		*a = c.Address()
-		return nil
+		return c.Address(), nil
 	case "seq":
 		chunks := strings.Split(string(enc), "/")
 		if len(chunks) != 3 {
-			return errors.Wrap(errors.ErrInput, "invalid condition format")
+			return nil, errors.Wrap(errors.ErrInput, "invalid condition format")
 		}
 		seqInt, err := strconv.Atoi(chunks[2])
 		if err != nil {
-			return errors.Wrap(err, "sequence number is not a valid integer")
+			return nil, errors.Wrap(err, "sequence number is not a valid integer")
 		}
 		data := make([]byte, 8)
 		binary.BigEndian.PutUint64(data, uint64(seqInt))
 		c := NewCondition(chunks[0], chunks[1], data)
 		if err := c.Validate(); err != nil {
-			return err
+			return nil, err
 		}
-		*a = c.Address()
-		return nil
+		return c.Address(), nil
 	case "bech32":
 		_, payload, err := bech32.Decode(enc)
 		if err != nil {
-			return errors.Wrapf(err, "deserialize bech32: %s", err)
+			return nil, errors.Wrapf(err, "deserialize bech32: %s", err)
 		}
 		addr := Address(payload)
 		if err := addr.Validate(); err != nil {
-			return err
+			return nil, err
 		}
-		*a = addr
-		return nil
+		return addr, nil
 	default:
-		return errors.Wrapf(errors.ErrType, "unknown format %q", chunks[0])
+		return nil, errors.Wrapf(errors.ErrType, "unknown format %q", chunks[0])
 	}
 }
 
@@ -239,6 +242,17 @@ func (a Address) Validate() error {
 	if len(a) != AddressLength {
 		return errors.Wrapf(errors.ErrInput, "invalid address length: %v", a)
 	}
+	return nil
+}
+
+// Set updates this address value to what is provided. This method implements
+// flag.Value interface.
+func (a *Address) Set(enc string) error {
+	val, err := ParseAddress(enc)
+	if err != nil {
+		return nil
+	}
+	*a = val
 	return nil
 }
 
