@@ -47,6 +47,7 @@ Breaking changes
   Condition
 - `Metadata` attribute was removed from transaction attributes. This affects
   two entities `x/cash.FeeInfo` and `x/sigs.StdSignature`
+- Max length of blockchain ids used in username NFTs is now 32 (previously 128)
 
 
 
