@@ -100,45 +100,38 @@ func TestValidateFeeTx(t *testing.T) {
 	}{
 		"success": {
 			info: &FeeInfo{
-				Metadata: &weave.Metadata{Schema: 1},
-				Fees:     coin.NewCoinp(1, 0, "IOV"),
-				Payer:    addr1,
+				Fees:  coin.NewCoinp(1, 0, "IOV"),
+				Payer: addr1,
 			},
 			wantErr: nil,
 		},
 		"empty": {
-			info: &FeeInfo{
-				Metadata: &weave.Metadata{Schema: 1},
-			},
+			info:    &FeeInfo{},
 			wantErr: errors.ErrAmount,
 		},
 		"no fee": {
 			info: &FeeInfo{
-				Metadata: &weave.Metadata{Schema: 1},
-				Payer:    addr1,
+				Payer: addr1,
 			},
 			wantErr: errors.ErrAmount,
 		},
 		"no payer": {
 			info: &FeeInfo{
-				Metadata: &weave.Metadata{Schema: 1},
-				Fees:     coin.NewCoinp(10, 0, "IOV"),
+				Fees: coin.NewCoinp(10, 0, "IOV"),
 			},
 			wantErr: errors.ErrEmpty,
 		},
 		"negative fee": {
 			info: &FeeInfo{
-				Metadata: &weave.Metadata{Schema: 1},
-				Fees:     coin.NewCoinp(-10, 0, "IOV"),
-				Payer:    addr1,
+				Fees:  coin.NewCoinp(-10, 0, "IOV"),
+				Payer: addr1,
 			},
 			wantErr: errors.ErrAmount,
 		},
 		"invalid fee ticker": {
 			info: &FeeInfo{
-				Metadata: &weave.Metadata{Schema: 1},
-				Fees:     coin.NewCoinp(10, 0, "foobar"),
-				Payer:    addr1,
+				Fees:  coin.NewCoinp(10, 0, "foobar"),
+				Payer: addr1,
 			},
 			wantErr: errors.ErrCurrency,
 		},

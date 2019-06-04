@@ -41,6 +41,8 @@ Breaking changes
 - Escrow does not support atomic swap anymore: preimage is removed from Tx and,
   haslock extension removed and arbiter now must be an Address and not a
   Condition
+- `Metadata` attribute was removed from transaction attributes. This affects
+  two entities `x/cash.FeeInfo` and `x/sigs.StdSignature`
 
 
 

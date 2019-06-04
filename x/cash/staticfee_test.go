@@ -69,8 +69,7 @@ func TestFees(t *testing.T) {
 		},
 		"no signer given": {
 			fee: &FeeInfo{
-				Metadata: &weave.Metadata{Schema: 1},
-				Fees:     &min,
+				Fees: &min,
 			},
 			min:    min,
 			expect: errors.ErrEmpty.Is,
@@ -78,8 +77,7 @@ func TestFees(t *testing.T) {
 		"use default signer, but not enough money": {
 			signers: []weave.Condition{perm},
 			fee: &FeeInfo{
-				Metadata: &weave.Metadata{Schema: 1},
-				Fees:     &min,
+				Fees: &min,
 			},
 			min:    min,
 			expect: errors.ErrEmpty.Is,
@@ -88,8 +86,7 @@ func TestFees(t *testing.T) {
 			signers:   []weave.Condition{perm},
 			initState: []orm.Object{must(WalletWith(perm.Address(), &min))},
 			fee: &FeeInfo{
-				Metadata: &weave.Metadata{Schema: 1},
-				Fees:     &cash,
+				Fees: &cash,
 			},
 			min:    min,
 			expect: errors.ErrAmount.Is,
@@ -98,8 +95,7 @@ func TestFees(t *testing.T) {
 			signers:   []weave.Condition{perm},
 			initState: []orm.Object{must(WalletWith(perm.Address(), &cash))},
 			fee: &FeeInfo{
-				Metadata: &weave.Metadata{Schema: 1},
-				Fees:     &min,
+				Fees: &min,
 			},
 			min:    min,
 			expect: noErr,
@@ -108,9 +104,8 @@ func TestFees(t *testing.T) {
 			signers:   []weave.Condition{perm},
 			initState: []orm.Object{must(WalletWith(perm2.Address(), &cash))},
 			fee: &FeeInfo{
-				Metadata: &weave.Metadata{Schema: 1},
-				Payer:    perm2.Address(),
-				Fees:     &min,
+				Payer: perm2.Address(),
+				Fees:  &min,
 			},
 			min:    min,
 			expect: errors.ErrUnauthorized.Is,
@@ -121,7 +116,6 @@ func TestFees(t *testing.T) {
 				signers:   []weave.Condition{perm},
 				initState: []orm.Object{must(WalletWith(perm.Address(), &cash))},
 				fee:       &FeeInfo{
-					Metadata: &weave.Metadata{Schema: 1},
 					Fees: &min,
 				},
 				min:       coin.NewCoin(0, 1000, ""),
@@ -132,8 +126,7 @@ func TestFees(t *testing.T) {
 			signers:   []weave.Condition{perm},
 			initState: []orm.Object{must(WalletWith(perm.Address(), &cash))},
 			fee: &FeeInfo{
-				Metadata: &weave.Metadata{Schema: 1},
-				Fees:     coin.NewCoinp(0, 1, "FOO"),
+				Fees: coin.NewCoinp(0, 1, "FOO"),
 			},
 			min:    coin.NewCoin(0, 0, ""),
 			expect: noErr,
@@ -142,8 +135,7 @@ func TestFees(t *testing.T) {
 			signers:   []weave.Condition{perm},
 			initState: []orm.Object{must(WalletWith(perm.Address(), &cash))},
 			fee: &FeeInfo{
-				Metadata: &weave.Metadata{Schema: 1},
-				Fees:     &min,
+				Fees: &min,
 			},
 			min:    coin.NewCoin(0, 1000, "NOT"),
 			expect: errors.ErrCurrency.Is,
@@ -152,8 +144,7 @@ func TestFees(t *testing.T) {
 			signers:   []weave.Condition{perm},
 			initState: []orm.Object{must(WalletWith(perm.Address(), &cash))},
 			fee: &FeeInfo{
-				Metadata: &weave.Metadata{Schema: 1},
-				Fees:     &min,
+				Fees: &min,
 			},
 			min:    coin.NewCoin(0, 45000, "FOO"),
 			expect: errors.ErrAmount.Is,
