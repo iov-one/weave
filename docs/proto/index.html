@@ -521,10 +521,6 @@
                 </li>
               
                 <li>
-                  <a href="#gov.CreateProposalMsgBase"><span class="badge">M</span>CreateProposalMsgBase</a>
-                </li>
-              
-                <li>
                   <a href="#gov.DeleteProposalMsg"><span class="badge">M</span>DeleteProposalMsg</a>
                 </li>
               
@@ -546,10 +542,6 @@
               
                 <li>
                   <a href="#gov.Proposal"><span class="badge">M</span>Proposal</a>
-                </li>
-              
-                <li>
-                  <a href="#gov.ProposalCommon"><span class="badge">M</span>ProposalCommon</a>
                 </li>
               
                 <li>
@@ -586,15 +578,15 @@
               
               
                 <li>
-                  <a href="#gov.ProposalCommon.ExecutorResult"><span class="badge">E</span>ProposalCommon.ExecutorResult</a>
+                  <a href="#gov.Proposal.ExecutorResult"><span class="badge">E</span>Proposal.ExecutorResult</a>
                 </li>
               
                 <li>
-                  <a href="#gov.ProposalCommon.Result"><span class="badge">E</span>ProposalCommon.Result</a>
+                  <a href="#gov.Proposal.Result"><span class="badge">E</span>Proposal.Result</a>
                 </li>
               
                 <li>
-                  <a href="#gov.ProposalCommon.Status"><span class="badge">E</span>ProposalCommon.Status</a>
+                  <a href="#gov.Proposal.Status"><span class="badge">E</span>Proposal.Status</a>
                 </li>
               
                 <li>
@@ -3070,7 +3062,7 @@ expired: [timeout, infinity) </p></td>
 
       
         <h3 id="gov.CreateProposalMsg">CreateProposalMsg</h3>
-        <p>CreateProposalMsg creates a new governance proposal.</p><p>Metadata is from CreateProposalMsgBase, actual proposal details from app-specific raw_option</p>
+        <p>CreateProposalMsg creates a new governance proposal.</p><p>Most fields control the whole election process.</p><p>raw_option contains an transaction to be executed by the governance vote in case of success</p><p>(what is being voted on)</p>
 
         
           <table class="field-table">
@@ -3087,40 +3079,17 @@ expired: [timeout, infinity) </p></td>
                 </tr>
               
                 <tr>
-                  <td>base</td>
-                  <td><a href="#gov.CreateProposalMsgBase">CreateProposalMsgBase</a></td>
+                  <td>title</td>
+                  <td><a href="#string">string</a></td>
                   <td></td>
-                  <td><p> </p></td>
+                  <td><p>Human readable title. Must match `^[a-zA-Z0-9 _.-]{4,128}$` </p></td>
                 </tr>
               
                 <tr>
                   <td>raw_option</td>
                   <td><a href="#bytes">bytes</a></td>
                   <td></td>
-                  <td><p> </p></td>
-                </tr>
-              
-            </tbody>
-          </table>
-        
-
-        
-      
-        <h3 id="gov.CreateProposalMsgBase">CreateProposalMsgBase</h3>
-        <p>CreateProposalMsgBase is the common info in all proposals.</p><p>This is separated out to easily be included in an app-specific CreateProposalMsg</p>
-
-        
-          <table class="field-table">
-            <thead>
-              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
-            </thead>
-            <tbody>
-              
-                <tr>
-                  <td>title</td>
-                  <td><a href="#string">string</a></td>
-                  <td></td>
-                  <td><p>Human readable title. Must match `^[a-zA-Z0-9 _.-]{4,128}$` </p></td>
+                  <td><p>Content of the proposal. Protobuf encoded, app-specific decoded must be passed in handler constructor </p></td>
                 </tr>
               
                 <tr>
@@ -3391,7 +3360,7 @@ of the eligible voters. </p></td>
         
       
         <h3 id="gov.Proposal">Proposal</h3>
-        <p>A generic proposal for an on-chain governance process.</p>
+        <p>A generic proposal for an on-chain governance process.</p><p>Most fields control the whole election process.</p><p>raw_option contains an transaction to be executed by the governance vote in case of success</p><p>(what is being voted on)</p>
 
         
           <table class="field-table">
@@ -3408,40 +3377,17 @@ of the eligible voters. </p></td>
                 </tr>
               
                 <tr>
-                  <td>common</td>
-                  <td><a href="#gov.ProposalCommon">ProposalCommon</a></td>
+                  <td>title</td>
+                  <td><a href="#string">string</a></td>
                   <td></td>
-                  <td><p> </p></td>
+                  <td><p>Human readable title. </p></td>
                 </tr>
               
                 <tr>
                   <td>raw_option</td>
                   <td><a href="#bytes">bytes</a></td>
                   <td></td>
-                  <td><p>raw_option is app-specific and can be parsed by an OptionDecoder </p></td>
-                </tr>
-              
-            </tbody>
-          </table>
-        
-
-        
-      
-        <h3 id="gov.ProposalCommon">ProposalCommon</h3>
-        <p>ProposalCommon contains all the generic fields for the lifetime of the proposal,</p><p>separate from the actual details of what is being voted on</p>
-
-        
-          <table class="field-table">
-            <thead>
-              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
-            </thead>
-            <tbody>
-              
-                <tr>
-                  <td>title</td>
-                  <td><a href="#string">string</a></td>
-                  <td></td>
-                  <td><p>Human readable title. </p></td>
+                  <td><p>Content of the proposal. Protobuf encoded, app-specific decoded must be passed in constructor </p></td>
                 </tr>
               
                 <tr>
@@ -3504,21 +3450,21 @@ to be included in the election. </p></td>
               
                 <tr>
                   <td>status</td>
-                  <td><a href="#gov.ProposalCommon.Status">ProposalCommon.Status</a></td>
+                  <td><a href="#gov.Proposal.Status">Proposal.Status</a></td>
                   <td></td>
                   <td><p>Status represents the high level position in the life cycle of the proposal. Initial value is submitted. </p></td>
                 </tr>
               
                 <tr>
                   <td>result</td>
-                  <td><a href="#gov.ProposalCommon.Result">ProposalCommon.Result</a></td>
+                  <td><a href="#gov.Proposal.Result">Proposal.Result</a></td>
                   <td></td>
                   <td><p>Result is the final result based on the votes and election rule. Initial value is Undefined. </p></td>
                 </tr>
               
                 <tr>
                   <td>executor_result</td>
-                  <td><a href="#gov.ProposalCommon.ExecutorResult">ProposalCommon.ExecutorResult</a></td>
+                  <td><a href="#gov.Proposal.ExecutorResult">Proposal.ExecutorResult</a></td>
                   <td></td>
                   <td><p>Result is the final result based on the votes and election rule. Initial value is Undefined. </p></td>
                 </tr>
@@ -3862,7 +3808,7 @@ must be included in the electorate for a valid vote. </p></td>
       
 
       
-        <h3 id="gov.ProposalCommon.ExecutorResult">ProposalCommon.ExecutorResult</h3>
+        <h3 id="gov.Proposal.ExecutorResult">Proposal.ExecutorResult</h3>
         <p></p>
         <table class="enum-table">
           <thead>
@@ -3871,25 +3817,25 @@ must be included in the electorate for a valid vote. </p></td>
           <tbody>
             
               <tr>
-                <td>PROPOSAL_COMMON_EXECUTOR_RESULT_INVALID</td>
+                <td>PROPOSAL_EXECUTOR_RESULT_INVALID</td>
                 <td>0</td>
                 <td><p>An empty value is not allowed</p></td>
               </tr>
             
               <tr>
-                <td>PROPOSAL_COMMON_EXECUTOR_RESULT_NOT_RUN</td>
+                <td>PROPOSAL_EXECUTOR_RESULT_NOT_RUN</td>
                 <td>1</td>
                 <td><p>We have not yet run the executor</p></td>
               </tr>
             
               <tr>
-                <td>PROPOSAL_COMMON_EXECUTOR_RESULT_SUCCESS</td>
+                <td>PROPOSAL_EXECUTOR_RESULT_SUCCESS</td>
                 <td>2</td>
                 <td><p>The executor was successful and proposed action updated state</p></td>
               </tr>
             
               <tr>
-                <td>PROPOSAL_COMMON_EXECUTOR_RESULT_FAILURE</td>
+                <td>PROPOSAL_EXECUTOR_RESULT_FAILURE</td>
                 <td>3</td>
                 <td><p>The executor returned an error and proposed action didn&#39;t update state</p></td>
               </tr>
@@ -3897,7 +3843,7 @@ must be included in the electorate for a valid vote. </p></td>
           </tbody>
         </table>
       
-        <h3 id="gov.ProposalCommon.Result">ProposalCommon.Result</h3>
+        <h3 id="gov.Proposal.Result">Proposal.Result</h3>
         <p></p>
         <table class="enum-table">
           <thead>
@@ -3906,25 +3852,25 @@ must be included in the electorate for a valid vote. </p></td>
           <tbody>
             
               <tr>
-                <td>PROPOSAL_COMMON_RESULT_INVALID</td>
+                <td>PROPOSAL_RESULT_INVALID</td>
                 <td>0</td>
                 <td><p>An empty value is invalid and not allowed</p></td>
               </tr>
             
               <tr>
-                <td>PROPOSAL_COMMON_RESULT_UNDEFINED</td>
+                <td>PROPOSAL_RESULT_UNDEFINED</td>
                 <td>1</td>
                 <td><p>Until a final tally has happened the status is undefined</p></td>
               </tr>
             
               <tr>
-                <td>PROPOSAL_COMMON_RESULT_ACCEPTED</td>
+                <td>PROPOSAL_RESULT_ACCEPTED</td>
                 <td>2</td>
                 <td><p>Final result of the tally</p></td>
               </tr>
             
               <tr>
-                <td>PROPOSAL_COMMON_RESULT_REJECTED</td>
+                <td>PROPOSAL_RESULT_REJECTED</td>
                 <td>3</td>
                 <td><p>Final result of the tally</p></td>
               </tr>
@@ -3932,7 +3878,7 @@ must be included in the electorate for a valid vote. </p></td>
           </tbody>
         </table>
       
-        <h3 id="gov.ProposalCommon.Status">ProposalCommon.Status</h3>
+        <h3 id="gov.Proposal.Status">Proposal.Status</h3>
         <p></p>
         <table class="enum-table">
           <thead>
@@ -3941,25 +3887,25 @@ must be included in the electorate for a valid vote. </p></td>
           <tbody>
             
               <tr>
-                <td>PROPOSAL_COMMON_STATUS_INVALID</td>
+                <td>PROPOSAL_STATUS_INVALID</td>
                 <td>0</td>
                 <td><p>An empty value is invalid and not allowed</p></td>
               </tr>
             
               <tr>
-                <td>PROPOSAL_COMMON_STATUS_SUBMITTED</td>
+                <td>PROPOSAL_STATUS_SUBMITTED</td>
                 <td>1</td>
                 <td><p>Initial status of a proposal when persisted.</p></td>
               </tr>
             
               <tr>
-                <td>PROPOSAL_COMMON_STATUS_CLOSED</td>
+                <td>PROPOSAL_STATUS_CLOSED</td>
                 <td>2</td>
                 <td><p>Final status of a proposal when the tally was executed</p></td>
               </tr>
             
               <tr>
-                <td>PROPOSAL_COMMON_STATUS_WITHDRAWN</td>
+                <td>PROPOSAL_STATUS_WITHDRAWN</td>
                 <td>3</td>
                 <td><p>A proposal can be deleted before the voting start time by the owner. When this happens the final status
 is Withdrawn.</p></td>

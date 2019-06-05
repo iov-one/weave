@@ -85,12 +85,12 @@ func (h VoteHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to load vote")
 		}
-		if err := proposal.Common.UndoCountVote(*oldVote); err != nil {
+		if err := proposal.UndoCountVote(*oldVote); err != nil {
 			return nil, err
 		}
 	}
 
-	if err := proposal.Common.CountVote(*vote); err != nil {
+	if err := proposal.CountVote(*vote); err != nil {
 		return nil, err
 	}
 	if err = h.voteBucket.Save(db, h.voteBucket.Build(db, voteMsg.ProposalID, *vote)); err != nil {
@@ -111,18 +111,14 @@ func (h VoteHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) 
 	if err != nil {
 		return nil, nil, nil, errors.Wrap(err, "failed to load proposal")
 	}
-	common := proposal.Common
-	if common == nil {
-		return nil, nil, nil, errors.Wrap(errors.ErrState, "proposal doesn't have common values set")
-	}
 
-	if common.Status != ProposalCommon_Submitted {
+	if proposal.Status != Proposal_Submitted {
 		return nil, nil, nil, errors.Wrap(errors.ErrState, "not in voting period")
 	}
-	if !weave.InThePast(ctx, common.VotingStartTime.Time()) {
+	if !weave.InThePast(ctx, proposal.VotingStartTime.Time()) {
 		return nil, nil, nil, errors.Wrap(errors.ErrState, "vote before proposal start time")
 	}
-	if !weave.InTheFuture(ctx, common.VotingEndTime.Time()) {
+	if !weave.InTheFuture(ctx, proposal.VotingEndTime.Time()) {
 		return nil, nil, nil, errors.Wrap(errors.ErrState, "vote after proposal end time")
 	}
 
@@ -130,7 +126,7 @@ func (h VoteHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) 
 	if voter == nil {
 		voter = x.MainSigner(ctx, h.auth).Address()
 	}
-	obj, err := h.elecBucket.GetVersion(db, common.ElectorateRef)
+	obj, err := h.elecBucket.GetVersion(db, proposal.ElectorateRef)
 	if err != nil {
 		return nil, nil, nil, errors.Wrap(err, "failed to load electorate")
 	}
@@ -187,7 +183,7 @@ func (h TallyHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) 
 	if err != nil {
 		return nil, err
 	}
-	common := proposal.Common
+	common := proposal
 	if common == nil {
 		return nil, errors.Wrap(errors.ErrState, "missing base proposal information")
 	}
@@ -204,7 +200,7 @@ func (h TallyHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) 
 		}
 	}()
 
-	if common.Result != ProposalCommon_Accepted {
+	if common.Result != Proposal_Accepted {
 		return &weave.DeliverResult{Log: "Proposal not accepted"}, nil
 	}
 
@@ -213,7 +209,7 @@ func (h TallyHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) 
 	// we just return the info from the executor in logs (tags?)
 	opts, err := h.decoder(proposal.RawOption)
 	if err != nil {
-		proposal.Common.ExecutorResult = ProposalCommon_Failure
+		proposal.ExecutorResult = Proposal_Failure
 		return &weave.DeliverResult{Log: "Proposal accepted: error: cannot parse raw options"}, nil
 	}
 	if err := opts.Validate(); err != nil {
@@ -226,7 +222,7 @@ func (h TallyHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) 
 	voteCtx := withProposal(withElectionSuccess(ctx, common.ElectionRuleRef.ID), proposal, msg.ProposalID)
 	cstore, ok := db.(weave.CacheableKVStore)
 	if !ok {
-		proposal.Common.ExecutorResult = ProposalCommon_Failure
+		proposal.ExecutorResult = Proposal_Failure
 		return &weave.DeliverResult{Log: "Proposal accepted: error: need cachable kvstore"}, nil
 	}
 	subDB := cstore.CacheWrap()
@@ -235,16 +231,16 @@ func (h TallyHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) 
 	if err != nil {
 		subDB.Discard()
 		log := fmt.Sprintf("Proposal accepted: execution error: %v", err)
-		proposal.Common.ExecutorResult = ProposalCommon_Failure
+		proposal.ExecutorResult = Proposal_Failure
 		return &weave.DeliverResult{Log: log}, nil
 	}
 	if err := subDB.Write(); err != nil {
 		log := fmt.Sprintf("Proposal accepted: commit error: %v", err)
-		proposal.Common.ExecutorResult = ProposalCommon_Failure
+		proposal.ExecutorResult = Proposal_Failure
 		return &weave.DeliverResult{Log: log}, nil
 	}
 
-	proposal.Common.ExecutorResult = ProposalCommon_Success
+	proposal.ExecutorResult = Proposal_Success
 	res.Log = "Proposal accepted: execution success"
 	return res, nil
 }
@@ -258,11 +254,11 @@ func (h TallyHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "failed to load proposal")
 	}
-	common := proposal.Common
+	common := proposal
 	if common == nil {
 		return nil, nil, errors.Wrap(errors.ErrState, "missing base proposal information")
 	}
-	if common.Status != ProposalCommon_Submitted {
+	if common.Status != Proposal_Submitted {
 		return nil, nil, errors.Wrapf(errors.ErrState, "unexpected status: %s", common.Status.String())
 	}
 	if !weave.InThePast(ctx, common.VotingEndTime.Time()) {
@@ -307,28 +303,21 @@ func (h CreateProposalHandler) Deliver(ctx weave.Context, db weave.KVStore, tx w
 		return nil, errors.Wrap(err, "block time")
 	}
 
-	base := msg.Base
-	if base == nil {
-		return nil, errors.Wrap(errors.ErrInput, "missing base create proposal info")
-	}
-
 	proposal := &Proposal{
-		Metadata: &weave.Metadata{Schema: 1},
-		Common: &ProposalCommon{
-			Title:           base.Title,
-			Description:     base.Description,
-			ElectionRuleRef: orm.VersionedIDRef{ID: base.ElectionRuleID, Version: rule.Version},
-			ElectorateRef:   orm.VersionedIDRef{ID: rule.ElectorateID, Version: electorate.Version},
-			VotingStartTime: base.StartTime,
-			VotingEndTime:   base.StartTime.Add(rule.VotingPeriod.Duration()),
-			SubmissionTime:  weave.AsUnixTime(blockTime),
-			Author:          base.Author,
-			VoteState:       NewTallyResult(rule.Quorum, rule.Threshold, electorate.TotalElectorateWeight),
-			Status:          ProposalCommon_Submitted,
-			Result:          ProposalCommon_Undefined,
-			ExecutorResult:  ProposalCommon_NotRun,
-		},
-		RawOption: msg.RawOption,
+		Metadata:        &weave.Metadata{Schema: 1},
+		Title:           msg.Title,
+		RawOption:       msg.RawOption,
+		Description:     msg.Description,
+		ElectionRuleRef: orm.VersionedIDRef{ID: msg.ElectionRuleID, Version: rule.Version},
+		ElectorateRef:   orm.VersionedIDRef{ID: rule.ElectorateID, Version: electorate.Version},
+		VotingStartTime: msg.StartTime,
+		VotingEndTime:   msg.StartTime.Add(rule.VotingPeriod.Duration()),
+		SubmissionTime:  weave.AsUnixTime(blockTime),
+		Author:          msg.Author,
+		VoteState:       NewTallyResult(rule.Quorum, rule.Threshold, electorate.TotalElectorateWeight),
+		Status:          Proposal_Submitted,
+		Result:          Proposal_Undefined,
+		ExecutorResult:  Proposal_NotRun,
 	}
 
 	obj, err := h.propBucket.Create(db, proposal)
@@ -344,19 +333,15 @@ func (h CreateProposalHandler) validate(ctx weave.Context, db weave.KVStore, tx 
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, nil, nil, errors.Wrap(err, "load msg")
 	}
-	base := msg.Base
-	if base == nil {
-		return nil, nil, nil, errors.Wrap(errors.ErrInput, "missing base create proposal info")
-	}
 
-	if !weave.InTheFuture(ctx, base.StartTime.Time()) {
+	if !weave.InTheFuture(ctx, msg.StartTime.Time()) {
 		return nil, nil, nil, errors.Wrap(errors.ErrInput, "start time must be in the future")
 	}
-	if weave.InTheFuture(ctx, base.StartTime.Time().Add(-maxFutureStart)) {
+	if weave.InTheFuture(ctx, msg.StartTime.Time().Add(-maxFutureStart)) {
 		return nil, nil, nil, errors.Wrapf(errors.ErrInput, "start time cam not be more than %s h in the future", maxFutureStart)
 	}
 
-	_, rObj, err := h.rulesBucket.GetLatestVersion(db, base.ElectionRuleID)
+	_, rObj, err := h.rulesBucket.GetLatestVersion(db, msg.ElectionRuleID)
 	if err != nil {
 		return nil, nil, nil, errors.Wrap(err, "failed to load election rule")
 	}
@@ -388,7 +373,7 @@ func (h CreateProposalHandler) validate(ctx weave.Context, db weave.KVStore, tx 
 		return nil, nil, nil, errors.Wrap(errors.ErrUnauthorized, "proposal creation must be signed by at least one of the electors")
 	}
 
-	author := base.Author
+	author := msg.Author
 	if author != nil {
 		if !h.auth.HasAddress(ctx, author) {
 			return nil, nil, nil, errors.Wrap(errors.ErrUnauthorized, "author's signature required")
@@ -396,7 +381,7 @@ func (h CreateProposalHandler) validate(ctx weave.Context, db weave.KVStore, tx 
 	} else {
 		author = x.MainSigner(ctx, h.auth).Address()
 	}
-	base.Author = author
+	msg.Author = author
 
 	opts, err := h.decoder(msg.RawOption)
 	if err != nil {
@@ -430,19 +415,15 @@ func (h DeleteProposalHandler) validate(ctx weave.Context, db weave.KVStore, tx 
 	if err != nil {
 		return nil, nil, errors.Wrapf(err, "failed to load a proposal with id %s", msg.ProposalID)
 	}
-	common := prop.Common
-	if common == nil {
-		return nil, nil, errors.Wrap(errors.ErrState, "proposal missing common data")
-	}
 
-	if common.Status == ProposalCommon_Withdrawn {
+	if prop.Status == Proposal_Withdrawn {
 		return nil, nil, errors.Wrap(errors.ErrState, "this proposal is already withdrawn")
 	}
 
-	if weave.InThePast(ctx, common.VotingStartTime.Time()) {
+	if weave.InThePast(ctx, prop.VotingStartTime.Time()) {
 		return nil, nil, errors.Wrap(errors.ErrImmutable, "voting has already started")
 	}
-	if !h.auth.HasAddress(ctx, common.Author) {
+	if !h.auth.HasAddress(ctx, prop.Author) {
 		return nil, nil, errors.Wrap(errors.ErrUnauthorized, "only the author can delete a proposal")
 	}
 	return &msg, prop, nil
@@ -461,7 +442,7 @@ func (h DeleteProposalHandler) Deliver(ctx weave.Context, db weave.KVStore, tx w
 		return nil, err
 	}
 
-	prop.Common.Status = ProposalCommon_Withdrawn
+	prop.Status = Proposal_Withdrawn
 
 	if err := h.propBucket.Update(db, msg.ProposalID, prop); err != nil {
 		return nil, errors.Wrap(err, "failed to persist proposal")
@@ -619,7 +600,7 @@ func (h TextResolutionHandler) Deliver(ctx weave.Context, db weave.KVStore, tx w
 	resolution := &Resolution{
 		Metadata:      &weave.Metadata{},
 		ProposalID:    proposalID,
-		ElectorateRef: proposal.Common.ElectorateRef,
+		ElectorateRef: proposal.ElectorateRef,
 		Resolution:    msg.Resolution,
 	}
 

@@ -52,15 +52,13 @@ func TestGovProposalCreateAndExecute(t *testing.T) {
 	proposalTx := &bnsdApp.Tx{
 		Sum: &bnsdApp.Tx_CreateProposalMsg{
 			CreateProposalMsg: &gov.CreateProposalMsg{
-				Metadata: &weave.Metadata{Schema: 1},
-				Base: &gov.CreateProposalMsgBase{
-					Title:       "my proposal",
-					Description: "my description",
-					StartTime:   weave.AsUnixTime(proposalStartTime),
-					// Election Rule is created from the genesis declaration.
-					ElectionRuleID: weavetest.SequenceID(1),
-					Author:         carl.PublicKey().Address(),
-				},
+				Metadata:    &weave.Metadata{Schema: 1},
+				Title:       "my proposal",
+				Description: "my description",
+				StartTime:   weave.AsUnixTime(proposalStartTime),
+				// Election Rule is created from the genesis declaration.
+				ElectionRuleID: weavetest.SequenceID(1),
+				Author:         carl.PublicKey().Address(),
 				RawOption: marshal(t, &bnsdApp.ProposalOptions{
 					Option: &bnsdApp.ProposalOptions_SendMsg{
 						SendMsg: &cash.SendMsg{
@@ -140,7 +138,7 @@ func TestGovProposalCreateAndExecute(t *testing.T) {
 		return
 	}
 
-	wait = x.Common.VotingEndTime.Time().Sub(time.Now()) + time.Second
+	wait = x.VotingEndTime.Time().Sub(time.Now()) + time.Second
 	t.Logf("waiting for %s so that proposal voting period has ended", wait)
 	time.Sleep(wait)
 

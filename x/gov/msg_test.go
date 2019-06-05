@@ -86,15 +86,13 @@ func TestCreateProposalMsg(t *testing.T) {
 
 	buildMsg := func(mods ...func(*CreateProposalMsg)) CreateProposalMsg {
 		m := CreateProposalMsg{
-			Metadata: &weave.Metadata{Schema: 1},
-			Base: &CreateProposalMsgBase{
-				Title:          "any title _.-",
-				Description:    "any description",
-				ElectionRuleID: weavetest.SequenceID(1),
-				StartTime:      weave.AsUnixTime(time.Now()),
-				Author:         alice,
-			},
-			RawOption: []byte("random text, not decoded"),
+			Metadata:       &weave.Metadata{Schema: 1},
+			Title:          "any title _.-",
+			Description:    "any description",
+			ElectionRuleID: weavetest.SequenceID(1),
+			StartTime:      weave.AsUnixTime(time.Now()),
+			Author:         alice,
+			RawOption:      []byte("random text, not encoded"),
 		}
 		for _, mod := range mods {
 			mod(&m)
@@ -111,64 +109,64 @@ func TestCreateProposalMsg(t *testing.T) {
 		},
 		"Author is optional": {
 			Msg: buildMsg(func(p *CreateProposalMsg) {
-				p.Base.Author = nil
+				p.Author = nil
 			}),
 		},
 		"Short title within range": {
 			Msg: buildMsg(func(p *CreateProposalMsg) {
-				p.Base.Title = "fooo"
+				p.Title = "fooo"
 			}),
 		},
 		"Long title within range": {
 			Msg: buildMsg(func(p *CreateProposalMsg) {
-				p.Base.Title = BigString(128)
+				p.Title = BigString(128)
 			}),
 		},
 		"Title too short": {
 			Msg: buildMsg(func(p *CreateProposalMsg) {
-				p.Base.Title = "foo"
+				p.Title = "foo"
 			}),
 			Exp: errors.ErrInput,
 		},
 		"Title too long": {
 			Msg: buildMsg(func(p *CreateProposalMsg) {
-				p.Base.Title = BigString(129)
+				p.Title = BigString(129)
 			}),
 			Exp: errors.ErrInput,
 		},
 		"Title with invalid chars": {
 			Msg: buildMsg(func(p *CreateProposalMsg) {
-				p.Base.Title = "title with invalid char <"
+				p.Title = "title with invalid char <"
 			}),
 			Exp: errors.ErrInput,
 		},
 		"Description too short": {
 			Msg: buildMsg(func(p *CreateProposalMsg) {
-				p.Base.Title = "foo"
+				p.Title = "foo"
 			}),
 			Exp: errors.ErrInput,
 		},
 		"Description too long": {
 			Msg: buildMsg(func(p *CreateProposalMsg) {
-				p.Base.Title = BigString(5001)
+				p.Title = BigString(5001)
 			}),
 			Exp: errors.ErrInput,
 		},
 		"ElectionRuleID missing": {
 			Msg: buildMsg(func(p *CreateProposalMsg) {
-				p.Base.ElectionRuleID = nil
+				p.ElectionRuleID = nil
 			}),
 			Exp: errors.ErrInput,
 		},
 		"StartTime zero": {
 			Msg: buildMsg(func(p *CreateProposalMsg) {
-				p.Base.StartTime = 0
+				p.StartTime = 0
 			}),
 			Exp: errors.ErrInput,
 		},
 		"Invalid author address": {
 			Msg: buildMsg(func(p *CreateProposalMsg) {
-				p.Base.Author = []byte{0, 0, 0, 0}
+				p.Author = []byte{0, 0, 0, 0}
 			}),
 			Exp: errors.ErrInput,
 		},

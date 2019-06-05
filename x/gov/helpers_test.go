@@ -126,22 +126,20 @@ func proposalFixture(t testing.TB, alice weave.Address, mods ...func(*Proposal))
 	assert.Nil(t, err)
 
 	proposal := Proposal{
-		Metadata: &weave.Metadata{Schema: 1},
-		Common: &ProposalCommon{
-			Title:           "My proposal",
-			Description:     "My description",
-			ElectionRuleRef: orm.VersionedIDRef{ID: weavetest.SequenceID(1), Version: 1},
-			ElectorateRef:   orm.VersionedIDRef{ID: weavetest.SequenceID(1), Version: 1},
-			VotingStartTime: now.Add(-1 * time.Minute),
-			VotingEndTime:   now.Add(time.Minute),
-			SubmissionTime:  now.Add(-1 * time.Hour),
-			Status:          ProposalCommon_Submitted,
-			Result:          ProposalCommon_Undefined,
-			ExecutorResult:  ProposalCommon_NotRun,
-			Author:          alice,
-			VoteState:       NewTallyResult(nil, Fraction{1, 2}, 11),
-		},
-		RawOption: textOption,
+		Metadata:        &weave.Metadata{Schema: 1},
+		Title:           "My proposal",
+		Description:     "My description",
+		ElectionRuleRef: orm.VersionedIDRef{ID: weavetest.SequenceID(1), Version: 1},
+		ElectorateRef:   orm.VersionedIDRef{ID: weavetest.SequenceID(1), Version: 1},
+		VotingStartTime: now.Add(-1 * time.Minute),
+		VotingEndTime:   now.Add(time.Minute),
+		SubmissionTime:  now.Add(-1 * time.Hour),
+		Status:          Proposal_Submitted,
+		Result:          Proposal_Undefined,
+		ExecutorResult:  Proposal_NotRun,
+		Author:          alice,
+		VoteState:       NewTallyResult(nil, Fraction{1, 2}, 11),
+		RawOption:       textOption,
 	}
 	for _, mod := range mods {
 		if mod != nil {
