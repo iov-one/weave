@@ -176,20 +176,20 @@ func (cs Coins) Count() int {
 //
 // Zero amounts should not be present
 func (cs Coins) Validate() error {
+	var err error
 	last := ""
 	for _, c := range cs {
-		if err := c.Validate(); err != nil {
-			return err
-		}
+		err = errors.Append(err, c.Validate())
+
 		if c.IsZero() {
-			return errors.Wrap(errors.ErrState, "zero coins")
+			err = errors.Append(err, errors.Wrap(errors.ErrState, "zero coins"))
 		}
 		if c.Ticker < last {
-			return errors.Wrap(errors.ErrState, "not sorted")
+			err = errors.Append(err, errors.Wrap(errors.ErrState, "not sorted"))
 		}
 		last = c.Ticker
 	}
-	return nil
+	return err
 }
 
 // NormalizeCoins is a cleanup operation that merge and orders set of coin instances

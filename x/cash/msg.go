@@ -30,26 +30,22 @@ func (SendMsg) Path() string {
 
 // Validate makes sure that this is sensible
 func (s *SendMsg) Validate() error {
+	var err error
 	if coin.IsEmpty(s.Amount) || !s.Amount.IsPositive() {
-		return errors.Wrapf(errors.ErrAmount, "non-positive SendMsg: %#v", s.Amount)
-
+		err = errors.Wrapf(errors.ErrAmount, "non-positive SendMsg: %#v", s.Amount)
+	} else {
+		err = errors.Append(err, s.Amount.Validate())
 	}
-	if err := s.Amount.Validate(); err != nil {
-		return errors.Wrap(err, "amount")
-	}
-	if err := s.Src.Validate(); err != nil {
-		return errors.Wrap(err, "src")
-	}
-	if err := s.Dest.Validate(); err != nil {
-		return errors.Wrap(err, "dst")
-	}
+	err = errors.Append(err, s.Src.Validate())
+	err = errors.Append(err, s.Dest.Validate())
 	if len(s.Memo) > maxMemoSize {
-		return errors.Wrap(errors.ErrState, "memo too long")
+		err = errors.Append(err, errors.Wrap(errors.ErrState, "memo too long"))
 	}
 	if len(s.Ref) > maxRefSize {
-		return errors.Wrap(errors.ErrState, "ref too long")
+		err = errors.Append(err, errors.Wrap(errors.ErrState, "ref too long"))
 	}
-	return nil
+
+	return err
 }
 
 // DefaultSource makes sure there is a payer.
@@ -91,20 +87,22 @@ func (f *FeeInfo) DefaultPayer(addr []byte) *FeeInfo {
 // Validate makes sure that this is sensible.
 // Note that fee must be present, even if 0
 func (f *FeeInfo) Validate() error {
+	var err error
 	if f == nil {
-		return errors.Wrap(errors.ErrInput, "nil fee info")
+		err = errors.Wrap(errors.ErrInput, "nil fee info")
 	}
 	fee := f.GetFees()
 	if fee == nil {
-		return errors.Wrap(errors.ErrAmount, "fees nil")
+		err = errors.Append(err, errors.Wrap(errors.ErrAmount, "fees nil"))
+	} else {
+		err = errors.Append(err, fee.Validate())
+
+		if !fee.IsNonNegative() {
+			err = errors.Append(err, errors.Wrap(errors.ErrAmount, "negative fees"))
+		}
 	}
-	if err := fee.Validate(); err != nil {
-		return err
-	}
-	if !fee.IsNonNegative() {
-		return errors.Wrap(errors.ErrAmount, "negative fees")
-	}
-	return weave.Address(f.Payer).Validate()
+
+	return errors.Append(err, weave.Address(f.Payer).Validate())
 }
 
 var _ weave.Msg = (*ConfigurationMsg)(nil)
@@ -112,26 +110,22 @@ var _ weave.Msg = (*ConfigurationMsg)(nil)
 // Validate will skip any zero fields and validate the set ones
 // TODO: we should make it easier to reuse code with Configuration
 func (m *ConfigurationMsg) Validate() error {
+	var err error
 	c := m.Patch
 	if len(c.Owner) != 0 {
-		if err := c.Owner.Validate(); err != nil {
-			return errors.Wrap(err, "owner address")
-		}
+		err = c.Owner.Validate()
 	}
 	if len(c.CollectorAddress) != 0 {
-		if err := c.CollectorAddress.Validate(); err != nil {
-			return errors.Wrap(err, "collector address")
-		}
+		err = errors.Append(err, c.CollectorAddress.Validate())
 	}
 	if !c.MinimalFee.IsZero() {
-		if err := c.MinimalFee.Validate(); err != nil {
-			return errors.Wrap(err, "minimal fee")
-		}
+		err = errors.Append(err, c.MinimalFee.Validate())
+
 		if !c.MinimalFee.IsNonNegative() {
-			return errors.Wrap(errors.ErrState, "minimal fee cannot be negative")
+			err = errors.Append(err, errors.Wrap(errors.ErrState, "minimal fee cannot be negative"))
 		}
 	}
-	return nil
+	return err
 }
 
 func (*ConfigurationMsg) Path() string {
