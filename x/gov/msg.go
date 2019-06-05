@@ -35,14 +35,6 @@ func (m CreateProposalMsg) Validate() error {
 	if len(m.RawOption) == 0 {
 		return errors.Wrap(errors.ErrEmpty, "missing raw options")
 	}
-	return m.Base.Validate()
-}
-
-func (m *CreateProposalMsgBase) Validate() error {
-	if m == nil {
-		return errors.Wrap(errors.ErrInput, "missing base proposal msg info")
-	}
-
 	if len(m.GetElectionRuleID()) == 0 {
 		return errors.Wrap(errors.ErrInput, "empty election rules id")
 	}

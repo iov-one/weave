@@ -169,32 +169,19 @@ const (
 )
 
 func (m *Proposal) Validate() error {
+	if m == nil {
+		return errors.Wrap(errors.ErrEmpty, "proposal missing")
+	}
 	if err := m.Metadata.Validate(); err != nil {
 		return errors.Wrap(err, "invalid metadata")
 	}
 	if len(m.RawOption) == 0 {
 		return errors.Wrap(errors.ErrState, "missing raw options")
 	}
-	return m.Common.Validate()
-}
-
-func (m Proposal) Copy() orm.CloneableData {
-	optionCopy := append([]byte{}, m.RawOption...)
-	return &Proposal{
-		Metadata:  m.Metadata.Copy(),
-		Common:    m.Common.Copy().(*ProposalCommon),
-		RawOption: optionCopy,
-	}
-}
-
-func (m *ProposalCommon) Validate() error {
-	if m == nil {
-		return errors.Wrap(errors.ErrState, "proposal common data missing")
-	}
-	if m.Result == ProposalCommon_PROPOSAL_COMMON_RESULT_INVALID {
+	if m.Result == Proposal_PROPOSAL_RESULT_INVALID {
 		return errors.Wrap(errors.ErrState, "invalid result value")
 	}
-	if m.Status == ProposalCommon_PROPOSAL_COMMON_STATUS_INVALID {
+	if m.Status == Proposal_PROPOSAL_STATUS_INVALID {
 		return errors.Wrap(errors.ErrState, "invalid status")
 	}
 	if m.VotingStartTime >= m.VotingEndTime {
@@ -225,12 +212,12 @@ func (m *ProposalCommon) Validate() error {
 	return m.VoteState.Validate()
 }
 
-func (m *ProposalCommon) Copy() orm.CloneableData {
-	if m == nil {
-		return &ProposalCommon{}
-	}
-	return &ProposalCommon{
+func (m Proposal) Copy() orm.CloneableData {
+	optionCopy := append([]byte{}, m.RawOption...)
+	return &Proposal{
+		Metadata:  m.Metadata.Copy(),
 		Title:           m.Title,
+		RawOption:   optionCopy,
 		Description:     m.Description,
 		ElectionRuleRef: orm.VersionedIDRef{ID: m.ElectionRuleRef.ID, Version: m.ElectionRuleRef.Version},
 		ElectorateRef:   orm.VersionedIDRef{ID: m.ElectorateRef.ID, Version: m.ElectorateRef.Version},
@@ -245,7 +232,7 @@ func (m *ProposalCommon) Copy() orm.CloneableData {
 }
 
 // CountVote updates the intermediate tally result by adding the new vote weight.
-func (m *ProposalCommon) CountVote(vote Vote) error {
+func (m *Proposal) CountVote(vote Vote) error {
 	oldTotal := m.VoteState.TotalVotes()
 	switch vote.Voted {
 	case VoteOption_Yes:
@@ -264,7 +251,7 @@ func (m *ProposalCommon) CountVote(vote Vote) error {
 }
 
 // UndoCountVote updates the intermediate tally result by subtracting the given vote weight.
-func (m *ProposalCommon) UndoCountVote(vote Vote) error {
+func (m *Proposal) UndoCountVote(vote Vote) error {
 	oldTotal := m.VoteState.TotalVotes()
 	switch vote.Voted {
 	case VoteOption_Yes:
@@ -284,19 +271,19 @@ func (m *ProposalCommon) UndoCountVote(vote Vote) error {
 
 // Tally calls the final calculation on the votes and sets the status of the proposal according to the
 // election rules threshold.
-func (m *ProposalCommon) Tally() error {
-	if m.Result != ProposalCommon_Undefined {
+func (m *Proposal) Tally() error {
+	if m.Result != Proposal_Undefined {
 		return errors.Wrapf(errors.ErrState, "result exists: %q", m.Result.String())
 	}
-	if m.Status != ProposalCommon_Submitted {
+	if m.Status != Proposal_Submitted {
 		return errors.Wrapf(errors.ErrState, "unexpected status: %q", m.Status.String())
 	}
 	if m.VoteState.Accepted() {
-		m.Result = ProposalCommon_Accepted
+		m.Result = Proposal_Accepted
 	} else {
-		m.Result = ProposalCommon_Rejected
+		m.Result = Proposal_Rejected
 	}
-	m.Status = ProposalCommon_Closed
+	m.Status = Proposal_Closed
 	return nil
 }
 
