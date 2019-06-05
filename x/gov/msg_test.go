@@ -92,7 +92,7 @@ func TestCreateProposalMsg(t *testing.T) {
 			ElectionRuleID: weavetest.SequenceID(1),
 			StartTime:      weave.AsUnixTime(time.Now()),
 			Author:         alice,
-			RawOption:      []byte("random text, not decoded"),
+			RawOption:      []byte("random text, not encoded"),
 		}
 		for _, mod := range mods {
 			mod(&m)
