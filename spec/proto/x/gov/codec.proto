@@ -74,74 +74,68 @@ message Fraction {
   uint32 denominator = 2;
 }
 
-// ProposalCommon contains all the generic fields for the lifetime of the proposal,
-// separate from the actual details of what is being voted on
-message ProposalCommon {
-  // Human readable title.
-  string title = 2;
-  // Description of the proposal in text form.
-  string description = 3;
-  // ElectionRuleRef is a reference to the election rule
-  orm.VersionedIDRef election_rule_ref = 4 ;
-  // Reference to the electorate to define the group of possible voters.
-  orm.VersionedIDRef electorate_ref = 5 ;
-  // Unix timestamp of the block where the voting period starts. Header time of the votes must be greater than or equal
-  // to this start time.
-  int64 voting_start_time = 6 ;
-  // Unix timestamp of the block where the voting period ends. Header times of the votes must be before this end time
-  // to be included in the election.
-  int64 voting_end_time = 7 ;
-  // Unix timestamp of the block where the proposal was added to the chain.
-  int64 submission_time = 8 ;
-  // Address of the author who created the proposal. If not set explicit on creation it will default to the main signer.
-  bytes author = 9 ;
-  // Result of the election. Contains intermediate tally results while voting period is open.
-  TallyResult vote_state = 10 ;
-  enum Status {
-    // An empty value is invalid and not allowed
-    PROPOSAL_COMMON_STATUS_INVALID = 0;
-    // Initial status of a proposal when persisted.
-    PROPOSAL_COMMON_STATUS_SUBMITTED = 1 ;
-    // Final status of a proposal when the tally was executed
-    PROPOSAL_COMMON_STATUS_CLOSED = 2 ;
-    // A proposal can be deleted before the voting start time by the owner. When this happens the final status
-    // is Withdrawn.
-    PROPOSAL_COMMON_STATUS_WITHDRAWN = 3 ;
-  }
-  // Status represents the high level position in the life cycle of the proposal. Initial value is submitted.
-  Status status = 11;
-  enum Result {
-    // An empty value is invalid and not allowed
-    PROPOSAL_COMMON_RESULT_INVALID = 0;
-    // Until a final tally has happened the status is undefined
-    PROPOSAL_COMMON_RESULT_UNDEFINED = 1 ;
-    // Final result of the tally
-    PROPOSAL_COMMON_RESULT_ACCEPTED = 2 ;
-    // Final result of the tally
-    PROPOSAL_COMMON_RESULT_REJECTED = 3 ;
-  }
-  // Result is the final result based on the votes and election rule. Initial value is Undefined.
-  Result result = 12;
-  enum ExecutorResult {
-    // An empty value is not allowed
-    PROPOSAL_COMMON_EXECUTOR_RESULT_INVALID = 0;
-    // We have not yet run the executor
-    PROPOSAL_COMMON_EXECUTOR_RESULT_NOT_RUN = 1 ;
-    // The executor was successful and proposed action updated state
-    PROPOSAL_COMMON_EXECUTOR_RESULT_SUCCESS = 2 ;
-    // The executor returned an error and proposed action didn't update state
-    PROPOSAL_COMMON_EXECUTOR_RESULT_FAILURE = 3 ;
-  }
-  // Result is the final result based on the votes and election rule. Initial value is Undefined.
-  ExecutorResult executor_result = 13;
-}
-
 // A generic proposal for an on-chain governance process.
 message Proposal {
   weave.Metadata metadata = 1;
-  ProposalCommon common = 2;
-  // raw_option is app-specific and can be parsed by an OptionDecoder
+  // Human readable title.
+  string title = 2;
+  // Content of the proposal. Protobuf encoded, app-specific decoded must be passed in constructor
   bytes raw_option = 3;
+  // Description of the proposal in text form.
+  string description = 4;
+  // ElectionRuleRef is a reference to the election rule
+  orm.VersionedIDRef election_rule_ref = 5 ;
+  // Reference to the electorate to define the group of possible voters.
+  orm.VersionedIDRef electorate_ref = 6 ;
+  // Unix timestamp of the block where the voting period starts. Header time of the votes must be greater than or equal
+  // to this start time.
+  int64 voting_start_time = 7 ;
+  // Unix timestamp of the block where the voting period ends. Header times of the votes must be before this end time
+  // to be included in the election.
+  int64 voting_end_time = 8 ;
+  // Unix timestamp of the block where the proposal was added to the chain.
+  int64 submission_time = 9 ;
+  // Address of the author who created the proposal. If not set explicit on creation it will default to the main signer.
+  bytes author = 10 ;
+  // Result of the election. Contains intermediate tally results while voting period is open.
+  TallyResult vote_state = 11 ;
+  enum Status {
+    // An empty value is invalid and not allowed
+    PROPOSAL_STATUS_INVALID = 0;
+    // Initial status of a proposal when persisted.
+    PROPOSAL_STATUS_SUBMITTED = 1 ;
+    // Final status of a proposal when the tally was executed
+    PROPOSAL_STATUS_CLOSED = 2 ;
+    // A proposal can be deleted before the voting start time by the owner. When this happens the final status
+    // is Withdrawn.
+    PROPOSAL_STATUS_WITHDRAWN = 3 ;
+  }
+  // Status represents the high level position in the life cycle of the proposal. Initial value is submitted.
+  Status status = 12;
+  enum Result {
+    // An empty value is invalid and not allowed
+    PROPOSAL_RESULT_INVALID = 0;
+    // Until a final tally has happened the status is undefined
+    PROPOSAL_RESULT_UNDEFINED = 1 ;
+    // Final result of the tally
+    PROPOSAL_RESULT_ACCEPTED = 2 ;
+    // Final result of the tally
+    PROPOSAL_RESULT_REJECTED = 3 ;
+  }
+  // Result is the final result based on the votes and election rule. Initial value is Undefined.
+  Result result = 13;
+  enum ExecutorResult {
+    // An empty value is not allowed
+    PROPOSAL_EXECUTOR_RESULT_INVALID = 0;
+    // We have not yet run the executor
+    PROPOSAL_EXECUTOR_RESULT_NOT_RUN = 1 ;
+    // The executor was successful and proposed action updated state
+    PROPOSAL_EXECUTOR_RESULT_SUCCESS = 2 ;
+    // The executor returned an error and proposed action didn't update state
+    PROPOSAL_EXECUTOR_RESULT_FAILURE = 3 ;
+  }
+  // Result is the final result based on the votes and election rule. Initial value is Undefined.
+  ExecutorResult executor_result = 14;
 }
 
 // Resolution contains TextResolution and an electorate reference.
@@ -179,28 +173,23 @@ message Vote {
   VoteOption voted = 3;
 }
 
-// CreateProposalMsgBase is the common info in all proposals.
-// This is separated out to easily be included in an app-specific CreateProposalMsg
-message CreateProposalMsgBase {
-  // Human readable title. Must match `^{4,128}$`
-  string title = 1;
-  // Human readable description with 3 to 5000 chars.
-  string description = 2;
-  // ElectionRuleID is a reference to the election rule
-  bytes election_rule_id = 3 ;
-  // Unix timestamp when the proposal starts. Must be in the future.
-  int64 start_time = 4 ;
-  // Author is an optional field to set the address of the author with a proposal. The author must sign the message.
-  // When not set it will default to the main signer.
-  bytes author = 5 ;
-}
-
 // CreateProposalMsg creates a new governance proposal.
-// Metadata is from CreateProposalMsgBase, actual proposal details from app-specific raw_option
+// Actual proposal details from app-specific raw_option
 message CreateProposalMsg {
   weave.Metadata metadata = 1;
-  CreateProposalMsgBase base = 2;
+  // Human readable title. Must match `^{4,128}$`
+  string title = 2;
+  // Content of the proposal. Protobuf encoded, app-specific decoded must be passed in handler constructor
   bytes raw_option = 3;
+  // Human readable description with 3 to 5000 chars.
+  string description = 4;
+  // ElectionRuleID is a reference to the election rule
+  bytes election_rule_id = 5 ;
+  // Unix timestamp when the proposal starts. Must be in the future.
+  int64 start_time = 6 ;
+  // Author is an optional field to set the address of the author with a proposal. The author must sign the message.
+  // When not set it will default to the main signer.
+  bytes author = 7 ;
 }
 
 // DeleteProposalMsg deletes a governance proposal.
