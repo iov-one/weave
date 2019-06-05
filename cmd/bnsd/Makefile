@@ -1,7 +1,7 @@
 .PHONY: all build test image tf protoc clean dist
 
 BUILD_VERSION ?= manual
-BUILD_FLAGS := -ldflags "-X github.com/iov-one/weave.Version=${BUILD_VERSION}"
+BUILD_FLAGS := -mod=readonly -ldflags "-X github.com/iov-one/weave.Version=${BUILD_VERSION}"
 DOCKER_BUILD_FLAGS := -a -installsuffix cgo
 BUILDOUT ?= bnsd
 IMAGE_NAME = "iov1/bnsd:${BUILD_VERSION}"
@@ -20,7 +20,7 @@ image:
 	docker build --pull -t $(IMAGE_NAME) .
 
 test:
-	go test -race ./...
+	go test -mod=readonly -race ./...
 
 install:
 	go install $(BUILD_FLAGS) .
@@ -28,6 +28,3 @@ install:
 # Test fast
 tf:
 	go test -short ./...
-
-protoc:
-	protoc --gogofaster_out=. -I=. -I=../../vendor -I=$(GOPATH)/src app/*.proto

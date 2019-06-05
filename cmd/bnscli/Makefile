@@ -1,7 +1,7 @@
 all: install
 
 build:
-	go build -ldflags "-X main.gitHash=$(shell git rev-list -1 HEAD)" .
+	go build -mod=readonly -ldflags "-X main.gitHash=$(shell git rev-list -1 HEAD)" .
 
 
 clean:
@@ -9,7 +9,7 @@ clean:
 
 
 install:
-	go install -ldflags "-X main.gitHash=$(shell git rev-list -1 HEAD)" .
+	go install -mod=readonly -ldflags "-X main.gitHash=$(shell git rev-list -1 HEAD)" .
 
 
 .PHONY: all build clean install
