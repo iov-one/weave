@@ -76,6 +76,9 @@ message Fraction {
 }
 
 // A generic proposal for an on-chain governance process.
+// Most fields control the whole election process.
+// raw_option contains an transaction to be executed by the governance vote in case of success
+// (what is being voted on)
 message Proposal {
   weave.Metadata metadata = 1;
   // Human readable title.
@@ -175,7 +178,9 @@ message Vote {
 }
 
 // CreateProposalMsg creates a new governance proposal.
-// Actual proposal details from app-specific raw_option
+// Most fields control the whole election process.
+// raw_option contains an transaction to be executed by the governance vote in case of success
+// (what is being voted on)
 message CreateProposalMsg {
   weave.Metadata metadata = 1;
   // Human readable title. Must match `^[a-zA-Z0-9 _.-]{4,128}$`

@@ -491,6 +491,9 @@ func (m *Fraction) GetDenominator() uint32 {
 }
 
 // A generic proposal for an on-chain governance process.
+// Most fields control the whole election process.
+// raw_option contains an transaction to be executed by the governance vote in case of success
+// (what is being voted on)
 type Proposal struct {
 	Metadata *weave.Metadata `protobuf:"bytes,1,opt,name=metadata,proto3" json:"metadata,omitempty"`
 	// Human readable title.
@@ -880,7 +883,9 @@ func (m *Vote) GetVoted() VoteOption {
 }
 
 // CreateProposalMsg creates a new governance proposal.
-// Actual proposal details from app-specific raw_option
+// Most fields control the whole election process.
+// raw_option contains an transaction to be executed by the governance vote in case of success
+// (what is being voted on)
 type CreateProposalMsg struct {
 	Metadata *weave.Metadata `protobuf:"bytes,1,opt,name=metadata,proto3" json:"metadata,omitempty"`
 	// Human readable title. Must match `^[a-zA-Z0-9 _.-]{4,128}$`
