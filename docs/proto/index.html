@@ -586,6 +586,10 @@
               
               
                 <li>
+                  <a href="#gov.ProposalCommon.ExecutorResult"><span class="badge">E</span>ProposalCommon.ExecutorResult</a>
+                </li>
+              
+                <li>
                   <a href="#gov.ProposalCommon.Result"><span class="badge">E</span>ProposalCommon.Result</a>
                 </li>
               
@@ -3512,6 +3516,13 @@ to be included in the election. </p></td>
                   <td><p>Result is the final result based on the votes and election rule. Initial value is Undefined. </p></td>
                 </tr>
               
+                <tr>
+                  <td>executor_result</td>
+                  <td><a href="#gov.ProposalCommon.ExecutorResult">ProposalCommon.ExecutorResult</a></td>
+                  <td></td>
+                  <td><p>Result is the final result based on the votes and election rule. Initial value is Undefined. </p></td>
+                </tr>
+              
             </tbody>
           </table>
         
@@ -3850,6 +3861,41 @@ must be included in the electorate for a valid vote. </p></td>
         
       
 
+      
+        <h3 id="gov.ProposalCommon.ExecutorResult">ProposalCommon.ExecutorResult</h3>
+        <p></p>
+        <table class="enum-table">
+          <thead>
+            <tr><td>Name</td><td>Number</td><td>Description</td></tr>
+          </thead>
+          <tbody>
+            
+              <tr>
+                <td>PROPOSAL_COMMON_EXECUTOR_RESULT_INVALID</td>
+                <td>0</td>
+                <td><p>An empty value is not allowed</p></td>
+              </tr>
+            
+              <tr>
+                <td>PROPOSAL_COMMON_EXECUTOR_RESULT_NOT_RUN</td>
+                <td>1</td>
+                <td><p>We have not yet run the executor</p></td>
+              </tr>
+            
+              <tr>
+                <td>PROPOSAL_COMMON_EXECUTOR_RESULT_SUCCESS</td>
+                <td>2</td>
+                <td><p>The executor was successful and proposed action updated state</p></td>
+              </tr>
+            
+              <tr>
+                <td>PROPOSAL_COMMON_EXECUTOR_RESULT_FAILURE</td>
+                <td>3</td>
+                <td><p>The executor returned an error and proposed action didn&#39;t update state</p></td>
+              </tr>
+            
+          </tbody>
+        </table>
       
         <h3 id="gov.ProposalCommon.Result">ProposalCommon.Result</h3>
         <p></p>
