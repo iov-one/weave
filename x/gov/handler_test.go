@@ -45,35 +45,31 @@ func TestCreateTextProposal(t *testing.T) {
 		"Happy path with text option": {
 			Msg: CreateProposalMsg{
 				Metadata: &weave.Metadata{Schema: 1},
-				Base: &CreateProposalMsgBase{
 					Title:          "my proposal",
 					Description:    "my description",
 					StartTime:      now.Add(time.Hour),
 					ElectionRuleID: weavetest.SequenceID(1),
 					Author:         hBobby,
-				},
 				RawOption: textOption,
 			},
 			Signers: []weave.Condition{hAliceCond, hBobbyCond},
 			Exp: Proposal{
 				Metadata: &weave.Metadata{Schema: 1},
-				Common: &ProposalCommon{
 					Title:           "my proposal",
 					Description:     "my description",
 					ElectionRuleRef: orm.VersionedIDRef{ID: weavetest.SequenceID(1), Version: 1},
 					ElectorateRef:   orm.VersionedIDRef{ID: weavetest.SequenceID(1), Version: 1},
 					VotingStartTime: now.Add(time.Hour),
 					VotingEndTime:   now.Add(2 * time.Hour),
-					Status:          ProposalCommon_Submitted,
-					Result:          ProposalCommon_Undefined,
-					ExecutorResult:  ProposalCommon_NotRun,
+					Status:          Proposal_Submitted,
+					Result:          Proposal_Undefined,
+					ExecutorResult:  Proposal_NotRun,
 					SubmissionTime:  now,
 					Author:          hBobby,
 					VoteState: TallyResult{
 						Threshold:             Fraction{Numerator: 1, Denominator: 2},
 						TotalElectorateWeight: 11,
 					},
-				},
 				RawOption: textOption,
 			},
 			ExpProposer: hBobby,
@@ -81,35 +77,31 @@ func TestCreateTextProposal(t *testing.T) {
 		"Happy path with electorate option": {
 			Msg: CreateProposalMsg{
 				Metadata: &weave.Metadata{Schema: 1},
-				Base: &CreateProposalMsgBase{
 					Title:          "new electorate",
 					Description:    "a very good readon",
 					StartTime:      now.Add(time.Hour),
 					ElectionRuleID: weavetest.SequenceID(1),
 					Author:         hBobby,
-				},
 				RawOption: electorateOption,
 			},
 			Signers: []weave.Condition{hAliceCond, hBobbyCond},
 			Exp: Proposal{
 				Metadata: &weave.Metadata{Schema: 1},
-				Common: &ProposalCommon{
 					Title:           "new electorate",
 					Description:     "a very good readon",
 					ElectionRuleRef: orm.VersionedIDRef{ID: weavetest.SequenceID(1), Version: 1},
 					ElectorateRef:   orm.VersionedIDRef{ID: weavetest.SequenceID(1), Version: 1},
 					VotingStartTime: now.Add(time.Hour),
 					VotingEndTime:   now.Add(2 * time.Hour),
-					Status:          ProposalCommon_Submitted,
-					Result:          ProposalCommon_Undefined,
-					ExecutorResult:  ProposalCommon_NotRun,
+					Status:          Proposal_Submitted,
+					Result:          Proposal_Undefined,
+					ExecutorResult:  Proposal_NotRun,
 					SubmissionTime:  now,
 					Author:          hBobby,
 					VoteState: TallyResult{
 						Threshold:             Fraction{Numerator: 1, Denominator: 2},
 						TotalElectorateWeight: 11,
 					},
-				},
 				RawOption: electorateOption,
 			},
 			ExpProposer: hBobby,
@@ -117,35 +109,31 @@ func TestCreateTextProposal(t *testing.T) {
 		"Happy path with election rule option": {
 			Msg: CreateProposalMsg{
 				Metadata: &weave.Metadata{Schema: 1},
-				Base: &CreateProposalMsgBase{
 					Title:          "new rule",
 					Description:    "a very good readon",
 					StartTime:      now.Add(time.Hour),
 					ElectionRuleID: weavetest.SequenceID(1),
 					Author:         hBobby,
-				},
 				RawOption: ruleOption,
 			},
 			Signers: []weave.Condition{hAliceCond, hBobbyCond},
 			Exp: Proposal{
 				Metadata: &weave.Metadata{Schema: 1},
-				Common: &ProposalCommon{
 					Title:           "new rule",
 					Description:     "a very good readon",
 					ElectionRuleRef: orm.VersionedIDRef{ID: weavetest.SequenceID(1), Version: 1},
 					ElectorateRef:   orm.VersionedIDRef{ID: weavetest.SequenceID(1), Version: 1},
 					VotingStartTime: now.Add(time.Hour),
 					VotingEndTime:   now.Add(2 * time.Hour),
-					Status:          ProposalCommon_Submitted,
-					Result:          ProposalCommon_Undefined,
-					ExecutorResult:  ProposalCommon_NotRun,
+					Status:          Proposal_Submitted,
+					Result:          Proposal_Undefined,
+					ExecutorResult:  Proposal_NotRun,
 					SubmissionTime:  now,
 					Author:          hBobby,
 					VoteState: TallyResult{
 						Threshold:             Fraction{Numerator: 1, Denominator: 2},
 						TotalElectorateWeight: 11,
 					},
-				},
 				RawOption: ruleOption,
 			},
 			ExpProposer: hBobby,
@@ -153,34 +141,30 @@ func TestCreateTextProposal(t *testing.T) {
 		"All good with main signer as author": {
 			Msg: CreateProposalMsg{
 				Metadata: &weave.Metadata{Schema: 1},
-				Base: &CreateProposalMsgBase{
 					Title:          "my proposal",
 					Description:    "my description",
 					StartTime:      now.Add(time.Hour),
 					ElectionRuleID: weavetest.SequenceID(1),
-				},
 				RawOption: textOption,
 			},
 			Signers: []weave.Condition{hAliceCond, hBobbyCond},
 			Exp: Proposal{
 				Metadata: &weave.Metadata{Schema: 1},
-				Common: &ProposalCommon{
 					Title:           "my proposal",
 					Description:     "my description",
 					ElectionRuleRef: orm.VersionedIDRef{ID: weavetest.SequenceID(1), Version: 1},
 					ElectorateRef:   orm.VersionedIDRef{ID: weavetest.SequenceID(1), Version: 1},
 					VotingStartTime: now.Add(time.Hour),
 					VotingEndTime:   now.Add(2 * time.Hour),
-					Status:          ProposalCommon_Submitted,
-					Result:          ProposalCommon_Undefined,
-					ExecutorResult:  ProposalCommon_NotRun,
+					Status:          Proposal_Submitted,
+					Result:          Proposal_Undefined,
+					ExecutorResult:  Proposal_NotRun,
 					SubmissionTime:  now,
 					Author:          hAlice,
 					VoteState: TallyResult{
 						Threshold:             Fraction{Numerator: 1, Denominator: 2},
 						TotalElectorateWeight: 11,
 					},
-				},
 				RawOption: textOption,
 			},
 			ExpProposer: hAlice,
@@ -188,13 +172,11 @@ func TestCreateTextProposal(t *testing.T) {
 		"Invalid Option": {
 			Msg: CreateProposalMsg{
 				Metadata: &weave.Metadata{Schema: 1},
-				Base: &CreateProposalMsgBase{
 					Title:          "my proposal",
 					Description:    "my description",
 					StartTime:      now.Add(time.Hour),
 					ElectionRuleID: weavetest.SequenceID(1),
 					Author:         hBobby,
-				},
 				RawOption: invalidOption,
 			},
 			Signers:        []weave.Condition{hAliceCond, hBobbyCond},
@@ -205,13 +187,11 @@ func TestCreateTextProposal(t *testing.T) {
 		"Cannot Decode Option": {
 			Msg: CreateProposalMsg{
 				Metadata: &weave.Metadata{Schema: 1},
-				Base: &CreateProposalMsgBase{
 					Title:          "my proposal",
 					Description:    "my description",
 					StartTime:      now.Add(time.Hour),
 					ElectionRuleID: weavetest.SequenceID(1),
 					Author:         hBobby,
-				},
 				RawOption: garbageOption,
 			},
 			Signers:        []weave.Condition{hAliceCond, hBobbyCond},
@@ -222,12 +202,10 @@ func TestCreateTextProposal(t *testing.T) {
 		"ElectionRuleID missing": {
 			Msg: CreateProposalMsg{
 				Metadata: &weave.Metadata{Schema: 1},
-				Base: &CreateProposalMsgBase{
 					Title:       "my proposal",
 					Description: "my description",
 					StartTime:   now.Add(time.Hour),
 					Author:      hBobby,
-				},
 				RawOption: textOption,
 			},
 			Signers:        []weave.Condition{hAliceCond, hBobbyCond},
@@ -238,13 +216,11 @@ func TestCreateTextProposal(t *testing.T) {
 		"ElectionRuleID invalid": {
 			Msg: CreateProposalMsg{
 				Metadata: &weave.Metadata{Schema: 1},
-				Base: &CreateProposalMsgBase{
 					Title:          "my proposal",
 					Description:    "my description",
 					StartTime:      now.Add(time.Hour),
 					ElectionRuleID: weavetest.SequenceID(10000),
 					Author:         hBobby,
-				},
 				RawOption: textOption,
 			},
 			Signers:        []weave.Condition{hAliceCond, hBobbyCond},
@@ -255,13 +231,11 @@ func TestCreateTextProposal(t *testing.T) {
 		"Author has not signed so message should be rejected": {
 			Msg: CreateProposalMsg{
 				Metadata: &weave.Metadata{Schema: 1},
-				Base: &CreateProposalMsgBase{
 					Title:          "my proposal",
 					Description:    "my description",
 					StartTime:      now.Add(time.Hour),
 					ElectionRuleID: weavetest.SequenceID(1),
 					Author:         weavetest.NewCondition().Address(),
-				},
 				RawOption: textOption,
 			},
 			Signers:        []weave.Condition{hAliceCond, hBobbyCond},
@@ -272,13 +246,11 @@ func TestCreateTextProposal(t *testing.T) {
 		"Start time not in the future": {
 			Msg: CreateProposalMsg{
 				Metadata: &weave.Metadata{Schema: 1},
-				Base: &CreateProposalMsgBase{
 					Title:          "my proposal",
 					Description:    "my description",
 					StartTime:      now,
 					ElectionRuleID: weavetest.SequenceID(1),
 					Author:         hBobby,
-				},
 				RawOption: textOption,
 			},
 			Signers:        []weave.Condition{hAliceCond, hBobbyCond},
@@ -288,13 +260,11 @@ func TestCreateTextProposal(t *testing.T) {
 		"Start time too far in the future": {
 			Msg: CreateProposalMsg{
 				Metadata: &weave.Metadata{Schema: 1},
-				Base: &CreateProposalMsgBase{
 					Title:          "my proposal",
 					Description:    "my description",
 					StartTime:      now.Add(7*24*time.Hour + time.Second),
 					ElectionRuleID: weavetest.SequenceID(1),
 					Author:         hBobby,
-				},
 				RawOption: textOption,
 			},
 			Signers:        []weave.Condition{hAliceCond, hBobbyCond},
@@ -313,13 +283,11 @@ func TestCreateTextProposal(t *testing.T) {
 			},
 			Msg: CreateProposalMsg{
 				Metadata: &weave.Metadata{Schema: 1},
-				Base: &CreateProposalMsgBase{
 					Title:          "my proposal",
 					Description:    "my description",
 					StartTime:      now.Add(time.Hour),
 					ElectionRuleID: weavetest.SequenceID(1),
 					Author:         hBobby,
-				},
 				RawOption: textOption,
 			},
 			// Both signers are from the second electorate while
@@ -341,13 +309,11 @@ func TestCreateTextProposal(t *testing.T) {
 			},
 			Msg: CreateProposalMsg{
 				Metadata: &weave.Metadata{Schema: 1},
-				Base: &CreateProposalMsgBase{
 					Title:          "my proposal",
 					Description:    "my description",
 					StartTime:      now.Add(time.Hour),
 					ElectionRuleID: weavetest.SequenceID(1),
 					Author:         hBobby,
-				},
 				RawOption: textOption,
 			},
 			// Both signers are from the second electorate while
@@ -357,23 +323,21 @@ func TestCreateTextProposal(t *testing.T) {
 			WantDeliverErr: nil,
 			Exp: Proposal{
 				Metadata: &weave.Metadata{Schema: 1},
-				Common: &ProposalCommon{
 					Title:           "my proposal",
 					Description:     "my description",
 					ElectionRuleRef: orm.VersionedIDRef{ID: weavetest.SequenceID(1), Version: 1},
 					ElectorateRef:   orm.VersionedIDRef{ID: weavetest.SequenceID(1), Version: 1},
 					VotingStartTime: now.Add(time.Hour),
 					VotingEndTime:   now.Add(2 * time.Hour),
-					Status:          ProposalCommon_Submitted,
-					Result:          ProposalCommon_Undefined,
-					ExecutorResult:  ProposalCommon_NotRun,
+					Status:          Proposal_Submitted,
+					Result:          Proposal_Undefined,
+					ExecutorResult:  Proposal_NotRun,
 					SubmissionTime:  now,
 					Author:          hBobby,
 					VoteState: TallyResult{
 						Threshold:             Fraction{Numerator: 1, Denominator: 2},
 						TotalElectorateWeight: 3,
 					},
-				},
 				RawOption: textOption,
 			},
 			ExpProposer: hBobby,
@@ -451,8 +415,8 @@ func TestDeleteProposal(t *testing.T) {
 			SignedBy:        hAliceCond,
 			ProposalDeleted: true,
 			Mods: func(ctx weave.Context, proposal *Proposal) {
-				proposal.Common.VotingStartTime = weave.AsUnixTime(time.Now().Add(1 * time.Hour))
-				proposal.Common.VotingEndTime = weave.AsUnixTime(time.Now().Add(2 * time.Hour))
+				proposal.VotingStartTime = weave.AsUnixTime(time.Now().Add(1 * time.Hour))
+				proposal.VotingEndTime = weave.AsUnixTime(time.Now().Add(2 * time.Hour))
 			},
 		},
 		"Proposal does not exist": {
@@ -467,16 +431,16 @@ func TestDeleteProposal(t *testing.T) {
 			WantCheckErr:   errors.ErrUnauthorized,
 			WantDeliverErr: errors.ErrUnauthorized,
 			Mods: func(ctx weave.Context, proposal *Proposal) {
-				proposal.Common.VotingStartTime = weave.AsUnixTime(time.Now().Add(1 * time.Hour))
-				proposal.Common.VotingEndTime = weave.AsUnixTime(time.Now().Add(2 * time.Hour))
+				proposal.VotingStartTime = weave.AsUnixTime(time.Now().Add(1 * time.Hour))
+				proposal.VotingEndTime = weave.AsUnixTime(time.Now().Add(2 * time.Hour))
 			},
 		},
 		"Voting has started": {
 			Msg:      DeleteProposalMsg{Metadata: &weave.Metadata{Schema: 1}, ProposalID: proposalID},
 			SignedBy: hAliceCond,
 			Mods: func(ctx weave.Context, proposal *Proposal) {
-				proposal.Common.VotingStartTime = weave.AsUnixTime(time.Now().Add(-1 * time.Hour))
-				proposal.Common.SubmissionTime = weave.AsUnixTime(time.Now().Add(-2 * time.Hour))
+				proposal.VotingStartTime = weave.AsUnixTime(time.Now().Add(-1 * time.Hour))
+				proposal.SubmissionTime = weave.AsUnixTime(time.Now().Add(-2 * time.Hour))
 			},
 			WantCheckErr:   errors.ErrImmutable,
 			WantDeliverErr: errors.ErrImmutable,
@@ -519,9 +483,9 @@ func TestDeleteProposal(t *testing.T) {
 			p, err := pBucket.GetProposal(cache, weavetest.SequenceID(1))
 			assert.Nil(t, err)
 			if spec.ProposalDeleted {
-				assert.Equal(t, p.Common.Status, ProposalCommon_Withdrawn)
+				assert.Equal(t, p.Status, Proposal_Withdrawn)
 			} else {
-				assert.Equal(t, true, p.Common.Status != ProposalCommon_Withdrawn)
+				assert.Equal(t, true, p.Status != Proposal_Withdrawn)
 			}
 
 			cache.Discard()
@@ -531,7 +495,7 @@ func TestDeleteProposal(t *testing.T) {
 
 func TestCreateResolution(t *testing.T) {
 	ID := weavetest.SequenceID(1)
-	proposal := Proposal{Common: &ProposalCommon{ElectorateRef: orm.VersionedIDRef{ID: ID, Version: 1}}}
+	proposal := Proposal{ElectorateRef: orm.VersionedIDRef{ID: ID, Version: 1}}
 
 	specs := map[string]struct {
 		ctx            weave.Context
@@ -658,7 +622,7 @@ func TestVote(t *testing.T) {
 				vBucket.Save(db, obj)
 			},
 			Mods: func(ctx weave.Context, proposal *Proposal) {
-				proposal.Common.VoteState.TotalYes = 10
+				proposal.VoteState.TotalYes = 10
 			},
 			Msg:        VoteMsg{Metadata: &weave.Metadata{Schema: 1}, ProposalID: proposalID, Selected: VoteOption_No, Voter: hBobby},
 			SignedBy:   hBobbyCond,
@@ -678,7 +642,7 @@ func TestVote(t *testing.T) {
 				vBucket.Save(db, obj)
 			},
 			Mods: func(ctx weave.Context, proposal *Proposal) {
-				proposal.Common.VoteState.TotalYes = 1
+				proposal.VoteState.TotalYes = 1
 			},
 			Msg:        VoteMsg{Metadata: &weave.Metadata{Schema: 1}, ProposalID: proposalID, Selected: VoteOption_Yes, Voter: hAlice},
 			SignedBy:   hAliceCond,
@@ -705,7 +669,7 @@ func TestVote(t *testing.T) {
 		},
 		"Vote before start date": {
 			Mods: func(ctx weave.Context, proposal *Proposal) {
-				proposal.Common.VotingStartTime = unixBlockTime(t, ctx) + 1
+				proposal.VotingStartTime = unixBlockTime(t, ctx) + 1
 			},
 			Msg:            VoteMsg{Metadata: &weave.Metadata{Schema: 1}, ProposalID: proposalID, Selected: VoteOption_Yes, Voter: hAlice},
 			SignedBy:       hAliceCond,
@@ -714,7 +678,7 @@ func TestVote(t *testing.T) {
 		},
 		"Vote on start date": {
 			Mods: func(ctx weave.Context, proposal *Proposal) {
-				proposal.Common.VotingStartTime = unixBlockTime(t, ctx)
+				proposal.VotingStartTime = unixBlockTime(t, ctx)
 			},
 			Msg:            VoteMsg{Metadata: &weave.Metadata{Schema: 1}, ProposalID: proposalID, Selected: VoteOption_Yes, Voter: hAlice},
 			SignedBy:       hAliceCond,
@@ -723,7 +687,7 @@ func TestVote(t *testing.T) {
 		},
 		"Vote on end date": {
 			Mods: func(ctx weave.Context, proposal *Proposal) {
-				proposal.Common.VotingEndTime = unixBlockTime(t, ctx)
+				proposal.VotingEndTime = unixBlockTime(t, ctx)
 			},
 			Msg:            VoteMsg{Metadata: &weave.Metadata{Schema: 1}, ProposalID: proposalID, Selected: VoteOption_Yes, Voter: hAlice},
 			SignedBy:       hAliceCond,
@@ -732,7 +696,7 @@ func TestVote(t *testing.T) {
 		},
 		"Vote after end date": {
 			Mods: func(ctx weave.Context, proposal *Proposal) {
-				proposal.Common.VotingEndTime = unixBlockTime(t, ctx) - 1
+				proposal.VotingEndTime = unixBlockTime(t, ctx) - 1
 			},
 			Msg:            VoteMsg{Metadata: &weave.Metadata{Schema: 1}, ProposalID: proposalID, Selected: VoteOption_Yes, Voter: hAlice},
 			SignedBy:       hAliceCond,
@@ -741,7 +705,7 @@ func TestVote(t *testing.T) {
 		},
 		"Vote on withdrawn proposal must fail": {
 			Mods: func(ctx weave.Context, proposal *Proposal) {
-				proposal.Common.Status = ProposalCommon_Withdrawn
+				proposal.Status = Proposal_Withdrawn
 			},
 			Msg:            VoteMsg{Metadata: &weave.Metadata{Schema: 1}, ProposalID: proposalID, Selected: VoteOption_Yes, Voter: hAlice},
 			SignedBy:       hAliceCond,
@@ -750,7 +714,7 @@ func TestVote(t *testing.T) {
 		},
 		"Vote on closed proposal must fail": {
 			Mods: func(ctx weave.Context, proposal *Proposal) {
-				proposal.Common.Status = ProposalCommon_Closed
+				proposal.Status = Proposal_Closed
 			},
 			Msg:            VoteMsg{Metadata: &weave.Metadata{Schema: 1}, ProposalID: proposalID, Selected: VoteOption_Yes, Voter: hAlice},
 			SignedBy:       hAliceCond,
@@ -760,8 +724,8 @@ func TestVote(t *testing.T) {
 		"Sanity check on count vote": {
 			Mods: func(ctx weave.Context, proposal *Proposal) {
 				// not a valid setup
-				proposal.Common.VoteState.TotalYes = math.MaxUint64
-				proposal.Common.VoteState.TotalElectorateWeight = math.MaxUint64
+				proposal.VoteState.TotalYes = math.MaxUint64
+				proposal.VoteState.TotalElectorateWeight = math.MaxUint64
 			},
 			Msg:            VoteMsg{Metadata: &weave.Metadata{Schema: 1}, ProposalID: proposalID, Selected: VoteOption_Yes, Voter: hAlice},
 			SignedBy:       hAliceCond,
@@ -781,8 +745,8 @@ func TestVote(t *testing.T) {
 			},
 			Mods: func(ctx weave.Context, proposal *Proposal) {
 				// not a valid setup
-				proposal.Common.VoteState.TotalYes = 0
-				proposal.Common.VoteState.TotalElectorateWeight = math.MaxUint64
+				proposal.VoteState.TotalYes = 0
+				proposal.VoteState.TotalElectorateWeight = math.MaxUint64
 			},
 			Msg:            VoteMsg{Metadata: &weave.Metadata{Schema: 1}, ProposalID: proposalID, Selected: VoteOption_No, Voter: hBobby},
 			SignedBy:       hBobbyCond,
@@ -829,7 +793,7 @@ func TestVote(t *testing.T) {
 			if err != nil {
 				t.Fatalf("unexpected error: %s", err)
 			}
-			if exp, got := spec.Exp, p.Common.VoteState; exp != got {
+			if exp, got := spec.Exp, p.VoteState; exp != got {
 				t.Errorf("expected %v but got %v", exp, got)
 			}
 			// and vote persisted
@@ -858,8 +822,8 @@ func TestTally(t *testing.T) {
 		WantCheckErr      *errors.Error
 		WantDeliverErr    *errors.Error
 		WantDeliverLog    string
-		ExpResult         ProposalCommon_Result
-		ExpExecutorResult ProposalCommon_ExecutorResult
+		ExpResult         Proposal_Result
+		ExpExecutorResult Proposal_ExecutorResult
 		PostChecks        func(t *testing.T, db weave.KVStore)
 		Init              func(t *testing.T, db weave.KVStore)
 	}{
@@ -869,8 +833,8 @@ func TestTally(t *testing.T) {
 				threshold:             Fraction{Numerator: 1, Denominator: 2},
 				totalWeightElectorate: 9,
 			},
-			ExpResult:         ProposalCommon_Accepted,
-			ExpExecutorResult: ProposalCommon_Success,
+			ExpResult:         Proposal_Accepted,
+			ExpExecutorResult: Proposal_Success,
 			WantDeliverLog:    "Proposal accepted: execution success",
 			PostChecks: func(t *testing.T, db weave.KVStore) {
 				obj, err := NewResolutionBucket().Get(db, weavetest.SequenceID(1))
@@ -887,8 +851,8 @@ func TestTally(t *testing.T) {
 				threshold:             Fraction{Numerator: 1, Denominator: 1},
 				totalWeightElectorate: 9,
 			},
-			ExpResult:         ProposalCommon_Accepted,
-			ExpExecutorResult: ProposalCommon_Success,
+			ExpResult:         Proposal_Accepted,
+			ExpExecutorResult: Proposal_Success,
 			WantDeliverLog:    "Proposal accepted: execution success",
 		},
 		"Rejected without enough Yes votes": {
@@ -898,8 +862,8 @@ func TestTally(t *testing.T) {
 				threshold:             Fraction{Numerator: 1, Denominator: 2},
 				totalWeightElectorate: 9,
 			},
-			ExpResult:         ProposalCommon_Rejected,
-			ExpExecutorResult: ProposalCommon_NotRun,
+			ExpResult:         Proposal_Rejected,
+			ExpExecutorResult: Proposal_NotRun,
 			WantDeliverLog:    "Proposal not accepted",
 			PostChecks: func(t *testing.T, db weave.KVStore) {
 				obj, err := NewResolutionBucket().Get(db, weavetest.SequenceID(1))
@@ -916,8 +880,8 @@ func TestTally(t *testing.T) {
 				threshold:             Fraction{Numerator: 1, Denominator: 2},
 				totalWeightElectorate: 9,
 			},
-			ExpResult:         ProposalCommon_Rejected,
-			ExpExecutorResult: ProposalCommon_NotRun,
+			ExpResult:         Proposal_Rejected,
+			ExpExecutorResult: Proposal_NotRun,
 			WantDeliverLog:    "Proposal not accepted",
 		},
 		"Rejected without voters": {
@@ -925,8 +889,8 @@ func TestTally(t *testing.T) {
 				threshold:             Fraction{Numerator: 1, Denominator: 2},
 				totalWeightElectorate: 2,
 			},
-			ExpResult:         ProposalCommon_Rejected,
-			ExpExecutorResult: ProposalCommon_NotRun,
+			ExpResult:         Proposal_Rejected,
+			ExpExecutorResult: Proposal_NotRun,
 			WantDeliverLog:    "Proposal not accepted",
 		},
 		"Rejected without enough votes: 2/3": {
@@ -935,8 +899,8 @@ func TestTally(t *testing.T) {
 				threshold:             Fraction{Numerator: 2, Denominator: 3},
 				totalWeightElectorate: 9,
 			},
-			ExpResult:         ProposalCommon_Rejected,
-			ExpExecutorResult: ProposalCommon_NotRun,
+			ExpResult:         Proposal_Rejected,
+			ExpExecutorResult: Proposal_NotRun,
 			WantDeliverLog:    "Proposal not accepted",
 		},
 		"Accepted with quorum and acceptance thresholds exceeded: 5/9": {
@@ -946,8 +910,8 @@ func TestTally(t *testing.T) {
 				threshold:             Fraction{Numerator: 1, Denominator: 2},
 				totalWeightElectorate: 9,
 			},
-			ExpResult:         ProposalCommon_Accepted,
-			ExpExecutorResult: ProposalCommon_Success,
+			ExpResult:         Proposal_Accepted,
+			ExpExecutorResult: Proposal_Success,
 			WantDeliverLog:    "Proposal accepted: execution success",
 		},
 		"Rejected with quorum thresholds not exceeded": {
@@ -957,8 +921,8 @@ func TestTally(t *testing.T) {
 				threshold:             Fraction{Numerator: 1, Denominator: 2},
 				totalWeightElectorate: 9,
 			},
-			ExpResult:         ProposalCommon_Rejected,
-			ExpExecutorResult: ProposalCommon_NotRun,
+			ExpResult:         Proposal_Rejected,
+			ExpExecutorResult: Proposal_NotRun,
 			WantDeliverLog:    "Proposal not accepted",
 		},
 		"Accepted with quorum and acceptance thresholds exceeded: 4/9": {
@@ -969,8 +933,8 @@ func TestTally(t *testing.T) {
 				threshold:             Fraction{Numerator: 1, Denominator: 2},
 				totalWeightElectorate: 9,
 			},
-			ExpResult:         ProposalCommon_Accepted,
-			ExpExecutorResult: ProposalCommon_Success,
+			ExpResult:         Proposal_Accepted,
+			ExpExecutorResult: Proposal_Success,
 			WantDeliverLog:    "Proposal accepted: execution success",
 		},
 		"Rejected with majority No": {
@@ -981,8 +945,8 @@ func TestTally(t *testing.T) {
 				threshold:             Fraction{Numerator: 1, Denominator: 2},
 				totalWeightElectorate: 9,
 			},
-			ExpResult:         ProposalCommon_Rejected,
-			ExpExecutorResult: ProposalCommon_NotRun,
+			ExpResult:         Proposal_Rejected,
+			ExpExecutorResult: Proposal_NotRun,
 			WantDeliverLog:    "Proposal not accepted",
 		},
 		"Rejected by single No when unanimity required": {
@@ -993,8 +957,8 @@ func TestTally(t *testing.T) {
 				threshold:             Fraction{Numerator: 1, Denominator: 1},
 				totalWeightElectorate: 9,
 			},
-			ExpResult:         ProposalCommon_Rejected,
-			ExpExecutorResult: ProposalCommon_NotRun,
+			ExpResult:         Proposal_Rejected,
+			ExpExecutorResult: Proposal_NotRun,
 			WantDeliverLog:    "Proposal not accepted",
 		},
 		"Rejected by missing vote when all required": {
@@ -1004,8 +968,8 @@ func TestTally(t *testing.T) {
 				threshold:             Fraction{Numerator: 1, Denominator: 2},
 				totalWeightElectorate: 9,
 			},
-			ExpResult:         ProposalCommon_Rejected,
-			ExpExecutorResult: ProposalCommon_NotRun,
+			ExpResult:         Proposal_Rejected,
+			ExpExecutorResult: Proposal_NotRun,
 			WantDeliverLog:    "Proposal not accepted",
 		},
 		"Accept on quorum fraction 1/1": {
@@ -1016,8 +980,8 @@ func TestTally(t *testing.T) {
 				threshold:             Fraction{Numerator: 1, Denominator: 2},
 				totalWeightElectorate: 9,
 			},
-			ExpResult:         ProposalCommon_Accepted,
-			ExpExecutorResult: ProposalCommon_Success,
+			ExpResult:         Proposal_Accepted,
+			ExpExecutorResult: Proposal_Success,
 			WantDeliverLog:    "Proposal accepted: execution success",
 		},
 		"Accepted with quorum and acceptance thresholds exceeded: 3/9": {
@@ -1028,8 +992,8 @@ func TestTally(t *testing.T) {
 				threshold:             Fraction{Numerator: 1, Denominator: 2},
 				totalWeightElectorate: 9,
 			},
-			ExpResult:         ProposalCommon_Accepted,
-			ExpExecutorResult: ProposalCommon_Success,
+			ExpResult:         Proposal_Accepted,
+			ExpExecutorResult: Proposal_Success,
 			WantDeliverLog:    "Proposal accepted: execution success",
 		},
 		"Accepted by single Yes and neutral abstains": {
@@ -1040,8 +1004,8 @@ func TestTally(t *testing.T) {
 				threshold:             Fraction{Numerator: 1, Denominator: 2},
 				totalWeightElectorate: 9,
 			},
-			ExpResult:         ProposalCommon_Accepted,
-			ExpExecutorResult: ProposalCommon_Success,
+			ExpResult:         Proposal_Accepted,
+			ExpExecutorResult: Proposal_Success,
 			WantDeliverLog:    "Proposal accepted: execution success",
 		},
 		"Rejected without Yes majority and neutral abstains": {
@@ -1053,8 +1017,8 @@ func TestTally(t *testing.T) {
 				threshold:             Fraction{Numerator: 1, Denominator: 2},
 				totalWeightElectorate: 9,
 			},
-			ExpResult:         ProposalCommon_Rejected,
-			ExpExecutorResult: ProposalCommon_NotRun,
+			ExpResult:         Proposal_Rejected,
+			ExpExecutorResult: Proposal_NotRun,
 			WantDeliverLog:    "Proposal not accepted",
 		},
 		"Accepted with acceptance thresholds < quorum": {
@@ -1065,8 +1029,8 @@ func TestTally(t *testing.T) {
 				threshold:             Fraction{Numerator: 1, Denominator: 2},
 				totalWeightElectorate: 9,
 			},
-			ExpResult:         ProposalCommon_Accepted,
-			ExpExecutorResult: ProposalCommon_Success,
+			ExpResult:         Proposal_Accepted,
+			ExpExecutorResult: Proposal_Success,
 			WantDeliverLog:    "Proposal accepted: execution success",
 		},
 		"Accepted with quorum and acceptance thresholds require all votes": {
@@ -1076,8 +1040,8 @@ func TestTally(t *testing.T) {
 				threshold:             Fraction{Numerator: 1, Denominator: 1},
 				totalWeightElectorate: 9,
 			},
-			ExpResult:         ProposalCommon_Accepted,
-			ExpExecutorResult: ProposalCommon_Success,
+			ExpResult:         Proposal_Accepted,
+			ExpExecutorResult: Proposal_Success,
 			WantDeliverLog:    "Proposal accepted: execution success",
 		},
 		"Works with high values: accept": {
@@ -1089,8 +1053,8 @@ func TestTally(t *testing.T) {
 				threshold:             Fraction{Numerator: math.MaxUint32 - 1, Denominator: math.MaxUint32},
 				totalWeightElectorate: math.MaxUint64,
 			},
-			ExpResult:         ProposalCommon_Accepted,
-			ExpExecutorResult: ProposalCommon_Success,
+			ExpResult:         Proposal_Accepted,
+			ExpExecutorResult: Proposal_Success,
 			WantDeliverLog:    "Proposal accepted: execution success",
 		},
 		"Works with high values: reject": {
@@ -1102,8 +1066,8 @@ func TestTally(t *testing.T) {
 				threshold:             Fraction{Numerator: math.MaxUint32 - 1, Denominator: math.MaxUint32},
 				totalWeightElectorate: math.MaxUint64,
 			},
-			ExpResult:         ProposalCommon_Rejected,
-			ExpExecutorResult: ProposalCommon_NotRun,
+			ExpResult:         Proposal_Rejected,
+			ExpExecutorResult: Proposal_NotRun,
 			WantDeliverLog:    "Proposal not accepted",
 		},
 		"Updates latest electorate on success": {
@@ -1127,15 +1091,15 @@ func TestTally(t *testing.T) {
 			},
 			Mods: func(ctx weave.Context, p *Proposal) {
 				p.RawOption = genElectorateOptions(t, Elector{hAlice, 10})
-				p.Common.VotingEndTime = unixBlockTime(t, ctx) - 1
+				p.VotingEndTime = unixBlockTime(t, ctx) - 1
 			},
 			Src: tallySetup{
 				yes:                   10,
 				threshold:             Fraction{Numerator: 1, Denominator: 2},
 				totalWeightElectorate: 11,
 			},
-			ExpResult:         ProposalCommon_Accepted,
-			ExpExecutorResult: ProposalCommon_Success,
+			ExpResult:         Proposal_Accepted,
+			ExpExecutorResult: Proposal_Success,
 			PostChecks: func(t *testing.T, db weave.KVStore) {
 				_, obj, err := NewElectorateBucket().GetLatestVersion(db, weavetest.SequenceID(1))
 				if err != nil {
@@ -1180,7 +1144,7 @@ func TestTally(t *testing.T) {
 			},
 			Mods: func(ctx weave.Context, p *Proposal) {
 				p.RawOption = genElectorateOptions(t, Elector{hAlice, 0})
-				p.Common.VotingEndTime = unixBlockTime(t, ctx) - 1
+				p.VotingEndTime = unixBlockTime(t, ctx) - 1
 			},
 			Src: tallySetup{
 				yes:                   10,
@@ -1188,15 +1152,15 @@ func TestTally(t *testing.T) {
 				totalWeightElectorate: 11,
 			},
 			// Even if the execution failed, we update the tally state properly
-			ExpResult:         ProposalCommon_Accepted,
-			ExpExecutorResult: ProposalCommon_Failure,
+			ExpResult:         Proposal_Accepted,
+			ExpExecutorResult: Proposal_Failure,
 			WantDeliverErr:    nil,
 			WantDeliverLog:    "Proposal accepted: execution error:",
 		},
 		"Does not update an electorate when rejected": {
 			Mods: func(ctx weave.Context, p *Proposal) {
 				p.RawOption = genElectorateOptions(t, Elector{hAlice, 10})
-				p.Common.VotingEndTime = unixBlockTime(t, ctx) - 1
+				p.VotingEndTime = unixBlockTime(t, ctx) - 1
 			},
 			Src: tallySetup{
 				yes:                   1,
@@ -1204,8 +1168,8 @@ func TestTally(t *testing.T) {
 				threshold:             Fraction{Numerator: 1, Denominator: 2},
 				totalWeightElectorate: 11,
 			},
-			ExpResult:         ProposalCommon_Rejected,
-			ExpExecutorResult: ProposalCommon_NotRun,
+			ExpResult:         Proposal_Rejected,
+			ExpExecutorResult: Proposal_NotRun,
 			PostChecks: func(t *testing.T, db weave.KVStore) {
 				_, obj, err := NewElectorateBucket().GetLatestVersion(db, weavetest.SequenceID(1))
 				if err != nil {
@@ -1226,7 +1190,7 @@ func TestTally(t *testing.T) {
 		},
 		"Fails on second tally": {
 			Mods: func(_ weave.Context, p *Proposal) {
-				p.Common.Status = ProposalCommon_Closed
+				p.Status = Proposal_Closed
 			},
 			Src: tallySetup{
 				threshold:             Fraction{Numerator: 1, Denominator: 2},
@@ -1234,13 +1198,13 @@ func TestTally(t *testing.T) {
 			},
 			WantCheckErr:      errors.ErrState,
 			WantDeliverErr:    errors.ErrState,
-			ExpResult:         ProposalCommon_Accepted,
-			ExpExecutorResult: ProposalCommon_Success,
+			ExpResult:         Proposal_Accepted,
+			ExpExecutorResult: Proposal_Success,
 			WantDeliverLog:    "Proposal not accepted",
 		},
 		"Fails on tally before end date": {
 			Mods: func(ctx weave.Context, p *Proposal) {
-				p.Common.VotingEndTime = unixBlockTime(t, ctx) + 1
+				p.VotingEndTime = unixBlockTime(t, ctx) + 1
 			},
 			Src: tallySetup{
 				threshold:             Fraction{Numerator: 1, Denominator: 2},
@@ -1248,12 +1212,12 @@ func TestTally(t *testing.T) {
 			},
 			WantCheckErr:   errors.ErrState,
 			WantDeliverErr: errors.ErrState,
-			ExpResult:      ProposalCommon_Undefined,
+			ExpResult:      Proposal_Undefined,
 			WantDeliverLog: "Proposal not accepted",
 		},
 		"Fails on tally at end date": {
 			Mods: func(ctx weave.Context, p *Proposal) {
-				p.Common.VotingEndTime = unixBlockTime(t, ctx)
+				p.VotingEndTime = unixBlockTime(t, ctx)
 			},
 			Src: tallySetup{
 				threshold:             Fraction{Numerator: 1, Denominator: 2},
@@ -1261,12 +1225,12 @@ func TestTally(t *testing.T) {
 			},
 			WantCheckErr:   errors.ErrState,
 			WantDeliverErr: errors.ErrState,
-			ExpResult:      ProposalCommon_Undefined,
+			ExpResult:      Proposal_Undefined,
 			WantDeliverLog: "Proposal not accepted",
 		},
 		"Fails on withdrawn proposal": {
 			Mods: func(ctx weave.Context, p *Proposal) {
-				p.Common.Status = ProposalCommon_Withdrawn
+				p.Status = Proposal_Withdrawn
 			},
 			Src: tallySetup{
 				threshold:             Fraction{Numerator: 1, Denominator: 2},
@@ -1274,7 +1238,7 @@ func TestTally(t *testing.T) {
 			},
 			WantCheckErr:   errors.ErrState,
 			WantDeliverErr: errors.ErrState,
-			ExpResult:      ProposalCommon_Undefined,
+			ExpResult:      Proposal_Undefined,
 			WantDeliverLog: "Proposal not accepted",
 		},
 	}
@@ -1292,11 +1256,11 @@ func TestTally(t *testing.T) {
 			// given
 			ctx := weave.WithBlockTime(context.Background(), time.Now().Round(time.Second))
 			setupForTally := func(_ weave.Context, p *Proposal) {
-				p.Common.VoteState = NewTallyResult(spec.Src.quorum, spec.Src.threshold, spec.Src.totalWeightElectorate)
-				p.Common.VoteState.TotalYes = spec.Src.yes
-				p.Common.VoteState.TotalNo = spec.Src.no
-				p.Common.VoteState.TotalAbstain = spec.Src.abstain
-				p.Common.VotingEndTime = unixBlockTime(t, ctx) - 1
+				p.VoteState = NewTallyResult(spec.Src.quorum, spec.Src.threshold, spec.Src.totalWeightElectorate)
+				p.VoteState.TotalYes = spec.Src.yes
+				p.VoteState.TotalNo = spec.Src.no
+				p.VoteState.TotalAbstain = spec.Src.abstain
+				p.VotingEndTime = unixBlockTime(t, ctx) - 1
 			}
 			pBucket := withTextProposal(t, db, ctx, append([]ctxAwareMutator{setupForTally}, spec.Mods)...)
 			if spec.Init != nil {
@@ -1329,13 +1293,13 @@ func TestTally(t *testing.T) {
 			if err != nil {
 				t.Fatalf("unexpected error: %s", err)
 			}
-			if exp, got := spec.ExpResult, p.Common.Result; exp != got {
-				t.Errorf("expected result %v but got %v: vote state: %#v", exp, got, p.Common.VoteState)
+			if exp, got := spec.ExpResult, p.Result; exp != got {
+				t.Errorf("expected result %v but got %v: vote state: %#v", exp, got, p.VoteState)
 			}
-			if exp, got := spec.ExpExecutorResult, p.Common.ExecutorResult; exp != got {
-				t.Errorf("expected executor result %v but got %v: vote state: %#v", exp, got, p.Common.VoteState)
+			if exp, got := spec.ExpExecutorResult, p.ExecutorResult; exp != got {
+				t.Errorf("expected executor result %v but got %v: vote state: %#v", exp, got, p.VoteState)
 			}
-			if exp, got := ProposalCommon_Closed, p.Common.Status; exp != got {
+			if exp, got := Proposal_Closed, p.Status; exp != got {
 				t.Errorf("expected %v but got %v", exp, got)
 			}
 			if spec.PostChecks != nil {

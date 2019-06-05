@@ -412,25 +412,25 @@ func TestProposalValidation(t *testing.T) {
 		},
 		"Title too short": {
 			Src: proposalFixture(t, alice, func(p *Proposal) {
-				p.Common.Title = "foo"
+				p.Title = "foo"
 			}),
 			Exp: errors.ErrState,
 		},
 		"Title too long": {
 			Src: proposalFixture(t, alice, func(p *Proposal) {
-				p.Common.Title = BigString(129)
+				p.Title = BigString(129)
 			}),
 			Exp: errors.ErrState,
 		},
 		"Description empty": {
 			Src: proposalFixture(t, alice, func(p *Proposal) {
-				p.Common.Description = ""
+				p.Description = ""
 			}),
 			Exp: errors.ErrState,
 		},
 		"Description too long": {
 			Src: proposalFixture(t, alice, func(p *Proposal) {
-				p.Common.Description = BigString(5001)
+				p.Description = BigString(5001)
 			}),
 			Exp: errors.ErrState,
 		},
@@ -440,39 +440,39 @@ func TestProposalValidation(t *testing.T) {
 		},
 		"ElectorateRef invalid": {
 			Src: proposalFixture(t, alice, func(p *Proposal) {
-				p.Common.ElectorateRef = orm.VersionedIDRef{}
+				p.ElectorateRef = orm.VersionedIDRef{}
 			}),
 			Exp: errors.ErrEmpty,
 		},
 		"ElectionRuleID missing": {
 			Src: proposalFixture(t, alice, func(p *Proposal) {
-				p.Common.ElectionRuleRef = orm.VersionedIDRef{}
+				p.ElectionRuleRef = orm.VersionedIDRef{}
 			}),
 			Exp: errors.ErrEmpty,
 		},
 		"StartTime missing": {
 			Src: proposalFixture(t, alice, func(p *Proposal) {
 				var unset time.Time
-				p.Common.VotingStartTime = weave.AsUnixTime(unset)
+				p.VotingStartTime = weave.AsUnixTime(unset)
 			}),
 			Exp: errors.ErrState,
 		},
 		"EndTime missing": {
 			Src: proposalFixture(t, alice, func(p *Proposal) {
 				var unset time.Time
-				p.Common.VotingEndTime = weave.AsUnixTime(unset)
+				p.VotingEndTime = weave.AsUnixTime(unset)
 			}),
 			Exp: errors.ErrState,
 		},
 		"Status missing": {
 			Src: proposalFixture(t, alice, func(p *Proposal) {
-				p.Common.Status = ProposalCommon_Status(0)
+				p.Status = Proposal_Status(0)
 			}),
 			Exp: errors.ErrState,
 		},
 		"Result missing": {
 			Src: proposalFixture(t, alice, func(p *Proposal) {
-				p.Common.Result = ProposalCommon_Result(0)
+				p.Result = Proposal_Result(0)
 			}),
 			Exp: errors.ErrState,
 		},

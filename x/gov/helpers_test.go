@@ -127,7 +127,6 @@ func proposalFixture(t testing.TB, alice weave.Address, mods ...func(*Proposal))
 
 	proposal := Proposal{
 		Metadata: &weave.Metadata{Schema: 1},
-		Common: &ProposalCommon{
 			Title:           "My proposal",
 			Description:     "My description",
 			ElectionRuleRef: orm.VersionedIDRef{ID: weavetest.SequenceID(1), Version: 1},
@@ -135,12 +134,11 @@ func proposalFixture(t testing.TB, alice weave.Address, mods ...func(*Proposal))
 			VotingStartTime: now.Add(-1 * time.Minute),
 			VotingEndTime:   now.Add(time.Minute),
 			SubmissionTime:  now.Add(-1 * time.Hour),
-			Status:          ProposalCommon_Submitted,
-			Result:          ProposalCommon_Undefined,
-			ExecutorResult:  ProposalCommon_NotRun,
+			Status:          Proposal_Submitted,
+			Result:          Proposal_Undefined,
+			ExecutorResult:  Proposal_NotRun,
 			Author:          alice,
 			VoteState:       NewTallyResult(nil, Fraction{1, 2}, 11),
-		},
 		RawOption: textOption,
 	}
 	for _, mod := range mods {
