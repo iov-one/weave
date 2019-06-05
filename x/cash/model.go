@@ -21,13 +21,9 @@ var _ Coinage = (*Set)(nil)
 
 // Validate requires that all coins are in alphabetical
 func (s *Set) Validate() error {
-	if err := s.Metadata.Validate(); err != nil {
-		return errors.Wrap(err, "metadata")
-	}
-	if err := XCoins(s).Validate(); err != nil {
-		return errors.Wrap(err, "coins")
-	}
-	return nil
+	err := errors.Wrap(s.Metadata.Validate(), "metadata")
+	err = errors.Append(err, errors.Wrap(XCoins(s).Validate(), "coins"))
+	return err
 }
 
 // Copy makes a new set with the same coins

@@ -57,6 +57,36 @@ func TestAddToMultiErr(t *testing.T) {
 	}
 }
 
+func TestMultiErrContains(t *testing.T) {
+	var (
+		myErrNotFound = Wrap(ErrNotFound, "test")
+		myErrState    = Wrap(ErrState, "test")
+		myErrMsg      = Wrap(ErrMsg, "test")
+	)
+	specs := map[string]struct {
+		err error
+		exp *Error
+	}{
+		"A wrapped multierr should pass an is check": {
+			err: Wrap(Append(Append(myErrNotFound, myErrState), myErrMsg), "wrapped"),
+			exp: ErrNotFound,
+		},
+		"A wrapped multierr with wrapped multi-err should pass an is check": {
+			err: Append(myErrState, Wrap(Append(myErrMsg, Wrap(ErrNotFound, "wrapped")),
+				"wrapped")),
+			exp: ErrNotFound,
+		},
+	}
+
+	for msg, spec := range specs {
+		t.Run(msg, func(t *testing.T) {
+			if !spec.exp.Is(spec.err) {
+				t.Errorf("expected %v to contain %v", spec.err, spec.exp)
+			}
+		})
+	}
+}
+
 func TestMultiErrIsEmpty(t *testing.T) {
 	specs := map[string]struct {
 		src multiErr

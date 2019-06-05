@@ -260,22 +260,23 @@ func (c *Coin) Clone() *Coin {
 // so you may want to make other checks in your business
 // logic
 func (c Coin) Validate() error {
+	var err error
 	if !IsCC(c.Ticker) {
-		return errors.Wrapf(errors.ErrCurrency, "invalid currency: %s", c.Ticker)
+		err = errors.Append(err, errors.Wrapf(errors.ErrCurrency, "invalid currency: %s", c.Ticker))
 	}
 	if c.Whole < MinInt || c.Whole > MaxInt {
-		return errors.ErrOverflow
+		err = errors.Append(err, errors.ErrOverflow)
 	}
 	if c.Fractional < MinFrac || c.Fractional > MaxFrac {
-		return errors.ErrOverflow
+		err = errors.Append(err, errors.Wrap(errors.ErrOverflow, "fractional"))
 	}
 	// make sure signs match
 	if c.Whole != 0 && c.Fractional != 0 &&
 		((c.Whole > 0) != (c.Fractional > 0)) {
-		return errors.Wrap(errors.ErrState, "mismatched sign")
+		err = errors.Append(err, errors.Wrap(errors.ErrState, "mismatched sign"))
 	}
 
-	return nil
+	return err
 }
 
 // normalize will adjust the fractional parts to
