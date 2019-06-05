@@ -42,10 +42,6 @@ script:
      make cover;
      ./coverage/upload.sh;
    fi;
-- printenv | grep -Ev "PATH|path|GEM" > env.list
-- docker run -it --rm --env-file env.list -v "$(pwd):/usr/src/app" iov1ops/danger:latest > danger.out; cat danger.out
-# this is done, because docker exits with 0 even if there are errors
-- if grep -q 'Errors' danger.out; then exit 1; fi
 - if [[ "$TRAVIS_GO_VERSION" == "$MAIN_GO_VERSION" && "$TRAVIS_OS_NAME" == "linux" ]]; then
     release_latest=$( [[ "$TRAVIS_BRANCH" == "master" && "$TRAVIS_TAG" == "" && "$TRAVIS_PULL_REQUEST_BRANCH" == "" ]] && echo "yes" || echo "no" );
     release_tag=$( [[ "$TRAVIS_TAG" != "" ]] && echo "yes" || echo "no" );
