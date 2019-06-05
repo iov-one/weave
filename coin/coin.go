@@ -262,13 +262,13 @@ func (c *Coin) Clone() *Coin {
 func (c Coin) Validate() error {
 	var err error
 	if !IsCC(c.Ticker) {
-		err = errors.Wrapf(errors.ErrCurrency, "invalid currency: %s", c.Ticker)
+		err = errors.Append(err, errors.Wrapf(errors.ErrCurrency, "invalid currency: %s", c.Ticker))
 	}
 	if c.Whole < MinInt || c.Whole > MaxInt {
 		err = errors.Append(err, errors.ErrOverflow)
 	}
 	if c.Fractional < MinFrac || c.Fractional > MaxFrac {
-		err = errors.Append(err, errors.ErrOverflow)
+		err = errors.Append(err, errors.Wrap(errors.ErrOverflow, "fractional"))
 	}
 	// make sure signs match
 	if c.Whole != 0 && c.Fractional != 0 &&

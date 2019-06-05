@@ -34,10 +34,10 @@ func (s *SendMsg) Validate() error {
 	if coin.IsEmpty(s.Amount) || !s.Amount.IsPositive() {
 		err = errors.Wrapf(errors.ErrAmount, "non-positive SendMsg: %#v", s.Amount)
 	} else {
-		err = errors.Append(err, s.Amount.Validate())
+		err = errors.Append(err, errors.Wrap(s.Amount.Validate(), "amount"))
 	}
-	err = errors.Append(err, s.Src.Validate())
-	err = errors.Append(err, s.Dest.Validate())
+	err = errors.Append(err, errors.Wrap(s.Src.Validate(), "src"))
+	err = errors.Append(err, errors.Wrap(s.Dest.Validate(), "dest"))
 	if len(s.Memo) > maxMemoSize {
 		err = errors.Append(err, errors.Wrap(errors.ErrState, "memo too long"))
 	}
@@ -95,14 +95,14 @@ func (f *FeeInfo) Validate() error {
 	if fee == nil {
 		err = errors.Append(err, errors.Wrap(errors.ErrAmount, "fees nil"))
 	} else {
-		err = errors.Append(err, fee.Validate())
+		err = errors.Append(err, errors.Wrap(fee.Validate(), "fee"))
 
 		if !fee.IsNonNegative() {
 			err = errors.Append(err, errors.Wrap(errors.ErrAmount, "negative fees"))
 		}
 	}
 
-	return errors.Append(err, weave.Address(f.Payer).Validate())
+	return errors.Append(err, errors.Wrap(weave.Address(f.Payer).Validate(), "payer"))
 }
 
 var _ weave.Msg = (*ConfigurationMsg)(nil)
@@ -113,13 +113,13 @@ func (m *ConfigurationMsg) Validate() error {
 	var err error
 	c := m.Patch
 	if len(c.Owner) != 0 {
-		err = c.Owner.Validate()
+		err = errors.Wrap(c.Owner.Validate(), "owner")
 	}
 	if len(c.CollectorAddress) != 0 {
-		err = errors.Append(err, c.CollectorAddress.Validate())
+		err = errors.Append(err, errors.Wrap(c.CollectorAddress.Validate(), "collector"))
 	}
 	if !c.MinimalFee.IsZero() {
-		err = errors.Append(err, c.MinimalFee.Validate())
+		err = errors.Append(err, errors.Wrap(c.MinimalFee.Validate(), "minimal fee"))
 
 		if !c.MinimalFee.IsNonNegative() {
 			err = errors.Append(err, errors.Wrap(errors.ErrState, "minimal fee cannot be negative"))

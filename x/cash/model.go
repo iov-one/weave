@@ -21,8 +21,8 @@ var _ Coinage = (*Set)(nil)
 
 // Validate requires that all coins are in alphabetical
 func (s *Set) Validate() error {
-	err := s.Metadata.Validate()
-	err = errors.Append(err, XCoins(s).Validate())
+	err := errors.Wrap(s.Metadata.Validate(), "metadata")
+	err = errors.Append(err, errors.Wrap(XCoins(s).Validate(), "coins"))
 	return err
 }
 

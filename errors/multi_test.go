@@ -71,6 +71,11 @@ func TestMultiErrContains(t *testing.T) {
 			err: Wrap(Append(Append(myErrNotFound, myErrState), myErrMsg), "wrapped"),
 			exp: ErrNotFound,
 		},
+		"A wrapped multierr with wrapped multi-err should pass an is check": {
+			err: Append(myErrState, Wrap(Append(myErrMsg, Wrap(ErrNotFound, "wrapped")),
+				"wrapped")),
+			exp: ErrNotFound,
+		},
 	}
 
 	for msg, spec := range specs {

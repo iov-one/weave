@@ -179,7 +179,7 @@ func (cs Coins) Validate() error {
 	var err error
 	last := ""
 	for _, c := range cs {
-		err = errors.Append(err, c.Validate())
+		err = errors.Append(err, errors.Wrap(c.Validate(), "coin"))
 
 		if c.IsZero() {
 			err = errors.Append(err, errors.Wrap(errors.ErrState, "zero coins"))
