@@ -29,16 +29,20 @@ import (
 // transaction, signing and submitting. They can be combined into a single
 // pipeline line:
 //
-//   $ bnscli escrow-proposal -escrow 1 | bnscli sign | bnscli submit
+//   $ bnscli release-escrow -escrow 1 \
+//       | bnscli as-proposal \
+//       | bnscli sign \
+//       | bnscli submit
 //
 var commands = map[string]func(input io.Reader, output io.Writer, args []string) error{
-	"escrow-proposal":   cmdNewEscrowProposal,
-	"reset-revenue":     cmdResetRevenue,
-	"sign":              cmdSignTransaction,
-	"submit":            cmdSubmitTransaction,
-	"transfer-proposal": cmdNewTransferProposal,
-	"version":           cmdVersion,
-	"view":              cmdTransactionView,
+	"as-proposal":    cmdAsProposal,
+	"release-escrow": cmdReleaseEscrow,
+	"reset-revenue":  cmdResetRevenue,
+	"send-tokens":    cmdSendTokens,
+	"sign":           cmdSignTransaction,
+	"submit":         cmdSubmitTransaction,
+	"version":        cmdVersion,
+	"view":           cmdTransactionView,
 }
 
 func main() {
