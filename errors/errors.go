@@ -169,6 +169,7 @@ func (kind *Error) Is(err error) bool {
 		}
 		return reflect.ValueOf(err).IsNil()
 	}
+
 	if me, ok := err.(multiErr); ok {
 		return me.Contains(kind)
 	}
@@ -176,6 +177,10 @@ func (kind *Error) Is(err error) bool {
 	for {
 		if err == kind {
 			return true
+		}
+
+		if me, ok := err.(multiErr); ok {
+			return me.Contains(kind)
 		}
 
 		if c, ok := err.(causer); ok {
