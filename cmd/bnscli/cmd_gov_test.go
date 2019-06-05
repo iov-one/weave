@@ -52,9 +52,9 @@ func TestCmdAsProposalHappyPath(t *testing.T) {
 	}
 	msg := txmsg.(*gov.CreateProposalMsg)
 
-	assert.Equal(t, msg.Base.Title, "a title")
-	assert.Equal(t, msg.Base.Description, "a description")
-	assert.Equal(t, msg.Base.ElectionRuleID, sequenceID(1))
+	assert.Equal(t, msg.Title, "a title")
+	assert.Equal(t, msg.Description, "a description")
+	assert.Equal(t, msg.ElectionRuleID, sequenceID(1))
 
 	var options app.ProposalOptions
 	if err := options.Unmarshal(msg.RawOption); err != nil {

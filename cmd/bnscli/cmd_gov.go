@@ -82,12 +82,10 @@ transaction (ie signatures) are being dropped.
 		Sum: &app.Tx_CreateProposalMsg{
 			CreateProposalMsg: &gov.CreateProposalMsg{
 				Metadata: &weave.Metadata{Schema: 1},
-				Base: &gov.CreateProposalMsgBase{
 					Title:          *titleFl,
 					Description:    *descFl,
 					StartTime:      weave.AsUnixTime(time.Now().Add(time.Minute)),
 					ElectionRuleID: sequenceID(*eRuleFl),
-				},
 				RawOption: rawOption,
 			},
 		},
