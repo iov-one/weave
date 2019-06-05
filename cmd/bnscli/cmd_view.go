@@ -62,19 +62,15 @@ func printProposalMsg(output io.Writer, tx app.Tx) error {
 		return nil
 	}
 
-	var propTx app.Tx
-	if err := propTx.Unmarshal(proposalMsg.RawOption); err != nil {
+	var options app.ProposalOptions
+	if err := options.Unmarshal(proposalMsg.RawOption); err != nil {
 		return fmt.Errorf("cannot unmarshal raw options: %s", err)
 	}
-	propMsg, err := propTx.GetMsg()
-	if err != nil {
-		return fmt.Errorf("cannot extract message from the proposal transaction")
-	}
-	propPretty, err := json.MarshalIndent(propMsg, "", "\t")
+	propPretty, err := json.MarshalIndent(options.Option, "", "\t")
 	if err != nil {
 		return fmt.Errorf("cannot JSON serialize proposal message: %s", err)
 	}
-	fmt.Fprintf(output, "\n\nThe above transaction is a proposal for executing the following %T message:\n", propMsg)
+	fmt.Fprint(output, "\n\nThe above transaction is a proposal for executing the following messages:\n")
 	_, _ = output.Write(propPretty)
 	return nil
 }
