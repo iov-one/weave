@@ -2,7 +2,7 @@ package weave
 
 //////////////////////////////////////////////////////////
 // Defines all public interfaces for interacting with stores
-//
+//  
 // KVStore/Iterator are the basic objects to use in all code
 
 // ReadOnlyKVStore is a simple interface to query data.
