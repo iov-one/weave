@@ -270,7 +270,7 @@ func TestCreateBlogMsgHandlerCheck(t *testing.T) {
 					Authors: [][]byte{signer.Address()},
 				},
 				Deps: []testdep{
-					testdep{
+					{
 						Name:    "blog duplicate",
 						Handler: createBlogMsgHandlerFn,
 						Msg: &CreateBlogMsg{
@@ -363,7 +363,7 @@ func TestCreatePostMsgHandlerCheck(t *testing.T) {
 					Author: signer.Address(),
 				},
 				Deps: []testdep{
-					testdep{
+					{
 						Name:    "Blog",
 						Handler: createBlogMsgHandlerFn,
 						Msg: &CreateBlogMsg{
@@ -422,7 +422,7 @@ func TestCreatePostMsgHandlerCheck(t *testing.T) {
 					Author: unauthorised.Address(),
 				},
 				Deps: []testdep{
-					testdep{
+					{
 						Name:    "Blog",
 						Handler: createBlogMsgHandlerFn,
 						Msg: &CreateBlogMsg{
@@ -475,7 +475,7 @@ func TestCreatePostMsgHandlerDeliver(t *testing.T) {
 					Author: signer.Address(),
 				},
 				Deps: []testdep{
-					testdep{
+					{
 						Name:    "Blog",
 						Handler: createBlogMsgHandlerFn,
 						Msg: &CreateBlogMsg{
@@ -522,7 +522,7 @@ func TestRenameBlogMsgHandlerCheck(t *testing.T) {
 					Title: "this is a blog title which has been renamed",
 				},
 				Deps: []testdep{
-					testdep{
+					{
 						Name:    "Blog",
 						Handler: createBlogMsgHandlerFn,
 						Msg: &CreateBlogMsg{
@@ -581,7 +581,7 @@ func TestRenameBlogMsgHandlerDeliver(t *testing.T) {
 					Title: "this is a blog title which has been renamed",
 				},
 				Deps: []testdep{
-					testdep{
+					{
 						Name:    "Blog",
 						Handler: createBlogMsgHandlerFn,
 						Msg: &CreateBlogMsg{
@@ -622,7 +622,7 @@ func TestChangeBlogAuthorsMsgHandlerCheck(t *testing.T) {
 					Add:    true,
 				},
 				Deps: []testdep{
-					testdep{
+					{
 						Name:    "Blog",
 						Handler: createBlogMsgHandlerFn,
 						Msg: &CreateBlogMsg{
@@ -646,7 +646,7 @@ func TestChangeBlogAuthorsMsgHandlerCheck(t *testing.T) {
 					Add:    false,
 				},
 				Deps: []testdep{
-					testdep{
+					{
 						Name:    "Blog",
 						Handler: createBlogMsgHandlerFn,
 						Msg: &CreateBlogMsg{
@@ -674,7 +674,7 @@ func TestChangeBlogAuthorsMsgHandlerCheck(t *testing.T) {
 					Add:    true,
 				},
 				Deps: []testdep{
-					testdep{
+					{
 						Name:    "Blog",
 						Handler: createBlogMsgHandlerFn,
 						Msg: &CreateBlogMsg{
@@ -696,7 +696,7 @@ func TestChangeBlogAuthorsMsgHandlerCheck(t *testing.T) {
 					Add:    false,
 				},
 				Deps: []testdep{
-					testdep{
+					{
 						Name:    "Blog",
 						Handler: createBlogMsgHandlerFn,
 						Msg: &CreateBlogMsg{
@@ -718,7 +718,7 @@ func TestChangeBlogAuthorsMsgHandlerCheck(t *testing.T) {
 					Add:    false,
 				},
 				Deps: []testdep{
-					testdep{
+					{
 						Name:    "Blog",
 						Handler: createBlogMsgHandlerFn,
 						Msg: &CreateBlogMsg{
@@ -801,7 +801,7 @@ func TestChangeBlogAuthorsMsgHandlerDeliver(t *testing.T) {
 					Add:    true,
 				},
 				Deps: []testdep{
-					testdep{
+					{
 						Name:    "Blog",
 						Handler: createBlogMsgHandlerFn,
 						Msg: &CreateBlogMsg{
@@ -832,7 +832,7 @@ func TestChangeBlogAuthorsMsgHandlerDeliver(t *testing.T) {
 					Add:    false,
 				},
 				Deps: []testdep{
-					testdep{
+					{
 						Name:    "Blog",
 						Handler: createBlogMsgHandlerFn,
 						Msg: &CreateBlogMsg{
@@ -930,7 +930,7 @@ func TestSetProfileMsgHandlerDeliver(t *testing.T) {
 					Description: "my updated profile description",
 				},
 				Deps: []testdep{
-					testdep{
+					{
 						Name:    "profile",
 						Handler: SetProfileMsgHandlerFn,
 						Msg: &SetProfileMsg{

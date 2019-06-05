@@ -33,11 +33,11 @@ func TestMultisigCanPayFees(t *testing.T) {
 			CreateContractMsg: &multisig.CreateContractMsg{
 				Metadata: &weave.Metadata{Schema: 1},
 				Participants: []*multisig.Participant{
-					&multisig.Participant{
+					{
 						Signature: bob.PublicKey().Address(),
 						Weight:    1,
 					},
-					&multisig.Participant{
+					{
 						Signature: carl.PublicKey().Address(),
 						Weight:    1,
 					},
@@ -90,7 +90,7 @@ func TestMultisigCanPayFees(t *testing.T) {
 			CreateContractMsg: &multisig.CreateContractMsg{
 				Metadata: &weave.Metadata{Schema: 1},
 				Participants: []*multisig.Participant{
-					&multisig.Participant{
+					{
 						Signature: carl.PublicKey().Address(),
 						Weight:    1,
 					},
