@@ -156,7 +156,7 @@ func TestWalletBucket(t *testing.T) {
 			nil, nil},
 		// allow empty wallet
 		3: {[]orm.Object{NewWallet(addr)}, false,
-			[]weave.Address{addr}, []*Wallet{&Wallet{Metadata: &weave.Metadata{Schema: 1}}},
+			[]weave.Address{addr}, []*Wallet{{Metadata: &weave.Metadata{Schema: 1}}},
 			[]string{"alice"}, []*Wallet{nil},
 		},
 		// invalid name

@@ -295,32 +295,32 @@ func BenchmarkCoinsNormalize(b *testing.B) {
 	benchmarks := map[string]Coins{
 		"nil coins":      nil,
 		"zero len coins": make(Coins, 0),
-		"one coin":       Coins{NewCoinp(1, 0, "ETH")},
-		"two normalized coins": Coins{
+		"one coin":       {NewCoinp(1, 0, "ETH")},
+		"two normalized coins": {
 			NewCoinp(1, 0, "A"),
 			NewCoinp(1, 0, "B"),
 		},
-		"two unordered coins": Coins{
+		"two unordered coins": {
 			NewCoinp(1, 0, "B"),
 			NewCoinp(1, 0, "C"),
 		},
-		"two split coins": Coins{
+		"two split coins": {
 			NewCoinp(1, 0, "BTC"),
 			NewCoinp(1, 0, "BTC"),
 		},
-		"four normalized": Coins{
+		"four normalized": {
 			NewCoinp(1, 0, "A"),
 			NewCoinp(1, 0, "B"),
 			NewCoinp(1, 0, "C"),
 			NewCoinp(1, 0, "D"),
 		},
-		"four not normalized": Coins{
+		"four not normalized": {
 			NewCoinp(1, 0, "A"),
 			NewCoinp(1, 0, "C"),
 			NewCoinp(1, 0, "A"),
 			NewCoinp(1, 0, "B"),
 		},
-		"six not normalized": Coins{
+		"six not normalized": {
 			NewCoinp(1, 0, "A"),
 			NewCoinp(1, 0, "C"),
 			NewCoinp(1, 0, "A"),
@@ -328,7 +328,7 @@ func BenchmarkCoinsNormalize(b *testing.B) {
 			NewCoinp(-1, 0, "B"),
 			NewCoinp(1, 0, "D"),
 		},
-		"six normalized": Coins{
+		"six normalized": {
 			NewCoinp(1, 0, "A"),
 			NewCoinp(1, 0, "B"),
 			NewCoinp(1, 0, "C"),
@@ -336,7 +336,7 @@ func BenchmarkCoinsNormalize(b *testing.B) {
 			NewCoinp(-1, 0, "E"),
 			NewCoinp(-1, 0, "F"),
 		},
-		"twelve normalized": Coins{
+		"twelve normalized": {
 			NewCoinp(1, 0, "A"),
 			NewCoinp(1, 0, "B"),
 			NewCoinp(1, 0, "C"),
@@ -350,7 +350,7 @@ func BenchmarkCoinsNormalize(b *testing.B) {
 			NewCoinp(-1, 0, "K"),
 			NewCoinp(-1, 0, "L"),
 		},
-		"twelve not normalized": Coins{
+		"twelve not normalized": {
 			NewCoinp(-1, 0, "G"),
 			NewCoinp(-1, 0, "H"),
 			NewCoinp(-1, 0, "A"),

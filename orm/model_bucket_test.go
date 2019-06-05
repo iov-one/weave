@@ -107,10 +107,10 @@ func TestModelBucketByIndex(t *testing.T) {
 			QueryKey:  "1",
 			WantErr:   nil,
 			WantResPtr: []*Counter{
-				&Counter{Count: 1001},
+				{Count: 1001},
 			},
 			WantRes: []Counter{
-				Counter{Count: 1001},
+				{Count: 1001},
 			},
 			WantKeys: [][]byte{
 				weavetest.SequenceID(1),
@@ -121,12 +121,12 @@ func TestModelBucketByIndex(t *testing.T) {
 			QueryKey:  "4",
 			WantErr:   nil,
 			WantResPtr: []*Counter{
-				&Counter{Count: 4001},
-				&Counter{Count: 4002},
+				{Count: 4001},
+				{Count: 4002},
 			},
 			WantRes: []Counter{
-				Counter{Count: 4001},
-				Counter{Count: 4002},
+				{Count: 4001},
+				{Count: 4002},
 			},
 			WantKeys: [][]byte{
 				weavetest.SequenceID(3),

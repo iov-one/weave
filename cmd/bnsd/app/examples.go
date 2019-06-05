@@ -48,8 +48,8 @@ func Examples() []commands.Example {
 		Metadata: metadata,
 		Name:     "example",
 		Coins: []*coin.Coin{
-			&coin.Coin{Whole: 50000, Ticker: "ETH"},
-			&coin.Coin{Whole: 150, Fractional: 567000, Ticker: "BTC"},
+			{Whole: 50000, Ticker: "ETH"},
+			{Whole: 150, Fractional: 567000, Ticker: "BTC"},
 		},
 	}
 

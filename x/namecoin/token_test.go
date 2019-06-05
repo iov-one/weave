@@ -49,7 +49,7 @@ func TestTokenBucket(t *testing.T) {
 			[]orm.Object{NewToken("ABC", "Michael", 5)},
 			false,
 			[]string{"ABC", "LED"},
-			[]*Token{&Token{Metadata: &weave.Metadata{Schema: 1}, Name: "Michael", SigFigs: 5}, nil},
+			[]*Token{{Metadata: &weave.Metadata{Schema: 1}, Name: "Michael", SigFigs: 5}, nil},
 		},
 		6: {
 			[]orm.Object{
@@ -59,8 +59,8 @@ func TestTokenBucket(t *testing.T) {
 			false,
 			[]string{"ABC", "LED"},
 			[]*Token{
-				&Token{Metadata: &weave.Metadata{Schema: 1}, Name: "Jackson", SigFigs: 5},
-				&Token{Metadata: &weave.Metadata{Schema: 1}, Name: "Zeppelin", SigFigs: 4},
+				{Metadata: &weave.Metadata{Schema: 1}, Name: "Jackson", SigFigs: 5},
+				{Metadata: &weave.Metadata{Schema: 1}, Name: "Zeppelin", SigFigs: 4},
 			},
 		},
 	}
