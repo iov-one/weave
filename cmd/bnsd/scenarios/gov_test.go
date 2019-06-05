@@ -52,13 +52,13 @@ func TestGovProposalCreateAndExecute(t *testing.T) {
 	proposalTx := &bnsdApp.Tx{
 		Sum: &bnsdApp.Tx_CreateProposalMsg{
 			CreateProposalMsg: &gov.CreateProposalMsg{
-				Metadata: &weave.Metadata{Schema: 1},
-					Title:       "my proposal",
-					Description: "my description",
-					StartTime:   weave.AsUnixTime(proposalStartTime),
-					// Election Rule is created from the genesis declaration.
-					ElectionRuleID: weavetest.SequenceID(1),
-					Author:         carl.PublicKey().Address(),
+				Metadata:    &weave.Metadata{Schema: 1},
+				Title:       "my proposal",
+				Description: "my description",
+				StartTime:   weave.AsUnixTime(proposalStartTime),
+				// Election Rule is created from the genesis declaration.
+				ElectionRuleID: weavetest.SequenceID(1),
+				Author:         carl.PublicKey().Address(),
 				RawOption: marshal(t, &bnsdApp.ProposalOptions{
 					Option: &bnsdApp.ProposalOptions_SendMsg{
 						SendMsg: &cash.SendMsg{

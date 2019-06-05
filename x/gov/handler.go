@@ -304,20 +304,20 @@ func (h CreateProposalHandler) Deliver(ctx weave.Context, db weave.KVStore, tx w
 	}
 
 	proposal := &Proposal{
-		Metadata: &weave.Metadata{Schema: 1},
-			Title:           msg.Title,
-			RawOption: msg.RawOption,
-			Description:     msg.Description,
-			ElectionRuleRef: orm.VersionedIDRef{ID: msg.ElectionRuleID, Version: rule.Version},
-			ElectorateRef:   orm.VersionedIDRef{ID: rule.ElectorateID, Version: electorate.Version},
-			VotingStartTime: msg.StartTime,
-			VotingEndTime:   msg.StartTime.Add(rule.VotingPeriod.Duration()),
-			SubmissionTime:  weave.AsUnixTime(blockTime),
-			Author:          msg.Author,
-			VoteState:       NewTallyResult(rule.Quorum, rule.Threshold, electorate.TotalElectorateWeight),
-			Status:          Proposal_Submitted,
-			Result:          Proposal_Undefined,
-			ExecutorResult:  Proposal_NotRun,
+		Metadata:        &weave.Metadata{Schema: 1},
+		Title:           msg.Title,
+		RawOption:       msg.RawOption,
+		Description:     msg.Description,
+		ElectionRuleRef: orm.VersionedIDRef{ID: msg.ElectionRuleID, Version: rule.Version},
+		ElectorateRef:   orm.VersionedIDRef{ID: rule.ElectorateID, Version: electorate.Version},
+		VotingStartTime: msg.StartTime,
+		VotingEndTime:   msg.StartTime.Add(rule.VotingPeriod.Duration()),
+		SubmissionTime:  weave.AsUnixTime(blockTime),
+		Author:          msg.Author,
+		VoteState:       NewTallyResult(rule.Quorum, rule.Threshold, electorate.TotalElectorateWeight),
+		Status:          Proposal_Submitted,
+		Result:          Proposal_Undefined,
+		ExecutorResult:  Proposal_NotRun,
 	}
 
 	obj, err := h.propBucket.Create(db, proposal)

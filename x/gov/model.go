@@ -215,9 +215,9 @@ func (m *Proposal) Validate() error {
 func (m Proposal) Copy() orm.CloneableData {
 	optionCopy := append([]byte{}, m.RawOption...)
 	return &Proposal{
-		Metadata:  m.Metadata.Copy(),
+		Metadata:        m.Metadata.Copy(),
 		Title:           m.Title,
-		RawOption:   optionCopy,
+		RawOption:       optionCopy,
 		Description:     m.Description,
 		ElectionRuleRef: orm.VersionedIDRef{ID: m.ElectionRuleRef.ID, Version: m.ElectionRuleRef.Version},
 		ElectorateRef:   orm.VersionedIDRef{ID: m.ElectorateRef.ID, Version: m.ElectorateRef.Version},

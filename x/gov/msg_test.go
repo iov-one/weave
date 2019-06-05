@@ -86,13 +86,13 @@ func TestCreateProposalMsg(t *testing.T) {
 
 	buildMsg := func(mods ...func(*CreateProposalMsg)) CreateProposalMsg {
 		m := CreateProposalMsg{
-			Metadata: &weave.Metadata{Schema: 1},
-				Title:          "any title _.-",
-				Description:    "any description",
-				ElectionRuleID: weavetest.SequenceID(1),
-				StartTime:      weave.AsUnixTime(time.Now()),
-				Author:         alice,
-			RawOption: []byte("random text, not decoded"),
+			Metadata:       &weave.Metadata{Schema: 1},
+			Title:          "any title _.-",
+			Description:    "any description",
+			ElectionRuleID: weavetest.SequenceID(1),
+			StartTime:      weave.AsUnixTime(time.Now()),
+			Author:         alice,
+			RawOption:      []byte("random text, not decoded"),
 		}
 		for _, mod := range mods {
 			mod(&m)

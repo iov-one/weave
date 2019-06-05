@@ -81,12 +81,12 @@ transaction (ie signatures) are being dropped.
 	propTx := &app.Tx{
 		Sum: &app.Tx_CreateProposalMsg{
 			CreateProposalMsg: &gov.CreateProposalMsg{
-				Metadata: &weave.Metadata{Schema: 1},
-					Title:          *titleFl,
-					Description:    *descFl,
-					StartTime:      weave.AsUnixTime(time.Now().Add(time.Minute)),
-					ElectionRuleID: sequenceID(*eRuleFl),
-				RawOption: rawOption,
+				Metadata:       &weave.Metadata{Schema: 1},
+				Title:          *titleFl,
+				Description:    *descFl,
+				StartTime:      weave.AsUnixTime(time.Now().Add(time.Minute)),
+				ElectionRuleID: sequenceID(*eRuleFl),
+				RawOption:      rawOption,
 			},
 		},
 	}
