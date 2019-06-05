@@ -191,10 +191,10 @@ func (m *ProposalCommon) Validate() error {
 	if m == nil {
 		return errors.Wrap(errors.ErrState, "proposal common data missing")
 	}
-	if m.Result == ProposalCommon_Empty {
+	if m.Result == ProposalCommon_PROPOSAL_COMMON_RESULT_INVALID {
 		return errors.Wrap(errors.ErrState, "invalid result value")
 	}
-	if m.Status == ProposalCommon_Invalid {
+	if m.Status == ProposalCommon_PROPOSAL_COMMON_STATUS_INVALID {
 		return errors.Wrap(errors.ErrState, "invalid status")
 	}
 	if m.VotingStartTime >= m.VotingEndTime {

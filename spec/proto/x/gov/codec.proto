@@ -99,7 +99,7 @@ message ProposalCommon {
   TallyResult vote_state = 10 ;
   enum Status {
     // An empty value is invalid and not allowed
-    PROPOSAL_COMMON_STATUS_INVALID = 0 ;
+    PROPOSAL_COMMON_STATUS_INVALID = 0;
     // Initial status of a proposal when persisted.
     PROPOSAL_COMMON_STATUS_SUBMITTED = 1 ;
     // Final status of a proposal when the tally was executed
@@ -112,7 +112,7 @@ message ProposalCommon {
   Status status = 11;
   enum Result {
     // An empty value is invalid and not allowed
-    PROPOSAL_COMMON_RESULT_INVALID = 0 ;
+    PROPOSAL_COMMON_RESULT_INVALID = 0;
     // Until a final tally has happened the status is undefined
     PROPOSAL_COMMON_RESULT_UNDEFINED = 1 ;
     // Final result of the tally
@@ -124,7 +124,7 @@ message ProposalCommon {
   Result result = 12;
   enum ExecutorResult {
     // An empty value is not allowed
-    PROPOSAL_COMMON_EXECUTOR_RESULT_INVALID = 0 ;
+    PROPOSAL_COMMON_EXECUTOR_RESULT_INVALID = 0;
     // We have not yet run the executor
     PROPOSAL_COMMON_EXECUTOR_RESULT_NOT_RUN = 1 ;
     // The executor was successful and proposed action updated state
