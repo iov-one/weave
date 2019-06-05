@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 
 	"github.com/iov-one/weave/cmd/bnsd/app"
+	"github.com/iov-one/weave/x/gov"
 )
 
 func cmdTransactionView(input io.Reader, output io.Writer, args []string) error {
@@ -42,6 +43,34 @@ kind of operation are you authorizing.
 	if err != nil {
 		return fmt.Errorf("cannot JSON serialize: %s", err)
 	}
-	_, err = output.Write(pretty)
-	return err
+	_, _ = output.Write(pretty)
+
+	// When printing a transaction of a proposal, the embeded in proposal
+	// message is obfuscated. Extract it and print additionally.
+	_ = printProposalMsg(output, tx)
+
+	return nil
+}
+
+func printProposalMsg(output io.Writer, tx app.Tx) error {
+	msg, err := tx.GetMsg()
+	if err != nil {
+		return fmt.Errorf("cannot get transaction message: %s", err)
+	}
+	proposalMsg, ok := msg.(*gov.CreateProposalMsg)
+	if !ok {
+		return nil
+	}
+
+	var options app.ProposalOptions
+	if err := options.Unmarshal(proposalMsg.RawOption); err != nil {
+		return fmt.Errorf("cannot unmarshal raw options: %s", err)
+	}
+	propPretty, err := json.MarshalIndent(options.Option, "", "\t")
+	if err != nil {
+		return fmt.Errorf("cannot JSON serialize proposal message: %s", err)
+	}
+	fmt.Fprint(output, "\n\nThe above transaction is a proposal for executing the following messages:\n")
+	_, _ = output.Write(propPretty)
+	return nil
 }
