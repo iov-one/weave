@@ -1,0 +1,13 @@
+#!/bin/sh
+
+set -e
+
+keyfile=`tempfile`
+echo 00wZcK6QrPNAXy2Z3KyhbQx9s3n0vq/P32Z7nWnONQ0n9ftEBQnfp57Ig6BRC8mpYUw9RBiIgfDF5AKJi0vzyQ== | base64 -d > $keyfile
+
+bnscli send-tokens \
+	       -src "seq:test/bnscli/1" \
+	       -dst "seq:test/bnscli/2" \
+	       -amount "4 IOV" \
+	       -memo "bnscli test" \
+	       | bnscli view
