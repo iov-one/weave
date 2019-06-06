@@ -1,6 +1,7 @@
 # Changelog
-
 ## HEAD
+
+## 0.16.0
 
 - A new tool `cmd/bnscli` for interacting with a BNS node was created.
 - Creation of a new proposal in `x/gov` extension is now restricted to only
