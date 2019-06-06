@@ -35,6 +35,7 @@ import (
 //       | bnscli submit
 //
 var commands = map[string]func(input io.Reader, output io.Writer, args []string) error{
+	"as-batch":       cmdAsBatch,
 	"as-proposal":    cmdAsProposal,
 	"release-escrow": cmdReleaseEscrow,
 	"reset-revenue":  cmdResetRevenue,

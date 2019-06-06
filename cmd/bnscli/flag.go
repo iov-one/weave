@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/coin"
@@ -45,6 +46,44 @@ func flCoin(fl *flag.FlagSet, name, defaultVal, usage string) *coin.Coin {
 	fl.Var(&c, name, usage)
 	return &c
 }
+
+func flTime(fl *flag.FlagSet, name string, defaultVal func() time.Time, usage string) *flagTime {
+	var t flagTime
+	if defaultVal != nil {
+		t = flagTime{time: defaultVal()}
+	}
+	fl.Var(&t, name, usage)
+	return &t
+}
+
+// flagTime is created to be used as a time.Time that implements flag.Value
+// interface.
+type flagTime struct {
+	time time.Time
+}
+
+func (t flagTime) String() string {
+	return t.time.Format(flagTimeFormat)
+}
+
+func (t *flagTime) Set(raw string) error {
+	val, err := time.Parse(flagTimeFormat, raw)
+	if err != nil {
+		return err
+	}
+	t.time = val
+	return nil
+}
+
+func (t *flagTime) Time() time.Time {
+	return t.time
+}
+
+func (t *flagTime) UnixTime() weave.UnixTime {
+	return weave.AsUnixTime(t.time)
+}
+
+const flagTimeFormat = "2006-01-02 15:04"
 
 // flHex returns a value that is being initialized with given default value
 // and optionally overwritten by a command line argument if provided. This

@@ -9,7 +9,6 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"github.com/iov-one/weave/cmd/bnsd/app"
 	"github.com/iov-one/weave/cmd/bnsd/client"
 	"github.com/iov-one/weave/crypto"
 	"github.com/iov-one/weave/x/sigs"
@@ -46,16 +45,9 @@ content.
 		return fmt.Errorf("cannot load private key: %s", err)
 	}
 
-	raw, err := ioutil.ReadAll(input)
+	tx, _, err := readTx(input)
 	if err != nil {
 		return fmt.Errorf("cannot read transaction: %s", err)
-	}
-	if len(raw) == 0 {
-		return errors.New("no input data")
-	}
-	var tx app.Tx
-	if err := tx.Unmarshal(raw); err != nil {
-		return fmt.Errorf("cannot deserialize transaction: %s", err)
 	}
 
 	genesis, err := fetchGenesis(*tmAddrFl)
@@ -68,18 +60,14 @@ content.
 	if seq, err := aNonce.Next(); err != nil {
 		return fmt.Errorf("cannot get the next sequence number: %s", err)
 	} else {
-		sig, err := sigs.SignTx(key, &tx, genesis.ChainID, seq)
+		sig, err := sigs.SignTx(key, tx, genesis.ChainID, seq)
 		if err != nil {
 			return fmt.Errorf("cannot sign transaction: %s", err)
 		}
 		tx.Signatures = append(tx.Signatures, sig)
 	}
 
-	if raw, err := tx.Marshal(); err != nil {
-		return fmt.Errorf("cannot serialize transaction: %s", err)
-	} else {
-		_, err = output.Write(raw)
-	}
+	_, err = writeTx(output, tx)
 	return err
 }
 

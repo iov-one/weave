@@ -26,8 +26,8 @@ func TestCmdAsProposalHappyPath(t *testing.T) {
 			},
 		},
 	}
-	rawTx, err := sendTx.Marshal()
-	if err != nil {
+	var input bytes.Buffer
+	if _, err := writeTx(&input, sendTx); err != nil {
 		t.Fatalf("cannot serialize transaction: %s", err)
 	}
 
@@ -37,13 +37,13 @@ func TestCmdAsProposalHappyPath(t *testing.T) {
 		"-description", "a description",
 		"-electionrule", "1",
 	}
-	if err := cmdAsProposal(bytes.NewReader(rawTx), &output, args); err != nil {
+	if err := cmdAsProposal(&input, &output, args); err != nil {
 		t.Fatalf("cannot create a new proposal transaction: %s", err)
 	}
 
-	var tx app.Tx
-	if err := tx.Unmarshal(output.Bytes()); err != nil {
-		t.Fatalf("cannot unmarshal created transaction: %s", err)
+	tx, _, err := readTx(&output)
+	if err != nil {
+		t.Fatalf("cannot read created transaction: %s", err)
 	}
 
 	txmsg, err := tx.GetMsg()

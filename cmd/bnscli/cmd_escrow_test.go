@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/iov-one/weave/cmd/bnsd/app"
 	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/weavetest/assert"
 	"github.com/iov-one/weave/x/escrow"
@@ -20,9 +19,9 @@ func TestCmdReleaseEscrowHappyPath(t *testing.T) {
 		t.Fatalf("cannot create a new release escrow transaction: %s", err)
 	}
 
-	var tx app.Tx
-	if err := tx.Unmarshal(output.Bytes()); err != nil {
-		t.Fatalf("cannot unmarshal created transaction: %s", err)
+	tx, _, err := readTx(&output)
+	if err != nil {
+		t.Fatalf("cannot read created transaction: %s", err)
 	}
 
 	txmsg, err := tx.GetMsg()

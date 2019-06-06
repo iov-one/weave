@@ -25,23 +25,23 @@ func TestCmdSignTransactionHappyPath(t *testing.T) {
 			},
 		},
 	}
-	rawTx, err := tx.Marshal()
-	if err != nil {
+	var input bytes.Buffer
+	if _, err := writeTx(&input, tx); err != nil {
 		t.Fatalf("cannot marshal transaction: %s", err)
 	}
 
 	var output bytes.Buffer
-	input := bytes.NewReader(rawTx)
 	args := []string{
 		"-tm", tm.URL,
 		"-key", mustCreateFile(t, bytes.NewReader(fromHex(t, "d34c1970ae90acf3405f2d99dcaca16d0c7db379f4beafcfdf667b9d69ce350d27f5fb440509dfa79ec883a0510bc9a9614c3d44188881f0c5e402898b4bf3c9"))),
 	}
-	if err := cmdSignTransaction(input, &output, args); err != nil {
+	if err := cmdSignTransaction(&input, &output, args); err != nil {
 		t.Fatalf("transaction signing failed: %s", err)
 	}
 
-	if err := tx.Unmarshal(output.Bytes()); err != nil {
-		t.Fatalf("cannot unmarshal: %s", err)
+	tx, _, err := readTx(&output)
+	if err != nil {
+		t.Fatalf("cannot read created transaction: %s", err)
 	}
 
 	if n := len(tx.Signatures); n != 1 {

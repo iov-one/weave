@@ -5,10 +5,49 @@ import (
 	"encoding/hex"
 	"flag"
 	"testing"
+	"time"
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/coin"
 )
+
+func TestTimeFlag(t *testing.T) {
+	now := time.Now()
+
+	cases := map[string]struct {
+		setup   func(fl *flag.FlagSet) *flagTime
+		args    []string
+		wantDie int
+		wantVal time.Time
+	}{
+		"use default value": {
+			setup: func(fl *flag.FlagSet) *flagTime {
+				return flTime(fl, "x", func() time.Time { return now }, "")
+			},
+			args:    []string{},
+			wantDie: 0,
+			wantVal: now,
+		},
+	}
+
+	for testName, tc := range cases {
+		t.Run(testName, func(t *testing.T) {
+			cnt, cleanup := observeFlagDie(t)
+			defer cleanup()
+
+			fl := flag.NewFlagSet("", flag.ContinueOnError)
+			val := tc.setup(fl)
+			err := fl.Parse(tc.args)
+			t.Logf("parse error: %+v", err)
+			if *cnt != tc.wantDie {
+				t.Errorf("want %d flagDie calls, got %d", tc.wantDie, cnt)
+			}
+			if tc.wantDie == 0 && !tc.wantVal.Equal(val.Time()) {
+				t.Errorf("want %q value, got %q", tc.wantVal, val.Time())
+			}
+		})
+	}
+}
 
 func TestHexFlag(t *testing.T) {
 	cases := map[string]struct {

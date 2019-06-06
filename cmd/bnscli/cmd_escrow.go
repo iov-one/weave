@@ -38,10 +38,6 @@ Create a transaction for releasing funds from given escrow.
 			},
 		},
 	}
-	raw, err := tx.Marshal()
-	if err != nil {
-		return fmt.Errorf("cannot serialize transaction: %s", err)
-	}
-	_, err = output.Write(raw)
+	_, err := writeTx(output, tx)
 	return err
 }
