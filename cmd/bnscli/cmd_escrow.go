@@ -20,7 +20,7 @@ Create a transaction for releasing funds from given escrow.
 		fl.PrintDefaults()
 	}
 	var (
-		escrowFl = flHex(fl, "escrow", "", "A hex encoded ID of an escrow that is to be released.")
+		escrowFl = fl.Uint64("escrow", 0, "An ID of an escrow that is to be released.")
 		amountFl = flCoin(fl, "amount", "", "Optional amount that is to be transferred from the escrow. The whole escrow hold amount is used if no value is provided.")
 	)
 	fl.Parse(args)
@@ -33,7 +33,7 @@ Create a transaction for releasing funds from given escrow.
 		Sum: &app.Tx_ReleaseEscrowMsg{
 			ReleaseEscrowMsg: &escrow.ReleaseEscrowMsg{
 				Metadata: &weave.Metadata{Schema: 1},
-				EscrowId: *escrowFl,
+				EscrowId: sequenceID(*escrowFl),
 				Amount:   amount,
 			},
 		},
