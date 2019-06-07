@@ -24,17 +24,16 @@ func TestCmdSubmitTxHappyPath(t *testing.T) {
 			},
 		},
 	}
-	rawTx, err := tx.Marshal()
-	if err != nil {
+	var input bytes.Buffer
+	if _, err := writeTx(&input, tx); err != nil {
 		t.Fatalf("cannot marshal transaction: %s", err)
 	}
-	input := bytes.NewReader(rawTx)
 	var output bytes.Buffer
 	args := []string{
 		"-tm", tm.URL,
 	}
 
-	if err := cmdSubmitTransaction(input, &output, args); err != nil {
+	if err := cmdSubmitTransaction(&input, &output, args); err != nil {
 		t.Fatalf("cannot submit the transaction: %s", err)
 	}
 	if !*submitted {

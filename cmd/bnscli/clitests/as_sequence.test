@@ -1,0 +1,8 @@
+#!/bin/sh
+
+set -e
+
+for i in `seq 1 5000 100000`
+do
+	bnscli as-sequence $i
+done

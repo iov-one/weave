@@ -1,0 +1,10 @@
+#!/bin/sh
+
+set -e
+
+bnscli send-tokens \
+		-src "seq:test/bnscli/1" \
+		-dst "seq:test/bnscli/2" \
+		-amount "4 IOV" \
+		-memo "bnscli test" \
+	| bnscli view

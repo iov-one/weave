@@ -1,6 +1,12 @@
 # Changelog
 ## HEAD
 
+Breaking changes
+
+- messages produced by `cmd/bnscli` have a new binary format incompatible with
+  the previous version.
+
+
 ## 0.16.0
 
 - A new tool `cmd/bnscli` for interacting with a BNS node was created.

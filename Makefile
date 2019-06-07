@@ -26,6 +26,9 @@ install:
 	for ex in $(TOOLS); do cd $$ex && make install && cd -; done
 
 test:
+	@# bnscli binary is required by some tests. In order to not skip them, ensure bnscli binary is provided and in the latest version.
+	go install -mod=readonly github.com/iov-one/weave/cmd/bnscli
+
 	go vet -mod=readonly  ./...
 	go test -mod=readonly -race ./...
 

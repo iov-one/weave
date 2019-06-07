@@ -1,0 +1,80 @@
+{
+	"Sum": {
+		"CreateProposalMsg": {
+			"metadata": {
+				"schema": 1
+			},
+			"title": "my proposal",
+			"raw_option": "4gP8AQoRqgMOCgIIARIIAAAAAAAAAAQKS5oDSAoCCAESFBTR515qJ4/hWvUa8/16PNu8QHNcGhSBqoiDdTf63WClT2R0AtPL2Hq1myIHCAIaA0lPVioNc2VuZGluZyAyIElPVgpNmgNKCgIIARIUa+t7mueeXDAbnDsE6I4etiLrxwcaFOQFMkjOZWaGhkSwQ+Eykqf2W/3lIggICRoERE9HRSoOc2VuZGluZyA5IERPR0UKS5oDSAoCCAESFJH0xmpWb7+lxjbFydkJ/T9LWHlmGhSBGOz58pSF7SyctaYuJiXobVVYOyIHCAcaA0JUQyoNc2VuZGluZyA3IEJUQw==",
+			"description": "yet another proposal",
+			"election_rule_id": "AAAAAAAAAAM=",
+			"start_time": 1609499460
+		}
+	}
+}
+
+The above transaction is a proposal for executing the following messages:
+{
+	"BatchMsg": {
+		"messages": [
+			{
+				"Sum": {
+					"ReleaseEscrowMsg": {
+						"metadata": {
+							"schema": 1
+						},
+						"escrow_id": "AAAAAAAAAAQ="
+					}
+				}
+			},
+			{
+				"Sum": {
+					"SendMsg": {
+						"metadata": {
+							"schema": 1
+						},
+						"src": "14D1E75E6A278FE15AF51AF3FD7A3CDBBC40735C",
+						"dest": "81AA88837537FADD60A54F647402D3CBD87AB59B",
+						"amount": {
+							"whole": 2,
+							"ticker": "IOV"
+						},
+						"memo": "sending 2 IOV"
+					}
+				}
+			},
+			{
+				"Sum": {
+					"SendMsg": {
+						"metadata": {
+							"schema": 1
+						},
+						"src": "6BEB7B9AE79E5C301B9C3B04E88E1EB622EBC707",
+						"dest": "E4053248CE6566868644B043E13292A7F65BFDE5",
+						"amount": {
+							"whole": 9,
+							"ticker": "DOGE"
+						},
+						"memo": "sending 9 DOGE"
+					}
+				}
+			},
+			{
+				"Sum": {
+					"SendMsg": {
+						"metadata": {
+							"schema": 1
+						},
+						"src": "91F4C66A566FBFA5C636C5C9D909FD3F4B587966",
+						"dest": "8118ECF9F29485ED2C9CB5A62E2625E86D55583B",
+						"amount": {
+							"whole": 7,
+							"ticker": "BTC"
+						},
+						"memo": "sending 7 BTC"
+					}
+				}
+			}
+		]
+	}
+}

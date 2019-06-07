@@ -1,0 +1,20 @@
+#!/bin/sh
+
+set -e
+
+# Combine all messages in a single file to build a batch transaction containing
+# all of them.
+# The same result could be achieved by running bellow commands in a subprocess
+# and stream the combined output into "as-batch" command.
+msgstream=`tempfile`
+
+bnscli release-escrow -escrow 4 >> $msgstream
+bnscli send-tokens -src 'seq:foo/src/1' -dst "seq:foo/dst/1" -amount "2 IOV" -memo "sending 2 IOV" >> $msgstream
+bnscli send-tokens -src 'seq:foo/src/2' -dst "seq:foo/dst/2" -amount "9 DOGE" -memo "sending 9 DOGE" >> $msgstream
+bnscli send-tokens -src 'seq:foo/src/3' -dst "seq:foo/dst/3" -amount "7 BTC" -memo "sending 7 BTC" >> $msgstream
+
+bnscli as-batch < $msgstream \
+	| bnscli as-proposal -start "2021-01-01 11:11" -electionrule 3 -title "my proposal" -description "yet another proposal" \
+	| bnscli view
+
+rm $msgstream

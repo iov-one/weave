@@ -39,10 +39,6 @@ destination account.
 			},
 		},
 	}
-	raw, err := tx.Marshal()
-	if err != nil {
-		return fmt.Errorf("cannot serialize transaction: %s", err)
-	}
-	_, err = output.Write(raw)
+	_, err := writeTx(output, tx)
 	return err
 }

@@ -1,0 +1,16 @@
+{
+	"Sum": {
+		"SendMsg": {
+			"metadata": {
+				"schema": 1
+			},
+			"src": "54C6276BE776EE81452B8AD4FFA89C3E31C07C17",
+			"dest": "AE2FCB5D40C926FD635931497FBF749F05533168",
+			"amount": {
+				"whole": 4,
+				"ticker": "IOV"
+			},
+			"memo": "bnscli test"
+		}
+	}
+}

@@ -19,13 +19,13 @@ func TestCmdTransactionViewHappyPath(t *testing.T) {
 			},
 		},
 	}
-	rawTx, err := tx.Marshal()
-	if err != nil {
+	var input bytes.Buffer
+	if _, err := writeTx(&input, tx); err != nil {
 		t.Fatalf("cannot marshal transaction: %s", err)
 	}
 
 	var output bytes.Buffer
-	if err := cmdTransactionView(bytes.NewReader(rawTx), &output, nil); err != nil {
+	if err := cmdTransactionView(&input, &output, nil); err != nil {
 		t.Fatalf("cannot view a transaction: %s", err)
 	}
 
