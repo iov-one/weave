@@ -4,8 +4,10 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"os"
 
+	"github.com/iov-one/weave/crypto"
 	"golang.org/x/crypto/ed25519"
 )
 
@@ -51,4 +53,36 @@ created. This command fails if the private key file already exists.
 		return fmt.Errorf("cannot close private key file: %s", err)
 	}
 	return nil
+}
+
+func cmdKeyaddr(input io.Reader, output io.Writer, args []string) error {
+	fl := flag.NewFlagSet("", flag.ExitOnError)
+	fl.Usage = func() {
+		fmt.Fprint(flag.CommandLine.Output(), `
+Print out a hex-address associated with your private key.
+`)
+		fl.PrintDefaults()
+	}
+	var (
+		keyPathFl = fl.String("key", env("BNSCLI_PRIV_KEY", os.Getenv("HOME")+"/.bnsd.priv.key"),
+			"Path to the private key file that transaction should be signed with. You can use BNSCLI_PRIV_KEY environment variable to set it.")
+	)
+	fl.Parse(args)
+
+	raw, err := ioutil.ReadFile(*keyPathFl)
+	if err != nil {
+		return fmt.Errorf("cannot read private key file: %s", err)
+	}
+
+	if len(raw) != ed25519.PrivateKeySize {
+		return fmt.Errorf("invalid private key length: %d", len(raw))
+	}
+
+	key := &crypto.PrivateKey{
+		Priv: &crypto.PrivateKey_Ed25519{
+			Ed25519: raw,
+		},
+	}
+	_, err = fmt.Fprintln(output, key.PublicKey().Address())
+	return err
 }
