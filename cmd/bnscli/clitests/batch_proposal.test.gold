@@ -5,7 +5,7 @@
 				"schema": 1
 			},
 			"title": "my proposal",
-			"raw_option": "4gP1AQpLmgNICgIIARIUFNHnXmonj+Fa9Rrz/Xo827xAc1waFIGqiIN1N/rdYKVPZHQC08vYerWbIgcIAhoDSU9WKg1zZW5kaW5nIDIgSU9WCk2aA0oKAggBEhRr63ua555cMBucOwTojh62IuvHBxoU5AUySM5lZoaGRLBD4TKSp/Zb/eUiCAgJGgRET0dFKg5zZW5kaW5nIDkgRE9HRQpLmgNICgIIARIUkfTGalZvv6XGNsXJ2Qn9P0tYeWYaFIEY7PnylIXtLJy1pi4mJehtVVg7IgcIBxoDQlRDKg1zZW5kaW5nIDcgQlRDCgqqAwcKAggBEgEE",
+			"raw_option": "4gP1AQoKqgMHCgIIARIBBApLmgNICgIIARIUFNHnXmonj+Fa9Rrz/Xo827xAc1waFIGqiIN1N/rdYKVPZHQC08vYerWbIgcIAhoDSU9WKg1zZW5kaW5nIDIgSU9WCk2aA0oKAggBEhRr63ua555cMBucOwTojh62IuvHBxoU5AUySM5lZoaGRLBD4TKSp/Zb/eUiCAgJGgRET0dFKg5zZW5kaW5nIDkgRE9HRQpLmgNICgIIARIUkfTGalZvv6XGNsXJ2Qn9P0tYeWYaFIEY7PnylIXtLJy1pi4mJehtVVg7IgcIBxoDQlRDKg1zZW5kaW5nIDcgQlRD",
 			"description": "yet another proposal",
 			"election_rule_id": "AAAAAAAAAAM=",
 			"start_time": 1609499460
@@ -17,6 +17,16 @@ The above transaction is a proposal for executing the following messages:
 {
 	"BatchMsg": {
 		"messages": [
+			{
+				"Sum": {
+					"ReleaseEscrowMsg": {
+						"metadata": {
+							"schema": 1
+						},
+						"escrow_id": "BA=="
+					}
+				}
+			},
 			{
 				"Sum": {
 					"SendMsg": {
@@ -62,16 +72,6 @@ The above transaction is a proposal for executing the following messages:
 							"ticker": "BTC"
 						},
 						"memo": "sending 7 BTC"
-					}
-				}
-			},
-			{
-				"Sum": {
-					"ReleaseEscrowMsg": {
-						"metadata": {
-							"schema": 1
-						},
-						"escrow_id": "BA=="
 					}
 				}
 			}

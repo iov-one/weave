@@ -10,3 +10,5 @@ bnscli send-tokens -src 'seq:foo/src/2' -dst "seq:foo/dst/2" -amount "9 DOGE" -m
 bnscli send-tokens -src 'seq:foo/src/3' -dst "seq:foo/dst/3" -amount "7 BTC" -memo "sending 7 BTC" >> $msgs
 
 bnscli as-batch < $msgs | bnscli view
+
+rm $msgs
