@@ -1,0 +1,24 @@
+#!/bin/sh
+
+set -e
+
+bnscli from-sequence 0000000000000001
+bnscli from-sequence 0000000000000033
+bnscli from-sequence 0000000000000065
+bnscli from-sequence 0000000000000097
+bnscli from-sequence 00000000000000c9
+bnscli from-sequence 00000000000000fb
+bnscli from-sequence 000000000000012d
+bnscli from-sequence 000000000000015f
+bnscli from-sequence 0000000000000191
+bnscli from-sequence 00000000000001c3
+bnscli from-sequence 00000000000001f5
+bnscli from-sequence 0000000000000227
+bnscli from-sequence 0000000000000259
+bnscli from-sequence 000000000000028b
+bnscli from-sequence 00000000000002bd
+bnscli from-sequence 00000000000002ef
+bnscli from-sequence 0000000000000321
+
+# Multiple sequences input is allowed as well.
+bnscli from-sequence 0000000000000353 0000000000000385 00000000000003b7

@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/binary"
+	"errors"
 	"io"
 
 	"github.com/iov-one/weave/cmd/bnsd/app"
@@ -13,6 +14,15 @@ func sequenceID(n uint64) []byte {
 	b := make([]byte, 8)
 	binary.BigEndian.PutUint64(b, n)
 	return b
+}
+
+// fromSequence transforms given binary representation of a sequence value into
+// a decimal form. fromSequence is the opposite of the sequenceID function.
+func fromSequence(b []byte) (uint64, error) {
+	if len(b) != 8 {
+		return 0, errors.New("sequence must be 8 bytes")
+	}
+	return binary.BigEndian.Uint64(b), nil
 }
 
 // writeTx serialize the transaction using a protocol buffer. First bytes

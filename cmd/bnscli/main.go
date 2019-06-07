@@ -37,6 +37,8 @@ import (
 var commands = map[string]func(input io.Reader, output io.Writer, args []string) error{
 	"as-batch":       cmdAsBatch,
 	"as-proposal":    cmdAsProposal,
+	"as-sequence":    cmdAsSequence,
+	"from-sequence":  cmdFromSequence,
 	"release-escrow": cmdReleaseEscrow,
 	"reset-revenue":  cmdResetRevenue,
 	"send-tokens":    cmdSendTokens,
