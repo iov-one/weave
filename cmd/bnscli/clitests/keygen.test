@@ -1,0 +1,23 @@
+#!/bin/sh
+
+set -e
+
+# Use a custom key path just in case the host is using original one.
+tempdir=`mktemp -d`
+keypath=$tempdir/key.priv
+export BNSCLI_PRIV_KEY=$keypath
+
+bnscli keygen
+
+# Key generation in non deterministic (cryptography 101) so we cannot compare
+# its value. We can only ensure that enough bytes was generated.
+echo "generated private key length: `base64 $keypath | wc -c`"
+
+# Generating a key when one already exist must fail.
+if bnscli keygen 2> /dev/null
+then
+	>&2 echo "Generation of a private key when file exists must fail."
+	exit 1
+fi
+
+rm -r $tempdir

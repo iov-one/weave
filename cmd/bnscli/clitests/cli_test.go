@@ -39,7 +39,7 @@ func TestAll(t *testing.T) {
 			// To ensure that all commands are using tendermint
 			// mock server, set environment variable to enforce
 			// that.
-			cmd.Env = append(os.Environ(), "TM_ADDR="+tm.URL)
+			cmd.Env = append(os.Environ(), "BNSCLI_TM_ADDR="+tm.URL)
 
 			stderr, err := cmd.StderrPipe()
 			if err != nil {

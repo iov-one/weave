@@ -39,6 +39,7 @@ var commands = map[string]func(input io.Reader, output io.Writer, args []string)
 	"as-proposal":    cmdAsProposal,
 	"as-sequence":    cmdAsSequence,
 	"from-sequence":  cmdFromSequence,
+	"keygen":         cmdKeygen,
 	"release-escrow": cmdReleaseEscrow,
 	"reset-revenue":  cmdResetRevenue,
 	"send-tokens":    cmdSendTokens,
