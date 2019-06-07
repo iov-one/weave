@@ -16,6 +16,8 @@ import (
 var goldFl = flag.Bool("gold", false, "If true, write result to golden files instead of comparing with them.")
 
 func TestAll(t *testing.T) {
+	ensureBnscliBinary(t)
+
 	testFiles, err := filepath.Glob("./*.test")
 	if err != nil {
 		t.Fatalf("cannot find test files: %s", err)
@@ -74,10 +76,24 @@ func TestAll(t *testing.T) {
 	}
 }
 
+func ensureBnscliBinary(t testing.TB) {
+	t.Helper()
+
+	if cmd := exec.Command("bnscli", "version"); cmd.Run() != nil {
+		t.Skipf(`bnscli binary is not available
+
+You can install bnscli binary by running "make install" in
+weave main directory or by directly using Go install command:
+
+  $ go install github.com/iov-one/weave/cmd/bnscli
+`)
+	}
+}
+
 // fakeTendermintServer creates an HTTP server that acts similar to the
 // tendermint HTTP server. It does not maintain any state or return fully
 // correct responses but its behaviour is good enough to fool bnscli.
-func fakeTendermintServer(t *testing.T) *httptest.Server {
+func fakeTendermintServer(t testing.TB) *httptest.Server {
 	t.Helper()
 
 	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
