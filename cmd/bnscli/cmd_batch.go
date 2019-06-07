@@ -48,8 +48,10 @@ original transactions (ie signatures) are being dropped.
 		// cmd/bnsd/app/codec.proto file.
 		//
 		// Instead of manually managing this list, use the script from
-		// the bottom comment to generate all the cases. You are
-		// welcome.
+		// the bottom comment to generate all the cases. Remember to
+		// leave the nil and default cases as they are not being
+		// generated.
+		// You are welcome.
 		switch msg := msg.(type) {
 		case *cash.SendMsg:
 			batch.Messages = append(batch.Messages, app.BatchMsg_Union{
