@@ -67,23 +67,35 @@ type ProposalBucket struct {
 	orm.IDGenBucket
 }
 
-const indexNameAuthor = "author"
+const (
+	indexNameAuthor       = "author"
+	indexNameElectorateID = "electorate"
+)
 
 // NewProposalBucket returns a bucket for managing electorate.
 func NewProposalBucket() *ProposalBucket {
 	b := migration.NewBucket(packageName, "proposal", orm.NewSimpleObj(nil, &Proposal{})).
-		WithIndex(indexNameAuthor, indexAuthor, false)
+		WithIndex(indexNameAuthor, authorIndexer, false).
+		WithIndex(indexNameElectorateID, proposalElectorateIDIndexer, false)
 	return &ProposalBucket{
 		IDGenBucket: orm.WithSeqIDGenerator(b, "id"),
 	}
 }
 
-func indexAuthor(obj orm.Object) ([]byte, error) {
+func authorIndexer(obj orm.Object) ([]byte, error) {
 	p, err := asProposal(obj)
 	if err != nil {
 		return nil, err
 	}
 	return p.Author, nil
+}
+
+func proposalElectorateIDIndexer(obj orm.Object) ([]byte, error) {
+	p, err := asProposal(obj)
+	if err != nil {
+		return nil, err
+	}
+	return p.ElectorateRef.ID, nil
 }
 
 // GetProposal loads the proposal for the given id. If it does not exist then ErrNotFound is returned.
