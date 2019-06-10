@@ -2,7 +2,7 @@ package weave
 
 //////////////////////////////////////////////////////////
 // Defines all public interfaces for interacting with stores
-//  
+//
 // KVStore/Iterator are the basic objects to use in all code
 
 // ReadOnlyKVStore is a simple interface to query data.
@@ -22,6 +22,18 @@ type ReadOnlyKVStore interface {
 	// Start must be greater than end, or the Iterator is invalid.
 	// CONTRACT: No writes may happen within a domain while an iterator exists over it.
 	ReverseIterator(start, end []byte) (Iterator, error)
+
+	// First will return the first value that would be retrived by Iterator,
+	// or nil key if nothing in the range.
+	// This can be implemented around Iterator, but can be implemented
+	// much more efficiently on many stores
+	First(start, end []byte) (key, value []byte, err error)
+
+	// Last will return the first value that would be retrived by ReverseIterator,
+	// or nil key if nothing in the range.
+	// This can be implemented around ReverseIterator, but can be implemented
+	// much more efficiently on many stores
+	Last(start, end []byte) (key, value []byte, err error)
 }
 
 // SetDeleter is a minimal interface for writing,
