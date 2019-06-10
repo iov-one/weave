@@ -40,7 +40,7 @@ func TestInitState(t *testing.T) {
 			migration.MustInitPkg(kv, "validators")
 			bucket := NewAccountBucket()
 			// when
-			err := Initializer{}.FromGenesis(spec.Src, kv)
+			err := Initializer{}.FromGenesis(spec.Src, weave.GenesisParams{}, kv)
 			if !spec.ExpError.Is(err) {
 				t.Fatalf("check expected: %v  but got %+v", spec.ExpError, err)
 			}

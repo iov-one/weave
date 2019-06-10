@@ -15,7 +15,7 @@ var _ weave.Initializer = Initializer{}
 
 // FromGenesis will parse initial account info from genesis
 // and save it to the database
-func (Initializer) FromGenesis(opts weave.Options, kv weave.KVStore) error {
+func (Initializer) FromGenesis(opts weave.Options, params weave.GenesisParams, kv weave.KVStore) error {
 	var accounts WeaveAccounts
 	if err := opts.ReadOptions(optKey, &accounts); err != nil {
 		return errors.Wrap(err, "cannot read genesis options")

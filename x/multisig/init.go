@@ -10,7 +10,7 @@ var _ weave.Initializer = (*Initializer)(nil)
 
 // FromGenesis will parse initial account info from genesis and save it in the
 // database.
-func (*Initializer) FromGenesis(opts weave.Options, db weave.KVStore) error {
+func (*Initializer) FromGenesis(opts weave.Options, params weave.GenesisParams, kv weave.KVStore) error {
 	var contracts []struct {
 		Participants []struct {
 			Signature weave.Address `json:"signature"`
@@ -38,11 +38,11 @@ func (*Initializer) FromGenesis(opts weave.Options, db weave.KVStore) error {
 			ActivationThreshold: c.ActivationThreshold,
 			AdminThreshold:      c.AdminThreshold,
 		}
-		obj, err := bucket.Build(db, &contract)
+		obj, err := bucket.Build(kv, &contract)
 		if err != nil {
 			return err
 		}
-		if err := bucket.Save(db, obj); err != nil {
+		if err := bucket.Save(kv, obj); err != nil {
 			return err
 		}
 	}

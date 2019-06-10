@@ -33,7 +33,7 @@ func TestGenesis(t *testing.T) {
 	db := store.MemStore()
 	migration.MustInitPkg(db, "msgfee")
 	var ini Initializer
-	if err := ini.FromGenesis(opts, db); err != nil {
+	if err := ini.FromGenesis(opts, weave.GenesisParams{}, db); err != nil {
 		t.Fatalf("cannot load genesis: %s", err)
 	}
 
@@ -73,7 +73,7 @@ func TestGenesisWithInvalidFee(t *testing.T) {
 			db := store.MemStore()
 			migration.MustInitPkg(db, "msgfee")
 			var ini Initializer
-			if err := ini.FromGenesis(opts, db); err == nil {
+			if err := ini.FromGenesis(opts, weave.GenesisParams{}, db); err == nil {
 				t.Fatal("no error")
 			}
 		})

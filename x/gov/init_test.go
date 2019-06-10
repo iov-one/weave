@@ -80,7 +80,7 @@ func TestInitFromGenesis(t *testing.T) {
 
 	// when
 	var ini Initializer
-	if err := ini.FromGenesis(opts, db); err != nil {
+	if err := ini.FromGenesis(opts, weave.GenesisParams{}, db); err != nil {
 		t.Fatalf("cannot load genesis: %s", err)
 	}
 	// then

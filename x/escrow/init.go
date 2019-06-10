@@ -15,7 +15,7 @@ type Initializer struct {
 }
 
 // FromGenesis will parse initial escrow  info from genesis and save it in the database.
-func (i *Initializer) FromGenesis(opts weave.Options, db weave.KVStore) error {
+func (i *Initializer) FromGenesis(opts weave.Options, params weave.GenesisParams, kv weave.KVStore) error {
 	var escrows []struct {
 		Sender    weave.Address  `json:"sender"`
 		Arbiter   weave.Address  `json:"arbiter"`
@@ -40,16 +40,16 @@ func (i *Initializer) FromGenesis(opts weave.Options, db weave.KVStore) error {
 		if err := escr.Validate(); err != nil {
 			return errors.Wrapf(err, "invalid escrow at position: %d ", j)
 		}
-		obj, err := bucket.Build(db, &escr)
+		obj, err := bucket.Build(kv, &escr)
 		if err != nil {
 			return err
 		}
-		if err := bucket.Save(db, obj); err != nil {
+		if err := bucket.Save(kv, obj); err != nil {
 			return err
 		}
 		escAddr := Condition(obj.Key()).Address()
 		for _, c := range e.Amount {
-			if err := i.Minter.CoinMint(db, escAddr, *c); err != nil {
+			if err := i.Minter.CoinMint(kv, escAddr, *c); err != nil {
 				return errors.Wrap(err, "failed to issue coins")
 			}
 		}

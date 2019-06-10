@@ -93,7 +93,7 @@ func TestInitState(t *testing.T) {
 		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
 			kv := store.MemStore()
 			migration.MustInitPkg(kv, "namecoin")
-			err := init.FromGenesis(tc.opts, kv)
+			err := init.FromGenesis(tc.opts, weave.GenesisParams{}, kv)
 			if tc.isError {
 				require.Error(t, err)
 			} else {

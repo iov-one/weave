@@ -17,9 +17,9 @@ type chainInitializer struct {
 
 // FromGenesis will pass opts to all Initializers in the list,
 // aborting at the first error.
-func (c chainInitializer) FromGenesis(opts weave.Options, kv weave.KVStore) error {
+func (c chainInitializer) FromGenesis(opts weave.Options, params weave.GenesisParams, kv weave.KVStore) error {
 	for _, i := range c.inits {
-		err := i.FromGenesis(opts, kv)
+		err := i.FromGenesis(opts, params, kv)
 		if err != nil {
 			return err
 		}

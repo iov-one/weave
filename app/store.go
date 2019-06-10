@@ -102,7 +102,7 @@ func (s *StoreApp) WithInit(init weave.Initializer) *StoreApp {
 
 // parseAppState is called from InitChain, the first time the chain
 // starts, and not on restarts.
-func (s *StoreApp) parseAppState(data []byte, chainID string, init weave.Initializer) error {
+func (s *StoreApp) parseAppState(data []byte, params weave.GenesisParams, chainID string, init weave.Initializer) error {
 	if s.chainID != "" {
 		return fmt.Errorf("appState previously loaded for chain: %s", s.chainID)
 	}
@@ -122,7 +122,7 @@ func (s *StoreApp) parseAppState(data []byte, chainID string, init weave.Initial
 		return err
 	}
 
-	return init.FromGenesis(appState, s.DeliverStore())
+	return init.FromGenesis(appState, params, s.DeliverStore())
 }
 
 // store chainID and update context
@@ -312,12 +312,11 @@ func (s *StoreApp) Commit() (res abci.ResponseCommit) {
 }
 
 // InitChain implements ABCI
-// TODO: store the original validators somewhere
 // Note: in tendermint 0.17, the genesis file is passed
 // in here, we should use this to trigger reading the genesis now
 // TODO: investigate validators and consensusParams in response
 func (s *StoreApp) InitChain(req abci.RequestInitChain) (res abci.ResponseInitChain) {
-	err := s.parseAppState(req.AppStateBytes, req.ChainId, s.initializer)
+	err := s.parseAppState(req.AppStateBytes, weave.FromInitChain(req), req.ChainId, s.initializer)
 	if err != nil {
 		// Read comment on type header
 		panic(err)

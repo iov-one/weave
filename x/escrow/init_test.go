@@ -46,7 +46,7 @@ func TestGenesisKey(t *testing.T) {
 	// when
 	cashCtrl := cash.NewController(cash.NewBucket())
 	ini := Initializer{Minter: cashCtrl}
-	require.NoError(t, ini.FromGenesis(opts, db))
+	require.NoError(t, ini.FromGenesis(opts, weave.GenesisParams{}, db))
 
 	// then
 	bucket := NewBucket()

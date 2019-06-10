@@ -2,6 +2,8 @@ package weave
 
 import (
 	"encoding/json"
+
+	abci "github.com/tendermint/tendermint/abci/types"
 )
 
 // Handler is a core engine that can process a few specific messages
@@ -60,8 +62,22 @@ func (o Options) ReadOptions(key string, obj interface{}) error {
 	return json.Unmarshal(msg, obj)
 }
 
+// GenesisParams represents parameters set in genesis that could be useful
+// for some of the extensions.
+type GenesisParams struct {
+	Validators []abci.ValidatorUpdate
+}
+
+// FromInitChain initialises GenesisParams using abci.RequestInitChain
+// data.
+func FromInitChain(req abci.RequestInitChain) GenesisParams {
+	return GenesisParams{
+		Validators: req.Validators,
+	}
+}
+
 // Initializer implementations are used to initialize
 // extensions from genesis file contents
 type Initializer interface {
-	FromGenesis(Options, KVStore) error
+	FromGenesis(opts Options, params GenesisParams, kv KVStore) error
 }

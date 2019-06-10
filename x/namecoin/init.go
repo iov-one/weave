@@ -43,13 +43,13 @@ var _ weave.Initializer = Initializer{}
 
 // FromGenesis will parse initial account info from genesis
 // and save it to the database
-func (Initializer) FromGenesis(opts weave.Options, db weave.KVStore) error {
+func (Initializer) FromGenesis(opts weave.Options, params weave.GenesisParams, kv weave.KVStore) error {
 	accts := []GenesisAccount{}
 	err := opts.ReadOptions(optWallet, &accts)
 	if err != nil {
 		return err
 	}
-	err = setWallets(db, accts)
+	err = setWallets(kv, accts)
 	if err != nil {
 		return err
 	}
@@ -59,7 +59,7 @@ func (Initializer) FromGenesis(opts weave.Options, db weave.KVStore) error {
 	if err != nil {
 		return err
 	}
-	err = setTokens(db, tokens)
+	err = setTokens(kv, tokens)
 	if err != nil {
 		return err
 	}
