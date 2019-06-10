@@ -1,6 +1,9 @@
 # Changelog
 ## HEAD
 
+- `cmd/bnscli` a new command `with-fee` added to configure a transaction fee.
+
+
 Breaking changes
 
 - messages produced by `cmd/bnscli` have a new binary format incompatible with
