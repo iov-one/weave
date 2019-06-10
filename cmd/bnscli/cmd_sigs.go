@@ -8,6 +8,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"os"
 
 	"github.com/iov-one/weave/cmd/bnsd/client"
 	"github.com/iov-one/weave/crypto"
@@ -30,10 +31,10 @@ content.
 		fl.PrintDefaults()
 	}
 	var (
-		tmAddrFl = fl.String("tm", env("TM_ADDR", "https://bns.NETWORK.iov.one:443"),
-			"Tendermint node address. Use proper NETWORK name. You can use TM_ADDR environment variable to set it.")
-		keyPathFl = fl.String("key", env("SIGN_KEY_PATH", ""),
-			"Path to the private key file that transaction should be signed with. You can use SIGN_KEY_PATH environment variable to set it.")
+		tmAddrFl = fl.String("tm", env("BNSCLI_TM_ADDR", "https://bns.NETWORK.iov.one:443"),
+			"Tendermint node address. Use proper NETWORK name. You can use BNSCLI_TM_ADDR environment variable to set it.")
+		keyPathFl = fl.String("key", env("BNSCLI_PRIV_KEY", os.Getenv("HOME")+"/.bnsd.priv.key"),
+			"Path to the private key file that transaction should be signed with. You can use BNSCLI_PRIV_KEY environment variable to set it.")
 	)
 	fl.Parse(args)
 

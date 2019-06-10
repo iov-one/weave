@@ -2,11 +2,11 @@
 
 set -e
 
-if [ -z ${TM_ADDR} ]
+if [ -z ${BNSCLI_TM_ADDR} ]
 then
-	# TM_ADDR must be either set by the host or it will be configured by
-	# the test runner to use tendermint mock server.
-	>&2 echo "TM_ADDR must be set in order for this test to run."
+	# BNSCLI_TM_ADDR must be either set by the host or it will be
+	# configured by the test runner to use tendermint mock server.
+	>&2 echo "BNSCLI_TM_ADDR must be set in order for this test to run."
 	exit 2
 fi
 

@@ -14,8 +14,9 @@ further explanation. Use `-help` flag to learn more about each command.
 
     Make sure to collect enough signatures before submitting the transaction.
     -tm string
-        Tendermint node address. Use proper NETWORK name. You can use TM_ADDR
-        environment variable to set it. (default "https://bns.NETWORK.iov.one:443")
+        Tendermint node address. Use proper NETWORK name. You can use
+        BNSCLI_TM_ADDR environment variable to set it. (default
+        "https://bns.NETWORK.iov.one:443")
 
 ## Combine commands using UNIX pipe
 
