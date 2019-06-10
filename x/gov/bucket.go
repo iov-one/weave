@@ -12,12 +12,25 @@ type ElectorateBucket struct {
 	orm.VersioningBucket
 }
 
-// NewRevenueBucket returns a bucket for managing electorate.
+// NewElectorateBucket returns a bucket for managing electorate.
 func NewElectorateBucket() *ElectorateBucket {
-	b := migration.NewBucket(packageName, "electorate", orm.NewSimpleObj(nil, &Electorate{}))
+	b := migration.NewBucket(packageName, "electorate", orm.NewSimpleObj(nil, &Electorate{})).
+		WithMultiKeyIndex("elector", electorIndexer, false)
 	return &ElectorateBucket{
 		VersioningBucket: orm.WithVersioning(orm.WithSeqIDGenerator(b, "id")),
 	}
+}
+
+func electorIndexer(obj orm.Object) ([][]byte, error) {
+	elect, err := asElectorate(obj)
+	if err != nil {
+		return nil, err
+	}
+	idxs := make([][]byte, len(elect.Electors))
+	for i, voter := range elect.Electors {
+		idxs[i] = voter.Address.Clone()
+	}
+	return idxs, nil
 }
 
 func asElectorate(obj orm.Object) (*Electorate, error) {
@@ -28,7 +41,7 @@ func asElectorate(obj orm.Object) (*Electorate, error) {
 	return rev, nil
 }
 
-// NewElectionRulesBucket is the persistent bucket for ElectionRules .
+// ElectionRulesBucket is the persistent bucket for ElectionRules .
 type ElectionRulesBucket struct {
 	orm.VersioningBucket
 }
