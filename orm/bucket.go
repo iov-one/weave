@@ -189,7 +189,15 @@ func (b bucket) Parse(key, value []byte) (Object, error) {
 	return obj, nil
 }
 
-// Save will write a model, it must be of the same type as proto
+// Save will write a model, it must be of the same type as bucket.proto.
+// If model.Value() has GetMetadata(), then we set the LastModified height
+// to current block height.
+//
+// TODO: how do we pass this in?
+// 1. Set the height in weave.KVStore when we cachewrap?
+// 2. Pass the height explicitly in Save?
+// 3. Pass weave.Context to Save (and other methods)?
+// 4. Other ideas?
 func (b bucket) Save(db weave.KVStore, model Object) error {
 	err := model.Validate()
 	if err != nil {
