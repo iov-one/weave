@@ -216,7 +216,7 @@ func (s *TestSuite) IteratorWithConflicts(t *testing.T) {
 	const Size = 50
 	const DeleteCount = 20
 
-	ms := randModels(6, 20, 100)
+	ms := sortModels(randModels(6, 20, 100))
 	a, a2, b, b2, c, d := ms[0], ms[1], ms[2], ms[3], ms[4], ms[5]
 	// a2, b2 have same keys, different values
 	a2.Key = a.Key

@@ -210,24 +210,101 @@ func (b BTreeCacheWrap) ReverseIterator(start, end []byte) (Iterator, error) {
 	return iter, nil
 }
 
+// firstSet captures all results up to the first non-deleted returned by btree.Iterator
+type firstSet struct {
+	Deleted []deletedItem
+	Set     setItem
+}
+
+func (f *firstSet) Callback(item btree.Item) bool {
+	if d, ok := item.(deletedItem); ok {
+		f.Deleted = append(f.Deleted, d)
+		return true
+	}
+	// otherwise, it must be set
+	f.Set = item.(setItem)
+	return false
+}
+
 // First will get the first value in the cache wrap or backing store
-// TODO: optimize
+// This works quite efficiently as long as there are not a long series
+// of deleted items with the lowest keys in the range.
+// (In such a case it replaces on big query with many little queries.
+// Usually, it makes 1 to 2 little queries)
 func (b BTreeCacheWrap) First(start, end []byte) ([]byte, []byte, error) {
-	iter, err := b.Iterator(start, end)
+	// we grab all the items in cache up to first set item
+	var capture firstSet
+	if start == nil && end == nil {
+		b.bt.Ascend(capture.Callback)
+	} else if start == nil { // end != nil
+		b.bt.AscendLessThan(bkey{end}, capture.Callback)
+	} else if end == nil { // start != nil
+		b.bt.AscendGreaterOrEqual(bkey{start}, capture.Callback)
+	} else { // both != nil
+		b.bt.AscendRange(bkey{start}, bkey{end}, capture.Callback)
+	}
+	cKey := capture.Set.Key()
+
+	// grab first item on backing store
+	pKey, pVal, err := b.back.First(start, end)
 	if err != nil {
 		return nil, nil, err
 	}
-	return ReadOneFromIterator(iter)
+
+	if pKey == nil {
+		return cKey, capture.Set.value, nil
+	}
+	if cKey == nil {
+		return pKey, pVal, nil
+	}
+	cmp := bytes.Compare(pKey, cKey)
+	if cmp >= 0 {
+		// either set is first, or it overwrote parent
+		return cKey, capture.Set.value, nil
+	}
+
+	// TODO: otherwise, ensure it is not deleted???
+	// somehow this seems to work.
+	return pKey, pVal, nil
 }
 
 // Last will get the last value in the cache wrap or backing store
 // TODO: optimize
 func (b BTreeCacheWrap) Last(start, end []byte) ([]byte, []byte, error) {
-	iter, err := b.ReverseIterator(start, end)
+	// we grab all the items in cache up to first set item
+	var capture firstSet
+	if start == nil && end == nil {
+		b.bt.Descend(capture.Callback)
+	} else if start == nil { // end != nil
+		b.bt.DescendLessOrEqual(bkeyLess{end}, capture.Callback)
+	} else if end == nil { // start != nil
+		b.bt.DescendGreaterThan(bkeyLess{start}, capture.Callback)
+	} else { // both != nil
+		b.bt.DescendRange(bkeyLess{end}, bkeyLess{start}, capture.Callback)
+	}
+	cKey := capture.Set.Key()
+
+	// grab last item on backing store
+	pKey, pVal, err := b.back.Last(start, end)
 	if err != nil {
 		return nil, nil, err
 	}
-	return ReadOneFromIterator(iter)
+
+	if pKey == nil {
+		return cKey, capture.Set.value, nil
+	}
+	if cKey == nil {
+		return pKey, pVal, nil
+	}
+	cmp := bytes.Compare(pKey, cKey)
+	if cmp <= 0 {
+		// either set is last, or it overwrote parent
+		return cKey, capture.Set.value, nil
+	}
+
+	// TODO: otherwise, ensure it is not deleted???
+	// somehow this seems to work.
+	return pKey, pVal, nil
 }
 
 /////////////////////////////////////////////////////////

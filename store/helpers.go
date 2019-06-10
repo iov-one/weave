@@ -109,6 +109,35 @@ func (e EmptyKVStore) NewBatch() Batch {
 	return NewNonAtomicBatch(e)
 }
 
+// PrefixToRange turns a prefix into (start, end)
+// which is useful for range queries
+func PrefixToRange(prefix []byte) ([]byte, []byte) {
+	// special case: no prefix is whole range
+	if len(prefix) == 0 {
+		return nil, nil
+	}
+
+	// copy the prefix and update last byte
+	end := make([]byte, len(prefix))
+	copy(end, prefix)
+	l := len(end) - 1
+	end[l]++
+
+	// wait, what if that overflowed?....
+	for end[l] == 0 && l > 0 {
+		l--
+		end[l]++
+	}
+
+	// okay, funny guy, you gave us FFF, no end to this range...
+	if l == 0 && end[0] == 0 {
+		end = nil
+	}
+	return prefix, end
+}
+
+// TODO: plus one....
+
 ////////////////////////////////////////////////////
 // Non-atomic batch (dummy implementation)
 
