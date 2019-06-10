@@ -1,9 +1,11 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
 	"io"
+	"net/http"
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/cmd/bnsd/app"
@@ -55,20 +57,27 @@ already has a fee set, overwrite it with a new value.
 	}
 	var (
 		payerFl  = flHex(fl, "payer", "", "Optional address of a payer. If not provided the main signer will be used.")
-		amountFl = flCoin(fl, "amount", "1 IOV", "Fee value that should be attached to the transaction.")
+		amountFl = flCoin(fl, "amount", "", "Fee value that should be attached to the transaction. If not provided, default minimal fee is used.")
+		tmAddrFl = fl.String("tm", env("BNSCLI_TM_ADDR", "https://bns.NETWORK.iov.one:443"),
+			"Tendermint node address. Use proper NETWORK name. You can use BNSCLI_TM_ADDR environment variable to set it.")
 	)
 	fl.Parse(args)
 
-	if coin.IsEmpty(amountFl) {
-		flagDie("fee value must be provided and greater than zero.")
-	}
-	if !amountFl.IsPositive() {
-		flagDie("fee value must be greater than zero.")
-	}
 	if len(*payerFl) != 0 {
 		if err := weave.Address(*payerFl).Validate(); err != nil {
 			flagDie("invlid payer address: %s", err)
 		}
+	}
+	if !amountFl.IsNonNegative() {
+		flagDie("fee value cannot be negative.")
+	}
+
+	if coin.IsEmpty(amountFl) {
+		conf, err := cashGconf(*tmAddrFl)
+		if err != nil {
+			return fmt.Errorf("cannot fetch minimal fee configuration: %s", err)
+		}
+		amountFl = &conf.MinimalFee
 	}
 
 	tx, _, err := readTx(input)
@@ -83,4 +92,30 @@ already has a fee set, overwrite it with a new value.
 
 	_, err = writeTx(output, tx)
 	return err
+}
+
+func cashGconf(nodeUrl string) (*cash.Configuration, error) {
+	queryUrl := nodeUrl + "/abci_query?path=%22/%22&data=%22_c:cash%22"
+	resp, err := http.Get(queryUrl)
+	if err != nil {
+		return nil, fmt.Errorf("http request failed: %s", err)
+	}
+	defer resp.Body.Close()
+
+	var payload struct {
+		Result struct {
+			Response struct {
+				Value []byte
+			}
+		}
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&payload); err != nil {
+		return nil, fmt.Errorf("cannot decode payload: %s", err)
+	}
+
+	var conf cash.Configuration
+	if err := conf.Unmarshal(payload.Result.Response.Value); err != nil {
+		return nil, fmt.Errorf("cannot decode configuration: %s", err)
+	}
+	return &conf, nil
 }
