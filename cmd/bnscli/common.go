@@ -4,6 +4,7 @@ import (
 	"encoding/binary"
 	"errors"
 	"io"
+	"os"
 
 	"github.com/iov-one/weave/cmd/bnsd/app"
 )
@@ -47,7 +48,25 @@ func writeTx(w io.Writer, tx *app.Tx) (int, error) {
 	return txHeaderSize + len(b), nil
 }
 
+// readTx consumes data from given reader and unpack the serialized
+// transaction. This function should be used together with writeTx as
+// serialized transaction is a protobuf with a custom header added.
+//
+// This function can be used to read from os.Stdin when nothing is being
+// written to the stdin. In such case, io.EOF is returned.
 func readTx(r io.Reader) (*app.Tx, int, error) {
+	// If the given reader is providing a stat information (ie os.Stdin)
+	// then check if the data is being piped. That should prevent us from
+	// waiting for a data on a reader that no one ever writes to.
+	if s, ok := r.(stater); ok {
+		if info, err := s.Stat(); err == nil {
+			isPipe := (info.Mode() & os.ModeCharDevice) == 0
+			if !isPipe {
+				return nil, 0, io.EOF
+			}
+		}
+	}
+
 	// When serialized using writeTx function, first bytes contain
 	// information about the actual size of the transaction message.
 	var size [txHeaderSize]byte
@@ -68,3 +87,7 @@ func readTx(r io.Reader) (*app.Tx, int, error) {
 }
 
 const txHeaderSize = 4
+
+type stater interface {
+	Stat() (os.FileInfo, error)
+}

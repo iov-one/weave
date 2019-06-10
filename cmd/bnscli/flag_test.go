@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"encoding/hex"
 	"flag"
 	"testing"
 	"time"
@@ -240,13 +239,4 @@ func observeFlagDie(t testing.TB) (*int, func()) {
 		flagDie = original
 	}
 	return &cnt, cleanup
-}
-
-func fromHex(t testing.TB, s string) []byte {
-	t.Helper()
-	b, err := hex.DecodeString(s)
-	if err != nil {
-		t.Fatal(err)
-	}
-	return b
 }
