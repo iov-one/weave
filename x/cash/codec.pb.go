@@ -225,7 +225,9 @@ func (m *FeeInfo) GetFees() *coin.Coin {
 }
 
 type Configuration struct {
-	// TODO: add schema uint32 here
+	// Owner is present to implement gconf.OwnedConfig interface
+	// This defines the Address that is allowed to update the Configuration object and is
+	// needed to make use of gconf.NewUpdateConfigurationHandler
 	Owner            github_com_iov_one_weave.Address `protobuf:"bytes,2,opt,name=owner,proto3,casttype=github.com/iov-one/weave.Address" json:"owner,omitempty"`
 	CollectorAddress github_com_iov_one_weave.Address `protobuf:"bytes,3,opt,name=collector_address,json=collectorAddress,proto3,casttype=github.com/iov-one/weave.Address" json:"collector_address,omitempty"`
 	MinimalFee       coin.Coin                        `protobuf:"bytes,4,opt,name=minimal_fee,json=minimalFee,proto3" json:"minimal_fee"`
@@ -286,7 +288,6 @@ func (m *Configuration) GetMinimalFee() coin.Coin {
 }
 
 type ConfigurationMsg struct {
-	// TODO: add schema uint32 here
 	Patch *Configuration `protobuf:"bytes,2,opt,name=patch,proto3" json:"patch,omitempty"`
 }
 

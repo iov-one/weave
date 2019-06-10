@@ -37,13 +37,14 @@ message FeeInfo {
 }
 
 message Configuration {
-  // TODO: add schema uint32 here
+  // Owner is present to implement gconf.OwnedConfig interface
+  // This defines the Address that is allowed to update the Configuration object and is
+  // needed to make use of gconf.NewUpdateConfigurationHandler
   bytes owner = 2 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
   bytes collector_address = 3 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
   coin.Coin minimal_fee = 4 [(gogoproto.nullable) = false];
 }
 
 message ConfigurationMsg {
-  // TODO: add schema uint32 here
   Configuration patch = 2;
 }
