@@ -197,19 +197,25 @@ func (a adapter) ReverseIterator(start, end []byte) (store.Iterator, error) {
 // First will get the first value in the cache wrap or backing store
 // TODO: optimize
 func (a adapter) First(start, end []byte) ([]byte, []byte, error) {
-	iter, err := a.Iterator(start, end)
-	if err != nil {
-		return nil, nil, err
+	var res store.Model
+	add := func(key []byte, value []byte) bool {
+		res.Key = key
+		res.Value = value
+		return true
 	}
-	return store.ReadOneFromIterator(iter)
+	a.tree.IterateRange(start, end, true, add)
+	return res.Key, res.Value, nil
 }
 
 // Last will get the last value in the cache wrap or backing store
 // TODO: optimize
 func (a adapter) Last(start, end []byte) ([]byte, []byte, error) {
-	iter, err := a.ReverseIterator(start, end)
-	if err != nil {
-		return nil, nil, err
+	var res store.Model
+	add := func(key []byte, value []byte) bool {
+		res.Key = key
+		res.Value = value
+		return true
 	}
-	return store.ReadOneFromIterator(iter)
+	a.tree.IterateRange(start, end, false, add)
+	return res.Key, res.Value, nil
 }
