@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/iov-one/weave"
@@ -13,6 +14,7 @@ import (
 	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/weavetest/assert"
 	"github.com/iov-one/weave/x/cash"
+	"github.com/iov-one/weave/x/msgfee"
 )
 
 func TestCmdSendTokensHappyPath(t *testing.T) {
@@ -99,69 +101,118 @@ func TestCmdWithFeeHappyPathDefaultAmount(t *testing.T) {
 			SendMsg: sendMsg,
 		},
 	}
-	var input bytes.Buffer
-	if _, err := writeTx(&input, sendTx); err != nil {
-		t.Fatalf("cannot serialize transaction: %s", err)
+
+	cases := map[string]struct {
+		Conf    cash.Configuration
+		Fees    map[string]coin.Coin
+		WantFee *coin.Coin
+	}{
+		"only minimal fee": {
+			Conf: cash.Configuration{
+				MinimalFee: coin.NewCoin(4, 0, "BTC"),
+			},
+			Fees:    nil,
+			WantFee: coin.NewCoinp(4, 0, "BTC"),
+		},
+		"only message fee": {
+			Conf: cash.Configuration{
+				MinimalFee: coin.NewCoin(0, 0, ""),
+			},
+			Fees: map[string]coin.Coin{
+				sendMsg.Path(): coin.NewCoin(17, 0, "IOV"),
+			},
+			WantFee: coin.NewCoinp(17, 0, "IOV"),
+		},
+		"custom message fee is more important than global setting": {
+			Conf: cash.Configuration{
+				MinimalFee: coin.NewCoin(123, 0, "IOV"),
+			},
+			Fees: map[string]coin.Coin{
+				sendMsg.Path(): coin.NewCoin(11, 0, "IOV"),
+			},
+			WantFee: coin.NewCoinp(11, 0, "IOV"),
+		},
 	}
 
-	conf := cash.Configuration{
-		MinimalFee: coin.NewCoin(4, 0, "BTC"),
-	}
-	tm := newCashConfTendermintServer(t, conf)
-	defer tm.Close()
+	for testName, tc := range cases {
+		t.Run(testName, func(t *testing.T) {
+			var input bytes.Buffer
+			if _, err := writeTx(&input, sendTx); err != nil {
+				t.Fatalf("cannot serialize transaction: %s", err)
+			}
 
-	var output bytes.Buffer
-	args := []string{
-		// Instead of providing an amount, rely on what is configured
-		// for the network.
-		"-tm", tm.URL,
-	}
-	if err := cmdWithFee(&input, &output, args); err != nil {
-		t.Fatalf("cannot attach a fee to transaction: %s", err)
-	}
+			tm := newCashConfTendermintServer(t, tc.Conf, tc.Fees)
+			defer tm.Close()
 
-	tx, _, err := readTx(&output)
-	if err != nil {
-		t.Fatalf("cannot unmarshal created transaction: %s", err)
-	}
-	assert.Equal(t, []byte(nil), tx.Fees.Payer)
-	assert.Equal(t, &conf.MinimalFee, tx.Fees.Fees)
+			var output bytes.Buffer
+			args := []string{
+				// Instead of providing an amount, rely on what is configured
+				// for the network.
+				"-tm", tm.URL,
+			}
+			if err := cmdWithFee(&input, &output, args); err != nil {
+				t.Fatalf("cannot attach a fee to transaction: %s", err)
+			}
 
-	txmsg, err := tx.GetMsg()
-	if err != nil {
-		t.Fatalf("cannot get transaction message: %s", err)
+			tx, _, err := readTx(&output)
+			if err != nil {
+				t.Fatalf("cannot unmarshal created transaction: %s", err)
+			}
+			assert.Equal(t, tc.WantFee, tx.Fees.Fees)
+		})
 	}
-	// Message must be unmodified.
-	assert.Equal(t, sendMsg, txmsg)
 }
 
 // newCashConfTendermintServer returns an HTTP server that can respond to an
 // HTTP "/abci_query" request with given configuration.
-func newCashConfTendermintServer(t *testing.T, conf cash.Configuration) *httptest.Server {
+func newCashConfTendermintServer(
+	t *testing.T,
+	conf cash.Configuration,
+	msgfees map[string]coin.Coin,
+) *httptest.Server {
 	t.Helper()
-
-	raw, err := conf.Marshal()
-	if err != nil {
-		t.Fatalf("cannot marshal configuration: %s", err)
-	}
-	baseConf := base64.StdEncoding.EncodeToString(raw)
 
 	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/abci_query" {
 			t.Fatalf("unexpected tendermint request: %s", r.URL)
 		}
-		io.WriteString(w, `
-			{
-			  "jsonrpc": "2.0",
-			  "id": "",
-			  "result": {
-			    "response": {
-			      "key": "CgdfYzpjYXNo",
-			      "value": "`+baseConf+`",
-			      "height": "1119"
-			    }
-			  }
-			}
-		`)
+
+		data := r.URL.Query().Get("data")
+		data = data[1 : len(data)-1] // Cut off JSON quotation.
+
+		if data == "_c:cash" {
+			io.WriteString(w, tmResponse(t, &conf))
+			return
+		}
+
+		if strings.HasPrefix(data, "msgfee:") {
+			path := data[len("msgfee:"):]
+			io.WriteString(w, tmResponse(t, &msgfee.MsgFee{
+				MsgPath: path,
+				Fee:     msgfees[path],
+			}))
+			return
+		}
+
+		t.Fatalf("unexpected tendemrint request: %s", r.URL)
 	}))
+}
+
+// tmResponse returns a tenderming HTTP response for a configuration query.
+// Returned response does not contain "key" or "height" information.
+func tmResponse(t testing.TB, payload interface{ Marshal() ([]byte, error) }) string {
+	raw, err := payload.Marshal()
+	if err != nil {
+		t.Fatalf("cannot marshal payload: %s", err)
+	}
+	enc := base64.StdEncoding.EncodeToString(raw)
+	return `{
+	  "jsonrpc": "2.0",
+	  "id": "",
+	  "result": {
+	    "response": {
+	      "value": "` + enc + `"
+	    }
+	  }
+	}`
 }

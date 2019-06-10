@@ -72,17 +72,32 @@ already has a fee set, overwrite it with a new value.
 		flagDie("fee value cannot be negative.")
 	}
 
-	if coin.IsEmpty(amountFl) {
-		conf, err := cashGconf(*tmAddrFl)
-		if err != nil {
-			return fmt.Errorf("cannot fetch minimal fee configuration: %s", err)
-		}
-		amountFl = &conf.MinimalFee
-	}
-
 	tx, _, err := readTx(input)
 	if err != nil {
 		return fmt.Errorf("cannot read transaction: %s", err)
+	}
+
+	if coin.IsEmpty(amountFl) {
+		msg, err := tx.GetMsg()
+		if err != nil {
+			return fmt.Errorf("cannot extract message from transaction: %s", err)
+		}
+		fee, err := msgfeeConf(*tmAddrFl, msg.Path())
+		if err != nil {
+			return fmt.Errorf("cannot fetch %T message fee information: %s", msg, err)
+		}
+
+		// Custom fee value is more important than global minimal fee setting.
+		if !coin.IsEmpty(fee) {
+			amountFl = fee
+		} else {
+			conf, err := cashGconf(*tmAddrFl)
+			if err != nil {
+				return fmt.Errorf("cannot fetch minimal fee configuration: %s", err)
+			}
+			amountFl = &conf.MinimalFee
+		}
+
 	}
 
 	tx.Fees = &cash.FeeInfo{

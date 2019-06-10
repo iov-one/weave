@@ -11,11 +11,11 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strings"
 	"testing"
 
 	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/x/cash"
+	"github.com/iov-one/weave/x/msgfee"
 )
 
 var goldFl = flag.Bool("gold", false, "If true, write result to golden files instead of comparing with them.")
@@ -112,15 +112,23 @@ func fakeTendermintServer(t testing.TB) *httptest.Server {
 					}
 				}
 			`)
-		case r.Method == "GET" && r.URL.Path == "/abci_query" && strings.HasPrefix(r.URL.Query().Get("data"), `"_c:`):
-			// Handle all gconf configuration queries. Values are JSON encoded.
+		case r.Method == "GET" && r.URL.Path == "/abci_query":
+			// Handle all data queries. Values are JSON encoded.
+
 			switch r.URL.Query().Get("data") {
 			case `"_c:cash"`:
 				w.Header().Set("content-type", "application/json")
 				io.WriteString(w, tmGconfResponse(t, &cash.Configuration{
 					MinimalFee: coin.NewCoin(11, 0, "BTC"),
 				}))
+			case `"msgfee:cash/send"`:
+				w.Header().Set("content-type", "application/json")
+				io.WriteString(w, tmGconfResponse(t, &msgfee.MsgFee{
+					MsgPath: "cash/send",
+					Fee:     coin.NewCoin(17, 0, "BTC"),
+				}))
 			default:
+				t.Logf("unexpected ABCI query request: %q", r.URL)
 				http.Error(w, "not implemented", http.StatusNotImplemented)
 			}
 		case r.Method == "POST" && r.URL.Path == "/":
