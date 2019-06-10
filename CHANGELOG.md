@@ -9,6 +9,7 @@ Breaking changes
 - messages produced by `cmd/bnscli` have a new binary format incompatible with
   the previous version.
 - `x/gov` added indexes to proposals and electorate to enable better client-side UX
+- `cash.UpdateConfigurationMsg` requires `Metadata.Schema`
 
 
 ## 0.16.0
