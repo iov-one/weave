@@ -8,5 +8,10 @@ package weave;
 //
 //   weave.Metadata metadata = 1;
 message Metadata {
+  // Schema keeps track of schema changes of persistent objects
+  // (models and messages) to be used with the migrations package.
   uint32 schema = 1;
+  // LastModified is stored with every model stored in orm.Bucket.
+  // It is set to the block height of the last write of this object.
+  int64 last_modified = 2;
 }
