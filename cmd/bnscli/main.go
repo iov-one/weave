@@ -48,6 +48,7 @@ var commands = map[string]func(input io.Reader, output io.Writer, args []string)
 	"submit":         cmdSubmitTransaction,
 	"version":        cmdVersion,
 	"view":           cmdTransactionView,
+	"with-fee":       cmdWithFee,
 }
 
 func main() {

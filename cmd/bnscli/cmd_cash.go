@@ -7,6 +7,7 @@ import (
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/cmd/bnsd/app"
+	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/x/cash"
 )
 
@@ -40,5 +41,46 @@ destination account.
 		},
 	}
 	_, err := writeTx(output, tx)
+	return err
+}
+
+func cmdWithFee(input io.Reader, output io.Writer, args []string) error {
+	fl := flag.NewFlagSet("", flag.ExitOnError)
+	fl.Usage = func() {
+		fmt.Fprintln(flag.CommandLine.Output(), `
+Modify given transaction and addatch a fee as specified to it. If a transaction
+already has a fee set, overwrite it with a new value.
+		`)
+		fl.PrintDefaults()
+	}
+	var (
+		payerFl  = flHex(fl, "payer", "", "Optional address of a payer. If not provided the main signer will be used.")
+		amountFl = flCoin(fl, "amount", "1 IOV", "Fee value that should be attached to the transaction.")
+	)
+	fl.Parse(args)
+
+	if coin.IsEmpty(amountFl) {
+		flagDie("fee value must be provided and greater than zero.")
+	}
+	if !amountFl.IsPositive() {
+		flagDie("fee value must be greater than zero.")
+	}
+	if len(*payerFl) != 0 {
+		if err := weave.Address(*payerFl).Validate(); err != nil {
+			flagDie("invlid payer address: %s", err)
+		}
+	}
+
+	tx, _, err := readTx(input)
+	if err != nil {
+		return fmt.Errorf("cannot read transaction: %s", err)
+	}
+
+	tx.Fees = &cash.FeeInfo{
+		Payer: *payerFl,
+		Fees:  amountFl,
+	}
+
+	_, err = writeTx(output, tx)
 	return err
 }
