@@ -87,6 +87,7 @@ func (s *TestSuite)GetSet(t *testing.T) {
 	s.AssertGetHas(t, c2, k3, nil, false)
 }
 
+
 // CacheConflicts checks that we can handle
 // overwriting values and deleting underlying values
 func (s *TestSuite)CacheConflicts(t *testing.T) {
@@ -209,6 +210,8 @@ func (s *TestSuite)FuzzIterator(t *testing.T) {
 	}
 }
 
+
+
 // IteratorWithConflicts covers some specific test cases
 // that arose during fuzzing the iterators.
 func (s *TestSuite)IteratorWithConflicts(t *testing.T) {
@@ -221,19 +224,51 @@ func (s *TestSuite)IteratorWithConflicts(t *testing.T) {
 	a2.Key = a.Key
 	b2.Key = b.Key
 
-	expect0 := sortModels([]Model{a2, b2, c, d})
-	expect1 := []Model{c}
+	expect0 := sortModels([]Model{a, b, c})
+	expect1 := sortModels([]Model{a2, b2, c, d})
+	expect2 := []Model{c}
 
 	cases := map[string]iterCase{
+		"iterate in child only": {
+			child: makeSetOps(a, b, c),
+			queries: []rangeQuery{
+				// query for the values in child
+				{nil, nil, false, expect0},
+				{expect0[1].Key, expect0[2].Key, false, expect0[1:2]},
+
+				{nil, nil, true, reverse(expect0)},
+			},
+		},
+		"iterate over parent only": {
+			pre: makeSetOps(a, b, c),
+			queries: []rangeQuery{
+				// query for the values in child
+				{nil, nil, false, expect0},
+				{expect0[1].Key, expect0[2].Key, false, expect0[1:2]},
+
+				{nil, nil, true, reverse(expect0)},
+			},
+		},
+		"simple combination": {
+			pre:   makeSetOps(a, b),
+			child: makeSetOps(c),
+			queries: []rangeQuery{
+				// query for the values in child
+				{nil, nil, false, expect0},
+				{expect0[1].Key, expect0[2].Key, false, expect0[1:2]},
+
+				{nil, nil, true, reverse(expect0)},
+			},
+		},
 		"overwrite data should show child data": {
 			pre:   makeSetOps(a, b, c),
 			child: makeSetOps(a2, b2, d),
 			queries: []rangeQuery{
 				// query for the values in child
-				{nil, nil, false, expect0},
-				{expect0[1].Key, expect0[3].Key, false, expect0[1:3]},
+				{nil, nil, false, expect1},
+				{expect1[1].Key, expect1[3].Key, false, expect1[1:3]},
 
-				{nil, nil, true, reverse(expect0)},
+				{nil, nil, true, reverse(expect1)},
 			},
 		},
 		"overwrite data should show child data 2": {
@@ -241,7 +276,7 @@ func (s *TestSuite)IteratorWithConflicts(t *testing.T) {
 			child: makeDelOps(a, b, d),
 			queries: []rangeQuery{
 				// query all should find just one, skip delete
-				{nil, nil, false, expect1},
+				{nil, nil, false, expect2},
 				// query cuts off at actual value, should be empty
 				{nil, c.Key, false, nil},
 			},
