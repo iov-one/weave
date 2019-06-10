@@ -9,6 +9,7 @@ import (
 
 func init() {
 	migration.MustRegister(1, &SendMsg{}, migration.NoModification)
+	migration.MustRegister(1, &ConfigurationMsg{}, migration.NoModification)
 }
 
 // Ensure we implement the Msg interface

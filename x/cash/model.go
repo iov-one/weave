@@ -11,6 +11,7 @@ import (
 
 func init() {
 	migration.MustRegister(1, &Set{}, migration.NoModification)
+	migration.MustRegister(1, &Configuration{}, migration.NoModification)
 }
 
 // BucketName is where we store the balances
