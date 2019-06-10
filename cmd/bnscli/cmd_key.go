@@ -40,7 +40,7 @@ created. This command fails if the private key file already exists.
 		return fmt.Errorf("cannot generate ed25519 key: %s", err)
 	}
 
-	fd, err := os.OpenFile(*keyPathFl, os.O_CREATE|os.O_WRONLY, 0600)
+	fd, err := os.OpenFile(*keyPathFl, os.O_CREATE|os.O_WRONLY, 0400)
 	if err != nil {
 		return fmt.Errorf("cannot create public key file: %s", err)
 	}
