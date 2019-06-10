@@ -210,6 +210,26 @@ func (b BTreeCacheWrap) ReverseIterator(start, end []byte) (Iterator, error) {
 	return iter, nil
 }
 
+// First will get the first value in the cache wrap or backing store
+// TODO: optimize
+func (b BTreeCacheWrap) First(start, end []byte) ([]byte, []byte, error) {
+	iter, err := b.Iterator(start, end)
+	if err != nil {
+		return nil, nil, err
+	}
+	return ReadOneFromIterator(iter)
+}
+
+// Last will get the last value in the cache wrap or backing store
+// TODO: optimize
+func (b BTreeCacheWrap) Last(start, end []byte) ([]byte, []byte, error) {
+	iter, err := b.ReverseIterator(start, end)
+	if err != nil {
+		return nil, nil, err
+	}
+	return ReadOneFromIterator(iter)
+}
+
 /////////////////////////////////////////////////////////
 // Items to write to btree
 
