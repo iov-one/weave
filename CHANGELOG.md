@@ -1,6 +1,8 @@
 # Changelog
 ## HEAD
 
+- Add CommitInfo to context in order to be able to see who signed the current block
+
 Breaking changes
 
 - messages produced by `cmd/bnscli` have a new binary format incompatible with
