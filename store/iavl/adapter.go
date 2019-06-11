@@ -1,6 +1,8 @@
 package iavl
 
 import (
+	"fmt"
+
 	"github.com/tendermint/iavl"
 	dbm "github.com/tendermint/tendermint/libs/db"
 
@@ -170,14 +172,14 @@ func (a adapter) NewBatch() store.Batch {
 // Start must be less than end, or the Iterator is invalid.
 // CONTRACT: No writes may happen within a domain while an iterator exists over it.
 func (a adapter) Iterator(start, end []byte) (store.Iterator, error) {
-	var res []store.Model
-	add := func(key []byte, value []byte) bool {
-		m := store.Model{Key: key, Value: value}
-		res = append(res, m)
-		return false
-	}
-	a.tree.IterateRange(start, end, true, add)
-	return store.NewSliceIterator(res), nil
+	iter := newLazyIterator()
+	go func() {
+		a.tree.IterateRange(start, end, true, iter.add)
+		fmt.Println("end range")
+		iter.Close()
+	}()
+	iter.Next()
+	return iter, nil
 }
 
 // ReverseIterator over a domain of keys in descending order. End is exclusive.

@@ -3,11 +3,13 @@ package store
 import (
 	"bytes"
 	"crypto/rand"
+	"fmt"
 	"sort"
 	"testing"
 
 	"github.com/iov-one/weave/weavetest/assert"
 )
+
 /**
 TestSuite provides many methods that can be called in package-specific test code.
 We just customize the store being tested (pass in constructor), the rest of the
@@ -32,7 +34,7 @@ func NewTestSuite(constructor TestStoreConstructor) *TestSuite {
 //
 // Other tests should handle deletes, setting same value,
 // iterating over ranges, and general fuzzing
-func (s *TestSuite)GetSet(t *testing.T) {
+func (s *TestSuite) GetSet(t *testing.T) {
 	base, cleanup := s.makeBase()
 	defer cleanup()
 
@@ -87,10 +89,9 @@ func (s *TestSuite)GetSet(t *testing.T) {
 	s.AssertGetHas(t, c2, k3, nil, false)
 }
 
-
 // CacheConflicts checks that we can handle
 // overwriting values and deleting underlying values
-func (s *TestSuite)CacheConflicts(t *testing.T) {
+func (s *TestSuite) CacheConflicts(t *testing.T) {
 	// make 10 keys and 20 values....
 	ks := randKeys(10, 16)
 	vs := randKeys(20, 40)
@@ -144,7 +145,7 @@ func (s *TestSuite)CacheConflicts(t *testing.T) {
 
 // FuzzIterator makes sure the basic iterator
 // works. Includes random deletes, but not nested iterators.
-func (s *TestSuite)FuzzIterator(t *testing.T) {
+func (s *TestSuite) FuzzIterator(t *testing.T) {
 	const Size = 50
 	const DeleteCount = 20
 
@@ -210,11 +211,9 @@ func (s *TestSuite)FuzzIterator(t *testing.T) {
 	}
 }
 
-
-
 // IteratorWithConflicts covers some specific test cases
 // that arose during fuzzing the iterators.
-func (s *TestSuite)IteratorWithConflicts(t *testing.T) {
+func (s *TestSuite) IteratorWithConflicts(t *testing.T) {
 	const Size = 50
 	const DeleteCount = 20
 
@@ -292,8 +291,7 @@ func (s *TestSuite)IteratorWithConflicts(t *testing.T) {
 	}
 }
 
-
-func (s *TestSuite)AssertGetHas(t testing.TB, kv ReadOnlyKVStore, key, val []byte, has bool) {
+func (s *TestSuite) AssertGetHas(t testing.TB, kv ReadOnlyKVStore, key, val []byte, has bool) {
 	t.Helper()
 	got, err := kv.Get(key)
 	assert.Nil(t, err)
@@ -336,16 +334,20 @@ type iterCase struct {
 }
 
 func (i iterCase) verify(t testing.TB, base CacheableKVStore) {
+	fmt.Println("pre")
 	for _, op := range i.pre {
 		op.Apply(base)
 	}
 
+	fmt.Println("child")
 	child := base.CacheWrap()
 	for _, op := range i.child {
 		op.Apply(base)
 	}
 
+	fmt.Println("queries")
 	for _, q := range i.queries {
+		fmt.Println("  A")
 		var iter Iterator
 		var err error
 		if q.reverse {
@@ -353,14 +355,18 @@ func (i iterCase) verify(t testing.TB, base CacheableKVStore) {
 		} else {
 			iter, err = child.Iterator(q.start, q.end)
 		}
+		fmt.Println("  B")
 		assert.Nil(t, err)
 		// Make sure proper iteration works.
 		for i := 0; i < len(q.expected); i++ {
+			fmt.Printf("  C %d\n", i)
 			assert.Equal(t, iter.Valid(), true)
 			assert.Equal(t, q.expected[i].Key, iter.Key())
 			assert.Equal(t, q.expected[i].Value, iter.Value())
 			iter.Next()
+			fmt.Printf("  C X\n")
 		}
+		fmt.Println("  D")
 		assert.Equal(t, iter.Valid(), false)
 		iter.Close()
 	}
