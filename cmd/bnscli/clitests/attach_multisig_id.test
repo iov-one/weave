@@ -1,0 +1,8 @@
+#!/bin/sh
+
+set -e
+
+bnscli multisig -activation 4 -admin 8 \
+	| bnscli with-multisig 1 2 \
+	| bnscli with-multisig 3 \
+	| bnscli view

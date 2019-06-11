@@ -1,0 +1,16 @@
+{
+	"multisig": [
+		"MQ==",
+		"Mg==",
+		"Mw=="
+	],
+	"Sum": {
+		"CreateContractMsg": {
+			"metadata": {
+				"schema": 1
+			},
+			"activation_threshold": 4,
+			"admin_threshold": 8
+		}
+	}
+}
