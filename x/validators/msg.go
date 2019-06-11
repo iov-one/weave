@@ -23,6 +23,14 @@ func (*SetValidatorsMsg) Path() string {
 	return pathUpdate
 }
 
+func (m ValidatorUpdates) Validate() error {
+	var err error
+	for _, v := range m.ValidatorUpdates {
+		err = errors.Append(err, v.Validate())
+	}
+	return err
+}
+
 func (m ValidatorUpdate) Validate() error {
 	if len(m.Pubkey.Data) != 32 || strings.ToLower(m.Pubkey.Type) != "ed25519" {
 		return errors.Wrapf(errors.ErrType, "invalid public key: %T", m.Pubkey.Type)
@@ -37,6 +45,32 @@ func (m ValidatorUpdate) AsABCI() abci.ValidatorUpdate {
 	return abci.ValidatorUpdate{
 		PubKey: m.Pubkey.AsABCI(),
 		Power:  m.Power,
+	}
+}
+
+func ValidatorUpdatesFromABCI(u []abci.ValidatorUpdate) ValidatorUpdates {
+	vu := ValidatorUpdates{
+		ValidatorUpdates: make([]ValidatorUpdate, len(u)),
+	}
+
+	for k, v := range u {
+		vu.ValidatorUpdates[k] = ValidatorUpdateFromABCI(v)
+	}
+
+	return vu
+}
+
+func ValidatorUpdateFromABCI(u abci.ValidatorUpdate) ValidatorUpdate {
+	return ValidatorUpdate{
+		Power:  u.Power,
+		Pubkey: PubkeyFromABCI(u.PubKey),
+	}
+}
+
+func PubkeyFromABCI(u abci.PubKey) Pubkey {
+	return Pubkey{
+		Type: u.Type,
+		Data: u.Data,
 	}
 }
 

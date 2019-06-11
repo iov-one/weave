@@ -4,6 +4,11 @@ package validators;
 
 import "codec.proto";
 
+// ValidatorUpdates represents latest validator state, used to validate SetValidatorMsg transactions.
+message ValidatorUpdates {
+  repeated ValidatorUpdate validator_updates = 1 ;
+}
+
 // ValidatorUpdate
 message ValidatorUpdate {
   Pubkey pubkey = 1 ;

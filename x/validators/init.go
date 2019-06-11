@@ -5,7 +5,9 @@ import (
 	"github.com/iov-one/weave/errors"
 )
 
-const optKey = "update_validators"
+const (
+	optKey = "update_validators"
+)
 
 // Initializer fulfils the InitStater interface to load data from
 // the genesis file
@@ -27,6 +29,21 @@ func (Initializer) FromGenesis(opts weave.Options, params weave.GenesisParams, k
 	bucket := NewAccountBucket()
 	if err := bucket.Save(kv, accts); err != nil {
 		return errors.Wrap(err, "bucket save")
+	}
+
+	vu := ValidatorUpdatesFromABCI(params.Validators)
+	if err := vu.Validate(); err != nil {
+		return errors.Wrap(err, "validator updates")
+	}
+
+	marshalledUpdates, err := vu.Marshal()
+	if err != nil {
+		return errors.Wrap(err, "validator updates marshal")
+	}
+
+	err = kv.Set([]byte(optKey), marshalledUpdates)
+	if err != nil {
+		return errors.Wrap(err, "kvstore save")
 	}
 	return nil
 }
