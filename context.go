@@ -75,7 +75,7 @@ func GetHeader(ctx Context) (abci.Header, bool) {
 
 // WithCommitInfo sets the info on who signed the block in this Context.
 // Panics if already set.
-func WithCommitInfo(ctx Context, info abci.LastCommitInfo) Context {
+func WithCommitInfo(ctx Context, info CommitInfo) Context {
 	if _, ok := GetCommitInfo(ctx); ok {
 		panic("CommitInfo already set")
 	}
@@ -84,8 +84,8 @@ func WithCommitInfo(ctx Context, info abci.LastCommitInfo) Context {
 
 // GetCommitInfo returns the info on validators that signed
 // this block. Returns false if not present.
-func GetCommitInfo(ctx Context) (abci.LastCommitInfo, bool) {
-	val, ok := ctx.Value(contextCommitInfo).(abci.LastCommitInfo)
+func GetCommitInfo(ctx Context) (CommitInfo, bool) {
+	val, ok := ctx.Value(contextCommitInfo).(CommitInfo)
 	return val, ok
 }
 

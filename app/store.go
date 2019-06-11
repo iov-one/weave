@@ -333,7 +333,7 @@ func (s *StoreApp) BeginBlock(req abci.RequestBeginBlock) (res abci.ResponseBegi
 	// set the begin block context
 	ctx := weave.WithHeader(s.baseContext, req.Header)
 	ctx = weave.WithHeight(ctx, req.Header.GetHeight())
-	ctx = weave.WithCommitInfo(ctx, req.LastCommitInfo)
+	ctx = weave.WithCommitInfo(ctx, weave.CommitInfoFromABCI(req.LastCommitInfo))
 
 	now := req.Header.GetTime()
 	if now.IsZero() {
