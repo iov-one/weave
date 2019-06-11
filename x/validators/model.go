@@ -5,6 +5,7 @@ import (
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/orm"
+	abci "github.com/tendermint/tendermint/abci/types"
 )
 
 func init() {
@@ -16,6 +17,47 @@ const (
 	bucketName     = "uvalid"
 	accountListKey = "accounts"
 )
+
+func (m ValidatorUpdates) Validate() error {
+	var err error
+	for _, v := range m.ValidatorUpdates {
+		err = errors.Append(err, v.Validate())
+	}
+	return err
+}
+
+func (m ValidatorUpdates) Store(store weave.KVStore) error {
+	marshalledUpdates, err := m.Marshal()
+	if err != nil {
+		return errors.Wrap(err, "validator updates marshal")
+	}
+
+	err = store.Set([]byte(optKey), marshalledUpdates)
+	return errors.Wrap(err, "kvstore save")
+}
+
+func GetValidatorUpdates(store weave.KVStore) (ValidatorUpdates, error) {
+	vu := ValidatorUpdates{}
+	bytes, err := store.Get([]byte(optKey))
+	if err != nil {
+		return vu, errors.Wrap(err, "kvstore get")
+	}
+
+	err = vu.Unmarshal(bytes)
+	return vu, errors.Wrap(err, "validator updates unmarshal")
+}
+
+func ValidatorUpdatesFromABCI(u []abci.ValidatorUpdate) ValidatorUpdates {
+	vu := ValidatorUpdates{
+		ValidatorUpdates: make([]ValidatorUpdate, len(u)),
+	}
+
+	for k, v := range u {
+		vu.ValidatorUpdates[k] = ValidatorUpdateFromABCI(v)
+	}
+
+	return vu
+}
 
 // WeaveAccounts is used to parse the json from genesis file
 // use weave.Address, so address in hex, not base64

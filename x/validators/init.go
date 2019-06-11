@@ -36,14 +36,5 @@ func (Initializer) FromGenesis(opts weave.Options, params weave.GenesisParams, k
 		return errors.Wrap(err, "validator updates")
 	}
 
-	marshalledUpdates, err := vu.Marshal()
-	if err != nil {
-		return errors.Wrap(err, "validator updates marshal")
-	}
-
-	err = kv.Set([]byte(optKey), marshalledUpdates)
-	if err != nil {
-		return errors.Wrap(err, "kvstore save")
-	}
-	return nil
+	return errors.Wrap(vu.Store(kv), "store validator updates")
 }

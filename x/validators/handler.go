@@ -1,6 +1,8 @@
 package validators
 
 import (
+	"bytes"
+
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/migration"
@@ -31,34 +33,41 @@ type updateHandler struct {
 var _ weave.Handler = (*updateHandler)(nil)
 
 func (h updateHandler) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
-	if _, err := h.validate(ctx, store, tx); err != nil {
+	if _, _, err := h.validate(ctx, store, tx); err != nil {
 		return nil, err
 	}
 	return &weave.CheckResult{}, nil
 }
 
 func (h updateHandler) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
-	diff, err := h.validate(ctx, store, tx)
+	diff, updates, err := h.validate(ctx, store, tx)
 	if err != nil {
 		return nil, err
 	}
+	err = updates.Store(store)
+	if err != nil {
+		return nil, errors.Wrap(err, "store validator updates")
+	}
+
 	return &weave.DeliverResult{Diff: diff}, nil
 }
 
-func (h updateHandler) validate(ctx weave.Context, store weave.KVStore, tx weave.Tx) ([]abci.ValidatorUpdate, error) {
+func (h updateHandler) validate(ctx weave.Context, store weave.KVStore, tx weave.Tx) ([]abci.ValidatorUpdate,
+	ValidatorUpdates, error) {
 	var msg SetValidatorsMsg
+	var resUpdates ValidatorUpdates
 	if err := weave.LoadMsg(tx, &msg); err != nil {
-		return nil, errors.Wrap(err, "load msg")
+		return nil, resUpdates, errors.Wrap(err, "load msg")
 	}
 
 	diff := msg.AsABCI()
 	if len(diff) == 0 {
-		return nil, errors.Wrap(errors.ErrEmpty, "diff")
+		return nil, resUpdates, errors.Wrap(errors.ErrEmpty, "diff")
 	}
 
 	accounts, err := h.bucket.GetAccounts(store)
 	if err != nil {
-		return nil, err
+		return nil, resUpdates, err
 	}
 
 	var hasPermission bool
@@ -69,8 +78,32 @@ func (h updateHandler) validate(ctx weave.Context, store weave.KVStore, tx weave
 		}
 	}
 	if !hasPermission {
-		return nil, errors.Wrap(errors.ErrUnauthorized, "no permission")
+		return nil, resUpdates, errors.Wrap(errors.ErrUnauthorized, "no permission")
 	}
 
-	return diff, nil
+	updates, err := GetValidatorUpdates(store)
+	if err != nil {
+		return nil, resUpdates, errors.Wrap(err, "failed to query validators")
+	}
+
+	resUpdates = updates
+
+DiffLoop:
+	for _, v := range diff {
+		for key, validator := range updates.ValidatorUpdates {
+			if bytes.Equal(v.PubKey.Data, validator.Pubkey.Data) {
+				if v.Power == validator.Power {
+					return nil, resUpdates, errors.Wrap(errors.ErrInput, "same validator power")
+				}
+				resUpdates.ValidatorUpdates[key] = ValidatorUpdateFromABCI(v)
+				continue DiffLoop
+			}
+			if v.Power == 0 {
+				return nil, resUpdates, errors.Wrap(errors.ErrInput, "setting unknown validator power to 0")
+			}
+		}
+		resUpdates.ValidatorUpdates = append(resUpdates.ValidatorUpdates, ValidatorUpdateFromABCI(v))
+	}
+
+	return diff, resUpdates, nil
 }
