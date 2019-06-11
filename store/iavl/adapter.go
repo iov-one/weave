@@ -193,23 +193,3 @@ func (a adapter) ReverseIterator(start, end []byte) (store.Iterator, error) {
 	a.tree.IterateRange(start, end, false, add)
 	return store.NewSliceIterator(res), nil
 }
-
-// First will get the first value in the cache wrap or backing store
-// TODO: optimize
-func (a adapter) First(start, end []byte) ([]byte, []byte, error) {
-	iter, err := a.Iterator(start, end)
-	if err != nil {
-		return nil, nil, err
-	}
-	return store.ReadOneFromIterator(iter)
-}
-
-// Last will get the last value in the cache wrap or backing store
-// TODO: optimize
-func (a adapter) Last(start, end []byte) ([]byte, []byte, error) {
-	iter, err := a.ReverseIterator(start, end)
-	if err != nil {
-		return nil, nil, err
-	}
-	return store.ReadOneFromIterator(iter)
-}
