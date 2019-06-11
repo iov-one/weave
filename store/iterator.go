@@ -11,8 +11,10 @@ import (
 
 // TODO: add support for Combine (deleting those below)
 type btreeIter struct {
-	data []btree.Item
-	idx  int
+	data    btree.Item
+	hasMore bool
+	read    <-chan btree.Item
+	stop    chan<- struct{}
 }
 
 // source marks where the current item comes from
@@ -28,42 +30,75 @@ const (
 // combine joins our results with those of the parent,
 // taking into consideration overwrites and deletes...
 func ascendBtree(bt *btree.BTree, start, end []byte) *btreeIter {
-	var iter btreeIter
-	if start == nil && end == nil {
-		bt.Ascend(iter.insert)
-	} else if start == nil { // end != nil
-		bt.AscendLessThan(bkey{end}, iter.insert)
-	} else if end == nil { // start != nil
-		bt.AscendGreaterOrEqual(bkey{start}, iter.insert)
-	} else { // both != nil
-		bt.AscendRange(bkey{start}, bkey{end}, iter.insert)
+	read := make(chan btree.Item)
+	// ensure we never block when we call close()
+	stop := make(chan struct{}, 1)
+	iter := &btreeIter{
+		read: read,
+		stop: stop,
 	}
-	return &iter
+
+	insert := func(item btree.Item) bool {
+		select {
+		case read <- item:
+			return true
+		case <-stop:
+			close(read)
+			return false
+		}
+	}
+
+	go func() {
+		if start == nil && end == nil {
+			bt.Ascend(insert)
+		} else if start == nil { // end != nil
+			bt.AscendLessThan(bkey{end}, insert)
+		} else if end == nil { // start != nil
+			bt.AscendGreaterOrEqual(bkey{start}, insert)
+		} else { // both != nil
+			bt.AscendRange(bkey{start}, bkey{end}, insert)
+		}
+		close(read)
+	}()
+
+	iter.next()
+	return iter
 }
 
 func descendBtree(bt *btree.BTree, start, end []byte) *btreeIter {
-	var iter btreeIter
-	if start == nil && end == nil {
-		bt.Descend(iter.insert)
-	} else if start == nil { // end != nil
-		bt.DescendLessOrEqual(bkeyLess{end}, iter.insert)
-	} else if end == nil { // start != nil
-		bt.DescendGreaterThan(bkeyLess{start}, iter.insert)
-	} else { // both != nil
-		bt.DescendRange(bkeyLess{end}, bkeyLess{start}, iter.insert)
+	read := make(chan btree.Item)
+	// ensure we never block when we call close()
+	stop := make(chan struct{}, 1)
+	iter := &btreeIter{
+		read: read,
+		stop: stop,
 	}
-	return &iter
-}
 
-// insert is designed as a callback to add items from the btree.
-// Example Usage (to get an iterator over all items on the tree):
-//
-//  iter := newItemIter(parentIter)
-//  tree.Ascend(iter.insert)
-//  iter.skipAllDeleted()
-func (b *btreeIter) insert(item btree.Item) bool {
-	b.data = append(b.data, item)
-	return true
+	insert := func(item btree.Item) bool {
+		select {
+		case read <- item:
+			return true
+		case <-stop:
+			close(read)
+			return false
+		}
+	}
+
+	go func() {
+		if start == nil && end == nil {
+			bt.Descend(insert)
+		} else if start == nil { // end != nil
+			bt.DescendLessOrEqual(bkeyLess{end}, insert)
+		} else if end == nil { // start != nil
+			bt.DescendGreaterThan(bkeyLess{start}, insert)
+		} else { // both != nil
+			bt.DescendRange(bkeyLess{end}, bkeyLess{start}, insert)
+		}
+		close(read)
+	}()
+
+	iter.next()
+	return iter
 }
 
 func (b *btreeIter) wrap(parent Iterator) *itemIter {
@@ -76,20 +111,20 @@ func (b *btreeIter) wrap(parent Iterator) *itemIter {
 }
 
 func (b *btreeIter) next() {
-	b.idx++
+	b.data, b.hasMore = <-b.read
 }
 
 func (b *btreeIter) close() {
-	b.data = nil
+	b.stop <- struct{}{}
 }
 
 // get requires this is valid, gets what we are pointing at
 func (b *btreeIter) get() keyer {
-	return b.data[b.idx].(keyer)
+	return b.data.(keyer)
 }
 
 func (b *btreeIter) valid() bool {
-	return (b.idx < len(b.data))
+	return b.hasMore
 }
 
 type itemIter struct {
