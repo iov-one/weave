@@ -5,6 +5,7 @@ package weave
 
 import (
 	fmt "fmt"
+	_ "github.com/gogo/protobuf/gogoproto"
 	proto "github.com/gogo/protobuf/proto"
 	io "io"
 	math "math"
@@ -70,21 +71,195 @@ func (m *Metadata) GetSchema() uint32 {
 	return 0
 }
 
+// CommitInfo is basically a replica of tendermint commit info
+// that allows us to store who signed the block in context.
+type CommitInfo struct {
+	Round int32      `protobuf:"varint,1,opt,name=round,proto3" json:"round,omitempty"`
+	Votes []VoteInfo `protobuf:"bytes,2,rep,name=votes,proto3" json:"votes"`
+}
+
+func (m *CommitInfo) Reset()         { *m = CommitInfo{} }
+func (m *CommitInfo) String() string { return proto.CompactTextString(m) }
+func (*CommitInfo) ProtoMessage()    {}
+func (*CommitInfo) Descriptor() ([]byte, []int) {
+	return fileDescriptor_9610d574777ab505, []int{1}
+}
+func (m *CommitInfo) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *CommitInfo) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_CommitInfo.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *CommitInfo) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_CommitInfo.Merge(m, src)
+}
+func (m *CommitInfo) XXX_Size() int {
+	return m.Size()
+}
+func (m *CommitInfo) XXX_DiscardUnknown() {
+	xxx_messageInfo_CommitInfo.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_CommitInfo proto.InternalMessageInfo
+
+func (m *CommitInfo) GetRound() int32 {
+	if m != nil {
+		return m.Round
+	}
+	return 0
+}
+
+func (m *CommitInfo) GetVotes() []VoteInfo {
+	if m != nil {
+		return m.Votes
+	}
+	return nil
+}
+
+// VoteInfo tells us whether a validator signed the last block or not
+type VoteInfo struct {
+	Validator       Validator `protobuf:"bytes,1,opt,name=validator,proto3" json:"validator"`
+	SignedLastBlock bool      `protobuf:"varint,2,opt,name=signed_last_block,json=signedLastBlock,proto3" json:"signed_last_block,omitempty"`
+}
+
+func (m *VoteInfo) Reset()         { *m = VoteInfo{} }
+func (m *VoteInfo) String() string { return proto.CompactTextString(m) }
+func (*VoteInfo) ProtoMessage()    {}
+func (*VoteInfo) Descriptor() ([]byte, []int) {
+	return fileDescriptor_9610d574777ab505, []int{2}
+}
+func (m *VoteInfo) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *VoteInfo) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_VoteInfo.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *VoteInfo) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_VoteInfo.Merge(m, src)
+}
+func (m *VoteInfo) XXX_Size() int {
+	return m.Size()
+}
+func (m *VoteInfo) XXX_DiscardUnknown() {
+	xxx_messageInfo_VoteInfo.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_VoteInfo proto.InternalMessageInfo
+
+func (m *VoteInfo) GetValidator() Validator {
+	if m != nil {
+		return m.Validator
+	}
+	return Validator{}
+}
+
+func (m *VoteInfo) GetSignedLastBlock() bool {
+	if m != nil {
+		return m.SignedLastBlock
+	}
+	return false
+}
+
+// Validator represents a validator
+type Validator struct {
+	Address []byte `protobuf:"bytes,1,opt,name=address,proto3" json:"address,omitempty"`
+	Power   int64  `protobuf:"varint,3,opt,name=power,proto3" json:"power,omitempty"`
+}
+
+func (m *Validator) Reset()         { *m = Validator{} }
+func (m *Validator) String() string { return proto.CompactTextString(m) }
+func (*Validator) ProtoMessage()    {}
+func (*Validator) Descriptor() ([]byte, []int) {
+	return fileDescriptor_9610d574777ab505, []int{3}
+}
+func (m *Validator) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *Validator) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_Validator.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *Validator) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Validator.Merge(m, src)
+}
+func (m *Validator) XXX_Size() int {
+	return m.Size()
+}
+func (m *Validator) XXX_DiscardUnknown() {
+	xxx_messageInfo_Validator.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_Validator proto.InternalMessageInfo
+
+func (m *Validator) GetAddress() []byte {
+	if m != nil {
+		return m.Address
+	}
+	return nil
+}
+
+func (m *Validator) GetPower() int64 {
+	if m != nil {
+		return m.Power
+	}
+	return 0
+}
+
 func init() {
 	proto.RegisterType((*Metadata)(nil), "weave.Metadata")
+	proto.RegisterType((*CommitInfo)(nil), "weave.CommitInfo")
+	proto.RegisterType((*VoteInfo)(nil), "weave.VoteInfo")
+	proto.RegisterType((*Validator)(nil), "weave.Validator")
 }
 
 func init() { proto.RegisterFile("codec.proto", fileDescriptor_9610d574777ab505) }
 
 var fileDescriptor_9610d574777ab505 = []byte{
-	// 107 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0xe2, 0x4e, 0xce, 0x4f, 0x49,
-	0x4d, 0xd6, 0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17, 0x62, 0x2d, 0x4f, 0x4d, 0x2c, 0x4b, 0x55, 0x52,
-	0xe2, 0xe2, 0xf0, 0x4d, 0x2d, 0x49, 0x4c, 0x49, 0x2c, 0x49, 0x14, 0x12, 0xe3, 0x62, 0x2b, 0x4e,
-	0xce, 0x48, 0xcd, 0x4d, 0x94, 0x60, 0x54, 0x60, 0xd4, 0xe0, 0x0d, 0x82, 0xf2, 0x9c, 0x24, 0x4e,
-	0x3c, 0x92, 0x63, 0xbc, 0xf0, 0x48, 0x8e, 0xf1, 0xc1, 0x23, 0x39, 0xc6, 0x09, 0x8f, 0xe5, 0x18,
-	0x2e, 0x3c, 0x96, 0x63, 0xb8, 0xf1, 0x58, 0x8e, 0x21, 0x89, 0x0d, 0x6c, 0x96, 0x31, 0x20, 0x00,
-	0x00, 0xff, 0xff, 0xe7, 0x52, 0xff, 0xd3, 0x5a, 0x00, 0x00, 0x00,
+	// 287 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x44, 0x90, 0xcf, 0x4b, 0xc3, 0x30,
+	0x14, 0xc7, 0x9b, 0xcd, 0xce, 0xed, 0x4d, 0x99, 0x86, 0x21, 0xc1, 0x43, 0x2c, 0x3d, 0x15, 0x85,
+	0x09, 0xd3, 0x9b, 0xb7, 0x79, 0x12, 0x14, 0x21, 0x07, 0xaf, 0x23, 0x6b, 0xe2, 0x1c, 0xb6, 0x7d,
+	0xa3, 0x89, 0xdd, 0xbf, 0xe1, 0x9f, 0xb5, 0xe3, 0x8e, 0x9e, 0x44, 0xda, 0x7f, 0x44, 0x9a, 0xae,
+	0x7a, 0xcb, 0xe7, 0xfb, 0xe3, 0x3d, 0xf2, 0x60, 0x18, 0xa3, 0xd2, 0xf1, 0x64, 0x9d, 0xa3, 0x45,
+	0xea, 0x6f, 0xb4, 0x2c, 0xf4, 0xf9, 0x78, 0x89, 0x4b, 0x74, 0xca, 0x75, 0xfd, 0x6a, 0xcc, 0x30,
+	0x84, 0xfe, 0x93, 0xb6, 0x52, 0x49, 0x2b, 0xe9, 0x19, 0xf4, 0x4c, 0xfc, 0xa6, 0x53, 0xc9, 0x48,
+	0x40, 0xa2, 0x63, 0xb1, 0xa7, 0xf0, 0x19, 0xe0, 0x1e, 0xd3, 0x74, 0x65, 0x1f, 0xb2, 0x57, 0xa4,
+	0x63, 0xf0, 0x73, 0xfc, 0xc8, 0x94, 0x0b, 0xf9, 0xa2, 0x01, 0x7a, 0x05, 0x7e, 0x81, 0x56, 0x1b,
+	0xd6, 0x09, 0xba, 0xd1, 0x70, 0x3a, 0x9a, 0xb8, 0xa5, 0x93, 0x17, 0xb4, 0xba, 0x6e, 0xcd, 0x0e,
+	0xb6, 0xdf, 0x17, 0x9e, 0x68, 0x32, 0x61, 0x02, 0xfd, 0xd6, 0xa0, 0xb7, 0x30, 0x28, 0x64, 0xb2,
+	0x52, 0xd2, 0x62, 0xee, 0x46, 0x0e, 0xa7, 0x27, 0x6d, 0xb9, 0xd5, 0xf7, 0xed, 0xff, 0x20, 0xbd,
+	0x84, 0x53, 0xb3, 0x5a, 0x66, 0x5a, 0xcd, 0x13, 0x69, 0xec, 0x7c, 0x91, 0x60, 0xfc, 0xce, 0x3a,
+	0x01, 0x89, 0xfa, 0x62, 0xd4, 0x18, 0x8f, 0xd2, 0xd8, 0x59, 0x2d, 0x87, 0x77, 0x30, 0xf8, 0x9b,
+	0x44, 0x19, 0x1c, 0x4a, 0xa5, 0x72, 0x6d, 0x8c, 0x5b, 0x76, 0x24, 0x5a, 0xac, 0xff, 0xb5, 0xc6,
+	0x8d, 0xce, 0x59, 0x37, 0x20, 0x51, 0x57, 0x34, 0x30, 0x63, 0xdb, 0x92, 0x93, 0x5d, 0xc9, 0xc9,
+	0x4f, 0xc9, 0xc9, 0x67, 0xc5, 0xbd, 0x5d, 0xc5, 0xbd, 0xaf, 0x8a, 0x7b, 0x8b, 0x9e, 0x3b, 0xe0,
+	0xcd, 0x6f, 0x00, 0x00, 0x00, 0xff, 0xff, 0xc5, 0xcc, 0x4b, 0xcb, 0x6c, 0x01, 0x00, 0x00,
 }
 
 func (m *Metadata) Marshal() (dAtA []byte, err error) {
@@ -110,6 +285,106 @@ func (m *Metadata) MarshalTo(dAtA []byte) (int, error) {
 	return i, nil
 }
 
+func (m *CommitInfo) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalTo(dAtA)
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *CommitInfo) MarshalTo(dAtA []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	if m.Round != 0 {
+		dAtA[i] = 0x8
+		i++
+		i = encodeVarintCodec(dAtA, i, uint64(m.Round))
+	}
+	if len(m.Votes) > 0 {
+		for _, msg := range m.Votes {
+			dAtA[i] = 0x12
+			i++
+			i = encodeVarintCodec(dAtA, i, uint64(msg.Size()))
+			n, err := msg.MarshalTo(dAtA[i:])
+			if err != nil {
+				return 0, err
+			}
+			i += n
+		}
+	}
+	return i, nil
+}
+
+func (m *VoteInfo) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalTo(dAtA)
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *VoteInfo) MarshalTo(dAtA []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	dAtA[i] = 0xa
+	i++
+	i = encodeVarintCodec(dAtA, i, uint64(m.Validator.Size()))
+	n1, err := m.Validator.MarshalTo(dAtA[i:])
+	if err != nil {
+		return 0, err
+	}
+	i += n1
+	if m.SignedLastBlock {
+		dAtA[i] = 0x10
+		i++
+		if m.SignedLastBlock {
+			dAtA[i] = 1
+		} else {
+			dAtA[i] = 0
+		}
+		i++
+	}
+	return i, nil
+}
+
+func (m *Validator) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalTo(dAtA)
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *Validator) MarshalTo(dAtA []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	if len(m.Address) > 0 {
+		dAtA[i] = 0xa
+		i++
+		i = encodeVarintCodec(dAtA, i, uint64(len(m.Address)))
+		i += copy(dAtA[i:], m.Address)
+	}
+	if m.Power != 0 {
+		dAtA[i] = 0x18
+		i++
+		i = encodeVarintCodec(dAtA, i, uint64(m.Power))
+	}
+	return i, nil
+}
+
 func encodeVarintCodec(dAtA []byte, offset int, v uint64) int {
 	for v >= 1<<7 {
 		dAtA[offset] = uint8(v&0x7f | 0x80)
@@ -127,6 +402,54 @@ func (m *Metadata) Size() (n int) {
 	_ = l
 	if m.Schema != 0 {
 		n += 1 + sovCodec(uint64(m.Schema))
+	}
+	return n
+}
+
+func (m *CommitInfo) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Round != 0 {
+		n += 1 + sovCodec(uint64(m.Round))
+	}
+	if len(m.Votes) > 0 {
+		for _, e := range m.Votes {
+			l = e.Size()
+			n += 1 + l + sovCodec(uint64(l))
+		}
+	}
+	return n
+}
+
+func (m *VoteInfo) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = m.Validator.Size()
+	n += 1 + l + sovCodec(uint64(l))
+	if m.SignedLastBlock {
+		n += 2
+	}
+	return n
+}
+
+func (m *Validator) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Address)
+	if l > 0 {
+		n += 1 + l + sovCodec(uint64(l))
+	}
+	if m.Power != 0 {
+		n += 1 + sovCodec(uint64(m.Power))
 	}
 	return n
 }
@@ -188,6 +511,324 @@ func (m *Metadata) Unmarshal(dAtA []byte) error {
 				b := dAtA[iNdEx]
 				iNdEx++
 				m.Schema |= uint32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipCodec(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if (iNdEx + skippy) < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *CommitInfo) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowCodec
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: CommitInfo: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: CommitInfo: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Round", wireType)
+			}
+			m.Round = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Round |= int32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Votes", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Votes = append(m.Votes, VoteInfo{})
+			if err := m.Votes[len(m.Votes)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipCodec(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if (iNdEx + skippy) < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *VoteInfo) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowCodec
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: VoteInfo: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: VoteInfo: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Validator", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.Validator.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field SignedLastBlock", wireType)
+			}
+			var v int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				v |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			m.SignedLastBlock = bool(v != 0)
+		default:
+			iNdEx = preIndex
+			skippy, err := skipCodec(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if (iNdEx + skippy) < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *Validator) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowCodec
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: Validator: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: Validator: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Address", wireType)
+			}
+			var byteLen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				byteLen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if byteLen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Address = append(m.Address[:0], dAtA[iNdEx:postIndex]...)
+			if m.Address == nil {
+				m.Address = []byte{}
+			}
+			iNdEx = postIndex
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Power", wireType)
+			}
+			m.Power = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Power |= int64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
