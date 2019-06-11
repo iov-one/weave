@@ -2,11 +2,15 @@
 ## HEAD
 
 - Add CommitInfo to context in order to be able to see who signed the current block
+- `cmd/bnscli` a new command `with-fee` added to configure a transaction fee.
+- `x/aswap` allow timeout of a swap to be any value after 1970-01-01.
 
 Breaking changes
 
 - messages produced by `cmd/bnscli` have a new binary format incompatible with
   the previous version.
+- `x/gov` added indexes to proposals and electorate to enable better client-side UX
+- `cash.UpdateConfigurationMsg` requires `Metadata.Schema`
 
 
 ## 0.16.0

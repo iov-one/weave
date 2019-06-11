@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"encoding/base64"
 	"flag"
 	"io"
 	"io/ioutil"
@@ -11,6 +12,10 @@ import (
 	"os/exec"
 	"path/filepath"
 	"testing"
+
+	"github.com/iov-one/weave/coin"
+	"github.com/iov-one/weave/x/cash"
+	"github.com/iov-one/weave/x/msgfee"
 )
 
 var goldFl = flag.Bool("gold", false, "If true, write result to golden files instead of comparing with them.")
@@ -41,15 +46,10 @@ func TestAll(t *testing.T) {
 			// that.
 			cmd.Env = append(os.Environ(), "BNSCLI_TM_ADDR="+tm.URL)
 
-			stderr, err := cmd.StderrPipe()
-			if err != nil {
-				t.Fatalf("cannot get commands stderr: %s", err)
-			}
-
 			out, err := cmd.Output()
 			if err != nil {
-				if b, _ := ioutil.ReadAll(stderr); len(b) != 0 {
-					t.Logf("\nSTDERR\n%s\n\n", string(b))
+				if e, ok := err.(*exec.ExitError); ok {
+					t.Logf("Below is the cript stderr:\n%s\n\n", string(e.Stderr))
 				}
 				t.Fatalf("execution failed: %s", err)
 			}
@@ -112,6 +112,25 @@ func fakeTendermintServer(t testing.TB) *httptest.Server {
 					}
 				}
 			`)
+		case r.Method == "GET" && r.URL.Path == "/abci_query":
+			// Handle all data queries. Values are JSON encoded.
+
+			switch r.URL.Query().Get("data") {
+			case `"_c:cash"`:
+				w.Header().Set("content-type", "application/json")
+				io.WriteString(w, tmGconfResponse(t, &cash.Configuration{
+					MinimalFee: coin.NewCoin(11, 0, "BTC"),
+				}))
+			case `"msgfee:cash/send"`:
+				w.Header().Set("content-type", "application/json")
+				io.WriteString(w, tmGconfResponse(t, &msgfee.MsgFee{
+					MsgPath: "cash/send",
+					Fee:     coin.NewCoin(17, 0, "BTC"),
+				}))
+			default:
+				t.Logf("unexpected ABCI query request: %q", r.URL)
+				http.Error(w, "not implemented", http.StatusNotImplemented)
+			}
 		case r.Method == "POST" && r.URL.Path == "/":
 			// This is an RPC call - response always depends on the
 			// submitted content. For our tests it does not matter
@@ -123,9 +142,27 @@ func fakeTendermintServer(t testing.TB) *httptest.Server {
 					"result": {"response": {"height": "12345"}}
 				}
 			`)
-
 		default:
 			http.Error(w, "not implemented", http.StatusNotImplemented)
 		}
 	}))
+}
+
+// tmGconfResponse returns a tenderming HTTP response for a configuration query.
+// Returned response does not contain "key" or "height" information.
+func tmGconfResponse(t testing.TB, conf interface{ Marshal() ([]byte, error) }) string {
+	raw, err := conf.Marshal()
+	if err != nil {
+		t.Fatalf("cannot marshal configuration: %s", err)
+	}
+	baseConf := base64.StdEncoding.EncodeToString(raw)
+	return `{
+	  "jsonrpc": "2.0",
+	  "id": "",
+	  "result": {
+	    "response": {
+	      "value": "` + baseConf + `"
+	    }
+	  }
+	}`
 }
