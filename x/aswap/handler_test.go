@@ -72,18 +72,20 @@ func TestCreateHandler(t *testing.T) {
 				assert.Equal(t, true, coins.Equals(amt))
 			},
 		},
+		"happy path, timeout can be in the past": {
+			setup: func(ctx weave.Context, db weave.KVStore) weave.Context {
+				setBalance(t, db, alice.Address(), initialCoins)
+				return authenticator.SetConditions(ctx, alice)
+			},
+			mutator: func(msg *aswap.CreateSwapMsg) {
+				msg.Timeout = weave.AsUnixTime(time.Now().Add(-1000 * time.Hour))
+			},
+		},
 		"Invalid Msg": {
 			wantDeliverErr: errors.ErrInput,
 			wantCheckErr:   errors.ErrInput,
 			mutator: func(msg *aswap.CreateSwapMsg) {
 				msg.PreimageHash = nil
-			},
-		},
-		"Invalid Timeout": {
-			wantDeliverErr: errors.ErrInput,
-			wantCheckErr:   errors.ErrInput,
-			mutator: func(msg *aswap.CreateSwapMsg) {
-				msg.Timeout = msg.Timeout.Add(-aswap.MinTimeout)
 			},
 		},
 		"Invalid Auth": {

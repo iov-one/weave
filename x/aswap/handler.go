@@ -102,10 +102,6 @@ func (h CreateSwapHandler) validate(ctx weave.Context,
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, errors.Wrap(err, "load msg")
 	}
-	if weave.IsExpired(ctx, msg.Timeout.Add(-MinTimeout)) {
-		return nil, errors.Wrapf(errors.ErrInput,
-			"timeout should be a minimum of %d hours from now", MinTimeout/time.Hour)
-	}
 
 	// Sender must authorize this
 	if !h.auth.HasAddress(ctx, msg.Src) {
