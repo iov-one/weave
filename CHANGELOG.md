@@ -1,6 +1,10 @@
 # Changelog
 ## HEAD
 
+- Expose some more Genesis params to extension initializers. Utilise those in x/validators
+to store initial validator list and validate updates against this list while updating on
+every successful transaction.
+
 Breaking changes
 
 - messages produced by `cmd/bnscli` have a new binary format incompatible with
