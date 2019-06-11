@@ -72,18 +72,20 @@ func TestCreateHandler(t *testing.T) {
 				assert.Equal(t, true, coins.Equals(amt))
 			},
 		},
+		"happy path, timeout can be in the past": {
+			setup: func(ctx weave.Context, db weave.KVStore) weave.Context {
+				setBalance(t, db, alice.Address(), initialCoins)
+				return authenticator.SetConditions(ctx, alice)
+			},
+			mutator: func(msg *aswap.CreateSwapMsg) {
+				msg.Timeout = weave.AsUnixTime(time.Now().Add(-1000 * time.Hour))
+			},
+		},
 		"Invalid Msg": {
 			wantDeliverErr: errors.ErrInput,
 			wantCheckErr:   errors.ErrInput,
 			mutator: func(msg *aswap.CreateSwapMsg) {
 				msg.PreimageHash = nil
-			},
-		},
-		"Invalid Timeout": {
-			wantDeliverErr: errors.ErrInput,
-			wantCheckErr:   errors.ErrInput,
-			mutator: func(msg *aswap.CreateSwapMsg) {
-				msg.Timeout = msg.Timeout.Add(-aswap.MinTimeout)
 			},
 		},
 		"Invalid Auth": {
@@ -109,7 +111,7 @@ func TestCreateHandler(t *testing.T) {
 			Recipient:    bob.Address(),
 			PreimageHash: preimageHash,
 			Amount:       []*coin.Coin{&swapAmount},
-			Timeout:      weave.AsUnixTime(time.Now()).Add(aswap.MinTimeout + time.Second),
+			Timeout:      weave.AsUnixTime(time.Now()),
 		}
 		t.Run(name, func(t *testing.T) {
 			db := store.MemStore()
@@ -202,7 +204,7 @@ func TestReleaseHandler(t *testing.T) {
 		},
 		"Expired": {
 			setup: func(ctx weave.Context, db weave.KVStore) weave.Context {
-				return weave.WithBlockTime(ctx, time.Now().Add(aswap.MinTimeout*2))
+				return weave.WithBlockTime(ctx, time.Now().Add(10*time.Hour))
 			},
 			wantDeliverErr: errors.ErrState,
 			wantCheckErr:   errors.ErrState,
@@ -216,7 +218,7 @@ func TestReleaseHandler(t *testing.T) {
 			Recipient:    bob.Address(),
 			PreimageHash: preimageHash,
 			Amount:       []*coin.Coin{&swapAmount},
-			Timeout:      weave.AsUnixTime(time.Now()).Add(aswap.MinTimeout + time.Second),
+			Timeout:      weave.AsUnixTime(time.Now().Add(time.Hour)),
 		}
 		t.Run(name, func(t *testing.T) {
 			db := store.MemStore()
@@ -278,7 +280,7 @@ func TestReturnHandler(t *testing.T) {
 	}{
 		"Happy Path, includes no auth check": {
 			setup: func(ctx weave.Context, db weave.KVStore) weave.Context {
-				return weave.WithBlockTime(ctx, time.Now().Add(aswap.MinTimeout*2))
+				return weave.WithBlockTime(ctx, blockNow.Add(2*time.Hour))
 			},
 			wantDeliverErr: nil,
 			wantCheckErr:   nil,
@@ -309,7 +311,7 @@ func TestReturnHandler(t *testing.T) {
 		},
 		"Not Expired": {
 			setup: func(ctx weave.Context, db weave.KVStore) weave.Context {
-				return weave.WithBlockTime(ctx, time.Now())
+				return weave.WithBlockTime(ctx, blockNow)
 			},
 			wantDeliverErr: errors.ErrState,
 			wantCheckErr:   errors.ErrState,
@@ -323,7 +325,7 @@ func TestReturnHandler(t *testing.T) {
 			Recipient:    bob.Address(),
 			PreimageHash: preimageHash,
 			Amount:       []*coin.Coin{&swapAmount},
-			Timeout:      weave.AsUnixTime(time.Now()).Add(aswap.MinTimeout + time.Second),
+			Timeout:      weave.AsUnixTime(blockNow.Add(time.Hour)),
 		}
 		t.Run(name, func(t *testing.T) {
 			db := store.MemStore()

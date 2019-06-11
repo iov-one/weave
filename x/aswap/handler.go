@@ -3,7 +3,6 @@ package aswap
 import (
 	"bytes"
 	"crypto/sha256"
-	"time"
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
@@ -17,8 +16,6 @@ const (
 	createSwapCost  int64 = 300
 	returnSwapCost  int64 = 0
 	releaseSwapCost int64 = 0
-
-	MinTimeout = 24 * time.Hour
 )
 
 // RegisterRoutes will instantiate and register
@@ -101,10 +98,6 @@ func (h CreateSwapHandler) validate(ctx weave.Context,
 	var msg CreateSwapMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, errors.Wrap(err, "load msg")
-	}
-	if weave.IsExpired(ctx, msg.Timeout.Add(-MinTimeout)) {
-		return nil, errors.Wrapf(errors.ErrInput,
-			"timeout should be a minimum of %d hours from now", MinTimeout/time.Hour)
 	}
 
 	// Sender must authorize this
