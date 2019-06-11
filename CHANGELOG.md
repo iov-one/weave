@@ -2,6 +2,7 @@
 ## HEAD
 
 - `cmd/bnscli` a new command `with-fee` added to configure a transaction fee.
+- `x/aswap` allow timeout of a swap to be any value after 1970-01-01.
 
 
 Breaking changes
