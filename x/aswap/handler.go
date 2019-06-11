@@ -3,7 +3,6 @@ package aswap
 import (
 	"bytes"
 	"crypto/sha256"
-	"time"
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
@@ -17,8 +16,6 @@ const (
 	createSwapCost  int64 = 300
 	returnSwapCost  int64 = 0
 	releaseSwapCost int64 = 0
-
-	MinTimeout = 24 * time.Hour
 )
 
 // RegisterRoutes will instantiate and register
