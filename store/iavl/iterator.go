@@ -1,6 +1,8 @@
 package iavl
 
 import (
+	"sync"
+
 	"github.com/iov-one/weave/store"
 )
 
@@ -9,6 +11,7 @@ type lazyIterator struct {
 	hasMore bool
 	read    chan store.Model
 	stop    chan struct{}
+	once    sync.Once
 }
 
 var _ store.Iterator = (*lazyIterator)(nil)
@@ -16,8 +19,7 @@ var _ store.Iterator = (*lazyIterator)(nil)
 func newLazyIterator() *lazyIterator {
 	read := make(chan store.Model)
 	// ensure we never block when we call Close()
-	// if called twice after end of Iterate routine, this will cause panic rather than halt
-	stop := make(chan struct{}, 2)
+	stop := make(chan struct{}, 1)
 	return &lazyIterator{
 		read: read,
 		stop: stop,
@@ -40,12 +42,11 @@ func (i *lazyIterator) Next() error {
 }
 
 func (i *lazyIterator) Close() {
-	i.stop <- struct{}{}
-	// we close channel here, so Next() calls don't block
-	// we cannot guarantee that add() will ever read this channel
-	// (the iterator may have hit the end already, the message to
-	// stop is only important to end early)
-	close(i.read)
+	// make sure we only close once to avoid panics and halts on i.stop
+	i.once.Do(func() {
+		i.stop <- struct{}{}
+		close(i.read)
+	})
 }
 
 func (i *lazyIterator) Valid() bool {

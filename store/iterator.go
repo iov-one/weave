@@ -2,6 +2,7 @@ package store
 
 import (
 	"bytes"
+	"sync"
 
 	"github.com/google/btree"
 )
@@ -15,6 +16,7 @@ type btreeIter struct {
 	hasMore bool
 	read    <-chan btree.Item
 	stop    chan<- struct{}
+	once    sync.Once
 }
 
 // source marks where the current item comes from
@@ -115,7 +117,9 @@ func (b *btreeIter) next() {
 }
 
 func (b *btreeIter) close() {
-	b.stop <- struct{}{}
+	b.once.Do(func() {
+		b.stop <- struct{}{}
+	})
 }
 
 // get requires this is valid, gets what we are pointing at
