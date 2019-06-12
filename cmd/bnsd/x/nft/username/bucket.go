@@ -28,8 +28,9 @@ func NewBucket() Bucket {
 
 func NewUsernameToken(key []byte, owner weave.Address, approvals []nft.ActionApprovals) *orm.SimpleObj {
 	return orm.NewSimpleObj(key, &UsernameToken{
-		Base:    nft.NewNonFungibleToken(key, owner, approvals),
-		Details: &TokenDetails{},
+		Metadata: &weave.Metadata{Schema: 1},
+		Base:     nft.NewNonFungibleToken(key, owner, approvals),
+		Details:  &TokenDetails{},
 	})
 }
 

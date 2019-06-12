@@ -55,19 +55,23 @@ func (u *UsernameToken) Transfer(newOwner weave.Address) error {
 }
 
 func (u *UsernameToken) Validate() error {
+	if err := u.Metadata.Validate(); err != nil {
+		return errors.Wrap(err, "metadata")
+	}
 	if err := u.Base.Validate(); err != nil {
-		return err
+		return errors.Wrap(err, "base")
 	}
 	if err := u.Approvals().List().Validate(); err != nil {
-		return err
+		return errors.Wrap(err, "approvals")
 	}
 	return u.Details.Validate()
 }
 
 func (u *UsernameToken) Copy() orm.CloneableData {
 	return &UsernameToken{
-		Base:    u.Base.Clone(),
-		Details: u.Details.Clone(),
+		Metadata: u.Metadata.Copy(),
+		Base:     u.Base.Clone(),
+		Details:  u.Details.Clone(),
 	}
 }
 
@@ -89,7 +93,7 @@ func (t *TokenDetails) Validate() error {
 	}
 	for _, k := range t.Addresses {
 		if err := k.Validate(); err != nil {
-			return err
+			return errors.Wrap(err, "address")
 		}
 	}
 	return nil

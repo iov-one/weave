@@ -3,6 +3,7 @@ package username
 import (
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/x"
 	"github.com/iov-one/weave/x/nft"
@@ -18,6 +19,9 @@ const (
 // RegisterRoutes will instantiate and register all handlers in this package
 func RegisterRoutes(r weave.Registry, auth x.Authenticator, issuer weave.Address) {
 	bucket := NewBucket()
+
+	r = migration.SchemaMigratingRegistry("username", r)
+
 	r.Handle(pathIssueTokenMsg, NewIssueHandler(auth, issuer, bucket))
 	r.Handle(pathAddAddressMsg, NewAddChainAddressHandler(auth, issuer, bucket))
 	r.Handle(pathRemoveAddressMsg, NewRemoveChainAddressHandler(auth, issuer, bucket))
