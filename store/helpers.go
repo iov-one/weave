@@ -54,6 +54,17 @@ func (s *SliceIterator) Close() {
 	s.data = nil
 }
 
+// TakeFirst is a helper when you only want the first value.
+// It closes the Iterator after reading, and is not meant for loops,
+// but rather to implement First/Last.
+func TakeFirst(iter Iterator) (key, value []byte, err error) {
+	if !iter.Valid() {
+		return nil, nil, errors.Wrap(errors.ErrNotFound, "iterator invalid")
+	}
+	defer iter.Close()
+	return iter.Key(), iter.Value(), nil
+}
+
 /////////////////////////////////////////////////////
 // Empty KVStore
 
