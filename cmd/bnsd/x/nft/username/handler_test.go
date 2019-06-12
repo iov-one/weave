@@ -2,7 +2,6 @@ package username_test
 
 import (
 	"context"
-	"fmt"
 	"testing"
 
 	"github.com/iov-one/weave"
@@ -25,49 +24,50 @@ func TestHandleIssueTokenMsg(t *testing.T) {
 	db := store.MemStore()
 	bucket := username.NewBucket()
 
-	o, _ := bucket.Create(db, bob.Address(), []byte("existing@example.com"), nil, []username.ChainAddress{{BlockchainID: []byte("myNet"), Address: "bobsChainAddress"}})
+	o, _ := bucket.Create(db, bob.Address(), []byte("existing@example.com"), nil, []username.ChainAddress{
+		{BlockchainID: []byte("myNet"), Address: "bobsChainAddress"},
+	})
 	bucket.Save(db, o)
 
 	handler := username.NewIssueHandler(
 		&weavetest.Auth{Signer: alice}, nil, bucket)
-	// when
 	myNewChainAddresses := []username.ChainAddress{{BlockchainID: []byte("myNet"), Address: "anyChainAddress"}}
-	specs := []struct {
+	specs := map[string]struct {
 		owner, id       []byte
 		details         username.TokenDetails
 		approvals       []nft.ActionApprovals
 		expCheckError   bool
 		expDeliverError bool
 	}{
-		{ // happy path
+		"happy path": {
 			owner:   alice.Address(),
 			id:      []byte("any1@example.com"),
 			details: username.TokenDetails{Addresses: myNewChainAddresses},
 		},
-		{ // without details
+		"without details": {
 			owner: alice.Address(),
 			id:    []byte("any2@example.com"),
 		},
-		{ // not signed by owner
+		"not signed by owner": {
 			owner:           anybody.Address(),
 			id:              []byte("any@example.com"),
 			details:         username.TokenDetails{Addresses: myNewChainAddresses},
 			expCheckError:   true,
 			expDeliverError: true,
 		},
-		{ // id missing
+		"id missing": {
 			owner:           alice.Address(),
 			details:         username.TokenDetails{Addresses: myNewChainAddresses},
 			expCheckError:   true,
 			expDeliverError: true,
 		},
-		{ // owner missing
+		"owner missing": {
 			id:              []byte("any@example.com"),
 			details:         username.TokenDetails{Addresses: myNewChainAddresses},
 			expCheckError:   true,
 			expDeliverError: true,
 		},
-		{ // duplicate chainID
+		"duplicate chainID": {
 			owner: alice.Address(),
 			id:    []byte("any@example.com"),
 			details: username.TokenDetails{
@@ -77,21 +77,28 @@ func TestHandleIssueTokenMsg(t *testing.T) {
 			expCheckError:   true,
 			expDeliverError: true,
 		},
-		{ // name already used
+		"name already used": {
 			owner:           alice.Address(),
 			id:              []byte("existing@example.com"),
 			details:         username.TokenDetails{Addresses: myNewChainAddresses},
 			expCheckError:   false,
 			expDeliverError: true,
 		},
-		{ // address already used
-			owner:           alice.Address(),
-			id:              []byte("any@example.com"),
-			details:         username.TokenDetails{Addresses: []username.ChainAddress{{BlockchainID: []byte("myNet"), Address: "bobsChainAddress"}}},
+		"address can have any number of names assigned": {
+			owner: alice.Address(),
+			id:    []byte("any@example.com"),
+			details: username.TokenDetails{
+				Addresses: []username.ChainAddress{
+					{
+						BlockchainID: []byte("myNet"),
+						Address:      "bobsChainAddress",
+					},
+				},
+			},
 			expCheckError:   false,
-			expDeliverError: true,
+			expDeliverError: false,
 		},
-		{ // valid approvals
+		"valid approvals": {
 			owner:   alice.Address(),
 			id:      []byte("any5@example.com"),
 			details: username.TokenDetails{Addresses: myNewChainAddresses},
@@ -100,7 +107,7 @@ func TestHandleIssueTokenMsg(t *testing.T) {
 				Approvals: []nft.Approval{{Options: nft.ApprovalOptions{Count: nft.UnlimitedCount}, Address: bob.Address()}},
 			}},
 		},
-		{ // invalid approvals
+		"invalid approvals": {
 			owner:           alice.Address(),
 			id:              []byte("any6@example.com"),
 			details:         username.TokenDetails{Addresses: myNewChainAddresses},
@@ -113,13 +120,14 @@ func TestHandleIssueTokenMsg(t *testing.T) {
 		},
 	}
 
-	for i, spec := range specs {
-		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
+	for testName, spec := range specs {
+		t.Run(testName, func(t *testing.T) {
 			cache := db.CacheWrap()
 			defer cache.Discard()
 
 			tx := &weavetest.Tx{
 				Msg: &username.IssueTokenMsg{
+					Metadata:  &weave.Metadata{Schema: 1},
 					Owner:     spec.owner,
 					ID:        spec.id,
 					Details:   spec.details,
@@ -127,19 +135,14 @@ func TestHandleIssueTokenMsg(t *testing.T) {
 				},
 			}
 
-			// when
 			_, err := handler.Check(nil, cache, tx)
 			if spec.expCheckError {
 				require.Error(t, err)
 				return
 			}
-			// then
 			require.NoError(t, err)
 
-			// and when delivered
 			res, err := handler.Deliver(nil, cache, tx)
-
-			// then
 			if spec.expDeliverError {
 				assert.Error(t, err)
 				return
@@ -148,7 +151,6 @@ func TestHandleIssueTokenMsg(t *testing.T) {
 			require.NotNil(t, res)
 			assert.Equal(t, uint32(0), res.ToABCI().Code)
 
-			// and persisted
 			o, err := bucket.Get(cache, spec.id)
 			require.NoError(t, err)
 			require.NotNil(t, o)
@@ -168,16 +170,21 @@ func TestIssueUsernameTx(t *testing.T) {
 	handler := username.NewIssueHandler(
 		&weavetest.Auth{Signer: alice}, nil, username.NewBucket())
 
-	// when
 	tx := &weavetest.Tx{
 		Msg: &username.IssueTokenMsg{
-			Owner:   alice.Address(),
-			ID:      []byte("any@example.com"),
-			Details: username.TokenDetails{Addresses: []username.ChainAddress{{BlockchainID: []byte("myNet"), Address: "myChainAddress"}}},
+			Owner: alice.Address(),
+			ID:    []byte("any@example.com"),
+			Details: username.TokenDetails{
+				Addresses: []username.ChainAddress{
+					{
+						BlockchainID: []byte("myNet"),
+						Address:      "myChainAddress",
+					},
+				},
+			},
 		},
 	}
 	res, err := handler.Deliver(nil, db, tx)
-	// then
 	require.NoError(t, err)
 	assert.Equal(t, []common.KVPair{{Key: []byte("msgType"), Value: []byte("registerUsername")}}, res.Tags)
 
@@ -199,32 +206,38 @@ func TestQueryUsernameToken(t *testing.T) {
 	qr := weave.NewQueryRouter()
 	username.RegisterQuery(qr)
 
-	specs := []struct {
+	specs := map[string]struct {
 		path        string
 		data        []byte
 		expUsername string
 	}{
-		{ // by username alice
-			"/nft/usernames", []byte("alice@example.com"), "alice@example.com"},
-		{ // by chain address
-			"/nft/usernames/chainaddr", []byte("aliceChainAddress;myChainID"), "alice@example.com"},
-		{ // by owner
-			"/nft/usernames/owner", alice.Address(), "alice@example.com"},
-		{ // by username bob
-			"/nft/usernames", []byte("bob@example.com"), "bob@example.com"},
-		{ // by chain address
-			"/nft/usernames/chainaddr", []byte("bobChainAddress;myChainID"), "bob@example.com"},
-		{ // by owner
-			"/nft/usernames/owner", bob.Address(), "bob@example.com"},
+		"by username alice": {
+			path:        "/nft/usernames",
+			data:        []byte("alice@example.com"),
+			expUsername: "alice@example.com",
+		},
+		"by owner alice": {
+			path:        "/nft/usernames/owner",
+			data:        alice.Address(),
+			expUsername: "alice@example.com",
+		},
+		"by username bob": {
+			path:        "/nft/usernames",
+			data:        []byte("bob@example.com"),
+			expUsername: "bob@example.com",
+		},
+		"by owner bob": {
+			path:        "/nft/usernames/owner",
+			data:        bob.Address(),
+			expUsername: "bob@example.com",
+		},
 	}
-	for i, spec := range specs {
-		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
-			// when
+	for testName, spec := range specs {
+		t.Run(testName, func(t *testing.T) {
 			h := qr.Handler(spec.path)
 			require.NotNil(t, h)
 			mods, err := h.Query(db, "", spec.data)
 
-			// then
 			require.NoError(t, err)
 			require.Len(t, mods, 1)
 
@@ -263,7 +276,7 @@ func TestAddChainAddress(t *testing.T) {
 	handler := username.NewAddChainAddressHandler(
 		&weavetest.Auth{Signer: alice}, nil, bucket)
 
-	specs := []struct {
+	specs := map[string]struct {
 		id              []byte
 		newAddress      string
 		newChainID      []byte
@@ -274,28 +287,28 @@ func TestAddChainAddress(t *testing.T) {
 		expApprovals    nft.Approvals
 		expChainAddress []username.ChainAddress
 	}{
-		{ // happy path
+		"happy path": {
 			id:              []byte("alice@example.com"),
 			newChainID:      []byte("myOtherNet"),
 			newAddress:      "myOtherAddressID",
 			expChainAddress: append(myAddress, username.ChainAddress{BlockchainID: []byte("myOtherNet"), Address: "myOtherAddressID"}),
 			ctx:             context.Background(),
 		},
-		{ // empty address
+		"empty address": {
 			id:              []byte("alice@example.com"),
 			newChainID:      []byte("myOtherNet"),
 			expCheckError:   true,
 			expDeliverError: true,
 			ctx:             context.Background(),
 		},
-		{ // empty chainID
+		"empty chainID": {
 			id:              []byte("alice@example.com"),
 			newAddress:      "myOtherAddressID",
 			expCheckError:   true,
 			expDeliverError: true,
 			ctx:             context.Background(),
 		},
-		{ // existing chain
+		"existing chain": {
 			id:              []byte("alice@example.com"),
 			newChainID:      []byte("myNet"),
 			newAddress:      "myOtherAddressID",
@@ -303,15 +316,19 @@ func TestAddChainAddress(t *testing.T) {
 			expDeliverError: true,
 			ctx:             context.Background(),
 		},
-		{ // non unique chain address
+		"an address can have more than one alias": {
 			id:              []byte("alice@example.com"),
 			newChainID:      []byte("myOtherNet"),
 			newAddress:      "myOtherChainAddress",
 			expCheckError:   false,
-			expDeliverError: true,
-			ctx:             context.Background(),
+			expDeliverError: false,
+			expChainAddress: []username.ChainAddress{
+				{BlockchainID: []byte("myNet"), Address: "myChainAddress"},
+				{BlockchainID: []byte("myOtherNet"), Address: "myOtherChainAddress"},
+			},
+			ctx: context.Background(),
 		},
-		{ // unknown id
+		"unknown id": {
 			id:              []byte("unknown@example.com"),
 			newChainID:      []byte("myUnknownNet"),
 			newAddress:      "myOtherAddressID",
@@ -319,7 +336,7 @@ func TestAddChainAddress(t *testing.T) {
 			expDeliverError: true,
 			ctx:             context.Background(),
 		},
-		{ // happy path with count decremented
+		"happy path with count decremented": {
 			id:         []byte("withcount@example.com"),
 			newChainID: []byte("myOtherNet"),
 			newAddress: "myOtherAddressID",
@@ -329,7 +346,7 @@ func TestAddChainAddress(t *testing.T) {
 			expChainAddress: append(myNextAddress, username.ChainAddress{BlockchainID: []byte("myOtherNet"), Address: "myOtherAddressID"}),
 			ctx:             context.Background(),
 		},
-		{ // approval timeout
+		"approval timeout": {
 			id:              []byte("withcount@example.com"),
 			newChainID:      []byte("myOtherNet"),
 			newAddress:      "myOtherAddressID",
@@ -338,8 +355,8 @@ func TestAddChainAddress(t *testing.T) {
 			expDeliverError: true,
 		},
 	}
-	for i, spec := range specs {
-		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
+	for testName, spec := range specs {
+		t.Run(testName, func(t *testing.T) {
 			cache := db.CacheWrap()
 			defer cache.Discard()
 
@@ -351,19 +368,15 @@ func TestAddChainAddress(t *testing.T) {
 				},
 			}
 
-			// when
 			_, err := handler.Check(spec.ctx, cache, tx)
 			if spec.expCheckError {
 				require.Error(t, err)
 				return
 			}
-			// then
 			require.NoError(t, err)
+			cache.Discard()
 
-			// and when delivered
 			res, err := handler.Deliver(spec.ctx, cache, tx)
-
-			// then
 			if spec.expDeliverError {
 				assert.Error(t, err)
 				return
@@ -372,12 +385,11 @@ func TestAddChainAddress(t *testing.T) {
 			require.NotNil(t, res)
 			assert.Equal(t, uint32(0), res.ToABCI().Code)
 
-			// and persisted
+			// Ensure entity is persisted.
 			o, err = bucket.Get(cache, spec.id)
 			require.NoError(t, err)
 			require.NotNil(t, o)
 			u, _ := username.AsUsername(o)
-			// todo: test sorting
 			assert.EqualValues(t, spec.expChainAddress, u.GetChainAddresses())
 
 			if len(spec.expApprovals) > 0 {
@@ -402,31 +414,31 @@ func TestRemoveChainAddress(t *testing.T) {
 	handler := username.NewRemoveChainAddressHandler(
 		&weavetest.Auth{Signer: alice}, nil, bucket)
 
-	specs := []struct {
+	cases := map[string]struct {
 		id              []byte
 		newAddress      string
 		newChainID      []byte
 		expCheckError   bool
 		expDeliverError bool
 	}{
-		{ // happy path
+		"happy path": {
 			id:         []byte("alice@example.com"),
 			newChainID: []byte("myChainID"),
 			newAddress: "myChainAddress",
 		},
-		{ // empty address submitted
+		"empty address submitted": {
 			id:              []byte("alice@example.com"),
 			newChainID:      []byte("myChainID"),
 			expCheckError:   true,
 			expDeliverError: true,
 		},
-		{ // empty chainID
+		"empty chainID": {
 			id:              []byte("alice@example.com"),
 			newAddress:      "myChainAddress",
 			expCheckError:   true,
 			expDeliverError: true,
 		},
-		{ // unknown name
+		"unknown name": {
 			id:              []byte("unknown@example.com"),
 			newChainID:      []byte("myNewChainID"),
 			newAddress:      "myChainAddress",
@@ -434,8 +446,8 @@ func TestRemoveChainAddress(t *testing.T) {
 			expDeliverError: true,
 		},
 	}
-	for i, spec := range specs {
-		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
+	for testName, spec := range cases {
+		t.Run(testName, func(t *testing.T) {
 			cache := db.CacheWrap()
 			defer cache.Discard()
 
@@ -447,19 +459,14 @@ func TestRemoveChainAddress(t *testing.T) {
 				},
 			}
 
-			// when
 			_, err := handler.Check(ctx, cache, tx)
 			if spec.expCheckError {
 				require.Error(t, err)
 				return
 			}
-			// then
 			require.NoError(t, err)
 
-			// and when delivered
 			res, err := handler.Deliver(ctx, db, tx)
-
-			// then
 			if spec.expDeliverError {
 				assert.Error(t, err)
 				return
@@ -468,7 +475,7 @@ func TestRemoveChainAddress(t *testing.T) {
 			require.NotNil(t, res)
 			assert.Equal(t, uint32(0), res.ToABCI().Code)
 
-			// and persisted
+			// Ensure entity is persisted.
 			o, err = bucket.Get(db, spec.id)
 			require.NoError(t, err)
 			require.NotNil(t, o)

@@ -1,8 +1,6 @@
 package username
 
 import (
-	"bytes"
-
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/orm"
@@ -10,8 +8,7 @@ import (
 )
 
 const (
-	BucketName            = "usrnft"
-	ChainAddressIndexName = "chainaddr"
+	bucketName            = "usrnft"
 	chainAddressSeparator = ";"
 )
 
@@ -20,9 +17,9 @@ type Bucket struct {
 }
 
 func NewBucket() Bucket {
+	b := NewUsernameToken(nil, nil, nil)
 	return Bucket{
-		Bucket: nft.WithOwnerIndex(orm.NewBucket(BucketName, NewUsernameToken(nil, nil, nil))).
-			WithMultiKeyIndex(ChainAddressIndexName, chainAddressIndexer, true),
+		Bucket: nft.WithOwnerIndex(orm.NewBucket(bucketName, b)),
 	}
 }
 
@@ -49,19 +46,4 @@ func (b Bucket) Create(db weave.KVStore, owner weave.Address, id []byte, approva
 	}
 	// height is not relevant when creating the token
 	return obj, humanAddress.SetChainAddresses(owner, addresses)
-}
-
-func chainAddressIndexer(obj orm.Object) ([][]byte, error) {
-	if obj == nil {
-		return nil, errors.Wrap(orm.ErrInvalidIndex, "nil")
-	}
-	u, err := AsUsername(obj)
-	if err != nil {
-		return nil, errors.Wrap(orm.ErrInvalidIndex, "unsupported type")
-	}
-	idx := make([][]byte, 0, len(u.GetChainAddresses()))
-	for _, addr := range u.GetChainAddresses() {
-		idx = append(idx, bytes.Join([][]byte{[]byte(addr.Address), addr.BlockchainID}, []byte(chainAddressSeparator)))
-	}
-	return idx, nil
 }

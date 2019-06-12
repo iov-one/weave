@@ -4,13 +4,11 @@ import (
 	"testing"
 
 	"github.com/iov-one/weave"
-	weave_app "github.com/iov-one/weave/app"
 	"github.com/iov-one/weave/cmd/bnsd/app"
 	"github.com/iov-one/weave/cmd/bnsd/app/testdata/fixtures"
 	"github.com/iov-one/weave/cmd/bnsd/x/nft/username"
 	"github.com/iov-one/weave/coin"
 	"github.com/stretchr/testify/require"
-	abci "github.com/tendermint/tendermint/abci/types"
 )
 
 func TestIssueNfts(t *testing.T) {
@@ -38,12 +36,4 @@ func TestIssueNfts(t *testing.T) {
 	tx.Fee(issuerAddr, coin.NewCoin(5, 0, "FRNK"))
 	res := signAndCommit(t, myApp, tx, []Signer{{issuerPrivKey, 0}}, appFixture.ChainID, 3)
 	require.EqualValues(t, 0, res.Code)
-
-	query := abci.RequestQuery{Path: "/nft/usernames/chainaddr", Data: []byte("myChainAddress;myblockchain")}
-	qRes := myApp.Query(query)
-	require.EqualValues(t, 0, qRes.Code, qRes.Log)
-	var actual username.UsernameToken
-	err := weave_app.UnmarshalOneResult(qRes.Value, &actual)
-	require.NoError(t, err)
-	require.Equal(t, []byte("anybody@example.com"), actual.GetBase().GetID())
 }
