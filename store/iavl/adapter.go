@@ -1,8 +1,6 @@
 package iavl
 
 import (
-	"fmt"
-
 	"github.com/tendermint/iavl"
 	dbm "github.com/tendermint/tendermint/libs/db"
 
@@ -175,7 +173,6 @@ func (a adapter) Iterator(start, end []byte) (store.Iterator, error) {
 	iter := newLazyIterator()
 	go func() {
 		a.tree.IterateRange(start, end, true, iter.add)
-		fmt.Println("end range")
 		iter.Close()
 	}()
 	iter.Next()

@@ -3,7 +3,6 @@ package store
 import (
 	"bytes"
 	"crypto/rand"
-	"fmt"
 	"sort"
 	"testing"
 
@@ -334,20 +333,16 @@ type iterCase struct {
 }
 
 func (i iterCase) verify(t testing.TB, base CacheableKVStore) {
-	fmt.Println("pre")
 	for _, op := range i.pre {
 		op.Apply(base)
 	}
 
-	fmt.Println("child")
 	child := base.CacheWrap()
 	for _, op := range i.child {
 		op.Apply(base)
 	}
 
-	fmt.Println("queries")
 	for _, q := range i.queries {
-		fmt.Println("  A")
 		var iter Iterator
 		var err error
 		if q.reverse {
@@ -355,20 +350,15 @@ func (i iterCase) verify(t testing.TB, base CacheableKVStore) {
 		} else {
 			iter, err = child.Iterator(q.start, q.end)
 		}
-		fmt.Println("  B")
 		assert.Nil(t, err)
 		// Make sure proper iteration works.
 		for i := 0; i < len(q.expected); i++ {
-			fmt.Printf("  C %d\n", i)
 			assert.Equal(t, iter.Valid(), true)
 			assert.Equal(t, q.expected[i].Key, iter.Key())
 			assert.Equal(t, q.expected[i].Value, iter.Value())
 			iter.Next()
-			fmt.Printf("  C X\n")
 		}
-		fmt.Println("  D")
 		assert.Equal(t, iter.Valid(), false)
-		iter.Close()
 	}
 }
 
