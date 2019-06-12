@@ -5,6 +5,10 @@
 - `cmd/bnscli` a new command `set-validators` added to configure the
   validators.
 - `x/aswap` allow timeout of a swap to be any value after 1970-01-01.
+- `Iterator`s in store (btree cache and iavl adaptor) are now lazy. We also
+  provide a `ReadOneFromIterator` function to easily get the first or last item
+  in a range. This will only load desired items from disk and no longer greedily
+  load the entire range before returning the first item.
 
 
 Breaking changes
