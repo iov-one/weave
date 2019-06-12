@@ -87,20 +87,23 @@ func (h updateHandler) validate(ctx weave.Context, store weave.KVStore, tx weave
 	}
 
 	resUpdates = updates
+	validatorSlice := resUpdates.ValidatorUpdates
 
 DiffLoop:
 	for _, v := range diff {
-		for key, validator := range updates.ValidatorUpdates {
+		for key, validator := range validatorSlice {
 			if bytes.Equal(v.PubKey.Data, validator.Pubkey.Data) {
 				if v.Power == validator.Power {
 					return nil, resUpdates, errors.Wrap(errors.ErrInput, "same validator power")
 				}
+
 				resUpdates.ValidatorUpdates[key] = ValidatorUpdateFromABCI(v)
 				continue DiffLoop
 			}
-			if v.Power == 0 {
-				return nil, resUpdates, errors.Wrap(errors.ErrInput, "setting unknown validator power to 0")
-			}
+
+		}
+		if v.Power == 0 {
+			return nil, resUpdates, errors.Wrap(errors.ErrInput, "setting unknown validator power to 0")
 		}
 		resUpdates.ValidatorUpdates = append(resUpdates.ValidatorUpdates, ValidatorUpdateFromABCI(v))
 	}

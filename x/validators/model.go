@@ -26,7 +26,19 @@ func (m ValidatorUpdates) Validate() error {
 	return err
 }
 
+// Store stores ValidatorUpdates to the KVStore while cleaning up those with 0
+// power.
 func (m ValidatorUpdates) Store(store weave.KVStore) error {
+	cleanValidatorSlice := make([]ValidatorUpdate, 0, len(m.ValidatorUpdates))
+	// Cleanup validators with power 0 as these get discarded by tendermint.
+	for _, v := range m.ValidatorUpdates {
+		if v.Power == 0 {
+			continue
+		}
+		cleanValidatorSlice = append(cleanValidatorSlice, v)
+	}
+	m.ValidatorUpdates = cleanValidatorSlice
+
 	marshalledUpdates, err := m.Marshal()
 	if err != nil {
 		return errors.Wrap(err, "validator updates marshal")
