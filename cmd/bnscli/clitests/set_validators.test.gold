@@ -1,0 +1,50 @@
+{
+	"Sum": {
+		"SetValidatorsMsg": {
+			"metadata": {
+				"schema": 1
+			},
+			"validator_updates": [
+				{
+					"pubkey": {
+						"type": "ed25519",
+						"data": "j4JRVstX"
+					},
+					"power": 1
+				}
+			]
+		}
+	}
+}
+{
+	"Sum": {
+		"SetValidatorsMsg": {
+			"metadata": {
+				"schema": 1
+			},
+			"validator_updates": [
+				{
+					"pubkey": {
+						"type": "ed25519",
+						"data": "j4JRVstX"
+					},
+					"power": 1
+				},
+				{
+					"pubkey": {
+						"type": "ed25519",
+						"data": "j4JRVstX"
+					},
+					"power": 2
+				},
+				{
+					"pubkey": {
+						"type": "ed25519",
+						"data": "j4JRVstX"
+					},
+					"power": 3
+				}
+			]
+		}
+	}
+}
