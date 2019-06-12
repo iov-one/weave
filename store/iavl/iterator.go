@@ -19,7 +19,7 @@ var _ store.Iterator = (*lazyIterator)(nil)
 func newLazyIterator() *lazyIterator {
 	read := make(chan store.Model)
 	// ensure we never block when we call Close()
-	stop := make(chan struct{}, 1)
+	stop := make(chan struct{})
 	return &lazyIterator{
 		read: read,
 		stop: stop,
@@ -30,8 +30,10 @@ func (i *lazyIterator) add(key []byte, value []byte) bool {
 	m := store.Model{Key: key, Value: value}
 	select {
 	case i.read <- m:
+		// false means "don't stop", so add will be called again (if there are more values)
 		return false
 	case <-i.stop:
+		// true means "stop", so add will not be called anymore
 		return true
 	}
 }
@@ -44,7 +46,7 @@ func (i *lazyIterator) Next() error {
 func (i *lazyIterator) Close() {
 	// make sure we only close once to avoid panics and halts on i.stop
 	i.once.Do(func() {
-		i.stop <- struct{}{}
+		close(i.stop)
 		close(i.read)
 	})
 }

@@ -54,11 +54,12 @@ func (s *SliceIterator) Close() {
 	s.data = nil
 }
 
-// ReadOneFromIterator will get you First/Last from an Iterator
-// in a straight-forward manner, but not the most efficient
-func ReadOneFromIterator(iter Iterator) (key, value []byte, err error) {
+// TakeFirst is a helper when you only want the first value.
+// It closes the Iterator after reading, and is not meant for loops,
+// but rather to implement First/Last.
+func TakeFirst(iter Iterator) (key, value []byte, err error) {
 	if !iter.Valid() {
-		return nil, nil, nil
+		return nil, nil, errors.Wrap(errors.ErrNotFound, "iterator invalid")
 	}
 	defer iter.Close()
 	return iter.Key(), iter.Value(), nil
@@ -92,16 +93,6 @@ func (e EmptyKVStore) Iterator(start, end []byte) (Iterator, error) {
 // ReverseIterator is always empty
 func (e EmptyKVStore) ReverseIterator(start, end []byte) (Iterator, error) {
 	return NewSliceIterator(nil), nil
-}
-
-// First always returns nothing
-func (e EmptyKVStore) First(start, end []byte) ([]byte, []byte, error) {
-	return nil, nil, nil
-}
-
-// Last always returns nothing
-func (e EmptyKVStore) Last(start, end []byte) ([]byte, []byte, error) {
-	return nil, nil, nil
 }
 
 // NewBatch returns a batch that can write to this tree later
