@@ -14,6 +14,9 @@ func TestCmdSetValidators(t *testing.T) {
 		Initial []*validators.ValidatorUpdate
 		Args    []string
 		WantSet []*validators.ValidatorUpdate
+		// Because we use fmt.Errorf we cannot check the instance. Only
+		// the occurrence.
+		WantErr bool
 	}{
 		"set from scratch": {
 			Args: []string{
@@ -61,6 +64,16 @@ func TestCmdSetValidators(t *testing.T) {
 				},
 			},
 		},
+		"missing pubkey": {
+			Args:    []string{},
+			WantErr: true,
+		},
+		"invalid pubkey": {
+			Args: []string{
+				"-pubkey", "NOT-A-BASE64-ENCODED-VALUE",
+			},
+			WantErr: true,
+		},
 	}
 
 	for testName, tc := range cases {
@@ -81,8 +94,12 @@ func TestCmdSetValidators(t *testing.T) {
 			}
 
 			var output bytes.Buffer
-			if err := cmdSetValidators(&input, &output, tc.Args); err != nil {
-				t.Fatalf("cmd failed: %s", err)
+			err := cmdSetValidators(&input, &output, tc.Args)
+
+			if tc.WantErr && err == nil {
+				t.Fatal("expected an error, but the call was successful")
+			} else if !tc.WantErr && err != nil {
+				t.Fatalf("unexpected error: cmd failed: %s", err)
 			}
 		})
 	}
