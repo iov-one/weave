@@ -1,7 +1,6 @@
 package validators
 
 import (
-	"github.com/tendermint/tendermint/abci/types"
 	"reflect"
 	"testing"
 
@@ -9,6 +8,7 @@ import (
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/store"
+	"github.com/tendermint/tendermint/abci/types"
 )
 
 func TestInitState(t *testing.T) {
