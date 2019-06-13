@@ -4,11 +4,20 @@
 - Expose some more Genesis params to extension initializers. Utilise those in `x/validators`
 to store initial validator list and validate updates against this list while updating on
 every successful transaction.
+- Add CommitInfo to context in order to be able to see who signed the current block
 - `cmd/bnscli` a new command `with-fee` added to configure a transaction fee.
+- `cmd/bnscli` a new command `set-validators` added to configure the
+  validators.
 - `x/aswap` allow timeout of a swap to be any value after 1970-01-01.
+- `Iterator`s in store (btree cache and iavl adaptor) are now lazy. We also
+  provide a `ReadOneFromIterator` function to easily get the first or last item
+  in a range. This will only load desired items from disk and no longer greedily
+  load the entire range before returning the first item.
 
 Breaking changes
 
+- cmd/bnsd: `nft/username` allows now for any number of aliases/names for a
+  single address. Lookup of the username by an address is no longer available.
 - messages produced by `cmd/bnscli` have a new binary format incompatible with
   the previous version.
 - `x/gov` added indexes to proposals and electorate to enable better client-side UX

@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/cmd/bnsd/app"
 	"github.com/iov-one/weave/cmd/bnsd/client"
 	"github.com/iov-one/weave/cmd/bnsd/scenarios/bnsdtest"
@@ -30,8 +31,9 @@ func TestIssueNfts(t *testing.T) {
 		{
 			Sum: &app.Tx_IssueUsernameNftMsg{
 				IssueUsernameNftMsg: &username.IssueTokenMsg{
-					ID:    myUserName,
-					Owner: env.Alice.PublicKey().Address(),
+					Metadata: &weave.Metadata{Schema: 1},
+					ID:       myUserName,
+					Owner:    env.Alice.PublicKey().Address(),
 					Details: username.TokenDetails{Addresses: []username.ChainAddress{{
 						BlockchainID: myBlockchainID,
 						Address:      env.Alice.PublicKey().Address().String(),

@@ -100,6 +100,7 @@ func appStateGenesis(keyAddress weave.Address) []byte {
 			{"ver": 1, "pkg": "nft"},
 			{"ver": 1, "pkg": "paychan"},
 			{"ver": 1, "pkg": "sigs"},
+			{"ver": 1, "pkg": "username"},
 			{"ver": 1, "pkg": "utils"},
 			{"ver": 1, "pkg": "validators"},
 		},

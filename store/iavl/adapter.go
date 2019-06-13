@@ -170,26 +170,24 @@ func (a adapter) NewBatch() store.Batch {
 // Start must be less than end, or the Iterator is invalid.
 // CONTRACT: No writes may happen within a domain while an iterator exists over it.
 func (a adapter) Iterator(start, end []byte) (store.Iterator, error) {
-	var res []store.Model
-	add := func(key []byte, value []byte) bool {
-		m := store.Model{Key: key, Value: value}
-		res = append(res, m)
-		return false
-	}
-	a.tree.IterateRange(start, end, true, add)
-	return store.NewSliceIterator(res), nil
+	iter := newLazyIterator()
+	go func() {
+		a.tree.IterateRange(start, end, true, iter.add)
+		iter.Close()
+	}()
+	iter.Next()
+	return iter, nil
 }
 
 // ReverseIterator over a domain of keys in descending order. End is exclusive.
 // Start must be greater than end, or the Iterator is invalid.
 // CONTRACT: No writes may happen within a domain while an iterator exists over it.
 func (a adapter) ReverseIterator(start, end []byte) (store.Iterator, error) {
-	var res []store.Model
-	add := func(key []byte, value []byte) bool {
-		m := store.Model{Key: key, Value: value}
-		res = append(res, m)
-		return false
-	}
-	a.tree.IterateRange(start, end, false, add)
-	return store.NewSliceIterator(res), nil
+	iter := newLazyIterator()
+	go func() {
+		a.tree.IterateRange(start, end, false, iter.add)
+		iter.Close()
+	}()
+	iter.Next()
+	return iter, nil
 }
