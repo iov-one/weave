@@ -2,6 +2,8 @@ package main
 
 import (
 	"bytes"
+	"encoding/base64"
+	"encoding/hex"
 	"flag"
 	"testing"
 	"time"
@@ -9,6 +11,66 @@ import (
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/coin"
 )
+
+func TestSeqFlag(t *testing.T) {
+	cases := map[string]struct {
+		setup   func(fl *flag.FlagSet) *flagseq
+		args    []string
+		wantDie int
+		wantVal []byte
+	}{
+		"use default value, decimal representation": {
+			setup: func(fl *flag.FlagSet) *flagseq {
+				return flSeq(fl, "x", "1", "")
+			},
+			args:    []string{},
+			wantDie: 0,
+			wantVal: sequenceID(1),
+		},
+		"parse decimal representation": {
+			setup: func(fl *flag.FlagSet) *flagseq {
+				return flSeq(fl, "x", "1", "")
+			},
+			args:    []string{"-x", "123"},
+			wantDie: 0,
+			wantVal: sequenceID(123),
+		},
+		"parse hex representation": {
+			setup: func(fl *flag.FlagSet) *flagseq {
+				return flSeq(fl, "x", "1", "")
+			},
+			args:    []string{"-x", "hex:" + hex.EncodeToString(sequenceID(987654))},
+			wantDie: 0,
+			wantVal: sequenceID(987654),
+		},
+		"parse base64 representation": {
+			setup: func(fl *flag.FlagSet) *flagseq {
+				return flSeq(fl, "x", "1", "")
+			},
+			args:    []string{"-x", "base64:" + base64.StdEncoding.EncodeToString(sequenceID(987654))},
+			wantDie: 0,
+			wantVal: sequenceID(987654),
+		},
+	}
+
+	for testName, tc := range cases {
+		t.Run(testName, func(t *testing.T) {
+			cnt, cleanup := observeFlagDie(t)
+			defer cleanup()
+
+			fl := flag.NewFlagSet("", flag.ContinueOnError)
+			val := tc.setup(fl)
+			err := fl.Parse(tc.args)
+			t.Logf("parse error: %+v", err)
+			if *cnt != tc.wantDie {
+				t.Errorf("want %d flagDie calls, got %d", tc.wantDie, cnt)
+			}
+			if tc.wantDie == 0 && !bytes.Equal(*val, tc.wantVal) {
+				t.Errorf("want %q value, got %q", tc.wantVal, *val)
+			}
+		})
+	}
+}
 
 func TestTimeFlag(t *testing.T) {
 	now := time.Now()

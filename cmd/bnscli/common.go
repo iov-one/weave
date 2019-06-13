@@ -1,18 +1,82 @@
 package main
 
 import (
+	"encoding/base64"
 	"encoding/binary"
+	"encoding/hex"
 	"errors"
+	"fmt"
 	"io"
 	"os"
+	"strconv"
+	"strings"
 
 	"github.com/iov-one/weave/cmd/bnsd/app"
 )
 
+// unpackSequence process given raw string representation and does its best in
+// order to decode a sequence value from the raw form. This function is
+// intended to be used with data coming from stdin.
+//
+// Unless a format prefix is provided, value is expected to be a decimal
+// number.
+//
+// Supported prefixes and their formats are:
+// - (none): string encoded decimal number
+// - hex: hex encoded binary sequence value
+// - base64: base64 encoded binary  sequence value
+func unpackSequence(raw string) ([]byte, error) {
+	if raw == "" {
+		return nil, errors.New("empty")
+	}
+
+	// By default the decimal format is used
+	format := "decimal"
+	chunks := strings.SplitN(raw, ":", 2)
+	if len(chunks) == 2 {
+		format = chunks[0]
+		raw = chunks[1]
+	}
+
+	switch format {
+	case "decimal":
+		n, err := strconv.ParseUint(raw, 10, 64)
+		if err != nil {
+			return nil, fmt.Errorf("invalid decimal format: %s", err)
+		}
+		if n < 1 {
+			return nil, errors.New("sequence value must be greater than zero")
+		}
+		return sequenceID(n), nil
+
+	case "hex":
+		b, err := hex.DecodeString(raw)
+		if err != nil {
+			return nil, fmt.Errorf("invalid hex format: %s", err)
+		}
+		if len(b) != sequenceBinarySize {
+			return nil, fmt.Errorf("sequence value must be %d bytes long", sequenceBinarySize)
+		}
+		return b, nil
+	case "base64":
+		b, err := base64.StdEncoding.DecodeString(raw)
+		if err != nil {
+			return nil, fmt.Errorf("invalid base64 format: %s", err)
+		}
+		if len(b) != sequenceBinarySize {
+			return nil, fmt.Errorf("sequence value must be %d bytes long", sequenceBinarySize)
+		}
+		return b, nil
+	default:
+		return nil, fmt.Errorf("unknown %q sequence format", format)
+	}
+
+}
+
 // sequenceID returns a sequence value encoded as implemented in the orm
 // package.
 func sequenceID(n uint64) []byte {
-	b := make([]byte, 8)
+	b := make([]byte, sequenceBinarySize)
 	binary.BigEndian.PutUint64(b, n)
 	return b
 }
@@ -20,11 +84,14 @@ func sequenceID(n uint64) []byte {
 // fromSequence transforms given binary representation of a sequence value into
 // a decimal form. fromSequence is the opposite of the sequenceID function.
 func fromSequence(b []byte) (uint64, error) {
-	if len(b) != 8 {
-		return 0, errors.New("sequence must be 8 bytes")
+	if len(b) != sequenceBinarySize {
+		return 0, fmt.Errorf("sequence must be %d bytes", sequenceBinarySize)
 	}
 	return binary.BigEndian.Uint64(b), nil
 }
+
+// sequenceBinarySize is the size of a binary representation of a sequence value.
+const sequenceBinarySize = 8
 
 // writeTx serialize the transaction using a protocol buffer. First bytes
 // written contain the information how much space the transaction takes.

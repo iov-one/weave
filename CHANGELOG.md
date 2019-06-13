@@ -2,9 +2,13 @@
 ## HEAD
 
 - Add CommitInfo to context in order to be able to see who signed the current block
-- `cmd/bnscli` a new command `with-fee` added to configure a transaction fee.
-- `cmd/bnscli` a new command `set-validators` added to configure the
-  validators.
+- `cmd/bnscli` new commands
+    - `with-fee` to configure a transaction fee,
+    - `set-validators` to configure the validators,
+    - `multisig` to create or update a multisig contract,
+    - `with-multisig` to attach a multisig to a transaction,
+    - `with-multisig-participant` to attach a participant to a multisig
+      contract create/update transaction
 - `x/aswap` allow timeout of a swap to be any value after 1970-01-01.
 - `Iterator`s in store (btree cache and iavl adaptor) are now lazy. We also
   provide a `ReadOneFromIterator` function to easily get the first or last item

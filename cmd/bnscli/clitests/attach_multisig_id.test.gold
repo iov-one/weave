@@ -1,0 +1,16 @@
+{
+	"multisig": [
+		"AAAAAAAAAAE=",
+		"AAAAAAAAAAI=",
+		"AAAAAAAAAAM="
+	],
+	"Sum": {
+		"CreateContractMsg": {
+			"metadata": {
+				"schema": 1
+			},
+			"activation_threshold": 4,
+			"admin_threshold": 8
+		}
+	}
+}
