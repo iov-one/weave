@@ -206,3 +206,21 @@ func migrate(
 	}
 	return nil
 }
+
+// Migrate will query the current schema of the named package and attempt
+// to Migrate the passed value up to the current value.
+//
+// Returns an error if the passed value is not Migratable,
+// not registered with migrations, missing Metadata, has a Schema
+// higher than currentSchema, if the final migrated value is invalid,
+// or other such conditions.
+//
+// If this returns no error, you can safely use the contents of value in
+// code working with the currentSchema.
+func Migrate(
+	db weave.ReadOnlyKVStore,
+	packageName string,
+	value interface{},
+) error {
+	return migrate(reg, NewSchemaBucket(), packageName, db, value)
+}

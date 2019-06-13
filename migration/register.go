@@ -140,3 +140,19 @@ var reg *register = newRegister()
 func MustRegister(migrationTo uint32, msgOrModel Migratable, fn Migrator) {
 	reg.MustRegister(migrationTo, msgOrModel, fn)
 }
+
+// Apply updates the object by applying all missing data migrations. Even a no
+// modification migration is updating the metadata to point to the latest data
+// format version.
+//
+// Because changes are applied directly on the passed object (in place), even
+// if this function fails some of the data migrations might be applied.
+//
+// A valid object metadata must contain a schema version greater than zero.
+// Not migrated object (initial state) is always having a metadata schema value
+// set to 1.
+//
+// Validation method is called only on the final version of the object.
+func Apply(db weave.ReadOnlyKVStore, m Migratable, migrateTo uint32) error {
+	return reg.Apply(db, m, migrateTo)
+}
