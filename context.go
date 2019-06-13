@@ -41,6 +41,7 @@ const (
 	contextKeyChainID
 	contextKeyLogger
 	contextKeyTime
+	contextCommitInfo
 )
 
 var (
@@ -69,6 +70,22 @@ func WithHeader(ctx Context, header abci.Header) Context {
 // ok is false if no header set in this Context
 func GetHeader(ctx Context) (abci.Header, bool) {
 	val, ok := ctx.Value(contextKeyHeader).(abci.Header)
+	return val, ok
+}
+
+// WithCommitInfo sets the info on who signed the block in this Context.
+// Panics if already set.
+func WithCommitInfo(ctx Context, info CommitInfo) Context {
+	if _, ok := GetCommitInfo(ctx); ok {
+		panic("CommitInfo already set")
+	}
+	return context.WithValue(ctx, contextCommitInfo, info)
+}
+
+// GetCommitInfo returns the info on validators that signed
+// this block. Returns false if not present.
+func GetCommitInfo(ctx Context) (CommitInfo, bool) {
+	val, ok := ctx.Value(contextCommitInfo).(CommitInfo)
 	return val, ok
 }
 

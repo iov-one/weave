@@ -1,6 +1,7 @@
 # Changelog
 ## HEAD
 
+- Add CommitInfo to context in order to be able to see who signed the current block
 - `cmd/bnscli` a new command `with-fee` added to configure a transaction fee.
 - `cmd/bnscli` a new command `set-validators` added to configure the
   validators.
@@ -9,7 +10,6 @@
   provide a `ReadOneFromIterator` function to easily get the first or last item
   in a range. This will only load desired items from disk and no longer greedily
   load the entire range before returning the first item.
-
 
 Breaking changes
 
