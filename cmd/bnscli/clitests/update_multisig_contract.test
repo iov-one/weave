@@ -2,7 +2,7 @@
 
 set -e
 
-bnscli multisig -update 000000000001 -activation 4 -admin 8 \
+bnscli multisig -update "hex:000000000000007b" -activation 4 -admin 8 \
 	| bnscli with-multisig-participant -weight 2 -sig "seq:foo/bar/1" \
 	| bnscli with-multisig-participant -weight 3 -sig "seq:foo/bar/2" \
 	| bnscli with-multisig-participant -weight 5 -sig "seq:foo/bar/3" \

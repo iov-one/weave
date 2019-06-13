@@ -32,7 +32,7 @@ func TestUnpackSequence(t *testing.T) {
 		WantErr bool
 		Want    []byte
 	}{
-		"decimal value": {
+		"default encoding (decimal)": {
 			Raw:     "123",
 			WantErr: false,
 			Want:    sequenceID(123),
@@ -42,29 +42,29 @@ func TestUnpackSequence(t *testing.T) {
 			WantErr: true,
 		},
 		"hex encoded value": {
-			Raw:     hex.EncodeToString(sequenceID(1234567890)),
+			Raw:     "hex:" + hex.EncodeToString(sequenceID(1234567890)),
 			WantErr: false,
 			Want:    sequenceID(1234567890),
 		},
 		"too short, hex encoded value": {
-			Raw:     "3132330a",
+			Raw:     "hex:3132330a",
 			WantErr: true,
 		},
 		"too long, hex encoded value": {
-			Raw:     hex.EncodeToString([]byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}),
+			Raw:     "hex:" + hex.EncodeToString([]byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}),
 			WantErr: true,
 		},
 		"base64 encoded value": {
-			Raw:     base64.StdEncoding.EncodeToString(sequenceID(1234567890)),
+			Raw:     "base64:" + base64.StdEncoding.EncodeToString(sequenceID(1234567890)),
 			WantErr: false,
 			Want:    sequenceID(1234567890),
 		},
 		"too short, base64 encoded value": {
-			Raw:     base64.StdEncoding.EncodeToString([]byte{1, 2, 3}),
+			Raw:     "base64:" + base64.StdEncoding.EncodeToString([]byte{1, 2, 3}),
 			WantErr: true,
 		},
 		"unknown encoding (random string)": {
-			Raw:     "_P1U_!RU)RQU_AU)FAf",
+			Raw:     "x:_P1U_!RU)RQU_AU)FAf",
 			WantErr: true,
 		},
 	}

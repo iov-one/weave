@@ -9,6 +9,7 @@ import (
 	"io"
 	"os"
 	"strconv"
+	"strings"
 
 	"github.com/iov-one/weave/cmd/bnsd/app"
 )
@@ -17,37 +18,59 @@ import (
 // order to decode a sequence value from the raw form. This function is
 // intended to be used with data coming from stdin.
 //
-// Supported formats are:
-// - string encoded decimal number
-// - hex encoded binary sequence value
-// - base64 encoded binary  sequence value
+// Unless a format prefix is provided, value is expected to be a decimal
+// number.
+//
+// Supported prefixes and their formats are:
+// - (none): string encoded decimal number
+// - hex: hex encoded binary sequence value
+// - base64: base64 encoded binary  sequence value
 func unpackSequence(raw string) ([]byte, error) {
 	if raw == "" {
 		return nil, errors.New("empty")
 	}
 
-	if n, err := strconv.ParseUint(raw, 10, 64); err == nil {
+	// By default the decimal format is used
+	format := "decimal"
+	chunks := strings.SplitN(raw, ":", 2)
+	if len(chunks) == 2 {
+		format = chunks[0]
+		raw = chunks[1]
+	}
+
+	switch format {
+	case "decimal":
+		n, err := strconv.ParseUint(raw, 10, 64)
+		if err != nil {
+			return nil, fmt.Errorf("invalid decimal format: %s", err)
+		}
 		if n < 1 {
 			return nil, errors.New("sequence value must be greater than zero")
 		}
 		return sequenceID(n), nil
-	}
 
-	if b, err := hex.DecodeString(raw); err == nil {
+	case "hex":
+		b, err := hex.DecodeString(raw)
+		if err != nil {
+			return nil, fmt.Errorf("invalid hex format: %s", err)
+		}
 		if len(b) != sequenceBinarySize {
 			return nil, fmt.Errorf("sequence value must be %d bytes long", sequenceBinarySize)
 		}
 		return b, nil
-	}
-
-	if b, err := base64.StdEncoding.DecodeString(raw); err == nil {
+	case "base64":
+		b, err := base64.StdEncoding.DecodeString(raw)
+		if err != nil {
+			return nil, fmt.Errorf("invalid base64 format: %s", err)
+		}
 		if len(b) != sequenceBinarySize {
 			return nil, fmt.Errorf("sequence value must be %d bytes long", sequenceBinarySize)
 		}
 		return b, nil
+	default:
+		return nil, fmt.Errorf("unknown %q sequence format", format)
 	}
 
-	return nil, errors.New("unknown sequence format")
 }
 
 // sequenceID returns a sequence value encoded as implemented in the orm

@@ -39,7 +39,7 @@ func TestSeqFlag(t *testing.T) {
 			setup: func(fl *flag.FlagSet) *flagseq {
 				return flSeq(fl, "x", "1", "")
 			},
-			args:    []string{"-x", hex.EncodeToString(sequenceID(987654))},
+			args:    []string{"-x", "hex:" + hex.EncodeToString(sequenceID(987654))},
 			wantDie: 0,
 			wantVal: sequenceID(987654),
 		},
@@ -47,7 +47,7 @@ func TestSeqFlag(t *testing.T) {
 			setup: func(fl *flag.FlagSet) *flagseq {
 				return flSeq(fl, "x", "1", "")
 			},
-			args:    []string{"-x", base64.StdEncoding.EncodeToString(sequenceID(987654))},
+			args:    []string{"-x", "base64:" + base64.StdEncoding.EncodeToString(sequenceID(987654))},
 			wantDie: 0,
 			wantVal: sequenceID(987654),
 		},
