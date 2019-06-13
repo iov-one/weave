@@ -13,6 +13,8 @@
 
 Breaking changes
 
+- cmd/bnsd: `nft/username` allows now for any number of aliases/names for a
+  single address. Lookup of the username by an address is no longer available.
 - messages produced by `cmd/bnscli` have a new binary format incompatible with
   the previous version.
 - `x/gov` added indexes to proposals and electorate to enable better client-side UX
