@@ -1,8 +1,6 @@
 package validators
 
 import (
-	"strings"
-
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/migration"
@@ -23,44 +21,6 @@ func (*SetValidatorsMsg) Path() string {
 	return pathUpdate
 }
 
-func (m ValidatorUpdate) Validate() error {
-	if len(m.Pubkey.Data) != 32 || strings.ToLower(m.Pubkey.Type) != "ed25519" {
-		return errors.Wrapf(errors.ErrType, "invalid public key: %T", m.Pubkey.Type)
-	}
-	if m.Power < 0 {
-		return errors.Wrapf(errors.ErrMsg, "power: %d", m.Power)
-	}
-	return nil
-}
-
-func (m ValidatorUpdate) AsABCI() abci.ValidatorUpdate {
-	return abci.ValidatorUpdate{
-		PubKey: m.Pubkey.AsABCI(),
-		Power:  m.Power,
-	}
-}
-
-func ValidatorUpdateFromABCI(u abci.ValidatorUpdate) ValidatorUpdate {
-	return ValidatorUpdate{
-		Power:  u.Power,
-		Pubkey: PubkeyFromABCI(u.PubKey),
-	}
-}
-
-func PubkeyFromABCI(u abci.PubKey) Pubkey {
-	return Pubkey{
-		Type: u.Type,
-		Data: u.Data,
-	}
-}
-
-func (m Pubkey) AsABCI() abci.PubKey {
-	return abci.PubKey{
-		Data: m.Data,
-		Type: m.Type,
-	}
-}
-
 func (m *SetValidatorsMsg) Validate() error {
 	if err := m.Metadata.Validate(); err != nil {
 		return errors.Wrap(err, "metadata")
@@ -69,9 +29,6 @@ func (m *SetValidatorsMsg) Validate() error {
 		return errors.Wrap(errors.ErrEmpty, "validator set")
 	}
 	for _, v := range m.ValidatorUpdates {
-		if v == nil {
-			return errors.Wrap(errors.ErrInput, "validator set must not contain nil ")
-		}
 		if err := v.Validate(); err != nil {
 			return err
 		}

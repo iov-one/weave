@@ -14,10 +14,10 @@ import (
 	"os"
 	"strings"
 
+	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/cmd/bnsd/app"
 	"github.com/iov-one/weave/cmd/bnsd/client"
 	"github.com/iov-one/weave/crypto"
-	"github.com/iov-one/weave/x/validators"
 )
 
 func main() {
@@ -166,8 +166,8 @@ Returned request must be signed by other parties before it can be submitted.
 	}
 
 	addValidatorTx := client.SetValidatorTx(
-		&validators.ValidatorUpdate{
-			Pubkey: validators.Pubkey{
+		weave.ValidatorUpdate{
+			PubKey: weave.PubKey{
 				Type: "ed25519",
 				Data: pubkey,
 			},
@@ -365,8 +365,8 @@ func cmdAdd(
 	}
 
 	addValidatorTx := client.SetValidatorTx(
-		&validators.ValidatorUpdate{
-			Pubkey: validators.Pubkey{
+		weave.ValidatorUpdate{
+			PubKey: weave.PubKey{
 				Type: "ed25519",
 				Data: pubkey,
 			},

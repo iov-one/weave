@@ -20,14 +20,26 @@ message CommitInfo {
   repeated VoteInfo votes = 2 [(gogoproto.nullable) = false];
 }
 
-// VoteInfo tells us whether a validator signed the last block or not
+// VoteInfo tells us whether a validator signed the last block or not.
 message VoteInfo {
   Validator validator = 1 [(gogoproto.nullable) = false];
   bool signed_last_block = 2;
 }
 
-// Validator represents a validator
+// Validator represents a validator;
 message Validator {
   bytes address = 1;
   int64 power = 3;
+}
+
+// ValidatorUpdate represents an update to validator set.
+message ValidatorUpdate {
+  PubKey pub_key = 1 [(gogoproto.nullable) = false];
+  int64 power = 2;
+}
+
+// PubKey represents a validator public key.
+message PubKey {
+  string type = 1;
+  bytes data = 2;
 }

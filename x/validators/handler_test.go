@@ -11,7 +11,6 @@ import (
 	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/store"
 	"github.com/iov-one/weave/weavetest"
-	abci "github.com/tendermint/tendermint/abci/types"
 )
 
 func TestHandler(t *testing.T) {
@@ -20,75 +19,75 @@ func TestHandler(t *testing.T) {
 
 	specs := map[string]struct {
 		Initial       ValidatorUpdates
-		Src           []*ValidatorUpdate
+		Src           []weave.ValidatorUpdate
 		AuthzAddress  weave.Address
 		ExpCheckErr   *errors.Error
 		ExpDeliverErr *errors.Error
-		Exp           []abci.ValidatorUpdate
+		Exp           []weave.ValidatorUpdate
 		DbExp         ValidatorUpdates
 	}{
 		"All good with authorized address": {
-			Initial: ValidatorUpdates{ValidatorUpdates: []ValidatorUpdate{{Pubkey: Pubkey{Data: bobby.PublicKey().GetEd25519(), Type: "ed25519"}, Power: 3}}},
-			Src: []*ValidatorUpdate{{
-				Pubkey: Pubkey{Data: alice.PublicKey().GetEd25519(), Type: "ed25519"},
+			Initial: ValidatorUpdates{ValidatorUpdates: []weave.ValidatorUpdate{{PubKey: weave.PubKey{Data: bobby.PublicKey().GetEd25519(), Type: "ed25519"}, Power: 3}}},
+			Src: []weave.ValidatorUpdate{{
+				PubKey: weave.PubKey{Data: alice.PublicKey().GetEd25519(), Type: "ed25519"},
 				Power:  10,
 			}},
 			AuthzAddress: alice.PublicKey().Address(),
-			Exp: []abci.ValidatorUpdate{{
-				PubKey: abci.PubKey{Data: alice.PublicKey().GetEd25519(), Type: "ed25519"},
+			Exp: []weave.ValidatorUpdate{{
+				PubKey: weave.PubKey{Data: alice.PublicKey().GetEd25519(), Type: "ed25519"},
 				Power:  10,
 			}},
-			DbExp: ValidatorUpdates{[]ValidatorUpdate{{Pubkey: Pubkey{Data: bobby.PublicKey().GetEd25519(), Type: "ed25519"}, Power: 3}, {
-				Pubkey: Pubkey{Data: alice.PublicKey().GetEd25519(), Type: "ed25519"},
+			DbExp: ValidatorUpdates{[]weave.ValidatorUpdate{{PubKey: weave.PubKey{Data: bobby.PublicKey().GetEd25519(), Type: "ed25519"}, Power: 3}, {
+				PubKey: weave.PubKey{Data: alice.PublicKey().GetEd25519(), Type: "ed25519"},
 				Power:  10,
 			}}},
 		},
 		"Adding a validator works with pre-exiting one": {
-			Src: []*ValidatorUpdate{{
-				Pubkey: Pubkey{Data: alice.PublicKey().GetEd25519(), Type: "ed25519"},
+			Src: []weave.ValidatorUpdate{{
+				PubKey: weave.PubKey{Data: alice.PublicKey().GetEd25519(), Type: "ed25519"},
 				Power:  10,
 			}},
 			AuthzAddress: alice.PublicKey().Address(),
-			Exp: []abci.ValidatorUpdate{{
-				PubKey: abci.PubKey{Data: alice.PublicKey().GetEd25519(), Type: "ed25519"},
+			Exp: []weave.ValidatorUpdate{{
+				PubKey: weave.PubKey{Data: alice.PublicKey().GetEd25519(), Type: "ed25519"},
 				Power:  10,
 			}},
-			DbExp: ValidatorUpdates{[]ValidatorUpdate{{
-				Pubkey: Pubkey{Data: alice.PublicKey().GetEd25519(), Type: "ed25519"},
+			DbExp: ValidatorUpdates{[]weave.ValidatorUpdate{{
+				PubKey: weave.PubKey{Data: alice.PublicKey().GetEd25519(), Type: "ed25519"},
 				Power:  10,
 			}}},
 		},
 		"Setting different power is allowed": {
-			Initial: ValidatorUpdates{ValidatorUpdates: []ValidatorUpdate{{Pubkey: Pubkey{Data: alice.PublicKey().GetEd25519(), Type: "ed25519"}, Power: 3}}},
-			Src: []*ValidatorUpdate{{
-				Pubkey: Pubkey{Data: alice.PublicKey().GetEd25519(), Type: "ed25519"},
+			Initial: ValidatorUpdates{ValidatorUpdates: []weave.ValidatorUpdate{{PubKey: weave.PubKey{Data: alice.PublicKey().GetEd25519(), Type: "ed25519"}, Power: 3}}},
+			Src: []weave.ValidatorUpdate{{
+				PubKey: weave.PubKey{Data: alice.PublicKey().GetEd25519(), Type: "ed25519"},
 				Power:  1,
 			}},
 			AuthzAddress: alice.PublicKey().Address(),
-			Exp: []abci.ValidatorUpdate{{
-				PubKey: abci.PubKey{Data: alice.PublicKey().GetEd25519(), Type: "ed25519"},
+			Exp: []weave.ValidatorUpdate{{
+				PubKey: weave.PubKey{Data: alice.PublicKey().GetEd25519(), Type: "ed25519"},
 				Power:  1,
 			}},
-			DbExp: ValidatorUpdates{[]ValidatorUpdate{{
-				Pubkey: Pubkey{Data: alice.PublicKey().GetEd25519(), Type: "ed25519"},
+			DbExp: ValidatorUpdates{[]weave.ValidatorUpdate{{
+				PubKey: weave.PubKey{Data: alice.PublicKey().GetEd25519(), Type: "ed25519"},
 				Power:  1,
 			}}},
 		},
 		"Power 0 is allowed to remove a validator": {
-			Initial: ValidatorUpdates{ValidatorUpdates: []ValidatorUpdate{{Pubkey: Pubkey{Data: alice.PublicKey().GetEd25519(), Type: "ed25519"}, Power: 1}}},
-			Src: []*ValidatorUpdate{{
-				Pubkey: Pubkey{Data: alice.PublicKey().GetEd25519(), Type: "ed25519"},
+			Initial: ValidatorUpdates{ValidatorUpdates: []weave.ValidatorUpdate{{PubKey: weave.PubKey{Data: alice.PublicKey().GetEd25519(), Type: "ed25519"}, Power: 1}}},
+			Src: []weave.ValidatorUpdate{{
+				PubKey: weave.PubKey{Data: alice.PublicKey().GetEd25519(), Type: "ed25519"},
 				Power:  0,
 			}},
 			AuthzAddress: alice.PublicKey().Address(),
-			Exp: []abci.ValidatorUpdate{{
-				PubKey: abci.PubKey{Data: alice.PublicKey().GetEd25519(), Type: "ed25519"},
+			Exp: []weave.ValidatorUpdate{{
+				PubKey: weave.PubKey{Data: alice.PublicKey().GetEd25519(), Type: "ed25519"},
 				Power:  0,
 			}},
 		},
 		"Power 0 is fails if the validator does not exist": {
-			Src: []*ValidatorUpdate{{
-				Pubkey: Pubkey{Data: alice.PublicKey().GetEd25519(), Type: "ed25519"},
+			Src: []weave.ValidatorUpdate{{
+				PubKey: weave.PubKey{Data: alice.PublicKey().GetEd25519(), Type: "ed25519"},
 				Power:  0,
 			}},
 			AuthzAddress:  alice.PublicKey().Address(),
@@ -96,8 +95,8 @@ func TestHandler(t *testing.T) {
 			ExpDeliverErr: errors.ErrInput,
 		},
 		"Negative power prohibited": {
-			Src: []*ValidatorUpdate{{
-				Pubkey: Pubkey{Data: alice.PublicKey().GetEd25519(), Type: "ed25519"},
+			Src: []weave.ValidatorUpdate{{
+				PubKey: weave.PubKey{Data: alice.PublicKey().GetEd25519(), Type: "ed25519"},
 				Power:  -1,
 			}},
 			AuthzAddress:  alice.PublicKey().Address(),
@@ -105,8 +104,8 @@ func TestHandler(t *testing.T) {
 			ExpDeliverErr: errors.ErrMsg,
 		},
 		"Invalid public key": {
-			Src: []*ValidatorUpdate{{
-				Pubkey: Pubkey{Data: []byte{0, 1, 2}, Type: "ed25519"},
+			Src: []weave.ValidatorUpdate{{
+				PubKey: weave.PubKey{Data: []byte{0, 1, 2}, Type: "ed25519"},
 				Power:  10,
 			}},
 			AuthzAddress:  alice.PublicKey().Address(),
@@ -114,20 +113,14 @@ func TestHandler(t *testing.T) {
 			ExpDeliverErr: errors.ErrType,
 		},
 		"Empty validator set prohibited": {
-			Src:           []*ValidatorUpdate{},
+			Src:           []weave.ValidatorUpdate{},
 			AuthzAddress:  alice.PublicKey().Address(),
 			ExpCheckErr:   errors.ErrEmpty,
 			ExpDeliverErr: errors.ErrEmpty,
 		},
-		"Invalid validator set prohibited": {
-			Src:           []*ValidatorUpdate{nil},
-			AuthzAddress:  alice.PublicKey().Address(),
-			ExpCheckErr:   errors.ErrInput,
-			ExpDeliverErr: errors.ErrInput,
-		},
 		"Unauthorized address should fail": {
-			Src: []*ValidatorUpdate{{
-				Pubkey: Pubkey{Data: alice.PublicKey().GetEd25519(), Type: "ed25519"},
+			Src: []weave.ValidatorUpdate{{
+				PubKey: weave.PubKey{Data: alice.PublicKey().GetEd25519(), Type: "ed25519"},
 				Power:  10,
 			}},
 			AuthzAddress:  bobby.PublicKey().Address(),

@@ -6,7 +6,8 @@ import (
 )
 
 const (
-	optKey = "update_validators"
+	optKey   = "update_validators"
+	storeKey = "_1:update_validators"
 )
 
 // Initializer fulfils the InitStater interface to load data from

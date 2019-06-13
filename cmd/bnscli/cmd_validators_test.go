@@ -11,9 +11,9 @@ import (
 
 func TestCmdSetValidators(t *testing.T) {
 	cases := map[string]struct {
-		Initial []*validators.ValidatorUpdate
+		Initial []weave.ValidatorUpdate
 		Args    []string
-		WantSet []*validators.ValidatorUpdate
+		WantSet []weave.ValidatorUpdate
 		// Because we use fmt.Errorf we cannot check the instance. Only
 		// the occurrence.
 		WantErr bool
@@ -23,9 +23,9 @@ func TestCmdSetValidators(t *testing.T) {
 				"-pubkey", "j4JRVstX",
 				"-power", "4",
 			},
-			WantSet: []*validators.ValidatorUpdate{
+			WantSet: []weave.ValidatorUpdate{
 				{
-					Pubkey: validators.Pubkey{
+					PubKey: weave.PubKey{
 						Type: "ed25519",
 						Data: fromBase64(t, "j4JRVstX"),
 					},
@@ -34,9 +34,9 @@ func TestCmdSetValidators(t *testing.T) {
 			},
 		},
 		"append to an existing": {
-			Initial: []*validators.ValidatorUpdate{
+			Initial: []weave.ValidatorUpdate{
 				{
-					Pubkey: validators.Pubkey{
+					PubKey: weave.PubKey{
 						Type: "ed25519",
 						Data: fromBase64(t, "aaJRVstX"),
 					},
@@ -47,16 +47,16 @@ func TestCmdSetValidators(t *testing.T) {
 				"-pubkey", "j4JRVstX",
 				"-power", "4",
 			},
-			WantSet: []*validators.ValidatorUpdate{
+			WantSet: []weave.ValidatorUpdate{
 				{
-					Pubkey: validators.Pubkey{
+					PubKey: weave.PubKey{
 						Type: "ed25519",
 						Data: fromBase64(t, "aaJRVstX"),
 					},
 					Power: 2,
 				},
 				{
-					Pubkey: validators.Pubkey{
+					PubKey: weave.PubKey{
 						Type: "ed25519",
 						Data: fromBase64(t, "j4JRVstX"),
 					},

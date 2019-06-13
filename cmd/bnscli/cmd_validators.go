@@ -28,7 +28,7 @@ func cmdSetValidators(input io.Reader, output io.Writer, args []string) error {
 		return errors.New("public key is required")
 	}
 
-	var set []*validators.ValidatorUpdate
+	var set []weave.ValidatorUpdate
 
 	// Allow to chain validator modifications. If there is a validator set
 	// transaction passed through the input, extend the list.
@@ -48,8 +48,8 @@ func cmdSetValidators(input io.Reader, output io.Writer, args []string) error {
 		set = setMsg.ValidatorUpdates
 	}
 
-	set = append(set, &validators.ValidatorUpdate{
-		Pubkey: validators.Pubkey{
+	set = append(set, weave.ValidatorUpdate{
+		PubKey: weave.PubKey{
 			Type: "ed25519",
 			Data: pubkey,
 		},

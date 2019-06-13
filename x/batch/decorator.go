@@ -10,7 +10,6 @@ import (
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/coin"
-	"github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/common"
 )
 
@@ -139,7 +138,7 @@ func (*Decorator) combineDelivers(delivers []*weave.DeliverResult) (*weave.Deliv
 	datas := make([][]byte, len(delivers))
 	logs := make([]string, len(delivers))
 	var payments int64
-	var diffs []types.ValidatorUpdate
+	var diffs []weave.ValidatorUpdate
 	var tags []common.KVPair
 	var required coin.Coin
 	var err error
