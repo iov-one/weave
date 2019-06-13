@@ -29,14 +29,22 @@ func (m ValidatorUpdates) Validate() error {
 // Store stores ValidatorUpdates to the KVStore while cleaning up those with 0
 // power.
 func (m ValidatorUpdates) Store(store weave.KVStore) error {
+	duplicates := make(map[string]int, 0)
 	cleanValidatorSlice := make([]weave.ValidatorUpdate, 0, len(m.ValidatorUpdates))
-	// Cleanup validators with power 0 as these get discarded by tendermint.
+	// Cleanup validators with power 0 as these get discarded by tendermint. Also
+	// make sure only the last validator update gets stored if there is a duplicate.
 	for _, v := range m.ValidatorUpdates {
 		if v.Power == 0 {
 			continue
 		}
+		if key, ok := duplicates[v.PubKey.String()]; ok {
+			cleanValidatorSlice[key] = v
+			continue
+		}
 		cleanValidatorSlice = append(cleanValidatorSlice, v)
+		duplicates[v.PubKey.String()] = len(cleanValidatorSlice) - 1
 	}
+
 	m.ValidatorUpdates = cleanValidatorSlice
 
 	marshalledUpdates, err := m.Marshal()
