@@ -31,7 +31,7 @@ transaction (ie signatures) are being dropped.
 		titleFl = fl.String("title", "Transfer funds to distribution account", "The proposal title.")
 		descFl  = fl.String("description", "Transfer funds to distribution account", "The proposal description.")
 		startFl = flTime(fl, "start", inOneHour, "Start time as 'YYYY-MM-DD HH:MM' in UTC. If not provided, an arbitrary time in the future is used.")
-		eRuleFl = fl.Uint64("electionrule", 0, "The ID of the election rule to be used.")
+		eRuleFl = flSeq(fl, "electionrule", "", "The ID of the election rule to be used.")
 	)
 	fl.Parse(args)
 
@@ -196,7 +196,7 @@ transaction (ie signatures) are being dropped.
 				Title:          *titleFl,
 				Description:    *descFl,
 				StartTime:      startFl.UnixTime(),
-				ElectionRuleID: sequenceID(*eRuleFl),
+				ElectionRuleID: *eRuleFl,
 				RawOption:      rawOption,
 			},
 		},

@@ -129,3 +129,48 @@ var flagDie = func(description string, args ...interface{}) {
 	fmt.Fprintln(os.Stderr, s)
 	os.Exit(2)
 }
+
+// flSeq returns a value that is being initialized with given default value
+// and optionally overwritten by a command line argument if provided. This
+// function follows Go's flag package convention.
+// If given value cannot be deserialized to required type, process is
+// terminated.
+// Sequence can be serialized using one of the following formats:
+// - decimal number converted to string
+// - hex serialized binary representation
+// - base64 serialized binary representation
+func flSeq(fl *flag.FlagSet, name, defaultVal, usage string) *flagseq {
+	var b []byte
+	if defaultVal != "" {
+		var err error
+		b, err = unpackSequence(defaultVal)
+		if err != nil {
+			flagDie("Cannot parse %q sequence flag value. %s", name, err)
+		}
+	}
+	var fs flagseq = b
+	fl.Var(&fs, name, usage)
+	return &fs
+}
+
+type flagseq []byte
+
+func (b flagseq) String() string {
+	if len(b) == 0 {
+		return ""
+	}
+	n, err := fromSequence(b)
+	if err != nil {
+		panic(fmt.Sprintf("%q is not a valid sequence value: %s", []byte(b), err))
+	}
+	return fmt.Sprint(n)
+}
+
+func (b *flagseq) Set(raw string) error {
+	val, err := unpackSequence(raw)
+	if err != nil {
+		return err
+	}
+	*b = val
+	return nil
+}

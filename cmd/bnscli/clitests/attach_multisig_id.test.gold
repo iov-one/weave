@@ -1,8 +1,8 @@
 {
 	"multisig": [
-		"MQ==",
-		"Mg==",
-		"Mw=="
+		"AAAAAAAAAAE=",
+		"AAAAAAAAAAI=",
+		"AAAAAAAAAAM="
 	],
 	"Sum": {
 		"CreateContractMsg": {

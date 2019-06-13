@@ -24,7 +24,7 @@ participants must be done by another command.
 		fl.PrintDefaults()
 	}
 	var (
-		updateFl              = flHex(fl, "update", "", "If a multisig contract ID is provided, a multisig contract update instead of creation message is created.")
+		updateFl              = flSeq(fl, "update", "", "If a multisig contract ID is provided, a multisig contract update instead of creation message is created.")
 		activationThresholdFl = fl.Uint("activation", 0, "Activation threshold value. Must be greater than 0.")
 		adminThresholdFl      = fl.Uint("admin", 0, "Admin threshold value. Must be greater than 0.")
 	)
@@ -117,6 +117,8 @@ func cmdWithMultisig(input io.Reader, output io.Writer, args []string) error {
 		fmt.Fprintln(flag.CommandLine.Output(), `
 Read a transaction from the input and attach any number of provided multisig
 contract IDs to that transaction.
+
+Given multisig IDs must be a decimal number or a hex encoded 8 byte bigendian sequence.
 		`)
 		fl.PrintDefaults()
 	}
@@ -127,8 +129,12 @@ contract IDs to that transaction.
 		return fmt.Errorf("cannot read input transaction: %s", err)
 	}
 
-	for _, mid := range fl.Args() {
-		tx.Multisig = append(tx.Multisig, []byte(mid))
+	for i, mid := range fl.Args() {
+		seq, err := unpackSequence(mid)
+		if err != nil {
+			return fmt.Errorf("sequence value #%d is invalid: %s", i, err)
+		}
+		tx.Multisig = append(tx.Multisig, seq)
 	}
 
 	_, err = writeTx(output, tx)
