@@ -7,19 +7,15 @@ import (
 	"github.com/iov-one/weave/x/nft"
 )
 
-const (
-	bucketName            = "usrnft"
-	chainAddressSeparator = ";"
-)
-
 type Bucket struct {
 	orm.Bucket
 }
 
 func NewBucket() Bucket {
-	b := NewUsernameToken(nil, nil, nil)
+	t := NewUsernameToken(nil, nil, nil)
+	b := orm.NewBucket("usrnft", t)
 	return Bucket{
-		Bucket: nft.WithOwnerIndex(orm.NewBucket(bucketName, b)),
+		Bucket: nft.WithOwnerIndex(b),
 	}
 }
 

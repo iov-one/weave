@@ -24,9 +24,11 @@ func TestHandleIssueTokenMsg(t *testing.T) {
 	db := store.MemStore()
 	bucket := username.NewBucket()
 
-	o, _ := bucket.Create(db, bob.Address(), []byte("existing@example.com"), nil, []username.ChainAddress{
-		{BlockchainID: []byte("myNet"), Address: "bobsChainAddress"},
-	})
+	bobsAddress := username.ChainAddress{
+		BlockchainID: []byte("myNet"),
+		Address:      "bobsChainAddress",
+	}
+	o, _ := bucket.Create(db, bob.Address(), []byte("existing@example.com"), nil, []username.ChainAddress{bobsAddress})
 	bucket.Save(db, o)
 
 	handler := username.NewIssueHandler(
@@ -89,10 +91,7 @@ func TestHandleIssueTokenMsg(t *testing.T) {
 			id:    []byte("any@example.com"),
 			details: username.TokenDetails{
 				Addresses: []username.ChainAddress{
-					{
-						BlockchainID: []byte("myNet"),
-						Address:      "bobsChainAddress",
-					},
+					bobsAddress,
 				},
 			},
 			expCheckError:   false,
