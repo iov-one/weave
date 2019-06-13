@@ -518,11 +518,11 @@ type Proposal struct {
 	Author github_com_iov_one_weave.Address `protobuf:"bytes,10,opt,name=author,proto3,casttype=github.com/iov-one/weave.Address" json:"author,omitempty"`
 	// Result of the election. Contains intermediate tally results while voting period is open.
 	VoteState TallyResult `protobuf:"bytes,11,opt,name=vote_state,json=voteState,proto3" json:"vote_state"`
-	// Status represents the high level position in the life cycle of the proposal. Initial value is submitted.
+	// Status represents the high level position in the life cycle of the proposal. Initial value is Submitted.
 	Status Proposal_Status `protobuf:"varint,12,opt,name=status,proto3,enum=gov.Proposal_Status" json:"status,omitempty"`
 	// Result is the final result based on the votes and election rule. Initial value is Undefined.
 	Result Proposal_Result `protobuf:"varint,13,opt,name=result,proto3,enum=gov.Proposal_Result" json:"result,omitempty"`
-	// Result is the final result based on the votes and election rule. Initial value is Undefined.
+	// Result is the final result based on the votes and election rule. Initial value is NotRun.
 	ExecutorResult Proposal_ExecutorResult `protobuf:"varint,14,opt,name=executor_result,json=executorResult,proto3,enum=gov.Proposal_ExecutorResult" json:"executor_result,omitempty"`
 }
 

@@ -113,7 +113,7 @@ message Proposal {
     // is Withdrawn.
     PROPOSAL_STATUS_WITHDRAWN = 3 ;
   }
-  // Status represents the high level position in the life cycle of the proposal. Initial value is submitted.
+  // Status represents the high level position in the life cycle of the proposal. Initial value is Submitted.
   Status status = 12;
   enum Result {
     // An empty value is invalid and not allowed
@@ -137,7 +137,7 @@ message Proposal {
     // The executor returned an error and proposed action didn't update state
     PROPOSAL_EXECUTOR_RESULT_FAILURE = 3 ;
   }
-  // Result is the final result based on the votes and election rule. Initial value is Undefined.
+  // Result is the final result based on the votes and election rule. Initial value is NotRun.
   ExecutorResult executor_result = 14;
 }
 
