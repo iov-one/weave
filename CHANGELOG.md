@@ -1,6 +1,9 @@
 # Changelog
 ## HEAD
 
+- Expose some more Genesis params to extension initializers. Utilise those in `x/validators`
+to store initial validator list and validate updates against this list while updating on
+every successful transaction.
 - Add CommitInfo to context in order to be able to see who signed the current block
 - `cmd/bnscli` new commands
     - `with-fee` to configure a transaction fee,
@@ -23,6 +26,8 @@ Breaking changes
   the previous version.
 - `x/gov` added indexes to proposals and electorate to enable better client-side UX
 - `cash.UpdateConfigurationMsg` requires `Metadata.Schema`
+- ValidatorUpdate definitions now moved to `weave` package. Weave is using these definitions
+now instead of abci internally.
 
 
 ## 0.16.0

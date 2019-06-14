@@ -16,7 +16,7 @@ var _ weave.Initializer = (*Initializer)(nil)
 
 // FromGenesis will parse initial account info from genesis and save it to the
 // database
-func (*Initializer) FromGenesis(opts weave.Options, db weave.KVStore) error {
+func (*Initializer) FromGenesis(opts weave.Options, params weave.GenesisParams, kv weave.KVStore) error {
 	type msgfee struct {
 		MsgPath string    `json:"msg_path"`
 		Fee     coin.Coin `json:"fee"`
@@ -36,7 +36,7 @@ func (*Initializer) FromGenesis(opts weave.Options, db weave.KVStore) error {
 		if err := fee.Validate(); err != nil {
 			return errors.Wrap(err, fmt.Sprintf("fee #%d is invalid", i))
 		}
-		if _, err := bucket.Create(db, &fee); err != nil {
+		if _, err := bucket.Create(kv, &fee); err != nil {
 			return errors.Wrap(err, fmt.Sprintf("cannot store #%d fee", i))
 		}
 	}

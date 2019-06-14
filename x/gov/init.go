@@ -15,7 +15,7 @@ var _ weave.Initializer = (*Initializer)(nil)
 
 // FromGenesis will parse initial governance electorate and election rules from genesis
 // and saves it in the database.
-func (*Initializer) FromGenesis(opts weave.Options, db weave.KVStore) error {
+func (*Initializer) FromGenesis(opts weave.Options, params weave.GenesisParams, kv weave.KVStore) error {
 	type fraction struct {
 		Numerator   uint32 `json:"numerator"`
 		Denominator uint32 `json:"denominator"`
@@ -65,7 +65,7 @@ func (*Initializer) FromGenesis(opts weave.Options, db weave.KVStore) error {
 			return errors.Wrapf(err, "electorate #%d is invalid", i)
 		}
 		sortByAddress(electorate.Electors)
-		if _, err := electBucket.Create(db, &electorate); err != nil {
+		if _, err := electBucket.Create(kv, &electorate); err != nil {
 			return err
 		}
 	}
@@ -74,7 +74,7 @@ func (*Initializer) FromGenesis(opts weave.Options, db weave.KVStore) error {
 	rulesBucket := NewElectionRulesBucket()
 	for i, r := range governance.Rules {
 		electorateID := encodeSequence(r.ElectorateID)
-		_, _, err := electBucket.GetLatestVersion(db, electorateID)
+		_, _, err := electBucket.GetLatestVersion(kv, electorateID)
 		if err != nil {
 			return errors.Wrapf(err, "failed to load electorate with id: %d", r.ElectorateID)
 		}
@@ -92,7 +92,7 @@ func (*Initializer) FromGenesis(opts weave.Options, db weave.KVStore) error {
 		if err := rule.Validate(); err != nil {
 			return errors.Wrapf(err, "electionRule #%d is invalid", i)
 		}
-		if _, err := rulesBucket.Create(db, &rule); err != nil {
+		if _, err := rulesBucket.Create(kv, &rule); err != nil {
 			return err
 		}
 	}

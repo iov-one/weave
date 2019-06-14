@@ -16,7 +16,6 @@ func TestMemStoreGetSet(t *testing.T) {
 	suite.GetSet(t)
 }
 
-
 func TestMemStoreCacheConflicts(t *testing.T) {
 	suite.CacheConflicts(t)
 }

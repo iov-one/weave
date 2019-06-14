@@ -6,7 +6,7 @@
 			},
 			"validator_updates": [
 				{
-					"pubkey": {
+					"pub_key": {
 						"type": "ed25519",
 						"data": "j4JRVstX"
 					},
@@ -24,21 +24,21 @@
 			},
 			"validator_updates": [
 				{
-					"pubkey": {
+					"pub_key": {
 						"type": "ed25519",
 						"data": "j4JRVstX"
 					},
 					"power": 1
 				},
 				{
-					"pubkey": {
+					"pub_key": {
 						"type": "ed25519",
 						"data": "j4JRVstX"
 					},
 					"power": 2
 				},
 				{
-					"pubkey": {
+					"pub_key": {
 						"type": "ed25519",
 						"data": "j4JRVstX"
 					},

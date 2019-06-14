@@ -44,7 +44,7 @@ type DeliverResult struct {
 	// This may enforced by a decorator, such as cash.DynamicFeeDecorator
 	RequiredFee coin.Coin
 	// Diff, if present, will apply to the Validator set in tendermint next block
-	Diff []abci.ValidatorUpdate
+	Diff []ValidatorUpdate
 	// Tags, if present, will be used by tendermint to index and search the transaction history
 	Tags []common.KVPair
 	// GasUsed is currently unused field until effects in tendermint are clear
@@ -113,7 +113,7 @@ func (c CheckResult) ToABCI() abci.ResponseCheckTx {
 
 // TickResult allows the Ticker to modify the validator set
 type TickResult struct {
-	Diff []abci.ValidatorUpdate
+	Diff []ValidatorUpdate
 }
 
 // DeliverTxError converts any error into a abci.ResponseDeliverTx, preserving

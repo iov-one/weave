@@ -44,7 +44,7 @@ type StoreApp struct {
 	chainID string
 
 	// cached validator changes from DeliverTx
-	pending []abci.ValidatorUpdate
+	pending []weave.ValidatorUpdate
 
 	// baseContext contains context info that is valid for
 	// lifetime of this app (eg. chainID)
@@ -102,7 +102,7 @@ func (s *StoreApp) WithInit(init weave.Initializer) *StoreApp {
 
 // parseAppState is called from InitChain, the first time the chain
 // starts, and not on restarts.
-func (s *StoreApp) parseAppState(data []byte, chainID string, init weave.Initializer) error {
+func (s *StoreApp) parseAppState(data []byte, params weave.GenesisParams, chainID string, init weave.Initializer) error {
 	if s.chainID != "" {
 		return fmt.Errorf("appState previously loaded for chain: %s", s.chainID)
 	}
@@ -122,7 +122,7 @@ func (s *StoreApp) parseAppState(data []byte, chainID string, init weave.Initial
 		return err
 	}
 
-	return init.FromGenesis(appState, s.DeliverStore())
+	return init.FromGenesis(appState, params, s.DeliverStore())
 }
 
 // store chainID and update context
@@ -312,12 +312,11 @@ func (s *StoreApp) Commit() (res abci.ResponseCommit) {
 }
 
 // InitChain implements ABCI
-// TODO: store the original validators somewhere
 // Note: in tendermint 0.17, the genesis file is passed
 // in here, we should use this to trigger reading the genesis now
 // TODO: investigate validators and consensusParams in response
 func (s *StoreApp) InitChain(req abci.RequestInitChain) (res abci.ResponseInitChain) {
-	err := s.parseAppState(req.AppStateBytes, req.ChainId, s.initializer)
+	err := s.parseAppState(req.AppStateBytes, weave.FromInitChain(req), req.ChainId, s.initializer)
 	if err != nil {
 		// Read comment on type header
 		panic(err)
@@ -348,14 +347,14 @@ func (s *StoreApp) BeginBlock(req abci.RequestBeginBlock) (res abci.ResponseBegi
 // Returns a list of all validator changes made in this block
 // TODO: investigate response tags as of 0.11 abci
 func (s *StoreApp) EndBlock(_ abci.RequestEndBlock) (res abci.ResponseEndBlock) {
-	res.ValidatorUpdates = s.pending
+	res.ValidatorUpdates = weave.ValidatorUpdatesToABCI(s.pending)
 	s.pending = nil
 	return
 }
 
 // AddValChange is meant to be called by apps on DeliverTx
 // results, this is added to the cache for the endblock changeset
-func (s *StoreApp) AddValChange(diffs []abci.ValidatorUpdate) {
+func (s *StoreApp) AddValChange(diffs []weave.ValidatorUpdate) {
 	// ensures multiple updates for one validator are combined into one slot
 	for _, d := range diffs {
 		idx := pubKeyIndex(d, s.pending)
@@ -368,7 +367,7 @@ func (s *StoreApp) AddValChange(diffs []abci.ValidatorUpdate) {
 }
 
 // return index of list with validator of same Pubkey, or -1 if no match
-func pubKeyIndex(val abci.ValidatorUpdate, list []abci.ValidatorUpdate) int {
+func pubKeyIndex(val weave.ValidatorUpdate, list []weave.ValidatorUpdate) int {
 	for i, v := range list {
 		if val.PubKey.Type == v.PubKey.Type && bytes.Equal(val.PubKey.Data, v.PubKey.Data) {
 			return i

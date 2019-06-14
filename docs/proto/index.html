@@ -272,7 +272,15 @@
                 </li>
               
                 <li>
+                  <a href="#weave.PubKey"><span class="badge">M</span>PubKey</a>
+                </li>
+              
+                <li>
                   <a href="#weave.Validator"><span class="badge">M</span>Validator</a>
+                </li>
+              
+                <li>
+                  <a href="#weave.ValidatorUpdate"><span class="badge">M</span>ValidatorUpdate</a>
                 </li>
               
                 <li>
@@ -793,15 +801,11 @@
                 </li>
               
                 <li>
-                  <a href="#validators.Pubkey"><span class="badge">M</span>Pubkey</a>
-                </li>
-              
-                <li>
                   <a href="#validators.SetValidatorsMsg"><span class="badge">M</span>SetValidatorsMsg</a>
                 </li>
               
                 <li>
-                  <a href="#validators.ValidatorUpdate"><span class="badge">M</span>ValidatorUpdate</a>
+                  <a href="#validators.ValidatorUpdates"><span class="badge">M</span>ValidatorUpdates</a>
                 </li>
               
               
@@ -1774,8 +1778,38 @@ blockchain. </p></td>
 
         
       
+        <h3 id="weave.PubKey">PubKey</h3>
+        <p>PubKey represents a validator public key.</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>type</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>data</td>
+                  <td><a href="#bytes">bytes</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+        
+
+        
+      
         <h3 id="weave.Validator">Validator</h3>
-        <p>Validator represents a validator</p>
+        <p>Validator represents a validator;</p>
 
         
           <table class="field-table">
@@ -1804,8 +1838,38 @@ blockchain. </p></td>
 
         
       
+        <h3 id="weave.ValidatorUpdate">ValidatorUpdate</h3>
+        <p>ValidatorUpdate represents an update to validator set.</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>pub_key</td>
+                  <td><a href="#weave.PubKey">PubKey</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>power</td>
+                  <td><a href="#int64">int64</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+        
+
+        
+      
         <h3 id="weave.VoteInfo">VoteInfo</h3>
-        <p>VoteInfo tells us whether a validator signed the last block or not</p>
+        <p>VoteInfo tells us whether a validator signed the last block or not.</p>
 
         
           <table class="field-table">
@@ -5239,36 +5303,6 @@ total increment value, including the default increment. </p></td>
 
         
       
-        <h3 id="validators.Pubkey">Pubkey</h3>
-        <p></p>
-
-        
-          <table class="field-table">
-            <thead>
-              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
-            </thead>
-            <tbody>
-              
-                <tr>
-                  <td>type</td>
-                  <td><a href="#string">string</a></td>
-                  <td></td>
-                  <td><p> </p></td>
-                </tr>
-              
-                <tr>
-                  <td>data</td>
-                  <td><a href="#bytes">bytes</a></td>
-                  <td></td>
-                  <td><p> </p></td>
-                </tr>
-              
-            </tbody>
-          </table>
-        
-
-        
-      
         <h3 id="validators.SetValidatorsMsg">SetValidatorsMsg</h3>
         <p>This message is designed to update validator power</p>
 
@@ -5288,7 +5322,7 @@ total increment value, including the default increment. </p></td>
               
                 <tr>
                   <td>validator_updates</td>
-                  <td><a href="#validators.ValidatorUpdate">ValidatorUpdate</a></td>
+                  <td><a href="#weave.ValidatorUpdate">weave.ValidatorUpdate</a></td>
                   <td>repeated</td>
                   <td><p> </p></td>
                 </tr>
@@ -5299,8 +5333,8 @@ total increment value, including the default increment. </p></td>
 
         
       
-        <h3 id="validators.ValidatorUpdate">ValidatorUpdate</h3>
-        <p>ValidatorUpdate</p>
+        <h3 id="validators.ValidatorUpdates">ValidatorUpdates</h3>
+        <p>ValidatorUpdates represents latest validator state, used to validate SetValidatorMsg transactions.</p>
 
         
           <table class="field-table">
@@ -5310,16 +5344,9 @@ total increment value, including the default increment. </p></td>
             <tbody>
               
                 <tr>
-                  <td>pubkey</td>
-                  <td><a href="#validators.Pubkey">Pubkey</a></td>
-                  <td></td>
-                  <td><p> </p></td>
-                </tr>
-              
-                <tr>
-                  <td>power</td>
-                  <td><a href="#int64">int64</a></td>
-                  <td></td>
+                  <td>validator_updates</td>
+                  <td><a href="#weave.ValidatorUpdate">weave.ValidatorUpdate</a></td>
+                  <td>repeated</td>
                   <td><p> </p></td>
                 </tr>
               

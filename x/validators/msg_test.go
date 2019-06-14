@@ -9,7 +9,7 @@ import (
 )
 
 func TestValidateSetValidatorMsg(t *testing.T) {
-	pubkey := Pubkey{
+	pubkey := weave.PubKey{
 		Data: weavetest.NewKey().PublicKey().GetEd25519(),
 		Type: "ed25519",
 	}
@@ -21,18 +21,18 @@ func TestValidateSetValidatorMsg(t *testing.T) {
 		"valid model": {
 			Msg: &SetValidatorsMsg{
 				Metadata: &weave.Metadata{Schema: 1},
-				ValidatorUpdates: []*ValidatorUpdate{
-					{Power: 4, Pubkey: pubkey},
-					{Power: 3, Pubkey: pubkey},
+				ValidatorUpdates: []weave.ValidatorUpdate{
+					{Power: 4, PubKey: pubkey},
+					{Power: 3, PubKey: pubkey},
 				},
 			},
 			WantErr: nil,
 		},
 		"missing metadata": {
 			Msg: &SetValidatorsMsg{
-				ValidatorUpdates: []*ValidatorUpdate{
-					{Power: 4, Pubkey: pubkey},
-					{Power: 3, Pubkey: pubkey},
+				ValidatorUpdates: []weave.ValidatorUpdate{
+					{Power: 4, PubKey: pubkey},
+					{Power: 3, PubKey: pubkey},
 				},
 			},
 			WantErr: errors.ErrMetadata,

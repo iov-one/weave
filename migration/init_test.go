@@ -31,7 +31,7 @@ func TestGenesisInitializeSchemaVersions(t *testing.T) {
 
 	db := store.MemStore()
 	var ini Initializer
-	if err := ini.FromGenesis(opts, db); err != nil {
+	if err := ini.FromGenesis(opts, weave.GenesisParams{}, db); err != nil {
 		t.Fatalf("cannot load genesis: %s", err)
 	}
 

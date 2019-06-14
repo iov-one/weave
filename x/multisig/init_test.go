@@ -39,7 +39,7 @@ func TestGenesisKey(t *testing.T) {
 	db := store.MemStore()
 	migration.MustInitPkg(db, "multisig")
 	var ini Initializer
-	if err := ini.FromGenesis(opts, db); err != nil {
+	if err := ini.FromGenesis(opts, weave.GenesisParams{}, db); err != nil {
 		t.Fatalf("cannot load genesis: %s", err)
 	}
 
