@@ -6,7 +6,6 @@ import (
 	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/x"
-	"github.com/iov-one/weave/x/cash"
 )
 
 const (
@@ -15,7 +14,7 @@ const (
 	changeTokenTargetCost = 0
 )
 
-func RegisterRoutes(r weave.Registry, auth x.Authenticator, cash cash.Controller) {
+func RegisterRoutes(r weave.Registry, auth x.Authenticator) {
 	r = migration.SchemaMigratingRegistry("username", r)
 
 	b := NewTokenBucket()
@@ -66,9 +65,9 @@ func (h *registerTokenHandler) validate(ctx weave.Context, db weave.KVStore, tx 
 
 	switch err := h.bucket.Has(db, msg.Username.Bytes()); {
 	case err == nil:
-		// All good.
-	case errors.ErrNotFound.Is(err):
 		return nil, errors.Wrapf(errors.ErrDuplicate, "username %q already registered", msg.Username)
+	case errors.ErrNotFound.Is(err):
+		// All good. Username is not taken yet.
 	default:
 		return nil, errors.Wrap(err, "cannot check if username is unique")
 	}

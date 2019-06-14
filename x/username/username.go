@@ -44,6 +44,10 @@ func (u Username) Bytes() []byte {
 	return []byte(u)
 }
 
+func (u Username) String() string {
+	return string(u)
+}
+
 func (u Username) Validate() error {
 	if !validUsername(string(u)) {
 		return errors.Wrap(errors.ErrInput, "invalid username")

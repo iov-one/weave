@@ -25,7 +25,7 @@ func (m *RegisterTokenMsg) Validate() error {
 }
 
 func (RegisterTokenMsg) Path() string {
-	return "username/register-token"
+	return "username/registerToken"
 }
 
 func (m *ChangeTokenOwnerMsg) Validate() error {
@@ -42,7 +42,7 @@ func (m *ChangeTokenOwnerMsg) Validate() error {
 }
 
 func (ChangeTokenOwnerMsg) Path() string {
-	return "username/change-token-owner"
+	return "username/changeTokenOwner"
 }
 
 func (m *ChangeTokenTargetMsg) Validate() error {
@@ -59,5 +59,5 @@ func (m *ChangeTokenTargetMsg) Validate() error {
 }
 
 func (ChangeTokenTargetMsg) Path() string {
-	return "username/change-token-target"
+	return "username/changeTokenTarget"
 }

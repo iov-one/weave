@@ -45,6 +45,7 @@ var commands = map[string]func(input io.Reader, output io.Writer, args []string)
 	"register-username":         cmdRegisterUsername,
 	"release-escrow":            cmdReleaseEscrow,
 	"reset-revenue":             cmdResetRevenue,
+	"resolve-username":          cmdResolveUsername,
 	"send-tokens":               cmdSendTokens,
 	"set-validators":            cmdSetValidators,
 	"sign":                      cmdSignTransaction,
