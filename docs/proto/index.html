@@ -1043,8 +1043,29 @@
                   <td>reset_revenue_msg</td>
                   <td><a href="#distribution.ResetRevenueMsg">distribution.ResetRevenueMsg</a></td>
                   <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>register_token_msg</td>
+                  <td><a href="#username.RegisterTokenMsg">username.RegisterTokenMsg</a></td>
+                  <td></td>
                   <td><p>upgrade schema is important enough, it should be a solo action
 aswap and gov don&#39;t make much sense as part of a batch (no vote buying) </p></td>
+                </tr>
+              
+                <tr>
+                  <td>change_token_owner_msg</td>
+                  <td><a href="#username.ChangeTokenOwnerMsg">username.ChangeTokenOwnerMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>change_token_target_msg</td>
+                  <td><a href="#username.ChangeTokenTargetMsg">username.ChangeTokenTargetMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
                 </tr>
               
             </tbody>
@@ -1156,6 +1177,27 @@ aswap and gov don&#39;t make much sense as part of a batch (no vote buying) </p>
                   <td><p> </p></td>
                 </tr>
               
+                <tr>
+                  <td>register_token_msg</td>
+                  <td><a href="#username.RegisterTokenMsg">username.RegisterTokenMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>change_token_owner_msg</td>
+                  <td><a href="#username.ChangeTokenOwnerMsg">username.ChangeTokenOwnerMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>change_token_target_msg</td>
+                  <td><a href="#username.ChangeTokenTargetMsg">username.ChangeTokenTargetMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
             </tbody>
           </table>
         
@@ -1252,6 +1294,27 @@ aswap and gov don&#39;t make much sense as part of a batch (no vote buying) </p>
                 <tr>
                   <td>text_resolution_msg</td>
                   <td><a href="#gov.TextResolutionMsg">gov.TextResolutionMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>register_token_msg</td>
+                  <td><a href="#username.RegisterTokenMsg">username.RegisterTokenMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>change_token_owner_msg</td>
+                  <td><a href="#username.ChangeTokenOwnerMsg">username.ChangeTokenOwnerMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>change_token_target_msg</td>
+                  <td><a href="#username.ChangeTokenTargetMsg">username.ChangeTokenTargetMsg</a></td>
                   <td></td>
                   <td><p> </p></td>
                 </tr>
@@ -1486,7 +1549,28 @@ aswap and gov don&#39;t make much sense as part of a batch (no vote buying) </p>
                   <td>update_election_rule_msg</td>
                   <td><a href="#gov.UpdateElectionRuleMsg">gov.UpdateElectionRuleMsg</a></td>
                   <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>register_token_msg</td>
+                  <td><a href="#username.RegisterTokenMsg">username.RegisterTokenMsg</a></td>
+                  <td></td>
                   <td><p>79 is reserved (see ProposalOptions: TextResolutionMsg) </p></td>
+                </tr>
+              
+                <tr>
+                  <td>change_token_owner_msg</td>
+                  <td><a href="#username.ChangeTokenOwnerMsg">username.ChangeTokenOwnerMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>change_token_target_msg</td>
+                  <td><a href="#username.ChangeTokenTargetMsg">username.ChangeTokenTargetMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
                 </tr>
               
             </tbody>
@@ -5330,7 +5414,7 @@ total increment value, including the default increment. </p></td>
               
                 <tr>
                   <td>new_owner</td>
-                  <td><a href="#string">string</a></td>
+                  <td><a href="#bytes">bytes</a></td>
                   <td></td>
                   <td><p>Owner is a weave address that will owns this token after the change. </p></td>
                 </tr>
@@ -5441,7 +5525,7 @@ data. </p></td>
                   <td>target</td>
                   <td><a href="#username.Location">Location</a></td>
                   <td></td>
-                  <td><p> </p></td>
+                  <td><p>Target is a blockchain address location that this token should point to. </p></td>
                 </tr>
               
             </tbody>
@@ -5476,9 +5560,10 @@ data. </p></td>
               
                 <tr>
                   <td>owner</td>
-                  <td><a href="#string">string</a></td>
+                  <td><a href="#bytes">bytes</a></td>
                   <td></td>
-                  <td><p> </p></td>
+                  <td><p>Owner is a weave.Address that controls this token. Only the owner can
+modify a username token. </p></td>
                 </tr>
               
             </tbody>

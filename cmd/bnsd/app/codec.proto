@@ -14,6 +14,7 @@ import "x/gov/codec.proto";
 import "x/multisig/codec.proto";
 import "x/nft/codec.proto";
 import "x/sigs/codec.proto";
+import "x/username/codec.proto";
 import "x/validators/codec.proto";
 
 // Tx contains the message.
@@ -63,7 +64,9 @@ message Tx {
     gov.UpdateElectorateMsg update_electorate_msg = 77;
     gov.UpdateElectionRuleMsg update_election_rule_msg = 78;
     // 79 is reserved (see ProposalOptions: TextResolutionMsg)
-
+    username.RegisterTokenMsg register_token_msg = 80;
+    username.ChangeTokenOwnerMsg change_token_owner_msg = 81;
+    username.ChangeTokenTargetMsg change_token_target_msg = 82;
   }
 }
 
@@ -91,7 +94,9 @@ message BatchMsg {
       distribution.ResetRevenueMsg reset_revenue_msg = 68;
       // upgrade schema is important enough, it should be a solo action
       // aswap and gov don't make much sense as part of a batch (no vote buying)
-
+      username.RegisterTokenMsg register_token_msg = 80;
+      username.ChangeTokenOwnerMsg change_token_owner_msg = 81;
+      username.ChangeTokenTargetMsg change_token_target_msg = 82;
     }
   }
   repeated Union messages = 1 [(gogoproto.nullable) = false];
@@ -113,6 +118,9 @@ message ProposalOptions {
     gov.UpdateElectorateMsg update_electorate_msg = 77;
     gov.UpdateElectionRuleMsg update_election_rule_msg = 78;
     gov.TextResolutionMsg text_resolution_msg = 79;
+    username.RegisterTokenMsg register_token_msg = 80;
+    username.ChangeTokenOwnerMsg change_token_owner_msg = 81;
+    username.ChangeTokenTargetMsg change_token_target_msg = 82;
   }
 }
 
@@ -131,6 +139,9 @@ message ProposalBatchMsg {
       gov.UpdateElectorateMsg update_electorate_msg = 77;
       gov.UpdateElectionRuleMsg update_election_rule_msg = 78;
       gov.TextResolutionMsg text_resolution_msg = 79;
+      username.RegisterTokenMsg register_token_msg = 80;
+      username.ChangeTokenOwnerMsg change_token_owner_msg = 81;
+      username.ChangeTokenTargetMsg change_token_target_msg = 82;
     }
   }
   repeated Union messages = 1 [(gogoproto.nullable) = false];

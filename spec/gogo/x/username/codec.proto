@@ -19,7 +19,9 @@ message Token {
   weave.Metadata metadata = 1;
   // Target specifies where this username token points to.
   Location target = 2 [(gogoproto.nullable) = false];
-  string owner = 3 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
+  // Owner is a weave.Address that controls this token. Only the owner can
+  // modify a username token.
+  bytes owner = 3 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
 }
 
 // Location represents a blochain address. This structure clubs together
@@ -42,6 +44,7 @@ message RegisterTokenMsg {
   weave.Metadata metadata = 1;
   // Username is the unique name of the token, for example alice*iov
   string username = 2 [(gogoproto.casttype) = "Username"];
+  // Target is a blockchain address location that this token should point to.
   Location target = 3 [(gogoproto.nullable) = false];
 }
 
@@ -53,7 +56,7 @@ message ChangeTokenOwnerMsg {
   // Username is the unique name of the token, for example alice*iov
   string username = 2 [(gogoproto.casttype) = "Username"];
   // Owner is a weave address that will owns this token after the change.
-  string new_owner = 3 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
+  bytes new_owner = 3 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
 }
 
 // ChangeTokenTargetMsg is a request to change the address that this token

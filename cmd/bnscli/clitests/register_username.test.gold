@@ -1,0 +1,14 @@
+{
+	"Sum": {
+		"RegisterTokenMsg": {
+			"metadata": {
+				"schema": 1
+			},
+			"username": "alice*iov",
+			"target": {
+				"blockchain_id": "fairycoin",
+				"address": "RnIgMTQuIEp1biAxMDo1NjozNyBDRVNUIDIwMTkK"
+			}
+		}
+	}
+}
