@@ -10,7 +10,6 @@ import (
 	"github.com/iov-one/weave/x/batch"
 	. "github.com/smartystreets/goconvey/convey"
 	"github.com/stretchr/testify/mock"
-	"github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/common"
 )
 
@@ -60,8 +59,8 @@ func (m *mockHelper) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx
 	return args.Get(0).(*weave.DeliverResult), args.Error(1)
 }
 
-func mockDiff(num int64) []types.ValidatorUpdate {
-	list := make([]types.ValidatorUpdate, num)
+func mockDiff(num int64) []weave.ValidatorUpdate {
+	list := make([]weave.ValidatorUpdate, num)
 	return list
 }
 
@@ -131,7 +130,7 @@ func TestDecorator(t *testing.T) {
 				Data:        make([]byte, 1),
 				Log:         logVal,
 				GasUsed:     gas,
-				Diff:        make([]types.ValidatorUpdate, 1),
+				Diff:        make([]weave.ValidatorUpdate, 1),
 				Tags:        make([]common.KVPair, 1),
 				RequiredFee: fee,
 			}, nil).Times(int(num))
@@ -170,7 +169,7 @@ func TestDecorator(t *testing.T) {
 					Data:        dataContent,
 					Log:         logVal,
 					GasUsed:     gas,
-					Diff:        make([]types.ValidatorUpdate, 1),
+					Diff:        make([]weave.ValidatorUpdate, 1),
 					Tags:        make([]common.KVPair, 1),
 					RequiredFee: req,
 				}

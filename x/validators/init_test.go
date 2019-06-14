@@ -1,7 +1,6 @@
 package validators
 
 import (
-	"github.com/tendermint/tendermint/abci/types"
 	"reflect"
 	"testing"
 
@@ -9,6 +8,7 @@ import (
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/store"
+	"github.com/tendermint/tendermint/abci/types"
 )
 
 func TestInitState(t *testing.T) {
@@ -19,6 +19,8 @@ func TestInitState(t *testing.T) {
 		Params      weave.GenesisParams
 		Exp         *WeaveAccounts
 		ValidParams bool
+		Dupes       bool
+		NoPower     bool
 		ExpError    *errors.Error
 	}{
 		"Init with addresses": {
@@ -42,6 +44,23 @@ func TestInitState(t *testing.T) {
 			}},
 			ValidParams: true,
 		},
+		"Init filters dupes in params and applies the last one": {
+			State: weave.Options{},
+			Params: weave.GenesisParams{Validators: []types.ValidatorUpdate{
+				{Power: 1, PubKey: types.PubKey{Type: "ed25519", Data: make([]byte, 32)}},
+				{Power: 3, PubKey: types.PubKey{Type: "ed25519", Data: make([]byte, 32)}},
+			}},
+			ValidParams: true,
+			Dupes:       true,
+		},
+		"Init filters 0 power updates": {
+			State: weave.Options{},
+			Params: weave.GenesisParams{Validators: []types.ValidatorUpdate{
+				{Power: 0, PubKey: types.PubKey{Type: "ed25519", Data: make([]byte, 32)}},
+			}},
+			ValidParams: true,
+			NoPower:     true,
+		},
 		"Init does not work with invalid params": {
 			State: weave.Options{},
 			Params: weave.GenesisParams{Validators: []types.ValidatorUpdate{
@@ -63,7 +82,7 @@ func TestInitState(t *testing.T) {
 			}
 
 			if spec.ValidParams {
-				res, err := kv.Get([]byte(optKey))
+				res, err := kv.Get([]byte(storeKey))
 				if err != nil {
 					t.Fatalf("unexpected error: %s", err)
 				}
@@ -74,8 +93,14 @@ func TestInitState(t *testing.T) {
 				}
 
 				exp := ValidatorUpdatesFromABCI(spec.Params.Validators)
+				if spec.Dupes {
+					exp.ValidatorUpdates = exp.ValidatorUpdates[1:]
+				}
+				if spec.NoPower {
+					exp.ValidatorUpdates = nil
+				}
 
-				if !reflect.DeepEqual(ValidatorUpdatesFromABCI(spec.Params.Validators), vu) {
+				if !reflect.DeepEqual(exp, vu) {
 					t.Errorf("expected %v but got %v", exp, vu)
 				}
 			}

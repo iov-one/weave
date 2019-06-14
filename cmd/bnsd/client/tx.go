@@ -52,7 +52,7 @@ func ParseBcpTx(data []byte) (*app.Tx, error) {
 }
 
 // SetValidatorTx will create an unsigned tx to replace current validator set
-func SetValidatorTx(u ...*validators.ValidatorUpdate) *app.Tx {
+func SetValidatorTx(u ...weave.ValidatorUpdate) *app.Tx {
 	return &app.Tx{
 		Sum: &app.Tx_SetValidatorsMsg{
 			SetValidatorsMsg: &validators.SetValidatorsMsg{

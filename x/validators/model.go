@@ -29,28 +29,36 @@ func (m ValidatorUpdates) Validate() error {
 // Store stores ValidatorUpdates to the KVStore while cleaning up those with 0
 // power.
 func (m ValidatorUpdates) Store(store weave.KVStore) error {
-	cleanValidatorSlice := make([]ValidatorUpdate, 0, len(m.ValidatorUpdates))
-	// Cleanup validators with power 0 as these get discarded by tendermint.
+	duplicates := make(map[string]int, 0)
+	cleanValidatorSlice := make([]weave.ValidatorUpdate, 0, len(m.ValidatorUpdates))
+	// Cleanup validators with power 0 as these get discarded by tendermint. Also
+	// make sure only the last validator update gets stored if there is a duplicate.
 	for _, v := range m.ValidatorUpdates {
 		if v.Power == 0 {
 			continue
 		}
+		if key, ok := duplicates[v.PubKey.String()]; ok {
+			cleanValidatorSlice[key] = v
+			continue
+		}
 		cleanValidatorSlice = append(cleanValidatorSlice, v)
+		duplicates[v.PubKey.String()] = len(cleanValidatorSlice) - 1
 	}
+
 	m.ValidatorUpdates = cleanValidatorSlice
 
 	marshalledUpdates, err := m.Marshal()
 	if err != nil {
 		return errors.Wrap(err, "validator updates marshal")
 	}
+	err = store.Set([]byte(storeKey), marshalledUpdates)
 
-	err = store.Set([]byte(optKey), marshalledUpdates)
 	return errors.Wrap(err, "kvstore save")
 }
 
 func GetValidatorUpdates(store weave.KVStore) (ValidatorUpdates, error) {
 	vu := ValidatorUpdates{}
-	bytes, err := store.Get([]byte(optKey))
+	bytes, err := store.Get([]byte(storeKey))
 	if err != nil {
 		return vu, errors.Wrap(err, "kvstore get")
 	}
@@ -61,11 +69,11 @@ func GetValidatorUpdates(store weave.KVStore) (ValidatorUpdates, error) {
 
 func ValidatorUpdatesFromABCI(u []abci.ValidatorUpdate) ValidatorUpdates {
 	vu := ValidatorUpdates{
-		ValidatorUpdates: make([]ValidatorUpdate, len(u)),
+		ValidatorUpdates: make([]weave.ValidatorUpdate, len(u)),
 	}
 
 	for k, v := range u {
-		vu.ValidatorUpdates[k] = ValidatorUpdateFromABCI(v)
+		vu.ValidatorUpdates[k] = weave.ValidatorUpdateFromABCI(v)
 	}
 
 	return vu

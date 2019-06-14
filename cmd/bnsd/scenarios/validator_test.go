@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/cmd/bnsd/client"
 	"github.com/iov-one/weave/cmd/bnsd/scenarios/bnsdtest"
 	"github.com/iov-one/weave/x/validators"
@@ -42,8 +43,8 @@ func TestUpdateValidatorSet(t *testing.T) {
 
 	// when adding a new validator
 	addValidatorTX := client.SetValidatorTx(
-		&validators.ValidatorUpdate{
-			Pubkey: validators.Pubkey{
+		weave.ValidatorUpdate{
+			PubKey: weave.PubKey{
 				Type: "ed25519",
 				Data: keyEd25519[:],
 			},
@@ -75,8 +76,8 @@ func TestUpdateValidatorSet(t *testing.T) {
 
 	// and when delete validator
 	delValidatorTX := client.SetValidatorTx(
-		&validators.ValidatorUpdate{
-			Pubkey: validators.Pubkey{
+		weave.ValidatorUpdate{
+			PubKey: weave.PubKey{
 				Type: "ed25519",
 				Data: keyEd25519[:],
 			},

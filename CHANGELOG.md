@@ -22,6 +22,8 @@ Breaking changes
   the previous version.
 - `x/gov` added indexes to proposals and electorate to enable better client-side UX
 - `cash.UpdateConfigurationMsg` requires `Metadata.Schema`
+- ValidatorUpdate definitions now moved to `weave` package. Weave is using these definitions
+now instead of abci internally.
 
 
 ## 0.16.0

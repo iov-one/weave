@@ -7,24 +7,13 @@ import "gogoproto/gogo.proto";
 
 // ValidatorUpdates represents latest validator state, used to validate SetValidatorMsg transactions.
 message ValidatorUpdates {
-  repeated ValidatorUpdate validator_updates = 1 [(gogoproto.nullable) = false];
-}
-
-// ValidatorUpdate
-message ValidatorUpdate {
-  Pubkey pubkey = 1 [(gogoproto.nullable) = false];
-  int64 power = 2;
-}
-
-message Pubkey {
-  string type = 1;
-  bytes data = 2;
+  repeated weave.ValidatorUpdate validator_updates = 1 [(gogoproto.nullable) = false];
 }
 
 // This message is designed to update validator power
 message SetValidatorsMsg {
   weave.Metadata metadata = 1;
-  repeated ValidatorUpdate validator_updates = 2;
+  repeated weave.ValidatorUpdate validator_updates = 2 [(gogoproto.nullable) = false];
 }
 
 // Accounts is a list of accounts allowed to update validators
