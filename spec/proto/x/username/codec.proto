@@ -1,0 +1,67 @@
+syntax = "proto3";
+
+package username;
+
+import "codec.proto";
+
+// Token model represents a username mapping to an address together with all
+// metadata.
+//
+// Each Token model is stored using the username as the key. This guarantee
+// that the name is unique. Username is a combination of a name and a domain.
+// The format is <name>*<domain>
+//
+// Each token points to a blockchain and an address on that blockchain. Both
+// blockchain ID and address are an arbitrary string as we do not want to limit
+// ourselves to certain patterns.
+message Token {
+  weave.Metadata metadata = 1;
+  // Target specifies where this username token points to.
+  Location target = 2 ;
+  string owner = 3 ;
+}
+
+// Location represents a blochain address. This structure clubs together
+// blokchain ID together with an address on that network. It is used to point
+// to an address on any blockchain network.
+message Location {
+  // An arbitrary blockchain ID.
+  string blockchain_id = 1 ;
+  // An address on the specified blockchain network. Address is not a
+  // weave.Address as we cannot know what is the format of an address on the
+  // chain that this token instance links to. Because we do not know the rules
+  // to validate an address for any blockchain ID, this is an arbitrary bulk of
+  // data.
+  bytes address = 2;
+}
+
+// RegisterTokenMsg is creating a new username token. The owner is always set
+// to the main signer.
+message RegisterTokenMsg {
+  weave.Metadata metadata = 1;
+  // Username is the unique name of the token, for example alice*iov
+  string username = 2 ;
+  Location target = 3 ;
+}
+
+// ChangeTokenOwnerMsg is a request to transfer an ownership of a token. The
+// mesage must be signed by the current token owner. Acceptance of the new
+// owner is not required in order to succeed.
+message ChangeTokenOwnerMsg {
+  weave.Metadata metadata = 1;
+  // Username is the unique name of the token, for example alice*iov
+  string username = 2 ;
+  // Owner is a weave address that will owns this token after the change.
+  string new_owner = 3 ;
+}
+
+// ChangeTokenTargetMsg is a request to change the address that this token
+// points to. Only the owner of a token can request this operation.
+message ChangeTokenTargetMsg {
+  weave.Metadata metadata = 1;
+  // Username is the unique name of the token, for example alice*iov
+  string username = 2 ;
+  // New target is a blockchain address location that this token should point
+  // to after the change.
+  Location new_target = 3 ;
+}

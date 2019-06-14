@@ -793,6 +793,37 @@
         
           
           <li>
+            <a href="#x%2fusername%2fcodec.proto">x/username/codec.proto</a>
+            <ul>
+              
+                <li>
+                  <a href="#username.ChangeTokenOwnerMsg"><span class="badge">M</span>ChangeTokenOwnerMsg</a>
+                </li>
+              
+                <li>
+                  <a href="#username.ChangeTokenTargetMsg"><span class="badge">M</span>ChangeTokenTargetMsg</a>
+                </li>
+              
+                <li>
+                  <a href="#username.Location"><span class="badge">M</span>Location</a>
+                </li>
+              
+                <li>
+                  <a href="#username.RegisterTokenMsg"><span class="badge">M</span>RegisterTokenMsg</a>
+                </li>
+              
+                <li>
+                  <a href="#username.Token"><span class="badge">M</span>Token</a>
+                </li>
+              
+              
+              
+              
+            </ul>
+          </li>
+        
+          
+          <li>
             <a href="#x%2fvalidators%2fcodec.proto">x/validators/codec.proto</a>
             <ul>
               
@@ -5249,6 +5280,203 @@ total increment value, including the default increment. </p></td>
                 <tr>
                   <td>sequence</td>
                   <td><a href="#int64">int64</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+        
+
+        
+      
+
+      
+
+      
+
+      
+    
+      
+      <div class="file-heading">
+        <h2 id="x/username/codec.proto">x/username/codec.proto</h2><a href="#title">Top</a>
+      </div>
+      <p></p>
+
+      
+        <h3 id="username.ChangeTokenOwnerMsg">ChangeTokenOwnerMsg</h3>
+        <p>ChangeTokenOwnerMsg is a request to transfer an ownership of a token. The</p><p>mesage must be signed by the current token owner. Acceptance of the new</p><p>owner is not required in order to succeed.</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>metadata</td>
+                  <td><a href="#weave.Metadata">weave.Metadata</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>username</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p>Username is the unique name of the token, for example alice*iov </p></td>
+                </tr>
+              
+                <tr>
+                  <td>new_owner</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p>Owner is a weave address that will owns this token after the change. </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+        
+
+        
+      
+        <h3 id="username.ChangeTokenTargetMsg">ChangeTokenTargetMsg</h3>
+        <p>ChangeTokenTargetMsg is a request to change the address that this token</p><p>points to. Only the owner of a token can request this operation.</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>metadata</td>
+                  <td><a href="#weave.Metadata">weave.Metadata</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>username</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p>Username is the unique name of the token, for example alice*iov </p></td>
+                </tr>
+              
+                <tr>
+                  <td>new_target</td>
+                  <td><a href="#username.Location">Location</a></td>
+                  <td></td>
+                  <td><p>New target is a blockchain address location that this token should point
+to after the change. </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+        
+
+        
+      
+        <h3 id="username.Location">Location</h3>
+        <p>Location represents a blochain address. This structure clubs together</p><p>blokchain ID together with an address on that network. It is used to point</p><p>to an address on any blockchain network.</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>blockchain_id</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p>An arbitrary blockchain ID. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>address</td>
+                  <td><a href="#bytes">bytes</a></td>
+                  <td></td>
+                  <td><p>An address on the specified blockchain network. Address is not a
+weave.Address as we cannot know what is the format of an address on the
+chain that this token instance links to. Because we do not know the rules
+to validate an address for any blockchain ID, this is an arbitrary bulk of
+data. </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+        
+
+        
+      
+        <h3 id="username.RegisterTokenMsg">RegisterTokenMsg</h3>
+        <p>RegisterTokenMsg is creating a new username token. The owner is always set</p><p>to the main signer.</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>metadata</td>
+                  <td><a href="#weave.Metadata">weave.Metadata</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>username</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p>Username is the unique name of the token, for example alice*iov </p></td>
+                </tr>
+              
+                <tr>
+                  <td>target</td>
+                  <td><a href="#username.Location">Location</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+        
+
+        
+      
+        <h3 id="username.Token">Token</h3>
+        <p>Token model represents a username mapping to an address together with all</p><p>metadata.</p><p>Each Token model is stored using the username as the key. This guarantee</p><p>that the name is unique. Username is a combination of a name and a domain.</p><p>The format is <name>*<domain></p><p>Each token points to a blockchain and an address on that blockchain. Both</p><p>blockchain ID and address are an arbitrary string as we do not want to limit</p><p>ourselves to certain patterns.</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>metadata</td>
+                  <td><a href="#weave.Metadata">weave.Metadata</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>target</td>
+                  <td><a href="#username.Location">Location</a></td>
+                  <td></td>
+                  <td><p>Target specifies where this username token points to. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>owner</td>
+                  <td><a href="#string">string</a></td>
                   <td></td>
                   <td><p> </p></td>
                 </tr>
