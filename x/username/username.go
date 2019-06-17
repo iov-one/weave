@@ -20,22 +20,22 @@ func ParseUsername(s string) (Username, error) {
 
 // Name returns the name part. This is the value before the separator.
 func (u Username) Name() string {
-	for c, i := range u {
+	for i, c := range u {
 		if c == '*' {
 			return string(u[:i])
 		}
 	}
-	return string(u)
+	return ""
 }
 
 // Name returns the name part. This is the value before the separator.
 func (u Username) Domain() string {
-	for c, i := range u {
+	for i, c := range u {
 		if c == '*' {
 			return string(u[i+1:])
 		}
 	}
-	return string(u)
+	return ""
 }
 
 // Bytes returns the byte representation of the username. Use this method when
