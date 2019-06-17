@@ -17,16 +17,16 @@ import "codec.proto";
 message Token {
   weave.Metadata metadata = 1;
   // Target specifies where this username token points to.
-  Location target = 2 ;
+  BlockchainAddress target = 2 ;
   // Owner is a weave.Address that controls this token. Only the owner can
   // modify a username token.
   bytes owner = 3 ;
 }
 
-// Location represents a blochain address. This structure clubs together
+// BlockchainAddress represents a blochain address. This structure clubs together
 // blokchain ID together with an address on that network. It is used to point
 // to an address on any blockchain network.
-message Location {
+message BlockchainAddress {
   // An arbitrary blockchain ID.
   string blockchain_id = 1 ;
   // An address on the specified blockchain network. Address is not a
@@ -44,7 +44,7 @@ message RegisterTokenMsg {
   // Username is the unique name of the token, for example alice*iov
   string username = 2 ;
   // Target is a blockchain address location that this token should point to.
-  Location target = 3 ;
+  BlockchainAddress target = 3 ;
 }
 
 // ChangeTokenOwnerMsg is a request to transfer an ownership of a token. The
@@ -66,5 +66,5 @@ message ChangeTokenTargetMsg {
   string username = 2 ;
   // New target is a blockchain address location that this token should point
   // to after the change.
-  Location new_target = 3 ;
+  BlockchainAddress new_target = 3 ;
 }

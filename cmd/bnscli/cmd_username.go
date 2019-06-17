@@ -38,7 +38,7 @@ Create a transaction for registering a username.
 	msg := username.RegisterTokenMsg{
 		Metadata: &weave.Metadata{Schema: 1},
 		Username: uname,
-		Target: username.Location{
+		Target: username.BlockchainAddress{
 			BlockchainID: *blockchainFl,
 			Address:      *addressFl,
 		},

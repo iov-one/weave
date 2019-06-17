@@ -11,14 +11,14 @@ func init() {
 	migration.MustRegister(1, &Token{}, migration.NoModification)
 }
 
-func (loc *Location) Validate() error {
-	switch n := len(loc.BlockchainID); {
+func (ba *BlockchainAddress) Validate() error {
+	switch n := len(ba.BlockchainID); {
 	case n < 3:
 		return errors.Wrap(errors.ErrInput, "blockchain ID too short")
 	case n > 32:
 		return errors.Wrap(errors.ErrInput, "blockchain ID too long")
 	}
-	switch n := len(loc.Address); {
+	switch n := len(ba.Address); {
 	case n < 3:
 		return errors.Wrap(errors.ErrInput, "address too short")
 	case n > 1024:
@@ -27,10 +27,10 @@ func (loc *Location) Validate() error {
 	return nil
 }
 
-func (loc *Location) Clone() Location {
-	return Location{
-		BlockchainID: loc.BlockchainID,
-		Address:      loc.Address,
+func (ba *BlockchainAddress) Clone() BlockchainAddress {
+	return BlockchainAddress{
+		BlockchainID: ba.BlockchainID,
+		Address:      ba.Address,
 	}
 }
 
