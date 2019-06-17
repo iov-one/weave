@@ -60,7 +60,8 @@ func cmdResolveUsername(input io.Reader, output io.Writer, args []string) error 
 	fl := flag.NewFlagSet("", flag.ExitOnError)
 	fl.Usage = func() {
 		fmt.Fprintln(flag.CommandLine.Output(), `
-Create a transaction for registering a username.
+Query a node to resolve the username. Successful result outputs a JSON
+serialized representation of the resolved username.
 		`)
 		fl.PrintDefaults()
 	}
