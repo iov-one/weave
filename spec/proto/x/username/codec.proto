@@ -16,8 +16,9 @@ import "codec.proto";
 // ourselves to certain patterns.
 message Token {
   weave.Metadata metadata = 1;
-  // Target specifies where this username token points to.
-  BlockchainAddress target = 2 ;
+  // Targets specifies where this username token points to. This must be at
+  // least one blockchain address elemenet.
+  repeated BlockchainAddress targets = 2 ;
   // Owner is a weave.Address that controls this token. Only the owner can
   // modify a username token.
   bytes owner = 3 ;
@@ -43,8 +44,8 @@ message RegisterTokenMsg {
   weave.Metadata metadata = 1;
   // Username is the unique name of the token, for example alice*iov
   string username = 2 ;
-  // Target is a blockchain address location that this token should point to.
-  BlockchainAddress target = 3 ;
+  // Targets is a blockchain address list that this token should point to.
+  repeated BlockchainAddress targets = 3 ;
 }
 
 // ChangeTokenOwnerMsg is a request to transfer an ownership of a token. The
@@ -58,13 +59,13 @@ message ChangeTokenOwnerMsg {
   bytes new_owner = 3 ;
 }
 
-// ChangeTokenTargetMsg is a request to change the address that this token
+// ChangeTokenTargetsMsg is a request to change the address that this token
 // points to. Only the owner of a token can request this operation.
-message ChangeTokenTargetMsg {
+message ChangeTokenTargetsMsg {
   weave.Metadata metadata = 1;
   // Username is the unique name of the token, for example alice*iov
   string username = 2 ;
-  // New target is a blockchain address location that this token should point
-  // to after the change.
-  BlockchainAddress new_target = 3 ;
+  // New targets is a list of blockchain addresses that this token should point
+  // to after the change. Old list is overwritten with what is provided.
+  repeated BlockchainAddress new_targets = 3 ;
 }

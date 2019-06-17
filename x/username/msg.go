@@ -8,7 +8,7 @@ import (
 func init() {
 	migration.MustRegister(1, &RegisterTokenMsg{}, migration.NoModification)
 	migration.MustRegister(1, &ChangeTokenOwnerMsg{}, migration.NoModification)
-	migration.MustRegister(1, &ChangeTokenTargetMsg{}, migration.NoModification)
+	migration.MustRegister(1, &ChangeTokenTargetsMsg{}, migration.NoModification)
 }
 
 func (m *RegisterTokenMsg) Validate() error {
@@ -18,8 +18,13 @@ func (m *RegisterTokenMsg) Validate() error {
 	if err := m.Username.Validate(); err != nil {
 		return errors.Wrap(err, "username")
 	}
-	if err := m.Target.Validate(); err != nil {
-		return errors.Wrap(err, "target")
+	if len(m.Targets) == 0 {
+		return errors.Wrap(errors.ErrEmpty, "targets")
+	}
+	for i, t := range m.Targets {
+		if err := t.Validate(); err != nil {
+			return errors.Wrapf(err, "target #%d", i)
+		}
 	}
 	return nil
 }
@@ -45,19 +50,24 @@ func (ChangeTokenOwnerMsg) Path() string {
 	return "username/changeTokenOwner"
 }
 
-func (m *ChangeTokenTargetMsg) Validate() error {
+func (m *ChangeTokenTargetsMsg) Validate() error {
 	if err := m.Metadata.Validate(); err != nil {
 		return errors.Wrap(err, "metadata")
 	}
 	if err := m.Username.Validate(); err != nil {
 		return errors.Wrap(err, "username")
 	}
-	if err := m.NewTarget.Validate(); err != nil {
-		return errors.Wrap(err, "new target")
+	if len(m.NewTargets) == 0 {
+		return errors.Wrap(errors.ErrEmpty, "targets")
+	}
+	for i, t := range m.NewTargets {
+		if err := t.Validate(); err != nil {
+			return errors.Wrapf(err, "new target #%d", i)
+		}
 	}
 	return nil
 }
 
-func (ChangeTokenTargetMsg) Path() string {
-	return "username/changeTokenTarget"
+func (ChangeTokenTargetsMsg) Path() string {
+	return "username/changeTokenTargets"
 }

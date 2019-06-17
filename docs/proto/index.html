@@ -805,7 +805,7 @@
                 </li>
               
                 <li>
-                  <a href="#username.ChangeTokenTargetMsg"><span class="badge">M</span>ChangeTokenTargetMsg</a>
+                  <a href="#username.ChangeTokenTargetsMsg"><span class="badge">M</span>ChangeTokenTargetsMsg</a>
                 </li>
               
                 <li>
@@ -1062,8 +1062,8 @@ aswap and gov don&#39;t make much sense as part of a batch (no vote buying) </p>
                 </tr>
               
                 <tr>
-                  <td>change_token_target_msg</td>
-                  <td><a href="#username.ChangeTokenTargetMsg">username.ChangeTokenTargetMsg</a></td>
+                  <td>change_token_targets_msg</td>
+                  <td><a href="#username.ChangeTokenTargetsMsg">username.ChangeTokenTargetsMsg</a></td>
                   <td></td>
                   <td><p> </p></td>
                 </tr>
@@ -1192,8 +1192,8 @@ aswap and gov don&#39;t make much sense as part of a batch (no vote buying) </p>
                 </tr>
               
                 <tr>
-                  <td>change_token_target_msg</td>
-                  <td><a href="#username.ChangeTokenTargetMsg">username.ChangeTokenTargetMsg</a></td>
+                  <td>change_token_targets_msg</td>
+                  <td><a href="#username.ChangeTokenTargetsMsg">username.ChangeTokenTargetsMsg</a></td>
                   <td></td>
                   <td><p> </p></td>
                 </tr>
@@ -1313,8 +1313,8 @@ aswap and gov don&#39;t make much sense as part of a batch (no vote buying) </p>
                 </tr>
               
                 <tr>
-                  <td>change_token_target_msg</td>
-                  <td><a href="#username.ChangeTokenTargetMsg">username.ChangeTokenTargetMsg</a></td>
+                  <td>change_token_targets_msg</td>
+                  <td><a href="#username.ChangeTokenTargetsMsg">username.ChangeTokenTargetsMsg</a></td>
                   <td></td>
                   <td><p> </p></td>
                 </tr>
@@ -1567,8 +1567,8 @@ aswap and gov don&#39;t make much sense as part of a batch (no vote buying) </p>
                 </tr>
               
                 <tr>
-                  <td>change_token_target_msg</td>
-                  <td><a href="#username.ChangeTokenTargetMsg">username.ChangeTokenTargetMsg</a></td>
+                  <td>change_token_targets_msg</td>
+                  <td><a href="#username.ChangeTokenTargetsMsg">username.ChangeTokenTargetsMsg</a></td>
                   <td></td>
                   <td><p> </p></td>
                 </tr>
@@ -5459,8 +5459,8 @@ data. </p></td>
 
         
       
-        <h3 id="username.ChangeTokenTargetMsg">ChangeTokenTargetMsg</h3>
-        <p>ChangeTokenTargetMsg is a request to change the address that this token</p><p>points to. Only the owner of a token can request this operation.</p>
+        <h3 id="username.ChangeTokenTargetsMsg">ChangeTokenTargetsMsg</h3>
+        <p>ChangeTokenTargetsMsg is a request to change the address that this token</p><p>points to. Only the owner of a token can request this operation.</p>
 
         
           <table class="field-table">
@@ -5484,11 +5484,11 @@ data. </p></td>
                 </tr>
               
                 <tr>
-                  <td>new_target</td>
+                  <td>new_targets</td>
                   <td><a href="#username.BlockchainAddress">BlockchainAddress</a></td>
-                  <td></td>
-                  <td><p>New target is a blockchain address location that this token should point
-to after the change. </p></td>
+                  <td>repeated</td>
+                  <td><p>New targets is a list of blockchain addresses that this token should point
+to after the change. Old list is overwritten with what is provided. </p></td>
                 </tr>
               
             </tbody>
@@ -5522,10 +5522,10 @@ to after the change. </p></td>
                 </tr>
               
                 <tr>
-                  <td>target</td>
+                  <td>targets</td>
                   <td><a href="#username.BlockchainAddress">BlockchainAddress</a></td>
-                  <td></td>
-                  <td><p>Target is a blockchain address location that this token should point to. </p></td>
+                  <td>repeated</td>
+                  <td><p>Targets is a blockchain address list that this token should point to. </p></td>
                 </tr>
               
             </tbody>
@@ -5552,10 +5552,11 @@ to after the change. </p></td>
                 </tr>
               
                 <tr>
-                  <td>target</td>
+                  <td>targets</td>
                   <td><a href="#username.BlockchainAddress">BlockchainAddress</a></td>
-                  <td></td>
-                  <td><p>Target specifies where this username token points to. </p></td>
+                  <td>repeated</td>
+                  <td><p>Targets specifies where this username token points to. This must be at
+least one blockchain address elemenet. </p></td>
                 </tr>
               
                 <tr>

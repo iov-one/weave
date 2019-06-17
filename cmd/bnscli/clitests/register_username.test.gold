@@ -5,10 +5,32 @@
 				"schema": 1
 			},
 			"username": "alice*iov",
-			"target": {
-				"blockchain_id": "fairycoin",
-				"address": "RnIgMTQuIEp1biAxMDo1NjozNyBDRVNUIDIwMTkK"
-			}
+			"targets": [
+				{
+					"blockchain_id": "fairycoin",
+					"address": "RnIgMTQuIEp1biAxMDo1NjozNyBDRVNUIDIwMTkK"
+				}
+			]
+		}
+	}
+}
+{
+	"Sum": {
+		"RegisterTokenMsg": {
+			"metadata": {
+				"schema": 1
+			},
+			"username": "bobby*iov",
+			"targets": [
+				{
+					"blockchain_id": "fairycoin",
+					"address": "RnIgMTQuIEp1biAxMDo1NjozNyBDRVNUIDIwMTkK"
+				},
+				{
+					"blockchain_id": "unicoin",
+					"address": "dW5pY29pbi0xCg=="
+				}
+			]
 		}
 	}
 }

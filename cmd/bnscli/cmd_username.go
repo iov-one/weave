@@ -34,14 +34,18 @@ Create a transaction for registering a username.
 	if err != nil {
 		return fmt.Errorf("given data produce an invalid username: %s", err)
 	}
+	target := username.BlockchainAddress{
+		BlockchainID: *blockchainFl,
+		Address:      *addressFl,
+	}
+	if err := target.Validate(); err != nil {
+		return fmt.Errorf("given data produce an invalid target: %s", err)
+	}
 
 	msg := username.RegisterTokenMsg{
 		Metadata: &weave.Metadata{Schema: 1},
 		Username: uname,
-		Target: username.BlockchainAddress{
-			BlockchainID: *blockchainFl,
-			Address:      *addressFl,
-		},
+		Targets:  []username.BlockchainAddress{target},
 	}
 	if err := msg.Validate(); err != nil {
 		return fmt.Errorf("given data produce an invalid message: %s", err)
@@ -127,4 +131,50 @@ func fetchUsernameToken(serverURL string, uname username.Username) (*username.To
 		return nil, fmt.Errorf("cannot unmarshal token: %s", err)
 	}
 	return &token, nil
+}
+
+func cmdWithBlockchainAddress(input io.Reader, output io.Writer, args []string) error {
+	fl := flag.NewFlagSet("", flag.ExitOnError)
+	fl.Usage = func() {
+		fmt.Fprintln(flag.CommandLine.Output(), `
+Attach a blockchain address information to given transaction.
+
+This functionality is intended to extend RegisterTokenMsg or ChangeTokenTargetsMsg.
+		`)
+		fl.PrintDefaults()
+	}
+	var (
+		blockchainFl = fl.String("bc", "", "Blockchain network ID.")
+		addressFl    = flHex(fl, "addr", "", "Hex encoded blochain address on this network.")
+	)
+	fl.Parse(args)
+
+	tx, _, err := readTx(input)
+	if err != nil {
+		return fmt.Errorf("cannot read input transaction: %s", err)
+	}
+
+	msg, err := tx.GetMsg()
+	if err != nil {
+		return fmt.Errorf("cannot extract message from the transaction: %s", err)
+	}
+
+	switch msg := msg.(type) {
+	case *username.RegisterTokenMsg:
+		msg.Targets = append(msg.Targets, username.BlockchainAddress{
+			BlockchainID: *blockchainFl,
+			Address:      *addressFl,
+		})
+	case *username.ChangeTokenTargetsMsg:
+		msg.NewTargets = append(msg.NewTargets, username.BlockchainAddress{
+			BlockchainID: *blockchainFl,
+			Address:      *addressFl,
+		})
+	default:
+		return fmt.Errorf("unsupported transaction message: %T", msg)
+	}
+
+	// Serialize back the transaction from the input. It was modified.
+	_, err = writeTx(output, tx)
+	return err
 }

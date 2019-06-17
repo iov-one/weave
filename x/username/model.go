@@ -39,8 +39,13 @@ func (t *Token) Validate() error {
 	if err := t.Metadata.Validate(); err != nil {
 		return errors.Wrap(err, "metadata")
 	}
-	if err := t.Target.Validate(); err != nil {
-		return errors.Wrap(err, "target")
+	if len(t.Targets) == 0 {
+		return errors.Wrap(errors.ErrEmpty, "targets")
+	}
+	for i, t := range t.Targets {
+		if err := t.Validate(); err != nil {
+			return errors.Wrapf(err, "target #%d", i)
+		}
 	}
 	if err := t.Owner.Validate(); err != nil {
 		return errors.Wrap(err, "owner")
@@ -49,9 +54,14 @@ func (t *Token) Validate() error {
 }
 
 func (t *Token) Copy() orm.CloneableData {
+	targets := make([]BlockchainAddress, len(t.Targets))
+	for i, t := range t.Targets {
+		targets[i] = t.Clone()
+	}
+
 	return &Token{
 		Metadata: t.Metadata.Copy(),
-		Target:   t.Target.Clone(),
+		Targets:  targets,
 		Owner:    t.Owner.Clone(),
 	}
 }
