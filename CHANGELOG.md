@@ -1,10 +1,13 @@
 # Changelog
 ## HEAD
 
-- Expose some more Genesis params to extension initializers. Utilise those in `x/validators`
-to store initial validator list and validate updates against this list while updating on
-every successful transaction.
-- Add CommitInfo to context in order to be able to see who signed the current block
+- Expose some more Genesis params to extension initializers. Utilise those in
+  `x/validators` to store initial validator list and validate updates against
+  this list while updating on every successful transaction.
+- A new from scratch username implementation `x/username` was added. This
+  implementation does not rely on `x/nft` package.
+- Add `CommitInfo` to the context in order to be able to see who signed the
+  current block.
 - `cmd/bnscli` new commands
     - `with-fee` to configure a transaction fee,
     - `set-validators` to configure the validators,
@@ -20,7 +23,7 @@ every successful transaction.
 
 Breaking changes
 
-- cmd/bnsd: `nft/username` allows now for any number of aliases/names for a
+- `cmd/bnsd`: `nft/username` allows now for any number of aliases/names for a
   single address. Lookup of the username by an address is no longer available.
 - messages produced by `cmd/bnscli` have a new binary format incompatible with
   the previous version.
