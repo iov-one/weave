@@ -135,6 +135,16 @@ func TestChangeUsernameTokenTargetsMsgValidate(t *testing.T) {
 			},
 			Want: errors.ErrInput,
 		},
+		"invalid username separator": {
+			Msg: &ChangeUsernameTokenTargetsMsg{
+				Metadata: &weave.Metadata{Schema: 1},
+				Username: "alice@iov",
+				NewTargets: []BlockchainAddress{
+					{BlockchainID: "blobchain", Address: []byte("1234567890")},
+				},
+			},
+			Want: errors.ErrInput,
+		},
 	}
 
 	for testName, tc := range cases {

@@ -20,7 +20,6 @@ func TestRegisterUsernameTokenHandler(t *testing.T) {
 	)
 
 	cases := map[string]struct {
-		Init           func(t testing.TB, db weave.KVStore)
 		Tx             weave.Tx
 		Auth           x.Authenticator
 		WantCheckErr   *errors.Error
@@ -86,7 +85,7 @@ func TestRegisterUsernameTokenHandler(t *testing.T) {
 			_, err := b.Put(db, []byte("alice*iov"), &UsernameToken{
 				Metadata: &weave.Metadata{Schema: 1},
 				Targets: []BlockchainAddress{
-					{BlockchainID: "unichain", Address: []byte("756e69636f696e2d310a")},
+					{BlockchainID: "unichain", Address: []byte("some-unichain-address")},
 				},
 				Owner: aliceCond.Address(),
 			})
@@ -102,7 +101,7 @@ func TestRegisterUsernameTokenHandler(t *testing.T) {
 				t.Fatalf("unexpected check error: %s", err)
 			}
 			cache.Discard()
-			if _, err := h.Deliver(context.TODO(), db, tc.Tx); tc.WantCheckErr.Is(err) {
+			if _, err := h.Deliver(context.TODO(), db, tc.Tx); tc.WantDeliverErr.Is(err) {
 				t.Fatalf("unexpected deliver error: %s", err)
 			}
 		})
@@ -162,7 +161,7 @@ func TestChangeUsernameTokenOwnerHandler(t *testing.T) {
 			_, err := b.Put(db, []byte("alice*iov"), &UsernameToken{
 				Metadata: &weave.Metadata{Schema: 1},
 				Targets: []BlockchainAddress{
-					{BlockchainID: "unichain", Address: []byte("756e69636f696e2d310a")},
+					{BlockchainID: "unichain", Address: []byte("some-unichain-address")},
 				},
 				Owner: aliceCond.Address(),
 			})
@@ -178,7 +177,7 @@ func TestChangeUsernameTokenOwnerHandler(t *testing.T) {
 				t.Fatalf("unexpected check error: %s", err)
 			}
 			cache.Discard()
-			if _, err := h.Deliver(context.TODO(), db, tc.Tx); tc.WantCheckErr.Is(err) {
+			if _, err := h.Deliver(context.TODO(), db, tc.Tx); tc.WantDeliverErr.Is(err) {
 				t.Fatalf("unexpected deliver error: %s", err)
 			}
 		})
@@ -201,8 +200,8 @@ func TestChangeUsernameTokenTargetHandler(t *testing.T) {
 				Msg: &ChangeUsernameTokenTargetsMsg{
 					Username: "alice@iov",
 					NewTargets: []BlockchainAddress{
-						{BlockchainID: "hydracoin", Address: []byte("68796472612d310a")},
-						{BlockchainID: "pegauscoin", Address: []byte("706567617375732d310a")},
+						{BlockchainID: "hydracoin", Address: []byte("some-hydra-address")},
+						{BlockchainID: "pegasuscoin", Address: []byte("some-pagasus-address")},
 					},
 				},
 			},
@@ -213,7 +212,7 @@ func TestChangeUsernameTokenTargetHandler(t *testing.T) {
 				Msg: &ChangeUsernameTokenTargetsMsg{
 					Username: "alice@iov",
 					NewTargets: []BlockchainAddress{
-						{BlockchainID: "hydracoin", Address: []byte("68796472612d310a")},
+						{BlockchainID: "hydracoin", Address: []byte("some-hydra-address")},
 					},
 				},
 			},
@@ -226,7 +225,7 @@ func TestChangeUsernameTokenTargetHandler(t *testing.T) {
 				Msg: &ChangeUsernameTokenTargetsMsg{
 					Username: "does-not-exist@iov",
 					NewTargets: []BlockchainAddress{
-						{BlockchainID: "hydracoin", Address: []byte("68796472612d310a")},
+						{BlockchainID: "hydracoin", Address: []byte("some-hydra-address")},
 					},
 				},
 			},
@@ -244,7 +243,7 @@ func TestChangeUsernameTokenTargetHandler(t *testing.T) {
 			_, err := b.Put(db, []byte("alice*iov"), &UsernameToken{
 				Metadata: &weave.Metadata{Schema: 1},
 				Targets: []BlockchainAddress{
-					{BlockchainID: "unichain", Address: []byte("756e69636f696e2d310a")},
+					{BlockchainID: "unichain", Address: []byte("some-unicorn-address")},
 				},
 				Owner: aliceCond.Address(),
 			})
@@ -260,7 +259,7 @@ func TestChangeUsernameTokenTargetHandler(t *testing.T) {
 				t.Fatalf("unexpected check error: %s", err)
 			}
 			cache.Discard()
-			if _, err := h.Deliver(context.TODO(), db, tc.Tx); tc.WantCheckErr.Is(err) {
+			if _, err := h.Deliver(context.TODO(), db, tc.Tx); tc.WantDeliverErr.Is(err) {
 				t.Fatalf("unexpected deliver error: %s", err)
 			}
 		})
