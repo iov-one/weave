@@ -1,6 +1,8 @@
 package username
 
 import (
+	"regexp"
+
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/migration"
@@ -12,20 +14,21 @@ func init() {
 }
 
 func (ba *BlockchainAddress) Validate() error {
-	switch n := len(ba.BlockchainID); {
-	case n < 3:
-		return errors.Wrap(errors.ErrInput, "blockchain ID too short")
-	case n > 32:
-		return errors.Wrap(errors.ErrInput, "blockchain ID too long")
+	if !validBlockchainID(ba.BlockchainID) {
+		return errors.Wrap(errors.ErrInput, "invalid blockchain ID")
 	}
 	switch n := len(ba.Address); {
-	case n < 3:
-		return errors.Wrap(errors.ErrInput, "address too short")
-	case n > 1024:
+	case n == 0:
+		return errors.Wrap(errors.ErrInput, "address is required")
+	case n > addressMaxLen:
 		return errors.Wrap(errors.ErrInput, "address too long")
 	}
 	return nil
 }
+
+var validBlockchainID = regexp.MustCompile(`^[a-zA-Z0-9_.-]{4,32}$`).MatchString
+
+const addressMaxLen = 128
 
 func (ba *BlockchainAddress) Clone() BlockchainAddress {
 	return BlockchainAddress{

@@ -17,21 +17,21 @@ func TestBlockchainAddressValidation(t *testing.T) {
 	}{
 		"correct minimal length": {
 			BA: BlockchainAddress{
-				BlockchainID: strings.Repeat("x", 3),
-				Address:      bytes.Repeat([]byte("x"), 3),
+				BlockchainID: strings.Repeat("x", 4),
+				Address:      bytes.Repeat([]byte("x"), 1),
 			},
 			WantErr: nil,
 		},
 		"correct maximal length": {
 			BA: BlockchainAddress{
 				BlockchainID: strings.Repeat("x", 32),
-				Address:      bytes.Repeat([]byte("x"), 1024),
+				Address:      bytes.Repeat([]byte("x"), 128),
 			},
 			WantErr: nil,
 		},
 		"blockchain too short": {
 			BA: BlockchainAddress{
-				BlockchainID: strings.Repeat("x", 2),
+				BlockchainID: strings.Repeat("x", 3),
 				Address:      bytes.Repeat([]byte("x"), 3),
 			},
 			WantErr: errors.ErrInput,
@@ -45,15 +45,22 @@ func TestBlockchainAddressValidation(t *testing.T) {
 		},
 		"address too short": {
 			BA: BlockchainAddress{
-				BlockchainID: strings.Repeat("x", 3),
-				Address:      bytes.Repeat([]byte("x"), 2),
+				BlockchainID: strings.Repeat("x", 6),
+				Address:      bytes.Repeat([]byte("x"), 0),
 			},
 			WantErr: errors.ErrInput,
 		},
 		"address too long": {
 			BA: BlockchainAddress{
-				BlockchainID: strings.Repeat("x", 3),
-				Address:      bytes.Repeat([]byte("x"), 1025),
+				BlockchainID: strings.Repeat("x", 6),
+				Address:      bytes.Repeat([]byte("x"), 129),
+			},
+			WantErr: errors.ErrInput,
+		},
+		"blockchain ID cannot contain emoji": {
+			BA: BlockchainAddress{
+				BlockchainID: "😄😊😉😍😘😚😜😝😳😁",
+				Address:      bytes.Repeat([]byte("x"), 32),
 			},
 			WantErr: errors.ErrInput,
 		},
