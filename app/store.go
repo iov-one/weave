@@ -1,7 +1,6 @@
 package app
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"strings"
@@ -44,7 +43,7 @@ type StoreApp struct {
 	chainID string
 
 	// cached validator changes from DeliverTx
-	pending []weave.ValidatorUpdate
+	pending weave.ValidatorUpdates
 
 	// baseContext contains context info that is valid for
 	// lifetime of this app (eg. chainID)
@@ -344,30 +343,19 @@ func (s *StoreApp) BeginBlock(req abci.RequestBeginBlock) (res abci.ResponseBegi
 // TODO: investigate response tags as of 0.11 abci
 func (s *StoreApp) EndBlock(_ abci.RequestEndBlock) (res abci.ResponseEndBlock) {
 	res.ValidatorUpdates = weave.ValidatorUpdatesToABCI(s.pending)
-	s.pending = nil
+	s.pending = weave.ValidatorUpdates{}
 	return
 }
 
 // AddValChange is meant to be called by apps on DeliverTx
 // results, this is added to the cache for the endblock changeset
 func (s *StoreApp) AddValChange(diffs []weave.ValidatorUpdate) {
-	// ensures multiple updates for one validator are combined into one slot
-	for _, d := range diffs {
-		idx := pubKeyIndex(d, s.pending)
-		if idx >= 0 {
-			s.pending[idx] = d
-		} else {
-			s.pending = append(s.pending, d)
-		}
-	}
-}
+	updateSlice := s.pending.ValidatorUpdates
 
-// return index of list with validator of same Pubkey, or -1 if no match
-func pubKeyIndex(val weave.ValidatorUpdate, list []weave.ValidatorUpdate) int {
-	for i, v := range list {
-		if val.PubKey.Type == v.PubKey.Type && bytes.Equal(val.PubKey.Data, v.PubKey.Data) {
-			return i
-		}
+	for _, d := range diffs {
+		updateSlice = append(updateSlice, d)
 	}
-	return -1
+	s.pending.ValidatorUpdates = updateSlice
+	// ensures multiple updates for one validator are combined into one slot
+	s.pending.ValidatorUpdates = s.pending.Deduplicate(false)
 }

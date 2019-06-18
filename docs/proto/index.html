@@ -280,6 +280,10 @@
                 </li>
               
                 <li>
+                  <a href="#weave.ValidatorUpdates"><span class="badge">M</span>ValidatorUpdates</a>
+                </li>
+              
+                <li>
                   <a href="#weave.VoteInfo"><span class="badge">M</span>VoteInfo</a>
                 </li>
               
@@ -763,10 +767,6 @@
               
                 <li>
                   <a href="#validators.SetValidatorsMsg"><span class="badge">M</span>SetValidatorsMsg</a>
-                </li>
-              
-                <li>
-                  <a href="#validators.ValidatorUpdates"><span class="badge">M</span>ValidatorUpdates</a>
                 </li>
               
               
@@ -1786,6 +1786,29 @@ modify a username token. </p></td>
                   <td>power</td>
                   <td><a href="#int64">int64</a></td>
                   <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+        
+
+        
+      
+        <h3 id="weave.ValidatorUpdates">ValidatorUpdates</h3>
+        <p>ValidatorUpdates represents latest validator state, currently used to validate SetValidatorMsg transactions.</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>validator_updates</td>
+                  <td><a href="#weave.ValidatorUpdate">ValidatorUpdate</a></td>
+                  <td>repeated</td>
                   <td><p> </p></td>
                 </tr>
               
@@ -4975,29 +4998,6 @@ total increment value, including the default increment. </p></td>
                   <td></td>
                   <td><p> </p></td>
                 </tr>
-              
-                <tr>
-                  <td>validator_updates</td>
-                  <td><a href="#weave.ValidatorUpdate">weave.ValidatorUpdate</a></td>
-                  <td>repeated</td>
-                  <td><p> </p></td>
-                </tr>
-              
-            </tbody>
-          </table>
-        
-
-        
-      
-        <h3 id="validators.ValidatorUpdates">ValidatorUpdates</h3>
-        <p>ValidatorUpdates represents latest validator state, used to validate SetValidatorMsg transactions.</p>
-
-        
-          <table class="field-table">
-            <thead>
-              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
-            </thead>
-            <tbody>
               
                 <tr>
                   <td>validator_updates</td>

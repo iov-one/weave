@@ -1,10 +1,13 @@
 package weave
 
 import (
+	"strings"
+
 	"github.com/iov-one/weave/errors"
 	abci "github.com/tendermint/tendermint/abci/types"
-	"strings"
 )
+
+const storeKey = "_1:update_validators"
 
 // CommitInfoFromABCI converts abci commit info to weave native type.
 // This struct represents validator signatures on the current block.
@@ -25,22 +28,11 @@ func CommitInfoFromABCI(info abci.LastCommitInfo) CommitInfo {
 }
 
 // ValidatorUpdatesToABCI converts weave validator updates to abci representation.
-func ValidatorUpdatesToABCI(updates []ValidatorUpdate) []abci.ValidatorUpdate {
-	res := make([]abci.ValidatorUpdate, len(updates))
+func ValidatorUpdatesToABCI(updates ValidatorUpdates) []abci.ValidatorUpdate {
+	res := make([]abci.ValidatorUpdate, len(updates.ValidatorUpdates))
 
-	for k, v := range updates {
+	for k, v := range updates.ValidatorUpdates {
 		res[k] = v.AsABCI()
-	}
-
-	return res
-}
-
-// ValidatorUpdatesToABCI converts weave validator updates to abci representation.
-func ValidatorUpdatesFromABCI(updates []abci.ValidatorUpdate) []ValidatorUpdate {
-	res := make([]ValidatorUpdate, len(updates))
-
-	for k, v := range updates {
-		res[k] = ValidatorUpdateFromABCI(v)
 	}
 
 	return res
@@ -82,4 +74,71 @@ func (m PubKey) AsABCI() abci.PubKey {
 		Data: m.Data,
 		Type: m.Type,
 	}
+}
+
+func (m ValidatorUpdates) Validate() error {
+	var err error
+	for _, v := range m.ValidatorUpdates {
+		err = errors.Append(err, v.Validate())
+	}
+	return err
+}
+
+// Deduplicate makes sure we only use the last validator update to any given validator.
+// For bookkeeping we have an option to drop validators with zero power, because those
+// are being remove by tendermint once propagated.
+func (m ValidatorUpdates) Deduplicate(dropZeroPower bool) []ValidatorUpdate {
+	duplicates := make(map[string]int, 0)
+	cleanValidatorSlice := make([]ValidatorUpdate, 0, len(m.ValidatorUpdates))
+
+	for _, v := range m.ValidatorUpdates {
+		if dropZeroPower && v.Power == 0 {
+			continue
+		}
+		if key, ok := duplicates[v.PubKey.String()]; ok {
+			cleanValidatorSlice[key] = v
+			continue
+		}
+		cleanValidatorSlice = append(cleanValidatorSlice, v)
+		duplicates[v.PubKey.String()] = len(cleanValidatorSlice) - 1
+	}
+
+	return cleanValidatorSlice
+}
+
+// Store stores ValidatorUpdates to the KVStore while cleaning up those with 0
+// power.
+func (m ValidatorUpdates) Store(store KVStore) error {
+	m.ValidatorUpdates = m.Deduplicate(true)
+
+	marshalledUpdates, err := m.Marshal()
+	if err != nil {
+		return errors.Wrap(err, "validator updates marshal")
+	}
+	err = store.Set([]byte(storeKey), marshalledUpdates)
+
+	return errors.Wrap(err, "kvstore save")
+}
+
+func GetValidatorUpdates(store KVStore) (ValidatorUpdates, error) {
+	vu := ValidatorUpdates{}
+	bytes, err := store.Get([]byte(storeKey))
+	if err != nil {
+		return vu, errors.Wrap(err, "kvstore get")
+	}
+
+	err = vu.Unmarshal(bytes)
+	return vu, errors.Wrap(err, "validator updates unmarshal")
+}
+
+func ValidatorUpdatesFromABCI(u []abci.ValidatorUpdate) ValidatorUpdates {
+	vu := ValidatorUpdates{
+		ValidatorUpdates: make([]ValidatorUpdate, len(u)),
+	}
+
+	for k, v := range u {
+		vu.ValidatorUpdates[k] = ValidatorUpdateFromABCI(v)
+	}
+
+	return vu
 }

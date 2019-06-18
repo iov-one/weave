@@ -6,8 +6,7 @@ import (
 )
 
 const (
-	optKey   = "update_validators"
-	storeKey = "_1:update_validators"
+	optKey = "update_validators"
 )
 
 // Initializer fulfils the InitStater interface to load data from
@@ -32,7 +31,7 @@ func (Initializer) FromGenesis(opts weave.Options, params weave.GenesisParams, k
 		return errors.Wrap(err, "bucket save")
 	}
 
-	vu := ValidatorUpdatesFromABCI(params.Validators)
+	vu := weave.ValidatorUpdatesFromABCI(params.Validators)
 	if err := vu.Validate(); err != nil {
 		return errors.Wrap(err, "validator updates")
 	}

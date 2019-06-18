@@ -82,17 +82,12 @@ func TestInitState(t *testing.T) {
 			}
 
 			if spec.ValidParams {
-				res, err := kv.Get([]byte(storeKey))
-				if err != nil {
-					t.Fatalf("unexpected error: %s", err)
-				}
-				vu := ValidatorUpdates{}
-				err = vu.Unmarshal(res)
+				res, err := weave.GetValidatorUpdates(kv)
 				if err != nil {
 					t.Fatalf("unexpected error: %s", err)
 				}
 
-				exp := ValidatorUpdatesFromABCI(spec.Params.Validators)
+				exp := weave.ValidatorUpdatesFromABCI(spec.Params.Validators)
 				if spec.Dupes {
 					exp.ValidatorUpdates = exp.ValidatorUpdates[1:]
 				}
@@ -100,8 +95,8 @@ func TestInitState(t *testing.T) {
 					exp.ValidatorUpdates = nil
 				}
 
-				if !reflect.DeepEqual(exp, vu) {
-					t.Errorf("expected %v but got %v", exp, vu)
+				if !reflect.DeepEqual(exp, res) {
+					t.Errorf("expected %v but got %v", exp, res)
 				}
 			}
 

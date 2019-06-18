@@ -5,7 +5,6 @@ import (
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/orm"
-	abci "github.com/tendermint/tendermint/abci/types"
 )
 
 func init() {
@@ -17,67 +16,6 @@ const (
 	bucketName     = "uvalid"
 	accountListKey = "accounts"
 )
-
-func (m ValidatorUpdates) Validate() error {
-	var err error
-	for _, v := range m.ValidatorUpdates {
-		err = errors.Append(err, v.Validate())
-	}
-	return err
-}
-
-// Store stores ValidatorUpdates to the KVStore while cleaning up those with 0
-// power.
-func (m ValidatorUpdates) Store(store weave.KVStore) error {
-	duplicates := make(map[string]int, 0)
-	cleanValidatorSlice := make([]weave.ValidatorUpdate, 0, len(m.ValidatorUpdates))
-	// Cleanup validators with power 0 as these get discarded by tendermint. Also
-	// make sure only the last validator update gets stored if there is a duplicate.
-	for _, v := range m.ValidatorUpdates {
-		if v.Power == 0 {
-			continue
-		}
-		if key, ok := duplicates[v.PubKey.String()]; ok {
-			cleanValidatorSlice[key] = v
-			continue
-		}
-		cleanValidatorSlice = append(cleanValidatorSlice, v)
-		duplicates[v.PubKey.String()] = len(cleanValidatorSlice) - 1
-	}
-
-	m.ValidatorUpdates = cleanValidatorSlice
-
-	marshalledUpdates, err := m.Marshal()
-	if err != nil {
-		return errors.Wrap(err, "validator updates marshal")
-	}
-	err = store.Set([]byte(storeKey), marshalledUpdates)
-
-	return errors.Wrap(err, "kvstore save")
-}
-
-func GetValidatorUpdates(store weave.KVStore) (ValidatorUpdates, error) {
-	vu := ValidatorUpdates{}
-	bytes, err := store.Get([]byte(storeKey))
-	if err != nil {
-		return vu, errors.Wrap(err, "kvstore get")
-	}
-
-	err = vu.Unmarshal(bytes)
-	return vu, errors.Wrap(err, "validator updates unmarshal")
-}
-
-func ValidatorUpdatesFromABCI(u []abci.ValidatorUpdate) ValidatorUpdates {
-	vu := ValidatorUpdates{
-		ValidatorUpdates: make([]weave.ValidatorUpdate, len(u)),
-	}
-
-	for k, v := range u {
-		vu.ValidatorUpdates[k] = weave.ValidatorUpdateFromABCI(v)
-	}
-
-	return vu
-}
 
 // WeaveAccounts is used to parse the json from genesis file
 // use weave.Address, so address in hex, not base64

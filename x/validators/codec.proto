@@ -5,11 +5,6 @@ package validators;
 import "codec.proto";
 import "gogoproto/gogo.proto";
 
-// ValidatorUpdates represents latest validator state, used to validate SetValidatorMsg transactions.
-message ValidatorUpdates {
-  repeated weave.ValidatorUpdate validator_updates = 1 [(gogoproto.nullable) = false];
-}
-
 // This message is designed to update validator power
 message SetValidatorsMsg {
   weave.Metadata metadata = 1;

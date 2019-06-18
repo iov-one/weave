@@ -53,9 +53,9 @@ func (h updateHandler) Deliver(ctx weave.Context, store weave.KVStore, tx weave.
 
 // Validate returns an update diff, ValidatorUpdates to store for bookkeeping and an error.
 func (h updateHandler) validate(ctx weave.Context, store weave.KVStore, tx weave.Tx) ([]weave.ValidatorUpdate,
-	ValidatorUpdates, error) {
+	weave.ValidatorUpdates, error) {
 	var msg SetValidatorsMsg
-	var resUpdates ValidatorUpdates
+	var resUpdates weave.ValidatorUpdates
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, resUpdates, errors.Wrap(err, "load msg")
 	}
@@ -81,7 +81,7 @@ func (h updateHandler) validate(ctx weave.Context, store weave.KVStore, tx weave
 		return nil, resUpdates, errors.Wrap(errors.ErrUnauthorized, "no permission")
 	}
 
-	updates, err := GetValidatorUpdates(store)
+	updates, err := weave.GetValidatorUpdates(store)
 	if err != nil {
 		return nil, resUpdates, errors.Wrap(err, "failed to query validators")
 	}
