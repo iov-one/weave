@@ -1,6 +1,6 @@
 {
 	"Sum": {
-		"RegisterTokenMsg": {
+		"RegisterUsernameTokenMsg": {
 			"metadata": {
 				"schema": 1
 			},
@@ -16,7 +16,7 @@
 }
 {
 	"Sum": {
-		"RegisterTokenMsg": {
+		"RegisterUsernameTokenMsg": {
 			"metadata": {
 				"schema": 1
 			},
