@@ -11,7 +11,7 @@ import (
 	"github.com/iov-one/weave"
 	weaveapp "github.com/iov-one/weave/app"
 	"github.com/iov-one/weave/cmd/bnsd/app"
-	"github.com/iov-one/weave/x/username"
+	"github.com/iov-one/weave/cmd/bnsd/x/username"
 )
 
 func cmdRegisterUsername(input io.Reader, output io.Writer, args []string) error {

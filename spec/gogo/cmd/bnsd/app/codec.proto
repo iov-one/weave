@@ -2,6 +2,7 @@ syntax = "proto3";
 
 package app;
 
+import "cmd/bnsd/x/username/codec.proto";
 import "gogoproto/gogo.proto";
 import "migration/codec.proto";
 import "x/aswap/codec.proto";
@@ -12,7 +13,6 @@ import "x/escrow/codec.proto";
 import "x/gov/codec.proto";
 import "x/multisig/codec.proto";
 import "x/sigs/codec.proto";
-import "x/username/codec.proto";
 import "x/validators/codec.proto";
 
 // Tx contains the message.

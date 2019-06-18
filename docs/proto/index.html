@@ -225,6 +225,37 @@
         
           
           <li>
+            <a href="#cmd%2fbnsd%2fx%2fusername%2fcodec.proto">cmd/bnsd/x/username/codec.proto</a>
+            <ul>
+              
+                <li>
+                  <a href="#username.BlockchainAddress"><span class="badge">M</span>BlockchainAddress</a>
+                </li>
+              
+                <li>
+                  <a href="#username.ChangeUsernameTokenTargetsMsg"><span class="badge">M</span>ChangeUsernameTokenTargetsMsg</a>
+                </li>
+              
+                <li>
+                  <a href="#username.RegisterUsernameTokenMsg"><span class="badge">M</span>RegisterUsernameTokenMsg</a>
+                </li>
+              
+                <li>
+                  <a href="#username.TransferUsernameTokenMsg"><span class="badge">M</span>TransferUsernameTokenMsg</a>
+                </li>
+              
+                <li>
+                  <a href="#username.UsernameToken"><span class="badge">M</span>UsernameToken</a>
+                </li>
+              
+              
+              
+              
+            </ul>
+          </li>
+        
+          
+          <li>
             <a href="#codec.proto">codec.proto</a>
             <ul>
               
@@ -669,41 +700,6 @@
         
           
           <li>
-            <a href="#x%2fnft%2fcodec.proto">x/nft/codec.proto</a>
-            <ul>
-              
-                <li>
-                  <a href="#nft.ActionApprovals"><span class="badge">M</span>ActionApprovals</a>
-                </li>
-              
-                <li>
-                  <a href="#nft.AddApprovalMsg"><span class="badge">M</span>AddApprovalMsg</a>
-                </li>
-              
-                <li>
-                  <a href="#nft.Approval"><span class="badge">M</span>Approval</a>
-                </li>
-              
-                <li>
-                  <a href="#nft.ApprovalOptions"><span class="badge">M</span>ApprovalOptions</a>
-                </li>
-              
-                <li>
-                  <a href="#nft.NonFungibleToken"><span class="badge">M</span>NonFungibleToken</a>
-                </li>
-              
-                <li>
-                  <a href="#nft.RemoveApprovalMsg"><span class="badge">M</span>RemoveApprovalMsg</a>
-                </li>
-              
-              
-              
-              
-            </ul>
-          </li>
-        
-          
-          <li>
             <a href="#x%2fpaychan%2fcodec.proto">x/paychan/codec.proto</a>
             <ul>
               
@@ -748,37 +744,6 @@
               
                 <li>
                   <a href="#sigs.UserData"><span class="badge">M</span>UserData</a>
-                </li>
-              
-              
-              
-              
-            </ul>
-          </li>
-        
-          
-          <li>
-            <a href="#x%2fusername%2fcodec.proto">x/username/codec.proto</a>
-            <ul>
-              
-                <li>
-                  <a href="#username.BlockchainAddress"><span class="badge">M</span>BlockchainAddress</a>
-                </li>
-              
-                <li>
-                  <a href="#username.ChangeUsernameTokenTargetsMsg"><span class="badge">M</span>ChangeUsernameTokenTargetsMsg</a>
-                </li>
-              
-                <li>
-                  <a href="#username.RegisterUsernameTokenMsg"><span class="badge">M</span>RegisterUsernameTokenMsg</a>
-                </li>
-              
-                <li>
-                  <a href="#username.TransferUsernameTokenMsg"><span class="badge">M</span>TransferUsernameTokenMsg</a>
-                </li>
-              
-                <li>
-                  <a href="#username.UsernameToken"><span class="badge">M</span>UsernameToken</a>
                 </li>
               
               
@@ -1466,6 +1431,205 @@ aswap and gov don&#39;t make much sense as part of a batch (no vote buying) </p>
                   <td><a href="#gov.UpdateElectionRuleMsg">gov.UpdateElectionRuleMsg</a></td>
                   <td></td>
                   <td><p>79 is reserved (see ProposalOptions: TextResolutionMsg) </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+        
+
+        
+      
+
+      
+
+      
+
+      
+    
+      
+      <div class="file-heading">
+        <h2 id="cmd/bnsd/x/username/codec.proto">cmd/bnsd/x/username/codec.proto</h2><a href="#title">Top</a>
+      </div>
+      <p></p>
+
+      
+        <h3 id="username.BlockchainAddress">BlockchainAddress</h3>
+        <p>BlockchainAddress represents a blochain address. This structure clubs together</p><p>blokchain ID together with an address on that network. It is used to point</p><p>to an address on any blockchain network.</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>blockchain_id</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p>An arbitrary blockchain ID. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>address</td>
+                  <td><a href="#bytes">bytes</a></td>
+                  <td></td>
+                  <td><p>An address on the specified blockchain network. Address is not a
+weave.Address as we cannot know what is the format of an address on the
+chain that this token instance links to. Because we do not know the rules
+to validate an address for any blockchain ID, this is an arbitrary bulk of
+data. </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+        
+
+        
+      
+        <h3 id="username.ChangeUsernameTokenTargetsMsg">ChangeUsernameTokenTargetsMsg</h3>
+        <p>ChangeTokenTargetsMsg is a request to change the address that this token</p><p>points to. Only the owner of a token can request this operation.</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>metadata</td>
+                  <td><a href="#weave.Metadata">weave.Metadata</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>username</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p>Username is the unique name of the token, for example alice*iov </p></td>
+                </tr>
+              
+                <tr>
+                  <td>new_targets</td>
+                  <td><a href="#username.BlockchainAddress">BlockchainAddress</a></td>
+                  <td>repeated</td>
+                  <td><p>New targets is a list of blockchain addresses that this token should point
+to after the change. Old list is overwritten with what is provided. </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+        
+
+        
+      
+        <h3 id="username.RegisterUsernameTokenMsg">RegisterUsernameTokenMsg</h3>
+        <p>RegisterTokenMsg is creating a new username token. The owner is always set</p><p>to the main signer.</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>metadata</td>
+                  <td><a href="#weave.Metadata">weave.Metadata</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>username</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p>Username is the unique name of the token, for example alice*iov </p></td>
+                </tr>
+              
+                <tr>
+                  <td>targets</td>
+                  <td><a href="#username.BlockchainAddress">BlockchainAddress</a></td>
+                  <td>repeated</td>
+                  <td><p>Targets is a blockchain address list that this token should point to. </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+        
+
+        
+      
+        <h3 id="username.TransferUsernameTokenMsg">TransferUsernameTokenMsg</h3>
+        <p>TransferTokenMsg is a request to transfer an ownership of a token. The</p><p>mesage must be signed by the current token owner. Acceptance of the new</p><p>owner is not required in order to succeed.</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>metadata</td>
+                  <td><a href="#weave.Metadata">weave.Metadata</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>username</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p>Username is the unique name of the token, for example alice*iov </p></td>
+                </tr>
+              
+                <tr>
+                  <td>new_owner</td>
+                  <td><a href="#bytes">bytes</a></td>
+                  <td></td>
+                  <td><p>Owner is a weave address that will owns this token after the change. </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+        
+
+        
+      
+        <h3 id="username.UsernameToken">UsernameToken</h3>
+        <p>UsernameToken model represents a username mapping to an address together</p><p>with all metadata.</p><p>Each UsernameToken model is stored using the username as the key. This</p><p>guarantee that the name is unique. Username is a combination of a name and a</p><p>domain.  The format is <name>*<domain></p><p>Each token points to a blockchain and an address on that blockchain. Both</p><p>blockchain ID and address are an arbitrary string as we do not want to limit</p><p>ourselves to certain patterns.</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>metadata</td>
+                  <td><a href="#weave.Metadata">weave.Metadata</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>targets</td>
+                  <td><a href="#username.BlockchainAddress">BlockchainAddress</a></td>
+                  <td>repeated</td>
+                  <td><p>Targets specifies where this username token points to. This must be at
+least one blockchain address elemenet. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>owner</td>
+                  <td><a href="#bytes">bytes</a></td>
+                  <td></td>
+                  <td><p>Owner is a weave.Address that controls this token. Only the owner can
+modify a username token. </p></td>
                 </tr>
               
             </tbody>
@@ -4360,277 +4524,6 @@ computed as the sum of weights of all participating signatures. </p></td>
     
       
       <div class="file-heading">
-        <h2 id="x/nft/codec.proto">x/nft/codec.proto</h2><a href="#title">Top</a>
-      </div>
-      <p></p>
-
-      
-        <h3 id="nft.ActionApprovals">ActionApprovals</h3>
-        <p>ActionApprovals are used to control permissions and validate that a user can</p><p>execute given operation.</p>
-
-        
-          <table class="field-table">
-            <thead>
-              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
-            </thead>
-            <tbody>
-              
-                <tr>
-                  <td>action</td>
-                  <td><a href="#string">string</a></td>
-                  <td></td>
-                  <td><p> </p></td>
-                </tr>
-              
-                <tr>
-                  <td>approvals</td>
-                  <td><a href="#nft.Approval">Approval</a></td>
-                  <td>repeated</td>
-                  <td><p> </p></td>
-                </tr>
-              
-            </tbody>
-          </table>
-        
-
-        
-      
-        <h3 id="nft.AddApprovalMsg">AddApprovalMsg</h3>
-        <p></p>
-
-        
-          <table class="field-table">
-            <thead>
-              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
-            </thead>
-            <tbody>
-              
-                <tr>
-                  <td>metadata</td>
-                  <td><a href="#weave.Metadata">weave.Metadata</a></td>
-                  <td></td>
-                  <td><p> </p></td>
-                </tr>
-              
-                <tr>
-                  <td>id</td>
-                  <td><a href="#bytes">bytes</a></td>
-                  <td></td>
-                  <td><p> </p></td>
-                </tr>
-              
-                <tr>
-                  <td>address</td>
-                  <td><a href="#bytes">bytes</a></td>
-                  <td></td>
-                  <td><p> </p></td>
-                </tr>
-              
-                <tr>
-                  <td>action</td>
-                  <td><a href="#string">string</a></td>
-                  <td></td>
-                  <td><p> </p></td>
-                </tr>
-              
-                <tr>
-                  <td>options</td>
-                  <td><a href="#nft.ApprovalOptions">ApprovalOptions</a></td>
-                  <td></td>
-                  <td><p> </p></td>
-                </tr>
-              
-                <tr>
-                  <td>t</td>
-                  <td><a href="#string">string</a></td>
-                  <td></td>
-                  <td><p> </p></td>
-                </tr>
-              
-            </tbody>
-          </table>
-        
-
-        
-      
-        <h3 id="nft.Approval">Approval</h3>
-        <p></p>
-
-        
-          <table class="field-table">
-            <thead>
-              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
-            </thead>
-            <tbody>
-              
-                <tr>
-                  <td>address</td>
-                  <td><a href="#bytes">bytes</a></td>
-                  <td></td>
-                  <td><p> </p></td>
-                </tr>
-              
-                <tr>
-                  <td>options</td>
-                  <td><a href="#nft.ApprovalOptions">ApprovalOptions</a></td>
-                  <td></td>
-                  <td><p> </p></td>
-                </tr>
-              
-            </tbody>
-          </table>
-        
-
-        
-      
-        <h3 id="nft.ApprovalOptions">ApprovalOptions</h3>
-        <p></p>
-
-        
-          <table class="field-table">
-            <thead>
-              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
-            </thead>
-            <tbody>
-              
-                <tr>
-                  <td>until_block_height</td>
-                  <td><a href="#int64">int64</a></td>
-                  <td></td>
-                  <td><p>Until block height is used to mark blochain height until which an
-approval is valid. This can be used to define an approval expiration. </p></td>
-                </tr>
-              
-                <tr>
-                  <td>count</td>
-                  <td><a href="#int64">int64</a></td>
-                  <td></td>
-                  <td><p>Count is defining how many times an approval can be used. Each approval
-test decrese the counter. Once the counter reaches value 0, an approval
-is considered expired and can no longer be used.
-Use -1 to bypass count expiration. </p></td>
-                </tr>
-              
-                <tr>
-                  <td>immutable</td>
-                  <td><a href="#bool">bool</a></td>
-                  <td></td>
-                  <td><p>Immutable is a flag that prevents an option to be modified. Once
-created, cannot be altered. For example, counter state cannot be
-changed. </p></td>
-                </tr>
-              
-            </tbody>
-          </table>
-        
-
-        
-      
-        <h3 id="nft.NonFungibleToken">NonFungibleToken</h3>
-        <p>NonFungibleToken is a message that must be incuded by any concrete NFT</p><p>implementation. Usually it is the first attirbute called `base`.</p>
-
-        
-          <table class="field-table">
-            <thead>
-              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
-            </thead>
-            <tbody>
-              
-                <tr>
-                  <td>metadata</td>
-                  <td><a href="#weave.Metadata">weave.Metadata</a></td>
-                  <td></td>
-                  <td><p> </p></td>
-                </tr>
-              
-                <tr>
-                  <td>id</td>
-                  <td><a href="#bytes">bytes</a></td>
-                  <td></td>
-                  <td><p>ID is the address of this token. </p></td>
-                </tr>
-              
-                <tr>
-                  <td>owner</td>
-                  <td><a href="#bytes">bytes</a></td>
-                  <td></td>
-                  <td><p>Owner is the address of the token owner. </p></td>
-                </tr>
-              
-                <tr>
-                  <td>action_approvals</td>
-                  <td><a href="#nft.ActionApprovals">ActionApprovals</a></td>
-                  <td>repeated</td>
-                  <td><p>Action approvals is a list of permissions. In order for operation to
-succeed, all action approvals validation must pass. </p></td>
-                </tr>
-              
-            </tbody>
-          </table>
-        
-
-        
-      
-        <h3 id="nft.RemoveApprovalMsg">RemoveApprovalMsg</h3>
-        <p></p>
-
-        
-          <table class="field-table">
-            <thead>
-              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
-            </thead>
-            <tbody>
-              
-                <tr>
-                  <td>metadata</td>
-                  <td><a href="#weave.Metadata">weave.Metadata</a></td>
-                  <td></td>
-                  <td><p> </p></td>
-                </tr>
-              
-                <tr>
-                  <td>id</td>
-                  <td><a href="#bytes">bytes</a></td>
-                  <td></td>
-                  <td><p> </p></td>
-                </tr>
-              
-                <tr>
-                  <td>address</td>
-                  <td><a href="#bytes">bytes</a></td>
-                  <td></td>
-                  <td><p> </p></td>
-                </tr>
-              
-                <tr>
-                  <td>action</td>
-                  <td><a href="#string">string</a></td>
-                  <td></td>
-                  <td><p> </p></td>
-                </tr>
-              
-                <tr>
-                  <td>t</td>
-                  <td><a href="#string">string</a></td>
-                  <td></td>
-                  <td><p> </p></td>
-                </tr>
-              
-            </tbody>
-          </table>
-        
-
-        
-      
-
-      
-
-      
-
-      
-    
-      
-      <div class="file-heading">
         <h2 id="x/paychan/codec.proto">x/paychan/codec.proto</h2><a href="#title">Top</a>
       </div>
       <p></p>
@@ -5014,205 +4907,6 @@ total increment value, including the default increment. </p></td>
                   <td><a href="#int64">int64</a></td>
                   <td></td>
                   <td><p> </p></td>
-                </tr>
-              
-            </tbody>
-          </table>
-        
-
-        
-      
-
-      
-
-      
-
-      
-    
-      
-      <div class="file-heading">
-        <h2 id="x/username/codec.proto">x/username/codec.proto</h2><a href="#title">Top</a>
-      </div>
-      <p></p>
-
-      
-        <h3 id="username.BlockchainAddress">BlockchainAddress</h3>
-        <p>BlockchainAddress represents a blochain address. This structure clubs together</p><p>blokchain ID together with an address on that network. It is used to point</p><p>to an address on any blockchain network.</p>
-
-        
-          <table class="field-table">
-            <thead>
-              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
-            </thead>
-            <tbody>
-              
-                <tr>
-                  <td>blockchain_id</td>
-                  <td><a href="#string">string</a></td>
-                  <td></td>
-                  <td><p>An arbitrary blockchain ID. </p></td>
-                </tr>
-              
-                <tr>
-                  <td>address</td>
-                  <td><a href="#bytes">bytes</a></td>
-                  <td></td>
-                  <td><p>An address on the specified blockchain network. Address is not a
-weave.Address as we cannot know what is the format of an address on the
-chain that this token instance links to. Because we do not know the rules
-to validate an address for any blockchain ID, this is an arbitrary bulk of
-data. </p></td>
-                </tr>
-              
-            </tbody>
-          </table>
-        
-
-        
-      
-        <h3 id="username.ChangeUsernameTokenTargetsMsg">ChangeUsernameTokenTargetsMsg</h3>
-        <p>ChangeTokenTargetsMsg is a request to change the address that this token</p><p>points to. Only the owner of a token can request this operation.</p>
-
-        
-          <table class="field-table">
-            <thead>
-              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
-            </thead>
-            <tbody>
-              
-                <tr>
-                  <td>metadata</td>
-                  <td><a href="#weave.Metadata">weave.Metadata</a></td>
-                  <td></td>
-                  <td><p> </p></td>
-                </tr>
-              
-                <tr>
-                  <td>username</td>
-                  <td><a href="#string">string</a></td>
-                  <td></td>
-                  <td><p>Username is the unique name of the token, for example alice*iov </p></td>
-                </tr>
-              
-                <tr>
-                  <td>new_targets</td>
-                  <td><a href="#username.BlockchainAddress">BlockchainAddress</a></td>
-                  <td>repeated</td>
-                  <td><p>New targets is a list of blockchain addresses that this token should point
-to after the change. Old list is overwritten with what is provided. </p></td>
-                </tr>
-              
-            </tbody>
-          </table>
-        
-
-        
-      
-        <h3 id="username.RegisterUsernameTokenMsg">RegisterUsernameTokenMsg</h3>
-        <p>RegisterTokenMsg is creating a new username token. The owner is always set</p><p>to the main signer.</p>
-
-        
-          <table class="field-table">
-            <thead>
-              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
-            </thead>
-            <tbody>
-              
-                <tr>
-                  <td>metadata</td>
-                  <td><a href="#weave.Metadata">weave.Metadata</a></td>
-                  <td></td>
-                  <td><p> </p></td>
-                </tr>
-              
-                <tr>
-                  <td>username</td>
-                  <td><a href="#string">string</a></td>
-                  <td></td>
-                  <td><p>Username is the unique name of the token, for example alice*iov </p></td>
-                </tr>
-              
-                <tr>
-                  <td>targets</td>
-                  <td><a href="#username.BlockchainAddress">BlockchainAddress</a></td>
-                  <td>repeated</td>
-                  <td><p>Targets is a blockchain address list that this token should point to. </p></td>
-                </tr>
-              
-            </tbody>
-          </table>
-        
-
-        
-      
-        <h3 id="username.TransferUsernameTokenMsg">TransferUsernameTokenMsg</h3>
-        <p>TransferTokenMsg is a request to transfer an ownership of a token. The</p><p>mesage must be signed by the current token owner. Acceptance of the new</p><p>owner is not required in order to succeed.</p>
-
-        
-          <table class="field-table">
-            <thead>
-              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
-            </thead>
-            <tbody>
-              
-                <tr>
-                  <td>metadata</td>
-                  <td><a href="#weave.Metadata">weave.Metadata</a></td>
-                  <td></td>
-                  <td><p> </p></td>
-                </tr>
-              
-                <tr>
-                  <td>username</td>
-                  <td><a href="#string">string</a></td>
-                  <td></td>
-                  <td><p>Username is the unique name of the token, for example alice*iov </p></td>
-                </tr>
-              
-                <tr>
-                  <td>new_owner</td>
-                  <td><a href="#bytes">bytes</a></td>
-                  <td></td>
-                  <td><p>Owner is a weave address that will owns this token after the change. </p></td>
-                </tr>
-              
-            </tbody>
-          </table>
-        
-
-        
-      
-        <h3 id="username.UsernameToken">UsernameToken</h3>
-        <p>UsernameToken model represents a username mapping to an address together</p><p>with all metadata.</p><p>Each UsernameToken model is stored using the username as the key. This</p><p>guarantee that the name is unique. Username is a combination of a name and a</p><p>domain.  The format is <name>*<domain></p><p>Each token points to a blockchain and an address on that blockchain. Both</p><p>blockchain ID and address are an arbitrary string as we do not want to limit</p><p>ourselves to certain patterns.</p>
-
-        
-          <table class="field-table">
-            <thead>
-              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
-            </thead>
-            <tbody>
-              
-                <tr>
-                  <td>metadata</td>
-                  <td><a href="#weave.Metadata">weave.Metadata</a></td>
-                  <td></td>
-                  <td><p> </p></td>
-                </tr>
-              
-                <tr>
-                  <td>targets</td>
-                  <td><a href="#username.BlockchainAddress">BlockchainAddress</a></td>
-                  <td>repeated</td>
-                  <td><p>Targets specifies where this username token points to. This must be at
-least one blockchain address elemenet. </p></td>
-                </tr>
-              
-                <tr>
-                  <td>owner</td>
-                  <td><a href="#bytes">bytes</a></td>
-                  <td></td>
-                  <td><p>Owner is a weave.Address that controls this token. Only the owner can
-modify a username token. </p></td>
                 </tr>
               
             </tbody>

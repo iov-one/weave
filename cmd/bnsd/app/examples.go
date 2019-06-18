@@ -6,13 +6,13 @@ import (
 	"strings"
 
 	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/cmd/bnsd/x/username"
 	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/commands"
 	"github.com/iov-one/weave/crypto"
 	"github.com/iov-one/weave/x/cash"
 	"github.com/iov-one/weave/x/namecoin"
 	"github.com/iov-one/weave/x/sigs"
-	"github.com/iov-one/weave/x/username"
 )
 
 // we fix the private keys here for deterministic output with the same encoding

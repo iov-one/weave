@@ -7,12 +7,12 @@ import (
 	"io"
 
 	"github.com/iov-one/weave/cmd/bnsd/app"
+	"github.com/iov-one/weave/cmd/bnsd/x/username"
 	"github.com/iov-one/weave/x/cash"
 	"github.com/iov-one/weave/x/currency"
 	"github.com/iov-one/weave/x/distribution"
 	"github.com/iov-one/weave/x/escrow"
 	"github.com/iov-one/weave/x/multisig"
-	"github.com/iov-one/weave/x/username"
 	"github.com/iov-one/weave/x/validators"
 )
 
