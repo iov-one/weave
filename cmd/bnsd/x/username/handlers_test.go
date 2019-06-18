@@ -158,6 +158,16 @@ func TestChangeUsernameTokenOwnerHandler(t *testing.T) {
 			WantDeliverErr: errors.ErrNotFound,
 			Auth:           &weavetest.Auth{Signer: bobbyCond},
 		},
+		"change to the same owner (no change) is allowed": {
+			Tx: &weavetest.Tx{
+				Msg: &TransferUsernameTokenMsg{
+					Metadata: &weave.Metadata{Schema: 1},
+					Username: "alice*iov",
+					NewOwner: aliceCond.Address(),
+				},
+			},
+			Auth: &weavetest.Auth{Signer: aliceCond},
+		},
 	}
 	for testName, tc := range cases {
 		t.Run(testName, func(t *testing.T) {
@@ -210,6 +220,18 @@ func TestChangeUsernameTokenTargetHandler(t *testing.T) {
 					NewTargets: []BlockchainAddress{
 						{BlockchainID: "hydracoin", Address: []byte("some-hydra-address")},
 						{BlockchainID: "pegasuscoin", Address: []byte("some-pagasus-address")},
+					},
+				},
+			},
+			Auth: &weavetest.Auth{Signer: aliceCond},
+		},
+		"can change target to the same value (no change)": {
+			Tx: &weavetest.Tx{
+				Msg: &ChangeUsernameTokenTargetsMsg{
+					Metadata: &weave.Metadata{Schema: 1},
+					Username: "alice*iov",
+					NewTargets: []BlockchainAddress{
+						{BlockchainID: "unichain", Address: []byte("some-unicorn-address")},
 					},
 				},
 			},
