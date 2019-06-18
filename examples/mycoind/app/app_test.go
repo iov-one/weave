@@ -13,6 +13,7 @@ import (
 	"github.com/iov-one/weave/commands/server"
 	"github.com/iov-one/weave/crypto"
 	"github.com/iov-one/weave/migration"
+	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/weavetest/assert"
 	"github.com/iov-one/weave/x/cash"
 	"github.com/iov-one/weave/x/sigs"
@@ -186,7 +187,7 @@ func TestApp(t *testing.T) {
 	hash1 := testCommit(t, myApp, 1)
 
 	var acct cash.Set
-	key := cash.NewBucket().DBKey(addr)
+	key := orm.DBKey(cash.NewBucket(), addr)
 	testQuery(t, myApp, "/", key, &acct)
 	assert.Equal(t, 2, len(acct.Coins))
 	assert.Equal(t, int64(50000), acct.Coins[0].Whole)
@@ -232,7 +233,7 @@ func TestApp(t *testing.T) {
 
 	// make sure money arrived safely
 	var acct3 cash.Set
-	key2 := cash.NewBucket().DBKey(addr2)
+	key2 := orm.DBKey(cash.NewBucket(), addr2)
 	testQuery(t, myApp, "/", key2, &acct3)
 	assert.Equal(t, 1, len(acct3.Coins))
 	assert.Equal(t, int64(2000), acct3.Coins[0].Whole)

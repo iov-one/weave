@@ -335,7 +335,7 @@ func TestBucketQuery(t *testing.T) {
 	toModel := func(t testing.TB, bucket Bucket, obj Object) weave.Model {
 		t.Helper()
 
-		dbkey := bucket.DBKey(obj.Key())
+		dbkey := bucket.dbKey(obj.Key())
 		val, err := obj.Value().Marshal()
 		assert.Nil(t, err)
 		return weave.Model{Key: dbkey, Value: val}

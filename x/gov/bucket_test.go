@@ -111,7 +111,7 @@ func TestQueryVotes(t *testing.T) {
 			}
 			receivedVotes := make([]*Vote, len(models))
 			for i, v := range models {
-				obj, err := vBucket.Parse(nil, v.Value)
+				obj, err := vorm.Parse(bucket, nil, v.Value)
 				if err != nil {
 					t.Fatalf("unexpected error: %s", err)
 				}

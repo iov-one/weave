@@ -65,60 +65,56 @@ type ModelBucket interface {
 	// Has is a cheap operation that that does not read the data and only
 	// checks the existence of it.
 	Has(db weave.KVStore, key []byte) error
-
-	// Register registers this buckets content to be accessible via query
-	// requests under the given name.
-	Register(name string, r weave.QueryRouter)
 }
 
-// NewModelBucket returns a ModelBucket instance. This implementation relies on
-// a bucket instance. Final implementation should operate directly on the
-// KVStore instead.
-func NewModelBucket(name string, m Model, opts ...ModelBucketOption) ModelBucket {
-	b := NewBucket(name, NewSimpleObj(nil, m))
+func NewModelBucket(name string, m Model, opts ...ModelBucketOption) XModelBucket {
+	bb := NewBucketBuilder(name, NewSimpleObj(nil, m))
+	for _, fn := range opts {
+		fn(bb)
+	}
+	return WithModel(
+		WithSeqIDGenerator(bb.Build(), "id"),
+		m,
+	)
+}
 
+func WithModel(b XIDGenBucket, m Model) XModelBucket {
 	tp := reflect.TypeOf(m)
 	if tp.Kind() == reflect.Ptr {
 		tp = tp.Elem()
 	}
 
-	mb := &modelBucket{
+	return &modelBucket{
 		b:     b,
-		idSeq: b.Sequence("id"),
 		model: tp,
 	}
-	for _, fn := range opts {
-		fn(mb)
-	}
-	return mb
 }
 
 // ModelBucketOption is implemented by any function that can configure
 // ModelBucket during creation.
-type ModelBucketOption func(mb *modelBucket)
+type ModelBucketOption func(bb BucketBuilder)
 
 // WithIndex configures the bucket to build an index with given name. All
 // entities stored in the bucket are indexed using value returned by the
 // indexer function. If an index is unique, there can be only one entity
 // referenced per index value.
 func WithIndex(name string, indexer Indexer, unique bool) ModelBucketOption {
-	return func(mb *modelBucket) {
-		mb.b = mb.b.WithIndex(name, indexer, unique)
+	return func(mb BucketBuilder) {
+		mb = mb.WithIndex(name, indexer, unique)
 	}
 }
 
 type modelBucket struct {
-	b     Bucket
-	idSeq Sequence
-
+	b XIDGenBucket
 	// model is referencing the structure type. Event if the structure
 	// pointer is implementing Model interface, this variable references
 	// the structure directly and not the structure's pointer type.
 	model reflect.Type
 }
 
+// Deprecated
 func (mb *modelBucket) Register(name string, r weave.QueryRouter) {
-	mb.b.Register(name, r)
+	r.Register(name, WithQueryAdaptor(mb.b))
 }
 
 func (mb *modelBucket) One(db weave.ReadOnlyKVStore, key []byte, dest Model) error {
@@ -200,16 +196,15 @@ func (mb *modelBucket) Put(db weave.KVStore, key []byte, m Model) ([]byte, error
 		return nil, errors.Wrap(err, "invalid model")
 	}
 
+	var obj Object
+	var err error
 	if len(key) == 0 {
-		var err error
-		key, err = mb.idSeq.NextVal(db)
-		if err != nil {
-			return nil, errors.Wrap(err, "ID sequence")
-		}
+		obj, err = mb.b.Create(db, m)
+		key = obj.Key()
+	} else {
+		_, err = mb.b.Update(db, key, m)
 	}
-
-	obj := NewSimpleObj(key, m)
-	if err := mb.b.Save(db, obj); err != nil {
+	if err != nil {
 		return nil, errors.Wrap(err, "cannot store in the database")
 	}
 	return key, nil
@@ -230,7 +225,7 @@ func (mb *modelBucket) Has(db weave.KVStore, key []byte) error {
 
 	// As long as we rely on the Bucket implementation to access the
 	// database, we must refine the key.
-	key = mb.b.DBKey(key)
+	key = DBKey(mb.b, key)
 
 	ok, err := db.Has(key)
 	if err != nil {
@@ -240,6 +235,10 @@ func (mb *modelBucket) Has(db weave.KVStore, key []byte) error {
 		return errors.ErrNotFound
 	}
 	return nil
+}
+
+func (mb *modelBucket) visit(f func(rawBucket BaseBucket)) {
+	mb.b.visit(f)
 }
 
 var _ ModelBucket = (*modelBucket)(nil)

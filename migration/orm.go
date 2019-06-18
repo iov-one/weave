@@ -78,6 +78,47 @@ func (svb Bucket) WithMultiKeyIndex(name string, indexer orm.MultiKeyIndexer, un
 	return svb
 }
 
+// XBucket replaces Bucket
+type XBucket struct {
+	orm.BaseBucket
+	packageName string
+	schema      *SchemaBucket
+	migrations  *register
+}
+
+var _ orm.BaseBucket = (*XBucket)(nil)
+
+func WithMigration(bucket orm.BaseBucket, packageName string) XBucket {
+	return XBucket{
+		BaseBucket:  bucket,
+		packageName: packageName,
+		schema:      NewSchemaBucket(),
+		migrations:  reg,
+	}
+}
+
+func (svb XBucket) Get(db weave.ReadOnlyKVStore, key []byte) (orm.Object, error) {
+	obj, err := svb.BaseBucket.Get(db, key)
+	if err != nil || obj == nil {
+		return obj, err
+	}
+	if err := svb.migrate(db, obj); err != nil {
+		return obj, errors.Wrap(err, "migrate")
+	}
+	return obj, nil
+}
+
+func (svb XBucket) Save(db weave.KVStore, obj orm.Object) error {
+	if err := svb.migrate(db, obj); err != nil {
+		return errors.Wrap(err, "migrate")
+	}
+	return svb.BaseBucket.Save(db, obj)
+}
+
+func (svb XBucket) migrate(db weave.ReadOnlyKVStore, obj orm.Object) error {
+	return migrate(svb.migrations, svb.schema, svb.packageName, db, obj.Value())
+}
+
 // ModelBucket implements the orm.ModelBucket interface and provides the same
 // functionality with additional model schema migration.
 type ModelBucket struct {

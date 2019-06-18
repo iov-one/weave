@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/store"
 	"github.com/iov-one/weave/weavetest"
 	"github.com/stretchr/testify/require"
@@ -39,7 +40,7 @@ func TestBlogQuery(t *testing.T) {
 	expected, err := bucket.Get(db, []byte("this_is_a_blog"))
 	require.NoError(t, err)
 
-	actual, err := bucket.Parse(nil, blogs[0].Value)
+	actual, err := orm.Parse(bucket, nil, blogs[0].Value)
 	require.EqualValues(t, expected.Value(), actual.Value())
 
 	// bad query
@@ -87,7 +88,7 @@ func TestPostQuery(t *testing.T) {
 	expected, err := bucket.Get(db, key)
 	require.NoError(t, err)
 
-	actual, err := bucket.Parse(nil, posts[0].Value)
+	actual, err := orm.Parse(bucket, nil, posts[0].Value)
 	require.EqualValues(t, expected.Value(), actual.Value())
 
 	// bad query
@@ -107,7 +108,7 @@ func TestPostQuery(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, expectedSlice, 1)
 
-	actual, err = bucket.Parse(nil, posts[0].Value)
+	actual, err = orm.Parse(bucket, nil, posts[0].Value)
 	require.EqualValues(t, expectedSlice[0].Value(), actual.Value())
 
 	// bad query
@@ -141,7 +142,7 @@ func TestProfile(t *testing.T) {
 	expected, err := bucket.Get(db, []byte("lehajam"))
 	require.NoError(t, err)
 
-	actual, err := bucket.Parse(nil, profiles[0].Value)
+	actual, err := orm.Parse(bucket, nil, profiles[0].Value)
 	require.EqualValues(t, expected.Value(), actual.Value())
 
 	// bad query

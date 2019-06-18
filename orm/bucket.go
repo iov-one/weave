@@ -33,17 +33,19 @@ var isBucketName = regexp.MustCompile(`^[a-z_]{3,10}$`).MatchString
 type Bucket interface {
 	weave.QueryHandler
 
-	DBKey(key []byte) []byte
+	dbKey(key []byte) []byte
 	Delete(db weave.KVStore, key []byte) error
 	Get(db weave.ReadOnlyKVStore, key []byte) (Object, error)
 	GetIndexed(db weave.ReadOnlyKVStore, name string, key []byte) ([]Object, error)
 	GetIndexedLike(db weave.ReadOnlyKVStore, name string, pattern Object) ([]Object, error)
-	Parse(key, value []byte) (Object, error)
+	parse(key, value []byte) (Object, error)
 	Register(name string, r weave.QueryRouter)
 	Save(db weave.KVStore, model Object) error
 	Sequence(name string) Sequence
 	WithIndex(name string, indexer Indexer, unique bool) Bucket
 	WithMultiKeyIndex(name string, indexer MultiKeyIndexer, unique bool) Bucket
+	Name() string // added for migration phase
+	visitableBucket
 }
 
 // bucket is a generic holder that stores data as well
@@ -66,7 +68,7 @@ var _ Bucket = (*bucket)(nil)
 
 type namedIndex struct {
 	Index
-	publicName string
+	PublicName string
 }
 
 type namedIndexes []namedIndex
@@ -74,7 +76,7 @@ type namedIndexes []namedIndex
 // Get returns the index with the given (internal/db) name, or nil if not found
 func (n namedIndexes) Get(name string) *Index {
 	for _, ni := range n {
-		if ni.publicName == name {
+		if ni.PublicName == name {
 			return &ni.Index
 		}
 	}
@@ -99,6 +101,11 @@ func NewBucket(name string, proto Cloneable) Bucket {
 	}
 }
 
+// Name returns the name of the bucket set during initialization.
+func (b bucket) Name() string {
+	return b.name
+}
+
 // Register registers this Bucket and all indexes.
 // You can define a name here for queries, which is
 // different than the bucket name used to prefix the data
@@ -109,7 +116,7 @@ func (b bucket) Register(name string, r weave.QueryRouter) {
 	root := "/" + name
 	r.Register(root, b)
 	for _, ni := range b.indexes {
-		r.Register(root+"/"+ni.publicName, ni.Index)
+		r.Register(root+"/"+ni.PublicName, ni.Index)
 	}
 }
 
@@ -117,7 +124,7 @@ func (b bucket) Register(name string, r weave.QueryRouter) {
 func (b bucket) Query(db weave.ReadOnlyKVStore, mod string, data []byte) ([]weave.Model, error) {
 	switch mod {
 	case weave.KeyQueryMod:
-		key := b.DBKey(data)
+		key := b.dbKey(data)
 		value, err := db.Get(key)
 		if err != nil {
 			return nil, err
@@ -128,7 +135,7 @@ func (b bucket) Query(db weave.ReadOnlyKVStore, mod string, data []byte) ([]weav
 		res := []weave.Model{{Key: key, Value: value}}
 		return res, nil
 	case weave.PrefixQueryMod:
-		prefix := b.DBKey(data)
+		prefix := b.dbKey(data)
 		return queryPrefix(db, prefix)
 	default:
 		return nil, errors.Wrapf(errors.ErrInput, "unknown mod: %s", mod)
@@ -138,7 +145,7 @@ func (b bucket) Query(db weave.ReadOnlyKVStore, mod string, data []byte) ([]weav
 // DBKey is the full key we store in the db, including prefix
 // We copy into a new array rather than use append, as we don't
 // want consecutive calls to overwrite the same byte array.
-func (b bucket) DBKey(key []byte) []byte {
+func (b bucket) dbKey(key []byte) []byte {
 	// Long story: annoying bug... storing with keys "ABC" and "LED"
 	// would overwrite each other, also for queries.... huh?
 	// turns out name was 4 char,
@@ -156,7 +163,7 @@ func (b bucket) DBKey(key []byte) []byte {
 
 // Get one element
 func (b bucket) Get(db weave.ReadOnlyKVStore, key []byte) (Object, error) {
-	dbkey := b.DBKey(key)
+	dbkey := b.dbKey(key)
 	bz, err := db.Get(dbkey)
 	if err != nil {
 		return nil, err
@@ -164,16 +171,16 @@ func (b bucket) Get(db weave.ReadOnlyKVStore, key []byte) (Object, error) {
 	if bz == nil {
 		return nil, nil
 	}
-	return b.Parse(key, bz)
+	return b.parse(key, bz)
 }
 
-// Parse takes a key and value data (weave.Model) and
+// parse takes a key and value data (weave.Model) and
 // reconstructs the data this Bucket would return.
 //
 // Used internally as part of Get.
 // It is exposed mainly as a test helper, but can work for
 // any code that wants to parse
-func (b bucket) Parse(key, value []byte) (Object, error) {
+func (b bucket) parse(key, value []byte) (Object, error) {
 	obj := b.proto.Clone()
 	if err := obj.Value().Unmarshal(value); err != nil {
 		// If the deserialization fails, this is due to corrupted data
@@ -208,7 +215,7 @@ func (b bucket) Save(db weave.KVStore, model Object) error {
 	// TODO - ensure the metadata is set
 
 	// now save this one
-	return db.Set(b.DBKey(model.Key()), bz)
+	return db.Set(b.dbKey(model.Key()), bz)
 }
 
 // Delete will remove the value at a key
@@ -219,7 +226,7 @@ func (b bucket) Delete(db weave.KVStore, key []byte) error {
 	}
 
 	// now save this one
-	dbkey := b.DBKey(key)
+	dbkey := b.dbKey(key)
 	return db.Delete(dbkey)
 }
 
@@ -260,8 +267,8 @@ func (b bucket) WithMultiKeyIndex(name string, indexer MultiKeyIndexer, unique b
 	}
 
 	iname := b.name + "_" + name
-	add := NewMultiKeyIndex(iname, indexer, unique, b.DBKey)
-	idxs := append(b.indexes, namedIndex{Index: add, publicName: name})
+	add := NewMultiKeyIndex(iname, indexer, unique, b.dbKey)
+	idxs := append(b.indexes, namedIndex{Index: add, PublicName: name})
 	sort.Slice(idxs, func(i int, j int) bool { return idxs[i].name < idxs[j].name })
 	b.indexes = idxs
 	return b
@@ -307,4 +314,8 @@ func (b bucket) readRefs(db weave.ReadOnlyKVStore, refs [][]byte) ([]Object, err
 		}
 	}
 	return objs, nil
+}
+
+func (b bucket) visit(f func(rawBucket BaseBucket)) {
+	f(b)
 }

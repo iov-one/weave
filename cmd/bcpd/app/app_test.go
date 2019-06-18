@@ -41,7 +41,7 @@ func TestSendTx(t *testing.T) {
 	myApp := newTestApp(t, chainID, []*account{mainAccount})
 	var amount int64 = 2000
 	// Query for my balance
-	key := cash.NewBucket().DBKey(mainAccount.address())
+	key := orm.DBKey(cash.NewBucket(), mainAccount.address())
 	queryAndCheckWallet(t, false, myApp, "/", key, cash.Set{
 		Metadata: &weave.Metadata{Schema: 1},
 		Coins: coin.Coins{
@@ -122,7 +122,7 @@ func TestQuery(t *testing.T) {
 	sendToken(t, myApp, chainID, 2, []*account{mainAccount}, mainAccount.address(), addr2, 2000, "ETH", "Have a great trip!")
 
 	// Query for new balances
-	key := cash.NewBucket().DBKey(mainAccount.address())
+	key := orm.DBKey(cash.NewBucket(), mainAccount.address())
 	queryAndCheckWallet(t, false, myApp, "/", key, cash.Set{
 		Metadata: &weave.Metadata{Schema: 1},
 		Coins: coin.Coins{
@@ -132,7 +132,7 @@ func TestQuery(t *testing.T) {
 	})
 
 	// make sure money arrived safely
-	key2 := cash.NewBucket().DBKey(addr2)
+	key2 := orm.DBKey(cash.NewBucket(), addr2)
 	queryAndCheckWallet(t, false, myApp, "/", key2, cash.Set{
 		Metadata: &weave.Metadata{Schema: 1},
 		Coins: coin.Coins{

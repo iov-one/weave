@@ -6,6 +6,7 @@ import (
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/cmd/bnsd/x/nft/username"
+	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/store"
 	"github.com/iov-one/weave/weavetest"
 	"github.com/iov-one/weave/x/nft"
@@ -240,8 +241,8 @@ func TestQueryUsernameToken(t *testing.T) {
 			require.NoError(t, err)
 			require.Len(t, mods, 1)
 
-			assert.Equal(t, bucket.DBKey([]byte(spec.expUsername)), mods[0].Key)
-			got, err := bucket.Parse(nil, mods[0].Value)
+			assert.Equal(t, bucket.dbKey([]byte(spec.expUsername)), mods[0].Key)
+			got, err := orm.Parse(bucket, nil, mods[0].Value)
 			require.NoError(t, err)
 			_, err = username.AsUsername(got)
 			require.NoError(t, err)

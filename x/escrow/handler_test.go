@@ -735,11 +735,11 @@ func (q query) check(t testing.TB, db weave.ReadOnlyKVStore, qr weave.QueryRoute
 	if assert.Equal(t, len(q.expected), len(mods), msg...) {
 		for i, ex := range q.expected {
 			// make sure keys match
-			key := q.bucket.DBKey(ex.Key())
+			key := orm.DBKey(q.bucket, ex.Key())
 			assert.Equal(t, key, mods[i].Key)
 
 			// parse out value
-			got, err := q.bucket.Parse(nil, mods[i].Value)
+			got, err := orm.Parse(q.bucket, nil, mods[i].Value)
 			require.NoError(t, err)
 			assert.EqualValues(t, ex.Value(), got.Value(), msg...)
 		}

@@ -102,14 +102,15 @@ func copyAddr(a weave.Address) weave.Address {
 }
 
 type RevenueBucket struct {
-	orm.IDGenBucket
+	orm.XIDGenBucket
 }
 
 // NewRevenueBucket returns a bucket for managing revenues state.
 func NewRevenueBucket() *RevenueBucket {
-	b := migration.NewBucket("distribution", "revenue", orm.NewSimpleObj(nil, &Revenue{}))
+	b := orm.NewBucketBuilder("revenue", orm.NewSimpleObj(nil, &Revenue{})).Build()
+	b = migration.WithMigration(b, "distribution")
 	return &RevenueBucket{
-		IDGenBucket: orm.WithSeqIDGenerator(b, "id"),
+		XIDGenBucket: orm.WithSeqIDGenerator(b, "id"),
 	}
 }
 
@@ -121,14 +122,6 @@ func RevenueAccount(revenueID []byte) (weave.Address, error) {
 		return nil, errors.Wrap(err, "condition")
 	}
 	return c.Address(), nil
-}
-
-// Save persists the state of a given revenue entity.
-func (b *RevenueBucket) Save(db weave.KVStore, obj orm.Object) error {
-	if _, ok := obj.Value().(*Revenue); !ok {
-		return errors.Wrapf(errors.ErrModel, "invalid type: %T", obj.Value())
-	}
-	return b.Bucket.Save(db, obj)
 }
 
 // GetRevenue returns a revenue instance with given ID.

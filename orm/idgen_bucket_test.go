@@ -15,7 +15,7 @@ func TestIDGenBucket(t *testing.T) {
 	bucketImpl := NewBucket("any", NewSimpleObj(nil, &Counter{}))
 
 	specs := map[string]struct {
-		bucket IDGenBucket
+		bucket XIDGenBucket
 		expID  []byte
 		expErr *errors.Error
 	}{

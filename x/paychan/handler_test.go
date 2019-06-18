@@ -595,11 +595,11 @@ func (qc *querycheck) test(t *testing.T, db weave.ReadOnlyKVStore, qr weave.Quer
 		t.Fatalf("want %d entries returned, got %d", w, g)
 	}
 	for i, wres := range qc.wantRes {
-		if want, got := qc.bucket.DBKey(wres.Key()), result[i].Key; !bytes.Equal(want, got) {
+		if want, got := orm.DBKey(qc.bucket, wres.Key()), result[i].Key; !bytes.Equal(want, got) {
 			t.Errorf("want %d key to be %q, got %q", i, want, got)
 		}
 
-		if got, err := qc.bucket.Parse(nil, result[i].Value); err != nil {
+		if got, err := orm.Parse(qc.bucket, nil, result[i].Value); err != nil {
 			t.Errorf("parse %d: %s", i, err)
 		} else if w, g := wres.Value(), got.Value(); !reflect.DeepEqual(w, g) {
 			t.Logf(" got value: %+v", g)

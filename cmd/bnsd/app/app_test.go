@@ -30,7 +30,7 @@ func TestApp(t *testing.T) {
 	chainID := appFixture.ChainID
 	myApp := appFixture.Build()
 	// Query for my balance
-	dbKey := cash.NewBucket().DBKey(appFixture.GenesisKeyAddress)
+	dbKey := orm.DBKey(cash.NewBucket(), appFixture.GenesisKeyAddress)
 
 	queryAndCheckAccount(t, myApp, "/", dbKey, cash.Set{
 		Metadata: &weave.Metadata{Schema: 1},
@@ -85,7 +85,7 @@ func TestApp(t *testing.T) {
 	})
 
 	// make sure money arrived safely
-	dbKeyReceiver := cash.NewBucket().DBKey(addr2)
+	dbKeyReceiver := orm.DBKey(cash.NewBucket(), addr2)
 	queryAndCheckAccount(t, myApp, "/", dbKeyReceiver, cash.Set{
 		Metadata: &weave.Metadata{Schema: 1},
 		Coins: coin.Coins{

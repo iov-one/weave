@@ -8,7 +8,7 @@ import (
 )
 
 type VersioningBucket struct {
-	IDGenBucket
+	bucket XIDGenBucket
 }
 
 type versioned interface {
@@ -27,7 +27,7 @@ var tombstone = marker([]byte{})
 // WithVersioning add versioning functionality to the underlying bucket. This means objects can not be overwritten
 // anymore via Save function which must not be used with this type.
 // Instead Create and Update methods are provided to support a history of object versions.
-func WithVersioning(b IDGenBucket) VersioningBucket {
+func WithVersioning(b XIDGenBucket) VersioningBucket {
 	return VersioningBucket{b}
 }
 
@@ -42,8 +42,8 @@ func (b VersioningBucket) GetLatestVersion(db weave.ReadOnlyKVStore, id []byte) 
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "failed to marshal versioned ID ref")
 	}
-	dbKeyLength := len(b.DBKey(prefix)) - len(prefix)
-	matches, err := b.Query(db, weave.PrefixQueryMod, prefix)
+	dbKeyLength := len(DBKey(b.bucket, prefix)) - len(prefix)
+	matches, err := Query(b.bucket, db, weave.PrefixQueryMod, prefix)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "prefix query")
 	}
@@ -67,7 +67,7 @@ func (b VersioningBucket) GetLatestVersion(db weave.ReadOnlyKVStore, id []byte) 
 	if tombstone.Equal(found.Value) {
 		return nil, nil, errors.ErrDeleted
 	}
-	obj, err := b.Parse(found.Key, found.Value)
+	obj, err := Parse(b.bucket, found.Key, found.Value)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -81,7 +81,7 @@ func (b VersioningBucket) GetLatestVersion(db weave.ReadOnlyKVStore, id []byte) 
 //  - ErrDeleted when deleted
 // Object won't be nil in success case
 func (b VersioningBucket) Get(db weave.ReadOnlyKVStore, key []byte) (Object, error) {
-	bz, err := db.Get(b.DBKey(key))
+	bz, err := db.Get(DBKey(b.bucket, key))
 	switch {
 	case err != nil:
 		return nil, err
@@ -90,7 +90,7 @@ func (b VersioningBucket) Get(db weave.ReadOnlyKVStore, key []byte) (Object, err
 	case tombstone.Equal(bz):
 		return nil, errors.ErrDeleted
 	}
-	return b.Parse(key, bz)
+	return Parse(b.bucket, key, bz)
 }
 
 // GetVersion returns the stored object for the given VersionedIDRef.
@@ -114,7 +114,7 @@ func (b VersioningBucket) Create(db weave.KVStore, data versionedData) (*Version
 		return nil, errors.Wrap(errors.ErrInput, "version is set on create")
 	}
 	data.SetVersion(1)
-	newID, err := b.idGen.NextVal(db, data)
+	newID, err := b.bucket.nextVal(db, data)
 	if err != nil {
 		return nil, err
 	}
@@ -165,7 +165,10 @@ func (b VersioningBucket) safeUpdate(db weave.KVStore, newVersionKey VersionedID
 		return nil, errors.Wrap(err, "failed to marshall versioned id ref")
 	}
 	// store new version
-	return &newVersionKey, b.Bucket.Save(db, NewSimpleObj(key, data))
+	if _, err := b.bucket.Update(db, key, data); err != nil {
+		return nil, err
+	}
+	return &newVersionKey, nil
 }
 
 // Exists returns if an object is persisted for that given VersionedIDRef.
@@ -195,6 +198,10 @@ func (b VersioningBucket) Delete(db weave.KVStore, id []byte) (*VersionedIDRef, 
 		return nil, err
 	}
 	return b.safeUpdate(db, newVersionKey, tombstone)
+}
+
+func (b VersioningBucket) visit(f func(rawBucket BaseBucket)) {
+	b.bucket.visit(f)
 }
 
 // marker is a null value type that satisfies CloneableData.

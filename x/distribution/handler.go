@@ -17,7 +17,7 @@ const (
 
 // RegisterQuery registers feedlist buckets for querying.
 func RegisterQuery(qr weave.QueryRouter) {
-	NewRevenueBucket().Register("revenues", qr)
+	qr.Register("revenues", orm.WithQueryAdaptor(NewRevenueBucket()))
 }
 
 // CashController allows to manage coins stored by the accounts without the
@@ -189,8 +189,7 @@ func (h *resetRevenueHandler) Deliver(ctx weave.Context, db weave.KVStore, tx we
 	}
 
 	rev.Recipients = msg.Recipients
-	obj := orm.NewSimpleObj(msg.RevenueID, rev)
-	if err := h.bucket.Save(db, obj); err != nil {
+	if _, err := h.bucket.Update(db, msg.RevenueID, rev); err != nil {
 		return nil, errors.Wrap(err, "cannot save")
 	}
 	return &weave.DeliverResult{}, nil
