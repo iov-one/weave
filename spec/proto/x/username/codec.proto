@@ -48,10 +48,10 @@ message RegisterTokenMsg {
   repeated BlockchainAddress targets = 3 ;
 }
 
-// ChangeTokenOwnerMsg is a request to transfer an ownership of a token. The
+// TransferTokenMsg is a request to transfer an ownership of a token. The
 // mesage must be signed by the current token owner. Acceptance of the new
 // owner is not required in order to succeed.
-message ChangeTokenOwnerMsg {
+message TransferTokenMsg {
   weave.Metadata metadata = 1;
   // Username is the unique name of the token, for example alice*iov
   string username = 2 ;

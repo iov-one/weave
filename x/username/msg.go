@@ -7,7 +7,7 @@ import (
 
 func init() {
 	migration.MustRegister(1, &RegisterTokenMsg{}, migration.NoModification)
-	migration.MustRegister(1, &ChangeTokenOwnerMsg{}, migration.NoModification)
+	migration.MustRegister(1, &TransferTokenMsg{}, migration.NoModification)
 	migration.MustRegister(1, &ChangeTokenTargetsMsg{}, migration.NoModification)
 }
 
@@ -33,7 +33,7 @@ func (RegisterTokenMsg) Path() string {
 	return "username/registerToken"
 }
 
-func (m *ChangeTokenOwnerMsg) Validate() error {
+func (m *TransferTokenMsg) Validate() error {
 	if err := m.Metadata.Validate(); err != nil {
 		return errors.Wrap(err, "metadata")
 	}
@@ -46,7 +46,7 @@ func (m *ChangeTokenOwnerMsg) Validate() error {
 	return nil
 }
 
-func (ChangeTokenOwnerMsg) Path() string {
+func (TransferTokenMsg) Path() string {
 	return "username/changeTokenOwner"
 }
 

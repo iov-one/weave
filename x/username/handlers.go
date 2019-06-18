@@ -10,7 +10,7 @@ import (
 
 const (
 	registerTokenCost     = 0
-	changeTokenOwnerCost  = 0
+	transferTokenCost     = 0
 	changeTokenTargetCost = 0
 )
 
@@ -19,7 +19,7 @@ func RegisterRoutes(r weave.Registry, auth x.Authenticator) {
 
 	b := NewTokenBucket()
 	r.Handle(RegisterTokenMsg{}.Path(), &registerTokenHandler{auth: auth, bucket: b})
-	r.Handle(ChangeTokenOwnerMsg{}.Path(), &changeTokenOwnerHandler{auth: auth, bucket: b})
+	r.Handle(TransferTokenMsg{}.Path(), &transferTokenHandler{auth: auth, bucket: b})
 	r.Handle(ChangeTokenTargetsMsg{}.Path(), &changeTokenTargetsHandler{auth: auth, bucket: b})
 }
 
@@ -74,19 +74,19 @@ func (h *registerTokenHandler) validate(ctx weave.Context, db weave.KVStore, tx 
 	return &msg, nil
 }
 
-type changeTokenOwnerHandler struct {
+type transferTokenHandler struct {
 	auth   x.Authenticator
 	bucket orm.ModelBucket
 }
 
-func (h *changeTokenOwnerHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
+func (h *transferTokenHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
 	if _, _, err := h.validate(ctx, db, tx); err != nil {
 		return nil, err
 	}
-	return &weave.CheckResult{GasAllocated: changeTokenOwnerCost}, nil
+	return &weave.CheckResult{GasAllocated: transferTokenCost}, nil
 }
 
-func (h *changeTokenOwnerHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
+func (h *transferTokenHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	msg, token, err := h.validate(ctx, db, tx)
 	if err != nil {
 		return nil, err
@@ -99,8 +99,8 @@ func (h *changeTokenOwnerHandler) Deliver(ctx weave.Context, db weave.KVStore, t
 	return &weave.DeliverResult{Data: msg.Username.Bytes()}, nil
 }
 
-func (h *changeTokenOwnerHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*ChangeTokenOwnerMsg, *Token, error) {
-	var msg ChangeTokenOwnerMsg
+func (h *transferTokenHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*TransferTokenMsg, *Token, error) {
+	var msg TransferTokenMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, nil, errors.Wrap(err, "load msg")
 	}

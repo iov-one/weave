@@ -52,13 +52,13 @@ func TestRegisterTokenMsgValidate(t *testing.T) {
 	}
 }
 
-func TestChangeTokenOwnerMsgValidate(t *testing.T) {
+func TestTransferTokenMsgValidate(t *testing.T) {
 	cases := map[string]struct {
 		Msg  weave.Msg
 		Want *errors.Error
 	}{
 		"valid message": {
-			Msg: &ChangeTokenOwnerMsg{
+			Msg: &TransferTokenMsg{
 				Metadata: &weave.Metadata{Schema: 1},
 				Username: "alice*iov",
 				NewOwner: weavetest.NewCondition().Address(),
@@ -66,7 +66,7 @@ func TestChangeTokenOwnerMsgValidate(t *testing.T) {
 			Want: nil,
 		},
 		"invalid new owner address": {
-			Msg: &ChangeTokenOwnerMsg{
+			Msg: &TransferTokenMsg{
 				Metadata: &weave.Metadata{Schema: 1},
 				Username: "alice*iov",
 				NewOwner: []byte("x"),
@@ -74,7 +74,7 @@ func TestChangeTokenOwnerMsgValidate(t *testing.T) {
 			Want: errors.ErrInput,
 		},
 		"invalid username": {
-			Msg: &ChangeTokenOwnerMsg{
+			Msg: &TransferTokenMsg{
 				Metadata: &weave.Metadata{Schema: 1},
 				Username: "xx",
 				NewOwner: weavetest.NewCondition().Address(),

@@ -801,10 +801,6 @@
                 </li>
               
                 <li>
-                  <a href="#username.ChangeTokenOwnerMsg"><span class="badge">M</span>ChangeTokenOwnerMsg</a>
-                </li>
-              
-                <li>
                   <a href="#username.ChangeTokenTargetsMsg"><span class="badge">M</span>ChangeTokenTargetsMsg</a>
                 </li>
               
@@ -814,6 +810,10 @@
               
                 <li>
                   <a href="#username.Token"><span class="badge">M</span>Token</a>
+                </li>
+              
+                <li>
+                  <a href="#username.TransferTokenMsg"><span class="badge">M</span>TransferTokenMsg</a>
                 </li>
               
               
@@ -1055,8 +1055,8 @@ aswap and gov don&#39;t make much sense as part of a batch (no vote buying) </p>
                 </tr>
               
                 <tr>
-                  <td>change_token_owner_msg</td>
-                  <td><a href="#username.ChangeTokenOwnerMsg">username.ChangeTokenOwnerMsg</a></td>
+                  <td>transfer_token_msg</td>
+                  <td><a href="#username.TransferTokenMsg">username.TransferTokenMsg</a></td>
                   <td></td>
                   <td><p> </p></td>
                 </tr>
@@ -1185,8 +1185,8 @@ aswap and gov don&#39;t make much sense as part of a batch (no vote buying) </p>
                 </tr>
               
                 <tr>
-                  <td>change_token_owner_msg</td>
-                  <td><a href="#username.ChangeTokenOwnerMsg">username.ChangeTokenOwnerMsg</a></td>
+                  <td>transfer_token_msg</td>
+                  <td><a href="#username.TransferTokenMsg">username.TransferTokenMsg</a></td>
                   <td></td>
                   <td><p> </p></td>
                 </tr>
@@ -1306,8 +1306,8 @@ aswap and gov don&#39;t make much sense as part of a batch (no vote buying) </p>
                 </tr>
               
                 <tr>
-                  <td>change_token_owner_msg</td>
-                  <td><a href="#username.ChangeTokenOwnerMsg">username.ChangeTokenOwnerMsg</a></td>
+                  <td>transfer_token_msg</td>
+                  <td><a href="#username.TransferTokenMsg">username.TransferTokenMsg</a></td>
                   <td></td>
                   <td><p> </p></td>
                 </tr>
@@ -1560,8 +1560,8 @@ aswap and gov don&#39;t make much sense as part of a batch (no vote buying) </p>
                 </tr>
               
                 <tr>
-                  <td>change_token_owner_msg</td>
-                  <td><a href="#username.ChangeTokenOwnerMsg">username.ChangeTokenOwnerMsg</a></td>
+                  <td>transfer_token_msg</td>
+                  <td><a href="#username.TransferTokenMsg">username.TransferTokenMsg</a></td>
                   <td></td>
                   <td><p> </p></td>
                 </tr>
@@ -5422,43 +5422,6 @@ data. </p></td>
 
         
       
-        <h3 id="username.ChangeTokenOwnerMsg">ChangeTokenOwnerMsg</h3>
-        <p>ChangeTokenOwnerMsg is a request to transfer an ownership of a token. The</p><p>mesage must be signed by the current token owner. Acceptance of the new</p><p>owner is not required in order to succeed.</p>
-
-        
-          <table class="field-table">
-            <thead>
-              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
-            </thead>
-            <tbody>
-              
-                <tr>
-                  <td>metadata</td>
-                  <td><a href="#weave.Metadata">weave.Metadata</a></td>
-                  <td></td>
-                  <td><p> </p></td>
-                </tr>
-              
-                <tr>
-                  <td>username</td>
-                  <td><a href="#string">string</a></td>
-                  <td></td>
-                  <td><p>Username is the unique name of the token, for example alice*iov </p></td>
-                </tr>
-              
-                <tr>
-                  <td>new_owner</td>
-                  <td><a href="#bytes">bytes</a></td>
-                  <td></td>
-                  <td><p>Owner is a weave address that will owns this token after the change. </p></td>
-                </tr>
-              
-            </tbody>
-          </table>
-        
-
-        
-      
         <h3 id="username.ChangeTokenTargetsMsg">ChangeTokenTargetsMsg</h3>
         <p>ChangeTokenTargetsMsg is a request to change the address that this token</p><p>points to. Only the owner of a token can request this operation.</p>
 
@@ -5565,6 +5528,43 @@ least one blockchain address elemenet. </p></td>
                   <td></td>
                   <td><p>Owner is a weave.Address that controls this token. Only the owner can
 modify a username token. </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+        
+
+        
+      
+        <h3 id="username.TransferTokenMsg">TransferTokenMsg</h3>
+        <p>TransferTokenMsg is a request to transfer an ownership of a token. The</p><p>mesage must be signed by the current token owner. Acceptance of the new</p><p>owner is not required in order to succeed.</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>metadata</td>
+                  <td><a href="#weave.Metadata">weave.Metadata</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>username</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p>Username is the unique name of the token, for example alice*iov </p></td>
+                </tr>
+              
+                <tr>
+                  <td>new_owner</td>
+                  <td><a href="#bytes">bytes</a></td>
+                  <td></td>
+                  <td><p>Owner is a weave address that will owns this token after the change. </p></td>
                 </tr>
               
             </tbody>

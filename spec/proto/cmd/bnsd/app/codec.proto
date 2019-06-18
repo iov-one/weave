@@ -64,7 +64,7 @@ message Tx {
     gov.UpdateElectionRuleMsg update_election_rule_msg = 78;
     // 79 is reserved (see ProposalOptions: TextResolutionMsg)
     username.RegisterTokenMsg register_token_msg = 80;
-    username.ChangeTokenOwnerMsg change_token_owner_msg = 81;
+    username.TransferTokenMsg transfer_token_msg = 81;
     username.ChangeTokenTargetsMsg change_token_targets_msg = 82;
   }
 }
@@ -94,7 +94,7 @@ message BatchMsg {
       // upgrade schema is important enough, it should be a solo action
       // aswap and gov don't make much sense as part of a batch (no vote buying)
       username.RegisterTokenMsg register_token_msg = 80;
-      username.ChangeTokenOwnerMsg change_token_owner_msg = 81;
+      username.TransferTokenMsg transfer_token_msg = 81;
       username.ChangeTokenTargetsMsg change_token_targets_msg = 82;
     }
   }
@@ -118,7 +118,7 @@ message ProposalOptions {
     gov.UpdateElectionRuleMsg update_election_rule_msg = 78;
     gov.TextResolutionMsg text_resolution_msg = 79;
     username.RegisterTokenMsg register_token_msg = 80;
-    username.ChangeTokenOwnerMsg change_token_owner_msg = 81;
+    username.TransferTokenMsg transfer_token_msg = 81;
     username.ChangeTokenTargetsMsg change_token_targets_msg = 82;
   }
 }
@@ -139,7 +139,7 @@ message ProposalBatchMsg {
       gov.UpdateElectionRuleMsg update_election_rule_msg = 78;
       gov.TextResolutionMsg text_resolution_msg = 79;
       username.RegisterTokenMsg register_token_msg = 80;
-      username.ChangeTokenOwnerMsg change_token_owner_msg = 81;
+      username.TransferTokenMsg transfer_token_msg = 81;
       username.ChangeTokenTargetsMsg change_token_targets_msg = 82;
     }
   }

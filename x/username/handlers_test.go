@@ -123,7 +123,7 @@ func TestChangeTokenOwnerHandler(t *testing.T) {
 	}{
 		"success": {
 			Tx: &weavetest.Tx{
-				Msg: &ChangeTokenOwnerMsg{
+				Msg: &TransferTokenMsg{
 					Username: "alice@iov",
 					NewOwner: bobbyCond.Address(),
 				},
@@ -132,7 +132,7 @@ func TestChangeTokenOwnerHandler(t *testing.T) {
 		},
 		"only the owner can change the token": {
 			Tx: &weavetest.Tx{
-				Msg: &ChangeTokenOwnerMsg{
+				Msg: &TransferTokenMsg{
 					Username: "alice@iov",
 					NewOwner: bobbyCond.Address(),
 				},
@@ -143,7 +143,7 @@ func TestChangeTokenOwnerHandler(t *testing.T) {
 		},
 		"token must exist": {
 			Tx: &weavetest.Tx{
-				Msg: &ChangeTokenOwnerMsg{
+				Msg: &TransferTokenMsg{
 					Username: "does-not-exist@iov",
 					NewOwner: bobbyCond.Address(),
 				},
@@ -168,7 +168,7 @@ func TestChangeTokenOwnerHandler(t *testing.T) {
 			})
 			assert.Nil(t, err)
 
-			h := changeTokenOwnerHandler{
+			h := transferTokenHandler{
 				auth:   tc.Auth,
 				bucket: b,
 			}
