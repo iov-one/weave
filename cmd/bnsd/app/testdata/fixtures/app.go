@@ -97,7 +97,6 @@ func appStateGenesis(keyAddress weave.Address) []byte {
 			{"ver": 1, "pkg": "msgfee"},
 			{"ver": 1, "pkg": "multisig"},
 			{"ver": 1, "pkg": "namecoin"},
-			{"ver": 1, "pkg": "nft"},
 			{"ver": 1, "pkg": "paychan"},
 			{"ver": 1, "pkg": "sigs"},
 			{"ver": 1, "pkg": "username"},
@@ -159,7 +158,7 @@ func appStateGenesis(keyAddress weave.Address) []byte {
 				"fee":      "1 FRNK",
 			},
 			dict{
-				"msg_path": "nft/username/issue",
+				"msg_path": "username/registerUsernameToken",
 				"fee":      "5 FRNK",
 			},
 		},

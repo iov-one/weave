@@ -225,41 +225,6 @@
         
           
           <li>
-            <a href="#cmd%2fbnsd%2fx%2fnft%2fusername%2fcodec.proto">cmd/bnsd/x/nft/username/codec.proto</a>
-            <ul>
-              
-                <li>
-                  <a href="#username.AddChainAddressMsg"><span class="badge">M</span>AddChainAddressMsg</a>
-                </li>
-              
-                <li>
-                  <a href="#username.ChainAddress"><span class="badge">M</span>ChainAddress</a>
-                </li>
-              
-                <li>
-                  <a href="#username.IssueTokenMsg"><span class="badge">M</span>IssueTokenMsg</a>
-                </li>
-              
-                <li>
-                  <a href="#username.RemoveChainAddressMsg"><span class="badge">M</span>RemoveChainAddressMsg</a>
-                </li>
-              
-                <li>
-                  <a href="#username.TokenDetails"><span class="badge">M</span>TokenDetails</a>
-                </li>
-              
-                <li>
-                  <a href="#username.UsernameToken"><span class="badge">M</span>UsernameToken</a>
-                </li>
-              
-              
-              
-              
-            </ul>
-          </li>
-        
-          
-          <li>
             <a href="#codec.proto">codec.proto</a>
             <ul>
               
@@ -801,19 +766,19 @@
                 </li>
               
                 <li>
-                  <a href="#username.ChangeTokenTargetsMsg"><span class="badge">M</span>ChangeTokenTargetsMsg</a>
+                  <a href="#username.ChangeUsernameTokenTargetsMsg"><span class="badge">M</span>ChangeUsernameTokenTargetsMsg</a>
                 </li>
               
                 <li>
-                  <a href="#username.RegisterTokenMsg"><span class="badge">M</span>RegisterTokenMsg</a>
+                  <a href="#username.RegisterUsernameTokenMsg"><span class="badge">M</span>RegisterUsernameTokenMsg</a>
                 </li>
               
                 <li>
-                  <a href="#username.Token"><span class="badge">M</span>Token</a>
+                  <a href="#username.TransferUsernameTokenMsg"><span class="badge">M</span>TransferUsernameTokenMsg</a>
                 </li>
               
                 <li>
-                  <a href="#username.TransferTokenMsg"><span class="badge">M</span>TransferTokenMsg</a>
+                  <a href="#username.UsernameToken"><span class="badge">M</span>UsernameToken</a>
                 </li>
               
               
@@ -991,36 +956,22 @@
                 </tr>
               
                 <tr>
-                  <td>add_approval_msg</td>
-                  <td><a href="#nft.AddApprovalMsg">nft.AddApprovalMsg</a></td>
+                  <td>register_username_token_msg</td>
+                  <td><a href="#username.RegisterUsernameTokenMsg">username.RegisterUsernameTokenMsg</a></td>
                   <td></td>
                   <td><p>No recursive batches! </p></td>
                 </tr>
               
                 <tr>
-                  <td>remove_approval_msg</td>
-                  <td><a href="#nft.RemoveApprovalMsg">nft.RemoveApprovalMsg</a></td>
+                  <td>transfer_username_token_msg</td>
+                  <td><a href="#username.TransferUsernameTokenMsg">username.TransferUsernameTokenMsg</a></td>
                   <td></td>
                   <td><p> </p></td>
                 </tr>
               
                 <tr>
-                  <td>issue_username_nft_msg</td>
-                  <td><a href="#username.IssueTokenMsg">username.IssueTokenMsg</a></td>
-                  <td></td>
-                  <td><p> </p></td>
-                </tr>
-              
-                <tr>
-                  <td>add_username_address_nft_msg</td>
-                  <td><a href="#username.AddChainAddressMsg">username.AddChainAddressMsg</a></td>
-                  <td></td>
-                  <td><p> </p></td>
-                </tr>
-              
-                <tr>
-                  <td>remove_username_address_msg</td>
-                  <td><a href="#username.RemoveChainAddressMsg">username.RemoveChainAddressMsg</a></td>
+                  <td>change_username_token_targets_msg</td>
+                  <td><a href="#username.ChangeUsernameTokenTargetsMsg">username.ChangeUsernameTokenTargetsMsg</a></td>
                   <td></td>
                   <td><p> </p></td>
                 </tr>
@@ -1043,29 +994,8 @@
                   <td>reset_revenue_msg</td>
                   <td><a href="#distribution.ResetRevenueMsg">distribution.ResetRevenueMsg</a></td>
                   <td></td>
-                  <td><p> </p></td>
-                </tr>
-              
-                <tr>
-                  <td>register_token_msg</td>
-                  <td><a href="#username.RegisterTokenMsg">username.RegisterTokenMsg</a></td>
-                  <td></td>
                   <td><p>upgrade schema is important enough, it should be a solo action
 aswap and gov don&#39;t make much sense as part of a batch (no vote buying) </p></td>
-                </tr>
-              
-                <tr>
-                  <td>transfer_token_msg</td>
-                  <td><a href="#username.TransferTokenMsg">username.TransferTokenMsg</a></td>
-                  <td></td>
-                  <td><p> </p></td>
-                </tr>
-              
-                <tr>
-                  <td>change_token_targets_msg</td>
-                  <td><a href="#username.ChangeTokenTargetsMsg">username.ChangeTokenTargetsMsg</a></td>
-                  <td></td>
-                  <td><p> </p></td>
                 </tr>
               
             </tbody>
@@ -1136,10 +1066,31 @@ aswap and gov don&#39;t make much sense as part of a batch (no vote buying) </p>
                 </tr>
               
                 <tr>
+                  <td>register_username_token_msg</td>
+                  <td><a href="#username.RegisterUsernameTokenMsg">username.RegisterUsernameTokenMsg</a></td>
+                  <td></td>
+                  <td><p>no recursive batches </p></td>
+                </tr>
+              
+                <tr>
+                  <td>transfer_username_token_msg</td>
+                  <td><a href="#username.TransferUsernameTokenMsg">username.TransferUsernameTokenMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>change_username_token_targets_msg</td>
+                  <td><a href="#username.ChangeUsernameTokenTargetsMsg">username.ChangeUsernameTokenTargetsMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
                   <td>new_revenue_msg</td>
                   <td><a href="#distribution.NewRevenueMsg">distribution.NewRevenueMsg</a></td>
                   <td></td>
-                  <td><p>no recursive batches </p></td>
+                  <td><p> </p></td>
                 </tr>
               
                 <tr>
@@ -1173,27 +1124,6 @@ aswap and gov don&#39;t make much sense as part of a batch (no vote buying) </p>
                 <tr>
                   <td>text_resolution_msg</td>
                   <td><a href="#gov.TextResolutionMsg">gov.TextResolutionMsg</a></td>
-                  <td></td>
-                  <td><p> </p></td>
-                </tr>
-              
-                <tr>
-                  <td>register_token_msg</td>
-                  <td><a href="#username.RegisterTokenMsg">username.RegisterTokenMsg</a></td>
-                  <td></td>
-                  <td><p> </p></td>
-                </tr>
-              
-                <tr>
-                  <td>transfer_token_msg</td>
-                  <td><a href="#username.TransferTokenMsg">username.TransferTokenMsg</a></td>
-                  <td></td>
-                  <td><p> </p></td>
-                </tr>
-              
-                <tr>
-                  <td>change_token_targets_msg</td>
-                  <td><a href="#username.ChangeTokenTargetsMsg">username.ChangeTokenTargetsMsg</a></td>
                   <td></td>
                   <td><p> </p></td>
                 </tr>
@@ -1250,6 +1180,27 @@ aswap and gov don&#39;t make much sense as part of a batch (no vote buying) </p>
                 </tr>
               
                 <tr>
+                  <td>register_username_token_msg</td>
+                  <td><a href="#username.RegisterUsernameTokenMsg">username.RegisterUsernameTokenMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>transfer_username_token_msg</td>
+                  <td><a href="#username.TransferUsernameTokenMsg">username.TransferUsernameTokenMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>change_username_token_targets_msg</td>
+                  <td><a href="#username.ChangeUsernameTokenTargetsMsg">username.ChangeUsernameTokenTargetsMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
                   <td>new_revenue_msg</td>
                   <td><a href="#distribution.NewRevenueMsg">distribution.NewRevenueMsg</a></td>
                   <td></td>
@@ -1294,27 +1245,6 @@ aswap and gov don&#39;t make much sense as part of a batch (no vote buying) </p>
                 <tr>
                   <td>text_resolution_msg</td>
                   <td><a href="#gov.TextResolutionMsg">gov.TextResolutionMsg</a></td>
-                  <td></td>
-                  <td><p> </p></td>
-                </tr>
-              
-                <tr>
-                  <td>register_token_msg</td>
-                  <td><a href="#username.RegisterTokenMsg">username.RegisterTokenMsg</a></td>
-                  <td></td>
-                  <td><p> </p></td>
-                </tr>
-              
-                <tr>
-                  <td>transfer_token_msg</td>
-                  <td><a href="#username.TransferTokenMsg">username.TransferTokenMsg</a></td>
-                  <td></td>
-                  <td><p> </p></td>
-                </tr>
-              
-                <tr>
-                  <td>change_token_targets_msg</td>
-                  <td><a href="#username.ChangeTokenTargetsMsg">username.ChangeTokenTargetsMsg</a></td>
                   <td></td>
                   <td><p> </p></td>
                 </tr>
@@ -1427,36 +1357,22 @@ aswap and gov don&#39;t make much sense as part of a batch (no vote buying) </p>
                 </tr>
               
                 <tr>
-                  <td>add_approval_msg</td>
-                  <td><a href="#nft.AddApprovalMsg">nft.AddApprovalMsg</a></td>
+                  <td>register_username_token_msg</td>
+                  <td><a href="#username.RegisterUsernameTokenMsg">username.RegisterUsernameTokenMsg</a></td>
                   <td></td>
                   <td><p> </p></td>
                 </tr>
               
                 <tr>
-                  <td>remove_approval_msg</td>
-                  <td><a href="#nft.RemoveApprovalMsg">nft.RemoveApprovalMsg</a></td>
+                  <td>transfer_username_token_msg</td>
+                  <td><a href="#username.TransferUsernameTokenMsg">username.TransferUsernameTokenMsg</a></td>
                   <td></td>
                   <td><p> </p></td>
                 </tr>
               
                 <tr>
-                  <td>issue_username_nft_msg</td>
-                  <td><a href="#username.IssueTokenMsg">username.IssueTokenMsg</a></td>
-                  <td></td>
-                  <td><p> </p></td>
-                </tr>
-              
-                <tr>
-                  <td>add_username_address_nft_msg</td>
-                  <td><a href="#username.AddChainAddressMsg">username.AddChainAddressMsg</a></td>
-                  <td></td>
-                  <td><p> </p></td>
-                </tr>
-              
-                <tr>
-                  <td>remove_username_address_msg</td>
-                  <td><a href="#username.RemoveChainAddressMsg">username.RemoveChainAddressMsg</a></td>
+                  <td>change_username_token_targets_msg</td>
+                  <td><a href="#username.ChangeUsernameTokenTargetsMsg">username.ChangeUsernameTokenTargetsMsg</a></td>
                   <td></td>
                   <td><p> </p></td>
                 </tr>
@@ -1549,275 +1465,7 @@ aswap and gov don&#39;t make much sense as part of a batch (no vote buying) </p>
                   <td>update_election_rule_msg</td>
                   <td><a href="#gov.UpdateElectionRuleMsg">gov.UpdateElectionRuleMsg</a></td>
                   <td></td>
-                  <td><p> </p></td>
-                </tr>
-              
-                <tr>
-                  <td>register_token_msg</td>
-                  <td><a href="#username.RegisterTokenMsg">username.RegisterTokenMsg</a></td>
-                  <td></td>
                   <td><p>79 is reserved (see ProposalOptions: TextResolutionMsg) </p></td>
-                </tr>
-              
-                <tr>
-                  <td>transfer_token_msg</td>
-                  <td><a href="#username.TransferTokenMsg">username.TransferTokenMsg</a></td>
-                  <td></td>
-                  <td><p> </p></td>
-                </tr>
-              
-                <tr>
-                  <td>change_token_targets_msg</td>
-                  <td><a href="#username.ChangeTokenTargetsMsg">username.ChangeTokenTargetsMsg</a></td>
-                  <td></td>
-                  <td><p> </p></td>
-                </tr>
-              
-            </tbody>
-          </table>
-        
-
-        
-      
-
-      
-
-      
-
-      
-    
-      
-      <div class="file-heading">
-        <h2 id="cmd/bnsd/x/nft/username/codec.proto">cmd/bnsd/x/nft/username/codec.proto</h2><a href="#title">Top</a>
-      </div>
-      <p></p>
-
-      
-        <h3 id="username.AddChainAddressMsg">AddChainAddressMsg</h3>
-        <p></p>
-
-        
-          <table class="field-table">
-            <thead>
-              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
-            </thead>
-            <tbody>
-              
-                <tr>
-                  <td>metadata</td>
-                  <td><a href="#weave.Metadata">weave.Metadata</a></td>
-                  <td></td>
-                  <td><p> </p></td>
-                </tr>
-              
-                <tr>
-                  <td>username_id</td>
-                  <td><a href="#bytes">bytes</a></td>
-                  <td></td>
-                  <td><p> </p></td>
-                </tr>
-              
-                <tr>
-                  <td>blockchain_id</td>
-                  <td><a href="#bytes">bytes</a></td>
-                  <td></td>
-                  <td><p> </p></td>
-                </tr>
-              
-                <tr>
-                  <td>address</td>
-                  <td><a href="#string">string</a></td>
-                  <td></td>
-                  <td><p> </p></td>
-                </tr>
-              
-            </tbody>
-          </table>
-        
-
-        
-      
-        <h3 id="username.ChainAddress">ChainAddress</h3>
-        <p>ChainAddress is an address bind to a specific blockchain chain.</p>
-
-        
-          <table class="field-table">
-            <thead>
-              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
-            </thead>
-            <tbody>
-              
-                <tr>
-                  <td>blockchain_id</td>
-                  <td><a href="#bytes">bytes</a></td>
-                  <td></td>
-                  <td><p>An arbitrary blockchain ID. Original design was assuming a relation to our
-internal blockchain ID, but to simplify the implementation, we no longer
-register blckchain. Instead we allow to pass any value here, withouth
-validating it. </p></td>
-                </tr>
-              
-                <tr>
-                  <td>address</td>
-                  <td><a href="#string">string</a></td>
-                  <td></td>
-                  <td><p>Address is a unique identifier of an account on the referenced
-blockchain. </p></td>
-                </tr>
-              
-            </tbody>
-          </table>
-        
-
-        
-      
-        <h3 id="username.IssueTokenMsg">IssueTokenMsg</h3>
-        <p></p>
-
-        
-          <table class="field-table">
-            <thead>
-              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
-            </thead>
-            <tbody>
-              
-                <tr>
-                  <td>metadata</td>
-                  <td><a href="#weave.Metadata">weave.Metadata</a></td>
-                  <td></td>
-                  <td><p> </p></td>
-                </tr>
-              
-                <tr>
-                  <td>id</td>
-                  <td><a href="#bytes">bytes</a></td>
-                  <td></td>
-                  <td><p> </p></td>
-                </tr>
-              
-                <tr>
-                  <td>owner</td>
-                  <td><a href="#bytes">bytes</a></td>
-                  <td></td>
-                  <td><p> </p></td>
-                </tr>
-              
-                <tr>
-                  <td>approvals</td>
-                  <td><a href="#nft.ActionApprovals">nft.ActionApprovals</a></td>
-                  <td>repeated</td>
-                  <td><p> </p></td>
-                </tr>
-              
-                <tr>
-                  <td>details</td>
-                  <td><a href="#username.TokenDetails">TokenDetails</a></td>
-                  <td></td>
-                  <td><p> </p></td>
-                </tr>
-              
-            </tbody>
-          </table>
-        
-
-        
-      
-        <h3 id="username.RemoveChainAddressMsg">RemoveChainAddressMsg</h3>
-        <p></p>
-
-        
-          <table class="field-table">
-            <thead>
-              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
-            </thead>
-            <tbody>
-              
-                <tr>
-                  <td>metadata</td>
-                  <td><a href="#weave.Metadata">weave.Metadata</a></td>
-                  <td></td>
-                  <td><p> </p></td>
-                </tr>
-              
-                <tr>
-                  <td>username_id</td>
-                  <td><a href="#bytes">bytes</a></td>
-                  <td></td>
-                  <td><p> </p></td>
-                </tr>
-              
-                <tr>
-                  <td>blockchain_id</td>
-                  <td><a href="#bytes">bytes</a></td>
-                  <td></td>
-                  <td><p> </p></td>
-                </tr>
-              
-                <tr>
-                  <td>address</td>
-                  <td><a href="#string">string</a></td>
-                  <td></td>
-                  <td><p> </p></td>
-                </tr>
-              
-            </tbody>
-          </table>
-        
-
-        
-      
-        <h3 id="username.TokenDetails">TokenDetails</h3>
-        <p></p>
-
-        
-          <table class="field-table">
-            <thead>
-              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
-            </thead>
-            <tbody>
-              
-                <tr>
-                  <td>addresses</td>
-                  <td><a href="#username.ChainAddress">ChainAddress</a></td>
-                  <td>repeated</td>
-                  <td><p> </p></td>
-                </tr>
-              
-            </tbody>
-          </table>
-        
-
-        
-      
-        <h3 id="username.UsernameToken">UsernameToken</h3>
-        <p></p>
-
-        
-          <table class="field-table">
-            <thead>
-              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
-            </thead>
-            <tbody>
-              
-                <tr>
-                  <td>metadata</td>
-                  <td><a href="#weave.Metadata">weave.Metadata</a></td>
-                  <td></td>
-                  <td><p> </p></td>
-                </tr>
-              
-                <tr>
-                  <td>base</td>
-                  <td><a href="#nft.NonFungibleToken">nft.NonFungibleToken</a></td>
-                  <td></td>
-                  <td><p> </p></td>
-                </tr>
-              
-                <tr>
-                  <td>details</td>
-                  <td><a href="#username.TokenDetails">TokenDetails</a></td>
-                  <td></td>
-                  <td><p> </p></td>
                 </tr>
               
             </tbody>
@@ -5422,7 +5070,7 @@ data. </p></td>
 
         
       
-        <h3 id="username.ChangeTokenTargetsMsg">ChangeTokenTargetsMsg</h3>
+        <h3 id="username.ChangeUsernameTokenTargetsMsg">ChangeUsernameTokenTargetsMsg</h3>
         <p>ChangeTokenTargetsMsg is a request to change the address that this token</p><p>points to. Only the owner of a token can request this operation.</p>
 
         
@@ -5460,7 +5108,7 @@ to after the change. Old list is overwritten with what is provided. </p></td>
 
         
       
-        <h3 id="username.RegisterTokenMsg">RegisterTokenMsg</h3>
+        <h3 id="username.RegisterUsernameTokenMsg">RegisterUsernameTokenMsg</h3>
         <p>RegisterTokenMsg is creating a new username token. The owner is always set</p><p>to the main signer.</p>
 
         
@@ -5497,8 +5145,45 @@ to after the change. Old list is overwritten with what is provided. </p></td>
 
         
       
-        <h3 id="username.Token">Token</h3>
-        <p>Token model represents a username mapping to an address together with all</p><p>metadata.</p><p>Each Token model is stored using the username as the key. This guarantee</p><p>that the name is unique. Username is a combination of a name and a domain.</p><p>The format is <name>*<domain></p><p>Each token points to a blockchain and an address on that blockchain. Both</p><p>blockchain ID and address are an arbitrary string as we do not want to limit</p><p>ourselves to certain patterns.</p>
+        <h3 id="username.TransferUsernameTokenMsg">TransferUsernameTokenMsg</h3>
+        <p>TransferTokenMsg is a request to transfer an ownership of a token. The</p><p>mesage must be signed by the current token owner. Acceptance of the new</p><p>owner is not required in order to succeed.</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>metadata</td>
+                  <td><a href="#weave.Metadata">weave.Metadata</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>username</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p>Username is the unique name of the token, for example alice*iov </p></td>
+                </tr>
+              
+                <tr>
+                  <td>new_owner</td>
+                  <td><a href="#bytes">bytes</a></td>
+                  <td></td>
+                  <td><p>Owner is a weave address that will owns this token after the change. </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+        
+
+        
+      
+        <h3 id="username.UsernameToken">UsernameToken</h3>
+        <p>UsernameToken model represents a username mapping to an address together</p><p>with all metadata.</p><p>Each UsernameToken model is stored using the username as the key. This</p><p>guarantee that the name is unique. Username is a combination of a name and a</p><p>domain.  The format is <name>*<domain></p><p>Each token points to a blockchain and an address on that blockchain. Both</p><p>blockchain ID and address are an arbitrary string as we do not want to limit</p><p>ourselves to certain patterns.</p>
 
         
           <table class="field-table">
@@ -5528,43 +5213,6 @@ least one blockchain address elemenet. </p></td>
                   <td></td>
                   <td><p>Owner is a weave.Address that controls this token. Only the owner can
 modify a username token. </p></td>
-                </tr>
-              
-            </tbody>
-          </table>
-        
-
-        
-      
-        <h3 id="username.TransferTokenMsg">TransferTokenMsg</h3>
-        <p>TransferTokenMsg is a request to transfer an ownership of a token. The</p><p>mesage must be signed by the current token owner. Acceptance of the new</p><p>owner is not required in order to succeed.</p>
-
-        
-          <table class="field-table">
-            <thead>
-              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
-            </thead>
-            <tbody>
-              
-                <tr>
-                  <td>metadata</td>
-                  <td><a href="#weave.Metadata">weave.Metadata</a></td>
-                  <td></td>
-                  <td><p> </p></td>
-                </tr>
-              
-                <tr>
-                  <td>username</td>
-                  <td><a href="#string">string</a></td>
-                  <td></td>
-                  <td><p>Username is the unique name of the token, for example alice*iov </p></td>
-                </tr>
-              
-                <tr>
-                  <td>new_owner</td>
-                  <td><a href="#bytes">bytes</a></td>
-                  <td></td>
-                  <td><p>Owner is a weave address that will owns this token after the change. </p></td>
                 </tr>
               
             </tbody>

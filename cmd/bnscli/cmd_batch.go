@@ -7,13 +7,12 @@ import (
 	"io"
 
 	"github.com/iov-one/weave/cmd/bnsd/app"
-	"github.com/iov-one/weave/cmd/bnsd/x/nft/username"
 	"github.com/iov-one/weave/x/cash"
 	"github.com/iov-one/weave/x/currency"
 	"github.com/iov-one/weave/x/distribution"
 	"github.com/iov-one/weave/x/escrow"
 	"github.com/iov-one/weave/x/multisig"
-	"github.com/iov-one/weave/x/nft"
+	"github.com/iov-one/weave/x/username"
 	"github.com/iov-one/weave/x/validators"
 )
 
@@ -107,34 +106,22 @@ original transactions (ie signatures) are being dropped.
 					NewTokenInfoMsg: msg,
 				},
 			})
-		case *nft.AddApprovalMsg:
+		case *username.RegisterUsernameTokenMsg:
 			batch.Messages = append(batch.Messages, app.BatchMsg_Union{
-				Sum: &app.BatchMsg_Union_AddApprovalMsg{
-					AddApprovalMsg: msg,
+				Sum: &app.BatchMsg_Union_RegisterUsernameTokenMsg{
+					RegisterUsernameTokenMsg: msg,
 				},
 			})
-		case *nft.RemoveApprovalMsg:
+		case *username.TransferUsernameTokenMsg:
 			batch.Messages = append(batch.Messages, app.BatchMsg_Union{
-				Sum: &app.BatchMsg_Union_RemoveApprovalMsg{
-					RemoveApprovalMsg: msg,
+				Sum: &app.BatchMsg_Union_TransferUsernameTokenMsg{
+					TransferUsernameTokenMsg: msg,
 				},
 			})
-		case *username.IssueTokenMsg:
+		case *username.ChangeUsernameTokenTargetsMsg:
 			batch.Messages = append(batch.Messages, app.BatchMsg_Union{
-				Sum: &app.BatchMsg_Union_IssueUsernameNftMsg{
-					IssueUsernameNftMsg: msg,
-				},
-			})
-		case *username.AddChainAddressMsg:
-			batch.Messages = append(batch.Messages, app.BatchMsg_Union{
-				Sum: &app.BatchMsg_Union_AddUsernameAddressNftMsg{
-					AddUsernameAddressNftMsg: msg,
-				},
-			})
-		case *username.RemoveChainAddressMsg:
-			batch.Messages = append(batch.Messages, app.BatchMsg_Union{
-				Sum: &app.BatchMsg_Union_RemoveUsernameAddressMsg{
-					RemoveUsernameAddressMsg: msg,
+				Sum: &app.BatchMsg_Union_ChangeUsernameTokenTargetsMsg{
+					ChangeUsernameTokenTargetsMsg: msg,
 				},
 			})
 		case *distribution.NewRevenueMsg:
@@ -188,11 +175,9 @@ multisig.CreateContractMsg create_contract_msg = 56;
 multisig.UpdateContractMsg update_contract_msg = 57;
 validators.SetValidatorsMsg set_validators_msg = 58;
 currency.NewTokenInfoMsg new_token_info_msg = 59;
-nft.AddApprovalMsg add_approval_msg = 61;
-nft.RemoveApprovalMsg remove_approval_msg = 62;
-username.IssueTokenMsg issue_username_nft_msg = 63;
-username.AddChainAddressMsg add_username_address_nft_msg = 64;
-username.RemoveChainAddressMsg remove_username_address_msg = 65;
+username.RegisterUsernameTokenMsg register_username_token_msg = 61;
+username.TransferUsernameTokenMsg transfer_username_token_msg = 62;
+username.ChangeUsernameTokenTargetsMsg change_username_token_targets_msg = 63;
 distribution.NewRevenueMsg new_revenue_msg = 66;
 distribution.DistributeMsg distribute_msg = 67;
 distribution.ResetRevenueMsg reset_revenue_msg = 68;

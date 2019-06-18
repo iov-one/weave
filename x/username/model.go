@@ -10,7 +10,7 @@ import (
 )
 
 func init() {
-	migration.MustRegister(1, &Token{}, migration.NoModification)
+	migration.MustRegister(1, &UsernameToken{}, migration.NoModification)
 }
 
 func (ba *BlockchainAddress) Validate() error {
@@ -38,7 +38,7 @@ func (ba *BlockchainAddress) Clone() BlockchainAddress {
 }
 
 // Validate ensures the payment channel is valid.
-func (t *Token) Validate() error {
+func (t *UsernameToken) Validate() error {
 	if err := t.Metadata.Validate(); err != nil {
 		return errors.Wrap(err, "metadata")
 	}
@@ -56,28 +56,28 @@ func (t *Token) Validate() error {
 	return nil
 }
 
-func (t *Token) Copy() orm.CloneableData {
+func (t *UsernameToken) Copy() orm.CloneableData {
 	targets := make([]BlockchainAddress, len(t.Targets))
 	for i, t := range t.Targets {
 		targets[i] = t.Clone()
 	}
 
-	return &Token{
+	return &UsernameToken{
 		Metadata: t.Metadata.Copy(),
 		Targets:  targets,
 		Owner:    t.Owner.Clone(),
 	}
 }
 
-// NewTokenBucket returns a ModelBucket instance limited to interacting with a
-// Token model only.
+// NewUsernameTokenBucket returns a ModelBucket instance limited to interacting with a
+// UsernameToken model only.
 // Only a valid Username instance should be used as a key.
-func NewTokenBucket() orm.ModelBucket {
-	b := orm.NewModelBucket("tokens", &Token{})
+func NewUsernameTokenBucket() orm.ModelBucket {
+	b := orm.NewModelBucket("tokens", &UsernameToken{})
 	return migration.NewModelBucket("username", b)
 }
 
 // RegisterQuery expose tokens bucket to queries.
 func RegisterQuery(qr weave.QueryRouter) {
-	NewTokenBucket().Register("usernames", qr)
+	NewUsernameTokenBucket().Register("usernames", qr)
 }

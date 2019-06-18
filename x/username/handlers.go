@@ -9,33 +9,33 @@ import (
 )
 
 const (
-	registerTokenCost     = 0
-	transferTokenCost     = 0
-	changeTokenTargetCost = 0
+	registerUsernameTokenCost     = 0
+	transferUsernameTokenCost     = 0
+	changeUsernameTokenTargetCost = 0
 )
 
 func RegisterRoutes(r weave.Registry, auth x.Authenticator) {
 	r = migration.SchemaMigratingRegistry("username", r)
 
-	b := NewTokenBucket()
-	r.Handle(RegisterTokenMsg{}.Path(), &registerTokenHandler{auth: auth, bucket: b})
-	r.Handle(TransferTokenMsg{}.Path(), &transferTokenHandler{auth: auth, bucket: b})
-	r.Handle(ChangeTokenTargetsMsg{}.Path(), &changeTokenTargetsHandler{auth: auth, bucket: b})
+	b := NewUsernameTokenBucket()
+	r.Handle(RegisterUsernameTokenMsg{}.Path(), &registerUsernameTokenHandler{auth: auth, bucket: b})
+	r.Handle(TransferUsernameTokenMsg{}.Path(), &transferUsernameTokenHandler{auth: auth, bucket: b})
+	r.Handle(ChangeUsernameTokenTargetsMsg{}.Path(), &changeUsernameTokenTargetsHandler{auth: auth, bucket: b})
 }
 
-type registerTokenHandler struct {
+type registerUsernameTokenHandler struct {
 	auth   x.Authenticator
 	bucket orm.ModelBucket
 }
 
-func (h *registerTokenHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
+func (h *registerUsernameTokenHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
 	if _, err := h.validate(ctx, db, tx); err != nil {
 		return nil, err
 	}
-	return &weave.CheckResult{GasAllocated: registerTokenCost}, nil
+	return &weave.CheckResult{GasAllocated: registerUsernameTokenCost}, nil
 }
 
-func (h *registerTokenHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
+func (h *registerUsernameTokenHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	msg, err := h.validate(ctx, db, tx)
 	if err != nil {
 		return nil, err
@@ -46,7 +46,7 @@ func (h *registerTokenHandler) Deliver(ctx weave.Context, db weave.KVStore, tx w
 		return nil, errors.Wrap(errors.ErrUnauthorized, "message must be signed")
 	}
 
-	token := Token{
+	token := UsernameToken{
 		Metadata: &weave.Metadata{Schema: 1},
 		Targets:  msg.Targets,
 		Owner:    owner,
@@ -57,8 +57,8 @@ func (h *registerTokenHandler) Deliver(ctx weave.Context, db weave.KVStore, tx w
 	return &weave.DeliverResult{Data: msg.Username.Bytes()}, nil
 }
 
-func (h *registerTokenHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*RegisterTokenMsg, error) {
-	var msg RegisterTokenMsg
+func (h *registerUsernameTokenHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*RegisterUsernameTokenMsg, error) {
+	var msg RegisterUsernameTokenMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, errors.Wrap(err, "load msg")
 	}
@@ -74,19 +74,19 @@ func (h *registerTokenHandler) validate(ctx weave.Context, db weave.KVStore, tx 
 	return &msg, nil
 }
 
-type transferTokenHandler struct {
+type transferUsernameTokenHandler struct {
 	auth   x.Authenticator
 	bucket orm.ModelBucket
 }
 
-func (h *transferTokenHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
+func (h *transferUsernameTokenHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
 	if _, _, err := h.validate(ctx, db, tx); err != nil {
 		return nil, err
 	}
-	return &weave.CheckResult{GasAllocated: transferTokenCost}, nil
+	return &weave.CheckResult{GasAllocated: transferUsernameTokenCost}, nil
 }
 
-func (h *transferTokenHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
+func (h *transferUsernameTokenHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	msg, token, err := h.validate(ctx, db, tx)
 	if err != nil {
 		return nil, err
@@ -99,13 +99,13 @@ func (h *transferTokenHandler) Deliver(ctx weave.Context, db weave.KVStore, tx w
 	return &weave.DeliverResult{Data: msg.Username.Bytes()}, nil
 }
 
-func (h *transferTokenHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*TransferTokenMsg, *Token, error) {
-	var msg TransferTokenMsg
+func (h *transferUsernameTokenHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*TransferUsernameTokenMsg, *UsernameToken, error) {
+	var msg TransferUsernameTokenMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, nil, errors.Wrap(err, "load msg")
 	}
 
-	var token Token
+	var token UsernameToken
 	if err := h.bucket.One(db, msg.Username.Bytes(), &token); err != nil {
 		return nil, nil, errors.Wrap(err, "cannot get token from database")
 	}
@@ -117,19 +117,19 @@ func (h *transferTokenHandler) validate(ctx weave.Context, db weave.KVStore, tx 
 	return &msg, &token, nil
 }
 
-type changeTokenTargetsHandler struct {
+type changeUsernameTokenTargetsHandler struct {
 	auth   x.Authenticator
 	bucket orm.ModelBucket
 }
 
-func (h *changeTokenTargetsHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
+func (h *changeUsernameTokenTargetsHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
 	if _, _, err := h.validate(ctx, db, tx); err != nil {
 		return nil, err
 	}
-	return &weave.CheckResult{GasAllocated: changeTokenTargetCost}, nil
+	return &weave.CheckResult{GasAllocated: changeUsernameTokenTargetCost}, nil
 }
 
-func (h *changeTokenTargetsHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
+func (h *changeUsernameTokenTargetsHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	msg, token, err := h.validate(ctx, db, tx)
 	if err != nil {
 		return nil, err
@@ -142,13 +142,13 @@ func (h *changeTokenTargetsHandler) Deliver(ctx weave.Context, db weave.KVStore,
 	return &weave.DeliverResult{Data: msg.Username.Bytes()}, nil
 }
 
-func (h *changeTokenTargetsHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*ChangeTokenTargetsMsg, *Token, error) {
-	var msg ChangeTokenTargetsMsg
+func (h *changeUsernameTokenTargetsHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*ChangeUsernameTokenTargetsMsg, *UsernameToken, error) {
+	var msg ChangeUsernameTokenTargetsMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, nil, errors.Wrap(err, "load msg")
 	}
 
-	var token Token
+	var token UsernameToken
 	if err := h.bucket.One(db, msg.Username.Bytes(), &token); err != nil {
 		return nil, nil, errors.Wrap(err, "cannot get token from database")
 	}

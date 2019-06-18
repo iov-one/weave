@@ -121,7 +121,7 @@
          "whole": 5,
          "ticker": "CASH"
        },
-       "msg_path": "nft/username/issue"
+       "msg_path": "username/transferUsernameToken"
      }
    ]
    }

@@ -5,17 +5,17 @@ package username;
 import "codec.proto";
 import "gogoproto/gogo.proto";
 
-// Token model represents a username mapping to an address together with all
-// metadata.
+// UsernameToken model represents a username mapping to an address together
+// with all metadata.
 //
-// Each Token model is stored using the username as the key. This guarantee
-// that the name is unique. Username is a combination of a name and a domain.
-// The format is <name>*<domain>
+// Each UsernameToken model is stored using the username as the key. This
+// guarantee that the name is unique. Username is a combination of a name and a
+// domain.  The format is <name>*<domain>
 //
 // Each token points to a blockchain and an address on that blockchain. Both
 // blockchain ID and address are an arbitrary string as we do not want to limit
 // ourselves to certain patterns.
-message Token {
+message UsernameToken {
   weave.Metadata metadata = 1;
   // Targets specifies where this username token points to. This must be at
   // least one blockchain address elemenet.
@@ -41,7 +41,7 @@ message BlockchainAddress {
 
 // RegisterTokenMsg is creating a new username token. The owner is always set
 // to the main signer.
-message RegisterTokenMsg {
+message RegisterUsernameTokenMsg {
   weave.Metadata metadata = 1;
   // Username is the unique name of the token, for example alice*iov
   string username = 2 [(gogoproto.casttype) = "Username"];
@@ -52,7 +52,7 @@ message RegisterTokenMsg {
 // TransferTokenMsg is a request to transfer an ownership of a token. The
 // mesage must be signed by the current token owner. Acceptance of the new
 // owner is not required in order to succeed.
-message TransferTokenMsg {
+message TransferUsernameTokenMsg {
   weave.Metadata metadata = 1;
   // Username is the unique name of the token, for example alice*iov
   string username = 2 [(gogoproto.casttype) = "Username"];
@@ -62,7 +62,7 @@ message TransferTokenMsg {
 
 // ChangeTokenTargetsMsg is a request to change the address that this token
 // points to. Only the owner of a token can request this operation.
-message ChangeTokenTargetsMsg {
+message ChangeUsernameTokenTargetsMsg {
   weave.Metadata metadata = 1;
   // Username is the unique name of the token, for example alice*iov
   string username = 2 [(gogoproto.casttype) = "Username"];

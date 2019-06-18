@@ -13,7 +13,7 @@ import (
 	"github.com/iov-one/weave/x"
 )
 
-func TestRegisterTokenHandler(t *testing.T) {
+func TestRegisterUsernameTokenHandler(t *testing.T) {
 	var (
 		aliceCond = weavetest.NewCondition()
 		bobbyCond = weavetest.NewCondition()
@@ -28,7 +28,7 @@ func TestRegisterTokenHandler(t *testing.T) {
 	}{
 		"success": {
 			Tx: &weavetest.Tx{
-				Msg: &RegisterTokenMsg{
+				Msg: &RegisterUsernameTokenMsg{
 					Username: "bobby@iov",
 					Targets: []BlockchainAddress{
 						{BlockchainID: "bc_1", Address: []byte("addr1")},
@@ -40,7 +40,7 @@ func TestRegisterTokenHandler(t *testing.T) {
 		},
 		"username must be unique": {
 			Tx: &weavetest.Tx{
-				Msg: &RegisterTokenMsg{
+				Msg: &RegisterUsernameTokenMsg{
 					Username: "alice@iov",
 					Targets: []BlockchainAddress{
 						{BlockchainID: "bc_1", Address: []byte("addr1")},
@@ -53,7 +53,7 @@ func TestRegisterTokenHandler(t *testing.T) {
 		},
 		"target cannot be empty": {
 			Tx: &weavetest.Tx{
-				Msg: &RegisterTokenMsg{
+				Msg: &RegisterUsernameTokenMsg{
 					Username: "alice@iov",
 					Targets:  []BlockchainAddress{},
 				},
@@ -64,7 +64,7 @@ func TestRegisterTokenHandler(t *testing.T) {
 		},
 		"username must be provided": {
 			Tx: &weavetest.Tx{
-				Msg: &RegisterTokenMsg{
+				Msg: &RegisterUsernameTokenMsg{
 					Username: "",
 					Targets: []BlockchainAddress{
 						{BlockchainID: "bc_1", Address: []byte("addr1")},
@@ -82,8 +82,8 @@ func TestRegisterTokenHandler(t *testing.T) {
 			db := store.MemStore()
 			migration.MustInitPkg(db, "username")
 
-			b := NewTokenBucket()
-			_, err := b.Put(db, []byte("alice*iov"), &Token{
+			b := NewUsernameTokenBucket()
+			_, err := b.Put(db, []byte("alice*iov"), &UsernameToken{
 				Metadata: &weave.Metadata{Schema: 1},
 				Targets: []BlockchainAddress{
 					{BlockchainID: "unichain", Address: []byte("756e69636f696e2d310a")},
@@ -92,7 +92,7 @@ func TestRegisterTokenHandler(t *testing.T) {
 			})
 			assert.Nil(t, err)
 
-			h := registerTokenHandler{
+			h := registerUsernameTokenHandler{
 				auth:   tc.Auth,
 				bucket: b,
 			}
@@ -109,7 +109,7 @@ func TestRegisterTokenHandler(t *testing.T) {
 	}
 }
 
-func TestChangeTokenOwnerHandler(t *testing.T) {
+func TestChangeUsernameTokenOwnerHandler(t *testing.T) {
 	var (
 		aliceCond = weavetest.NewCondition()
 		bobbyCond = weavetest.NewCondition()
@@ -123,7 +123,7 @@ func TestChangeTokenOwnerHandler(t *testing.T) {
 	}{
 		"success": {
 			Tx: &weavetest.Tx{
-				Msg: &TransferTokenMsg{
+				Msg: &TransferUsernameTokenMsg{
 					Username: "alice@iov",
 					NewOwner: bobbyCond.Address(),
 				},
@@ -132,7 +132,7 @@ func TestChangeTokenOwnerHandler(t *testing.T) {
 		},
 		"only the owner can change the token": {
 			Tx: &weavetest.Tx{
-				Msg: &TransferTokenMsg{
+				Msg: &TransferUsernameTokenMsg{
 					Username: "alice@iov",
 					NewOwner: bobbyCond.Address(),
 				},
@@ -143,7 +143,7 @@ func TestChangeTokenOwnerHandler(t *testing.T) {
 		},
 		"token must exist": {
 			Tx: &weavetest.Tx{
-				Msg: &TransferTokenMsg{
+				Msg: &TransferUsernameTokenMsg{
 					Username: "does-not-exist@iov",
 					NewOwner: bobbyCond.Address(),
 				},
@@ -158,8 +158,8 @@ func TestChangeTokenOwnerHandler(t *testing.T) {
 			db := store.MemStore()
 			migration.MustInitPkg(db, "username")
 
-			b := NewTokenBucket()
-			_, err := b.Put(db, []byte("alice*iov"), &Token{
+			b := NewUsernameTokenBucket()
+			_, err := b.Put(db, []byte("alice*iov"), &UsernameToken{
 				Metadata: &weave.Metadata{Schema: 1},
 				Targets: []BlockchainAddress{
 					{BlockchainID: "unichain", Address: []byte("756e69636f696e2d310a")},
@@ -168,7 +168,7 @@ func TestChangeTokenOwnerHandler(t *testing.T) {
 			})
 			assert.Nil(t, err)
 
-			h := transferTokenHandler{
+			h := transferUsernameTokenHandler{
 				auth:   tc.Auth,
 				bucket: b,
 			}
@@ -185,7 +185,7 @@ func TestChangeTokenOwnerHandler(t *testing.T) {
 	}
 }
 
-func TestChangeTokenTargetHandler(t *testing.T) {
+func TestChangeUsernameTokenTargetHandler(t *testing.T) {
 	var (
 		aliceCond = weavetest.NewCondition()
 		bobbyCond = weavetest.NewCondition()
@@ -198,7 +198,7 @@ func TestChangeTokenTargetHandler(t *testing.T) {
 	}{
 		"success": {
 			Tx: &weavetest.Tx{
-				Msg: &ChangeTokenTargetsMsg{
+				Msg: &ChangeUsernameTokenTargetsMsg{
 					Username: "alice@iov",
 					NewTargets: []BlockchainAddress{
 						{BlockchainID: "hydracoin", Address: []byte("68796472612d310a")},
@@ -210,7 +210,7 @@ func TestChangeTokenTargetHandler(t *testing.T) {
 		},
 		"only the owner can change the token": {
 			Tx: &weavetest.Tx{
-				Msg: &ChangeTokenTargetsMsg{
+				Msg: &ChangeUsernameTokenTargetsMsg{
 					Username: "alice@iov",
 					NewTargets: []BlockchainAddress{
 						{BlockchainID: "hydracoin", Address: []byte("68796472612d310a")},
@@ -223,7 +223,7 @@ func TestChangeTokenTargetHandler(t *testing.T) {
 		},
 		"token must exist": {
 			Tx: &weavetest.Tx{
-				Msg: &ChangeTokenTargetsMsg{
+				Msg: &ChangeUsernameTokenTargetsMsg{
 					Username: "does-not-exist@iov",
 					NewTargets: []BlockchainAddress{
 						{BlockchainID: "hydracoin", Address: []byte("68796472612d310a")},
@@ -240,8 +240,8 @@ func TestChangeTokenTargetHandler(t *testing.T) {
 			db := store.MemStore()
 			migration.MustInitPkg(db, "username")
 
-			b := NewTokenBucket()
-			_, err := b.Put(db, []byte("alice*iov"), &Token{
+			b := NewUsernameTokenBucket()
+			_, err := b.Put(db, []byte("alice*iov"), &UsernameToken{
 				Metadata: &weave.Metadata{Schema: 1},
 				Targets: []BlockchainAddress{
 					{BlockchainID: "unichain", Address: []byte("756e69636f696e2d310a")},
@@ -250,7 +250,7 @@ func TestChangeTokenTargetHandler(t *testing.T) {
 			})
 			assert.Nil(t, err)
 
-			h := changeTokenTargetsHandler{
+			h := changeUsernameTokenTargetsHandler{
 				auth:   tc.Auth,
 				bucket: b,
 			}
