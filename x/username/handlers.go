@@ -148,6 +148,10 @@ func (h *changeUsernameTokenTargetsHandler) validate(ctx weave.Context, db weave
 		return nil, nil, errors.Wrap(err, "load msg")
 	}
 
+	if err := msg.Username.Validate(); err != nil {
+		return nil, nil, errors.Wrap(err, "username")
+	}
+
 	var token UsernameToken
 	if err := h.bucket.One(db, msg.Username.Bytes(), &token); err != nil {
 		return nil, nil, errors.Wrap(err, "cannot get token from database")

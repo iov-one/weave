@@ -28,7 +28,8 @@ func TestRegisterUsernameTokenHandler(t *testing.T) {
 		"success": {
 			Tx: &weavetest.Tx{
 				Msg: &RegisterUsernameTokenMsg{
-					Username: "bobby@iov",
+					Metadata: &weave.Metadata{Schema: 1},
+					Username: "bobby*iov",
 					Targets: []BlockchainAddress{
 						{BlockchainID: "bc_1", Address: []byte("addr1")},
 						{BlockchainID: "bc_2", Address: []byte("addr2")},
@@ -40,7 +41,8 @@ func TestRegisterUsernameTokenHandler(t *testing.T) {
 		"username must be unique": {
 			Tx: &weavetest.Tx{
 				Msg: &RegisterUsernameTokenMsg{
-					Username: "alice@iov",
+					Metadata: &weave.Metadata{Schema: 1},
+					Username: "alice*iov",
 					Targets: []BlockchainAddress{
 						{BlockchainID: "bc_1", Address: []byte("addr1")},
 					},
@@ -53,7 +55,8 @@ func TestRegisterUsernameTokenHandler(t *testing.T) {
 		"target cannot be empty": {
 			Tx: &weavetest.Tx{
 				Msg: &RegisterUsernameTokenMsg{
-					Username: "alice@iov",
+					Metadata: &weave.Metadata{Schema: 1},
+					Username: "alice*iov",
 					Targets:  []BlockchainAddress{},
 				},
 			},
@@ -64,6 +67,7 @@ func TestRegisterUsernameTokenHandler(t *testing.T) {
 		"username must be provided": {
 			Tx: &weavetest.Tx{
 				Msg: &RegisterUsernameTokenMsg{
+					Metadata: &weave.Metadata{Schema: 1},
 					Username: "",
 					Targets: []BlockchainAddress{
 						{BlockchainID: "bc_1", Address: []byte("addr1")},
@@ -71,8 +75,8 @@ func TestRegisterUsernameTokenHandler(t *testing.T) {
 				},
 			},
 			Auth:           &weavetest.Auth{Signer: aliceCond},
-			WantCheckErr:   errors.ErrEmpty,
-			WantDeliverErr: errors.ErrEmpty,
+			WantCheckErr:   errors.ErrInput,
+			WantDeliverErr: errors.ErrInput,
 		},
 	}
 
@@ -97,11 +101,11 @@ func TestRegisterUsernameTokenHandler(t *testing.T) {
 			}
 
 			cache := db.CacheWrap()
-			if _, err := h.Check(context.TODO(), cache, tc.Tx); tc.WantCheckErr.Is(err) {
+			if _, err := h.Check(context.TODO(), cache, tc.Tx); !tc.WantCheckErr.Is(err) {
 				t.Fatalf("unexpected check error: %s", err)
 			}
 			cache.Discard()
-			if _, err := h.Deliver(context.TODO(), db, tc.Tx); tc.WantDeliverErr.Is(err) {
+			if _, err := h.Deliver(context.TODO(), db, tc.Tx); !tc.WantDeliverErr.Is(err) {
 				t.Fatalf("unexpected deliver error: %s", err)
 			}
 		})
@@ -123,7 +127,8 @@ func TestChangeUsernameTokenOwnerHandler(t *testing.T) {
 		"success": {
 			Tx: &weavetest.Tx{
 				Msg: &TransferUsernameTokenMsg{
-					Username: "alice@iov",
+					Metadata: &weave.Metadata{Schema: 1},
+					Username: "alice*iov",
 					NewOwner: bobbyCond.Address(),
 				},
 			},
@@ -132,7 +137,8 @@ func TestChangeUsernameTokenOwnerHandler(t *testing.T) {
 		"only the owner can change the token": {
 			Tx: &weavetest.Tx{
 				Msg: &TransferUsernameTokenMsg{
-					Username: "alice@iov",
+					Metadata: &weave.Metadata{Schema: 1},
+					Username: "alice*iov",
 					NewOwner: bobbyCond.Address(),
 				},
 			},
@@ -143,7 +149,8 @@ func TestChangeUsernameTokenOwnerHandler(t *testing.T) {
 		"token must exist": {
 			Tx: &weavetest.Tx{
 				Msg: &TransferUsernameTokenMsg{
-					Username: "does-not-exist@iov",
+					Metadata: &weave.Metadata{Schema: 1},
+					Username: "does-not-exist*iov",
 					NewOwner: bobbyCond.Address(),
 				},
 			},
@@ -173,11 +180,11 @@ func TestChangeUsernameTokenOwnerHandler(t *testing.T) {
 			}
 
 			cache := db.CacheWrap()
-			if _, err := h.Check(context.TODO(), cache, tc.Tx); tc.WantCheckErr.Is(err) {
+			if _, err := h.Check(context.TODO(), cache, tc.Tx); !tc.WantCheckErr.Is(err) {
 				t.Fatalf("unexpected check error: %s", err)
 			}
 			cache.Discard()
-			if _, err := h.Deliver(context.TODO(), db, tc.Tx); tc.WantDeliverErr.Is(err) {
+			if _, err := h.Deliver(context.TODO(), db, tc.Tx); !tc.WantDeliverErr.Is(err) {
 				t.Fatalf("unexpected deliver error: %s", err)
 			}
 		})
@@ -198,7 +205,8 @@ func TestChangeUsernameTokenTargetHandler(t *testing.T) {
 		"success": {
 			Tx: &weavetest.Tx{
 				Msg: &ChangeUsernameTokenTargetsMsg{
-					Username: "alice@iov",
+					Metadata: &weave.Metadata{Schema: 1},
+					Username: "alice*iov",
 					NewTargets: []BlockchainAddress{
 						{BlockchainID: "hydracoin", Address: []byte("some-hydra-address")},
 						{BlockchainID: "pegasuscoin", Address: []byte("some-pagasus-address")},
@@ -207,10 +215,23 @@ func TestChangeUsernameTokenTargetHandler(t *testing.T) {
 			},
 			Auth: &weavetest.Auth{Signer: aliceCond},
 		},
+		"invalid message": {
+			Tx: &weavetest.Tx{
+				Msg: &ChangeUsernameTokenTargetsMsg{
+					Metadata:   nil,
+					Username:   "",
+					NewTargets: []BlockchainAddress{},
+				},
+			},
+			Auth:           &weavetest.Auth{Signer: aliceCond},
+			WantCheckErr:   errors.ErrMetadata,
+			WantDeliverErr: errors.ErrMetadata,
+		},
 		"only the owner can change the token": {
 			Tx: &weavetest.Tx{
 				Msg: &ChangeUsernameTokenTargetsMsg{
-					Username: "alice@iov",
+					Metadata: &weave.Metadata{Schema: 1},
+					Username: "alice*iov",
 					NewTargets: []BlockchainAddress{
 						{BlockchainID: "hydracoin", Address: []byte("some-hydra-address")},
 					},
@@ -223,7 +244,8 @@ func TestChangeUsernameTokenTargetHandler(t *testing.T) {
 		"token must exist": {
 			Tx: &weavetest.Tx{
 				Msg: &ChangeUsernameTokenTargetsMsg{
-					Username: "does-not-exist@iov",
+					Metadata: &weave.Metadata{Schema: 1},
+					Username: "does-not-exist*iov",
 					NewTargets: []BlockchainAddress{
 						{BlockchainID: "hydracoin", Address: []byte("some-hydra-address")},
 					},
@@ -255,11 +277,11 @@ func TestChangeUsernameTokenTargetHandler(t *testing.T) {
 			}
 
 			cache := db.CacheWrap()
-			if _, err := h.Check(context.TODO(), cache, tc.Tx); tc.WantCheckErr.Is(err) {
+			if _, err := h.Check(context.TODO(), cache, tc.Tx); !tc.WantCheckErr.Is(err) {
 				t.Fatalf("unexpected check error: %s", err)
 			}
 			cache.Discard()
-			if _, err := h.Deliver(context.TODO(), db, tc.Tx); tc.WantDeliverErr.Is(err) {
+			if _, err := h.Deliver(context.TODO(), db, tc.Tx); !tc.WantDeliverErr.Is(err) {
 				t.Fatalf("unexpected deliver error: %s", err)
 			}
 		})
