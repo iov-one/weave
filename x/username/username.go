@@ -55,7 +55,10 @@ func (u Username) Validate() error {
 	return nil
 }
 
-var validUsername = regexp.MustCompile(`\w{3,}\*\w{3,}`).MatchString
+// validUsername returns true if a username (name + domain) string is valid.
+var validUsername = regexp.MustCompile(`^` + validChar + `{4,64}\*` + validChar + `{3,16}$`).MatchString
+
+const validChar = `[a-z0-9\.,\+\-_@]`
 
 // Unmarshal JSON implementes unmarshaler interface.
 // Ensure that the decoded username is valid.

@@ -1,6 +1,7 @@
 package username
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/iov-one/weave/errors"
@@ -17,6 +18,40 @@ func TestUsername(t *testing.T) {
 			Raw:        "alice*iov",
 			WantName:   "alice",
 			WantDomain: "iov",
+		},
+		"shortest valid name and domain": {
+			Raw:        strings.Repeat("x", 4) + "*" + strings.Repeat("x", 3),
+			WantName:   strings.Repeat("x", 4),
+			WantDomain: strings.Repeat("x", 3),
+		},
+		"longest valid name and domain": {
+			Raw:        strings.Repeat("x", 64) + "*" + strings.Repeat("x", 16),
+			WantName:   strings.Repeat("x", 64),
+			WantDomain: strings.Repeat("x", 16),
+		},
+		"too long name": {
+			Raw:        strings.Repeat("x", 65) + "*" + strings.Repeat("x", 6),
+			WantName:   strings.Repeat("x", 65),
+			WantDomain: strings.Repeat("x", 6),
+			WantErr:    errors.ErrInput,
+		},
+		"too long domain": {
+			Raw:        strings.Repeat("x", 8) + "*" + strings.Repeat("x", 17),
+			WantName:   strings.Repeat("x", 8),
+			WantDomain: strings.Repeat("x", 17),
+			WantErr:    errors.ErrInput,
+		},
+		"too short name": {
+			Raw:        strings.Repeat("x", 3) + "*" + strings.Repeat("x", 6),
+			WantName:   strings.Repeat("x", 3),
+			WantDomain: strings.Repeat("x", 6),
+			WantErr:    errors.ErrInput,
+		},
+		"too short domain": {
+			Raw:        strings.Repeat("x", 8) + "*" + strings.Repeat("x", 2),
+			WantName:   strings.Repeat("x", 8),
+			WantDomain: strings.Repeat("x", 2),
+			WantErr:    errors.ErrInput,
 		},
 		"missing domain": {
 			Raw:        "foo*",
@@ -35,6 +70,12 @@ func TestUsername(t *testing.T) {
 			WantErr:    errors.ErrInput,
 			WantName:   "",
 			WantDomain: "",
+		},
+		"invalid characters (emoji)": {
+			Raw:        "😈*😀",
+			WantErr:    errors.ErrInput,
+			WantName:   "😈",
+			WantDomain: "😀",
 		},
 	}
 
