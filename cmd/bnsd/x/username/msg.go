@@ -18,13 +18,8 @@ func (m *RegisterUsernameTokenMsg) Validate() error {
 	if err := m.Username.Validate(); err != nil {
 		return errors.Wrap(err, "username")
 	}
-	if len(m.Targets) == 0 {
-		return errors.Wrap(errors.ErrEmpty, "targets")
-	}
-	for i, t := range m.Targets {
-		if err := t.Validate(); err != nil {
-			return errors.Wrapf(err, "target #%d", i)
-		}
+	if err := validateTargets(m.Targets); err != nil {
+		return errors.Wrap(err, "targets")
 	}
 	return nil
 }
@@ -57,13 +52,8 @@ func (m *ChangeUsernameTokenTargetsMsg) Validate() error {
 	if err := m.Username.Validate(); err != nil {
 		return errors.Wrap(err, "username")
 	}
-	if len(m.NewTargets) == 0 {
-		return errors.Wrap(errors.ErrEmpty, "targets")
-	}
-	for i, t := range m.NewTargets {
-		if err := t.Validate(); err != nil {
-			return errors.Wrapf(err, "new target #%d", i)
-		}
+	if err := validateTargets(m.NewTargets); err != nil {
+		return errors.Wrap(err, "new targets")
 	}
 	return nil
 }

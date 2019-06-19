@@ -41,6 +41,17 @@ func TestRegisterUsernameTokenMsgValidate(t *testing.T) {
 			},
 			Want: errors.ErrEmpty,
 		},
+		"different address but the same blockchain ID is not allowed": {
+			Msg: &RegisterUsernameTokenMsg{
+				Metadata: &weave.Metadata{Schema: 1},
+				Username: "alice*iov",
+				Targets: []BlockchainAddress{
+					{BlockchainID: "blobchain", Address: []byte("a-blobchain-id-1")},
+					{BlockchainID: "blobchain", Address: []byte("a-blobchain-id-2")},
+				},
+			},
+			Want: errors.ErrDuplicate,
+		},
 	}
 
 	for testName, tc := range cases {
@@ -144,6 +155,17 @@ func TestChangeUsernameTokenTargetsMsgValidate(t *testing.T) {
 				},
 			},
 			Want: errors.ErrInput,
+		},
+		"different address but the same blockchain ID is not allowed": {
+			Msg: &ChangeUsernameTokenTargetsMsg{
+				Metadata: &weave.Metadata{Schema: 1},
+				Username: "alice*iov",
+				NewTargets: []BlockchainAddress{
+					{BlockchainID: "blobchain", Address: []byte("a-blobchain-id-1")},
+					{BlockchainID: "blobchain", Address: []byte("a-blobchain-id-2")},
+				},
+			},
+			Want: errors.ErrDuplicate,
 		},
 	}
 

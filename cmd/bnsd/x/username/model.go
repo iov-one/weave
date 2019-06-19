@@ -2,6 +2,7 @@ package username
 
 import (
 	"regexp"
+	"strings"
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
@@ -42,13 +43,8 @@ func (t *UsernameToken) Validate() error {
 	if err := t.Metadata.Validate(); err != nil {
 		return errors.Wrap(err, "metadata")
 	}
-	if len(t.Targets) == 0 {
-		return errors.Wrap(errors.ErrEmpty, "targets")
-	}
-	for i, t := range t.Targets {
-		if err := t.Validate(); err != nil {
-			return errors.Wrapf(err, "target #%d", i)
-		}
+	if err := validateTargets(t.Targets); err != nil {
+		return errors.Wrap(err, "targets")
 	}
 	if err := t.Owner.Validate(); err != nil {
 		return errors.Wrap(err, "owner")
@@ -80,4 +76,44 @@ func NewUsernameTokenBucket() orm.ModelBucket {
 // RegisterQuery expose tokens bucket to queries.
 func RegisterQuery(qr weave.QueryRouter) {
 	NewUsernameTokenBucket().Register("usernames", qr)
+}
+
+// validateTargets returns an error if given list of blockchain addresses is
+// not a valid target state. This function ensures the business logic is
+// respected.
+func validateTargets(targets []BlockchainAddress) error {
+	if len(targets) == 0 {
+		return errors.ErrEmpty
+	}
+	for i, t := range targets {
+		if err := t.Validate(); err != nil {
+			return errors.Wrapf(err, "target #%d", i)
+		}
+	}
+	if dups := duplicatedBlockchains(targets); len(dups) != 0 {
+		return errors.Wrapf(errors.ErrDuplicate, "blokchain ID used more than once: %s",
+			strings.Join(dups, ", "))
+	}
+	return nil
+}
+
+// duplicatedBlockchains returns the list of blockchain IDs that were used more
+// than once in given list.
+func duplicatedBlockchains(bas []BlockchainAddress) []string {
+	if len(bas) < 2 {
+		return nil
+	}
+
+	cnt := make(map[string]uint8)
+	for _, ba := range bas {
+		cnt[ba.BlockchainID]++
+	}
+
+	var dups []string
+	for bid, n := range cnt {
+		if n > 1 {
+			dups = append(dups, bid)
+		}
+	}
+	return dups
 }
