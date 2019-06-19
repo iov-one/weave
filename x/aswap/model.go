@@ -88,6 +88,7 @@ func NewBucket() Bucket {
 		WithIndex("preimage_hash", idxPrehash, false).
 		Build()
 	bucket = migration.WithMigration(bucket, "aswap")
+	bucket, _ = orm.WithLastModified(bucket)
 
 	return Bucket{
 		XIDGenBucket: orm.WithSeqIDGenerator(bucket, SequenceName),

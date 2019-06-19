@@ -77,6 +77,8 @@ func (h CreateSwapHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave
 		PreimageHash: msg.PreimageHash,
 	}
 
+	orm.MustBindCtxHeight(h.bucket, ctx)
+
 	obj, err := h.bucket.Create(db, swap)
 	if err != nil {
 		return nil, err

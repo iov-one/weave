@@ -385,3 +385,38 @@ func checkBalance(t *testing.T, db weave.KVStore, addr weave.Address) coin.Coins
 	coins := cash.AsCoins(acct)
 	return coins
 }
+
+func TestLastModifiedHeightIsStoredOnCreate(t *testing.T) {
+	rt := app.NewRouter()
+	auth := &weavetest.CtxAuth{Key: "auth"}
+	cashBucket := cash.NewBucket()
+	ctrl := cash.NewController(cashBucket)
+	aswap.RegisterRoutes(rt, auth, ctrl)
+
+	db := store.MemStore()
+	migration.MustInitPkg(db, "cash", "aswap")
+	initialCoins, err := coin.CombineCoins(coin.NewCoin(1, 1, "TEST"))
+	assert.Nil(t, err)
+	setBalance(t, db, alice.Address(), initialCoins)
+
+	//cache := db.CacheWrap()
+	msg := &aswap.CreateSwapMsg{
+		Metadata:     &weave.Metadata{Schema: 1},
+		Src:          alice.Address(),
+		Recipient:    bob.Address(),
+		PreimageHash: preimageHash,
+		Amount:       []*coin.Coin{&swapAmount},
+		Timeout:      weave.AsUnixTime(time.Now()),
+	}
+
+	ctx := weave.WithHeight(context.TODO(), 123)
+	ctx = authenticator.SetConditions(ctx, alice)
+	rsp, err := rt.Deliver(ctx, db, &weavetest.Tx{Msg: msg})
+	assert.Nil(t, err)
+	obj, err := aswap.NewBucket().Get(db, rsp.Data)
+	assert.Nil(t, err)
+	swap := aswap.AsSwap(obj)
+	if exp, got := uint64(123), swap.GetMetadata().LastModified; exp != got {
+		t.Errorf("expected %v but got %v", exp, got)
+	}
+}

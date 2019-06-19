@@ -58,6 +58,7 @@ type XMigrationBucket interface {
 
 type XLastModifiedBucket interface {
 	BaseBucket
+	Bind(height uint64)
 }
 
 type XIDGenBucket interface {

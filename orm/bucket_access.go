@@ -1,6 +1,8 @@
 package orm
 
 import (
+	"fmt"
+
 	"github.com/iov-one/weave"
 )
 
@@ -37,4 +39,26 @@ func Query(b VisitableBucket, db weave.ReadOnlyKVStore, mod string, data []byte)
 		m, err = rawBucket.Query(db, mod, data)
 	})
 	return
+}
+
+func BindHeight(b EmbeddedBucket, height uint64) {
+	fmt.Printf("+++ Called with %T\n", b)
+	if b == nil {
+		return
+	}
+	nb, ok := b.(XLastModifiedBucket)
+	switch {
+	case !ok:
+		BindHeight(b.parent(), height)
+	case nb != nil:
+		nb.Bind(height)
+	}
+}
+
+func MustBindCtxHeight(b EmbeddedBucket, ctx weave.Context) {
+	currentHeight, ok := weave.GetHeight(ctx)
+	if !ok {
+		panic("height not set in context")
+	}
+	BindHeight(b, uint64(currentHeight))
 }
