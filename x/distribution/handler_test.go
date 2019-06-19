@@ -12,6 +12,7 @@ import (
 	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/store"
 	"github.com/iov-one/weave/weavetest"
+	"github.com/iov-one/weave/weavetest/assert"
 	"github.com/iov-one/weave/x/cash"
 )
 
@@ -576,4 +577,76 @@ func (tc *testController) Balance(weave.KVStore, weave.Address) (coin.Coins, err
 func (tc *testController) MoveCoins(db weave.KVStore, src, dst weave.Address, amount coin.Coin) error {
 	tc.moves = append(tc.moves, movecall{dst: dst, amount: amount})
 	return tc.err
+}
+
+func TestLastModifiedHeightIsStoredOnCreate(t *testing.T) {
+	anyAddress := weavetest.NewCondition().Address()
+	rt := app.NewRouter()
+	auth := &weavetest.CtxAuth{Key: "auth"}
+
+	cashBucket := cash.NewBucket()
+	ctrl := cash.NewController(cashBucket)
+	RegisterRoutes(rt, auth, ctrl)
+
+	db := store.MemStore()
+	migration.MustInitPkg(db, "cash", "distribution")
+	//cache := db.CacheWrap()
+	msg := &NewRevenueMsg{
+		Metadata: &weave.Metadata{Schema: 1},
+		Admin:    anyAddress,
+		Recipients: []*Recipient{
+			{Weight: 10000, Address: anyAddress},
+		},
+	}
+	ctx := weave.WithHeight(context.TODO(), 123)
+	rsp, err := rt.Deliver(ctx, db, &weavetest.Tx{Msg: msg})
+	assert.Nil(t, err)
+	rev, err := NewRevenueBucket().GetRevenue(db, rsp.Data)
+	assert.Nil(t, err)
+	if exp, got := uint64(123), rev.GetMetadata().LastModified; exp != got {
+		t.Errorf("expected %v but got %v", exp, got)
+	}
+}
+
+func TestLastModifiedHeightIsStoredOnUpdate(t *testing.T) {
+	anyAddress := weavetest.NewCondition().Address()
+	rt := app.NewRouter()
+	auth := &weavetest.CtxAuth{Key: "auth"}
+
+	cashBucket := cash.NewBucket()
+	ctrl := cash.NewController(cashBucket)
+	RegisterRoutes(rt, auth, ctrl)
+
+	db := store.MemStore()
+	migration.MustInitPkg(db, "cash", "distribution")
+	contract := &Revenue{
+		Metadata: &weave.Metadata{},
+		Admin:    anyAddress,
+		Recipients: []*Recipient{
+			{Address: anyAddress, Weight: 1},
+		},
+	}
+	ctx := weave.WithHeight(context.TODO(), 123)
+	bucket := NewRevenueBucket()
+	obj, err := bucket.Bind(ctx).Create(db, contract)
+	assert.Nil(t, err)
+
+	// when
+	ctx = weave.WithHeight(context.TODO(), 456)
+
+	msg := &ResetRevenueMsg{
+		Metadata:  &weave.Metadata{Schema: 1},
+		RevenueID: obj.Key(),
+		Recipients: []*Recipient{
+			{Weight: 20000, Address: anyAddress},
+		},
+	}
+	_, err = rt.Deliver(ctx, db, &weavetest.Tx{Msg: msg})
+	assert.Nil(t, err)
+	// thn
+	rev, err := bucket.GetRevenue(db, obj.Key())
+	assert.Nil(t, err)
+	if exp, got := uint64(456), rev.GetMetadata().LastModified; exp != got {
+		t.Errorf("expected %v but got %v", exp, got)
+	}
 }

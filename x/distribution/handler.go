@@ -68,7 +68,7 @@ func (h *newRevenueHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weav
 		return nil, err
 	}
 
-	obj, err := h.bucket.Create(db, &Revenue{
+	obj, err := h.bucket.Bind(ctx).Create(db, &Revenue{
 		Metadata:   &weave.Metadata{},
 		Admin:      msg.Admin,
 		Recipients: msg.Recipients,
@@ -115,7 +115,7 @@ func (h *distributeHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weav
 		return nil, err
 	}
 
-	rev, err := h.bucket.GetRevenue(db, msg.RevenueID)
+	rev, err := h.bucket.Bind(ctx).GetRevenue(db, msg.RevenueID)
 	if err != nil {
 		return nil, err
 	}
@@ -172,7 +172,7 @@ func (h *resetRevenueHandler) Deliver(ctx weave.Context, db weave.KVStore, tx we
 		return nil, err
 	}
 
-	rev, err := h.bucket.GetRevenue(db, msg.RevenueID)
+	rev, err := h.bucket.Bind(ctx).GetRevenue(db, msg.RevenueID)
 	if err != nil {
 		return nil, err
 	}

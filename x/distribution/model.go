@@ -103,14 +103,17 @@ func copyAddr(a weave.Address) weave.Address {
 
 type RevenueBucket struct {
 	orm.XIDGenBucket
+	binder orm.HeightBinder
 }
 
 // NewRevenueBucket returns a bucket for managing revenues state.
 func NewRevenueBucket() *RevenueBucket {
 	b := orm.NewBucketBuilder("revenue", orm.NewSimpleObj(nil, &Revenue{})).Build()
+	b, binder := orm.WithLastModified(b)
 	b = migration.WithMigration(b, "distribution")
 	return &RevenueBucket{
 		XIDGenBucket: orm.WithSeqIDGenerator(b, "id"),
+		binder:       binder,
 	}
 }
 
@@ -138,4 +141,13 @@ func (b *RevenueBucket) GetRevenue(db weave.KVStore, revenueID []byte) (*Revenue
 		return nil, errors.Wrapf(errors.ErrModel, "invalid type: %T", obj.Value())
 	}
 	return rev, nil
+}
+
+func (b *RevenueBucket) Bind(ctx weave.Context) *RevenueBucket {
+	currentHeight, ok := weave.GetHeight(ctx)
+	if !ok {
+		panic("Height not set")
+	}
+	b.binder(uint64(currentHeight))
+	return b
 }

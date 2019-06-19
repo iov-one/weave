@@ -11,6 +11,9 @@ import "gogoproto/gogo.proto";
 //   weave.Metadata metadata = 1;
 message Metadata {
   uint32 schema = 1;
+  // LastModified is stored with every model stored in orm.Bucket.
+  // It is set to the block height of the last write of this object.
+  uint64 last_modified = 2;
 }
 
 // CommitInfo is basically a replica of tendermint commit info
