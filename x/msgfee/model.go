@@ -39,7 +39,7 @@ func (mf *MsgFee) Copy() orm.CloneableData {
 }
 
 type MsgFeeBucket struct {
-	orm.Bucket
+	orm.BaseBucket
 }
 
 // NewMsgFeeBucket returns a bucket for keeping track of fees for each message
@@ -47,7 +47,7 @@ type MsgFeeBucket struct {
 func NewMsgFeeBucket() *MsgFeeBucket {
 	b := migration.NewBucket("msgfee", "msgfee", orm.NewSimpleObj(nil, &MsgFee{}))
 	return &MsgFeeBucket{
-		Bucket: b,
+		BaseBucket: b,
 	}
 }
 
@@ -55,7 +55,7 @@ func NewMsgFeeBucket() *MsgFeeBucket {
 func (b *MsgFeeBucket) Create(db weave.KVStore, mf *MsgFee) (orm.Object, error) {
 	key := []byte(mf.MsgPath)
 	obj := orm.NewSimpleObj(key, mf)
-	return obj, b.Bucket.Save(db, obj)
+	return obj, b.BaseBucket.Save(db, obj)
 }
 
 // Save persists the state of a given revenue entity.
@@ -63,7 +63,7 @@ func (b *MsgFeeBucket) Save(db weave.KVStore, obj orm.Object) error {
 	if _, ok := obj.Value().(*MsgFee); !ok {
 		return errors.Wrapf(errors.ErrModel, "invalid type: %T", obj.Value())
 	}
-	return b.Bucket.Save(db, obj)
+	return b.BaseBucket.Save(db, obj)
 }
 
 // Fee returns the fee value for a given message path. It returns an empty fee

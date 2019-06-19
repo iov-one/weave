@@ -74,8 +74,7 @@ func (c *Contract) Copy() orm.CloneableData {
 
 // ContractBucket is a type-safe wrapper around orm.Bucket
 type ContractBucket struct {
-	orm.Bucket
-	idSeq orm.Sequence
+	orm.XIDGenBucket
 }
 
 // NewContractBucket initializes a ContractBucket with default name
@@ -86,27 +85,8 @@ func NewContractBucket() ContractBucket {
 	bucket := migration.NewBucket("multisig", BucketName,
 		orm.NewSimpleObj(nil, new(Contract)))
 	return ContractBucket{
-		Bucket: bucket,
-		idSeq:  bucket.Sequence(SequenceName),
+		XIDGenBucket: orm.WithSeqIDGenerator(bucket, "id"),
 	}
-}
-
-// Save enforces the proper type
-func (b ContractBucket) Save(db weave.KVStore, obj orm.Object) error {
-	if _, ok := obj.Value().(*Contract); !ok {
-		return errors.WithType(errors.ErrModel, obj.Value())
-	}
-	return b.Bucket.Save(db, obj)
-}
-
-// Build assigns an ID to given contract instance and returns it as an orm
-// Object. It does not persist the escrow in the store.
-func (b ContractBucket) Build(db weave.KVStore, c *Contract) (orm.Object, error) {
-	key, err := b.idSeq.NextVal(db)
-	if err != nil {
-		return nil, err
-	}
-	return orm.NewSimpleObj(key, c), nil
 }
 
 // GetContract returns a contract with given ID.

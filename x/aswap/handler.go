@@ -7,6 +7,7 @@ import (
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/migration"
+	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/x"
 	"github.com/iov-one/weave/x/cash"
 )
@@ -31,7 +32,7 @@ func RegisterRoutes(r weave.Registry, auth x.Authenticator, cashctrl cash.Contro
 
 // RegisterQuery will register this bucket as "/aswaps"
 func RegisterQuery(qr weave.QueryRouter) {
-	NewBucket().Register("aswaps", qr)
+	orm.Register(NewBucket(), "aswaps", qr)
 }
 
 //---- create

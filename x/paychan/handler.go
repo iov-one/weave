@@ -17,7 +17,7 @@ const (
 
 // RegisterQuery registers payment channel bucket under /paychans.
 func RegisterQuery(qr weave.QueryRouter) {
-	NewPaymentChannelBucket().Register("paychans", qr)
+	orm.Register(NewPaymentChannelBucket(), "paychans", qr)
 }
 
 // RegisterRouters registers payment channel message handelers in given registry.

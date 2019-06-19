@@ -24,10 +24,10 @@ const packageName = "gov"
 
 // RegisterQuery registers governance buckets for querying.
 func RegisterQuery(qr weave.QueryRouter) {
-	NewElectionRulesBucket().Register("electionRules", qr)
-	NewElectorateBucket().Register("electorates", qr)
-	NewProposalBucket().Register("proposal", qr)
-	NewVoteBucket().Register("vote", qr)
+	orm.Register(NewElectionRulesBucket(), "electionRules", qr)
+	orm.Register(NewElectorateBucket(), "electorates", qr)
+	orm.Register(NewProposalBucket(), "proposal", qr)
+	orm.Register(NewVoteBucket(), "vote", qr)
 }
 
 // RegisterRoutes registers handlers for governance message processing.
@@ -96,7 +96,7 @@ func (h VoteHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (
 	if err = h.voteBucket.Save(db, h.voteBucket.Build(db, voteMsg.ProposalID, *vote)); err != nil {
 		return nil, errors.Wrap(err, "failed to store vote")
 	}
-	if err := h.propBucket.Update(db, voteMsg.ProposalID, proposal); err != nil {
+	if _, err := h.propBucket.Update(db, voteMsg.ProposalID, proposal); err != nil {
 		return nil, err
 	}
 	return &weave.DeliverResult{}, nil
@@ -194,7 +194,7 @@ func (h TallyHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) 
 
 	// store the proposal when done processing it, via whatever path
 	defer func() {
-		if err := h.propBucket.Update(db, msg.ProposalID, proposal); err != nil {
+		if _, err := h.propBucket.Update(db, msg.ProposalID, proposal); err != nil {
 			resOut = nil
 			errOut = err
 		}
@@ -444,7 +444,7 @@ func (h DeleteProposalHandler) Deliver(ctx weave.Context, db weave.KVStore, tx w
 
 	prop.Status = Proposal_Withdrawn
 
-	if err := h.propBucket.Update(db, msg.ProposalID, prop); err != nil {
+	if _, err := h.propBucket.Update(db, msg.ProposalID, prop); err != nil {
 		return nil, errors.Wrap(err, "failed to persist proposal")
 	}
 

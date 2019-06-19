@@ -19,7 +19,7 @@ func RegisterRoutes(r weave.Registry, auth x.Authenticator) {
 
 // RegisterQuery register queries from buckets in this package
 func RegisterQuery(qr weave.QueryRouter) {
-	NewContractBucket().Register("contracts", qr)
+	orm.Register(NewContractBucket(), "contracts", qr)
 }
 
 type CreateContractMsgHandler struct {
@@ -51,11 +51,8 @@ func (h CreateContractMsgHandler) Deliver(ctx weave.Context, db weave.KVStore, t
 		AdminThreshold:      msg.AdminThreshold,
 	}
 
-	obj, err := h.bucket.Build(db, contract)
+	obj, err := h.bucket.Create(db, contract)
 	if err != nil {
-		return nil, err
-	}
-	if err = h.bucket.Save(db, obj); err != nil {
 		return nil, err
 	}
 	return &weave.DeliverResult{Data: obj.Key()}, nil
@@ -105,8 +102,7 @@ func (h UpdateContractMsgHandler) Deliver(ctx weave.Context, db weave.KVStore, t
 		AdminThreshold:      msg.AdminThreshold,
 	}
 
-	obj := orm.NewSimpleObj(msg.ContractID, contract)
-	err = h.bucket.Save(db, obj)
+	_, err = h.bucket.Update(db, msg.ContractID, contract)
 	if err != nil {
 		return nil, err
 	}

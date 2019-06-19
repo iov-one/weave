@@ -33,13 +33,6 @@ type QueryHandler interface {
 	Query(db ReadOnlyKVStore, mod string, data []byte) ([]Model, error)
 }
 
-// QueryHandlerFunc
-type QueryHandlerFunc func(db ReadOnlyKVStore, mod string, data []byte) ([]Model, error)
-
-func (q QueryHandlerFunc) Query(db ReadOnlyKVStore, mod string, data []byte) ([]Model, error) {
-	return q(db, mod, data)
-}
-
 // QueryRegister is a function that adds some handlers
 // to this router
 type QueryRegister func(QueryRouter)

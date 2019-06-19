@@ -38,11 +38,8 @@ func (*Initializer) FromGenesis(opts weave.Options, params weave.GenesisParams, 
 			ActivationThreshold: c.ActivationThreshold,
 			AdminThreshold:      c.AdminThreshold,
 		}
-		obj, err := bucket.Build(kv, &contract)
+		_, err := bucket.Create(kv, &contract)
 		if err != nil {
-			return err
-		}
-		if err := bucket.Save(kv, obj); err != nil {
 			return err
 		}
 	}

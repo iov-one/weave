@@ -118,7 +118,7 @@ func WalletWith(key weave.Address, coins ...*coin.Coin) (orm.Object, error) {
 
 // Bucket is a type-safe wrapper around orm.Bucket
 type Bucket struct {
-	orm.Bucket
+	orm.BaseBucket
 }
 
 var _ WalletBucket = Bucket{}
@@ -126,7 +126,7 @@ var _ WalletBucket = Bucket{}
 // NewBucket initializes a cash.Bucket with default name
 func NewBucket() Bucket {
 	return Bucket{
-		Bucket: migration.NewBucket("cash", BucketName, NewWallet(nil)),
+		BaseBucket: migration.NewBucket("cash", BucketName, NewWallet(nil)),
 	}
 }
 

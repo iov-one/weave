@@ -2,7 +2,6 @@ package orm
 
 import (
 	"fmt"
-	"sort"
 
 	"github.com/iov-one/weave"
 )
@@ -38,17 +37,7 @@ func (b *bucketBuilder) WithIndex(name string, indexer Indexer, unique bool) Buc
 }
 
 func (b *bucketBuilder) WithMultiKeyIndex(name string, indexer MultiKeyIndexer, unique bool) BucketBuilder {
-	// TODO: should go back to bucket when interface response can be removed
-	// no duplicate indexes! (panic on init)
-	if b.b.indexes.Has(name) {
-		panic(fmt.Sprintf("Index %s registered twice", name))
-	}
-
-	iname := b.b.name + "_" + name
-	add := NewMultiKeyIndex(iname, indexer, unique, b.b.dbKey)
-	idxs := append(b.b.indexes, namedIndex{Index: add, PublicName: name})
-	sort.Slice(idxs, func(i int, j int) bool { return idxs[i].name < idxs[j].name })
-	b.b.indexes = idxs
+	b.b = b.b.withMultiKeyIndex(name, indexer, unique)
 	return b
 }
 
@@ -62,19 +51,28 @@ type QueryableBucket interface {
 }
 
 type BaseBucket interface {
-	QueryableBucket
-	Name() string
+	// core functionality
 	Get(db weave.ReadOnlyKVStore, key []byte) (Object, error)
 	Save(db weave.KVStore, model Object) error
 	Delete(db weave.KVStore, key []byte) error
 	GetIndexed(db weave.ReadOnlyKVStore, name string, key []byte) ([]Object, error)
 
 	// extension points
+	Name() string
 	dbKey(key []byte) []byte
 	parse(key, value []byte) (Object, error)
+	EmbeddedBucket
+	VisitableBucket
+
+	// migration phase ??
+	QueryableBucket
 }
 
 type XMigrationBucket interface {
+	BaseBucket
+}
+
+type XLastModifiedBucket interface {
 	BaseBucket
 }
 
@@ -87,12 +85,8 @@ type XIDGenBucket interface {
 
 	// extension points
 	nextVal(db weave.KVStore, obj CloneableData) ([]byte, error)
-	visit(func(rawBucket BaseBucket)) // visitor pattern
-}
-
-var _ XIDGenBucket = &IDGenBucket{}
-
-type XLastModifiedBucket interface {
+	VisitableBucket
+	EmbeddedBucket
 }
 
 type XVersioningBucket interface {
@@ -105,10 +99,16 @@ type XVersioningBucket interface {
 	// Can be renamed to Has ?
 	Exists(db weave.KVStore, idRef VersionedIDRef) (bool, error)
 	// extension points
-	visit(func(rawBucket BaseBucket)) // visitor pattern
+	VisitableBucket
+	EmbeddedBucket
 }
 
-var _ XVersioningBucket = VersioningBucket{}
+var (
+	_ XIDGenBucket      = &IDGenBucket{}
+	_ XVersioningBucket = VersioningBucket{}
+	_ XModelBucket      = &modelBucket{}
+	_ BaseBucket        = &bucket{}
+)
 
 type XModelBucket interface {
 	One(db weave.ReadOnlyKVStore, key []byte, dest Model) error
@@ -117,7 +117,6 @@ type XModelBucket interface {
 	Delete(db weave.KVStore, key []byte) error
 	Has(db weave.KVStore, key []byte) error
 	// extension points
-	visit(func(rawBucket BaseBucket)) // visitor pattern
+	VisitableBucket
+	EmbeddedBucket
 }
-
-var _ XModelBucket = &modelBucket{}

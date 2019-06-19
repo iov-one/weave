@@ -109,7 +109,7 @@ func WalletWith(key weave.Address, name string, coins ...*coin.Coin) (orm.Object
 
 // WalletBucket is a type-safe wrapper around orm.Bucket
 type WalletBucket struct {
-	orm.Bucket
+	orm.BaseBucket
 }
 
 var _ cash.WalletBucket = WalletBucket{}
@@ -118,9 +118,11 @@ var _ NamedBucket = WalletBucket{}
 // NewWalletBucket initializes a WalletBucket
 // and sets up a unique index by name
 func NewWalletBucket() WalletBucket {
-	b := migration.NewBucket("namecoin", BucketNameWallet, NewWallet(nil)).
-		WithIndex(IndexName, nameIndex, true)
-	return WalletBucket{Bucket: b}
+	b := orm.NewBucketBuilder(BucketNameWallet, NewWallet(nil)).
+		WithIndex(IndexName, nameIndex, true).
+		Build()
+	b = migration.WithMigration(b, "namecoin")
+	return WalletBucket{BaseBucket: b}
 }
 
 // GetOrCreate will return the token if found, or create one
@@ -152,7 +154,7 @@ func (b WalletBucket) Save(db weave.KVStore, obj orm.Object) error {
 	if _, ok := obj.Value().(*Wallet); !ok {
 		return errors.WithType(errors.ErrModel, obj.Value())
 	}
-	return b.Bucket.Save(db, obj)
+	return b.BaseBucket.Save(db, obj)
 }
 
 // simple indexer for Wallet name

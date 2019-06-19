@@ -16,69 +16,6 @@ import (
 // Both Register and Query methods are using orm.Bucket implementation to
 // return data as stored in the database. This is important for the proof to
 // work. Query returned data must never be altered.
-type Bucket struct {
-	orm.Bucket
-	packageName string
-	schema      *SchemaBucket
-	migrations  *register
-}
-
-var _ orm.Bucket = (*Bucket)(nil)
-
-// NewBucket returns a new instance of a schema aware bucket implementation.
-// Package name is used to track schema version. Bucket name is the namespace
-// for the stored entity. Model is the type of the entity this bucket is
-// maintaining.
-func NewBucket(packageName string, bucketName string, model orm.Cloneable) Bucket {
-	return Bucket{
-		Bucket:      orm.NewBucket(bucketName, model),
-		packageName: packageName,
-		schema:      NewSchemaBucket(),
-		migrations:  reg,
-	}
-}
-
-// useRegister will update this bucket to use a custom register instance
-// instead of the global one. This is a private method meant to be used for
-// tests only.
-func (svb Bucket) useRegister(r *register) Bucket {
-	svb.migrations = r
-	return svb
-}
-
-func (svb Bucket) Get(db weave.ReadOnlyKVStore, key []byte) (orm.Object, error) {
-	obj, err := svb.Bucket.Get(db, key)
-	if err != nil || obj == nil {
-		return obj, err
-	}
-	if err := svb.migrate(db, obj); err != nil {
-		return obj, errors.Wrap(err, "migrate")
-	}
-	return obj, nil
-}
-
-func (svb Bucket) Save(db weave.KVStore, obj orm.Object) error {
-	if err := svb.migrate(db, obj); err != nil {
-		return errors.Wrap(err, "migrate")
-	}
-	return svb.Bucket.Save(db, obj)
-}
-
-func (svb Bucket) migrate(db weave.ReadOnlyKVStore, obj orm.Object) error {
-	return migrate(svb.migrations, svb.schema, svb.packageName, db, obj.Value())
-}
-
-func (svb Bucket) WithIndex(name string, indexer orm.Indexer, unique bool) orm.Bucket {
-	svb.Bucket = svb.Bucket.WithIndex(name, indexer, unique)
-	return svb
-}
-
-func (svb Bucket) WithMultiKeyIndex(name string, indexer orm.MultiKeyIndexer, unique bool) orm.Bucket {
-	svb.Bucket = svb.Bucket.WithMultiKeyIndex(name, indexer, unique)
-	return svb
-}
-
-// XBucket replaces Bucket
 type XBucket struct {
 	orm.BaseBucket
 	packageName string
@@ -88,6 +25,17 @@ type XBucket struct {
 
 var _ orm.BaseBucket = (*XBucket)(nil)
 
+// NewBucket returns a new instance of a schema aware bucket implementation.
+// Package name is used to track schema version. Bucket name is the namespace
+// for the stored entity. Model is the type of the entity this bucket is
+// maintaining.
+func NewBucket(packageName string, bucketName string, model orm.Cloneable) XBucket {
+	return WithMigration(
+		orm.NewBucketBuilder(bucketName, model).Build(),
+		packageName,
+	)
+}
+
 func WithMigration(bucket orm.BaseBucket, packageName string) XBucket {
 	return XBucket{
 		BaseBucket:  bucket,
@@ -95,6 +43,14 @@ func WithMigration(bucket orm.BaseBucket, packageName string) XBucket {
 		schema:      NewSchemaBucket(),
 		migrations:  reg,
 	}
+}
+
+// useRegister will update this bucket to use a custom register instance
+// instead of the global one. This is a private method meant to be used for
+// tests only.
+func (svb XBucket) useRegister(r *register) XBucket {
+	svb.migrations = r
+	return svb
 }
 
 func (svb XBucket) Get(db weave.ReadOnlyKVStore, key []byte) (orm.Object, error) {
@@ -122,29 +78,30 @@ func (svb XBucket) migrate(db weave.ReadOnlyKVStore, obj orm.Object) error {
 // ModelBucket implements the orm.ModelBucket interface and provides the same
 // functionality with additional model schema migration.
 type ModelBucket struct {
-	b           orm.ModelBucket
+	orm.XModelBucket
 	packageName string
 	schema      *SchemaBucket
 	migrations  *register
 }
 
-var _ orm.ModelBucket = (*ModelBucket)(nil)
+var _ orm.XModelBucket = (*ModelBucket)(nil)
 
-func NewModelBucket(packageName string, b orm.ModelBucket) *ModelBucket {
+func NewModelBucket(packageName string, b orm.XModelBucket) *ModelBucket {
 	return &ModelBucket{
-		b:           b,
-		packageName: packageName,
-		schema:      NewSchemaBucket(),
-		migrations:  reg,
+		XModelBucket: b,
+		packageName:  packageName,
+		schema:       NewSchemaBucket(),
+		migrations:   reg,
 	}
 }
 
+// Deprecate user orm.Register instead
 func (m *ModelBucket) Register(name string, r weave.QueryRouter) {
-	m.b.Register(name, r)
+	orm.Register(m, name, r)
 }
 
 func (m *ModelBucket) One(db weave.ReadOnlyKVStore, key []byte, dest orm.Model) error {
-	if err := m.b.One(db, key, dest); err != nil {
+	if err := m.XModelBucket.One(db, key, dest); err != nil {
 		return err
 	}
 	if err := m.migrate(db, dest); err != nil {
@@ -154,7 +111,7 @@ func (m *ModelBucket) One(db weave.ReadOnlyKVStore, key []byte, dest orm.Model) 
 }
 
 func (m *ModelBucket) ByIndex(db weave.ReadOnlyKVStore, indexName string, key []byte, dest orm.ModelSlicePtr) ([][]byte, error) {
-	keys, err := m.b.ByIndex(db, indexName, key, dest)
+	keys, err := m.XModelBucket.ByIndex(db, indexName, key, dest)
 	if err != nil {
 		return nil, err
 	}
@@ -186,15 +143,15 @@ func (m *ModelBucket) Put(db weave.KVStore, key []byte, model orm.Model) ([]byte
 	if err := m.migrate(db, model); err != nil {
 		return nil, errors.Wrap(err, "migrate")
 	}
-	return m.b.Put(db, key, model)
+	return m.XModelBucket.Put(db, key, model)
 }
 
 func (m *ModelBucket) Delete(db weave.KVStore, key []byte) error {
-	return m.b.Delete(db, key)
+	return m.XModelBucket.Delete(db, key)
 }
 
 func (m *ModelBucket) Has(db weave.KVStore, key []byte) error {
-	return m.b.Has(db, key)
+	return m.XModelBucket.Has(db, key)
 }
 
 // useRegister will update this bucket to use a custom register instance

@@ -85,7 +85,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 				{
 					path:   "/wallets",
 					data:   src.Address(),
-					bucket: cashBucket.Bucket,
+					bucket: cashBucket,
 					wantRes: []orm.Object{
 						mustObject(cash.WalletWith(src.Address(), dogeCoin(1, 22))),
 					},
@@ -95,7 +95,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 				{
 					path:   "/wallets",
 					data:   paymentChannelAccount(weavetest.SequenceID(1)),
-					bucket: cashBucket.Bucket,
+					bucket: cashBucket,
 					wantRes: []orm.Object{
 						mustObject(cash.WalletWith(paymentChannelAccount(weavetest.SequenceID(1)), dogeCoin(10, 0))),
 					},
@@ -144,7 +144,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 				{
 					path:   "/wallets",
 					data:   src.Address(),
-					bucket: cashBucket.Bucket,
+					bucket: cashBucket,
 					wantRes: []orm.Object{
 						mustObject(cash.WalletWith(src.Address(), dogeCoin(11, 22))),
 					},
@@ -197,7 +197,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 				{
 					path:   "/wallets",
 					data:   paymentChannelAccount(weavetest.SequenceID(1)),
-					bucket: cashBucket.Bucket,
+					bucket: cashBucket,
 					wantRes: []orm.Object{
 						mustObject(cash.WalletWith(paymentChannelAccount(weavetest.SequenceID(1)), dogeCoin(7, 0))),
 					},
@@ -205,7 +205,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 				{
 					path:   "/wallets",
 					data:   recipient.Address(),
-					bucket: cashBucket.Bucket,
+					bucket: cashBucket,
 					wantRes: []orm.Object{
 						mustObject(cash.WalletWith(recipient.Address(), dogeCoin(3, 0))),
 					},
@@ -268,7 +268,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 				{
 					path:   "/wallets",
 					data:   src.Address(),
-					bucket: cashBucket.Bucket,
+					bucket: cashBucket,
 					wantRes: []orm.Object{
 						mustObject(cash.WalletWith(src.Address(), dogeCoin(9, 22))),
 					},
@@ -278,7 +278,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 				{
 					path:   "/wallets",
 					data:   recipient.Address(),
-					bucket: cashBucket.Bucket,
+					bucket: cashBucket,
 					wantRes: []orm.Object{
 						mustObject(cash.WalletWith(recipient.Address(), dogeCoin(2, 0))),
 					},
@@ -579,7 +579,7 @@ func (a *action) ctx() weave.Context {
 type querycheck struct {
 	path    string
 	data    []byte
-	bucket  orm.Bucket
+	bucket  orm.VisitableBucket
 	wantRes []orm.Object
 }
 

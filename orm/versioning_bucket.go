@@ -204,6 +204,10 @@ func (b VersioningBucket) visit(f func(rawBucket BaseBucket)) {
 	b.bucket.visit(f)
 }
 
+func (b VersioningBucket) parent() EmbeddedBucket {
+	return b.bucket
+}
+
 // marker is a null value type that satisfies CloneableData.
 type marker []byte
 

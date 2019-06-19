@@ -47,17 +47,17 @@ func (t *TokenInfo) Copy() orm.CloneableData {
 // TokenInfoBucket stores TokenInfo instances, using ticker name (currency
 // symbol) as the key.
 type TokenInfoBucket struct {
-	orm.Bucket
+	orm.BaseBucket
 }
 
 func NewTokenInfoBucket() *TokenInfoBucket {
 	return &TokenInfoBucket{
-		Bucket: migration.NewBucket("currency", "tokeninfo", orm.NewSimpleObj(nil, &TokenInfo{})),
+		BaseBucket: migration.NewBucket("currency", "tokeninfo", orm.NewSimpleObj(nil, &TokenInfo{})),
 	}
 }
 
 func (b *TokenInfoBucket) Get(db weave.KVStore, ticker string) (orm.Object, error) {
-	return b.Bucket.Get(db, []byte(ticker))
+	return b.BaseBucket.Get(db, []byte(ticker))
 }
 
 func (b *TokenInfoBucket) Save(db weave.KVStore, obj orm.Object) error {
@@ -67,5 +67,5 @@ func (b *TokenInfoBucket) Save(db weave.KVStore, obj orm.Object) error {
 	if n := string(obj.Key()); !coin.IsCC(n) {
 		return errors.Wrapf(errors.ErrCurrency, "invalid ticker: %s", n)
 	}
-	return b.Bucket.Save(db, obj)
+	return b.BaseBucket.Save(db, obj)
 }

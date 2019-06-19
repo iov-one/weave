@@ -7,6 +7,7 @@ import (
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/migration"
+	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/store"
 	"github.com/iov-one/weave/weavetest"
 )
@@ -111,7 +112,7 @@ func TestQueryVotes(t *testing.T) {
 			}
 			receivedVotes := make([]*Vote, len(models))
 			for i, v := range models {
-				obj, err := vorm.Parse(bucket, nil, v.Value)
+				obj, err := orm.Parse(vBucket, nil, v.Value)
 				if err != nil {
 					t.Fatalf("unexpected error: %s", err)
 				}

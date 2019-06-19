@@ -32,7 +32,7 @@ func RegisterRoutes(r weave.Registry, auth x.Authenticator, cashctrl cash.Contro
 
 // RegisterQuery will register this bucket as "/escrows"
 func RegisterQuery(qr weave.QueryRouter) {
-	NewBucket().Register("escrows", qr)
+	orm.Register(NewBucket(), "escrows", qr)
 }
 
 //---- create
@@ -83,7 +83,8 @@ func (h CreateEscrowHandler) Deliver(ctx weave.Context, db weave.KVStore, tx wea
 		Timeout:   msg.Timeout,
 		Memo:      msg.Memo,
 	}
-	obj, err := h.bucket.Build(db, escrow)
+
+	obj, err := h.bucket.Create(db, escrow)
 	if err != nil {
 		return nil, err
 	}
@@ -98,7 +99,7 @@ func (h CreateEscrowHandler) Deliver(ctx weave.Context, db weave.KVStore, tx wea
 	res := &weave.DeliverResult{
 		Data: obj.Key(),
 	}
-	return res, h.bucket.Save(db, obj)
+	return res, nil
 }
 
 // validate does all common pre-processing between Check and Deliver.
@@ -309,8 +310,7 @@ func (h UpdateEscrowHandler) Deliver(ctx weave.Context, db weave.KVStore, tx wea
 
 	// save the updated escrow
 	key := msg.EscrowId
-	obj := orm.NewSimpleObj(key, escrow)
-	if err := h.bucket.Save(db, obj); err != nil {
+	if _, err := h.bucket.Update(db, key, escrow); err != nil {
 		return nil, err
 	}
 	return &weave.DeliverResult{}, nil

@@ -74,7 +74,7 @@ func AsSwap(obj orm.Object) *Swap {
 
 // Bucket is a type-safe wrapper around orm.Bucket
 type Bucket struct {
-	orm.IDGenBucket
+	orm.XIDGenBucket
 }
 
 // NewBucket initializes a Bucket with default name
@@ -82,14 +82,15 @@ type Bucket struct {
 // inherit Get and Save from orm.Bucket
 // add Create
 func NewBucket() Bucket {
-	bucket := migration.NewBucket("aswap", BucketName,
-		orm.NewSimpleObj(nil, &Swap{})).
+	bucket := orm.NewBucketBuilder(BucketName, orm.NewSimpleObj(nil, &Swap{})).
 		WithIndex("src", idxSrc, false).
 		WithIndex("recipient", idxRecipient, false).
-		WithIndex("preimage_hash", idxPrehash, false)
+		WithIndex("preimage_hash", idxPrehash, false).
+		Build()
+	bucket = migration.WithMigration(bucket, "aswap")
 
 	return Bucket{
-		IDGenBucket: orm.WithSeqIDGenerator(bucket, SequenceName),
+		XIDGenBucket: orm.WithSeqIDGenerator(bucket, SequenceName),
 	}
 }
 

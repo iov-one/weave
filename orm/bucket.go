@@ -44,8 +44,10 @@ type Bucket interface {
 	Sequence(name string) Sequence
 	WithIndex(name string, indexer Indexer, unique bool) Bucket
 	WithMultiKeyIndex(name string, indexer MultiKeyIndexer, unique bool) Bucket
-	Name() string // added for migration phase
-	visitableBucket
+	// functions below are added for migration phase
+	Name() string
+	EmbeddedBucket
+	VisitableBucket
 }
 
 // bucket is a generic holder that stores data as well
@@ -260,7 +262,12 @@ func (b bucket) WithIndex(name string, indexer Indexer, unique bool) Bucket {
 	return b.WithMultiKeyIndex(name, asMultiKeyIndexer(indexer), unique)
 }
 
+// Deprecated
 func (b bucket) WithMultiKeyIndex(name string, indexer MultiKeyIndexer, unique bool) Bucket {
+	return b.withMultiKeyIndex(name, indexer, unique)
+}
+
+func (b bucket) withMultiKeyIndex(name string, indexer MultiKeyIndexer, unique bool) bucket {
 	// no duplicate indexes! (panic on init)
 	if b.indexes.Has(name) {
 		panic(fmt.Sprintf("Index %s registered twice", name))
@@ -318,4 +325,8 @@ func (b bucket) readRefs(db weave.ReadOnlyKVStore, refs [][]byte) ([]Object, err
 
 func (b bucket) visit(f func(rawBucket BaseBucket)) {
 	f(b)
+}
+
+func (b bucket) parent() EmbeddedBucket {
+	return nil
 }

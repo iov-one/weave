@@ -152,7 +152,7 @@ func TestModelBucketByIndex(t *testing.T) {
 				raw := strconv.FormatInt(c.Count/1000, 10)
 				return []byte(raw), nil
 			}
-			b := NewModelBucket("cnts", &Counter{}, WithIndex("value", indexByBigValue, false))
+			b := NewModelBucket("cnts", &Counter{}, WithIndexOpt("value", indexByBigValue, false))
 
 			if _, err := b.Put(db, nil, &Counter{Count: 1001}); err != nil {
 				t.Fatalf("cannot save counter instance: %s", err)
@@ -212,7 +212,7 @@ func TestModelBucketOneWrongModelType(t *testing.T) {
 func TestModelBucketByIndexWrongModelType(t *testing.T) {
 	db := store.MemStore()
 	b := NewModelBucket("cnts", &Counter{},
-		WithIndex("x", func(o Object) ([]byte, error) { return []byte("x"), nil }, false))
+		WithIndexOpt("x", func(o Object) ([]byte, error) { return []byte("x"), nil }, false))
 
 	if _, err := b.Put(db, []byte("counter"), &Counter{Count: 1}); err != nil {
 		t.Fatalf("cannot save counter instance: %s", err)

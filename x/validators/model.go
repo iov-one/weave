@@ -137,7 +137,7 @@ func (m *Accounts) Validate() error {
 }
 
 type AccountBucket struct {
-	orm.Bucket
+	orm.BaseBucket
 }
 
 func NewAccountBucket() *AccountBucket {
@@ -145,7 +145,7 @@ func NewAccountBucket() *AccountBucket {
 		Metadata: &weave.Metadata{Schema: 1},
 	})
 	return &AccountBucket{
-		Bucket: migration.NewBucket("validators", bucketName, obj),
+		BaseBucket: migration.NewBucket("validators", bucketName, obj),
 	}
 }
 

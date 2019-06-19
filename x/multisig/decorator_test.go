@@ -176,10 +176,7 @@ func createContract(t testing.TB, db weave.KVStore, c Contract) []byte {
 	t.Helper()
 
 	b := NewContractBucket()
-	obj, err := b.Build(db, &c)
+	obj, err := b.Create(db, &c)
 	assert.Nil(t, err)
-	if err := b.Save(db, obj); err != nil {
-		t.Fatalf("cannot create a contract: %s", err)
-	}
 	return obj.Key()
 }

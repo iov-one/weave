@@ -98,7 +98,7 @@ type ModelBucketOption func(bb BucketBuilder)
 // entities stored in the bucket are indexed using value returned by the
 // indexer function. If an index is unique, there can be only one entity
 // referenced per index value.
-func WithIndex(name string, indexer Indexer, unique bool) ModelBucketOption {
+func WithIndexOpt(name string, indexer Indexer, unique bool) ModelBucketOption {
 	return func(mb BucketBuilder) {
 		mb = mb.WithIndex(name, indexer, unique)
 	}
@@ -110,11 +110,6 @@ type modelBucket struct {
 	// pointer is implementing Model interface, this variable references
 	// the structure directly and not the structure's pointer type.
 	model reflect.Type
-}
-
-// Deprecated
-func (mb *modelBucket) Register(name string, r weave.QueryRouter) {
-	r.Register(name, WithQueryAdaptor(mb.b))
 }
 
 func (mb *modelBucket) One(db weave.ReadOnlyKVStore, key []byte, dest Model) error {
@@ -237,8 +232,12 @@ func (mb *modelBucket) Has(db weave.KVStore, key []byte) error {
 	return nil
 }
 
-func (mb *modelBucket) visit(f func(rawBucket BaseBucket)) {
+func (mb modelBucket) visit(f func(rawBucket BaseBucket)) {
 	mb.b.visit(f)
+}
+
+func (mb modelBucket) parent() EmbeddedBucket {
+	return mb.b
 }
 
 var _ ModelBucket = (*modelBucket)(nil)

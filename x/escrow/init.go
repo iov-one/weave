@@ -40,11 +40,8 @@ func (i *Initializer) FromGenesis(opts weave.Options, params weave.GenesisParams
 		if err := escr.Validate(); err != nil {
 			return errors.Wrapf(err, "invalid escrow at position: %d ", j)
 		}
-		obj, err := bucket.Build(kv, &escr)
+		obj, err := bucket.Create(kv, &escr)
 		if err != nil {
-			return err
-		}
-		if err := bucket.Save(kv, obj); err != nil {
 			return err
 		}
 		escAddr := Condition(obj.Key()).Address()

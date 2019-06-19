@@ -71,6 +71,10 @@ func (b IDGenBucket) visit(f func(rawBucket BaseBucket)) {
 	f(b.bucket)
 }
 
+func (b IDGenBucket) parent() EmbeddedBucket {
+	return b.bucket
+}
+
 // IDGeneratorFunc provides IDGenerator interface support.
 type IDGeneratorFunc func(db weave.KVStore, obj CloneableData) ([]byte, error)
 

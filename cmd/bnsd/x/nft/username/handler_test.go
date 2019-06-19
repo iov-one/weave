@@ -241,7 +241,7 @@ func TestQueryUsernameToken(t *testing.T) {
 			require.NoError(t, err)
 			require.Len(t, mods, 1)
 
-			assert.Equal(t, bucket.dbKey([]byte(spec.expUsername)), mods[0].Key)
+			assert.Equal(t, orm.DBKey(bucket, []byte(spec.expUsername)), mods[0].Key)
 			got, err := orm.Parse(bucket, nil, mods[0].Value)
 			require.NoError(t, err)
 			_, err = username.AsUsername(got)

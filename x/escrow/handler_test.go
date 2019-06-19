@@ -74,21 +74,21 @@ func TestHandler(t *testing.T) {
 					[]orm.Object{
 						NewEscrow(weavetest.SequenceID(1), a.Address(), b.Address(), c.Address(), all, Timeout, ""),
 					},
-					NewBucket().Bucket,
+					NewBucket(),
 				},
 				// bank deducted from sender
 				{"/wallets", "", a.Address(), false,
 					[]orm.Object{
 						cash.NewWallet(a.Address()),
 					},
-					cash.NewBucket().Bucket,
+					cash.NewBucket(),
 				},
 				// and added to escrow
 				{"/wallets", "", escrowAddr(1), false,
 					[]orm.Object{
 						mo(cash.WalletWith(escrowAddr(1), all...)),
 					},
-					cash.NewBucket().Bucket,
+					cash.NewBucket(),
 				},
 			},
 		},
@@ -105,7 +105,7 @@ func TestHandler(t *testing.T) {
 					[]orm.Object{
 						NewEscrow(weavetest.SequenceID(1), a.Address(), b.Address(), c.Address(), some, Timeout, ""),
 					},
-					NewBucket().Bucket,
+					NewBucket(),
 				},
 				// make sure sender index works
 				{
@@ -113,7 +113,7 @@ func TestHandler(t *testing.T) {
 					[]orm.Object{
 						NewEscrow(weavetest.SequenceID(1), a.Address(), b.Address(), c.Address(), some, Timeout, ""),
 					},
-					NewBucket().Bucket,
+					NewBucket(),
 				},
 				// make sure recipient index works
 				{
@@ -121,7 +121,7 @@ func TestHandler(t *testing.T) {
 					[]orm.Object{
 						NewEscrow(weavetest.SequenceID(1), a.Address(), b.Address(), c.Address(), some, Timeout, ""),
 					},
-					NewBucket().Bucket,
+					NewBucket(),
 				},
 				// make sure arbiter index works
 				{
@@ -129,11 +129,11 @@ func TestHandler(t *testing.T) {
 					[]orm.Object{
 						NewEscrow(weavetest.SequenceID(1), a.Address(), b.Address(), c.Address(), some, Timeout, ""),
 					},
-					NewBucket().Bucket,
+					NewBucket(),
 				},
 				// make sure wrong query misses
 				{
-					"/escrows/arbiter", "", b, false, nil, NewBucket().Bucket,
+					"/escrows/arbiter", "", b, false, nil, NewBucket(),
 				},
 				// others id are empty
 				{
@@ -144,14 +144,14 @@ func TestHandler(t *testing.T) {
 					[]orm.Object{
 						mo(cash.WalletWith(a.Address(), remain...)),
 					},
-					cash.NewBucket().Bucket,
+					cash.NewBucket(),
 				},
 				// and added to escrow
 				{"/wallets", "", escrowAddr(1), false,
 					[]orm.Object{
 						mo(cash.WalletWith(escrowAddr(1), some...)),
 					},
-					cash.NewBucket().Bucket,
+					cash.NewBucket(),
 				},
 			},
 		},
@@ -210,21 +210,21 @@ func TestHandler(t *testing.T) {
 					[]orm.Object{
 						cash.NewWallet(escrowAddr(1)),
 					},
-					cash.NewBucket().Bucket,
+					cash.NewBucket(),
 				},
 				// sender is broke
 				{"/wallets", "", a.Address(), false,
 					[]orm.Object{
 						cash.NewWallet(a.Address()),
 					},
-					cash.NewBucket().Bucket,
+					cash.NewBucket(),
 				},
 				// recipient has bank
 				{"/wallets", "", b.Address(), false,
 					[]orm.Object{
 						mo(cash.WalletWith(b.Address(), all...)),
 					},
-					cash.NewBucket().Bucket,
+					cash.NewBucket(),
 				},
 			},
 		},
@@ -248,28 +248,28 @@ func TestHandler(t *testing.T) {
 					[]orm.Object{
 						NewEscrow(weavetest.SequenceID(1), a.Address(), b.Address(), c.Address(), remain, Timeout, "hello"),
 					},
-					NewBucket().Bucket,
+					NewBucket(),
 				},
 				// escrow is reduced
 				{"/wallets", "", escrowAddr(1), false,
 					[]orm.Object{
 						mo(cash.WalletWith(escrowAddr(1), remain...)),
 					},
-					cash.NewBucket().Bucket,
+					cash.NewBucket(),
 				},
 				// sender is broke
 				{"/wallets", "", a.Address(), false,
 					[]orm.Object{
 						cash.NewWallet(a.Address()),
 					},
-					cash.NewBucket().Bucket,
+					cash.NewBucket(),
 				},
 				// recipient has some money
 				{"/wallets", "", b.Address(), false,
 					[]orm.Object{
 						mo(cash.WalletWith(b.Address(), some...)),
 					},
-					cash.NewBucket().Bucket,
+					cash.NewBucket(),
 				},
 			},
 		},
@@ -324,18 +324,18 @@ func TestHandler(t *testing.T) {
 		//			[]orm.Object{
 		//				cash.NewWallet(escrowAddr(1)),
 		//			},
-		//			cash.NewBucket().Bucket,
+		//			cash.NewBucket(),
 		//		},
 		//		// sender recover all his money
 		//		{"/wallets", "", a.Address(), false,
 		//			[]orm.Object{
 		//				mo(cash.WalletWith(a.Address(), all...)),
 		//			},
-		//			cash.NewBucket().Bucket,
+		//			cash.NewBucket(),
 		//		},
 		//		// recipient doesn't get paid
 		//		{"/wallets", "", b.Address(), false, nil,
-		//			cash.NewBucket().Bucket,
+		//			cash.NewBucket(),
 		//		},
 		//	},
 		//},
@@ -385,14 +385,14 @@ func TestHandler(t *testing.T) {
 					[]orm.Object{
 						mo(cash.WalletWith(a.Address(), remain...)),
 					},
-					cash.NewBucket().Bucket,
+					cash.NewBucket(),
 				},
 				// and added to recipient
 				{"/wallets", "", b.Address(), false,
 					[]orm.Object{
 						mo(cash.WalletWith(b.Address(), some...)),
 					},
-					cash.NewBucket().Bucket,
+					cash.NewBucket(),
 				},
 			},
 		},
@@ -481,21 +481,21 @@ func TestHandler(t *testing.T) {
 					[]orm.Object{
 						cash.NewWallet(escrowAddr(1)),
 					},
-					cash.NewBucket().Bucket,
+					cash.NewBucket(),
 				},
 				// sender is broke
 				{"/wallets", "", a.Address(), false,
 					[]orm.Object{
 						cash.NewWallet(a.Address()),
 					},
-					cash.NewBucket().Bucket,
+					cash.NewBucket(),
 				},
 				// recipient has cash
 				{"/wallets", "", b.Address(), false,
 					[]orm.Object{
 						mo(cash.WalletWith(b.Address(), all...)),
 					},
-					cash.NewBucket().Bucket,
+					cash.NewBucket(),
 				},
 			},
 		},
@@ -531,18 +531,18 @@ func TestHandler(t *testing.T) {
 		//			[]orm.Object{
 		//				cash.NewWallet(escrowAddr(1)),
 		//			},
-		//			cash.NewBucket().Bucket,
+		//			cash.NewBucket(),
 		//		},
 		//		// sender recover all his money
 		//		{"/wallets", "", a.Address(), false,
 		//			[]orm.Object{
 		//				mo(cash.WalletWith(a.Address(), mustCombineCoins(coin.NewCoin(2, 0, "FOO"))...)),
 		//			},
-		//			cash.NewBucket().Bucket,
+		//			cash.NewBucket(),
 		//		},
 		//		// recipient doesn't get paid
 		//		{"/wallets", "", b.Address(), false, nil,
-		//			cash.NewBucket().Bucket,
+		//			cash.NewBucket(),
 		//		},
 		//	},
 		//},
@@ -579,21 +579,21 @@ func TestHandler(t *testing.T) {
 					[]orm.Object{
 						cash.NewWallet(escrowAddr(1)),
 					},
-					cash.NewBucket().Bucket,
+					cash.NewBucket(),
 				},
 				// sender is broke
 				{"/wallets", "", a.Address(), false,
 					[]orm.Object{
 						cash.NewWallet(a.Address()),
 					},
-					cash.NewBucket().Bucket,
+					cash.NewBucket(),
 				},
 				// recipient has bank
 				{"/wallets", "", b.Address(), false,
 					[]orm.Object{
 						mo(cash.WalletWith(b.Address(), mustCombineCoins(coin.NewCoin(2, 0, "FOO"))...)),
 					},
-					cash.NewBucket().Bucket,
+					cash.NewBucket(),
 				},
 			},
 		},
@@ -718,7 +718,7 @@ type query struct {
 	data     []byte
 	isError  bool
 	expected []orm.Object
-	bucket   orm.Bucket
+	bucket   orm.VisitableBucket
 }
 
 func (q query) check(t testing.TB, db weave.ReadOnlyKVStore, qr weave.QueryRouter, msg ...interface{}) {

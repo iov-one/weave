@@ -76,13 +76,13 @@ func NewToken(ticker, name string, sigFigs int32) orm.Object {
 
 // TokenBucket is a type-safe wrapper around orm.Bucket
 type TokenBucket struct {
-	orm.Bucket
+	orm.BaseBucket
 }
 
 // NewTokenBucket initializes a TokenBucket with default name
 func NewTokenBucket() TokenBucket {
 	return TokenBucket{
-		Bucket: migration.NewBucket("namecoin", BucketNameToken,
+		BaseBucket: migration.NewBucket("namecoin", BucketNameToken,
 			NewToken("", "", DefaultSigFigs)),
 		// orm.NewSimpleObj(nil, &Token{SigFigs: DefaultSigFigs})),
 	}
@@ -101,7 +101,7 @@ func NewTokenBucket() TokenBucket {
 
 // Get takes the token name and converts it to a byte key
 func (b TokenBucket) Get(db weave.KVStore, ticker string) (orm.Object, error) {
-	return b.Bucket.Get(db, []byte(ticker))
+	return b.BaseBucket.Get(db, []byte(ticker))
 }
 
 // Save enforces the proper type
@@ -113,7 +113,7 @@ func (b TokenBucket) Save(db weave.KVStore, obj orm.Object) error {
 	if !coin.IsCC(name) {
 		return errors.Wrapf(errors.ErrInput, "invalid token name: %s", name)
 	}
-	return b.Bucket.Save(db, obj)
+	return b.BaseBucket.Save(db, obj)
 }
 
 // TickerBucket can save and query Tokens (or anything with tickers...)

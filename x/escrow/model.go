@@ -101,8 +101,7 @@ func Condition(key []byte) weave.Condition {
 
 // Bucket is a type-safe wrapper around orm.Bucket
 type Bucket struct {
-	orm.Bucket
-	idSeq orm.Sequence
+	orm.XIDGenBucket
 }
 
 // NewBucket initializes a Bucket with default name
@@ -110,15 +109,15 @@ type Bucket struct {
 // inherit Get and Save from orm.Bucket
 // add Create
 func NewBucket() Bucket {
-	bucket := migration.NewBucket("escrow", BucketName,
+	bucket := orm.NewBucketBuilder(BucketName,
 		orm.NewSimpleObj(nil, new(Escrow))).
 		WithIndex("sender", idxSender, false).
 		WithIndex("recipient", idxRecipient, false).
-		WithIndex("arbiter", idxArbiter, false)
-
+		WithIndex("arbiter", idxArbiter, false).
+		Build()
+	bucket = migration.WithMigration(bucket, "escrow")
 	return Bucket{
-		Bucket: bucket,
-		idSeq:  bucket.Sequence(SequenceName),
+		XIDGenBucket: orm.WithSeqIDGenerator(bucket, "id"),
 	}
 	// TODO: add indexes
 }
@@ -156,22 +155,4 @@ func idxArbiter(obj orm.Object) ([]byte, error) {
 		return nil, err
 	}
 	return esc.Arbiter, nil
-}
-
-// Build assigns an ID to given escrow instance and returns it as an orm
-// Object. It does not persist the escrow in the store.
-func (b Bucket) Build(db weave.KVStore, escrow *Escrow) (orm.Object, error) {
-	key, err := b.idSeq.NextVal(db)
-	if err != nil {
-		return nil, err
-	}
-	return orm.NewSimpleObj(key, escrow), nil
-}
-
-// Save enforces the proper type
-func (b Bucket) Save(db weave.KVStore, obj orm.Object) error {
-	if _, ok := obj.Value().(*Escrow); !ok {
-		return errors.WithType(errors.ErrModel, obj.Value())
-	}
-	return b.Bucket.Save(db, obj)
 }

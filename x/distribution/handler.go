@@ -17,7 +17,7 @@ const (
 
 // RegisterQuery registers feedlist buckets for querying.
 func RegisterQuery(qr weave.QueryRouter) {
-	qr.Register("revenues", orm.WithQueryAdaptor(NewRevenueBucket()))
+	orm.Register(NewRevenueBucket(), "revenues", qr)
 }
 
 // CashController allows to manage coins stored by the accounts without the

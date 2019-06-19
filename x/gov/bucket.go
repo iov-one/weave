@@ -14,8 +14,10 @@ type ElectorateBucket struct {
 
 // NewElectorateBucket returns a bucket for managing electorate.
 func NewElectorateBucket() *ElectorateBucket {
-	b := migration.NewBucket(packageName, "electorate", orm.NewSimpleObj(nil, &Electorate{})).
-		WithMultiKeyIndex("elector", electorIndexer, false)
+	b := orm.NewBucketBuilder("electorate", orm.NewSimpleObj(nil, &Electorate{})).
+		WithMultiKeyIndex("elector", electorIndexer, false).
+		Build()
+	b = migration.WithMigration(b, packageName)
 	return &ElectorateBucket{
 		VersioningBucket: orm.WithVersioning(orm.WithSeqIDGenerator(b, "id")),
 	}
@@ -64,7 +66,7 @@ func asElectionRule(obj orm.Object) (*ElectionRule, error) {
 
 // ProposalBucket is the persistent bucket for governance proposal objects.
 type ProposalBucket struct {
-	orm.IDGenBucket
+	orm.XIDGenBucket
 }
 
 const (
@@ -74,11 +76,13 @@ const (
 
 // NewProposalBucket returns a bucket for managing electorate.
 func NewProposalBucket() *ProposalBucket {
-	b := migration.NewBucket(packageName, "proposal", orm.NewSimpleObj(nil, &Proposal{})).
+	b := orm.NewBucketBuilder("proposal", orm.NewSimpleObj(nil, &Proposal{})).
 		WithIndex(indexNameAuthor, authorIndexer, false).
-		WithIndex(indexNameElectorateID, proposalElectorateIDIndexer, false)
+		WithIndex(indexNameElectorateID, proposalElectorateIDIndexer, false).
+		Build()
+	b = migration.WithMigration(b, packageName)
 	return &ProposalBucket{
-		IDGenBucket: orm.WithSeqIDGenerator(b, "id"),
+		XIDGenBucket: orm.WithSeqIDGenerator(b, "id"),
 	}
 }
 
@@ -118,28 +122,22 @@ func asProposal(obj orm.Object) (*Proposal, error) {
 	return rev, nil
 }
 
-// Update stores the given proposal and id in the persistence store.
-func (b *ProposalBucket) Update(db weave.KVStore, id []byte, obj *Proposal) error {
-	if err := b.Save(db, orm.NewSimpleObj(id, obj)); err != nil {
-		return errors.Wrap(err, "failed to save")
-	}
-	return nil
-}
-
 const (
 	indexNameElectorate = "electorate"
 )
 
 // ResolutionBucket is the persistence bucket for resolutions.
 type ResolutionBucket struct {
-	orm.IDGenBucket
+	orm.XIDGenBucket
 }
 
 func NewResolutionBucket() *ResolutionBucket {
-	b := migration.NewBucket(packageName, "resolution", orm.NewSimpleObj(nil, &Resolution{})).
-		WithIndex(indexNameElectorate, electorateIDIndexer, false)
+	b := orm.NewBucketBuilder("resolution", orm.NewSimpleObj(nil, &Resolution{})).
+		WithIndex(indexNameElectorate, electorateIDIndexer, false).
+		Build()
+	b = migration.WithMigration(b, packageName)
 	return &ResolutionBucket{
-		IDGenBucket: orm.WithSeqIDGenerator(b, "id"),
+		XIDGenBucket: orm.WithSeqIDGenerator(b, "id"),
 	}
 }
 
@@ -178,16 +176,18 @@ const (
 
 // VoteBucket is the persistence bucket for votes.
 type VoteBucket struct {
-	orm.Bucket
+	orm.BaseBucket
 }
 
 // NewVoteBucket returns a bucket for managing electorate.
 func NewVoteBucket() *VoteBucket {
-	b := migration.NewBucket(packageName, "vote", orm.NewSimpleObj(nil, &Vote{})).
+	b := orm.NewBucketBuilder("vote", orm.NewSimpleObj(nil, &Vote{})).
 		WithIndex(indexNameProposal, indexProposal, false).
-		WithIndex(indexNameElector, indexElector, false)
+		WithIndex(indexNameElector, indexElector, false).
+		Build()
+	b = migration.WithMigration(b, packageName)
 	return &VoteBucket{
-		Bucket: b,
+		BaseBucket: b,
 	}
 }
 

@@ -108,13 +108,13 @@ func NewUser(pubkey *crypto.PublicKey) orm.Object {
 
 // Bucket extends orm.Bucket with GetOrCreate
 type Bucket struct {
-	orm.Bucket
+	orm.BaseBucket
 }
 
 // NewBucket creates the proper bucket for this extension
 func NewBucket() Bucket {
 	return Bucket{
-		Bucket: migration.NewBucket("sigs", BucketName, NewUser(nil)),
+		BaseBucket: migration.NewBucket("sigs", BucketName, NewUser(nil)),
 	}
 }
 
