@@ -15,14 +15,29 @@ func Append(errs ...error) error {
 	var res multiError
 
 	for _, e := range errs {
-		if !isNilErr(e) {
-			res = append(res, e)
-		}
+		res = appendError(res, e)
 	}
 	if len(res) == 0 {
 		return nil
 	}
 	return res
+}
+
+// appendError extends given multiError with provided error. It flattens any
+// error that provides the Unpack method.
+func appendError(errs multiError, e error) multiError {
+	if isNilErr(e) {
+		return errs
+	}
+
+	if u, ok := e.(unpacker); ok {
+		for _, e := range u.Unpack() {
+			errs = appendError(errs, e)
+		}
+		return errs
+	}
+
+	return append(errs, e)
 }
 
 // multiError represents a group of errors. It "is" all of the represented
@@ -32,21 +47,21 @@ type multiError []error
 var _ unpacker = (multiError)(nil)
 
 // Unpack implements unpacker interface.
-func (e multiError) Unpack() []error {
-	return e
+func (errs multiError) Unpack() []error {
+	return errs
 }
 
 // Error satisfies the error interface and returns a serialized version of the content.
-func (e multiError) Error() string {
-	switch len(e) {
+func (errs multiError) Error() string {
+	switch len(errs) {
 	case 0:
 		return "<nil>"
 	case 1:
-		return e[0].Error()
+		return errs[0].Error()
 	}
 
-	msgs := make([]string, len(e))
-	for i, err := range e {
+	msgs := make([]string, len(errs))
+	for i, err := range errs {
 		// When dealing with a multi error, this might be a nested
 		// multierror. Because Error method lacks context and cannot
 		// determine what level of nesting it is in, we must parse the
@@ -98,6 +113,6 @@ func isListItem(msg string) bool {
 }
 
 // ABCICode implementes ABCI coder interface.
-func (e multiError) ABCICode() uint32 {
+func (multiError) ABCICode() uint32 {
 	return multiErrorABCICode
 }

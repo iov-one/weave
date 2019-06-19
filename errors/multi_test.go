@@ -10,8 +10,9 @@ import (
 
 func TestAppend(t *testing.T) {
 	var (
-		myErrNotFound = Wrap(ErrNotFound, "test")
-		myErrState    = Wrap(ErrState, "test")
+		myErrNotFound  = Wrap(ErrNotFound, "test")
+		myErrState     = Wrap(ErrState, "test")
+		myErrWrapMulti = Wrap(Append(ErrDuplicate, ErrDeleted), "inner")
 	)
 
 	cases := map[string]struct {
@@ -47,11 +48,28 @@ func TestAppend(t *testing.T) {
 		"nested error": {
 			Input: []error{
 				myErrState,
-				Append(myErrNotFound),
+				Append(myErrNotFound, ErrEmpty,
+					Append(ErrDuplicate, ErrDeleted),
+				),
 			},
 			Want: multiError{
 				myErrState,
-				multiError{myErrNotFound},
+				myErrNotFound, ErrEmpty,
+				ErrDuplicate, ErrDeleted,
+			},
+		},
+		"nested wrapped error": {
+			Input: []error{
+				myErrState,
+				Append(myErrNotFound, ErrEmpty,
+					myErrWrapMulti,
+				),
+			},
+			Want: multiError{
+				myErrState,
+				myErrNotFound, ErrEmpty,
+				// Wrapped error cannot be flattened.
+				myErrWrapMulti,
 			},
 		},
 	}
@@ -59,7 +77,7 @@ func TestAppend(t *testing.T) {
 		t.Run(testName, func(t *testing.T) {
 			got := Append(tc.Input...)
 			if !reflect.DeepEqual(got, tc.Want) {
-				t.Fatalf("unexpected result: %+v", got)
+				t.Fatalf("unexpected result: %s", got)
 			}
 		})
 	}
@@ -206,11 +224,10 @@ func TestMultiErrorMessageFormat(t *testing.T) {
 					errors.New("third"),
 				),
 			),
-			WantMsg: `2 errors occurred:
+			WantMsg: `3 errors occurred:
 	* first
-	* 2 errors occurred:
-		* second
-		* third
+	* second
+	* third
 `,
 		},
 		"nested wrapped errors": {

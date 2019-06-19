@@ -248,14 +248,6 @@ func (e *wrappedError) Cause() error {
 	return e.parent
 }
 
-// Unpack implementes unpacker interface.
-func (e *wrappedError) Unpack() []error {
-	if u, ok := e.parent.(unpacker); ok {
-		return u.Unpack()
-	}
-	return []error{e.parent}
-}
-
 // Recover captures a panic and stop its propagation. If panic happens it is
 // transformed into a ErrPanic instance and assigned to given error. Call this
 // function using defer in order to work as expected.
