@@ -30,6 +30,81 @@ const (
 
 var isBucketName = regexp.MustCompile(`^[a-z_]{3,10}$`).MatchString
 
+type QueryableBucket interface {
+	Register(name string, r weave.QueryRouter)
+	weave.QueryHandler
+}
+
+type BaseBucket interface {
+	// core functionality
+	Get(db weave.ReadOnlyKVStore, key []byte) (Object, error)
+	Save(db weave.KVStore, model Object) error
+	Delete(db weave.KVStore, key []byte) error
+	GetIndexed(db weave.ReadOnlyKVStore, name string, key []byte) ([]Object, error)
+	// query
+	QueryableBucket
+
+	// extension points
+	Name() string
+	dbKey(key []byte) []byte
+	parse(key, value []byte) (Object, error)
+	EmbeddedBucket
+	VisitableBucket
+}
+
+type XMigrationBucket interface {
+	BaseBucket
+}
+
+type XLastModifiedBucket interface {
+	BaseBucket
+}
+
+type XIDGenBucket interface {
+	Get(db weave.ReadOnlyKVStore, key []byte) (Object, error)
+	Delete(db weave.KVStore, key []byte) error
+	GetIndexed(db weave.ReadOnlyKVStore, name string, key []byte) ([]Object, error)
+	Create(db weave.KVStore, data CloneableData) (Object, error)
+	Update(db weave.KVStore, id []byte, data CloneableData) (Object, error)
+
+	// extension points
+	nextVal(db weave.KVStore, obj CloneableData) ([]byte, error)
+	VisitableBucket
+	EmbeddedBucket
+}
+
+type XVersioningBucket interface {
+	Create(db weave.KVStore, data versionedData) (*VersionedIDRef, error)
+	Update(db weave.KVStore, id []byte, data versionedData) (*VersionedIDRef, error)
+	Delete(db weave.KVStore, id []byte) (*VersionedIDRef, error)
+	Get(db weave.ReadOnlyKVStore, key []byte) (Object, error)
+	GetVersion(db weave.ReadOnlyKVStore, ref VersionedIDRef) (Object, error)
+	GetLatestVersion(db weave.ReadOnlyKVStore, id []byte) (*VersionedIDRef, Object, error)
+	// Can be renamed to Has ?
+	Exists(db weave.KVStore, idRef VersionedIDRef) (bool, error)
+	// extension points
+	VisitableBucket
+	EmbeddedBucket
+}
+
+var (
+	_ XIDGenBucket      = &IDGenBucket{}
+	_ XVersioningBucket = VersioningBucket{}
+	_ XModelBucket      = &modelBucket{}
+	_ BaseBucket        = &bucket{}
+)
+
+type XModelBucket interface {
+	One(db weave.ReadOnlyKVStore, key []byte, dest Model) error
+	ByIndex(db weave.ReadOnlyKVStore, indexName string, key []byte, dest ModelSlicePtr) (keys [][]byte, err error)
+	Put(db weave.KVStore, key []byte, m Model) ([]byte, error)
+	Delete(db weave.KVStore, key []byte) error
+	Has(db weave.KVStore, key []byte) error
+	// extension points
+	VisitableBucket
+	EmbeddedBucket
+}
+
 // bucket is a generic holder that stores data as well
 // as references to secondary indexes and sequences.
 //
