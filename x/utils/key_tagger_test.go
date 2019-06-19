@@ -152,22 +152,30 @@ var _ weave.Decorator = writeDecorator{}
 
 func (d writeDecorator) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx, next weave.Checker) (*weave.CheckResult, error) {
 	if !d.after {
-		return nil, store.Set(d.key, d.value)
+		if err := store.Set(d.key, d.value); err != nil {
+			return nil, err
+		}
 	}
 	res, err := next.Check(ctx, store, tx)
 	if d.after && err == nil {
-		return nil, store.Set(d.key, d.value)
+		if err := store.Set(d.key, d.value); err != nil {
+			return nil, err
+		}
 	}
 	return res, err
 }
 
 func (d writeDecorator) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx, next weave.Deliverer) (*weave.DeliverResult, error) {
 	if !d.after {
-		return nil, store.Set(d.key, d.value)
+		if err := store.Set(d.key, d.value); err != nil {
+			return nil, err
+		}
 	}
 	res, err := next.Deliver(ctx, store, tx)
 	if d.after && err == nil {
-		return nil, store.Set(d.key, d.value)
+		if err := store.Set(d.key, d.value); err != nil {
+			return nil, err
+		}
 	}
 	return res, err
 }

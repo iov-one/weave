@@ -76,7 +76,9 @@ func (s CommitStore) Commit() (store.CommitID, error) {
 	// Potentially release an old version of history
 	if s.numHistory > 0 && (s.numHistory < version) {
 		toRelease := version - s.numHistory
-		return store.CommitID{}, s.tree.DeleteVersion(toRelease)
+		if err := s.tree.DeleteVersion(toRelease); err != nil {
+			return store.CommitID{}, err
+		}
 	}
 
 	c := store.CommitID{

@@ -6,7 +6,7 @@ import (
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/store"
 	"github.com/iov-one/weave/weavetest"
-	"github.com/iov-one/weave/weavetest/assert"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 

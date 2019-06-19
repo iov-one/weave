@@ -49,8 +49,8 @@ import (
 	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/store"
 	"github.com/iov-one/weave/weavetest"
-	"github.com/iov-one/weave/weavetest/assert"
 	"github.com/iov-one/weave/x"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
