@@ -37,9 +37,9 @@ test:
 
 lint:
 ifndef LINT
-	curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b $(shell go env GOPATH)/bin v1.17.1
+	./scripts/golangci-lint.sh -b $(shell go env GOPATH)/bin v1.17.1
 endif
-	golangci-lint run --enable=goimports
+	golangci-lint run
 
 # Test fast
 tf:
