@@ -1,121 +1,254 @@
 package errors
 
 import (
+	"errors"
 	"reflect"
 	"testing"
 
 	"github.com/iov-one/weave/weavetest/assert"
 )
 
-func TestAddToMultiErr(t *testing.T) {
+func TestAppend(t *testing.T) {
 	var (
-		// create errors with stacktrace for equal comparision
 		myErrNotFound = Wrap(ErrNotFound, "test")
 		myErrState    = Wrap(ErrState, "test")
-		myErrMsg      = Wrap(ErrMsg, "test")
 	)
-	specs := map[string]struct {
-		src error
-		add error
-		exp error
+
+	cases := map[string]struct {
+		Input []error
+		// Use multiError instance as the Want value. Build it manually
+		// (do not use Append) to be certain of the state.
+		Want error
 	}{
-		"Append with first nil":    {src: nil, add: myErrNotFound, exp: myErrNotFound},
-		"Append with second nil":   {src: myErrNotFound, add: nil, exp: myErrNotFound},
-		"Append with both nil":     {src: nil, add: nil, exp: nil},
-		"Append with both not nil": {src: myErrNotFound, add: myErrMsg, exp: multiErr{myErrNotFound, myErrMsg}},
-		"Append multiErr should be flattened": {
-			src: myErrNotFound, add: Append(myErrState, myErrMsg), exp: multiErr{myErrNotFound, myErrState, myErrMsg},
+		"nil input": {
+			Input: nil,
+			Want:  nil,
 		},
-		"Append first wrapped multiErr should be flattened": {
-			src: Wrap(Append(myErrState, myErrMsg), "test"),
-			add: ErrHuman,
-			exp: multiErr{Wrap(myErrState, "test"), Wrap(myErrMsg, "test"), ErrHuman},
+		"empty input": {
+			Input: []error{},
+			Want:  nil,
 		},
-		"Append second wrapped multiErr should be flattened": {
-			src: myErrNotFound,
-			add: Wrap(Append(myErrState, myErrMsg), "test"),
-			exp: multiErr{myErrNotFound, Wrap(myErrState, "test"), Wrap(myErrMsg, "test")},
+		"single nil error": {
+			Input: []error{nil},
+			Want:  nil,
 		},
-		"Append double wrapped multiErr should be flattened": {
-			src: myErrNotFound,
-			add: Wrap(Wrap(Append(myErrState, myErrMsg), "first"), "second"),
-			exp: multiErr{
-				myErrNotFound,
-				Wrap(Wrap(myErrState, "first"), "second"),
-				Wrap(Wrap(myErrMsg, "first"), "second"),
+		"two nil errors": {
+			Input: []error{nil, nil},
+			Want:  nil,
+		},
+		"a nil error and a non nil error": {
+			Input: []error{nil, myErrNotFound},
+			Want:  multiError{myErrNotFound},
+		},
+		"only non nil errors": {
+			Input: []error{myErrState, myErrNotFound},
+			Want:  multiError{myErrState, myErrNotFound},
+		},
+		"nested error": {
+			Input: []error{
+				myErrState,
+				Append(myErrNotFound),
+			},
+			Want: multiError{
+				myErrState,
+				multiError{myErrNotFound},
 			},
 		},
 	}
-	for msg, spec := range specs {
-		t.Run(msg, func(t *testing.T) {
-			mErr := Append(spec.src, spec.add)
-			// then
-			if exp, got := spec.exp, mErr; !reflect.DeepEqual(exp, got) {
-				t.Errorf("expected %#v but got %#v", exp, got)
+	for testName, tc := range cases {
+		t.Run(testName, func(t *testing.T) {
+			got := Append(tc.Input...)
+			if !reflect.DeepEqual(got, tc.Want) {
+				t.Fatalf("unexpected result: %+v", got)
 			}
 		})
 	}
 }
 
-func TestMultiErrContains(t *testing.T) {
-	var (
-		myErrNotFound = Wrap(ErrNotFound, "test")
-		myErrState    = Wrap(ErrState, "test")
-		myErrMsg      = Wrap(ErrMsg, "test")
-	)
-	specs := map[string]struct {
-		err error
-		exp *Error
+func TestMultierrorIs(t *testing.T) {
+	cases := map[string]struct {
+		Kind   *Error
+		Tested error
+		WantIs bool
 	}{
-		"A wrapped multierr should pass an is check": {
-			err: Wrap(Append(Append(myErrNotFound, myErrState), myErrMsg), "wrapped"),
-			exp: ErrNotFound,
+		"empty multierror is nil": {
+			Kind:   nil,
+			Tested: Append(),
+			WantIs: true,
 		},
-		"A wrapped multierr with wrapped multi-err should pass an is check": {
-			err: Append(myErrState, Wrap(Append(myErrMsg, Wrap(ErrNotFound, "wrapped")),
-				"wrapped")),
-			exp: ErrNotFound,
+		"empty multierror is not any other error": {
+			Kind:   ErrNotFound,
+			Tested: Append(),
+			WantIs: false,
+		},
+		"multi error is all of represented errors: not found": {
+			Kind:   ErrNotFound,
+			Tested: Append(ErrInput, ErrNotFound, ErrUnauthorized),
+			WantIs: true,
+		},
+		"multi error is all of represented errors: unauthorized": {
+			Kind:   ErrUnauthorized,
+			Tested: Append(ErrInput, ErrNotFound, ErrUnauthorized),
+			WantIs: true,
+		},
+		"multi error is all of represented errors but not others": {
+			Kind:   ErrPanic,
+			Tested: Append(ErrInput, ErrNotFound, ErrUnauthorized),
+			WantIs: false,
+		},
+		"multi error is all of represented errors when wrapped": {
+			Kind: ErrNotFound,
+			Tested: Append(
+				Wrap(ErrInput, "foo"),
+				Wrap(ErrNotFound, "bar"),
+			),
+			WantIs: true,
+		},
+		"multi error is all of represented errors when nested": {
+			Kind: ErrNotFound,
+			Tested: Append(
+				ErrInput,
+				Append(
+					ErrState,
+					Append(ErrSchema, ErrNotFound),
+				),
+			),
+
+			WantIs: true,
+		},
+		"multi error is only all of represented errors when nested": {
+			Kind: ErrEmpty,
+			Tested: Append(
+				ErrInput,
+				Append(
+					ErrState,
+					Append(ErrSchema, ErrNotFound),
+				),
+			),
+
+			WantIs: false,
+		},
+		"multi error is all of represented errors when nested and wrapped": {
+			Kind: ErrNotFound,
+			Tested: Wrap(Append(
+				ErrInput,
+				Wrap(Append(
+					ErrState,
+					Wrap(Append(ErrSchema, ErrNotFound), "inner"),
+				), "middle"),
+			), "most outer"),
+
+			WantIs: true,
 		},
 	}
 
-	for msg, spec := range specs {
-		t.Run(msg, func(t *testing.T) {
-			if !spec.exp.Is(spec.err) {
-				t.Errorf("expected %v to contain %v", spec.err, spec.exp)
+	for testName, tc := range cases {
+		t.Run(testName, func(t *testing.T) {
+			if is := tc.Kind.Is(tc.Tested); is != tc.WantIs {
+				t.Fatalf("unexpected result: %v", is)
 			}
 		})
 	}
 }
 
-func TestMultiErrIsEmpty(t *testing.T) {
-	specs := map[string]struct {
-		src multiErr
-		exp bool
+func TestMultiErrorMessageFormat(t *testing.T) {
+	cases := map[string]struct {
+		Err     error
+		WantMsg string
 	}{
-		"Single error": {src: multiErr{ErrNotFound}, exp: false},
-		"Empty":        {src: multiErr{}, exp: true},
-		"nil":          {src: nil, exp: true},
+		"nil multi error": {
+			// This is an unusual case and most likely a bug in the
+			// code if you do this, but let's test the result
+			// nevertheless.
+			Err:     (multiError)(nil),
+			WantMsg: "<nil>",
+		},
+		"empty multi error": {
+			// This is an unusual case and most likely a bug in the
+			// code if you do this, but let's test the result
+			// nevertheless.
+			Err:     multiError{},
+			WantMsg: "<nil>",
+		},
+		"single error": {
+			Err:     Append(errors.New("my msg")),
+			WantMsg: "my msg",
+		},
+		"two errors": {
+			Err: Append(
+				errors.New("first msg"),
+				errors.New("second msg"),
+			),
+			WantMsg: `2 errors occurred:
+	* first msg
+	* second msg
+`,
+		},
+		"wrapped error": {
+			Err:     Append(Wrap(errors.New("my msg"), "wrapped")),
+			WantMsg: "wrapped: my msg",
+		},
+		"two errors wrapped": {
+			Err: Wrap(Append(
+				errors.New("first msg"),
+				errors.New("second msg"),
+			), "wrapped"),
+			WantMsg: `wrapped: 2 errors occurred:
+	* first msg
+	* second msg
+`,
+		},
+		"nested errors": {
+			Err: Append(
+				errors.New("first"),
+				Append(
+					errors.New("second"),
+					errors.New("third"),
+				),
+			),
+			WantMsg: `2 errors occurred:
+	* first
+	* 2 errors occurred:
+		* second
+		* third
+`,
+		},
+		"nested wrapped errors": {
+			Err: Append(
+				errors.New("first"),
+				Wrap(Append(
+					errors.New("second"),
+					errors.New("third"),
+				), "wrapped"),
+			),
+			WantMsg: `2 errors occurred:
+	* first
+	* wrapped: 2 errors occurred:
+		* second
+		* third
+`,
+		},
 	}
-	for msg, spec := range specs {
-		t.Run(msg, func(t *testing.T) {
-			// then
-			if exp, got := spec.exp, spec.src.IsEmpty(); !reflect.DeepEqual(exp, got) {
-				t.Errorf("expected %v but got %v", exp, got)
-			}
 
+	for testName, tc := range cases {
+		t.Run(testName, func(t *testing.T) {
+			if msg := tc.Err.Error(); msg != tc.WantMsg {
+				// Print in a nice human readable form for fast comparison.
+				t.Log("want error message (as printed)\n", tc.WantMsg)
+				t.Log("got error message (as printed)\n", msg)
+				// Escape special characters for easier comparison.
+				t.Logf("want: %q", tc.WantMsg)
+				t.Logf(" got: %q", msg)
+				t.Fatal("unexpected message")
+			}
 		})
 	}
 }
 
-func TestMultiErrABCICode(t *testing.T) {
-	var mErr multiErr
-	if exp, got := uint32(1000), mErr.ABCICode(); exp != got {
-		t.Errorf("expected %v but got %v", exp, got)
-	}
-}
-
-func TestMultiErrABCICodeRegistered(t *testing.T) {
+func TestMultiErrorABCICodeIsRestricted(t *testing.T) {
+	// Ensure thath the multi error code is restricted and cannot by
+	// registered by another error instance.
 	assert.Panics(t, func() {
-		_ = Register(multiErrCode, "fails")
+		_ = Register(multiErrorABCICode, "my error")
 	})
 }

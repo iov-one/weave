@@ -83,9 +83,6 @@ var (
 	// ErrNetwork is returned on network failure (only for client libraries)
 	ErrNetwork = Register(100200, "network")
 
-	// reserve code
-	_ = Register(multiErrCode, "multi error")
-
 	// ErrTimeout is returned on context timeout (only for client libraries)
 	ErrTimeout = Register(100300, "timeout")
 
@@ -116,7 +113,10 @@ func Register(code uint32, description string) *Error {
 
 // usedCodes is keeping track of used codes to ensure their uniqueness. No two
 // error instances should share the same error code.
-var usedCodes = map[uint32]*Error{}
+var usedCodes = map[uint32]*Error{
+	// Register multi error code so that it cannot be used.
+	multiErrorABCICode: nil,
+}
 
 // ABCIError will resolve an error code/log from an abci result into
 // an error message. If the code is registered, it will map it back to
@@ -162,17 +162,7 @@ func (kind *Error) Is(err error) bool {
 	// Reflect usage is necessary to correctly compare with
 	// a nil implementation of an error.
 	if kind == nil {
-		if err == nil {
-			return true
-		}
-		if reflect.ValueOf(err).Kind() == reflect.Struct {
-			return false
-		}
-		return reflect.ValueOf(err).IsNil()
-	}
-
-	if me, ok := err.(multiErr); ok {
-		return me.Contains(kind)
+		return isNilErr(err)
 	}
 
 	for {
@@ -180,8 +170,14 @@ func (kind *Error) Is(err error) bool {
 			return true
 		}
 
-		if me, ok := err.(multiErr); ok {
-			return me.Contains(kind)
+		// If this is a collection of errors, this function must return
+		// true if at least one from the group match.
+		if u, ok := err.(unpacker); ok {
+			for _, e := range u.Unpack() {
+				if kind.Is(e) {
+					return true
+				}
+			}
 		}
 
 		if c, ok := err.(causer); ok {
@@ -190,6 +186,18 @@ func (kind *Error) Is(err error) bool {
 			return false
 		}
 	}
+}
+
+func isNilErr(err error) bool {
+	// Reflect usage is necessary to correctly compare with
+	// a nil implementation of an error.
+	if err == nil {
+		return true
+	}
+	if reflect.ValueOf(err).Kind() == reflect.Struct {
+		return false
+	}
+	return reflect.ValueOf(err).IsNil()
 }
 
 // Wrap extends given error with an additional information.
@@ -216,23 +224,6 @@ func Wrap(err error, description string) error {
 		msg:    description,
 	}
 }
-func unWrap(err error) (error, []string) {
-	if err == nil {
-		return nil, nil
-	}
-
-	if werr, ok := err.(*wrappedError); ok {
-		e, d := unWrap(werr.parent)
-		return e, append(d, werr.msg)
-	}
-	// unwrap stackTrace
-	if st := stackTrace(err); st != nil {
-		if c, ok := err.(causer); ok {
-			err = c.Cause()
-		}
-	}
-	return err, nil
-}
 
 // Wrapf extends given error with an additional information.
 //
@@ -258,6 +249,14 @@ func (e *wrappedError) Cause() error {
 	return e.parent
 }
 
+// Unpack implementes unpacker interface.
+func (e *wrappedError) Unpack() []error {
+	if u, ok := e.parent.(unpacker); ok {
+		return u.Unpack()
+	}
+	return []error{e.parent}
+}
+
 // Recover captures a panic and stop its propagation. If panic happens it is
 // transformed into a ErrPanic instance and assigned to given error. Call this
 // function using defer in order to work as expected.
@@ -276,4 +275,8 @@ func WithType(err error, obj interface{}) error {
 // it to test if an error wraps another error instance.
 type causer interface {
 	Cause() error
+}
+
+type unpacker interface {
+	Unpack() []error
 }
