@@ -182,7 +182,7 @@ func bc(i int64) []byte {
 func TestBucketSecondaryIndex(t *testing.T) {
 	const uniq, mini = "uniq", "mini"
 
-	bucket := NewBucket("special", NewSimpleObj(nil, new(Counter))).
+	bucketObj := NewBucket("special", NewSimpleObj(nil, new(Counter))).
 		WithIndex(uniq, count, true).
 		WithIndex(mini, countByte, false)
 
@@ -209,13 +209,13 @@ func TestBucketSecondaryIndex(t *testing.T) {
 	}
 
 	cases := map[string]struct {
-		bucket  Bucket
+		bucket  bucket
 		save    []savecall
 		remove  [][]byte
 		queries []query
 	}{
 		"insert one object enters into both indexes": {
-			bucket: bucket,
+			bucket: bucketObj,
 			save:   []savecall{{obj: oa}},
 			queries: []query{
 				{uniq, oa, nil, []Object{oa}, nil},
@@ -224,7 +224,7 @@ func TestBucketSecondaryIndex(t *testing.T) {
 			},
 		},
 		"add a second object and move one": {
-			bucket: bucket,
+			bucket: bucketObj,
 			save: []savecall{
 				{obj: oa},
 				{obj: ob},
@@ -239,14 +239,14 @@ func TestBucketSecondaryIndex(t *testing.T) {
 			},
 		},
 		"prevent a conflicting save": {
-			bucket: bucket,
+			bucket: bucketObj,
 			save: []savecall{
 				{obj: oa2},
 				{obj: ob2, wantErr: errors.ErrDuplicate},
 			},
 		},
 		"update properly on delete as well": {
-			bucket: bucket,
+			bucket: bucketObj,
 			save: []savecall{
 				{obj: oa},
 				{obj: ob2},
@@ -311,13 +311,13 @@ func TestBucketQuery(t *testing.T) {
 	const uiPath = "/special/uniq"
 
 	// create a bucket with secondary index
-	bucket := NewBucket("spec", NewSimpleObj(nil, new(Counter))).
+	bucketObj := NewBucket("spec", NewSimpleObj(nil, new(Counter))).
 		WithIndex(uniq, count, true).
 		WithIndex(mini, countByte, false)
 
 	// set up a router, using different name for bucket
 	qr := weave.NewQueryRouter()
-	bucket.Register(name, qr)
+	bucketObj.Register(name, qr)
 
 	// store some data here for init
 	db := store.MemStore()
@@ -325,14 +325,14 @@ func TestBucketQuery(t *testing.T) {
 	oa := NewSimpleObj(a, NewCounter(5))
 	ob := NewSimpleObj(b, NewCounter(256+5))
 	oc := NewSimpleObj(c, NewCounter(2))
-	err := bucket.Save(db, oa)
+	err := bucketObj.Save(db, oa)
 	assert.Nil(t, err)
-	err = bucket.Save(db, ob)
+	err = bucketObj.Save(db, ob)
 	assert.Nil(t, err)
-	err = bucket.Save(db, oc)
+	err = bucketObj.Save(db, oc)
 	assert.Nil(t, err)
 
-	toModel := func(t testing.TB, bucket Bucket, obj Object) weave.Model {
+	toModel := func(t testing.TB, bucket bucket, obj Object) weave.Model {
 		t.Helper()
 
 		dbkey := bucket.dbKey(obj.Key())
@@ -343,9 +343,9 @@ func TestBucketQuery(t *testing.T) {
 
 	// these are the expected models with absolute keys
 	// and serialized data
-	dba := toModel(t, bucket, oa)
-	dbb := toModel(t, bucket, ob)
-	dbc := toModel(t, bucket, oc)
+	dba := toModel(t, bucketObj, oa)
+	dbb := toModel(t, bucketObj, ob)
+	dbc := toModel(t, bucketObj, oc)
 	assert.Equal(t, []byte("spec:aa"), dba.Key)
 	if reflect.DeepEqual(dba.Value, dbb.Value) {
 		t.Fatalf("various models data mixed up")

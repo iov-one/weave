@@ -18,7 +18,7 @@ import (
 
 // BadBucket contains objects that won't satisfy Coinage interface
 type BadBucket struct {
-	orm.Bucket
+	orm.BaseBucket
 }
 
 func (b BadBucket) GetOrCreate(db weave.KVStore, key weave.Address) (orm.Object, error) {

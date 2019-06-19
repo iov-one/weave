@@ -92,14 +92,14 @@ func WithModel(b XIDGenBucket, m Model) XModelBucket {
 
 // ModelBucketOption is implemented by any function that can configure
 // ModelBucket during creation.
-type ModelBucketOption func(bb BucketBuilder)
+type ModelBucketOption func(bb *BucketBuilder)
 
 // WithIndex configures the bucket to build an index with given name. All
 // entities stored in the bucket are indexed using value returned by the
 // indexer function. If an index is unique, there can be only one entity
 // referenced per index value.
 func WithIndexOpt(name string, indexer Indexer, unique bool) ModelBucketOption {
-	return func(mb BucketBuilder) {
+	return func(mb *BucketBuilder) {
 		mb = mb.WithIndex(name, indexer, unique)
 	}
 }

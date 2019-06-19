@@ -107,7 +107,7 @@ func WalletWith(key weave.Address, name string, coins ...*coin.Coin) (orm.Object
 
 //--- WalletBucket - handles tokens
 
-// WalletBucket is a type-safe wrapper around orm.Bucket
+// WalletBucket is a type-safe wrapper around orm.BaseBucket
 type WalletBucket struct {
 	orm.BaseBucket
 }

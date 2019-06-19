@@ -116,7 +116,7 @@ func WalletWith(key weave.Address, coins ...*coin.Coin) (orm.Object, error) {
 	return obj, nil
 }
 
-// Bucket is a type-safe wrapper around orm.Bucket
+// Bucket is a type-safe wrapper around orm.BaseBucket
 type Bucket struct {
 	orm.BaseBucket
 }

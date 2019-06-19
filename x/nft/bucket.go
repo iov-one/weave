@@ -13,8 +13,11 @@ type Owned interface {
 	OwnerAddress() weave.Address
 }
 
-func WithOwnerIndex(bucket orm.Bucket) orm.Bucket {
-	return bucket.WithIndex(OwnerIndexName, ownerIndex, false)
+func WithOwnerIndexOpt() orm.BucketBuilderOpt {
+	return orm.BucketBuilderOptFunc(
+		func(bb *orm.BucketBuilder) *orm.BucketBuilder {
+			return bb.WithIndex(OwnerIndexName, ownerIndex, false)
+		})
 }
 
 func ownerIndex(obj orm.Object) ([]byte, error) {

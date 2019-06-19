@@ -6,18 +6,22 @@ import (
 	"github.com/iov-one/weave"
 )
 
-type BucketBuilder interface {
-	WithIndex(name string, indexer Indexer, unique bool) BucketBuilder
-	WithMultiKeyIndex(name string, indexer MultiKeyIndexer, unique bool) BucketBuilder
-	Build() BaseBucket
+type BucketBuilderOpt interface {
+	Apply(*BucketBuilder) *BucketBuilder
 }
 
-type bucketBuilder struct {
+type BucketBuilderOptFunc func(*BucketBuilder) *BucketBuilder
+
+func (f BucketBuilderOptFunc) Apply(bb *BucketBuilder) *BucketBuilder {
+	return f(bb)
+}
+
+type BucketBuilder struct {
 	b   bucket
 	pkg string
 }
 
-func NewBucketBuilder(name string, model Cloneable) BucketBuilder {
+func NewBucketBuilder(name string, model Cloneable, opts ...BucketBuilderOpt) *BucketBuilder {
 	if !isBucketName(name) {
 		panic(fmt.Sprintf("Illegal bucket: %s", name))
 	}
@@ -27,21 +31,25 @@ func NewBucketBuilder(name string, model Cloneable) BucketBuilder {
 		prefix: append([]byte(name), ':'),
 		proto:  model,
 	}
-	return &bucketBuilder{
+	bb := &BucketBuilder{
 		b: b,
 	}
+	for _, v := range opts {
+		bb = v.Apply(bb)
+	}
+	return bb
 }
 
-func (b *bucketBuilder) WithIndex(name string, indexer Indexer, unique bool) BucketBuilder {
+func (b *BucketBuilder) WithIndex(name string, indexer Indexer, unique bool) *BucketBuilder {
 	return b.WithMultiKeyIndex(name, asMultiKeyIndexer(indexer), unique)
 }
 
-func (b *bucketBuilder) WithMultiKeyIndex(name string, indexer MultiKeyIndexer, unique bool) BucketBuilder {
+func (b *BucketBuilder) WithMultiKeyIndex(name string, indexer MultiKeyIndexer, unique bool) *BucketBuilder {
 	b.b = b.b.withMultiKeyIndex(name, indexer, unique)
 	return b
 }
 
-func (b bucketBuilder) Build() BaseBucket {
+func (b BucketBuilder) Build() BaseBucket {
 	return b.b
 }
 

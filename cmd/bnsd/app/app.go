@@ -66,7 +66,7 @@ func Chain(authFn x.Authenticator, minFee coin.Coin) app.Decorators {
 
 // Router returns a default router, only dispatching to the
 // cash.SendMsg
-func Router(authFn x.Authenticator, issuer weave.Address, nftBuckets map[string]orm.Bucket) app.Router {
+func Router(authFn x.Authenticator, issuer weave.Address, nftBuckets map[string]orm.BaseBucket) app.Router {
 	r := app.NewRouter()
 
 	// ctrl can be initialized with any implementation, but must be used
@@ -123,7 +123,7 @@ func RegisterNft() {
 
 // Stack wires up a standard router with a standard decorator
 // chain. This can be passed into BaseApp.
-func Stack(issuer weave.Address, nftBuckets map[string]orm.Bucket, minFee coin.Coin) weave.Handler {
+func Stack(issuer weave.Address, nftBuckets map[string]orm.BaseBucket, minFee coin.Coin) weave.Handler {
 	authFn := Authenticator()
 	return Chain(authFn, minFee).WithHandler(Router(authFn, issuer, nftBuckets))
 }

@@ -97,20 +97,20 @@ func (p *Profile) Copy() orm.CloneableData {
 
 const BlogBucketName = "blogs"
 
-// BlogBucket is a type-safe wrapper around orm.Bucket
+// BlogBucket is a type-safe wrapper around orm.BaseBucket
 type BlogBucket struct {
-	orm.Bucket
+	orm.BaseBucket
 }
 
 // NewBlogBucket initializes a BlogBucket with default name
 //
-// inherit Get and Save from orm.Bucket
+// inherit Get and Save from orm.BaseBucket
 // add run-time check on Save
 func NewBlogBucket() BlogBucket {
 	bucket := orm.NewBucket(BlogBucketName,
 		orm.NewSimpleObj(nil, new(Blog)))
 	return BlogBucket{
-		Bucket: bucket,
+		BaseBucket: bucket,
 	}
 }
 
@@ -119,28 +119,28 @@ func (b BlogBucket) Save(db weave.KVStore, obj orm.Object) error {
 	if _, ok := obj.Value().(*Blog); !ok {
 		return errors.WithType(errors.ErrModel, obj.Value())
 	}
-	return b.Bucket.Save(db, obj)
+	return b.BaseBucket.Save(db, obj)
 }
 
 //------ Post Bucket
 
 const PostBucketName = "posts"
 
-// PostBucket is a type-safe wrapper around orm.Bucket
+// PostBucket is a type-safe wrapper around orm.BaseBucket
 type PostBucket struct {
-	orm.Bucket
+	orm.BaseBucket
 }
 
 // NewPostBucket initializes a PostBucket with default name
 //
-// inherit Get and Save from orm.Bucket
+// inherit Get and Save from orm.BaseBucket
 // add run-time check on Save
 func NewPostBucket() PostBucket {
 	bucket := orm.NewBucket(PostBucketName,
 		orm.NewSimpleObj(nil, new(Post))).
 		WithIndex("author", idxAuthor, false)
 	return PostBucket{
-		Bucket: bucket,
+		BaseBucket: bucket,
 	}
 }
 
@@ -162,27 +162,27 @@ func (b PostBucket) Save(db weave.KVStore, obj orm.Object) error {
 	if _, ok := obj.Value().(*Post); !ok {
 		return errors.WithType(errors.ErrModel, obj.Value())
 	}
-	return b.Bucket.Save(db, obj)
+	return b.BaseBucket.Save(db, obj)
 }
 
 //------ Profile Bucket
 
 const ProfileBucketName = "profiles"
 
-// ProfileBucket is a type-safe wrapper around orm.Bucket
+// ProfileBucket is a type-safe wrapper around orm.BaseBucket
 type ProfileBucket struct {
-	orm.Bucket
+	orm.BaseBucket
 }
 
 // NewProfileBucket initializes a ProfileBucket with default name
 //
-// inherit Get and Save from orm.Bucket
+// inherit Get and Save from orm.BaseBucket
 // add run-time check on Save
 func NewProfileBucket() ProfileBucket {
 	bucket := orm.NewBucket(ProfileBucketName,
 		orm.NewSimpleObj(nil, new(Profile)))
 	return ProfileBucket{
-		Bucket: bucket,
+		BaseBucket: bucket,
 	}
 }
 
@@ -191,5 +191,5 @@ func (b ProfileBucket) Save(db weave.KVStore, obj orm.Object) error {
 	if _, ok := obj.Value().(*Profile); !ok {
 		return errors.WithType(errors.ErrModel, obj.Value())
 	}
-	return b.Bucket.Save(db, obj)
+	return b.BaseBucket.Save(db, obj)
 }

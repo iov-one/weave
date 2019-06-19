@@ -13,31 +13,31 @@ import (
 // migrates objects on the fly, before returning to the user.
 //
 // This bucket does not migrate on the fly the data returned by the queries.
-// Both Register and Query methods are using orm.Bucket implementation to
+// Both Register and Query methods are using orm.BaseBucket implementation to
 // return data as stored in the database. This is important for the proof to
 // work. Query returned data must never be altered.
-type XBucket struct {
+type Bucket struct {
 	orm.BaseBucket
 	packageName string
 	schema      *SchemaBucket
 	migrations  *register
 }
 
-var _ orm.BaseBucket = (*XBucket)(nil)
+var _ orm.BaseBucket = (*Bucket)(nil)
 
 // NewBucket returns a new instance of a schema aware bucket implementation.
 // Package name is used to track schema version. Bucket name is the namespace
 // for the stored entity. Model is the type of the entity this bucket is
 // maintaining.
-func NewBucket(packageName string, bucketName string, model orm.Cloneable) XBucket {
+func NewBucket(packageName string, bucketName string, model orm.Cloneable) Bucket {
 	return WithMigration(
 		orm.NewBucketBuilder(bucketName, model).Build(),
 		packageName,
 	)
 }
 
-func WithMigration(bucket orm.BaseBucket, packageName string) XBucket {
-	return XBucket{
+func WithMigration(bucket orm.BaseBucket, packageName string) Bucket {
+	return Bucket{
 		BaseBucket:  bucket,
 		packageName: packageName,
 		schema:      NewSchemaBucket(),
@@ -48,12 +48,12 @@ func WithMigration(bucket orm.BaseBucket, packageName string) XBucket {
 // useRegister will update this bucket to use a custom register instance
 // instead of the global one. This is a private method meant to be used for
 // tests only.
-func (svb XBucket) useRegister(r *register) XBucket {
+func (svb Bucket) useRegister(r *register) Bucket {
 	svb.migrations = r
 	return svb
 }
 
-func (svb XBucket) Get(db weave.ReadOnlyKVStore, key []byte) (orm.Object, error) {
+func (svb Bucket) Get(db weave.ReadOnlyKVStore, key []byte) (orm.Object, error) {
 	obj, err := svb.BaseBucket.Get(db, key)
 	if err != nil || obj == nil {
 		return obj, err
@@ -64,14 +64,14 @@ func (svb XBucket) Get(db weave.ReadOnlyKVStore, key []byte) (orm.Object, error)
 	return obj, nil
 }
 
-func (svb XBucket) Save(db weave.KVStore, obj orm.Object) error {
+func (svb Bucket) Save(db weave.KVStore, obj orm.Object) error {
 	if err := svb.migrate(db, obj); err != nil {
 		return errors.Wrap(err, "migrate")
 	}
 	return svb.BaseBucket.Save(db, obj)
 }
 
-func (svb XBucket) migrate(db weave.ReadOnlyKVStore, obj orm.Object) error {
+func (svb Bucket) migrate(db weave.ReadOnlyKVStore, obj orm.Object) error {
 	return migrate(svb.migrations, svb.schema, svb.packageName, db, obj.Value())
 }
 

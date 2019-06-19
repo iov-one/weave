@@ -28,12 +28,12 @@ func TestSchemaVersionedBucket(t *testing.T) {
 	ensureSchemaVersion(t, db, thisPkgName, 1)
 
 	b := &MyModelBucket{
-		XBucket: NewBucket(thisPkgName, "mymodel", orm.NewSimpleObj(nil, &MyModel{})),
+		Bucket: NewBucket(thisPkgName, "mymodel", orm.NewSimpleObj(nil, &MyModel{})),
 	}
 
 	// Use custom register instead of the global one to avoid pollution
 	// from the application during tests.
-	b.XBucket = b.XBucket.useRegister(reg)
+	b.Bucket = b.Bucket.useRegister(reg)
 
 	obj1 := orm.NewSimpleObj([]byte("schema_one"), &MyModel{
 		Metadata: &weave.Metadata{Schema: 1},
@@ -90,7 +90,7 @@ func TestSchemaVersionedBucket(t *testing.T) {
 }
 
 type MyModelBucket struct {
-	XBucket
+	Bucket
 }
 
 func (b *MyModelBucket) GetMyModel(db weave.KVStore, key string) (*MyModel, error) {

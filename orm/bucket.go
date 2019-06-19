@@ -30,26 +30,6 @@ const (
 
 var isBucketName = regexp.MustCompile(`^[a-z_]{3,10}$`).MatchString
 
-type Bucket interface {
-	weave.QueryHandler
-
-	dbKey(key []byte) []byte
-	Delete(db weave.KVStore, key []byte) error
-	Get(db weave.ReadOnlyKVStore, key []byte) (Object, error)
-	GetIndexed(db weave.ReadOnlyKVStore, name string, key []byte) ([]Object, error)
-	GetIndexedLike(db weave.ReadOnlyKVStore, name string, pattern Object) ([]Object, error)
-	parse(key, value []byte) (Object, error)
-	Register(name string, r weave.QueryRouter)
-	Save(db weave.KVStore, model Object) error
-	Sequence(name string) Sequence
-	WithIndex(name string, indexer Indexer, unique bool) Bucket
-	WithMultiKeyIndex(name string, indexer MultiKeyIndexer, unique bool) Bucket
-	// functions below are added for migration phase
-	Name() string
-	EmbeddedBucket
-	VisitableBucket
-}
-
 // bucket is a generic holder that stores data as well
 // as references to secondary indexes and sequences.
 //
@@ -65,8 +45,6 @@ type bucket struct {
 	// index is a list of indexes sorted by
 	indexes namedIndexes
 }
-
-var _ Bucket = (*bucket)(nil)
 
 type namedIndex struct {
 	Index
@@ -91,7 +69,7 @@ func (n namedIndexes) Has(name string) bool {
 }
 
 // NewBucket creates a bucket to store data
-func NewBucket(name string, proto Cloneable) Bucket {
+func NewBucket(name string, proto Cloneable) bucket {
 	if !isBucketName(name) {
 		panic(fmt.Sprintf("Illegal bucket: %s", name))
 	}
@@ -258,12 +236,12 @@ func (b bucket) Sequence(name string) Sequence {
 // panics if it an index with that name is already registered.
 //
 // Designed to be chained.
-func (b bucket) WithIndex(name string, indexer Indexer, unique bool) Bucket {
+func (b bucket) WithIndex(name string, indexer Indexer, unique bool) bucket {
 	return b.WithMultiKeyIndex(name, asMultiKeyIndexer(indexer), unique)
 }
 
 // Deprecated
-func (b bucket) WithMultiKeyIndex(name string, indexer MultiKeyIndexer, unique bool) Bucket {
+func (b bucket) WithMultiKeyIndex(name string, indexer MultiKeyIndexer, unique bool) bucket {
 	return b.withMultiKeyIndex(name, indexer, unique)
 }
 

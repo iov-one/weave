@@ -15,14 +15,14 @@ const (
 )
 
 // RegisterRoutes will instantiate and register all handlers in this package
-func RegisterRoutes(r weave.Registry, auth x.Authenticator, issuer weave.Address, buckets map[string]orm.Bucket) {
+func RegisterRoutes(r weave.Registry, auth x.Authenticator, issuer weave.Address, buckets map[string]orm.BaseBucket) {
 	handler := migration.SchemaMigratingHandler("nft", NewApprovalOpsHandler(auth, issuer, buckets))
 	r.Handle(nft.PathAddApprovalMsg, handler)
 	r.Handle(nft.PathRemoveApprovalMsg, handler)
 }
 
 type Bucket struct {
-	orm.Bucket
+	orm.BaseBucket
 }
 
 // asBase will safely type-cast any value from Bucket
@@ -37,7 +37,7 @@ func asBase(obj orm.Object) (nft.BaseNFT, error) {
 	return x, nil
 }
 
-func loadToken(bucket orm.Bucket, store weave.KVStore, id []byte) (orm.Object, nft.BaseNFT, error) {
+func loadToken(bucket orm.BaseBucket, store weave.KVStore, id []byte) (orm.Object, nft.BaseNFT, error) {
 	o, err := bucket.Get(store, id)
 	switch {
 	case err != nil:
@@ -52,7 +52,7 @@ func loadToken(bucket orm.Bucket, store weave.KVStore, id []byte) (orm.Object, n
 func NewApprovalOpsHandler(
 	auth x.Authenticator,
 	issuer weave.Address,
-	nftBuckets map[string]orm.Bucket,
+	nftBuckets map[string]orm.BaseBucket,
 ) *ApprovalOpsHandler {
 	return &ApprovalOpsHandler{auth: auth, issuer: issuer, buckets: nftBuckets}
 }
@@ -60,7 +60,7 @@ func NewApprovalOpsHandler(
 type ApprovalOpsHandler struct {
 	auth    x.Authenticator
 	issuer  weave.Address
-	buckets map[string]orm.Bucket
+	buckets map[string]orm.BaseBucket
 }
 
 func (h *ApprovalOpsHandler) Auth() x.Authenticator {

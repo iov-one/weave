@@ -8,14 +8,15 @@ import (
 )
 
 type Bucket struct {
-	orm.Bucket
+	orm.BaseBucket
 }
 
 func NewBucket() Bucket {
 	t := NewUsernameToken(nil, nil, nil)
-	b := orm.NewBucket("usrnft", t)
+	b := orm.NewBucketBuilder("usrnft", t, nft.WithOwnerIndexOpt()).
+		Build()
 	return Bucket{
-		Bucket: nft.WithOwnerIndex(b),
+		BaseBucket: b,
 	}
 }
 

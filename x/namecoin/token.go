@@ -74,7 +74,7 @@ func NewToken(ticker, name string, sigFigs int32) orm.Object {
 
 //--- TokenBucket - handles tokens
 
-// TokenBucket is a type-safe wrapper around orm.Bucket
+// TokenBucket is a type-safe wrapper around orm.BaseBucket
 type TokenBucket struct {
 	orm.BaseBucket
 }

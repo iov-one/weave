@@ -43,7 +43,7 @@ that require no change. For example:
     }
 
 3. change your bucket implementation to embed `migration.Bucket` instead of
-`orm.Bucket`
+`orm.BaseBucket`
 
 4. wrap your handler with `migration.SchemaMigratingHandler` to ensure all
 messages are always migrated to the latest schema before being passed to the

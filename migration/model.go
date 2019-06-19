@@ -46,16 +46,16 @@ func schemaID(pkg string, version uint32) []byte {
 }
 
 type SchemaBucket struct {
-	orm.Bucket
+	orm.BaseBucket
 }
 
 func NewSchemaBucket() *SchemaBucket {
-	// Schema bucket is using plain orm.Bucket implementation so that is
+	// Schema bucket is using plain orm.BaseBucket implementation so that is
 	// can insert entities without schema version being registered. It
 	// cannot use migration implementation bucket because it would cause
 	// circular dependency on itself.
 	b := orm.NewBucket("schema", orm.NewSimpleObj(nil, &Schema{}))
-	return &SchemaBucket{Bucket: b}
+	return &SchemaBucket{BaseBucket: b}
 }
 
 // MustInitPkg initialize schema versioning for given package names. This
@@ -82,7 +82,7 @@ func MustInitPkg(db weave.KVStore, packageNames ...string) {
 func (b *SchemaBucket) CurrentSchema(db weave.ReadOnlyKVStore, packageName string) (uint32, error) {
 	for ver := uint32(1); ver < 10000; ver++ {
 		key := schemaID(packageName, ver)
-		obj, err := b.Bucket.Get(db, key)
+		obj, err := b.BaseBucket.Get(db, key)
 		if err != nil {
 			return 0, errors.Wrap(err, "bucket get")
 		}
@@ -111,7 +111,7 @@ func (b *SchemaBucket) Save(db weave.KVStore, obj orm.Object) error {
 	if err := b.validateNextSchema(db, s); err != nil {
 		return err
 	}
-	return b.Bucket.Save(db, obj)
+	return b.BaseBucket.Save(db, obj)
 }
 
 // Create adds given schema instance to the store and returns the ID of the
@@ -121,7 +121,7 @@ func (b *SchemaBucket) Create(db weave.KVStore, s *Schema) (orm.Object, error) {
 		return nil, err
 	}
 	obj := orm.NewSimpleObj(schemaID(s.Pkg, s.Version), s)
-	return obj, b.Bucket.Save(db, obj)
+	return obj, b.BaseBucket.Save(db, obj)
 }
 
 // validateNextSchema returns an error if given Schema instance is does not

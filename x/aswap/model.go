@@ -72,14 +72,14 @@ func AsSwap(obj orm.Object) *Swap {
 	return obj.Value().(*Swap)
 }
 
-// Bucket is a type-safe wrapper around orm.Bucket
+// Bucket is a type-safe wrapper around orm.BaseBucket
 type Bucket struct {
 	orm.XIDGenBucket
 }
 
 // NewBucket initializes a Bucket with default name
 //
-// inherit Get and Save from orm.Bucket
+// inherit Get and Save from orm.BaseBucket
 // add Create
 func NewBucket() Bucket {
 	bucket := orm.NewBucketBuilder(BucketName, orm.NewSimpleObj(nil, &Swap{})).

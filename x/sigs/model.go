@@ -106,7 +106,7 @@ func NewUser(pubkey *crypto.PublicKey) orm.Object {
 
 //------------------ High-Level ------------------------
 
-// Bucket extends orm.Bucket with GetOrCreate
+// Bucket extends orm.BaseBucket with GetOrCreate
 type Bucket struct {
 	orm.BaseBucket
 }

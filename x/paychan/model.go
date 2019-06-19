@@ -67,7 +67,7 @@ func NewPaymentChannelBucket() orm.XModelBucket {
 	return migration.NewModelBucket("paychan", b)
 }
 
-func newPaymentChannelObjectBucket() orm.Bucket {
+func newPaymentChannelObjectBucket() orm.BaseBucket {
 	obj := orm.NewSimpleObj(nil, &PaymentChannel{})
 	return orm.NewBucket("paychan", obj)
 }

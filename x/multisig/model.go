@@ -72,14 +72,14 @@ func (c *Contract) Copy() orm.CloneableData {
 	}
 }
 
-// ContractBucket is a type-safe wrapper around orm.Bucket
+// ContractBucket is a type-safe wrapper around orm.BaseBucket
 type ContractBucket struct {
 	orm.XIDGenBucket
 }
 
 // NewContractBucket initializes a ContractBucket with default name
 //
-// inherit Get and Save from orm.Bucket
+// inherit Get and Save from orm.BaseBucket
 // add run-time check on Save
 func NewContractBucket() ContractBucket {
 	bucket := migration.NewBucket("multisig", BucketName,

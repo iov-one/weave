@@ -33,8 +33,8 @@ func TestApprovalOpsHandler(t *testing.T) {
 		db := store.MemStore()
 		migration.MustInitPkg(db, "nft")
 		userBucket := username.NewBucket()
-		nftBuckets := map[string]orm.Bucket{
-			username.ModelName: userBucket.Bucket,
+		nftBuckets := map[string]orm.BaseBucket{
+			username.ModelName: userBucket,
 		}
 
 		handler := base.NewApprovalOpsHandler(&weavetest.Auth{Signer: bob}, nil, nftBuckets)
