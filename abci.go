@@ -9,7 +9,7 @@ import (
 	"github.com/tendermint/tendermint/libs/common"
 )
 
-//---------- helpers for handling responses -------- 
+//---------- helpers for handling responses --------
 
 // DeliverOrError returns an abci response for DeliverTx,
 // converting the error message if present, or using the successful

@@ -108,7 +108,8 @@ func (b *btreeIter) wrap(parent Iterator) *itemIter {
 		wrap:   b,
 		parent: parent,
 	}
-	iter.skipAllDeleted()
+	//TODO: Panic?
+	_ = iter.skipAllDeleted()
 	return iter
 }
 

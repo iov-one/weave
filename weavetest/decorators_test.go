@@ -1,6 +1,7 @@
 package weavetest
 
 import (
+	"context"
 	"testing"
 
 	"github.com/iov-one/weave"
@@ -13,10 +14,10 @@ func TestSuccessfulDecorator(t *testing.T) {
 		h Handler
 	)
 
-	_, _ = d.Check(nil, nil, nil, &h)
+	_, _ = d.Check(context.TODO(), nil, nil, &h)
 	assertHCounts(t, &h, 1, 0)
 
-	_, _ = d.Deliver(nil, nil, nil, &h)
+	_, _ = d.Deliver(context.TODO(), nil, nil, &h)
 	assertHCounts(t, &h, 1, 1)
 }
 
@@ -30,17 +31,18 @@ func TestDecoratorWithError(t *testing.T) {
 	// Otherwise using nil would panic.
 	var handler weave.Handler = nil
 
-	_, err := d.Check(nil, nil, nil, handler)
+	_, err := d.Check(context.TODO(), nil, nil, handler)
 	if want := errors.ErrUnauthorized; !want.Is(err) {
 		t.Errorf("want %q, got %q", want, err)
 	}
 
-	_, err = d.Deliver(nil, nil, nil, handler)
+	_, err = d.Deliver(context.TODO(), nil, nil, handler)
 	if want := errors.ErrNotFound; !want.Is(err) {
 		t.Errorf("want %q, got %q", want, err)
 	}
 }
 
+//nolint
 func TestDecoratorCallCount(t *testing.T) {
 	var d Decorator
 

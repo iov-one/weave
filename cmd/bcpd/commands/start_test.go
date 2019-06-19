@@ -10,7 +10,7 @@ import (
 	"github.com/iov-one/weave/cmd/bcpd/app"
 	"github.com/iov-one/weave/commands/server"
 	"github.com/iov-one/weave/tmtest"
-	"github.com/stretchr/testify/require"
+	"github.com/iov-one/weave/weavetest/assert"
 	"github.com/tendermint/tendermint/libs/log"
 )
 
@@ -25,7 +25,7 @@ func TestStartStandAlone(t *testing.T) {
 	logger := log.NewNopLogger()
 
 	err := server.InitCmd(app.GenInitOptions, logger, home, nil)
-	require.NoError(t, err)
+	assert.Nil(t, err)
 
 	// set up app and start up
 	args := []string{"-bind", "localhost:11122"}
@@ -34,7 +34,7 @@ func TestStartStandAlone(t *testing.T) {
 	}
 	timeout := time.Duration(2) * time.Second
 	err = runOrTimeout(runStart, timeout)
-	require.NoError(t, err)
+	assert.Nil(t, err)
 }
 
 func runOrTimeout(cmd func() error, timeout time.Duration) error {

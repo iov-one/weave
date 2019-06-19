@@ -51,8 +51,7 @@ func (s Savepoint) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx, ne
 		cache.Discard()
 		return nil, err
 	} else {
-		cache.Write()
-		return res, nil
+		return res, cache.Write()
 	}
 }
 
@@ -72,7 +71,6 @@ func (s Savepoint) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx, 
 		cache.Discard()
 		return nil, err
 	} else {
-		cache.Write()
-		return res, nil
+		return res, cache.Write()
 	}
 }

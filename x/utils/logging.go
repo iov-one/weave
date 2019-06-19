@@ -42,7 +42,7 @@ func (r Logging) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx, ne
 
 // logDuration writes information about the time and result to the logger
 func logDuration(ctx weave.Context, start time.Time, msg string, err error, lowPrio bool) {
-	delta := time.Now().Sub(start)
+	delta := time.Since(start)
 	logger := weave.GetLogger(ctx).With("duration", delta/time.Microsecond)
 
 	if err != nil {

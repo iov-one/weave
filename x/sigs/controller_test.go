@@ -163,7 +163,7 @@ func TestVerifyTxSignatures(t *testing.T) {
 
 	// bad signers
 	tx.Signatures = []*StdSignature{badSig}
-	signers, err = VerifyTxSignatures(kv, tx, chainID)
+	_, err = VerifyTxSignatures(kv, tx, chainID)
 	if !errors.ErrUnauthorized.Is(err) {
 		t.Fatalf("unexpected error: %s", err)
 	}

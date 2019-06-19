@@ -31,7 +31,7 @@ func TestInitState(t *testing.T) {
   }`)
 	opts := weave.Options{}
 	err := json.Unmarshal(bz, &opts)
-	require.NoError(t, err)
+	assert.Nil(t, err)
 	// expected values
 	addr := []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 0x21, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27, 0x28, 0x29, 0x30}
 	wallet := &Wallet{Metadata: &weave.Metadata{Schema: 1}, Name: "lolz1793", Coins: mustCombineCoins(coin.NewCoin(50, 1234567, "FUN"))}
@@ -48,7 +48,7 @@ func TestInitState(t *testing.T) {
 	opts2, err := BuildGenesis(
 		[]GenesisAccount{{Address: addr2, Wallet: wallet2}},
 		[]GenesisToken{ToGenesisToken(ticker2, token2), ToGenesisToken(ticker2a, token2a)})
-	require.NoError(t, err)
+	assert.Nil(t, err)
 
 	// invalid wallet
 	badCoin := coin.NewCoin(100, -5000, "ATM")
@@ -56,14 +56,14 @@ func TestInitState(t *testing.T) {
 	opts3, err := BuildGenesis(
 		[]GenesisAccount{{Address: addr2, Wallet: walletBad}},
 		[]GenesisToken{ToGenesisToken(ticker2, token2)})
-	require.NoError(t, err)
+	assert.Nil(t, err)
 
 	// invalid token
 	tickerBad := "LONGER"
 	opts4, err := BuildGenesis(
 		[]GenesisAccount{{Address: addr2, Wallet: wallet2}},
 		[]GenesisToken{ToGenesisToken(tickerBad, token2)})
-	require.NoError(t, err)
+	assert.Nil(t, err)
 
 	cases := []struct {
 		opts    weave.Options
@@ -97,13 +97,13 @@ func TestInitState(t *testing.T) {
 			if tc.isError {
 				require.Error(t, err)
 			} else {
-				require.NoError(t, err)
+				assert.Nil(t, err)
 			}
 
 			if tc.acct != nil {
 				bucket := NewWalletBucket()
 				acct, err := bucket.Get(kv, tc.acct)
-				require.NoError(t, err)
+				assert.Nil(t, err)
 				if assert.NotNil(t, acct) {
 					assert.EqualValues(t, tc.wallet, AsWallet(acct))
 				}
@@ -112,7 +112,7 @@ func TestInitState(t *testing.T) {
 			for j, tick := range tc.tickers {
 				bucket := NewTokenBucket()
 				token, err := bucket.Get(kv, tick)
-				require.NoError(t, err, tick)
+				assert.Nil(t, err, tick)
 				if assert.NotNil(t, token, tick) {
 					assert.EqualValues(t, tc.tokens[j], AsToken(token), tick)
 				}

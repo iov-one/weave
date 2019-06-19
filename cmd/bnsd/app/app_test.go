@@ -326,12 +326,12 @@ func signAndCommit(
 
 	for _, signer := range signers {
 		sig, err := sigs.SignTx(signer.pk, tx, chainID, signer.nonce)
-		require.NoError(t, err)
+		assert.Nil(t, err)
 		tx.Signatures = append(tx.Signatures, sig)
 	}
 
 	txBytes, err := tx.Marshal()
-	require.NoError(t, err)
+	assert.Nil(t, err)
 	require.NotEmpty(t, txBytes)
 
 	// Submit to the chain
@@ -365,7 +365,7 @@ func queryAndCheckAccount(t *testing.T, baseApp abci.Application, path string, d
 
 	var actual cash.Set
 	err := weaveApp.UnmarshalOneResult(res.Value, &actual)
-	require.NoError(t, err)
+	assert.Nil(t, err)
 	require.Equal(t, expected.Coins, actual.Coins)
 }
 
@@ -382,6 +382,6 @@ func queryAndCheckContract(t *testing.T, baseApp abci.Application, path string, 
 		Metadata: &weave.Metadata{Schema: 1},
 	}
 	err := weaveApp.UnmarshalOneResult(res.Value, &actual)
-	require.NoError(t, err)
+	assert.Nil(t, err)
 	require.Equal(t, expected, actual)
 }

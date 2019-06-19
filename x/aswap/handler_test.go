@@ -50,7 +50,6 @@ func TestCreateHandler(t *testing.T) {
 		check          func(t *testing.T, db weave.KVStore)
 		wantCheckErr   *errors.Error
 		wantDeliverErr *errors.Error
-		exp            aswap.Swap
 		mutator        func(db *aswap.CreateSwapMsg)
 	}{
 		"Happy Path": {
@@ -163,7 +162,6 @@ func TestReleaseHandler(t *testing.T) {
 		check          func(t *testing.T, db weave.KVStore)
 		wantCheckErr   *errors.Error
 		wantDeliverErr *errors.Error
-		exp            aswap.Swap
 		mutator        func(db *aswap.ReleaseSwapMsg)
 	}{
 		"Happy Path, includes no auth check": {
@@ -275,7 +273,6 @@ func TestReturnHandler(t *testing.T) {
 		check          func(t *testing.T, db weave.KVStore)
 		wantCheckErr   *errors.Error
 		wantDeliverErr *errors.Error
-		exp            aswap.Swap
 		mutator        func(db *aswap.ReturnSwapMsg)
 	}{
 		"Happy Path, includes no auth check": {

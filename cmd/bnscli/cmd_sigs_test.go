@@ -49,6 +49,7 @@ func TestCmdSignTransactionHappyPath(t *testing.T) {
 	}
 }
 
+//nolint
 func newSignTendermintServer(t *testing.T) *httptest.Server {
 	t.Helper()
 

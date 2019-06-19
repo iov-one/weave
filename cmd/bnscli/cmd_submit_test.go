@@ -41,6 +41,7 @@ func TestCmdSubmitTxHappyPath(t *testing.T) {
 	}
 }
 
+//nolint
 func newSubmitTendermintServer(t *testing.T) (*httptest.Server, *bool) {
 	t.Helper()
 

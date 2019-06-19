@@ -617,28 +617,28 @@ func TestHandler(t *testing.T) {
 
 			// set initial data
 			acct, err := cash.WalletWith(tc.account, tc.balance...)
-			require.NoError(t, err)
+			assert.Nil(t, err)
 			err = bank.Save(db, acct)
-			require.NoError(t, err)
+			assert.Nil(t, err)
 
 			// do delivertx
 			for j, p := range tc.prep {
 				// try check
 				cache := db.CacheWrap()
 				_, err = router.Check(p.ctx(), cache, p.tx())
-				require.NoError(t, err, "%d", j)
+				assert.Nil(t, err, "%d", j)
 				cache.Discard()
 
 				// then perform
 				_, err = router.Deliver(p.ctx(), db, p.tx())
-				require.NoError(t, err, "%d", j)
+				assert.Nil(t, err, "%d", j)
 			}
 
 			_, err = router.Deliver(tc.do.ctx(), db, tc.do.tx())
 			if tc.isError {
 				require.Error(t, err)
 			} else {
-				require.NoError(t, err)
+				assert.Nil(t, err)
 			}
 
 			// run through all queries
@@ -654,29 +654,6 @@ func createAction(sender, rcpt, arbiter weave.Condition, amount coin.Coins, memo
 		perms: []weave.Condition{sender},
 		msg:   NewCreateMsg(sender.Address(), rcpt.Address(), arbiter.Address(), amount, Timeout, memo),
 	}
-}
-
-// MinusCoins returns a-b
-func MinusCoins(a, b coin.Coins) (coin.Coins, error) {
-	// TODO: add coins.Negative...
-	minus := b.Clone()
-	for _, m := range minus {
-		m.Whole *= -1
-		m.Fractional *= -1
-	}
-	return a.Combine(minus)
-}
-
-func MustMinusCoins(t *testing.T, a, b coin.Coins) coin.Coins {
-	remain, err := MinusCoins(a, b)
-	require.NoError(t, err)
-	return remain
-}
-
-func MustAddCoins(t *testing.T, a, b coin.Coins) coin.Coins {
-	res, err := a.Combine(b)
-	require.NoError(t, err)
-	return res
 }
 
 //-------------------------------------------------
@@ -731,7 +708,7 @@ func (q query) check(t testing.TB, db weave.ReadOnlyKVStore, qr weave.QueryRoute
 		require.Error(t, err)
 		return
 	}
-	require.NoError(t, err)
+	assert.Nil(t, err)
 	if assert.Equal(t, len(q.expected), len(mods), msg...) {
 		for i, ex := range q.expected {
 			// make sure keys match
@@ -740,7 +717,7 @@ func (q query) check(t testing.TB, db weave.ReadOnlyKVStore, qr weave.QueryRoute
 
 			// parse out value
 			got, err := q.bucket.Parse(nil, mods[i].Value)
-			require.NoError(t, err)
+			assert.Nil(t, err)
 			assert.EqualValues(t, ex.Value(), got.Value(), msg...)
 		}
 	}

@@ -5,12 +5,13 @@ package username
 
 import (
 	fmt "fmt"
+	io "io"
+	math "math"
+
 	_ "github.com/gogo/protobuf/gogoproto"
 	proto "github.com/gogo/protobuf/proto"
 	weave "github.com/iov-one/weave"
 	nft "github.com/iov-one/weave/x/nft"
-	io "io"
-	math "math"
 )
 
 // Reference imports to suppress errors if they are not otherwise used.

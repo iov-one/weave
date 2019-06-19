@@ -344,6 +344,7 @@ func (c *Coin) UnmarshalJSON(raw []byte) error {
 // valid human readable format that can be parsed back. For an invalid coin
 // (ie. without a ticker) a readable representation is returned but it cannot
 // be parsed back using the human readable format parser.
+//nolint
 func (c Coin) String() string {
 	var b bytes.Buffer
 

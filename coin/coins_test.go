@@ -7,7 +7,6 @@ import (
 
 	"github.com/iov-one/weave/errors"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 // mustCombineCoins has one return value for tests...
@@ -115,8 +114,8 @@ func TestMakeCoins(t *testing.T) {
 				return
 			}
 
-			require.NoError(t, err)
-			assert.NoError(t, s.Validate())
+			assert.Nil(t, err)
+			assert.Nil(t, s.Validate())
 			assert.Equal(t, tc.isEmpty, s.IsEmpty())
 			assert.Equal(t, tc.isNonNeg, s.IsNonNegative())
 
@@ -179,8 +178,8 @@ func TestCombine(t *testing.T) {
 				assert.Error(t, err)
 				return
 			}
-			require.NoError(t, err)
-			assert.NoError(t, res.Validate())
+			assert.Nil(t, err)
+			assert.Nil(t, res.Validate())
 			assert.True(t, tc.comb.Equals(res))
 			// result should only be the same as an input
 			// if the other input was empty
@@ -369,7 +368,7 @@ func BenchmarkCoinsNormalize(b *testing.B) {
 	for benchName, coins := range benchmarks {
 		b.Run(benchName, func(b *testing.B) {
 			for i := 0; i < b.N; i++ {
-				NormalizeCoins(coins)
+				_, _ = NormalizeCoins(coins)
 			}
 		})
 	}

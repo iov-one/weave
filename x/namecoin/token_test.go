@@ -74,11 +74,11 @@ func TestTokenBucket(t *testing.T) {
 				require.Error(t, err)
 				return
 			}
-			require.NoError(t, err)
+			assert.Nil(t, err)
 
 			for j, q := range tc.queries {
 				token, err := bucket.Get(db, q)
-				require.NoError(t, err)
+				assert.Nil(t, err)
 				if token != nil {
 					assert.EqualValues(t, q, AsTicker(token))
 				}

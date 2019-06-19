@@ -11,6 +11,7 @@ import (
 	"golang.org/x/crypto/ed25519"
 )
 
+//nolint
 func cmdKeygen(input io.Reader, output io.Writer, args []string) error {
 	fl := flag.NewFlagSet("", flag.ExitOnError)
 	fl.Usage = func() {
@@ -55,6 +56,7 @@ created. This command fails if the private key file already exists.
 	return nil
 }
 
+//nolint
 func cmdKeyaddr(input io.Reader, output io.Writer, args []string) error {
 	fl := flag.NewFlagSet("", flag.ExitOnError)
 	fl.Usage = func() {

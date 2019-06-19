@@ -165,6 +165,7 @@ func TestCmdWithFeeHappyPathDefaultAmount(t *testing.T) {
 
 // newCashConfTendermintServer returns an HTTP server that can respond to an
 // HTTP "/abci_query" request with given configuration.
+//nolint
 func newCashConfTendermintServer(
 	t *testing.T,
 	conf cash.Configuration,

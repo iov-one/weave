@@ -7,7 +7,7 @@ import (
 	"github.com/iov-one/weave/errors"
 )
 
-func TextBumpSequenceValidate(t *testing.T) {
+func TestBumpSequenceValidate(t *testing.T) {
 	cases := map[string]struct {
 		Msg     weave.Msg
 		WantErr *errors.Error

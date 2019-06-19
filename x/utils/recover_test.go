@@ -10,22 +10,23 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+//nolint
 func TestRecovery(t *testing.T) {
 	var h panicHandler
 	r := NewRecovery()
 
 	ctx := context.Background()
-	store := store.MemStore()
+	s := store.MemStore()
 
 	// Panic handler panics. Test the test tool.
-	assert.Panics(t, func() { h.Check(ctx, store, nil) })
-	assert.Panics(t, func() { h.Deliver(ctx, store, nil) })
+	assert.Panics(t, func() { h.Check(ctx, s, nil) })
+	assert.Panics(t, func() { h.Deliver(ctx, s, nil) })
 
 	// Recovery wrapped handler returns an error.
-	_, err := r.Check(ctx, store, nil, h)
+	_, err := r.Check(ctx, s, nil, h)
 	assert.True(t, errors.ErrPanic.Is(err))
 
-	_, err = r.Deliver(ctx, store, nil, h)
+	_, err = r.Deliver(ctx, s, nil, h)
 	assert.True(t, errors.ErrPanic.Is(err))
 }
 

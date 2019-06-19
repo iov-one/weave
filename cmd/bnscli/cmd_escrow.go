@@ -11,6 +11,7 @@ import (
 	"github.com/iov-one/weave/x/escrow"
 )
 
+//nolint
 func cmdReleaseEscrow(input io.Reader, output io.Writer, args []string) error {
 	fl := flag.NewFlagSet("", flag.ExitOnError)
 	fl.Usage = func() {

@@ -58,6 +58,7 @@ func TestMultisig(t *testing.T) {
 	}
 }
 
+//nolint
 func newTendermintServer(t *testing.T) *httptest.Server {
 	t.Helper()
 

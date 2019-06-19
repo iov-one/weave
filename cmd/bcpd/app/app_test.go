@@ -205,7 +205,7 @@ func (a *account) address() []byte {
 func newTestApp(t testing.TB, chainID string, accounts []*account) app.BaseApp {
 	// no minimum fee, in-memory data-store
 	abciApp, err := GenerateApp(opts)
-	require.NoError(t, err)
+	assert.Nil(t, err)
 	myApp := abciApp.(app.BaseApp) // let's set up a genesis file with some cash
 	appState := withWalletAppState(t, accounts)
 
@@ -228,7 +228,7 @@ func newTestApp(t testing.TB, chainID string, accounts []*account) app.BaseApp {
 func newMultisigTestApp(t testing.TB, chainID string, contracts []*contract) app.BaseApp {
 	// no minimum fee, in-memory data-store
 	abciApp, err := GenerateApp(opts)
-	require.NoError(t, err)
+	assert.Nil(t, err)
 	myApp := abciApp.(app.BaseApp) // let's set up a genesis file with some cash
 	appState := appStateGenesis(t, contracts)
 
@@ -303,7 +303,7 @@ func withWalletAppState(t testing.TB, accounts []*account) string {
 		})
 	}
 	raw, err := json.MarshalIndent(state, "", "  ")
-	assert.NoErrorf(t, err, "marshal state: %s", err)
+	assert.Nilf(t, err, "marshal state: %s", err)
 	return string(raw)
 }
 
@@ -506,12 +506,12 @@ func createContract(
 func signAndCommit(t require.TestingT, fail bool, app app.BaseApp, tx *Tx, signers []*account, chainID string, height int64) abci.ResponseDeliverTx {
 	for _, signer := range signers {
 		sig, err := sigs.SignTx(signer.pk, tx, chainID, signer.nonce())
-		require.NoError(t, err)
+		assert.Nil(t, err)
 		tx.Signatures = append(tx.Signatures, sig)
 	}
 
 	txBytes, err := tx.Marshal()
-	require.NoError(t, err)
+	assert.Nil(t, err)
 	require.NotEmpty(t, txBytes)
 
 	// Submit to the chain
@@ -555,7 +555,7 @@ func queryAndCheckWallet(t require.TestingT, fail bool, baseApp app.BaseApp, pat
 		Metadata: &weave.Metadata{Schema: 1},
 	}
 	err := app.UnmarshalOneResult(res.Value, &actual)
-	require.NoError(t, err)
+	assert.Nil(t, err)
 	require.Equal(t, expected, actual)
 }
 
@@ -572,7 +572,7 @@ func queryAndCheckContract(t require.TestingT, baseApp app.BaseApp, path string,
 		Metadata: &weave.Metadata{Schema: 1},
 	}
 	err := app.UnmarshalOneResult(res.Value, &actual)
-	require.NoError(t, err)
+	assert.Nil(t, err)
 	require.Equal(t, expected, actual)
 }
 
@@ -595,11 +595,11 @@ func makeSendTx(t require.TestingT, chainID string, sender, receiver *account, t
 	}
 
 	sig, err := sigs.SignTx(sender.pk, tx, chainID, sender.nonce())
-	require.NoError(t, err)
+	assert.Nil(t, err)
 	tx.Signatures = append(tx.Signatures, sig)
 
 	txBytes, err := tx.Marshal()
-	require.NoError(t, err)
+	assert.Nil(t, err)
 	require.NotEmpty(t, txBytes)
 	return txBytes
 }
@@ -626,33 +626,14 @@ func makeSendTxMultisig(t require.TestingT, chainID string, sender, receiver *co
 	mandatorySigners := sender.signers()
 	for _, acc := range mandatorySigners {
 		sig, err := sigs.SignTx(acc.pk, tx, chainID, acc.nonce())
-		require.NoError(t, err)
+		assert.Nil(t, err)
 		tx.Signatures = append(tx.Signatures, sig)
 	}
 
 	txBytes, err := tx.Marshal()
-	require.NoError(t, err)
+	assert.Nil(t, err)
 	require.NotEmpty(t, txBytes)
 	return txBytes
-}
-
-func makeCreateContractTx(t require.TestingT, chainID string, signers [][]byte, threshold multisig.Weight) *Tx {
-	participants := make([]*multisig.Participant, len(signers))
-	for i, addr := range signers {
-		participants[i] = &multisig.Participant{
-			Signature: addr,
-			Weight:    1,
-		}
-	}
-	msg := &multisig.CreateContractMsg{
-		Participants:        participants,
-		ActivationThreshold: threshold,
-		AdminThreshold:      threshold,
-	}
-
-	return &Tx{
-		Sum: &Tx_CreateContractMsg{msg},
-	}
 }
 
 // benchmarkSendTxWithMultisig runs the actual benchmark sequence with multisig eg.

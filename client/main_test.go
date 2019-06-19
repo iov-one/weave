@@ -6,15 +6,11 @@ import (
 
 	"github.com/tendermint/tendermint/abci/example/kvstore"
 	nm "github.com/tendermint/tendermint/node"
-	"github.com/tendermint/tendermint/rpc/test"
+	rpctest "github.com/tendermint/tendermint/rpc/test"
 )
 
 // useful values for test cases
 var node *nm.Node
-
-func getChainID() string {
-	return rpctest.GetConfig().ChainID()
-}
 
 func TestMain(m *testing.M) {
 	config := rpctest.GetConfig()

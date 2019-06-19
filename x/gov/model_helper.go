@@ -10,7 +10,6 @@ import (
 // merger is a helper struct to combine Elector sets.
 type merger struct {
 	index map[string]uint32
-	error *error
 }
 
 func newMerger(e []Elector) *merger {

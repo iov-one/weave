@@ -18,7 +18,7 @@ func NewApprovalOps(owner weave.Address, approvals *[]ActionApprovals) *Approval
 }
 
 func (o *ApprovalOps) List() Approvals {
-	res := make(map[Action]ApprovalMeta, 0)
+	res := make(map[Action]ApprovalMeta)
 	for _, v := range *o.approvals {
 		res[v.Action] = v.Approvals
 	}

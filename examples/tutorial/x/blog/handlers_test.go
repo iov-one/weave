@@ -49,6 +49,7 @@ import (
 	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/store"
 	"github.com/iov-one/weave/weavetest"
+	"github.com/iov-one/weave/weavetest/assert"
 	"github.com/iov-one/weave/x"
 	"github.com/stretchr/testify/require"
 )
@@ -155,14 +156,14 @@ func testHandlerCheck(t *testing.T, testcases []testcase) {
 		for _, dep := range test.Deps {
 			depHandler := dep.Handler(auth)
 			_, err := depHandler.Deliver(ctx, db, &weavetest.Tx{Msg: dep.Msg})
-			require.NoError(t, err, test.Name, fmt.Sprintf("failed to deliver dep %s\n", dep.Name))
+			assert.Nil(t, err, test.Name, fmt.Sprintf("failed to deliver dep %s\n", dep.Name))
 		}
 
 		//run test
 		handler := test.Handler(auth)
 		res, err := handler.Check(ctx, db, &weavetest.Tx{Msg: test.Msg})
 		if test.Err == nil {
-			require.NoError(t, err, test.Name)
+			assert.Nil(t, err, test.Name)
 			require.EqualValues(t, test.Res, res, test.Name)
 		} else {
 			require.Error(t, err, test.Name) // to avoid seg fault at the next line
@@ -183,17 +184,17 @@ func testHandlerDeliver(t *testing.T, testcases []testcase) {
 		for _, dep := range test.Deps {
 			depHandler := dep.Handler(auth)
 			_, err := depHandler.Deliver(ctx, db, &weavetest.Tx{Msg: dep.Msg})
-			require.NoError(t, err, test.Name, fmt.Sprintf("failed to deliver dep %s\n", dep.Name))
+			assert.Nil(t, err, test.Name, fmt.Sprintf("failed to deliver dep %s\n", dep.Name))
 		}
 
 		//run test
 		handler := test.Handler(auth)
 		_, err := handler.Deliver(ctx, db, &weavetest.Tx{Msg: test.Msg})
 		if test.Err == nil {
-			require.NoError(t, err, test.Name)
+			assert.Nil(t, err, test.Name)
 			for _, obj := range test.Obj {
 				actual, err := getDeliveredObject(handler, db, obj.Key())
-				require.NoError(t, err, test.Name)
+				assert.Nil(t, err, test.Name)
 				require.NotNil(t, actual, test.Name)
 				require.EqualValues(t, obj.Value(), actual.Value(), test.Name)
 			}

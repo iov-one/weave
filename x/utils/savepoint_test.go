@@ -87,7 +87,7 @@ func TestSavepoint(t *testing.T) {
 		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
 			ctx := context.Background()
 			kv := store.MemStore()
-			kv.Set(ok, ov)
+			assert.Nil(t, kv.Set(ok, ov))
 
 			var err error
 			if tc.check {
@@ -130,11 +130,15 @@ type writeHandler struct {
 }
 
 func (h writeHandler) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
-	store.Set(h.key, h.value)
+	if err := store.Set(h.key, h.value); err != nil {
+		return nil, err
+	}
 	return &weave.CheckResult{}, h.err
 }
 
 func (h writeHandler) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
-	store.Set(h.key, h.value)
+	if err := store.Set(h.key, h.value); err != nil {
+		return nil, err
+	}
 	return &weave.DeliverResult{}, h.err
 }

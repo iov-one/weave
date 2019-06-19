@@ -12,7 +12,7 @@ import (
 	"github.com/iov-one/weave/cmd/bnsd/scenarios/bnsdtest"
 	"github.com/iov-one/weave/cmd/bnsd/x/nft/username"
 	"github.com/iov-one/weave/coin"
-	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestIssueNfts(t *testing.T) {
@@ -47,12 +47,12 @@ func TestIssueNfts(t *testing.T) {
 		t.Run(fmt.Sprintf("creating nft %d: %T", i, tx.Sum), func(t *testing.T) {
 			// when
 			seq, err := aNonce.Next()
-			require.NoError(t, err)
+			assert.Nil(t, err)
 			tx.Fee(env.Alice.PublicKey().Address(), coin.NewCoin(6, 0, "IOV"))
-			require.NoError(t, client.SignTx(tx, env.Alice, env.ChainID, seq))
+			assert.Nil(t, client.SignTx(tx, env.Alice, env.ChainID, seq))
 			resp := env.Client.BroadcastTx(tx)
 			// then
-			require.NoError(t, resp.IsError())
+			assert.Nil(t, resp.IsError())
 		})
 	}
 }

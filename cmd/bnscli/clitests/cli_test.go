@@ -93,6 +93,7 @@ weave main directory or by directly using Go install command:
 // fakeTendermintServer creates an HTTP server that acts similar to the
 // tendermint HTTP server. It does not maintain any state or return fully
 // correct responses but its behaviour is good enough to fool bnscli.
+//nolint
 func fakeTendermintServer(t testing.TB) *httptest.Server {
 	t.Helper()
 

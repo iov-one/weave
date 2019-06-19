@@ -7,7 +7,7 @@ import (
 
 	"github.com/tendermint/tendermint/abci/types"
 	nm "github.com/tendermint/tendermint/node"
-	"github.com/tendermint/tendermint/rpc/test"
+	rpctest "github.com/tendermint/tendermint/rpc/test"
 )
 
 // Runner is an interface that would allow us more flexibility in terms of
@@ -39,7 +39,7 @@ func TestWithTendermint(app types.Application, cb func(*nm.Node), m Runner) int 
 	}
 
 	// and shut down proper at the end
-	n.Stop()
+	_ = n.Stop()
 	n.Wait()
 	return code
 }

@@ -77,6 +77,7 @@ func cmdList(
 	var (
 		tmAddrFl = fl.String("tm", "https://bns.NETWORK.iov.one:443", "Tendermint node address. Use proper NETWORK name.")
 	)
+	//nolint
 	fl.Parse(args)
 
 	info, err := listValidators(*tmAddrFl)
@@ -100,6 +101,7 @@ func listValidators(nodeURL string) ([]*validatorInfo, error) {
 	if err != nil {
 		return nil, fmt.Errorf("cannot do HTTP request: %s", err)
 	}
+	//nolint
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
@@ -130,6 +132,7 @@ type pubKeyInfo struct {
 	Value string `json:"value"`
 }
 
+//nolint
 func cmdMultisigNew(
 	input io.Reader,
 	output io.Writer,
@@ -184,6 +187,7 @@ Returned request must be signed by other parties before it can be submitted.
 
 }
 
+//nolint
 func cmdMultisigView(
 	input io.Reader,
 	output io.Writer,
@@ -223,6 +227,7 @@ kind of operation are you authorizing.
 	return err
 }
 
+//nolint
 func cmdMultisigSign(
 	input io.Reader,
 	output io.Writer,
@@ -274,17 +279,23 @@ content.
 	if seq, err := aNonce.Next(); err != nil {
 		return fmt.Errorf("cannot get the next sequence number: %s", err)
 	} else {
-		client.SignTx(&tx, key, genesis.ChainID, seq)
+		err = client.SignTx(&tx, key, genesis.ChainID, seq)
+		if err != nil {
+			return err
+		}
 	}
 
-	if raw, err := tx.Marshal(); err != nil {
+	raw, err = tx.Marshal()
+	if err != nil {
 		return fmt.Errorf("cannot serialize transaction: %s", err)
-	} else {
-		_, err = output.Write(raw)
 	}
+
+	_, err = output.Write(raw)
+
 	return err
 }
 
+//nolint
 func cmdMultisigSubmit(
 	input io.Reader,
 	output io.Writer,
@@ -339,6 +350,7 @@ func cmdAdd(
 		hexKeyFl = fl.String("key", "", "Hex encoded, private key of the validator that is to be added/updated.")
 		powerFl  = fl.Int64("power", 10, "Validator node power. Set to 0 to delete a node.")
 	)
+	//nolint
 	fl.Parse(args)
 
 	if *pubKeyFl == "" {
@@ -378,7 +390,10 @@ func cmdAdd(
 	if seq, err := aNonce.Next(); err != nil {
 		return fmt.Errorf("cannot get the next sequence number: %s", err)
 	} else {
-		client.SignTx(addValidatorTx, key, genesis.ChainID, seq)
+		err = client.SignTx(addValidatorTx, key, genesis.ChainID, seq)
+		if err != nil {
+			return err
+		}
 	}
 	if err := bnsClient.BroadcastTx(addValidatorTx).IsError(); err != nil {
 		return fmt.Errorf("cannot broadcast transaction: %s", err)
@@ -406,6 +421,7 @@ func fetchGenesis(serverURL string) (*genesis, error) {
 	if err != nil {
 		return nil, fmt.Errorf("cannot fetch: %s", err)
 	}
+	//nolint
 	defer resp.Body.Close()
 
 	var payload struct {

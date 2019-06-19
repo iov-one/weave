@@ -5,12 +5,13 @@ package nft
 
 import (
 	fmt "fmt"
+	io "io"
+	math "math"
+
 	_ "github.com/gogo/protobuf/gogoproto"
 	proto "github.com/gogo/protobuf/proto"
 	github_com_iov_one_weave "github.com/iov-one/weave"
 	weave "github.com/iov-one/weave"
-	io "io"
-	math "math"
 )
 
 // Reference imports to suppress errors if they are not otherwise used.

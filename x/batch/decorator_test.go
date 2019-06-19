@@ -1,6 +1,7 @@
 package batch_test
 
 import (
+	"context"
 	"errors"
 	"strings"
 	"testing"
@@ -115,7 +116,7 @@ func TestDecorator(t *testing.T) {
 				RequiredFee:  fee,
 			}, nil).Times(int(num))
 
-			checkRes, err := decorator.Check(nil, nil, helper, helper)
+			checkRes, err := decorator.Check(context.TODO(), nil, helper, helper)
 			So(err, ShouldBeNil)
 			data, _ := mockData(num, dataContent).Marshal()
 			So(checkRes, ShouldResemble, &weave.CheckResult{
@@ -135,7 +136,7 @@ func TestDecorator(t *testing.T) {
 				RequiredFee: fee,
 			}, nil).Times(int(num))
 
-			deliverRes, err := decorator.Deliver(nil, nil, helper, helper)
+			deliverRes, err := decorator.Deliver(context.TODO(), nil, helper, helper)
 			So(err, ShouldBeNil)
 			So(deliverRes, ShouldResemble, &weave.DeliverResult{
 				Data:        data,
@@ -180,7 +181,7 @@ func TestDecorator(t *testing.T) {
 			helper.On("Deliver", nil, nil, mock.Anything).Return(makeRes(fee2), nil).Times(1)
 			helper.On("Deliver", nil, nil, mock.Anything).Return(makeRes(zero), nil).Times(1)
 
-			deliverRes, err := decorator.Deliver(nil, nil, helper, helper)
+			deliverRes, err := decorator.Deliver(context.TODO(), nil, helper, helper)
 			So(err, ShouldBeNil)
 			data, _ := mockData(num, dataContent).Marshal()
 			So(deliverRes, ShouldResemble, &weave.DeliverResult{
@@ -198,9 +199,9 @@ func TestDecorator(t *testing.T) {
 			helper.On("Deliver", nil, nil, mock.Anything).Return(&weave.DeliverResult{}, nil).Times(1)
 			helper.On("Check", nil, nil, mock.Anything).Return(&weave.CheckResult{}, nil).Times(1)
 
-			_, err := decorator.Check(nil, nil, helper, helper)
+			_, err := decorator.Check(context.TODO(), nil, helper, helper)
 			So(err, ShouldBeNil)
-			_, err = decorator.Deliver(nil, nil, helper, helper)
+			_, err = decorator.Deliver(context.TODO(), nil, helper, helper)
 			So(err, ShouldBeNil)
 			helper.AssertExpectations(t)
 		})
@@ -210,9 +211,9 @@ func TestDecorator(t *testing.T) {
 				expectedErr := errors.New("asd")
 				helper.On("GetMsg").Return(msg, expectedErr).Times(2)
 
-				_, err := decorator.Check(nil, nil, helper, helper)
+				_, err := decorator.Check(context.TODO(), nil, helper, helper)
 				So(err, ShouldEqual, expectedErr)
-				_, err = decorator.Deliver(nil, nil, helper, helper)
+				_, err = decorator.Deliver(context.TODO(), nil, helper, helper)
 				So(err, ShouldEqual, expectedErr)
 				helper.AssertExpectations(t)
 			})
@@ -241,7 +242,7 @@ func TestDecorator(t *testing.T) {
 					RequiredFee:  coin.Coin{Whole: 1, Ticker: "LSK"},
 				}, nil).Times(1)
 
-				_, err := decorator.Check(nil, nil, helper, helper)
+				_, err := decorator.Check(context.TODO(), nil, helper, helper)
 				So(err, ShouldNotBeNil)
 			})
 
@@ -250,9 +251,9 @@ func TestDecorator(t *testing.T) {
 				helper.On("GetMsg").Return(msg, nil).Times(2)
 				msg.On("Validate").Return(expectedErr).Times(2)
 
-				_, err := decorator.Check(nil, nil, helper, helper)
+				_, err := decorator.Check(context.TODO(), nil, helper, helper)
 				So(err, ShouldEqual, expectedErr)
-				_, err = decorator.Deliver(nil, nil, helper, helper)
+				_, err = decorator.Deliver(context.TODO(), nil, helper, helper)
 				So(err, ShouldEqual, expectedErr)
 				helper.AssertExpectations(t)
 				msg.AssertExpectations(t)

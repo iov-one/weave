@@ -21,7 +21,7 @@ func TestSendTx(t *testing.T) {
 	chainID := "ding-dong"
 	tx := BuildSendTx(senderAddr, rcpt, amount, "Hi There")
 	// if we sign with 0, we can validate against an empty db
-	SignTx(tx, sender, chainID, 0)
+	assert.Nil(t, SignTx(tx, sender, chainID, 0))
 
 	// make sure the tx has a sig
 	require.Equal(t, 1, len(tx.GetSignatures()))
@@ -30,7 +30,7 @@ func TestSendTx(t *testing.T) {
 	db := store.MemStore()
 	migration.MustInitPkg(db, "sigs")
 	conds, err := sigs.VerifyTxSignatures(db, tx, chainID)
-	assert.NoError(t, err)
+	assert.Nil(t, err)
 	assert.Equal(t, 1, len(conds))
 	assert.EqualValues(t, sender.PublicKey().Condition(), conds[0])
 
@@ -41,11 +41,11 @@ func TestSendTx(t *testing.T) {
 
 	// parse tx and verify we have the proper fields
 	data, err := tx.Marshal()
-	require.NoError(t, err)
+	assert.Nil(t, err)
 	parsed, err := ParseBcpTx(data)
-	require.NoError(t, err)
+	assert.Nil(t, err)
 	msg, err := parsed.GetMsg()
-	require.NoError(t, err)
+	assert.Nil(t, err)
 	send, ok := msg.(*cash.SendMsg)
 	require.True(t, ok)
 

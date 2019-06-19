@@ -13,6 +13,7 @@ import (
 	"github.com/iov-one/weave/x/cash"
 )
 
+//nolint
 func cmdSendTokens(input io.Reader, output io.Writer, args []string) error {
 	fl := flag.NewFlagSet("", flag.ExitOnError)
 	fl.Usage = func() {
@@ -46,6 +47,7 @@ destination account.
 	return err
 }
 
+//nolintclea
 func cmdWithFee(input io.Reader, output io.Writer, args []string) error {
 	fl := flag.NewFlagSet("", flag.ExitOnError)
 	fl.Usage = func() {

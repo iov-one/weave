@@ -19,8 +19,10 @@ func TestSliceIterator(t *testing.T) {
 		models[i].Value = vs[i]
 	}
 
+	var err error
 	// make sure proper iteration works
-	for iter, i := NewSliceIterator(models), 0; iter.Valid(); iter.Next() {
+	for iter, i := NewSliceIterator(models), 0; iter.Valid(); err = iter.Next() {
+		assert.Nil(t, err)
 		if i >= size {
 			t.Fatalf("iterator step greater than the size: %d >= %d", i, size)
 		}
@@ -37,7 +39,7 @@ func TestSliceIterator(t *testing.T) {
 	if it.Valid() {
 		t.Fatal("closed iterator must be invalid")
 	}
-	err := it.Next()
+	err = it.Next()
 	if err == nil {
 		t.Fatal("Calling Next on invalid iterator must return error")
 	}

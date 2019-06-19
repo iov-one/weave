@@ -10,6 +10,7 @@ import (
 	"strings"
 )
 
+//nolint
 func main() {
 	flag.Usage = func() {
 		fmt.Fprintf(flag.CommandLine.Output(), `Remove non standard declarations from a protobuf file. Usage:
@@ -25,6 +26,7 @@ Where MYFILE is the original protobuf file that should be cleaned.
 	out.WriteTo(os.Stdout)
 }
 
+//nolint
 func fail(code int, tmpl string, args ...interface{}) {
 	if !strings.HasSuffix(tmpl, "\n") {
 		tmpl += "\n"
@@ -34,6 +36,7 @@ func fail(code int, tmpl string, args ...interface{}) {
 
 }
 
+//nolint
 func cleanup(in io.Reader, out io.Writer) error {
 	rd := bufio.NewReader(in)
 	wr := bufio.NewWriter(out)

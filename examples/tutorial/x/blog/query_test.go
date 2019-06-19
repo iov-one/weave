@@ -6,6 +6,7 @@ import (
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/store"
 	"github.com/iov-one/weave/weavetest"
+	"github.com/iov-one/weave/weavetest/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -20,7 +21,7 @@ func TestBlogQuery(t *testing.T) {
 			Authors: [][]byte{signer.Address()},
 		},
 	})
-	require.NoError(t, err, "failed to deliver blog")
+	assert.Nil(t, err, "failed to deliver blog")
 
 	// setup QueryRouter
 	qr := weave.NewQueryRouter()
@@ -32,19 +33,19 @@ func TestBlogQuery(t *testing.T) {
 
 	// run query
 	blogs, err := h.Query(db, "", []byte("this_is_a_blog"))
-	require.NoError(t, err)
+	assert.Nil(t, err)
 	require.Len(t, blogs, 1)
 
 	bucket := NewBlogBucket()
 	expected, err := bucket.Get(db, []byte("this_is_a_blog"))
-	require.NoError(t, err)
+	assert.Nil(t, err)
 
 	actual, err := bucket.Parse(nil, blogs[0].Value)
 	require.EqualValues(t, expected.Value(), actual.Value())
 
 	// bad query
 	blogs, err = h.Query(db, "", []byte("bad_key"))
-	require.NoError(t, err)
+	assert.Nil(t, err)
 	require.Len(t, blogs, 0)
 }
 func TestPostQuery(t *testing.T) {
@@ -59,7 +60,7 @@ func TestPostQuery(t *testing.T) {
 			Authors: [][]byte{signer.Address()},
 		},
 	})
-	require.NoError(t, err)
+	assert.Nil(t, err)
 
 	_, err = createPostMsgHandlerFn(auth).Deliver(ctx, db, &weavetest.Tx{
 		Msg: &CreatePostMsg{
@@ -69,7 +70,7 @@ func TestPostQuery(t *testing.T) {
 			Author: signer.Address(),
 		},
 	})
-	require.NoError(t, err)
+	assert.Nil(t, err)
 
 	qr := weave.NewQueryRouter()
 	RegisterQuery(qr)
@@ -80,19 +81,19 @@ func TestPostQuery(t *testing.T) {
 
 	key := newPostCompositeKey("this_is_a_blog", 1)
 	posts, err := h.Query(db, "", key)
-	require.NoError(t, err)
+	assert.Nil(t, err)
 	require.Len(t, posts, 1)
 
 	bucket := NewPostBucket()
 	expected, err := bucket.Get(db, key)
-	require.NoError(t, err)
+	assert.Nil(t, err)
 
 	actual, err := bucket.Parse(nil, posts[0].Value)
 	require.EqualValues(t, expected.Value(), actual.Value())
 
 	// bad query
 	posts, err = h.Query(db, "", []byte("bad_key"))
-	require.NoError(t, err)
+	assert.Nil(t, err)
 	require.Len(t, posts, 0)
 
 	// query by author
@@ -100,11 +101,11 @@ func TestPostQuery(t *testing.T) {
 	require.NotNil(t, h)
 
 	posts, err = h.Query(db, "", signer.Address())
-	require.NoError(t, err)
+	assert.Nil(t, err)
 	require.Len(t, posts, 1)
 
 	expectedSlice, err := bucket.GetIndexed(db, "author", signer.Address())
-	require.NoError(t, err)
+	assert.Nil(t, err)
 	require.Len(t, expectedSlice, 1)
 
 	actual, err = bucket.Parse(nil, posts[0].Value)
@@ -112,7 +113,7 @@ func TestPostQuery(t *testing.T) {
 
 	// bad query
 	posts, err = h.Query(db, "", []byte("bad_key"))
-	require.NoError(t, err)
+	assert.Nil(t, err)
 	require.Len(t, posts, 0)
 }
 func TestProfile(t *testing.T) {
@@ -125,7 +126,7 @@ func TestProfile(t *testing.T) {
 			Description: "my profile description",
 		},
 	})
-	require.NoError(t, err)
+	assert.Nil(t, err)
 
 	qr := weave.NewQueryRouter()
 	RegisterQuery(qr)
@@ -134,18 +135,18 @@ func TestProfile(t *testing.T) {
 	require.NotNil(t, h)
 
 	profiles, err := h.Query(db, "", []byte("lehajam"))
-	require.NoError(t, err)
+	assert.Nil(t, err)
 	require.Len(t, profiles, 1)
 
 	bucket := NewProfileBucket()
 	expected, err := bucket.Get(db, []byte("lehajam"))
-	require.NoError(t, err)
+	assert.Nil(t, err)
 
 	actual, err := bucket.Parse(nil, profiles[0].Value)
 	require.EqualValues(t, expected.Value(), actual.Value())
 
 	// bad query
 	profiles, err = h.Query(db, "", []byte("bad_key"))
-	require.NoError(t, err)
+	assert.Nil(t, err)
 	require.Len(t, profiles, 0)
 }

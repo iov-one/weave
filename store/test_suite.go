@@ -115,12 +115,12 @@ func (s *TestSuite) CacheConflicts(t *testing.T) {
 			defer cleanup()
 
 			for _, op := range tc.parentOps {
-				op.Apply(parent)
+				assert.Nil(t, op.Apply(parent))
 			}
 
 			child := parent.CacheWrap()
 			for _, op := range tc.childOps {
-				op.Apply(child)
+				assert.Nil(t, op.Apply(child))
 			}
 
 			// now check the parent is unaffected
@@ -134,7 +134,7 @@ func (s *TestSuite) CacheConflicts(t *testing.T) {
 			}
 
 			// write child to parent and make sure it also shows proper data
-			child.Write()
+			assert.Nil(t, child.Write())
 			for _, q := range tc.childQueries {
 				s.AssertGetHas(t, parent, q.Key, q.Value, q.Value != nil)
 			}
@@ -213,9 +213,6 @@ func (s *TestSuite) FuzzIterator(t *testing.T) {
 // IteratorWithConflicts covers some specific test cases
 // that arose during fuzzing the iterators.
 func (s *TestSuite) IteratorWithConflicts(t *testing.T) {
-	const Size = 50
-	const DeleteCount = 20
-
 	ms := randModels(6, 20, 100)
 	a, a2, b, b2, c, d := ms[0], ms[1], ms[2], ms[3], ms[4], ms[5]
 	// a2, b2 have same keys, different values
@@ -300,6 +297,7 @@ func (s *TestSuite) AssertGetHas(t testing.TB, kv ReadOnlyKVStore, key, val []by
 	assert.Equal(t, has, exists)
 }
 
+//nolint
 func randBytes(length int) []byte {
 	res := make([]byte, length)
 	rand.Read(res)
@@ -334,12 +332,12 @@ type iterCase struct {
 
 func (i iterCase) verify(t testing.TB, base CacheableKVStore) {
 	for _, op := range i.pre {
-		op.Apply(base)
+		assert.Nil(t, op.Apply(base))
 	}
 
 	child := base.CacheWrap()
 	for _, op := range i.child {
-		op.Apply(base)
+		assert.Nil(t, op.Apply(base))
 	}
 
 	for _, q := range i.queries {
@@ -356,7 +354,7 @@ func (i iterCase) verify(t testing.TB, base CacheableKVStore) {
 			assert.Equal(t, iter.Valid(), true)
 			assert.Equal(t, q.expected[i].Key, iter.Key())
 			assert.Equal(t, q.expected[i].Value, iter.Value())
-			iter.Next()
+			assert.Nil(t, iter.Next())
 		}
 		assert.Equal(t, iter.Valid(), false)
 	}

@@ -10,6 +10,7 @@ import (
 	"github.com/iov-one/weave/x/multisig"
 )
 
+//nolint
 func cmdMultisig(input io.Reader, output io.Writer, args []string) error {
 	fl := flag.NewFlagSet("", flag.ExitOnError)
 	fl.Usage = func() {
@@ -66,6 +67,7 @@ participants must be done by another command.
 	return err
 }
 
+//nolint
 func cmdWithMultisigParticipant(input io.Reader, output io.Writer, args []string) error {
 	fl := flag.NewFlagSet("", flag.ExitOnError)
 	fl.Usage = func() {
@@ -111,6 +113,7 @@ participant added.
 	return nil
 }
 
+//nolint
 func cmdWithMultisig(input io.Reader, output io.Writer, args []string) error {
 	fl := flag.NewFlagSet("", flag.ExitOnError)
 	fl.Usage = func() {

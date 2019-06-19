@@ -116,6 +116,7 @@ func startLocalBnsd(t testing.TB, env *EnvConf) (cleanup func()) {
 	thCli := throttle(cli, env.clientThrottle)
 	env.Client = thCli
 
+	//nolint
 	return func() {
 		thCli.Close()
 		env.Node.Stop()

@@ -11,11 +11,11 @@ import (
 func TestAuthNoSigners(t *testing.T) {
 	var a Auth
 
-	if got := a.GetConditions(nil); got != nil {
+	if got := a.GetConditions(context.TODO()); got != nil {
 		t.Fatalf("unexpected conditions: %+v", got)
 	}
 
-	if a.HasAddress(nil, NewCondition().Address()) {
+	if a.HasAddress(context.TODO(), NewCondition().Address()) {
 		t.Fatal("random condition must not be present")
 	}
 }
@@ -32,7 +32,7 @@ func TestAuthUsingSignerAndSigners(t *testing.T) {
 		Signers: conds[:2],
 	}
 
-	if got := a.GetConditions(nil); !reflect.DeepEqual(got, conds) {
+	if got := a.GetConditions(context.TODO()); !reflect.DeepEqual(got, conds) {
 		for i, c := range got {
 			t.Logf("condition %d: %s", i, c)
 		}
@@ -40,12 +40,12 @@ func TestAuthUsingSignerAndSigners(t *testing.T) {
 	}
 
 	for i, c := range conds {
-		if !a.HasAddress(nil, c.Address()) {
+		if !a.HasAddress(context.TODO(), c.Address()) {
 			t.Errorf("condition %d (%s) address should be present", i, c)
 		}
 	}
 
-	if a.HasAddress(nil, NewCondition().Address()) {
+	if a.HasAddress(context.TODO(), NewCondition().Address()) {
 		t.Fatal("random condition must not be present")
 	}
 }
@@ -53,15 +53,15 @@ func TestAuthUsingSignerAndSigners(t *testing.T) {
 func TestAuthUsingSigner(t *testing.T) {
 	a := Auth{Signer: NewCondition()}
 
-	if got := a.GetConditions(nil); len(got) != 1 || !got[0].Equals(a.Signer) {
+	if got := a.GetConditions(context.TODO()); len(got) != 1 || !got[0].Equals(a.Signer) {
 		t.Fatalf("unexpected conditions: %+v", got)
 	}
 
-	if !a.HasAddress(nil, a.Signer.Address()) {
+	if !a.HasAddress(context.TODO(), a.Signer.Address()) {
 		t.Error("signer condition should be present")
 	}
 
-	if a.HasAddress(nil, NewCondition().Address()) {
+	if a.HasAddress(context.TODO(), NewCondition().Address()) {
 		t.Fatal("random condition must not be present")
 	}
 }
@@ -74,7 +74,7 @@ func TestAuthUsingSigners(t *testing.T) {
 	}
 	a := Auth{Signers: conds}
 
-	if got := a.GetConditions(nil); !reflect.DeepEqual(got, conds) {
+	if got := a.GetConditions(context.TODO()); !reflect.DeepEqual(got, conds) {
 		for i, c := range got {
 			t.Logf("condition %d: %s", i, c)
 		}
@@ -82,12 +82,12 @@ func TestAuthUsingSigners(t *testing.T) {
 	}
 
 	for i, c := range conds {
-		if !a.HasAddress(nil, c.Address()) {
+		if !a.HasAddress(context.TODO(), c.Address()) {
 			t.Errorf("condition %d (%s) address should be present", i, c)
 		}
 	}
 
-	if a.HasAddress(nil, NewCondition().Address()) {
+	if a.HasAddress(context.TODO(), NewCondition().Address()) {
 		t.Fatal("random condition must not be present")
 	}
 }

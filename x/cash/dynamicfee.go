@@ -65,7 +65,8 @@ func (d DynamicFeeDecorator) Check(ctx weave.Context, store weave.KVStore, tx we
 
 	defer func() {
 		if cerr == nil {
-			cache.Write()
+			//TODO: Panic?
+			_ = cache.Write()
 			cres.GasPayment += toPayment(fee)
 		} else {
 			cache.Discard()
@@ -96,7 +97,8 @@ func (d DynamicFeeDecorator) Deliver(ctx weave.Context, store weave.KVStore, tx 
 
 	defer func() {
 		if derr == nil {
-			cache.Write()
+			//TODO: Panic?
+			_ = cache.Write()
 		} else {
 			cache.Discard()
 			_ = d.chargeMinimalFee(store, payer)

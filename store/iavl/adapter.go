@@ -33,7 +33,11 @@ func NewCommitStore(path, name string) CommitStore {
 
 	tree := iavl.NewMutableTree(db, DefaultCacheSize)
 	commit := CommitStore{tree, DefaultHistory}
-	commit.LoadLatestVersion()
+	err = commit.LoadLatestVersion()
+	if err != nil {
+		panic(err)
+	}
+
 	return commit
 }
 
@@ -72,7 +76,7 @@ func (s CommitStore) Commit() (store.CommitID, error) {
 	// Potentially release an old version of history
 	if s.numHistory > 0 && (s.numHistory < version) {
 		toRelease := version - s.numHistory
-		s.tree.DeleteVersion(toRelease)
+		return store.CommitID{}, s.tree.DeleteVersion(toRelease)
 	}
 
 	c := store.CommitID{
@@ -175,8 +179,8 @@ func (a adapter) Iterator(start, end []byte) (store.Iterator, error) {
 		a.tree.IterateRange(start, end, true, iter.add)
 		iter.Close()
 	}()
-	iter.Next()
-	return iter, nil
+
+	return iter, iter.Next()
 }
 
 // ReverseIterator over a domain of keys in descending order. End is exclusive.
@@ -188,6 +192,6 @@ func (a adapter) ReverseIterator(start, end []byte) (store.Iterator, error) {
 		a.tree.IterateRange(start, end, false, iter.add)
 		iter.Close()
 	}()
-	iter.Next()
-	return iter, nil
+
+	return iter, iter.Next()
 }

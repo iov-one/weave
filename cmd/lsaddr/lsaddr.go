@@ -29,6 +29,7 @@ var converters = map[string]converter{
 	},
 }
 
+//nolint
 func main() {
 	fl := flag.NewFlagSet("", flag.ExitOnError)
 	offsetFl := fl.Int("offset", 1, "Ignore first N contract addresses.")
@@ -84,6 +85,7 @@ func converterNames() string {
 	return strings.Join(names, ", ")
 }
 
+//nolint
 func printAddresses(out io.Writer, addr converter, header bool, limit, offset int) {
 	w := tabwriter.NewWriter(out, 2, 0, 2, ' ', 0)
 	defer w.Flush()

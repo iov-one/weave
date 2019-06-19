@@ -1,9 +1,10 @@
 package weave
 
 import (
+	"strings"
+
 	"github.com/iov-one/weave/errors"
 	abci "github.com/tendermint/tendermint/abci/types"
-	"strings"
 )
 
 // CommitInfoFromABCI converts abci commit info to weave native type.

@@ -43,6 +43,7 @@ func RunTendermint(ctx context.Context, t *testing.T, home string) (cleanup func
 	t.Logf("Running %s pid=%d", tmpath, cmd.Process.Pid)
 
 	// Return a cleanup function, that will wait for the tendermint to stop.
+	//nolint
 	return func() {
 		cmd.Process.Kill()
 		cmd.Wait()

@@ -98,7 +98,7 @@ func TestChainAddressValidation(t *testing.T) {
 			if spec.expError {
 				assert.Error(t, c.Validate())
 			} else {
-				assert.NoError(t, c.Validate())
+				assert.Nil(t, c.Validate())
 			}
 		})
 	}

@@ -10,6 +10,7 @@ import (
 	"github.com/iov-one/weave/x/gov"
 )
 
+//nolint
 func cmdTransactionView(input io.Reader, output io.Writer, args []string) error {
 	fl := flag.NewFlagSet("", flag.ExitOnError)
 	fl.Usage = func() {

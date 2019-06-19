@@ -7,10 +7,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/iov-one/weave/weavetest/assert"
+
 	"github.com/iov-one/weave/cmd/bnsd/app"
 	"github.com/iov-one/weave/commands/server"
 	"github.com/iov-one/weave/tmtest"
-	"github.com/stretchr/testify/require"
 	"github.com/tendermint/tendermint/libs/log"
 )
 
@@ -25,7 +26,7 @@ func TestStartStandAlone(t *testing.T) {
 	logger := log.NewNopLogger()
 
 	err := server.InitCmd(app.GenInitOptions, logger, home, nil)
-	require.NoError(t, err)
+	assert.Nil(t, err)
 
 	// set up app and start up
 	args := []string{"-bind", "localhost:11122"}
@@ -34,7 +35,7 @@ func TestStartStandAlone(t *testing.T) {
 	}
 	timeout := time.Duration(2) * time.Second
 	err = runOrTimeout(runStart, timeout)
-	require.NoError(t, err)
+	assert.Nil(t, err)
 }
 
 func runOrTimeout(cmd func() error, timeout time.Duration) error {
@@ -71,7 +72,7 @@ func TestStartWithTendermint(t *testing.T) {
 	logger := log.NewTMLogger(log.NewSyncWriter(os.Stdout)).
 		With("module", "test-cmd")
 	err := server.InitCmd(app.GenInitOptions, logger, home, nil)
-	require.NoError(t, err)
+	assert.Nil(t, err)
 
 	defer tmtest.RunTendermint(ctx, t, home)()
 

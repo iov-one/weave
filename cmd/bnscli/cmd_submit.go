@@ -8,6 +8,7 @@ import (
 	"github.com/iov-one/weave/cmd/bnsd/client"
 )
 
+//nolint
 func cmdSubmitTransaction(input io.Reader, output io.Writer, args []string) error {
 	fl := flag.NewFlagSet("", flag.ExitOnError)
 	fl.Usage = func() {

@@ -5,6 +5,9 @@ package app
 
 import (
 	fmt "fmt"
+	io "io"
+	math "math"
+
 	_ "github.com/gogo/protobuf/gogoproto"
 	proto "github.com/gogo/protobuf/proto"
 	username "github.com/iov-one/weave/cmd/bnsd/x/nft/username"
@@ -19,8 +22,6 @@ import (
 	nft "github.com/iov-one/weave/x/nft"
 	sigs "github.com/iov-one/weave/x/sigs"
 	validators "github.com/iov-one/weave/x/validators"
-	io "io"
-	math "math"
 )
 
 // Reference imports to suppress errors if they are not otherwise used.

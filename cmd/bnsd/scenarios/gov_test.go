@@ -78,7 +78,7 @@ func TestGovProposalCreateAndExecute(t *testing.T) {
 
 	// Having a proposal, we can vote on it. Gathering enough votes must
 	// execute cached SendMsg message and make Carl rich!
-	wait := proposalStartTime.Sub(time.Now()) + 1*time.Second // 1s buffer
+	wait := time.Until(proposalStartTime) + 1*time.Second // 1s buffer
 	t.Logf("waiting for %s so that the newly created proposal has started and can be voted on", wait)
 	time.Sleep(wait)
 
@@ -138,7 +138,7 @@ func TestGovProposalCreateAndExecute(t *testing.T) {
 		return
 	}
 
-	wait = x.VotingEndTime.Time().Sub(time.Now()) + time.Second
+	wait = time.Until(x.VotingEndTime.Time()) + time.Second
 	t.Logf("waiting for %s so that proposal voting period has ended", wait)
 	time.Sleep(wait)
 

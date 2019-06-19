@@ -21,11 +21,11 @@ func TestQueryValidatorUpdateSigner(t *testing.T) {
 	defer cleanup()
 
 	r, err := client.NewClient(env.Client.TendermintClient()).AbciQuery("/validators", []byte("accounts"))
-	require.NoError(t, err)
+	assert.Nil(t, err)
 	require.Len(t, r.Models, 1)
 
 	var accounts validators.Accounts
-	require.NoError(t, accounts.Unmarshal(r.Models[0].Value))
+	assert.Nil(t, accounts.Unmarshal(r.Models[0].Value))
 	require.Len(t, accounts.Addresses, 1)
 	assert.Contains(t, accounts.Addresses, []byte(env.MultiSigContract.Address()), "multisig address not found")
 }
@@ -35,7 +35,7 @@ func TestUpdateValidatorSet(t *testing.T) {
 	defer cleanup()
 
 	current, err := client.Admin(client.NewClient(env.Client.TendermintClient())).GetValidators(client.CurrentHeight)
-	require.NoError(t, err)
+	assert.Nil(t, err)
 
 	newValidator := ed25519.GenPrivKey()
 	keyEd25519 := newValidator.PubKey().(ed25519.PubKeyEd25519)
@@ -60,13 +60,13 @@ func TestUpdateValidatorSet(t *testing.T) {
 	addValidatorTX.Multisig = [][]byte{contractID}
 
 	seq, err := aNonce.Next()
-	require.NoError(t, err)
-	require.NoError(t, client.SignTx(addValidatorTX, env.Alice, env.ChainID, seq))
+	assert.Nil(t, err)
+	assert.Nil(t, client.SignTx(addValidatorTX, env.Alice, env.ChainID, seq))
 	resp := env.Client.BroadcastTx(addValidatorTX)
 
 	// then
 	t.Logf("Adding validator: %X\n", keyEd25519)
-	require.NoError(t, resp.IsError())
+	assert.Nil(t, resp.IsError())
 
 	// and tendermint validator set is updated
 	tmValidatorSet := awaitValidatorUpdate(env, resp.Response.Height+2)
@@ -89,12 +89,12 @@ func TestUpdateValidatorSet(t *testing.T) {
 
 	// then
 	seq, err = aNonce.Next()
-	require.NoError(t, err)
-	require.NoError(t, client.SignTx(delValidatorTX, env.Alice, env.ChainID, seq))
+	assert.Nil(t, err)
+	assert.Nil(t, client.SignTx(delValidatorTX, env.Alice, env.ChainID, seq))
 	resp = env.Client.BroadcastTx(delValidatorTX)
 
 	// then
-	require.NoError(t, resp.IsError())
+	assert.Nil(t, resp.IsError())
 	t.Logf("Removed validator: %X\n", keyEd25519)
 
 	// and tendermint validator set is updated

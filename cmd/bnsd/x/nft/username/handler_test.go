@@ -29,7 +29,7 @@ func TestHandleIssueTokenMsg(t *testing.T) {
 		Address:      "bobsChainAddress",
 	}
 	o, _ := bucket.Create(db, bob.Address(), []byte("existing@example.com"), nil, []username.ChainAddress{bobsAddress})
-	bucket.Save(db, o)
+	assert.Nil(t, bucket.Save(db, o))
 
 	handler := username.NewIssueHandler(
 		&weavetest.Auth{Signer: alice}, nil, bucket)
@@ -134,24 +134,24 @@ func TestHandleIssueTokenMsg(t *testing.T) {
 				},
 			}
 
-			_, err := handler.Check(nil, cache, tx)
+			_, err := handler.Check(context.TODO(), cache, tx)
 			if spec.expCheckError {
 				require.Error(t, err)
 				return
 			}
-			require.NoError(t, err)
+			assert.Nil(t, err)
 
-			res, err := handler.Deliver(nil, cache, tx)
+			res, err := handler.Deliver(context.TODO(), cache, tx)
 			if spec.expDeliverError {
 				assert.Error(t, err)
 				return
 			}
-			require.NoError(t, err)
+			assert.Nil(t, err)
 			require.NotNil(t, res)
 			assert.Equal(t, uint32(0), res.ToABCI().Code)
 
 			o, err := bucket.Get(cache, spec.id)
-			require.NoError(t, err)
+			assert.Nil(t, err)
 			require.NotNil(t, o)
 			u, _ := username.AsUsername(o)
 			if len(spec.details.Addresses) == 0 {
@@ -183,8 +183,8 @@ func TestIssueUsernameTx(t *testing.T) {
 			},
 		},
 	}
-	res, err := handler.Deliver(nil, db, tx)
-	require.NoError(t, err)
+	res, err := handler.Deliver(context.TODO(), db, tx)
+	assert.Nil(t, err)
 	assert.Equal(t, []common.KVPair{{Key: []byte("msgType"), Value: []byte("registerUsername")}}, res.Tags)
 
 }
@@ -198,9 +198,9 @@ func TestQueryUsernameToken(t *testing.T) {
 	db := store.MemStore()
 	bucket := username.NewBucket()
 	o1, _ := bucket.Create(db, alice.Address(), []byte("alice@example.com"), nil, aliceAddress)
-	bucket.Save(db, o1)
+	assert.Nil(t, bucket.Save(db, o1))
 	o2, _ := bucket.Create(db, bob.Address(), []byte("bob@example.com"), nil, bobAddress)
-	require.NoError(t, bucket.Save(db, o2))
+	assert.Nil(t, bucket.Save(db, o2))
 
 	qr := weave.NewQueryRouter()
 	username.RegisterQuery(qr)
@@ -237,14 +237,14 @@ func TestQueryUsernameToken(t *testing.T) {
 			require.NotNil(t, h)
 			mods, err := h.Query(db, "", spec.data)
 
-			require.NoError(t, err)
+			assert.Nil(t, err)
 			require.Len(t, mods, 1)
 
 			assert.Equal(t, bucket.DBKey([]byte(spec.expUsername)), mods[0].Key)
 			got, err := bucket.Parse(nil, mods[0].Value)
-			require.NoError(t, err)
+			assert.Nil(t, err)
 			_, err = username.AsUsername(got)
-			require.NoError(t, err)
+			assert.Nil(t, err)
 		})
 	}
 }
@@ -259,10 +259,10 @@ func TestAddChainAddress(t *testing.T) {
 
 	myAddress := []username.ChainAddress{{BlockchainID: []byte("myNet"), Address: "myChainAddress"}}
 	o, _ := bucket.Create(db, alice.Address(), []byte("alice@example.com"), nil, myAddress)
-	bucket.Save(db, o)
+	assert.Nil(t, bucket.Save(db, o))
 	myOtherAddress := []username.ChainAddress{{BlockchainID: []byte("myOtherNet"), Address: "myOtherChainAddress"}}
 	o, _ = bucket.Create(db, alice.Address(), []byte("anyOther@example.com"), nil, myOtherAddress)
-	bucket.Save(db, o)
+	assert.Nil(t, bucket.Save(db, o))
 	myNextAddress := []username.ChainAddress{{BlockchainID: []byte("myNextNet"), Address: "myNextChainAddress"}}
 	o, _ = bucket.Create(db,
 		bob.Address(),
@@ -271,7 +271,7 @@ func TestAddChainAddress(t *testing.T) {
 			Action:    nft.UpdateDetails,
 			Approvals: []nft.Approval{{Options: nft.ApprovalOptions{Count: 10, UntilBlockHeight: 5}, Address: alice.Address()}},
 		}}, myNextAddress)
-	bucket.Save(db, o)
+	assert.Nil(t, bucket.Save(db, o))
 	handler := username.NewAddChainAddressHandler(
 		&weavetest.Auth{Signer: alice}, nil, bucket)
 
@@ -281,7 +281,6 @@ func TestAddChainAddress(t *testing.T) {
 		newChainID      []byte
 		expCheckError   bool
 		expDeliverError bool
-		expCount        int64
 		ctx             weave.Context
 		expApprovals    nft.Approvals
 		expChainAddress []username.ChainAddress
@@ -372,7 +371,7 @@ func TestAddChainAddress(t *testing.T) {
 				require.Error(t, err)
 				return
 			}
-			require.NoError(t, err)
+			assert.Nil(t, err)
 			cache.Discard()
 
 			res, err := handler.Deliver(spec.ctx, cache, tx)
@@ -380,13 +379,13 @@ func TestAddChainAddress(t *testing.T) {
 				assert.Error(t, err)
 				return
 			}
-			require.NoError(t, err)
+			assert.Nil(t, err)
 			require.NotNil(t, res)
 			assert.Equal(t, uint32(0), res.ToABCI().Code)
 
 			// Ensure entity is persisted.
 			o, err = bucket.Get(cache, spec.id)
-			require.NoError(t, err)
+			assert.Nil(t, err)
 			require.NotNil(t, o)
 			u, _ := username.AsUsername(o)
 			assert.EqualValues(t, spec.expChainAddress, u.GetChainAddresses())
@@ -408,7 +407,7 @@ func TestRemoveChainAddress(t *testing.T) {
 
 	myAddresses := []username.ChainAddress{{BlockchainID: []byte("myChainID"), Address: "myChainAddress"}, {BlockchainID: []byte("myOtherNet"), Address: "myOtherChainAddress"}}
 	o, _ := bucket.Create(db, alice.Address(), []byte("alice@example.com"), nil, myAddresses)
-	bucket.Save(db, o)
+	assert.Nil(t, bucket.Save(db, o))
 
 	handler := username.NewRemoveChainAddressHandler(
 		&weavetest.Auth{Signer: alice}, nil, bucket)
@@ -463,20 +462,20 @@ func TestRemoveChainAddress(t *testing.T) {
 				require.Error(t, err)
 				return
 			}
-			require.NoError(t, err)
+			assert.Nil(t, err)
 
 			res, err := handler.Deliver(ctx, db, tx)
 			if spec.expDeliverError {
 				assert.Error(t, err)
 				return
 			}
-			require.NoError(t, err)
+			assert.Nil(t, err)
 			require.NotNil(t, res)
 			assert.Equal(t, uint32(0), res.ToABCI().Code)
 
 			// Ensure entity is persisted.
 			o, err = bucket.Get(db, spec.id)
-			require.NoError(t, err)
+			assert.Nil(t, err)
 			require.NotNil(t, o)
 			u, _ := username.AsUsername(o)
 			assert.Len(t, u.GetChainAddresses(), 1)

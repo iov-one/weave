@@ -76,7 +76,7 @@ func TestQueryPrefix(t *testing.T) {
 		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
 			db := store.MemStore()
 			for _, m := range tc.models {
-				db.Set(m.Key, m.Value)
+				assert.Nil(t, db.Set(m.Key, m.Value))
 			}
 
 			res, err := queryPrefix(db, tc.prefix)

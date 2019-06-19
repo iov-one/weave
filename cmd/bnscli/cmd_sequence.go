@@ -8,6 +8,7 @@ import (
 	"strconv"
 )
 
+//nolint
 func cmdAsSequence(input io.Reader, output io.Writer, args []string) error {
 	fl := flag.NewFlagSet("", flag.ExitOnError)
 	fl.Usage = func() {
@@ -29,6 +30,7 @@ Convet given number into a hex-encoded sequence representation.
 	return nil
 }
 
+//nolint
 func cmdFromSequence(input io.Reader, output io.Writer, args []string) error {
 	fl := flag.NewFlagSet("", flag.ExitOnError)
 	fl.Usage = func() {

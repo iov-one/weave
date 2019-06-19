@@ -254,9 +254,7 @@ func (b *BnsClient) BroadcastTxSync(tx weave.Tx, timeout time.Duration) Broadcas
 
 	txe, ok := evt.(tmtypes.EventDataTx)
 	if !ok {
-		if err != nil {
-			return BroadcastTxResponse{Error: fmt.Errorf("WaitForOneEvent did not return an EventDataTx object")}
-		}
+		return BroadcastTxResponse{Error: fmt.Errorf("WaitForOneEvent did not return an EventDataTx object")}
 	}
 
 	return BroadcastTxResponse{
@@ -280,6 +278,7 @@ func (b *BnsClient) WaitForTxEvent(tx tmtypes.Tx, evtTyp string, timeout time.Du
 	}
 
 	// make sure to unregister after the test is over
+	//nolint
 	defer b.conn.UnsubscribeAll(ctx, uuid)
 
 	select {
@@ -344,6 +343,7 @@ func (b *BnsClient) Subscribe(query tmpubsub.Query) (<-chan ctypes.ResultEvent, 
 		return out, nil, err
 	}
 	cancel := func() {
+		//nolint
 		b.conn.Unsubscribe(ctx, b.subscriber, query.String())
 	}
 	return out, cancel, nil

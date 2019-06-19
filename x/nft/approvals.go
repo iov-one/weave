@@ -97,7 +97,7 @@ func (m Approvals) Validate(actionMaps ...map[Action]int32) error {
 }
 
 func (m Approvals) FilterExpired(blockHeight int64) Approvals {
-	res := make(map[Action]ApprovalMeta, 0)
+	res := make(map[Action]ApprovalMeta)
 	for action, approvals := range m {
 		for _, approval := range approvals {
 			if approval.Options.UntilBlockHeight > 0 && approval.Options.UntilBlockHeight < blockHeight {
@@ -135,13 +135,13 @@ func (m Approvals) MetaByAction(action Action) ApprovalMeta {
 }
 
 func (m Approvals) ForAction(action Action) Approvals {
-	res := make(map[Action]ApprovalMeta, 0)
+	res := make(map[Action]ApprovalMeta)
 	res[action] = m.MetaByAction(action)
 	return res
 }
 
 func (m Approvals) ForAddress(addr weave.Address) Approvals {
-	res := make(map[Action]ApprovalMeta, 0)
+	res := make(map[Action]ApprovalMeta)
 	for k, v := range m {
 		r := make([]Approval, 0)
 		for _, vv := range v {
@@ -157,7 +157,7 @@ func (m Approvals) ForAddress(addr weave.Address) Approvals {
 }
 
 func (m Approvals) Filter(obsolete Approvals) Approvals {
-	res := make(map[Action]ApprovalMeta, 0)
+	res := make(map[Action]ApprovalMeta)
 
 ApprovalsLoop:
 	for action, approvals := range m {
@@ -180,7 +180,7 @@ func (m Approvals) Add(action Action, approval Approval) Approvals {
 }
 
 func (m Approvals) UseCount() Approvals {
-	res := make(map[Action]ApprovalMeta, 0)
+	res := make(map[Action]ApprovalMeta)
 	for action, approvals := range m {
 		for _, approval := range approvals {
 			if approval.Options.Count == 0 {
@@ -224,7 +224,7 @@ func (m Approvals) MergeUsed(used Approvals) Approvals {
 }
 
 func (m Approvals) Intersect(others Approvals) Approvals {
-	res := make(map[Action]ApprovalMeta, 0)
+	res := make(map[Action]ApprovalMeta)
 	for action, approvals := range others {
 		mApprovals := m[action]
 		for _, src := range approvals {

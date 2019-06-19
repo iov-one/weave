@@ -8,6 +8,7 @@ import (
 )
 
 var (
+	//nolint
 	// errInternal should never be exposed, but we reserve this code for non-specified errors
 	errInternal = Register(1, "internal")
 

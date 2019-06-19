@@ -7,11 +7,11 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/iov-one/weave/weavetest/assert"
+
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
 	. "github.com/smartystreets/goconvey/convey"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestAddressPrinting(t *testing.T) {
@@ -166,7 +166,7 @@ func TestConditionMarshalJSON(t *testing.T) {
 	for testName, tc := range cases {
 		t.Run(testName, func(t *testing.T) {
 			got, err := json.Marshal(tc.source)
-			require.NoError(t, err)
+			assert.Nil(t, err)
 			assert.Equal(t, tc.wantJson, string(got))
 		})
 	}

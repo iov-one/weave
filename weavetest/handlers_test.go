@@ -1,6 +1,7 @@
 package weavetest
 
 import (
+	"context"
 	"reflect"
 	"testing"
 
@@ -14,17 +15,18 @@ func TestHandlerWithError(t *testing.T) {
 		DeliverErr: errors.ErrNotFound,
 	}
 
-	_, err := h.Check(nil, nil, nil)
+	_, err := h.Check(context.TODO(), nil, nil)
 	if want := errors.ErrUnauthorized; !want.Is(err) {
 		t.Errorf("want %q, got %q", want, err)
 	}
 
-	_, err = h.Deliver(nil, nil, nil)
+	_, err = h.Deliver(context.TODO(), nil, nil)
 	if want := errors.ErrNotFound; !want.Is(err) {
 		t.Errorf("want %q, got %q", want, err)
 	}
 }
 
+//nolint
 func TestHandlerCallCount(t *testing.T) {
 	var h Handler
 
@@ -81,11 +83,11 @@ func TestHandlerResult(t *testing.T) {
 		DeliverResult: wantDres,
 	}
 
-	gotCres, _ := h.Check(nil, nil, nil)
+	gotCres, _ := h.Check(context.TODO(), nil, nil)
 	if !reflect.DeepEqual(&wantCres, gotCres) {
 		t.Fatalf("got check result: %+v", gotCres)
 	}
-	gotDres, _ := h.Deliver(nil, nil, nil)
+	gotDres, _ := h.Deliver(context.TODO(), nil, nil)
 	if !reflect.DeepEqual(&wantDres, gotDres) {
 		t.Fatalf("got deliver result: %+v", gotDres)
 	}

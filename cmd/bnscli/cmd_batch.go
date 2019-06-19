@@ -17,6 +17,7 @@ import (
 	"github.com/iov-one/weave/x/validators"
 )
 
+//nolint
 func cmdAsBatch(input io.Reader, output io.Writer, args []string) error {
 	fl := flag.NewFlagSet("", flag.ExitOnError)
 	fl.Usage = func() {

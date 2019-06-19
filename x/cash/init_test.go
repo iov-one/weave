@@ -20,7 +20,7 @@ func TestInitState(t *testing.T) {
 	accts := []GenesisAccount{{Address: addr, Set: coins}}
 
 	bz, err := json.Marshal(accts)
-	require.NoError(t, err)
+	assert.Nil(t, err)
 
 	// hardcode
 	bz2 := []byte(`[{"address":"0102030405060708090021222324252627282930",
@@ -39,7 +39,7 @@ func TestInitState(t *testing.T) {
 		},
 	}
 	rawConfig, err := json.Marshal(config)
-	require.NoError(t, err)
+	assert.Nil(t, err)
 
 	badConfig := map[string]interface{}{
 		"cash": Configuration{
@@ -47,7 +47,7 @@ func TestInitState(t *testing.T) {
 		},
 	}
 	rawInvalid, err := json.Marshal(badConfig)
-	require.NoError(t, err)
+	assert.Nil(t, err)
 
 	cases := [...]struct {
 		opts    weave.Options
@@ -83,12 +83,12 @@ func TestInitState(t *testing.T) {
 			if tc.isError {
 				require.Error(t, err)
 			} else {
-				require.NoError(t, err)
+				assert.Nil(t, err)
 			}
 
 			if tc.acct != nil {
 				acct, err := bucket.Get(kv, tc.acct)
-				require.NoError(t, err)
+				assert.Nil(t, err)
 				if assert.NotNil(t, acct) {
 					assert.EqualValues(t, tc.wallet.Coins, AsCoins(acct))
 				}

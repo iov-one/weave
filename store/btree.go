@@ -119,15 +119,13 @@ func (b BTreeCacheWrap) Discard() {
 // Set writes to the BTree and to the batch
 func (b BTreeCacheWrap) Set(key, value []byte) error {
 	b.bt.ReplaceOrInsert(newSetItem(key, value))
-	b.batch.Set(key, value)
-	return nil
+	return b.batch.Set(key, value)
 }
 
 // Delete deletes from the BTree and to the batch
 func (b BTreeCacheWrap) Delete(key []byte) error {
 	b.bt.ReplaceOrInsert(newDeletedItem(key))
-	b.batch.Delete(key)
-	return nil
+	return b.batch.Delete(key)
 }
 
 // Get reads from btree if there, else backing store

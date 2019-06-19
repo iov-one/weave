@@ -5,12 +5,13 @@ package app
 
 import (
 	fmt "fmt"
+	io "io"
+	math "math"
+
 	proto "github.com/gogo/protobuf/proto"
 	cash "github.com/iov-one/weave/x/cash"
 	sigs "github.com/iov-one/weave/x/sigs"
 	validators "github.com/iov-one/weave/x/validators"
-	io "io"
-	math "math"
 )
 
 // Reference imports to suppress errors if they are not otherwise used.

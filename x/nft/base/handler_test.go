@@ -10,6 +10,7 @@ import (
 	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/store"
 	"github.com/iov-one/weave/weavetest"
+	"github.com/iov-one/weave/weavetest/assert"
 	"github.com/iov-one/weave/x/nft"
 	"github.com/iov-one/weave/x/nft/base"
 	. "github.com/smartystreets/goconvey/convey"
@@ -40,27 +41,27 @@ func TestApprovalOpsHandler(t *testing.T) {
 		handler := base.NewApprovalOpsHandler(&weavetest.Auth{Signer: bob}, nil, nftBuckets)
 
 		o, _ := userBucket.Create(db, bob.Address(), bobsUsername, nil, nil)
-		userBucket.Save(db, o)
+		assert.Nil(t, userBucket.Save(db, o))
 		o, _ = userBucket.Create(db, alice.Address(), aliceWithBobApproval, []nft.ActionApprovals{{
 			Action:    nft.UpdateApprovals,
 			Approvals: []nft.Approval{{Options: nft.ApprovalOptions{Count: 10, UntilBlockHeight: 5}, Address: bob.Address()}},
 		}}, nil)
-		userBucket.Save(db, o)
+		assert.Nil(t, userBucket.Save(db, o))
 		o, _ = userBucket.Create(db, bob.Address(), bobWithAliceApproval, []nft.ActionApprovals{{
 			Action:    nft.UpdateApprovals,
 			Approvals: []nft.Approval{{Options: nft.ApprovalOptions{Count: nft.UnlimitedCount}, Address: alice.Address()}},
 		}}, nil)
-		userBucket.Save(db, o)
+		assert.Nil(t, userBucket.Save(db, o))
 		o, _ = userBucket.Create(db, bob.Address(), bobWithAliceImmutableApproval, []nft.ActionApprovals{{
 			Action:    nft.UpdateApprovals,
 			Approvals: []nft.Approval{{Options: nft.ApprovalOptions{Count: nft.UnlimitedCount, Immutable: true}, Address: alice.Address()}},
 		}}, nil)
-		userBucket.Save(db, o)
+		assert.Nil(t, userBucket.Save(db, o))
 		o, _ = userBucket.Create(db, bob.Address(), bobWithAliceTimeoutApproval, []nft.ActionApprovals{{
 			Action:    nft.UpdateApprovals,
 			Approvals: []nft.Approval{{Options: nft.ApprovalOptions{Count: nft.UnlimitedCount, UntilBlockHeight: 5}, Address: alice.Address()}},
 		}}, nil)
-		userBucket.Save(db, o)
+		assert.Nil(t, userBucket.Save(db, o))
 
 		Convey("Test add", func() {
 			msg := &nft.AddApprovalMsg{

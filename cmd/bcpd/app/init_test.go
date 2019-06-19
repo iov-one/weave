@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestGenInitOptions(t *testing.T) {
@@ -23,7 +22,7 @@ func TestGenInitOptions(t *testing.T) {
 	for i, tc := range cases {
 		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
 			val, err := GenInitOptions(tc.args)
-			require.NoError(t, err)
+			assert.Nil(t, err)
 
 			cc := fmt.Sprintf(`"ticker": "%s"`, tc.cur)
 			assert.Contains(t, string(val), cc)

@@ -5,11 +5,12 @@ package namecoin
 
 import (
 	fmt "fmt"
+	io "io"
+	math "math"
+
 	proto "github.com/gogo/protobuf/proto"
 	weave "github.com/iov-one/weave"
 	coin "github.com/iov-one/weave/coin"
-	io "io"
-	math "math"
 )
 
 // Reference imports to suppress errors if they are not otherwise used.

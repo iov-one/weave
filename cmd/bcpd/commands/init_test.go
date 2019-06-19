@@ -25,13 +25,13 @@ func TestInit(t *testing.T) {
 	logger := log.NewNopLogger()
 	args := []string{"ETH", "a5dd251d3cd29dae900b089218ae9740165139fa"}
 	err := server.InitCmd(app.GenInitOptions, logger, home, args)
-	require.NoError(t, err)
+	assert.Nil(t, err)
 
 	// make sure we set proper data
 	genFile := filepath.Join(home, "config", "genesis.json")
 
 	bz, err := ioutil.ReadFile(genFile)
-	require.NoError(t, err)
+	assert.Nil(t, err)
 
 	var genesis struct {
 		State struct {
@@ -42,12 +42,12 @@ func TestInit(t *testing.T) {
 		} `json:"app_state"`
 	}
 	err = json.Unmarshal(bz, &genesis)
-	require.NoErrorf(t, err, "cannot unmarshal genesis: %s", err)
+	assert.Nilf(t, err, "cannot unmarshal genesis: %s", err)
 
 	require.Equal(t, 1, len(genesis.State.Cash), string(bz))
 	wallet := genesis.State.Cash[0]
 	want, err := hex.DecodeString(args[1])
-	assert.NoError(t, err)
+	assert.Nil(t, err)
 	assert.Equal(t, weave.Address(want), wallet.Address)
 	require.Equal(t, 1, len(wallet.Coins), "Genesis: %s", bz)
 	assert.Equal(t, &coin.Coin{Ticker: args[0], Whole: 123456789}, wallet.Coins[0])
@@ -60,9 +60,9 @@ func TestInit(t *testing.T) {
 // via `tendermint init`. Current version v0.16.0
 func setupConfig(t *testing.T) string {
 	rootDir, err := ioutil.TempDir("", "mock-sdk-cmd")
-	require.NoError(t, err)
+	assert.Nil(t, err)
 	err = copyConfigFiles(t, rootDir)
-	require.NoError(t, err)
+	assert.Nil(t, err)
 	return rootDir
 }
 

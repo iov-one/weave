@@ -77,9 +77,7 @@ func (u *UsernameToken) Copy() orm.CloneableData {
 
 func (t *TokenDetails) Clone() *TokenDetails {
 	a := make([]ChainAddress, len(t.Addresses))
-	for i, v := range t.Addresses {
-		a[i] = v
-	}
+	copy(a, t.Addresses)
 	return &TokenDetails{Addresses: a}
 }
 

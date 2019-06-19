@@ -619,7 +619,7 @@ func TestVote(t *testing.T) {
 						Elector:  Elector{Address: hBobby, Weight: 10},
 					},
 				)
-				vBucket.Save(db, obj)
+				assert.Nil(t, vBucket.Save(db, obj))
 			},
 			Mods: func(ctx weave.Context, proposal *Proposal) {
 				proposal.VoteState.TotalYes = 10
@@ -639,7 +639,7 @@ func TestVote(t *testing.T) {
 						Elector:  Elector{Address: hAlice, Weight: 1},
 					},
 				)
-				vBucket.Save(db, obj)
+				assert.Nil(t, vBucket.Save(db, obj))
 			},
 			Mods: func(ctx weave.Context, proposal *Proposal) {
 				proposal.VoteState.TotalYes = 1
@@ -741,7 +741,7 @@ func TestVote(t *testing.T) {
 						Elector:  Elector{Address: hBobby, Weight: 10},
 					},
 				)
-				vBucket.Save(db, obj)
+				assert.Nil(t, vBucket.Save(db, obj))
 			},
 			Mods: func(ctx weave.Context, proposal *Proposal) {
 				// not a valid setup

@@ -1,6 +1,7 @@
 package app
 
 import (
+	"context"
 	"testing"
 
 	"github.com/iov-one/weave/errors"
@@ -26,25 +27,25 @@ func TestRouter(t *testing.T) {
 
 	// check proper paths work
 	assert.Equal(t, 0, h.CallCount())
-	_, err := r.Handler(good).Check(nil, nil, nil)
-	assert.NoError(t, err)
-	_, err = r.Handler(good).Deliver(nil, nil, nil)
-	assert.NoError(t, err)
+	_, err := r.Handler(good).Check(context.TODO(), nil, nil)
+	assert.Nil(t, err)
+	_, err = r.Handler(good).Deliver(context.TODO(), nil, nil)
+	assert.Nil(t, err)
 	// we count twice per decorator call
 	assert.Equal(t, 2, h.CallCount())
 
 	// check errors handler is also looked up
-	_, err = r.Handler(bad).Deliver(nil, nil, nil)
+	_, err = r.Handler(bad).Deliver(context.TODO(), nil, nil)
 	assert.Error(t, err)
 	assert.False(t, errors.ErrNotFound.Is(err))
 	assert.True(t, errors.ErrHuman.Is(err))
 	assert.Equal(t, 2, h.CallCount())
 
 	// make sure not found returns an error handler as well
-	_, err = r.Handler(missing).Deliver(nil, nil, nil)
+	_, err = r.Handler(missing).Deliver(context.TODO(), nil, nil)
 	assert.Error(t, err)
 	assert.True(t, errors.ErrNotFound.Is(err))
-	_, err = r.Handler(missing).Check(nil, nil, nil)
+	_, err = r.Handler(missing).Check(context.TODO(), nil, nil)
 	assert.Error(t, err)
 	assert.True(t, errors.ErrNotFound.Is(err))
 	assert.Equal(t, 2, h.CallCount())

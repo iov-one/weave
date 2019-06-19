@@ -96,7 +96,7 @@ func TestIssueTokenMsgValidate(t *testing.T) {
 			if spec.expError {
 				assert.Error(t, err)
 			} else {
-				assert.NoError(t, err)
+				assert.Nil(t, err)
 			}
 		})
 	}
@@ -140,7 +140,7 @@ func TestAddChainAddressMsgValidate(t *testing.T) {
 			if spec.expError {
 				assert.Error(t, err)
 			} else {
-				assert.NoError(t, err)
+				assert.Nil(t, err)
 			}
 		})
 	}
@@ -183,7 +183,7 @@ func TestRemoveChainAddressMsgValidate(t *testing.T) {
 			if spec.expError {
 				assert.Error(t, err)
 			} else {
-				assert.NoError(t, err)
+				assert.Nil(t, err)
 			}
 		})
 	}

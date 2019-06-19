@@ -5,10 +5,11 @@ package currency
 
 import (
 	fmt "fmt"
-	proto "github.com/gogo/protobuf/proto"
-	weave "github.com/iov-one/weave"
 	io "io"
 	math "math"
+
+	proto "github.com/gogo/protobuf/proto"
+	weave "github.com/iov-one/weave"
 )
 
 // Reference imports to suppress errors if they are not otherwise used.

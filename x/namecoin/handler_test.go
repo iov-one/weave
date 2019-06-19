@@ -14,10 +14,6 @@ import (
 	"github.com/iov-one/weave/x/cash"
 )
 
-type checkErr func(error) bool
-
-func noErr(err error) bool { return err == nil }
-
 // mo = must Object
 func mo(obj orm.Object, err error) orm.Object {
 	if err != nil {

@@ -15,6 +15,7 @@ import (
 	"github.com/iov-one/weave/x/sigs"
 )
 
+//nolint
 func cmdSignTransaction(
 	input io.Reader,
 	output io.Writer,

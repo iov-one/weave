@@ -55,7 +55,7 @@ func TestRemove(t *testing.T) {
 	for i, tc := range cases {
 		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
 			m, err := multiRefFromStrings(tc.init...)
-			require.NoError(t, err)
+			assert.Nil(t, err)
 
 			errCount := 0
 			for _, r := range tc.remove {

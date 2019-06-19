@@ -222,11 +222,11 @@ func TestWalletBucket(t *testing.T) {
 				require.Error(t, err)
 				return
 			}
-			require.NoError(t, err)
+			assert.Nil(t, err)
 
 			for j, q := range tc.queries {
 				obj, err := bucket.Get(db, q)
-				require.NoError(t, err)
+				assert.Nil(t, err)
 				if obj != nil {
 					assert.EqualValues(t, q, obj.Key())
 				}
@@ -235,7 +235,7 @@ func TestWalletBucket(t *testing.T) {
 
 			for j, q := range tc.queryNames {
 				obj, err := bucket.GetByName(db, q)
-				require.NoError(t, err)
+				assert.Nil(t, err)
 				if obj != nil {
 					assert.EqualValues(t, q, AsNamed(obj).GetName())
 				}
