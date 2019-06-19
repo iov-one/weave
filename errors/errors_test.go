@@ -3,7 +3,6 @@ package errors
 import (
 	stdlib "errors"
 	"fmt"
-	"reflect"
 	"testing"
 
 	"github.com/pkg/errors"
@@ -130,30 +129,6 @@ func TestErrorIs(t *testing.T) {
 		t.Run(testName, func(t *testing.T) {
 			if got := tc.a.Is(tc.b); got != tc.wantIs {
 				t.Fatalf("unexpected result - got:%v want: %v", got, tc.wantIs)
-			}
-		})
-	}
-}
-
-func TestUnwrap(t *testing.T) {
-	specs := map[string]struct {
-		src    error
-		expErr error
-		expMsg []string
-	}{
-		"Wrapped":        {src: Wrap(ErrNotFound, "myMsg"), expErr: ErrNotFound, expMsg: []string{"myMsg"}},
-		"Double wrapped": {src: Wrap(Wrap(ErrNotFound, "first"), "second"), expErr: ErrNotFound, expMsg: []string{"first", "second"}},
-		"Not Wrapped":    {src: ErrNotFound, expErr: ErrNotFound},
-		"Nil":            {src: nil, expErr: nil},
-	}
-	for msg, spec := range specs {
-		t.Run(msg, func(t *testing.T) {
-			root, msgs := unWrap(spec.src)
-			if exp, got := spec.expErr, root; !reflect.DeepEqual(exp, got) {
-				t.Errorf("expected %T but got %T", exp, got)
-			}
-			if exp, got := spec.expMsg, msgs; !reflect.DeepEqual(exp, got) {
-				t.Errorf("expected %v but got %v", exp, got)
 			}
 		})
 	}

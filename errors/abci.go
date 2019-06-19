@@ -14,8 +14,9 @@ const (
 	// All unclassified errors that do not provide an ABCI code are clubbed
 	// under an internal error code and a generic message instead of
 	// detailed error string.
-	internalABCICode uint32 = 1
-	internalABCILog         = "internal error"
+	internalABCICode   uint32 = 1
+	internalABCILog           = "internal error"
+	multiErrorABCICode        = 1000
 )
 
 // ABCIInfo returns the ABCI error information as consumed by the tendermint
@@ -34,12 +35,8 @@ func ABCIInfo(err error, debug bool) (uint32, string) {
 	if debug {
 		encode = debugErrEncoder
 	}
-	code := abciCode(err)
-	if code == multiErrCode {
-		encode = multiErrEncoder(encode)
-	}
 
-	return code, encode(err)
+	return abciCode(err), encode(err)
 }
 
 // The errEncoder converts an error into a string string representation
@@ -53,17 +50,6 @@ func debugErrEncoder(err error) string {
 // The defaultErrEncoder applies Redact on the error before encoding it with its internal error message.
 func defaultErrEncoder(err error) string {
 	return Redact(err).Error()
-}
-
-// The multiErrEncoder wraps an encoder with support for multiErr type
-func multiErrEncoder(enc errEncoder) errEncoder {
-	return func(err error) string {
-		mErr, ok := err.(multiErr)
-		if !ok {
-			return enc(err)
-		}
-		return serializeMultiErr(mErr, enc)
-	}
 }
 
 type coder interface {
