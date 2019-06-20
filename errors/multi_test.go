@@ -116,6 +116,6 @@ func TestMultiErrABCICode(t *testing.T) {
 
 func TestMultiErrABCICodeRegistered(t *testing.T) {
 	assert.Panics(t, func() {
-		Register(multiErrCode, "fails")
+		_ = Register(multiErrCode, "fails")
 	})
 }

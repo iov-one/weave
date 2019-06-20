@@ -9,6 +9,7 @@ import (
 
 var (
 	// errInternal should never be exposed, but we reserve this code for non-specified errors
+	//nolint
 	errInternal = Register(1, "internal")
 
 	// ErrUnauthorized is used whenever a request without sufficient

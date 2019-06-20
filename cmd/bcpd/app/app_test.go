@@ -636,25 +636,6 @@ func makeSendTxMultisig(t require.TestingT, chainID string, sender, receiver *co
 	return txBytes
 }
 
-func makeCreateContractTx(t require.TestingT, chainID string, signers [][]byte, threshold multisig.Weight) *Tx {
-	participants := make([]*multisig.Participant, len(signers))
-	for i, addr := range signers {
-		participants[i] = &multisig.Participant{
-			Signature: addr,
-			Weight:    1,
-		}
-	}
-	msg := &multisig.CreateContractMsg{
-		Participants:        participants,
-		ActivationThreshold: threshold,
-		AdminThreshold:      threshold,
-	}
-
-	return &Tx{
-		Sum: &Tx_CreateContractMsg{msg},
-	}
-}
-
 // benchmarkSendTxWithMultisig runs the actual benchmark sequence with multisig eg.
 // N * CheckTx
 // BeginBlock

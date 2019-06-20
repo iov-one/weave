@@ -211,8 +211,6 @@ func (b *NonAtomicBatch) Write() error {
 // it returns a copy of the internal Ops list
 func (b *NonAtomicBatch) ShowOps() []Op {
 	ops := make([]Op, len(b.ops))
-	for i, op := range b.ops {
-		ops[i] = op
-	}
+	copy(ops, b.ops)
 	return ops
 }

@@ -11,19 +11,6 @@ import (
 	"github.com/iov-one/weave/weavetest/assert"
 )
 
-type saver func(Object) error
-type transformer func(Object, saver) error
-
-func set(key []byte, n int64) transformer {
-	return func(obj Object, save saver) error {
-		if obj != nil {
-			return errors.Wrap(errors.ErrState, "expected empty")
-		}
-		obj = NewSimpleObj(key, NewCounter(n))
-		return save(obj)
-	}
-}
-
 func TestBucketName(t *testing.T) {
 	obj := NewSimpleObj(nil, &Counter{})
 

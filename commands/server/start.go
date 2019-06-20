@@ -73,11 +73,14 @@ func StartCmd(gen AppGenerator, logger log.Logger, home string, args []string) e
 		return errors.Wrap(err, "failed to create a listener")
 	}
 	svr.SetLogger(logger.With("module", "abci-server"))
-	svr.Start()
+	err = svr.Start()
+	if err != nil {
+		return errors.Wrap(err, "failed to start a server")
+	}
 	done := make(chan bool)
 	cmn.TrapSignal(logger, func() {
 		// Cleanup
-		svr.Stop()
+		_ = svr.Stop()
 		done <- true
 	})
 

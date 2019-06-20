@@ -41,6 +41,7 @@ func TestDecoratorWithError(t *testing.T) {
 	}
 }
 
+//nolint
 func TestDecoratorCallCount(t *testing.T) {
 	var d Decorator
 

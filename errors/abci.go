@@ -15,7 +15,7 @@ const (
 	// under an internal error code and a generic message instead of
 	// detailed error string.
 	internalABCICode uint32 = 1
-	internalABCILog         = "internal error"
+	internalABCILog  string = "internal error"
 )
 
 // ABCIInfo returns the ABCI error information as consumed by the tendermint
