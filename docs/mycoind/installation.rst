@@ -46,16 +46,15 @@ If you are running go 1.11.4+, you must run the following in the terminal (or ad
 ``export GO111MODULE=on``
 
 .. code:: console
-
-    go get github.com/iov-one/weave
-    cd $GOPATH/src/github.com/iov-one/weave
-    make deps
+    # cd into to your workspace that is not in your $GOPATH
+    git clone https://github.com/iov-one/weave.git
+    cd weave/examples/mycoind/
     make install
     # test it built properly
     tendermint version
-    # 0.31.5-d2eab536
+    # 0.3X.X-YYYYYYYY
     mycoind version
-    # v0.14.0-212-g04c1bf7
+    # v0.1X.X-YYYYYYYY
 
 Those were the most recent versions as of the time of the writing,
 your code should be a similar version. If you have an old version

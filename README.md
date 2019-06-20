@@ -67,15 +67,10 @@ like the following to compile both `mycoind` (sample app)
 and `tendermint` (a [BFT consensus engine](https://tendermint.com)):
 
 ```
-go get github.com/iov-one/weave
-cd $GOPATH/src/github.com/iov-one/weave
-make deps
+# cd into to your workspace that is not in your $GOPATH
+git clone https://github.com/iov-one/weave.git
+cd weave
 make install
-# test it built properly
-tendermint version
-# 0.29.1-xxxxx
-mycoind version
-# v0.11.1
 ```
 
 Note that this app relies on a separate tendermint process
