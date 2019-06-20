@@ -183,25 +183,26 @@ func (i Index) GetPrefix(db weave.ReadOnlyKVStore, prefix []byte) ([][]byte, err
 	if err != nil {
 		return nil, err
 	}
+	defer itr.Return()
 
 	var data [][]byte
-
-	for ; itr.Valid(); err = itr.Next() {
-		if err != nil {
-			return nil, err
-		}
+	_, value, err := itr.Next()
+	for err == nil {
 		if i.unique {
-			data = append(data, itr.Value())
+			data = append(data, value)
 		} else {
 			tmp := new(MultiRef)
-			err := tmp.Unmarshal(itr.Value())
+			err := tmp.Unmarshal(value)
 			if err != nil {
 				return nil, err
 			}
 			data = append(data, tmp.Refs...)
 		}
+		_, value, err = itr.Next()
 	}
-
+	if !errors.ErrDone.Is(err) {
+		return nil, err
+	}
 	return data, nil
 }
 
