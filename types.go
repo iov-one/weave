@@ -74,7 +74,7 @@ func (m ValidatorUpdates) Validate() error {
 // For bookkeeping we have an option to drop validators with zero power, because those
 // are being remove by tendermint once propagated.
 func (m ValidatorUpdates) Deduplicate(dropZeroPower bool) []ValidatorUpdate {
-	duplicates := make(map[string]int, 0)
+	duplicates := make(map[string]int)
 	cleanValidatorSlice := make([]ValidatorUpdate, 0, len(m.ValidatorUpdates))
 
 	for _, v := range m.ValidatorUpdates {
