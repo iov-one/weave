@@ -224,7 +224,7 @@ func (c *Client) subscribe(ctx context.Context, query string, options ...Option)
 	// put all variables in local scope to prevent long-lived references
 	go func(stop <-chan struct{}, sub string, q *tmquery.Query) {
 		<-stop
-		c.conn.Unsubscribe(context.Background(), sub, q.String())
+		_ = c.conn.Unsubscribe(context.Background(), sub, q.String())
 	}(ctx.Done(), subscriber, q)
 
 	return out, nil

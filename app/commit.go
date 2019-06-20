@@ -39,7 +39,9 @@ func (cs *CommitStore) CommitInfo() (weave.CommitID, error) {
 // need to think what concurrency we expect
 func (cs *CommitStore) Commit() (weave.CommitID, error) {
 	// flush deliver to store and discard check
-	cs.deliver.Write()
+	if err := cs.deliver.Write(); err != nil {
+		return weave.CommitID{}, err
+	}
 	cs.check.Discard()
 
 	// write the store to disk

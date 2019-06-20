@@ -91,9 +91,7 @@ func (m *MultiRef) findRef(ref []byte) (int, bool) {
 func (m *MultiRef) Copy() CloneableData {
 	// shallow copy...
 	refs := make([][]byte, len(m.Refs))
-	for i, r := range m.Refs {
-		refs[i] = r
-	}
+	copy(refs, m.Refs)
 	return &MultiRef{Refs: refs}
 }
 

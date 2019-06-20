@@ -23,8 +23,8 @@ func TestSimpleObj(t *testing.T) {
 	require.NoError(t, o2.Validate())
 
 	// now modify original, should not affect clone
-	val.Remove([]byte("bar"))
-	val.Remove([]byte("baz"))
+	assert.Nil(t, val.Remove([]byte("bar")))
+	assert.Nil(t, val.Remove([]byte("baz")))
 
 	assert.EqualValues(t, val, obj.Value())
 	assert.Error(t, obj.Validate())

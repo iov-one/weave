@@ -9,6 +9,9 @@ TOOLS := cmd/bcpd cmd/bnsd cmd/bnscli
 # MODE=set just records which lines were hit by one test
 MODE ?= set
 
+# Check if linter exists
+LINT := $(shell command -v golangci-lint 2> /dev/null)
+
 # for dockerized prototool
 USER := $(shell id -u):$(shell id -g)
 DOCKER_BASE := docker run --rm -v $(shell pwd):/work iov1/prototool:v0.2.2
@@ -16,7 +19,7 @@ PROTOTOOL := $(DOCKER_BASE) prototool
 PROTOC := $(DOCKER_BASE) protoc
 
 
-all: test
+all: test lint
 
 dist:
 	cd cmd/bnsd && $(MAKE) dist
@@ -31,6 +34,12 @@ test:
 
 	go vet -mod=readonly  ./...
 	go test -mod=readonly -race ./...
+
+lint:
+ifndef LINT
+	./scripts/golangci-lint.sh -b $(shell go env GOPATH)/bin v1.17.1
+endif
+	golangci-lint run
 
 # Test fast
 tf:

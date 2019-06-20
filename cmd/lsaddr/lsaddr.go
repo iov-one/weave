@@ -28,7 +28,7 @@ var converters = map[string]converter{
 		return a
 	},
 }
-
+//nolint
 func main() {
 	fl := flag.NewFlagSet("", flag.ExitOnError)
 	offsetFl := fl.Int("offset", 1, "Ignore first N contract addresses.")

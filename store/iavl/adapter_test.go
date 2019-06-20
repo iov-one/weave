@@ -84,10 +84,10 @@ func TestCommitOverwrite(t *testing.T) {
 
 			parent := commit.CacheWrap()
 			for _, op := range tc.parentOps {
-				op.Apply(parent)
+				assert.Nil(t, op.Apply(parent))
 			}
 			// write data to backing store
-			parent.Write()
+			assert.Nil(t, parent.Write())
 			id, err = commit.Commit()
 			assert.Nil(t, err)
 			assert.Equal(t, int64(1), id.Version)
@@ -98,7 +98,7 @@ func TestCommitOverwrite(t *testing.T) {
 			// child also comes from commit
 			child := commit.CacheWrap()
 			for _, op := range tc.childOps {
-				op.Apply(child)
+				assert.Nil(t, op.Apply(child))
 			}
 
 			// and a side-cache wrap to see they are in parallel
@@ -115,7 +115,7 @@ func TestCommitOverwrite(t *testing.T) {
 			}
 
 			// write child to parent and make sure it also shows proper data
-			child.Write()
+			assert.Nil(t, child.Write())
 			for _, q := range tc.childQueries {
 				suite.AssertGetHas(t, side, q.Key, q.Value, q.Value != nil)
 			}
@@ -137,6 +137,7 @@ func randKeys(count, size int) [][]byte {
 	return res
 }
 
+//nolint
 func randBytes(length int) []byte {
 	res := make([]byte, length)
 	rand.Read(res)

@@ -78,7 +78,7 @@ func TestAddress(t *testing.T) {
 	assert.False(t, addr.Equals(bad))
 
 	// marshalling
-	foo := fmt.Sprintf("%s", addr)
+	foo := addr.String()
 	assert.Equal(t, 2*AddressLength, len(foo))
 	ser, err := addr.MarshalJSON()
 	require.NoError(t, err)

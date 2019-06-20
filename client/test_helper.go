@@ -39,7 +39,7 @@ func TestWithTendermint(app types.Application, cb func(*nm.Node), m Runner) int 
 	}
 
 	// and shut down proper at the end
-	n.Stop()
+	_ = n.Stop()
 	n.Wait()
 	return code
 }

@@ -108,7 +108,9 @@ func (b *btreeIter) wrap(parent Iterator) *itemIter {
 		wrap:   b,
 		parent: parent,
 	}
-	iter.skipAllDeleted()
+	if err := iter.skipAllDeleted(); err != nil {
+		panic(err)
+	}
 	return iter
 }
 

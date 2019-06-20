@@ -25,6 +25,7 @@ func TestHandlerWithError(t *testing.T) {
 	}
 }
 
+//nolint
 func TestHandlerCallCount(t *testing.T) {
 	var h Handler
 

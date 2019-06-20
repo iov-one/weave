@@ -53,10 +53,6 @@ type StoreApp struct {
 	// blockContext contains context info that is valid for the
 	// current block (eg. height, header), reset on BeginBlock
 	blockContext weave.Context
-
-	// genesisFile (temporary) is used to store the file
-	// to read from on InitChain
-	genesisFile string
 }
 
 // NewStoreApp initializes this app into a ready state with some defaults

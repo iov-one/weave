@@ -33,7 +33,8 @@ func TestSequence(t *testing.T) {
 func TestSequenceKeyFormat(t *testing.T) {
 	db := store.MemStore()
 	s := NewSequence("bucket", "name")
-	s.NextVal(db)
+	_ , err := s.NextVal(db)
+	assert.Nil(t, err)
 	// As defined in NewSequence documentation
 	key := `_s.bucket:name`
 	has, err := db.Has([]byte(key))

@@ -186,7 +186,10 @@ func (i Index) GetPrefix(db weave.ReadOnlyKVStore, prefix []byte) ([][]byte, err
 
 	var data [][]byte
 
-	for ; itr.Valid(); itr.Next() {
+	for ; itr.Valid(); err = itr.Next() {
+		if err != nil {
+			return nil, err
+		}
 		if i.unique {
 			data = append(data, itr.Value())
 		} else {
@@ -329,8 +332,7 @@ func (i Index) remove(db weave.KVStore, index []byte, pk []byte) error {
 		if !bytes.Equal(cur, pk) {
 			return errors.Wrap(errors.ErrNotFound, "cannot remove index from invalid object")
 		}
-		db.Delete(key)
-		return nil
+		return db.Delete(key)
 	}
 
 	// otherwise, remove one from a list....
@@ -345,16 +347,15 @@ func (i Index) remove(db weave.KVStore, index []byte, pk []byte) error {
 	}
 	// nothing left, delete this key
 	if data.Size() == 0 {
-		db.Delete(key)
-		return nil
+		return db.Delete(key)
 	}
 	// other left, just update state
 	save, err := data.Marshal()
 	if err != nil {
 		return err
 	}
-	db.Set(key, save)
-	return nil
+
+	return db.Set(key, save)
 }
 
 func (i Index) insert(db weave.KVStore, index []byte, pk []byte) error {
@@ -373,8 +374,8 @@ func (i Index) insert(db weave.KVStore, index []byte, pk []byte) error {
 		if cur != nil {
 			return errors.Wrap(errors.ErrDuplicate, i.name)
 		}
-		db.Set(key, pk)
-		return nil
+
+		return db.Set(key, pk)
 	}
 
 	// otherwise, add one to a list....
@@ -395,6 +396,6 @@ func (i Index) insert(db weave.KVStore, index []byte, pk []byte) error {
 	if err != nil {
 		return err
 	}
-	db.Set(key, save)
-	return nil
+
+	return db.Set(key, save)
 }
