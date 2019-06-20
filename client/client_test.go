@@ -98,7 +98,7 @@ func TestSubmitTx(t *testing.T) {
 	assert.Equal(t, tx.Hash(), id)
 
 	// it shouldn't be available at first
-	_, err := c.GetTxByID(ctx, id)
+	_, err = c.GetTxByID(ctx, id)
 	if err == nil {
 		t.Fatalf("No tx should exist yet")
 	}
