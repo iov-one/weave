@@ -4,8 +4,6 @@ import (
 	"errors"
 	"reflect"
 	"testing"
-
-	"github.com/iov-one/weave/weavetest/assert"
 )
 
 func TestAppend(t *testing.T) {
@@ -265,7 +263,17 @@ func TestMultiErrorMessageFormat(t *testing.T) {
 func TestMultiErrorABCICodeIsRestricted(t *testing.T) {
 	// Ensure thath the multi error code is restricted and cannot by
 	// registered by another error instance.
-	assert.Panics(t, func() {
+	assertPanics(t, func() {
 		_ = Register(multiErrorABCICode, "my error")
 	})
+}
+
+func assertPanics(t testing.TB, fn func()) {
+	t.Helper()
+	defer func() {
+		if recover() == nil {
+			t.Fatal("panic expected")
+		}
+	}()
+	fn()
 }
