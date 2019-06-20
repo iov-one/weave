@@ -15,7 +15,7 @@ func RegisterQuery(qr weave.QueryRouter) {
 // consumeIterator will read all remaining data into an
 // array and close the iterator
 func consumeIterator(itr weave.Iterator) ([]weave.Model, error) {
-	defer itr.Return()
+	defer itr.Release()
 
 	var res []weave.Model
 	key, value, err := itr.Next()

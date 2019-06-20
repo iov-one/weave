@@ -56,7 +56,7 @@ keys. These may all be preloaded, or loaded on demand.
   Usage:
 
   var itr Iterator = ...
-  defer itr.Return()
+  defer itr.Release()
 
   k, v, err := itr.Next()
   for err == nil {
@@ -71,12 +71,10 @@ keys. These may all be preloaded, or loaded on demand.
 type Iterator interface {
 	// Next moves the iterator to the next sequential key in the database, as
 	// defined by order of iteration.
-	//
-	//
 	Next() (key, value []byte, err error)
 
-	// Return releases the Iterator, allowing it to do any needed cleanup.
-	Return()
+	// Release releases the Iterator, allowing it to do any needed cleanup.
+	Release()
 }
 
 ///////////////////////////////////////////////////////////

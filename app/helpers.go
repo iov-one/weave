@@ -123,7 +123,7 @@ func (s *SliceIterator) Next() (key, value []byte, err error) {
 	return val.Key, val.Value, nil
 }
 
-// Return releases the Iterator.
-func (s *SliceIterator) Return() {
+// Release releases the Iterator.
+func (s *SliceIterator) Release() {
 	s.data = nil
 }

@@ -45,7 +45,7 @@ func (i *lazyIterator) Next() ([]byte, []byte, error) {
 	return data.Key, data.Value, nil
 }
 
-func (i *lazyIterator) Return() {
+func (i *lazyIterator) Release() {
 	// make sure we only close once to avoid panics and halts on i.stop
 	i.once.Do(func() {
 		close(i.stop)

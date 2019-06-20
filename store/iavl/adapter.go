@@ -181,7 +181,7 @@ func (a adapter) Iterator(start, end []byte) (store.Iterator, error) {
 	iter := newLazyIterator()
 	go func() {
 		a.tree.IterateRange(start, end, true, iter.add)
-		iter.Return()
+		iter.Release()
 	}()
 
 	return iter, nil
@@ -194,7 +194,7 @@ func (a adapter) ReverseIterator(start, end []byte) (store.Iterator, error) {
 	iter := newLazyIterator()
 	go func() {
 		a.tree.IterateRange(start, end, false, iter.add)
-		iter.Return()
+		iter.Release()
 	}()
 
 	return iter, nil

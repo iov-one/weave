@@ -110,7 +110,7 @@ func (b *btreeIter) Next() (keyer, error) {
 	return key, nil
 }
 
-func (b *btreeIter) Return() {
+func (b *btreeIter) Release() {
 	b.once.Do(func() {
 		b.stop <- struct{}{}
 	})
@@ -245,8 +245,8 @@ func (i *itemIter) returnCachedParent() (key, value []byte, err error) {
 	return key, value, nil
 }
 
-// Return releases the Iterator.
-func (i *itemIter) Return() {
-	i.parent.Return()
-	i.wrap.Return()
+// Release releases the Iterator.
+func (i *itemIter) Release() {
+	i.parent.Release()
+	i.wrap.Release()
 }
