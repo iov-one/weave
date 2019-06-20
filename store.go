@@ -56,40 +56,27 @@ keys. These may all be preloaded, or loaded on demand.
   Usage:
 
   var itr Iterator = ...
-  defer itr.Close()
+  defer itr.Return()
 
-  for ; itr.Valid(); itr.Next() {
-    k, v := itr.Key(); itr.Value()
-    // ...
+  k, v, err := itr.Next()
+  for err == nil {
+	// ... do stuff with k, v
+	k, v, err = itr.Next()
   }
-
-Note that Valid(), Key() and Value() are assumed to use a cached state
-(read on initialization or Next) and should never return errors.
-Next() may well return a read error.
+  // ErrDone means we hit the end, otherwise this is a real error
+  if err != errors.ErrDone {
+	  return err
+  }
 */
 type Iterator interface {
-	// Valid returns whether the current position is valid.
-	// Once invalid, an Iterator is forever invalid.
-	Valid() bool
-
 	// Next moves the iterator to the next sequential key in the database, as
 	// defined by order of iteration.
 	//
-	// If Valid returns false, this method will panic.
-	Next() error
+	//
+	Next() (key, value []byte, err error)
 
-	// Key returns the key of the cursor.
-	// If Valid returns false, this method will panic.
-	// CONTRACT: key readonly []byte
-	Key() (key []byte)
-
-	// Value returns the value of the cursor.
-	// If Valid returns false, this method will panic.
-	// CONTRACT: value readonly []byte
-	Value() (value []byte)
-
-	// Close releases the Iterator.
-	Close()
+	// Return releases the Iterator, allowing it to do any needed cleanup.
+	Return()
 }
 
 ///////////////////////////////////////////////////////////
