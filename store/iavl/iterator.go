@@ -3,15 +3,14 @@ package iavl
 import (
 	"sync"
 
+	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/store"
 )
 
 type lazyIterator struct {
-	data    store.Model
-	hasMore bool
-	read    chan store.Model
-	stop    chan struct{}
-	once    sync.Once
+	read chan store.Model
+	stop chan struct{}
+	once sync.Once
 }
 
 var _ store.Iterator = (*lazyIterator)(nil)
@@ -38,33 +37,18 @@ func (i *lazyIterator) add(key []byte, value []byte) bool {
 	}
 }
 
-func (i *lazyIterator) Next() error {
-	i.data, i.hasMore = <-i.read
-	return nil
+func (i *lazyIterator) Next() ([]byte, []byte, error) {
+	data, hasMore := <-i.read
+	if !hasMore {
+		return nil, nil, errors.Wrap(errors.ErrDone, "iavl lazy iterator")
+	}
+	return data.Key, data.Value, nil
 }
 
-func (i *lazyIterator) Close() {
+func (i *lazyIterator) Return() {
 	// make sure we only close once to avoid panics and halts on i.stop
 	i.once.Do(func() {
 		close(i.stop)
 		close(i.read)
 	})
-}
-
-func (i *lazyIterator) Valid() bool {
-	return i.hasMore
-}
-
-func (i *lazyIterator) Key() []byte {
-	if !i.hasMore {
-		panic("read after end of iterator")
-	}
-	return i.data.Key
-}
-
-func (i *lazyIterator) Value() []byte {
-	if !i.hasMore {
-		panic("read after end of iterator")
-	}
-	return i.data.Value
 }
