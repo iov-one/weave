@@ -36,10 +36,9 @@ test:
 	go test -mod=readonly -race ./...
 
 lint:
-ifndef LINT
-	./scripts/golangci-lint.sh -b $(shell go env GOPATH)/bin v1.17.1
-endif
-	golangci-lint run
+	go mod vendor
+	docker run --rm -it -v $(shell pwd):/go/src/github.com/iov-one/weave -w="/go/src/github.com/iov-one/weave" golangci/golangci-lint:v1.17.1 golangci-lint run ./...
+	rm -rf vendor
 
 # Test fast
 tf:
