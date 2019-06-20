@@ -124,6 +124,16 @@ func TestErrorIs(t *testing.T) {
 			b:      Append(ErrState, ErrNotFound),
 			wantIs: false,
 		},
+		"field error wrapper": {
+			a:      ErrEmpty,
+			b:      Field("name", ErrEmpty, "name is required"),
+			wantIs: true,
+		},
+		"nil field error wrapper": {
+			a:      nil,
+			b:      Field("name", nil, "name is required"),
+			wantIs: true,
+		},
 	}
 	for testName, tc := range cases {
 		t.Run(testName, func(t *testing.T) {

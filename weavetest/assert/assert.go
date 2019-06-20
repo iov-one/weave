@@ -3,6 +3,8 @@ package assert
 import (
 	"reflect"
 	"testing"
+
+	"github.com/iov-one/weave/errors"
 )
 
 // Nil fails the test if given value is not nil.
@@ -51,4 +53,33 @@ func Panics(t testing.TB, fn func()) {
 		}
 	}()
 	fn()
+}
+
+// FieldErrors ensures that given error contains the exact match of field
+// errors, tested by their type (.Is method call).
+// To test that no error was found for a given field name, use `nil` as the
+// match value.
+func FieldErrors(t testing.TB, err error, fieldName string, mustMatch ...*errors.Error) {
+	errs := errors.FieldErrors(err, fieldName)
+
+	for _, want := range mustMatch {
+		// This is a special case when we want no errors (nil).
+		if want == nil && len(errs) == 0 {
+			continue
+		}
+		if !containsError(want, errs) {
+			t.Errorf("%q error not found", want)
+		}
+	}
+}
+
+// containsError returns true if at least one element from given collection is
+// of a provided error type.
+func containsError(e *errors.Error, collection []error) bool {
+	for _, element := range collection {
+		if e.Is(element) {
+			return true
+		}
+	}
+	return false
 }
