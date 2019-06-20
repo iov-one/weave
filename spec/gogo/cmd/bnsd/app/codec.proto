@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package app;
 
-import "cmd/bnsd/x/nft/username/codec.proto";
+import "cmd/bnsd/x/username/codec.proto";
 import "gogoproto/gogo.proto";
 import "migration/codec.proto";
 import "x/aswap/codec.proto";
@@ -12,7 +12,6 @@ import "x/distribution/codec.proto";
 import "x/escrow/codec.proto";
 import "x/gov/codec.proto";
 import "x/multisig/codec.proto";
-import "x/nft/codec.proto";
 import "x/sigs/codec.proto";
 import "x/validators/codec.proto";
 
@@ -44,11 +43,9 @@ message Tx {
     validators.SetValidatorsMsg set_validators_msg = 58;
     currency.NewTokenInfoMsg new_token_info_msg = 59;
     BatchMsg batch_msg = 60;
-    nft.AddApprovalMsg add_approval_msg = 61;
-    nft.RemoveApprovalMsg remove_approval_msg = 62;
-    username.IssueTokenMsg issue_username_nft_msg = 63;
-    username.AddChainAddressMsg add_username_address_nft_msg = 64;
-    username.RemoveChainAddressMsg remove_username_address_msg = 65;
+    username.RegisterUsernameTokenMsg register_username_token_msg = 61;
+    username.TransferUsernameTokenMsg transfer_username_token_msg = 62;
+    username.ChangeUsernameTokenTargetsMsg change_username_token_targets_msg = 63;
     distribution.NewRevenueMsg new_revenue_msg = 66;
     distribution.DistributeMsg distribute_msg = 67;
     distribution.ResetRevenueMsg reset_revenue_msg = 68;
@@ -81,11 +78,9 @@ message BatchMsg {
       validators.SetValidatorsMsg set_validators_msg = 58;
       currency.NewTokenInfoMsg new_token_info_msg = 59;
       // No recursive batches!
-      nft.AddApprovalMsg add_approval_msg = 61;
-      nft.RemoveApprovalMsg remove_approval_msg = 62;
-      username.IssueTokenMsg issue_username_nft_msg = 63;
-      username.AddChainAddressMsg add_username_address_nft_msg = 64;
-      username.RemoveChainAddressMsg remove_username_address_msg = 65;
+      username.RegisterUsernameTokenMsg register_username_token_msg = 61;
+      username.TransferUsernameTokenMsg transfer_username_token_msg = 62;
+      username.ChangeUsernameTokenTargetsMsg change_username_token_targets_msg = 63;
       distribution.NewRevenueMsg new_revenue_msg = 66;
       distribution.DistributeMsg distribute_msg = 67;
       distribution.ResetRevenueMsg reset_revenue_msg = 68;
@@ -106,6 +101,9 @@ message ProposalOptions {
     escrow.UpdateEscrowPartiesMsg update_escrow_msg = 55;
     validators.SetValidatorsMsg set_validators_msg = 58;
     ProposalBatchMsg batch_msg = 60;
+    username.RegisterUsernameTokenMsg register_username_token_msg = 61;
+    username.TransferUsernameTokenMsg transfer_username_token_msg = 62;
+    username.ChangeUsernameTokenTargetsMsg change_username_token_targets_msg = 63;
     distribution.NewRevenueMsg new_revenue_msg = 66;
     distribution.DistributeMsg distribute_msg = 67;
     distribution.ResetRevenueMsg reset_revenue_msg = 68;
@@ -124,6 +122,9 @@ message ProposalBatchMsg {
       escrow.UpdateEscrowPartiesMsg update_escrow_msg = 55;
       validators.SetValidatorsMsg set_validators_msg = 58;
       // no recursive batches
+      username.RegisterUsernameTokenMsg register_username_token_msg = 61;
+      username.TransferUsernameTokenMsg transfer_username_token_msg = 62;
+      username.ChangeUsernameTokenTargetsMsg change_username_token_targets_msg = 63;
       distribution.NewRevenueMsg new_revenue_msg = 66;
       distribution.DistributeMsg distribute_msg = 67;
       distribution.ResetRevenueMsg reset_revenue_msg = 68;

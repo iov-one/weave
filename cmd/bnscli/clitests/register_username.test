@@ -1,0 +1,20 @@
+#!/bin/sh
+
+set -e
+
+bnscli register-username \
+		-name alice \
+		-bc fairycoin \
+		-addr 46722031342e204a756e2031303a35363a3337204345535420323031390a \
+	| bnscli view
+
+echo ''
+
+bnscli register-username \
+		-name bobby \
+		-bc fairycoin \
+		-addr 46722031342e204a756e2031303a35363a3337204345535420323031390a \
+	| bnscli with-blockchain-address \
+		-bc unicoin \
+		-addr 756e69636f696e2d310a \
+	| bnscli view

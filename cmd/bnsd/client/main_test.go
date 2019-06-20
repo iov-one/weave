@@ -107,7 +107,6 @@ func initGenesis(filename string, addr weave.Address) error {
 			{"ver": 1, "pkg": "msgfee"},
 			{"ver": 1, "pkg": "multisig"},
 			{"ver": 1, "pkg": "namecoin"},
-			{"ver": 1, "pkg": "nft"},
 			{"ver": 1, "pkg": "paychan"},
 			{"ver": 1, "pkg": "sigs"},
 			{"ver": 1, "pkg": "utils"},

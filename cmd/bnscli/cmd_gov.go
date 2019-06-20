@@ -9,6 +9,7 @@ import (
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/cmd/bnsd/app"
+	"github.com/iov-one/weave/cmd/bnsd/x/username"
 	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/x/cash"
 	"github.com/iov-one/weave/x/distribution"
@@ -111,6 +112,24 @@ transaction (ie signatures) are being dropped.
 						SetValidatorsMsg: m,
 					},
 				})
+			case *username.RegisterUsernameTokenMsg:
+				messages = append(messages, app.ProposalBatchMsg_Union{
+					Sum: &app.ProposalBatchMsg_Union_RegisterUsernameTokenMsg{
+						RegisterUsernameTokenMsg: m,
+					},
+				})
+			case *username.TransferUsernameTokenMsg:
+				messages = append(messages, app.ProposalBatchMsg_Union{
+					Sum: &app.ProposalBatchMsg_Union_TransferUsernameTokenMsg{
+						TransferUsernameTokenMsg: m,
+					},
+				})
+			case *username.ChangeUsernameTokenTargetsMsg:
+				messages = append(messages, app.ProposalBatchMsg_Union{
+					Sum: &app.ProposalBatchMsg_Union_ChangeUsernameTokenTargetsMsg{
+						ChangeUsernameTokenTargetsMsg: m,
+					},
+				})
 			case *distribution.NewRevenueMsg:
 				messages = append(messages, app.ProposalBatchMsg_Union{
 					Sum: &app.ProposalBatchMsg_Union_NewRevenueMsg{
@@ -153,6 +172,18 @@ transaction (ie signatures) are being dropped.
 			BatchMsg: &app.ProposalBatchMsg{
 				Messages: messages,
 			},
+		}
+	case *username.RegisterUsernameTokenMsg:
+		option.Option = &app.ProposalOptions_RegisterUsernameTokenMsg{
+			RegisterUsernameTokenMsg: msg,
+		}
+	case *username.TransferUsernameTokenMsg:
+		option.Option = &app.ProposalOptions_TransferUsernameTokenMsg{
+			TransferUsernameTokenMsg: msg,
+		}
+	case *username.ChangeUsernameTokenTargetsMsg:
+		option.Option = &app.ProposalOptions_ChangeUsernameTokenTargetsMsg{
+			ChangeUsernameTokenTargetsMsg: msg,
 		}
 	case *distribution.NewRevenueMsg:
 		option.Option = &app.ProposalOptions_NewRevenueMsg{
@@ -221,6 +252,9 @@ escrow.ReleaseEscrowMsg release_escrow_msg = 53;
 escrow.UpdateEscrowPartiesMsg update_escrow_msg = 55;
 validators.SetValidatorsMsg set_validators_msg = 58;
 ProposalBatchMsg batch_msg = 60;
+username.RegisterUsernameTokenMsg register_username_token_msg = 61;
+username.TransferUsernameTokenMsg transfer_username_token_msg = 62;
+username.ChangeUsernameTokenTargetsMsg change_username_token_targets_msg = 63;
 distribution.NewRevenueMsg new_revenue_msg = 66;
 distribution.DistributeMsg distribute_msg = 67;
 distribution.ResetRevenueMsg reset_revenue_msg = 68;
@@ -237,6 +271,9 @@ cash.SendMsg send_msg = 51;
 escrow.ReleaseEscrowMsg release_escrow_msg = 53;
 escrow.UpdateEscrowPartiesMsg update_escrow_msg = 55;
 validators.SetValidatorsMsg set_validators_msg = 58;
+username.RegisterUsernameTokenMsg register_username_token_msg = 61;
+username.TransferUsernameTokenMsg transfer_username_token_msg = 62;
+username.ChangeUsernameTokenTargetsMsg change_username_token_targets_msg = 63;
 distribution.NewRevenueMsg new_revenue_msg = 66;
 distribution.DistributeMsg distribute_msg = 67;
 distribution.ResetRevenueMsg reset_revenue_msg = 68;

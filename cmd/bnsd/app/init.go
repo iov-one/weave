@@ -9,12 +9,10 @@ import (
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/app"
-	"github.com/iov-one/weave/cmd/bnsd/x/nft/username"
 	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/commands/server"
 	"github.com/iov-one/weave/crypto"
 	"github.com/iov-one/weave/migration"
-	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/x/cash"
 	"github.com/iov-one/weave/x/currency"
 	"github.com/iov-one/weave/x/distribution"
@@ -65,9 +63,6 @@ func GenInitOptions(args []string) (json.RawMessage, error) {
               }
             ],
             "currencies": [],
-            "nfts": {
-              "blockchains": []
-            },
             "multisig": [],
 	    "update_validators": {
               "addresses": ["%s"]
@@ -86,10 +81,7 @@ func GenerateApp(options *server.Options) (abci.Application, error) {
 		dbPath = filepath.Join(options.Home, "bns.db")
 	}
 
-	nftBuckets := map[string]orm.Bucket{
-		username.ModelName: username.NewBucket().Bucket,
-	}
-	stack := Stack(nil, nftBuckets, options.MinFee)
+	stack := Stack(nil, options.MinFee)
 	application, err := Application("bnsd", stack, TxDecoder, dbPath, options)
 	if err != nil {
 		return nil, err
@@ -117,12 +109,8 @@ func DecorateApp(application app.BaseApp, logger log.Logger) app.BaseApp {
 // InlineApp will take a previously prepared CommitStore and return a complete Application
 func InlineApp(kv weave.CommitKVStore, logger log.Logger, debug bool) abci.Application {
 	minFee := coin.Coin{}
-	nftBuckets := map[string]orm.Bucket{
-		username.ModelName: username.NewBucket().Bucket,
-	}
-	stack := Stack(nil, nftBuckets, minFee)
+	stack := Stack(nil, minFee)
 	ctx := context.Background()
-	RegisterNft()
 	store := app.NewStoreApp("bnsd", kv, QueryRouter(minFee), ctx)
 	base := app.NewBaseApp(store, TxDecoder, stack, nil, debug)
 	return DecorateApp(base, logger)

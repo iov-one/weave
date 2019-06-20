@@ -6,13 +6,12 @@ import (
 	"strings"
 
 	"github.com/iov-one/weave"
-	"github.com/iov-one/weave/cmd/bnsd/x/nft/username"
+	"github.com/iov-one/weave/cmd/bnsd/x/username"
 	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/commands"
 	"github.com/iov-one/weave/crypto"
 	"github.com/iov-one/weave/x/cash"
 	"github.com/iov-one/weave/x/namecoin"
-	"github.com/iov-one/weave/x/nft"
 	"github.com/iov-one/weave/x/sigs"
 )
 
@@ -42,10 +41,8 @@ func makePrivKey(seed string) *crypto.PrivateKey {
 
 // Examples generates some example structs to dump out with testgen
 func Examples() []commands.Example {
-	metadata := &weave.Metadata{Schema: 1}
-
 	wallet := &namecoin.Wallet{
-		Metadata: metadata,
+		Metadata: &weave.Metadata{Schema: 1},
 		Name:     "example",
 		Coins: []*coin.Coin{
 			{Whole: 50000, Ticker: "ETH"},
@@ -56,7 +53,7 @@ func Examples() []commands.Example {
 	eth := &coin.Coin{Whole: 50000, Fractional: 12345, Ticker: "ETH"}
 
 	token := &namecoin.Token{
-		Metadata: metadata,
+		Metadata: &weave.Metadata{Schema: 1},
 		Name:     "My special coin",
 		SigFigs:  8,
 	}
@@ -64,14 +61,14 @@ func Examples() []commands.Example {
 	pub := sender.PublicKey()
 	addr := pub.Address()
 	user := &sigs.UserData{
-		Metadata: metadata,
+		Metadata: &weave.Metadata{Schema: 1},
 		Pubkey:   pub,
 		Sequence: 17,
 	}
 
 	amt := coin.NewCoin(250, 0, "ETH")
 	msg := &cash.SendMsg{
-		Metadata: metadata,
+		Metadata: &weave.Metadata{Schema: 1},
 		Amount:   &amt,
 		Dest:     dst,
 		Src:      addr,
@@ -79,13 +76,13 @@ func Examples() []commands.Example {
 	}
 
 	nameMsg := &namecoin.SetWalletNameMsg{
-		Metadata: metadata,
+		Metadata: &weave.Metadata{Schema: 1},
 		Address:  addr,
 		Name:     "myname",
 	}
 
 	tokenMsg := &namecoin.NewTokenMsg{
-		Metadata: metadata,
+		Metadata: &weave.Metadata{Schema: 1},
 		Ticker:   "ATM",
 		Name:     "At the moment",
 		SigFigs:  3,
@@ -101,33 +98,26 @@ func Examples() []commands.Example {
 	}
 	tx.Signatures = []*sigs.StdSignature{sig}
 
-	issueUsernameMsg := &username.IssueTokenMsg{
-		Metadata: metadata,
-		ID:       []byte("alice@example.com"),
-		Owner:    addr,
-		Details: username.TokenDetails{
-			Addresses: []username.ChainAddress{
-				{BlockchainID: []byte("myNet"), Address: "myChainAddress"},
-			},
-		},
-		Approvals: []nft.ActionApprovals{
-			{
-				Action: "update",
-				Approvals: []nft.Approval{
-					{Address: guest, Options: nft.ApprovalOptions{Count: nft.UnlimitedCount}},
-				},
-			},
+	registerUsernameTokenMsg := &username.RegisterUsernameTokenMsg{
+		Metadata: &weave.Metadata{Schema: 1},
+		Username: "alice*iov",
+		Targets: []username.BlockchainAddress{
+			{BlockchainID: "myNet", Address: []byte("myChainAddress")},
 		},
 	}
-	issueUsernameTx := &Tx{
-		Sum: &Tx_IssueUsernameNftMsg{issueUsernameMsg},
+	registerUsernameTokenTx := &Tx{
+		Sum: &Tx_RegisterUsernameTokenMsg{registerUsernameTokenMsg},
 	}
 
-	addAddressMsg := &username.AddChainAddressMsg{
-		Metadata:     metadata,
-		UsernameID:   []byte("alice@example.com"),
-		BlockchainID: []byte("myNet"),
-		Address:      "myChainAddress",
+	changeUsernameTokenTargetsMsg := &username.ChangeUsernameTokenTargetsMsg{
+		Metadata: &weave.Metadata{Schema: 1},
+		Username: "alice*iov",
+		NewTargets: []username.BlockchainAddress{
+			{
+				BlockchainID: "myNet",
+				Address:      []byte("myChainAddress"),
+			},
+		},
 	}
 
 	fmt.Printf("Address: %s\n", addr)
@@ -143,8 +133,8 @@ func Examples() []commands.Example {
 		{Filename: "token_msg", Obj: tokenMsg},
 		{Filename: "unsigned_tx", Obj: &unsigned},
 		{Filename: "signed_tx", Obj: &tx},
-		{Filename: "issue_username_msg", Obj: issueUsernameMsg},
-		{Filename: "issue_username_tx", Obj: issueUsernameTx},
-		{Filename: "add_addr_msg", Obj: addAddressMsg},
+		{Filename: "register_username_token_msg", Obj: registerUsernameTokenMsg},
+		{Filename: "register_username_token_tx", Obj: registerUsernameTokenTx},
+		{Filename: "change_username_token_targets_msg", Obj: changeUsernameTokenTargetsMsg},
 	}
 }

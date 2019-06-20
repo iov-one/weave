@@ -1,0 +1,72 @@
+syntax = "proto3";
+
+package username;
+
+import "codec.proto";
+import "gogoproto/gogo.proto";
+
+// UsernameToken model represents a username mapping to an address together
+// with all metadata.
+//
+// Each UsernameToken model is stored using the username as the key. This
+// guarantee that the name is unique. Username is a combination of a name and a
+// domain.  The format is <name>*<domain>
+//
+// Each token points to a blockchain and an address on that blockchain. Both
+// blockchain ID and address are an arbitrary string as we do not want to limit
+// ourselves to certain patterns.
+message UsernameToken {
+  weave.Metadata metadata = 1;
+  // Targets specifies where this username token points to. This must be at
+  // least one blockchain address elemenet.
+  repeated BlockchainAddress targets = 2 [(gogoproto.nullable) = false];
+  // Owner is a weave.Address that controls this token. Only the owner can
+  // modify a username token.
+  bytes owner = 3 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
+}
+
+// BlockchainAddress represents a blochain address. This structure clubs together
+// blokchain ID together with an address on that network. It is used to point
+// to an address on any blockchain network.
+message BlockchainAddress {
+  // An arbitrary blockchain ID.
+  string blockchain_id = 1 [(gogoproto.customname) = "BlockchainID"];
+  // An address on the specified blockchain network. Address is not a
+  // weave.Address as we cannot know what is the format of an address on the
+  // chain that this token instance links to. Because we do not know the rules
+  // to validate an address for any blockchain ID, this is an arbitrary bulk of
+  // data.
+  bytes address = 2;
+}
+
+// RegisterTokenMsg is creating a new username token. The owner is always set
+// to the main signer.
+message RegisterUsernameTokenMsg {
+  weave.Metadata metadata = 1;
+  // Username is the unique name of the token, for example alice*iov
+  string username = 2 [(gogoproto.casttype) = "Username"];
+  // Targets is a blockchain address list that this token should point to.
+  repeated BlockchainAddress targets = 3 [(gogoproto.nullable) = false];
+}
+
+// TransferTokenMsg is a request to transfer an ownership of a token. The
+// mesage must be signed by the current token owner. Acceptance of the new
+// owner is not required in order to succeed.
+message TransferUsernameTokenMsg {
+  weave.Metadata metadata = 1;
+  // Username is the unique name of the token, for example alice*iov
+  string username = 2 [(gogoproto.casttype) = "Username"];
+  // Owner is a weave address that will owns this token after the change.
+  bytes new_owner = 3 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
+}
+
+// ChangeTokenTargetsMsg is a request to change the address that this token
+// points to. Only the owner of a token can request this operation.
+message ChangeUsernameTokenTargetsMsg {
+  weave.Metadata metadata = 1;
+  // Username is the unique name of the token, for example alice*iov
+  string username = 2 [(gogoproto.casttype) = "Username"];
+  // New targets is a list of blockchain addresses that this token should point
+  // to after the change. Old list is overwritten with what is provided.
+  repeated BlockchainAddress new_targets = 3 [(gogoproto.nullable) = false];
+}
