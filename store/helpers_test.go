@@ -3,6 +3,7 @@ package store
 import (
 	"testing"
 
+	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/weavetest/assert"
 )
 
@@ -18,28 +19,26 @@ func TestSliceIterator(t *testing.T) {
 		models[i].Key = ks[i]
 		models[i].Value = vs[i]
 	}
-	var err error
 	// make sure proper iteration works
-	for iter, i := NewSliceIterator(models), 0; iter.Valid(); err = iter.Next() {
-		assert.Nil(t, err)
-		if i >= size {
-			t.Fatalf("iterator step greater than the size: %d >= %d", i, size)
-		}
-		assert.Equal(t, ks[i], iter.Key())
-		assert.Equal(t, vs[i], iter.Value())
+	iter, i := NewSliceIterator(models), 0
+	key, value, err := iter.Next()
+	for err == nil {
+		assert.Equal(t, ks[i], key)
+		assert.Equal(t, vs[i], value)
 		i++
+		key, value, err = iter.Next()
+	}
+	assert.Equal(t, size, i)
+	if !errors.ErrDone.Is(err) {
+		t.Fatalf("Expected ErrDone, got %+v", err)
 	}
 
 	it := NewSliceIterator(models)
-	if !it.Valid() {
-		t.Fatal("iterator expected to be valid")
-	}
-	it.Close()
-	if it.Valid() {
+	_, _, err = it.Next()
+	assert.Nil(t, err)
+	it.Return()
+	_, _, err = it.Next()
+	if !errors.ErrDone.Is(err) {
 		t.Fatal("closed iterator must be invalid")
-	}
-	err = it.Next()
-	if err == nil {
-		t.Fatal("Calling Next on invalid iterator must return error")
 	}
 }

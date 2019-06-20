@@ -6,6 +6,7 @@ import (
 	"sort"
 	"testing"
 
+	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/weavetest/assert"
 )
 
@@ -351,12 +352,15 @@ func (i iterCase) verify(t testing.TB, base CacheableKVStore) {
 		assert.Nil(t, err)
 		// Make sure proper iteration works.
 		for i := 0; i < len(q.expected); i++ {
-			assert.Equal(t, iter.Valid(), true)
-			assert.Equal(t, q.expected[i].Key, iter.Key())
-			assert.Equal(t, q.expected[i].Value, iter.Value())
-			assert.Nil(t, iter.Next())
+			key, value, err := iter.Next()
+			assert.Nil(t, err)
+			assert.Equal(t, q.expected[i].Key, key)
+			assert.Equal(t, q.expected[i].Value, value)
 		}
-		assert.Equal(t, iter.Valid(), false)
+		_, _, err = iter.Next()
+		if !errors.ErrDone.Is(err) {
+			t.Fatalf("Expected ErrDone, got %+v", err)
+		}
 	}
 }
 
