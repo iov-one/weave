@@ -429,10 +429,6 @@
                 </li>
               
                 <li>
-                  <a href="#cash.ConfigurationMsg"><span class="badge">M</span>ConfigurationMsg</a>
-                </li>
-              
-                <li>
                   <a href="#cash.FeeInfo"><span class="badge">M</span>FeeInfo</a>
                 </li>
               
@@ -442,6 +438,10 @@
               
                 <li>
                   <a href="#cash.Set"><span class="badge">M</span>Set</a>
+                </li>
+              
+                <li>
+                  <a href="#cash.UpdateConfigurationMsg"><span class="badge">M</span>UpdateConfigurationMsg</a>
                 </li>
               
               
@@ -2539,36 +2539,6 @@ needed to make use of gconf.NewUpdateConfigurationHandler </p></td>
 
         
       
-        <h3 id="cash.ConfigurationMsg">ConfigurationMsg</h3>
-        <p></p>
-
-        
-          <table class="field-table">
-            <thead>
-              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
-            </thead>
-            <tbody>
-              
-                <tr>
-                  <td>metadata</td>
-                  <td><a href="#weave.Metadata">weave.Metadata</a></td>
-                  <td></td>
-                  <td><p> </p></td>
-                </tr>
-              
-                <tr>
-                  <td>patch</td>
-                  <td><a href="#cash.Configuration">Configuration</a></td>
-                  <td></td>
-                  <td><p> </p></td>
-                </tr>
-              
-            </tbody>
-          </table>
-        
-
-        
-      
         <h3 id="cash.FeeInfo">FeeInfo</h3>
         <p>FeeInfo records who pays what fees to have this</p><p>message processed</p>
 
@@ -2678,6 +2648,36 @@ needed to make use of gconf.NewUpdateConfigurationHandler </p></td>
                   <td>coins</td>
                   <td><a href="#coin.Coin">coin.Coin</a></td>
                   <td>repeated</td>
+                  <td><p> </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+        
+
+        
+      
+        <h3 id="cash.UpdateConfigurationMsg">UpdateConfigurationMsg</h3>
+        <p></p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>metadata</td>
+                  <td><a href="#weave.Metadata">weave.Metadata</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>patch</td>
+                  <td><a href="#cash.Configuration">Configuration</a></td>
+                  <td></td>
                   <td><p> </p></td>
                 </tr>
               

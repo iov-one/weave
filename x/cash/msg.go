@@ -9,7 +9,7 @@ import (
 
 func init() {
 	migration.MustRegister(1, &SendMsg{}, migration.NoModification)
-	migration.MustRegister(1, &ConfigurationMsg{}, migration.NoModification)
+	migration.MustRegister(1, &UpdateConfigurationMsg{}, migration.NoModification)
 }
 
 // Ensure we implement the Msg interface
@@ -106,11 +106,10 @@ func (f *FeeInfo) Validate() error {
 	return errors.Append(err, errors.Wrap(weave.Address(f.Payer).Validate(), "payer"))
 }
 
-var _ weave.Msg = (*ConfigurationMsg)(nil)
+var _ weave.Msg = (*UpdateConfigurationMsg)(nil)
 
 // Validate will skip any zero fields and validate the set ones
-// TODO: we should make it easier to reuse code with Configuration
-func (m *ConfigurationMsg) Validate() error {
+func (m *UpdateConfigurationMsg) Validate() error {
 	var err error
 	c := m.Patch
 	if len(c.Owner) != 0 {
@@ -129,6 +128,6 @@ func (m *ConfigurationMsg) Validate() error {
 	return err
 }
 
-func (*ConfigurationMsg) Path() string {
+func (*UpdateConfigurationMsg) Path() string {
 	return pathConfigurationUpdateMsg
 }

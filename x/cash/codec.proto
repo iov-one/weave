@@ -46,7 +46,7 @@ message Configuration {
   coin.Coin minimal_fee = 4 [(gogoproto.nullable) = false];
 }
 
-message ConfigurationMsg {
+message UpdateConfigurationMsg {
   weave.Metadata metadata = 1;
   Configuration patch = 2;
 }
