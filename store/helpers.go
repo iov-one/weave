@@ -22,10 +22,6 @@ func NewSliceIterator(data []Model) *SliceIterator {
 	}
 }
 
-// Next moves the iterator to the next sequential key in the database, as
-// defined by order of iteration.
-//
-// Returns (nil, nil, errors.ErrDone) if there is no more data
 func (s *SliceIterator) Next() (key, value []byte, err error) {
 	if s.idx >= len(s.data) {
 		return nil, nil, errors.Wrap(errors.ErrDone, "slice iterator")

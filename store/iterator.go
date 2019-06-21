@@ -183,10 +183,6 @@ func (i *itemIter) advanceWrap() error {
 	return nil
 }
 
-// Next moves the iterator to the next sequential key in the database, as
-// defined by order of iteration.
-//
-// If Valid returns false, this method will panic.
 func (i *itemIter) Next() (key, value []byte, err error) {
 	// this guarantees that both have xxxDone == true or cachedXxx != nil
 	if err := i.advanceParent(); err != nil {
