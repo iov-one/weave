@@ -3,7 +3,7 @@
 # make sure we turn on go modules
 export GO111MODULE := on
 
-TOOLS := cmd/bcpd cmd/bnsd cmd/bnscli
+TOOLS := cmd/bnsd cmd/bnscli
 
 # MODE=count records heat map in test coverage
 # MODE=set just records which lines were hit by one test
@@ -23,7 +23,6 @@ all: test lint
 
 dist:
 	cd cmd/bnsd && $(MAKE) dist
-	cd cmd/bcpd && $(MAKE) dist
 
 install:
 	for ex in $(TOOLS); do cd $$ex && make install && cd -; done

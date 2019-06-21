@@ -54,8 +54,6 @@ script:
 
     if [[ $release_latest == "yes" ]]; then
       docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD";
-      docker tag  "iov1/bcpd:${BUILD_VERSION}" "iov1/bcpd:latest" ;
-      docker push "iov1/bcpd:latest";
       docker tag  "iov1/bnsd:${BUILD_VERSION}" "iov1/bnsd:latest" ;
       docker push "iov1/bnsd:latest";
       docker logout;
@@ -63,8 +61,6 @@ script:
 
     if [[ $release_tag == "yes" ]]; then
       docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD";
-      docker tag  "iov1/bcpd:${BUILD_VERSION}" "iov1/bcpd:$TRAVIS_TAG" ;
-      docker push "iov1/bcpd:$TRAVIS_TAG";
       docker tag  "iov1/bnsd:${BUILD_VERSION}" "iov1/bnsd:$TRAVIS_TAG" ;
       docker push "iov1/bnsd:$TRAVIS_TAG";
       docker logout;
