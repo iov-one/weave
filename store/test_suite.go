@@ -3,6 +3,7 @@ package store
 import (
 	"bytes"
 	"crypto/rand"
+	"fmt"
 	"sort"
 	"testing"
 
@@ -231,7 +232,6 @@ func (s *TestSuite) IteratorWithConflicts(t *testing.T) {
 				// query for the values in child
 				{nil, nil, false, expect0},
 				{expect0[1].Key, expect0[2].Key, false, expect0[1:2]},
-
 				{nil, nil, true, reverse(expect0)},
 			},
 		},
@@ -241,7 +241,6 @@ func (s *TestSuite) IteratorWithConflicts(t *testing.T) {
 				// query for the values in child
 				{nil, nil, false, expect0},
 				{expect0[1].Key, expect0[2].Key, false, expect0[1:2]},
-
 				{nil, nil, true, reverse(expect0)},
 			},
 		},
@@ -251,9 +250,8 @@ func (s *TestSuite) IteratorWithConflicts(t *testing.T) {
 			queries: []rangeQuery{
 				// query for the values in child
 				{nil, nil, false, expect0},
-				// {expect0[1].Key, expect0[2].Key, false, expect0[1:2]},
-
-				// {nil, nil, true, reverse(expect0)},
+				{expect0[1].Key, expect0[2].Key, false, expect0[1:2]},
+				{nil, nil, true, reverse(expect0)},
 			},
 		},
 		"overwrite data should show child data": {
@@ -263,7 +261,6 @@ func (s *TestSuite) IteratorWithConflicts(t *testing.T) {
 				// query for the values in child
 				{nil, nil, false, expect1},
 				{expect1[1].Key, expect1[3].Key, false, expect1[1:3]},
-
 				{nil, nil, true, reverse(expect1)},
 			},
 		},
@@ -341,7 +338,7 @@ func (i iterCase) verify(t testing.TB, base CacheableKVStore) {
 		assert.Nil(t, op.Apply(child))
 	}
 
-	for _, q := range i.queries {
+	for i, q := range i.queries {
 		var iter Iterator
 		var err error
 		if q.reverse {
@@ -350,6 +347,7 @@ func (i iterCase) verify(t testing.TB, base CacheableKVStore) {
 			iter, err = child.Iterator(q.start, q.end)
 		}
 		assert.Nil(t, err)
+		fmt.Printf("query %d\n", i)
 
 		// Make sure proper iteration works.
 		for i := 0; i < len(q.expected); i++ {

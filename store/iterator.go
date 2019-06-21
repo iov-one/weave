@@ -14,10 +14,11 @@ import (
 // From Items to Iterator
 
 type btreeIter struct {
-	read     <-chan btree.Item
-	stop     chan<- struct{}
-	onceStop sync.Once
-	onceRead sync.Once
+	read      <-chan btree.Item
+	stop      chan<- struct{}
+	onceStop  sync.Once
+	onceRead  sync.Once
+	ascending bool
 }
 
 // combine joins our results with those of the parent,
@@ -27,8 +28,9 @@ func ascendBtree(bt *btree.BTree, start, end []byte) *btreeIter {
 	// ensure we never block when we call close()
 	stop := make(chan struct{}, 1)
 	iter := &btreeIter{
-		read: read,
-		stop: stop,
+		read:      read,
+		stop:      stop,
+		ascending: true,
 	}
 
 	insert := func(item btree.Item) bool {
@@ -62,8 +64,9 @@ func descendBtree(bt *btree.BTree, start, end []byte) *btreeIter {
 	// ensure we never block when we call close()
 	stop := make(chan struct{}, 1)
 	iter := &btreeIter{
-		read: read,
-		stop: stop,
+		read:      read,
+		stop:      stop,
+		ascending: false,
 	}
 
 	insert := func(item btree.Item) bool {
@@ -93,9 +96,16 @@ func descendBtree(bt *btree.BTree, start, end []byte) *btreeIter {
 }
 
 func (b *btreeIter) wrap(parent Iterator) *itemIter {
+	// oh, for a ternay operator in go :(
+	first := 1
+	if b.ascending {
+		first = -1
+	}
+
 	iter := &itemIter{
 		wrap:   b,
 		parent: parent,
+		first:  first,
 	}
 	return iter
 }
@@ -128,6 +138,9 @@ type itemIter struct {
 	cachedParent Model
 	wrapDone     bool
 	cachedWrap   keyer
+	// first is -1 for ascending, 1 for descending
+	// defined as result of bytes.Compare(a, b) such that we should process a first
+	first int
 }
 
 //------- public facing interface ------
@@ -163,7 +176,7 @@ func (i *itemIter) clearOldDelete(before []byte) {
 	if !ok {
 		return
 	}
-	if before == nil || bytes.Compare(del.Key(), before) < 0 {
+	if before == nil || bytes.Compare(del.Key(), before) == i.first {
 		i.cachedWrap = nil
 	}
 }
@@ -217,11 +230,11 @@ func (i *itemIter) Next() (key, value []byte, err error) {
 	_, isSet := i.cachedWrap.(setItem)
 	fmt.Printf("Set: %t (parent: %X, wrap: %X)\n", isSet, i.cachedParent.Key, i.cachedWrap.Key())
 	switch bytes.Compare(i.cachedParent.Key, i.cachedWrap.Key()) {
-	case 1: // cachedWrap lower
+	case -i.first: // cachedWrap first
 		return i.returnCachedWrap()
-	case -1: // cachedParent lower
+	case i.first: // cachedParent first
 		return i.returnCachedParent()
-	case 0:
+	case 0: // at the same key
 		// if it is set, use wrap
 		if _, ok := i.cachedWrap.(setItem); ok {
 			return i.returnCachedWrap()
