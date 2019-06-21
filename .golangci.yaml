@@ -1,5 +1,6 @@
 run:
   skip-dirs:
+    - vendor/*
     - x/*
     - cmd/bnscli/*
     - cmd/bnsd/*
@@ -7,6 +8,7 @@ run:
     - cmd/validators/*
     - coin/*
     - client/*
+  deadline: 10m
 linters-settings:
   govet:
     check-shadowing: false
