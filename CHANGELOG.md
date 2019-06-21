@@ -34,6 +34,8 @@ Breaking changes
 - ValidatorUpdate definitions now moved to `weave` package. Weave is using these definitions
 now instead of abci internally.
 - Simplified `Iterator` to 2 methods - Next() and Release()
+- Add `Metadata.LastModified` field and automatically set it for all objects stored
+  via `migrations.Bucket`
 
 
 ## 0.16.0
