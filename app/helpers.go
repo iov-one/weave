@@ -3,6 +3,7 @@ package app
 import (
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/store"
 	abci "github.com/tendermint/tendermint/abci/types"
 )
 
@@ -76,7 +77,7 @@ func (a *ABCIStore) Iterator(start, end []byte) (weave.Iterator, error) {
 		return nil, err
 	}
 
-	return NewSliceIterator(models), nil
+	return store.NewSliceIterator(models), nil
 }
 
 func (a *ABCIStore) ReverseIterator(start, end []byte) (weave.Iterator, error) {
@@ -93,37 +94,4 @@ func toModels(keys, values []byte) ([]weave.Model, error) {
 		return nil, errors.Wrapf(errors.ErrState, "cannot unmarshal values: %v", err.Error())
 	}
 	return JoinResults(&k, &v)
-}
-
-// SliceIterator wraps an Iterator over a slice of models
-type SliceIterator struct {
-	data []weave.Model
-	idx  int
-}
-
-var _ weave.Iterator = (*SliceIterator)(nil)
-
-// NewSliceIterator creates a new Iterator over this slice
-func NewSliceIterator(data []weave.Model) *SliceIterator {
-	return &SliceIterator{
-		data: data,
-	}
-}
-
-// Next moves the iterator to the next sequential key in the database, as
-// defined by order of iteration.
-//
-// Returns (nil, nil, errors.ErrIteratorDone) if there is no more data
-func (s *SliceIterator) Next() (key, value []byte, err error) {
-	if s.idx >= len(s.data) {
-		return nil, nil, errors.Wrap(errors.ErrIteratorDone, "slice iterator")
-	}
-	val := s.data[s.idx]
-	s.idx++
-	return val.Key, val.Value, nil
-}
-
-// Release releases the Iterator.
-func (s *SliceIterator) Release() {
-	s.data = nil
 }
