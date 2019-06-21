@@ -28,8 +28,8 @@ func TestRevenueDistribution(t *testing.T) {
 		weavetest.NewKey().PublicKey().Address(),
 	}
 	newRevenueTx := &bnsdApp.Tx{
-		Sum: &bnsdApp.Tx_NewRevenueMsg{
-			NewRevenueMsg: &distribution.NewRevenueMsg{
+		Sum: &bnsdApp.Tx_CreateRevenueMsg{
+			CreateRevenueMsg: &distribution.CreateRevenueMsg{
 				Metadata: &weave.Metadata{Schema: 1},
 				Admin:    admin.PublicKey().Address(),
 				Recipients: []*distribution.Recipient{

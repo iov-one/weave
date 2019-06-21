@@ -49,7 +49,7 @@ message Tx {
     username.IssueTokenMsg issue_username_nft_msg = 63;
     username.AddChainAddressMsg add_username_address_nft_msg = 64;
     username.RemoveChainAddressMsg remove_username_address_msg = 65;
-    distribution.NewRevenueMsg new_revenue_msg = 66;
+    distribution.CreateRevenueMsg create_revenue_msg = 66;
     distribution.DistributeMsg distribute_msg = 67;
     distribution.ResetRevenueMsg reset_revenue_msg = 68;
     migration.UpgradeSchemaMsg upgrade_schema_msg = 69;
@@ -86,7 +86,7 @@ message BatchMsg {
       username.IssueTokenMsg issue_username_nft_msg = 63;
       username.AddChainAddressMsg add_username_address_nft_msg = 64;
       username.RemoveChainAddressMsg remove_username_address_msg = 65;
-      distribution.NewRevenueMsg new_revenue_msg = 66;
+      distribution.CreateRevenueMsg create_revenue_msg = 66;
       distribution.DistributeMsg distribute_msg = 67;
       distribution.ResetRevenueMsg reset_revenue_msg = 68;
       // upgrade schema is important enough, it should be a solo action
@@ -106,7 +106,7 @@ message ProposalOptions {
     escrow.UpdateEscrowPartiesMsg update_escrow_msg = 55;
     validators.SetValidatorsMsg set_validators_msg = 58;
     ProposalBatchMsg batch_msg = 60;
-    distribution.NewRevenueMsg new_revenue_msg = 66;
+    distribution.CreateRevenueMsg create_revenue_msg = 66;
     distribution.DistributeMsg distribute_msg = 67;
     distribution.ResetRevenueMsg reset_revenue_msg = 68;
     migration.UpgradeSchemaMsg upgrade_schema_msg = 69;
@@ -124,7 +124,7 @@ message ProposalBatchMsg {
       escrow.UpdateEscrowPartiesMsg update_escrow_msg = 55;
       validators.SetValidatorsMsg set_validators_msg = 58;
       // no recursive batches
-      distribution.NewRevenueMsg new_revenue_msg = 66;
+      distribution.CreateRevenueMsg create_revenue_msg = 66;
       distribution.DistributeMsg distribute_msg = 67;
       distribution.ResetRevenueMsg reset_revenue_msg = 68;
       // don't allow UpgradeSchema as part of a batch, as effects are too confusing

@@ -101,10 +101,10 @@ original transactions (ie signatures) are being dropped.
 					SetValidatorsMsg: msg,
 				},
 			})
-		case *currency.NewTokenInfoMsg:
+		case *currency.CreateTokenInfoMsg:
 			batch.Messages = append(batch.Messages, app.BatchMsg_Union{
-				Sum: &app.BatchMsg_Union_NewTokenInfoMsg{
-					NewTokenInfoMsg: msg,
+				Sum: &app.BatchMsg_Union_CreateTokenInfoMsg{
+					CreateTokenInfoMsg: msg,
 				},
 			})
 		case *nft.AddApprovalMsg:
@@ -137,10 +137,10 @@ original transactions (ie signatures) are being dropped.
 					RemoveUsernameAddressMsg: msg,
 				},
 			})
-		case *distribution.NewRevenueMsg:
+		case *distribution.CreateRevenueMsg:
 			batch.Messages = append(batch.Messages, app.BatchMsg_Union{
-				Sum: &app.BatchMsg_Union_NewRevenueMsg{
-					NewRevenueMsg: msg,
+				Sum: &app.BatchMsg_Union_CreateRevenueMsg{
+					CreateRevenueMsg: msg,
 				},
 			})
 		case *distribution.DistributeMsg:

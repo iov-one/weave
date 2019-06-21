@@ -39,7 +39,7 @@ message Tx {
     validators.SetValidatorsMsg set_validators_msg = 58;
     currency.CreateTokenInfoMsg create_token_info_msg = 59;
     BatchMsg batch_msg = 60;
-    distribution.NewRevenueMsg new_revenue_msg = 66;
+    distribution.CreateRevenueMsg create_revenue_msg = 66;
     distribution.DistributeMsg distribute_msg = 67;
     distribution.ResetRevenueMsg reset_revenue_msg = 68;
     migration.UpgradeSchemaMsg upgrade_schema_msg = 69;

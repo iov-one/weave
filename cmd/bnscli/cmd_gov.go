@@ -111,10 +111,10 @@ transaction (ie signatures) are being dropped.
 						SetValidatorsMsg: m,
 					},
 				})
-			case *distribution.NewRevenueMsg:
+			case *distribution.CreateRevenueMsg:
 				messages = append(messages, app.ProposalBatchMsg_Union{
-					Sum: &app.ProposalBatchMsg_Union_NewRevenueMsg{
-						NewRevenueMsg: m,
+					Sum: &app.ProposalBatchMsg_Union_CreateRevenueMsg{
+						CreateRevenueMsg: m,
 					},
 				})
 			case *distribution.DistributeMsg:
@@ -154,9 +154,9 @@ transaction (ie signatures) are being dropped.
 				Messages: messages,
 			},
 		}
-	case *distribution.NewRevenueMsg:
-		option.Option = &app.ProposalOptions_NewRevenueMsg{
-			NewRevenueMsg: msg,
+	case *distribution.CreateRevenueMsg:
+		option.Option = &app.ProposalOptions_CreateRevenueMsg{
+			CreateRevenueMsg: msg,
 		}
 	case *distribution.DistributeMsg:
 		option.Option = &app.ProposalOptions_DistributeMsg{

@@ -475,11 +475,11 @@
             <ul>
               
                 <li>
-                  <a href="#distribution.DistributeMsg"><span class="badge">M</span>DistributeMsg</a>
+                  <a href="#distribution.CreateRevenueMsg"><span class="badge">M</span>CreateRevenueMsg</a>
                 </li>
               
                 <li>
-                  <a href="#distribution.NewRevenueMsg"><span class="badge">M</span>NewRevenueMsg</a>
+                  <a href="#distribution.DistributeMsg"><span class="badge">M</span>DistributeMsg</a>
                 </li>
               
                 <li>
@@ -995,8 +995,8 @@
                 </tr>
               
                 <tr>
-                  <td>new_revenue_msg</td>
-                  <td><a href="#distribution.NewRevenueMsg">distribution.NewRevenueMsg</a></td>
+                  <td>create_revenue_msg</td>
+                  <td><a href="#distribution.CreateRevenueMsg">distribution.CreateRevenueMsg</a></td>
                   <td></td>
                   <td><p> </p></td>
                 </tr>
@@ -1084,8 +1084,8 @@ aswap and gov don&#39;t make much sense as part of a batch (no vote buying) </p>
                 </tr>
               
                 <tr>
-                  <td>new_revenue_msg</td>
-                  <td><a href="#distribution.NewRevenueMsg">distribution.NewRevenueMsg</a></td>
+                  <td>create_revenue_msg</td>
+                  <td><a href="#distribution.CreateRevenueMsg">distribution.CreateRevenueMsg</a></td>
                   <td></td>
                   <td><p>no recursive batches </p></td>
                 </tr>
@@ -1177,8 +1177,8 @@ aswap and gov don&#39;t make much sense as part of a batch (no vote buying) </p>
                 </tr>
               
                 <tr>
-                  <td>new_revenue_msg</td>
-                  <td><a href="#distribution.NewRevenueMsg">distribution.NewRevenueMsg</a></td>
+                  <td>create_revenue_msg</td>
+                  <td><a href="#distribution.CreateRevenueMsg">distribution.CreateRevenueMsg</a></td>
                   <td></td>
                   <td><p> </p></td>
                 </tr>
@@ -1368,8 +1368,8 @@ aswap and gov don&#39;t make much sense as part of a batch (no vote buying) </p>
                 </tr>
               
                 <tr>
-                  <td>new_revenue_msg</td>
-                  <td><a href="#distribution.NewRevenueMsg">distribution.NewRevenueMsg</a></td>
+                  <td>create_revenue_msg</td>
+                  <td><a href="#distribution.CreateRevenueMsg">distribution.CreateRevenueMsg</a></td>
                   <td></td>
                   <td><p> </p></td>
                 </tr>
@@ -2782,39 +2782,8 @@ needed to make use of gconf.NewUpdateConfigurationHandler </p></td>
       <p></p>
 
       
-        <h3 id="distribution.DistributeMsg">DistributeMsg</h3>
-        <p>DistributeMsg is a request to distribute all funds collected within a single</p><p>revenue instance. Revenue is distributed between recipients. Request must be</p><p>signed using admin key.</p>
-
-        
-          <table class="field-table">
-            <thead>
-              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
-            </thead>
-            <tbody>
-              
-                <tr>
-                  <td>metadata</td>
-                  <td><a href="#weave.Metadata">weave.Metadata</a></td>
-                  <td></td>
-                  <td><p> </p></td>
-                </tr>
-              
-                <tr>
-                  <td>revenue_id</td>
-                  <td><a href="#bytes">bytes</a></td>
-                  <td></td>
-                  <td><p>Revenue ID reference an ID of a revenue instance that the collected fees
-should be distributed between recipients. </p></td>
-                </tr>
-              
-            </tbody>
-          </table>
-        
-
-        
-      
-        <h3 id="distribution.NewRevenueMsg">NewRevenueMsg</h3>
-        <p>NewRevenueMsg is issuing the creation of a new revenue stream instance.</p>
+        <h3 id="distribution.CreateRevenueMsg">CreateRevenueMsg</h3>
+        <p>CreateRevenueMsg is issuing the creation of a new revenue stream instance.</p>
 
         
           <table class="field-table">
@@ -2845,6 +2814,37 @@ While not enforced it is best to use a multisig contract here. </p></td>
                   <td>repeated</td>
                   <td><p>Recipients holds any number of addresses that the collected revenue is
 distributed to. Must be at least one. </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+        
+
+        
+      
+        <h3 id="distribution.DistributeMsg">DistributeMsg</h3>
+        <p>DistributeMsg is a request to distribute all funds collected within a single</p><p>revenue instance. Revenue is distributed between recipients. Request must be</p><p>signed using admin key.</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>metadata</td>
+                  <td><a href="#weave.Metadata">weave.Metadata</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>revenue_id</td>
+                  <td><a href="#bytes">bytes</a></td>
+                  <td></td>
+                  <td><p>Revenue ID reference an ID of a revenue instance that the collected fees
+should be distributed between recipients. </p></td>
                 </tr>
               
             </tbody>
