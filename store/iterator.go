@@ -112,7 +112,7 @@ func (b *btreeIter) Next() (keyer, error) {
 
 func (b *btreeIter) Release() {
 	b.once.Do(func() {
-		b.stop <- struct{}{}
+		close(b.stop)
 	})
 }
 
@@ -140,16 +140,17 @@ func (i *itemIter) advanceParent() error {
 	if i.parent == nil {
 		i.parentDone = true
 	}
+	if i.parentDone || i.cachedParent.Key != nil {
+		return nil
+	}
 
-	if !i.parentDone && i.cachedParent.Key == nil {
-		key, value, err := i.parent.Next()
-		if errors.ErrDone.Is(err) {
-			i.parentDone = true
-		} else if err != nil {
-			return errors.Wrap(err, "advance parent")
-		} else {
-			i.cachedParent = weave.Model{Key: key, Value: value}
-		}
+	key, value, err := i.parent.Next()
+	if errors.ErrDone.Is(err) {
+		i.parentDone = true
+	} else if err != nil {
+		return errors.Wrap(err, "advance parent")
+	} else {
+		i.cachedParent = weave.Model{Key: key, Value: value}
 	}
 
 	return nil
@@ -168,17 +169,19 @@ func (i *itemIter) advanceWrap() error {
 		i.cachedWrap, err = i.wrap.Next()
 		if errors.ErrDone.Is(err) {
 			i.wrapDone = true
+			return nil
 		} else if err != nil {
 			return errors.Wrap(err, "advance wrap")
-		} else if _, ok := i.cachedWrap.(deletedItem); ok {
+		}
+		if _, ok := i.cachedWrap.(deletedItem); ok {
 			// if delete, stop if we are at or higher than the parent key
 			if i.cachedParent.Key != nil && bytes.Compare(i.cachedWrap.Key(), i.cachedParent.Key) >= 0 {
-				break
+				return nil
 			}
 			// otherwise, unset cachedWrap, so we read more
 			i.cachedWrap = nil
 		}
-		// if it is a setItem, we break out
+		// if it is a setItem, we break out with the for loop
 	}
 	return nil
 }
@@ -203,9 +206,9 @@ func (i *itemIter) Next() (key, value []byte, err error) {
 	// both are valid... try it
 	switch bytes.Compare(i.cachedParent.Key, i.cachedWrap.Key()) {
 	case 1: // cachedWrap lower
-		i.returnCachedWrap()
+		return i.returnCachedWrap()
 	case -1: // cachedParent lower
-		i.returnCachedParent()
+		return i.returnCachedParent()
 	case 0:
 		// if it is set, use wrap
 		if _, ok := i.cachedWrap.(setItem); ok {
