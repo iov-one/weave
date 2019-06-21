@@ -34,6 +34,7 @@ Breaking changes
 - ValidatorUpdate definitions now moved to `weave` package. Weave is using these definitions
 now instead of abci internally.
 - Simplified `Iterator` to 2 methods - Next() and Release()
+- Removed `cmd/bcpd` application
 
 
 ## 0.16.0
