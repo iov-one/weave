@@ -81,6 +81,7 @@ func NewEscrow(
 	amount coin.Coins,
 	timeout weave.UnixTime,
 	memo string,
+	height ...int64,
 ) orm.Object {
 	esc := &Escrow{
 		Metadata:  &weave.Metadata{Schema: 1},
@@ -89,6 +90,9 @@ func NewEscrow(
 		Recipient: recipient,
 		Timeout:   timeout,
 		Memo:      memo,
+	}
+	if len(height) == 1 {
+		esc.Metadata.LastModified = height[0]
 	}
 	return orm.NewSimpleObj(id, esc)
 }

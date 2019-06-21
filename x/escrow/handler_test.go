@@ -72,21 +72,21 @@ func TestHandler(t *testing.T) {
 				{
 					"/escrows", "", weavetest.SequenceID(1), false,
 					[]orm.Object{
-						NewEscrow(weavetest.SequenceID(1), a.Address(), b.Address(), c.Address(), all, Timeout, ""),
+						NewEscrow(weavetest.SequenceID(1), a.Address(), b.Address(), c.Address(), all, Timeout, "", 179),
 					},
 					NewBucket().Bucket,
 				},
 				// bank deducted from sender
 				{"/wallets", "", a.Address(), false,
 					[]orm.Object{
-						cash.NewWallet(a.Address()),
+						cash.NewWallet(179, a.Address()),
 					},
 					cash.NewBucket().Bucket,
 				},
 				// and added to escrow
 				{"/wallets", "", escrowAddr(1), false,
 					[]orm.Object{
-						mo(cash.WalletWith(escrowAddr(1), all...)),
+						mo(cash.WalletWith(179, escrowAddr(1), all...)),
 					},
 					cash.NewBucket().Bucket,
 				},
@@ -103,7 +103,7 @@ func TestHandler(t *testing.T) {
 				{
 					"/escrows", "", weavetest.SequenceID(1), false,
 					[]orm.Object{
-						NewEscrow(weavetest.SequenceID(1), a.Address(), b.Address(), c.Address(), some, Timeout, ""),
+						NewEscrow(weavetest.SequenceID(1), a.Address(), b.Address(), c.Address(), some, Timeout, "", 179),
 					},
 					NewBucket().Bucket,
 				},
@@ -111,7 +111,7 @@ func TestHandler(t *testing.T) {
 				{
 					"/escrows/sender", "", a.Address(), false,
 					[]orm.Object{
-						NewEscrow(weavetest.SequenceID(1), a.Address(), b.Address(), c.Address(), some, Timeout, ""),
+						NewEscrow(weavetest.SequenceID(1), a.Address(), b.Address(), c.Address(), some, Timeout, "", 179),
 					},
 					NewBucket().Bucket,
 				},
@@ -119,7 +119,7 @@ func TestHandler(t *testing.T) {
 				{
 					"/escrows/recipient", "", b.Address(), false,
 					[]orm.Object{
-						NewEscrow(weavetest.SequenceID(1), a.Address(), b.Address(), c.Address(), some, Timeout, ""),
+						NewEscrow(weavetest.SequenceID(1), a.Address(), b.Address(), c.Address(), some, Timeout, "", 179),
 					},
 					NewBucket().Bucket,
 				},
@@ -127,7 +127,7 @@ func TestHandler(t *testing.T) {
 				{
 					"/escrows/arbiter", "", c.Address(), false,
 					[]orm.Object{
-						NewEscrow(weavetest.SequenceID(1), a.Address(), b.Address(), c.Address(), some, Timeout, ""),
+						NewEscrow(weavetest.SequenceID(1), a.Address(), b.Address(), c.Address(), some, Timeout, "", 179),
 					},
 					NewBucket().Bucket,
 				},
@@ -142,14 +142,14 @@ func TestHandler(t *testing.T) {
 				// bank deducted from sender
 				{"/wallets", "", a.Address(), false,
 					[]orm.Object{
-						mo(cash.WalletWith(a.Address(), remain...)),
+						mo(cash.WalletWith(179, a.Address(), remain...)),
 					},
 					cash.NewBucket().Bucket,
 				},
 				// and added to escrow
 				{"/wallets", "", escrowAddr(1), false,
 					[]orm.Object{
-						mo(cash.WalletWith(escrowAddr(1), some...)),
+						mo(cash.WalletWith(179, escrowAddr(1), some...)),
 					},
 					cash.NewBucket().Bucket,
 				},
@@ -208,21 +208,21 @@ func TestHandler(t *testing.T) {
 				// escrow is empty
 				{"/wallets", "", escrowAddr(1), false,
 					[]orm.Object{
-						cash.NewWallet(escrowAddr(1)),
+						cash.NewWallet(179, escrowAddr(1)),
 					},
 					cash.NewBucket().Bucket,
 				},
 				// sender is broke
 				{"/wallets", "", a.Address(), false,
 					[]orm.Object{
-						cash.NewWallet(a.Address()),
+						cash.NewWallet(179, a.Address()),
 					},
 					cash.NewBucket().Bucket,
 				},
 				// recipient has bank
 				{"/wallets", "", b.Address(), false,
 					[]orm.Object{
-						mo(cash.WalletWith(b.Address(), all...)),
+						mo(cash.WalletWith(179, b.Address(), all...)),
 					},
 					cash.NewBucket().Bucket,
 				},
@@ -246,28 +246,28 @@ func TestHandler(t *testing.T) {
 				{
 					"/escrows", "", weavetest.SequenceID(1), false,
 					[]orm.Object{
-						NewEscrow(weavetest.SequenceID(1), a.Address(), b.Address(), c.Address(), remain, Timeout, "hello"),
+						NewEscrow(weavetest.SequenceID(1), a.Address(), b.Address(), c.Address(), remain, Timeout, "hello", 179),
 					},
 					NewBucket().Bucket,
 				},
 				// escrow is reduced
 				{"/wallets", "", escrowAddr(1), false,
 					[]orm.Object{
-						mo(cash.WalletWith(escrowAddr(1), remain...)),
+						mo(cash.WalletWith(179, escrowAddr(1), remain...)),
 					},
 					cash.NewBucket().Bucket,
 				},
 				// sender is broke
 				{"/wallets", "", a.Address(), false,
 					[]orm.Object{
-						cash.NewWallet(a.Address()),
+						cash.NewWallet(179, a.Address()),
 					},
 					cash.NewBucket().Bucket,
 				},
 				// recipient has some money
 				{"/wallets", "", b.Address(), false,
 					[]orm.Object{
-						mo(cash.WalletWith(b.Address(), some...)),
+						mo(cash.WalletWith(179, b.Address(), some...)),
 					},
 					cash.NewBucket().Bucket,
 				},
@@ -322,14 +322,14 @@ func TestHandler(t *testing.T) {
 		//		// escrow is empty
 		//		{"/wallets", "", escrowAddr(1), false,
 		//			[]orm.Object{
-		//				cash.NewWallet(escrowAddr(1)),
+		//				cash.NewWallet(179, escrowAddr(1)),
 		//			},
 		//			cash.NewBucket().Bucket,
 		//		},
 		//		// sender recover all his money
 		//		{"/wallets", "", a.Address(), false,
 		//			[]orm.Object{
-		//				mo(cash.WalletWith(a.Address(), all...)),
+		//				mo(cash.WalletWith(179, a.Address(), all...)),
 		//			},
 		//			cash.NewBucket().Bucket,
 		//		},
@@ -383,14 +383,14 @@ func TestHandler(t *testing.T) {
 				// bank deducted from sender
 				{"/wallets", "", a.Address(), false,
 					[]orm.Object{
-						mo(cash.WalletWith(a.Address(), remain...)),
+						mo(cash.WalletWith(179, a.Address(), remain...)),
 					},
 					cash.NewBucket().Bucket,
 				},
 				// and added to recipient
 				{"/wallets", "", b.Address(), false,
 					[]orm.Object{
-						mo(cash.WalletWith(b.Address(), some...)),
+						mo(cash.WalletWith(179, b.Address(), some...)),
 					},
 					cash.NewBucket().Bucket,
 				},
@@ -479,21 +479,21 @@ func TestHandler(t *testing.T) {
 				// escrow is empty
 				{"/wallets", "", escrowAddr(1), false,
 					[]orm.Object{
-						cash.NewWallet(escrowAddr(1)),
+						cash.NewWallet(179, escrowAddr(1)),
 					},
 					cash.NewBucket().Bucket,
 				},
 				// sender is broke
 				{"/wallets", "", a.Address(), false,
 					[]orm.Object{
-						cash.NewWallet(a.Address()),
+						cash.NewWallet(179, a.Address()),
 					},
 					cash.NewBucket().Bucket,
 				},
 				// recipient has cash
 				{"/wallets", "", b.Address(), false,
 					[]orm.Object{
-						mo(cash.WalletWith(b.Address(), all...)),
+						mo(cash.WalletWith(179, b.Address(), all...)),
 					},
 					cash.NewBucket().Bucket,
 				},
@@ -529,14 +529,14 @@ func TestHandler(t *testing.T) {
 		//		// escrow is empty
 		//		{"/wallets", "", escrowAddr(1), false,
 		//			[]orm.Object{
-		//				cash.NewWallet(escrowAddr(1)),
+		//				cash.NewWallet(179, escrowAddr(1)),
 		//			},
 		//			cash.NewBucket().Bucket,
 		//		},
 		//		// sender recover all his money
 		//		{"/wallets", "", a.Address(), false,
 		//			[]orm.Object{
-		//				mo(cash.WalletWith(a.Address(), mustCombineCoins(coin.NewCoin(2, 0, "FOO"))...)),
+		//				mo(cash.WalletWith(179, a.Address(), mustCombineCoins(coin.NewCoin(2, 0, "FOO"))...)),
 		//			},
 		//			cash.NewBucket().Bucket,
 		//		},
@@ -577,21 +577,21 @@ func TestHandler(t *testing.T) {
 				// escrow is empty
 				{"/wallets", "", escrowAddr(1), false,
 					[]orm.Object{
-						cash.NewWallet(escrowAddr(1)),
+						cash.NewWallet(179, escrowAddr(1)),
 					},
 					cash.NewBucket().Bucket,
 				},
 				// sender is broke
 				{"/wallets", "", a.Address(), false,
 					[]orm.Object{
-						cash.NewWallet(a.Address()),
+						cash.NewWallet(179, a.Address()),
 					},
 					cash.NewBucket().Bucket,
 				},
 				// recipient has bank
 				{"/wallets", "", b.Address(), false,
 					[]orm.Object{
-						mo(cash.WalletWith(b.Address(), mustCombineCoins(coin.NewCoin(2, 0, "FOO"))...)),
+						mo(cash.WalletWith(179, b.Address(), mustCombineCoins(coin.NewCoin(2, 0, "FOO"))...)),
 					},
 					cash.NewBucket().Bucket,
 				},
@@ -616,7 +616,7 @@ func TestHandler(t *testing.T) {
 			migration.MustInitPkg(db, "escrow", "cash")
 
 			// set initial data
-			acct, err := cash.WalletWith(tc.account, tc.balance...)
+			acct, err := cash.WalletWith(179, tc.account, tc.balance...)
 			require.NoError(t, err)
 			err = bank.Save(db, acct)
 			require.NoError(t, err)
