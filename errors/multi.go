@@ -103,10 +103,6 @@ func (errs multiError) Error() string {
 
 // StackTrace returns the first stack trace found or nil.
 func (errs multiError) StackTrace() errors.StackTrace {
-	type stackTracer interface {
-		StackTrace() errors.StackTrace
-	}
-
 	for _, err := range errs {
 		if st := stackTrace(err); st != nil {
 			return st

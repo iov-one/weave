@@ -39,9 +39,6 @@ func ABCIInfo(err error, debug bool) (uint32, string) {
 	return abciCode(err), encode(err)
 }
 
-// The errEncoder converts an error into a string string representation
-type errEncoder func(error) string
-
 // The debugErrEncoder encodes the error with a stacktrace.
 func debugErrEncoder(err error) string {
 	return fmt.Sprintf("%+v", err)
