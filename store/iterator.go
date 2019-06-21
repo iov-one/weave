@@ -5,29 +5,20 @@ import (
 	"sync"
 
 	"github.com/google/btree"
+	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/errors"
 )
 
 ///////////////////////////////////////////////////////
 // From Items to Iterator
 
-// TODO: add support for Combine (deleting those below)
 type btreeIter struct {
-	data    btree.Item
-	hasMore bool
-	read    <-chan btree.Item
-	stop    chan<- struct{}
-	once    sync.Once
+	read      <-chan btree.Item
+	stop      chan<- struct{}
+	onceStop  sync.Once
+	onceRead  sync.Once
+	ascending bool
 }
-
-// source marks where the current item comes from
-type source int32
-
-const (
-	us source = iota
-	parent
-	both
-	none
-)
 
 // combine joins our results with those of the parent,
 // taking into consideration overwrites and deletes...
@@ -36,8 +27,9 @@ func ascendBtree(bt *btree.BTree, start, end []byte) *btreeIter {
 	// ensure we never block when we call close()
 	stop := make(chan struct{}, 1)
 	iter := &btreeIter{
-		read: read,
-		stop: stop,
+		read:      read,
+		stop:      stop,
+		ascending: true,
 	}
 
 	insert := func(item btree.Item) bool {
@@ -45,7 +37,7 @@ func ascendBtree(bt *btree.BTree, start, end []byte) *btreeIter {
 		case read <- item:
 			return true
 		case <-stop:
-			close(read)
+			iter.onceRead.Do(func() { close(read) })
 			return false
 		}
 	}
@@ -60,10 +52,9 @@ func ascendBtree(bt *btree.BTree, start, end []byte) *btreeIter {
 		} else { // both != nil
 			bt.AscendRange(bkey{start}, bkey{end}, insert)
 		}
-		close(read)
+		iter.onceRead.Do(func() { close(read) })
 	}()
 
-	iter.next()
 	return iter
 }
 
@@ -72,8 +63,9 @@ func descendBtree(bt *btree.BTree, start, end []byte) *btreeIter {
 	// ensure we never block when we call close()
 	stop := make(chan struct{}, 1)
 	iter := &btreeIter{
-		read: read,
-		stop: stop,
+		read:      read,
+		stop:      stop,
+		ascending: false,
 	}
 
 	insert := func(item btree.Item) bool {
@@ -81,7 +73,7 @@ func descendBtree(bt *btree.BTree, start, end []byte) *btreeIter {
 		case read <- item:
 			return true
 		case <-stop:
-			close(read)
+			iter.onceRead.Do(func() { close(read) })
 			return false
 		}
 	}
@@ -96,41 +88,43 @@ func descendBtree(bt *btree.BTree, start, end []byte) *btreeIter {
 		} else { // both != nil
 			bt.DescendRange(bkeyLess{end}, bkeyLess{start}, insert)
 		}
-		close(read)
+		iter.onceRead.Do(func() { close(read) })
 	}()
 
-	iter.next()
 	return iter
 }
 
 func (b *btreeIter) wrap(parent Iterator) *itemIter {
+	// oh, for a ternay operator in go :(
+	first := 1
+	if b.ascending {
+		first = -1
+	}
+
 	iter := &itemIter{
 		wrap:   b,
 		parent: parent,
-	}
-	if err := iter.skipAllDeleted(); err != nil {
-		panic(err)
+		first:  first,
 	}
 	return iter
 }
 
-func (b *btreeIter) next() {
-	b.data, b.hasMore = <-b.read
+func (b *btreeIter) Next() (keyer, error) {
+	data, hasMore := <-b.read
+	if !hasMore {
+		return nil, errors.Wrap(errors.ErrIteratorDone, "btree iterator")
+	}
+	key, ok := data.(keyer)
+	if !ok {
+		return nil, errors.Wrapf(errors.ErrType, "expected keyer, got %T", data)
+	}
+	return key, nil
 }
 
-func (b *btreeIter) close() {
-	b.once.Do(func() {
-		b.stop <- struct{}{}
+func (b *btreeIter) Release() {
+	b.onceStop.Do(func() {
+		close(b.stop)
 	})
-}
-
-// get requires this is valid, gets what we are pointing at
-func (b *btreeIter) get() keyer {
-	return b.data.(keyer)
-}
-
-func (b *btreeIter) valid() bool {
-	return b.hasMore
 }
 
 type itemIter struct {
@@ -138,133 +132,141 @@ type itemIter struct {
 	// if we are iterating in a cache-wrap (and who isn't),
 	// we need to combine this iterator with the parent
 	parent Iterator
+
+	parentDone   bool
+	cachedParent Model
+	wrapDone     bool
+	cachedWrap   keyer
+	// first is -1 for ascending, 1 for descending
+	// defined as result of bytes.Compare(a, b) such that we should process a first
+	first int
 }
 
 //------- public facing interface ------
 var _ Iterator = (*itemIter)(nil)
 
-// Valid implements Iterator and returns true iff it can be read
-func (i *itemIter) Valid() bool {
-	return i.wrap.valid() || i.parentValid()
-}
-
-// Next moves the iterator to the next sequential key in the database, as
-// defined by order of iteration.
+// advanceParent will read next from parent iterators,
+// and set cached value as well as done flags.
 //
-// If Valid returns false, this method will panic.
-func (i *itemIter) Next() error {
-	// advance either us, parent, or both
-	switch i.firstKey() {
-	case us:
-		i.wrap.next()
-	case both:
-		i.wrap.next()
-		fallthrough
-	case parent:
-		err := i.parent.Next()
-		if err != nil {
-			return err
+// it will skip closed and missing iterators.
+// doesn't return ErrIteratorDone, but only unexpected data errors.
+func (i *itemIter) advanceParent() error {
+	if i.parent == nil {
+		i.parentDone = true
+	}
+	if i.parentDone || i.cachedParent.Key != nil {
+		return nil
+	}
+
+	key, value, err := i.parent.Next()
+	if errors.ErrIteratorDone.Is(err) {
+		i.parentDone = true
+	} else if err != nil {
+		return errors.Wrap(err, "advance parent")
+	} else {
+		i.cachedParent = weave.Model{Key: key, Value: value}
+	}
+
+	return nil
+}
+
+func (i *itemIter) clearOldDelete(before []byte) {
+	del, ok := i.cachedWrap.(deletedItem)
+	if !ok {
+		return
+	}
+	if before == nil || bytes.Compare(del.Key(), before) == i.first {
+		i.cachedWrap = nil
+	}
+}
+
+// advance will read next from wrap iterators,
+// and set cached value as well as done flags.
+//
+// It will skip any deleted items before the i.cachedParent.Key value
+//
+// it will skip closed and missing iterators.
+// doesn't return ErrIteratorDone, but only unexpected data errors.
+func (i *itemIter) advanceWrap() error {
+	if i.wrapDone {
+		return nil
+	}
+	i.clearOldDelete(i.cachedParent.Key)
+
+	for i.cachedWrap == nil {
+		var err error
+		i.cachedWrap, err = i.wrap.Next()
+		// handler errors
+		if errors.ErrIteratorDone.Is(err) {
+			i.wrapDone = true
+			return nil
+		} else if err != nil {
+			return errors.Wrap(err, "advance wrap")
 		}
-	default:
-		panic("Advanced past the end!")
-	}
-
-	// keep advancing over all deleted entries
-	return i.skipAllDeleted()
-}
-
-// Key returns the key of the cursor.
-func (i *itemIter) Key() (key []byte) {
-	switch i.firstKey() {
-	case us, both:
-		return i.wrap.get().Key()
-	case parent:
-		return i.parent.Key()
-	default: //none
-		panic("Advanced past the end!")
-	}
-}
-
-// Value returns the value of the cursor.
-func (i *itemIter) Value() (value []byte) {
-	switch i.firstKey() {
-	case us, both:
-		return i.wrap.get().(setItem).value
-	case parent:
-		return i.parent.Value()
-	default: // none
-		panic("Advanced past the end!")
-	}
-}
-
-// Close releases the Iterator.
-func (i *itemIter) Close() {
-	i.parent.Close()
-	i.wrap.close()
-}
-
-// skipAllDeleted loops and skips any number of deleted items
-func (i *itemIter) skipAllDeleted() error {
-	var err error
-	more := true
-	for more {
-		more, err = i.skipDeleted()
-		if err != nil {
-			return err
-		}
+		i.clearOldDelete(i.cachedParent.Key)
 	}
 	return nil
 }
 
-// skipDeleted jumps over all elements we can safely fast forward
-// return true if skipped, so we can skip again
-func (i *itemIter) skipDeleted() (bool, error) {
-	src := i.firstKey()
-	if src == us || src == both {
-		// if our next is deleted, advance...
-		if _, ok := i.wrap.get().(deletedItem); ok {
-			i.wrap.next()
-			// if parent had the same key, advance parent as well
-			if src == both {
-				err := i.parent.Next()
-				if err != nil {
-					return false, err
-				}
-			}
-			return true, nil
-		}
+func (i *itemIter) Next() (key, value []byte, err error) {
+	// this guarantees that both have xxxDone == true or cachedXxx != nil
+	if err := i.advanceParent(); err != nil {
+		return nil, nil, errors.Wrap(err, "advanceParent")
 	}
-	return false, nil
+	// advances the wrap and skips all deleted up to parent key
+	if err := i.advanceWrap(); err != nil {
+		return nil, nil, errors.Wrap(err, "advanceWrap")
+	}
+
+	if i.wrapDone {
+		return i.returnCachedParent()
+	}
+	if i.parentDone {
+		return i.returnCachedWrap()
+	}
+
+	// both are valid... see which is first
+	switch bytes.Compare(i.cachedParent.Key, i.cachedWrap.Key()) {
+	case -i.first: // cachedWrap first
+		return i.returnCachedWrap()
+	case i.first: // cachedParent first
+		return i.returnCachedParent()
+	case 0: // at the same key
+		i.cachedParent = weave.Model{}
+		if _, ok := i.cachedWrap.(setItem); ok {
+			return i.returnCachedWrap()
+		}
+		// if it is a delete, then we unset both and continue again
+		i.cachedWrap = nil
+		return i.Next()
+	}
+	// we should never get here, but compile doesn't know that
+	panic("bytes compare should return 1, 0, or -1")
 }
 
-// firstKey selects the iterator with the lowest key is any
-func (i *itemIter) firstKey() source {
-	// if only one or none is valid, it is clear which to use
-	if !i.parentValid() {
-		if !i.wrap.valid() {
-			return none
-		}
-		return us
-	} else if !i.wrap.valid() {
-		return parent
+// returns cached item from wrap (helper for Next)
+func (i *itemIter) returnCachedWrap() (key, value []byte, err error) {
+	if i.wrapDone {
+		return nil, nil, errors.Wrap(errors.ErrIteratorDone, "itemIter wrap done")
 	}
+	item := i.cachedWrap.(setItem)
+	i.cachedWrap = nil
+	return item.key, item.value, nil
 
-	// both are valid... compare keys....
-	parKey := i.parent.Key()
-	usKey := i.wrap.get().Key()
-
-	// let's see which one to do....
-	cmp := bytes.Compare(parKey, usKey)
-	if cmp < 0 {
-		return parent
-	} else if cmp > 0 {
-		return us
-	} else {
-		return both
-	}
 }
 
-// makes sure the parent is non-nil before checking if it is valid
-func (i *itemIter) parentValid() bool {
-	return (i.parent != nil) && i.parent.Valid()
+// returns cached item from parent (helper for Next)
+func (i *itemIter) returnCachedParent() (key, value []byte, err error) {
+	if i.parentDone {
+		return nil, nil, errors.Wrap(errors.ErrIteratorDone, "itemIter parent done")
+	}
+	key, value = i.cachedParent.Key, i.cachedParent.Value
+	i.cachedParent = weave.Model{}
+	return key, value, nil
+}
+
+// Release releases the Iterator.
+func (i *itemIter) Release() {
+	i.parent.Release()
+	i.wrap.Release()
 }

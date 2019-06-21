@@ -3,6 +3,7 @@ package app
 import (
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/store"
 	abci "github.com/tendermint/tendermint/abci/types"
 )
 
@@ -76,7 +77,7 @@ func (a *ABCIStore) Iterator(start, end []byte) (weave.Iterator, error) {
 		return nil, err
 	}
 
-	return NewSliceIterator(models), nil
+	return store.NewSliceIterator(models), nil
 }
 
 func (a *ABCIStore) ReverseIterator(start, end []byte) (weave.Iterator, error) {
@@ -93,51 +94,4 @@ func toModels(keys, values []byte) ([]weave.Model, error) {
 		return nil, errors.Wrapf(errors.ErrState, "cannot unmarshal values: %v", err.Error())
 	}
 	return JoinResults(&k, &v)
-}
-
-// SliceIterator wraps an Iterator over a slice of models
-type SliceIterator struct {
-	data []weave.Model
-	idx  int
-}
-
-var _ weave.Iterator = (*SliceIterator)(nil)
-
-// NewSliceIterator creates a new Iterator over this slice
-func NewSliceIterator(data []weave.Model) *SliceIterator {
-	return &SliceIterator{
-		data: data,
-	}
-}
-
-// Valid implements Iterator and returns true iff it can be read
-func (s *SliceIterator) Valid() bool {
-	return s.idx < len(s.data)
-}
-
-// Next moves the iterator to the next sequential key in the database, as
-// defined by order of iteration.
-//
-// If Valid returns false, this method will panic.keys
-func (s *SliceIterator) Next() error {
-	if s.idx >= len(s.data) {
-		return errors.Wrap(errors.ErrDatabase, "Passed end of slice")
-	}
-	s.idx++
-	return nil
-}
-
-// Key returns the key of the cursor.
-func (s *SliceIterator) Key() (key []byte) {
-	return s.data[s.idx].Key
-}
-
-// Value returns the value of the cursor.
-func (s *SliceIterator) Value() (value []byte) {
-	return s.data[s.idx].Value
-}
-
-// Close releases the Iterator.
-func (s *SliceIterator) Close() {
-	s.data = nil
 }

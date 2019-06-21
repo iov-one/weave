@@ -6,6 +6,7 @@ import (
 	"sort"
 	"testing"
 
+	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/weavetest/assert"
 )
 
@@ -230,7 +231,6 @@ func (s *TestSuite) IteratorWithConflicts(t *testing.T) {
 				// query for the values in child
 				{nil, nil, false, expect0},
 				{expect0[1].Key, expect0[2].Key, false, expect0[1:2]},
-
 				{nil, nil, true, reverse(expect0)},
 			},
 		},
@@ -240,7 +240,6 @@ func (s *TestSuite) IteratorWithConflicts(t *testing.T) {
 				// query for the values in child
 				{nil, nil, false, expect0},
 				{expect0[1].Key, expect0[2].Key, false, expect0[1:2]},
-
 				{nil, nil, true, reverse(expect0)},
 			},
 		},
@@ -251,7 +250,6 @@ func (s *TestSuite) IteratorWithConflicts(t *testing.T) {
 				// query for the values in child
 				{nil, nil, false, expect0},
 				{expect0[1].Key, expect0[2].Key, false, expect0[1:2]},
-
 				{nil, nil, true, reverse(expect0)},
 			},
 		},
@@ -262,7 +260,6 @@ func (s *TestSuite) IteratorWithConflicts(t *testing.T) {
 				// query for the values in child
 				{nil, nil, false, expect1},
 				{expect1[1].Key, expect1[3].Key, false, expect1[1:3]},
-
 				{nil, nil, true, reverse(expect1)},
 			},
 		},
@@ -337,7 +334,7 @@ func (i iterCase) verify(t testing.TB, base CacheableKVStore) {
 
 	child := base.CacheWrap()
 	for _, op := range i.child {
-		assert.Nil(t, op.Apply(base))
+		assert.Nil(t, op.Apply(child))
 	}
 
 	for _, q := range i.queries {
@@ -349,14 +346,20 @@ func (i iterCase) verify(t testing.TB, base CacheableKVStore) {
 			iter, err = child.Iterator(q.start, q.end)
 		}
 		assert.Nil(t, err)
+
 		// Make sure proper iteration works.
 		for i := 0; i < len(q.expected); i++ {
-			assert.Equal(t, iter.Valid(), true)
-			assert.Equal(t, q.expected[i].Key, iter.Key())
-			assert.Equal(t, q.expected[i].Value, iter.Value())
-			assert.Nil(t, iter.Next())
+			key, value, err := iter.Next()
+			assert.Nil(t, err)
+			if !bytes.Equal(q.expected[i].Key, key) {
+				t.Fatalf("Expected key: %X\nGot keys %d = %X", q.expected[i].Key, i, key)
+			}
+			assert.Equal(t, q.expected[i].Value, value)
 		}
-		assert.Equal(t, iter.Valid(), false)
+		_, _, err = iter.Next()
+		if !errors.ErrIteratorDone.Is(err) {
+			t.Fatalf("Expected ErrIteratorDone, got %+v", err)
+		}
 	}
 }
 

@@ -33,6 +33,7 @@ Breaking changes
 - `cash.UpdateConfigurationMsg` requires `Metadata.Schema`
 - ValidatorUpdate definitions now moved to `weave` package. Weave is using these definitions
 now instead of abci internally.
+- Simplified `Iterator` to 2 methods - Next() and Release()
 
 
 ## 0.16.0

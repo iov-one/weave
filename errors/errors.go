@@ -80,6 +80,9 @@ var (
 	// ErrDeleted is returned whenever a deleted object version is accessed.
 	ErrDeleted = Register(21, "content deleted")
 
+	// ErrIteratorDone is returned when an iterator hits the end of the data source.
+	ErrIteratorDone = Register(22, "iterator done")
+
 	// ErrNetwork is returned on network failure (only for client libraries)
 	ErrNetwork = Register(100200, "network")
 

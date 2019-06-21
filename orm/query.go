@@ -1,6 +1,9 @@
 package orm
 
-import "github.com/iov-one/weave"
+import (
+	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/errors"
+)
 
 // RegisterQuery will register a root query (literal keys)
 // under "/"
@@ -12,19 +15,16 @@ func RegisterQuery(qr weave.QueryRouter) {
 // consumeIterator will read all remaining data into an
 // array and close the iterator
 func consumeIterator(itr weave.Iterator) ([]weave.Model, error) {
-	defer itr.Close()
+	defer itr.Release()
 
 	var res []weave.Model
-	for itr.Valid() {
-		mod := weave.Model{
-			Key:   itr.Key(),
-			Value: itr.Value(),
-		}
-		res = append(res, mod)
-		err := itr.Next()
-		if err != nil {
-			return nil, err
-		}
+	key, value, err := itr.Next()
+	for err == nil {
+		res = append(res, weave.Model{Key: key, Value: value})
+		key, value, err = itr.Next()
+	}
+	if !errors.ErrIteratorDone.Is(err) {
+		return nil, err
 	}
 	return res, nil
 }

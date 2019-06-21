@@ -181,10 +181,10 @@ func (a adapter) Iterator(start, end []byte) (store.Iterator, error) {
 	iter := newLazyIterator()
 	go func() {
 		a.tree.IterateRange(start, end, true, iter.add)
-		iter.Close()
+		iter.Release()
 	}()
 
-	return iter, iter.Next()
+	return iter, nil
 }
 
 // ReverseIterator over a domain of keys in descending order. End is exclusive.
@@ -194,8 +194,8 @@ func (a adapter) ReverseIterator(start, end []byte) (store.Iterator, error) {
 	iter := newLazyIterator()
 	go func() {
 		a.tree.IterateRange(start, end, false, iter.add)
-		iter.Close()
+		iter.Release()
 	}()
 
-	return iter, iter.Next()
+	return iter, nil
 }

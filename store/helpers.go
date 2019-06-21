@@ -22,47 +22,18 @@ func NewSliceIterator(data []Model) *SliceIterator {
 	}
 }
 
-// Valid implements Iterator and returns true iff it can be read
-func (s *SliceIterator) Valid() bool {
-	return s.idx < len(s.data)
-}
-
-// Next moves the iterator to the next sequential key in the database, as
-// defined by order of iteration.
-//
-// If Valid returns false, this method will panic.
-func (s *SliceIterator) Next() error {
+func (s *SliceIterator) Next() (key, value []byte, err error) {
 	if s.idx >= len(s.data) {
-		return errors.Wrap(errors.ErrDatabase, "Passed end of slice")
+		return nil, nil, errors.Wrap(errors.ErrIteratorDone, "slice iterator")
 	}
+	val := s.data[s.idx]
 	s.idx++
-	return nil
+	return val.Key, val.Value, nil
 }
 
-// Key returns the key of the cursor.
-func (s *SliceIterator) Key() (key []byte) {
-	return s.data[s.idx].Key
-}
-
-// Value returns the value of the cursor.
-func (s *SliceIterator) Value() (value []byte) {
-	return s.data[s.idx].Value
-}
-
-// Close releases the Iterator.
-func (s *SliceIterator) Close() {
+// Release releases the Iterator.
+func (s *SliceIterator) Release() {
 	s.data = nil
-}
-
-// TakeFirst is a helper when you only want the first value.
-// It closes the Iterator after reading, and is not meant for loops,
-// but rather to implement First/Last.
-func TakeFirst(iter Iterator) (key, value []byte, err error) {
-	if !iter.Valid() {
-		return nil, nil, errors.Wrap(errors.ErrNotFound, "iterator invalid")
-	}
-	defer iter.Close()
-	return iter.Key(), iter.Value(), nil
 }
 
 /////////////////////////////////////////////////////
