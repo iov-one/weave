@@ -29,6 +29,8 @@ func TestCreateResults(t *testing.T) {
 }
 
 func TestDeliverTxError(t *testing.T) {
+	notFoundErr := &abciError{code: 666, msg: "not found"}
+
 	cases := map[string]struct {
 		err      error
 		debug    bool
@@ -51,7 +53,7 @@ func TestDeliverTxError(t *testing.T) {
 			},
 		},
 		"weave error is exposed": {
-			err:   errors.Wrap(notFoundErr{}, "not here"),
+			err:   errors.Wrap(notFoundErr, "not here"),
 			debug: false,
 			wantResp: abci.ResponseDeliverTx{
 				Code: 666,
@@ -59,11 +61,52 @@ func TestDeliverTxError(t *testing.T) {
 			},
 		},
 		"weave error is exposed in debug mode": {
-			err:   errors.Wrap(notFoundErr{}, "not here"),
+			err:   errors.Wrap(notFoundErr, "not here"),
 			debug: false,
 			wantResp: abci.ResponseDeliverTx{
 				Code: 666,
 				Log:  "cannot deliver tx: not here: not found",
+			},
+		},
+		"multi-error is exposing all errors": {
+			err: errors.Append(
+				&abciError{code: 111, msg: "first"},
+				&abciError{code: 222, msg: "second"},
+				&abciError{code: 333, msg: "third"},
+			),
+			debug: false,
+			wantResp: abci.ResponseDeliverTx{
+				Code: 1000,
+				Log: `cannot deliver tx: 3 errors occurred:
+	* first
+	* second
+	* third
+`,
+			},
+		},
+		"multi-error with panic in debug mode": {
+			err: errors.Append(
+				&abciError{code: 111, msg: "first"},
+				errors.ErrPanic,
+			),
+			debug: true,
+			wantResp: abci.ResponseDeliverTx{
+				Code: 1000,
+				Log: `cannot deliver tx: 2 errors occurred:
+	* first
+	* panic
+`,
+			},
+		},
+		"multi-error with panic in non debug mode": {
+			err: errors.Append(
+				&abciError{code: 111, msg: "first"},
+				errors.ErrPanic,
+			),
+			debug: false,
+			wantResp: abci.ResponseDeliverTx{
+				Code: 1000,
+				Log:  "cannot deliver tx: internal error",
 			},
 		},
 	}
@@ -79,6 +122,8 @@ func TestDeliverTxError(t *testing.T) {
 }
 
 func TestCheckTxError(t *testing.T) {
+	notFoundErr := &abciError{code: 666, msg: "not found"}
+
 	cases := map[string]struct {
 		err      error
 		debug    bool
@@ -101,7 +146,7 @@ func TestCheckTxError(t *testing.T) {
 			},
 		},
 		"abci error is exposed": {
-			err:   errors.Wrap(notFoundErr{}, "not here"),
+			err:   errors.Wrap(notFoundErr, "not here"),
 			debug: false,
 			wantResp: abci.ResponseCheckTx{
 				Code: 666,
@@ -109,7 +154,7 @@ func TestCheckTxError(t *testing.T) {
 			},
 		},
 		"weave error is exposed in debug mode": {
-			err:   errors.Wrap(notFoundErr{}, "not here"),
+			err:   errors.Wrap(notFoundErr, "not here"),
 			debug: false,
 			wantResp: abci.ResponseCheckTx{
 				Code: 666,
@@ -128,10 +173,17 @@ func TestCheckTxError(t *testing.T) {
 	}
 }
 
-// notFoundErr is a custom implementation of an error that provides an ABCICode
+// abciError is a custom implementation of an error that provides an ABCICode
 // method.
-type notFoundErr struct{}
+type abciError struct {
+	code uint32
+	msg  string
+}
 
-func (notFoundErr) ABCICode() uint32 { return 666 }
+func (e *abciError) ABCICode() uint32 {
+	return e.code
+}
 
-func (notFoundErr) Error() string { return "not found" }
+func (e *abciError) Error() string {
+	return e.msg
+}
