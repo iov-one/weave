@@ -25,7 +25,7 @@ func (Initializer) FromGenesis(opts weave.Options, params weave.GenesisParams, k
 	if err := accounts.Validate(); err != nil {
 		return errors.Wrap(err, "accounts validation")
 	}
-	accts := AccountsWith(accounts)
+	accts := AccountsWith(accounts, 0)
 	bucket := NewAccountBucket()
 	if err := bucket.Save(kv, accts); err != nil {
 		return errors.Wrap(err, "bucket save")

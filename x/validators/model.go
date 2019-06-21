@@ -42,13 +42,13 @@ func AsWeaveAccounts(a *Accounts) WeaveAccounts {
 	return WeaveAccounts{Addresses: addrs}
 }
 
-func AsAccounts(a WeaveAccounts) *Accounts {
+func AsAccounts(a WeaveAccounts, height int64) *Accounts {
 	addrs := make([][]byte, len(a.Addresses))
 	for k, v := range a.Addresses {
 		addrs[k] = []byte(v)
 	}
 	return &Accounts{
-		Metadata:  &weave.Metadata{Schema: 1},
+		Metadata:  &weave.Metadata{Schema: 1, LastModified: height},
 		Addresses: addrs,
 	}
 }
@@ -102,7 +102,7 @@ func (b *AccountBucket) GetAccounts(kv weave.KVStore) (*Accounts, error) {
 	return acc, nil
 }
 
-func AccountsWith(acct WeaveAccounts) orm.Object {
-	acc := AsAccounts(acct)
+func AccountsWith(acct WeaveAccounts, height int64) orm.Object {
+	acc := AsAccounts(acct, height)
 	return orm.NewSimpleObj([]byte(accountListKey), acc)
 }

@@ -107,7 +107,7 @@ func TestInitState(t *testing.T) {
 			if err != nil {
 				t.Fatalf("unexpected error: %s", err)
 			}
-			if exp, got := AsAccounts(*spec.Exp), accounts; !reflect.DeepEqual(exp, got) {
+			if exp, got := AsAccounts(*spec.Exp, 179), accounts; !reflect.DeepEqual(exp, got) {
 				t.Errorf("expected %v but got %v", exp, got)
 			}
 		})

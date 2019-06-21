@@ -140,7 +140,7 @@ func TestHandler(t *testing.T) {
 			db := store.MemStore(179)
 			migration.MustInitPkg(db, "validators")
 			ctx := context.Background()
-			err := NewAccountBucket().Save(db, AccountsWith(WeaveAccounts{Addresses: []weave.Address{spec.AuthzAddress}}))
+			err := NewAccountBucket().Save(db, AccountsWith(WeaveAccounts{Addresses: []weave.Address{spec.AuthzAddress}}, 179))
 			if err != nil {
 				t.Fatalf("unexpected error: %s", err)
 			}
