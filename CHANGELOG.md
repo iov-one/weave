@@ -1,10 +1,11 @@
 # Changelog
 ## HEAD
 
-- Expose some more Genesis params to extension initializers. Utilise those in `x/validators`
-to store initial validator list and validate updates against this list while updating on
-every successful transaction.
-- Add CommitInfo to context in order to be able to see who signed the current block
+- Expose some more Genesis parameters to extension initializers. Utilise those
+  in `x/validators` to store initial validator list and validate updates
+  against this list while updating on every successful transaction.
+- Add `CommitInfo` to context in order to be able to see who signed the current
+  block
 - `cmd/bnscli` new commands
     - `with-fee` to configure a transaction fee,
     - `set-validators` to configure the validators,
@@ -20,14 +21,19 @@ every successful transaction.
 
 Breaking changes
 
+- Some messages were renamed to start with a verb.
+  - in `x/namecoin`, `NewTokenMsg` renamed to `CreateTokenMsg`
+  - in `x/distribution`, `NewRevenueMsg` renamed to `CreateRevenueMsg`
+  - in `x/currency`, `NewTokenInfoMsg` renamed to `CreateTokenInfoMsg`
+  - in `x/cash`, 'ConfigurationMsg` renamed to `UpdateConfigurationMsg`
 - cmd/bnsd: `nft/username` allows now for any number of aliases/names for a
   single address. Lookup of the username by an address is no longer available.
-- messages produced by `cmd/bnscli` have a new binary format incompatible with
+- Messages produced by `cmd/bnscli` have a new binary format incompatible with
   the previous version.
 - `x/gov` added indexes to proposals and electorate to enable better client-side UX
 - `cash.UpdateConfigurationMsg` requires `Metadata.Schema`
-- ValidatorUpdate definitions now moved to `weave` package. Weave is using these definitions
-now instead of abci internally.
+- `ValidatorUpdate` definitions now moved to `weave` package. Weave is using
+  these definitions now instead of ABCI internally.
 
 
 ## 0.16.0
