@@ -239,7 +239,7 @@ func (s *StoreApp) Query(reqQuery abci.RequestQuery) (resQuery abci.ResponseQuer
 	}
 	resQuery.Height = info.Version
 	// TODO: better version handling!
-	db := s.store.committed.CacheWrap()
+	db := s.store.committed.CacheWrap(info.Version)
 
 	// make the query
 	models, err := qh.Query(db, mod, reqQuery.Data)

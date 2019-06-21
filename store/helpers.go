@@ -40,7 +40,10 @@ func (s *SliceIterator) Release() {
 // Empty KVStore
 
 // EmptyKVStore never holds any data, used as a base layer to test caching
-type EmptyKVStore struct{}
+type EmptyKVStore struct {
+	// Height is public to easily modify in test code
+	Height int64
+}
 
 var _ KVStore = EmptyKVStore{}
 
@@ -55,6 +58,10 @@ func (e EmptyKVStore) Set(key, value []byte) error { return nil }
 
 // Delete is a noop
 func (e EmptyKVStore) Delete(key []byte) error { return nil }
+
+func (e EmptyKVStore) GetHeight() int64 {
+	return e.Height
+}
 
 // Iterator is always empty
 func (e EmptyKVStore) Iterator(start, end []byte) (Iterator, error) {

@@ -10,6 +10,7 @@ import (
 // Queryable is implemented by an abci.Application, but also weave/client.Client (over tendermint)
 type Queryable interface {
 	Query(query abci.RequestQuery) abci.ResponseQuery
+	Info(req abci.RequestInfo) abci.ResponseInfo
 }
 
 // ABCIStore exposes the weave abci.Query interface as a ReadonlyKVStore
@@ -21,6 +22,11 @@ var _ weave.ReadOnlyKVStore = (*ABCIStore)(nil)
 
 func NewABCIStore(app abci.Application) *ABCIStore {
 	return &ABCIStore{app: app}
+}
+
+// GetHeight returns the last committed block of the application
+func (a *ABCIStore) GetHeight() int64 {
+	return a.app.Info(abci.RequestInfo{}).LastBlockHeight
 }
 
 // Get will query for exactly one value over the abci store.

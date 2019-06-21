@@ -22,6 +22,10 @@ type ReadOnlyKVStore interface {
 	// Start must be greater than end, or the Iterator is invalid.
 	// CONTRACT: No writes may happen within a domain while an iterator exists over it.
 	ReverseIterator(start, end []byte) (Iterator, error)
+
+	// GetHeight returns the current block height
+	// This must be set when creating the underlying store (before caching it)
+	GetHeight() int64
 }
 
 // SetDeleter is a minimal interface for writing,
@@ -146,7 +150,7 @@ type CommitKVStore interface {
 	// Get a CacheWrap to perform actions
 	// TODO: add Batch to atomic writes and efficiency
 	// invisibly inside this CacheWrap???
-	CacheWrap() KVCacheWrap
+	CacheWrap(height int64) KVCacheWrap
 
 	// Commit the next version to disk, and returns info
 	Commit() (CommitID, error)

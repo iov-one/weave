@@ -97,6 +97,11 @@ func (b BTreeCacheWrap) NewBatch() Batch {
 	return NewNonAtomicBatch(b)
 }
 
+// GetHeight returns height set in backing store
+func (b BTreeCacheWrap) GetHeight() int64 {
+	return b.back.GetHeight()
+}
+
 // Write syncs with the underlying store.
 // And then cleans up
 func (b BTreeCacheWrap) Write() error {

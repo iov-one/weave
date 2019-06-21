@@ -122,15 +122,15 @@ func (s CommitStore) LatestVersion() (store.CommitID, error) {
 // and will be written to disk on Commit. There is no way
 // to rollback writes here, without throwing away the CommitStore
 // and re-loading from disk.
-func (s CommitStore) Adapter() store.CacheableKVStore {
-	var kv store.KVStore = adapter{tree: s.tree}
+func (s CommitStore) Adapter(height int64) store.CacheableKVStore {
+	var kv store.KVStore = adapter{tree: s.tree, height: height}
 	return store.BTreeCacheable{KVStore: kv}
 }
 
 // CacheWrap wraps the Adapter with a cache, so it may be written
 // or discarded as needed.
-func (s CommitStore) CacheWrap() store.KVCacheWrap {
-	return s.Adapter().CacheWrap()
+func (s CommitStore) CacheWrap(height int64) store.KVCacheWrap {
+	return s.Adapter(height).CacheWrap()
 }
 
 // func (b *Bonsai) GetVersionedWithProof(key []byte, version int64) ([]byte, iavl.KeyProof, error) {
@@ -141,7 +141,8 @@ func (s CommitStore) CacheWrap() store.KVCacheWrap {
 
 // adapter converts the working iavl.Tree to match these interfaces
 type adapter struct {
-	tree *iavl.MutableTree
+	tree   *iavl.MutableTree
+	height int64
 }
 
 var _ store.KVStore = adapter{}
@@ -167,6 +168,10 @@ func (a adapter) Set(key, value []byte) error {
 func (a adapter) Delete(key []byte) error {
 	a.tree.Remove(key)
 	return nil
+}
+
+func (a adapter) GetHeight() int64 {
+	return a.height
 }
 
 // NewBatch returns a batch that can write multiple ops atomically

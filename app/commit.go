@@ -20,10 +20,16 @@ func NewCommitStore(store weave.CommitKVStore) *CommitStore {
 	if err != nil {
 		panic(err)
 	}
+	info, err := store.LatestVersion()
+	if err != nil {
+		panic(err)
+	}
+
+	newHeight := info.Version + 1
 	return &CommitStore{
 		committed: store,
-		deliver:   store.CacheWrap(),
-		check:     store.CacheWrap(),
+		deliver:   store.CacheWrap(newHeight),
+		check:     store.CacheWrap(newHeight),
 	}
 }
 
@@ -51,8 +57,9 @@ func (cs *CommitStore) Commit() (weave.CommitID, error) {
 	}
 
 	// set up new caches
-	cs.deliver = cs.committed.CacheWrap()
-	cs.check = cs.committed.CacheWrap()
+	newHeight := res.Version + 1
+	cs.deliver = cs.committed.CacheWrap(newHeight)
+	cs.check = cs.committed.CacheWrap(newHeight)
 	return res, nil
 }
 
