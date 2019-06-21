@@ -350,10 +350,7 @@ func (s *StoreApp) EndBlock(_ abci.RequestEndBlock) (res abci.ResponseEndBlock) 
 // AddValChange is meant to be called by apps on DeliverTx
 // results, this is added to the cache for the endblock changeset
 func (s *StoreApp) AddValChange(diffs []weave.ValidatorUpdate) {
-	for _, d := range diffs {
-		s.pending.ValidatorUpdates = append(s.pending.ValidatorUpdates, d)
-	}
-
+	s.pending.ValidatorUpdates = append(s.pending.ValidatorUpdates, diffs...)
 	// ensures multiple updates for one validator are combined into one slot
 	s.pending = s.pending.Deduplicate(false)
 }
