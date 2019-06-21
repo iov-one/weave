@@ -2,6 +2,7 @@ package store
 
 import (
 	"bytes"
+	"fmt"
 	"sync"
 
 	"github.com/google/btree"
@@ -13,9 +14,10 @@ import (
 // From Items to Iterator
 
 type btreeIter struct {
-	read <-chan btree.Item
-	stop chan<- struct{}
-	once sync.Once
+	read     <-chan btree.Item
+	stop     chan<- struct{}
+	onceStop sync.Once
+	onceRead sync.Once
 }
 
 // combine joins our results with those of the parent,
@@ -34,7 +36,7 @@ func ascendBtree(bt *btree.BTree, start, end []byte) *btreeIter {
 		case read <- item:
 			return true
 		case <-stop:
-			close(read)
+			iter.onceRead.Do(func() { close(read) })
 			return false
 		}
 	}
@@ -49,7 +51,7 @@ func ascendBtree(bt *btree.BTree, start, end []byte) *btreeIter {
 		} else { // both != nil
 			bt.AscendRange(bkey{start}, bkey{end}, insert)
 		}
-		close(read)
+		iter.onceRead.Do(func() { close(read) })
 	}()
 
 	return iter
@@ -69,7 +71,7 @@ func descendBtree(bt *btree.BTree, start, end []byte) *btreeIter {
 		case read <- item:
 			return true
 		case <-stop:
-			close(read)
+			iter.onceRead.Do(func() { close(read) })
 			return false
 		}
 	}
@@ -84,7 +86,7 @@ func descendBtree(bt *btree.BTree, start, end []byte) *btreeIter {
 		} else { // both != nil
 			bt.DescendRange(bkeyLess{end}, bkeyLess{start}, insert)
 		}
-		close(read)
+		iter.onceRead.Do(func() { close(read) })
 	}()
 
 	return iter
@@ -111,7 +113,7 @@ func (b *btreeIter) Next() (keyer, error) {
 }
 
 func (b *btreeIter) Release() {
-	b.once.Do(func() {
+	b.onceStop.Do(func() {
 		close(b.stop)
 	})
 }
@@ -204,6 +206,8 @@ func (i *itemIter) Next() (key, value []byte, err error) {
 	}
 
 	// both are valid... try it
+	_, isSet := i.cachedWrap.(setItem)
+	fmt.Printf("Set: %t (parent: %X, wrap: %X)\n", isSet, i.cachedParent.Key, i.cachedWrap.Key())
 	switch bytes.Compare(i.cachedParent.Key, i.cachedWrap.Key()) {
 	case 1: // cachedWrap lower
 		return i.returnCachedWrap()
@@ -212,7 +216,7 @@ func (i *itemIter) Next() (key, value []byte, err error) {
 	case 0:
 		// if it is set, use wrap
 		if _, ok := i.cachedWrap.(setItem); ok {
-			i.returnCachedWrap()
+			return i.returnCachedWrap()
 		}
 		// if it is a delete, then we unset both and continue again
 		i.cachedParent = weave.Model{}
