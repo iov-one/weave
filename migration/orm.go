@@ -61,7 +61,23 @@ func (svb Bucket) Save(db weave.KVStore, obj orm.Object) error {
 	if err := svb.migrate(db, obj); err != nil {
 		return errors.Wrap(err, "migrate")
 	}
+	if err := svb.setModifiedHeight(db, obj); err != nil {
+		return errors.Wrap(err, "set modified height")
+	}
 	return svb.Bucket.Save(db, obj)
+}
+
+func (svb Bucket) setModifiedHeight(db weave.ReadOnlyKVStore, obj orm.Object) error {
+	m, ok := obj.Value().(Migratable)
+	if !ok {
+		return errors.Wrap(errors.ErrModel, "model cannot be migrated")
+	}
+	meta := m.GetMetadata()
+	if meta == nil {
+		return errors.Wrapf(errors.ErrMetadata, "%T metadata is nil", m)
+	}
+	meta.LastModified = db.GetHeight()
+	return nil
 }
 
 func (svb Bucket) migrate(db weave.ReadOnlyKVStore, obj orm.Object) error {

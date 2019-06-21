@@ -45,12 +45,16 @@ func TestSchemaVersionedBucket(t *testing.T) {
 		t.Fatalf("cannot get model one: %s", err)
 	} else if m.Metadata.Schema != 1 || m.Cnt != 5 {
 		t.Fatalf("unexpected result model: %#v", m)
+	} else {
+		assert.Equal(t, int64(179), m.Metadata.LastModified)
 	}
+
 
 	// Storing a model with a schema version higher than currently active
 	// is not allowed.
 	obj2 := orm.NewSimpleObj([]byte("schema_two"), &MyModel{
-		Metadata: &weave.Metadata{Schema: 2},
+		// We set random value here, must be modified before saving
+		Metadata: &weave.Metadata{Schema: 2, LastModified: 55},
 		Cnt:      11,
 	})
 	if err := b.Save(db, obj2); !errors.ErrSchema.Is(err) {
@@ -78,6 +82,9 @@ func TestSchemaVersionedBucket(t *testing.T) {
 		t.Fatalf("cannot get second model: %s", err)
 	} else if m.Metadata.Schema != 2 || m.Cnt != 11 {
 		t.Fatalf("unexpected result model: %#v", m)
+	} else {
+		// must not be the 55 set in Save() call
+		assert.Equal(t, int64(179), m.Metadata.LastModified)
 	}
 
 	// Saving a model with an outdated schema must call the migration
