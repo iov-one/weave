@@ -1,6 +1,7 @@
 # Changelog
 ## HEAD
 
+- Unified dedupe logic for validator bookkeeping and validator diffs in `app`
 - Expose some more Genesis params to extension initializers. Utilise those in
   `x/validators` to store initial validator list and validate updates against
   this list while updating on every successful transaction.
@@ -23,6 +24,7 @@
 
 Breaking changes
 
+- Moved some more messages from `x/validators` package to `weave`
 - `cmd/bnsd`: `nft/username` allows now for any number of aliases/names for a
   single address. Lookup of the username by an address is no longer available.
 - messages produced by `cmd/bnscli` have a new binary format incompatible with

@@ -1,8 +1,6 @@
 package validators
 
 import (
-	"bytes"
-
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/migration"
@@ -43,7 +41,7 @@ func (h updateHandler) Deliver(ctx weave.Context, store weave.KVStore, tx weave.
 	if err != nil {
 		return nil, err
 	}
-	err = updates.Store(store)
+	err = weave.StoreValidatorUpdates(store, updates)
 	if err != nil {
 		return nil, errors.Wrap(err, "store validator updates")
 	}
@@ -53,9 +51,9 @@ func (h updateHandler) Deliver(ctx weave.Context, store weave.KVStore, tx weave.
 
 // Validate returns an update diff, ValidatorUpdates to store for bookkeeping and an error.
 func (h updateHandler) validate(ctx weave.Context, store weave.KVStore, tx weave.Tx) ([]weave.ValidatorUpdate,
-	ValidatorUpdates, error) {
+	weave.ValidatorUpdates, error) {
 	var msg SetValidatorsMsg
-	var resUpdates ValidatorUpdates
+	var resUpdates weave.ValidatorUpdates
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, resUpdates, errors.Wrap(err, "load msg")
 	}
@@ -81,32 +79,29 @@ func (h updateHandler) validate(ctx weave.Context, store weave.KVStore, tx weave
 		return nil, resUpdates, errors.Wrap(errors.ErrUnauthorized, "no permission")
 	}
 
-	updates, err := GetValidatorUpdates(store)
+	updates, err := weave.GetValidatorUpdates(store)
 	if err != nil {
 		return nil, resUpdates, errors.Wrap(err, "failed to query validators")
 	}
 
 	resUpdates = updates
-	validatorSlice := resUpdates.ValidatorUpdates
 
-DiffLoop:
 	for _, v := range diff {
-		for key, validator := range validatorSlice {
-			if bytes.Equal(v.PubKey.Data, validator.PubKey.Data) {
-				if v.Power == validator.Power {
-					return nil, resUpdates, errors.Wrap(errors.ErrInput, "same validator power")
-				}
-
-				resUpdates.ValidatorUpdates[key] = v
-				continue DiffLoop
+		if validator, key, ok := resUpdates.Get(v.PubKey); ok {
+			if v.Power == validator.Power {
+				return nil, resUpdates, errors.Wrap(errors.ErrInput, "same validator power")
 			}
-
+			resUpdates.ValidatorUpdates[key] = v
+			continue
 		}
+
 		if v.Power == 0 {
 			return nil, resUpdates, errors.Wrap(errors.ErrInput, "setting unknown validator power to 0")
 		}
+
 		resUpdates.ValidatorUpdates = append(resUpdates.ValidatorUpdates, v)
 	}
 
-	return diff, resUpdates, nil
+	// Deduplicate updates for storage.
+	return diff, resUpdates.Deduplicate(true), nil
 }

@@ -27,7 +27,7 @@ func TestAddValChange(t *testing.T) {
 		}
 		app.AddValChange(diff)
 		res := app.EndBlock(abci.RequestEndBlock{})
-		assert.Equal(t, weave.ValidatorUpdatesFromABCI(res.ValidatorUpdates), diff)
+		assert.Equal(t, weave.ValidatorUpdatesFromABCI(res.ValidatorUpdates).ValidatorUpdates, diff)
 	})
 
 	t.Run("Only produce last update to multiple validators", func(t *testing.T) {
@@ -40,7 +40,7 @@ func TestAddValChange(t *testing.T) {
 
 		app.AddValChange(diff)
 		res := app.EndBlock(abci.RequestEndBlock{})
-		assert.Equal(t, weave.ValidatorUpdatesFromABCI(res.ValidatorUpdates), diff[2:])
+		assert.Equal(t, weave.ValidatorUpdatesFromABCI(res.ValidatorUpdates).ValidatorUpdates, diff[2:])
 	})
 
 	t.Run("A call with an empty diff does nothing", func(t *testing.T) {
@@ -52,6 +52,6 @@ func TestAddValChange(t *testing.T) {
 		app.AddValChange(make([]weave.ValidatorUpdate, 0))
 
 		res := app.EndBlock(abci.RequestEndBlock{})
-		assert.Equal(t, diff, weave.ValidatorUpdatesFromABCI(res.ValidatorUpdates))
+		assert.Equal(t, diff, weave.ValidatorUpdatesFromABCI(res.ValidatorUpdates).ValidatorUpdates)
 	})
 }

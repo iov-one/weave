@@ -1,46 +1,27 @@
 package weave
 
 import (
+	"bytes"
+	"strings"
+
 	"github.com/iov-one/weave/errors"
 	abci "github.com/tendermint/tendermint/abci/types"
-	"strings"
 )
 
-// CommitInfoFromABCI converts abci commit info to weave native type.
-// This struct represents validator signatures on the current block.
-func CommitInfoFromABCI(info abci.LastCommitInfo) CommitInfo {
-	i := CommitInfo{}
+const (
+	storeKey = "_1:update_validators"
+)
 
-	i.Votes = make([]VoteInfo, len(info.Votes))
-	i.Round = info.Round
-	for k, v := range info.Votes {
-		i.Votes[k] = VoteInfo{
-			Validator: Validator{
-				Power:   v.Validator.Power,
-				Address: v.Validator.Address,
-			},
-		}
-	}
-	return i
-}
+// CommitInfo is a type alias for now, which allows us to override this type
+// with a custom one at any moment.
+type CommitInfo = abci.LastCommitInfo
 
 // ValidatorUpdatesToABCI converts weave validator updates to abci representation.
-func ValidatorUpdatesToABCI(updates []ValidatorUpdate) []abci.ValidatorUpdate {
-	res := make([]abci.ValidatorUpdate, len(updates))
+func ValidatorUpdatesToABCI(updates ValidatorUpdates) []abci.ValidatorUpdate {
+	res := make([]abci.ValidatorUpdate, len(updates.ValidatorUpdates))
 
-	for k, v := range updates {
+	for k, v := range updates.ValidatorUpdates {
 		res[k] = v.AsABCI()
-	}
-
-	return res
-}
-
-// ValidatorUpdatesToABCI converts weave validator updates to abci representation.
-func ValidatorUpdatesFromABCI(updates []abci.ValidatorUpdate) []ValidatorUpdate {
-	res := make([]ValidatorUpdate, len(updates))
-
-	for k, v := range updates {
-		res[k] = ValidatorUpdateFromABCI(v)
 	}
 
 	return res
@@ -82,4 +63,93 @@ func (m PubKey) AsABCI() abci.PubKey {
 		Data: m.Data,
 		Type: m.Type,
 	}
+}
+
+func (m ValidatorUpdates) Validate() error {
+	var err error
+	for _, v := range m.ValidatorUpdates {
+		err = errors.Append(err, v.Validate())
+	}
+	return err
+}
+
+// Get gets a ValidatorUpdate by a public key if it exists
+func (m ValidatorUpdates) Get(key PubKey) (ValidatorUpdate, int, bool) {
+	for k, v := range m.ValidatorUpdates {
+		if v.PubKey.Type == key.Type && bytes.Equal(v.PubKey.Data, key.Data) {
+			return v, k, true
+		}
+	}
+
+	return ValidatorUpdate{}, -1, false
+}
+
+// Deduplicate makes sure we only use the last validator update to any given validator.
+// For bookkeeping we have an option to drop validators with zero power, because those
+// are being removed by tendermint once propagated.
+func (m ValidatorUpdates) Deduplicate(dropZeroPower bool) ValidatorUpdates {
+	if len(m.ValidatorUpdates) == 0 {
+		return m
+	}
+
+	duplicates := make(map[string]int)
+	deduplicatedValidators := make([]ValidatorUpdate, 0, len(m.ValidatorUpdates))
+
+	for _, v := range m.ValidatorUpdates {
+		// This checks if we already have a validator with the same PubKey
+		// and replaces by the latest update
+		if key, ok := duplicates[v.PubKey.String()]; ok {
+			deduplicatedValidators[key] = v
+			continue
+		}
+		deduplicatedValidators = append(deduplicatedValidators, v)
+		duplicates[v.PubKey.String()] = len(deduplicatedValidators) - 1
+		m.ValidatorUpdates = deduplicatedValidators
+	}
+
+	if dropZeroPower {
+		filteredValidators := make([]ValidatorUpdate, 0, len(deduplicatedValidators))
+
+		for _, v := range deduplicatedValidators {
+			if v.Power != 0 {
+				filteredValidators = append(filteredValidators, v)
+			}
+		}
+		m.ValidatorUpdates = filteredValidators
+	}
+
+	return m
+}
+
+func StoreValidatorUpdates(store KVStore, vu ValidatorUpdates) error {
+	marshalledUpdates, err := vu.Marshal()
+	if err != nil {
+		return errors.Wrap(err, "validator updates marshal")
+	}
+	err = store.Set([]byte(storeKey), marshalledUpdates)
+
+	return errors.Wrap(err, "kvstore save")
+}
+
+func GetValidatorUpdates(store KVStore) (ValidatorUpdates, error) {
+	vu := ValidatorUpdates{}
+	b, err := store.Get([]byte(storeKey))
+	if err != nil {
+		return vu, errors.Wrap(err, "kvstore get")
+	}
+
+	err = vu.Unmarshal(b)
+	return vu, errors.Wrap(err, "validator updates unmarshal")
+}
+
+func ValidatorUpdatesFromABCI(u []abci.ValidatorUpdate) ValidatorUpdates {
+	vu := ValidatorUpdates{
+		ValidatorUpdates: make([]ValidatorUpdate, len(u)),
+	}
+
+	for k, v := range u {
+		vu.ValidatorUpdates[k] = ValidatorUpdateFromABCI(v)
+	}
+
+	return vu
 }

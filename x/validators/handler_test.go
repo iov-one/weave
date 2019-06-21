@@ -18,16 +18,16 @@ func TestHandler(t *testing.T) {
 	bobby := weavetest.NewKey()
 
 	specs := map[string]struct {
-		Initial       ValidatorUpdates
+		Initial       weave.ValidatorUpdates
 		Src           []weave.ValidatorUpdate
 		AuthzAddress  weave.Address
 		ExpCheckErr   *errors.Error
 		ExpDeliverErr *errors.Error
 		Exp           []weave.ValidatorUpdate
-		DbExp         ValidatorUpdates
+		DbExp         weave.ValidatorUpdates
 	}{
 		"All good with authorized address": {
-			Initial: ValidatorUpdates{ValidatorUpdates: []weave.ValidatorUpdate{{PubKey: weave.PubKey{Data: bobby.PublicKey().GetEd25519(), Type: "ed25519"}, Power: 3}}},
+			Initial: weave.ValidatorUpdates{ValidatorUpdates: []weave.ValidatorUpdate{{PubKey: weave.PubKey{Data: bobby.PublicKey().GetEd25519(), Type: "ed25519"}, Power: 3}}},
 			Src: []weave.ValidatorUpdate{{
 				PubKey: weave.PubKey{Data: alice.PublicKey().GetEd25519(), Type: "ed25519"},
 				Power:  10,
@@ -37,7 +37,7 @@ func TestHandler(t *testing.T) {
 				PubKey: weave.PubKey{Data: alice.PublicKey().GetEd25519(), Type: "ed25519"},
 				Power:  10,
 			}},
-			DbExp: ValidatorUpdates{[]weave.ValidatorUpdate{{PubKey: weave.PubKey{Data: bobby.PublicKey().GetEd25519(), Type: "ed25519"}, Power: 3}, {
+			DbExp: weave.ValidatorUpdates{ValidatorUpdates: []weave.ValidatorUpdate{{PubKey: weave.PubKey{Data: bobby.PublicKey().GetEd25519(), Type: "ed25519"}, Power: 3}, {
 				PubKey: weave.PubKey{Data: alice.PublicKey().GetEd25519(), Type: "ed25519"},
 				Power:  10,
 			}}},
@@ -52,13 +52,13 @@ func TestHandler(t *testing.T) {
 				PubKey: weave.PubKey{Data: alice.PublicKey().GetEd25519(), Type: "ed25519"},
 				Power:  10,
 			}},
-			DbExp: ValidatorUpdates{[]weave.ValidatorUpdate{{
+			DbExp: weave.ValidatorUpdates{ValidatorUpdates: []weave.ValidatorUpdate{{
 				PubKey: weave.PubKey{Data: alice.PublicKey().GetEd25519(), Type: "ed25519"},
 				Power:  10,
 			}}},
 		},
 		"Setting different power is allowed": {
-			Initial: ValidatorUpdates{ValidatorUpdates: []weave.ValidatorUpdate{{PubKey: weave.PubKey{Data: alice.PublicKey().GetEd25519(), Type: "ed25519"}, Power: 3}}},
+			Initial: weave.ValidatorUpdates{ValidatorUpdates: []weave.ValidatorUpdate{{PubKey: weave.PubKey{Data: alice.PublicKey().GetEd25519(), Type: "ed25519"}, Power: 3}}},
 			Src: []weave.ValidatorUpdate{{
 				PubKey: weave.PubKey{Data: alice.PublicKey().GetEd25519(), Type: "ed25519"},
 				Power:  1,
@@ -68,13 +68,13 @@ func TestHandler(t *testing.T) {
 				PubKey: weave.PubKey{Data: alice.PublicKey().GetEd25519(), Type: "ed25519"},
 				Power:  1,
 			}},
-			DbExp: ValidatorUpdates{[]weave.ValidatorUpdate{{
+			DbExp: weave.ValidatorUpdates{ValidatorUpdates: []weave.ValidatorUpdate{{
 				PubKey: weave.PubKey{Data: alice.PublicKey().GetEd25519(), Type: "ed25519"},
 				Power:  1,
 			}}},
 		},
 		"Power 0 is allowed to remove a validator": {
-			Initial: ValidatorUpdates{ValidatorUpdates: []weave.ValidatorUpdate{{PubKey: weave.PubKey{Data: alice.PublicKey().GetEd25519(), Type: "ed25519"}, Power: 1}}},
+			Initial: weave.ValidatorUpdates{ValidatorUpdates: []weave.ValidatorUpdate{{PubKey: weave.PubKey{Data: alice.PublicKey().GetEd25519(), Type: "ed25519"}, Power: 1}}},
 			Src: []weave.ValidatorUpdate{{
 				PubKey: weave.PubKey{Data: alice.PublicKey().GetEd25519(), Type: "ed25519"},
 				Power:  0,
@@ -144,7 +144,7 @@ func TestHandler(t *testing.T) {
 			if err != nil {
 				t.Fatalf("unexpected error: %s", err)
 			}
-			if err := spec.Initial.Store(db); err != nil {
+			if err := weave.StoreValidatorUpdates(db, spec.Initial); err != nil {
 				t.Fatalf("unexpected error: %s", err)
 			}
 			cache := db.CacheWrap()
@@ -169,7 +169,7 @@ func TestHandler(t *testing.T) {
 			if exp, got := spec.Exp, res.Diff; !reflect.DeepEqual(exp, got) {
 				t.Errorf("expected %v but got %v", exp, got)
 			}
-			got, err := GetValidatorUpdates(db)
+			got, err := weave.GetValidatorUpdates(db)
 			if err != nil {
 				t.Fatalf("unexpected error: %s", err)
 			}

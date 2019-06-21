@@ -11,23 +11,9 @@ message Metadata {
   uint32 schema = 1;
 }
 
-// CommitInfo is basically a replica of tendermint commit info
-// that allows us to store who signed the block in context.
-message CommitInfo {
-  int32 round = 1;
-  repeated VoteInfo votes = 2 ;
-}
-
-// VoteInfo tells us whether a validator signed the last block or not.
-message VoteInfo {
-  Validator validator = 1 ;
-  bool signed_last_block = 2;
-}
-
-// Validator represents a validator;
-message Validator {
-  bytes address = 1;
-  int64 power = 3;
+// ValidatorUpdates represents latest validator state, currently used to validate SetValidatorMsg transactions.
+message ValidatorUpdates {
+  repeated weave.ValidatorUpdate validator_updates = 1 ;
 }
 
 // ValidatorUpdate represents an update to validator set.
