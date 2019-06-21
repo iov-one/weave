@@ -84,7 +84,7 @@ func Examples() []commands.Example {
 		Name:     "myname",
 	}
 
-	tokenMsg := &namecoin.NewTokenMsg{
+	tokenMsg := &namecoin.CreateTokenMsg{
 		Metadata: metadata,
 		Ticker:   "ATM",
 		Name:     "At the moment",

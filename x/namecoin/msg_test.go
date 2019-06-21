@@ -8,13 +8,13 @@ import (
 	"github.com/iov-one/weave/weavetest"
 )
 
-func TestValidateNewTokenMsg(t *testing.T) {
+func TestValidateCreateTokenMsg(t *testing.T) {
 	cases := map[string]struct {
 		Msg     weave.Msg
 		WantErr *errors.Error
 	}{
 		"valid message": {
-			Msg: &NewTokenMsg{
+			Msg: &CreateTokenMsg{
 				Metadata: &weave.Metadata{Schema: 1},
 				Ticker:   "IOV",
 				Name:     "foo",
@@ -23,7 +23,7 @@ func TestValidateNewTokenMsg(t *testing.T) {
 			WantErr: nil,
 		},
 		"invalid ticker": {
-			Msg: &NewTokenMsg{
+			Msg: &CreateTokenMsg{
 				Metadata: &weave.Metadata{Schema: 1},
 				Ticker:   "INVALID",
 				Name:     "foo",
@@ -32,7 +32,7 @@ func TestValidateNewTokenMsg(t *testing.T) {
 			WantErr: errors.ErrCurrency,
 		},
 		"missing metadata": {
-			Msg: &NewTokenMsg{
+			Msg: &CreateTokenMsg{
 				Ticker:  "IOV",
 				Name:    "foo",
 				SigFigs: 5,
@@ -40,7 +40,7 @@ func TestValidateNewTokenMsg(t *testing.T) {
 			WantErr: errors.ErrMetadata,
 		},
 		"sig figs too small": {
-			Msg: &NewTokenMsg{
+			Msg: &CreateTokenMsg{
 				Metadata: &weave.Metadata{Schema: 1},
 				Ticker:   "IOV",
 				Name:     "foo",
@@ -49,7 +49,7 @@ func TestValidateNewTokenMsg(t *testing.T) {
 			WantErr: errors.ErrInput,
 		},
 		"sig figs too big": {
-			Msg: &NewTokenMsg{
+			Msg: &CreateTokenMsg{
 				Metadata: &weave.Metadata{Schema: 1},
 				Ticker:   "IOV",
 				Name:     "foo",

@@ -250,7 +250,7 @@ func TestNewTokenHandler(t *testing.T) {
 		t.Run(testname, func(t *testing.T) {
 			auth := &weavetest.Auth{Signers: tc.signers}
 			// Use default controller/bucket from namecoin.
-			h := NewTokenHandler(auth, tc.issuer)
+			h := newCreateTokenHandler(auth, tc.issuer)
 
 			db := store.MemStore()
 			migration.MustInitPkg(db, "namecoin")

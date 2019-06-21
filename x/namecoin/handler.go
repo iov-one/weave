@@ -24,8 +24,8 @@ func NewSendHandler(auth x.Authenticator) weave.Handler {
 // create new token types. If issuer is nil, anyone can create
 // new tokens.
 // TODO: check that permissioning???
-func NewTokenHandler(auth x.Authenticator, issuer weave.Address) weave.Handler {
-	return TokenHandler{
+func newCreateTokenHandler(auth x.Authenticator, issuer weave.Address) weave.Handler {
+	return createTokenHandler{
 		auth:   auth,
 		issuer: issuer,
 		bucket: NewTokenBucket(),
@@ -47,7 +47,7 @@ func RegisterRoutes(r weave.Registry, auth x.Authenticator, issuer weave.Address
 	r = migration.SchemaMigratingRegistry("namecoin", r)
 	pathSend := cash.SendMsg{}.Path()
 	r.Handle(pathSend, NewSendHandler(auth))
-	r.Handle(pathNewTokenMsg, NewTokenHandler(auth, issuer))
+	r.Handle(pathCreateTokenMsg, newCreateTokenHandler(auth, issuer))
 	r.Handle(pathSetNameMsg, NewSetNameHandler(auth, NewWalletBucket()))
 }
 
@@ -58,18 +58,18 @@ func RegisterQuery(qr weave.QueryRouter) {
 	NewTokenBucket().Register("tokens", qr)
 }
 
-// TokenHandler will handle creating new tokens.
-type TokenHandler struct {
+// createTokenHandler will handle creating new tokens.
+type createTokenHandler struct {
 	auth   x.Authenticator
 	bucket TickerBucket
 	issuer weave.Address
 }
 
-var _ weave.Handler = TokenHandler{}
+var _ weave.Handler = createTokenHandler{}
 
 // Check just verifies it is properly formed and returns
 // the cost of executing it.
-func (h TokenHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
+func (h createTokenHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
 	_, err := h.validate(ctx, db, tx)
 	if err != nil {
 		return nil, err
@@ -80,7 +80,7 @@ func (h TokenHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*
 
 // Deliver moves the tokens from sender to receiver if
 // all preconditions are met.
-func (h TokenHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
+func (h createTokenHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	msg, err := h.validate(ctx, db, tx)
 	if err != nil {
 		return nil, err
@@ -95,8 +95,8 @@ func (h TokenHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) 
 }
 
 // validate does all common pre-processing between Check and Deliver
-func (h TokenHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*NewTokenMsg, error) {
-	var msg NewTokenMsg
+func (h createTokenHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*CreateTokenMsg, error) {
+	var msg CreateTokenMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, errors.Wrap(err, "load msg")
 	}

@@ -145,28 +145,28 @@ func (m *Token) GetSigFigs() int32 {
 	return 0
 }
 
-// NewTokenMsg will register a new token.
+// CreateTokenMsg will register a new token.
 // This must not conflict with any existing ticker,
 // and should be limited to privledged users.
-type NewTokenMsg struct {
+type CreateTokenMsg struct {
 	Metadata *weave.Metadata `protobuf:"bytes,1,opt,name=metadata,proto3" json:"metadata,omitempty"`
 	Ticker   string          `protobuf:"bytes,2,opt,name=ticker,proto3" json:"ticker,omitempty"`
 	Name     string          `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
 	SigFigs  int32           `protobuf:"varint,4,opt,name=sig_figs,json=sigFigs,proto3" json:"sig_figs,omitempty"`
 }
 
-func (m *NewTokenMsg) Reset()         { *m = NewTokenMsg{} }
-func (m *NewTokenMsg) String() string { return proto.CompactTextString(m) }
-func (*NewTokenMsg) ProtoMessage()    {}
-func (*NewTokenMsg) Descriptor() ([]byte, []int) {
+func (m *CreateTokenMsg) Reset()         { *m = CreateTokenMsg{} }
+func (m *CreateTokenMsg) String() string { return proto.CompactTextString(m) }
+func (*CreateTokenMsg) ProtoMessage()    {}
+func (*CreateTokenMsg) Descriptor() ([]byte, []int) {
 	return fileDescriptor_ccf98d5acdce0268, []int{2}
 }
-func (m *NewTokenMsg) XXX_Unmarshal(b []byte) error {
+func (m *CreateTokenMsg) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *NewTokenMsg) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *CreateTokenMsg) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_NewTokenMsg.Marshal(b, m, deterministic)
+		return xxx_messageInfo_CreateTokenMsg.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalTo(b)
@@ -176,40 +176,40 @@ func (m *NewTokenMsg) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) 
 		return b[:n], nil
 	}
 }
-func (m *NewTokenMsg) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_NewTokenMsg.Merge(m, src)
+func (m *CreateTokenMsg) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_CreateTokenMsg.Merge(m, src)
 }
-func (m *NewTokenMsg) XXX_Size() int {
+func (m *CreateTokenMsg) XXX_Size() int {
 	return m.Size()
 }
-func (m *NewTokenMsg) XXX_DiscardUnknown() {
-	xxx_messageInfo_NewTokenMsg.DiscardUnknown(m)
+func (m *CreateTokenMsg) XXX_DiscardUnknown() {
+	xxx_messageInfo_CreateTokenMsg.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_NewTokenMsg proto.InternalMessageInfo
+var xxx_messageInfo_CreateTokenMsg proto.InternalMessageInfo
 
-func (m *NewTokenMsg) GetMetadata() *weave.Metadata {
+func (m *CreateTokenMsg) GetMetadata() *weave.Metadata {
 	if m != nil {
 		return m.Metadata
 	}
 	return nil
 }
 
-func (m *NewTokenMsg) GetTicker() string {
+func (m *CreateTokenMsg) GetTicker() string {
 	if m != nil {
 		return m.Ticker
 	}
 	return ""
 }
 
-func (m *NewTokenMsg) GetName() string {
+func (m *CreateTokenMsg) GetName() string {
 	if m != nil {
 		return m.Name
 	}
 	return ""
 }
 
-func (m *NewTokenMsg) GetSigFigs() int32 {
+func (m *CreateTokenMsg) GetSigFigs() int32 {
 	if m != nil {
 		return m.SigFigs
 	}
@@ -281,14 +281,14 @@ func (m *SetWalletNameMsg) GetName() string {
 func init() {
 	proto.RegisterType((*Wallet)(nil), "namecoin.Wallet")
 	proto.RegisterType((*Token)(nil), "namecoin.Token")
-	proto.RegisterType((*NewTokenMsg)(nil), "namecoin.NewTokenMsg")
+	proto.RegisterType((*CreateTokenMsg)(nil), "namecoin.CreateTokenMsg")
 	proto.RegisterType((*SetWalletNameMsg)(nil), "namecoin.SetWalletNameMsg")
 }
 
 func init() { proto.RegisterFile("x/namecoin/codec.proto", fileDescriptor_ccf98d5acdce0268) }
 
 var fileDescriptor_ccf98d5acdce0268 = []byte{
-	// 288 bytes of a gzipped FileDescriptorProto
+	// 291 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x12, 0xab, 0xd0, 0xcf, 0x4b,
 	0xcc, 0x4d, 0x4d, 0xce, 0xcf, 0xcc, 0xd3, 0x4f, 0xce, 0x4f, 0x49, 0x4d, 0xd6, 0x2b, 0x28, 0xca,
 	0x2f, 0xc9, 0x17, 0xe2, 0x80, 0x89, 0x4a, 0x71, 0x23, 0x09, 0x4b, 0x09, 0xa0, 0x2b, 0x54, 0xca,
@@ -299,14 +299,15 @@ var fileDescriptor_ccf98d5acdce0268 = []byte{
 	0x82, 0x20, 0x12, 0x42, 0x42, 0x5c, 0x2c, 0x20, 0x37, 0x48, 0x30, 0x2b, 0x30, 0x6a, 0x70, 0x06,
 	0x81, 0xd9, 0x4a, 0xc9, 0x5c, 0xac, 0x21, 0xf9, 0xd9, 0xa9, 0x79, 0xa4, 0xd9, 0x05, 0x33, 0x89,
 	0x09, 0x61, 0x92, 0x90, 0x24, 0x17, 0x47, 0x71, 0x66, 0x7a, 0x7c, 0x5a, 0x66, 0x7a, 0x31, 0xd8,
-	0x06, 0xd6, 0x20, 0xf6, 0xe2, 0xcc, 0x74, 0xb7, 0xcc, 0xf4, 0x62, 0xa5, 0x46, 0x46, 0x2e, 0x6e,
-	0xbf, 0xd4, 0x72, 0xb0, 0x45, 0xbe, 0xc5, 0xe9, 0xa4, 0xd9, 0x25, 0xc6, 0xc5, 0x56, 0x92, 0x99,
-	0x9c, 0x9d, 0x5a, 0x04, 0xb5, 0x0d, 0xca, 0xc3, 0xe6, 0x1b, 0x14, 0x37, 0xb0, 0xa0, 0xba, 0x21,
-	0x97, 0x4b, 0x20, 0x38, 0xb5, 0x04, 0x12, 0xb0, 0x7e, 0x89, 0xb9, 0xa9, 0x24, 0xbb, 0x43, 0x82,
-	0x8b, 0x3d, 0x31, 0x25, 0xa5, 0x28, 0xb5, 0xb8, 0x18, 0xec, 0x10, 0x9e, 0x20, 0x18, 0x17, 0x9b,
-	0x4b, 0x9c, 0x24, 0x4e, 0x3c, 0x92, 0x63, 0xbc, 0xf0, 0x48, 0x8e, 0xf1, 0xc1, 0x23, 0x39, 0xc6,
-	0x09, 0x8f, 0xe5, 0x18, 0x2e, 0x3c, 0x96, 0x63, 0xb8, 0xf1, 0x58, 0x8e, 0x21, 0x89, 0x0d, 0x1c,
-	0xcb, 0xc6, 0x80, 0x00, 0x00, 0x00, 0xff, 0xff, 0x9c, 0x4c, 0x1b, 0x8b, 0x28, 0x02, 0x00, 0x00,
+	0x06, 0xd6, 0x20, 0xf6, 0xe2, 0xcc, 0x74, 0xb7, 0xcc, 0xf4, 0x62, 0xa5, 0x16, 0x46, 0x2e, 0x3e,
+	0xe7, 0xa2, 0xd4, 0xc4, 0x92, 0x54, 0xb0, 0x5d, 0xbe, 0xc5, 0xe9, 0xa4, 0x59, 0x27, 0xc6, 0xc5,
+	0x56, 0x92, 0x99, 0x9c, 0x9d, 0x5a, 0x04, 0xb5, 0x10, 0xca, 0xc3, 0xe6, 0x21, 0x14, 0x67, 0xb0,
+	0xa0, 0x3a, 0x23, 0x97, 0x4b, 0x20, 0x38, 0xb5, 0x04, 0x12, 0xb6, 0x7e, 0x89, 0xb9, 0xa9, 0x24,
+	0xbb, 0x43, 0x82, 0x8b, 0x3d, 0x31, 0x25, 0xa5, 0x28, 0xb5, 0xb8, 0x18, 0xec, 0x10, 0x9e, 0x20,
+	0x18, 0x17, 0x9b, 0x4b, 0x9c, 0x24, 0x4e, 0x3c, 0x92, 0x63, 0xbc, 0xf0, 0x48, 0x8e, 0xf1, 0xc1,
+	0x23, 0x39, 0xc6, 0x09, 0x8f, 0xe5, 0x18, 0x2e, 0x3c, 0x96, 0x63, 0xb8, 0xf1, 0x58, 0x8e, 0x21,
+	0x89, 0x0d, 0x1c, 0xd1, 0xc6, 0x80, 0x00, 0x00, 0x00, 0xff, 0xff, 0x29, 0x5a, 0x83, 0x97, 0x2b,
+	0x02, 0x00, 0x00,
 }
 
 func (m *Wallet) Marshal() (dAtA []byte, err error) {
@@ -394,7 +395,7 @@ func (m *Token) MarshalTo(dAtA []byte) (int, error) {
 	return i, nil
 }
 
-func (m *NewTokenMsg) Marshal() (dAtA []byte, err error) {
+func (m *CreateTokenMsg) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalTo(dAtA)
@@ -404,7 +405,7 @@ func (m *NewTokenMsg) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *NewTokenMsg) MarshalTo(dAtA []byte) (int, error) {
+func (m *CreateTokenMsg) MarshalTo(dAtA []byte) (int, error) {
 	var i int
 	_ = i
 	var l int
@@ -531,7 +532,7 @@ func (m *Token) Size() (n int) {
 	return n
 }
 
-func (m *NewTokenMsg) Size() (n int) {
+func (m *CreateTokenMsg) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -884,7 +885,7 @@ func (m *Token) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *NewTokenMsg) Unmarshal(dAtA []byte) error {
+func (m *CreateTokenMsg) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -907,10 +908,10 @@ func (m *NewTokenMsg) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: NewTokenMsg: wiretype end group for non-group")
+			return fmt.Errorf("proto: CreateTokenMsg: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: NewTokenMsg: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: CreateTokenMsg: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:

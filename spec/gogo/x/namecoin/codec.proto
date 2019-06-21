@@ -19,10 +19,10 @@ message Token {
   int32 sig_figs = 3;
 }
 
-// NewTokenMsg will register a new token.
+// CreateTokenMsg will register a new token.
 // This must not conflict with any existing ticker,
 // and should be limited to privledged users.
-message NewTokenMsg {
+message CreateTokenMsg {
   weave.Metadata metadata = 1;
   string ticker = 2;
   string name = 3;

@@ -10,18 +10,18 @@ import (
 )
 
 func init() {
-	migration.MustRegister(1, &NewTokenMsg{}, migration.NoModification)
+	migration.MustRegister(1, &CreateTokenMsg{}, migration.NoModification)
 	migration.MustRegister(1, &SetWalletNameMsg{}, migration.NoModification)
 }
 
 // Ensure we implement the Msg interface
-var _ weave.Msg = (*NewTokenMsg)(nil)
+var _ weave.Msg = (*CreateTokenMsg)(nil)
 
 const (
-	pathNewTokenMsg       = "namecoin/ticker"
-	pathSetNameMsg        = "namecoin/set_name"
-	setNameCost     int64 = 50
-	newTokenCost    int64 = 100
+	pathCreateTokenMsg       = "namecoin/ticker"
+	pathSetNameMsg           = "namecoin/set_name"
+	setNameCost        int64 = 50
+	newTokenCost       int64 = 100
 
 	minSigFigs = 0
 	maxSigFigs = 9
@@ -36,12 +36,12 @@ var (
 )
 
 // Path returns the routing path for this message
-func (NewTokenMsg) Path() string {
-	return pathNewTokenMsg
+func (CreateTokenMsg) Path() string {
+	return pathCreateTokenMsg
 }
 
 // Validate makes sure that this is sensible
-func (t *NewTokenMsg) Validate() error {
+func (t *CreateTokenMsg) Validate() error {
 	if err := t.Metadata.Validate(); err != nil {
 		return errors.Wrap(err, "metadata")
 	}
@@ -57,9 +57,9 @@ func (t *NewTokenMsg) Validate() error {
 	return nil
 }
 
-// BuildTokenMsg is a compact constructor for *NewTokenMsg
-func BuildTokenMsg(ticker, name string, sigFigs int32) *NewTokenMsg {
-	return &NewTokenMsg{
+// BuildTokenMsg is a compact constructor for *CreateTokenMsg
+func BuildTokenMsg(ticker, name string, sigFigs int32) *CreateTokenMsg {
+	return &CreateTokenMsg{
 		Metadata: &weave.Metadata{Schema: 1},
 		Ticker:   ticker,
 		Name:     name,
