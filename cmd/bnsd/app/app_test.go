@@ -303,7 +303,7 @@ func createContract(
 	contractID := dres.Data
 	queryAndCheckContract(t, baseApp, "/contracts", contractID,
 		multisig.Contract{
-			Metadata:            &weave.Metadata{Schema: 1},
+			Metadata:            &weave.Metadata{Schema: 1, LastModified: height},
 			Participants:        participants,
 			ActivationThreshold: activationThreshold,
 			AdminThreshold:      multisig.Weight(len(contractSigs)) + 1,
@@ -383,5 +383,5 @@ func queryAndCheckContract(t *testing.T, baseApp abci.Application, path string, 
 	}
 	err := weaveApp.UnmarshalOneResult(res.Value, &actual)
 	require.NoError(t, err)
-	require.Equal(t, expected, actual)
+	require.Equal(t, expected, actual, "exp: %v * got: %v", expected.Metadata, actual.Metadata)
 }
