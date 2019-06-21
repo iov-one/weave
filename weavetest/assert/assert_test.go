@@ -7,41 +7,45 @@ func TestFieldErrors(t *testing.T) {
 	cases := map[string]struct {
 		Err      error
 		Name     string
-		WantErrs []*errors.Error
-		WantFail int
+		WantErr  *errors.Error
+		WantFail bool
 	}{
-		"ensure a single error exists": {
+		"ensure a single error exists and is found": {
 			Err:      errors.Field("name", errors.ErrHuman, "invalid human name"),
 			Name:     "name",
-			WantErrs: []*errors.Error{errors.ErrHuman},
-			WantFail: 0,
-		},
-		"ensure no errors found": {
-			Err:      errors.Field("name", errors.ErrHuman, "invalid human name"),
-			Name:     "unknown name",
-			WantErrs: nil,
-			WantFail: 0,
+			WantErr:  errors.ErrHuman,
+			WantFail: false,
 		},
 		"use nil to ensure no error was found": {
-			Err:      errors.ErrHuman,
-			Name:     "name",
-			WantErrs: []*errors.Error{nil},
-			WantFail: 0,
-		},
-		"fail if nil is expected to ensure no error was found": {
 			Err:      errors.Field("name", errors.ErrHuman, "invalid human name"),
+			Name:     "unknown-name",
+			WantErr:  nil,
+			WantFail: false,
+		},
+		"use nil to fail when an error was found but was not expected": {
+			Err:      errors.Field("name", errors.ErrHuman, "invalid human"),
 			Name:     "name",
-			WantErrs: []*errors.Error{nil},
-			WantFail: 1,
+			WantErr:  nil,
+			WantFail: true,
+		},
+		"more than one error for a single field is not allowed, even if it is the same error type": {
+			Err: errors.Append(
+				errors.Field("name", errors.ErrHuman, "first"),
+				errors.Field("name", errors.ErrHuman, "second"),
+			),
+			Name:     "name",
+			WantErr:  errors.ErrHuman,
+			WantFail: true, // Only one error per name is allowed when testing.
 		},
 	}
 
 	for testName, tc := range cases {
 		t.Run(testName, func(t *testing.T) {
 			mock := &tmock{TB: t}
-			FieldErrors(mock, tc.Err, tc.Name, tc.WantErrs...)
-			if tc.WantFail != mock.failcalls {
-				t.Fatalf("want %d fail calls, got %d", tc.WantFail, mock.failcalls)
+			FieldError(mock, tc.Err, tc.Name, tc.WantErr)
+			failed := mock.failcalls > 0
+			if tc.WantFail != failed {
+				t.Fatalf("unlexpected failed call state: %d failures", mock.failcalls)
 			}
 		})
 	}

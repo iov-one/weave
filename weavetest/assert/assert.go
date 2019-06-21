@@ -55,31 +55,53 @@ func Panics(t testing.TB, fn func()) {
 	fn()
 }
 
-// FieldErrors ensures that given error contains the exact match of field
-// errors, tested by their type (.Is method call).
+// FieldError ensures that given error contains the exact match of a single
+// field error, tested by its type (.Is method call).
 // To test that no error was found for a given field name, use `nil` as the
 // match value.
-func FieldErrors(t testing.TB, err error, fieldName string, mustMatch ...*errors.Error) {
+func FieldError(t testing.TB, err error, fieldName string, want *errors.Error) {
+	t.Helper()
+
 	errs := errors.FieldErrors(err, fieldName)
 
-	for _, want := range mustMatch {
-		// This is a special case when we want no errors (nil).
-		if want == nil && len(errs) == 0 {
-			continue
-		}
-		if !containsError(want, errs) {
-			t.Errorf("%q error not found", want)
+	// This is a special case when we want no errors (nil).
+	if want == nil {
+		switch len(errs) {
+		case 0:
+			// All good.
+			return
+		case 1:
+			t.Fatalf("expected no error, got %q", errs[0])
+		default:
+			for i, e := range errs {
+				t.Logf("\terror %d: %q", i+1, e)
+			}
+			t.Fatalf("expected no error, got %d", errs)
 		}
 	}
-}
 
-// containsError returns true if at least one element from given collection is
-// of a provided error type.
-func containsError(e *errors.Error, collection []error) bool {
-	for _, element := range collection {
-		if e.Is(element) {
-			return true
+	switch len(errs) {
+	case 0:
+		t.Fatal("no error found")
+	case 1:
+		if !want.Is(errs[0]) {
+			t.Fatalf("unexpected error found: %q", errs[0])
 		}
+	default:
+		t.Errorf("want one error, got %d", len(errs))
+		for i, e := range errs {
+			t.Logf("\terror %d: %q", i+1, e)
+		}
+		has := false
+		for _, e := range errs {
+			if want.Is(e) {
+				has = true
+				break
+			}
+		}
+		if !has {
+			t.Fatalf("error not found")
+		}
+
 	}
-	return false
 }

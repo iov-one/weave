@@ -7,9 +7,10 @@ import (
 )
 
 // Field returns an error instance that wraps the original error with
-// additional information.
+// additional information. It returns `nil` if provided error is `nil`.
 // Use this function to create an error instance describing a field/attribute
 // error.
+// This function might attach a stack trace information.
 func Field(fieldName string, err error, description string) error {
 	if isNilErr(err) {
 		return nil
@@ -27,6 +28,12 @@ func Field(fieldName string, err error, description string) error {
 		field:  fieldName,
 		desc:   description,
 	}
+}
+
+// AppendField is a shortcut function to club together error(s) with a given
+// field error.
+func AppendField(errorsOrNil error, fieldName string, fieldErrOrNil error) error {
+	return Append(errorsOrNil, Field(fieldName, fieldErrOrNil, ""))
 }
 
 type fieldError struct {

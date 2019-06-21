@@ -14,37 +14,38 @@ var _ orm.CloneableData = (*PaymentChannel)(nil)
 
 // Validate ensures the payment channel is valid.
 func (pc *PaymentChannel) Validate() error {
-	if err := pc.Metadata.Validate(); err != nil {
-		return errors.Wrap(err, "metadata")
-	}
-	if err := pc.Src.Validate(); err != nil {
-		return errors.Wrap(err, "src")
-	}
+	var errs error
+
+	errs = errors.AppendField(errs, "Metadata", pc.Metadata.Validate())
+	errs = errors.AppendField(errs, "Src", pc.Src.Validate())
 	if pc.SenderPubkey == nil {
-		return errors.Wrap(errors.ErrModel, "missing sender public key")
+		errs = errors.Append(errs,
+			errors.Field("SenderPubKey", errors.ErrModel, "missing sender public key"))
 	}
-	if err := pc.Recipient.Validate(); err != nil {
-		return errors.Wrap(err, "recipient")
-	}
-	if pc.Timeout < inThePast {
-		return errors.Wrap(errors.ErrInput, "timeout is required")
-	}
+	errs = errors.AppendField(errs, "recipient", pc.Recipient.Validate())
 	if err := pc.Timeout.Validate(); err != nil {
-		return errors.Wrap(err, "invalid timeout value")
+		errs = errors.AppendField(errs, "Timeout", err)
+	} else if pc.Timeout < inThePast {
+		errs = errors.Append(errs,
+			errors.Field("Timeout", errors.ErrInput, "timeout is required"))
 	}
 	if pc.Total == nil || !pc.Total.IsPositive() {
-		return errors.Wrap(errors.ErrModel, "negative total")
+		errs = errors.Append(errs,
+			errors.Field("Total", errors.ErrModel, "negative total"))
 	}
 	if len(pc.Memo) > 128 {
-		return errors.Wrap(errors.ErrModel, "memo too long")
+		errs = errors.Append(errs,
+			errors.Field("Memo", errors.ErrModel, "memo too long"))
 	}
 
 	// Transfer value must not be greater than the Total value represented
 	// by the PaymentChannel.
 	if pc.Transferred == nil || !pc.Transferred.IsNonNegative() || pc.Transferred.Compare(*pc.Total) > 0 {
-		return errors.Wrap(errors.ErrModel, "invalid transferred value")
+		errs = errors.Append(errs,
+			errors.Field("Transferred", errors.ErrModel, "invalid transferred value"))
 	}
-	return nil
+
+	return errs
 }
 
 // Copy returns a deep copy of this PaymentChannel.
