@@ -38,7 +38,7 @@ const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
 // When extending Tx, follow the rules:
 // - range 1-50 is reserved for middlewares,
 // - range 51-inf is reserved for different message types,
-// - keep the same numbers for the same message types in both bcpd and bnsd
+// - keep the same numbers for the same message types in both bnsd and other
 //   applications. For example, FeeInfo field is used by both and indexed at
 //   first position. Skip unused fields (leave index unused or comment out for
 //   clarity).
