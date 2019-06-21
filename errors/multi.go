@@ -9,6 +9,22 @@ import (
 )
 
 // Append clubs together all provided errors. Nil values are ignored.
+//
+// If given error implements unpacker interface, it is flattened. All
+// represented by this error container errors are directly included into the
+// result set rather than through the container. This means that
+//   Append(Append(err1, err2), Append(err3), err4)
+// produce the same result as
+//   Append(err1, err2, err3, err4)
+// Because not all errors implement unpacker interface, the internal
+// representation of the constructed error relation can be a tree. For example,
+// the following code will result in a tree-like error chain.
+//   Append(err1, Wrap(Append(err2, err3), "w"))
+//
+// When implementing an error that satisfies unpacker interface, keep in mind
+// that Append function destroys such error and consume only contained by it
+// errors. Implement unpacker interface only for error containers, that do not
+// carry any additional information.
 func Append(errs ...error) error {
 	// Always build the multi error collection from scratch to avoid slice
 	// modyfications.
