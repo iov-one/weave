@@ -8,7 +8,7 @@ import (
 )
 
 func TestSequence(t *testing.T) {
-	db := store.MemStore()
+	db := store.MemStore(179)
 	// Test using multiple sequences to ensure they do not share state.
 	sequences := []Sequence{
 		NewSequence("bucket-name-1", "sequence-name-1"),
@@ -31,7 +31,7 @@ func TestSequence(t *testing.T) {
 }
 
 func TestSequenceKeyFormat(t *testing.T) {
-	db := store.MemStore()
+	db := store.MemStore(179)
 	s := NewSequence("bucket", "name")
 	_, err := s.NextVal(db)
 	assert.Nil(t, err)

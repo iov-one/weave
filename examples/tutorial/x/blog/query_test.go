@@ -10,7 +10,7 @@ import (
 )
 
 func TestBlogQuery(t *testing.T) {
-	db := store.MemStore()
+	db := store.MemStore(179)
 	signer := weavetest.NewCondition()
 	ctx, auth := newContextWithAuth([]weave.Condition{signer})
 	_, err := createBlogMsgHandlerFn(auth).Deliver(ctx, db, &weavetest.Tx{
@@ -48,7 +48,7 @@ func TestBlogQuery(t *testing.T) {
 	require.Len(t, blogs, 0)
 }
 func TestPostQuery(t *testing.T) {
-	db := store.MemStore()
+	db := store.MemStore(179)
 	signer := weavetest.NewCondition()
 	ctx, auth := newContextWithAuth([]weave.Condition{signer})
 
@@ -116,7 +116,7 @@ func TestPostQuery(t *testing.T) {
 	require.Len(t, posts, 0)
 }
 func TestProfile(t *testing.T) {
-	db := store.MemStore()
+	db := store.MemStore(179)
 	signer := weavetest.NewCondition()
 	ctx, auth := newContextWithAuth([]weave.Condition{signer})
 	_, err := SetProfileMsgHandlerFn(auth).Deliver(ctx, db, &weavetest.Tx{

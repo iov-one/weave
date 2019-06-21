@@ -40,7 +40,7 @@ func TestIDGenBucket(t *testing.T) {
 	}
 	for msg, spec := range specs {
 		t.Run(msg, func(t *testing.T) {
-			db := store.MemStore()
+			db := store.MemStore(179)
 			// when
 			obj, err := spec.bucket.Create(db, &Counter{})
 			// then

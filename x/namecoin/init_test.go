@@ -91,7 +91,7 @@ func TestInitState(t *testing.T) {
 
 	for i, tc := range cases {
 		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
-			kv := store.MemStore()
+			kv := store.MemStore(179)
 			migration.MustInitPkg(kv, "namecoin")
 			err := init.FromGenesis(tc.opts, weave.GenesisParams{}, kv)
 			if tc.isError {

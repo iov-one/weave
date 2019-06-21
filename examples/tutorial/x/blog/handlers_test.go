@@ -148,7 +148,7 @@ func getDeliveredObject(handler weave.Handler, db weave.KVStore, key []byte) (or
 // and finally asserts errors or CheckResult
 func testHandlerCheck(t *testing.T, testcases []testcase) {
 	for _, test := range testcases {
-		db := store.MemStore()
+		db := store.MemStore(179)
 		ctx, auth := newContextWithAuth(test.Perms)
 
 		// add dependencies
@@ -176,7 +176,7 @@ func testHandlerCheck(t *testing.T, testcases []testcase) {
 // and finally asserts errors or saved state(s)
 func testHandlerDeliver(t *testing.T, testcases []testcase) {
 	for _, test := range testcases {
-		db := store.MemStore()
+		db := store.MemStore(179)
 		ctx, auth := newContextWithAuth(test.Perms)
 
 		// add dependencies

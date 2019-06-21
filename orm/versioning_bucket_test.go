@@ -16,7 +16,7 @@ func TestGetLatestVersion(t *testing.T) {
 	bucketImpl := NewBucket("any", NewSimpleObj(nil, &VersionedIDRef{}))
 	idGenBucket := WithSeqIDGenerator(bucketImpl, "id")
 	versionedBucket := WithVersioning(idGenBucket)
-	db := store.MemStore()
+	db := store.MemStore(179)
 
 	// when
 	anyValue := &VersionedIDRef{ID: []byte("anyValue")}
@@ -64,7 +64,7 @@ func TestCreateWithVersioning(t *testing.T) {
 	}
 	for msg, spec := range specs {
 		t.Run(msg, func(t *testing.T) {
-			db := store.MemStore()
+			db := store.MemStore(179)
 			// when & then
 			_, err := versionedBucket.Create(db, spec.src)
 			if !spec.expErr.Is(err) {
@@ -117,7 +117,7 @@ func TestUpdateWithVersioning(t *testing.T) {
 	}
 	for msg, spec := range specs {
 		t.Run(msg, func(t *testing.T) {
-			db := store.MemStore()
+			db := store.MemStore(179)
 			// given
 			if _, err := versionedBucket.Create(db, &VersionedIDRef{ID: []byte("anyValue")}); err != nil {
 				t.Fatal(err)
@@ -191,7 +191,7 @@ func TestDeleteWithVersioning(t *testing.T) {
 	}
 	for msg, spec := range specs {
 		t.Run(msg, func(t *testing.T) {
-			db := store.MemStore()
+			db := store.MemStore(179)
 			// given
 			_, err := versionedBucket.Create(db, &VersionedIDRef{ID: []byte("anyValue")})
 			if err != nil {
@@ -265,7 +265,7 @@ func TestVersioningExists(t *testing.T) {
 	}
 	for msg, spec := range specs {
 		t.Run(msg, func(t *testing.T) {
-			db := store.MemStore()
+			db := store.MemStore(179)
 			// given
 			_, err := versionedBucket.Create(db, &VersionedIDRef{ID: []byte("anyValue")})
 			if err != nil {

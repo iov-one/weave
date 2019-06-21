@@ -75,7 +75,7 @@ func TestInitFromGenesis(t *testing.T) {
 	var opts weave.Options
 	require.NoError(t, json.Unmarshal([]byte(genesisSnippet), &opts))
 
-	db := store.MemStore()
+	db := store.MemStore(179)
 	migration.MustInitPkg(db, packageName)
 
 	// when

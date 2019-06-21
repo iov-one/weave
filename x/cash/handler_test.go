@@ -88,7 +88,7 @@ func TestSend(t *testing.T) {
 			controller := NewController(NewBucket())
 			h := NewSendHandler(auth, controller)
 
-			kv := store.MemStore()
+			kv := store.MemStore(179)
 			migration.MustInitPkg(kv, "cash")
 			bucket := NewBucket()
 			for _, wallet := range tc.initState {

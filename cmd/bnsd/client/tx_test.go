@@ -27,7 +27,7 @@ func TestSendTx(t *testing.T) {
 	require.Equal(t, 1, len(tx.GetSignatures()))
 
 	// make sure this validates
-	db := store.MemStore()
+	db := store.MemStore(179)
 	migration.MustInitPkg(db, "sigs")
 	conds, err := sigs.VerifyTxSignatures(db, tx, chainID)
 	assert.NoError(t, err)
@@ -35,7 +35,7 @@ func TestSendTx(t *testing.T) {
 	assert.EqualValues(t, sender.PublicKey().Condition(), conds[0])
 
 	// make sure other chain doesn't validate
-	db = store.MemStore()
+	db = store.MemStore(179)
 	_, err = sigs.VerifyTxSignatures(db, tx, "foobar")
 	assert.Error(t, err)
 

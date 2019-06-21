@@ -13,7 +13,7 @@ import (
 )
 
 func TestDecorator(t *testing.T) {
-	kv := store.MemStore()
+	kv := store.MemStore(179)
 	migration.MustInitPkg(kv, "sigs")
 	checkKv := kv.CacheWrap()
 	signers := new(SigCheckHandler)
@@ -113,7 +113,7 @@ func TestGasPaymentPerSigner(t *testing.T) {
 
 	ctx := context.Background()
 	ctx = weave.WithChainID(ctx, "mychain")
-	db := store.MemStore()
+	db := store.MemStore(179)
 	migration.MustInitPkg(db, "sigs")
 
 	priv := weavetest.NewKey()

@@ -103,7 +103,7 @@ func TestKeyTagger(t *testing.T) {
 	for i, tc := range cases {
 		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
 			ctx := context.Background()
-			db := store.MemStore()
+			db := store.MemStore(179)
 			tagger := NewKeyTagger()
 
 			// try check - no op

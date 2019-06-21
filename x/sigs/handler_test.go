@@ -125,7 +125,7 @@ func TestBumpSequence(t *testing.T) {
 	for testName, tc := range cases {
 		t.Run(testName, func(t *testing.T) {
 			bucket := NewBucket()
-			db := store.MemStore()
+			db := store.MemStore(179)
 			migration.MustInitPkg(db, "sigs")
 
 			for i, data := range tc.InitData {

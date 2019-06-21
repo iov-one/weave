@@ -612,7 +612,7 @@ func TestHandler(t *testing.T) {
 
 	for descr, tc := range cases {
 		t.Run(descr, func(t *testing.T) {
-			db := store.MemStore()
+			db := store.MemStore(179)
 			migration.MustInitPkg(db, "escrow", "cash")
 
 			// set initial data

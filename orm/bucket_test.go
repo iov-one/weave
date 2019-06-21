@@ -40,7 +40,7 @@ func TestBucketNameCollision(t *testing.T) {
 	o2.SetKey([]byte(objkey))
 	b2 := NewBucket(bucketName, o2)
 
-	db := store.MemStore()
+	db := store.MemStore(179)
 	assert.Nil(t, b1.Save(db, o1))
 
 	// Buckets do not know about each other. Saving an object under the
@@ -69,7 +69,7 @@ func TestBucketCannotSaveInvalid(t *testing.T) {
 	o.SetKey([]byte("mykey"))
 	b := NewBucket("mybucket", o)
 
-	db := store.MemStore()
+	db := store.MemStore(179)
 	if err := b.Save(db, o); !errors.ErrState.Is(err) {
 		t.Fatalf("invalid object must not save: %s", err)
 	}
@@ -83,7 +83,7 @@ func TestBucketGetSave(t *testing.T) {
 	o.SetKey([]byte("mykey"))
 	b := NewBucket("mybucket", o)
 
-	db := store.MemStore()
+	db := store.MemStore(179)
 	if err := b.Save(db, o); err != nil {
 		t.Fatalf("cannot save: %s", err)
 	}
@@ -125,7 +125,7 @@ func TestBucketSequence(t *testing.T) {
 	b1 := NewBucket("aaa", NewSimpleObj(nil, &Counter{}))
 	b2 := NewBucket("bbb", NewSimpleObj(nil, &Counter{}))
 
-	db := store.MemStore()
+	db := store.MemStore(179)
 
 	// Ensure they are sequential and not affecting one another. Repeat
 	// this operation several times.
@@ -252,7 +252,7 @@ func TestBucketSecondaryIndex(t *testing.T) {
 
 	for testName, tc := range cases {
 		t.Run(testName, func(t *testing.T) {
-			db := store.MemStore()
+			db := store.MemStore(179)
 
 			for i, call := range tc.save {
 				if err := tc.bucket.Save(db, call.obj); !call.wantErr.Is(err) {
@@ -307,7 +307,7 @@ func TestBucketQuery(t *testing.T) {
 	bucket.Register(name, qr)
 
 	// store some data here for init
-	db := store.MemStore()
+	db := store.MemStore(179)
 	a, b, c := []byte("aa"), []byte("aab"), []byte("caac")
 	oa := NewSimpleObj(a, NewCounter(5))
 	ob := NewSimpleObj(b, NewCounter(256+5))

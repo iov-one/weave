@@ -12,7 +12,7 @@ import (
 )
 
 func TestModelBucket(t *testing.T) {
-	db := store.MemStore()
+	db := store.MemStore(179)
 
 	b := NewModelBucket("cnts", &Counter{})
 
@@ -40,7 +40,7 @@ func TestModelBucket(t *testing.T) {
 }
 
 func TestModelBucketPutSequence(t *testing.T) {
-	db := store.MemStore()
+	db := store.MemStore(179)
 
 	b := NewModelBucket("cnts", &Counter{})
 
@@ -141,7 +141,7 @@ func TestModelBucketByIndex(t *testing.T) {
 
 	for testName, tc := range cases {
 		t.Run(testName, func(t *testing.T) {
-			db := store.MemStore()
+			db := store.MemStore(179)
 
 			indexByBigValue := func(obj Object) ([]byte, error) {
 				c, ok := obj.Value().(*Counter)
@@ -187,7 +187,7 @@ func TestModelBucketByIndex(t *testing.T) {
 }
 
 func TestModelBucketPutWrongModelType(t *testing.T) {
-	db := store.MemStore()
+	db := store.MemStore(179)
 	b := NewModelBucket("cnts", &Counter{})
 
 	if _, err := b.Put(db, nil, &MultiRef{Refs: [][]byte{[]byte("foo")}}); !errors.ErrType.Is(err) {
@@ -196,7 +196,7 @@ func TestModelBucketPutWrongModelType(t *testing.T) {
 }
 
 func TestModelBucketOneWrongModelType(t *testing.T) {
-	db := store.MemStore()
+	db := store.MemStore(179)
 	b := NewModelBucket("cnts", &Counter{})
 
 	if _, err := b.Put(db, []byte("counter"), &Counter{Count: 1}); err != nil {
@@ -210,7 +210,7 @@ func TestModelBucketOneWrongModelType(t *testing.T) {
 }
 
 func TestModelBucketByIndexWrongModelType(t *testing.T) {
-	db := store.MemStore()
+	db := store.MemStore(179)
 	b := NewModelBucket("cnts", &Counter{},
 		WithIndex("x", func(o Object) ([]byte, error) { return []byte("x"), nil }, false))
 
@@ -235,7 +235,7 @@ func TestModelBucketByIndexWrongModelType(t *testing.T) {
 }
 
 func TestModelBucketHas(t *testing.T) {
-	db := store.MemStore()
+	db := store.MemStore(179)
 	b := NewModelBucket("cnts", &Counter{})
 
 	if _, err := b.Put(db, []byte("counter"), &Counter{Count: 1}); err != nil {

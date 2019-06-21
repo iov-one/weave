@@ -14,7 +14,7 @@ import (
 )
 
 func TestDecorator(t *testing.T) {
-	db := store.MemStore()
+	db := store.MemStore(179)
 	migration.MustInitPkg(db, "multisig")
 
 	a := weavetest.NewCondition()

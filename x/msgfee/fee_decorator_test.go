@@ -112,7 +112,7 @@ func TestFeeDecorator(t *testing.T) {
 		t.Run(testName, func(t *testing.T) {
 			decorator := NewFeeDecorator()
 			bucket := NewMsgFeeBucket()
-			db := store.MemStore()
+			db := store.MemStore(179)
 			migration.MustInitPkg(db, "msgfee")
 
 			for _, f := range tc.InitFees {

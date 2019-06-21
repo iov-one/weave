@@ -29,7 +29,7 @@ func TestGenesisInitializeSchemaVersions(t *testing.T) {
 		t.Fatalf("cannot unmarshal genesis: %s", err)
 	}
 
-	db := store.MemStore()
+	db := store.MemStore(179)
 	var ini Initializer
 	if err := ini.FromGenesis(opts, weave.GenesisParams{}, db); err != nil {
 		t.Fatalf("cannot load genesis: %s", err)

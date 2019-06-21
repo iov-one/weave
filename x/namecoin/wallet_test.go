@@ -36,7 +36,7 @@ func TestValidateWalletBucket(t *testing.T) {
 	assert.Panics(t, func() { cash.ValidateWalletBucket(cb) })
 
 	// make sure save errors on bad object
-	db := store.MemStore()
+	db := store.MemStore(179)
 	addr := weave.NewAddress([]byte{17, 93})
 	err := wb.Save(db, orm.NewSimpleObj(addr, new(Token)))
 	require.Error(t, err)
@@ -215,7 +215,7 @@ func TestWalletBucket(t *testing.T) {
 
 	for i, tc := range cases {
 		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
-			db := store.MemStore()
+			db := store.MemStore(179)
 			migration.MustInitPkg(db, "namecoin")
 			err := saveAll(bucket, db, tc.set)
 			if tc.setError {

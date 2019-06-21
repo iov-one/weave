@@ -58,7 +58,7 @@ func TestSignBytes(t *testing.T) {
 }
 
 func TestVerifySignature(t *testing.T) {
-	kv := store.MemStore()
+	kv := store.MemStore(179)
 	migration.MustInitPkg(kv, "sigs")
 	priv := crypto.GenPrivKeyEd25519()
 	pub := priv.PublicKey()
@@ -124,7 +124,7 @@ func TestVerifySignature(t *testing.T) {
 }
 
 func TestVerifyTxSignatures(t *testing.T) {
-	kv := store.MemStore()
+	kv := store.MemStore(179)
 	migration.MustInitPkg(kv, "sigs")
 
 	priv := weavetest.NewKey()

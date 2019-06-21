@@ -24,7 +24,7 @@ func TestGenesisKey(t *testing.T) {
 		t.Fatalf("cannot unmarshal genesis: %s", err)
 	}
 
-	db := store.MemStore()
+	db := store.MemStore(179)
 	migration.MustInitPkg(db, "currency")
 	var ini Initializer
 	if err := ini.FromGenesis(opts, weave.GenesisParams{}, db); err != nil {

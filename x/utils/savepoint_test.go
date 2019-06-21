@@ -86,7 +86,7 @@ func TestSavepoint(t *testing.T) {
 	for i, tc := range cases {
 		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
 			ctx := context.Background()
-			kv := store.MemStore()
+			kv := store.MemStore(179)
 			kv.Set(ok, ov)
 
 			var err error

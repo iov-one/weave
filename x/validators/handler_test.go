@@ -137,7 +137,7 @@ func TestHandler(t *testing.T) {
 
 	for msg, spec := range specs {
 		t.Run(msg, func(t *testing.T) {
-			db := store.MemStore()
+			db := store.MemStore(179)
 			migration.MustInitPkg(db, "validators")
 			ctx := context.Background()
 			err := NewAccountBucket().Save(db, AccountsWith(WeaveAccounts{Addresses: []weave.Address{spec.AuthzAddress}}))

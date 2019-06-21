@@ -9,7 +9,7 @@ import (
 )
 
 func TestLoadSave(t *testing.T) {
-	db := store.MemStore()
+	db := store.MemStore(179)
 	c := configuration{raw: "foobar"}
 	if err := Save(db, "gconf", &c); err != nil {
 		t.Fatalf("cannot save configuration: %s", err)

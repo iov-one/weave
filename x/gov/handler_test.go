@@ -353,7 +353,7 @@ func TestCreateTextProposal(t *testing.T) {
 			// We don't run the executor here, so we can safely pass in nil.
 			RegisterRoutes(rt, auth, decodeProposalOptions, nil)
 
-			db := store.MemStore()
+			db := store.MemStore(179)
 			migration.MustInitPkg(db, packageName)
 
 			// given
@@ -449,7 +449,7 @@ func TestDeleteProposal(t *testing.T) {
 
 	for msg, spec := range specs {
 		t.Run(msg, func(t *testing.T) {
-			db := store.MemStore()
+			db := store.MemStore(179)
 			migration.MustInitPkg(db, packageName)
 
 			auth := &weavetest.Auth{
@@ -524,7 +524,7 @@ func TestCreateResolution(t *testing.T) {
 
 	for msg, spec := range specs {
 		t.Run(msg, func(t *testing.T) {
-			db := store.MemStore()
+			db := store.MemStore(179)
 			migration.MustInitPkg(db, packageName)
 
 			auth := &weavetest.Auth{}
@@ -756,7 +756,7 @@ func TestVote(t *testing.T) {
 
 	for msg, spec := range specs {
 		t.Run(msg, func(t *testing.T) {
-			db := store.MemStore()
+			db := store.MemStore(179)
 			migration.MustInitPkg(db, packageName)
 
 			auth := &weavetest.Auth{
@@ -1250,7 +1250,7 @@ func TestTally(t *testing.T) {
 
 	for msg, spec := range specs {
 		t.Run(msg, func(t *testing.T) {
-			db := store.MemStore()
+			db := store.MemStore(179)
 			migration.MustInitPkg(db, packageName)
 
 			// given
@@ -1428,7 +1428,7 @@ func TestUpdateElectorate(t *testing.T) {
 			}
 			rt := app.NewRouter()
 			RegisterRoutes(rt, auth, decodeProposalOptions, nil)
-			db := store.MemStore()
+			db := store.MemStore(179)
 			migration.MustInitPkg(db, packageName)
 
 			withElectorate(t, db)
@@ -1566,7 +1566,7 @@ func TestUpdateElectionRules(t *testing.T) {
 			}
 			rt := app.NewRouter()
 			RegisterRoutes(rt, auth, decodeProposalOptions, nil)
-			db := store.MemStore()
+			db := store.MemStore(179)
 			migration.MustInitPkg(db, packageName)
 
 			withElectionRule(t, db)

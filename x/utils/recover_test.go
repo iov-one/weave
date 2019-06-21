@@ -15,7 +15,7 @@ func TestRecovery(t *testing.T) {
 	r := NewRecovery()
 
 	ctx := context.Background()
-	store := store.MemStore()
+	store := store.MemStore(179)
 
 	// Panic handler panics. Test the test tool.
 	assert.Panics(t, func() { h.Check(ctx, store, nil) })

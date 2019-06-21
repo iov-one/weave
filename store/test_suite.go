@@ -22,7 +22,7 @@ type TestSuite struct {
 	makeBase TestStoreConstructor
 }
 
-type TestStoreConstructor func() (base CacheableKVStore, cleanup func())
+type TestStoreConstructor func(height int64) (base CacheableKVStore, cleanup func())
 
 func NewTestSuite(constructor TestStoreConstructor) *TestSuite {
 	return &TestSuite{
@@ -35,7 +35,7 @@ func NewTestSuite(constructor TestStoreConstructor) *TestSuite {
 // Other tests should handle deletes, setting same value,
 // iterating over ranges, and general fuzzing
 func (s *TestSuite) GetSet(t *testing.T) {
-	base, cleanup := s.makeBase()
+	base, cleanup := s.makeBase(13)
 	defer cleanup()
 
 	// make sure the btree is empty at start but returns results
@@ -112,7 +112,7 @@ func (s *TestSuite) CacheConflicts(t *testing.T) {
 
 	for testName, tc := range cases {
 		t.Run(testName, func(t *testing.T) {
-			parent, cleanup := s.makeBase()
+			parent, cleanup := s.makeBase(42)
 			defer cleanup()
 
 			for _, op := range tc.parentOps {
@@ -203,7 +203,7 @@ func (s *TestSuite) FuzzIterator(t *testing.T) {
 
 	for testName, tc := range cases {
 		t.Run(testName, func(t *testing.T) {
-			base, cleanup := s.makeBase()
+			base, cleanup := s.makeBase(42)
 			defer cleanup()
 
 			tc.verify(t, base)
@@ -277,7 +277,7 @@ func (s *TestSuite) IteratorWithConflicts(t *testing.T) {
 
 	for testName, tc := range cases {
 		t.Run(testName, func(t *testing.T) {
-			base, cleanup := s.makeBase()
+			base, cleanup := s.makeBase(42)
 			defer cleanup()
 			tc.verify(t, base)
 		})

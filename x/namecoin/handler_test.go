@@ -115,7 +115,7 @@ func TestSendHandler(t *testing.T) {
 			// Use default controller/bucket from namecoin.
 			h := NewSendHandler(auth)
 
-			kv := store.MemStore()
+			kv := store.MemStore(179)
 			migration.MustInitPkg(kv, "namecoin")
 			bucket := NewWalletBucket()
 			for i, wallet := range tc.initState {
@@ -252,7 +252,7 @@ func TestNewTokenHandler(t *testing.T) {
 			// Use default controller/bucket from namecoin.
 			h := NewTokenHandler(auth, tc.issuer)
 
-			db := store.MemStore()
+			db := store.MemStore(179)
 			migration.MustInitPkg(db, "namecoin")
 			bucket := NewTokenBucket()
 			for i, wallet := range tc.initState {
@@ -373,7 +373,7 @@ func TestSetNameHandler(t *testing.T) {
 			bucket := NewWalletBucket()
 			h := NewSetNameHandler(auth, bucket)
 
-			db := store.MemStore()
+			db := store.MemStore(179)
 			migration.MustInitPkg(db, "namecoin")
 			for i, wallet := range tc.initState {
 				if err := bucket.Save(db, wallet); err != nil {

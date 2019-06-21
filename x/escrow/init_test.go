@@ -40,7 +40,7 @@ func TestGenesisKey(t *testing.T) {
 	var opts weave.Options
 	require.NoError(t, json.Unmarshal([]byte(genesis), &opts))
 
-	db := store.MemStore()
+	db := store.MemStore(179)
 	migration.MustInitPkg(db, "escrow", "cash")
 
 	// when

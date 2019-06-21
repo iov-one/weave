@@ -15,9 +15,9 @@ type Op = store.Op
 
 // makeIavlStore creates a test store to use with an
 // iabvl adapter, including writing data to disk
-func makeIavlStore() (store.CacheableKVStore, func()) {
+func makeIavlStore(height int64) (store.CacheableKVStore, func()) {
 	commit, close := makeCommitStore()
-	return commit.Adapter(), close
+	return commit.Adapter(height), close
 }
 
 func makeCommitStore() (CommitStore, func()) {
@@ -82,7 +82,7 @@ func TestCommitOverwrite(t *testing.T) {
 				t.Fatal("hash is not empty")
 			}
 
-			parent := commit.CacheWrap()
+			parent := commit.CacheWrap(11)
 			for _, op := range tc.parentOps {
 				assert.Nil(t, op.Apply(parent))
 			}
@@ -94,15 +94,19 @@ func TestCommitOverwrite(t *testing.T) {
 			if len(id.Hash) == 0 {
 				t.Fatal("hash is empty")
 			}
+			assert.Equal(t, int64(11), parent.GetHeight())
 
 			// child also comes from commit
-			child := commit.CacheWrap()
+			child := commit.CacheWrap(11)
 			for _, op := range tc.childOps {
 				assert.Nil(t, op.Apply(child))
 			}
+			assert.Equal(t, int64(11), child.GetHeight())
 
 			// and a side-cache wrap to see they are in parallel
-			side := commit.CacheWrap()
+			side := commit.CacheWrap(12)
+			assert.Equal(t, int64(12), side.GetHeight())
+			assert.Equal(t, int64(11), child.GetHeight())
 
 			// now check that side gets unmodified parent state
 			for _, q := range tc.parentQueries {

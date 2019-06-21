@@ -30,7 +30,7 @@ func TestGenesis(t *testing.T) {
 		t.Fatalf("cannot unmarshal genesis: %s", err)
 	}
 
-	db := store.MemStore()
+	db := store.MemStore(179)
 	migration.MustInitPkg(db, "msgfee")
 	var ini Initializer
 	if err := ini.FromGenesis(opts, weave.GenesisParams{}, db); err != nil {
@@ -70,7 +70,7 @@ func TestGenesisWithInvalidFee(t *testing.T) {
 				t.Fatalf("cannot unmarshal genesis: %s", err)
 			}
 
-			db := store.MemStore()
+			db := store.MemStore(179)
 			migration.MustInitPkg(db, "msgfee")
 			var ini Initializer
 			if err := ini.FromGenesis(opts, weave.GenesisParams{}, db); err == nil {

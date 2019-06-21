@@ -83,7 +83,7 @@ func TestNewTokenInfoHandler(t *testing.T) {
 
 	for testName, tc := range cases {
 		t.Run(testName, func(t *testing.T) {
-			db := store.MemStore()
+			db := store.MemStore(179)
 			migration.MustInitPkg(db, "currency")
 			bucket := NewTokenInfoBucket()
 			for _, obj := range tc.initState {

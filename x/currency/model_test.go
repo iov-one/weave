@@ -43,7 +43,7 @@ func TestValidateTokenInfo(t *testing.T) {
 func TestTokenInfoBucketQuery(t *testing.T) {
 	bucket := NewTokenInfoBucket()
 
-	db := store.MemStore()
+	db := store.MemStore(179)
 	migration.MustInitPkg(db, "currency")
 
 	// Registration of invalid token must fail.

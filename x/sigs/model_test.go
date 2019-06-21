@@ -12,7 +12,7 @@ import (
 )
 
 func TestUserModel(t *testing.T) {
-	kv := store.MemStore()
+	kv := store.MemStore(179)
 	migration.MustInitPkg(kv, "sigs")
 
 	bucket := NewBucket()

@@ -114,7 +114,7 @@ func TestCreateHandler(t *testing.T) {
 			Timeout:      weave.AsUnixTime(time.Now()),
 		}
 		t.Run(name, func(t *testing.T) {
-			db := store.MemStore()
+			db := store.MemStore(179)
 			migration.MustInitPkg(db, "aswap", "cash")
 
 			ctx := weave.WithHeight(context.Background(), 500)
@@ -221,7 +221,7 @@ func TestReleaseHandler(t *testing.T) {
 			Timeout:      weave.AsUnixTime(time.Now().Add(time.Hour)),
 		}
 		t.Run(name, func(t *testing.T) {
-			db := store.MemStore()
+			db := store.MemStore(179)
 			migration.MustInitPkg(db, "aswap", "cash")
 
 			ctx := weave.WithHeight(context.Background(), 500)
@@ -328,7 +328,7 @@ func TestReturnHandler(t *testing.T) {
 			Timeout:      weave.AsUnixTime(blockNow.Add(time.Hour)),
 		}
 		t.Run(name, func(t *testing.T) {
-			db := store.MemStore()
+			db := store.MemStore(179)
 			migration.MustInitPkg(db, "aswap", "cash")
 
 			ctx := weave.WithHeight(context.Background(), 500)

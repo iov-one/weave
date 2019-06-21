@@ -154,7 +154,7 @@ type WalletBucket interface {
 // panics on error (meant as a sanity check in init)
 func ValidateWalletBucket(bucket WalletBucket) {
 	// runtime type-check the bucket....
-	db := store.MemStore()
+	db := store.MemStore(179)
 	key := weave.NewAddress([]byte("foo"))
 	obj, err := bucket.GetOrCreate(db, key)
 	if err != nil {

@@ -72,7 +72,7 @@ func TestInitState(t *testing.T) {
 
 	for msg, spec := range specs {
 		t.Run(msg, func(t *testing.T) {
-			kv := store.MemStore()
+			kv := store.MemStore(179)
 			migration.MustInitPkg(kv, "validators")
 			bucket := NewAccountBucket()
 			// when

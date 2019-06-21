@@ -6,8 +6,8 @@ import (
 
 // memStoreConstructor returns a base later for testing
 // the MemStore implementation of KVStore interface
-func memStoreConstructor() (base CacheableKVStore, cleanup func()) {
-	return MemStore(), func() {}
+func memStoreConstructor(height int64) (base CacheableKVStore, cleanup func()) {
+	return MemStore(height), func() {}
 }
 
 var suite = NewTestSuite(memStoreConstructor)

@@ -14,7 +14,7 @@ import (
 func TestHasVoted(t *testing.T) {
 	bobby := weavetest.NewCondition().Address()
 
-	db := store.MemStore()
+	db := store.MemStore(179)
 	migration.MustInitPkg(db, packageName)
 	vBucket := NewVoteBucket()
 	proposalID := weavetest.SequenceID(1)
@@ -42,7 +42,7 @@ func TestQueryVotes(t *testing.T) {
 	alice := weavetest.NewCondition().Address()
 	bobby := weavetest.NewCondition().Address()
 
-	db := store.MemStore()
+	db := store.MemStore(179)
 	migration.MustInitPkg(db, packageName)
 	proposalID := weavetest.SequenceID(1)
 	vBucket := NewVoteBucket()

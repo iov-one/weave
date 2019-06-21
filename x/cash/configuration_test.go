@@ -71,7 +71,7 @@ func TestConfigurationHandler(t *testing.T) {
 			auth := &weavetest.Auth{Signer: tc.auth}
 			h := NewConfigHandler(auth)
 
-			kv := store.MemStore()
+			kv := store.MemStore(179)
 			// store initial data
 			err := gconf.Save(kv, pkg, &tc.init)
 			assert.Nil(t, err)

@@ -109,7 +109,7 @@ func TestIssueCoins(t *testing.T) {
 
 	for testName, tc := range cases {
 		t.Run(testName, func(t *testing.T) {
-			kv := store.MemStore()
+			kv := store.MemStore(179)
 			migration.MustInitPkg(kv, "cash")
 
 			for i, issue := range tc.issue {
@@ -209,7 +209,7 @@ func TestMoveCoins(t *testing.T) {
 
 	for testName, tc := range cases {
 		t.Run(testName, func(t *testing.T) {
-			kv := store.MemStore()
+			kv := store.MemStore(179)
 			migration.MustInitPkg(kv, "cash")
 
 			if err := controller.CoinMint(kv, tc.issue.addr, tc.issue.amount); !tc.issue.wantErr.Is(err) {
@@ -243,7 +243,7 @@ func TestMoveCoins(t *testing.T) {
 }
 
 func TestBalance(t *testing.T) {
-	store := store.MemStore()
+	store := store.MemStore(179)
 	migration.MustInitPkg(store, "cash")
 
 	ctrl := NewController(NewBucket())

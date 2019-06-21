@@ -23,7 +23,7 @@ func TestSchemaMigratingHandler(t *testing.T) {
 		return msg.err
 	})
 
-	db := store.MemStore()
+	db := store.MemStore(179)
 
 	ensureSchemaVersion(t, db, thisPkgName, 1)
 

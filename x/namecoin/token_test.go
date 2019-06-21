@@ -67,7 +67,7 @@ func TestTokenBucket(t *testing.T) {
 
 	for i, tc := range cases {
 		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
-			db := store.MemStore()
+			db := store.MemStore(179)
 			migration.MustInitPkg(db, "namecoin")
 			err := saveAll(bucket, db, tc.set)
 			if tc.setError {

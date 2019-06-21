@@ -344,7 +344,7 @@ func TestHandlers(t *testing.T) {
 
 	for testName, tc := range cases {
 		t.Run(testName, func(t *testing.T) {
-			db := store.MemStore()
+			db := store.MemStore(179)
 
 			migration.MustInitPkg(db, "cash", "distribution")
 

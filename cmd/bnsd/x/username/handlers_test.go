@@ -82,7 +82,7 @@ func TestRegisterUsernameTokenHandler(t *testing.T) {
 
 	for testName, tc := range cases {
 		t.Run(testName, func(t *testing.T) {
-			db := store.MemStore()
+			db := store.MemStore(179)
 			migration.MustInitPkg(db, "username")
 
 			b := NewUsernameTokenBucket()
@@ -171,7 +171,7 @@ func TestChangeUsernameTokenOwnerHandler(t *testing.T) {
 	}
 	for testName, tc := range cases {
 		t.Run(testName, func(t *testing.T) {
-			db := store.MemStore()
+			db := store.MemStore(179)
 			migration.MustInitPkg(db, "username")
 
 			b := NewUsernameTokenBucket()
@@ -280,7 +280,7 @@ func TestChangeUsernameTokenTargetHandler(t *testing.T) {
 	}
 	for testName, tc := range cases {
 		t.Run(testName, func(t *testing.T) {
-			db := store.MemStore()
+			db := store.MemStore(179)
 			migration.MustInitPkg(db, "username")
 
 			b := NewUsernameTokenBucket()

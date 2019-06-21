@@ -90,7 +90,7 @@ func TestCounterSingleKeyIndex(t *testing.T) {
 		18: {uniq, o1, o1a, false, o1, nil, e7, [][]byte{k1}},
 	}
 
-	db := store.MemStore()
+	db := store.MemStore(179)
 	for i, tc := range cases {
 		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
 			idx := tc.idx
@@ -178,7 +178,7 @@ func TestCounterMultiKeyIndex(t *testing.T) {
 
 	for i, spec := range specs {
 		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
-			db := store.MemStore()
+			db := store.MemStore(179)
 
 			// given
 			idx := spec.index
@@ -222,7 +222,7 @@ func TestCounterMultiKeyIndex(t *testing.T) {
 }
 
 func TestGetLikeWithMultiKeyIndex(t *testing.T) {
-	db := store.MemStore()
+	db := store.MemStore(179)
 	idx := NewMultiKeyIndex("multi", evenOddIndexer, false, nil)
 
 	persistentObjects := []Object{
@@ -359,7 +359,7 @@ func TestNullableIndex(t *testing.T) {
 
 	for i, tc := range cases {
 		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
-			db := store.MemStore()
+			db := store.MemStore(179)
 			for _, init := range tc.setup {
 				err := uniq.Update(db, nil, init)
 				require.NoError(t, err)

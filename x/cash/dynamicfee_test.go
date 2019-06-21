@@ -193,7 +193,7 @@ func TestDynamicFeeDecorator(t *testing.T) {
 
 			tx := &txMock{info: &FeeInfo{Fees: &tc.txFee}}
 
-			db := store.MemStore()
+			db := store.MemStore(179)
 			migration.MustInitPkg(db, "cash")
 
 			config := Configuration{

@@ -76,7 +76,7 @@ func TestInitState(t *testing.T) {
 
 	for i, tc := range cases {
 		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
-			kv := store.MemStore()
+			kv := store.MemStore(179)
 			migration.MustInitPkg(kv, "cash")
 			bucket := NewBucket()
 			err := init.FromGenesis(tc.opts, weave.GenesisParams{}, kv)

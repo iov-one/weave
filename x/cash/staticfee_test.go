@@ -157,7 +157,7 @@ func TestFees(t *testing.T) {
 			controller := NewController(NewBucket())
 			h := NewFeeDecorator(auth, controller)
 
-			kv := store.MemStore()
+			kv := store.MemStore(179)
 			migration.MustInitPkg(kv, "cash")
 
 			config := Configuration{

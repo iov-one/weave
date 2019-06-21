@@ -68,7 +68,7 @@ func TestMsgFeeValidate(t *testing.T) {
 
 func TestBucketMessageFee(t *testing.T) {
 	b := NewMsgFeeBucket()
-	db := store.MemStore()
+	db := store.MemStore(179)
 	migration.MustInitPkg(db, "msgfee")
 
 	_, err := b.Create(db, &MsgFee{

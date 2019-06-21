@@ -74,7 +74,7 @@ func TestQueryPrefix(t *testing.T) {
 
 	for i, tc := range cases {
 		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
-			db := store.MemStore()
+			db := store.MemStore(179)
 			for _, m := range tc.models {
 				assert.Nil(t, db.Set(m.Key, m.Value))
 			}

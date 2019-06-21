@@ -114,7 +114,7 @@ func TestUpdateConfigurationHandler(t *testing.T) {
 
 	for testName, tc := range cases {
 		t.Run(testName, func(t *testing.T) {
-			db := store.MemStore()
+			db := store.MemStore(179)
 
 			if tc.Init != nil {
 				if err := Save(db, "mypkg", tc.Init); err != nil {

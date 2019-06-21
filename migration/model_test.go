@@ -9,7 +9,7 @@ import (
 )
 
 func TestMustInitPkgDuplication(t *testing.T) {
-	db := store.MemStore()
+	db := store.MemStore(179)
 
 	MustInitPkg(db, "mypkg")
 
@@ -28,7 +28,7 @@ func TestMustInitPkgDuplication(t *testing.T) {
 }
 
 func TestCurrentSchema(t *testing.T) {
-	db := store.MemStore()
+	db := store.MemStore(179)
 
 	packages := map[string]uint32{
 		"one":    1,
