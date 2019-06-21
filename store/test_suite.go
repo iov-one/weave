@@ -3,7 +3,6 @@ package store
 import (
 	"bytes"
 	"crypto/rand"
-	"fmt"
 	"sort"
 	"testing"
 
@@ -338,7 +337,7 @@ func (i iterCase) verify(t testing.TB, base CacheableKVStore) {
 		assert.Nil(t, op.Apply(child))
 	}
 
-	for i, q := range i.queries {
+	for _, q := range i.queries {
 		var iter Iterator
 		var err error
 		if q.reverse {
@@ -347,13 +346,14 @@ func (i iterCase) verify(t testing.TB, base CacheableKVStore) {
 			iter, err = child.Iterator(q.start, q.end)
 		}
 		assert.Nil(t, err)
-		fmt.Printf("query %d\n", i)
 
 		// Make sure proper iteration works.
 		for i := 0; i < len(q.expected); i++ {
 			key, value, err := iter.Next()
 			assert.Nil(t, err)
-			assert.Equal(t, q.expected[i].Key, key)
+			if !bytes.Equal(q.expected[i].Key, key) {
+				t.Fatalf("Expected key: %X\nGot keys %d = %X", q.expected[i].Key, i, key)
+			}
 			assert.Equal(t, q.expected[i].Value, value)
 		}
 		_, _, err = iter.Next()

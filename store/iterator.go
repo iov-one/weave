@@ -2,7 +2,6 @@ package store
 
 import (
 	"bytes"
-	"fmt"
 	"sync"
 
 	"github.com/google/btree"
@@ -226,21 +225,18 @@ func (i *itemIter) Next() (key, value []byte, err error) {
 		return i.returnCachedWrap()
 	}
 
-	// both are valid... try it
-	_, isSet := i.cachedWrap.(setItem)
-	fmt.Printf("Set: %t (parent: %X, wrap: %X)\n", isSet, i.cachedParent.Key, i.cachedWrap.Key())
+	// both are valid... see which is first
 	switch bytes.Compare(i.cachedParent.Key, i.cachedWrap.Key()) {
 	case -i.first: // cachedWrap first
 		return i.returnCachedWrap()
 	case i.first: // cachedParent first
 		return i.returnCachedParent()
 	case 0: // at the same key
-		// if it is set, use wrap
+		i.cachedParent = weave.Model{}
 		if _, ok := i.cachedWrap.(setItem); ok {
 			return i.returnCachedWrap()
 		}
 		// if it is a delete, then we unset both and continue again
-		i.cachedParent = weave.Model{}
 		i.cachedWrap = nil
 		return i.Next()
 	}
