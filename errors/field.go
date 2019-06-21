@@ -84,6 +84,12 @@ func FieldErrors(err error, fieldName string) []error {
 			for _, e := range u.Unpack() {
 				res = append(res, FieldErrors(e, fieldName)...)
 			}
+			// Unpacker is a superset of causer. If Unpack() can be
+			// called, then we already work on all children of this
+			// error. No need to test for causer as it must not
+			// return an error that was not part of the Unpack()
+			// result.
+			return res
 		}
 
 		if c, ok := err.(causer); ok {
