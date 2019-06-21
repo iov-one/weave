@@ -87,7 +87,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 					data:   src.Address(),
 					bucket: cashBucket.Bucket,
 					wantRes: []orm.Object{
-						mustObject(cash.WalletWith(src.Address(), dogeCoin(1, 22))),
+						mustObject(cash.WalletWith(179, src.Address(), dogeCoin(1, 22))),
 					},
 				},
 				// Query payment channel wallet to ensure money was
@@ -97,7 +97,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 					data:   paymentChannelAccount(weavetest.SequenceID(1)),
 					bucket: cashBucket.Bucket,
 					wantRes: []orm.Object{
-						mustObject(cash.WalletWith(paymentChannelAccount(weavetest.SequenceID(1)), dogeCoin(10, 0))),
+						mustObject(cash.WalletWith(179, paymentChannelAccount(weavetest.SequenceID(1)), dogeCoin(10, 0))),
 					},
 				},
 			},
@@ -146,7 +146,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 					data:   src.Address(),
 					bucket: cashBucket.Bucket,
 					wantRes: []orm.Object{
-						mustObject(cash.WalletWith(src.Address(), dogeCoin(11, 22))),
+						mustObject(cash.WalletWith(179, src.Address(), dogeCoin(11, 22))),
 					},
 				},
 			},
@@ -199,7 +199,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 					data:   paymentChannelAccount(weavetest.SequenceID(1)),
 					bucket: cashBucket.Bucket,
 					wantRes: []orm.Object{
-						mustObject(cash.WalletWith(paymentChannelAccount(weavetest.SequenceID(1)), dogeCoin(7, 0))),
+						mustObject(cash.WalletWith(179, paymentChannelAccount(weavetest.SequenceID(1)), dogeCoin(7, 0))),
 					},
 				},
 				{
@@ -207,7 +207,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 					data:   recipient.Address(),
 					bucket: cashBucket.Bucket,
 					wantRes: []orm.Object{
-						mustObject(cash.WalletWith(recipient.Address(), dogeCoin(3, 0))),
+						mustObject(cash.WalletWith(179, recipient.Address(), dogeCoin(3, 0))),
 					},
 				},
 			},
@@ -270,7 +270,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 					data:   src.Address(),
 					bucket: cashBucket.Bucket,
 					wantRes: []orm.Object{
-						mustObject(cash.WalletWith(src.Address(), dogeCoin(9, 22))),
+						mustObject(cash.WalletWith(179, src.Address(), dogeCoin(9, 22))),
 					},
 				},
 				// What was transferred must belong to
@@ -280,7 +280,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 					data:   recipient.Address(),
 					bucket: cashBucket.Bucket,
 					wantRes: []orm.Object{
-						mustObject(cash.WalletWith(recipient.Address(), dogeCoin(2, 0))),
+						mustObject(cash.WalletWith(179, recipient.Address(), dogeCoin(2, 0))),
 					},
 				},
 			},
@@ -507,7 +507,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 			migration.MustInitPkg(db, "paychan", "cash")
 
 			// Create a sender account with coins.
-			wallet, err := cash.WalletWith(src.Address(), dogeCoin(11, 22))
+			wallet, err := cash.WalletWith(179, src.Address(), dogeCoin(11, 22))
 			if err != nil {
 				t.Fatalf("create wallet: %s", err)
 			}
