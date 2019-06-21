@@ -31,7 +31,7 @@ func (Initializer) FromGenesis(opts weave.Options, params weave.GenesisParams, k
 		if err := acct.Address.Validate(); err != nil {
 			return err
 		}
-		wallet, err := WalletWith(acct.Address, acct.Set.Coins...)
+		wallet, err := WalletWith(179, acct.Address, acct.Set.Coins...)
 		if err != nil {
 			return err
 		}

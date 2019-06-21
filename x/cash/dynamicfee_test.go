@@ -22,7 +22,7 @@ func TestDynamicFeeDecorator(t *testing.T) {
 
 	walletObj := func(a weave.Address, w, f int64, ticker string) orm.Object {
 		t.Helper()
-		obj, err := WalletWith(a, coin.NewCoinp(w, f, ticker))
+		obj, err := WalletWith(179, a, coin.NewCoinp(w, f, ticker))
 		if err != nil {
 			t.Fatalf("cannot create a wallet: %s", err)
 		}

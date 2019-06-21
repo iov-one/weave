@@ -60,7 +60,7 @@ func TestSend(t *testing.T) {
 		"sender too poor": {
 			signers: []weave.Condition{perm},
 			initState: []orm.Object{
-				must(WalletWith(perm.Address(), &some)),
+				must(WalletWith(179, perm.Address(), &some)),
 			},
 			msg: &SendMsg{
 				Amount: &foo,
@@ -72,7 +72,7 @@ func TestSend(t *testing.T) {
 		"sender got cash": {
 			signers: []weave.Condition{perm},
 			initState: []orm.Object{
-				must(WalletWith(perm.Address(), &foo)),
+				must(WalletWith(179, perm.Address(), &foo)),
 			},
 			msg: &SendMsg{
 				Amount: &foo,

@@ -100,15 +100,15 @@ func Concat(cng Coinage, coins coin.Coins) error {
 // NewWallet creates an empty wallet with this address serves as an object for
 // the bucket.
 // NewWallet wraps Set into an object for the Bucket.
-func NewWallet(key weave.Address) orm.Object {
+func NewWallet(height int64, key weave.Address) orm.Object {
 	return orm.NewSimpleObj(key, &Set{
-		Metadata: &weave.Metadata{Schema: 1},
+		Metadata: &weave.Metadata{Schema: 1, LastModified: height},
 	})
 }
 
 // WalletWith creates an wallet with a balance
-func WalletWith(key weave.Address, coins ...*coin.Coin) (orm.Object, error) {
-	obj := NewWallet(key)
+func WalletWith(height int64, key weave.Address, coins ...*coin.Coin) (orm.Object, error) {
+	obj := NewWallet(height, key)
 	err := Concat(AsCoinage(obj), coins)
 	if err != nil {
 		return nil, err
@@ -126,7 +126,7 @@ var _ WalletBucket = Bucket{}
 // NewBucket initializes a cash.Bucket with default name
 func NewBucket() Bucket {
 	return Bucket{
-		Bucket: migration.NewBucket("cash", BucketName, NewWallet(nil)),
+		Bucket: migration.NewBucket("cash", BucketName, NewWallet(0, nil)),
 	}
 }
 
@@ -135,7 +135,7 @@ func NewBucket() Bucket {
 func (b Bucket) GetOrCreate(db weave.KVStore, key weave.Address) (orm.Object, error) {
 	obj, err := b.Get(db, key)
 	if err == nil && obj == nil {
-		obj = NewWallet(key)
+		obj = NewWallet(0, key)
 	}
 	return obj, err
 }

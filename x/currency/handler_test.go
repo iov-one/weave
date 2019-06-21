@@ -75,7 +75,7 @@ func TestNewTokenInfoHandler(t *testing.T) {
 			},
 			query: "TKR",
 			wantQueryResult: orm.NewSimpleObj([]byte("TKR"), &TokenInfo{
-				Metadata: &weave.Metadata{Schema: 1},
+				Metadata: &weave.Metadata{Schema: 1, LastModified: 179},
 				Name:     "tikr",
 			}),
 		},

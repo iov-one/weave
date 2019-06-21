@@ -84,7 +84,7 @@ func TestFees(t *testing.T) {
 		},
 		"signer can cover min, but not pledge": {
 			signers:   []weave.Condition{perm},
-			initState: []orm.Object{must(WalletWith(perm.Address(), &min))},
+			initState: []orm.Object{must(WalletWith(179, perm.Address(), &min))},
 			fee: &FeeInfo{
 				Fees: &cash,
 			},
@@ -93,7 +93,7 @@ func TestFees(t *testing.T) {
 		},
 		"all proper": {
 			signers:   []weave.Condition{perm},
-			initState: []orm.Object{must(WalletWith(perm.Address(), &cash))},
+			initState: []orm.Object{must(WalletWith(179, perm.Address(), &cash))},
 			fee: &FeeInfo{
 				Fees: &min,
 			},
@@ -102,7 +102,7 @@ func TestFees(t *testing.T) {
 		},
 		"trying to pay from wrong account": {
 			signers:   []weave.Condition{perm},
-			initState: []orm.Object{must(WalletWith(perm2.Address(), &cash))},
+			initState: []orm.Object{must(WalletWith(179, perm2.Address(), &cash))},
 			fee: &FeeInfo{
 				Payer: perm2.Address(),
 				Fees:  &min,
@@ -114,7 +114,7 @@ func TestFees(t *testing.T) {
 			// this is now rejected in the initializer
 			"fee without an empty ticker is not accepted": {
 				signers:   []weave.Condition{perm},
-				initState: []orm.Object{must(WalletWith(perm.Address(), &cash))},
+				initState: []orm.Object{must(WalletWith(179, perm.Address(), &cash))},
 				fee:       &FeeInfo{
 					Fees: &min,
 				},
@@ -124,7 +124,7 @@ func TestFees(t *testing.T) {
 		*/
 		"no fee (zero value) is acceptable": {
 			signers:   []weave.Condition{perm},
-			initState: []orm.Object{must(WalletWith(perm.Address(), &cash))},
+			initState: []orm.Object{must(WalletWith(179, perm.Address(), &cash))},
 			fee: &FeeInfo{
 				Fees: coin.NewCoinp(0, 1, "FOO"),
 			},
@@ -133,7 +133,7 @@ func TestFees(t *testing.T) {
 		},
 		"wrong currency checked": {
 			signers:   []weave.Condition{perm},
-			initState: []orm.Object{must(WalletWith(perm.Address(), &cash))},
+			initState: []orm.Object{must(WalletWith(179, perm.Address(), &cash))},
 			fee: &FeeInfo{
 				Fees: &min,
 			},
@@ -142,7 +142,7 @@ func TestFees(t *testing.T) {
 		},
 		"has the cash, but didn't offer enough fees": {
 			signers:   []weave.Condition{perm},
-			initState: []orm.Object{must(WalletWith(perm.Address(), &cash))},
+			initState: []orm.Object{must(WalletWith(179, perm.Address(), &cash))},
 			fee: &FeeInfo{
 				Fees: &min,
 			},

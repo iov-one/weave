@@ -373,7 +373,7 @@ func TestReturnHandler(t *testing.T) {
 }
 
 func setBalance(t *testing.T, db weave.KVStore, addr weave.Address, coins coin.Coins) {
-	acct, err := cash.WalletWith(addr, coins...)
+	acct, err := cash.WalletWith(179, addr, coins...)
 	assert.Nil(t, err)
 	err = bank.Save(db, acct)
 	assert.Nil(t, err)
