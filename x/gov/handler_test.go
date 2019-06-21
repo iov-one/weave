@@ -54,7 +54,7 @@ func TestCreateTextProposal(t *testing.T) {
 			},
 			Signers: []weave.Condition{hAliceCond, hBobbyCond},
 			Exp: Proposal{
-				Metadata:        &weave.Metadata{Schema: 1},
+				Metadata:        &weave.Metadata{Schema: 1, LastModified: 179},
 				Title:           "my proposal",
 				Description:     "my description",
 				ElectionRuleRef: orm.VersionedIDRef{ID: weavetest.SequenceID(1), Version: 1},
@@ -86,7 +86,7 @@ func TestCreateTextProposal(t *testing.T) {
 			},
 			Signers: []weave.Condition{hAliceCond, hBobbyCond},
 			Exp: Proposal{
-				Metadata:        &weave.Metadata{Schema: 1},
+				Metadata:        &weave.Metadata{Schema: 1, LastModified: 179},
 				Title:           "new electorate",
 				Description:     "a very good readon",
 				ElectionRuleRef: orm.VersionedIDRef{ID: weavetest.SequenceID(1), Version: 1},
@@ -118,7 +118,7 @@ func TestCreateTextProposal(t *testing.T) {
 			},
 			Signers: []weave.Condition{hAliceCond, hBobbyCond},
 			Exp: Proposal{
-				Metadata:        &weave.Metadata{Schema: 1},
+				Metadata:        &weave.Metadata{Schema: 1, LastModified: 179},
 				Title:           "new rule",
 				Description:     "a very good readon",
 				ElectionRuleRef: orm.VersionedIDRef{ID: weavetest.SequenceID(1), Version: 1},
@@ -149,7 +149,7 @@ func TestCreateTextProposal(t *testing.T) {
 			},
 			Signers: []weave.Condition{hAliceCond, hBobbyCond},
 			Exp: Proposal{
-				Metadata:        &weave.Metadata{Schema: 1},
+				Metadata:        &weave.Metadata{Schema: 1, LastModified: 179},
 				Title:           "my proposal",
 				Description:     "my description",
 				ElectionRuleRef: orm.VersionedIDRef{ID: weavetest.SequenceID(1), Version: 1},
@@ -322,7 +322,7 @@ func TestCreateTextProposal(t *testing.T) {
 			WantCheckErr:   nil,
 			WantDeliverErr: nil,
 			Exp: Proposal{
-				Metadata:        &weave.Metadata{Schema: 1},
+				Metadata:        &weave.Metadata{Schema: 1, LastModified: 179},
 				Title:           "my proposal",
 				Description:     "my description",
 				ElectionRuleRef: orm.VersionedIDRef{ID: weavetest.SequenceID(1), Version: 1},
@@ -1331,7 +1331,7 @@ func TestUpdateElectorate(t *testing.T) {
 			},
 			SignedBy: hBobbyCond,
 			ExpModel: &Electorate{
-				Metadata:              &weave.Metadata{Schema: 1},
+				Metadata:              &weave.Metadata{Schema: 1, LastModified: 179},
 				Admin:                 hBobby,
 				Title:                 "fooo",
 				Electors:              []Elector{{Address: hAlice, Weight: 22}, {Address: hBobby, Weight: 10}},
@@ -1347,7 +1347,7 @@ func TestUpdateElectorate(t *testing.T) {
 			},
 			SignedBy: hBobbyCond,
 			ExpModel: &Electorate{
-				Metadata:              &weave.Metadata{Schema: 1},
+				Metadata:              &weave.Metadata{Schema: 1, LastModified: 179},
 				Admin:                 hBobby,
 				Title:                 "fooo",
 				Electors:              []Elector{{Address: hBobby, Weight: 10}},
@@ -1363,7 +1363,7 @@ func TestUpdateElectorate(t *testing.T) {
 			},
 			SignedBy: hBobbyCond,
 			ExpModel: &Electorate{
-				Metadata:              &weave.Metadata{Schema: 1},
+				Metadata:              &weave.Metadata{Schema: 1, LastModified: 179},
 				Admin:                 hBobby,
 				Title:                 "fooo",
 				Electors:              []Elector{{Address: hAlice, Weight: 1}, {Address: hBobby, Weight: 10}, {Address: hCharlie, Weight: 2}},
@@ -1486,7 +1486,7 @@ func TestUpdateElectionRules(t *testing.T) {
 			},
 			SignedBy: hBobbyCond,
 			ExpModel: &ElectionRule{
-				Metadata:     &weave.Metadata{Schema: 1},
+				Metadata:     &weave.Metadata{Schema: 1, LastModified: 179},
 				Version:      2,
 				Admin:        hBobby,
 				ElectorateID: weavetest.SequenceID(1),
@@ -1504,7 +1504,7 @@ func TestUpdateElectionRules(t *testing.T) {
 			},
 			SignedBy: hBobbyCond,
 			ExpModel: &ElectionRule{
-				Metadata:     &weave.Metadata{Schema: 1},
+				Metadata:     &weave.Metadata{Schema: 1, LastModified: 179},
 				Version:      2,
 				Admin:        hBobby,
 				ElectorateID: weavetest.SequenceID(1),
