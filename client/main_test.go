@@ -12,7 +12,6 @@ import (
 // useful values for test cases
 var node *nm.Node
 
-
 func TestMain(m *testing.M) {
 	config := rpctest.GetConfig()
 	// this is just for fun :)

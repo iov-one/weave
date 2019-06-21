@@ -96,6 +96,8 @@ func (m ValidatorUpdates) Deduplicate(dropZeroPower bool) ValidatorUpdates {
 	deduplicatedValidators := make([]ValidatorUpdate, 0, len(m.ValidatorUpdates))
 
 	for _, v := range m.ValidatorUpdates {
+		// This checks if we already have a validator with the same PubKey
+		// and replaces by the latest update
 		if key, ok := duplicates[v.PubKey.String()]; ok {
 			deduplicatedValidators[key] = v
 			continue
@@ -119,9 +121,8 @@ func (m ValidatorUpdates) Deduplicate(dropZeroPower bool) ValidatorUpdates {
 	return m
 }
 
-// Store stores ValidatorUpdates to the KVStore.
-func (m ValidatorUpdates) Store(store KVStore) error {
-	marshalledUpdates, err := m.Marshal()
+func StoreValidatorUpdates(store KVStore, vu ValidatorUpdates) error {
+	marshalledUpdates, err := vu.Marshal()
 	if err != nil {
 		return errors.Wrap(err, "validator updates marshal")
 	}

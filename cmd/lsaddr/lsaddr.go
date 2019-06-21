@@ -28,6 +28,7 @@ var converters = map[string]converter{
 		return a
 	},
 }
+
 //nolint
 func main() {
 	fl := flag.NewFlagSet("", flag.ExitOnError)

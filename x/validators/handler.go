@@ -41,7 +41,7 @@ func (h updateHandler) Deliver(ctx weave.Context, store weave.KVStore, tx weave.
 	if err != nil {
 		return nil, err
 	}
-	err = updates.Store(store)
+	err = weave.StoreValidatorUpdates(store, updates)
 	if err != nil {
 		return nil, errors.Wrap(err, "store validator updates")
 	}
@@ -102,5 +102,6 @@ func (h updateHandler) validate(ctx weave.Context, store weave.KVStore, tx weave
 		resUpdates.ValidatorUpdates = append(resUpdates.ValidatorUpdates, v)
 	}
 
+	// Deduplicate updates for storage.
 	return diff, resUpdates.Deduplicate(true), nil
 }

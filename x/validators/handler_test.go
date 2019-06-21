@@ -144,7 +144,7 @@ func TestHandler(t *testing.T) {
 			if err != nil {
 				t.Fatalf("unexpected error: %s", err)
 			}
-			if err := spec.Initial.Store(db); err != nil {
+			if err := weave.StoreValidatorUpdates(db, spec.Initial); err != nil {
 				t.Fatalf("unexpected error: %s", err)
 			}
 			cache := db.CacheWrap()
