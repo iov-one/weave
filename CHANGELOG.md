@@ -35,6 +35,7 @@ Breaking changes
 now instead of abci internally.
 - Simplified `Iterator` to 2 methods - Next() and Release()
 - Removed `cmd/bcpd` application
+- Remove `x/namecoin` package that is no longer used.
 
 
 ## 0.16.0

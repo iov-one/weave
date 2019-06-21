@@ -16,7 +16,7 @@ func Examples() []commands.Example {
 			{Whole: 150, Fractional: 567000, Ticker: "BTC"},
 		},
 	}
-	
+
 	priv := crypto.GenPrivKeyEd25519()
 	pub := priv.PublicKey()
 	user := &sigs.UserData{
