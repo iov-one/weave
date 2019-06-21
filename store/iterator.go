@@ -158,6 +158,16 @@ func (i *itemIter) advanceParent() error {
 	return nil
 }
 
+func (i *itemIter) clearOldDelete(before []byte) {
+	del, ok := i.cachedWrap.(deletedItem)
+	if !ok {
+		return
+	}
+	if before == nil || bytes.Compare(del.Key(), before) < 0 {
+		i.cachedWrap = nil
+	}
+}
+
 // advance will read next from wrap iterators,
 // and set cached value as well as done flags.
 //
@@ -166,24 +176,22 @@ func (i *itemIter) advanceParent() error {
 // it will skip closed and missing iterators.
 // doesn't return ErrIteratorDone, but only unexpected data errors.
 func (i *itemIter) advanceWrap() error {
-	for !i.wrapDone && i.cachedWrap == nil {
+	if i.wrapDone {
+		return nil
+	}
+	i.clearOldDelete(i.cachedParent.Key)
+
+	for i.cachedWrap == nil {
 		var err error
 		i.cachedWrap, err = i.wrap.Next()
+		// handler errors
 		if errors.ErrIteratorDone.Is(err) {
 			i.wrapDone = true
 			return nil
 		} else if err != nil {
 			return errors.Wrap(err, "advance wrap")
 		}
-		if _, ok := i.cachedWrap.(deletedItem); ok {
-			// if delete, stop if we are at or higher than the parent key
-			if i.cachedParent.Key != nil && bytes.Compare(i.cachedWrap.Key(), i.cachedParent.Key) >= 0 {
-				return nil
-			}
-			// otherwise, unset cachedWrap, so we read more
-			i.cachedWrap = nil
-		}
-		// if it is a setItem, we break out with the for loop
+		i.clearOldDelete(i.cachedParent.Key)
 	}
 	return nil
 }
