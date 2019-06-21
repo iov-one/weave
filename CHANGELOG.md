@@ -2,6 +2,8 @@
 ## HEAD
 
 - Unified dedupe logic for validator bookkeeping and validator diffs in `app`
+- A new `errors.Field` was added. This allows to bind errors to field names and
+  enables easier testing of group errors.
 - Expose some more Genesis params to extension initializers. Utilise those in
   `x/validators` to store initial validator list and validate updates against
   this list while updating on every successful transaction.
