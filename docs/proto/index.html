@@ -1654,7 +1654,16 @@ modify a username token. </p></td>
                   <td>schema</td>
                   <td><a href="#uint32">uint32</a></td>
                   <td></td>
-                  <td><p> </p></td>
+                  <td><p>Schema keeps track of schema changes of persistent objects
+(models and messages) to be used with the migrations package. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>last_modified</td>
+                  <td><a href="#int64">int64</a></td>
+                  <td></td>
+                  <td><p>LastModified is stored with every model stored in orm.Bucket.
+It is set to the block height of the last write of this object. </p></td>
                 </tr>
               
             </tbody>
