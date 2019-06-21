@@ -358,8 +358,8 @@ func (i iterCase) verify(t testing.TB, base CacheableKVStore) {
 			assert.Equal(t, q.expected[i].Value, value)
 		}
 		_, _, err = iter.Next()
-		if !errors.ErrDone.Is(err) {
-			t.Fatalf("Expected ErrDone, got %+v", err)
+		if !errors.ErrIteratorDone.Is(err) {
+			t.Fatalf("Expected ErrIteratorDone, got %+v", err)
 		}
 	}
 }

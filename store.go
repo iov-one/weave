@@ -63,8 +63,8 @@ keys. These may all be preloaded, or loaded on demand.
 	// ... do stuff with k, v
 	k, v, err = itr.Next()
   }
-  // ErrDone means we hit the end, otherwise this is a real error
-  if !errors.ErrDone.Is(err) {
+  // ErrIteratorDone means we hit the end, otherwise this is a real error
+  if !errors.ErrIteratorDone.Is(err) {
 	  return err
   }
 */
@@ -72,7 +72,7 @@ type Iterator interface {
 	// Next moves the iterator to the next sequential key in the database, as
 	// defined by order of iteration.
 	//
-	// Returns (nil, nil, errors.ErrDone) if there is no more data
+	// Returns (nil, nil, errors.ErrIteratorDone) if there is no more data
 	Next() (key, value []byte, err error)
 
 	// Release releases the Iterator, allowing it to do any needed cleanup.

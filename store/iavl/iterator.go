@@ -40,7 +40,7 @@ func (i *lazyIterator) add(key []byte, value []byte) bool {
 func (i *lazyIterator) Next() ([]byte, []byte, error) {
 	data, hasMore := <-i.read
 	if !hasMore {
-		return nil, nil, errors.Wrap(errors.ErrDone, "iavl lazy iterator")
+		return nil, nil, errors.Wrap(errors.ErrIteratorDone, "iavl lazy iterator")
 	}
 	return data.Key, data.Value, nil
 }

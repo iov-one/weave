@@ -101,7 +101,7 @@ func (b *btreeIter) wrap(parent Iterator) *itemIter {
 func (b *btreeIter) Next() (keyer, error) {
 	data, hasMore := <-b.read
 	if !hasMore {
-		return nil, errors.Wrap(errors.ErrDone, "btree iterator")
+		return nil, errors.Wrap(errors.ErrIteratorDone, "btree iterator")
 	}
 	key, ok := data.(keyer)
 	if !ok {
@@ -135,7 +135,7 @@ var _ Iterator = (*itemIter)(nil)
 // and set cached value as well as done flags.
 //
 // it will skip closed and missing iterators.
-// doesn't return ErrDone, but only unexpected data errors.
+// doesn't return ErrIteratorDone, but only unexpected data errors.
 func (i *itemIter) advanceParent() error {
 	if i.parent == nil {
 		i.parentDone = true
@@ -145,7 +145,7 @@ func (i *itemIter) advanceParent() error {
 	}
 
 	key, value, err := i.parent.Next()
-	if errors.ErrDone.Is(err) {
+	if errors.ErrIteratorDone.Is(err) {
 		i.parentDone = true
 	} else if err != nil {
 		return errors.Wrap(err, "advance parent")
@@ -162,12 +162,12 @@ func (i *itemIter) advanceParent() error {
 // It will skip any deleted items before the i.cachedParent.Key value
 //
 // it will skip closed and missing iterators.
-// doesn't return ErrDone, but only unexpected data errors.
+// doesn't return ErrIteratorDone, but only unexpected data errors.
 func (i *itemIter) advanceWrap() error {
 	for !i.wrapDone && i.cachedWrap == nil {
 		var err error
 		i.cachedWrap, err = i.wrap.Next()
-		if errors.ErrDone.Is(err) {
+		if errors.ErrIteratorDone.Is(err) {
 			i.wrapDone = true
 			return nil
 		} else if err != nil {
@@ -226,7 +226,7 @@ func (i *itemIter) Next() (key, value []byte, err error) {
 // returns cached item from wrap (helper for Next)
 func (i *itemIter) returnCachedWrap() (key, value []byte, err error) {
 	if i.wrapDone {
-		return nil, nil, errors.Wrap(errors.ErrDone, "itemIter wrap done")
+		return nil, nil, errors.Wrap(errors.ErrIteratorDone, "itemIter wrap done")
 	}
 	item := i.cachedWrap.(setItem)
 	i.cachedWrap = nil
@@ -237,7 +237,7 @@ func (i *itemIter) returnCachedWrap() (key, value []byte, err error) {
 // returns cached item from parent (helper for Next)
 func (i *itemIter) returnCachedParent() (key, value []byte, err error) {
 	if i.parentDone {
-		return nil, nil, errors.Wrap(errors.ErrDone, "itemIter parent done")
+		return nil, nil, errors.Wrap(errors.ErrIteratorDone, "itemIter parent done")
 	}
 	key, value = i.cachedParent.Key, i.cachedParent.Value
 	i.cachedParent = weave.Model{}

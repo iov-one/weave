@@ -29,8 +29,8 @@ func TestSliceIterator(t *testing.T) {
 		key, value, err = iter.Next()
 	}
 	assert.Equal(t, size, i)
-	if !errors.ErrDone.Is(err) {
-		t.Fatalf("Expected ErrDone, got %+v", err)
+	if !errors.ErrIteratorDone.Is(err) {
+		t.Fatalf("Expected ErrIteratorDone, got %+v", err)
 	}
 
 	it := NewSliceIterator(models)
@@ -38,7 +38,7 @@ func TestSliceIterator(t *testing.T) {
 	assert.Nil(t, err)
 	it.Release()
 	_, _, err = it.Next()
-	if !errors.ErrDone.Is(err) {
+	if !errors.ErrIteratorDone.Is(err) {
 		t.Fatal("closed iterator must be invalid")
 	}
 }

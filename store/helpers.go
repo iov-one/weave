@@ -24,7 +24,7 @@ func NewSliceIterator(data []Model) *SliceIterator {
 
 func (s *SliceIterator) Next() (key, value []byte, err error) {
 	if s.idx >= len(s.data) {
-		return nil, nil, errors.Wrap(errors.ErrDone, "slice iterator")
+		return nil, nil, errors.Wrap(errors.ErrIteratorDone, "slice iterator")
 	}
 	val := s.data[s.idx]
 	s.idx++

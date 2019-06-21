@@ -200,7 +200,7 @@ func (i Index) GetPrefix(db weave.ReadOnlyKVStore, prefix []byte) ([][]byte, err
 		}
 		_, value, err = itr.Next()
 	}
-	if !errors.ErrDone.Is(err) {
+	if !errors.ErrIteratorDone.Is(err) {
 		return nil, err
 	}
 	return data, nil

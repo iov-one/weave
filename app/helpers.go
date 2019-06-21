@@ -113,10 +113,10 @@ func NewSliceIterator(data []weave.Model) *SliceIterator {
 // Next moves the iterator to the next sequential key in the database, as
 // defined by order of iteration.
 //
-// Returns (nil, nil, errors.ErrDone) if there is no more data
+// Returns (nil, nil, errors.ErrIteratorDone) if there is no more data
 func (s *SliceIterator) Next() (key, value []byte, err error) {
 	if s.idx >= len(s.data) {
-		return nil, nil, errors.Wrap(errors.ErrDone, "slice iterator")
+		return nil, nil, errors.Wrap(errors.ErrIteratorDone, "slice iterator")
 	}
 	val := s.data[s.idx]
 	s.idx++

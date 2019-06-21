@@ -23,7 +23,7 @@ func consumeIterator(itr weave.Iterator) ([]weave.Model, error) {
 		res = append(res, weave.Model{Key: key, Value: value})
 		key, value, err = itr.Next()
 	}
-	if !errors.ErrDone.Is(err) {
+	if !errors.ErrIteratorDone.Is(err) {
 		return nil, err
 	}
 	return res, nil
