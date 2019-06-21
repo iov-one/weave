@@ -31,7 +31,7 @@ func (Initializer) FromGenesis(opts weave.Options, params weave.GenesisParams, k
 		return errors.Wrap(err, "bucket save")
 	}
 
-	vu := weave.ValidatorUpdatesFromABCI(params.Validators)
+	vu := weave.ValidatorUpdatesFromABCI(params.Validators).Deduplicate(true)
 	if err := vu.Validate(); err != nil {
 		return errors.Wrap(err, "validator updates")
 	}

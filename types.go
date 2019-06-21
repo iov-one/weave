@@ -1,13 +1,16 @@
 package weave
 
 import (
+	"bytes"
 	"strings"
 
 	"github.com/iov-one/weave/errors"
 	abci "github.com/tendermint/tendermint/abci/types"
 )
 
-const storeKey = "_1:update_validators"
+const (
+	storeKey = "_1:update_validators"
+)
 
 // CommitInfo is a type alias for now, which allows us to override this type
 // with a custom one at any moment.
@@ -70,33 +73,54 @@ func (m ValidatorUpdates) Validate() error {
 	return err
 }
 
-// Deduplicate makes sure we only use the last validator update to any given validator.
-// For bookkeeping we have an option to drop validators with zero power, because those
-// are being remove by tendermint once propagated.
-func (m ValidatorUpdates) Deduplicate(dropZeroPower bool) []ValidatorUpdate {
-	duplicates := make(map[string]int)
-	cleanValidatorSlice := make([]ValidatorUpdate, 0, len(m.ValidatorUpdates))
-
-	for _, v := range m.ValidatorUpdates {
-		if dropZeroPower && v.Power == 0 {
-			continue
+// Get gets a ValidatorUpdate by a public key if it exists
+func (m ValidatorUpdates) Get(key PubKey) (ValidatorUpdate, int, bool) {
+	for k, v := range m.ValidatorUpdates {
+		if v.PubKey.Type == key.Type && bytes.Equal(v.PubKey.Data, key.Data) {
+			return v, k, true
 		}
-		if key, ok := duplicates[v.PubKey.String()]; ok {
-			cleanValidatorSlice[key] = v
-			continue
-		}
-		cleanValidatorSlice = append(cleanValidatorSlice, v)
-		duplicates[v.PubKey.String()] = len(cleanValidatorSlice) - 1
 	}
 
-	return cleanValidatorSlice
+	return ValidatorUpdate{}, -1, false
 }
 
-// Store stores ValidatorUpdates to the KVStore while cleaning up those with 0
-// power.
-func (m ValidatorUpdates) Store(store KVStore) error {
-	m.ValidatorUpdates = m.Deduplicate(true)
+// Deduplicate makes sure we only use the last validator update to any given validator.
+// For bookkeeping we have an option to drop validators with zero power, because those
+// are being removed by tendermint once propagated.
+func (m ValidatorUpdates) Deduplicate(dropZeroPower bool) ValidatorUpdates {
+	if len(m.ValidatorUpdates) == 0 {
+		return m
+	}
 
+	duplicates := make(map[string]int)
+	deduplicatedValidators := make([]ValidatorUpdate, 0, len(m.ValidatorUpdates))
+
+	for _, v := range m.ValidatorUpdates {
+		if key, ok := duplicates[v.PubKey.String()]; ok {
+			deduplicatedValidators[key] = v
+			continue
+		}
+		deduplicatedValidators = append(deduplicatedValidators, v)
+		duplicates[v.PubKey.String()] = len(deduplicatedValidators) - 1
+		m.ValidatorUpdates = deduplicatedValidators
+	}
+
+	if dropZeroPower {
+		filteredValidators := make([]ValidatorUpdate, 0, len(deduplicatedValidators))
+
+		for _, v := range deduplicatedValidators {
+			if v.Power != 0 {
+				filteredValidators = append(filteredValidators, v)
+			}
+		}
+		m.ValidatorUpdates = filteredValidators
+	}
+
+	return m
+}
+
+// Store stores ValidatorUpdates to the KVStore.
+func (m ValidatorUpdates) Store(store KVStore) error {
 	marshalledUpdates, err := m.Marshal()
 	if err != nil {
 		return errors.Wrap(err, "validator updates marshal")
@@ -108,12 +132,12 @@ func (m ValidatorUpdates) Store(store KVStore) error {
 
 func GetValidatorUpdates(store KVStore) (ValidatorUpdates, error) {
 	vu := ValidatorUpdates{}
-	bytes, err := store.Get([]byte(storeKey))
+	b, err := store.Get([]byte(storeKey))
 	if err != nil {
 		return vu, errors.Wrap(err, "kvstore get")
 	}
 
-	err = vu.Unmarshal(bytes)
+	err = vu.Unmarshal(b)
 	return vu, errors.Wrap(err, "validator updates unmarshal")
 }
 
