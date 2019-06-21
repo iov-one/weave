@@ -15,6 +15,8 @@ func TestFieldErrors(t *testing.T) {
 			humanNameErr,
 			Append(emptyGenderErr, ErrDeleted),
 		), "user data invalid")
+
+		emptyGenderWrapErr = Field("gender", emptyGenderErr, "outer")
 	)
 
 	cases := map[string]struct {
@@ -67,6 +69,45 @@ func TestFieldErrors(t *testing.T) {
 			Err:   Field("a-name", ErrUnauthorized, "a description"),
 			Field: "foo",
 			Want:  nil,
+		},
+		"field is wrapped": {
+			Err:   Wrap(Wrap(humanNameErr, "inner"), "outer"),
+			Field: "name",
+			Want:  []error{humanNameErr},
+		},
+		"multi error field is wrapped (gender)": {
+			Err:   Wrap(Wrap(userMultiErr, "inner"), "outer"),
+			Field: "gender",
+			Want:  []error{emptyGenderErr},
+		},
+		"multi error field is wrapped (name)": {
+			Err:   Wrap(Wrap(userMultiErr, "inner"), "outer"),
+			Field: "name",
+			Want:  []error{humanNameErr},
+		},
+		"multi error field is wrapped, no match": {
+			Err:   Wrap(Wrap(userMultiErr, "inner"), "outer"),
+			Field: "unknown-name",
+			Want:  nil,
+		},
+		"multiple field wrap with most inner as the result": {
+			Err:   Field("a", Field("b", humanNameErr, "b desc"), "a desc"),
+			Field: "name",
+			Want:  []error{humanNameErr},
+		},
+		"multiple field wrap with the same field return the most outside only": {
+			Err:   emptyGenderWrapErr,
+			Field: "gender",
+			Want:  []error{emptyGenderWrapErr},
+		},
+		"complex error with multiple results": {
+			Err: Wrap(Append(
+				Wrap(unauthorizedNameErr, "a"),
+				Wrap(humanNameErr, "b"),
+				Wrap(emptyGenderErr, "c"),
+			), "outer"),
+			Field: "name",
+			Want:  []error{unauthorizedNameErr, humanNameErr},
 		},
 	}
 
