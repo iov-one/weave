@@ -25,7 +25,6 @@
 Breaking changes
 
 - Some messages were renamed to follow the general `start with a verb` format:
-  - `x/namecoin`: `NewTokenMsg` -> `CreateTokenMsg`
   - `x/distribution`: `NewRevenueMsg` -> `CreateRevenueMsg`
   - `x/currency`: `NewTokenInfoMsg` -> `CreateTokenInfoMsg`
   - `x/cash`: `ConfigurationMsg` -> `UpdateConfigurationMsg`
