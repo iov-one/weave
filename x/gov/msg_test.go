@@ -220,20 +220,20 @@ func TestDeleteProposalMsg(t *testing.T) {
 	}
 }
 
-func TestTextResolutionMsg(t *testing.T) {
+func TestCreateTextResolutionMsg(t *testing.T) {
 	specs := map[string]struct {
-		Msg TextResolutionMsg
+		Msg CreateTextResolutionMsg
 		Exp *errors.Error
 	}{
 		"Happy path": {
-			Msg: TextResolutionMsg{Resolution: "123", Metadata: &weave.Metadata{Schema: 1}},
+			Msg: CreateTextResolutionMsg{Resolution: "123", Metadata: &weave.Metadata{Schema: 1}},
 		},
 		"Empty resolution": {
-			Msg: TextResolutionMsg{Metadata: &weave.Metadata{Schema: 1}},
+			Msg: CreateTextResolutionMsg{Metadata: &weave.Metadata{Schema: 1}},
 			Exp: errors.ErrEmpty,
 		},
 		"Metadata missing": {
-			Msg: TextResolutionMsg{Resolution: "123"},
+			Msg: CreateTextResolutionMsg{Resolution: "123"},
 			Exp: errors.ErrMetadata,
 		},
 	}

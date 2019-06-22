@@ -32,8 +32,8 @@ message Recipient {
   int32 weight = 2;
 }
 
-// NewRevenueMsg is issuing the creation of a new revenue stream instance.
-message NewRevenueMsg {
+// CreateRevenueMsg is issuing the creation of a new revenue stream instance.
+message CreateRevenueMsg {
   weave.Metadata metadata = 1;
   // Admin key belongs to the governance entities. It can be used to transfer
   // stored amount to an another account.

@@ -6,18 +6,18 @@ import (
 )
 
 func init() {
-	migration.MustRegister(1, &NewRevenueMsg{}, migration.NoModification)
+	migration.MustRegister(1, &CreateRevenueMsg{}, migration.NoModification)
 	migration.MustRegister(1, &DistributeMsg{}, migration.NoModification)
 	migration.MustRegister(1, &ResetRevenueMsg{}, migration.NoModification)
 }
 
 const (
-	pathNewRevenueMsg   = "distribution/newrevenue"
-	pathDistributeMsg   = "distribution/distribute"
-	pathResetRevenueMsg = "distribution/resetRevenue"
+	pathCreateRevenueMsg = "distribution/createRevenue"
+	pathDistributeMsg    = "distribution/distribute"
+	pathResetRevenueMsg  = "distribution/resetRevenue"
 )
 
-func (msg *NewRevenueMsg) Validate() error {
+func (msg *CreateRevenueMsg) Validate() error {
 	if err := msg.Metadata.Validate(); err != nil {
 		return errors.Wrap(err, "invalid metadata")
 	}
@@ -30,8 +30,8 @@ func (msg *NewRevenueMsg) Validate() error {
 	return nil
 }
 
-func (NewRevenueMsg) Path() string {
-	return pathNewRevenueMsg
+func (CreateRevenueMsg) Path() string {
+	return pathCreateRevenueMsg
 }
 
 func (msg *DistributeMsg) Validate() error {

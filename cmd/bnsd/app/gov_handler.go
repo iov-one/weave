@@ -39,7 +39,7 @@ func proposalOptionsExecutor(ctrl cash.Controller) gov.Executor {
 	migration.RegisterRoutes(r, auth)
 	gov.RegisterBasicProposalRouters(r, auth)
 
-	// We must wrap with batch middleware so it can process ProposalBatchMsg
+	// We must wrap with batch middleware so it can process ExecuteProposalBatchMsg
 	stack := app.ChainDecorators(batch.NewDecorator()).WithHandler(r)
 
 	return gov.HandlerAsExecutor(stack)

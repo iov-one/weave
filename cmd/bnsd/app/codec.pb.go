@@ -60,12 +60,12 @@ type Tx struct {
 	//	*Tx_CreateContractMsg
 	//	*Tx_UpdateContractMsg
 	//	*Tx_SetValidatorsMsg
-	//	*Tx_NewTokenInfoMsg
-	//	*Tx_BatchMsg
+	//	*Tx_CreateTokenInfoMsg
+	//	*Tx_ExecuteBatchMsg
 	//	*Tx_RegisterUsernameTokenMsg
 	//	*Tx_TransferUsernameTokenMsg
 	//	*Tx_ChangeUsernameTokenTargetsMsg
-	//	*Tx_NewRevenueMsg
+	//	*Tx_CreateRevenueMsg
 	//	*Tx_DistributeMsg
 	//	*Tx_ResetRevenueMsg
 	//	*Tx_UpgradeSchemaMsg
@@ -144,11 +144,11 @@ type Tx_UpdateContractMsg struct {
 type Tx_SetValidatorsMsg struct {
 	SetValidatorsMsg *validators.SetValidatorsMsg `protobuf:"bytes,58,opt,name=set_validators_msg,json=setValidatorsMsg,proto3,oneof"`
 }
-type Tx_NewTokenInfoMsg struct {
-	NewTokenInfoMsg *currency.NewTokenInfoMsg `protobuf:"bytes,59,opt,name=new_token_info_msg,json=newTokenInfoMsg,proto3,oneof"`
+type Tx_CreateTokenInfoMsg struct {
+	CreateTokenInfoMsg *currency.CreateTokenInfoMsg `protobuf:"bytes,59,opt,name=create_token_info_msg,json=createTokenInfoMsg,proto3,oneof"`
 }
-type Tx_BatchMsg struct {
-	BatchMsg *BatchMsg `protobuf:"bytes,60,opt,name=batch_msg,json=batchMsg,proto3,oneof"`
+type Tx_ExecuteBatchMsg struct {
+	ExecuteBatchMsg *ExecuteBatchMsg `protobuf:"bytes,60,opt,name=execute_batch_msg,json=executeBatchMsg,proto3,oneof"`
 }
 type Tx_RegisterUsernameTokenMsg struct {
 	RegisterUsernameTokenMsg *username.RegisterUsernameTokenMsg `protobuf:"bytes,61,opt,name=register_username_token_msg,json=registerUsernameTokenMsg,proto3,oneof"`
@@ -159,8 +159,8 @@ type Tx_TransferUsernameTokenMsg struct {
 type Tx_ChangeUsernameTokenTargetsMsg struct {
 	ChangeUsernameTokenTargetsMsg *username.ChangeUsernameTokenTargetsMsg `protobuf:"bytes,63,opt,name=change_username_token_targets_msg,json=changeUsernameTokenTargetsMsg,proto3,oneof"`
 }
-type Tx_NewRevenueMsg struct {
-	NewRevenueMsg *distribution.NewRevenueMsg `protobuf:"bytes,66,opt,name=new_revenue_msg,json=newRevenueMsg,proto3,oneof"`
+type Tx_CreateRevenueMsg struct {
+	CreateRevenueMsg *distribution.CreateRevenueMsg `protobuf:"bytes,66,opt,name=create_revenue_msg,json=createRevenueMsg,proto3,oneof"`
 }
 type Tx_DistributeMsg struct {
 	DistributeMsg *distribution.DistributeMsg `protobuf:"bytes,67,opt,name=distribute_msg,json=distributeMsg,proto3,oneof"`
@@ -207,12 +207,12 @@ func (*Tx_UpdateEscrowMsg) isTx_Sum()               {}
 func (*Tx_CreateContractMsg) isTx_Sum()             {}
 func (*Tx_UpdateContractMsg) isTx_Sum()             {}
 func (*Tx_SetValidatorsMsg) isTx_Sum()              {}
-func (*Tx_NewTokenInfoMsg) isTx_Sum()               {}
-func (*Tx_BatchMsg) isTx_Sum()                      {}
+func (*Tx_CreateTokenInfoMsg) isTx_Sum()            {}
+func (*Tx_ExecuteBatchMsg) isTx_Sum()               {}
 func (*Tx_RegisterUsernameTokenMsg) isTx_Sum()      {}
 func (*Tx_TransferUsernameTokenMsg) isTx_Sum()      {}
 func (*Tx_ChangeUsernameTokenTargetsMsg) isTx_Sum() {}
-func (*Tx_NewRevenueMsg) isTx_Sum()                 {}
+func (*Tx_CreateRevenueMsg) isTx_Sum()              {}
 func (*Tx_DistributeMsg) isTx_Sum()                 {}
 func (*Tx_ResetRevenueMsg) isTx_Sum()               {}
 func (*Tx_UpgradeSchemaMsg) isTx_Sum()              {}
@@ -310,16 +310,16 @@ func (m *Tx) GetSetValidatorsMsg() *validators.SetValidatorsMsg {
 	return nil
 }
 
-func (m *Tx) GetNewTokenInfoMsg() *currency.NewTokenInfoMsg {
-	if x, ok := m.GetSum().(*Tx_NewTokenInfoMsg); ok {
-		return x.NewTokenInfoMsg
+func (m *Tx) GetCreateTokenInfoMsg() *currency.CreateTokenInfoMsg {
+	if x, ok := m.GetSum().(*Tx_CreateTokenInfoMsg); ok {
+		return x.CreateTokenInfoMsg
 	}
 	return nil
 }
 
-func (m *Tx) GetBatchMsg() *BatchMsg {
-	if x, ok := m.GetSum().(*Tx_BatchMsg); ok {
-		return x.BatchMsg
+func (m *Tx) GetExecuteBatchMsg() *ExecuteBatchMsg {
+	if x, ok := m.GetSum().(*Tx_ExecuteBatchMsg); ok {
+		return x.ExecuteBatchMsg
 	}
 	return nil
 }
@@ -345,9 +345,9 @@ func (m *Tx) GetChangeUsernameTokenTargetsMsg() *username.ChangeUsernameTokenTar
 	return nil
 }
 
-func (m *Tx) GetNewRevenueMsg() *distribution.NewRevenueMsg {
-	if x, ok := m.GetSum().(*Tx_NewRevenueMsg); ok {
-		return x.NewRevenueMsg
+func (m *Tx) GetCreateRevenueMsg() *distribution.CreateRevenueMsg {
+	if x, ok := m.GetSum().(*Tx_CreateRevenueMsg); ok {
+		return x.CreateRevenueMsg
 	}
 	return nil
 }
@@ -447,12 +447,12 @@ func (*Tx) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, fun
 		(*Tx_CreateContractMsg)(nil),
 		(*Tx_UpdateContractMsg)(nil),
 		(*Tx_SetValidatorsMsg)(nil),
-		(*Tx_NewTokenInfoMsg)(nil),
-		(*Tx_BatchMsg)(nil),
+		(*Tx_CreateTokenInfoMsg)(nil),
+		(*Tx_ExecuteBatchMsg)(nil),
 		(*Tx_RegisterUsernameTokenMsg)(nil),
 		(*Tx_TransferUsernameTokenMsg)(nil),
 		(*Tx_ChangeUsernameTokenTargetsMsg)(nil),
-		(*Tx_NewRevenueMsg)(nil),
+		(*Tx_CreateRevenueMsg)(nil),
 		(*Tx_DistributeMsg)(nil),
 		(*Tx_ResetRevenueMsg)(nil),
 		(*Tx_UpgradeSchemaMsg)(nil),
@@ -512,14 +512,14 @@ func _Tx_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
 		if err := b.EncodeMessage(x.SetValidatorsMsg); err != nil {
 			return err
 		}
-	case *Tx_NewTokenInfoMsg:
+	case *Tx_CreateTokenInfoMsg:
 		_ = b.EncodeVarint(59<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.NewTokenInfoMsg); err != nil {
+		if err := b.EncodeMessage(x.CreateTokenInfoMsg); err != nil {
 			return err
 		}
-	case *Tx_BatchMsg:
+	case *Tx_ExecuteBatchMsg:
 		_ = b.EncodeVarint(60<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.BatchMsg); err != nil {
+		if err := b.EncodeMessage(x.ExecuteBatchMsg); err != nil {
 			return err
 		}
 	case *Tx_RegisterUsernameTokenMsg:
@@ -537,9 +537,9 @@ func _Tx_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
 		if err := b.EncodeMessage(x.ChangeUsernameTokenTargetsMsg); err != nil {
 			return err
 		}
-	case *Tx_NewRevenueMsg:
+	case *Tx_CreateRevenueMsg:
 		_ = b.EncodeVarint(66<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.NewRevenueMsg); err != nil {
+		if err := b.EncodeMessage(x.CreateRevenueMsg); err != nil {
 			return err
 		}
 	case *Tx_DistributeMsg:
@@ -676,21 +676,21 @@ func _Tx_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bo
 		err := b.DecodeMessage(msg)
 		m.Sum = &Tx_SetValidatorsMsg{msg}
 		return true, err
-	case 59: // sum.new_token_info_msg
+	case 59: // sum.create_token_info_msg
 		if wire != proto.WireBytes {
 			return true, proto.ErrInternalBadWireType
 		}
-		msg := new(currency.NewTokenInfoMsg)
+		msg := new(currency.CreateTokenInfoMsg)
 		err := b.DecodeMessage(msg)
-		m.Sum = &Tx_NewTokenInfoMsg{msg}
+		m.Sum = &Tx_CreateTokenInfoMsg{msg}
 		return true, err
-	case 60: // sum.batch_msg
+	case 60: // sum.execute_batch_msg
 		if wire != proto.WireBytes {
 			return true, proto.ErrInternalBadWireType
 		}
-		msg := new(BatchMsg)
+		msg := new(ExecuteBatchMsg)
 		err := b.DecodeMessage(msg)
-		m.Sum = &Tx_BatchMsg{msg}
+		m.Sum = &Tx_ExecuteBatchMsg{msg}
 		return true, err
 	case 61: // sum.register_username_token_msg
 		if wire != proto.WireBytes {
@@ -716,13 +716,13 @@ func _Tx_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bo
 		err := b.DecodeMessage(msg)
 		m.Sum = &Tx_ChangeUsernameTokenTargetsMsg{msg}
 		return true, err
-	case 66: // sum.new_revenue_msg
+	case 66: // sum.create_revenue_msg
 		if wire != proto.WireBytes {
 			return true, proto.ErrInternalBadWireType
 		}
-		msg := new(distribution.NewRevenueMsg)
+		msg := new(distribution.CreateRevenueMsg)
 		err := b.DecodeMessage(msg)
-		m.Sum = &Tx_NewRevenueMsg{msg}
+		m.Sum = &Tx_CreateRevenueMsg{msg}
 		return true, err
 	case 67: // sum.distribute_msg
 		if wire != proto.WireBytes {
@@ -869,13 +869,13 @@ func _Tx_OneofSizer(msg proto.Message) (n int) {
 		n += 2 // tag and wire
 		n += proto.SizeVarint(uint64(s))
 		n += s
-	case *Tx_NewTokenInfoMsg:
-		s := proto.Size(x.NewTokenInfoMsg)
+	case *Tx_CreateTokenInfoMsg:
+		s := proto.Size(x.CreateTokenInfoMsg)
 		n += 2 // tag and wire
 		n += proto.SizeVarint(uint64(s))
 		n += s
-	case *Tx_BatchMsg:
-		s := proto.Size(x.BatchMsg)
+	case *Tx_ExecuteBatchMsg:
+		s := proto.Size(x.ExecuteBatchMsg)
 		n += 2 // tag and wire
 		n += proto.SizeVarint(uint64(s))
 		n += s
@@ -894,8 +894,8 @@ func _Tx_OneofSizer(msg proto.Message) (n int) {
 		n += 2 // tag and wire
 		n += proto.SizeVarint(uint64(s))
 		n += s
-	case *Tx_NewRevenueMsg:
-		s := proto.Size(x.NewRevenueMsg)
+	case *Tx_CreateRevenueMsg:
+		s := proto.Size(x.CreateRevenueMsg)
 		n += 2 // tag and wire
 		n += proto.SizeVarint(uint64(s))
 		n += s
@@ -966,23 +966,23 @@ func _Tx_OneofSizer(msg proto.Message) (n int) {
 	return n
 }
 
-// BatchMsg encapsulates multiple messages to support batch transaction
-type BatchMsg struct {
-	Messages []BatchMsg_Union `protobuf:"bytes,1,rep,name=messages,proto3" json:"messages"`
+// ExecuteBatchMsg encapsulates multiple messages to support batch transaction
+type ExecuteBatchMsg struct {
+	Messages []ExecuteBatchMsg_Union `protobuf:"bytes,1,rep,name=messages,proto3" json:"messages"`
 }
 
-func (m *BatchMsg) Reset()         { *m = BatchMsg{} }
-func (m *BatchMsg) String() string { return proto.CompactTextString(m) }
-func (*BatchMsg) ProtoMessage()    {}
-func (*BatchMsg) Descriptor() ([]byte, []int) {
+func (m *ExecuteBatchMsg) Reset()         { *m = ExecuteBatchMsg{} }
+func (m *ExecuteBatchMsg) String() string { return proto.CompactTextString(m) }
+func (*ExecuteBatchMsg) ProtoMessage()    {}
+func (*ExecuteBatchMsg) Descriptor() ([]byte, []int) {
 	return fileDescriptor_a8efb1d2ea3c411d, []int{1}
 }
-func (m *BatchMsg) XXX_Unmarshal(b []byte) error {
+func (m *ExecuteBatchMsg) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *BatchMsg) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *ExecuteBatchMsg) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_BatchMsg.Marshal(b, m, deterministic)
+		return xxx_messageInfo_ExecuteBatchMsg.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalTo(b)
@@ -992,57 +992,57 @@ func (m *BatchMsg) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 		return b[:n], nil
 	}
 }
-func (m *BatchMsg) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_BatchMsg.Merge(m, src)
+func (m *ExecuteBatchMsg) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ExecuteBatchMsg.Merge(m, src)
 }
-func (m *BatchMsg) XXX_Size() int {
+func (m *ExecuteBatchMsg) XXX_Size() int {
 	return m.Size()
 }
-func (m *BatchMsg) XXX_DiscardUnknown() {
-	xxx_messageInfo_BatchMsg.DiscardUnknown(m)
+func (m *ExecuteBatchMsg) XXX_DiscardUnknown() {
+	xxx_messageInfo_ExecuteBatchMsg.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_BatchMsg proto.InternalMessageInfo
+var xxx_messageInfo_ExecuteBatchMsg proto.InternalMessageInfo
 
-func (m *BatchMsg) GetMessages() []BatchMsg_Union {
+func (m *ExecuteBatchMsg) GetMessages() []ExecuteBatchMsg_Union {
 	if m != nil {
 		return m.Messages
 	}
 	return nil
 }
 
-type BatchMsg_Union struct {
+type ExecuteBatchMsg_Union struct {
 	// Types that are valid to be assigned to Sum:
-	//	*BatchMsg_Union_SendMsg
-	//	*BatchMsg_Union_CreateEscrowMsg
-	//	*BatchMsg_Union_ReleaseEscrowMsg
-	//	*BatchMsg_Union_ReturnEscrowMsg
-	//	*BatchMsg_Union_UpdateEscrowMsg
-	//	*BatchMsg_Union_CreateContractMsg
-	//	*BatchMsg_Union_UpdateContractMsg
-	//	*BatchMsg_Union_SetValidatorsMsg
-	//	*BatchMsg_Union_NewTokenInfoMsg
-	//	*BatchMsg_Union_RegisterUsernameTokenMsg
-	//	*BatchMsg_Union_TransferUsernameTokenMsg
-	//	*BatchMsg_Union_ChangeUsernameTokenTargetsMsg
-	//	*BatchMsg_Union_NewRevenueMsg
-	//	*BatchMsg_Union_DistributeMsg
-	//	*BatchMsg_Union_ResetRevenueMsg
-	Sum isBatchMsg_Union_Sum `protobuf_oneof:"sum"`
+	//	*ExecuteBatchMsg_Union_SendMsg
+	//	*ExecuteBatchMsg_Union_CreateEscrowMsg
+	//	*ExecuteBatchMsg_Union_ReleaseEscrowMsg
+	//	*ExecuteBatchMsg_Union_ReturnEscrowMsg
+	//	*ExecuteBatchMsg_Union_UpdateEscrowMsg
+	//	*ExecuteBatchMsg_Union_CreateContractMsg
+	//	*ExecuteBatchMsg_Union_UpdateContractMsg
+	//	*ExecuteBatchMsg_Union_SetValidatorsMsg
+	//	*ExecuteBatchMsg_Union_CreateTokenInfoMsg
+	//	*ExecuteBatchMsg_Union_RegisterUsernameTokenMsg
+	//	*ExecuteBatchMsg_Union_TransferUsernameTokenMsg
+	//	*ExecuteBatchMsg_Union_ChangeUsernameTokenTargetsMsg
+	//	*ExecuteBatchMsg_Union_CreateRevenueMsg
+	//	*ExecuteBatchMsg_Union_DistributeMsg
+	//	*ExecuteBatchMsg_Union_ResetRevenueMsg
+	Sum isExecuteBatchMsg_Union_Sum `protobuf_oneof:"sum"`
 }
 
-func (m *BatchMsg_Union) Reset()         { *m = BatchMsg_Union{} }
-func (m *BatchMsg_Union) String() string { return proto.CompactTextString(m) }
-func (*BatchMsg_Union) ProtoMessage()    {}
-func (*BatchMsg_Union) Descriptor() ([]byte, []int) {
+func (m *ExecuteBatchMsg_Union) Reset()         { *m = ExecuteBatchMsg_Union{} }
+func (m *ExecuteBatchMsg_Union) String() string { return proto.CompactTextString(m) }
+func (*ExecuteBatchMsg_Union) ProtoMessage()    {}
+func (*ExecuteBatchMsg_Union) Descriptor() ([]byte, []int) {
 	return fileDescriptor_a8efb1d2ea3c411d, []int{1, 0}
 }
-func (m *BatchMsg_Union) XXX_Unmarshal(b []byte) error {
+func (m *ExecuteBatchMsg_Union) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *BatchMsg_Union) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *ExecuteBatchMsg_Union) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_BatchMsg_Union.Marshal(b, m, deterministic)
+		return xxx_messageInfo_ExecuteBatchMsg_Union.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalTo(b)
@@ -1052,307 +1052,307 @@ func (m *BatchMsg_Union) XXX_Marshal(b []byte, deterministic bool) ([]byte, erro
 		return b[:n], nil
 	}
 }
-func (m *BatchMsg_Union) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_BatchMsg_Union.Merge(m, src)
+func (m *ExecuteBatchMsg_Union) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ExecuteBatchMsg_Union.Merge(m, src)
 }
-func (m *BatchMsg_Union) XXX_Size() int {
+func (m *ExecuteBatchMsg_Union) XXX_Size() int {
 	return m.Size()
 }
-func (m *BatchMsg_Union) XXX_DiscardUnknown() {
-	xxx_messageInfo_BatchMsg_Union.DiscardUnknown(m)
+func (m *ExecuteBatchMsg_Union) XXX_DiscardUnknown() {
+	xxx_messageInfo_ExecuteBatchMsg_Union.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_BatchMsg_Union proto.InternalMessageInfo
+var xxx_messageInfo_ExecuteBatchMsg_Union proto.InternalMessageInfo
 
-type isBatchMsg_Union_Sum interface {
-	isBatchMsg_Union_Sum()
+type isExecuteBatchMsg_Union_Sum interface {
+	isExecuteBatchMsg_Union_Sum()
 	MarshalTo([]byte) (int, error)
 	Size() int
 }
 
-type BatchMsg_Union_SendMsg struct {
+type ExecuteBatchMsg_Union_SendMsg struct {
 	SendMsg *cash.SendMsg `protobuf:"bytes,51,opt,name=send_msg,json=sendMsg,proto3,oneof"`
 }
-type BatchMsg_Union_CreateEscrowMsg struct {
+type ExecuteBatchMsg_Union_CreateEscrowMsg struct {
 	CreateEscrowMsg *escrow.CreateEscrowMsg `protobuf:"bytes,52,opt,name=create_escrow_msg,json=createEscrowMsg,proto3,oneof"`
 }
-type BatchMsg_Union_ReleaseEscrowMsg struct {
+type ExecuteBatchMsg_Union_ReleaseEscrowMsg struct {
 	ReleaseEscrowMsg *escrow.ReleaseEscrowMsg `protobuf:"bytes,53,opt,name=release_escrow_msg,json=releaseEscrowMsg,proto3,oneof"`
 }
-type BatchMsg_Union_ReturnEscrowMsg struct {
+type ExecuteBatchMsg_Union_ReturnEscrowMsg struct {
 	ReturnEscrowMsg *escrow.ReturnEscrowMsg `protobuf:"bytes,54,opt,name=return_escrow_msg,json=returnEscrowMsg,proto3,oneof"`
 }
-type BatchMsg_Union_UpdateEscrowMsg struct {
+type ExecuteBatchMsg_Union_UpdateEscrowMsg struct {
 	UpdateEscrowMsg *escrow.UpdateEscrowPartiesMsg `protobuf:"bytes,55,opt,name=update_escrow_msg,json=updateEscrowMsg,proto3,oneof"`
 }
-type BatchMsg_Union_CreateContractMsg struct {
+type ExecuteBatchMsg_Union_CreateContractMsg struct {
 	CreateContractMsg *multisig.CreateContractMsg `protobuf:"bytes,56,opt,name=create_contract_msg,json=createContractMsg,proto3,oneof"`
 }
-type BatchMsg_Union_UpdateContractMsg struct {
+type ExecuteBatchMsg_Union_UpdateContractMsg struct {
 	UpdateContractMsg *multisig.UpdateContractMsg `protobuf:"bytes,57,opt,name=update_contract_msg,json=updateContractMsg,proto3,oneof"`
 }
-type BatchMsg_Union_SetValidatorsMsg struct {
+type ExecuteBatchMsg_Union_SetValidatorsMsg struct {
 	SetValidatorsMsg *validators.SetValidatorsMsg `protobuf:"bytes,58,opt,name=set_validators_msg,json=setValidatorsMsg,proto3,oneof"`
 }
-type BatchMsg_Union_NewTokenInfoMsg struct {
-	NewTokenInfoMsg *currency.NewTokenInfoMsg `protobuf:"bytes,59,opt,name=new_token_info_msg,json=newTokenInfoMsg,proto3,oneof"`
+type ExecuteBatchMsg_Union_CreateTokenInfoMsg struct {
+	CreateTokenInfoMsg *currency.CreateTokenInfoMsg `protobuf:"bytes,59,opt,name=create_token_info_msg,json=createTokenInfoMsg,proto3,oneof"`
 }
-type BatchMsg_Union_RegisterUsernameTokenMsg struct {
+type ExecuteBatchMsg_Union_RegisterUsernameTokenMsg struct {
 	RegisterUsernameTokenMsg *username.RegisterUsernameTokenMsg `protobuf:"bytes,61,opt,name=register_username_token_msg,json=registerUsernameTokenMsg,proto3,oneof"`
 }
-type BatchMsg_Union_TransferUsernameTokenMsg struct {
+type ExecuteBatchMsg_Union_TransferUsernameTokenMsg struct {
 	TransferUsernameTokenMsg *username.TransferUsernameTokenMsg `protobuf:"bytes,62,opt,name=transfer_username_token_msg,json=transferUsernameTokenMsg,proto3,oneof"`
 }
-type BatchMsg_Union_ChangeUsernameTokenTargetsMsg struct {
+type ExecuteBatchMsg_Union_ChangeUsernameTokenTargetsMsg struct {
 	ChangeUsernameTokenTargetsMsg *username.ChangeUsernameTokenTargetsMsg `protobuf:"bytes,63,opt,name=change_username_token_targets_msg,json=changeUsernameTokenTargetsMsg,proto3,oneof"`
 }
-type BatchMsg_Union_NewRevenueMsg struct {
-	NewRevenueMsg *distribution.NewRevenueMsg `protobuf:"bytes,66,opt,name=new_revenue_msg,json=newRevenueMsg,proto3,oneof"`
+type ExecuteBatchMsg_Union_CreateRevenueMsg struct {
+	CreateRevenueMsg *distribution.CreateRevenueMsg `protobuf:"bytes,66,opt,name=create_revenue_msg,json=createRevenueMsg,proto3,oneof"`
 }
-type BatchMsg_Union_DistributeMsg struct {
+type ExecuteBatchMsg_Union_DistributeMsg struct {
 	DistributeMsg *distribution.DistributeMsg `protobuf:"bytes,67,opt,name=distribute_msg,json=distributeMsg,proto3,oneof"`
 }
-type BatchMsg_Union_ResetRevenueMsg struct {
+type ExecuteBatchMsg_Union_ResetRevenueMsg struct {
 	ResetRevenueMsg *distribution.ResetRevenueMsg `protobuf:"bytes,68,opt,name=reset_revenue_msg,json=resetRevenueMsg,proto3,oneof"`
 }
 
-func (*BatchMsg_Union_SendMsg) isBatchMsg_Union_Sum()                       {}
-func (*BatchMsg_Union_CreateEscrowMsg) isBatchMsg_Union_Sum()               {}
-func (*BatchMsg_Union_ReleaseEscrowMsg) isBatchMsg_Union_Sum()              {}
-func (*BatchMsg_Union_ReturnEscrowMsg) isBatchMsg_Union_Sum()               {}
-func (*BatchMsg_Union_UpdateEscrowMsg) isBatchMsg_Union_Sum()               {}
-func (*BatchMsg_Union_CreateContractMsg) isBatchMsg_Union_Sum()             {}
-func (*BatchMsg_Union_UpdateContractMsg) isBatchMsg_Union_Sum()             {}
-func (*BatchMsg_Union_SetValidatorsMsg) isBatchMsg_Union_Sum()              {}
-func (*BatchMsg_Union_NewTokenInfoMsg) isBatchMsg_Union_Sum()               {}
-func (*BatchMsg_Union_RegisterUsernameTokenMsg) isBatchMsg_Union_Sum()      {}
-func (*BatchMsg_Union_TransferUsernameTokenMsg) isBatchMsg_Union_Sum()      {}
-func (*BatchMsg_Union_ChangeUsernameTokenTargetsMsg) isBatchMsg_Union_Sum() {}
-func (*BatchMsg_Union_NewRevenueMsg) isBatchMsg_Union_Sum()                 {}
-func (*BatchMsg_Union_DistributeMsg) isBatchMsg_Union_Sum()                 {}
-func (*BatchMsg_Union_ResetRevenueMsg) isBatchMsg_Union_Sum()               {}
+func (*ExecuteBatchMsg_Union_SendMsg) isExecuteBatchMsg_Union_Sum()                       {}
+func (*ExecuteBatchMsg_Union_CreateEscrowMsg) isExecuteBatchMsg_Union_Sum()               {}
+func (*ExecuteBatchMsg_Union_ReleaseEscrowMsg) isExecuteBatchMsg_Union_Sum()              {}
+func (*ExecuteBatchMsg_Union_ReturnEscrowMsg) isExecuteBatchMsg_Union_Sum()               {}
+func (*ExecuteBatchMsg_Union_UpdateEscrowMsg) isExecuteBatchMsg_Union_Sum()               {}
+func (*ExecuteBatchMsg_Union_CreateContractMsg) isExecuteBatchMsg_Union_Sum()             {}
+func (*ExecuteBatchMsg_Union_UpdateContractMsg) isExecuteBatchMsg_Union_Sum()             {}
+func (*ExecuteBatchMsg_Union_SetValidatorsMsg) isExecuteBatchMsg_Union_Sum()              {}
+func (*ExecuteBatchMsg_Union_CreateTokenInfoMsg) isExecuteBatchMsg_Union_Sum()            {}
+func (*ExecuteBatchMsg_Union_RegisterUsernameTokenMsg) isExecuteBatchMsg_Union_Sum()      {}
+func (*ExecuteBatchMsg_Union_TransferUsernameTokenMsg) isExecuteBatchMsg_Union_Sum()      {}
+func (*ExecuteBatchMsg_Union_ChangeUsernameTokenTargetsMsg) isExecuteBatchMsg_Union_Sum() {}
+func (*ExecuteBatchMsg_Union_CreateRevenueMsg) isExecuteBatchMsg_Union_Sum()              {}
+func (*ExecuteBatchMsg_Union_DistributeMsg) isExecuteBatchMsg_Union_Sum()                 {}
+func (*ExecuteBatchMsg_Union_ResetRevenueMsg) isExecuteBatchMsg_Union_Sum()               {}
 
-func (m *BatchMsg_Union) GetSum() isBatchMsg_Union_Sum {
+func (m *ExecuteBatchMsg_Union) GetSum() isExecuteBatchMsg_Union_Sum {
 	if m != nil {
 		return m.Sum
 	}
 	return nil
 }
 
-func (m *BatchMsg_Union) GetSendMsg() *cash.SendMsg {
-	if x, ok := m.GetSum().(*BatchMsg_Union_SendMsg); ok {
+func (m *ExecuteBatchMsg_Union) GetSendMsg() *cash.SendMsg {
+	if x, ok := m.GetSum().(*ExecuteBatchMsg_Union_SendMsg); ok {
 		return x.SendMsg
 	}
 	return nil
 }
 
-func (m *BatchMsg_Union) GetCreateEscrowMsg() *escrow.CreateEscrowMsg {
-	if x, ok := m.GetSum().(*BatchMsg_Union_CreateEscrowMsg); ok {
+func (m *ExecuteBatchMsg_Union) GetCreateEscrowMsg() *escrow.CreateEscrowMsg {
+	if x, ok := m.GetSum().(*ExecuteBatchMsg_Union_CreateEscrowMsg); ok {
 		return x.CreateEscrowMsg
 	}
 	return nil
 }
 
-func (m *BatchMsg_Union) GetReleaseEscrowMsg() *escrow.ReleaseEscrowMsg {
-	if x, ok := m.GetSum().(*BatchMsg_Union_ReleaseEscrowMsg); ok {
+func (m *ExecuteBatchMsg_Union) GetReleaseEscrowMsg() *escrow.ReleaseEscrowMsg {
+	if x, ok := m.GetSum().(*ExecuteBatchMsg_Union_ReleaseEscrowMsg); ok {
 		return x.ReleaseEscrowMsg
 	}
 	return nil
 }
 
-func (m *BatchMsg_Union) GetReturnEscrowMsg() *escrow.ReturnEscrowMsg {
-	if x, ok := m.GetSum().(*BatchMsg_Union_ReturnEscrowMsg); ok {
+func (m *ExecuteBatchMsg_Union) GetReturnEscrowMsg() *escrow.ReturnEscrowMsg {
+	if x, ok := m.GetSum().(*ExecuteBatchMsg_Union_ReturnEscrowMsg); ok {
 		return x.ReturnEscrowMsg
 	}
 	return nil
 }
 
-func (m *BatchMsg_Union) GetUpdateEscrowMsg() *escrow.UpdateEscrowPartiesMsg {
-	if x, ok := m.GetSum().(*BatchMsg_Union_UpdateEscrowMsg); ok {
+func (m *ExecuteBatchMsg_Union) GetUpdateEscrowMsg() *escrow.UpdateEscrowPartiesMsg {
+	if x, ok := m.GetSum().(*ExecuteBatchMsg_Union_UpdateEscrowMsg); ok {
 		return x.UpdateEscrowMsg
 	}
 	return nil
 }
 
-func (m *BatchMsg_Union) GetCreateContractMsg() *multisig.CreateContractMsg {
-	if x, ok := m.GetSum().(*BatchMsg_Union_CreateContractMsg); ok {
+func (m *ExecuteBatchMsg_Union) GetCreateContractMsg() *multisig.CreateContractMsg {
+	if x, ok := m.GetSum().(*ExecuteBatchMsg_Union_CreateContractMsg); ok {
 		return x.CreateContractMsg
 	}
 	return nil
 }
 
-func (m *BatchMsg_Union) GetUpdateContractMsg() *multisig.UpdateContractMsg {
-	if x, ok := m.GetSum().(*BatchMsg_Union_UpdateContractMsg); ok {
+func (m *ExecuteBatchMsg_Union) GetUpdateContractMsg() *multisig.UpdateContractMsg {
+	if x, ok := m.GetSum().(*ExecuteBatchMsg_Union_UpdateContractMsg); ok {
 		return x.UpdateContractMsg
 	}
 	return nil
 }
 
-func (m *BatchMsg_Union) GetSetValidatorsMsg() *validators.SetValidatorsMsg {
-	if x, ok := m.GetSum().(*BatchMsg_Union_SetValidatorsMsg); ok {
+func (m *ExecuteBatchMsg_Union) GetSetValidatorsMsg() *validators.SetValidatorsMsg {
+	if x, ok := m.GetSum().(*ExecuteBatchMsg_Union_SetValidatorsMsg); ok {
 		return x.SetValidatorsMsg
 	}
 	return nil
 }
 
-func (m *BatchMsg_Union) GetNewTokenInfoMsg() *currency.NewTokenInfoMsg {
-	if x, ok := m.GetSum().(*BatchMsg_Union_NewTokenInfoMsg); ok {
-		return x.NewTokenInfoMsg
+func (m *ExecuteBatchMsg_Union) GetCreateTokenInfoMsg() *currency.CreateTokenInfoMsg {
+	if x, ok := m.GetSum().(*ExecuteBatchMsg_Union_CreateTokenInfoMsg); ok {
+		return x.CreateTokenInfoMsg
 	}
 	return nil
 }
 
-func (m *BatchMsg_Union) GetRegisterUsernameTokenMsg() *username.RegisterUsernameTokenMsg {
-	if x, ok := m.GetSum().(*BatchMsg_Union_RegisterUsernameTokenMsg); ok {
+func (m *ExecuteBatchMsg_Union) GetRegisterUsernameTokenMsg() *username.RegisterUsernameTokenMsg {
+	if x, ok := m.GetSum().(*ExecuteBatchMsg_Union_RegisterUsernameTokenMsg); ok {
 		return x.RegisterUsernameTokenMsg
 	}
 	return nil
 }
 
-func (m *BatchMsg_Union) GetTransferUsernameTokenMsg() *username.TransferUsernameTokenMsg {
-	if x, ok := m.GetSum().(*BatchMsg_Union_TransferUsernameTokenMsg); ok {
+func (m *ExecuteBatchMsg_Union) GetTransferUsernameTokenMsg() *username.TransferUsernameTokenMsg {
+	if x, ok := m.GetSum().(*ExecuteBatchMsg_Union_TransferUsernameTokenMsg); ok {
 		return x.TransferUsernameTokenMsg
 	}
 	return nil
 }
 
-func (m *BatchMsg_Union) GetChangeUsernameTokenTargetsMsg() *username.ChangeUsernameTokenTargetsMsg {
-	if x, ok := m.GetSum().(*BatchMsg_Union_ChangeUsernameTokenTargetsMsg); ok {
+func (m *ExecuteBatchMsg_Union) GetChangeUsernameTokenTargetsMsg() *username.ChangeUsernameTokenTargetsMsg {
+	if x, ok := m.GetSum().(*ExecuteBatchMsg_Union_ChangeUsernameTokenTargetsMsg); ok {
 		return x.ChangeUsernameTokenTargetsMsg
 	}
 	return nil
 }
 
-func (m *BatchMsg_Union) GetNewRevenueMsg() *distribution.NewRevenueMsg {
-	if x, ok := m.GetSum().(*BatchMsg_Union_NewRevenueMsg); ok {
-		return x.NewRevenueMsg
+func (m *ExecuteBatchMsg_Union) GetCreateRevenueMsg() *distribution.CreateRevenueMsg {
+	if x, ok := m.GetSum().(*ExecuteBatchMsg_Union_CreateRevenueMsg); ok {
+		return x.CreateRevenueMsg
 	}
 	return nil
 }
 
-func (m *BatchMsg_Union) GetDistributeMsg() *distribution.DistributeMsg {
-	if x, ok := m.GetSum().(*BatchMsg_Union_DistributeMsg); ok {
+func (m *ExecuteBatchMsg_Union) GetDistributeMsg() *distribution.DistributeMsg {
+	if x, ok := m.GetSum().(*ExecuteBatchMsg_Union_DistributeMsg); ok {
 		return x.DistributeMsg
 	}
 	return nil
 }
 
-func (m *BatchMsg_Union) GetResetRevenueMsg() *distribution.ResetRevenueMsg {
-	if x, ok := m.GetSum().(*BatchMsg_Union_ResetRevenueMsg); ok {
+func (m *ExecuteBatchMsg_Union) GetResetRevenueMsg() *distribution.ResetRevenueMsg {
+	if x, ok := m.GetSum().(*ExecuteBatchMsg_Union_ResetRevenueMsg); ok {
 		return x.ResetRevenueMsg
 	}
 	return nil
 }
 
 // XXX_OneofFuncs is for the internal use of the proto package.
-func (*BatchMsg_Union) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
-	return _BatchMsg_Union_OneofMarshaler, _BatchMsg_Union_OneofUnmarshaler, _BatchMsg_Union_OneofSizer, []interface{}{
-		(*BatchMsg_Union_SendMsg)(nil),
-		(*BatchMsg_Union_CreateEscrowMsg)(nil),
-		(*BatchMsg_Union_ReleaseEscrowMsg)(nil),
-		(*BatchMsg_Union_ReturnEscrowMsg)(nil),
-		(*BatchMsg_Union_UpdateEscrowMsg)(nil),
-		(*BatchMsg_Union_CreateContractMsg)(nil),
-		(*BatchMsg_Union_UpdateContractMsg)(nil),
-		(*BatchMsg_Union_SetValidatorsMsg)(nil),
-		(*BatchMsg_Union_NewTokenInfoMsg)(nil),
-		(*BatchMsg_Union_RegisterUsernameTokenMsg)(nil),
-		(*BatchMsg_Union_TransferUsernameTokenMsg)(nil),
-		(*BatchMsg_Union_ChangeUsernameTokenTargetsMsg)(nil),
-		(*BatchMsg_Union_NewRevenueMsg)(nil),
-		(*BatchMsg_Union_DistributeMsg)(nil),
-		(*BatchMsg_Union_ResetRevenueMsg)(nil),
+func (*ExecuteBatchMsg_Union) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
+	return _ExecuteBatchMsg_Union_OneofMarshaler, _ExecuteBatchMsg_Union_OneofUnmarshaler, _ExecuteBatchMsg_Union_OneofSizer, []interface{}{
+		(*ExecuteBatchMsg_Union_SendMsg)(nil),
+		(*ExecuteBatchMsg_Union_CreateEscrowMsg)(nil),
+		(*ExecuteBatchMsg_Union_ReleaseEscrowMsg)(nil),
+		(*ExecuteBatchMsg_Union_ReturnEscrowMsg)(nil),
+		(*ExecuteBatchMsg_Union_UpdateEscrowMsg)(nil),
+		(*ExecuteBatchMsg_Union_CreateContractMsg)(nil),
+		(*ExecuteBatchMsg_Union_UpdateContractMsg)(nil),
+		(*ExecuteBatchMsg_Union_SetValidatorsMsg)(nil),
+		(*ExecuteBatchMsg_Union_CreateTokenInfoMsg)(nil),
+		(*ExecuteBatchMsg_Union_RegisterUsernameTokenMsg)(nil),
+		(*ExecuteBatchMsg_Union_TransferUsernameTokenMsg)(nil),
+		(*ExecuteBatchMsg_Union_ChangeUsernameTokenTargetsMsg)(nil),
+		(*ExecuteBatchMsg_Union_CreateRevenueMsg)(nil),
+		(*ExecuteBatchMsg_Union_DistributeMsg)(nil),
+		(*ExecuteBatchMsg_Union_ResetRevenueMsg)(nil),
 	}
 }
 
-func _BatchMsg_Union_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
-	m := msg.(*BatchMsg_Union)
+func _ExecuteBatchMsg_Union_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
+	m := msg.(*ExecuteBatchMsg_Union)
 	// sum
 	switch x := m.Sum.(type) {
-	case *BatchMsg_Union_SendMsg:
+	case *ExecuteBatchMsg_Union_SendMsg:
 		_ = b.EncodeVarint(51<<3 | proto.WireBytes)
 		if err := b.EncodeMessage(x.SendMsg); err != nil {
 			return err
 		}
-	case *BatchMsg_Union_CreateEscrowMsg:
+	case *ExecuteBatchMsg_Union_CreateEscrowMsg:
 		_ = b.EncodeVarint(52<<3 | proto.WireBytes)
 		if err := b.EncodeMessage(x.CreateEscrowMsg); err != nil {
 			return err
 		}
-	case *BatchMsg_Union_ReleaseEscrowMsg:
+	case *ExecuteBatchMsg_Union_ReleaseEscrowMsg:
 		_ = b.EncodeVarint(53<<3 | proto.WireBytes)
 		if err := b.EncodeMessage(x.ReleaseEscrowMsg); err != nil {
 			return err
 		}
-	case *BatchMsg_Union_ReturnEscrowMsg:
+	case *ExecuteBatchMsg_Union_ReturnEscrowMsg:
 		_ = b.EncodeVarint(54<<3 | proto.WireBytes)
 		if err := b.EncodeMessage(x.ReturnEscrowMsg); err != nil {
 			return err
 		}
-	case *BatchMsg_Union_UpdateEscrowMsg:
+	case *ExecuteBatchMsg_Union_UpdateEscrowMsg:
 		_ = b.EncodeVarint(55<<3 | proto.WireBytes)
 		if err := b.EncodeMessage(x.UpdateEscrowMsg); err != nil {
 			return err
 		}
-	case *BatchMsg_Union_CreateContractMsg:
+	case *ExecuteBatchMsg_Union_CreateContractMsg:
 		_ = b.EncodeVarint(56<<3 | proto.WireBytes)
 		if err := b.EncodeMessage(x.CreateContractMsg); err != nil {
 			return err
 		}
-	case *BatchMsg_Union_UpdateContractMsg:
+	case *ExecuteBatchMsg_Union_UpdateContractMsg:
 		_ = b.EncodeVarint(57<<3 | proto.WireBytes)
 		if err := b.EncodeMessage(x.UpdateContractMsg); err != nil {
 			return err
 		}
-	case *BatchMsg_Union_SetValidatorsMsg:
+	case *ExecuteBatchMsg_Union_SetValidatorsMsg:
 		_ = b.EncodeVarint(58<<3 | proto.WireBytes)
 		if err := b.EncodeMessage(x.SetValidatorsMsg); err != nil {
 			return err
 		}
-	case *BatchMsg_Union_NewTokenInfoMsg:
+	case *ExecuteBatchMsg_Union_CreateTokenInfoMsg:
 		_ = b.EncodeVarint(59<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.NewTokenInfoMsg); err != nil {
+		if err := b.EncodeMessage(x.CreateTokenInfoMsg); err != nil {
 			return err
 		}
-	case *BatchMsg_Union_RegisterUsernameTokenMsg:
+	case *ExecuteBatchMsg_Union_RegisterUsernameTokenMsg:
 		_ = b.EncodeVarint(61<<3 | proto.WireBytes)
 		if err := b.EncodeMessage(x.RegisterUsernameTokenMsg); err != nil {
 			return err
 		}
-	case *BatchMsg_Union_TransferUsernameTokenMsg:
+	case *ExecuteBatchMsg_Union_TransferUsernameTokenMsg:
 		_ = b.EncodeVarint(62<<3 | proto.WireBytes)
 		if err := b.EncodeMessage(x.TransferUsernameTokenMsg); err != nil {
 			return err
 		}
-	case *BatchMsg_Union_ChangeUsernameTokenTargetsMsg:
+	case *ExecuteBatchMsg_Union_ChangeUsernameTokenTargetsMsg:
 		_ = b.EncodeVarint(63<<3 | proto.WireBytes)
 		if err := b.EncodeMessage(x.ChangeUsernameTokenTargetsMsg); err != nil {
 			return err
 		}
-	case *BatchMsg_Union_NewRevenueMsg:
+	case *ExecuteBatchMsg_Union_CreateRevenueMsg:
 		_ = b.EncodeVarint(66<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.NewRevenueMsg); err != nil {
+		if err := b.EncodeMessage(x.CreateRevenueMsg); err != nil {
 			return err
 		}
-	case *BatchMsg_Union_DistributeMsg:
+	case *ExecuteBatchMsg_Union_DistributeMsg:
 		_ = b.EncodeVarint(67<<3 | proto.WireBytes)
 		if err := b.EncodeMessage(x.DistributeMsg); err != nil {
 			return err
 		}
-	case *BatchMsg_Union_ResetRevenueMsg:
+	case *ExecuteBatchMsg_Union_ResetRevenueMsg:
 		_ = b.EncodeVarint(68<<3 | proto.WireBytes)
 		if err := b.EncodeMessage(x.ResetRevenueMsg); err != nil {
 			return err
 		}
 	case nil:
 	default:
-		return fmt.Errorf("BatchMsg_Union.Sum has unexpected type %T", x)
+		return fmt.Errorf("ExecuteBatchMsg_Union.Sum has unexpected type %T", x)
 	}
 	return nil
 }
 
-func _BatchMsg_Union_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
-	m := msg.(*BatchMsg_Union)
+func _ExecuteBatchMsg_Union_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
+	m := msg.(*ExecuteBatchMsg_Union)
 	switch tag {
 	case 51: // sum.send_msg
 		if wire != proto.WireBytes {
@@ -1360,7 +1360,7 @@ func _BatchMsg_Union_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto
 		}
 		msg := new(cash.SendMsg)
 		err := b.DecodeMessage(msg)
-		m.Sum = &BatchMsg_Union_SendMsg{msg}
+		m.Sum = &ExecuteBatchMsg_Union_SendMsg{msg}
 		return true, err
 	case 52: // sum.create_escrow_msg
 		if wire != proto.WireBytes {
@@ -1368,7 +1368,7 @@ func _BatchMsg_Union_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto
 		}
 		msg := new(escrow.CreateEscrowMsg)
 		err := b.DecodeMessage(msg)
-		m.Sum = &BatchMsg_Union_CreateEscrowMsg{msg}
+		m.Sum = &ExecuteBatchMsg_Union_CreateEscrowMsg{msg}
 		return true, err
 	case 53: // sum.release_escrow_msg
 		if wire != proto.WireBytes {
@@ -1376,7 +1376,7 @@ func _BatchMsg_Union_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto
 		}
 		msg := new(escrow.ReleaseEscrowMsg)
 		err := b.DecodeMessage(msg)
-		m.Sum = &BatchMsg_Union_ReleaseEscrowMsg{msg}
+		m.Sum = &ExecuteBatchMsg_Union_ReleaseEscrowMsg{msg}
 		return true, err
 	case 54: // sum.return_escrow_msg
 		if wire != proto.WireBytes {
@@ -1384,7 +1384,7 @@ func _BatchMsg_Union_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto
 		}
 		msg := new(escrow.ReturnEscrowMsg)
 		err := b.DecodeMessage(msg)
-		m.Sum = &BatchMsg_Union_ReturnEscrowMsg{msg}
+		m.Sum = &ExecuteBatchMsg_Union_ReturnEscrowMsg{msg}
 		return true, err
 	case 55: // sum.update_escrow_msg
 		if wire != proto.WireBytes {
@@ -1392,7 +1392,7 @@ func _BatchMsg_Union_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto
 		}
 		msg := new(escrow.UpdateEscrowPartiesMsg)
 		err := b.DecodeMessage(msg)
-		m.Sum = &BatchMsg_Union_UpdateEscrowMsg{msg}
+		m.Sum = &ExecuteBatchMsg_Union_UpdateEscrowMsg{msg}
 		return true, err
 	case 56: // sum.create_contract_msg
 		if wire != proto.WireBytes {
@@ -1400,7 +1400,7 @@ func _BatchMsg_Union_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto
 		}
 		msg := new(multisig.CreateContractMsg)
 		err := b.DecodeMessage(msg)
-		m.Sum = &BatchMsg_Union_CreateContractMsg{msg}
+		m.Sum = &ExecuteBatchMsg_Union_CreateContractMsg{msg}
 		return true, err
 	case 57: // sum.update_contract_msg
 		if wire != proto.WireBytes {
@@ -1408,7 +1408,7 @@ func _BatchMsg_Union_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto
 		}
 		msg := new(multisig.UpdateContractMsg)
 		err := b.DecodeMessage(msg)
-		m.Sum = &BatchMsg_Union_UpdateContractMsg{msg}
+		m.Sum = &ExecuteBatchMsg_Union_UpdateContractMsg{msg}
 		return true, err
 	case 58: // sum.set_validators_msg
 		if wire != proto.WireBytes {
@@ -1416,15 +1416,15 @@ func _BatchMsg_Union_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto
 		}
 		msg := new(validators.SetValidatorsMsg)
 		err := b.DecodeMessage(msg)
-		m.Sum = &BatchMsg_Union_SetValidatorsMsg{msg}
+		m.Sum = &ExecuteBatchMsg_Union_SetValidatorsMsg{msg}
 		return true, err
-	case 59: // sum.new_token_info_msg
+	case 59: // sum.create_token_info_msg
 		if wire != proto.WireBytes {
 			return true, proto.ErrInternalBadWireType
 		}
-		msg := new(currency.NewTokenInfoMsg)
+		msg := new(currency.CreateTokenInfoMsg)
 		err := b.DecodeMessage(msg)
-		m.Sum = &BatchMsg_Union_NewTokenInfoMsg{msg}
+		m.Sum = &ExecuteBatchMsg_Union_CreateTokenInfoMsg{msg}
 		return true, err
 	case 61: // sum.register_username_token_msg
 		if wire != proto.WireBytes {
@@ -1432,7 +1432,7 @@ func _BatchMsg_Union_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto
 		}
 		msg := new(username.RegisterUsernameTokenMsg)
 		err := b.DecodeMessage(msg)
-		m.Sum = &BatchMsg_Union_RegisterUsernameTokenMsg{msg}
+		m.Sum = &ExecuteBatchMsg_Union_RegisterUsernameTokenMsg{msg}
 		return true, err
 	case 62: // sum.transfer_username_token_msg
 		if wire != proto.WireBytes {
@@ -1440,7 +1440,7 @@ func _BatchMsg_Union_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto
 		}
 		msg := new(username.TransferUsernameTokenMsg)
 		err := b.DecodeMessage(msg)
-		m.Sum = &BatchMsg_Union_TransferUsernameTokenMsg{msg}
+		m.Sum = &ExecuteBatchMsg_Union_TransferUsernameTokenMsg{msg}
 		return true, err
 	case 63: // sum.change_username_token_targets_msg
 		if wire != proto.WireBytes {
@@ -1448,15 +1448,15 @@ func _BatchMsg_Union_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto
 		}
 		msg := new(username.ChangeUsernameTokenTargetsMsg)
 		err := b.DecodeMessage(msg)
-		m.Sum = &BatchMsg_Union_ChangeUsernameTokenTargetsMsg{msg}
+		m.Sum = &ExecuteBatchMsg_Union_ChangeUsernameTokenTargetsMsg{msg}
 		return true, err
-	case 66: // sum.new_revenue_msg
+	case 66: // sum.create_revenue_msg
 		if wire != proto.WireBytes {
 			return true, proto.ErrInternalBadWireType
 		}
-		msg := new(distribution.NewRevenueMsg)
+		msg := new(distribution.CreateRevenueMsg)
 		err := b.DecodeMessage(msg)
-		m.Sum = &BatchMsg_Union_NewRevenueMsg{msg}
+		m.Sum = &ExecuteBatchMsg_Union_CreateRevenueMsg{msg}
 		return true, err
 	case 67: // sum.distribute_msg
 		if wire != proto.WireBytes {
@@ -1464,7 +1464,7 @@ func _BatchMsg_Union_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto
 		}
 		msg := new(distribution.DistributeMsg)
 		err := b.DecodeMessage(msg)
-		m.Sum = &BatchMsg_Union_DistributeMsg{msg}
+		m.Sum = &ExecuteBatchMsg_Union_DistributeMsg{msg}
 		return true, err
 	case 68: // sum.reset_revenue_msg
 		if wire != proto.WireBytes {
@@ -1472,88 +1472,88 @@ func _BatchMsg_Union_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto
 		}
 		msg := new(distribution.ResetRevenueMsg)
 		err := b.DecodeMessage(msg)
-		m.Sum = &BatchMsg_Union_ResetRevenueMsg{msg}
+		m.Sum = &ExecuteBatchMsg_Union_ResetRevenueMsg{msg}
 		return true, err
 	default:
 		return false, nil
 	}
 }
 
-func _BatchMsg_Union_OneofSizer(msg proto.Message) (n int) {
-	m := msg.(*BatchMsg_Union)
+func _ExecuteBatchMsg_Union_OneofSizer(msg proto.Message) (n int) {
+	m := msg.(*ExecuteBatchMsg_Union)
 	// sum
 	switch x := m.Sum.(type) {
-	case *BatchMsg_Union_SendMsg:
+	case *ExecuteBatchMsg_Union_SendMsg:
 		s := proto.Size(x.SendMsg)
 		n += 2 // tag and wire
 		n += proto.SizeVarint(uint64(s))
 		n += s
-	case *BatchMsg_Union_CreateEscrowMsg:
+	case *ExecuteBatchMsg_Union_CreateEscrowMsg:
 		s := proto.Size(x.CreateEscrowMsg)
 		n += 2 // tag and wire
 		n += proto.SizeVarint(uint64(s))
 		n += s
-	case *BatchMsg_Union_ReleaseEscrowMsg:
+	case *ExecuteBatchMsg_Union_ReleaseEscrowMsg:
 		s := proto.Size(x.ReleaseEscrowMsg)
 		n += 2 // tag and wire
 		n += proto.SizeVarint(uint64(s))
 		n += s
-	case *BatchMsg_Union_ReturnEscrowMsg:
+	case *ExecuteBatchMsg_Union_ReturnEscrowMsg:
 		s := proto.Size(x.ReturnEscrowMsg)
 		n += 2 // tag and wire
 		n += proto.SizeVarint(uint64(s))
 		n += s
-	case *BatchMsg_Union_UpdateEscrowMsg:
+	case *ExecuteBatchMsg_Union_UpdateEscrowMsg:
 		s := proto.Size(x.UpdateEscrowMsg)
 		n += 2 // tag and wire
 		n += proto.SizeVarint(uint64(s))
 		n += s
-	case *BatchMsg_Union_CreateContractMsg:
+	case *ExecuteBatchMsg_Union_CreateContractMsg:
 		s := proto.Size(x.CreateContractMsg)
 		n += 2 // tag and wire
 		n += proto.SizeVarint(uint64(s))
 		n += s
-	case *BatchMsg_Union_UpdateContractMsg:
+	case *ExecuteBatchMsg_Union_UpdateContractMsg:
 		s := proto.Size(x.UpdateContractMsg)
 		n += 2 // tag and wire
 		n += proto.SizeVarint(uint64(s))
 		n += s
-	case *BatchMsg_Union_SetValidatorsMsg:
+	case *ExecuteBatchMsg_Union_SetValidatorsMsg:
 		s := proto.Size(x.SetValidatorsMsg)
 		n += 2 // tag and wire
 		n += proto.SizeVarint(uint64(s))
 		n += s
-	case *BatchMsg_Union_NewTokenInfoMsg:
-		s := proto.Size(x.NewTokenInfoMsg)
+	case *ExecuteBatchMsg_Union_CreateTokenInfoMsg:
+		s := proto.Size(x.CreateTokenInfoMsg)
 		n += 2 // tag and wire
 		n += proto.SizeVarint(uint64(s))
 		n += s
-	case *BatchMsg_Union_RegisterUsernameTokenMsg:
+	case *ExecuteBatchMsg_Union_RegisterUsernameTokenMsg:
 		s := proto.Size(x.RegisterUsernameTokenMsg)
 		n += 2 // tag and wire
 		n += proto.SizeVarint(uint64(s))
 		n += s
-	case *BatchMsg_Union_TransferUsernameTokenMsg:
+	case *ExecuteBatchMsg_Union_TransferUsernameTokenMsg:
 		s := proto.Size(x.TransferUsernameTokenMsg)
 		n += 2 // tag and wire
 		n += proto.SizeVarint(uint64(s))
 		n += s
-	case *BatchMsg_Union_ChangeUsernameTokenTargetsMsg:
+	case *ExecuteBatchMsg_Union_ChangeUsernameTokenTargetsMsg:
 		s := proto.Size(x.ChangeUsernameTokenTargetsMsg)
 		n += 2 // tag and wire
 		n += proto.SizeVarint(uint64(s))
 		n += s
-	case *BatchMsg_Union_NewRevenueMsg:
-		s := proto.Size(x.NewRevenueMsg)
+	case *ExecuteBatchMsg_Union_CreateRevenueMsg:
+		s := proto.Size(x.CreateRevenueMsg)
 		n += 2 // tag and wire
 		n += proto.SizeVarint(uint64(s))
 		n += s
-	case *BatchMsg_Union_DistributeMsg:
+	case *ExecuteBatchMsg_Union_DistributeMsg:
 		s := proto.Size(x.DistributeMsg)
 		n += 2 // tag and wire
 		n += proto.SizeVarint(uint64(s))
 		n += s
-	case *BatchMsg_Union_ResetRevenueMsg:
+	case *ExecuteBatchMsg_Union_ResetRevenueMsg:
 		s := proto.Size(x.ResetRevenueMsg)
 		n += 2 // tag and wire
 		n += proto.SizeVarint(uint64(s))
@@ -1573,17 +1573,17 @@ type ProposalOptions struct {
 	//	*ProposalOptions_ReleaseEscrowMsg
 	//	*ProposalOptions_UpdateEscrowMsg
 	//	*ProposalOptions_SetValidatorsMsg
-	//	*ProposalOptions_BatchMsg
+	//	*ProposalOptions_ExecuteProposalBatchMsg
 	//	*ProposalOptions_RegisterUsernameTokenMsg
 	//	*ProposalOptions_TransferUsernameTokenMsg
 	//	*ProposalOptions_ChangeUsernameTokenTargetsMsg
-	//	*ProposalOptions_NewRevenueMsg
+	//	*ProposalOptions_CreateRevenueMsg
 	//	*ProposalOptions_DistributeMsg
 	//	*ProposalOptions_ResetRevenueMsg
 	//	*ProposalOptions_UpgradeSchemaMsg
 	//	*ProposalOptions_UpdateElectorateMsg
 	//	*ProposalOptions_UpdateElectionRuleMsg
-	//	*ProposalOptions_TextResolutionMsg
+	//	*ProposalOptions_CreateTextResolutionMsg
 	Option isProposalOptions_Option `protobuf_oneof:"option"`
 }
 
@@ -1638,8 +1638,8 @@ type ProposalOptions_UpdateEscrowMsg struct {
 type ProposalOptions_SetValidatorsMsg struct {
 	SetValidatorsMsg *validators.SetValidatorsMsg `protobuf:"bytes,58,opt,name=set_validators_msg,json=setValidatorsMsg,proto3,oneof"`
 }
-type ProposalOptions_BatchMsg struct {
-	BatchMsg *ProposalBatchMsg `protobuf:"bytes,60,opt,name=batch_msg,json=batchMsg,proto3,oneof"`
+type ProposalOptions_ExecuteProposalBatchMsg struct {
+	ExecuteProposalBatchMsg *ExecuteProposalBatchMsg `protobuf:"bytes,60,opt,name=execute_proposal_batch_msg,json=executeProposalBatchMsg,proto3,oneof"`
 }
 type ProposalOptions_RegisterUsernameTokenMsg struct {
 	RegisterUsernameTokenMsg *username.RegisterUsernameTokenMsg `protobuf:"bytes,61,opt,name=register_username_token_msg,json=registerUsernameTokenMsg,proto3,oneof"`
@@ -1650,8 +1650,8 @@ type ProposalOptions_TransferUsernameTokenMsg struct {
 type ProposalOptions_ChangeUsernameTokenTargetsMsg struct {
 	ChangeUsernameTokenTargetsMsg *username.ChangeUsernameTokenTargetsMsg `protobuf:"bytes,63,opt,name=change_username_token_targets_msg,json=changeUsernameTokenTargetsMsg,proto3,oneof"`
 }
-type ProposalOptions_NewRevenueMsg struct {
-	NewRevenueMsg *distribution.NewRevenueMsg `protobuf:"bytes,66,opt,name=new_revenue_msg,json=newRevenueMsg,proto3,oneof"`
+type ProposalOptions_CreateRevenueMsg struct {
+	CreateRevenueMsg *distribution.CreateRevenueMsg `protobuf:"bytes,66,opt,name=create_revenue_msg,json=createRevenueMsg,proto3,oneof"`
 }
 type ProposalOptions_DistributeMsg struct {
 	DistributeMsg *distribution.DistributeMsg `protobuf:"bytes,67,opt,name=distribute_msg,json=distributeMsg,proto3,oneof"`
@@ -1668,25 +1668,25 @@ type ProposalOptions_UpdateElectorateMsg struct {
 type ProposalOptions_UpdateElectionRuleMsg struct {
 	UpdateElectionRuleMsg *gov.UpdateElectionRuleMsg `protobuf:"bytes,78,opt,name=update_election_rule_msg,json=updateElectionRuleMsg,proto3,oneof"`
 }
-type ProposalOptions_TextResolutionMsg struct {
-	TextResolutionMsg *gov.TextResolutionMsg `protobuf:"bytes,79,opt,name=text_resolution_msg,json=textResolutionMsg,proto3,oneof"`
+type ProposalOptions_CreateTextResolutionMsg struct {
+	CreateTextResolutionMsg *gov.CreateTextResolutionMsg `protobuf:"bytes,79,opt,name=create_text_resolution_msg,json=createTextResolutionMsg,proto3,oneof"`
 }
 
 func (*ProposalOptions_SendMsg) isProposalOptions_Option()                       {}
 func (*ProposalOptions_ReleaseEscrowMsg) isProposalOptions_Option()              {}
 func (*ProposalOptions_UpdateEscrowMsg) isProposalOptions_Option()               {}
 func (*ProposalOptions_SetValidatorsMsg) isProposalOptions_Option()              {}
-func (*ProposalOptions_BatchMsg) isProposalOptions_Option()                      {}
+func (*ProposalOptions_ExecuteProposalBatchMsg) isProposalOptions_Option()       {}
 func (*ProposalOptions_RegisterUsernameTokenMsg) isProposalOptions_Option()      {}
 func (*ProposalOptions_TransferUsernameTokenMsg) isProposalOptions_Option()      {}
 func (*ProposalOptions_ChangeUsernameTokenTargetsMsg) isProposalOptions_Option() {}
-func (*ProposalOptions_NewRevenueMsg) isProposalOptions_Option()                 {}
+func (*ProposalOptions_CreateRevenueMsg) isProposalOptions_Option()              {}
 func (*ProposalOptions_DistributeMsg) isProposalOptions_Option()                 {}
 func (*ProposalOptions_ResetRevenueMsg) isProposalOptions_Option()               {}
 func (*ProposalOptions_UpgradeSchemaMsg) isProposalOptions_Option()              {}
 func (*ProposalOptions_UpdateElectorateMsg) isProposalOptions_Option()           {}
 func (*ProposalOptions_UpdateElectionRuleMsg) isProposalOptions_Option()         {}
-func (*ProposalOptions_TextResolutionMsg) isProposalOptions_Option()             {}
+func (*ProposalOptions_CreateTextResolutionMsg) isProposalOptions_Option()       {}
 
 func (m *ProposalOptions) GetOption() isProposalOptions_Option {
 	if m != nil {
@@ -1723,9 +1723,9 @@ func (m *ProposalOptions) GetSetValidatorsMsg() *validators.SetValidatorsMsg {
 	return nil
 }
 
-func (m *ProposalOptions) GetBatchMsg() *ProposalBatchMsg {
-	if x, ok := m.GetOption().(*ProposalOptions_BatchMsg); ok {
-		return x.BatchMsg
+func (m *ProposalOptions) GetExecuteProposalBatchMsg() *ExecuteProposalBatchMsg {
+	if x, ok := m.GetOption().(*ProposalOptions_ExecuteProposalBatchMsg); ok {
+		return x.ExecuteProposalBatchMsg
 	}
 	return nil
 }
@@ -1751,9 +1751,9 @@ func (m *ProposalOptions) GetChangeUsernameTokenTargetsMsg() *username.ChangeUse
 	return nil
 }
 
-func (m *ProposalOptions) GetNewRevenueMsg() *distribution.NewRevenueMsg {
-	if x, ok := m.GetOption().(*ProposalOptions_NewRevenueMsg); ok {
-		return x.NewRevenueMsg
+func (m *ProposalOptions) GetCreateRevenueMsg() *distribution.CreateRevenueMsg {
+	if x, ok := m.GetOption().(*ProposalOptions_CreateRevenueMsg); ok {
+		return x.CreateRevenueMsg
 	}
 	return nil
 }
@@ -1793,9 +1793,9 @@ func (m *ProposalOptions) GetUpdateElectionRuleMsg() *gov.UpdateElectionRuleMsg 
 	return nil
 }
 
-func (m *ProposalOptions) GetTextResolutionMsg() *gov.TextResolutionMsg {
-	if x, ok := m.GetOption().(*ProposalOptions_TextResolutionMsg); ok {
-		return x.TextResolutionMsg
+func (m *ProposalOptions) GetCreateTextResolutionMsg() *gov.CreateTextResolutionMsg {
+	if x, ok := m.GetOption().(*ProposalOptions_CreateTextResolutionMsg); ok {
+		return x.CreateTextResolutionMsg
 	}
 	return nil
 }
@@ -1807,17 +1807,17 @@ func (*ProposalOptions) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffe
 		(*ProposalOptions_ReleaseEscrowMsg)(nil),
 		(*ProposalOptions_UpdateEscrowMsg)(nil),
 		(*ProposalOptions_SetValidatorsMsg)(nil),
-		(*ProposalOptions_BatchMsg)(nil),
+		(*ProposalOptions_ExecuteProposalBatchMsg)(nil),
 		(*ProposalOptions_RegisterUsernameTokenMsg)(nil),
 		(*ProposalOptions_TransferUsernameTokenMsg)(nil),
 		(*ProposalOptions_ChangeUsernameTokenTargetsMsg)(nil),
-		(*ProposalOptions_NewRevenueMsg)(nil),
+		(*ProposalOptions_CreateRevenueMsg)(nil),
 		(*ProposalOptions_DistributeMsg)(nil),
 		(*ProposalOptions_ResetRevenueMsg)(nil),
 		(*ProposalOptions_UpgradeSchemaMsg)(nil),
 		(*ProposalOptions_UpdateElectorateMsg)(nil),
 		(*ProposalOptions_UpdateElectionRuleMsg)(nil),
-		(*ProposalOptions_TextResolutionMsg)(nil),
+		(*ProposalOptions_CreateTextResolutionMsg)(nil),
 	}
 }
 
@@ -1845,9 +1845,9 @@ func _ProposalOptions_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
 		if err := b.EncodeMessage(x.SetValidatorsMsg); err != nil {
 			return err
 		}
-	case *ProposalOptions_BatchMsg:
+	case *ProposalOptions_ExecuteProposalBatchMsg:
 		_ = b.EncodeVarint(60<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.BatchMsg); err != nil {
+		if err := b.EncodeMessage(x.ExecuteProposalBatchMsg); err != nil {
 			return err
 		}
 	case *ProposalOptions_RegisterUsernameTokenMsg:
@@ -1865,9 +1865,9 @@ func _ProposalOptions_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
 		if err := b.EncodeMessage(x.ChangeUsernameTokenTargetsMsg); err != nil {
 			return err
 		}
-	case *ProposalOptions_NewRevenueMsg:
+	case *ProposalOptions_CreateRevenueMsg:
 		_ = b.EncodeVarint(66<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.NewRevenueMsg); err != nil {
+		if err := b.EncodeMessage(x.CreateRevenueMsg); err != nil {
 			return err
 		}
 	case *ProposalOptions_DistributeMsg:
@@ -1895,9 +1895,9 @@ func _ProposalOptions_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
 		if err := b.EncodeMessage(x.UpdateElectionRuleMsg); err != nil {
 			return err
 		}
-	case *ProposalOptions_TextResolutionMsg:
+	case *ProposalOptions_CreateTextResolutionMsg:
 		_ = b.EncodeVarint(79<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.TextResolutionMsg); err != nil {
+		if err := b.EncodeMessage(x.CreateTextResolutionMsg); err != nil {
 			return err
 		}
 	case nil:
@@ -1942,13 +1942,13 @@ func _ProposalOptions_OneofUnmarshaler(msg proto.Message, tag, wire int, b *prot
 		err := b.DecodeMessage(msg)
 		m.Option = &ProposalOptions_SetValidatorsMsg{msg}
 		return true, err
-	case 60: // option.batch_msg
+	case 60: // option.execute_proposal_batch_msg
 		if wire != proto.WireBytes {
 			return true, proto.ErrInternalBadWireType
 		}
-		msg := new(ProposalBatchMsg)
+		msg := new(ExecuteProposalBatchMsg)
 		err := b.DecodeMessage(msg)
-		m.Option = &ProposalOptions_BatchMsg{msg}
+		m.Option = &ProposalOptions_ExecuteProposalBatchMsg{msg}
 		return true, err
 	case 61: // option.register_username_token_msg
 		if wire != proto.WireBytes {
@@ -1974,13 +1974,13 @@ func _ProposalOptions_OneofUnmarshaler(msg proto.Message, tag, wire int, b *prot
 		err := b.DecodeMessage(msg)
 		m.Option = &ProposalOptions_ChangeUsernameTokenTargetsMsg{msg}
 		return true, err
-	case 66: // option.new_revenue_msg
+	case 66: // option.create_revenue_msg
 		if wire != proto.WireBytes {
 			return true, proto.ErrInternalBadWireType
 		}
-		msg := new(distribution.NewRevenueMsg)
+		msg := new(distribution.CreateRevenueMsg)
 		err := b.DecodeMessage(msg)
-		m.Option = &ProposalOptions_NewRevenueMsg{msg}
+		m.Option = &ProposalOptions_CreateRevenueMsg{msg}
 		return true, err
 	case 67: // option.distribute_msg
 		if wire != proto.WireBytes {
@@ -2022,13 +2022,13 @@ func _ProposalOptions_OneofUnmarshaler(msg proto.Message, tag, wire int, b *prot
 		err := b.DecodeMessage(msg)
 		m.Option = &ProposalOptions_UpdateElectionRuleMsg{msg}
 		return true, err
-	case 79: // option.text_resolution_msg
+	case 79: // option.create_text_resolution_msg
 		if wire != proto.WireBytes {
 			return true, proto.ErrInternalBadWireType
 		}
-		msg := new(gov.TextResolutionMsg)
+		msg := new(gov.CreateTextResolutionMsg)
 		err := b.DecodeMessage(msg)
-		m.Option = &ProposalOptions_TextResolutionMsg{msg}
+		m.Option = &ProposalOptions_CreateTextResolutionMsg{msg}
 		return true, err
 	default:
 		return false, nil
@@ -2059,8 +2059,8 @@ func _ProposalOptions_OneofSizer(msg proto.Message) (n int) {
 		n += 2 // tag and wire
 		n += proto.SizeVarint(uint64(s))
 		n += s
-	case *ProposalOptions_BatchMsg:
-		s := proto.Size(x.BatchMsg)
+	case *ProposalOptions_ExecuteProposalBatchMsg:
+		s := proto.Size(x.ExecuteProposalBatchMsg)
 		n += 2 // tag and wire
 		n += proto.SizeVarint(uint64(s))
 		n += s
@@ -2079,8 +2079,8 @@ func _ProposalOptions_OneofSizer(msg proto.Message) (n int) {
 		n += 2 // tag and wire
 		n += proto.SizeVarint(uint64(s))
 		n += s
-	case *ProposalOptions_NewRevenueMsg:
-		s := proto.Size(x.NewRevenueMsg)
+	case *ProposalOptions_CreateRevenueMsg:
+		s := proto.Size(x.CreateRevenueMsg)
 		n += 2 // tag and wire
 		n += proto.SizeVarint(uint64(s))
 		n += s
@@ -2109,8 +2109,8 @@ func _ProposalOptions_OneofSizer(msg proto.Message) (n int) {
 		n += 2 // tag and wire
 		n += proto.SizeVarint(uint64(s))
 		n += s
-	case *ProposalOptions_TextResolutionMsg:
-		s := proto.Size(x.TextResolutionMsg)
+	case *ProposalOptions_CreateTextResolutionMsg:
+		s := proto.Size(x.CreateTextResolutionMsg)
 		n += 2 // tag and wire
 		n += proto.SizeVarint(uint64(s))
 		n += s
@@ -2121,22 +2121,22 @@ func _ProposalOptions_OneofSizer(msg proto.Message) (n int) {
 	return n
 }
 
-type ProposalBatchMsg struct {
-	Messages []ProposalBatchMsg_Union `protobuf:"bytes,1,rep,name=messages,proto3" json:"messages"`
+type ExecuteProposalBatchMsg struct {
+	Messages []ExecuteProposalBatchMsg_Union `protobuf:"bytes,1,rep,name=messages,proto3" json:"messages"`
 }
 
-func (m *ProposalBatchMsg) Reset()         { *m = ProposalBatchMsg{} }
-func (m *ProposalBatchMsg) String() string { return proto.CompactTextString(m) }
-func (*ProposalBatchMsg) ProtoMessage()    {}
-func (*ProposalBatchMsg) Descriptor() ([]byte, []int) {
+func (m *ExecuteProposalBatchMsg) Reset()         { *m = ExecuteProposalBatchMsg{} }
+func (m *ExecuteProposalBatchMsg) String() string { return proto.CompactTextString(m) }
+func (*ExecuteProposalBatchMsg) ProtoMessage()    {}
+func (*ExecuteProposalBatchMsg) Descriptor() ([]byte, []int) {
 	return fileDescriptor_a8efb1d2ea3c411d, []int{3}
 }
-func (m *ProposalBatchMsg) XXX_Unmarshal(b []byte) error {
+func (m *ExecuteProposalBatchMsg) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *ProposalBatchMsg) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *ExecuteProposalBatchMsg) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_ProposalBatchMsg.Marshal(b, m, deterministic)
+		return xxx_messageInfo_ExecuteProposalBatchMsg.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalTo(b)
@@ -2146,55 +2146,55 @@ func (m *ProposalBatchMsg) XXX_Marshal(b []byte, deterministic bool) ([]byte, er
 		return b[:n], nil
 	}
 }
-func (m *ProposalBatchMsg) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ProposalBatchMsg.Merge(m, src)
+func (m *ExecuteProposalBatchMsg) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ExecuteProposalBatchMsg.Merge(m, src)
 }
-func (m *ProposalBatchMsg) XXX_Size() int {
+func (m *ExecuteProposalBatchMsg) XXX_Size() int {
 	return m.Size()
 }
-func (m *ProposalBatchMsg) XXX_DiscardUnknown() {
-	xxx_messageInfo_ProposalBatchMsg.DiscardUnknown(m)
+func (m *ExecuteProposalBatchMsg) XXX_DiscardUnknown() {
+	xxx_messageInfo_ExecuteProposalBatchMsg.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_ProposalBatchMsg proto.InternalMessageInfo
+var xxx_messageInfo_ExecuteProposalBatchMsg proto.InternalMessageInfo
 
-func (m *ProposalBatchMsg) GetMessages() []ProposalBatchMsg_Union {
+func (m *ExecuteProposalBatchMsg) GetMessages() []ExecuteProposalBatchMsg_Union {
 	if m != nil {
 		return m.Messages
 	}
 	return nil
 }
 
-type ProposalBatchMsg_Union struct {
+type ExecuteProposalBatchMsg_Union struct {
 	// Types that are valid to be assigned to Sum:
-	//	*ProposalBatchMsg_Union_SendMsg
-	//	*ProposalBatchMsg_Union_ReleaseEscrowMsg
-	//	*ProposalBatchMsg_Union_UpdateEscrowMsg
-	//	*ProposalBatchMsg_Union_SetValidatorsMsg
-	//	*ProposalBatchMsg_Union_RegisterUsernameTokenMsg
-	//	*ProposalBatchMsg_Union_TransferUsernameTokenMsg
-	//	*ProposalBatchMsg_Union_ChangeUsernameTokenTargetsMsg
-	//	*ProposalBatchMsg_Union_NewRevenueMsg
-	//	*ProposalBatchMsg_Union_DistributeMsg
-	//	*ProposalBatchMsg_Union_ResetRevenueMsg
-	//	*ProposalBatchMsg_Union_UpdateElectorateMsg
-	//	*ProposalBatchMsg_Union_UpdateElectionRuleMsg
-	//	*ProposalBatchMsg_Union_TextResolutionMsg
-	Sum isProposalBatchMsg_Union_Sum `protobuf_oneof:"sum"`
+	//	*ExecuteProposalBatchMsg_Union_SendMsg
+	//	*ExecuteProposalBatchMsg_Union_ReleaseEscrowMsg
+	//	*ExecuteProposalBatchMsg_Union_UpdateEscrowMsg
+	//	*ExecuteProposalBatchMsg_Union_SetValidatorsMsg
+	//	*ExecuteProposalBatchMsg_Union_RegisterUsernameTokenMsg
+	//	*ExecuteProposalBatchMsg_Union_TransferUsernameTokenMsg
+	//	*ExecuteProposalBatchMsg_Union_ChangeUsernameTokenTargetsMsg
+	//	*ExecuteProposalBatchMsg_Union_CreateRevenueMsg
+	//	*ExecuteProposalBatchMsg_Union_DistributeMsg
+	//	*ExecuteProposalBatchMsg_Union_ResetRevenueMsg
+	//	*ExecuteProposalBatchMsg_Union_UpdateElectorateMsg
+	//	*ExecuteProposalBatchMsg_Union_UpdateElectionRuleMsg
+	//	*ExecuteProposalBatchMsg_Union_CreateTextResolutionMsg
+	Sum isExecuteProposalBatchMsg_Union_Sum `protobuf_oneof:"sum"`
 }
 
-func (m *ProposalBatchMsg_Union) Reset()         { *m = ProposalBatchMsg_Union{} }
-func (m *ProposalBatchMsg_Union) String() string { return proto.CompactTextString(m) }
-func (*ProposalBatchMsg_Union) ProtoMessage()    {}
-func (*ProposalBatchMsg_Union) Descriptor() ([]byte, []int) {
+func (m *ExecuteProposalBatchMsg_Union) Reset()         { *m = ExecuteProposalBatchMsg_Union{} }
+func (m *ExecuteProposalBatchMsg_Union) String() string { return proto.CompactTextString(m) }
+func (*ExecuteProposalBatchMsg_Union) ProtoMessage()    {}
+func (*ExecuteProposalBatchMsg_Union) Descriptor() ([]byte, []int) {
 	return fileDescriptor_a8efb1d2ea3c411d, []int{3, 0}
 }
-func (m *ProposalBatchMsg_Union) XXX_Unmarshal(b []byte) error {
+func (m *ExecuteProposalBatchMsg_Union) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *ProposalBatchMsg_Union) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *ExecuteProposalBatchMsg_Union) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_ProposalBatchMsg_Union.Marshal(b, m, deterministic)
+		return xxx_messageInfo_ExecuteProposalBatchMsg_Union.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalTo(b)
@@ -2204,273 +2204,274 @@ func (m *ProposalBatchMsg_Union) XXX_Marshal(b []byte, deterministic bool) ([]by
 		return b[:n], nil
 	}
 }
-func (m *ProposalBatchMsg_Union) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ProposalBatchMsg_Union.Merge(m, src)
+func (m *ExecuteProposalBatchMsg_Union) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ExecuteProposalBatchMsg_Union.Merge(m, src)
 }
-func (m *ProposalBatchMsg_Union) XXX_Size() int {
+func (m *ExecuteProposalBatchMsg_Union) XXX_Size() int {
 	return m.Size()
 }
-func (m *ProposalBatchMsg_Union) XXX_DiscardUnknown() {
-	xxx_messageInfo_ProposalBatchMsg_Union.DiscardUnknown(m)
+func (m *ExecuteProposalBatchMsg_Union) XXX_DiscardUnknown() {
+	xxx_messageInfo_ExecuteProposalBatchMsg_Union.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_ProposalBatchMsg_Union proto.InternalMessageInfo
+var xxx_messageInfo_ExecuteProposalBatchMsg_Union proto.InternalMessageInfo
 
-type isProposalBatchMsg_Union_Sum interface {
-	isProposalBatchMsg_Union_Sum()
+type isExecuteProposalBatchMsg_Union_Sum interface {
+	isExecuteProposalBatchMsg_Union_Sum()
 	MarshalTo([]byte) (int, error)
 	Size() int
 }
 
-type ProposalBatchMsg_Union_SendMsg struct {
+type ExecuteProposalBatchMsg_Union_SendMsg struct {
 	SendMsg *cash.SendMsg `protobuf:"bytes,51,opt,name=send_msg,json=sendMsg,proto3,oneof"`
 }
-type ProposalBatchMsg_Union_ReleaseEscrowMsg struct {
+type ExecuteProposalBatchMsg_Union_ReleaseEscrowMsg struct {
 	ReleaseEscrowMsg *escrow.ReleaseEscrowMsg `protobuf:"bytes,53,opt,name=release_escrow_msg,json=releaseEscrowMsg,proto3,oneof"`
 }
-type ProposalBatchMsg_Union_UpdateEscrowMsg struct {
+type ExecuteProposalBatchMsg_Union_UpdateEscrowMsg struct {
 	UpdateEscrowMsg *escrow.UpdateEscrowPartiesMsg `protobuf:"bytes,55,opt,name=update_escrow_msg,json=updateEscrowMsg,proto3,oneof"`
 }
-type ProposalBatchMsg_Union_SetValidatorsMsg struct {
+type ExecuteProposalBatchMsg_Union_SetValidatorsMsg struct {
 	SetValidatorsMsg *validators.SetValidatorsMsg `protobuf:"bytes,58,opt,name=set_validators_msg,json=setValidatorsMsg,proto3,oneof"`
 }
-type ProposalBatchMsg_Union_RegisterUsernameTokenMsg struct {
+type ExecuteProposalBatchMsg_Union_RegisterUsernameTokenMsg struct {
 	RegisterUsernameTokenMsg *username.RegisterUsernameTokenMsg `protobuf:"bytes,61,opt,name=register_username_token_msg,json=registerUsernameTokenMsg,proto3,oneof"`
 }
-type ProposalBatchMsg_Union_TransferUsernameTokenMsg struct {
+type ExecuteProposalBatchMsg_Union_TransferUsernameTokenMsg struct {
 	TransferUsernameTokenMsg *username.TransferUsernameTokenMsg `protobuf:"bytes,62,opt,name=transfer_username_token_msg,json=transferUsernameTokenMsg,proto3,oneof"`
 }
-type ProposalBatchMsg_Union_ChangeUsernameTokenTargetsMsg struct {
+type ExecuteProposalBatchMsg_Union_ChangeUsernameTokenTargetsMsg struct {
 	ChangeUsernameTokenTargetsMsg *username.ChangeUsernameTokenTargetsMsg `protobuf:"bytes,63,opt,name=change_username_token_targets_msg,json=changeUsernameTokenTargetsMsg,proto3,oneof"`
 }
-type ProposalBatchMsg_Union_NewRevenueMsg struct {
-	NewRevenueMsg *distribution.NewRevenueMsg `protobuf:"bytes,66,opt,name=new_revenue_msg,json=newRevenueMsg,proto3,oneof"`
+type ExecuteProposalBatchMsg_Union_CreateRevenueMsg struct {
+	CreateRevenueMsg *distribution.CreateRevenueMsg `protobuf:"bytes,66,opt,name=create_revenue_msg,json=createRevenueMsg,proto3,oneof"`
 }
-type ProposalBatchMsg_Union_DistributeMsg struct {
+type ExecuteProposalBatchMsg_Union_DistributeMsg struct {
 	DistributeMsg *distribution.DistributeMsg `protobuf:"bytes,67,opt,name=distribute_msg,json=distributeMsg,proto3,oneof"`
 }
-type ProposalBatchMsg_Union_ResetRevenueMsg struct {
+type ExecuteProposalBatchMsg_Union_ResetRevenueMsg struct {
 	ResetRevenueMsg *distribution.ResetRevenueMsg `protobuf:"bytes,68,opt,name=reset_revenue_msg,json=resetRevenueMsg,proto3,oneof"`
 }
-type ProposalBatchMsg_Union_UpdateElectorateMsg struct {
+type ExecuteProposalBatchMsg_Union_UpdateElectorateMsg struct {
 	UpdateElectorateMsg *gov.UpdateElectorateMsg `protobuf:"bytes,77,opt,name=update_electorate_msg,json=updateElectorateMsg,proto3,oneof"`
 }
-type ProposalBatchMsg_Union_UpdateElectionRuleMsg struct {
+type ExecuteProposalBatchMsg_Union_UpdateElectionRuleMsg struct {
 	UpdateElectionRuleMsg *gov.UpdateElectionRuleMsg `protobuf:"bytes,78,opt,name=update_election_rule_msg,json=updateElectionRuleMsg,proto3,oneof"`
 }
-type ProposalBatchMsg_Union_TextResolutionMsg struct {
-	TextResolutionMsg *gov.TextResolutionMsg `protobuf:"bytes,79,opt,name=text_resolution_msg,json=textResolutionMsg,proto3,oneof"`
+type ExecuteProposalBatchMsg_Union_CreateTextResolutionMsg struct {
+	CreateTextResolutionMsg *gov.CreateTextResolutionMsg `protobuf:"bytes,79,opt,name=create_text_resolution_msg,json=createTextResolutionMsg,proto3,oneof"`
 }
 
-func (*ProposalBatchMsg_Union_SendMsg) isProposalBatchMsg_Union_Sum()                       {}
-func (*ProposalBatchMsg_Union_ReleaseEscrowMsg) isProposalBatchMsg_Union_Sum()              {}
-func (*ProposalBatchMsg_Union_UpdateEscrowMsg) isProposalBatchMsg_Union_Sum()               {}
-func (*ProposalBatchMsg_Union_SetValidatorsMsg) isProposalBatchMsg_Union_Sum()              {}
-func (*ProposalBatchMsg_Union_RegisterUsernameTokenMsg) isProposalBatchMsg_Union_Sum()      {}
-func (*ProposalBatchMsg_Union_TransferUsernameTokenMsg) isProposalBatchMsg_Union_Sum()      {}
-func (*ProposalBatchMsg_Union_ChangeUsernameTokenTargetsMsg) isProposalBatchMsg_Union_Sum() {}
-func (*ProposalBatchMsg_Union_NewRevenueMsg) isProposalBatchMsg_Union_Sum()                 {}
-func (*ProposalBatchMsg_Union_DistributeMsg) isProposalBatchMsg_Union_Sum()                 {}
-func (*ProposalBatchMsg_Union_ResetRevenueMsg) isProposalBatchMsg_Union_Sum()               {}
-func (*ProposalBatchMsg_Union_UpdateElectorateMsg) isProposalBatchMsg_Union_Sum()           {}
-func (*ProposalBatchMsg_Union_UpdateElectionRuleMsg) isProposalBatchMsg_Union_Sum()         {}
-func (*ProposalBatchMsg_Union_TextResolutionMsg) isProposalBatchMsg_Union_Sum()             {}
+func (*ExecuteProposalBatchMsg_Union_SendMsg) isExecuteProposalBatchMsg_Union_Sum()                  {}
+func (*ExecuteProposalBatchMsg_Union_ReleaseEscrowMsg) isExecuteProposalBatchMsg_Union_Sum()         {}
+func (*ExecuteProposalBatchMsg_Union_UpdateEscrowMsg) isExecuteProposalBatchMsg_Union_Sum()          {}
+func (*ExecuteProposalBatchMsg_Union_SetValidatorsMsg) isExecuteProposalBatchMsg_Union_Sum()         {}
+func (*ExecuteProposalBatchMsg_Union_RegisterUsernameTokenMsg) isExecuteProposalBatchMsg_Union_Sum() {}
+func (*ExecuteProposalBatchMsg_Union_TransferUsernameTokenMsg) isExecuteProposalBatchMsg_Union_Sum() {}
+func (*ExecuteProposalBatchMsg_Union_ChangeUsernameTokenTargetsMsg) isExecuteProposalBatchMsg_Union_Sum() {
+}
+func (*ExecuteProposalBatchMsg_Union_CreateRevenueMsg) isExecuteProposalBatchMsg_Union_Sum()        {}
+func (*ExecuteProposalBatchMsg_Union_DistributeMsg) isExecuteProposalBatchMsg_Union_Sum()           {}
+func (*ExecuteProposalBatchMsg_Union_ResetRevenueMsg) isExecuteProposalBatchMsg_Union_Sum()         {}
+func (*ExecuteProposalBatchMsg_Union_UpdateElectorateMsg) isExecuteProposalBatchMsg_Union_Sum()     {}
+func (*ExecuteProposalBatchMsg_Union_UpdateElectionRuleMsg) isExecuteProposalBatchMsg_Union_Sum()   {}
+func (*ExecuteProposalBatchMsg_Union_CreateTextResolutionMsg) isExecuteProposalBatchMsg_Union_Sum() {}
 
-func (m *ProposalBatchMsg_Union) GetSum() isProposalBatchMsg_Union_Sum {
+func (m *ExecuteProposalBatchMsg_Union) GetSum() isExecuteProposalBatchMsg_Union_Sum {
 	if m != nil {
 		return m.Sum
 	}
 	return nil
 }
 
-func (m *ProposalBatchMsg_Union) GetSendMsg() *cash.SendMsg {
-	if x, ok := m.GetSum().(*ProposalBatchMsg_Union_SendMsg); ok {
+func (m *ExecuteProposalBatchMsg_Union) GetSendMsg() *cash.SendMsg {
+	if x, ok := m.GetSum().(*ExecuteProposalBatchMsg_Union_SendMsg); ok {
 		return x.SendMsg
 	}
 	return nil
 }
 
-func (m *ProposalBatchMsg_Union) GetReleaseEscrowMsg() *escrow.ReleaseEscrowMsg {
-	if x, ok := m.GetSum().(*ProposalBatchMsg_Union_ReleaseEscrowMsg); ok {
+func (m *ExecuteProposalBatchMsg_Union) GetReleaseEscrowMsg() *escrow.ReleaseEscrowMsg {
+	if x, ok := m.GetSum().(*ExecuteProposalBatchMsg_Union_ReleaseEscrowMsg); ok {
 		return x.ReleaseEscrowMsg
 	}
 	return nil
 }
 
-func (m *ProposalBatchMsg_Union) GetUpdateEscrowMsg() *escrow.UpdateEscrowPartiesMsg {
-	if x, ok := m.GetSum().(*ProposalBatchMsg_Union_UpdateEscrowMsg); ok {
+func (m *ExecuteProposalBatchMsg_Union) GetUpdateEscrowMsg() *escrow.UpdateEscrowPartiesMsg {
+	if x, ok := m.GetSum().(*ExecuteProposalBatchMsg_Union_UpdateEscrowMsg); ok {
 		return x.UpdateEscrowMsg
 	}
 	return nil
 }
 
-func (m *ProposalBatchMsg_Union) GetSetValidatorsMsg() *validators.SetValidatorsMsg {
-	if x, ok := m.GetSum().(*ProposalBatchMsg_Union_SetValidatorsMsg); ok {
+func (m *ExecuteProposalBatchMsg_Union) GetSetValidatorsMsg() *validators.SetValidatorsMsg {
+	if x, ok := m.GetSum().(*ExecuteProposalBatchMsg_Union_SetValidatorsMsg); ok {
 		return x.SetValidatorsMsg
 	}
 	return nil
 }
 
-func (m *ProposalBatchMsg_Union) GetRegisterUsernameTokenMsg() *username.RegisterUsernameTokenMsg {
-	if x, ok := m.GetSum().(*ProposalBatchMsg_Union_RegisterUsernameTokenMsg); ok {
+func (m *ExecuteProposalBatchMsg_Union) GetRegisterUsernameTokenMsg() *username.RegisterUsernameTokenMsg {
+	if x, ok := m.GetSum().(*ExecuteProposalBatchMsg_Union_RegisterUsernameTokenMsg); ok {
 		return x.RegisterUsernameTokenMsg
 	}
 	return nil
 }
 
-func (m *ProposalBatchMsg_Union) GetTransferUsernameTokenMsg() *username.TransferUsernameTokenMsg {
-	if x, ok := m.GetSum().(*ProposalBatchMsg_Union_TransferUsernameTokenMsg); ok {
+func (m *ExecuteProposalBatchMsg_Union) GetTransferUsernameTokenMsg() *username.TransferUsernameTokenMsg {
+	if x, ok := m.GetSum().(*ExecuteProposalBatchMsg_Union_TransferUsernameTokenMsg); ok {
 		return x.TransferUsernameTokenMsg
 	}
 	return nil
 }
 
-func (m *ProposalBatchMsg_Union) GetChangeUsernameTokenTargetsMsg() *username.ChangeUsernameTokenTargetsMsg {
-	if x, ok := m.GetSum().(*ProposalBatchMsg_Union_ChangeUsernameTokenTargetsMsg); ok {
+func (m *ExecuteProposalBatchMsg_Union) GetChangeUsernameTokenTargetsMsg() *username.ChangeUsernameTokenTargetsMsg {
+	if x, ok := m.GetSum().(*ExecuteProposalBatchMsg_Union_ChangeUsernameTokenTargetsMsg); ok {
 		return x.ChangeUsernameTokenTargetsMsg
 	}
 	return nil
 }
 
-func (m *ProposalBatchMsg_Union) GetNewRevenueMsg() *distribution.NewRevenueMsg {
-	if x, ok := m.GetSum().(*ProposalBatchMsg_Union_NewRevenueMsg); ok {
-		return x.NewRevenueMsg
+func (m *ExecuteProposalBatchMsg_Union) GetCreateRevenueMsg() *distribution.CreateRevenueMsg {
+	if x, ok := m.GetSum().(*ExecuteProposalBatchMsg_Union_CreateRevenueMsg); ok {
+		return x.CreateRevenueMsg
 	}
 	return nil
 }
 
-func (m *ProposalBatchMsg_Union) GetDistributeMsg() *distribution.DistributeMsg {
-	if x, ok := m.GetSum().(*ProposalBatchMsg_Union_DistributeMsg); ok {
+func (m *ExecuteProposalBatchMsg_Union) GetDistributeMsg() *distribution.DistributeMsg {
+	if x, ok := m.GetSum().(*ExecuteProposalBatchMsg_Union_DistributeMsg); ok {
 		return x.DistributeMsg
 	}
 	return nil
 }
 
-func (m *ProposalBatchMsg_Union) GetResetRevenueMsg() *distribution.ResetRevenueMsg {
-	if x, ok := m.GetSum().(*ProposalBatchMsg_Union_ResetRevenueMsg); ok {
+func (m *ExecuteProposalBatchMsg_Union) GetResetRevenueMsg() *distribution.ResetRevenueMsg {
+	if x, ok := m.GetSum().(*ExecuteProposalBatchMsg_Union_ResetRevenueMsg); ok {
 		return x.ResetRevenueMsg
 	}
 	return nil
 }
 
-func (m *ProposalBatchMsg_Union) GetUpdateElectorateMsg() *gov.UpdateElectorateMsg {
-	if x, ok := m.GetSum().(*ProposalBatchMsg_Union_UpdateElectorateMsg); ok {
+func (m *ExecuteProposalBatchMsg_Union) GetUpdateElectorateMsg() *gov.UpdateElectorateMsg {
+	if x, ok := m.GetSum().(*ExecuteProposalBatchMsg_Union_UpdateElectorateMsg); ok {
 		return x.UpdateElectorateMsg
 	}
 	return nil
 }
 
-func (m *ProposalBatchMsg_Union) GetUpdateElectionRuleMsg() *gov.UpdateElectionRuleMsg {
-	if x, ok := m.GetSum().(*ProposalBatchMsg_Union_UpdateElectionRuleMsg); ok {
+func (m *ExecuteProposalBatchMsg_Union) GetUpdateElectionRuleMsg() *gov.UpdateElectionRuleMsg {
+	if x, ok := m.GetSum().(*ExecuteProposalBatchMsg_Union_UpdateElectionRuleMsg); ok {
 		return x.UpdateElectionRuleMsg
 	}
 	return nil
 }
 
-func (m *ProposalBatchMsg_Union) GetTextResolutionMsg() *gov.TextResolutionMsg {
-	if x, ok := m.GetSum().(*ProposalBatchMsg_Union_TextResolutionMsg); ok {
-		return x.TextResolutionMsg
+func (m *ExecuteProposalBatchMsg_Union) GetCreateTextResolutionMsg() *gov.CreateTextResolutionMsg {
+	if x, ok := m.GetSum().(*ExecuteProposalBatchMsg_Union_CreateTextResolutionMsg); ok {
+		return x.CreateTextResolutionMsg
 	}
 	return nil
 }
 
 // XXX_OneofFuncs is for the internal use of the proto package.
-func (*ProposalBatchMsg_Union) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
-	return _ProposalBatchMsg_Union_OneofMarshaler, _ProposalBatchMsg_Union_OneofUnmarshaler, _ProposalBatchMsg_Union_OneofSizer, []interface{}{
-		(*ProposalBatchMsg_Union_SendMsg)(nil),
-		(*ProposalBatchMsg_Union_ReleaseEscrowMsg)(nil),
-		(*ProposalBatchMsg_Union_UpdateEscrowMsg)(nil),
-		(*ProposalBatchMsg_Union_SetValidatorsMsg)(nil),
-		(*ProposalBatchMsg_Union_RegisterUsernameTokenMsg)(nil),
-		(*ProposalBatchMsg_Union_TransferUsernameTokenMsg)(nil),
-		(*ProposalBatchMsg_Union_ChangeUsernameTokenTargetsMsg)(nil),
-		(*ProposalBatchMsg_Union_NewRevenueMsg)(nil),
-		(*ProposalBatchMsg_Union_DistributeMsg)(nil),
-		(*ProposalBatchMsg_Union_ResetRevenueMsg)(nil),
-		(*ProposalBatchMsg_Union_UpdateElectorateMsg)(nil),
-		(*ProposalBatchMsg_Union_UpdateElectionRuleMsg)(nil),
-		(*ProposalBatchMsg_Union_TextResolutionMsg)(nil),
+func (*ExecuteProposalBatchMsg_Union) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
+	return _ExecuteProposalBatchMsg_Union_OneofMarshaler, _ExecuteProposalBatchMsg_Union_OneofUnmarshaler, _ExecuteProposalBatchMsg_Union_OneofSizer, []interface{}{
+		(*ExecuteProposalBatchMsg_Union_SendMsg)(nil),
+		(*ExecuteProposalBatchMsg_Union_ReleaseEscrowMsg)(nil),
+		(*ExecuteProposalBatchMsg_Union_UpdateEscrowMsg)(nil),
+		(*ExecuteProposalBatchMsg_Union_SetValidatorsMsg)(nil),
+		(*ExecuteProposalBatchMsg_Union_RegisterUsernameTokenMsg)(nil),
+		(*ExecuteProposalBatchMsg_Union_TransferUsernameTokenMsg)(nil),
+		(*ExecuteProposalBatchMsg_Union_ChangeUsernameTokenTargetsMsg)(nil),
+		(*ExecuteProposalBatchMsg_Union_CreateRevenueMsg)(nil),
+		(*ExecuteProposalBatchMsg_Union_DistributeMsg)(nil),
+		(*ExecuteProposalBatchMsg_Union_ResetRevenueMsg)(nil),
+		(*ExecuteProposalBatchMsg_Union_UpdateElectorateMsg)(nil),
+		(*ExecuteProposalBatchMsg_Union_UpdateElectionRuleMsg)(nil),
+		(*ExecuteProposalBatchMsg_Union_CreateTextResolutionMsg)(nil),
 	}
 }
 
-func _ProposalBatchMsg_Union_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
-	m := msg.(*ProposalBatchMsg_Union)
+func _ExecuteProposalBatchMsg_Union_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
+	m := msg.(*ExecuteProposalBatchMsg_Union)
 	// sum
 	switch x := m.Sum.(type) {
-	case *ProposalBatchMsg_Union_SendMsg:
+	case *ExecuteProposalBatchMsg_Union_SendMsg:
 		_ = b.EncodeVarint(51<<3 | proto.WireBytes)
 		if err := b.EncodeMessage(x.SendMsg); err != nil {
 			return err
 		}
-	case *ProposalBatchMsg_Union_ReleaseEscrowMsg:
+	case *ExecuteProposalBatchMsg_Union_ReleaseEscrowMsg:
 		_ = b.EncodeVarint(53<<3 | proto.WireBytes)
 		if err := b.EncodeMessage(x.ReleaseEscrowMsg); err != nil {
 			return err
 		}
-	case *ProposalBatchMsg_Union_UpdateEscrowMsg:
+	case *ExecuteProposalBatchMsg_Union_UpdateEscrowMsg:
 		_ = b.EncodeVarint(55<<3 | proto.WireBytes)
 		if err := b.EncodeMessage(x.UpdateEscrowMsg); err != nil {
 			return err
 		}
-	case *ProposalBatchMsg_Union_SetValidatorsMsg:
+	case *ExecuteProposalBatchMsg_Union_SetValidatorsMsg:
 		_ = b.EncodeVarint(58<<3 | proto.WireBytes)
 		if err := b.EncodeMessage(x.SetValidatorsMsg); err != nil {
 			return err
 		}
-	case *ProposalBatchMsg_Union_RegisterUsernameTokenMsg:
+	case *ExecuteProposalBatchMsg_Union_RegisterUsernameTokenMsg:
 		_ = b.EncodeVarint(61<<3 | proto.WireBytes)
 		if err := b.EncodeMessage(x.RegisterUsernameTokenMsg); err != nil {
 			return err
 		}
-	case *ProposalBatchMsg_Union_TransferUsernameTokenMsg:
+	case *ExecuteProposalBatchMsg_Union_TransferUsernameTokenMsg:
 		_ = b.EncodeVarint(62<<3 | proto.WireBytes)
 		if err := b.EncodeMessage(x.TransferUsernameTokenMsg); err != nil {
 			return err
 		}
-	case *ProposalBatchMsg_Union_ChangeUsernameTokenTargetsMsg:
+	case *ExecuteProposalBatchMsg_Union_ChangeUsernameTokenTargetsMsg:
 		_ = b.EncodeVarint(63<<3 | proto.WireBytes)
 		if err := b.EncodeMessage(x.ChangeUsernameTokenTargetsMsg); err != nil {
 			return err
 		}
-	case *ProposalBatchMsg_Union_NewRevenueMsg:
+	case *ExecuteProposalBatchMsg_Union_CreateRevenueMsg:
 		_ = b.EncodeVarint(66<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.NewRevenueMsg); err != nil {
+		if err := b.EncodeMessage(x.CreateRevenueMsg); err != nil {
 			return err
 		}
-	case *ProposalBatchMsg_Union_DistributeMsg:
+	case *ExecuteProposalBatchMsg_Union_DistributeMsg:
 		_ = b.EncodeVarint(67<<3 | proto.WireBytes)
 		if err := b.EncodeMessage(x.DistributeMsg); err != nil {
 			return err
 		}
-	case *ProposalBatchMsg_Union_ResetRevenueMsg:
+	case *ExecuteProposalBatchMsg_Union_ResetRevenueMsg:
 		_ = b.EncodeVarint(68<<3 | proto.WireBytes)
 		if err := b.EncodeMessage(x.ResetRevenueMsg); err != nil {
 			return err
 		}
-	case *ProposalBatchMsg_Union_UpdateElectorateMsg:
+	case *ExecuteProposalBatchMsg_Union_UpdateElectorateMsg:
 		_ = b.EncodeVarint(77<<3 | proto.WireBytes)
 		if err := b.EncodeMessage(x.UpdateElectorateMsg); err != nil {
 			return err
 		}
-	case *ProposalBatchMsg_Union_UpdateElectionRuleMsg:
+	case *ExecuteProposalBatchMsg_Union_UpdateElectionRuleMsg:
 		_ = b.EncodeVarint(78<<3 | proto.WireBytes)
 		if err := b.EncodeMessage(x.UpdateElectionRuleMsg); err != nil {
 			return err
 		}
-	case *ProposalBatchMsg_Union_TextResolutionMsg:
+	case *ExecuteProposalBatchMsg_Union_CreateTextResolutionMsg:
 		_ = b.EncodeVarint(79<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.TextResolutionMsg); err != nil {
+		if err := b.EncodeMessage(x.CreateTextResolutionMsg); err != nil {
 			return err
 		}
 	case nil:
 	default:
-		return fmt.Errorf("ProposalBatchMsg_Union.Sum has unexpected type %T", x)
+		return fmt.Errorf("ExecuteProposalBatchMsg_Union.Sum has unexpected type %T", x)
 	}
 	return nil
 }
 
-func _ProposalBatchMsg_Union_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
-	m := msg.(*ProposalBatchMsg_Union)
+func _ExecuteProposalBatchMsg_Union_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
+	m := msg.(*ExecuteProposalBatchMsg_Union)
 	switch tag {
 	case 51: // sum.send_msg
 		if wire != proto.WireBytes {
@@ -2478,7 +2479,7 @@ func _ProposalBatchMsg_Union_OneofUnmarshaler(msg proto.Message, tag, wire int, 
 		}
 		msg := new(cash.SendMsg)
 		err := b.DecodeMessage(msg)
-		m.Sum = &ProposalBatchMsg_Union_SendMsg{msg}
+		m.Sum = &ExecuteProposalBatchMsg_Union_SendMsg{msg}
 		return true, err
 	case 53: // sum.release_escrow_msg
 		if wire != proto.WireBytes {
@@ -2486,7 +2487,7 @@ func _ProposalBatchMsg_Union_OneofUnmarshaler(msg proto.Message, tag, wire int, 
 		}
 		msg := new(escrow.ReleaseEscrowMsg)
 		err := b.DecodeMessage(msg)
-		m.Sum = &ProposalBatchMsg_Union_ReleaseEscrowMsg{msg}
+		m.Sum = &ExecuteProposalBatchMsg_Union_ReleaseEscrowMsg{msg}
 		return true, err
 	case 55: // sum.update_escrow_msg
 		if wire != proto.WireBytes {
@@ -2494,7 +2495,7 @@ func _ProposalBatchMsg_Union_OneofUnmarshaler(msg proto.Message, tag, wire int, 
 		}
 		msg := new(escrow.UpdateEscrowPartiesMsg)
 		err := b.DecodeMessage(msg)
-		m.Sum = &ProposalBatchMsg_Union_UpdateEscrowMsg{msg}
+		m.Sum = &ExecuteProposalBatchMsg_Union_UpdateEscrowMsg{msg}
 		return true, err
 	case 58: // sum.set_validators_msg
 		if wire != proto.WireBytes {
@@ -2502,7 +2503,7 @@ func _ProposalBatchMsg_Union_OneofUnmarshaler(msg proto.Message, tag, wire int, 
 		}
 		msg := new(validators.SetValidatorsMsg)
 		err := b.DecodeMessage(msg)
-		m.Sum = &ProposalBatchMsg_Union_SetValidatorsMsg{msg}
+		m.Sum = &ExecuteProposalBatchMsg_Union_SetValidatorsMsg{msg}
 		return true, err
 	case 61: // sum.register_username_token_msg
 		if wire != proto.WireBytes {
@@ -2510,7 +2511,7 @@ func _ProposalBatchMsg_Union_OneofUnmarshaler(msg proto.Message, tag, wire int, 
 		}
 		msg := new(username.RegisterUsernameTokenMsg)
 		err := b.DecodeMessage(msg)
-		m.Sum = &ProposalBatchMsg_Union_RegisterUsernameTokenMsg{msg}
+		m.Sum = &ExecuteProposalBatchMsg_Union_RegisterUsernameTokenMsg{msg}
 		return true, err
 	case 62: // sum.transfer_username_token_msg
 		if wire != proto.WireBytes {
@@ -2518,7 +2519,7 @@ func _ProposalBatchMsg_Union_OneofUnmarshaler(msg proto.Message, tag, wire int, 
 		}
 		msg := new(username.TransferUsernameTokenMsg)
 		err := b.DecodeMessage(msg)
-		m.Sum = &ProposalBatchMsg_Union_TransferUsernameTokenMsg{msg}
+		m.Sum = &ExecuteProposalBatchMsg_Union_TransferUsernameTokenMsg{msg}
 		return true, err
 	case 63: // sum.change_username_token_targets_msg
 		if wire != proto.WireBytes {
@@ -2526,15 +2527,15 @@ func _ProposalBatchMsg_Union_OneofUnmarshaler(msg proto.Message, tag, wire int, 
 		}
 		msg := new(username.ChangeUsernameTokenTargetsMsg)
 		err := b.DecodeMessage(msg)
-		m.Sum = &ProposalBatchMsg_Union_ChangeUsernameTokenTargetsMsg{msg}
+		m.Sum = &ExecuteProposalBatchMsg_Union_ChangeUsernameTokenTargetsMsg{msg}
 		return true, err
-	case 66: // sum.new_revenue_msg
+	case 66: // sum.create_revenue_msg
 		if wire != proto.WireBytes {
 			return true, proto.ErrInternalBadWireType
 		}
-		msg := new(distribution.NewRevenueMsg)
+		msg := new(distribution.CreateRevenueMsg)
 		err := b.DecodeMessage(msg)
-		m.Sum = &ProposalBatchMsg_Union_NewRevenueMsg{msg}
+		m.Sum = &ExecuteProposalBatchMsg_Union_CreateRevenueMsg{msg}
 		return true, err
 	case 67: // sum.distribute_msg
 		if wire != proto.WireBytes {
@@ -2542,7 +2543,7 @@ func _ProposalBatchMsg_Union_OneofUnmarshaler(msg proto.Message, tag, wire int, 
 		}
 		msg := new(distribution.DistributeMsg)
 		err := b.DecodeMessage(msg)
-		m.Sum = &ProposalBatchMsg_Union_DistributeMsg{msg}
+		m.Sum = &ExecuteProposalBatchMsg_Union_DistributeMsg{msg}
 		return true, err
 	case 68: // sum.reset_revenue_msg
 		if wire != proto.WireBytes {
@@ -2550,7 +2551,7 @@ func _ProposalBatchMsg_Union_OneofUnmarshaler(msg proto.Message, tag, wire int, 
 		}
 		msg := new(distribution.ResetRevenueMsg)
 		err := b.DecodeMessage(msg)
-		m.Sum = &ProposalBatchMsg_Union_ResetRevenueMsg{msg}
+		m.Sum = &ExecuteProposalBatchMsg_Union_ResetRevenueMsg{msg}
 		return true, err
 	case 77: // sum.update_electorate_msg
 		if wire != proto.WireBytes {
@@ -2558,7 +2559,7 @@ func _ProposalBatchMsg_Union_OneofUnmarshaler(msg proto.Message, tag, wire int, 
 		}
 		msg := new(gov.UpdateElectorateMsg)
 		err := b.DecodeMessage(msg)
-		m.Sum = &ProposalBatchMsg_Union_UpdateElectorateMsg{msg}
+		m.Sum = &ExecuteProposalBatchMsg_Union_UpdateElectorateMsg{msg}
 		return true, err
 	case 78: // sum.update_election_rule_msg
 		if wire != proto.WireBytes {
@@ -2566,87 +2567,87 @@ func _ProposalBatchMsg_Union_OneofUnmarshaler(msg proto.Message, tag, wire int, 
 		}
 		msg := new(gov.UpdateElectionRuleMsg)
 		err := b.DecodeMessage(msg)
-		m.Sum = &ProposalBatchMsg_Union_UpdateElectionRuleMsg{msg}
+		m.Sum = &ExecuteProposalBatchMsg_Union_UpdateElectionRuleMsg{msg}
 		return true, err
-	case 79: // sum.text_resolution_msg
+	case 79: // sum.create_text_resolution_msg
 		if wire != proto.WireBytes {
 			return true, proto.ErrInternalBadWireType
 		}
-		msg := new(gov.TextResolutionMsg)
+		msg := new(gov.CreateTextResolutionMsg)
 		err := b.DecodeMessage(msg)
-		m.Sum = &ProposalBatchMsg_Union_TextResolutionMsg{msg}
+		m.Sum = &ExecuteProposalBatchMsg_Union_CreateTextResolutionMsg{msg}
 		return true, err
 	default:
 		return false, nil
 	}
 }
 
-func _ProposalBatchMsg_Union_OneofSizer(msg proto.Message) (n int) {
-	m := msg.(*ProposalBatchMsg_Union)
+func _ExecuteProposalBatchMsg_Union_OneofSizer(msg proto.Message) (n int) {
+	m := msg.(*ExecuteProposalBatchMsg_Union)
 	// sum
 	switch x := m.Sum.(type) {
-	case *ProposalBatchMsg_Union_SendMsg:
+	case *ExecuteProposalBatchMsg_Union_SendMsg:
 		s := proto.Size(x.SendMsg)
 		n += 2 // tag and wire
 		n += proto.SizeVarint(uint64(s))
 		n += s
-	case *ProposalBatchMsg_Union_ReleaseEscrowMsg:
+	case *ExecuteProposalBatchMsg_Union_ReleaseEscrowMsg:
 		s := proto.Size(x.ReleaseEscrowMsg)
 		n += 2 // tag and wire
 		n += proto.SizeVarint(uint64(s))
 		n += s
-	case *ProposalBatchMsg_Union_UpdateEscrowMsg:
+	case *ExecuteProposalBatchMsg_Union_UpdateEscrowMsg:
 		s := proto.Size(x.UpdateEscrowMsg)
 		n += 2 // tag and wire
 		n += proto.SizeVarint(uint64(s))
 		n += s
-	case *ProposalBatchMsg_Union_SetValidatorsMsg:
+	case *ExecuteProposalBatchMsg_Union_SetValidatorsMsg:
 		s := proto.Size(x.SetValidatorsMsg)
 		n += 2 // tag and wire
 		n += proto.SizeVarint(uint64(s))
 		n += s
-	case *ProposalBatchMsg_Union_RegisterUsernameTokenMsg:
+	case *ExecuteProposalBatchMsg_Union_RegisterUsernameTokenMsg:
 		s := proto.Size(x.RegisterUsernameTokenMsg)
 		n += 2 // tag and wire
 		n += proto.SizeVarint(uint64(s))
 		n += s
-	case *ProposalBatchMsg_Union_TransferUsernameTokenMsg:
+	case *ExecuteProposalBatchMsg_Union_TransferUsernameTokenMsg:
 		s := proto.Size(x.TransferUsernameTokenMsg)
 		n += 2 // tag and wire
 		n += proto.SizeVarint(uint64(s))
 		n += s
-	case *ProposalBatchMsg_Union_ChangeUsernameTokenTargetsMsg:
+	case *ExecuteProposalBatchMsg_Union_ChangeUsernameTokenTargetsMsg:
 		s := proto.Size(x.ChangeUsernameTokenTargetsMsg)
 		n += 2 // tag and wire
 		n += proto.SizeVarint(uint64(s))
 		n += s
-	case *ProposalBatchMsg_Union_NewRevenueMsg:
-		s := proto.Size(x.NewRevenueMsg)
+	case *ExecuteProposalBatchMsg_Union_CreateRevenueMsg:
+		s := proto.Size(x.CreateRevenueMsg)
 		n += 2 // tag and wire
 		n += proto.SizeVarint(uint64(s))
 		n += s
-	case *ProposalBatchMsg_Union_DistributeMsg:
+	case *ExecuteProposalBatchMsg_Union_DistributeMsg:
 		s := proto.Size(x.DistributeMsg)
 		n += 2 // tag and wire
 		n += proto.SizeVarint(uint64(s))
 		n += s
-	case *ProposalBatchMsg_Union_ResetRevenueMsg:
+	case *ExecuteProposalBatchMsg_Union_ResetRevenueMsg:
 		s := proto.Size(x.ResetRevenueMsg)
 		n += 2 // tag and wire
 		n += proto.SizeVarint(uint64(s))
 		n += s
-	case *ProposalBatchMsg_Union_UpdateElectorateMsg:
+	case *ExecuteProposalBatchMsg_Union_UpdateElectorateMsg:
 		s := proto.Size(x.UpdateElectorateMsg)
 		n += 2 // tag and wire
 		n += proto.SizeVarint(uint64(s))
 		n += s
-	case *ProposalBatchMsg_Union_UpdateElectionRuleMsg:
+	case *ExecuteProposalBatchMsg_Union_UpdateElectionRuleMsg:
 		s := proto.Size(x.UpdateElectionRuleMsg)
 		n += 2 // tag and wire
 		n += proto.SizeVarint(uint64(s))
 		n += s
-	case *ProposalBatchMsg_Union_TextResolutionMsg:
-		s := proto.Size(x.TextResolutionMsg)
+	case *ExecuteProposalBatchMsg_Union_CreateTextResolutionMsg:
+		s := proto.Size(x.CreateTextResolutionMsg)
 		n += 2 // tag and wire
 		n += proto.SizeVarint(uint64(s))
 		n += s
@@ -2659,89 +2660,91 @@ func _ProposalBatchMsg_Union_OneofSizer(msg proto.Message) (n int) {
 
 func init() {
 	proto.RegisterType((*Tx)(nil), "app.Tx")
-	proto.RegisterType((*BatchMsg)(nil), "app.BatchMsg")
-	proto.RegisterType((*BatchMsg_Union)(nil), "app.BatchMsg.Union")
+	proto.RegisterType((*ExecuteBatchMsg)(nil), "app.ExecuteBatchMsg")
+	proto.RegisterType((*ExecuteBatchMsg_Union)(nil), "app.ExecuteBatchMsg.Union")
 	proto.RegisterType((*ProposalOptions)(nil), "app.ProposalOptions")
-	proto.RegisterType((*ProposalBatchMsg)(nil), "app.ProposalBatchMsg")
-	proto.RegisterType((*ProposalBatchMsg_Union)(nil), "app.ProposalBatchMsg.Union")
+	proto.RegisterType((*ExecuteProposalBatchMsg)(nil), "app.ExecuteProposalBatchMsg")
+	proto.RegisterType((*ExecuteProposalBatchMsg_Union)(nil), "app.ExecuteProposalBatchMsg.Union")
 }
 
 func init() { proto.RegisterFile("cmd/bnsd/app/codec.proto", fileDescriptor_a8efb1d2ea3c411d) }
 
 var fileDescriptor_a8efb1d2ea3c411d = []byte{
-	// 1152 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xec, 0x98, 0x4d, 0x6f, 0xdb, 0x36,
-	0x18, 0xc7, 0x93, 0xa6, 0x2f, 0x0e, 0xfb, 0x92, 0x86, 0x49, 0x3a, 0xcf, 0x59, 0xdd, 0x34, 0x97,
-	0x65, 0xc3, 0x20, 0x01, 0x69, 0xbb, 0xf7, 0x76, 0x98, 0x93, 0x74, 0xe9, 0xf2, 0xd2, 0x42, 0x76,
-	0x7a, 0x35, 0x18, 0x89, 0x51, 0x84, 0xd9, 0xa4, 0x40, 0x52, 0x8e, 0xfa, 0x2d, 0xf6, 0x39, 0x76,
-	0xd9, 0x7d, 0x9f, 0xa0, 0xc7, 0x1e, 0x77, 0x1a, 0x86, 0xe4, 0x13, 0x0c, 0xbb, 0x0f, 0x03, 0x1f,
-	0x52, 0x8e, 0xa8, 0x38, 0x03, 0x36, 0x04, 0xd8, 0x86, 0xfa, 0x26, 0xff, 0xf9, 0xf0, 0xf7, 0x3c,
-	0xa2, 0xc8, 0xff, 0x43, 0x18, 0xd5, 0xc3, 0x7e, 0xe4, 0xef, 0x33, 0x19, 0xf9, 0x24, 0x4d, 0xfd,
-	0x90, 0x47, 0x34, 0xf4, 0x52, 0xc1, 0x15, 0xc7, 0x53, 0x24, 0x4d, 0x1b, 0xf7, 0x86, 0xc3, 0xb9,
-	0x9f, 0x49, 0x2a, 0x18, 0xe9, 0xd3, 0x72, 0x54, 0x63, 0x3e, 0xe6, 0x31, 0x87, 0x47, 0x5f, 0x3f,
-	0x59, 0x75, 0xa1, 0x9f, 0xc4, 0x82, 0xa8, 0x84, 0x33, 0x27, 0x78, 0x2e, 0xf7, 0x89, 0x3c, 0x22,
-	0x4e, 0x9e, 0x06, 0xce, 0xfd, 0x90, 0xc8, 0x43, 0x47, 0xbb, 0x93, 0xfb, 0x61, 0x26, 0x04, 0x65,
-	0xe1, 0x2b, 0x47, 0x6f, 0xe4, 0x7e, 0x94, 0x48, 0x25, 0x92, 0xfd, 0xec, 0x0c, 0x7c, 0x3e, 0xf7,
-	0xa9, 0x0c, 0x05, 0x3f, 0x72, 0xd4, 0xd9, 0xdc, 0x8f, 0xf9, 0xa0, 0x0a, 0xef, 0x67, 0x3d, 0x95,
-	0xc8, 0x24, 0xae, 0x16, 0x22, 0x93, 0x58, 0x3a, 0x5a, 0x3d, 0xf7, 0x07, 0xa4, 0x97, 0x44, 0x44,
-	0x71, 0xe1, 0x8c, 0x2c, 0xff, 0x36, 0x83, 0x2e, 0x75, 0x72, 0x7c, 0x1f, 0x5d, 0x3e, 0xa0, 0x54,
-	0xd6, 0x27, 0x97, 0x26, 0x57, 0xae, 0xaf, 0xde, 0xf4, 0xf4, 0xab, 0x78, 0x4f, 0x29, 0x7d, 0xc6,
-	0x0e, 0x78, 0x00, 0x43, 0x78, 0x15, 0x21, 0x99, 0xc4, 0x8c, 0xa8, 0x4c, 0x50, 0x59, 0xbf, 0xb4,
-	0x34, 0xb5, 0x72, 0x7d, 0x15, 0x7b, 0x3a, 0x95, 0xd7, 0x56, 0x51, 0xbb, 0x18, 0x0a, 0x4a, 0x51,
-	0xb8, 0x81, 0x6a, 0x45, 0x8d, 0xf5, 0xcb, 0x4b, 0x53, 0x2b, 0x37, 0x82, 0xe1, 0x6f, 0xfc, 0x21,
-	0xaa, 0x49, 0xca, 0xa2, 0x6e, 0x5f, 0xc6, 0xf5, 0x07, 0xe5, 0xb4, 0x6d, 0xca, 0xa2, 0x1d, 0x19,
-	0x6f, 0x4e, 0x04, 0xd7, 0xa4, 0x79, 0xc4, 0x1b, 0x68, 0x36, 0x14, 0x94, 0x28, 0xda, 0x35, 0x6b,
-	0x03, 0x93, 0x1e, 0xc2, 0xa4, 0x77, 0x3c, 0x23, 0x79, 0x6b, 0x10, 0xb0, 0x01, 0x3f, 0xcc, 0xf4,
-	0x99, 0xd0, 0x95, 0xf0, 0x26, 0xc2, 0x82, 0xf6, 0x28, 0x91, 0x0e, 0xe7, 0x11, 0x70, 0xea, 0x05,
-	0x27, 0x30, 0x11, 0x65, 0xd0, 0x6d, 0x51, 0xd1, 0x74, 0x41, 0x82, 0xaa, 0x4c, 0xb0, 0x32, 0xe8,
-	0x63, 0xb7, 0xa0, 0x00, 0x02, 0x9c, 0x82, 0x84, 0x2b, 0xe1, 0x6d, 0x34, 0x9b, 0xa5, 0x51, 0xe5,
-	0xbd, 0x3e, 0x01, 0x4c, 0xb3, 0xc0, 0xec, 0x41, 0x80, 0x99, 0xf3, 0x82, 0x08, 0x95, 0x50, 0x69,
-	0x69, 0x59, 0x69, 0x44, 0xd3, 0x76, 0xd0, 0x9c, 0x5d, 0xa5, 0x90, 0x33, 0x25, 0x48, 0xa8, 0x80,
-	0xf7, 0x29, 0xf0, 0x16, 0xbd, 0x62, 0xe5, 0xed, 0x4a, 0xad, 0xd9, 0x18, 0x03, 0xb3, 0xeb, 0x5b,
-	0x12, 0x35, 0xce, 0x16, 0xe7, 0xe0, 0x3e, 0xab, 0xe2, 0x4c, 0x81, 0x15, 0x5c, 0x56, 0x15, 0xf1,
-	0x36, 0xc2, 0x92, 0xaa, 0xee, 0xe9, 0x3e, 0x04, 0xda, 0xe7, 0x40, 0x7b, 0xcf, 0x3b, 0x95, 0xbd,
-	0x36, 0x55, 0x2f, 0x87, 0xbf, 0xec, 0x07, 0x90, 0x15, 0x4d, 0x7f, 0x4a, 0x46, 0x8f, 0xba, 0x8a,
-	0x7f, 0x47, 0x59, 0x37, 0x61, 0x07, 0x1c, 0x68, 0x5f, 0x00, 0xed, 0x5d, 0xaf, 0x38, 0x75, 0xde,
-	0x2e, 0x3d, 0xea, 0xe8, 0x10, 0xbd, 0x8f, 0xed, 0xaa, 0x31, 0x57, 0xc2, 0x1f, 0xa1, 0xe9, 0x7d,
-	0xa2, 0xc2, 0x43, 0x00, 0x7c, 0x69, 0x37, 0x22, 0x49, 0x53, 0xaf, 0xa5, 0x55, 0x33, 0xa9, 0xb6,
-	0x6f, 0x9f, 0x71, 0x88, 0x16, 0x05, 0x8d, 0x13, 0xa9, 0xa8, 0xe8, 0x16, 0x4e, 0x62, 0xab, 0xd0,
-	0xf3, 0x1f, 0xc3, 0xfc, 0x65, 0xaf, 0x18, 0xf2, 0x02, 0x1b, 0xbc, 0x67, 0x05, 0x48, 0x6d, 0xa0,
-	0x75, 0x71, 0xce, 0x98, 0x4e, 0xa2, 0x04, 0x61, 0xf2, 0x60, 0x74, 0x92, 0x27, 0xd5, 0x24, 0x1d,
-	0x1b, 0x3c, 0x2a, 0x89, 0x3a, 0x67, 0x0c, 0x4b, 0x74, 0x3f, 0x3c, 0x24, 0x2c, 0xa6, 0xd5, 0x14,
-	0x8a, 0x88, 0x98, 0x2a, 0xf3, 0x79, 0xbe, 0x82, 0x54, 0xef, 0x9f, 0xa6, 0x5a, 0x83, 0x29, 0x0e,
-	0xac, 0x63, 0xe2, 0x4d, 0xbe, 0xbb, 0xe1, 0x5f, 0x05, 0xe0, 0x0d, 0xa4, 0xd7, 0xbf, 0x2b, 0xe8,
-	0x80, 0xb2, 0x8c, 0x42, 0x8a, 0x96, 0xdd, 0x4f, 0x65, 0x47, 0xd4, 0xdf, 0x2d, 0x30, 0x31, 0x06,
-	0x7b, 0x93, 0x95, 0x05, 0xbc, 0x8e, 0x6e, 0x0d, 0xc3, 0x0d, 0x65, 0x6d, 0x14, 0x65, 0x7d, 0x18,
-	0x63, 0x29, 0x51, 0x59, 0xc0, 0x5b, 0xfa, 0x10, 0xeb, 0x3d, 0x59, 0x2e, 0x67, 0x1d, 0x40, 0x77,
-	0x5d, 0x50, 0xa0, 0xc3, 0x9c, 0x82, 0x66, 0x84, 0x2b, 0xe1, 0x2d, 0x84, 0xb3, 0x34, 0x16, 0x24,
-	0xa2, 0x5d, 0x19, 0x1e, 0xd2, 0x3e, 0x01, 0xda, 0x46, 0x71, 0x58, 0x8a, 0x46, 0xe2, 0xed, 0x99,
-	0xa0, 0x36, 0xc4, 0xd8, 0xdd, 0x9d, 0x55, 0x34, 0xfc, 0x04, 0x59, 0xef, 0xea, 0xea, 0x3e, 0x03,
-	0xa4, 0xa7, 0x40, 0x9a, 0xf7, 0xa0, 0xf3, 0xd8, 0x23, 0xdc, 0x3e, 0x22, 0xa9, 0x7d, 0xb3, 0xb0,
-	0x2c, 0xe0, 0xaf, 0x51, 0x61, 0x59, 0xa7, 0x80, 0x6f, 0x00, 0xb0, 0x60, 0x01, 0xd6, 0xe5, 0x4e,
-	0x09, 0xb7, 0x84, 0xa3, 0xe8, 0x12, 0xac, 0xc3, 0x0d, 0x09, 0x9b, 0x4e, 0x09, 0xc6, 0xde, 0x4a,
-	0x25, 0x88, 0xb2, 0x80, 0x37, 0x87, 0x66, 0x94, 0x0a, 0x9e, 0x72, 0x49, 0x7a, 0xc0, 0x78, 0x06,
-	0x8c, 0x3b, 0x5e, 0xcc, 0x07, 0xf6, 0x25, 0x5e, 0xd8, 0x61, 0xc7, 0x87, 0x4a, 0xa2, 0x26, 0x45,
-	0xb4, 0x47, 0xab, 0xa4, 0x6f, 0x4b, 0xa4, 0x75, 0x18, 0xaf, 0x90, 0xa2, 0xaa, 0x88, 0x3f, 0x40,
-	0xb5, 0x01, 0xb7, 0x1b, 0x66, 0x0b, 0xa6, 0xdf, 0x80, 0xe9, 0x2f, 0x79, 0xb1, 0x43, 0xae, 0x0d,
-	0xcc, 0xa3, 0x76, 0x05, 0x45, 0x7a, 0xbd, 0x57, 0x10, 0xbb, 0x6d, 0x5d, 0x41, 0xc7, 0x76, 0xb4,
-	0x6a, 0x5d, 0x41, 0xd9, 0x67, 0xbc, 0x8b, 0x16, 0x0a, 0x1f, 0xef, 0xd1, 0x50, 0x71, 0x41, 0x6c,
-	0x96, 0x1d, 0xdb, 0x5b, 0xf4, 0x4c, 0x6b, 0xe4, 0xc3, 0x00, 0x03, 0xb1, 0x1e, 0xeb, 0xc8, 0x78,
-	0x0f, 0xd5, 0xcb, 0xbc, 0x84, 0xb3, 0xae, 0xc8, 0x7a, 0x06, 0xb9, 0x0b, 0xc8, 0x46, 0x15, 0x99,
-	0x70, 0x16, 0x64, 0x3d, 0x0b, 0x5d, 0xc8, 0x46, 0x0d, 0xb4, 0xae, 0xa0, 0x29, 0x99, 0xf5, 0x97,
-	0x7f, 0x9f, 0x46, 0xb5, 0xc2, 0xdc, 0xf0, 0x23, 0x54, 0xeb, 0x53, 0x29, 0x49, 0x0c, 0xdd, 0x5f,
-	0x37, 0xf5, 0x39, 0xc7, 0xfd, 0xbc, 0x3d, 0x96, 0x70, 0xd6, 0xba, 0xfc, 0xfa, 0x97, 0x7b, 0x13,
-	0xc1, 0x30, 0xb4, 0xf1, 0xe3, 0x34, 0xba, 0x02, 0x23, 0xe3, 0x3e, 0x3e, 0xee, 0xe3, 0xff, 0x89,
-	0x3e, 0x3e, 0xee, 0xcc, 0xe3, 0xce, 0x3c, 0xaa, 0x33, 0x17, 0xae, 0xf7, 0xd3, 0x34, 0x9a, 0x29,
-	0x9a, 0xc1, 0xf3, 0x54, 0x4f, 0x96, 0x7f, 0xcb, 0xbb, 0x2e, 0xce, 0x74, 0x2e, 0xd6, 0x2d, 0x2e,
-	0xf6, 0x3c, 0x3e, 0x3c, 0x7b, 0x1b, 0x5e, 0x80, 0x7e, 0x50, 0x2c, 0xdd, 0xf8, 0x56, 0x3c, 0x3e,
-	0x7b, 0xff, 0xd2, 0xad, 0xf8, 0xff, 0x71, 0xcb, 0xd2, 0xf7, 0x55, 0x45, 0x73, 0xbd, 0x7e, 0x92,
-	0xf7, 0x60, 0xa5, 0x80, 0xf8, 0xbc, 0x74, 0x5f, 0xed, 0xd0, 0x5c, 0x05, 0xc3, 0x61, 0xdb, 0x6a,
-	0x55, 0x55, 0x6c, 0xd5, 0xd0, 0x55, 0x0e, 0x4e, 0xb5, 0xfc, 0x47, 0x0d, 0xdd, 0xae, 0x9e, 0x40,
-	0xfc, 0xf8, 0xcc, 0xd5, 0x6d, 0x71, 0xe4, 0x51, 0x3d, 0xe7, 0x0a, 0xf7, 0x43, 0xed, 0x9f, 0x5c,
-	0xe1, 0xde, 0x0e, 0x1b, 0x1c, 0x1b, 0xda, 0xd8, 0xd0, 0x46, 0x1a, 0xda, 0x5b, 0xe7, 0x41, 0xe6,
-	0xf6, 0xd4, 0xaa, 0xbf, 0x3e, 0x6e, 0x4e, 0xbe, 0x39, 0x6e, 0x4e, 0xfe, 0x7a, 0xdc, 0x9c, 0xfc,
-	0xfe, 0xa4, 0x39, 0xf1, 0xe6, 0xa4, 0x39, 0xf1, 0xf3, 0x49, 0x73, 0x62, 0xff, 0x2a, 0xfc, 0x91,
-	0xfc, 0xe0, 0xcf, 0x00, 0x00, 0x00, 0xff, 0xff, 0x6e, 0x66, 0xd6, 0xe8, 0x83, 0x17, 0x00, 0x00,
+	// 1178 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xec, 0x98, 0xcd, 0x6e, 0xdc, 0x36,
+	0x10, 0xc7, 0xed, 0xd8, 0x49, 0xd6, 0xcc, 0x87, 0x63, 0xc6, 0x8e, 0x17, 0x9b, 0x64, 0xe3, 0xf8,
+	0x52, 0xb7, 0x28, 0x24, 0xc0, 0xe9, 0x77, 0xd3, 0x14, 0x5d, 0xdb, 0xa9, 0x53, 0x7f, 0x24, 0xd5,
+	0xae, 0x73, 0xe9, 0x41, 0xa0, 0x29, 0x5a, 0x16, 0xaa, 0x15, 0x05, 0x92, 0x5a, 0x2b, 0x6f, 0x51,
+	0xa0, 0xa7, 0xbe, 0x41, 0x5f, 0xa3, 0x97, 0x22, 0xc7, 0x1c, 0x7b, 0x2a, 0x0a, 0xfb, 0x39, 0x0a,
+	0x14, 0xfc, 0x90, 0x56, 0x94, 0xd7, 0x06, 0x5a, 0x18, 0x45, 0x8b, 0xec, 0x4d, 0xfb, 0x9f, 0xe1,
+	0x6f, 0x46, 0x14, 0x67, 0x86, 0x58, 0xd0, 0xc4, 0xfd, 0xc0, 0xdd, 0x4f, 0x78, 0xe0, 0xa2, 0x34,
+	0x75, 0x31, 0x0d, 0x08, 0x76, 0x52, 0x46, 0x05, 0x85, 0x53, 0x28, 0x4d, 0x5b, 0x0f, 0x4a, 0x73,
+	0xee, 0x66, 0x9c, 0xb0, 0x04, 0xf5, 0x49, 0xd5, 0xab, 0x35, 0x1f, 0xd2, 0x90, 0xaa, 0x47, 0x57,
+	0x3e, 0x19, 0x75, 0xa1, 0x1f, 0x85, 0x0c, 0x89, 0x88, 0x26, 0x96, 0xf3, 0xed, 0xdc, 0x45, 0xfc,
+	0x08, 0x59, 0x71, 0x5a, 0x30, 0x77, 0x31, 0xe2, 0x87, 0x96, 0x76, 0x27, 0x77, 0x71, 0xc6, 0x18,
+	0x49, 0xf0, 0x2b, 0x4b, 0x6f, 0xe5, 0x6e, 0x10, 0x71, 0xc1, 0xa2, 0xfd, 0xec, 0x14, 0x7c, 0x3e,
+	0x77, 0x09, 0xc7, 0x8c, 0x1e, 0x59, 0xea, 0x5c, 0xee, 0x86, 0x74, 0x50, 0x87, 0xf7, 0xb3, 0x58,
+	0x44, 0x3c, 0x0a, 0xeb, 0x89, 0xf0, 0x28, 0xe4, 0x96, 0xd6, 0xcc, 0xdd, 0x01, 0x8a, 0xa3, 0x00,
+	0x09, 0xca, 0x2c, 0xcb, 0xf2, 0x4f, 0xb7, 0xc0, 0xa5, 0x5e, 0x0e, 0x1f, 0x82, 0xe9, 0x03, 0x42,
+	0x78, 0x73, 0x72, 0x69, 0x72, 0xe5, 0xda, 0xea, 0x0d, 0x47, 0xbe, 0x8a, 0xf3, 0x94, 0x90, 0x67,
+	0xc9, 0x01, 0xf5, 0x94, 0x09, 0xae, 0x02, 0xc0, 0xa3, 0x30, 0x41, 0x22, 0x63, 0x84, 0x37, 0x2f,
+	0x2d, 0x4d, 0xad, 0x5c, 0x5b, 0x85, 0x8e, 0x0c, 0xe5, 0x74, 0x45, 0xd0, 0x2d, 0x4c, 0x5e, 0xc5,
+	0x0b, 0xb6, 0x40, 0xa3, 0xc8, 0xb1, 0x39, 0xbd, 0x34, 0xb5, 0x72, 0xdd, 0x2b, 0x7f, 0xc3, 0xf7,
+	0x40, 0x83, 0x93, 0x24, 0xf0, 0xfb, 0x3c, 0x6c, 0x3e, 0xaa, 0x86, 0xed, 0x92, 0x24, 0xd8, 0xe1,
+	0xe1, 0xe6, 0x84, 0x77, 0x95, 0xeb, 0x47, 0xb8, 0x01, 0xe6, 0x30, 0x23, 0x48, 0x10, 0x5f, 0xef,
+	0x8d, 0x5a, 0xf4, 0x81, 0x5a, 0xb4, 0xe8, 0x68, 0xc9, 0x59, 0x53, 0x0e, 0x1b, 0xea, 0x87, 0x5e,
+	0x3e, 0x8b, 0x6d, 0x09, 0x6e, 0x02, 0xc8, 0x48, 0x4c, 0x10, 0xb7, 0x38, 0x1f, 0x2a, 0x4e, 0xb3,
+	0xe0, 0x78, 0xda, 0xa3, 0x0a, 0xba, 0xc5, 0x6a, 0x9a, 0x4c, 0x88, 0x11, 0x91, 0xb1, 0xa4, 0x0a,
+	0xfa, 0xc8, 0x4e, 0xc8, 0x53, 0x0e, 0x56, 0x42, 0xcc, 0x96, 0xe0, 0x36, 0x98, 0xcb, 0xd2, 0xa0,
+	0xf6, 0x5e, 0x1f, 0x2b, 0x4c, 0xbb, 0xc0, 0xec, 0x29, 0x07, 0xbd, 0xe6, 0x05, 0x62, 0x22, 0x22,
+	0xdc, 0xd0, 0xb2, 0x8a, 0x45, 0xd2, 0x76, 0xc0, 0x6d, 0xb3, 0x4b, 0x98, 0x26, 0x82, 0x21, 0x2c,
+	0x14, 0xef, 0x13, 0xc5, 0xbb, 0xeb, 0x14, 0x3b, 0x6f, 0x76, 0x6a, 0xcd, 0xf8, 0x68, 0x98, 0xd9,
+	0xdf, 0x8a, 0x28, 0x71, 0x26, 0x39, 0x0b, 0xf7, 0x69, 0x1d, 0xa7, 0x13, 0xac, 0xe1, 0xb2, 0xba,
+	0x08, 0xb7, 0x01, 0xe4, 0x44, 0xf8, 0xc3, 0x73, 0xa8, 0x68, 0x9f, 0x29, 0xda, 0x3d, 0x67, 0x28,
+	0x3b, 0x5d, 0x22, 0x5e, 0x96, 0xbf, 0xcc, 0x07, 0xe0, 0x35, 0x0d, 0x7e, 0x0b, 0x16, 0xcc, 0xbb,
+	0x0a, 0xfa, 0x3d, 0x49, 0xfc, 0x28, 0x39, 0xa0, 0x0a, 0xf8, 0xb9, 0x01, 0x16, 0x85, 0x67, 0xde,
+	0xb6, 0x27, 0xbd, 0xe4, 0x69, 0xd6, 0x40, 0x88, 0x4f, 0xa9, 0xb0, 0x03, 0xe6, 0x48, 0x4e, 0x70,
+	0x26, 0x88, 0xbf, 0x8f, 0x04, 0x3e, 0x54, 0xb8, 0xc7, 0x0a, 0x37, 0xef, 0xa0, 0x34, 0x75, 0x36,
+	0xb4, 0xb5, 0x23, 0x8d, 0xe6, 0x13, 0x10, 0x5b, 0x82, 0x18, 0xdc, 0x65, 0x24, 0x8c, 0xb8, 0x20,
+	0xcc, 0x2f, 0x1a, 0x8d, 0xc9, 0x50, 0xd2, 0xbe, 0x50, 0xb4, 0x65, 0xa7, 0x30, 0x39, 0x9e, 0x71,
+	0xde, 0x33, 0x82, 0x4a, 0x48, 0xb3, 0x9b, 0xec, 0x0c, 0x9b, 0x0c, 0x22, 0x18, 0x4a, 0xf8, 0xc1,
+	0xe8, 0x20, 0x4f, 0xea, 0x41, 0x7a, 0xc6, 0x79, 0x54, 0x10, 0x71, 0x86, 0x0d, 0x72, 0xf0, 0x10,
+	0x1f, 0xa2, 0x24, 0x24, 0xf5, 0x10, 0x02, 0xb1, 0x90, 0x08, 0xfd, 0xf5, 0xbe, 0x54, 0xa1, 0xde,
+	0x19, 0x86, 0x5a, 0x53, 0x4b, 0x2c, 0x58, 0x4f, 0xfb, 0xeb, 0x78, 0xf7, 0xf1, 0x79, 0x0e, 0x70,
+	0x17, 0x98, 0x0f, 0xe3, 0x33, 0x32, 0x20, 0x49, 0x46, 0x54, 0x94, 0x8e, 0x29, 0x88, 0x6a, 0xcf,
+	0x34, 0x9f, 0xd5, 0xd3, 0x6e, 0xe6, 0x94, 0xe0, 0x9a, 0x06, 0xd7, 0xc1, 0xcd, 0x72, 0x91, 0x66,
+	0xad, 0x99, 0xd3, 0x6b, 0xb1, 0xd6, 0x4b, 0x1f, 0x0d, 0xba, 0x11, 0x54, 0x05, 0xb8, 0x25, 0x8b,
+	0x5d, 0x9e, 0xdd, 0x6a, 0x52, 0xeb, 0x0a, 0x74, 0xdf, 0x06, 0x79, 0xd2, 0xcd, 0xca, 0x69, 0x96,
+	0xd9, 0x12, 0xdc, 0x02, 0x30, 0x4b, 0x43, 0x86, 0x02, 0xe2, 0x73, 0x7c, 0x48, 0xfa, 0x48, 0xd1,
+	0x36, 0x8a, 0xa2, 0x2a, 0x06, 0x8e, 0xb3, 0xa7, 0x9d, 0xba, 0xca, 0xc7, 0xbc, 0x5f, 0x56, 0xd3,
+	0xe0, 0x13, 0x60, 0x7a, 0x9c, 0x2f, 0xe7, 0x91, 0x22, 0x3d, 0x2d, 0x0e, 0xac, 0x54, 0xcc, 0x2e,
+	0x75, 0x8f, 0x50, 0x6a, 0xde, 0x0c, 0x57, 0x05, 0xf8, 0x15, 0x28, 0x5a, 0xdb, 0x10, 0xf0, 0xb5,
+	0x02, 0x2c, 0x18, 0x80, 0xe9, 0x86, 0x43, 0xc2, 0x4d, 0x66, 0x29, 0x32, 0x05, 0xd3, 0x09, 0x4b,
+	0xc2, 0xa6, 0x95, 0x82, 0x6e, 0x83, 0x95, 0x14, 0x58, 0x55, 0x80, 0x9b, 0x65, 0xd3, 0x4a, 0x19,
+	0x4d, 0x29, 0x47, 0xb1, 0x62, 0x3c, 0x53, 0x8c, 0x3b, 0x4e, 0x48, 0x07, 0xe6, 0x25, 0x5e, 0x18,
+	0xb3, 0xd5, 0xaf, 0x2a, 0xa2, 0x24, 0x05, 0x24, 0x26, 0x75, 0xd2, 0x37, 0x15, 0xd2, 0xba, 0xb2,
+	0xd7, 0x48, 0x41, 0x5d, 0x84, 0xef, 0x82, 0xc6, 0x80, 0x9a, 0x03, 0xb3, 0xa5, 0x96, 0x5f, 0x57,
+	0xcb, 0x5f, 0xd2, 0xe2, 0x84, 0x5c, 0x1d, 0xe8, 0x47, 0xf8, 0x3e, 0x98, 0x11, 0x28, 0x8e, 0x5f,
+	0x29, 0xdf, 0x6d, 0x33, 0xc6, 0xa4, 0x6f, 0x4f, 0xaa, 0xda, 0xb9, 0x21, 0xcc, 0x33, 0xdc, 0x05,
+	0x0b, 0x45, 0xbf, 0x8f, 0x09, 0x16, 0x94, 0x21, 0x13, 0x65, 0xc7, 0xcc, 0x20, 0xb9, 0xd2, 0x34,
+	0xfc, 0xd2, 0x41, 0x43, 0x4c, 0x2f, 0xb6, 0x64, 0xb8, 0x07, 0x9a, 0x55, 0x5e, 0x44, 0x13, 0x9f,
+	0x65, 0xb1, 0x46, 0xee, 0x2a, 0x64, 0xab, 0x8e, 0x8c, 0x68, 0xe2, 0x65, 0xb1, 0x81, 0x2e, 0x64,
+	0xa3, 0x0c, 0x9d, 0xcb, 0x60, 0x8a, 0x67, 0xfd, 0xe5, 0x1f, 0x01, 0x98, 0xad, 0xf5, 0x3c, 0xf8,
+	0x18, 0x34, 0xfa, 0x84, 0x73, 0x14, 0xaa, 0xcb, 0xc2, 0x94, 0x8a, 0x30, 0xa2, 0x37, 0x3a, 0x7b,
+	0x49, 0x44, 0x93, 0xce, 0xf4, 0xeb, 0xdf, 0x1f, 0x4c, 0x78, 0xe5, 0x8a, 0xd6, 0x2f, 0x33, 0xe0,
+	0xb2, 0xb2, 0x8c, 0xa7, 0xff, 0x78, 0xfa, 0xff, 0xb7, 0xa6, 0xff, 0x78, 0x72, 0x8f, 0x27, 0xf7,
+	0xb9, 0x93, 0xbb, 0xe8, 0x8a, 0x7f, 0xce, 0x80, 0xd9, 0x62, 0x58, 0x3c, 0x4f, 0xe5, 0x62, 0xfe,
+	0xb7, 0xba, 0xd9, 0xc5, 0xb5, 0xa1, 0x8b, 0xed, 0x1f, 0x17, 0x5b, 0xa1, 0xdf, 0x81, 0x56, 0x71,
+	0x99, 0x2e, 0xa7, 0x71, 0xfd, 0x56, 0x7d, 0xaf, 0x3a, 0x39, 0x8a, 0x2d, 0xad, 0xdc, 0xae, 0x17,
+	0xc9, 0x68, 0xd3, 0xb8, 0x56, 0xc7, 0xb5, 0xfa, 0x6f, 0xde, 0xb2, 0xff, 0x1f, 0xb7, 0x36, 0x59,
+	0x72, 0xc5, 0x50, 0x24, 0xb9, 0xdc, 0x46, 0x4e, 0x63, 0xb5, 0x61, 0x0a, 0xfc, 0xdc, 0x94, 0xdc,
+	0xf0, 0x42, 0xdd, 0x23, 0xb9, 0xf0, 0x4a, 0x27, 0x53, 0x72, 0x78, 0xb4, 0xa9, 0xd3, 0x00, 0x57,
+	0xa8, 0x6a, 0x76, 0xcb, 0x3f, 0xcf, 0x80, 0xc5, 0x33, 0x6a, 0x16, 0xae, 0x9f, 0xba, 0x1d, 0x2e,
+	0x9f, 0x57, 0xe3, 0x67, 0xdc, 0x12, 0x7f, 0x6d, 0xfc, 0x93, 0x5b, 0xe2, 0xdb, 0xd1, 0x57, 0xc7,
+	0xad, 0x6f, 0xdc, 0xfa, 0xce, 0x6f, 0x7d, 0xe3, 0x6e, 0x55, 0x5c, 0xd5, 0x3a, 0xcd, 0xd7, 0xc7,
+	0xed, 0xc9, 0x37, 0xc7, 0xed, 0xc9, 0x3f, 0x8e, 0xdb, 0x93, 0x3f, 0x9c, 0xb4, 0x27, 0xde, 0x9c,
+	0xb4, 0x27, 0x7e, 0x3b, 0x69, 0x4f, 0xec, 0x5f, 0x51, 0xff, 0x7e, 0x3f, 0xfa, 0x2b, 0x00, 0x00,
+	0xff, 0xff, 0x3b, 0xed, 0xed, 0x08, 0x38, 0x18, 0x00, 0x00,
 }
 
 func (m *Tx) Marshal() (dAtA []byte, err error) {
@@ -2927,15 +2930,15 @@ func (m *Tx_SetValidatorsMsg) MarshalTo(dAtA []byte) (int, error) {
 	}
 	return i, nil
 }
-func (m *Tx_NewTokenInfoMsg) MarshalTo(dAtA []byte) (int, error) {
+func (m *Tx_CreateTokenInfoMsg) MarshalTo(dAtA []byte) (int, error) {
 	i := 0
-	if m.NewTokenInfoMsg != nil {
+	if m.CreateTokenInfoMsg != nil {
 		dAtA[i] = 0xda
 		i++
 		dAtA[i] = 0x3
 		i++
-		i = encodeVarintCodec(dAtA, i, uint64(m.NewTokenInfoMsg.Size()))
-		n11, err := m.NewTokenInfoMsg.MarshalTo(dAtA[i:])
+		i = encodeVarintCodec(dAtA, i, uint64(m.CreateTokenInfoMsg.Size()))
+		n11, err := m.CreateTokenInfoMsg.MarshalTo(dAtA[i:])
 		if err != nil {
 			return 0, err
 		}
@@ -2943,15 +2946,15 @@ func (m *Tx_NewTokenInfoMsg) MarshalTo(dAtA []byte) (int, error) {
 	}
 	return i, nil
 }
-func (m *Tx_BatchMsg) MarshalTo(dAtA []byte) (int, error) {
+func (m *Tx_ExecuteBatchMsg) MarshalTo(dAtA []byte) (int, error) {
 	i := 0
-	if m.BatchMsg != nil {
+	if m.ExecuteBatchMsg != nil {
 		dAtA[i] = 0xe2
 		i++
 		dAtA[i] = 0x3
 		i++
-		i = encodeVarintCodec(dAtA, i, uint64(m.BatchMsg.Size()))
-		n12, err := m.BatchMsg.MarshalTo(dAtA[i:])
+		i = encodeVarintCodec(dAtA, i, uint64(m.ExecuteBatchMsg.Size()))
+		n12, err := m.ExecuteBatchMsg.MarshalTo(dAtA[i:])
 		if err != nil {
 			return 0, err
 		}
@@ -3007,15 +3010,15 @@ func (m *Tx_ChangeUsernameTokenTargetsMsg) MarshalTo(dAtA []byte) (int, error) {
 	}
 	return i, nil
 }
-func (m *Tx_NewRevenueMsg) MarshalTo(dAtA []byte) (int, error) {
+func (m *Tx_CreateRevenueMsg) MarshalTo(dAtA []byte) (int, error) {
 	i := 0
-	if m.NewRevenueMsg != nil {
+	if m.CreateRevenueMsg != nil {
 		dAtA[i] = 0x92
 		i++
 		dAtA[i] = 0x4
 		i++
-		i = encodeVarintCodec(dAtA, i, uint64(m.NewRevenueMsg.Size()))
-		n16, err := m.NewRevenueMsg.MarshalTo(dAtA[i:])
+		i = encodeVarintCodec(dAtA, i, uint64(m.CreateRevenueMsg.Size()))
+		n16, err := m.CreateRevenueMsg.MarshalTo(dAtA[i:])
 		if err != nil {
 			return 0, err
 		}
@@ -3215,7 +3218,7 @@ func (m *Tx_UpdateElectionRuleMsg) MarshalTo(dAtA []byte) (int, error) {
 	}
 	return i, nil
 }
-func (m *BatchMsg) Marshal() (dAtA []byte, err error) {
+func (m *ExecuteBatchMsg) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalTo(dAtA)
@@ -3225,7 +3228,7 @@ func (m *BatchMsg) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *BatchMsg) MarshalTo(dAtA []byte) (int, error) {
+func (m *ExecuteBatchMsg) MarshalTo(dAtA []byte) (int, error) {
 	var i int
 	_ = i
 	var l int
@@ -3245,7 +3248,7 @@ func (m *BatchMsg) MarshalTo(dAtA []byte) (int, error) {
 	return i, nil
 }
 
-func (m *BatchMsg_Union) Marshal() (dAtA []byte, err error) {
+func (m *ExecuteBatchMsg_Union) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalTo(dAtA)
@@ -3255,7 +3258,7 @@ func (m *BatchMsg_Union) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *BatchMsg_Union) MarshalTo(dAtA []byte) (int, error) {
+func (m *ExecuteBatchMsg_Union) MarshalTo(dAtA []byte) (int, error) {
 	var i int
 	_ = i
 	var l int
@@ -3270,7 +3273,7 @@ func (m *BatchMsg_Union) MarshalTo(dAtA []byte) (int, error) {
 	return i, nil
 }
 
-func (m *BatchMsg_Union_SendMsg) MarshalTo(dAtA []byte) (int, error) {
+func (m *ExecuteBatchMsg_Union_SendMsg) MarshalTo(dAtA []byte) (int, error) {
 	i := 0
 	if m.SendMsg != nil {
 		dAtA[i] = 0x9a
@@ -3286,7 +3289,7 @@ func (m *BatchMsg_Union_SendMsg) MarshalTo(dAtA []byte) (int, error) {
 	}
 	return i, nil
 }
-func (m *BatchMsg_Union_CreateEscrowMsg) MarshalTo(dAtA []byte) (int, error) {
+func (m *ExecuteBatchMsg_Union_CreateEscrowMsg) MarshalTo(dAtA []byte) (int, error) {
 	i := 0
 	if m.CreateEscrowMsg != nil {
 		dAtA[i] = 0xa2
@@ -3302,7 +3305,7 @@ func (m *BatchMsg_Union_CreateEscrowMsg) MarshalTo(dAtA []byte) (int, error) {
 	}
 	return i, nil
 }
-func (m *BatchMsg_Union_ReleaseEscrowMsg) MarshalTo(dAtA []byte) (int, error) {
+func (m *ExecuteBatchMsg_Union_ReleaseEscrowMsg) MarshalTo(dAtA []byte) (int, error) {
 	i := 0
 	if m.ReleaseEscrowMsg != nil {
 		dAtA[i] = 0xaa
@@ -3318,7 +3321,7 @@ func (m *BatchMsg_Union_ReleaseEscrowMsg) MarshalTo(dAtA []byte) (int, error) {
 	}
 	return i, nil
 }
-func (m *BatchMsg_Union_ReturnEscrowMsg) MarshalTo(dAtA []byte) (int, error) {
+func (m *ExecuteBatchMsg_Union_ReturnEscrowMsg) MarshalTo(dAtA []byte) (int, error) {
 	i := 0
 	if m.ReturnEscrowMsg != nil {
 		dAtA[i] = 0xb2
@@ -3334,7 +3337,7 @@ func (m *BatchMsg_Union_ReturnEscrowMsg) MarshalTo(dAtA []byte) (int, error) {
 	}
 	return i, nil
 }
-func (m *BatchMsg_Union_UpdateEscrowMsg) MarshalTo(dAtA []byte) (int, error) {
+func (m *ExecuteBatchMsg_Union_UpdateEscrowMsg) MarshalTo(dAtA []byte) (int, error) {
 	i := 0
 	if m.UpdateEscrowMsg != nil {
 		dAtA[i] = 0xba
@@ -3350,7 +3353,7 @@ func (m *BatchMsg_Union_UpdateEscrowMsg) MarshalTo(dAtA []byte) (int, error) {
 	}
 	return i, nil
 }
-func (m *BatchMsg_Union_CreateContractMsg) MarshalTo(dAtA []byte) (int, error) {
+func (m *ExecuteBatchMsg_Union_CreateContractMsg) MarshalTo(dAtA []byte) (int, error) {
 	i := 0
 	if m.CreateContractMsg != nil {
 		dAtA[i] = 0xc2
@@ -3366,7 +3369,7 @@ func (m *BatchMsg_Union_CreateContractMsg) MarshalTo(dAtA []byte) (int, error) {
 	}
 	return i, nil
 }
-func (m *BatchMsg_Union_UpdateContractMsg) MarshalTo(dAtA []byte) (int, error) {
+func (m *ExecuteBatchMsg_Union_UpdateContractMsg) MarshalTo(dAtA []byte) (int, error) {
 	i := 0
 	if m.UpdateContractMsg != nil {
 		dAtA[i] = 0xca
@@ -3382,7 +3385,7 @@ func (m *BatchMsg_Union_UpdateContractMsg) MarshalTo(dAtA []byte) (int, error) {
 	}
 	return i, nil
 }
-func (m *BatchMsg_Union_SetValidatorsMsg) MarshalTo(dAtA []byte) (int, error) {
+func (m *ExecuteBatchMsg_Union_SetValidatorsMsg) MarshalTo(dAtA []byte) (int, error) {
 	i := 0
 	if m.SetValidatorsMsg != nil {
 		dAtA[i] = 0xd2
@@ -3398,15 +3401,15 @@ func (m *BatchMsg_Union_SetValidatorsMsg) MarshalTo(dAtA []byte) (int, error) {
 	}
 	return i, nil
 }
-func (m *BatchMsg_Union_NewTokenInfoMsg) MarshalTo(dAtA []byte) (int, error) {
+func (m *ExecuteBatchMsg_Union_CreateTokenInfoMsg) MarshalTo(dAtA []byte) (int, error) {
 	i := 0
-	if m.NewTokenInfoMsg != nil {
+	if m.CreateTokenInfoMsg != nil {
 		dAtA[i] = 0xda
 		i++
 		dAtA[i] = 0x3
 		i++
-		i = encodeVarintCodec(dAtA, i, uint64(m.NewTokenInfoMsg.Size()))
-		n38, err := m.NewTokenInfoMsg.MarshalTo(dAtA[i:])
+		i = encodeVarintCodec(dAtA, i, uint64(m.CreateTokenInfoMsg.Size()))
+		n38, err := m.CreateTokenInfoMsg.MarshalTo(dAtA[i:])
 		if err != nil {
 			return 0, err
 		}
@@ -3414,7 +3417,7 @@ func (m *BatchMsg_Union_NewTokenInfoMsg) MarshalTo(dAtA []byte) (int, error) {
 	}
 	return i, nil
 }
-func (m *BatchMsg_Union_RegisterUsernameTokenMsg) MarshalTo(dAtA []byte) (int, error) {
+func (m *ExecuteBatchMsg_Union_RegisterUsernameTokenMsg) MarshalTo(dAtA []byte) (int, error) {
 	i := 0
 	if m.RegisterUsernameTokenMsg != nil {
 		dAtA[i] = 0xea
@@ -3430,7 +3433,7 @@ func (m *BatchMsg_Union_RegisterUsernameTokenMsg) MarshalTo(dAtA []byte) (int, e
 	}
 	return i, nil
 }
-func (m *BatchMsg_Union_TransferUsernameTokenMsg) MarshalTo(dAtA []byte) (int, error) {
+func (m *ExecuteBatchMsg_Union_TransferUsernameTokenMsg) MarshalTo(dAtA []byte) (int, error) {
 	i := 0
 	if m.TransferUsernameTokenMsg != nil {
 		dAtA[i] = 0xf2
@@ -3446,7 +3449,7 @@ func (m *BatchMsg_Union_TransferUsernameTokenMsg) MarshalTo(dAtA []byte) (int, e
 	}
 	return i, nil
 }
-func (m *BatchMsg_Union_ChangeUsernameTokenTargetsMsg) MarshalTo(dAtA []byte) (int, error) {
+func (m *ExecuteBatchMsg_Union_ChangeUsernameTokenTargetsMsg) MarshalTo(dAtA []byte) (int, error) {
 	i := 0
 	if m.ChangeUsernameTokenTargetsMsg != nil {
 		dAtA[i] = 0xfa
@@ -3462,15 +3465,15 @@ func (m *BatchMsg_Union_ChangeUsernameTokenTargetsMsg) MarshalTo(dAtA []byte) (i
 	}
 	return i, nil
 }
-func (m *BatchMsg_Union_NewRevenueMsg) MarshalTo(dAtA []byte) (int, error) {
+func (m *ExecuteBatchMsg_Union_CreateRevenueMsg) MarshalTo(dAtA []byte) (int, error) {
 	i := 0
-	if m.NewRevenueMsg != nil {
+	if m.CreateRevenueMsg != nil {
 		dAtA[i] = 0x92
 		i++
 		dAtA[i] = 0x4
 		i++
-		i = encodeVarintCodec(dAtA, i, uint64(m.NewRevenueMsg.Size()))
-		n42, err := m.NewRevenueMsg.MarshalTo(dAtA[i:])
+		i = encodeVarintCodec(dAtA, i, uint64(m.CreateRevenueMsg.Size()))
+		n42, err := m.CreateRevenueMsg.MarshalTo(dAtA[i:])
 		if err != nil {
 			return 0, err
 		}
@@ -3478,7 +3481,7 @@ func (m *BatchMsg_Union_NewRevenueMsg) MarshalTo(dAtA []byte) (int, error) {
 	}
 	return i, nil
 }
-func (m *BatchMsg_Union_DistributeMsg) MarshalTo(dAtA []byte) (int, error) {
+func (m *ExecuteBatchMsg_Union_DistributeMsg) MarshalTo(dAtA []byte) (int, error) {
 	i := 0
 	if m.DistributeMsg != nil {
 		dAtA[i] = 0x9a
@@ -3494,7 +3497,7 @@ func (m *BatchMsg_Union_DistributeMsg) MarshalTo(dAtA []byte) (int, error) {
 	}
 	return i, nil
 }
-func (m *BatchMsg_Union_ResetRevenueMsg) MarshalTo(dAtA []byte) (int, error) {
+func (m *ExecuteBatchMsg_Union_ResetRevenueMsg) MarshalTo(dAtA []byte) (int, error) {
 	i := 0
 	if m.ResetRevenueMsg != nil {
 		dAtA[i] = 0xa2
@@ -3599,15 +3602,15 @@ func (m *ProposalOptions_SetValidatorsMsg) MarshalTo(dAtA []byte) (int, error) {
 	}
 	return i, nil
 }
-func (m *ProposalOptions_BatchMsg) MarshalTo(dAtA []byte) (int, error) {
+func (m *ProposalOptions_ExecuteProposalBatchMsg) MarshalTo(dAtA []byte) (int, error) {
 	i := 0
-	if m.BatchMsg != nil {
+	if m.ExecuteProposalBatchMsg != nil {
 		dAtA[i] = 0xe2
 		i++
 		dAtA[i] = 0x3
 		i++
-		i = encodeVarintCodec(dAtA, i, uint64(m.BatchMsg.Size()))
-		n50, err := m.BatchMsg.MarshalTo(dAtA[i:])
+		i = encodeVarintCodec(dAtA, i, uint64(m.ExecuteProposalBatchMsg.Size()))
+		n50, err := m.ExecuteProposalBatchMsg.MarshalTo(dAtA[i:])
 		if err != nil {
 			return 0, err
 		}
@@ -3663,15 +3666,15 @@ func (m *ProposalOptions_ChangeUsernameTokenTargetsMsg) MarshalTo(dAtA []byte) (
 	}
 	return i, nil
 }
-func (m *ProposalOptions_NewRevenueMsg) MarshalTo(dAtA []byte) (int, error) {
+func (m *ProposalOptions_CreateRevenueMsg) MarshalTo(dAtA []byte) (int, error) {
 	i := 0
-	if m.NewRevenueMsg != nil {
+	if m.CreateRevenueMsg != nil {
 		dAtA[i] = 0x92
 		i++
 		dAtA[i] = 0x4
 		i++
-		i = encodeVarintCodec(dAtA, i, uint64(m.NewRevenueMsg.Size()))
-		n54, err := m.NewRevenueMsg.MarshalTo(dAtA[i:])
+		i = encodeVarintCodec(dAtA, i, uint64(m.CreateRevenueMsg.Size()))
+		n54, err := m.CreateRevenueMsg.MarshalTo(dAtA[i:])
 		if err != nil {
 			return 0, err
 		}
@@ -3759,15 +3762,15 @@ func (m *ProposalOptions_UpdateElectionRuleMsg) MarshalTo(dAtA []byte) (int, err
 	}
 	return i, nil
 }
-func (m *ProposalOptions_TextResolutionMsg) MarshalTo(dAtA []byte) (int, error) {
+func (m *ProposalOptions_CreateTextResolutionMsg) MarshalTo(dAtA []byte) (int, error) {
 	i := 0
-	if m.TextResolutionMsg != nil {
+	if m.CreateTextResolutionMsg != nil {
 		dAtA[i] = 0xfa
 		i++
 		dAtA[i] = 0x4
 		i++
-		i = encodeVarintCodec(dAtA, i, uint64(m.TextResolutionMsg.Size()))
-		n60, err := m.TextResolutionMsg.MarshalTo(dAtA[i:])
+		i = encodeVarintCodec(dAtA, i, uint64(m.CreateTextResolutionMsg.Size()))
+		n60, err := m.CreateTextResolutionMsg.MarshalTo(dAtA[i:])
 		if err != nil {
 			return 0, err
 		}
@@ -3775,7 +3778,7 @@ func (m *ProposalOptions_TextResolutionMsg) MarshalTo(dAtA []byte) (int, error) 
 	}
 	return i, nil
 }
-func (m *ProposalBatchMsg) Marshal() (dAtA []byte, err error) {
+func (m *ExecuteProposalBatchMsg) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalTo(dAtA)
@@ -3785,7 +3788,7 @@ func (m *ProposalBatchMsg) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *ProposalBatchMsg) MarshalTo(dAtA []byte) (int, error) {
+func (m *ExecuteProposalBatchMsg) MarshalTo(dAtA []byte) (int, error) {
 	var i int
 	_ = i
 	var l int
@@ -3805,7 +3808,7 @@ func (m *ProposalBatchMsg) MarshalTo(dAtA []byte) (int, error) {
 	return i, nil
 }
 
-func (m *ProposalBatchMsg_Union) Marshal() (dAtA []byte, err error) {
+func (m *ExecuteProposalBatchMsg_Union) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalTo(dAtA)
@@ -3815,7 +3818,7 @@ func (m *ProposalBatchMsg_Union) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *ProposalBatchMsg_Union) MarshalTo(dAtA []byte) (int, error) {
+func (m *ExecuteProposalBatchMsg_Union) MarshalTo(dAtA []byte) (int, error) {
 	var i int
 	_ = i
 	var l int
@@ -3830,7 +3833,7 @@ func (m *ProposalBatchMsg_Union) MarshalTo(dAtA []byte) (int, error) {
 	return i, nil
 }
 
-func (m *ProposalBatchMsg_Union_SendMsg) MarshalTo(dAtA []byte) (int, error) {
+func (m *ExecuteProposalBatchMsg_Union_SendMsg) MarshalTo(dAtA []byte) (int, error) {
 	i := 0
 	if m.SendMsg != nil {
 		dAtA[i] = 0x9a
@@ -3846,7 +3849,7 @@ func (m *ProposalBatchMsg_Union_SendMsg) MarshalTo(dAtA []byte) (int, error) {
 	}
 	return i, nil
 }
-func (m *ProposalBatchMsg_Union_ReleaseEscrowMsg) MarshalTo(dAtA []byte) (int, error) {
+func (m *ExecuteProposalBatchMsg_Union_ReleaseEscrowMsg) MarshalTo(dAtA []byte) (int, error) {
 	i := 0
 	if m.ReleaseEscrowMsg != nil {
 		dAtA[i] = 0xaa
@@ -3862,7 +3865,7 @@ func (m *ProposalBatchMsg_Union_ReleaseEscrowMsg) MarshalTo(dAtA []byte) (int, e
 	}
 	return i, nil
 }
-func (m *ProposalBatchMsg_Union_UpdateEscrowMsg) MarshalTo(dAtA []byte) (int, error) {
+func (m *ExecuteProposalBatchMsg_Union_UpdateEscrowMsg) MarshalTo(dAtA []byte) (int, error) {
 	i := 0
 	if m.UpdateEscrowMsg != nil {
 		dAtA[i] = 0xba
@@ -3878,7 +3881,7 @@ func (m *ProposalBatchMsg_Union_UpdateEscrowMsg) MarshalTo(dAtA []byte) (int, er
 	}
 	return i, nil
 }
-func (m *ProposalBatchMsg_Union_SetValidatorsMsg) MarshalTo(dAtA []byte) (int, error) {
+func (m *ExecuteProposalBatchMsg_Union_SetValidatorsMsg) MarshalTo(dAtA []byte) (int, error) {
 	i := 0
 	if m.SetValidatorsMsg != nil {
 		dAtA[i] = 0xd2
@@ -3894,7 +3897,7 @@ func (m *ProposalBatchMsg_Union_SetValidatorsMsg) MarshalTo(dAtA []byte) (int, e
 	}
 	return i, nil
 }
-func (m *ProposalBatchMsg_Union_RegisterUsernameTokenMsg) MarshalTo(dAtA []byte) (int, error) {
+func (m *ExecuteProposalBatchMsg_Union_RegisterUsernameTokenMsg) MarshalTo(dAtA []byte) (int, error) {
 	i := 0
 	if m.RegisterUsernameTokenMsg != nil {
 		dAtA[i] = 0xea
@@ -3910,7 +3913,7 @@ func (m *ProposalBatchMsg_Union_RegisterUsernameTokenMsg) MarshalTo(dAtA []byte)
 	}
 	return i, nil
 }
-func (m *ProposalBatchMsg_Union_TransferUsernameTokenMsg) MarshalTo(dAtA []byte) (int, error) {
+func (m *ExecuteProposalBatchMsg_Union_TransferUsernameTokenMsg) MarshalTo(dAtA []byte) (int, error) {
 	i := 0
 	if m.TransferUsernameTokenMsg != nil {
 		dAtA[i] = 0xf2
@@ -3926,7 +3929,7 @@ func (m *ProposalBatchMsg_Union_TransferUsernameTokenMsg) MarshalTo(dAtA []byte)
 	}
 	return i, nil
 }
-func (m *ProposalBatchMsg_Union_ChangeUsernameTokenTargetsMsg) MarshalTo(dAtA []byte) (int, error) {
+func (m *ExecuteProposalBatchMsg_Union_ChangeUsernameTokenTargetsMsg) MarshalTo(dAtA []byte) (int, error) {
 	i := 0
 	if m.ChangeUsernameTokenTargetsMsg != nil {
 		dAtA[i] = 0xfa
@@ -3942,15 +3945,15 @@ func (m *ProposalBatchMsg_Union_ChangeUsernameTokenTargetsMsg) MarshalTo(dAtA []
 	}
 	return i, nil
 }
-func (m *ProposalBatchMsg_Union_NewRevenueMsg) MarshalTo(dAtA []byte) (int, error) {
+func (m *ExecuteProposalBatchMsg_Union_CreateRevenueMsg) MarshalTo(dAtA []byte) (int, error) {
 	i := 0
-	if m.NewRevenueMsg != nil {
+	if m.CreateRevenueMsg != nil {
 		dAtA[i] = 0x92
 		i++
 		dAtA[i] = 0x4
 		i++
-		i = encodeVarintCodec(dAtA, i, uint64(m.NewRevenueMsg.Size()))
-		n69, err := m.NewRevenueMsg.MarshalTo(dAtA[i:])
+		i = encodeVarintCodec(dAtA, i, uint64(m.CreateRevenueMsg.Size()))
+		n69, err := m.CreateRevenueMsg.MarshalTo(dAtA[i:])
 		if err != nil {
 			return 0, err
 		}
@@ -3958,7 +3961,7 @@ func (m *ProposalBatchMsg_Union_NewRevenueMsg) MarshalTo(dAtA []byte) (int, erro
 	}
 	return i, nil
 }
-func (m *ProposalBatchMsg_Union_DistributeMsg) MarshalTo(dAtA []byte) (int, error) {
+func (m *ExecuteProposalBatchMsg_Union_DistributeMsg) MarshalTo(dAtA []byte) (int, error) {
 	i := 0
 	if m.DistributeMsg != nil {
 		dAtA[i] = 0x9a
@@ -3974,7 +3977,7 @@ func (m *ProposalBatchMsg_Union_DistributeMsg) MarshalTo(dAtA []byte) (int, erro
 	}
 	return i, nil
 }
-func (m *ProposalBatchMsg_Union_ResetRevenueMsg) MarshalTo(dAtA []byte) (int, error) {
+func (m *ExecuteProposalBatchMsg_Union_ResetRevenueMsg) MarshalTo(dAtA []byte) (int, error) {
 	i := 0
 	if m.ResetRevenueMsg != nil {
 		dAtA[i] = 0xa2
@@ -3990,7 +3993,7 @@ func (m *ProposalBatchMsg_Union_ResetRevenueMsg) MarshalTo(dAtA []byte) (int, er
 	}
 	return i, nil
 }
-func (m *ProposalBatchMsg_Union_UpdateElectorateMsg) MarshalTo(dAtA []byte) (int, error) {
+func (m *ExecuteProposalBatchMsg_Union_UpdateElectorateMsg) MarshalTo(dAtA []byte) (int, error) {
 	i := 0
 	if m.UpdateElectorateMsg != nil {
 		dAtA[i] = 0xea
@@ -4006,7 +4009,7 @@ func (m *ProposalBatchMsg_Union_UpdateElectorateMsg) MarshalTo(dAtA []byte) (int
 	}
 	return i, nil
 }
-func (m *ProposalBatchMsg_Union_UpdateElectionRuleMsg) MarshalTo(dAtA []byte) (int, error) {
+func (m *ExecuteProposalBatchMsg_Union_UpdateElectionRuleMsg) MarshalTo(dAtA []byte) (int, error) {
 	i := 0
 	if m.UpdateElectionRuleMsg != nil {
 		dAtA[i] = 0xf2
@@ -4022,15 +4025,15 @@ func (m *ProposalBatchMsg_Union_UpdateElectionRuleMsg) MarshalTo(dAtA []byte) (i
 	}
 	return i, nil
 }
-func (m *ProposalBatchMsg_Union_TextResolutionMsg) MarshalTo(dAtA []byte) (int, error) {
+func (m *ExecuteProposalBatchMsg_Union_CreateTextResolutionMsg) MarshalTo(dAtA []byte) (int, error) {
 	i := 0
-	if m.TextResolutionMsg != nil {
+	if m.CreateTextResolutionMsg != nil {
 		dAtA[i] = 0xfa
 		i++
 		dAtA[i] = 0x4
 		i++
-		i = encodeVarintCodec(dAtA, i, uint64(m.TextResolutionMsg.Size()))
-		n74, err := m.TextResolutionMsg.MarshalTo(dAtA[i:])
+		i = encodeVarintCodec(dAtA, i, uint64(m.CreateTextResolutionMsg.Size()))
+		n74, err := m.CreateTextResolutionMsg.MarshalTo(dAtA[i:])
 		if err != nil {
 			return 0, err
 		}
@@ -4171,26 +4174,26 @@ func (m *Tx_SetValidatorsMsg) Size() (n int) {
 	}
 	return n
 }
-func (m *Tx_NewTokenInfoMsg) Size() (n int) {
+func (m *Tx_CreateTokenInfoMsg) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	if m.NewTokenInfoMsg != nil {
-		l = m.NewTokenInfoMsg.Size()
+	if m.CreateTokenInfoMsg != nil {
+		l = m.CreateTokenInfoMsg.Size()
 		n += 2 + l + sovCodec(uint64(l))
 	}
 	return n
 }
-func (m *Tx_BatchMsg) Size() (n int) {
+func (m *Tx_ExecuteBatchMsg) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	if m.BatchMsg != nil {
-		l = m.BatchMsg.Size()
+	if m.ExecuteBatchMsg != nil {
+		l = m.ExecuteBatchMsg.Size()
 		n += 2 + l + sovCodec(uint64(l))
 	}
 	return n
@@ -4231,14 +4234,14 @@ func (m *Tx_ChangeUsernameTokenTargetsMsg) Size() (n int) {
 	}
 	return n
 }
-func (m *Tx_NewRevenueMsg) Size() (n int) {
+func (m *Tx_CreateRevenueMsg) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	if m.NewRevenueMsg != nil {
-		l = m.NewRevenueMsg.Size()
+	if m.CreateRevenueMsg != nil {
+		l = m.CreateRevenueMsg.Size()
 		n += 2 + l + sovCodec(uint64(l))
 	}
 	return n
@@ -4387,7 +4390,7 @@ func (m *Tx_UpdateElectionRuleMsg) Size() (n int) {
 	}
 	return n
 }
-func (m *BatchMsg) Size() (n int) {
+func (m *ExecuteBatchMsg) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -4402,7 +4405,7 @@ func (m *BatchMsg) Size() (n int) {
 	return n
 }
 
-func (m *BatchMsg_Union) Size() (n int) {
+func (m *ExecuteBatchMsg_Union) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -4414,7 +4417,7 @@ func (m *BatchMsg_Union) Size() (n int) {
 	return n
 }
 
-func (m *BatchMsg_Union_SendMsg) Size() (n int) {
+func (m *ExecuteBatchMsg_Union_SendMsg) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -4426,7 +4429,7 @@ func (m *BatchMsg_Union_SendMsg) Size() (n int) {
 	}
 	return n
 }
-func (m *BatchMsg_Union_CreateEscrowMsg) Size() (n int) {
+func (m *ExecuteBatchMsg_Union_CreateEscrowMsg) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -4438,7 +4441,7 @@ func (m *BatchMsg_Union_CreateEscrowMsg) Size() (n int) {
 	}
 	return n
 }
-func (m *BatchMsg_Union_ReleaseEscrowMsg) Size() (n int) {
+func (m *ExecuteBatchMsg_Union_ReleaseEscrowMsg) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -4450,7 +4453,7 @@ func (m *BatchMsg_Union_ReleaseEscrowMsg) Size() (n int) {
 	}
 	return n
 }
-func (m *BatchMsg_Union_ReturnEscrowMsg) Size() (n int) {
+func (m *ExecuteBatchMsg_Union_ReturnEscrowMsg) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -4462,7 +4465,7 @@ func (m *BatchMsg_Union_ReturnEscrowMsg) Size() (n int) {
 	}
 	return n
 }
-func (m *BatchMsg_Union_UpdateEscrowMsg) Size() (n int) {
+func (m *ExecuteBatchMsg_Union_UpdateEscrowMsg) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -4474,7 +4477,7 @@ func (m *BatchMsg_Union_UpdateEscrowMsg) Size() (n int) {
 	}
 	return n
 }
-func (m *BatchMsg_Union_CreateContractMsg) Size() (n int) {
+func (m *ExecuteBatchMsg_Union_CreateContractMsg) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -4486,7 +4489,7 @@ func (m *BatchMsg_Union_CreateContractMsg) Size() (n int) {
 	}
 	return n
 }
-func (m *BatchMsg_Union_UpdateContractMsg) Size() (n int) {
+func (m *ExecuteBatchMsg_Union_UpdateContractMsg) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -4498,7 +4501,7 @@ func (m *BatchMsg_Union_UpdateContractMsg) Size() (n int) {
 	}
 	return n
 }
-func (m *BatchMsg_Union_SetValidatorsMsg) Size() (n int) {
+func (m *ExecuteBatchMsg_Union_SetValidatorsMsg) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -4510,19 +4513,19 @@ func (m *BatchMsg_Union_SetValidatorsMsg) Size() (n int) {
 	}
 	return n
 }
-func (m *BatchMsg_Union_NewTokenInfoMsg) Size() (n int) {
+func (m *ExecuteBatchMsg_Union_CreateTokenInfoMsg) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	if m.NewTokenInfoMsg != nil {
-		l = m.NewTokenInfoMsg.Size()
+	if m.CreateTokenInfoMsg != nil {
+		l = m.CreateTokenInfoMsg.Size()
 		n += 2 + l + sovCodec(uint64(l))
 	}
 	return n
 }
-func (m *BatchMsg_Union_RegisterUsernameTokenMsg) Size() (n int) {
+func (m *ExecuteBatchMsg_Union_RegisterUsernameTokenMsg) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -4534,7 +4537,7 @@ func (m *BatchMsg_Union_RegisterUsernameTokenMsg) Size() (n int) {
 	}
 	return n
 }
-func (m *BatchMsg_Union_TransferUsernameTokenMsg) Size() (n int) {
+func (m *ExecuteBatchMsg_Union_TransferUsernameTokenMsg) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -4546,7 +4549,7 @@ func (m *BatchMsg_Union_TransferUsernameTokenMsg) Size() (n int) {
 	}
 	return n
 }
-func (m *BatchMsg_Union_ChangeUsernameTokenTargetsMsg) Size() (n int) {
+func (m *ExecuteBatchMsg_Union_ChangeUsernameTokenTargetsMsg) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -4558,19 +4561,19 @@ func (m *BatchMsg_Union_ChangeUsernameTokenTargetsMsg) Size() (n int) {
 	}
 	return n
 }
-func (m *BatchMsg_Union_NewRevenueMsg) Size() (n int) {
+func (m *ExecuteBatchMsg_Union_CreateRevenueMsg) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	if m.NewRevenueMsg != nil {
-		l = m.NewRevenueMsg.Size()
+	if m.CreateRevenueMsg != nil {
+		l = m.CreateRevenueMsg.Size()
 		n += 2 + l + sovCodec(uint64(l))
 	}
 	return n
 }
-func (m *BatchMsg_Union_DistributeMsg) Size() (n int) {
+func (m *ExecuteBatchMsg_Union_DistributeMsg) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -4582,7 +4585,7 @@ func (m *BatchMsg_Union_DistributeMsg) Size() (n int) {
 	}
 	return n
 }
-func (m *BatchMsg_Union_ResetRevenueMsg) Size() (n int) {
+func (m *ExecuteBatchMsg_Union_ResetRevenueMsg) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -4654,14 +4657,14 @@ func (m *ProposalOptions_SetValidatorsMsg) Size() (n int) {
 	}
 	return n
 }
-func (m *ProposalOptions_BatchMsg) Size() (n int) {
+func (m *ProposalOptions_ExecuteProposalBatchMsg) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	if m.BatchMsg != nil {
-		l = m.BatchMsg.Size()
+	if m.ExecuteProposalBatchMsg != nil {
+		l = m.ExecuteProposalBatchMsg.Size()
 		n += 2 + l + sovCodec(uint64(l))
 	}
 	return n
@@ -4702,14 +4705,14 @@ func (m *ProposalOptions_ChangeUsernameTokenTargetsMsg) Size() (n int) {
 	}
 	return n
 }
-func (m *ProposalOptions_NewRevenueMsg) Size() (n int) {
+func (m *ProposalOptions_CreateRevenueMsg) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	if m.NewRevenueMsg != nil {
-		l = m.NewRevenueMsg.Size()
+	if m.CreateRevenueMsg != nil {
+		l = m.CreateRevenueMsg.Size()
 		n += 2 + l + sovCodec(uint64(l))
 	}
 	return n
@@ -4774,19 +4777,19 @@ func (m *ProposalOptions_UpdateElectionRuleMsg) Size() (n int) {
 	}
 	return n
 }
-func (m *ProposalOptions_TextResolutionMsg) Size() (n int) {
+func (m *ProposalOptions_CreateTextResolutionMsg) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	if m.TextResolutionMsg != nil {
-		l = m.TextResolutionMsg.Size()
+	if m.CreateTextResolutionMsg != nil {
+		l = m.CreateTextResolutionMsg.Size()
 		n += 2 + l + sovCodec(uint64(l))
 	}
 	return n
 }
-func (m *ProposalBatchMsg) Size() (n int) {
+func (m *ExecuteProposalBatchMsg) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -4801,7 +4804,7 @@ func (m *ProposalBatchMsg) Size() (n int) {
 	return n
 }
 
-func (m *ProposalBatchMsg_Union) Size() (n int) {
+func (m *ExecuteProposalBatchMsg_Union) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -4813,7 +4816,7 @@ func (m *ProposalBatchMsg_Union) Size() (n int) {
 	return n
 }
 
-func (m *ProposalBatchMsg_Union_SendMsg) Size() (n int) {
+func (m *ExecuteProposalBatchMsg_Union_SendMsg) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -4825,7 +4828,7 @@ func (m *ProposalBatchMsg_Union_SendMsg) Size() (n int) {
 	}
 	return n
 }
-func (m *ProposalBatchMsg_Union_ReleaseEscrowMsg) Size() (n int) {
+func (m *ExecuteProposalBatchMsg_Union_ReleaseEscrowMsg) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -4837,7 +4840,7 @@ func (m *ProposalBatchMsg_Union_ReleaseEscrowMsg) Size() (n int) {
 	}
 	return n
 }
-func (m *ProposalBatchMsg_Union_UpdateEscrowMsg) Size() (n int) {
+func (m *ExecuteProposalBatchMsg_Union_UpdateEscrowMsg) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -4849,7 +4852,7 @@ func (m *ProposalBatchMsg_Union_UpdateEscrowMsg) Size() (n int) {
 	}
 	return n
 }
-func (m *ProposalBatchMsg_Union_SetValidatorsMsg) Size() (n int) {
+func (m *ExecuteProposalBatchMsg_Union_SetValidatorsMsg) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -4861,7 +4864,7 @@ func (m *ProposalBatchMsg_Union_SetValidatorsMsg) Size() (n int) {
 	}
 	return n
 }
-func (m *ProposalBatchMsg_Union_RegisterUsernameTokenMsg) Size() (n int) {
+func (m *ExecuteProposalBatchMsg_Union_RegisterUsernameTokenMsg) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -4873,7 +4876,7 @@ func (m *ProposalBatchMsg_Union_RegisterUsernameTokenMsg) Size() (n int) {
 	}
 	return n
 }
-func (m *ProposalBatchMsg_Union_TransferUsernameTokenMsg) Size() (n int) {
+func (m *ExecuteProposalBatchMsg_Union_TransferUsernameTokenMsg) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -4885,7 +4888,7 @@ func (m *ProposalBatchMsg_Union_TransferUsernameTokenMsg) Size() (n int) {
 	}
 	return n
 }
-func (m *ProposalBatchMsg_Union_ChangeUsernameTokenTargetsMsg) Size() (n int) {
+func (m *ExecuteProposalBatchMsg_Union_ChangeUsernameTokenTargetsMsg) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -4897,19 +4900,19 @@ func (m *ProposalBatchMsg_Union_ChangeUsernameTokenTargetsMsg) Size() (n int) {
 	}
 	return n
 }
-func (m *ProposalBatchMsg_Union_NewRevenueMsg) Size() (n int) {
+func (m *ExecuteProposalBatchMsg_Union_CreateRevenueMsg) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	if m.NewRevenueMsg != nil {
-		l = m.NewRevenueMsg.Size()
+	if m.CreateRevenueMsg != nil {
+		l = m.CreateRevenueMsg.Size()
 		n += 2 + l + sovCodec(uint64(l))
 	}
 	return n
 }
-func (m *ProposalBatchMsg_Union_DistributeMsg) Size() (n int) {
+func (m *ExecuteProposalBatchMsg_Union_DistributeMsg) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -4921,7 +4924,7 @@ func (m *ProposalBatchMsg_Union_DistributeMsg) Size() (n int) {
 	}
 	return n
 }
-func (m *ProposalBatchMsg_Union_ResetRevenueMsg) Size() (n int) {
+func (m *ExecuteProposalBatchMsg_Union_ResetRevenueMsg) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -4933,7 +4936,7 @@ func (m *ProposalBatchMsg_Union_ResetRevenueMsg) Size() (n int) {
 	}
 	return n
 }
-func (m *ProposalBatchMsg_Union_UpdateElectorateMsg) Size() (n int) {
+func (m *ExecuteProposalBatchMsg_Union_UpdateElectorateMsg) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -4945,7 +4948,7 @@ func (m *ProposalBatchMsg_Union_UpdateElectorateMsg) Size() (n int) {
 	}
 	return n
 }
-func (m *ProposalBatchMsg_Union_UpdateElectionRuleMsg) Size() (n int) {
+func (m *ExecuteProposalBatchMsg_Union_UpdateElectionRuleMsg) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -4957,14 +4960,14 @@ func (m *ProposalBatchMsg_Union_UpdateElectionRuleMsg) Size() (n int) {
 	}
 	return n
 }
-func (m *ProposalBatchMsg_Union_TextResolutionMsg) Size() (n int) {
+func (m *ExecuteProposalBatchMsg_Union_CreateTextResolutionMsg) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	if m.TextResolutionMsg != nil {
-		l = m.TextResolutionMsg.Size()
+	if m.CreateTextResolutionMsg != nil {
+		l = m.CreateTextResolutionMsg.Size()
 		n += 2 + l + sovCodec(uint64(l))
 	}
 	return n
@@ -5396,7 +5399,7 @@ func (m *Tx) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 59:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field NewTokenInfoMsg", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field CreateTokenInfoMsg", wireType)
 			}
 			var msglen int
 			for shift := uint(0); ; shift += 7 {
@@ -5423,15 +5426,15 @@ func (m *Tx) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			v := &currency.NewTokenInfoMsg{}
+			v := &currency.CreateTokenInfoMsg{}
 			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
-			m.Sum = &Tx_NewTokenInfoMsg{v}
+			m.Sum = &Tx_CreateTokenInfoMsg{v}
 			iNdEx = postIndex
 		case 60:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field BatchMsg", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field ExecuteBatchMsg", wireType)
 			}
 			var msglen int
 			for shift := uint(0); ; shift += 7 {
@@ -5458,11 +5461,11 @@ func (m *Tx) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			v := &BatchMsg{}
+			v := &ExecuteBatchMsg{}
 			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
-			m.Sum = &Tx_BatchMsg{v}
+			m.Sum = &Tx_ExecuteBatchMsg{v}
 			iNdEx = postIndex
 		case 61:
 			if wireType != 2 {
@@ -5571,7 +5574,7 @@ func (m *Tx) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 66:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field NewRevenueMsg", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field CreateRevenueMsg", wireType)
 			}
 			var msglen int
 			for shift := uint(0); ; shift += 7 {
@@ -5598,11 +5601,11 @@ func (m *Tx) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			v := &distribution.NewRevenueMsg{}
+			v := &distribution.CreateRevenueMsg{}
 			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
-			m.Sum = &Tx_NewRevenueMsg{v}
+			m.Sum = &Tx_CreateRevenueMsg{v}
 			iNdEx = postIndex
 		case 67:
 			if wireType != 2 {
@@ -6048,7 +6051,7 @@ func (m *Tx) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *BatchMsg) Unmarshal(dAtA []byte) error {
+func (m *ExecuteBatchMsg) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -6071,10 +6074,10 @@ func (m *BatchMsg) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: BatchMsg: wiretype end group for non-group")
+			return fmt.Errorf("proto: ExecuteBatchMsg: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: BatchMsg: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: ExecuteBatchMsg: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -6106,7 +6109,7 @@ func (m *BatchMsg) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Messages = append(m.Messages, BatchMsg_Union{})
+			m.Messages = append(m.Messages, ExecuteBatchMsg_Union{})
 			if err := m.Messages[len(m.Messages)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
@@ -6135,7 +6138,7 @@ func (m *BatchMsg) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *BatchMsg_Union) Unmarshal(dAtA []byte) error {
+func (m *ExecuteBatchMsg_Union) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -6197,7 +6200,7 @@ func (m *BatchMsg_Union) Unmarshal(dAtA []byte) error {
 			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
-			m.Sum = &BatchMsg_Union_SendMsg{v}
+			m.Sum = &ExecuteBatchMsg_Union_SendMsg{v}
 			iNdEx = postIndex
 		case 52:
 			if wireType != 2 {
@@ -6232,7 +6235,7 @@ func (m *BatchMsg_Union) Unmarshal(dAtA []byte) error {
 			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
-			m.Sum = &BatchMsg_Union_CreateEscrowMsg{v}
+			m.Sum = &ExecuteBatchMsg_Union_CreateEscrowMsg{v}
 			iNdEx = postIndex
 		case 53:
 			if wireType != 2 {
@@ -6267,7 +6270,7 @@ func (m *BatchMsg_Union) Unmarshal(dAtA []byte) error {
 			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
-			m.Sum = &BatchMsg_Union_ReleaseEscrowMsg{v}
+			m.Sum = &ExecuteBatchMsg_Union_ReleaseEscrowMsg{v}
 			iNdEx = postIndex
 		case 54:
 			if wireType != 2 {
@@ -6302,7 +6305,7 @@ func (m *BatchMsg_Union) Unmarshal(dAtA []byte) error {
 			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
-			m.Sum = &BatchMsg_Union_ReturnEscrowMsg{v}
+			m.Sum = &ExecuteBatchMsg_Union_ReturnEscrowMsg{v}
 			iNdEx = postIndex
 		case 55:
 			if wireType != 2 {
@@ -6337,7 +6340,7 @@ func (m *BatchMsg_Union) Unmarshal(dAtA []byte) error {
 			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
-			m.Sum = &BatchMsg_Union_UpdateEscrowMsg{v}
+			m.Sum = &ExecuteBatchMsg_Union_UpdateEscrowMsg{v}
 			iNdEx = postIndex
 		case 56:
 			if wireType != 2 {
@@ -6372,7 +6375,7 @@ func (m *BatchMsg_Union) Unmarshal(dAtA []byte) error {
 			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
-			m.Sum = &BatchMsg_Union_CreateContractMsg{v}
+			m.Sum = &ExecuteBatchMsg_Union_CreateContractMsg{v}
 			iNdEx = postIndex
 		case 57:
 			if wireType != 2 {
@@ -6407,7 +6410,7 @@ func (m *BatchMsg_Union) Unmarshal(dAtA []byte) error {
 			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
-			m.Sum = &BatchMsg_Union_UpdateContractMsg{v}
+			m.Sum = &ExecuteBatchMsg_Union_UpdateContractMsg{v}
 			iNdEx = postIndex
 		case 58:
 			if wireType != 2 {
@@ -6442,11 +6445,11 @@ func (m *BatchMsg_Union) Unmarshal(dAtA []byte) error {
 			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
-			m.Sum = &BatchMsg_Union_SetValidatorsMsg{v}
+			m.Sum = &ExecuteBatchMsg_Union_SetValidatorsMsg{v}
 			iNdEx = postIndex
 		case 59:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field NewTokenInfoMsg", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field CreateTokenInfoMsg", wireType)
 			}
 			var msglen int
 			for shift := uint(0); ; shift += 7 {
@@ -6473,11 +6476,11 @@ func (m *BatchMsg_Union) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			v := &currency.NewTokenInfoMsg{}
+			v := &currency.CreateTokenInfoMsg{}
 			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
-			m.Sum = &BatchMsg_Union_NewTokenInfoMsg{v}
+			m.Sum = &ExecuteBatchMsg_Union_CreateTokenInfoMsg{v}
 			iNdEx = postIndex
 		case 61:
 			if wireType != 2 {
@@ -6512,7 +6515,7 @@ func (m *BatchMsg_Union) Unmarshal(dAtA []byte) error {
 			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
-			m.Sum = &BatchMsg_Union_RegisterUsernameTokenMsg{v}
+			m.Sum = &ExecuteBatchMsg_Union_RegisterUsernameTokenMsg{v}
 			iNdEx = postIndex
 		case 62:
 			if wireType != 2 {
@@ -6547,7 +6550,7 @@ func (m *BatchMsg_Union) Unmarshal(dAtA []byte) error {
 			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
-			m.Sum = &BatchMsg_Union_TransferUsernameTokenMsg{v}
+			m.Sum = &ExecuteBatchMsg_Union_TransferUsernameTokenMsg{v}
 			iNdEx = postIndex
 		case 63:
 			if wireType != 2 {
@@ -6582,11 +6585,11 @@ func (m *BatchMsg_Union) Unmarshal(dAtA []byte) error {
 			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
-			m.Sum = &BatchMsg_Union_ChangeUsernameTokenTargetsMsg{v}
+			m.Sum = &ExecuteBatchMsg_Union_ChangeUsernameTokenTargetsMsg{v}
 			iNdEx = postIndex
 		case 66:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field NewRevenueMsg", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field CreateRevenueMsg", wireType)
 			}
 			var msglen int
 			for shift := uint(0); ; shift += 7 {
@@ -6613,11 +6616,11 @@ func (m *BatchMsg_Union) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			v := &distribution.NewRevenueMsg{}
+			v := &distribution.CreateRevenueMsg{}
 			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
-			m.Sum = &BatchMsg_Union_NewRevenueMsg{v}
+			m.Sum = &ExecuteBatchMsg_Union_CreateRevenueMsg{v}
 			iNdEx = postIndex
 		case 67:
 			if wireType != 2 {
@@ -6652,7 +6655,7 @@ func (m *BatchMsg_Union) Unmarshal(dAtA []byte) error {
 			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
-			m.Sum = &BatchMsg_Union_DistributeMsg{v}
+			m.Sum = &ExecuteBatchMsg_Union_DistributeMsg{v}
 			iNdEx = postIndex
 		case 68:
 			if wireType != 2 {
@@ -6687,7 +6690,7 @@ func (m *BatchMsg_Union) Unmarshal(dAtA []byte) error {
 			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
-			m.Sum = &BatchMsg_Union_ResetRevenueMsg{v}
+			m.Sum = &ExecuteBatchMsg_Union_ResetRevenueMsg{v}
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
@@ -6884,7 +6887,7 @@ func (m *ProposalOptions) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 60:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field BatchMsg", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field ExecuteProposalBatchMsg", wireType)
 			}
 			var msglen int
 			for shift := uint(0); ; shift += 7 {
@@ -6911,11 +6914,11 @@ func (m *ProposalOptions) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			v := &ProposalBatchMsg{}
+			v := &ExecuteProposalBatchMsg{}
 			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
-			m.Option = &ProposalOptions_BatchMsg{v}
+			m.Option = &ProposalOptions_ExecuteProposalBatchMsg{v}
 			iNdEx = postIndex
 		case 61:
 			if wireType != 2 {
@@ -7024,7 +7027,7 @@ func (m *ProposalOptions) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 66:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field NewRevenueMsg", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field CreateRevenueMsg", wireType)
 			}
 			var msglen int
 			for shift := uint(0); ; shift += 7 {
@@ -7051,11 +7054,11 @@ func (m *ProposalOptions) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			v := &distribution.NewRevenueMsg{}
+			v := &distribution.CreateRevenueMsg{}
 			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
-			m.Option = &ProposalOptions_NewRevenueMsg{v}
+			m.Option = &ProposalOptions_CreateRevenueMsg{v}
 			iNdEx = postIndex
 		case 67:
 			if wireType != 2 {
@@ -7234,7 +7237,7 @@ func (m *ProposalOptions) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 79:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field TextResolutionMsg", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field CreateTextResolutionMsg", wireType)
 			}
 			var msglen int
 			for shift := uint(0); ; shift += 7 {
@@ -7261,11 +7264,11 @@ func (m *ProposalOptions) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			v := &gov.TextResolutionMsg{}
+			v := &gov.CreateTextResolutionMsg{}
 			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
-			m.Option = &ProposalOptions_TextResolutionMsg{v}
+			m.Option = &ProposalOptions_CreateTextResolutionMsg{v}
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
@@ -7291,7 +7294,7 @@ func (m *ProposalOptions) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *ProposalBatchMsg) Unmarshal(dAtA []byte) error {
+func (m *ExecuteProposalBatchMsg) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -7314,10 +7317,10 @@ func (m *ProposalBatchMsg) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: ProposalBatchMsg: wiretype end group for non-group")
+			return fmt.Errorf("proto: ExecuteProposalBatchMsg: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: ProposalBatchMsg: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: ExecuteProposalBatchMsg: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -7349,7 +7352,7 @@ func (m *ProposalBatchMsg) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Messages = append(m.Messages, ProposalBatchMsg_Union{})
+			m.Messages = append(m.Messages, ExecuteProposalBatchMsg_Union{})
 			if err := m.Messages[len(m.Messages)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
@@ -7378,7 +7381,7 @@ func (m *ProposalBatchMsg) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *ProposalBatchMsg_Union) Unmarshal(dAtA []byte) error {
+func (m *ExecuteProposalBatchMsg_Union) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -7440,7 +7443,7 @@ func (m *ProposalBatchMsg_Union) Unmarshal(dAtA []byte) error {
 			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
-			m.Sum = &ProposalBatchMsg_Union_SendMsg{v}
+			m.Sum = &ExecuteProposalBatchMsg_Union_SendMsg{v}
 			iNdEx = postIndex
 		case 53:
 			if wireType != 2 {
@@ -7475,7 +7478,7 @@ func (m *ProposalBatchMsg_Union) Unmarshal(dAtA []byte) error {
 			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
-			m.Sum = &ProposalBatchMsg_Union_ReleaseEscrowMsg{v}
+			m.Sum = &ExecuteProposalBatchMsg_Union_ReleaseEscrowMsg{v}
 			iNdEx = postIndex
 		case 55:
 			if wireType != 2 {
@@ -7510,7 +7513,7 @@ func (m *ProposalBatchMsg_Union) Unmarshal(dAtA []byte) error {
 			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
-			m.Sum = &ProposalBatchMsg_Union_UpdateEscrowMsg{v}
+			m.Sum = &ExecuteProposalBatchMsg_Union_UpdateEscrowMsg{v}
 			iNdEx = postIndex
 		case 58:
 			if wireType != 2 {
@@ -7545,7 +7548,7 @@ func (m *ProposalBatchMsg_Union) Unmarshal(dAtA []byte) error {
 			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
-			m.Sum = &ProposalBatchMsg_Union_SetValidatorsMsg{v}
+			m.Sum = &ExecuteProposalBatchMsg_Union_SetValidatorsMsg{v}
 			iNdEx = postIndex
 		case 61:
 			if wireType != 2 {
@@ -7580,7 +7583,7 @@ func (m *ProposalBatchMsg_Union) Unmarshal(dAtA []byte) error {
 			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
-			m.Sum = &ProposalBatchMsg_Union_RegisterUsernameTokenMsg{v}
+			m.Sum = &ExecuteProposalBatchMsg_Union_RegisterUsernameTokenMsg{v}
 			iNdEx = postIndex
 		case 62:
 			if wireType != 2 {
@@ -7615,7 +7618,7 @@ func (m *ProposalBatchMsg_Union) Unmarshal(dAtA []byte) error {
 			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
-			m.Sum = &ProposalBatchMsg_Union_TransferUsernameTokenMsg{v}
+			m.Sum = &ExecuteProposalBatchMsg_Union_TransferUsernameTokenMsg{v}
 			iNdEx = postIndex
 		case 63:
 			if wireType != 2 {
@@ -7650,11 +7653,11 @@ func (m *ProposalBatchMsg_Union) Unmarshal(dAtA []byte) error {
 			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
-			m.Sum = &ProposalBatchMsg_Union_ChangeUsernameTokenTargetsMsg{v}
+			m.Sum = &ExecuteProposalBatchMsg_Union_ChangeUsernameTokenTargetsMsg{v}
 			iNdEx = postIndex
 		case 66:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field NewRevenueMsg", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field CreateRevenueMsg", wireType)
 			}
 			var msglen int
 			for shift := uint(0); ; shift += 7 {
@@ -7681,11 +7684,11 @@ func (m *ProposalBatchMsg_Union) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			v := &distribution.NewRevenueMsg{}
+			v := &distribution.CreateRevenueMsg{}
 			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
-			m.Sum = &ProposalBatchMsg_Union_NewRevenueMsg{v}
+			m.Sum = &ExecuteProposalBatchMsg_Union_CreateRevenueMsg{v}
 			iNdEx = postIndex
 		case 67:
 			if wireType != 2 {
@@ -7720,7 +7723,7 @@ func (m *ProposalBatchMsg_Union) Unmarshal(dAtA []byte) error {
 			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
-			m.Sum = &ProposalBatchMsg_Union_DistributeMsg{v}
+			m.Sum = &ExecuteProposalBatchMsg_Union_DistributeMsg{v}
 			iNdEx = postIndex
 		case 68:
 			if wireType != 2 {
@@ -7755,7 +7758,7 @@ func (m *ProposalBatchMsg_Union) Unmarshal(dAtA []byte) error {
 			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
-			m.Sum = &ProposalBatchMsg_Union_ResetRevenueMsg{v}
+			m.Sum = &ExecuteProposalBatchMsg_Union_ResetRevenueMsg{v}
 			iNdEx = postIndex
 		case 77:
 			if wireType != 2 {
@@ -7790,7 +7793,7 @@ func (m *ProposalBatchMsg_Union) Unmarshal(dAtA []byte) error {
 			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
-			m.Sum = &ProposalBatchMsg_Union_UpdateElectorateMsg{v}
+			m.Sum = &ExecuteProposalBatchMsg_Union_UpdateElectorateMsg{v}
 			iNdEx = postIndex
 		case 78:
 			if wireType != 2 {
@@ -7825,11 +7828,11 @@ func (m *ProposalBatchMsg_Union) Unmarshal(dAtA []byte) error {
 			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
-			m.Sum = &ProposalBatchMsg_Union_UpdateElectionRuleMsg{v}
+			m.Sum = &ExecuteProposalBatchMsg_Union_UpdateElectionRuleMsg{v}
 			iNdEx = postIndex
 		case 79:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field TextResolutionMsg", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field CreateTextResolutionMsg", wireType)
 			}
 			var msglen int
 			for shift := uint(0); ; shift += 7 {
@@ -7856,11 +7859,11 @@ func (m *ProposalBatchMsg_Union) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			v := &gov.TextResolutionMsg{}
+			v := &gov.CreateTextResolutionMsg{}
 			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
-			m.Sum = &ProposalBatchMsg_Union_TextResolutionMsg{v}
+			m.Sum = &ExecuteProposalBatchMsg_Union_CreateTextResolutionMsg{v}
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex

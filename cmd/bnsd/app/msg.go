@@ -14,19 +14,19 @@ func (tx *Tx) Fee(payer weave.Address, fee coin.Coin) {
 		Fees:  &fee}
 }
 
-// Boiler-plate needed to bridge the BatchMsg protobuf type into something usable by the batch extension
+// Boiler-plate needed to bridge the ExecuteBatchMsg protobuf type into something usable by the batch extension
 
-var _ batch.Msg = (*BatchMsg)(nil)
+var _ batch.Msg = (*ExecuteBatchMsg)(nil)
 
-func (*BatchMsg) Path() string {
+func (*ExecuteBatchMsg) Path() string {
 	return batch.PathExecuteBatchMsg
 }
 
-func (msg *BatchMsg) Validate() error {
+func (msg *ExecuteBatchMsg) Validate() error {
 	return batch.Validate(msg)
 }
 
-func (msg *BatchMsg) MsgList() ([]weave.Msg, error) {
+func (msg *ExecuteBatchMsg) MsgList() ([]weave.Msg, error) {
 	var err error
 	messages := make([]weave.Msg, len(msg.Messages))
 	for i, m := range msg.Messages {
@@ -38,19 +38,19 @@ func (msg *BatchMsg) MsgList() ([]weave.Msg, error) {
 	return messages, nil
 }
 
-// Boiler-plate needed to bridge the ProposalBatchMsg protobuf type into something usable by the batch extension
+// Boiler-plate needed to bridge the ExecuteProposalBatchMsg protobuf type into something usable by the batch extension
 
-var _ batch.Msg = (*ProposalBatchMsg)(nil)
+var _ batch.Msg = (*ExecuteProposalBatchMsg)(nil)
 
-func (*ProposalBatchMsg) Path() string {
+func (*ExecuteProposalBatchMsg) Path() string {
 	return batch.PathExecuteBatchMsg
 }
 
-func (msg *ProposalBatchMsg) Validate() error {
+func (msg *ExecuteProposalBatchMsg) Validate() error {
 	return batch.Validate(msg)
 }
 
-func (msg *ProposalBatchMsg) MsgList() ([]weave.Msg, error) {
+func (msg *ExecuteProposalBatchMsg) MsgList() ([]weave.Msg, error) {
 	var err error
 	messages := make([]weave.Msg, len(msg.Messages))
 	for i, m := range msg.Messages {

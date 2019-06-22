@@ -80,96 +80,96 @@ transaction (ie signatures) are being dropped.
 		option.Option = &app.ProposalOptions_SetValidatorsMsg{
 			SetValidatorsMsg: msg,
 		}
-	case *app.BatchMsg:
+	case *app.ExecuteBatchMsg:
 		msgs, err := msg.MsgList()
 		if err != nil {
 			return fmt.Errorf("cannot extract messages: %s", err)
 		}
-		var messages []app.ProposalBatchMsg_Union
+		var messages []app.ExecuteProposalBatchMsg_Union
 		for _, m := range msgs {
 			switch m := m.(type) {
 			case *cash.SendMsg:
-				messages = append(messages, app.ProposalBatchMsg_Union{
-					Sum: &app.ProposalBatchMsg_Union_SendMsg{
+				messages = append(messages, app.ExecuteProposalBatchMsg_Union{
+					Sum: &app.ExecuteProposalBatchMsg_Union_SendMsg{
 						SendMsg: m,
 					},
 				})
 			case *escrow.ReleaseEscrowMsg:
-				messages = append(messages, app.ProposalBatchMsg_Union{
-					Sum: &app.ProposalBatchMsg_Union_ReleaseEscrowMsg{
+				messages = append(messages, app.ExecuteProposalBatchMsg_Union{
+					Sum: &app.ExecuteProposalBatchMsg_Union_ReleaseEscrowMsg{
 						ReleaseEscrowMsg: m,
 					},
 				})
 			case *escrow.UpdateEscrowPartiesMsg:
-				messages = append(messages, app.ProposalBatchMsg_Union{
-					Sum: &app.ProposalBatchMsg_Union_UpdateEscrowMsg{
+				messages = append(messages, app.ExecuteProposalBatchMsg_Union{
+					Sum: &app.ExecuteProposalBatchMsg_Union_UpdateEscrowMsg{
 						UpdateEscrowMsg: m,
 					},
 				})
 			case *validators.SetValidatorsMsg:
-				messages = append(messages, app.ProposalBatchMsg_Union{
-					Sum: &app.ProposalBatchMsg_Union_SetValidatorsMsg{
+				messages = append(messages, app.ExecuteProposalBatchMsg_Union{
+					Sum: &app.ExecuteProposalBatchMsg_Union_SetValidatorsMsg{
 						SetValidatorsMsg: m,
 					},
 				})
 			case *username.RegisterUsernameTokenMsg:
-				messages = append(messages, app.ProposalBatchMsg_Union{
-					Sum: &app.ProposalBatchMsg_Union_RegisterUsernameTokenMsg{
+				messages = append(messages, app.ExecuteProposalBatchMsg_Union{
+					Sum: &app.ExecuteProposalBatchMsg_Union_RegisterUsernameTokenMsg{
 						RegisterUsernameTokenMsg: m,
 					},
 				})
 			case *username.TransferUsernameTokenMsg:
-				messages = append(messages, app.ProposalBatchMsg_Union{
-					Sum: &app.ProposalBatchMsg_Union_TransferUsernameTokenMsg{
+				messages = append(messages, app.ExecuteProposalBatchMsg_Union{
+					Sum: &app.ExecuteProposalBatchMsg_Union_TransferUsernameTokenMsg{
 						TransferUsernameTokenMsg: m,
 					},
 				})
 			case *username.ChangeUsernameTokenTargetsMsg:
-				messages = append(messages, app.ProposalBatchMsg_Union{
-					Sum: &app.ProposalBatchMsg_Union_ChangeUsernameTokenTargetsMsg{
+				messages = append(messages, app.ExecuteProposalBatchMsg_Union{
+					Sum: &app.ExecuteProposalBatchMsg_Union_ChangeUsernameTokenTargetsMsg{
 						ChangeUsernameTokenTargetsMsg: m,
 					},
 				})
-			case *distribution.NewRevenueMsg:
-				messages = append(messages, app.ProposalBatchMsg_Union{
-					Sum: &app.ProposalBatchMsg_Union_NewRevenueMsg{
-						NewRevenueMsg: m,
+			case *distribution.CreateRevenueMsg:
+				messages = append(messages, app.ExecuteProposalBatchMsg_Union{
+					Sum: &app.ExecuteProposalBatchMsg_Union_CreateRevenueMsg{
+						CreateRevenueMsg: m,
 					},
 				})
 			case *distribution.DistributeMsg:
-				messages = append(messages, app.ProposalBatchMsg_Union{
-					Sum: &app.ProposalBatchMsg_Union_DistributeMsg{
+				messages = append(messages, app.ExecuteProposalBatchMsg_Union{
+					Sum: &app.ExecuteProposalBatchMsg_Union_DistributeMsg{
 						DistributeMsg: m,
 					},
 				})
 			case *distribution.ResetRevenueMsg:
-				messages = append(messages, app.ProposalBatchMsg_Union{
-					Sum: &app.ProposalBatchMsg_Union_ResetRevenueMsg{
+				messages = append(messages, app.ExecuteProposalBatchMsg_Union{
+					Sum: &app.ExecuteProposalBatchMsg_Union_ResetRevenueMsg{
 						ResetRevenueMsg: m,
 					},
 				})
 			case *gov.UpdateElectorateMsg:
-				messages = append(messages, app.ProposalBatchMsg_Union{
-					Sum: &app.ProposalBatchMsg_Union_UpdateElectorateMsg{
+				messages = append(messages, app.ExecuteProposalBatchMsg_Union{
+					Sum: &app.ExecuteProposalBatchMsg_Union_UpdateElectorateMsg{
 						UpdateElectorateMsg: m,
 					},
 				})
 			case *gov.UpdateElectionRuleMsg:
-				messages = append(messages, app.ProposalBatchMsg_Union{
-					Sum: &app.ProposalBatchMsg_Union_UpdateElectionRuleMsg{
+				messages = append(messages, app.ExecuteProposalBatchMsg_Union{
+					Sum: &app.ExecuteProposalBatchMsg_Union_UpdateElectionRuleMsg{
 						UpdateElectionRuleMsg: m,
 					},
 				})
-			case *gov.TextResolutionMsg:
-				messages = append(messages, app.ProposalBatchMsg_Union{
-					Sum: &app.ProposalBatchMsg_Union_TextResolutionMsg{
-						TextResolutionMsg: m,
+			case *gov.CreateTextResolutionMsg:
+				messages = append(messages, app.ExecuteProposalBatchMsg_Union{
+					Sum: &app.ExecuteProposalBatchMsg_Union_CreateTextResolutionMsg{
+						CreateTextResolutionMsg: m,
 					},
 				})
 			}
 		}
-		option.Option = &app.ProposalOptions_BatchMsg{
-			BatchMsg: &app.ProposalBatchMsg{
+		option.Option = &app.ProposalOptions_ExecuteProposalBatchMsg{
+			ExecuteProposalBatchMsg: &app.ExecuteProposalBatchMsg{
 				Messages: messages,
 			},
 		}
@@ -185,9 +185,9 @@ transaction (ie signatures) are being dropped.
 		option.Option = &app.ProposalOptions_ChangeUsernameTokenTargetsMsg{
 			ChangeUsernameTokenTargetsMsg: msg,
 		}
-	case *distribution.NewRevenueMsg:
-		option.Option = &app.ProposalOptions_NewRevenueMsg{
-			NewRevenueMsg: msg,
+	case *distribution.CreateRevenueMsg:
+		option.Option = &app.ProposalOptions_CreateRevenueMsg{
+			CreateRevenueMsg: msg,
 		}
 	case *distribution.DistributeMsg:
 		option.Option = &app.ProposalOptions_DistributeMsg{
@@ -209,9 +209,9 @@ transaction (ie signatures) are being dropped.
 		option.Option = &app.ProposalOptions_UpdateElectionRuleMsg{
 			UpdateElectionRuleMsg: msg,
 		}
-	case *gov.TextResolutionMsg:
-		option.Option = &app.ProposalOptions_TextResolutionMsg{
-			TextResolutionMsg: msg,
+	case *gov.CreateTextResolutionMsg:
+		option.Option = &app.ProposalOptions_CreateTextResolutionMsg{
+			CreateTextResolutionMsg: msg,
 		}
 	}
 
@@ -251,20 +251,20 @@ cash.SendMsg send_msg = 51;
 escrow.ReleaseEscrowMsg release_escrow_msg = 53;
 escrow.UpdateEscrowPartiesMsg update_escrow_msg = 55;
 validators.SetValidatorsMsg set_validators_msg = 58;
-ProposalBatchMsg batch_msg = 60;
+ExecuteProposalBatchMsg execute_batch_msg = 60;
 username.RegisterUsernameTokenMsg register_username_token_msg = 61;
 username.TransferUsernameTokenMsg transfer_username_token_msg = 62;
 username.ChangeUsernameTokenTargetsMsg change_username_token_targets_msg = 63;
-distribution.NewRevenueMsg new_revenue_msg = 66;
+distribution.CreateRevenueMsg create_revenue_msg = 66;
 distribution.DistributeMsg distribute_msg = 67;
 distribution.ResetRevenueMsg reset_revenue_msg = 68;
 migration.UpgradeSchemaMsg upgrade_schema_msg = 69;
 gov.UpdateElectorateMsg update_electorate_msg = 77;
 gov.UpdateElectionRuleMsg update_election_rule_msg = 78;
-gov.TextResolutionMsg text_resolution_msg = 79;
+gov.CreateTextResolutionMsg create_text_resolution_msg = 79;
 "
 
-# Copy this directly from the ProposalBatchMsg defined in cmd/bnsd/app/codec.proto
+# Copy this directly from the ExecuteProposalBatchMsg defined in cmd/bnsd/app/codec.proto
 # Remove all comment lines (starts with //)
 proposalbatch="
 cash.SendMsg send_msg = 51;
@@ -274,12 +274,12 @@ validators.SetValidatorsMsg set_validators_msg = 58;
 username.RegisterUsernameTokenMsg register_username_token_msg = 61;
 username.TransferUsernameTokenMsg transfer_username_token_msg = 62;
 username.ChangeUsernameTokenTargetsMsg change_username_token_targets_msg = 63;
-distribution.NewRevenueMsg new_revenue_msg = 66;
+distribution.CreateRevenueMsg create_revenue_msg = 66;
 distribution.DistributeMsg distribute_msg = 67;
 distribution.ResetRevenueMsg reset_revenue_msg = 68;
 gov.UpdateElectorateMsg update_electorate_msg = 77;
 gov.UpdateElectionRuleMsg update_election_rule_msg = 78;
-gov.TextResolutionMsg text_resolution_msg = 79;
+gov.CreateTextResolutionMsg create_text_resolution_msg = 79;
 "
 
 while read -r m; do
@@ -292,15 +292,15 @@ while read -r m; do
 	# Name is not always the same as the type name. Convert it to camel case.
 	name=`echo $m | cut -d ' ' -f2 | sed -r 's/(^|_)([a-z])/\U\2/g'`
 
-	# BatchMsg requires a special type cast to convert structures.
+	# ExecuteBatchMsg requires a special type cast to convert structures.
 	if [ "x$name" == "xBatchMsg" ]
 	then
-		echo "	case *app.BatchMsg:"
+		echo "	case *app.ExecuteBatchMsg:"
 		echo "		msgs, err := msg.MsgList()"
 		echo "		if err != nil {"
 		echo "			return fmt.Errorf(\"cannot extract messages: %s\", err)"
 		echo "		}"
-		echo "		var messages []app.ProposalBatchMsg_Union"
+		echo "		var messages []app.ExecuteProposalBatchMsg_Union"
 		echo "		for _, m := range msgs {"
 		echo "			switch m := m.(type) {"
 
@@ -315,8 +315,8 @@ while read -r m; do
 			name=`echo $m | cut -d ' ' -f2 | sed -r 's/(^|_)([a-z])/\U\2/g'`
 
 			echo "			case *$tp:"
-			echo "				messages = append(messages, app.ProposalBatchMsg_Union{"
-			echo "					Sum: &app.ProposalBatchMsg_Union_$name{"
+			echo "				messages = append(messages, app.ExecuteProposalBatchMsg_Union{"
+			echo "					Sum: &app.ExecuteProposalBatchMsg_Union_$name{"
 			echo "						$name: m,"
 			echo "					},"
 			echo "				})"
@@ -325,7 +325,7 @@ while read -r m; do
 		echo "			}"
 		echo "		}"
 		echo "		option.Option = &app.ProposalOptions_BatchMsg{"
-		echo "			BatchMsg: &app.ProposalBatchMsg{"
+		echo "			ExecuteBatchMsg: &app.ExecuteProposalBatchMsg{"
 		echo "				Messages: messages,"
 		echo "			},"
 		echo "		}"

@@ -47,7 +47,7 @@ func RegisterBasicProposalRouters(r weave.Registry, auth x.Authenticator) {
 	r = migration.SchemaMigratingRegistry(packageName, r)
 	r.Handle(pathUpdateElectorateMsg, newUpdateElectorateHandler(auth))
 	r.Handle(pathUpdateElectionRulesMsg, newUpdateElectionRuleHandler(auth))
-	r.Handle(pathTextResolutionMsg, newTextResolutionHandler(auth))
+	r.Handle(pathTextResolutionMsg, newCreateTextResolutionHandler(auth))
 }
 
 type VoteHandler struct {
@@ -567,19 +567,19 @@ func (h UpdateElectionRuleHandler) validate(ctx weave.Context, db weave.KVStore,
 	return &msg, rule, nil
 }
 
-type TextResolutionHandler struct {
+type createTextResolutionHandler struct {
 	auth   x.Authenticator
 	bucket *ResolutionBucket
 }
 
-func newTextResolutionHandler(auth x.Authenticator) *TextResolutionHandler {
-	return &TextResolutionHandler{
+func newCreateTextResolutionHandler(auth x.Authenticator) *createTextResolutionHandler {
+	return &createTextResolutionHandler{
 		auth:   auth,
 		bucket: NewResolutionBucket(),
 	}
 }
 
-func (h TextResolutionHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
+func (h createTextResolutionHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
 	_, err := h.validate(ctx, db, tx)
 	if err != nil {
 		return nil, err
@@ -587,7 +587,7 @@ func (h TextResolutionHandler) Check(ctx weave.Context, db weave.KVStore, tx wea
 	return &weave.CheckResult{GasAllocated: textResolutionCost}, nil
 }
 
-func (h TextResolutionHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
+func (h createTextResolutionHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	msg, err := h.validate(ctx, db, tx)
 	if err != nil {
 		return nil, err
@@ -612,8 +612,8 @@ func (h TextResolutionHandler) Deliver(ctx weave.Context, db weave.KVStore, tx w
 	return &weave.DeliverResult{Data: obj.Key()}, nil
 }
 
-func (h TextResolutionHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*TextResolutionMsg, error) {
-	var msg TextResolutionMsg
+func (h createTextResolutionHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*CreateTextResolutionMsg, error) {
+	var msg CreateTextResolutionMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, errors.Wrap(err, "load msg")
 	}

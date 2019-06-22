@@ -116,7 +116,7 @@ func proposalFixture(t testing.TB, alice weave.Address, mods ...func(*Proposal))
 	now := weave.AsUnixTime(time.Now())
 	textOpts := &ProposalOptions{
 		Option: &ProposalOptions_Text{
-			Text: &TextResolutionMsg{
+			Text: &CreateTextResolutionMsg{
 				Metadata:   &weave.Metadata{Schema: 1},
 				Resolution: fixtureResolution,
 			},
@@ -157,12 +157,12 @@ func buildElectors(n int) []Elector {
 	return r
 }
 
-// returns TextResolutionMsg
+// returns CreateTextResolutionMsg
 func genTextOptions(t *testing.T) []byte {
 	t.Helper()
 	textOpts := &ProposalOptions{
 		Option: &ProposalOptions_Text{
-			Text: &TextResolutionMsg{
+			Text: &CreateTextResolutionMsg{
 				Metadata:   &weave.Metadata{Schema: 1},
 				Resolution: "CI must be green before merging",
 			},
@@ -224,7 +224,7 @@ func generateInvalidOptions(t *testing.T) ([]byte, []byte) {
 
 	missingOpts := &ProposalOptions{
 		Option: &ProposalOptions_Text{
-			Text: &TextResolutionMsg{
+			Text: &CreateTextResolutionMsg{
 				Metadata: &weave.Metadata{Schema: 1},
 			},
 		},

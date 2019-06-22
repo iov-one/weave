@@ -499,23 +499,23 @@ func TestCreateResolution(t *testing.T) {
 
 	specs := map[string]struct {
 		ctx            weave.Context
-		Msg            TextResolutionMsg
+		Msg            CreateTextResolutionMsg
 		WantCheckErr   *errors.Error
 		WantDeliverErr *errors.Error
 		created        bool
 	}{
 		"Happy path": {
-			Msg:     TextResolutionMsg{Metadata: &weave.Metadata{Schema: 1}, Resolution: "123"},
+			Msg:     CreateTextResolutionMsg{Metadata: &weave.Metadata{Schema: 1}, Resolution: "123"},
 			ctx:     withProposal(context.Background(), &proposal, ID),
 			created: true,
 		},
 		"Proposal not in context": {
-			Msg:            TextResolutionMsg{Metadata: &weave.Metadata{Schema: 1}, Resolution: "123"},
+			Msg:            CreateTextResolutionMsg{Metadata: &weave.Metadata{Schema: 1}, Resolution: "123"},
 			ctx:            context.Background(),
 			WantDeliverErr: errors.ErrNotFound,
 		},
 		"Invalid Resolution": {
-			Msg:            TextResolutionMsg{Metadata: &weave.Metadata{Schema: 1}, Resolution: ""},
+			Msg:            CreateTextResolutionMsg{Metadata: &weave.Metadata{Schema: 1}, Resolution: ""},
 			ctx:            withProposal(context.Background(), &proposal, ID),
 			WantDeliverErr: errors.ErrEmpty,
 			WantCheckErr:   errors.ErrEmpty,
