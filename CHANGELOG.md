@@ -24,6 +24,13 @@
 
 Breaking changes
 
+- Some messages were renamed to follow the general `start with a verb` format:
+  - `x/namecoin`: `NewTokenMsg` -> `CreateTokenMsg`
+  - `x/distribution`: `NewRevenueMsg` -> `CreateRevenueMsg`
+  - `x/currency`: `NewTokenInfoMsg` -> `CreateTokenInfoMsg`
+  - `x/cash`: `ConfigurationMsg` -> `UpdateConfigurationMsg`
+  - `cmd/bnsd`: `BatchMsg` -> `ExecuteBatchMsg`, `ProposalBatchMsg` -> `ExecuteProposalBatchMsg`
+  - `x/gov`: `TextResolutionMsg` -> `CreateTextResolutionMsg`
 - Moved some more messages from `x/validators` package to `weave`
 - `cmd/bnsd`: `nft/username` allows now for any number of aliases/names for a
   single address. Lookup of the username by an address is no longer available.
