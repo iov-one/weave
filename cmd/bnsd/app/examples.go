@@ -11,7 +11,7 @@ import (
 	"github.com/iov-one/weave/commands"
 	"github.com/iov-one/weave/crypto"
 	"github.com/iov-one/weave/x/cash"
-	"github.com/iov-one/weave/x/namecoin"
+	"github.com/iov-one/weave/x/currency"
 	"github.com/iov-one/weave/x/sigs"
 )
 
@@ -41,9 +41,8 @@ func makePrivKey(seed string) *crypto.PrivateKey {
 
 // Examples generates some example structs to dump out with testgen
 func Examples() []commands.Example {
-	wallet := &namecoin.Wallet{
+	wallet := &cash.Set{
 		Metadata: &weave.Metadata{Schema: 1},
-		Name:     "example",
 		Coins: []*coin.Coin{
 			{Whole: 50000, Ticker: "ETH"},
 			{Whole: 150, Fractional: 567000, Ticker: "BTC"},
@@ -52,10 +51,9 @@ func Examples() []commands.Example {
 
 	eth := &coin.Coin{Whole: 50000, Fractional: 12345, Ticker: "ETH"}
 
-	token := &namecoin.Token{
+	token := &currency.TokenInfo{
 		Metadata: &weave.Metadata{Schema: 1},
 		Name:     "My special coin",
-		SigFigs:  8,
 	}
 
 	pub := sender.PublicKey()
@@ -73,19 +71,6 @@ func Examples() []commands.Example {
 		Dest:     dst,
 		Src:      addr,
 		Memo:     "Test payment",
-	}
-
-	nameMsg := &namecoin.SetWalletNameMsg{
-		Metadata: &weave.Metadata{Schema: 1},
-		Address:  addr,
-		Name:     "myname",
-	}
-
-	tokenMsg := &namecoin.NewTokenMsg{
-		Metadata: &weave.Metadata{Schema: 1},
-		Ticker:   "ATM",
-		Name:     "At the moment",
-		SigFigs:  3,
 	}
 
 	unsigned := Tx{
@@ -129,8 +114,6 @@ func Examples() []commands.Example {
 		{Filename: "pub_key", Obj: pub},
 		{Filename: "user", Obj: user},
 		{Filename: "send_msg", Obj: msg},
-		{Filename: "name_msg", Obj: nameMsg},
-		{Filename: "token_msg", Obj: tokenMsg},
 		{Filename: "unsigned_tx", Obj: &unsigned},
 		{Filename: "signed_tx", Obj: &tx},
 		{Filename: "register_username_token_msg", Obj: registerUsernameTokenMsg},

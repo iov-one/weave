@@ -5,6 +5,7 @@ import (
 	"github.com/iov-one/weave/commands"
 	"github.com/iov-one/weave/crypto"
 	"github.com/iov-one/weave/x/cash"
+	"github.com/iov-one/weave/x/currency"
 	"github.com/iov-one/weave/x/sigs"
 )
 
@@ -15,6 +16,10 @@ func Examples() []commands.Example {
 			{Whole: 50000, Ticker: "ETH"},
 			{Whole: 150, Fractional: 567000, Ticker: "BTC"},
 		},
+	}
+
+	token := &currency.TokenInfo{
+		Name: "My special coin",
 	}
 
 	priv := crypto.GenPrivKeyEd25519()
@@ -45,6 +50,7 @@ func Examples() []commands.Example {
 
 	return []commands.Example{
 		{Filename: "wallet", Obj: wallet},
+		{Filename: "token", Obj: token},
 		{Filename: "priv_key", Obj: priv},
 		{Filename: "pub_key", Obj: pub},
 		{Filename: "user", Obj: user},
