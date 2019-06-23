@@ -15,7 +15,7 @@
 
 The above transaction is a proposal for executing the following messages:
 {
-	"ExecuteBatchMsg": {
+	"ExecuteProposalBatchMsg": {
 		"messages": [
 			{
 				"Sum": {
