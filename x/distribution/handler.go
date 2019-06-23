@@ -32,7 +32,7 @@ type CashController interface {
 func RegisterRoutes(r weave.Registry, auth x.Authenticator, ctrl CashController) {
 	r = migration.SchemaMigratingRegistry("distribution", r)
 	bucket := NewRevenueBucket()
-	r.Handle(pathNewRevenueMsg, &newRevenueHandler{
+	r.Handle(pathCreateRevenueMsg, &createRevenueHandler{
 		auth:   auth,
 		bucket: bucket,
 		ctrl:   ctrl,
@@ -49,20 +49,20 @@ func RegisterRoutes(r weave.Registry, auth x.Authenticator, ctrl CashController)
 	})
 }
 
-type newRevenueHandler struct {
+type createRevenueHandler struct {
 	auth   x.Authenticator
 	bucket *RevenueBucket
 	ctrl   CashController
 }
 
-func (h *newRevenueHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
+func (h *createRevenueHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
 	if _, err := h.validate(ctx, db, tx); err != nil {
 		return nil, err
 	}
 	return &weave.CheckResult{GasAllocated: newRevenueCost}, nil
 }
 
-func (h *newRevenueHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
+func (h *createRevenueHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	msg, err := h.validate(ctx, db, tx)
 	if err != nil {
 		return nil, err
@@ -79,8 +79,8 @@ func (h *newRevenueHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weav
 	return &weave.DeliverResult{Data: obj.Key()}, nil
 }
 
-func (h *newRevenueHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*NewRevenueMsg, error) {
-	var msg NewRevenueMsg
+func (h *createRevenueHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*CreateRevenueMsg, error) {
+	var msg CreateRevenueMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, errors.Wrap(err, "load msg")
 	}

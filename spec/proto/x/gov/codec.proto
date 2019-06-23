@@ -235,7 +235,7 @@ message TallyMsg {
 // TextResolutionMsg is only intended to be dispatched internally from election
 // results. It adds a resolution to the list of "approved" resolutions,
 // with a reference to the electorate that approved it
-message TextResolutionMsg {
+message CreateTextResolutionMsg {
   weave.Metadata metadata = 1;
   string resolution = 2;
 }

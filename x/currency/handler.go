@@ -16,31 +16,31 @@ func RegisterQuery(qr weave.QueryRouter) {
 func RegisterRoutes(r weave.Registry, auth x.Authenticator, issuer weave.Address) {
 	r = migration.SchemaMigratingRegistry("currency", r)
 
-	r.Handle(NewTokenInfoMsg{}.Path(), NewTokenInfoHandler(auth, issuer))
+	r.Handle(CreateTokenInfoMsg{}.Path(), newCreateTokenInfoHandler(auth, issuer))
 }
 
-func NewTokenInfoHandler(auth x.Authenticator, issuer weave.Address) weave.Handler {
-	return &TokenInfoHandler{
+func newCreateTokenInfoHandler(auth x.Authenticator, issuer weave.Address) weave.Handler {
+	return &createTokenInfoHandler{
 		auth:   auth,
 		issuer: issuer,
 		bucket: NewTokenInfoBucket(),
 	}
 }
 
-type TokenInfoHandler struct {
+type createTokenInfoHandler struct {
 	auth   x.Authenticator
 	bucket *TokenInfoBucket
 	issuer weave.Address
 }
 
-func (h *TokenInfoHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
+func (h *createTokenInfoHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
 	if _, err := h.validate(ctx, db, tx); err != nil {
 		return nil, err
 	}
 	return &weave.CheckResult{GasAllocated: newTokenInfoCost}, nil
 }
 
-func (h *TokenInfoHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
+func (h *createTokenInfoHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	msg, err := h.validate(ctx, db, tx)
 	if err != nil {
 		return nil, err
@@ -49,8 +49,8 @@ func (h *TokenInfoHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave
 	return &weave.DeliverResult{}, h.bucket.Save(db, obj)
 }
 
-func (h *TokenInfoHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*NewTokenInfoMsg, error) {
-	var msg NewTokenInfoMsg
+func (h *createTokenInfoHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*CreateTokenInfoMsg, error) {
+	var msg CreateTokenInfoMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, errors.Wrap(err, "load msg")
 	}

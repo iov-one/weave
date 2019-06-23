@@ -57,7 +57,7 @@ func TestHandlers(t *testing.T) {
 			actions: []action{
 				{
 					conditions: []weave.Condition{src},
-					msg: &NewRevenueMsg{
+					msg: &CreateRevenueMsg{
 						Metadata:   &weave.Metadata{Schema: 1},
 						Admin:      []byte("f427d624ed29c1fae0e2"),
 						Recipients: []*Recipient{},
@@ -67,7 +67,7 @@ func TestHandlers(t *testing.T) {
 				},
 				{
 					conditions: []weave.Condition{src},
-					msg: &NewRevenueMsg{
+					msg: &CreateRevenueMsg{
 						Metadata: &weave.Metadata{Schema: 1},
 						Admin:    []byte("f427d624ed29c1fae0e2"),
 						Recipients: []*Recipient{
@@ -127,7 +127,7 @@ func TestHandlers(t *testing.T) {
 			actions: []action{
 				{
 					conditions: []weave.Condition{src},
-					msg: &NewRevenueMsg{
+					msg: &CreateRevenueMsg{
 						Metadata: &weave.Metadata{Schema: 1},
 						Admin:    []byte("f427d624ed29c1fae0e2"),
 						Recipients: []*Recipient{
@@ -158,7 +158,7 @@ func TestHandlers(t *testing.T) {
 			actions: []action{
 				{
 					conditions: []weave.Condition{src},
-					msg: &NewRevenueMsg{
+					msg: &CreateRevenueMsg{
 						Metadata: &weave.Metadata{Schema: 1},
 						Admin:    []byte("f427d624ed29c1fae0e2"),
 						Recipients: []*Recipient{
@@ -192,7 +192,7 @@ func TestHandlers(t *testing.T) {
 			actions: []action{
 				{
 					conditions: []weave.Condition{src},
-					msg: &NewRevenueMsg{
+					msg: &CreateRevenueMsg{
 						Metadata: &weave.Metadata{Schema: 1},
 						Admin:    []byte("f427d624ed29c1fae0e2"),
 						Recipients: []*Recipient{
@@ -228,7 +228,7 @@ func TestHandlers(t *testing.T) {
 			actions: []action{
 				{
 					conditions: []weave.Condition{src},
-					msg: &NewRevenueMsg{
+					msg: &CreateRevenueMsg{
 						Metadata: &weave.Metadata{Schema: 1},
 						Admin:    []byte("f427d624ed29c1fae0e2"),
 						Recipients: []*Recipient{
@@ -264,7 +264,7 @@ func TestHandlers(t *testing.T) {
 			actions: []action{
 				{
 					conditions: []weave.Condition{src},
-					msg: &NewRevenueMsg{
+					msg: &CreateRevenueMsg{
 						Metadata: &weave.Metadata{Schema: 1},
 						Admin:    []byte("f427d624ed29c1fae0e2"),
 						Recipients: []*Recipient{
@@ -300,7 +300,7 @@ func TestHandlers(t *testing.T) {
 			actions: []action{
 				{
 					conditions: []weave.Condition{src},
-					msg: &NewRevenueMsg{
+					msg: &CreateRevenueMsg{
 						Metadata: &weave.Metadata{Schema: 1},
 						Admin:    []byte("f427d624ed29c1fae0e2"),
 						Recipients: []*Recipient{

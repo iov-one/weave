@@ -194,19 +194,19 @@
             <ul>
               
                 <li>
-                  <a href="#app.BatchMsg"><span class="badge">M</span>BatchMsg</a>
+                  <a href="#app.ExecuteBatchMsg"><span class="badge">M</span>ExecuteBatchMsg</a>
                 </li>
               
                 <li>
-                  <a href="#app.BatchMsg.Union"><span class="badge">M</span>BatchMsg.Union</a>
+                  <a href="#app.ExecuteBatchMsg.Union"><span class="badge">M</span>ExecuteBatchMsg.Union</a>
                 </li>
               
                 <li>
-                  <a href="#app.ProposalBatchMsg"><span class="badge">M</span>ProposalBatchMsg</a>
+                  <a href="#app.ExecuteProposalBatchMsg"><span class="badge">M</span>ExecuteProposalBatchMsg</a>
                 </li>
               
                 <li>
-                  <a href="#app.ProposalBatchMsg.Union"><span class="badge">M</span>ProposalBatchMsg.Union</a>
+                  <a href="#app.ExecuteProposalBatchMsg.Union"><span class="badge">M</span>ExecuteProposalBatchMsg.Union</a>
                 </li>
               
                 <li>
@@ -417,10 +417,6 @@
                 </li>
               
                 <li>
-                  <a href="#cash.ConfigurationMsg"><span class="badge">M</span>ConfigurationMsg</a>
-                </li>
-              
-                <li>
                   <a href="#cash.FeeInfo"><span class="badge">M</span>FeeInfo</a>
                 </li>
               
@@ -430,6 +426,10 @@
               
                 <li>
                   <a href="#cash.Set"><span class="badge">M</span>Set</a>
+                </li>
+              
+                <li>
+                  <a href="#cash.UpdateConfigurationMsg"><span class="badge">M</span>UpdateConfigurationMsg</a>
                 </li>
               
               
@@ -444,7 +444,7 @@
             <ul>
               
                 <li>
-                  <a href="#currency.NewTokenInfoMsg"><span class="badge">M</span>NewTokenInfoMsg</a>
+                  <a href="#currency.CreateTokenInfoMsg"><span class="badge">M</span>CreateTokenInfoMsg</a>
                 </li>
               
                 <li>
@@ -463,11 +463,11 @@
             <ul>
               
                 <li>
-                  <a href="#distribution.DistributeMsg"><span class="badge">M</span>DistributeMsg</a>
+                  <a href="#distribution.CreateRevenueMsg"><span class="badge">M</span>CreateRevenueMsg</a>
                 </li>
               
                 <li>
-                  <a href="#distribution.NewRevenueMsg"><span class="badge">M</span>NewRevenueMsg</a>
+                  <a href="#distribution.DistributeMsg"><span class="badge">M</span>DistributeMsg</a>
                 </li>
               
                 <li>
@@ -529,6 +529,10 @@
                 </li>
               
                 <li>
+                  <a href="#gov.CreateTextResolutionMsg"><span class="badge">M</span>CreateTextResolutionMsg</a>
+                </li>
+              
+                <li>
                   <a href="#gov.DeleteProposalMsg"><span class="badge">M</span>DeleteProposalMsg</a>
                 </li>
               
@@ -562,10 +566,6 @@
               
                 <li>
                   <a href="#gov.TallyResult"><span class="badge">M</span>TallyResult</a>
-                </li>
-              
-                <li>
-                  <a href="#gov.TextResolutionMsg"><span class="badge">M</span>TextResolutionMsg</a>
                 </li>
               
                 <li>
@@ -785,8 +785,8 @@
       <p></p>
 
       
-        <h3 id="app.BatchMsg">BatchMsg</h3>
-        <p>BatchMsg encapsulates multiple messages to support batch transaction</p>
+        <h3 id="app.ExecuteBatchMsg">ExecuteBatchMsg</h3>
+        <p>ExecuteBatchMsg encapsulates multiple messages to support batch transaction</p>
 
         
           <table class="field-table">
@@ -797,7 +797,7 @@
               
                 <tr>
                   <td>messages</td>
-                  <td><a href="#app.BatchMsg.Union">BatchMsg.Union</a></td>
+                  <td><a href="#app.ExecuteBatchMsg.Union">ExecuteBatchMsg.Union</a></td>
                   <td>repeated</td>
                   <td><p> </p></td>
                 </tr>
@@ -808,7 +808,7 @@
 
         
       
-        <h3 id="app.BatchMsg.Union">BatchMsg.Union</h3>
+        <h3 id="app.ExecuteBatchMsg.Union">ExecuteBatchMsg.Union</h3>
         <p></p>
 
         
@@ -875,8 +875,8 @@
                 </tr>
               
                 <tr>
-                  <td>new_token_info_msg</td>
-                  <td><a href="#currency.NewTokenInfoMsg">currency.NewTokenInfoMsg</a></td>
+                  <td>create_token_info_msg</td>
+                  <td><a href="#currency.CreateTokenInfoMsg">currency.CreateTokenInfoMsg</a></td>
                   <td></td>
                   <td><p> </p></td>
                 </tr>
@@ -903,8 +903,8 @@
                 </tr>
               
                 <tr>
-                  <td>new_revenue_msg</td>
-                  <td><a href="#distribution.NewRevenueMsg">distribution.NewRevenueMsg</a></td>
+                  <td>create_revenue_msg</td>
+                  <td><a href="#distribution.CreateRevenueMsg">distribution.CreateRevenueMsg</a></td>
                   <td></td>
                   <td><p> </p></td>
                 </tr>
@@ -930,7 +930,7 @@ aswap and gov don&#39;t make much sense as part of a batch (no vote buying) </p>
 
         
       
-        <h3 id="app.ProposalBatchMsg">ProposalBatchMsg</h3>
+        <h3 id="app.ExecuteProposalBatchMsg">ExecuteProposalBatchMsg</h3>
         <p></p>
 
         
@@ -942,7 +942,7 @@ aswap and gov don&#39;t make much sense as part of a batch (no vote buying) </p>
               
                 <tr>
                   <td>messages</td>
-                  <td><a href="#app.ProposalBatchMsg.Union">ProposalBatchMsg.Union</a></td>
+                  <td><a href="#app.ExecuteProposalBatchMsg.Union">ExecuteProposalBatchMsg.Union</a></td>
                   <td>repeated</td>
                   <td><p> </p></td>
                 </tr>
@@ -953,7 +953,7 @@ aswap and gov don&#39;t make much sense as part of a batch (no vote buying) </p>
 
         
       
-        <h3 id="app.ProposalBatchMsg.Union">ProposalBatchMsg.Union</h3>
+        <h3 id="app.ExecuteProposalBatchMsg.Union">ExecuteProposalBatchMsg.Union</h3>
         <p></p>
 
         
@@ -1013,8 +1013,8 @@ aswap and gov don&#39;t make much sense as part of a batch (no vote buying) </p>
                 </tr>
               
                 <tr>
-                  <td>new_revenue_msg</td>
-                  <td><a href="#distribution.NewRevenueMsg">distribution.NewRevenueMsg</a></td>
+                  <td>create_revenue_msg</td>
+                  <td><a href="#distribution.CreateRevenueMsg">distribution.CreateRevenueMsg</a></td>
                   <td></td>
                   <td><p> </p></td>
                 </tr>
@@ -1048,8 +1048,8 @@ aswap and gov don&#39;t make much sense as part of a batch (no vote buying) </p>
                 </tr>
               
                 <tr>
-                  <td>text_resolution_msg</td>
-                  <td><a href="#gov.TextResolutionMsg">gov.TextResolutionMsg</a></td>
+                  <td>create_text_resolution_msg</td>
+                  <td><a href="#gov.CreateTextResolutionMsg">gov.CreateTextResolutionMsg</a></td>
                   <td></td>
                   <td><p> </p></td>
                 </tr>
@@ -1099,8 +1099,8 @@ aswap and gov don&#39;t make much sense as part of a batch (no vote buying) </p>
                 </tr>
               
                 <tr>
-                  <td>batch_msg</td>
-                  <td><a href="#app.ProposalBatchMsg">ProposalBatchMsg</a></td>
+                  <td>execute_proposal_batch_msg</td>
+                  <td><a href="#app.ExecuteProposalBatchMsg">ExecuteProposalBatchMsg</a></td>
                   <td></td>
                   <td><p> </p></td>
                 </tr>
@@ -1127,8 +1127,8 @@ aswap and gov don&#39;t make much sense as part of a batch (no vote buying) </p>
                 </tr>
               
                 <tr>
-                  <td>new_revenue_msg</td>
-                  <td><a href="#distribution.NewRevenueMsg">distribution.NewRevenueMsg</a></td>
+                  <td>create_revenue_msg</td>
+                  <td><a href="#distribution.CreateRevenueMsg">distribution.CreateRevenueMsg</a></td>
                   <td></td>
                   <td><p> </p></td>
                 </tr>
@@ -1169,8 +1169,8 @@ aswap and gov don&#39;t make much sense as part of a batch (no vote buying) </p>
                 </tr>
               
                 <tr>
-                  <td>text_resolution_msg</td>
-                  <td><a href="#gov.TextResolutionMsg">gov.TextResolutionMsg</a></td>
+                  <td>create_text_resolution_msg</td>
+                  <td><a href="#gov.CreateTextResolutionMsg">gov.CreateTextResolutionMsg</a></td>
                   <td></td>
                   <td><p> </p></td>
                 </tr>
@@ -1269,15 +1269,15 @@ aswap and gov don&#39;t make much sense as part of a batch (no vote buying) </p>
                 </tr>
               
                 <tr>
-                  <td>new_token_info_msg</td>
-                  <td><a href="#currency.NewTokenInfoMsg">currency.NewTokenInfoMsg</a></td>
+                  <td>create_token_info_msg</td>
+                  <td><a href="#currency.CreateTokenInfoMsg">currency.CreateTokenInfoMsg</a></td>
                   <td></td>
                   <td><p> </p></td>
                 </tr>
               
                 <tr>
-                  <td>batch_msg</td>
-                  <td><a href="#app.BatchMsg">BatchMsg</a></td>
+                  <td>execute_batch_msg</td>
+                  <td><a href="#app.ExecuteBatchMsg">ExecuteBatchMsg</a></td>
                   <td></td>
                   <td><p> </p></td>
                 </tr>
@@ -1304,8 +1304,8 @@ aswap and gov don&#39;t make much sense as part of a batch (no vote buying) </p>
                 </tr>
               
                 <tr>
-                  <td>new_revenue_msg</td>
-                  <td><a href="#distribution.NewRevenueMsg">distribution.NewRevenueMsg</a></td>
+                  <td>create_revenue_msg</td>
+                  <td><a href="#distribution.CreateRevenueMsg">distribution.CreateRevenueMsg</a></td>
                   <td></td>
                   <td><p> </p></td>
                 </tr>
@@ -2360,36 +2360,6 @@ needed to make use of gconf.NewUpdateConfigurationHandler </p></td>
 
         
       
-        <h3 id="cash.ConfigurationMsg">ConfigurationMsg</h3>
-        <p></p>
-
-        
-          <table class="field-table">
-            <thead>
-              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
-            </thead>
-            <tbody>
-              
-                <tr>
-                  <td>metadata</td>
-                  <td><a href="#weave.Metadata">weave.Metadata</a></td>
-                  <td></td>
-                  <td><p> </p></td>
-                </tr>
-              
-                <tr>
-                  <td>patch</td>
-                  <td><a href="#cash.Configuration">Configuration</a></td>
-                  <td></td>
-                  <td><p> </p></td>
-                </tr>
-              
-            </tbody>
-          </table>
-        
-
-        
-      
         <h3 id="cash.FeeInfo">FeeInfo</h3>
         <p>FeeInfo records who pays what fees to have this</p><p>message processed</p>
 
@@ -2508,6 +2478,36 @@ needed to make use of gconf.NewUpdateConfigurationHandler </p></td>
 
         
       
+        <h3 id="cash.UpdateConfigurationMsg">UpdateConfigurationMsg</h3>
+        <p></p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>metadata</td>
+                  <td><a href="#weave.Metadata">weave.Metadata</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>patch</td>
+                  <td><a href="#cash.Configuration">Configuration</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+        
+
+        
+      
 
       
 
@@ -2522,8 +2522,8 @@ needed to make use of gconf.NewUpdateConfigurationHandler </p></td>
       <p></p>
 
       
-        <h3 id="currency.NewTokenInfoMsg">NewTokenInfoMsg</h3>
-        <p>NewTokenInfoMsg will register a new currency. Ticker (currency symbol) can</p><p>be registered only once.</p>
+        <h3 id="currency.CreateTokenInfoMsg">CreateTokenInfoMsg</h3>
+        <p>CreateTokenInfoMsg will register a new currency. Ticker (currency symbol) can</p><p>be registered only once.</p>
 
         
           <table class="field-table">
@@ -2603,39 +2603,8 @@ needed to make use of gconf.NewUpdateConfigurationHandler </p></td>
       <p></p>
 
       
-        <h3 id="distribution.DistributeMsg">DistributeMsg</h3>
-        <p>DistributeMsg is a request to distribute all funds collected within a single</p><p>revenue instance. Revenue is distributed between recipients. Request must be</p><p>signed using admin key.</p>
-
-        
-          <table class="field-table">
-            <thead>
-              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
-            </thead>
-            <tbody>
-              
-                <tr>
-                  <td>metadata</td>
-                  <td><a href="#weave.Metadata">weave.Metadata</a></td>
-                  <td></td>
-                  <td><p> </p></td>
-                </tr>
-              
-                <tr>
-                  <td>revenue_id</td>
-                  <td><a href="#bytes">bytes</a></td>
-                  <td></td>
-                  <td><p>Revenue ID reference an ID of a revenue instance that the collected fees
-should be distributed between recipients. </p></td>
-                </tr>
-              
-            </tbody>
-          </table>
-        
-
-        
-      
-        <h3 id="distribution.NewRevenueMsg">NewRevenueMsg</h3>
-        <p>NewRevenueMsg is issuing the creation of a new revenue stream instance.</p>
+        <h3 id="distribution.CreateRevenueMsg">CreateRevenueMsg</h3>
+        <p>CreateRevenueMsg is issuing the creation of a new revenue stream instance.</p>
 
         
           <table class="field-table">
@@ -2666,6 +2635,37 @@ While not enforced it is best to use a multisig contract here. </p></td>
                   <td>repeated</td>
                   <td><p>Recipients holds any number of addresses that the collected revenue is
 distributed to. Must be at least one. </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+        
+
+        
+      
+        <h3 id="distribution.DistributeMsg">DistributeMsg</h3>
+        <p>DistributeMsg is a request to distribute all funds collected within a single</p><p>revenue instance. Revenue is distributed between recipients. Request must be</p><p>signed using admin key.</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>metadata</td>
+                  <td><a href="#weave.Metadata">weave.Metadata</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>revenue_id</td>
+                  <td><a href="#bytes">bytes</a></td>
+                  <td></td>
+                  <td><p>Revenue ID reference an ID of a revenue instance that the collected fees
+should be distributed between recipients. </p></td>
                 </tr>
               
             </tbody>
@@ -3122,6 +3122,36 @@ expired: [timeout, infinity) </p></td>
                   <td></td>
                   <td><p>Author is an optional field to set the address of the author with a proposal. The author must sign the message.
 When not set it will default to the main signer. </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+        
+
+        
+      
+        <h3 id="gov.CreateTextResolutionMsg">CreateTextResolutionMsg</h3>
+        <p>TextResolutionMsg is only intended to be dispatched internally from election</p><p>results. It adds a resolution to the list of "approved" resolutions,</p><p>with a reference to the electorate that approved it</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>metadata</td>
+                  <td><a href="#weave.Metadata">weave.Metadata</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>resolution</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p> </p></td>
                 </tr>
               
             </tbody>
@@ -3611,36 +3641,6 @@ The base value is either the total electorate weight or the sum of Yes/No weight
 
         
       
-        <h3 id="gov.TextResolutionMsg">TextResolutionMsg</h3>
-        <p>TextResolutionMsg is only intended to be dispatched internally from election</p><p>results. It adds a resolution to the list of "approved" resolutions,</p><p>with a reference to the electorate that approved it</p>
-
-        
-          <table class="field-table">
-            <thead>
-              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
-            </thead>
-            <tbody>
-              
-                <tr>
-                  <td>metadata</td>
-                  <td><a href="#weave.Metadata">weave.Metadata</a></td>
-                  <td></td>
-                  <td><p> </p></td>
-                </tr>
-              
-                <tr>
-                  <td>resolution</td>
-                  <td><a href="#string">string</a></td>
-                  <td></td>
-                  <td><p> </p></td>
-                </tr>
-              
-            </tbody>
-          </table>
-        
-
-        
-      
         <h3 id="gov.UpdateElectionRuleMsg">UpdateElectionRuleMsg</h3>
         <p></p>
 
@@ -3976,7 +3976,7 @@ is Withdrawn.</p></td>
               
                 <tr>
                   <td>text</td>
-                  <td><a href="#gov.TextResolutionMsg">TextResolutionMsg</a></td>
+                  <td><a href="#gov.CreateTextResolutionMsg">CreateTextResolutionMsg</a></td>
                   <td></td>
                   <td><p> </p></td>
                 </tr>

@@ -1,6 +1,6 @@
 {
 	"Sum": {
-		"BatchMsg": {
+		"ExecuteBatchMsg": {
 			"messages": [
 				{
 					"Sum": {

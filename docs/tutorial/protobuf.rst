@@ -226,7 +226,7 @@ in compile-time and we can switch on the kind on runtime, quite nice.
 
   oneof sum{
     cash.SendMsg send_msg = 1;
-    namecoin.NewTokenMsg new_token_msg = 2;
+    namecoin.CreateTokenMsg new_token_msg = 2;
     namecoin.SetWalletNameMsg set_name_msg = 3;
     escrow.CreateEscrowMsg create_escrow_msg = 4;
     escrow.ReleaseEscrowMsg release_escrow_msg = 5;
@@ -250,7 +250,7 @@ Here are the relevant pieces:
         //
         // Types that are valid to be assigned to Sum:
         //  *Tx_SendMsg
-        //  *Tx_NewTokenMsg
+        //  *Tx_CreateTokenMsg
         //  *Tx_SetNameMsg
         //  *Tx_CreateEscrowMsg
         //  *Tx_ReleaseEscrowMsg
@@ -269,8 +269,8 @@ Here are the relevant pieces:
     type Tx_SendMsg struct {
         SendMsg *cash.SendMsg `protobuf:"bytes,1,opt,name=send_msg,json=sendMsg,oneof"`
     }
-    type Tx_NewTokenMsg struct {
-        NewTokenMsg *namecoin.NewTokenMsg `protobuf:"bytes,2,opt,name=new_token_msg,json=newTokenMsg,oneof"`
+    type Tx_CreateTokenMsg struct {
+        CreateTokenMsg *namecoin.CreateTokenMsg `protobuf:"bytes,2,opt,name=new_token_msg,json=newTokenMsg,oneof"`
     }
 
 We now have some intermediate structs that give us a layer of indirection
@@ -286,8 +286,8 @@ possible ``tx.Sum`` fields, with
         return t.SendMsg, nil
     case *Tx_SetNameMsg:
         return t.SetNameMsg, nil
-    case *Tx_NewTokenMsg:
-        return t.NewTokenMsg, nil
+    case *Tx_CreateTokenMsg:
+        return t.CreateTokenMsg, nil
     case *Tx_CreateEscrowMsg:
         return t.CreateEscrowMsg, nil
     case *Tx_ReleaseEscrowMsg:

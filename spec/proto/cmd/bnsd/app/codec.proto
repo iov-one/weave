@@ -40,12 +40,12 @@ message Tx {
     multisig.CreateContractMsg create_contract_msg = 56;
     multisig.UpdateContractMsg update_contract_msg = 57;
     validators.SetValidatorsMsg set_validators_msg = 58;
-    currency.NewTokenInfoMsg new_token_info_msg = 59;
-    BatchMsg batch_msg = 60;
+    currency.CreateTokenInfoMsg create_token_info_msg = 59;
+    ExecuteBatchMsg execute_batch_msg = 60;
     username.RegisterUsernameTokenMsg register_username_token_msg = 61;
     username.TransferUsernameTokenMsg transfer_username_token_msg = 62;
     username.ChangeUsernameTokenTargetsMsg change_username_token_targets_msg = 63;
-    distribution.NewRevenueMsg new_revenue_msg = 66;
+    distribution.CreateRevenueMsg create_revenue_msg = 66;
     distribution.DistributeMsg distribute_msg = 67;
     distribution.ResetRevenueMsg reset_revenue_msg = 68;
     migration.UpgradeSchemaMsg upgrade_schema_msg = 69;
@@ -63,8 +63,8 @@ message Tx {
   }
 }
 
-// BatchMsg encapsulates multiple messages to support batch transaction
-message BatchMsg {
+// ExecuteBatchMsg encapsulates multiple messages to support batch transaction
+message ExecuteBatchMsg {
   message Union {
     oneof sum {
       cash.SendMsg send_msg = 51;
@@ -75,12 +75,12 @@ message BatchMsg {
       multisig.CreateContractMsg create_contract_msg = 56;
       multisig.UpdateContractMsg update_contract_msg = 57;
       validators.SetValidatorsMsg set_validators_msg = 58;
-      currency.NewTokenInfoMsg new_token_info_msg = 59;
+      currency.CreateTokenInfoMsg create_token_info_msg = 59;
       // No recursive batches!
       username.RegisterUsernameTokenMsg register_username_token_msg = 61;
       username.TransferUsernameTokenMsg transfer_username_token_msg = 62;
       username.ChangeUsernameTokenTargetsMsg change_username_token_targets_msg = 63;
-      distribution.NewRevenueMsg new_revenue_msg = 66;
+      distribution.CreateRevenueMsg create_revenue_msg = 66;
       distribution.DistributeMsg distribute_msg = 67;
       distribution.ResetRevenueMsg reset_revenue_msg = 68;
       // upgrade schema is important enough, it should be a solo action
@@ -99,21 +99,21 @@ message ProposalOptions {
     escrow.ReleaseEscrowMsg release_escrow_msg = 53;
     escrow.UpdateEscrowPartiesMsg update_escrow_msg = 55;
     validators.SetValidatorsMsg set_validators_msg = 58;
-    ProposalBatchMsg batch_msg = 60;
+    ExecuteProposalBatchMsg execute_proposal_batch_msg = 60;
     username.RegisterUsernameTokenMsg register_username_token_msg = 61;
     username.TransferUsernameTokenMsg transfer_username_token_msg = 62;
     username.ChangeUsernameTokenTargetsMsg change_username_token_targets_msg = 63;
-    distribution.NewRevenueMsg new_revenue_msg = 66;
+    distribution.CreateRevenueMsg create_revenue_msg = 66;
     distribution.DistributeMsg distribute_msg = 67;
     distribution.ResetRevenueMsg reset_revenue_msg = 68;
     migration.UpgradeSchemaMsg upgrade_schema_msg = 69;
     gov.UpdateElectorateMsg update_electorate_msg = 77;
     gov.UpdateElectionRuleMsg update_election_rule_msg = 78;
-    gov.TextResolutionMsg text_resolution_msg = 79;
+    gov.CreateTextResolutionMsg create_text_resolution_msg = 79;
   }
 }
 
-message ProposalBatchMsg {
+message ExecuteProposalBatchMsg {
   message Union {
     oneof sum {
       cash.SendMsg send_msg = 51;
@@ -124,13 +124,13 @@ message ProposalBatchMsg {
       username.RegisterUsernameTokenMsg register_username_token_msg = 61;
       username.TransferUsernameTokenMsg transfer_username_token_msg = 62;
       username.ChangeUsernameTokenTargetsMsg change_username_token_targets_msg = 63;
-      distribution.NewRevenueMsg new_revenue_msg = 66;
+      distribution.CreateRevenueMsg create_revenue_msg = 66;
       distribution.DistributeMsg distribute_msg = 67;
       distribution.ResetRevenueMsg reset_revenue_msg = 68;
       // don't allow UpgradeSchema as part of a batch, as effects are too confusing
       gov.UpdateElectorateMsg update_electorate_msg = 77;
       gov.UpdateElectionRuleMsg update_election_rule_msg = 78;
-      gov.TextResolutionMsg text_resolution_msg = 79;
+      gov.CreateTextResolutionMsg create_text_resolution_msg = 79;
     }
   }
   repeated Union messages = 1 ;

@@ -131,11 +131,11 @@ func (m UpdateElectionRuleMsg) Validate() error {
 	return m.Threshold.Validate()
 }
 
-func (TextResolutionMsg) Path() string {
+func (CreateTextResolutionMsg) Path() string {
 	return pathTextResolutionMsg
 }
 
-func (m TextResolutionMsg) Validate() error {
+func (m CreateTextResolutionMsg) Validate() error {
 	if err := m.Metadata.Validate(); err != nil {
 		return errors.Wrap(err, "invalid metadata")
 	}

@@ -12,7 +12,7 @@ import "x/gov/codec.proto";
 // and handlers, but an application can reference messages from any package.
 message ProposalOptions {
   oneof option {
-    TextResolutionMsg text = 1;
+    CreateTextResolutionMsg text = 1;
     UpdateElectorateMsg electorate = 2;
     UpdateElectionRuleMsg rule = 3;
   }

@@ -215,19 +215,19 @@ func sendBatch(t *testing.T, baseApp abci.Application, chainID string, height in
 		Memo: memo,
 	}
 
-	var messages []app.BatchMsg_Union
+	var messages []app.ExecuteBatchMsg_Union
 	for i := 0; i < batch.MaxBatchMessages; i++ {
 		messages = append(messages,
-			app.BatchMsg_Union{
-				Sum: &app.BatchMsg_Union_SendMsg{
+			app.ExecuteBatchMsg_Union{
+				Sum: &app.ExecuteBatchMsg_Union_SendMsg{
 					SendMsg: msg,
 				},
 			})
 	}
 
 	tx := &app.Tx{
-		Sum: &app.Tx_BatchMsg{
-			BatchMsg: &app.BatchMsg{
+		Sum: &app.Tx_ExecuteBatchMsg{
+			ExecuteBatchMsg: &app.ExecuteBatchMsg{
 				Messages: messages,
 			},
 		},

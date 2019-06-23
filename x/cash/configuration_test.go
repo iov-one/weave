@@ -22,7 +22,7 @@ func TestConfigurationHandler(t *testing.T) {
 	cases := map[string]struct {
 		init     Configuration
 		auth     weave.Condition
-		update   ConfigurationMsg
+		update   UpdateConfigurationMsg
 		expected Configuration
 	}{
 		"set all fields": {
@@ -32,7 +32,7 @@ func TestConfigurationHandler(t *testing.T) {
 				MinimalFee:       coin.NewCoin(0, 20, "IOV"),
 			},
 			auth: owner,
-			update: ConfigurationMsg{
+			update: UpdateConfigurationMsg{
 				Patch: &Configuration{
 					Owner:            otherAddr,
 					CollectorAddress: ownerAddr,
@@ -52,7 +52,7 @@ func TestConfigurationHandler(t *testing.T) {
 				MinimalFee:       coin.NewCoin(0, 20, "IOV"),
 			},
 			auth: owner,
-			update: ConfigurationMsg{
+			update: UpdateConfigurationMsg{
 				Patch: &Configuration{
 					MinimalFee: coin.NewCoin(0, 40, "ETH"),
 				},
