@@ -12,8 +12,10 @@ import (
 	"github.com/iov-one/weave/cmd/bnsd/x/username"
 	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/x/cash"
+	"github.com/iov-one/weave/x/currency"
 	"github.com/iov-one/weave/x/distribution"
 	"github.com/iov-one/weave/x/escrow"
+	"github.com/iov-one/weave/x/multisig"
 	"github.com/iov-one/weave/x/gov"
 	"github.com/iov-one/weave/x/validators"
 )
@@ -66,19 +68,27 @@ transaction (ie signatures) are being dropped.
 
 	case *cash.SendMsg:
 		option.Option = &bnsd.ProposalOptions_SendMsg{
-			SendMsg: msg,
+				SendMsg: msg,
 		}
 	case *escrow.ReleaseMsg:
-		option.Option = &bnsd.ProposalOptions_ReleaseMsg{
-			ReleaseMsg: msg,
+		option.Option = &bnsd.ProposalOptions_EscrowReleaseMsg{
+				EscrowReleaseMsg: msg,
 		}
 	case *escrow.UpdatePartiesMsg:
-		option.Option = &bnsd.ProposalOptions_UpdatePartiesMsg{
-			UpdatePartiesMsg: msg,
+		option.Option = &bnsd.ProposalOptions_UpdateEscrowPartiesMsg{
+				UpdateEscrowPartiesMsg: msg,
+		}
+	case *multisig.UpdateMsg:
+		option.Option = &bnsd.ProposalOptions_MultisigUpdateMsg{
+				MultisigUpdateMsg: msg,
 		}
 	case *validators.ApplyDiffMsg:
-		option.Option = &bnsd.ProposalOptions_ApplyDiffMsg{
-			ApplyDiffMsg: msg,
+		option.Option = &bnsd.ProposalOptions_ValidatorsApplyDiffMsg{
+				ValidatorsApplyDiffMsg: msg,
+		}
+	case *currency.CreateMsg:
+		option.Option = &bnsd.ProposalOptions_CurrencyCreateMsg{
+				CurrencyCreateMsg: msg,
 		}
 	case *bnsd.ExecuteBatchMsg:
 		msgs, err := msg.MsgList()
@@ -96,20 +106,26 @@ transaction (ie signatures) are being dropped.
 				})
 			case *escrow.ReleaseMsg:
 				messages = append(messages, bnsd.ExecuteProposalBatchMsg_Union{
-					Sum: &bnsd.ExecuteProposalBatchMsg_Union_ReleaseMsg{
-						ReleaseMsg: m,
+					Sum: &bnsd.ExecuteProposalBatchMsg_Union_EscrowReleaseMsg{
+						EscrowReleaseMsg: m,
 					},
 				})
 			case *escrow.UpdatePartiesMsg:
 				messages = append(messages, bnsd.ExecuteProposalBatchMsg_Union{
-					Sum: &bnsd.ExecuteProposalBatchMsg_Union_UpdatePartiesMsg{
-						UpdatePartiesMsg: m,
+					Sum: &bnsd.ExecuteProposalBatchMsg_Union_UpdateEscrowPartiesMsg{
+						UpdateEscrowPartiesMsg: m,
+					},
+				})
+			case *multisig.UpdateMsg:
+				messages = append(messages, bnsd.ExecuteProposalBatchMsg_Union{
+					Sum: &bnsd.ExecuteProposalBatchMsg_Union_MultisigUpdateMsg{
+						MultisigUpdateMsg: m,
 					},
 				})
 			case *validators.ApplyDiffMsg:
 				messages = append(messages, bnsd.ExecuteProposalBatchMsg_Union{
-					Sum: &bnsd.ExecuteProposalBatchMsg_Union_ApplyDiffMsg{
-						ApplyDiffMsg: m,
+					Sum: &bnsd.ExecuteProposalBatchMsg_Union_ValidatorsApplyDiffMsg{
+						ValidatorsApplyDiffMsg: m,
 					},
 				})
 			case *username.RegisterUsernameTokenMsg:
@@ -132,20 +148,20 @@ transaction (ie signatures) are being dropped.
 				})
 			case *distribution.CreateMsg:
 				messages = append(messages, bnsd.ExecuteProposalBatchMsg_Union{
-					Sum: &bnsd.ExecuteProposalBatchMsg_Union_CreateMsg{
-						CreateMsg: m,
+					Sum: &bnsd.ExecuteProposalBatchMsg_Union_DistributionCreateMsg{
+						DistributionCreateMsg: m,
 					},
 				})
 			case *distribution.DistributeMsg:
 				messages = append(messages, bnsd.ExecuteProposalBatchMsg_Union{
-					Sum: &bnsd.ExecuteProposalBatchMsg_Union_DistributeMsg{
-						DistributeMsg: m,
+					Sum: &bnsd.ExecuteProposalBatchMsg_Union_DistributionMsg{
+						DistributionMsg: m,
 					},
 				})
 			case *distribution.ResetMsg:
 				messages = append(messages, bnsd.ExecuteProposalBatchMsg_Union{
-					Sum: &bnsd.ExecuteProposalBatchMsg_Union_ResetMsg{
-						ResetMsg: m,
+					Sum: &bnsd.ExecuteProposalBatchMsg_Union_DistributionResetMsg{
+						DistributionResetMsg: m,
 					},
 				})
 			case *gov.UpdateElectorateMsg:
@@ -175,43 +191,43 @@ transaction (ie signatures) are being dropped.
 		}
 	case *username.RegisterUsernameTokenMsg:
 		option.Option = &bnsd.ProposalOptions_RegisterUsernameTokenMsg{
-			RegisterUsernameTokenMsg: msg,
+				RegisterUsernameTokenMsg: msg,
 		}
 	case *username.TransferUsernameTokenMsg:
 		option.Option = &bnsd.ProposalOptions_TransferUsernameTokenMsg{
-			TransferUsernameTokenMsg: msg,
+				TransferUsernameTokenMsg: msg,
 		}
 	case *username.ChangeUsernameTokenTargetsMsg:
 		option.Option = &bnsd.ProposalOptions_ChangeUsernameTokenTargetsMsg{
-			ChangeUsernameTokenTargetsMsg: msg,
+				ChangeUsernameTokenTargetsMsg: msg,
 		}
 	case *distribution.CreateMsg:
-		option.Option = &bnsd.ProposalOptions_CreateMsg{
-			CreateMsg: msg,
+		option.Option = &bnsd.ProposalOptions_DistributionCreateMsg{
+				DistributionCreateMsg: msg,
 		}
 	case *distribution.DistributeMsg:
-		option.Option = &bnsd.ProposalOptions_DistributeMsg{
-			DistributeMsg: msg,
+		option.Option = &bnsd.ProposalOptions_DistributionMsg{
+				DistributionMsg: msg,
 		}
 	case *distribution.ResetMsg:
-		option.Option = &bnsd.ProposalOptions_ResetMsg{
-			ResetMsg: msg,
+		option.Option = &bnsd.ProposalOptions_DistributionResetMsg{
+				DistributionResetMsg: msg,
 		}
 	case *migration.UpgradeSchemaMsg:
 		option.Option = &bnsd.ProposalOptions_UpgradeSchemaMsg{
-			UpgradeSchemaMsg: msg,
+				UpgradeSchemaMsg: msg,
 		}
 	case *gov.UpdateElectorateMsg:
 		option.Option = &bnsd.ProposalOptions_UpdateElectorateMsg{
-			UpdateElectorateMsg: msg,
+				UpdateElectorateMsg: msg,
 		}
 	case *gov.UpdateElectionRuleMsg:
 		option.Option = &bnsd.ProposalOptions_UpdateElectionRuleMsg{
-			UpdateElectionRuleMsg: msg,
+				UpdateElectionRuleMsg: msg,
 		}
 	case *gov.CreateTextResolutionMsg:
 		option.Option = &bnsd.ProposalOptions_CreateTextResolutionMsg{
-			CreateTextResolutionMsg: msg,
+				CreateTextResolutionMsg: msg,
 		}
 	}
 
@@ -248,16 +264,18 @@ func inOneHour() time.Time {
 # Remove all comment lines (starts with //)
 proposals="
 cash.SendMsg send_msg = 51;
-escrow.ReleaseMsg release_escrow_msg = 53;
-escrow.UpdatePartiesMsg update_escrow_msg = 55;
-validators.ApplyDiffMsg set_validators_msg = 58;
-ExecuteProposalBatchMsg execute_batch_msg = 60;
+escrow.ReleaseMsg escrow_release_msg = 53;
+escrow.UpdatePartiesMsg update_escrow_parties_msg = 55;
+multisig.UpdateMsg multisig_update_msg = 57;
+validators.ApplyDiffMsg validators_apply_diff_msg = 58;
+currency.CreateMsg currency_create_msg = 59;
+ExecuteProposalBatchMsg execute_proposal_batch_msg = 60;
 username.RegisterUsernameTokenMsg register_username_token_msg = 61;
 username.TransferUsernameTokenMsg transfer_username_token_msg = 62;
 username.ChangeUsernameTokenTargetsMsg change_username_token_targets_msg = 63;
-distribution.CreateMsg create_revenue_msg = 66;
-distribution.DistributeMsg distribute_msg = 67;
-distribution.ResetMsg reset_revenue_msg = 68;
+distribution.CreateMsg distribution_create_msg = 66;
+distribution.DistributeMsg distribution_msg = 67;
+distribution.ResetMsg distribution_reset_msg = 68;
 migration.UpgradeSchemaMsg upgrade_schema_msg = 69;
 gov.UpdateElectorateMsg update_electorate_msg = 77;
 gov.UpdateElectionRuleMsg update_election_rule_msg = 78;
@@ -268,15 +286,16 @@ gov.CreateTextResolutionMsg create_text_resolution_msg = 79;
 # Remove all comment lines (starts with //)
 proposalbatch="
 cash.SendMsg send_msg = 51;
-escrow.ReleaseMsg release_escrow_msg = 53;
-escrow.UpdatePartiesMsg update_escrow_msg = 55;
-validators.ApplyDiffMsg set_validators_msg = 58;
+escrow.ReleaseMsg escrow_release_msg = 53;
+escrow.UpdatePartiesMsg update_escrow_parties_msg = 55;
+multisig.UpdateMsg multisig_update_msg = 57;
+validators.ApplyDiffMsg validators_apply_diff_msg = 58;
 username.RegisterUsernameTokenMsg register_username_token_msg = 61;
 username.TransferUsernameTokenMsg transfer_username_token_msg = 62;
 username.ChangeUsernameTokenTargetsMsg change_username_token_targets_msg = 63;
-distribution.CreateMsg create_revenue_msg = 66;
-distribution.DistributeMsg distribute_msg = 67;
-distribution.ResetMsg reset_revenue_msg = 68;
+distribution.CreateMsg distribution_create_msg = 66;
+distribution.DistributeMsg distribution_msg = 67;
+distribution.ResetMsg distribution_reset_msg = 68;
 gov.UpdateElectorateMsg update_electorate_msg = 77;
 gov.UpdateElectionRuleMsg update_election_rule_msg = 78;
 gov.CreateTextResolutionMsg create_text_resolution_msg = 79;
@@ -292,8 +311,8 @@ while read -r m; do
 	# Name is not always the same as the type name. Convert it to camel case.
 	name=`echo $m | cut -d ' ' -f2 | sed -r 's/(^|_)([a-z])/\U\2/g'`
 
-	# ExecuteBatchMsg requires a special type cast to convert structures.
-	if [ "x$name" == "xBatchMsg" ]
+	# ExecuteProposalBatchMsg requires a special type cast to convert structures.
+	if [ "x$name" == "xExecuteProposalBatchMsg" ]
 	then
 		echo "	case *bnsd.ExecuteBatchMsg:"
 		echo "		msgs, err := msg.MsgList()"
@@ -324,8 +343,8 @@ while read -r m; do
 
 		echo "			}"
 		echo "		}"
-		echo "		option.Option = &bnsd.ProposalOptions_BatchMsg{"
-		echo "			ExecuteBatchMsg: &bnsd.ExecuteProposalBatchMsg{"
+		echo "		option.Option = &bnsd.ProposalOptions_ExecuteProposalBatchMsg{"
+		echo "			ExecuteProposalBatchMsg: &bnsd.ExecuteProposalBatchMsg{"
 		echo "				Messages: messages,"
 		echo "			},"
 		echo "		}"
