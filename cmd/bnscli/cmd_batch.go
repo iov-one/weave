@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/iov-one/weave/cmd/bnsd/app"
+	bnsd "github.com/iov-one/weave/cmd/bnsd/app"
 	"github.com/iov-one/weave/cmd/bnsd/x/username"
 	"github.com/iov-one/weave/x/cash"
 	"github.com/iov-one/weave/x/currency"
@@ -28,7 +28,7 @@ original transactions (ie signatures) are being dropped.
 	}
 	fl.Parse(args)
 
-	var batch app.ExecuteBatchMsg
+	var batch bnsd.ExecuteBatchMsg
 	for {
 		tx, _, err := readTx(input)
 		if err != nil {
@@ -53,92 +53,92 @@ original transactions (ie signatures) are being dropped.
 		// You are welcome.
 		switch msg := msg.(type) {
 		case *cash.SendMsg:
-			batch.Messages = append(batch.Messages, app.ExecuteBatchMsg_Union{
-				Sum: &app.ExecuteBatchMsg_Union_SendMsg{
+			batch.Messages = append(batch.Messages, bnsd.ExecuteBatchMsg_Union{
+				Sum: &bnsd.ExecuteBatchMsg_Union_SendMsg{
 					SendMsg: msg,
 				},
 			})
 		case *escrow.CreateEscrowMsg:
-			batch.Messages = append(batch.Messages, app.ExecuteBatchMsg_Union{
-				Sum: &app.ExecuteBatchMsg_Union_CreateEscrowMsg{
+			batch.Messages = append(batch.Messages, bnsd.ExecuteBatchMsg_Union{
+				Sum: &bnsd.ExecuteBatchMsg_Union_CreateEscrowMsg{
 					CreateEscrowMsg: msg,
 				},
 			})
 		case *escrow.ReleaseEscrowMsg:
-			batch.Messages = append(batch.Messages, app.ExecuteBatchMsg_Union{
-				Sum: &app.ExecuteBatchMsg_Union_ReleaseEscrowMsg{
+			batch.Messages = append(batch.Messages, bnsd.ExecuteBatchMsg_Union{
+				Sum: &bnsd.ExecuteBatchMsg_Union_ReleaseEscrowMsg{
 					ReleaseEscrowMsg: msg,
 				},
 			})
 		case *escrow.ReturnEscrowMsg:
-			batch.Messages = append(batch.Messages, app.ExecuteBatchMsg_Union{
-				Sum: &app.ExecuteBatchMsg_Union_ReturnEscrowMsg{
+			batch.Messages = append(batch.Messages, bnsd.ExecuteBatchMsg_Union{
+				Sum: &bnsd.ExecuteBatchMsg_Union_ReturnEscrowMsg{
 					ReturnEscrowMsg: msg,
 				},
 			})
 		case *escrow.UpdateEscrowPartiesMsg:
-			batch.Messages = append(batch.Messages, app.ExecuteBatchMsg_Union{
-				Sum: &app.ExecuteBatchMsg_Union_UpdateEscrowMsg{
+			batch.Messages = append(batch.Messages, bnsd.ExecuteBatchMsg_Union{
+				Sum: &bnsd.ExecuteBatchMsg_Union_UpdateEscrowMsg{
 					UpdateEscrowMsg: msg,
 				},
 			})
 		case *multisig.CreateContractMsg:
-			batch.Messages = append(batch.Messages, app.ExecuteBatchMsg_Union{
-				Sum: &app.ExecuteBatchMsg_Union_CreateContractMsg{
+			batch.Messages = append(batch.Messages, bnsd.ExecuteBatchMsg_Union{
+				Sum: &bnsd.ExecuteBatchMsg_Union_CreateContractMsg{
 					CreateContractMsg: msg,
 				},
 			})
 		case *multisig.UpdateContractMsg:
-			batch.Messages = append(batch.Messages, app.ExecuteBatchMsg_Union{
-				Sum: &app.ExecuteBatchMsg_Union_UpdateContractMsg{
+			batch.Messages = append(batch.Messages, bnsd.ExecuteBatchMsg_Union{
+				Sum: &bnsd.ExecuteBatchMsg_Union_UpdateContractMsg{
 					UpdateContractMsg: msg,
 				},
 			})
 		case *validators.SetValidatorsMsg:
-			batch.Messages = append(batch.Messages, app.ExecuteBatchMsg_Union{
-				Sum: &app.ExecuteBatchMsg_Union_SetValidatorsMsg{
+			batch.Messages = append(batch.Messages, bnsd.ExecuteBatchMsg_Union{
+				Sum: &bnsd.ExecuteBatchMsg_Union_SetValidatorsMsg{
 					SetValidatorsMsg: msg,
 				},
 			})
 		case *currency.CreateTokenInfoMsg:
-			batch.Messages = append(batch.Messages, app.ExecuteBatchMsg_Union{
-				Sum: &app.ExecuteBatchMsg_Union_CreateTokenInfoMsg{
+			batch.Messages = append(batch.Messages, bnsd.ExecuteBatchMsg_Union{
+				Sum: &bnsd.ExecuteBatchMsg_Union_CreateTokenInfoMsg{
 					CreateTokenInfoMsg: msg,
 				},
 			})
 		case *username.RegisterUsernameTokenMsg:
-			batch.Messages = append(batch.Messages, app.ExecuteBatchMsg_Union{
-				Sum: &app.ExecuteBatchMsg_Union_RegisterUsernameTokenMsg{
+			batch.Messages = append(batch.Messages, bnsd.ExecuteBatchMsg_Union{
+				Sum: &bnsd.ExecuteBatchMsg_Union_RegisterUsernameTokenMsg{
 					RegisterUsernameTokenMsg: msg,
 				},
 			})
 		case *username.TransferUsernameTokenMsg:
-			batch.Messages = append(batch.Messages, app.ExecuteBatchMsg_Union{
-				Sum: &app.ExecuteBatchMsg_Union_TransferUsernameTokenMsg{
+			batch.Messages = append(batch.Messages, bnsd.ExecuteBatchMsg_Union{
+				Sum: &bnsd.ExecuteBatchMsg_Union_TransferUsernameTokenMsg{
 					TransferUsernameTokenMsg: msg,
 				},
 			})
 		case *username.ChangeUsernameTokenTargetsMsg:
-			batch.Messages = append(batch.Messages, app.ExecuteBatchMsg_Union{
-				Sum: &app.ExecuteBatchMsg_Union_ChangeUsernameTokenTargetsMsg{
+			batch.Messages = append(batch.Messages, bnsd.ExecuteBatchMsg_Union{
+				Sum: &bnsd.ExecuteBatchMsg_Union_ChangeUsernameTokenTargetsMsg{
 					ChangeUsernameTokenTargetsMsg: msg,
 				},
 			})
 		case *distribution.CreateRevenueMsg:
-			batch.Messages = append(batch.Messages, app.ExecuteBatchMsg_Union{
-				Sum: &app.ExecuteBatchMsg_Union_CreateRevenueMsg{
+			batch.Messages = append(batch.Messages, bnsd.ExecuteBatchMsg_Union{
+				Sum: &bnsd.ExecuteBatchMsg_Union_CreateRevenueMsg{
 					CreateRevenueMsg: msg,
 				},
 			})
 		case *distribution.DistributeMsg:
-			batch.Messages = append(batch.Messages, app.ExecuteBatchMsg_Union{
-				Sum: &app.ExecuteBatchMsg_Union_DistributeMsg{
+			batch.Messages = append(batch.Messages, bnsd.ExecuteBatchMsg_Union{
+				Sum: &bnsd.ExecuteBatchMsg_Union_DistributeMsg{
 					DistributeMsg: msg,
 				},
 			})
 		case *distribution.ResetRevenueMsg:
-			batch.Messages = append(batch.Messages, app.ExecuteBatchMsg_Union{
-				Sum: &app.ExecuteBatchMsg_Union_ResetRevenueMsg{
+			batch.Messages = append(batch.Messages, bnsd.ExecuteBatchMsg_Union{
+				Sum: &bnsd.ExecuteBatchMsg_Union_ResetRevenueMsg{
 					ResetRevenueMsg: msg,
 				},
 			})
@@ -150,8 +150,8 @@ original transactions (ie signatures) are being dropped.
 		}
 	}
 
-	batchTx := &app.Tx{
-		Sum: &app.Tx_ExecuteBatchMsg{ExecuteBatchMsg: &batch},
+	batchTx := &bnsd.Tx{
+		Sum: &bnsd.Tx_ExecuteBatchMsg{ExecuteBatchMsg: &batch},
 	}
 	_, err := writeTx(output, batchTx)
 	return err
@@ -194,8 +194,8 @@ while read -r m; do
 	name=`echo $m | cut -d ' ' -f2 | sed -r 's/(^|_)([a-z])/\U\2/g'`
 
 	echo "	case *$tp:"
-	echo "		batch.Messages = append(batch.Messages, app.ExecuteBatchMsg_Union{"
-	echo "			Sum: &app.ExecuteBatchMsg_Union_$name{"
+	echo "		batch.Messages = append(batch.Messages, bnsd.ExecuteBatchMsg_Union{"
+	echo "			Sum: &bnsd.ExecuteBatchMsg_Union_$name{"
 	echo "					$name: msg,"
 	echo "				},"
 	echo "		})"

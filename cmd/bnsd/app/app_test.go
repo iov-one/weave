@@ -1,4 +1,4 @@
-package app_test
+package bnsd_test
 
 import (
 	"encoding/hex"
@@ -9,7 +9,7 @@ import (
 
 	"github.com/iov-one/weave"
 	weaveApp "github.com/iov-one/weave/app"
-	"github.com/iov-one/weave/cmd/bnsd/app"
+	bnsd "github.com/iov-one/weave/cmd/bnsd/app"
 	"github.com/iov-one/weave/cmd/bnsd/app/testdata/fixtures"
 	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/crypto"
@@ -192,8 +192,8 @@ func sendToken(t *testing.T, baseApp abci.Application, chainID string, height in
 		Amount:   &coin.Coin{Whole: amount, Ticker: ticker},
 		Memo:     memo,
 	}
-	tx := &app.Tx{
-		Sum:      &app.Tx_SendMsg{SendMsg: msg},
+	tx := &bnsd.Tx{
+		Sum:      &bnsd.Tx_SendMsg{SendMsg: msg},
 		Multisig: contracts,
 	}
 	tx.Fee(from, coin.NewCoin(1, 0, "FRNK"))
@@ -215,19 +215,19 @@ func sendBatch(t *testing.T, baseApp abci.Application, chainID string, height in
 		Memo: memo,
 	}
 
-	var messages []app.ExecuteBatchMsg_Union
+	var messages []bnsd.ExecuteBatchMsg_Union
 	for i := 0; i < batch.MaxBatchMessages; i++ {
 		messages = append(messages,
-			app.ExecuteBatchMsg_Union{
-				Sum: &app.ExecuteBatchMsg_Union_SendMsg{
+			bnsd.ExecuteBatchMsg_Union{
+				Sum: &bnsd.ExecuteBatchMsg_Union_SendMsg{
 					SendMsg: msg,
 				},
 			})
 	}
 
-	tx := &app.Tx{
-		Sum: &app.Tx_ExecuteBatchMsg{
-			ExecuteBatchMsg: &app.ExecuteBatchMsg{
+	tx := &bnsd.Tx{
+		Sum: &bnsd.Tx_ExecuteBatchMsg{
+			ExecuteBatchMsg: &bnsd.ExecuteBatchMsg{
 				Messages: messages,
 			},
 		},
@@ -292,8 +292,8 @@ func createContract(
 		AdminThreshold:      multisig.Weight(len(contractSigs)) + 1, // immutable
 	}
 
-	tx := &app.Tx{
-		Sum: &app.Tx_CreateContractMsg{CreateContractMsg: msg},
+	tx := &bnsd.Tx{
+		Sum: &bnsd.Tx_CreateContractMsg{CreateContractMsg: msg},
 	}
 
 	tx.Fee(signers[0].pk.PublicKey().Address(), coin.NewCoin(1, 0, "FRNK"))
@@ -317,7 +317,7 @@ func createContract(
 func signAndCommit(
 	t *testing.T,
 	app abci.Application,
-	tx *app.Tx,
+	tx *bnsd.Tx,
 	signers []Signer,
 	chainID string,
 	height int64,

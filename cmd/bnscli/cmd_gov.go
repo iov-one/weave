@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/iov-one/weave"
-	"github.com/iov-one/weave/cmd/bnsd/app"
+	bnsd "github.com/iov-one/weave/cmd/bnsd/app"
 	"github.com/iov-one/weave/cmd/bnsd/x/username"
 	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/x/cash"
@@ -57,7 +57,7 @@ transaction (ie signatures) are being dropped.
 	// default case as they are not being generated.
 	// You are welcome.
 
-	var option app.ProposalOptions
+	var option bnsd.ProposalOptions
 	switch msg := msg.(type) {
 	case nil:
 		return errors.New("transaction without a message")
@@ -65,152 +65,152 @@ transaction (ie signatures) are being dropped.
 		return fmt.Errorf("message type not supported: %T", msg)
 
 	case *cash.SendMsg:
-		option.Option = &app.ProposalOptions_SendMsg{
+		option.Option = &bnsd.ProposalOptions_SendMsg{
 			SendMsg: msg,
 		}
 	case *escrow.ReleaseEscrowMsg:
-		option.Option = &app.ProposalOptions_ReleaseEscrowMsg{
+		option.Option = &bnsd.ProposalOptions_ReleaseEscrowMsg{
 			ReleaseEscrowMsg: msg,
 		}
 	case *escrow.UpdateEscrowPartiesMsg:
-		option.Option = &app.ProposalOptions_UpdateEscrowPartiesMsg{
+		option.Option = &bnsd.ProposalOptions_UpdateEscrowPartiesMsg{
 			UpdateEscrowPartiesMsg: msg,
 		}
 	case *validators.SetValidatorsMsg:
-		option.Option = &app.ProposalOptions_SetValidatorsMsg{
+		option.Option = &bnsd.ProposalOptions_SetValidatorsMsg{
 			SetValidatorsMsg: msg,
 		}
-	case *app.ExecuteBatchMsg:
+	case *bnsd.ExecuteBatchMsg:
 		msgs, err := msg.MsgList()
 		if err != nil {
 			return fmt.Errorf("cannot extract messages: %s", err)
 		}
-		var messages []app.ExecuteProposalBatchMsg_Union
+		var messages []bnsd.ExecuteProposalBatchMsg_Union
 		for _, m := range msgs {
 			switch m := m.(type) {
 			case *cash.SendMsg:
-				messages = append(messages, app.ExecuteProposalBatchMsg_Union{
-					Sum: &app.ExecuteProposalBatchMsg_Union_SendMsg{
+				messages = append(messages, bnsd.ExecuteProposalBatchMsg_Union{
+					Sum: &bnsd.ExecuteProposalBatchMsg_Union_SendMsg{
 						SendMsg: m,
 					},
 				})
 			case *escrow.ReleaseEscrowMsg:
-				messages = append(messages, app.ExecuteProposalBatchMsg_Union{
-					Sum: &app.ExecuteProposalBatchMsg_Union_ReleaseEscrowMsg{
+				messages = append(messages, bnsd.ExecuteProposalBatchMsg_Union{
+					Sum: &bnsd.ExecuteProposalBatchMsg_Union_ReleaseEscrowMsg{
 						ReleaseEscrowMsg: m,
 					},
 				})
 			case *escrow.UpdateEscrowPartiesMsg:
-				messages = append(messages, app.ExecuteProposalBatchMsg_Union{
-					Sum: &app.ExecuteProposalBatchMsg_Union_UpdateEscrowPartiesMsg{
+				messages = append(messages, bnsd.ExecuteProposalBatchMsg_Union{
+					Sum: &bnsd.ExecuteProposalBatchMsg_Union_UpdateEscrowPartiesMsg{
 						UpdateEscrowPartiesMsg: m,
 					},
 				})
 			case *validators.SetValidatorsMsg:
-				messages = append(messages, app.ExecuteProposalBatchMsg_Union{
-					Sum: &app.ExecuteProposalBatchMsg_Union_SetValidatorsMsg{
+				messages = append(messages, bnsd.ExecuteProposalBatchMsg_Union{
+					Sum: &bnsd.ExecuteProposalBatchMsg_Union_SetValidatorsMsg{
 						SetValidatorsMsg: m,
 					},
 				})
 			case *username.RegisterUsernameTokenMsg:
-				messages = append(messages, app.ExecuteProposalBatchMsg_Union{
-					Sum: &app.ExecuteProposalBatchMsg_Union_RegisterUsernameTokenMsg{
+				messages = append(messages, bnsd.ExecuteProposalBatchMsg_Union{
+					Sum: &bnsd.ExecuteProposalBatchMsg_Union_RegisterUsernameTokenMsg{
 						RegisterUsernameTokenMsg: m,
 					},
 				})
 			case *username.TransferUsernameTokenMsg:
-				messages = append(messages, app.ExecuteProposalBatchMsg_Union{
-					Sum: &app.ExecuteProposalBatchMsg_Union_TransferUsernameTokenMsg{
+				messages = append(messages, bnsd.ExecuteProposalBatchMsg_Union{
+					Sum: &bnsd.ExecuteProposalBatchMsg_Union_TransferUsernameTokenMsg{
 						TransferUsernameTokenMsg: m,
 					},
 				})
 			case *username.ChangeUsernameTokenTargetsMsg:
-				messages = append(messages, app.ExecuteProposalBatchMsg_Union{
-					Sum: &app.ExecuteProposalBatchMsg_Union_ChangeUsernameTokenTargetsMsg{
+				messages = append(messages, bnsd.ExecuteProposalBatchMsg_Union{
+					Sum: &bnsd.ExecuteProposalBatchMsg_Union_ChangeUsernameTokenTargetsMsg{
 						ChangeUsernameTokenTargetsMsg: m,
 					},
 				})
 			case *distribution.CreateRevenueMsg:
-				messages = append(messages, app.ExecuteProposalBatchMsg_Union{
-					Sum: &app.ExecuteProposalBatchMsg_Union_CreateRevenueMsg{
+				messages = append(messages, bnsd.ExecuteProposalBatchMsg_Union{
+					Sum: &bnsd.ExecuteProposalBatchMsg_Union_CreateRevenueMsg{
 						CreateRevenueMsg: m,
 					},
 				})
 			case *distribution.DistributeMsg:
-				messages = append(messages, app.ExecuteProposalBatchMsg_Union{
-					Sum: &app.ExecuteProposalBatchMsg_Union_DistributeMsg{
+				messages = append(messages, bnsd.ExecuteProposalBatchMsg_Union{
+					Sum: &bnsd.ExecuteProposalBatchMsg_Union_DistributeMsg{
 						DistributeMsg: m,
 					},
 				})
 			case *distribution.ResetRevenueMsg:
-				messages = append(messages, app.ExecuteProposalBatchMsg_Union{
-					Sum: &app.ExecuteProposalBatchMsg_Union_ResetRevenueMsg{
+				messages = append(messages, bnsd.ExecuteProposalBatchMsg_Union{
+					Sum: &bnsd.ExecuteProposalBatchMsg_Union_ResetRevenueMsg{
 						ResetRevenueMsg: m,
 					},
 				})
 			case *gov.UpdateElectorateMsg:
-				messages = append(messages, app.ExecuteProposalBatchMsg_Union{
-					Sum: &app.ExecuteProposalBatchMsg_Union_UpdateElectorateMsg{
+				messages = append(messages, bnsd.ExecuteProposalBatchMsg_Union{
+					Sum: &bnsd.ExecuteProposalBatchMsg_Union_UpdateElectorateMsg{
 						UpdateElectorateMsg: m,
 					},
 				})
 			case *gov.UpdateElectionRuleMsg:
-				messages = append(messages, app.ExecuteProposalBatchMsg_Union{
-					Sum: &app.ExecuteProposalBatchMsg_Union_UpdateElectionRuleMsg{
+				messages = append(messages, bnsd.ExecuteProposalBatchMsg_Union{
+					Sum: &bnsd.ExecuteProposalBatchMsg_Union_UpdateElectionRuleMsg{
 						UpdateElectionRuleMsg: m,
 					},
 				})
 			case *gov.CreateTextResolutionMsg:
-				messages = append(messages, app.ExecuteProposalBatchMsg_Union{
-					Sum: &app.ExecuteProposalBatchMsg_Union_CreateTextResolutionMsg{
+				messages = append(messages, bnsd.ExecuteProposalBatchMsg_Union{
+					Sum: &bnsd.ExecuteProposalBatchMsg_Union_CreateTextResolutionMsg{
 						CreateTextResolutionMsg: m,
 					},
 				})
 			}
 		}
-		option.Option = &app.ProposalOptions_ExecuteProposalBatchMsg{
-			ExecuteProposalBatchMsg: &app.ExecuteProposalBatchMsg{
+		option.Option = &bnsd.ProposalOptions_ExecuteProposalBatchMsg{
+			ExecuteProposalBatchMsg: &bnsd.ExecuteProposalBatchMsg{
 				Messages: messages,
 			},
 		}
 	case *username.RegisterUsernameTokenMsg:
-		option.Option = &app.ProposalOptions_RegisterUsernameTokenMsg{
+		option.Option = &bnsd.ProposalOptions_RegisterUsernameTokenMsg{
 			RegisterUsernameTokenMsg: msg,
 		}
 	case *username.TransferUsernameTokenMsg:
-		option.Option = &app.ProposalOptions_TransferUsernameTokenMsg{
+		option.Option = &bnsd.ProposalOptions_TransferUsernameTokenMsg{
 			TransferUsernameTokenMsg: msg,
 		}
 	case *username.ChangeUsernameTokenTargetsMsg:
-		option.Option = &app.ProposalOptions_ChangeUsernameTokenTargetsMsg{
+		option.Option = &bnsd.ProposalOptions_ChangeUsernameTokenTargetsMsg{
 			ChangeUsernameTokenTargetsMsg: msg,
 		}
 	case *distribution.CreateRevenueMsg:
-		option.Option = &app.ProposalOptions_CreateRevenueMsg{
+		option.Option = &bnsd.ProposalOptions_CreateRevenueMsg{
 			CreateRevenueMsg: msg,
 		}
 	case *distribution.DistributeMsg:
-		option.Option = &app.ProposalOptions_DistributeMsg{
+		option.Option = &bnsd.ProposalOptions_DistributeMsg{
 			DistributeMsg: msg,
 		}
 	case *distribution.ResetRevenueMsg:
-		option.Option = &app.ProposalOptions_ResetRevenueMsg{
+		option.Option = &bnsd.ProposalOptions_ResetRevenueMsg{
 			ResetRevenueMsg: msg,
 		}
 	case *migration.UpgradeSchemaMsg:
-		option.Option = &app.ProposalOptions_UpgradeSchemaMsg{
+		option.Option = &bnsd.ProposalOptions_UpgradeSchemaMsg{
 			UpgradeSchemaMsg: msg,
 		}
 	case *gov.UpdateElectorateMsg:
-		option.Option = &app.ProposalOptions_UpdateElectorateMsg{
+		option.Option = &bnsd.ProposalOptions_UpdateElectorateMsg{
 			UpdateElectorateMsg: msg,
 		}
 	case *gov.UpdateElectionRuleMsg:
-		option.Option = &app.ProposalOptions_UpdateElectionRuleMsg{
+		option.Option = &bnsd.ProposalOptions_UpdateElectionRuleMsg{
 			UpdateElectionRuleMsg: msg,
 		}
 	case *gov.CreateTextResolutionMsg:
-		option.Option = &app.ProposalOptions_CreateTextResolutionMsg{
+		option.Option = &bnsd.ProposalOptions_CreateTextResolutionMsg{
 			CreateTextResolutionMsg: msg,
 		}
 	}
@@ -220,8 +220,8 @@ transaction (ie signatures) are being dropped.
 		return fmt.Errorf("cannot serialize %T option: %s", option, err)
 	}
 
-	propTx := &app.Tx{
-		Sum: &app.Tx_CreateProposalMsg{
+	propTx := &bnsd.Tx{
+		Sum: &bnsd.Tx_CreateProposalMsg{
 			CreateProposalMsg: &gov.CreateProposalMsg{
 				Metadata:       &weave.Metadata{Schema: 1},
 				Title:          *titleFl,
@@ -295,12 +295,12 @@ while read -r m; do
 	# ExecuteBatchMsg requires a special type cast to convert structures.
 	if [ "x$name" == "xBatchMsg" ]
 	then
-		echo "	case *app.ExecuteBatchMsg:"
+		echo "	case *bnsd.ExecuteBatchMsg:"
 		echo "		msgs, err := msg.MsgList()"
 		echo "		if err != nil {"
 		echo "			return fmt.Errorf(\"cannot extract messages: %s\", err)"
 		echo "		}"
-		echo "		var messages []app.ExecuteProposalBatchMsg_Union"
+		echo "		var messages []bnsd.ExecuteProposalBatchMsg_Union"
 		echo "		for _, m := range msgs {"
 		echo "			switch m := m.(type) {"
 
@@ -315,8 +315,8 @@ while read -r m; do
 			name=`echo $m | cut -d ' ' -f2 | sed -r 's/(^|_)([a-z])/\U\2/g'`
 
 			echo "			case *$tp:"
-			echo "				messages = append(messages, app.ExecuteProposalBatchMsg_Union{"
-			echo "					Sum: &app.ExecuteProposalBatchMsg_Union_$name{"
+			echo "				messages = append(messages, bnsd.ExecuteProposalBatchMsg_Union{"
+			echo "					Sum: &bnsd.ExecuteProposalBatchMsg_Union_$name{"
 			echo "						$name: m,"
 			echo "					},"
 			echo "				})"
@@ -324,8 +324,8 @@ while read -r m; do
 
 		echo "			}"
 		echo "		}"
-		echo "		option.Option = &app.ProposalOptions_BatchMsg{"
-		echo "			ExecuteBatchMsg: &app.ExecuteProposalBatchMsg{"
+		echo "		option.Option = &bnsd.ProposalOptions_BatchMsg{"
+		echo "			ExecuteBatchMsg: &bnsd.ExecuteProposalBatchMsg{"
 		echo "				Messages: messages,"
 		echo "			},"
 		echo "		}"
@@ -333,7 +333,7 @@ while read -r m; do
 	fi
 
 	echo "	case *$tp:"
-	echo "		option.Option = &app.ProposalOptions_$name{"
+	echo "		option.Option = &bnsd.ProposalOptions_$name{"
 	echo "				$name: msg,"
 	echo "		}"
 done <<< $proposals

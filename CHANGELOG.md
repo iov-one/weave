@@ -34,6 +34,8 @@ Breaking changes
   - `x/cash`: `ConfigurationMsg` -> `UpdateConfigurationMsg`
   - `cmd/bnsd`: `BatchMsg` -> `ExecuteBatchMsg`, `ProposalBatchMsg` -> `ExecuteProposalBatchMsg`
   - `x/gov`: `TextResolutionMsg` -> `CreateTextResolutionMsg`
+- `bnsd` specific protobuf objects (Tx, BatchMsg) are now under package `bnsd`, rather than
+  conflicting with generic `app` messages in a namespace conflict.
 - Moved some more messages from `x/validators` package to `weave`
 - `cmd/bnsd`: `nft/username` allows now for any number of aliases/names for a
   single address. Lookup of the username by an address is no longer available.

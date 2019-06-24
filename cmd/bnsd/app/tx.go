@@ -1,4 +1,4 @@
-package app
+package bnsd
 
 import (
 	"github.com/iov-one/weave"

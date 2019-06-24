@@ -2,7 +2,7 @@
 Package app links together all the various components
 to construct the bnsd app.
 */
-package app
+package bnsd
 
 import (
 	"context"

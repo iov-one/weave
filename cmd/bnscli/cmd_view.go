@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/iov-one/weave/cmd/bnsd/app"
+	bnsd "github.com/iov-one/weave/cmd/bnsd/app"
 	"github.com/iov-one/weave/x/gov"
 )
 
@@ -45,7 +45,7 @@ kind of operation are you authorizing.
 	}
 }
 
-func printProposalMsg(output io.Writer, tx *app.Tx) error {
+func printProposalMsg(output io.Writer, tx *bnsd.Tx) error {
 	msg, err := tx.GetMsg()
 	if err != nil {
 		return fmt.Errorf("cannot get transaction message: %s", err)
@@ -55,7 +55,7 @@ func printProposalMsg(output io.Writer, tx *app.Tx) error {
 		return nil
 	}
 
-	var options app.ProposalOptions
+	var options bnsd.ProposalOptions
 	if err := options.Unmarshal(proposalMsg.RawOption); err != nil {
 		return fmt.Errorf("cannot unmarshal raw options: %s", err)
 	}

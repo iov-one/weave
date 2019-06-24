@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/iov-one/weave"
-	"github.com/iov-one/weave/cmd/bnsd/app"
+	bnsd "github.com/iov-one/weave/cmd/bnsd/app"
 	"github.com/iov-one/weave/x/cash"
 )
 
@@ -18,8 +18,8 @@ func TestCmdSignTransactionHappyPath(t *testing.T) {
 	tm := newSignTendermintServer(t)
 	defer tm.Close()
 
-	tx := &app.Tx{
-		Sum: &app.Tx_SendMsg{
+	tx := &bnsd.Tx{
+		Sum: &bnsd.Tx_SendMsg{
 			SendMsg: &cash.SendMsg{
 				Metadata: &weave.Metadata{Schema: 1},
 			},

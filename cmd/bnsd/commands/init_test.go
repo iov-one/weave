@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/iov-one/weave"
-	"github.com/iov-one/weave/cmd/bnsd/app"
+	bnsd "github.com/iov-one/weave/cmd/bnsd/app"
 	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/commands/server"
 	"github.com/stretchr/testify/assert"
@@ -24,7 +24,7 @@ func TestInit(t *testing.T) {
 
 	logger := log.NewNopLogger()
 	args := []string{"ETH", "a5dd251d3cd29dae900b089218ae9740165139fa"}
-	err := server.InitCmd(app.GenInitOptions, logger, home, args)
+	err := server.InitCmd(bnsd.GenInitOptions, logger, home, args)
 	require.NoError(t, err)
 
 	// make sure we set proper data

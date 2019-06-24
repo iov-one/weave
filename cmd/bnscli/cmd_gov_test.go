@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/iov-one/weave"
-	"github.com/iov-one/weave/cmd/bnsd/app"
+	bnsd "github.com/iov-one/weave/cmd/bnsd/app"
 	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/weavetest/assert"
 	"github.com/iov-one/weave/x/cash"
@@ -15,8 +15,8 @@ import (
 func TestCmdAsProposalHappyPath(t *testing.T) {
 	// Prepare a transaction that will be used as an input for the proposal
 	// creation function.
-	sendTx := &app.Tx{
-		Sum: &app.Tx_SendMsg{
+	sendTx := &bnsd.Tx{
+		Sum: &bnsd.Tx_SendMsg{
 			SendMsg: &cash.SendMsg{
 				Metadata: &weave.Metadata{Schema: 1},
 				Src:      fromHex(t, "b1ca7e78f74423ae01da3b51e676934d9105f282"),
@@ -56,7 +56,7 @@ func TestCmdAsProposalHappyPath(t *testing.T) {
 	assert.Equal(t, msg.Description, "a description")
 	assert.Equal(t, msg.ElectionRuleID, sequenceID(1))
 
-	var options app.ProposalOptions
+	var options bnsd.ProposalOptions
 	if err := options.Unmarshal(msg.RawOption); err != nil {
 		t.Fatalf("cannot unmarshal submessage: %s", err)
 	}

@@ -6,7 +6,7 @@ import (
 	"io"
 
 	"github.com/iov-one/weave"
-	"github.com/iov-one/weave/cmd/bnsd/app"
+	bnsd "github.com/iov-one/weave/cmd/bnsd/app"
 	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/x/escrow"
 )
@@ -29,8 +29,8 @@ Create a transaction for releasing funds from given escrow.
 	if !coin.IsEmpty(amountFl) {
 		amount = append(amount, amountFl)
 	}
-	tx := &app.Tx{
-		Sum: &app.Tx_ReleaseEscrowMsg{
+	tx := &bnsd.Tx{
+		Sum: &bnsd.Tx_ReleaseEscrowMsg{
 			ReleaseEscrowMsg: &escrow.ReleaseEscrowMsg{
 				Metadata: &weave.Metadata{Schema: 1},
 				EscrowId: *escrowFl,

@@ -14,7 +14,7 @@ import (
 
 	"github.com/iov-one/weave"
 	weaveClient "github.com/iov-one/weave/client"
-	"github.com/iov-one/weave/cmd/bnsd/app"
+	bnsd "github.com/iov-one/weave/cmd/bnsd/app"
 	"github.com/iov-one/weave/cmd/bnsd/client"
 	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/commands/server"
@@ -88,7 +88,7 @@ func startLocalBnsd(t testing.TB, env *EnvConf) (cleanup func()) {
 
 	initGenesis(t, env, tmConf.GenesisFile())
 
-	bnsd, err := app.GenerateApp(&server.Options{
+	bnsd, err := bnsd.GenerateApp(&server.Options{
 		MinFee: env.MinFee,
 		Home:   tmConf.RootDir,
 		Logger: env.Logger,
@@ -315,7 +315,7 @@ func SeedAccountWithTokens(t testing.TB, env *EnvConf, dest weave.Address) {
 
 // MustSignTx will modify given transaction by signing it with provided private
 // key. This function fails the test if any operation was not successful.
-func MustSignTx(t testing.TB, env *EnvConf, tx *app.Tx, pk *crypto.PrivateKey) {
+func MustSignTx(t testing.TB, env *EnvConf, tx *bnsd.Tx, pk *crypto.PrivateKey) {
 	t.Helper()
 
 	nonce := client.NewNonce(env.Client, pk.PublicKey().Address())
@@ -332,7 +332,7 @@ func MustSignTx(t testing.TB, env *EnvConf, tx *app.Tx, pk *crypto.PrivateKey) {
 // MustBroadcastTx submits given transaction to the network and returns
 // broadcast response. This function fails the test if any operation was not
 // successful or broadcast response contain an error.
-func MustBroadcastTx(t testing.TB, env *EnvConf, tx *app.Tx) *coretypes.ResultBroadcastTxCommit {
+func MustBroadcastTx(t testing.TB, env *EnvConf, tx *bnsd.Tx) *coretypes.ResultBroadcastTxCommit {
 	t.Helper()
 
 	resp := env.Client.BroadcastTx(tx)

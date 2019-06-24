@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 
 	"github.com/iov-one/weave"
-	"github.com/iov-one/weave/cmd/bnsd/app"
+	bnsd "github.com/iov-one/weave/cmd/bnsd/app"
 	"github.com/iov-one/weave/commands"
 	"github.com/iov-one/weave/commands/server"
 	"github.com/tendermint/tendermint/libs/log"
@@ -59,15 +59,15 @@ func main() {
 	case "help":
 		helpMessage()
 	case "init":
-		err = server.InitCmd(app.GenInitOptions, logger, *varHome, rest)
+		err = server.InitCmd(bnsd.GenInitOptions, logger, *varHome, rest)
 	case "start":
-		err = server.StartCmd(app.GenerateApp, logger, *varHome, rest)
+		err = server.StartCmd(bnsd.GenerateApp, logger, *varHome, rest)
 	case "getblock":
 		err = server.GetBlockCmd(rest)
 	case "retry":
-		err = server.RetryCmd(app.InlineApp, logger, *varHome, rest)
+		err = server.RetryCmd(bnsd.InlineApp, logger, *varHome, rest)
 	case "testgen":
-		err = commands.TestGenCmd(app.Examples(), rest)
+		err = commands.TestGenCmd(bnsd.Examples(), rest)
 	case "version":
 		fmt.Println(weave.Version)
 	default:

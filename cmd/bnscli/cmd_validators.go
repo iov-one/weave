@@ -8,7 +8,7 @@ import (
 	"io"
 
 	"github.com/iov-one/weave"
-	"github.com/iov-one/weave/cmd/bnsd/app"
+	bnsd "github.com/iov-one/weave/cmd/bnsd/app"
 	"github.com/iov-one/weave/x/validators"
 )
 
@@ -55,8 +55,8 @@ func cmdSetValidators(input io.Reader, output io.Writer, args []string) error {
 		},
 		Power: int64(*powerFl),
 	})
-	var tx = app.Tx{
-		Sum: &app.Tx_SetValidatorsMsg{
+	var tx = bnsd.Tx{
+		Sum: &bnsd.Tx_SetValidatorsMsg{
 			SetValidatorsMsg: &validators.SetValidatorsMsg{
 				Metadata:         &weave.Metadata{Schema: 1},
 				ValidatorUpdates: set,

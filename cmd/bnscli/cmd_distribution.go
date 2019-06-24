@@ -9,7 +9,7 @@ import (
 	"strconv"
 
 	"github.com/iov-one/weave"
-	"github.com/iov-one/weave/cmd/bnsd/app"
+	bnsd "github.com/iov-one/weave/cmd/bnsd/app"
 	"github.com/iov-one/weave/x/distribution"
 )
 
@@ -30,8 +30,8 @@ Create a transaction for reseting a revenue stream with a new configuration.
 		return fmt.Errorf("cannot read %q recipients file: %s", *recipientsFl, err)
 	}
 
-	tx := &app.Tx{
-		Sum: &app.Tx_ResetRevenueMsg{
+	tx := &bnsd.Tx{
+		Sum: &bnsd.Tx_ResetRevenueMsg{
 			ResetRevenueMsg: &distribution.ResetRevenueMsg{
 				RevenueID:  *revenueFl,
 				Recipients: recipients,
