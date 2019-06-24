@@ -50,7 +50,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 			actions: []action{
 				{
 					conditions: []weave.Condition{src},
-					msg: &CreatePaymentChannelMsg{
+					msg: &CreateMsg{
 						Metadata:     &weave.Metadata{Schema: 1},
 						Src:          src.Address(),
 						Recipient:    recipient.Address(),
@@ -106,7 +106,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 			actions: []action{
 				{
 					conditions: []weave.Condition{src},
-					msg: &CreatePaymentChannelMsg{
+					msg: &CreateMsg{
 						Metadata:     &weave.Metadata{Schema: 1},
 						Src:          src.Address(),
 						Recipient:    recipient.Address(),
@@ -119,7 +119,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 				},
 				{
 					conditions: []weave.Condition{}, // Timeout was reached so anyone can close it.
-					msg: &ClosePaymentChannelMsg{
+					msg: &CloseMsg{
 						Metadata:  &weave.Metadata{Schema: 1},
 						ChannelID: weavetest.SequenceID(1),
 						Memo:      "end",
@@ -155,7 +155,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 			actions: []action{
 				{
 					conditions: []weave.Condition{src},
-					msg: &CreatePaymentChannelMsg{
+					msg: &CreateMsg{
 						Metadata:     &weave.Metadata{Schema: 1},
 						Src:          src.Address(),
 						Recipient:    recipient.Address(),
@@ -168,7 +168,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 				},
 				{
 					conditions: []weave.Condition{src},
-					msg: setSignature(srcSig, &TransferPaymentChannelMsg{
+					msg: setSignature(srcSig, &TransferMsg{
 						Metadata: &weave.Metadata{Schema: 1},
 						Payment: &Payment{
 							ChainID:   "testchain-123",
@@ -181,7 +181,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 				},
 				{
 					conditions: []weave.Condition{src},
-					msg: setSignature(srcSig, &TransferPaymentChannelMsg{
+					msg: setSignature(srcSig, &TransferMsg{
 						Metadata: &weave.Metadata{Schema: 1},
 						Payment: &Payment{
 							ChainID:   "testchain-123",
@@ -216,7 +216,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 			actions: []action{
 				{
 					conditions: []weave.Condition{src},
-					msg: &CreatePaymentChannelMsg{
+					msg: &CreateMsg{
 						Metadata:     &weave.Metadata{Schema: 1},
 						Src:          src.Address(),
 						Recipient:    recipient.Address(),
@@ -229,7 +229,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 				},
 				{
 					conditions: []weave.Condition{src},
-					msg: setSignature(srcSig, &TransferPaymentChannelMsg{
+					msg: setSignature(srcSig, &TransferMsg{
 						Metadata: &weave.Metadata{Schema: 1},
 						Payment: &Payment{
 							ChainID:   "testchain-123",
@@ -242,7 +242,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 				},
 				{
 					conditions: []weave.Condition{}, // Timeout was reached so anyone can close it.
-					msg: &ClosePaymentChannelMsg{
+					msg: &CloseMsg{
 						Metadata:  &weave.Metadata{Schema: 1},
 						ChannelID: weavetest.SequenceID(1),
 						Memo:      "end",
@@ -289,7 +289,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 			actions: []action{
 				{
 					conditions: []weave.Condition{src},
-					msg: &CreatePaymentChannelMsg{
+					msg: &CreateMsg{
 						Metadata:     &weave.Metadata{Schema: 1},
 						Src:          src.Address(),
 						Recipient:    recipient.Address(),
@@ -307,7 +307,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 			actions: []action{
 				{
 					conditions: []weave.Condition{src},
-					msg: &CreatePaymentChannelMsg{
+					msg: &CreateMsg{
 						Metadata:     &weave.Metadata{Schema: 1},
 						Src:          src.Address(),
 						Recipient:    recipient.Address(),
@@ -322,7 +322,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 				// funds and is not expired.
 				{
 					conditions: []weave.Condition{src},
-					msg: &ClosePaymentChannelMsg{
+					msg: &CloseMsg{
 						Metadata:  &weave.Metadata{Schema: 1},
 						ChannelID: weavetest.SequenceID(1),
 						Memo:      "end",
@@ -333,7 +333,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 				// Recipient can close channel any time.
 				{
 					conditions: []weave.Condition{recipient},
-					msg: &ClosePaymentChannelMsg{
+					msg: &CloseMsg{
 						Metadata:  &weave.Metadata{Schema: 1},
 						ChannelID: weavetest.SequenceID(1),
 						Memo:      "end",
@@ -346,7 +346,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 			actions: []action{
 				{
 					conditions: []weave.Condition{src},
-					msg: &CreatePaymentChannelMsg{
+					msg: &CreateMsg{
 						Metadata:     &weave.Metadata{Schema: 1},
 						Src:          src.Address(),
 						Recipient:    recipient.Address(),
@@ -359,7 +359,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 				},
 				{
 					conditions: []weave.Condition{src},
-					msg: setSignature(srcSig, &TransferPaymentChannelMsg{
+					msg: setSignature(srcSig, &TransferMsg{
 						Metadata: &weave.Metadata{Schema: 1},
 						Payment: &Payment{
 							ChainID:   "another-chain-666",
@@ -377,7 +377,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 			actions: []action{
 				{
 					conditions: []weave.Condition{src},
-					msg: &CreatePaymentChannelMsg{
+					msg: &CreateMsg{
 						Metadata:     &weave.Metadata{Schema: 1},
 						Src:          src.Address(),
 						Recipient:    recipient.Address(),
@@ -390,7 +390,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 				},
 				{
 					conditions: []weave.Condition{src},
-					msg: setSignature(srcSig, &TransferPaymentChannelMsg{
+					msg: setSignature(srcSig, &TransferMsg{
 						Metadata: &weave.Metadata{Schema: 1},
 						Payment: &Payment{
 							ChainID:   "testchain-123",
@@ -408,7 +408,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 			actions: []action{
 				{
 					conditions: []weave.Condition{src},
-					msg: &CreatePaymentChannelMsg{
+					msg: &CreateMsg{
 						Metadata:     &weave.Metadata{Schema: 1},
 						Src:          src.Address(),
 						Recipient:    recipient.Address(),
@@ -426,7 +426,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 			actions: []action{
 				{
 					conditions: []weave.Condition{src},
-					msg: &CreatePaymentChannelMsg{
+					msg: &CreateMsg{
 						Metadata:     &weave.Metadata{Schema: 1},
 						Src:          src.Address(),
 						Recipient:    recipient.Address(),
@@ -439,7 +439,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 				},
 				{
 					conditions: []weave.Condition{recipient},
-					msg: &ClosePaymentChannelMsg{
+					msg: &CloseMsg{
 						Metadata:  &weave.Metadata{Schema: 1},
 						ChannelID: weavetest.SequenceID(1),
 						Memo:      "end",
@@ -448,7 +448,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 				},
 				{
 					conditions: []weave.Condition{src},
-					msg: setSignature(srcSig, &TransferPaymentChannelMsg{
+					msg: setSignature(srcSig, &TransferMsg{
 						Metadata: &weave.Metadata{Schema: 1},
 						Payment: &Payment{
 							ChainID:   "testchain-123",
@@ -466,7 +466,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 			actions: []action{
 				{
 					conditions: []weave.Condition{src},
-					msg: &CreatePaymentChannelMsg{
+					msg: &CreateMsg{
 						Metadata:     &weave.Metadata{Schema: 1},
 						Src:          src.Address(),
 						Recipient:    recipient.Address(),
@@ -479,7 +479,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 				},
 				{
 					conditions: []weave.Condition{src},
-					msg: &TransferPaymentChannelMsg{
+					msg: &TransferMsg{
 						Metadata: &weave.Metadata{Schema: 1},
 						Signature: &crypto.Signature{
 							Sig: &crypto.Signature_Ed25519{
@@ -617,7 +617,7 @@ func mustObject(obj orm.Object, err error) orm.Object {
 }
 
 // setSignature computes and sets signature for given message.
-func setSignature(key crypto.Signer, msg *TransferPaymentChannelMsg) *TransferPaymentChannelMsg {
+func setSignature(key crypto.Signer, msg *TransferMsg) *TransferMsg {
 	raw, err := msg.Payment.Marshal()
 	if err != nil {
 		panic(err)

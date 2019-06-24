@@ -669,11 +669,11 @@
             <ul>
               
                 <li>
-                  <a href="#paychan.ClosePaymentChannelMsg"><span class="badge">M</span>ClosePaymentChannelMsg</a>
+                  <a href="#paychan.CloseMsg"><span class="badge">M</span>CloseMsg</a>
                 </li>
               
                 <li>
-                  <a href="#paychan.CreatePaymentChannelMsg"><span class="badge">M</span>CreatePaymentChannelMsg</a>
+                  <a href="#paychan.CreateMsg"><span class="badge">M</span>CreateMsg</a>
                 </li>
               
                 <li>
@@ -685,7 +685,7 @@
                 </li>
               
                 <li>
-                  <a href="#paychan.TransferPaymentChannelMsg"><span class="badge">M</span>TransferPaymentChannelMsg</a>
+                  <a href="#paychan.TransferMsg"><span class="badge">M</span>TransferMsg</a>
                 </li>
               
               
@@ -4254,8 +4254,8 @@ computed as the sum of weights of all participating signatures. </p></td>
       <p></p>
 
       
-        <h3 id="paychan.ClosePaymentChannelMsg">ClosePaymentChannelMsg</h3>
-        <p>ClosePaymentChannelMsg close a payment channel and release remaining founds</p><p>by sending them back to the sender account.</p><p>Recipient account can close channel at any moment.</p><p>Sender can close channel only if the timeout was reached.</p>
+        <h3 id="paychan.CloseMsg">CloseMsg</h3>
+        <p>CloseMsg close a payment channel and release remaining founds</p><p>by sending them back to the sender account.</p><p>Recipient account can close channel at any moment.</p><p>Sender can close channel only if the timeout was reached.</p>
 
         
           <table class="field-table">
@@ -4291,8 +4291,8 @@ computed as the sum of weights of all participating signatures. </p></td>
 
         
       
-        <h3 id="paychan.CreatePaymentChannelMsg">CreatePaymentChannelMsg</h3>
-        <p>CreatePaymentChannelMsg creates a new payment channel that can be used to</p><p>transfer value between two parties.</p><p>Total amount will be taken from the senders account and allocated for user</p><p>in the transactions done via created payment channel.</p>
+        <h3 id="paychan.CreateMsg">CreateMsg</h3>
+        <p>CreateMsg creates a new payment channel that can be used to</p><p>transfer value between two parties.</p><p>Total amount will be taken from the senders account and allocated for user</p><p>in the transactions done via created payment channel.</p>
 
         
           <table class="field-table">
@@ -4481,8 +4481,8 @@ expired: [timeout, infinity) </p></td>
 
         
       
-        <h3 id="paychan.TransferPaymentChannelMsg">TransferPaymentChannelMsg</h3>
-        <p>TransferPaymentChannelMsg binds Payment with a signature created using</p><p>senders private key.</p><p>Signature is there to ensure that payment message was not altered.</p>
+        <h3 id="paychan.TransferMsg">TransferMsg</h3>
+        <p>TransferMsg binds Payment with a signature created using</p><p>senders private key.</p><p>Signature is there to ensure that payment message was not altered.</p>
 
         
           <table class="field-table">

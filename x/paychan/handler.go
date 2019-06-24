@@ -25,11 +25,11 @@ func RegisterRoutes(r weave.Registry, auth x.Authenticator, cash cash.Controller
 	r = migration.SchemaMigratingRegistry("paychan", r)
 
 	bucket := NewPaymentChannelBucket()
-	r.Handle(pathCreatePaymentChannelMsg,
+	r.Handle(pathCreateMsg,
 		&createPaymentChannelHandler{auth: auth, bucket: bucket, cash: cash})
-	r.Handle(pathTransferPaymentChannelMsg,
+	r.Handle(pathTransferMsg,
 		&transferPaymentChannelHandler{auth: auth, bucket: bucket, cash: cash})
-	r.Handle(pathClosePaymentChannelMsg,
+	r.Handle(pathCloseMsg,
 		&closePaymentChannelHandler{auth: auth, bucket: bucket, cash: cash})
 }
 
@@ -49,8 +49,8 @@ func (h *createPaymentChannelHandler) Check(ctx weave.Context, db weave.KVStore,
 	return &weave.CheckResult{GasAllocated: createPaymentChannelCost}, nil
 }
 
-func (h *createPaymentChannelHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*CreatePaymentChannelMsg, error) {
-	var msg CreatePaymentChannelMsg
+func (h *createPaymentChannelHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*CreateMsg, error) {
+	var msg CreateMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, errors.Wrap(err, "load msg")
 	}
@@ -107,8 +107,8 @@ func (h *transferPaymentChannelHandler) Check(ctx weave.Context, db weave.KVStor
 	return &weave.CheckResult{GasAllocated: transferPaymentChannelCost}, nil
 }
 
-func (h *transferPaymentChannelHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*TransferPaymentChannelMsg, error) {
-	var msg TransferPaymentChannelMsg
+func (h *transferPaymentChannelHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*TransferMsg, error) {
+	var msg TransferMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, errors.Wrap(err, "load msg")
 	}
@@ -205,7 +205,7 @@ type closePaymentChannelHandler struct {
 var _ weave.Handler = (*closePaymentChannelHandler)(nil)
 
 func (h *closePaymentChannelHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
-	var msg ClosePaymentChannelMsg
+	var msg CloseMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, errors.Wrap(err, "load msg")
 	}
@@ -213,7 +213,7 @@ func (h *closePaymentChannelHandler) Check(ctx weave.Context, db weave.KVStore, 
 }
 
 func (h *closePaymentChannelHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
-	var msg ClosePaymentChannelMsg
+	var msg CloseMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, errors.Wrap(err, "load msg")
 	}

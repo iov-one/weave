@@ -32,12 +32,12 @@ message PaymentChannel {
   coin.Coin transferred = 8;
 }
 
-// CreatePaymentChannelMsg creates a new payment channel that can be used to
+// CreateMsg creates a new payment channel that can be used to
 // transfer value between two parties.
 //
 // Total amount will be taken from the senders account and allocated for user
 // in the transactions done via created payment channel.
-message CreatePaymentChannelMsg {
+message CreateMsg {
   weave.Metadata metadata = 1;
   // Sender address (weave.Address).
   bytes src = 2 ;
@@ -65,22 +65,22 @@ message Payment {
   string memo = 4;
 }
 
-// TransferPaymentChannelMsg binds Payment with a signature created using
+// TransferMsg binds Payment with a signature created using
 // senders private key.
 // Signature is there to ensure that payment message was not altered.
-message TransferPaymentChannelMsg {
+message TransferMsg {
   weave.Metadata metadata = 1;
   Payment payment = 2;
   crypto.Signature signature = 3;
 }
 
-// ClosePaymentChannelMsg close a payment channel and release remaining founds
+// CloseMsg close a payment channel and release remaining founds
 // by sending them back to the sender account.
 //
 // Recipient account can close channel at any moment.
 //
 // Sender can close channel only if the timeout was reached.
-message ClosePaymentChannelMsg {
+message CloseMsg {
   weave.Metadata metadata = 1;
   bytes channel_id = 2 ;
   // Max length 128 character.
