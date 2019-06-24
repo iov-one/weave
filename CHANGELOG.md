@@ -26,6 +26,8 @@
 
 Breaking changes
 
+- Update `bnsd` transaction entity. `update_escrow_msg` attribute is renamed to
+  `update_escrow_parties_msg`
 - Some messages were renamed to follow the general `start with a verb` format:
   - `x/distribution`: `NewRevenueMsg` -> `CreateRevenueMsg`
   - `x/currency`: `NewTokenInfoMsg` -> `CreateTokenInfoMsg`
