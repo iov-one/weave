@@ -58,25 +58,25 @@ original transactions (ie signatures) are being dropped.
 					SendMsg: msg,
 				},
 			})
-		case *escrow.CreateEscrowMsg:
+		case *escrow.CreateMsg:
 			batch.Messages = append(batch.Messages, bnsd.ExecuteBatchMsg_Union{
-				Sum: &bnsd.ExecuteBatchMsg_Union_CreateEscrowMsg{
-					CreateEscrowMsg: msg,
+				Sum: &bnsd.ExecuteBatchMsg_Union_CreateMsg{
+					CreateMsg: msg,
 				},
 			})
-		case *escrow.ReleaseEscrowMsg:
+		case *escrow.ReleaseMsg:
 			batch.Messages = append(batch.Messages, bnsd.ExecuteBatchMsg_Union{
-				Sum: &bnsd.ExecuteBatchMsg_Union_ReleaseEscrowMsg{
-					ReleaseEscrowMsg: msg,
+				Sum: &bnsd.ExecuteBatchMsg_Union_ReleaseMsg{
+					ReleaseMsg: msg,
 				},
 			})
-		case *escrow.ReturnEscrowMsg:
+		case *escrow.ReturnMsg:
 			batch.Messages = append(batch.Messages, bnsd.ExecuteBatchMsg_Union{
-				Sum: &bnsd.ExecuteBatchMsg_Union_ReturnEscrowMsg{
-					ReturnEscrowMsg: msg,
+				Sum: &bnsd.ExecuteBatchMsg_Union_ReturnMsg{
+					ReturnMsg: msg,
 				},
 			})
-		case *escrow.UpdateEscrowPartiesMsg:
+		case *escrow.UpdatePartiesMsg:
 			batch.Messages = append(batch.Messages, bnsd.ExecuteBatchMsg_Union{
 				Sum: &bnsd.ExecuteBatchMsg_Union_UpdateEscrowMsg{
 					UpdateEscrowMsg: msg,
@@ -167,10 +167,10 @@ declaration.
 # Copy this directly from the ExecuteBatchMsg defined in cmd/bnsd/app/codec.proto
 protobuf="
 cash.SendMsg send_msg = 51;
-escrow.CreateEscrowMsg create_escrow_msg = 52;
-escrow.ReleaseEscrowMsg release_escrow_msg = 53;
-escrow.ReturnEscrowMsg return_escrow_msg = 54;
-escrow.UpdateEscrowPartiesMsg update_escrow_msg = 55;
+escrow.CreateMsg create_escrow_msg = 52;
+escrow.ReleaseMsg release_escrow_msg = 53;
+escrow.ReturnMsg return_escrow_msg = 54;
+escrow.UpdatePartiesMsg update_escrow_msg = 55;
 multisig.CreateContractMsg create_contract_msg = 56;
 multisig.UpdateContractMsg update_contract_msg = 57;
 validators.SetValidatorsMsg set_validators_msg = 58;

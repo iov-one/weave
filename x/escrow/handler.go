@@ -24,10 +24,10 @@ func RegisterRoutes(r weave.Registry, auth x.Authenticator, cashctrl cash.Contro
 	r = migration.SchemaMigratingRegistry("escrow", r)
 	bucket := NewBucket()
 
-	r.Handle(pathCreateEscrowMsg, CreateEscrowHandler{auth, bucket, cashctrl})
-	r.Handle(pathReleaseEscrowMsg, ReleaseEscrowHandler{auth, bucket, cashctrl})
-	r.Handle(pathReturnEscrowMsg, ReturnEscrowHandler{auth, bucket, cashctrl})
-	r.Handle(pathUpdateEscrowPartiesMsg, UpdateEscrowHandler{auth, bucket})
+	r.Handle(pathCreateMsg, CreateEscrowHandler{auth, bucket, cashctrl})
+	r.Handle(pathReleaseMsg, ReleaseEscrowHandler{auth, bucket, cashctrl})
+	r.Handle(pathReturnMsg, ReturnEscrowHandler{auth, bucket, cashctrl})
+	r.Handle(pathUpdatePartiesMsg, UpdateEscrowHandler{auth, bucket})
 }
 
 // RegisterQuery will register this bucket as "/escrows"
@@ -102,8 +102,8 @@ func (h CreateEscrowHandler) Deliver(ctx weave.Context, db weave.KVStore, tx wea
 }
 
 // validate does all common pre-processing between Check and Deliver.
-func (h CreateEscrowHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*CreateEscrowMsg, error) {
-	var msg CreateEscrowMsg
+func (h CreateEscrowHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*CreateMsg, error) {
+	var msg CreateMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, errors.Wrap(err, "load msg")
 	}
@@ -182,8 +182,8 @@ func (h ReleaseEscrowHandler) Deliver(ctx weave.Context, db weave.KVStore, tx we
 }
 
 // validate does all common pre-processing between Check and Deliver.
-func (h ReleaseEscrowHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*ReleaseEscrowMsg, *Escrow, error) {
-	var msg ReleaseEscrowMsg
+func (h ReleaseEscrowHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*ReleaseMsg, *Escrow, error) {
+	var msg ReleaseMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, nil, errors.Wrap(err, "load msg")
 	}
@@ -252,7 +252,7 @@ func (h ReturnEscrowHandler) Deliver(ctx weave.Context, db weave.KVStore, tx wea
 
 // validate does all common pre-processing between Check and Deliver.
 func (h ReturnEscrowHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) ([]byte, *Escrow, error) {
-	var msg ReturnEscrowMsg
+	var msg ReturnMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, nil, errors.Wrap(err, "load msg")
 	}
@@ -317,8 +317,8 @@ func (h UpdateEscrowHandler) Deliver(ctx weave.Context, db weave.KVStore, tx wea
 }
 
 // validate does all common pre-processing between Check and Deliver.
-func (h UpdateEscrowHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*UpdateEscrowPartiesMsg, *Escrow, error) {
-	var msg UpdateEscrowPartiesMsg
+func (h UpdateEscrowHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*UpdatePartiesMsg, *Escrow, error) {
+	var msg UpdatePartiesMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, nil, errors.Wrap(err, "load msg")
 	}

@@ -30,8 +30,8 @@ Create a transaction for releasing funds from given escrow.
 		amount = append(amount, amountFl)
 	}
 	tx := &bnsd.Tx{
-		Sum: &bnsd.Tx_ReleaseEscrowMsg{
-			ReleaseEscrowMsg: &escrow.ReleaseEscrowMsg{
+		Sum: &bnsd.Tx_ReleaseMsg{
+			ReleaseMsg: &escrow.ReleaseMsg{
 				Metadata: &weave.Metadata{Schema: 1},
 				EscrowId: *escrowFl,
 				Amount:   amount,

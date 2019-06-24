@@ -28,7 +28,7 @@ func TestCmdReleaseEscrowHappyPath(t *testing.T) {
 	if err != nil {
 		t.Fatalf("cannot get transaction message: %s", err)
 	}
-	msg := txmsg.(*escrow.ReleaseEscrowMsg)
+	msg := txmsg.(*escrow.ReleaseMsg)
 
 	assert.Equal(t, sequenceID(5), []byte(msg.EscrowId))
 	assert.Equal(t, []*coin.Coin{coin.NewCoinp(49, 0, "DOGE")}, msg.Amount)

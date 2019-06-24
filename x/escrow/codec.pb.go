@@ -121,10 +121,10 @@ func (m *Escrow) GetMemo() string {
 	return ""
 }
 
-// CreateEscrowMsg is a request to create an Escrow with some tokens.
+// CreateMsg is a request to create an Escrow with some tokens.
 // If sender is not defined, it defaults to the first signer
 // The rest must be defined
-type CreateEscrowMsg struct {
+type CreateMsg struct {
 	Metadata  *weave.Metadata                  `protobuf:"bytes,1,opt,name=metadata,proto3" json:"metadata,omitempty"`
 	Src       github_com_iov_one_weave.Address `protobuf:"bytes,2,opt,name=src,proto3,casttype=github.com/iov-one/weave.Address" json:"src,omitempty"`
 	Arbiter   github_com_iov_one_weave.Address `protobuf:"bytes,3,opt,name=arbiter,proto3,casttype=github.com/iov-one/weave.Address" json:"arbiter,omitempty"`
@@ -137,18 +137,18 @@ type CreateEscrowMsg struct {
 	Memo string `protobuf:"bytes,7,opt,name=memo,proto3" json:"memo,omitempty"`
 }
 
-func (m *CreateEscrowMsg) Reset()         { *m = CreateEscrowMsg{} }
-func (m *CreateEscrowMsg) String() string { return proto.CompactTextString(m) }
-func (*CreateEscrowMsg) ProtoMessage()    {}
-func (*CreateEscrowMsg) Descriptor() ([]byte, []int) {
+func (m *CreateMsg) Reset()         { *m = CreateMsg{} }
+func (m *CreateMsg) String() string { return proto.CompactTextString(m) }
+func (*CreateMsg) ProtoMessage()    {}
+func (*CreateMsg) Descriptor() ([]byte, []int) {
 	return fileDescriptor_36017ee554579951, []int{1}
 }
-func (m *CreateEscrowMsg) XXX_Unmarshal(b []byte) error {
+func (m *CreateMsg) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *CreateEscrowMsg) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *CreateMsg) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_CreateEscrowMsg.Marshal(b, m, deterministic)
+		return xxx_messageInfo_CreateMsg.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalTo(b)
@@ -158,89 +158,89 @@ func (m *CreateEscrowMsg) XXX_Marshal(b []byte, deterministic bool) ([]byte, err
 		return b[:n], nil
 	}
 }
-func (m *CreateEscrowMsg) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_CreateEscrowMsg.Merge(m, src)
+func (m *CreateMsg) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_CreateMsg.Merge(m, src)
 }
-func (m *CreateEscrowMsg) XXX_Size() int {
+func (m *CreateMsg) XXX_Size() int {
 	return m.Size()
 }
-func (m *CreateEscrowMsg) XXX_DiscardUnknown() {
-	xxx_messageInfo_CreateEscrowMsg.DiscardUnknown(m)
+func (m *CreateMsg) XXX_DiscardUnknown() {
+	xxx_messageInfo_CreateMsg.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_CreateEscrowMsg proto.InternalMessageInfo
+var xxx_messageInfo_CreateMsg proto.InternalMessageInfo
 
-func (m *CreateEscrowMsg) GetMetadata() *weave.Metadata {
+func (m *CreateMsg) GetMetadata() *weave.Metadata {
 	if m != nil {
 		return m.Metadata
 	}
 	return nil
 }
 
-func (m *CreateEscrowMsg) GetSrc() github_com_iov_one_weave.Address {
+func (m *CreateMsg) GetSrc() github_com_iov_one_weave.Address {
 	if m != nil {
 		return m.Src
 	}
 	return nil
 }
 
-func (m *CreateEscrowMsg) GetArbiter() github_com_iov_one_weave.Address {
+func (m *CreateMsg) GetArbiter() github_com_iov_one_weave.Address {
 	if m != nil {
 		return m.Arbiter
 	}
 	return nil
 }
 
-func (m *CreateEscrowMsg) GetRecipient() github_com_iov_one_weave.Address {
+func (m *CreateMsg) GetRecipient() github_com_iov_one_weave.Address {
 	if m != nil {
 		return m.Recipient
 	}
 	return nil
 }
 
-func (m *CreateEscrowMsg) GetAmount() []*coin.Coin {
+func (m *CreateMsg) GetAmount() []*coin.Coin {
 	if m != nil {
 		return m.Amount
 	}
 	return nil
 }
 
-func (m *CreateEscrowMsg) GetTimeout() github_com_iov_one_weave.UnixTime {
+func (m *CreateMsg) GetTimeout() github_com_iov_one_weave.UnixTime {
 	if m != nil {
 		return m.Timeout
 	}
 	return 0
 }
 
-func (m *CreateEscrowMsg) GetMemo() string {
+func (m *CreateMsg) GetMemo() string {
 	if m != nil {
 		return m.Memo
 	}
 	return ""
 }
 
-// ReleaseEscrowMsg releases the content to the recipient.
+// ReleaseMsg releases the content to the recipient.
 // Must be authorized by sender or arbiter.
 // If amount not provided, defaults to entire escrow,
 // May be a subset of the current balance.
-type ReleaseEscrowMsg struct {
+type ReleaseMsg struct {
 	Metadata *weave.Metadata `protobuf:"bytes,1,opt,name=metadata,proto3" json:"metadata,omitempty"`
 	EscrowId []byte          `protobuf:"bytes,2,opt,name=escrow_id,json=escrowId,proto3" json:"escrow_id,omitempty"`
 	Amount   []*coin.Coin    `protobuf:"bytes,3,rep,name=amount,proto3" json:"amount,omitempty"`
 }
 
-func (m *ReleaseEscrowMsg) Reset()         { *m = ReleaseEscrowMsg{} }
-func (m *ReleaseEscrowMsg) String() string { return proto.CompactTextString(m) }
-func (*ReleaseEscrowMsg) ProtoMessage()    {}
-func (*ReleaseEscrowMsg) Descriptor() ([]byte, []int) {
+func (m *ReleaseMsg) Reset()         { *m = ReleaseMsg{} }
+func (m *ReleaseMsg) String() string { return proto.CompactTextString(m) }
+func (*ReleaseMsg) ProtoMessage()    {}
+func (*ReleaseMsg) Descriptor() ([]byte, []int) {
 	return fileDescriptor_36017ee554579951, []int{2}
 }
-func (m *ReleaseEscrowMsg) XXX_Unmarshal(b []byte) error {
+func (m *ReleaseMsg) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *ReleaseEscrowMsg) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *ReleaseMsg) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_ReleaseEscrowMsg.Marshal(b, m, deterministic)
+		return xxx_messageInfo_ReleaseMsg.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalTo(b)
@@ -250,58 +250,58 @@ func (m *ReleaseEscrowMsg) XXX_Marshal(b []byte, deterministic bool) ([]byte, er
 		return b[:n], nil
 	}
 }
-func (m *ReleaseEscrowMsg) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ReleaseEscrowMsg.Merge(m, src)
+func (m *ReleaseMsg) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ReleaseMsg.Merge(m, src)
 }
-func (m *ReleaseEscrowMsg) XXX_Size() int {
+func (m *ReleaseMsg) XXX_Size() int {
 	return m.Size()
 }
-func (m *ReleaseEscrowMsg) XXX_DiscardUnknown() {
-	xxx_messageInfo_ReleaseEscrowMsg.DiscardUnknown(m)
+func (m *ReleaseMsg) XXX_DiscardUnknown() {
+	xxx_messageInfo_ReleaseMsg.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_ReleaseEscrowMsg proto.InternalMessageInfo
+var xxx_messageInfo_ReleaseMsg proto.InternalMessageInfo
 
-func (m *ReleaseEscrowMsg) GetMetadata() *weave.Metadata {
+func (m *ReleaseMsg) GetMetadata() *weave.Metadata {
 	if m != nil {
 		return m.Metadata
 	}
 	return nil
 }
 
-func (m *ReleaseEscrowMsg) GetEscrowId() []byte {
+func (m *ReleaseMsg) GetEscrowId() []byte {
 	if m != nil {
 		return m.EscrowId
 	}
 	return nil
 }
 
-func (m *ReleaseEscrowMsg) GetAmount() []*coin.Coin {
+func (m *ReleaseMsg) GetAmount() []*coin.Coin {
 	if m != nil {
 		return m.Amount
 	}
 	return nil
 }
 
-// ReturnEscrowMsg returns the content to the sender.
+// ReturnMsg returns the content to the sender.
 // Must be authorized by the sender or an expired timeout
-type ReturnEscrowMsg struct {
+type ReturnMsg struct {
 	Metadata *weave.Metadata `protobuf:"bytes,1,opt,name=metadata,proto3" json:"metadata,omitempty"`
 	EscrowId []byte          `protobuf:"bytes,2,opt,name=escrow_id,json=escrowId,proto3" json:"escrow_id,omitempty"`
 }
 
-func (m *ReturnEscrowMsg) Reset()         { *m = ReturnEscrowMsg{} }
-func (m *ReturnEscrowMsg) String() string { return proto.CompactTextString(m) }
-func (*ReturnEscrowMsg) ProtoMessage()    {}
-func (*ReturnEscrowMsg) Descriptor() ([]byte, []int) {
+func (m *ReturnMsg) Reset()         { *m = ReturnMsg{} }
+func (m *ReturnMsg) String() string { return proto.CompactTextString(m) }
+func (*ReturnMsg) ProtoMessage()    {}
+func (*ReturnMsg) Descriptor() ([]byte, []int) {
 	return fileDescriptor_36017ee554579951, []int{3}
 }
-func (m *ReturnEscrowMsg) XXX_Unmarshal(b []byte) error {
+func (m *ReturnMsg) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *ReturnEscrowMsg) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *ReturnMsg) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_ReturnEscrowMsg.Marshal(b, m, deterministic)
+		return xxx_messageInfo_ReturnMsg.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalTo(b)
@@ -311,38 +311,38 @@ func (m *ReturnEscrowMsg) XXX_Marshal(b []byte, deterministic bool) ([]byte, err
 		return b[:n], nil
 	}
 }
-func (m *ReturnEscrowMsg) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ReturnEscrowMsg.Merge(m, src)
+func (m *ReturnMsg) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ReturnMsg.Merge(m, src)
 }
-func (m *ReturnEscrowMsg) XXX_Size() int {
+func (m *ReturnMsg) XXX_Size() int {
 	return m.Size()
 }
-func (m *ReturnEscrowMsg) XXX_DiscardUnknown() {
-	xxx_messageInfo_ReturnEscrowMsg.DiscardUnknown(m)
+func (m *ReturnMsg) XXX_DiscardUnknown() {
+	xxx_messageInfo_ReturnMsg.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_ReturnEscrowMsg proto.InternalMessageInfo
+var xxx_messageInfo_ReturnMsg proto.InternalMessageInfo
 
-func (m *ReturnEscrowMsg) GetMetadata() *weave.Metadata {
+func (m *ReturnMsg) GetMetadata() *weave.Metadata {
 	if m != nil {
 		return m.Metadata
 	}
 	return nil
 }
 
-func (m *ReturnEscrowMsg) GetEscrowId() []byte {
+func (m *ReturnMsg) GetEscrowId() []byte {
 	if m != nil {
 		return m.EscrowId
 	}
 	return nil
 }
 
-// UpdateEscrowPartiesMsg changes any of the parties of the escrow:
+// UpdatePartiesMsg changes any of the parties of the escrow:
 // sender, arbiter, recipient. This must be authorized by the current
 // holder of that position (eg. only sender can update sender).
 //
 // Represents delegating responsibility
-type UpdateEscrowPartiesMsg struct {
+type UpdatePartiesMsg struct {
 	Metadata  *weave.Metadata                  `protobuf:"bytes,1,opt,name=metadata,proto3" json:"metadata,omitempty"`
 	EscrowId  []byte                           `protobuf:"bytes,2,opt,name=escrow_id,json=escrowId,proto3" json:"escrow_id,omitempty"`
 	Sender    github_com_iov_one_weave.Address `protobuf:"bytes,3,opt,name=sender,proto3,casttype=github.com/iov-one/weave.Address" json:"sender,omitempty"`
@@ -350,18 +350,18 @@ type UpdateEscrowPartiesMsg struct {
 	Recipient github_com_iov_one_weave.Address `protobuf:"bytes,5,opt,name=recipient,proto3,casttype=github.com/iov-one/weave.Address" json:"recipient,omitempty"`
 }
 
-func (m *UpdateEscrowPartiesMsg) Reset()         { *m = UpdateEscrowPartiesMsg{} }
-func (m *UpdateEscrowPartiesMsg) String() string { return proto.CompactTextString(m) }
-func (*UpdateEscrowPartiesMsg) ProtoMessage()    {}
-func (*UpdateEscrowPartiesMsg) Descriptor() ([]byte, []int) {
+func (m *UpdatePartiesMsg) Reset()         { *m = UpdatePartiesMsg{} }
+func (m *UpdatePartiesMsg) String() string { return proto.CompactTextString(m) }
+func (*UpdatePartiesMsg) ProtoMessage()    {}
+func (*UpdatePartiesMsg) Descriptor() ([]byte, []int) {
 	return fileDescriptor_36017ee554579951, []int{4}
 }
-func (m *UpdateEscrowPartiesMsg) XXX_Unmarshal(b []byte) error {
+func (m *UpdatePartiesMsg) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *UpdateEscrowPartiesMsg) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *UpdatePartiesMsg) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_UpdateEscrowPartiesMsg.Marshal(b, m, deterministic)
+		return xxx_messageInfo_UpdatePartiesMsg.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalTo(b)
@@ -371,47 +371,47 @@ func (m *UpdateEscrowPartiesMsg) XXX_Marshal(b []byte, deterministic bool) ([]by
 		return b[:n], nil
 	}
 }
-func (m *UpdateEscrowPartiesMsg) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_UpdateEscrowPartiesMsg.Merge(m, src)
+func (m *UpdatePartiesMsg) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UpdatePartiesMsg.Merge(m, src)
 }
-func (m *UpdateEscrowPartiesMsg) XXX_Size() int {
+func (m *UpdatePartiesMsg) XXX_Size() int {
 	return m.Size()
 }
-func (m *UpdateEscrowPartiesMsg) XXX_DiscardUnknown() {
-	xxx_messageInfo_UpdateEscrowPartiesMsg.DiscardUnknown(m)
+func (m *UpdatePartiesMsg) XXX_DiscardUnknown() {
+	xxx_messageInfo_UpdatePartiesMsg.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_UpdateEscrowPartiesMsg proto.InternalMessageInfo
+var xxx_messageInfo_UpdatePartiesMsg proto.InternalMessageInfo
 
-func (m *UpdateEscrowPartiesMsg) GetMetadata() *weave.Metadata {
+func (m *UpdatePartiesMsg) GetMetadata() *weave.Metadata {
 	if m != nil {
 		return m.Metadata
 	}
 	return nil
 }
 
-func (m *UpdateEscrowPartiesMsg) GetEscrowId() []byte {
+func (m *UpdatePartiesMsg) GetEscrowId() []byte {
 	if m != nil {
 		return m.EscrowId
 	}
 	return nil
 }
 
-func (m *UpdateEscrowPartiesMsg) GetSender() github_com_iov_one_weave.Address {
+func (m *UpdatePartiesMsg) GetSender() github_com_iov_one_weave.Address {
 	if m != nil {
 		return m.Sender
 	}
 	return nil
 }
 
-func (m *UpdateEscrowPartiesMsg) GetArbiter() github_com_iov_one_weave.Address {
+func (m *UpdatePartiesMsg) GetArbiter() github_com_iov_one_weave.Address {
 	if m != nil {
 		return m.Arbiter
 	}
 	return nil
 }
 
-func (m *UpdateEscrowPartiesMsg) GetRecipient() github_com_iov_one_weave.Address {
+func (m *UpdatePartiesMsg) GetRecipient() github_com_iov_one_weave.Address {
 	if m != nil {
 		return m.Recipient
 	}
@@ -420,44 +420,43 @@ func (m *UpdateEscrowPartiesMsg) GetRecipient() github_com_iov_one_weave.Address
 
 func init() {
 	proto.RegisterType((*Escrow)(nil), "escrow.Escrow")
-	proto.RegisterType((*CreateEscrowMsg)(nil), "escrow.CreateEscrowMsg")
-	proto.RegisterType((*ReleaseEscrowMsg)(nil), "escrow.ReleaseEscrowMsg")
-	proto.RegisterType((*ReturnEscrowMsg)(nil), "escrow.ReturnEscrowMsg")
-	proto.RegisterType((*UpdateEscrowPartiesMsg)(nil), "escrow.UpdateEscrowPartiesMsg")
+	proto.RegisterType((*CreateMsg)(nil), "escrow.CreateMsg")
+	proto.RegisterType((*ReleaseMsg)(nil), "escrow.ReleaseMsg")
+	proto.RegisterType((*ReturnMsg)(nil), "escrow.ReturnMsg")
+	proto.RegisterType((*UpdatePartiesMsg)(nil), "escrow.UpdatePartiesMsg")
 }
 
 func init() { proto.RegisterFile("x/escrow/codec.proto", fileDescriptor_36017ee554579951) }
 
 var fileDescriptor_36017ee554579951 = []byte{
-	// 437 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xcc, 0x94, 0x41, 0x6b, 0x13, 0x41,
-	0x14, 0xc7, 0x33, 0xd9, 0x74, 0xd3, 0xbc, 0x08, 0x29, 0x43, 0x91, 0x25, 0xc2, 0x76, 0x5d, 0x14,
-	0x16, 0xc4, 0x5d, 0xa8, 0xe0, 0x49, 0x14, 0x53, 0x3c, 0x78, 0x28, 0xc8, 0x60, 0x4f, 0x1e, 0x64,
-	0xb2, 0xf3, 0x88, 0x03, 0xee, 0x4c, 0x98, 0x99, 0xb4, 0x3d, 0xfa, 0x11, 0xfc, 0x10, 0x7e, 0x18,
-	0x0f, 0x1e, 0x7a, 0xf4, 0x54, 0x24, 0xf9, 0x08, 0xde, 0x7a, 0x92, 0xdd, 0x4d, 0xdb, 0xbd, 0xf4,
-	0xb0, 0x89, 0x82, 0xb7, 0xc7, 0x7f, 0xdf, 0xff, 0xb1, 0xef, 0xc7, 0xff, 0x0d, 0xec, 0x9f, 0x67,
-	0x68, 0x73, 0xa3, 0xcf, 0xb2, 0x5c, 0x0b, 0xcc, 0xd3, 0xb9, 0xd1, 0x4e, 0x53, 0xbf, 0xd6, 0xc6,
-	0xc3, 0x86, 0x38, 0xde, 0xcb, 0xb5, 0x54, 0xcd, 0xb6, 0xf1, 0xfe, 0x4c, 0xcf, 0x74, 0x55, 0x66,
-	0x65, 0x55, 0xab, 0xf1, 0x8f, 0x2e, 0xf8, 0x6f, 0x2a, 0x3f, 0x7d, 0x02, 0xbb, 0x05, 0x3a, 0x2e,
-	0xb8, 0xe3, 0x01, 0x89, 0x48, 0x32, 0x3c, 0x1c, 0xa5, 0x67, 0xc8, 0x4f, 0x31, 0x3d, 0x5e, 0xcb,
-	0xec, 0xa6, 0x81, 0xbe, 0x00, 0xdf, 0xa2, 0x12, 0x68, 0x82, 0x6e, 0x44, 0x92, 0x7b, 0x93, 0x47,
-	0x57, 0x97, 0x07, 0xd1, 0x4c, 0xba, 0x4f, 0x8b, 0x69, 0x9a, 0xeb, 0x22, 0x93, 0xfa, 0xf4, 0xa9,
-	0x56, 0x98, 0xd5, 0x03, 0x5e, 0x0b, 0x61, 0xd0, 0x5a, 0xb6, 0xf6, 0xd0, 0x97, 0xd0, 0xe7, 0x66,
-	0x2a, 0x1d, 0x9a, 0xc0, 0x6b, 0x61, 0xbf, 0x36, 0xd1, 0x09, 0x0c, 0x0c, 0xe6, 0x72, 0x2e, 0x51,
-	0xb9, 0xa0, 0xd7, 0x62, 0xc2, 0xad, 0x8d, 0xbe, 0x82, 0xbe, 0x93, 0x05, 0xea, 0x85, 0x0b, 0x76,
-	0x22, 0x92, 0x78, 0x93, 0xc7, 0x57, 0x97, 0x07, 0x0f, 0xef, 0x9c, 0x70, 0xa2, 0xe4, 0xf9, 0x7b,
-	0x59, 0x20, 0xbb, 0x76, 0x51, 0x0a, 0xbd, 0x02, 0x0b, 0x1d, 0xf8, 0x11, 0x49, 0x06, 0xac, 0xaa,
-	0xe3, 0xdf, 0x5d, 0x18, 0x1d, 0x19, 0xe4, 0x0e, 0x6b, 0xa8, 0xc7, 0x76, 0xd6, 0x8e, 0xeb, 0x73,
-	0xf0, 0xac, 0xc9, 0x5b, 0x41, 0x2d, 0x0d, 0xff, 0x05, 0xd1, 0x18, 0x7c, 0x5e, 0xe8, 0x85, 0x2a,
-	0x81, 0x7a, 0xc9, 0xf0, 0x10, 0xd2, 0x32, 0x84, 0xe9, 0x91, 0x96, 0x8a, 0xad, 0xbf, 0x34, 0xa9,
-	0xfb, 0x5b, 0x51, 0xef, 0x37, 0xa8, 0x7f, 0x21, 0xb0, 0xc7, 0xf0, 0x33, 0x72, 0xbb, 0x29, 0xf6,
-	0x07, 0x30, 0xa8, 0xaf, 0xe8, 0xa3, 0x14, 0x35, 0x7c, 0xb6, 0x5b, 0x0b, 0x6f, 0x45, 0x63, 0x2f,
-	0xef, 0xae, 0xbd, 0xe2, 0x0f, 0x30, 0x62, 0xe8, 0x16, 0x46, 0xfd, 0x83, 0x1f, 0x88, 0xbf, 0x75,
-	0xe1, 0xfe, 0xc9, 0x5c, 0xdc, 0xa4, 0xea, 0x1d, 0x37, 0x4e, 0xa2, 0xfd, 0xbb, 0x5b, 0xde, 0x5e,
-	0xb4, 0xb7, 0xdd, 0x45, 0xf7, 0xb6, 0xce, 0xdf, 0xce, 0x46, 0xf9, 0x9b, 0x04, 0xdf, 0x97, 0x21,
-	0xb9, 0x58, 0x86, 0xe4, 0xd7, 0x32, 0x24, 0x5f, 0x57, 0x61, 0xe7, 0x62, 0x15, 0x76, 0x7e, 0xae,
-	0xc2, 0xce, 0xd4, 0xaf, 0x1e, 0xbb, 0x67, 0x7f, 0x02, 0x00, 0x00, 0xff, 0xff, 0xf2, 0x43, 0x52,
-	0xc9, 0x41, 0x05, 0x00, 0x00,
+	// 430 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xcc, 0x94, 0x41, 0x6b, 0xd4, 0x40,
+	0x14, 0xc7, 0x77, 0x36, 0xdb, 0x6c, 0xf3, 0x56, 0xb0, 0x0c, 0x3d, 0x84, 0x15, 0xd2, 0x18, 0x14,
+	0x02, 0x62, 0x02, 0x15, 0x3c, 0x89, 0xe2, 0x16, 0x0f, 0x1e, 0x0a, 0x32, 0xb8, 0x67, 0x99, 0xcd,
+	0x3c, 0xd6, 0x01, 0x33, 0xb3, 0xcc, 0xcc, 0xb6, 0xc5, 0x4f, 0xe1, 0x27, 0xf0, 0xf3, 0x78, 0xf0,
+	0xd0, 0xa3, 0xa7, 0x22, 0xbb, 0x67, 0xbf, 0x40, 0x4f, 0x92, 0x64, 0x6b, 0x73, 0xe9, 0x21, 0xee,
+	0x1e, 0x7a, 0x7b, 0xfc, 0xf3, 0xfe, 0x2f, 0xbc, 0x1f, 0xef, 0x3f, 0x70, 0x78, 0x91, 0xa3, 0x2d,
+	0x8c, 0x3e, 0xcf, 0x0b, 0x2d, 0xb0, 0xc8, 0x16, 0x46, 0x3b, 0x4d, 0xfd, 0x46, 0x1b, 0x8f, 0x5a,
+	0xe2, 0xf8, 0xa0, 0xd0, 0x52, 0xb5, 0xdb, 0xc6, 0x87, 0x73, 0x3d, 0xd7, 0x75, 0x99, 0x57, 0x55,
+	0xa3, 0x26, 0x3f, 0xfb, 0xe0, 0xbf, 0xab, 0xfd, 0xf4, 0x19, 0xec, 0x97, 0xe8, 0xb8, 0xe0, 0x8e,
+	0x87, 0x24, 0x26, 0xe9, 0xe8, 0xf8, 0x61, 0x76, 0x8e, 0xfc, 0x0c, 0xb3, 0xd3, 0x8d, 0xcc, 0xfe,
+	0x35, 0xd0, 0x57, 0xe0, 0x5b, 0x54, 0x02, 0x4d, 0xd8, 0x8f, 0x49, 0xfa, 0x60, 0xf2, 0xe4, 0xfa,
+	0xea, 0x28, 0x9e, 0x4b, 0xf7, 0x79, 0x39, 0xcb, 0x0a, 0x5d, 0xe6, 0x52, 0x9f, 0x3d, 0xd7, 0x0a,
+	0xf3, 0x66, 0xc0, 0x5b, 0x21, 0x0c, 0x5a, 0xcb, 0x36, 0x1e, 0xfa, 0x1a, 0x86, 0xdc, 0xcc, 0xa4,
+	0x43, 0x13, 0x7a, 0x1d, 0xec, 0x37, 0x26, 0x3a, 0x81, 0xc0, 0x60, 0x21, 0x17, 0x12, 0x95, 0x0b,
+	0x07, 0x1d, 0x26, 0xdc, 0xda, 0xe8, 0x1b, 0x18, 0x3a, 0x59, 0xa2, 0x5e, 0xba, 0x70, 0x2f, 0x26,
+	0xa9, 0x37, 0x79, 0x7a, 0x7d, 0x75, 0xf4, 0xf8, 0xce, 0x09, 0x53, 0x25, 0x2f, 0x3e, 0xca, 0x12,
+	0xd9, 0x8d, 0x8b, 0x52, 0x18, 0x94, 0x58, 0xea, 0xd0, 0x8f, 0x49, 0x1a, 0xb0, 0xba, 0x4e, 0xfe,
+	0xf4, 0x21, 0x38, 0x31, 0xc8, 0x1d, 0x9e, 0xda, 0x79, 0x37, 0xa2, 0x2f, 0xc1, 0xb3, 0xa6, 0xe8,
+	0x84, 0xb3, 0x32, 0xdc, 0x0b, 0x96, 0x09, 0xf8, 0xbc, 0xd4, 0x4b, 0x55, 0xa1, 0xf4, 0xd2, 0xd1,
+	0x31, 0x64, 0xd5, 0xf9, 0x65, 0x27, 0x5a, 0x2a, 0xb6, 0xf9, 0xd2, 0xe6, 0xed, 0x6f, 0xc5, 0x7b,
+	0xd8, 0xe2, 0xfd, 0x15, 0x80, 0xe1, 0x17, 0xe4, 0xb6, 0x3b, 0xef, 0x47, 0x10, 0x34, 0xc1, 0xf9,
+	0x24, 0x45, 0x43, 0x9d, 0xed, 0x37, 0xc2, 0x7b, 0xd1, 0x5a, 0xc8, 0xbb, 0x6b, 0xa1, 0x64, 0x0a,
+	0x01, 0x43, 0xb7, 0x34, 0x6a, 0xa7, 0xbf, 0x4e, 0xbe, 0xf7, 0xe1, 0x60, 0xba, 0x10, 0xdc, 0xe1,
+	0x07, 0x6e, 0x9c, 0x44, 0xbb, 0xdb, 0xcd, 0x6e, 0x83, 0xeb, 0x6d, 0x17, 0xdc, 0xc1, 0xd6, 0xc7,
+	0xb6, 0xf7, 0x5f, 0xc7, 0x36, 0x09, 0x7f, 0xac, 0x22, 0x72, 0xb9, 0x8a, 0xc8, 0xef, 0x55, 0x44,
+	0xbe, 0xad, 0xa3, 0xde, 0xe5, 0x3a, 0xea, 0xfd, 0x5a, 0x47, 0xbd, 0x99, 0x5f, 0xbf, 0x69, 0x2f,
+	0xfe, 0x06, 0x00, 0x00, 0xff, 0xff, 0x88, 0x3f, 0xdd, 0xb2, 0x28, 0x05, 0x00, 0x00,
 }
 
 func (m *Escrow) Marshal() (dAtA []byte, err error) {
@@ -517,7 +516,7 @@ func (m *Escrow) MarshalTo(dAtA []byte) (int, error) {
 	return i, nil
 }
 
-func (m *CreateEscrowMsg) Marshal() (dAtA []byte, err error) {
+func (m *CreateMsg) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalTo(dAtA)
@@ -527,7 +526,7 @@ func (m *CreateEscrowMsg) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *CreateEscrowMsg) MarshalTo(dAtA []byte) (int, error) {
+func (m *CreateMsg) MarshalTo(dAtA []byte) (int, error) {
 	var i int
 	_ = i
 	var l int
@@ -586,7 +585,7 @@ func (m *CreateEscrowMsg) MarshalTo(dAtA []byte) (int, error) {
 	return i, nil
 }
 
-func (m *ReleaseEscrowMsg) Marshal() (dAtA []byte, err error) {
+func (m *ReleaseMsg) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalTo(dAtA)
@@ -596,7 +595,7 @@ func (m *ReleaseEscrowMsg) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *ReleaseEscrowMsg) MarshalTo(dAtA []byte) (int, error) {
+func (m *ReleaseMsg) MarshalTo(dAtA []byte) (int, error) {
 	var i int
 	_ = i
 	var l int
@@ -632,7 +631,7 @@ func (m *ReleaseEscrowMsg) MarshalTo(dAtA []byte) (int, error) {
 	return i, nil
 }
 
-func (m *ReturnEscrowMsg) Marshal() (dAtA []byte, err error) {
+func (m *ReturnMsg) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalTo(dAtA)
@@ -642,7 +641,7 @@ func (m *ReturnEscrowMsg) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *ReturnEscrowMsg) MarshalTo(dAtA []byte) (int, error) {
+func (m *ReturnMsg) MarshalTo(dAtA []byte) (int, error) {
 	var i int
 	_ = i
 	var l int
@@ -666,7 +665,7 @@ func (m *ReturnEscrowMsg) MarshalTo(dAtA []byte) (int, error) {
 	return i, nil
 }
 
-func (m *UpdateEscrowPartiesMsg) Marshal() (dAtA []byte, err error) {
+func (m *UpdatePartiesMsg) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalTo(dAtA)
@@ -676,7 +675,7 @@ func (m *UpdateEscrowPartiesMsg) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *UpdateEscrowPartiesMsg) MarshalTo(dAtA []byte) (int, error) {
+func (m *UpdatePartiesMsg) MarshalTo(dAtA []byte) (int, error) {
 	var i int
 	_ = i
 	var l int
@@ -759,7 +758,7 @@ func (m *Escrow) Size() (n int) {
 	return n
 }
 
-func (m *CreateEscrowMsg) Size() (n int) {
+func (m *CreateMsg) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -797,7 +796,7 @@ func (m *CreateEscrowMsg) Size() (n int) {
 	return n
 }
 
-func (m *ReleaseEscrowMsg) Size() (n int) {
+func (m *ReleaseMsg) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -820,7 +819,7 @@ func (m *ReleaseEscrowMsg) Size() (n int) {
 	return n
 }
 
-func (m *ReturnEscrowMsg) Size() (n int) {
+func (m *ReturnMsg) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -837,7 +836,7 @@ func (m *ReturnEscrowMsg) Size() (n int) {
 	return n
 }
 
-func (m *UpdateEscrowPartiesMsg) Size() (n int) {
+func (m *UpdatePartiesMsg) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -1121,7 +1120,7 @@ func (m *Escrow) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *CreateEscrowMsg) Unmarshal(dAtA []byte) error {
+func (m *CreateMsg) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -1144,10 +1143,10 @@ func (m *CreateEscrowMsg) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: CreateEscrowMsg: wiretype end group for non-group")
+			return fmt.Errorf("proto: CreateMsg: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: CreateEscrowMsg: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: CreateMsg: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -1397,7 +1396,7 @@ func (m *CreateEscrowMsg) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *ReleaseEscrowMsg) Unmarshal(dAtA []byte) error {
+func (m *ReleaseMsg) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -1420,10 +1419,10 @@ func (m *ReleaseEscrowMsg) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: ReleaseEscrowMsg: wiretype end group for non-group")
+			return fmt.Errorf("proto: ReleaseMsg: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: ReleaseEscrowMsg: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: ReleaseMsg: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -1554,7 +1553,7 @@ func (m *ReleaseEscrowMsg) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *ReturnEscrowMsg) Unmarshal(dAtA []byte) error {
+func (m *ReturnMsg) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -1577,10 +1576,10 @@ func (m *ReturnEscrowMsg) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: ReturnEscrowMsg: wiretype end group for non-group")
+			return fmt.Errorf("proto: ReturnMsg: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: ReturnEscrowMsg: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: ReturnMsg: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -1677,7 +1676,7 @@ func (m *ReturnEscrowMsg) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *UpdateEscrowPartiesMsg) Unmarshal(dAtA []byte) error {
+func (m *UpdatePartiesMsg) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -1700,10 +1699,10 @@ func (m *UpdateEscrowPartiesMsg) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: UpdateEscrowPartiesMsg: wiretype end group for non-group")
+			return fmt.Errorf("proto: UpdatePartiesMsg: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: UpdateEscrowPartiesMsg: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: UpdatePartiesMsg: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:

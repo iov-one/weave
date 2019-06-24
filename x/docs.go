@@ -13,6 +13,6 @@ own extensions and use them instead.
 
 Note that protobuf types in exported code will be prefixed by
 the package, so follow standard go naming conventions and avoid
-stutter. Use eg. `escrow.CreateMsg` in place of `escrow.CreateEscrowMsg`.
+stutter. Use eg. `escrow.CreateMsg` in place of `escrow.CreateMsg`.
 */
 package x

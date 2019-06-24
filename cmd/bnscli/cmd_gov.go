@@ -68,13 +68,13 @@ transaction (ie signatures) are being dropped.
 		option.Option = &bnsd.ProposalOptions_SendMsg{
 			SendMsg: msg,
 		}
-	case *escrow.ReleaseEscrowMsg:
-		option.Option = &bnsd.ProposalOptions_ReleaseEscrowMsg{
-			ReleaseEscrowMsg: msg,
+	case *escrow.ReleaseMsg:
+		option.Option = &bnsd.ProposalOptions_ReleaseMsg{
+			ReleaseMsg: msg,
 		}
-	case *escrow.UpdateEscrowPartiesMsg:
-		option.Option = &bnsd.ProposalOptions_UpdateEscrowPartiesMsg{
-			UpdateEscrowPartiesMsg: msg,
+	case *escrow.UpdatePartiesMsg:
+		option.Option = &bnsd.ProposalOptions_UpdatePartiesMsg{
+			UpdatePartiesMsg: msg,
 		}
 	case *validators.SetValidatorsMsg:
 		option.Option = &bnsd.ProposalOptions_SetValidatorsMsg{
@@ -94,16 +94,16 @@ transaction (ie signatures) are being dropped.
 						SendMsg: m,
 					},
 				})
-			case *escrow.ReleaseEscrowMsg:
+			case *escrow.ReleaseMsg:
 				messages = append(messages, bnsd.ExecuteProposalBatchMsg_Union{
-					Sum: &bnsd.ExecuteProposalBatchMsg_Union_ReleaseEscrowMsg{
-						ReleaseEscrowMsg: m,
+					Sum: &bnsd.ExecuteProposalBatchMsg_Union_ReleaseMsg{
+						ReleaseMsg: m,
 					},
 				})
-			case *escrow.UpdateEscrowPartiesMsg:
+			case *escrow.UpdatePartiesMsg:
 				messages = append(messages, bnsd.ExecuteProposalBatchMsg_Union{
-					Sum: &bnsd.ExecuteProposalBatchMsg_Union_UpdateEscrowPartiesMsg{
-						UpdateEscrowPartiesMsg: m,
+					Sum: &bnsd.ExecuteProposalBatchMsg_Union_UpdatePartiesMsg{
+						UpdatePartiesMsg: m,
 					},
 				})
 			case *validators.SetValidatorsMsg:
@@ -248,8 +248,8 @@ func inOneHour() time.Time {
 # Remove all comment lines (starts with //)
 proposals="
 cash.SendMsg send_msg = 51;
-escrow.ReleaseEscrowMsg release_escrow_msg = 53;
-escrow.UpdateEscrowPartiesMsg update_escrow_msg = 55;
+escrow.ReleaseMsg release_escrow_msg = 53;
+escrow.UpdatePartiesMsg update_escrow_msg = 55;
 validators.SetValidatorsMsg set_validators_msg = 58;
 ExecuteProposalBatchMsg execute_batch_msg = 60;
 username.RegisterUsernameTokenMsg register_username_token_msg = 61;
@@ -268,8 +268,8 @@ gov.CreateTextResolutionMsg create_text_resolution_msg = 79;
 # Remove all comment lines (starts with //)
 proposalbatch="
 cash.SendMsg send_msg = 51;
-escrow.ReleaseEscrowMsg release_escrow_msg = 53;
-escrow.UpdateEscrowPartiesMsg update_escrow_msg = 55;
+escrow.ReleaseMsg release_escrow_msg = 53;
+escrow.UpdatePartiesMsg update_escrow_msg = 55;
 validators.SetValidatorsMsg set_validators_msg = 58;
 username.RegisterUsernameTokenMsg register_username_token_msg = 61;
 username.TransferUsernameTokenMsg transfer_username_token_msg = 62;

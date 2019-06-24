@@ -33,10 +33,10 @@ message Tx {
   // msg is a sum type over all allowed messages on this chain.
   oneof sum {
     cash.SendMsg send_msg = 51;
-    escrow.CreateEscrowMsg create_escrow_msg = 52;
-    escrow.ReleaseEscrowMsg release_escrow_msg = 53;
-    escrow.ReturnEscrowMsg return_escrow_msg = 54;
-    escrow.UpdateEscrowPartiesMsg update_escrow_parties_msg = 55;
+    escrow.CreateMsg create_escrow_msg = 52;
+    escrow.ReleaseMsg release_escrow_msg = 53;
+    escrow.ReturnMsg return_escrow_msg = 54;
+    escrow.UpdatePartiesMsg update_escrow_parties_msg = 55;
     multisig.CreateContractMsg create_contract_msg = 56;
     multisig.UpdateContractMsg update_contract_msg = 57;
     validators.SetValidatorsMsg set_validators_msg = 58;
@@ -68,10 +68,10 @@ message ExecuteBatchMsg {
   message Union {
     oneof sum {
       cash.SendMsg send_msg = 51;
-      escrow.CreateEscrowMsg create_escrow_msg = 52;
-      escrow.ReleaseEscrowMsg release_escrow_msg = 53;
-      escrow.ReturnEscrowMsg return_escrow_msg = 54;
-      escrow.UpdateEscrowPartiesMsg update_escrow_msg = 55;
+      escrow.CreateMsg create_escrow_msg = 52;
+      escrow.ReleaseMsg release_escrow_msg = 53;
+      escrow.ReturnMsg return_escrow_msg = 54;
+      escrow.UpdatePartiesMsg update_escrow_msg = 55;
       multisig.CreateContractMsg create_contract_msg = 56;
       multisig.UpdateContractMsg update_contract_msg = 57;
       validators.SetValidatorsMsg set_validators_msg = 58;
@@ -96,8 +96,8 @@ message ExecuteBatchMsg {
 message ProposalOptions {
   oneof option {
     cash.SendMsg send_msg = 51;
-    escrow.ReleaseEscrowMsg release_escrow_msg = 53;
-    escrow.UpdateEscrowPartiesMsg update_escrow_parties_msg = 55;
+    escrow.ReleaseMsg release_escrow_msg = 53;
+    escrow.UpdatePartiesMsg update_escrow_parties_msg = 55;
     validators.SetValidatorsMsg set_validators_msg = 58;
     ExecuteProposalBatchMsg execute_proposal_batch_msg = 60;
     username.RegisterUsernameTokenMsg register_username_token_msg = 61;
@@ -117,8 +117,8 @@ message ExecuteProposalBatchMsg {
   message Union {
     oneof sum {
       cash.SendMsg send_msg = 51;
-      escrow.ReleaseEscrowMsg release_escrow_msg = 53;
-      escrow.UpdateEscrowPartiesMsg update_escrow_parties_msg = 55;
+      escrow.ReleaseMsg release_escrow_msg = 53;
+      escrow.UpdatePartiesMsg update_escrow_parties_msg = 55;
       validators.SetValidatorsMsg set_validators_msg = 58;
       // no recursive batches
       username.RegisterUsernameTokenMsg register_username_token_msg = 61;

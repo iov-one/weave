@@ -228,10 +228,10 @@ in compile-time and we can switch on the kind on runtime, quite nice.
     cash.SendMsg send_msg = 1;
     namecoin.CreateTokenMsg new_token_msg = 2;
     namecoin.SetWalletNameMsg set_name_msg = 3;
-    escrow.CreateEscrowMsg create_escrow_msg = 4;
-    escrow.ReleaseEscrowMsg release_escrow_msg = 5;
-    escrow.ReturnEscrowMsg return_escrow_msg = 6;
-    escrow.UpdateEscrowPartiesMsg update_escrow_msg = 7;
+    escrow.CreateMsg create_escrow_msg = 4;
+    escrow.ReleaseMsg release_escrow_msg = 5;
+    escrow.ReturnMsg return_escrow_msg = 6;
+    escrow.UpdatePartiesMsg update_escrow_msg = 7;
   }
 
 The only problem is that the generated code is ugly to some people's eyes.
@@ -252,9 +252,9 @@ Here are the relevant pieces:
         //  *Tx_SendMsg
         //  *Tx_CreateTokenMsg
         //  *Tx_SetNameMsg
-        //  *Tx_CreateEscrowMsg
-        //  *Tx_ReleaseEscrowMsg
-        //  *Tx_ReturnEscrowMsg
+        //  *Tx_CreateMsg
+        //  *Tx_ReleaseMsg
+        //  *Tx_ReturnMsg
         //  *Tx_UpdateEscrowMsg
         Sum isTx_Sum `protobuf_oneof:"sum"`
     ...
@@ -288,12 +288,12 @@ possible ``tx.Sum`` fields, with
         return t.SetNameMsg, nil
     case *Tx_CreateTokenMsg:
         return t.CreateTokenMsg, nil
-    case *Tx_CreateEscrowMsg:
-        return t.CreateEscrowMsg, nil
-    case *Tx_ReleaseEscrowMsg:
-        return t.ReleaseEscrowMsg, nil
-    case *Tx_ReturnEscrowMsg:
-        return t.ReturnEscrowMsg, nil
+    case *Tx_CreateMsg:
+        return t.CreateMsg, nil
+    case *Tx_ReleaseMsg:
+        return t.ReleaseMsg, nil
+    case *Tx_ReturnMsg:
+        return t.ReturnMsg, nil
     case *Tx_UpdateEscrowMsg:
         return t.UpdateEscrowMsg, nil
     }
