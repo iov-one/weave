@@ -63,8 +63,11 @@ If you have a solid go and node developer setup, you may skip this,
 but good to go through it to be sure.
 
 Once you are set up, you should be able to run something
-like the following to compile both `mycoind` (sample app)
-and `tendermint` (a [BFT consensus engine](https://tendermint.com)):
+like the following to compile both `bnsd` (IOV blockchain application)
+and `bnscli` (a client side app to interact with `bnsd`).
+You will have to 
+[install a compatible version of tendermint](https://github.com/tendermint/tendermint/blob/master/docs/introduction/install.md) 
+separately. (Currently we use the v0.31.5 release).
 
 ```
 # cd into to your workspace that is not in your $GOPATH
@@ -80,7 +83,7 @@ as well as the documentation on the
 [tendermint cli commands](https://tendermint.readthedocs.io/en/master/using-tendermint.html).
 
 Once it compiles, I highly suggest going through the
-[tutorials on readthedocs](https://weave.readthedocs.io/en/latest/index.html#mycoin-tutorial)
+[readthedocs](https://weave.readthedocs.io/en/latest)
 
 ## Compatibility Charts
 

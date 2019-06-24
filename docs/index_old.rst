@@ -94,10 +94,8 @@ Backend Development Tutorial
 To make this theory more tangible, we will build a sample
 application alongside this tutorial, to demonstrate dealing
 with real-world constraints. The application is located in the
-`examples/tutorial package <https://github.com/iov-one/weave/tree/master/examples/tutorial>`_
-in the weave repository, but it is designed to be self-contained
-and could just as easily live in an external repo that imported
-weave.
+`tutorial repository <https://github.com/iov-one/tutorial>`_,
+to show how to create a self-contained app.
 
 In this tutorial, you will learn how to serialize and model
 you data structures, define messages and handlers, expose

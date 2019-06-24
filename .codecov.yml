@@ -20,5 +20,3 @@ comment:
 
 ignore:
   - "**.pb.go$"
-  - "examples/mycoind/main.go$"
-  - "examples/errors/demo.go$"
