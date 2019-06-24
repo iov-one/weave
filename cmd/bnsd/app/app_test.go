@@ -1,4 +1,4 @@
-package app_test
+package bnsd_test
 
 import (
 	"encoding/hex"

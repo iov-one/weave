@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/iov-one/weave"
-	"github.com/iov-one/weave/cmd/bnsd/app"
+	bnsd "github.com/iov-one/weave/cmd/bnsd/app"
 	"github.com/iov-one/weave/weavetest/assert"
 	"github.com/iov-one/weave/x/batch"
 	"github.com/iov-one/weave/x/cash"
@@ -15,8 +15,8 @@ import (
 func TestCmdAsBatchHappyPath(t *testing.T) {
 	var input bytes.Buffer
 	for i := 0; i < 3; i++ {
-		tx := &app.Tx{
-			Sum: &app.Tx_SendMsg{
+		tx := &bnsd.Tx{
+			Sum: &bnsd.Tx_SendMsg{
 				SendMsg: &cash.SendMsg{
 					Metadata: &weave.Metadata{Schema: 1},
 					Memo:     fmt.Sprintf("memo %d", i),

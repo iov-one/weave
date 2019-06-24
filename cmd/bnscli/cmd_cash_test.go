@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/iov-one/weave"
-	"github.com/iov-one/weave/cmd/bnsd/app"
+	bnsd "github.com/iov-one/weave/cmd/bnsd/app"
 	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/weavetest/assert"
 	"github.com/iov-one/weave/x/cash"
@@ -54,8 +54,8 @@ func TestCmdWithFeeHappyPath(t *testing.T) {
 		Amount:   coin.NewCoinp(5, 0, "DOGE"),
 		Memo:     "a memo",
 	}
-	sendTx := &app.Tx{
-		Sum: &app.Tx_SendMsg{
+	sendTx := &bnsd.Tx{
+		Sum: &bnsd.Tx_SendMsg{
 			SendMsg: sendMsg,
 		},
 	}
@@ -96,8 +96,8 @@ func TestCmdWithFeeHappyPathDefaultAmount(t *testing.T) {
 		Amount:   coin.NewCoinp(5, 0, "DOGE"),
 		Memo:     "a memo",
 	}
-	sendTx := &app.Tx{
-		Sum: &app.Tx_SendMsg{
+	sendTx := &bnsd.Tx{
+		Sum: &bnsd.Tx_SendMsg{
 			SendMsg: sendMsg,
 		},
 	}

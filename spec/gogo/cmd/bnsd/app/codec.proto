@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package app;
+package bnsd;
 
 import "cmd/bnsd/x/username/codec.proto";
 import "gogoproto/gogo.proto";

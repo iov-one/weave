@@ -6,7 +6,7 @@ import (
 	"io"
 
 	"github.com/iov-one/weave"
-	"github.com/iov-one/weave/cmd/bnsd/app"
+	bnsd "github.com/iov-one/weave/cmd/bnsd/app"
 	"github.com/iov-one/weave/x/multisig"
 )
 
@@ -37,11 +37,11 @@ participants must be done by another command.
 		flagDie("admin threshold cannot be zero")
 	}
 
-	var tx app.Tx
+	var tx bnsd.Tx
 
 	if len(*updateFl) != 0 {
-		tx = app.Tx{
-			Sum: &app.Tx_UpdateContractMsg{
+		tx = bnsd.Tx{
+			Sum: &bnsd.Tx_UpdateContractMsg{
 				UpdateContractMsg: &multisig.UpdateContractMsg{
 					Metadata:            &weave.Metadata{Schema: 1},
 					ContractID:          *updateFl,
@@ -51,8 +51,8 @@ participants must be done by another command.
 			},
 		}
 	} else {
-		tx = app.Tx{
-			Sum: &app.Tx_CreateContractMsg{
+		tx = bnsd.Tx{
+			Sum: &bnsd.Tx_CreateContractMsg{
 				CreateContractMsg: &multisig.CreateContractMsg{
 					Metadata:            &weave.Metadata{Schema: 1},
 					ActivationThreshold: multisig.Weight(*activationThresholdFl),

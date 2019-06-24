@@ -2,7 +2,7 @@ package client
 
 import (
 	"github.com/iov-one/weave"
-	"github.com/iov-one/weave/cmd/bnsd/app"
+	bnsd "github.com/iov-one/weave/cmd/bnsd/app"
 	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/x/cash"
 	"github.com/iov-one/weave/x/sigs"
@@ -16,9 +16,9 @@ type Tx interface {
 }
 
 // BuildSendTx will create an unsigned tx to move tokens
-func BuildSendTx(src, dest weave.Address, amount coin.Coin, memo string) *app.Tx {
-	return &app.Tx{
-		Sum: &app.Tx_SendMsg{
+func BuildSendTx(src, dest weave.Address, amount coin.Coin, memo string) *bnsd.Tx {
+	return &bnsd.Tx{
+		Sum: &bnsd.Tx_SendMsg{
 			SendMsg: &cash.SendMsg{
 				Metadata: &weave.Metadata{Schema: 1},
 				Src:      src,
@@ -32,7 +32,7 @@ func BuildSendTx(src, dest weave.Address, amount coin.Coin, memo string) *app.Tx
 }
 
 // SignTx modifies the tx in-place, adding signatures
-func SignTx(tx *app.Tx, signer *PrivateKey, chainID string, nonce int64) error {
+func SignTx(tx *bnsd.Tx, signer *PrivateKey, chainID string, nonce int64) error {
 	sig, err := sigs.SignTx(signer, tx, chainID, nonce)
 	if err != nil {
 		return err
@@ -42,8 +42,8 @@ func SignTx(tx *app.Tx, signer *PrivateKey, chainID string, nonce int64) error {
 }
 
 // ParseBcpTx will load a serialize tx into a format we can read
-func ParseBcpTx(data []byte) (*app.Tx, error) {
-	var tx app.Tx
+func ParseBcpTx(data []byte) (*bnsd.Tx, error) {
+	var tx bnsd.Tx
 	err := tx.Unmarshal(data)
 	if err != nil {
 		return nil, err
@@ -52,9 +52,9 @@ func ParseBcpTx(data []byte) (*app.Tx, error) {
 }
 
 // SetValidatorTx will create an unsigned tx to replace current validator set
-func SetValidatorTx(u ...weave.ValidatorUpdate) *app.Tx {
-	return &app.Tx{
-		Sum: &app.Tx_SetValidatorsMsg{
+func SetValidatorTx(u ...weave.ValidatorUpdate) *bnsd.Tx {
+	return &bnsd.Tx{
+		Sum: &bnsd.Tx_SetValidatorsMsg{
 			SetValidatorsMsg: &validators.SetValidatorsMsg{
 				Metadata:         &weave.Metadata{Schema: 1},
 				ValidatorUpdates: u,

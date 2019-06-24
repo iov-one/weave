@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/iov-one/weave"
-	"github.com/iov-one/weave/cmd/bnsd/app"
+	bnsd "github.com/iov-one/weave/cmd/bnsd/app"
 	"github.com/iov-one/weave/x/validators"
 )
 
@@ -80,8 +80,8 @@ func TestCmdSetValidators(t *testing.T) {
 		t.Run(testName, func(t *testing.T) {
 			var input bytes.Buffer
 			if tc.Initial != nil {
-				tx := app.Tx{
-					Sum: &app.Tx_SetValidatorsMsg{
+				tx := bnsd.Tx{
+					Sum: &bnsd.Tx_SetValidatorsMsg{
 						SetValidatorsMsg: &validators.SetValidatorsMsg{
 							Metadata:         &weave.Metadata{Schema: 1},
 							ValidatorUpdates: tc.Initial,

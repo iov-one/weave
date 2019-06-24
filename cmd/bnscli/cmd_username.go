@@ -9,8 +9,8 @@ import (
 	"net/http"
 
 	"github.com/iov-one/weave"
-	weaveapp "github.com/iov-one/weave/app"
-	"github.com/iov-one/weave/cmd/bnsd/app"
+	app "github.com/iov-one/weave/app"
+	bnsd "github.com/iov-one/weave/cmd/bnsd/app"
 	"github.com/iov-one/weave/cmd/bnsd/x/username"
 )
 
@@ -51,8 +51,8 @@ Create a transaction for registering a username.
 		return fmt.Errorf("given data produce an invalid message: %s", err)
 	}
 
-	tx := &app.Tx{
-		Sum: &app.Tx_RegisterUsernameTokenMsg{
+	tx := &bnsd.Tx{
+		Sum: &bnsd.Tx_RegisterUsernameTokenMsg{
 			RegisterUsernameTokenMsg: &msg,
 		},
 	}
@@ -112,7 +112,7 @@ func fetchUsernameToken(serverURL string, uname username.Username) (*username.Us
 	if err := json.NewDecoder(resp.Body).Decode(&payload); err != nil {
 		return nil, fmt.Errorf("cannot decode response: %s", err)
 	}
-	var values weaveapp.ResultSet
+	var values app.ResultSet
 	if err := values.Unmarshal(payload.Result.Response.Value); err != nil {
 		return nil, fmt.Errorf("cannot unmarshal values: %s", err)
 	}
