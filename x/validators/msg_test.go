@@ -19,7 +19,7 @@ func TestValidateSetValidatorMsg(t *testing.T) {
 		WantErr *errors.Error
 	}{
 		"valid model": {
-			Msg: &SetValidatorsMsg{
+			Msg: &ApplyDiffMsg{
 				Metadata: &weave.Metadata{Schema: 1},
 				ValidatorUpdates: []weave.ValidatorUpdate{
 					{Power: 4, PubKey: pubkey},
@@ -29,7 +29,7 @@ func TestValidateSetValidatorMsg(t *testing.T) {
 			WantErr: nil,
 		},
 		"missing metadata": {
-			Msg: &SetValidatorsMsg{
+			Msg: &ApplyDiffMsg{
 				ValidatorUpdates: []weave.ValidatorUpdate{
 					{Power: 4, PubKey: pubkey},
 					{Power: 3, PubKey: pubkey},

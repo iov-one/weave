@@ -94,10 +94,10 @@ original transactions (ie signatures) are being dropped.
 					UpdateMsg: msg,
 				},
 			})
-		case *validators.SetValidatorsMsg:
+		case *validators.ApplyDiffMsg:
 			batch.Messages = append(batch.Messages, bnsd.ExecuteBatchMsg_Union{
-				Sum: &bnsd.ExecuteBatchMsg_Union_SetValidatorsMsg{
-					SetValidatorsMsg: msg,
+				Sum: &bnsd.ExecuteBatchMsg_Union_ApplyDiffMsg{
+					ApplyDiffMsg: msg,
 				},
 			})
 		case *currency.CreateMsg:
@@ -173,7 +173,7 @@ escrow.ReturnMsg return_escrow_msg = 54;
 escrow.UpdatePartiesMsg update_escrow_msg = 55;
 multisig.CreateMsg create_contract_msg = 56;
 multisig.UpdateMsg update_contract_msg = 57;
-validators.SetValidatorsMsg set_validators_msg = 58;
+validators.ApplyDiffMsg set_validators_msg = 58;
 currency.CreateMsg create_token_info_msg = 59;
 username.RegisterUsernameTokenMsg register_username_token_msg = 61;
 username.TransferUsernameTokenMsg transfer_username_token_msg = 62;
