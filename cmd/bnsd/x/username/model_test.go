@@ -75,13 +75,13 @@ func TestBlockchainAddressValidation(t *testing.T) {
 	}
 }
 
-func TestUsernameTokenValidate(t *testing.T) {
+func TestTokenValidate(t *testing.T) {
 	cases := map[string]struct {
-		UsernameToken UsernameToken
-		WantErr       *errors.Error
+		Token   Token
+		WantErr *errors.Error
 	}{
 		"correct": {
-			UsernameToken: UsernameToken{
+			Token: Token{
 				Metadata: &weave.Metadata{Schema: 1},
 				Targets: []BlockchainAddress{
 					{BlockchainID: "blockchain", Address: []byte("123456789")},
@@ -91,7 +91,7 @@ func TestUsernameTokenValidate(t *testing.T) {
 			WantErr: nil,
 		},
 		"target missing ": {
-			UsernameToken: UsernameToken{
+			Token: Token{
 				Metadata: &weave.Metadata{Schema: 1},
 				Targets:  nil,
 				Owner:    weavetest.NewCondition().Address(),
@@ -99,7 +99,7 @@ func TestUsernameTokenValidate(t *testing.T) {
 			WantErr: errors.ErrEmpty,
 		},
 		"owner missing ": {
-			UsernameToken: UsernameToken{
+			Token: Token{
 				Metadata: &weave.Metadata{Schema: 1},
 				Targets: []BlockchainAddress{
 					{BlockchainID: "blockchain", Address: []byte("123456789")},
@@ -112,7 +112,7 @@ func TestUsernameTokenValidate(t *testing.T) {
 
 	for testName, tc := range cases {
 		t.Run(testName, func(t *testing.T) {
-			if err := tc.UsernameToken.Validate(); !tc.WantErr.Is(err) {
+			if err := tc.Token.Validate(); !tc.WantErr.Is(err) {
 				t.Fatalf("unexpected error: %s", err)
 			}
 		})

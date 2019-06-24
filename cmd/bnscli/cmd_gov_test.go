@@ -16,8 +16,8 @@ func TestCmdAsProposalHappyPath(t *testing.T) {
 	// Prepare a transaction that will be used as an input for the proposal
 	// creation function.
 	sendTx := &bnsd.Tx{
-		Sum: &bnsd.Tx_SendMsg{
-			SendMsg: &cash.SendMsg{
+		Sum: &bnsd.Tx_CashSendMsg{
+			CashSendMsg: &cash.SendMsg{
 				Metadata: &weave.Metadata{Schema: 1},
 				Src:      fromHex(t, "b1ca7e78f74423ae01da3b51e676934d9105f282"),
 				Dest:     fromHex(t, "E28AE9A6EB94FC88B73EB7CBD6B87BF93EB9BEF0"),
@@ -60,7 +60,7 @@ func TestCmdAsProposalHappyPath(t *testing.T) {
 	if err := options.Unmarshal(msg.RawOption); err != nil {
 		t.Fatalf("cannot unmarshal submessage: %s", err)
 	}
-	submsg := options.GetSendMsg()
+	submsg := options.GetCashSendMsg()
 	assert.Equal(t, fromHex(t, "b1ca7e78f74423ae01da3b51e676934d9105f282"), []byte(submsg.Src))
 	assert.Equal(t, fromHex(t, "E28AE9A6EB94FC88B73EB7CBD6B87BF93EB9BEF0"), []byte(submsg.Dest))
 	assert.Equal(t, "a memo", submsg.Memo)

@@ -15,8 +15,8 @@ import (
 	"github.com/iov-one/weave/x/currency"
 	"github.com/iov-one/weave/x/distribution"
 	"github.com/iov-one/weave/x/escrow"
-	"github.com/iov-one/weave/x/multisig"
 	"github.com/iov-one/weave/x/gov"
+	"github.com/iov-one/weave/x/multisig"
 	"github.com/iov-one/weave/x/validators"
 )
 
@@ -67,28 +67,28 @@ transaction (ie signatures) are being dropped.
 		return fmt.Errorf("message type not supported: %T", msg)
 
 	case *cash.SendMsg:
-		option.Option = &bnsd.ProposalOptions_SendMsg{
-				SendMsg: msg,
+		option.Option = &bnsd.ProposalOptions_CashSendMsg{
+			CashSendMsg: msg,
 		}
 	case *escrow.ReleaseMsg:
 		option.Option = &bnsd.ProposalOptions_EscrowReleaseMsg{
-				EscrowReleaseMsg: msg,
+			EscrowReleaseMsg: msg,
 		}
 	case *escrow.UpdatePartiesMsg:
 		option.Option = &bnsd.ProposalOptions_UpdateEscrowPartiesMsg{
-				UpdateEscrowPartiesMsg: msg,
+			UpdateEscrowPartiesMsg: msg,
 		}
 	case *multisig.UpdateMsg:
 		option.Option = &bnsd.ProposalOptions_MultisigUpdateMsg{
-				MultisigUpdateMsg: msg,
+			MultisigUpdateMsg: msg,
 		}
 	case *validators.ApplyDiffMsg:
 		option.Option = &bnsd.ProposalOptions_ValidatorsApplyDiffMsg{
-				ValidatorsApplyDiffMsg: msg,
+			ValidatorsApplyDiffMsg: msg,
 		}
 	case *currency.CreateMsg:
 		option.Option = &bnsd.ProposalOptions_CurrencyCreateMsg{
-				CurrencyCreateMsg: msg,
+			CurrencyCreateMsg: msg,
 		}
 	case *bnsd.ExecuteBatchMsg:
 		msgs, err := msg.MsgList()
@@ -128,22 +128,22 @@ transaction (ie signatures) are being dropped.
 						ValidatorsApplyDiffMsg: m,
 					},
 				})
-			case *username.RegisterUsernameTokenMsg:
+			case *username.RegisterTokenMsg:
 				messages = append(messages, bnsd.ExecuteProposalBatchMsg_Union{
-					Sum: &bnsd.ExecuteProposalBatchMsg_Union_RegisterUsernameTokenMsg{
-						RegisterUsernameTokenMsg: m,
+					Sum: &bnsd.ExecuteProposalBatchMsg_Union_UsernameRegisterTokenMsg{
+						UsernameRegisterTokenMsg: m,
 					},
 				})
-			case *username.TransferUsernameTokenMsg:
+			case *username.TransferTokenMsg:
 				messages = append(messages, bnsd.ExecuteProposalBatchMsg_Union{
-					Sum: &bnsd.ExecuteProposalBatchMsg_Union_TransferUsernameTokenMsg{
-						TransferUsernameTokenMsg: m,
+					Sum: &bnsd.ExecuteProposalBatchMsg_Union_UsernameTransferTokenMsg{
+						UsernameTransferTokenMsg: m,
 					},
 				})
-			case *username.ChangeUsernameTokenTargetsMsg:
+			case *username.ChangeTokenTargetsMsg:
 				messages = append(messages, bnsd.ExecuteProposalBatchMsg_Union{
-					Sum: &bnsd.ExecuteProposalBatchMsg_Union_ChangeUsernameTokenTargetsMsg{
-						ChangeUsernameTokenTargetsMsg: m,
+					Sum: &bnsd.ExecuteProposalBatchMsg_Union_UsernameChangeTokenTargetsMsg{
+						UsernameChangeTokenTargetsMsg: m,
 					},
 				})
 			case *distribution.CreateMsg:
@@ -166,20 +166,20 @@ transaction (ie signatures) are being dropped.
 				})
 			case *gov.UpdateElectorateMsg:
 				messages = append(messages, bnsd.ExecuteProposalBatchMsg_Union{
-					Sum: &bnsd.ExecuteProposalBatchMsg_Union_UpdateElectorateMsg{
-						UpdateElectorateMsg: m,
+					Sum: &bnsd.ExecuteProposalBatchMsg_Union_GovUpdateElectorateMsg{
+						GovUpdateElectorateMsg: m,
 					},
 				})
 			case *gov.UpdateElectionRuleMsg:
 				messages = append(messages, bnsd.ExecuteProposalBatchMsg_Union{
-					Sum: &bnsd.ExecuteProposalBatchMsg_Union_UpdateElectionRuleMsg{
-						UpdateElectionRuleMsg: m,
+					Sum: &bnsd.ExecuteProposalBatchMsg_Union_GovUpdateElectionRuleMsg{
+						GovUpdateElectionRuleMsg: m,
 					},
 				})
 			case *gov.CreateTextResolutionMsg:
 				messages = append(messages, bnsd.ExecuteProposalBatchMsg_Union{
-					Sum: &bnsd.ExecuteProposalBatchMsg_Union_CreateTextResolutionMsg{
-						CreateTextResolutionMsg: m,
+					Sum: &bnsd.ExecuteProposalBatchMsg_Union_GovCreateTextResolutionMsg{
+						GovCreateTextResolutionMsg: m,
 					},
 				})
 			}
@@ -189,45 +189,45 @@ transaction (ie signatures) are being dropped.
 				Messages: messages,
 			},
 		}
-	case *username.RegisterUsernameTokenMsg:
-		option.Option = &bnsd.ProposalOptions_RegisterUsernameTokenMsg{
-				RegisterUsernameTokenMsg: msg,
+	case *username.RegisterTokenMsg:
+		option.Option = &bnsd.ProposalOptions_UsernameRegisterTokenMsg{
+			UsernameRegisterTokenMsg: msg,
 		}
-	case *username.TransferUsernameTokenMsg:
-		option.Option = &bnsd.ProposalOptions_TransferUsernameTokenMsg{
-				TransferUsernameTokenMsg: msg,
+	case *username.TransferTokenMsg:
+		option.Option = &bnsd.ProposalOptions_UsernameTransferTokenMsg{
+			UsernameTransferTokenMsg: msg,
 		}
-	case *username.ChangeUsernameTokenTargetsMsg:
-		option.Option = &bnsd.ProposalOptions_ChangeUsernameTokenTargetsMsg{
-				ChangeUsernameTokenTargetsMsg: msg,
+	case *username.ChangeTokenTargetsMsg:
+		option.Option = &bnsd.ProposalOptions_UsernameChangeTokenTargetsMsg{
+			UsernameChangeTokenTargetsMsg: msg,
 		}
 	case *distribution.CreateMsg:
 		option.Option = &bnsd.ProposalOptions_DistributionCreateMsg{
-				DistributionCreateMsg: msg,
+			DistributionCreateMsg: msg,
 		}
 	case *distribution.DistributeMsg:
 		option.Option = &bnsd.ProposalOptions_DistributionMsg{
-				DistributionMsg: msg,
+			DistributionMsg: msg,
 		}
 	case *distribution.ResetMsg:
 		option.Option = &bnsd.ProposalOptions_DistributionResetMsg{
-				DistributionResetMsg: msg,
+			DistributionResetMsg: msg,
 		}
 	case *migration.UpgradeSchemaMsg:
-		option.Option = &bnsd.ProposalOptions_UpgradeSchemaMsg{
-				UpgradeSchemaMsg: msg,
+		option.Option = &bnsd.ProposalOptions_MigrationUpgradeSchemaMsg{
+			MigrationUpgradeSchemaMsg: msg,
 		}
 	case *gov.UpdateElectorateMsg:
-		option.Option = &bnsd.ProposalOptions_UpdateElectorateMsg{
-				UpdateElectorateMsg: msg,
+		option.Option = &bnsd.ProposalOptions_GovUpdateElectorateMsg{
+			GovUpdateElectorateMsg: msg,
 		}
 	case *gov.UpdateElectionRuleMsg:
-		option.Option = &bnsd.ProposalOptions_UpdateElectionRuleMsg{
-				UpdateElectionRuleMsg: msg,
+		option.Option = &bnsd.ProposalOptions_GovUpdateElectionRuleMsg{
+			GovUpdateElectionRuleMsg: msg,
 		}
 	case *gov.CreateTextResolutionMsg:
-		option.Option = &bnsd.ProposalOptions_CreateTextResolutionMsg{
-				CreateTextResolutionMsg: msg,
+		option.Option = &bnsd.ProposalOptions_GovCreateTextResolutionMsg{
+			GovCreateTextResolutionMsg: msg,
 		}
 	}
 
@@ -237,8 +237,8 @@ transaction (ie signatures) are being dropped.
 	}
 
 	propTx := &bnsd.Tx{
-		Sum: &bnsd.Tx_CreateProposalMsg{
-			CreateProposalMsg: &gov.CreateProposalMsg{
+		Sum: &bnsd.Tx_GovCreateProposalMsg{
+			GovCreateProposalMsg: &gov.CreateProposalMsg{
 				Metadata:       &weave.Metadata{Schema: 1},
 				Title:          *titleFl,
 				Description:    *descFl,
@@ -263,23 +263,23 @@ func inOneHour() time.Time {
 # Copy this directly from the ProposalOptions defined in cmd/bnsd/app/codec.proto
 # Remove all comment lines (starts with //)
 proposals="
-cash.SendMsg send_msg = 51;
+cash.SendMsg cash_send_msg = 51;
 escrow.ReleaseMsg escrow_release_msg = 53;
 escrow.UpdatePartiesMsg update_escrow_parties_msg = 55;
 multisig.UpdateMsg multisig_update_msg = 57;
 validators.ApplyDiffMsg validators_apply_diff_msg = 58;
 currency.CreateMsg currency_create_msg = 59;
 ExecuteProposalBatchMsg execute_proposal_batch_msg = 60;
-username.RegisterUsernameTokenMsg register_username_token_msg = 61;
-username.TransferUsernameTokenMsg transfer_username_token_msg = 62;
-username.ChangeUsernameTokenTargetsMsg change_username_token_targets_msg = 63;
+username.RegisterTokenMsg username_register_token_msg = 61;
+username.TransferTokenMsg username_transfer_token_msg = 62;
+username.ChangeTokenTargetsMsg username_change_token_targets_msg = 63;
 distribution.CreateMsg distribution_create_msg = 66;
 distribution.DistributeMsg distribution_msg = 67;
 distribution.ResetMsg distribution_reset_msg = 68;
-migration.UpgradeSchemaMsg upgrade_schema_msg = 69;
-gov.UpdateElectorateMsg update_electorate_msg = 77;
-gov.UpdateElectionRuleMsg update_election_rule_msg = 78;
-gov.CreateTextResolutionMsg create_text_resolution_msg = 79;
+migration.UpgradeSchemaMsg migration_upgrade_schema_msg = 69;
+gov.UpdateElectorateMsg gov_update_electorate_msg = 77;
+gov.UpdateElectionRuleMsg gov_update_election_rule_msg = 78;
+gov.CreateTextResolutionMsg gov_create_text_resolution_msg = 79;
 "
 
 # Copy this directly from the ExecuteProposalBatchMsg defined in cmd/bnsd/app/codec.proto
@@ -290,15 +290,15 @@ escrow.ReleaseMsg escrow_release_msg = 53;
 escrow.UpdatePartiesMsg update_escrow_parties_msg = 55;
 multisig.UpdateMsg multisig_update_msg = 57;
 validators.ApplyDiffMsg validators_apply_diff_msg = 58;
-username.RegisterUsernameTokenMsg register_username_token_msg = 61;
-username.TransferUsernameTokenMsg transfer_username_token_msg = 62;
-username.ChangeUsernameTokenTargetsMsg change_username_token_targets_msg = 63;
+username.RegisterTokenMsg username_register_token_msg = 61;
+username.TransferTokenMsg username_transfer_token_msg = 62;
+username.ChangeTokenTargetsMsg username_change_token_targets_msg = 63;
 distribution.CreateMsg distribution_create_msg = 66;
 distribution.DistributeMsg distribution_msg = 67;
 distribution.ResetMsg distribution_reset_msg = 68;
-gov.UpdateElectorateMsg update_electorate_msg = 77;
-gov.UpdateElectionRuleMsg update_election_rule_msg = 78;
-gov.CreateTextResolutionMsg create_text_resolution_msg = 79;
+gov.UpdateElectorateMsg gov_update_electorate_msg = 77;
+gov.UpdateElectionRuleMsg gov_update_election_rule_msg = 78;
+gov.CreateTextResolutionMsg gov_create_text_resolution_msg = 79;
 "
 
 while read -r m; do

@@ -74,7 +74,7 @@ func Examples() []commands.Example {
 	}
 
 	unsigned := Tx{
-		Sum: &Tx_SendMsg{msg},
+		Sum: &Tx_CashSendMsg{msg},
 	}
 	tx := unsigned
 	sig, err := sigs.SignTx(sender, &tx, "test-123", 17)
@@ -83,18 +83,18 @@ func Examples() []commands.Example {
 	}
 	tx.Signatures = []*sigs.StdSignature{sig}
 
-	registerUsernameTokenMsg := &username.RegisterUsernameTokenMsg{
+	registerTokenMsg := &username.RegisterTokenMsg{
 		Metadata: &weave.Metadata{Schema: 1},
 		Username: "alice*iov",
 		Targets: []username.BlockchainAddress{
 			{BlockchainID: "myNet", Address: []byte("myChainAddress")},
 		},
 	}
-	registerUsernameTokenTx := &Tx{
-		Sum: &Tx_RegisterUsernameTokenMsg{registerUsernameTokenMsg},
+	registerTokenTx := &Tx{
+		Sum: &Tx_UsernameRegisterTokenMsg{registerTokenMsg},
 	}
 
-	changeUsernameTokenTargetsMsg := &username.ChangeUsernameTokenTargetsMsg{
+	changeTokenTargetsMsg := &username.ChangeTokenTargetsMsg{
 		Metadata: &weave.Metadata{Schema: 1},
 		Username: "alice*iov",
 		NewTargets: []username.BlockchainAddress{
@@ -116,8 +116,8 @@ func Examples() []commands.Example {
 		{Filename: "send_msg", Obj: msg},
 		{Filename: "unsigned_tx", Obj: &unsigned},
 		{Filename: "signed_tx", Obj: &tx},
-		{Filename: "register_username_token_msg", Obj: registerUsernameTokenMsg},
-		{Filename: "register_username_token_tx", Obj: registerUsernameTokenTx},
-		{Filename: "change_username_token_targets_msg", Obj: changeUsernameTokenTargetsMsg},
+		{Filename: "username_register_token_msg", Obj: registerTokenMsg},
+		{Filename: "username_register_token_tx", Obj: registerTokenTx},
+		{Filename: "username_change_token_targets_msg", Obj: changeTokenTargetsMsg},
 	}
 }

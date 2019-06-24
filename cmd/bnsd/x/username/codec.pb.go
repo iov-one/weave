@@ -24,17 +24,17 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
 
-// UsernameToken model represents a username mapping to an address together
-// with all metadata.
+// Token model represents a username mapping to an address together with all
+// metadata.
 //
-// Each UsernameToken model is stored using the username as the key. This
-// guarantee that the name is unique. Username is a combination of a name and a
-// domain.  The format is <name>*<domain>
+// Each Token model is stored using the username as the key. This guarantee
+// that the name is unique. Username is a combination of a name and a domain.
+// The format is <name>*<domain>
 //
 // Each token points to a blockchain and an address on that blockchain. Both
 // blockchain ID and address are an arbitrary string as we do not want to limit
 // ourselves to certain patterns.
-type UsernameToken struct {
+type Token struct {
 	Metadata *weave.Metadata `protobuf:"bytes,1,opt,name=metadata,proto3" json:"metadata,omitempty"`
 	// Targets specifies where this username token points to. This must be at
 	// least one blockchain address elemenet.
@@ -44,18 +44,18 @@ type UsernameToken struct {
 	Owner github_com_iov_one_weave.Address `protobuf:"bytes,3,opt,name=owner,proto3,casttype=github.com/iov-one/weave.Address" json:"owner,omitempty"`
 }
 
-func (m *UsernameToken) Reset()         { *m = UsernameToken{} }
-func (m *UsernameToken) String() string { return proto.CompactTextString(m) }
-func (*UsernameToken) ProtoMessage()    {}
-func (*UsernameToken) Descriptor() ([]byte, []int) {
+func (m *Token) Reset()         { *m = Token{} }
+func (m *Token) String() string { return proto.CompactTextString(m) }
+func (*Token) ProtoMessage()    {}
+func (*Token) Descriptor() ([]byte, []int) {
 	return fileDescriptor_5d21e3852038e86f, []int{0}
 }
-func (m *UsernameToken) XXX_Unmarshal(b []byte) error {
+func (m *Token) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *UsernameToken) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *Token) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_UsernameToken.Marshal(b, m, deterministic)
+		return xxx_messageInfo_Token.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalTo(b)
@@ -65,33 +65,33 @@ func (m *UsernameToken) XXX_Marshal(b []byte, deterministic bool) ([]byte, error
 		return b[:n], nil
 	}
 }
-func (m *UsernameToken) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_UsernameToken.Merge(m, src)
+func (m *Token) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Token.Merge(m, src)
 }
-func (m *UsernameToken) XXX_Size() int {
+func (m *Token) XXX_Size() int {
 	return m.Size()
 }
-func (m *UsernameToken) XXX_DiscardUnknown() {
-	xxx_messageInfo_UsernameToken.DiscardUnknown(m)
+func (m *Token) XXX_DiscardUnknown() {
+	xxx_messageInfo_Token.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_UsernameToken proto.InternalMessageInfo
+var xxx_messageInfo_Token proto.InternalMessageInfo
 
-func (m *UsernameToken) GetMetadata() *weave.Metadata {
+func (m *Token) GetMetadata() *weave.Metadata {
 	if m != nil {
 		return m.Metadata
 	}
 	return nil
 }
 
-func (m *UsernameToken) GetTargets() []BlockchainAddress {
+func (m *Token) GetTargets() []BlockchainAddress {
 	if m != nil {
 		return m.Targets
 	}
 	return nil
 }
 
-func (m *UsernameToken) GetOwner() github_com_iov_one_weave.Address {
+func (m *Token) GetOwner() github_com_iov_one_weave.Address {
 	if m != nil {
 		return m.Owner
 	}
@@ -161,7 +161,7 @@ func (m *BlockchainAddress) GetAddress() []byte {
 
 // RegisterTokenMsg is creating a new username token. The owner is always set
 // to the main signer.
-type RegisterUsernameTokenMsg struct {
+type RegisterTokenMsg struct {
 	Metadata *weave.Metadata `protobuf:"bytes,1,opt,name=metadata,proto3" json:"metadata,omitempty"`
 	// Username is the unique name of the token, for example alice*iov
 	Username Username `protobuf:"bytes,2,opt,name=username,proto3,casttype=Username" json:"username,omitempty"`
@@ -169,18 +169,18 @@ type RegisterUsernameTokenMsg struct {
 	Targets []BlockchainAddress `protobuf:"bytes,3,rep,name=targets,proto3" json:"targets"`
 }
 
-func (m *RegisterUsernameTokenMsg) Reset()         { *m = RegisterUsernameTokenMsg{} }
-func (m *RegisterUsernameTokenMsg) String() string { return proto.CompactTextString(m) }
-func (*RegisterUsernameTokenMsg) ProtoMessage()    {}
-func (*RegisterUsernameTokenMsg) Descriptor() ([]byte, []int) {
+func (m *RegisterTokenMsg) Reset()         { *m = RegisterTokenMsg{} }
+func (m *RegisterTokenMsg) String() string { return proto.CompactTextString(m) }
+func (*RegisterTokenMsg) ProtoMessage()    {}
+func (*RegisterTokenMsg) Descriptor() ([]byte, []int) {
 	return fileDescriptor_5d21e3852038e86f, []int{2}
 }
-func (m *RegisterUsernameTokenMsg) XXX_Unmarshal(b []byte) error {
+func (m *RegisterTokenMsg) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *RegisterUsernameTokenMsg) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *RegisterTokenMsg) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_RegisterUsernameTokenMsg.Marshal(b, m, deterministic)
+		return xxx_messageInfo_RegisterTokenMsg.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalTo(b)
@@ -190,33 +190,33 @@ func (m *RegisterUsernameTokenMsg) XXX_Marshal(b []byte, deterministic bool) ([]
 		return b[:n], nil
 	}
 }
-func (m *RegisterUsernameTokenMsg) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_RegisterUsernameTokenMsg.Merge(m, src)
+func (m *RegisterTokenMsg) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_RegisterTokenMsg.Merge(m, src)
 }
-func (m *RegisterUsernameTokenMsg) XXX_Size() int {
+func (m *RegisterTokenMsg) XXX_Size() int {
 	return m.Size()
 }
-func (m *RegisterUsernameTokenMsg) XXX_DiscardUnknown() {
-	xxx_messageInfo_RegisterUsernameTokenMsg.DiscardUnknown(m)
+func (m *RegisterTokenMsg) XXX_DiscardUnknown() {
+	xxx_messageInfo_RegisterTokenMsg.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_RegisterUsernameTokenMsg proto.InternalMessageInfo
+var xxx_messageInfo_RegisterTokenMsg proto.InternalMessageInfo
 
-func (m *RegisterUsernameTokenMsg) GetMetadata() *weave.Metadata {
+func (m *RegisterTokenMsg) GetMetadata() *weave.Metadata {
 	if m != nil {
 		return m.Metadata
 	}
 	return nil
 }
 
-func (m *RegisterUsernameTokenMsg) GetUsername() Username {
+func (m *RegisterTokenMsg) GetUsername() Username {
 	if m != nil {
 		return m.Username
 	}
 	return ""
 }
 
-func (m *RegisterUsernameTokenMsg) GetTargets() []BlockchainAddress {
+func (m *RegisterTokenMsg) GetTargets() []BlockchainAddress {
 	if m != nil {
 		return m.Targets
 	}
@@ -226,7 +226,7 @@ func (m *RegisterUsernameTokenMsg) GetTargets() []BlockchainAddress {
 // TransferTokenMsg is a request to transfer an ownership of a token. The
 // mesage must be signed by the current token owner. Acceptance of the new
 // owner is not required in order to succeed.
-type TransferUsernameTokenMsg struct {
+type TransferTokenMsg struct {
 	Metadata *weave.Metadata `protobuf:"bytes,1,opt,name=metadata,proto3" json:"metadata,omitempty"`
 	// Username is the unique name of the token, for example alice*iov
 	Username Username `protobuf:"bytes,2,opt,name=username,proto3,casttype=Username" json:"username,omitempty"`
@@ -234,18 +234,18 @@ type TransferUsernameTokenMsg struct {
 	NewOwner github_com_iov_one_weave.Address `protobuf:"bytes,3,opt,name=new_owner,json=newOwner,proto3,casttype=github.com/iov-one/weave.Address" json:"new_owner,omitempty"`
 }
 
-func (m *TransferUsernameTokenMsg) Reset()         { *m = TransferUsernameTokenMsg{} }
-func (m *TransferUsernameTokenMsg) String() string { return proto.CompactTextString(m) }
-func (*TransferUsernameTokenMsg) ProtoMessage()    {}
-func (*TransferUsernameTokenMsg) Descriptor() ([]byte, []int) {
+func (m *TransferTokenMsg) Reset()         { *m = TransferTokenMsg{} }
+func (m *TransferTokenMsg) String() string { return proto.CompactTextString(m) }
+func (*TransferTokenMsg) ProtoMessage()    {}
+func (*TransferTokenMsg) Descriptor() ([]byte, []int) {
 	return fileDescriptor_5d21e3852038e86f, []int{3}
 }
-func (m *TransferUsernameTokenMsg) XXX_Unmarshal(b []byte) error {
+func (m *TransferTokenMsg) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *TransferUsernameTokenMsg) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *TransferTokenMsg) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_TransferUsernameTokenMsg.Marshal(b, m, deterministic)
+		return xxx_messageInfo_TransferTokenMsg.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalTo(b)
@@ -255,33 +255,33 @@ func (m *TransferUsernameTokenMsg) XXX_Marshal(b []byte, deterministic bool) ([]
 		return b[:n], nil
 	}
 }
-func (m *TransferUsernameTokenMsg) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_TransferUsernameTokenMsg.Merge(m, src)
+func (m *TransferTokenMsg) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_TransferTokenMsg.Merge(m, src)
 }
-func (m *TransferUsernameTokenMsg) XXX_Size() int {
+func (m *TransferTokenMsg) XXX_Size() int {
 	return m.Size()
 }
-func (m *TransferUsernameTokenMsg) XXX_DiscardUnknown() {
-	xxx_messageInfo_TransferUsernameTokenMsg.DiscardUnknown(m)
+func (m *TransferTokenMsg) XXX_DiscardUnknown() {
+	xxx_messageInfo_TransferTokenMsg.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_TransferUsernameTokenMsg proto.InternalMessageInfo
+var xxx_messageInfo_TransferTokenMsg proto.InternalMessageInfo
 
-func (m *TransferUsernameTokenMsg) GetMetadata() *weave.Metadata {
+func (m *TransferTokenMsg) GetMetadata() *weave.Metadata {
 	if m != nil {
 		return m.Metadata
 	}
 	return nil
 }
 
-func (m *TransferUsernameTokenMsg) GetUsername() Username {
+func (m *TransferTokenMsg) GetUsername() Username {
 	if m != nil {
 		return m.Username
 	}
 	return ""
 }
 
-func (m *TransferUsernameTokenMsg) GetNewOwner() github_com_iov_one_weave.Address {
+func (m *TransferTokenMsg) GetNewOwner() github_com_iov_one_weave.Address {
 	if m != nil {
 		return m.NewOwner
 	}
@@ -290,7 +290,7 @@ func (m *TransferUsernameTokenMsg) GetNewOwner() github_com_iov_one_weave.Addres
 
 // ChangeTokenTargetsMsg is a request to change the address that this token
 // points to. Only the owner of a token can request this operation.
-type ChangeUsernameTokenTargetsMsg struct {
+type ChangeTokenTargetsMsg struct {
 	Metadata *weave.Metadata `protobuf:"bytes,1,opt,name=metadata,proto3" json:"metadata,omitempty"`
 	// Username is the unique name of the token, for example alice*iov
 	Username Username `protobuf:"bytes,2,opt,name=username,proto3,casttype=Username" json:"username,omitempty"`
@@ -299,18 +299,18 @@ type ChangeUsernameTokenTargetsMsg struct {
 	NewTargets []BlockchainAddress `protobuf:"bytes,3,rep,name=new_targets,json=newTargets,proto3" json:"new_targets"`
 }
 
-func (m *ChangeUsernameTokenTargetsMsg) Reset()         { *m = ChangeUsernameTokenTargetsMsg{} }
-func (m *ChangeUsernameTokenTargetsMsg) String() string { return proto.CompactTextString(m) }
-func (*ChangeUsernameTokenTargetsMsg) ProtoMessage()    {}
-func (*ChangeUsernameTokenTargetsMsg) Descriptor() ([]byte, []int) {
+func (m *ChangeTokenTargetsMsg) Reset()         { *m = ChangeTokenTargetsMsg{} }
+func (m *ChangeTokenTargetsMsg) String() string { return proto.CompactTextString(m) }
+func (*ChangeTokenTargetsMsg) ProtoMessage()    {}
+func (*ChangeTokenTargetsMsg) Descriptor() ([]byte, []int) {
 	return fileDescriptor_5d21e3852038e86f, []int{4}
 }
-func (m *ChangeUsernameTokenTargetsMsg) XXX_Unmarshal(b []byte) error {
+func (m *ChangeTokenTargetsMsg) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *ChangeUsernameTokenTargetsMsg) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *ChangeTokenTargetsMsg) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_ChangeUsernameTokenTargetsMsg.Marshal(b, m, deterministic)
+		return xxx_messageInfo_ChangeTokenTargetsMsg.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalTo(b)
@@ -320,33 +320,33 @@ func (m *ChangeUsernameTokenTargetsMsg) XXX_Marshal(b []byte, deterministic bool
 		return b[:n], nil
 	}
 }
-func (m *ChangeUsernameTokenTargetsMsg) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ChangeUsernameTokenTargetsMsg.Merge(m, src)
+func (m *ChangeTokenTargetsMsg) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ChangeTokenTargetsMsg.Merge(m, src)
 }
-func (m *ChangeUsernameTokenTargetsMsg) XXX_Size() int {
+func (m *ChangeTokenTargetsMsg) XXX_Size() int {
 	return m.Size()
 }
-func (m *ChangeUsernameTokenTargetsMsg) XXX_DiscardUnknown() {
-	xxx_messageInfo_ChangeUsernameTokenTargetsMsg.DiscardUnknown(m)
+func (m *ChangeTokenTargetsMsg) XXX_DiscardUnknown() {
+	xxx_messageInfo_ChangeTokenTargetsMsg.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_ChangeUsernameTokenTargetsMsg proto.InternalMessageInfo
+var xxx_messageInfo_ChangeTokenTargetsMsg proto.InternalMessageInfo
 
-func (m *ChangeUsernameTokenTargetsMsg) GetMetadata() *weave.Metadata {
+func (m *ChangeTokenTargetsMsg) GetMetadata() *weave.Metadata {
 	if m != nil {
 		return m.Metadata
 	}
 	return nil
 }
 
-func (m *ChangeUsernameTokenTargetsMsg) GetUsername() Username {
+func (m *ChangeTokenTargetsMsg) GetUsername() Username {
 	if m != nil {
 		return m.Username
 	}
 	return ""
 }
 
-func (m *ChangeUsernameTokenTargetsMsg) GetNewTargets() []BlockchainAddress {
+func (m *ChangeTokenTargetsMsg) GetNewTargets() []BlockchainAddress {
 	if m != nil {
 		return m.NewTargets
 	}
@@ -354,46 +354,46 @@ func (m *ChangeUsernameTokenTargetsMsg) GetNewTargets() []BlockchainAddress {
 }
 
 func init() {
-	proto.RegisterType((*UsernameToken)(nil), "username.UsernameToken")
+	proto.RegisterType((*Token)(nil), "username.Token")
 	proto.RegisterType((*BlockchainAddress)(nil), "username.BlockchainAddress")
-	proto.RegisterType((*RegisterUsernameTokenMsg)(nil), "username.RegisterUsernameTokenMsg")
-	proto.RegisterType((*TransferUsernameTokenMsg)(nil), "username.TransferUsernameTokenMsg")
-	proto.RegisterType((*ChangeUsernameTokenTargetsMsg)(nil), "username.ChangeUsernameTokenTargetsMsg")
+	proto.RegisterType((*RegisterTokenMsg)(nil), "username.RegisterTokenMsg")
+	proto.RegisterType((*TransferTokenMsg)(nil), "username.TransferTokenMsg")
+	proto.RegisterType((*ChangeTokenTargetsMsg)(nil), "username.ChangeTokenTargetsMsg")
 }
 
 func init() { proto.RegisterFile("cmd/bnsd/x/username/codec.proto", fileDescriptor_5d21e3852038e86f) }
 
 var fileDescriptor_5d21e3852038e86f = []byte{
-	// 406 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xbc, 0x53, 0x3d, 0x8f, 0xd3, 0x40,
-	0x10, 0xf5, 0x5e, 0x80, 0x73, 0xd6, 0x3e, 0x01, 0x16, 0xc5, 0xea, 0x10, 0xb6, 0x65, 0x51, 0x58,
-	0x42, 0xd8, 0xd2, 0x21, 0x1a, 0xa8, 0xce, 0xd0, 0x5c, 0x71, 0x42, 0xb2, 0x42, 0x7d, 0x5a, 0x7b,
-	0x07, 0xc7, 0x3a, 0xbc, 0x8b, 0xbc, 0x4e, 0xcc, 0xcf, 0xe0, 0x97, 0x50, 0x41, 0xc3, 0x2f, 0x48,
-	0x99, 0x92, 0xca, 0x42, 0xce, 0xbf, 0x48, 0x85, 0xe2, 0xaf, 0x24, 0xa2, 0x72, 0xc1, 0x75, 0xb3,
-	0x6f, 0xdf, 0xbc, 0x79, 0xfb, 0x46, 0x8b, 0xad, 0x38, 0x63, 0x7e, 0xc4, 0x25, 0xf3, 0xbf, 0xfa,
-	0x0b, 0x09, 0x39, 0xa7, 0x19, 0xf8, 0xb1, 0x60, 0x10, 0x7b, 0x5f, 0x72, 0x51, 0x08, 0x43, 0xed,
-	0xd1, 0x73, 0xed, 0x00, 0x3e, 0x7f, 0x92, 0x88, 0x44, 0x34, 0xa5, 0xbf, 0xab, 0x5a, 0xd4, 0xf9,
-	0x89, 0xf0, 0xd9, 0xc7, 0x8e, 0x3f, 0x13, 0xb7, 0xc0, 0x8d, 0x17, 0x58, 0xcd, 0xa0, 0xa0, 0x8c,
-	0x16, 0x94, 0x20, 0x1b, 0xb9, 0xda, 0xc5, 0x43, 0xaf, 0x04, 0xba, 0x04, 0xef, 0xba, 0x83, 0xc3,
-	0x81, 0x60, 0xbc, 0xc5, 0xa7, 0x05, 0xcd, 0x13, 0x28, 0x24, 0x39, 0xb1, 0x27, 0xae, 0x76, 0xf1,
-	0xd4, 0xeb, 0xa7, 0x7b, 0xc1, 0x67, 0x11, 0xdf, 0xc6, 0x73, 0x9a, 0xf2, 0x4b, 0xc6, 0x72, 0x90,
-	0x32, 0xb8, 0xb7, 0xaa, 0x2c, 0x25, 0xec, 0x3b, 0x8c, 0x37, 0xf8, 0xbe, 0x28, 0x39, 0xe4, 0x64,
-	0x62, 0x23, 0x57, 0x0f, 0x9e, 0x6f, 0x2b, 0xcb, 0x4e, 0xd2, 0x62, 0xbe, 0x88, 0xbc, 0x58, 0x64,
-	0x7e, 0x2a, 0x96, 0x2f, 0x05, 0x07, 0xbf, 0x1d, 0xde, 0x69, 0x84, 0x6d, 0x8b, 0xc3, 0xf0, 0xe3,
-	0x7f, 0xf4, 0x8d, 0xd7, 0xf8, 0x2c, 0x1a, 0xc0, 0x9b, 0x94, 0x35, 0xfe, 0xa7, 0xc1, 0xa3, 0xba,
-	0xb2, 0xf4, 0x3d, 0xfb, 0xea, 0x7d, 0xa8, 0xef, 0x69, 0x57, 0xcc, 0x20, 0xf8, 0x94, 0xb6, 0x0a,
-	0xe4, 0x64, 0xe7, 0x24, 0xec, 0x8f, 0xce, 0x77, 0x84, 0x49, 0x08, 0x49, 0x2a, 0x0b, 0xc8, 0x8f,
-	0x52, 0xba, 0x96, 0xc9, 0xb8, 0xa0, 0x5c, 0x3c, 0xac, 0xa5, 0x19, 0x32, 0x0d, 0xf4, 0x6d, 0x65,
-	0xa9, 0xbd, 0x68, 0x38, 0xdc, 0x1e, 0x46, 0x3a, 0x19, 0x1b, 0xa9, 0xf3, 0x03, 0x61, 0x32, 0xcb,
-	0x29, 0x97, 0x9f, 0xee, 0xce, 0xf0, 0x25, 0x9e, 0x72, 0x28, 0x6f, 0xc6, 0xaf, 0x52, 0xe5, 0x50,
-	0x7e, 0x68, 0xb6, 0xf9, 0x0b, 0xe1, 0x67, 0xef, 0xe6, 0x94, 0x27, 0x70, 0x64, 0x7a, 0xd6, 0xbe,
-	0xea, 0x3f, 0x7a, 0x0f, 0xb0, 0xb6, 0xf3, 0x3e, 0x3a, 0x70, 0xcc, 0xa1, 0xec, 0xdc, 0x05, 0x64,
-	0x55, 0x9b, 0x68, 0x5d, 0x9b, 0xe8, 0x4f, 0x6d, 0xa2, 0x6f, 0x1b, 0x53, 0x59, 0x6f, 0x4c, 0xe5,
-	0xf7, 0xc6, 0x54, 0xa2, 0x07, 0xcd, 0x1f, 0x7b, 0xf5, 0x37, 0x00, 0x00, 0xff, 0xff, 0x07, 0x7e,
-	0xff, 0x76, 0xb3, 0x03, 0x00, 0x00,
+	// 403 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xb4, 0x93, 0xcf, 0xae, 0x93, 0x40,
+	0x14, 0xc6, 0x99, 0x5b, 0xaf, 0x97, 0x0e, 0x18, 0x2b, 0xd1, 0x84, 0x5c, 0x13, 0x20, 0xc4, 0x05,
+	0x89, 0x11, 0x92, 0x6b, 0xdc, 0xe8, 0xea, 0xa2, 0x9b, 0x2e, 0x1a, 0x13, 0x52, 0xd7, 0xcd, 0xc0,
+	0x1c, 0x29, 0xa9, 0xcc, 0x18, 0x86, 0x16, 0x1f, 0xc3, 0xa7, 0x70, 0xa5, 0x1b, 0x9f, 0xa2, 0xcb,
+	0x2e, 0x5d, 0x11, 0x43, 0xdf, 0xa2, 0x2b, 0x53, 0xfe, 0xb5, 0x89, 0x2b, 0x16, 0xdd, 0x1d, 0x3e,
+	0xce, 0xf9, 0xce, 0x8f, 0xef, 0x04, 0x6c, 0x46, 0x29, 0xf5, 0x42, 0x26, 0xa8, 0xf7, 0xcd, 0x5b,
+	0x0b, 0xc8, 0x18, 0x49, 0xc1, 0x8b, 0x38, 0x85, 0xc8, 0xfd, 0x9a, 0xf1, 0x9c, 0x6b, 0x72, 0xa7,
+	0xde, 0x2a, 0x67, 0xf2, 0xed, 0xd3, 0x98, 0xc7, 0xbc, 0x2e, 0xbd, 0x63, 0xd5, 0xa8, 0xf6, 0x2f,
+	0x84, 0xaf, 0xe7, 0x7c, 0x05, 0x4c, 0x7b, 0x89, 0xe5, 0x14, 0x72, 0x42, 0x49, 0x4e, 0x74, 0x64,
+	0x21, 0x47, 0xb9, 0x7b, 0xec, 0x16, 0x40, 0x36, 0xe0, 0xce, 0x5a, 0x39, 0xe8, 0x1b, 0xb4, 0x77,
+	0xf8, 0x26, 0x27, 0x59, 0x0c, 0xb9, 0xd0, 0xaf, 0xac, 0x91, 0xa3, 0xdc, 0x3d, 0x77, 0xbb, 0xad,
+	0xae, 0xff, 0x85, 0x47, 0xab, 0x68, 0x49, 0x12, 0x76, 0x4f, 0x69, 0x06, 0x42, 0xf8, 0x0f, 0xb6,
+	0xa5, 0x29, 0x05, 0xdd, 0x84, 0xf6, 0x16, 0x5f, 0xf3, 0x82, 0x41, 0xa6, 0x8f, 0x2c, 0xe4, 0xa8,
+	0xfe, 0x8b, 0x43, 0x69, 0x5a, 0x71, 0x92, 0x2f, 0xd7, 0xa1, 0x1b, 0xf1, 0xd4, 0x4b, 0xf8, 0xe6,
+	0x15, 0x67, 0xe0, 0x35, 0xcb, 0x5b, 0x8f, 0xa0, 0x19, 0xb1, 0x29, 0x7e, 0xf2, 0x9f, 0xbf, 0xf6,
+	0x06, 0x3f, 0x0a, 0x7b, 0x71, 0x91, 0xd0, 0x9a, 0x7f, 0xec, 0x4f, 0xaa, 0xd2, 0x54, 0x4f, 0xdd,
+	0xd3, 0x0f, 0x81, 0x7a, 0x6a, 0x9b, 0x52, 0x4d, 0xc7, 0x37, 0xa4, 0x71, 0xd0, 0xaf, 0x8e, 0x24,
+	0x41, 0xf7, 0x68, 0xff, 0x40, 0x78, 0x12, 0x40, 0x9c, 0x88, 0x1c, 0xb2, 0x3a, 0x9d, 0x99, 0x88,
+	0x87, 0x05, 0xe4, 0xe0, 0xfe, 0x0c, 0xb5, 0xf9, 0xd8, 0x57, 0x0f, 0xa5, 0x29, 0x7f, 0x6a, 0xb5,
+	0xa0, 0x7f, 0x7b, 0x1e, 0xe5, 0x68, 0x68, 0x94, 0xf6, 0x4f, 0x84, 0x27, 0xf3, 0x8c, 0x30, 0xf1,
+	0xf9, 0xf2, 0xa0, 0xf7, 0x78, 0xcc, 0xa0, 0x58, 0x0c, 0x3f, 0x9d, 0xcc, 0xa0, 0xf8, 0x58, 0x5f,
+	0xef, 0x37, 0xc2, 0xcf, 0xde, 0x2f, 0x09, 0x8b, 0xa1, 0x86, 0x9d, 0x37, 0x5f, 0x71, 0x41, 0x66,
+	0x1f, 0x2b, 0x47, 0xe6, 0xc1, 0x01, 0x63, 0x06, 0x45, 0x4b, 0xe7, 0xeb, 0xdb, 0xca, 0x40, 0xbb,
+	0xca, 0x40, 0x7f, 0x2b, 0x03, 0x7d, 0xdf, 0x1b, 0xd2, 0x6e, 0x6f, 0x48, 0x7f, 0xf6, 0x86, 0x14,
+	0x3e, 0xac, 0xff, 0xa1, 0xd7, 0xff, 0x02, 0x00, 0x00, 0xff, 0xff, 0x1d, 0x2a, 0x26, 0x7f, 0x93,
+	0x03, 0x00, 0x00,
 }
 
-func (m *UsernameToken) Marshal() (dAtA []byte, err error) {
+func (m *Token) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalTo(dAtA)
@@ -403,7 +403,7 @@ func (m *UsernameToken) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *UsernameToken) MarshalTo(dAtA []byte) (int, error) {
+func (m *Token) MarshalTo(dAtA []byte) (int, error) {
 	var i int
 	_ = i
 	var l int
@@ -469,7 +469,7 @@ func (m *BlockchainAddress) MarshalTo(dAtA []byte) (int, error) {
 	return i, nil
 }
 
-func (m *RegisterUsernameTokenMsg) Marshal() (dAtA []byte, err error) {
+func (m *RegisterTokenMsg) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalTo(dAtA)
@@ -479,7 +479,7 @@ func (m *RegisterUsernameTokenMsg) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *RegisterUsernameTokenMsg) MarshalTo(dAtA []byte) (int, error) {
+func (m *RegisterTokenMsg) MarshalTo(dAtA []byte) (int, error) {
 	var i int
 	_ = i
 	var l int
@@ -515,7 +515,7 @@ func (m *RegisterUsernameTokenMsg) MarshalTo(dAtA []byte) (int, error) {
 	return i, nil
 }
 
-func (m *TransferUsernameTokenMsg) Marshal() (dAtA []byte, err error) {
+func (m *TransferTokenMsg) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalTo(dAtA)
@@ -525,7 +525,7 @@ func (m *TransferUsernameTokenMsg) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *TransferUsernameTokenMsg) MarshalTo(dAtA []byte) (int, error) {
+func (m *TransferTokenMsg) MarshalTo(dAtA []byte) (int, error) {
 	var i int
 	_ = i
 	var l int
@@ -555,7 +555,7 @@ func (m *TransferUsernameTokenMsg) MarshalTo(dAtA []byte) (int, error) {
 	return i, nil
 }
 
-func (m *ChangeUsernameTokenTargetsMsg) Marshal() (dAtA []byte, err error) {
+func (m *ChangeTokenTargetsMsg) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalTo(dAtA)
@@ -565,7 +565,7 @@ func (m *ChangeUsernameTokenTargetsMsg) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *ChangeUsernameTokenTargetsMsg) MarshalTo(dAtA []byte) (int, error) {
+func (m *ChangeTokenTargetsMsg) MarshalTo(dAtA []byte) (int, error) {
 	var i int
 	_ = i
 	var l int
@@ -610,7 +610,7 @@ func encodeVarintCodec(dAtA []byte, offset int, v uint64) int {
 	dAtA[offset] = uint8(v)
 	return offset + 1
 }
-func (m *UsernameToken) Size() (n int) {
+func (m *Token) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -650,7 +650,7 @@ func (m *BlockchainAddress) Size() (n int) {
 	return n
 }
 
-func (m *RegisterUsernameTokenMsg) Size() (n int) {
+func (m *RegisterTokenMsg) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -673,7 +673,7 @@ func (m *RegisterUsernameTokenMsg) Size() (n int) {
 	return n
 }
 
-func (m *TransferUsernameTokenMsg) Size() (n int) {
+func (m *TransferTokenMsg) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -694,7 +694,7 @@ func (m *TransferUsernameTokenMsg) Size() (n int) {
 	return n
 }
 
-func (m *ChangeUsernameTokenTargetsMsg) Size() (n int) {
+func (m *ChangeTokenTargetsMsg) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -730,7 +730,7 @@ func sovCodec(x uint64) (n int) {
 func sozCodec(x uint64) (n int) {
 	return sovCodec(uint64((x << 1) ^ uint64((int64(x) >> 63))))
 }
-func (m *UsernameToken) Unmarshal(dAtA []byte) error {
+func (m *Token) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -753,10 +753,10 @@ func (m *UsernameToken) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: UsernameToken: wiretype end group for non-group")
+			return fmt.Errorf("proto: Token: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: UsernameToken: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: Token: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -1006,7 +1006,7 @@ func (m *BlockchainAddress) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *RegisterUsernameTokenMsg) Unmarshal(dAtA []byte) error {
+func (m *RegisterTokenMsg) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -1029,10 +1029,10 @@ func (m *RegisterUsernameTokenMsg) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: RegisterUsernameTokenMsg: wiretype end group for non-group")
+			return fmt.Errorf("proto: RegisterTokenMsg: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: RegisterUsernameTokenMsg: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: RegisterTokenMsg: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -1161,7 +1161,7 @@ func (m *RegisterUsernameTokenMsg) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *TransferUsernameTokenMsg) Unmarshal(dAtA []byte) error {
+func (m *TransferTokenMsg) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -1184,10 +1184,10 @@ func (m *TransferUsernameTokenMsg) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: TransferUsernameTokenMsg: wiretype end group for non-group")
+			return fmt.Errorf("proto: TransferTokenMsg: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: TransferUsernameTokenMsg: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: TransferTokenMsg: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -1316,7 +1316,7 @@ func (m *TransferUsernameTokenMsg) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *ChangeUsernameTokenTargetsMsg) Unmarshal(dAtA []byte) error {
+func (m *ChangeTokenTargetsMsg) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -1339,10 +1339,10 @@ func (m *ChangeUsernameTokenTargetsMsg) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: ChangeUsernameTokenTargetsMsg: wiretype end group for non-group")
+			return fmt.Errorf("proto: ChangeTokenTargetsMsg: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: ChangeUsernameTokenTargetsMsg: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: ChangeTokenTargetsMsg: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:

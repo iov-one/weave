@@ -11,8 +11,8 @@ import (
 
 func TestCmdTransactionViewHappyPath(t *testing.T) {
 	tx := &bnsd.Tx{
-		Sum: &bnsd.Tx_SendMsg{
-			SendMsg: &cash.SendMsg{
+		Sum: &bnsd.Tx_CashSendMsg{
+			CashSendMsg: &cash.SendMsg{
 				Metadata: &weave.Metadata{Schema: 1},
 				Memo:     "a memo",
 				Ref:      []byte("123"),
@@ -31,7 +31,7 @@ func TestCmdTransactionViewHappyPath(t *testing.T) {
 
 	const want = `{
 	"Sum": {
-		"SendMsg": {
+		"CashSendMsg": {
 			"metadata": {
 				"schema": 1
 			},

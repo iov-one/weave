@@ -55,8 +55,8 @@ func TestCmdWithFeeHappyPath(t *testing.T) {
 		Memo:     "a memo",
 	}
 	sendTx := &bnsd.Tx{
-		Sum: &bnsd.Tx_SendMsg{
-			SendMsg: sendMsg,
+		Sum: &bnsd.Tx_CashSendMsg{
+			CashSendMsg: sendMsg,
 		},
 	}
 	var input bytes.Buffer
@@ -97,8 +97,8 @@ func TestCmdWithFeeHappyPathDefaultAmount(t *testing.T) {
 		Memo:     "a memo",
 	}
 	sendTx := &bnsd.Tx{
-		Sum: &bnsd.Tx_SendMsg{
-			SendMsg: sendMsg,
+		Sum: &bnsd.Tx_CashSendMsg{
+			CashSendMsg: sendMsg,
 		},
 	}
 
