@@ -50,8 +50,8 @@ func TestGovProposalCreateAndExecute(t *testing.T) {
 	contractAddr := gov.ElectionCondition(weavetest.SequenceID(1)).Address()
 	bnsdtest.SeedAccountWithTokens(t, env, contractAddr)
 	proposalTx := &bnsdApp.Tx{
-		Sum: &bnsdApp.Tx_CreateProposalMsg{
-			CreateProposalMsg: &gov.CreateProposalMsg{
+		Sum: &bnsdApp.Tx_GovCreateProposalMsg{
+			GovCreateProposalMsg: &gov.CreateProposalMsg{
 				Metadata:    &weave.Metadata{Schema: 1},
 				Title:       "my proposal",
 				Description: "my description",
@@ -60,8 +60,8 @@ func TestGovProposalCreateAndExecute(t *testing.T) {
 				ElectionRuleID: weavetest.SequenceID(1),
 				Author:         carl.PublicKey().Address(),
 				RawOption: marshal(t, &bnsdApp.ProposalOptions{
-					Option: &bnsdApp.ProposalOptions_SendMsg{
-						SendMsg: &cash.SendMsg{
+					Option: &bnsdApp.ProposalOptions_CashSendMsg{
+						CashSendMsg: &cash.SendMsg{
 							Metadata: &weave.Metadata{Schema: 1},
 							Amount:   coin.NewCoinp(0, 3, "IOV"),
 							Src:      contractAddr,
@@ -83,8 +83,8 @@ func TestGovProposalCreateAndExecute(t *testing.T) {
 	time.Sleep(wait)
 
 	bobbyVoteTx := &bnsdApp.Tx{
-		Sum: &bnsdApp.Tx_VoteMsg{
-			VoteMsg: &gov.VoteMsg{
+		Sum: &bnsdApp.Tx_GovVoteMsg{
+			GovVoteMsg: &gov.VoteMsg{
 				Metadata:   &weave.Metadata{Schema: 1},
 				ProposalID: proposalID,
 				Voter:      bobby.PublicKey().Address(),
@@ -96,8 +96,8 @@ func TestGovProposalCreateAndExecute(t *testing.T) {
 	bnsdtest.MustBroadcastTx(t, env, bobbyVoteTx)
 
 	carlVoteTx := &bnsdApp.Tx{
-		Sum: &bnsdApp.Tx_VoteMsg{
-			VoteMsg: &gov.VoteMsg{
+		Sum: &bnsdApp.Tx_GovVoteMsg{
+			GovVoteMsg: &gov.VoteMsg{
 				Metadata:   &weave.Metadata{Schema: 1},
 				ProposalID: proposalID,
 				Voter:      carl.PublicKey().Address(),
@@ -111,8 +111,8 @@ func TestGovProposalCreateAndExecute(t *testing.T) {
 	// At this point, we go more than 50% of the votes for yes. The
 	// stored message can be executed now by calling a tally.
 	tallyTx := &bnsdApp.Tx{
-		Sum: &bnsdApp.Tx_TallyMsg{
-			TallyMsg: &gov.TallyMsg{
+		Sum: &bnsdApp.Tx_GovTallyMsg{
+			GovTallyMsg: &gov.TallyMsg{
 				Metadata:   &weave.Metadata{Schema: 1},
 				ProposalID: proposalID,
 			},

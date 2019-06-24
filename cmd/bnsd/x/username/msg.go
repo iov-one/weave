@@ -6,12 +6,12 @@ import (
 )
 
 func init() {
-	migration.MustRegister(1, &RegisterUsernameTokenMsg{}, migration.NoModification)
-	migration.MustRegister(1, &TransferUsernameTokenMsg{}, migration.NoModification)
-	migration.MustRegister(1, &ChangeUsernameTokenTargetsMsg{}, migration.NoModification)
+	migration.MustRegister(1, &RegisterTokenMsg{}, migration.NoModification)
+	migration.MustRegister(1, &TransferTokenMsg{}, migration.NoModification)
+	migration.MustRegister(1, &ChangeTokenTargetsMsg{}, migration.NoModification)
 }
 
-func (m *RegisterUsernameTokenMsg) Validate() error {
+func (m *RegisterTokenMsg) Validate() error {
 	if err := m.Metadata.Validate(); err != nil {
 		return errors.Wrap(err, "metadata")
 	}
@@ -24,11 +24,11 @@ func (m *RegisterUsernameTokenMsg) Validate() error {
 	return nil
 }
 
-func (RegisterUsernameTokenMsg) Path() string {
-	return "username/registerUsernameToken"
+func (RegisterTokenMsg) Path() string {
+	return "username/registerToken"
 }
 
-func (m *TransferUsernameTokenMsg) Validate() error {
+func (m *TransferTokenMsg) Validate() error {
 	if err := m.Metadata.Validate(); err != nil {
 		return errors.Wrap(err, "metadata")
 	}
@@ -41,11 +41,11 @@ func (m *TransferUsernameTokenMsg) Validate() error {
 	return nil
 }
 
-func (TransferUsernameTokenMsg) Path() string {
-	return "username/transferUsernameToken"
+func (TransferTokenMsg) Path() string {
+	return "username/transferToken"
 }
 
-func (m *ChangeUsernameTokenTargetsMsg) Validate() error {
+func (m *ChangeTokenTargetsMsg) Validate() error {
 	if err := m.Metadata.Validate(); err != nil {
 		return errors.Wrap(err, "metadata")
 	}
@@ -58,6 +58,6 @@ func (m *ChangeUsernameTokenTargetsMsg) Validate() error {
 	return nil
 }
 
-func (ChangeUsernameTokenTargetsMsg) Path() string {
-	return "username/changeUsernameTokenTargets"
+func (ChangeTokenTargetsMsg) Path() string {
+	return "username/changeTokenTargets"
 }

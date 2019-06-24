@@ -1,6 +1,6 @@
 {
 	"Sum": {
-		"CreateProposalMsg": {
+		"GovCreateProposalMsg": {
 			"metadata": {
 				"schema": 1
 			},

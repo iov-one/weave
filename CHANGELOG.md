@@ -26,8 +26,9 @@
 
 Breaking changes
 
-- Update `bnsd` transaction entity. `update_escrow_msg` attribute is renamed to
-  `update_escrow_parties_msg`
+- Update `bnsd` transaction entities. All transaction attributes that point to
+  a message are now snake case, and their naming follows the format
+  `<package_name>_<message_type_name>`.
 - Some messages were renamed to follow the general `start with a verb` format, also to remove stutter:
   - `cmd/bnsd`: `BatchMsg` -> `bnsd.ExecuteBatchMsg`, `ProposalBatchMsg` -> `bnsd.ExecuteProposalBatchMsg`
   - `x/aswap`: `CreateSwapMsg` -> `aswap.CreateMsg`, `ReleaseSwapMsg` -> `aswap.ReleaseMsg`, `ReturnSwapMsg` -> `aswap.ReturnMsg`
@@ -39,6 +40,7 @@ Breaking changes
   - `x/multisig`: `CreateContractMsg` -> `multisig.CreateMsg`, `UpdateContractMsg` -> `multisig.UpdateMsg`
   - `x/paychan`: `CreatePaymentChannelMsg` -> `paychan.CreateMsg`, `TransferPaymentChannelMsg` -> `paychan.TransferMsg`, `ClosePaymentChannelMsg` -> `paychan.CloseMsg`
   - `x/validators`: `SetValidatorsMsg` -> `validators.ApplyDiffMsg`
+  - `bnsd/x/username`: `Username` string removed from all message names.
 - `bnsd` specific protobuf objects (Tx, BatchMsg) are now under package `bnsd`, rather than
   conflicting with generic `app` messages in a namespace conflict.
 - Moved some more messages from `x/validators` package to `weave`

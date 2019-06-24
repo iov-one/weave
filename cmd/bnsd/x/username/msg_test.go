@@ -8,13 +8,13 @@ import (
 	"github.com/iov-one/weave/weavetest"
 )
 
-func TestRegisterUsernameTokenMsgValidate(t *testing.T) {
+func TestRegisterTokenMsgValidate(t *testing.T) {
 	cases := map[string]struct {
 		Msg  weave.Msg
 		Want *errors.Error
 	}{
 		"valid message": {
-			Msg: &RegisterUsernameTokenMsg{
+			Msg: &RegisterTokenMsg{
 				Metadata: &weave.Metadata{Schema: 1},
 				Username: "alice*iov",
 				Targets: []BlockchainAddress{
@@ -24,7 +24,7 @@ func TestRegisterUsernameTokenMsgValidate(t *testing.T) {
 			Want: nil,
 		},
 		"invalid username": {
-			Msg: &RegisterUsernameTokenMsg{
+			Msg: &RegisterTokenMsg{
 				Metadata: &weave.Metadata{Schema: 1},
 				Username: "xxx",
 				Targets: []BlockchainAddress{
@@ -34,7 +34,7 @@ func TestRegisterUsernameTokenMsgValidate(t *testing.T) {
 			Want: errors.ErrInput,
 		},
 		"missing target": {
-			Msg: &RegisterUsernameTokenMsg{
+			Msg: &RegisterTokenMsg{
 				Metadata: &weave.Metadata{Schema: 1},
 				Username: "alice*iov",
 				Targets:  nil,
@@ -42,7 +42,7 @@ func TestRegisterUsernameTokenMsgValidate(t *testing.T) {
 			Want: errors.ErrEmpty,
 		},
 		"different address but the same blockchain ID is not allowed": {
-			Msg: &RegisterUsernameTokenMsg{
+			Msg: &RegisterTokenMsg{
 				Metadata: &weave.Metadata{Schema: 1},
 				Username: "alice*iov",
 				Targets: []BlockchainAddress{
@@ -63,13 +63,13 @@ func TestRegisterUsernameTokenMsgValidate(t *testing.T) {
 	}
 }
 
-func TestTransferUsernameTokenMsgValidate(t *testing.T) {
+func TestTransferTokenMsgValidate(t *testing.T) {
 	cases := map[string]struct {
 		Msg  weave.Msg
 		Want *errors.Error
 	}{
 		"valid message": {
-			Msg: &TransferUsernameTokenMsg{
+			Msg: &TransferTokenMsg{
 				Metadata: &weave.Metadata{Schema: 1},
 				Username: "alice*iov",
 				NewOwner: weavetest.NewCondition().Address(),
@@ -77,7 +77,7 @@ func TestTransferUsernameTokenMsgValidate(t *testing.T) {
 			Want: nil,
 		},
 		"invalid new owner address": {
-			Msg: &TransferUsernameTokenMsg{
+			Msg: &TransferTokenMsg{
 				Metadata: &weave.Metadata{Schema: 1},
 				Username: "alice*iov",
 				NewOwner: []byte("x"),
@@ -85,7 +85,7 @@ func TestTransferUsernameTokenMsgValidate(t *testing.T) {
 			Want: errors.ErrInput,
 		},
 		"invalid username": {
-			Msg: &TransferUsernameTokenMsg{
+			Msg: &TransferTokenMsg{
 				Metadata: &weave.Metadata{Schema: 1},
 				Username: "xx",
 				NewOwner: weavetest.NewCondition().Address(),
@@ -103,13 +103,13 @@ func TestTransferUsernameTokenMsgValidate(t *testing.T) {
 	}
 }
 
-func TestChangeUsernameTokenTargetsMsgValidate(t *testing.T) {
+func TestChangeTokenTargetsMsgValidate(t *testing.T) {
 	cases := map[string]struct {
 		Msg  weave.Msg
 		Want *errors.Error
 	}{
 		"valid message": {
-			Msg: &ChangeUsernameTokenTargetsMsg{
+			Msg: &ChangeTokenTargetsMsg{
 				Metadata: &weave.Metadata{Schema: 1},
 				Username: "alice*iov",
 				NewTargets: []BlockchainAddress{
@@ -119,7 +119,7 @@ func TestChangeUsernameTokenTargetsMsgValidate(t *testing.T) {
 			Want: nil,
 		},
 		"invalid new targets": {
-			Msg: &ChangeUsernameTokenTargetsMsg{
+			Msg: &ChangeTokenTargetsMsg{
 				Metadata: &weave.Metadata{Schema: 1},
 				Username: "alice*iov",
 				NewTargets: []BlockchainAddress{
@@ -129,7 +129,7 @@ func TestChangeUsernameTokenTargetsMsgValidate(t *testing.T) {
 			Want: errors.ErrInput,
 		},
 		"missing new targets": {
-			Msg: &ChangeUsernameTokenTargetsMsg{
+			Msg: &ChangeTokenTargetsMsg{
 				Metadata:   &weave.Metadata{Schema: 1},
 				Username:   "alice*iov",
 				NewTargets: []BlockchainAddress{},
@@ -137,7 +137,7 @@ func TestChangeUsernameTokenTargetsMsgValidate(t *testing.T) {
 			Want: errors.ErrEmpty,
 		},
 		"invalid username": {
-			Msg: &ChangeUsernameTokenTargetsMsg{
+			Msg: &ChangeTokenTargetsMsg{
 				Metadata: &weave.Metadata{Schema: 1},
 				Username: "xx",
 				NewTargets: []BlockchainAddress{
@@ -147,7 +147,7 @@ func TestChangeUsernameTokenTargetsMsgValidate(t *testing.T) {
 			Want: errors.ErrInput,
 		},
 		"invalid username separator": {
-			Msg: &ChangeUsernameTokenTargetsMsg{
+			Msg: &ChangeTokenTargetsMsg{
 				Metadata: &weave.Metadata{Schema: 1},
 				Username: "alice@iov",
 				NewTargets: []BlockchainAddress{
@@ -157,7 +157,7 @@ func TestChangeUsernameTokenTargetsMsgValidate(t *testing.T) {
 			Want: errors.ErrInput,
 		},
 		"different address but the same blockchain ID is not allowed": {
-			Msg: &ChangeUsernameTokenTargetsMsg{
+			Msg: &ChangeTokenTargetsMsg{
 				Metadata: &weave.Metadata{Schema: 1},
 				Username: "alice*iov",
 				NewTargets: []BlockchainAddress{

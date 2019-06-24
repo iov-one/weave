@@ -33,7 +33,7 @@ message Tx {
   repeated bytes multisig = 4;
   // msg is a sum type over all allowed messages on this chain.
   oneof sum {
-    cash.SendMsg send_msg = 51;
+    cash.SendMsg cash_send_msg = 51;
     escrow.CreateMsg escrow_create_msg = 52;
     escrow.ReleaseMsg escrow_release_msg = 53;
     escrow.ReturnMsg escrow_return_msg = 54;
@@ -43,22 +43,22 @@ message Tx {
     validators.ApplyDiffMsg validators_apply_diff_msg = 58;
     currency.CreateMsg currency_create_msg = 59;
     ExecuteBatchMsg execute_batch_msg = 60;
-    username.RegisterUsernameTokenMsg register_username_token_msg = 61;
-    username.TransferUsernameTokenMsg transfer_username_token_msg = 62;
-    username.ChangeUsernameTokenTargetsMsg change_username_token_targets_msg = 63;
+    username.RegisterTokenMsg username_register_token_msg = 61;
+    username.TransferTokenMsg username_transfer_token_msg = 62;
+    username.ChangeTokenTargetsMsg username_change_token_targets_msg = 63;
     distribution.CreateMsg distribution_create_msg = 66;
     distribution.DistributeMsg distribution_msg = 67;
     distribution.ResetMsg distribution_reset_msg = 68;
-    migration.UpgradeSchemaMsg upgrade_schema_msg = 69;
+    migration.UpgradeSchemaMsg migration_upgrade_schema_msg = 69;
     aswap.CreateMsg aswap_create_msg = 70;
     aswap.ReleaseMsg aswap_release_msg = 71;
     aswap.ReturnSwapMsg aswap_return_msg = 72;
-    gov.CreateProposalMsg create_proposal_msg = 73;
-    gov.DeleteProposalMsg delete_proposal_msg = 74;
-    gov.VoteMsg vote_msg = 75;
-    gov.TallyMsg tally_msg = 76;
-    gov.UpdateElectorateMsg update_electorate_msg = 77;
-    gov.UpdateElectionRuleMsg update_election_rule_msg = 78;
+    gov.CreateProposalMsg gov_create_proposal_msg = 73;
+    gov.DeleteProposalMsg gov_delete_proposal_msg = 74;
+    gov.VoteMsg gov_vote_msg = 75;
+    gov.TallyMsg gov_tally_msg = 76;
+    gov.UpdateElectorateMsg gov_update_electorate_msg = 77;
+    gov.UpdateElectionRuleMsg gov_update_election_rule_msg = 78;
     // 79 is reserved (see ProposalOptions: TextResolutionMsg)
 
   }
@@ -68,7 +68,7 @@ message Tx {
 message ExecuteBatchMsg {
   message Union {
     oneof sum {
-      cash.SendMsg send_msg = 51;
+      cash.SendMsg cash_send_msg = 51;
       escrow.CreateMsg escrow_create_msg = 52;
       escrow.ReleaseMsg escrow_release_msg = 53;
       escrow.ReturnMsg escrow_return_msg = 54;
@@ -78,9 +78,9 @@ message ExecuteBatchMsg {
       validators.ApplyDiffMsg validators_apply_diff_msg = 58;
       currency.CreateMsg currency_create_msg = 59;
       // No recursive batches!
-      username.RegisterUsernameTokenMsg register_username_token_msg = 61;
-      username.TransferUsernameTokenMsg transfer_username_token_msg = 62;
-      username.ChangeUsernameTokenTargetsMsg change_username_token_targets_msg = 63;
+      username.RegisterTokenMsg username_register_token_msg = 61;
+      username.TransferTokenMsg username_transfer_token_msg = 62;
+      username.ChangeTokenTargetsMsg username_change_token_targets_msg = 63;
       distribution.CreateMsg distribution_create_msg = 66;
       distribution.DistributeMsg distribution_msg = 67;
       distribution.ResetMsg distribution_reset_msg = 68;
@@ -96,23 +96,23 @@ message ExecuteBatchMsg {
 // Trimmed down somewhat arbitrary to what is believed to be reasonable
 message ProposalOptions {
   oneof option {
-    cash.SendMsg send_msg = 51;
+    cash.SendMsg cash_send_msg = 51;
     escrow.ReleaseMsg escrow_release_msg = 53;
     escrow.UpdatePartiesMsg update_escrow_parties_msg = 55;
     multisig.UpdateMsg multisig_update_msg = 57;
     validators.ApplyDiffMsg validators_apply_diff_msg = 58;
     currency.CreateMsg currency_create_msg = 59;
     ExecuteProposalBatchMsg execute_proposal_batch_msg = 60;
-    username.RegisterUsernameTokenMsg register_username_token_msg = 61;
-    username.TransferUsernameTokenMsg transfer_username_token_msg = 62;
-    username.ChangeUsernameTokenTargetsMsg change_username_token_targets_msg = 63;
+    username.RegisterTokenMsg username_register_token_msg = 61;
+    username.TransferTokenMsg username_transfer_token_msg = 62;
+    username.ChangeTokenTargetsMsg username_change_token_targets_msg = 63;
     distribution.CreateMsg distribution_create_msg = 66;
     distribution.DistributeMsg distribution_msg = 67;
     distribution.ResetMsg distribution_reset_msg = 68;
-    migration.UpgradeSchemaMsg upgrade_schema_msg = 69;
-    gov.UpdateElectorateMsg update_electorate_msg = 77;
-    gov.UpdateElectionRuleMsg update_election_rule_msg = 78;
-    gov.CreateTextResolutionMsg create_text_resolution_msg = 79;
+    migration.UpgradeSchemaMsg migration_upgrade_schema_msg = 69;
+    gov.UpdateElectorateMsg gov_update_electorate_msg = 77;
+    gov.UpdateElectionRuleMsg gov_update_election_rule_msg = 78;
+    gov.CreateTextResolutionMsg gov_create_text_resolution_msg = 79;
   }
 }
 
@@ -125,16 +125,16 @@ message ExecuteProposalBatchMsg {
       multisig.UpdateMsg multisig_update_msg = 57;
       validators.ApplyDiffMsg validators_apply_diff_msg = 58;
       // no recursive batches
-      username.RegisterUsernameTokenMsg register_username_token_msg = 61;
-      username.TransferUsernameTokenMsg transfer_username_token_msg = 62;
-      username.ChangeUsernameTokenTargetsMsg change_username_token_targets_msg = 63;
+      username.RegisterTokenMsg username_register_token_msg = 61;
+      username.TransferTokenMsg username_transfer_token_msg = 62;
+      username.ChangeTokenTargetsMsg username_change_token_targets_msg = 63;
       distribution.CreateMsg distribution_create_msg = 66;
       distribution.DistributeMsg distribution_msg = 67;
       distribution.ResetMsg distribution_reset_msg = 68;
       // don't allow UpgradeSchema as part of a batch, as effects are too confusing
-      gov.UpdateElectorateMsg update_electorate_msg = 77;
-      gov.UpdateElectionRuleMsg update_election_rule_msg = 78;
-      gov.CreateTextResolutionMsg create_text_resolution_msg = 79;
+      gov.UpdateElectorateMsg gov_update_electorate_msg = 77;
+      gov.UpdateElectionRuleMsg gov_update_election_rule_msg = 78;
+      gov.CreateTextResolutionMsg gov_create_text_resolution_msg = 79;
     }
   }
   repeated Union messages = 1 [(gogoproto.nullable) = false];

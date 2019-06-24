@@ -16,8 +16,8 @@ func TestCmdAsBatchHappyPath(t *testing.T) {
 	var input bytes.Buffer
 	for i := 0; i < 3; i++ {
 		tx := &bnsd.Tx{
-			Sum: &bnsd.Tx_SendMsg{
-				SendMsg: &cash.SendMsg{
+			Sum: &bnsd.Tx_CashSendMsg{
+				CashSendMsg: &cash.SendMsg{
 					Metadata: &weave.Metadata{Schema: 1},
 					Memo:     fmt.Sprintf("memo %d", i),
 				},
