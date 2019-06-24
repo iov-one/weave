@@ -1,5 +1,7 @@
 # Changelog
-## HEAD
+
+
+## 0.17.0
 
 - Unified dedupe logic for validator bookkeeping and validator diffs in `app`
 - A new `errors.Field` was added. This allows to bind errors to field names and

@@ -59,7 +59,7 @@ func TestInit(t *testing.T) {
 // and copies demo tendermint files there.
 //
 // these files reside in testdata and can be created
-// via `tendermint init`. Current version v0.16.0
+// via `tendermint init`
 func setupConfig(t *testing.T) string {
 	rootDir, err := ioutil.TempDir("", "mock-sdk-cmd")
 	require.NoError(t, err)
