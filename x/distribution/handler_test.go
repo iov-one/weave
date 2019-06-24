@@ -57,7 +57,7 @@ func TestHandlers(t *testing.T) {
 			actions: []action{
 				{
 					conditions: []weave.Condition{src},
-					msg: &CreateRevenueMsg{
+					msg: &CreateMsg{
 						Metadata:   &weave.Metadata{Schema: 1},
 						Admin:      []byte("f427d624ed29c1fae0e2"),
 						Recipients: []*Recipient{},
@@ -67,7 +67,7 @@ func TestHandlers(t *testing.T) {
 				},
 				{
 					conditions: []weave.Condition{src},
-					msg: &CreateRevenueMsg{
+					msg: &CreateMsg{
 						Metadata: &weave.Metadata{Schema: 1},
 						Admin:    []byte("f427d624ed29c1fae0e2"),
 						Recipients: []*Recipient{
@@ -78,7 +78,7 @@ func TestHandlers(t *testing.T) {
 				},
 				{
 					conditions: []weave.Condition{src},
-					msg: &ResetRevenueMsg{
+					msg: &ResetMsg{
 						Metadata:   &weave.Metadata{Schema: 1},
 						RevenueID:  weavetest.SequenceID(1),
 						Recipients: []*Recipient{},
@@ -88,7 +88,7 @@ func TestHandlers(t *testing.T) {
 				},
 				{
 					conditions: []weave.Condition{src},
-					msg: &ResetRevenueMsg{
+					msg: &ResetMsg{
 						Metadata:  &weave.Metadata{Schema: 1},
 						RevenueID: weavetest.SequenceID(1),
 						Recipients: []*Recipient{
@@ -127,7 +127,7 @@ func TestHandlers(t *testing.T) {
 			actions: []action{
 				{
 					conditions: []weave.Condition{src},
-					msg: &CreateRevenueMsg{
+					msg: &CreateMsg{
 						Metadata: &weave.Metadata{Schema: 1},
 						Admin:    []byte("f427d624ed29c1fae0e2"),
 						Recipients: []*Recipient{
@@ -158,7 +158,7 @@ func TestHandlers(t *testing.T) {
 			actions: []action{
 				{
 					conditions: []weave.Condition{src},
-					msg: &CreateRevenueMsg{
+					msg: &CreateMsg{
 						Metadata: &weave.Metadata{Schema: 1},
 						Admin:    []byte("f427d624ed29c1fae0e2"),
 						Recipients: []*Recipient{
@@ -192,7 +192,7 @@ func TestHandlers(t *testing.T) {
 			actions: []action{
 				{
 					conditions: []weave.Condition{src},
-					msg: &CreateRevenueMsg{
+					msg: &CreateMsg{
 						Metadata: &weave.Metadata{Schema: 1},
 						Admin:    []byte("f427d624ed29c1fae0e2"),
 						Recipients: []*Recipient{
@@ -228,7 +228,7 @@ func TestHandlers(t *testing.T) {
 			actions: []action{
 				{
 					conditions: []weave.Condition{src},
-					msg: &CreateRevenueMsg{
+					msg: &CreateMsg{
 						Metadata: &weave.Metadata{Schema: 1},
 						Admin:    []byte("f427d624ed29c1fae0e2"),
 						Recipients: []*Recipient{
@@ -264,7 +264,7 @@ func TestHandlers(t *testing.T) {
 			actions: []action{
 				{
 					conditions: []weave.Condition{src},
-					msg: &CreateRevenueMsg{
+					msg: &CreateMsg{
 						Metadata: &weave.Metadata{Schema: 1},
 						Admin:    []byte("f427d624ed29c1fae0e2"),
 						Recipients: []*Recipient{
@@ -300,7 +300,7 @@ func TestHandlers(t *testing.T) {
 			actions: []action{
 				{
 					conditions: []weave.Condition{src},
-					msg: &CreateRevenueMsg{
+					msg: &CreateMsg{
 						Metadata: &weave.Metadata{Schema: 1},
 						Admin:    []byte("f427d624ed29c1fae0e2"),
 						Recipients: []*Recipient{
@@ -316,7 +316,7 @@ func TestHandlers(t *testing.T) {
 				// Distributing 3 BTC cents equally, means that 1 BTC cent will be left.
 				{
 					conditions: []weave.Condition{src},
-					msg: &ResetRevenueMsg{
+					msg: &ResetMsg{
 						Metadata:  &weave.Metadata{Schema: 1},
 						RevenueID: weavetest.SequenceID(1),
 						Recipients: []*Recipient{

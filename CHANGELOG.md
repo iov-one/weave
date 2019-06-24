@@ -29,11 +29,11 @@ Breaking changes
 - Update `bnsd` transaction entity. `update_escrow_msg` attribute is renamed to
   `update_escrow_parties_msg`
 - Some messages were renamed to follow the general `start with a verb` format, also to remove stutter:
+  - `cmd/bnsd`: `BatchMsg` -> `bnsd.ExecuteBatchMsg`, `ProposalBatchMsg` -> `bnsd.ExecuteProposalBatchMsg`
   - `x/aswap`: `CreateSwapMsg` -> `aswap.CreateMsg`, `ReleaseSwapMsg` -> `aswap.ReleaseMsg`, `ReturnSwapMsg` -> `aswap.ReturnMsg`
-  - `x/distribution`: `NewRevenueMsg` -> `CreateRevenueMsg`
-  - `x/currency`: `NewTokenInfoMsg` -> `CreateMsg`
   - `x/cash`: `ConfigurationMsg` -> `UpdateConfigurationMsg`
-  - `cmd/bnsd`: `BatchMsg` -> `ExecuteBatchMsg`, `ProposalBatchMsg` -> `ExecuteProposalBatchMsg`
+  - `x/currency`: `NewTokenInfoMsg` -> `CreateMsg`
+  - `x/distribution`: `NewRevenueMsg` -> `CreateMsg`, `ResetRevenueMsg` -> `ResetMsg`
   - `x/gov`: `TextResolutionMsg` -> `CreateTextResolutionMsg`
 - `bnsd` specific protobuf objects (Tx, BatchMsg) are now under package `bnsd`, rather than
   conflicting with generic `app` messages in a namespace conflict.

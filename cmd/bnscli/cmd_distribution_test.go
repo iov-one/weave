@@ -32,7 +32,7 @@ seq:foo/bar/3,20`))
 	if err != nil {
 		t.Fatalf("cannot get transaction message: %s", err)
 	}
-	msg := txmsg.(*distribution.ResetRevenueMsg)
+	msg := txmsg.(*distribution.ResetMsg)
 
 	assert.Equal(t, msg.RevenueID, fromHex(t, "b1ca7e78f74423ae01da3b51e676934d9105f282"))
 	assert.Equal(t, len(msg.Recipients), 3)

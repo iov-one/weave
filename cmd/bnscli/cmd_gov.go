@@ -130,10 +130,10 @@ transaction (ie signatures) are being dropped.
 						ChangeUsernameTokenTargetsMsg: m,
 					},
 				})
-			case *distribution.CreateRevenueMsg:
+			case *distribution.CreateMsg:
 				messages = append(messages, bnsd.ExecuteProposalBatchMsg_Union{
-					Sum: &bnsd.ExecuteProposalBatchMsg_Union_CreateRevenueMsg{
-						CreateRevenueMsg: m,
+					Sum: &bnsd.ExecuteProposalBatchMsg_Union_CreateMsg{
+						CreateMsg: m,
 					},
 				})
 			case *distribution.DistributeMsg:
@@ -142,10 +142,10 @@ transaction (ie signatures) are being dropped.
 						DistributeMsg: m,
 					},
 				})
-			case *distribution.ResetRevenueMsg:
+			case *distribution.ResetMsg:
 				messages = append(messages, bnsd.ExecuteProposalBatchMsg_Union{
-					Sum: &bnsd.ExecuteProposalBatchMsg_Union_ResetRevenueMsg{
-						ResetRevenueMsg: m,
+					Sum: &bnsd.ExecuteProposalBatchMsg_Union_ResetMsg{
+						ResetMsg: m,
 					},
 				})
 			case *gov.UpdateElectorateMsg:
@@ -185,17 +185,17 @@ transaction (ie signatures) are being dropped.
 		option.Option = &bnsd.ProposalOptions_ChangeUsernameTokenTargetsMsg{
 			ChangeUsernameTokenTargetsMsg: msg,
 		}
-	case *distribution.CreateRevenueMsg:
-		option.Option = &bnsd.ProposalOptions_CreateRevenueMsg{
-			CreateRevenueMsg: msg,
+	case *distribution.CreateMsg:
+		option.Option = &bnsd.ProposalOptions_CreateMsg{
+			CreateMsg: msg,
 		}
 	case *distribution.DistributeMsg:
 		option.Option = &bnsd.ProposalOptions_DistributeMsg{
 			DistributeMsg: msg,
 		}
-	case *distribution.ResetRevenueMsg:
-		option.Option = &bnsd.ProposalOptions_ResetRevenueMsg{
-			ResetRevenueMsg: msg,
+	case *distribution.ResetMsg:
+		option.Option = &bnsd.ProposalOptions_ResetMsg{
+			ResetMsg: msg,
 		}
 	case *migration.UpgradeSchemaMsg:
 		option.Option = &bnsd.ProposalOptions_UpgradeSchemaMsg{
@@ -255,9 +255,9 @@ ExecuteProposalBatchMsg execute_batch_msg = 60;
 username.RegisterUsernameTokenMsg register_username_token_msg = 61;
 username.TransferUsernameTokenMsg transfer_username_token_msg = 62;
 username.ChangeUsernameTokenTargetsMsg change_username_token_targets_msg = 63;
-distribution.CreateRevenueMsg create_revenue_msg = 66;
+distribution.CreateMsg create_revenue_msg = 66;
 distribution.DistributeMsg distribute_msg = 67;
-distribution.ResetRevenueMsg reset_revenue_msg = 68;
+distribution.ResetMsg reset_revenue_msg = 68;
 migration.UpgradeSchemaMsg upgrade_schema_msg = 69;
 gov.UpdateElectorateMsg update_electorate_msg = 77;
 gov.UpdateElectionRuleMsg update_election_rule_msg = 78;
@@ -274,9 +274,9 @@ validators.SetValidatorsMsg set_validators_msg = 58;
 username.RegisterUsernameTokenMsg register_username_token_msg = 61;
 username.TransferUsernameTokenMsg transfer_username_token_msg = 62;
 username.ChangeUsernameTokenTargetsMsg change_username_token_targets_msg = 63;
-distribution.CreateRevenueMsg create_revenue_msg = 66;
+distribution.CreateMsg create_revenue_msg = 66;
 distribution.DistributeMsg distribute_msg = 67;
-distribution.ResetRevenueMsg reset_revenue_msg = 68;
+distribution.ResetMsg reset_revenue_msg = 68;
 gov.UpdateElectorateMsg update_electorate_msg = 77;
 gov.UpdateElectionRuleMsg update_election_rule_msg = 78;
 gov.CreateTextResolutionMsg create_text_resolution_msg = 79;
