@@ -31,13 +31,14 @@ Breaking changes
 - Some messages were renamed to follow the general `start with a verb` format, also to remove stutter:
   - `cmd/bnsd`: `BatchMsg` -> `bnsd.ExecuteBatchMsg`, `ProposalBatchMsg` -> `bnsd.ExecuteProposalBatchMsg`
   - `x/aswap`: `CreateSwapMsg` -> `aswap.CreateMsg`, `ReleaseSwapMsg` -> `aswap.ReleaseMsg`, `ReturnSwapMsg` -> `aswap.ReturnMsg`
-  - `x/cash`: `ConfigurationMsg` -> `UpdateConfigurationMsg`
-  - `x/currency`: `NewTokenInfoMsg` -> `CreateMsg`
-  - `x/distribution`: `NewRevenueMsg` -> `CreateMsg`, `ResetRevenueMsg` -> `ResetMsg`
-  - `x/escrow`: `CreateEscrowMsg` -> `CreateMsg`, `ReleaseEscrowMsg` -> `ReleaseMsg`, `ReturnEscrowMsg` -> `ReturnMsg`, `UpdateEscrowPartiesMsg` -> `UpdatePartiesMsg`
-  - `x/gov`: `TextResolutionMsg` -> `CreateTextResolutionMsg`
-  - `x/multisig`: `CreateContractMsg` -> `CreateMsg`, `UpdateContractMsg` -> `UpdateMsg`
-  - `x/paychan`: `CreatePaymentChannelMsg` -> `CreateMsg`, `TransferPaymentChannelMsg` -> `TransferMsg`, `ClosePaymentChannelMsg` -> `CloseMsg`
+  - `x/cash`: `ConfigurationMsg` -> `cash.UpdateConfigurationMsg`
+  - `x/currency`: `NewTokenInfoMsg` -> `currency.CreateMsg`
+  - `x/distribution`: `NewRevenueMsg` -> `distribution.CreateMsg`, `ResetRevenueMsg` -> `distribution.ResetMsg`
+  - `x/escrow`: `CreateEscrowMsg` -> `escrow.CreateMsg`, `ReleaseEscrowMsg` -> `escrow.ReleaseMsg`, `ReturnEscrowMsg` -> `escrow.ReturnMsg`, `UpdateEscrowPartiesMsg` -> `escrow.UpdatePartiesMsg`
+  - `x/gov`: `TextResolutionMsg` -> `gov.CreateTextResolutionMsg`
+  - `x/multisig`: `CreateContractMsg` -> `multisig.CreateMsg`, `UpdateContractMsg` -> `multisig.UpdateMsg`
+  - `x/paychan`: `CreatePaymentChannelMsg` -> `paychan.CreateMsg`, `TransferPaymentChannelMsg` -> `paychan.TransferMsg`, `ClosePaymentChannelMsg` -> `paychan.CloseMsg`
+  - `x/validators`: `SetValidatorsMsg` -> `validators.ApplyDiffMsg`
 - `bnsd` specific protobuf objects (Tx, BatchMsg) are now under package `bnsd`, rather than
   conflicting with generic `app` messages in a namespace conflict.
 - Moved some more messages from `x/validators` package to `weave`

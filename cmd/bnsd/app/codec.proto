@@ -40,7 +40,7 @@ message Tx {
     escrow.UpdatePartiesMsg update_escrow_parties_msg = 55;
     multisig.CreateMsg create_contract_msg = 56;
     multisig.UpdateMsg update_contract_msg = 57;
-    validators.SetValidatorsMsg set_validators_msg = 58;
+    validators.ApplyDiffMsg set_validators_msg = 58;
     currency.CreateMsg create_token_info_msg = 59;
     ExecuteBatchMsg execute_batch_msg = 60;
     username.RegisterUsernameTokenMsg register_username_token_msg = 61;
@@ -75,7 +75,7 @@ message ExecuteBatchMsg {
       escrow.UpdatePartiesMsg update_escrow_msg = 55;
       multisig.CreateMsg create_contract_msg = 56;
       multisig.UpdateMsg update_contract_msg = 57;
-      validators.SetValidatorsMsg set_validators_msg = 58;
+      validators.ApplyDiffMsg set_validators_msg = 58;
       currency.CreateMsg create_token_info_msg = 59;
       // No recursive batches!
       username.RegisterUsernameTokenMsg register_username_token_msg = 61;
@@ -99,7 +99,7 @@ message ProposalOptions {
     cash.SendMsg send_msg = 51;
     escrow.ReleaseMsg release_escrow_msg = 53;
     escrow.UpdatePartiesMsg update_escrow_parties_msg = 55;
-    validators.SetValidatorsMsg set_validators_msg = 58;
+    validators.ApplyDiffMsg set_validators_msg = 58;
     ExecuteProposalBatchMsg execute_proposal_batch_msg = 60;
     username.RegisterUsernameTokenMsg register_username_token_msg = 61;
     username.TransferUsernameTokenMsg transfer_username_token_msg = 62;
@@ -120,7 +120,7 @@ message ExecuteProposalBatchMsg {
       cash.SendMsg send_msg = 51;
       escrow.ReleaseMsg release_escrow_msg = 53;
       escrow.UpdatePartiesMsg update_escrow_parties_msg = 55;
-      validators.SetValidatorsMsg set_validators_msg = 58;
+      validators.ApplyDiffMsg set_validators_msg = 58;
       // no recursive batches
       username.RegisterUsernameTokenMsg register_username_token_msg = 61;
       username.TransferUsernameTokenMsg transfer_username_token_msg = 62;

@@ -148,7 +148,7 @@ func TestHandler(t *testing.T) {
 				t.Fatalf("unexpected error: %s", err)
 			}
 			cache := db.CacheWrap()
-			tx := &weavetest.Tx{Msg: &SetValidatorsMsg{
+			tx := &weavetest.Tx{Msg: &ApplyDiffMsg{
 				Metadata:         &weave.Metadata{Schema: 1},
 				ValidatorUpdates: spec.Src,
 			}}

@@ -76,9 +76,9 @@ transaction (ie signatures) are being dropped.
 		option.Option = &bnsd.ProposalOptions_UpdatePartiesMsg{
 			UpdatePartiesMsg: msg,
 		}
-	case *validators.SetValidatorsMsg:
-		option.Option = &bnsd.ProposalOptions_SetValidatorsMsg{
-			SetValidatorsMsg: msg,
+	case *validators.ApplyDiffMsg:
+		option.Option = &bnsd.ProposalOptions_ApplyDiffMsg{
+			ApplyDiffMsg: msg,
 		}
 	case *bnsd.ExecuteBatchMsg:
 		msgs, err := msg.MsgList()
@@ -106,10 +106,10 @@ transaction (ie signatures) are being dropped.
 						UpdatePartiesMsg: m,
 					},
 				})
-			case *validators.SetValidatorsMsg:
+			case *validators.ApplyDiffMsg:
 				messages = append(messages, bnsd.ExecuteProposalBatchMsg_Union{
-					Sum: &bnsd.ExecuteProposalBatchMsg_Union_SetValidatorsMsg{
-						SetValidatorsMsg: m,
+					Sum: &bnsd.ExecuteProposalBatchMsg_Union_ApplyDiffMsg{
+						ApplyDiffMsg: m,
 					},
 				})
 			case *username.RegisterUsernameTokenMsg:
@@ -250,7 +250,7 @@ proposals="
 cash.SendMsg send_msg = 51;
 escrow.ReleaseMsg release_escrow_msg = 53;
 escrow.UpdatePartiesMsg update_escrow_msg = 55;
-validators.SetValidatorsMsg set_validators_msg = 58;
+validators.ApplyDiffMsg set_validators_msg = 58;
 ExecuteProposalBatchMsg execute_batch_msg = 60;
 username.RegisterUsernameTokenMsg register_username_token_msg = 61;
 username.TransferUsernameTokenMsg transfer_username_token_msg = 62;
@@ -270,7 +270,7 @@ proposalbatch="
 cash.SendMsg send_msg = 51;
 escrow.ReleaseMsg release_escrow_msg = 53;
 escrow.UpdatePartiesMsg update_escrow_msg = 55;
-validators.SetValidatorsMsg set_validators_msg = 58;
+validators.ApplyDiffMsg set_validators_msg = 58;
 username.RegisterUsernameTokenMsg register_username_token_msg = 61;
 username.TransferUsernameTokenMsg transfer_username_token_msg = 62;
 username.ChangeUsernameTokenTargetsMsg change_username_token_targets_msg = 63;

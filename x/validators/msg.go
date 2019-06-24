@@ -8,20 +8,20 @@ import (
 )
 
 func init() {
-	migration.MustRegister(1, &SetValidatorsMsg{}, migration.NoModification)
+	migration.MustRegister(1, &ApplyDiffMsg{}, migration.NoModification)
 }
 
 // Ensure we implement the Msg interface
-var _ weave.Msg = (*SetValidatorsMsg)(nil)
+var _ weave.Msg = (*ApplyDiffMsg)(nil)
 
 const pathUpdate = "validators/update"
 
 // Path returns the routing path for this message
-func (*SetValidatorsMsg) Path() string {
+func (*ApplyDiffMsg) Path() string {
 	return pathUpdate
 }
 
-func (m *SetValidatorsMsg) Validate() error {
+func (m *ApplyDiffMsg) Validate() error {
 	if err := m.Metadata.Validate(); err != nil {
 		return errors.Wrap(err, "metadata")
 	}
@@ -36,7 +36,7 @@ func (m *SetValidatorsMsg) Validate() error {
 	return nil
 }
 
-func (m *SetValidatorsMsg) AsABCI() []abci.ValidatorUpdate {
+func (m *ApplyDiffMsg) AsABCI() []abci.ValidatorUpdate {
 	validators := make([]abci.ValidatorUpdate, len(m.ValidatorUpdates))
 	for k, v := range m.ValidatorUpdates {
 		validators[k] = v.AsABCI()

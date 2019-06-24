@@ -1,6 +1,6 @@
 {
 	"Sum": {
-		"SetValidatorsMsg": {
+		"ApplyDiffMsg": {
 			"metadata": {
 				"schema": 1
 			},
@@ -18,7 +18,7 @@
 }
 {
 	"Sum": {
-		"SetValidatorsMsg": {
+		"ApplyDiffMsg": {
 			"metadata": {
 				"schema": 1
 			},
