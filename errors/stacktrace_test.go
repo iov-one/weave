@@ -3,10 +3,9 @@ package errors
 import (
 	"errors"
 	"fmt"
+	"reflect"
 	"strings"
 	"testing"
-
-	"github.com/iov-one/weave/weavetest/assert"
 )
 
 func TestStackTrace(t *testing.T) {
@@ -44,7 +43,9 @@ func TestStackTrace(t *testing.T) {
 
 	for testName, tc := range cases {
 		t.Run(testName, func(t *testing.T) {
-			assert.Equal(t, tc.err.Error(), tc.wantError)
+			if !reflect.DeepEqual(tc.err.Error(), tc.wantError) {
+				t.Fatal("errors not equal")
+			}
 
 			if stackTrace(tc.err) == nil {
 				t.Fatal("expected a stack trace to be present")

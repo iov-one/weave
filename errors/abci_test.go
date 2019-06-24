@@ -1,7 +1,6 @@
 package errors
 
 import (
-	"encoding/json"
 	"fmt"
 	"io"
 	"strings"
@@ -177,12 +176,10 @@ func TestRedact(t *testing.T) {
 
 func TestABCIInfoSerializeErr(t *testing.T) {
 	var (
-		// create errors with stacktrace for equal comparision
-		myErrState          = Wrap(ErrState, "test")
-		myErrMsg            = Wrap(ErrMsg, "test")
-		myPanic             = ErrPanic
-		myErrStateSTJson, _ = json.Marshal(fmt.Sprintf("%+v", myErrState))
-		myErrMsgSTJson, _   = json.Marshal(fmt.Sprintf("%+v", myErrMsg))
+		// Create errors with stacktrace for equal comparision.
+		myErrState = Wrap(ErrState, "test")
+		myErrMsg   = Wrap(ErrMsg, "test")
+		myPanic    = ErrPanic
 	)
 
 	specs := map[string]struct {
@@ -200,27 +197,40 @@ func TestABCIInfoSerializeErr(t *testing.T) {
 			debug: true,
 			exp:   fmt.Sprintf("%+v", myErrMsg),
 		},
-		"multiErr default encoder": {
+		"multi error default encoder": {
 			src: Append(myErrMsg, myErrState),
-			exp: `{"data":[{"code":4,"log":"test: invalid message"},{"code":10,"log":"test: invalid state"}]}`,
+			exp: Append(myErrMsg, myErrState).Error(),
 		},
-		"multiErr default with internal": {
+		"multi error default with internal": {
 			src: Append(myErrMsg, myPanic),
-			exp: `{"data":[{"code":4,"log":"test: invalid message"},{"code":111222,"log":"internal error"}]}`,
-		},
-		"multiErr debug": {
-			src:   Append(myErrMsg, myErrState),
-			debug: true,
-			exp:   fmt.Sprintf(`{"data":[{"code":4,"log":%s},{"code":10,"log":%s}]}`, string(myErrMsgSTJson), string(myErrStateSTJson)),
+			exp: "internal error",
 		},
 		"redact in default encoder": {
 			src: myPanic,
-			exp: internalABCILog,
+			exp: "internal error",
 		},
 		"do not redact in debug encoder": {
 			src:   myPanic,
 			debug: true,
 			exp:   fmt.Sprintf("%+v", myPanic),
+		},
+		"redact in multi error": {
+			src:   Append(myPanic, myErrMsg),
+			debug: false,
+			exp:   "internal error",
+		},
+		"no redact in multi error": {
+			src:   Append(myPanic, myErrMsg),
+			debug: true,
+			exp: `2 errors occurred:
+	* panic
+	* test: invalid message
+`,
+		},
+		"wrapped multi error with redact": {
+			src:   Wrap(Append(myPanic, myErrMsg), "wrap"),
+			debug: false,
+			exp:   "internal error",
 		},
 	}
 	for msg, spec := range specs {

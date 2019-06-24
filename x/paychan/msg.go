@@ -23,32 +23,30 @@ const (
 )
 
 func (m *CreatePaymentChannelMsg) Validate() error {
-	if err := m.Metadata.Validate(); err != nil {
-		return errors.Wrap(err, "metadata")
-	}
-	if m.Src == nil {
-		return errors.Wrap(errors.ErrMsg, "missing source")
-	}
+	var errs error
+
+	errs = errors.AppendField(errs, "Metadata", m.Metadata.Validate())
+	errs = errors.AppendField(errs, "Src", m.Src.Validate())
 	if m.SenderPubkey == nil {
-		return errors.Wrap(errors.ErrMsg, "missing sender public key")
+		errs = errors.Append(errs,
+			errors.Field("SenderPubKey", errors.ErrMsg, "missing sender public key"))
 	}
-	if m.Recipient == nil {
-		return errors.Wrap(errors.ErrMsg, "missing recipient")
-	}
-	if m.Total == nil || m.Total.IsZero() {
-		return errors.Wrap(errors.ErrMsg, "invalid total amount")
-	}
-	if m.Timeout < inThePast {
-		return errors.Wrap(errors.ErrInput, "timeout is in the past")
-	}
+	errs = errors.AppendField(errs, "Recipient", m.Recipient.Validate())
 	if err := m.Timeout.Validate(); err != nil {
-		return errors.Wrap(err, "invalid timeout value")
+		errs = errors.AppendField(errs, "Timeout", err)
+	} else if m.Timeout < inThePast {
+		errs = errors.Append(errs,
+			errors.Field("Timeout", errors.ErrInput, "timeout is required"))
+	}
+	if m.Total == nil || !m.Total.IsPositive() {
+		errs = errors.Append(errs,
+			errors.Field("Total", errors.ErrMsg, "negative total"))
 	}
 	if len(m.Memo) > 128 {
-		return errors.Wrap(errors.ErrMsg, "memo too long")
+		errs = errors.Append(errs,
+			errors.Field("Memo", errors.ErrMsg, "memo too long"))
 	}
-
-	return validateAddresses(m.Recipient, m.Src)
+	return errs
 }
 
 func (CreatePaymentChannelMsg) Path() string {
@@ -56,25 +54,31 @@ func (CreatePaymentChannelMsg) Path() string {
 }
 
 func (m *TransferPaymentChannelMsg) Validate() error {
-	if err := m.Metadata.Validate(); err != nil {
-		return errors.Wrap(err, "metadata")
-	}
+	var errs error
+
+	errs = errors.AppendField(errs, "Metadata", m.Metadata.Validate())
 	if m.Signature == nil {
-		return errors.Wrap(errors.ErrMsg, "missing signature")
+		errs = errors.Append(errs,
+			errors.Field("Signature", errors.ErrMsg, "missing signature"))
 	}
 	if m.Payment == nil {
-		return errors.Wrap(errors.ErrMsg, "missing payment")
+		errs = errors.Append(errs,
+			errors.Field("Payment", errors.ErrMsg, "missing payment"))
+	} else {
+		if m.Payment.ChainID == "" {
+			errs = errors.Append(errs,
+				errors.Field("Payment.ChainID", errors.ErrMsg, "missing chain ID"))
+		}
+		if m.Payment.ChannelID == nil {
+			errs = errors.Append(errs,
+				errors.Field("Payment.ChannelID", errors.ErrMsg, "missing channel ID"))
+		}
+		if !m.Payment.Amount.IsPositive() {
+			errs = errors.Append(errs,
+				errors.Field("Payment.Amount", errors.ErrMsg, "invalid amount value"))
+		}
 	}
-	if m.Payment.ChainID == "" {
-		return errors.Wrap(errors.ErrMsg, "missing chain ID")
-	}
-	if m.Payment.ChannelID == nil {
-		return errors.Wrap(errors.ErrMsg, "missing channel ID")
-	}
-	if !m.Payment.Amount.IsPositive() {
-		return errors.Wrap(errors.ErrMsg, "invalid amount value")
-	}
-	return nil
+	return errs
 }
 
 func (TransferPaymentChannelMsg) Path() string {
@@ -82,34 +86,23 @@ func (TransferPaymentChannelMsg) Path() string {
 }
 
 func (m *ClosePaymentChannelMsg) Validate() error {
-	if err := m.Metadata.Validate(); err != nil {
-		return errors.Wrap(err, "metadata")
-	}
+	var errs error
+
+	errs = errors.AppendField(errs, "Metadata", m.Metadata.Validate())
 	if m.ChannelID == nil {
-		return errors.Wrap(errors.ErrMsg, "missing channel ID")
+		errs = errors.Append(errs,
+			errors.Field("ChannelID", errors.ErrMsg, "missing channel ID"))
 	}
 	if len(m.Memo) > 128 {
-		return errors.Wrap(errors.ErrMsg, "memo too long")
+		errs = errors.Append(errs,
+			errors.Field("Memo", errors.ErrMsg, "memo too long"))
 	}
-	return nil
+
+	return errs
 }
 
 func (ClosePaymentChannelMsg) Path() string {
 	return pathClosePaymentChannelMsg
-}
-
-// validateAddresses returns an error if any non empty address does not
-// validate.
-func validateAddresses(addrs ...weave.Address) error {
-	for _, a := range addrs {
-		if a == nil {
-			continue
-		}
-		if err := a.Validate(); err != nil {
-			return err
-		}
-	}
-	return nil
 }
 
 // inThePast represents time value for Monday, January 1, 2018 2:00:00 AM GMT+01:00
