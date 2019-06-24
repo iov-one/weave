@@ -5,7 +5,7 @@
 		"AAAAAAAAAAM="
 	],
 	"Sum": {
-		"CreateContractMsg": {
+		"CreateMsg": {
 			"metadata": {
 				"schema": 1
 			},

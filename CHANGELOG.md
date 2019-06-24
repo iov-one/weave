@@ -36,6 +36,7 @@ Breaking changes
   - `x/distribution`: `NewRevenueMsg` -> `CreateMsg`, `ResetRevenueMsg` -> `ResetMsg`
   - `x/escrow`: `CreateEscrowMsg` -> `CreateMsg`, `ReleaseEscrowMsg` -> `ReleaseMsg`, `ReturnEscrowMsg` -> `ReturnMsg`, `UpdateEscrowPartiesMsg` -> `UpdatePartiesMsg`
   - `x/gov`: `TextResolutionMsg` -> `CreateTextResolutionMsg`
+  - `x/multisig`: `CreateContractMsg` -> `CreateMsg`, `UpdateContractMsg` -> `UpdateMsg`
 - `bnsd` specific protobuf objects (Tx, BatchMsg) are now under package `bnsd`, rather than
   conflicting with generic `app` messages in a namespace conflict.
 - Moved some more messages from `x/validators` package to `weave`

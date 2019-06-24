@@ -27,14 +27,14 @@ message Participant {
   uint32 weight = 2 [(gogoproto.casttype) = "Weight"];
 }
 
-message CreateContractMsg {
+message CreateMsg {
   weave.Metadata metadata = 1;
   repeated Participant participants = 2;
   uint32 activation_threshold = 3 [(gogoproto.casttype) = "Weight"];
   uint32 admin_threshold = 4 [(gogoproto.casttype) = "Weight"];
 }
 
-message UpdateContractMsg {
+message UpdateMsg {
   weave.Metadata metadata = 1;
   bytes contract_id = 2 [(gogoproto.customname) = "ContractID"];
   repeated Participant participants = 3;
