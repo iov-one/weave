@@ -49,8 +49,8 @@ message Tx {
     distribution.DistributeMsg distribute_msg = 67;
     distribution.ResetRevenueMsg reset_revenue_msg = 68;
     migration.UpgradeSchemaMsg upgrade_schema_msg = 69;
-    aswap.CreateSwapMsg create_swap_msg = 70;
-    aswap.ReleaseSwapMsg release_swap_msg = 71;
+    aswap.CreateMsg create_swap_msg = 70;
+    aswap.ReleaseMsg release_swap_msg = 71;
     aswap.ReturnSwapMsg return_swap_msg = 72;
     gov.CreateProposalMsg create_proposal_msg = 73;
     gov.DeleteProposalMsg delete_proposal_msg = 74;

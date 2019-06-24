@@ -11,75 +11,75 @@ import (
 	"github.com/iov-one/weave/x/aswap"
 )
 
-func TestCreateSwapMsg(t *testing.T) {
+func TestCreateMsg(t *testing.T) {
 	alice := weavetest.NewCondition()
 	bob := weavetest.NewCondition()
 	validCoin := coin.NewCoin(1, 1, "TEST")
 	invalidCoin := coin.NewCoin(1, 1, "12345789")
 
 	specs := map[string]struct {
-		Mutator func(msg *aswap.CreateSwapMsg)
+		Mutator func(msg *aswap.CreateMsg)
 		Exp     *errors.Error
 	}{
 
 		"Happy path": {},
 		"Invalid metadata": {
-			Mutator: func(msg *aswap.CreateSwapMsg) {
+			Mutator: func(msg *aswap.CreateMsg) {
 				msg.Metadata.Schema = 0
 			},
 			Exp: errors.ErrMetadata,
 		},
 		"Invalid hash": {
-			Mutator: func(msg *aswap.CreateSwapMsg) {
+			Mutator: func(msg *aswap.CreateMsg) {
 				msg.PreimageHash = make([]byte, 31)
 			},
 			Exp: errors.ErrInput,
 		},
 		"Invalid recipient": {
-			Mutator: func(msg *aswap.CreateSwapMsg) {
+			Mutator: func(msg *aswap.CreateMsg) {
 				msg.Recipient = nil
 			},
 			Exp: errors.ErrEmpty,
 		},
 		"Invalid src": {
-			Mutator: func(msg *aswap.CreateSwapMsg) {
+			Mutator: func(msg *aswap.CreateMsg) {
 				msg.Src = nil
 			},
 			Exp: errors.ErrEmpty,
 		},
 		"0 timeout": {
-			Mutator: func(msg *aswap.CreateSwapMsg) {
+			Mutator: func(msg *aswap.CreateMsg) {
 				msg.Timeout = 0
 			},
 			Exp: errors.ErrInput,
 		},
 		"Invalid timeout": {
-			Mutator: func(msg *aswap.CreateSwapMsg) {
+			Mutator: func(msg *aswap.CreateMsg) {
 				msg.Timeout = math.MinInt64
 			},
 			Exp: errors.ErrState,
 		},
 		"Invalid memo": {
-			Mutator: func(msg *aswap.CreateSwapMsg) {
+			Mutator: func(msg *aswap.CreateMsg) {
 				msg.Memo = string(make([]byte, 129))
 			},
 			Exp: errors.ErrInput,
 		},
 		"Invalid amount": {
-			Mutator: func(msg *aswap.CreateSwapMsg) {
+			Mutator: func(msg *aswap.CreateMsg) {
 				msg.Amount = nil
 			},
 			Exp: errors.ErrAmount,
 		},
 		"Invalid coin": {
-			Mutator: func(msg *aswap.CreateSwapMsg) {
+			Mutator: func(msg *aswap.CreateMsg) {
 				msg.Amount = []*coin.Coin{&invalidCoin}
 			},
 			Exp: errors.ErrCurrency,
 		},
 	}
 	for msg, spec := range specs {
-		baseMsg := aswap.CreateSwapMsg{Metadata: &weave.Metadata{Schema: 1},
+		baseMsg := aswap.CreateMsg{Metadata: &weave.Metadata{Schema: 1},
 			Src:          alice.Address(),
 			Recipient:    bob.Address(),
 			PreimageHash: make([]byte, 32),
@@ -100,34 +100,34 @@ func TestCreateSwapMsg(t *testing.T) {
 	}
 }
 
-func TestReleaseSwapMsg(t *testing.T) {
+func TestReleaseMsg(t *testing.T) {
 	specs := map[string]struct {
-		Mutator func(msg *aswap.ReleaseSwapMsg)
+		Mutator func(msg *aswap.ReleaseMsg)
 		Exp     *errors.Error
 	}{
 
 		"Happy path": {},
 		"Invalid metadata": {
-			Mutator: func(msg *aswap.ReleaseSwapMsg) {
+			Mutator: func(msg *aswap.ReleaseMsg) {
 				msg.Metadata.Schema = 0
 			},
 			Exp: errors.ErrMetadata,
 		},
 		"Invalid preimage": {
-			Mutator: func(msg *aswap.ReleaseSwapMsg) {
+			Mutator: func(msg *aswap.ReleaseMsg) {
 				msg.Preimage = make([]byte, 31)
 			},
 			Exp: errors.ErrInput,
 		},
 		"Invalid SwapID": {
-			Mutator: func(msg *aswap.ReleaseSwapMsg) {
+			Mutator: func(msg *aswap.ReleaseMsg) {
 				msg.SwapID = make([]byte, 7)
 			},
 			Exp: errors.ErrInput,
 		},
 	}
 	for msg, spec := range specs {
-		baseMsg := aswap.ReleaseSwapMsg{
+		baseMsg := aswap.ReleaseMsg{
 			Preimage: make([]byte, 32),
 			Metadata: &weave.Metadata{Schema: 1},
 			SwapID:   make([]byte, 8),

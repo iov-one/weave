@@ -10,8 +10,8 @@ import (
 func init() {
 	// Migration needs to be registered for every message introduced in the codec.
 	// This is the convention to message versioning.
-	migration.MustRegister(1, &CreateSwapMsg{}, migration.NoModification)
-	migration.MustRegister(1, &ReleaseSwapMsg{}, migration.NoModification)
+	migration.MustRegister(1, &CreateMsg{}, migration.NoModification)
+	migration.MustRegister(1, &ReleaseMsg{}, migration.NoModification)
 	migration.MustRegister(1, &ReturnSwapMsg{}, migration.NoModification)
 }
 
@@ -27,17 +27,17 @@ const (
 	preimageHashSize int = 32
 )
 
-var _ weave.Msg = (*CreateSwapMsg)(nil)
-var _ weave.Msg = (*ReleaseSwapMsg)(nil)
+var _ weave.Msg = (*CreateMsg)(nil)
+var _ weave.Msg = (*ReleaseMsg)(nil)
 var _ weave.Msg = (*ReturnSwapMsg)(nil)
 
 // ROUTING, Path method fulfills weave.Msg interface to allow routing
 
-func (CreateSwapMsg) Path() string {
+func (CreateMsg) Path() string {
 	return pathCreateSwap
 }
 
-func (ReleaseSwapMsg) Path() string {
+func (ReleaseMsg) Path() string {
 	return pathReleaseSwap
 }
 
@@ -47,7 +47,7 @@ func (ReturnSwapMsg) Path() string {
 
 // VALIDATION, Validate method makes sure basic rules are enforced upon input data and fulfills weave.Msg interface
 
-func (m *CreateSwapMsg) Validate() error {
+func (m *CreateMsg) Validate() error {
 	if err := m.Metadata.Validate(); err != nil {
 		return errors.Wrap(err, "metadata")
 	}
@@ -77,7 +77,7 @@ func (m *CreateSwapMsg) Validate() error {
 	return err
 }
 
-func (m *ReleaseSwapMsg) Validate() error {
+func (m *ReleaseMsg) Validate() error {
 	if err := m.Metadata.Validate(); err != nil {
 		return errors.Wrap(err, "metadata")
 	}
@@ -111,7 +111,7 @@ func validateAmount(amount coin.Coins) (coin.Coins, error) {
 
 	positive := c.IsPositive()
 	if !positive {
-		return c, errors.Wrapf(errors.ErrAmount, "non-positive CreateSwapMsg: %#v", &c)
+		return c, errors.Wrapf(errors.ErrAmount, "non-positive CreateMsg: %#v", &c)
 	}
 	return c, c.Validate()
 }
