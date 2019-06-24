@@ -1,6 +1,6 @@
 {
 	"Sum": {
-		"CreateMsg": {
+		"MultisigCreateMsg": {
 			"metadata": {
 				"schema": 1
 			},

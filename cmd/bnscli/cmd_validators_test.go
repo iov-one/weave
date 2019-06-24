@@ -81,8 +81,8 @@ func TestCmdSetValidators(t *testing.T) {
 			var input bytes.Buffer
 			if tc.Initial != nil {
 				tx := bnsd.Tx{
-					Sum: &bnsd.Tx_ApplyDiffMsg{
-						ApplyDiffMsg: &validators.ApplyDiffMsg{
+					Sum: &bnsd.Tx_ValidatorsApplyDiffMsg{
+						ValidatorsApplyDiffMsg: &validators.ApplyDiffMsg{
 							Metadata:         &weave.Metadata{Schema: 1},
 							ValidatorUpdates: tc.Initial,
 						},
