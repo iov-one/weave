@@ -65,7 +65,12 @@ func (d DynamicFeeDecorator) Check(ctx weave.Context, store weave.KVStore, tx we
 
 	defer func() {
 		if cerr == nil {
-			cache.Write()
+			// if we cannot write the cache, then we return error here
+			// means that nothing got committed
+			if werr := cache.Write(); werr != nil {
+				cres = nil
+				cerr = werr
+			}
 			cres.GasPayment += toPayment(fee)
 		} else {
 			cache.Discard()
@@ -88,7 +93,7 @@ func (d DynamicFeeDecorator) Check(ctx weave.Context, store weave.KVStore, tx we
 }
 
 // Deliver verifies and deducts fees before calling down the stack
-func (d DynamicFeeDecorator) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx, next weave.Deliverer) (_ *weave.DeliverResult, derr error) {
+func (d DynamicFeeDecorator) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx, next weave.Deliverer) (dres *weave.DeliverResult, derr error) {
 	fee, payer, cache, err := d.prepare(ctx, store, tx)
 	if err != nil {
 		return nil, errors.Wrap(err, "cannot prepare")
@@ -96,7 +101,12 @@ func (d DynamicFeeDecorator) Deliver(ctx weave.Context, store weave.KVStore, tx 
 
 	defer func() {
 		if derr == nil {
-			cache.Write()
+			// if we cannot write the cache, then we return error here
+			// means that nothing got committed
+			if werr := cache.Write(); werr != nil {
+				dres = nil
+				derr = werr
+			}
 		} else {
 			cache.Discard()
 			_ = d.chargeMinimalFee(store, payer)
