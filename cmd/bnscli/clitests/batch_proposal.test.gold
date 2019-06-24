@@ -19,7 +19,7 @@ The above transaction is a proposal for executing the following messages:
 		"messages": [
 			{
 				"Sum": {
-					"ReleaseEscrowMsg": {
+					"ReleaseMsg": {
 						"metadata": {
 							"schema": 1
 						},

@@ -34,6 +34,7 @@ Breaking changes
   - `x/cash`: `ConfigurationMsg` -> `UpdateConfigurationMsg`
   - `x/currency`: `NewTokenInfoMsg` -> `CreateMsg`
   - `x/distribution`: `NewRevenueMsg` -> `CreateMsg`, `ResetRevenueMsg` -> `ResetMsg`
+  - `x/escrow`: `CreateEscrowMsg` -> `CreateMsg`, `ReleaseEscrowMsg` -> `ReleaseMsg`, `ReturnEscrowMsg` -> `ReturnMsg`, `UpdateEscrowPartiesMsg` -> `UpdatePartiesMsg`
   - `x/gov`: `TextResolutionMsg` -> `CreateTextResolutionMsg`
 - `bnsd` specific protobuf objects (Tx, BatchMsg) are now under package `bnsd`, rather than
   conflicting with generic `app` messages in a namespace conflict.

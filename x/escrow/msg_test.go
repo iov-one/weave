@@ -26,7 +26,7 @@ type checkErr func(error) bool
 
 func noErr(err error) bool { return err == nil }
 
-func TestCreateEscrowMsg(t *testing.T) {
+func TestCreateMsg(t *testing.T) {
 	// good
 	a := weavetest.NewCondition()
 	b := weavetest.NewCondition()
@@ -42,19 +42,19 @@ func TestCreateEscrowMsg(t *testing.T) {
 	mixed := coin.Coins{{Whole: 100, Ticker: "bad"}}
 
 	cases := []struct {
-		msg   *CreateEscrowMsg
+		msg   *CreateMsg
 		check checkErr
 	}{
 		// nothing
 		0: {
-			&CreateEscrowMsg{
+			&CreateMsg{
 				Metadata: &weave.Metadata{Schema: 1},
 			},
 			errors.ErrEmpty.Is,
 		},
 		// proper
 		1: {
-			&CreateEscrowMsg{
+			&CreateMsg{
 				Metadata:  &weave.Metadata{Schema: 1},
 				Src:       a.Address(),
 				Arbiter:   b.Address(),
@@ -66,7 +66,7 @@ func TestCreateEscrowMsg(t *testing.T) {
 		},
 		// missing sender okay, dups okay
 		2: {
-			&CreateEscrowMsg{
+			&CreateMsg{
 				Metadata:  &weave.Metadata{Schema: 1},
 				Arbiter:   c.Address(),
 				Recipient: c.Address(),
@@ -78,7 +78,7 @@ func TestCreateEscrowMsg(t *testing.T) {
 		},
 		// negative amount
 		3: {
-			&CreateEscrowMsg{
+			&CreateMsg{
 				Metadata:  &weave.Metadata{Schema: 1},
 				Arbiter:   b.Address(),
 				Recipient: c.Address(),
@@ -89,7 +89,7 @@ func TestCreateEscrowMsg(t *testing.T) {
 		},
 		// improperly formatted amount
 		4: {
-			&CreateEscrowMsg{
+			&CreateMsg{
 				Metadata:  &weave.Metadata{Schema: 1},
 				Arbiter:   b.Address(),
 				Recipient: c.Address(),
@@ -100,7 +100,7 @@ func TestCreateEscrowMsg(t *testing.T) {
 		},
 		// missing amount
 		5: {
-			&CreateEscrowMsg{
+			&CreateMsg{
 				Metadata:  &weave.Metadata{Schema: 1},
 				Arbiter:   b.Address(),
 				Recipient: c.Address(),
@@ -110,7 +110,7 @@ func TestCreateEscrowMsg(t *testing.T) {
 		},
 		// invalid memo
 		6: {
-			&CreateEscrowMsg{
+			&CreateMsg{
 				Metadata:  &weave.Metadata{Schema: 1},
 				Arbiter:   b.Address(),
 				Recipient: c.Address(),
@@ -122,7 +122,7 @@ func TestCreateEscrowMsg(t *testing.T) {
 		},
 		// zero timeout
 		7: {
-			&CreateEscrowMsg{
+			&CreateMsg{
 				Metadata:  &weave.Metadata{Schema: 1},
 				Arbiter:   b.Address(),
 				Recipient: c.Address(),
@@ -135,14 +135,14 @@ func TestCreateEscrowMsg(t *testing.T) {
 
 	for i, tc := range cases {
 		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
-			assert.Equal(t, pathCreateEscrowMsg, tc.msg.Path())
+			assert.Equal(t, pathCreateMsg, tc.msg.Path())
 			err := tc.msg.Validate()
 			assert.True(t, tc.check(err), "%+v", err)
 		})
 	}
 }
 
-func TestReleaseEscrowMsg(t *testing.T) {
+func TestReleaseMsg(t *testing.T) {
 	// valid: fixed 8 byte id
 	escrow := []byte{1, 2, 3, 4, 5, 6, 7, 8}
 	// invalid: other size id
@@ -156,19 +156,19 @@ func TestReleaseEscrowMsg(t *testing.T) {
 	mixed := coin.Coins{{Whole: 100, Ticker: "bad"}}
 
 	cases := []struct {
-		msg   *ReleaseEscrowMsg
+		msg   *ReleaseMsg
 		check checkErr
 	}{
 		// nothing
 		0: {
-			&ReleaseEscrowMsg{
+			&ReleaseMsg{
 				Metadata: &weave.Metadata{Schema: 1},
 			},
 			errors.ErrInput.Is,
 		},
 		// proper: valid amount
 		1: {
-			&ReleaseEscrowMsg{
+			&ReleaseMsg{
 				Metadata: &weave.Metadata{Schema: 1},
 				EscrowId: escrow,
 				Amount:   plus,
@@ -177,7 +177,7 @@ func TestReleaseEscrowMsg(t *testing.T) {
 		},
 		// missing amount okay
 		2: {
-			&ReleaseEscrowMsg{
+			&ReleaseMsg{
 				Metadata: &weave.Metadata{Schema: 1},
 				EscrowId: escrow,
 			},
@@ -185,7 +185,7 @@ func TestReleaseEscrowMsg(t *testing.T) {
 		},
 		// invalid id
 		3: {
-			&ReleaseEscrowMsg{
+			&ReleaseMsg{
 				Metadata: &weave.Metadata{Schema: 1},
 				EscrowId: scarecrow,
 			},
@@ -193,7 +193,7 @@ func TestReleaseEscrowMsg(t *testing.T) {
 		},
 		// missing id
 		4: {
-			&ReleaseEscrowMsg{
+			&ReleaseMsg{
 				Metadata: &weave.Metadata{Schema: 1},
 				Amount:   plus,
 			},
@@ -201,7 +201,7 @@ func TestReleaseEscrowMsg(t *testing.T) {
 		},
 		// negative amount
 		5: {
-			&ReleaseEscrowMsg{
+			&ReleaseMsg{
 				Metadata: &weave.Metadata{Schema: 1},
 				EscrowId: escrow,
 				Amount:   minus,
@@ -210,7 +210,7 @@ func TestReleaseEscrowMsg(t *testing.T) {
 		},
 		// improperly formatted amount
 		6: {
-			&ReleaseEscrowMsg{
+			&ReleaseMsg{
 				Metadata: &weave.Metadata{Schema: 1},
 				EscrowId: escrow,
 				Amount:   mixed,
@@ -221,33 +221,33 @@ func TestReleaseEscrowMsg(t *testing.T) {
 
 	for i, tc := range cases {
 		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
-			assert.Equal(t, pathReleaseEscrowMsg, tc.msg.Path())
+			assert.Equal(t, pathReleaseMsg, tc.msg.Path())
 			err := tc.msg.Validate()
 			assert.True(t, tc.check(err), "%+v", err)
 		})
 	}
 }
 
-func TestReturnEscrowMsg(t *testing.T) {
+func TestReturnMsg(t *testing.T) {
 	// valid: fixed 8 byte id
 	escrow := []byte{0xff, 0, 1, 3, 6, 6, 6, 6}
 	// invalid: other size id
 	scarecrow := []byte{1, 2, 3, 4}
 
 	cases := []struct {
-		msg   *ReturnEscrowMsg
+		msg   *ReturnMsg
 		check checkErr
 	}{
 		// missing id
 		0: {
-			&ReturnEscrowMsg{
+			&ReturnMsg{
 				Metadata: &weave.Metadata{Schema: 1},
 			},
 			errors.ErrInput.Is,
 		},
 		// proper: valid id
 		1: {
-			&ReturnEscrowMsg{
+			&ReturnMsg{
 				Metadata: &weave.Metadata{Schema: 1},
 				EscrowId: escrow,
 			},
@@ -255,7 +255,7 @@ func TestReturnEscrowMsg(t *testing.T) {
 		},
 		// invalid id
 		2: {
-			&ReturnEscrowMsg{
+			&ReturnMsg{
 				Metadata: &weave.Metadata{Schema: 1},
 				EscrowId: scarecrow,
 			},
@@ -265,7 +265,7 @@ func TestReturnEscrowMsg(t *testing.T) {
 
 	for i, tc := range cases {
 		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
-			assert.Equal(t, pathReturnEscrowMsg, tc.msg.Path())
+			assert.Equal(t, pathReturnMsg, tc.msg.Path())
 			err := tc.msg.Validate()
 			assert.True(t, tc.check(err), "%+v", err)
 		})
@@ -284,19 +284,19 @@ func TestUpdateEscrowMsg(t *testing.T) {
 	c := weave.NewCondition("monkey", "gelato", []byte("berry"))
 
 	cases := []struct {
-		msg   *UpdateEscrowPartiesMsg
+		msg   *UpdatePartiesMsg
 		check checkErr
 	}{
 		// nothing
 		0: {
-			&UpdateEscrowPartiesMsg{
+			&UpdatePartiesMsg{
 				Metadata: &weave.Metadata{Schema: 1},
 			},
 			errors.ErrInput.Is,
 		},
 		// proper: valid id, one valid permission
 		1: {
-			&UpdateEscrowPartiesMsg{
+			&UpdatePartiesMsg{
 				Metadata: &weave.Metadata{Schema: 1},
 				EscrowId: escrow,
 				Sender:   a.Address(),
@@ -305,7 +305,7 @@ func TestUpdateEscrowMsg(t *testing.T) {
 		},
 		// valid escrow, no permissions
 		2: {
-			&UpdateEscrowPartiesMsg{
+			&UpdatePartiesMsg{
 				Metadata: &weave.Metadata{Schema: 1},
 				EscrowId: escrow,
 			},
@@ -313,7 +313,7 @@ func TestUpdateEscrowMsg(t *testing.T) {
 		},
 		// invalid escrow, proper permissions
 		3: {
-			&UpdateEscrowPartiesMsg{
+			&UpdatePartiesMsg{
 				Metadata: &weave.Metadata{Schema: 1},
 				EscrowId: scarecrow,
 				Sender:   a.Address(),
@@ -322,7 +322,7 @@ func TestUpdateEscrowMsg(t *testing.T) {
 		},
 		// allow multiple permissions
 		4: {
-			&UpdateEscrowPartiesMsg{
+			&UpdatePartiesMsg{
 				Metadata:  &weave.Metadata{Schema: 1},
 				EscrowId:  escrow,
 				Recipient: b.Address(),
@@ -334,7 +334,7 @@ func TestUpdateEscrowMsg(t *testing.T) {
 
 	for i, tc := range cases {
 		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
-			assert.Equal(t, pathUpdateEscrowPartiesMsg, tc.msg.Path())
+			assert.Equal(t, pathUpdatePartiesMsg, tc.msg.Path())
 			err := tc.msg.Validate()
 			assert.True(t, tc.check(err), "%+v", err)
 		})

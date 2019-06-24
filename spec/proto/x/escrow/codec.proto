@@ -24,10 +24,10 @@ message Escrow {
   string memo = 6;
 }
 
-// CreateEscrowMsg is a request to create an Escrow with some tokens.
+// CreateMsg is a request to create an Escrow with some tokens.
 // If sender is not defined, it defaults to the first signer
 // The rest must be defined
-message CreateEscrowMsg {
+message CreateMsg {
   weave.Metadata metadata = 1;
   bytes src = 2 ;
   bytes arbiter = 3 ;
@@ -40,29 +40,29 @@ message CreateEscrowMsg {
   string memo = 7;
 }
 
-// ReleaseEscrowMsg releases the content to the recipient.
+// ReleaseMsg releases the content to the recipient.
 // Must be authorized by sender or arbiter.
 // If amount not provided, defaults to entire escrow,
 // May be a subset of the current balance.
-message ReleaseEscrowMsg {
+message ReleaseMsg {
   weave.Metadata metadata = 1;
   bytes escrow_id = 2;
   repeated coin.Coin amount = 3;
 }
 
-// ReturnEscrowMsg returns the content to the sender.
+// ReturnMsg returns the content to the sender.
 // Must be authorized by the sender or an expired timeout
-message ReturnEscrowMsg {
+message ReturnMsg {
   weave.Metadata metadata = 1;
   bytes escrow_id = 2;
 }
 
-// UpdateEscrowPartiesMsg changes any of the parties of the escrow:
+// UpdatePartiesMsg changes any of the parties of the escrow:
 // sender, arbiter, recipient. This must be authorized by the current
 // holder of that position (eg. only sender can update sender).
 //
 // Represents delegating responsibility
-message UpdateEscrowPartiesMsg {
+message UpdatePartiesMsg {
   weave.Metadata metadata = 1;
   bytes escrow_id = 2;
   bytes sender = 3 ;

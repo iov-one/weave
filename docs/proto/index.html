@@ -494,7 +494,7 @@
             <ul>
               
                 <li>
-                  <a href="#escrow.CreateEscrowMsg"><span class="badge">M</span>CreateEscrowMsg</a>
+                  <a href="#escrow.CreateMsg"><span class="badge">M</span>CreateMsg</a>
                 </li>
               
                 <li>
@@ -502,15 +502,15 @@
                 </li>
               
                 <li>
-                  <a href="#escrow.ReleaseEscrowMsg"><span class="badge">M</span>ReleaseEscrowMsg</a>
+                  <a href="#escrow.ReleaseMsg"><span class="badge">M</span>ReleaseMsg</a>
                 </li>
               
                 <li>
-                  <a href="#escrow.ReturnEscrowMsg"><span class="badge">M</span>ReturnEscrowMsg</a>
+                  <a href="#escrow.ReturnMsg"><span class="badge">M</span>ReturnMsg</a>
                 </li>
               
                 <li>
-                  <a href="#escrow.UpdateEscrowPartiesMsg"><span class="badge">M</span>UpdateEscrowPartiesMsg</a>
+                  <a href="#escrow.UpdatePartiesMsg"><span class="badge">M</span>UpdatePartiesMsg</a>
                 </li>
               
               
@@ -827,28 +827,28 @@
               
                 <tr>
                   <td>create_escrow_msg</td>
-                  <td><a href="#escrow.CreateEscrowMsg">escrow.CreateEscrowMsg</a></td>
+                  <td><a href="#escrow.CreateMsg">escrow.CreateMsg</a></td>
                   <td></td>
                   <td><p> </p></td>
                 </tr>
               
                 <tr>
                   <td>release_escrow_msg</td>
-                  <td><a href="#escrow.ReleaseEscrowMsg">escrow.ReleaseEscrowMsg</a></td>
+                  <td><a href="#escrow.ReleaseMsg">escrow.ReleaseMsg</a></td>
                   <td></td>
                   <td><p> </p></td>
                 </tr>
               
                 <tr>
                   <td>return_escrow_msg</td>
-                  <td><a href="#escrow.ReturnEscrowMsg">escrow.ReturnEscrowMsg</a></td>
+                  <td><a href="#escrow.ReturnMsg">escrow.ReturnMsg</a></td>
                   <td></td>
                   <td><p> </p></td>
                 </tr>
               
                 <tr>
                   <td>update_escrow_msg</td>
-                  <td><a href="#escrow.UpdateEscrowPartiesMsg">escrow.UpdateEscrowPartiesMsg</a></td>
+                  <td><a href="#escrow.UpdatePartiesMsg">escrow.UpdatePartiesMsg</a></td>
                   <td></td>
                   <td><p> </p></td>
                 </tr>
@@ -972,14 +972,14 @@ aswap and gov don&#39;t make much sense as part of a batch (no vote buying) </p>
               
                 <tr>
                   <td>release_escrow_msg</td>
-                  <td><a href="#escrow.ReleaseEscrowMsg">escrow.ReleaseEscrowMsg</a></td>
+                  <td><a href="#escrow.ReleaseMsg">escrow.ReleaseMsg</a></td>
                   <td></td>
                   <td><p> </p></td>
                 </tr>
               
                 <tr>
                   <td>update_escrow_parties_msg</td>
-                  <td><a href="#escrow.UpdateEscrowPartiesMsg">escrow.UpdateEscrowPartiesMsg</a></td>
+                  <td><a href="#escrow.UpdatePartiesMsg">escrow.UpdatePartiesMsg</a></td>
                   <td></td>
                   <td><p> </p></td>
                 </tr>
@@ -1079,14 +1079,14 @@ aswap and gov don&#39;t make much sense as part of a batch (no vote buying) </p>
               
                 <tr>
                   <td>release_escrow_msg</td>
-                  <td><a href="#escrow.ReleaseEscrowMsg">escrow.ReleaseEscrowMsg</a></td>
+                  <td><a href="#escrow.ReleaseMsg">escrow.ReleaseMsg</a></td>
                   <td></td>
                   <td><p> </p></td>
                 </tr>
               
                 <tr>
                   <td>update_escrow_parties_msg</td>
-                  <td><a href="#escrow.UpdateEscrowPartiesMsg">escrow.UpdateEscrowPartiesMsg</a></td>
+                  <td><a href="#escrow.UpdatePartiesMsg">escrow.UpdatePartiesMsg</a></td>
                   <td></td>
                   <td><p> </p></td>
                 </tr>
@@ -1221,28 +1221,28 @@ aswap and gov don&#39;t make much sense as part of a batch (no vote buying) </p>
               
                 <tr>
                   <td>create_escrow_msg</td>
-                  <td><a href="#escrow.CreateEscrowMsg">escrow.CreateEscrowMsg</a></td>
+                  <td><a href="#escrow.CreateMsg">escrow.CreateMsg</a></td>
                   <td></td>
                   <td><p> </p></td>
                 </tr>
               
                 <tr>
                   <td>release_escrow_msg</td>
-                  <td><a href="#escrow.ReleaseEscrowMsg">escrow.ReleaseEscrowMsg</a></td>
+                  <td><a href="#escrow.ReleaseMsg">escrow.ReleaseMsg</a></td>
                   <td></td>
                   <td><p> </p></td>
                 </tr>
               
                 <tr>
                   <td>return_escrow_msg</td>
-                  <td><a href="#escrow.ReturnEscrowMsg">escrow.ReturnEscrowMsg</a></td>
+                  <td><a href="#escrow.ReturnMsg">escrow.ReturnMsg</a></td>
                   <td></td>
                   <td><p> </p></td>
                 </tr>
               
                 <tr>
                   <td>update_escrow_parties_msg</td>
-                  <td><a href="#escrow.UpdateEscrowPartiesMsg">escrow.UpdateEscrowPartiesMsg</a></td>
+                  <td><a href="#escrow.UpdatePartiesMsg">escrow.UpdatePartiesMsg</a></td>
                   <td></td>
                   <td><p> </p></td>
                 </tr>
@@ -2803,8 +2803,8 @@ distributed to. Must be at least one. </p></td>
       <p></p>
 
       
-        <h3 id="escrow.CreateEscrowMsg">CreateEscrowMsg</h3>
-        <p>CreateEscrowMsg is a request to create an Escrow with some tokens.</p><p>If sender is not defined, it defaults to the first signer</p><p>The rest must be defined</p>
+        <h3 id="escrow.CreateMsg">CreateMsg</h3>
+        <p>CreateMsg is a request to create an Escrow with some tokens.</p><p>If sender is not defined, it defaults to the first signer</p><p>The rest must be defined</p>
 
         
           <table class="field-table">
@@ -2932,8 +2932,8 @@ expired: [timeout, infinity) </p></td>
 
         
       
-        <h3 id="escrow.ReleaseEscrowMsg">ReleaseEscrowMsg</h3>
-        <p>ReleaseEscrowMsg releases the content to the recipient.</p><p>Must be authorized by sender or arbiter.</p><p>If amount not provided, defaults to entire escrow,</p><p>May be a subset of the current balance.</p>
+        <h3 id="escrow.ReleaseMsg">ReleaseMsg</h3>
+        <p>ReleaseMsg releases the content to the recipient.</p><p>Must be authorized by sender or arbiter.</p><p>If amount not provided, defaults to entire escrow,</p><p>May be a subset of the current balance.</p>
 
         
           <table class="field-table">
@@ -2969,8 +2969,8 @@ expired: [timeout, infinity) </p></td>
 
         
       
-        <h3 id="escrow.ReturnEscrowMsg">ReturnEscrowMsg</h3>
-        <p>ReturnEscrowMsg returns the content to the sender.</p><p>Must be authorized by the sender or an expired timeout</p>
+        <h3 id="escrow.ReturnMsg">ReturnMsg</h3>
+        <p>ReturnMsg returns the content to the sender.</p><p>Must be authorized by the sender or an expired timeout</p>
 
         
           <table class="field-table">
@@ -2999,8 +2999,8 @@ expired: [timeout, infinity) </p></td>
 
         
       
-        <h3 id="escrow.UpdateEscrowPartiesMsg">UpdateEscrowPartiesMsg</h3>
-        <p>UpdateEscrowPartiesMsg changes any of the parties of the escrow:</p><p>sender, arbiter, recipient. This must be authorized by the current</p><p>holder of that position (eg. only sender can update sender).</p><p>Represents delegating responsibility</p>
+        <h3 id="escrow.UpdatePartiesMsg">UpdatePartiesMsg</h3>
+        <p>UpdatePartiesMsg changes any of the parties of the escrow:</p><p>sender, arbiter, recipient. This must be authorized by the current</p><p>holder of that position (eg. only sender can update sender).</p><p>Represents delegating responsibility</p>
 
         
           <table class="field-table">
