@@ -15,7 +15,7 @@ import (
 	"strings"
 
 	"github.com/iov-one/weave"
-	"github.com/iov-one/weave/cmd/bnsd/app"
+	bnsd "github.com/iov-one/weave/cmd/bnsd/app"
 	"github.com/iov-one/weave/cmd/bnsd/client"
 	"github.com/iov-one/weave/crypto"
 )
@@ -208,7 +208,7 @@ kind of operation are you authorizing.
 		return errors.New("no input data")
 	}
 
-	var tx app.Tx
+	var tx bnsd.Tx
 	if err := tx.Unmarshal(raw); err != nil {
 		return fmt.Errorf("cannot deserialize transaction: %s", err)
 	}
@@ -259,7 +259,7 @@ content.
 	if len(raw) == 0 {
 		return errors.New("no input data")
 	}
-	var tx app.Tx
+	var tx bnsd.Tx
 	if err := tx.Unmarshal(raw); err != nil {
 		return fmt.Errorf("cannot deserialize transaction: %s", err)
 	}
@@ -314,7 +314,7 @@ Make sure to collect enough signatures before submitting.
 	if len(raw) == 0 {
 		return errors.New("no input data")
 	}
-	var tx app.Tx
+	var tx bnsd.Tx
 	if err := tx.Unmarshal(raw); err != nil {
 		return fmt.Errorf("cannot deserialize transaction: %s", err)
 	}

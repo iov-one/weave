@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/iov-one/weave"
-	"github.com/iov-one/weave/cmd/bnsd/app"
+	bnsd "github.com/iov-one/weave/cmd/bnsd/app"
 	"github.com/iov-one/weave/cmd/bnsd/client"
 	"github.com/iov-one/weave/cmd/bnsd/scenarios/bnsdtest"
 	"github.com/iov-one/weave/coin"
@@ -43,8 +43,8 @@ func TestEscrowRelease(t *testing.T) {
 		t.Fatalf("cannot parse escrow contract: %s", err)
 	}
 
-	releaseEscrowTX := &app.Tx{
-		Sum: &app.Tx_ReleaseEscrowMsg{
+	releaseEscrowTX := &bnsd.Tx{
+		Sum: &bnsd.Tx_ReleaseEscrowMsg{
 			ReleaseEscrowMsg: &escrow.ReleaseEscrowMsg{
 				Metadata: &weave.Metadata{Schema: 1},
 				EscrowId: escrowID,

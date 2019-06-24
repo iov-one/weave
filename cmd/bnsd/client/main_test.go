@@ -8,7 +8,7 @@ import (
 
 	"github.com/iov-one/weave"
 	weaveClient "github.com/iov-one/weave/client"
-	"github.com/iov-one/weave/cmd/bnsd/app"
+	bnsd "github.com/iov-one/weave/cmd/bnsd/app"
 	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/commands/server"
 	"github.com/iov-one/weave/migration"
@@ -66,7 +66,7 @@ func initApp(config *cfg.Config, addr weave.Address) (abci.Application, error) {
 		Logger: logger,
 		Debug:  false,
 	}
-	bcp, err := app.GenerateApp(opts)
+	bcp, err := bnsd.GenerateApp(opts)
 	if err != nil {
 		return nil, err
 	}

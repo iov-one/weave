@@ -102,7 +102,7 @@ transaction (ie signatures) are being dropped.
 				})
 			case *escrow.UpdateEscrowPartiesMsg:
 				messages = append(messages, bnsd.ExecuteProposalBatchMsg_Union{
-					Sum: &app.ExecuteProposalBatchMsg_Union_UpdateEscrowPartiesMsg{
+					Sum: &bnsd.ExecuteProposalBatchMsg_Union_UpdateEscrowPartiesMsg{
 						UpdateEscrowPartiesMsg: m,
 					},
 				})
