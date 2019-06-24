@@ -11,9 +11,9 @@ message TokenInfo {
   string name = 2;
 }
 
-// CreateTokenInfoMsg will register a new currency. Ticker (currency symbol) can
+// CreateMsg will register a new currency. Ticker (currency symbol) can
 // be registered only once.
-message CreateTokenInfoMsg {
+message CreateMsg {
   weave.Metadata metadata = 1;
   string ticker = 2;
   string name = 3;

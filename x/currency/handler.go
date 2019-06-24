@@ -16,7 +16,7 @@ func RegisterQuery(qr weave.QueryRouter) {
 func RegisterRoutes(r weave.Registry, auth x.Authenticator, issuer weave.Address) {
 	r = migration.SchemaMigratingRegistry("currency", r)
 
-	r.Handle(CreateTokenInfoMsg{}.Path(), newCreateTokenInfoHandler(auth, issuer))
+	r.Handle(CreateMsg{}.Path(), newCreateTokenInfoHandler(auth, issuer))
 }
 
 func newCreateTokenInfoHandler(auth x.Authenticator, issuer weave.Address) weave.Handler {
@@ -49,8 +49,8 @@ func (h *createTokenInfoHandler) Deliver(ctx weave.Context, db weave.KVStore, tx
 	return &weave.DeliverResult{}, h.bucket.Save(db, obj)
 }
 
-func (h *createTokenInfoHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*CreateTokenInfoMsg, error) {
-	var msg CreateTokenInfoMsg
+func (h *createTokenInfoHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*CreateMsg, error) {
+	var msg CreateMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, errors.Wrap(err, "load msg")
 	}

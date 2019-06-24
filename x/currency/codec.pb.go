@@ -76,26 +76,26 @@ func (m *TokenInfo) GetName() string {
 	return ""
 }
 
-// CreateTokenInfoMsg will register a new currency. Ticker (currency symbol) can
+// CreateMsg will register a new currency. Ticker (currency symbol) can
 // be registered only once.
-type CreateTokenInfoMsg struct {
+type CreateMsg struct {
 	Metadata *weave.Metadata `protobuf:"bytes,1,opt,name=metadata,proto3" json:"metadata,omitempty"`
 	Ticker   string          `protobuf:"bytes,2,opt,name=ticker,proto3" json:"ticker,omitempty"`
 	Name     string          `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
 }
 
-func (m *CreateTokenInfoMsg) Reset()         { *m = CreateTokenInfoMsg{} }
-func (m *CreateTokenInfoMsg) String() string { return proto.CompactTextString(m) }
-func (*CreateTokenInfoMsg) ProtoMessage()    {}
-func (*CreateTokenInfoMsg) Descriptor() ([]byte, []int) {
+func (m *CreateMsg) Reset()         { *m = CreateMsg{} }
+func (m *CreateMsg) String() string { return proto.CompactTextString(m) }
+func (*CreateMsg) ProtoMessage()    {}
+func (*CreateMsg) Descriptor() ([]byte, []int) {
 	return fileDescriptor_540c9a7fd55dd714, []int{1}
 }
-func (m *CreateTokenInfoMsg) XXX_Unmarshal(b []byte) error {
+func (m *CreateMsg) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *CreateTokenInfoMsg) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *CreateMsg) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_CreateTokenInfoMsg.Marshal(b, m, deterministic)
+		return xxx_messageInfo_CreateMsg.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalTo(b)
@@ -105,33 +105,33 @@ func (m *CreateTokenInfoMsg) XXX_Marshal(b []byte, deterministic bool) ([]byte, 
 		return b[:n], nil
 	}
 }
-func (m *CreateTokenInfoMsg) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_CreateTokenInfoMsg.Merge(m, src)
+func (m *CreateMsg) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_CreateMsg.Merge(m, src)
 }
-func (m *CreateTokenInfoMsg) XXX_Size() int {
+func (m *CreateMsg) XXX_Size() int {
 	return m.Size()
 }
-func (m *CreateTokenInfoMsg) XXX_DiscardUnknown() {
-	xxx_messageInfo_CreateTokenInfoMsg.DiscardUnknown(m)
+func (m *CreateMsg) XXX_DiscardUnknown() {
+	xxx_messageInfo_CreateMsg.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_CreateTokenInfoMsg proto.InternalMessageInfo
+var xxx_messageInfo_CreateMsg proto.InternalMessageInfo
 
-func (m *CreateTokenInfoMsg) GetMetadata() *weave.Metadata {
+func (m *CreateMsg) GetMetadata() *weave.Metadata {
 	if m != nil {
 		return m.Metadata
 	}
 	return nil
 }
 
-func (m *CreateTokenInfoMsg) GetTicker() string {
+func (m *CreateMsg) GetTicker() string {
 	if m != nil {
 		return m.Ticker
 	}
 	return ""
 }
 
-func (m *CreateTokenInfoMsg) GetName() string {
+func (m *CreateMsg) GetName() string {
 	if m != nil {
 		return m.Name
 	}
@@ -140,7 +140,7 @@ func (m *CreateTokenInfoMsg) GetName() string {
 
 func init() {
 	proto.RegisterType((*TokenInfo)(nil), "currency.TokenInfo")
-	proto.RegisterType((*CreateTokenInfoMsg)(nil), "currency.CreateTokenInfoMsg")
+	proto.RegisterType((*CreateMsg)(nil), "currency.CreateMsg")
 }
 
 func init() { proto.RegisterFile("x/currency/codec.proto", fileDescriptor_540c9a7fd55dd714) }
@@ -195,7 +195,7 @@ func (m *TokenInfo) MarshalTo(dAtA []byte) (int, error) {
 	return i, nil
 }
 
-func (m *CreateTokenInfoMsg) Marshal() (dAtA []byte, err error) {
+func (m *CreateMsg) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalTo(dAtA)
@@ -205,7 +205,7 @@ func (m *CreateTokenInfoMsg) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *CreateTokenInfoMsg) MarshalTo(dAtA []byte) (int, error) {
+func (m *CreateMsg) MarshalTo(dAtA []byte) (int, error) {
 	var i int
 	_ = i
 	var l int
@@ -261,7 +261,7 @@ func (m *TokenInfo) Size() (n int) {
 	return n
 }
 
-func (m *CreateTokenInfoMsg) Size() (n int) {
+func (m *CreateMsg) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -416,7 +416,7 @@ func (m *TokenInfo) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *CreateTokenInfoMsg) Unmarshal(dAtA []byte) error {
+func (m *CreateMsg) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -439,10 +439,10 @@ func (m *CreateTokenInfoMsg) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: CreateTokenInfoMsg: wiretype end group for non-group")
+			return fmt.Errorf("proto: CreateMsg: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: CreateTokenInfoMsg: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: CreateMsg: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:

@@ -35,7 +35,7 @@ func TestNewTokenInfoHandler(t *testing.T) {
 					Name:     "Doge Coin",
 				}),
 			},
-			msg: &CreateTokenInfoMsg{
+			msg: &CreateMsg{
 				Metadata: &weave.Metadata{Schema: 1},
 				Ticker:   "DOGE",
 				Name:     "Doge Coin",
@@ -46,7 +46,7 @@ func TestNewTokenInfoHandler(t *testing.T) {
 		"insufficient permission": {
 			signers: []weave.Condition{permB},
 			issuer:  permA.Address(),
-			msg: &CreateTokenInfoMsg{
+			msg: &CreateMsg{
 				Metadata: &weave.Metadata{Schema: 1},
 				Ticker:   "DOGE",
 				Name:     "Doge Coin",
@@ -57,7 +57,7 @@ func TestNewTokenInfoHandler(t *testing.T) {
 		"query unknown ticker": {
 			signers: []weave.Condition{permA, permB},
 			issuer:  permA.Address(),
-			msg: &CreateTokenInfoMsg{
+			msg: &CreateMsg{
 				Metadata: &weave.Metadata{Schema: 1},
 				Ticker:   "DOGE",
 				Name:     "Doge Coin",
@@ -68,7 +68,7 @@ func TestNewTokenInfoHandler(t *testing.T) {
 		"ok": {
 			signers: []weave.Condition{permA, permB},
 			issuer:  permA.Address(),
-			msg: &CreateTokenInfoMsg{
+			msg: &CreateMsg{
 				Metadata: &weave.Metadata{Schema: 1},
 				Ticker:   "TKR",
 				Name:     "tikr",
