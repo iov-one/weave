@@ -285,7 +285,7 @@ func createContract(
 			Weight:    1,
 		}
 	}
-	msg := &multisig.CreateContractMsg{
+	msg := &multisig.CreateMsg{
 		Metadata:            &weave.Metadata{Schema: 1},
 		Participants:        participants,
 		ActivationThreshold: activationThreshold,
@@ -293,7 +293,7 @@ func createContract(
 	}
 
 	tx := &bnsd.Tx{
-		Sum: &bnsd.Tx_CreateContractMsg{CreateContractMsg: msg},
+		Sum: &bnsd.Tx_CreateMsg{CreateMsg: msg},
 	}
 
 	tx.Fee(signers[0].pk.PublicKey().Address(), coin.NewCoin(1, 0, "FRNK"))

@@ -26,14 +26,14 @@ message Participant {
   uint32 weight = 2 ;
 }
 
-message CreateContractMsg {
+message CreateMsg {
   weave.Metadata metadata = 1;
   repeated Participant participants = 2;
   uint32 activation_threshold = 3 ;
   uint32 admin_threshold = 4 ;
 }
 
-message UpdateContractMsg {
+message UpdateMsg {
   weave.Metadata metadata = 1;
   bytes contract_id = 2 ;
   repeated Participant participants = 3;

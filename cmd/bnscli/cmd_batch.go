@@ -82,16 +82,16 @@ original transactions (ie signatures) are being dropped.
 					UpdateEscrowMsg: msg,
 				},
 			})
-		case *multisig.CreateContractMsg:
+		case *multisig.CreateMsg:
 			batch.Messages = append(batch.Messages, bnsd.ExecuteBatchMsg_Union{
-				Sum: &bnsd.ExecuteBatchMsg_Union_CreateContractMsg{
-					CreateContractMsg: msg,
+				Sum: &bnsd.ExecuteBatchMsg_Union_CreateMsg{
+					CreateMsg: msg,
 				},
 			})
-		case *multisig.UpdateContractMsg:
+		case *multisig.UpdateMsg:
 			batch.Messages = append(batch.Messages, bnsd.ExecuteBatchMsg_Union{
-				Sum: &bnsd.ExecuteBatchMsg_Union_UpdateContractMsg{
-					UpdateContractMsg: msg,
+				Sum: &bnsd.ExecuteBatchMsg_Union_UpdateMsg{
+					UpdateMsg: msg,
 				},
 			})
 		case *validators.SetValidatorsMsg:
@@ -171,8 +171,8 @@ escrow.CreateMsg create_escrow_msg = 52;
 escrow.ReleaseMsg release_escrow_msg = 53;
 escrow.ReturnMsg return_escrow_msg = 54;
 escrow.UpdatePartiesMsg update_escrow_msg = 55;
-multisig.CreateContractMsg create_contract_msg = 56;
-multisig.UpdateContractMsg update_contract_msg = 57;
+multisig.CreateMsg create_contract_msg = 56;
+multisig.UpdateMsg update_contract_msg = 57;
 validators.SetValidatorsMsg set_validators_msg = 58;
 currency.CreateMsg create_token_info_msg = 59;
 username.RegisterUsernameTokenMsg register_username_token_msg = 61;

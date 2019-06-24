@@ -29,8 +29,8 @@ func TestMultisigCanPayFees(t *testing.T) {
 	carl := client.GenPrivateKey()
 
 	newMultisigTx := &bnsdApp.Tx{
-		Sum: &bnsdApp.Tx_CreateContractMsg{
-			CreateContractMsg: &multisig.CreateContractMsg{
+		Sum: &bnsdApp.Tx_CreateMsg{
+			CreateMsg: &multisig.CreateMsg{
 				Metadata: &weave.Metadata{Schema: 1},
 				Participants: []*multisig.Participant{
 					{
@@ -86,8 +86,8 @@ func TestMultisigCanPayFees(t *testing.T) {
 		// never into the message content.
 		Multisig: [][]byte{multisigID},
 
-		Sum: &bnsdApp.Tx_CreateContractMsg{
-			CreateContractMsg: &multisig.CreateContractMsg{
+		Sum: &bnsdApp.Tx_CreateMsg{
+			CreateMsg: &multisig.CreateMsg{
 				Metadata: &weave.Metadata{Schema: 1},
 				Participants: []*multisig.Participant{
 					{

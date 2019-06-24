@@ -8,13 +8,13 @@ import (
 	"github.com/iov-one/weave/weavetest"
 )
 
-func TestValidateCreateContractMsg(t *testing.T) {
+func TestValidateCreateMsg(t *testing.T) {
 	cases := map[string]struct {
 		Msg     weave.Msg
 		WantErr *errors.Error
 	}{
 		"valid message": {
-			Msg: &CreateContractMsg{
+			Msg: &CreateMsg{
 				Metadata:            &weave.Metadata{Schema: 1},
 				ActivationThreshold: 2,
 				AdminThreshold:      3,
@@ -25,7 +25,7 @@ func TestValidateCreateContractMsg(t *testing.T) {
 			},
 		},
 		"missing metadata": {
-			Msg: &CreateContractMsg{
+			Msg: &CreateMsg{
 				ActivationThreshold: 2,
 				AdminThreshold:      3,
 				Participants: []*Participant{
@@ -46,13 +46,13 @@ func TestValidateCreateContractMsg(t *testing.T) {
 	}
 }
 
-func TestValidateUpdateContractMsg(t *testing.T) {
+func TestValidateUpdateMsg(t *testing.T) {
 	cases := map[string]struct {
 		Msg     weave.Msg
 		WantErr *errors.Error
 	}{
 		"valid message": {
-			Msg: &UpdateContractMsg{
+			Msg: &UpdateMsg{
 				Metadata:            &weave.Metadata{Schema: 1},
 				ActivationThreshold: 2,
 				AdminThreshold:      3,
@@ -63,7 +63,7 @@ func TestValidateUpdateContractMsg(t *testing.T) {
 			},
 		},
 		"missing metadata": {
-			Msg: &UpdateContractMsg{
+			Msg: &UpdateMsg{
 				ActivationThreshold: 2,
 				AdminThreshold:      3,
 				Participants: []*Participant{

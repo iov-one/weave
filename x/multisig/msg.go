@@ -6,13 +6,13 @@ import (
 )
 
 func init() {
-	migration.MustRegister(1, &CreateContractMsg{}, migration.NoModification)
-	migration.MustRegister(1, &UpdateContractMsg{}, migration.NoModification)
+	migration.MustRegister(1, &CreateMsg{}, migration.NoModification)
+	migration.MustRegister(1, &UpdateMsg{}, migration.NoModification)
 }
 
 const (
-	pathCreateContractMsg = "multisig/create"
-	pathUpdateContractMsg = "multisig/update"
+	pathCreateMsg = "multisig/create"
+	pathUpdateMsg = "multisig/update"
 
 	creationCost int64 = 300 // 3x more expensive than SendMsg
 	updateCost   int64 = 150 // Half the creation cost
@@ -23,12 +23,12 @@ const (
 )
 
 // Path fulfills weave.Msg interface to allow routing
-func (CreateContractMsg) Path() string {
-	return pathCreateContractMsg
+func (CreateMsg) Path() string {
+	return pathCreateMsg
 }
 
 // Validate enforces sigs and threshold boundaries
-func (c *CreateContractMsg) Validate() error {
+func (c *CreateMsg) Validate() error {
 	if err := c.Metadata.Validate(); err != nil {
 		return errors.Wrap(err, "metadata")
 	}
@@ -43,12 +43,12 @@ func (c *CreateContractMsg) Validate() error {
 }
 
 // Path fulfills weave.Msg interface to allow routing
-func (UpdateContractMsg) Path() string {
-	return pathUpdateContractMsg
+func (UpdateMsg) Path() string {
+	return pathUpdateMsg
 }
 
 // Validate enforces sigs and threshold boundaries
-func (c *UpdateContractMsg) Validate() error {
+func (c *UpdateMsg) Validate() error {
 	if err := c.Metadata.Validate(); err != nil {
 		return errors.Wrap(err, "metadata")
 	}
