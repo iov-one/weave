@@ -124,10 +124,10 @@ original transactions (ie signatures) are being dropped.
 					ChangeUsernameTokenTargetsMsg: msg,
 				},
 			})
-		case *distribution.CreateRevenueMsg:
+		case *distribution.CreateMsg:
 			batch.Messages = append(batch.Messages, bnsd.ExecuteBatchMsg_Union{
-				Sum: &bnsd.ExecuteBatchMsg_Union_CreateRevenueMsg{
-					CreateRevenueMsg: msg,
+				Sum: &bnsd.ExecuteBatchMsg_Union_CreateMsg{
+					CreateMsg: msg,
 				},
 			})
 		case *distribution.DistributeMsg:
@@ -136,10 +136,10 @@ original transactions (ie signatures) are being dropped.
 					DistributeMsg: msg,
 				},
 			})
-		case *distribution.ResetRevenueMsg:
+		case *distribution.ResetMsg:
 			batch.Messages = append(batch.Messages, bnsd.ExecuteBatchMsg_Union{
-				Sum: &bnsd.ExecuteBatchMsg_Union_ResetRevenueMsg{
-					ResetRevenueMsg: msg,
+				Sum: &bnsd.ExecuteBatchMsg_Union_ResetMsg{
+					ResetMsg: msg,
 				},
 			})
 
@@ -178,9 +178,9 @@ currency.CreateMsg create_token_info_msg = 59;
 username.RegisterUsernameTokenMsg register_username_token_msg = 61;
 username.TransferUsernameTokenMsg transfer_username_token_msg = 62;
 username.ChangeUsernameTokenTargetsMsg change_username_token_targets_msg = 63;
-distribution.CreateRevenueMsg create_revenue_msg = 66;
+distribution.CreateMsg create_revenue_msg = 66;
 distribution.DistributeMsg distribute_msg = 67;
-distribution.ResetRevenueMsg reset_revenue_msg = 68;
+distribution.ResetMsg reset_revenue_msg = 68;
 "
 
 while read -r m; do

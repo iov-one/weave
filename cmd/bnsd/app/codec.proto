@@ -46,9 +46,9 @@ message Tx {
     username.RegisterUsernameTokenMsg register_username_token_msg = 61;
     username.TransferUsernameTokenMsg transfer_username_token_msg = 62;
     username.ChangeUsernameTokenTargetsMsg change_username_token_targets_msg = 63;
-    distribution.CreateRevenueMsg create_revenue_msg = 66;
+    distribution.CreateMsg create_revenue_msg = 66;
     distribution.DistributeMsg distribute_msg = 67;
-    distribution.ResetRevenueMsg reset_revenue_msg = 68;
+    distribution.ResetMsg reset_revenue_msg = 68;
     migration.UpgradeSchemaMsg upgrade_schema_msg = 69;
     aswap.CreateMsg create_swap_msg = 70;
     aswap.ReleaseMsg release_swap_msg = 71;
@@ -81,9 +81,9 @@ message ExecuteBatchMsg {
       username.RegisterUsernameTokenMsg register_username_token_msg = 61;
       username.TransferUsernameTokenMsg transfer_username_token_msg = 62;
       username.ChangeUsernameTokenTargetsMsg change_username_token_targets_msg = 63;
-      distribution.CreateRevenueMsg create_revenue_msg = 66;
+      distribution.CreateMsg create_revenue_msg = 66;
       distribution.DistributeMsg distribute_msg = 67;
-      distribution.ResetRevenueMsg reset_revenue_msg = 68;
+      distribution.ResetMsg reset_revenue_msg = 68;
       // upgrade schema is important enough, it should be a solo action
       // aswap and gov don't make much sense as part of a batch (no vote buying)
 
@@ -104,9 +104,9 @@ message ProposalOptions {
     username.RegisterUsernameTokenMsg register_username_token_msg = 61;
     username.TransferUsernameTokenMsg transfer_username_token_msg = 62;
     username.ChangeUsernameTokenTargetsMsg change_username_token_targets_msg = 63;
-    distribution.CreateRevenueMsg create_revenue_msg = 66;
+    distribution.CreateMsg create_revenue_msg = 66;
     distribution.DistributeMsg distribute_msg = 67;
-    distribution.ResetRevenueMsg reset_revenue_msg = 68;
+    distribution.ResetMsg reset_revenue_msg = 68;
     migration.UpgradeSchemaMsg upgrade_schema_msg = 69;
     gov.UpdateElectorateMsg update_electorate_msg = 77;
     gov.UpdateElectionRuleMsg update_election_rule_msg = 78;
@@ -125,9 +125,9 @@ message ExecuteProposalBatchMsg {
       username.RegisterUsernameTokenMsg register_username_token_msg = 61;
       username.TransferUsernameTokenMsg transfer_username_token_msg = 62;
       username.ChangeUsernameTokenTargetsMsg change_username_token_targets_msg = 63;
-      distribution.CreateRevenueMsg create_revenue_msg = 66;
+      distribution.CreateMsg create_revenue_msg = 66;
       distribution.DistributeMsg distribute_msg = 67;
-      distribution.ResetRevenueMsg reset_revenue_msg = 68;
+      distribution.ResetMsg reset_revenue_msg = 68;
       // don't allow UpgradeSchema as part of a batch, as effects are too confusing
       gov.UpdateElectorateMsg update_electorate_msg = 77;
       gov.UpdateElectionRuleMsg update_election_rule_msg = 78;

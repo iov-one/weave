@@ -32,7 +32,7 @@ type CashController interface {
 func RegisterRoutes(r weave.Registry, auth x.Authenticator, ctrl CashController) {
 	r = migration.SchemaMigratingRegistry("distribution", r)
 	bucket := NewRevenueBucket()
-	r.Handle(pathCreateRevenueMsg, &createRevenueHandler{
+	r.Handle(pathCreateMsg, &createRevenueHandler{
 		auth:   auth,
 		bucket: bucket,
 		ctrl:   ctrl,
@@ -42,7 +42,7 @@ func RegisterRoutes(r weave.Registry, auth x.Authenticator, ctrl CashController)
 		bucket: bucket,
 		ctrl:   ctrl,
 	})
-	r.Handle(pathResetRevenueMsg, &resetRevenueHandler{
+	r.Handle(pathResetMsg, &resetRevenueHandler{
 		auth:   auth,
 		bucket: bucket,
 		ctrl:   ctrl,
@@ -79,8 +79,8 @@ func (h *createRevenueHandler) Deliver(ctx weave.Context, db weave.KVStore, tx w
 	return &weave.DeliverResult{Data: obj.Key()}, nil
 }
 
-func (h *createRevenueHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*CreateRevenueMsg, error) {
-	var msg CreateRevenueMsg
+func (h *createRevenueHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*CreateMsg, error) {
+	var msg CreateMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, errors.Wrap(err, "load msg")
 	}
@@ -196,8 +196,8 @@ func (h *resetRevenueHandler) Deliver(ctx weave.Context, db weave.KVStore, tx we
 	return &weave.DeliverResult{}, nil
 }
 
-func (h *resetRevenueHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*ResetRevenueMsg, error) {
-	var msg ResetRevenueMsg
+func (h *resetRevenueHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*ResetMsg, error) {
+	var msg ResetMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, errors.Wrap(err, "load msg")
 	}
