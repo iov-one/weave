@@ -18,8 +18,8 @@ type Tx interface {
 // BuildSendTx will create an unsigned tx to move tokens
 func BuildSendTx(src, dest weave.Address, amount coin.Coin, memo string) *bnsd.Tx {
 	return &bnsd.Tx{
-		Sum: &bnsd.Tx_SendMsg{
-			SendMsg: &cash.SendMsg{
+		Sum: &bnsd.Tx_CashSendMsg{
+			CashSendMsg: &cash.SendMsg{
 				Metadata: &weave.Metadata{Schema: 1},
 				Src:      src,
 				Dest:     dest,
@@ -54,8 +54,8 @@ func ParseBcpTx(data []byte) (*bnsd.Tx, error) {
 // SetValidatorTx will create an unsigned tx to replace current validator set
 func SetValidatorTx(u ...weave.ValidatorUpdate) *bnsd.Tx {
 	return &bnsd.Tx{
-		Sum: &bnsd.Tx_SetValidatorsMsg{
-			SetValidatorsMsg: &validators.SetValidatorsMsg{
+		Sum: &bnsd.Tx_ValidatorsApplyDiffMsg{
+			ValidatorsApplyDiffMsg: &validators.ApplyDiffMsg{
 				Metadata:         &weave.Metadata{Schema: 1},
 				ValidatorUpdates: u,
 			},

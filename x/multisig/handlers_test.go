@@ -24,7 +24,7 @@ func TestCreateContractHandler(t *testing.T) {
 		WantDeliverErr *errors.Error
 	}{
 		"successfully create a contract": {
-			Msg: &CreateContractMsg{
+			Msg: &CreateMsg{
 				Metadata: &weave.Metadata{Schema: 1},
 				Participants: []*Participant{
 					{Weight: 1, Signature: alice},
@@ -36,7 +36,7 @@ func TestCreateContractHandler(t *testing.T) {
 			},
 		},
 		"cannot create a contract without participants": {
-			Msg: &CreateContractMsg{
+			Msg: &CreateMsg{
 				Metadata:            &weave.Metadata{Schema: 1},
 				Participants:        []*Participant{},
 				ActivationThreshold: 2,
@@ -45,7 +45,7 @@ func TestCreateContractHandler(t *testing.T) {
 			WantCheckErr: errors.ErrMsg,
 		},
 		"cannot create if activation threshold is too high": {
-			Msg: &CreateContractMsg{
+			Msg: &CreateMsg{
 				Metadata: &weave.Metadata{Schema: 1},
 				Participants: []*Participant{
 					{Weight: 1, Signature: alice},
@@ -58,7 +58,7 @@ func TestCreateContractHandler(t *testing.T) {
 			WantCheckErr: errors.ErrMsg,
 		},
 		"can create if admin threshold is higher than total participants power": {
-			Msg: &CreateContractMsg{
+			Msg: &CreateMsg{
 				Metadata: &weave.Metadata{Schema: 1},
 				Participants: []*Participant{
 					{Weight: 1, Signature: alice},
@@ -70,7 +70,7 @@ func TestCreateContractHandler(t *testing.T) {
 			},
 		},
 		"cannot create if activation threshold is higher than admin threshold": {
-			Msg: &CreateContractMsg{
+			Msg: &CreateMsg{
 				Metadata: &weave.Metadata{Schema: 1},
 				Participants: []*Participant{
 					{Weight: 2, Signature: alice},
@@ -135,7 +135,7 @@ func TestUpdateContractHandler(t *testing.T) {
 			Conditions: []weave.Condition{
 				cindyCond,
 			},
-			Msg: &UpdateContractMsg{
+			Msg: &UpdateMsg{
 				Metadata:   &weave.Metadata{Schema: 1},
 				ContractID: weavetest.SequenceID(1),
 				Participants: []*Participant{
@@ -154,7 +154,7 @@ func TestUpdateContractHandler(t *testing.T) {
 				aliceCond,
 				bobbyCond,
 			},
-			Msg: &UpdateContractMsg{
+			Msg: &UpdateMsg{
 				Metadata:   &weave.Metadata{Schema: 1},
 				ContractID: weavetest.SequenceID(1),
 				Participants: []*Participant{
@@ -170,7 +170,7 @@ func TestUpdateContractHandler(t *testing.T) {
 			Conditions: []weave.Condition{
 				cindyCond,
 			},
-			Msg: &UpdateContractMsg{
+			Msg: &UpdateMsg{
 				Metadata:            &weave.Metadata{Schema: 1},
 				ContractID:          weavetest.SequenceID(1),
 				Participants:        []*Participant{},
@@ -183,7 +183,7 @@ func TestUpdateContractHandler(t *testing.T) {
 			Conditions: []weave.Condition{
 				cindyCond,
 			},
-			Msg: &UpdateContractMsg{
+			Msg: &UpdateMsg{
 				Metadata:   &weave.Metadata{Schema: 1},
 				ContractID: weavetest.SequenceID(1),
 				Participants: []*Participant{
@@ -200,7 +200,7 @@ func TestUpdateContractHandler(t *testing.T) {
 			Conditions: []weave.Condition{
 				cindyCond,
 			},
-			Msg: &UpdateContractMsg{
+			Msg: &UpdateMsg{
 				Metadata:   &weave.Metadata{Schema: 1},
 				ContractID: weavetest.SequenceID(1),
 				Participants: []*Participant{
@@ -216,7 +216,7 @@ func TestUpdateContractHandler(t *testing.T) {
 			Conditions: []weave.Condition{
 				cindyCond,
 			},
-			Msg: &UpdateContractMsg{
+			Msg: &UpdateMsg{
 				Metadata:   &weave.Metadata{Schema: 1},
 				ContractID: weavetest.SequenceID(1),
 				Participants: []*Participant{
@@ -233,7 +233,7 @@ func TestUpdateContractHandler(t *testing.T) {
 				// Bobby is only power 2 and power 3 is required.
 				bobbyCond,
 			},
-			Msg: &UpdateContractMsg{
+			Msg: &UpdateMsg{
 				Metadata:   &weave.Metadata{Schema: 1},
 				ContractID: weavetest.SequenceID(1),
 				Participants: []*Participant{

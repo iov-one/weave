@@ -52,7 +52,7 @@ func (h updateHandler) Deliver(ctx weave.Context, store weave.KVStore, tx weave.
 // Validate returns an update diff, ValidatorUpdates to store for bookkeeping and an error.
 func (h updateHandler) validate(ctx weave.Context, store weave.KVStore, tx weave.Tx) ([]weave.ValidatorUpdate,
 	weave.ValidatorUpdates, error) {
-	var msg SetValidatorsMsg
+	var msg ApplyDiffMsg
 	var resUpdates weave.ValidatorUpdates
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, resUpdates, errors.Wrap(err, "load msg")

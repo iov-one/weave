@@ -1,6 +1,6 @@
 {
 	"Sum": {
-		"CreateProposalMsg": {
+		"GovCreateProposalMsg": {
 			"metadata": {
 				"schema": 1
 			},
@@ -19,7 +19,7 @@ The above transaction is a proposal for executing the following messages:
 		"messages": [
 			{
 				"Sum": {
-					"ReleaseEscrowMsg": {
+					"EscrowReleaseMsg": {
 						"metadata": {
 							"schema": 1
 						},

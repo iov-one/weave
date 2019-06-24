@@ -4,7 +4,7 @@
 			"messages": [
 				{
 					"Sum": {
-						"SendMsg": {
+						"CashSendMsg": {
 							"metadata": {
 								"schema": 1
 							},
@@ -20,7 +20,7 @@
 				},
 				{
 					"Sum": {
-						"SendMsg": {
+						"CashSendMsg": {
 							"metadata": {
 								"schema": 1
 							},
@@ -36,7 +36,7 @@
 				},
 				{
 					"Sum": {
-						"SendMsg": {
+						"CashSendMsg": {
 							"metadata": {
 								"schema": 1
 							},

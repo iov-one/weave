@@ -42,7 +42,7 @@ Create a transaction for registering a username.
 		return fmt.Errorf("given data produce an invalid target: %s", err)
 	}
 
-	msg := username.RegisterUsernameTokenMsg{
+	msg := username.RegisterTokenMsg{
 		Metadata: &weave.Metadata{Schema: 1},
 		Username: uname,
 		Targets:  []username.BlockchainAddress{target},
@@ -52,8 +52,8 @@ Create a transaction for registering a username.
 	}
 
 	tx := &bnsd.Tx{
-		Sum: &bnsd.Tx_RegisterUsernameTokenMsg{
-			RegisterUsernameTokenMsg: &msg,
+		Sum: &bnsd.Tx_UsernameRegisterTokenMsg{
+			UsernameRegisterTokenMsg: &msg,
 		},
 	}
 	_, err = writeTx(output, tx)
@@ -95,7 +95,7 @@ serialized representation of the resolved username.
 	return err
 }
 
-func fetchUsernameToken(serverURL string, uname username.Username) (*username.UsernameToken, error) {
+func fetchUsernameToken(serverURL string, uname username.Username) (*username.Token, error) {
 	resp, err := http.Get(serverURL + "/abci_query?path=%22/usernames%22&data=%22" + uname.String() + "%22")
 	if err != nil {
 		return nil, fmt.Errorf("cannot fetch: %s", err)
@@ -126,7 +126,7 @@ func fetchUsernameToken(serverURL string, uname username.Username) (*username.Us
 		return nil, fmt.Errorf("expected single result, got %d", n)
 	}
 
-	var token username.UsernameToken
+	var token username.Token
 	if err := token.Unmarshal(values.Results[0]); err != nil {
 		return nil, fmt.Errorf("cannot unmarshal token: %s", err)
 	}
@@ -160,12 +160,12 @@ This functionality is intended to extend RegisterTokenMsg or ChangeTokenTargetsM
 	}
 
 	switch msg := msg.(type) {
-	case *username.RegisterUsernameTokenMsg:
+	case *username.RegisterTokenMsg:
 		msg.Targets = append(msg.Targets, username.BlockchainAddress{
 			BlockchainID: *blockchainFl,
 			Address:      *addressFl,
 		})
-	case *username.ChangeUsernameTokenTargetsMsg:
+	case *username.ChangeTokenTargetsMsg:
 		msg.NewTargets = append(msg.NewTargets, username.BlockchainAddress{
 			BlockchainID: *blockchainFl,
 			Address:      *addressFl,

@@ -193,7 +193,7 @@ func sendToken(t *testing.T, baseApp abci.Application, chainID string, height in
 		Memo:     memo,
 	}
 	tx := &bnsd.Tx{
-		Sum:      &bnsd.Tx_SendMsg{SendMsg: msg},
+		Sum:      &bnsd.Tx_CashSendMsg{CashSendMsg: msg},
 		Multisig: contracts,
 	}
 	tx.Fee(from, coin.NewCoin(1, 0, "FRNK"))
@@ -219,8 +219,8 @@ func sendBatch(t *testing.T, baseApp abci.Application, chainID string, height in
 	for i := 0; i < batch.MaxBatchMessages; i++ {
 		messages = append(messages,
 			bnsd.ExecuteBatchMsg_Union{
-				Sum: &bnsd.ExecuteBatchMsg_Union_SendMsg{
-					SendMsg: msg,
+				Sum: &bnsd.ExecuteBatchMsg_Union_CashSendMsg{
+					CashSendMsg: msg,
 				},
 			})
 	}
@@ -285,7 +285,7 @@ func createContract(
 			Weight:    1,
 		}
 	}
-	msg := &multisig.CreateContractMsg{
+	msg := &multisig.CreateMsg{
 		Metadata:            &weave.Metadata{Schema: 1},
 		Participants:        participants,
 		ActivationThreshold: activationThreshold,
@@ -293,7 +293,7 @@ func createContract(
 	}
 
 	tx := &bnsd.Tx{
-		Sum: &bnsd.Tx_CreateContractMsg{CreateContractMsg: msg},
+		Sum: &bnsd.Tx_MultisigCreateMsg{MultisigCreateMsg: msg},
 	}
 
 	tx.Fee(signers[0].pk.PublicKey().Address(), coin.NewCoin(1, 0, "FRNK"))

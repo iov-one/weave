@@ -25,8 +25,8 @@ message Swap {
   string memo = 7;
 }
 
-// CreateSwapMsg creates a Swap with some coins.
-message CreateSwapMsg {
+// CreateMsg creates a Swap with some coins.
+message CreateMsg {
   weave.Metadata metadata = 1;
   bytes src = 2 ;
   // sha256 hash of preimage, 32 bytes long
@@ -40,9 +40,9 @@ message CreateSwapMsg {
   string memo = 7;
 }
 
-// ReleaseSwapMsg releases the tokens to the recipient.
+// ReleaseMsg releases the tokens to the recipient.
 // This operation is authorized by preimage, which is sent raw and then hashed on the backend.
-message ReleaseSwapMsg {
+message ReleaseMsg {
   weave.Metadata metadata = 1;
   // swap_id to release
   bytes swap_id = 2 ;

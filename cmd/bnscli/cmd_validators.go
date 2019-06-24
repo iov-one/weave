@@ -41,7 +41,7 @@ func cmdSetValidators(input io.Reader, output io.Writer, args []string) error {
 		if err != nil {
 			return fmt.Errorf("cannot extract message from the transaction: %s", err)
 		}
-		setMsg, ok := msg.(*validators.SetValidatorsMsg)
+		setMsg, ok := msg.(*validators.ApplyDiffMsg)
 		if !ok {
 			return fmt.Errorf("unexpected transaction for %T message", msg)
 		}
@@ -56,8 +56,8 @@ func cmdSetValidators(input io.Reader, output io.Writer, args []string) error {
 		Power: int64(*powerFl),
 	})
 	var tx = bnsd.Tx{
-		Sum: &bnsd.Tx_SetValidatorsMsg{
-			SetValidatorsMsg: &validators.SetValidatorsMsg{
+		Sum: &bnsd.Tx_ValidatorsApplyDiffMsg{
+			ValidatorsApplyDiffMsg: &validators.ApplyDiffMsg{
 				Metadata:         &weave.Metadata{Schema: 1},
 				ValidatorUpdates: set,
 			},

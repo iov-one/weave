@@ -109,7 +109,7 @@ of tuning of incentives and punishments in order to achieve
 the desired level of usability and security.
 
 The only current implementation shipping with weave is
-a `POA implementation <https://godoc.org/github.com/iov-one/weave/x/validators#SetValidatorsMsg>`__
+a `POA implementation <https://godoc.org/github.com/iov-one/weave/x/validators#ApplyDiffMsg>`__
 allowing some master key (can be a multisig or even an election) update the validator
 set. This can support systems from testnets to those with strong on-chain governance,
 but doesn't work for the PoS fluid market-based solution.

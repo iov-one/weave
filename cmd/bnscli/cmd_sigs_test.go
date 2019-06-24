@@ -19,8 +19,8 @@ func TestCmdSignTransactionHappyPath(t *testing.T) {
 	defer tm.Close()
 
 	tx := &bnsd.Tx{
-		Sum: &bnsd.Tx_SendMsg{
-			SendMsg: &cash.SendMsg{
+		Sum: &bnsd.Tx_CashSendMsg{
+			CashSendMsg: &cash.SendMsg{
 				Metadata: &weave.Metadata{Schema: 1},
 			},
 		},

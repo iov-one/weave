@@ -153,8 +153,8 @@ func (m *Recipient) GetWeight() int32 {
 	return 0
 }
 
-// CreateRevenueMsg is issuing the creation of a new revenue stream instance.
-type CreateRevenueMsg struct {
+// CreateMsg is issuing the creation of a new revenue stream instance.
+type CreateMsg struct {
 	Metadata *weave.Metadata `protobuf:"bytes,1,opt,name=metadata,proto3" json:"metadata,omitempty"`
 	// Admin key belongs to the governance entities. It can be used to transfer
 	// stored amount to an another account.
@@ -165,18 +165,18 @@ type CreateRevenueMsg struct {
 	Recipients []*Recipient `protobuf:"bytes,3,rep,name=recipients,proto3" json:"recipients,omitempty"`
 }
 
-func (m *CreateRevenueMsg) Reset()         { *m = CreateRevenueMsg{} }
-func (m *CreateRevenueMsg) String() string { return proto.CompactTextString(m) }
-func (*CreateRevenueMsg) ProtoMessage()    {}
-func (*CreateRevenueMsg) Descriptor() ([]byte, []int) {
+func (m *CreateMsg) Reset()         { *m = CreateMsg{} }
+func (m *CreateMsg) String() string { return proto.CompactTextString(m) }
+func (*CreateMsg) ProtoMessage()    {}
+func (*CreateMsg) Descriptor() ([]byte, []int) {
 	return fileDescriptor_186299c22854933b, []int{2}
 }
-func (m *CreateRevenueMsg) XXX_Unmarshal(b []byte) error {
+func (m *CreateMsg) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *CreateRevenueMsg) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *CreateMsg) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_CreateRevenueMsg.Marshal(b, m, deterministic)
+		return xxx_messageInfo_CreateMsg.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalTo(b)
@@ -186,33 +186,33 @@ func (m *CreateRevenueMsg) XXX_Marshal(b []byte, deterministic bool) ([]byte, er
 		return b[:n], nil
 	}
 }
-func (m *CreateRevenueMsg) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_CreateRevenueMsg.Merge(m, src)
+func (m *CreateMsg) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_CreateMsg.Merge(m, src)
 }
-func (m *CreateRevenueMsg) XXX_Size() int {
+func (m *CreateMsg) XXX_Size() int {
 	return m.Size()
 }
-func (m *CreateRevenueMsg) XXX_DiscardUnknown() {
-	xxx_messageInfo_CreateRevenueMsg.DiscardUnknown(m)
+func (m *CreateMsg) XXX_DiscardUnknown() {
+	xxx_messageInfo_CreateMsg.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_CreateRevenueMsg proto.InternalMessageInfo
+var xxx_messageInfo_CreateMsg proto.InternalMessageInfo
 
-func (m *CreateRevenueMsg) GetMetadata() *weave.Metadata {
+func (m *CreateMsg) GetMetadata() *weave.Metadata {
 	if m != nil {
 		return m.Metadata
 	}
 	return nil
 }
 
-func (m *CreateRevenueMsg) GetAdmin() github_com_iov_one_weave.Address {
+func (m *CreateMsg) GetAdmin() github_com_iov_one_weave.Address {
 	if m != nil {
 		return m.Admin
 	}
 	return nil
 }
 
-func (m *CreateRevenueMsg) GetRecipients() []*Recipient {
+func (m *CreateMsg) GetRecipients() []*Recipient {
 	if m != nil {
 		return m.Recipients
 	}
@@ -276,12 +276,12 @@ func (m *DistributeMsg) GetRevenueID() []byte {
 	return nil
 }
 
-// ResetRevenueMsg change the configuration of a revenue instance.
+// ResetMsg change the configuration of a revenue instance.
 // To assure recipients that they will receive money, every revenue update is
 // forcing funds distribution. Before applying any change all funds stored by
 // the revenue account are distributed using old configuration. Only when the
 // collected revenue amount is equal to zero the change is applied.
-type ResetRevenueMsg struct {
+type ResetMsg struct {
 	Metadata *weave.Metadata `protobuf:"bytes,1,opt,name=metadata,proto3" json:"metadata,omitempty"`
 	// Revenue ID reference an ID of a revenue instance that is updated.
 	RevenueID []byte `protobuf:"bytes,2,opt,name=revenue_id,json=revenueId,proto3" json:"revenue_id,omitempty"`
@@ -290,18 +290,18 @@ type ResetRevenueMsg struct {
 	Recipients []*Recipient `protobuf:"bytes,3,rep,name=recipients,proto3" json:"recipients,omitempty"`
 }
 
-func (m *ResetRevenueMsg) Reset()         { *m = ResetRevenueMsg{} }
-func (m *ResetRevenueMsg) String() string { return proto.CompactTextString(m) }
-func (*ResetRevenueMsg) ProtoMessage()    {}
-func (*ResetRevenueMsg) Descriptor() ([]byte, []int) {
+func (m *ResetMsg) Reset()         { *m = ResetMsg{} }
+func (m *ResetMsg) String() string { return proto.CompactTextString(m) }
+func (*ResetMsg) ProtoMessage()    {}
+func (*ResetMsg) Descriptor() ([]byte, []int) {
 	return fileDescriptor_186299c22854933b, []int{4}
 }
-func (m *ResetRevenueMsg) XXX_Unmarshal(b []byte) error {
+func (m *ResetMsg) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *ResetRevenueMsg) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *ResetMsg) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_ResetRevenueMsg.Marshal(b, m, deterministic)
+		return xxx_messageInfo_ResetMsg.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalTo(b)
@@ -311,33 +311,33 @@ func (m *ResetRevenueMsg) XXX_Marshal(b []byte, deterministic bool) ([]byte, err
 		return b[:n], nil
 	}
 }
-func (m *ResetRevenueMsg) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ResetRevenueMsg.Merge(m, src)
+func (m *ResetMsg) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ResetMsg.Merge(m, src)
 }
-func (m *ResetRevenueMsg) XXX_Size() int {
+func (m *ResetMsg) XXX_Size() int {
 	return m.Size()
 }
-func (m *ResetRevenueMsg) XXX_DiscardUnknown() {
-	xxx_messageInfo_ResetRevenueMsg.DiscardUnknown(m)
+func (m *ResetMsg) XXX_DiscardUnknown() {
+	xxx_messageInfo_ResetMsg.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_ResetRevenueMsg proto.InternalMessageInfo
+var xxx_messageInfo_ResetMsg proto.InternalMessageInfo
 
-func (m *ResetRevenueMsg) GetMetadata() *weave.Metadata {
+func (m *ResetMsg) GetMetadata() *weave.Metadata {
 	if m != nil {
 		return m.Metadata
 	}
 	return nil
 }
 
-func (m *ResetRevenueMsg) GetRevenueID() []byte {
+func (m *ResetMsg) GetRevenueID() []byte {
 	if m != nil {
 		return m.RevenueID
 	}
 	return nil
 }
 
-func (m *ResetRevenueMsg) GetRecipients() []*Recipient {
+func (m *ResetMsg) GetRecipients() []*Recipient {
 	if m != nil {
 		return m.Recipients
 	}
@@ -347,37 +347,37 @@ func (m *ResetRevenueMsg) GetRecipients() []*Recipient {
 func init() {
 	proto.RegisterType((*Revenue)(nil), "distribution.Revenue")
 	proto.RegisterType((*Recipient)(nil), "distribution.Recipient")
-	proto.RegisterType((*CreateRevenueMsg)(nil), "distribution.CreateRevenueMsg")
+	proto.RegisterType((*CreateMsg)(nil), "distribution.CreateMsg")
 	proto.RegisterType((*DistributeMsg)(nil), "distribution.DistributeMsg")
-	proto.RegisterType((*ResetRevenueMsg)(nil), "distribution.ResetRevenueMsg")
+	proto.RegisterType((*ResetMsg)(nil), "distribution.ResetMsg")
 }
 
 func init() { proto.RegisterFile("x/distribution/codec.proto", fileDescriptor_186299c22854933b) }
 
 var fileDescriptor_186299c22854933b = []byte{
-	// 342 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xd4, 0x52, 0xb1, 0x4e, 0x02, 0x41,
-	0x10, 0x65, 0x25, 0x80, 0x0c, 0x10, 0xcc, 0xc5, 0xe8, 0x85, 0xe2, 0xb8, 0x5c, 0x2c, 0x48, 0xd4,
-	0xbb, 0x04, 0x0b, 0x13, 0x0b, 0x13, 0x91, 0x86, 0x82, 0x66, 0x7f, 0xc0, 0x2c, 0xb7, 0x93, 0x63,
-	0x4d, 0xb8, 0x25, 0x77, 0x0b, 0xf8, 0x19, 0xfe, 0x84, 0x95, 0xad, 0x1f, 0x61, 0x49, 0x69, 0x45,
-	0xcc, 0xf1, 0x17, 0x56, 0x86, 0xbb, 0x85, 0x5c, 0x29, 0x74, 0x76, 0xb3, 0xf3, 0xde, 0xdb, 0x79,
-	0xf3, 0x32, 0xd0, 0x7a, 0xf1, 0xb8, 0x88, 0x55, 0x24, 0x46, 0x33, 0x25, 0x64, 0xe8, 0xf9, 0x92,
-	0xa3, 0xef, 0x4e, 0x23, 0xa9, 0xa4, 0x51, 0xcf, 0x23, 0xad, 0x5a, 0x0e, 0x6a, 0x9d, 0x06, 0x32,
-	0x90, 0x69, 0xe9, 0x6d, 0xaa, 0xac, 0xeb, 0xbc, 0x13, 0xa8, 0x50, 0x9c, 0x63, 0x38, 0x43, 0xe3,
-	0x12, 0x8e, 0x27, 0xa8, 0x18, 0x67, 0x8a, 0x99, 0xc4, 0x26, 0x9d, 0x5a, 0xb7, 0xe9, 0x2e, 0x90,
-	0xcd, 0xd1, 0x1d, 0xea, 0x36, 0xdd, 0x11, 0x8c, 0x3b, 0x28, 0x31, 0x3e, 0x11, 0xa1, 0x79, 0x64,
-	0x93, 0x4e, 0xbd, 0x77, 0xf1, 0xb3, 0x6a, 0xdb, 0x81, 0x50, 0xe3, 0xd9, 0xc8, 0xf5, 0xe5, 0xc4,
-	0x13, 0x72, 0x7e, 0x2d, 0x43, 0xf4, 0x32, 0xfd, 0x03, 0xe7, 0x11, 0xc6, 0x31, 0xcd, 0x24, 0xc6,
-	0x2d, 0x40, 0x84, 0xbe, 0x98, 0x0a, 0x0c, 0x55, 0x6c, 0x16, 0xed, 0x62, 0xa7, 0xd6, 0x3d, 0x77,
-	0xf3, 0xd6, 0x5d, 0xba, 0xc5, 0x69, 0x8e, 0xea, 0xf8, 0x50, 0xdd, 0x01, 0xc6, 0x3d, 0x54, 0x58,
-	0xf6, 0x6f, 0xea, 0xf6, 0xaf, 0x1e, 0xb6, 0x22, 0xe3, 0x0c, 0xca, 0x0b, 0x14, 0xc1, 0x58, 0xa5,
-	0x2b, 0x94, 0xa8, 0x7e, 0x39, 0x1f, 0x04, 0x4e, 0x1e, 0x23, 0x64, 0x0a, 0x75, 0x30, 0xc3, 0x38,
-	0xf8, 0x07, 0xd9, 0x3c, 0x43, 0xa3, 0xbf, 0x65, 0xed, 0x6f, 0xf9, 0x6a, 0x33, 0x36, 0xdd, 0xf6,
-	0x49, 0x70, 0xed, 0xbb, 0x91, 0xac, 0xda, 0x55, 0x9d, 0xc1, 0xa0, 0x4f, 0xab, 0x9a, 0x30, 0xe0,
-	0xce, 0x1b, 0x81, 0x26, 0xc5, 0x18, 0xd5, 0xa1, 0x09, 0xed, 0x35, 0xee, 0xe0, 0x4c, 0x7a, 0xe6,
-	0x67, 0x62, 0x91, 0x65, 0x62, 0x91, 0xef, 0xc4, 0x22, 0xaf, 0x6b, 0xab, 0xb0, 0x5c, 0x5b, 0x85,
-	0xaf, 0xb5, 0x55, 0x18, 0x95, 0xd3, 0xf3, 0xbf, 0xf9, 0x0d, 0x00, 0x00, 0xff, 0xff, 0x0e, 0xb5,
-	0xf4, 0xf6, 0x4d, 0x03, 0x00, 0x00,
+	// 339 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x92, 0xaa, 0xd0, 0x4f, 0xc9,
+	0x2c, 0x2e, 0x29, 0xca, 0x4c, 0x2a, 0x2d, 0xc9, 0xcc, 0xcf, 0xd3, 0x4f, 0xce, 0x4f, 0x49, 0x4d,
+	0xd6, 0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17, 0xe2, 0x41, 0x96, 0x91, 0xe2, 0x46, 0x92, 0x92, 0x12,
+	0x49, 0xcf, 0x4f, 0xcf, 0x07, 0x33, 0xf5, 0x41, 0x2c, 0x88, 0xa8, 0xd2, 0x6a, 0x46, 0x2e, 0xf6,
+	0xa0, 0xd4, 0xb2, 0xd4, 0xbc, 0xd2, 0x54, 0x21, 0x6d, 0x2e, 0x8e, 0xdc, 0xd4, 0x92, 0xc4, 0x94,
+	0xc4, 0x92, 0x44, 0x09, 0x46, 0x05, 0x46, 0x0d, 0x6e, 0x23, 0x7e, 0xbd, 0xf2, 0xd4, 0xc4, 0xb2,
+	0x54, 0x3d, 0x5f, 0xa8, 0x70, 0x10, 0x5c, 0x81, 0x90, 0x15, 0x17, 0x6b, 0x62, 0x4a, 0x6e, 0x66,
+	0x9e, 0x04, 0x93, 0x02, 0xa3, 0x06, 0x8f, 0x93, 0xca, 0xaf, 0x7b, 0xf2, 0x0a, 0xe9, 0x99, 0x25,
+	0x19, 0xa5, 0x49, 0x7a, 0xc9, 0xf9, 0xb9, 0xfa, 0x99, 0xf9, 0x65, 0xba, 0xf9, 0x79, 0xa9, 0xfa,
+	0x10, 0xfd, 0x8e, 0x29, 0x29, 0x45, 0xa9, 0xc5, 0xc5, 0x41, 0x10, 0x2d, 0x42, 0xe6, 0x5c, 0x5c,
+	0x45, 0xa9, 0xc9, 0x99, 0x05, 0x99, 0xa9, 0x79, 0x25, 0xc5, 0x12, 0xcc, 0x0a, 0xcc, 0x1a, 0xdc,
+	0x46, 0xe2, 0x7a, 0xc8, 0x4e, 0xd7, 0x0b, 0x82, 0xc9, 0x07, 0x21, 0x29, 0x55, 0x4a, 0xe6, 0xe2,
+	0x84, 0x4b, 0x08, 0xd9, 0x71, 0xb1, 0x27, 0x42, 0xcc, 0x05, 0xbb, 0x96, 0x58, 0x37, 0xc0, 0x34,
+	0x09, 0x89, 0x71, 0xb1, 0x95, 0xa7, 0x66, 0xa6, 0x67, 0x94, 0x80, 0xbd, 0xc0, 0x1a, 0x04, 0xe5,
+	0x29, 0xad, 0x65, 0xe4, 0xe2, 0x74, 0x2e, 0x4a, 0x4d, 0x2c, 0x49, 0xf5, 0x2d, 0x4e, 0x1f, 0x02,
+	0x81, 0x92, 0xc5, 0xc5, 0xeb, 0x02, 0x53, 0x45, 0xba, 0x93, 0x75, 0x40, 0xd6, 0x82, 0xe3, 0x3f,
+	0x3e, 0x33, 0x05, 0xea, 0x6e, 0xde, 0x47, 0xf7, 0xe4, 0x39, 0xa1, 0xa9, 0xc2, 0xd3, 0x25, 0x88,
+	0x13, 0xaa, 0xc0, 0x33, 0x45, 0x69, 0x1e, 0x23, 0x17, 0x47, 0x50, 0x6a, 0x71, 0x6a, 0x09, 0x6d,
+	0xed, 0x21, 0x3b, 0x30, 0x9c, 0x24, 0x4e, 0x3c, 0x92, 0x63, 0xbc, 0xf0, 0x48, 0x8e, 0xf1, 0xc1,
+	0x23, 0x39, 0xc6, 0x09, 0x8f, 0xe5, 0x18, 0x2e, 0x3c, 0x96, 0x63, 0xb8, 0xf1, 0x58, 0x8e, 0x21,
+	0x89, 0x0d, 0x9c, 0xe0, 0x8d, 0x01, 0x01, 0x00, 0x00, 0xff, 0xff, 0x33, 0x80, 0xe2, 0x32, 0x3f,
+	0x03, 0x00, 0x00,
 }
 
 func (m *Revenue) Marshal() (dAtA []byte, err error) {
@@ -455,7 +455,7 @@ func (m *Recipient) MarshalTo(dAtA []byte) (int, error) {
 	return i, nil
 }
 
-func (m *CreateRevenueMsg) Marshal() (dAtA []byte, err error) {
+func (m *CreateMsg) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalTo(dAtA)
@@ -465,7 +465,7 @@ func (m *CreateRevenueMsg) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *CreateRevenueMsg) MarshalTo(dAtA []byte) (int, error) {
+func (m *CreateMsg) MarshalTo(dAtA []byte) (int, error) {
 	var i int
 	_ = i
 	var l int
@@ -535,7 +535,7 @@ func (m *DistributeMsg) MarshalTo(dAtA []byte) (int, error) {
 	return i, nil
 }
 
-func (m *ResetRevenueMsg) Marshal() (dAtA []byte, err error) {
+func (m *ResetMsg) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalTo(dAtA)
@@ -545,7 +545,7 @@ func (m *ResetRevenueMsg) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *ResetRevenueMsg) MarshalTo(dAtA []byte) (int, error) {
+func (m *ResetMsg) MarshalTo(dAtA []byte) (int, error) {
 	var i int
 	_ = i
 	var l int
@@ -629,7 +629,7 @@ func (m *Recipient) Size() (n int) {
 	return n
 }
 
-func (m *CreateRevenueMsg) Size() (n int) {
+func (m *CreateMsg) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -669,7 +669,7 @@ func (m *DistributeMsg) Size() (n int) {
 	return n
 }
 
-func (m *ResetRevenueMsg) Size() (n int) {
+func (m *ResetMsg) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -968,7 +968,7 @@ func (m *Recipient) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *CreateRevenueMsg) Unmarshal(dAtA []byte) error {
+func (m *CreateMsg) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -991,10 +991,10 @@ func (m *CreateRevenueMsg) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: CreateRevenueMsg: wiretype end group for non-group")
+			return fmt.Errorf("proto: CreateMsg: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: CreateRevenueMsg: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: CreateMsg: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -1248,7 +1248,7 @@ func (m *DistributeMsg) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *ResetRevenueMsg) Unmarshal(dAtA []byte) error {
+func (m *ResetMsg) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -1271,10 +1271,10 @@ func (m *ResetRevenueMsg) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: ResetRevenueMsg: wiretype end group for non-group")
+			return fmt.Errorf("proto: ResetMsg: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: ResetRevenueMsg: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: ResetMsg: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:

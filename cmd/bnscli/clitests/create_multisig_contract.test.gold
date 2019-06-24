@@ -1,6 +1,6 @@
 {
 	"Sum": {
-		"CreateContractMsg": {
+		"MultisigCreateMsg": {
 			"metadata": {
 				"schema": 1
 			},

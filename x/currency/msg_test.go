@@ -7,13 +7,13 @@ import (
 	"github.com/iov-one/weave/errors"
 )
 
-func TestValidateCreateTokenInfoMsg(t *testing.T) {
+func TestValidateCreateMsg(t *testing.T) {
 	cases := map[string]struct {
 		Msg     weave.Msg
 		WantErr *errors.Error
 	}{
 		"valid message": {
-			Msg: &CreateTokenInfoMsg{
+			Msg: &CreateMsg{
 				Metadata: &weave.Metadata{Schema: 1},
 				Ticker:   "IOV",
 				Name:     "mytoken",
@@ -21,7 +21,7 @@ func TestValidateCreateTokenInfoMsg(t *testing.T) {
 			WantErr: nil,
 		},
 		"missing metadata": {
-			Msg: &CreateTokenInfoMsg{
+			Msg: &CreateMsg{
 				Ticker: "IOV",
 				Name:   "mytoken",
 			},

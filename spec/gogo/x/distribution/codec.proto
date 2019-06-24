@@ -33,8 +33,8 @@ message Recipient {
   int32 weight = 2;
 }
 
-// CreateRevenueMsg is issuing the creation of a new revenue stream instance.
-message CreateRevenueMsg {
+// CreateMsg is issuing the creation of a new revenue stream instance.
+message CreateMsg {
   weave.Metadata metadata = 1;
   // Admin key belongs to the governance entities. It can be used to transfer
   // stored amount to an another account.
@@ -55,12 +55,12 @@ message DistributeMsg {
   bytes revenue_id = 2 [(gogoproto.customname) = "RevenueID"];
 }
 
-// ResetRevenueMsg change the configuration of a revenue instance.
+// ResetMsg change the configuration of a revenue instance.
 // To assure recipients that they will receive money, every revenue update is
 // forcing funds distribution. Before applying any change all funds stored by
 // the revenue account are distributed using old configuration. Only when the
 // collected revenue amount is equal to zero the change is applied.
-message ResetRevenueMsg {
+message ResetMsg {
   weave.Metadata metadata = 1;
   // Revenue ID reference an ID of a revenue instance that is updated.
   bytes revenue_id = 2 [(gogoproto.customname) = "RevenueID"];

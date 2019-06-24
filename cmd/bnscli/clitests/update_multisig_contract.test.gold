@@ -1,6 +1,6 @@
 {
 	"Sum": {
-		"UpdateContractMsg": {
+		"MultisigUpdateMsg": {
 			"metadata": {
 				"schema": 1
 			},

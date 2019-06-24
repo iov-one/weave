@@ -6,23 +6,23 @@ import (
 	"github.com/iov-one/weave/migration"
 )
 
-var _ weave.Msg = (*CreatePaymentChannelMsg)(nil)
-var _ weave.Msg = (*TransferPaymentChannelMsg)(nil)
-var _ weave.Msg = (*ClosePaymentChannelMsg)(nil)
+var _ weave.Msg = (*CreateMsg)(nil)
+var _ weave.Msg = (*TransferMsg)(nil)
+var _ weave.Msg = (*CloseMsg)(nil)
 
 func init() {
-	migration.MustRegister(1, &CreatePaymentChannelMsg{}, migration.NoModification)
-	migration.MustRegister(1, &TransferPaymentChannelMsg{}, migration.NoModification)
-	migration.MustRegister(1, &ClosePaymentChannelMsg{}, migration.NoModification)
+	migration.MustRegister(1, &CreateMsg{}, migration.NoModification)
+	migration.MustRegister(1, &TransferMsg{}, migration.NoModification)
+	migration.MustRegister(1, &CloseMsg{}, migration.NoModification)
 }
 
 const (
-	pathCreatePaymentChannelMsg   = "paychan/create"
-	pathTransferPaymentChannelMsg = "paychan/transfer"
-	pathClosePaymentChannelMsg    = "paychan/close"
+	pathCreateMsg   = "paychan/create"
+	pathTransferMsg = "paychan/transfer"
+	pathCloseMsg    = "paychan/close"
 )
 
-func (m *CreatePaymentChannelMsg) Validate() error {
+func (m *CreateMsg) Validate() error {
 	var errs error
 
 	errs = errors.AppendField(errs, "Metadata", m.Metadata.Validate())
@@ -49,11 +49,11 @@ func (m *CreatePaymentChannelMsg) Validate() error {
 	return errs
 }
 
-func (CreatePaymentChannelMsg) Path() string {
-	return pathCreatePaymentChannelMsg
+func (CreateMsg) Path() string {
+	return pathCreateMsg
 }
 
-func (m *TransferPaymentChannelMsg) Validate() error {
+func (m *TransferMsg) Validate() error {
 	var errs error
 
 	errs = errors.AppendField(errs, "Metadata", m.Metadata.Validate())
@@ -81,11 +81,11 @@ func (m *TransferPaymentChannelMsg) Validate() error {
 	return errs
 }
 
-func (TransferPaymentChannelMsg) Path() string {
-	return pathTransferPaymentChannelMsg
+func (TransferMsg) Path() string {
+	return pathTransferMsg
 }
 
-func (m *ClosePaymentChannelMsg) Validate() error {
+func (m *CloseMsg) Validate() error {
 	var errs error
 
 	errs = errors.AppendField(errs, "Metadata", m.Metadata.Validate())
@@ -101,8 +101,8 @@ func (m *ClosePaymentChannelMsg) Validate() error {
 	return errs
 }
 
-func (ClosePaymentChannelMsg) Path() string {
-	return pathClosePaymentChannelMsg
+func (CloseMsg) Path() string {
+	return pathCloseMsg
 }
 
 // inThePast represents time value for Monday, January 1, 2018 2:00:00 AM GMT+01:00

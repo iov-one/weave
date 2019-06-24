@@ -194,7 +194,7 @@ func TestHandler(t *testing.T) {
 			[]action{createAction(a, b, c, all, "")},
 			action{
 				perms: []weave.Condition{c},
-				msg: &ReleaseEscrowMsg{
+				msg: &ReleaseMsg{
 					Metadata: &weave.Metadata{Schema: 1},
 					EscrowId: weavetest.SequenceID(1),
 				},
@@ -234,7 +234,7 @@ func TestHandler(t *testing.T) {
 			[]action{createAction(a, b, c, all, "hello")},
 			action{
 				perms: []weave.Condition{a},
-				msg: &ReleaseEscrowMsg{
+				msg: &ReleaseMsg{
 					Metadata: &weave.Metadata{Schema: 1},
 					EscrowId: weavetest.SequenceID(1),
 					Amount:   some,
@@ -279,7 +279,7 @@ func TestHandler(t *testing.T) {
 			[]action{createAction(a, b, c, all, "")},
 			action{
 				perms: []weave.Condition{b},
-				msg: &ReleaseEscrowMsg{
+				msg: &ReleaseMsg{
 					Metadata: &weave.Metadata{Schema: 1},
 					EscrowId: weavetest.SequenceID(1),
 				},
@@ -293,7 +293,7 @@ func TestHandler(t *testing.T) {
 			[]action{createAction(a, b, c, all, "")},
 			action{
 				perms: []weave.Condition{c},
-				msg: &ReleaseEscrowMsg{
+				msg: &ReleaseMsg{
 					Metadata: &weave.Metadata{Schema: 1},
 					EscrowId: weavetest.SequenceID(1),
 				},
@@ -308,7 +308,7 @@ func TestHandler(t *testing.T) {
 		//	[]action{createAction(a, b, c, all, "")},
 		//	action{
 		//		perms: []weave.Condition{a},
-		//		msg: &ReturnEscrowMsg{
+		//		msg: &ReturnMsg{
 		//			EscrowId: weavetest.SequenceID(1),
 		//		},
 		//		height: Timeout + 1,
@@ -345,7 +345,7 @@ func TestHandler(t *testing.T) {
 		//	[]action{createAction(a, b, c, all, "")},
 		//	action{
 		//		perms: []weave.Condition{a},
-		//		msg: &ReturnEscrowMsg{
+		//		msg: &ReturnMsg{
 		//			EscrowId: weavetest.SequenceID(1),
 		//		},
 		//		height: Timeout - 1,
@@ -360,7 +360,7 @@ func TestHandler(t *testing.T) {
 				{
 					perms: []weave.Condition{c},
 					// c hands off to d
-					msg: &UpdateEscrowPartiesMsg{
+					msg: &UpdatePartiesMsg{
 						Metadata: &weave.Metadata{Schema: 1},
 						EscrowId: weavetest.SequenceID(1),
 						Arbiter:  d.Address(),
@@ -369,7 +369,7 @@ func TestHandler(t *testing.T) {
 			action{
 				// new arbiter can resolve
 				perms: []weave.Condition{d},
-				msg: &ReleaseEscrowMsg{
+				msg: &ReleaseMsg{
 					Metadata: &weave.Metadata{Schema: 1},
 					EscrowId: weavetest.SequenceID(1),
 				},
@@ -403,7 +403,7 @@ func TestHandler(t *testing.T) {
 				{
 					perms: []weave.Condition{c},
 					// c hands off to d
-					msg: &UpdateEscrowPartiesMsg{
+					msg: &UpdatePartiesMsg{
 						Metadata: &weave.Metadata{Schema: 1},
 						EscrowId: weavetest.SequenceID(1),
 						Arbiter:  d.Address(),
@@ -412,7 +412,7 @@ func TestHandler(t *testing.T) {
 			action{
 				// original arbiter can no longer resolve
 				perms: []weave.Condition{c},
-				msg: &ReleaseEscrowMsg{
+				msg: &ReleaseMsg{
 					Metadata: &weave.Metadata{Schema: 1},
 					EscrowId: weavetest.SequenceID(1),
 				},
@@ -426,7 +426,7 @@ func TestHandler(t *testing.T) {
 			[]action{createAction(a, b, c, some, "")},
 			action{
 				perms: []weave.Condition{a},
-				msg: &UpdateEscrowPartiesMsg{
+				msg: &UpdatePartiesMsg{
 					Metadata: &weave.Metadata{Schema: 1},
 					EscrowId: weavetest.SequenceID(1),
 					Arbiter:  a.Address(),
@@ -441,7 +441,7 @@ func TestHandler(t *testing.T) {
 		//	[]action{createAction(a, b, c, some, "")},
 		//	action{
 		//		perms: []weave.Condition{a},
-		//		msg: &UpdateEscrowPartiesMsg{
+		//		msg: &UpdatePartiesMsg{
 		//			EscrowId: weavetest.SequenceID(1),
 		//			Sender:   d,
 		//		},
@@ -457,7 +457,7 @@ func TestHandler(t *testing.T) {
 				createAction(a, b, c, all, ""),
 				{
 					perms: []weave.Condition{c},
-					msg: &ReleaseEscrowMsg{
+					msg: &ReleaseMsg{
 						Metadata: &weave.Metadata{Schema: 1},
 						EscrowId: weavetest.SequenceID(1),
 					},
@@ -465,7 +465,7 @@ func TestHandler(t *testing.T) {
 			},
 			action{
 				perms: []weave.Condition{c},
-				msg: &ReleaseEscrowMsg{
+				msg: &ReleaseMsg{
 					Metadata: &weave.Metadata{Schema: 1},
 					EscrowId: weavetest.SequenceID(1),
 				},
@@ -515,7 +515,7 @@ func TestHandler(t *testing.T) {
 		//	},
 		//	action{
 		//		perms: []weave.Condition{a},
-		//		msg: &ReturnEscrowMsg{
+		//		msg: &ReturnMsg{
 		//			EscrowId: weavetest.SequenceID(1),
 		//		},
 		//		height: Timeout + 1,
@@ -563,7 +563,7 @@ func TestHandler(t *testing.T) {
 			},
 			action{
 				perms: []weave.Condition{c},
-				msg: &ReleaseEscrowMsg{
+				msg: &ReleaseMsg{
 					Metadata: &weave.Metadata{Schema: 1},
 					EscrowId: weavetest.SequenceID(1),
 				},

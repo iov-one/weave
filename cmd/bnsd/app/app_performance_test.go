@@ -163,8 +163,8 @@ func BenchmarkBNSDSendToken(b *testing.B) {
 			for k := 0; k < b.N; k++ {
 				tx := &Tx{
 					Fees: fees,
-					Sum: &Tx_SendMsg{
-						&cash.SendMsg{
+					Sum: &Tx_CashSendMsg{
+						CashSendMsg: &cash.SendMsg{
 							Src:    alice,
 							Dest:   benny,
 							Amount: coin.NewCoinp(0, 100, "IOV"),

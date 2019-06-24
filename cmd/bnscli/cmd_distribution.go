@@ -31,8 +31,8 @@ Create a transaction for reseting a revenue stream with a new configuration.
 	}
 
 	tx := &bnsd.Tx{
-		Sum: &bnsd.Tx_ResetRevenueMsg{
-			ResetRevenueMsg: &distribution.ResetRevenueMsg{
+		Sum: &bnsd.Tx_DistributionResetMsg{
+			DistributionResetMsg: &distribution.ResetMsg{
 				RevenueID:  *revenueFl,
 				Recipients: recipients,
 			},

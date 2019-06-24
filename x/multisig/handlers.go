@@ -13,8 +13,8 @@ import (
 func RegisterRoutes(r weave.Registry, auth x.Authenticator) {
 	r = migration.SchemaMigratingRegistry("multisig", r)
 	bucket := NewContractBucket()
-	r.Handle(pathCreateContractMsg, CreateContractMsgHandler{auth, bucket})
-	r.Handle(pathUpdateContractMsg, UpdateContractMsgHandler{auth, bucket})
+	r.Handle(pathCreateMsg, CreateMsgHandler{auth, bucket})
+	r.Handle(pathUpdateMsg, UpdateMsgHandler{auth, bucket})
 }
 
 // RegisterQuery register queries from buckets in this package
@@ -22,14 +22,14 @@ func RegisterQuery(qr weave.QueryRouter) {
 	NewContractBucket().Register("contracts", qr)
 }
 
-type CreateContractMsgHandler struct {
+type CreateMsgHandler struct {
 	auth   x.Authenticator
 	bucket ContractBucket
 }
 
-var _ weave.Handler = CreateContractMsgHandler{}
+var _ weave.Handler = CreateMsgHandler{}
 
-func (h CreateContractMsgHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
+func (h CreateMsgHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
 	_, err := h.validate(ctx, db, tx)
 	if err != nil {
 		return nil, err
@@ -38,7 +38,7 @@ func (h CreateContractMsgHandler) Check(ctx weave.Context, db weave.KVStore, tx 
 	return &weave.CheckResult{GasAllocated: creationCost}, nil
 }
 
-func (h CreateContractMsgHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
+func (h CreateMsgHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	msg, err := h.validate(ctx, db, tx)
 	if err != nil {
 		return nil, err
@@ -62,14 +62,14 @@ func (h CreateContractMsgHandler) Deliver(ctx weave.Context, db weave.KVStore, t
 }
 
 // validate does all common pre-processing between Check and Deliver.
-func (h CreateContractMsgHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*CreateContractMsg, error) {
+func (h CreateMsgHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*CreateMsg, error) {
 	// Retrieve tx main signer in this context.
 	sender := x.MainSigner(ctx, h.auth)
 	if sender == nil {
 		return nil, errors.Wrap(errors.ErrUnauthorized, "no signer")
 	}
 
-	var msg CreateContractMsg
+	var msg CreateMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, errors.Wrap(err, "load msg")
 	}
@@ -77,14 +77,14 @@ func (h CreateContractMsgHandler) validate(ctx weave.Context, db weave.KVStore, 
 	return &msg, nil
 }
 
-type UpdateContractMsgHandler struct {
+type UpdateMsgHandler struct {
 	auth   x.Authenticator
 	bucket ContractBucket
 }
 
-var _ weave.Handler = CreateContractMsgHandler{}
+var _ weave.Handler = CreateMsgHandler{}
 
-func (h UpdateContractMsgHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
+func (h UpdateMsgHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
 	_, err := h.validate(ctx, db, tx)
 	if err != nil {
 		return nil, err
@@ -92,7 +92,7 @@ func (h UpdateContractMsgHandler) Check(ctx weave.Context, db weave.KVStore, tx 
 	return &weave.CheckResult{GasAllocated: updateCost}, nil
 }
 
-func (h UpdateContractMsgHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
+func (h UpdateMsgHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	msg, err := h.validate(ctx, db, tx)
 	if err != nil {
 		return nil, err
@@ -114,8 +114,8 @@ func (h UpdateContractMsgHandler) Deliver(ctx weave.Context, db weave.KVStore, t
 	return &weave.DeliverResult{}, nil
 }
 
-func (h UpdateContractMsgHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*UpdateContractMsg, error) {
-	var msg UpdateContractMsg
+func (h UpdateMsgHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*UpdateMsg, error) {
+	var msg UpdateMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, errors.Wrap(err, "load msg")
 	}

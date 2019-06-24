@@ -4,8 +4,8 @@ package validators;
 
 import "codec.proto";
 
-// This message is designed to update validator power
-message SetValidatorsMsg {
+// ApplyDiffMsg is designed to update validator power
+message ApplyDiffMsg {
   weave.Metadata metadata = 1;
   repeated weave.ValidatorUpdate validator_updates = 2 ;
 }

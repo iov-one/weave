@@ -41,8 +41,8 @@ participants must be done by another command.
 
 	if len(*updateFl) != 0 {
 		tx = bnsd.Tx{
-			Sum: &bnsd.Tx_UpdateContractMsg{
-				UpdateContractMsg: &multisig.UpdateContractMsg{
+			Sum: &bnsd.Tx_MultisigUpdateMsg{
+				MultisigUpdateMsg: &multisig.UpdateMsg{
 					Metadata:            &weave.Metadata{Schema: 1},
 					ContractID:          *updateFl,
 					ActivationThreshold: multisig.Weight(*activationThresholdFl),
@@ -52,8 +52,8 @@ participants must be done by another command.
 		}
 	} else {
 		tx = bnsd.Tx{
-			Sum: &bnsd.Tx_CreateContractMsg{
-				CreateContractMsg: &multisig.CreateContractMsg{
+			Sum: &bnsd.Tx_MultisigCreateMsg{
+				MultisigCreateMsg: &multisig.CreateMsg{
 					Metadata:            &weave.Metadata{Schema: 1},
 					ActivationThreshold: multisig.Weight(*activationThresholdFl),
 					AdminThreshold:      multisig.Weight(*adminThresholdFl),
@@ -93,12 +93,12 @@ participant added.
 	}
 
 	switch msg := msg.(type) {
-	case *multisig.CreateContractMsg:
+	case *multisig.CreateMsg:
 		msg.Participants = append(msg.Participants, &multisig.Participant{
 			Signature: *sigFl,
 			Weight:    multisig.Weight(*weightFl),
 		})
-	case *multisig.UpdateContractMsg:
+	case *multisig.UpdateMsg:
 		msg.Participants = append(msg.Participants, &multisig.Participant{
 			Signature: *sigFl,
 			Weight:    multisig.Weight(*weightFl),

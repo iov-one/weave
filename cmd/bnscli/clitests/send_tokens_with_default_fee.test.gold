@@ -6,7 +6,7 @@
 		}
 	},
 	"Sum": {
-		"SendMsg": {
+		"CashSendMsg": {
 			"metadata": {
 				"schema": 1
 			},

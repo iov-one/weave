@@ -8,46 +8,46 @@ import (
 )
 
 func init() {
-	migration.MustRegister(1, &CreateEscrowMsg{}, migration.NoModification)
-	migration.MustRegister(1, &ReleaseEscrowMsg{}, migration.NoModification)
-	migration.MustRegister(1, &ReturnEscrowMsg{}, migration.NoModification)
-	migration.MustRegister(1, &UpdateEscrowPartiesMsg{}, migration.NoModification)
+	migration.MustRegister(1, &CreateMsg{}, migration.NoModification)
+	migration.MustRegister(1, &ReleaseMsg{}, migration.NoModification)
+	migration.MustRegister(1, &ReturnMsg{}, migration.NoModification)
+	migration.MustRegister(1, &UpdatePartiesMsg{}, migration.NoModification)
 }
 
 const (
-	pathCreateEscrowMsg        = "escrow/create"
-	pathReleaseEscrowMsg       = "escrow/release"
-	pathReturnEscrowMsg        = "escrow/return"
-	pathUpdateEscrowPartiesMsg = "escrow/update"
+	pathCreateMsg        = "escrow/create"
+	pathReleaseMsg       = "escrow/release"
+	pathReturnMsg        = "escrow/return"
+	pathUpdatePartiesMsg = "escrow/update"
 
 	maxMemoSize int = 128
 )
 
-var _ weave.Msg = (*CreateEscrowMsg)(nil)
-var _ weave.Msg = (*ReleaseEscrowMsg)(nil)
-var _ weave.Msg = (*ReturnEscrowMsg)(nil)
-var _ weave.Msg = (*UpdateEscrowPartiesMsg)(nil)
+var _ weave.Msg = (*CreateMsg)(nil)
+var _ weave.Msg = (*ReleaseMsg)(nil)
+var _ weave.Msg = (*ReturnMsg)(nil)
+var _ weave.Msg = (*UpdatePartiesMsg)(nil)
 
 //--------- Path routing --------
 
 // Path fulfills weave.Msg interface to allow routing
-func (CreateEscrowMsg) Path() string {
-	return pathCreateEscrowMsg
+func (CreateMsg) Path() string {
+	return pathCreateMsg
 }
 
 // Path fulfills weave.Msg interface to allow routing
-func (ReleaseEscrowMsg) Path() string {
-	return pathReleaseEscrowMsg
+func (ReleaseMsg) Path() string {
+	return pathReleaseMsg
 }
 
 // Path fulfills weave.Msg interface to allow routing
-func (ReturnEscrowMsg) Path() string {
-	return pathReturnEscrowMsg
+func (ReturnMsg) Path() string {
+	return pathReturnMsg
 }
 
 // Path fulfills weave.Msg interface to allow routing
-func (UpdateEscrowPartiesMsg) Path() string {
-	return pathUpdateEscrowPartiesMsg
+func (UpdatePartiesMsg) Path() string {
+	return pathUpdatePartiesMsg
 }
 
 //--------- Validation --------
@@ -60,8 +60,8 @@ func NewCreateMsg(
 	amount coin.Coins,
 	timeout weave.UnixTime,
 	memo string,
-) *CreateEscrowMsg {
-	return &CreateEscrowMsg{
+) *CreateMsg {
+	return &CreateMsg{
 		Metadata:  &weave.Metadata{Schema: 1},
 		Src:       sender,
 		Recipient: recipient,
@@ -73,7 +73,7 @@ func NewCreateMsg(
 }
 
 // Validate makes sure that this is sensible
-func (m *CreateEscrowMsg) Validate() error {
+func (m *CreateMsg) Validate() error {
 	if err := m.Metadata.Validate(); err != nil {
 		return errors.Wrap(err, "metadata")
 	}
@@ -102,7 +102,7 @@ func (m *CreateEscrowMsg) Validate() error {
 }
 
 // Validate makes sure that this is sensible
-func (m *ReleaseEscrowMsg) Validate() error {
+func (m *ReleaseMsg) Validate() error {
 	if err := m.Metadata.Validate(); err != nil {
 		return errors.Wrap(err, "metadata")
 	}
@@ -117,7 +117,7 @@ func (m *ReleaseEscrowMsg) Validate() error {
 }
 
 // Validate always returns true for no data
-func (m *ReturnEscrowMsg) Validate() error {
+func (m *ReturnMsg) Validate() error {
 	if err := m.Metadata.Validate(); err != nil {
 		return errors.Wrap(err, "metadata")
 	}
@@ -126,7 +126,7 @@ func (m *ReturnEscrowMsg) Validate() error {
 
 // Validate makes sure any included items are valid permissions
 // and there is at least one change
-func (m *UpdateEscrowPartiesMsg) Validate() error {
+func (m *UpdatePartiesMsg) Validate() error {
 	if err := m.Metadata.Validate(); err != nil {
 		return errors.Wrap(err, "metadata")
 	}

@@ -8,16 +8,16 @@ import (
 )
 
 func init() {
-	migration.MustRegister(1, &CreateTokenInfoMsg{}, migration.NoModification)
+	migration.MustRegister(1, &CreateMsg{}, migration.NoModification)
 }
 
-var _ weave.Msg = (*CreateTokenInfoMsg)(nil)
+var _ weave.Msg = (*CreateMsg)(nil)
 
-func (CreateTokenInfoMsg) Path() string {
+func (CreateMsg) Path() string {
 	return "currency/tokeninfo"
 }
 
-func (t *CreateTokenInfoMsg) Validate() error {
+func (t *CreateMsg) Validate() error {
 	if err := t.Metadata.Validate(); err != nil {
 		return errors.Wrap(err, "metadata")
 	}

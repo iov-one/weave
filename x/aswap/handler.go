@@ -94,8 +94,8 @@ func (h CreateSwapHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave
 
 // validate does all common pre-processing between Check and Deliver.
 func (h CreateSwapHandler) validate(ctx weave.Context,
-	db weave.KVStore, tx weave.Tx) (*CreateSwapMsg, error) {
-	var msg CreateSwapMsg
+	db weave.KVStore, tx weave.Tx) (*CreateMsg, error) {
+	var msg CreateMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, errors.Wrap(err, "load msg")
 	}
@@ -158,7 +158,7 @@ func (h ReleaseSwapHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weav
 
 // validate does all common pre-processing between Check and Deliver.
 func (h ReleaseSwapHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) ([]byte, *Swap, error) {
-	var msg ReleaseSwapMsg
+	var msg ReleaseMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, nil, errors.Wrap(err, "load msg")
 	}

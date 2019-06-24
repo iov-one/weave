@@ -28,8 +28,8 @@ func TestRevenueDistribution(t *testing.T) {
 		weavetest.NewKey().PublicKey().Address(),
 	}
 	newRevenueTx := &bnsdApp.Tx{
-		Sum: &bnsdApp.Tx_CreateRevenueMsg{
-			CreateRevenueMsg: &distribution.CreateRevenueMsg{
+		Sum: &bnsdApp.Tx_DistributionCreateMsg{
+			DistributionCreateMsg: &distribution.CreateMsg{
 				Metadata: &weave.Metadata{Schema: 1},
 				Admin:    admin.PublicKey().Address(),
 				Recipients: []*distribution.Recipient{
@@ -91,8 +91,8 @@ func TestRevenueDistribution(t *testing.T) {
 	// configuration.
 
 	resetRevenueTx := &bnsdApp.Tx{
-		Sum: &bnsdApp.Tx_ResetRevenueMsg{
-			ResetRevenueMsg: &distribution.ResetRevenueMsg{
+		Sum: &bnsdApp.Tx_DistributionResetMsg{
+			DistributionResetMsg: &distribution.ResetMsg{
 				Metadata:  &weave.Metadata{Schema: 1},
 				RevenueID: revenueID,
 				Recipients: []*distribution.Recipient{
@@ -144,8 +144,8 @@ func TestRevenueDistribution(t *testing.T) {
 	assertWalletCoins(t, env, revenueAddress, 12) // 11 + 1 leftover
 
 	distributeTx := &bnsdApp.Tx{
-		Sum: &bnsdApp.Tx_DistributeMsg{
-			DistributeMsg: &distribution.DistributeMsg{
+		Sum: &bnsdApp.Tx_DistributionMsg{
+			DistributionMsg: &distribution.DistributeMsg{
 				Metadata:  &weave.Metadata{Schema: 1},
 				RevenueID: revenueID,
 			},
