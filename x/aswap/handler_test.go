@@ -51,7 +51,7 @@ func TestCreateHandler(t *testing.T) {
 		wantCheckErr   *errors.Error
 		wantDeliverErr *errors.Error
 		exp            aswap.Swap
-		mutator        func(db *aswap.CreateSwapMsg)
+		mutator        func(db *aswap.CreateMsg)
 	}{
 		"Happy Path": {
 			setup: func(ctx weave.Context, db weave.KVStore) weave.Context {
@@ -77,14 +77,14 @@ func TestCreateHandler(t *testing.T) {
 				setBalance(t, db, alice.Address(), initialCoins)
 				return authenticator.SetConditions(ctx, alice)
 			},
-			mutator: func(msg *aswap.CreateSwapMsg) {
+			mutator: func(msg *aswap.CreateMsg) {
 				msg.Timeout = weave.AsUnixTime(time.Now().Add(-1000 * time.Hour))
 			},
 		},
 		"Invalid Msg": {
 			wantDeliverErr: errors.ErrInput,
 			wantCheckErr:   errors.ErrInput,
-			mutator: func(msg *aswap.CreateSwapMsg) {
+			mutator: func(msg *aswap.CreateMsg) {
 				msg.PreimageHash = nil
 			},
 		},
@@ -105,7 +105,7 @@ func TestCreateHandler(t *testing.T) {
 	}
 
 	for name, spec := range cases {
-		createMsg := &aswap.CreateSwapMsg{
+		createMsg := &aswap.CreateMsg{
 			Metadata:     &weave.Metadata{Schema: 1},
 			Src:          alice.Address(),
 			Recipient:    bob.Address(),
@@ -164,7 +164,7 @@ func TestReleaseHandler(t *testing.T) {
 		wantCheckErr   *errors.Error
 		wantDeliverErr *errors.Error
 		exp            aswap.Swap
-		mutator        func(db *aswap.ReleaseSwapMsg)
+		mutator        func(db *aswap.ReleaseMsg)
 	}{
 		"Happy Path, includes no auth check": {
 			wantDeliverErr: nil,
@@ -183,21 +183,21 @@ func TestReleaseHandler(t *testing.T) {
 		"Invalid Msg": {
 			wantDeliverErr: errors.ErrInput,
 			wantCheckErr:   errors.ErrInput,
-			mutator: func(msg *aswap.ReleaseSwapMsg) {
+			mutator: func(msg *aswap.ReleaseMsg) {
 				msg.Preimage = nil
 			},
 		},
 		"Invalid SwapID": {
 			wantDeliverErr: errors.ErrEmpty,
 			wantCheckErr:   errors.ErrEmpty,
-			mutator: func(msg *aswap.ReleaseSwapMsg) {
+			mutator: func(msg *aswap.ReleaseMsg) {
 				msg.SwapID = weavetest.SequenceID(2)
 			},
 		},
 		"Invalid Preimage": {
 			wantDeliverErr: errors.ErrUnauthorized,
 			wantCheckErr:   errors.ErrUnauthorized,
-			mutator: func(msg *aswap.ReleaseSwapMsg) {
+			mutator: func(msg *aswap.ReleaseMsg) {
 				msg.Preimage = make([]byte, 32)
 				msg.Preimage[0] = 1
 			},
@@ -212,7 +212,7 @@ func TestReleaseHandler(t *testing.T) {
 	}
 
 	for name, spec := range cases {
-		createMsg := &aswap.CreateSwapMsg{
+		createMsg := &aswap.CreateMsg{
 			Metadata:     &weave.Metadata{Schema: 1},
 			Src:          alice.Address(),
 			Recipient:    bob.Address(),
@@ -233,7 +233,7 @@ func TestReleaseHandler(t *testing.T) {
 			_, err = r.Deliver(createCtx, db, tx)
 			assert.Nil(t, err)
 
-			releaseMsg := &aswap.ReleaseSwapMsg{
+			releaseMsg := &aswap.ReleaseMsg{
 				Metadata: &weave.Metadata{Schema: 1},
 				SwapID:   defaultSequenceId,
 				Preimage: preimage,
@@ -319,7 +319,7 @@ func TestReturnHandler(t *testing.T) {
 	}
 
 	for name, spec := range cases {
-		createMsg := &aswap.CreateSwapMsg{
+		createMsg := &aswap.CreateMsg{
 			Metadata:     &weave.Metadata{Schema: 1},
 			Src:          alice.Address(),
 			Recipient:    bob.Address(),
