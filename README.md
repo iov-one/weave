@@ -63,8 +63,8 @@ If you have a solid go and node developer setup, you may skip this,
 but good to go through it to be sure.
 
 Once you are set up, you should be able to run something
-like the following to compile both `bnsd` (iov blockchain application)
-and `bnscli` (a client side app to interact with bnsd).
+like the following to compile both `bnsd` (IOV blockchain application)
+and `bnscli` (a client side app to interact with `bnsd`).
 You will have to 
 [install a compatible version of tendermint](https://github.com/tendermint/tendermint/blob/master/docs/introduction/install.md) 
 separately. (Currently we use the v0.31.5 release).
