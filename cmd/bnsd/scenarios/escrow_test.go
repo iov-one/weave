@@ -44,8 +44,8 @@ func TestEscrowRelease(t *testing.T) {
 	}
 
 	releaseEscrowTX := &bnsd.Tx{
-		Sum: &bnsd.Tx_ReleaseMsg{
-			ReleaseMsg: &escrow.ReleaseMsg{
+		Sum: &bnsd.Tx_EscrowReleaseMsg{
+			EscrowReleaseMsg: &escrow.ReleaseMsg{
 				Metadata: &weave.Metadata{Schema: 1},
 				EscrowId: escrowID,
 				Amount:   []*coin.Coin{{Ticker: "IOV", Whole: 1}},

@@ -293,7 +293,7 @@ func createContract(
 	}
 
 	tx := &bnsd.Tx{
-		Sum: &bnsd.Tx_CreateMsg{CreateMsg: msg},
+		Sum: &bnsd.Tx_MultisigCreateMsg{MultisigCreateMsg: msg},
 	}
 
 	tx.Fee(signers[0].pk.PublicKey().Address(), coin.NewCoin(1, 0, "FRNK"))
