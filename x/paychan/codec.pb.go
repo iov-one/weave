@@ -143,12 +143,12 @@ func (m *PaymentChannel) GetTransferred() *coin.Coin {
 	return nil
 }
 
-// CreatePaymentChannelMsg creates a new payment channel that can be used to
+// CreateMsg creates a new payment channel that can be used to
 // transfer value between two parties.
 //
 // Total amount will be taken from the senders account and allocated for user
 // in the transactions done via created payment channel.
-type CreatePaymentChannelMsg struct {
+type CreateMsg struct {
 	Metadata *weave.Metadata `protobuf:"bytes,1,opt,name=metadata,proto3" json:"metadata,omitempty"`
 	// Sender address (weave.Address).
 	Src github_com_iov_one_weave.Address `protobuf:"bytes,2,opt,name=src,proto3,casttype=github.com/iov-one/weave.Address" json:"src,omitempty"`
@@ -164,18 +164,18 @@ type CreatePaymentChannelMsg struct {
 	Memo string `protobuf:"bytes,7,opt,name=memo,proto3" json:"memo,omitempty"`
 }
 
-func (m *CreatePaymentChannelMsg) Reset()         { *m = CreatePaymentChannelMsg{} }
-func (m *CreatePaymentChannelMsg) String() string { return proto.CompactTextString(m) }
-func (*CreatePaymentChannelMsg) ProtoMessage()    {}
-func (*CreatePaymentChannelMsg) Descriptor() ([]byte, []int) {
+func (m *CreateMsg) Reset()         { *m = CreateMsg{} }
+func (m *CreateMsg) String() string { return proto.CompactTextString(m) }
+func (*CreateMsg) ProtoMessage()    {}
+func (*CreateMsg) Descriptor() ([]byte, []int) {
 	return fileDescriptor_daf7b5492d84b22a, []int{1}
 }
-func (m *CreatePaymentChannelMsg) XXX_Unmarshal(b []byte) error {
+func (m *CreateMsg) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *CreatePaymentChannelMsg) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *CreateMsg) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_CreatePaymentChannelMsg.Marshal(b, m, deterministic)
+		return xxx_messageInfo_CreateMsg.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalTo(b)
@@ -185,61 +185,61 @@ func (m *CreatePaymentChannelMsg) XXX_Marshal(b []byte, deterministic bool) ([]b
 		return b[:n], nil
 	}
 }
-func (m *CreatePaymentChannelMsg) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_CreatePaymentChannelMsg.Merge(m, src)
+func (m *CreateMsg) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_CreateMsg.Merge(m, src)
 }
-func (m *CreatePaymentChannelMsg) XXX_Size() int {
+func (m *CreateMsg) XXX_Size() int {
 	return m.Size()
 }
-func (m *CreatePaymentChannelMsg) XXX_DiscardUnknown() {
-	xxx_messageInfo_CreatePaymentChannelMsg.DiscardUnknown(m)
+func (m *CreateMsg) XXX_DiscardUnknown() {
+	xxx_messageInfo_CreateMsg.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_CreatePaymentChannelMsg proto.InternalMessageInfo
+var xxx_messageInfo_CreateMsg proto.InternalMessageInfo
 
-func (m *CreatePaymentChannelMsg) GetMetadata() *weave.Metadata {
+func (m *CreateMsg) GetMetadata() *weave.Metadata {
 	if m != nil {
 		return m.Metadata
 	}
 	return nil
 }
 
-func (m *CreatePaymentChannelMsg) GetSrc() github_com_iov_one_weave.Address {
+func (m *CreateMsg) GetSrc() github_com_iov_one_weave.Address {
 	if m != nil {
 		return m.Src
 	}
 	return nil
 }
 
-func (m *CreatePaymentChannelMsg) GetSenderPubkey() *crypto.PublicKey {
+func (m *CreateMsg) GetSenderPubkey() *crypto.PublicKey {
 	if m != nil {
 		return m.SenderPubkey
 	}
 	return nil
 }
 
-func (m *CreatePaymentChannelMsg) GetRecipient() github_com_iov_one_weave.Address {
+func (m *CreateMsg) GetRecipient() github_com_iov_one_weave.Address {
 	if m != nil {
 		return m.Recipient
 	}
 	return nil
 }
 
-func (m *CreatePaymentChannelMsg) GetTotal() *coin.Coin {
+func (m *CreateMsg) GetTotal() *coin.Coin {
 	if m != nil {
 		return m.Total
 	}
 	return nil
 }
 
-func (m *CreatePaymentChannelMsg) GetTimeout() github_com_iov_one_weave.UnixTime {
+func (m *CreateMsg) GetTimeout() github_com_iov_one_weave.UnixTime {
 	if m != nil {
 		return m.Timeout
 	}
 	return 0
 }
 
-func (m *CreatePaymentChannelMsg) GetMemo() string {
+func (m *CreateMsg) GetMemo() string {
 	if m != nil {
 		return m.Memo
 	}
@@ -319,27 +319,27 @@ func (m *Payment) GetMemo() string {
 	return ""
 }
 
-// TransferPaymentChannelMsg binds Payment with a signature created using
+// TransferMsg binds Payment with a signature created using
 // senders private key.
 // Signature is there to ensure that payment message was not altered.
-type TransferPaymentChannelMsg struct {
+type TransferMsg struct {
 	Metadata  *weave.Metadata   `protobuf:"bytes,1,opt,name=metadata,proto3" json:"metadata,omitempty"`
 	Payment   *Payment          `protobuf:"bytes,2,opt,name=payment,proto3" json:"payment,omitempty"`
 	Signature *crypto.Signature `protobuf:"bytes,3,opt,name=signature,proto3" json:"signature,omitempty"`
 }
 
-func (m *TransferPaymentChannelMsg) Reset()         { *m = TransferPaymentChannelMsg{} }
-func (m *TransferPaymentChannelMsg) String() string { return proto.CompactTextString(m) }
-func (*TransferPaymentChannelMsg) ProtoMessage()    {}
-func (*TransferPaymentChannelMsg) Descriptor() ([]byte, []int) {
+func (m *TransferMsg) Reset()         { *m = TransferMsg{} }
+func (m *TransferMsg) String() string { return proto.CompactTextString(m) }
+func (*TransferMsg) ProtoMessage()    {}
+func (*TransferMsg) Descriptor() ([]byte, []int) {
 	return fileDescriptor_daf7b5492d84b22a, []int{3}
 }
-func (m *TransferPaymentChannelMsg) XXX_Unmarshal(b []byte) error {
+func (m *TransferMsg) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *TransferPaymentChannelMsg) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *TransferMsg) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_TransferPaymentChannelMsg.Marshal(b, m, deterministic)
+		return xxx_messageInfo_TransferMsg.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalTo(b)
@@ -349,64 +349,64 @@ func (m *TransferPaymentChannelMsg) XXX_Marshal(b []byte, deterministic bool) ([
 		return b[:n], nil
 	}
 }
-func (m *TransferPaymentChannelMsg) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_TransferPaymentChannelMsg.Merge(m, src)
+func (m *TransferMsg) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_TransferMsg.Merge(m, src)
 }
-func (m *TransferPaymentChannelMsg) XXX_Size() int {
+func (m *TransferMsg) XXX_Size() int {
 	return m.Size()
 }
-func (m *TransferPaymentChannelMsg) XXX_DiscardUnknown() {
-	xxx_messageInfo_TransferPaymentChannelMsg.DiscardUnknown(m)
+func (m *TransferMsg) XXX_DiscardUnknown() {
+	xxx_messageInfo_TransferMsg.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_TransferPaymentChannelMsg proto.InternalMessageInfo
+var xxx_messageInfo_TransferMsg proto.InternalMessageInfo
 
-func (m *TransferPaymentChannelMsg) GetMetadata() *weave.Metadata {
+func (m *TransferMsg) GetMetadata() *weave.Metadata {
 	if m != nil {
 		return m.Metadata
 	}
 	return nil
 }
 
-func (m *TransferPaymentChannelMsg) GetPayment() *Payment {
+func (m *TransferMsg) GetPayment() *Payment {
 	if m != nil {
 		return m.Payment
 	}
 	return nil
 }
 
-func (m *TransferPaymentChannelMsg) GetSignature() *crypto.Signature {
+func (m *TransferMsg) GetSignature() *crypto.Signature {
 	if m != nil {
 		return m.Signature
 	}
 	return nil
 }
 
-// ClosePaymentChannelMsg close a payment channel and release remaining founds
+// CloseMsg close a payment channel and release remaining founds
 // by sending them back to the sender account.
 //
 // Recipient account can close channel at any moment.
 //
 // Sender can close channel only if the timeout was reached.
-type ClosePaymentChannelMsg struct {
+type CloseMsg struct {
 	Metadata  *weave.Metadata `protobuf:"bytes,1,opt,name=metadata,proto3" json:"metadata,omitempty"`
 	ChannelID []byte          `protobuf:"bytes,2,opt,name=channel_id,json=channelId,proto3" json:"channel_id,omitempty"`
 	// Max length 128 character.
 	Memo string `protobuf:"bytes,3,opt,name=memo,proto3" json:"memo,omitempty"`
 }
 
-func (m *ClosePaymentChannelMsg) Reset()         { *m = ClosePaymentChannelMsg{} }
-func (m *ClosePaymentChannelMsg) String() string { return proto.CompactTextString(m) }
-func (*ClosePaymentChannelMsg) ProtoMessage()    {}
-func (*ClosePaymentChannelMsg) Descriptor() ([]byte, []int) {
+func (m *CloseMsg) Reset()         { *m = CloseMsg{} }
+func (m *CloseMsg) String() string { return proto.CompactTextString(m) }
+func (*CloseMsg) ProtoMessage()    {}
+func (*CloseMsg) Descriptor() ([]byte, []int) {
 	return fileDescriptor_daf7b5492d84b22a, []int{4}
 }
-func (m *ClosePaymentChannelMsg) XXX_Unmarshal(b []byte) error {
+func (m *CloseMsg) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *ClosePaymentChannelMsg) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *CloseMsg) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_ClosePaymentChannelMsg.Marshal(b, m, deterministic)
+		return xxx_messageInfo_CloseMsg.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalTo(b)
@@ -416,33 +416,33 @@ func (m *ClosePaymentChannelMsg) XXX_Marshal(b []byte, deterministic bool) ([]by
 		return b[:n], nil
 	}
 }
-func (m *ClosePaymentChannelMsg) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ClosePaymentChannelMsg.Merge(m, src)
+func (m *CloseMsg) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_CloseMsg.Merge(m, src)
 }
-func (m *ClosePaymentChannelMsg) XXX_Size() int {
+func (m *CloseMsg) XXX_Size() int {
 	return m.Size()
 }
-func (m *ClosePaymentChannelMsg) XXX_DiscardUnknown() {
-	xxx_messageInfo_ClosePaymentChannelMsg.DiscardUnknown(m)
+func (m *CloseMsg) XXX_DiscardUnknown() {
+	xxx_messageInfo_CloseMsg.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_ClosePaymentChannelMsg proto.InternalMessageInfo
+var xxx_messageInfo_CloseMsg proto.InternalMessageInfo
 
-func (m *ClosePaymentChannelMsg) GetMetadata() *weave.Metadata {
+func (m *CloseMsg) GetMetadata() *weave.Metadata {
 	if m != nil {
 		return m.Metadata
 	}
 	return nil
 }
 
-func (m *ClosePaymentChannelMsg) GetChannelID() []byte {
+func (m *CloseMsg) GetChannelID() []byte {
 	if m != nil {
 		return m.ChannelID
 	}
 	return nil
 }
 
-func (m *ClosePaymentChannelMsg) GetMemo() string {
+func (m *CloseMsg) GetMemo() string {
 	if m != nil {
 		return m.Memo
 	}
@@ -451,50 +451,50 @@ func (m *ClosePaymentChannelMsg) GetMemo() string {
 
 func init() {
 	proto.RegisterType((*PaymentChannel)(nil), "paychan.PaymentChannel")
-	proto.RegisterType((*CreatePaymentChannelMsg)(nil), "paychan.CreatePaymentChannelMsg")
+	proto.RegisterType((*CreateMsg)(nil), "paychan.CreateMsg")
 	proto.RegisterType((*Payment)(nil), "paychan.Payment")
-	proto.RegisterType((*TransferPaymentChannelMsg)(nil), "paychan.TransferPaymentChannelMsg")
-	proto.RegisterType((*ClosePaymentChannelMsg)(nil), "paychan.ClosePaymentChannelMsg")
+	proto.RegisterType((*TransferMsg)(nil), "paychan.TransferMsg")
+	proto.RegisterType((*CloseMsg)(nil), "paychan.CloseMsg")
 }
 
 func init() { proto.RegisterFile("x/paychan/codec.proto", fileDescriptor_daf7b5492d84b22a) }
 
 var fileDescriptor_daf7b5492d84b22a = []byte{
-	// 542 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xec, 0x54, 0xcd, 0x6e, 0xd3, 0x40,
-	0x10, 0xce, 0x36, 0x69, 0x1c, 0x6f, 0x5a, 0x28, 0xcb, 0x9f, 0xc9, 0xc1, 0x31, 0x11, 0xa0, 0x08,
-	0x8a, 0x2d, 0x15, 0xa9, 0x57, 0x44, 0xd2, 0x4b, 0x84, 0x2a, 0x45, 0xa6, 0x9c, 0xab, 0xcd, 0x7a,
-	0x48, 0x56, 0xc4, 0xbb, 0xd1, 0x7a, 0x5d, 0x9a, 0x27, 0xe0, 0xca, 0x09, 0x9e, 0x80, 0x77, 0xe1,
-	0xd8, 0x23, 0xa7, 0x08, 0x25, 0x4f, 0xc0, 0xb5, 0x27, 0x64, 0x7b, 0xd3, 0xa4, 0x20, 0x0e, 0x55,
-	0xc5, 0x8d, 0xdb, 0xe8, 0x9b, 0x6f, 0x76, 0x66, 0xbf, 0x6f, 0x34, 0xf8, 0xee, 0x69, 0x30, 0xa1,
-	0x53, 0x36, 0xa2, 0x22, 0x60, 0x32, 0x02, 0xe6, 0x4f, 0x94, 0xd4, 0x92, 0x58, 0x06, 0x6c, 0xd4,
-	0xd7, 0xd0, 0xc6, 0x0e, 0x93, 0xfc, 0x12, 0xaf, 0x71, 0x9b, 0xa9, 0xe9, 0x44, 0xcb, 0x20, 0x96,
-	0x11, 0x8c, 0x13, 0x03, 0xde, 0x19, 0xca, 0xa1, 0xcc, 0xc3, 0x20, 0x8b, 0x0a, 0xb4, 0xf5, 0xb9,
-	0x8c, 0x6f, 0xf4, 0xe9, 0x34, 0x06, 0xa1, 0xbb, 0x23, 0x2a, 0x04, 0x8c, 0xc9, 0x33, 0x5c, 0x8b,
-	0x41, 0xd3, 0x88, 0x6a, 0xea, 0x20, 0x0f, 0xb5, 0xeb, 0x7b, 0x37, 0xfd, 0x0f, 0x40, 0x4f, 0xc0,
-	0x3f, 0x34, 0x70, 0x78, 0x41, 0x20, 0xfb, 0xb8, 0x9c, 0x28, 0xe6, 0x6c, 0x78, 0xa8, 0xbd, 0xd5,
-	0x79, 0x74, 0x3e, 0x6b, 0x7a, 0x43, 0xae, 0x47, 0xe9, 0xc0, 0x67, 0x32, 0x0e, 0xb8, 0x3c, 0x79,
-	0x2e, 0x05, 0x04, 0x45, 0xf5, 0xab, 0x28, 0x52, 0x90, 0x24, 0x61, 0x56, 0x40, 0xf6, 0xf1, 0x76,
-	0x02, 0x22, 0x02, 0x75, 0x3c, 0x49, 0x07, 0xef, 0x61, 0xea, 0x94, 0xf3, 0x4e, 0xb7, 0xfc, 0x62,
-	0x74, 0xbf, 0x9f, 0x0e, 0xc6, 0x9c, 0xbd, 0x86, 0x69, 0xb8, 0x55, 0xf0, 0xfa, 0x39, 0x8d, 0x74,
-	0xb0, 0xad, 0x80, 0xf1, 0x09, 0x07, 0xa1, 0x9d, 0xca, 0x15, 0xba, 0xae, 0xca, 0x88, 0x87, 0x37,
-	0xb5, 0xd4, 0x74, 0xec, 0x6c, 0xe6, 0x3d, 0xb1, 0x9f, 0x09, 0xe8, 0x77, 0x25, 0x17, 0x61, 0x91,
-	0x20, 0x2f, 0xb1, 0xa5, 0x79, 0x0c, 0x32, 0xd5, 0x4e, 0xd5, 0x43, 0xed, 0x72, 0xe7, 0xf1, 0xf9,
-	0xac, 0xf9, 0xf0, 0xaf, 0x3d, 0xde, 0x0a, 0x7e, 0x7a, 0xc4, 0x63, 0x08, 0x97, 0x55, 0x84, 0xe0,
-	0x4a, 0x0c, 0xb1, 0x74, 0x2c, 0x0f, 0xb5, 0xed, 0x30, 0x8f, 0xc9, 0x2e, 0xae, 0x6b, 0x45, 0x45,
-	0xf2, 0x0e, 0x94, 0x82, 0xc8, 0xa9, 0xfd, 0xd1, 0x7c, 0x3d, 0xdd, 0xfa, 0xb9, 0x81, 0xef, 0x77,
-	0x15, 0x50, 0x0d, 0x97, 0xed, 0x39, 0x4c, 0x86, 0xff, 0x1d, 0xfa, 0x37, 0x0e, 0xb5, 0xbe, 0x20,
-	0x6c, 0x19, 0xb5, 0xc9, 0x13, 0x5c, 0x63, 0x23, 0xca, 0xc5, 0x31, 0x8f, 0x72, 0x8d, 0xed, 0x4e,
-	0x7d, 0x3e, 0x6b, 0x5a, 0xdd, 0x0c, 0xeb, 0x1d, 0x84, 0x56, 0x9e, 0xec, 0x45, 0x64, 0x17, 0x63,
-	0x56, 0x38, 0x93, 0x31, 0x0b, 0x95, 0xb7, 0xe7, 0xb3, 0xa6, 0x6d, 0xfc, 0xea, 0x1d, 0x84, 0xb6,
-	0x21, 0xf4, 0x22, 0xd2, 0xc2, 0x55, 0x1a, 0xcb, 0x54, 0x68, 0xa3, 0xe6, 0xfa, 0xcf, 0x4c, 0xe6,
-	0x62, 0xb2, 0xca, 0xda, 0x64, 0x5f, 0x11, 0x7e, 0x70, 0x64, 0xb6, 0xe3, 0x9a, 0xfb, 0xf0, 0x14,
-	0x67, 0x67, 0x24, 0x7b, 0x21, 0x9f, 0xb6, 0xbe, 0xb7, 0xe3, 0x9b, 0xb3, 0xe2, 0x9b, 0x97, 0xc3,
-	0x25, 0x81, 0x04, 0xd8, 0x4e, 0xf8, 0x50, 0x50, 0x9d, 0x2a, 0xf8, 0xdd, 0xff, 0x37, 0xcb, 0x44,
-	0xb8, 0xe2, 0xb4, 0x3e, 0x22, 0x7c, 0xaf, 0x3b, 0x96, 0xc9, 0x75, 0x97, 0xf6, 0x6a, 0xaa, 0x2e,
-	0x15, 0x2b, 0xaf, 0x14, 0xeb, 0x38, 0xdf, 0xe6, 0x2e, 0x3a, 0x9b, 0xbb, 0xe8, 0xc7, 0xdc, 0x45,
-	0x9f, 0x16, 0x6e, 0xe9, 0x6c, 0xe1, 0x96, 0xbe, 0x2f, 0xdc, 0xd2, 0xa0, 0x9a, 0x5f, 0xbe, 0x17,
-	0xbf, 0x02, 0x00, 0x00, 0xff, 0xff, 0x4b, 0xe2, 0xb2, 0x36, 0x65, 0x05, 0x00, 0x00,
+	// 530 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xec, 0x54, 0xc1, 0x6e, 0xd3, 0x40,
+	0x10, 0xad, 0x9b, 0x34, 0x8e, 0xd7, 0x2d, 0x94, 0x05, 0x24, 0x2b, 0x07, 0xc7, 0x44, 0x80, 0x22,
+	0x28, 0xb6, 0x54, 0xa4, 0x5e, 0x11, 0x49, 0x2f, 0x11, 0xaa, 0x14, 0x99, 0x72, 0xae, 0x36, 0xbb,
+	0x43, 0xb2, 0x22, 0xde, 0x8d, 0xd6, 0xeb, 0x52, 0xff, 0x05, 0x27, 0xf8, 0x25, 0x8e, 0x3d, 0x72,
+	0x8a, 0x50, 0xf2, 0x17, 0x3d, 0x21, 0xdb, 0x9b, 0x26, 0x05, 0x71, 0xc8, 0x81, 0x1b, 0xb7, 0xd5,
+	0x9b, 0x37, 0x7a, 0x33, 0x6f, 0x66, 0x07, 0x3d, 0xbe, 0x8a, 0x66, 0x24, 0xa7, 0x13, 0x22, 0x22,
+	0x2a, 0x19, 0xd0, 0x70, 0xa6, 0xa4, 0x96, 0xd8, 0x36, 0x60, 0xcb, 0xdd, 0x40, 0x5b, 0x87, 0x54,
+	0xf2, 0x3b, 0xbc, 0xd6, 0x43, 0xaa, 0xf2, 0x99, 0x96, 0x51, 0x22, 0x19, 0x4c, 0x53, 0x03, 0x3e,
+	0x1a, 0xcb, 0xb1, 0x2c, 0x9f, 0x51, 0xf1, 0xaa, 0xd0, 0xce, 0xd7, 0x1a, 0xba, 0x37, 0x24, 0x79,
+	0x02, 0x42, 0xf7, 0x27, 0x44, 0x08, 0x98, 0xe2, 0x97, 0xa8, 0x99, 0x80, 0x26, 0x8c, 0x68, 0xe2,
+	0x59, 0x81, 0xd5, 0x75, 0x8f, 0xef, 0x87, 0x9f, 0x81, 0x5c, 0x42, 0x78, 0x66, 0xe0, 0xf8, 0x96,
+	0x80, 0x4f, 0x50, 0x2d, 0x55, 0xd4, 0xdb, 0x0d, 0xac, 0xee, 0x7e, 0xef, 0xe9, 0xcd, 0xbc, 0x1d,
+	0x8c, 0xb9, 0x9e, 0x64, 0xa3, 0x90, 0xca, 0x24, 0xe2, 0xf2, 0xf2, 0x95, 0x14, 0x10, 0x55, 0xd9,
+	0x6f, 0x19, 0x53, 0x90, 0xa6, 0x71, 0x91, 0x80, 0x4f, 0xd0, 0x41, 0x0a, 0x82, 0x81, 0xba, 0x98,
+	0x65, 0xa3, 0x4f, 0x90, 0x7b, 0xb5, 0x52, 0xe9, 0x41, 0x58, 0x95, 0x1e, 0x0e, 0xb3, 0xd1, 0x94,
+	0xd3, 0x77, 0x90, 0xc7, 0xfb, 0x15, 0x6f, 0x58, 0xd2, 0x70, 0x0f, 0x39, 0x0a, 0x28, 0x9f, 0x71,
+	0x10, 0xda, 0xab, 0x6f, 0xa1, 0xba, 0x4e, 0xc3, 0x01, 0xda, 0xd3, 0x52, 0x93, 0xa9, 0xb7, 0x57,
+	0x6a, 0xa2, 0xb0, 0x30, 0x30, 0xec, 0x4b, 0x2e, 0xe2, 0x2a, 0x80, 0xdf, 0x20, 0x5b, 0xf3, 0x04,
+	0x64, 0xa6, 0xbd, 0x46, 0x60, 0x75, 0x6b, 0xbd, 0x67, 0x37, 0xf3, 0xf6, 0x93, 0xbf, 0x6a, 0x7c,
+	0x10, 0xfc, 0xea, 0x9c, 0x27, 0x10, 0xaf, 0xb2, 0x30, 0x46, 0xf5, 0x04, 0x12, 0xe9, 0xd9, 0x81,
+	0xd5, 0x75, 0xe2, 0xf2, 0x8d, 0x8f, 0x90, 0xab, 0x15, 0x11, 0xe9, 0x47, 0x50, 0x0a, 0x98, 0xd7,
+	0xfc, 0x43, 0x7c, 0x33, 0xdc, 0x59, 0xee, 0x22, 0xa7, 0xaf, 0x80, 0x68, 0x38, 0x4b, 0xc7, 0xff,
+	0x67, 0xf2, 0x6f, 0x66, 0xd2, 0xf9, 0x66, 0x21, 0xdb, 0xac, 0x3f, 0x7e, 0x8e, 0x9a, 0x74, 0x42,
+	0xb8, 0xb8, 0xe0, 0xac, 0xf4, 0xd8, 0xe9, 0xb9, 0x8b, 0x79, 0xdb, 0xee, 0x17, 0xd8, 0xe0, 0x34,
+	0xb6, 0xcb, 0xe0, 0x80, 0xe1, 0x23, 0x84, 0x68, 0xf5, 0x55, 0x0a, 0x66, 0xe5, 0xf2, 0xc1, 0x62,
+	0xde, 0x76, 0xcc, 0x07, 0x1a, 0x9c, 0xc6, 0x8e, 0x21, 0x0c, 0x18, 0xee, 0xa0, 0x06, 0x49, 0x64,
+	0x26, 0xb4, 0x71, 0x73, 0xb3, 0x33, 0x13, 0xb9, 0xad, 0xac, 0x7e, 0xb7, 0x32, 0xf7, 0xdc, 0xec,
+	0xc3, 0xd6, 0x1b, 0xf0, 0x02, 0x15, 0xa7, 0xa2, 0xe8, 0xaa, 0xac, 0xcf, 0x3d, 0x3e, 0x0c, 0xcd,
+	0xe9, 0x08, 0x4d, 0xb7, 0xf1, 0x8a, 0x80, 0x23, 0xe4, 0xa4, 0x7c, 0x2c, 0x88, 0xce, 0x14, 0xfc,
+	0x3e, 0xf1, 0xf7, 0xab, 0x40, 0xbc, 0xe6, 0x74, 0x72, 0xd4, 0xec, 0x4f, 0x65, 0xba, 0xfd, 0x5e,
+	0x6e, 0x67, 0xdc, 0xca, 0x94, 0xda, 0xda, 0x94, 0x9e, 0xf7, 0x7d, 0xe1, 0x5b, 0xd7, 0x0b, 0xdf,
+	0xfa, 0xb9, 0xf0, 0xad, 0x2f, 0x4b, 0x7f, 0xe7, 0x7a, 0xe9, 0xef, 0xfc, 0x58, 0xfa, 0x3b, 0xa3,
+	0x46, 0x79, 0xce, 0x5e, 0xff, 0x0a, 0x00, 0x00, 0xff, 0xff, 0x03, 0x18, 0xe1, 0x92, 0x3a, 0x05,
+	0x00, 0x00,
 }
 
 func (m *PaymentChannel) Marshal() (dAtA []byte, err error) {
@@ -578,7 +578,7 @@ func (m *PaymentChannel) MarshalTo(dAtA []byte) (int, error) {
 	return i, nil
 }
 
-func (m *CreatePaymentChannelMsg) Marshal() (dAtA []byte, err error) {
+func (m *CreateMsg) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalTo(dAtA)
@@ -588,7 +588,7 @@ func (m *CreatePaymentChannelMsg) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *CreatePaymentChannelMsg) MarshalTo(dAtA []byte) (int, error) {
+func (m *CreateMsg) MarshalTo(dAtA []byte) (int, error) {
 	var i int
 	_ = i
 	var l int
@@ -695,7 +695,7 @@ func (m *Payment) MarshalTo(dAtA []byte) (int, error) {
 	return i, nil
 }
 
-func (m *TransferPaymentChannelMsg) Marshal() (dAtA []byte, err error) {
+func (m *TransferMsg) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalTo(dAtA)
@@ -705,7 +705,7 @@ func (m *TransferPaymentChannelMsg) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *TransferPaymentChannelMsg) MarshalTo(dAtA []byte) (int, error) {
+func (m *TransferMsg) MarshalTo(dAtA []byte) (int, error) {
 	var i int
 	_ = i
 	var l int
@@ -743,7 +743,7 @@ func (m *TransferPaymentChannelMsg) MarshalTo(dAtA []byte) (int, error) {
 	return i, nil
 }
 
-func (m *ClosePaymentChannelMsg) Marshal() (dAtA []byte, err error) {
+func (m *CloseMsg) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalTo(dAtA)
@@ -753,7 +753,7 @@ func (m *ClosePaymentChannelMsg) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *ClosePaymentChannelMsg) MarshalTo(dAtA []byte) (int, error) {
+func (m *CloseMsg) MarshalTo(dAtA []byte) (int, error) {
 	var i int
 	_ = i
 	var l int
@@ -832,7 +832,7 @@ func (m *PaymentChannel) Size() (n int) {
 	return n
 }
 
-func (m *CreatePaymentChannelMsg) Size() (n int) {
+func (m *CreateMsg) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -893,7 +893,7 @@ func (m *Payment) Size() (n int) {
 	return n
 }
 
-func (m *TransferPaymentChannelMsg) Size() (n int) {
+func (m *TransferMsg) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -914,7 +914,7 @@ func (m *TransferPaymentChannelMsg) Size() (n int) {
 	return n
 }
 
-func (m *ClosePaymentChannelMsg) Size() (n int) {
+func (m *CloseMsg) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -1264,7 +1264,7 @@ func (m *PaymentChannel) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *CreatePaymentChannelMsg) Unmarshal(dAtA []byte) error {
+func (m *CreateMsg) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -1287,10 +1287,10 @@ func (m *CreatePaymentChannelMsg) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: CreatePaymentChannelMsg: wiretype end group for non-group")
+			return fmt.Errorf("proto: CreateMsg: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: CreatePaymentChannelMsg: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: CreateMsg: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -1731,7 +1731,7 @@ func (m *Payment) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *TransferPaymentChannelMsg) Unmarshal(dAtA []byte) error {
+func (m *TransferMsg) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -1754,10 +1754,10 @@ func (m *TransferPaymentChannelMsg) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: TransferPaymentChannelMsg: wiretype end group for non-group")
+			return fmt.Errorf("proto: TransferMsg: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: TransferPaymentChannelMsg: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: TransferMsg: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -1892,7 +1892,7 @@ func (m *TransferPaymentChannelMsg) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *ClosePaymentChannelMsg) Unmarshal(dAtA []byte) error {
+func (m *CloseMsg) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -1915,10 +1915,10 @@ func (m *ClosePaymentChannelMsg) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: ClosePaymentChannelMsg: wiretype end group for non-group")
+			return fmt.Errorf("proto: CloseMsg: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: ClosePaymentChannelMsg: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: CloseMsg: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:

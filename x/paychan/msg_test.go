@@ -8,8 +8,8 @@ import (
 	"github.com/iov-one/weave/weavetest/assert"
 )
 
-func TestCreatePaymentChannelMsgValidate(t *testing.T) {
-	msg := &CreatePaymentChannelMsg{
+func TestCreateMsgValidate(t *testing.T) {
+	msg := &CreateMsg{
 		Total: coin.NewCoinp(1, 0, "IOV"),
 	}
 	err := msg.Validate()
