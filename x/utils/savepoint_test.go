@@ -6,7 +6,9 @@ import (
 	"testing"
 
 	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/store"
+	"github.com/iov-one/weave/weavetest"
 	"github.com/iov-one/weave/weavetest/assert"
 )
 
@@ -138,3 +140,51 @@ func (h writeHandler) Deliver(ctx weave.Context, store weave.KVStore, tx weave.T
 	store.Set(h.key, h.value)
 	return &weave.DeliverResult{}, h.err
 }
+
+func TestCacheWriteFail(t *testing.T) {
+	handler := &weavetest.Handler{
+		CheckResult:   weave.CheckResult{Log: "all good"},
+		DeliverResult: weave.DeliverResult{Log: "all good"},
+	}
+	tx := &weavetest.Tx{}
+
+	// Register an error that is guaranteed to be unique.
+	myerr := errors.Register(921928, "my error")
+
+	db := &cacheableStoreMock{
+		CacheableKVStore: store.MemStore(),
+		err:              myerr,
+	}
+
+	decorator := NewSavepoint().OnCheck().OnDeliver()
+
+	if _, err := decorator.Check(context.TODO(), db, tx, handler); !myerr.Is(err) {
+		t.Fatalf("unexpected check result error: %+v", err)
+	}
+
+	if _, err := decorator.Deliver(context.TODO(), db, tx, handler); !myerr.Is(err) {
+		t.Fatalf("unexpected deliver result error: %+v", err)
+	}
+}
+
+// cacheableStoreMock is a mock of a store and a cache wrap. Use it to pass
+// through all operation to wrapped CacheableKVStore. Write call returns
+// defined error.
+type cacheableStoreMock struct {
+	weave.CacheableKVStore
+	err error
+}
+
+// CachceWrap overwrites wrapped store method in order to return
+// self-reference. cacheableStoreMock implements KVCacheWrap interface as well.
+func (s *cacheableStoreMock) CacheWrap() weave.KVCacheWrap {
+	return s
+}
+
+// Write implements KVCacheWrap interface.
+func (c *cacheableStoreMock) Write() error {
+	return c.err
+}
+
+// Discard implements KVCacheWrap interface.
+func (cacheableStoreMock) Discard() {}

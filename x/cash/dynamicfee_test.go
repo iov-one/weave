@@ -1,6 +1,7 @@
 package cash
 
 import (
+	"context"
 	"testing"
 
 	"github.com/iov-one/weave"
@@ -12,6 +13,73 @@ import (
 	"github.com/iov-one/weave/store"
 	"github.com/iov-one/weave/weavetest"
 )
+
+func TestCacheWriteFail(t *testing.T) {
+	auth := &weavetest.Auth{
+		Signer: weavetest.NewCondition(),
+	}
+
+	store := store.MemStore()
+	migration.MustInitPkg(store, "cash")
+	config := Configuration{
+		CollectorAddress: weavetest.NewCondition().Address(),
+		MinimalFee:       coin.NewCoin(0, 1, "IOV"),
+	}
+	if err := gconf.Save(store, "cash", &config); err != nil {
+		t.Fatalf("cannot save configuration: %s", err)
+	}
+	bucket := NewBucket()
+	ctrl := NewController(bucket)
+	if err := ctrl.CoinMint(store, auth.Signer.Address(), coin.NewCoin(100, 0, "IOV")); err != nil {
+		t.Fatalf("cannot mint: %s", err)
+	}
+
+	handler := &weavetest.Handler{
+		CheckResult:   weave.CheckResult{Log: "all good"},
+		DeliverResult: weave.DeliverResult{Log: "all good"},
+	}
+	tx := &txMock{info: &FeeInfo{Fees: coin.NewCoinp(1, 0, "IOV")}}
+
+	// Register an error that is guaranteed to be unique.
+	myerr := errors.Register(921928, "my error")
+
+	db := &cacheableStoreMock{
+		CacheableKVStore: store,
+		err:              myerr,
+	}
+
+	decorator := NewDynamicFeeDecorator(auth, ctrl)
+
+	if _, err := decorator.Check(context.TODO(), db, tx, handler); !myerr.Is(err) {
+		t.Fatalf("unexpected check result error: %+v", err)
+	}
+
+	if _, err := decorator.Deliver(context.TODO(), db, tx, handler); !myerr.Is(err) {
+		t.Fatalf("unexpected deliver result error: %+v", err)
+	}
+}
+
+// cacheableStoreMock is a mock of a store and a cache wrap. Use it to pass
+// through all operation to wrapped CacheableKVStore. Write call returns
+// defined error.
+type cacheableStoreMock struct {
+	weave.CacheableKVStore
+	err error
+}
+
+// CachceWrap overwrites wrapped store method in order to return
+// self-reference. cacheableStoreMock implements KVCacheWrap interface as well.
+func (s *cacheableStoreMock) CacheWrap() weave.KVCacheWrap {
+	return s
+}
+
+// Write implements KVCacheWrap interface.
+func (c *cacheableStoreMock) Write() error {
+	return c.err
+}
+
+// Discard implements KVCacheWrap interface.
+func (cacheableStoreMock) Discard() {}
 
 func TestDynamicFeeDecorator(t *testing.T) {
 	perm1 := weave.NewCondition("sigs", "ed25519", []byte{1, 2, 3})
