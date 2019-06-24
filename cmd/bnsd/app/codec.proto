@@ -34,25 +34,25 @@ message Tx {
   // msg is a sum type over all allowed messages on this chain.
   oneof sum {
     cash.SendMsg send_msg = 51;
-    escrow.CreateMsg create_escrow_msg = 52;
-    escrow.ReleaseMsg release_escrow_msg = 53;
-    escrow.ReturnMsg return_escrow_msg = 54;
-    escrow.UpdatePartiesMsg update_escrow_parties_msg = 55;
-    multisig.CreateMsg create_contract_msg = 56;
-    multisig.UpdateMsg update_contract_msg = 57;
-    validators.ApplyDiffMsg set_validators_msg = 58;
-    currency.CreateMsg create_token_info_msg = 59;
+    escrow.CreateMsg escrow_create_msg = 52;
+    escrow.ReleaseMsg escrow_release_msg = 53;
+    escrow.ReturnMsg escrow_return_msg = 54;
+    escrow.UpdatePartiesMsg escrow_update_parties_msg = 55;
+    multisig.CreateMsg multisig_create_msg = 56;
+    multisig.UpdateMsg multisig_update_msg = 57;
+    validators.ApplyDiffMsg validators_apply_diff_msg = 58;
+    currency.CreateMsg currency_create_msg = 59;
     ExecuteBatchMsg execute_batch_msg = 60;
     username.RegisterUsernameTokenMsg register_username_token_msg = 61;
     username.TransferUsernameTokenMsg transfer_username_token_msg = 62;
     username.ChangeUsernameTokenTargetsMsg change_username_token_targets_msg = 63;
-    distribution.CreateMsg create_revenue_msg = 66;
-    distribution.DistributeMsg distribute_msg = 67;
-    distribution.ResetMsg reset_revenue_msg = 68;
+    distribution.CreateMsg distribution_create_msg = 66;
+    distribution.DistributeMsg distribution_msg = 67;
+    distribution.ResetMsg distribution_reset_msg = 68;
     migration.UpgradeSchemaMsg upgrade_schema_msg = 69;
-    aswap.CreateMsg create_swap_msg = 70;
-    aswap.ReleaseMsg release_swap_msg = 71;
-    aswap.ReturnSwapMsg return_swap_msg = 72;
+    aswap.CreateMsg aswap_create_msg = 70;
+    aswap.ReleaseMsg aswap_release_msg = 71;
+    aswap.ReturnSwapMsg aswap_return_msg = 72;
     gov.CreateProposalMsg create_proposal_msg = 73;
     gov.DeleteProposalMsg delete_proposal_msg = 74;
     gov.VoteMsg vote_msg = 75;
@@ -69,21 +69,21 @@ message ExecuteBatchMsg {
   message Union {
     oneof sum {
       cash.SendMsg send_msg = 51;
-      escrow.CreateMsg create_escrow_msg = 52;
-      escrow.ReleaseMsg release_escrow_msg = 53;
-      escrow.ReturnMsg return_escrow_msg = 54;
-      escrow.UpdatePartiesMsg update_escrow_msg = 55;
-      multisig.CreateMsg create_contract_msg = 56;
-      multisig.UpdateMsg update_contract_msg = 57;
-      validators.ApplyDiffMsg set_validators_msg = 58;
-      currency.CreateMsg create_token_info_msg = 59;
+      escrow.CreateMsg escrow_create_msg = 52;
+      escrow.ReleaseMsg escrow_release_msg = 53;
+      escrow.ReturnMsg escrow_return_msg = 54;
+      escrow.UpdatePartiesMsg escrow_update_parties_msg = 55;
+      multisig.CreateMsg multisig_create_msg = 56;
+      multisig.UpdateMsg multisig_update_msg = 57;
+      validators.ApplyDiffMsg validators_apply_diff_msg = 58;
+      currency.CreateMsg currency_create_msg = 59;
       // No recursive batches!
       username.RegisterUsernameTokenMsg register_username_token_msg = 61;
       username.TransferUsernameTokenMsg transfer_username_token_msg = 62;
       username.ChangeUsernameTokenTargetsMsg change_username_token_targets_msg = 63;
-      distribution.CreateMsg create_revenue_msg = 66;
-      distribution.DistributeMsg distribute_msg = 67;
-      distribution.ResetMsg reset_revenue_msg = 68;
+      distribution.CreateMsg distribution_create_msg = 66;
+      distribution.DistributeMsg distribution_msg = 67;
+      distribution.ResetMsg distribution_reset_msg = 68;
       // upgrade schema is important enough, it should be a solo action
       // aswap and gov don't make much sense as part of a batch (no vote buying)
 
@@ -97,16 +97,18 @@ message ExecuteBatchMsg {
 message ProposalOptions {
   oneof option {
     cash.SendMsg send_msg = 51;
-    escrow.ReleaseMsg release_escrow_msg = 53;
+    escrow.ReleaseMsg escrow_release_msg = 53;
     escrow.UpdatePartiesMsg update_escrow_parties_msg = 55;
-    validators.ApplyDiffMsg set_validators_msg = 58;
+    multisig.UpdateMsg multisig_update_msg = 57;
+    validators.ApplyDiffMsg validators_apply_diff_msg = 58;
+    currency.CreateMsg currency_create_msg = 59;
     ExecuteProposalBatchMsg execute_proposal_batch_msg = 60;
     username.RegisterUsernameTokenMsg register_username_token_msg = 61;
     username.TransferUsernameTokenMsg transfer_username_token_msg = 62;
     username.ChangeUsernameTokenTargetsMsg change_username_token_targets_msg = 63;
-    distribution.CreateMsg create_revenue_msg = 66;
-    distribution.DistributeMsg distribute_msg = 67;
-    distribution.ResetMsg reset_revenue_msg = 68;
+    distribution.CreateMsg distribution_create_msg = 66;
+    distribution.DistributeMsg distribution_msg = 67;
+    distribution.ResetMsg distribution_reset_msg = 68;
     migration.UpgradeSchemaMsg upgrade_schema_msg = 69;
     gov.UpdateElectorateMsg update_electorate_msg = 77;
     gov.UpdateElectionRuleMsg update_election_rule_msg = 78;
@@ -118,16 +120,17 @@ message ExecuteProposalBatchMsg {
   message Union {
     oneof sum {
       cash.SendMsg send_msg = 51;
-      escrow.ReleaseMsg release_escrow_msg = 53;
+      escrow.ReleaseMsg escrow_release_msg = 53;
       escrow.UpdatePartiesMsg update_escrow_parties_msg = 55;
-      validators.ApplyDiffMsg set_validators_msg = 58;
+      multisig.UpdateMsg multisig_update_msg = 57;
+      validators.ApplyDiffMsg validators_apply_diff_msg = 58;
       // no recursive batches
       username.RegisterUsernameTokenMsg register_username_token_msg = 61;
       username.TransferUsernameTokenMsg transfer_username_token_msg = 62;
       username.ChangeUsernameTokenTargetsMsg change_username_token_targets_msg = 63;
-      distribution.CreateMsg create_revenue_msg = 66;
-      distribution.DistributeMsg distribute_msg = 67;
-      distribution.ResetMsg reset_revenue_msg = 68;
+      distribution.CreateMsg distribution_create_msg = 66;
+      distribution.DistributeMsg distribution_msg = 67;
+      distribution.ResetMsg distribution_reset_msg = 68;
       // don't allow UpgradeSchema as part of a batch, as effects are too confusing
       gov.UpdateElectorateMsg update_electorate_msg = 77;
       gov.UpdateElectionRuleMsg update_election_rule_msg = 78;

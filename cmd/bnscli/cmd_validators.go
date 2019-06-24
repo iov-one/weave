@@ -56,8 +56,8 @@ func cmdSetValidators(input io.Reader, output io.Writer, args []string) error {
 		Power: int64(*powerFl),
 	})
 	var tx = bnsd.Tx{
-		Sum: &bnsd.Tx_ApplyDiffMsg{
-			ApplyDiffMsg: &validators.ApplyDiffMsg{
+		Sum: &bnsd.Tx_ValidatorsApplyDiffMsg{
+			ValidatorsApplyDiffMsg: &validators.ApplyDiffMsg{
 				Metadata:         &weave.Metadata{Schema: 1},
 				ValidatorUpdates: set,
 			},

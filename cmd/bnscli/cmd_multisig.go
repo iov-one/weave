@@ -41,8 +41,8 @@ participants must be done by another command.
 
 	if len(*updateFl) != 0 {
 		tx = bnsd.Tx{
-			Sum: &bnsd.Tx_UpdateMsg{
-				UpdateMsg: &multisig.UpdateMsg{
+			Sum: &bnsd.Tx_MultisigUpdateMsg{
+				MultisigUpdateMsg: &multisig.UpdateMsg{
 					Metadata:            &weave.Metadata{Schema: 1},
 					ContractID:          *updateFl,
 					ActivationThreshold: multisig.Weight(*activationThresholdFl),
@@ -52,8 +52,8 @@ participants must be done by another command.
 		}
 	} else {
 		tx = bnsd.Tx{
-			Sum: &bnsd.Tx_CreateMsg{
-				CreateMsg: &multisig.CreateMsg{
+			Sum: &bnsd.Tx_MultisigCreateMsg{
+				MultisigCreateMsg: &multisig.CreateMsg{
 					Metadata:            &weave.Metadata{Schema: 1},
 					ActivationThreshold: multisig.Weight(*activationThresholdFl),
 					AdminThreshold:      multisig.Weight(*adminThresholdFl),

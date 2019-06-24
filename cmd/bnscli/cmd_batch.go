@@ -55,94 +55,94 @@ original transactions (ie signatures) are being dropped.
 		case *cash.SendMsg:
 			batch.Messages = append(batch.Messages, bnsd.ExecuteBatchMsg_Union{
 				Sum: &bnsd.ExecuteBatchMsg_Union_SendMsg{
-					SendMsg: msg,
-				},
+						SendMsg: msg,
+					},
 			})
 		case *escrow.CreateMsg:
 			batch.Messages = append(batch.Messages, bnsd.ExecuteBatchMsg_Union{
-				Sum: &bnsd.ExecuteBatchMsg_Union_CreateMsg{
-					CreateMsg: msg,
-				},
+				Sum: &bnsd.ExecuteBatchMsg_Union_EscrowCreateMsg{
+						EscrowCreateMsg: msg,
+					},
 			})
 		case *escrow.ReleaseMsg:
 			batch.Messages = append(batch.Messages, bnsd.ExecuteBatchMsg_Union{
-				Sum: &bnsd.ExecuteBatchMsg_Union_ReleaseMsg{
-					ReleaseMsg: msg,
-				},
+				Sum: &bnsd.ExecuteBatchMsg_Union_EscrowReleaseMsg{
+						EscrowReleaseMsg: msg,
+					},
 			})
 		case *escrow.ReturnMsg:
 			batch.Messages = append(batch.Messages, bnsd.ExecuteBatchMsg_Union{
-				Sum: &bnsd.ExecuteBatchMsg_Union_ReturnMsg{
-					ReturnMsg: msg,
-				},
+				Sum: &bnsd.ExecuteBatchMsg_Union_EscrowReturnMsg{
+						EscrowReturnMsg: msg,
+					},
 			})
 		case *escrow.UpdatePartiesMsg:
 			batch.Messages = append(batch.Messages, bnsd.ExecuteBatchMsg_Union{
-				Sum: &bnsd.ExecuteBatchMsg_Union_UpdateEscrowMsg{
-					UpdateEscrowMsg: msg,
-				},
+				Sum: &bnsd.ExecuteBatchMsg_Union_EscrowUpdatePartiesMsg{
+						EscrowUpdatePartiesMsg: msg,
+					},
 			})
 		case *multisig.CreateMsg:
 			batch.Messages = append(batch.Messages, bnsd.ExecuteBatchMsg_Union{
-				Sum: &bnsd.ExecuteBatchMsg_Union_CreateMsg{
-					CreateMsg: msg,
-				},
+				Sum: &bnsd.ExecuteBatchMsg_Union_MultisigCreateMsg{
+						MultisigCreateMsg: msg,
+					},
 			})
 		case *multisig.UpdateMsg:
 			batch.Messages = append(batch.Messages, bnsd.ExecuteBatchMsg_Union{
-				Sum: &bnsd.ExecuteBatchMsg_Union_UpdateMsg{
-					UpdateMsg: msg,
-				},
+				Sum: &bnsd.ExecuteBatchMsg_Union_MultisigUpdateMsg{
+						MultisigUpdateMsg: msg,
+					},
 			})
 		case *validators.ApplyDiffMsg:
 			batch.Messages = append(batch.Messages, bnsd.ExecuteBatchMsg_Union{
-				Sum: &bnsd.ExecuteBatchMsg_Union_ApplyDiffMsg{
-					ApplyDiffMsg: msg,
-				},
+				Sum: &bnsd.ExecuteBatchMsg_Union_ValidatorsApplyDiffMsg{
+						ValidatorsApplyDiffMsg: msg,
+					},
 			})
 		case *currency.CreateMsg:
 			batch.Messages = append(batch.Messages, bnsd.ExecuteBatchMsg_Union{
-				Sum: &bnsd.ExecuteBatchMsg_Union_CreateMsg{
-					CreateMsg: msg,
-				},
+				Sum: &bnsd.ExecuteBatchMsg_Union_CurrencyCreateMsg{
+						CurrencyCreateMsg: msg,
+					},
 			})
 		case *username.RegisterUsernameTokenMsg:
 			batch.Messages = append(batch.Messages, bnsd.ExecuteBatchMsg_Union{
 				Sum: &bnsd.ExecuteBatchMsg_Union_RegisterUsernameTokenMsg{
-					RegisterUsernameTokenMsg: msg,
-				},
+						RegisterUsernameTokenMsg: msg,
+					},
 			})
 		case *username.TransferUsernameTokenMsg:
 			batch.Messages = append(batch.Messages, bnsd.ExecuteBatchMsg_Union{
 				Sum: &bnsd.ExecuteBatchMsg_Union_TransferUsernameTokenMsg{
-					TransferUsernameTokenMsg: msg,
-				},
+						TransferUsernameTokenMsg: msg,
+					},
 			})
 		case *username.ChangeUsernameTokenTargetsMsg:
 			batch.Messages = append(batch.Messages, bnsd.ExecuteBatchMsg_Union{
 				Sum: &bnsd.ExecuteBatchMsg_Union_ChangeUsernameTokenTargetsMsg{
-					ChangeUsernameTokenTargetsMsg: msg,
-				},
+						ChangeUsernameTokenTargetsMsg: msg,
+					},
 			})
 		case *distribution.CreateMsg:
 			batch.Messages = append(batch.Messages, bnsd.ExecuteBatchMsg_Union{
-				Sum: &bnsd.ExecuteBatchMsg_Union_CreateMsg{
-					CreateMsg: msg,
-				},
+				Sum: &bnsd.ExecuteBatchMsg_Union_DistributionCreateMsg{
+						DistributionCreateMsg: msg,
+					},
 			})
 		case *distribution.DistributeMsg:
 			batch.Messages = append(batch.Messages, bnsd.ExecuteBatchMsg_Union{
-				Sum: &bnsd.ExecuteBatchMsg_Union_DistributeMsg{
-					DistributeMsg: msg,
-				},
+				Sum: &bnsd.ExecuteBatchMsg_Union_DistributionMsg{
+						DistributionMsg: msg,
+					},
 			})
 		case *distribution.ResetMsg:
 			batch.Messages = append(batch.Messages, bnsd.ExecuteBatchMsg_Union{
-				Sum: &bnsd.ExecuteBatchMsg_Union_ResetMsg{
-					ResetMsg: msg,
-				},
+				Sum: &bnsd.ExecuteBatchMsg_Union_DistributionResetMsg{
+						DistributionResetMsg: msg,
+					},
 			})
-
+	
 		case nil:
 			return errors.New("transaction without a message")
 		default:
@@ -167,20 +167,20 @@ declaration.
 # Copy this directly from the ExecuteBatchMsg defined in cmd/bnsd/app/codec.proto
 protobuf="
 cash.SendMsg send_msg = 51;
-escrow.CreateMsg create_escrow_msg = 52;
-escrow.ReleaseMsg release_escrow_msg = 53;
-escrow.ReturnMsg return_escrow_msg = 54;
-escrow.UpdatePartiesMsg update_escrow_msg = 55;
-multisig.CreateMsg create_contract_msg = 56;
-multisig.UpdateMsg update_contract_msg = 57;
-validators.ApplyDiffMsg set_validators_msg = 58;
-currency.CreateMsg create_token_info_msg = 59;
+escrow.CreateMsg escrow_create_msg = 52;
+escrow.ReleaseMsg escrow_release_msg = 53;
+escrow.ReturnMsg escrow_return_msg = 54;
+escrow.UpdatePartiesMsg escrow_update_parties_msg = 55;
+multisig.CreateMsg multisig_create_msg = 56;
+multisig.UpdateMsg multisig_update_msg = 57;
+validators.ApplyDiffMsg validators_apply_diff_msg = 58;
+currency.CreateMsg currency_create_msg = 59;
 username.RegisterUsernameTokenMsg register_username_token_msg = 61;
 username.TransferUsernameTokenMsg transfer_username_token_msg = 62;
 username.ChangeUsernameTokenTargetsMsg change_username_token_targets_msg = 63;
-distribution.CreateMsg create_revenue_msg = 66;
-distribution.DistributeMsg distribute_msg = 67;
-distribution.ResetMsg reset_revenue_msg = 68;
+distribution.CreateMsg distribution_create_msg = 66;
+distribution.DistributeMsg distribution_msg = 67;
+distribution.ResetMsg distribution_reset_msg = 68;
 "
 
 while read -r m; do
