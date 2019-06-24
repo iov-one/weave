@@ -60,7 +60,7 @@ type Tx struct {
 	//	*Tx_CreateContractMsg
 	//	*Tx_UpdateContractMsg
 	//	*Tx_SetValidatorsMsg
-	//	*Tx_CreateTokenInfoMsg
+	//	*Tx_CreateMsg
 	//	*Tx_ExecuteBatchMsg
 	//	*Tx_RegisterUsernameTokenMsg
 	//	*Tx_TransferUsernameTokenMsg
@@ -144,8 +144,8 @@ type Tx_UpdateContractMsg struct {
 type Tx_SetValidatorsMsg struct {
 	SetValidatorsMsg *validators.SetValidatorsMsg `protobuf:"bytes,58,opt,name=set_validators_msg,json=setValidatorsMsg,proto3,oneof"`
 }
-type Tx_CreateTokenInfoMsg struct {
-	CreateTokenInfoMsg *currency.CreateTokenInfoMsg `protobuf:"bytes,59,opt,name=create_token_info_msg,json=createTokenInfoMsg,proto3,oneof"`
+type Tx_CreateMsg struct {
+	CreateMsg *currency.CreateMsg `protobuf:"bytes,59,opt,name=create_token_info_msg,json=createTokenInfoMsg,proto3,oneof"`
 }
 type Tx_ExecuteBatchMsg struct {
 	ExecuteBatchMsg *ExecuteBatchMsg `protobuf:"bytes,60,opt,name=execute_batch_msg,json=executeBatchMsg,proto3,oneof"`
@@ -207,7 +207,7 @@ func (*Tx_UpdateEscrowPartiesMsg) isTx_Sum()        {}
 func (*Tx_CreateContractMsg) isTx_Sum()             {}
 func (*Tx_UpdateContractMsg) isTx_Sum()             {}
 func (*Tx_SetValidatorsMsg) isTx_Sum()              {}
-func (*Tx_CreateTokenInfoMsg) isTx_Sum()            {}
+func (*Tx_CreateMsg) isTx_Sum()            {}
 func (*Tx_ExecuteBatchMsg) isTx_Sum()               {}
 func (*Tx_RegisterUsernameTokenMsg) isTx_Sum()      {}
 func (*Tx_TransferUsernameTokenMsg) isTx_Sum()      {}
@@ -310,9 +310,9 @@ func (m *Tx) GetSetValidatorsMsg() *validators.SetValidatorsMsg {
 	return nil
 }
 
-func (m *Tx) GetCreateTokenInfoMsg() *currency.CreateTokenInfoMsg {
-	if x, ok := m.GetSum().(*Tx_CreateTokenInfoMsg); ok {
-		return x.CreateTokenInfoMsg
+func (m *Tx) GetCreateMsg() *currency.CreateMsg {
+	if x, ok := m.GetSum().(*Tx_CreateMsg); ok {
+		return x.CreateMsg
 	}
 	return nil
 }
@@ -447,7 +447,7 @@ func (*Tx) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, fun
 		(*Tx_CreateContractMsg)(nil),
 		(*Tx_UpdateContractMsg)(nil),
 		(*Tx_SetValidatorsMsg)(nil),
-		(*Tx_CreateTokenInfoMsg)(nil),
+		(*Tx_CreateMsg)(nil),
 		(*Tx_ExecuteBatchMsg)(nil),
 		(*Tx_RegisterUsernameTokenMsg)(nil),
 		(*Tx_TransferUsernameTokenMsg)(nil),
@@ -512,9 +512,9 @@ func _Tx_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
 		if err := b.EncodeMessage(x.SetValidatorsMsg); err != nil {
 			return err
 		}
-	case *Tx_CreateTokenInfoMsg:
+	case *Tx_CreateMsg:
 		_ = b.EncodeVarint(59<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.CreateTokenInfoMsg); err != nil {
+		if err := b.EncodeMessage(x.CreateMsg); err != nil {
 			return err
 		}
 	case *Tx_ExecuteBatchMsg:
@@ -680,9 +680,9 @@ func _Tx_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bo
 		if wire != proto.WireBytes {
 			return true, proto.ErrInternalBadWireType
 		}
-		msg := new(currency.CreateTokenInfoMsg)
+		msg := new(currency.CreateMsg)
 		err := b.DecodeMessage(msg)
-		m.Sum = &Tx_CreateTokenInfoMsg{msg}
+		m.Sum = &Tx_CreateMsg{msg}
 		return true, err
 	case 60: // sum.execute_batch_msg
 		if wire != proto.WireBytes {
@@ -869,8 +869,8 @@ func _Tx_OneofSizer(msg proto.Message) (n int) {
 		n += 2 // tag and wire
 		n += proto.SizeVarint(uint64(s))
 		n += s
-	case *Tx_CreateTokenInfoMsg:
-		s := proto.Size(x.CreateTokenInfoMsg)
+	case *Tx_CreateMsg:
+		s := proto.Size(x.CreateMsg)
 		n += 2 // tag and wire
 		n += proto.SizeVarint(uint64(s))
 		n += s
@@ -1021,7 +1021,7 @@ type ExecuteBatchMsg_Union struct {
 	//	*ExecuteBatchMsg_Union_CreateContractMsg
 	//	*ExecuteBatchMsg_Union_UpdateContractMsg
 	//	*ExecuteBatchMsg_Union_SetValidatorsMsg
-	//	*ExecuteBatchMsg_Union_CreateTokenInfoMsg
+	//	*ExecuteBatchMsg_Union_CreateMsg
 	//	*ExecuteBatchMsg_Union_RegisterUsernameTokenMsg
 	//	*ExecuteBatchMsg_Union_TransferUsernameTokenMsg
 	//	*ExecuteBatchMsg_Union_ChangeUsernameTokenTargetsMsg
@@ -1094,8 +1094,8 @@ type ExecuteBatchMsg_Union_UpdateContractMsg struct {
 type ExecuteBatchMsg_Union_SetValidatorsMsg struct {
 	SetValidatorsMsg *validators.SetValidatorsMsg `protobuf:"bytes,58,opt,name=set_validators_msg,json=setValidatorsMsg,proto3,oneof"`
 }
-type ExecuteBatchMsg_Union_CreateTokenInfoMsg struct {
-	CreateTokenInfoMsg *currency.CreateTokenInfoMsg `protobuf:"bytes,59,opt,name=create_token_info_msg,json=createTokenInfoMsg,proto3,oneof"`
+type ExecuteBatchMsg_Union_CreateMsg struct {
+	CreateMsg *currency.CreateMsg `protobuf:"bytes,59,opt,name=create_token_info_msg,json=createTokenInfoMsg,proto3,oneof"`
 }
 type ExecuteBatchMsg_Union_RegisterUsernameTokenMsg struct {
 	RegisterUsernameTokenMsg *username.RegisterUsernameTokenMsg `protobuf:"bytes,61,opt,name=register_username_token_msg,json=registerUsernameTokenMsg,proto3,oneof"`
@@ -1124,7 +1124,7 @@ func (*ExecuteBatchMsg_Union_UpdateEscrowMsg) isExecuteBatchMsg_Union_Sum()     
 func (*ExecuteBatchMsg_Union_CreateContractMsg) isExecuteBatchMsg_Union_Sum()             {}
 func (*ExecuteBatchMsg_Union_UpdateContractMsg) isExecuteBatchMsg_Union_Sum()             {}
 func (*ExecuteBatchMsg_Union_SetValidatorsMsg) isExecuteBatchMsg_Union_Sum()              {}
-func (*ExecuteBatchMsg_Union_CreateTokenInfoMsg) isExecuteBatchMsg_Union_Sum()            {}
+func (*ExecuteBatchMsg_Union_CreateMsg) isExecuteBatchMsg_Union_Sum()            {}
 func (*ExecuteBatchMsg_Union_RegisterUsernameTokenMsg) isExecuteBatchMsg_Union_Sum()      {}
 func (*ExecuteBatchMsg_Union_TransferUsernameTokenMsg) isExecuteBatchMsg_Union_Sum()      {}
 func (*ExecuteBatchMsg_Union_ChangeUsernameTokenTargetsMsg) isExecuteBatchMsg_Union_Sum() {}
@@ -1195,9 +1195,9 @@ func (m *ExecuteBatchMsg_Union) GetSetValidatorsMsg() *validators.SetValidatorsM
 	return nil
 }
 
-func (m *ExecuteBatchMsg_Union) GetCreateTokenInfoMsg() *currency.CreateTokenInfoMsg {
-	if x, ok := m.GetSum().(*ExecuteBatchMsg_Union_CreateTokenInfoMsg); ok {
-		return x.CreateTokenInfoMsg
+func (m *ExecuteBatchMsg_Union) GetCreateMsg() *currency.CreateMsg {
+	if x, ok := m.GetSum().(*ExecuteBatchMsg_Union_CreateMsg); ok {
+		return x.CreateMsg
 	}
 	return nil
 }
@@ -1255,7 +1255,7 @@ func (*ExecuteBatchMsg_Union) XXX_OneofFuncs() (func(msg proto.Message, b *proto
 		(*ExecuteBatchMsg_Union_CreateContractMsg)(nil),
 		(*ExecuteBatchMsg_Union_UpdateContractMsg)(nil),
 		(*ExecuteBatchMsg_Union_SetValidatorsMsg)(nil),
-		(*ExecuteBatchMsg_Union_CreateTokenInfoMsg)(nil),
+		(*ExecuteBatchMsg_Union_CreateMsg)(nil),
 		(*ExecuteBatchMsg_Union_RegisterUsernameTokenMsg)(nil),
 		(*ExecuteBatchMsg_Union_TransferUsernameTokenMsg)(nil),
 		(*ExecuteBatchMsg_Union_ChangeUsernameTokenTargetsMsg)(nil),
@@ -1309,9 +1309,9 @@ func _ExecuteBatchMsg_Union_OneofMarshaler(msg proto.Message, b *proto.Buffer) e
 		if err := b.EncodeMessage(x.SetValidatorsMsg); err != nil {
 			return err
 		}
-	case *ExecuteBatchMsg_Union_CreateTokenInfoMsg:
+	case *ExecuteBatchMsg_Union_CreateMsg:
 		_ = b.EncodeVarint(59<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.CreateTokenInfoMsg); err != nil {
+		if err := b.EncodeMessage(x.CreateMsg); err != nil {
 			return err
 		}
 	case *ExecuteBatchMsg_Union_RegisterUsernameTokenMsg:
@@ -1422,9 +1422,9 @@ func _ExecuteBatchMsg_Union_OneofUnmarshaler(msg proto.Message, tag, wire int, b
 		if wire != proto.WireBytes {
 			return true, proto.ErrInternalBadWireType
 		}
-		msg := new(currency.CreateTokenInfoMsg)
+		msg := new(currency.CreateMsg)
 		err := b.DecodeMessage(msg)
-		m.Sum = &ExecuteBatchMsg_Union_CreateTokenInfoMsg{msg}
+		m.Sum = &ExecuteBatchMsg_Union_CreateMsg{msg}
 		return true, err
 	case 61: // sum.register_username_token_msg
 		if wire != proto.WireBytes {
@@ -1523,8 +1523,8 @@ func _ExecuteBatchMsg_Union_OneofSizer(msg proto.Message) (n int) {
 		n += 2 // tag and wire
 		n += proto.SizeVarint(uint64(s))
 		n += s
-	case *ExecuteBatchMsg_Union_CreateTokenInfoMsg:
-		s := proto.Size(x.CreateTokenInfoMsg)
+	case *ExecuteBatchMsg_Union_CreateMsg:
+		s := proto.Size(x.CreateMsg)
 		n += 2 // tag and wire
 		n += proto.SizeVarint(uint64(s))
 		n += s
@@ -2932,15 +2932,15 @@ func (m *Tx_SetValidatorsMsg) MarshalTo(dAtA []byte) (int, error) {
 	}
 	return i, nil
 }
-func (m *Tx_CreateTokenInfoMsg) MarshalTo(dAtA []byte) (int, error) {
+func (m *Tx_CreateMsg) MarshalTo(dAtA []byte) (int, error) {
 	i := 0
-	if m.CreateTokenInfoMsg != nil {
+	if m.CreateMsg != nil {
 		dAtA[i] = 0xda
 		i++
 		dAtA[i] = 0x3
 		i++
-		i = encodeVarintCodec(dAtA, i, uint64(m.CreateTokenInfoMsg.Size()))
-		n11, err := m.CreateTokenInfoMsg.MarshalTo(dAtA[i:])
+		i = encodeVarintCodec(dAtA, i, uint64(m.CreateMsg.Size()))
+		n11, err := m.CreateMsg.MarshalTo(dAtA[i:])
 		if err != nil {
 			return 0, err
 		}
@@ -3403,15 +3403,15 @@ func (m *ExecuteBatchMsg_Union_SetValidatorsMsg) MarshalTo(dAtA []byte) (int, er
 	}
 	return i, nil
 }
-func (m *ExecuteBatchMsg_Union_CreateTokenInfoMsg) MarshalTo(dAtA []byte) (int, error) {
+func (m *ExecuteBatchMsg_Union_CreateMsg) MarshalTo(dAtA []byte) (int, error) {
 	i := 0
-	if m.CreateTokenInfoMsg != nil {
+	if m.CreateMsg != nil {
 		dAtA[i] = 0xda
 		i++
 		dAtA[i] = 0x3
 		i++
-		i = encodeVarintCodec(dAtA, i, uint64(m.CreateTokenInfoMsg.Size()))
-		n38, err := m.CreateTokenInfoMsg.MarshalTo(dAtA[i:])
+		i = encodeVarintCodec(dAtA, i, uint64(m.CreateMsg.Size()))
+		n38, err := m.CreateMsg.MarshalTo(dAtA[i:])
 		if err != nil {
 			return 0, err
 		}
@@ -4176,14 +4176,14 @@ func (m *Tx_SetValidatorsMsg) Size() (n int) {
 	}
 	return n
 }
-func (m *Tx_CreateTokenInfoMsg) Size() (n int) {
+func (m *Tx_CreateMsg) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	if m.CreateTokenInfoMsg != nil {
-		l = m.CreateTokenInfoMsg.Size()
+	if m.CreateMsg != nil {
+		l = m.CreateMsg.Size()
 		n += 2 + l + sovCodec(uint64(l))
 	}
 	return n
@@ -4515,14 +4515,14 @@ func (m *ExecuteBatchMsg_Union_SetValidatorsMsg) Size() (n int) {
 	}
 	return n
 }
-func (m *ExecuteBatchMsg_Union_CreateTokenInfoMsg) Size() (n int) {
+func (m *ExecuteBatchMsg_Union_CreateMsg) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	if m.CreateTokenInfoMsg != nil {
-		l = m.CreateTokenInfoMsg.Size()
+	if m.CreateMsg != nil {
+		l = m.CreateMsg.Size()
 		n += 2 + l + sovCodec(uint64(l))
 	}
 	return n
@@ -5401,7 +5401,7 @@ func (m *Tx) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 59:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field CreateTokenInfoMsg", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field CreateMsg", wireType)
 			}
 			var msglen int
 			for shift := uint(0); ; shift += 7 {
@@ -5428,11 +5428,11 @@ func (m *Tx) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			v := &currency.CreateTokenInfoMsg{}
+			v := &currency.CreateMsg{}
 			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
-			m.Sum = &Tx_CreateTokenInfoMsg{v}
+			m.Sum = &Tx_CreateMsg{v}
 			iNdEx = postIndex
 		case 60:
 			if wireType != 2 {
@@ -6451,7 +6451,7 @@ func (m *ExecuteBatchMsg_Union) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 59:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field CreateTokenInfoMsg", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field CreateMsg", wireType)
 			}
 			var msglen int
 			for shift := uint(0); ; shift += 7 {
@@ -6478,11 +6478,11 @@ func (m *ExecuteBatchMsg_Union) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			v := &currency.CreateTokenInfoMsg{}
+			v := &currency.CreateMsg{}
 			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
-			m.Sum = &ExecuteBatchMsg_Union_CreateTokenInfoMsg{v}
+			m.Sum = &ExecuteBatchMsg_Union_CreateMsg{v}
 			iNdEx = postIndex
 		case 61:
 			if wireType != 2 {
