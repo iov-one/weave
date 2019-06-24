@@ -73,8 +73,8 @@ transaction (ie signatures) are being dropped.
 			ReleaseEscrowMsg: msg,
 		}
 	case *escrow.UpdateEscrowPartiesMsg:
-		option.Option = &app.ProposalOptions_UpdateEscrowMsg{
-			UpdateEscrowMsg: msg,
+		option.Option = &app.ProposalOptions_UpdateEscrowPartiesMsg{
+			UpdateEscrowPartiesMsg: msg,
 		}
 	case *validators.SetValidatorsMsg:
 		option.Option = &app.ProposalOptions_SetValidatorsMsg{
@@ -102,8 +102,8 @@ transaction (ie signatures) are being dropped.
 				})
 			case *escrow.UpdateEscrowPartiesMsg:
 				messages = append(messages, app.ExecuteProposalBatchMsg_Union{
-					Sum: &app.ExecuteProposalBatchMsg_Union_UpdateEscrowMsg{
-						UpdateEscrowMsg: m,
+					Sum: &app.ExecuteProposalBatchMsg_Union_UpdateEscrowPartiesMsg{
+						UpdateEscrowPartiesMsg: m,
 					},
 				})
 			case *validators.SetValidatorsMsg:
