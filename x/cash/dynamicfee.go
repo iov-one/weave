@@ -65,8 +65,17 @@ func (d DynamicFeeDecorator) Check(ctx weave.Context, store weave.KVStore, tx we
 
 	defer func() {
 		if cerr == nil {
-			cache.Write()
-			cres.GasPayment += toPayment(fee)
+			// If we cannot write the cache, then we return error
+			// here means that nothing got committed. This means
+			// that no change is persisted and the whole check
+			// failed.
+			if err := cache.Write(); err != nil {
+				cache.Discard()
+				cres = nil
+				cerr = err
+			} else {
+				cres.GasPayment += toPayment(fee)
+			}
 		} else {
 			cache.Discard()
 			_ = d.chargeMinimalFee(store, payer)
@@ -88,7 +97,7 @@ func (d DynamicFeeDecorator) Check(ctx weave.Context, store weave.KVStore, tx we
 }
 
 // Deliver verifies and deducts fees before calling down the stack
-func (d DynamicFeeDecorator) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx, next weave.Deliverer) (_ *weave.DeliverResult, derr error) {
+func (d DynamicFeeDecorator) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx, next weave.Deliverer) (dres *weave.DeliverResult, derr error) {
 	fee, payer, cache, err := d.prepare(ctx, store, tx)
 	if err != nil {
 		return nil, errors.Wrap(err, "cannot prepare")
@@ -96,7 +105,15 @@ func (d DynamicFeeDecorator) Deliver(ctx weave.Context, store weave.KVStore, tx 
 
 	defer func() {
 		if derr == nil {
-			cache.Write()
+			// If we cannot write the cache, then we return error
+			// here means that nothing got committed. This means
+			// that no change is persisted and the whole delivery
+			// failed.
+			if err := cache.Write(); err != nil {
+				cache.Discard()
+				dres = nil
+				derr = err
+			}
 		} else {
 			cache.Discard()
 			_ = d.chargeMinimalFee(store, payer)
