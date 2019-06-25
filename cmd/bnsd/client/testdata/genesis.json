@@ -99,7 +99,7 @@
          "whole": 2,
          "ticker": "CASH"
        },
-       "msg_path": "distribution/newrevenue"
+       "msg_path": "distribution/create"
      },
      {
        "fee": {
@@ -114,14 +114,14 @@
          "whole": 1,
          "ticker": "CASH"
        },
-       "msg_path": "distribution/resetRevenue"
+       "msg_path": "distribution/reset"
      },
      {
        "fee": {
          "whole": 5,
          "ticker": "CASH"
        },
-       "msg_path": "username/transferUsernameToken"
+       "msg_path": "username/transfer_token"
      }
    ]
    }

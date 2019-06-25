@@ -145,7 +145,7 @@ func appStateGenesis(keyAddress weave.Address) []byte {
 		},
 		"msgfee": []interface{}{
 			dict{
-				"msg_path": "distribution/newrevenue",
+				"msg_path": "distribution/create",
 				"fee":      "2 FRNK",
 			},
 			dict{
@@ -153,11 +153,11 @@ func appStateGenesis(keyAddress weave.Address) []byte {
 				"fee":      "0.2FRNK",
 			},
 			dict{
-				"msg_path": "distribution/resetRevenue",
+				"msg_path": "distribution/reset",
 				"fee":      "1 FRNK",
 			},
 			dict{
-				"msg_path": "username/registerUsernameToken",
+				"msg_path": "username/register_token",
 				"fee":      "5 FRNK",
 			},
 		},
