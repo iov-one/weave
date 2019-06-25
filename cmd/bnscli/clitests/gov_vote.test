@@ -1,6 +1,6 @@
 #!/bin/sh
 
-set -e -o pipefail
+set -e
 
 bnscli vote -proposal-id 123 \
         -select yes \
