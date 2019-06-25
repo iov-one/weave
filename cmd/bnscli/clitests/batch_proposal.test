@@ -6,7 +6,7 @@ set -e
 # all of them.
 # The same result could be achieved by running bellow commands in a subprocess
 # and stream the combined output into "as-batch" command.
-msgstream=`tempfile`
+msgstream=`mktemp`
 
 bnscli release-escrow -escrow 4 >> $msgstream
 bnscli send-tokens -src 'seq:foo/src/1' -dst "seq:foo/dst/1" -amount "2 IOV" -memo "sending 2 IOV" >> $msgstream
