@@ -14,21 +14,23 @@ import (
 func TestGenesisInitializer(t *testing.T) {
 	const genesis = `
 	{
-		"username": {
-			"alice*iov": {
+		"username": [
+			{
+				"username": "alice*iov",
 				"owner": "seq:test/alice/1",
 				"targets": [
 					{"blockchain_id": "block_1", "address": "MQ=="},
 					{"blockchain_id": "block_2", "address": "Mg=="}
 				]
 			},
-			"charlie*iov": {
+			{
+				"username": "charlie*iov",
 				"owner": "seq:test/charlie/1",
 				"targets": [
 					{"blockchain_id": "block_1", "address": "MQ=="}
 				]
 			}
-		}
+		]
 	}
 	`
 

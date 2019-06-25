@@ -16,6 +16,7 @@ import (
 	weaveClient "github.com/iov-one/weave/client"
 	bnsd "github.com/iov-one/weave/cmd/bnsd/app"
 	"github.com/iov-one/weave/cmd/bnsd/client"
+	"github.com/iov-one/weave/cmd/bnsd/x/username"
 	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/commands/server"
 	"github.com/iov-one/weave/crypto"
@@ -39,6 +40,7 @@ func StartBnsd(t testing.TB, opts ...StartBnsdOption) (env *EnvConf, cleanup fun
 		EscrowContract:   escrow.Condition(weavetest.SequenceID(1)),
 		clientThrottle:   *delay,
 		msgfees:          make(map[string]coin.Coin),
+		usernames:        make(map[string]username.Token),
 		governance: governance{
 			votingPeriod: weave.AsUnixDuration(time.Hour),
 			electors: []weave.Address{
@@ -183,6 +185,15 @@ func initGenesis(t testing.TB, env *EnvConf, filename string) {
 		})
 	}
 
+	usernames := make([]dict, 0, len(env.usernames))
+	for name, token := range env.usernames {
+		usernames = append(usernames, dict{
+			"username": name,
+			"owner":    token.Owner,
+			"targets":  token.Targets,
+		})
+	}
+
 	appState, err := json.MarshalIndent(dict{
 		"cash": []interface{}{
 			dict{
@@ -265,7 +276,8 @@ func initGenesis(t testing.TB, env *EnvConf, filename string) {
 				},
 			},
 		},
-		"msgfee": msgfees,
+		"username": usernames,
+		"msgfee":   msgfees,
 		"initialize_schema": []dict{
 			{"ver": 1, "pkg": "batch"},
 			{"ver": 1, "pkg": "cash"},

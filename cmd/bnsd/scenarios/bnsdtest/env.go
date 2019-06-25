@@ -6,6 +6,7 @@ import (
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/cmd/bnsd/client"
+	"github.com/iov-one/weave/cmd/bnsd/x/username"
 	"github.com/iov-one/weave/coin"
 	"github.com/tendermint/tendermint/libs/log"
 	nm "github.com/tendermint/tendermint/node"
@@ -21,6 +22,7 @@ type EnvConf struct {
 
 	msgfees    map[string]coin.Coin
 	governance governance
+	usernames  map[string]username.Token
 
 	Client         client.Client
 	clientThrottle time.Duration
@@ -70,6 +72,12 @@ func WithThrottle(frequency time.Duration) StartBnsdOption {
 func WithMsgFee(msgPath string, fee coin.Coin) StartBnsdOption {
 	return func(env *EnvConf) {
 		env.msgfees[msgPath] = fee
+	}
+}
+
+func WithUsername(name string, token username.Token) StartBnsdOption {
+	return func(env *EnvConf) {
+		env.usernames[name] = token
 	}
 }
 
