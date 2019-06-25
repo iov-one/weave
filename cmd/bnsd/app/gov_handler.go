@@ -10,6 +10,7 @@ import (
 	"github.com/iov-one/weave/x/distribution"
 	"github.com/iov-one/weave/x/escrow"
 	"github.com/iov-one/weave/x/gov"
+	"github.com/iov-one/weave/x/utils"
 	"github.com/iov-one/weave/x/validators"
 )
 
@@ -39,8 +40,12 @@ func proposalOptionsExecutor(ctrl cash.Controller) gov.Executor {
 	migration.RegisterRoutes(r, auth)
 	gov.RegisterBasicProposalRouters(r, auth)
 
-	// We must wrap with batch middleware so it can process ExecuteProposalBatchMsg
-	stack := app.ChainDecorators(batch.NewDecorator()).WithHandler(r)
+	// We must wrap with batch middleware so it can process ExecuteProposalBatchMsg.
+	// We add ActionTagger here, so the messages executed as a result of a governance vote also get properly tagged.
+	stack := app.ChainDecorators(
+		batch.NewDecorator(),
+		utils.NewActionTagger(),
+	).WithHandler(r)
 
 	return gov.HandlerAsExecutor(stack)
 }
