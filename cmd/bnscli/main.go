@@ -51,6 +51,7 @@ var commands = map[string]func(input io.Reader, output io.Writer, args []string)
 	"set-validators":            cmdSetValidators,
 	"sign":                      cmdSignTransaction,
 	"submit":                    cmdSubmitTransaction,
+	"tally":                     cmdTally,
 	"version":                   cmdVersion,
 	"view":                      cmdTransactionView,
 	"vote":                      cmdVote,
