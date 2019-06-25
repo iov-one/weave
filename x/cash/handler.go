@@ -14,7 +14,7 @@ func RegisterRoutes(r weave.Registry, auth x.Authenticator, control Controller) 
 	r = migration.SchemaMigratingRegistry("cash", r)
 
 	r.Handle(pathSendMsg, NewSendHandler(auth, control))
-	r.Handle(pathConfigurationUpdateMsg, NewConfigHandler(auth))
+	r.Handle(pathUpdateConfigurationMsg, NewConfigHandler(auth))
 }
 
 // RegisterQuery will register this bucket as "/wallets"

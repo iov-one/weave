@@ -14,13 +14,17 @@ type Msg interface {
 	Persistent
 
 	// Return the message path.
-	// This is used by the Router to locate the proper Handler.
-	// Msg should be created alongside the Handler that corresponds to them.
+	// This is used by the Router to locate the proper Handler. Msg should
+	// be created alongside the Handler that corresponds to them.
 	//
-	// Multiple types may have the same value, and will end up at the
-	// same Handler.
+	// Multiple message types may return the same path value and will end
+	// up being processed by the same Handler.
 	//
-	// Must be alphanumeric [0-9A-Za-z_\-]+
+	// Path value must be constructed following several rules:
+	// - name must be snake_case
+	// - value must be in format <extension_name>/<message_type_name> where
+	//   extension_name is the same as the Go package name and the
+	//   message_type_name is the snake_case converted message name.
 	Path() string
 
 	// Validate performs a sanity checks on this message. It returns an

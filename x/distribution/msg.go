@@ -12,9 +12,9 @@ func init() {
 }
 
 const (
-	pathCreateMsg = "distribution/createRevenue"
-	pathDistributeMsg    = "distribution/distribute"
-	pathResetMsg  = "distribution/resetRevenue"
+	pathCreateMsg     = "distribution/create"
+	pathDistributeMsg = "distribution/distribute"
+	pathResetMsg      = "distribution/reset"
 )
 
 func (msg *CreateMsg) Validate() error {

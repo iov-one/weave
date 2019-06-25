@@ -11,7 +11,7 @@ import (
 // all handlers in this package.
 func RegisterRoutes(r weave.Registry, auth x.Authenticator) {
 	bucket := NewAccountBucket()
-	r.Handle(pathUpdate, migration.SchemaMigratingHandler("validators", &updateHandler{
+	r.Handle(pathApplyDiffMsg, migration.SchemaMigratingHandler("validators", &updateHandler{
 		auth:   auth,
 		bucket: bucket,
 	}))

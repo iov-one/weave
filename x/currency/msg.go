@@ -14,7 +14,7 @@ func init() {
 var _ weave.Msg = (*CreateMsg)(nil)
 
 func (CreateMsg) Path() string {
-	return "currency/tokeninfo"
+	return "currency/create"
 }
 
 func (t *CreateMsg) Validate() error {
