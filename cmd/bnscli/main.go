@@ -53,6 +53,7 @@ var commands = map[string]func(input io.Reader, output io.Writer, args []string)
 	"submit":                    cmdSubmitTransaction,
 	"version":                   cmdVersion,
 	"view":                      cmdTransactionView,
+	"vote":                      cmdVote,
 	"with-fee":                  cmdWithFee,
 	"with-multisig":             cmdWithMultisig,
 	"with-multisig-participant": cmdWithMultisigParticipant,

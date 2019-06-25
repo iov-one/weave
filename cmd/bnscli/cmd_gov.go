@@ -285,3 +285,51 @@ Delete an existing proposal before the voting period has started.
 	_, err := writeTx(output, govTx)
 	return err
 }
+
+var supportedVoteOptions = map[string]gov.VoteOption{
+	"yes":     gov.VoteOption_Yes,
+	"no":      gov.VoteOption_No,
+	"abstain": gov.VoteOption_Abstain,
+}
+
+// cmdVote is the cli command create a vote for a proposal
+func cmdVote(input io.Reader, output io.Writer, args []string) error {
+	fl := flag.NewFlagSet("", flag.ExitOnError)
+	fl.Usage = func() {
+		fmt.Fprintln(flag.CommandLine.Output(), `
+Vote on a governance proposal.
+		`)
+		fl.PrintDefaults()
+	}
+	var (
+		id         = flSeq(fl, "proposal-id", "", "The ID of the proposal to vote for.")
+		voterFl    = flHex(fl, "voter", "", "Optional address of a voter. If not provided the main signer will be used.")
+		selectedFl = fl.String("select", "", "Supported options are: yes, no, abstain")
+	)
+	fl.Parse(args)
+	if len(*id) == 0 {
+		flagDie("the proposal id  must not be empty")
+	}
+	if len(*voterFl) != 0 {
+		if err := weave.Address(*voterFl).Validate(); err != nil {
+			flagDie("invalid voter address: %q", err)
+		}
+	}
+
+	selected, ok := supportedVoteOptions[*selectedFl]
+	if !ok {
+		flagDie("unsupported vote option: %q", *selectedFl)
+	}
+	govTx := &bnsd.Tx{
+		Sum: &bnsd.Tx_GovVoteMsg{
+			GovVoteMsg: &gov.VoteMsg{
+				Metadata:   &weave.Metadata{Schema: 1},
+				ProposalID: []byte(*id),
+				Voter:      weave.Address(*voterFl),
+				Selected:   selected,
+			},
+		},
+	}
+	_, err := writeTx(output, govTx)
+	return err
+}

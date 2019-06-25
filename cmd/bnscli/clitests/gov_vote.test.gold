@@ -1,0 +1,12 @@
+{
+	"Sum": {
+		"GovVoteMsg": {
+			"metadata": {
+				"schema": 1
+			},
+			"proposal_id": "AAAAAAAAAHs=",
+			"voter": "B1CA7E78F74423AE01DA3B51E676934D9105F282",
+			"selected": 1
+		}
+	}
+}
