@@ -2,7 +2,7 @@
 
 set -e
 
-msgs=`tempfile`
+msgs=`mktemp`
 
 # Combine all messages in a single file to build a batch transaction.
 bnscli send-tokens -src 'seq:foo/src/1' -dst "seq:foo/dst/1" -amount "2 IOV" -memo "sending 2 IOV" >> $msgs

@@ -5,7 +5,7 @@ set -e
 # bnscli keyaddr command requires a file with the private key in order to sign
 # the transaction. To always produce the same output always use the same input
 # data and private key.
-keyfile=`tempfile`
+keyfile=`mktemp`
 echo 00wZcK6QrPNAXy2Z3KyhbQx9s3n0vq/P32Z7nWnONQ0n9ftEBQnfp57Ig6BRC8mpYUw9RBiIgfDF5AKJi0vzyQ== | base64 -d > $keyfile
 
 bnscli keyaddr -key $keyfile
