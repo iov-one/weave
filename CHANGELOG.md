@@ -3,7 +3,7 @@
 ## HEAD
 
 - `bnsd/x/username` genesis initializer implemented and included in `bnsd`.
-
+- Support gov proposal vote, deletion and tally in `bnscli` 
 
 ## 0.17.0
 
