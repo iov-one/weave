@@ -1,5 +1,9 @@
 # Changelog
 
+## HEAD
+
+- `bnsd/x/username` genesis initializer implemented and included in `bnsd`.
+
 
 ## 0.17.0
 
