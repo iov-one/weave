@@ -17,6 +17,7 @@ import (
 	"github.com/iov-one/weave/x/cash"
 	"github.com/iov-one/weave/x/multisig"
 	"github.com/iov-one/weave/x/sigs"
+	"github.com/iov-one/weave/x/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -46,9 +47,10 @@ func TestApp(t *testing.T) {
 	dres := sendToken(t, myApp, appFixture.ChainID, 2, []Signer{{pk, 0}}, addr, addr2, 2000, "ETH", "Have a great trip!")
 
 	// ensure 4 keys for all accounts that are modified by a transaction
-	require.Equal(t, 4, len(dres.Tags), tagsAsString(dres.Tags))
+	require.Equal(t, 5, len(dres.Tags), tagsAsString(dres.Tags))
 	feeDistAddr := weave.NewCondition("dist", "revenue", []byte{0, 0, 0, 0, 0, 0, 0, 1}).Address()
 	wantKeys := []string{
+		"action",
 		toHex("cash:") + addr.String(),        // sender balance decreased
 		toHex("cash:") + addr2.String(),       // receiver balance increased
 		toHex("sigs:") + addr.String(),        // sender sequence incremented
@@ -62,11 +64,13 @@ func TestApp(t *testing.T) {
 		require.True(t, found, "not found tag %s in %s", want, tagsAsString(dres.Tags))
 	}
 
-	require.Equal(t, []string{"s", "s", "s", "s"}, []string{
+	// first tag is the action tagger, following are key tagger
+	require.Equal(t, []string{"cash/send", "s", "s", "s", "s"}, []string{
 		string(dres.Tags[0].Value),
 		string(dres.Tags[1].Value),
 		string(dres.Tags[2].Value),
 		string(dres.Tags[3].Value),
+		string(dres.Tags[4].Value),
 	})
 
 	// Query for fees stored
@@ -161,6 +165,10 @@ func TestApp(t *testing.T) {
 func tagsAsString(pairs []common.KVPair) string {
 	r := make([]string, len(pairs))
 	for i, v := range pairs {
+		if string(v.Key) == utils.ActionKey {
+			r[i] = utils.ActionKey
+			continue
+		}
 		x, err := hex.DecodeString(string(v.Key))
 		if err != nil {
 			panic(err)
@@ -236,23 +244,37 @@ func sendBatch(t *testing.T, baseApp abci.Application, chainID string, height in
 
 	dres := signAndCommit(t, baseApp, tx, signers, chainID, height)
 
-	// make sure the tags are only present once (not once per item)
+	// make sure the key tags are only present once (not once per item)
+	// action tag should be present for each message (important if different types)
 	feeDistAddr := weave.NewCondition("dist", "revenue", []byte{0, 0, 0, 0, 0, 0, 0, 1}).Address()
-	if len(dres.Tags) != 4 {
-		t.Fatalf("%#v", dres.Tags)
+	if len(dres.Tags) != 14 {
+		t.Fatalf("%v", len(dres.Tags))
 	}
+	// we need to sort the db keys for consistent ordering
 	wantKeys := []string{
+		// the actual movement
 		toHex("cash:") + from.String(),
 		toHex("cash:") + to.String(),
 		toHex("sigs:") + from.String(),
 		toHex("cash:") + feeDistAddr.String(), // fee destination
 	}
 	sort.Strings(wantKeys)
-	gotKeys := []string{
-		string(dres.Tags[0].Key),
-		string(dres.Tags[1].Key),
-		string(dres.Tags[2].Key),
-		string(dres.Tags[3].Key),
+	// all the action tagger for batch are before the key tagger
+	wantKeys = append([]string{
+		"action",
+		"action",
+		"action",
+		"action",
+		"action",
+		"action",
+		"action",
+		"action",
+		"action",
+		"action",
+	}, wantKeys...)
+	var gotKeys []string
+	for _, t := range dres.Tags {
+		gotKeys = append(gotKeys, string(t.Key))
 	}
 	assert.Equal(t, wantKeys, gotKeys)
 

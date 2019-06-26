@@ -126,7 +126,6 @@ func TestKeyTagger(t *testing.T) {
 			} else {
 				assert.Nil(t, err)
 				// tags are set properly
-				fmt.Printf("%T vs %T\n", tc.tags, res.Tags)
 				assert.Equal(t, tc.tags, res.Tags)
 			}
 

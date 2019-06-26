@@ -59,6 +59,7 @@ func Chain(authFn x.Authenticator, minFee coin.Coin) app.Decorators {
 		msgfee.NewAntispamFeeDecorator(minFee),
 		msgfee.NewFeeDecorator(),
 		batch.NewDecorator(),
+		utils.NewActionTagger(),
 	)
 }
 
