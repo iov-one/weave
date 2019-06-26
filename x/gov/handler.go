@@ -38,7 +38,7 @@ func RegisterRoutes(r weave.Registry, auth x.Authenticator, decoder OptionDecode
 	r.Handle(pathCreateProposalMsg, newCreateProposalHandler(auth, decoder))
 	r.Handle(pathDeleteProposalMsg, newDeleteProposalHandler(auth))
 	r.Handle(pathUpdateElectorateMsg, newUpdateElectorateHandler(auth))
-	r.Handle(pathUpdateElectionRulesMsg, newUpdateElectionRuleHandler(auth))
+	r.Handle(pathUpdateElectionRuleMsg, newUpdateElectionRuleHandler(auth))
 	// We do NOT register the TextResultionHandler here... this is only for the proposal Executor
 }
 
@@ -46,8 +46,8 @@ func RegisterRoutes(r weave.Registry, auth x.Authenticator, decoder OptionDecode
 func RegisterBasicProposalRouters(r weave.Registry, auth x.Authenticator) {
 	r = migration.SchemaMigratingRegistry(packageName, r)
 	r.Handle(pathUpdateElectorateMsg, newUpdateElectorateHandler(auth))
-	r.Handle(pathUpdateElectionRulesMsg, newUpdateElectionRuleHandler(auth))
-	r.Handle(pathTextResolutionMsg, newCreateTextResolutionHandler(auth))
+	r.Handle(pathUpdateElectionRuleMsg, newUpdateElectionRuleHandler(auth))
+	r.Handle(pathCreateTextResolutionMsg, newCreateTextResolutionHandler(auth))
 }
 
 type VoteHandler struct {

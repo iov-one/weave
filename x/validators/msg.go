@@ -14,11 +14,11 @@ func init() {
 // Ensure we implement the Msg interface
 var _ weave.Msg = (*ApplyDiffMsg)(nil)
 
-const pathUpdate = "validators/update"
+const pathApplyDiffMsg = "validators/apply_diff"
 
 // Path returns the routing path for this message
 func (*ApplyDiffMsg) Path() string {
-	return pathUpdate
+	return pathApplyDiffMsg
 }
 
 func (m *ApplyDiffMsg) Validate() error {

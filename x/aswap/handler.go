@@ -26,7 +26,7 @@ func RegisterRoutes(r weave.Registry, auth x.Authenticator, cashctrl cash.Contro
 
 	r.Handle(pathCreateSwap, CreateSwapHandler{auth, bucket, cashctrl})
 	r.Handle(pathReleaseSwap, ReleaseSwapHandler{auth, bucket, cashctrl})
-	r.Handle(pathReturnReturn, ReturnSwapHandler{auth, bucket, cashctrl})
+	r.Handle(pathReturnSwap, ReturnSwapHandler{auth, bucket, cashctrl})
 }
 
 // RegisterQuery will register this bucket as "/aswaps"

@@ -10,7 +10,7 @@ func init() {
 }
 
 const (
-	pathBumpSequenceMsg = "sigs/bumpSequence"
+	pathBumpSequenceMsg = "sigs/bump_sequence"
 
 	maxSequenceIncrement = 1000
 	minSequenceIncrement = 1

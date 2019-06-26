@@ -6,13 +6,13 @@ import (
 )
 
 const (
-	pathCreateProposalMsg      = "gov/create"
-	pathDeleteProposalMsg      = "gov/delete"
-	pathVoteMsg                = "gov/vote"
-	pathTallyMsg               = "gov/tally"
-	pathTextResolutionMsg      = "gov/resolution"
-	pathUpdateElectorateMsg    = "gov/electorate/update"
-	pathUpdateElectionRulesMsg = "gov/electionRules/update"
+	pathCreateProposalMsg       = "gov/create_proposal"
+	pathDeleteProposalMsg       = "gov/delete_proposal"
+	pathVoteMsg                 = "gov/vote"
+	pathTallyMsg                = "gov/tally"
+	pathCreateTextResolutionMsg = "gov/create_text_resolution"
+	pathUpdateElectorateMsg     = "gov/update_electorate"
+	pathUpdateElectionRuleMsg   = "gov/update_election_rule"
 )
 
 func init() {
@@ -112,7 +112,7 @@ func (m TallyMsg) Validate() error {
 }
 
 func (UpdateElectionRuleMsg) Path() string {
-	return pathUpdateElectionRulesMsg
+	return pathUpdateElectionRuleMsg
 }
 
 func (m UpdateElectionRuleMsg) Validate() error {
@@ -132,7 +132,7 @@ func (m UpdateElectionRuleMsg) Validate() error {
 }
 
 func (CreateTextResolutionMsg) Path() string {
-	return pathTextResolutionMsg
+	return pathCreateTextResolutionMsg
 }
 
 func (m CreateTextResolutionMsg) Validate() error {

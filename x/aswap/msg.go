@@ -16,9 +16,9 @@ func init() {
 }
 
 const (
-	pathCreateSwap   = "swap/create"
-	pathReleaseSwap  = "swap/release"
-	pathReturnReturn = "swap/return"
+	pathCreateSwap  = "aswap/create"
+	pathReleaseSwap = "aswap/release"
+	pathReturnSwap  = "aswap/return"
 
 	maxMemoSize int = 128
 	// preimage size in bytes
@@ -42,7 +42,7 @@ func (ReleaseMsg) Path() string {
 }
 
 func (ReturnSwapMsg) Path() string {
-	return pathReturnReturn
+	return pathReturnSwap
 }
 
 // VALIDATION, Validate method makes sure basic rules are enforced upon input data and fulfills weave.Msg interface

@@ -17,7 +17,7 @@ var _ weave.Msg = (*SendMsg)(nil)
 
 const (
 	pathSendMsg                      = "cash/send"
-	pathConfigurationUpdateMsg       = "cash/update_config"
+	pathUpdateConfigurationMsg       = "cash/update_configuration"
 	sendTxCost                 int64 = 100
 
 	maxMemoSize int = 128
@@ -130,5 +130,5 @@ func (m *UpdateConfigurationMsg) Validate() error {
 }
 
 func (*UpdateConfigurationMsg) Path() string {
-	return pathConfigurationUpdateMsg
+	return pathUpdateConfigurationMsg
 }

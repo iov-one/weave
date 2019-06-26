@@ -6,7 +6,7 @@ import (
 )
 
 const (
-	PathExecuteBatchMsg = "batch/execute"
+	PathExecuteBatchMsg = "batch/execute_batch"
 )
 
 type Msg interface {

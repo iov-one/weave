@@ -5,6 +5,10 @@
 - `bnsd/x/username` genesis initializer implemented and included in `bnsd`.
 
 
+Breaking changes
+
+- Unify all message paths to follow pattern `<package>/<message_name>`
+
 ## 0.17.0
 
 - Unified dedupe logic for validator bookkeeping and validator diffs in `app`
