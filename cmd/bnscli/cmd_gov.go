@@ -401,3 +401,48 @@ Text resolution is  'as-proposal' command.
 	_, err = output.Write(data)
 	return err
 }
+
+func cmdElectorate(input io.Reader, output io.Writer, args []string) error {
+	fl := flag.NewFlagSet("", flag.ExitOnError)
+	fl.Usage = func() {
+		fmt.Fprintln(flag.CommandLine.Output(), `
+Electorate updates an existing electorate.
+		`)
+		fl.PrintDefaults()
+	}
+	var (
+		id               = flSeq(fl, "electorate-id", "", "The ID of the electorate")
+		diffElectorateFl = fl.String("electors", "", "A path to a CSV file with recipients configuration. File should be a list of pairs (address, weight).")
+	)
+	fl.Parse(args)
+	if len(*id) == 0 {
+		flagDie("the proposal id  must not be empty")
+	}
+	diffElectors, err := readElectors(*diffElectorateFl)
+	if err != nil {
+		return fmt.Errorf("cannot read %q recipients file: %s", *diffElectorateFl, err)
+	}
+
+	govTx := &bnsd.Tx{
+		Sum: &bnsd.Tx_GovUpdateElectorateMsg{
+			GovUpdateElectorateMsg: &gov.UpdateElectorateMsg{
+				Metadata:     &weave.Metadata{Schema: 1},
+				ElectorateID: []byte(*id),
+				DiffElectors: diffElectors,
+			},
+		},
+	}
+	_, err = writeTx(output, govTx)
+	return err
+}
+
+func readElectors(csvpath string) ([]gov.Elector, error) {
+	var electors []gov.Elector
+	appender := func(address weave.Address, weight uint32) {
+		electors = append(electors, gov.Elector{
+			Address: address,
+			Weight:  weight,
+		})
+	}
+	return electors, readAddressWeightPairCSV(csvpath, appender)
+}

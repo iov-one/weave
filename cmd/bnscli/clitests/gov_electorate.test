@@ -1,0 +1,14 @@
+#!/bin/sh
+
+set -e
+
+
+csv=`mktemp`
+echo  "seq:foo/dst/1,0\n"   >>$csv
+echo  "seq:bar/dst/2,11\n"  >>$csv
+
+bnscli electorate \
+        -electorate-id "5" \
+        -electors="$csv" \
+    | bnscli as-proposal -start "2021-01-01 11:11" -electionrule 3 -title "my proposal" -description "yet another proposal" \
+    | bnscli view

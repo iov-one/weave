@@ -39,6 +39,7 @@ var commands = map[string]func(input io.Reader, output io.Writer, args []string)
 	"as-proposal":               cmdAsProposal,
 	"as-sequence":               cmdAsSequence,
 	"del-proposal":              cmdDelProposal,
+	"electorate":                cmdElectorate,
 	"from-sequence":             cmdFromSequence,
 	"keyaddr":                   cmdKeyaddr,
 	"keygen":                    cmdKeygen,

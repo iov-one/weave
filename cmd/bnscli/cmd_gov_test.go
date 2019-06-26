@@ -2,11 +2,13 @@ package main
 
 import (
 	"bytes"
+	"strings"
 	"testing"
 
 	"github.com/iov-one/weave"
 	bnsd "github.com/iov-one/weave/cmd/bnsd/app"
 	"github.com/iov-one/weave/coin"
+	"github.com/iov-one/weave/weavetest"
 	"github.com/iov-one/weave/weavetest/assert"
 	"github.com/iov-one/weave/x/cash"
 	"github.com/iov-one/weave/x/gov"
@@ -196,4 +198,36 @@ func TestCmdTextResolutionHappyPath(t *testing.T) {
 	msg := txmsg.(*gov.CreateTextResolutionMsg)
 
 	assert.Equal(t, "myTextResolution", msg.Resolution)
+}
+
+func TestCmdElectorateHappyPath(t *testing.T) {
+	csvFilePath := mustCreateFile(t, strings.NewReader(`seq:foo/bar/1,3
+seq:foo/bar/2,1
+seq:foo/bar/3,20`))
+
+	var output bytes.Buffer
+	args := []string{
+		"-electorate-id", "5",
+		"-electors", csvFilePath,
+	}
+	if err := cmdElectorate(nil, &output, args); err != nil {
+		t.Fatalf("cannot create a transaction: %s", err)
+	}
+
+	tx, _, err := readTx(&output)
+	if err != nil {
+		t.Fatalf("cannot read created transaction: %s", err)
+	}
+
+	txmsg, err := tx.GetMsg()
+	if err != nil {
+		t.Fatalf("cannot get transaction message: %s", err)
+	}
+	msg := txmsg.(*gov.UpdateElectorateMsg)
+
+	assert.Equal(t, weavetest.SequenceID(5), msg.ElectorateID)
+	assert.Equal(t, 3, len(msg.DiffElectors))
+	assert.Equal(t, uint32(3), msg.DiffElectors[0].Weight)
+	assert.Equal(t, uint32(1), msg.DiffElectors[1].Weight)
+	assert.Equal(t, uint32(20), msg.DiffElectors[2].Weight)
 }

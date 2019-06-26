@@ -1,0 +1,33 @@
+{
+	"Sum": {
+		"GovCreateProposalMsg": {
+			"metadata": {
+				"schema": 1
+			},
+			"title": "my proposal",
+			"raw_option": "6gRACgIIARIIAAAAAAAAAAUaFgoUgaqIg3U3+t1gpU9kdALTy9h6tZsaGAoUggjvC02fIGRc5fkeNxtXtLUmZwsQCw==",
+			"description": "yet another proposal",
+			"election_rule_id": "AAAAAAAAAAM=",
+			"start_time": 1609499460
+		}
+	}
+}
+
+The above transaction is a proposal for executing the following messages:
+{
+	"GovUpdateElectorateMsg": {
+		"metadata": {
+			"schema": 1
+		},
+		"electorate_id": "AAAAAAAAAAU=",
+		"diff_electors": [
+			{
+				"address": "81AA88837537FADD60A54F647402D3CBD87AB59B"
+			},
+			{
+				"address": "8208EF0B4D9F20645CE5F91E371B57B4B526670B",
+				"weight": 11
+			}
+		]
+	}
+}
