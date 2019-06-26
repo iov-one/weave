@@ -67,6 +67,46 @@ func TestCmdAsProposalHappyPath(t *testing.T) {
 	assert.Equal(t, coin.NewCoinp(5, 0, "DOGE"), submsg.Amount)
 }
 
+func TestCmdAsProposalWithTextResolution(t *testing.T) {
+	payloadMsg := &gov.CreateTextResolutionMsg{
+		Metadata:   &weave.Metadata{Schema: 1},
+		Resolution: "myTestResolution",
+	}
+	data, err := payloadMsg.Marshal()
+	input := bytes.NewReader(data)
+	var output bytes.Buffer
+	args := []string{
+		"-title", "a title",
+		"-description", "a description",
+		"-electionrule", "1",
+	}
+	if err := cmdAsProposal(input, &output, args); err != nil {
+		t.Fatalf("cannot create a new proposal transaction: %s", err)
+	}
+
+	tx, _, err := readTx(&output)
+	if err != nil {
+		t.Fatalf("cannot read created transaction: %s", err)
+	}
+
+	txmsg, err := tx.GetMsg()
+	if err != nil {
+		t.Fatalf("cannot get transaction message: %s", err)
+	}
+	msg := txmsg.(*gov.CreateProposalMsg)
+
+	assert.Equal(t, msg.Title, "a title")
+	assert.Equal(t, msg.Description, "a description")
+	assert.Equal(t, msg.ElectionRuleID, sequenceID(1))
+
+	var options bnsd.ProposalOptions
+	if err := options.Unmarshal(msg.RawOption); err != nil {
+		t.Fatalf("cannot unmarshal submessage: %s", err)
+	}
+	submsg := options.GetGovCreateTextResolutionMsg()
+	assert.Equal(t, "myTestResolution", submsg.Resolution)
+}
+
 func TestCmdDeleteProposalHappyPath(t *testing.T) {
 	var output bytes.Buffer
 	args := []string{
@@ -98,7 +138,7 @@ func TestCmdVoteHappyPath(t *testing.T) {
 		"-select", "yes",
 	}
 	if err := cmdVote(nil, &output, args); err != nil {
-		t.Fatalf("cannot create a new delete proposal transaction: %s", err)
+		t.Fatalf("cannot create a new vote transaction: %s", err)
 	}
 
 	tx, _, err := readTx(&output)
@@ -123,7 +163,7 @@ func TestCmdTallyHappyPath(t *testing.T) {
 		"-proposal-id", "5",
 	}
 	if err := cmdTally(nil, &output, args); err != nil {
-		t.Fatalf("cannot create a new delete proposal transaction: %s", err)
+		t.Fatalf("cannot create a new tally transaction: %s", err)
 	}
 
 	tx, _, err := readTx(&output)
@@ -138,4 +178,22 @@ func TestCmdTallyHappyPath(t *testing.T) {
 	msg := txmsg.(*gov.TallyMsg)
 
 	assert.Equal(t, sequenceID(5), msg.ProposalID)
+}
+
+func TestCmdTextResolutionHappyPath(t *testing.T) {
+	var output bytes.Buffer
+	args := []string{
+		"-text", "myTextResolution",
+	}
+	if err := cmdTextResolution(nil, &output, args); err != nil {
+		t.Fatalf("cannot create a text resolution msg: %s", err)
+	}
+
+	txmsg, err := readProposalPayloadMsg(&output)
+	if err != nil {
+		t.Fatalf("cannot get message: %s", err)
+	}
+	msg := txmsg.(*gov.CreateTextResolutionMsg)
+
+	assert.Equal(t, "myTextResolution", msg.Resolution)
 }

@@ -7,6 +7,7 @@ import (
 	"github.com/iov-one/weave"
 	bnsd "github.com/iov-one/weave/cmd/bnsd/app"
 	"github.com/iov-one/weave/x/cash"
+	"github.com/iov-one/weave/x/gov"
 )
 
 func TestCmdTransactionViewHappyPath(t *testing.T) {
@@ -42,6 +43,32 @@ func TestCmdTransactionViewHappyPath(t *testing.T) {
 }`
 	got := output.String()
 
+	if want != got {
+		t.Logf("want: %s", want)
+		t.Logf(" got: %s", got)
+		t.Fatal("unexpected view result")
+	}
+}
+
+func TestCmdTransactionViewWithTextResolution(t *testing.T) {
+	payloadMsg := &gov.CreateTextResolutionMsg{
+		Metadata:   &weave.Metadata{Schema: 1},
+		Resolution: "myTestResolution",
+	}
+	data, _ := payloadMsg.Marshal()
+	input := bytes.NewReader(data)
+
+	var output bytes.Buffer
+	if err := cmdTransactionView(input, &output, nil); err != nil {
+		t.Fatalf("cannot view a transaction: %s", err)
+	}
+	got := output.String()
+	const want = `{
+	"metadata": {
+		"schema": 1
+	},
+	"resolution": "myTestResolution"
+}`
 	if want != got {
 		t.Logf("want: %s", want)
 		t.Logf(" got: %s", got)

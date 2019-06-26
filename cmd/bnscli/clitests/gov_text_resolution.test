@@ -1,0 +1,9 @@
+#!/bin/sh
+
+set -e
+
+
+bnscli text-resolution \
+        -text "hallo äöüß" \
+    | bnscli as-proposal -start "2021-01-01 11:11" -electionrule 3 -title "my proposal" -description "yet another proposal" \
+    | bnscli view
