@@ -1,51 +1,57 @@
 package app
 
 import (
+	"context"
 	"testing"
 
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/weavetest"
-	"github.com/stretchr/testify/assert"
+	"github.com/iov-one/weave/weavetest/assert"
 )
 
-func TestRouter(t *testing.T) {
+func TestRouterSuccess(t *testing.T) {
 	r := NewRouter()
-	const good, bad, missing = "good", "bad", "missing"
 
-	// register some routers
-	h := &weavetest.Handler{}
-	r.Handle(good, h)
-	r.Handle(bad, &weavetest.Handler{
-		CheckErr:   errors.ErrHuman,
-		DeliverErr: errors.ErrHuman,
+	var (
+		msg     = &weavetest.Msg{RoutePath: "test/good"}
+		handler = &weavetest.Handler{}
+	)
+
+	r.Handle(msg, handler)
+
+	if _, err := r.Check(context.TODO(), nil, &weavetest.Tx{Msg: msg}); err != nil {
+		t.Fatalf("check failed: %s", err)
+	}
+	if _, err := r.Deliver(context.TODO(), nil, &weavetest.Tx{Msg: msg}); err != nil {
+		t.Fatalf("delivery failed: %s", err)
+	}
+	assert.Equal(t, 2, handler.CallCount())
+}
+
+func TestRouterNoHandler(t *testing.T) {
+	r := NewRouter()
+
+	tx := &weavetest.Tx{Msg: &weavetest.Msg{RoutePath: "test/secret"}}
+
+	if _, err := r.Check(context.TODO(), nil, tx); !errors.ErrNotFound.Is(err) {
+		t.Fatalf("expected not found error, got %s", err)
+	}
+	if _, err := r.Deliver(context.TODO(), nil, tx); !errors.ErrNotFound.Is(err) {
+		t.Fatalf("expected not found error, got %s", err)
+	}
+}
+
+func TestRegisteringInvalidMessagePath(t *testing.T) {
+	r := NewRouter()
+	assert.Panics(t, func() {
+		r.Handle(&weavetest.Msg{RoutePath: ": "}, &weavetest.Handler{})
 	})
+}
 
-	// make sure invalid registrations panic
-	assert.Panics(t, func() { r.Handle(good, h) })
-	assert.Panics(t, func() { r.Handle("l:7", h) })
-
-	// check proper paths work
-	assert.Equal(t, 0, h.CallCount())
-	_, err := r.Handler(good).Check(nil, nil, nil)
-	assert.NoError(t, err)
-	_, err = r.Handler(good).Deliver(nil, nil, nil)
-	assert.NoError(t, err)
-	// we count twice per decorator call
-	assert.Equal(t, 2, h.CallCount())
-
-	// check errors handler is also looked up
-	_, err = r.Handler(bad).Deliver(nil, nil, nil)
-	assert.Error(t, err)
-	assert.False(t, errors.ErrNotFound.Is(err))
-	assert.True(t, errors.ErrHuman.Is(err))
-	assert.Equal(t, 2, h.CallCount())
-
-	// make sure not found returns an error handler as well
-	_, err = r.Handler(missing).Deliver(nil, nil, nil)
-	assert.Error(t, err)
-	assert.True(t, errors.ErrNotFound.Is(err))
-	_, err = r.Handler(missing).Check(nil, nil, nil)
-	assert.Error(t, err)
-	assert.True(t, errors.ErrNotFound.Is(err))
-	assert.Equal(t, 2, h.CallCount())
+func TestRegisteringMessageHandlerTwice(t *testing.T) {
+	r := NewRouter()
+	r.Handle(&weavetest.Msg{RoutePath: "test/msg"}, &weavetest.Handler{})
+	assert.Panics(t, func() {
+		r.Handle(&weavetest.Msg{RoutePath: "test/msg"}, &weavetest.Handler{})
+	})
 }

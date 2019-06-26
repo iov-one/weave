@@ -135,7 +135,6 @@ func TestCreateMsg(t *testing.T) {
 
 	for i, tc := range cases {
 		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
-			assert.Equal(t, pathCreateMsg, tc.msg.Path())
 			err := tc.msg.Validate()
 			assert.True(t, tc.check(err), "%+v", err)
 		})
@@ -221,7 +220,6 @@ func TestReleaseMsg(t *testing.T) {
 
 	for i, tc := range cases {
 		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
-			assert.Equal(t, pathReleaseMsg, tc.msg.Path())
 			err := tc.msg.Validate()
 			assert.True(t, tc.check(err), "%+v", err)
 		})
@@ -265,7 +263,6 @@ func TestReturnMsg(t *testing.T) {
 
 	for i, tc := range cases {
 		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
-			assert.Equal(t, pathReturnMsg, tc.msg.Path())
 			err := tc.msg.Validate()
 			assert.True(t, tc.check(err), "%+v", err)
 		})
@@ -334,7 +331,6 @@ func TestUpdateEscrowMsg(t *testing.T) {
 
 	for i, tc := range cases {
 		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
-			assert.Equal(t, pathUpdatePartiesMsg, tc.msg.Path())
 			err := tc.msg.Validate()
 			assert.True(t, tc.check(err), "%+v", err)
 		})

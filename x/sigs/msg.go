@@ -10,8 +10,6 @@ func init() {
 }
 
 const (
-	pathBumpSequenceMsg = "sigs/bump_sequence"
-
 	maxSequenceIncrement = 1000
 	minSequenceIncrement = 1
 )
@@ -30,5 +28,5 @@ func (msg *BumpSequenceMsg) Validate() error {
 }
 
 func (BumpSequenceMsg) Path() string {
-	return pathBumpSequenceMsg
+	return "sigs/bump_sequence"
 }

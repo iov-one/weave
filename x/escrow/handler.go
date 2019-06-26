@@ -24,18 +24,16 @@ func RegisterRoutes(r weave.Registry, auth x.Authenticator, cashctrl cash.Contro
 	r = migration.SchemaMigratingRegistry("escrow", r)
 	bucket := NewBucket()
 
-	r.Handle(pathCreateMsg, CreateEscrowHandler{auth, bucket, cashctrl})
-	r.Handle(pathReleaseMsg, ReleaseEscrowHandler{auth, bucket, cashctrl})
-	r.Handle(pathReturnMsg, ReturnEscrowHandler{auth, bucket, cashctrl})
-	r.Handle(pathUpdatePartiesMsg, UpdateEscrowHandler{auth, bucket})
+	r.Handle(&CreateMsg{}, CreateEscrowHandler{auth, bucket, cashctrl})
+	r.Handle(&ReleaseMsg{}, ReleaseEscrowHandler{auth, bucket, cashctrl})
+	r.Handle(&ReturnMsg{}, ReturnEscrowHandler{auth, bucket, cashctrl})
+	r.Handle(&UpdatePartiesMsg{}, UpdateEscrowHandler{auth, bucket})
 }
 
 // RegisterQuery will register this bucket as "/escrows"
 func RegisterQuery(qr weave.QueryRouter) {
 	NewBucket().Register("escrows", qr)
 }
-
-//---- create
 
 // CreateEscrowHandler will set a name for objects in this bucket
 type CreateEscrowHandler struct {

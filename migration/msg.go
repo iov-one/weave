@@ -5,10 +5,6 @@ import (
 	"github.com/iov-one/weave/errors"
 )
 
-const (
-	pathUpgradeSchemaMsg = "migration/upgrade_schema"
-)
-
 var _ weave.Msg = (*UpgradeSchemaMsg)(nil)
 
 func (msg *UpgradeSchemaMsg) Validate() error {
@@ -19,5 +15,5 @@ func (msg *UpgradeSchemaMsg) Validate() error {
 }
 
 func (UpgradeSchemaMsg) Path() string {
-	return pathUpgradeSchemaMsg
+	return "migration/upgrade_schema"
 }

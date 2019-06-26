@@ -6,21 +6,11 @@ import (
 	"github.com/iov-one/weave/migration"
 )
 
-var _ weave.Msg = (*CreateMsg)(nil)
-var _ weave.Msg = (*TransferMsg)(nil)
-var _ weave.Msg = (*CloseMsg)(nil)
-
 func init() {
 	migration.MustRegister(1, &CreateMsg{}, migration.NoModification)
 	migration.MustRegister(1, &TransferMsg{}, migration.NoModification)
 	migration.MustRegister(1, &CloseMsg{}, migration.NoModification)
 }
-
-const (
-	pathCreateMsg   = "paychan/create"
-	pathTransferMsg = "paychan/transfer"
-	pathCloseMsg    = "paychan/close"
-)
 
 func (m *CreateMsg) Validate() error {
 	var errs error
@@ -50,7 +40,7 @@ func (m *CreateMsg) Validate() error {
 }
 
 func (CreateMsg) Path() string {
-	return pathCreateMsg
+	return "paychan/create"
 }
 
 func (m *TransferMsg) Validate() error {
@@ -82,7 +72,7 @@ func (m *TransferMsg) Validate() error {
 }
 
 func (TransferMsg) Path() string {
-	return pathTransferMsg
+	return "paychan/transfer"
 }
 
 func (m *CloseMsg) Validate() error {
@@ -102,7 +92,7 @@ func (m *CloseMsg) Validate() error {
 }
 
 func (CloseMsg) Path() string {
-	return pathCloseMsg
+	return "paychan/close"
 }
 
 // inThePast represents time value for Monday, January 1, 2018 2:00:00 AM GMT+01:00

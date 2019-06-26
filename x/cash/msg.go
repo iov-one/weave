@@ -16,9 +16,7 @@ func init() {
 var _ weave.Msg = (*SendMsg)(nil)
 
 const (
-	pathSendMsg                      = "cash/send"
-	pathUpdateConfigurationMsg       = "cash/update_configuration"
-	sendTxCost                 int64 = 100
+	sendTxCost int64 = 100
 
 	maxMemoSize int = 128
 	maxRefSize  int = 64
@@ -26,7 +24,7 @@ const (
 
 // Path returns the routing path for this message
 func (SendMsg) Path() string {
-	return pathSendMsg
+	return "cash/send"
 }
 
 // Validate makes sure that this is sensible
@@ -130,5 +128,5 @@ func (m *UpdateConfigurationMsg) Validate() error {
 }
 
 func (*UpdateConfigurationMsg) Path() string {
-	return pathUpdateConfigurationMsg
+	return "cash/update_configuration"
 }

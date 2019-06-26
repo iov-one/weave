@@ -32,17 +32,17 @@ type CashController interface {
 func RegisterRoutes(r weave.Registry, auth x.Authenticator, ctrl CashController) {
 	r = migration.SchemaMigratingRegistry("distribution", r)
 	bucket := NewRevenueBucket()
-	r.Handle(pathCreateMsg, &createRevenueHandler{
+	r.Handle(&CreateMsg{}, &createRevenueHandler{
 		auth:   auth,
 		bucket: bucket,
 		ctrl:   ctrl,
 	})
-	r.Handle(pathDistributeMsg, &distributeHandler{
+	r.Handle(&DistributeMsg{}, &distributeHandler{
 		auth:   auth,
 		bucket: bucket,
 		ctrl:   ctrl,
 	})
-	r.Handle(pathResetMsg, &resetRevenueHandler{
+	r.Handle(&ResetMsg{}, &resetRevenueHandler{
 		auth:   auth,
 		bucket: bucket,
 		ctrl:   ctrl,

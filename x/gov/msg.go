@@ -5,16 +5,6 @@ import (
 	"github.com/iov-one/weave/migration"
 )
 
-const (
-	pathCreateProposalMsg       = "gov/create_proposal"
-	pathDeleteProposalMsg       = "gov/delete_proposal"
-	pathVoteMsg                 = "gov/vote"
-	pathTallyMsg                = "gov/tally"
-	pathCreateTextResolutionMsg = "gov/create_text_resolution"
-	pathUpdateElectorateMsg     = "gov/update_electorate"
-	pathUpdateElectionRuleMsg   = "gov/update_election_rule"
-)
-
 func init() {
 	migration.MustRegister(1, &CreateProposalMsg{}, migration.NoModification)
 	migration.MustRegister(1, &VoteMsg{}, migration.NoModification)
@@ -25,7 +15,7 @@ func init() {
 }
 
 func (CreateProposalMsg) Path() string {
-	return pathCreateProposalMsg
+	return "gov/create_proposal"
 }
 
 func (m CreateProposalMsg) Validate() error {
@@ -62,7 +52,7 @@ func (m CreateProposalMsg) Validate() error {
 }
 
 func (DeleteProposalMsg) Path() string {
-	return pathDeleteProposalMsg
+	return "gov/delete_proposal"
 }
 
 func (m DeleteProposalMsg) Validate() error {
@@ -77,7 +67,7 @@ func (m DeleteProposalMsg) Validate() error {
 }
 
 func (VoteMsg) Path() string {
-	return pathVoteMsg
+	return "gov/vote"
 }
 
 func (m VoteMsg) Validate() error {
@@ -97,7 +87,7 @@ func (m VoteMsg) Validate() error {
 }
 
 func (TallyMsg) Path() string {
-	return pathTallyMsg
+	return "gov/tally"
 }
 
 func (m TallyMsg) Validate() error {
@@ -112,7 +102,7 @@ func (m TallyMsg) Validate() error {
 }
 
 func (UpdateElectionRuleMsg) Path() string {
-	return pathUpdateElectionRuleMsg
+	return "gov/update_election_rule"
 }
 
 func (m UpdateElectionRuleMsg) Validate() error {
@@ -132,7 +122,7 @@ func (m UpdateElectionRuleMsg) Validate() error {
 }
 
 func (CreateTextResolutionMsg) Path() string {
-	return pathCreateTextResolutionMsg
+	return "gov/create_text_resolution"
 }
 
 func (m CreateTextResolutionMsg) Validate() error {
@@ -146,7 +136,7 @@ func (m CreateTextResolutionMsg) Validate() error {
 }
 
 func (UpdateElectorateMsg) Path() string {
-	return pathUpdateElectorateMsg
+	return "gov/update_electorate"
 }
 
 func (m UpdateElectorateMsg) Validate() error {

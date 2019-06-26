@@ -11,12 +11,6 @@ func init() {
 	migration.MustRegister(1, &ResetMsg{}, migration.NoModification)
 }
 
-const (
-	pathCreateMsg     = "distribution/create"
-	pathDistributeMsg = "distribution/distribute"
-	pathResetMsg      = "distribution/reset"
-)
-
 func (msg *CreateMsg) Validate() error {
 	if err := msg.Metadata.Validate(); err != nil {
 		return errors.Wrap(err, "invalid metadata")
@@ -31,7 +25,7 @@ func (msg *CreateMsg) Validate() error {
 }
 
 func (CreateMsg) Path() string {
-	return pathCreateMsg
+	return "distribution/create"
 }
 
 func (msg *DistributeMsg) Validate() error {
@@ -45,7 +39,7 @@ func (msg *DistributeMsg) Validate() error {
 }
 
 func (DistributeMsg) Path() string {
-	return pathDistributeMsg
+	return "distribution/distribute"
 }
 
 func (msg *ResetMsg) Validate() error {
@@ -59,5 +53,5 @@ func (msg *ResetMsg) Validate() error {
 }
 
 func (ResetMsg) Path() string {
-	return pathResetMsg
+	return "distribution/reset"
 }

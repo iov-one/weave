@@ -11,9 +11,6 @@ func init() {
 }
 
 const (
-	pathCreateMsg = "multisig/create"
-	pathUpdateMsg = "multisig/update"
-
 	creationCost int64 = 300 // 3x more expensive than SendMsg
 	updateCost   int64 = 150 // Half the creation cost
 
@@ -22,9 +19,9 @@ const (
 	maxParticipantsAllowed = 100
 )
 
-// Path fulfills weave.Msg interface to allow routing
+// Path fulfills weave.Msg interface to allow routing.
 func (CreateMsg) Path() string {
-	return pathCreateMsg
+	return "multisig/create"
 }
 
 // Validate enforces sigs and threshold boundaries
@@ -42,9 +39,9 @@ func (c *CreateMsg) Validate() error {
 		c.Participants, c.ActivationThreshold, c.AdminThreshold)
 }
 
-// Path fulfills weave.Msg interface to allow routing
+// Path fulfills weave.Msg interface to allow routing.
 func (UpdateMsg) Path() string {
-	return pathUpdateMsg
+	return "multisig/update"
 }
 
 // Validate enforces sigs and threshold boundaries

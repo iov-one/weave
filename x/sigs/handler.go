@@ -9,7 +9,7 @@ import (
 )
 
 func RegisterRoutes(r weave.Registry, auth x.Authenticator) {
-	r.Handle(pathBumpSequenceMsg, migration.SchemaMigratingHandler("sigs",
+	r.Handle(&BumpSequenceMsg{}, migration.SchemaMigratingHandler("sigs",
 		&bumpSequenceHandler{
 			b:    NewBucket(),
 			auth: auth,

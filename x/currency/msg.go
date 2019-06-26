@@ -1,7 +1,6 @@
 package currency
 
 import (
-	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/migration"
@@ -10,8 +9,6 @@ import (
 func init() {
 	migration.MustRegister(1, &CreateMsg{}, migration.NoModification)
 }
-
-var _ weave.Msg = (*CreateMsg)(nil)
 
 func (CreateMsg) Path() string {
 	return "currency/create"
