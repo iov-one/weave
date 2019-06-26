@@ -1,8 +1,6 @@
 package utils
 
 import (
-	"fmt"
-
 	"github.com/iov-one/weave"
 	"github.com/tendermint/tendermint/libs/common"
 )
@@ -46,7 +44,6 @@ func (ActionTagger) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx, ne
 	if err != nil {
 		return nil, err
 	}
-	fmt.Printf("append: %s\n", msg.Path())
 	tag := common.KVPair{
 		Key:   []byte(ActionKey),
 		Value: []byte(msg.Path()),

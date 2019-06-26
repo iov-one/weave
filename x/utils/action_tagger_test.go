@@ -2,7 +2,6 @@ package utils_test
 
 import (
 	"context"
-	"fmt"
 	"testing"
 
 	"github.com/iov-one/weave"
@@ -89,10 +88,6 @@ func TestActionTagger(t *testing.T) {
 				return
 			}
 			assert.Nil(t, err)
-			fmt.Println("")
-			for _, t := range res.Tags {
-				fmt.Printf("%s = %s\n", string(t.Key), string(t.Value))
-			}
 			assert.Equal(t, len(tc.tags), len(res.Tags))
 			for i := range tc.tags {
 				assert.Equal(t, string(tc.tags[i].Key), string(res.Tags[i].Key))
