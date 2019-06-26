@@ -63,8 +63,10 @@ already has a fee set, overwrite it with a new value.
 	)
 	fl.Parse(args)
 
+	var payer weave.Address
 	if len(*payerFl) != 0 {
-		if err := weave.Address(*payerFl).Validate(); err != nil {
+		payer = weave.Address(*payerFl)
+		if err := payer.Validate(); err != nil {
 			flagDie("invlid payer address: %s", err)
 		}
 	}
@@ -99,9 +101,8 @@ already has a fee set, overwrite it with a new value.
 		}
 
 	}
-
 	tx.Fees = &cash.FeeInfo{
-		Payer: *payerFl,
+		Payer: payer,
 		Fees:  amountFl,
 	}
 

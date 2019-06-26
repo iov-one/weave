@@ -31,7 +31,7 @@ message SendMsg {
 // FeeInfo records who pays what fees to have this
 // message processed
 message FeeInfo {
-  bytes payer = 2;
+  bytes payer = 2 ;
   coin.Coin fees = 3;
 }
 
