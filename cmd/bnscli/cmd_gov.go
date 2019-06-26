@@ -257,103 +257,107 @@ func inOneHour() time.Time {
 	return time.Now().Add(time.Hour)
 }
 
-/*
-#!/bin/bash
+// cmdDelProposal is the cli command to delete an existing proposal.
+func cmdDelProposal(input io.Reader, output io.Writer, args []string) error {
+	fl := flag.NewFlagSet("", flag.ExitOnError)
+	fl.Usage = func() {
+		fmt.Fprintln(flag.CommandLine.Output(), `
+Delete an existing proposal before the voting period has started.
+		`)
+		fl.PrintDefaults()
+	}
+	var (
+		id = flSeq(fl, "proposal-id", "", "The ID of the proposal that is to be deleted.")
+	)
+	fl.Parse(args)
+	if len(*id) == 0 {
+		flagDie("the id must not be empty")
+	}
+	govTx := &bnsd.Tx{
+		Sum: &bnsd.Tx_GovDeleteProposalMsg{
+			GovDeleteProposalMsg: &gov.DeleteProposalMsg{
+				Metadata:   &weave.Metadata{Schema: 1},
+				ProposalID: []byte(*id),
+			},
+		},
+	}
 
-# Copy this directly from the ProposalOptions defined in cmd/bnsd/app/codec.proto
-# Remove all comment lines (starts with //)
-proposals="
-cash.SendMsg cash_send_msg = 51;
-escrow.ReleaseMsg escrow_release_msg = 53;
-escrow.UpdatePartiesMsg update_escrow_parties_msg = 55;
-multisig.UpdateMsg multisig_update_msg = 57;
-validators.ApplyDiffMsg validators_apply_diff_msg = 58;
-currency.CreateMsg currency_create_msg = 59;
-ExecuteProposalBatchMsg execute_proposal_batch_msg = 60;
-username.RegisterTokenMsg username_register_token_msg = 61;
-username.TransferTokenMsg username_transfer_token_msg = 62;
-username.ChangeTokenTargetsMsg username_change_token_targets_msg = 63;
-distribution.CreateMsg distribution_create_msg = 66;
-distribution.DistributeMsg distribution_msg = 67;
-distribution.ResetMsg distribution_reset_msg = 68;
-migration.UpgradeSchemaMsg migration_upgrade_schema_msg = 69;
-gov.UpdateElectorateMsg gov_update_electorate_msg = 77;
-gov.UpdateElectionRuleMsg gov_update_election_rule_msg = 78;
-gov.CreateTextResolutionMsg gov_create_text_resolution_msg = 79;
-"
+	_, err := writeTx(output, govTx)
+	return err
+}
 
-# Copy this directly from the ExecuteProposalBatchMsg defined in cmd/bnsd/app/codec.proto
-# Remove all comment lines (starts with //)
-proposalbatch="
-cash.SendMsg send_msg = 51;
-escrow.ReleaseMsg escrow_release_msg = 53;
-escrow.UpdatePartiesMsg update_escrow_parties_msg = 55;
-multisig.UpdateMsg multisig_update_msg = 57;
-validators.ApplyDiffMsg validators_apply_diff_msg = 58;
-username.RegisterTokenMsg username_register_token_msg = 61;
-username.TransferTokenMsg username_transfer_token_msg = 62;
-username.ChangeTokenTargetsMsg username_change_token_targets_msg = 63;
-distribution.CreateMsg distribution_create_msg = 66;
-distribution.DistributeMsg distribution_msg = 67;
-distribution.ResetMsg distribution_reset_msg = 68;
-gov.UpdateElectorateMsg gov_update_electorate_msg = 77;
-gov.UpdateElectionRuleMsg gov_update_election_rule_msg = 78;
-gov.CreateTextResolutionMsg gov_create_text_resolution_msg = 79;
-"
+var supportedVoteOptions = map[string]gov.VoteOption{
+	"yes":     gov.VoteOption_Yes,
+	"no":      gov.VoteOption_No,
+	"abstain": gov.VoteOption_Abstain,
+}
 
-while read -r m; do
-	if [ "x$m" == "x" ]
-	then
-		continue
-	fi
+// cmdVote is the cli command create a vote for a proposal
+func cmdVote(input io.Reader, output io.Writer, args []string) error {
+	fl := flag.NewFlagSet("", flag.ExitOnError)
+	fl.Usage = func() {
+		fmt.Fprintln(flag.CommandLine.Output(), `
+Vote on a governance proposal.
+		`)
+		fl.PrintDefaults()
+	}
+	var (
+		id         = flSeq(fl, "proposal-id", "", "The ID of the proposal to vote for.")
+		voterFl    = flHex(fl, "voter", "", "Optional address of a voter. If not provided the main signer will be used.")
+		selectedFl = fl.String("select", "", "Supported options are: yes, no, abstain")
+	)
+	fl.Parse(args)
+	if len(*id) == 0 {
+		flagDie("the proposal id  must not be empty")
+	}
+	if len(*voterFl) != 0 {
+		if err := weave.Address(*voterFl).Validate(); err != nil {
+			flagDie("invalid voter address: %q", err)
+		}
+	}
 
-	tp=`echo $m | cut -d ' ' -f1`
-	# Name is not always the same as the type name. Convert it to camel case.
-	name=`echo $m | cut -d ' ' -f2 | sed -r 's/(^|_)([a-z])/\U\2/g'`
+	selected, ok := supportedVoteOptions[*selectedFl]
+	if !ok {
+		flagDie("unsupported vote option: %q", *selectedFl)
+	}
+	govTx := &bnsd.Tx{
+		Sum: &bnsd.Tx_GovVoteMsg{
+			GovVoteMsg: &gov.VoteMsg{
+				Metadata:   &weave.Metadata{Schema: 1},
+				ProposalID: []byte(*id),
+				Voter:      weave.Address(*voterFl),
+				Selected:   selected,
+			},
+		},
+	}
+	_, err := writeTx(output, govTx)
+	return err
+}
 
-	# ExecuteProposalBatchMsg requires a special type cast to convert structures.
-	if [ "x$name" == "xExecuteProposalBatchMsg" ]
-	then
-		echo "	case *bnsd.ExecuteBatchMsg:"
-		echo "		msgs, err := msg.MsgList()"
-		echo "		if err != nil {"
-		echo "			return fmt.Errorf(\"cannot extract messages: %s\", err)"
-		echo "		}"
-		echo "		var messages []bnsd.ExecuteProposalBatchMsg_Union"
-		echo "		for _, m := range msgs {"
-		echo "			switch m := m.(type) {"
-
-		while read -r m; do
-			if [ "x$m" == "x" ]
-			then
-				continue
-			fi
-
-			tp=`echo $m | cut -d ' ' -f1`
-			# Name is not always the same as the type name. Convert it to camel case.
-			name=`echo $m | cut -d ' ' -f2 | sed -r 's/(^|_)([a-z])/\U\2/g'`
-
-			echo "			case *$tp:"
-			echo "				messages = append(messages, bnsd.ExecuteProposalBatchMsg_Union{"
-			echo "					Sum: &bnsd.ExecuteProposalBatchMsg_Union_$name{"
-			echo "						$name: m,"
-			echo "					},"
-			echo "				})"
-		done <<< $proposalbatch
-
-		echo "			}"
-		echo "		}"
-		echo "		option.Option = &bnsd.ProposalOptions_ExecuteProposalBatchMsg{"
-		echo "			ExecuteProposalBatchMsg: &bnsd.ExecuteProposalBatchMsg{"
-		echo "				Messages: messages,"
-		echo "			},"
-		echo "		}"
-		continue
-	fi
-
-	echo "	case *$tp:"
-	echo "		option.Option = &bnsd.ProposalOptions_$name{"
-	echo "				$name: msg,"
-	echo "		}"
-done <<< $proposals
-*/
+// cmdTally is the cli command to trigger the tally execution after the voting period had ended
+func cmdTally(input io.Reader, output io.Writer, args []string) error {
+	fl := flag.NewFlagSet("", flag.ExitOnError)
+	fl.Usage = func() {
+		fmt.Fprintln(flag.CommandLine.Output(), `
+Tally triggers the tally execution after the voting period had ended.
+		`)
+		fl.PrintDefaults()
+	}
+	var (
+		id = flSeq(fl, "proposal-id", "", "The ID of the proposal for the tally to execute.")
+	)
+	fl.Parse(args)
+	if len(*id) == 0 {
+		flagDie("the proposal id  must not be empty")
+	}
+	govTx := &bnsd.Tx{
+		Sum: &bnsd.Tx_GovTallyMsg{
+			GovTallyMsg: &gov.TallyMsg{
+				Metadata:   &weave.Metadata{Schema: 1},
+				ProposalID: []byte(*id),
+			},
+		},
+	}
+	_, err := writeTx(output, govTx)
+	return err
+}

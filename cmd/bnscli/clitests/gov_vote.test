@@ -1,0 +1,8 @@
+#!/bin/sh
+
+set -e
+
+bnscli vote -proposal-id 123 \
+        -select yes \
+        -voter "b1ca7e78f74423ae01da3b51e676934d9105f282" \
+    | bnscli view

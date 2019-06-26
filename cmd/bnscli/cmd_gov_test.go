@@ -66,3 +66,76 @@ func TestCmdAsProposalHappyPath(t *testing.T) {
 	assert.Equal(t, "a memo", submsg.Memo)
 	assert.Equal(t, coin.NewCoinp(5, 0, "DOGE"), submsg.Amount)
 }
+
+func TestCmdDeleteProposalHappyPath(t *testing.T) {
+	var output bytes.Buffer
+	args := []string{
+		"-proposal-id", "5",
+	}
+	if err := cmdDelProposal(nil, &output, args); err != nil {
+		t.Fatalf("cannot create a new delete proposal transaction: %s", err)
+	}
+
+	tx, _, err := readTx(&output)
+	if err != nil {
+		t.Fatalf("cannot read created transaction: %s", err)
+	}
+
+	txmsg, err := tx.GetMsg()
+	if err != nil {
+		t.Fatalf("cannot get transaction message: %s", err)
+	}
+	msg := txmsg.(*gov.DeleteProposalMsg)
+
+	assert.Equal(t, sequenceID(5), msg.ProposalID)
+}
+
+func TestCmdVoteHappyPath(t *testing.T) {
+	var output bytes.Buffer
+	args := []string{
+		"-proposal-id", "5",
+		"-voter", "b1ca7e78f74423ae01da3b51e676934d9105f282",
+		"-select", "yes",
+	}
+	if err := cmdVote(nil, &output, args); err != nil {
+		t.Fatalf("cannot create a new delete proposal transaction: %s", err)
+	}
+
+	tx, _, err := readTx(&output)
+	if err != nil {
+		t.Fatalf("cannot read created transaction: %s", err)
+	}
+
+	txmsg, err := tx.GetMsg()
+	if err != nil {
+		t.Fatalf("cannot get transaction message: %s", err)
+	}
+	msg := txmsg.(*gov.VoteMsg)
+
+	assert.Equal(t, sequenceID(5), msg.ProposalID)
+	assert.Equal(t, fromHex(t, "b1ca7e78f74423ae01da3b51e676934d9105f282"), []byte(msg.Voter))
+	assert.Equal(t, gov.VoteOption_Yes, msg.Selected)
+}
+
+func TestCmdTallyHappyPath(t *testing.T) {
+	var output bytes.Buffer
+	args := []string{
+		"-proposal-id", "5",
+	}
+	if err := cmdTally(nil, &output, args); err != nil {
+		t.Fatalf("cannot create a new delete proposal transaction: %s", err)
+	}
+
+	tx, _, err := readTx(&output)
+	if err != nil {
+		t.Fatalf("cannot read created transaction: %s", err)
+	}
+
+	txmsg, err := tx.GetMsg()
+	if err != nil {
+		t.Fatalf("cannot get transaction message: %s", err)
+	}
+	msg := txmsg.(*gov.TallyMsg)
+
+	assert.Equal(t, sequenceID(5), msg.ProposalID)
+}
