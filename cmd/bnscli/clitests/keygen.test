@@ -11,7 +11,8 @@ bnscli keygen
 
 # Key generation in non deterministic (cryptography 101) so we cannot compare
 # its value. We can only ensure that enough bytes was generated.
-echo "generated private key length: `wc -c < $keypath`"
+# xargs removes the leading whitespaces on OSX
+echo "generated private key length: `wc -c < $keypath | xargs`"
 
 # Generating a key when one already exist must fail.
 if bnscli keygen 2> /dev/null
