@@ -19,12 +19,15 @@ type ActionTagger struct{}
 
 var _ weave.Decorator = ActionTagger{}
 
+// ActionKey is used by ActionTagger as the Key in the Tag it appends
+const ActionKey = "action"
+
 // NewActionTagger creates a ActionTagger decorator
 func NewActionTagger() ActionTagger {
 	return ActionTagger{}
 }
 
-// Check does nothing
+// Check just passes the request along
 func (ActionTagger) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx, next weave.Checker) (*weave.CheckResult, error) {
 	return next.Check(ctx, db, tx)
 }
@@ -42,7 +45,7 @@ func (ActionTagger) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx, ne
 		return nil, err
 	}
 	tag := common.KVPair{
-		Key:   []byte("action"),
+		Key:   []byte(ActionKey),
 		Value: []byte(msg.Path()),
 	}
 	res.Tags = append(res.Tags, tag)

@@ -17,6 +17,7 @@ import (
 	"github.com/iov-one/weave/x/cash"
 	"github.com/iov-one/weave/x/multisig"
 	"github.com/iov-one/weave/x/sigs"
+	"github.com/iov-one/weave/x/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -164,8 +165,8 @@ func TestApp(t *testing.T) {
 func tagsAsString(pairs []common.KVPair) string {
 	r := make([]string, len(pairs))
 	for i, v := range pairs {
-		if string(v.Key) == "action" {
-			r[i] = "action"
+		if string(v.Key) == utils.ActionKey {
+			r[i] = utils.ActionKey
 			continue
 		}
 		x, err := hex.DecodeString(string(v.Key))
