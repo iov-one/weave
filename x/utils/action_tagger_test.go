@@ -4,38 +4,49 @@ import (
 	"context"
 	"testing"
 
+	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/store"
 	"github.com/iov-one/weave/weavetest"
 	"github.com/iov-one/weave/weavetest/assert"
+	"github.com/tendermint/tendermint/libs/common"
 )
 
 func TestActionTagger(t *testing.T) {
-	h := &weavetest.Handler{}
-	msg := &weavetest.Msg{RoutePath: "foobar/create"}
-	tx := &weavetest.Tx{Msg: msg}
+	cases := map[string]struct {
+		wrap weave.Decorator
+		h    weave.Handler
+		tx   weave.Tx
+		err  *errors.Error
+		tags []common.KVPair
+	}{
+		"simple call": {
+			wrap: NewActionTagger(),
+			h:    &weavetest.Handler{},
+			tx:   &weavetest.Tx{Msg: &weavetest.Msg{RoutePath: "foobar/create"}},
+			tags: []common.KVPair{{Key: []byte("action"), Value: []byte("foobar/create")}},
+		},
+	}
 
-	a := NewActionTagger()
+	for name, tc := range cases {
+		t.Run(name, func(t *testing.T) {
+			ctx := context.Background()
+			store := store.MemStore()
 
-	ctx := context.Background()
-	store := store.MemStore()
-
-	// ensure handler works as expected
-	res, err := h.Deliver(ctx, store, tx)
-	assert.Nil(t, err)
-	assert.Equal(t, 0, len(res.Tags))
-
-	// we get tagged on success
-	res, err = a.Deliver(ctx, store, tx, h)
-	assert.Nil(t, err)
-	assert.Equal(t, 1, len(res.Tags))
-	assert.Equal(t, "action", string(res.Tags[0].Key))
-	assert.Equal(t, "foobar/create", string(res.Tags[0].Value))
-
-	badh := &weavetest.Handler{DeliverErr: errors.ErrHuman}
-	res, err = a.Deliver(ctx, store, tx, badh)
-	assert.Nil(t, res)
-	if !errors.ErrHuman.Is(err) {
-		t.Fatalf("Expected ErrHuman, got %v", err)
+			// we get tagged on success
+			res, err := tc.wrap.Deliver(ctx, store, tc.tx, tc.h)
+			if tc.err != nil {
+				if !tc.err.Is(err) {
+					t.Fatalf("Unexpected error type returned: %v", err)
+				}
+				return
+			}
+			assert.Nil(t, err)
+			assert.Equal(t, len(tc.tags), len(res.Tags))
+			for i := range tc.tags {
+				assert.Equal(t, string(tc.tags[i].Key), string(res.Tags[i].Key))
+				assert.Equal(t, string(tc.tags[i].Value), string(res.Tags[i].Value))
+			}
+		})
 	}
 }
