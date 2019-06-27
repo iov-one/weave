@@ -59,7 +59,7 @@ func (c *Client) Status(ctx context.Context) (*Status, error) {
 
 // Header returns the block header at the given height.
 // Returns an error if no header exists yet for that height
-func (c *Client) Header(ctx context.Context, info weave.BlockInfo, height int64) (*Header, error) {
+func (c *Client) Header(ctx context.Context, height int64) (*Header, error) {
 	// TODO: add context timeout here
 	info, err := c.conn.BlockchainInfo(height, height)
 	if err != nil {
@@ -74,7 +74,7 @@ func (c *Client) Header(ctx context.Context, info weave.BlockInfo, height int64)
 // SubmitTx will submit the tx to the mempool and then return with success or error
 // You will need to use WatchTx (easily parallelizable) to get the result.
 // CommitTx and CommitTxs provide helpers for common use cases
-func (c *Client) SubmitTx(ctx context.Context, info weave.BlockInfo, tx weave.Tx) (TransactionID, error) {
+func (c *Client) SubmitTx(ctx context.Context, tx weave.Tx) (TransactionID, error) {
 	bz, err := tx.Marshal()
 	if err != nil {
 		return nil, errors.Wrapf(errors.ErrMsg, "marshaling: %s", err.Error())
@@ -110,7 +110,7 @@ func (c *Client) Query(query RequestQuery) ResponseQuery {
 }
 
 // GetTxByID will return 0 or 1 results (nil or result value)
-func (c *Client) GetTxByID(ctx context.Context, info weave.BlockInfo, id TransactionID) (*CommitResult, error) {
+func (c *Client) GetTxByID(ctx context.Context, id TransactionID) (*CommitResult, error) {
 	// TODO: add context timeout here
 	tx, err := c.conn.Tx(id, false) // FIXME: use proofs sometime
 	if err != nil {
@@ -122,7 +122,7 @@ func (c *Client) GetTxByID(ctx context.Context, info weave.BlockInfo, id Transac
 // SearchTx will search for all committed transactions that match a query,
 // returning them as one large array.
 // It returns an error if the subscription request failed.
-func (c *Client) SearchTx(ctx context.Context, info weave.BlockInfo, query TxQuery) ([]*CommitResult, error) {
+func (c *Client) SearchTx(ctx context.Context, query TxQuery) ([]*CommitResult, error) {
 	// TODO: return actual transaction content as well? not just ID and Result
 	// TODO: add context timeout here
 	// FIXME: use proofs sometime
@@ -141,7 +141,7 @@ func (c *Client) SearchTx(ctx context.Context, info weave.BlockInfo, query TxQue
 
 // SubscribeHeaders will fills the channel with all new headers
 // Stops when the context is cancelled
-func (c *Client) SubscribeHeaders(ctx context.Context, info weave.BlockInfo, results chan<- Header, options ...Option) error {
+func (c *Client) SubscribeHeaders(ctx context.Context, results chan<- Header, options ...Option) error {
 	data, err := c.subscribe(ctx, QueryForHeader(), options...)
 	if err != nil {
 		return err
@@ -171,7 +171,7 @@ func (c *Client) SubscribeHeaders(ctx context.Context, info weave.BlockInfo, res
 // SubscribeTx will subscribe to all transactions that match a query, writing them to the
 // results channel as they arrive. It returns an error if the subscription request failed.
 // Once subscriptions start, the continue until the context is closed (or network error)
-func (c *Client) SubscribeTx(ctx context.Context, info weave.BlockInfo, query TxQuery, results chan<- CommitResult, options ...Option) error {
+func (c *Client) SubscribeTx(ctx context.Context, query TxQuery, results chan<- CommitResult, options ...Option) error {
 	q := fmt.Sprintf("%s='%s' AND %s", tmtypes.EventTypeKey, tmtypes.EventTx, query)
 
 	data, err := c.subscribe(ctx, q, options...)
@@ -202,7 +202,7 @@ func (c *Client) SubscribeTx(ctx context.Context, info weave.BlockInfo, query Tx
 }
 
 // subscribe should be used internally, it wraps conn.Subscribe and uses ctx.Done() to trigger Unsubscription
-func (c *Client) subscribe(ctx context.Context, info weave.BlockInfo, query string, options ...Option) (<-chan ctypes.ResultEvent, error) {
+func (c *Client) subscribe(ctx context.Context, query string, options ...Option) (<-chan ctypes.ResultEvent, error) {
 	var outCapacity []int
 	for _, option := range options {
 		switch o := option.(type) {

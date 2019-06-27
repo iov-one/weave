@@ -18,7 +18,7 @@ import (
 //
 // Set FORCE_TM_TEST=1 environment variable to fail the test if the binary is
 // not available. This might be desired when running tests by CI.
-func RunTendermint(ctx context.Context, info weave.BlockInfo, t *testing.T, home string) (cleanup func()) {
+func RunTendermint(ctx context.Context, t *testing.T, home string) (cleanup func()) {
 	t.Helper()
 
 	tmpath, err := exec.LookPath("tendermint")
