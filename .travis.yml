@@ -10,6 +10,11 @@ addons:
     packages:
     - docker-ce
 
+cache:
+  directories:
+    - $HOME/.cache/go-build
+    - $HOME/gopath/pkg/mod
+
 os:
 - linux
 
