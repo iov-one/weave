@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"strings"
 	"testing"
 
 	"github.com/iov-one/weave"
@@ -201,16 +200,11 @@ func TestCmdTextResolutionHappyPath(t *testing.T) {
 }
 
 func TestCmdElectorateHappyPath(t *testing.T) {
-	csvFilePath := mustCreateFile(t, strings.NewReader(`seq:foo/bar/1,3
-seq:foo/bar/2,1
-seq:foo/bar/3,20`))
-
 	var output bytes.Buffer
 	args := []string{
-		"-electorate-id", "5",
-		"-electors", csvFilePath,
+		"-id", "5",
 	}
-	if err := cmdElectorate(nil, &output, args); err != nil {
+	if err := cmdUpdateElectorate(nil, &output, args); err != nil {
 		t.Fatalf("cannot create a transaction: %s", err)
 	}
 
@@ -226,8 +220,44 @@ seq:foo/bar/3,20`))
 	msg := txmsg.(*gov.UpdateElectorateMsg)
 
 	assert.Equal(t, weavetest.SequenceID(5), msg.ElectorateID)
-	assert.Equal(t, 3, len(msg.DiffElectors))
-	assert.Equal(t, uint32(3), msg.DiffElectors[0].Weight)
-	assert.Equal(t, uint32(1), msg.DiffElectors[1].Weight)
-	assert.Equal(t, uint32(20), msg.DiffElectors[2].Weight)
+	assert.Equal(t, 0, len(msg.DiffElectors))
+}
+
+func TestCmdWithElectorHappyPath(t *testing.T) {
+	var buf bytes.Buffer
+	govTx := &bnsd.Tx{
+		Sum: &bnsd.Tx_GovUpdateElectorateMsg{
+			GovUpdateElectorateMsg: &gov.UpdateElectorateMsg{
+				Metadata:     &weave.Metadata{Schema: 1},
+				ElectorateID: []byte("any"),
+			},
+		},
+	}
+	_, err := writeTx(&buf, govTx)
+	assert.Nil(t, err)
+	var output bytes.Buffer
+	args := []string{
+		"-address", "b1ca7e78f74423ae01da3b51e676934d9105f282",
+		"-weight", "11",
+	}
+
+	if err := cmdWithElector(&buf, &output, args); err != nil {
+		t.Fatalf("cannot create a transaction: %s", err)
+	}
+
+	tx, _, err := readTx(&output)
+	if err != nil {
+		t.Fatalf("cannot read created transaction: %s", err)
+	}
+
+	txmsg, err := tx.GetMsg()
+	if err != nil {
+		t.Fatalf("cannot get transaction message: %s", err)
+	}
+	msg := txmsg.(*gov.UpdateElectorateMsg)
+
+	assert.Equal(t, 1, len(msg.DiffElectors))
+	expAddress := weave.Address(fromHex(t, "b1ca7e78f74423ae01da3b51e676934d9105f282"))
+	assert.Equal(t, expAddress, msg.DiffElectors[0].Address)
+	assert.Equal(t, uint32(11), msg.DiffElectors[0].Weight)
 }

@@ -377,7 +377,7 @@ func cmdTextResolution(input io.Reader, output io.Writer, args []string) error {
 	fl := flag.NewFlagSet("", flag.ExitOnError)
 	fl.Usage = func() {
 		fmt.Fprintln(flag.CommandLine.Output(), `
-Text resolution is  'as-proposal' command.
+Text resolution creates a human readable gov proposal payload. To be used with 'as-proposal' command.
 		`)
 		fl.PrintDefaults()
 	}
@@ -392,7 +392,6 @@ Text resolution is  'as-proposal' command.
 		Metadata:   &weave.Metadata{Schema: 1},
 		Resolution: *textFl,
 	}
-	// serialize and write to output
 	data, err := msg.Marshal()
 	if err != nil {
 		return fmt.Errorf("can not serialize msg: %s", err)
@@ -402,7 +401,7 @@ Text resolution is  'as-proposal' command.
 	return err
 }
 
-func cmdElectorate(input io.Reader, output io.Writer, args []string) error {
+func cmdUpdateElectorate(input io.Reader, output io.Writer, args []string) error {
 	fl := flag.NewFlagSet("", flag.ExitOnError)
 	fl.Usage = func() {
 		fmt.Fprintln(flag.CommandLine.Output(), `
@@ -411,16 +410,11 @@ Electorate updates an existing electorate.
 		fl.PrintDefaults()
 	}
 	var (
-		id               = flSeq(fl, "electorate-id", "", "The ID of the electorate")
-		diffElectorateFl = fl.String("electors", "", "A path to a CSV file with recipients configuration. File should be a list of pairs (address, weight).")
+		id = flSeq(fl, "id", "", "The ID of the electorate")
 	)
 	fl.Parse(args)
 	if len(*id) == 0 {
-		flagDie("the proposal id  must not be empty")
-	}
-	diffElectors, err := readElectors(*diffElectorateFl)
-	if err != nil {
-		return fmt.Errorf("cannot read %q recipients file: %s", *diffElectorateFl, err)
+		flagDie("the electorate id  must not be empty")
 	}
 
 	govTx := &bnsd.Tx{
@@ -428,21 +422,52 @@ Electorate updates an existing electorate.
 			GovUpdateElectorateMsg: &gov.UpdateElectorateMsg{
 				Metadata:     &weave.Metadata{Schema: 1},
 				ElectorateID: []byte(*id),
-				DiffElectors: diffElectors,
 			},
 		},
 	}
-	_, err = writeTx(output, govTx)
+	_, err := writeTx(output, govTx)
 	return err
 }
 
-func readElectors(csvpath string) ([]gov.Elector, error) {
-	var electors []gov.Elector
-	appender := func(address weave.Address, weight uint32) {
-		electors = append(electors, gov.Elector{
-			Address: address,
-			Weight:  weight,
-		})
+func cmdWithElector(input io.Reader, output io.Writer, args []string) error {
+	fl := flag.NewFlagSet("", flag.ExitOnError)
+	fl.Usage = func() {
+		fmt.Fprintln(flag.CommandLine.Output(), `
+Reads a transaction from the input and attaches the provided elector address, weight pair.
+		`)
+		fl.PrintDefaults()
 	}
-	return electors, readAddressWeightPairCSV(csvpath, appender)
+
+	var (
+		addressFl = flAddress(fl, "address", "", "Electors address")
+		weightFl  = fl.Uint("weight", 1, "Electors weight")
+	)
+	fl.Parse(args)
+
+	if len(*addressFl) == 0 {
+		flagDie("address must not be empty")
+	}
+
+	tx, _, err := readTx(input)
+	if err != nil {
+		return fmt.Errorf("cannot read input transaction: %s", err)
+	}
+
+	msg, err := tx.GetMsg()
+	if err != nil {
+		return fmt.Errorf("cannot extract transaction message: %s", err)
+	}
+
+	switch msg := msg.(type) {
+	case *gov.UpdateElectorateMsg:
+		msg.DiffElectors = append(msg.DiffElectors, gov.Elector{
+			Address: *addressFl,
+			Weight:  uint32(*weightFl),
+		})
+	default:
+		return fmt.Errorf("message %T cannot be modified to contain multisig participant", msg)
+	}
+
+	_, err = writeTx(output, tx)
+	return nil
 }
