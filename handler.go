@@ -1,6 +1,7 @@
 package weave
 
 import (
+	"context"
 	"encoding/json"
 
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -17,27 +18,27 @@ type Handler interface {
 // It is its own interface to allow better type controls in the next
 // arguments in Decorator
 type Checker interface {
-	Check(ctx Context, store KVStore, tx Tx) (*CheckResult, error)
+	Check(ctx context.Context, store KVStore, tx Tx) (*CheckResult, error)
 }
 
 // Deliverer is a subset of Handler to execute a transaction.
 // It is its own interface to allow better type controls in the next
 // arguments in Decorator
 type Deliverer interface {
-	Deliver(ctx Context, store KVStore, tx Tx) (*DeliverResult, error)
+	Deliver(ctx context.Context, store KVStore, tx Tx) (*DeliverResult, error)
 }
 
 // Decorator wraps a Handler to provide common functionality
 // like authentication, or fee-handling, to many Handlers
 type Decorator interface {
-	Check(ctx Context, store KVStore, tx Tx, next Checker) (*CheckResult, error)
-	Deliver(ctx Context, store KVStore, tx Tx, next Deliverer) (*DeliverResult, error)
+	Check(ctx context.Context, store KVStore, tx Tx, next Checker) (*CheckResult, error)
+	Deliver(ctx context.Context, store KVStore, tx Tx, next Deliverer) (*DeliverResult, error)
 }
 
 // Ticker is a method that is called the beginning of every block,
 // which can be used to perform periodic or delayed tasks
 type Ticker interface {
-	Tick(ctx Context, store KVStore) (TickResult, error)
+	Tick(ctx context.Context, store KVStore) (TickResult, error)
 }
 
 // Registry is an interface to register your handler,

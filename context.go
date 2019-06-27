@@ -23,25 +23,12 @@ to avoid lower-level modules overwriting the value
 package weave
 
 import (
-	"context"
-	"fmt"
 	"regexp"
 	"time"
 
 	"github.com/iov-one/weave/errors"
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
-)
-
-type contextKey int // local to the weave module
-
-const (
-	contextKeyHeader contextKey = iota
-	contextKeyHeight
-	contextKeyChainID
-	contextKeyLogger
-	contextKeyTime
-	contextCommitInfo
 )
 
 var (
@@ -53,122 +40,86 @@ var (
 	IsValidChainID = regexp.MustCompile(`^[a-zA-Z0-9_\-]{6,20}$`).MatchString
 )
 
-// Context is just an alias for the standard implementation.
-// We use functions to extend it to our domain
-type Context = context.Context
-
-// WithHeader sets the block header for the Context.
-// panics if called with header already set
-func WithHeader(ctx Context, header abci.Header) Context {
-	if _, ok := GetHeader(ctx); ok {
-		panic("Header already set")
-	}
-	return context.WithValue(ctx, contextKeyHeader, header)
+type BlockInfo struct {
+	header     abci.Header
+	commitInfo CommitInfo
+	chainID    string
+	logger     log.Logger
 }
 
-// GetHeader returns the current block header
-// ok is false if no header set in this Context
-func GetHeader(ctx Context) (abci.Header, bool) {
-	val, ok := ctx.Value(contextKeyHeader).(abci.Header)
-	return val, ok
-}
-
-// WithCommitInfo sets the info on who signed the block in this Context.
-// Panics if already set.
-func WithCommitInfo(ctx Context, info CommitInfo) Context {
-	if _, ok := GetCommitInfo(ctx); ok {
-		panic("CommitInfo already set")
-	}
-	return context.WithValue(ctx, contextCommitInfo, info)
-}
-
-// GetCommitInfo returns the info on validators that signed
-// this block. Returns false if not present.
-func GetCommitInfo(ctx Context) (CommitInfo, bool) {
-	val, ok := ctx.Value(contextCommitInfo).(CommitInfo)
-	return val, ok
-}
-
-// WithHeight sets the block height for the Context.
-// panics if called with height already set
-func WithHeight(ctx Context, height int64) Context {
-	if _, ok := GetHeight(ctx); ok {
-		panic("Height already set")
-	}
-	return context.WithValue(ctx, contextKeyHeight, height)
-}
-
-// GetHeight returns the current block height
-// ok is false if no height set in this Context
-func GetHeight(ctx Context) (int64, bool) {
-	val, ok := ctx.Value(contextKeyHeight).(int64)
-	return val, ok
-}
-
-// WithBlockTime sets the block time for the context. Block time is always
-// represented in UTC.
-func WithBlockTime(ctx Context, t time.Time) Context {
-	return context.WithValue(ctx, contextKeyTime, t.UTC())
-}
-
-// BlockTime returns current block wall clock time as declared in the context.
-// An error is returned if a block time is not present in the context or if the
-// zero time value is found.
-func BlockTime(ctx Context) (time.Time, error) {
-	val, ok := ctx.Value(contextKeyTime).(time.Time)
-	if !ok {
-		return time.Time{}, errors.Wrap(errors.ErrHuman, "block time not present in the context")
-	}
-	if val.IsZero() {
-		// This is a special case when a zero time value was attached
-		// to the context. Even though it is present it is not a valid
-		// value.
-		return val, errors.Wrap(errors.ErrHuman, "zero value block time in the context")
-	}
-	return val, nil
-}
-
-// WithChainID sets the chain id for the Context.
-// panics if called with chain id already set
-func WithChainID(ctx Context, chainID string) Context {
-	if ctx.Value(contextKeyChainID) != nil {
-		panic("Chain ID already set")
-	}
+// NewBlockInfo creates a BlockInfo struct with current context of where it is being executed
+func NewBlockInfo(header abci.Header, commitInfo CommitInfo, chainID string, logger log.Logger) (BlockInfo, error) {
 	if !IsValidChainID(chainID) {
-		panic(fmt.Sprintf("Invalid chain ID: %s", chainID))
+		return BlockInfo{}, errors.Wrap(errors.ErrInput, "chainID invalid")
 	}
-	return context.WithValue(ctx, contextKeyChainID, chainID)
+	if logger == nil {
+		logger = DefaultLogger
+	}
+	return BlockInfo{
+		header:     header,
+		commitInfo: commitInfo,
+		chainID:    chainID,
+		logger:     logger,
+	}, nil
 }
 
-// GetChainID returns the current chain id
-// panics if chain id not already set (should never happen)
-func GetChainID(ctx Context) string {
-	if x := ctx.Value(contextKeyChainID); x == nil {
-		panic("Chain id is not in context")
-	}
-	return ctx.Value(contextKeyChainID).(string)
+func (b BlockInfo) Header() abci.Header {
+	return b.header
 }
 
-// WithLogger sets the logger for this Context
-func WithLogger(ctx Context, logger log.Logger) Context {
-	// Logger can be overridden below... no problem
-	return context.WithValue(ctx, contextKeyLogger, logger)
+func (b BlockInfo) CommitInfo() CommitInfo {
+	return b.commitInfo
 }
 
-// GetLogger returns the currently set logger, or
-// DefaultLogger if none was set
-func GetLogger(ctx Context) log.Logger {
-	val, ok := ctx.Value(contextKeyLogger).(log.Logger)
-	if !ok {
-		return DefaultLogger
-	}
-	return val
+func (b BlockInfo) ChainID() string {
+	return b.chainID
+}
+
+func (b BlockInfo) Height() int64 {
+	return b.header.Height
+}
+
+func (b BlockInfo) BlockTime() time.Time {
+	return b.header.Time
+}
+
+func (b BlockInfo) UnixTime() UnixTime {
+	return AsUnixTime(b.header.Time)
+}
+
+func (b BlockInfo) Logger() log.Logger {
+	return b.logger
 }
 
 // WithLogInfo accepts keyvalue pairs, and returns another
 // context like this, after passing all the keyvals to the
 // Logger
-func WithLogInfo(ctx Context, keyvals ...interface{}) Context {
-	logger := GetLogger(ctx).With(keyvals...)
-	return WithLogger(ctx, logger)
+func (b BlockInfo) WithLogInfo(keyvals ...interface{}) BlockInfo {
+	b.logger = b.logger.With(keyvals...)
+	return b
+}
+
+// IsExpired returns true if given time is in the past as compared to the "now"
+// as declared for the block. Expiration is inclusive, meaning that if current
+// time is equal to the expiration time than this function returns true.
+func (b BlockInfo) IsExpired(t UnixTime) bool {
+	return t <= b.UnixTime()
+}
+
+// InThePast returns true if given time is in the past compared to the current
+// time as declared in the context. Context "now" should come from the block
+// header.
+// Keep in mind that this function is not inclusive of current time. It given
+// time is equal to "now" then this function returns false.
+func (b BlockInfo) InThePast(t time.Time) bool {
+	return t.Before(b.BlockTime())
+}
+
+// InTheFuture returns true if given time is in the future compared to the
+// current time as declared in the context. Context "now" should come from the
+// block header.
+// Keep in mind that this function is not inclusive of current time. It given
+// time is equal to "now" then this function returns false.
+func (b BlockInfo) InTheFuture(t time.Time) bool {
+	return t.After(b.BlockTime())
 }
