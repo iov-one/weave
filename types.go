@@ -2,6 +2,7 @@ package weave
 
 import (
 	"bytes"
+	"context"
 	"strings"
 
 	"github.com/iov-one/weave/errors"
@@ -121,19 +122,19 @@ func (m ValidatorUpdates) Deduplicate(dropZeroPower bool) ValidatorUpdates {
 	return m
 }
 
-func StoreValidatorUpdates(store KVStore, vu ValidatorUpdates) error {
+func StoreValidatorUpdates(ctx context.Context, store KVStore, vu ValidatorUpdates) error {
 	marshalledUpdates, err := vu.Marshal()
 	if err != nil {
 		return errors.Wrap(err, "validator updates marshal")
 	}
-	err = store.Set([]byte(storeKey), marshalledUpdates)
+	err = store.Set(ctx, []byte(storeKey), marshalledUpdates)
 
 	return errors.Wrap(err, "kvstore save")
 }
 
-func GetValidatorUpdates(store KVStore) (ValidatorUpdates, error) {
+func GetValidatorUpdates(ctx context.Context, store KVStore) (ValidatorUpdates, error) {
 	vu := ValidatorUpdates{}
-	b, err := store.Get([]byte(storeKey))
+	b, err := store.Get(ctx, []byte(storeKey))
 	if err != nil {
 		return vu, errors.Wrap(err, "kvstore get")
 	}

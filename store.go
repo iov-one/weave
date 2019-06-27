@@ -1,5 +1,9 @@
 package weave
 
+import (
+	"context"
+)
+
 //////////////////////////////////////////////////////////
 // Defines all public interfaces for interacting with stores
 //
@@ -8,27 +12,25 @@ package weave
 // ReadOnlyKVStore is a simple interface to query data.
 type ReadOnlyKVStore interface {
 	// Get returns nil iff key doesn't exist. Panics on nil key.
-	Get(key []byte) ([]byte, error)
+	Get(ctx context.Context, key []byte) ([]byte, error)
 
 	// Has checks if a key exists. Panics on nil key.
-	Has(key []byte) (bool, error)
+	Has(ctx context.Context, key []byte) (bool, error)
 
-	// Iterator over a domain of keys in ascending order. End is exclusive.
+	// Iterator over a domain of keys. End is exclusive.
 	// Start must be less than end, or the Iterator is invalid.
+	//
+	// If reverse is false, read in ascending order. Else read descending.
+	// You must cancel the context to close the Iterator without consuming it all.
 	// CONTRACT: No writes may happen within a domain while an iterator exists over it.
-	Iterator(start, end []byte) (Iterator, error)
-
-	// ReverseIterator over a domain of keys in descending order. End is exclusive.
-	// Start must be greater than end, or the Iterator is invalid.
-	// CONTRACT: No writes may happen within a domain while an iterator exists over it.
-	ReverseIterator(start, end []byte) (Iterator, error)
+	Iterator(ctx context.Context, start, end []byte, reverse bool) (Iterator, error)
 }
 
 // SetDeleter is a minimal interface for writing,
 // Unifying KVStore and Batch
 type SetDeleter interface {
-	Set(key, value []byte) error // CONTRACT: key, value readonly []byte
-	Delete(key []byte) error     // CONTRACT: key readonly []byte
+	Set(ctx context.Context, key, value []byte) error // CONTRACT: key, value readonly []byte
+	Delete(ctx context.Context, key []byte) error     // CONTRACT: key readonly []byte
 }
 
 // KVStore is a simple interface to get/set data
@@ -46,17 +48,20 @@ type KVStore interface {
 // Batch can write multiple ops atomically to an underlying KVStore
 type Batch interface {
 	SetDeleter
-	Write() error
+	Write(ctx context.Context) error
 }
 
 /*
 Iterator allows us to access a set of items within a range of
 keys. These may all be preloaded, or loaded on demand.
+Cancel the context passed in the constructor to terminate
+the iterator.
 
   Usage:
 
-  var itr Iterator = ...
-  defer itr.Release()
+  ctx, cancel := context.WithCancel(context.Background())
+  var itr Iterator = kv.Iterate(start, end, false)
+  defer cancel()
 
   k, v, err := itr.Next()
   for err == nil {
@@ -73,10 +78,7 @@ type Iterator interface {
 	// defined by order of iteration.
 	//
 	// Returns (nil, nil, errors.ErrIteratorDone) if there is no more data
-	Next() (key, value []byte, err error)
-
-	// Release releases the Iterator, allowing it to do any needed cleanup.
-	Release()
+	Next(ctx context.Context) (key, value []byte, err error)
 }
 
 ///////////////////////////////////////////////////////////
@@ -109,7 +111,7 @@ type KVCacheWrap interface {
 	CacheableKVStore
 
 	// Write syncs with the underlying store.
-	Write() error
+	Write(ctx context.Context) error
 
 	// Discard invalidates this CacheWrap and releases all data
 	Discard()
@@ -130,7 +132,7 @@ type KVCacheWrap interface {
 type CommitKVStore interface {
 	// Get returns the value at last committed state
 	// returns nil iff key doesn't exist. Panics on nil key.
-	Get(key []byte) ([]byte, error)
+	Get(ctx context.Context, key []byte) ([]byte, error)
 
 	// TODO: Get with proof, also historical queries
 	// GetVersionedWithProof(key []byte, version int64) (value []byte)
@@ -149,21 +151,21 @@ type CommitKVStore interface {
 	CacheWrap() KVCacheWrap
 
 	// Commit the next version to disk, and returns info
-	Commit() (CommitID, error)
+	Commit(ctx context.Context) (CommitID, error)
 
 	// LoadLatestVersion loads the latest persisted version.
 	// If there was a crash during the last commit, it is guaranteed
 	// to return a stable state, even if older.
-	LoadLatestVersion() error
+	LoadLatestVersion(ctx context.Context) error
 
 	// LatestVersion returns info on the latest version saved to disk
-	LatestVersion() (CommitID, error)
+	LatestVersion(ctx context.Context) (CommitID, error)
 
 	// LoadVersion loads a specific persisted version.  When you load an old version, or
 	// when the last commit attempt didn't complete, the next commit after
 	// loading must be idempotent (return the same commit id).  Otherwise the
 	// behavior is undefined.
-	LoadVersion(ver int64) error
+	LoadVersion(ctx context.Context, ver int64) error
 }
 
 // CommitID contains the tree version number and its merkle root.
