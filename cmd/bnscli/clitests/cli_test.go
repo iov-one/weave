@@ -16,6 +16,7 @@ import (
 	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/x/cash"
 	"github.com/iov-one/weave/x/msgfee"
+	"github.com/pmezard/go-difflib/difflib"
 )
 
 var goldFl = flag.Bool("gold", false, "If true, write result to golden files instead of comparing with them.")
@@ -68,8 +69,15 @@ func TestAll(t *testing.T) {
 			}
 
 			if !bytes.Equal(want, out) {
-				t.Logf("want: %s", string(want))
-				t.Logf(" got: %s", string(out))
+				diff := difflib.UnifiedDiff{
+					A:        difflib.SplitLines(string(want)),
+					B:        difflib.SplitLines(string(out)),
+					FromFile: "Gold",
+					ToFile:   "Current",
+					Context:  2,
+				}
+				text, _ := difflib.GetUnifiedDiffString(diff)
+				t.Log(text)
 				t.Fatal("unexpected result")
 			}
 		})

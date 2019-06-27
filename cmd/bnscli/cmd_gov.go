@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"errors"
 	"flag"
 	"fmt"
@@ -38,15 +39,7 @@ transaction (ie signatures) are being dropped.
 	)
 	fl.Parse(args)
 
-	tx, _, err := readTx(input)
-	if err != nil {
-		return fmt.Errorf("cannot read transaction: %s", err)
-	}
-
-	msg, err := tx.GetMsg()
-	if err != nil {
-		return fmt.Errorf("cannot extract message from the transaction: %s", err)
-	}
+	msg, err := readProposalPayloadMsg(input)
 
 	// We must manually assign the message to the right attribute according
 	// to it's type.
@@ -253,6 +246,24 @@ transaction (ie signatures) are being dropped.
 	return err
 }
 
+func readProposalPayloadMsg(input io.Reader) (weave.Msg, error) {
+	var buf bytes.Buffer
+	if _, err := io.Copy(&buf, input); err != nil {
+		return nil, fmt.Errorf("cannot read input data: %s", err)
+	}
+
+	tx, _, err := readTx(bytes.NewReader(buf.Bytes()))
+	if err == nil {
+		return tx.GetMsg()
+	}
+	//  ignore error as this may be due to a non Tx proposal option
+	var msg gov.CreateTextResolutionMsg
+	if err := msg.Unmarshal(buf.Bytes()); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal proposal payload: %s", err)
+	}
+	return &msg, nil
+}
+
 func inOneHour() time.Time {
 	return time.Now().Add(time.Hour)
 }
@@ -360,4 +371,103 @@ Tally triggers the tally execution after the voting period had ended.
 	}
 	_, err := writeTx(output, govTx)
 	return err
+}
+
+func cmdTextResolution(input io.Reader, output io.Writer, args []string) error {
+	fl := flag.NewFlagSet("", flag.ExitOnError)
+	fl.Usage = func() {
+		fmt.Fprintln(flag.CommandLine.Output(), `
+Text resolution creates a human readable gov proposal payload. To be used with 'as-proposal' command.
+		`)
+		fl.PrintDefaults()
+	}
+	var (
+		textFl = fl.String("text", "", "Human readable resolution text")
+	)
+	fl.Parse(args)
+	if len(*textFl) == 0 {
+		flagDie("the text must not be empty")
+	}
+	msg := &gov.CreateTextResolutionMsg{
+		Metadata:   &weave.Metadata{Schema: 1},
+		Resolution: *textFl,
+	}
+	data, err := msg.Marshal()
+	if err != nil {
+		return fmt.Errorf("can not serialize msg: %s", err)
+	}
+
+	_, err = output.Write(data)
+	return err
+}
+
+func cmdUpdateElectorate(input io.Reader, output io.Writer, args []string) error {
+	fl := flag.NewFlagSet("", flag.ExitOnError)
+	fl.Usage = func() {
+		fmt.Fprintln(flag.CommandLine.Output(), `
+Electorate updates an existing electorate.
+		`)
+		fl.PrintDefaults()
+	}
+	var (
+		id = flSeq(fl, "id", "", "The ID of the electorate")
+	)
+	fl.Parse(args)
+	if len(*id) == 0 {
+		flagDie("the electorate id  must not be empty")
+	}
+
+	govTx := &bnsd.Tx{
+		Sum: &bnsd.Tx_GovUpdateElectorateMsg{
+			GovUpdateElectorateMsg: &gov.UpdateElectorateMsg{
+				Metadata:     &weave.Metadata{Schema: 1},
+				ElectorateID: []byte(*id),
+			},
+		},
+	}
+	_, err := writeTx(output, govTx)
+	return err
+}
+
+func cmdWithElector(input io.Reader, output io.Writer, args []string) error {
+	fl := flag.NewFlagSet("", flag.ExitOnError)
+	fl.Usage = func() {
+		fmt.Fprintln(flag.CommandLine.Output(), `
+Reads a transaction from the input and attaches the provided elector address, weight pair.
+		`)
+		fl.PrintDefaults()
+	}
+
+	var (
+		addressFl = flAddress(fl, "address", "", "Electors address")
+		weightFl  = fl.Uint("weight", 1, "Electors weight")
+	)
+	fl.Parse(args)
+
+	if len(*addressFl) == 0 {
+		flagDie("address must not be empty")
+	}
+
+	tx, _, err := readTx(input)
+	if err != nil {
+		return fmt.Errorf("cannot read input transaction: %s", err)
+	}
+
+	msg, err := tx.GetMsg()
+	if err != nil {
+		return fmt.Errorf("cannot extract transaction message: %s", err)
+	}
+
+	switch msg := msg.(type) {
+	case *gov.UpdateElectorateMsg:
+		msg.DiffElectors = append(msg.DiffElectors, gov.Elector{
+			Address: *addressFl,
+			Weight:  uint32(*weightFl),
+		})
+	default:
+		return fmt.Errorf("message %T cannot be modified to contain multisig participant", msg)
+	}
+
+	_, err = writeTx(output, tx)
+	return nil
 }

@@ -1,0 +1,9 @@
+#!/bin/sh
+
+set -e
+
+bnscli update-electorate  -id "5" \
+        | bnscli with-elector -address "seq:foo/dst/1" -weight 0 \
+        | bnscli with-elector -address "seq:bar/dst/2" -weight 11 \
+    | bnscli as-proposal -start "2021-01-01 11:11" -electionrule 3 -title "my proposal" -description "yet another proposal" \
+    | bnscli view

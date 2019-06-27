@@ -4,6 +4,7 @@
 
 - `bnsd/x/username` genesis initializer implemented and included in `bnsd`.
 - Support gov proposal vote, deletion and tally in `bnscli`
+- Support gov proposal text resolution, update electorate in `bnscli` 
 - Added `x/utils.ActionTagger`: all `bnsd` transactions now have
   `action=${msg.Path()}` tags. If there is a batch, there is one tag per
   sub-message. If it is a governance tally, the TallyMsg as well as the
