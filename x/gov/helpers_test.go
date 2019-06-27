@@ -11,10 +11,10 @@ import (
 	"github.com/iov-one/weave/weavetest/assert"
 )
 
-// ctxAwareMutator is a call back interface to modify the passed proposal for test setup
-type ctxAwareMutator func(context.Context, *Proposal)
+// blockAwareMutator is a call back interface to modify the passed proposal for test setup
+type blockAwareMutator func(weave.BlockInfo, *Proposal)
 
-func withTextProposal(t *testing.T, db store.KVStore, ctx context.Context, info weave.BlockInfo, mods ...ctxAwareMutator) *ProposalBucket {
+func withTextProposal(t *testing.T, db store.KVStore, info weave.BlockInfo, mods ...blockAwareMutator) *ProposalBucket {
 	t.Helper()
 	// setup electorate
 	withElectorate(t, db)
@@ -22,18 +22,18 @@ func withTextProposal(t *testing.T, db store.KVStore, ctx context.Context, info 
 	withElectionRule(t, db)
 
 	// adapter to call fixture mutator with context
-	ctxMods := make([]func(*Proposal), len(mods))
+	blockMods := make([]func(*Proposal), len(mods))
 	for i := 0; i < len(mods); i++ {
 		j := i
-		ctxMods[j] = func(p *Proposal) {
+		blockMods[j] = func(p *Proposal) {
 			if mods[j] == nil {
 				return
 			}
-			mods[j](ctx, p)
+			mods[j](info, p)
 		}
 	}
 	pBucket := NewProposalBucket()
-	proposal := proposalFixture(t, hAlice, ctxMods...)
+	proposal := proposalFixture(t, hAlice, blockMods...)
 
 	if _, err := pBucket.Create(db, &proposal); err != nil {
 		t.Fatalf("unexpected error: %+v", err)

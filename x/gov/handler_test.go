@@ -357,7 +357,8 @@ func TestCreateTextProposal(t *testing.T) {
 			migration.MustInitPkg(db, packageName)
 
 			// given
-			ctx := weave.WithBlockTime(context.Background(), now.Time())
+			ctx := context.Background()
+			info := weavetest.BlockInfo(100, now.Time())
 			if spec.Init != nil {
 				spec.Init(t, db)
 			}
@@ -403,7 +404,7 @@ func TestDeleteProposal(t *testing.T) {
 	proposalID := weavetest.SequenceID(1)
 	nonExistentProposalID := weavetest.SequenceID(2)
 	specs := map[string]struct {
-		Mods            func(context.Context, *Proposal) // modifies test fixtures before storing
+		Mods            func(weave.BlockInfo, *Proposal) // modifies test fixtures before storing
 		ProposalDeleted bool
 		Msg             DeleteProposalMsg
 		SignedBy        weave.Condition
@@ -414,9 +415,9 @@ func TestDeleteProposal(t *testing.T) {
 			Msg:             DeleteProposalMsg{Metadata: &weave.Metadata{Schema: 1}, ProposalID: proposalID},
 			SignedBy:        hAliceCond,
 			ProposalDeleted: true,
-			Mods: func(ctx context.Context, info weave.BlockInfo, proposal *Proposal) {
-				proposal.VotingStartTime = weave.AsUnixTime(time.Now().Add(1 * time.Hour))
-				proposal.VotingEndTime = weave.AsUnixTime(time.Now().Add(2 * time.Hour))
+			Mods: func(info weave.BlockInfo, proposal *Proposal) {
+				proposal.VotingStartTime = info.UnixTime().Add(1 * time.Hour)
+				proposal.VotingEndTime = info.UnixTime().Add(2 * time.Hour)
 			},
 		},
 		"Proposal does not exist": {
@@ -430,17 +431,17 @@ func TestDeleteProposal(t *testing.T) {
 			SignedBy:       hBobbyCond,
 			WantCheckErr:   errors.ErrUnauthorized,
 			WantDeliverErr: errors.ErrUnauthorized,
-			Mods: func(ctx context.Context, info weave.BlockInfo, proposal *Proposal) {
-				proposal.VotingStartTime = weave.AsUnixTime(time.Now().Add(1 * time.Hour))
-				proposal.VotingEndTime = weave.AsUnixTime(time.Now().Add(2 * time.Hour))
+			Mods: func(info weave.BlockInfo, proposal *Proposal) {
+				proposal.VotingStartTime = info.UnixTime().Add(1 * time.Hour)
+				proposal.VotingEndTime = info.UnixTime().Add(2 * time.Hour)
 			},
 		},
 		"Voting has started": {
 			Msg:      DeleteProposalMsg{Metadata: &weave.Metadata{Schema: 1}, ProposalID: proposalID},
 			SignedBy: hAliceCond,
-			Mods: func(ctx context.Context, info weave.BlockInfo, proposal *Proposal) {
-				proposal.VotingStartTime = weave.AsUnixTime(time.Now().Add(-1 * time.Hour))
-				proposal.SubmissionTime = weave.AsUnixTime(time.Now().Add(-2 * time.Hour))
+			Mods: func(info weave.BlockInfo, proposal *Proposal) {
+				proposal.VotingStartTime = info.UnixTime().Add(-1 * time.Hour)
+				proposal.SubmissionTime = info.UnixTime().Add(-2 * time.Hour)
 			},
 			WantCheckErr:   errors.ErrImmutable,
 			WantDeliverErr: errors.ErrImmutable,
@@ -459,8 +460,9 @@ func TestDeleteProposal(t *testing.T) {
 			RegisterRoutes(rt, auth, decodeProposalOptions, nil)
 
 			// given
-			ctx := weave.WithBlockTime(context.Background(), time.Now().Round(time.Second))
-			pBucket := withTextProposal(t, db, ctx, spec.Mods)
+			ctx := context.Background()
+			info := weavetest.BlockInfo(87, time.Now().Round(time.Second))
+			pBucket := withTextProposal(t, db, info, spec.Mods)
 			cache := db.CacheWrap()
 
 			// when check
@@ -537,13 +539,14 @@ func TestCreateResolution(t *testing.T) {
 
 			// when check
 			tx := &weavetest.Tx{Msg: &spec.Msg}
-			if _, err := rt.Check(spec.ctx, cache, tx); !spec.WantCheckErr.Is(err) {
+			info := weavetest.BlockInfo(7)
+			if _, err := rt.Check(spec.ctx, info, db, tx); !spec.WantCheckErr.Is(err) {
 				t.Fatalf("check expected: %+v  but got %+v", spec.WantCheckErr, err)
 			}
 
 			cache.Discard()
 			// and when deliver
-			if _, err := rt.Deliver(spec.ctx, db, tx); !spec.WantDeliverErr.Is(err) {
+			if _, err := rt.Deliver(spec.ctx, info, db, tx); !spec.WantDeliverErr.Is(err) {
 				t.Fatalf("deliver expected: %+v  but got %+v", spec.WantCheckErr, err)
 			}
 
@@ -570,8 +573,8 @@ func TestVote(t *testing.T) {
 	nonElectorCond := weavetest.NewCondition()
 	nonElector := nonElectorCond.Address()
 	specs := map[string]struct {
-		Init           func(ctx context.Context, info weave.BlockInfo, db store.KVStore) // executed before test fixtures
-		Mods           func(context.Context, *Proposal)            // modifies test fixtures before storing
+		Init           func(info weave.BlockInfo, db store.KVStore) // executed before test fixtures
+		Mods           func(weave.BlockInfo, *Proposal)             // modifies test fixtures before storing
 		Msg            VoteMsg
 		SignedBy       weave.Condition
 		WantCheckErr   *errors.Error
@@ -610,7 +613,7 @@ func TestVote(t *testing.T) {
 			ExpVotedBy: hAlice,
 		},
 		"Can change vote": {
-			Init: func(ctx context.Context, info weave.BlockInfo, db store.KVStore) {
+			Init: func(info weave.BlockInfo, db store.KVStore) {
 				vBucket := NewVoteBucket()
 				obj := vBucket.Build(db, proposalID,
 					Vote{
@@ -621,7 +624,7 @@ func TestVote(t *testing.T) {
 				)
 				vBucket.Save(db, obj)
 			},
-			Mods: func(ctx context.Context, info weave.BlockInfo, proposal *Proposal) {
+			Mods: func(info weave.BlockInfo, proposal *Proposal) {
 				proposal.VoteState.TotalYes = 10
 			},
 			Msg:        VoteMsg{Metadata: &weave.Metadata{Schema: 1}, ProposalID: proposalID, Selected: VoteOption_No, Voter: hBobby},
@@ -630,7 +633,7 @@ func TestVote(t *testing.T) {
 			ExpVotedBy: hBobby,
 		},
 		"Can resubmit vote": {
-			Init: func(ctx context.Context, info weave.BlockInfo, db store.KVStore) {
+			Init: func(info weave.BlockInfo, db store.KVStore) {
 				vBucket := NewVoteBucket()
 				obj := vBucket.Build(db, proposalID,
 					Vote{
@@ -641,7 +644,7 @@ func TestVote(t *testing.T) {
 				)
 				vBucket.Save(db, obj)
 			},
-			Mods: func(ctx context.Context, info weave.BlockInfo, proposal *Proposal) {
+			Mods: func(info weave.BlockInfo, proposal *Proposal) {
 				proposal.VoteState.TotalYes = 1
 			},
 			Msg:        VoteMsg{Metadata: &weave.Metadata{Schema: 1}, ProposalID: proposalID, Selected: VoteOption_Yes, Voter: hAlice},
@@ -668,8 +671,8 @@ func TestVote(t *testing.T) {
 			WantDeliverErr: errors.ErrUnauthorized,
 		},
 		"Vote before start date": {
-			Mods: func(ctx context.Context, info weave.BlockInfo, proposal *Proposal) {
-				proposal.VotingStartTime = unixBlockTime(t, ctx) + 1
+			Mods: func(info weave.BlockInfo, proposal *Proposal) {
+				proposal.VotingStartTime = info.UnixTime() + 1
 			},
 			Msg:            VoteMsg{Metadata: &weave.Metadata{Schema: 1}, ProposalID: proposalID, Selected: VoteOption_Yes, Voter: hAlice},
 			SignedBy:       hAliceCond,
@@ -677,8 +680,8 @@ func TestVote(t *testing.T) {
 			WantDeliverErr: errors.ErrState,
 		},
 		"Vote on start date": {
-			Mods: func(ctx context.Context, info weave.BlockInfo, proposal *Proposal) {
-				proposal.VotingStartTime = unixBlockTime(t, ctx)
+			Mods: func(info weave.BlockInfo, proposal *Proposal) {
+				proposal.VotingStartTime = info.UnixTime()
 			},
 			Msg:            VoteMsg{Metadata: &weave.Metadata{Schema: 1}, ProposalID: proposalID, Selected: VoteOption_Yes, Voter: hAlice},
 			SignedBy:       hAliceCond,
@@ -686,8 +689,8 @@ func TestVote(t *testing.T) {
 			WantDeliverErr: errors.ErrState,
 		},
 		"Vote on end date": {
-			Mods: func(ctx context.Context, info weave.BlockInfo, proposal *Proposal) {
-				proposal.VotingEndTime = unixBlockTime(t, ctx)
+			Mods: func(info weave.BlockInfo, proposal *Proposal) {
+				proposal.VotingEndTime = info.UnixTime()
 			},
 			Msg:            VoteMsg{Metadata: &weave.Metadata{Schema: 1}, ProposalID: proposalID, Selected: VoteOption_Yes, Voter: hAlice},
 			SignedBy:       hAliceCond,
@@ -695,8 +698,8 @@ func TestVote(t *testing.T) {
 			WantDeliverErr: errors.ErrState,
 		},
 		"Vote after end date": {
-			Mods: func(ctx context.Context, info weave.BlockInfo, proposal *Proposal) {
-				proposal.VotingEndTime = unixBlockTime(t, ctx) - 1
+			Mods: func(info weave.BlockInfo, proposal *Proposal) {
+				proposal.VotingEndTime = info.UnixTime() - 1
 			},
 			Msg:            VoteMsg{Metadata: &weave.Metadata{Schema: 1}, ProposalID: proposalID, Selected: VoteOption_Yes, Voter: hAlice},
 			SignedBy:       hAliceCond,
@@ -704,7 +707,7 @@ func TestVote(t *testing.T) {
 			WantDeliverErr: errors.ErrState,
 		},
 		"Vote on withdrawn proposal must fail": {
-			Mods: func(ctx context.Context, info weave.BlockInfo, proposal *Proposal) {
+			Mods: func(info weave.BlockInfo, proposal *Proposal) {
 				proposal.Status = Proposal_Withdrawn
 			},
 			Msg:            VoteMsg{Metadata: &weave.Metadata{Schema: 1}, ProposalID: proposalID, Selected: VoteOption_Yes, Voter: hAlice},
@@ -713,7 +716,7 @@ func TestVote(t *testing.T) {
 			WantDeliverErr: errors.ErrState,
 		},
 		"Vote on closed proposal must fail": {
-			Mods: func(ctx context.Context, info weave.BlockInfo, proposal *Proposal) {
+			Mods: func(info weave.BlockInfo, proposal *Proposal) {
 				proposal.Status = Proposal_Closed
 			},
 			Msg:            VoteMsg{Metadata: &weave.Metadata{Schema: 1}, ProposalID: proposalID, Selected: VoteOption_Yes, Voter: hAlice},
@@ -722,7 +725,7 @@ func TestVote(t *testing.T) {
 			WantDeliverErr: errors.ErrState,
 		},
 		"Sanity check on count vote": {
-			Mods: func(ctx context.Context, info weave.BlockInfo, proposal *Proposal) {
+			Mods: func(info weave.BlockInfo, proposal *Proposal) {
 				// not a valid setup
 				proposal.VoteState.TotalYes = math.MaxUint64
 				proposal.VoteState.TotalElectorateWeight = math.MaxUint64
@@ -732,7 +735,7 @@ func TestVote(t *testing.T) {
 			WantDeliverErr: errors.ErrHuman,
 		},
 		"Sanity check on undo count vote": {
-			Init: func(ctx context.Context, info weave.BlockInfo, db store.KVStore) {
+			Init: func(info weave.BlockInfo, db store.KVStore) {
 				vBucket := NewVoteBucket()
 				obj := vBucket.Build(db, proposalID,
 					Vote{
@@ -743,7 +746,7 @@ func TestVote(t *testing.T) {
 				)
 				vBucket.Save(db, obj)
 			},
-			Mods: func(ctx context.Context, info weave.BlockInfo, proposal *Proposal) {
+			Mods: func(info weave.BlockInfo, proposal *Proposal) {
 				// not a valid setup
 				proposal.VoteState.TotalYes = 0
 				proposal.VoteState.TotalElectorateWeight = math.MaxUint64
@@ -766,11 +769,12 @@ func TestVote(t *testing.T) {
 			RegisterRoutes(rt, auth, decodeProposalOptions, nil)
 
 			// given
-			ctx := weave.WithBlockTime(context.Background(), time.Now().Round(time.Second))
+			ctx := context.Background()
+			info := weavetest.BlockInfo(55, time.Now().Round(time.Second))
 			if spec.Init != nil {
-				spec.Init(ctx, db)
+				spec.Init(info, db)
 			}
-			pBucket := withTextProposal(t, db, ctx, spec.Mods)
+			pBucket := withTextProposal(t, db, info, spec.Mods)
 			cache := db.CacheWrap()
 
 			// when check
@@ -817,7 +821,7 @@ func TestTally(t *testing.T) {
 		yes, no, abstain      uint64
 	}
 	specs := map[string]struct {
-		Mods              func(context.Context, *Proposal)
+		Mods              func(weave.BlockInfo, *Proposal)
 		Src               tallySetup
 		WantCheckErr      *errors.Error
 		WantDeliverErr    *errors.Error
@@ -1089,9 +1093,9 @@ func TestTally(t *testing.T) {
 					t.Fatalf("unexpected error: %+v", err)
 				}
 			},
-			Mods: func(ctx context.Context, info weave.BlockInfo, p *Proposal) {
+			Mods: func(info weave.BlockInfo, p *Proposal) {
 				p.RawOption = genElectorateOptions(t, Elector{hAlice, 10})
-				p.VotingEndTime = unixBlockTime(t, ctx) - 1
+				p.VotingEndTime = info.UnixTime() - 1
 			},
 			Src: tallySetup{
 				yes:                   10,
@@ -1142,9 +1146,9 @@ func TestTally(t *testing.T) {
 					t.Fatalf("unexpected error: %+v", err)
 				}
 			},
-			Mods: func(ctx context.Context, info weave.BlockInfo, p *Proposal) {
+			Mods: func(info weave.BlockInfo, p *Proposal) {
 				p.RawOption = genElectorateOptions(t, Elector{hAlice, 0})
-				p.VotingEndTime = unixBlockTime(t, ctx) - 1
+				p.VotingEndTime = info.UnixTime() - 1
 			},
 			Src: tallySetup{
 				yes:                   10,
@@ -1158,9 +1162,9 @@ func TestTally(t *testing.T) {
 			WantDeliverLog:    "Proposal accepted: execution error:",
 		},
 		"Does not update an electorate when rejected": {
-			Mods: func(ctx context.Context, info weave.BlockInfo, p *Proposal) {
+			Mods: func(info weave.BlockInfo, p *Proposal) {
 				p.RawOption = genElectorateOptions(t, Elector{hAlice, 10})
-				p.VotingEndTime = unixBlockTime(t, ctx) - 1
+				p.VotingEndTime = info.UnixTime() - 1
 			},
 			Src: tallySetup{
 				yes:                   1,
@@ -1189,7 +1193,7 @@ func TestTally(t *testing.T) {
 			WantDeliverLog: "Proposal not accepted",
 		},
 		"Fails on second tally": {
-			Mods: func(_ context.Context, p *Proposal) {
+			Mods: func(_ weave.BlockInfo, p *Proposal) {
 				p.Status = Proposal_Closed
 			},
 			Src: tallySetup{
@@ -1203,8 +1207,8 @@ func TestTally(t *testing.T) {
 			WantDeliverLog:    "Proposal not accepted",
 		},
 		"Fails on tally before end date": {
-			Mods: func(ctx context.Context, info weave.BlockInfo, p *Proposal) {
-				p.VotingEndTime = unixBlockTime(t, ctx) + 1
+			Mods: func(info weave.BlockInfo, p *Proposal) {
+				p.VotingEndTime = info.UnixTime() + 1
 			},
 			Src: tallySetup{
 				threshold:             Fraction{Numerator: 1, Denominator: 2},
@@ -1216,8 +1220,8 @@ func TestTally(t *testing.T) {
 			WantDeliverLog: "Proposal not accepted",
 		},
 		"Fails on tally at end date": {
-			Mods: func(ctx context.Context, info weave.BlockInfo, p *Proposal) {
-				p.VotingEndTime = unixBlockTime(t, ctx)
+			Mods: func(info weave.BlockInfo, p *Proposal) {
+				p.VotingEndTime = info.UnixTime()
 			},
 			Src: tallySetup{
 				threshold:             Fraction{Numerator: 1, Denominator: 2},
@@ -1229,7 +1233,7 @@ func TestTally(t *testing.T) {
 			WantDeliverLog: "Proposal not accepted",
 		},
 		"Fails on withdrawn proposal": {
-			Mods: func(ctx context.Context, info weave.BlockInfo, p *Proposal) {
+			Mods: func(info weave.BlockInfo, p *Proposal) {
 				p.Status = Proposal_Withdrawn
 			},
 			Src: tallySetup{
@@ -1254,15 +1258,16 @@ func TestTally(t *testing.T) {
 			migration.MustInitPkg(db, packageName)
 
 			// given
-			ctx := weave.WithBlockTime(context.Background(), time.Now().Round(time.Second))
-			setupForTally := func(_ context.Context, p *Proposal) {
+			ctx := context.Background()
+			info := weavetest.BlockInfo(8, time.Now().Round(time.Second))
+			setupForTally := func(info weave.BlockInfo, p *Proposal) {
 				p.VoteState = NewTallyResult(spec.Src.quorum, spec.Src.threshold, spec.Src.totalWeightElectorate)
 				p.VoteState.TotalYes = spec.Src.yes
 				p.VoteState.TotalNo = spec.Src.no
 				p.VoteState.TotalAbstain = spec.Src.abstain
-				p.VotingEndTime = unixBlockTime(t, ctx) - 1
+				p.VotingEndTime = info.UnixTime() - 1
 			}
-			pBucket := withTextProposal(t, db, ctx, append([]ctxAwareMutator{setupForTally}, spec.Mods)...)
+			pBucket := withTextProposal(t, db, info, append([]blockAwareMutator{setupForTally}, spec.Mods)...)
 			if spec.Init != nil {
 				spec.Init(t, db)
 			}
@@ -1320,8 +1325,8 @@ func TestUpdateElectorate(t *testing.T) {
 		WantCheckErr   *errors.Error
 		WantDeliverErr *errors.Error
 		ExpModel       *Electorate
-		WithProposal   bool            // enables the usage of mods to create a proposal
-		Mods           ctxAwareMutator // modifies TextProposal test fixtures before storing
+		WithProposal   bool              // enables the usage of mods to create a proposal
+		Mods           blockAwareMutator // modifies TextProposal test fixtures before storing
 	}{
 		"All good with update by owner": {
 			Msg: UpdateElectorateMsg{
@@ -1421,6 +1426,7 @@ func TestUpdateElectorate(t *testing.T) {
 		},
 	}
 	bucket := NewElectorateBucket()
+	info := weavetest.BlockInfo(5)
 	for msg, spec := range specs {
 		t.Run(msg, func(t *testing.T) {
 			auth := &weavetest.Auth{
@@ -1433,7 +1439,7 @@ func TestUpdateElectorate(t *testing.T) {
 
 			withElectorate(t, db)
 			if spec.WithProposal {
-				withTextProposal(t, db, nil, spec.Mods)
+				withTextProposal(t, db, weavetest.BlockInfo(7), spec.Mods)
 			}
 			cache := db.CacheWrap()
 
@@ -1559,6 +1565,7 @@ func TestUpdateElectionRules(t *testing.T) {
 		},
 	}
 	bucket := NewElectionRulesBucket()
+	info := weavetest.BlockInfo(5)
 	for msg, spec := range specs {
 		t.Run(msg, func(t *testing.T) {
 			auth := &weavetest.Auth{
@@ -1599,12 +1606,4 @@ func TestUpdateElectionRules(t *testing.T) {
 			}
 		})
 	}
-}
-
-func unixBlockTime(t testing.TB, ctx context.Context) weave.UnixTime {
-	now, err := weave.BlockTime(ctx)
-	if err != nil {
-		t.Fatal(err)
-	}
-	return weave.AsUnixTime(now)
 }
