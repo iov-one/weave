@@ -15,6 +15,8 @@ Breaking changes
 - Unify all message paths to follow pattern `<package>/<message_name>`
 - `app.Router` interface was changed. Handler registration requires a message
   and not message path.
+- Pull out BlockInfo from weave.Context, add additional argument to all Handlers
+  and Decorators: `Deliver(context.Context, weave.BlockInfo, weave.KVStore, weave.Tx)`
 
 ## 0.17.0
 
