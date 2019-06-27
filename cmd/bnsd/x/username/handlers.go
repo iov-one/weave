@@ -2,6 +2,7 @@ package username
 
 import (
 	"context"
+
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/migration"
@@ -58,7 +59,7 @@ func (h *registerTokenHandler) Deliver(ctx context.Context, info weave.BlockInfo
 	return &weave.DeliverResult{Data: msg.Username.Bytes()}, nil
 }
 
-func (h *registerTokenHandler) validate(ctx context.Context, info weave.BlockInfo, db weave.KVStore, tx weave.Tx) (*RegisterTokenMsg, error) {
+func (h *registerTokenHandler) validate(ctx context.Context, db weave.KVStore, tx weave.Tx) (*RegisterTokenMsg, error) {
 	var msg RegisterTokenMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, errors.Wrap(err, "load msg")
@@ -100,7 +101,7 @@ func (h *transferTokenHandler) Deliver(ctx context.Context, info weave.BlockInfo
 	return &weave.DeliverResult{Data: msg.Username.Bytes()}, nil
 }
 
-func (h *transferTokenHandler) validate(ctx context.Context, info weave.BlockInfo, db weave.KVStore, tx weave.Tx) (*TransferTokenMsg, *Token, error) {
+func (h *transferTokenHandler) validate(ctx context.Context, db weave.KVStore, tx weave.Tx) (*TransferTokenMsg, *Token, error) {
 	var msg TransferTokenMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, nil, errors.Wrap(err, "load msg")
@@ -143,7 +144,7 @@ func (h *changeTokenTargetsHandler) Deliver(ctx context.Context, info weave.Bloc
 	return &weave.DeliverResult{Data: msg.Username.Bytes()}, nil
 }
 
-func (h *changeTokenTargetsHandler) validate(ctx context.Context, info weave.BlockInfo, db weave.KVStore, tx weave.Tx) (*ChangeTokenTargetsMsg, *Token, error) {
+func (h *changeTokenTargetsHandler) validate(ctx context.Context, db weave.KVStore, tx weave.Tx) (*ChangeTokenTargetsMsg, *Token, error) {
 	var msg ChangeTokenTargetsMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, nil, errors.Wrap(err, "load msg")

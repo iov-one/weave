@@ -2,6 +2,7 @@ package paychan
 
 import (
 	"context"
+
 	"github.com/iov-one/weave"
 	coin "github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/errors"
@@ -50,7 +51,7 @@ func (h *createPaymentChannelHandler) Check(ctx context.Context, info weave.Bloc
 	return &weave.CheckResult{GasAllocated: createPaymentChannelCost}, nil
 }
 
-func (h *createPaymentChannelHandler) validate(ctx context.Context, info weave.BlockInfo, db weave.KVStore, tx weave.Tx) (*CreateMsg, error) {
+func (h *createPaymentChannelHandler) validate(ctx context.Context, db weave.KVStore, tx weave.Tx) (*CreateMsg, error) {
 	var msg CreateMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, errors.Wrap(err, "load msg")
@@ -108,7 +109,7 @@ func (h *transferPaymentChannelHandler) Check(ctx context.Context, info weave.Bl
 	return &weave.CheckResult{GasAllocated: transferPaymentChannelCost}, nil
 }
 
-func (h *transferPaymentChannelHandler) validate(ctx context.Context, info weave.BlockInfo, db weave.KVStore, tx weave.Tx) (*TransferMsg, error) {
+func (h *transferPaymentChannelHandler) validate(ctx context.Context, db weave.KVStore, tx weave.Tx) (*TransferMsg, error) {
 	var msg TransferMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, errors.Wrap(err, "load msg")

@@ -2,6 +2,7 @@ package currency
 
 import (
 	"context"
+
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/migration"
@@ -50,7 +51,7 @@ func (h *createTokenInfoHandler) Deliver(ctx context.Context, info weave.BlockIn
 	return &weave.DeliverResult{}, h.bucket.Save(db, obj)
 }
 
-func (h *createTokenInfoHandler) validate(ctx context.Context, info weave.BlockInfo, db weave.KVStore, tx weave.Tx) (*CreateMsg, error) {
+func (h *createTokenInfoHandler) validate(ctx context.Context, db weave.KVStore, tx weave.Tx) (*CreateMsg, error) {
 	var msg CreateMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, errors.Wrap(err, "load msg")

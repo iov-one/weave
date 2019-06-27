@@ -35,6 +35,7 @@ package cash
 
 import (
 	"context"
+
 	"github.com/iov-one/weave"
 	coin "github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/errors"
@@ -158,7 +159,7 @@ func (d DynamicFeeDecorator) chargeMinimalFee(store weave.KVStore, src weave.Add
 // prepare is all shared setup between Check and Deliver. It computes the fee
 // for the transaction, ensures that the payer is authenticated and prepares
 // the database transaction.
-func (d DynamicFeeDecorator) prepare(ctx context.Context, info weave.BlockInfo, store weave.KVStore, tx weave.Tx) (fee coin.Coin, payer weave.Address, cache weave.KVCacheWrap, err error) {
+func (d DynamicFeeDecorator) prepare(ctx context.Context, store weave.KVStore, tx weave.Tx) (fee coin.Coin, payer weave.Address, cache weave.KVCacheWrap, err error) {
 	finfo, err := d.extractFee(ctx, tx, store)
 	if err != nil {
 		return fee, payer, cache, errors.Wrap(err, "cannot extract fee")
@@ -186,7 +187,7 @@ func (d DynamicFeeDecorator) prepare(ctx context.Context, info weave.BlockInfo, 
 }
 
 // this returns the fee info to deduct and the error if incorrectly set
-func (d DynamicFeeDecorator) extractFee(ctx context.Context, info weave.BlockInfo, tx weave.Tx, store weave.KVStore) (*FeeInfo, error) {
+func (d DynamicFeeDecorator) extractFee(ctx context.Context, tx weave.Tx, store weave.KVStore) (*FeeInfo, error) {
 	var finfo *FeeInfo
 	ftx, ok := tx.(FeeTx)
 	if ok {

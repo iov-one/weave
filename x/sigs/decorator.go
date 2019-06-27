@@ -55,7 +55,7 @@ func (d Decorator) Check(ctx context.Context, info weave.BlockInfo, store weave.
 		return next.Check(ctx, info, store, tx)
 	}
 
-	chainID := weave.GetChainID(ctx)
+	chainID := info.ChainID()
 	signers, err := VerifyTxSignatures(store, stx, chainID)
 	if err != nil {
 		return nil, errors.Wrap(err, "cannot verify signatures")
@@ -84,7 +84,7 @@ func (d Decorator) Deliver(ctx context.Context, info weave.BlockInfo, store weav
 		return next.Deliver(ctx, info, store, tx)
 	}
 
-	chainID := weave.GetChainID(ctx)
+	chainID := info.ChainID()
 	signers, err := VerifyTxSignatures(store, stx, chainID)
 	if err != nil {
 		return nil, errors.Wrap(err, "cannot verify signatures")

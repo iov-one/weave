@@ -134,7 +134,7 @@ func (h *upgradeSchemaHandler) Deliver(ctx context.Context, info weave.BlockInfo
 	return &weave.DeliverResult{Data: obj.Key()}, nil
 }
 
-func (h *upgradeSchemaHandler) validate(ctx context.Context, info weave.BlockInfo, db weave.KVStore, tx weave.Tx) (*UpgradeSchemaMsg, error) {
+func (h *upgradeSchemaHandler) validate(ctx context.Context, db weave.KVStore, tx weave.Tx) (*UpgradeSchemaMsg, error) {
 	var msg UpgradeSchemaMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, errors.Wrap(err, "load msg")

@@ -94,7 +94,7 @@ func (h CreateSwapHandler) Deliver(ctx context.Context, info weave.BlockInfo, db
 }
 
 // validate does all common pre-processing between Check and Deliver.
-func (h CreateSwapHandler) validate(ctx context.Context, info weave.BlockInfo,
+func (h CreateSwapHandler) validate(ctx context.Context,
 	db weave.KVStore, tx weave.Tx) (*CreateMsg, error) {
 	var msg CreateMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
@@ -158,7 +158,7 @@ func (h ReleaseSwapHandler) Deliver(ctx context.Context, info weave.BlockInfo, d
 }
 
 // validate does all common pre-processing between Check and Deliver.
-func (h ReleaseSwapHandler) validate(ctx context.Context, info weave.BlockInfo, db weave.KVStore, tx weave.Tx) ([]byte, *Swap, error) {
+func (h ReleaseSwapHandler) validate(ctx context.Context, db weave.KVStore, tx weave.Tx) ([]byte, *Swap, error) {
 	var msg ReleaseMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, nil, errors.Wrap(err, "load msg")
@@ -229,7 +229,7 @@ func (h ReturnSwapHandler) Deliver(ctx context.Context, info weave.BlockInfo, db
 }
 
 // validate does all common pre-processing between Check and Deliver.
-func (h ReturnSwapHandler) validate(ctx context.Context, info weave.BlockInfo, db weave.KVStore, tx weave.Tx) (*ReturnSwapMsg, *Swap, error) {
+func (h ReturnSwapHandler) validate(ctx context.Context, db weave.KVStore, tx weave.Tx) (*ReturnSwapMsg, *Swap, error) {
 	var msg ReturnSwapMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, nil, errors.Wrap(err, "load msg")

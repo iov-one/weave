@@ -2,6 +2,7 @@ package validators
 
 import (
 	"context"
+
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/migration"
@@ -51,7 +52,7 @@ func (h updateHandler) Deliver(ctx context.Context, info weave.BlockInfo, store 
 }
 
 // Validate returns an update diff, ValidatorUpdates to store for bookkeeping and an error.
-func (h updateHandler) validate(ctx context.Context, info weave.BlockInfo, store weave.KVStore, tx weave.Tx) ([]weave.ValidatorUpdate,
+func (h updateHandler) validate(ctx context.Context, store weave.KVStore, tx weave.Tx) ([]weave.ValidatorUpdate,
 	weave.ValidatorUpdates, error) {
 	var msg ApplyDiffMsg
 	var resUpdates weave.ValidatorUpdates

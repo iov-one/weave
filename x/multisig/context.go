@@ -15,7 +15,7 @@ const (
 
 // withMultisig is a private method, as only this module
 // can add a multisig signer
-func withMultisig(ctx context.Context, info weave.BlockInfo, id []byte) context.Context {
+func withMultisig(ctx context.Context, id []byte) context.Context {
 	val, _ := ctx.Value(contextKeyMultisig).([]weave.Condition)
 	if val == nil {
 		return context.WithValue(ctx, contextKeyMultisig, []weave.Condition{MultiSigCondition(id)})
@@ -45,8 +45,8 @@ func (a Authenticate) GetConditions(ctx context.Context) []weave.Condition {
 	return val
 }
 
-// HasAddress returns true iff this address is in GetConditions
-func (a Authenticate) HasAddress(ctx context.Context, info weave.BlockInfo, addr weave.Address) bool {
+// HasAddress returns true iff this address is in Ggo etConditions
+func (a Authenticate) HasAddress(ctx context.Context, addr weave.Address) bool {
 	for _, s := range a.GetConditions(ctx) {
 		if addr.Equals(s.Address()) {
 			return true

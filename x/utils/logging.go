@@ -25,7 +25,7 @@ func (r Logging) Check(ctx context.Context, info weave.BlockInfo, store weave.KV
 	if err == nil {
 		resLog = res.Log
 	}
-	logDuration(ctx, start, resLog, err, true)
+	logDuration(info, start, resLog, err, true)
 	return res, err
 }
 
@@ -37,14 +37,14 @@ func (r Logging) Deliver(ctx context.Context, info weave.BlockInfo, store weave.
 	if err == nil {
 		resLog = res.Log
 	}
-	logDuration(ctx, start, resLog, err, false)
+	logDuration(info, start, resLog, err, false)
 	return res, err
 }
 
 // logDuration writes information about the time and result to the logger
-func logDuration(ctx context.Context, info weave.BlockInfo, start time.Time, msg string, err error, lowPrio bool) {
+func logDuration(info weave.BlockInfo, start time.Time, msg string, err error, lowPrio bool) {
 	delta := time.Now().Sub(start)
-	logger := weave.GetLogger(ctx).With("duration", delta/time.Microsecond)
+	logger := info.Logger().With("duration", delta/time.Microsecond)
 
 	if err != nil {
 		logger = logger.With("err", err)

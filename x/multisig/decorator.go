@@ -32,7 +32,7 @@ func (d Decorator) Check(ctx context.Context, info weave.BlockInfo, store weave.
 		return nil, err
 	}
 
-	res, err := next.Check(newCtx, store, tx)
+	res, err := next.Check(newCtx, info, store, tx)
 	if err != nil {
 		return nil, err
 	}
@@ -47,10 +47,10 @@ func (d Decorator) Deliver(ctx context.Context, info weave.BlockInfo, store weav
 		return nil, err
 	}
 
-	return next.Deliver(newCtx, store, tx)
+	return next.Deliver(newCtx, info, store, tx)
 }
 
-func (d Decorator) authMultisig(ctx context.Context, info weave.BlockInfo, store weave.KVStore, tx weave.Tx) (context.Context, int64, error) {
+func (d Decorator) authMultisig(ctx context.Context, store weave.KVStore, tx weave.Tx) (context.Context, int64, error) {
 	multisigContract, ok := tx.(MultiSigTx)
 	if !ok {
 		return ctx, 0, nil

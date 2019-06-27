@@ -18,7 +18,7 @@ type Executor func(ctx context.Context, info weave.BlockInfo, store weave.KVStor
 func HandlerAsExecutor(h weave.Handler) Executor {
 	return func(ctx context.Context, info weave.BlockInfo, store weave.KVStore, msg weave.Msg) (*weave.DeliverResult, error) {
 		tx := &fakeTx{msg: msg}
-		return h.Deliver(ctx, info, info, store, tx)
+		return h.Deliver(ctx, info, store, tx)
 	}
 }
 

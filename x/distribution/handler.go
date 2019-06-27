@@ -2,6 +2,7 @@ package distribution
 
 import (
 	"context"
+
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/errors"
@@ -80,7 +81,7 @@ func (h *createRevenueHandler) Deliver(ctx context.Context, info weave.BlockInfo
 	return &weave.DeliverResult{Data: obj.Key()}, nil
 }
 
-func (h *createRevenueHandler) validate(ctx context.Context, info weave.BlockInfo, db weave.KVStore, tx weave.Tx) (*CreateMsg, error) {
+func (h *createRevenueHandler) validate(ctx context.Context, db weave.KVStore, tx weave.Tx) (*CreateMsg, error) {
 	var msg CreateMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, errors.Wrap(err, "load msg")
@@ -131,7 +132,7 @@ func (h *distributeHandler) Deliver(ctx context.Context, info weave.BlockInfo, d
 	return &weave.DeliverResult{}, nil
 }
 
-func (h *distributeHandler) validate(ctx context.Context, info weave.BlockInfo, db weave.KVStore, tx weave.Tx) (*DistributeMsg, error) {
+func (h *distributeHandler) validate(ctx context.Context, db weave.KVStore, tx weave.Tx) (*DistributeMsg, error) {
 	var msg DistributeMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, errors.Wrap(err, "load msg")
@@ -197,7 +198,7 @@ func (h *resetRevenueHandler) Deliver(ctx context.Context, info weave.BlockInfo,
 	return &weave.DeliverResult{}, nil
 }
 
-func (h *resetRevenueHandler) validate(ctx context.Context, info weave.BlockInfo, db weave.KVStore, tx weave.Tx) (*ResetMsg, error) {
+func (h *resetRevenueHandler) validate(ctx context.Context, db weave.KVStore, tx weave.Tx) (*ResetMsg, error) {
 	var msg ResetMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, errors.Wrap(err, "load msg")

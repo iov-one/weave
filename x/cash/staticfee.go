@@ -17,6 +17,7 @@ package cash
 
 import (
 	"context"
+
 	"github.com/iov-one/weave"
 	coin "github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/errors"
@@ -101,7 +102,7 @@ func (d FeeDecorator) Deliver(ctx context.Context, info weave.BlockInfo, store w
 	return next.Deliver(ctx, info, store, tx)
 }
 
-func (d FeeDecorator) extractFee(ctx context.Context, info weave.BlockInfo, tx weave.Tx, store weave.KVStore) (*FeeInfo, error) {
+func (d FeeDecorator) extractFee(ctx context.Context, tx weave.Tx, store weave.KVStore) (*FeeInfo, error) {
 	var finfo *FeeInfo
 	ftx, ok := tx.(FeeTx)
 	if ok {

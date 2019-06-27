@@ -2,6 +2,7 @@ package escrow
 
 import (
 	"context"
+
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/errors"
@@ -101,7 +102,7 @@ func (h CreateEscrowHandler) Deliver(ctx context.Context, info weave.BlockInfo, 
 }
 
 // validate does all common pre-processing between Check and Deliver.
-func (h CreateEscrowHandler) validate(ctx context.Context, info weave.BlockInfo, db weave.KVStore, tx weave.Tx) (*CreateMsg, error) {
+func (h CreateEscrowHandler) validate(ctx context.Context, db weave.KVStore, tx weave.Tx) (*CreateMsg, error) {
 	var msg CreateMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, errors.Wrap(err, "load msg")
@@ -181,7 +182,7 @@ func (h ReleaseEscrowHandler) Deliver(ctx context.Context, info weave.BlockInfo,
 }
 
 // validate does all common pre-processing between Check and Deliver.
-func (h ReleaseEscrowHandler) validate(ctx context.Context, info weave.BlockInfo, db weave.KVStore, tx weave.Tx) (*ReleaseMsg, *Escrow, error) {
+func (h ReleaseEscrowHandler) validate(ctx context.Context, db weave.KVStore, tx weave.Tx) (*ReleaseMsg, *Escrow, error) {
 	var msg ReleaseMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, nil, errors.Wrap(err, "load msg")
@@ -250,7 +251,7 @@ func (h ReturnEscrowHandler) Deliver(ctx context.Context, info weave.BlockInfo, 
 }
 
 // validate does all common pre-processing between Check and Deliver.
-func (h ReturnEscrowHandler) validate(ctx context.Context, info weave.BlockInfo, db weave.KVStore, tx weave.Tx) ([]byte, *Escrow, error) {
+func (h ReturnEscrowHandler) validate(ctx context.Context, db weave.KVStore, tx weave.Tx) ([]byte, *Escrow, error) {
 	var msg ReturnMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, nil, errors.Wrap(err, "load msg")
@@ -316,7 +317,7 @@ func (h UpdateEscrowHandler) Deliver(ctx context.Context, info weave.BlockInfo, 
 }
 
 // validate does all common pre-processing between Check and Deliver.
-func (h UpdateEscrowHandler) validate(ctx context.Context, info weave.BlockInfo, db weave.KVStore, tx weave.Tx) (*UpdatePartiesMsg, *Escrow, error) {
+func (h UpdateEscrowHandler) validate(ctx context.Context, db weave.KVStore, tx weave.Tx) (*UpdatePartiesMsg, *Escrow, error) {
 	var msg UpdatePartiesMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, nil, errors.Wrap(err, "load msg")

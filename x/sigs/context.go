@@ -18,7 +18,7 @@ const (
 
 // withSigners is a private method, as only this module
 // can add a signer
-func withSigners(ctx context.Context, info weave.BlockInfo, signers []weave.Condition) context.Context {
+func withSigners(ctx context.Context, signers []weave.Condition) context.Context {
 	return context.WithValue(ctx, contextKeySigners, signers)
 }
 
@@ -40,7 +40,7 @@ func (a Authenticate) GetConditions(ctx context.Context) []weave.Condition {
 
 // HasAddress returns true if the given address
 // had signed in the current Context.
-func (a Authenticate) HasAddress(ctx context.Context, info weave.BlockInfo, addr weave.Address) bool {
+func (a Authenticate) HasAddress(ctx context.Context, addr weave.Address) bool {
 	signers := a.GetConditions(ctx)
 	for _, s := range signers {
 		if addr.Equals(s.Address()) {

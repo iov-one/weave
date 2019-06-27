@@ -2,6 +2,7 @@ package multisig
 
 import (
 	"context"
+
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/migration"
@@ -63,7 +64,7 @@ func (h CreateMsgHandler) Deliver(ctx context.Context, info weave.BlockInfo, db 
 }
 
 // validate does all common pre-processing between Check and Deliver.
-func (h CreateMsgHandler) validate(ctx context.Context, info weave.BlockInfo, db weave.KVStore, tx weave.Tx) (*CreateMsg, error) {
+func (h CreateMsgHandler) validate(ctx context.Context, db weave.KVStore, tx weave.Tx) (*CreateMsg, error) {
 	// Retrieve tx main signer in this context.
 	sender := x.MainSigner(ctx, h.auth)
 	if sender == nil {
@@ -115,7 +116,7 @@ func (h UpdateMsgHandler) Deliver(ctx context.Context, info weave.BlockInfo, db 
 	return &weave.DeliverResult{}, nil
 }
 
-func (h UpdateMsgHandler) validate(ctx context.Context, info weave.BlockInfo, db weave.KVStore, tx weave.Tx) (*UpdateMsg, error) {
+func (h UpdateMsgHandler) validate(ctx context.Context, db weave.KVStore, tx weave.Tx) (*UpdateMsg, error) {
 	var msg UpdateMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, errors.Wrap(err, "load msg")

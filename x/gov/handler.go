@@ -103,7 +103,7 @@ func (h VoteHandler) Deliver(ctx context.Context, info weave.BlockInfo, db weave
 	return &weave.DeliverResult{}, nil
 }
 
-func (h VoteHandler) validate(ctx context.Context, info weave.BlockInfo, db weave.KVStore, tx weave.Tx) (*VoteMsg, *Proposal, *Vote, error) {
+func (h VoteHandler) validate(ctx context.Context, db weave.KVStore, tx weave.Tx) (*VoteMsg, *Proposal, *Vote, error) {
 	var msg VoteMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, nil, nil, errors.Wrap(err, "load msg")
@@ -228,7 +228,7 @@ func (h TallyHandler) Deliver(ctx context.Context, info weave.BlockInfo, db weav
 	}
 	subDB := cstore.CacheWrap()
 
-	res, err := h.executor(voteCtx, subDB, opts)
+	res, err := h.executor(voteCtx, info, subDB, opts)
 	if err != nil {
 		subDB.Discard()
 		log := fmt.Sprintf("Proposal accepted: execution error: %v", err)
@@ -246,7 +246,7 @@ func (h TallyHandler) Deliver(ctx context.Context, info weave.BlockInfo, db weav
 	return res, nil
 }
 
-func (h TallyHandler) validate(ctx context.Context, info weave.BlockInfo, db weave.KVStore, tx weave.Tx) (*TallyMsg, *Proposal, error) {
+func (h TallyHandler) validate(ctx context.Context, db weave.KVStore, tx weave.Tx) (*TallyMsg, *Proposal, error) {
 	var msg TallyMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, nil, errors.Wrap(err, "load msg")
@@ -329,7 +329,7 @@ func (h CreateProposalHandler) Deliver(ctx context.Context, info weave.BlockInfo
 	return &weave.DeliverResult{Data: obj.Key()}, nil
 }
 
-func (h CreateProposalHandler) validate(ctx context.Context, info weave.BlockInfo, db weave.KVStore, tx weave.Tx) (*CreateProposalMsg, *ElectionRule, *Electorate, error) {
+func (h CreateProposalHandler) validate(ctx context.Context, db weave.KVStore, tx weave.Tx) (*CreateProposalMsg, *ElectionRule, *Electorate, error) {
 	var msg CreateProposalMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, nil, nil, errors.Wrap(err, "load msg")
@@ -407,7 +407,7 @@ func newDeleteProposalHandler(auth x.Authenticator) *DeleteProposalHandler {
 	}
 }
 
-func (h DeleteProposalHandler) validate(ctx context.Context, info weave.BlockInfo, db weave.KVStore, tx weave.Tx) (*DeleteProposalMsg, *Proposal, error) {
+func (h DeleteProposalHandler) validate(ctx context.Context, db weave.KVStore, tx weave.Tx) (*DeleteProposalMsg, *Proposal, error) {
 	var msg DeleteProposalMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, nil, errors.Wrap(err, "load msg")
@@ -490,7 +490,7 @@ func (h UpdateElectorateHandler) Deliver(ctx context.Context, info weave.BlockIn
 	return &weave.DeliverResult{Data: msg.ElectorateID}, nil
 }
 
-func (h UpdateElectorateHandler) validate(ctx context.Context, info weave.BlockInfo, db weave.KVStore, tx weave.Tx) (*UpdateElectorateMsg, *Electorate, error) {
+func (h UpdateElectorateHandler) validate(ctx context.Context, db weave.KVStore, tx weave.Tx) (*UpdateElectorateMsg, *Electorate, error) {
 	var msg UpdateElectorateMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, nil, errors.Wrap(err, "load msg")
@@ -549,7 +549,7 @@ func (h UpdateElectionRuleHandler) Deliver(ctx context.Context, info weave.Block
 	return &weave.DeliverResult{Data: msg.ElectionRuleID}, nil
 }
 
-func (h UpdateElectionRuleHandler) validate(ctx context.Context, info weave.BlockInfo, db weave.KVStore, tx weave.Tx) (*UpdateElectionRuleMsg, *ElectionRule, error) {
+func (h UpdateElectionRuleHandler) validate(ctx context.Context, db weave.KVStore, tx weave.Tx) (*UpdateElectionRuleMsg, *ElectionRule, error) {
 	var msg UpdateElectionRuleMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, nil, errors.Wrap(err, "load msg")
@@ -613,7 +613,7 @@ func (h createTextResolutionHandler) Deliver(ctx context.Context, info weave.Blo
 	return &weave.DeliverResult{Data: obj.Key()}, nil
 }
 
-func (h createTextResolutionHandler) validate(ctx context.Context, info weave.BlockInfo, db weave.KVStore, tx weave.Tx) (*CreateTextResolutionMsg, error) {
+func (h createTextResolutionHandler) validate(ctx context.Context, db weave.KVStore, tx weave.Tx) (*CreateTextResolutionMsg, error) {
 	var msg CreateTextResolutionMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, errors.Wrap(err, "load msg")

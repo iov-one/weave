@@ -36,14 +36,14 @@ func NewUpdateConfigurationHandler(pkg string, config OwnedConfig, auth x.Authen
 }
 
 func (h UpdateConfigurationHandler) Check(ctx context.Context, info weave.BlockInfo, store weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
-	if err := h.applyTx(ctx, store, tx); err != nil {
+	if err := h.applyTx(ctx, info, store, tx); err != nil {
 		return nil, err
 	}
 	return &weave.CheckResult{}, nil
 }
 
 func (h UpdateConfigurationHandler) Deliver(ctx context.Context, info weave.BlockInfo, store weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
-	if err := h.applyTx(ctx, store, tx); err != nil {
+	if err := h.applyTx(ctx, info, store, tx); err != nil {
 		return nil, err
 	}
 	return &weave.DeliverResult{}, nil
