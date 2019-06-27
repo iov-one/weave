@@ -145,12 +145,12 @@ func TestBumpSequence(t *testing.T) {
 			tx := weavetest.Tx{Msg: &tc.Msg}
 
 			cache := db.CacheWrap()
-			if _, err := handler.Check(ctx, info, cache, &tx); !tc.WantCheckErr.Is(err) {
+			if _, err := handler.Check(ctx, weavetest.BlockInfo(7), cache, &tx); !tc.WantCheckErr.Is(err) {
 				t.Fatalf("unexpected check error: %+v", err)
 			}
 			cache.Discard()
 
-			if _, err := handler.Deliver(ctx, info, db, &tx); !tc.WantDeliverErr.Is(err) {
+			if _, err := handler.Deliver(ctx, weavetest.BlockInfo(7), db, &tx); !tc.WantDeliverErr.Is(err) {
 				t.Fatalf("unexpected check error: %+v", err)
 			}
 			if tc.WantDeliverErr != nil {

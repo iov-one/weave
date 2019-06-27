@@ -153,6 +153,7 @@ func TestHandler(t *testing.T) {
 				ValidatorUpdates: spec.Src,
 			}}
 			// when check is called
+			info := weavetest.BlockInfo(1)
 			if _, err := rt.Check(ctx, info, cache, tx); !spec.ExpCheckErr.Is(err) {
 				t.Fatalf("check expected: %+v  but got %+v", spec.ExpCheckErr, err)
 			}

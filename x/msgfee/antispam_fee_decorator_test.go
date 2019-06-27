@@ -106,7 +106,8 @@ func TestNewAntispamFeeDecorator(t *testing.T) {
 				tc.Handler.CheckErr = tc.CheckErr
 			}
 
-			cres, err := decorator.Check(nil, nil, tc.Tx, tc.Handler)
+			info := weavetest.BlockInfo(8)
+			cres, err := decorator.Check(nil, info, nil, tc.Tx, tc.Handler)
 			if !tc.WantCheckErr.Is(err) {
 				t.Fatalf("check returned an unexpected error: %v", err)
 			}
@@ -114,7 +115,7 @@ func TestNewAntispamFeeDecorator(t *testing.T) {
 				t.Fatalf("unexpected check fee: %v", cres.RequiredFee)
 			}
 
-			if _, err := decorator.Deliver(nil, nil, tc.Tx, tc.Handler); !tc.WantDeliverErr.Is(err) {
+			if _, err := decorator.Deliver(nil, info, nil, tc.Tx, tc.Handler); !tc.WantDeliverErr.Is(err) {
 				t.Fatalf("deliver returned an unexpected error: %v", err)
 			}
 

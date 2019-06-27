@@ -94,6 +94,7 @@ func TestCreateContractHandler(t *testing.T) {
 			db := store.MemStore()
 			migration.MustInitPkg(db, "multisig")
 			ctx := context.Background()
+			info := weavetest.BlockInfo(100)
 			tx := &weavetest.Tx{Msg: tc.Msg}
 
 			cache := db.CacheWrap()
@@ -259,6 +260,7 @@ func TestUpdateContractHandler(t *testing.T) {
 
 			ctx := context.Background()
 			ctx = auth.SetConditions(ctx, tc.Conditions...)
+			info := weavetest.BlockInfo(100)
 			tx := &weavetest.Tx{Msg: tc.Msg}
 
 			b := NewContractBucket()

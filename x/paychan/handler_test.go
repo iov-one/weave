@@ -517,7 +517,8 @@ func TestPaymentChannelHandlers(t *testing.T) {
 
 			for i, a := range tc.actions {
 				cache := db.CacheWrap()
-				if _, err := rt.Check(a.ctx(), cache, a.tx()); !a.wantCheckErr.Is(err) {
+				ctx, info := a.ctx()
+				if _, err := rt.Check(ctx, info, cache, a.tx()); !a.wantCheckErr.Is(err) {
 					t.Logf("want: %+v", a.wantCheckErr)
 					t.Logf(" got: %+v", err)
 					t.Fatalf("action %d check (%T)", i, a.msg)
@@ -528,7 +529,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 					continue
 				}
 
-				if _, err := rt.Deliver(a.ctx(), db, a.tx()); !a.wantDeliverErr.Is(err) {
+				if _, err := rt.Deliver(ctx, info, db, a.tx()); !a.wantDeliverErr.Is(err) {
 					t.Logf("want: %+v", a.wantDeliverErr)
 					t.Logf(" got: %+v", err)
 					t.Fatalf("action %d delivery (%T)", i, a.msg)
@@ -561,16 +562,14 @@ func (a *action) tx() weave.Tx {
 	return &weavetest.Tx{Msg: a.msg}
 }
 
-func (a *action) ctx() context.Context {
-	ctx := weave.WithHeight(context.Background(), a.blocksize)
-	ctx = weave.WithChainID(ctx, "testchain-123")
-	if !a.blockTime.IsZero() {
-		ctx = weave.WithBlockTime(ctx, a.blockTime)
-	} else {
-		ctx = weave.WithBlockTime(ctx, now)
-	}
+func (a *action) ctx() (context.Context, weave.BlockInfo) {
 	auth := &weavetest.CtxAuth{Key: "auth"}
-	return auth.SetConditions(ctx, a.conditions...)
+	ctx := auth.SetConditions(context.Background(), a.conditions...)
+
+	if !a.blockTime.IsZero() {
+		return ctx, weavetest.BlockInfoWithChain("testchain-123", a.blocksize, a.blockTime)
+	}
+	return ctx, weavetest.BlockInfoWithChain("testchain-123", a.blocksize, now)
 }
 
 // querycheck is a declaration of a query result. For given path and data

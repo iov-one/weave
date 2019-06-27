@@ -118,9 +118,10 @@ func TestDecorator(t *testing.T) {
 	for testName, tc := range cases {
 		t.Run(testName, func(t *testing.T) {
 			ctx := context.Background()
-			ctx = weave.WithHeight(ctx, 100)
 			auth := &weavetest.CtxAuth{Key: "authKey"}
 			ctx = auth.SetConditions(ctx, tc.signers...)
+			info := weavetest.BlockInfo(100)
+
 			d := NewDecorator(x.ChainAuth(auth, Authenticate{}))
 
 			var hn MultisigCheckHandler

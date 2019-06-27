@@ -95,13 +95,14 @@ func TestNewTokenInfoHandler(t *testing.T) {
 			auth := &weavetest.Auth{Signers: tc.signers}
 			h := newCreateTokenInfoHandler(auth, tc.issuer)
 			tx := &weavetest.Tx{Msg: tc.msg}
-			_, err := h.Check(nil, db, tx)
+			info := weavetest.BlockInfo(8)
+			_, err := h.Check(nil, info, db, tx)
 			if err != nil {
 				if !tc.wantCheckErr.Is(err) {
 					t.Fatalf("check error: want %v, got %+v", tc.wantCheckErr, err)
 				}
 			}
-			_, err = h.Deliver(nil, db, tx)
+			_, err = h.Deliver(nil, info, db, tx)
 			if err != nil {
 				if !tc.wantDeliverErr.Is(err) {
 					t.Fatalf("deliver error: want %v, got %+v", tc.wantDeliverErr, err)

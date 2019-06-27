@@ -19,7 +19,8 @@ func TestDecorator(t *testing.T) {
 	signers := new(SigCheckHandler)
 	d := NewDecorator()
 	chainID := "deco-rate"
-	ctx := weave.WithChainID(context.Background(), chainID)
+	ctx := context.Background()
+	info := weavetest.BlockInfoWithChain(chainID, 8)
 
 	priv := weavetest.NewKey()
 	perms := []weave.Condition{priv.PublicKey().Condition()}
@@ -112,7 +113,7 @@ func TestGasPaymentPerSigner(t *testing.T) {
 	)
 
 	ctx := context.Background()
-	ctx = weave.WithChainID(ctx, "mychain")
+	info := weavetest.BlockInfoWithChain("mychain", 8)
 	db := store.MemStore()
 	migration.MustInitPkg(db, "sigs")
 
