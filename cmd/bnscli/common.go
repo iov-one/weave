@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/base64"
 	"encoding/binary"
-	"encoding/csv"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -12,7 +11,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/iov-one/weave"
 	bnsd "github.com/iov-one/weave/cmd/bnsd/app"
 )
 
@@ -159,37 +157,4 @@ const txHeaderSize = 4
 
 type stater interface {
 	Stat() (os.FileInfo, error)
-}
-
-// readAddressWeightPairCSV reads all address weight pairs from a csv file and calls the callback.
-func readAddressWeightPairCSV(csvpath string, f func(address weave.Address, weight uint32)) error {
-	fd, err := os.Open(csvpath)
-	if err != nil {
-		return fmt.Errorf("cannot open file: %s", err)
-	}
-	defer fd.Close()
-
-	rd := csv.NewReader(fd)
-	for lineNo := 1; ; lineNo++ {
-		row, err := rd.Read()
-		if err != nil {
-			if err == io.EOF {
-				return nil
-			}
-			return err
-		}
-
-		if len(row) != 2 {
-			return fmt.Errorf("invalid line %d: expected 2 columns, got %d", lineNo, len(row))
-		}
-		address, err := weave.ParseAddress(row[0])
-		if err != nil {
-			return fmt.Errorf("invalid line %d: invalid address %q: %s", lineNo, row[0], err)
-		}
-		weight, err := strconv.ParseUint(row[1], 10, 32)
-		if err != nil {
-			return fmt.Errorf("invalid line %d: invalid weight (q-factor) %q: %s", lineNo, row[1], err)
-		}
-		f(address, uint32(weight))
-	}
 }
