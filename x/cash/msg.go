@@ -12,9 +12,6 @@ func init() {
 	migration.MustRegister(1, &UpdateConfigurationMsg{}, migration.NoModification)
 }
 
-// Ensure we implement the Msg interface
-var _ weave.Msg = (*SendMsg)(nil)
-
 const (
 	sendTxCost int64 = 100
 
@@ -22,12 +19,14 @@ const (
 	maxRefSize  int = 64
 )
 
-// Path returns the routing path for this message
+var _ weave.Msg = (*SendMsg)(nil)
+
+// Path returns the routing path for this message.
 func (SendMsg) Path() string {
 	return "cash/send"
 }
 
-// Validate makes sure that this is sensible
+// Validate makes sure that this is sensible.
 func (s *SendMsg) Validate() error {
 	var err error
 	if coin.IsEmpty(s.Amount) || !s.Amount.IsPositive() {
@@ -63,8 +62,7 @@ func (s *SendMsg) DefaultSource(addr []byte) *SendMsg {
 	}
 }
 
-// FeeTx exposes information about the fees that
-// should be paid
+// FeeTx exposes information about the fees that should be paid.
 type FeeTx interface {
 	GetFees() *FeeInfo
 }

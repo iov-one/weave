@@ -12,6 +12,8 @@ func init() {
 	migration.MustRegister(1, &CloseMsg{}, migration.NoModification)
 }
 
+var _ weave.Msg = (*CreateMsg)(nil)
+
 func (m *CreateMsg) Validate() error {
 	var errs error
 
@@ -42,6 +44,8 @@ func (m *CreateMsg) Validate() error {
 func (CreateMsg) Path() string {
 	return "paychan/create"
 }
+
+var _ weave.Msg = (*TransferMsg)(nil)
 
 func (m *TransferMsg) Validate() error {
 	var errs error
@@ -74,6 +78,8 @@ func (m *TransferMsg) Validate() error {
 func (TransferMsg) Path() string {
 	return "paychan/transfer"
 }
+
+var _ weave.Msg = (*CloseMsg)(nil)
 
 func (m *CloseMsg) Validate() error {
 	var errs error

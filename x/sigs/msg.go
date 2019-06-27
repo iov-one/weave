@@ -1,6 +1,7 @@
 package sigs
 
 import (
+	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/migration"
 )
@@ -13,6 +14,8 @@ const (
 	maxSequenceIncrement = 1000
 	minSequenceIncrement = 1
 )
+
+var _ weave.Msg = (*BumpSequenceMsg)(nil)
 
 func (msg *BumpSequenceMsg) Validate() error {
 	if err := msg.Metadata.Validate(); err != nil {

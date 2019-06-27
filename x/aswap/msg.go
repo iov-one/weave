@@ -1,6 +1,7 @@
 package aswap
 
 import (
+	"github.com/iov-one/weave"
 	coin "github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/migration"
@@ -19,6 +20,8 @@ const (
 	// preimageHash size in bytes
 	preimageHashSize int = 32
 )
+
+var _ weave.Msg = (*CreateMsg)(nil)
 
 func (CreateMsg) Path() string {
 	return "aswap/create"
@@ -54,6 +57,8 @@ func (m *CreateMsg) Validate() error {
 	return err
 }
 
+var _ weave.Msg = (*ReleaseMsg)(nil)
+
 func (ReleaseMsg) Path() string {
 	return "aswap/release"
 }
@@ -72,6 +77,8 @@ func (m *ReleaseMsg) Validate() error {
 	}
 	return nil
 }
+
+var _ weave.Msg = (*ReturnSwapMsg)(nil)
 
 func (ReturnSwapMsg) Path() string {
 	return "aswap/return"

@@ -1,6 +1,7 @@
 package multisig
 
 import (
+	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/migration"
 )
@@ -18,6 +19,8 @@ const (
 	// allowed to be part of a single contract.
 	maxParticipantsAllowed = 100
 )
+
+var _ weave.Msg = (*CreateMsg)(nil)
 
 // Path fulfills weave.Msg interface to allow routing.
 func (CreateMsg) Path() string {
@@ -38,6 +41,8 @@ func (c *CreateMsg) Validate() error {
 	return validateWeights(errors.ErrMsg,
 		c.Participants, c.ActivationThreshold, c.AdminThreshold)
 }
+
+var _ weave.Msg = (*UpdateMsg)(nil)
 
 // Path fulfills weave.Msg interface to allow routing.
 func (UpdateMsg) Path() string {

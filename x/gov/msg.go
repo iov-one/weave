@@ -1,6 +1,7 @@
 package gov
 
 import (
+	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/migration"
 )
@@ -13,6 +14,8 @@ func init() {
 	migration.MustRegister(1, &UpdateElectionRuleMsg{}, migration.NoModification)
 	migration.MustRegister(1, &UpdateElectorateMsg{}, migration.NoModification)
 }
+
+var _ weave.Msg = (*CreateProposalMsg)(nil)
 
 func (CreateProposalMsg) Path() string {
 	return "gov/create_proposal"
@@ -51,6 +54,8 @@ func (m CreateProposalMsg) Validate() error {
 	return nil
 }
 
+var _ weave.Msg = (*DeleteProposalMsg)(nil)
+
 func (DeleteProposalMsg) Path() string {
 	return "gov/delete_proposal"
 }
@@ -65,6 +70,8 @@ func (m DeleteProposalMsg) Validate() error {
 	}
 	return nil
 }
+
+var _ weave.Msg = (*VoteMsg)(nil)
 
 func (VoteMsg) Path() string {
 	return "gov/vote"
@@ -86,6 +93,8 @@ func (m VoteMsg) Validate() error {
 	return nil
 }
 
+var _ weave.Msg = (*TallyMsg)(nil)
+
 func (TallyMsg) Path() string {
 	return "gov/tally"
 }
@@ -100,6 +109,8 @@ func (m TallyMsg) Validate() error {
 	}
 	return nil
 }
+
+var _ weave.Msg = (*UpdateElectionRuleMsg)(nil)
 
 func (UpdateElectionRuleMsg) Path() string {
 	return "gov/update_election_rule"
@@ -121,6 +132,8 @@ func (m UpdateElectionRuleMsg) Validate() error {
 	return m.Threshold.Validate()
 }
 
+var _ weave.Msg = (*CreateTextResolutionMsg)(nil)
+
 func (CreateTextResolutionMsg) Path() string {
 	return "gov/create_text_resolution"
 }
@@ -134,6 +147,8 @@ func (m CreateTextResolutionMsg) Validate() error {
 	}
 	return nil
 }
+
+var _ weave.Msg = (*UpdateElectorateMsg)(nil)
 
 func (UpdateElectorateMsg) Path() string {
 	return "gov/update_electorate"

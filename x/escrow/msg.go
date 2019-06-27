@@ -38,6 +38,8 @@ func NewCreateMsg(
 	}
 }
 
+var _ weave.Msg = (*CreateMsg)(nil)
+
 func (CreateMsg) Path() string {
 	return "escrow/create"
 }
@@ -71,6 +73,8 @@ func (m *CreateMsg) Validate() error {
 	return nil
 }
 
+var _ weave.Msg = (*ReleaseMsg)(nil)
+
 func (ReleaseMsg) Path() string {
 	return "escrow/release"
 }
@@ -90,6 +94,8 @@ func (m *ReleaseMsg) Validate() error {
 	return validateAmount(m.Amount)
 }
 
+var _ weave.Msg = (*ReturnMsg)(nil)
+
 func (ReturnMsg) Path() string {
 	return "escrow/return"
 }
@@ -101,6 +107,8 @@ func (m *ReturnMsg) Validate() error {
 	}
 	return validateEscrowID(m.EscrowId)
 }
+
+var _ weave.Msg = (*UpdatePartiesMsg)(nil)
 
 func (UpdatePartiesMsg) Path() string {
 	return "escrow/update"

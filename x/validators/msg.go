@@ -1,6 +1,7 @@
 package validators
 
 import (
+	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/migration"
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -9,6 +10,8 @@ import (
 func init() {
 	migration.MustRegister(1, &ApplyDiffMsg{}, migration.NoModification)
 }
+
+var _ weave.Msg = (*ApplyDiffMsg)(nil)
 
 // Path implements weave.Msg interface.
 func (*ApplyDiffMsg) Path() string {
