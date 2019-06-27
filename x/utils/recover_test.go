@@ -7,6 +7,7 @@ import (
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/store"
+	"github.com/iov-one/weave/weavetest"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -18,6 +19,7 @@ func TestRecovery(t *testing.T) {
 	store := store.MemStore()
 
 	// Panic handler panics. Test the test tool.
+	info := weavetest.BlockInfo(22)
 	assert.Panics(t, func() { h.Check(ctx, info, store, nil) })
 	assert.Panics(t, func() { h.Deliver(ctx, info, store, nil) })
 

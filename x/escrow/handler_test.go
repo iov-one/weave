@@ -625,16 +625,18 @@ func TestHandler(t *testing.T) {
 			for j, p := range tc.prep {
 				// try check
 				cache := db.CacheWrap()
-				_, err = router.Check(p.ctx(), cache, p.tx())
+				ctx, info := p.ctx()
+				_, err = router.Check(ctx, info, cache, p.tx())
 				require.NoError(t, err, "%d", j)
 				cache.Discard()
 
 				// then perform
-				_, err = router.Deliver(p.ctx(), db, p.tx())
+				_, err = router.Deliver(ctx, info, db, p.tx())
 				require.NoError(t, err, "%d", j)
 			}
 
-			_, err = router.Deliver(tc.do.ctx(), db, tc.do.tx())
+			ctx, info := tc.do.ctx()
+			_, err = router.Deliver(ctx, info, db, tc.do.tx())
 			if tc.isError {
 				require.Error(t, err)
 			} else {
@@ -694,14 +696,12 @@ func (a action) tx() weave.Tx {
 	return &weavetest.Tx{Msg: a.msg}
 }
 
-func (a action) ctx() context.Context {
-	ctx := context.Background()
+func (a action) ctx() (context.Context, weave.BlockInfo) {
+	ctx := authenticator().SetConditions(context.Background(), a.perms...)
 	if !a.blockTime.IsZero() {
-		ctx = weave.WithBlockTime(ctx, a.blockTime)
-	} else {
-		ctx = weave.WithBlockTime(ctx, blockNow)
+		return ctx, weavetest.BlockInfo(77, a.blockTime)
 	}
-	return authenticator().SetConditions(ctx, a.perms...)
+	return ctx, weavetest.BlockInfo(77, blockNow)
 }
 
 // authenticator returns a default for all tests...

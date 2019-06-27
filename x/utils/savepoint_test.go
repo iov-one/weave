@@ -92,6 +92,7 @@ func TestSavepoint(t *testing.T) {
 			kv.Set(ok, ov)
 
 			var err error
+			info := weavetest.BlockInfo(22)
 			if tc.check {
 				_, err = tc.save.Check(ctx, info, kv, nil, tc.handler)
 			} else {
@@ -158,11 +159,12 @@ func TestCacheWriteFail(t *testing.T) {
 
 	decorator := NewSavepoint().OnCheck().OnDeliver()
 
-	if _, err := decorator.Check(context.TODO(), db, tx, handler); !myerr.Is(err) {
+	info := weavetest.BlockInfo(64)
+	if _, err := decorator.Check(context.TODO(), info, db, tx, handler); !myerr.Is(err) {
 		t.Fatalf("unexpected check result error: %+v", err)
 	}
 
-	if _, err := decorator.Deliver(context.TODO(), db, tx, handler); !myerr.Is(err) {
+	if _, err := decorator.Deliver(context.TODO(), info, db, tx, handler); !myerr.Is(err) {
 		t.Fatalf("unexpected deliver result error: %+v", err)
 	}
 }

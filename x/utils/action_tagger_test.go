@@ -80,7 +80,7 @@ func TestActionTagger(t *testing.T) {
 			store := store.MemStore()
 
 			// we get tagged on success
-			res, err := tc.stack.Deliver(ctx, info, store, tc.tx)
+			res, err := tc.stack.Deliver(ctx, weavetest.BlockInfo(44), store, tc.tx)
 			if tc.err != nil {
 				if !tc.err.Is(err) {
 					t.Fatalf("Unexpected error type returned: %v", err)

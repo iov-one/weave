@@ -99,10 +99,11 @@ func TestSend(t *testing.T) {
 
 			tx := &weavetest.Tx{Msg: tc.msg}
 
-			if _, err := h.Check(nil, kv, tx); !tc.wantCheckErr.Is(err) {
+			info := weavetest.BlockInfo(7)
+			if _, err := h.Check(nil, info, kv, tx); !tc.wantCheckErr.Is(err) {
 				t.Fatalf("unexpected check error: %+v", err)
 			}
-			if _, err := h.Deliver(nil, kv, tx); !tc.wantDeliverErr.Is(err) {
+			if _, err := h.Deliver(nil, info, kv, tx); !tc.wantDeliverErr.Is(err) {
 				t.Fatalf("unexpected deliver error: %+v", err)
 			}
 		})

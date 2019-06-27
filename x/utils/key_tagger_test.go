@@ -108,6 +108,7 @@ func TestKeyTagger(t *testing.T) {
 
 			// try check - no op
 			check := db.CacheWrap()
+			info := weavetest.BlockInfo(22)
 			_, err := tagger.Check(ctx, info, check, nil, tc.handler)
 			if tc.isError {
 				if err == nil {

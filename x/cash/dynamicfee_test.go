@@ -50,11 +50,12 @@ func TestCacheWriteFail(t *testing.T) {
 
 	decorator := NewDynamicFeeDecorator(auth, ctrl)
 
-	if _, err := decorator.Check(context.TODO(), db, tx, handler); !myerr.Is(err) {
+	info := weavetest.BlockInfo(7)
+	if _, err := decorator.Check(context.TODO(), info, db, tx, handler); !myerr.Is(err) {
 		t.Fatalf("unexpected check result error: %+v", err)
 	}
 
-	if _, err := decorator.Deliver(context.TODO(), db, tx, handler); !myerr.Is(err) {
+	if _, err := decorator.Deliver(context.TODO(), info, db, tx, handler); !myerr.Is(err) {
 		t.Fatalf("unexpected deliver result error: %+v", err)
 	}
 }
@@ -276,7 +277,8 @@ func TestDynamicFeeDecorator(t *testing.T) {
 
 			cache := db.CacheWrap()
 
-			cRes, err := h.Check(nil, cache, tx, tc.handler)
+			info := weavetest.BlockInfo(7)
+			cRes, err := h.Check(nil, info, cache, tx, tc.handler)
 			if !tc.wantCheckErr.Is(err) {
 				t.Fatalf("got check error: %v", err)
 			}
@@ -295,7 +297,7 @@ func TestDynamicFeeDecorator(t *testing.T) {
 
 			cache.Discard()
 
-			if _, err = h.Deliver(nil, cache, tx, tc.handler); !tc.wantDeliverErr.Is(err) {
+			if _, err = h.Deliver(nil, info, cache, tx, tc.handler); !tc.wantDeliverErr.Is(err) {
 				t.Fatalf("got deliver error: %v", err)
 			}
 

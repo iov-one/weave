@@ -83,7 +83,7 @@ func TestConfigurationHandler(t *testing.T) {
 			assert.Equal(t, tc.init, load)
 
 			// call deliver
-			_, err = h.Deliver(nil, kv, &weavetest.Tx{Msg: &tc.update})
+			_, err = h.Deliver(nil, weavetest.BlockInfo(7), kv, &weavetest.Tx{Msg: &tc.update})
 			assert.Nil(t, err)
 
 			// should update stored config

@@ -176,9 +176,10 @@ func TestFees(t *testing.T) {
 
 			tx := &feeTx{tc.fee}
 
-			_, err := h.Check(nil, kv, tx, &weavetest.Handler{})
+			info := weavetest.BlockInfo(7)
+			_, err := h.Check(nil, info, kv, tx, &weavetest.Handler{})
 			assert.True(t, tc.expect(err), "%+v", err)
-			_, err = h.Deliver(nil, kv, tx, &weavetest.Handler{})
+			_, err = h.Deliver(nil, info, kv, tx, &weavetest.Handler{})
 			assert.True(t, tc.expect(err), "%+v", err)
 		})
 	}
