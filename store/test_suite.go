@@ -2,6 +2,7 @@ package store
 
 import (
 	"bytes"
+	"context"
 	"crypto/rand"
 	"sort"
 	"testing"
@@ -38,11 +39,13 @@ func (s *TestSuite) GetSet(t *testing.T) {
 	base, cleanup := s.makeBase()
 	defer cleanup()
 
+	ctx := context.Background()
+
 	// make sure the btree is empty at start but returns results
 	// that are written to it
 	k, v := []byte("french"), []byte("fry")
 	s.AssertGetHas(t, base, k, nil, false)
-	err := base.Set(k, v)
+	err := base.Set(ctx, k, v)
 	assert.Nil(t, err)
 	s.AssertGetHas(t, base, k, v, true)
 
@@ -54,13 +57,13 @@ func (s *TestSuite) GetSet(t *testing.T) {
 	// writing more data is only visible in the cache
 	k2, v2 := []byte("LA"), []byte("Dodgers")
 	s.AssertGetHas(t, cache, k2, nil, false)
-	err = cache.Set(k2, v2)
+	err = cache.Set(ctx, k2, v2)
 	assert.Nil(t, err)
 	s.AssertGetHas(t, cache, k2, v2, true)
 	s.AssertGetHas(t, base, k2, nil, false)
 
 	// we can write the cache to the base layer...
-	err = cache.Write()
+	err = cache.Write(ctx)
 	assert.Nil(t, err)
 	s.AssertGetHas(t, base, k, v, true)
 	s.AssertGetHas(t, base, k2, v2, true)
@@ -70,7 +73,7 @@ func (s *TestSuite) GetSet(t *testing.T) {
 	c2 := base.CacheWrap()
 	s.AssertGetHas(t, c2, k, v, true)
 	s.AssertGetHas(t, c2, k2, v2, true)
-	err = c2.Set(k3, v3)
+	err = c2.Set(ctx, k3, v3)
 	assert.Nil(t, err)
 	c2.Discard()
 
@@ -78,9 +81,9 @@ func (s *TestSuite) GetSet(t *testing.T) {
 	c3 := base.CacheWrap()
 	s.AssertGetHas(t, c3, k, v, true)
 	s.AssertGetHas(t, c3, k2, v2, true)
-	err = c3.Delete(k)
+	err = c3.Delete(ctx, k)
 	assert.Nil(t, err)
-	err = c3.Write()
+	err = c3.Write(ctx)
 	assert.Nil(t, err)
 
 	// make sure it commits proper
@@ -114,14 +117,15 @@ func (s *TestSuite) CacheConflicts(t *testing.T) {
 		t.Run(testName, func(t *testing.T) {
 			parent, cleanup := s.makeBase()
 			defer cleanup()
+			ctx := context.Background()
 
 			for _, op := range tc.parentOps {
-				assert.Nil(t, op.Apply(parent))
+				assert.Nil(t, op.Apply(ctx, parent))
 			}
 
 			child := parent.CacheWrap()
 			for _, op := range tc.childOps {
-				assert.Nil(t, op.Apply(child))
+				assert.Nil(t, op.Apply(ctx, child))
 			}
 
 			// now check the parent is unaffected
@@ -135,7 +139,7 @@ func (s *TestSuite) CacheConflicts(t *testing.T) {
 			}
 
 			// write child to parent and make sure it also shows proper data
-			assert.Nil(t, child.Write())
+			assert.Nil(t, child.Write(ctx))
 			for _, q := range tc.childQueries {
 				s.AssertGetHas(t, parent, q.Key, q.Value, q.Value != nil)
 			}
@@ -286,10 +290,12 @@ func (s *TestSuite) IteratorWithConflicts(t *testing.T) {
 
 func (s *TestSuite) AssertGetHas(t testing.TB, kv ReadOnlyKVStore, key, val []byte, has bool) {
 	t.Helper()
-	got, err := kv.Get(key)
+	ctx := context.Background()
+
+	got, err := kv.Get(ctx, key)
 	assert.Nil(t, err)
 	assert.Equal(t, val, got)
-	exists, err := kv.Has(key)
+	exists, err := kv.Has(ctx, key)
 	assert.Nil(t, err)
 	assert.Equal(t, has, exists)
 }
@@ -328,23 +334,21 @@ type iterCase struct {
 }
 
 func (i iterCase) verify(t testing.TB, base CacheableKVStore) {
+	ctx := context.Background()
+
 	for _, op := range i.pre {
-		assert.Nil(t, op.Apply(base))
+		assert.Nil(t, op.Apply(ctx, base))
 	}
 
 	child := base.CacheWrap()
 	for _, op := range i.child {
-		assert.Nil(t, op.Apply(child))
+		assert.Nil(t, op.Apply(ctx, child))
 	}
 
 	for _, q := range i.queries {
 		var iter Iterator
 		var err error
-		if q.reverse {
-			iter, err = child.ReverseIterator(q.start, q.end)
-		} else {
-			iter, err = child.Iterator(q.start, q.end)
-		}
+		iter, err = child.Iterator(ctx, q.start, q.end, q.reverse)
 		assert.Nil(t, err)
 
 		// Make sure proper iteration works.
