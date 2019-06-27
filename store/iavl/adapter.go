@@ -1,6 +1,8 @@
 package iavl
 
 import (
+	"context"
+
 	"github.com/tendermint/iavl"
 	dbm "github.com/tendermint/tendermint/libs/db"
 
@@ -58,7 +60,7 @@ func MockCommitStore() CommitStore {
 // Get returns the value at last committed state
 // Returns nil iff key doesn't exist.
 // Returns error on nil key.
-func (s CommitStore) Get(key []byte) ([]byte, error) {
+func (s CommitStore) Get(ctx context.Context, key []byte) ([]byte, error) {
 	if len(key) == 0 {
 		return nil, errors.Wrap(errors.ErrDatabase, "nil key")
 	}
@@ -147,24 +149,24 @@ type adapter struct {
 var _ store.KVStore = adapter{}
 
 // Get returns nil iff key doesn't exist. Panics on nil key.
-func (a adapter) Get(key []byte) ([]byte, error) {
+func (a adapter) Get(ctx context.Context, key []byte) ([]byte, error) {
 	_, val := a.tree.Get(key)
 	return val, nil
 }
 
 // Has checks if a key exists. Panics on nil key.
-func (a adapter) Has(key []byte) (bool, error) {
+func (a adapter) Has(ctx context.Context, key []byte) (bool, error) {
 	return a.tree.Has(key), nil
 }
 
 // Set adds a new value
-func (a adapter) Set(key, value []byte) error {
+func (a adapter) Set(ctx context.Context, key, value []byte) error {
 	a.tree.Set(key, value)
 	return nil
 }
 
 // Delete removes from the tree
-func (a adapter) Delete(key []byte) error {
+func (a adapter) Delete(ctx context.Context, key []byte) error {
 	a.tree.Remove(key)
 	return nil
 }
@@ -177,23 +179,10 @@ func (a adapter) NewBatch() store.Batch {
 // Iterator over a domain of keys in ascending order. End is exclusive.
 // Start must be less than end, or the Iterator is invalid.
 // CONTRACT: No writes may happen within a domain while an iterator exists over it.
-func (a adapter) Iterator(start, end []byte) (store.Iterator, error) {
+func (a adapter) Iterator(ctx context.Context, start, end []byte, reverse bool) (store.Iterator, error) {
 	iter := newLazyIterator()
 	go func() {
-		a.tree.IterateRange(start, end, true, iter.add)
-		iter.Release()
-	}()
-
-	return iter, nil
-}
-
-// ReverseIterator over a domain of keys in descending order. End is exclusive.
-// Start must be greater than end, or the Iterator is invalid.
-// CONTRACT: No writes may happen within a domain while an iterator exists over it.
-func (a adapter) ReverseIterator(start, end []byte) (store.Iterator, error) {
-	iter := newLazyIterator()
-	go func() {
-		a.tree.IterateRange(start, end, false, iter.add)
+		a.tree.IterateRange(start, end, !reverse, iter.add)
 		iter.Release()
 	}()
 

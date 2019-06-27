@@ -1,6 +1,7 @@
 package store
 
 import (
+	"context"
 	"testing"
 
 	"github.com/iov-one/weave/errors"
@@ -20,7 +21,7 @@ func TestSliceIterator(t *testing.T) {
 		models[i].Value = vs[i]
 	}
 	// make sure proper iteration works
-	iter, i := NewSliceIterator(models), 0
+	iter, i := NewSliceIterator(context.Background(), models), 0
 	key, value, err := iter.Next()
 	for err == nil {
 		assert.Equal(t, ks[i], key)
@@ -33,10 +34,11 @@ func TestSliceIterator(t *testing.T) {
 		t.Fatalf("Expected ErrIteratorDone, got %+v", err)
 	}
 
-	it := NewSliceIterator(models)
+	ctx, cancel := context.WithCancel(context.Background())
+	it := NewSliceIterator(ctx, models)
 	_, _, err = it.Next()
 	assert.Nil(t, err)
-	it.Release()
+	cancel()
 	_, _, err = it.Next()
 	if !errors.ErrIteratorDone.Is(err) {
 		t.Fatal("closed iterator must be invalid")

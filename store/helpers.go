@@ -13,6 +13,7 @@ import (
 //
 // TODO: make this private and only expose Iterator interface????
 type SliceIterator struct {
+	ctx  context.Context
 	data []Model
 	idx  int
 }
@@ -20,24 +21,26 @@ type SliceIterator struct {
 var _ Iterator = (*SliceIterator)(nil)
 
 // NewSliceIterator creates a new Iterator over this slice
-func NewSliceIterator(data []Model) *SliceIterator {
+func NewSliceIterator(ctx context.Context, data []Model) *SliceIterator {
 	return &SliceIterator{
 		data: data,
+		ctx:  ctx,
 	}
 }
 
 func (s *SliceIterator) Next() (key, value []byte, err error) {
+	select {
+	case <-s.ctx.Done():
+		s.data = nil
+	default:
+	}
+
 	if s.idx >= len(s.data) {
 		return nil, nil, errors.Wrap(errors.ErrIteratorDone, "slice iterator")
 	}
 	val := s.data[s.idx]
 	s.idx++
 	return val.Key, val.Value, nil
-}
-
-// Release releases the Iterator.
-func (s *SliceIterator) Release() {
-	s.data = nil
 }
 
 /////////////////////////////////////////////////////
@@ -62,7 +65,7 @@ func (e EmptyKVStore) Delete(ctx context.Context, key []byte) error { return nil
 
 // Iterator is always empty
 func (e EmptyKVStore) Iterator(ctx context.Context, start, end []byte, reverse bool) (Iterator, error) {
-	return NewSliceIterator(nil), nil
+	return NewSliceIterator(context.Background(), nil), nil
 }
 
 // NewBatch returns a batch that can write to this tree later

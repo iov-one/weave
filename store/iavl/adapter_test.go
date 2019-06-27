@@ -1,6 +1,7 @@
 package iavl
 
 import (
+	"context"
 	"crypto/rand"
 	"io/ioutil"
 	"os"
@@ -74,6 +75,7 @@ func TestCommitOverwrite(t *testing.T) {
 			commit, close := makeCommitStore()
 			// only one to trigger a cleanup
 			commit.numHistory = 1
+			ctx := context.Background()
 
 			id, err := commit.LatestVersion()
 			assert.Nil(t, err)
@@ -84,10 +86,10 @@ func TestCommitOverwrite(t *testing.T) {
 
 			parent := commit.CacheWrap()
 			for _, op := range tc.parentOps {
-				assert.Nil(t, op.Apply(parent))
+				assert.Nil(t, op.Apply(ctx, parent))
 			}
 			// write data to backing store
-			assert.Nil(t, parent.Write())
+			assert.Nil(t, parent.Write(ctx))
 			id, err = commit.Commit()
 			assert.Nil(t, err)
 			assert.Equal(t, int64(1), id.Version)
@@ -98,7 +100,7 @@ func TestCommitOverwrite(t *testing.T) {
 			// child also comes from commit
 			child := commit.CacheWrap()
 			for _, op := range tc.childOps {
-				assert.Nil(t, op.Apply(child))
+				assert.Nil(t, op.Apply(ctx, child))
 			}
 
 			// and a side-cache wrap to see they are in parallel
@@ -115,7 +117,7 @@ func TestCommitOverwrite(t *testing.T) {
 			}
 
 			// write child to parent and make sure it also shows proper data
-			assert.Nil(t, child.Write())
+			assert.Nil(t, child.Write(ctx))
 			for _, q := range tc.childQueries {
 				suite.AssertGetHas(t, side, q.Key, q.Value, q.Value != nil)
 			}

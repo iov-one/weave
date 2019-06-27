@@ -151,21 +151,21 @@ type CommitKVStore interface {
 	CacheWrap() KVCacheWrap
 
 	// Commit the next version to disk, and returns info
-	Commit(ctx context.Context) (CommitID, error)
+	Commit() (CommitID, error)
 
 	// LoadLatestVersion loads the latest persisted version.
 	// If there was a crash during the last commit, it is guaranteed
 	// to return a stable state, even if older.
-	LoadLatestVersion(ctx context.Context) error
+	LoadLatestVersion() error
 
 	// LatestVersion returns info on the latest version saved to disk
-	LatestVersion(ctx context.Context) (CommitID, error)
+	LatestVersion() (CommitID, error)
 
 	// LoadVersion loads a specific persisted version.  When you load an old version, or
 	// when the last commit attempt didn't complete, the next commit after
 	// loading must be idempotent (return the same commit id).  Otherwise the
 	// behavior is undefined.
-	LoadVersion(ctx context.Context, ver int64) error
+	LoadVersion(ver int64) error
 }
 
 // CommitID contains the tree version number and its merkle root.
