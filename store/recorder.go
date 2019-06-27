@@ -1,5 +1,7 @@
 package store
 
+import "context"
+
 // Recorder interface is implemented by anything returned from
 // NewRecordingStore
 type Recorder interface {
@@ -46,15 +48,15 @@ func (r *recordingStore) KVPairs() map[string][]byte {
 }
 
 // Set records the changes while performing
-func (r *recordingStore) Set(key, value []byte) error {
+func (r *recordingStore) Set(ctx context.Context, key, value []byte) error {
 	r.changes[string(key)] = value
-	return r.KVStore.Set(key, value)
+	return r.KVStore.Set(ctx, key, value)
 }
 
 // Delete records the changes while performing
-func (r *recordingStore) Delete(key []byte) error {
+func (r *recordingStore) Delete(ctx context.Context, key []byte) error {
 	r.changes[string(key)] = nil
-	return r.KVStore.Delete(key)
+	return r.KVStore.Delete(ctx, key)
 }
 
 // NewBatch makes sure all writes go through this one
@@ -88,15 +90,15 @@ func (r *cacheableRecordingStore) KVPairs() map[string][]byte {
 // Set records the changes while performing
 //
 // TODO: record new value???
-func (r *cacheableRecordingStore) Set(key, value []byte) error {
+func (r *cacheableRecordingStore) Set(ctx context.Context, key, value []byte) error {
 	r.changes[string(key)] = value
-	return r.CacheableKVStore.Set(key, value)
+	return r.CacheableKVStore.Set(ctx, key, value)
 }
 
 // Delete records the changes while performing
-func (r *cacheableRecordingStore) Delete(key []byte) error {
+func (r *cacheableRecordingStore) Delete(ctx context.Context, key []byte) error {
 	r.changes[string(key)] = nil
-	return r.CacheableKVStore.Delete(key)
+	return r.CacheableKVStore.Delete(ctx, key)
 }
 
 // NewBatch makes sure all writes go through this one
@@ -123,17 +125,17 @@ type recorderBatch struct {
 
 var _ Batch = (*recorderBatch)(nil)
 
-func (r *recorderBatch) Set(key, value []byte) error {
+func (r *recorderBatch) Set(ctx context.Context, key, value []byte) error {
 	r.changes[string(key)] = value
-	return r.b.Set(key, value)
+	return r.b.Set(ctx, key, value)
 }
 
 // Delete records the changes while performing
-func (r *recorderBatch) Delete(key []byte) error {
+func (r *recorderBatch) Delete(ctx context.Context, key []byte) error {
 	r.changes[string(key)] = nil
-	return r.b.Delete(key)
+	return r.b.Delete(ctx, key)
 }
 
-func (r *recorderBatch) Write() error {
-	return r.b.Write()
+func (r *recorderBatch) Write(ctx context.Context) error {
+	return r.b.Write(ctx)
 }

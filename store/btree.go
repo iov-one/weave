@@ -2,6 +2,7 @@ package store
 
 import (
 	"bytes"
+	"context"
 
 	"github.com/google/btree"
 	"github.com/iov-one/weave/errors"
@@ -99,8 +100,8 @@ func (b BTreeCacheWrap) NewBatch() Batch {
 
 // Write syncs with the underlying store.
 // And then cleans up
-func (b BTreeCacheWrap) Write() error {
-	err := b.batch.Write()
+func (b BTreeCacheWrap) Write(ctx context.Context) error {
+	err := b.batch.Write(ctx)
 	b.Discard()
 	return err
 }
@@ -117,21 +118,21 @@ func (b BTreeCacheWrap) Discard() {
 }
 
 // Set writes to the BTree and to the batch
-func (b BTreeCacheWrap) Set(key, value []byte) error {
+func (b BTreeCacheWrap) Set(ctx context.Context, key, value []byte) error {
 	b.bt.ReplaceOrInsert(newSetItem(key, value))
 
-	return b.batch.Set(key, value)
+	return b.batch.Set(ctx, key, value)
 }
 
 // Delete deletes from the BTree and to the batch
-func (b BTreeCacheWrap) Delete(key []byte) error {
+func (b BTreeCacheWrap) Delete(ctx context.Context, key []byte) error {
 	b.bt.ReplaceOrInsert(newDeletedItem(key))
 
-	return b.batch.Delete(key)
+	return b.batch.Delete(ctx, key)
 }
 
 // Get reads from btree if there, else backing store
-func (b BTreeCacheWrap) Get(key []byte) ([]byte, error) {
+func (b BTreeCacheWrap) Get(ctx context.Context, key []byte) ([]byte, error) {
 	res := b.bt.Get(bkey{key})
 	if res != nil {
 		switch t := res.(type) {
@@ -143,11 +144,11 @@ func (b BTreeCacheWrap) Get(key []byte) ([]byte, error) {
 			return nil, errors.Wrapf(errors.ErrDatabase, "Unknown item in btree: %#v", res)
 		}
 	}
-	return b.back.Get(key)
+	return b.back.Get(ctx, key)
 }
 
 // Has reads from btree if there, else backing store
-func (b BTreeCacheWrap) Has(key []byte) (bool, error) {
+func (b BTreeCacheWrap) Has(ctx context.Context, key []byte) (bool, error) {
 	res := b.bt.Get(bkey{key})
 	if res != nil {
 		switch res.(type) {
@@ -159,31 +160,22 @@ func (b BTreeCacheWrap) Has(key []byte) (bool, error) {
 			return false, errors.Wrapf(errors.ErrDatabase, "Unknown item in btree: %#v", res)
 		}
 	}
-	return b.back.Has(key)
+	return b.back.Has(ctx, key)
 }
 
 // Iterator over a domain of keys in ascending order.
 // Combines results from btree and backing store
-func (b BTreeCacheWrap) Iterator(start, end []byte) (Iterator, error) {
+func (b BTreeCacheWrap) Iterator(ctx context.Context, start, end []byte, reverse bool) (Iterator, error) {
 	// take the backing iterator for start
-	parentIter, err := b.back.Iterator(start, end)
+	parentIter, err := b.back.Iterator(ctx, start, end, reverse)
 	if err != nil {
 		return nil, err
 	}
-	iter := ascendBtree(b.bt, start, end).wrap(parentIter)
-	return iter, nil
-}
+	if reverse {
+		return descendBtree(ctx, b.bt, start, end).wrap(parentIter), nil
 
-// ReverseIterator over a domain of keys in descending order.
-// Combines results from btree and backing store
-func (b BTreeCacheWrap) ReverseIterator(start, end []byte) (Iterator, error) {
-	// take the backing iterator for start
-	parentIter, err := b.back.ReverseIterator(start, end)
-	if err != nil {
-		return nil, err
 	}
-	iter := descendBtree(b.bt, start, end).wrap(parentIter)
-	return iter, nil
+	return ascendBtree(ctx, b.bt, start, end).wrap(parentIter), nil
 }
 
 /////////////////////////////////////////////////////////

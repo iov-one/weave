@@ -78,7 +78,7 @@ type Iterator interface {
 	// defined by order of iteration.
 	//
 	// Returns (nil, nil, errors.ErrIteratorDone) if there is no more data
-	Next(ctx context.Context) (key, value []byte, err error)
+	Next() (key, value []byte, err error)
 }
 
 ///////////////////////////////////////////////////////////

@@ -1,6 +1,10 @@
 package store
 
-import "github.com/iov-one/weave/errors"
+import (
+	"context"
+
+	"github.com/iov-one/weave/errors"
+)
 
 ////////////////////////////////////////////////
 // Slice -> Iterator
@@ -45,24 +49,19 @@ type EmptyKVStore struct{}
 var _ KVStore = EmptyKVStore{}
 
 // Get always returns nil
-func (e EmptyKVStore) Get(key []byte) ([]byte, error) { return nil, nil }
+func (e EmptyKVStore) Get(ctx context.Context, key []byte) ([]byte, error) { return nil, nil }
 
 // Has always returns false
-func (e EmptyKVStore) Has(key []byte) (bool, error) { return false, nil }
+func (e EmptyKVStore) Has(ctx context.Context, key []byte) (bool, error) { return false, nil }
 
 // Set is a noop
-func (e EmptyKVStore) Set(key, value []byte) error { return nil }
+func (e EmptyKVStore) Set(ctx context.Context, key, value []byte) error { return nil }
 
 // Delete is a noop
-func (e EmptyKVStore) Delete(key []byte) error { return nil }
+func (e EmptyKVStore) Delete(ctx context.Context, key []byte) error { return nil }
 
 // Iterator is always empty
-func (e EmptyKVStore) Iterator(start, end []byte) (Iterator, error) {
-	return NewSliceIterator(nil), nil
-}
-
-// ReverseIterator is always empty
-func (e EmptyKVStore) ReverseIterator(start, end []byte) (Iterator, error) {
+func (e EmptyKVStore) Iterator(ctx context.Context, start, end []byte, reverse bool) (Iterator, error) {
 	return NewSliceIterator(nil), nil
 }
 
@@ -89,12 +88,12 @@ type Op struct {
 }
 
 // Apply performs the stored operation on a writable store
-func (o Op) Apply(out SetDeleter) error {
+func (o Op) Apply(ctx context.Context, out SetDeleter) error {
 	switch o.kind {
 	case setKind:
-		return out.Set(o.key, o.value)
+		return out.Set(ctx, o.key, o.value)
 	case delKind:
-		return out.Delete(o.key)
+		return out.Delete(ctx, o.key)
 	default:
 		return errors.Wrapf(errors.ErrDatabase, "Unknown kind: %d", o.kind)
 	}
@@ -146,7 +145,7 @@ func NewNonAtomicBatch(out SetDeleter) *NonAtomicBatch {
 }
 
 // Set adds a set operation to the batch
-func (b *NonAtomicBatch) Set(key, value []byte) error {
+func (b *NonAtomicBatch) Set(ctx context.Context, key, value []byte) error {
 	set := Op{
 		kind:  setKind,
 		key:   key,
@@ -157,7 +156,7 @@ func (b *NonAtomicBatch) Set(key, value []byte) error {
 }
 
 // Delete adds a delete operation to the batch
-func (b *NonAtomicBatch) Delete(key []byte) error {
+func (b *NonAtomicBatch) Delete(ctx context.Context, key []byte) error {
 	del := Op{
 		kind: delKind,
 		key:  key,
@@ -167,9 +166,9 @@ func (b *NonAtomicBatch) Delete(key []byte) error {
 }
 
 // Write writes all the ops to the underlying store and resets
-func (b *NonAtomicBatch) Write() error {
+func (b *NonAtomicBatch) Write(ctx context.Context) error {
 	for _, Op := range b.ops {
-		err := Op.Apply(b.out)
+		err := Op.Apply(ctx, b.out)
 		if err != nil {
 			return err
 		}

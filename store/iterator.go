@@ -2,6 +2,7 @@ package store
 
 import (
 	"bytes"
+	"context"
 	"sync"
 
 	"github.com/google/btree"
@@ -14,7 +15,7 @@ import (
 
 type btreeIter struct {
 	read      <-chan btree.Item
-	stop      chan<- struct{}
+	ctx       context.Context
 	onceStop  sync.Once
 	onceRead  sync.Once
 	ascending bool
@@ -22,13 +23,12 @@ type btreeIter struct {
 
 // combine joins our results with those of the parent,
 // taking into consideration overwrites and deletes...
-func ascendBtree(bt *btree.BTree, start, end []byte) *btreeIter {
+func ascendBtree(ctx context.Context, bt *btree.BTree, start, end []byte) *btreeIter {
 	read := make(chan btree.Item)
 	// ensure we never block when we call close()
-	stop := make(chan struct{}, 1)
 	iter := &btreeIter{
 		read:      read,
-		stop:      stop,
+		ctx:       ctx,
 		ascending: true,
 	}
 
@@ -36,7 +36,7 @@ func ascendBtree(bt *btree.BTree, start, end []byte) *btreeIter {
 		select {
 		case read <- item:
 			return true
-		case <-stop:
+		case <-ctx.Done():
 			iter.onceRead.Do(func() { close(read) })
 			return false
 		}
@@ -58,13 +58,12 @@ func ascendBtree(bt *btree.BTree, start, end []byte) *btreeIter {
 	return iter
 }
 
-func descendBtree(bt *btree.BTree, start, end []byte) *btreeIter {
+func descendBtree(ctx context.Context, bt *btree.BTree, start, end []byte) *btreeIter {
 	read := make(chan btree.Item)
 	// ensure we never block when we call close()
-	stop := make(chan struct{}, 1)
 	iter := &btreeIter{
 		read:      read,
-		stop:      stop,
+		ctx:       ctx,
 		ascending: false,
 	}
 
@@ -72,7 +71,7 @@ func descendBtree(bt *btree.BTree, start, end []byte) *btreeIter {
 		select {
 		case read <- item:
 			return true
-		case <-stop:
+		case <-ctx.Done():
 			iter.onceRead.Do(func() { close(read) })
 			return false
 		}
@@ -119,12 +118,6 @@ func (b *btreeIter) Next() (keyer, error) {
 		return nil, errors.Wrapf(errors.ErrType, "expected keyer, got %T", data)
 	}
 	return key, nil
-}
-
-func (b *btreeIter) Release() {
-	b.onceStop.Do(func() {
-		close(b.stop)
-	})
 }
 
 type itemIter struct {
@@ -263,10 +256,4 @@ func (i *itemIter) returnCachedParent() (key, value []byte, err error) {
 	key, value = i.cachedParent.Key, i.cachedParent.Value
 	i.cachedParent = weave.Model{}
 	return key, value, nil
-}
-
-// Release releases the Iterator.
-func (i *itemIter) Release() {
-	i.parent.Release()
-	i.wrap.Release()
 }
