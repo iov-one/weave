@@ -4,21 +4,12 @@ together the various subpackages, as well as
 implementations of some of the simpler components
 (when interfaces would be too much overhead).
 
-We pass context through context.Context between
-app, middleware, and handlers. To do so, weave defines
-some common keys to store info, such as block height and
-chain id. Each extension, such as auth, may add its own
-keys to enrich the context with specific data.
-
-There should exist two functions for every XYZ of type T
-that we want to support in Context:
-
-  WithXYZ(Context, T) Context
-  GetXYZ(Context) (val T, ok bool)
-
-WithXYZ may error/panic if the value was previously set
-to avoid lower-level modules overwriting the value
-(eg. height, header)
+We pass a BlockInfo struct with all framework-defined
+information down the Decorator/Handler stack.
+For custom info that is only to be consumed within a particular
+module, or timeouts, etc, you can make use of
+context.Context. Please do not store info in there that is required
+for other code to work, rather optional context to enhance functionality
 */
 package weave
 

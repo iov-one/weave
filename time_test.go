@@ -1,13 +1,13 @@
 package weave
 
 import (
-	"context"
 	"encoding/json"
 	"testing"
 	"time"
 
 	"github.com/iov-one/weave/errors"
 	"github.com/stretchr/testify/assert"
+	abci "github.com/tendermint/tendermint/abci/types"
 )
 
 func TestUnixTimeUnmarshal(t *testing.T) {
@@ -127,32 +127,29 @@ func TestUnixTimeAdd(t *testing.T) {
 	}
 }
 
+func mockBlockInfo(t time.Time) (BlockInfo, error) {
+	return NewBlockInfo(abci.Header{Height: 456, Time: t}, CommitInfo{}, "test-chain-2", nil)
+}
+
 func TestIsExpired(t *testing.T) {
-	now := AsUnixTime(time.Now())
-	ctx := WithBlockTime(context.Background(), now.Time())
+	tnow := time.Now()
+	now := AsUnixTime(tnow)
+	bi, err := mockBlockInfo(tnow)
+	assert.Nil(t, err)
 
 	future := now.Add(5 * time.Minute)
-	if IsExpired(ctx, future) {
+	if bi.IsExpired(future) {
 		t.Error("future is expired")
 	}
 
 	past := now.Add(-5 * time.Minute)
-	if !IsExpired(ctx, past) {
+	if !bi.IsExpired(past) {
 		t.Error("past is not expired")
 	}
 
-	if !IsExpired(ctx, now) {
+	if !bi.IsExpired(now) {
 		t.Fatal("when expiration time is equal to now it is expected to be expired")
 	}
-}
-
-func TestIsExpiredRequiresBlockTime(t *testing.T) {
-	now := AsUnixTime(time.Now())
-	assert.Panics(t, func() {
-		// Calling isExpected with a context without a block height
-		// attached is expected to panic.
-		IsExpired(context.Background(), now)
-	})
 }
 
 func TestUnixDurationJSONUnmarshal(t *testing.T) {
@@ -203,34 +200,21 @@ func TestUnixDurationJSONUnmarshal(t *testing.T) {
 
 func TestInThePast(t *testing.T) {
 	now := time.Now()
-	ctx := WithBlockTime(context.Background(), now)
+	bi, err := mockBlockInfo(now)
+	assert.Nil(t, err)
+	assert.Equal(t, AsUnixTime(now), bi.UnixTime())
 
-	assert.Equal(t, false, InThePast(ctx, now))
-	assert.Equal(t, false, InThePast(ctx, now.Add(time.Second)))
-	assert.Equal(t, true, InThePast(ctx, now.Add(-time.Second)))
-}
-
-func TestInThePastRequiresBlockTime(t *testing.T) {
-	assert.Panics(t, func() {
-		// Calling isExpected with a context without a block height
-		// attached is expected to panic.
-		InThePast(context.Background(), time.Now())
-	})
+	assert.Equal(t, false, bi.InThePast(now))
+	assert.Equal(t, false, bi.InThePast(now.Add(time.Second)))
+	assert.Equal(t, true, bi.InThePast(now.Add(-time.Second)))
 }
 
 func TestInTheFuture(t *testing.T) {
 	now := time.Now()
-	ctx := WithBlockTime(context.Background(), now)
+	bi, err := mockBlockInfo(now)
+	assert.Nil(t, err)
 
-	assert.Equal(t, false, InTheFuture(ctx, now))
-	assert.Equal(t, true, InTheFuture(ctx, now.Add(time.Second)))
-	assert.Equal(t, false, InTheFuture(ctx, now.Add(-time.Second)))
-}
-
-func TestInTheFutureRequiresBlockTime(t *testing.T) {
-	assert.Panics(t, func() {
-		// Calling isExpected with a context without a block height
-		// attached is expected to panic.
-		InTheFuture(context.Background(), time.Now())
-	})
+	assert.Equal(t, false, bi.InTheFuture(now))
+	assert.Equal(t, true, bi.InTheFuture(now.Add(time.Second)))
+	assert.Equal(t, false, bi.InTheFuture(now.Add(-time.Second)))
 }
