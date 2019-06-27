@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"testing"
+	"time"
 
 	"github.com/iov-one/weave"
 	bnsd "github.com/iov-one/weave/cmd/bnsd/app"
@@ -199,7 +200,7 @@ func TestCmdTextResolutionHappyPath(t *testing.T) {
 	assert.Equal(t, "myTextResolution", msg.Resolution)
 }
 
-func TestCmdElectorateHappyPath(t *testing.T) {
+func TestCmdUpdateElectorateHappyPath(t *testing.T) {
 	var output bytes.Buffer
 	args := []string{
 		"-id", "5",
@@ -260,4 +261,33 @@ func TestCmdWithElectorHappyPath(t *testing.T) {
 	expAddress := weave.Address(fromHex(t, "b1ca7e78f74423ae01da3b51e676934d9105f282"))
 	assert.Equal(t, expAddress, msg.DiffElectors[0].Address)
 	assert.Equal(t, uint32(11), msg.DiffElectors[0].Weight)
+}
+
+func TestCmdUpdateElectionRuleHappyPath(t *testing.T) {
+	var output bytes.Buffer
+	args := []string{
+		"-id", "5",
+		"-voting-period", "86400",
+		"-threshold-numerator", "2",
+		"-threshold-denominator", "3",
+	}
+	if err := cmdUpdateElectionRule(nil, &output, args); err != nil {
+		t.Fatalf("cannot create a transaction: %s", err)
+	}
+
+	tx, _, err := readTx(&output)
+	if err != nil {
+		t.Fatalf("cannot read created transaction: %s", err)
+	}
+
+	txmsg, err := tx.GetMsg()
+	if err != nil {
+		t.Fatalf("cannot get transaction message: %s", err)
+	}
+	msg := txmsg.(*gov.UpdateElectionRuleMsg)
+
+	assert.Equal(t, weavetest.SequenceID(5), msg.ElectionRuleID)
+	assert.Equal(t, 24*time.Hour, msg.VotingPeriod.Duration())
+	assert.Equal(t, uint32(2), msg.Threshold.Numerator)
+	assert.Equal(t, uint32(3), msg.Threshold.Denominator)
 }

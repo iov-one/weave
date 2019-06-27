@@ -405,7 +405,7 @@ func cmdUpdateElectorate(input io.Reader, output io.Writer, args []string) error
 	fl := flag.NewFlagSet("", flag.ExitOnError)
 	fl.Usage = func() {
 		fmt.Fprintln(flag.CommandLine.Output(), `
-Electorate updates an existing electorate.
+Electorate creates a new version for an existing electorate. - new version is used for new proposals.
 		`)
 		fl.PrintDefaults()
 	}
@@ -470,4 +470,44 @@ Reads a transaction from the input and attaches the provided elector address, we
 
 	_, err = writeTx(output, tx)
 	return nil
+}
+
+func cmdUpdateElectionRule(input io.Reader, output io.Writer, args []string) error {
+	fl := flag.NewFlagSet("", flag.ExitOnError)
+	fl.Usage = func() {
+		fmt.Fprintln(flag.CommandLine.Output(), `
+Creates a new version for an existing election rule. The new version is used for new proposals.
+		`)
+		fl.PrintDefaults()
+	}
+	var (
+		id            = flSeq(fl, "id", "", "The ID of the election rule")
+		durationFl    = fl.Int("voting-period", 0, "Duration in seconds how long the voting period will take place")
+		numeratorFl   = fl.Int("threshold-numerator", 0, "The top number of the fraction.")
+		denominatorFl = fl.Uint("threshold-denominator", 0, "The bottom number of the fraction")
+	)
+	fl.Parse(args)
+	if len(*id) == 0 {
+		flagDie("the electorate id  must not be empty")
+	}
+	if *durationFl == 0 {
+		flagDie("the duration must not be empty")
+	}
+
+	fraction := gov.Fraction{Numerator: uint32(*numeratorFl), Denominator: uint32(*denominatorFl)}
+	if err := fraction.Validate(); err != nil {
+		flagDie("invalid voting period: %s", err)
+	}
+	govTx := &bnsd.Tx{
+		Sum: &bnsd.Tx_GovUpdateElectionRuleMsg{
+			GovUpdateElectionRuleMsg: &gov.UpdateElectionRuleMsg{
+				Metadata:       &weave.Metadata{Schema: 1},
+				ElectionRuleID: []byte(*id),
+				VotingPeriod:   weave.AsUnixDuration(time.Duration(*durationFl) * time.Second),
+				Threshold:      fraction,
+			},
+		},
+	}
+	_, err := writeTx(output, govTx)
+	return err
 }
