@@ -18,11 +18,12 @@ func TestRouterSuccess(t *testing.T) {
 	)
 
 	r.Handle(msg, handler)
+	info := weavetest.BlockInfo(44)
 
-	if _, err := r.Check(context.TODO(), nil, &weavetest.Tx{Msg: msg}); err != nil {
+	if _, err := r.Check(context.TODO(), info, nil, &weavetest.Tx{Msg: msg}); err != nil {
 		t.Fatalf("check failed: %s", err)
 	}
-	if _, err := r.Deliver(context.TODO(), nil, &weavetest.Tx{Msg: msg}); err != nil {
+	if _, err := r.Deliver(context.TODO(), info, nil, &weavetest.Tx{Msg: msg}); err != nil {
 		t.Fatalf("delivery failed: %s", err)
 	}
 	assert.Equal(t, 2, handler.CallCount())
@@ -32,11 +33,12 @@ func TestRouterNoHandler(t *testing.T) {
 	r := NewRouter()
 
 	tx := &weavetest.Tx{Msg: &weavetest.Msg{RoutePath: "test/secret"}}
+	info := weavetest.BlockInfo(44)
 
-	if _, err := r.Check(context.TODO(), nil, tx); !errors.ErrNotFound.Is(err) {
+	if _, err := r.Check(context.TODO(), info, nil, tx); !errors.ErrNotFound.Is(err) {
 		t.Fatalf("expected not found error, got %s", err)
 	}
-	if _, err := r.Deliver(context.TODO(), nil, tx); !errors.ErrNotFound.Is(err) {
+	if _, err := r.Deliver(context.TODO(), info, nil, tx); !errors.ErrNotFound.Is(err) {
 		t.Fatalf("expected not found error, got %s", err)
 	}
 }

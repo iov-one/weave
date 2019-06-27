@@ -1,7 +1,6 @@
 package app
 
 import (
-	"context"
 	"testing"
 
 	"github.com/iov-one/weave"
@@ -19,7 +18,7 @@ func TestAddValChange(t *testing.T) {
 		Type: "test",
 		Data: []byte("someKey2"),
 	}
-	app := NewStoreApp("dummy", iavl.MockCommitStore(), weave.NewQueryRouter(), context.Background())
+	app := NewStoreApp("dummy", iavl.MockCommitStore(), weave.NewQueryRouter())
 
 	t.Run("Diff is equal to output with one update", func(t *testing.T) {
 		diff := []weave.ValidatorUpdate{

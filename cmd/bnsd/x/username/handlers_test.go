@@ -83,6 +83,7 @@ func TestRegisterTokenHandler(t *testing.T) {
 	for testName, tc := range cases {
 		t.Run(testName, func(t *testing.T) {
 			db := store.MemStore()
+			info := weavetest.BlockInfo(65)
 			migration.MustInitPkg(db, "username")
 
 			b := NewTokenBucket()
@@ -101,11 +102,11 @@ func TestRegisterTokenHandler(t *testing.T) {
 			}
 
 			cache := db.CacheWrap()
-			if _, err := h.Check(context.TODO(), cache, tc.Tx); !tc.WantCheckErr.Is(err) {
+			if _, err := h.Check(context.TODO(), info, cache, tc.Tx); !tc.WantCheckErr.Is(err) {
 				t.Fatalf("unexpected check error: %s", err)
 			}
 			cache.Discard()
-			if _, err := h.Deliver(context.TODO(), db, tc.Tx); !tc.WantDeliverErr.Is(err) {
+			if _, err := h.Deliver(context.TODO(), info, db, tc.Tx); !tc.WantDeliverErr.Is(err) {
 				t.Fatalf("unexpected deliver error: %s", err)
 			}
 		})
@@ -172,6 +173,7 @@ func TestChangeTokenOwnerHandler(t *testing.T) {
 	for testName, tc := range cases {
 		t.Run(testName, func(t *testing.T) {
 			db := store.MemStore()
+			info := weavetest.BlockInfo(42)
 			migration.MustInitPkg(db, "username")
 
 			b := NewTokenBucket()
@@ -190,11 +192,11 @@ func TestChangeTokenOwnerHandler(t *testing.T) {
 			}
 
 			cache := db.CacheWrap()
-			if _, err := h.Check(context.TODO(), cache, tc.Tx); !tc.WantCheckErr.Is(err) {
+			if _, err := h.Check(context.TODO(), info, cache, tc.Tx); !tc.WantCheckErr.Is(err) {
 				t.Fatalf("unexpected check error: %s", err)
 			}
 			cache.Discard()
-			if _, err := h.Deliver(context.TODO(), db, tc.Tx); !tc.WantDeliverErr.Is(err) {
+			if _, err := h.Deliver(context.TODO(), info, db, tc.Tx); !tc.WantDeliverErr.Is(err) {
 				t.Fatalf("unexpected deliver error: %s", err)
 			}
 		})
@@ -281,6 +283,7 @@ func TestChangeTokenTargetHandler(t *testing.T) {
 	for testName, tc := range cases {
 		t.Run(testName, func(t *testing.T) {
 			db := store.MemStore()
+			info := weavetest.BlockInfo(5)
 			migration.MustInitPkg(db, "username")
 
 			b := NewTokenBucket()
@@ -299,11 +302,11 @@ func TestChangeTokenTargetHandler(t *testing.T) {
 			}
 
 			cache := db.CacheWrap()
-			if _, err := h.Check(context.TODO(), cache, tc.Tx); !tc.WantCheckErr.Is(err) {
+			if _, err := h.Check(context.TODO(), info, cache, tc.Tx); !tc.WantCheckErr.Is(err) {
 				t.Fatalf("unexpected check error: %s", err)
 			}
 			cache.Discard()
-			if _, err := h.Deliver(context.TODO(), db, tc.Tx); !tc.WantDeliverErr.Is(err) {
+			if _, err := h.Deliver(context.TODO(), info, db, tc.Tx); !tc.WantDeliverErr.Is(err) {
 				t.Fatalf("unexpected deliver error: %s", err)
 			}
 		})

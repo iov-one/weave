@@ -29,7 +29,8 @@ func TestChain(t *testing.T) {
 	).WithHandler(h)
 
 	// This height must not panic.
-	ctx := weave.WithHeight(context.Background(), panicHeight-2)
+	ctx := context.Background()
+	info := weavetest.BlockInfo(panicHeight - 2)
 
 	_, err := stack.Check(ctx, info, nil, nil)
 	assert.NoError(t, err)
@@ -46,7 +47,7 @@ func TestChain(t *testing.T) {
 	assert.Equal(t, 1, h.DeliverCallCount())
 
 	// Trigger a panic.
-	ctx = weave.WithHeight(context.Background(), panicHeight+2)
+	info = weavetest.BlockInfo(panicHeight + 2)
 
 	_, err = stack.Check(ctx, info, nil, nil)
 	assert.Error(t, err)
@@ -68,14 +69,14 @@ type panicAtHeightDecorator int64
 var _ weave.Decorator = panicAtHeightDecorator(0)
 
 func (ph panicAtHeightDecorator) Check(ctx context.Context, info weave.BlockInfo, db weave.KVStore, tx weave.Tx, next weave.Checker) (*weave.CheckResult, error) {
-	if val, _ := weave.GetHeight(ctx); val >= int64(ph) {
+	if info.Height() >= int64(ph) {
 		panic("too high")
 	}
 	return next.Check(ctx, info, db, tx)
 }
 
 func (ph panicAtHeightDecorator) Deliver(ctx context.Context, info weave.BlockInfo, db weave.KVStore, tx weave.Tx, next weave.Deliverer) (*weave.DeliverResult, error) {
-	if val, _ := weave.GetHeight(ctx); val >= int64(ph) {
+	if info.Height() >= int64(ph) {
 		panic("too high")
 	}
 	return next.Deliver(ctx, info, db, tx)

@@ -70,9 +70,12 @@ func NewStoreApp(name string, store weave.CommitKVStore, queryRouter weave.Query
 	if err != nil {
 		panic(err)
 	}
-	s.blockInfo, err = weave.NewBlockInfo(abci.Header{Height: info.Version}, weave.CommitInfo{}, s.chainID, s.logger)
-	if err != nil {
-		panic(err)
+	// on first startup, we have no chainID to add, we will set blockInfo in Init
+	if s.chainID != "" {
+		s.blockInfo, err = weave.NewBlockInfo(abci.Header{Height: info.Version}, weave.CommitInfo{}, s.chainID, s.logger)
+		if s.chainID != "" && err != nil {
+			panic(err)
+		}
 	}
 	return s
 }
@@ -296,11 +299,14 @@ func (s *StoreApp) Commit() (res abci.ResponseCommit) {
 }
 
 // InitChain implements ABCI
-// Note: in tendermint 0.17, the genesis file is passed
-// in here, we should use this to trigger reading the genesis now
 // TODO: investigate validators and consensusParams in response
 func (s *StoreApp) InitChain(req abci.RequestInitChain) (res abci.ResponseInitChain) {
 	err := s.parseAppState(req.AppStateBytes, weave.FromInitChain(req), req.ChainId, s.initializer)
+	if err != nil {
+		// Read comment on type header
+		panic(err)
+	}
+	s.blockInfo, err = weave.NewBlockInfo(abci.Header{Height: 0}, weave.CommitInfo{}, s.chainID, s.logger)
 	if err != nil {
 		// Read comment on type header
 		panic(err)
