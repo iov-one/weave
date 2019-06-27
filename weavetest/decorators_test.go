@@ -13,10 +13,10 @@ func TestSuccessfulDecorator(t *testing.T) {
 		h Handler
 	)
 
-	_, _ = d.Check(nil, nil, nil, &h)
+	_, _ = d.Check(nil, weave.BlockInfo{}, nil, nil, &h)
 	assertHCounts(t, &h, 1, 0)
 
-	_, _ = d.Deliver(nil, nil, nil, &h)
+	_, _ = d.Deliver(nil, weave.BlockInfo{}, nil, nil, &h)
 	assertHCounts(t, &h, 1, 1)
 }
 
@@ -30,12 +30,12 @@ func TestDecoratorWithError(t *testing.T) {
 	// Otherwise using nil would panic.
 	var handler weave.Handler = nil
 
-	_, err := d.Check(nil, nil, nil, handler)
+	_, err := d.Check(nil, weave.BlockInfo{}, nil, nil, handler)
 	if want := errors.ErrUnauthorized; !want.Is(err) {
 		t.Errorf("want %q, got %q", want, err)
 	}
 
-	_, err = d.Deliver(nil, nil, nil, handler)
+	_, err = d.Deliver(nil, weave.BlockInfo{}, nil, nil, handler)
 	if want := errors.ErrNotFound; !want.Is(err) {
 		t.Errorf("want %q, got %q", want, err)
 	}
@@ -47,26 +47,26 @@ func TestDecoratorCallCount(t *testing.T) {
 
 	assertDCounts(t, &d, 0, 0)
 
-	d.Check(nil, nil, nil, &Handler{})
+	d.Check(nil, weave.BlockInfo{}, nil, nil, &Handler{})
 	assertDCounts(t, &d, 1, 0)
 
-	d.Check(nil, nil, nil, &Handler{})
+	d.Check(nil, weave.BlockInfo{}, nil, nil, &Handler{})
 	assertDCounts(t, &d, 2, 0)
 
-	d.Deliver(nil, nil, nil, &Handler{})
+	d.Deliver(nil, weave.BlockInfo{}, nil, nil, &Handler{})
 	assertDCounts(t, &d, 2, 1)
 
-	d.Deliver(nil, nil, nil, &Handler{})
+	d.Deliver(nil, weave.BlockInfo{}, nil, nil, &Handler{})
 	assertDCounts(t, &d, 2, 2)
 
 	// Failing counter must increment as well.
 	d.CheckErr = errors.ErrNotFound
 	d.DeliverErr = errors.ErrNotFound
 
-	d.Check(nil, nil, nil, &Handler{})
+	d.Check(nil, weave.BlockInfo{}, nil, nil, &Handler{})
 	assertDCounts(t, &d, 3, 2)
 
-	d.Deliver(nil, nil, nil, &Handler{})
+	d.Deliver(nil, weave.BlockInfo{}, nil, nil, &Handler{})
 	assertDCounts(t, &d, 3, 3)
 }
 

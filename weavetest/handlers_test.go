@@ -14,12 +14,12 @@ func TestHandlerWithError(t *testing.T) {
 		DeliverErr: errors.ErrNotFound,
 	}
 
-	_, err := h.Check(nil, nil, nil)
+	_, err := h.Check(nil, weave.BlockInfo{}, nil, nil)
 	if want := errors.ErrUnauthorized; !want.Is(err) {
 		t.Errorf("want %q, got %q", want, err)
 	}
 
-	_, err = h.Deliver(nil, nil, nil)
+	_, err = h.Deliver(nil, weave.BlockInfo{}, nil, nil)
 	if want := errors.ErrNotFound; !want.Is(err) {
 		t.Errorf("want %q, got %q", want, err)
 	}
@@ -31,26 +31,26 @@ func TestHandlerCallCount(t *testing.T) {
 
 	assertHCounts(t, &h, 0, 0)
 
-	h.Check(nil, nil, nil)
+	h.Check(nil, weave.BlockInfo{}, nil, nil)
 	assertHCounts(t, &h, 1, 0)
 
-	h.Check(nil, nil, nil)
+	h.Check(nil, weave.BlockInfo{}, nil, nil)
 	assertHCounts(t, &h, 2, 0)
 
-	h.Deliver(nil, nil, nil)
+	h.Deliver(nil, weave.BlockInfo{}, nil, nil)
 	assertHCounts(t, &h, 2, 1)
 
-	h.Deliver(nil, nil, nil)
+	h.Deliver(nil, weave.BlockInfo{}, nil, nil)
 	assertHCounts(t, &h, 2, 2)
 
 	// Failing counter must increment as well.
 	h.CheckErr = errors.ErrNotFound
 	h.DeliverErr = errors.ErrNotFound
 
-	h.Check(nil, nil, nil)
+	h.Check(nil, weave.BlockInfo{}, nil, nil)
 	assertHCounts(t, &h, 3, 2)
 
-	h.Deliver(nil, nil, nil)
+	h.Deliver(nil, weave.BlockInfo{}, nil, nil)
 	assertHCounts(t, &h, 3, 3)
 }
 
@@ -82,11 +82,11 @@ func TestHandlerResult(t *testing.T) {
 		DeliverResult: wantDres,
 	}
 
-	gotCres, _ := h.Check(nil, nil, nil)
+	gotCres, _ := h.Check(nil, weave.BlockInfo{}, nil, nil)
 	if !reflect.DeepEqual(&wantCres, gotCres) {
 		t.Fatalf("got check result: %+v", gotCres)
 	}
-	gotDres, _ := h.Deliver(nil, nil, nil)
+	gotDres, _ := h.Deliver(nil, weave.BlockInfo{}, nil, nil)
 	if !reflect.DeepEqual(&wantDres, gotDres) {
 		t.Fatalf("got deliver result: %+v", gotDres)
 	}
