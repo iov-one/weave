@@ -49,7 +49,7 @@ var _ weave.Handler = CreateEscrowHandler{}
 // Check just verifies it is properly formed and returns
 // the cost of executing it.
 func (h CreateEscrowHandler) Check(ctx context.Context, info weave.BlockInfo, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
-	_, err := h.validate(ctx, db, tx)
+	_, err := h.validate(ctx, info, db, tx)
 	if err != nil {
 		return nil, err
 	}
@@ -63,7 +63,7 @@ func (h CreateEscrowHandler) Check(ctx context.Context, info weave.BlockInfo, db
 // Deliver moves the tokens from sender to the escrow account if
 // all preconditions are met.
 func (h CreateEscrowHandler) Deliver(ctx context.Context, info weave.BlockInfo, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
-	msg, err := h.validate(ctx, db, tx)
+	msg, err := h.validate(ctx, info, db, tx)
 	if err != nil {
 		return nil, err
 	}
@@ -102,13 +102,13 @@ func (h CreateEscrowHandler) Deliver(ctx context.Context, info weave.BlockInfo, 
 }
 
 // validate does all common pre-processing between Check and Deliver.
-func (h CreateEscrowHandler) validate(ctx context.Context, db weave.KVStore, tx weave.Tx) (*CreateMsg, error) {
+func (h CreateEscrowHandler) validate(ctx context.Context, info weave.BlockInfo, db weave.KVStore, tx weave.Tx) (*CreateMsg, error) {
 	var msg CreateMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, errors.Wrap(err, "load msg")
 	}
 
-	if weave.IsExpired(ctx, msg.Timeout) {
+	if info.IsExpired(msg.Timeout) {
 		return nil, errors.Wrap(errors.ErrInput, "timeout in the past")
 	}
 
@@ -134,7 +134,7 @@ var _ weave.Handler = ReleaseEscrowHandler{}
 // Check just verifies it is properly formed and returns
 // the cost of executing it
 func (h ReleaseEscrowHandler) Check(ctx context.Context, info weave.BlockInfo, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
-	_, _, err := h.validate(ctx, db, tx)
+	_, _, err := h.validate(ctx, info, db, tx)
 	if err != nil {
 		return nil, err
 	}
@@ -145,7 +145,7 @@ func (h ReleaseEscrowHandler) Check(ctx context.Context, info weave.BlockInfo, d
 // Deliver moves the tokens from escrow account to the receiver if
 // all preconditions are met. When the escrow account is empty it is deleted.
 func (h ReleaseEscrowHandler) Deliver(ctx context.Context, info weave.BlockInfo, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
-	msg, escrow, err := h.validate(ctx, db, tx)
+	msg, escrow, err := h.validate(ctx, info, db, tx)
 	if err != nil {
 		return nil, err
 	}
@@ -182,7 +182,7 @@ func (h ReleaseEscrowHandler) Deliver(ctx context.Context, info weave.BlockInfo,
 }
 
 // validate does all common pre-processing between Check and Deliver.
-func (h ReleaseEscrowHandler) validate(ctx context.Context, db weave.KVStore, tx weave.Tx) (*ReleaseMsg, *Escrow, error) {
+func (h ReleaseEscrowHandler) validate(ctx context.Context, info weave.BlockInfo, db weave.KVStore, tx weave.Tx) (*ReleaseMsg, *Escrow, error) {
 	var msg ReleaseMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, nil, errors.Wrap(err, "load msg")
@@ -197,7 +197,7 @@ func (h ReleaseEscrowHandler) validate(ctx context.Context, db weave.KVStore, tx
 		return nil, nil, errors.ErrUnauthorized
 	}
 
-	if weave.IsExpired(ctx, escrow.Timeout) {
+	if info.IsExpired(escrow.Timeout) {
 		err := errors.Wrapf(errors.ErrExpired, "escrow expired %v", escrow.Timeout)
 		return nil, nil, err
 	}
@@ -217,7 +217,7 @@ var _ weave.Handler = ReturnEscrowHandler{}
 // Check just verifies it is properly formed and returns
 // the cost of executing it.
 func (h ReturnEscrowHandler) Check(ctx context.Context, info weave.BlockInfo, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
-	_, _, err := h.validate(ctx, db, tx)
+	_, _, err := h.validate(ctx, info, db, tx)
 	if err != nil {
 		return nil, err
 	}
@@ -228,7 +228,7 @@ func (h ReturnEscrowHandler) Check(ctx context.Context, info weave.BlockInfo, db
 // Deliver moves all the tokens from the escrow to the defined sender if
 // all preconditions are met. The escrow is deleted afterwards.
 func (h ReturnEscrowHandler) Deliver(ctx context.Context, info weave.BlockInfo, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
-	key, escrow, err := h.validate(ctx, db, tx)
+	key, escrow, err := h.validate(ctx, info, db, tx)
 	if err != nil {
 		return nil, err
 	}
@@ -251,7 +251,7 @@ func (h ReturnEscrowHandler) Deliver(ctx context.Context, info weave.BlockInfo, 
 }
 
 // validate does all common pre-processing between Check and Deliver.
-func (h ReturnEscrowHandler) validate(ctx context.Context, db weave.KVStore, tx weave.Tx) ([]byte, *Escrow, error) {
+func (h ReturnEscrowHandler) validate(ctx context.Context, info weave.BlockInfo, db weave.KVStore, tx weave.Tx) ([]byte, *Escrow, error) {
 	var msg ReturnMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, nil, errors.Wrap(err, "load msg")
@@ -262,7 +262,7 @@ func (h ReturnEscrowHandler) validate(ctx context.Context, db weave.KVStore, tx 
 		return nil, nil, err
 	}
 
-	if !weave.IsExpired(ctx, escrow.Timeout) {
+	if !info.IsExpired(escrow.Timeout) {
 		return nil, nil, errors.Wrapf(errors.ErrState, "escrow not expired %v", escrow.Timeout)
 	}
 
@@ -280,7 +280,7 @@ var _ weave.Handler = UpdateEscrowHandler{}
 // Check just verifies it is properly formed and returns
 // the cost of executing it.
 func (h UpdateEscrowHandler) Check(ctx context.Context, info weave.BlockInfo, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
-	_, _, err := h.validate(ctx, db, tx)
+	_, _, err := h.validate(ctx, info, db, tx)
 	if err != nil {
 		return nil, err
 	}
@@ -291,7 +291,7 @@ func (h UpdateEscrowHandler) Check(ctx context.Context, info weave.BlockInfo, db
 // Deliver updates the any of the sender, recipient or arbiter if
 // all preconditions are met. No coins are moved.
 func (h UpdateEscrowHandler) Deliver(ctx context.Context, info weave.BlockInfo, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
-	msg, escrow, err := h.validate(ctx, db, tx)
+	msg, escrow, err := h.validate(ctx, info, db, tx)
 	if err != nil {
 		return nil, err
 	}
@@ -317,7 +317,7 @@ func (h UpdateEscrowHandler) Deliver(ctx context.Context, info weave.BlockInfo, 
 }
 
 // validate does all common pre-processing between Check and Deliver.
-func (h UpdateEscrowHandler) validate(ctx context.Context, db weave.KVStore, tx weave.Tx) (*UpdatePartiesMsg, *Escrow, error) {
+func (h UpdateEscrowHandler) validate(ctx context.Context, info weave.BlockInfo, db weave.KVStore, tx weave.Tx) (*UpdatePartiesMsg, *Escrow, error) {
 	var msg UpdatePartiesMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, nil, errors.Wrap(err, "load msg")
@@ -328,7 +328,7 @@ func (h UpdateEscrowHandler) validate(ctx context.Context, db weave.KVStore, tx 
 		return nil, nil, err
 	}
 
-	if weave.IsExpired(ctx, escrow.Timeout) {
+	if info.IsExpired(escrow.Timeout) {
 		return nil, nil, errors.Wrapf(errors.ErrExpired, "escrow expired %v", escrow.Timeout)
 	}
 

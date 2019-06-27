@@ -5,7 +5,6 @@ to construct the bnsd app.
 package bnsd
 
 import (
-	"context"
 	"fmt"
 	"path/filepath"
 	"strings"
@@ -124,12 +123,11 @@ func Stack(issuer weave.Address, minFee coin.Coin) weave.Handler {
 func Application(name string, h weave.Handler,
 	tx weave.TxDecoder, dbPath string, options *server.Options) (app.BaseApp, error) {
 
-	ctx := context.Background()
 	kv, err := CommitKVStore(dbPath)
 	if err != nil {
 		return app.BaseApp{}, err
 	}
-	store := app.NewStoreApp(name, kv, QueryRouter(options.MinFee), ctx)
+	store := app.NewStoreApp(name, kv, QueryRouter(options.MinFee))
 	base := app.NewBaseApp(store, tx, h, nil, options.Debug)
 	return base, nil
 }

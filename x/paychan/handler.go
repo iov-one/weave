@@ -44,19 +44,19 @@ type createPaymentChannelHandler struct {
 var _ weave.Handler = (*createPaymentChannelHandler)(nil)
 
 func (h *createPaymentChannelHandler) Check(ctx context.Context, info weave.BlockInfo, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
-	if _, err := h.validate(ctx, db, tx); err != nil {
+	if _, err := h.validate(ctx, info, db, tx); err != nil {
 		return nil, err
 	}
 
 	return &weave.CheckResult{GasAllocated: createPaymentChannelCost}, nil
 }
 
-func (h *createPaymentChannelHandler) validate(ctx context.Context, db weave.KVStore, tx weave.Tx) (*CreateMsg, error) {
+func (h *createPaymentChannelHandler) validate(ctx context.Context, info weave.BlockInfo, db weave.KVStore, tx weave.Tx) (*CreateMsg, error) {
 	var msg CreateMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, errors.Wrap(err, "load msg")
 	}
-	if weave.IsExpired(ctx, msg.Timeout) {
+	if info.IsExpired(msg.Timeout) {
 		return nil, errors.Wrapf(errors.ErrExpired, "timeout in the past")
 	}
 	if !h.auth.HasAddress(ctx, msg.Src) {
@@ -66,7 +66,7 @@ func (h *createPaymentChannelHandler) validate(ctx context.Context, db weave.KVS
 }
 
 func (h *createPaymentChannelHandler) Deliver(ctx context.Context, info weave.BlockInfo, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
-	msg, err := h.validate(ctx, db, tx)
+	msg, err := h.validate(ctx, info, db, tx)
 	if err != nil {
 		return nil, err
 	}
@@ -103,18 +103,18 @@ type transferPaymentChannelHandler struct {
 var _ weave.Handler = (*transferPaymentChannelHandler)(nil)
 
 func (h *transferPaymentChannelHandler) Check(ctx context.Context, info weave.BlockInfo, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
-	if _, err := h.validate(ctx, db, tx); err != nil {
+	if _, err := h.validate(ctx, info, db, tx); err != nil {
 		return nil, err
 	}
 	return &weave.CheckResult{GasAllocated: transferPaymentChannelCost}, nil
 }
 
-func (h *transferPaymentChannelHandler) validate(ctx context.Context, db weave.KVStore, tx weave.Tx) (*TransferMsg, error) {
+func (h *transferPaymentChannelHandler) validate(ctx context.Context, info weave.BlockInfo, db weave.KVStore, tx weave.Tx) (*TransferMsg, error) {
 	var msg TransferMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, errors.Wrap(err, "load msg")
 	}
-	if weave.GetChainID(ctx) != msg.Payment.ChainID {
+	if info.ChainID() != msg.Payment.ChainID {
 		return nil, errors.Wrap(errors.ErrMsg, "invalid chain ID")
 	}
 
@@ -150,7 +150,7 @@ func (h *transferPaymentChannelHandler) validate(ctx context.Context, db weave.K
 }
 
 func (h *transferPaymentChannelHandler) Deliver(ctx context.Context, info weave.BlockInfo, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
-	msg, err := h.validate(ctx, db, tx)
+	msg, err := h.validate(ctx, info, db, tx)
 	if err != nil {
 		return nil, err
 	}
@@ -231,7 +231,7 @@ func (h *closePaymentChannelHandler) Deliver(ctx context.Context, info weave.Blo
 		return nil, err
 	}
 
-	if !weave.IsExpired(ctx, pc.Timeout) {
+	if !info.IsExpired(pc.Timeout) {
 		// If timeout was not reached, only the recipient is allowed to
 		// close the channel.
 		if !h.auth.HasAddress(ctx, pc.Recipient) {

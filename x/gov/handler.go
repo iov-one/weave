@@ -68,7 +68,7 @@ func newVoteHandler(auth x.Authenticator) *VoteHandler {
 }
 
 func (h VoteHandler) Check(ctx context.Context, info weave.BlockInfo, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
-	if _, _, _, err := h.validate(ctx, db, tx); err != nil {
+	if _, _, _, err := h.validate(ctx, info, db, tx); err != nil {
 		return nil, err
 	}
 	return &weave.CheckResult{GasAllocated: voteCost}, nil
@@ -76,7 +76,7 @@ func (h VoteHandler) Check(ctx context.Context, info weave.BlockInfo, db weave.K
 }
 
 func (h VoteHandler) Deliver(ctx context.Context, info weave.BlockInfo, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
-	voteMsg, proposal, vote, err := h.validate(ctx, db, tx)
+	voteMsg, proposal, vote, err := h.validate(ctx, info, db, tx)
 	if err != nil {
 		return nil, err
 	}
@@ -103,7 +103,7 @@ func (h VoteHandler) Deliver(ctx context.Context, info weave.BlockInfo, db weave
 	return &weave.DeliverResult{}, nil
 }
 
-func (h VoteHandler) validate(ctx context.Context, db weave.KVStore, tx weave.Tx) (*VoteMsg, *Proposal, *Vote, error) {
+func (h VoteHandler) validate(ctx context.Context, info weave.BlockInfo, db weave.KVStore, tx weave.Tx) (*VoteMsg, *Proposal, *Vote, error) {
 	var msg VoteMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, nil, nil, errors.Wrap(err, "load msg")
@@ -116,10 +116,10 @@ func (h VoteHandler) validate(ctx context.Context, db weave.KVStore, tx weave.Tx
 	if proposal.Status != Proposal_Submitted {
 		return nil, nil, nil, errors.Wrap(errors.ErrState, "not in voting period")
 	}
-	if !weave.InThePast(ctx, proposal.VotingStartTime.Time()) {
+	if !info.InThePast(proposal.VotingStartTime.Time()) {
 		return nil, nil, nil, errors.Wrap(errors.ErrState, "vote before proposal start time")
 	}
-	if !weave.InTheFuture(ctx, proposal.VotingEndTime.Time()) {
+	if !info.InTheFuture(proposal.VotingEndTime.Time()) {
 		return nil, nil, nil, errors.Wrap(errors.ErrState, "vote after proposal end time")
 	}
 
@@ -172,7 +172,7 @@ func newTallyHandler(auth x.Authenticator, decoder OptionDecoder, executor Execu
 }
 
 func (h TallyHandler) Check(ctx context.Context, info weave.BlockInfo, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
-	if _, _, err := h.validate(ctx, db, tx); err != nil {
+	if _, _, err := h.validate(ctx, info, db, tx); err != nil {
 		return nil, err
 	}
 	return &weave.CheckResult{GasAllocated: tallyCost}, nil
@@ -180,7 +180,7 @@ func (h TallyHandler) Check(ctx context.Context, info weave.BlockInfo, db weave.
 }
 
 func (h TallyHandler) Deliver(ctx context.Context, info weave.BlockInfo, db weave.KVStore, tx weave.Tx) (resOut *weave.DeliverResult, errOut error) {
-	msg, proposal, err := h.validate(ctx, db, tx)
+	msg, proposal, err := h.validate(ctx, info, db, tx)
 	if err != nil {
 		return nil, err
 	}
@@ -246,7 +246,7 @@ func (h TallyHandler) Deliver(ctx context.Context, info weave.BlockInfo, db weav
 	return res, nil
 }
 
-func (h TallyHandler) validate(ctx context.Context, db weave.KVStore, tx weave.Tx) (*TallyMsg, *Proposal, error) {
+func (h TallyHandler) validate(ctx context.Context, info weave.BlockInfo, db weave.KVStore, tx weave.Tx) (*TallyMsg, *Proposal, error) {
 	var msg TallyMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, nil, errors.Wrap(err, "load msg")
@@ -262,7 +262,7 @@ func (h TallyHandler) validate(ctx context.Context, db weave.KVStore, tx weave.T
 	if common.Status != Proposal_Submitted {
 		return nil, nil, errors.Wrapf(errors.ErrState, "unexpected status: %s", common.Status.String())
 	}
-	if !weave.InThePast(ctx, common.VotingEndTime.Time()) {
+	if !info.InThePast(common.VotingEndTime.Time()) {
 		return nil, nil, errors.Wrap(errors.ErrState, "tally before proposal end time: block time")
 	}
 	return &msg, proposal, nil
@@ -287,7 +287,7 @@ func newCreateProposalHandler(auth x.Authenticator, decoder OptionDecoder) *Crea
 }
 
 func (h CreateProposalHandler) Check(ctx context.Context, info weave.BlockInfo, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
-	if _, _, _, err := h.validate(ctx, db, tx); err != nil {
+	if _, _, _, err := h.validate(ctx, info, db, tx); err != nil {
 		return nil, err
 	}
 	return &weave.CheckResult{GasAllocated: proposalCost}, nil
@@ -295,13 +295,9 @@ func (h CreateProposalHandler) Check(ctx context.Context, info weave.BlockInfo, 
 }
 
 func (h CreateProposalHandler) Deliver(ctx context.Context, info weave.BlockInfo, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
-	msg, rule, electorate, err := h.validate(ctx, db, tx)
+	msg, rule, electorate, err := h.validate(ctx, info, db, tx)
 	if err != nil {
 		return nil, err
-	}
-	blockTime, err := weave.BlockTime(ctx)
-	if err != nil {
-		return nil, errors.Wrap(err, "block time")
 	}
 
 	proposal := &Proposal{
@@ -313,7 +309,7 @@ func (h CreateProposalHandler) Deliver(ctx context.Context, info weave.BlockInfo
 		ElectorateRef:   orm.VersionedIDRef{ID: rule.ElectorateID, Version: electorate.Version},
 		VotingStartTime: msg.StartTime,
 		VotingEndTime:   msg.StartTime.Add(rule.VotingPeriod.Duration()),
-		SubmissionTime:  weave.AsUnixTime(blockTime),
+		SubmissionTime:  info.UnixTime(),
 		Author:          msg.Author,
 		VoteState:       NewTallyResult(rule.Quorum, rule.Threshold, electorate.TotalElectorateWeight),
 		Status:          Proposal_Submitted,
@@ -329,16 +325,16 @@ func (h CreateProposalHandler) Deliver(ctx context.Context, info weave.BlockInfo
 	return &weave.DeliverResult{Data: obj.Key()}, nil
 }
 
-func (h CreateProposalHandler) validate(ctx context.Context, db weave.KVStore, tx weave.Tx) (*CreateProposalMsg, *ElectionRule, *Electorate, error) {
+func (h CreateProposalHandler) validate(ctx context.Context, info weave.BlockInfo, db weave.KVStore, tx weave.Tx) (*CreateProposalMsg, *ElectionRule, *Electorate, error) {
 	var msg CreateProposalMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, nil, nil, errors.Wrap(err, "load msg")
 	}
 
-	if !weave.InTheFuture(ctx, msg.StartTime.Time()) {
+	if !info.InTheFuture(msg.StartTime.Time()) {
 		return nil, nil, nil, errors.Wrap(errors.ErrInput, "start time must be in the future")
 	}
-	if weave.InTheFuture(ctx, msg.StartTime.Time().Add(-maxFutureStart)) {
+	if info.InTheFuture(msg.StartTime.Time().Add(-maxFutureStart)) {
 		return nil, nil, nil, errors.Wrapf(errors.ErrInput, "start time cam not be more than %s h in the future", maxFutureStart)
 	}
 
@@ -407,7 +403,7 @@ func newDeleteProposalHandler(auth x.Authenticator) *DeleteProposalHandler {
 	}
 }
 
-func (h DeleteProposalHandler) validate(ctx context.Context, db weave.KVStore, tx weave.Tx) (*DeleteProposalMsg, *Proposal, error) {
+func (h DeleteProposalHandler) validate(ctx context.Context, info weave.BlockInfo, db weave.KVStore, tx weave.Tx) (*DeleteProposalMsg, *Proposal, error) {
 	var msg DeleteProposalMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, nil, errors.Wrap(err, "load msg")
@@ -421,7 +417,7 @@ func (h DeleteProposalHandler) validate(ctx context.Context, db weave.KVStore, t
 		return nil, nil, errors.Wrap(errors.ErrState, "this proposal is already withdrawn")
 	}
 
-	if weave.InThePast(ctx, prop.VotingStartTime.Time()) {
+	if info.InThePast(prop.VotingStartTime.Time()) {
 		return nil, nil, errors.Wrap(errors.ErrImmutable, "voting has already started")
 	}
 	if !h.auth.HasAddress(ctx, prop.Author) {
@@ -431,14 +427,14 @@ func (h DeleteProposalHandler) validate(ctx context.Context, db weave.KVStore, t
 }
 
 func (h DeleteProposalHandler) Check(ctx context.Context, info weave.BlockInfo, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
-	if _, _, err := h.validate(ctx, db, tx); err != nil {
+	if _, _, err := h.validate(ctx, info, db, tx); err != nil {
 		return nil, err
 	}
 	return &weave.CheckResult{GasAllocated: deleteProposalCost}, nil
 }
 
 func (h DeleteProposalHandler) Deliver(ctx context.Context, info weave.BlockInfo, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
-	msg, prop, err := h.validate(ctx, db, tx)
+	msg, prop, err := h.validate(ctx, info, db, tx)
 	if err != nil {
 		return nil, err
 	}
