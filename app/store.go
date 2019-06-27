@@ -1,7 +1,6 @@
 package app
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"strings"
@@ -46,42 +45,35 @@ type StoreApp struct {
 	// cached validator changes from DeliverTx
 	pending weave.ValidatorUpdates
 
-	// baseContext contains context info that is valid for
-	// lifetime of this app (eg. chainID)
-	baseContext context.Context
-
-	// blockContext contains context info that is valid for the
+	// blockInfo contains context info that is valid for the
 	// current block (eg. height, header), reset on BeginBlock
-	blockContext context.Context
+	blockInfo weave.BlockInfo
 }
 
 // NewStoreApp initializes this app into a ready state with some defaults
 //
 // panics if unable to properly load the state from the given store
 // TODO: is this correct? nothing else to do really....
-func NewStoreApp(name string, store weave.CommitKVStore,
-	queryRouter weave.QueryRouter, baseContext context.Context) *StoreApp {
+func NewStoreApp(name string, store weave.CommitKVStore, queryRouter weave.QueryRouter) *StoreApp {
 	s := &StoreApp{
 		name: name,
 		// note: panics if trouble initializing from store
 		store:       NewCommitStore(store),
 		queryRouter: queryRouter,
-		baseContext: baseContext,
+		logger:      log.NewNopLogger(),
 	}
-	s = s.WithLogger(log.NewNopLogger())
-
 	// load the chainID from the db
 	s.chainID = mustLoadChainID(s.DeliverStore())
-	if s.chainID != "" {
-		s.baseContext = weave.WithChainID(s.baseContext, s.chainID)
-	}
 
 	// get the most recent height
 	info, err := s.store.CommitInfo()
 	if err != nil {
 		panic(err)
 	}
-	s.blockContext = weave.WithHeight(s.baseContext, info.Version)
+	s.blockInfo, err = weave.NewBlockInfo(abci.Header{Height: info.Version}, weave.CommitInfo{}, s.chainID, s.logger)
+	if err != nil {
+		panic(err)
+	}
 	return s
 }
 
@@ -121,7 +113,7 @@ func (s *StoreApp) parseAppState(data []byte, params weave.GenesisParams, chainI
 	return init.FromGenesis(appState, params, s.DeliverStore())
 }
 
-// store chainID and update context
+// store chainID
 func (s *StoreApp) storeChainID(chainID string) error {
 	// set the chainID
 	s.chainID = chainID
@@ -129,9 +121,6 @@ func (s *StoreApp) storeChainID(chainID string) error {
 	if err != nil {
 		return err
 	}
-	// and update the context
-	s.baseContext = weave.WithChainID(s.baseContext, s.chainID)
-
 	return nil
 }
 
@@ -140,7 +129,6 @@ func (s *StoreApp) storeChainID(chainID string) error {
 //
 // also sets baseContext logger
 func (s *StoreApp) WithLogger(logger log.Logger) *StoreApp {
-	s.baseContext = weave.WithLogger(s.baseContext, logger)
 	s.logger = logger
 	return s
 }
@@ -151,8 +139,8 @@ func (s *StoreApp) Logger() log.Logger {
 }
 
 // BlockContext returns the block context for public use
-func (s *StoreApp) BlockContext() context.Context {
-	return s.blockContext
+func (s *StoreApp) BlockInfo() weave.BlockInfo {
+	return s.blockInfo
 }
 
 // DeliverStore returns the current DeliverTx cache for methods
@@ -325,17 +313,15 @@ func (s *StoreApp) InitChain(req abci.RequestInitChain) (res abci.ResponseInitCh
 // Sets up blockContext
 // TODO: investigate response tags as of 0.11 abci
 func (s *StoreApp) BeginBlock(req abci.RequestBeginBlock) (res abci.ResponseBeginBlock) {
-	// set the begin block context
-	ctx := weave.WithHeader(s.baseContext, req.Header)
-	ctx = weave.WithHeight(ctx, req.Header.GetHeight())
-	ctx = weave.WithCommitInfo(ctx, req.LastCommitInfo)
-
+	var err error
+	s.blockInfo, err = weave.NewBlockInfo(req.Header, req.LastCommitInfo, s.chainID, s.logger)
+	if err != nil {
+		panic(err)
+	}
 	now := req.Header.GetTime()
 	if now.IsZero() {
 		panic("current time not found in the block header")
 	}
-	ctx = weave.WithBlockTime(ctx, now)
-	s.blockContext = ctx
 	return res
 }
 

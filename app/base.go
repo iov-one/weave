@@ -1,6 +1,8 @@
 package app
 
 import (
+	"context"
+
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -39,11 +41,11 @@ func (b BaseApp) DeliverTx(txBytes []byte) abci.ResponseDeliverTx {
 	}
 
 	// ignore error here, allow it to be logged
-	ctx := weave.WithLogInfo(b.BlockContext(),
+	info := b.BlockInfo().WithLogInfo(
 		"call", "deliver_tx",
 		"path", weave.GetPath(tx))
 
-	res, err := b.handler.Deliver(ctx, info, b.DeliverStore(), tx)
+	res, err := b.handler.Deliver(context.Background(), info, b.DeliverStore(), tx)
 	if err == nil {
 		b.AddValChange(res.Diff)
 	}
@@ -57,11 +59,11 @@ func (b BaseApp) CheckTx(txBytes []byte) abci.ResponseCheckTx {
 		return weave.CheckTxError(err, b.debug)
 	}
 
-	ctx := weave.WithLogInfo(b.BlockContext(),
+	info := b.BlockInfo().WithLogInfo(
 		"call", "check_tx",
 		"path", weave.GetPath(tx))
 
-	res, err := b.handler.Check(ctx, info, b.CheckStore(), tx)
+	res, err := b.handler.Check(context.Background(), info, b.CheckStore(), tx)
 	return weave.CheckOrError(res, err, b.debug)
 }
 
@@ -76,8 +78,8 @@ func (b BaseApp) BeginBlock(req abci.RequestBeginBlock) (
 	if b.ticker != nil {
 		// start := time.Now()
 		// Add info to the logger
-		ctx := weave.WithLogInfo(b.BlockContext(), "call", "begin_block")
-		res, err := b.ticker.Tick(ctx, b.DeliverStore())
+		info := b.BlockInfo().WithLogInfo("call", "begin_block")
+		res, err := b.ticker.Tick(context.Background(), info, b.DeliverStore())
 		// logDuration(ctx, start, "Ticker", err, false)
 		if err != nil {
 			panic(err)
