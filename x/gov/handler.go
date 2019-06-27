@@ -1,6 +1,7 @@
 package gov
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/iov-one/weave"
@@ -66,7 +67,7 @@ func newVoteHandler(auth x.Authenticator) *VoteHandler {
 	}
 }
 
-func (h VoteHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
+func (h VoteHandler) Check(ctx context.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
 	if _, _, _, err := h.validate(ctx, db, tx); err != nil {
 		return nil, err
 	}
@@ -74,7 +75,7 @@ func (h VoteHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*w
 
 }
 
-func (h VoteHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
+func (h VoteHandler) Deliver(ctx context.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	voteMsg, proposal, vote, err := h.validate(ctx, db, tx)
 	if err != nil {
 		return nil, err
@@ -102,7 +103,7 @@ func (h VoteHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (
 	return &weave.DeliverResult{}, nil
 }
 
-func (h VoteHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*VoteMsg, *Proposal, *Vote, error) {
+func (h VoteHandler) validate(ctx context.Context, db weave.KVStore, tx weave.Tx) (*VoteMsg, *Proposal, *Vote, error) {
 	var msg VoteMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, nil, nil, errors.Wrap(err, "load msg")
@@ -170,7 +171,7 @@ func newTallyHandler(auth x.Authenticator, decoder OptionDecoder, executor Execu
 	}
 }
 
-func (h TallyHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
+func (h TallyHandler) Check(ctx context.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
 	if _, _, err := h.validate(ctx, db, tx); err != nil {
 		return nil, err
 	}
@@ -178,7 +179,7 @@ func (h TallyHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*
 
 }
 
-func (h TallyHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (resOut *weave.DeliverResult, errOut error) {
+func (h TallyHandler) Deliver(ctx context.Context, db weave.KVStore, tx weave.Tx) (resOut *weave.DeliverResult, errOut error) {
 	msg, proposal, err := h.validate(ctx, db, tx)
 	if err != nil {
 		return nil, err
@@ -245,7 +246,7 @@ func (h TallyHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) 
 	return res, nil
 }
 
-func (h TallyHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*TallyMsg, *Proposal, error) {
+func (h TallyHandler) validate(ctx context.Context, db weave.KVStore, tx weave.Tx) (*TallyMsg, *Proposal, error) {
 	var msg TallyMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, nil, errors.Wrap(err, "load msg")
@@ -285,7 +286,7 @@ func newCreateProposalHandler(auth x.Authenticator, decoder OptionDecoder) *Crea
 	}
 }
 
-func (h CreateProposalHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
+func (h CreateProposalHandler) Check(ctx context.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
 	if _, _, _, err := h.validate(ctx, db, tx); err != nil {
 		return nil, err
 	}
@@ -293,7 +294,7 @@ func (h CreateProposalHandler) Check(ctx weave.Context, db weave.KVStore, tx wea
 
 }
 
-func (h CreateProposalHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
+func (h CreateProposalHandler) Deliver(ctx context.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	msg, rule, electorate, err := h.validate(ctx, db, tx)
 	if err != nil {
 		return nil, err
@@ -328,7 +329,7 @@ func (h CreateProposalHandler) Deliver(ctx weave.Context, db weave.KVStore, tx w
 	return &weave.DeliverResult{Data: obj.Key()}, nil
 }
 
-func (h CreateProposalHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*CreateProposalMsg, *ElectionRule, *Electorate, error) {
+func (h CreateProposalHandler) validate(ctx context.Context, db weave.KVStore, tx weave.Tx) (*CreateProposalMsg, *ElectionRule, *Electorate, error) {
 	var msg CreateProposalMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, nil, nil, errors.Wrap(err, "load msg")
@@ -406,7 +407,7 @@ func newDeleteProposalHandler(auth x.Authenticator) *DeleteProposalHandler {
 	}
 }
 
-func (h DeleteProposalHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*DeleteProposalMsg, *Proposal, error) {
+func (h DeleteProposalHandler) validate(ctx context.Context, db weave.KVStore, tx weave.Tx) (*DeleteProposalMsg, *Proposal, error) {
 	var msg DeleteProposalMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, nil, errors.Wrap(err, "load msg")
@@ -429,14 +430,14 @@ func (h DeleteProposalHandler) validate(ctx weave.Context, db weave.KVStore, tx 
 	return &msg, prop, nil
 }
 
-func (h DeleteProposalHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
+func (h DeleteProposalHandler) Check(ctx context.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
 	if _, _, err := h.validate(ctx, db, tx); err != nil {
 		return nil, err
 	}
 	return &weave.CheckResult{GasAllocated: deleteProposalCost}, nil
 }
 
-func (h DeleteProposalHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
+func (h DeleteProposalHandler) Deliver(ctx context.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	msg, prop, err := h.validate(ctx, db, tx)
 	if err != nil {
 		return nil, err
@@ -465,7 +466,7 @@ func newUpdateElectorateHandler(auth x.Authenticator) *UpdateElectorateHandler {
 	}
 }
 
-func (h UpdateElectorateHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
+func (h UpdateElectorateHandler) Check(ctx context.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
 	_, _, err := h.validate(ctx, db, tx)
 	if err != nil {
 		return nil, err
@@ -473,7 +474,7 @@ func (h UpdateElectorateHandler) Check(ctx weave.Context, db weave.KVStore, tx w
 	return &weave.CheckResult{GasAllocated: updateElectorateCost}, nil
 }
 
-func (h UpdateElectorateHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
+func (h UpdateElectorateHandler) Deliver(ctx context.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	msg, elect, err := h.validate(ctx, db, tx)
 	if err != nil {
 		return nil, err
@@ -489,7 +490,7 @@ func (h UpdateElectorateHandler) Deliver(ctx weave.Context, db weave.KVStore, tx
 	return &weave.DeliverResult{Data: msg.ElectorateID}, nil
 }
 
-func (h UpdateElectorateHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*UpdateElectorateMsg, *Electorate, error) {
+func (h UpdateElectorateHandler) validate(ctx context.Context, db weave.KVStore, tx weave.Tx) (*UpdateElectorateMsg, *Electorate, error) {
 	var msg UpdateElectorateMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, nil, errors.Wrap(err, "load msg")
@@ -527,7 +528,7 @@ func newUpdateElectionRuleHandler(auth x.Authenticator) *UpdateElectionRuleHandl
 	}
 }
 
-func (h UpdateElectionRuleHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
+func (h UpdateElectionRuleHandler) Check(ctx context.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
 	_, _, err := h.validate(ctx, db, tx)
 	if err != nil {
 		return nil, err
@@ -535,7 +536,7 @@ func (h UpdateElectionRuleHandler) Check(ctx weave.Context, db weave.KVStore, tx
 	return &weave.CheckResult{GasAllocated: updateElectionRuleCost}, nil
 }
 
-func (h UpdateElectionRuleHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
+func (h UpdateElectionRuleHandler) Deliver(ctx context.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	msg, rule, err := h.validate(ctx, db, tx)
 	if err != nil {
 		return nil, err
@@ -548,7 +549,7 @@ func (h UpdateElectionRuleHandler) Deliver(ctx weave.Context, db weave.KVStore, 
 	return &weave.DeliverResult{Data: msg.ElectionRuleID}, nil
 }
 
-func (h UpdateElectionRuleHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*UpdateElectionRuleMsg, *ElectionRule, error) {
+func (h UpdateElectionRuleHandler) validate(ctx context.Context, db weave.KVStore, tx weave.Tx) (*UpdateElectionRuleMsg, *ElectionRule, error) {
 	var msg UpdateElectionRuleMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, nil, errors.Wrap(err, "load msg")
@@ -579,7 +580,7 @@ func newCreateTextResolutionHandler(auth x.Authenticator) *createTextResolutionH
 	}
 }
 
-func (h createTextResolutionHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
+func (h createTextResolutionHandler) Check(ctx context.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
 	_, err := h.validate(ctx, db, tx)
 	if err != nil {
 		return nil, err
@@ -587,7 +588,7 @@ func (h createTextResolutionHandler) Check(ctx weave.Context, db weave.KVStore, 
 	return &weave.CheckResult{GasAllocated: textResolutionCost}, nil
 }
 
-func (h createTextResolutionHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
+func (h createTextResolutionHandler) Deliver(ctx context.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	msg, err := h.validate(ctx, db, tx)
 	if err != nil {
 		return nil, err
@@ -612,7 +613,7 @@ func (h createTextResolutionHandler) Deliver(ctx weave.Context, db weave.KVStore
 	return &weave.DeliverResult{Data: obj.Key()}, nil
 }
 
-func (h createTextResolutionHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*CreateTextResolutionMsg, error) {
+func (h createTextResolutionHandler) validate(ctx context.Context, db weave.KVStore, tx weave.Tx) (*CreateTextResolutionMsg, error) {
 	var msg CreateTextResolutionMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, errors.Wrap(err, "load msg")

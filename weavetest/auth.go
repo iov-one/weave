@@ -25,14 +25,14 @@ type Auth struct {
 	Signers []weave.Condition
 }
 
-func (a *Auth) GetConditions(weave.Context) []weave.Condition {
+func (a *Auth) GetConditions(context.Context) []weave.Condition {
 	if a.Signer != nil {
 		return append(a.Signers, a.Signer)
 	}
 	return a.Signers
 }
 
-func (a *Auth) HasAddress(ctx weave.Context, addr weave.Address) bool {
+func (a *Auth) HasAddress(ctx context.Context, addr weave.Address) bool {
 	for _, s := range a.Signers {
 		if addr.Equals(s.Address()) {
 			return true
@@ -53,11 +53,11 @@ type CtxAuth struct {
 	Key string
 }
 
-func (a *CtxAuth) SetConditions(ctx weave.Context, permissions ...weave.Condition) weave.Context {
+func (a *CtxAuth) SetConditions(ctx context.Context, permissions ...weave.Condition) context.Context {
 	return context.WithValue(ctx, a.Key, permissions)
 }
 
-func (a *CtxAuth) GetConditions(ctx weave.Context) []weave.Condition {
+func (a *CtxAuth) GetConditions(ctx context.Context) []weave.Condition {
 	val := ctx.Value(a.Key)
 	if val == nil {
 		return nil
@@ -69,7 +69,7 @@ func (a *CtxAuth) GetConditions(ctx weave.Context) []weave.Condition {
 	return conds
 }
 
-func (a *CtxAuth) HasAddress(ctx weave.Context, addr weave.Address) bool {
+func (a *CtxAuth) HasAddress(ctx context.Context, addr weave.Address) bool {
 	for _, s := range a.GetConditions(ctx) {
 		if addr.Equals(s.Address()) {
 			return true

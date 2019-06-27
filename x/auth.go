@@ -1,6 +1,8 @@
 package x
 
 import (
+	"context"
+
 	"github.com/iov-one/weave"
 )
 
@@ -11,9 +13,9 @@ import (
 type Authenticator interface {
 	// GetConditions reveals all Conditions fulfilled,
 	// you may want GetAddresses helper
-	GetConditions(weave.Context) []weave.Condition
+	GetConditions(context.Context) []weave.Condition
 	// HasAddress checks if any condition matches this address
-	HasAddress(weave.Context, weave.Address) bool
+	HasAddress(context.Context, weave.Address) bool
 }
 
 // MultiAuth chains together many Authenticators into one
@@ -29,7 +31,7 @@ func ChainAuth(impls ...Authenticator) MultiAuth {
 }
 
 // GetConditions combines all Conditions from all Authenticators
-func (m MultiAuth) GetConditions(ctx weave.Context) []weave.Condition {
+func (m MultiAuth) GetConditions(ctx context.Context) []weave.Condition {
 	var res []weave.Condition
 	for _, impl := range m.impls {
 		add := impl.GetConditions(ctx)
@@ -42,7 +44,7 @@ func (m MultiAuth) GetConditions(ctx weave.Context) []weave.Condition {
 }
 
 // HasAddress returns true iff any Authenticator support this
-func (m MultiAuth) HasAddress(ctx weave.Context, addr weave.Address) bool {
+func (m MultiAuth) HasAddress(ctx context.Context, addr weave.Address) bool {
 	for _, impl := range m.impls {
 		if impl.HasAddress(ctx, addr) {
 			return true
@@ -52,7 +54,7 @@ func (m MultiAuth) HasAddress(ctx weave.Context, addr weave.Address) bool {
 }
 
 // GetAddresses wraps the GetConditions method of any Authenticator
-func GetAddresses(ctx weave.Context, auth Authenticator) []weave.Address {
+func GetAddresses(ctx context.Context, auth Authenticator) []weave.Address {
 	perms := auth.GetConditions(ctx)
 	addrs := make([]weave.Address, len(perms))
 	for i, p := range perms {
@@ -62,7 +64,7 @@ func GetAddresses(ctx weave.Context, auth Authenticator) []weave.Address {
 }
 
 // MainSigner returns the first permission if any, otherwise nil
-func MainSigner(ctx weave.Context, auth Authenticator) weave.Condition {
+func MainSigner(ctx context.Context, auth Authenticator) weave.Condition {
 	signers := auth.GetConditions(ctx)
 	if len(signers) == 0 {
 		return nil
@@ -72,7 +74,7 @@ func MainSigner(ctx weave.Context, auth Authenticator) weave.Condition {
 
 // HasAllAddresses returns true if all elements in required are
 // also in context.
-func HasAllAddresses(ctx weave.Context, auth Authenticator, required []weave.Address) bool {
+func HasAllAddresses(ctx context.Context, auth Authenticator, required []weave.Address) bool {
 	for _, r := range required {
 		if !auth.HasAddress(ctx, r) {
 			return false
@@ -83,7 +85,7 @@ func HasAllAddresses(ctx weave.Context, auth Authenticator, required []weave.Add
 
 // HasNAddresses returns true if at least n elements in requested are
 // also in context.
-func HasNAddresses(ctx weave.Context, auth Authenticator, required []weave.Address, n int) bool {
+func HasNAddresses(ctx context.Context, auth Authenticator, required []weave.Address, n int) bool {
 	// Special case: is this an error???
 	if n <= 0 {
 		return true
@@ -102,14 +104,14 @@ func HasNAddresses(ctx weave.Context, auth Authenticator, required []weave.Addre
 
 // HasAllConditions returns true if all elements in required are
 // also in context.
-func HasAllConditions(ctx weave.Context, auth Authenticator, required []weave.Condition) bool {
+func HasAllConditions(ctx context.Context, auth Authenticator, required []weave.Condition) bool {
 	return HasNConditions(ctx, auth, required, len(required))
 }
 
 // HasNConditions returns true if at least n elements in requested are
 // also in context.
 // Useful for threshold conditions (1 of 3, 3 of 5, etc...)
-func HasNConditions(ctx weave.Context, auth Authenticator, requested []weave.Condition, n int) bool {
+func HasNConditions(ctx context.Context, auth Authenticator, requested []weave.Condition, n int) bool {
 	// Special case: is this an error???
 	if n <= 0 {
 		return true

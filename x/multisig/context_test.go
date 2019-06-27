@@ -21,7 +21,7 @@ func TestContext(t *testing.T) {
 
 	bg := context.Background()
 	cases := map[string]struct {
-		ctx        weave.Context
+		ctx        context.Context
 		wantPerms  []weave.Condition
 		wantAddr   []weave.Address
 		wantNoAddr []weave.Address

@@ -1,6 +1,7 @@
 package escrow
 
 import (
+	"context"
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/errors"
@@ -46,7 +47,7 @@ var _ weave.Handler = CreateEscrowHandler{}
 
 // Check just verifies it is properly formed and returns
 // the cost of executing it.
-func (h CreateEscrowHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
+func (h CreateEscrowHandler) Check(ctx context.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
 	_, err := h.validate(ctx, db, tx)
 	if err != nil {
 		return nil, err
@@ -60,7 +61,7 @@ func (h CreateEscrowHandler) Check(ctx weave.Context, db weave.KVStore, tx weave
 
 // Deliver moves the tokens from sender to the escrow account if
 // all preconditions are met.
-func (h CreateEscrowHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
+func (h CreateEscrowHandler) Deliver(ctx context.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	msg, err := h.validate(ctx, db, tx)
 	if err != nil {
 		return nil, err
@@ -100,7 +101,7 @@ func (h CreateEscrowHandler) Deliver(ctx weave.Context, db weave.KVStore, tx wea
 }
 
 // validate does all common pre-processing between Check and Deliver.
-func (h CreateEscrowHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*CreateMsg, error) {
+func (h CreateEscrowHandler) validate(ctx context.Context, db weave.KVStore, tx weave.Tx) (*CreateMsg, error) {
 	var msg CreateMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, errors.Wrap(err, "load msg")
@@ -131,7 +132,7 @@ var _ weave.Handler = ReleaseEscrowHandler{}
 
 // Check just verifies it is properly formed and returns
 // the cost of executing it
-func (h ReleaseEscrowHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
+func (h ReleaseEscrowHandler) Check(ctx context.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
 	_, _, err := h.validate(ctx, db, tx)
 	if err != nil {
 		return nil, err
@@ -142,7 +143,7 @@ func (h ReleaseEscrowHandler) Check(ctx weave.Context, db weave.KVStore, tx weav
 
 // Deliver moves the tokens from escrow account to the receiver if
 // all preconditions are met. When the escrow account is empty it is deleted.
-func (h ReleaseEscrowHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
+func (h ReleaseEscrowHandler) Deliver(ctx context.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	msg, escrow, err := h.validate(ctx, db, tx)
 	if err != nil {
 		return nil, err
@@ -180,7 +181,7 @@ func (h ReleaseEscrowHandler) Deliver(ctx weave.Context, db weave.KVStore, tx we
 }
 
 // validate does all common pre-processing between Check and Deliver.
-func (h ReleaseEscrowHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*ReleaseMsg, *Escrow, error) {
+func (h ReleaseEscrowHandler) validate(ctx context.Context, db weave.KVStore, tx weave.Tx) (*ReleaseMsg, *Escrow, error) {
 	var msg ReleaseMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, nil, errors.Wrap(err, "load msg")
@@ -214,7 +215,7 @@ var _ weave.Handler = ReturnEscrowHandler{}
 
 // Check just verifies it is properly formed and returns
 // the cost of executing it.
-func (h ReturnEscrowHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
+func (h ReturnEscrowHandler) Check(ctx context.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
 	_, _, err := h.validate(ctx, db, tx)
 	if err != nil {
 		return nil, err
@@ -225,7 +226,7 @@ func (h ReturnEscrowHandler) Check(ctx weave.Context, db weave.KVStore, tx weave
 
 // Deliver moves all the tokens from the escrow to the defined sender if
 // all preconditions are met. The escrow is deleted afterwards.
-func (h ReturnEscrowHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
+func (h ReturnEscrowHandler) Deliver(ctx context.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	key, escrow, err := h.validate(ctx, db, tx)
 	if err != nil {
 		return nil, err
@@ -249,7 +250,7 @@ func (h ReturnEscrowHandler) Deliver(ctx weave.Context, db weave.KVStore, tx wea
 }
 
 // validate does all common pre-processing between Check and Deliver.
-func (h ReturnEscrowHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) ([]byte, *Escrow, error) {
+func (h ReturnEscrowHandler) validate(ctx context.Context, db weave.KVStore, tx weave.Tx) ([]byte, *Escrow, error) {
 	var msg ReturnMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, nil, errors.Wrap(err, "load msg")
@@ -277,7 +278,7 @@ var _ weave.Handler = UpdateEscrowHandler{}
 
 // Check just verifies it is properly formed and returns
 // the cost of executing it.
-func (h UpdateEscrowHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
+func (h UpdateEscrowHandler) Check(ctx context.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
 	_, _, err := h.validate(ctx, db, tx)
 	if err != nil {
 		return nil, err
@@ -288,7 +289,7 @@ func (h UpdateEscrowHandler) Check(ctx weave.Context, db weave.KVStore, tx weave
 
 // Deliver updates the any of the sender, recipient or arbiter if
 // all preconditions are met. No coins are moved.
-func (h UpdateEscrowHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
+func (h UpdateEscrowHandler) Deliver(ctx context.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	msg, escrow, err := h.validate(ctx, db, tx)
 	if err != nil {
 		return nil, err
@@ -315,7 +316,7 @@ func (h UpdateEscrowHandler) Deliver(ctx weave.Context, db weave.KVStore, tx wea
 }
 
 // validate does all common pre-processing between Check and Deliver.
-func (h UpdateEscrowHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*UpdatePartiesMsg, *Escrow, error) {
+func (h UpdateEscrowHandler) validate(ctx context.Context, db weave.KVStore, tx weave.Tx) (*UpdatePartiesMsg, *Escrow, error) {
 	var msg UpdatePartiesMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, nil, errors.Wrap(err, "load msg")

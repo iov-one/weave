@@ -149,7 +149,7 @@ type writeDecorator struct {
 
 var _ weave.Decorator = writeDecorator{}
 
-func (d writeDecorator) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx, next weave.Checker) (*weave.CheckResult, error) {
+func (d writeDecorator) Check(ctx context.Context, store weave.KVStore, tx weave.Tx, next weave.Checker) (*weave.CheckResult, error) {
 	if !d.after {
 		store.Set(d.key, d.value)
 	}
@@ -160,7 +160,7 @@ func (d writeDecorator) Check(ctx weave.Context, store weave.KVStore, tx weave.T
 	return res, err
 }
 
-func (d writeDecorator) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx, next weave.Deliverer) (*weave.DeliverResult, error) {
+func (d writeDecorator) Deliver(ctx context.Context, store weave.KVStore, tx weave.Tx, next weave.Deliverer) (*weave.DeliverResult, error) {
 	if !d.after {
 		store.Set(d.key, d.value)
 	}

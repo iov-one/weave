@@ -1,6 +1,7 @@
 package app
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"strings"
@@ -47,11 +48,11 @@ type StoreApp struct {
 
 	// baseContext contains context info that is valid for
 	// lifetime of this app (eg. chainID)
-	baseContext weave.Context
+	baseContext context.Context
 
 	// blockContext contains context info that is valid for the
 	// current block (eg. height, header), reset on BeginBlock
-	blockContext weave.Context
+	blockContext context.Context
 }
 
 // NewStoreApp initializes this app into a ready state with some defaults
@@ -59,7 +60,7 @@ type StoreApp struct {
 // panics if unable to properly load the state from the given store
 // TODO: is this correct? nothing else to do really....
 func NewStoreApp(name string, store weave.CommitKVStore,
-	queryRouter weave.QueryRouter, baseContext weave.Context) *StoreApp {
+	queryRouter weave.QueryRouter, baseContext context.Context) *StoreApp {
 	s := &StoreApp{
 		name: name,
 		// note: panics if trouble initializing from store
@@ -150,7 +151,7 @@ func (s *StoreApp) Logger() log.Logger {
 }
 
 // BlockContext returns the block context for public use
-func (s *StoreApp) BlockContext() weave.Context {
+func (s *StoreApp) BlockContext() context.Context {
 	return s.blockContext
 }
 

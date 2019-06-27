@@ -561,7 +561,7 @@ func (a *action) tx() weave.Tx {
 	return &weavetest.Tx{Msg: a.msg}
 }
 
-func (a *action) ctx() weave.Context {
+func (a *action) ctx() context.Context {
 	ctx := weave.WithHeight(context.Background(), a.blocksize)
 	ctx = weave.WithChainID(ctx, "testchain-123")
 	if !a.blockTime.IsZero() {

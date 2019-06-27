@@ -131,12 +131,12 @@ type writeHandler struct {
 	err   error
 }
 
-func (h writeHandler) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
+func (h writeHandler) Check(ctx context.Context, store weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
 	store.Set(h.key, h.value)
 	return &weave.CheckResult{}, h.err
 }
 
-func (h writeHandler) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
+func (h writeHandler) Deliver(ctx context.Context, store weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	store.Set(h.key, h.value)
 	return &weave.DeliverResult{}, h.err
 }

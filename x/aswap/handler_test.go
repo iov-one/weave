@@ -46,7 +46,7 @@ func TestCreateHandler(t *testing.T) {
 	assert.Nil(t, err)
 
 	cases := map[string]struct {
-		setup          func(ctx weave.Context, db weave.KVStore) weave.Context
+		setup          func(ctx context.Context, db weave.KVStore) context.Context
 		check          func(t *testing.T, db weave.KVStore)
 		wantCheckErr   *errors.Error
 		wantDeliverErr *errors.Error
@@ -54,7 +54,7 @@ func TestCreateHandler(t *testing.T) {
 		mutator        func(db *aswap.CreateMsg)
 	}{
 		"Happy Path": {
-			setup: func(ctx weave.Context, db weave.KVStore) weave.Context {
+			setup: func(ctx context.Context, db weave.KVStore) context.Context {
 				setBalance(t, db, alice.Address(), initialCoins)
 				return authenticator.SetConditions(ctx, alice)
 			},
@@ -73,7 +73,7 @@ func TestCreateHandler(t *testing.T) {
 			},
 		},
 		"happy path, timeout can be in the past": {
-			setup: func(ctx weave.Context, db weave.KVStore) weave.Context {
+			setup: func(ctx context.Context, db weave.KVStore) context.Context {
 				setBalance(t, db, alice.Address(), initialCoins)
 				return authenticator.SetConditions(ctx, alice)
 			},
@@ -89,14 +89,14 @@ func TestCreateHandler(t *testing.T) {
 			},
 		},
 		"Invalid Auth": {
-			setup: func(ctx weave.Context, db weave.KVStore) weave.Context {
+			setup: func(ctx context.Context, db weave.KVStore) context.Context {
 				return authenticator.SetConditions(ctx, pete)
 			},
 			wantDeliverErr: errors.ErrUnauthorized,
 			wantCheckErr:   errors.ErrUnauthorized,
 		},
 		"Empty account": {
-			setup: func(ctx weave.Context, db weave.KVStore) weave.Context {
+			setup: func(ctx context.Context, db weave.KVStore) context.Context {
 				return authenticator.SetConditions(ctx, alice)
 			},
 			wantDeliverErr: errors.ErrEmpty,
@@ -159,7 +159,7 @@ func TestReleaseHandler(t *testing.T) {
 	assert.Nil(t, err)
 
 	cases := map[string]struct {
-		setup          func(ctx weave.Context, db weave.KVStore) weave.Context
+		setup          func(ctx context.Context, db weave.KVStore) context.Context
 		check          func(t *testing.T, db weave.KVStore)
 		wantCheckErr   *errors.Error
 		wantDeliverErr *errors.Error
@@ -203,7 +203,7 @@ func TestReleaseHandler(t *testing.T) {
 			},
 		},
 		"Expired": {
-			setup: func(ctx weave.Context, db weave.KVStore) weave.Context {
+			setup: func(ctx context.Context, db weave.KVStore) context.Context {
 				return weave.WithBlockTime(ctx, time.Now().Add(10*time.Hour))
 			},
 			wantDeliverErr: errors.ErrState,
@@ -271,7 +271,7 @@ func TestReturnHandler(t *testing.T) {
 	assert.Nil(t, err)
 
 	cases := map[string]struct {
-		setup          func(ctx weave.Context, db weave.KVStore) weave.Context
+		setup          func(ctx context.Context, db weave.KVStore) context.Context
 		check          func(t *testing.T, db weave.KVStore)
 		wantCheckErr   *errors.Error
 		wantDeliverErr *errors.Error
@@ -279,7 +279,7 @@ func TestReturnHandler(t *testing.T) {
 		mutator        func(db *aswap.ReturnSwapMsg)
 	}{
 		"Happy Path, includes no auth check": {
-			setup: func(ctx weave.Context, db weave.KVStore) weave.Context {
+			setup: func(ctx context.Context, db weave.KVStore) context.Context {
 				return weave.WithBlockTime(ctx, blockNow.Add(2*time.Hour))
 			},
 			wantDeliverErr: nil,
@@ -310,7 +310,7 @@ func TestReturnHandler(t *testing.T) {
 			},
 		},
 		"Not Expired": {
-			setup: func(ctx weave.Context, db weave.KVStore) weave.Context {
+			setup: func(ctx context.Context, db weave.KVStore) context.Context {
 				return weave.WithBlockTime(ctx, blockNow)
 			},
 			wantDeliverErr: errors.ErrState,

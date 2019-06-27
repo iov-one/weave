@@ -49,12 +49,12 @@ func (m *mockHelper) GetMsg() (weave.Msg, error) {
 	return args.Get(0).(weave.Msg), args.Error(1)
 }
 
-func (m *mockHelper) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
+func (m *mockHelper) Check(ctx context.Context, store weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
 	args := m.Called(ctx, store, tx)
 	return args.Get(0).(*weave.CheckResult), args.Error(1)
 }
 
-func (m *mockHelper) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
+func (m *mockHelper) Deliver(ctx context.Context, store weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	args := m.Called(ctx, store, tx)
 	return args.Get(0).(*weave.DeliverResult), args.Error(1)
 }

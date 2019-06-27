@@ -694,7 +694,7 @@ func (a action) tx() weave.Tx {
 	return &weavetest.Tx{Msg: a.msg}
 }
 
-func (a action) ctx() weave.Context {
+func (a action) ctx() context.Context {
 	ctx := context.Background()
 	if !a.blockTime.IsZero() {
 		ctx = weave.WithBlockTime(ctx, a.blockTime)

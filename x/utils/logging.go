@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"context"
 	"time"
 
 	"github.com/iov-one/weave"
@@ -17,7 +18,7 @@ func NewLogging() Logging {
 }
 
 // Check logs error -> info, success -> debug
-func (r Logging) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx, next weave.Checker) (*weave.CheckResult, error) {
+func (r Logging) Check(ctx context.Context, store weave.KVStore, tx weave.Tx, next weave.Checker) (*weave.CheckResult, error) {
 	start := time.Now()
 	res, err := next.Check(ctx, store, tx)
 	var resLog string
@@ -29,7 +30,7 @@ func (r Logging) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx, next
 }
 
 // Deliver logs error -> error, success -> info
-func (r Logging) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx, next weave.Deliverer) (*weave.DeliverResult, error) {
+func (r Logging) Deliver(ctx context.Context, store weave.KVStore, tx weave.Tx, next weave.Deliverer) (*weave.DeliverResult, error) {
 	start := time.Now()
 	res, err := next.Deliver(ctx, store, tx)
 	var resLog string
@@ -41,7 +42,7 @@ func (r Logging) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx, ne
 }
 
 // logDuration writes information about the time and result to the logger
-func logDuration(ctx weave.Context, start time.Time, msg string, err error, lowPrio bool) {
+func logDuration(ctx context.Context, start time.Time, msg string, err error, lowPrio bool) {
 	delta := time.Now().Sub(start)
 	logger := weave.GetLogger(ctx).With("duration", delta/time.Microsecond)
 

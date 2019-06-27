@@ -1,6 +1,8 @@
 package msgfee
 
 import (
+	"context"
+
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/errors"
@@ -26,7 +28,7 @@ func NewFeeDecorator() *FeeDecorator {
 	}
 }
 
-func (d *FeeDecorator) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx, next weave.Checker) (*weave.CheckResult, error) {
+func (d *FeeDecorator) Check(ctx context.Context, store weave.KVStore, tx weave.Tx, next weave.Checker) (*weave.CheckResult, error) {
 	res, err := next.Check(ctx, store, tx)
 	if err != nil {
 		return nil, err
@@ -46,7 +48,7 @@ func (d *FeeDecorator) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx
 	return res, nil
 }
 
-func (d *FeeDecorator) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx, next weave.Deliverer) (*weave.DeliverResult, error) {
+func (d *FeeDecorator) Deliver(ctx context.Context, store weave.KVStore, tx weave.Tx, next weave.Deliverer) (*weave.DeliverResult, error) {
 	res, err := next.Deliver(ctx, store, tx)
 	if err != nil {
 		return nil, err

@@ -1,6 +1,7 @@
 package app
 
 import (
+	"context"
 	"fmt"
 	"regexp"
 
@@ -57,7 +58,7 @@ func (r *Router) handler(m weave.Msg) weave.Handler {
 }
 
 // Check dispatches to the proper handler based on path
-func (r *Router) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
+func (r *Router) Check(ctx context.Context, store weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
 	msg, err := tx.GetMsg()
 	if err != nil {
 		return nil, errors.Wrap(err, "cannot load msg")
@@ -67,7 +68,7 @@ func (r *Router) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx) (*we
 }
 
 // Deliver dispatches to the proper handler based on path
-func (r *Router) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
+func (r *Router) Deliver(ctx context.Context, store weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	msg, err := tx.GetMsg()
 	if err != nil {
 		return nil, errors.Wrap(err, "cannot load msg")
@@ -80,10 +81,10 @@ func (r *Router) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx) (*
 // provided.
 type notFoundHandler string
 
-func (path notFoundHandler) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
+func (path notFoundHandler) Check(ctx context.Context, store weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
 	return nil, errors.Wrapf(errors.ErrNotFound, "no handler for message path %q", path)
 }
 
-func (path notFoundHandler) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
+func (path notFoundHandler) Deliver(ctx context.Context, store weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	return nil, errors.Wrapf(errors.ErrNotFound, "no handler for message path %q", path)
 }

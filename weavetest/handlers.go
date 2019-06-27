@@ -1,6 +1,8 @@
 package weavetest
 
 import (
+	"context"
+
 	"github.com/iov-one/weave"
 )
 
@@ -24,7 +26,7 @@ type Handler struct {
 
 var _ weave.Handler = (*Handler)(nil)
 
-func (h *Handler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
+func (h *Handler) Check(ctx context.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
 	h.checkCall++
 	if h.CheckErr != nil {
 		return nil, h.CheckErr
@@ -34,7 +36,7 @@ func (h *Handler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weav
 	return &res, nil
 }
 
-func (h *Handler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
+func (h *Handler) Deliver(ctx context.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	h.deliverCall++
 	if h.DeliverErr != nil {
 		return nil, h.DeliverErr

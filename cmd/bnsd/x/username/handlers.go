@@ -1,6 +1,7 @@
 package username
 
 import (
+	"context"
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/migration"
@@ -28,14 +29,14 @@ type registerTokenHandler struct {
 	bucket orm.ModelBucket
 }
 
-func (h *registerTokenHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
+func (h *registerTokenHandler) Check(ctx context.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
 	if _, err := h.validate(ctx, db, tx); err != nil {
 		return nil, err
 	}
 	return &weave.CheckResult{GasAllocated: registerTokenCost}, nil
 }
 
-func (h *registerTokenHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
+func (h *registerTokenHandler) Deliver(ctx context.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	msg, err := h.validate(ctx, db, tx)
 	if err != nil {
 		return nil, err
@@ -57,7 +58,7 @@ func (h *registerTokenHandler) Deliver(ctx weave.Context, db weave.KVStore, tx w
 	return &weave.DeliverResult{Data: msg.Username.Bytes()}, nil
 }
 
-func (h *registerTokenHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*RegisterTokenMsg, error) {
+func (h *registerTokenHandler) validate(ctx context.Context, db weave.KVStore, tx weave.Tx) (*RegisterTokenMsg, error) {
 	var msg RegisterTokenMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, errors.Wrap(err, "load msg")
@@ -79,14 +80,14 @@ type transferTokenHandler struct {
 	bucket orm.ModelBucket
 }
 
-func (h *transferTokenHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
+func (h *transferTokenHandler) Check(ctx context.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
 	if _, _, err := h.validate(ctx, db, tx); err != nil {
 		return nil, err
 	}
 	return &weave.CheckResult{GasAllocated: transferTokenCost}, nil
 }
 
-func (h *transferTokenHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
+func (h *transferTokenHandler) Deliver(ctx context.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	msg, token, err := h.validate(ctx, db, tx)
 	if err != nil {
 		return nil, err
@@ -99,7 +100,7 @@ func (h *transferTokenHandler) Deliver(ctx weave.Context, db weave.KVStore, tx w
 	return &weave.DeliverResult{Data: msg.Username.Bytes()}, nil
 }
 
-func (h *transferTokenHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*TransferTokenMsg, *Token, error) {
+func (h *transferTokenHandler) validate(ctx context.Context, db weave.KVStore, tx weave.Tx) (*TransferTokenMsg, *Token, error) {
 	var msg TransferTokenMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, nil, errors.Wrap(err, "load msg")
@@ -122,14 +123,14 @@ type changeTokenTargetsHandler struct {
 	bucket orm.ModelBucket
 }
 
-func (h *changeTokenTargetsHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
+func (h *changeTokenTargetsHandler) Check(ctx context.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
 	if _, _, err := h.validate(ctx, db, tx); err != nil {
 		return nil, err
 	}
 	return &weave.CheckResult{GasAllocated: changeTokenTargetCost}, nil
 }
 
-func (h *changeTokenTargetsHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
+func (h *changeTokenTargetsHandler) Deliver(ctx context.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	msg, token, err := h.validate(ctx, db, tx)
 	if err != nil {
 		return nil, err
@@ -142,7 +143,7 @@ func (h *changeTokenTargetsHandler) Deliver(ctx weave.Context, db weave.KVStore,
 	return &weave.DeliverResult{Data: msg.Username.Bytes()}, nil
 }
 
-func (h *changeTokenTargetsHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*ChangeTokenTargetsMsg, *Token, error) {
+func (h *changeTokenTargetsHandler) validate(ctx context.Context, db weave.KVStore, tx weave.Tx) (*ChangeTokenTargetsMsg, *Token, error) {
 	var msg ChangeTokenTargetsMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, nil, errors.Wrap(err, "load msg")

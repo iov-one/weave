@@ -1,6 +1,8 @@
 package multisig
 
 import (
+	"context"
+
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/x"
@@ -24,7 +26,7 @@ func NewDecorator(auth x.Authenticator) Decorator {
 }
 
 // Check enforce multisig contract before calling down the stack
-func (d Decorator) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx, next weave.Checker) (*weave.CheckResult, error) {
+func (d Decorator) Check(ctx context.Context, store weave.KVStore, tx weave.Tx, next weave.Checker) (*weave.CheckResult, error) {
 	newCtx, cost, err := d.authMultisig(ctx, store, tx)
 	if err != nil {
 		return nil, err
@@ -39,7 +41,7 @@ func (d Decorator) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx, ne
 }
 
 // Deliver enforces multisig contract before calling down the stack
-func (d Decorator) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx, next weave.Deliverer) (*weave.DeliverResult, error) {
+func (d Decorator) Deliver(ctx context.Context, store weave.KVStore, tx weave.Tx, next weave.Deliverer) (*weave.DeliverResult, error) {
 	newCtx, _, err := d.authMultisig(ctx, store, tx)
 	if err != nil {
 		return nil, err
@@ -48,7 +50,7 @@ func (d Decorator) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx, 
 	return next.Deliver(newCtx, store, tx)
 }
 
-func (d Decorator) authMultisig(ctx weave.Context, store weave.KVStore, tx weave.Tx) (weave.Context, int64, error) {
+func (d Decorator) authMultisig(ctx context.Context, store weave.KVStore, tx weave.Tx) (context.Context, int64, error) {
 	multisigContract, ok := tx.(MultiSigTx)
 	if !ok {
 		return ctx, 0, nil

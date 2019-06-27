@@ -1,6 +1,8 @@
 package utils
 
 import (
+	"context"
+
 	"github.com/iov-one/weave"
 	"github.com/tendermint/tendermint/libs/common"
 )
@@ -28,12 +30,12 @@ func NewActionTagger() ActionTagger {
 }
 
 // Check just passes the request along
-func (ActionTagger) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx, next weave.Checker) (*weave.CheckResult, error) {
+func (ActionTagger) Check(ctx context.Context, db weave.KVStore, tx weave.Tx, next weave.Checker) (*weave.CheckResult, error) {
 	return next.Check(ctx, db, tx)
 }
 
 // Deliver appends a tag on the result if there is a success.
-func (ActionTagger) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx, next weave.Deliverer) (*weave.DeliverResult, error) {
+func (ActionTagger) Deliver(ctx context.Context, db weave.KVStore, tx weave.Tx, next weave.Deliverer) (*weave.DeliverResult, error) {
 	// if we error in reporting, let's do so early before dispatching
 	msg, err := tx.GetMsg()
 	if err != nil {

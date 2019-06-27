@@ -1,6 +1,7 @@
 package paychan
 
 import (
+	"context"
 	"github.com/iov-one/weave"
 	coin "github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/errors"
@@ -41,7 +42,7 @@ type createPaymentChannelHandler struct {
 
 var _ weave.Handler = (*createPaymentChannelHandler)(nil)
 
-func (h *createPaymentChannelHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
+func (h *createPaymentChannelHandler) Check(ctx context.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
 	if _, err := h.validate(ctx, db, tx); err != nil {
 		return nil, err
 	}
@@ -49,7 +50,7 @@ func (h *createPaymentChannelHandler) Check(ctx weave.Context, db weave.KVStore,
 	return &weave.CheckResult{GasAllocated: createPaymentChannelCost}, nil
 }
 
-func (h *createPaymentChannelHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*CreateMsg, error) {
+func (h *createPaymentChannelHandler) validate(ctx context.Context, db weave.KVStore, tx weave.Tx) (*CreateMsg, error) {
 	var msg CreateMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, errors.Wrap(err, "load msg")
@@ -63,7 +64,7 @@ func (h *createPaymentChannelHandler) validate(ctx weave.Context, db weave.KVSto
 	return &msg, nil
 }
 
-func (h *createPaymentChannelHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
+func (h *createPaymentChannelHandler) Deliver(ctx context.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	msg, err := h.validate(ctx, db, tx)
 	if err != nil {
 		return nil, err
@@ -100,14 +101,14 @@ type transferPaymentChannelHandler struct {
 
 var _ weave.Handler = (*transferPaymentChannelHandler)(nil)
 
-func (h *transferPaymentChannelHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
+func (h *transferPaymentChannelHandler) Check(ctx context.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
 	if _, err := h.validate(ctx, db, tx); err != nil {
 		return nil, err
 	}
 	return &weave.CheckResult{GasAllocated: transferPaymentChannelCost}, nil
 }
 
-func (h *transferPaymentChannelHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*TransferMsg, error) {
+func (h *transferPaymentChannelHandler) validate(ctx context.Context, db weave.KVStore, tx weave.Tx) (*TransferMsg, error) {
 	var msg TransferMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, errors.Wrap(err, "load msg")
@@ -147,7 +148,7 @@ func (h *transferPaymentChannelHandler) validate(ctx weave.Context, db weave.KVS
 	return &msg, nil
 }
 
-func (h *transferPaymentChannelHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
+func (h *transferPaymentChannelHandler) Deliver(ctx context.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	msg, err := h.validate(ctx, db, tx)
 	if err != nil {
 		return nil, err
@@ -204,7 +205,7 @@ type closePaymentChannelHandler struct {
 
 var _ weave.Handler = (*closePaymentChannelHandler)(nil)
 
-func (h *closePaymentChannelHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
+func (h *closePaymentChannelHandler) Check(ctx context.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
 	var msg CloseMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, errors.Wrap(err, "load msg")
@@ -212,7 +213,7 @@ func (h *closePaymentChannelHandler) Check(ctx weave.Context, db weave.KVStore, 
 	return &weave.CheckResult{}, nil
 }
 
-func (h *closePaymentChannelHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
+func (h *closePaymentChannelHandler) Deliver(ctx context.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	var msg CloseMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, errors.Wrap(err, "load msg")

@@ -1,6 +1,8 @@
 package utils
 
 import (
+	"context"
+
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
 )
@@ -37,7 +39,7 @@ func (s Savepoint) OnDeliver() Savepoint {
 }
 
 // Check will optionally set a checkpoint
-func (s Savepoint) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx, next weave.Checker) (*weave.CheckResult, error) {
+func (s Savepoint) Check(ctx context.Context, store weave.KVStore, tx weave.Tx, next weave.Checker) (*weave.CheckResult, error) {
 	if !s.onCheck {
 		return next.Check(ctx, store, tx)
 	}
@@ -59,7 +61,7 @@ func (s Savepoint) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx, ne
 }
 
 // Deliver will optionally set a checkpoint
-func (s Savepoint) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx, next weave.Deliverer) (*weave.DeliverResult, error) {
+func (s Savepoint) Deliver(ctx context.Context, store weave.KVStore, tx weave.Tx, next weave.Deliverer) (*weave.DeliverResult, error) {
 	if !s.onDeliver {
 		return next.Deliver(ctx, store, tx)
 	}

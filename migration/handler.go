@@ -1,6 +1,8 @@
 package migration
 
 import (
+	"context"
+
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/x"
@@ -51,14 +53,14 @@ type schemaMigratingHandler struct {
 	migrations  *register
 }
 
-func (h *schemaMigratingHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
+func (h *schemaMigratingHandler) Check(ctx context.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
 	if err := h.migrate(db, tx); err != nil {
 		return nil, errors.Wrap(err, "migration")
 	}
 	return h.handler.Check(ctx, db, tx)
 }
 
-func (h *schemaMigratingHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
+func (h *schemaMigratingHandler) Deliver(ctx context.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	if err := h.migrate(db, tx); err != nil {
 		return nil, errors.Wrap(err, "migration")
 	}
@@ -101,14 +103,14 @@ type upgradeSchemaHandler struct {
 	auth   x.Authenticator
 }
 
-func (h *upgradeSchemaHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
+func (h *upgradeSchemaHandler) Check(ctx context.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
 	if _, err := h.validate(ctx, db, tx); err != nil {
 		return nil, err
 	}
 	return &weave.CheckResult{}, nil
 }
 
-func (h *upgradeSchemaHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
+func (h *upgradeSchemaHandler) Deliver(ctx context.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	msg, err := h.validate(ctx, db, tx)
 	if err != nil {
 		return nil, err
@@ -132,7 +134,7 @@ func (h *upgradeSchemaHandler) Deliver(ctx weave.Context, db weave.KVStore, tx w
 	return &weave.DeliverResult{Data: obj.Key()}, nil
 }
 
-func (h *upgradeSchemaHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*UpgradeSchemaMsg, error) {
+func (h *upgradeSchemaHandler) validate(ctx context.Context, db weave.KVStore, tx weave.Tx) (*UpgradeSchemaMsg, error) {
 	var msg UpgradeSchemaMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, errors.Wrap(err, "load msg")
@@ -180,7 +182,7 @@ type schemaRoutingHandler []weave.Handler
 
 var _ weave.Handler = (schemaRoutingHandler)(nil)
 
-func (h schemaRoutingHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
+func (h schemaRoutingHandler) Check(ctx context.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
 	handler, err := h.selectHandler(tx)
 	if err != nil {
 		return nil, err
@@ -188,7 +190,7 @@ func (h schemaRoutingHandler) Check(ctx weave.Context, db weave.KVStore, tx weav
 	return handler.Check(ctx, db, tx)
 }
 
-func (h schemaRoutingHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
+func (h schemaRoutingHandler) Deliver(ctx context.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	handler, err := h.selectHandler(tx)
 	if err != nil {
 		return nil, err

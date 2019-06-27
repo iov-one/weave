@@ -34,6 +34,7 @@ address is configured via gconf package.
 package cash
 
 import (
+	"context"
 	"github.com/iov-one/weave"
 	coin "github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/errors"
@@ -57,7 +58,7 @@ func NewDynamicFeeDecorator(auth x.Authenticator, ctrl Controller) DynamicFeeDec
 }
 
 // Check verifies and deducts fees before calling down the stack
-func (d DynamicFeeDecorator) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx, next weave.Checker) (cres *weave.CheckResult, cerr error) {
+func (d DynamicFeeDecorator) Check(ctx context.Context, store weave.KVStore, tx weave.Tx, next weave.Checker) (cres *weave.CheckResult, cerr error) {
 	fee, payer, cache, err := d.prepare(ctx, store, tx)
 	if err != nil {
 		return nil, errors.Wrap(err, "cannot prepare")
@@ -97,7 +98,7 @@ func (d DynamicFeeDecorator) Check(ctx weave.Context, store weave.KVStore, tx we
 }
 
 // Deliver verifies and deducts fees before calling down the stack
-func (d DynamicFeeDecorator) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx, next weave.Deliverer) (dres *weave.DeliverResult, derr error) {
+func (d DynamicFeeDecorator) Deliver(ctx context.Context, store weave.KVStore, tx weave.Tx, next weave.Deliverer) (dres *weave.DeliverResult, derr error) {
 	fee, payer, cache, err := d.prepare(ctx, store, tx)
 	if err != nil {
 		return nil, errors.Wrap(err, "cannot prepare")
@@ -157,7 +158,7 @@ func (d DynamicFeeDecorator) chargeMinimalFee(store weave.KVStore, src weave.Add
 // prepare is all shared setup between Check and Deliver. It computes the fee
 // for the transaction, ensures that the payer is authenticated and prepares
 // the database transaction.
-func (d DynamicFeeDecorator) prepare(ctx weave.Context, store weave.KVStore, tx weave.Tx) (fee coin.Coin, payer weave.Address, cache weave.KVCacheWrap, err error) {
+func (d DynamicFeeDecorator) prepare(ctx context.Context, store weave.KVStore, tx weave.Tx) (fee coin.Coin, payer weave.Address, cache weave.KVCacheWrap, err error) {
 	finfo, err := d.extractFee(ctx, tx, store)
 	if err != nil {
 		return fee, payer, cache, errors.Wrap(err, "cannot extract fee")
@@ -185,7 +186,7 @@ func (d DynamicFeeDecorator) prepare(ctx weave.Context, store weave.KVStore, tx 
 }
 
 // this returns the fee info to deduct and the error if incorrectly set
-func (d DynamicFeeDecorator) extractFee(ctx weave.Context, tx weave.Tx, store weave.KVStore) (*FeeInfo, error) {
+func (d DynamicFeeDecorator) extractFee(ctx context.Context, tx weave.Tx, store weave.KVStore) (*FeeInfo, error) {
 	var finfo *FeeInfo
 	ftx, ok := tx.(FeeTx)
 	if ok {

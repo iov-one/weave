@@ -1,6 +1,7 @@
 package distribution
 
 import (
+	"context"
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/errors"
@@ -55,14 +56,14 @@ type createRevenueHandler struct {
 	ctrl   CashController
 }
 
-func (h *createRevenueHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
+func (h *createRevenueHandler) Check(ctx context.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
 	if _, err := h.validate(ctx, db, tx); err != nil {
 		return nil, err
 	}
 	return &weave.CheckResult{GasAllocated: newRevenueCost}, nil
 }
 
-func (h *createRevenueHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
+func (h *createRevenueHandler) Deliver(ctx context.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	msg, err := h.validate(ctx, db, tx)
 	if err != nil {
 		return nil, err
@@ -79,7 +80,7 @@ func (h *createRevenueHandler) Deliver(ctx weave.Context, db weave.KVStore, tx w
 	return &weave.DeliverResult{Data: obj.Key()}, nil
 }
 
-func (h *createRevenueHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*CreateMsg, error) {
+func (h *createRevenueHandler) validate(ctx context.Context, db weave.KVStore, tx weave.Tx) (*CreateMsg, error) {
 	var msg CreateMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, errors.Wrap(err, "load msg")
@@ -93,7 +94,7 @@ type distributeHandler struct {
 	ctrl   CashController
 }
 
-func (h *distributeHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
+func (h *distributeHandler) Check(ctx context.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
 	msg, err := h.validate(ctx, db, tx)
 	if err != nil {
 		return nil, err
@@ -109,7 +110,7 @@ func (h *distributeHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.
 	return &res, nil
 }
 
-func (h *distributeHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
+func (h *distributeHandler) Deliver(ctx context.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	msg, err := h.validate(ctx, db, tx)
 	if err != nil {
 		return nil, err
@@ -130,7 +131,7 @@ func (h *distributeHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weav
 	return &weave.DeliverResult{}, nil
 }
 
-func (h *distributeHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*DistributeMsg, error) {
+func (h *distributeHandler) validate(ctx context.Context, db weave.KVStore, tx weave.Tx) (*DistributeMsg, error) {
 	var msg DistributeMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, errors.Wrap(err, "load msg")
@@ -147,7 +148,7 @@ type resetRevenueHandler struct {
 	ctrl   CashController
 }
 
-func (h *resetRevenueHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
+func (h *resetRevenueHandler) Check(ctx context.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
 	msg, err := h.validate(ctx, db, tx)
 	if err != nil {
 		return nil, err
@@ -166,7 +167,7 @@ func (h *resetRevenueHandler) Check(ctx weave.Context, db weave.KVStore, tx weav
 	return &res, nil
 }
 
-func (h *resetRevenueHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
+func (h *resetRevenueHandler) Deliver(ctx context.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	msg, err := h.validate(ctx, db, tx)
 	if err != nil {
 		return nil, err
@@ -196,7 +197,7 @@ func (h *resetRevenueHandler) Deliver(ctx weave.Context, db weave.KVStore, tx we
 	return &weave.DeliverResult{}, nil
 }
 
-func (h *resetRevenueHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*ResetMsg, error) {
+func (h *resetRevenueHandler) validate(ctx context.Context, db weave.KVStore, tx weave.Tx) (*ResetMsg, error) {
 	var msg ResetMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, errors.Wrap(err, "load msg")

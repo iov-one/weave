@@ -16,6 +16,7 @@ It uses auth to verify the sender.
 package cash
 
 import (
+	"context"
 	"github.com/iov-one/weave"
 	coin "github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/errors"
@@ -40,7 +41,7 @@ func NewFeeDecorator(auth x.Authenticator, ctrl CoinMover) FeeDecorator {
 }
 
 // Check verifies and deducts fees before calling down the stack
-func (d FeeDecorator) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx, next weave.Checker) (*weave.CheckResult, error) {
+func (d FeeDecorator) Check(ctx context.Context, store weave.KVStore, tx weave.Tx, next weave.Checker) (*weave.CheckResult, error) {
 	finfo, err := d.extractFee(ctx, tx, store)
 	if err != nil {
 		return nil, err
@@ -74,7 +75,7 @@ func (d FeeDecorator) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx,
 }
 
 // Deliver verifies and deducts fees before calling down the stack
-func (d FeeDecorator) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx, next weave.Deliverer) (*weave.DeliverResult, error) {
+func (d FeeDecorator) Deliver(ctx context.Context, store weave.KVStore, tx weave.Tx, next weave.Deliverer) (*weave.DeliverResult, error) {
 	finfo, err := d.extractFee(ctx, tx, store)
 	if err != nil {
 		return nil, err
@@ -100,7 +101,7 @@ func (d FeeDecorator) Deliver(ctx weave.Context, store weave.KVStore, tx weave.T
 	return next.Deliver(ctx, store, tx)
 }
 
-func (d FeeDecorator) extractFee(ctx weave.Context, tx weave.Tx, store weave.KVStore) (*FeeInfo, error) {
+func (d FeeDecorator) extractFee(ctx context.Context, tx weave.Tx, store weave.KVStore) (*FeeInfo, error) {
 	var finfo *FeeInfo
 	ftx, ok := tx.(FeeTx)
 	if ok {

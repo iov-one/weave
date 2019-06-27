@@ -1,6 +1,7 @@
 package validators
 
 import (
+	"context"
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/migration"
@@ -29,14 +30,14 @@ type updateHandler struct {
 
 var _ weave.Handler = (*updateHandler)(nil)
 
-func (h updateHandler) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
+func (h updateHandler) Check(ctx context.Context, store weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
 	if _, _, err := h.validate(ctx, store, tx); err != nil {
 		return nil, err
 	}
 	return &weave.CheckResult{}, nil
 }
 
-func (h updateHandler) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
+func (h updateHandler) Deliver(ctx context.Context, store weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	diff, updates, err := h.validate(ctx, store, tx)
 	if err != nil {
 		return nil, err
@@ -50,7 +51,7 @@ func (h updateHandler) Deliver(ctx weave.Context, store weave.KVStore, tx weave.
 }
 
 // Validate returns an update diff, ValidatorUpdates to store for bookkeeping and an error.
-func (h updateHandler) validate(ctx weave.Context, store weave.KVStore, tx weave.Tx) ([]weave.ValidatorUpdate,
+func (h updateHandler) validate(ctx context.Context, store weave.KVStore, tx weave.Tx) ([]weave.ValidatorUpdate,
 	weave.ValidatorUpdates, error) {
 	var msg ApplyDiffMsg
 	var resUpdates weave.ValidatorUpdates

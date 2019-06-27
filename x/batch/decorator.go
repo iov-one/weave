@@ -6,6 +6,7 @@ transaction
 package batch
 
 import (
+	"context"
 	"strings"
 
 	"github.com/iov-one/weave"
@@ -42,7 +43,7 @@ func (tx *BatchTx) GetMsg() (weave.Msg, error) {
 
 // Check iterates through messages in a batch transaction and passes them
 // down the stack
-func (d Decorator) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx, next weave.Checker) (*weave.CheckResult, error) {
+func (d Decorator) Check(ctx context.Context, store weave.KVStore, tx weave.Tx, next weave.Checker) (*weave.CheckResult, error) {
 	msg, err := tx.GetMsg()
 	if err != nil {
 		return nil, err
@@ -105,7 +106,7 @@ func (*Decorator) combineChecks(checks []*weave.CheckResult) (*weave.CheckResult
 
 // Deliver iterates through messages in a batch transaction and passes them
 // down the stack
-func (d Decorator) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx, next weave.Deliverer) (*weave.DeliverResult, error) {
+func (d Decorator) Deliver(ctx context.Context, store weave.KVStore, tx weave.Tx, next weave.Deliverer) (*weave.DeliverResult, error) {
 	msg, err := tx.GetMsg()
 	if err != nil {
 		return nil, err

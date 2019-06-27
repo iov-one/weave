@@ -1,6 +1,7 @@
 package gconf
 
 import (
+	"context"
 	"reflect"
 
 	"github.com/iov-one/weave"
@@ -34,21 +35,21 @@ func NewUpdateConfigurationHandler(pkg string, config OwnedConfig, auth x.Authen
 	}
 }
 
-func (h UpdateConfigurationHandler) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
+func (h UpdateConfigurationHandler) Check(ctx context.Context, store weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
 	if err := h.applyTx(ctx, store, tx); err != nil {
 		return nil, err
 	}
 	return &weave.CheckResult{}, nil
 }
 
-func (h UpdateConfigurationHandler) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
+func (h UpdateConfigurationHandler) Deliver(ctx context.Context, store weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	if err := h.applyTx(ctx, store, tx); err != nil {
 		return nil, err
 	}
 	return &weave.DeliverResult{}, nil
 }
 
-func (h UpdateConfigurationHandler) applyTx(ctx weave.Context, store weave.KVStore, tx weave.Tx) error {
+func (h UpdateConfigurationHandler) applyTx(ctx context.Context, store weave.KVStore, tx weave.Tx) error {
 	if err := Load(store, h.pkg, h.config); err != nil {
 		return errors.Wrap(err, "load message")
 	}

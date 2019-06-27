@@ -95,12 +95,12 @@ type SigCheckHandler struct {
 
 var _ weave.Handler = (*SigCheckHandler)(nil)
 
-func (s *SigCheckHandler) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
+func (s *SigCheckHandler) Check(ctx context.Context, store weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
 	s.Signers = Authenticate{}.GetConditions(ctx)
 	return &weave.CheckResult{}, nil
 }
 
-func (s *SigCheckHandler) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
+func (s *SigCheckHandler) Deliver(ctx context.Context, store weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	s.Signers = Authenticate{}.GetConditions(ctx)
 	return &weave.DeliverResult{}, nil
 }

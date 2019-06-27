@@ -18,7 +18,7 @@ func TestAuth(t *testing.T) {
 	ctx2 := &weavetest.CtxAuth{Key: "bar"}
 
 	cases := map[string]struct {
-		ctx          weave.Context
+		ctx          context.Context
 		auth         Authenticator
 		mainSigner   weave.Condition
 		wantInCtx    weave.Condition

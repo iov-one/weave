@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"context"
 	"encoding/hex"
 	"strings"
 
@@ -30,13 +31,13 @@ func NewKeyTagger() KeyTagger {
 }
 
 // Check does nothing
-func (KeyTagger) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx, next weave.Checker) (*weave.CheckResult, error) {
+func (KeyTagger) Check(ctx context.Context, db weave.KVStore, tx weave.Tx, next weave.Checker) (*weave.CheckResult, error) {
 	return next.Check(ctx, db, tx)
 }
 
 // Deliver passes in a recording KVStore into the child and
 // uses that to calculate tags to add to DeliverResult
-func (KeyTagger) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx, next weave.Deliverer) (*weave.DeliverResult, error) {
+func (KeyTagger) Deliver(ctx context.Context, db weave.KVStore, tx weave.Tx, next weave.Deliverer) (*weave.DeliverResult, error) {
 	record := store.NewRecordingStore(db)
 	res, err := next.Deliver(ctx, record, tx)
 	if err != nil {

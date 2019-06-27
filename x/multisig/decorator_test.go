@@ -149,12 +149,12 @@ type MultisigCheckHandler struct {
 
 var _ weave.Handler = (*MultisigCheckHandler)(nil)
 
-func (s *MultisigCheckHandler) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
+func (s *MultisigCheckHandler) Check(ctx context.Context, store weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
 	s.Perms = Authenticate{}.GetConditions(ctx)
 	return &weave.CheckResult{}, nil
 }
 
-func (s *MultisigCheckHandler) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
+func (s *MultisigCheckHandler) Deliver(ctx context.Context, store weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	s.Perms = Authenticate{}.GetConditions(ctx)
 	return &weave.DeliverResult{}, nil
 }

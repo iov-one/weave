@@ -20,7 +20,7 @@ type proposalWrapper struct {
 	proposalID []byte
 }
 
-func withElectionSuccess(ctx weave.Context, ruleID []byte) weave.Context {
+func withElectionSuccess(ctx context.Context, ruleID []byte) context.Context {
 	val, _ := ctx.Value(contextKeyGov).([]weave.Condition)
 	return context.WithValue(ctx, contextKeyGov, append(val, ElectionCondition(ruleID)))
 }
@@ -37,14 +37,14 @@ type Authenticate struct {
 var _ x.Authenticator = Authenticate{}
 
 // GetConditions returns permissions previously set on this context.
-func (a Authenticate) GetConditions(ctx weave.Context) []weave.Condition {
+func (a Authenticate) GetConditions(ctx context.Context) []weave.Condition {
 	// (val, ok) form to return nil instead of panic if unset
 	val, _ := ctx.Value(contextKeyGov).([]weave.Condition)
 	return val
 }
 
 // HasAddress returns true iff this address is in GetConditions.
-func (a Authenticate) HasAddress(ctx weave.Context, addr weave.Address) bool {
+func (a Authenticate) HasAddress(ctx context.Context, addr weave.Address) bool {
 	for _, s := range a.GetConditions(ctx) {
 		if addr.Equals(s.Address()) {
 			return true
@@ -53,12 +53,12 @@ func (a Authenticate) HasAddress(ctx weave.Context, addr weave.Address) bool {
 	return false
 }
 
-func withProposal(ctx weave.Context, proposal *Proposal, proposalID []byte) weave.Context {
+func withProposal(ctx context.Context, proposal *Proposal, proposalID []byte) context.Context {
 	return context.WithValue(ctx, contextKeyProposal, proposalWrapper{proposal: proposal, proposalID: proposalID})
 }
 
 // CtxProposal reads the the proposal and it's id from the context
-func CtxProposal(ctx weave.Context) (*Proposal, []byte) {
+func CtxProposal(ctx context.Context) (*Proposal, []byte) {
 	val, _ := ctx.Value(contextKeyProposal).(proposalWrapper)
 	return val.proposal, val.proposalID
 }

@@ -1,6 +1,7 @@
 package msgfee
 
 import (
+	"context"
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/errors"
@@ -28,7 +29,7 @@ func NewAntispamFeeDecorator(fee coin.Coin) *AntispamFeeDecorator {
 	return &AntispamFeeDecorator{fee: fee}
 }
 
-func (d *AntispamFeeDecorator) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx, next weave.Checker) (*weave.CheckResult, error) {
+func (d *AntispamFeeDecorator) Check(ctx context.Context, store weave.KVStore, tx weave.Tx, next weave.Checker) (*weave.CheckResult, error) {
 	res, err := next.Check(ctx, store, tx)
 	if d == nil { // Since NewAntispamFeeDecorator can return nil, let's be graceful here
 		return res, err
@@ -49,6 +50,6 @@ func (d *AntispamFeeDecorator) Check(ctx weave.Context, store weave.KVStore, tx 
 	return res, nil
 }
 
-func (d *AntispamFeeDecorator) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx, next weave.Deliverer) (*weave.DeliverResult, error) {
+func (d *AntispamFeeDecorator) Deliver(ctx context.Context, store weave.KVStore, tx weave.Tx, next weave.Deliverer) (*weave.DeliverResult, error) {
 	return next.Deliver(ctx, store, tx)
 }
