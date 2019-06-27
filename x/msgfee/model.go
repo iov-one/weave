@@ -68,7 +68,7 @@ func (b *MsgFeeBucket) Save(db weave.KVStore, obj orm.Object) error {
 
 // Fee returns the fee value for a given message path. It returns an empty fee
 // and no error if the message fee is not declared.
-func (b *MsgFeeBucket) MessageFee(db weave.KVStore, msgPath string) (*coin.Coin, error) {
+func (b *MsgFeeBucket) MessageFee(db weave.ReadOnlyKVStore, msgPath string) (*coin.Coin, error) {
 	obj, err := b.Get(db, []byte(msgPath))
 	if err != nil {
 		return nil, errors.Wrap(err, "cannot get fee definition")

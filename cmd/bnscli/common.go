@@ -11,12 +11,11 @@ import (
 	"strconv"
 	"strings"
 
-	bnsd "github.com/iov-one/weave/cmd/bnsd/app"
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/app"
-	rpcclient "github.com/tendermint/tendermint/rpc/client"
+	bnsd "github.com/iov-one/weave/cmd/bnsd/app"
 	abci "github.com/tendermint/tendermint/abci/types"
-
+	rpcclient "github.com/tendermint/tendermint/rpc/client"
 )
 
 // unpackSequence process given raw string representation and does its best in
@@ -170,7 +169,7 @@ type rpcQueryWrapper struct {
 	client rpcclient.Client
 }
 
-func (r rpcQueryWrapper)Query(query abci.RequestQuery) abci.ResponseQuery {
+func (r rpcQueryWrapper) Query(query abci.RequestQuery) abci.ResponseQuery {
 	res, err := r.client.ABCIQueryWithOptions(query.Path, query.Data, rpcclient.ABCIQueryOptions{Height: query.Height, Prove: query.Prove})
 	if err != nil {
 		return abci.ResponseQuery{Code: 500, Log: err.Error()}
@@ -178,6 +177,7 @@ func (r rpcQueryWrapper)Query(query abci.RequestQuery) abci.ResponseQuery {
 	return res.Response
 }
 
+// TODO: return a close function as well
 func tendermintStore(nodeURL string) weave.ReadOnlyKVStore {
 	tm := rpcclient.NewHTTP(nodeURL, "/websocket")
 	return app.NewABCIStore(rpcQueryWrapper{tm})
