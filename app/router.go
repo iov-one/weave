@@ -34,7 +34,7 @@ func NewRouter() *Router {
 	}
 }
 
-// Handle implementes weave.Registry interface.
+// Handle implements weave.Registry interface.
 func (r *Router) Handle(m weave.Msg, h weave.Handler) {
 	path := m.Path()
 	if !isPath(path) {
