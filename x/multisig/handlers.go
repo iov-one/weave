@@ -30,7 +30,7 @@ type CreateMsgHandler struct {
 
 var _ weave.Handler = CreateMsgHandler{}
 
-func (h CreateMsgHandler) Check(ctx context.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
+func (h CreateMsgHandler) Check(ctx context.Context, info weave.BlockInfo, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
 	_, err := h.validate(ctx, db, tx)
 	if err != nil {
 		return nil, err
@@ -39,7 +39,7 @@ func (h CreateMsgHandler) Check(ctx context.Context, db weave.KVStore, tx weave.
 	return &weave.CheckResult{GasAllocated: creationCost}, nil
 }
 
-func (h CreateMsgHandler) Deliver(ctx context.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
+func (h CreateMsgHandler) Deliver(ctx context.Context, info weave.BlockInfo, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	msg, err := h.validate(ctx, db, tx)
 	if err != nil {
 		return nil, err
@@ -63,7 +63,7 @@ func (h CreateMsgHandler) Deliver(ctx context.Context, db weave.KVStore, tx weav
 }
 
 // validate does all common pre-processing between Check and Deliver.
-func (h CreateMsgHandler) validate(ctx context.Context, db weave.KVStore, tx weave.Tx) (*CreateMsg, error) {
+func (h CreateMsgHandler) validate(ctx context.Context, info weave.BlockInfo, db weave.KVStore, tx weave.Tx) (*CreateMsg, error) {
 	// Retrieve tx main signer in this context.
 	sender := x.MainSigner(ctx, h.auth)
 	if sender == nil {
@@ -85,7 +85,7 @@ type UpdateMsgHandler struct {
 
 var _ weave.Handler = CreateMsgHandler{}
 
-func (h UpdateMsgHandler) Check(ctx context.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
+func (h UpdateMsgHandler) Check(ctx context.Context, info weave.BlockInfo, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
 	_, err := h.validate(ctx, db, tx)
 	if err != nil {
 		return nil, err
@@ -93,7 +93,7 @@ func (h UpdateMsgHandler) Check(ctx context.Context, db weave.KVStore, tx weave.
 	return &weave.CheckResult{GasAllocated: updateCost}, nil
 }
 
-func (h UpdateMsgHandler) Deliver(ctx context.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
+func (h UpdateMsgHandler) Deliver(ctx context.Context, info weave.BlockInfo, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	msg, err := h.validate(ctx, db, tx)
 	if err != nil {
 		return nil, err
@@ -115,7 +115,7 @@ func (h UpdateMsgHandler) Deliver(ctx context.Context, db weave.KVStore, tx weav
 	return &weave.DeliverResult{}, nil
 }
 
-func (h UpdateMsgHandler) validate(ctx context.Context, db weave.KVStore, tx weave.Tx) (*UpdateMsg, error) {
+func (h UpdateMsgHandler) validate(ctx context.Context, info weave.BlockInfo, db weave.KVStore, tx weave.Tx) (*UpdateMsg, error) {
 	var msg UpdateMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, errors.Wrap(err, "load msg")

@@ -14,7 +14,7 @@ import (
 // ctxAwareMutator is a call back interface to modify the passed proposal for test setup
 type ctxAwareMutator func(context.Context, *Proposal)
 
-func withTextProposal(t *testing.T, db store.KVStore, ctx context.Context, mods ...ctxAwareMutator) *ProposalBucket {
+func withTextProposal(t *testing.T, db store.KVStore, ctx context.Context, info weave.BlockInfo, mods ...ctxAwareMutator) *ProposalBucket {
 	t.Helper()
 	// setup electorate
 	withElectorate(t, db)

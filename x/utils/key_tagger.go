@@ -31,15 +31,15 @@ func NewKeyTagger() KeyTagger {
 }
 
 // Check does nothing
-func (KeyTagger) Check(ctx context.Context, db weave.KVStore, tx weave.Tx, next weave.Checker) (*weave.CheckResult, error) {
-	return next.Check(ctx, db, tx)
+func (KeyTagger) Check(ctx context.Context, info weave.BlockInfo, db weave.KVStore, tx weave.Tx, next weave.Checker) (*weave.CheckResult, error) {
+	return next.Check(ctx, info, db, tx)
 }
 
 // Deliver passes in a recording KVStore into the child and
 // uses that to calculate tags to add to DeliverResult
-func (KeyTagger) Deliver(ctx context.Context, db weave.KVStore, tx weave.Tx, next weave.Deliverer) (*weave.DeliverResult, error) {
+func (KeyTagger) Deliver(ctx context.Context, info weave.BlockInfo, db weave.KVStore, tx weave.Tx, next weave.Deliverer) (*weave.DeliverResult, error) {
 	record := store.NewRecordingStore(db)
-	res, err := next.Deliver(ctx, record, tx)
+	res, err := next.Deliver(ctx, info, record, tx)
 	if err != nil {
 		return nil, err
 	}

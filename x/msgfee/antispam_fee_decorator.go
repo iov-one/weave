@@ -29,8 +29,8 @@ func NewAntispamFeeDecorator(fee coin.Coin) *AntispamFeeDecorator {
 	return &AntispamFeeDecorator{fee: fee}
 }
 
-func (d *AntispamFeeDecorator) Check(ctx context.Context, store weave.KVStore, tx weave.Tx, next weave.Checker) (*weave.CheckResult, error) {
-	res, err := next.Check(ctx, store, tx)
+func (d *AntispamFeeDecorator) Check(ctx context.Context, info weave.BlockInfo, store weave.KVStore, tx weave.Tx, next weave.Checker) (*weave.CheckResult, error) {
+	res, err := next.Check(ctx, info, store, tx)
 	if d == nil { // Since NewAntispamFeeDecorator can return nil, let's be graceful here
 		return res, err
 	}
@@ -50,6 +50,6 @@ func (d *AntispamFeeDecorator) Check(ctx context.Context, store weave.KVStore, t
 	return res, nil
 }
 
-func (d *AntispamFeeDecorator) Deliver(ctx context.Context, store weave.KVStore, tx weave.Tx, next weave.Deliverer) (*weave.DeliverResult, error) {
-	return next.Deliver(ctx, store, tx)
+func (d *AntispamFeeDecorator) Deliver(ctx context.Context, info weave.BlockInfo, store weave.KVStore, tx weave.Tx, next weave.Deliverer) (*weave.DeliverResult, error) {
+	return next.Deliver(ctx, info, store, tx)
 }

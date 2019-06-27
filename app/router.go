@@ -58,33 +58,33 @@ func (r *Router) handler(m weave.Msg) weave.Handler {
 }
 
 // Check dispatches to the proper handler based on path
-func (r *Router) Check(ctx context.Context, store weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
+func (r *Router) Check(ctx context.Context, info weave.BlockInfo, store weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
 	msg, err := tx.GetMsg()
 	if err != nil {
 		return nil, errors.Wrap(err, "cannot load msg")
 	}
 	h := r.handler(msg)
-	return h.Check(ctx, store, tx)
+	return h.Check(ctx, info, store, tx)
 }
 
 // Deliver dispatches to the proper handler based on path
-func (r *Router) Deliver(ctx context.Context, store weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
+func (r *Router) Deliver(ctx context.Context, info weave.BlockInfo, store weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	msg, err := tx.GetMsg()
 	if err != nil {
 		return nil, errors.Wrap(err, "cannot load msg")
 	}
 	h := r.handler(msg)
-	return h.Deliver(ctx, store, tx)
+	return h.Deliver(ctx, info, store, tx)
 }
 
 // notFoundHandler always returns ErrNotFound error regardless of the arguments
 // provided.
 type notFoundHandler string
 
-func (path notFoundHandler) Check(ctx context.Context, store weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
+func (path notFoundHandler) Check(ctx context.Context, info weave.BlockInfo, store weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
 	return nil, errors.Wrapf(errors.ErrNotFound, "no handler for message path %q", path)
 }
 
-func (path notFoundHandler) Deliver(ctx context.Context, store weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
+func (path notFoundHandler) Deliver(ctx context.Context, info weave.BlockInfo, store weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	return nil, errors.Wrapf(errors.ErrNotFound, "no handler for message path %q", path)
 }

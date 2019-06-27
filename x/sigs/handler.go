@@ -22,14 +22,14 @@ type bumpSequenceHandler struct {
 	b    Bucket
 }
 
-func (h *bumpSequenceHandler) Check(ctx context.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
+func (h *bumpSequenceHandler) Check(ctx context.Context, info weave.BlockInfo, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
 	if _, _, err := h.validate(ctx, db, tx); err != nil {
 		return nil, err
 	}
 	return &weave.CheckResult{}, nil
 }
 
-func (h *bumpSequenceHandler) Deliver(ctx context.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
+func (h *bumpSequenceHandler) Deliver(ctx context.Context, info weave.BlockInfo, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	user, msg, err := h.validate(ctx, db, tx)
 	if err != nil {
 		return nil, err
@@ -51,7 +51,7 @@ func (h *bumpSequenceHandler) Deliver(ctx context.Context, db weave.KVStore, tx 
 	return &weave.DeliverResult{}, nil
 }
 
-func (h *bumpSequenceHandler) validate(ctx context.Context, db weave.KVStore, tx weave.Tx) (*UserData, *BumpSequenceMsg, error) {
+func (h *bumpSequenceHandler) validate(ctx context.Context, info weave.BlockInfo, db weave.KVStore, tx weave.Tx) (*UserData, *BumpSequenceMsg, error) {
 	var msg BumpSequenceMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, nil, errors.Wrap(err, "load msg")

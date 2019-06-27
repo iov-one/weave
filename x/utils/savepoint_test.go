@@ -93,9 +93,9 @@ func TestSavepoint(t *testing.T) {
 
 			var err error
 			if tc.check {
-				_, err = tc.save.Check(ctx, kv, nil, tc.handler)
+				_, err = tc.save.Check(ctx, info, kv, nil, tc.handler)
 			} else {
-				_, err = tc.save.Deliver(ctx, kv, nil, tc.handler)
+				_, err = tc.save.Deliver(ctx, info, kv, nil, tc.handler)
 			}
 
 			if tc.isError {
@@ -131,12 +131,12 @@ type writeHandler struct {
 	err   error
 }
 
-func (h writeHandler) Check(ctx context.Context, store weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
+func (h writeHandler) Check(ctx context.Context, info weave.BlockInfo, store weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
 	store.Set(h.key, h.value)
 	return &weave.CheckResult{}, h.err
 }
 
-func (h writeHandler) Deliver(ctx context.Context, store weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
+func (h writeHandler) Deliver(ctx context.Context, info weave.BlockInfo, store weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	store.Set(h.key, h.value)
 	return &weave.DeliverResult{}, h.err
 }

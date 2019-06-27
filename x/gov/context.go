@@ -20,7 +20,7 @@ type proposalWrapper struct {
 	proposalID []byte
 }
 
-func withElectionSuccess(ctx context.Context, ruleID []byte) context.Context {
+func withElectionSuccess(ctx context.Context, info weave.BlockInfo, ruleID []byte) context.Context {
 	val, _ := ctx.Value(contextKeyGov).([]weave.Condition)
 	return context.WithValue(ctx, contextKeyGov, append(val, ElectionCondition(ruleID)))
 }
@@ -44,7 +44,7 @@ func (a Authenticate) GetConditions(ctx context.Context) []weave.Condition {
 }
 
 // HasAddress returns true iff this address is in GetConditions.
-func (a Authenticate) HasAddress(ctx context.Context, addr weave.Address) bool {
+func (a Authenticate) HasAddress(ctx context.Context, info weave.BlockInfo, addr weave.Address) bool {
 	for _, s := range a.GetConditions(ctx) {
 		if addr.Equals(s.Address()) {
 			return true
@@ -53,7 +53,7 @@ func (a Authenticate) HasAddress(ctx context.Context, addr weave.Address) bool {
 	return false
 }
 
-func withProposal(ctx context.Context, proposal *Proposal, proposalID []byte) context.Context {
+func withProposal(ctx context.Context, info weave.BlockInfo, proposal *Proposal, proposalID []byte) context.Context {
 	return context.WithValue(ctx, contextKeyProposal, proposalWrapper{proposal: proposal, proposalID: proposalID})
 }
 

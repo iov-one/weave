@@ -97,7 +97,7 @@ func TestCreateContractHandler(t *testing.T) {
 			tx := &weavetest.Tx{Msg: tc.Msg}
 
 			cache := db.CacheWrap()
-			if _, err := rt.Check(ctx, cache, tx); !tc.WantCheckErr.Is(err) {
+			if _, err := rt.Check(ctx, info, cache, tx); !tc.WantCheckErr.Is(err) {
 				t.Logf("want: %+v", tc.WantCheckErr)
 				t.Logf(" got: %+v", err)
 				t.Fatalf("check (%T)", tc.Msg)
@@ -108,7 +108,7 @@ func TestCreateContractHandler(t *testing.T) {
 				return
 			}
 
-			if _, err := rt.Deliver(ctx, db, tx); !tc.WantDeliverErr.Is(err) {
+			if _, err := rt.Deliver(ctx, info, db, tx); !tc.WantDeliverErr.Is(err) {
 				t.Logf("want: %+v", tc.WantDeliverErr)
 				t.Logf(" got: %+v", err)
 				t.Fatalf("delivery (%T)", tc.Msg)
@@ -277,7 +277,7 @@ func TestUpdateContractHandler(t *testing.T) {
 			assert.Nil(t, err)
 
 			cache := db.CacheWrap()
-			if _, err := rt.Check(ctx, cache, tx); !tc.WantCheckErr.Is(err) {
+			if _, err := rt.Check(ctx, info, cache, tx); !tc.WantCheckErr.Is(err) {
 				t.Logf("want: %+v", tc.WantCheckErr)
 				t.Logf(" got: %+v", err)
 				t.Fatalf("check (%T)", tc.Msg)
@@ -288,7 +288,7 @@ func TestUpdateContractHandler(t *testing.T) {
 				return
 			}
 
-			if _, err := rt.Deliver(ctx, db, tx); !tc.WantDeliverErr.Is(err) {
+			if _, err := rt.Deliver(ctx, info, db, tx); !tc.WantDeliverErr.Is(err) {
 				t.Logf("want: %+v", tc.WantDeliverErr)
 				t.Logf(" got: %+v", err)
 				t.Fatalf("delivery (%T)", tc.Msg)

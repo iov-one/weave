@@ -49,10 +49,10 @@ func (d Decorator) AllowMissingSigs() Decorator {
 }
 
 // Check verifies signatures before calling down the stack.
-func (d Decorator) Check(ctx context.Context, store weave.KVStore, tx weave.Tx, next weave.Checker) (*weave.CheckResult, error) {
+func (d Decorator) Check(ctx context.Context, info weave.BlockInfo, store weave.KVStore, tx weave.Tx, next weave.Checker) (*weave.CheckResult, error) {
 	stx, ok := tx.(SignedTx)
 	if !ok {
-		return next.Check(ctx, store, tx)
+		return next.Check(ctx, info, store, tx)
 	}
 
 	chainID := weave.GetChainID(ctx)
@@ -66,7 +66,7 @@ func (d Decorator) Check(ctx context.Context, store weave.KVStore, tx weave.Tx, 
 
 	ctx = withSigners(ctx, signers)
 
-	res, err := next.Check(ctx, store, tx)
+	res, err := next.Check(ctx, info, store, tx)
 	if err != nil {
 		return nil, err
 	}
@@ -78,10 +78,10 @@ func (d Decorator) Check(ctx context.Context, store weave.KVStore, tx weave.Tx, 
 }
 
 // Deliver verifies signatures before calling down the stack.
-func (d Decorator) Deliver(ctx context.Context, store weave.KVStore, tx weave.Tx, next weave.Deliverer) (*weave.DeliverResult, error) {
+func (d Decorator) Deliver(ctx context.Context, info weave.BlockInfo, store weave.KVStore, tx weave.Tx, next weave.Deliverer) (*weave.DeliverResult, error) {
 	stx, ok := tx.(SignedTx)
 	if !ok {
-		return next.Deliver(ctx, store, tx)
+		return next.Deliver(ctx, info, store, tx)
 	}
 
 	chainID := weave.GetChainID(ctx)
@@ -94,5 +94,5 @@ func (d Decorator) Deliver(ctx context.Context, store weave.KVStore, tx weave.Tx
 	}
 
 	ctx = withSigners(ctx, signers)
-	return next.Deliver(ctx, store, tx)
+	return next.Deliver(ctx, info, store, tx)
 }

@@ -28,8 +28,8 @@ func NewFeeDecorator() *FeeDecorator {
 	}
 }
 
-func (d *FeeDecorator) Check(ctx context.Context, store weave.KVStore, tx weave.Tx, next weave.Checker) (*weave.CheckResult, error) {
-	res, err := next.Check(ctx, store, tx)
+func (d *FeeDecorator) Check(ctx context.Context, info weave.BlockInfo, store weave.KVStore, tx weave.Tx, next weave.Checker) (*weave.CheckResult, error) {
+	res, err := next.Check(ctx, info, store, tx)
 	if err != nil {
 		return nil, err
 	}
@@ -48,8 +48,8 @@ func (d *FeeDecorator) Check(ctx context.Context, store weave.KVStore, tx weave.
 	return res, nil
 }
 
-func (d *FeeDecorator) Deliver(ctx context.Context, store weave.KVStore, tx weave.Tx, next weave.Deliverer) (*weave.DeliverResult, error) {
-	res, err := next.Deliver(ctx, store, tx)
+func (d *FeeDecorator) Deliver(ctx context.Context, info weave.BlockInfo, store weave.KVStore, tx weave.Tx, next weave.Deliverer) (*weave.DeliverResult, error) {
+	res, err := next.Deliver(ctx, info, store, tx)
 	if err != nil {
 		return nil, err
 	}

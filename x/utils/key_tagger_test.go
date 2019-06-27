@@ -108,7 +108,7 @@ func TestKeyTagger(t *testing.T) {
 
 			// try check - no op
 			check := db.CacheWrap()
-			_, err := tagger.Check(ctx, check, nil, tc.handler)
+			_, err := tagger.Check(ctx, info, check, nil, tc.handler)
 			if tc.isError {
 				if err == nil {
 					t.Fatalf("Expected error")
@@ -118,7 +118,7 @@ func TestKeyTagger(t *testing.T) {
 			}
 
 			// try deliver - records tags and sets values on success
-			res, err := tagger.Deliver(ctx, db, nil, tc.handler)
+			res, err := tagger.Deliver(ctx, info, db, nil, tc.handler)
 			if tc.isError {
 				if err == nil {
 					t.Fatalf("Expected error")
@@ -149,22 +149,22 @@ type writeDecorator struct {
 
 var _ weave.Decorator = writeDecorator{}
 
-func (d writeDecorator) Check(ctx context.Context, store weave.KVStore, tx weave.Tx, next weave.Checker) (*weave.CheckResult, error) {
+func (d writeDecorator) Check(ctx context.Context, info weave.BlockInfo, store weave.KVStore, tx weave.Tx, next weave.Checker) (*weave.CheckResult, error) {
 	if !d.after {
 		store.Set(d.key, d.value)
 	}
-	res, err := next.Check(ctx, store, tx)
+	res, err := next.Check(ctx, info, store, tx)
 	if d.after && err == nil {
 		store.Set(d.key, d.value)
 	}
 	return res, err
 }
 
-func (d writeDecorator) Deliver(ctx context.Context, store weave.KVStore, tx weave.Tx, next weave.Deliverer) (*weave.DeliverResult, error) {
+func (d writeDecorator) Deliver(ctx context.Context, info weave.BlockInfo, store weave.KVStore, tx weave.Tx, next weave.Deliverer) (*weave.DeliverResult, error) {
 	if !d.after {
 		store.Set(d.key, d.value)
 	}
-	res, err := next.Deliver(ctx, store, tx)
+	res, err := next.Deliver(ctx, info, store, tx)
 	if d.after && err == nil {
 		store.Set(d.key, d.value)
 	}

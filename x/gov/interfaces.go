@@ -2,6 +2,7 @@ package gov
 
 import (
 	"context"
+
 	weave "github.com/iov-one/weave"
 )
 
@@ -9,15 +10,15 @@ import (
 type OptionDecoder func(raw []byte) (weave.Msg, error)
 
 // Executor will do something with the message once it is approved.
-type Executor func(ctx context.Context, store weave.KVStore, msg weave.Msg) (*weave.DeliverResult, error)
+type Executor func(ctx context.Context, info weave.BlockInfo, store weave.KVStore, msg weave.Msg) (*weave.DeliverResult, error)
 
 // HandlerAsExecutor wraps the msg in a fake Tx to satisfy the Handler interface
 // Since a Router and Decorators also expose this interface, we can wrap any stack
 // that does not care about the extra Tx info besides Msg.
 func HandlerAsExecutor(h weave.Handler) Executor {
-	return func(ctx context.Context, store weave.KVStore, msg weave.Msg) (*weave.DeliverResult, error) {
+	return func(ctx context.Context, info weave.BlockInfo, store weave.KVStore, msg weave.Msg) (*weave.DeliverResult, error) {
 		tx := &fakeTx{msg: msg}
-		return h.Deliver(ctx, store, tx)
+		return h.Deliver(ctx, info, info, store, tx)
 	}
 }
 

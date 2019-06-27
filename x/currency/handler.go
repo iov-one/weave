@@ -34,14 +34,14 @@ type createTokenInfoHandler struct {
 	issuer weave.Address
 }
 
-func (h *createTokenInfoHandler) Check(ctx context.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
+func (h *createTokenInfoHandler) Check(ctx context.Context, info weave.BlockInfo, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
 	if _, err := h.validate(ctx, db, tx); err != nil {
 		return nil, err
 	}
 	return &weave.CheckResult{GasAllocated: newTokenInfoCost}, nil
 }
 
-func (h *createTokenInfoHandler) Deliver(ctx context.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
+func (h *createTokenInfoHandler) Deliver(ctx context.Context, info weave.BlockInfo, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	msg, err := h.validate(ctx, db, tx)
 	if err != nil {
 		return nil, err
@@ -50,7 +50,7 @@ func (h *createTokenInfoHandler) Deliver(ctx context.Context, db weave.KVStore, 
 	return &weave.DeliverResult{}, h.bucket.Save(db, obj)
 }
 
-func (h *createTokenInfoHandler) validate(ctx context.Context, db weave.KVStore, tx weave.Tx) (*CreateMsg, error) {
+func (h *createTokenInfoHandler) validate(ctx context.Context, info weave.BlockInfo, db weave.KVStore, tx weave.Tx) (*CreateMsg, error) {
 	var msg CreateMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, errors.Wrap(err, "load msg")

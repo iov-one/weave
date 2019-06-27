@@ -133,12 +133,12 @@ func TestUpdateConfigurationHandler(t *testing.T) {
 			tx := &weavetest.Tx{Msg: tc.Msg}
 
 			cache := db.CacheWrap()
-			if _, err := handler.Check(ctx, cache, tx); !tc.WantCheckErr.Is(err) {
+			if _, err := handler.Check(ctx, info, cache, tx); !tc.WantCheckErr.Is(err) {
 				t.Fatal(err)
 			}
 			cache.Discard()
 
-			if _, err := handler.Deliver(ctx, db, tx); !tc.WantDeliverErr.Is(err) {
+			if _, err := handler.Deliver(ctx, info, db, tx); !tc.WantDeliverErr.Is(err) {
 				t.Fatal(err)
 			}
 

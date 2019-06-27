@@ -53,18 +53,18 @@ type schemaMigratingHandler struct {
 	migrations  *register
 }
 
-func (h *schemaMigratingHandler) Check(ctx context.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
+func (h *schemaMigratingHandler) Check(ctx context.Context, info weave.BlockInfo, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
 	if err := h.migrate(db, tx); err != nil {
 		return nil, errors.Wrap(err, "migration")
 	}
-	return h.handler.Check(ctx, db, tx)
+	return h.handler.Check(ctx, info, db, tx)
 }
 
-func (h *schemaMigratingHandler) Deliver(ctx context.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
+func (h *schemaMigratingHandler) Deliver(ctx context.Context, info weave.BlockInfo, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	if err := h.migrate(db, tx); err != nil {
 		return nil, errors.Wrap(err, "migration")
 	}
-	return h.handler.Deliver(ctx, db, tx)
+	return h.handler.Deliver(ctx, info, db, tx)
 }
 
 func (h *schemaMigratingHandler) migrate(db weave.ReadOnlyKVStore, tx weave.Tx) error {
@@ -103,14 +103,14 @@ type upgradeSchemaHandler struct {
 	auth   x.Authenticator
 }
 
-func (h *upgradeSchemaHandler) Check(ctx context.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
+func (h *upgradeSchemaHandler) Check(ctx context.Context, info weave.BlockInfo, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
 	if _, err := h.validate(ctx, db, tx); err != nil {
 		return nil, err
 	}
 	return &weave.CheckResult{}, nil
 }
 
-func (h *upgradeSchemaHandler) Deliver(ctx context.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
+func (h *upgradeSchemaHandler) Deliver(ctx context.Context, info weave.BlockInfo, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	msg, err := h.validate(ctx, db, tx)
 	if err != nil {
 		return nil, err
@@ -134,7 +134,7 @@ func (h *upgradeSchemaHandler) Deliver(ctx context.Context, db weave.KVStore, tx
 	return &weave.DeliverResult{Data: obj.Key()}, nil
 }
 
-func (h *upgradeSchemaHandler) validate(ctx context.Context, db weave.KVStore, tx weave.Tx) (*UpgradeSchemaMsg, error) {
+func (h *upgradeSchemaHandler) validate(ctx context.Context, info weave.BlockInfo, db weave.KVStore, tx weave.Tx) (*UpgradeSchemaMsg, error) {
 	var msg UpgradeSchemaMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, errors.Wrap(err, "load msg")
@@ -182,20 +182,20 @@ type schemaRoutingHandler []weave.Handler
 
 var _ weave.Handler = (schemaRoutingHandler)(nil)
 
-func (h schemaRoutingHandler) Check(ctx context.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
+func (h schemaRoutingHandler) Check(ctx context.Context, info weave.BlockInfo, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
 	handler, err := h.selectHandler(tx)
 	if err != nil {
 		return nil, err
 	}
-	return handler.Check(ctx, db, tx)
+	return handler.Check(ctx, info, db, tx)
 }
 
-func (h schemaRoutingHandler) Deliver(ctx context.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
+func (h schemaRoutingHandler) Deliver(ctx context.Context, info weave.BlockInfo, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	handler, err := h.selectHandler(tx)
 	if err != nil {
 		return nil, err
 	}
-	return handler.Deliver(ctx, db, tx)
+	return handler.Deliver(ctx, info, db, tx)
 }
 
 // selectHandler returns the best fitting handler to process given transaction,

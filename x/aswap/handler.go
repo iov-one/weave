@@ -47,7 +47,7 @@ type CreateSwapHandler struct {
 var _ weave.Handler = CreateSwapHandler{}
 
 // Check does the validation and sets the cost of the transaction
-func (h CreateSwapHandler) Check(ctx context.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
+func (h CreateSwapHandler) Check(ctx context.Context, info weave.BlockInfo, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
 	_, err := h.validate(ctx, db, tx)
 	if err != nil {
 		return nil, err
@@ -60,7 +60,7 @@ func (h CreateSwapHandler) Check(ctx context.Context, db weave.KVStore, tx weave
 }
 
 // Deliver moves the tokens from sender to the swap account if all conditions are met.
-func (h CreateSwapHandler) Deliver(ctx context.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
+func (h CreateSwapHandler) Deliver(ctx context.Context, info weave.BlockInfo, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	msg, err := h.validate(ctx, db, tx)
 
 	if err != nil {
@@ -94,7 +94,7 @@ func (h CreateSwapHandler) Deliver(ctx context.Context, db weave.KVStore, tx wea
 }
 
 // validate does all common pre-processing between Check and Deliver.
-func (h CreateSwapHandler) validate(ctx context.Context,
+func (h CreateSwapHandler) validate(ctx context.Context, info weave.BlockInfo,
 	db weave.KVStore, tx weave.Tx) (*CreateMsg, error) {
 	var msg CreateMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
@@ -120,7 +120,7 @@ var _ weave.Handler = ReleaseSwapHandler{}
 
 // Check just verifies it is properly formed and returns
 // the cost of executing it
-func (h ReleaseSwapHandler) Check(ctx context.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
+func (h ReleaseSwapHandler) Check(ctx context.Context, info weave.BlockInfo, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
 	_, _, err := h.validate(ctx, db, tx)
 	if err != nil {
 		return nil, err
@@ -131,7 +131,7 @@ func (h ReleaseSwapHandler) Check(ctx context.Context, db weave.KVStore, tx weav
 
 // Deliver moves the tokens from swap account to the receiver if
 // all preconditions are met. When the swap account is empty it is deleted.
-func (h ReleaseSwapHandler) Deliver(ctx context.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
+func (h ReleaseSwapHandler) Deliver(ctx context.Context, info weave.BlockInfo, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	swapID, swap, err := h.validate(ctx, db, tx)
 	if err != nil {
 		return nil, err
@@ -158,7 +158,7 @@ func (h ReleaseSwapHandler) Deliver(ctx context.Context, db weave.KVStore, tx we
 }
 
 // validate does all common pre-processing between Check and Deliver.
-func (h ReleaseSwapHandler) validate(ctx context.Context, db weave.KVStore, tx weave.Tx) ([]byte, *Swap, error) {
+func (h ReleaseSwapHandler) validate(ctx context.Context, info weave.BlockInfo, db weave.KVStore, tx weave.Tx) ([]byte, *Swap, error) {
 	var msg ReleaseMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, nil, errors.Wrap(err, "load msg")
@@ -193,7 +193,7 @@ var _ weave.Handler = ReturnSwapHandler{}
 
 // Check just verifies it is properly formed and returns
 // the cost of executing it.
-func (h ReturnSwapHandler) Check(ctx context.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
+func (h ReturnSwapHandler) Check(ctx context.Context, info weave.BlockInfo, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
 	_, _, err := h.validate(ctx, db, tx)
 	if err != nil {
 		return nil, err
@@ -204,7 +204,7 @@ func (h ReturnSwapHandler) Check(ctx context.Context, db weave.KVStore, tx weave
 
 // Deliver moves all the tokens from the swap to the defined sender if
 // all preconditions are met. The swap is deleted afterwards.
-func (h ReturnSwapHandler) Deliver(ctx context.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
+func (h ReturnSwapHandler) Deliver(ctx context.Context, info weave.BlockInfo, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	msg, swap, err := h.validate(ctx, db, tx)
 	if err != nil {
 		return nil, err
@@ -229,7 +229,7 @@ func (h ReturnSwapHandler) Deliver(ctx context.Context, db weave.KVStore, tx wea
 }
 
 // validate does all common pre-processing between Check and Deliver.
-func (h ReturnSwapHandler) validate(ctx context.Context, db weave.KVStore, tx weave.Tx) (*ReturnSwapMsg, *Swap, error) {
+func (h ReturnSwapHandler) validate(ctx context.Context, info weave.BlockInfo, db weave.KVStore, tx weave.Tx) (*ReturnSwapMsg, *Swap, error) {
 	var msg ReturnSwapMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, nil, errors.Wrap(err, "load msg")

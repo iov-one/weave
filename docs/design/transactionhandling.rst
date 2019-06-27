@@ -57,8 +57,8 @@ is registered with it.
 .. code-block:: go
 
     type Handler interface {
-        Check(ctx context.Context, store weave.KVStore, tx weave.Tx) (*weave.CheckResult, error)
-        Deliver(ctx context.Context, store weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error)
+        Check(ctx context.Context, info weave.BlockInfo, store weave.KVStore, tx weave.Tx) (*weave.CheckResult, error)
+        Deliver(ctx context.Context, info weave.BlockInfo, store weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error)
     }
 
 The ``Handler`` is provided with the key-value store

@@ -43,7 +43,7 @@ func (tx *BatchTx) GetMsg() (weave.Msg, error) {
 
 // Check iterates through messages in a batch transaction and passes them
 // down the stack
-func (d Decorator) Check(ctx context.Context, store weave.KVStore, tx weave.Tx, next weave.Checker) (*weave.CheckResult, error) {
+func (d Decorator) Check(ctx context.Context, info weave.BlockInfo, store weave.KVStore, tx weave.Tx, next weave.Checker) (*weave.CheckResult, error) {
 	msg, err := tx.GetMsg()
 	if err != nil {
 		return nil, err
@@ -51,7 +51,7 @@ func (d Decorator) Check(ctx context.Context, store weave.KVStore, tx weave.Tx, 
 
 	batchMsg, ok := msg.(Msg)
 	if !ok {
-		return next.Check(ctx, store, tx)
+		return next.Check(ctx, info, store, tx)
 	}
 
 	if err = batchMsg.Validate(); err != nil {
@@ -62,7 +62,7 @@ func (d Decorator) Check(ctx context.Context, store weave.KVStore, tx weave.Tx, 
 
 	checks := make([]*weave.CheckResult, len(msgList))
 	for i, msg := range msgList {
-		checks[i], err = next.Check(ctx, store, &BatchTx{Tx: tx, msg: msg})
+		checks[i], err = next.Check(ctx, info, store, &BatchTx{Tx: tx, msg: msg})
 		if err != nil {
 			return nil, err
 		}
@@ -106,7 +106,7 @@ func (*Decorator) combineChecks(checks []*weave.CheckResult) (*weave.CheckResult
 
 // Deliver iterates through messages in a batch transaction and passes them
 // down the stack
-func (d Decorator) Deliver(ctx context.Context, store weave.KVStore, tx weave.Tx, next weave.Deliverer) (*weave.DeliverResult, error) {
+func (d Decorator) Deliver(ctx context.Context, info weave.BlockInfo, store weave.KVStore, tx weave.Tx, next weave.Deliverer) (*weave.DeliverResult, error) {
 	msg, err := tx.GetMsg()
 	if err != nil {
 		return nil, err
@@ -114,7 +114,7 @@ func (d Decorator) Deliver(ctx context.Context, store weave.KVStore, tx weave.Tx
 
 	batchMsg, ok := msg.(Msg)
 	if !ok {
-		return next.Deliver(ctx, store, tx)
+		return next.Deliver(ctx, info, store, tx)
 	}
 
 	if err = batchMsg.Validate(); err != nil {
@@ -125,7 +125,7 @@ func (d Decorator) Deliver(ctx context.Context, store weave.KVStore, tx weave.Tx
 
 	delivers := make([]*weave.DeliverResult, len(msgList))
 	for i, msg := range msgList {
-		delivers[i], err = next.Deliver(ctx, store, &BatchTx{Tx: tx, msg: msg})
+		delivers[i], err = next.Deliver(ctx, info, store, &BatchTx{Tx: tx, msg: msg})
 		if err != nil {
 			return nil, err
 		}

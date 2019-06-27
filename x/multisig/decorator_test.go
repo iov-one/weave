@@ -126,7 +126,7 @@ func TestDecorator(t *testing.T) {
 			var hn MultisigCheckHandler
 			stack := weavetest.Decorate(&hn, d)
 
-			cres, err := stack.Check(ctx, db, tc.tx)
+			cres, err := stack.Check(ctx, info, db, tc.tx)
 			if !tc.wantErr.Is(err) {
 				t.Fatalf("unexpected error: %+v", err)
 			}
@@ -134,7 +134,7 @@ func TestDecorator(t *testing.T) {
 				t.Errorf("want %d gas payment, got %d", tc.wantGas, cres.GasPayment)
 			}
 
-			if _, err := stack.Deliver(ctx, db, tc.tx); !tc.wantErr.Is(err) {
+			if _, err := stack.Deliver(ctx, info, db, tc.tx); !tc.wantErr.Is(err) {
 				t.Fatalf("unexpected error: %+v", err)
 			}
 		})
@@ -149,12 +149,12 @@ type MultisigCheckHandler struct {
 
 var _ weave.Handler = (*MultisigCheckHandler)(nil)
 
-func (s *MultisigCheckHandler) Check(ctx context.Context, store weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
+func (s *MultisigCheckHandler) Check(ctx context.Context, info weave.BlockInfo, store weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
 	s.Perms = Authenticate{}.GetConditions(ctx)
 	return &weave.CheckResult{}, nil
 }
 
-func (s *MultisigCheckHandler) Deliver(ctx context.Context, store weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
+func (s *MultisigCheckHandler) Deliver(ctx context.Context, info weave.BlockInfo, store weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	s.Perms = Authenticate{}.GetConditions(ctx)
 	return &weave.DeliverResult{}, nil
 }

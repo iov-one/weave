@@ -41,7 +41,7 @@ func NewFeeDecorator(auth x.Authenticator, ctrl CoinMover) FeeDecorator {
 }
 
 // Check verifies and deducts fees before calling down the stack
-func (d FeeDecorator) Check(ctx context.Context, store weave.KVStore, tx weave.Tx, next weave.Checker) (*weave.CheckResult, error) {
+func (d FeeDecorator) Check(ctx context.Context, info weave.BlockInfo, store weave.KVStore, tx weave.Tx, next weave.Checker) (*weave.CheckResult, error) {
 	finfo, err := d.extractFee(ctx, tx, store)
 	if err != nil {
 		return nil, err
@@ -50,7 +50,7 @@ func (d FeeDecorator) Check(ctx context.Context, store weave.KVStore, tx weave.T
 	// if nothing returned, but no error, just move along
 	fee := finfo.GetFees()
 	if coin.IsEmpty(fee) {
-		return next.Check(ctx, store, tx)
+		return next.Check(ctx, info, store, tx)
 	}
 
 	// verify we have access to the money
@@ -66,7 +66,7 @@ func (d FeeDecorator) Check(ctx context.Context, store weave.KVStore, tx weave.T
 
 	// now update the importance...
 	paid := toPayment(*fee)
-	res, err := next.Check(ctx, store, tx)
+	res, err := next.Check(ctx, info, store, tx)
 	if err != nil {
 		return nil, err
 	}
@@ -75,7 +75,7 @@ func (d FeeDecorator) Check(ctx context.Context, store weave.KVStore, tx weave.T
 }
 
 // Deliver verifies and deducts fees before calling down the stack
-func (d FeeDecorator) Deliver(ctx context.Context, store weave.KVStore, tx weave.Tx, next weave.Deliverer) (*weave.DeliverResult, error) {
+func (d FeeDecorator) Deliver(ctx context.Context, info weave.BlockInfo, store weave.KVStore, tx weave.Tx, next weave.Deliverer) (*weave.DeliverResult, error) {
 	finfo, err := d.extractFee(ctx, tx, store)
 	if err != nil {
 		return nil, err
@@ -84,7 +84,7 @@ func (d FeeDecorator) Deliver(ctx context.Context, store weave.KVStore, tx weave
 	// if nothing returned, but no error, just move along
 	fee := finfo.GetFees()
 	if coin.IsEmpty(fee) {
-		return next.Deliver(ctx, store, tx)
+		return next.Deliver(ctx, info, store, tx)
 	}
 
 	// verify we have access to the money
@@ -98,10 +98,10 @@ func (d FeeDecorator) Deliver(ctx context.Context, store weave.KVStore, tx weave
 		return nil, err
 	}
 
-	return next.Deliver(ctx, store, tx)
+	return next.Deliver(ctx, info, store, tx)
 }
 
-func (d FeeDecorator) extractFee(ctx context.Context, tx weave.Tx, store weave.KVStore) (*FeeInfo, error) {
+func (d FeeDecorator) extractFee(ctx context.Context, info weave.BlockInfo, tx weave.Tx, store weave.KVStore) (*FeeInfo, error) {
 	var finfo *FeeInfo
 	ftx, ok := tx.(FeeTx)
 	if ok {

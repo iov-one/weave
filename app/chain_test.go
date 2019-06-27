@@ -31,14 +31,14 @@ func TestChain(t *testing.T) {
 	// This height must not panic.
 	ctx := weave.WithHeight(context.Background(), panicHeight-2)
 
-	_, err := stack.Check(ctx, nil, nil)
+	_, err := stack.Check(ctx, info, nil, nil)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, c1.CheckCallCount())
 	assert.Equal(t, 1, c2.CheckCallCount())
 	assert.Equal(t, 1, c3.CheckCallCount())
 	assert.Equal(t, 1, h.CheckCallCount())
 
-	_, err = stack.Deliver(ctx, nil, nil)
+	_, err = stack.Deliver(ctx, info, nil, nil)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, c1.DeliverCallCount())
 	assert.Equal(t, 1, c2.DeliverCallCount())
@@ -48,14 +48,14 @@ func TestChain(t *testing.T) {
 	// Trigger a panic.
 	ctx = weave.WithHeight(context.Background(), panicHeight+2)
 
-	_, err = stack.Check(ctx, nil, nil)
+	_, err = stack.Check(ctx, info, nil, nil)
 	assert.Error(t, err)
 	assert.Equal(t, 2, c1.CheckCallCount())
 	assert.Equal(t, 2, c2.CheckCallCount())
 	assert.Equal(t, 1, c3.CheckCallCount())
 	assert.Equal(t, 1, h.CheckCallCount())
 
-	_, err = stack.Deliver(ctx, nil, nil)
+	_, err = stack.Deliver(ctx, info, nil, nil)
 	assert.Error(t, err)
 	assert.Equal(t, 2, c1.DeliverCallCount())
 	assert.Equal(t, 2, c2.DeliverCallCount())
@@ -67,18 +67,18 @@ type panicAtHeightDecorator int64
 
 var _ weave.Decorator = panicAtHeightDecorator(0)
 
-func (ph panicAtHeightDecorator) Check(ctx context.Context, db weave.KVStore, tx weave.Tx, next weave.Checker) (*weave.CheckResult, error) {
+func (ph panicAtHeightDecorator) Check(ctx context.Context, info weave.BlockInfo, db weave.KVStore, tx weave.Tx, next weave.Checker) (*weave.CheckResult, error) {
 	if val, _ := weave.GetHeight(ctx); val >= int64(ph) {
 		panic("too high")
 	}
-	return next.Check(ctx, db, tx)
+	return next.Check(ctx, info, db, tx)
 }
 
-func (ph panicAtHeightDecorator) Deliver(ctx context.Context, db weave.KVStore, tx weave.Tx, next weave.Deliverer) (*weave.DeliverResult, error) {
+func (ph panicAtHeightDecorator) Deliver(ctx context.Context, info weave.BlockInfo, db weave.KVStore, tx weave.Tx, next weave.Deliverer) (*weave.DeliverResult, error) {
 	if val, _ := weave.GetHeight(ctx); val >= int64(ph) {
 		panic("too high")
 	}
-	return next.Deliver(ctx, db, tx)
+	return next.Deliver(ctx, info, db, tx)
 }
 
 func TestChainNilDecorator(t *testing.T) {

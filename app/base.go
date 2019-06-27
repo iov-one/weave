@@ -43,7 +43,7 @@ func (b BaseApp) DeliverTx(txBytes []byte) abci.ResponseDeliverTx {
 		"call", "deliver_tx",
 		"path", weave.GetPath(tx))
 
-	res, err := b.handler.Deliver(ctx, b.DeliverStore(), tx)
+	res, err := b.handler.Deliver(ctx, info, b.DeliverStore(), tx)
 	if err == nil {
 		b.AddValChange(res.Diff)
 	}
@@ -61,7 +61,7 @@ func (b BaseApp) CheckTx(txBytes []byte) abci.ResponseCheckTx {
 		"call", "check_tx",
 		"path", weave.GetPath(tx))
 
-	res, err := b.handler.Check(ctx, b.CheckStore(), tx)
+	res, err := b.handler.Check(ctx, info, b.CheckStore(), tx)
 	return weave.CheckOrError(res, err, b.debug)
 }
 

@@ -58,7 +58,7 @@ func NewDynamicFeeDecorator(auth x.Authenticator, ctrl Controller) DynamicFeeDec
 }
 
 // Check verifies and deducts fees before calling down the stack
-func (d DynamicFeeDecorator) Check(ctx context.Context, store weave.KVStore, tx weave.Tx, next weave.Checker) (cres *weave.CheckResult, cerr error) {
+func (d DynamicFeeDecorator) Check(ctx context.Context, info weave.BlockInfo, store weave.KVStore, tx weave.Tx, next weave.Checker) (cres *weave.CheckResult, cerr error) {
 	fee, payer, cache, err := d.prepare(ctx, store, tx)
 	if err != nil {
 		return nil, errors.Wrap(err, "cannot prepare")
@@ -86,7 +86,7 @@ func (d DynamicFeeDecorator) Check(ctx context.Context, store weave.KVStore, tx 
 	if err := d.chargeFee(cache, payer, fee); err != nil {
 		return nil, errors.Wrap(err, "cannot charge fee")
 	}
-	cres, err = next.Check(ctx, cache, tx)
+	cres, err = next.Check(ctx, info, cache, tx)
 	if err != nil {
 		return nil, err
 	}
@@ -98,7 +98,7 @@ func (d DynamicFeeDecorator) Check(ctx context.Context, store weave.KVStore, tx 
 }
 
 // Deliver verifies and deducts fees before calling down the stack
-func (d DynamicFeeDecorator) Deliver(ctx context.Context, store weave.KVStore, tx weave.Tx, next weave.Deliverer) (dres *weave.DeliverResult, derr error) {
+func (d DynamicFeeDecorator) Deliver(ctx context.Context, info weave.BlockInfo, store weave.KVStore, tx weave.Tx, next weave.Deliverer) (dres *weave.DeliverResult, derr error) {
 	fee, payer, cache, err := d.prepare(ctx, store, tx)
 	if err != nil {
 		return nil, errors.Wrap(err, "cannot prepare")
@@ -124,7 +124,7 @@ func (d DynamicFeeDecorator) Deliver(ctx context.Context, store weave.KVStore, t
 	if err := d.chargeFee(cache, payer, fee); err != nil {
 		return nil, errors.Wrap(err, "cannot charge fee")
 	}
-	res, err := next.Deliver(ctx, cache, tx)
+	res, err := next.Deliver(ctx, info, cache, tx)
 	if err != nil {
 		return res, err
 	}
@@ -158,7 +158,7 @@ func (d DynamicFeeDecorator) chargeMinimalFee(store weave.KVStore, src weave.Add
 // prepare is all shared setup between Check and Deliver. It computes the fee
 // for the transaction, ensures that the payer is authenticated and prepares
 // the database transaction.
-func (d DynamicFeeDecorator) prepare(ctx context.Context, store weave.KVStore, tx weave.Tx) (fee coin.Coin, payer weave.Address, cache weave.KVCacheWrap, err error) {
+func (d DynamicFeeDecorator) prepare(ctx context.Context, info weave.BlockInfo, store weave.KVStore, tx weave.Tx) (fee coin.Coin, payer weave.Address, cache weave.KVCacheWrap, err error) {
 	finfo, err := d.extractFee(ctx, tx, store)
 	if err != nil {
 		return fee, payer, cache, errors.Wrap(err, "cannot extract fee")
@@ -186,7 +186,7 @@ func (d DynamicFeeDecorator) prepare(ctx context.Context, store weave.KVStore, t
 }
 
 // this returns the fee info to deduct and the error if incorrectly set
-func (d DynamicFeeDecorator) extractFee(ctx context.Context, tx weave.Tx, store weave.KVStore) (*FeeInfo, error) {
+func (d DynamicFeeDecorator) extractFee(ctx context.Context, info weave.BlockInfo, tx weave.Tx, store weave.KVStore) (*FeeInfo, error) {
 	var finfo *FeeInfo
 	ftx, ok := tx.(FeeTx)
 	if ok {

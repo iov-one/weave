@@ -42,7 +42,7 @@ func NewSendHandler(auth x.Authenticator, control Controller) SendHandler {
 
 // Check just verifies it is properly formed and returns
 // the cost of executing it
-func (h SendHandler) Check(ctx context.Context, store weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
+func (h SendHandler) Check(ctx context.Context, info weave.BlockInfo, store weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
 	var msg SendMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, errors.Wrap(err, "load msg")
@@ -61,7 +61,7 @@ func (h SendHandler) Check(ctx context.Context, store weave.KVStore, tx weave.Tx
 
 // Deliver moves the tokens from sender to receiver if
 // all preconditions are met
-func (h SendHandler) Deliver(ctx context.Context, store weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
+func (h SendHandler) Deliver(ctx context.Context, info weave.BlockInfo, store weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	var msg SendMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, errors.Wrap(err, "load msg")

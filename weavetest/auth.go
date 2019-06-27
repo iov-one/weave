@@ -32,7 +32,7 @@ func (a *Auth) GetConditions(context.Context) []weave.Condition {
 	return a.Signers
 }
 
-func (a *Auth) HasAddress(ctx context.Context, addr weave.Address) bool {
+func (a *Auth) HasAddress(ctx context.Context, info weave.BlockInfo, addr weave.Address) bool {
 	for _, s := range a.Signers {
 		if addr.Equals(s.Address()) {
 			return true
@@ -53,7 +53,7 @@ type CtxAuth struct {
 	Key string
 }
 
-func (a *CtxAuth) SetConditions(ctx context.Context, permissions ...weave.Condition) context.Context {
+func (a *CtxAuth) SetConditions(ctx context.Context, info weave.BlockInfo, permissions ...weave.Condition) context.Context {
 	return context.WithValue(ctx, a.Key, permissions)
 }
 
@@ -69,7 +69,7 @@ func (a *CtxAuth) GetConditions(ctx context.Context) []weave.Condition {
 	return conds
 }
 
-func (a *CtxAuth) HasAddress(ctx context.Context, addr weave.Address) bool {
+func (a *CtxAuth) HasAddress(ctx context.Context, info weave.BlockInfo, addr weave.Address) bool {
 	for _, s := range a.GetConditions(ctx) {
 		if addr.Equals(s.Address()) {
 			return true

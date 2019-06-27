@@ -39,14 +39,14 @@ func TestDecorator(t *testing.T) {
 		{
 			name: "check",
 			fn: func(dec weave.Decorator, my weave.Tx) error {
-				_, err := dec.Check(ctx, checkKv, my, signers)
+				_, err := dec.Check(ctx, info, checkKv, my, signers)
 				return err
 			},
 		},
 		{
 			name: "deliver",
 			fn: func(dec weave.Decorator, my weave.Tx) error {
-				_, err := dec.Deliver(ctx, kv, my, signers)
+				_, err := dec.Deliver(ctx, info, kv, my, signers)
 				return err
 			},
 		},
@@ -95,12 +95,12 @@ type SigCheckHandler struct {
 
 var _ weave.Handler = (*SigCheckHandler)(nil)
 
-func (s *SigCheckHandler) Check(ctx context.Context, store weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
+func (s *SigCheckHandler) Check(ctx context.Context, info weave.BlockInfo, store weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
 	s.Signers = Authenticate{}.GetConditions(ctx)
 	return &weave.CheckResult{}, nil
 }
 
-func (s *SigCheckHandler) Deliver(ctx context.Context, store weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
+func (s *SigCheckHandler) Deliver(ctx context.Context, info weave.BlockInfo, store weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	s.Signers = Authenticate{}.GetConditions(ctx)
 	return &weave.DeliverResult{}, nil
 }
@@ -124,7 +124,7 @@ func TestGasPaymentPerSigner(t *testing.T) {
 		tx.Signatures = []*StdSignature{sig}
 	}
 
-	res, err := d.Check(ctx, db, tx, &h)
+	res, err := d.Check(ctx, info, db, tx, &h)
 	if err != nil {
 		t.Fatalf("cannot check: %s", err)
 	}

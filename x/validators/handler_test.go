@@ -153,13 +153,13 @@ func TestHandler(t *testing.T) {
 				ValidatorUpdates: spec.Src,
 			}}
 			// when check is called
-			if _, err := rt.Check(ctx, cache, tx); !spec.ExpCheckErr.Is(err) {
+			if _, err := rt.Check(ctx, info, cache, tx); !spec.ExpCheckErr.Is(err) {
 				t.Fatalf("check expected: %+v  but got %+v", spec.ExpCheckErr, err)
 			}
 			cache.Discard()
 
 			// and when deliver is called
-			res, err := rt.Deliver(ctx, db, tx)
+			res, err := rt.Deliver(ctx, info, db, tx)
 			if !spec.ExpDeliverErr.Is(err) {
 				t.Fatalf("deliver expected: %+v  but got %+v", spec.ExpCheckErr, err)
 			}

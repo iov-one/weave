@@ -39,18 +39,18 @@ func (s Savepoint) OnDeliver() Savepoint {
 }
 
 // Check will optionally set a checkpoint
-func (s Savepoint) Check(ctx context.Context, store weave.KVStore, tx weave.Tx, next weave.Checker) (*weave.CheckResult, error) {
+func (s Savepoint) Check(ctx context.Context, info weave.BlockInfo, store weave.KVStore, tx weave.Tx, next weave.Checker) (*weave.CheckResult, error) {
 	if !s.onCheck {
-		return next.Check(ctx, store, tx)
+		return next.Check(ctx, info, store, tx)
 	}
 
 	cstore, ok := store.(weave.CacheableKVStore)
 	if !ok {
-		return next.Check(ctx, store, tx)
+		return next.Check(ctx, info, store, tx)
 	}
 
 	cache := cstore.CacheWrap()
-	if res, err := next.Check(ctx, cache, tx); err != nil {
+	if res, err := next.Check(ctx, info, cache, tx); err != nil {
 		cache.Discard()
 		return nil, err
 	} else if werr := cache.Write(); werr != nil {
@@ -61,18 +61,18 @@ func (s Savepoint) Check(ctx context.Context, store weave.KVStore, tx weave.Tx, 
 }
 
 // Deliver will optionally set a checkpoint
-func (s Savepoint) Deliver(ctx context.Context, store weave.KVStore, tx weave.Tx, next weave.Deliverer) (*weave.DeliverResult, error) {
+func (s Savepoint) Deliver(ctx context.Context, info weave.BlockInfo, store weave.KVStore, tx weave.Tx, next weave.Deliverer) (*weave.DeliverResult, error) {
 	if !s.onDeliver {
-		return next.Deliver(ctx, store, tx)
+		return next.Deliver(ctx, info, store, tx)
 	}
 
 	cstore, ok := store.(weave.CacheableKVStore)
 	if !ok {
-		return next.Deliver(ctx, store, tx)
+		return next.Deliver(ctx, info, store, tx)
 	}
 
 	cache := cstore.CacheWrap()
-	if res, err := next.Deliver(ctx, cache, tx); err != nil {
+	if res, err := next.Deliver(ctx, info, cache, tx); err != nil {
 		cache.Discard()
 		return nil, err
 	} else if werr := cache.Write(); werr != nil {
