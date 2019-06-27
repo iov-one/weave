@@ -5,9 +5,14 @@ import (
 	"github.com/iov-one/weave/errors"
 )
 
+// ReadStore is a subset of weave.ReadOnlyKVStore.
+type ReadStore interface {
+	Get([]byte) ([]byte, error)
+}
+
 // Store is a subset of weave.KVStore.
 type Store interface {
-	Get([]byte) ([]byte, error)
+	ReadStore
 	Set([]byte, []byte) error
 }
 
@@ -35,7 +40,7 @@ type ValidMarshaler interface {
 	Validate() error
 }
 
-func Load(db Store, pkg string, dst Unmarshaler) error {
+func Load(db ReadStore, pkg string, dst Unmarshaler) error {
 	key := []byte("_c:" + pkg)
 	raw, err := db.Get(key)
 	if err != nil {
