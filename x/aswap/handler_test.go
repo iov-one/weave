@@ -117,10 +117,10 @@ func TestCreateHandler(t *testing.T) {
 			db := store.MemStore()
 			migration.MustInitPkg(db, "aswap", "cash")
 
-			ctx := weave.WithHeight(context.Background(), 500)
-			ctx = weave.WithBlockTime(ctx, blockNow)
+			ctx := context.Background()
+			info := weavetest.BlockInfo(500, blockNow)
 			if spec.setup != nil {
-				ctx = spec.setup(ctx, db)
+				ctx = spec.setup(ctx, info, db)
 			}
 			if spec.mutator != nil {
 				spec.mutator(createMsg)
@@ -159,7 +159,7 @@ func TestReleaseHandler(t *testing.T) {
 	assert.Nil(t, err)
 
 	cases := map[string]struct {
-		setup          func(ctx context.Context, info weave.BlockInfo, db weave.KVStore) context.Context
+		setup          func(info weave.BlockInfo, db weave.KVStore) weave.BlockInfo
 		check          func(t *testing.T, db weave.KVStore)
 		wantCheckErr   *errors.Error
 		wantDeliverErr *errors.Error
@@ -203,8 +203,8 @@ func TestReleaseHandler(t *testing.T) {
 			},
 		},
 		"Expired": {
-			setup: func(ctx context.Context, info weave.BlockInfo, db weave.KVStore) context.Context {
-				return weave.WithBlockTime(ctx, time.Now().Add(10*time.Hour))
+			setup: func(info weave.BlockInfo, db weave.KVStore) weave.BlockInfo {
+				return weavetest.BlockInfo(info.Height(), time.Now().Add(10*time.Hour))
 			},
 			wantDeliverErr: errors.ErrState,
 			wantCheckErr:   errors.ErrState,
@@ -224,13 +224,13 @@ func TestReleaseHandler(t *testing.T) {
 			db := store.MemStore()
 			migration.MustInitPkg(db, "aswap", "cash")
 
-			ctx := weave.WithHeight(context.Background(), 500)
-			ctx = weave.WithBlockTime(ctx, blockNow)
+			ctx := context.Background()
+			info := weavetest.BlockInfo(500, blockNow)
 			// setup a swap
 			createCtx := authenticator.SetConditions(ctx, alice)
 			setBalance(t, db, alice.Address(), initialCoins)
 			tx := &weavetest.Tx{Msg: createMsg}
-			_, err = r.Deliver(createCtx, db, tx)
+			_, err = r.Deliver(createCtx, info, db, tx)
 			assert.Nil(t, err)
 
 			releaseMsg := &aswap.ReleaseMsg{
@@ -240,7 +240,7 @@ func TestReleaseHandler(t *testing.T) {
 			}
 
 			if spec.setup != nil {
-				ctx = spec.setup(ctx, db)
+				info = spec.setup(info, db)
 			}
 			if spec.mutator != nil {
 				spec.mutator(releaseMsg)
@@ -271,7 +271,7 @@ func TestReturnHandler(t *testing.T) {
 	assert.Nil(t, err)
 
 	cases := map[string]struct {
-		setup          func(ctx context.Context, info weave.BlockInfo, db weave.KVStore) context.Context
+		setup          func(info weave.BlockInfo, db weave.KVStore) weave.BlockInfo
 		check          func(t *testing.T, db weave.KVStore)
 		wantCheckErr   *errors.Error
 		wantDeliverErr *errors.Error
@@ -279,8 +279,8 @@ func TestReturnHandler(t *testing.T) {
 		mutator        func(db *aswap.ReturnSwapMsg)
 	}{
 		"Happy Path, includes no auth check": {
-			setup: func(ctx context.Context, info weave.BlockInfo, db weave.KVStore) context.Context {
-				return weave.WithBlockTime(ctx, blockNow.Add(2*time.Hour))
+			setup: func(info weave.BlockInfo, db weave.KVStore) weave.BlockInfo {
+				return weavetest.BlockInfo(info.Height(), blockNow.Add(2*time.Hour))
 			},
 			wantDeliverErr: nil,
 			wantCheckErr:   nil,
@@ -310,8 +310,8 @@ func TestReturnHandler(t *testing.T) {
 			},
 		},
 		"Not Expired": {
-			setup: func(ctx context.Context, info weave.BlockInfo, db weave.KVStore) context.Context {
-				return weave.WithBlockTime(ctx, blockNow)
+			setup: func(info weave.BlockInfo, db weave.KVStore) weave.BlockInfo {
+				return weavetest.BlockInfo(info.Height(), blockNow)
 			},
 			wantDeliverErr: errors.ErrState,
 			wantCheckErr:   errors.ErrState,
@@ -331,13 +331,14 @@ func TestReturnHandler(t *testing.T) {
 			db := store.MemStore()
 			migration.MustInitPkg(db, "aswap", "cash")
 
-			ctx := weave.WithHeight(context.Background(), 500)
-			ctx = weave.WithBlockTime(ctx, blockNow)
+			ctx := context.Background()
+			info := weavetest.BlockInfo(500, blockNow)
+
 			// setup a swap
 			createCtx := authenticator.SetConditions(ctx, alice)
 			setBalance(t, db, alice.Address(), initialCoins)
 			tx := &weavetest.Tx{Msg: createMsg}
-			_, err = r.Deliver(createCtx, db, tx)
+			_, err = r.Deliver(createCtx, info, db, tx)
 			assert.Nil(t, err)
 
 			returnMsg := &aswap.ReturnSwapMsg{
@@ -346,7 +347,7 @@ func TestReturnHandler(t *testing.T) {
 			}
 
 			if spec.setup != nil {
-				ctx = spec.setup(ctx, db)
+				info = spec.setup(info, db)
 			}
 			if spec.mutator != nil {
 				spec.mutator(returnMsg)

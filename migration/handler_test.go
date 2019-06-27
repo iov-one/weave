@@ -42,7 +42,7 @@ func TestSchemaMigratingHandler(t *testing.T) {
 		Metadata: &weave.Metadata{Schema: 1},
 		Content:  "foo",
 	}
-	info := weavetest.BlockInfo("mychain-123", 999)
+	info := weavetest.BlockInfo(999)
 	_, err = handler.Check(nil, info, db, &weavetest.Tx{Msg: msg1})
 	assert.Nil(t, err)
 	assert.Equal(t, msg1.Metadata.Schema, uint32(1))
@@ -218,7 +218,7 @@ func TestSchemaRoutingHandler(t *testing.T) {
 
 	for testName, tc := range cases {
 		t.Run(testName, func(t *testing.T) {
-			info := weavetest.BlockInfo("test-chain", 5)
+			info := weavetest.BlockInfo(5)
 			_, err := tc.Handler.Deliver(nil, info, nil, tc.Tx)
 			if !tc.WantErr.Is(err) {
 				t.Fatalf("unexpected error result: %s", err)

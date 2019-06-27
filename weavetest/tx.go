@@ -72,9 +72,14 @@ func SequenceID(n uint64) []byte {
 	return b
 }
 
-// BlockInfo sets up a BlockInfo struct with a chainID and a height.
+// BlockInfo returns a simple BlockInfo struct given just a height and optional time
+func BlockInfo(height int64, ts ...time.Time) weave.BlockInfo {
+	return BlockInfoWithChain("test-chain", height, ts...)
+}
+
+// BlockInfoWithChain sets up a BlockInfo struct with a chainID and a height.
 // Uses given time if provided, otherwise time.Now()
-func BlockInfo(chainID string, height int64, ts ...time.Time) weave.BlockInfo {
+func BlockInfoWithChain(chainID string, height int64, ts ...time.Time) weave.BlockInfo {
 	t := time.Now()
 	if len(ts) > 0 {
 		t = ts[0]

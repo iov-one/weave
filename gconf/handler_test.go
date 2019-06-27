@@ -126,7 +126,7 @@ func TestUpdateConfigurationHandler(t *testing.T) {
 			auth := &weavetest.CtxAuth{Key: "auth"}
 			handler := NewUpdateConfigurationHandler("mypkg", &c, auth)
 
-			info := weavetest.BlockInfo("mychain-123", 999)
+			info := weavetest.BlockInfo(999)
 			ctx := auth.SetConditions(context.Background(), tc.MsgConditions...)
 
 			tx := &weavetest.Tx{Msg: tc.Msg}
