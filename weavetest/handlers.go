@@ -29,7 +29,9 @@ func (h *Handler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weav
 	if h.CheckErr != nil {
 		return nil, h.CheckErr
 	}
-	return &h.CheckResult, nil
+	// you cannot return a reference to the stored result, as we pass a pointer and it may be modified
+	res := h.CheckResult
+	return &res, nil
 }
 
 func (h *Handler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
@@ -37,7 +39,9 @@ func (h *Handler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*we
 	if h.DeliverErr != nil {
 		return nil, h.DeliverErr
 	}
-	return &h.DeliverResult, nil
+	// you cannot return a reference to the stored result, as we pass a pointer and it may be modified
+	res := h.DeliverResult
+	return &res, nil
 }
 
 func (h *Handler) CheckCallCount() int {
