@@ -25,8 +25,8 @@ type schemaMigratingRegistry struct {
 	reg         weave.Registry
 }
 
-func (r *schemaMigratingRegistry) Handle(path string, h weave.Handler) {
-	r.reg.Handle(path, SchemaMigratingHandler(r.packageName, h))
+func (r *schemaMigratingRegistry) Handle(m weave.Msg, h weave.Handler) {
+	r.reg.Handle(m, SchemaMigratingHandler(r.packageName, h))
 }
 
 // SchemaMigratingHandler returns a weave handler that will ensure incoming
@@ -90,7 +90,7 @@ func (h *schemaMigratingHandler) migrate(db weave.ReadOnlyKVStore, tx weave.Tx) 
 // RegisterRoutes registers handlers for feedlist message processing.
 func RegisterRoutes(r weave.Registry, auth x.Authenticator) {
 	bucket := NewSchemaBucket()
-	r.Handle(pathUpgradeSchemaMsg, &upgradeSchemaHandler{
+	r.Handle(&UpgradeSchemaMsg{}, &upgradeSchemaHandler{
 		bucket: bucket,
 		auth:   auth,
 	})

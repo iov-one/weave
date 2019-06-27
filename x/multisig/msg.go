@@ -1,6 +1,7 @@
 package multisig
 
 import (
+	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/migration"
 )
@@ -11,9 +12,6 @@ func init() {
 }
 
 const (
-	pathCreateMsg = "multisig/create"
-	pathUpdateMsg = "multisig/update"
-
 	creationCost int64 = 300 // 3x more expensive than SendMsg
 	updateCost   int64 = 150 // Half the creation cost
 
@@ -22,9 +20,11 @@ const (
 	maxParticipantsAllowed = 100
 )
 
-// Path fulfills weave.Msg interface to allow routing
+var _ weave.Msg = (*CreateMsg)(nil)
+
+// Path fulfills weave.Msg interface to allow routing.
 func (CreateMsg) Path() string {
-	return pathCreateMsg
+	return "multisig/create"
 }
 
 // Validate enforces sigs and threshold boundaries
@@ -42,9 +42,11 @@ func (c *CreateMsg) Validate() error {
 		c.Participants, c.ActivationThreshold, c.AdminThreshold)
 }
 
-// Path fulfills weave.Msg interface to allow routing
+var _ weave.Msg = (*UpdateMsg)(nil)
+
+// Path fulfills weave.Msg interface to allow routing.
 func (UpdateMsg) Path() string {
-	return pathUpdateMsg
+	return "multisig/update"
 }
 
 // Validate enforces sigs and threshold boundaries

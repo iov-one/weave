@@ -24,9 +24,9 @@ func RegisterRoutes(r weave.Registry, auth x.Authenticator, cashctrl cash.Contro
 	r = migration.SchemaMigratingRegistry("aswap", r)
 	bucket := NewBucket()
 
-	r.Handle(pathCreateSwap, CreateSwapHandler{auth, bucket, cashctrl})
-	r.Handle(pathReleaseSwap, ReleaseSwapHandler{auth, bucket, cashctrl})
-	r.Handle(pathReturnSwap, ReturnSwapHandler{auth, bucket, cashctrl})
+	r.Handle(&CreateMsg{}, CreateSwapHandler{auth, bucket, cashctrl})
+	r.Handle(&ReleaseMsg{}, ReleaseSwapHandler{auth, bucket, cashctrl})
+	r.Handle(&ReturnSwapMsg{}, ReturnSwapHandler{auth, bucket, cashctrl})
 }
 
 // RegisterQuery will register this bucket as "/aswaps"

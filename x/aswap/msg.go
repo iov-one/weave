@@ -8,18 +8,12 @@ import (
 )
 
 func init() {
-	// Migration needs to be registered for every message introduced in the codec.
-	// This is the convention to message versioning.
 	migration.MustRegister(1, &CreateMsg{}, migration.NoModification)
 	migration.MustRegister(1, &ReleaseMsg{}, migration.NoModification)
 	migration.MustRegister(1, &ReturnSwapMsg{}, migration.NoModification)
 }
 
 const (
-	pathCreateSwap  = "aswap/create"
-	pathReleaseSwap = "aswap/release"
-	pathReturnSwap  = "aswap/return"
-
 	maxMemoSize int = 128
 	// preimage size in bytes
 	preimageSize int = 32
@@ -28,24 +22,10 @@ const (
 )
 
 var _ weave.Msg = (*CreateMsg)(nil)
-var _ weave.Msg = (*ReleaseMsg)(nil)
-var _ weave.Msg = (*ReturnSwapMsg)(nil)
-
-// ROUTING, Path method fulfills weave.Msg interface to allow routing
 
 func (CreateMsg) Path() string {
-	return pathCreateSwap
+	return "aswap/create"
 }
-
-func (ReleaseMsg) Path() string {
-	return pathReleaseSwap
-}
-
-func (ReturnSwapMsg) Path() string {
-	return pathReturnSwap
-}
-
-// VALIDATION, Validate method makes sure basic rules are enforced upon input data and fulfills weave.Msg interface
 
 func (m *CreateMsg) Validate() error {
 	if err := m.Metadata.Validate(); err != nil {
@@ -77,6 +57,12 @@ func (m *CreateMsg) Validate() error {
 	return err
 }
 
+var _ weave.Msg = (*ReleaseMsg)(nil)
+
+func (ReleaseMsg) Path() string {
+	return "aswap/release"
+}
+
 func (m *ReleaseMsg) Validate() error {
 	if err := m.Metadata.Validate(); err != nil {
 		return errors.Wrap(err, "metadata")
@@ -90,6 +76,13 @@ func (m *ReleaseMsg) Validate() error {
 		return errors.Wrapf(errors.ErrInput, "preimage should be exactly %d byte long", preimageSize)
 	}
 	return nil
+}
+
+var _ weave.Msg = (*ReturnSwapMsg)(nil)
+
+func (ReturnSwapMsg) Path() string {
+	return "aswap/return"
+
 }
 
 func (m *ReturnSwapMsg) Validate() error {

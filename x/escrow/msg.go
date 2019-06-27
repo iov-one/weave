@@ -15,42 +15,8 @@ func init() {
 }
 
 const (
-	pathCreateMsg        = "escrow/create"
-	pathReleaseMsg       = "escrow/release"
-	pathReturnMsg        = "escrow/return"
-	pathUpdatePartiesMsg = "escrow/update"
-
 	maxMemoSize int = 128
 )
-
-var _ weave.Msg = (*CreateMsg)(nil)
-var _ weave.Msg = (*ReleaseMsg)(nil)
-var _ weave.Msg = (*ReturnMsg)(nil)
-var _ weave.Msg = (*UpdatePartiesMsg)(nil)
-
-//--------- Path routing --------
-
-// Path fulfills weave.Msg interface to allow routing
-func (CreateMsg) Path() string {
-	return pathCreateMsg
-}
-
-// Path fulfills weave.Msg interface to allow routing
-func (ReleaseMsg) Path() string {
-	return pathReleaseMsg
-}
-
-// Path fulfills weave.Msg interface to allow routing
-func (ReturnMsg) Path() string {
-	return pathReturnMsg
-}
-
-// Path fulfills weave.Msg interface to allow routing
-func (UpdatePartiesMsg) Path() string {
-	return pathUpdatePartiesMsg
-}
-
-//--------- Validation --------
 
 // NewCreateMsg is a helper to quickly build a create escrow message
 func NewCreateMsg(
@@ -70,6 +36,12 @@ func NewCreateMsg(
 		Timeout:   timeout,
 		Memo:      memo,
 	}
+}
+
+var _ weave.Msg = (*CreateMsg)(nil)
+
+func (CreateMsg) Path() string {
+	return "escrow/create"
 }
 
 // Validate makes sure that this is sensible
@@ -101,6 +73,12 @@ func (m *CreateMsg) Validate() error {
 	return nil
 }
 
+var _ weave.Msg = (*ReleaseMsg)(nil)
+
+func (ReleaseMsg) Path() string {
+	return "escrow/release"
+}
+
 // Validate makes sure that this is sensible
 func (m *ReleaseMsg) Validate() error {
 	if err := m.Metadata.Validate(); err != nil {
@@ -116,12 +94,24 @@ func (m *ReleaseMsg) Validate() error {
 	return validateAmount(m.Amount)
 }
 
+var _ weave.Msg = (*ReturnMsg)(nil)
+
+func (ReturnMsg) Path() string {
+	return "escrow/return"
+}
+
 // Validate always returns true for no data
 func (m *ReturnMsg) Validate() error {
 	if err := m.Metadata.Validate(); err != nil {
 		return errors.Wrap(err, "metadata")
 	}
 	return validateEscrowID(m.EscrowId)
+}
+
+var _ weave.Msg = (*UpdatePartiesMsg)(nil)
+
+func (UpdatePartiesMsg) Path() string {
+	return "escrow/update"
 }
 
 // Validate makes sure any included items are valid permissions

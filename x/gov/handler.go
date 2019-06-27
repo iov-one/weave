@@ -33,21 +33,21 @@ func RegisterQuery(qr weave.QueryRouter) {
 // RegisterRoutes registers handlers for governance message processing.
 func RegisterRoutes(r weave.Registry, auth x.Authenticator, decoder OptionDecoder, executor Executor) {
 	r = migration.SchemaMigratingRegistry(packageName, r)
-	r.Handle(pathVoteMsg, newVoteHandler(auth))
-	r.Handle(pathTallyMsg, newTallyHandler(auth, decoder, executor))
-	r.Handle(pathCreateProposalMsg, newCreateProposalHandler(auth, decoder))
-	r.Handle(pathDeleteProposalMsg, newDeleteProposalHandler(auth))
-	r.Handle(pathUpdateElectorateMsg, newUpdateElectorateHandler(auth))
-	r.Handle(pathUpdateElectionRuleMsg, newUpdateElectionRuleHandler(auth))
+	r.Handle(&VoteMsg{}, newVoteHandler(auth))
+	r.Handle(&TallyMsg{}, newTallyHandler(auth, decoder, executor))
+	r.Handle(&CreateProposalMsg{}, newCreateProposalHandler(auth, decoder))
+	r.Handle(&DeleteProposalMsg{}, newDeleteProposalHandler(auth))
+	r.Handle(&UpdateElectorateMsg{}, newUpdateElectorateHandler(auth))
+	r.Handle(&UpdateElectionRuleMsg{}, newUpdateElectionRuleHandler(auth))
 	// We do NOT register the TextResultionHandler here... this is only for the proposal Executor
 }
 
 // RegisterBasicProposalRouters register the routes we accept for executing governance decisions.
 func RegisterBasicProposalRouters(r weave.Registry, auth x.Authenticator) {
 	r = migration.SchemaMigratingRegistry(packageName, r)
-	r.Handle(pathUpdateElectorateMsg, newUpdateElectorateHandler(auth))
-	r.Handle(pathUpdateElectionRuleMsg, newUpdateElectionRuleHandler(auth))
-	r.Handle(pathCreateTextResolutionMsg, newCreateTextResolutionHandler(auth))
+	r.Handle(&UpdateElectorateMsg{}, newUpdateElectorateHandler(auth))
+	r.Handle(&UpdateElectionRuleMsg{}, newUpdateElectionRuleHandler(auth))
+	r.Handle(&CreateTextResolutionMsg{}, newCreateTextResolutionHandler(auth))
 }
 
 type VoteHandler struct {

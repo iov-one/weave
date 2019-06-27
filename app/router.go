@@ -8,9 +8,6 @@ import (
 	"github.com/iov-one/weave/errors"
 )
 
-// DefaultRouterSize pre-allocates this much space to hold routes
-const DefaultRouterSize = 10
-
 // isPath is the RegExp to ensure the routes make sense
 var isPath = regexp.MustCompile(`^[a-zA-Z0-9_/]+$`).MatchString
 
@@ -27,75 +24,66 @@ type Router struct {
 	routes map[string]weave.Handler
 }
 
-var _ weave.Registry = Router{}
-var _ weave.Handler = Router{}
+var _ weave.Registry = (*Router)(nil)
+var _ weave.Handler = (*Router)(nil)
 
-// NewRouter initializes a router with no routes
-func NewRouter() Router {
-	return Router{
-		routes: make(map[string]weave.Handler, DefaultRouterSize),
+// NewRouter returns a new empty router instance.
+func NewRouter() *Router {
+	return &Router{
+		routes: make(map[string]weave.Handler),
 	}
 }
 
-// Handle adds a new Handler for the given path.
-// panics if another Handler was already registered
-func (r Router) Handle(path string, h weave.Handler) {
+// Handle implements weave.Registry interface.
+func (r *Router) Handle(m weave.Msg, h weave.Handler) {
+	path := m.Path()
 	if !isPath(path) {
-		panic(fmt.Sprintf("Invalid path: %s", path))
+		panic(fmt.Sprintf("invalid path: %T: %s", m, path))
 	}
 	if _, ok := r.routes[path]; ok {
-		panic(fmt.Sprintf("Re-registering route: %s", path))
+		panic(fmt.Sprintf("re-registering route: %T: %s", m, path))
 	}
 	r.routes[path] = h
 }
 
-// Handler returns the registered Handler for this path.
-// If no path is found, returns a noSuchPath Handler
-// Always returns a non-nil Handler
-func (r Router) Handler(path string) weave.Handler {
-	h, ok := r.routes[path]
-	if !ok {
-		return noSuchPathHandler{path}
+// handler returns the registered Handler for this path. If no path is found,
+// returns a noSuchPath Handler.  This method always returns a non-nil Handler.
+func (r *Router) handler(m weave.Msg) weave.Handler {
+	path := m.Path()
+	if h, ok := r.routes[path]; ok {
+		return h
 	}
-	return h
+	return notFoundHandler(path)
 }
 
 // Check dispatches to the proper handler based on path
-func (r Router) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
-	msg, _ := tx.GetMsg()
-	if msg == nil {
-		return nil, errors.Wrap(errors.ErrInput, "unable to decode")
+func (r *Router) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
+	msg, err := tx.GetMsg()
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot load msg")
 	}
-	path := msg.Path()
-	h := r.Handler(path)
+	h := r.handler(msg)
 	return h.Check(ctx, store, tx)
 }
 
 // Deliver dispatches to the proper handler based on path
-func (r Router) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
-	msg, _ := tx.GetMsg()
-	if msg == nil {
-		return nil, errors.Wrap(errors.ErrInput, "unable to decode")
+func (r *Router) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
+	msg, err := tx.GetMsg()
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot load msg")
 	}
-	path := msg.Path()
-	h := r.Handler(path)
+	h := r.handler(msg)
 	return h.Deliver(ctx, store, tx)
 }
 
-//-------------------- error handler ---------------
+// notFoundHandler always returns ErrNotFound error regardless of the arguments
+// provided.
+type notFoundHandler string
 
-type noSuchPathHandler struct {
-	path string
+func (path notFoundHandler) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
+	return nil, errors.Wrapf(errors.ErrNotFound, "no handler for message path %q", path)
 }
 
-var _ weave.Handler = noSuchPathHandler{}
-
-// Check always returns ErrNoSuchPath
-func (h noSuchPathHandler) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
-	return nil, errors.Wrapf(errors.ErrNotFound, "path: %s", h.path)
-}
-
-// Deliver always returns ErrNoSuchPath
-func (h noSuchPathHandler) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
-	return nil, errors.Wrapf(errors.ErrNotFound, "path: %s", h.path)
+func (path notFoundHandler) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
+	return nil, errors.Wrapf(errors.ErrNotFound, "no handler for message path %q", path)
 }

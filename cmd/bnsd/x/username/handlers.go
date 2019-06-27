@@ -18,9 +18,9 @@ func RegisterRoutes(r weave.Registry, auth x.Authenticator) {
 	r = migration.SchemaMigratingRegistry("username", r)
 
 	b := NewTokenBucket()
-	r.Handle(RegisterTokenMsg{}.Path(), &registerTokenHandler{auth: auth, bucket: b})
-	r.Handle(TransferTokenMsg{}.Path(), &transferTokenHandler{auth: auth, bucket: b})
-	r.Handle(ChangeTokenTargetsMsg{}.Path(), &changeTokenTargetsHandler{auth: auth, bucket: b})
+	r.Handle(&RegisterTokenMsg{}, &registerTokenHandler{auth: auth, bucket: b})
+	r.Handle(&TransferTokenMsg{}, &transferTokenHandler{auth: auth, bucket: b})
+	r.Handle(&ChangeTokenTargetsMsg{}, &changeTokenTargetsHandler{auth: auth, bucket: b})
 }
 
 type registerTokenHandler struct {

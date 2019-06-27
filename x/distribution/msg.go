@@ -1,6 +1,7 @@
 package distribution
 
 import (
+	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/migration"
 )
@@ -11,11 +12,7 @@ func init() {
 	migration.MustRegister(1, &ResetMsg{}, migration.NoModification)
 }
 
-const (
-	pathCreateMsg     = "distribution/create"
-	pathDistributeMsg = "distribution/distribute"
-	pathResetMsg      = "distribution/reset"
-)
+var _ weave.Msg = (*CreateMsg)(nil)
 
 func (msg *CreateMsg) Validate() error {
 	if err := msg.Metadata.Validate(); err != nil {
@@ -31,8 +28,10 @@ func (msg *CreateMsg) Validate() error {
 }
 
 func (CreateMsg) Path() string {
-	return pathCreateMsg
+	return "distribution/create"
 }
+
+var _ weave.Msg = (*DistributeMsg)(nil)
 
 func (msg *DistributeMsg) Validate() error {
 	if err := msg.Metadata.Validate(); err != nil {
@@ -45,8 +44,10 @@ func (msg *DistributeMsg) Validate() error {
 }
 
 func (DistributeMsg) Path() string {
-	return pathDistributeMsg
+	return "distribution/distribute"
 }
+
+var _ weave.Msg = (*ResetMsg)(nil)
 
 func (msg *ResetMsg) Validate() error {
 	if err := msg.Metadata.Validate(); err != nil {
@@ -59,5 +60,5 @@ func (msg *ResetMsg) Validate() error {
 }
 
 func (ResetMsg) Path() string {
-	return pathResetMsg
+	return "distribution/reset"
 }

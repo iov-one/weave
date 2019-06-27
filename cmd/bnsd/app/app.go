@@ -65,7 +65,7 @@ func Chain(authFn x.Authenticator, minFee coin.Coin) app.Decorators {
 
 // Router returns a default router, only dispatching to the
 // cash.SendMsg
-func Router(authFn x.Authenticator, issuer weave.Address) app.Router {
+func Router(authFn x.Authenticator, issuer weave.Address) *app.Router {
 	r := app.NewRouter()
 
 	// ctrl can be initialized with any implementation, but must be used

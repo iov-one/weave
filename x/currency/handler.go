@@ -16,7 +16,7 @@ func RegisterQuery(qr weave.QueryRouter) {
 func RegisterRoutes(r weave.Registry, auth x.Authenticator, issuer weave.Address) {
 	r = migration.SchemaMigratingRegistry("currency", r)
 
-	r.Handle(CreateMsg{}.Path(), newCreateTokenInfoHandler(auth, issuer))
+	r.Handle(&CreateMsg{}, newCreateTokenInfoHandler(auth, issuer))
 }
 
 func newCreateTokenInfoHandler(auth x.Authenticator, issuer weave.Address) weave.Handler {

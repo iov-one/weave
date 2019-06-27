@@ -43,7 +43,11 @@ type Ticker interface {
 // Registry is an interface to register your handler,
 // the setup side of a Router
 type Registry interface {
-	Handle(path string, h Handler)
+	// Handle assigns given handler to handle processing of every message
+	// of provided type.
+	// Using a message with an invalid path panics.
+	// Registering a handler for a message more than ones panics.
+	Handle(Msg, Handler)
 }
 
 // Options are the app options

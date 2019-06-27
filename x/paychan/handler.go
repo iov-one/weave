@@ -25,11 +25,11 @@ func RegisterRoutes(r weave.Registry, auth x.Authenticator, cash cash.Controller
 	r = migration.SchemaMigratingRegistry("paychan", r)
 
 	bucket := NewPaymentChannelBucket()
-	r.Handle(pathCreateMsg,
+	r.Handle(&CreateMsg{},
 		&createPaymentChannelHandler{auth: auth, bucket: bucket, cash: cash})
-	r.Handle(pathTransferMsg,
+	r.Handle(&TransferMsg{},
 		&transferPaymentChannelHandler{auth: auth, bucket: bucket, cash: cash})
-	r.Handle(pathCloseMsg,
+	r.Handle(&CloseMsg{},
 		&closePaymentChannelHandler{auth: auth, bucket: bucket, cash: cash})
 }
 

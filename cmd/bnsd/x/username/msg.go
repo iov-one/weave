@@ -1,6 +1,7 @@
 package username
 
 import (
+	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/migration"
 )
@@ -10,6 +11,8 @@ func init() {
 	migration.MustRegister(1, &TransferTokenMsg{}, migration.NoModification)
 	migration.MustRegister(1, &ChangeTokenTargetsMsg{}, migration.NoModification)
 }
+
+var _ weave.Msg = (*RegisterTokenMsg)(nil)
 
 func (m *RegisterTokenMsg) Validate() error {
 	if err := m.Metadata.Validate(); err != nil {
@@ -28,6 +31,8 @@ func (RegisterTokenMsg) Path() string {
 	return "username/register_token"
 }
 
+var _ weave.Msg = (*TransferTokenMsg)(nil)
+
 func (m *TransferTokenMsg) Validate() error {
 	if err := m.Metadata.Validate(); err != nil {
 		return errors.Wrap(err, "metadata")
@@ -44,6 +49,8 @@ func (m *TransferTokenMsg) Validate() error {
 func (TransferTokenMsg) Path() string {
 	return "username/transfer_token"
 }
+
+var _ weave.Msg = (*ChangeTokenTargetsMsg)(nil)
 
 func (m *ChangeTokenTargetsMsg) Validate() error {
 	if err := m.Metadata.Validate(); err != nil {
