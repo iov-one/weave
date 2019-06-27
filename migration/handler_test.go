@@ -42,11 +42,12 @@ func TestSchemaMigratingHandler(t *testing.T) {
 		Metadata: &weave.Metadata{Schema: 1},
 		Content:  "foo",
 	}
-	_, err = handler.Check(nil, db, &weavetest.Tx{Msg: msg1})
+	info := weavetest.BlockInfo("mychain-123", 999)
+	_, err = handler.Check(nil, info, db, &weavetest.Tx{Msg: msg1})
 	assert.Nil(t, err)
 	assert.Equal(t, msg1.Metadata.Schema, uint32(1))
 	assert.Equal(t, msg1.Content, "foo")
-	_, err = handler.Deliver(nil, db, &weavetest.Tx{Msg: msg1})
+	_, err = handler.Deliver(nil, info, db, &weavetest.Tx{Msg: msg1})
 	assert.Nil(t, err)
 	assert.Equal(t, msg1.Metadata.Schema, uint32(1))
 	assert.Equal(t, msg1.Content, "foo")
@@ -55,11 +56,11 @@ func TestSchemaMigratingHandler(t *testing.T) {
 	// the schema as well.
 	ensureSchemaVersion(t, db, thisPkgName, 2)
 
-	_, err = handler.Check(nil, db, &weavetest.Tx{Msg: msg1})
+	_, err = handler.Check(nil, info, db, &weavetest.Tx{Msg: msg1})
 	assert.Nil(t, err)
 	assert.Equal(t, msg1.Metadata.Schema, uint32(2))
 	assert.Equal(t, msg1.Content, "foo m2")
-	_, err = handler.Deliver(nil, db, &weavetest.Tx{Msg: msg1})
+	_, err = handler.Deliver(nil, info, db, &weavetest.Tx{Msg: msg1})
 	assert.Nil(t, err)
 	assert.Equal(t, msg1.Metadata.Schema, uint32(2))
 	assert.Equal(t, msg1.Content, "foo m2")
@@ -69,11 +70,11 @@ func TestSchemaMigratingHandler(t *testing.T) {
 		Metadata: &weave.Metadata{Schema: 2},
 		Content:  "bar",
 	}
-	_, err = handler.Check(nil, db, &weavetest.Tx{Msg: msg2})
+	_, err = handler.Check(nil, info, db, &weavetest.Tx{Msg: msg2})
 	assert.Nil(t, err)
 	assert.Equal(t, msg2.Metadata.Schema, uint32(2))
 	assert.Equal(t, msg2.Content, "bar")
-	_, err = handler.Deliver(nil, db, &weavetest.Tx{Msg: msg2})
+	_, err = handler.Deliver(nil, info, db, &weavetest.Tx{Msg: msg2})
 	assert.Nil(t, err)
 	assert.Equal(t, msg2.Metadata.Schema, uint32(2))
 	assert.Equal(t, msg2.Content, "bar")
@@ -217,7 +218,8 @@ func TestSchemaRoutingHandler(t *testing.T) {
 
 	for testName, tc := range cases {
 		t.Run(testName, func(t *testing.T) {
-			_, err := tc.Handler.Deliver(nil, nil, tc.Tx)
+			info := weavetest.BlockInfo("test-chain", 5)
+			_, err := tc.Handler.Deliver(nil, info, nil, tc.Tx)
 			if !tc.WantErr.Is(err) {
 				t.Fatalf("unexpected error result: %s", err)
 			}

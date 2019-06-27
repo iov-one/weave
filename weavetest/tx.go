@@ -2,8 +2,10 @@ package weavetest
 
 import (
 	"encoding/binary"
+	"time"
 
 	"github.com/iov-one/weave"
+	abci "github.com/tendermint/tendermint/abci/types"
 )
 
 // Tx represents a weave transaction.
@@ -68,4 +70,18 @@ func SequenceID(n uint64) []byte {
 	b := make([]byte, 8)
 	binary.BigEndian.PutUint64(b, n)
 	return b
+}
+
+// BlockInfo sets up a BlockInfo struct with a chainID and a height.
+// Uses given time if provided, otherwise time.Now()
+func BlockInfo(chainID string, height int64, ts ...time.Time) weave.BlockInfo {
+	t := time.Now()
+	if len(ts) > 0 {
+		t = ts[0]
+	}
+	res, err := weave.NewBlockInfo(abci.Header{Height: height, Time: t}, weave.CommitInfo{}, chainID, nil)
+	if err != nil {
+		panic(err)
+	}
+	return res
 }
