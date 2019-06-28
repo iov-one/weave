@@ -33,8 +33,8 @@ The above transaction is a proposal for executing the following messages:
 						"metadata": {
 							"schema": 1
 						},
-						"src": "14D1E75E6A278FE15AF51AF3FD7A3CDBBC40735C",
-						"dest": "81AA88837537FADD60A54F647402D3CBD87AB59B",
+						"source": "14D1E75E6A278FE15AF51AF3FD7A3CDBBC40735C",
+						"destination": "81AA88837537FADD60A54F647402D3CBD87AB59B",
 						"amount": {
 							"whole": 2,
 							"ticker": "IOV"
@@ -49,8 +49,8 @@ The above transaction is a proposal for executing the following messages:
 						"metadata": {
 							"schema": 1
 						},
-						"src": "6BEB7B9AE79E5C301B9C3B04E88E1EB622EBC707",
-						"dest": "E4053248CE6566868644B043E13292A7F65BFDE5",
+						"source": "6BEB7B9AE79E5C301B9C3B04E88E1EB622EBC707",
+						"destination": "E4053248CE6566868644B043E13292A7F65BFDE5",
 						"amount": {
 							"whole": 9,
 							"ticker": "DOGE"
@@ -65,8 +65,8 @@ The above transaction is a proposal for executing the following messages:
 						"metadata": {
 							"schema": 1
 						},
-						"src": "91F4C66A566FBFA5C636C5C9D909FD3F4B587966",
-						"dest": "8118ECF9F29485ED2C9CB5A62E2625E86D55583B",
+						"source": "91F4C66A566FBFA5C636C5C9D909FD3F4B587966",
+						"destination": "8118ECF9F29485ED2C9CB5A62E2625E86D55583B",
 						"amount": {
 							"whole": 7,
 							"ticker": "BTC"

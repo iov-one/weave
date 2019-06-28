@@ -11,11 +11,11 @@ message Swap {
   weave.Metadata metadata = 1;
   // sha256 hash of preimage, 32 bytes long
   bytes preimage_hash = 2;
-  // src is a sender address
-  bytes src = 3 ;
-  // recipient is an address of recipient
-  bytes recipient = 5 ;
-  // If unreleased before timeout, swap will return coins to src.
+  // source is a sender address
+  bytes source = 3 ;
+  // destination is an address of destination
+  bytes destination = 5 ;
+  // If unreleased before timeout, swap will return coins to source.
   // Timeout represents wall clock time as read from the block header. Timeout
   // is represented using POSIX time format.
   // Expiration time is inclusive meaning that the swap expires as soon as
@@ -28,10 +28,10 @@ message Swap {
 // CreateMsg creates a Swap with some coins.
 message CreateMsg {
   weave.Metadata metadata = 1;
-  bytes src = 2 ;
+  bytes source = 2 ;
   // sha256 hash of preimage, 32 bytes long
   bytes preimage_hash = 3;
-  bytes recipient = 4 ;
+  bytes destination = 4 ;
   // amount may contain multiple token types
   repeated coin.Coin amount = 5;
   // Timeout represents wall clock time.
@@ -40,7 +40,7 @@ message CreateMsg {
   string memo = 7;
 }
 
-// ReleaseMsg releases the tokens to the recipient.
+// ReleaseMsg releases the tokens to the destination.
 // This operation is authorized by preimage, which is sent raw and then hashed on the backend.
 message ReleaseMsg {
   weave.Metadata metadata = 1;
@@ -51,7 +51,7 @@ message ReleaseMsg {
   bytes preimage = 3;
 }
 
-// ReturnSwapMsg releases the tokens to the src.
+// ReturnSwapMsg releases the tokens to the source.
 // This operation only works if the Swap is expired.
 message ReturnSwapMsg {
   weave.Metadata metadata = 1;

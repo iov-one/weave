@@ -165,9 +165,9 @@ func BenchmarkBNSDSendToken(b *testing.B) {
 					Fees: fees,
 					Sum: &Tx_CashSendMsg{
 						CashSendMsg: &cash.SendMsg{
-							Src:    alice,
-							Dest:   benny,
-							Amount: coin.NewCoinp(0, 100, "IOV"),
+							Source:      alice,
+							Destination: benny,
+							Amount:      coin.NewCoinp(0, 100, "IOV"),
 						},
 					},
 				}

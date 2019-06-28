@@ -467,11 +467,11 @@
                 </li>
               
                 <li>
-                  <a href="#distribution.DistributeMsg"><span class="badge">M</span>DistributeMsg</a>
+                  <a href="#distribution.Destination"><span class="badge">M</span>Destination</a>
                 </li>
               
                 <li>
-                  <a href="#distribution.Recipient"><span class="badge">M</span>Recipient</a>
+                  <a href="#distribution.DistributeMsg"><span class="badge">M</span>DistributeMsg</a>
                 </li>
               
                 <li>
@@ -2105,7 +2105,7 @@ For example, for extension `x/myext` package value is `myext` </p></td>
                 </tr>
               
                 <tr>
-                  <td>src</td>
+                  <td>source</td>
                   <td><a href="#bytes">bytes</a></td>
                   <td></td>
                   <td><p> </p></td>
@@ -2119,7 +2119,7 @@ For example, for extension `x/myext` package value is `myext` </p></td>
                 </tr>
               
                 <tr>
-                  <td>recipient</td>
+                  <td>destination</td>
                   <td><a href="#bytes">bytes</a></td>
                   <td></td>
                   <td><p> </p></td>
@@ -2153,7 +2153,7 @@ For example, for extension `x/myext` package value is `myext` </p></td>
         
       
         <h3 id="aswap.ReleaseMsg">ReleaseMsg</h3>
-        <p>ReleaseMsg releases the tokens to the recipient.</p><p>This operation is authorized by preimage, which is sent raw and then hashed on the backend.</p>
+        <p>ReleaseMsg releases the tokens to the destination.</p><p>This operation is authorized by preimage, which is sent raw and then hashed on the backend.</p>
 
         
           <table class="field-table">
@@ -2191,7 +2191,7 @@ must be exactly 32 bytes long </p></td>
         
       
         <h3 id="aswap.ReturnSwapMsg">ReturnSwapMsg</h3>
-        <p>ReturnSwapMsg releases the tokens to the src.</p><p>This operation only works if the Swap is expired.</p>
+        <p>ReturnSwapMsg releases the tokens to the source.</p><p>This operation only works if the Swap is expired.</p>
 
         
           <table class="field-table">
@@ -2245,24 +2245,24 @@ must be exactly 32 bytes long </p></td>
                 </tr>
               
                 <tr>
-                  <td>src</td>
+                  <td>source</td>
                   <td><a href="#bytes">bytes</a></td>
                   <td></td>
-                  <td><p>src is a sender address </p></td>
+                  <td><p>source is a sender address </p></td>
                 </tr>
               
                 <tr>
-                  <td>recipient</td>
+                  <td>destination</td>
                   <td><a href="#bytes">bytes</a></td>
                   <td></td>
-                  <td><p>recipient is an address of recipient </p></td>
+                  <td><p>destination is an address of destination </p></td>
                 </tr>
               
                 <tr>
                   <td>timeout</td>
                   <td><a href="#int64">int64</a></td>
                   <td></td>
-                  <td><p>If unreleased before timeout, swap will return coins to src.
+                  <td><p>If unreleased before timeout, swap will return coins to source.
 Timeout represents wall clock time as read from the block header. Timeout
 is represented using POSIX time format.
 Expiration time is inclusive meaning that the swap expires as soon as
@@ -2429,14 +2429,14 @@ needed to make use of gconf.NewUpdateConfigurationHandler </p></td>
                 </tr>
               
                 <tr>
-                  <td>src</td>
+                  <td>source</td>
                   <td><a href="#bytes">bytes</a></td>
                   <td></td>
                   <td><p> </p></td>
                 </tr>
               
                 <tr>
-                  <td>dest</td>
+                  <td>destination</td>
                   <td><a href="#bytes">bytes</a></td>
                   <td></td>
                   <td><p> </p></td>
@@ -2651,10 +2651,10 @@ While not enforced it is best to use a multisig contract here. </p></td>
                 </tr>
               
                 <tr>
-                  <td>recipients</td>
-                  <td><a href="#distribution.Recipient">Recipient</a></td>
+                  <td>destinations</td>
+                  <td><a href="#distribution.Destination">Destination</a></td>
                   <td>repeated</td>
-                  <td><p>Recipients holds any number of addresses that the collected revenue is
+                  <td><p>Destinations holds any number of addresses that the collected revenue is
 distributed to. Must be at least one. </p></td>
                 </tr>
               
@@ -2664,38 +2664,7 @@ distributed to. Must be at least one. </p></td>
 
         
       
-        <h3 id="distribution.DistributeMsg">DistributeMsg</h3>
-        <p>DistributeMsg is a request to distribute all funds collected within a single</p><p>revenue instance. Revenue is distributed between recipients. Request must be</p><p>signed using admin key.</p>
-
-        
-          <table class="field-table">
-            <thead>
-              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
-            </thead>
-            <tbody>
-              
-                <tr>
-                  <td>metadata</td>
-                  <td><a href="#weave.Metadata">weave.Metadata</a></td>
-                  <td></td>
-                  <td><p> </p></td>
-                </tr>
-              
-                <tr>
-                  <td>revenue_id</td>
-                  <td><a href="#bytes">bytes</a></td>
-                  <td></td>
-                  <td><p>Revenue ID reference an ID of a revenue instance that the collected fees
-should be distributed between recipients. </p></td>
-                </tr>
-              
-            </tbody>
-          </table>
-        
-
-        
-      
-        <h3 id="distribution.Recipient">Recipient</h3>
+        <h3 id="distribution.Destination">Destination</h3>
         <p></p>
 
         
@@ -2719,9 +2688,9 @@ of the validators. </p></td>
                   <td>weight</td>
                   <td><a href="#int32">int32</a></td>
                   <td></td>
-                  <td><p>Weight defines what part of the total revenue goes to this recipient.
-Each recipient receives part of the total revenue amount proportional to
-the weight. For example, if there are two recipients with weights 1 and 2
+                  <td><p>Weight defines what part of the total revenue goes to this destination.
+Each destination receives part of the total revenue amount proportional to
+the weight. For example, if there are two destinations with weights 1 and 2
 accordingly, distribution will be 1/3 to the first address and 2/3 to the
 second one. </p></td>
                 </tr>
@@ -2732,8 +2701,39 @@ second one. </p></td>
 
         
       
+        <h3 id="distribution.DistributeMsg">DistributeMsg</h3>
+        <p>DistributeMsg is a request to distribute all funds collected within a single</p><p>revenue instance. Revenue is distributed between destinations. Request must be</p><p>signed using admin key.</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>metadata</td>
+                  <td><a href="#weave.Metadata">weave.Metadata</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>revenue_id</td>
+                  <td><a href="#bytes">bytes</a></td>
+                  <td></td>
+                  <td><p>Revenue ID reference an ID of a revenue instance that the collected fees
+should be distributed between destinations. </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+        
+
+        
+      
         <h3 id="distribution.ResetMsg">ResetMsg</h3>
-        <p>ResetMsg change the configuration of a revenue instance.</p><p>To assure recipients that they will receive money, every revenue update is</p><p>forcing funds distribution. Before applying any change all funds stored by</p><p>the revenue account are distributed using old configuration. Only when the</p><p>collected revenue amount is equal to zero the change is applied.</p>
+        <p>ResetMsg change the configuration of a revenue instance.</p><p>To assure destinations that they will receive money, every revenue update is</p><p>forcing funds distribution. Before applying any change all funds stored by</p><p>the revenue account are distributed using old configuration. Only when the</p><p>collected revenue amount is equal to zero the change is applied.</p>
 
         
           <table class="field-table">
@@ -2757,10 +2757,10 @@ second one. </p></td>
                 </tr>
               
                 <tr>
-                  <td>recipients</td>
-                  <td><a href="#distribution.Recipient">Recipient</a></td>
+                  <td>destinations</td>
+                  <td><a href="#distribution.Destination">Destination</a></td>
                   <td>repeated</td>
-                  <td><p>Recipients holds any number of addresses that the collected revenue is
+                  <td><p>Destinations holds any number of addresses that the collected revenue is
 distributed to. Must be at least one. </p></td>
                 </tr>
               
@@ -2797,10 +2797,10 @@ While not enforced it is best to use a multisig contract here. </p></td>
                 </tr>
               
                 <tr>
-                  <td>recipients</td>
-                  <td><a href="#distribution.Recipient">Recipient</a></td>
+                  <td>destinations</td>
+                  <td><a href="#distribution.Destination">Destination</a></td>
                   <td>repeated</td>
-                  <td><p>Recipients holds any number of addresses that the collected revenue is
+                  <td><p>Destinations holds any number of addresses that the collected revenue is
 distributed to. Must be at least one. </p></td>
                 </tr>
               
@@ -2825,7 +2825,7 @@ distributed to. Must be at least one. </p></td>
 
       
         <h3 id="escrow.CreateMsg">CreateMsg</h3>
-        <p>CreateMsg is a request to create an Escrow with some tokens.</p><p>If sender is not defined, it defaults to the first signer</p><p>The rest must be defined</p>
+        <p>CreateMsg is a request to create an Escrow with some tokens.</p><p>If source is not defined, it defaults to the first signer</p><p>The rest must be defined</p>
 
         
           <table class="field-table">
@@ -2842,7 +2842,7 @@ distributed to. Must be at least one. </p></td>
                 </tr>
               
                 <tr>
-                  <td>src</td>
+                  <td>source</td>
                   <td><a href="#bytes">bytes</a></td>
                   <td></td>
                   <td><p> </p></td>
@@ -2856,7 +2856,7 @@ distributed to. Must be at least one. </p></td>
                 </tr>
               
                 <tr>
-                  <td>recipient</td>
+                  <td>destination</td>
                   <td><a href="#bytes">bytes</a></td>
                   <td></td>
                   <td><p> </p></td>
@@ -2890,7 +2890,7 @@ distributed to. Must be at least one. </p></td>
         
       
         <h3 id="escrow.Escrow">Escrow</h3>
-        <p>Escrow holds some coins.</p><p>The arbiter or sender can release them to the recipient.</p><p>The recipient can return them to the sender.</p><p>Upon timeout, they will be returned to the sender.</p>
+        <p>Escrow holds some coins.</p><p>The arbiter or source can release them to the destination.</p><p>The destination can return them to the source.</p><p>Upon timeout, they will be returned to the source.</p>
 
         
           <table class="field-table">
@@ -2907,7 +2907,7 @@ distributed to. Must be at least one. </p></td>
                 </tr>
               
                 <tr>
-                  <td>sender</td>
+                  <td>source</td>
                   <td><a href="#bytes">bytes</a></td>
                   <td></td>
                   <td><p> </p></td>
@@ -2921,7 +2921,7 @@ distributed to. Must be at least one. </p></td>
                 </tr>
               
                 <tr>
-                  <td>recipient</td>
+                  <td>destination</td>
                   <td><a href="#bytes">bytes</a></td>
                   <td></td>
                   <td><p> </p></td>
@@ -2931,7 +2931,7 @@ distributed to. Must be at least one. </p></td>
                   <td>timeout</td>
                   <td><a href="#int64">int64</a></td>
                   <td></td>
-                  <td><p>If unreleased before timeout, escrow will return to sender.
+                  <td><p>If unreleased before timeout, escrow will return to source.
 Timeout represents wall clock time as read from the block header. Timeout
 is represented using POSIX time format.
 Expiration time is inclusive meaning that the escrow expires as soon as
@@ -2954,7 +2954,7 @@ expired: [timeout, infinity) </p></td>
         
       
         <h3 id="escrow.ReleaseMsg">ReleaseMsg</h3>
-        <p>ReleaseMsg releases the content to the recipient.</p><p>Must be authorized by sender or arbiter.</p><p>If amount not provided, defaults to entire escrow,</p><p>May be a subset of the current balance.</p>
+        <p>ReleaseMsg releases the content to the destination.</p><p>Must be authorized by source or arbiter.</p><p>If amount not provided, defaults to entire escrow,</p><p>May be a subset of the current balance.</p>
 
         
           <table class="field-table">
@@ -2991,7 +2991,7 @@ expired: [timeout, infinity) </p></td>
         
       
         <h3 id="escrow.ReturnMsg">ReturnMsg</h3>
-        <p>ReturnMsg returns the content to the sender.</p><p>Must be authorized by the sender or an expired timeout</p>
+        <p>ReturnMsg returns the content to the source.</p><p>Must be authorized by the source or an expired timeout</p>
 
         
           <table class="field-table">
@@ -3021,7 +3021,7 @@ expired: [timeout, infinity) </p></td>
         
       
         <h3 id="escrow.UpdatePartiesMsg">UpdatePartiesMsg</h3>
-        <p>UpdatePartiesMsg changes any of the parties of the escrow:</p><p>sender, arbiter, recipient. This must be authorized by the current</p><p>holder of that position (eg. only sender can update sender).</p><p>Represents delegating responsibility</p>
+        <p>UpdatePartiesMsg changes any of the parties of the escrow:</p><p>source, arbiter, destination. This must be authorized by the current</p><p>holder of that position (eg. only source can update source).</p><p>Represents delegating responsibility</p>
 
         
           <table class="field-table">
@@ -3045,7 +3045,7 @@ expired: [timeout, infinity) </p></td>
                 </tr>
               
                 <tr>
-                  <td>sender</td>
+                  <td>source</td>
                   <td><a href="#bytes">bytes</a></td>
                   <td></td>
                   <td><p> </p></td>
@@ -3059,7 +3059,7 @@ expired: [timeout, infinity) </p></td>
                 </tr>
               
                 <tr>
-                  <td>recipient</td>
+                  <td>destination</td>
                   <td><a href="#bytes">bytes</a></td>
                   <td></td>
                   <td><p> </p></td>
@@ -4276,7 +4276,7 @@ computed as the sum of weights of all participating signatures. </p></td>
 
       
         <h3 id="paychan.CloseMsg">CloseMsg</h3>
-        <p>CloseMsg close a payment channel and release remaining founds</p><p>by sending them back to the sender account.</p><p>Recipient account can close channel at any moment.</p><p>Sender can close channel only if the timeout was reached.</p>
+        <p>CloseMsg close a payment channel and release remaining founds</p><p>by sending them back to the source account.</p><p>Destination account can close channel at any moment.</p><p>Source can close channel only if the timeout was reached.</p>
 
         
           <table class="field-table">
@@ -4313,7 +4313,7 @@ computed as the sum of weights of all participating signatures. </p></td>
         
       
         <h3 id="paychan.CreateMsg">CreateMsg</h3>
-        <p>CreateMsg creates a new payment channel that can be used to</p><p>transfer value between two parties.</p><p>Total amount will be taken from the senders account and allocated for user</p><p>in the transactions done via created payment channel.</p>
+        <p>CreateMsg creates a new payment channel that can be used to</p><p>transfer value between two parties.</p><p>Total amount will be taken from the sources account and allocated for user</p><p>in the transactions done via created payment channel.</p>
 
         
           <table class="field-table">
@@ -4330,24 +4330,24 @@ computed as the sum of weights of all participating signatures. </p></td>
                 </tr>
               
                 <tr>
-                  <td>src</td>
+                  <td>source</td>
                   <td><a href="#bytes">bytes</a></td>
                   <td></td>
-                  <td><p>Sender address (weave.Address). </p></td>
+                  <td><p>Source address (weave.Address). </p></td>
                 </tr>
               
                 <tr>
-                  <td>sender_pubkey</td>
+                  <td>source_pubkey</td>
                   <td><a href="#crypto.PublicKey">crypto.PublicKey</a></td>
                   <td></td>
-                  <td><p>Sender public key is for validating transfer message signature. </p></td>
+                  <td><p>Source public key is for validating transfer message signature. </p></td>
                 </tr>
               
                 <tr>
-                  <td>recipient</td>
+                  <td>destination</td>
                   <td><a href="#bytes">bytes</a></td>
                   <td></td>
-                  <td><p>Recipient address  (weave.Address). </p></td>
+                  <td><p>Destination address  (weave.Address). </p></td>
                 </tr>
               
                 <tr>
@@ -4378,7 +4378,7 @@ computed as the sum of weights of all participating signatures. </p></td>
         
       
         <h3 id="paychan.Payment">Payment</h3>
-        <p>Payment is created by the sender. Sender should give the message to the</p><p>recipient, so that it can be redeemed at any time.</p><p>Each Payment should be created with amount greater than the previous one.</p>
+        <p>Payment is created by the source. Source should give the message to the</p><p>destination, so that it can be redeemed at any time.</p><p>Each Payment should be created with amount greater than the previous one.</p>
 
         
           <table class="field-table">
@@ -4439,26 +4439,26 @@ computed as the sum of weights of all participating signatures. </p></td>
                 </tr>
               
                 <tr>
-                  <td>src</td>
+                  <td>source</td>
                   <td><a href="#bytes">bytes</a></td>
                   <td></td>
-                  <td><p>Sender is the source that the founds are allocated from. </p></td>
+                  <td><p>Source is the source that the founds are allocated from. </p></td>
                 </tr>
               
                 <tr>
-                  <td>sender_pubkey</td>
+                  <td>source_pubkey</td>
                   <td><a href="#crypto.PublicKey">crypto.PublicKey</a></td>
                   <td></td>
-                  <td><p>Sender public key is a key that must be used to verify signature of
-transfer message. Sender creates signed transfer messages and gives them
-to the recipient. Signature prevents from altering transfer message. </p></td>
+                  <td><p>Source public key is a key that must be used to verify signature of
+transfer message. Source creates signed transfer messages and gives them
+to the destination. Signature prevents from altering transfer message. </p></td>
                 </tr>
               
                 <tr>
-                  <td>recipient</td>
+                  <td>destination</td>
                   <td><a href="#bytes">bytes</a></td>
                   <td></td>
-                  <td><p>Recipient is the party that receives payments through this channel </p></td>
+                  <td><p>Destination is the party that receives payments through this channel </p></td>
                 </tr>
               
                 <tr>
@@ -4503,7 +4503,7 @@ expired: [timeout, infinity) </p></td>
         
       
         <h3 id="paychan.TransferMsg">TransferMsg</h3>
-        <p>TransferMsg binds Payment with a signature created using</p><p>senders private key.</p><p>Signature is there to ensure that payment message was not altered.</p>
+        <p>TransferMsg binds Payment with a signature created using</p><p>sources private key.</p><p>Signature is there to ensure that payment message was not altered.</p>
 
         
           <table class="field-table">

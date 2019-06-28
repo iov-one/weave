@@ -107,8 +107,8 @@ func TestCreateHandler(t *testing.T) {
 	for name, spec := range cases {
 		createMsg := &aswap.CreateMsg{
 			Metadata:     &weave.Metadata{Schema: 1},
-			Src:          alice.Address(),
-			Recipient:    bob.Address(),
+			Source:       alice.Address(),
+			Destination:  bob.Address(),
 			PreimageHash: preimageHash,
 			Amount:       []*coin.Coin{&swapAmount},
 			Timeout:      weave.AsUnixTime(time.Now()),
@@ -214,8 +214,8 @@ func TestReleaseHandler(t *testing.T) {
 	for name, spec := range cases {
 		createMsg := &aswap.CreateMsg{
 			Metadata:     &weave.Metadata{Schema: 1},
-			Src:          alice.Address(),
-			Recipient:    bob.Address(),
+			Source:       alice.Address(),
+			Destination:  bob.Address(),
 			PreimageHash: preimageHash,
 			Amount:       []*coin.Coin{&swapAmount},
 			Timeout:      weave.AsUnixTime(time.Now().Add(time.Hour)),
@@ -321,8 +321,8 @@ func TestReturnHandler(t *testing.T) {
 	for name, spec := range cases {
 		createMsg := &aswap.CreateMsg{
 			Metadata:     &weave.Metadata{Schema: 1},
-			Src:          alice.Address(),
-			Recipient:    bob.Address(),
+			Source:       alice.Address(),
+			Destination:  bob.Address(),
 			PreimageHash: preimageHash,
 			Amount:       []*coin.Coin{&swapAmount},
 			Timeout:      weave.AsUnixTime(blockNow.Add(time.Hour)),

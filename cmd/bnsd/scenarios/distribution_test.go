@@ -23,7 +23,7 @@ func TestRevenueDistribution(t *testing.T) {
 	admin := client.GenPrivateKey()
 	bnsdtest.SeedAccountWithTokens(t, env, admin.PublicKey().Address())
 
-	recipients := []weave.Address{
+	destinations := []weave.Address{
 		weavetest.NewKey().PublicKey().Address(),
 		weavetest.NewKey().PublicKey().Address(),
 	}
@@ -32,9 +32,9 @@ func TestRevenueDistribution(t *testing.T) {
 			DistributionCreateMsg: &distribution.CreateMsg{
 				Metadata: &weave.Metadata{Schema: 1},
 				Admin:    admin.PublicKey().Address(),
-				Recipients: []*distribution.Recipient{
-					{Address: recipients[0], Weight: 1},
-					{Address: recipients[1], Weight: 2},
+				Destinations: []*distribution.Destination{
+					{Address: destinations[0], Weight: 1},
+					{Address: destinations[1], Weight: 2},
 				},
 			},
 		},
@@ -95,8 +95,8 @@ func TestRevenueDistribution(t *testing.T) {
 			DistributionResetMsg: &distribution.ResetMsg{
 				Metadata:  &weave.Metadata{Schema: 1},
 				RevenueID: revenueID,
-				Recipients: []*distribution.Recipient{
-					{Address: recipients[0], Weight: 321},
+				Destinations: []*distribution.Destination{
+					{Address: destinations[0], Weight: 321},
 				},
 			},
 		},
@@ -115,11 +115,11 @@ func TestRevenueDistribution(t *testing.T) {
 
 	// Revenue stream received funds from alice and its distribution was
 	// requested. Funds should be split proportionally to their weights
-	// between the recipients and moved to their accounts.
+	// between the destinations and moved to their accounts.
 	// 7 IOV cents should be split between parties.
 	assertWalletCoins(t, env, revenueAddress, 1)
-	assertWalletCoins(t, env, recipients[0], 2)
-	assertWalletCoins(t, env, recipients[1], 4)
+	assertWalletCoins(t, env, destinations[0], 2)
+	assertWalletCoins(t, env, destinations[1], 4)
 
 	// Send more coins to the revenue account.
 	sendCoinsTx = client.BuildSendTx(
@@ -165,8 +165,8 @@ func TestRevenueDistribution(t *testing.T) {
 	}
 
 	assertWalletCoins(t, env, revenueAddress, 0)
-	assertWalletCoins(t, env, recipients[0], 14)
-	assertWalletCoins(t, env, recipients[1], 4)
+	assertWalletCoins(t, env, destinations[0], 14)
+	assertWalletCoins(t, env, destinations[1], 4)
 }
 
 func assertWalletCoins(t *testing.T, env *bnsdtest.EnvConf, account weave.Address, wantIOVCents int64) {
@@ -174,7 +174,7 @@ func assertWalletCoins(t *testing.T, env *bnsdtest.EnvConf, account weave.Addres
 
 	w, err := env.Client.GetWallet(account)
 	if err != nil {
-		t.Fatalf("cannot get first recipients wallet: %s", err)
+		t.Fatalf("cannot get first destinations wallet: %s", err)
 	}
 	if w == nil {
 		t.Fatal("no wallet response") // ?!

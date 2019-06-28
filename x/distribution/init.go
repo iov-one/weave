@@ -16,13 +16,13 @@ var _ weave.Initializer = (*Initializer)(nil)
 // FromGenesis will parse initial account info from genesis and save it to the
 // database
 func (*Initializer) FromGenesis(opts weave.Options, params weave.GenesisParams, kv weave.KVStore) error {
-	type recipient struct {
+	type destination struct {
 		Address weave.Address `json:"address"`
 		Weight  int32         `json:"weight"`
 	}
 	var revenues []struct {
-		Admin      weave.Address `json:"admin"`
-		Recipients []recipient   `json:"recipients"`
+		Admin        weave.Address `json:"admin"`
+		Destinations []destination `json:"destinations"`
 	}
 	if err := opts.ReadOptions("distribution", &revenues); err != nil {
 		return errors.Wrap(err, "cannot load distribution")
@@ -30,17 +30,17 @@ func (*Initializer) FromGenesis(opts weave.Options, params weave.GenesisParams, 
 
 	bucket := NewRevenueBucket()
 	for i, r := range revenues {
-		recipients := make([]*Recipient, 0, len(r.Recipients))
-		for _, rc := range r.Recipients {
-			recipients = append(recipients, &Recipient{
+		destinations := make([]*Destination, 0, len(r.Destinations))
+		for _, rc := range r.Destinations {
+			destinations = append(destinations, &Destination{
 				Address: rc.Address,
 				Weight:  rc.Weight,
 			})
 		}
 		revenue := Revenue{
-			Metadata:   &weave.Metadata{Schema: 1},
-			Admin:      r.Admin,
-			Recipients: recipients,
+			Metadata:     &weave.Metadata{Schema: 1},
+			Admin:        r.Admin,
+			Destinations: destinations,
 		}
 		if err := revenue.Validate(); err != nil {
 			return errors.Wrap(err, fmt.Sprintf("revenue #%d is invalid", i))

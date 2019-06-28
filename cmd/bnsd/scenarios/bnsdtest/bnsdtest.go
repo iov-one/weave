@@ -229,16 +229,16 @@ func initGenesis(t testing.TB, env *EnvConf, filename string) {
 		"distribution": []interface{}{
 			dict{
 				"admin": "seq:multisig/usage/1",
-				"recipients": []interface{}{
+				"destinations": []interface{}{
 					dict{"weight": 1, "address": env.Alice.PublicKey().Address()},
 				},
 			},
 		},
 		"escrow": []interface{}{
 			dict{
-				"sender":    "0000000000000000000000000000000000000000",
-				"arbiter":   "seq:multisig/usage/1",
-				"recipient": "seq:dist/revenue/1",
+				"source":      "0000000000000000000000000000000000000000",
+				"arbiter":     "seq:multisig/usage/1",
+				"destination": "seq:dist/revenue/1",
 				"amount": []interface{}{
 					"1000000 IOV",
 				},

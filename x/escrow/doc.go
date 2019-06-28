@@ -8,10 +8,10 @@ Package escrow implements an Escrow.
 > escrow account which is only released when all of the terms of an agreement are
 > met as overseen by the escrow company.
 
-Escrow holds some coins.
-The arbiter or sender can release them to the recipient.
-The recipient can return them to the sender.
-Upon timeout, they will be returned to the sender.
+Escrow holds funds.
+The arbiter or source (sender) can release them to the recipient.
+The recipient (destination) can return them to the sender (source).
+Upon timeout, they will be returned to the sender (source).
 
 
 */

@@ -17,11 +17,11 @@ type Initializer struct {
 // FromGenesis will parse initial escrow  info from genesis and save it in the database.
 func (i *Initializer) FromGenesis(opts weave.Options, params weave.GenesisParams, kv weave.KVStore) error {
 	var escrows []struct {
-		Sender    weave.Address  `json:"sender"`
-		Arbiter   weave.Address  `json:"arbiter"`
-		Recipient weave.Address  `json:"recipient"`
-		Timeout   weave.UnixTime `json:"timeout"`
-		Amount    []*coin.Coin   `json:"amount"`
+		Source      weave.Address  `json:"source"`
+		Arbiter     weave.Address  `json:"arbiter"`
+		Destination weave.Address  `json:"destination"`
+		Timeout     weave.UnixTime `json:"timeout"`
+		Amount      []*coin.Coin   `json:"amount"`
 	}
 
 	if err := opts.ReadOptions("escrow", &escrows); err != nil {
@@ -30,11 +30,11 @@ func (i *Initializer) FromGenesis(opts weave.Options, params weave.GenesisParams
 	bucket := NewBucket()
 	for j, e := range escrows {
 		escr := Escrow{
-			Metadata:  &weave.Metadata{Schema: 1},
-			Sender:    e.Sender,
-			Arbiter:   e.Arbiter,
-			Recipient: e.Recipient,
-			Timeout:   e.Timeout,
+			Metadata:    &weave.Metadata{Schema: 1},
+			Source:      e.Source,
+			Arbiter:     e.Arbiter,
+			Destination: e.Destination,
+			Timeout:     e.Timeout,
 		}
 
 		if err := escr.Validate(); err != nil {

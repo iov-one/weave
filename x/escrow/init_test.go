@@ -31,8 +31,8 @@ func TestGenesisKey(t *testing.T) {
         }
       ],
       "arbiter": "0000000000000000000000000000000000000001",
-      "recipient": "C30A2424104F542576EF01FECA2FF558F5EAA61A",
-      "sender": "0000000000000000000000000000000000000000",
+      "destination": "C30A2424104F542576EF01FECA2FF558F5EAA61A",
+      "source": "0000000000000000000000000000000000000000",
       "timeout": "2034-11-10T23:00:00Z"
     }
   ]}`
@@ -56,8 +56,8 @@ func TestGenesisKey(t *testing.T) {
 	e, ok := obj.Value().(*Escrow)
 	require.True(t, ok)
 
-	assert.Equal(t, "c30a2424104f542576ef01feca2ff558f5eaa61a", hex.EncodeToString(e.Recipient))
-	assert.Equal(t, "0000000000000000000000000000000000000000", hex.EncodeToString(e.Sender))
+	assert.Equal(t, "c30a2424104f542576ef01feca2ff558f5eaa61a", hex.EncodeToString(e.Destination))
+	assert.Equal(t, "0000000000000000000000000000000000000000", hex.EncodeToString(e.Source))
 	assert.Equal(t, "0000000000000000000000000000000000000001", hex.EncodeToString(e.Arbiter))
 
 	balance, err := cashCtrl.Balance(db, Condition(obj.Key()).Address())

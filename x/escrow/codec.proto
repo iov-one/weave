@@ -7,15 +7,15 @@ import "coin/codec.proto";
 import "gogoproto/gogo.proto";
 
 // Escrow holds some coins.
-// The arbiter or sender can release them to the recipient.
-// The recipient can return them to the sender.
-// Upon timeout, they will be returned to the sender.
+// The arbiter or source can release them to the destination.
+// The destination can return them to the source.
+// Upon timeout, they will be returned to the source.
 message Escrow {
   weave.Metadata metadata = 1;
-  bytes sender = 2 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
+  bytes source = 2 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
   bytes arbiter = 3 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
-  bytes recipient = 4 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
-  // If unreleased before timeout, escrow will return to sender.
+  bytes destination = 4 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
+  // If unreleased before timeout, escrow will return to source.
   // Timeout represents wall clock time as read from the block header. Timeout
   // is represented using POSIX time format.
   // Expiration time is inclusive meaning that the escrow expires as soon as
@@ -28,13 +28,13 @@ message Escrow {
 }
 
 // CreateMsg is a request to create an Escrow with some tokens.
-// If sender is not defined, it defaults to the first signer
+// If source is not defined, it defaults to the first signer
 // The rest must be defined
 message CreateMsg {
   weave.Metadata metadata = 1;
-  bytes src = 2 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
+  bytes source = 2 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
   bytes arbiter = 3 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
-  bytes recipient = 4 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
+  bytes destination = 4 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
   // amount may contain multiple token types
   repeated coin.Coin amount = 5;
   // Timeout represents wall clock time.
@@ -43,8 +43,8 @@ message CreateMsg {
   string memo = 7;
 }
 
-// ReleaseMsg releases the content to the recipient.
-// Must be authorized by sender or arbiter.
+// ReleaseMsg releases the content to the destination.
+// Must be authorized by source or arbiter.
 // If amount not provided, defaults to entire escrow,
 // May be a subset of the current balance.
 message ReleaseMsg {
@@ -53,22 +53,22 @@ message ReleaseMsg {
   repeated coin.Coin amount = 3;
 }
 
-// ReturnMsg returns the content to the sender.
-// Must be authorized by the sender or an expired timeout
+// ReturnMsg returns the content to the source.
+// Must be authorized by the source or an expired timeout
 message ReturnMsg {
   weave.Metadata metadata = 1;
   bytes escrow_id = 2;
 }
 
 // UpdatePartiesMsg changes any of the parties of the escrow:
-// sender, arbiter, recipient. This must be authorized by the current
-// holder of that position (eg. only sender can update sender).
+// source, arbiter, destination. This must be authorized by the current
+// holder of that position (eg. only source can update source).
 //
 // Represents delegating responsibility
 message UpdatePartiesMsg {
   weave.Metadata metadata = 1;
   bytes escrow_id = 2;
-  bytes sender = 3 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
+  bytes source = 3 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
   bytes arbiter = 4 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
-  bytes recipient = 5 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
+  bytes destination = 5 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
 }

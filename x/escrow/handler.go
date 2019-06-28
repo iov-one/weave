@@ -58,7 +58,7 @@ func (h CreateEscrowHandler) Check(ctx weave.Context, db weave.KVStore, tx weave
 	return res, nil
 }
 
-// Deliver moves the tokens from sender to the escrow account if
+// Deliver moves the tokens from source to the escrow account if
 // all preconditions are met.
 func (h CreateEscrowHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	msg, err := h.validate(ctx, db, tx)
@@ -66,20 +66,20 @@ func (h CreateEscrowHandler) Deliver(ctx weave.Context, db weave.KVStore, tx wea
 		return nil, err
 	}
 
-	// apply a default for sender
-	sender := msg.Src
-	if sender == nil {
-		sender = x.MainSigner(ctx, h.auth).Address()
+	// apply a default for source
+	source := msg.Source
+	if source == nil {
+		source = x.MainSigner(ctx, h.auth).Address()
 	}
 
 	// create an escrow object
 	escrow := &Escrow{
-		Metadata:  &weave.Metadata{},
-		Sender:    sender,
-		Arbiter:   msg.Arbiter,
-		Recipient: msg.Recipient,
-		Timeout:   msg.Timeout,
-		Memo:      msg.Memo,
+		Metadata:    &weave.Metadata{},
+		Source:      source,
+		Arbiter:     msg.Arbiter,
+		Destination: msg.Destination,
+		Timeout:     msg.Timeout,
+		Memo:        msg.Memo,
 	}
 	obj, err := h.bucket.Build(db, escrow)
 	if err != nil {
@@ -88,8 +88,8 @@ func (h CreateEscrowHandler) Deliver(ctx weave.Context, db weave.KVStore, tx wea
 
 	// deposit amounts
 	escrowAddr := Condition(obj.Key()).Address()
-	senderAddr := weave.Address(escrow.Sender)
-	if err := cash.MoveCoins(db, h.bank, senderAddr, escrowAddr, msg.Amount); err != nil {
+	sourceAddr := weave.Address(escrow.Source)
+	if err := cash.MoveCoins(db, h.bank, sourceAddr, escrowAddr, msg.Amount); err != nil {
 		return nil, err
 	}
 	// return id of escrow to use in future calls
@@ -110,9 +110,9 @@ func (h CreateEscrowHandler) validate(ctx weave.Context, db weave.KVStore, tx we
 		return nil, errors.Wrap(errors.ErrInput, "timeout in the past")
 	}
 
-	// Sender must authorize this (if not set, defaults to MainSigner).
-	if msg.Src != nil {
-		if !h.auth.HasAddress(ctx, msg.Src) {
+	// Source must authorize this (if not set, defaults to MainSigner).
+	if msg.Source != nil {
+		if !h.auth.HasAddress(ctx, msg.Source) {
 			return nil, errors.ErrUnauthorized
 		}
 	}
@@ -161,7 +161,7 @@ func (h ReleaseEscrowHandler) Deliver(ctx weave.Context, db weave.KVStore, tx we
 	}
 
 	// withdraw the money from escrow to recipient
-	if err := cash.MoveCoins(db, h.bank, escrowAddr, escrow.Recipient, request); err != nil {
+	if err := cash.MoveCoins(db, h.bank, escrowAddr, escrow.Destination, request); err != nil {
 		return nil, err
 	}
 
@@ -190,8 +190,8 @@ func (h ReleaseEscrowHandler) validate(ctx weave.Context, db weave.KVStore, tx w
 		return nil, nil, err
 	}
 
-	// Arbiter or sender must authorize this.
-	if !h.auth.HasAddress(ctx, escrow.Arbiter) && !h.auth.HasAddress(ctx, escrow.Sender) {
+	// Arbiter or source must authorize this.
+	if !h.auth.HasAddress(ctx, escrow.Arbiter) && !h.auth.HasAddress(ctx, escrow.Source) {
 		return nil, nil, errors.ErrUnauthorized
 	}
 
@@ -223,7 +223,7 @@ func (h ReturnEscrowHandler) Check(ctx weave.Context, db weave.KVStore, tx weave
 	return &weave.CheckResult{GasAllocated: returnEscrowCost}, nil
 }
 
-// Deliver moves all the tokens from the escrow to the defined sender if
+// Deliver moves all the tokens from the escrow to the defined source if
 // all preconditions are met. The escrow is deleted afterwards.
 func (h ReturnEscrowHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	key, escrow, err := h.validate(ctx, db, tx)
@@ -237,8 +237,8 @@ func (h ReturnEscrowHandler) Deliver(ctx weave.Context, db weave.KVStore, tx wea
 		return nil, err
 	}
 
-	// withdraw all coins from escrow to the defined "sender"
-	dest := weave.Address(escrow.Sender)
+	// withdraw all coins from escrow to the defined "source"
+	dest := weave.Address(escrow.Source)
 	if err := cash.MoveCoins(db, h.bank, escrowAddr, dest, available); err != nil {
 		return nil, err
 	}
@@ -286,7 +286,7 @@ func (h UpdateEscrowHandler) Check(ctx weave.Context, db weave.KVStore, tx weave
 	return &weave.CheckResult{GasAllocated: updateEscrowCost}, nil
 }
 
-// Deliver updates the any of the sender, recipient or arbiter if
+// Deliver updates the any of the source, recipient or arbiter if
 // all preconditions are met. No coins are moved.
 func (h UpdateEscrowHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	msg, escrow, err := h.validate(ctx, db, tx)
@@ -295,11 +295,11 @@ func (h UpdateEscrowHandler) Deliver(ctx weave.Context, db weave.KVStore, tx wea
 	}
 
 	// update the escrow with message values
-	if msg.Sender != nil {
-		escrow.Sender = msg.Sender
+	if msg.Source != nil {
+		escrow.Source = msg.Source
 	}
-	if msg.Recipient != nil {
-		escrow.Recipient = msg.Recipient
+	if msg.Destination != nil {
+		escrow.Destination = msg.Destination
 	}
 	if msg.Arbiter != nil {
 		escrow.Arbiter = msg.Arbiter
@@ -331,14 +331,14 @@ func (h UpdateEscrowHandler) validate(ctx weave.Context, db weave.KVStore, tx we
 	}
 
 	// we must have the permission for the items we want to change
-	if msg.Sender != nil {
-		sender := weave.Address(escrow.Sender)
-		if !h.auth.HasAddress(ctx, sender) {
+	if msg.Source != nil {
+		source := weave.Address(escrow.Source)
+		if !h.auth.HasAddress(ctx, source) {
 			return nil, nil, errors.ErrUnauthorized
 		}
 	}
-	if msg.Recipient != nil {
-		if !h.auth.HasAddress(ctx, escrow.Recipient) {
+	if msg.Destination != nil {
+		if !h.auth.HasAddress(ctx, escrow.Destination) {
 			return nil, nil, errors.ErrUnauthorized
 		}
 	}
