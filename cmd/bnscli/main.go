@@ -54,6 +54,7 @@ var commands = map[string]func(input io.Reader, output io.Writer, args []string)
 	"tally":                     cmdTally,
 	"text-resolution":           cmdTextResolution,
 	"update-electorate":         cmdUpdateElectorate,
+	"update-election-rule":      cmdUpdateElectionRule,
 	"version":                   cmdVersion,
 	"view":                      cmdTransactionView,
 	"vote":                      cmdVote,
