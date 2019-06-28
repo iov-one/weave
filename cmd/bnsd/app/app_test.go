@@ -194,11 +194,11 @@ type Signer struct {
 func sendToken(t *testing.T, baseApp abci.Application, chainID string, height int64, signers []Signer,
 	from, to []byte, amount int64, ticker, memo string, contracts ...[]byte) abci.ResponseDeliverTx {
 	msg := &cash.SendMsg{
-		Metadata: &weave.Metadata{Schema: 1},
-		Src:      from,
-		Dest:     to,
-		Amount:   &coin.Coin{Whole: amount, Ticker: ticker},
-		Memo:     memo,
+		Metadata:    &weave.Metadata{Schema: 1},
+		Source:      from,
+		Destination: to,
+		Amount:      &coin.Coin{Whole: amount, Ticker: ticker},
+		Memo:        memo,
 	}
 	tx := &bnsd.Tx{
 		Sum:      &bnsd.Tx_CashSendMsg{CashSendMsg: msg},
@@ -213,9 +213,9 @@ func sendToken(t *testing.T, baseApp abci.Application, chainID string, height in
 func sendBatch(t *testing.T, baseApp abci.Application, chainID string, height int64, signers []Signer,
 	from, to weave.Address, amount int64, ticker, memo string, contracts ...[]byte) {
 	msg := &cash.SendMsg{
-		Metadata: &weave.Metadata{Schema: 1},
-		Src:      from,
-		Dest:     to,
+		Metadata:    &weave.Metadata{Schema: 1},
+		Source:      from,
+		Destination: to,
 		Amount: &coin.Coin{
 			Whole:  amount,
 			Ticker: ticker,

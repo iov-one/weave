@@ -129,7 +129,7 @@ func appStateGenesis(keyAddress weave.Address) []byte {
 		"distribution": []interface{}{
 			dict{
 				"admin": "seq:multisig/usage/1",
-				"recipients": []interface{}{
+				"destinations": []interface{}{
 					dict{"weight": 1, "address": keyAddress},
 				},
 			},
