@@ -37,7 +37,7 @@ type Decorator interface {
 // Ticker is a method that is called the beginning of every block,
 // which can be used to perform periodic or delayed tasks
 type Ticker interface {
-	Tick(ctx Context, store KVStore) (TickResult, error)
+	Tick(ctx Context, store CacheableKVStore) (*TickResult, error)
 }
 
 // Registry is an interface to register your handler,

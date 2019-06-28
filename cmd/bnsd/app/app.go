@@ -15,8 +15,10 @@ import (
 	"github.com/iov-one/weave/cmd/bnsd/x/username"
 	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/commands/server"
+	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/orm"
+	"github.com/iov-one/weave/queue"
 	"github.com/iov-one/weave/store/iavl"
 	"github.com/iov-one/weave/x"
 	"github.com/iov-one/weave/x/aswap"
@@ -121,16 +123,21 @@ func Stack(issuer weave.Address, minFee coin.Coin) weave.Handler {
 // Application constructs a basic ABCI application with
 // the given arguments. If you are not sure what to use
 // for the Handler, just use Stack().
-func Application(name string, h weave.Handler,
-	tx weave.TxDecoder, dbPath string, options *server.Options) (app.BaseApp, error) {
-
+func Application(
+	name string,
+	h weave.Handler,
+	tx weave.TxDecoder,
+	dbPath string,
+	options *server.Options,
+) (app.BaseApp, error) {
 	ctx := context.Background()
 	kv, err := CommitKVStore(dbPath)
 	if err != nil {
-		return app.BaseApp{}, err
+		return app.BaseApp{}, errors.Wrap(err, "cannot create store")
 	}
 	store := app.NewStoreApp(name, kv, QueryRouter(options.MinFee), ctx)
-	base := app.NewBaseApp(store, tx, h, nil, options.Debug)
+	cron := queue.NewMsgCron(h)
+	base := app.NewBaseApp(store, tx, h, cron, options.Debug)
 	return base, nil
 }
 
