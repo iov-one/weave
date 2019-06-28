@@ -90,6 +90,7 @@ func appStateGenesis(keyAddress weave.Address) []byte {
 		"initialize_schema": []dict{
 			{"ver": 1, "pkg": "batch"},
 			{"ver": 1, "pkg": "cash"},
+			{"ver": 1, "pkg": "cron"},
 			{"ver": 1, "pkg": "currency"},
 			{"ver": 1, "pkg": "distribution"},
 			{"ver": 1, "pkg": "escrow"},

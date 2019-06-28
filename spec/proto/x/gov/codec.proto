@@ -139,6 +139,9 @@ message Proposal {
   }
   // Result is the final result based on the votes and election rule. Initial value is NotRun.
   ExecutorResult executor_result = 14;
+  // Tally task ID holds the ID of the asynchronous task that is scheduled to
+  // create the tally once the voting period is over.
+  bytes tally_task_id = 15 ;
 }
 
 // Resolution contains TextResolution and an electorate reference.

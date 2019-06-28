@@ -4,6 +4,7 @@ import (
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
 	abci "github.com/tendermint/tendermint/abci/types"
+	"github.com/tendermint/tendermint/libs/common"
 )
 
 // BaseApp adds DeliverTx, CheckTx, and BeginBlock
@@ -19,9 +20,13 @@ type BaseApp struct {
 var _ abci.Application = BaseApp{}
 
 // NewBaseApp constructs a basic abci application
-func NewBaseApp(store *StoreApp, decoder weave.TxDecoder,
-	handler weave.Handler, ticker weave.Ticker, debug bool) BaseApp {
-
+func NewBaseApp(
+	store *StoreApp,
+	decoder weave.TxDecoder,
+	handler weave.Handler,
+	ticker weave.Ticker,
+	debug bool,
+) BaseApp {
 	return BaseApp{
 		StoreApp: store,
 		decoder:  decoder,
@@ -66,25 +71,22 @@ func (b BaseApp) CheckTx(txBytes []byte) abci.ResponseCheckTx {
 }
 
 // BeginBlock - ABCI
-func (b BaseApp) BeginBlock(req abci.RequestBeginBlock) (
-	res abci.ResponseBeginBlock) {
-
+func (b BaseApp) BeginBlock(req abci.RequestBeginBlock) abci.ResponseBeginBlock {
 	// default: set the context properly
 	b.StoreApp.BeginBlock(req)
 
-	// call the ticker, if set
+	var response abci.ResponseBeginBlock
 	if b.ticker != nil {
-		// start := time.Now()
-		// Add info to the logger
 		ctx := weave.WithLogInfo(b.BlockContext(), "call", "begin_block")
-		res, err := b.ticker.Tick(ctx, b.DeliverStore())
-		// logDuration(ctx, start, "Ticker", err, false)
-		if err != nil {
-			panic(err)
+		executed := b.ticker.Tick(ctx, b.DeliverStore())
+		for _, taskID := range executed {
+			response.Tags = append(response.Tags, common.KVPair{
+				Key:   []byte("cron"),
+				Value: taskID,
+			})
 		}
-		b.StoreApp.AddValChange(res.Diff)
 	}
-	return
+	return response
 }
 
 // loadTx calls the decoder, and capture any panics
