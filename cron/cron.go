@@ -89,27 +89,34 @@ var _ weave.Ticker = (*MsgCron)(nil)
 // Tick can process any number of messages suitable for execution. All changes
 // are done atomically and apply only on success.
 func (c *MsgCron) Tick(ctx context.Context, db store.CacheableKVStore) (*weave.TickResult, error) {
-	cache := db.CacheWrap()
-	defer cache.Discard()
+	result := &weave.TickResult{}
 
 	for {
-		msg, err := pop(cache, time.Now())
+		msg, err := pop(db, time.Now())
 		switch {
 		case err == nil:
+			// Each message is processed separately. Failure of one
+			// message must not affect the other.
+			cache := db.CacheWrap()
+
 			// Do not run Check as it is only to prevent spam.
 			// Deliver must provide the same level of validation so
 			// it is enough to call it alone.
 			if _, err := c.hn.Deliver(ctx, cache, &cronTx{msg: msg}); err != nil {
-				return nil, errors.Wrapf(err, "cannot deliver %T message", msg)
+				cache.Discard()
+			} else if err := cache.Write(); err != nil {
+				// This is a very unfortunate situation as the message
+				// was already removed from the queue.
+				// Because this is the cache and the message
+				// processing that have failed, we should
+				// finish processing.
+				return result, errors.Wrap(err, "cannot write cache")
 			}
 		case errors.ErrEmpty.Is(err):
-			// No more messages queue for execution at this time.
-			if err := cache.Write(); err != nil {
-				return nil, errors.Wrap(err, "cache write")
-			}
-			return &weave.TickResult{}, nil
+			// No more messages queued for execution at this time.
+			return result, nil
 		default:
-			return nil, errors.Wrap(err, "cannot pop queue")
+			return result, errors.Wrap(err, "cannot pop queue")
 		}
 	}
 }
