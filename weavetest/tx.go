@@ -4,6 +4,7 @@ import (
 	"encoding/binary"
 
 	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/errors"
 )
 
 // Tx represents a weave transaction.
@@ -23,10 +24,16 @@ func (tx *Tx) GetMsg() (weave.Msg, error) {
 }
 
 func (tx *Tx) Unmarshal(raw []byte) error {
+	if tx.Msg == nil {
+		return errors.Wrap(errors.ErrState, "nil message")
+	}
 	return tx.Msg.Unmarshal(raw)
 }
 
 func (tx *Tx) Marshal() ([]byte, error) {
+	if tx.Msg == nil {
+		return nil, errors.Wrap(errors.ErrState, "nil message")
+	}
 	return tx.Msg.Marshal()
 }
 
