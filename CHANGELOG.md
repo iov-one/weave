@@ -2,6 +2,10 @@
 
 ## HEAD
 
+
+
+## 0.18.0
+
 - `bnsd/x/username` genesis initializer implemented and included in `bnsd`.
 - Support gov proposal vote, deletion and tally in `bnscli`
 - Support gov proposal text resolution, update electorate, update election rules in `bnscli`
@@ -18,6 +22,7 @@ Breaking changes
 - Unify all message attribute names
   - rename `src` and `sender` to `source`
   - rename `dst` and `recipient` to `destination`
+
 
 ## 0.17.0
 
