@@ -92,25 +92,32 @@ func (c *MsgCron) Tick(ctx context.Context, db store.CacheableKVStore) (*weave.T
 	result := &weave.TickResult{}
 
 	for {
-		msg, err := pop(db, time.Now())
+		// Each pop is using its own cache instance. This is to enforce
+		// atomic pop and successful processing. Otherwise if only the
+		// delivery was using cache it would be possible that even
+		// though message was removed from the database and
+		// successfully processed, we cannot write the result.
+		taskCache := db.CacheWrap()
+		msg, err := pop(taskCache, time.Now())
 		switch {
 		case err == nil:
-			// Each message is processed separately. Failure of one
-			// message must not affect the other.
-			cache := db.CacheWrap()
-
 			// Do not run Check as it is only to prevent spam.
 			// Deliver must provide the same level of validation so
 			// it is enough to call it alone.
-			if _, err := c.hn.Deliver(ctx, cache, &cronTx{msg: msg}); err != nil {
-				cache.Discard()
-			} else if err := cache.Write(); err != nil {
-				// This is a very unfortunate situation as the message
-				// was already removed from the queue.
-				// Because this is the cache and the message
-				// processing that have failed, we should
-				// finish processing.
-				return result, errors.Wrap(err, "cannot write cache")
+			deliverCache := taskCache.CacheWrap()
+			if _, err := c.hn.Deliver(ctx, deliverCache, &cronTx{msg: msg}); err != nil {
+				deliverCache.Discard()
+			} else if err := deliverCache.Write(); err != nil {
+				// If deliver cache cannot be flushed, we do
+				// not want to write the pop result to the
+				// database as well as we want the task to be
+				// processed again later.
+				taskCache.Discard()
+				continue
+			}
+
+			if err := taskCache.Write(); err != nil {
+				return result, errors.Wrap(err, "cannot write task cache")
 			}
 		case errors.ErrEmpty.Is(err):
 			// No more messages queued for execution at this time.
