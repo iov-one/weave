@@ -57,7 +57,7 @@ func (h *createPaymentChannelHandler) validate(ctx weave.Context, db weave.KVSto
 	if weave.IsExpired(ctx, msg.Timeout) {
 		return nil, errors.Wrapf(errors.ErrExpired, "timeout in the past")
 	}
-	if !h.auth.HasAddress(ctx, msg.Src) {
+	if !h.auth.HasAddress(ctx, msg.Source) {
 		return &msg, errors.Wrap(errors.ErrUnauthorized, "invalid address")
 	}
 	return &msg, nil
@@ -71,9 +71,9 @@ func (h *createPaymentChannelHandler) Deliver(ctx weave.Context, db weave.KVStor
 
 	key, err := h.bucket.Put(db, nil, &PaymentChannel{
 		Metadata:     &weave.Metadata{},
-		Src:          msg.Src,
-		SenderPubkey: msg.SenderPubkey,
-		Recipient:    msg.Recipient,
+		Source:       msg.Source,
+		SourcePubkey: msg.SourcePubkey,
+		Destination:  msg.Destination,
 		Total:        msg.Total,
 		Timeout:      msg.Timeout,
 		Memo:         msg.Memo,
@@ -83,10 +83,10 @@ func (h *createPaymentChannelHandler) Deliver(ctx weave.Context, db weave.KVStor
 		return nil, errors.Wrap(err, "cannot create a payment channel")
 	}
 
-	// Move coins from sender account and deposit total amount available on
+	// Move coins from source account and deposit total amount available on
 	// that channels account.
 	dst := paymentChannelAccount(key)
-	if err := h.cash.MoveCoins(db, msg.Src, dst, *msg.Total); err != nil {
+	if err := h.cash.MoveCoins(db, msg.Source, dst, *msg.Total); err != nil {
 		return nil, errors.Wrap(err, "cannot move coins")
 	}
 	return &weave.DeliverResult{Data: key}, nil
@@ -126,7 +126,7 @@ func (h *transferPaymentChannelHandler) validate(ctx weave.Context, db weave.KVS
 	if err != nil {
 		return nil, errors.Wrap(err, "cannot serialize payment")
 	}
-	if !pc.SenderPubkey.Verify(raw, msg.Signature) {
+	if !pc.SourcePubkey.Verify(raw, msg.Signature) {
 		return &msg, errors.Wrap(errors.ErrMsg, "invalid signature")
 	}
 
@@ -138,7 +138,7 @@ func (h *transferPaymentChannelHandler) validate(ctx weave.Context, db weave.KVS
 		return &msg, errors.Wrap(errors.ErrMsg, "amount greater than total amount")
 	}
 	// Payment is representing a cumulative amount that is to be
-	// transferred to recipients account. Because it is cumulative, every
+	// transferred to destinations account. Because it is cumulative, every
 	// transfer request must be greater than the previous one.
 	if msg.Payment.Amount.Compare(*pc.Transferred) <= 0 {
 		return &msg, errors.Wrap(errors.ErrMsg, "amount must be greater than previously requested")
@@ -159,20 +159,20 @@ func (h *transferPaymentChannelHandler) Deliver(ctx weave.Context, db weave.KVSt
 	}
 
 	// Payment amount is total amount that should be transferred from
-	// payment channel to recipient. Deduct already transferred funds and
+	// payment channel to destination. Deduct already transferred funds and
 	// move only the difference.
 	diff, err := msg.Payment.Amount.Subtract(*pc.Transferred)
 	if err != nil || diff.IsZero() {
 		return nil, errors.Wrap(errors.ErrMsg, "invalid amount")
 	}
 
-	src := paymentChannelAccount(msg.Payment.ChannelID)
-	if err := h.cash.MoveCoins(db, src, pc.Recipient, diff); err != nil {
+	source := paymentChannelAccount(msg.Payment.ChannelID)
+	if err := h.cash.MoveCoins(db, source, pc.Destination, diff); err != nil {
 		return nil, err
 	}
 
 	// Track total amount transferred from the payment channel to the
-	// recipients account.
+	// destinations account.
 	pc.Transferred = msg.Payment.Amount
 
 	// We care about the latest memo only. Full history can be always
@@ -230,21 +230,21 @@ func (h *closePaymentChannelHandler) Deliver(ctx weave.Context, db weave.KVStore
 	}
 
 	if !weave.IsExpired(ctx, pc.Timeout) {
-		// If timeout was not reached, only the recipient is allowed to
+		// If timeout was not reached, only the destination is allowed to
 		// close the channel.
-		if !h.auth.HasAddress(ctx, pc.Recipient) {
-			return nil, errors.Wrap(errors.ErrMsg, "only the recipient is allowed to close the channel")
+		if !h.auth.HasAddress(ctx, pc.Destination) {
+			return nil, errors.Wrap(errors.ErrMsg, "only the destination is allowed to close the channel")
 		}
 	}
 
-	// Before deleting the channel, return to sender all leftover funds
+	// Before deleting the channel, return to source all leftover funds
 	// that are still allocated on this payment channel account.
 	diff, err := pc.Total.Subtract(*pc.Transferred)
 	if err != nil {
 		return nil, err
 	}
-	src := paymentChannelAccount(msg.ChannelID)
-	if err := h.cash.MoveCoins(db, src, pc.Src, diff); err != nil {
+	source := paymentChannelAccount(msg.ChannelID)
+	if err := h.cash.MoveCoins(db, source, pc.Source, diff); err != nil {
 		return nil, err
 	}
 	if err := h.bucket.Delete(db, msg.ChannelID); err != nil {
@@ -255,8 +255,8 @@ func (h *closePaymentChannelHandler) Deliver(ctx weave.Context, db weave.KVStore
 
 // paymentChannelAccount returns an account address for a payment channel with
 // given ID.
-// Each payment channel deposit an initial value from sender to ensure that it
-// is available to the recipient upon request. Each payment channel has a
+// Each payment channel deposit an initial value from source to ensure that it
+// is available to the destination upon request. Each payment channel has a
 // unique account address that can be deducted from its ID.
 func paymentChannelAccount(paymentChannelId []byte) weave.Address {
 	return weave.NewCondition("paychan", "seq", paymentChannelId).Address()

@@ -26,14 +26,14 @@ func (e *Escrow) Validate() error {
 	if err := e.Metadata.Validate(); err != nil {
 		return errors.Wrap(err, "metadata")
 	}
-	if err := e.Sender.Validate(); err != nil {
-		return errors.Wrap(err, "sender")
+	if err := e.Source.Validate(); err != nil {
+		return errors.Wrap(err, "source")
 	}
 	if err := e.Arbiter.Validate(); err != nil {
 		return errors.Wrap(err, "arbiter")
 	}
-	if err := e.Recipient.Validate(); err != nil {
-		return errors.Wrap(err, "recipient")
+	if err := e.Destination.Validate(); err != nil {
+		return errors.Wrap(err, "destination")
 	}
 	if e.Timeout == 0 {
 		// Zero timeout is a valid value that dates to 1970-01-01. We
@@ -47,18 +47,18 @@ func (e *Escrow) Validate() error {
 	if len(e.Memo) > maxMemoSize {
 		return errors.Wrapf(errors.ErrInput, "memo %s", e.Memo)
 	}
-	return validateAddresses(e.Sender, e.Recipient)
+	return validateAddresses(e.Source, e.Destination)
 }
 
 // Copy makes a new set with the same coins
 func (e *Escrow) Copy() orm.CloneableData {
 	return &Escrow{
-		Metadata:  e.Metadata.Copy(),
-		Sender:    e.Sender,
-		Arbiter:   e.Arbiter,
-		Recipient: e.Recipient,
-		Timeout:   e.Timeout,
-		Memo:      e.Memo,
+		Metadata:    e.Metadata.Copy(),
+		Source:      e.Source,
+		Arbiter:     e.Arbiter,
+		Destination: e.Destination,
+		Timeout:     e.Timeout,
+		Memo:        e.Memo,
 	}
 }
 
@@ -75,20 +75,20 @@ func AsEscrow(obj orm.Object) *Escrow {
 // NewEscrow creates an escrow orm.Object
 func NewEscrow(
 	id []byte,
-	sender weave.Address,
-	recipient weave.Address,
+	source weave.Address,
+	destination weave.Address,
 	arbiter weave.Address,
 	amount coin.Coins,
 	timeout weave.UnixTime,
 	memo string,
 ) orm.Object {
 	esc := &Escrow{
-		Metadata:  &weave.Metadata{Schema: 1},
-		Sender:    sender,
-		Arbiter:   arbiter,
-		Recipient: recipient,
-		Timeout:   timeout,
-		Memo:      memo,
+		Metadata:    &weave.Metadata{Schema: 1},
+		Source:      source,
+		Arbiter:     arbiter,
+		Destination: destination,
+		Timeout:     timeout,
+		Memo:        memo,
 	}
 	return orm.NewSimpleObj(id, esc)
 }
@@ -112,8 +112,8 @@ type Bucket struct {
 func NewBucket() Bucket {
 	bucket := migration.NewBucket("escrow", BucketName,
 		orm.NewSimpleObj(nil, new(Escrow))).
-		WithIndex("sender", idxSender, false).
-		WithIndex("recipient", idxRecipient, false).
+		WithIndex("source", idxSource, false).
+		WithIndex("destination", idxDestination, false).
 		WithIndex("arbiter", idxArbiter, false)
 
 	return Bucket{
@@ -134,20 +134,20 @@ func getEscrow(obj orm.Object) (*Escrow, error) {
 	return esc, nil
 }
 
-func idxSender(obj orm.Object) ([]byte, error) {
+func idxSource(obj orm.Object) ([]byte, error) {
 	esc, err := getEscrow(obj)
 	if err != nil {
 		return nil, err
 	}
-	return esc.Sender, nil
+	return esc.Source, nil
 }
 
-func idxRecipient(obj orm.Object) ([]byte, error) {
+func idxDestination(obj orm.Object) ([]byte, error) {
 	esc, err := getEscrow(obj)
 	if err != nil {
 		return nil, err
 	}
-	return esc.Recipient, nil
+	return esc.Destination, nil
 }
 
 func idxArbiter(obj orm.Object) ([]byte, error) {

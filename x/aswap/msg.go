@@ -34,11 +34,11 @@ func (m *CreateMsg) Validate() error {
 	if err := validatePreimageHash(m.PreimageHash); err != nil {
 		return err
 	}
-	if err := m.Src.Validate(); err != nil {
+	if err := m.Source.Validate(); err != nil {
 		return errors.Wrap(err, "src")
 	}
-	if err := m.Recipient.Validate(); err != nil {
-		return errors.Wrap(err, "recipient")
+	if err := m.Destination.Validate(); err != nil {
+		return errors.Wrap(err, "destination")
 	}
 	if m.Timeout == 0 {
 		// Zero timeout is a valid value that dates to 1970-01-01. We

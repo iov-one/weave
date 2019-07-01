@@ -9,7 +9,7 @@ Minimal fee is configured via gconf package. If minimal is zero, no fees
 required, but will speed processing. If a currency is set on minimal fee, then
 all fees must be paid in that currency
 
-It uses auth to verify the sender.
+It uses auth to verify the source.
 
 */
 

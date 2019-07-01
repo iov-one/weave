@@ -25,11 +25,11 @@ func (s *Swap) Validate() error {
 	if err := s.Metadata.Validate(); err != nil {
 		return errors.Wrap(err, "metadata")
 	}
-	if err := s.Src.Validate(); err != nil {
-		return errors.Wrap(err, "src")
+	if err := s.Source.Validate(); err != nil {
+		return errors.Wrap(err, "source")
 	}
-	if err := s.Recipient.Validate(); err != nil {
-		return errors.Wrap(err, "recipient")
+	if err := s.Destination.Validate(); err != nil {
+		return errors.Wrap(err, "destination")
 	}
 	if len(s.PreimageHash) != preimageHashSize {
 		return errors.Wrapf(errors.ErrInput,
@@ -55,8 +55,8 @@ func (s *Swap) Copy() orm.CloneableData {
 	return &Swap{
 		Metadata:     s.Metadata.Copy(),
 		PreimageHash: s.PreimageHash,
-		Src:          s.Src,
-		Recipient:    s.Recipient,
+		Source:       s.Source,
+		Destination:  s.Destination,
 		Timeout:      s.Timeout,
 		Memo:         s.Memo,
 	}
@@ -84,8 +84,8 @@ type Bucket struct {
 func NewBucket() Bucket {
 	bucket := migration.NewBucket("aswap", BucketName,
 		orm.NewSimpleObj(nil, &Swap{})).
-		WithIndex("src", idxSrc, false).
-		WithIndex("recipient", idxRecipient, false).
+		WithIndex("source", idxSource, false).
+		WithIndex("destination", idxDestination, false).
 		WithIndex("preimage_hash", idxPrehash, false)
 
 	return Bucket{
@@ -104,20 +104,20 @@ func getSwap(obj orm.Object) (*Swap, error) {
 	return esc, nil
 }
 
-func idxSrc(obj orm.Object) ([]byte, error) {
+func idxSource(obj orm.Object) ([]byte, error) {
 	swp, err := getSwap(obj)
 	if err != nil {
 		return nil, err
 	}
-	return swp.Src, nil
+	return swp.Source, nil
 }
 
-func idxRecipient(obj orm.Object) ([]byte, error) {
+func idxDestination(obj orm.Object) ([]byte, error) {
 	swp, err := getSwap(obj)
 	if err != nil {
 		return nil, err
 	}
-	return swp.Recipient, nil
+	return swp.Destination, nil
 }
 
 func idxPrehash(obj orm.Object) ([]byte, error) {

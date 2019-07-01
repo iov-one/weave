@@ -15,8 +15,8 @@ func TestCreateMsgValidate(t *testing.T) {
 	err := msg.Validate()
 
 	assert.FieldError(t, err, "Metadata", errors.ErrMetadata)
-	assert.FieldError(t, err, "Src", errors.ErrEmpty)
-	assert.FieldError(t, err, "Recipient", errors.ErrEmpty)
+	assert.FieldError(t, err, "Source", errors.ErrEmpty)
+	assert.FieldError(t, err, "Destination", errors.ErrEmpty)
 	assert.FieldError(t, err, "Timeout", errors.ErrInput)
 
 	assert.FieldError(t, err, "Total", nil)

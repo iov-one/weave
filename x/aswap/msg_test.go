@@ -35,15 +35,15 @@ func TestCreateMsg(t *testing.T) {
 			},
 			Exp: errors.ErrInput,
 		},
-		"Invalid recipient": {
+		"Invalid destination": {
 			Mutator: func(msg *aswap.CreateMsg) {
-				msg.Recipient = nil
+				msg.Destination = nil
 			},
 			Exp: errors.ErrEmpty,
 		},
 		"Invalid src": {
 			Mutator: func(msg *aswap.CreateMsg) {
-				msg.Src = nil
+				msg.Source = nil
 			},
 			Exp: errors.ErrEmpty,
 		},
@@ -80,8 +80,8 @@ func TestCreateMsg(t *testing.T) {
 	}
 	for msg, spec := range specs {
 		baseMsg := aswap.CreateMsg{Metadata: &weave.Metadata{Schema: 1},
-			Src:          alice.Address(),
-			Recipient:    bob.Address(),
+			Source:       alice.Address(),
+			Destination:  bob.Address(),
 			PreimageHash: make([]byte, 32),
 			Amount:       []*coin.Coin{&validCoin},
 			Timeout:      weave.UnixTime(1),

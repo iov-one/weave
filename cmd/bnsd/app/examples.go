@@ -19,7 +19,7 @@ import (
 // these are not secure at all, but the only point is to check the format,
 // which is easier when everything is reproduceable.
 var (
-	sender = makePrivKey("1234567890")
+	source = makePrivKey("1234567890")
 	dst    = makePrivKey("F00BA411").PublicKey().Address()
 	guest  = makePrivKey("00CAFE00F00D").PublicKey().Address()
 )
@@ -56,7 +56,7 @@ func Examples() []commands.Example {
 		Name:     "My special coin",
 	}
 
-	pub := sender.PublicKey()
+	pub := source.PublicKey()
 	addr := pub.Address()
 	user := &sigs.UserData{
 		Metadata: &weave.Metadata{Schema: 1},
@@ -66,18 +66,18 @@ func Examples() []commands.Example {
 
 	amt := coin.NewCoin(250, 0, "ETH")
 	msg := &cash.SendMsg{
-		Metadata: &weave.Metadata{Schema: 1},
-		Amount:   &amt,
-		Dest:     dst,
-		Src:      addr,
-		Memo:     "Test payment",
+		Metadata:    &weave.Metadata{Schema: 1},
+		Amount:      &amt,
+		Destination: dst,
+		Source:      addr,
+		Memo:        "Test payment",
 	}
 
 	unsigned := Tx{
 		Sum: &Tx_CashSendMsg{msg},
 	}
 	tx := unsigned
-	sig, err := sigs.SignTx(sender, &tx, "test-123", 17)
+	sig, err := sigs.SignTx(source, &tx, "test-123", 17)
 	if err != nil {
 		panic(err)
 	}
@@ -110,7 +110,7 @@ func Examples() []commands.Example {
 		{Filename: "wallet", Obj: wallet},
 		{Filename: "coin", Obj: eth},
 		{Filename: "token", Obj: token},
-		{Filename: "priv_key", Obj: sender},
+		{Filename: "priv_key", Obj: source},
 		{Filename: "pub_key", Obj: pub},
 		{Filename: "user", Obj: user},
 		{Filename: "send_msg", Obj: msg},

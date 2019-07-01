@@ -19,8 +19,8 @@ message Set {
 // eg. tx hash
 message SendMsg {
   weave.Metadata metadata = 1;
-  bytes src = 2 ;
-  bytes dest = 3 ;
+  bytes source = 2 ;
+  bytes destination = 3 ;
   coin.Coin amount = 4;
   // max length 128 character
   string memo = 5;

@@ -17,12 +17,12 @@ func (pc *PaymentChannel) Validate() error {
 	var errs error
 
 	errs = errors.AppendField(errs, "Metadata", pc.Metadata.Validate())
-	errs = errors.AppendField(errs, "Src", pc.Src.Validate())
-	if pc.SenderPubkey == nil {
+	errs = errors.AppendField(errs, "Source", pc.Source.Validate())
+	if pc.SourcePubkey == nil {
 		errs = errors.Append(errs,
-			errors.Field("SenderPubKey", errors.ErrModel, "missing sender public key"))
+			errors.Field("SourcePubKey", errors.ErrModel, "missing source public key"))
 	}
-	errs = errors.AppendField(errs, "recipient", pc.Recipient.Validate())
+	errs = errors.AppendField(errs, "destination", pc.Destination.Validate())
 	if err := pc.Timeout.Validate(); err != nil {
 		errs = errors.AppendField(errs, "Timeout", err)
 	} else if pc.Timeout < inThePast {
@@ -52,9 +52,9 @@ func (pc *PaymentChannel) Validate() error {
 func (pc PaymentChannel) Copy() orm.CloneableData {
 	return &PaymentChannel{
 		Metadata:     pc.Metadata.Copy(),
-		Src:          pc.Src.Clone(),
-		SenderPubkey: pc.SenderPubkey,
-		Recipient:    pc.Recipient.Clone(),
+		Source:       pc.Source.Clone(),
+		SourcePubkey: pc.SourcePubkey,
+		Destination:  pc.Destination.Clone(),
 		Total:        pc.Total.Clone(),
 		Timeout:      pc.Timeout,
 		Memo:         pc.Memo,

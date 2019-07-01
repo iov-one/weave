@@ -33,12 +33,12 @@ destination account.
 	tx := &bnsd.Tx{
 		Sum: &bnsd.Tx_CashSendMsg{
 			CashSendMsg: &cash.SendMsg{
-				Metadata: &weave.Metadata{Schema: 1},
-				Src:      *srcFl,
-				Dest:     *dstFl,
-				Amount:   amountFl,
-				Memo:     *memoFl,
-				Ref:      nil,
+				Metadata:    &weave.Metadata{Schema: 1},
+				Source:      *srcFl,
+				Destination: *dstFl,
+				Amount:      amountFl,
+				Memo:        *memoFl,
+				Ref:         nil,
 			},
 		},
 	}

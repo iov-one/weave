@@ -62,10 +62,10 @@ func TestGovProposalCreateAndExecute(t *testing.T) {
 				RawOption: marshal(t, &bnsdApp.ProposalOptions{
 					Option: &bnsdApp.ProposalOptions_CashSendMsg{
 						CashSendMsg: &cash.SendMsg{
-							Metadata: &weave.Metadata{Schema: 1},
-							Amount:   coin.NewCoinp(0, 3, "IOV"),
-							Src:      contractAddr,
-							Dest:     carl.PublicKey().Address(),
+							Metadata:    &weave.Metadata{Schema: 1},
+							Amount:      coin.NewCoinp(0, 3, "IOV"),
+							Source:      contractAddr,
+							Destination: carl.PublicKey().Address(),
 						},
 					},
 				}),

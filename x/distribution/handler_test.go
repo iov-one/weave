@@ -16,7 +16,7 @@ import (
 )
 
 func TestHandlers(t *testing.T) {
-	src := weavetest.NewCondition()
+	source := weavetest.NewCondition()
 	addr1 := weavetest.NewCondition().Address()
 	addr2 := weavetest.NewCondition().Address()
 
@@ -51,47 +51,47 @@ func TestHandlers(t *testing.T) {
 		// account after all actions are applied.
 		wantAccounts []account
 	}{
-		"at least one recipient is required": {
+		"at least one destination is required": {
 			prepareAccounts: nil,
 			wantAccounts:    nil,
 			actions: []action{
 				{
-					conditions: []weave.Condition{src},
+					conditions: []weave.Condition{source},
 					msg: &CreateMsg{
-						Metadata:   &weave.Metadata{Schema: 1},
-						Admin:      []byte("f427d624ed29c1fae0e2"),
-						Recipients: []*Recipient{},
+						Metadata:     &weave.Metadata{Schema: 1},
+						Admin:        []byte("f427d624ed29c1fae0e2"),
+						Destinations: []*Destination{},
 					},
 					blocksize:    100,
 					wantCheckErr: errors.ErrMsg,
 				},
 				{
-					conditions: []weave.Condition{src},
+					conditions: []weave.Condition{source},
 					msg: &CreateMsg{
 						Metadata: &weave.Metadata{Schema: 1},
 						Admin:    []byte("f427d624ed29c1fae0e2"),
-						Recipients: []*Recipient{
+						Destinations: []*Destination{
 							{Weight: 1, Address: addr1},
 						},
 					},
 					blocksize: 101,
 				},
 				{
-					conditions: []weave.Condition{src},
+					conditions: []weave.Condition{source},
 					msg: &ResetMsg{
-						Metadata:   &weave.Metadata{Schema: 1},
-						RevenueID:  weavetest.SequenceID(1),
-						Recipients: []*Recipient{},
+						Metadata:     &weave.Metadata{Schema: 1},
+						RevenueID:    weavetest.SequenceID(1),
+						Destinations: []*Destination{},
 					},
 					blocksize:    102,
 					wantCheckErr: errors.ErrMsg,
 				},
 				{
-					conditions: []weave.Condition{src},
+					conditions: []weave.Condition{source},
 					msg: &ResetMsg{
 						Metadata:  &weave.Metadata{Schema: 1},
 						RevenueID: weavetest.SequenceID(1),
-						Recipients: []*Recipient{
+						Destinations: []*Destination{
 							{Weight: 1, Address: addr1},
 							{Weight: 2, Address: addr2},
 						},
@@ -105,7 +105,7 @@ func TestHandlers(t *testing.T) {
 			wantAccounts:    nil,
 			actions: []action{
 				{
-					conditions: []weave.Condition{src},
+					conditions: []weave.Condition{source},
 					msg: &DistributeMsg{
 						Metadata:  &weave.Metadata{Schema: 1},
 						RevenueID: []byte("revenue-with-this-id-does-not-exist"),
@@ -121,17 +121,17 @@ func TestHandlers(t *testing.T) {
 				{address: revenueAccount(1), coins: coin.Coins{coin.NewCoinp(0, 7, "BTC")}},
 			},
 			wantAccounts: []account{
-				// All funds must be transferred to the only recipient.
+				// All funds must be transferred to the only destination.
 				{address: addr1, coins: coin.Coins{coin.NewCoinp(0, 7, "BTC")}},
 			},
 			actions: []action{
 				{
-					conditions: []weave.Condition{src},
+					conditions: []weave.Condition{source},
 					msg: &CreateMsg{
 						Metadata: &weave.Metadata{Schema: 1},
 						Admin:    []byte("f427d624ed29c1fae0e2"),
-						Recipients: []*Recipient{
-							// There is only one recipient with a ridiculously high weight.
+						Destinations: []*Destination{
+							// There is only one destination with a ridiculously high weight.
 							// All funds should be send to this account.
 							{Weight: 1234, Address: addr1},
 						},
@@ -141,7 +141,7 @@ func TestHandlers(t *testing.T) {
 					wantDeliverErr: nil,
 				},
 				{
-					conditions: []weave.Condition{src},
+					conditions: []weave.Condition{source},
 					msg: &DistributeMsg{
 						Metadata:  &weave.Metadata{Schema: 1},
 						RevenueID: weavetest.SequenceID(1),
@@ -157,11 +157,11 @@ func TestHandlers(t *testing.T) {
 			wantAccounts:    nil,
 			actions: []action{
 				{
-					conditions: []weave.Condition{src},
+					conditions: []weave.Condition{source},
 					msg: &CreateMsg{
 						Metadata: &weave.Metadata{Schema: 1},
 						Admin:    []byte("f427d624ed29c1fae0e2"),
-						Recipients: []*Recipient{
+						Destinations: []*Destination{
 							{Weight: 1, Address: addr1},
 							{Weight: 2, Address: addr2},
 						},
@@ -171,7 +171,7 @@ func TestHandlers(t *testing.T) {
 					wantDeliverErr: nil,
 				},
 				{
-					conditions: []weave.Condition{src},
+					conditions: []weave.Condition{source},
 					msg: &DistributeMsg{
 						Metadata:  &weave.Metadata{Schema: 1},
 						RevenueID: weavetest.SequenceID(1),
@@ -191,11 +191,11 @@ func TestHandlers(t *testing.T) {
 			},
 			actions: []action{
 				{
-					conditions: []weave.Condition{src},
+					conditions: []weave.Condition{source},
 					msg: &CreateMsg{
 						Metadata: &weave.Metadata{Schema: 1},
 						Admin:    []byte("f427d624ed29c1fae0e2"),
-						Recipients: []*Recipient{
+						Destinations: []*Destination{
 							{Weight: 1, Address: addr1},
 							{Weight: 2, Address: addr2},
 						},
@@ -205,7 +205,7 @@ func TestHandlers(t *testing.T) {
 					wantDeliverErr: nil,
 				},
 				{
-					conditions: []weave.Condition{src},
+					conditions: []weave.Condition{source},
 					msg: &DistributeMsg{
 						Metadata:  &weave.Metadata{Schema: 1},
 						RevenueID: weavetest.SequenceID(1),
@@ -227,11 +227,11 @@ func TestHandlers(t *testing.T) {
 			},
 			actions: []action{
 				{
-					conditions: []weave.Condition{src},
+					conditions: []weave.Condition{source},
 					msg: &CreateMsg{
 						Metadata: &weave.Metadata{Schema: 1},
 						Admin:    []byte("f427d624ed29c1fae0e2"),
-						Recipients: []*Recipient{
+						Destinations: []*Destination{
 							{Weight: 10000, Address: addr1},
 							{Weight: 20000, Address: addr2},
 						},
@@ -241,7 +241,7 @@ func TestHandlers(t *testing.T) {
 					wantDeliverErr: nil,
 				},
 				{
-					conditions: []weave.Condition{src},
+					conditions: []weave.Condition{source},
 					msg: &DistributeMsg{
 						Metadata:  &weave.Metadata{Schema: 1},
 						RevenueID: weavetest.SequenceID(1),
@@ -263,11 +263,11 @@ func TestHandlers(t *testing.T) {
 			},
 			actions: []action{
 				{
-					conditions: []weave.Condition{src},
+					conditions: []weave.Condition{source},
 					msg: &CreateMsg{
 						Metadata: &weave.Metadata{Schema: 1},
 						Admin:    []byte("f427d624ed29c1fae0e2"),
-						Recipients: []*Recipient{
+						Destinations: []*Destination{
 							{Weight: 1, Address: addr1},
 							{Weight: 2, Address: addr2},
 						},
@@ -277,7 +277,7 @@ func TestHandlers(t *testing.T) {
 					wantDeliverErr: nil,
 				},
 				{
-					conditions: []weave.Condition{src},
+					conditions: []weave.Condition{source},
 					msg: &DistributeMsg{
 						Metadata:  &weave.Metadata{Schema: 1},
 						RevenueID: weavetest.SequenceID(1),
@@ -299,11 +299,11 @@ func TestHandlers(t *testing.T) {
 			},
 			actions: []action{
 				{
-					conditions: []weave.Condition{src},
+					conditions: []weave.Condition{source},
 					msg: &CreateMsg{
 						Metadata: &weave.Metadata{Schema: 1},
 						Admin:    []byte("f427d624ed29c1fae0e2"),
-						Recipients: []*Recipient{
+						Destinations: []*Destination{
 							{Weight: 20, Address: addr1},
 							{Weight: 20, Address: addr2},
 						},
@@ -315,11 +315,11 @@ func TestHandlers(t *testing.T) {
 				// Issuing an update must distribute first.
 				// Distributing 3 BTC cents equally, means that 1 BTC cent will be left.
 				{
-					conditions: []weave.Condition{src},
+					conditions: []weave.Condition{source},
 					msg: &ResetMsg{
 						Metadata:  &weave.Metadata{Schema: 1},
 						RevenueID: weavetest.SequenceID(1),
-						Recipients: []*Recipient{
+						Destinations: []*Destination{
 							{Weight: 1234, Address: addr2},
 						},
 					},
@@ -329,7 +329,7 @@ func TestHandlers(t *testing.T) {
 				},
 				// After the update, all funds (1 cent) should be moved to addr2
 				{
-					conditions: []weave.Condition{src},
+					conditions: []weave.Condition{source},
 					msg: &DistributeMsg{
 						Metadata:  &weave.Metadata{Schema: 1},
 						RevenueID: weavetest.SequenceID(1),
@@ -464,8 +464,8 @@ func TestFindGdc(t *testing.T) {
 
 func TestDistribute(t *testing.T) {
 	cases := map[string]struct {
-		recipients []*Recipient
-		ctrl       *testController
+		destinations []*Destination
+		ctrl         *testController
 		// Each MoveCoins call on the testController result in creation
 		// of a movecall. Those can be used later to validate that
 		// certain MoveCoins calls were made.
@@ -473,7 +473,7 @@ func TestDistribute(t *testing.T) {
 		wantErr   *errors.Error
 	}{
 		"zero funds is not distributed": {
-			recipients: []*Recipient{
+			destinations: []*Destination{
 				{Address: weave.Address("address-1"), Weight: 1},
 				{Address: weave.Address("address-2"), Weight: 2},
 			},
@@ -483,7 +483,7 @@ func TestDistribute(t *testing.T) {
 			wantErr: nil,
 		},
 		"tiny funds are not distributed if cannot be split": {
-			recipients: []*Recipient{
+			destinations: []*Destination{
 				{Address: weave.Address("address-1"), Weight: 1},
 				{Address: weave.Address("address-2"), Weight: 2},
 			},
@@ -493,7 +493,7 @@ func TestDistribute(t *testing.T) {
 			wantErr: nil,
 		},
 		"simple distribute case": {
-			recipients: []*Recipient{
+			destinations: []*Destination{
 				{Address: weave.Address("address-1"), Weight: 1},
 				{Address: weave.Address("address-2"), Weight: 2},
 			},
@@ -507,7 +507,7 @@ func TestDistribute(t *testing.T) {
 			},
 		},
 		"distribution splits whole into fractional": {
-			recipients: []*Recipient{
+			destinations: []*Destination{
 				{Address: weave.Address("address-1"), Weight: 1},
 				{Address: weave.Address("address-2"), Weight: 2},
 			},
@@ -523,7 +523,7 @@ func TestDistribute(t *testing.T) {
 			},
 		},
 		"whole split into fractions": {
-			recipients: []*Recipient{
+			destinations: []*Destination{
 				{Address: weave.Address("address-1"), Weight: 1},
 				{Address: weave.Address("address-2"), Weight: 2},
 			},
@@ -542,8 +542,8 @@ func TestDistribute(t *testing.T) {
 
 	for testName, tc := range cases {
 		t.Run(testName, func(t *testing.T) {
-			src := weave.Address("address-source")
-			err := distribute(nil, tc.ctrl, src, tc.recipients)
+			source := weave.Address("address-source")
+			err := distribute(nil, tc.ctrl, source, tc.destinations)
 			if !tc.wantErr.Is(err) {
 				t.Errorf("want %q error, got %q", tc.wantErr, err)
 			}
@@ -573,7 +573,7 @@ func (tc *testController) Balance(weave.KVStore, weave.Address) (coin.Coins, err
 	return tc.balance, tc.err
 }
 
-func (tc *testController) MoveCoins(db weave.KVStore, src, dst weave.Address, amount coin.Coin) error {
+func (tc *testController) MoveCoins(db weave.KVStore, source, dst weave.Address, amount coin.Coin) error {
 	tc.moves = append(tc.moves, movecall{dst: dst, amount: amount})
 	return tc.err
 }

@@ -22,26 +22,26 @@ func (rev *Revenue) Validate() error {
 	if err := rev.Admin.Validate(); err != nil {
 		return errors.Wrap(err, "invalid admin signature")
 	}
-	if err := validateRecipients(rev.Recipients, errors.ErrModel); err != nil {
+	if err := validateDestinations(rev.Destinations, errors.ErrModel); err != nil {
 		return err
 	}
 	return nil
 }
 
-// validateRecipients returns an error if given list of recipients is not
+// validateDestinations returns an error if given list of destinations is not
 // valid. This functionality is used in many places (model and messages),
 // having it abstracted saves repeating validation code.
 // Model validation returns different class of error than message validation,
 // that is why require base error class to be given.
-func validateRecipients(rs []*Recipient, baseErr *errors.Error) error {
+func validateDestinations(rs []*Destination, baseErr *errors.Error) error {
 	switch n := len(rs); {
 	case n == 0:
-		return errors.Wrap(baseErr, "no recipients")
-	case n > maxRecipients:
-		return errors.Wrap(baseErr, "too many recipients")
+		return errors.Wrap(baseErr, "no destinations")
+	case n > maxDestinations:
+		return errors.Wrap(baseErr, "too many destinations")
 	}
 
-	// Recipient address must not repeat. Repeating addresses would not
+	// Destination address must not repeat. Repeating addresses would not
 	// cause an issue, but requiring them to be unique increase
 	// configuration clarity.
 	addresses := make(map[string]struct{})
@@ -49,13 +49,13 @@ func validateRecipients(rs []*Recipient, baseErr *errors.Error) error {
 	for i, r := range rs {
 		switch {
 		case r.Weight <= 0:
-			return errors.Wrapf(baseErr, "recipient %d invalid weight", i)
+			return errors.Wrapf(baseErr, "destination %d invalid weight", i)
 		case r.Weight > maxWeight:
 			return errors.Wrapf(baseErr, "weight must not be greater than %d", maxWeight)
 		}
 
 		if err := r.Address.Validate(); err != nil {
-			return errors.Wrapf(err, "recipient %d address", i)
+			return errors.Wrapf(err, "destination %d address", i)
 		}
 		addr := r.Address.String()
 		if _, ok := addresses[addr]; ok {
@@ -69,27 +69,27 @@ func validateRecipients(rs []*Recipient, baseErr *errors.Error) error {
 }
 
 const (
-	// maxRecipients defines the maximum number of recipients allowed within a
+	// maxDestinations defines the maximum number of destinations allowed within a
 	// single revenue. This is a high number that should not be an issue in real
 	// life scenarios. But having a sane limit allows us to avoid attacks.
-	maxRecipients = 200
+	maxDestinations = 200
 
-	// maxWeight defines the maximum value for the recipient weight. This
-	// is a high number that for all recipient of a given revenue, when
+	// maxWeight defines the maximum value for the destination weight. This
+	// is a high number that for all destination of a given revenue, when
 	// combined does not exceed int32 capacity.
-	maxWeight = math.MaxInt32 / (maxRecipients + 1)
+	maxWeight = math.MaxInt32 / (maxDestinations + 1)
 )
 
 func (rev *Revenue) Copy() orm.CloneableData {
 	cpy := &Revenue{
-		Metadata:   rev.Metadata.Copy(),
-		Admin:      copyAddr(rev.Admin),
-		Recipients: make([]*Recipient, len(rev.Recipients)),
+		Metadata:     rev.Metadata.Copy(),
+		Admin:        copyAddr(rev.Admin),
+		Destinations: make([]*Destination, len(rev.Destinations)),
 	}
-	for i := range rev.Recipients {
-		cpy.Recipients[i] = &Recipient{
-			Address: copyAddr(rev.Recipients[i].Address),
-			Weight:  rev.Recipients[i].Weight,
+	for i := range rev.Destinations {
+		cpy.Destinations[i] = &Destination{
+			Address: copyAddr(rev.Destinations[i].Address),
+			Weight:  rev.Destinations[i].Weight,
 		}
 	}
 	return cpy

@@ -20,7 +20,7 @@ func TestRevenueValidate(t *testing.T) {
 			model: Revenue{
 				Metadata: &weave.Metadata{Schema: 1},
 				Admin:    addr,
-				Recipients: []*Recipient{
+				Destinations: []*Destination{
 					{Weight: 1, Address: addr},
 				},
 			},
@@ -30,35 +30,35 @@ func TestRevenueValidate(t *testing.T) {
 			model: Revenue{
 				Metadata: &weave.Metadata{Schema: 1},
 				Admin:    nil,
-				Recipients: []*Recipient{
+				Destinations: []*Destination{
 					{Weight: 1, Address: addr},
 				},
 			},
 			wantErr: errors.ErrEmpty,
 		},
-		"at least one recipient must be given": {
+		"at least one destination must be given": {
 			model: Revenue{
-				Metadata:   &weave.Metadata{Schema: 1},
-				Admin:      addr,
-				Recipients: []*Recipient{},
+				Metadata:     &weave.Metadata{Schema: 1},
+				Admin:        addr,
+				Destinations: []*Destination{},
 			},
 			wantErr: errors.ErrModel,
 		},
-		"recipient weight must be greater than zero": {
+		"destination weight must be greater than zero": {
 			model: Revenue{
 				Metadata: &weave.Metadata{Schema: 1},
 				Admin:    addr,
-				Recipients: []*Recipient{
+				Destinations: []*Destination{
 					{Weight: 0, Address: addr},
 				},
 			},
 			wantErr: errors.ErrModel,
 		},
-		"recipient must have a valid address": {
+		"destination must have a valid address": {
 			model: Revenue{
 				Metadata: &weave.Metadata{Schema: 1},
 				Admin:    addr,
-				Recipients: []*Recipient{
+				Destinations: []*Destination{
 					{Weight: 2, Address: []byte("zzz")},
 				},
 			},
@@ -77,35 +77,35 @@ func TestRevenueValidate(t *testing.T) {
 	}
 }
 
-func TestValidRecipients(t *testing.T) {
+func TestValidDestinations(t *testing.T) {
 	cases := map[string]struct {
-		recipients []*Recipient
-		baseErr    *errors.Error
-		want       *errors.Error
+		destinations []*Destination
+		baseErr      *errors.Error
+		want         *errors.Error
 	}{
 		"all good": {
-			recipients: []*Recipient{
+			destinations: []*Destination{
 				{Address: weave.Address("f427d624ed29c1fae0e2"), Weight: 1},
 				{Address: weave.Address("aa27d624ed29c1fae0e2"), Weight: 2},
 			},
 			baseErr: errors.ErrModel,
 			want:    nil,
 		},
-		"recipient address not unique": {
-			recipients: []*Recipient{
+		"destination address not unique": {
+			destinations: []*Destination{
 				{Address: weave.Address("f427d624ed29c1fae0e2"), Weight: 1},
 				{Address: weave.Address("f427d624ed29c1fae0e2"), Weight: 1},
 			},
 			baseErr: errors.ErrMsg,
 			want:    errors.ErrMsg,
 		},
-		"too many recipients": {
-			recipients: createRecipients(maxRecipients + 1),
-			baseErr:    errors.ErrModel,
-			want:       errors.ErrModel,
+		"too many destinations": {
+			destinations: createDestinations(maxDestinations + 1),
+			baseErr:      errors.ErrModel,
+			want:         errors.ErrModel,
 		},
 		"weight too big": {
-			recipients: []*Recipient{
+			destinations: []*Destination{
 				{Address: weave.Address("f427d624ed29c1fae0e2"), Weight: math.MaxInt32 - 1},
 			},
 			baseErr: errors.ErrMsg,
@@ -115,17 +115,17 @@ func TestValidRecipients(t *testing.T) {
 
 	for testName, tc := range cases {
 		t.Run(testName, func(t *testing.T) {
-			if err := validateRecipients(tc.recipients, tc.baseErr); !tc.want.Is(err) {
+			if err := validateDestinations(tc.destinations, tc.baseErr); !tc.want.Is(err) {
 				t.Fatalf("%+v", err)
 			}
 		})
 	}
 }
 
-func createRecipients(amount int) []*Recipient {
-	rs := make([]*Recipient, amount)
+func createDestinations(amount int) []*Destination {
+	rs := make([]*Destination, amount)
 	for i := range rs {
-		rs[i] = &Recipient{
+		rs[i] = &Destination{
 			Address: weavetest.SequenceID(uint64(i)),
 			Weight:  int32(i%100 + 1),
 		}

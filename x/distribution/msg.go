@@ -21,7 +21,7 @@ func (msg *CreateMsg) Validate() error {
 	if err := msg.Admin.Validate(); err != nil {
 		return errors.Wrap(err, "invalid admin address")
 	}
-	if err := validateRecipients(msg.Recipients, errors.ErrMsg); err != nil {
+	if err := validateDestinations(msg.Destinations, errors.ErrMsg); err != nil {
 		return err
 	}
 	return nil
@@ -53,7 +53,7 @@ func (msg *ResetMsg) Validate() error {
 	if err := msg.Metadata.Validate(); err != nil {
 		return errors.Wrap(err, "invalid metadata")
 	}
-	if err := validateRecipients(msg.Recipients, errors.ErrMsg); err != nil {
+	if err := validateDestinations(msg.Destinations, errors.ErrMsg); err != nil {
 		return err
 	}
 	return nil

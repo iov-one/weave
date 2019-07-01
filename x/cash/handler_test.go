@@ -41,43 +41,43 @@ func TestSend(t *testing.T) {
 		},
 		"unauthorized": {
 			msg: &SendMsg{
-				Amount: &foo,
-				Src:    perm.Address(),
-				Dest:   perm2.Address(),
+				Amount:      &foo,
+				Source:      perm.Address(),
+				Destination: perm2.Address(),
 			},
 			wantCheckErr:   errors.ErrUnauthorized,
 			wantDeliverErr: errors.ErrUnauthorized,
 		},
-		"sender has no account": {
+		"source has no account": {
 			signers: []weave.Condition{perm},
 			msg: &SendMsg{
-				Amount: &foo,
-				Src:    perm.Address(),
-				Dest:   perm2.Address(),
+				Amount:      &foo,
+				Source:      perm.Address(),
+				Destination: perm2.Address(),
 			},
 			wantDeliverErr: errors.ErrEmpty,
 		},
-		"sender too poor": {
+		"source too poor": {
 			signers: []weave.Condition{perm},
 			initState: []orm.Object{
 				must(WalletWith(perm.Address(), &some)),
 			},
 			msg: &SendMsg{
-				Amount: &foo,
-				Src:    perm.Address(),
-				Dest:   perm2.Address(),
+				Amount:      &foo,
+				Source:      perm.Address(),
+				Destination: perm2.Address(),
 			},
 			wantDeliverErr: errors.ErrAmount,
 		},
-		"sender got cash": {
+		"source got cash": {
 			signers: []weave.Condition{perm},
 			initState: []orm.Object{
 				must(WalletWith(perm.Address(), &foo)),
 			},
 			msg: &SendMsg{
-				Amount: &foo,
-				Src:    perm.Address(),
-				Dest:   perm2.Address(),
+				Amount:      &foo,
+				Source:      perm.Address(),
+				Destination: perm2.Address(),
 			},
 		},
 	}

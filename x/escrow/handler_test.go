@@ -76,7 +76,7 @@ func TestHandler(t *testing.T) {
 					},
 					NewBucket().Bucket,
 				},
-				// bank deducted from sender
+				// bank deducted from source
 				{"/wallets", "", a.Address(), false,
 					[]orm.Object{
 						cash.NewWallet(a.Address()),
@@ -92,7 +92,7 @@ func TestHandler(t *testing.T) {
 				},
 			},
 		},
-		"partial send, default sender taken from permissions": {
+		"partial send, default source taken from permissions": {
 			a.Address(),
 			all,
 			nil, // no prep, just one action
@@ -107,17 +107,17 @@ func TestHandler(t *testing.T) {
 					},
 					NewBucket().Bucket,
 				},
-				// make sure sender index works
+				// make sure source index works
 				{
-					"/escrows/sender", "", a.Address(), false,
+					"/escrows/source", "", a.Address(), false,
 					[]orm.Object{
 						NewEscrow(weavetest.SequenceID(1), a.Address(), b.Address(), c.Address(), some, Timeout, ""),
 					},
 					NewBucket().Bucket,
 				},
-				// make sure recipient index works
+				// make sure destination index works
 				{
-					"/escrows/recipient", "", b.Address(), false,
+					"/escrows/destination", "", b.Address(), false,
 					[]orm.Object{
 						NewEscrow(weavetest.SequenceID(1), a.Address(), b.Address(), c.Address(), some, Timeout, ""),
 					},
@@ -139,7 +139,7 @@ func TestHandler(t *testing.T) {
 				{
 					"/escrows", "", weavetest.SequenceID(2), false, nil, zeroBucket,
 				},
-				// bank deducted from sender
+				// bank deducted from source
 				{"/wallets", "", a.Address(), false,
 					[]orm.Object{
 						mo(cash.WalletWith(a.Address(), remain...)),
@@ -168,7 +168,7 @@ func TestHandler(t *testing.T) {
 			all,
 			nil, // no prep, just one action
 			action{
-				// note permission is not the sender!
+				// note permission is not the source!
 				perms: []weave.Condition{b},
 				msg:   NewCreateMsg(a.Address(), b.Address(), c.Address(), some, Timeout, ""),
 			},
@@ -181,7 +181,7 @@ func TestHandler(t *testing.T) {
 			nil, // no prep, just one action
 			action{
 				perms: []weave.Condition{a},
-				// defaults to sender!
+				// defaults to source!
 				msg:       NewCreateMsg(nil, b.Address(), c.Address(), all, weave.AsUnixTime(blockNow.Add(-2*time.Hour)), ""),
 				blockTime: Timeout.Time().Add(-time.Hour),
 			},
@@ -212,14 +212,14 @@ func TestHandler(t *testing.T) {
 					},
 					cash.NewBucket().Bucket,
 				},
-				// sender is broke
+				// source is broke
 				{"/wallets", "", a.Address(), false,
 					[]orm.Object{
 						cash.NewWallet(a.Address()),
 					},
 					cash.NewBucket().Bucket,
 				},
-				// recipient has bank
+				// destination has bank
 				{"/wallets", "", b.Address(), false,
 					[]orm.Object{
 						mo(cash.WalletWith(b.Address(), all...)),
@@ -228,7 +228,7 @@ func TestHandler(t *testing.T) {
 				},
 			},
 		},
-		"sender can successfully release part": {
+		"source can successfully release part": {
 			a.Address(),
 			all,
 			[]action{createAction(a, b, c, all, "hello")},
@@ -257,14 +257,14 @@ func TestHandler(t *testing.T) {
 					},
 					cash.NewBucket().Bucket,
 				},
-				// sender is broke
+				// source is broke
 				{"/wallets", "", a.Address(), false,
 					[]orm.Object{
 						cash.NewWallet(a.Address()),
 					},
 					cash.NewBucket().Bucket,
 				},
-				// recipient has some money
+				// destination has some money
 				{"/wallets", "", b.Address(), false,
 					[]orm.Object{
 						mo(cash.WalletWith(b.Address(), some...)),
@@ -273,7 +273,7 @@ func TestHandler(t *testing.T) {
 				},
 			},
 		},
-		"recipient cannot release": {
+		"destination cannot release": {
 			a.Address(),
 			all,
 			[]action{createAction(a, b, c, all, "")},
@@ -326,14 +326,14 @@ func TestHandler(t *testing.T) {
 		//			},
 		//			cash.NewBucket().Bucket,
 		//		},
-		//		// sender recover all his money
+		//		// source recover all his money
 		//		{"/wallets", "", a.Address(), false,
 		//			[]orm.Object{
 		//				mo(cash.WalletWith(a.Address(), all...)),
 		//			},
 		//			cash.NewBucket().Bucket,
 		//		},
-		//		// recipient doesn't get paid
+		//		// destination doesn't get paid
 		//		{"/wallets", "", b.Address(), false, nil,
 		//			cash.NewBucket().Bucket,
 		//		},
@@ -380,14 +380,14 @@ func TestHandler(t *testing.T) {
 				{
 					"/escrows", "", weavetest.SequenceID(1), false, nil, zeroBucket,
 				},
-				// bank deducted from sender
+				// bank deducted from source
 				{"/wallets", "", a.Address(), false,
 					[]orm.Object{
 						mo(cash.WalletWith(a.Address(), remain...)),
 					},
 					cash.NewBucket().Bucket,
 				},
-				// and added to recipient
+				// and added to destination
 				{"/wallets", "", b.Address(), false,
 					[]orm.Object{
 						mo(cash.WalletWith(b.Address(), some...)),
@@ -443,7 +443,7 @@ func TestHandler(t *testing.T) {
 		//		perms: []weave.Condition{a},
 		//		msg: &UpdatePartiesMsg{
 		//			EscrowId: weavetest.SequenceID(1),
-		//			Sender:   d,
+		//			Source:   d,
 		//		},
 		//		height: Timeout + 100,
 		//	},
@@ -483,14 +483,14 @@ func TestHandler(t *testing.T) {
 					},
 					cash.NewBucket().Bucket,
 				},
-				// sender is broke
+				// source is broke
 				{"/wallets", "", a.Address(), false,
 					[]orm.Object{
 						cash.NewWallet(a.Address()),
 					},
 					cash.NewBucket().Bucket,
 				},
-				// recipient has cash
+				// destination has cash
 				{"/wallets", "", b.Address(), false,
 					[]orm.Object{
 						mo(cash.WalletWith(b.Address(), all...)),
@@ -507,8 +507,8 @@ func TestHandler(t *testing.T) {
 		//		{
 		//			perms: []weave.Condition{a},
 		//			msg: &cash.SendMsg{
-		//				Src:    a.Address(),
-		//				Dest:   escrowAddr(1),
+		//				Source:    a.Address(),
+		//				Destination:   escrowAddr(1),
 		//				Amount: &coin.Coin{Whole: 1, Ticker: "FOO"},
 		//			},
 		//		},
@@ -533,14 +533,14 @@ func TestHandler(t *testing.T) {
 		//			},
 		//			cash.NewBucket().Bucket,
 		//		},
-		//		// sender recover all his money
+		//		// source recover all his money
 		//		{"/wallets", "", a.Address(), false,
 		//			[]orm.Object{
 		//				mo(cash.WalletWith(a.Address(), mustCombineCoins(coin.NewCoin(2, 0, "FOO"))...)),
 		//			},
 		//			cash.NewBucket().Bucket,
 		//		},
-		//		// recipient doesn't get paid
+		//		// destination doesn't get paid
 		//		{"/wallets", "", b.Address(), false, nil,
 		//			cash.NewBucket().Bucket,
 		//		},
@@ -554,10 +554,10 @@ func TestHandler(t *testing.T) {
 				{
 					perms: []weave.Condition{a},
 					msg: &cash.SendMsg{
-						Metadata: &weave.Metadata{Schema: 1},
-						Src:      a.Address(),
-						Dest:     escrowAddr(1),
-						Amount:   &coin.Coin{Whole: 1, Ticker: "FOO"},
+						Metadata:    &weave.Metadata{Schema: 1},
+						Source:      a.Address(),
+						Destination: escrowAddr(1),
+						Amount:      &coin.Coin{Whole: 1, Ticker: "FOO"},
 					},
 				},
 			},
@@ -581,14 +581,14 @@ func TestHandler(t *testing.T) {
 					},
 					cash.NewBucket().Bucket,
 				},
-				// sender is broke
+				// source is broke
 				{"/wallets", "", a.Address(), false,
 					[]orm.Object{
 						cash.NewWallet(a.Address()),
 					},
 					cash.NewBucket().Bucket,
 				},
-				// recipient has bank
+				// destination has bank
 				{"/wallets", "", b.Address(), false,
 					[]orm.Object{
 						mo(cash.WalletWith(b.Address(), mustCombineCoins(coin.NewCoin(2, 0, "FOO"))...)),
@@ -649,10 +649,10 @@ func TestHandler(t *testing.T) {
 	}
 }
 
-func createAction(sender, rcpt, arbiter weave.Condition, amount coin.Coins, memo string) action {
+func createAction(source, rcpt, arbiter weave.Condition, amount coin.Coins, memo string) action {
 	return action{
-		perms: []weave.Condition{sender},
-		msg:   NewCreateMsg(sender.Address(), rcpt.Address(), arbiter.Address(), amount, Timeout, memo),
+		perms: []weave.Condition{source},
+		msg:   NewCreateMsg(source.Address(), rcpt.Address(), arbiter.Address(), amount, Timeout, memo),
 	}
 }
 
@@ -725,7 +725,7 @@ func (q query) check(t testing.TB, db weave.ReadOnlyKVStore, qr weave.QueryRoute
 	t.Helper()
 
 	h := qr.Handler(q.path)
-	require.NotNil(t, h)
+	require.NotNil(t, h, q.path)
 	mods, err := h.Query(db, q.mod, q.data)
 	if q.isError {
 		require.Error(t, err)

@@ -55,79 +55,79 @@ func TestCreateMsg(t *testing.T) {
 		// proper
 		1: {
 			&CreateMsg{
-				Metadata:  &weave.Metadata{Schema: 1},
-				Src:       a.Address(),
-				Arbiter:   b.Address(),
-				Recipient: c.Address(),
-				Amount:    plus,
-				Timeout:   timeout,
+				Metadata:    &weave.Metadata{Schema: 1},
+				Source:      a.Address(),
+				Arbiter:     b.Address(),
+				Destination: c.Address(),
+				Amount:      plus,
+				Timeout:     timeout,
 			},
 			noErr,
 		},
-		// missing sender okay, dups okay
+		// missing source okay, dups okay
 		2: {
 			&CreateMsg{
-				Metadata:  &weave.Metadata{Schema: 1},
-				Arbiter:   c.Address(),
-				Recipient: c.Address(),
-				Amount:    plus,
-				Timeout:   timeout,
-				Memo:      "some string",
+				Metadata:    &weave.Metadata{Schema: 1},
+				Arbiter:     c.Address(),
+				Destination: c.Address(),
+				Amount:      plus,
+				Timeout:     timeout,
+				Memo:        "some string",
 			},
 			noErr,
 		},
 		// negative amount
 		3: {
 			&CreateMsg{
-				Metadata:  &weave.Metadata{Schema: 1},
-				Arbiter:   b.Address(),
-				Recipient: c.Address(),
-				Amount:    minus,
-				Timeout:   timeout,
+				Metadata:    &weave.Metadata{Schema: 1},
+				Arbiter:     b.Address(),
+				Destination: c.Address(),
+				Amount:      minus,
+				Timeout:     timeout,
 			},
 			errors.ErrAmount.Is,
 		},
 		// improperly formatted amount
 		4: {
 			&CreateMsg{
-				Metadata:  &weave.Metadata{Schema: 1},
-				Arbiter:   b.Address(),
-				Recipient: c.Address(),
-				Amount:    mixed,
-				Timeout:   timeout,
+				Metadata:    &weave.Metadata{Schema: 1},
+				Arbiter:     b.Address(),
+				Destination: c.Address(),
+				Amount:      mixed,
+				Timeout:     timeout,
 			},
 			errors.ErrCurrency.Is,
 		},
 		// missing amount
 		5: {
 			&CreateMsg{
-				Metadata:  &weave.Metadata{Schema: 1},
-				Arbiter:   b.Address(),
-				Recipient: c.Address(),
-				Timeout:   timeout,
+				Metadata:    &weave.Metadata{Schema: 1},
+				Arbiter:     b.Address(),
+				Destination: c.Address(),
+				Timeout:     timeout,
 			},
 			errors.ErrAmount.Is,
 		},
 		// invalid memo
 		6: {
 			&CreateMsg{
-				Metadata:  &weave.Metadata{Schema: 1},
-				Arbiter:   b.Address(),
-				Recipient: c.Address(),
-				Amount:    plus,
-				Timeout:   timeout,
-				Memo:      strings.Repeat("foo", 100),
+				Metadata:    &weave.Metadata{Schema: 1},
+				Arbiter:     b.Address(),
+				Destination: c.Address(),
+				Amount:      plus,
+				Timeout:     timeout,
+				Memo:        strings.Repeat("foo", 100),
 			},
 			errors.ErrInput.Is,
 		},
 		// zero timeout
 		7: {
 			&CreateMsg{
-				Metadata:  &weave.Metadata{Schema: 1},
-				Arbiter:   b.Address(),
-				Recipient: c.Address(),
-				Amount:    plus,
-				Timeout:   0,
+				Metadata:    &weave.Metadata{Schema: 1},
+				Arbiter:     b.Address(),
+				Destination: c.Address(),
+				Amount:      plus,
+				Timeout:     0,
 			},
 			errors.ErrInput.Is,
 		},
@@ -296,7 +296,7 @@ func TestUpdateEscrowMsg(t *testing.T) {
 			&UpdatePartiesMsg{
 				Metadata: &weave.Metadata{Schema: 1},
 				EscrowId: escrow,
-				Sender:   a.Address(),
+				Source:   a.Address(),
 			},
 			noErr,
 		},
@@ -313,17 +313,17 @@ func TestUpdateEscrowMsg(t *testing.T) {
 			&UpdatePartiesMsg{
 				Metadata: &weave.Metadata{Schema: 1},
 				EscrowId: scarecrow,
-				Sender:   a.Address(),
+				Source:   a.Address(),
 			},
 			errors.ErrInput.Is,
 		},
 		// allow multiple permissions
 		4: {
 			&UpdatePartiesMsg{
-				Metadata:  &weave.Metadata{Schema: 1},
-				EscrowId:  escrow,
-				Recipient: b.Address(),
-				Arbiter:   c.Address(),
+				Metadata:    &weave.Metadata{Schema: 1},
+				EscrowId:    escrow,
+				Destination: b.Address(),
+				Arbiter:     c.Address(),
 			},
 			noErr,
 		},

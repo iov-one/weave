@@ -20,7 +20,7 @@ const (
 
 // NewCreateMsg is a helper to quickly build a create escrow message
 func NewCreateMsg(
-	sender weave.Address,
+	source weave.Address,
 	recipient weave.Address,
 	arbiter weave.Address,
 	amount coin.Coins,
@@ -28,13 +28,13 @@ func NewCreateMsg(
 	memo string,
 ) *CreateMsg {
 	return &CreateMsg{
-		Metadata:  &weave.Metadata{Schema: 1},
-		Src:       sender,
-		Recipient: recipient,
-		Arbiter:   arbiter,
-		Amount:    amount,
-		Timeout:   timeout,
-		Memo:      memo,
+		Metadata:    &weave.Metadata{Schema: 1},
+		Source:      source,
+		Destination: recipient,
+		Arbiter:     arbiter,
+		Amount:      amount,
+		Timeout:     timeout,
+		Memo:        memo,
 	}
 }
 
@@ -52,7 +52,7 @@ func (m *CreateMsg) Validate() error {
 	if err := m.Arbiter.Validate(); err != nil {
 		return errors.Wrap(err, "arbiter")
 	}
-	if err := m.Recipient.Validate(); err != nil {
+	if err := m.Destination.Validate(); err != nil {
 		return errors.Wrap(err, "recipient")
 	}
 	if m.Timeout == 0 {
@@ -124,11 +124,11 @@ func (m *UpdatePartiesMsg) Validate() error {
 	if err != nil {
 		return err
 	}
-	if m.Arbiter == nil && m.Sender == nil && m.Recipient == nil {
+	if m.Arbiter == nil && m.Source == nil && m.Destination == nil {
 		return errors.Wrap(errors.ErrEmpty, "all conditions")
 	}
 
-	return validateAddresses(m.Sender, m.Recipient, m.Arbiter)
+	return validateAddresses(m.Source, m.Destination, m.Arbiter)
 }
 
 // validateAddresses returns an error if any address doesn't validate

@@ -13,15 +13,15 @@ import (
 )
 
 func TestSendTx(t *testing.T) {
-	sender := GenPrivateKey()
-	senderAddr := sender.PublicKey().Address()
+	source := GenPrivateKey()
+	sourceAddr := source.PublicKey().Address()
 	rcpt := GenPrivateKey().PublicKey().Address()
 	amount := coin.Coin{Whole: 59, Fractional: 42, Ticker: "ECK"}
 
 	chainID := "ding-dong"
-	tx := BuildSendTx(senderAddr, rcpt, amount, "Hi There")
+	tx := BuildSendTx(sourceAddr, rcpt, amount, "Hi There")
 	// if we sign with 0, we can validate against an empty db
-	SignTx(tx, sender, chainID, 0)
+	SignTx(tx, source, chainID, 0)
 
 	// make sure the tx has a sig
 	require.Equal(t, 1, len(tx.GetSignatures()))
@@ -32,7 +32,7 @@ func TestSendTx(t *testing.T) {
 	conds, err := sigs.VerifyTxSignatures(db, tx, chainID)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(conds))
-	assert.EqualValues(t, sender.PublicKey().Condition(), conds[0])
+	assert.EqualValues(t, source.PublicKey().Condition(), conds[0])
 
 	// make sure other chain doesn't validate
 	db = store.MemStore()
@@ -50,8 +50,8 @@ func TestSendTx(t *testing.T) {
 	require.True(t, ok)
 
 	assert.Equal(t, "Hi There", send.Memo)
-	assert.EqualValues(t, rcpt, send.Dest)
-	assert.EqualValues(t, senderAddr, send.Src)
+	assert.EqualValues(t, rcpt, send.Destination)
+	assert.EqualValues(t, sourceAddr, send.Source)
 	assert.Equal(t, int64(59), send.Amount.Whole)
 	assert.Equal(t, "ECK", send.Amount.Ticker)
 }

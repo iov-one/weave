@@ -9,14 +9,14 @@ import "crypto/models.proto";
 // PaymentChannel holds the state of a payment channel during its lifetime.
 message PaymentChannel {
   weave.Metadata metadata = 1;
-  // Sender is the source that the founds are allocated from.
-  bytes src = 2 ;
-  // Sender public key is a key that must be used to verify signature of
-  // transfer message. Sender creates signed transfer messages and gives them
-  // to the recipient. Signature prevents from altering transfer message.
-  crypto.PublicKey sender_pubkey = 3;
-  // Recipient is the party that receives payments through this channel
-  bytes recipient = 4 ;
+  // Source is the source that the founds are allocated from.
+  bytes source = 2 ;
+  // Source public key is a key that must be used to verify signature of
+  // transfer message. Source creates signed transfer messages and gives them
+  // to the destination. Signature prevents from altering transfer message.
+  crypto.PublicKey source_pubkey = 3;
+  // Destination is the party that receives payments through this channel
+  bytes destination = 4 ;
   // Total represents a maximum value that can be transferred via this
   // payment channel.
   coin.Coin total = 5;
@@ -35,16 +35,16 @@ message PaymentChannel {
 // CreateMsg creates a new payment channel that can be used to
 // transfer value between two parties.
 //
-// Total amount will be taken from the senders account and allocated for user
+// Total amount will be taken from the sources account and allocated for user
 // in the transactions done via created payment channel.
 message CreateMsg {
   weave.Metadata metadata = 1;
-  // Sender address (weave.Address).
-  bytes src = 2 ;
-  // Sender public key is for validating transfer message signature.
-  crypto.PublicKey sender_pubkey = 3;
-  // Recipient address  (weave.Address).
-  bytes recipient = 4 ;
+  // Source address (weave.Address).
+  bytes source = 2 ;
+  // Source public key is for validating transfer message signature.
+  crypto.PublicKey source_pubkey = 3;
+  // Destination address  (weave.Address).
+  bytes destination = 4 ;
   // Maximum amount that can be transferred via this channel.
   coin.Coin total = 5;
   // If reached, channel can be closed by anyone.
@@ -53,8 +53,8 @@ message CreateMsg {
   string memo = 7;
 }
 
-// Payment is created by the sender. Sender should give the message to the
-// recipient, so that it can be redeemed at any time.
+// Payment is created by the source. Source should give the message to the
+// destination, so that it can be redeemed at any time.
 //
 // Each Payment should be created with amount greater than the previous one.
 message Payment {
@@ -66,7 +66,7 @@ message Payment {
 }
 
 // TransferMsg binds Payment with a signature created using
-// senders private key.
+// sources private key.
 // Signature is there to ensure that payment message was not altered.
 message TransferMsg {
   weave.Metadata metadata = 1;
@@ -75,11 +75,11 @@ message TransferMsg {
 }
 
 // CloseMsg close a payment channel and release remaining founds
-// by sending them back to the sender account.
+// by sending them back to the source account.
 //
-// Recipient account can close channel at any moment.
+// Destination account can close channel at any moment.
 //
-// Sender can close channel only if the timeout was reached.
+// Source can close channel only if the timeout was reached.
 message CloseMsg {
   weave.Metadata metadata = 1;
   bytes channel_id = 2 ;

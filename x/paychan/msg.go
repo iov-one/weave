@@ -18,12 +18,12 @@ func (m *CreateMsg) Validate() error {
 	var errs error
 
 	errs = errors.AppendField(errs, "Metadata", m.Metadata.Validate())
-	errs = errors.AppendField(errs, "Src", m.Src.Validate())
-	if m.SenderPubkey == nil {
+	errs = errors.AppendField(errs, "Source", m.Source.Validate())
+	if m.SourcePubkey == nil {
 		errs = errors.Append(errs,
-			errors.Field("SenderPubKey", errors.ErrMsg, "missing sender public key"))
+			errors.Field("SourcePubKey", errors.ErrMsg, "missing source public key"))
 	}
-	errs = errors.AppendField(errs, "Recipient", m.Recipient.Validate())
+	errs = errors.AppendField(errs, "Destination", m.Destination.Validate())
 	if err := m.Timeout.Validate(); err != nil {
 		errs = errors.AppendField(errs, "Timeout", err)
 	} else if m.Timeout < inThePast {

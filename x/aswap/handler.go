@@ -69,8 +69,8 @@ func (h CreateSwapHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave
 	// create a swap object
 	swap := &Swap{
 		Metadata:     msg.Metadata,
-		Src:          msg.Src,
-		Recipient:    msg.Recipient,
+		Source:       msg.Source,
+		Destination:  msg.Destination,
 		Timeout:      msg.Timeout,
 		Memo:         msg.Memo,
 		PreimageHash: msg.PreimageHash,
@@ -81,7 +81,7 @@ func (h CreateSwapHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave
 		return nil, err
 	}
 
-	if err := cash.MoveCoins(db, h.bank, swap.Src, SwapAddr(obj.Key(), swap), msg.Amount); err != nil {
+	if err := cash.MoveCoins(db, h.bank, swap.Source, SwapAddr(obj.Key(), swap), msg.Amount); err != nil {
 		return nil, err
 	}
 
@@ -101,14 +101,14 @@ func (h CreateSwapHandler) validate(ctx weave.Context,
 	}
 
 	// Sender must authorize this
-	if !h.auth.HasAddress(ctx, msg.Src) {
+	if !h.auth.HasAddress(ctx, msg.Source) {
 		return nil, errors.ErrUnauthorized
 	}
 
 	return &msg, nil
 }
 
-// ReleaseSwapHandler releases the amount to recipient.
+// ReleaseSwapHandler releases the amount to destination.
 type ReleaseSwapHandler struct {
 	auth   x.Authenticator
 	bucket Bucket
@@ -143,8 +143,8 @@ func (h ReleaseSwapHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weav
 		return nil, err
 	}
 
-	// withdraw the money from swap to recipient
-	if err := cash.MoveCoins(db, h.bank, swapAddr, swap.Recipient, amount); err != nil {
+	// withdraw the money from swap to destination
+	if err := cash.MoveCoins(db, h.bank, swapAddr, swap.Destination, amount); err != nil {
 		return nil, err
 	}
 
@@ -217,7 +217,7 @@ func (h ReturnSwapHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave
 	}
 
 	// withdraw all coins from swap to the defined "sender"
-	if err := cash.MoveCoins(db, h.bank, swapAddr, swap.Src, available); err != nil {
+	if err := cash.MoveCoins(db, h.bank, swapAddr, swap.Source, available); err != nil {
 		return nil, err
 	}
 	if err := h.bucket.Delete(db, msg.SwapID); err != nil {

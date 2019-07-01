@@ -4,7 +4,7 @@
 
 - `bnsd/x/username` genesis initializer implemented and included in `bnsd`.
 - Support gov proposal vote, deletion and tally in `bnscli`
-- Support gov proposal text resolution, update electorate, update election rules in `bnscli` 
+- Support gov proposal text resolution, update electorate, update election rules in `bnscli`
 - Added `x/utils.ActionTagger`: all `bnsd` transactions now have
   `action=${msg.Path()}` tags. If there is a batch, there is one tag per
   sub-message. If it is a governance tally, the TallyMsg as well as the
@@ -15,6 +15,9 @@ Breaking changes
 - Unify all message paths to follow pattern `<package>/<message_name>`
 - `app.Router` interface was changed. Handler registration requires a message
   and not message path.
+- Unify all message attribute names
+  - rename `src` and `sender` to `source`
+  - rename `dst` and `recipient` to `destination`
 
 ## 0.17.0
 

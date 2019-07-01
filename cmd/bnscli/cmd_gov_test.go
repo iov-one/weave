@@ -20,11 +20,11 @@ func TestCmdAsProposalHappyPath(t *testing.T) {
 	sendTx := &bnsd.Tx{
 		Sum: &bnsd.Tx_CashSendMsg{
 			CashSendMsg: &cash.SendMsg{
-				Metadata: &weave.Metadata{Schema: 1},
-				Src:      fromHex(t, "b1ca7e78f74423ae01da3b51e676934d9105f282"),
-				Dest:     fromHex(t, "E28AE9A6EB94FC88B73EB7CBD6B87BF93EB9BEF0"),
-				Amount:   coin.NewCoinp(5, 0, "DOGE"),
-				Memo:     "a memo",
+				Metadata:    &weave.Metadata{Schema: 1},
+				Source:      fromHex(t, "b1ca7e78f74423ae01da3b51e676934d9105f282"),
+				Destination: fromHex(t, "E28AE9A6EB94FC88B73EB7CBD6B87BF93EB9BEF0"),
+				Amount:      coin.NewCoinp(5, 0, "DOGE"),
+				Memo:        "a memo",
 			},
 		},
 	}
@@ -63,8 +63,8 @@ func TestCmdAsProposalHappyPath(t *testing.T) {
 		t.Fatalf("cannot unmarshal submessage: %s", err)
 	}
 	submsg := options.GetCashSendMsg()
-	assert.Equal(t, fromHex(t, "b1ca7e78f74423ae01da3b51e676934d9105f282"), []byte(submsg.Src))
-	assert.Equal(t, fromHex(t, "E28AE9A6EB94FC88B73EB7CBD6B87BF93EB9BEF0"), []byte(submsg.Dest))
+	assert.Equal(t, fromHex(t, "b1ca7e78f74423ae01da3b51e676934d9105f282"), []byte(submsg.Source))
+	assert.Equal(t, fromHex(t, "E28AE9A6EB94FC88B73EB7CBD6B87BF93EB9BEF0"), []byte(submsg.Destination))
 	assert.Equal(t, "a memo", submsg.Memo)
 	assert.Equal(t, coin.NewCoinp(5, 0, "DOGE"), submsg.Amount)
 }

@@ -34,8 +34,8 @@ func (s *SendMsg) Validate() error {
 	} else {
 		err = errors.Append(err, errors.Wrap(s.Amount.Validate(), "amount"))
 	}
-	err = errors.Append(err, errors.Wrap(s.Src.Validate(), "src"))
-	err = errors.Append(err, errors.Wrap(s.Dest.Validate(), "dest"))
+	err = errors.Append(err, errors.Wrap(s.Source.Validate(), "source"))
+	err = errors.Append(err, errors.Wrap(s.Destination.Validate(), "destination"))
 	if len(s.Memo) > maxMemoSize {
 		err = errors.Append(err, errors.Wrap(errors.ErrState, "memo too long"))
 	}
@@ -50,15 +50,15 @@ func (s *SendMsg) Validate() error {
 // If it was already set, returns s.
 // If none was set, returns a new SendMsg with the source set
 func (s *SendMsg) DefaultSource(addr []byte) *SendMsg {
-	if len(s.GetSrc()) != 0 {
+	if len(s.GetSource()) != 0 {
 		return s
 	}
 	return &SendMsg{
-		Src:    addr,
-		Dest:   s.GetDest(),
-		Amount: s.GetAmount(),
-		Memo:   s.GetMemo(),
-		Ref:    s.GetRef(),
+		Source:      addr,
+		Destination: s.GetDestination(),
+		Amount:      s.GetAmount(),
+		Memo:        s.GetMemo(),
+		Ref:         s.GetRef(),
 	}
 }
 
