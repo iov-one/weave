@@ -88,10 +88,9 @@ func (c *MsgCron) Tick(ctx context.Context, db store.CacheableKVStore) (*weave.T
 		msg, err := Pop(cache, time.Now())
 		switch {
 		case err == nil:
-			// All good.
-			if _, err := c.hn.Check(ctx, cache, &cronTx{msg: msg}); err != nil {
-				return nil, errors.Wrapf(err, "cannot check %T message", msg)
-			}
+			// Do not run Check as it is only to prevent spam.
+			// Deliver must provide the same level of validation so
+			// it is enough to call it alone.
 			if _, err := c.hn.Deliver(ctx, cache, &cronTx{msg: msg}); err != nil {
 				return nil, errors.Wrapf(err, "cannot deliver %T message", msg)
 			}
