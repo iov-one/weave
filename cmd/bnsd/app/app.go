@@ -15,10 +15,10 @@ import (
 	"github.com/iov-one/weave/cmd/bnsd/x/username"
 	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/commands/server"
+	"github.com/iov-one/weave/cron"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/orm"
-	"github.com/iov-one/weave/queue"
 	"github.com/iov-one/weave/store/iavl"
 	"github.com/iov-one/weave/x"
 	"github.com/iov-one/weave/x/aswap"
@@ -136,7 +136,7 @@ func Application(
 		return app.BaseApp{}, errors.Wrap(err, "cannot create store")
 	}
 	store := app.NewStoreApp(name, kv, QueryRouter(options.MinFee), ctx)
-	cron := queue.NewMsgCron(h)
+	cron := cron.NewMsgCron(h)
 	base := app.NewBaseApp(store, tx, h, cron, options.Debug)
 	return base, nil
 }

@@ -1,4 +1,4 @@
-package queue
+package cron
 
 import (
 	"context"
@@ -13,7 +13,15 @@ import (
 // Put queues the message in the database to be executed at given time.
 // Due to the implementation details, message is guaranteed to be executed
 // after given time, but not exactly at given time.
+//
+// If another message is already scheduled for the exact same time, execution
+// of this message is delayed until the next free slot.
+//
+// Time granularity is second.
 func Put(db weave.KVStore, runAt time.Time, msg weave.Msg) error {
+	const granularity = time.Second
+	runAt = runAt.Round(granularity)
+
 	msgb, err := msg.Marshal()
 	if err != nil {
 		return errors.Wrap(err, "marshal message")
@@ -30,7 +38,7 @@ func Put(db weave.KVStore, runAt time.Time, msg weave.Msg) error {
 			// the smallest duration.
 			// Message is guaranteed to be executed not earlier
 			// than given time, NOT at exactly given time.
-			runAt = runAt.Add(1)
+			runAt = runAt.Add(granularity)
 			continue
 		}
 
@@ -41,10 +49,10 @@ func Put(db weave.KVStore, runAt time.Time, msg weave.Msg) error {
 	}
 }
 
-// Pop removes from the queue a single message that reached its execution time
+// pop removes from the queue a single message that reached its execution time
 // and returns it. It returns ErrEmpty if there is no message suitable for
 // processing.
-func Pop(db weave.KVStore, now time.Time) (weave.Msg, error) {
+func pop(db weave.KVStore, now time.Time) (weave.Msg, error) {
 	// since := queueKey(time.Time{}) // Zero time is early enough.
 	// until := queueKey(now)
 	// it := db.Iterate(since, until)
@@ -85,7 +93,7 @@ func (c *MsgCron) Tick(ctx context.Context, db store.CacheableKVStore) (*weave.T
 	defer cache.Discard()
 
 	for {
-		msg, err := Pop(cache, time.Now())
+		msg, err := pop(cache, time.Now())
 		switch {
 		case err == nil:
 			// Do not run Check as it is only to prevent spam.
