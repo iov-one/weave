@@ -12,6 +12,30 @@ import (
 	"github.com/iov-one/weave/store"
 )
 
+// Task is an interface that must be implemented by user of this package. Only
+// a single implementation must be used at any time.
+type Task interface {
+	// Task implements weave transaction interface as it is to be processed
+	// by handler. It is up to the user of this package to define what a
+	// task is. It is not recommended to use the same structure for
+	// synchronous transactions and asynchronous tasks.
+	weave.Tx
+
+	// In addition to the weave.Tx interface, task MAY implement
+	// ContextPreparer to ensure context variables before execution.
+}
+
+// ContextPreparer is an interface that can be implemented by the Task
+// implementation. If that is the case, Prepare method is used to enrich the
+// context before passing it to the handler to execute the task.
+//
+// This is a way for the task to take care of persisting and than restoring any
+// information that should be present in the context during the execution.
+type ContextPreparer interface {
+	// Prepare the context to be used for this task execution.
+	Prepare(ctx context.Context) context.Context
+}
+
 // Schedule queues the transcation in the database to be executed at given
 // time. Transaction will be executed with context containing provided
 // authentication addresses.
@@ -23,25 +47,10 @@ import (
 // delayed until the next free slot.
 //
 // Time granularity is second.
-func Schedule(
-	db weave.KVStore,
-	runAt time.Time,
-	tx weave.Tx,
-	auth []weave.Address,
-) ([]byte, error) {
+func Schedule(db weave.KVStore, runAt time.Time, task Task) ([]byte, error) {
 	const granularity = time.Second
 	runAt = runAt.Round(granularity)
 
-	rawTx, err := tx.Marshal()
-	if err != nil {
-		return nil, errors.Wrap(err, "marshal transaction")
-	}
-
-	task := &Task{
-		Metadata:   &weave.Metadata{Schema: 1},
-		Serialized: rawTx,
-		Auth:       auth,
-	}
 	rawTask, err := task.Marshal()
 	if err != nil {
 		return nil, errors.Wrap(err, "marshal task")
@@ -82,18 +91,23 @@ func queueKey(t time.Time) []byte {
 // Ticker allows to execute messages queued for future execution. It does this
 // by implementing weave.Ticker interface.
 type Ticker struct {
-	hn      weave.Handler
-	txtype  reflect.Type
-	results orm.ModelBucket
+	hn       weave.Handler
+	taskType reflect.Type
+	results  orm.ModelBucket
 }
 
-// NewMsgCron returns a message cron instance that is using given handler to
-// process all queued messages that execution time is due.
-func NewMsgCron(tx weave.Tx, h weave.Handler) *Ticker {
+// NewTicker returns a cron instance that is using given handler to process all
+// queued messages that execution time is due.
+//
+// Task is an instance of a Task interface implementation. This is the
+// implementation that the returned ticker can work with and no other
+// implementation is allowed. All data serialization and processing will be
+// done assuming provided type.
+func NewTicker(emptyInstance Task, h weave.Handler) *Ticker {
 	return &Ticker{
-		hn:      h,
-		txtype:  reflect.TypeOf(tx),
-		results: NewTaskResultBucket(),
+		hn:       h,
+		taskType: reflect.TypeOf(emptyInstance),
+		results:  NewTaskResultBucket(),
 	}
 }
 
@@ -105,7 +119,7 @@ var _ weave.Ticker = (*Ticker)(nil)
 func (t *Ticker) Tick(ctx context.Context, db store.CacheableKVStore) [][]byte {
 	executed, err := t.tick(ctx, db)
 	if err != nil {
-		// TODO log error
+		// TODO log error?
 	}
 	return executed
 }
@@ -122,27 +136,33 @@ func (t *Ticker) tick(ctx context.Context, db store.CacheableKVStore) ([][]byte,
 	}
 
 	for {
-		tx := reflect.New(t.txtype.Elem()).Interface().(weave.Tx)
-		switch key, auth, err := peek(db, now, tx); {
+		task := reflect.New(t.taskType.Elem()).Interface().(Task)
+		switch key, err := peek(db, now, task); {
 		case err == nil:
-			info := TaskResult{
+			res := TaskResult{
 				Metadata:   &weave.Metadata{Schema: 1},
 				Successful: true,
 			}
+
+			taskCtx := ctx
+			if prep, ok := task.(ContextPreparer); ok {
+				taskCtx = prep.Prepare(taskCtx)
+			}
+
 			// Each task is processed using its own cache instance
 			// to ensure changes are atomic and task processing
 			// independent.
 			cache := db.CacheWrap()
-			if _, err := t.hn.Deliver(ctx, cache, tx); err != nil {
+			if _, err := t.hn.Deliver(taskCtx, cache, task); err != nil {
 				// Discard any changes that the deliver could
 				// have created. We do not want to persist
 				// those.
 				cache.Discard()
-				info.Successful = false
-				info.Info = err.Error()
+				res.Successful = false
+				res.Info = err.Error()
 			}
 
-			if _, err := t.results.Put(cache, key, &info); err != nil {
+			if _, err := t.results.Put(cache, key, &res); err != nil {
 				// Keep it atomic.
 				cache.Discard()
 				return executed, errors.Wrap(err, "cannot store result")
@@ -168,33 +188,28 @@ func (t *Ticker) tick(ctx context.Context, db store.CacheableKVStore) ([][]byte,
 	}
 }
 
-// peek reads from the queue a single message that reached its execution time
-// and returns it. It returns ErrEmpty if there is no message suitable for
+// peek loads from the queue a single task that reached its execution time and
+// returns its ID. It returns ErrEmpty if there is no message suitable for
 // processing.
-func peek(db weave.KVStore, now time.Time, dest weave.Tx) ([]byte, []weave.Address, error) {
+// Task are consumed in order of execution time, starting with the oldest.
+func peek(db weave.KVStore, now time.Time, dest Task) ([]byte, error) {
 	since := queueKey(time.Time{}) // Zero time is early enough.
 	until := queueKey(now)
 	it, err := db.Iterator(since, until)
 	if err != nil {
-		return nil, nil, errors.Wrap(err, "cannot create iterator")
+		return nil, errors.Wrap(err, "cannot create iterator")
 	}
 	defer it.Release()
 
 	switch key, value, err := it.Next(); {
 	case err == nil:
-		var task Task
-
-		if err := task.Unmarshal(value); err != nil {
-			return key, nil, errors.Wrapf(err, "cannot unmarshal task %q", key)
+		if err := dest.Unmarshal(value); err != nil {
+			return key, errors.Wrapf(err, "cannot unmarshal transaction %q", key)
 		}
-
-		if err := dest.Unmarshal(task.Serialized); err != nil {
-			return key, task.Auth, errors.Wrapf(err, "cannot unmarshal transaction %q", key)
-		}
-		return key, task.Auth, nil
+		return key, nil
 	case errors.ErrIteratorDone.Is(err):
-		return nil, nil, errors.ErrEmpty
+		return nil, errors.ErrEmpty
 	default:
-		return nil, nil, errors.Wrap(err, "cannot get next item")
+		return nil, errors.Wrap(err, "cannot get next item")
 	}
 }

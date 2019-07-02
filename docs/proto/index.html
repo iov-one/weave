@@ -444,10 +444,6 @@
             <ul>
               
                 <li>
-                  <a href="#cron.Task"><span class="badge">M</span>Task</a>
-                </li>
-              
-                <li>
                   <a href="#cron.TaskResult"><span class="badge">M</span>TaskResult</a>
                 </li>
               
@@ -2561,49 +2557,6 @@ needed to make use of gconf.NewUpdateConfigurationHandler </p></td>
       </div>
       <p></p>
 
-      
-        <h3 id="cron.Task">Task</h3>
-        <p>Task is a structure used only internally by this package. Task a single unit</p><p>of work that is scheduled to be exeucuted later. It clubs together all</p><p>information relevant for the execution.</p>
-
-        
-          <table class="field-table">
-            <thead>
-              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
-            </thead>
-            <tbody>
-              
-                <tr>
-                  <td>metadata</td>
-                  <td><a href="#weave.Metadata">weave.Metadata</a></td>
-                  <td></td>
-                  <td><p> </p></td>
-                </tr>
-              
-                <tr>
-                  <td>serialized</td>
-                  <td><a href="#bytes">bytes</a></td>
-                  <td></td>
-                  <td><p>Serialized holds serialized format of the task. We store it serialized
-instead of reference it directly, because we know the type of the data
-only during the runtime. It is usualy a transaction-like protobuf message
-declared by the application that use this package. </p></td>
-                </tr>
-              
-                <tr>
-                  <td>auth</td>
-                  <td><a href="#bytes">bytes</a></td>
-                  <td>repeated</td>
-                  <td><p>Auth keeps the list of addresses that should be used for authentication.
-Weave pass this information via context and we must persist it to provide
-once the task is executed. Because it is not part of the serialized data,
-it must be stored separately. </p></td>
-                </tr>
-              
-            </tbody>
-          </table>
-        
-
-        
       
         <h3 id="cron.TaskResult">TaskResult</h3>
         <p>TaskResult is a publicly available information about task execution result.</p><p>It is only created for those tasks that were executed.</p><p>Due to a bug in tendermint we must store this information ourselves instead</p><p>of relying on the usual search via tag.</p><p>https://github.com/tendermint/tendermint/issues/3665</p>

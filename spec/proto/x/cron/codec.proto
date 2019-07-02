@@ -4,23 +4,6 @@ package cron;
 
 import "codec.proto";
 
-// Task is a structure used only internally by this package. Task a single unit
-// of work that is scheduled to be exeucuted later. It clubs together all
-// information relevant for the execution.
-message Task {
-  weave.Metadata metadata = 1;
-  // Serialized holds serialized format of the task. We store it serialized
-  // instead of reference it directly, because we know the type of the data
-  // only during the runtime. It is usualy a transaction-like protobuf message
-  // declared by the application that use this package.
-  bytes serialized = 2;
-  // Auth keeps the list of addresses that should be used for authentication.
-  // Weave pass this information via context and we must persist it to provide
-  // once the task is executed. Because it is not part of the serialized data,
-  // it must be stored separately.
-  repeated bytes auth = 3 ;
-}
-
 // TaskResult is a publicly available information about task execution result.
 // It is only created for those tasks that were executed.
 //

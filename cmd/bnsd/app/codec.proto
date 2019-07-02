@@ -139,3 +139,11 @@ message ExecuteProposalBatchMsg {
   }
   repeated Union messages = 1 [(gogoproto.nullable) = false];
 }
+
+
+message CronTask {
+  // Use the same indexes for the messages as the Tx message.
+  oneof sum {
+    gov.TallyMsg gov_tally_msg = 76;
+  }
+}

@@ -12,23 +12,23 @@ import (
 	"github.com/iov-one/weave/weavetest"
 )
 
-func TestQueue(t *testing.T) {
+func TestTaskQueue(t *testing.T) {
 	now := time.Now()
 	db := store.MemStore()
 
-	if _, err := Schedule(db, now.Add(-5*time.Second), &weavetest.Tx{Msg: &weavetest.Msg{RoutePath: "test/1"}}, nil); err != nil {
+	if _, err := Schedule(db, now.Add(-5*time.Second), &weavetest.Tx{Msg: &weavetest.Msg{RoutePath: "test/1"}}); err != nil {
 		t.Fatalf("cannot schedule first message: %s", err)
 	}
-	if _, err := Schedule(db, now.Add(-5*time.Second), &weavetest.Tx{Msg: &weavetest.Msg{RoutePath: "test/2"}}, nil); err != nil {
+	if _, err := Schedule(db, now.Add(-5*time.Second), &weavetest.Tx{Msg: &weavetest.Msg{RoutePath: "test/2"}}); err != nil {
 		t.Fatalf("cannot schedule second message: %s", err)
 	}
-	if _, err := Schedule(db, now.Add(-10*time.Second), &weavetest.Tx{Msg: &weavetest.Msg{RoutePath: "test/3"}}, nil); err != nil {
+	if _, err := Schedule(db, now.Add(-10*time.Second), &weavetest.Tx{Msg: &weavetest.Msg{RoutePath: "test/3"}}); err != nil {
 		t.Fatalf("cannot schedule third message: %s", err)
 	}
 
-	var tx weavetest.Tx
-	if _, _, err := peek(db, now.Add(-time.Hour), &tx); !errors.ErrEmpty.Is(err) {
-		t.Logf("%#v", tx.Msg)
+	var task weavetest.Tx
+	if _, err := peek(db, now.Add(-time.Hour), &task); !errors.ErrEmpty.Is(err) {
+		t.Logf("%#v", task.Msg)
 		t.Fatalf("want no task, got %+v", err)
 	}
 
@@ -40,13 +40,13 @@ func TestQueue(t *testing.T) {
 		"test/2",
 	}
 	for _, want := range wantPaths {
-		var tx weavetest.Tx
-		key, _, err := peek(db, now, &tx)
+		var task weavetest.Tx
+		key, err := peek(db, now, &task)
 		if err != nil {
 			t.Fatalf("want task with message path %q, got %+v", want, err)
 		}
 		db.Delete(key)
-		if got := tx.Msg.Path(); got != want {
+		if got := task.Msg.Path(); got != want {
 			t.Fatalf("want %q message path, got %q", want, got)
 		}
 	}
@@ -63,19 +63,19 @@ func TestTicker(t *testing.T) {
 	migration.MustInitPkg(db, "cron")
 
 	msg1 := &weavetest.Msg{RoutePath: "test/1"}
-	if _, err := Schedule(db, now, &weavetest.Tx{Msg: msg1}, nil); err != nil {
+	if _, err := Schedule(db, now, &weavetest.Tx{Msg: msg1}); err != nil {
 		t.Fatalf("cannot schedule message: %s", err)
 	}
 
 	msg2 := &weavetest.Msg{RoutePath: "test/2"}
 	// Second message scheduled at the same time must be processed as the
 	// second.
-	if _, err := Schedule(db, now, &weavetest.Tx{Msg: msg2}, nil); err != nil {
+	if _, err := Schedule(db, now, &weavetest.Tx{Msg: msg2}); err != nil {
 		t.Fatalf("cannot schedule message: %s", err)
 	}
 
 	handler := &cronHandler{}
-	cron := NewMsgCron(&weavetest.Tx{}, handler)
+	cron := NewTicker(&weavetest.Tx{}, handler)
 
 	ctx = weave.WithBlockTime(ctx, now.Add(time.Hour))
 	if _, err := cron.tick(ctx, db); err != nil {
