@@ -27,7 +27,7 @@ func TestQueue(t *testing.T) {
 	}
 
 	var tx weavetest.Tx
-	if _, err := peek(db, now.Add(-time.Hour), &tx); !errors.ErrEmpty.Is(err) {
+	if _, _, err := peek(db, now.Add(-time.Hour), &tx); !errors.ErrEmpty.Is(err) {
 		t.Logf("%#v", tx.Msg)
 		t.Fatalf("want no task, got %+v", err)
 	}
@@ -41,7 +41,7 @@ func TestQueue(t *testing.T) {
 	}
 	for _, want := range wantPaths {
 		var tx weavetest.Tx
-		key, err := peek(db, now, &tx)
+		key, _, err := peek(db, now, &tx)
 		if err != nil {
 			t.Fatalf("want task with message path %q, got %+v", want, err)
 		}

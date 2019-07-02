@@ -102,28 +102,28 @@ var _ weave.Ticker = (*Ticker)(nil)
 // Tick implementes weave.Ticker interface.
 // Tick can process any number of messages suitable for execution. All changes
 // are done atomically and apply only on success.
-func (t *Ticker) Tick(ctx context.Context, db store.CacheableKVStore) weave.TickResult {
-	res, err := t.tick(ctx, db)
+func (t *Ticker) Tick(ctx context.Context, db store.CacheableKVStore) [][]byte {
+	executed, err := t.tick(ctx, db)
 	if err != nil {
 		// TODO log error
 	}
-	return res
+	return executed
 }
 
 // tick process any number of tasks. It always returns a response and might
 // return an error. This method is similar to the Tick except it provides an
 // error. This makes it easier for the tests to check the result.
-func (t *Ticker) tick(ctx context.Context, db store.CacheableKVStore) (weave.TickResult, error) {
-	var result weave.TickResult
+func (t *Ticker) tick(ctx context.Context, db store.CacheableKVStore) ([][]byte, error) {
+	var executed [][]byte
 
 	now, err := weave.BlockTime(ctx)
 	if err != nil {
-		return result, errors.Wrap(err, "cannot get current time")
+		return executed, errors.Wrap(err, "cannot get current time")
 	}
 
 	for {
 		tx := reflect.New(t.txtype.Elem()).Interface().(weave.Tx)
-		switch key, err := peek(db, now, tx); {
+		switch key, auth, err := peek(db, now, tx); {
 		case err == nil:
 			info := TaskResult{
 				Metadata:   &weave.Metadata{Schema: 1},
@@ -145,25 +145,25 @@ func (t *Ticker) tick(ctx context.Context, db store.CacheableKVStore) (weave.Tic
 			if _, err := t.results.Put(cache, key, &info); err != nil {
 				// Keep it atomic.
 				cache.Discard()
-				return result, errors.Wrap(err, "cannot store result")
+				return executed, errors.Wrap(err, "cannot store result")
 			}
 
 			// Remove the task from the queue as it was processed.
 			// Do it via cache to keep it atomic.
 			cache.Delete(key)
 			if err := cache.Write(); err != nil {
-				return result, errors.Wrap(err, "cannot write cache")
+				return executed, errors.Wrap(err, "cannot write cache")
 			}
 
 			// Only when the database state is updated we can
 			// consider this task executed. Otherwise any change is
 			// being discarded.
-			result.Executed = append(result.Executed, key)
+			executed = append(executed, key)
 		case errors.ErrEmpty.Is(err):
 			// No more messages queued for execution at this time.
-			return result, nil
+			return executed, nil
 		default:
-			return result, errors.Wrap(err, "cannot pop queue")
+			return executed, errors.Wrap(err, "cannot pop queue")
 		}
 	}
 }
@@ -171,12 +171,12 @@ func (t *Ticker) tick(ctx context.Context, db store.CacheableKVStore) (weave.Tic
 // peek reads from the queue a single message that reached its execution time
 // and returns it. It returns ErrEmpty if there is no message suitable for
 // processing.
-func peek(db weave.KVStore, now time.Time, dest weave.Tx) ([]byte, error) {
+func peek(db weave.KVStore, now time.Time, dest weave.Tx) ([]byte, []weave.Address, error) {
 	since := queueKey(time.Time{}) // Zero time is early enough.
 	until := queueKey(now)
 	it, err := db.Iterator(since, until)
 	if err != nil {
-		return nil, errors.Wrap(err, "cannot create iterator")
+		return nil, nil, errors.Wrap(err, "cannot create iterator")
 	}
 	defer it.Release()
 
@@ -185,16 +185,16 @@ func peek(db weave.KVStore, now time.Time, dest weave.Tx) ([]byte, error) {
 		var task Task
 
 		if err := task.Unmarshal(value); err != nil {
-			return key, errors.Wrapf(err, "cannot unmarshal task %q", key)
+			return key, nil, errors.Wrapf(err, "cannot unmarshal task %q", key)
 		}
 
 		if err := dest.Unmarshal(task.Serialized); err != nil {
-			return key, errors.Wrapf(err, "cannot unmarshal transaction %q", key)
+			return key, task.Auth, errors.Wrapf(err, "cannot unmarshal transaction %q", key)
 		}
-		return key, nil
+		return key, task.Auth, nil
 	case errors.ErrIteratorDone.Is(err):
-		return nil, errors.ErrEmpty
+		return nil, nil, errors.ErrEmpty
 	default:
-		return nil, errors.Wrap(err, "cannot get next item")
+		return nil, nil, errors.Wrap(err, "cannot get next item")
 	}
 }

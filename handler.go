@@ -39,11 +39,16 @@ type Decorator interface {
 type Ticker interface {
 	// Tick is a method called at the beginning of the block. It should be
 	// used to execute any scheduled tasks.
+	//
+	// Returned is always the list of task IDs that were executed. A task
+	// is considered executed when processing it caused any change to the
+	// state (even if it is only removing the task from the queue and no
+	// other change).
+	//
 	// Because beginning of the block does not allow for an error response
 	// this method does not return one as well. It is the implementation
-	// responsibility to handle all error situations and always return a
-	// result.
-	Tick(ctx Context, store CacheableKVStore) TickResult
+	// responsibility to handle all error situations.
+	Tick(ctx Context, store CacheableKVStore) (taskIDs [][]byte)
 }
 
 // Registry is an interface to register your handler,

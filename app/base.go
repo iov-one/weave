@@ -78,14 +78,13 @@ func (b BaseApp) BeginBlock(req abci.RequestBeginBlock) abci.ResponseBeginBlock 
 	var response abci.ResponseBeginBlock
 	if b.ticker != nil {
 		ctx := weave.WithLogInfo(b.BlockContext(), "call", "begin_block")
-		result := b.ticker.Tick(ctx, b.DeliverStore())
-		for _, tid := range result.Executed {
+		executed := b.ticker.Tick(ctx, b.DeliverStore())
+		for _, taskID := range executed {
 			response.Tags = append(response.Tags, common.KVPair{
 				Key:   []byte("cron"),
-				Value: tid,
+				Value: taskID,
 			})
 		}
-		b.StoreApp.AddValChange(result.Diff)
 	}
 	return response
 }
