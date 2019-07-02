@@ -136,7 +136,7 @@ func Application(
 		return app.BaseApp{}, errors.Wrap(err, "cannot create store")
 	}
 	store := app.NewStoreApp(name, kv, QueryRouter(options.MinFee), ctx)
-	cron := cron.NewMsgCron(h)
+	cron := cron.NewMsgCron(nil, h) // TODO: pass transaction like reference
 	base := app.NewBaseApp(store, tx, h, cron, options.Debug)
 	return base, nil
 }

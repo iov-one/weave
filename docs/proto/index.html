@@ -298,6 +298,21 @@
         
           
           <li>
+            <a href="#cron%2fcodec.proto">cron/codec.proto</a>
+            <ul>
+              
+                <li>
+                  <a href="#cron.Task"><span class="badge">M</span>Task</a>
+                </li>
+              
+              
+              
+              
+            </ul>
+          </li>
+        
+          
+          <li>
             <a href="#crypto%2fmodels.proto">crypto/models.proto</a>
             <ul>
               
@@ -1785,6 +1800,63 @@ If fractional != 0, must have same sign as integer </p></td>
                   <td></td>
                   <td><p>Ticker is 3-4 upper-case letters and
 all Coins of the same currency can be combined </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+        
+
+        
+      
+
+      
+
+      
+
+      
+    
+      
+      <div class="file-heading">
+        <h2 id="cron/codec.proto">cron/codec.proto</h2><a href="#title">Top</a>
+      </div>
+      <p></p>
+
+      
+        <h3 id="cron.Task">Task</h3>
+        <p>Task represent a single unit of work that is scheduled to be exeucuted</p><p>later.</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>metadata</td>
+                  <td><a href="#weave.Metadata">weave.Metadata</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>serialized</td>
+                  <td><a href="#bytes">bytes</a></td>
+                  <td></td>
+                  <td><p>Serialized holds serialized format of the task. We store it serialized
+instead of reference it directly, because we know the type of the data
+only during the runtime. It is usualy a transaction-like protobuf message
+declared by the application that use this package. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>auth</td>
+                  <td><a href="#bytes">bytes</a></td>
+                  <td>repeated</td>
+                  <td><p>Auth keeps the list of addresses that should be used for authentication.
+Weave pass this information via context and we must persist it to provide
+once the task is executed. Because it is not part of the serialized data,
+it must be stored separately. </p></td>
                 </tr>
               
             </tbody>

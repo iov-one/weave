@@ -12,26 +12,27 @@ import (
 )
 
 // Schedule queues the transcation in the database to be executed at given
-// time.  Due to the implementation details, transaction is guaranteed to be
+// time. Due to the implementation details, transaction is guaranteed to be
 // executed after given time, but not exactly at given time.
+// When successful, returns the scheduled task ID.
 //
 // If another transaction is already scheduled for the exact same time, execution
 // of this transaction is delayed until the next free slot.
 //
 // Time granularity is second.
-func Schedule(db weave.KVStore, runAt time.Time, tx weave.Tx) error {
+func Schedule(db weave.KVStore, runAt time.Time, tx weave.Tx) ([]byte, error) {
 	const granularity = time.Second
 	runAt = runAt.Round(granularity)
 
 	rawTx, err := tx.Marshal()
 	if err != nil {
-		return errors.Wrap(err, "marshal transaction")
+		return nil, errors.Wrap(err, "marshal transaction")
 	}
 
 	for {
 		key := queueKey(runAt)
 		if ok, err := db.Has(key); err != nil {
-			return errors.Wrap(err, "cannot check key existance")
+			return nil, errors.Wrap(err, "cannot check key existance")
 		} else if ok {
 			// If the key is already in use, instead of storing a
 			// list of messages under each key, which is a very
@@ -44,40 +45,19 @@ func Schedule(db weave.KVStore, runAt time.Time, tx weave.Tx) error {
 		}
 
 		if err := db.Set(key, rawTx); err != nil {
-			return errors.Wrap(err, "cannot update queue")
+			return nil, errors.Wrap(err, "cannot update queue")
 		}
-		return nil
-	}
-}
-
-// pop removes from the queue a single message that reached its execution time
-// and returns it. It returns ErrEmpty if there is no message suitable for
-// processing.
-func pop(db weave.KVStore, now time.Time, dest weave.Tx) error {
-	since := queueKey(time.Time{}) // Zero time is early enough.
-	until := queueKey(now)
-	it, err := db.Iterator(since, until)
-	if err != nil {
-		return errors.Wrap(err, "cannot create iterator")
-	}
-	defer it.Release()
-
-	switch key, value, err := it.Next(); {
-	case err == nil:
-		if err := dest.Unmarshal(value); err != nil {
-			return errors.Wrapf(err, "cannot unmarshal %q", key)
-		}
-		return nil
-	case errors.ErrIteratorDone.Is(err):
-		return errors.ErrEmpty
-	default:
-		return errors.Wrap(err, "cannot get next item")
+		return key, nil
 	}
 }
 
 func queueKey(t time.Time) []byte {
 	rawTime := make([]byte, 8)
-	binary.LittleEndian.PutUint64(rawTime, uint64(t.UnixNano()))
+	// Zero time does not need to put any data as the bytes are already set
+	// to zero.
+	if !t.IsZero() {
+		binary.BigEndian.PutUint64(rawTime, uint64(t.UnixNano()))
+	}
 	return append([]byte("_crontx:runat:"), rawTime...)
 }
 
@@ -85,7 +65,6 @@ func queueKey(t time.Time) []byte {
 // by implementing weave.Ticker interface.
 type MsgCron struct {
 	hn     weave.Handler
-	now    func() time.Time
 	txtype reflect.Type
 }
 
@@ -94,7 +73,6 @@ type MsgCron struct {
 func NewMsgCron(tx weave.Tx, h weave.Handler) *MsgCron {
 	return &MsgCron{
 		hn:     h,
-		now:    time.Now,
 		txtype: reflect.TypeOf(tx),
 	}
 }
@@ -105,36 +83,34 @@ var _ weave.Ticker = (*MsgCron)(nil)
 // Tick can process any number of messages suitable for execution. All changes
 // are done atomically and apply only on success.
 func (c *MsgCron) Tick(ctx context.Context, db store.CacheableKVStore) (*weave.TickResult, error) {
+	now, err := weave.BlockTime(ctx)
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot get current time")
+	}
+
+	// TODO: collect results
 	result := &weave.TickResult{}
 
 	for {
-		// Each pop is using its own cache instance. This is to enforce
-		// atomic pop and successful processing. Otherwise if only the
-		// delivery was using cache it would be possible that even
-		// though transaction was removed from the database and
-		// successfully processed, we cannot write the result.
-		taskCache := db.CacheWrap()
 		tx := reflect.New(c.txtype.Elem()).Interface().(weave.Tx)
-		err := pop(taskCache, c.now(), tx)
-		switch {
+		switch key, err := peek(db, now, tx); {
 		case err == nil:
-			// Do not run Check as it is only to prevent spam.
-			// Deliver must provide the same level of validation so
-			// it is enough to call it alone.
-			deliverCache := taskCache.CacheWrap()
-			if _, err := c.hn.Deliver(ctx, deliverCache, tx); err != nil {
-				deliverCache.Discard()
-			} else if err := deliverCache.Write(); err != nil {
-				// If deliver cache cannot be flushed, we do
-				// not want to write the pop result to the
-				// database as well as we want the task to be
-				// processed again later.
-				taskCache.Discard()
-				continue
+			// Each task is processed using its own cache instance
+			// to ensure changes are atomic and task processing
+			// independent.
+			cache := db.CacheWrap()
+			if _, err := c.hn.Deliver(ctx, cache, tx); err != nil {
+				// Discard any changes that the deliver could
+				// have created. We do not want to persist
+				// those.
+				cache.Discard()
 			}
 
-			if err := taskCache.Write(); err != nil {
-				return result, errors.Wrap(err, "cannot write task cache")
+			// Remove the task from the queue as it was processed.
+			// Do it via cache to keep it atomic.
+			cache.Delete(key)
+			if err := cache.Write(); err != nil {
+				return result, errors.Wrap(err, "cannot write cache")
 			}
 		case errors.ErrEmpty.Is(err):
 			// No more messages queued for execution at this time.
@@ -142,5 +118,30 @@ func (c *MsgCron) Tick(ctx context.Context, db store.CacheableKVStore) (*weave.T
 		default:
 			return result, errors.Wrap(err, "cannot pop queue")
 		}
+	}
+}
+
+// peek reads from the queue a single message that reached its execution time
+// and returns it. It returns ErrEmpty if there is no message suitable for
+// processing.
+func peek(db weave.KVStore, now time.Time, dest weave.Tx) ([]byte, error) {
+	since := queueKey(time.Time{}) // Zero time is early enough.
+	until := queueKey(now)
+	it, err := db.Iterator(since, until)
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot create iterator")
+	}
+	defer it.Release()
+
+	switch key, value, err := it.Next(); {
+	case err == nil:
+		if err := dest.Unmarshal(value); err != nil {
+			return key, errors.Wrapf(err, "cannot unmarshal %q", key)
+		}
+		return key, nil
+	case errors.ErrIteratorDone.Is(err):
+		return nil, errors.ErrEmpty
+	default:
+		return nil, errors.Wrap(err, "cannot get next item")
 	}
 }
