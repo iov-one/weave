@@ -102,20 +102,30 @@ var _ weave.Ticker = (*Ticker)(nil)
 // Tick implementes weave.Ticker interface.
 // Tick can process any number of messages suitable for execution. All changes
 // are done atomically and apply only on success.
-func (t *Ticker) Tick(ctx context.Context, db store.CacheableKVStore) (*weave.TickResult, error) {
+func (t *Ticker) Tick(ctx context.Context, db store.CacheableKVStore) weave.TickResult {
+	res, err := t.tick(ctx, db)
+	if err != nil {
+		// TODO log error
+	}
+	return res
+}
+
+// tick process any number of tasks. It always returns a response and might
+// return an error. This method is similar to the Tick except it provides an
+// error. This makes it easier for the tests to check the result.
+func (t *Ticker) tick(ctx context.Context, db store.CacheableKVStore) (weave.TickResult, error) {
+	var result weave.TickResult
+
 	now, err := weave.BlockTime(ctx)
 	if err != nil {
-		return nil, errors.Wrap(err, "cannot get current time")
+		return result, errors.Wrap(err, "cannot get current time")
 	}
-
-	// TODO: collect results
-	result := &weave.TickResult{}
 
 	for {
 		tx := reflect.New(t.txtype.Elem()).Interface().(weave.Tx)
 		switch key, err := peek(db, now, tx); {
 		case err == nil:
-			res := TaskResult{
+			info := TaskResult{
 				Metadata:   &weave.Metadata{Schema: 1},
 				Successful: true,
 			}
@@ -128,11 +138,11 @@ func (t *Ticker) Tick(ctx context.Context, db store.CacheableKVStore) (*weave.Ti
 				// have created. We do not want to persist
 				// those.
 				cache.Discard()
-				res.Successful = false
-				res.Info = err.Error()
+				info.Successful = false
+				info.Info = err.Error()
 			}
 
-			if _, err := t.results.Put(cache, key, &res); err != nil {
+			if _, err := t.results.Put(cache, key, &info); err != nil {
 				// Keep it atomic.
 				cache.Discard()
 				return result, errors.Wrap(err, "cannot store result")
@@ -144,6 +154,11 @@ func (t *Ticker) Tick(ctx context.Context, db store.CacheableKVStore) (*weave.Ti
 			if err := cache.Write(); err != nil {
 				return result, errors.Wrap(err, "cannot write cache")
 			}
+
+			// Only when the database state is updated we can
+			// consider this task executed. Otherwise any change is
+			// being discarded.
+			result.Executed = append(result.Executed, key)
 		case errors.ErrEmpty.Is(err):
 			// No more messages queued for execution at this time.
 			return result, nil

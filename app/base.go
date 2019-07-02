@@ -4,6 +4,7 @@ import (
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
 	abci "github.com/tendermint/tendermint/abci/types"
+	"github.com/tendermint/tendermint/libs/common"
 )
 
 // BaseApp adds DeliverTx, CheckTx, and BeginBlock
@@ -70,19 +71,23 @@ func (b BaseApp) CheckTx(txBytes []byte) abci.ResponseCheckTx {
 }
 
 // BeginBlock - ABCI
-func (b BaseApp) BeginBlock(req abci.RequestBeginBlock) (res abci.ResponseBeginBlock) {
+func (b BaseApp) BeginBlock(req abci.RequestBeginBlock) abci.ResponseBeginBlock {
 	// default: set the context properly
 	b.StoreApp.BeginBlock(req)
 
+	var response abci.ResponseBeginBlock
 	if b.ticker != nil {
 		ctx := weave.WithLogInfo(b.BlockContext(), "call", "begin_block")
-		res, err := b.ticker.Tick(ctx, b.DeliverStore())
-		if err != nil {
-			panic(err)
+		result := b.ticker.Tick(ctx, b.DeliverStore())
+		for _, tid := range result.Executed {
+			response.Tags = append(response.Tags, common.KVPair{
+				Key:   []byte("cron"),
+				Value: tid,
+			})
 		}
-		b.StoreApp.AddValChange(res.Diff)
+		b.StoreApp.AddValChange(result.Diff)
 	}
-	return abci.ResponseBeginBlock{}
+	return response
 }
 
 // loadTx calls the decoder, and capture any panics

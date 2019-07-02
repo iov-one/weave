@@ -34,10 +34,16 @@ type Decorator interface {
 	Deliver(ctx Context, store KVStore, tx Tx, next Deliverer) (*DeliverResult, error)
 }
 
-// Ticker is a method that is called the beginning of every block,
-// which can be used to perform periodic or delayed tasks
+// Ticker is an interface used to call background tasks scheduled for
+// execution.
 type Ticker interface {
-	Tick(ctx Context, store CacheableKVStore) (*TickResult, error)
+	// Tick is a method called at the beginning of the block. It should be
+	// used to execute any scheduled tasks.
+	// Because beginning of the block does not allow for an error response
+	// this method does not return one as well. It is the implementation
+	// responsibility to handle all error situations and always return a
+	// result.
+	Tick(ctx Context, store CacheableKVStore) TickResult
 }
 
 // Registry is an interface to register your handler,

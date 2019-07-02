@@ -78,8 +78,7 @@ func TestTicker(t *testing.T) {
 	cron := NewMsgCron(&weavetest.Tx{}, handler)
 
 	ctx = weave.WithBlockTime(ctx, now.Add(time.Hour))
-	_, err := cron.Tick(ctx, db)
-	if err != nil {
+	if _, err := cron.tick(ctx, db); err != nil {
 		t.Fatalf("cannot tick: %s", err)
 	}
 
