@@ -8,25 +8,43 @@ import (
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/store"
 )
 
 // Schedule queues the transcation in the database to be executed at given
-// time. Due to the implementation details, transaction is guaranteed to be
-// executed after given time, but not exactly at given time.
+// time. Transaction will be executed with context containing provided
+// authentication addresses.
 // When successful, returns the scheduled task ID.
 //
-// If another transaction is already scheduled for the exact same time, execution
-// of this transaction is delayed until the next free slot.
+// Due to the implementation details, transaction is guaranteed to be executed
+// after given time, but not exactly at given time.  If another transaction is
+// already scheduled for the exact same time, execution of this transaction is
+// delayed until the next free slot.
 //
 // Time granularity is second.
-func Schedule(db weave.KVStore, runAt time.Time, tx weave.Tx) ([]byte, error) {
+func Schedule(
+	db weave.KVStore,
+	runAt time.Time,
+	tx weave.Tx,
+	auth []weave.Address,
+) ([]byte, error) {
 	const granularity = time.Second
 	runAt = runAt.Round(granularity)
 
 	rawTx, err := tx.Marshal()
 	if err != nil {
 		return nil, errors.Wrap(err, "marshal transaction")
+	}
+
+	task := &Task{
+		Metadata:   &weave.Metadata{Schema: 1},
+		Serialized: rawTx,
+		Auth:       auth,
+	}
+	rawTask, err := task.Marshal()
+	if err != nil {
+		return nil, errors.Wrap(err, "marshal task")
 	}
 
 	for {
@@ -44,8 +62,8 @@ func Schedule(db weave.KVStore, runAt time.Time, tx weave.Tx) ([]byte, error) {
 			continue
 		}
 
-		if err := db.Set(key, rawTx); err != nil {
-			return nil, errors.Wrap(err, "cannot update queue")
+		if err := db.Set(key, rawTask); err != nil {
+			return nil, errors.Wrap(err, "cannot store in queue")
 		}
 		return key, nil
 	}
@@ -61,28 +79,30 @@ func queueKey(t time.Time) []byte {
 	return append([]byte("_crontx:runat:"), rawTime...)
 }
 
-// MsgCron allows to execute messages queued for future execution. It does this
+// Ticker allows to execute messages queued for future execution. It does this
 // by implementing weave.Ticker interface.
-type MsgCron struct {
-	hn     weave.Handler
-	txtype reflect.Type
+type Ticker struct {
+	hn      weave.Handler
+	txtype  reflect.Type
+	results orm.ModelBucket
 }
 
 // NewMsgCron returns a message cron instance that is using given handler to
 // process all queued messages that execution time is due.
-func NewMsgCron(tx weave.Tx, h weave.Handler) *MsgCron {
-	return &MsgCron{
-		hn:     h,
-		txtype: reflect.TypeOf(tx),
+func NewMsgCron(tx weave.Tx, h weave.Handler) *Ticker {
+	return &Ticker{
+		hn:      h,
+		txtype:  reflect.TypeOf(tx),
+		results: NewTaskResultBucket(),
 	}
 }
 
-var _ weave.Ticker = (*MsgCron)(nil)
+var _ weave.Ticker = (*Ticker)(nil)
 
 // Tick implementes weave.Ticker interface.
 // Tick can process any number of messages suitable for execution. All changes
 // are done atomically and apply only on success.
-func (c *MsgCron) Tick(ctx context.Context, db store.CacheableKVStore) (*weave.TickResult, error) {
+func (t *Ticker) Tick(ctx context.Context, db store.CacheableKVStore) (*weave.TickResult, error) {
 	now, err := weave.BlockTime(ctx)
 	if err != nil {
 		return nil, errors.Wrap(err, "cannot get current time")
@@ -92,18 +112,30 @@ func (c *MsgCron) Tick(ctx context.Context, db store.CacheableKVStore) (*weave.T
 	result := &weave.TickResult{}
 
 	for {
-		tx := reflect.New(c.txtype.Elem()).Interface().(weave.Tx)
+		tx := reflect.New(t.txtype.Elem()).Interface().(weave.Tx)
 		switch key, err := peek(db, now, tx); {
 		case err == nil:
+			res := TaskResult{
+				Metadata:   &weave.Metadata{Schema: 1},
+				Successful: true,
+			}
 			// Each task is processed using its own cache instance
 			// to ensure changes are atomic and task processing
 			// independent.
 			cache := db.CacheWrap()
-			if _, err := c.hn.Deliver(ctx, cache, tx); err != nil {
+			if _, err := t.hn.Deliver(ctx, cache, tx); err != nil {
 				// Discard any changes that the deliver could
 				// have created. We do not want to persist
 				// those.
 				cache.Discard()
+				res.Successful = false
+				res.Info = err.Error()
+			}
+
+			if _, err := t.results.Put(cache, key, &res); err != nil {
+				// Keep it atomic.
+				cache.Discard()
+				return result, errors.Wrap(err, "cannot store result")
 			}
 
 			// Remove the task from the queue as it was processed.
@@ -135,8 +167,14 @@ func peek(db weave.KVStore, now time.Time, dest weave.Tx) ([]byte, error) {
 
 	switch key, value, err := it.Next(); {
 	case err == nil:
-		if err := dest.Unmarshal(value); err != nil {
-			return key, errors.Wrapf(err, "cannot unmarshal %q", key)
+		var task Task
+
+		if err := task.Unmarshal(value); err != nil {
+			return key, errors.Wrapf(err, "cannot unmarshal task %q", key)
+		}
+
+		if err := dest.Unmarshal(task.Serialized); err != nil {
+			return key, errors.Wrapf(err, "cannot unmarshal transaction %q", key)
 		}
 		return key, nil
 	case errors.ErrIteratorDone.Is(err):

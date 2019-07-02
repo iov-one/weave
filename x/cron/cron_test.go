@@ -7,6 +7,7 @@ import (
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/store"
 	"github.com/iov-one/weave/weavetest"
 )
@@ -15,13 +16,13 @@ func TestQueue(t *testing.T) {
 	now := time.Now()
 	db := store.MemStore()
 
-	if _, err := Schedule(db, now.Add(-5*time.Second), &weavetest.Tx{Msg: &weavetest.Msg{RoutePath: "test/1"}}); err != nil {
+	if _, err := Schedule(db, now.Add(-5*time.Second), &weavetest.Tx{Msg: &weavetest.Msg{RoutePath: "test/1"}}, nil); err != nil {
 		t.Fatalf("cannot schedule first message: %s", err)
 	}
-	if _, err := Schedule(db, now.Add(-5*time.Second), &weavetest.Tx{Msg: &weavetest.Msg{RoutePath: "test/2"}}); err != nil {
+	if _, err := Schedule(db, now.Add(-5*time.Second), &weavetest.Tx{Msg: &weavetest.Msg{RoutePath: "test/2"}}, nil); err != nil {
 		t.Fatalf("cannot schedule second message: %s", err)
 	}
-	if _, err := Schedule(db, now.Add(-10*time.Second), &weavetest.Tx{Msg: &weavetest.Msg{RoutePath: "test/3"}}); err != nil {
+	if _, err := Schedule(db, now.Add(-10*time.Second), &weavetest.Tx{Msg: &weavetest.Msg{RoutePath: "test/3"}}, nil); err != nil {
 		t.Fatalf("cannot schedule third message: %s", err)
 	}
 
@@ -51,7 +52,7 @@ func TestQueue(t *testing.T) {
 	}
 }
 
-func TestCron(t *testing.T) {
+func TestTicker(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
@@ -59,15 +60,17 @@ func TestCron(t *testing.T) {
 
 	db := store.MemStore()
 
+	migration.MustInitPkg(db, "cron")
+
 	msg1 := &weavetest.Msg{RoutePath: "test/1"}
-	if _, err := Schedule(db, now, &weavetest.Tx{Msg: msg1}); err != nil {
+	if _, err := Schedule(db, now, &weavetest.Tx{Msg: msg1}, nil); err != nil {
 		t.Fatalf("cannot schedule message: %s", err)
 	}
 
 	msg2 := &weavetest.Msg{RoutePath: "test/2"}
 	// Second message scheduled at the same time must be processed as the
 	// second.
-	if _, err := Schedule(db, now, &weavetest.Tx{Msg: msg2}); err != nil {
+	if _, err := Schedule(db, now, &weavetest.Tx{Msg: msg2}, nil); err != nil {
 		t.Fatalf("cannot schedule message: %s", err)
 	}
 
