@@ -2,20 +2,16 @@ package main
 
 import (
 	"bytes"
-	"encoding/base64"
+	"context"
 	"flag"
-	"io"
 	"io/ioutil"
-	"net/http"
-	"net/http/httptest"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"testing"
+	"time"
 
-	"github.com/iov-one/weave/coin"
-	"github.com/iov-one/weave/x/cash"
-	"github.com/iov-one/weave/x/msgfee"
+	"github.com/iov-one/weave/tmtest"
 	"github.com/pmezard/go-difflib/difflib"
 )
 
@@ -32,8 +28,13 @@ func TestAll(t *testing.T) {
 		t.Skip("no test files found")
 	}
 
-	tm := fakeTendermintServer(t)
-	defer tm.Close()
+	home, _ := tmtest.SetupConfig(t, "testdata")
+	// defer cleanup()
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
+	defer cancel()
+	defer tmtest.RunTendermint(ctx, t, home)
+	defer RunBnsd(ctx, t, home)
 
 	for _, tf := range testFiles {
 		t.Run(tf, func(t *testing.T) {
@@ -45,7 +46,7 @@ func TestAll(t *testing.T) {
 			// To ensure that all commands are using tendermint
 			// mock server, set environment variable to enforce
 			// that.
-			cmd.Env = append(os.Environ(), "BNSCLI_TM_ADDR="+tm.URL)
+			cmd.Env = append(os.Environ(), "BNSCLI_TM_ADDR=http://localhost:44444")
 
 			out, err := cmd.Output()
 			if err != nil {
@@ -98,79 +99,34 @@ weave main directory or by directly using Go install command:
 	}
 }
 
-// fakeTendermintServer creates an HTTP server that acts similar to the
-// tendermint HTTP server. It does not maintain any state or return fully
-// correct responses but its behaviour is good enough to fool bnscli.
-func fakeTendermintServer(t testing.TB) *httptest.Server {
+func RunBnsd(ctx context.Context, t *testing.T, home string) (cleanup func()) {
 	t.Helper()
 
-	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		switch {
-		case r.Method == "GET" && r.URL.Path == "/genesis":
-			io.WriteString(w, `
-				{
-					"jsonrpc": "2.0",
-					"id": "",
-					"result": {
-						"genesis": {
-							"chain_id": "bnscli-test-fake-chain",
-							"validators": [],
-							"app_state": {}
-						}
-					}
-				}
-			`)
-		case r.Method == "GET" && r.URL.Path == "/abci_query":
-			// Handle all data queries. Values are JSON encoded.
-
-			switch r.URL.Query().Get("data") {
-			case `"_c:cash"`:
-				w.Header().Set("content-type", "application/json")
-				io.WriteString(w, tmGconfResponse(t, &cash.Configuration{
-					MinimalFee: coin.NewCoin(11, 0, "BTC"),
-				}))
-			case `"msgfee:cash/send"`:
-				w.Header().Set("content-type", "application/json")
-				io.WriteString(w, tmGconfResponse(t, &msgfee.MsgFee{
-					MsgPath: "cash/send",
-					Fee:     coin.NewCoin(17, 0, "BTC"),
-				}))
-			default:
-				t.Logf("unexpected ABCI query request: %q", r.URL)
-				http.Error(w, "not implemented", http.StatusNotImplemented)
-			}
-		case r.Method == "POST" && r.URL.Path == "/":
-			// This is an RPC call - response always depends on the
-			// submitted content. For our tests it does not matter
-			// that much what is returned.
-			io.WriteString(w, `
-				{
-					"jsonrpc": "2.0",
-					"id": "jsonrpc-client",
-					"result": {"response": {"height": "12345"}}
-				}
-			`)
-		default:
-			http.Error(w, "not implemented", http.StatusNotImplemented)
-		}
-	}))
-}
-
-// tmGconfResponse returns a tenderming HTTP response for a configuration query.
-// Returned response does not contain "key" or "height" information.
-func tmGconfResponse(t testing.TB, conf interface{ Marshal() ([]byte, error) }) string {
-	raw, err := conf.Marshal()
+	bnsdpath, err := exec.LookPath("bnsd")
 	if err != nil {
-		t.Fatalf("cannot marshal configuration: %s", err)
+		if os.Getenv("FORCE_TM_TEST") != "1" {
+			t.Skip("Bnsd binary not found. Set FORCE_TM_TEST=1 to fail this test.")
+		} else {
+			t.Fatalf("Bnsd binary not found. Do not set FORCE_TM_TEST=1 to skip this test.")
+		}
 	}
-	baseConf := base64.StdEncoding.EncodeToString(raw)
-	return `{
-	  "jsonrpc": "2.0",
-	  "id": "",
-	  "result": {
-	    "response": {
-	      "value": "` + baseConf + `"
-	    }
-	  }
-	}`
+
+	cmd := exec.CommandContext(ctx, bnsdpath, "-home", home, "start")
+	// log tendermint output for verbose debugging....
+	// cmd.Stdout = os.Stdout
+	// cmd.Stderr = os.Stdout
+	if err := cmd.Start(); err != nil {
+		t.Fatalf("Bnsd process failed: %s", err)
+	}
+
+	// Give tendermint time to setup.
+	time.Sleep(2 * time.Second)
+	t.Logf("Running %s pid=%d", bnsdpath, cmd.Process.Pid)
+
+	// Return a cleanup function, that will wait for the tendermint to stop.
+	//nolint
+	return func() {
+		cmd.Process.Kill()
+		cmd.Wait()
+	}
 }

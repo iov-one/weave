@@ -37,8 +37,8 @@ func RunTendermint(ctx context.Context, t *testing.T, home string) (cleanup func
 
 	cmd := exec.CommandContext(ctx, tmpath, "node", "--home", home)
 	// log tendermint output for verbose debugging....
-	// cmd.Stdout = os.Stdout
-	// cmd.Stderr = os.Stdout
+	cmd.Stdout = os.Stderr
+	cmd.Stderr = os.Stderr
 	if err := cmd.Start(); err != nil {
 		t.Fatalf("Tendermint process failed: %s", err)
 	}
@@ -65,25 +65,32 @@ func RunTendermint(ctx context.Context, t *testing.T, home string) (cleanup func
 func SetupConfig(t *testing.T, sourceDir string) (string, func()) {
 	rootDir, err := ioutil.TempDir("", "mock-sdk-cmd")
 	assert.Nil(t, err)
-	err = copyConfigFiles(t, sourceDir, rootDir)
 	cleanup := func() { os.RemoveAll(rootDir) }
+
+	err = copyFiles(t, sourceDir, rootDir, "config")
 	if err != nil {
 		cleanup()
 		t.Fatalf("Cannot copy config files: %+v", err)
 	}
+	err = copyFiles(t, sourceDir, rootDir, "data")
+	if err != nil {
+		cleanup()
+		t.Fatalf("Cannot copy data files: %+v", err)
+	}
 	return rootDir, cleanup
 }
 
-func copyConfigFiles(t *testing.T, sourceDir, rootDir string) error {
+func copyFiles(t *testing.T, sourceDir, rootDir, subDir string) error {
 	// make the output dir
-	outDir := filepath.Join(rootDir, "config")
+	outDir := filepath.Join(rootDir, subDir)
 	err := os.Mkdir(outDir, 0755)
 	if err != nil {
 		return err
 	}
 
 	// copy everything over from testdata
-	files, err := ioutil.ReadDir(sourceDir)
+	inDir := filepath.Join(sourceDir, subDir)
+	files, err := ioutil.ReadDir(inDir)
 	if err != nil {
 		return err
 	}
@@ -91,7 +98,7 @@ func copyConfigFiles(t *testing.T, sourceDir, rootDir string) error {
 		if f.IsDir() {
 			continue
 		}
-		input := filepath.Join(sourceDir, f.Name())
+		input := filepath.Join(inDir, f.Name())
 		output := filepath.Join(outDir, f.Name())
 		t.Logf("Copying %s to %s", input, output)
 		err = fileCopy(input, output, f.Mode())
