@@ -2,12 +2,14 @@ package gov
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/x"
+	"github.com/iov-one/weave/x/cron"
 )
 
 const (
@@ -323,6 +325,19 @@ func (h CreateProposalHandler) Deliver(ctx weave.Context, db weave.KVStore, tx w
 	obj, err := h.propBucket.Create(db, proposal)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to persist proposal")
+	}
+
+	panic("todo")
+	err = cron.Schedule(
+		db,
+		proposal.VotingEndTime.Add(time.Second),
+		h.auth.GetConditions(ctx),
+		&TallyMsg{
+			Metadata: &weave.Metadata{Schema: 1},
+		},
+	)
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot schedule tally task")
 	}
 
 	return &weave.DeliverResult{Data: obj.Key()}, nil

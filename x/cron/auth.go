@@ -7,13 +7,10 @@ import (
 	"github.com/iov-one/weave/x"
 )
 
-// WithAuth returns a context instance with the conditions attached. Attached
+// withAuth returns a context instance with the conditions attached. Attached
 // conditions are used for authentication by authenticator implementation from
 // this package.
-// This function is intended to be used in the Prepare method of the cron task
-// implementation in order to attach authentication conditions before task
-// execution.
-func WithAuth(ctx weave.Context, cs []weave.Condition) weave.Context {
+func withAuth(ctx weave.Context, cs []weave.Condition) weave.Context {
 	if old, ok := ctx.Value(ctxKeyConditions).([]weave.Condition); ok {
 		cs = append(cs, old...)
 	}

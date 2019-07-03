@@ -2,6 +2,8 @@ package cron
 
 import (
 	"context"
+	"encoding/json"
+	"reflect"
 	"testing"
 	"time"
 
@@ -16,19 +18,21 @@ func TestTaskQueue(t *testing.T) {
 	now := time.Now()
 	db := store.MemStore()
 
-	if _, err := Schedule(db, now.Add(-5*time.Second), &weavetest.Tx{Msg: &weavetest.Msg{RoutePath: "test/1"}}); err != nil {
+	enc := NewTestTaskMarshaler(&weavetest.Msg{})
+	ticker := NewTicker(&weavetest.Handler{}, enc)
+
+	if _, err := ticker.Schedule(db, now.Add(-5*time.Second), nil, &weavetest.Msg{RoutePath: "test/1"}); err != nil {
 		t.Fatalf("cannot schedule first message: %s", err)
 	}
-	if _, err := Schedule(db, now.Add(-5*time.Second), &weavetest.Tx{Msg: &weavetest.Msg{RoutePath: "test/2"}}); err != nil {
+	if _, err := ticker.Schedule(db, now.Add(-5*time.Second), nil, &weavetest.Msg{RoutePath: "test/2"}); err != nil {
 		t.Fatalf("cannot schedule second message: %s", err)
 	}
-	if _, err := Schedule(db, now.Add(-10*time.Second), &weavetest.Tx{Msg: &weavetest.Msg{RoutePath: "test/3"}}); err != nil {
+	if _, err := ticker.Schedule(db, now.Add(-10*time.Second), nil, &weavetest.Msg{RoutePath: "test/3"}); err != nil {
 		t.Fatalf("cannot schedule third message: %s", err)
 	}
 
-	var task weavetest.Tx
-	if _, err := peek(db, now.Add(-time.Hour), &task); !errors.ErrEmpty.Is(err) {
-		t.Logf("%#v", task.Msg)
+	if key, _, err := peek(db, now.Add(-time.Hour)); !errors.ErrEmpty.Is(err) {
+		t.Logf("key: %q", key)
 		t.Fatalf("want no task, got %+v", err)
 	}
 
@@ -40,13 +44,16 @@ func TestTaskQueue(t *testing.T) {
 		"test/2",
 	}
 	for _, want := range wantPaths {
-		var task weavetest.Tx
-		key, err := peek(db, now, &task)
+		key, raw, err := peek(db, now)
 		if err != nil {
 			t.Fatalf("want task with message path %q, got %+v", want, err)
 		}
+		_, msg, err := enc.UnmarshalTask(raw)
+		if err != nil {
+			t.Fatalf("cannot unmarshal task: %s", err)
+		}
 		db.Delete(key)
-		if got := task.Msg.Path(); got != want {
+		if got := msg.Path(); got != want {
 			t.Fatalf("want %q message path, got %q", want, got)
 		}
 	}
@@ -62,23 +69,24 @@ func TestTicker(t *testing.T) {
 
 	migration.MustInitPkg(db, "cron")
 
+	enc := NewTestTaskMarshaler(&weavetest.Msg{})
+	handler := &cronHandler{}
+	ticker := NewTicker(handler, enc)
+
 	msg1 := &weavetest.Msg{RoutePath: "test/1"}
-	if _, err := Schedule(db, now, &weavetest.Tx{Msg: msg1}); err != nil {
+	if _, err := ticker.Schedule(db, now, nil, msg1); err != nil {
 		t.Fatalf("cannot schedule message: %s", err)
 	}
 
 	msg2 := &weavetest.Msg{RoutePath: "test/2"}
 	// Second message scheduled at the same time must be processed as the
 	// second.
-	if _, err := Schedule(db, now, &weavetest.Tx{Msg: msg2}); err != nil {
+	if _, err := ticker.Schedule(db, now, nil, msg2); err != nil {
 		t.Fatalf("cannot schedule message: %s", err)
 	}
 
-	handler := &cronHandler{}
-	cron := NewTicker(&weavetest.Tx{}, handler)
-
 	ctx = weave.WithBlockTime(ctx, now.Add(time.Hour))
-	if _, err := cron.tick(ctx, db); err != nil {
+	if _, err := ticker.tick(ctx, db); err != nil {
 		t.Fatalf("cannot tick: %s", err)
 	}
 
@@ -112,4 +120,50 @@ func (h *cronHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) 
 	// copy
 	res := h.res
 	return &res, h.err
+}
+
+// NewTestTaskMarshaler returns a TaskMarshaler implementation that supports
+// only a single message type.
+func NewTestTaskMarshaler(emptyMsg weave.Msg) *testTaskMarshaler {
+	return &testTaskMarshaler{
+		msgType: reflect.TypeOf(emptyMsg),
+	}
+}
+
+type testTaskMarshaler struct {
+	msgType reflect.Type
+}
+
+var _ TaskMarshaler = (*testTaskMarshaler)(nil)
+
+func (t *testTaskMarshaler) MarshalTask(auth []weave.Condition, msg weave.Msg) ([]byte, error) {
+	if reflect.TypeOf(msg) != t.msgType {
+		return nil, errors.Wrap(errors.ErrType, "unsupported message type")
+	}
+	rawMsg, err := msg.Marshal()
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot marshal message")
+	}
+	return json.Marshal(serializedTask{
+		Auth:   auth,
+		RawMsg: rawMsg,
+	})
+
+}
+
+func (t *testTaskMarshaler) UnmarshalTask(raw []byte) ([]weave.Condition, weave.Msg, error) {
+	var st serializedTask
+	if err := json.Unmarshal(raw, &st); err != nil {
+		return nil, nil, errors.Wrap(err, "cannot JSON deserialize task")
+	}
+	msg := reflect.New(t.msgType.Elem()).Interface().(weave.Msg)
+	if err := msg.Unmarshal(st.RawMsg); err != nil {
+		return nil, nil, errors.Wrap(err, "cannot deserialize msg")
+	}
+	return st.Auth, msg, nil
+}
+
+type serializedTask struct {
+	Auth   []weave.Condition
+	RawMsg []byte
 }
