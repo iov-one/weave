@@ -1,8 +1,8 @@
 {
 	"fees": {
 		"fees": {
-			"whole": 17,
-			"ticker": "BTC"
+			"fractional": 100000000,
+			"ticker": "IOV"
 		}
 	},
 	"Sum": {

@@ -100,7 +100,7 @@ func copyFiles(t *testing.T, sourceDir, rootDir, subDir string) error {
 		}
 		input := filepath.Join(inDir, f.Name())
 		output := filepath.Join(outDir, f.Name())
-		t.Logf("Copying %s to %s", input, output)
+		// t.Logf("Copying %s to %s", input, output)
 		err = fileCopy(input, output, f.Mode())
 		if err != nil {
 			return err
