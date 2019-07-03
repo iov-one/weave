@@ -1,42 +1,53 @@
 package batch_test
 
 import (
-	"errors"
 	"testing"
 
 	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/weavetest/assert"
 	"github.com/iov-one/weave/x/batch"
-	. "github.com/smartystreets/goconvey/convey"
-	"github.com/stretchr/testify/mock"
 )
 
-func TestMsg(t *testing.T) {
-	Convey("Test Validate", t, func() {
-		msg := &mockMsg{}
-		Convey("Test happy flow", func() {
-			msg.On("MsgList").Return(make([]weave.Msg, 10), nil)
-			So(batch.Validate(msg), ShouldBeNil)
-			msg.AssertExpectations(t)
-		})
+func TestMsgValidate(t *testing.T) {
+	specs := map[string]struct {
+		msg batch.Msg
+		err *errors.Error
+	}{
+		"Happy flow": {
+			msg: &mockMsg{list: make([]weave.Msg, 10)},
+		},
+		"Test list too long": {
+			msg: &mockMsg{list: make([]weave.Msg, batch.MaxBatchMessages+1)},
+			err: errors.ErrInput,
+		},
+		"Test error": {
+			msg: &mockMsg{list: make([]weave.Msg, batch.MaxBatchMessages), listErr: errors.ErrState},
+			err: errors.ErrState,
+		},
+	}
 
-		Convey("Test list too long", func() {
-			msg.On("MsgList").Return(make([]weave.Msg, 11), nil)
-			So(batch.Validate(msg), ShouldNotBeNil)
-			msg.AssertExpectations(t)
+	for msg, spec := range specs {
+		t.Run(msg, func(t *testing.T) {
+			err := batch.Validate(spec.msg)
+			if spec.err == nil {
+				assert.Equal(t, nil, err)
+				return
+			}
+			if !spec.err.Is(err) {
+				t.Fatalf("epected error does not match: %v  but got %+v", spec.err, err)
+			}
 		})
+	}
 
-		Convey("Test error", func() {
-			msg.On("MsgList").Return(make([]weave.Msg, 10), errors.New("whatever"))
-			So(batch.Validate(msg), ShouldNotBeNil)
-			msg.AssertExpectations(t)
-		})
-	})
 }
 
 var _ batch.Msg = (*mockMsg)(nil)
 
 type mockMsg struct {
-	mock.Mock
+	valErr  error
+	listErr error
+	list    []weave.Msg
 }
 
 func (m *mockMsg) Marshal() ([]byte, error) {
@@ -52,11 +63,9 @@ func (m *mockMsg) Path() string {
 }
 
 func (m *mockMsg) Validate() error {
-	args := m.Mock.Called()
-	return args.Error(0)
+	return m.valErr
 }
 
 func (m *mockMsg) MsgList() ([]weave.Msg, error) {
-	args := m.Mock.Called()
-	return args.Get(0).([]weave.Msg), args.Error(1)
+	return m.list, m.listErr
 }
