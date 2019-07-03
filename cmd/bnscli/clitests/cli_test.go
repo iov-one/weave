@@ -33,8 +33,8 @@ func TestAll(t *testing.T) {
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 	defer cancel()
-	defer tmtest.RunTendermint(ctx, t, home)()
 	defer RunBnsd(ctx, t, home)()
+	defer tmtest.RunTendermint(ctx, t, home)()
 
 	for _, tf := range testFiles {
 		t.Run(tf, func(t *testing.T) {
@@ -114,8 +114,8 @@ func RunBnsd(ctx context.Context, t *testing.T, home string) (cleanup func()) {
 
 	cmd := exec.CommandContext(ctx, bnsdpath, "-home", home, "start")
 	// log tendermint output for verbose debugging....
-	// cmd.Stdout = os.Stdout
-	// cmd.Stderr = os.Stdout
+	cmd.Stdout = os.Stderr
+	cmd.Stderr = os.Stderr
 	if err := cmd.Start(); err != nil {
 		t.Fatalf("Bnsd process failed: %s", err)
 	}

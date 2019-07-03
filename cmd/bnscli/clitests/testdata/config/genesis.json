@@ -1,5 +1,5 @@
 {
-  "app_hash": "F3350CFFAC42433C5DA234C68FC517CB8E152F01C09030337906072836C14526",
+  "app_hash": "",
   "app_state": {
     "cash": [
       {
@@ -50,7 +50,7 @@
 			{"ver": 1, "pkg": "validators"}      
     ],
     "msgfee": [
-      {"msg_path": "multisig/create", "fees": "1 IOV"}
+      {"msg_path": "multisig/create", "fee": "1 IOV"}
     ]
   },
   "chain_id": "clitest-chain",

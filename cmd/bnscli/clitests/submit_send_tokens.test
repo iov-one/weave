@@ -10,11 +10,21 @@ then
 	exit 2
 fi
 
+# bnscli sign command requires a file with the private key in order to sign the
+# transaction. To always produce the same output always use the same input data
+# and private key.
+keyfile=`mktemp`
+echo 00wZcK6QrPNAXy2Z3KyhbQx9s3n0vq/P32Z7nWnONQ0n9ftEBQnfp57Ig6BRC8mpYUw9RBiIgfDF5AKJi0vzyQ== | base64 --decode > $keyfile
+# bnscli keyaddr -key=$keyfile
+# E28AE9A6EB94FC88B73EB7CBD6B87BF93EB9BEF0
+
 bnscli send-tokens \
-		-src "seq:test/bnscli/1" \
+		-src "E28AE9A6EB94FC88B73EB7CBD6B87BF93EB9BEF0" \
 		-dst "seq:test/bnscli/2" \
 		-amount "4 IOV" \
 		-memo "bnscli test" \
+	| bnscli with-fee \
+	| bnscli sign -key $keyfile \
 	| bnscli submit
 
 # Because submit command produce no output print its exit code instead to
