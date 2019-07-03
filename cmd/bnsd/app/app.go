@@ -38,7 +38,11 @@ import (
 // Authenticator returns the typical authentication,
 // just using public key signatures
 func Authenticator() x.Authenticator {
-	return x.ChainAuth(sigs.Authenticate{}, multisig.Authenticate{})
+	return x.ChainAuth(
+		sigs.Authenticate{},
+		multisig.Authenticate{},
+		cron.Authenticator{},
+	)
 }
 
 // Chain returns a chain of decorators, to handle authentication,
@@ -136,7 +140,7 @@ func Application(
 		return app.BaseApp{}, errors.Wrap(err, "cannot create store")
 	}
 	store := app.NewStoreApp(name, kv, QueryRouter(options.MinFee), ctx)
-	cron := cron.NewMsgCron(nil, h) // TODO: pass transaction like reference
+	cron := cron.NewTicker(&CronTask{}, h)
 	base := app.NewBaseApp(store, tx, h, cron, options.Debug)
 	return base, nil
 }
