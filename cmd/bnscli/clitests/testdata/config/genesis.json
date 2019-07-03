@@ -3,7 +3,7 @@
   "app_state": {
     "cash": [
       {
-        "address": "45c86adaf2afb795c549a55f4c9b25dc13dc2902",
+        "address": "E28AE9A6EB94FC88B73EB7CBD6B87BF93EB9BEF0",
         "coins": [
           {
             "whole": 123456789,
@@ -21,7 +21,7 @@
     "multisig": [],
     "update_validators": {
       "addresses": [
-        "45c86adaf2afb795c549a55f4c9b25dc13dc2902"
+        "E28AE9A6EB94FC88B73EB7CBD6B87BF93EB9BEF0"
       ]
     },
 		"conf": {
@@ -30,7 +30,7 @@
 				"minimal_fee": "0.1 IOV"
 			},
 			"migration": {
-				"admin": "45c86adaf2afb795c549a55f4c9b25dc13dc2902"
+				"admin": "E28AE9A6EB94FC88B73EB7CBD6B87BF93EB9BEF0"
 			}
 		},
     "distribution": [],
@@ -50,7 +50,7 @@
 			{"ver": 1, "pkg": "validators"}      
     ],
     "msgfee": [
-      {"msg_path": "multisig/create", "fee": "1 IOV"}
+      {"msg_path": "multisig/create", "fees": "1 IOV"}
     ]
   },
   "chain_id": "clitest-chain",

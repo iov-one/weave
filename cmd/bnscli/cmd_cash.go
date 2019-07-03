@@ -88,7 +88,6 @@ already has a fee set, overwrite it with a new value.
 		if err != nil {
 			return fmt.Errorf("cannot fetch %T message fee information: %s", msg, err)
 		}
-		panic(fmt.Sprintf("fee: %v\n", fee))
 
 		// Custom fee value is more important than global minimal fee setting.
 		if !coin.IsEmpty(fee) {
