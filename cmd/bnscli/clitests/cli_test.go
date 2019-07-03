@@ -28,13 +28,13 @@ func TestAll(t *testing.T) {
 		t.Skip("no test files found")
 	}
 
-	home, _ := tmtest.SetupConfig(t, "testdata")
-	// defer cleanup()
+	home, cleanup := tmtest.SetupConfig(t, "testdata")
+	defer cleanup()
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 	defer cancel()
-	defer tmtest.RunTendermint(ctx, t, home)
-	defer RunBnsd(ctx, t, home)
+	defer tmtest.RunTendermint(ctx, t, home)()
+	defer RunBnsd(ctx, t, home)()
 
 	for _, tf := range testFiles {
 		t.Run(tf, func(t *testing.T) {
@@ -46,6 +46,7 @@ func TestAll(t *testing.T) {
 			// To ensure that all commands are using tendermint
 			// mock server, set environment variable to enforce
 			// that.
+			// Port is set in testdata/config/config.toml under [rpc]laddr
 			cmd.Env = append(os.Environ(), "BNSCLI_TM_ADDR=http://localhost:44444")
 
 			out, err := cmd.Output()
