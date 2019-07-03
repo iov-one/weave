@@ -42,6 +42,7 @@ install:
 script:
 - make protolint;
 - make protodocs;
+- make install;
 - make all;
 - if [[ "$TRAVIS_GO_VERSION" == "$MAIN_GO_VERSION" ]]; then
      make cover;
