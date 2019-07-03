@@ -7,10 +7,15 @@ package tmtest
 
 import (
 	"context"
+	"io"
+	"io/ioutil"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"testing"
 	"time"
+
+	"github.com/iov-one/weave/weavetest/assert"
 )
 
 // RunTendermint starts a tendermit process. Returned cleanup function will
@@ -48,4 +53,69 @@ func RunTendermint(ctx context.Context, t *testing.T, home string) (cleanup func
 		cmd.Process.Kill()
 		cmd.Wait()
 	}
+}
+
+// SetupConfig creates a homedir to run inside,
+// and copies demo tendermint files there.
+//
+// these files reside in sourceDir and can be created
+// via `tendermint init` (sourceDir can usually be "testdata")
+//
+// second argument is cleanup call
+func SetupConfig(t *testing.T, sourceDir string) (string, func()) {
+	rootDir, err := ioutil.TempDir("", "mock-sdk-cmd")
+	assert.Nil(t, err)
+	err = copyConfigFiles(t, sourceDir, rootDir)
+	cleanup := func() { os.RemoveAll(rootDir) }
+	if err != nil {
+		cleanup()
+		t.Fatalf("Cannot copy config files: %+v", err)
+	}
+	return rootDir, cleanup
+}
+
+func copyConfigFiles(t *testing.T, sourceDir, rootDir string) error {
+	// make the output dir
+	outDir := filepath.Join(rootDir, "config")
+	err := os.Mkdir(outDir, 0755)
+	if err != nil {
+		return err
+	}
+
+	// copy everything over from testdata
+	files, err := ioutil.ReadDir(sourceDir)
+	if err != nil {
+		return err
+	}
+	for _, f := range files {
+		if f.IsDir() {
+			continue
+		}
+		input := filepath.Join(sourceDir, f.Name())
+		output := filepath.Join(outDir, f.Name())
+		t.Logf("Copying %s to %s", input, output)
+		err = fileCopy(input, output, f.Mode())
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func fileCopy(input, output string, mode os.FileMode) error {
+	from, err := os.Open(input)
+	if err != nil {
+		return err
+	}
+	defer from.Close()
+
+	to, err := os.OpenFile(output, os.O_WRONLY|os.O_CREATE, mode)
+	if err != nil {
+		return err
+	}
+	defer to.Close()
+
+	_, err = io.Copy(to, from)
+	return err
 }
