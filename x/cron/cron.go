@@ -36,6 +36,7 @@ type Ticker struct {
 }
 
 var _ weave.Ticker = (*Ticker)(nil)
+var _ weave.Scheduler = (*Ticker)(nil)
 
 // Schedule queues given message in the database to be executed at given time.
 // Message will be executed with context containing provided authentication

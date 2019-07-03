@@ -71,7 +71,7 @@ func Chain(authFn x.Authenticator, minFee coin.Coin) app.Decorators {
 
 // Router returns a default router, only dispatching to the
 // cash.SendMsg
-func Router(authFn x.Authenticator, issuer weave.Address) *app.Router {
+func Router(authFn x.Authenticator, issuer weave.Address, scheduler weave.Scheduler) *app.Router {
 	r := app.NewRouter()
 
 	// ctrl can be initialized with any implementation, but must be used
@@ -89,7 +89,7 @@ func Router(authFn x.Authenticator, issuer weave.Address) *app.Router {
 	distribution.RegisterRoutes(r, authFn, ctrl)
 	sigs.RegisterRoutes(r, authFn)
 	aswap.RegisterRoutes(r, authFn, ctrl)
-	gov.RegisterRoutes(r, authFn, decodeProposalOptions, proposalOptionsExecutor(ctrl))
+	gov.RegisterRoutes(r, authFn, decodeProposalOptions, proposalOptionsExecutor(ctrl), scheduler)
 	username.RegisterRoutes(r, authFn)
 	return r
 }
@@ -119,9 +119,9 @@ func QueryRouter(minFee coin.Coin) weave.QueryRouter {
 
 // Stack wires up a standard router with a standard decorator
 // chain. This can be passed into BaseApp.
-func Stack(issuer weave.Address, minFee coin.Coin) weave.Handler {
+func Stack(issuer weave.Address, minFee coin.Coin, scheduler TickerScheduler) weave.Handler {
 	authFn := Authenticator()
-	return Chain(authFn, minFee).WithHandler(Router(authFn, issuer))
+	return Chain(authFn, minFee).WithHandler(Router(authFn, issuer, scheduler))
 }
 
 // Application constructs a basic ABCI application with
@@ -133,6 +133,7 @@ func Application(
 	tx weave.TxDecoder,
 	dbPath string,
 	options *server.Options,
+	ts TickerScheduler,
 ) (app.BaseApp, error) {
 	ctx := context.Background()
 	kv, err := CommitKVStore(dbPath)
@@ -140,9 +141,14 @@ func Application(
 		return app.BaseApp{}, errors.Wrap(err, "cannot create store")
 	}
 	store := app.NewStoreApp(name, kv, QueryRouter(options.MinFee), ctx)
-	cron := cron.NewTicker(&CronTask{}, h)
-	base := app.NewBaseApp(store, tx, h, cron, options.Debug)
+	//cron := cron.NewTicker(h, NewTaskMarshaler())
+	base := app.NewBaseApp(store, tx, h, ts, options.Debug)
 	return base, nil
+}
+
+type TickerScheduler interface {
+	weave.Ticker
+	weave.Scheduler
 }
 
 // CommitKVStore returns an initialized KVStore that persists

@@ -2,6 +2,7 @@ package weave
 
 import (
 	"encoding/json"
+	"time"
 
 	abci "github.com/tendermint/tendermint/abci/types"
 )
@@ -56,6 +57,19 @@ type Ticker interface {
 	// rest of the network and cannot continue operating as its state is
 	// invalid.
 	Tick(ctx Context, store CacheableKVStore) (taskIDs [][]byte)
+}
+
+// Scheduler is an interface implemented to allow scheduling message execution.
+type Scheduler interface {
+	// Schedule queues given message in the database to be executed at
+	// given time.  Message will be executed with context containing
+	// provided authentication addresses.
+	// When successful, returns the scheduled task ID.
+	Schedule(KVStore, time.Time, []Condition, Msg) ([]byte, error)
+
+	// Delete removes a scheduled task from the queue. It returns
+	// ErrNotFound if task with given ID is not present in the queue.
+	Delete(KVStore, []byte) error
 }
 
 // Registry is an interface to register your handler,
