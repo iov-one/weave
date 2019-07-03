@@ -133,7 +133,19 @@ func (t *Ticker) Tick(ctx context.Context, db store.CacheableKVStore) [][]byte {
 
 // failTask is a variable so that it can be overwritten for tests.
 var failTask = func(err error) {
-	panic(fmt.Sprintf("%+v", err))
+	panic(fmt.Sprintf(`
+
+Asynchronous task failed.
+
+This error is most likely due to a database issues or some other instance
+specific problems. This problem is unique to this instance and this operation
+most likely succeeded on other nodes. This means that there is no way we could
+continue operating as this instance is out of sync with the rest of the
+network.
+
+%+v
+
+	`, err))
 }
 
 // tick process any number of tasks. It always returns a response and might
