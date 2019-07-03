@@ -3,15 +3,18 @@ package main
 import (
 	"bytes"
 	"encoding/base64"
+	"encoding/hex"
+	"encoding/json"
 	"io"
 	"net/http"
 	"net/http/httptest"
-	"strings"
 	"testing"
 
 	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/app"
 	bnsd "github.com/iov-one/weave/cmd/bnsd/app"
 	"github.com/iov-one/weave/coin"
+	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/weavetest/assert"
 	"github.com/iov-one/weave/x/cash"
 	"github.com/iov-one/weave/x/msgfee"
@@ -109,6 +112,7 @@ func TestCmdWithFeeHappyPathDefaultAmount(t *testing.T) {
 	}{
 		"only minimal fee": {
 			Conf: cash.Configuration{
+				Metadata:   &weave.Metadata{Schema: 1},
 				MinimalFee: coin.NewCoin(4, 0, "BTC"),
 			},
 			Fees:    nil,
@@ -116,6 +120,7 @@ func TestCmdWithFeeHappyPathDefaultAmount(t *testing.T) {
 		},
 		"only message fee": {
 			Conf: cash.Configuration{
+				Metadata:   &weave.Metadata{Schema: 1},
 				MinimalFee: coin.NewCoin(0, 0, ""),
 			},
 			Fees: map[string]coin.Coin{
@@ -125,6 +130,7 @@ func TestCmdWithFeeHappyPathDefaultAmount(t *testing.T) {
 		},
 		"custom message fee is more important than global setting": {
 			Conf: cash.Configuration{
+				Metadata:   &weave.Metadata{Schema: 1},
 				MinimalFee: coin.NewCoin(123, 0, "IOV"),
 			},
 			Fees: map[string]coin.Coin{
@@ -163,8 +169,16 @@ func TestCmdWithFeeHappyPathDefaultAmount(t *testing.T) {
 	}
 }
 
+type abciQueryRequest struct {
+	Method string `json:"method"`
+	Params struct {
+		Data string `json:"data"` // hex-encoded
+		Path string `json:"path"`
+	} `json:"params"`
+}
+
 // newCashConfTendermintServer returns an HTTP server that can respond to an
-// HTTP "/abci_query" request with given configuration.
+// HTTP json-rpc request with given configuration.
 func newCashConfTendermintServer(
 	t *testing.T,
 	conf cash.Configuration,
@@ -173,44 +187,100 @@ func newCashConfTendermintServer(
 	t.Helper()
 
 	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path != "/abci_query" {
+		if r.URL.Path != "/" {
 			t.Fatalf("unexpected tendermint request: %s", r.URL)
 		}
 
-		data := r.URL.Query().Get("data")
-		data = data[1 : len(data)-1] // Cut off JSON quotation.
+		defer r.Body.Close()
+		decoder := json.NewDecoder(r.Body)
+		var req abciQueryRequest
+		err := decoder.Decode(&req)
+		assert.Nil(t, err)
+		assert.Equal(t, "abci_query", req.Method)
+		assert.Equal(t, "/", req.Params.Path)
 
-		if data == "_c:cash" {
-			io.WriteString(w, tmResponse(t, &conf))
+		raw, err := hex.DecodeString(req.Params.Data)
+		assert.Nil(t, err)
+
+		if bytes.Equal(raw, []byte("_c:cash")) {
+			io.WriteString(w, tmResponse(t, raw, &conf))
 			return
 		}
 
-		if strings.HasPrefix(data, "msgfee:") {
-			path := data[len("msgfee:"):]
-			io.WriteString(w, tmResponse(t, &msgfee.MsgFee{
-				MsgPath: path,
-				Fee:     msgfees[path],
+		if bytes.HasPrefix(raw, []byte("schema:msgfee")) {
+			pkg := "schema:msgfee"
+			cnt := raw[len(pkg):]
+			if bytes.Equal(cnt, []byte{0, 0, 0, 1}) {
+				schema := &migration.Schema{
+					Metadata: &weave.Metadata{Schema: 1},
+					Pkg:      pkg,
+					Version:  1,
+				}
+				io.WriteString(w, tmResponse(t, raw, schema))
+			} else {
+				io.WriteString(w, tmEmptyResponse(t))
+			}
+			return
+		}
+
+		if bytes.HasPrefix(raw, []byte("msgfee:")) {
+			path := string(raw[len("msgfee:"):])
+			fee, ok := msgfees[path]
+			if !ok {
+				io.WriteString(w, tmEmptyResponse(t))
+				return
+			}
+			io.WriteString(w, tmResponse(t, raw, &msgfee.MsgFee{
+				Metadata: &weave.Metadata{Schema: 1},
+				MsgPath:  path,
+				Fee:      fee,
 			}))
 			return
 		}
 
-		t.Fatalf("unexpected tendemrint request: %s", r.URL)
+		t.Fatalf("unexpected tendermint request: %X", raw)
 	}))
 }
 
 // tmResponse returns a tenderming HTTP response for a configuration query.
 // Returned response does not contain "key" or "height" information.
-func tmResponse(t testing.TB, payload interface{ Marshal() ([]byte, error) }) string {
-	raw, err := payload.Marshal()
-	if err != nil {
-		t.Fatalf("cannot marshal payload: %s", err)
-	}
-	enc := base64.StdEncoding.EncodeToString(raw)
+func tmResponse(t testing.TB, key []byte, payload interface{ Marshal() ([]byte, error) }) string {
+	value, err := payload.Marshal()
+	assert.Nil(t, err)
+
+	model := []weave.Model{{Key: key, Value: value}}
+
+	keySet, err := app.ResultsFromKeys(model).Marshal()
+	assert.Nil(t, err)
+	encKey := base64.StdEncoding.EncodeToString(keySet)
+
+	valSet, err := app.ResultsFromValues(model).Marshal()
+	assert.Nil(t, err)
+	encVal := base64.StdEncoding.EncodeToString(valSet)
+
 	return `{
 	  "jsonrpc": "2.0",
 	  "id": "",
 	  "result": {
 	    "response": {
+	      "key": "` + encKey + `",
+	      "value": "` + encVal + `"
+	    }
+	  }
+	}`
+}
+
+func tmEmptyResponse(t testing.TB) string {
+	set, err := (&app.ResultSet{}).Marshal()
+	assert.Nil(t, err)
+	enc := base64.StdEncoding.EncodeToString(set)
+
+	return `{
+	  "jsonrpc": "2.0",
+	  "id": "",
+	  "result": {
+	    "response": {
+	      "key": "` + enc + `",
 	      "value": "` + enc + `"
 	    }
 	  }
