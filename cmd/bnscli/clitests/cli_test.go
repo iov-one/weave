@@ -33,7 +33,7 @@ func TestAll(t *testing.T) {
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 	defer cancel()
-	defer RunBnsd(ctx, t, home)()
+	defer tmtest.RunBnsd(ctx, t, home)()
 	defer tmtest.RunTendermint(ctx, t, home)()
 
 	for _, tf := range testFiles {
@@ -97,37 +97,5 @@ weave main directory or by directly using Go install command:
 
   $ go install github.com/iov-one/weave/cmd/bnscli
 `)
-	}
-}
-
-func RunBnsd(ctx context.Context, t *testing.T, home string) (cleanup func()) {
-	t.Helper()
-
-	bnsdpath, err := exec.LookPath("bnsd")
-	if err != nil {
-		if os.Getenv("FORCE_TM_TEST") != "1" {
-			t.Skip("Bnsd binary not found. Set FORCE_TM_TEST=1 to fail this test.")
-		} else {
-			t.Fatalf("Bnsd binary not found. Do not set FORCE_TM_TEST=1 to skip this test.")
-		}
-	}
-
-	cmd := exec.CommandContext(ctx, bnsdpath, "-home", home, "start")
-	// log tendermint output for verbose debugging....
-	cmd.Stdout = os.Stderr
-	cmd.Stderr = os.Stderr
-	if err := cmd.Start(); err != nil {
-		t.Fatalf("Bnsd process failed: %s", err)
-	}
-
-	// Give tendermint time to setup.
-	time.Sleep(2 * time.Second)
-	t.Logf("Running %s pid=%d", bnsdpath, cmd.Process.Pid)
-
-	// Return a cleanup function, that will wait for the tendermint to stop.
-	//nolint
-	return func() {
-		cmd.Process.Kill()
-		cmd.Wait()
 	}
 }

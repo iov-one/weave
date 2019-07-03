@@ -23,6 +23,8 @@ import (
 //
 // Set FORCE_TM_TEST=1 environment variable to fail the test if the binary is
 // not available. This might be desired when running tests by CI.
+//
+// Set TM_DEBUG=1 environmental variable to output all tm logs
 func RunTendermint(ctx context.Context, t *testing.T, home string) (cleanup func()) {
 	t.Helper()
 
@@ -37,8 +39,10 @@ func RunTendermint(ctx context.Context, t *testing.T, home string) (cleanup func
 
 	cmd := exec.CommandContext(ctx, tmpath, "node", "--home", home)
 	// log tendermint output for verbose debugging....
-	cmd.Stdout = os.Stderr
-	cmd.Stderr = os.Stderr
+	if os.Getenv("TM_DEBUG") != "" {
+		cmd.Stdout = os.Stderr
+		cmd.Stderr = os.Stderr
+	}
 	if err := cmd.Start(); err != nil {
 		t.Fatalf("Tendermint process failed: %s", err)
 	}
@@ -46,6 +50,41 @@ func RunTendermint(ctx context.Context, t *testing.T, home string) (cleanup func
 	// Give tendermint time to setup.
 	time.Sleep(2 * time.Second)
 	t.Logf("Running %s pid=%d", tmpath, cmd.Process.Pid)
+
+	// Return a cleanup function, that will wait for the tendermint to stop.
+	//nolint
+	return func() {
+		cmd.Process.Kill()
+		cmd.Wait()
+	}
+}
+
+// RunBnsd is like RunTendermint, just executes the bnsd executable, assuming a prepared home directory
+func RunBnsd(ctx context.Context, t *testing.T, home string) (cleanup func()) {
+	t.Helper()
+
+	bnsdpath, err := exec.LookPath("bnsd")
+	if err != nil {
+		if os.Getenv("FORCE_TM_TEST") != "1" {
+			t.Skip("Bnsd binary not found. Set FORCE_TM_TEST=1 to fail this test.")
+		} else {
+			t.Fatalf("Bnsd binary not found. Do not set FORCE_TM_TEST=1 to skip this test.")
+		}
+	}
+
+	cmd := exec.CommandContext(ctx, bnsdpath, "-home", home, "start")
+	// log tendermint output for verbose debugging....
+	if os.Getenv("TM_DEBUG") != "" {
+		cmd.Stdout = os.Stderr
+		cmd.Stderr = os.Stderr
+	}
+	if err := cmd.Start(); err != nil {
+		t.Fatalf("Bnsd process failed: %s", err)
+	}
+
+	// Give tendermint time to setup.
+	time.Sleep(2 * time.Second)
+	t.Logf("Running %s pid=%d", bnsdpath, cmd.Process.Pid)
 
 	// Return a cleanup function, that will wait for the tendermint to stop.
 	//nolint
