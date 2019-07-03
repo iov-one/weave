@@ -49,8 +49,8 @@
 			{"ver": 1, "pkg": "utils"},
 			{"ver": 1, "pkg": "validators"}      
     ],
-    "msgfees": [
-      {"msgpath": "multisig/create", "fees": "1 IOV"}
+    "msgfee": [
+      {"msg_path": "multisig/create", "fee": "1 IOV"}
     ]
   },
   "chain_id": "clitest-chain",

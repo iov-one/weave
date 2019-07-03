@@ -38,7 +38,7 @@ func TestAll(t *testing.T) {
 
 	for _, tf := range testFiles {
 		t.Run(tf, func(t *testing.T) {
-			cmd := exec.Command("/bin/sh", tf)
+			cmd := exec.Command("/bin/bash", tf)
 
 			// Use host's environment to run the tests. This allows
 			// to provide the same setup as when running each
@@ -52,7 +52,7 @@ func TestAll(t *testing.T) {
 			out, err := cmd.Output()
 			if err != nil {
 				if e, ok := err.(*exec.ExitError); ok {
-					t.Logf("Below is the cript stderr:\n%s\n\n", string(e.Stderr))
+					t.Logf("Below is the script stderr:\n%s\n\n", string(e.Stderr))
 				}
 				t.Fatalf("execution failed: %s", err)
 			}
