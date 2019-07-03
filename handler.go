@@ -48,6 +48,13 @@ type Ticker interface {
 	// Because beginning of the block does not allow for an error response
 	// this method does not return one as well. It is the implementation
 	// responsibility to handle all error situations.
+	// In case of an error that is an instance specific (ie database
+	// issues) it might be neccessary for the method to terminate (ie
+	// panic). An instance specific issue means that all other nodes most
+	// likely succeeded processing the task and have different state than
+	// this instance. This means that this node is out of sync with the
+	// rest of the network and cannot continue operating as its state is
+	// invalid.
 	Tick(ctx Context, store CacheableKVStore) (taskIDs [][]byte)
 }
 

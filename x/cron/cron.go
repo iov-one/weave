@@ -3,6 +3,7 @@ package cron
 import (
 	"context"
 	"encoding/binary"
+	"fmt"
 	"reflect"
 	"time"
 
@@ -119,9 +120,20 @@ var _ weave.Ticker = (*Ticker)(nil)
 func (t *Ticker) Tick(ctx context.Context, db store.CacheableKVStore) [][]byte {
 	executed, err := t.tick(ctx, db)
 	if err != nil {
-		// TODO log error?
+		// This is a hopeless state. This error is most likely due to a
+		// database issues or some other instance specific problems.
+		// This problem is unique to this instance and this operation
+		// most likely succeeded on other nodes. This means that there
+		// is no way we could continue operating as this instance is
+		// out of sync with the rest of the network.
+		failTask(err)
 	}
 	return executed
+}
+
+// failTask is a variable so that it can be overwritten for tests.
+var failTask = func(err error) {
+	panic(fmt.Sprintf("%+v", err))
 }
 
 // tick process any number of tasks. It always returns a response and might
