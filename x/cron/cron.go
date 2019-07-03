@@ -12,31 +12,20 @@ import (
 	"github.com/iov-one/weave/store"
 )
 
-// NewTicker returns a cron instance that is using given handler to process all
-// queued messages that execution time is due.
-func NewTicker(h weave.Handler, enc TaskMarshaler) *Ticker {
-	return &Ticker{
-		hn:      h,
-		enc:     enc,
-		results: NewTaskResultBucket(),
-	}
-}
-
 type TaskMarshaler interface {
 	MarshalTask([]weave.Condition, weave.Msg) ([]byte, error)
 	UnmarshalTask([]byte) ([]weave.Condition, weave.Msg, error)
 }
 
-// Ticker allows to execute messages queued for future execution. It does this
-// by implementing weave.Ticker interface.
-type Ticker struct {
-	hn      weave.Handler
-	enc     TaskMarshaler
-	results orm.ModelBucket
+func NewScheduler(enc TaskMarshaler) *Scheduler {
+	return &Scheduler{enc: enc}
 }
 
-var _ weave.Ticker = (*Ticker)(nil)
-var _ weave.Scheduler = (*Ticker)(nil)
+type Scheduler struct {
+	enc TaskMarshaler
+}
+
+var _ weave.Scheduler = (*Scheduler)(nil)
 
 // Schedule queues given message in the database to be executed at given time.
 // Message will be executed with context containing provided authentication
@@ -49,11 +38,11 @@ var _ weave.Scheduler = (*Ticker)(nil)
 // delayed until the next free slot.
 //
 // Time granularity is second.
-func (t *Ticker) Schedule(db weave.KVStore, runAt time.Time, auth []weave.Condition, msg weave.Msg) ([]byte, error) {
+func (s *Scheduler) Schedule(db weave.KVStore, runAt time.Time, auth []weave.Condition, msg weave.Msg) ([]byte, error) {
 	const granularity = time.Second
 	runAt = runAt.Round(granularity)
 
-	raw, err := t.enc.MarshalTask(auth, msg)
+	raw, err := s.enc.MarshalTask(auth, msg)
 	if err != nil {
 		return nil, errors.Wrap(err, "marshal task")
 	}
@@ -92,7 +81,7 @@ func queueKey(t time.Time) []byte {
 
 // Delete removes a scheduled task from the queue. It returns ErrNotFound if
 // task with given ID is not present in the queue.
-func (t *Ticker) Delete(db weave.KVStore, taskID []byte) error {
+func (s *Scheduler) Delete(db weave.KVStore, taskID []byte) error {
 	if ok, err := db.Has(taskID); err != nil {
 		return errors.Wrap(err, "has")
 	} else if !ok {
@@ -103,6 +92,26 @@ func (t *Ticker) Delete(db weave.KVStore, taskID []byte) error {
 	}
 	return nil
 }
+
+// NewTicker returns a cron instance that is using given handler to process all
+// queued messages that execution time is due.
+func NewTicker(h weave.Handler, enc TaskMarshaler) *Ticker {
+	return &Ticker{
+		hn:      h,
+		enc:     enc,
+		results: NewTaskResultBucket(),
+	}
+}
+
+// Ticker allows to execute messages queued for future execution. It does this
+// by implementing weave.Ticker interface.
+type Ticker struct {
+	hn      weave.Handler
+	enc     TaskMarshaler
+	results orm.ModelBucket
+}
+
+var _ weave.Ticker = (*Ticker)(nil)
 
 // Tick implementes weave.Ticker interface.
 // Tick can process any number of messages suitable for execution. All changes

@@ -71,8 +71,9 @@ func Chain(authFn x.Authenticator, minFee coin.Coin) app.Decorators {
 
 // Router returns a default router, only dispatching to the
 // cash.SendMsg
-func Router(authFn x.Authenticator, issuer weave.Address, scheduler weave.Scheduler) *app.Router {
+func Router(authFn x.Authenticator, issuer weave.Address) *app.Router {
 	r := app.NewRouter()
+	scheduler := cron.NewScheduler(CronTaskMarshaler)
 
 	// ctrl can be initialized with any implementation, but must be used
 	// consistently everywhere.
@@ -119,9 +120,9 @@ func QueryRouter(minFee coin.Coin) weave.QueryRouter {
 
 // Stack wires up a standard router with a standard decorator
 // chain. This can be passed into BaseApp.
-func Stack(issuer weave.Address, minFee coin.Coin, scheduler TickerScheduler) weave.Handler {
+func Stack(issuer weave.Address, minFee coin.Coin) weave.Handler {
 	authFn := Authenticator()
-	return Chain(authFn, minFee).WithHandler(Router(authFn, issuer, scheduler))
+	return Chain(authFn, minFee).WithHandler(Router(authFn, issuer))
 }
 
 // Application constructs a basic ABCI application with
@@ -133,7 +134,6 @@ func Application(
 	tx weave.TxDecoder,
 	dbPath string,
 	options *server.Options,
-	ts TickerScheduler,
 ) (app.BaseApp, error) {
 	ctx := context.Background()
 	kv, err := CommitKVStore(dbPath)
@@ -141,14 +141,9 @@ func Application(
 		return app.BaseApp{}, errors.Wrap(err, "cannot create store")
 	}
 	store := app.NewStoreApp(name, kv, QueryRouter(options.MinFee), ctx)
-	//cron := cron.NewTicker(h, NewTaskMarshaler())
-	base := app.NewBaseApp(store, tx, h, ts, options.Debug)
+	ticker := cron.NewTicker(h, CronTaskMarshaler)
+	base := app.NewBaseApp(store, tx, h, ticker, options.Debug)
 	return base, nil
-}
-
-type TickerScheduler interface {
-	weave.Ticker
-	weave.Scheduler
 }
 
 // CommitKVStore returns an initialized KVStore that persists

@@ -4,19 +4,16 @@ import (
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/x/aswap"
-	"github.com/iov-one/weave/x/cron"
 	"github.com/iov-one/weave/x/distribution"
 	"github.com/iov-one/weave/x/escrow"
 	"github.com/iov-one/weave/x/gov"
 )
 
-// NewTaskMarshaler returns a task marshaler implementation to be used by the
-// bnsd application when dealing with scheduled tasks.
+// CronTaskMarshaler is a task marshaler implementation to be used by the bnsd
+// application when dealing with scheduled tasks.
 //
 // This implementation relies on the CronTask protobuf declaration.
-func NewTaskMarshaler() cron.TaskMarshaler {
-	return taskMarshaler{}
-}
+var CronTaskMarshaler = taskMarshaler{}
 
 type taskMarshaler struct{}
 

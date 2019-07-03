@@ -350,8 +350,9 @@ func TestCreateTextProposal(t *testing.T) {
 				Signers: spec.Signers,
 			}
 			rt := app.NewRouter()
+			cron := &weavetest.Cron{}
 			// We don't run the executor here, so we can safely pass in nil.
-			RegisterRoutes(rt, auth, decodeProposalOptions, nil)
+			RegisterRoutes(rt, auth, decodeProposalOptions, nil, cron)
 
 			db := store.MemStore()
 			migration.MustInitPkg(db, packageName)
@@ -456,7 +457,7 @@ func TestDeleteProposal(t *testing.T) {
 				Signer: spec.SignedBy,
 			}
 			rt := app.NewRouter()
-			RegisterRoutes(rt, auth, decodeProposalOptions, nil)
+			RegisterRoutes(rt, auth, decodeProposalOptions, nil, &weavetest.Cron{})
 
 			// given
 			ctx := weave.WithBlockTime(context.Background(), time.Now().Round(time.Second))
@@ -763,7 +764,7 @@ func TestVote(t *testing.T) {
 				Signer: spec.SignedBy,
 			}
 			rt := app.NewRouter()
-			RegisterRoutes(rt, auth, decodeProposalOptions, nil)
+			RegisterRoutes(rt, auth, decodeProposalOptions, nil, &weavetest.Cron{})
 
 			// given
 			ctx := weave.WithBlockTime(context.Background(), time.Now().Round(time.Second))
@@ -1246,7 +1247,7 @@ func TestTally(t *testing.T) {
 		Signer: hAliceCond,
 	}
 	rt := app.NewRouter()
-	RegisterRoutes(rt, auth, decodeProposalOptions, proposalOptionsExecutor())
+	RegisterRoutes(rt, auth, decodeProposalOptions, proposalOptionsExecutor(), &weavetest.Cron{})
 
 	for msg, spec := range specs {
 		t.Run(msg, func(t *testing.T) {
@@ -1427,7 +1428,7 @@ func TestUpdateElectorate(t *testing.T) {
 				Signer: spec.SignedBy,
 			}
 			rt := app.NewRouter()
-			RegisterRoutes(rt, auth, decodeProposalOptions, nil)
+			RegisterRoutes(rt, auth, decodeProposalOptions, nil, &weavetest.Cron{})
 			db := store.MemStore()
 			migration.MustInitPkg(db, packageName)
 
@@ -1565,7 +1566,7 @@ func TestUpdateElectionRules(t *testing.T) {
 				Signer: spec.SignedBy,
 			}
 			rt := app.NewRouter()
-			RegisterRoutes(rt, auth, decodeProposalOptions, nil)
+			RegisterRoutes(rt, auth, decodeProposalOptions, nil, &weavetest.Cron{})
 			db := store.MemStore()
 			migration.MustInitPkg(db, packageName)
 

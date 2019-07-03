@@ -19,15 +19,15 @@ func TestTaskQueue(t *testing.T) {
 	db := store.MemStore()
 
 	enc := NewTestTaskMarshaler(&weavetest.Msg{})
-	ticker := NewTicker(&weavetest.Handler{}, enc)
+	s := NewScheduler(enc)
 
-	if _, err := ticker.Schedule(db, now.Add(-5*time.Second), nil, &weavetest.Msg{RoutePath: "test/1"}); err != nil {
+	if _, err := s.Schedule(db, now.Add(-5*time.Second), nil, &weavetest.Msg{RoutePath: "test/1"}); err != nil {
 		t.Fatalf("cannot schedule first message: %s", err)
 	}
-	if _, err := ticker.Schedule(db, now.Add(-5*time.Second), nil, &weavetest.Msg{RoutePath: "test/2"}); err != nil {
+	if _, err := s.Schedule(db, now.Add(-5*time.Second), nil, &weavetest.Msg{RoutePath: "test/2"}); err != nil {
 		t.Fatalf("cannot schedule second message: %s", err)
 	}
-	if _, err := ticker.Schedule(db, now.Add(-10*time.Second), nil, &weavetest.Msg{RoutePath: "test/3"}); err != nil {
+	if _, err := s.Schedule(db, now.Add(-10*time.Second), nil, &weavetest.Msg{RoutePath: "test/3"}); err != nil {
 		t.Fatalf("cannot schedule third message: %s", err)
 	}
 
@@ -71,17 +71,18 @@ func TestTicker(t *testing.T) {
 
 	enc := NewTestTaskMarshaler(&weavetest.Msg{})
 	handler := &cronHandler{}
+	scheduler := NewScheduler(enc)
 	ticker := NewTicker(handler, enc)
 
 	msg1 := &weavetest.Msg{RoutePath: "test/1"}
-	if _, err := ticker.Schedule(db, now, nil, msg1); err != nil {
+	if _, err := scheduler.Schedule(db, now, nil, msg1); err != nil {
 		t.Fatalf("cannot schedule message: %s", err)
 	}
 
 	msg2 := &weavetest.Msg{RoutePath: "test/2"}
 	// Second message scheduled at the same time must be processed as the
 	// second.
-	if _, err := ticker.Schedule(db, now, nil, msg2); err != nil {
+	if _, err := scheduler.Schedule(db, now, nil, msg2); err != nil {
 		t.Fatalf("cannot schedule message: %s", err)
 	}
 
