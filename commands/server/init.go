@@ -86,7 +86,7 @@ func InitCmd(gen GenOptions, logger log.Logger, home string, args []string) erro
 	// And add them to the genesis file
 	err = addGenesisOptions(genFile, options, vals.force, vals.ignore)
 	if err == nil {
-		fmt.Println("The application has been succesfully initialised.")
+		fmt.Println("The application has been successfully initialised.")
 	}
 
 	return err
