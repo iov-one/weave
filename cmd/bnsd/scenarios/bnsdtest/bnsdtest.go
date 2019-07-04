@@ -21,6 +21,7 @@ import (
 	"github.com/iov-one/weave/commands/server"
 	"github.com/iov-one/weave/crypto"
 	"github.com/iov-one/weave/weavetest"
+	"github.com/iov-one/weave/x/cron"
 	"github.com/iov-one/weave/x/distribution"
 	"github.com/iov-one/weave/x/escrow"
 	"github.com/iov-one/weave/x/multisig"
@@ -281,6 +282,7 @@ func initGenesis(t testing.TB, env *EnvConf, filename string) {
 		"initialize_schema": []dict{
 			{"ver": 1, "pkg": "batch"},
 			{"ver": 1, "pkg": "cash"},
+			{"ver": 1, "pkg": "cron"},
 			{"ver": 1, "pkg": "currency"},
 			{"ver": 1, "pkg": "distribution"},
 			{"ver": 1, "pkg": "escrow"},
@@ -360,4 +362,48 @@ func MustBroadcastTx(t testing.TB, env *EnvConf, tx *bnsd.Tx) *coretypes.ResultB
 		t.Fatalf("DeliverTx failed with code %d: %s", r.Code, r.Log)
 	}
 	return resp.Response
+}
+
+func WaitCronTask(t testing.TB, env *EnvConf, timeout time.Duration, taskID []byte) cron.TaskResult {
+	t.Helper()
+
+	stop := time.After(timeout)
+
+	var rawResult []byte
+fetchCronTaskResult:
+	for {
+		resp, err := env.Client.AbciQuery("/crontaskresults", taskID)
+		if err != nil {
+			t.Fatalf("unexpected error: %+v", err)
+		}
+		switch n := len(resp.Models); n {
+		case 0:
+			select {
+			case <-stop:
+				t.Fatalf("timeout: cron task result for %q not found on time", taskID)
+			case <-time.After(time.Second / 2):
+				continue fetchCronTaskResult
+			}
+		case 1:
+			rawResult = resp.Models[0].Value
+			break fetchCronTaskResult
+		default:
+			t.Fatalf("expected single task result, got %d", n)
+		}
+	}
+
+	var tr cron.TaskResult
+	if err := tr.Unmarshal(rawResult); err != nil {
+		t.Fatalf("cannot unmarshal task result: %+v", err)
+	}
+	return tr
+}
+
+func WaitCronTaskSuccess(t testing.TB, env *EnvConf, timeout time.Duration, taskID []byte) {
+	t.Helper()
+
+	res := WaitCronTask(t, env, timeout, taskID)
+	if !res.Successful {
+		t.Fatalf("task was not successful: %s", res.Info)
+	}
 }

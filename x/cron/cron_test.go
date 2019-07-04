@@ -75,7 +75,8 @@ func TestTicker(t *testing.T) {
 	ticker := NewTicker(handler, enc)
 
 	msg1 := &weavetest.Msg{RoutePath: "test/1"}
-	if _, err := scheduler.Schedule(db, now, nil, msg1); err != nil {
+	t1Key, err := scheduler.Schedule(db, now, nil, msg1)
+	if err != nil {
 		t.Fatalf("cannot schedule message: %s", err)
 	}
 
@@ -99,6 +100,16 @@ func TestTicker(t *testing.T) {
 	}
 	if want, got := msg2.Path(), handler.delivered[1].Path(); want != got {
 		t.Fatalf("want %q message path to be delivered, got %q", want, got)
+	}
+
+	// Execution must create task result entity.
+	b := NewTaskResultBucket()
+	var tr TaskResult
+	if err := b.One(db, t1Key, &tr); err != nil {
+		t.Fatalf("expected a task result, got %s", err)
+	}
+	if !tr.Successful {
+		t.Fatalf("exected task to be successful: %q", tr.Info)
 	}
 }
 

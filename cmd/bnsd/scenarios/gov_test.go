@@ -21,11 +21,12 @@ func TestGovProposalCreateAndExecute(t *testing.T) {
 		carl  = client.GenPrivateKey()
 	)
 
+	const votingPeriod = 3 * time.Second
 	env, cleanup := bnsdtest.StartBnsd(t,
 		bnsdtest.WithMinFee(coin.NewCoin(0, 0, "IOV")),
 		bnsdtest.WithAntiSpamFee(coin.NewCoin(0, 0, "IOV")),
 		bnsdtest.WithGovernance(
-			weave.AsUnixDuration(3*time.Second),
+			weave.AsUnixDuration(votingPeriod),
 			[]weave.Address{
 				alice.PublicKey().Address(),
 				bobby.PublicKey().Address(),
@@ -108,19 +109,6 @@ func TestGovProposalCreateAndExecute(t *testing.T) {
 	bnsdtest.MustSignTx(t, env, carlVoteTx, carl)
 	bnsdtest.MustBroadcastTx(t, env, carlVoteTx)
 
-	// At this point, we go more than 50% of the votes for yes. The
-	// stored message can be executed now by calling a tally.
-	tallyTx := &bnsdApp.Tx{
-		Sum: &bnsdApp.Tx_GovTallyMsg{
-			GovTallyMsg: &gov.TallyMsg{
-				Metadata:   &weave.Metadata{Schema: 1},
-				ProposalID: proposalID,
-			},
-		},
-	}
-
-	bnsdtest.MustSignTx(t, env, tallyTx, carl)
-
 	r, err := env.Client.AbciQuery("/proposal", proposalID)
 	if err != nil {
 		t.Fatalf("unexpected error: %+v", err)
@@ -128,8 +116,8 @@ func TestGovProposalCreateAndExecute(t *testing.T) {
 	if len(r.Models) == 0 {
 		t.Fatal("proposal not found")
 	}
-	var x gov.Proposal
-	if err := x.Unmarshal(r.Models[0].Value); err != nil {
+	var proposal gov.Proposal
+	if err := proposal.Unmarshal(r.Models[0].Value); err != nil {
 		t.Fatalf("unexpected error: %+v", err)
 	}
 
@@ -138,16 +126,10 @@ func TestGovProposalCreateAndExecute(t *testing.T) {
 		return
 	}
 
-	wait = x.VotingEndTime.Time().Sub(time.Now()) + time.Second
-	t.Logf("waiting for %s so that proposal voting period has ended", wait)
-	time.Sleep(wait)
+	wait = proposal.VotingEndTime.Time().Sub(time.Now()) + 2*time.Second // 2s margin
+	bnsdtest.WaitCronTaskSuccess(t, env, wait, proposal.TallyTaskID)
 
-	resp := bnsdtest.MustBroadcastTx(t, env, tallyTx)
-	if resp.DeliverTx.Log != "Proposal accepted: execution success" {
-		t.Fatalf(string(resp.DeliverTx.Log))
-	}
-
-	// Is Carl a rich men now?
+	// Is Carl a rich man now?
 	assertWalletCoins(t, env, carl.PublicKey().Address(), 3)
 }
 
