@@ -12,25 +12,34 @@ import (
 	"github.com/iov-one/weave/store"
 )
 
+// TaskMarshaler represents an encoded that is used to marshal and unmarshal a
+// task. This interface is to be implemented by this package user.
 type TaskMarshaler interface {
-	MarshalTask([]weave.Condition, weave.Msg) ([]byte, error)
-	UnmarshalTask([]byte) ([]weave.Condition, weave.Msg, error)
+	// MarshalTask serialize given data into its binary format.
+	MarshalTask(auth []weave.Condition, msg weave.Msg) ([]byte, error)
+
+	// UnmarshalTask deserialize data (created using MarshalTask method)
+	// from its binary representation into Go structures.
+	UnmarshalTask([]byte) (auth []weave.Condition, msg weave.Msg, err error)
 }
 
+// NewScheduler returns a scheduler implementation that is using given encoding
+// for serializing data. Returned scheduler implements weave.Scheduler
+// interface.
+//
+// Always use the same marshaler for ticker and scheduler.
 func NewScheduler(enc TaskMarshaler) *Scheduler {
 	return &Scheduler{enc: enc}
 }
 
+// Scheduler is the weave.Scheduler implementation.
 type Scheduler struct {
 	enc TaskMarshaler
 }
 
 var _ weave.Scheduler = (*Scheduler)(nil)
 
-// Schedule queues given message in the database to be executed at given time.
-// Message will be executed with context containing provided authentication
-// addresses.
-// When successful, returns the scheduled task ID.
+// Schedule implements weave.Scheduler interface.
 //
 // Due to the implementation details, transaction is guaranteed to be executed
 // after given time, but not exactly at given time. If another transaction is
@@ -79,8 +88,7 @@ func queueKey(t time.Time) []byte {
 	return append([]byte("_crontask:runat:"), rawTime...)
 }
 
-// Delete removes a scheduled task from the queue. It returns ErrNotFound if
-// task with given ID is not present in the queue.
+// Delete implements weave.Scheduler interface.
 func (s *Scheduler) Delete(db weave.KVStore, taskID []byte) error {
 	if ok, err := db.Has(taskID); err != nil {
 		return errors.Wrap(err, "has")
@@ -93,8 +101,11 @@ func (s *Scheduler) Delete(db weave.KVStore, taskID []byte) error {
 	return nil
 }
 
-// NewTicker returns a cron instance that is using given handler to process all
-// queued messages that execution time is due.
+// NewTicker returns a cron runner instance that is using given handler to
+// process all queued messages that execution time is due. All serialization is
+// done using provided marshaler.
+//
+// Always use the same marshaler for ticker and scheduler.
 func NewTicker(h weave.Handler, enc TaskMarshaler) *Ticker {
 	return &Ticker{
 		hn:      h,
@@ -114,6 +125,7 @@ type Ticker struct {
 var _ weave.Ticker = (*Ticker)(nil)
 
 // Tick implementes weave.Ticker interface.
+//
 // Tick can process any number of messages suitable for execution. All changes
 // are done atomically and apply only on success.
 func (t *Ticker) Tick(ctx context.Context, db store.CacheableKVStore) [][]byte {
@@ -245,14 +257,17 @@ type taskTx struct {
 
 var _ weave.Tx = (*taskTx)(nil)
 
+// GetMsg implements weave.Tx interface.
 func (tx *taskTx) GetMsg() (weave.Msg, error) {
 	return tx.msg, nil
 }
 
+// Unmarshal implements weave.Tx interface.
 func (tx *taskTx) Unmarshal([]byte) error {
 	return errors.Wrap(errors.ErrHuman, "operation not supported, task transaction is not serializable")
 }
 
+// Marshal implements weave.Tx interface.
 func (tx *taskTx) Marshal() ([]byte, error) {
 	return nil, errors.Wrap(errors.ErrHuman, "operation not supported, task transaction is not serializable")
 }

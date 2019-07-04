@@ -2,7 +2,6 @@ package gov
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
@@ -312,6 +311,7 @@ func (h CreateProposalHandler) Deliver(ctx weave.Context, db weave.KVStore, tx w
 		return nil, errors.Wrap(err, "block time")
 	}
 
+	votingEnd := msg.StartTime.Add(rule.VotingPeriod.Duration())
 	proposal := &Proposal{
 		Metadata:        &weave.Metadata{Schema: 1},
 		Title:           msg.Title,
@@ -320,13 +320,14 @@ func (h CreateProposalHandler) Deliver(ctx weave.Context, db weave.KVStore, tx w
 		ElectionRuleRef: orm.VersionedIDRef{ID: msg.ElectionRuleID, Version: rule.Version},
 		ElectorateRef:   orm.VersionedIDRef{ID: rule.ElectorateID, Version: electorate.Version},
 		VotingStartTime: msg.StartTime,
-		VotingEndTime:   msg.StartTime.Add(rule.VotingPeriod.Duration()),
+		VotingEndTime:   votingEnd,
 		SubmissionTime:  weave.AsUnixTime(blockTime),
 		Author:          msg.Author,
 		VoteState:       NewTallyResult(rule.Quorum, rule.Threshold, electorate.TotalElectorateWeight),
 		Status:          Proposal_Submitted,
 		Result:          Proposal_Undefined,
 		ExecutorResult:  Proposal_NotRun,
+		TallyTaskID:     nil, // Chicken-egg problem. Create without and update later.
 	}
 
 	obj, err := h.propBucket.Create(db, proposal)
@@ -334,15 +335,11 @@ func (h CreateProposalHandler) Deliver(ctx weave.Context, db weave.KVStore, tx w
 		return nil, errors.Wrap(err, "failed to persist proposal")
 	}
 
-	taskID, err := h.scheduler.Schedule(
-		db,
-		proposal.VotingEndTime.Add(time.Second).Time(),
-		h.auth.GetConditions(ctx),
-		&TallyMsg{
-			Metadata:   &weave.Metadata{Schema: 1},
-			ProposalID: obj.Key(),
-		},
-	)
+	tallyMsg := &TallyMsg{
+		Metadata:   &weave.Metadata{Schema: 1},
+		ProposalID: obj.Key(),
+	}
+	taskID, err := h.scheduler.Schedule(db, votingEnd.Time(), h.auth.GetConditions(ctx), tallyMsg)
 	if err != nil {
 		return nil, errors.Wrap(err, "cannot schedule tally task")
 	}
@@ -484,7 +481,7 @@ func (h DeleteProposalHandler) Deliver(ctx weave.Context, db weave.KVStore, tx w
 		// All good.
 	case errors.ErrNotFound.Is(err):
 		// This is unexpected but not critical. We want the task to not exist
-		// and this is true now.
+		// and this is true.
 	default:
 		return nil, errors.Wrap(err, "cannot delete scheduled tally task")
 	}
