@@ -38,11 +38,7 @@ import (
 // Authenticator returns the typical authentication,
 // just using public key signatures
 func Authenticator() x.Authenticator {
-	return x.ChainAuth(
-		sigs.Authenticate{},
-		multisig.Authenticate{},
-		cron.Authenticator{},
-	)
+	return x.ChainAuth(sigs.Authenticate{}, multisig.Authenticate{})
 }
 
 // Chain returns a chain of decorators, to handle authentication,
@@ -126,6 +122,25 @@ func Stack(issuer weave.Address, minFee coin.Coin) weave.Handler {
 	return Chain(authFn, minFee).WithHandler(Router(authFn, issuer))
 }
 
+// CronStack wires up a standard router with a cron specific decorator chain.
+// This can be passed into BaseApp.
+// Cron stack configuration is a subset of the main stack. It is using the same
+// components but not all functionalities are needed or expected (ie no message
+// fee).
+func CronStack() weave.Handler {
+	authFn := cron.Authenticator{}
+	decorators := app.ChainDecorators(
+		utils.NewLogging(),
+		utils.NewRecovery(),
+		utils.NewKeyTagger(),
+		sigs.NewDecorator(),
+		multisig.NewDecorator(authFn),
+		utils.NewActionTagger(),
+		// No fee decorators.
+	)
+	return decorators.WithHandler(Router(authFn, nil))
+}
+
 // Application constructs a basic ABCI application with
 // the given arguments. If you are not sure what to use
 // for the Handler, just use Stack().
@@ -142,7 +157,7 @@ func Application(
 		return app.BaseApp{}, errors.Wrap(err, "cannot create store")
 	}
 	store := app.NewStoreApp(name, kv, QueryRouter(options.MinFee), ctx)
-	ticker := cron.NewTicker(h, CronTaskMarshaler)
+	ticker := cron.NewTicker(CronStack(), CronTaskMarshaler)
 	base := app.NewBaseApp(store, tx, h, ticker, options.Debug)
 	return base, nil
 }
