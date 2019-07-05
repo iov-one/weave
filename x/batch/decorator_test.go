@@ -1,15 +1,16 @@
 package batch_test
 
 import (
-	"errors"
+	"reflect"
 	"strings"
 	"testing"
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/coin"
+	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/weavetest"
+	"github.com/iov-one/weave/weavetest/assert"
 	"github.com/iov-one/weave/x/batch"
-	. "github.com/smartystreets/goconvey/convey"
-	"github.com/stretchr/testify/mock"
 	"github.com/tendermint/tendermint/libs/common"
 )
 
@@ -32,31 +33,38 @@ func (wrongWeaveMsg) Path() string {
 	panic("implement me")
 }
 
-type mockHelper struct {
-	mock.Mock
+type checkMock struct {
+	cnt int
+	err []error
+	res []*weave.CheckResult
 }
 
-func (m *mockHelper) Marshal() ([]byte, error) {
-	panic("implement me")
+type deliverMock struct {
+	cnt int
+	err []error
+	res []*weave.DeliverResult
 }
 
-func (m *mockHelper) Unmarshal([]byte) error {
-	panic("implement me")
+func (m *checkMock) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx) (res *weave.CheckResult, err error) {
+	if len(m.res) >= m.cnt+1 {
+		res = m.res[m.cnt]
+	}
+	if len(m.err) >= m.cnt+1 {
+		err = m.err[m.cnt]
+	}
+	m.cnt++
+	return
 }
 
-func (m *mockHelper) GetMsg() (weave.Msg, error) {
-	args := m.Called()
-	return args.Get(0).(weave.Msg), args.Error(1)
-}
-
-func (m *mockHelper) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
-	args := m.Called(ctx, store, tx)
-	return args.Get(0).(*weave.CheckResult), args.Error(1)
-}
-
-func (m *mockHelper) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
-	args := m.Called(ctx, store, tx)
-	return args.Get(0).(*weave.DeliverResult), args.Error(1)
+func (m *deliverMock) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx) (res *weave.DeliverResult, err error) {
+	if len(m.res) >= m.cnt+1 {
+		res = m.res[m.cnt]
+	}
+	if len(m.err) >= m.cnt+1 {
+		err = m.err[m.cnt]
+	}
+	m.cnt++
+	return
 }
 
 func mockDiff(num int64) []weave.ValidatorUpdate {
@@ -69,14 +77,15 @@ func mockTags(num int64) []common.KVPair {
 	return list
 }
 
-func mockData(num int64, content []byte) *batch.ByteArrayList {
+func mockData(num int64, content []byte) []byte {
 	list := &batch.ByteArrayList{}
 
 	for i := int64(0); i < num; i++ {
 		list.Elements = append(list.Elements, content)
 	}
 
-	return list
+	data, _ := list.Marshal()
+	return data
 }
 
 func mockLog(num int64, content string) string {
@@ -90,189 +99,207 @@ func mockLog(num int64, content string) string {
 }
 
 func TestDecorator(t *testing.T) {
-	Convey("Test Decorator", t, func() {
-		msg := &mockMsg{}
-		helper := &mockHelper{}
-		decorator := batch.NewDecorator()
-		Convey("Happy path", func() {
-			num := int64(10)
-			logVal := "log"
-			dataContent := make([]byte, 1)
-			gas := int64(1)
-			fee := coin.Coin{Whole: 1, Fractional: 400000000, Ticker: "IOV"}
-			combinedFee, err := fee.Multiply(num)
-			So(err, ShouldBeNil)
+	logVal := "log"
+	gas := int64(1)
+	data := make([]byte, 1)
+	makeRes := func(req coin.Coin) *weave.DeliverResult {
+		return &weave.DeliverResult{
+			Data:        data,
+			Log:         logVal,
+			GasUsed:     gas,
+			Diff:        make([]weave.ValidatorUpdate, 1),
+			Tags:        make([]common.KVPair, 1),
+			RequiredFee: req,
+		}
+	}
 
-			msg.On("Validate").Return(nil).Times(2)
-			msg.On("MsgList").Return(make([]weave.Msg, num), nil).Times(2)
-			helper.On("GetMsg").Return(msg, nil).Times(2)
+	specs := map[string]struct {
+		msg        weave.Msg
+		txErr      error
+		check      *checkMock
+		deliver    *deliverMock
+		err        *errors.Error
+		deliverRes *weave.DeliverResult
+		checkRes   *weave.CheckResult
+	}{
+		"happy path": {
+			msg: &mockMsg{list: make([]weave.Msg, 2)},
+			check: &checkMock{
+				res: []*weave.CheckResult{{
+					Data:         data,
+					Log:          logVal,
+					GasAllocated: gas,
+					GasPayment:   gas,
+					RequiredFee:  coin.Coin{Whole: 1, Fractional: 400000000, Ticker: "IOV"},
+				},
+					{
+						Data:         data,
+						Log:          logVal,
+						GasAllocated: gas,
+						GasPayment:   gas,
+						RequiredFee:  coin.Coin{Whole: 1, Fractional: 400000000, Ticker: "IOV"},
+					}}},
+			deliver: &deliverMock{
+				res: []*weave.DeliverResult{makeRes(coin.Coin{Whole: 1, Fractional: 400000000, Ticker: "IOV"}),
+					makeRes(coin.Coin{Whole: 1, Fractional: 400000000, Ticker: "IOV"})},
+			},
+			deliverRes: &weave.DeliverResult{
+				Data:    mockData(2, data),
+				Log:     mockLog(2, logVal),
+				GasUsed: gas * 2,
+				Diff:    mockDiff(2),
+				Tags:    mockTags(2),
+				RequiredFee: func() coin.Coin {
+					fee, err := coin.Coin{Whole: 1, Fractional: 400000000, Ticker: "IOV"}.Multiply(2)
+					assert.Nil(t, err)
+					return fee
+				}(),
+			},
+			checkRes: &weave.CheckResult{
+				Data:         mockData(2, data),
+				Log:          mockLog(2, logVal),
+				GasAllocated: gas * 2,
+				GasPayment:   gas * 2,
+				RequiredFee: func() coin.Coin {
+					fee, _ := coin.Coin{Whole: 1, Fractional: 400000000, Ticker: "IOV"}.Multiply(2)
+					return fee
+				}(),
+			},
+		},
 
-			helper.On("Check", nil, nil, mock.Anything).Return(&weave.CheckResult{
-				Data:         make([]byte, 1),
-				Log:          logVal,
-				GasAllocated: gas,
-				GasPayment:   gas,
-				RequiredFee:  fee,
-			}, nil).Times(int(num))
+		"combine required fees with none works": {
+			msg: &mockMsg{list: make([]weave.Msg, 4)},
 
-			checkRes, err := decorator.Check(nil, nil, helper, helper)
-			So(err, ShouldBeNil)
-			data, _ := mockData(num, dataContent).Marshal()
-			So(checkRes, ShouldResemble, &weave.CheckResult{
-				Data:         data,
-				Log:          mockLog(num, logVal),
-				GasAllocated: gas * num,
-				GasPayment:   gas * num,
-				RequiredFee:  combinedFee,
-			})
+			deliver: &deliverMock{
+				res: []*weave.DeliverResult{
+					makeRes(coin.Coin{Whole: 1, Fractional: 50, Ticker: "IOV"}),
+					makeRes(coin.Coin{}),
+					makeRes(coin.Coin{Whole: 2, Ticker: "IOV"}),
+					makeRes(coin.Coin{}),
+				},
+			},
+			deliverRes: &weave.DeliverResult{
+				Data:        mockData(4, data),
+				Log:         mockLog(4, logVal),
+				GasUsed:     gas * 4,
+				Diff:        mockDiff(4),
+				Tags:        mockTags(4),
+				RequiredFee: coin.Coin{Whole: 3, Fractional: 50, Ticker: "IOV"},
+			},
+		},
 
-			helper.On("Deliver", nil, nil, mock.Anything).Return(&weave.DeliverResult{
-				Data:        make([]byte, 1),
-				Log:         logVal,
-				GasUsed:     gas,
-				Diff:        make([]weave.ValidatorUpdate, 1),
-				Tags:        make([]common.KVPair, 1),
-				RequiredFee: fee,
-			}, nil).Times(int(num))
+		"wrong message type works fine and has no effect": {
+			msg:        &wrongWeaveMsg{},
+			deliverRes: &weave.DeliverResult{},
+			checkRes:   &weave.CheckResult{},
+		},
 
-			deliverRes, err := decorator.Deliver(nil, nil, helper, helper)
-			So(err, ShouldBeNil)
-			So(deliverRes, ShouldResemble, &weave.DeliverResult{
-				Data:        data,
-				Log:         mockLog(num, logVal),
-				GasUsed:     gas * num,
-				Diff:        mockDiff(num),
-				Tags:        mockTags(num),
-				RequiredFee: combinedFee,
-			})
-			helper.AssertExpectations(t)
-			msg.AssertExpectations(t)
-		})
+		"tx GetMsg error": {
+			msg:   &mockMsg{},
+			txErr: errors.ErrInput,
+			err:   errors.ErrInput,
+		},
 
-		Convey("Combine required fees with none", func() {
-			// 4 elements, 1 and 3 with fees, 2 and 4 without
-			num := int64(4)
-			logVal := "log"
-			dataContent := make([]byte, 2)
-			gas := int64(1)
+		"incompatible fees": {
+			msg: &mockMsg{list: make([]weave.Msg, 2)},
+			err: errors.ErrInput,
+			check: &checkMock{
+				res: []*weave.CheckResult{
+					{
+						Data:         make([]byte, 2),
+						Log:          logVal,
+						GasAllocated: gas,
+						GasPayment:   gas,
+						RequiredFee:  coin.Coin{Whole: 1, Ticker: "IOV"},
+					},
+					{
+						Data:         make([]byte, 1),
+						Log:          logVal,
+						GasAllocated: gas,
+						GasPayment:   gas,
+						RequiredFee:  coin.Coin{Whole: 1, Ticker: "LSK"},
+					},
+				},
+			},
+		},
+		"validation error": {
+			msg: &mockMsg{list: make([]weave.Msg, 2), valErr: errors.ErrOverflow},
+			err: errors.ErrOverflow,
+		},
 
-			fee := coin.Coin{Whole: 1, Fractional: 50, Ticker: "IOV"}
-			fee2 := coin.Coin{Whole: 2, Ticker: "IOV"}
-			combined := coin.Coin{Whole: 3, Fractional: 50, Ticker: "IOV"}
-			zero := coin.Coin{}
+		"error while executing one of the messages": {
+			msg: &mockMsg{list: make([]weave.Msg, 4)},
 
-			msg.On("Validate").Return(nil).Times(2)
-			msg.On("MsgList").Return(make([]weave.Msg, 4), nil).Times(2)
-			helper.On("GetMsg").Return(msg, nil).Times(2)
-			makeRes := func(req coin.Coin) *weave.DeliverResult {
-				return &weave.DeliverResult{
-					Data:        dataContent,
-					Log:         logVal,
-					GasUsed:     gas,
-					Diff:        make([]weave.ValidatorUpdate, 1),
-					Tags:        make([]common.KVPair, 1),
-					RequiredFee: req,
+			deliver: &deliverMock{
+				res: []*weave.DeliverResult{
+					makeRes(coin.Coin{Whole: 1, Fractional: 50, Ticker: "IOV"}),
+					makeRes(coin.Coin{}),
+				},
+				err: []error{
+					nil, errors.ErrType,
+				},
+			},
+			err: errors.ErrType,
+			check: &checkMock{
+				res: []*weave.CheckResult{
+					{
+						Data:         make([]byte, 2),
+						Log:          logVal,
+						GasAllocated: gas,
+						GasPayment:   gas,
+						RequiredFee:  coin.Coin{Whole: 1, Ticker: "IOV"},
+					},
+					{
+						Data:         make([]byte, 1),
+						Log:          logVal,
+						GasAllocated: gas,
+						GasPayment:   gas,
+						RequiredFee:  coin.Coin{Whole: 1, Ticker: "LSK"},
+					},
+				},
+				err: []error{
+					nil, errors.ErrType,
+				},
+			},
+		},
+	}
+
+	for msg, spec := range specs {
+		t.Run(msg, func(t *testing.T) {
+			decorator := batch.NewDecorator()
+			tx := &weavetest.Tx{Err: spec.txErr, Msg: spec.msg}
+			if spec.checkRes != nil && spec.err != nil {
+				checkRes, err := decorator.Check(nil, nil, tx, spec.check)
+				if spec.checkRes != nil {
+					assert.Nil(t, err)
+
+					if !reflect.DeepEqual(checkRes, spec.checkRes) {
+						t.Fatalf("expected checkRes does not match: %v  but got %+v", spec.checkRes, checkRes)
+					}
+				}
+
+				if !spec.err.Is(err) {
+					t.Fatalf("expected error does not match: %v  but got %+v", spec.err, err)
 				}
 			}
-			// fee, zero, fee2, zero
-			helper.On("Deliver", nil, nil, mock.Anything).Return(makeRes(fee), nil).Times(1)
-			helper.On("Deliver", nil, nil, mock.Anything).Return(makeRes(zero), nil).Times(1)
-			helper.On("Deliver", nil, nil, mock.Anything).Return(makeRes(fee2), nil).Times(1)
-			helper.On("Deliver", nil, nil, mock.Anything).Return(makeRes(zero), nil).Times(1)
 
-			deliverRes, err := decorator.Deliver(nil, nil, helper, helper)
-			So(err, ShouldBeNil)
-			data, _ := mockData(num, dataContent).Marshal()
-			So(deliverRes, ShouldResemble, &weave.DeliverResult{
-				Data:        data,
-				Log:         mockLog(num, logVal),
-				GasUsed:     gas * num,
-				Diff:        mockDiff(num),
-				Tags:        mockTags(num),
-				RequiredFee: combined,
-			})
+			if spec.deliverRes != nil && spec.err != nil {
+
+				deliverRes, err := decorator.Deliver(nil, nil, tx, spec.deliver)
+
+				if spec.deliverRes != nil {
+					assert.Nil(t, err)
+
+					if !reflect.DeepEqual(deliverRes, spec.deliverRes) {
+						t.Fatalf("expected deliverRes does not match: %v  but got %+v", spec.deliverRes, deliverRes)
+					}
+				}
+
+				if !spec.err.Is(err) {
+					t.Fatalf("expected error does not match: %v  but got %+v", spec.err, err)
+				}
+			}
+
 		})
-
-		Convey("Wrong tx type", func() {
-			helper.On("GetMsg").Return(wrongWeaveMsg{}, nil).Times(2)
-			helper.On("Deliver", nil, nil, mock.Anything).Return(&weave.DeliverResult{}, nil).Times(1)
-			helper.On("Check", nil, nil, mock.Anything).Return(&weave.CheckResult{}, nil).Times(1)
-
-			_, err := decorator.Check(nil, nil, helper, helper)
-			So(err, ShouldBeNil)
-			_, err = decorator.Deliver(nil, nil, helper, helper)
-			So(err, ShouldBeNil)
-			helper.AssertExpectations(t)
-		})
-
-		Convey("Error paths", func() {
-			Convey("Tx GetMsg error", func() {
-				expectedErr := errors.New("asd")
-				helper.On("GetMsg").Return(msg, expectedErr).Times(2)
-
-				_, err := decorator.Check(nil, nil, helper, helper)
-				So(err, ShouldEqual, expectedErr)
-				_, err = decorator.Deliver(nil, nil, helper, helper)
-				So(err, ShouldEqual, expectedErr)
-				helper.AssertExpectations(t)
-			})
-
-			Convey("Incompatible fees", func() {
-				logVal := "log"
-				gas := int64(3)
-
-				msg.On("Validate").Return(nil).Times(2)
-				msg.On("MsgList").Return(make([]weave.Msg, 2), nil).Times(2)
-				helper.On("GetMsg").Return(msg, nil).Times(2)
-
-				// two different returns, with different fees
-				helper.On("Check", nil, nil, mock.Anything).Return(&weave.CheckResult{
-					Data:         make([]byte, 2),
-					Log:          logVal,
-					GasAllocated: gas,
-					GasPayment:   gas,
-					RequiredFee:  coin.Coin{Whole: 1, Ticker: "IOV"},
-				}, nil).Times(1)
-				helper.On("Check", nil, nil, mock.Anything).Return(&weave.CheckResult{
-					Data:         make([]byte, 1),
-					Log:          logVal,
-					GasAllocated: gas,
-					GasPayment:   gas,
-					RequiredFee:  coin.Coin{Whole: 1, Ticker: "LSK"},
-				}, nil).Times(1)
-
-				_, err := decorator.Check(nil, nil, helper, helper)
-				So(err, ShouldNotBeNil)
-			})
-
-			Convey("Validation error", func() {
-				expectedErr := errors.New("asd")
-				helper.On("GetMsg").Return(msg, nil).Times(2)
-				msg.On("Validate").Return(expectedErr).Times(2)
-
-				_, err := decorator.Check(nil, nil, helper, helper)
-				So(err, ShouldEqual, expectedErr)
-				_, err = decorator.Deliver(nil, nil, helper, helper)
-				So(err, ShouldEqual, expectedErr)
-				helper.AssertExpectations(t)
-				msg.AssertExpectations(t)
-			})
-
-			Convey("Error while executing one of the messages", func() {
-				expectedErr := errors.New("asd")
-				helper.On("GetMsg").Return(msg, nil).Times(2)
-				msg.On("Validate").Return(nil).Times(2)
-				msg.On("MsgList").Return(make([]weave.Msg, 4), nil).Times(2)
-				helper.On("Deliver", nil, nil, mock.Anything).Return((*weave.DeliverResult)(nil), expectedErr).Times(1)
-				helper.On("Check", nil, nil, mock.Anything).Return((*weave.CheckResult)(nil), expectedErr).Times(1)
-
-				_, err := decorator.Check(nil, nil, helper, helper)
-				So(err, ShouldEqual, expectedErr)
-				_, err = decorator.Deliver(nil, nil, helper, helper)
-				So(err, ShouldEqual, expectedErr)
-				helper.AssertExpectations(t)
-				msg.AssertExpectations(t)
-			})
-		})
-	})
+	}
 }
