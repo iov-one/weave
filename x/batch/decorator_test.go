@@ -297,7 +297,6 @@ func TestDecorator(t *testing.T) {
 
 				if !spec.err.Is(err) {
 					t.Fatalf("expected error does not match: %v  but got %+v", spec.err, err)
-
 				}
 			}
 
