@@ -9,14 +9,12 @@ import (
 	"github.com/iov-one/weave/errors"
 )
 
-///////////////////////////////////////////////////////
-// From Items to Iterator
-
 type btreeIter struct {
 	read      <-chan btree.Item
+	onceRead  sync.Once
 	stop      chan<- struct{}
 	onceStop  sync.Once
-	onceRead  sync.Once
+	released  <-chan struct{}
 	ascending bool
 }
 
@@ -24,11 +22,13 @@ type btreeIter struct {
 // taking into consideration overwrites and deletes...
 func ascendBtree(bt *btree.BTree, start, end []byte) *btreeIter {
 	read := make(chan btree.Item)
-	// ensure we never block when we call close()
-	stop := make(chan struct{}, 1)
+	stop := make(chan struct{})
+	released := make(chan struct{})
+
 	iter := &btreeIter{
 		read:      read,
 		stop:      stop,
+		released:  released,
 		ascending: true,
 	}
 
@@ -37,7 +37,10 @@ func ascendBtree(bt *btree.BTree, start, end []byte) *btreeIter {
 		case read <- item:
 			return true
 		case <-stop:
-			iter.onceRead.Do(func() { close(read) })
+			iter.onceRead.Do(func() {
+				close(read)
+				close(released)
+			})
 			return false
 		}
 	}
@@ -52,7 +55,10 @@ func ascendBtree(bt *btree.BTree, start, end []byte) *btreeIter {
 		} else { // both != nil
 			bt.AscendRange(bkey{start}, bkey{end}, insert)
 		}
-		iter.onceRead.Do(func() { close(read) })
+		iter.onceRead.Do(func() {
+			close(read)
+			close(released)
+		})
 	}()
 
 	return iter
@@ -60,11 +66,12 @@ func ascendBtree(bt *btree.BTree, start, end []byte) *btreeIter {
 
 func descendBtree(bt *btree.BTree, start, end []byte) *btreeIter {
 	read := make(chan btree.Item)
-	// ensure we never block when we call close()
-	stop := make(chan struct{}, 1)
+	stop := make(chan struct{})
+	released := make(chan struct{})
 	iter := &btreeIter{
 		read:      read,
 		stop:      stop,
+		released:  released,
 		ascending: false,
 	}
 
@@ -73,7 +80,10 @@ func descendBtree(bt *btree.BTree, start, end []byte) *btreeIter {
 		case read <- item:
 			return true
 		case <-stop:
-			iter.onceRead.Do(func() { close(read) })
+			iter.onceRead.Do(func() {
+				close(read)
+				close(released)
+			})
 			return false
 		}
 	}
@@ -88,7 +98,10 @@ func descendBtree(bt *btree.BTree, start, end []byte) *btreeIter {
 		} else { // both != nil
 			bt.DescendRange(bkeyLess{end}, bkeyLess{start}, insert)
 		}
-		iter.onceRead.Do(func() { close(read) })
+		iter.onceRead.Do(func() {
+			close(read)
+			close(released)
+		})
 	}()
 
 	return iter
@@ -125,6 +138,8 @@ func (b *btreeIter) Release() {
 	b.onceStop.Do(func() {
 		close(b.stop)
 	})
+	// Block until all resources are released.
+	<-b.released
 }
 
 type itemIter struct {
