@@ -278,7 +278,9 @@ func TestDecorator(t *testing.T) {
 					}
 				}
 
-				assert.Equal(t, true, spec.err.Is(err))
+				if !spec.err.Is(err) {
+					t.Fatalf("expected error does not match: %v  but got %+v", spec.err, err)
+				}
 			}
 
 			if spec.deliverRes != nil && spec.err != nil {
@@ -293,7 +295,10 @@ func TestDecorator(t *testing.T) {
 					}
 				}
 
-				assert.Equal(t, true, spec.err.Is(err))
+				if !spec.err.Is(err) {
+					t.Fatalf("expected error does not match: %v  but got %+v", spec.err, err)
+
+				}
 			}
 
 		})
