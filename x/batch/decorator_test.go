@@ -8,12 +8,11 @@ import (
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/weavetest"
 	"github.com/iov-one/weave/weavetest/assert"
 	"github.com/iov-one/weave/x/batch"
 	"github.com/tendermint/tendermint/libs/common"
 )
-
-var _ weave.Tx = (*txMock)(nil)
 
 type wrongWeaveMsg struct {
 }
@@ -34,11 +33,6 @@ func (wrongWeaveMsg) Path() string {
 	panic("implement me")
 }
 
-type txMock struct {
-	err error
-	msg weave.Msg
-}
-
 type checkMock struct {
 	cnt int
 	err []error
@@ -49,18 +43,6 @@ type deliverMock struct {
 	cnt int
 	err []error
 	res []*weave.DeliverResult
-}
-
-func (m *txMock) Marshal() ([]byte, error) {
-	panic("implement me")
-}
-
-func (m *txMock) Unmarshal([]byte) error {
-	panic("implement me")
-}
-
-func (m *txMock) GetMsg() (weave.Msg, error) {
-	return m.msg, m.err
 }
 
 func (m *checkMock) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx) (res *weave.CheckResult, err error) {
@@ -116,7 +98,7 @@ func mockLog(num int64, content string) string {
 	return strings.Join(list, "\n")
 }
 
-func TestDecoratorNew(t *testing.T) {
+func TestDecorator(t *testing.T) {
 	logVal := "log"
 	gas := int64(1)
 	data := make([]byte, 1)
@@ -285,7 +267,7 @@ func TestDecoratorNew(t *testing.T) {
 	for msg, spec := range specs {
 		t.Run(msg, func(t *testing.T) {
 			decorator := batch.NewDecorator()
-			tx := &txMock{err: spec.txErr, msg: spec.msg}
+			tx := &weavetest.Tx{Err: spec.txErr, Msg: spec.msg}
 			if spec.checkRes != nil && spec.err != nil {
 				checkRes, err := decorator.Check(nil, nil, tx, spec.check)
 				if spec.checkRes != nil {
@@ -296,9 +278,7 @@ func TestDecoratorNew(t *testing.T) {
 					}
 				}
 
-				if spec.err != nil {
-					assert.Equal(t, true, spec.err.Is(err))
-				}
+				assert.Equal(t, true, spec.err.Is(err))
 			}
 
 			if spec.deliverRes != nil && spec.err != nil {
@@ -313,9 +293,7 @@ func TestDecoratorNew(t *testing.T) {
 					}
 				}
 
-				if spec.err != nil {
-					assert.Equal(t, true, spec.err.Is(err))
-				}
+				assert.Equal(t, true, spec.err.Is(err))
 			}
 
 		})
