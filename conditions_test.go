@@ -9,24 +9,23 @@ import (
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
-	. "github.com/smartystreets/goconvey/convey"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
+	"github.com/iov-one/weave/weavetest/assert"
 )
 
 func TestAddressPrinting(t *testing.T) {
-	Convey("test hexademical address printing", t, func() {
-		b := []byte("ABCD123456LHB")
-		addr := weave.Address(b)
+	b := []byte("ABCD123456LHB")
+	addr := weave.Address(b)
 
-		So(addr.String(), ShouldNotEqual, fmt.Sprintf("%X", addr))
-	})
+	if addr.String() == fmt.Sprintf("%X", addr) {
+		t.Fatal("address String() is expected to produce a different result than hex print")
+	}
 
-	Convey("test hexademical condition printing", t, func() {
-		cond := weave.NewCondition("12", "32", []byte("ABCD123456LHB"))
+	cond := weave.NewCondition("12", "32", []byte("ABCD123456LHB"))
 
-		So(cond.String(), ShouldNotEqual, fmt.Sprintf("%X", cond))
-	})
+	if cond.String() == fmt.Sprintf("%X", cond) {
+		t.Fatal("condition String() is expected to produce a different result than hex print")
+	}
+
 }
 
 func TestAddressUnmarshalJSON(t *testing.T) {
@@ -166,7 +165,7 @@ func TestConditionMarshalJSON(t *testing.T) {
 	for testName, tc := range cases {
 		t.Run(testName, func(t *testing.T) {
 			got, err := json.Marshal(tc.source)
-			require.NoError(t, err)
+			assert.Nil(t, err)
 			assert.Equal(t, tc.wantJson, string(got))
 		})
 	}
