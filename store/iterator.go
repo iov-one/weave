@@ -9,14 +9,18 @@ import (
 	"github.com/iov-one/weave/errors"
 )
 
-///////////////////////////////////////////////////////
-// From Items to Iterator
-
 type btreeIter struct {
-	read      <-chan btree.Item
-	stop      chan<- struct{}
-	onceStop  sync.Once
-	onceRead  sync.Once
+	read <-chan btree.Item
+
+	// Stop is used to signal that the iterator should stop and free
+	// resources.
+	stop     chan<- struct{}
+	onceStop sync.Once
+
+	// Released is used to signal that the iterator was closed and all
+	// resources are free.
+	released <-chan struct{}
+
 	ascending bool
 }
 
@@ -24,25 +28,31 @@ type btreeIter struct {
 // taking into consideration overwrites and deletes...
 func ascendBtree(bt *btree.BTree, start, end []byte) *btreeIter {
 	read := make(chan btree.Item)
-	// ensure we never block when we call close()
-	stop := make(chan struct{}, 1)
+	stop := make(chan struct{})
+	released := make(chan struct{})
+
 	iter := &btreeIter{
 		read:      read,
 		stop:      stop,
+		released:  released,
 		ascending: true,
 	}
 
-	insert := func(item btree.Item) bool {
-		select {
-		case read <- item:
-			return true
-		case <-stop:
-			iter.onceRead.Do(func() { close(read) })
-			return false
-		}
-	}
-
 	go func() {
+		defer func() {
+			close(read)
+			close(released)
+		}()
+
+		insert := func(item btree.Item) bool {
+			select {
+			case read <- item:
+				return true
+			case <-stop:
+				return false
+			}
+		}
+
 		if start == nil && end == nil {
 			bt.Ascend(insert)
 		} else if start == nil { // end != nil
@@ -52,7 +62,6 @@ func ascendBtree(bt *btree.BTree, start, end []byte) *btreeIter {
 		} else { // both != nil
 			bt.AscendRange(bkey{start}, bkey{end}, insert)
 		}
-		iter.onceRead.Do(func() { close(read) })
 	}()
 
 	return iter
@@ -60,25 +69,30 @@ func ascendBtree(bt *btree.BTree, start, end []byte) *btreeIter {
 
 func descendBtree(bt *btree.BTree, start, end []byte) *btreeIter {
 	read := make(chan btree.Item)
-	// ensure we never block when we call close()
-	stop := make(chan struct{}, 1)
+	stop := make(chan struct{})
+	released := make(chan struct{})
 	iter := &btreeIter{
 		read:      read,
 		stop:      stop,
+		released:  released,
 		ascending: false,
 	}
 
-	insert := func(item btree.Item) bool {
-		select {
-		case read <- item:
-			return true
-		case <-stop:
-			iter.onceRead.Do(func() { close(read) })
-			return false
-		}
-	}
-
 	go func() {
+		defer func() {
+			close(read)
+			close(released)
+		}()
+
+		insert := func(item btree.Item) bool {
+			select {
+			case read <- item:
+				return true
+			case <-stop:
+				return false
+			}
+		}
+
 		if start == nil && end == nil {
 			bt.Descend(insert)
 		} else if start == nil { // end != nil
@@ -88,7 +102,6 @@ func descendBtree(bt *btree.BTree, start, end []byte) *btreeIter {
 		} else { // both != nil
 			bt.DescendRange(bkeyLess{end}, bkeyLess{start}, insert)
 		}
-		iter.onceRead.Do(func() { close(read) })
 	}()
 
 	return iter
@@ -122,9 +135,9 @@ func (b *btreeIter) Next() (keyer, error) {
 }
 
 func (b *btreeIter) Release() {
-	b.onceStop.Do(func() {
-		close(b.stop)
-	})
+	b.onceStop.Do(func() { close(b.stop) })
+	// Block until all resources are released.
+	<-b.released
 }
 
 type itemIter struct {
