@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/iov-one/weave/errors"
-	"github.com/stretchr/testify/assert"
+	"github.com/iov-one/weave/weavetest/assert"
 )
 
 func TestUnixTimeUnmarshal(t *testing.T) {

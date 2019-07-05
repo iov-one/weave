@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/iov-one/weave/errors"
-	"github.com/stretchr/testify/assert"
+	"github.com/iov-one/weave/weavetest/assert"
 	abci "github.com/tendermint/tendermint/abci/types"
 )
 
@@ -16,16 +16,16 @@ func TestCreateResults(t *testing.T) {
 		Log:  "got it",
 	}
 	ad := dres.ToABCI()
-	assert.EqualValues(t, dres.Data, ad.Data)
+	assert.Equal(t, dres.Data, ad.Data)
 	assert.Equal(t, dres.Log, ad.Log)
-	assert.Empty(t, ad.Tags)
+	assert.Equal(t, 0, len(ad.Tags))
 
 	log, gas := "aok", int64(12345)
 	cres := NewCheck(gas, log)
 	ac := cres.ToABCI()
 	assert.Equal(t, log, ac.Log)
 	assert.Equal(t, gas, ac.GasWanted)
-	assert.Empty(t, ac.Data)
+	assert.Equal(t, 0, len(ac.Data))
 }
 
 func TestDeliverTxError(t *testing.T) {
