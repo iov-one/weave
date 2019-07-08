@@ -19,15 +19,15 @@ func TestGenesisInitializer(t *testing.T) {
 				"username": "alice*iov",
 				"owner": "seq:test/alice/1",
 				"targets": [
-					{"blockchain_id": "block_1", "address": "MQ=="},
-					{"blockchain_id": "block_2", "address": "Mg=="}
+					{"blockchain_id": "block_1", "address": "1"},
+					{"blockchain_id": "block_2", "address": "2"}
 				]
 			},
 			{
 				"username": "charlie*iov",
 				"owner": "seq:test/charlie/1",
 				"targets": [
-					{"blockchain_id": "block_1", "address": "MQ=="}
+					{"blockchain_id": "block_1", "address": "1"}
 				]
 			}
 		]
@@ -53,9 +53,9 @@ func TestGenesisInitializer(t *testing.T) {
 	}
 	assert.Equal(t, alice.Owner, weave.NewCondition("test", "alice", weavetest.SequenceID(1)).Address())
 	assert.Equal(t, alice.Targets[0].BlockchainID, "block_1")
-	assert.Equal(t, alice.Targets[0].Address, []byte("1"))
+	assert.Equal(t, alice.Targets[0].Address, "1")
 	assert.Equal(t, alice.Targets[1].BlockchainID, "block_2")
-	assert.Equal(t, alice.Targets[1].Address, []byte("2"))
+	assert.Equal(t, alice.Targets[1].Address, "2")
 
 	var charlie Token
 	if err := b.One(db, []byte("charlie*iov"), &charlie); err != nil {
@@ -63,5 +63,5 @@ func TestGenesisInitializer(t *testing.T) {
 	}
 	assert.Equal(t, charlie.Owner, weave.NewCondition("test", "charlie", weavetest.SequenceID(1)).Address())
 	assert.Equal(t, charlie.Targets[0].BlockchainID, "block_1")
-	assert.Equal(t, charlie.Targets[0].Address, []byte("1"))
+	assert.Equal(t, charlie.Targets[0].Address, "1")
 }
