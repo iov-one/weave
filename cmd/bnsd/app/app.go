@@ -128,16 +128,14 @@ func Stack(issuer weave.Address, minFee coin.Coin) weave.Handler {
 // components but not all functionalities are needed or expected (ie no message
 // fee).
 func CronStack() weave.Handler {
-	authFn := cron.Authenticator{}
 	decorators := app.ChainDecorators(
 		utils.NewLogging(),
 		utils.NewRecovery(),
 		utils.NewKeyTagger(),
-		sigs.NewDecorator(),
-		multisig.NewDecorator(authFn),
 		utils.NewActionTagger(),
 		// No fee decorators.
 	)
+	authFn := cron.Authenticator{}
 	return decorators.WithHandler(Router(authFn, nil))
 }
 
