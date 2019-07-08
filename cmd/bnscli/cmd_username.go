@@ -26,7 +26,7 @@ Create a transaction for registering a username.
 		nameFl       = fl.String("name", "", "Name part of the username. For example 'alice'")
 		namespaceFl  = fl.String("ns", "iov", "Namespace (domain) part of the username. For example 'iov'")
 		blockchainFl = fl.String("bc", "", "Blockchain network ID.")
-		addressFl    = flHex(fl, "addr", "", "Hex encoded blochain address on this network.")
+		addressFl    = fl.String("addr", "", "String representation of the blochain address on this network.")
 	)
 	fl.Parse(args)
 
@@ -145,7 +145,7 @@ This functionality is intended to extend RegisterTokenMsg or ChangeTokenTargetsM
 	}
 	var (
 		blockchainFl = fl.String("bc", "", "Blockchain network ID.")
-		addressFl    = flHex(fl, "addr", "", "Hex encoded blochain address on this network.")
+		addressFl    = fl.String("addr", "", "String representation of the blochain address on this network.")
 	)
 	fl.Parse(args)
 
