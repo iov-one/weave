@@ -4,7 +4,6 @@ import (
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
 	abci "github.com/tendermint/tendermint/abci/types"
-	"github.com/tendermint/tendermint/libs/common"
 )
 
 // BaseApp adds DeliverTx, CheckTx, and BeginBlock
@@ -78,13 +77,9 @@ func (b BaseApp) BeginBlock(req abci.RequestBeginBlock) abci.ResponseBeginBlock 
 	var response abci.ResponseBeginBlock
 	if b.ticker != nil {
 		ctx := weave.WithLogInfo(b.BlockContext(), "call", "begin_block")
-		executed := b.ticker.Tick(ctx, b.DeliverStore())
-		for _, taskID := range executed {
-			response.Tags = append(response.Tags, common.KVPair{
-				Key:   []byte("cron"),
-				Value: taskID,
-			})
-		}
+		tags, vdiff := b.ticker.Tick(ctx, b.DeliverStore())
+		response.Tags = append(response.Tags, tags...)
+		b.AddValChange(vdiff)
 	}
 	return response
 }

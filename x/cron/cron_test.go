@@ -13,6 +13,7 @@ import (
 	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/store"
 	"github.com/iov-one/weave/weavetest"
+	"github.com/tendermint/tendermint/libs/common"
 )
 
 func TestTaskQueue(t *testing.T) {
@@ -198,13 +199,13 @@ func TestTicker(t *testing.T) {
 			// returned instead of terminating the process.
 			// We need to tick only once in order to process all
 			// tasks that are due.
-			executed, err := ticker.tick(ctx, db)
+			tags, _, err := ticker.tick(ctx, db)
 			if !tc.WantTickerErr.Is(err) {
 				t.Fatalf("unexpected ticker error: %+v", err)
 			}
 
 			for i, task := range tc.Tasks {
-				wasExec := containsBytes(executed, task.id)
+				wasExec := containsPairValue(tags, task.id)
 				if wasExec != task.WantExec {
 					t.Fatalf("task #%d (%q) unexpected execution state: %v", i, task.Msg.Path(), wasExec)
 				}
@@ -228,9 +229,9 @@ func TestTicker(t *testing.T) {
 	}
 }
 
-func containsBytes(collection [][]byte, item []byte) bool {
-	for _, c := range collection {
-		if bytes.Equal(c, item) {
+func containsPairValue(pairs []common.KVPair, item []byte) bool {
+	for _, p := range pairs {
+		if bytes.Equal(p.Value, item) {
 			return true
 		}
 	}

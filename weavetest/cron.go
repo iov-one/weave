@@ -3,11 +3,13 @@ package weavetest
 import (
 	"bytes"
 	"crypto/rand"
+	"fmt"
 	"sort"
 	"time"
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
+	"github.com/tendermint/tendermint/libs/common"
 )
 
 // Cron is a in memory implementation of the ticker and scheduler.
@@ -68,21 +70,25 @@ func (c *Cron) Delete(db weave.KVStore, taskID []byte) error {
 }
 
 // Tick implementes weave.Ticker interface.
-func (c *Cron) Tick(ctx weave.Context, store weave.CacheableKVStore) [][]byte {
+func (c *Cron) Tick(ctx weave.Context, store weave.CacheableKVStore) ([]common.KVPair, []weave.ValidatorUpdate) {
 	now, err := weave.BlockTime(ctx)
 	if err != nil {
 		panic(err)
 	}
 
-	var executed [][]byte
-	for _, t := range c.tasks {
+	var tags []common.KVPair
+
+	for i, t := range c.tasks {
 		if !t.runAt.After(now) {
-			executed = append(executed, t.tid)
+			tags = append(tags, common.KVPair{
+				Key:   []byte(fmt.Sprintf("task_%d", i)),
+				Value: t.tid,
+			})
 		} else {
 			// Tasks are ordered by execution time.
 			break
 		}
 	}
-	c.tasks = c.tasks[len(executed):]
-	return executed
+	c.tasks = c.tasks[len(tags):]
+	return tags, nil
 }

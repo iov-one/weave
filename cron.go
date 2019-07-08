@@ -1,6 +1,10 @@
 package weave
 
-import "time"
+import (
+	"time"
+
+	"github.com/tendermint/tendermint/libs/common"
+)
 
 // Ticker is an interface used to call background tasks scheduled for
 // execution.
@@ -8,10 +12,8 @@ type Ticker interface {
 	// Tick is a method called at the beginning of the block. It should be
 	// used to execute any scheduled tasks.
 	//
-	// Returned is always the list of task IDs that were executed. A task
-	// is considered executed when processing it caused any change to the
-	// state (even if it is only removing the task from the queue and no
-	// other change).
+	// Returned is the list of tags created during processing and changeset
+	// that should be applied to the validators configuration.
 	//
 	// Because beginning of the block does not allow for an error response
 	// this method does not return one as well. It is the implementation
@@ -23,7 +25,7 @@ type Ticker interface {
 	// this instance. This means that this node is out of sync with the
 	// rest of the network and cannot continue operating as its state is
 	// invalid.
-	Tick(ctx Context, store CacheableKVStore) (taskIDs [][]byte)
+	Tick(ctx Context, store CacheableKVStore) (tags []common.KVPair, diff []ValidatorUpdate)
 }
 
 // Scheduler is an interface implemented to allow scheduling message execution.
