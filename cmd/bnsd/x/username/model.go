@@ -67,15 +67,35 @@ func (t *Token) Copy() orm.CloneableData {
 
 // NewTokenBucket returns a ModelBucket instance limited to interacting with a
 // Token model only.
-// Only a valid Username instance should be used as a key.
+// Only a valid Username instance should be used as a key. Alternatively tokens can
+// be queried by owner.
 func NewTokenBucket() orm.ModelBucket {
-	b := orm.NewModelBucket("tokens", &Token{})
+	b := orm.NewModelBucket("tokens", &Token{}, orm.WithIndex("owner", idxOwner, false))
 	return migration.NewModelBucket("username", b)
 }
 
 // RegisterQuery expose tokens bucket to queries.
 func RegisterQuery(qr weave.QueryRouter) {
 	NewTokenBucket().Register("usernames", qr)
+}
+
+func idxOwner(obj orm.Object) ([]byte, error) {
+	swp, err := getToken(obj)
+	if err != nil {
+		return nil, err
+	}
+	return swp.Owner, nil
+}
+
+func getToken(obj orm.Object) (*Token, error) {
+	if obj == nil {
+		return nil, errors.Wrap(errors.ErrHuman, "Cannot take index of nil")
+	}
+	esc, ok := obj.Value().(*Token)
+	if !ok {
+		return nil, errors.Wrap(errors.ErrHuman, "Can only take index of username")
+	}
+	return esc, nil
 }
 
 // validateTargets returns an error if given list of blockchain addresses is
