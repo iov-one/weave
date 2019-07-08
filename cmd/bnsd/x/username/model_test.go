@@ -1,7 +1,6 @@
 package username
 
 import (
-	"bytes"
 	"strings"
 	"testing"
 
@@ -21,49 +20,49 @@ func TestBlockchainAddressValidation(t *testing.T) {
 		"correct minimal length": {
 			BA: BlockchainAddress{
 				BlockchainID: strings.Repeat("x", 4),
-				Address:      bytes.Repeat([]byte("x"), 1),
+				Address:      strings.Repeat("x", 1),
 			},
 			WantErr: nil,
 		},
 		"correct maximal length": {
 			BA: BlockchainAddress{
 				BlockchainID: strings.Repeat("x", 32),
-				Address:      bytes.Repeat([]byte("x"), 128),
+				Address:      strings.Repeat("x", 128),
 			},
 			WantErr: nil,
 		},
 		"blockchain too short": {
 			BA: BlockchainAddress{
 				BlockchainID: strings.Repeat("x", 3),
-				Address:      bytes.Repeat([]byte("x"), 3),
+				Address:      strings.Repeat("x", 3),
 			},
 			WantErr: errors.ErrInput,
 		},
 		"blockchain too long": {
 			BA: BlockchainAddress{
 				BlockchainID: strings.Repeat("x", 33),
-				Address:      bytes.Repeat([]byte("x"), 3),
+				Address:      strings.Repeat("x", 3),
 			},
 			WantErr: errors.ErrInput,
 		},
 		"address too short": {
 			BA: BlockchainAddress{
 				BlockchainID: strings.Repeat("x", 6),
-				Address:      bytes.Repeat([]byte("x"), 0),
+				Address:      strings.Repeat("x", 0),
 			},
 			WantErr: errors.ErrInput,
 		},
 		"address too long": {
 			BA: BlockchainAddress{
 				BlockchainID: strings.Repeat("x", 6),
-				Address:      bytes.Repeat([]byte("x"), 129),
+				Address:      strings.Repeat("x", 129),
 			},
 			WantErr: errors.ErrInput,
 		},
 		"blockchain ID cannot contain emoji": {
 			BA: BlockchainAddress{
 				BlockchainID: "😄😊😉😍😘😚😜😝😳😁",
-				Address:      bytes.Repeat([]byte("x"), 32),
+				Address:      strings.Repeat("x", 32),
 			},
 			WantErr: errors.ErrInput,
 		},
@@ -117,7 +116,7 @@ func TestTokenValidate(t *testing.T) {
 			Token: Token{
 				Metadata: &weave.Metadata{Schema: 1},
 				Targets: []BlockchainAddress{
-					{BlockchainID: "blockchain", Address: []byte("123456789")},
+					{BlockchainID: "blockchain", Address: "123456789"},
 				},
 				Owner: weavetest.NewCondition().Address(),
 			},
@@ -135,7 +134,7 @@ func TestTokenValidate(t *testing.T) {
 			Token: Token{
 				Metadata: &weave.Metadata{Schema: 1},
 				Targets: []BlockchainAddress{
-					{BlockchainID: "blockchain", Address: []byte("123456789")},
+					{BlockchainID: "blockchain", Address: "123456789"},
 				},
 				Owner: nil,
 			},

@@ -87,7 +87,7 @@ func Examples() []commands.Example {
 		Metadata: &weave.Metadata{Schema: 1},
 		Username: "alice*iov",
 		Targets: []username.BlockchainAddress{
-			{BlockchainID: "myNet", Address: []byte("myChainAddress")},
+			{BlockchainID: "myNet", Address: "myChainAddress"},
 		},
 	}
 	registerTokenTx := &Tx{
@@ -100,7 +100,7 @@ func Examples() []commands.Example {
 		NewTargets: []username.BlockchainAddress{
 			{
 				BlockchainID: "myNet",
-				Address:      []byte("myChainAddress"),
+				Address:      "myChainAddress",
 			},
 		},
 	}

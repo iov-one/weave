@@ -31,8 +31,8 @@ func TestRegisterTokenHandler(t *testing.T) {
 					Metadata: &weave.Metadata{Schema: 1},
 					Username: "bobby*iov",
 					Targets: []BlockchainAddress{
-						{BlockchainID: "bc_1", Address: []byte("addr1")},
-						{BlockchainID: "bc_2", Address: []byte("addr2")},
+						{BlockchainID: "bc_1", Address: "addr1"},
+						{BlockchainID: "bc_2", Address: "addr2"},
 					},
 				},
 			},
@@ -44,7 +44,7 @@ func TestRegisterTokenHandler(t *testing.T) {
 					Metadata: &weave.Metadata{Schema: 1},
 					Username: "alice*iov",
 					Targets: []BlockchainAddress{
-						{BlockchainID: "bc_1", Address: []byte("addr1")},
+						{BlockchainID: "bc_1", Address: "addr1"},
 					},
 				},
 			},
@@ -70,7 +70,7 @@ func TestRegisterTokenHandler(t *testing.T) {
 					Metadata: &weave.Metadata{Schema: 1},
 					Username: "",
 					Targets: []BlockchainAddress{
-						{BlockchainID: "bc_1", Address: []byte("addr1")},
+						{BlockchainID: "bc_1", Address: "addr1"},
 					},
 				},
 			},
@@ -89,7 +89,7 @@ func TestRegisterTokenHandler(t *testing.T) {
 			_, err := b.Put(db, []byte("alice*iov"), &Token{
 				Metadata: &weave.Metadata{Schema: 1},
 				Targets: []BlockchainAddress{
-					{BlockchainID: "unichain", Address: []byte("some-unichain-address")},
+					{BlockchainID: "unichain", Address: "some-unichain-address"},
 				},
 				Owner: aliceCond.Address(),
 			})
@@ -178,7 +178,7 @@ func TestChangeTokenOwnerHandler(t *testing.T) {
 			_, err := b.Put(db, []byte("alice*iov"), &Token{
 				Metadata: &weave.Metadata{Schema: 1},
 				Targets: []BlockchainAddress{
-					{BlockchainID: "unichain", Address: []byte("some-unichain-address")},
+					{BlockchainID: "unichain", Address: "some-unichain-address"},
 				},
 				Owner: aliceCond.Address(),
 			})
@@ -218,8 +218,8 @@ func TestChangeTokenTargetHandler(t *testing.T) {
 					Metadata: &weave.Metadata{Schema: 1},
 					Username: "alice*iov",
 					NewTargets: []BlockchainAddress{
-						{BlockchainID: "hydracoin", Address: []byte("some-hydra-address")},
-						{BlockchainID: "pegasuscoin", Address: []byte("some-pagasus-address")},
+						{BlockchainID: "hydracoin", Address: "some-hydra-address"},
+						{BlockchainID: "pegasuscoin", Address: "some-pagasus-address"},
 					},
 				},
 			},
@@ -231,7 +231,7 @@ func TestChangeTokenTargetHandler(t *testing.T) {
 					Metadata: &weave.Metadata{Schema: 1},
 					Username: "alice*iov",
 					NewTargets: []BlockchainAddress{
-						{BlockchainID: "unichain", Address: []byte("some-unicorn-address")},
+						{BlockchainID: "unichain", Address: "some-unicorn-address"},
 					},
 				},
 			},
@@ -255,7 +255,7 @@ func TestChangeTokenTargetHandler(t *testing.T) {
 					Metadata: &weave.Metadata{Schema: 1},
 					Username: "alice*iov",
 					NewTargets: []BlockchainAddress{
-						{BlockchainID: "hydracoin", Address: []byte("some-hydra-address")},
+						{BlockchainID: "hydracoin", Address: "some-hydra-address"},
 					},
 				},
 			},
@@ -269,7 +269,7 @@ func TestChangeTokenTargetHandler(t *testing.T) {
 					Metadata: &weave.Metadata{Schema: 1},
 					Username: "does-not-exist*iov",
 					NewTargets: []BlockchainAddress{
-						{BlockchainID: "hydracoin", Address: []byte("some-hydra-address")},
+						{BlockchainID: "hydracoin", Address: "some-hydra-address"},
 					},
 				},
 			},
@@ -287,7 +287,7 @@ func TestChangeTokenTargetHandler(t *testing.T) {
 			_, err := b.Put(db, []byte("alice*iov"), &Token{
 				Metadata: &weave.Metadata{Schema: 1},
 				Targets: []BlockchainAddress{
-					{BlockchainID: "unichain", Address: []byte("some-unicorn-address")},
+					{BlockchainID: "unichain", Address: "some-unicorn-address"},
 				},
 				Owner: aliceCond.Address(),
 			})
