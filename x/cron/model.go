@@ -1,6 +1,7 @@
 package cron
 
 import (
+	weave "github.com/iov-one/weave"
 	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/orm"
 )
@@ -27,4 +28,8 @@ func (t *TaskResult) Copy() orm.CloneableData {
 func NewTaskResultBucket() orm.ModelBucket {
 	b := orm.NewModelBucket("trs", &TaskResult{})
 	return migration.NewModelBucket("cron", b)
+}
+
+func RegisterQuery(qr weave.QueryRouter) {
+	NewTaskResultBucket().Register("crontaskresults", qr)
 }
