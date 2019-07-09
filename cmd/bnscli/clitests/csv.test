@@ -1,0 +1,30 @@
+#!/bin/sh
+
+
+csvfile=`mktemp`
+
+# first write the header
+echo "name,age,description" >> $csvfile
+
+echo "bobby,12,a boy" >> $csvfile
+echo "wendy,16,a girl" >> $csvfile
+
+# multi line row
+echo '"Jimmy' >> $csvfile
+echo 'The Man",42,' >> $csvfile
+
+
+echo "# skip 1; cols 2,1,3"
+bnscli csv -skip 1 -cols "2,1, 3" < $csvfile
+
+
+echo
+echo "# skip 2; cols 1,2"
+bnscli csv -skip 2 -cols "1,2" < $csvfile
+
+
+echo
+echo "# skip 2; cols 1,44"
+bnscli csv -skip 2 -cols "1,44" < $csvfile
+
+rm $csvfile

@@ -1,0 +1,12 @@
+# skip 1; cols 2,1,3
+12	bobby	a boy
+16	wendy	a girl
+42	Jimmy The Man	
+
+# skip 2; cols 1,2
+wendy	16
+Jimmy The Man	42
+
+# skip 2; cols 1,44
+wendy
+Jimmy The Man

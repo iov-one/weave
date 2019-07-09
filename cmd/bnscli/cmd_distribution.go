@@ -1,14 +1,10 @@
 package main
 
 import (
-	"encoding/csv"
 	"flag"
 	"fmt"
 	"io"
-	"os"
-	"strconv"
 
-	"github.com/iov-one/weave"
 	bnsd "github.com/iov-one/weave/cmd/bnsd/app"
 	"github.com/iov-one/weave/x/distribution"
 )
@@ -18,63 +14,63 @@ func cmdResetRevenue(input io.Reader, output io.Writer, args []string) error {
 	fl.Usage = func() {
 		fmt.Fprintln(flag.CommandLine.Output(), `
 Create a transaction for reseting a revenue stream with a new configuration.
+Created transaction does not contain any destination. Use with-destination
+command to attach any number of destination to created transaction.
 		`)
 		fl.PrintDefaults()
 	}
-	revenueFl := flHex(fl, "revenue", "", "A hex encoded ID of a revenue that is to be altered.")
-	destinationsFl := fl.String("destinations", "", "A path to a CSV file with destinations configuration. File should be a list of pairs (address, weight).")
+	revenueFl := flHex(fl, "id", "", "A hex encoded ID of a revenue that is to be altered.")
 	fl.Parse(args)
-
-	destinations, err := readDestinations(*destinationsFl)
-	if err != nil {
-		return fmt.Errorf("cannot read %q destinations file: %s", *destinationsFl, err)
-	}
 
 	tx := &bnsd.Tx{
 		Sum: &bnsd.Tx_DistributionResetMsg{
 			DistributionResetMsg: &distribution.ResetMsg{
-				RevenueID:    *revenueFl,
-				Destinations: destinations,
+				RevenueID: *revenueFl,
 			},
 		},
 	}
-	_, err = writeTx(output, tx)
+	_, err := writeTx(output, tx)
 	return err
 }
 
-func readDestinations(csvpath string) ([]*distribution.Destination, error) {
-	fd, err := os.Open(csvpath)
+func cmdWithDestination(input io.Reader, output io.Writer, args []string) error {
+	fl := flag.NewFlagSet("", flag.ExitOnError)
+	fl.Usage = func() {
+		fmt.Fprintln(flag.CommandLine.Output(), `
+Read a distribution transaction from the input and modify it by adding a
+destination. Returned transaction is the original content with a destination
+added.
+		`)
+		fl.PrintDefaults()
+	}
+	var (
+		addressFl = flAddress(fl, "addr", "", "Destination address.")
+		weightFl  = fl.Uint("weight", 1, "Destination weight.")
+	)
+	if err := fl.Parse(args); err != nil {
+		flagDie("parse: %s", err)
+	}
+
+	tx, _, err := readTx(input)
 	if err != nil {
-		return nil, fmt.Errorf("cannot open file: %s", err)
+		return fmt.Errorf("cannot read input transaction: %s", err)
 	}
-	defer fd.Close()
 
-	var destinations []*distribution.Destination
+	msg, err := tx.GetMsg()
+	if err != nil {
+		return fmt.Errorf("cannot extract transaction message: %s", err)
+	}
 
-	rd := csv.NewReader(fd)
-	for lineNo := 1; ; lineNo++ {
-		row, err := rd.Read()
-		if err != nil {
-			if err == io.EOF {
-				return destinations, nil
-			}
-			return destinations, err
-		}
-
-		if len(row) != 2 {
-			return destinations, fmt.Errorf("invalid line %d: expected 2 columns, got %d", lineNo, len(row))
-		}
-		address, err := weave.ParseAddress(row[0])
-		if err != nil {
-			return destinations, fmt.Errorf("invalid line %d: invalid address %q: %s", lineNo, row[0], err)
-		}
-		weight, err := strconv.ParseUint(row[1], 10, 32)
-		if err != nil {
-			return destinations, fmt.Errorf("invalid line %d: invalid weight (q-factor) %q: %s", lineNo, row[1], err)
-		}
-		destinations = append(destinations, &distribution.Destination{
-			Address: address,
-			Weight:  int32(weight),
+	switch msg := msg.(type) {
+	case *distribution.ResetMsg:
+		msg.Destinations = append(msg.Destinations, &distribution.Destination{
+			Address: *addressFl,
+			Weight:  int32(*weightFl),
 		})
+	default:
+		return fmt.Errorf("message %T cannot be modified to contain multisig participant", msg)
 	}
+
+	_, err = writeTx(output, tx)
+	return nil
 }

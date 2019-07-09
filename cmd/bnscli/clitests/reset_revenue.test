@@ -1,0 +1,36 @@
+#!/bin/bash
+
+set -e
+
+
+# Pretend there is a CSV with the configuration we want to apply.
+destination_csv=`mktemp`
+
+echo "id,address,weight,description" >> $destination_csv
+echo "1,b1ca7e78f74423ae01da3b51e676934d9105f282,32,validator bob" >> $destination_csv
+echo "2,f427d624ed29c1fae0e2f427d624ed29c1fae0e2,99,our best validator" >> $destination_csv
+
+
+# Create the empty reset revenue transaction.
+tx=`mktemp`
+bnscli reset-revenue -id 313233343536373839300a > $tx
+
+
+# Parse the CSV file and for every line, attach a destination to the reset
+# revenue transaction.
+bnscli csv -skip 1 -cols 3,2 < $destination_csv \
+	| while read -r line
+	do
+		weight=`echo $line | cut -f1 -d ' '`
+		addr=`echo $line | cut -f2 -d ' '`
+
+		next=`mktemp`
+		bnscli with-destination -weight "$weight" -addr "$addr" < $tx > $next
+		mv $next $tx
+	done
+
+
+# tx contains the transaction that can be submitted or viewed.
+bnscli view < $tx
+
+rm $tx
