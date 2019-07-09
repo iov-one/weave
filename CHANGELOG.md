@@ -3,6 +3,7 @@
 ## HEAD
 
 - Add `owner` index to bnsd `x/username` to be able to query tokens by owner.
+- Allow empty targets in bnsd `x/username` to enable name reservation.
 
 
 ## 0.18.0
