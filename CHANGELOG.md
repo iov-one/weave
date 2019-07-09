@@ -4,6 +4,12 @@
 
 - Add `owner` index to bnsd `x/username` to be able to query tokens by owner.
 
+Breaking changes
+
+- Username address type in `x/username` extension was changed from `[]byte` to
+  `string`. Instead of base64 encoded value, a valid string is stored as the
+  address.
+
 
 ## 0.18.0
 

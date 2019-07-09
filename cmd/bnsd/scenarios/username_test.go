@@ -16,8 +16,8 @@ func TestUsername(t *testing.T) {
 		bnsdtest.WithUsername("emilia*iov", username.Token{
 			Owner: emilia.PublicKey().Address(),
 			Targets: []username.BlockchainAddress{
-				{BlockchainID: "firstchain", Address: []byte("01")},
-				{BlockchainID: "secondchain", Address: []byte("02")},
+				{BlockchainID: "firstchain", Address: "01"},
+				{BlockchainID: "secondchain", Address: "02"},
 			},
 		}),
 	)
