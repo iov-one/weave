@@ -6,7 +6,10 @@ import (
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/migration"
+	"github.com/iov-one/weave/store"
 	"github.com/iov-one/weave/weavetest"
+	"github.com/iov-one/weave/weavetest/assert"
 )
 
 func TestBlockchainAddressValidation(t *testing.T) {
@@ -72,6 +75,36 @@ func TestBlockchainAddressValidation(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestQueryByOwner(t *testing.T) {
+	var retrievedTokens []Token
+
+	db := store.MemStore()
+	migration.MustInitPkg(db, "username")
+	username := Username("alice*iov")
+
+	token := Token{
+		Metadata: &weave.Metadata{Schema: 1},
+		Targets: []BlockchainAddress{
+			{BlockchainID: "blockchain", Address: "123456789"},
+		},
+		Owner: weavetest.NewCondition().Address(),
+	}
+
+	b := NewTokenBucket()
+
+	_, err := b.Put(db, username.Bytes(), &token)
+	assert.Nil(t, err)
+
+	_, err = b.ByIndex(db, "owner", token.Owner, &retrievedTokens)
+	assert.Nil(t, err)
+
+	if len(retrievedTokens) != 1 {
+		t.Fatalf("Expected to retrieve one token, got %d", len(retrievedTokens))
+	}
+
+	assert.Equal(t, token, retrievedTokens[0])
 }
 
 func TestTokenValidate(t *testing.T) {

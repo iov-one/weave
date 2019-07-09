@@ -2,6 +2,7 @@
 
 ## HEAD
 
+- Add `owner` index to bnsd `x/username` to be able to query tokens by owner.
 
 Breaking changes
 
