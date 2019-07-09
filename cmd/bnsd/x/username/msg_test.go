@@ -18,7 +18,7 @@ func TestRegisterTokenMsgValidate(t *testing.T) {
 				Metadata: &weave.Metadata{Schema: 1},
 				Username: "alice*iov",
 				Targets: []BlockchainAddress{
-					{BlockchainID: "blobchain", Address: []byte("1234567890")},
+					{BlockchainID: "blobchain", Address: "1234567890"},
 				},
 			},
 			Want: nil,
@@ -28,7 +28,7 @@ func TestRegisterTokenMsgValidate(t *testing.T) {
 				Metadata: &weave.Metadata{Schema: 1},
 				Username: "xxx",
 				Targets: []BlockchainAddress{
-					{BlockchainID: "blobchain", Address: []byte("1234567890")},
+					{BlockchainID: "blobchain", Address: "1234567890"},
 				},
 			},
 			Want: errors.ErrInput,
@@ -46,8 +46,8 @@ func TestRegisterTokenMsgValidate(t *testing.T) {
 				Metadata: &weave.Metadata{Schema: 1},
 				Username: "alice*iov",
 				Targets: []BlockchainAddress{
-					{BlockchainID: "blobchain", Address: []byte("a-blobchain-id-1")},
-					{BlockchainID: "blobchain", Address: []byte("a-blobchain-id-2")},
+					{BlockchainID: "blobchain", Address: "a-blobchain-id-1"},
+					{BlockchainID: "blobchain", Address: "a-blobchain-id-2"},
 				},
 			},
 			Want: errors.ErrDuplicate,
@@ -113,7 +113,7 @@ func TestChangeTokenTargetsMsgValidate(t *testing.T) {
 				Metadata: &weave.Metadata{Schema: 1},
 				Username: "alice*iov",
 				NewTargets: []BlockchainAddress{
-					{BlockchainID: "blobchain", Address: []byte("1234567890")},
+					{BlockchainID: "blobchain", Address: "1234567890"},
 				},
 			},
 			Want: nil,
@@ -123,7 +123,7 @@ func TestChangeTokenTargetsMsgValidate(t *testing.T) {
 				Metadata: &weave.Metadata{Schema: 1},
 				Username: "alice*iov",
 				NewTargets: []BlockchainAddress{
-					{BlockchainID: "x", Address: []byte("x")},
+					{BlockchainID: "x", Address: "x"},
 				},
 			},
 			Want: errors.ErrInput,
@@ -141,7 +141,7 @@ func TestChangeTokenTargetsMsgValidate(t *testing.T) {
 				Metadata: &weave.Metadata{Schema: 1},
 				Username: "xx",
 				NewTargets: []BlockchainAddress{
-					{BlockchainID: "blobchain", Address: []byte("1234567890")},
+					{BlockchainID: "blobchain", Address: "1234567890"},
 				},
 			},
 			Want: errors.ErrInput,
@@ -151,7 +151,7 @@ func TestChangeTokenTargetsMsgValidate(t *testing.T) {
 				Metadata: &weave.Metadata{Schema: 1},
 				Username: "alice@iov",
 				NewTargets: []BlockchainAddress{
-					{BlockchainID: "blobchain", Address: []byte("1234567890")},
+					{BlockchainID: "blobchain", Address: "1234567890"},
 				},
 			},
 			Want: errors.ErrInput,
@@ -161,8 +161,8 @@ func TestChangeTokenTargetsMsgValidate(t *testing.T) {
 				Metadata: &weave.Metadata{Schema: 1},
 				Username: "alice*iov",
 				NewTargets: []BlockchainAddress{
-					{BlockchainID: "blobchain", Address: []byte("a-blobchain-id-1")},
-					{BlockchainID: "blobchain", Address: []byte("a-blobchain-id-2")},
+					{BlockchainID: "blobchain", Address: "a-blobchain-id-1"},
+					{BlockchainID: "blobchain", Address: "a-blobchain-id-2"},
 				},
 			},
 			Want: errors.ErrDuplicate,

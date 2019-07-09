@@ -36,7 +36,10 @@ message BlockchainAddress {
   // chain that this token instance links to. Because we do not know the rules
   // to validate an address for any blockchain ID, this is an arbitrary bulk of
   // data.
-  bytes address = 2;
+  // It is more convinient to always use encoded representation of each address
+  // and store it as a string. Using bytes while compact is not as comfortable
+  // to use.
+  string address = 2;
 }
 
 // RegisterTokenMsg is creating a new username token. The owner is always set

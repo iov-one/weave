@@ -8,7 +8,7 @@
 			"targets": [
 				{
 					"blockchain_id": "fairycoin",
-					"address": "RnIgMTQuIEp1biAxMDo1NjozNyBDRVNUIDIwMTkK"
+					"address": "46722031342e204a756e2031303a35363a3337204345535420323031390a"
 				}
 			]
 		}
@@ -24,11 +24,11 @@
 			"targets": [
 				{
 					"blockchain_id": "fairycoin",
-					"address": "RnIgMTQuIEp1biAxMDo1NjozNyBDRVNUIDIwMTkK"
+					"address": "46722031342e204a756e2031303a35363a3337204345535420323031390a"
 				},
 				{
 					"blockchain_id": "unicoin",
-					"address": "dW5pY29pbi0xCg=="
+					"address": "756e69636f696e2d310a"
 				}
 			]
 		}

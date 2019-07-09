@@ -1454,13 +1454,16 @@ aswap and gov don&#39;t make much sense as part of a batch (no vote buying) </p>
               
                 <tr>
                   <td>address</td>
-                  <td><a href="#bytes">bytes</a></td>
+                  <td><a href="#string">string</a></td>
                   <td></td>
                   <td><p>An address on the specified blockchain network. Address is not a
 weave.Address as we cannot know what is the format of an address on the
 chain that this token instance links to. Because we do not know the rules
 to validate an address for any blockchain ID, this is an arbitrary bulk of
-data. </p></td>
+data.
+It is more convinient to always use encoded representation of each address
+and store it as a string. Using bytes while compact is not as comfortable
+to use. </p></td>
                 </tr>
               
             </tbody>
