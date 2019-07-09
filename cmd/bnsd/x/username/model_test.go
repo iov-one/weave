@@ -87,7 +87,7 @@ func TestQueryByOwner(t *testing.T) {
 	token := Token{
 		Metadata: &weave.Metadata{Schema: 1},
 		Targets: []BlockchainAddress{
-			{BlockchainID: "blockchain", Address: []byte("123456789")},
+			{BlockchainID: "blockchain", Address: "123456789"},
 		},
 		Owner: weavetest.NewCondition().Address(),
 	}
