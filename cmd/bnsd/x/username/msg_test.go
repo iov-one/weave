@@ -33,13 +33,12 @@ func TestRegisterTokenMsgValidate(t *testing.T) {
 			},
 			Want: errors.ErrInput,
 		},
-		"missing target": {
+		"empty targets": {
 			Msg: &RegisterTokenMsg{
 				Metadata: &weave.Metadata{Schema: 1},
 				Username: "alice*iov",
 				Targets:  nil,
 			},
-			Want: errors.ErrEmpty,
 		},
 		"different address but the same blockchain ID is not allowed": {
 			Msg: &RegisterTokenMsg{

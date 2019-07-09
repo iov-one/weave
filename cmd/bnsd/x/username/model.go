@@ -102,9 +102,6 @@ func getToken(obj orm.Object) (*Token, error) {
 // not a valid target state. This function ensures the business logic is
 // respected.
 func validateTargets(targets []BlockchainAddress) error {
-	if len(targets) == 0 {
-		return errors.ErrEmpty
-	}
 	for i, t := range targets {
 		if err := t.Validate(); err != nil {
 			return errors.Wrapf(err, "target #%d", i)

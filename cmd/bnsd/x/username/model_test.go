@@ -123,13 +123,12 @@ func TestTokenValidate(t *testing.T) {
 			},
 			WantErr: nil,
 		},
-		"target missing ": {
+		"empty targets ": {
 			Token: Token{
 				Metadata: &weave.Metadata{Schema: 1},
 				Targets:  nil,
 				Owner:    weavetest.NewCondition().Address(),
 			},
-			WantErr: errors.ErrEmpty,
 		},
 		"owner missing ": {
 			Token: Token{

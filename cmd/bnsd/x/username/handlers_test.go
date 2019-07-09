@@ -52,17 +52,15 @@ func TestRegisterTokenHandler(t *testing.T) {
 			WantCheckErr:   errors.ErrDuplicate,
 			WantDeliverErr: errors.ErrDuplicate,
 		},
-		"target cannot be empty": {
+		"target can be empty": {
 			Tx: &weavetest.Tx{
 				Msg: &RegisterTokenMsg{
 					Metadata: &weave.Metadata{Schema: 1},
-					Username: "alice*iov",
+					Username: "alice2*iov",
 					Targets:  []BlockchainAddress{},
 				},
 			},
-			Auth:           &weavetest.Auth{Signer: aliceCond},
-			WantCheckErr:   errors.ErrEmpty,
-			WantDeliverErr: errors.ErrEmpty,
+			Auth: &weavetest.Auth{Signer: aliceCond},
 		},
 		"username must be provided": {
 			Tx: &weavetest.Tx{
