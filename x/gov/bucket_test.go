@@ -73,27 +73,27 @@ func TestQueryVotes(t *testing.T) {
 		exp  []*Vote
 	}{
 		"By elector alice": {
-			path: "/vote/elector",
+			path: "/votes/electors",
 			data: alice,
 			exp:  []*Vote{&aliceVote},
 		},
 		"By elector bobby": {
-			path: "/vote/elector",
+			path: "/votes/electors",
 			data: bobby,
 			exp:  []*Vote{&bobbysVote},
 		},
 		"By unknown elector": {
-			path: "/vote/elector",
+			path: "/votes/electors",
 			data: []byte{0x1},
 			exp:  []*Vote{},
 		},
 		"By proposal id": {
-			path: "/vote/proposal",
+			path: "/votes/proposals",
 			data: proposalID,
 			exp:  []*Vote{&aliceVote, &bobbysVote},
 		},
 		"By unknown proposal id": {
-			path: "/vote/proposal",
+			path: "/votes/proposals",
 			data: []byte{0x1},
 			exp:  []*Vote{},
 		},

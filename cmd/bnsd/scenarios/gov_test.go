@@ -121,7 +121,7 @@ func TestGovProposalCreateAndExecute(t *testing.T) {
 
 	bnsdtest.MustSignTx(t, env, tallyTx, carl)
 
-	r, err := env.Client.AbciQuery("/proposal", proposalID)
+	r, err := env.Client.AbciQuery("/proposals", proposalID)
 	if err != nil {
 		t.Fatalf("unexpected error: %+v", err)
 	}

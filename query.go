@@ -60,8 +60,14 @@ func (r QueryRouter) RegisterAll(qr ...QueryRegister) {
 	}
 }
 
-// Register adds a new Handler for the given path.
-// panics if another Handler was already registered
+// Register adds a new Handler for the given path. This function panics if a
+// handler for given path is already registered.
+//
+// Path should be constructed using following rules:
+// - always use plural form of the model name it represents (unless uncountable)
+// - use only lower case characters, no numbers, no underscore, dash or any
+//   other special characters
+// For example, path for the UserProfile model handler is "userprofiles".
 func (r QueryRouter) Register(path string, h QueryHandler) {
 	if _, ok := r.routes[path]; ok {
 		panic(fmt.Sprintf("Re-registering route: %s", path))

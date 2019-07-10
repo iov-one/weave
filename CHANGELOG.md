@@ -10,6 +10,8 @@ Breaking changes
 - Username address type in `x/username` extension was changed from `[]byte` to
   `string`. Instead of base64 encoded value, a valid string is stored as the
   address.
+- Some of the query paths in the `x/gov` package were updated to follow the
+  naming convention.
 
 
 ## 0.18.0
