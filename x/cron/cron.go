@@ -50,7 +50,7 @@ var _ weave.Scheduler = (*Scheduler)(nil)
 // Time granularity is second.
 func (s *Scheduler) Schedule(db weave.KVStore, runAt time.Time, auth []weave.Condition, msg weave.Msg) ([]byte, error) {
 	const granularity = time.Second
-	runAt = runAt.Round(granularity)
+	runAt = roundT(runAt, granularity)
 
 	raw, err := s.enc.MarshalTask(auth, msg)
 	if err != nil {
@@ -77,6 +77,19 @@ func (s *Scheduler) Schedule(db weave.KVStore, runAt time.Time, auth []weave.Con
 		}
 		return key, nil
 	}
+}
+
+// roundT returns given time, rounded up to given granularity. Returned time is
+// never before the given one.
+func roundT(t time.Time, granularity time.Duration) time.Time {
+	if granularity == 0 {
+		return t
+	}
+	rounded := t.Round(granularity)
+	if rounded.Before(t) {
+		rounded = rounded.Add(granularity)
+	}
+	return rounded
 }
 
 func queueKey(t time.Time) []byte {

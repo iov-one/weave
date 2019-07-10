@@ -16,6 +16,44 @@ import (
 	"github.com/tendermint/tendermint/libs/common"
 )
 
+func TestRoundT(t *testing.T) {
+	cases := map[string]struct {
+		input       time.Time
+		granularity time.Duration
+		want        time.Time
+	}{
+		"the same time when zero granularity": {
+			input:       time.Unix(12345679, 0),
+			granularity: 0,
+			want:        time.Unix(12345679, 0),
+		},
+		"the same time when the input requires no rounding": {
+			input:       time.Unix(100, 0),
+			granularity: time.Second,
+			want:        time.Unix(100, 0),
+		},
+		"round up when the cut off is more than half": {
+			input:       time.Unix(101, 99),
+			granularity: 2 * time.Second,
+			want:        time.Unix(102, 0),
+		},
+		"round up when the cut off is less than half": {
+			input:       time.Unix(100, 1),
+			granularity: 2 * time.Second,
+			want:        time.Unix(102, 0),
+		},
+	}
+
+	for testName, tc := range cases {
+		t.Run(testName, func(t *testing.T) {
+			got := roundT(tc.input, tc.granularity)
+			if !got.Equal(tc.want) {
+				t.Fatalf("got %d, %d (%q)", got.Unix(), got.UnixNano(), got)
+			}
+		})
+	}
+}
+
 func TestTaskQueue(t *testing.T) {
 	now := time.Now()
 	db := store.MemStore()
