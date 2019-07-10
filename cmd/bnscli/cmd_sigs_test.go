@@ -28,7 +28,7 @@ func TestCmdSignTransactionHappyPath(t *testing.T) {
 	var output bytes.Buffer
 	args := []string{
 		"-tm", tmURL,
-		"-key", mustCreateFile(t, bytes.NewReader(fromHex(t, "d34c1970ae90acf3405f2d99dcaca16d0c7db379f4beafcfdf667b9d69ce350d27f5fb440509dfa79ec883a0510bc9a9614c3d44188881f0c5e402898b4bf3c9"))),
+		"-key", mustCreateFile(t, bytes.NewReader(fromHex(t, privKeyHex))),
 	}
 	if err := cmdSignTransaction(&input, &output, args); err != nil {
 		t.Fatalf("transaction signing failed: %s", err)

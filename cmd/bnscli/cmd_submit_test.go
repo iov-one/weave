@@ -2,87 +2,58 @@ package main
 
 import (
 	"bytes"
-	"io"
-	"io/ioutil"
-	"net/http"
-	"net/http/httptest"
 	"testing"
 
 	"github.com/iov-one/weave"
 	bnsd "github.com/iov-one/weave/cmd/bnsd/app"
+	"github.com/iov-one/weave/coin"
+	"github.com/iov-one/weave/weavetest/assert"
 	"github.com/iov-one/weave/x/cash"
 )
 
+// TestCmdSubmitTxHappyPath will set fees, sign the tx, and submit it... ensuring the
+// whole workflow is valid.
 func TestCmdSubmitTxHappyPath(t *testing.T) {
-	tm, submitted := newSubmitTendermintServer(t)
-	defer tm.Close()
-
 	tx := &bnsd.Tx{
 		Sum: &bnsd.Tx_CashSendMsg{
 			CashSendMsg: &cash.SendMsg{
-				Metadata: &weave.Metadata{Schema: 1},
+				Metadata:    &weave.Metadata{Schema: 1},
+				Source:      fromHex(t, addr),
+				Destination: fromHex(t, addr),
+				Amount: &coin.Coin{
+					Whole:  5,
+					Ticker: "IOV",
+				},
 			},
 		},
 	}
+
 	var input bytes.Buffer
 	if _, err := writeTx(&input, tx); err != nil {
 		t.Fatalf("cannot marshal transaction: %s", err)
 	}
+
+	var withFee bytes.Buffer
+	feeArgs := []string{
+		"-tm", tmURL,
+	}
+	err := cmdWithFee(&input, &withFee, feeArgs)
+	assert.Nil(t, err)
+
+	// we must sign it with a key we have
+	var signedTx bytes.Buffer
+	signArgs := []string{
+		"-tm", tmURL,
+		"-key", mustCreateFile(t, bytes.NewReader(fromHex(t, privKeyHex))),
+	}
+	err = cmdSignTransaction(&withFee, &signedTx, signArgs)
+	assert.Nil(t, err)
+
 	var output bytes.Buffer
 	args := []string{
-		"-tm", tm.URL,
+		"-tm", tmURL,
 	}
-
-	if err := cmdSubmitTransaction(&input, &output, args); err != nil {
+	if err := cmdSubmitTransaction(&signedTx, &output, args); err != nil {
 		t.Fatalf("cannot submit the transaction: %s", err)
 	}
-	if !*submitted {
-		t.Fatal("not submitted")
-	}
-}
-
-func newSubmitTendermintServer(t *testing.T) (*httptest.Server, *bool) {
-	t.Helper()
-
-	var submitted bool
-
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if *logRequestFl {
-			b, _ := ioutil.ReadAll(r.Body)
-			r.Body = ioutil.NopCloser(bytes.NewReader(b))
-			t.Logf("tendermint request: %s %s: %s", r.Method, r.URL.Path, string(b))
-		}
-		switch {
-		case r.Method == "GET" && r.URL.Path == "/genesis":
-			io.WriteString(w, `
-				{
-					"jsonrpc": "2.0",
-					"id": "",
-					"result": {
-						"genesis": {
-							"chain_id": "test-chain-ZIYjN0",
-							"validators": [],
-							"app_state": {}
-						}
-					}
-				}
-			`)
-		case r.Method == "POST" && r.URL.Path == "/":
-			// This is an RPC call - response always depends on the
-			// submitted content. For our tests it does not matter
-			// that much what is returned.
-			io.WriteString(w, `
-				{
-					"jsonrpc": "2.0",
-					"id": "jsonrpc-client",
-					"result": {"response": {"height": "12345"}}
-				}
-			`)
-			submitted = true
-
-		default:
-			http.Error(w, "not implemented", http.StatusNotImplemented)
-		}
-	}))
-	return server, &submitted
 }

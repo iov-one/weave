@@ -13,6 +13,12 @@ import (
 // taken from testdata/config/config.toml - rpc.laddr
 const tmURL = "http://localhost:44444"
 
+// privKeyHex is a hex-encoded private key of an account with tokens on the test server
+const privKeyHex = "d34c1970ae90acf3405f2d99dcaca16d0c7db379f4beafcfdf667b9d69ce350d27f5fb440509dfa79ec883a0510bc9a9614c3d44188881f0c5e402898b4bf3c9"
+
+// addr is the hex address of the account that corresponds to privKeyHex
+const addr = "E28AE9A6EB94FC88B73EB7CBD6B87BF93EB9BEF0"
+
 func TestMain(m *testing.M) {
 	var t mockAsserter
 
