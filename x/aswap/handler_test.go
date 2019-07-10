@@ -276,7 +276,7 @@ func TestReturnHandler(t *testing.T) {
 		wantCheckErr   *errors.Error
 		wantDeliverErr *errors.Error
 		exp            aswap.Swap
-		mutator        func(db *aswap.ReturnSwapMsg)
+		mutator        func(db *aswap.ReturnMsg)
 	}{
 		"Happy Path, includes no auth check": {
 			setup: func(ctx weave.Context, db weave.KVStore) weave.Context {
@@ -298,14 +298,14 @@ func TestReturnHandler(t *testing.T) {
 		"Invalid Msg": {
 			wantDeliverErr: errors.ErrInput,
 			wantCheckErr:   errors.ErrInput,
-			mutator: func(msg *aswap.ReturnSwapMsg) {
+			mutator: func(msg *aswap.ReturnMsg) {
 				msg.SwapID = nil
 			},
 		},
 		"Invalid SwapID": {
 			wantDeliverErr: errors.ErrEmpty,
 			wantCheckErr:   errors.ErrEmpty,
-			mutator: func(msg *aswap.ReturnSwapMsg) {
+			mutator: func(msg *aswap.ReturnMsg) {
 				msg.SwapID = weavetest.SequenceID(2)
 			},
 		},
@@ -340,7 +340,7 @@ func TestReturnHandler(t *testing.T) {
 			_, err = r.Deliver(createCtx, db, tx)
 			assert.Nil(t, err)
 
-			returnMsg := &aswap.ReturnSwapMsg{
+			returnMsg := &aswap.ReturnMsg{
 				Metadata: &weave.Metadata{Schema: 1},
 				SwapID:   defaultSequenceId,
 			}

@@ -51,9 +51,9 @@ message ReleaseMsg {
   bytes preimage = 3;
 }
 
-// ReturnSwapMsg releases the tokens to the source.
+// ReturnMsg releases the tokens to the source.
 // This operation only works if the Swap is expired.
-message ReturnSwapMsg {
+message ReturnMsg {
   weave.Metadata metadata = 1;
   // swap_id to return
   bytes swap_id = 2 ;
