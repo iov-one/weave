@@ -65,8 +65,8 @@ but good to go through it to be sure.
 Once you are set up, you should be able to run something
 like the following to compile both `bnsd` (IOV blockchain application)
 and `bnscli` (a client side app to interact with `bnsd`).
-You will have to 
-[install a compatible version of tendermint](https://github.com/tendermint/tendermint/blob/master/docs/introduction/install.md) 
+You will have to
+[install a compatible version of tendermint](https://github.com/tendermint/tendermint/blob/master/docs/introduction/install.md)
 separately. (Currently we use the v0.31.5 release).
 
 ```
@@ -127,9 +127,11 @@ open ./docs/proto/index.html
 ```
 
 ## Contributions
-When opening a PR with a minor fix that does not need a CHANGELOG.md entry
-make sure to add `#trivial` to the title/description of said PR.  
-That's only needed if you are changing any of the `*.go` files in the repo.
+
+When opening a pull request with a change that does not require a CHANGELOG
+entry, include `!nochangelog` in the description. This will inform our build
+system to not fail the build due to a missing CHANGELOG update. This
+instruction is needed only if you are changing any of the Go source files.
 
 ## History
 
