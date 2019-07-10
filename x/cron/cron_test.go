@@ -102,6 +102,11 @@ func TestTaskQueue(t *testing.T) {
 func TestTicker(t *testing.T) {
 	now := time.Now()
 
+	var (
+		conditionA = weavetest.NewCondition()
+		conditionB = weavetest.NewCondition()
+	)
+
 	type task struct {
 		id []byte // assigned during the runtime by the scheduler
 
@@ -120,6 +125,40 @@ func TestTicker(t *testing.T) {
 		"no tasks": {
 			Tasks:         nil,
 			WantTickerErr: nil,
+		},
+		"authentication is provided and successful": {
+			Tasks: []*task{
+				{
+					RunAt: now.Add(-time.Hour),
+					Auth: []weave.Condition{
+						conditionA,
+						conditionB,
+					},
+					Msg:             weavetest.Msg{RoutePath: "test/1"},
+					WantExec:        true,
+					WantExecSuccess: true,
+				},
+			},
+			Handler: cronHandler{
+				wantAuth: []weave.Condition{conditionA, conditionB},
+			},
+		},
+		"when authentication is missing message cannot be processed": {
+			Tasks: []*task{
+				{
+					RunAt: now.Add(-time.Hour),
+					Auth: []weave.Condition{
+						conditionA,
+						// Condition B is missing.
+					},
+					Msg:             weavetest.Msg{RoutePath: "test/1"},
+					WantExec:        true,
+					WantExecSuccess: false,
+				},
+			},
+			Handler: cronHandler{
+				wantAuth: []weave.Condition{conditionA, conditionB},
+			},
 		},
 		"tasks that are not due yet": {
 			Tasks: []*task{
@@ -283,6 +322,10 @@ type cronHandler struct {
 	// Map message path to error that delivery of this message should
 	// return.
 	errs map[string]error
+
+	auth Authenticator
+	// When provided, conditions are required to authenticate.
+	wantAuth []weave.Condition
 }
 
 func (cronHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
@@ -294,6 +337,15 @@ func (h *cronHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) 
 	if err != nil {
 		panic("cannot get message")
 	}
+
+	for _, c := range h.wantAuth {
+		if !h.auth.HasAddress(ctx, c.Address()) {
+			err := errors.Wrapf(errors.ErrUnauthorized,
+				"%q condition (%q) not found", c, c.Address())
+			return nil, err
+		}
+	}
+
 	// copy
 	res := h.res
 	return &res, h.errs[msg.Path()]
