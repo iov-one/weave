@@ -10,7 +10,7 @@ import (
 func init() {
 	migration.MustRegister(1, &CreateMsg{}, migration.NoModification)
 	migration.MustRegister(1, &ReleaseMsg{}, migration.NoModification)
-	migration.MustRegister(1, &ReturnSwapMsg{}, migration.NoModification)
+	migration.MustRegister(1, &ReturnMsg{}, migration.NoModification)
 }
 
 const (
@@ -78,14 +78,14 @@ func (m *ReleaseMsg) Validate() error {
 	return nil
 }
 
-var _ weave.Msg = (*ReturnSwapMsg)(nil)
+var _ weave.Msg = (*ReturnMsg)(nil)
 
-func (ReturnSwapMsg) Path() string {
+func (ReturnMsg) Path() string {
 	return "aswap/return"
 
 }
 
-func (m *ReturnSwapMsg) Validate() error {
+func (m *ReturnMsg) Validate() error {
 	if err := m.Metadata.Validate(); err != nil {
 		return errors.Wrap(err, "metadata")
 	}

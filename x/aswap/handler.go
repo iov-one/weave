@@ -26,7 +26,7 @@ func RegisterRoutes(r weave.Registry, auth x.Authenticator, cashctrl cash.Contro
 
 	r.Handle(&CreateMsg{}, CreateSwapHandler{auth, bucket, cashctrl})
 	r.Handle(&ReleaseMsg{}, ReleaseSwapHandler{auth, bucket, cashctrl})
-	r.Handle(&ReturnSwapMsg{}, ReturnSwapHandler{auth, bucket, cashctrl})
+	r.Handle(&ReturnMsg{}, ReturnSwapHandler{auth, bucket, cashctrl})
 }
 
 // RegisterQuery will register this bucket as "/aswaps"
@@ -228,8 +228,8 @@ func (h ReturnSwapHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave
 }
 
 // validate does all common pre-processing between Check and Deliver.
-func (h ReturnSwapHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*ReturnSwapMsg, *Swap, error) {
-	var msg ReturnSwapMsg
+func (h ReturnSwapHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*ReturnMsg, *Swap, error) {
+	var msg ReturnMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, nil, errors.Wrap(err, "load msg")
 	}
