@@ -34,8 +34,8 @@ func runTestMain(m *testing.M) int {
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 	defer cancel()
-	defer tmtest.RunBnsd(ctx, t, home)()
-	defer tmtest.RunTendermint(ctx, t, home)()
+	tmtest.RunBnsd(ctx, t, home)
+	tmtest.RunTendermint(ctx, t, home)
 
 	return m.Run()
 }
