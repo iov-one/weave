@@ -24,10 +24,10 @@ const packageName = "gov"
 
 // RegisterQuery registers governance buckets for querying.
 func RegisterQuery(qr weave.QueryRouter) {
-	NewElectionRulesBucket().Register("electionRules", qr)
+	NewElectionRulesBucket().Register("electionrules", qr)
 	NewElectorateBucket().Register("electorates", qr)
-	NewProposalBucket().Register("proposal", qr)
-	NewVoteBucket().Register("vote", qr)
+	NewProposalBucket().Register("proposals", qr)
+	NewVoteBucket().Register("votes", qr)
 }
 
 // RegisterRoutes registers handlers for governance message processing.
