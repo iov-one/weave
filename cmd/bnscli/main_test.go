@@ -55,10 +55,11 @@ func (mockAsserter) Fatalf(format string, args ...interface{}) {
 	panic(msg)
 }
 func (mockAsserter) Log(args ...interface{}) {
-	fmt.Print(args...)
+	fmt.Println(args...)
 }
 func (mockAsserter) Logf(format string, args ...interface{}) {
 	fmt.Printf(format, args...)
+	fmt.Println("")
 }
 func (m mockAsserter) Skip(args ...interface{}) {
 	m.Log(args...)

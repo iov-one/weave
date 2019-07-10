@@ -7,7 +7,6 @@ package tmtest
 
 import (
 	"context"
-	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
@@ -61,12 +60,11 @@ func RunTendermint(ctx context.Context, t TestReporter, home string) (cleanup fu
 	// Return a cleanup function, that will wait for the tendermint to stop.
 	// We also auto-kill when the context is Done
 	cleanup = func() {
-		fmt.Println("tendermint cleanup called")
+		t.Logf("tendermint cleanup called")
 		cmd.Process.Kill()
 		cmd.Wait()
 	}
 	go func() {
-		fmt.Println("Waiting to kill tendermint")
 		<-ctx.Done()
 		cleanup()
 	}()
@@ -103,12 +101,11 @@ func RunBnsd(ctx context.Context, t TestReporter, home string) (cleanup func()) 
 	// Return a cleanup function, that will wait for bnsd to stop.
 	// We also auto-kill when the context is Done
 	cleanup = func() {
-		fmt.Println("bnsd cleanup called")
+		t.Logf("bnsd cleanup called")
 		cmd.Process.Kill()
 		cmd.Wait()
 	}
 	go func() {
-		fmt.Println("Waiting to kill bnsd")
 		<-ctx.Done()
 		cleanup()
 	}()
