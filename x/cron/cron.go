@@ -92,7 +92,7 @@ func queueKey(t time.Time) []byte {
 // Delete implements weave.Scheduler interface.
 func (s *Scheduler) Delete(db weave.KVStore, taskID []byte) error {
 	if ok, err := db.Has(taskID); err != nil {
-		return errors.Wrap(err, "has")
+		return errors.Wrap(err, "failed to check existence of key")
 	} else if !ok {
 		return errors.Wrap(errors.ErrNotFound, "no task")
 	}
