@@ -2,6 +2,7 @@ package gov
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
@@ -339,7 +340,9 @@ func (h CreateProposalHandler) Deliver(ctx weave.Context, db weave.KVStore, tx w
 		Metadata:   &weave.Metadata{Schema: 1},
 		ProposalID: obj.Key(),
 	}
-	taskID, err := h.scheduler.Schedule(db, votingEnd.Time(), h.auth.GetConditions(ctx), tallyMsg)
+	// Add two seconds for the margin, because tally logic is using one second margin.
+	runAt := votingEnd.Time().Add(2 * time.Second)
+	taskID, err := h.scheduler.Schedule(db, runAt, h.auth.GetConditions(ctx), tallyMsg)
 	if err != nil {
 		return nil, errors.Wrap(err, "cannot schedule tally task")
 	}
