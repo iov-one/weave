@@ -10,6 +10,7 @@ import (
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/store"
+	"github.com/iov-one/weave/x/utils"
 	"github.com/tendermint/tendermint/libs/common"
 )
 
@@ -143,7 +144,7 @@ var _ weave.Ticker = (*Ticker)(nil)
 // Tick can process any number of messages suitable for execution. All changes
 // are done atomically and apply only on success.
 func (t *Ticker) Tick(ctx context.Context, db store.CacheableKVStore) ([]common.KVPair, []weave.ValidatorUpdate) {
-	tags, vdiff, err := t.tick(ctx, db)
+	tags, vDiff, err := t.tick(ctx, db)
 	if err != nil {
 		// This is a hopeless state. This error is most likely due to a
 		// database issues or some other instance specific problems.
@@ -153,7 +154,7 @@ func (t *Ticker) Tick(ctx context.Context, db store.CacheableKVStore) ([]common.
 		// out of sync with the rest of the network.
 		failTask(err)
 	}
-	return tags, vdiff
+	return tags, vDiff
 }
 
 // failTask is a variable so that it can be overwritten for tests.
@@ -176,36 +177,44 @@ network.
 // tick process any number of tasks. It always returns a response and might
 // return an error. This method is similar to the Tick except it provides an
 // error. This makes it easier for the tests to check the result.
+//
+// Because this method can process multiple tasks at once, even when this
+// method returns an error instance, returned values may contain a valid
+// infromation other than the error as well. Always process returned tags and
+// validator diffs regardless the returned error value.
 func (t *Ticker) tick(ctx context.Context, db store.CacheableKVStore) ([]common.KVPair, []weave.ValidatorUpdate, error) {
 	var (
 		tags  []common.KVPair
-		vdiff []weave.ValidatorUpdate
+		vDiff []weave.ValidatorUpdate
 	)
 
 	now, err := weave.BlockTime(ctx)
 	if err != nil {
-		return tags, vdiff, errors.Wrap(err, "cannot get current time")
+		return tags, vDiff, errors.Wrap(err, "cannot get current time")
 	}
 	blockHeight, ok := weave.GetHeight(ctx)
 	if !ok {
-		return tags, vdiff, errors.Wrap(err, "cannot get current block height")
+		return tags, vDiff, errors.Wrap(err, "cannot get current block height")
 	}
 
 	for {
 		switch key, raw, err := peek(db, now); {
 		case err == nil:
-			var taskTags []common.KVPair
+			// Each task is processed using its own cache instance
+			// to ensure changes are atomic and task processing
+			// independent.
+			cache := db.CacheWrap()
+
+			var (
+				taskTags []common.KVPair
+				taskDiff []weave.ValidatorUpdate
+			)
 			res := TaskResult{
 				Metadata:   &weave.Metadata{Schema: 1},
 				Successful: true,
 				ExecTime:   weave.AsUnixTime(now),
 				ExecHeight: blockHeight,
 			}
-
-			// Each task is processed using its own cache instance
-			// to ensure changes are atomic and task processing
-			// independent.
-			cache := db.CacheWrap()
 
 			auth, msg, err := t.enc.UnmarshalTask(raw)
 			if err != nil {
@@ -214,30 +223,32 @@ func (t *Ticker) tick(ctx context.Context, db store.CacheableKVStore) ([]common.
 			} else {
 				taskCtx := withAuth(ctx, auth)
 				tx := &taskTx{msg: msg}
-				if r, err := t.hn.Deliver(taskCtx, cache, tx); err != nil {
-					// Discard any changes that the deliver could
-					// have created. We do not want to persist
-					// those.
-					cache.Discard()
+				// Execute deliver using the savepoint wrapper,
+				// so that changes are applied to the cache
+				// only when the Deliver call is successful.
+				sp := utils.NewSavepoint().OnDeliver()
+				if r, err := sp.Deliver(taskCtx, cache, tx, t.hn); err != nil {
 					res.Successful = false
 					res.Info = err.Error()
 				} else {
-					taskTags = append(taskTags, r.Tags...)
+					taskTags = r.Tags
+					taskDiff = r.Diff
 				}
-
 			}
 
 			if _, err := t.results.Put(cache, key, &res); err != nil {
-				// Keep it atomic.
 				cache.Discard()
-				return tags, vdiff, errors.Wrap(err, "cannot store result")
+				return tags, vDiff, errors.Wrap(err, "cannot store result")
 			}
 
 			// Remove the task from the queue as it was processed.
-			// Do it via cache to keep it atomic.
-			cache.Delete(key)
+			if err := cache.Delete(key); err != nil {
+				cache.Discard()
+				return tags, vDiff, errors.Wrap(err, "cannot delete task")
+			}
 			if err := cache.Write(); err != nil {
-				return tags, vdiff, errors.Wrap(err, "cannot write cache")
+				cache.Discard()
+				return tags, vDiff, errors.Wrap(err, "cannot write cache")
 			}
 
 			// Only when the database state is updated we can
@@ -249,11 +260,12 @@ func (t *Ticker) tick(ctx context.Context, db store.CacheableKVStore) ([]common.
 				Key:   []byte("cron"),
 				Value: key,
 			})
+			vDiff = append(vDiff, taskDiff...)
 		case errors.ErrEmpty.Is(err):
 			// No more messages queued for execution at this time.
-			return tags, vdiff, nil
+			return tags, vDiff, nil
 		default:
-			return tags, vdiff, errors.Wrap(err, "cannot pop queue")
+			return tags, vDiff, errors.Wrap(err, "cannot pop queue")
 		}
 	}
 }
