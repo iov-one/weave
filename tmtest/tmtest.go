@@ -7,6 +7,7 @@ package tmtest
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
@@ -58,11 +59,18 @@ func RunTendermint(ctx context.Context, t TestReporter, home string) (cleanup fu
 	t.Logf("Running %s pid=%d", tmpath, cmd.Process.Pid)
 
 	// Return a cleanup function, that will wait for the tendermint to stop.
-	//nolint
-	return func() {
+	// We also auto-kill when the context is Done
+	cleanup = func() {
+		fmt.Println("tendermint cleanup called")
 		cmd.Process.Kill()
 		cmd.Wait()
 	}
+	go func() {
+		fmt.Println("Waiting to kill tendermint")
+		<-ctx.Done()
+		cleanup()
+	}()
+	return cleanup
 }
 
 // RunBnsd is like RunTendermint, just executes the bnsd executable, assuming a prepared home directory
@@ -92,12 +100,19 @@ func RunBnsd(ctx context.Context, t TestReporter, home string) (cleanup func()) 
 	time.Sleep(2 * time.Second)
 	t.Logf("Running %s pid=%d", bnsdpath, cmd.Process.Pid)
 
-	// Return a cleanup function, that will wait for the tendermint to stop.
-	//nolint
-	return func() {
+	// Return a cleanup function, that will wait for bnsd to stop.
+	// We also auto-kill when the context is Done
+	cleanup = func() {
+		fmt.Println("bnsd cleanup called")
 		cmd.Process.Kill()
 		cmd.Wait()
 	}
+	go func() {
+		fmt.Println("Waiting to kill bnsd")
+		<-ctx.Done()
+		cleanup()
+	}()
+	return cleanup
 }
 
 // SetupConfig creates a homedir to run inside,

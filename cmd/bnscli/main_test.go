@@ -20,6 +20,13 @@ const privKeyHex = "d34c1970ae90acf3405f2d99dcaca16d0c7db379f4beafcfdf667b9d69ce
 const addr = "E28AE9A6EB94FC88B73EB7CBD6B87BF93EB9BEF0"
 
 func TestMain(m *testing.M) {
+	code := runTestMain(m)
+	os.Exit(code)
+}
+
+// we need to do setup in a separate function, so cleanup is properly called
+// os.Exit(code) above will never call defer
+func runTestMain(m *testing.M) int {
 	var t mockAsserter
 
 	home, cleanup := tmtest.SetupConfig(t, "testdata")
@@ -30,10 +37,10 @@ func TestMain(m *testing.M) {
 	defer tmtest.RunBnsd(ctx, t, home)()
 	defer tmtest.RunTendermint(ctx, t, home)()
 
-	code := m.Run()
-	os.Exit(code)
+	return m.Run()
 }
 
+// mockAsserter lets us use the assert calls even though we have testing.M not testing.T
 type mockAsserter struct{}
 
 var _ tmtest.TestReporter = mockAsserter{}
