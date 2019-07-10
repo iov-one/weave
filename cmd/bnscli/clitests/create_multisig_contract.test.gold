@@ -1,10 +1,4 @@
 {
-	"fees": {
-		"fees": {
-			"whole": 1,
-			"ticker": "IOV"
-		}
-	},
 	"Sum": {
 		"MultisigCreateMsg": {
 			"metadata": {

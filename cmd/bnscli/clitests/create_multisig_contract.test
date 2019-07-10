@@ -8,5 +8,4 @@ bnscli multisig -activation 4 -admin 8 \
 	| bnscli with-multisig-participant -weight 3 -sig "seq:foo/bar/2" \
 	| bnscli with-multisig-participant -weight 5 -sig "seq:foo/bar/3" \
 	| bnscli with-multisig-participant -weight 6 -sig "seq:foo/bar/4" \
-	| bnscli with-fee \
 	| bnscli view

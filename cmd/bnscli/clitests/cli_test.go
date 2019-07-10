@@ -29,14 +29,9 @@ func TestAll(t *testing.T) {
 		t.Run(tf, func(t *testing.T) {
 			cmd := exec.Command("/bin/bash", tf)
 
-			// Use host's environment to run the tests. This allows
-			// to provide the same setup as when running each
-			// script directly.
-			// To ensure that all commands are using tendermint
-			// mock server, set environment variable to enforce
-			// that.
-			// Port is set in testdata/config/config.toml under [rpc]laddr
-			cmd.Env = append(os.Environ(), "BNSCLI_TM_ADDR=http://localhost:44444")
+			// we don't support any remove servers here
+			// BNSCLI_TM_ADDR must be unset
+			cmd.Env = append(os.Environ(), "BNSCLI_TM_ADDR=")
 
 			out, err := cmd.Output()
 			if err != nil {
