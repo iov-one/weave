@@ -232,6 +232,7 @@ func TestTicker(t *testing.T) {
 			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 			defer cancel()
 			ctx = weave.WithBlockTime(ctx, now)
+			ctx = weave.WithHeight(ctx, 999)
 
 			// Use tick instead of Tick method so that the error is
 			// returned instead of terminating the process.
@@ -245,6 +246,7 @@ func TestTicker(t *testing.T) {
 			for i, task := range tc.Tasks {
 				wasExec := containsPairValue(tags, task.id)
 				if wasExec != task.WantExec {
+					t.Logf("%d tags created: %q", len(tags), tags)
 					t.Fatalf("task #%d (%q) unexpected execution state: %v", i, task.Msg.Path(), wasExec)
 				}
 			}

@@ -194,7 +194,7 @@ func (t *Ticker) tick(ctx context.Context, db store.CacheableKVStore) ([]common.
 	}
 	blockHeight, ok := weave.GetHeight(ctx)
 	if !ok {
-		return tags, vDiff, errors.Wrap(err, "cannot get current block height")
+		return tags, vDiff, errors.Wrap(errors.ErrState, "cannot get current block height")
 	}
 
 	for {
