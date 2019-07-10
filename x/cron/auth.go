@@ -7,6 +7,12 @@ import (
 	"github.com/iov-one/weave/x"
 )
 
+type ctxKey int
+
+const (
+	ctxKeyConditions ctxKey = iota
+)
+
 // withAuth returns a context instance with the conditions attached. Attached
 // conditions are used for authentication by authenticator implementation from
 // this package.
@@ -43,9 +49,3 @@ func (a Authenticator) HasAddress(ctx weave.Context, addr weave.Address) bool {
 	}
 	return false
 }
-
-type ctxKey int
-
-const (
-	ctxKeyConditions ctxKey = iota
-)
