@@ -2,16 +2,13 @@ package main
 
 import (
 	"bytes"
-	"context"
 	"flag"
 	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"testing"
-	"time"
 
-	"github.com/iov-one/weave/tmtest"
 	"github.com/pmezard/go-difflib/difflib"
 )
 
@@ -27,14 +24,6 @@ func TestAll(t *testing.T) {
 	if len(testFiles) == 0 {
 		t.Skip("no test files found")
 	}
-
-	home, cleanup := tmtest.SetupConfig(t, "testdata")
-	defer cleanup()
-
-	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
-	defer cancel()
-	defer tmtest.RunBnsd(ctx, t, home)()
-	defer tmtest.RunTendermint(ctx, t, home)()
 
 	for _, tf := range testFiles {
 		t.Run(tf, func(t *testing.T) {
