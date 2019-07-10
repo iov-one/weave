@@ -7,8 +7,15 @@ import (
 	"github.com/iov-one/weave/errors"
 )
 
+// Asserter is the minimal subset of testing.TB needed to run most assert commands
+type Asserter interface {
+	Helper()
+	Fatal(...interface{})
+	Fatalf(string, ...interface{})
+}
+
 // Nil fails the test if given value is not nil.
-func Nil(t testing.TB, value interface{}) {
+func Nil(t Asserter, value interface{}) {
 	t.Helper()
 	if !isNil(value) {
 		// Use %+v so that if we are printing an error that supports
@@ -36,7 +43,7 @@ func isNil(value interface{}) (isnil bool) {
 }
 
 // Equal fails the test if two values are not equal.
-func Equal(t testing.TB, want, got interface{}) {
+func Equal(t Asserter, want, got interface{}) {
 	t.Helper()
 	if !reflect.DeepEqual(want, got) {
 		t.Fatalf("values not equal \nwant %T %v\n got %T %v", want, want, got, got)
@@ -45,7 +52,7 @@ func Equal(t testing.TB, want, got interface{}) {
 
 // Panics will run given function and recover any panic. It will fail the test
 // if given function call did not panic.
-func Panics(t testing.TB, fn func()) {
+func Panics(t Asserter, fn func()) {
 	t.Helper()
 	defer func() {
 		if recover() == nil {

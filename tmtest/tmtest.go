@@ -12,11 +12,17 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"testing"
 	"time"
 
 	"github.com/iov-one/weave/weavetest/assert"
 )
+
+// TestReporter is the minimal subset of testing.TB needed to run these test helpers
+type TestReporter interface {
+	assert.Asserter
+	Skip(...interface{})
+	Logf(string, ...interface{})
+}
 
 // RunTendermint starts a tendermit process. Returned cleanup function will
 // ensure the process has stopped and will block until.
@@ -25,7 +31,7 @@ import (
 // not available. This might be desired when running tests by CI.
 //
 // Set TM_DEBUG=1 environmental variable to output all tm logs
-func RunTendermint(ctx context.Context, t *testing.T, home string) (cleanup func()) {
+func RunTendermint(ctx context.Context, t TestReporter, home string) (cleanup func()) {
 	t.Helper()
 
 	tmpath, err := exec.LookPath("tendermint")
@@ -60,7 +66,7 @@ func RunTendermint(ctx context.Context, t *testing.T, home string) (cleanup func
 }
 
 // RunBnsd is like RunTendermint, just executes the bnsd executable, assuming a prepared home directory
-func RunBnsd(ctx context.Context, t *testing.T, home string) (cleanup func()) {
+func RunBnsd(ctx context.Context, t TestReporter, home string) (cleanup func()) {
 	t.Helper()
 
 	bnsdpath, err := exec.LookPath("bnsd")
@@ -101,17 +107,17 @@ func RunBnsd(ctx context.Context, t *testing.T, home string) (cleanup func()) {
 // via `tendermint init` (sourceDir can usually be "testdata")
 //
 // second argument is cleanup call
-func SetupConfig(t *testing.T, sourceDir string) (string, func()) {
+func SetupConfig(t assert.Asserter, sourceDir string) (string, func()) {
 	rootDir, err := ioutil.TempDir("", "mock-sdk-cmd")
 	assert.Nil(t, err)
 	cleanup := func() { os.RemoveAll(rootDir) }
 
-	err = copyFiles(t, sourceDir, rootDir, "config")
+	err = copyFiles(sourceDir, rootDir, "config")
 	if err != nil {
 		cleanup()
 		t.Fatalf("Cannot copy config files: %+v", err)
 	}
-	err = copyFiles(t, sourceDir, rootDir, "data")
+	err = copyFiles(sourceDir, rootDir, "data")
 	if err != nil {
 		cleanup()
 		t.Fatalf("Cannot copy data files: %+v", err)
@@ -119,7 +125,7 @@ func SetupConfig(t *testing.T, sourceDir string) (string, func()) {
 	return rootDir, cleanup
 }
 
-func copyFiles(t *testing.T, sourceDir, rootDir, subDir string) error {
+func copyFiles(sourceDir, rootDir, subDir string) error {
 	// make the output dir
 	outDir := filepath.Join(rootDir, subDir)
 	err := os.Mkdir(outDir, 0755)
