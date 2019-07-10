@@ -17,4 +17,8 @@ message TaskResult {
   // Info contains any additinal information that might be useful to lean more
   // about the task execution.
   string info = 3;
+  // Exec time hold the information of when the task was executed.
+  int64 exec_time = 4 ;
+  // Exec height holds the block height value at the time the task was executed.
+  int64 exec_height = 5;
 }

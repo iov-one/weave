@@ -21,6 +21,8 @@ func (t *TaskResult) Copy() orm.CloneableData {
 		Metadata:   t.Metadata.Copy(),
 		Successful: t.Successful,
 		Info:       t.Info,
+		ExecTime:   t.ExecTime,
+		ExecHeight: t.ExecHeight,
 	}
 }
 

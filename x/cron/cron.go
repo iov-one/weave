@@ -186,6 +186,10 @@ func (t *Ticker) tick(ctx context.Context, db store.CacheableKVStore) ([]common.
 	if err != nil {
 		return tags, vdiff, errors.Wrap(err, "cannot get current time")
 	}
+	blockHeight, ok := weave.GetHeight(ctx)
+	if !ok {
+		return tags, vdiff, errors.Wrap(err, "cannot get current block height")
+	}
 
 	for {
 		switch key, raw, err := peek(db, now); {
@@ -194,6 +198,8 @@ func (t *Ticker) tick(ctx context.Context, db store.CacheableKVStore) ([]common.
 			res := TaskResult{
 				Metadata:   &weave.Metadata{Schema: 1},
 				Successful: true,
+				ExecTime:   weave.AsUnixTime(now),
+				ExecHeight: blockHeight,
 			}
 
 			// Each task is processed using its own cache instance
