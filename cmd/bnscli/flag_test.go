@@ -5,19 +5,22 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"flag"
+	"io/ioutil"
 	"testing"
 	"time"
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/coin"
+	"github.com/iov-one/weave/weavetest/assert"
 )
 
 func TestSeqFlag(t *testing.T) {
 	cases := map[string]struct {
-		setup   func(fl *flag.FlagSet) *flagseq
-		args    []string
-		wantDie int
-		wantVal []byte
+		setup     func(fl *flag.FlagSet) *flagseq
+		args      []string
+		wantDie   int
+		wantError bool
+		wantVal   []byte
 	}{
 		"use default value, decimal representation": {
 			setup: func(fl *flag.FlagSet) *flagseq {
@@ -59,9 +62,14 @@ func TestSeqFlag(t *testing.T) {
 			defer cleanup()
 
 			fl := flag.NewFlagSet("", flag.ContinueOnError)
+			fl.SetOutput(ioutil.Discard)
 			val := tc.setup(fl)
 			err := fl.Parse(tc.args)
-			t.Logf("parse error: %+v", err)
+			if !tc.wantError {
+				assert.Nil(t, err)
+			} else if err == nil {
+				t.Fatal("Expected error but got none")
+			}
 			if *cnt != tc.wantDie {
 				t.Errorf("want %d flagDie calls, got %d", tc.wantDie, cnt)
 			}
@@ -76,10 +84,11 @@ func TestTimeFlag(t *testing.T) {
 	now := time.Now()
 
 	cases := map[string]struct {
-		setup   func(fl *flag.FlagSet) *flagTime
-		args    []string
-		wantDie int
-		wantVal time.Time
+		setup     func(fl *flag.FlagSet) *flagTime
+		args      []string
+		wantDie   int
+		wantError bool
+		wantVal   time.Time
 	}{
 		"use default value": {
 			setup: func(fl *flag.FlagSet) *flagTime {
@@ -97,9 +106,14 @@ func TestTimeFlag(t *testing.T) {
 			defer cleanup()
 
 			fl := flag.NewFlagSet("", flag.ContinueOnError)
+			fl.SetOutput(ioutil.Discard)
 			val := tc.setup(fl)
 			err := fl.Parse(tc.args)
-			t.Logf("parse error: %+v", err)
+			if !tc.wantError {
+				assert.Nil(t, err)
+			} else if err == nil {
+				t.Fatal("Expected error but got none")
+			}
 			if *cnt != tc.wantDie {
 				t.Errorf("want %d flagDie calls, got %d", tc.wantDie, cnt)
 			}
@@ -112,10 +126,11 @@ func TestTimeFlag(t *testing.T) {
 
 func TestHexFlag(t *testing.T) {
 	cases := map[string]struct {
-		setup   func(fl *flag.FlagSet) *flagbytes
-		args    []string
-		wantDie int
-		wantVal []byte
+		setup     func(fl *flag.FlagSet) *flagbytes
+		args      []string
+		wantDie   int
+		wantError bool
+		wantVal   []byte
 	}{
 		"use default value": {
 			setup: func(fl *flag.FlagSet) *flagbytes {
@@ -143,9 +158,10 @@ func TestHexFlag(t *testing.T) {
 			setup: func(fl *flag.FlagSet) *flagbytes {
 				return flHex(fl, "x", "1122", "")
 			},
-			args:    []string{"-x", "RRR"},
-			wantDie: 0,
-			wantVal: fromHex(t, "1122"),
+			args:      []string{"-x", "RRR"},
+			wantDie:   0,
+			wantError: true,
+			wantVal:   fromHex(t, "1122"),
 		},
 	}
 
@@ -155,9 +171,14 @@ func TestHexFlag(t *testing.T) {
 			defer cleanup()
 
 			fl := flag.NewFlagSet("", flag.ContinueOnError)
+			fl.SetOutput(ioutil.Discard)
 			val := tc.setup(fl)
 			err := fl.Parse(tc.args)
-			t.Logf("parse error: %+v", err)
+			if !tc.wantError {
+				assert.Nil(t, err)
+			} else if err == nil {
+				t.Fatal("Expected error but got none")
+			}
 			if *cnt != tc.wantDie {
 				t.Errorf("want %d flagDie calls, got %d", tc.wantDie, cnt)
 			}
@@ -170,10 +191,11 @@ func TestHexFlag(t *testing.T) {
 
 func TestCoinFlag(t *testing.T) {
 	cases := map[string]struct {
-		setup   func(fl *flag.FlagSet) *coin.Coin
-		args    []string
-		wantDie int
-		wantVal coin.Coin
+		setup     func(fl *flag.FlagSet) *coin.Coin
+		args      []string
+		wantDie   int
+		wantError bool
+		wantVal   coin.Coin
 	}{
 		"use default value": {
 			setup: func(fl *flag.FlagSet) *coin.Coin {
@@ -201,9 +223,10 @@ func TestCoinFlag(t *testing.T) {
 			setup: func(fl *flag.FlagSet) *coin.Coin {
 				return flCoin(fl, "x", "1 IOV", "")
 			},
-			args:    []string{"-x", "ZZZ"},
-			wantDie: 0,
-			wantVal: coin.NewCoin(1, 0, "IOV"),
+			args:      []string{"-x", "ZZZ"},
+			wantDie:   0,
+			wantError: true,
+			wantVal:   coin.NewCoin(1, 0, "IOV"),
 		},
 	}
 
@@ -213,9 +236,14 @@ func TestCoinFlag(t *testing.T) {
 			defer cleanup()
 
 			fl := flag.NewFlagSet("", flag.ContinueOnError)
+			fl.SetOutput(ioutil.Discard)
 			c := tc.setup(fl)
 			err := fl.Parse(tc.args)
-			t.Logf("parse error: %+v", err)
+			if !tc.wantError {
+				assert.Nil(t, err)
+			} else if err == nil {
+				t.Fatal("Expected error but got none")
+			}
 			if *cnt != tc.wantDie {
 				t.Errorf("want %d flagDie calls, got %d", tc.wantDie, cnt)
 			}
@@ -228,10 +256,11 @@ func TestCoinFlag(t *testing.T) {
 
 func TestAddressFlag(t *testing.T) {
 	cases := map[string]struct {
-		setup   func(fl *flag.FlagSet) *weave.Address
-		args    []string
-		wantDie int
-		wantVal weave.Address
+		setup     func(fl *flag.FlagSet) *weave.Address
+		args      []string
+		wantDie   int
+		wantError bool
+		wantVal   weave.Address
 	}{
 		"use default value": {
 			setup: func(fl *flag.FlagSet) *weave.Address {
@@ -271,9 +300,14 @@ func TestAddressFlag(t *testing.T) {
 			defer cleanup()
 
 			fl := flag.NewFlagSet("", flag.ContinueOnError)
+			fl.SetOutput(ioutil.Discard)
 			addr := tc.setup(fl)
 			err := fl.Parse(tc.args)
-			t.Logf("parse error: %+v", err)
+			if !tc.wantError {
+				assert.Nil(t, err)
+			} else if err == nil {
+				t.Fatal("Expected error but got none")
+			}
 			if *cnt != tc.wantDie {
 				t.Errorf("want %d flagDie calls, got %d", tc.wantDie, cnt)
 			}
@@ -294,7 +328,7 @@ func observeFlagDie(t testing.TB) (*int, func()) {
 
 	var cnt int
 	flagDie = func(s string, args ...interface{}) {
-		t.Logf("flagDie called: "+s, args...)
+		// t.Logf("flagDie called: "+s, args...)
 		cnt++
 	}
 	cleanup := func() {
