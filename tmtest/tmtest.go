@@ -20,7 +20,7 @@ import (
 
 // TestReporter is the minimal subset of testing.TB needed to run these test helpers
 type TestReporter interface {
-	assert.Asserter
+	assert.Tester
 	Skip(...interface{})
 	Logf(string, ...interface{})
 }
@@ -122,7 +122,7 @@ func RunBnsd(ctx context.Context, t TestReporter, home string) (cleanup func()) 
 // via `tendermint init` (sourceDir can usually be "testdata")
 //
 // second argument is cleanup call
-func SetupConfig(t assert.Asserter, sourceDir string) (string, func()) {
+func SetupConfig(t assert.Tester, sourceDir string) (string, func()) {
 	rootDir, err := ioutil.TempDir("", "mock-sdk-cmd")
 	assert.Nil(t, err)
 	cleanup := func() { os.RemoveAll(rootDir) }

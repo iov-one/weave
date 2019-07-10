@@ -29,7 +29,7 @@ func TestAll(t *testing.T) {
 		t.Run(tf, func(t *testing.T) {
 			cmd := exec.Command("/bin/bash", tf)
 
-			// we don't support any remove servers here
+			// we don't support any remote servers in shell tests (those are in bnscli unit tests)
 			// BNSCLI_TM_ADDR must be unset
 			cmd.Env = append(os.Environ(), "BNSCLI_TM_ADDR=")
 
