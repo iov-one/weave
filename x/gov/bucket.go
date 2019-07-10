@@ -172,8 +172,8 @@ func asResolution(obj orm.Object) (*Resolution, error) {
 }
 
 const (
-	indexNameProposal = "proposal"
-	indexNameElector  = "elector"
+	indexNameProposal = "proposals"
+	indexNameElector  = "electors"
 )
 
 // VoteBucket is the persistence bucket for votes.
