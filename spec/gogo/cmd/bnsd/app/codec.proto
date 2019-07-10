@@ -52,7 +52,7 @@ message Tx {
     migration.UpgradeSchemaMsg migration_upgrade_schema_msg = 69;
     aswap.CreateMsg aswap_create_msg = 70;
     aswap.ReleaseMsg aswap_release_msg = 71;
-    aswap.ReturnSwapMsg aswap_return_msg = 72;
+    aswap.ReturnMsg aswap_return_msg = 72;
     gov.CreateProposalMsg gov_create_proposal_msg = 73;
     gov.DeleteProposalMsg gov_delete_proposal_msg = 74;
     gov.VoteMsg gov_vote_msg = 75;
