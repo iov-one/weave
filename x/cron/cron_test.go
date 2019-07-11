@@ -16,6 +16,40 @@ import (
 	"github.com/tendermint/tendermint/libs/common"
 )
 
+func TestSchedulerDelete(t *testing.T) {
+	db := store.MemStore()
+	now := time.Now()
+
+	enc := NewTestTaskMarshaler(&weavetest.Msg{})
+	s := NewScheduler(enc)
+
+	if err := s.Delete(db, []byte("task-with-this-id-does-not-exist")); !errors.ErrNotFound.Is(err) {
+		t.Fatalf("deletion of a non existing task failed with an unexpected error: %s", err)
+	}
+
+	tid, err := s.Schedule(db, now, nil, &weavetest.Msg{})
+	if err != nil {
+		t.Fatalf("cannot schedule a task: %s", err)
+	}
+	if err := s.Delete(db, tid); err != nil {
+		t.Fatalf("cannot delete a scheduled task: %s", err)
+	}
+	if err := s.Delete(db, tid); !errors.ErrNotFound.Is(err) {
+		t.Fatalf("double deletion failed with an unexpected error: %s", err)
+	}
+
+	// Use nil as handler so that it panics if used. This ticker is not
+	// able to successfully process a task.
+	ticker := NewTicker(nil, enc)
+
+	ctx := context.Background()
+	ctx = weave.WithBlockTime(ctx, now.Add(time.Hour))
+	ctx = weave.WithHeight(ctx, 123)
+	// Tick must process no tasks. It will crash this process if any task
+	// is to be processed because we use nil handler.
+	ticker.Tick(ctx, db)
+}
+
 func TestRoundT(t *testing.T) {
 	cases := map[string]struct {
 		input       time.Time
