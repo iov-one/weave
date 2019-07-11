@@ -19,7 +19,7 @@ type ABCIStore struct {
 
 var _ weave.ReadOnlyKVStore = (*ABCIStore)(nil)
 
-func NewABCIStore(app abci.Application) *ABCIStore {
+func NewABCIStore(app Queryable) *ABCIStore {
 	return &ABCIStore{app: app}
 }
 

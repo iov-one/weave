@@ -19,8 +19,8 @@ func TestStartStandAlone(t *testing.T) {
 		t.Skip("Skipping ABCI stand-alone test")
 	}
 
-	home := setupConfig(t)
-	defer os.RemoveAll(home)
+	home, cleanup := tmtest.SetupConfig(t, "testdata")
+	defer cleanup()
 
 	logger := log.NewNopLogger()
 
@@ -65,8 +65,8 @@ func TestStartWithTendermint(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 6*time.Second)
 	defer cancel()
 
-	home := setupConfig(t)
-	defer os.RemoveAll(home)
+	home, cleanup := tmtest.SetupConfig(t, "testdata")
+	defer cleanup()
 
 	logger := log.NewTMLogger(log.NewSyncWriter(os.Stdout)).
 		With("module", "test-cmd")

@@ -1,0 +1,84 @@
+{
+  "app_hash": "",
+  "app_state": {
+    "cash": [
+      {
+        "address": "E28AE9A6EB94FC88B73EB7CBD6B87BF93EB9BEF0",
+        "coins": [
+          {
+            "whole": 123456789,
+            "ticker": "IOV"
+          }
+        ]
+      }
+    ],
+		"currencies": [
+			{
+				"ticker": "IOV",
+				"name":   "Main token of this chain"
+			}
+    ],
+    "multisig": [],
+    "update_validators": {
+      "addresses": [
+        "E28AE9A6EB94FC88B73EB7CBD6B87BF93EB9BEF0"
+      ]
+    },
+		"conf": {
+			"cash": {
+				"collector_address": "seq:dist/revenue/1",
+				"minimal_fee": "0.1 IOV"
+			},
+			"migration": {
+				"admin": "E28AE9A6EB94FC88B73EB7CBD6B87BF93EB9BEF0"
+			}
+		},
+    "distribution": [],
+    "initialize_schema": [
+			{"ver": 1, "pkg": "batch"},
+			{"ver": 1, "pkg": "cash"},
+			{"ver": 1, "pkg": "currency"},
+			{"ver": 1, "pkg": "distribution"},
+			{"ver": 1, "pkg": "escrow"},
+			{"ver": 1, "pkg": "gov"},
+			{"ver": 1, "pkg": "msgfee"},
+			{"ver": 1, "pkg": "multisig"},
+			{"ver": 1, "pkg": "paychan"},
+			{"ver": 1, "pkg": "sigs"},
+			{"ver": 1, "pkg": "username"},
+			{"ver": 1, "pkg": "utils"},
+			{"ver": 1, "pkg": "validators"}      
+    ],
+    "msgfee": [
+      {"msg_path": "multisig/create", "fee": "1 IOV"}
+    ]
+  },
+  "chain_id": "clitest-chain",
+  "consensus_params": {
+    "block": {
+      "max_bytes": "22020096",
+      "max_gas": "-1",
+      "time_iota_ms": "1000"
+    },
+    "evidence": {
+      "max_age": "100000"
+    },
+    "validator": {
+      "pub_key_types": [
+        "ed25519"
+      ]
+    }
+  },
+  "genesis_time": "2019-07-03T14:08:34.03961413Z",
+  "validators": [
+    {
+      "address": "18ECE148CD27F2C06D0FDE4344B3776106BC7CEB",
+      "pub_key": {
+        "type": "tendermint/PubKeyEd25519",
+        "value": "ntSF85xTYbORhgbLQywVMUTRqL4czugF9JLm/35HBlY="
+      },
+      "power": "10",
+      "name": ""
+    }
+  ]
+}

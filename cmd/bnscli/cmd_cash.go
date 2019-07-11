@@ -1,15 +1,14 @@
 package main
 
 import (
-	"encoding/json"
 	"flag"
 	"fmt"
 	"io"
-	"net/http"
 
 	"github.com/iov-one/weave"
 	bnsd "github.com/iov-one/weave/cmd/bnsd/app"
 	"github.com/iov-one/weave/coin"
+	"github.com/iov-one/weave/gconf"
 	"github.com/iov-one/weave/x/cash"
 )
 
@@ -84,6 +83,7 @@ already has a fee set, overwrite it with a new value.
 		if err != nil {
 			return fmt.Errorf("cannot extract message from transaction: %s", err)
 		}
+
 		fee, err := msgfeeConf(*tmAddrFl, msg.Path())
 		if err != nil {
 			return fmt.Errorf("cannot fetch %T message fee information: %s", msg, err)
@@ -111,27 +111,10 @@ already has a fee set, overwrite it with a new value.
 }
 
 func cashGconf(nodeUrl string) (*cash.Configuration, error) {
-	queryUrl := nodeUrl + "/abci_query?path=%22/%22&data=%22_c:cash%22"
-	resp, err := http.Get(queryUrl)
-	if err != nil {
-		return nil, fmt.Errorf("http request failed: %s", err)
-	}
-	defer resp.Body.Close()
-
-	var payload struct {
-		Result struct {
-			Response struct {
-				Value []byte
-			}
-		}
-	}
-	if err := json.NewDecoder(resp.Body).Decode(&payload); err != nil {
-		return nil, fmt.Errorf("cannot decode payload: %s", err)
-	}
-
+	store := tendermintStore(nodeUrl)
 	var conf cash.Configuration
-	if err := conf.Unmarshal(payload.Result.Response.Value); err != nil {
-		return nil, fmt.Errorf("cannot decode configuration: %s", err)
+	if err := gconf.Load(store, "cash", &conf); err != nil {
+		return nil, err
 	}
 	return &conf, nil
 }
