@@ -105,3 +105,23 @@ func FieldError(t testing.TB, err error, fieldName string, want *errors.Error) {
 
 	}
 }
+
+// IsErr is a convenient helper that checks if the errors are a match
+// and prints out the difference if not as well as failing the assertion.
+func IsErr(t testing.TB, want, got error) {
+	t.Helper()
+
+	if want == got {
+		return
+	}
+
+	type comparator interface {
+		Is(error) bool
+	}
+
+	if want, ok := want.(comparator); ok && want.Is(got) {
+		return
+	}
+
+	t.Fatalf("want %q, got %+v", want, got)
+}

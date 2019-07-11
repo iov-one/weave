@@ -3,6 +3,47 @@ package assert
 import "testing"
 import "github.com/iov-one/weave/errors"
 
+func TestIsErr(t *testing.T) {
+	cases := map[string]struct {
+		ErrWant  error
+		ErrGot   error
+		Result   bool
+		WantFail bool
+	}{
+		"same error": {
+			ErrWant:  errors.ErrEmpty,
+			ErrGot:   errors.ErrEmpty,
+			WantFail: false,
+		},
+		"compared to nil": {
+			ErrWant:  nil,
+			ErrGot:   errors.ErrEmpty,
+			WantFail: true,
+		},
+		"both nil": {
+			ErrWant:  nil,
+			ErrGot:   nil,
+			WantFail: false,
+		},
+		"wrapped": {
+			ErrWant:  errors.ErrEmpty,
+			ErrGot:   errors.Wrap(errors.ErrEmpty, "test"),
+			WantFail: false,
+		},
+	}
+
+	for testName, tc := range cases {
+		t.Run(testName, func(t *testing.T) {
+			mock := &tmock{TB: t}
+			IsErr(mock, tc.ErrWant, tc.ErrGot)
+			failed := mock.failcalls > 0
+			if tc.WantFail != failed {
+				t.Fatalf("unlexpected failed call state: %d failures", mock.failcalls)
+			}
+		})
+	}
+}
+
 func TestFieldErrors(t *testing.T) {
 	cases := map[string]struct {
 		Err      error

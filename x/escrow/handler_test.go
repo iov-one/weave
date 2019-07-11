@@ -2,19 +2,20 @@ package escrow
 
 import (
 	"context"
+	"fmt"
 	"testing"
 	"time"
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/app"
 	"github.com/iov-one/weave/coin"
+	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/store"
 	"github.com/iov-one/weave/weavetest"
+	"github.com/iov-one/weave/weavetest/assert"
 	"github.com/iov-one/weave/x/cash"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 var (
@@ -57,7 +58,8 @@ func TestHandler(t *testing.T) {
 		// tx to test
 		do action
 		// check if do should return an error
-		isError bool
+		err error
+
 		// otherwise, a series of queries...
 		queries []query
 	}{
@@ -66,25 +68,25 @@ func TestHandler(t *testing.T) {
 			all,
 			nil, // no prep, just one action
 			createAction(a, b, c, all, ""),
-			false,
+			nil,
 			[]query{
 				// verify escrow is stored
 				{
-					"/escrows", "", weavetest.SequenceID(1), false,
+					"/escrows", "", weavetest.SequenceID(1),
 					[]orm.Object{
 						NewEscrow(weavetest.SequenceID(1), a.Address(), b.Address(), c.Address(), all, Timeout, ""),
 					},
 					NewBucket().Bucket,
 				},
 				// bank deducted from source
-				{"/wallets", "", a.Address(), false,
+				{"/wallets", "", a.Address(),
 					[]orm.Object{
 						cash.NewWallet(a.Address()),
 					},
 					cash.NewBucket().Bucket,
 				},
 				// and added to escrow
-				{"/wallets", "", escrowAddr(1), false,
+				{"/wallets", "", escrowAddr(1),
 					[]orm.Object{
 						mo(cash.WalletWith(escrowAddr(1), all...)),
 					},
@@ -97,11 +99,11 @@ func TestHandler(t *testing.T) {
 			all,
 			nil, // no prep, just one action
 			createAction(a, b, c, some, ""),
-			false,
+			nil,
 			[]query{
 				// verify escrow is stored
 				{
-					"/escrows", "", weavetest.SequenceID(1), false,
+					"/escrows", "", weavetest.SequenceID(1),
 					[]orm.Object{
 						NewEscrow(weavetest.SequenceID(1), a.Address(), b.Address(), c.Address(), some, Timeout, ""),
 					},
@@ -109,7 +111,7 @@ func TestHandler(t *testing.T) {
 				},
 				// make sure source index works
 				{
-					"/escrows/source", "", a.Address(), false,
+					"/escrows/source", "", a.Address(),
 					[]orm.Object{
 						NewEscrow(weavetest.SequenceID(1), a.Address(), b.Address(), c.Address(), some, Timeout, ""),
 					},
@@ -117,7 +119,7 @@ func TestHandler(t *testing.T) {
 				},
 				// make sure destination index works
 				{
-					"/escrows/destination", "", b.Address(), false,
+					"/escrows/destination", "", b.Address(),
 					[]orm.Object{
 						NewEscrow(weavetest.SequenceID(1), a.Address(), b.Address(), c.Address(), some, Timeout, ""),
 					},
@@ -125,7 +127,7 @@ func TestHandler(t *testing.T) {
 				},
 				// make sure arbiter index works
 				{
-					"/escrows/arbiter", "", c.Address(), false,
+					"/escrows/arbiter", "", c.Address(),
 					[]orm.Object{
 						NewEscrow(weavetest.SequenceID(1), a.Address(), b.Address(), c.Address(), some, Timeout, ""),
 					},
@@ -133,21 +135,21 @@ func TestHandler(t *testing.T) {
 				},
 				// make sure wrong query misses
 				{
-					"/escrows/arbiter", "", b, false, nil, NewBucket().Bucket,
+					"/escrows/arbiter", "", b, nil, NewBucket().Bucket,
 				},
 				// others id are empty
 				{
-					"/escrows", "", weavetest.SequenceID(2), false, nil, zeroBucket,
+					"/escrows", "", weavetest.SequenceID(2), nil, zeroBucket,
 				},
 				// bank deducted from source
-				{"/wallets", "", a.Address(), false,
+				{"/wallets", "", a.Address(),
 					[]orm.Object{
 						mo(cash.WalletWith(a.Address(), remain...)),
 					},
 					cash.NewBucket().Bucket,
 				},
 				// and added to escrow
-				{"/wallets", "", escrowAddr(1), false,
+				{"/wallets", "", escrowAddr(1),
 					[]orm.Object{
 						mo(cash.WalletWith(escrowAddr(1), some...)),
 					},
@@ -160,7 +162,7 @@ func TestHandler(t *testing.T) {
 			some,
 			nil, // no prep, just one action
 			createAction(a, b, c, all, ""),
-			true,
+			errors.ErrAmount,
 			nil,
 		},
 		"cannot send money from other account": {
@@ -172,7 +174,7 @@ func TestHandler(t *testing.T) {
 				perms: []weave.Condition{b},
 				msg:   NewCreateMsg(a.Address(), b.Address(), c.Address(), some, Timeout, ""),
 			},
-			true,
+			errors.ErrUnauthorized,
 			nil,
 		},
 		"cannot set timeout in the past": {
@@ -185,7 +187,7 @@ func TestHandler(t *testing.T) {
 				msg:       NewCreateMsg(nil, b.Address(), c.Address(), all, weave.AsUnixTime(blockNow.Add(-2*time.Hour)), ""),
 				blockTime: Timeout.Time().Add(-time.Hour),
 			},
-			true,
+			errors.ErrInput,
 			nil,
 		},
 		"arbiter can successfully release all": {
@@ -199,28 +201,28 @@ func TestHandler(t *testing.T) {
 					EscrowId: weavetest.SequenceID(1),
 				},
 			},
-			false,
+			nil,
 			[]query{
 				// verify escrow is deleted
 				{
-					"/escrows", "", weavetest.SequenceID(1), false, nil, zeroBucket,
+					"/escrows", "", weavetest.SequenceID(1), nil, zeroBucket,
 				},
 				// escrow is empty
-				{"/wallets", "", escrowAddr(1), false,
+				{"/wallets", "", escrowAddr(1),
 					[]orm.Object{
 						cash.NewWallet(escrowAddr(1)),
 					},
 					cash.NewBucket().Bucket,
 				},
 				// source is broke
-				{"/wallets", "", a.Address(), false,
+				{"/wallets", "", a.Address(),
 					[]orm.Object{
 						cash.NewWallet(a.Address()),
 					},
 					cash.NewBucket().Bucket,
 				},
 				// destination has bank
-				{"/wallets", "", b.Address(), false,
+				{"/wallets", "", b.Address(),
 					[]orm.Object{
 						mo(cash.WalletWith(b.Address(), all...)),
 					},
@@ -240,32 +242,32 @@ func TestHandler(t *testing.T) {
 					Amount:   some,
 				},
 			},
-			false,
+			nil,
 			[]query{
 				// verify escrow balance is updated
 				{
-					"/escrows", "", weavetest.SequenceID(1), false,
+					"/escrows", "", weavetest.SequenceID(1),
 					[]orm.Object{
 						NewEscrow(weavetest.SequenceID(1), a.Address(), b.Address(), c.Address(), remain, Timeout, "hello"),
 					},
 					NewBucket().Bucket,
 				},
 				// escrow is reduced
-				{"/wallets", "", escrowAddr(1), false,
+				{"/wallets", "", escrowAddr(1),
 					[]orm.Object{
 						mo(cash.WalletWith(escrowAddr(1), remain...)),
 					},
 					cash.NewBucket().Bucket,
 				},
 				// source is broke
-				{"/wallets", "", a.Address(), false,
+				{"/wallets", "", a.Address(),
 					[]orm.Object{
 						cash.NewWallet(a.Address()),
 					},
 					cash.NewBucket().Bucket,
 				},
 				// destination has some money
-				{"/wallets", "", b.Address(), false,
+				{"/wallets", "", b.Address(),
 					[]orm.Object{
 						mo(cash.WalletWith(b.Address(), some...)),
 					},
@@ -284,7 +286,7 @@ func TestHandler(t *testing.T) {
 					EscrowId: weavetest.SequenceID(1),
 				},
 			},
-			true,
+			errors.ErrUnauthorized,
 			nil,
 		},
 		"cannot release after timeout": {
@@ -299,60 +301,9 @@ func TestHandler(t *testing.T) {
 				},
 				blockTime: Timeout.Time().Add(time.Hour),
 			},
-			true,
+			errors.ErrExpired,
 			nil,
 		},
-		//"successful return after expired (can be done by anyone)": {
-		//	a.Address(),
-		//	all,
-		//	[]action{createAction(a, b, c, all, "")},
-		//	action{
-		//		perms: []weave.Condition{a},
-		//		msg: &ReturnMsg{
-		//			EscrowId: weavetest.SequenceID(1),
-		//		},
-		//		height: Timeout + 1,
-		//	},
-		//	false,
-		//	[]query{
-		//		// verify escrow is deleted
-		//		{
-		//			"/escrows", "", weavetest.SequenceID(1), false, nil, zeroBucket,
-		//		},
-		//		// escrow is empty
-		//		{"/wallets", "", escrowAddr(1), false,
-		//			[]orm.Object{
-		//				cash.NewWallet(escrowAddr(1)),
-		//			},
-		//			cash.NewBucket().Bucket,
-		//		},
-		//		// source recover all his money
-		//		{"/wallets", "", a.Address(), false,
-		//			[]orm.Object{
-		//				mo(cash.WalletWith(a.Address(), all...)),
-		//			},
-		//			cash.NewBucket().Bucket,
-		//		},
-		//		// destination doesn't get paid
-		//		{"/wallets", "", b.Address(), false, nil,
-		//			cash.NewBucket().Bucket,
-		//		},
-		//	},
-		//},
-		//"cannot return before timeout": {
-		//	a.Address(),
-		//	all,
-		//	[]action{createAction(a, b, c, all, "")},
-		//	action{
-		//		perms: []weave.Condition{a},
-		//		msg: &ReturnMsg{
-		//			EscrowId: weavetest.SequenceID(1),
-		//		},
-		//		height: Timeout - 1,
-		//	},
-		//	true,
-		//	nil,
-		//},
 		"we update the arbiter and then make sure the new actors are used": {
 			a.Address(),
 			all,
@@ -374,21 +325,21 @@ func TestHandler(t *testing.T) {
 					EscrowId: weavetest.SequenceID(1),
 				},
 			},
-			false,
+			nil,
 			[]query{
 				// verify escrow is deleted (resolved)
 				{
-					"/escrows", "", weavetest.SequenceID(1), false, nil, zeroBucket,
+					"/escrows", "", weavetest.SequenceID(1), nil, zeroBucket,
 				},
 				// bank deducted from source
-				{"/wallets", "", a.Address(), false,
+				{"/wallets", "", a.Address(),
 					[]orm.Object{
 						mo(cash.WalletWith(a.Address(), remain...)),
 					},
 					cash.NewBucket().Bucket,
 				},
 				// and added to destination
-				{"/wallets", "", b.Address(), false,
+				{"/wallets", "", b.Address(),
 					[]orm.Object{
 						mo(cash.WalletWith(b.Address(), some...)),
 					},
@@ -417,7 +368,7 @@ func TestHandler(t *testing.T) {
 					EscrowId: weavetest.SequenceID(1),
 				},
 			},
-			true,
+			errors.ErrUnauthorized,
 			nil,
 		},
 		"cannot update without proper permissions": {
@@ -432,24 +383,9 @@ func TestHandler(t *testing.T) {
 					Arbiter:  a.Address(),
 				},
 			},
-			true,
+			errors.ErrUnauthorized,
 			nil,
 		},
-		//"cannot update parties after timeout": {
-		//	a.Address(),
-		//	all,
-		//	[]action{createAction(a, b, c, some, "")},
-		//	action{
-		//		perms: []weave.Condition{a},
-		//		msg: &UpdatePartiesMsg{
-		//			EscrowId: weavetest.SequenceID(1),
-		//			Source:   d,
-		//		},
-		//		height: Timeout + 100,
-		//	},
-		//	true,
-		//	nil,
-		//},
 		"cannot claim escrow twice": {
 			a.Address(),
 			all,
@@ -470,28 +406,28 @@ func TestHandler(t *testing.T) {
 					EscrowId: weavetest.SequenceID(1),
 				},
 			},
-			true,
+			errors.ErrEmpty,
 			[]query{
 				// verify escrow is deleted
 				{
-					"/escrows", "", weavetest.SequenceID(1), false, nil, zeroBucket,
+					"/escrows", "", weavetest.SequenceID(1), nil, zeroBucket,
 				},
 				// escrow is empty
-				{"/wallets", "", escrowAddr(1), false,
+				{"/wallets", "", escrowAddr(1),
 					[]orm.Object{
 						cash.NewWallet(escrowAddr(1)),
 					},
 					cash.NewBucket().Bucket,
 				},
 				// source is broke
-				{"/wallets", "", a.Address(), false,
+				{"/wallets", "", a.Address(),
 					[]orm.Object{
 						cash.NewWallet(a.Address()),
 					},
 					cash.NewBucket().Bucket,
 				},
 				// destination has cash
-				{"/wallets", "", b.Address(), false,
+				{"/wallets", "", b.Address(),
 					[]orm.Object{
 						mo(cash.WalletWith(b.Address(), all...)),
 					},
@@ -499,53 +435,6 @@ func TestHandler(t *testing.T) {
 				},
 			},
 		},
-		//"return overpaid amount and delete escrow": {
-		//	a.Address(),
-		//	mustCombineCoins(coin.NewCoin(2, 0, "FOO")),
-		//	[]action{
-		//		createAction(a, b, c, mustCombineCoins(coin.NewCoin(1, 0, "FOO")), ""),
-		//		{
-		//			perms: []weave.Condition{a},
-		//			msg: &cash.SendMsg{
-		//				Source:    a.Address(),
-		//				Destination:   escrowAddr(1),
-		//				Amount: &coin.Coin{Whole: 1, Ticker: "FOO"},
-		//			},
-		//		},
-		//	},
-		//	action{
-		//		perms: []weave.Condition{a},
-		//		msg: &ReturnMsg{
-		//			EscrowId: weavetest.SequenceID(1),
-		//		},
-		//		height: Timeout + 1,
-		//	},
-		//	false,
-		//	[]query{
-		//		// verify escrow is deleted
-		//		{
-		//			"/escrows", "", weavetest.SequenceID(1), false, nil, zeroBucket,
-		//		},
-		//		// escrow is empty
-		//		{"/wallets", "", escrowAddr(1), false,
-		//			[]orm.Object{
-		//				cash.NewWallet(escrowAddr(1)),
-		//			},
-		//			cash.NewBucket().Bucket,
-		//		},
-		//		// source recover all his money
-		//		{"/wallets", "", a.Address(), false,
-		//			[]orm.Object{
-		//				mo(cash.WalletWith(a.Address(), mustCombineCoins(coin.NewCoin(2, 0, "FOO"))...)),
-		//			},
-		//			cash.NewBucket().Bucket,
-		//		},
-		//		// destination doesn't get paid
-		//		{"/wallets", "", b.Address(), false, nil,
-		//			cash.NewBucket().Bucket,
-		//		},
-		//	},
-		//},
 		"release overpaid amount and delete escrow": {
 			a.Address(),
 			mustCombineCoins(coin.NewCoin(2, 0, "FOO")),
@@ -568,28 +457,28 @@ func TestHandler(t *testing.T) {
 					EscrowId: weavetest.SequenceID(1),
 				},
 			},
-			false,
+			nil,
 			[]query{
 				// verify escrow is deleted
 				{
-					"/escrows", "", weavetest.SequenceID(1), false, nil, zeroBucket,
+					"/escrows", "", weavetest.SequenceID(1), nil, zeroBucket,
 				},
 				// escrow is empty
-				{"/wallets", "", escrowAddr(1), false,
+				{"/wallets", "", escrowAddr(1),
 					[]orm.Object{
 						cash.NewWallet(escrowAddr(1)),
 					},
 					cash.NewBucket().Bucket,
 				},
 				// source is broke
-				{"/wallets", "", a.Address(), false,
+				{"/wallets", "", a.Address(),
 					[]orm.Object{
 						cash.NewWallet(a.Address()),
 					},
 					cash.NewBucket().Bucket,
 				},
 				// destination has bank
-				{"/wallets", "", b.Address(), false,
+				{"/wallets", "", b.Address(),
 					[]orm.Object{
 						mo(cash.WalletWith(b.Address(), mustCombineCoins(coin.NewCoin(2, 0, "FOO"))...)),
 					},
@@ -617,33 +506,34 @@ func TestHandler(t *testing.T) {
 
 			// set initial data
 			acct, err := cash.WalletWith(tc.account, tc.balance...)
-			require.NoError(t, err)
+			assert.Nil(t, err)
 			err = bank.Save(db, acct)
-			require.NoError(t, err)
+			assert.Nil(t, err)
 
 			// do delivertx
 			for j, p := range tc.prep {
-				// try check
-				cache := db.CacheWrap()
-				_, err = router.Check(p.ctx(), cache, p.tx())
-				require.NoError(t, err, "%d", j)
-				cache.Discard()
+				t.Run(fmt.Sprintf("case %d", j), func(t *testing.T) {
+					// try check
+					cache := db.CacheWrap()
+					_, err = router.Check(p.ctx(), cache, p.tx())
+					assert.Nil(t, err)
+					cache.Discard()
 
-				// then perform
-				_, err = router.Deliver(p.ctx(), db, p.tx())
-				require.NoError(t, err, "%d", j)
+					// then perform
+					_, err = router.Deliver(p.ctx(), db, p.tx())
+					assert.Nil(t, err)
+				})
+
 			}
 
 			_, err = router.Deliver(tc.do.ctx(), db, tc.do.tx())
-			if tc.isError {
-				require.Error(t, err)
-			} else {
-				require.NoError(t, err)
-			}
+			assert.IsErr(t, tc.err, err)
 
 			// run through all queries
 			for k, q := range tc.queries {
-				q.check(t, db, qr, "%d", k)
+				t.Run(fmt.Sprintf("query-%d", k), func(t *testing.T) {
+					q.check(t, db, qr)
+				})
 			}
 		})
 	}
@@ -654,29 +544,6 @@ func createAction(source, rcpt, arbiter weave.Condition, amount coin.Coins, memo
 		perms: []weave.Condition{source},
 		msg:   NewCreateMsg(source.Address(), rcpt.Address(), arbiter.Address(), amount, Timeout, memo),
 	}
-}
-
-// MinusCoins returns a-b
-func MinusCoins(a, b coin.Coins) (coin.Coins, error) {
-	// TODO: add coins.Negative...
-	minus := b.Clone()
-	for _, m := range minus {
-		m.Whole *= -1
-		m.Fractional *= -1
-	}
-	return a.Combine(minus)
-}
-
-func MustMinusCoins(t *testing.T, a, b coin.Coins) coin.Coins {
-	remain, err := MinusCoins(a, b)
-	require.NoError(t, err)
-	return remain
-}
-
-func MustAddCoins(t *testing.T, a, b coin.Coins) coin.Coins {
-	res, err := a.Combine(b)
-	require.NoError(t, err)
-	return res
 }
 
 //-------------------------------------------------
@@ -716,7 +583,6 @@ type query struct {
 	path     string
 	mod      string
 	data     []byte
-	isError  bool
 	expected []orm.Object
 	bucket   orm.Bucket
 }
@@ -725,24 +591,23 @@ func (q query) check(t testing.TB, db weave.ReadOnlyKVStore, qr weave.QueryRoute
 	t.Helper()
 
 	h := qr.Handler(q.path)
-	require.NotNil(t, h, q.path)
-	mods, err := h.Query(db, q.mod, q.data)
-	if q.isError {
-		require.Error(t, err)
-		return
+	if h == nil {
+		t.Fatalf("Handler is nil for path %s", q.path)
 	}
-	require.NoError(t, err)
-	if assert.Equal(t, len(q.expected), len(mods), msg...) {
-		for i, ex := range q.expected {
-			// make sure keys match
-			key := q.bucket.DBKey(ex.Key())
-			assert.Equal(t, key, mods[i].Key)
+	mods, err := h.Query(db, q.mod, q.data)
 
-			// parse out value
-			got, err := q.bucket.Parse(nil, mods[i].Value)
-			require.NoError(t, err)
-			assert.EqualValues(t, ex.Value(), got.Value(), msg...)
-		}
+	assert.Nil(t, err)
+	assert.Equal(t, len(q.expected), len(mods))
+
+	for i, ex := range q.expected {
+		// make sure keys match
+		key := q.bucket.DBKey(ex.Key())
+		assert.Equal(t, key, mods[i].Key)
+
+		// parse out value
+		got, err := q.bucket.Parse(nil, mods[i].Value)
+		assert.Nil(t, err)
+		assert.Equal(t, ex.Value(), got.Value())
 	}
 }
 

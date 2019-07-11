@@ -23,14 +23,13 @@ func TestKeyTagger(t *testing.T) {
 	otag, oval := []byte("666F6F3A64656D6F"), []byte("s") // "foo:demo" as upper-case hex
 	ntag, nval := []byte("01AB03"), []byte("s")
 
-	cases := [...]struct {
+	cases := map[string]struct {
 		handler weave.Handler
 		isError bool // true iff we expect errors
 		tags    []common.KVPair
 		k, v    []byte
 	}{
-		// return error doesn't add tags
-		0: {
+		"return error doesn't add tags": {
 			&writeHandler{key: nk, value: nv, err: derr},
 			true,
 			nil,
@@ -38,16 +37,14 @@ func TestKeyTagger(t *testing.T) {
 			nk,
 			nv,
 		},
-		// with success records tags
-		1: {
+		"with success records tags": {
 			&writeHandler{key: nk, value: nv, err: nil},
 			false,
 			[]common.KVPair{{Key: ntag, Value: nval}},
 			nk,
 			nv,
 		},
-		// write multiple values (sorted order)
-		2: {
+		"write multiple values (sorted order)": {
 			weavetest.Decorate(
 				&writeHandler{key: nk, value: nv, err: nil},
 				&writeDecorator{key: ok, value: ov, after: true}),
@@ -56,8 +53,7 @@ func TestKeyTagger(t *testing.T) {
 			nk,
 			nv,
 		},
-		// savepoint must revert any writes
-		3: {
+		"savepoint must revert any writes": {
 			weavetest.Decorate(
 				&writeHandler{key: nk, value: nv, err: derr},
 				NewSavepoint().OnDeliver()),
@@ -66,8 +62,7 @@ func TestKeyTagger(t *testing.T) {
 			nk,
 			nil,
 		},
-		// savepoint keeps writes on success
-		4: {
+		"savepoint keeps writes on success": {
 			weavetest.Decorate(
 				&writeHandler{key: nk, value: nv, err: nil},
 				NewSavepoint().OnDeliver()),
@@ -76,8 +71,7 @@ func TestKeyTagger(t *testing.T) {
 			nk,
 			nv,
 		},
-		// combine with other tags from the Handler
-		5: {
+		"combine with other tags from the Handler": {
 			weavetest.Decorate(
 				newTagHandler(nk, nv, nil),
 				&writeDecorator{key: ok, value: ov, after: false}),
@@ -87,8 +81,7 @@ func TestKeyTagger(t *testing.T) {
 			nk,
 			nil,
 		},
-		// on error don't add tags, but leave original ones
-		6: {
+		"on error don't add tags, but leave original ones": {
 			weavetest.Decorate(
 				newTagHandler(nk, nv, derr),
 				&writeDecorator{key: ok, value: ov, after: false}),
@@ -100,8 +93,8 @@ func TestKeyTagger(t *testing.T) {
 		// TODO: also check delete
 	}
 
-	for i, tc := range cases {
-		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
+	for name, tc := range cases {
+		t.Run(name, func(t *testing.T) {
 			ctx := context.Background()
 			db := store.MemStore()
 			tagger := NewKeyTagger()

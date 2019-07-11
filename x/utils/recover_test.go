@@ -7,7 +7,7 @@ import (
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/store"
-	"github.com/stretchr/testify/assert"
+	"github.com/iov-one/weave/weavetest/assert"
 )
 
 func TestRecovery(t *testing.T) {
@@ -23,10 +23,10 @@ func TestRecovery(t *testing.T) {
 
 	// Recovery wrapped handler returns an error.
 	_, err := r.Check(ctx, store, nil, h)
-	assert.True(t, errors.ErrPanic.Is(err))
+	assert.IsErr(t, errors.ErrPanic, err)
 
 	_, err = r.Deliver(ctx, store, nil, h)
-	assert.True(t, errors.ErrPanic.Is(err))
+	assert.IsErr(t, errors.ErrPanic, err)
 }
 
 type panicHandler struct{}

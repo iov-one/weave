@@ -20,7 +20,7 @@ func TestSavepoint(t *testing.T) {
 	// a default error if desired
 	derr := fmt.Errorf("something went wrong")
 
-	cases := [...]struct {
+	cases := map[string]struct {
 		save    weave.Decorator // decorator at savepoint
 		handler weave.Handler
 		check   bool // whether to call Check or Deliver
@@ -29,8 +29,7 @@ func TestSavepoint(t *testing.T) {
 		written [][]byte // keys to find
 		missing [][]byte // keys not to find
 	}{
-		// savepoint dis-activated, returns error, both written
-		0: {
+		"savepoint dis-activated, returns error, both written": {
 			NewSavepoint(),
 			&writeHandler{key: nk, value: nv, err: derr},
 			true,
@@ -38,8 +37,7 @@ func TestSavepoint(t *testing.T) {
 			[][]byte{ok, nk},
 			nil,
 		},
-		// savepoint activated, returns error, one written
-		1: {
+		"savepoint activated, returns error, one written": {
 			NewSavepoint().OnCheck(),
 			&writeHandler{key: nk, value: nv, err: derr},
 			true,
@@ -47,8 +45,7 @@ func TestSavepoint(t *testing.T) {
 			[][]byte{ok},
 			[][]byte{nk},
 		},
-		// savepoint activated for deliver, returns error, one written
-		2: {
+		"savepoint activated for deliver, returns error, one written": {
 			NewSavepoint().OnDeliver(),
 			&writeHandler{key: nk, value: nv, err: derr},
 			false,
@@ -56,8 +53,7 @@ func TestSavepoint(t *testing.T) {
 			[][]byte{ok},
 			[][]byte{nk},
 		},
-		// double-activation maintains both behaviors
-		3: {
+		"double-activation maintains both behaviors": {
 			NewSavepoint().OnDeliver().OnCheck(),
 			&writeHandler{key: nk, value: nv, err: derr},
 			false,
@@ -65,8 +61,7 @@ func TestSavepoint(t *testing.T) {
 			[][]byte{ok},
 			[][]byte{nk},
 		},
-		// savepoint check doesn't affect deliver
-		4: {
+		"savepoint check doesn't affect deliver": {
 			NewSavepoint().OnCheck(),
 			&writeHandler{key: nk, value: nv, err: derr},
 			false,
@@ -74,8 +69,7 @@ func TestSavepoint(t *testing.T) {
 			[][]byte{ok, nk},
 			nil,
 		},
-		// don't rollback when success returned
-		5: {
+		"don't rollback when success returned": {
 			NewSavepoint().OnCheck().OnDeliver(),
 			&writeHandler{key: nk, value: nv, err: nil},
 			false,
@@ -85,8 +79,8 @@ func TestSavepoint(t *testing.T) {
 		},
 	}
 
-	for i, tc := range cases {
-		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
+	for name, tc := range cases {
+		t.Run(name, func(t *testing.T) {
 			ctx := context.Background()
 			kv := store.MemStore()
 			kv.Set(ok, ov)
