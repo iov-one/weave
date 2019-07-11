@@ -61,8 +61,8 @@ func RunTendermint(ctx context.Context, t TestReporter, home string) (cleanup fu
 	// We also auto-kill when the context is Done
 	cleanup = func() {
 		t.Logf("tendermint cleanup called")
-		cmd.Process.Kill()
-		cmd.Wait()
+		_ = cmd.Process.Kill()
+		_ = cmd.Wait()
 	}
 	go func() {
 		<-ctx.Done()
@@ -102,8 +102,8 @@ func RunBnsd(ctx context.Context, t TestReporter, home string) (cleanup func()) 
 	// We also auto-kill when the context is Done
 	cleanup = func() {
 		t.Logf("bnsd cleanup called")
-		cmd.Process.Kill()
-		cmd.Wait()
+		_ = cmd.Process.Kill()
+		_ = cmd.Wait()
 	}
 	go func() {
 		<-ctx.Done()
