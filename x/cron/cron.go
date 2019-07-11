@@ -58,7 +58,13 @@ func (s *Scheduler) Schedule(db weave.KVStore, runAt time.Time, auth []weave.Con
 		return nil, errors.Wrap(err, "marshal task")
 	}
 
-	for {
+	// We use execution time as the queue value and to keep it unique, we
+	// increment the execution time if a taks is already scheduled at given
+	// moment.
+	// As a security measure add a limit for how many keys can be tried to
+	// avoid a potential spam issue.
+	const maxTries = 100
+	for try := 0; try < maxTries; try++ {
 		key := queueKey(runAt)
 		if ok, err := db.Has(key); err != nil {
 			return nil, errors.Wrap(err, "cannot check key existance")
@@ -78,6 +84,7 @@ func (s *Scheduler) Schedule(db weave.KVStore, runAt time.Time, auth []weave.Con
 		}
 		return key, nil
 	}
+	return nil, errors.Wrap(errors.ErrState, "too many tasks scheduled for this time")
 }
 
 // roundT returns given time, rounded up to given granularity. Returned time is
