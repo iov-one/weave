@@ -342,7 +342,8 @@ func (h CreateProposalHandler) Deliver(ctx weave.Context, db weave.KVStore, tx w
 	}
 	// Add two seconds for the margin, because tally logic is using one second margin.
 	runAt := votingEnd.Time().Add(2 * time.Second)
-	taskID, err := h.scheduler.Schedule(db, runAt, h.auth.GetConditions(ctx), tallyMsg)
+	// Tally message requires no authentication.
+	taskID, err := h.scheduler.Schedule(db, runAt, nil, tallyMsg)
 	if err != nil {
 		return nil, errors.Wrap(err, "cannot schedule tally task")
 	}
