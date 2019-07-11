@@ -2,7 +2,6 @@ package server
 
 import (
 	"flag"
-
 	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/errors"
 	"github.com/tendermint/tendermint/abci/server"
@@ -86,7 +85,7 @@ func StartCmd(gen AppGenerator, logger log.Logger, home string, args []string) e
 
 	defer func() {
 		if err := recover(); err != nil {
-			logger.Error(err)
+			logger.Error("recovered from panic", "err", err)
 			cleanupCallback()
 		}
 	}()
