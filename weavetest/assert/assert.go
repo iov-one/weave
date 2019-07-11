@@ -115,9 +115,11 @@ func IsErr(t testing.TB, want, got error) {
 		return
 	}
 
-	if want, ok := want.(interface {
+	type comparator interface {
 		Is(error) bool
-	}); ok && want.Is(got) {
+	}
+
+	if want, ok := want.(comparator); ok && want.Is(got) {
 		return
 	}
 
