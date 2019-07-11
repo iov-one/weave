@@ -111,14 +111,6 @@ func (c CheckResult) ToABCI() abci.ResponseCheckTx {
 	}
 }
 
-// TickResult contains the result of the tasks execution.
-type TickResult struct {
-	// List of task IDs that were executed. Task is considered executed
-	// when processing it caused any change to the state (even if it is
-	// only removing the task from the queue and no other change).
-	Executed [][]byte
-}
-
 // DeliverTxError converts any error into a abci.ResponseDeliverTx, preserving
 // as much info as possible.
 // When in debug mode always the full error information is returned.
