@@ -37,7 +37,7 @@ func TestGenesisKey(t *testing.T) {
   ]}`
 
 	var opts weave.Options
-	assert.IsErr(t, nil, json.Unmarshal([]byte(genesis), &opts))
+	assert.Nil(t, json.Unmarshal([]byte(genesis), &opts))
 
 	db := store.MemStore()
 	migration.MustInitPkg(db, "escrow", "cash")
@@ -45,12 +45,12 @@ func TestGenesisKey(t *testing.T) {
 	// when
 	cashCtrl := cash.NewController(cash.NewBucket())
 	ini := Initializer{Minter: cashCtrl}
-	assert.IsErr(t, nil, ini.FromGenesis(opts, weave.GenesisParams{}, db))
+	assert.Nil(t, ini.FromGenesis(opts, weave.GenesisParams{}, db))
 
 	// then
 	bucket := NewBucket()
 	obj, err := bucket.Get(db, weavetest.SequenceID(1))
-	assert.IsErr(t, nil, err)
+	assert.Nil(t, err)
 
 	assert.Equal(t, true, obj != nil)
 	e, ok := obj.Value().(*Escrow)
@@ -61,7 +61,7 @@ func TestGenesisKey(t *testing.T) {
 	assert.Equal(t, "0000000000000000000000000000000000000001", hex.EncodeToString(e.Arbiter))
 
 	balance, err := cashCtrl.Balance(db, Condition(obj.Key()).Address())
-	assert.IsErr(t, nil, err)
+	assert.Nil(t, err)
 	assert.Equal(t, 2, len(balance))
 	assert.Equal(t, coin.Coin{Ticker: "ALX", Whole: 987654321}, *balance[0])
 	assert.Equal(t, coin.Coin{Ticker: "IOV", Whole: 123456789}, *balance[1])

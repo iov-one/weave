@@ -506,9 +506,9 @@ func TestHandler(t *testing.T) {
 
 			// set initial data
 			acct, err := cash.WalletWith(tc.account, tc.balance...)
-			assert.IsErr(t, nil, err)
+			assert.Nil(t, err)
 			err = bank.Save(db, acct)
-			assert.IsErr(t, nil, err)
+			assert.Nil(t, err)
 
 			// do delivertx
 			for j, p := range tc.prep {
@@ -516,12 +516,12 @@ func TestHandler(t *testing.T) {
 					// try check
 					cache := db.CacheWrap()
 					_, err = router.Check(p.ctx(), cache, p.tx())
-					assert.IsErr(t, nil, err)
+					assert.Nil(t, err)
 					cache.Discard()
 
 					// then perform
 					_, err = router.Deliver(p.ctx(), db, p.tx())
-					assert.IsErr(t, nil, err)
+					assert.Nil(t, err)
 				})
 
 			}
@@ -596,7 +596,7 @@ func (q query) check(t testing.TB, db weave.ReadOnlyKVStore, qr weave.QueryRoute
 	}
 	mods, err := h.Query(db, q.mod, q.data)
 
-	assert.IsErr(t, nil, err)
+	assert.Nil(t, err)
 	assert.Equal(t, len(q.expected), len(mods))
 
 	for i, ex := range q.expected {
@@ -606,7 +606,7 @@ func (q query) check(t testing.TB, db weave.ReadOnlyKVStore, qr weave.QueryRoute
 
 		// parse out value
 		got, err := q.bucket.Parse(nil, mods[i].Value)
-		assert.IsErr(t, nil, err)
+		assert.Nil(t, err)
 		assert.Equal(t, ex.Value(), got.Value())
 	}
 }
