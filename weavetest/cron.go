@@ -70,7 +70,7 @@ func (c *Cron) Delete(db weave.KVStore, taskID []byte) error {
 }
 
 // Tick implementes weave.Ticker interface.
-func (c *Cron) Tick(ctx weave.Context, store weave.CacheableKVStore) ([]common.KVPair, []weave.ValidatorUpdate) {
+func (c *Cron) Tick(ctx weave.Context, store weave.CacheableKVStore) weave.TickResult {
 	now, err := weave.BlockTime(ctx)
 	if err != nil {
 		panic(err)
@@ -90,5 +90,5 @@ func (c *Cron) Tick(ctx weave.Context, store weave.CacheableKVStore) ([]common.K
 		}
 	}
 	c.tasks = c.tasks[len(tags):]
-	return tags, nil
+	return weave.TickResult{Tags: tags}
 }

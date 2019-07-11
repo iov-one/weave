@@ -77,9 +77,9 @@ func (b BaseApp) BeginBlock(req abci.RequestBeginBlock) abci.ResponseBeginBlock 
 	var response abci.ResponseBeginBlock
 	if b.ticker != nil {
 		ctx := weave.WithLogInfo(b.BlockContext(), "call", "begin_block")
-		tags, vdiff := b.ticker.Tick(ctx, b.DeliverStore())
-		response.Tags = append(response.Tags, tags...)
-		b.AddValChange(vdiff)
+		tr := b.ticker.Tick(ctx, b.DeliverStore())
+		response.Tags = append(response.Tags, tr.Tags...)
+		b.AddValChange(tr.Diff)
 	}
 	return response
 }

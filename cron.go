@@ -12,9 +12,6 @@ type Ticker interface {
 	// Tick is a method called at the beginning of the block. It should be
 	// used to execute any scheduled tasks.
 	//
-	// Returned is the list of tags created during processing and changeset
-	// that should be applied to the validators configuration.
-	//
 	// Because beginning of the block does not allow for an error response
 	// this method does not return one as well. It is the implementation
 	// responsibility to handle all error situations.
@@ -25,7 +22,22 @@ type Ticker interface {
 	// this instance. This means that this node is out of sync with the
 	// rest of the network and cannot continue operating as its state is
 	// invalid.
-	Tick(ctx Context, store CacheableKVStore) (tags []common.KVPair, diff []ValidatorUpdate)
+	Tick(ctx Context, store CacheableKVStore) TickResult
+}
+
+// TickResult represents the result of a single tick run.
+type TickResult struct {
+	// Tags contains a list of tags that were produced during a single tick
+	// execution. They should be included in the block that this tick
+	// result was produced.
+	// Empty tag list is a valid result.
+	Tags []common.KVPair
+
+	// Diff contains a list of validator update operations produced during
+	// a single tick execution. They should be included in the block that
+	// this tick result was produced.
+	// Empty validator update list is a valid result.
+	Diff []ValidatorUpdate
 }
 
 // Scheduler is an interface implemented to allow scheduling message execution.

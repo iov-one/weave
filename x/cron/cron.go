@@ -143,7 +143,7 @@ var _ weave.Ticker = (*Ticker)(nil)
 //
 // Tick can process any number of messages suitable for execution. All changes
 // are done atomically and apply only on success.
-func (t *Ticker) Tick(ctx context.Context, db store.CacheableKVStore) ([]common.KVPair, []weave.ValidatorUpdate) {
+func (t *Ticker) Tick(ctx context.Context, db store.CacheableKVStore) weave.TickResult {
 	tags, vDiff, err := t.tick(ctx, db)
 	if err != nil {
 		// This is a hopeless state. This error is most likely due to a
@@ -154,7 +154,10 @@ func (t *Ticker) Tick(ctx context.Context, db store.CacheableKVStore) ([]common.
 		// out of sync with the rest of the network.
 		failTask(err)
 	}
-	return tags, vDiff
+	return weave.TickResult{
+		Tags: tags,
+		Diff: vDiff,
+	}
 }
 
 // failTask is a variable so that it can be overwritten for tests.
