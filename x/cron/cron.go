@@ -197,7 +197,11 @@ func (t *Ticker) tick(ctx context.Context, db store.CacheableKVStore) ([]common.
 		return tags, vDiff, errors.Wrap(errors.ErrState, "cannot get current block height")
 	}
 
-	for {
+	// A safety measure to not execute too many tasks in one go. Maintain
+	// an upper limit as we can process the rest of the queue in another
+	// run.
+	const maxExecuted = 50
+	for proc := 0; proc < maxExecuted; proc++ {
 		switch key, raw, err := peek(db, now); {
 		case err == nil:
 			// Each task is processed using its own cache instance
@@ -268,6 +272,8 @@ func (t *Ticker) tick(ctx context.Context, db store.CacheableKVStore) ([]common.
 			return tags, vDiff, errors.Wrap(err, "cannot pop queue")
 		}
 	}
+
+	return tags, vDiff, nil
 }
 
 // peek reads from the queue a single task that reached its execution time and
