@@ -10,9 +10,8 @@ import (
 	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/store"
 	"github.com/iov-one/weave/weavetest"
+	"github.com/iov-one/weave/weavetest/assert"
 	"github.com/iov-one/weave/x/cash"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestGenesisKey(t *testing.T) {
@@ -38,7 +37,7 @@ func TestGenesisKey(t *testing.T) {
   ]}`
 
 	var opts weave.Options
-	require.NoError(t, json.Unmarshal([]byte(genesis), &opts))
+	assert.IsErr(t, nil, json.Unmarshal([]byte(genesis), &opts))
 
 	db := store.MemStore()
 	migration.MustInitPkg(db, "escrow", "cash")
@@ -46,23 +45,24 @@ func TestGenesisKey(t *testing.T) {
 	// when
 	cashCtrl := cash.NewController(cash.NewBucket())
 	ini := Initializer{Minter: cashCtrl}
-	require.NoError(t, ini.FromGenesis(opts, weave.GenesisParams{}, db))
+	assert.IsErr(t, nil, ini.FromGenesis(opts, weave.GenesisParams{}, db))
 
 	// then
 	bucket := NewBucket()
 	obj, err := bucket.Get(db, weavetest.SequenceID(1))
-	require.NoError(t, err)
-	require.NotNil(t, obj)
+	assert.IsErr(t, nil, err)
+
+	assert.Equal(t, true, obj != nil)
 	e, ok := obj.Value().(*Escrow)
-	require.True(t, ok)
+	assert.Equal(t, true, ok)
 
 	assert.Equal(t, "c30a2424104f542576ef01feca2ff558f5eaa61a", hex.EncodeToString(e.Destination))
 	assert.Equal(t, "0000000000000000000000000000000000000000", hex.EncodeToString(e.Source))
 	assert.Equal(t, "0000000000000000000000000000000000000001", hex.EncodeToString(e.Arbiter))
 
 	balance, err := cashCtrl.Balance(db, Condition(obj.Key()).Address())
-	require.NoError(t, err)
-	require.Len(t, balance, 2)
+	assert.IsErr(t, nil, err)
+	assert.Equal(t, 2, len(balance))
 	assert.Equal(t, coin.Coin{Ticker: "ALX", Whole: 987654321}, *balance[0])
 	assert.Equal(t, coin.Coin{Ticker: "IOV", Whole: 123456789}, *balance[1])
 }

@@ -7,10 +7,10 @@ import (
 	"time"
 
 	"github.com/iov-one/weave"
-	coin "github.com/iov-one/weave/coin"
+	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/weavetest"
-	"github.com/stretchr/testify/assert"
+	"github.com/iov-one/weave/weavetest/assert"
 )
 
 // mustCombineCoins has one return value for tests...
@@ -21,10 +21,6 @@ func mustCombineCoins(cs ...coin.Coin) coin.Coins {
 	}
 	return s
 }
-
-type checkErr func(error) bool
-
-func noErr(err error) bool { return err == nil }
 
 func TestCreateMsg(t *testing.T) {
 	// good
@@ -43,14 +39,14 @@ func TestCreateMsg(t *testing.T) {
 
 	cases := []struct {
 		msg   *CreateMsg
-		check checkErr
+		check error
 	}{
 		// nothing
 		0: {
 			&CreateMsg{
 				Metadata: &weave.Metadata{Schema: 1},
 			},
-			errors.ErrEmpty.Is,
+			errors.ErrEmpty,
 		},
 		// proper
 		1: {
@@ -62,7 +58,7 @@ func TestCreateMsg(t *testing.T) {
 				Amount:      plus,
 				Timeout:     timeout,
 			},
-			noErr,
+			nil,
 		},
 		// missing source okay, dups okay
 		2: {
@@ -74,7 +70,7 @@ func TestCreateMsg(t *testing.T) {
 				Timeout:     timeout,
 				Memo:        "some string",
 			},
-			noErr,
+			nil,
 		},
 		// negative amount
 		3: {
@@ -85,7 +81,7 @@ func TestCreateMsg(t *testing.T) {
 				Amount:      minus,
 				Timeout:     timeout,
 			},
-			errors.ErrAmount.Is,
+			errors.ErrAmount,
 		},
 		// improperly formatted amount
 		4: {
@@ -96,7 +92,7 @@ func TestCreateMsg(t *testing.T) {
 				Amount:      mixed,
 				Timeout:     timeout,
 			},
-			errors.ErrCurrency.Is,
+			errors.ErrCurrency,
 		},
 		// missing amount
 		5: {
@@ -106,7 +102,7 @@ func TestCreateMsg(t *testing.T) {
 				Destination: c.Address(),
 				Timeout:     timeout,
 			},
-			errors.ErrAmount.Is,
+			errors.ErrAmount,
 		},
 		// invalid memo
 		6: {
@@ -118,7 +114,7 @@ func TestCreateMsg(t *testing.T) {
 				Timeout:     timeout,
 				Memo:        strings.Repeat("foo", 100),
 			},
-			errors.ErrInput.Is,
+			errors.ErrInput,
 		},
 		// zero timeout
 		7: {
@@ -129,14 +125,14 @@ func TestCreateMsg(t *testing.T) {
 				Amount:      plus,
 				Timeout:     0,
 			},
-			errors.ErrInput.Is,
+			errors.ErrInput,
 		},
 	}
 
 	for i, tc := range cases {
 		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
 			err := tc.msg.Validate()
-			assert.True(t, tc.check(err), "%+v", err)
+			assert.IsErr(t, tc.check, err)
 		})
 	}
 }
@@ -156,14 +152,14 @@ func TestReleaseMsg(t *testing.T) {
 
 	cases := []struct {
 		msg   *ReleaseMsg
-		check checkErr
+		check error
 	}{
 		// nothing
 		0: {
 			&ReleaseMsg{
 				Metadata: &weave.Metadata{Schema: 1},
 			},
-			errors.ErrInput.Is,
+			errors.ErrInput,
 		},
 		// proper: valid amount
 		1: {
@@ -172,7 +168,7 @@ func TestReleaseMsg(t *testing.T) {
 				EscrowId: escrow,
 				Amount:   plus,
 			},
-			noErr,
+			nil,
 		},
 		// missing amount okay
 		2: {
@@ -180,7 +176,7 @@ func TestReleaseMsg(t *testing.T) {
 				Metadata: &weave.Metadata{Schema: 1},
 				EscrowId: escrow,
 			},
-			noErr,
+			nil,
 		},
 		// invalid id
 		3: {
@@ -188,7 +184,7 @@ func TestReleaseMsg(t *testing.T) {
 				Metadata: &weave.Metadata{Schema: 1},
 				EscrowId: scarecrow,
 			},
-			errors.ErrInput.Is,
+			errors.ErrInput,
 		},
 		// missing id
 		4: {
@@ -196,7 +192,7 @@ func TestReleaseMsg(t *testing.T) {
 				Metadata: &weave.Metadata{Schema: 1},
 				Amount:   plus,
 			},
-			errors.ErrInput.Is,
+			errors.ErrInput,
 		},
 		// negative amount
 		5: {
@@ -205,7 +201,7 @@ func TestReleaseMsg(t *testing.T) {
 				EscrowId: escrow,
 				Amount:   minus,
 			},
-			errors.ErrAmount.Is,
+			errors.ErrAmount,
 		},
 		// improperly formatted amount
 		6: {
@@ -214,14 +210,14 @@ func TestReleaseMsg(t *testing.T) {
 				EscrowId: escrow,
 				Amount:   mixed,
 			},
-			errors.ErrCurrency.Is,
+			errors.ErrCurrency,
 		},
 	}
 
 	for i, tc := range cases {
 		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
 			err := tc.msg.Validate()
-			assert.True(t, tc.check(err), "%+v", err)
+			assert.IsErr(t, tc.check, err)
 		})
 	}
 }
@@ -234,14 +230,14 @@ func TestReturnMsg(t *testing.T) {
 
 	cases := []struct {
 		msg   *ReturnMsg
-		check checkErr
+		check error
 	}{
 		// missing id
 		0: {
 			&ReturnMsg{
 				Metadata: &weave.Metadata{Schema: 1},
 			},
-			errors.ErrInput.Is,
+			errors.ErrInput,
 		},
 		// proper: valid id
 		1: {
@@ -249,7 +245,7 @@ func TestReturnMsg(t *testing.T) {
 				Metadata: &weave.Metadata{Schema: 1},
 				EscrowId: escrow,
 			},
-			noErr,
+			nil,
 		},
 		// invalid id
 		2: {
@@ -257,14 +253,14 @@ func TestReturnMsg(t *testing.T) {
 				Metadata: &weave.Metadata{Schema: 1},
 				EscrowId: scarecrow,
 			},
-			errors.ErrInput.Is,
+			errors.ErrInput,
 		},
 	}
 
 	for i, tc := range cases {
 		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
 			err := tc.msg.Validate()
-			assert.True(t, tc.check(err), "%+v", err)
+			assert.IsErr(t, tc.check, err)
 		})
 	}
 }
@@ -282,14 +278,14 @@ func TestUpdateEscrowMsg(t *testing.T) {
 
 	cases := []struct {
 		msg   *UpdatePartiesMsg
-		check checkErr
+		check error
 	}{
 		// nothing
 		0: {
 			&UpdatePartiesMsg{
 				Metadata: &weave.Metadata{Schema: 1},
 			},
-			errors.ErrInput.Is,
+			errors.ErrInput,
 		},
 		// proper: valid id, one valid permission
 		1: {
@@ -298,7 +294,7 @@ func TestUpdateEscrowMsg(t *testing.T) {
 				EscrowId: escrow,
 				Source:   a.Address(),
 			},
-			noErr,
+			nil,
 		},
 		// valid escrow, no permissions
 		2: {
@@ -306,7 +302,7 @@ func TestUpdateEscrowMsg(t *testing.T) {
 				Metadata: &weave.Metadata{Schema: 1},
 				EscrowId: escrow,
 			},
-			errors.ErrEmpty.Is,
+			errors.ErrEmpty,
 		},
 		// invalid escrow, proper permissions
 		3: {
@@ -315,7 +311,7 @@ func TestUpdateEscrowMsg(t *testing.T) {
 				EscrowId: scarecrow,
 				Source:   a.Address(),
 			},
-			errors.ErrInput.Is,
+			errors.ErrInput,
 		},
 		// allow multiple permissions
 		4: {
@@ -325,14 +321,14 @@ func TestUpdateEscrowMsg(t *testing.T) {
 				Destination: b.Address(),
 				Arbiter:     c.Address(),
 			},
-			noErr,
+			nil,
 		},
 	}
 
 	for i, tc := range cases {
 		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
 			err := tc.msg.Validate()
-			assert.True(t, tc.check(err), "%+v", err)
+			assert.IsErr(t, tc.check, err)
 		})
 	}
 }

@@ -23,10 +23,10 @@ func TestRecovery(t *testing.T) {
 
 	// Recovery wrapped handler returns an error.
 	_, err := r.Check(ctx, store, nil, h)
-	assert.Equal(t, true, errors.ErrPanic.Is(err))
+	assert.Equal(t, errors.ErrPanic, err)
 
 	_, err = r.Deliver(ctx, store, nil, h)
-	assert.Equal(t, true, errors.ErrPanic.Is(err))
+	assert.Equal(t, errors.ErrPanic, err)
 }
 
 type panicHandler struct{}
