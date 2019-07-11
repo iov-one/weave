@@ -1,7 +1,6 @@
 package escrow
 
 import (
-	"fmt"
 	"strings"
 	"testing"
 	"time"
@@ -121,8 +120,8 @@ func TestCreateMsg(t *testing.T) {
 		},
 	}
 
-	for i, tc := range cases {
-		t.Run(fmt.Sprintf("case-%s", i), func(t *testing.T) {
+	for name, tc := range cases {
+		t.Run(name, func(t *testing.T) {
 			err := tc.msg.Validate()
 			assert.IsErr(t, tc.check, err)
 		})
@@ -199,8 +198,8 @@ func TestReleaseMsg(t *testing.T) {
 		},
 	}
 
-	for i, tc := range cases {
-		t.Run(fmt.Sprintf("case-%s", i), func(t *testing.T) {
+	for name, tc := range cases {
+		t.Run(name, func(t *testing.T) {
 			err := tc.msg.Validate()
 			assert.IsErr(t, tc.check, err)
 		})
@@ -239,8 +238,8 @@ func TestReturnMsg(t *testing.T) {
 		},
 	}
 
-	for i, tc := range cases {
-		t.Run(fmt.Sprintf("case-%s", i), func(t *testing.T) {
+	for name, tc := range cases {
+		t.Run(name, func(t *testing.T) {
 			err := tc.msg.Validate()
 			assert.IsErr(t, tc.check, err)
 		})
@@ -302,8 +301,8 @@ func TestUpdateEscrowMsg(t *testing.T) {
 		},
 	}
 
-	for i, tc := range cases {
-		t.Run(fmt.Sprintf("case-%s", i), func(t *testing.T) {
+	for name, tc := range cases {
+		t.Run(name, func(t *testing.T) {
 			err := tc.msg.Validate()
 			assert.IsErr(t, tc.check, err)
 		})

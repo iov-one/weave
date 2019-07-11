@@ -93,8 +93,8 @@ func TestKeyTagger(t *testing.T) {
 		// TODO: also check delete
 	}
 
-	for i, tc := range cases {
-		t.Run(fmt.Sprintf("case-%s", i), func(t *testing.T) {
+	for name, tc := range cases {
+		t.Run(name, func(t *testing.T) {
 			ctx := context.Background()
 			db := store.MemStore()
 			tagger := NewKeyTagger()
