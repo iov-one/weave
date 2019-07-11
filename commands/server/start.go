@@ -85,7 +85,8 @@ func StartCmd(gen AppGenerator, logger log.Logger, home string, args []string) e
 	cmn.TrapSignal(logger, cleanupCallback)
 
 	defer func() {
-		if r := recover(); r != nil {
+		if err := recover(); err != nil {
+			logger.Error(err)
 			cleanupCallback()
 		}
 	}()
