@@ -350,8 +350,9 @@ func TestCreateTextProposal(t *testing.T) {
 				Signers: spec.Signers,
 			}
 			rt := app.NewRouter()
+			cron := &weavetest.Cron{}
 			// We don't run the executor here, so we can safely pass in nil.
-			RegisterRoutes(rt, auth, decodeProposalOptions, nil)
+			RegisterRoutes(rt, auth, decodeProposalOptions, nil, cron)
 
 			db := store.MemStore()
 			migration.MustInitPkg(db, packageName)
@@ -389,13 +390,24 @@ func TestCreateTextProposal(t *testing.T) {
 			if err != nil {
 				t.Fatalf("unexpected error: %s", err)
 			}
-			if exp, got := p, &spec.Exp; !reflect.DeepEqual(exp, got) {
-				t.Logf("exp: %+v", exp)
-				t.Logf("got: %+v", got)
-				t.Fatal("unexpected proposal state")
-			}
+
+			assertProposalsEqual(t, spec.Exp, *p)
 			cache.Discard()
 		})
+	}
+}
+
+func assertProposalsEqual(t testing.TB, a, b Proposal) {
+	t.Helper()
+
+	// TallyTaskID is a random value that we do not care about.
+	a.TallyTaskID = nil
+	b.TallyTaskID = nil
+
+	if !reflect.DeepEqual(a, b) {
+		t.Logf("a: %#v", a)
+		t.Logf("b: %#v", b)
+		t.Fatal("unexpected proposal state")
 	}
 }
 
@@ -456,7 +468,7 @@ func TestDeleteProposal(t *testing.T) {
 				Signer: spec.SignedBy,
 			}
 			rt := app.NewRouter()
-			RegisterRoutes(rt, auth, decodeProposalOptions, nil)
+			RegisterRoutes(rt, auth, decodeProposalOptions, nil, &weavetest.Cron{})
 
 			// given
 			ctx := weave.WithBlockTime(context.Background(), time.Now().Round(time.Second))
@@ -763,7 +775,7 @@ func TestVote(t *testing.T) {
 				Signer: spec.SignedBy,
 			}
 			rt := app.NewRouter()
-			RegisterRoutes(rt, auth, decodeProposalOptions, nil)
+			RegisterRoutes(rt, auth, decodeProposalOptions, nil, &weavetest.Cron{})
 
 			// given
 			ctx := weave.WithBlockTime(context.Background(), time.Now().Round(time.Second))
@@ -1246,7 +1258,7 @@ func TestTally(t *testing.T) {
 		Signer: hAliceCond,
 	}
 	rt := app.NewRouter()
-	RegisterRoutes(rt, auth, decodeProposalOptions, proposalOptionsExecutor())
+	RegisterRoutes(rt, auth, decodeProposalOptions, proposalOptionsExecutor(), &weavetest.Cron{})
 
 	for msg, spec := range specs {
 		t.Run(msg, func(t *testing.T) {
@@ -1427,7 +1439,7 @@ func TestUpdateElectorate(t *testing.T) {
 				Signer: spec.SignedBy,
 			}
 			rt := app.NewRouter()
-			RegisterRoutes(rt, auth, decodeProposalOptions, nil)
+			RegisterRoutes(rt, auth, decodeProposalOptions, nil, &weavetest.Cron{})
 			db := store.MemStore()
 			migration.MustInitPkg(db, packageName)
 
@@ -1565,7 +1577,7 @@ func TestUpdateElectionRules(t *testing.T) {
 				Signer: spec.SignedBy,
 			}
 			rt := app.NewRouter()
-			RegisterRoutes(rt, auth, decodeProposalOptions, nil)
+			RegisterRoutes(rt, auth, decodeProposalOptions, nil, &weavetest.Cron{})
 			db := store.MemStore()
 			migration.MustInitPkg(db, packageName)
 

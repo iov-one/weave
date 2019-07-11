@@ -138,3 +138,27 @@ message ExecuteProposalBatchMsg {
   }
   repeated Union messages = 1 ;
 }
+
+// CronTask is a format used by the CronMarshaler to marshal and unmarshal cron
+// task.
+//
+// When there is a gap in message sequence numbers - that most likely means some
+// old fields got deprecated. This is done to maintain binary compatibility.
+message CronTask {
+  // Authenticators contains a list of conditions that authenticate execution
+  // of this task.
+  // This is one of the main differences between the CronTask and Tx entities.
+  // CronTask is created interanlly and does not have to be signed. Because we
+  // use the same handlers as for the Tx to process a cron task, we must
+  // provide authentication method. This attribute contains all authentication
+  // conditions required for execution, that will be inserted into the context.
+  repeated bytes authenticators = 1 ;
+  // Use the same indexes for the messages as the Tx message.
+  oneof sum {
+    escrow.ReleaseMsg escrow_release_msg = 53;
+    escrow.ReturnMsg escrow_return_msg = 54;
+    distribution.DistributeMsg distribution_distribute_msg = 67;
+    aswap.ReleaseMsg aswap_release_msg = 71;
+    gov.TallyMsg gov_tally_msg = 76;
+  }
+}

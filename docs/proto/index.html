@@ -194,6 +194,10 @@
             <ul>
               
                 <li>
+                  <a href="#bnsd.CronTask"><span class="badge">M</span>CronTask</a>
+                </li>
+              
+                <li>
                   <a href="#bnsd.ExecuteBatchMsg"><span class="badge">M</span>ExecuteBatchMsg</a>
                 </li>
               
@@ -430,6 +434,21 @@
               
                 <li>
                   <a href="#cash.UpdateConfigurationMsg"><span class="badge">M</span>UpdateConfigurationMsg</a>
+                </li>
+              
+              
+              
+              
+            </ul>
+          </li>
+        
+          
+          <li>
+            <a href="#x%2fcron%2fcodec.proto">x/cron/codec.proto</a>
+            <ul>
+              
+                <li>
+                  <a href="#cron.TaskResult"><span class="badge">M</span>TaskResult</a>
                 </li>
               
               
@@ -784,6 +803,70 @@
       </div>
       <p></p>
 
+      
+        <h3 id="bnsd.CronTask">CronTask</h3>
+        <p>CronTask is a format used by the CronMarshaler to marshal and unmarshal cron</p><p>task.</p><p>When there is a gap in message sequence numbers - that most likely means some</p><p>old fields got deprecated. This is done to maintain binary compatibility.</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>authenticators</td>
+                  <td><a href="#bytes">bytes</a></td>
+                  <td>repeated</td>
+                  <td><p>Authenticators contains a list of conditions that authenticate execution
+of this task.
+This is one of the main differences between the CronTask and Tx entities.
+CronTask is created interanlly and does not have to be signed. Because we
+use the same handlers as for the Tx to process a cron task, we must
+provide authentication method. This attribute contains all authentication
+conditions required for execution, that will be inserted into the context. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>escrow_release_msg</td>
+                  <td><a href="#escrow.ReleaseMsg">escrow.ReleaseMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>escrow_return_msg</td>
+                  <td><a href="#escrow.ReturnMsg">escrow.ReturnMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>distribution_distribute_msg</td>
+                  <td><a href="#distribution.DistributeMsg">distribution.DistributeMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>aswap_release_msg</td>
+                  <td><a href="#aswap.ReleaseMsg">aswap.ReleaseMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>gov_tally_msg</td>
+                  <td><a href="#gov.TallyMsg">gov.TallyMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+        
+
+        
       
         <h3 id="bnsd.ExecuteBatchMsg">ExecuteBatchMsg</h3>
         <p>ExecuteBatchMsg encapsulates multiple messages to support batch transaction</p>
@@ -2541,6 +2624,72 @@ needed to make use of gconf.NewUpdateConfigurationHandler </p></td>
     
       
       <div class="file-heading">
+        <h2 id="x/cron/codec.proto">x/cron/codec.proto</h2><a href="#title">Top</a>
+      </div>
+      <p></p>
+
+      
+        <h3 id="cron.TaskResult">TaskResult</h3>
+        <p>TaskResult is a publicly available information about task execution result.</p><p>It is only created for those tasks that were executed.</p><p>Due to a bug in tendermint we must store this information ourselves instead</p><p>of relying on the usual search via tag.</p><p>https://github.com/tendermint/tendermint/issues/3665</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>metadata</td>
+                  <td><a href="#weave.Metadata">weave.Metadata</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>successful</td>
+                  <td><a href="#bool">bool</a></td>
+                  <td></td>
+                  <td><p>Successful is set to true if the task was successfully executed. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>info</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p>Info contains any additinal information that might be useful to lean more
+about the task execution. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>exec_time</td>
+                  <td><a href="#int64">int64</a></td>
+                  <td></td>
+                  <td><p>Exec time hold the information of when the task was executed. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>exec_height</td>
+                  <td><a href="#int64">int64</a></td>
+                  <td></td>
+                  <td><p>Exec height holds the block height value at the time the task was executed. </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+        
+
+        
+      
+
+      
+
+      
+
+      
+    
+      
+      <div class="file-heading">
         <h2 id="x/currency/codec.proto">x/currency/codec.proto</h2><a href="#title">Top</a>
       </div>
       <p></p>
@@ -3524,6 +3673,14 @@ to be included in the election. </p></td>
                   <td><a href="#gov.Proposal.ExecutorResult">Proposal.ExecutorResult</a></td>
                   <td></td>
                   <td><p>Result is the final result based on the votes and election rule. Initial value is NotRun. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>tally_task_id</td>
+                  <td><a href="#bytes">bytes</a></td>
+                  <td></td>
+                  <td><p>Tally task ID holds the ID of the asynchronous task that is scheduled to
+create the tally once the voting period is over. </p></td>
                 </tr>
               
             </tbody>

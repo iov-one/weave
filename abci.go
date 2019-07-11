@@ -111,11 +111,6 @@ func (c CheckResult) ToABCI() abci.ResponseCheckTx {
 	}
 }
 
-// TickResult allows the Ticker to modify the validator set
-type TickResult struct {
-	Diff []ValidatorUpdate
-}
-
 // DeliverTxError converts any error into a abci.ResponseDeliverTx, preserving
 // as much info as possible.
 // When in debug mode always the full error information is returned.

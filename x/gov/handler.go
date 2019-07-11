@@ -2,6 +2,7 @@ package gov
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
@@ -31,12 +32,18 @@ func RegisterQuery(qr weave.QueryRouter) {
 }
 
 // RegisterRoutes registers handlers for governance message processing.
-func RegisterRoutes(r weave.Registry, auth x.Authenticator, decoder OptionDecoder, executor Executor) {
+func RegisterRoutes(
+	r weave.Registry,
+	auth x.Authenticator,
+	decoder OptionDecoder,
+	executor Executor,
+	scheduler weave.Scheduler,
+) {
 	r = migration.SchemaMigratingRegistry(packageName, r)
 	r.Handle(&VoteMsg{}, newVoteHandler(auth))
 	r.Handle(&TallyMsg{}, newTallyHandler(auth, decoder, executor))
-	r.Handle(&CreateProposalMsg{}, newCreateProposalHandler(auth, decoder))
-	r.Handle(&DeleteProposalMsg{}, newDeleteProposalHandler(auth))
+	r.Handle(&CreateProposalMsg{}, newCreateProposalHandler(auth, decoder, scheduler))
+	r.Handle(&DeleteProposalMsg{}, newDeleteProposalHandler(auth, scheduler))
 	r.Handle(&UpdateElectorateMsg{}, newUpdateElectorateHandler(auth))
 	r.Handle(&UpdateElectionRuleMsg{}, newUpdateElectionRuleHandler(auth))
 	// We do NOT register the TextResultionHandler here... this is only for the proposal Executor
@@ -273,15 +280,17 @@ type CreateProposalHandler struct {
 	elecBucket  *ElectorateBucket
 	propBucket  *ProposalBucket
 	rulesBucket *ElectionRulesBucket
+	scheduler   weave.Scheduler
 }
 
-func newCreateProposalHandler(auth x.Authenticator, decoder OptionDecoder) *CreateProposalHandler {
+func newCreateProposalHandler(auth x.Authenticator, decoder OptionDecoder, scheduler weave.Scheduler) *CreateProposalHandler {
 	return &CreateProposalHandler{
 		auth:        auth,
 		decoder:     decoder,
 		elecBucket:  NewElectorateBucket(),
 		propBucket:  NewProposalBucket(),
 		rulesBucket: NewElectionRulesBucket(),
+		scheduler:   scheduler,
 	}
 }
 
@@ -303,6 +312,7 @@ func (h CreateProposalHandler) Deliver(ctx weave.Context, db weave.KVStore, tx w
 		return nil, errors.Wrap(err, "block time")
 	}
 
+	votingEnd := msg.StartTime.Add(rule.VotingPeriod.Duration())
 	proposal := &Proposal{
 		Metadata:        &weave.Metadata{Schema: 1},
 		Title:           msg.Title,
@@ -311,18 +321,38 @@ func (h CreateProposalHandler) Deliver(ctx weave.Context, db weave.KVStore, tx w
 		ElectionRuleRef: orm.VersionedIDRef{ID: msg.ElectionRuleID, Version: rule.Version},
 		ElectorateRef:   orm.VersionedIDRef{ID: rule.ElectorateID, Version: electorate.Version},
 		VotingStartTime: msg.StartTime,
-		VotingEndTime:   msg.StartTime.Add(rule.VotingPeriod.Duration()),
+		VotingEndTime:   votingEnd,
 		SubmissionTime:  weave.AsUnixTime(blockTime),
 		Author:          msg.Author,
 		VoteState:       NewTallyResult(rule.Quorum, rule.Threshold, electorate.TotalElectorateWeight),
 		Status:          Proposal_Submitted,
 		Result:          Proposal_Undefined,
 		ExecutorResult:  Proposal_NotRun,
+		TallyTaskID:     nil, // Chicken-egg problem. Create without and update later.
 	}
 
 	obj, err := h.propBucket.Create(db, proposal)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to persist proposal")
+	}
+
+	tallyMsg := &TallyMsg{
+		Metadata:   &weave.Metadata{Schema: 1},
+		ProposalID: obj.Key(),
+	}
+	// Add two seconds for the margin, because tally logic is using one second margin.
+	runAt := votingEnd.Time().Add(2 * time.Second)
+	// Tally message requires no authentication.
+	taskID, err := h.scheduler.Schedule(db, runAt, nil, tallyMsg)
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot schedule tally task")
+	}
+
+	// Update the proposal with the task ID. We need the task ID in order
+	// to check the task state and if needed to delete the scheduled job.
+	proposal.TallyTaskID = taskID
+	if err := h.propBucket.Update(db, obj.Key(), proposal); err != nil {
+		return nil, errors.Wrap(err, "failed to update proposal")
 	}
 
 	return &weave.DeliverResult{Data: obj.Key()}, nil
@@ -397,12 +427,14 @@ func (h CreateProposalHandler) validate(ctx weave.Context, db weave.KVStore, tx 
 type DeleteProposalHandler struct {
 	auth       x.Authenticator
 	propBucket *ProposalBucket
+	scheduler  weave.Scheduler
 }
 
-func newDeleteProposalHandler(auth x.Authenticator) *DeleteProposalHandler {
+func newDeleteProposalHandler(auth x.Authenticator, scheduler weave.Scheduler) *DeleteProposalHandler {
 	return &DeleteProposalHandler{
 		auth:       auth,
 		propBucket: NewProposalBucket(),
+		scheduler:  scheduler,
 	}
 }
 
@@ -446,6 +478,16 @@ func (h DeleteProposalHandler) Deliver(ctx weave.Context, db weave.KVStore, tx w
 
 	if err := h.propBucket.Update(db, msg.ProposalID, prop); err != nil {
 		return nil, errors.Wrap(err, "failed to persist proposal")
+	}
+
+	switch err := h.scheduler.Delete(db, prop.TallyTaskID); {
+	case err == nil:
+		// All good.
+	case errors.ErrNotFound.Is(err):
+		// This is unexpected but not critical. We want the task to not exist
+		// and this is true.
+	default:
+		return nil, errors.Wrap(err, "cannot delete scheduled tally task")
 	}
 
 	return &weave.DeliverResult{}, nil
