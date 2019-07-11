@@ -109,19 +109,6 @@ func TestGovProposalCreateAndExecute(t *testing.T) {
 	bnsdtest.MustSignTx(t, env, carlVoteTx, carl)
 	bnsdtest.MustBroadcastTx(t, env, carlVoteTx)
 
-	// At this point, we go more than 50% of the votes for yes. The
-	// stored message can be executed now by calling a tally.
-	tallyTx := &bnsdApp.Tx{
-		Sum: &bnsdApp.Tx_GovTallyMsg{
-			GovTallyMsg: &gov.TallyMsg{
-				Metadata:   &weave.Metadata{Schema: 1},
-				ProposalID: proposalID,
-			},
-		},
-	}
-
-	bnsdtest.MustSignTx(t, env, tallyTx, carl)
-
 	r, err := env.Client.AbciQuery("/proposals", proposalID)
 	if err != nil {
 		t.Fatalf("unexpected error: %+v", err)
@@ -139,7 +126,9 @@ func TestGovProposalCreateAndExecute(t *testing.T) {
 		return
 	}
 
-	wait = proposal.VotingEndTime.Time().Sub(time.Now()) + 2*time.Second // 2s margin
+	// 5s margin as the task is only guaranteed to not run before the
+	// execution date, but can be executed some seconds after
+	wait = proposal.VotingEndTime.Time().Sub(time.Now()) + 5*time.Second
 	bnsdtest.WaitCronTaskSuccess(t, env, wait, proposal.TallyTaskID)
 
 	// Is Carl a rich man now?
