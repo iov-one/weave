@@ -485,6 +485,7 @@ Creates a new version for an existing election rule. The new version is used for
 		durationFl    = fl.Int("voting-period", 0, "Duration in seconds how long the voting period will take place")
 		numeratorFl   = fl.Int("threshold-numerator", 0, "The top number of the fraction.")
 		denominatorFl = fl.Uint("threshold-denominator", 0, "The bottom number of the fraction")
+		quorumFl      = flFraction(fl, "quorum", "0/1", "New quorum fraction in format <numerator>/<denominator>. Zero quorum deletes the value.")
 	)
 	fl.Parse(args)
 	if len(*id) == 0 {
@@ -498,6 +499,12 @@ Creates a new version for an existing election rule. The new version is used for
 	if err := fraction.Validate(); err != nil {
 		flagDie("invalid voting period: %s", err)
 	}
+
+	var quorum *gov.Fraction
+	if f := quorumFl.Fraction(); f.Numerator != 0 {
+		quorum = &f
+	}
+
 	govTx := &bnsd.Tx{
 		Sum: &bnsd.Tx_GovUpdateElectionRuleMsg{
 			GovUpdateElectionRuleMsg: &gov.UpdateElectionRuleMsg{
@@ -505,6 +512,7 @@ Creates a new version for an existing election rule. The new version is used for
 				ElectionRuleID: []byte(*id),
 				VotingPeriod:   weave.AsUnixDuration(time.Duration(*durationFl) * time.Second),
 				Threshold:      fraction,
+				Quorum:         quorum,
 			},
 		},
 	}

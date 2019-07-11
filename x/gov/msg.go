@@ -117,19 +117,29 @@ func (UpdateElectionRuleMsg) Path() string {
 }
 
 func (m UpdateElectionRuleMsg) Validate() error {
+	var errs error
+
 	if err := m.Metadata.Validate(); err != nil {
-		return errors.Wrap(err, "invalid metadata")
+		errs = errors.Append(errs, errors.Wrap(err, "invalid metadata"))
 	}
 	if len(m.ElectionRuleID) == 0 {
-		return errors.Wrap(errors.ErrEmpty, "id")
+		errs = errors.Append(errs, errors.Wrap(errors.ErrEmpty, "id"))
 	}
 	if m.VotingPeriod.Duration() < minVotingPeriod {
-		return errors.Wrapf(errors.ErrInput, "min %s", minVotingPeriod)
+		errs = errors.Append(errs, errors.Wrapf(errors.ErrInput, "min %s", minVotingPeriod))
 	}
 	if m.VotingPeriod.Duration() > maxVotingPeriod {
-		return errors.Wrapf(errors.ErrInput, "max %s", maxVotingPeriod)
+		errs = errors.Append(errs, errors.Wrapf(errors.ErrInput, "max %s", maxVotingPeriod))
 	}
-	return m.Threshold.Validate()
+	if m.Quorum != nil {
+		if err := m.Quorum.Validate(); err != nil {
+			errs = errors.Append(errs, errors.Wrap(err, "quorum"))
+		}
+	}
+	if err := m.Threshold.Validate(); err != nil {
+		errs = errors.Append(errs, errors.Wrap(err, "threshold"))
+	}
+	return errs
 }
 
 var _ weave.Msg = (*CreateTextResolutionMsg)(nil)

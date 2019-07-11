@@ -6,5 +6,6 @@ bnscli update-election-rule  -id "5" \
         -voting-period 86400 \
         -threshold-numerator 2 \
         -threshold-denominator 3 \
+	-quorum '2/3' \
     | bnscli as-proposal -start "2021-01-01 11:11" -electionrule 3 -title "my proposal" -description "yet another proposal" \
     | bnscli view
