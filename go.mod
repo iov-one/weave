@@ -24,7 +24,6 @@ require (
 	github.com/tendermint/go-amino v0.15.0
 	github.com/tendermint/iavl v0.12.2
 	github.com/tendermint/tendermint v0.31.5
-	github.com/tendermint/tmlibs v0.9.0
 	golang.org/x/crypto v0.0.0-20190513172903-22d7a77e9e5f
 	google.golang.org/grpc v1.21.0 // indirect
 )
