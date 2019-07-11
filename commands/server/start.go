@@ -2,7 +2,6 @@ package server
 
 import (
 	"flag"
-
 	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/errors"
 	"github.com/tendermint/tendermint/abci/server"
@@ -72,17 +71,29 @@ func StartCmd(gen AppGenerator, logger log.Logger, home string, args []string) e
 	if err != nil {
 		return errors.Wrap(err, "failed to create a listener")
 	}
+
 	svr.SetLogger(logger.With("module", "abci-server"))
+
+	done := make(chan bool)
+	cleanupCallback := func() {
+		// Cleanup
+		_ = svr.Stop()
+		done <- true
+	}
+
+	cmn.TrapSignal(logger, cleanupCallback)
+
+	defer func() {
+		if err := recover(); err != nil {
+			logger.Error("recovered from panic", "err", err)
+			cleanupCallback()
+		}
+	}()
+
 	err = svr.Start()
 	if err != nil {
 		return errors.Wrap(err, "failed to start a server")
 	}
-	done := make(chan bool)
-	cmn.TrapSignal(logger, func() {
-		// Cleanup
-		_ = svr.Stop()
-		done <- true
-	})
 
 	// wait forever
 	<-done
