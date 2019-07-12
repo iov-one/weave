@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"flag"
 	"io/ioutil"
+	"reflect"
 	"testing"
 	"time"
 
@@ -361,6 +362,22 @@ func TestFractionFlag(t *testing.T) {
 			wantDie: 0,
 			wantVal: &gov.Fraction{Numerator: 0, Denominator: 0},
 		},
+		"value is nil when not set": {
+			setup: func(fl *flag.FlagSet) *flagfraction {
+				return flFraction(fl, "x", "", "")
+			},
+			args:    []string{},
+			wantDie: 0,
+			wantVal: nil,
+		},
+		"zero is value is zero": {
+			setup: func(fl *flag.FlagSet) *flagfraction {
+				return flFraction(fl, "x", "0", "")
+			},
+			args:    []string{},
+			wantDie: 0,
+			wantVal: &gov.Fraction{Numerator: 0, Denominator: 0},
+		},
 		"use default value": {
 			setup: func(fl *flag.FlagSet) *flagfraction {
 				return flFraction(fl, "x", "2/3", "")
@@ -405,8 +422,8 @@ func TestFractionFlag(t *testing.T) {
 			if *cnt != tc.wantDie {
 				t.Errorf("want %d flagDie calls, got %d", tc.wantDie, cnt)
 			}
-			if tc.wantDie == 0 && (frac.Denominator != tc.wantVal.Denominator || frac.Numerator != tc.wantVal.Numerator) {
-				t.Errorf("want %+v fraction, got %+v", tc.wantVal, frac)
+			if tc.wantDie == 0 && !reflect.DeepEqual(frac.frac, tc.wantVal) {
+				t.Errorf("want %+v fraction, got %+v", tc.wantVal, frac.frac)
 			}
 		})
 	}

@@ -185,15 +185,19 @@ func flFraction(fl *flag.FlagSet, name, defaultVal, usage string) *flagfraction 
 		if f, err := unpackFraction(defaultVal); err != nil {
 			flagDie("Cannot parse %q fraction flag value. %s", name, err)
 		} else {
-			ff.Numerator = f.Numerator
-			ff.Denominator = f.Denominator
+			ff.frac = &gov.Fraction{
+				Numerator:   f.Numerator,
+				Denominator: f.Denominator,
+			}
 		}
 	}
 	fl.Var(&ff, name, usage)
 	return &ff
 }
 
-type flagfraction gov.Fraction
+type flagfraction struct {
+	frac *gov.Fraction
+}
 
 func unpackFraction(s string) (*gov.Fraction, error) {
 	chunks := strings.Split(s, "/")
@@ -235,10 +239,16 @@ func unpackFraction(s string) (*gov.Fraction, error) {
 }
 
 func (f flagfraction) String() string {
-	if f.Numerator == 0 && f.Denominator == 0 {
+	if f.frac == nil {
+		return ""
+	}
+	if f.frac.Numerator == 0 {
 		return "0"
 	}
-	return fmt.Sprintf("%d/%d", f.Numerator, f.Denominator)
+	if f.frac.Denominator == 1 {
+		return fmt.Sprint(f.frac.Numerator)
+	}
+	return fmt.Sprintf("%d/%d", f.frac.Numerator, f.frac.Denominator)
 }
 
 func (f *flagfraction) Set(raw string) error {
@@ -246,14 +256,15 @@ func (f *flagfraction) Set(raw string) error {
 	if err != nil {
 		return err
 	}
-	f.Numerator = val.Numerator
-	f.Denominator = val.Denominator
+	f.frac = val
 	return nil
 }
 
-func (f *flagfraction) Fraction() gov.Fraction {
-	if f == nil {
-		return gov.Fraction{}
+func (f *flagfraction) Fraction() *gov.Fraction {
+	if f.frac == nil {
+		return nil
 	}
-	return gov.Fraction{Numerator: f.Numerator, Denominator: f.Denominator}
+	// copy
+	frac := *f.frac
+	return &frac
 }

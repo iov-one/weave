@@ -485,7 +485,7 @@ Creates a new version for an existing election rule. The new version is used for
 		durationFl    = fl.Int("voting-period", 0, "Duration in seconds how long the voting period will take place")
 		numeratorFl   = fl.Int("threshold-numerator", 0, "The top number of the fraction.")
 		denominatorFl = fl.Uint("threshold-denominator", 0, "The bottom number of the fraction")
-		quorumFl      = flFraction(fl, "quorum", "0/1", "New quorum fraction in format <numerator>/<denominator>. Zero quorum deletes the value.")
+		quorumFl      = flFraction(fl, "quorum", "", "New quorum fraction in format <numerator>/<denominator>. Zero quorum deletes the value.")
 	)
 	fl.Parse(args)
 	if len(*id) == 0 {
@@ -501,8 +501,9 @@ Creates a new version for an existing election rule. The new version is used for
 	}
 
 	var quorum *gov.Fraction
-	if f := quorumFl.Fraction(); f.Numerator != 0 {
-		quorum = &f
+	if frac := quorumFl.Fraction(); frac != nil {
+		// If fraction value was provided, set it.
+		quorum = frac
 	}
 
 	govTx := &bnsd.Tx{
