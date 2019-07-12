@@ -1,7 +1,7 @@
 # Changelog
 
 ## HEAD
-
+- Remove `testify` dependency from our tests
 - A new extension `x/cron` is added. It allows to configure weave application
   to be able to schedule messages for future execution.
 - Proposals created with `x/gov` are having their tally executed automatically
