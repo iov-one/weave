@@ -2,10 +2,10 @@ package bnsd
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
+	"github.com/iov-one/weave/weavetest/assert"
 )
 
 func TestGenInitOptions(t *testing.T) {
@@ -23,17 +23,17 @@ func TestGenInitOptions(t *testing.T) {
 	for i, tc := range cases {
 		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
 			val, err := GenInitOptions(tc.args)
-			require.NoError(t, err)
+			assert.Nil(t, err)
 
 			cc := fmt.Sprintf(`"ticker": "%s"`, tc.cur)
-			assert.Contains(t, string(val), cc)
+			assert.Equal(t, true, strings.Contains(string(val), cc))
 
 			ca := fmt.Sprintf(`"address": "%s"`, tc.addr)
 			if tc.addr == "" {
 				// we just know there is an address, not what it is
 				ca = ca[:len(ca)-1]
 			}
-			assert.Contains(t, string(val), ca)
+			assert.Equal(t, true, strings.Contains(string(val), ca))
 		})
 	}
 }

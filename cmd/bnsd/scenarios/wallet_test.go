@@ -6,7 +6,7 @@ import (
 	"github.com/iov-one/weave/cmd/bnsd/client"
 	"github.com/iov-one/weave/cmd/bnsd/scenarios/bnsdtest"
 	"github.com/iov-one/weave/coin"
-	"github.com/stretchr/testify/require"
+	"github.com/iov-one/weave/weavetest/assert"
 )
 
 func TestSendTokenWithFee(t *testing.T) {
@@ -17,9 +17,9 @@ func TestSendTokenWithFee(t *testing.T) {
 	aNonce := client.NewNonce(env.Client, env.Alice.PublicKey().Address())
 
 	walletResp, err := env.Client.GetWallet(env.Alice.PublicKey().Address())
-	require.NoError(t, err)
-	require.NotNil(t, walletResp, "address not found")
-	require.NotEmpty(t, walletResp.Wallet.Coins)
+	assert.Nil(t, err)
+	assert.Equal(t, true, walletResp != nil)
+	assert.Equal(t, true, len(walletResp.Wallet.Coins) > 0)
 
 	heights := make([]int64, len(walletResp.Wallet.Coins))
 	for i, c := range walletResp.Wallet.Coins {
@@ -31,16 +31,16 @@ func TestSendTokenWithFee(t *testing.T) {
 		}
 
 		seq, err := aNonce.Next()
-		require.NoError(t, err)
+		assert.Nil(t, err)
 		tx := client.BuildSendTx(env.Alice.PublicKey().Address(), emilia.PublicKey().Address(), cc, "test tx with fee")
 		tx.Fee(env.Alice.PublicKey().Address(), env.AntiSpamFee)
-		require.NoError(t, client.SignTx(tx, env.Alice, env.ChainID, seq))
+		assert.Nil(t, client.SignTx(tx, env.Alice, env.ChainID, seq))
 		resp := env.Client.BroadcastTx(tx)
-		require.NoError(t, resp.IsError())
+		assert.Nil(t, resp.IsError())
 		heights[i] = resp.Response.Height
 	}
 	walletResp, err = env.Client.GetWallet(emilia.PublicKey().Address())
-	require.NoError(t, err)
+	assert.Nil(t, err)
 	t.Log("message", "done", "height", heights, "coins", walletResp.Wallet.Coins)
 }
 
@@ -49,7 +49,6 @@ func TestQueryCurrencies(t *testing.T) {
 	defer cleanup()
 
 	l, err := client.NewClient(env.Client.TendermintClient()).Currencies()
-	require.NoError(t, err)
-	require.NotNil(t, l, "no currencies found")
-	require.True(t, len(l.Currencies) > 0)
+	assert.Nil(t, err)
+	assert.Equal(t, true, len(l.Currencies) > 0)
 }

@@ -13,13 +13,12 @@ import (
 	"github.com/iov-one/weave/cmd/bnsd/app/testdata/fixtures"
 	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/crypto"
+	"github.com/iov-one/weave/weavetest/assert"
 	"github.com/iov-one/weave/x/batch"
 	"github.com/iov-one/weave/x/cash"
 	"github.com/iov-one/weave/x/multisig"
 	"github.com/iov-one/weave/x/sigs"
 	"github.com/iov-one/weave/x/utils"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/common"
 )
@@ -47,7 +46,7 @@ func TestApp(t *testing.T) {
 	dres := sendToken(t, myApp, appFixture.ChainID, 2, []Signer{{pk, 0}}, addr, addr2, 2000, "ETH", "Have a great trip!")
 
 	// ensure 4 keys for all accounts that are modified by a transaction
-	require.Equal(t, 5, len(dres.Tags), tagsAsString(dres.Tags))
+	assert.Equal(t, 5, len(dres.Tags))
 	feeDistAddr := weave.NewCondition("dist", "revenue", []byte{0, 0, 0, 0, 0, 0, 0, 1}).Address()
 	wantKeys := []string{
 		"action",
@@ -61,11 +60,11 @@ func TestApp(t *testing.T) {
 		for i := 0; i < len(dres.Tags) && !found; i++ {
 			found = string(dres.Tags[i].Key) == want
 		}
-		require.True(t, found, "not found tag %s in %s", want, tagsAsString(dres.Tags))
+		assert.Equal(t, true, found)
 	}
 
 	// first tag is the action tagger, following are key tagger
-	require.Equal(t, []string{"cash/send", "s", "s", "s", "s"}, []string{
+	assert.Equal(t, []string{"cash/send", "s", "s", "s", "s"}, []string{
 		string(dres.Tags[0].Value),
 		string(dres.Tags[1].Value),
 		string(dres.Tags[2].Value),
@@ -348,13 +347,13 @@ func signAndCommit(
 
 	for _, signer := range signers {
 		sig, err := sigs.SignTx(signer.pk, tx, chainID, signer.nonce)
-		require.NoError(t, err)
+		assert.Nil(t, err)
 		tx.Signatures = append(tx.Signatures, sig)
 	}
 
 	txBytes, err := tx.Marshal()
-	require.NoError(t, err)
-	require.NotEmpty(t, txBytes)
+	assert.Nil(t, err)
+	assert.Equal(t, true, len(txBytes) != 0)
 
 	// Submit to the chain
 	header := abci.Header{
@@ -364,14 +363,14 @@ func signAndCommit(
 	app.BeginBlock(abci.RequestBeginBlock{Header: header})
 	// check and deliver must pass
 	chres := app.CheckTx(txBytes)
-	require.Equal(t, uint32(0), chres.Code, chres.Log)
+	assert.Equal(t, uint32(0), chres.Code)
 
 	dres := app.DeliverTx(txBytes)
-	require.Equal(t, uint32(0), dres.Code, dres.Log)
+	assert.Equal(t, uint32(0), dres.Code)
 
 	app.EndBlock(abci.RequestEndBlock{})
 	cres := app.Commit()
-	assert.NotEmpty(t, cres.Data)
+	assert.Equal(t, true, len(cres.Data) != 0)
 	return dres
 }
 
@@ -382,13 +381,13 @@ func queryAndCheckAccount(t *testing.T, baseApp abci.Application, path string, d
 	res := baseApp.Query(query)
 
 	// check query was ok
-	require.Equal(t, uint32(0), res.Code, "%#v", res)
-	assert.NotEmpty(t, res.Value)
+	assert.Equal(t, uint32(0), res.Code)
+	assert.Equal(t, true, len(res.Value) != 0)
 
 	var actual cash.Set
 	err := weaveApp.UnmarshalOneResult(res.Value, &actual)
-	require.NoError(t, err)
-	require.Equal(t, expected.Coins, actual.Coins)
+	assert.Nil(t, err)
+	assert.Equal(t, expected.Coins, actual.Coins)
 }
 
 // queryAndCheckContract queries the contract from the chain and check it is the one expected
@@ -397,13 +396,13 @@ func queryAndCheckContract(t *testing.T, baseApp abci.Application, path string, 
 	res := baseApp.Query(query)
 
 	// check query was ok
-	require.Equal(t, uint32(0), res.Code, "%#v", res)
-	assert.NotEmpty(t, res.Value)
+	assert.Equal(t, uint32(0), res.Code)
+	assert.Equal(t, true, len(res.Value) != 0)
 
 	actual := multisig.Contract{
 		Metadata: &weave.Metadata{Schema: 1},
 	}
 	err := weaveApp.UnmarshalOneResult(res.Value, &actual)
-	require.NoError(t, err)
-	require.Equal(t, expected, actual)
+	assert.Nil(t, err)
+	assert.Equal(t, expected, actual)
 }

@@ -1,15 +1,15 @@
 package scenarios
 
 import (
+	"bytes"
 	"testing"
 	"time"
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/cmd/bnsd/client"
 	"github.com/iov-one/weave/cmd/bnsd/scenarios/bnsdtest"
+	"github.com/iov-one/weave/weavetest/assert"
 	"github.com/iov-one/weave/x/validators"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/crypto/ed25519"
 	ctypes "github.com/tendermint/tendermint/rpc/core/types"
@@ -21,13 +21,18 @@ func TestQueryValidatorUpdateSigner(t *testing.T) {
 	defer cleanup()
 
 	r, err := client.NewClient(env.Client.TendermintClient()).AbciQuery("/validators", []byte("accounts"))
-	require.NoError(t, err)
-	require.Len(t, r.Models, 1)
+	assert.Nil(t, err)
+	assert.Equal(t, 1, len(r.Models))
 
 	var accounts validators.Accounts
-	require.NoError(t, accounts.Unmarshal(r.Models[0].Value))
-	require.Len(t, accounts.Addresses, 1)
-	assert.Contains(t, accounts.Addresses, []byte(env.MultiSigContract.Address()), "multisig address not found")
+	assert.Nil(t, accounts.Unmarshal(r.Models[0].Value))
+	assert.Equal(t, 1, len(accounts.Addresses))
+	for _, v := range accounts.Addresses {
+		if bytes.Equal(v, []byte(env.MultiSigContract.Address())) {
+			return
+		}
+	}
+	t.Fatal("multisig address not found")
 }
 
 func TestUpdateValidatorSet(t *testing.T) {
@@ -35,7 +40,7 @@ func TestUpdateValidatorSet(t *testing.T) {
 	defer cleanup()
 
 	current, err := client.Admin(client.NewClient(env.Client.TendermintClient())).GetValidators(client.CurrentHeight)
-	require.NoError(t, err)
+	assert.Nil(t, err)
 
 	newValidator := ed25519.GenPrivKey()
 	keyEd25519 := newValidator.PubKey().(ed25519.PubKeyEd25519)
@@ -60,19 +65,19 @@ func TestUpdateValidatorSet(t *testing.T) {
 	addValidatorTX.Multisig = [][]byte{contractID}
 
 	seq, err := aNonce.Next()
-	require.NoError(t, err)
-	require.NoError(t, client.SignTx(addValidatorTX, env.Alice, env.ChainID, seq))
+	assert.Nil(t, err)
+	assert.Nil(t, client.SignTx(addValidatorTX, env.Alice, env.ChainID, seq))
 	resp := env.Client.BroadcastTx(addValidatorTX)
 
 	// then
 	t.Logf("Adding validator: %X\n", keyEd25519)
-	require.NoError(t, resp.IsError())
+	assert.Nil(t, resp.IsError())
 
 	// and tendermint validator set is updated
 	tmValidatorSet := awaitValidatorUpdate(env, resp.Response.Height+2)
-	require.NotNil(t, tmValidatorSet)
-	require.Len(t, tmValidatorSet.Validators, len(current.Validators)+1)
-	require.True(t, contains(tmValidatorSet.Validators, newValidator.PubKey()))
+	assert.Equal(t, true, tmValidatorSet != nil)
+	assert.Equal(t, len(current.Validators)+1, len(tmValidatorSet.Validators))
+	assert.Equal(t, true, contains(tmValidatorSet.Validators, newValidator.PubKey()))
 
 	// and when delete validator
 	delValidatorTX := client.SetValidatorTx(
@@ -89,19 +94,19 @@ func TestUpdateValidatorSet(t *testing.T) {
 
 	// then
 	seq, err = aNonce.Next()
-	require.NoError(t, err)
-	require.NoError(t, client.SignTx(delValidatorTX, env.Alice, env.ChainID, seq))
+	assert.Nil(t, err)
+	assert.Nil(t, client.SignTx(delValidatorTX, env.Alice, env.ChainID, seq))
 	resp = env.Client.BroadcastTx(delValidatorTX)
 
 	// then
-	require.NoError(t, resp.IsError())
+	assert.Nil(t, resp.IsError())
 	t.Logf("Removed validator: %X\n", keyEd25519)
 
 	// and tendermint validator set is updated
 	tmValidatorSet = awaitValidatorUpdate(env, resp.Response.Height+2)
-	require.NotNil(t, tmValidatorSet)
-	require.Len(t, tmValidatorSet.Validators, len(current.Validators))
-	assert.False(t, contains(tmValidatorSet.Validators, newValidator.PubKey()))
+	assert.Equal(t, true, tmValidatorSet != nil)
+	assert.Equal(t, len(current.Validators), len(tmValidatorSet.Validators))
+	assert.Equal(t, false, contains(tmValidatorSet.Validators, newValidator.PubKey()))
 }
 
 func awaitValidatorUpdate(env *bnsdtest.EnvConf, height int64) *ctypes.ResultValidators {

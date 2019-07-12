@@ -6,8 +6,7 @@ import (
 	"time"
 
 	"github.com/iov-one/weave/coin"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
+	"github.com/iov-one/weave/weavetest/assert"
 	"github.com/tendermint/tendermint/rpc/client"
 	rpctest "github.com/tendermint/tendermint/rpc/test"
 )
@@ -27,14 +26,14 @@ func TestMainSetup(t *testing.T) {
 
 	conn := client.NewLocal(node)
 	status, err := conn.Status()
-	require.NoError(t, err)
+	assert.Nil(t, err)
 	assert.Equal(t, "SetInTestMain", status.NodeInfo.Moniker)
 
 	// wait for some blocks to be produced....
 	client.WaitForHeight(conn, 5, fastWaiter)
 	status, err = conn.Status()
-	require.NoError(t, err)
-	assert.True(t, status.SyncInfo.LatestBlockHeight > 4)
+	assert.Nil(t, err)
+	assert.Equal(t, true, status.SyncInfo.LatestBlockHeight > 4)
 }
 
 func TestWalletQuery(t *testing.T) {
@@ -44,25 +43,25 @@ func TestWalletQuery(t *testing.T) {
 
 	// bad address returns error
 	_, err := bcp.GetWallet([]byte{1, 2, 3, 4})
-	assert.Error(t, err)
+	assert.Equal(t, true, err != nil)
 
 	// missing account returns nothing
 	missing := GenPrivateKey().PublicKey().Address()
 	wallet, err := bcp.GetWallet(missing)
-	assert.NoError(t, err)
+	assert.Nil(t, err)
 	assert.Nil(t, wallet)
 
 	// genesis account returns something
 	address := faucet.PublicKey().Address()
 	wallet, err = bcp.GetWallet(address)
-	assert.NoError(t, err)
-	require.NotNil(t, wallet)
+	assert.Nil(t, err)
+	assert.Equal(t, true, wallet != nil)
 	// make sure we get some reasonable height
-	assert.True(t, wallet.Height > 4)
+	assert.Equal(t, true, wallet.Height > 4)
 	// ensure the key matches
-	assert.EqualValues(t, address, wallet.Address)
+	assert.Equal(t, address, wallet.Address)
 	// check the wallet
-	require.Equal(t, 1, len(wallet.Wallet.Coins))
+	assert.Equal(t, 1, len(wallet.Wallet.Coins))
 	coin := wallet.Wallet.Coins[0]
 	assert.Equal(t, initBalance.Whole, coin.Whole)
 	assert.Equal(t, initBalance.Ticker, coin.Ticker)
@@ -75,19 +74,19 @@ func TestNonce(t *testing.T) {
 
 	nonce := NewNonce(bcp, addr)
 	n, err := nonce.Next()
-	require.NoError(t, err)
+	assert.Nil(t, err)
 	assert.Equal(t, int64(0), n)
 
 	n, err = nonce.Next()
-	require.NoError(t, err)
+	assert.Nil(t, err)
 	assert.Equal(t, int64(1), n)
 
 	n, err = nonce.Next()
-	require.NoError(t, err)
+	assert.Nil(t, err)
 	assert.Equal(t, int64(2), n)
 
 	n, err = nonce.Query()
-	require.NoError(t, err)
+	assert.Nil(t, err)
 	assert.Equal(t, int64(0), n)
 }
 
@@ -105,24 +104,24 @@ func TestSendMoney(t *testing.T) {
 	amount := coin.Coin{Whole: 1000, Ticker: initBalance.Ticker}
 	tx := BuildSendTx(src, rcpt, amount, "Send 1")
 	n, err := nonce.Query()
-	require.NoError(t, err)
+	assert.Nil(t, err)
 	SignTx(tx, faucet, chainID, n)
 
 	// now post it
 	res := bcp.BroadcastTx(tx)
-	require.NoError(t, res.IsError())
+	assert.Nil(t, res.IsError())
 
 	// verify nonce incremented on chain
 	n2, err := nonce.Query()
-	require.NoError(t, err)
+	assert.Nil(t, err)
 	assert.Equal(t, n+1, n2)
 
 	// verify wallet has cash
 	wallet, err := bcp.GetWallet(rcpt)
-	assert.NoError(t, err)
-	require.NotNil(t, wallet)
+	assert.Nil(t, err)
+	assert.Equal(t, true, wallet != nil)
 	// check the wallet
-	require.Equal(t, 1, len(wallet.Wallet.Coins))
+	assert.Equal(t, 1, len(wallet.Wallet.Coins))
 	coin := wallet.Wallet.Coins[0]
 	assert.Equal(t, int64(1000), coin.Whole)
 	assert.Equal(t, initBalance.Ticker, coin.Ticker)
@@ -134,17 +133,17 @@ func TestSubscribeHeaders(t *testing.T) {
 
 	headers := make(chan *Header, 4)
 	cancel, err := bcp.SubscribeHeaders(headers)
-	require.NoError(t, err)
+	assert.Nil(t, err)
 
 	// get two headers and cancel
 	h := <-headers
 	h2 := <-headers
 	cancel()
 
-	assert.NotNil(t, h)
-	assert.NotNil(t, h2)
-	assert.NotEmpty(t, h.ChainID)
-	assert.NotEmpty(t, h.Height)
+	assert.Equal(t, true, h != nil)
+	assert.Equal(t, true, h2 != nil)
+	assert.Equal(t, true, len(h.ChainID) > 0)
+	assert.Equal(t, true, h.Height != 0)
 	assert.Equal(t, h.ChainID, h2.ChainID)
 	assert.Equal(t, h.Height+1, h2.Height)
 
@@ -152,7 +151,7 @@ func TestSubscribeHeaders(t *testing.T) {
 	timer := time.After(100 * time.Millisecond)
 	select {
 	case evt := <-headers:
-		require.Nil(t, evt, "This must be nil from a closed channel")
+		assert.Nil(t, evt)
 	case <-timer:
 		// we want this to fire
 	}
@@ -169,18 +168,18 @@ func TestSendMultipleTx(t *testing.T) {
 	nonce := NewNonce(bcp, src)
 	chainID, err := bcp.ChainID()
 	amount := coin.Coin{Whole: 1000, Ticker: initBalance.Ticker}
-	require.NoError(t, err)
+	assert.Nil(t, err)
 
 	// a prep transaction, so the recipient has something to send
 	prep := BuildSendTx(src, rcpt, amount, "Send 1")
 	n, err := nonce.Next()
-	require.NoError(t, err)
+	assert.Nil(t, err)
 	SignTx(prep, faucet, chainID, n)
 
 	// from sender with a different nonce
 	tx := BuildSendTx(src, rcpt, amount, "Send 2")
 	n, err = nonce.Next()
-	require.NoError(t, err)
+	assert.Nil(t, err)
 	SignTx(tx, faucet, chainID, n)
 
 	// and a third one to return from rcpt to sender
@@ -190,12 +189,12 @@ func TestSendMultipleTx(t *testing.T) {
 
 	// first, we send the one transaction so the next two will succeed
 	prepResp := bcp.BroadcastTx(prep)
-	require.NoError(t, prepResp.IsError())
+	assert.Nil(t, prepResp.IsError())
 	prepH := prepResp.Response.Height
 
 	txResp := make(chan BroadcastTxResponse, 2)
 	headers, cancel, err := bcp.Subscribe(QueryNewBlockHeader)
-	require.NoError(t, err)
+	assert.Nil(t, err)
 
 	// to avoid race conditions, wait for a new header
 	// event, then immediately send off the two tx
@@ -222,8 +221,8 @@ func TestSendMultipleTx(t *testing.T) {
 	// both succeed
 	resp := <-txResp
 	resp2 := <-txResp
-	require.NoError(t, resp.IsError())
-	require.NoError(t, resp2.IsError())
-	assert.True(t, resp.Response.Height > prepH+1)
-	assert.True(t, resp2.Response.Height > prepH+1)
+	assert.Nil(t, resp.IsError())
+	assert.Nil(t, resp2.IsError())
+	assert.Equal(t, true, resp.Response.Height > prepH+1)
+	assert.Equal(t, true, resp2.Response.Height > prepH+1)
 }
