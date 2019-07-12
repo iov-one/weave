@@ -6,8 +6,7 @@ import (
 	"testing"
 
 	"github.com/iov-one/weave/errors"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
+	"github.com/iov-one/weave/weavetest/assert"
 )
 
 // mustCombineCoins has one return value for tests...
@@ -111,20 +110,20 @@ func TestMakeCoins(t *testing.T) {
 		t.Run(fmt.Sprintf("case-%d", idx), func(t *testing.T) {
 			s, err := CombineCoins(tc.inputs...)
 			if tc.isErr {
-				assert.Error(t, err)
+				assert.Equal(t, true, err != nil)
 				return
 			}
 
-			require.NoError(t, err)
-			assert.NoError(t, s.Validate())
+			assert.Nil(t, err)
+			assert.Nil(t, s.Validate())
 			assert.Equal(t, tc.isEmpty, s.IsEmpty())
 			assert.Equal(t, tc.isNonNeg, s.IsNonNegative())
 
 			for _, h := range tc.has {
-				assert.True(t, s.Contains(h))
+				assert.Equal(t, true, s.Contains(h))
 			}
 			for _, d := range tc.dontHave {
-				assert.False(t, s.Contains(d))
+				assert.Equal(t, false, s.Contains(d))
 			}
 		})
 	}
@@ -176,12 +175,12 @@ func TestCombine(t *testing.T) {
 			assert.Equal(t, ac, tc.a.Count())
 			assert.Equal(t, bc, tc.b.Count())
 			if tc.isErr {
-				assert.Error(t, err)
+				assert.Equal(t, true, err != nil)
 				return
 			}
-			require.NoError(t, err)
-			assert.NoError(t, res.Validate())
-			assert.True(t, tc.comb.Equals(res))
+			assert.Nil(t, err)
+			assert.Nil(t, res.Validate())
+			assert.Equal(t, true, tc.comb.Equals(res))
 			// result should only be the same as an input
 			// if the other input was empty
 			assert.Equal(t, tc.a.IsEmpty(),

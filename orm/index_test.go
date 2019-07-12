@@ -1,13 +1,13 @@
 package orm
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"testing"
 
 	"github.com/iov-one/weave/store"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
+	"github.com/iov-one/weave/weavetest/assert"
 )
 
 // simple indexer for Counter
@@ -96,20 +96,20 @@ func TestCounterSingleKeyIndex(t *testing.T) {
 			idx := tc.idx
 			err := idx.Update(db, tc.prev, tc.next)
 			if tc.isError {
-				require.Error(t, err)
+				assert.Equal(t, true, err != nil)
 				return
 			}
 
-			require.NoError(t, err)
+			assert.Nil(t, err)
 			if tc.getLike != nil {
 				res, err := idx.GetLike(db, tc.getLike)
-				require.NoError(t, err)
-				assert.EqualValues(t, tc.likeRes, res)
+				assert.Nil(t, err)
+				assert.Equal(t, tc.likeRes, res)
 			}
 			if tc.getAt != nil {
 				res, err := idx.GetAt(db, tc.getAt)
-				require.NoError(t, err)
-				assert.EqualValues(t, tc.atRes, res)
+				assert.Nil(t, err)
+				assert.Equal(t, tc.atRes, res)
 			}
 		})
 	}
@@ -188,7 +188,7 @@ func TestCounterMultiKeyIndex(t *testing.T) {
 				}
 				keys, _ := idx.index(o)
 				for _, key := range keys {
-					require.NoError(t, idx.insert(db, key, o.Key()))
+					assert.Nil(t, idx.insert(db, key, o.Key()))
 				}
 			}
 			// when
@@ -196,25 +196,32 @@ func TestCounterMultiKeyIndex(t *testing.T) {
 
 			// then
 			if spec.expError {
-				require.Error(t, err)
+				assert.Equal(t, true, err != nil)
 			} else {
-				require.NoError(t, err)
+				assert.Nil(t, err)
 			}
 			for _, k := range spec.expKeys {
 				// and index keys exists
 				pks, err := idx.GetAt(db, k)
-				require.NoError(t, err)
+				assert.Nil(t, err)
 				// with proper pk
 				if idx.unique {
 					assert.Equal(t, [][]byte{[]byte("my")}, pks)
 				} else {
-					assert.Contains(t, pks, []byte("my"))
+					var found bool
+					for i := range pks {
+						if exp, got := []byte("my"), pks[i]; bytes.Equal(exp, got) {
+							found = true
+							break
+						}
+					}
+					assert.Equal(t, true, found)
 				}
 			}
 			// and previous index keys don't exist anymore
 			for _, k := range spec.expNotKeys {
 				pks, err := idx.GetAt(db, k)
-				require.NoError(t, err)
+				assert.Nil(t, err)
 				assert.Nil(t, pks)
 			}
 		})
@@ -233,7 +240,7 @@ func TestGetLikeWithMultiKeyIndex(t *testing.T) {
 	for _, o := range persistentObjects {
 		keys, _ := idx.index(o)
 		for _, key := range keys {
-			require.NoError(t, idx.insert(db, key, o.Key()))
+			assert.Nil(t, idx.insert(db, key, o.Key()))
 		}
 	}
 
@@ -264,7 +271,7 @@ func TestGetLikeWithMultiKeyIndex(t *testing.T) {
 			pks, err := idx.GetLike(db, spec.source)
 
 			// then
-			require.NoError(t, err)
+			assert.Nil(t, err)
 			assert.Equal(t, spec.expPKs, pks)
 		})
 	}
@@ -309,8 +316,8 @@ func makeRefObj(key []byte, values ...[]byte) Object {
 func checkNil(t *testing.T, objs ...Object) {
 	for _, obj := range objs {
 		bz, err := first(obj)
-		require.NoError(t, err)
-		require.Equal(t, 0, len(bz))
+		assert.Nil(t, err)
+		assert.Equal(t, 0, len(bz))
 	}
 }
 
@@ -362,14 +369,14 @@ func TestNullableIndex(t *testing.T) {
 			db := store.MemStore()
 			for _, init := range tc.setup {
 				err := uniq.Update(db, nil, init)
-				require.NoError(t, err)
+				assert.Nil(t, err)
 			}
 
 			err := uniq.Update(db, tc.prev, tc.next)
 			if tc.isError {
-				require.Error(t, err)
+				assert.Equal(t, true, err != nil)
 			} else {
-				require.NoError(t, err)
+				assert.Nil(t, err)
 			}
 		})
 	}

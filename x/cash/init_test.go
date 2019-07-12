@@ -3,14 +3,14 @@ package cash
 import (
 	"encoding/json"
 	"fmt"
+	"reflect"
 	"testing"
 
 	"github.com/iov-one/weave"
-	coin "github.com/iov-one/weave/coin"
+	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/store"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
+	"github.com/iov-one/weave/weavetest/assert"
 )
 
 func TestInitState(t *testing.T) {
@@ -20,7 +20,7 @@ func TestInitState(t *testing.T) {
 	accts := []GenesisAccount{{Address: addr, Set: coins}}
 
 	bz, err := json.Marshal(accts)
-	require.NoError(t, err)
+	assert.Nil(t, err)
 
 	// hardcode
 	bz2 := []byte(`[{"address":"0102030405060708090021222324252627282930",
@@ -39,7 +39,7 @@ func TestInitState(t *testing.T) {
 		},
 	}
 	rawConfig, err := json.Marshal(config)
-	require.NoError(t, err)
+	assert.Nil(t, err)
 
 	badConfig := map[string]interface{}{
 		"cash": Configuration{
@@ -47,7 +47,7 @@ func TestInitState(t *testing.T) {
 		},
 	}
 	rawInvalid, err := json.Marshal(badConfig)
-	require.NoError(t, err)
+	assert.Nil(t, err)
 
 	cases := [...]struct {
 		opts    weave.Options
@@ -81,16 +81,19 @@ func TestInitState(t *testing.T) {
 			bucket := NewBucket()
 			err := init.FromGenesis(tc.opts, weave.GenesisParams{}, kv)
 			if tc.isError {
-				require.Error(t, err)
+				assert.Equal(t, true, err != nil)
 			} else {
-				require.NoError(t, err)
+				assert.Nil(t, err)
 			}
 
 			if tc.acct != nil {
 				acct, err := bucket.Get(kv, tc.acct)
-				require.NoError(t, err)
-				if assert.NotNil(t, acct) {
-					assert.EqualValues(t, tc.wallet.Coins, AsCoins(acct))
+				assert.Nil(t, err)
+				assert.Equal(t, true, acct != nil)
+				for i = range tc.wallet.Coins {
+					if exp, got := tc.wallet.Coins[i], AsCoins(acct)[i]; !reflect.DeepEqual(exp, got) {
+						t.Errorf("expected %v but got %v", exp, got)
+					}
 				}
 			}
 		})

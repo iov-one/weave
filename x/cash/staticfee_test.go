@@ -11,8 +11,7 @@ import (
 	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/store"
 	"github.com/iov-one/weave/weavetest"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
+	"github.com/iov-one/weave/weavetest/assert"
 )
 
 type feeTx struct {
@@ -171,15 +170,15 @@ func TestFees(t *testing.T) {
 			bucket := NewBucket()
 			for _, wallet := range tc.initState {
 				err := bucket.Save(kv, wallet)
-				require.NoError(t, err)
+				assert.Nil(t, err)
 			}
 
 			tx := &feeTx{tc.fee}
 
 			_, err := h.Check(nil, kv, tx, &weavetest.Handler{})
-			assert.True(t, tc.expect(err), "%+v", err)
+			assert.Equal(t, true, tc.expect(err))
 			_, err = h.Deliver(nil, kv, tx, &weavetest.Handler{})
-			assert.True(t, tc.expect(err), "%+v", err)
+			assert.Equal(t, true, tc.expect(err))
 		})
 	}
 }

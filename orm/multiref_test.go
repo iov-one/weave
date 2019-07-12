@@ -5,8 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
+	"github.com/iov-one/weave/weavetest/assert"
 )
 
 func TestAdd(t *testing.T) {
@@ -30,12 +29,12 @@ func TestAdd(t *testing.T) {
 					errCount++
 				} else {
 					_, found := m.findRef([]byte(i))
-					require.True(t, found)
+					assert.Equal(t, true, found)
 				}
 			}
 			assert.Equal(t, errCount, tc.expectErrors)
 			assert.Equal(t, len(m.Refs), tc.expectSize)
-			assert.True(t, inOrder(m.Refs))
+			assert.Equal(t, true, inOrder(m.Refs))
 		})
 	}
 }
@@ -55,7 +54,7 @@ func TestRemove(t *testing.T) {
 	for i, tc := range cases {
 		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
 			m, err := multiRefFromStrings(tc.init...)
-			require.NoError(t, err)
+			assert.Nil(t, err)
 
 			errCount := 0
 			for _, r := range tc.remove {
@@ -64,12 +63,12 @@ func TestRemove(t *testing.T) {
 					errCount++
 				} else {
 					_, found := m.findRef([]byte(r))
-					require.False(t, found)
+					assert.Equal(t, false, found)
 				}
 			}
 			assert.Equal(t, errCount, tc.expectErrors)
 			assert.Equal(t, len(m.Refs), tc.expectSize)
-			assert.True(t, inOrder(m.Refs))
+			assert.Equal(t, true, inOrder(m.Refs))
 		})
 	}
 }
