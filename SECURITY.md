@@ -1,7 +1,7 @@
 # Bug and vulnerability reports
 
-Please send bug and vulnerability reports to [security@iov.one](mailto:security@iov.one) using the PGP public key
-specified below.
+Please send bug and vulnerability reports to [security@iov.one](mailto:security@iov.one).
+Use the PGP public key below to encrypt the data if necessary.
 
 ```
 -----BEGIN PGP PUBLIC KEY BLOCK-----
