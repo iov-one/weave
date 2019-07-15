@@ -22,6 +22,7 @@ func TestValidateContract(t *testing.T) {
 				},
 				ActivationThreshold: 1,
 				AdminThreshold:      2,
+				Address:             weavetest.NewCondition().Address(),
 			},
 			WantErr: nil,
 		},
@@ -35,6 +36,19 @@ func TestValidateContract(t *testing.T) {
 				AdminThreshold:      2,
 			},
 			WantErr: errors.ErrMetadata,
+		},
+		"contract address is required": {
+			Contract: &Contract{
+				Metadata: &weave.Metadata{Schema: 1},
+				Participants: []*Participant{
+					{Weight: 1, Signature: weavetest.NewCondition().Address()},
+					{Weight: 2, Signature: weavetest.NewCondition().Address()},
+				},
+				ActivationThreshold: 1,
+				AdminThreshold:      2,
+				Address:             nil,
+			},
+			WantErr: errors.ErrEmpty,
 		},
 	}
 

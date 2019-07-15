@@ -86,10 +86,8 @@ func (h CreateEscrowHandler) Deliver(ctx weave.Context, db weave.KVStore, tx wea
 		return nil, err
 	}
 
-	// deposit amounts
-	escrowAddr := Condition(obj.Key()).Address()
-	sourceAddr := weave.Address(escrow.Source)
-	if err := cash.MoveCoins(db, h.bank, sourceAddr, escrowAddr, msg.Amount); err != nil {
+	// Deposit.
+	if err := cash.MoveCoins(db, h.bank, escrow.Source, escrow.Address, msg.Amount); err != nil {
 		return nil, err
 	}
 	// return id of escrow to use in future calls
@@ -150,10 +148,8 @@ func (h ReleaseEscrowHandler) Deliver(ctx weave.Context, db weave.KVStore, tx we
 
 	// use amount in message, or
 	request := coin.Coins(msg.Amount)
-	key := msg.EscrowId
-	escrowAddr := Condition(key).Address()
 	if len(request) == 0 {
-		available, err := h.bank.Balance(db, escrowAddr)
+		available, err := h.bank.Balance(db, escrow.Address)
 		if err != nil {
 			return nil, err
 		}
@@ -161,19 +157,19 @@ func (h ReleaseEscrowHandler) Deliver(ctx weave.Context, db weave.KVStore, tx we
 	}
 
 	// withdraw the money from escrow to recipient
-	if err := cash.MoveCoins(db, h.bank, escrowAddr, escrow.Destination, request); err != nil {
+	if err := cash.MoveCoins(db, h.bank, escrow.Address, escrow.Destination, request); err != nil {
 		return nil, err
 	}
 
-	remainingCoins, err := h.bank.Balance(db, escrowAddr)
+	remainingCoins, err := h.bank.Balance(db, escrow.Address)
 	if err != nil {
 		return nil, err
 	}
 	if remainingCoins.IsPositive() {
-		return &weave.DeliverResult{Data: key}, nil
+		return &weave.DeliverResult{Data: msg.EscrowId}, nil
 	}
 	// Delete escrow when empty.
-	if err := h.bucket.Delete(db, key); err != nil {
+	if err := h.bucket.Delete(db, msg.EscrowId); err != nil {
 		return nil, err
 	}
 	return &weave.DeliverResult{}, nil
@@ -231,15 +227,14 @@ func (h ReturnEscrowHandler) Deliver(ctx weave.Context, db weave.KVStore, tx wea
 		return nil, err
 	}
 
-	escrowAddr := Condition(key).Address()
-	available, err := h.bank.Balance(db, escrowAddr)
+	available, err := h.bank.Balance(db, escrow.Address)
 	if err != nil {
 		return nil, err
 	}
 
 	// withdraw all coins from escrow to the defined "source"
 	dest := weave.Address(escrow.Source)
-	if err := cash.MoveCoins(db, h.bank, escrowAddr, dest, available); err != nil {
+	if err := cash.MoveCoins(db, h.bank, escrow.Address, dest, available); err != nil {
 		return nil, err
 	}
 	if err := h.bucket.Delete(db, key); err != nil {
@@ -306,8 +301,7 @@ func (h UpdateEscrowHandler) Deliver(ctx weave.Context, db weave.KVStore, tx wea
 	}
 
 	// save the updated escrow
-	key := msg.EscrowId
-	obj := orm.NewSimpleObj(key, escrow)
+	obj := orm.NewSimpleObj(msg.EscrowId, escrow)
 	if err := h.bucket.Save(db, obj); err != nil {
 		return nil, err
 	}

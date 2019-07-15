@@ -33,6 +33,8 @@ message PaymentChannel {
   // Transferred represents total amount that was transferred using allocated
   // (total) value. Transferred must never exceed total value.
   coin.Coin transferred = 8;
+  // Address of this entity. Set during creation and does not change.
+  bytes address = 9 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
 }
 
 // CreateMsg creates a new payment channel that can be used to

@@ -25,6 +25,9 @@ func (rev *Revenue) Validate() error {
 	if err := validateDestinations(rev.Destinations, errors.ErrModel); err != nil {
 		return err
 	}
+	if err := rev.Address.Validate(); err != nil {
+		return errors.Wrap(err, "address")
+	}
 	return nil
 }
 
@@ -85,6 +88,7 @@ func (rev *Revenue) Copy() orm.CloneableData {
 		Metadata:     rev.Metadata.Copy(),
 		Admin:        copyAddr(rev.Admin),
 		Destinations: make([]*Destination, len(rev.Destinations)),
+		Address:      rev.Address.Clone(),
 	}
 	for i := range rev.Destinations {
 		cpy.Destinations[i] = &Destination{
@@ -102,14 +106,16 @@ func copyAddr(a weave.Address) weave.Address {
 }
 
 type RevenueBucket struct {
-	orm.IDGenBucket
+	orm.Bucket
+	idSeq orm.Sequence
 }
 
 // NewRevenueBucket returns a bucket for managing revenues state.
 func NewRevenueBucket() *RevenueBucket {
 	b := migration.NewBucket("distribution", "revenue", orm.NewSimpleObj(nil, &Revenue{}))
 	return &RevenueBucket{
-		IDGenBucket: orm.WithSeqIDGenerator(b, "id"),
+		Bucket: b,
+		idSeq:  b.Sequence("id"),
 	}
 }
 
@@ -145,4 +151,23 @@ func (b *RevenueBucket) GetRevenue(db weave.KVStore, revenueID []byte) (*Revenue
 		return nil, errors.Wrapf(errors.ErrModel, "invalid type: %T", obj.Value())
 	}
 	return rev, nil
+}
+
+// Create adds given revenue instance to the store and returns the ID of the
+// newly inserted entity.
+func (b *RevenueBucket) Create(db weave.KVStore, rev *Revenue) (orm.Object, error) {
+	key, err := b.idSeq.NextVal(db)
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot acquire revenue ID")
+	}
+	if a, err := RevenueAccount(key); err != nil {
+		return nil, errors.Wrap(err, "cannot build revenue address")
+	} else {
+		rev.Address = a
+	}
+	obj := orm.NewSimpleObj(key, rev)
+	if err := b.Bucket.Save(db, obj); err != nil {
+		return nil, errors.Wrap(err, "cannot save revenue")
+	}
+	return obj, nil
 }

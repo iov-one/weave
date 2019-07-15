@@ -35,19 +35,29 @@ func (s *Sequence) NextInt(db weave.KVStore) (int64, error) {
 	return val, err
 }
 
+// Latest returns the recently returned value of the sequence. This method does
+// not modify the sequence state. Use NextVal or NextInt to acquire a sequence
+// value that was not given to anyone else.
+func (s *Sequence) Latest(db weave.KVStore) (int64, []byte, error) {
+	return s.increment(db, 0)
+}
+
 func (s *Sequence) increment(db weave.KVStore, inc int64) (int64, []byte, error) {
 	raw, err := db.Get(s.id)
 	if err != nil {
 		return 0, nil, err
 	}
-	val := decodeSequence(raw)
+	val := DecodeSequence(raw)
+	if inc == 0 {
+		return val, raw, nil
+	}
 	val += inc
-	raw = encodeSequence(val)
+	raw = EncodeSequence(val)
 	err = db.Set(s.id, raw)
 	return val, raw, err
 }
 
-func decodeSequence(bz []byte) int64 {
+func DecodeSequence(bz []byte) int64 {
 	if bz == nil {
 		return 0
 	}
@@ -55,7 +65,7 @@ func decodeSequence(bz []byte) int64 {
 	return int64(val)
 }
 
-func encodeSequence(val int64) []byte {
+func EncodeSequence(val int64) []byte {
 	bz := make([]byte, 8)
 	binary.BigEndian.PutUint64(bz, uint64(val))
 	return bz

@@ -23,8 +23,20 @@ func TestRevenueValidate(t *testing.T) {
 				Destinations: []*Destination{
 					{Weight: 1, Address: addr},
 				},
+				Address: addr,
 			},
 			wantErr: nil,
+		},
+		"revenue address is required": {
+			model: Revenue{
+				Metadata: &weave.Metadata{Schema: 1},
+				Admin:    addr,
+				Destinations: []*Destination{
+					{Weight: 1, Address: addr},
+				},
+				Address: nil,
+			},
+			wantErr: errors.ErrEmpty,
 		},
 		"admin address must be present": {
 			model: Revenue{
@@ -33,6 +45,7 @@ func TestRevenueValidate(t *testing.T) {
 				Destinations: []*Destination{
 					{Weight: 1, Address: addr},
 				},
+				Address: addr,
 			},
 			wantErr: errors.ErrEmpty,
 		},
@@ -41,6 +54,7 @@ func TestRevenueValidate(t *testing.T) {
 				Metadata:     &weave.Metadata{Schema: 1},
 				Admin:        addr,
 				Destinations: []*Destination{},
+				Address:      addr,
 			},
 			wantErr: errors.ErrModel,
 		},
@@ -51,6 +65,7 @@ func TestRevenueValidate(t *testing.T) {
 				Destinations: []*Destination{
 					{Weight: 0, Address: addr},
 				},
+				Address: addr,
 			},
 			wantErr: errors.ErrModel,
 		},
@@ -61,6 +76,7 @@ func TestRevenueValidate(t *testing.T) {
 				Destinations: []*Destination{
 					{Weight: 2, Address: []byte("zzz")},
 				},
+				Address: addr,
 			},
 			wantErr: errors.ErrInput,
 		},

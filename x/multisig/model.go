@@ -50,6 +50,9 @@ func (c *Contract) Validate() error {
 	case n > maxParticipantsAllowed:
 		return errors.Wrap(errors.ErrModel, "too many participants")
 	}
+	if err := c.Address.Validate(); err != nil {
+		return errors.Wrap(err, "address")
+	}
 	return validateWeights(errors.ErrModel,
 		c.Participants, c.ActivationThreshold, c.AdminThreshold)
 }
@@ -69,6 +72,7 @@ func (c *Contract) Copy() orm.CloneableData {
 		Participants:        ps,
 		ActivationThreshold: c.ActivationThreshold,
 		AdminThreshold:      c.AdminThreshold,
+		Address:             c.Address.Clone(),
 	}
 }
 
@@ -106,6 +110,7 @@ func (b ContractBucket) Build(db weave.KVStore, c *Contract) (orm.Object, error)
 	if err != nil {
 		return nil, err
 	}
+	c.Address = MultiSigCondition(key).Address()
 	return orm.NewSimpleObj(key, c), nil
 }
 

@@ -103,6 +103,7 @@ func (h UpdateMsgHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.
 		Participants:        msg.Participants,
 		ActivationThreshold: msg.ActivationThreshold,
 		AdminThreshold:      msg.AdminThreshold,
+		Address:             MultiSigCondition(msg.ContractID).Address(),
 	}
 
 	obj := orm.NewSimpleObj(msg.ContractID, contract)

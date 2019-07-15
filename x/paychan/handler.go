@@ -69,7 +69,12 @@ func (h *createPaymentChannelHandler) Deliver(ctx weave.Context, db weave.KVStor
 		return nil, err
 	}
 
-	key, err := h.bucket.Put(db, nil, &PaymentChannel{
+	nextID, err := peekNextID(db)
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot peek next ID")
+	}
+
+	pc := &PaymentChannel{
 		Metadata:     &weave.Metadata{},
 		Source:       msg.Source,
 		SourcePubkey: msg.SourcePubkey,
@@ -78,18 +83,28 @@ func (h *createPaymentChannelHandler) Deliver(ctx weave.Context, db weave.KVStor
 		Timeout:      msg.Timeout,
 		Memo:         msg.Memo,
 		Transferred:  &coin.Coin{Ticker: msg.Total.Ticker},
-	})
+		Address:      paymentChannelAccount(orm.EncodeSequence(nextID)),
+	}
+	key, err := h.bucket.Put(db, nil, pc)
 	if err != nil {
 		return nil, errors.Wrap(err, "cannot create a payment channel")
 	}
 
 	// Move coins from source account and deposit total amount available on
 	// that channels account.
-	dst := paymentChannelAccount(key)
-	if err := h.cash.MoveCoins(db, msg.Source, dst, *msg.Total); err != nil {
+	if err := h.cash.MoveCoins(db, msg.Source, pc.Address, *msg.Total); err != nil {
 		return nil, errors.Wrap(err, "cannot move coins")
 	}
 	return &weave.DeliverResult{Data: key}, nil
+}
+
+// paymentChannelAccount returns an account address for a payment channel with
+// given ID.
+// Each payment channel deposit an initial value from source to ensure that it
+// is available to the destination upon request. Each payment channel has a
+// unique account address that can be deducted from its ID.
+func paymentChannelAccount(paymentChannelId []byte) weave.Address {
+	return weave.NewCondition("paychan", "seq", paymentChannelId).Address()
 }
 
 type transferPaymentChannelHandler struct {
@@ -166,8 +181,7 @@ func (h *transferPaymentChannelHandler) Deliver(ctx weave.Context, db weave.KVSt
 		return nil, errors.Wrap(errors.ErrMsg, "invalid amount")
 	}
 
-	source := paymentChannelAccount(msg.Payment.ChannelID)
-	if err := h.cash.MoveCoins(db, source, pc.Destination, diff); err != nil {
+	if err := h.cash.MoveCoins(db, pc.Address, pc.Destination, diff); err != nil {
 		return nil, err
 	}
 
@@ -243,21 +257,11 @@ func (h *closePaymentChannelHandler) Deliver(ctx weave.Context, db weave.KVStore
 	if err != nil {
 		return nil, err
 	}
-	source := paymentChannelAccount(msg.ChannelID)
-	if err := h.cash.MoveCoins(db, source, pc.Source, diff); err != nil {
+	if err := h.cash.MoveCoins(db, pc.Address, pc.Source, diff); err != nil {
 		return nil, err
 	}
 	if err := h.bucket.Delete(db, msg.ChannelID); err != nil {
 		return nil, err
 	}
 	return &weave.DeliverResult{}, nil
-}
-
-// paymentChannelAccount returns an account address for a payment channel with
-// given ID.
-// Each payment channel deposit an initial value from source to ensure that it
-// is available to the destination upon request. Each payment channel has a
-// unique account address that can be deducted from its ID.
-func paymentChannelAccount(paymentChannelId []byte) weave.Address {
-	return weave.NewCondition("paychan", "seq", paymentChannelId).Address()
 }

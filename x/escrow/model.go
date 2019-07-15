@@ -47,6 +47,9 @@ func (e *Escrow) Validate() error {
 	if len(e.Memo) > maxMemoSize {
 		return errors.Wrapf(errors.ErrInput, "memo %s", e.Memo)
 	}
+	if err := e.Address.Validate(); err != nil {
+		return errors.Wrap(err, "address")
+	}
 	return validateAddresses(e.Source, e.Destination)
 }
 
@@ -59,6 +62,7 @@ func (e *Escrow) Copy() orm.CloneableData {
 		Destination: e.Destination,
 		Timeout:     e.Timeout,
 		Memo:        e.Memo,
+		Address:     e.Address.Clone(),
 	}
 }
 
@@ -89,6 +93,7 @@ func NewEscrow(
 		Destination: destination,
 		Timeout:     timeout,
 		Memo:        memo,
+		Address:     Condition(id).Address(),
 	}
 	return orm.NewSimpleObj(id, esc)
 }
@@ -165,6 +170,7 @@ func (b Bucket) Build(db weave.KVStore, escrow *Escrow) (orm.Object, error) {
 	if err != nil {
 		return nil, err
 	}
+	escrow.Address = Condition(key).Address()
 	return orm.NewSimpleObj(key, escrow), nil
 }
 

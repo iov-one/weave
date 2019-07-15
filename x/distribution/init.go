@@ -42,9 +42,6 @@ func (*Initializer) FromGenesis(opts weave.Options, params weave.GenesisParams, 
 			Admin:        r.Admin,
 			Destinations: destinations,
 		}
-		if err := revenue.Validate(); err != nil {
-			return errors.Wrap(err, fmt.Sprintf("revenue #%d is invalid", i))
-		}
 		if _, err := bucket.Create(kv, &revenue); err != nil {
 			return errors.Wrap(err, fmt.Sprintf("cannot store #%d revenue", i))
 		}

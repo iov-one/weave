@@ -28,7 +28,7 @@ func (i *Initializer) FromGenesis(opts weave.Options, params weave.GenesisParams
 		return err
 	}
 	bucket := NewBucket()
-	for j, e := range escrows {
+	for _, e := range escrows {
 		escr := Escrow{
 			Metadata:    &weave.Metadata{Schema: 1},
 			Source:      e.Source,
@@ -36,16 +36,12 @@ func (i *Initializer) FromGenesis(opts weave.Options, params weave.GenesisParams
 			Destination: e.Destination,
 			Timeout:     e.Timeout,
 		}
-
-		if err := escr.Validate(); err != nil {
-			return errors.Wrapf(err, "invalid escrow at position: %d ", j)
-		}
 		obj, err := bucket.Build(kv, &escr)
 		if err != nil {
-			return err
+			return errors.Wrap(err, "cannot build escrow")
 		}
 		if err := bucket.Save(kv, obj); err != nil {
-			return err
+			return errors.Wrap(err, "cannot save escrow")
 		}
 		escAddr := Condition(obj.Key()).Address()
 		for _, c := range e.Amount {

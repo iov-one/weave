@@ -1,6 +1,7 @@
 package paychan
 
 import (
+	weave "github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/orm"
@@ -45,6 +46,10 @@ func (pc *PaymentChannel) Validate() error {
 			errors.Field("Transferred", errors.ErrModel, "invalid transferred value"))
 	}
 
+	if err := pc.Address.Validate(); err != nil {
+		errs = errors.AppendField(errs, "Address", err)
+	}
+
 	return errs
 }
 
@@ -64,8 +69,24 @@ func (pc PaymentChannel) Copy() orm.CloneableData {
 
 // NewPaymentChannelBucket returns a bucket for storing PaymentChannel state.
 func NewPaymentChannelBucket() orm.ModelBucket {
-	b := orm.NewModelBucket("paychan", &PaymentChannel{})
+	b := orm.NewModelBucket("paychan", &PaymentChannel{},
+		orm.WithIDSequence(paymentChannelSeq))
 	return migration.NewModelBucket("paychan", b)
+}
+
+// Declare it globally so that it can be reference by both the bucket and the
+// peekNextID function.
+var paymentChannelSeq = orm.NewSequence("paychan", "id")
+
+// peekNextID returns the next ID that will be used by the payment channel ID
+// sequence. This function is not thread safe and relies on the sequence state
+// in the database.
+func peekNextID(db weave.KVStore) (int64, error) {
+	n, _, err := paymentChannelSeq.Latest(db)
+	if err != nil {
+		return 0, errors.Wrap(err, "sequence failed")
+	}
+	return n + 1, nil
 }
 
 func newPaymentChannelObjectBucket() orm.Bucket {

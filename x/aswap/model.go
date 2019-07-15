@@ -1,6 +1,7 @@
 package aswap
 
 import (
+	weave "github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/orm"
@@ -47,6 +48,9 @@ func (s *Swap) Validate() error {
 	if len(s.Memo) > maxMemoSize {
 		return errors.Wrapf(errors.ErrInput, "memo %s", s.Memo)
 	}
+	if err := s.Address.Validate(); err != nil {
+		return errors.Wrap(err, "address")
+	}
 	return nil
 }
 
@@ -59,6 +63,7 @@ func (s *Swap) Copy() orm.CloneableData {
 		Destination:  s.Destination,
 		Timeout:      s.Timeout,
 		Memo:         s.Memo,
+		Address:      s.Address.Clone(),
 	}
 }
 
@@ -74,7 +79,8 @@ func AsSwap(obj orm.Object) *Swap {
 
 // Bucket is a type-safe wrapper around orm.Bucket
 type Bucket struct {
-	orm.IDGenBucket
+	orm.Bucket
+	idSeq orm.Sequence
 }
 
 // NewBucket initializes a Bucket with default name
@@ -89,8 +95,24 @@ func NewBucket() Bucket {
 		WithIndex("preimage_hash", idxPrehash, false)
 
 	return Bucket{
-		IDGenBucket: orm.WithSeqIDGenerator(bucket, SequenceName),
+		Bucket: bucket,
+		idSeq:  bucket.Sequence("id"),
 	}
+}
+
+// Create adds given swap instance to the store and returns the ID of the newly
+// inserted entity.
+func (b *Bucket) Create(db weave.KVStore, swap *Swap) (orm.Object, error) {
+	key, err := b.idSeq.NextVal(db)
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot acquire ID")
+	}
+	swap.Address = SwapAddr(key, swap)
+	obj := orm.NewSimpleObj(key, swap)
+	if err := b.Bucket.Save(db, obj); err != nil {
+		return nil, errors.Wrap(err, "cannot save swap")
+	}
+	return obj, nil
 }
 
 func getSwap(obj orm.Object) (*Swap, error) {
