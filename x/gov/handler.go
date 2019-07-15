@@ -15,7 +15,6 @@ const (
 	proposalCost           = 0
 	deleteProposalCost     = 0
 	voteCost               = 0
-	tallyCost              = 0
 	updateElectorateCost   = 0
 	updateElectionRuleCost = 0
 	textResolutionCost     = 0
@@ -41,12 +40,20 @@ func RegisterRoutes(
 ) {
 	r = migration.SchemaMigratingRegistry(packageName, r)
 	r.Handle(&VoteMsg{}, newVoteHandler(auth))
-	r.Handle(&TallyMsg{}, newTallyHandler(auth, decoder, executor))
 	r.Handle(&CreateProposalMsg{}, newCreateProposalHandler(auth, decoder, scheduler))
 	r.Handle(&DeleteProposalMsg{}, newDeleteProposalHandler(auth, scheduler))
 	r.Handle(&UpdateElectorateMsg{}, newUpdateElectorateHandler(auth))
 	r.Handle(&UpdateElectionRuleMsg{}, newUpdateElectionRuleHandler(auth))
 	// We do NOT register the TextResultionHandler here... this is only for the proposal Executor
+}
+
+func RegisterCronRoutes(
+	r weave.Registry,
+	auth x.Authenticator,
+	decoder OptionDecoder,
+	executor Executor,
+) {
+	r.Handle(&TallyMsg{}, newTallyHandler(auth, decoder, executor))
 }
 
 // RegisterBasicProposalRouters register the routes we accept for executing governance decisions.
@@ -178,11 +185,7 @@ func newTallyHandler(auth x.Authenticator, decoder OptionDecoder, executor Execu
 }
 
 func (h TallyHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
-	if _, _, err := h.validate(ctx, db, tx); err != nil {
-		return nil, err
-	}
-	return &weave.CheckResult{GasAllocated: tallyCost}, nil
-
+	return nil, errors.Wrap(errors.ErrHuman, "tally handler is to be executed by cron only")
 }
 
 func (h TallyHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (resOut *weave.DeliverResult, errOut error) {

@@ -65,15 +65,15 @@ func Chain(authFn x.Authenticator, minFee coin.Coin) app.Decorators {
 	)
 }
 
+// ctrl can be initialized with any implementation, but must be used
+// consistently everywhere.
+var ctrl = cash.NewController(cash.NewBucket())
+
 // Router returns a default router, only dispatching to the
 // cash.SendMsg
 func Router(authFn x.Authenticator, issuer weave.Address) *app.Router {
 	r := app.NewRouter()
 	scheduler := cron.NewScheduler(CronTaskMarshaler)
-
-	// ctrl can be initialized with any implementation, but must be used
-	// consistently everywhere.
-	var ctrl cash.Controller = cash.NewController(cash.NewBucket())
 
 	migration.RegisterRoutes(r, authFn)
 	cash.RegisterRoutes(r, authFn, ctrl)
@@ -128,6 +128,16 @@ func Stack(issuer weave.Address, minFee coin.Coin) weave.Handler {
 // components but not all functionalities are needed or expected (ie no message
 // fee).
 func CronStack() weave.Handler {
+	rt := app.NewRouter()
+
+	authFn := cron.Authenticator{}
+
+	// Cron is using custom router as not the same handlers are registered.
+	gov.RegisterCronRoutes(rt, authFn, decodeProposalOptions, proposalOptionsExecutor(ctrl))
+	distribution.RegisterRoutes(rt, authFn, ctrl)
+	escrow.RegisterRoutes(rt, authFn, ctrl)
+	aswap.RegisterRoutes(rt, authFn, ctrl)
+
 	decorators := app.ChainDecorators(
 		utils.NewLogging(),
 		utils.NewRecovery(),
@@ -135,8 +145,7 @@ func CronStack() weave.Handler {
 		utils.NewActionTagger(),
 		// No fee decorators.
 	)
-	authFn := cron.Authenticator{}
-	return decorators.WithHandler(Router(authFn, nil))
+	return decorators.WithHandler(rt)
 }
 
 // Application constructs a basic ABCI application with
