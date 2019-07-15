@@ -1,6 +1,6 @@
 # Bug and vulnerability reports
 
-Please let [security@iov.one](mailto:security@iov.one) know of bugs or vulnerabilities, using the PGP public key 
+Please send bug and vulnerability reports to [security@iov.one](mailto:security@iov.one) using the PGP public key
 specified below.
 
 ```
