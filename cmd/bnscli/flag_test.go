@@ -6,12 +6,14 @@ import (
 	"encoding/hex"
 	"flag"
 	"io/ioutil"
+	"reflect"
 	"testing"
 	"time"
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/weavetest/assert"
+	"github.com/iov-one/weave/x/gov"
 )
 
 func TestSeqFlag(t *testing.T) {
@@ -335,4 +337,94 @@ func observeFlagDie(t testing.TB) (*int, func()) {
 		flagDie = original
 	}
 	return &cnt, cleanup
+}
+
+func TestFractionFlag(t *testing.T) {
+	cases := map[string]struct {
+		setup   func(fl *flag.FlagSet) *flagfraction
+		args    []string
+		wantDie int
+		wantVal *gov.Fraction
+	}{
+		"only numerator": {
+			setup: func(fl *flag.FlagSet) *flagfraction {
+				return flFraction(fl, "x", "2/3", "")
+			},
+			args:    []string{"-x", "44"},
+			wantDie: 0,
+			wantVal: &gov.Fraction{Numerator: 44, Denominator: 1},
+		},
+		"only 0 numerator": {
+			setup: func(fl *flag.FlagSet) *flagfraction {
+				return flFraction(fl, "x", "2/3", "")
+			},
+			args:    []string{"-x", "0"},
+			wantDie: 0,
+			wantVal: &gov.Fraction{Numerator: 0, Denominator: 0},
+		},
+		"value is nil when not set": {
+			setup: func(fl *flag.FlagSet) *flagfraction {
+				return flFraction(fl, "x", "", "")
+			},
+			args:    []string{},
+			wantDie: 0,
+			wantVal: nil,
+		},
+		"zero is value is zero": {
+			setup: func(fl *flag.FlagSet) *flagfraction {
+				return flFraction(fl, "x", "0", "")
+			},
+			args:    []string{},
+			wantDie: 0,
+			wantVal: &gov.Fraction{Numerator: 0, Denominator: 0},
+		},
+		"use default value": {
+			setup: func(fl *flag.FlagSet) *flagfraction {
+				return flFraction(fl, "x", "2/3", "")
+			},
+			args:    []string{},
+			wantDie: 0,
+			wantVal: &gov.Fraction{Numerator: 2, Denominator: 3},
+		},
+		"use argument value": {
+			setup: func(fl *flag.FlagSet) *flagfraction {
+				return flFraction(fl, "x", "2/3", "")
+			},
+			args:    []string{"-x", "5/7"},
+			wantDie: 0,
+			wantVal: &gov.Fraction{Numerator: 5, Denominator: 7},
+		},
+		"invalid default value": {
+			setup: func(fl *flag.FlagSet) *flagfraction {
+				return flFraction(fl, "x", "invalid", "")
+			},
+			wantDie: 1,
+		},
+		"invalid argument value": {
+			setup: func(fl *flag.FlagSet) *flagfraction {
+				return flFraction(fl, "x", "2/3", "")
+			},
+			args:    []string{"-x", "invalid"},
+			wantDie: 0,
+			wantVal: &gov.Fraction{Numerator: 2, Denominator: 3},
+		},
+	}
+
+	for testName, tc := range cases {
+		t.Run(testName, func(t *testing.T) {
+			cnt, cleanup := observeFlagDie(t)
+			defer cleanup()
+
+			fl := flag.NewFlagSet("", flag.ContinueOnError)
+			frac := tc.setup(fl)
+			err := fl.Parse(tc.args)
+			t.Logf("parse error: %+v", err)
+			if *cnt != tc.wantDie {
+				t.Errorf("want %d flagDie calls, got %d", tc.wantDie, cnt)
+			}
+			if tc.wantDie == 0 && !reflect.DeepEqual(frac.frac, tc.wantVal) {
+				t.Errorf("want %+v fraction, got %+v", tc.wantVal, frac.frac)
+			}
+		})
+	}
 }

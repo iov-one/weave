@@ -1536,6 +1536,46 @@ func TestUpdateElectionRules(t *testing.T) {
 			WantCheckErr:   errors.ErrUnauthorized,
 			WantDeliverErr: errors.ErrUnauthorized,
 		},
+		"Update can set a new quorum rule": {
+			Msg: UpdateElectionRuleMsg{
+				Metadata:       &weave.Metadata{Schema: 1},
+				ElectionRuleID: electionRulesID,
+				VotingPeriod:   weave.AsUnixDuration(24 * 7 * 4 * time.Hour),
+				Threshold:      Fraction{Numerator: 2, Denominator: 3},
+				Quorum:         &Fraction{Numerator: 6, Denominator: 7},
+			},
+			SignedBy: hBobbyCond,
+			ExpModel: &ElectionRule{
+				Metadata:     &weave.Metadata{Schema: 1},
+				Version:      2,
+				Admin:        hBobby,
+				ElectorateID: weavetest.SequenceID(1),
+				Title:        "barr",
+				VotingPeriod: weave.AsUnixDuration(24 * 7 * 4 * time.Hour),
+				Threshold:    Fraction{Numerator: 2, Denominator: 3},
+				Quorum:       &Fraction{Numerator: 6, Denominator: 7},
+			},
+		},
+		"Update can unset quorum rule": {
+			Msg: UpdateElectionRuleMsg{
+				Metadata:       &weave.Metadata{Schema: 1},
+				ElectionRuleID: electionRulesID,
+				VotingPeriod:   weave.AsUnixDuration(24 * 7 * 4 * time.Hour),
+				Threshold:      Fraction{Numerator: 2, Denominator: 3},
+				Quorum:         nil,
+			},
+			SignedBy: hBobbyCond,
+			ExpModel: &ElectionRule{
+				Metadata:     &weave.Metadata{Schema: 1},
+				Version:      2,
+				Admin:        hBobby,
+				ElectorateID: weavetest.SequenceID(1),
+				Title:        "barr",
+				VotingPeriod: weave.AsUnixDuration(24 * 7 * 4 * time.Hour),
+				Threshold:    Fraction{Numerator: 2, Denominator: 3},
+				Quorum:       nil,
+			},
+		},
 		"Threshold must be valid": {
 			Msg: UpdateElectionRuleMsg{
 				Metadata:       &weave.Metadata{Schema: 1},

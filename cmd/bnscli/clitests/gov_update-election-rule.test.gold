@@ -5,7 +5,7 @@
 				"schema": 1
 			},
 			"title": "my proposal",
-			"raw_option": "8gQYCgIIARIIAAAAAAAAAAUYgKMFIgQIAhAD",
+			"raw_option": "8gQeCgIIARIIAAAAAAAAAAUYgKMFIgQIAhADKgQIAhAD",
 			"description": "yet another proposal",
 			"election_rule_id": "AAAAAAAAAAM=",
 			"start_time": 1609499460
@@ -22,6 +22,10 @@ The above transaction is a proposal for executing the following messages:
 		"election_rule_id": "AAAAAAAAAAU=",
 		"voting_period": 86400,
 		"threshold": {
+			"numerator": 2,
+			"denominator": 3
+		},
+		"quorum": {
 			"numerator": 2,
 			"denominator": 3
 		}

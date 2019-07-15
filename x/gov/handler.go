@@ -584,6 +584,7 @@ func (h UpdateElectionRuleHandler) Deliver(ctx weave.Context, db weave.KVStore, 
 	}
 	rule.Threshold = msg.Threshold
 	rule.VotingPeriod = msg.VotingPeriod
+	rule.Quorum = msg.Quorum
 	if _, err := h.ruleBucket.Update(db, msg.ElectionRuleID, rule); err != nil {
 		return nil, errors.Wrap(err, "failed to store update")
 	}
