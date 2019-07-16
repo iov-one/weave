@@ -831,7 +831,6 @@ func TestTally(t *testing.T) {
 	specs := map[string]struct {
 		Mods              func(weave.Context, *Proposal)
 		Src               tallySetup
-		WantCheckErr      *errors.Error
 		WantDeliverErr    *errors.Error
 		WantDeliverLog    string
 		ExpResult         Proposal_Result
@@ -1208,7 +1207,6 @@ func TestTally(t *testing.T) {
 				threshold:             Fraction{Numerator: 1, Denominator: 2},
 				totalWeightElectorate: 11,
 			},
-			WantCheckErr:      errors.ErrState,
 			WantDeliverErr:    errors.ErrState,
 			ExpResult:         Proposal_Accepted,
 			ExpExecutorResult: Proposal_Success,
@@ -1222,7 +1220,6 @@ func TestTally(t *testing.T) {
 				threshold:             Fraction{Numerator: 1, Denominator: 2},
 				totalWeightElectorate: 11,
 			},
-			WantCheckErr:   errors.ErrState,
 			WantDeliverErr: errors.ErrState,
 			ExpResult:      Proposal_Undefined,
 			WantDeliverLog: "Proposal not accepted",
@@ -1235,7 +1232,6 @@ func TestTally(t *testing.T) {
 				threshold:             Fraction{Numerator: 1, Denominator: 2},
 				totalWeightElectorate: 11,
 			},
-			WantCheckErr:   errors.ErrState,
 			WantDeliverErr: errors.ErrState,
 			ExpResult:      Proposal_Undefined,
 			WantDeliverLog: "Proposal not accepted",
@@ -1248,24 +1244,20 @@ func TestTally(t *testing.T) {
 				threshold:             Fraction{Numerator: 1, Denominator: 2},
 				totalWeightElectorate: 11,
 			},
-			WantCheckErr:   errors.ErrState,
 			WantDeliverErr: errors.ErrState,
 			ExpResult:      Proposal_Undefined,
 			WantDeliverLog: "Proposal not accepted",
 		},
 	}
-	auth := &weavetest.Auth{
-		Signer: hAliceCond,
-	}
 	rt := app.NewRouter()
-	RegisterRoutes(rt, auth, decodeProposalOptions, proposalOptionsExecutor(), &weavetest.Cron{})
+	// Tally is registered for the cron, not for the usual routes.
+	RegisterCronRoutes(rt, nil, decodeProposalOptions, proposalOptionsExecutor())
 
 	for msg, spec := range specs {
 		t.Run(msg, func(t *testing.T) {
 			db := store.MemStore()
 			migration.MustInitPkg(db, packageName)
 
-			// given
 			ctx := weave.WithBlockTime(context.Background(), time.Now().Round(time.Second))
 			setupForTally := func(_ weave.Context, p *Proposal) {
 				p.VoteState = NewTallyResult(spec.Src.quorum, spec.Src.threshold, spec.Src.totalWeightElectorate)
@@ -1278,17 +1270,14 @@ func TestTally(t *testing.T) {
 			if spec.Init != nil {
 				spec.Init(t, db)
 			}
-			cache := db.CacheWrap()
 
-			// when check is called
-			tx := &weavetest.Tx{Msg: &TallyMsg{Metadata: &weave.Metadata{Schema: 1}, ProposalID: weavetest.SequenceID(1)}}
-			if _, err := rt.Check(ctx, cache, tx); !spec.WantCheckErr.Is(err) {
-				t.Fatalf("check expected: %+v  but got %+v", spec.WantCheckErr, err)
+			tx := &weavetest.Tx{
+				Msg: &TallyMsg{
+					Metadata:   &weave.Metadata{Schema: 1},
+					ProposalID: weavetest.SequenceID(1),
+				},
 			}
 
-			cache.Discard()
-
-			// and when deliver is called
 			dres, err := rt.Deliver(ctx, db, tx)
 			if !spec.WantDeliverErr.Is(err) {
 				t.Fatalf("deliver expected: %+v  but got %+v", spec.WantDeliverErr, err)
@@ -1300,8 +1289,8 @@ func TestTally(t *testing.T) {
 				t.Errorf("want Log: %s\ngot Log: %s", spec.WantDeliverLog, dres.Log)
 			}
 
-			// and check persisted result
-			p, err := pBucket.GetProposal(cache, weavetest.SequenceID(1))
+			// check persisted result
+			p, err := pBucket.GetProposal(db, weavetest.SequenceID(1))
 			if err != nil {
 				t.Fatalf("unexpected error: %s", err)
 			}
@@ -1315,10 +1304,8 @@ func TestTally(t *testing.T) {
 				t.Errorf("expected %v but got %v", exp, got)
 			}
 			if spec.PostChecks != nil {
-				spec.PostChecks(t, cache)
+				spec.PostChecks(t, db)
 			}
-
-			cache.Discard()
 		})
 	}
 }

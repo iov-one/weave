@@ -6,8 +6,6 @@
   to be able to schedule messages for future execution.
 - Proposals created with `x/gov` are having their tally executed automatically
   after the voting time is over. This is possible thanks to `x/cron` extension.
-  This is not a breaking change because manual tally, although pointless, is
-  still possible.
 - Add `owner` index to bnsd `x/username` to be able to query tokens by owner.
 - Allow empty targets in bnsd `x/username` to enable name reservation.
 - Allow to update election quorum.
@@ -22,6 +20,8 @@ Breaking changes
   address.
 - Some of the query paths in the `x/gov` package were updated to follow the
   naming convention.
+- `gov.TallyMsg` is no longer available. Tally is created automatically when
+  the voting time is over.
 
 
 

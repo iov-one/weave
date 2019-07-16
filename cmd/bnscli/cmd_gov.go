@@ -345,34 +345,6 @@ Vote on a governance proposal.
 	return err
 }
 
-// cmdTally is the cli command to trigger the tally execution after the voting period had ended
-func cmdTally(input io.Reader, output io.Writer, args []string) error {
-	fl := flag.NewFlagSet("", flag.ExitOnError)
-	fl.Usage = func() {
-		fmt.Fprintln(flag.CommandLine.Output(), `
-Tally triggers the tally execution after the voting period had ended.
-		`)
-		fl.PrintDefaults()
-	}
-	var (
-		id = flSeq(fl, "proposal-id", "", "The ID of the proposal for the tally to execute.")
-	)
-	fl.Parse(args)
-	if len(*id) == 0 {
-		flagDie("the proposal id  must not be empty")
-	}
-	govTx := &bnsd.Tx{
-		Sum: &bnsd.Tx_GovTallyMsg{
-			GovTallyMsg: &gov.TallyMsg{
-				Metadata:   &weave.Metadata{Schema: 1},
-				ProposalID: []byte(*id),
-			},
-		},
-	}
-	_, err := writeTx(output, govTx)
-	return err
-}
-
 func cmdTextResolution(input io.Reader, output io.Writer, args []string) error {
 	fl := flag.NewFlagSet("", flag.ExitOnError)
 	fl.Usage = func() {
