@@ -159,29 +159,6 @@ func TestCmdVoteHappyPath(t *testing.T) {
 	assert.Equal(t, gov.VoteOption_Yes, msg.Selected)
 }
 
-func TestCmdTallyHappyPath(t *testing.T) {
-	var output bytes.Buffer
-	args := []string{
-		"-proposal-id", "5",
-	}
-	if err := cmdTally(nil, &output, args); err != nil {
-		t.Fatalf("cannot create a new tally transaction: %s", err)
-	}
-
-	tx, _, err := readTx(&output)
-	if err != nil {
-		t.Fatalf("cannot read created transaction: %s", err)
-	}
-
-	txmsg, err := tx.GetMsg()
-	if err != nil {
-		t.Fatalf("cannot get transaction message: %s", err)
-	}
-	msg := txmsg.(*gov.TallyMsg)
-
-	assert.Equal(t, sequenceID(5), msg.ProposalID)
-}
-
 func TestCmdTextResolutionHappyPath(t *testing.T) {
 	var output bytes.Buffer
 	args := []string{
