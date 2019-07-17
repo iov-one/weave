@@ -22,6 +22,8 @@ message Escrow {
   // nonexpired: ;
   // max length 128 character
   string memo = 6;
+  // Address of this entity. Set during creation and does not change.
+  bytes address = 7 ;
 }
 
 // CreateMsg is a request to create an Escrow with some tokens.

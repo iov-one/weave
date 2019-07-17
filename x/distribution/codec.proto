@@ -17,6 +17,8 @@ message Revenue {
   // Destinations holds any number of addresses that the collected revenue is
   // distributed to. Must be at least one.
   repeated Destination destinations = 3;
+  // Address of this entity. Set during creation and does not change.
+  bytes address = 4 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
 }
 
 message Destination {

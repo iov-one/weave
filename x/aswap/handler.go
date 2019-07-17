@@ -7,6 +7,7 @@ import (
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/migration"
+	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/x"
 	"github.com/iov-one/weave/x/cash"
 )
@@ -34,12 +35,10 @@ func RegisterQuery(qr weave.QueryRouter) {
 	NewBucket().Register("aswaps", qr)
 }
 
-//---- create
-
 // CreateSwapHandler creates a swap
 type CreateSwapHandler struct {
 	auth   x.Authenticator
-	bucket Bucket
+	bucket orm.ModelBucket
 	bank   cash.CoinMover
 }
 
@@ -61,40 +60,40 @@ func (h CreateSwapHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.T
 // Deliver moves the tokens from sender to the swap account if all conditions are met.
 func (h CreateSwapHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	msg, err := h.validate(ctx, db, tx)
-
 	if err != nil {
 		return nil, err
 	}
 
-	// create a swap object
+	key, err := swapSeq.NextVal(db)
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot acquire key")
+	}
 	swap := &Swap{
-		Metadata:     msg.Metadata,
+		Metadata:     &weave.Metadata{Schema: 1},
 		Source:       msg.Source,
 		Destination:  msg.Destination,
 		Timeout:      msg.Timeout,
 		Memo:         msg.Memo,
 		PreimageHash: msg.PreimageHash,
+		Address:      swapAddr(key, msg.PreimageHash),
 	}
+	if _, err := h.bucket.Put(db, key, swap); err != nil {
+		return nil, errors.Wrap(err, "cannot save swap entity")
+	}
+	if err := cash.MoveCoins(db, h.bank, swap.Source, swap.Address, msg.Amount); err != nil {
+		return nil, errors.Wrap(err, "cannot deposit funds")
+	}
+	return &weave.DeliverResult{Data: key}, nil
+}
 
-	obj, err := h.bucket.Create(db, swap)
-	if err != nil {
-		return nil, err
-	}
-
-	if err := cash.MoveCoins(db, h.bank, swap.Source, SwapAddr(obj.Key(), swap), msg.Amount); err != nil {
-		return nil, err
-	}
-
-	// return id of swap to use in future calls
-	res := &weave.DeliverResult{
-		Data: obj.Key(),
-	}
-	return res, nil
+func swapAddr(key []byte, preimageHash []byte) weave.Address {
+	swapAddrHash := bytes.Join([][]byte{key, preimageHash}, []byte("|"))
+	// update swap address with a proper value
+	return weave.NewCondition("aswap", "pre_hash", swapAddrHash).Address()
 }
 
 // validate does all common pre-processing between Check and Deliver.
-func (h CreateSwapHandler) validate(ctx weave.Context,
-	db weave.KVStore, tx weave.Tx) (*CreateMsg, error) {
+func (h CreateSwapHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*CreateMsg, error) {
 	var msg CreateMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, errors.Wrap(err, "load msg")
@@ -111,7 +110,7 @@ func (h CreateSwapHandler) validate(ctx weave.Context,
 // ReleaseSwapHandler releases the amount to destination.
 type ReleaseSwapHandler struct {
 	auth   x.Authenticator
-	bucket Bucket
+	bucket orm.ModelBucket
 	bank   cash.Controller
 }
 
@@ -136,15 +135,13 @@ func (h ReleaseSwapHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weav
 		return nil, err
 	}
 
-	swapAddr := SwapAddr(swapID, swap)
-
-	amount, err := h.bank.Balance(db, swapAddr)
+	amount, err := h.bank.Balance(db, swap.Address)
 	if err != nil {
 		return nil, err
 	}
 
 	// withdraw the money from swap to destination
-	if err := cash.MoveCoins(db, h.bank, swapAddr, swap.Destination, amount); err != nil {
+	if err := cash.MoveCoins(db, h.bank, swap.Address, swap.Destination, amount); err != nil {
 		return nil, err
 	}
 
@@ -163,9 +160,9 @@ func (h ReleaseSwapHandler) validate(ctx weave.Context, db weave.KVStore, tx wea
 		return nil, nil, errors.Wrap(err, "load msg")
 	}
 
-	swap, err := loadSwap(h.bucket, db, msg.SwapID)
-	if err != nil {
-		return nil, nil, err
+	var swap Swap
+	if err := h.bucket.One(db, msg.SwapID, &swap); err != nil {
+		return nil, nil, errors.Wrap(err, "cannot load swap entity from the store")
 	}
 
 	preimageHash := HashBytes(msg.Preimage)
@@ -178,13 +175,13 @@ func (h ReleaseSwapHandler) validate(ctx weave.Context, db weave.KVStore, tx wea
 		return nil, nil, errors.Wrap(errors.ErrState, "swap is expired")
 	}
 
-	return msg.SwapID, swap, nil
+	return msg.SwapID, &swap, nil
 }
 
 // ReturnSwapHandler returns funds to the sender when swap timed out.
 type ReturnSwapHandler struct {
 	auth   x.Authenticator
-	bucket Bucket
+	bucket orm.ModelBucket
 	bank   cash.Controller
 }
 
@@ -209,15 +206,13 @@ func (h ReturnSwapHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave
 		return nil, err
 	}
 
-	swapAddr := SwapAddr(msg.SwapID, swap)
-
-	available, err := h.bank.Balance(db, swapAddr)
+	available, err := h.bank.Balance(db, swap.Address)
 	if err != nil {
 		return nil, err
 	}
 
 	// withdraw all coins from swap to the defined "sender"
-	if err := cash.MoveCoins(db, h.bank, swapAddr, swap.Source, available); err != nil {
+	if err := cash.MoveCoins(db, h.bank, swap.Address, swap.Source, available); err != nil {
 		return nil, err
 	}
 	if err := h.bucket.Delete(db, msg.SwapID); err != nil {
@@ -234,38 +229,19 @@ func (h ReturnSwapHandler) validate(ctx weave.Context, db weave.KVStore, tx weav
 		return nil, nil, errors.Wrap(err, "load msg")
 	}
 
-	swap, err := loadSwap(h.bucket, db, msg.SwapID)
-	if err != nil {
-		return nil, nil, err
+	var swap Swap
+	if err := h.bucket.One(db, msg.SwapID, &swap); err != nil {
+		return nil, nil, errors.Wrap(err, "cannot load swap entity from the store")
 	}
 
 	if !weave.IsExpired(ctx, swap.Timeout) {
 		return nil, nil, errors.Wrapf(errors.ErrState, "swap not expired %v", swap.Timeout)
 	}
 
-	return &msg, swap, nil
-}
-
-// loadSwap loads swap and casts it, returns error if not present.
-func loadSwap(bucket Bucket, db weave.KVStore, swapID []byte) (*Swap, error) {
-	obj, err := bucket.Get(db, swapID)
-	if err != nil {
-		return nil, err
-	}
-	swap := AsSwap(obj)
-	if swap == nil {
-		return nil, errors.Wrapf(errors.ErrEmpty, "swap %d", swapID)
-	}
-	return swap, nil
+	return &msg, &swap, nil
 }
 
 func HashBytes(preimage []byte) []byte {
 	hash := sha256.Sum256(preimage)
 	return hash[:]
-}
-
-func SwapAddr(key []byte, swap *Swap) weave.Address {
-	swapAddrHash := bytes.Join([][]byte{key, swap.PreimageHash}, []byte("|"))
-	// update swap address with a proper value
-	return weave.NewCondition("aswap", "pre_hash", swapAddrHash).Address()
 }

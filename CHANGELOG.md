@@ -9,6 +9,9 @@
 - Add `owner` index to bnsd `x/username` to be able to query tokens by owner.
 - Allow empty targets in bnsd `x/username` to enable name reservation.
 - Allow to update election quorum.
+- Add self referencing `address` attribute to entities `aswap.Swap`,
+  `escrow.Contract`, `distribution.Revenue`, `multisig.Contract` and
+  `paychan.PaymentChannel`.
 
 Breaking changes
 

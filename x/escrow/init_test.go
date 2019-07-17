@@ -49,18 +49,15 @@ func TestGenesisKey(t *testing.T) {
 
 	// then
 	bucket := NewBucket()
-	obj, err := bucket.Get(db, weavetest.SequenceID(1))
+	var e Escrow
+	err := bucket.One(db, weavetest.SequenceID(1), &e)
 	assert.Nil(t, err)
-
-	assert.Equal(t, true, obj != nil)
-	e, ok := obj.Value().(*Escrow)
-	assert.Equal(t, true, ok)
 
 	assert.Equal(t, "c30a2424104f542576ef01feca2ff558f5eaa61a", hex.EncodeToString(e.Destination))
 	assert.Equal(t, "0000000000000000000000000000000000000000", hex.EncodeToString(e.Source))
 	assert.Equal(t, "0000000000000000000000000000000000000001", hex.EncodeToString(e.Arbiter))
 
-	balance, err := cashCtrl.Balance(db, Condition(obj.Key()).Address())
+	balance, err := cashCtrl.Balance(db, e.Address)
 	assert.Nil(t, err)
 	assert.Equal(t, 2, len(balance))
 	assert.Equal(t, coin.Coin{Ticker: "ALX", Whole: 987654321}, *balance[0])

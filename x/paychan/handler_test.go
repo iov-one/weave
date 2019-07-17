@@ -77,6 +77,7 @@ func TestPaymentChannelHandlers(t *testing.T) {
 							Timeout:      weave.AsUnixTime(inOneHour),
 							Memo:         "start",
 							Transferred:  dogeCoin(0, 0),
+							Address:      paymentChannelAccount(weavetest.SequenceID(1)),
 						}),
 					},
 				},

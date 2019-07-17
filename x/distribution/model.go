@@ -3,7 +3,7 @@ package distribution
 import (
 	"math"
 
-	"github.com/iov-one/weave"
+	weave "github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/orm"
@@ -24,6 +24,9 @@ func (rev *Revenue) Validate() error {
 	}
 	if err := validateDestinations(rev.Destinations, errors.ErrModel); err != nil {
 		return err
+	}
+	if err := rev.Address.Validate(); err != nil {
+		return errors.Wrap(err, "address")
 	}
 	return nil
 }
@@ -83,66 +86,29 @@ const (
 func (rev *Revenue) Copy() orm.CloneableData {
 	cpy := &Revenue{
 		Metadata:     rev.Metadata.Copy(),
-		Admin:        copyAddr(rev.Admin),
+		Admin:        rev.Admin.Clone(),
 		Destinations: make([]*Destination, len(rev.Destinations)),
+		Address:      rev.Address.Clone(),
 	}
 	for i := range rev.Destinations {
 		cpy.Destinations[i] = &Destination{
-			Address: copyAddr(rev.Destinations[i].Address),
+			Address: rev.Destinations[i].Address.Clone(),
 			Weight:  rev.Destinations[i].Weight,
 		}
 	}
 	return cpy
 }
 
-func copyAddr(a weave.Address) weave.Address {
-	cpy := make(weave.Address, len(a))
-	copy(cpy, a)
-	return cpy
-}
-
-type RevenueBucket struct {
-	orm.IDGenBucket
-}
-
 // NewRevenueBucket returns a bucket for managing revenues state.
-func NewRevenueBucket() *RevenueBucket {
-	b := migration.NewBucket("distribution", "revenue", orm.NewSimpleObj(nil, &Revenue{}))
-	return &RevenueBucket{
-		IDGenBucket: orm.WithSeqIDGenerator(b, "id"),
-	}
+func NewRevenueBucket() orm.ModelBucket {
+	b := orm.NewModelBucket("revenue", &Revenue{},
+		orm.WithIDSequence(revenueSeq),
+	)
+	return migration.NewModelBucket("distribution", b)
 }
 
-// RevenueAccount returns an account address that is holding funds of a revenue
-// with given ID.
-func RevenueAccount(revenueID []byte) (weave.Address, error) {
-	c := weave.NewCondition("dist", "revenue", revenueID)
-	if err := c.Validate(); err != nil {
-		return nil, errors.Wrap(err, "condition")
-	}
-	return c.Address(), nil
-}
+var revenueSeq = orm.NewSequence("revenue", "id")
 
-// Save persists the state of a given revenue entity.
-func (b *RevenueBucket) Save(db weave.KVStore, obj orm.Object) error {
-	if _, ok := obj.Value().(*Revenue); !ok {
-		return errors.Wrapf(errors.ErrModel, "invalid type: %T", obj.Value())
-	}
-	return b.Bucket.Save(db, obj)
-}
-
-// GetRevenue returns a revenue instance with given ID.
-func (b *RevenueBucket) GetRevenue(db weave.KVStore, revenueID []byte) (*Revenue, error) {
-	obj, err := b.Get(db, revenueID)
-	if err != nil {
-		return nil, errors.Wrap(err, "no revenue")
-	}
-	if obj == nil || obj.Value() == nil {
-		return nil, errors.Wrap(errors.ErrNotFound, "no revenue")
-	}
-	rev, ok := obj.Value().(*Revenue)
-	if !ok {
-		return nil, errors.Wrapf(errors.ErrModel, "invalid type: %T", obj.Value())
-	}
-	return rev, nil
+func RevenueAccount(key []byte) weave.Address {
+	return weave.NewCondition("dist", "revenue", key).Address()
 }

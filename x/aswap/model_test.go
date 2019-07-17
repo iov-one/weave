@@ -62,6 +62,12 @@ func TestSwap(t *testing.T) {
 			},
 			Exp: errors.ErrInput,
 		},
+		"Address is required": {
+			Mutator: func(msg *aswap.Swap) {
+				msg.Address = nil
+			},
+			Exp: errors.ErrEmpty,
+		},
 	}
 	for msg, spec := range specs {
 		baseMsg := aswap.Swap{Metadata: &weave.Metadata{Schema: 1},
@@ -70,6 +76,7 @@ func TestSwap(t *testing.T) {
 			PreimageHash: make([]byte, 32),
 			Timeout:      weave.UnixTime(1),
 			Memo:         "",
+			Address:      weavetest.NewCondition().Address(),
 		}
 
 		t.Run(msg, func(t *testing.T) {

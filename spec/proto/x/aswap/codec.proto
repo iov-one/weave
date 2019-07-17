@@ -23,6 +23,8 @@ message Swap {
   // nonexpired: ;
   // max length 128 characters
   string memo = 7;
+  // Address of this entity. Set during creation and does not change.
+  bytes address = 8 ;
 }
 
 // CreateMsg creates a Swap with some coins.

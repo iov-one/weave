@@ -328,6 +328,7 @@ func createContract(
 			Participants:        participants,
 			ActivationThreshold: activationThreshold,
 			AdminThreshold:      multisig.Weight(len(contractSigs)) + 1,
+			Address:             multisig.MultiSigCondition(contractID).Address(),
 		})
 
 	return contractID

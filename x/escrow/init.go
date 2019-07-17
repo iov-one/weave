@@ -28,28 +28,24 @@ func (i *Initializer) FromGenesis(opts weave.Options, params weave.GenesisParams
 		return err
 	}
 	bucket := NewBucket()
-	for j, e := range escrows {
-		escr := Escrow{
+	for _, e := range escrows {
+		key, err := escrowSeq.NextVal(kv)
+		if err != nil {
+			return errors.Wrap(err, "cannot acquire key")
+		}
+		escrow := Escrow{
 			Metadata:    &weave.Metadata{Schema: 1},
 			Source:      e.Source,
 			Arbiter:     e.Arbiter,
 			Destination: e.Destination,
 			Timeout:     e.Timeout,
+			Address:     Condition(key).Address(),
 		}
-
-		if err := escr.Validate(); err != nil {
-			return errors.Wrapf(err, "invalid escrow at position: %d ", j)
+		if _, err := bucket.Put(kv, key, &escrow); err != nil {
+			return errors.Wrap(err, "cannot save escrow")
 		}
-		obj, err := bucket.Build(kv, &escr)
-		if err != nil {
-			return err
-		}
-		if err := bucket.Save(kv, obj); err != nil {
-			return err
-		}
-		escAddr := Condition(obj.Key()).Address()
 		for _, c := range e.Amount {
-			if err := i.Minter.CoinMint(kv, escAddr, *c); err != nil {
+			if err := i.Minter.CoinMint(kv, escrow.Address, *c); err != nil {
 				return errors.Wrap(err, "failed to issue coins")
 			}
 		}

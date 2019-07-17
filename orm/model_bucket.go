@@ -107,6 +107,14 @@ func WithIndex(name string, indexer Indexer, unique bool) ModelBucketOption {
 	}
 }
 
+// WithIDSequence configures the bucket to use the given sequence instance for
+// generating ID.
+func WithIDSequence(s Sequence) ModelBucketOption {
+	return func(mb *modelBucket) {
+		mb.idSeq = s
+	}
+}
+
 type modelBucket struct {
 	b     Bucket
 	idSeq Sequence

@@ -41,6 +41,9 @@ func (s *Sequence) increment(db weave.KVStore, inc int64) (int64, []byte, error)
 		return 0, nil, err
 	}
 	val := decodeSequence(raw)
+	if inc == 0 {
+		return val, raw, nil
+	}
 	val += inc
 	raw = encodeSequence(val)
 	err = db.Set(s.id, raw)

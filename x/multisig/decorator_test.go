@@ -9,7 +9,6 @@ import (
 	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/store"
 	"github.com/iov-one/weave/weavetest"
-	"github.com/iov-one/weave/weavetest/assert"
 	"github.com/iov-one/weave/x"
 )
 
@@ -176,10 +175,14 @@ func createContract(t testing.TB, db weave.KVStore, c Contract) []byte {
 	t.Helper()
 
 	b := NewContractBucket()
-	obj, err := b.Build(db, &c)
-	assert.Nil(t, err)
-	if err := b.Save(db, obj); err != nil {
-		t.Fatalf("cannot create a contract: %s", err)
+	key, err := contractSeq.NextVal(db)
+	if err != nil {
+		t.Fatalf("cannot acquire ID: %s", err)
 	}
-	return obj.Key()
+	// Ovewrite address with the only acceptable value.
+	c.Address = MultiSigCondition(key).Address()
+	if _, err := b.Put(db, key, &c); err != nil {
+		t.Fatalf("cannot save contract: %s", err)
+	}
+	return key
 }

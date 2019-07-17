@@ -262,7 +262,12 @@ func TestUpdateContractHandler(t *testing.T) {
 			tx := &weavetest.Tx{Msg: tc.Msg}
 
 			b := NewContractBucket()
-			contract, err := b.Build(db, &Contract{
+
+			key, err := contractSeq.NextVal(db)
+			if err != nil {
+				t.Fatalf("cannot acquire ID: %s", err)
+			}
+			_, err = b.Put(db, key, &Contract{
 				Metadata: &weave.Metadata{Schema: 1},
 				Participants: []*Participant{
 					{Weight: 1, Signature: alice},
@@ -271,9 +276,8 @@ func TestUpdateContractHandler(t *testing.T) {
 				},
 				ActivationThreshold: 2,
 				AdminThreshold:      3,
+				Address:             MultiSigCondition(key).Address(),
 			})
-			assert.Nil(t, err)
-			err = b.Save(db, contract)
 			assert.Nil(t, err)
 
 			cache := db.CacheWrap()

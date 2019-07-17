@@ -1,8 +1,6 @@
 package distribution
 
 import (
-	"fmt"
-
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
 )
@@ -37,16 +35,18 @@ func (*Initializer) FromGenesis(opts weave.Options, params weave.GenesisParams, 
 				Weight:  rc.Weight,
 			})
 		}
+		key, err := revenueSeq.NextVal(kv)
+		if err != nil {
+			return errors.Wrap(err, "cannot acquire ID")
+		}
 		revenue := Revenue{
 			Metadata:     &weave.Metadata{Schema: 1},
 			Admin:        r.Admin,
 			Destinations: destinations,
+			Address:      RevenueAccount(key),
 		}
-		if err := revenue.Validate(); err != nil {
-			return errors.Wrap(err, fmt.Sprintf("revenue #%d is invalid", i))
-		}
-		if _, err := bucket.Create(kv, &revenue); err != nil {
-			return errors.Wrap(err, fmt.Sprintf("cannot store #%d revenue", i))
+		if _, err := bucket.Put(kv, key, &revenue); err != nil {
+			return errors.Wrapf(err, "cannot store #%d revenue", i)
 		}
 	}
 	return nil

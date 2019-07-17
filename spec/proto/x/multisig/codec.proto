@@ -17,6 +17,8 @@ message Contract {
   // from participants in order to administrate the contract. Weight is
   // computed as the sum of weights of all participating signatures.
   uint32 admin_threshold = 4 ;
+  // Address of this entity. Set during creation and does not change.
+  bytes address = 5 ;
 }
 
 // Participant clubs together a signature with a weight. The greater the weight

@@ -44,16 +44,9 @@ func TestGenesisKey(t *testing.T) {
 	}
 
 	bucket := NewContractBucket()
-	obj, err := bucket.Get(db, weavetest.SequenceID(1))
-	if err != nil {
+	var c Contract
+	if err := bucket.One(db, weavetest.SequenceID(1), &c); err != nil {
 		t.Fatalf("cannot fetch contract information: %s", err)
-	}
-	if obj == nil {
-		t.Fatal("contract information not found")
-	}
-	c, ok := obj.Value().(*Contract)
-	if !ok {
-		t.Errorf("invalid object stored: %T", obj)
 	}
 	if want, got := Weight(2), c.ActivationThreshold; want != got {
 		t.Errorf("want activation threshold %d, got %d", want, got)

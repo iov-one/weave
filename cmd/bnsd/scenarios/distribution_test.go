@@ -56,10 +56,7 @@ func TestRevenueDistribution(t *testing.T) {
 	revenueID := weave.Address(resp.Response.DeliverTx.GetData())
 	t.Logf("new revenue stream id: %s", revenueID)
 
-	revenueAddress, err := distribution.RevenueAccount(revenueID)
-	if err != nil {
-		t.Fatalf("cannot create a revenue account for %d: %s", revenueID, err)
-	}
+	revenueAddress := distribution.RevenueAccount(revenueID)
 	t.Logf("new revenue stream account: %s", revenueAddress)
 
 	// Now that we know what is the revenue stream account address we can

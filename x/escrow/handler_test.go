@@ -25,6 +25,14 @@ var (
 	zeroBucket = orm.NewBucket("zero", nil)
 )
 
+// rawBucket returns a raw escrow bucket. This exist for the legacy setup of
+// the tests that use bucket Parse and DBKey method not provided by
+// ModelBucket. This bucket must not be used outside of tests as it does not
+// provide indexes or migrations. It can be used only to access the data.
+func rawBucket() orm.Bucket {
+	return orm.NewBucket("esc", orm.NewSimpleObj(nil, &Escrow{}))
+}
+
 // TestHandler runs a number of scenario of tx to make
 // sure they work as expected.
 //
@@ -76,7 +84,7 @@ func TestHandler(t *testing.T) {
 					[]orm.Object{
 						NewEscrow(weavetest.SequenceID(1), a.Address(), b.Address(), c.Address(), all, Timeout, ""),
 					},
-					NewBucket().Bucket,
+					rawBucket(),
 				},
 				// bank deducted from source
 				{"/wallets", "", a.Address(),
@@ -107,7 +115,7 @@ func TestHandler(t *testing.T) {
 					[]orm.Object{
 						NewEscrow(weavetest.SequenceID(1), a.Address(), b.Address(), c.Address(), some, Timeout, ""),
 					},
-					NewBucket().Bucket,
+					rawBucket(),
 				},
 				// make sure source index works
 				{
@@ -115,7 +123,7 @@ func TestHandler(t *testing.T) {
 					[]orm.Object{
 						NewEscrow(weavetest.SequenceID(1), a.Address(), b.Address(), c.Address(), some, Timeout, ""),
 					},
-					NewBucket().Bucket,
+					rawBucket(),
 				},
 				// make sure destination index works
 				{
@@ -123,7 +131,7 @@ func TestHandler(t *testing.T) {
 					[]orm.Object{
 						NewEscrow(weavetest.SequenceID(1), a.Address(), b.Address(), c.Address(), some, Timeout, ""),
 					},
-					NewBucket().Bucket,
+					rawBucket(),
 				},
 				// make sure arbiter index works
 				{
@@ -131,11 +139,11 @@ func TestHandler(t *testing.T) {
 					[]orm.Object{
 						NewEscrow(weavetest.SequenceID(1), a.Address(), b.Address(), c.Address(), some, Timeout, ""),
 					},
-					NewBucket().Bucket,
+					rawBucket(),
 				},
 				// make sure wrong query misses
 				{
-					"/escrows/arbiter", "", b, nil, NewBucket().Bucket,
+					"/escrows/arbiter", "", b, nil, rawBucket(),
 				},
 				// others id are empty
 				{
@@ -250,7 +258,7 @@ func TestHandler(t *testing.T) {
 					[]orm.Object{
 						NewEscrow(weavetest.SequenceID(1), a.Address(), b.Address(), c.Address(), remain, Timeout, "hello"),
 					},
-					NewBucket().Bucket,
+					rawBucket(),
 				},
 				// escrow is reduced
 				{"/wallets", "", escrowAddr(1),
@@ -406,7 +414,7 @@ func TestHandler(t *testing.T) {
 					EscrowId: weavetest.SequenceID(1),
 				},
 			},
-			errors.ErrEmpty,
+			errors.ErrNotFound,
 			[]query{
 				// verify escrow is deleted
 				{

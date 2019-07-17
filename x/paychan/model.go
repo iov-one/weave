@@ -45,6 +45,10 @@ func (pc *PaymentChannel) Validate() error {
 			errors.Field("Transferred", errors.ErrModel, "invalid transferred value"))
 	}
 
+	if err := pc.Address.Validate(); err != nil {
+		errs = errors.AppendField(errs, "Address", err)
+	}
+
 	return errs
 }
 
@@ -64,9 +68,12 @@ func (pc PaymentChannel) Copy() orm.CloneableData {
 
 // NewPaymentChannelBucket returns a bucket for storing PaymentChannel state.
 func NewPaymentChannelBucket() orm.ModelBucket {
-	b := orm.NewModelBucket("paychan", &PaymentChannel{})
+	b := orm.NewModelBucket("paychan", &PaymentChannel{},
+		orm.WithIDSequence(paymentChannelSeq))
 	return migration.NewModelBucket("paychan", b)
 }
+
+var paymentChannelSeq = orm.NewSequence("paychan", "id")
 
 func newPaymentChannelObjectBucket() orm.Bucket {
 	obj := orm.NewSimpleObj(nil, &PaymentChannel{})

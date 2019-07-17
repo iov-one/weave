@@ -12,13 +12,6 @@ func init() {
 	migration.MustRegister(1, &Escrow{}, migration.NoModification)
 }
 
-const (
-	// BucketName is where we store the escrows
-	BucketName = "esc"
-	// SequenceName is an auto-increment ID counter for escrows
-	SequenceName = "id"
-)
-
 var _ orm.CloneableData = (*Escrow)(nil)
 
 // Validate ensures the escrow is valid
@@ -47,6 +40,9 @@ func (e *Escrow) Validate() error {
 	if len(e.Memo) > maxMemoSize {
 		return errors.Wrapf(errors.ErrInput, "memo %s", e.Memo)
 	}
+	if err := e.Address.Validate(); err != nil {
+		return errors.Wrap(err, "address")
+	}
 	return validateAddresses(e.Source, e.Destination)
 }
 
@@ -59,6 +55,7 @@ func (e *Escrow) Copy() orm.CloneableData {
 		Destination: e.Destination,
 		Timeout:     e.Timeout,
 		Memo:        e.Memo,
+		Address:     e.Address.Clone(),
 	}
 }
 
@@ -89,6 +86,7 @@ func NewEscrow(
 		Destination: destination,
 		Timeout:     timeout,
 		Memo:        memo,
+		Address:     Condition(id).Address(),
 	}
 	return orm.NewSimpleObj(id, esc)
 }
@@ -99,31 +97,19 @@ func Condition(key []byte) weave.Condition {
 	return weave.NewCondition("escrow", "seq", key)
 }
 
-// Bucket is a type-safe wrapper around orm.Bucket
-type Bucket struct {
-	orm.Bucket
-	idSeq orm.Sequence
+func NewBucket() orm.ModelBucket {
+	b := orm.NewModelBucket("esc", &Escrow{},
+		orm.WithIDSequence(escrowSeq),
+		orm.WithIndex("source", idxSource, false),
+		orm.WithIndex("destination", idxDestination, false),
+		orm.WithIndex("arbiter", idxArbiter, false),
+	)
+	return migration.NewModelBucket("escrow", b)
 }
 
-// NewBucket initializes a Bucket with default name
-//
-// inherit Get and Save from orm.Bucket
-// add Create
-func NewBucket() Bucket {
-	bucket := migration.NewBucket("escrow", BucketName,
-		orm.NewSimpleObj(nil, new(Escrow))).
-		WithIndex("source", idxSource, false).
-		WithIndex("destination", idxDestination, false).
-		WithIndex("arbiter", idxArbiter, false)
+var escrowSeq = orm.NewSequence("escrow", "id")
 
-	return Bucket{
-		Bucket: bucket,
-		idSeq:  bucket.Sequence(SequenceName),
-	}
-	// TODO: add indexes
-}
-
-func getEscrow(obj orm.Object) (*Escrow, error) {
+func toEscrow(obj orm.Object) (*Escrow, error) {
 	if obj == nil {
 		return nil, errors.Wrap(errors.ErrHuman, "Cannot take index of nil")
 	}
@@ -135,7 +121,7 @@ func getEscrow(obj orm.Object) (*Escrow, error) {
 }
 
 func idxSource(obj orm.Object) ([]byte, error) {
-	esc, err := getEscrow(obj)
+	esc, err := toEscrow(obj)
 	if err != nil {
 		return nil, err
 	}
@@ -143,7 +129,7 @@ func idxSource(obj orm.Object) ([]byte, error) {
 }
 
 func idxDestination(obj orm.Object) ([]byte, error) {
-	esc, err := getEscrow(obj)
+	esc, err := toEscrow(obj)
 	if err != nil {
 		return nil, err
 	}
@@ -151,27 +137,9 @@ func idxDestination(obj orm.Object) ([]byte, error) {
 }
 
 func idxArbiter(obj orm.Object) ([]byte, error) {
-	esc, err := getEscrow(obj)
+	esc, err := toEscrow(obj)
 	if err != nil {
 		return nil, err
 	}
 	return esc.Arbiter, nil
-}
-
-// Build assigns an ID to given escrow instance and returns it as an orm
-// Object. It does not persist the escrow in the store.
-func (b Bucket) Build(db weave.KVStore, escrow *Escrow) (orm.Object, error) {
-	key, err := b.idSeq.NextVal(db)
-	if err != nil {
-		return nil, err
-	}
-	return orm.NewSimpleObj(key, escrow), nil
-}
-
-// Save enforces the proper type
-func (b Bucket) Save(db weave.KVStore, obj orm.Object) error {
-	if _, ok := obj.Value().(*Escrow); !ok {
-		return errors.WithType(errors.ErrModel, obj.Value())
-	}
-	return b.Bucket.Save(db, obj)
 }

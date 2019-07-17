@@ -24,7 +24,7 @@ func RegisterQuery(qr weave.QueryRouter) {
 
 type CreateMsgHandler struct {
 	auth   x.Authenticator
-	bucket ContractBucket
+	bucket orm.ModelBucket
 }
 
 var _ weave.Handler = CreateMsgHandler{}
@@ -44,21 +44,23 @@ func (h CreateMsgHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.
 		return nil, err
 	}
 
+	key, err := contractSeq.NextVal(db)
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot acquire ID")
+	}
+
 	contract := &Contract{
 		Metadata:            &weave.Metadata{Schema: 1},
 		Participants:        msg.Participants,
 		ActivationThreshold: msg.ActivationThreshold,
 		AdminThreshold:      msg.AdminThreshold,
+		Address:             MultiSigCondition(key).Address(),
 	}
 
-	obj, err := h.bucket.Build(db, contract)
-	if err != nil {
-		return nil, err
+	if _, err = h.bucket.Put(db, key, contract); err != nil {
+		return nil, errors.Wrap(err, "cannot save contract")
 	}
-	if err = h.bucket.Save(db, obj); err != nil {
-		return nil, err
-	}
-	return &weave.DeliverResult{Data: obj.Key()}, nil
+	return &weave.DeliverResult{Data: key}, nil
 }
 
 // validate does all common pre-processing between Check and Deliver.
@@ -79,7 +81,7 @@ func (h CreateMsgHandler) validate(ctx weave.Context, db weave.KVStore, tx weave
 
 type UpdateMsgHandler struct {
 	auth   x.Authenticator
-	bucket ContractBucket
+	bucket orm.ModelBucket
 }
 
 var _ weave.Handler = CreateMsgHandler{}
@@ -103,12 +105,11 @@ func (h UpdateMsgHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.
 		Participants:        msg.Participants,
 		ActivationThreshold: msg.ActivationThreshold,
 		AdminThreshold:      msg.AdminThreshold,
+		Address:             MultiSigCondition(msg.ContractID).Address(),
 	}
 
-	obj := orm.NewSimpleObj(msg.ContractID, contract)
-	err = h.bucket.Save(db, obj)
-	if err != nil {
-		return nil, err
+	if _, err := h.bucket.Put(db, msg.ContractID, contract); err != nil {
+		return nil, errors.Wrap(err, "cannot update contract")
 	}
 
 	return &weave.DeliverResult{}, nil
@@ -123,9 +124,9 @@ func (h UpdateMsgHandler) validate(ctx weave.Context, db weave.KVStore, tx weave
 	// Using current version of the contract, ensure that enoguht
 	// participants with enough weight signed this transaction in
 	// order to run functionality that requires admin rights.
-	contract, err := h.bucket.GetContract(db, msg.ContractID)
-	if err != nil {
-		return nil, errors.Wrap(err, "bucket lookup")
+	var contract Contract
+	if err := h.bucket.One(db, msg.ContractID, &contract); err != nil {
+		return nil, errors.Wrap(err, "cannot load contract from the store")
 	}
 	var weight Weight
 	for _, p := range contract.Participants {
