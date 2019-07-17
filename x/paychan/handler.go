@@ -69,7 +69,7 @@ func (h *createPaymentChannelHandler) Deliver(ctx weave.Context, db weave.KVStor
 		return nil, err
 	}
 
-	// Explicitely acquire the ID as we need it before saving to compute
+	// Explicitly acquire the ID as we need it before saving to compute
 	// the entity address.
 	key, err := paymentChannelSeq.NextVal(db)
 	if err != nil {
