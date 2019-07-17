@@ -3,7 +3,6 @@ package weave
 import (
 	"encoding/hex"
 	"encoding/json"
-	"fmt"
 	"strings"
 	"testing"
 
@@ -12,14 +11,14 @@ import (
 )
 
 func TestHex(t *testing.T) {
-	cases := []struct {
+	cases := map[string]struct {
 		orig    []byte
 		ser     string
 		invalid string
 	}{
-		{[]byte{01, 02}, `"0102"`, `"012"`},
-		{[]byte{0xFF, 0x14, 0x56}, `"FF1456"`, `FF1456`},
-		{[]byte{}, `""`, `"`},
+		"decimal": {[]byte{01, 02}, `"0102"`, `"012"`},
+		"hex":     {[]byte{0xFF, 0x14, 0x56}, `"FF1456"`, `FF1456`},
+		"empty":   {[]byte{}, `""`, `"`},
 	}
 
 	unmarshalHex := func(bz []byte, out *[]byte) (err error) {
@@ -43,8 +42,8 @@ func TestHex(t *testing.T) {
 		return json.Marshal(s)
 	}
 
-	for i, tc := range cases {
-		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
+	for testName, tc := range cases {
+		t.Run(testName, func(t *testing.T) {
 			// marshal as expected
 			bz, err := marshalHex(tc.orig)
 			assert.Nil(t, err)
@@ -94,7 +93,7 @@ func TestCondition(t *testing.T) {
 	data, err := hex.DecodeString("16E290A51B2B136C2C213884D03B8BAE483D6133F0A3D110FED3890E0A5A4E18")
 	assert.Nil(t, err)
 
-	cases := []struct {
+	cases := map[string]struct {
 		perm    Condition
 		isError bool
 		ext     string
@@ -102,16 +101,13 @@ func TestCondition(t *testing.T) {
 		data    []byte
 		serial  string
 	}{
-		// bad format
-		{
+		"bad format without data separator": {
 			[]byte("fo6/ds2qa"), true, "", "", nil, "",
 		},
-		// bad format
-		{
+		"invalid ext format": {
 			NewCondition("a.b", "dfr", []byte{34}), true, "", "", nil, "",
 		},
-		// good format
-		{
+		"good format": {
 			[]byte("Foo/B4r/BZZ"),
 			false,
 			"Foo",
@@ -119,8 +115,7 @@ func TestCondition(t *testing.T) {
 			[]byte("BZZ"),
 			"Foo/B4r/425A5A",
 		},
-		// non-ascii data
-		{
+		"non-ascii data": {
 			NewCondition("help", "W1N", []byte{0xCA, 0xFE}),
 			false,
 			"help",
@@ -130,7 +125,7 @@ func TestCondition(t *testing.T) {
 		},
 		// some weird failure from random test case
 		// turns out to do with 0xa (newline) character in data
-		{
+		"including newline character": {
 			failure,
 			false,
 			"sigs",
@@ -140,8 +135,8 @@ func TestCondition(t *testing.T) {
 		},
 	}
 
-	for i, tc := range cases {
-		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
+	for testName, tc := range cases {
+		t.Run(testName, func(t *testing.T) {
 			ext, typ, data, err := tc.perm.Parse()
 			if tc.isError {
 				assert.Equal(t, true, err != nil)

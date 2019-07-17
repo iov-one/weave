@@ -49,19 +49,21 @@ func TestContext(t *testing.T) {
 }
 
 func TestChainID(t *testing.T) {
-	cases := []struct {
+	cases := map[string]struct {
 		chainID string
 		valid   bool
 	}{
-		{"", false},
-		{"foo", false},
-		{"special", true},
-		{"wish-YOU-88", true},
-		{"invalid;;chars", false},
-		{"this-chain-id-is-way-too-long", false},
+		"empty":                  {"", false},
+		"to short":               {"foo", false},
+		"ok":                     {"special", true},
+		"mixed case and numbers": {"wish-YOU-88", true},
+		"invalid chars":          {"invalid;;chars", false},
+		"too long":               {"this-chain-id-is-way-too-long", false},
 	}
 
-	for _, tc := range cases {
-		assert.Equal(t, tc.valid, weave.IsValidChainID(tc.chainID))
+	for testName, tc := range cases {
+		t.Run(testName, func(t *testing.T) {
+			assert.Equal(t, tc.valid, weave.IsValidChainID(tc.chainID))
+		})
 	}
 }

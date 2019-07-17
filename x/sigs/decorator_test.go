@@ -32,55 +32,46 @@ func TestDecorator(t *testing.T) {
 	assert.Nil(t, err)
 
 	// Order of calling first check and then deliver is important.
-	cases := []struct {
-		name string
-		fn   func(weave.Decorator, weave.Tx) error
-	}{
-		{
-			name: "check",
-			fn: func(dec weave.Decorator, my weave.Tx) error {
-				_, err := dec.Check(ctx, checkKv, my, signers)
-				return err
-			},
+	cases := map[string]func(weave.Decorator, weave.Tx) error{
+		"check": func(dec weave.Decorator, my weave.Tx) error {
+			_, err := dec.Check(ctx, checkKv, my, signers)
+			return err
 		},
-		{
-			name: "deliver",
-			fn: func(dec weave.Decorator, my weave.Tx) error {
-				_, err := dec.Deliver(ctx, kv, my, signers)
-				return err
-			},
+		"deliver": func(dec weave.Decorator, my weave.Tx) error {
+			_, err := dec.Deliver(ctx, kv, my, signers)
+			return err
 		},
 	}
 
-	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
+	for testName, fn := range cases {
+		t.Run(testName, func(t *testing.T) {
 			// test with no sigs
 			tx.Signatures = nil
-			if err := tc.fn(d, tx); !errors.ErrUnauthorized.Is(err) {
+			if err := fn(d, tx); !errors.ErrUnauthorized.Is(err) {
 				t.Fatalf("unexpected error: %+v", err)
 			}
 
 			// test with one
 			tx.Signatures = []*StdSignature{sig}
-			err = tc.fn(d, tx)
+			err = fn(d, tx)
 			assert.Nil(t, err)
 			assert.Equal(t, perms, signers.Signers)
 
 			// test with replay
-			if err := tc.fn(d, tx); !ErrInvalidSequence.Is(err) {
+			if err := fn(d, tx); !ErrInvalidSequence.Is(err) {
 				t.Fatalf("unexpected errror: %+v", err)
 			}
 
 			// test allowing none
 			ad := d.AllowMissingSigs()
 			tx.Signatures = nil
-			err = tc.fn(ad, tx)
+			err = fn(ad, tx)
 			assert.Nil(t, err)
 			assert.Equal(t, []weave.Condition{}, signers.Signers)
 
 			// test allowing, with next sequence
 			tx.Signatures = []*StdSignature{sig1}
-			err = tc.fn(ad, tx)
+			err = fn(ad, tx)
 			assert.Nil(t, err)
 			assert.Equal(t, perms, signers.Signers)
 		})

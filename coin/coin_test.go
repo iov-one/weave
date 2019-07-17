@@ -346,17 +346,17 @@ func TestCoinGTE(t *testing.T) {
 }
 
 func TestCoinSubtract(t *testing.T) {
-	cases := []struct {
+	cases := map[string]struct {
 		a, b Coin
 		want Coin
 	}{
-		{a: NewCoin(3, 0, "X"), b: NewCoin(1, 0, "X"), want: NewCoin(2, 0, "X")},
-		{a: NewCoin(1, 0, "X"), b: NewCoin(1, 0, "X"), want: NewCoin(0, 0, "X")},
-		{a: NewCoin(1, 0, "X"), b: NewCoin(5, 0, "X"), want: NewCoin(-4, 0, "X")},
+		"positive result": {a: NewCoin(3, 0, "X"), b: NewCoin(1, 0, "X"), want: NewCoin(2, 0, "X")},
+		"zero result":     {a: NewCoin(1, 0, "X"), b: NewCoin(1, 0, "X"), want: NewCoin(0, 0, "X")},
+		"negative result": {a: NewCoin(1, 0, "X"), b: NewCoin(5, 0, "X"), want: NewCoin(-4, 0, "X")},
 	}
 
-	for i, tc := range cases {
-		t.Run(fmt.Sprint(i), func(t *testing.T) {
+	for testName, tc := range cases {
+		t.Run(testName, func(t *testing.T) {
 			res, err := tc.a.Subtract(tc.b)
 			if err != nil {
 				t.Fatal(err)

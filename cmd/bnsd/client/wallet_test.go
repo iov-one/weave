@@ -228,19 +228,18 @@ func TestDefaultValues(t *testing.T) {
 }
 
 func TestKeyGen(t *testing.T) {
-	useCases := []struct {
+	useCases := map[string]struct {
 		W string
 		N int
 	}{
-		{`{}`, 0},
-		{`{"cash":[{}]}`, 1},
-		//{`{"cash":[{},{}]}`, 2},
-		//{`{"cash":[{"name": "alice"},{"name": "dora"},{"name": "bert"}]}`, 3},
-		//{`{"cash":[{"name": "alice"},{"name": "dora"},{"name": "bert"},{"name": "charlie"}]}`, 4},
+		"empty":  {`{}`, 0},
+		"single": {`{"cash":[{}]}`, 1},
 	}
 
-	for _, useCase := range useCases {
-		w := wsFromJSON(t, []byte(useCase.W))
-		assert.Equal(t, useCase.N, len(w.Keys))
+	for testName, useCase := range useCases {
+		t.Run(testName, func(t *testing.T) {
+			w := wsFromJSON(t, []byte(useCase.W))
+			assert.Equal(t, useCase.N, len(w.Keys))
+		})
 	}
 }

@@ -1,7 +1,6 @@
 package coin
 
 import (
-	"fmt"
 	"reflect"
 	"testing"
 
@@ -21,7 +20,7 @@ func mustCombineCoins(cs ...Coin) Coins {
 func TestMakeCoins(t *testing.T) {
 	// TODO: verify constructor checks well for errors
 
-	cases := []struct {
+	cases := map[string]struct {
 		inputs   []Coin
 		isEmpty  bool
 		isNonNeg bool
@@ -29,8 +28,7 @@ func TestMakeCoins(t *testing.T) {
 		dontHave []Coin // > or outside the wallet
 		isErr    bool
 	}{
-		// empty
-		{
+		"empty": {
 			nil,
 			true,
 			true,
@@ -38,8 +36,7 @@ func TestMakeCoins(t *testing.T) {
 			[]Coin{NewCoin(0, 0, "")},
 			false,
 		},
-		// ignore 0
-		{
+		"ignore 0": {
 			[]Coin{NewCoin(0, 0, "FOO")},
 			true,
 			true,
@@ -47,8 +44,7 @@ func TestMakeCoins(t *testing.T) {
 			[]Coin{NewCoin(0, 0, "FOO")},
 			false,
 		},
-		// simple
-		{
+		"simple": {
 			[]Coin{NewCoin(40, 0, "FUD")},
 			false,
 			true,
@@ -56,8 +52,7 @@ func TestMakeCoins(t *testing.T) {
 			[]Coin{NewCoin(40, 1, "FUD"), NewCoin(40, 0, "FUN")},
 			false,
 		},
-		// out of order, with negative
-		{
+		"out of order, with negative": {
 			[]Coin{NewCoin(-20, -3, "FIN"), NewCoin(40, 5, "BON")},
 			false,
 			false,
@@ -65,8 +60,7 @@ func TestMakeCoins(t *testing.T) {
 			[]Coin{NewCoin(40, 6, "BON"), NewCoin(-20, 0, "FIN")},
 			false,
 		},
-		// combine and remove
-		{
+		"combine and remove": {
 			[]Coin{NewCoin(-123, -456, "BOO"), NewCoin(123, 456, "BOO")},
 			true,
 			true,
@@ -74,8 +68,7 @@ func TestMakeCoins(t *testing.T) {
 			[]Coin{NewCoin(0, 0, "BOO")},
 			false,
 		},
-		// safely combine
-		{
+		"safely combine": {
 			[]Coin{NewCoin(12, 0, "ADA"), NewCoin(-123, -456, "BOO"), NewCoin(124, 756, "BOO")},
 			false,
 			true,
@@ -83,20 +76,17 @@ func TestMakeCoins(t *testing.T) {
 			[]Coin{NewCoin(13, 0, "ADA"), NewCoin(1, 400, "BOO")},
 			false,
 		},
-		// verify invalid input cur -> error
-		{
+		"verify invalid input cur -> error": {
 			[]Coin{NewCoin(1, 2, "AL2")},
 			false, false, nil, nil,
 			true,
 		},
-		// verify invalid input values -> error
-		{
+		"verify invalid input values -> error": {
 			[]Coin{NewCoin(MaxInt+3, 2, "AND")},
 			false, false, nil, nil,
 			true,
 		},
-		// if we can combine invalid inputs, then acceptable?
-		{
+		"if we can combine invalid inputs, then acceptable?": {
 			[]Coin{NewCoin(MaxInt+3, 2, "AND"), NewCoin(-10, 0, "AND")},
 			false,
 			true,
@@ -106,8 +96,8 @@ func TestMakeCoins(t *testing.T) {
 		},
 	}
 
-	for idx, tc := range cases {
-		t.Run(fmt.Sprintf("case-%d", idx), func(t *testing.T) {
+	for testName, tc := range cases {
+		t.Run(testName, func(t *testing.T) {
 			s, err := CombineCoins(tc.inputs...)
 			if tc.isErr {
 				assert.Equal(t, true, err != nil)
@@ -132,31 +122,27 @@ func TestMakeCoins(t *testing.T) {
 // TestCombine checks combine and equals
 // and thereby checks add
 func TestCombine(t *testing.T) {
-	cases := []struct {
+	cases := map[string]struct {
 		a, b  Coins
 		comb  Coins
 		isErr bool
 	}{
-		// empty
-		{
+		"empty": {
 			mustCombineCoins(), mustCombineCoins(), mustCombineCoins(), false,
 		},
-		// one plus one
-		{
+		"one plus one": {
 			mustCombineCoins(NewCoin(MaxInt, 5, "ABC")),
 			mustCombineCoins(NewCoin(-MaxInt, -4, "ABC")),
 			mustCombineCoins(NewCoin(0, 1, "ABC")),
 			false,
 		},
-		// multiple
-		{
+		"multiple": {
 			mustCombineCoins(NewCoin(7, 8, "FOO"), NewCoin(8, 9, "BAR")),
 			mustCombineCoins(NewCoin(5, 4, "APE"), NewCoin(2, 1, "FOO")),
 			mustCombineCoins(NewCoin(5, 4, "APE"), NewCoin(8, 9, "BAR"), NewCoin(9, 9, "FOO")),
 			false,
 		},
-		// overflows
-		{
+		"overflows": {
 			mustCombineCoins(NewCoin(MaxInt, 0, "ADA")),
 			mustCombineCoins(NewCoin(2, 0, "ADA")),
 			Coins{},
@@ -164,8 +150,8 @@ func TestCombine(t *testing.T) {
 		},
 	}
 
-	for idx, tc := range cases {
-		t.Run(fmt.Sprintf("case-%d", idx), func(t *testing.T) {
+	for testName, tc := range cases {
+		t.Run(testName, func(t *testing.T) {
 
 			ac := tc.a.Count()
 			bc := tc.b.Count()

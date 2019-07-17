@@ -2,7 +2,6 @@ package cash
 
 import (
 	"encoding/json"
-	"fmt"
 	"reflect"
 	"testing"
 
@@ -49,33 +48,26 @@ func TestInitState(t *testing.T) {
 	rawInvalid, err := json.Marshal(badConfig)
 	assert.Nil(t, err)
 
-	cases := [...]struct {
+	cases := map[string]struct {
 		opts    weave.Options
 		isError bool
 		acct    []byte
 		wallet  Set
 	}{
-		// no prob if no data
-		0: {weave.Options{"conf": rawConfig}, false, nil, Set{}},
-		// but need the config
-		1: {weave.Options{}, true, nil, Set{}},
-		// enforces valid config
-		2: {weave.Options{"conf": rawInvalid}, true, nil, Set{}},
-		// ignore random key
-		3: {weave.Options{"foo": []byte(`"bar"`), "conf": rawConfig}, false, nil, Set{}},
-		// unknown key
-		4: {weave.Options{"foo": []byte(`[{"address": "1234"}]`), "conf": rawConfig}, false, nil, Set{}},
-		// bad address
-		5: {weave.Options{"cash": []byte(`[{"coins": 123}]`), "conf": rawConfig}, true, nil, Set{}},
-		// get a real account
-		6: {weave.Options{"cash": bz, "conf": rawConfig}, false, addr, coins},
-		7: {weave.Options{"cash": bz2, "conf": rawConfig}, false, addr2, coins2},
+		"no prob if no data":       {weave.Options{"conf": rawConfig}, false, nil, Set{}},
+		"but need the config":      {weave.Options{}, true, nil, Set{}},
+		"enforces valid config":    {weave.Options{"conf": rawInvalid}, true, nil, Set{}},
+		"ignore random key":        {weave.Options{"foo": []byte(`"bar"`), "conf": rawConfig}, false, nil, Set{}},
+		"unknown key":              {weave.Options{"foo": []byte(`[{"address": "1234"}]`), "conf": rawConfig}, false, nil, Set{}},
+		"bad address":              {weave.Options{"cash": []byte(`[{"coins": 123}]`), "conf": rawConfig}, true, nil, Set{}},
+		"get a real account":       {weave.Options{"cash": bz, "conf": rawConfig}, false, addr, coins},
+		"get another real account": {weave.Options{"cash": bz2, "conf": rawConfig}, false, addr2, coins2},
 	}
 
 	init := Initializer{}
 
-	for i, tc := range cases {
-		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
+	for testName, tc := range cases {
+		t.Run(testName, func(t *testing.T) {
 			kv := store.MemStore()
 			migration.MustInitPkg(kv, "cash")
 			bucket := NewBucket()
@@ -90,7 +82,7 @@ func TestInitState(t *testing.T) {
 				acct, err := bucket.Get(kv, tc.acct)
 				assert.Nil(t, err)
 				assert.Equal(t, true, acct != nil)
-				for i = range tc.wallet.Coins {
+				for i := range tc.wallet.Coins {
 					if exp, got := tc.wallet.Coins[i], AsCoins(acct)[i]; !reflect.DeepEqual(exp, got) {
 						t.Errorf("expected %v but got %v", exp, got)
 					}

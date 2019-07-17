@@ -9,19 +9,19 @@ import (
 )
 
 func TestGenInitOptions(t *testing.T) {
-	cases := []struct {
+	cases := map[string]struct {
 		args []string
 		cur  string
 		addr string
 	}{
-		{nil, "IOV", ""},
-		{[]string{"ONE"}, "ONE", ""},
-		{[]string{"TWO", "1234567890"}, "TWO", "1234567890"},
-		{[]string{"THR", "5238975983695", "FOO"}, "THR", "5238975983695"},
+		"without args":                          {nil, "IOV", ""},
+		"with currency only":                    {[]string{"ONE"}, "ONE", ""},
+		"with currency and address":             {[]string{"TWO", "1234567890"}, "TWO", "1234567890"},
+		"with currency, address and random arg": {[]string{"THR", "5238975983695", "FOO"}, "THR", "5238975983695"},
 	}
 
-	for i, tc := range cases {
-		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
+	for testName, tc := range cases {
+		t.Run(testName, func(t *testing.T) {
 			val, err := GenInitOptions(tc.args)
 			assert.Nil(t, err)
 
