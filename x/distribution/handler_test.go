@@ -28,11 +28,7 @@ func TestHandlers(t *testing.T) {
 
 	revenueAccount := func(revID uint64) weave.Address {
 		t.Helper()
-		a, err := RevenueAccount(weavetest.SequenceID(revID))
-		if err != nil {
-			t.Fatal(err)
-		}
-		return a
+		return weave.NewCondition("dist", "revenue", weavetest.SequenceID(revID)).Address()
 	}
 
 	// In below cases, weavetest.SequenceID(1) is used - this is the

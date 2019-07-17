@@ -3,6 +3,7 @@ package multisig
 import (
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/x"
 )
 
@@ -13,7 +14,7 @@ const (
 // Decorator checks multisig contract if available
 type Decorator struct {
 	auth   x.Authenticator
-	bucket ContractBucket
+	bucket orm.ModelBucket
 }
 
 var _ weave.Decorator = Decorator{}
@@ -66,9 +67,9 @@ func (d Decorator) authMultisig(ctx weave.Context, store weave.KVStore, tx weave
 			continue
 		}
 
-		contract, err := d.bucket.GetContract(store, contractID)
-		if err != nil {
-			return ctx, 0, err
+		var contract Contract
+		if err := d.bucket.One(store, contractID, &contract); err != nil {
+			return ctx, 0, errors.Wrap(err, "cannot load contract from the store")
 		}
 
 		var weight Weight

@@ -1,6 +1,9 @@
 package multisig
 
-import "github.com/iov-one/weave"
+import (
+	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/errors"
+)
 
 // Initializer fulfils the Initializer interface to load data from the genesis
 // file
@@ -24,7 +27,7 @@ func (*Initializer) FromGenesis(opts weave.Options, params weave.GenesisParams, 
 	}
 
 	bucket := NewContractBucket()
-	for _, c := range contracts {
+	for i, c := range contracts {
 		ps := make([]*Participant, 0, len(c.Participants))
 		for _, p := range c.Participants {
 			ps = append(ps, &Participant{
@@ -32,18 +35,19 @@ func (*Initializer) FromGenesis(opts weave.Options, params weave.GenesisParams, 
 				Weight:    p.Weight,
 			})
 		}
+		key, err := contractSeq.NextVal(kv)
+		if err != nil {
+			return errors.Wrap(err, "cannot acquire ID")
+		}
 		contract := Contract{
 			Metadata:            &weave.Metadata{Schema: 1},
 			Participants:        ps,
 			ActivationThreshold: c.ActivationThreshold,
 			AdminThreshold:      c.AdminThreshold,
+			Address:             MultiSigCondition(key).Address(),
 		}
-		obj, err := bucket.Build(kv, &contract)
-		if err != nil {
-			return err
-		}
-		if err := bucket.Save(kv, obj); err != nil {
-			return err
+		if _, err := bucket.Put(kv, key, &contract); err != nil {
+			return errors.Wrapf(err, "cannot save #%d contract", i)
 		}
 	}
 	return nil

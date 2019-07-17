@@ -1,7 +1,6 @@
 package aswap
 
 import (
-	weave "github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/orm"
@@ -10,14 +9,6 @@ import (
 func init() {
 	migration.MustRegister(1, &Swap{}, migration.NoModification)
 }
-
-const (
-	// BucketName is where we store the swaps
-	BucketName = "swap"
-
-	// SequenceName is an auto-increment ID counter for swaps
-	SequenceName = "id"
-)
 
 var _ orm.CloneableData = (*Swap)(nil)
 
@@ -77,45 +68,19 @@ func AsSwap(obj orm.Object) *Swap {
 	return obj.Value().(*Swap)
 }
 
-// Bucket is a type-safe wrapper around orm.Bucket
-type Bucket struct {
-	orm.Bucket
-	idSeq orm.Sequence
+func NewBucket() orm.ModelBucket {
+	b := orm.NewModelBucket("swap", &Swap{},
+		orm.WithIDSequence(swapSeq),
+		orm.WithIndex("source", idxSource, false),
+		orm.WithIndex("destination", idxDestination, false),
+		orm.WithIndex("preimage_hash", idxPrehash, false),
+	)
+	return migration.NewModelBucket("aswap", b)
 }
 
-// NewBucket initializes a Bucket with default name
-//
-// inherit Get and Save from orm.Bucket
-// add Create
-func NewBucket() Bucket {
-	bucket := migration.NewBucket("aswap", BucketName,
-		orm.NewSimpleObj(nil, &Swap{})).
-		WithIndex("source", idxSource, false).
-		WithIndex("destination", idxDestination, false).
-		WithIndex("preimage_hash", idxPrehash, false)
+var swapSeq = orm.NewSequence("aswap", "id")
 
-	return Bucket{
-		Bucket: bucket,
-		idSeq:  bucket.Sequence("id"),
-	}
-}
-
-// Create adds given swap instance to the store and returns the ID of the newly
-// inserted entity.
-func (b *Bucket) Create(db weave.KVStore, swap *Swap) (orm.Object, error) {
-	key, err := b.idSeq.NextVal(db)
-	if err != nil {
-		return nil, errors.Wrap(err, "cannot acquire ID")
-	}
-	swap.Address = SwapAddr(key, swap)
-	obj := orm.NewSimpleObj(key, swap)
-	if err := b.Bucket.Save(db, obj); err != nil {
-		return nil, errors.Wrap(err, "cannot save swap")
-	}
-	return obj, nil
-}
-
-func getSwap(obj orm.Object) (*Swap, error) {
+func toSwap(obj orm.Object) (*Swap, error) {
 	if obj == nil {
 		return nil, errors.Wrap(errors.ErrHuman, "Cannot take index of nil")
 	}
@@ -127,7 +92,7 @@ func getSwap(obj orm.Object) (*Swap, error) {
 }
 
 func idxSource(obj orm.Object) ([]byte, error) {
-	swp, err := getSwap(obj)
+	swp, err := toSwap(obj)
 	if err != nil {
 		return nil, err
 	}
@@ -135,7 +100,7 @@ func idxSource(obj orm.Object) ([]byte, error) {
 }
 
 func idxDestination(obj orm.Object) ([]byte, error) {
-	swp, err := getSwap(obj)
+	swp, err := toSwap(obj)
 	if err != nil {
 		return nil, err
 	}
@@ -143,7 +108,7 @@ func idxDestination(obj orm.Object) ([]byte, error) {
 }
 
 func idxPrehash(obj orm.Object) ([]byte, error) {
-	swp, err := getSwap(obj)
+	swp, err := toSwap(obj)
 	if err != nil {
 		return nil, err
 	}

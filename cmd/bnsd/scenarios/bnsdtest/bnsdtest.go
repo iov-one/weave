@@ -49,7 +49,7 @@ func StartBnsd(t testing.TB, opts ...StartBnsdOption) (env *EnvConf, cleanup fun
 			},
 		},
 	}
-	env.DistrContractAddr, _ = distribution.RevenueAccount(weavetest.SequenceID(1))
+	env.DistrContractAddr = distribution.RevenueAccount(weavetest.SequenceID(1))
 
 	for _, fn := range opts {
 		fn(env)

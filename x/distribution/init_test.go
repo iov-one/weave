@@ -41,11 +41,10 @@ func TestGenesisKey(t *testing.T) {
 	}
 
 	bucket := NewRevenueBucket()
-	rev, err := bucket.GetRevenue(db, weavetest.SequenceID(1))
-	if err != nil {
+
+	var rev Revenue
+	if err := bucket.One(db, weavetest.SequenceID(1), &rev); err != nil {
 		t.Fatalf("cannot fetch revenue: %s", err)
-	} else if rev == nil {
-		t.Fatal("revenue not found")
 	}
 
 	if !rev.Admin.Equals(addr1) {
