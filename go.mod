@@ -19,7 +19,6 @@ require (
 	github.com/rs/cors v1.6.0 // indirect
 	github.com/stellar/go v0.0.0-20190524153138-e5e03dc34e2d
 	github.com/stellar/go-xdr v0.0.0-20180917104419-0bc96f33a18e // indirect
-	github.com/stretchr/testify v1.3.0
 	github.com/syndtr/goleveldb v1.0.0 // indirect
 	github.com/tendermint/go-amino v0.15.0
 	github.com/tendermint/iavl v0.12.2

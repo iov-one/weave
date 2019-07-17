@@ -1,13 +1,13 @@
 package orm
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"testing"
 
 	"github.com/iov-one/weave/store"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
+	"github.com/iov-one/weave/weavetest/assert"
 )
 
 // simple indexer for Counter
@@ -91,25 +91,25 @@ func TestCounterSingleKeyIndex(t *testing.T) {
 	}
 
 	db := store.MemStore()
-	for i, tc := range cases {
+	for i, tc := range cases { // can not be converted into table tests easily as there is a dependency between cases
 		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
 			idx := tc.idx
 			err := idx.Update(db, tc.prev, tc.next)
 			if tc.isError {
-				require.Error(t, err)
+				assert.Equal(t, true, err != nil)
 				return
 			}
 
-			require.NoError(t, err)
+			assert.Nil(t, err)
 			if tc.getLike != nil {
 				res, err := idx.GetLike(db, tc.getLike)
-				require.NoError(t, err)
-				assert.EqualValues(t, tc.likeRes, res)
+				assert.Nil(t, err)
+				assert.Equal(t, tc.likeRes, res)
 			}
 			if tc.getAt != nil {
 				res, err := idx.GetAt(db, tc.getAt)
-				require.NoError(t, err)
-				assert.EqualValues(t, tc.atRes, res)
+				assert.Nil(t, err)
+				assert.Equal(t, tc.atRes, res)
 			}
 		})
 	}
@@ -118,45 +118,45 @@ func TestCounterSingleKeyIndex(t *testing.T) {
 func TestCounterMultiKeyIndex(t *testing.T) {
 	uniq := NewMultiKeyIndex("unique", evenOddIndexer, true, nil)
 
-	specs := []struct {
+	specs := map[string]struct {
 		index               Index
 		store               Object
 		prev, next          Object
 		expError            bool
 		expKeys, expNotKeys [][]byte
 	}{
-		{ // update with all keys replaced
+		"update with all keys replaced": {
 			index:      uniq,
 			prev:       NewSimpleObj([]byte("my"), NewCounter(5)),
 			next:       NewSimpleObj([]byte("my"), NewCounter(6)),
 			expKeys:    [][]byte{encodeSequence(6), []byte("even")},
 			expNotKeys: [][]byte{encodeSequence(5), []byte("odd")},
 		},
-		{ // update with 1 key updated only
+		"update with 1 key updated only": {
 			index:      uniq,
 			prev:       NewSimpleObj([]byte("my"), NewCounter(6)),
 			next:       NewSimpleObj([]byte("my"), NewCounter(8)),
 			expKeys:    [][]byte{encodeSequence(8), []byte("even")},
 			expNotKeys: [][]byte{encodeSequence(6)},
 		},
-		{ // insert
+		"insert": {
 			index:   uniq,
 			next:    NewSimpleObj([]byte("my"), NewCounter(6)),
 			expKeys: [][]byte{encodeSequence(6), []byte("even")},
 		},
-		{ // delete
+		"delete": {
 			index:      uniq,
 			prev:       NewSimpleObj([]byte("my"), NewCounter(5)),
 			expNotKeys: [][]byte{encodeSequence(5), []byte("odd")},
 		},
-		{ // update with unique constraint fail
+		"update with unique constraint fail": {
 			index:    uniq,
 			store:    NewSimpleObj([]byte("even"), NewCounter(8)),
 			prev:     NewSimpleObj([]byte("my"), NewCounter(5)),
 			next:     NewSimpleObj([]byte("my"), NewCounter(6)),
 			expError: true,
 		},
-		{ // update without unique constraint
+		"update without unique constraint": {
 			index:    NewMultiKeyIndex("multi", evenOddIndexer, false, nil),
 			store:    NewSimpleObj([]byte("even"), NewCounter(8)),
 			prev:     NewSimpleObj([]byte("my"), NewCounter(5)),
@@ -164,20 +164,20 @@ func TestCounterMultiKeyIndex(t *testing.T) {
 			expKeys:  [][]byte{encodeSequence(6), []byte("even")},
 			expError: false,
 		},
-		{ // id mismatch
+		"id mismatch": {
 			index:    uniq,
 			prev:     NewSimpleObj([]byte("my"), NewCounter(5)),
 			next:     NewSimpleObj([]byte("bar"), NewCounter(7)),
 			expError: true,
 		},
-		{ // both nil
+		"both nil": {
 			index:    uniq,
 			expError: true,
 		},
 	}
 
-	for i, spec := range specs {
-		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
+	for testName, spec := range specs {
+		t.Run(testName, func(t *testing.T) {
 			db := store.MemStore()
 
 			// given
@@ -188,7 +188,7 @@ func TestCounterMultiKeyIndex(t *testing.T) {
 				}
 				keys, _ := idx.index(o)
 				for _, key := range keys {
-					require.NoError(t, idx.insert(db, key, o.Key()))
+					assert.Nil(t, idx.insert(db, key, o.Key()))
 				}
 			}
 			// when
@@ -196,25 +196,32 @@ func TestCounterMultiKeyIndex(t *testing.T) {
 
 			// then
 			if spec.expError {
-				require.Error(t, err)
+				assert.Equal(t, true, err != nil)
 			} else {
-				require.NoError(t, err)
+				assert.Nil(t, err)
 			}
 			for _, k := range spec.expKeys {
 				// and index keys exists
 				pks, err := idx.GetAt(db, k)
-				require.NoError(t, err)
+				assert.Nil(t, err)
 				// with proper pk
 				if idx.unique {
 					assert.Equal(t, [][]byte{[]byte("my")}, pks)
 				} else {
-					assert.Contains(t, pks, []byte("my"))
+					var found bool
+					for i := range pks {
+						if exp, got := []byte("my"), pks[i]; bytes.Equal(exp, got) {
+							found = true
+							break
+						}
+					}
+					assert.Equal(t, true, found)
 				}
 			}
 			// and previous index keys don't exist anymore
 			for _, k := range spec.expNotKeys {
 				pks, err := idx.GetAt(db, k)
-				require.NoError(t, err)
+				assert.Nil(t, err)
 				assert.Nil(t, pks)
 			}
 		})
@@ -233,38 +240,36 @@ func TestGetLikeWithMultiKeyIndex(t *testing.T) {
 	for _, o := range persistentObjects {
 		keys, _ := idx.index(o)
 		for _, key := range keys {
-			require.NoError(t, idx.insert(db, key, o.Key()))
+			assert.Nil(t, idx.insert(db, key, o.Key()))
 		}
 	}
 
-	specs := []struct {
+	specs := map[string]struct {
 		source Object
 		expPKs [][]byte
 	}{
-		{
+		"any odd counter value matches all other odd entries": {
 			source: NewSimpleObj([]byte("anyOdd"), NewCounter(9)),
 			expPKs: [][]byte{[]byte("firstOdd"), []byte("secondOdd")},
 		},
-		{
+		"obj key does not matter with this indexer": {
 			source: NewSimpleObj([]byte("firstOdd"), NewCounter(5)),
 			expPKs: [][]byte{[]byte("firstOdd"), []byte("secondOdd")},
 		},
-		{
+		"even counter value matches other even objects": {
 			source: NewSimpleObj([]byte("even"), NewCounter(8)),
 			expPKs: [][]byte{[]byte("even")},
 		},
-		{
+		"obj key does not matter here, too": {
 			source: NewSimpleObj([]byte("anotherEven"), NewCounter(10)),
 			expPKs: [][]byte{[]byte("even")},
 		},
 	}
-	for i, spec := range specs {
-		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
-			// when
+	for testName, spec := range specs {
+		t.Run(testName, func(t *testing.T) {
 			pks, err := idx.GetLike(db, spec.source)
-
 			// then
-			require.NoError(t, err)
+			assert.Nil(t, err)
 			assert.Equal(t, spec.expPKs, pks)
 		})
 	}
@@ -299,26 +304,17 @@ func first(obj Object) ([]byte, error) {
 	return multi.Refs[0], nil
 }
 
-func makeRefObj(key []byte, values ...[]byte) Object {
-	value := &MultiRef{
-		Refs: values,
-	}
-	return NewSimpleObj(key, value)
-}
-
 func checkNil(t *testing.T, objs ...Object) {
 	for _, obj := range objs {
 		bz, err := first(obj)
-		require.NoError(t, err)
-		require.Equal(t, 0, len(bz))
+		assert.Nil(t, err)
+		assert.Equal(t, 0, len(bz))
 	}
 }
 
 // TestNullableIndex ensures we don't write indexes for nil values
 // is that all wanted??
 func TestNullableIndex(t *testing.T) {
-	uniq := NewIndex("no-null", first, true, nil)
-
 	// some keys to use
 	k1 := []byte("abc")
 	k2 := []byte("def")
@@ -326,7 +322,13 @@ func TestNullableIndex(t *testing.T) {
 	v1 := []byte("foo")
 	v2 := []byte("bar")
 
-	// o1 and o3 conflict
+	makeRefObj := func(key []byte, values ...[]byte) Object {
+		return NewSimpleObj(key, &MultiRef{
+			Refs: values,
+		})
+	}
+
+	// o1 and o3 conflict (different key but v1 at pos 1)
 	o1 := makeRefObj(k1, v1, v2)
 	o1a := makeRefObj(k1, v1)
 	o2 := makeRefObj(k2, v2, v1)
@@ -339,76 +341,81 @@ func TestNullableIndex(t *testing.T) {
 	n3 := makeRefObj(k3, nil, v1)
 	checkNil(t, n1, n2, n3)
 
-	cases := []struct {
+	cases := map[string]struct {
 		setup      []Object // insert these first before test
 		prev, next Object   // check for error
 		isError    bool     // check insert result
 	}{
-		// make sure test works with non-nil objects
-		0: {[]Object{o1}, nil, o2, false},
-		1: {[]Object{o1, o2}, nil, o3, true},
-		2: {[]Object{o1, o2}, o1, o1a, false},
-		// make sure nil doesn't cause conflicts
-		3: {[]Object{}, nil, n1, false},
-		4: {[]Object{n1}, nil, n2, false},
-		5: {[]Object{n1}, nil, n3, false},
-		6: {[]Object{o1, n1, o2}, nil, n2, false},
-		// also with move....
-		7: {[]Object{n1, n2}, n1, n1a, false},
+		"add non existing": {
+			[]Object{o1}, nil, o2, false},
+		"non unique values must be rejected": {
+			[]Object{o1, o2}, nil, o3, true},
+		"update value for existing key": {
+			[]Object{o1, o2}, o1, o1a, false},
+		"nil doesn't cause conflicts: allow index nil value": {
+			[]Object{}, nil, n1, false},
+		"nil doesn't cause conflicts: allow index empty bytes value": {
+			[]Object{n1}, nil, n2, false},
+		"nil doesn't cause conflicts: constraint": {
+			[]Object{n1}, nil, n3, false},
+		"nil doesn't cause conflicts: can add empty bytes value": {
+			[]Object{o1, n1, o2}, nil, n2, false},
+		"can update nil value": {
+			[]Object{n1, n2}, n1, n1a, false},
 	}
 
-	for i, tc := range cases {
-		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
+	for testName, tc := range cases {
+		t.Run(testName, func(t *testing.T) {
+			uniq := NewIndex("no-null", first, true, nil)
 			db := store.MemStore()
 			for _, init := range tc.setup {
 				err := uniq.Update(db, nil, init)
-				require.NoError(t, err)
+				assert.Nil(t, err)
 			}
-
+			// when
 			err := uniq.Update(db, tc.prev, tc.next)
 			if tc.isError {
-				require.Error(t, err)
+				assert.Equal(t, true, err != nil)
 			} else {
-				require.NoError(t, err)
+				assert.Nil(t, err)
 			}
 		})
 	}
 }
 
 func TestDeduplicatePKList(t *testing.T) {
-	specs := []struct {
+	specs := map[string]struct {
 		src, exp []string
 	}{
-		{src: []string{}, exp: []string{}},
-		{src: []string{"a", "a"}, exp: []string{"a"}},
-		{src: []string{"a", "a", "b"}, exp: []string{"a", "b"}},
-		{src: []string{"a", "b", "a"}, exp: []string{"a", "b"}},
-		{src: []string{"a", "b", "b"}, exp: []string{"a", "b"}},
-		{src: []string{"a", "b", "a", "b"}, exp: []string{"a", "b"}},
-		{src: []string{"a", "b", "c", "b", "d"}, exp: []string{"a", "b", "c", "d"}},
-		{src: nil, exp: nil},
+		"empty":                             {src: []string{}, exp: []string{}},
+		"duplicate dropped":                 {src: []string{"a", "a"}, exp: []string{"a"}},
+		"duplicate at the start":            {src: []string{"a", "a", "b"}, exp: []string{"a", "b"}},
+		"duplicate at the end":              {src: []string{"a", "b", "a"}, exp: []string{"a", "b"}},
+		"two duplicates":                    {src: []string{"a", "b", "a", "b"}, exp: []string{"a", "b"}},
+		"order preserved without duplicate": {src: []string{"a", "b", "c", "b", "d"}, exp: []string{"a", "b", "c", "d"}},
+		"works with nil":                    {src: nil, exp: nil},
 	}
-	for i, spec := range specs {
-		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
+	for testName, spec := range specs {
+		t.Run(testName, func(t *testing.T) {
 			assert.Equal(t, toBytes(spec.exp), deduplicate(toBytes(spec.src)))
 		})
 	}
 }
 
-func TestSubstract(t *testing.T) {
-	specs := []struct {
+func TestSubtract(t *testing.T) {
+	specs := map[string]struct {
 		src, sub, exp []string
 	}{
-		{src: []string{}, sub: []string{}, exp: []string{}},
-		{src: []string{"a", "b", "c"}, sub: []string{"a"}, exp: []string{"b", "c"}},
-		{src: []string{"a", "b", "c"}, sub: []string{"b", "c"}, exp: []string{"a"}},
-		{src: []string{"a", "b", "c"}, sub: []string{"b", "d"}, exp: []string{"a", "c"}},
-		{src: nil, exp: nil},
-		{src: []string{"a"}, exp: []string{"a"}},
-		{sub: []string{"a"}, exp: nil},
+		"all empty":            {src: []string{}, sub: []string{}, exp: []string{}},
+		"single existing":      {src: []string{"a", "b", "c"}, sub: []string{"a"}, exp: []string{"b", "c"}},
+		"multiple existing":    {src: []string{"a", "b", "c"}, sub: []string{"b", "c"}, exp: []string{"a"}},
+		"non existing ignored": {src: []string{"a", "b", "c"}, sub: []string{"b", "d"}, exp: []string{"a", "c"}},
+		"nil as sub":           {src: []string{"a"}, sub: nil, exp: []string{"a"}},
+		"sub from nil":         {src: nil, sub: []string{"a"}, exp: nil},
+		"all nil":              {src: nil, sub: nil, exp: nil},
 	}
-	for i, spec := range specs {
-		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
+	for testName, spec := range specs {
+		t.Run(testName, func(t *testing.T) {
 			assert.Equal(t, toBytes(spec.exp), subtract(toBytes(spec.src), toBytes(spec.sub)))
 		})
 	}

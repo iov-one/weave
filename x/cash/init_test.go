@@ -2,15 +2,13 @@ package cash
 
 import (
 	"encoding/json"
-	"fmt"
 	"testing"
 
 	"github.com/iov-one/weave"
-	coin "github.com/iov-one/weave/coin"
+	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/store"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
+	"github.com/iov-one/weave/weavetest/assert"
 )
 
 func TestInitState(t *testing.T) {
@@ -20,7 +18,7 @@ func TestInitState(t *testing.T) {
 	accts := []GenesisAccount{{Address: addr, Set: coins}}
 
 	bz, err := json.Marshal(accts)
-	require.NoError(t, err)
+	assert.Nil(t, err)
 
 	// hardcode
 	bz2 := []byte(`[{"address":"0102030405060708090021222324252627282930",
@@ -39,7 +37,7 @@ func TestInitState(t *testing.T) {
 		},
 	}
 	rawConfig, err := json.Marshal(config)
-	require.NoError(t, err)
+	assert.Nil(t, err)
 
 	badConfig := map[string]interface{}{
 		"cash": Configuration{
@@ -47,50 +45,44 @@ func TestInitState(t *testing.T) {
 		},
 	}
 	rawInvalid, err := json.Marshal(badConfig)
-	require.NoError(t, err)
+	assert.Nil(t, err)
 
-	cases := [...]struct {
+	cases := map[string]struct {
 		opts    weave.Options
 		isError bool
 		acct    []byte
 		wallet  Set
 	}{
-		// no prob if no data
-		0: {weave.Options{"conf": rawConfig}, false, nil, Set{}},
-		// but need the config
-		1: {weave.Options{}, true, nil, Set{}},
-		// enforces valid config
-		2: {weave.Options{"conf": rawInvalid}, true, nil, Set{}},
-		// ignore random key
-		3: {weave.Options{"foo": []byte(`"bar"`), "conf": rawConfig}, false, nil, Set{}},
-		// unknown key
-		4: {weave.Options{"foo": []byte(`[{"address": "1234"}]`), "conf": rawConfig}, false, nil, Set{}},
-		// bad address
-		5: {weave.Options{"cash": []byte(`[{"coins": 123}]`), "conf": rawConfig}, true, nil, Set{}},
-		// get a real account
-		6: {weave.Options{"cash": bz, "conf": rawConfig}, false, addr, coins},
-		7: {weave.Options{"cash": bz2, "conf": rawConfig}, false, addr2, coins2},
+		"no prob if no data":       {weave.Options{"conf": rawConfig}, false, nil, Set{}},
+		"but need the config":      {weave.Options{}, true, nil, Set{}},
+		"enforces valid config":    {weave.Options{"conf": rawInvalid}, true, nil, Set{}},
+		"ignore random key":        {weave.Options{"foo": []byte(`"bar"`), "conf": rawConfig}, false, nil, Set{}},
+		"unknown key":              {weave.Options{"foo": []byte(`[{"address": "1234"}]`), "conf": rawConfig}, false, nil, Set{}},
+		"bad address":              {weave.Options{"cash": []byte(`[{"coins": 123}]`), "conf": rawConfig}, true, nil, Set{}},
+		"get a real account":       {weave.Options{"cash": bz, "conf": rawConfig}, false, addr, coins},
+		"get another real account": {weave.Options{"cash": bz2, "conf": rawConfig}, false, addr2, coins2},
 	}
 
 	init := Initializer{}
 
-	for i, tc := range cases {
-		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
+	for testName, tc := range cases {
+		t.Run(testName, func(t *testing.T) {
 			kv := store.MemStore()
 			migration.MustInitPkg(kv, "cash")
 			bucket := NewBucket()
 			err := init.FromGenesis(tc.opts, weave.GenesisParams{}, kv)
 			if tc.isError {
-				require.Error(t, err)
+				assert.Equal(t, true, err != nil)
 			} else {
-				require.NoError(t, err)
+				assert.Nil(t, err)
 			}
 
 			if tc.acct != nil {
 				acct, err := bucket.Get(kv, tc.acct)
-				require.NoError(t, err)
-				if assert.NotNil(t, acct) {
-					assert.EqualValues(t, tc.wallet.Coins, AsCoins(acct))
+				assert.Nil(t, err)
+				assert.Equal(t, true, acct != nil)
+				for i := range tc.wallet.Coins {
+					assert.Equal(t, tc.wallet.Coins[i], AsCoins(acct)[i])
 				}
 			}
 		})

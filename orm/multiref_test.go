@@ -2,26 +2,24 @@ package orm
 
 import (
 	"bytes"
-	"fmt"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
+	"github.com/iov-one/weave/weavetest/assert"
 )
 
 func TestAdd(t *testing.T) {
-	cases := []struct {
+	cases := map[string]struct {
 		items        []string
 		expectErrors int
 		expectSize   int
 	}{
-		{[]string{"add", "more", "text"}, 0, 3},
-		{[]string{"out", "of", "order"}, 0, 3},
-		{[]string{"dup", "dup", "abc", "fud", "fud", "dup"}, 3, 3},
+		"ordered":         {[]string{"add", "more", "text"}, 0, 3},
+		"unordered":       {[]string{"out", "of", "order"}, 0, 3},
+		"with duplicates": {[]string{"dup", "dup", "abc", "fud", "fud", "dup"}, 3, 3},
 	}
 
-	for i, tc := range cases {
-		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
+	for testName, tc := range cases {
+		t.Run(testName, func(t *testing.T) {
 			m := new(MultiRef)
 			errCount := 0
 			for _, i := range tc.items {
@@ -30,32 +28,33 @@ func TestAdd(t *testing.T) {
 					errCount++
 				} else {
 					_, found := m.findRef([]byte(i))
-					require.True(t, found)
+					assert.Equal(t, true, found)
 				}
 			}
 			assert.Equal(t, errCount, tc.expectErrors)
 			assert.Equal(t, len(m.Refs), tc.expectSize)
-			assert.True(t, inOrder(m.Refs))
+			assert.Equal(t, true, inOrder(m.Refs))
 		})
 	}
 }
 
 func TestRemove(t *testing.T) {
-	cases := []struct {
+	cases := map[string]struct {
 		init         []string
 		remove       []string
 		expectErrors int
 		expectSize   int
 	}{
-		{[]string{"add", "more", "text"}, []string{"more"}, 0, 2},
-		{[]string{"add", "more", "text"}, []string{"zzz"}, 1, 3},
-		{[]string{"delete", "first", "word"}, []string{"delete", "word", "word"}, 1, 1},
+		"single":       {[]string{"add", "more", "text"}, []string{"more"}, 0, 2},
+		"non existing": {[]string{"add", "more", "text"}, []string{"zzz"}, 1, 3},
+		"multiple":     {[]string{"delete", "first", "word"}, []string{"delete", "word"}, 0, 1},
+		"duplicates":   {[]string{"delete", "first", "word"}, []string{"word", "word"}, 1, 2},
 	}
 
-	for i, tc := range cases {
-		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
+	for testName, tc := range cases {
+		t.Run(testName, func(t *testing.T) {
 			m, err := multiRefFromStrings(tc.init...)
-			require.NoError(t, err)
+			assert.Nil(t, err)
 
 			errCount := 0
 			for _, r := range tc.remove {
@@ -64,12 +63,12 @@ func TestRemove(t *testing.T) {
 					errCount++
 				} else {
 					_, found := m.findRef([]byte(r))
-					require.False(t, found)
+					assert.Equal(t, false, found)
 				}
 			}
 			assert.Equal(t, errCount, tc.expectErrors)
 			assert.Equal(t, len(m.Refs), tc.expectSize)
-			assert.True(t, inOrder(m.Refs))
+			assert.Equal(t, true, inOrder(m.Refs))
 		})
 	}
 }

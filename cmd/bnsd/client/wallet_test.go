@@ -3,14 +3,12 @@ package client
 import (
 	"encoding/hex"
 	"encoding/json"
-	"fmt"
 	"testing"
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/coin"
+	"github.com/iov-one/weave/weavetest/assert"
 	"github.com/iov-one/weave/x/cash"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 var defaults = coin.Coin{
@@ -21,14 +19,14 @@ var defaults = coin.Coin{
 
 func toWeaveAddress(t *testing.T, addr string) weave.Address {
 	d, err := hex.DecodeString(addr)
-	assert.Nil(t, err, "failed to decode weave address from string")
+	assert.Nil(t, err)
 	return d
 }
 
 func wsFromFile(t *testing.T, wsFile string) WalletStore {
 	w := WalletStore{}
 	err := w.LoadFromFile(wsFile, defaults)
-	require.Nil(t, err, fmt.Sprintf("loading new wallet store from %s\n", wsFile))
+	assert.Nil(t, err)
 	t.Log(ToString(w))
 
 	return w
@@ -37,7 +35,7 @@ func wsFromFile(t *testing.T, wsFile string) WalletStore {
 func wsFromJSON(t *testing.T, ws json.RawMessage) WalletStore {
 	w := WalletStore{}
 	err := w.LoadFromJSON(ws, defaults)
-	require.Nil(t, err, fmt.Sprintf("loading new wallet store from JSON: %s\n", string(ws)))
+	assert.Nil(t, err)
 	t.Log(ToString(w))
 
 	return w
@@ -46,7 +44,7 @@ func wsFromJSON(t *testing.T, ws json.RawMessage) WalletStore {
 func wsFromGenesisFile(t *testing.T, wsFile string) WalletStore {
 	w := WalletStore{}
 	err := w.LoadFromGenesisFile(wsFile, defaults)
-	require.Nil(t, err, fmt.Sprintf("loading new wallet store from %s\n", wsFile))
+	assert.Nil(t, err)
 	t.Log(ToString(w))
 
 	return w
@@ -109,7 +107,7 @@ func TestMergeWalletStore(t *testing.T) {
 	}
 
 	actual := MergeWalletStore(w1, w2)
-	assert.EqualValues(t, expected, actual, ToString(expected), ToString(actual))
+	assert.Equal(t, expected, actual)
 }
 
 func TestMergeWithEmptyWallet(t *testing.T) {
@@ -146,7 +144,7 @@ func TestMergeWithEmptyWallet(t *testing.T) {
 	}
 
 	actual := MergeWalletStore(w1, w2)
-	assert.EqualValues(t, expected, actual, ToString(expected), ToString(actual))
+	assert.Equal(t, expected, actual)
 }
 
 func TestDefaultValues(t *testing.T) {
@@ -226,23 +224,22 @@ func TestDefaultValues(t *testing.T) {
 		},
 	}
 
-	assert.EqualValues(t, expected, actual, ToString(expected), ToString(actual))
+	assert.Equal(t, expected, actual)
 }
 
 func TestKeyGen(t *testing.T) {
-	useCases := []struct {
+	useCases := map[string]struct {
 		W string
 		N int
 	}{
-		{`{}`, 0},
-		{`{"cash":[{}]}`, 1},
-		//{`{"cash":[{},{}]}`, 2},
-		//{`{"cash":[{"name": "alice"},{"name": "dora"},{"name": "bert"}]}`, 3},
-		//{`{"cash":[{"name": "alice"},{"name": "dora"},{"name": "bert"},{"name": "charlie"}]}`, 4},
+		"empty":  {`{}`, 0},
+		"single": {`{"cash":[{}]}`, 1},
 	}
 
-	for _, useCase := range useCases {
-		w := wsFromJSON(t, []byte(useCase.W))
-		assert.Len(t, w.Keys, useCase.N)
+	for testName, useCase := range useCases {
+		t.Run(testName, func(t *testing.T) {
+			w := wsFromJSON(t, []byte(useCase.W))
+			assert.Equal(t, useCase.N, len(w.Keys))
+		})
 	}
 }

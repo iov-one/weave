@@ -8,9 +8,8 @@ import (
 	"github.com/iov-one/weave/cmd/bnsd/client"
 	"github.com/iov-one/weave/cmd/bnsd/scenarios/bnsdtest"
 	"github.com/iov-one/weave/coin"
+	"github.com/iov-one/weave/weavetest/assert"
 	"github.com/iov-one/weave/x/escrow"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestQueryEscrowExists(t *testing.T) {
@@ -19,10 +18,10 @@ func TestQueryEscrowExists(t *testing.T) {
 
 	walletResp, err := env.Client.GetWallet(env.EscrowContract.Address())
 	// then
-	require.NoError(t, err)
-	require.NotNil(t, walletResp)
-	require.Len(t, walletResp.Wallet.Coins, 1)
-	assert.True(t, walletResp.Wallet.Coins[0].Whole > 0)
+	assert.Nil(t, err)
+	assert.Equal(t, true, walletResp != nil)
+	assert.Equal(t, 1, len(walletResp.Wallet.Coins))
+	assert.Equal(t, true, walletResp.Wallet.Coins[0].Whole > 0)
 }
 
 func TestEscrowRelease(t *testing.T) {
@@ -31,7 +30,7 @@ func TestEscrowRelease(t *testing.T) {
 
 	// query distribution accounts start balance
 	walletResp, err := env.Client.GetWallet(env.DistrContractAddr)
-	require.NoError(t, err)
+	assert.Nil(t, err)
 	startBalance := coin.Coin{Ticker: "IOV"}
 	if walletResp != nil {
 		startBalance = *walletResp.Wallet.Coins[0]
@@ -57,19 +56,19 @@ func TestEscrowRelease(t *testing.T) {
 	releaseEscrowTX.Multisig = [][]byte{contractID}
 
 	seq, err := aNonce.Next()
-	require.NoError(t, err)
-	require.NoError(t, client.SignTx(releaseEscrowTX, env.Alice, env.ChainID, seq))
+	assert.Nil(t, err)
+	assert.Nil(t, client.SignTx(releaseEscrowTX, env.Alice, env.ChainID, seq))
 	resp := env.Client.BroadcastTx(releaseEscrowTX)
 
 	// then
-	require.NoError(t, resp.IsError())
+	assert.Nil(t, resp.IsError())
 
 	// and check it was added to the distr account
 	walletResp, err = env.Client.GetWallet(env.DistrContractAddr)
-	require.NoError(t, err)
-	require.NotNil(t, walletResp)
-	require.True(t, walletResp.Height >= resp.Response.Height)
-	require.True(t, len(walletResp.Wallet.Coins) == 1)
+	assert.Nil(t, err)
+	assert.Equal(t, true, walletResp != nil)
+	assert.Equal(t, true, walletResp.Height >= resp.Response.Height)
+	assert.Equal(t, true, len(walletResp.Wallet.Coins) == 1)
 	// new balance should be higher
-	assert.False(t, startBalance.IsGTE(*walletResp.Wallet.Coins[0]), "%s not > %s", *walletResp.Wallet.Coins[0], startBalance)
+	assert.Equal(t, false, startBalance.IsGTE(*walletResp.Wallet.Coins[0]))
 }

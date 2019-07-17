@@ -11,7 +11,7 @@ import (
 	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/store"
 	"github.com/iov-one/weave/weavetest"
-	"github.com/stretchr/testify/require"
+	"github.com/iov-one/weave/weavetest/assert"
 )
 
 func TestInitFromGenesis(t *testing.T) {
@@ -73,7 +73,7 @@ func TestInitFromGenesis(t *testing.T) {
 		}
 	}`
 	var opts weave.Options
-	require.NoError(t, json.Unmarshal([]byte(genesisSnippet), &opts))
+	assert.Nil(t, json.Unmarshal([]byte(genesisSnippet), &opts))
 
 	db := store.MemStore()
 	migration.MustInitPkg(db, packageName)

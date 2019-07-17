@@ -6,9 +6,10 @@ import (
 	"testing"
 
 	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/weavetest"
+	"github.com/iov-one/weave/weavetest/assert"
 	"github.com/iov-one/weave/x/utils"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestChain(t *testing.T) {
@@ -32,14 +33,14 @@ func TestChain(t *testing.T) {
 	ctx := weave.WithHeight(context.Background(), panicHeight-2)
 
 	_, err := stack.Check(ctx, nil, nil)
-	assert.NoError(t, err)
+	assert.Nil(t, err)
 	assert.Equal(t, 1, c1.CheckCallCount())
 	assert.Equal(t, 1, c2.CheckCallCount())
 	assert.Equal(t, 1, c3.CheckCallCount())
 	assert.Equal(t, 1, h.CheckCallCount())
 
 	_, err = stack.Deliver(ctx, nil, nil)
-	assert.NoError(t, err)
+	assert.Nil(t, err)
 	assert.Equal(t, 1, c1.DeliverCallCount())
 	assert.Equal(t, 1, c2.DeliverCallCount())
 	assert.Equal(t, 1, c3.DeliverCallCount())
@@ -49,14 +50,14 @@ func TestChain(t *testing.T) {
 	ctx = weave.WithHeight(context.Background(), panicHeight+2)
 
 	_, err = stack.Check(ctx, nil, nil)
-	assert.Error(t, err)
+	assert.IsErr(t, errors.ErrPanic, err)
 	assert.Equal(t, 2, c1.CheckCallCount())
 	assert.Equal(t, 2, c2.CheckCallCount())
 	assert.Equal(t, 1, c3.CheckCallCount())
 	assert.Equal(t, 1, h.CheckCallCount())
 
 	_, err = stack.Deliver(ctx, nil, nil)
-	assert.Error(t, err)
+	assert.IsErr(t, errors.ErrPanic, err)
 	assert.Equal(t, 2, c1.DeliverCallCount())
 	assert.Equal(t, 2, c2.DeliverCallCount())
 	assert.Equal(t, 1, c3.DeliverCallCount())
