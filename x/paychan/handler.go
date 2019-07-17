@@ -69,9 +69,11 @@ func (h *createPaymentChannelHandler) Deliver(ctx weave.Context, db weave.KVStor
 		return nil, err
 	}
 
-	nextID, err := peekNextID(db)
+	// Explicitely acquire the ID as we need it before saving to compute
+	// the entity address.
+	key, err := paymentChannelSeq.NextVal(db)
 	if err != nil {
-		return nil, errors.Wrap(err, "cannot peek next ID")
+		return nil, errors.Wrap(err, "cannot acquire sequence ID")
 	}
 
 	pc := &PaymentChannel{
@@ -83,10 +85,9 @@ func (h *createPaymentChannelHandler) Deliver(ctx weave.Context, db weave.KVStor
 		Timeout:      msg.Timeout,
 		Memo:         msg.Memo,
 		Transferred:  &coin.Coin{Ticker: msg.Total.Ticker},
-		Address:      paymentChannelAccount(orm.EncodeSequence(nextID)),
+		Address:      paymentChannelAccount(key),
 	}
-	key, err := h.bucket.Put(db, nil, pc)
-	if err != nil {
+	if _, err := h.bucket.Put(db, key, pc); err != nil {
 		return nil, errors.Wrap(err, "cannot create a payment channel")
 	}
 
