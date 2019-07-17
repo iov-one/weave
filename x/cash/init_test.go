@@ -2,7 +2,6 @@ package cash
 
 import (
 	"encoding/json"
-	"reflect"
 	"testing"
 
 	"github.com/iov-one/weave"
@@ -83,9 +82,7 @@ func TestInitState(t *testing.T) {
 				assert.Nil(t, err)
 				assert.Equal(t, true, acct != nil)
 				for i := range tc.wallet.Coins {
-					if exp, got := tc.wallet.Coins[i], AsCoins(acct)[i]; !reflect.DeepEqual(exp, got) {
-						t.Errorf("expected %v but got %v", exp, got)
-					}
+					assert.Equal(t, tc.wallet.Coins[i], AsCoins(acct)[i])
 				}
 			}
 		})
