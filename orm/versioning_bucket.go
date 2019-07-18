@@ -121,7 +121,7 @@ func (b VersioningBucket) Create(db weave.KVStore, data versionedData) (*Version
 // and returns the VersionedIDRef which won't be nil on success. This method is designed to be used for scenarios
 // where an ID is needed to generate data within the entity before saving it.
 func (b VersioningBucket) CreateWithID(db weave.KVStore, id []byte, data versionedData) (*VersionedIDRef, error) {
-	if id == nil || len(id) == 0 {
+	if len(id) == 0 {
 		return nil, errors.Wrap(errors.ErrEmpty, "id")
 	}
 	return b.create(db, id, data)
