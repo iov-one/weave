@@ -135,6 +135,9 @@ func (m ElectionRule) Validate() error {
 			return errors.Wrap(err, "quorum")
 		}
 	}
+	if err := m.Address.Validate(); err != nil {
+		return errors.Wrap(err, "address")
+	}
 	return nil
 }
 

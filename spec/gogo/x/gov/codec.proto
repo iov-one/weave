@@ -60,6 +60,8 @@ message ElectionRule {
   // The valid range for the threshold value is `0.5` to `1` (inclusive) which allows any value between half and all
   // of the eligible voters.
   Fraction quorum = 8;
+  // Address of this entity. Set during creation and does not change.
+  bytes address = 9 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
 }
 
 // The Fraction type represents a numerator and denominator to enable higher precision thresholds in

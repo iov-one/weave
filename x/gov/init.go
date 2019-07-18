@@ -72,12 +72,18 @@ func (*Initializer) FromGenesis(opts weave.Options, params weave.GenesisParams, 
 
 	// handle election rules
 	rulesBucket := NewElectionRulesBucket()
+	rulesBucketSeq := rulesBucket.Sequence(electionRuleSequence)
 	for i, r := range governance.Rules {
 		electorateID := encodeSequence(r.ElectorateID)
 		_, _, err := electBucket.GetLatestVersion(kv, electorateID)
 		if err != nil {
 			return errors.Wrapf(err, "failed to load electorate with id: %d", r.ElectorateID)
 		}
+		newRuleID, err := rulesBucketSeq.NextVal(kv)
+		if err != nil {
+			return errors.Wrap(err, "unable to generate ElectionRule sequence")
+		}
+
 		rule := ElectionRule{
 			Metadata:     &weave.Metadata{Schema: 1},
 			Admin:        r.Admin,
@@ -85,6 +91,7 @@ func (*Initializer) FromGenesis(opts weave.Options, params weave.GenesisParams, 
 			VotingPeriod: r.VotingPeriod,
 			Threshold:    Fraction{Numerator: r.Threshold.Numerator, Denominator: r.Threshold.Denominator},
 			ElectorateID: electorateID,
+			Address: weave.Condition(newRuleID).Address(),
 		}
 		if r.Quorum.Numerator != 0 || r.Quorum.Denominator != 0 {
 			rule.Quorum = &Fraction{Numerator: r.Quorum.Numerator, Denominator: r.Quorum.Denominator}
@@ -92,7 +99,8 @@ func (*Initializer) FromGenesis(opts weave.Options, params weave.GenesisParams, 
 		if err := rule.Validate(); err != nil {
 			return errors.Wrapf(err, "electionRule #%d is invalid", i)
 		}
-		if _, err := rulesBucket.Create(kv, &rule); err != nil {
+ 
+		if _, err := rulesBucket.CreateWithID(kv, newRuleID, &rule); err != nil {
 			return err
 		}
 	}
