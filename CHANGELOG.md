@@ -1,6 +1,8 @@
 # Changelog
 
 ## HEAD
+
+## 0.19.0
 - Remove `testify` dependency from our tests
 - A new extension `x/cron` is added. It allows to configure weave application
   to be able to schedule messages for future execution.
