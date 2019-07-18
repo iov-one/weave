@@ -171,6 +171,10 @@ func TestInitFromGenesis(t *testing.T) {
 		t.Errorf("expected %v but got %v", exp, got)
 	}
 
+	if exp, got := Condition(weavetest.SequenceID(1)).Address(), r.Address; !bytes.Equal(exp, got) {
+		t.Errorf("expected %v but got %v", exp, got)
+	}
+
 	// second election rule ok
 	_, rObj, err = NewElectionRulesBucket().GetLatestVersion(db, weavetest.SequenceID(2))
 	if err != nil {
@@ -200,6 +204,9 @@ func TestInitFromGenesis(t *testing.T) {
 		t.Errorf("expected %#v but got %#v", exp, got)
 	}
 	if exp, got := weavetest.SequenceID(2), r.ElectorateID; !bytes.Equal(exp, got) {
+		t.Errorf("expected %v but got %v", exp, got)
+	}
+	if exp, got := Condition(weavetest.SequenceID(2)).Address(), r.Address; !bytes.Equal(exp, got) {
 		t.Errorf("expected %v but got %v", exp, got)
 	}
 }
