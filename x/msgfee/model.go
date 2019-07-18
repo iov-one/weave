@@ -15,19 +15,17 @@ func init() {
 var _ orm.CloneableData = (*MsgFee)(nil)
 
 func (mf *MsgFee) Validate() error {
-	if err := mf.Metadata.Validate(); err != nil {
-		return errors.Wrap(err, "metadata")
-	}
+	var errs error
+	errs = errors.AppendField(errs, "Metadata", mf.Metadata.Validate())
 	if mf.MsgPath == "" {
-		return errors.Wrap(errors.ErrModel, "invalid message path")
+		errs = errors.Append(errs, errors.Field("MsgPath", errors.ErrModel, "required"))
 	}
 	if mf.Fee.IsZero() {
-		return errors.Wrap(errors.ErrModel, "invalid fee")
+		errs = errors.AppendField(errs, "Fee", errors.ErrModel)
+	} else {
+		errs = errors.AppendField(errs, "Fee", mf.Fee.Validate())
 	}
-	if err := mf.Fee.Validate(); err != nil {
-		return errors.Wrap(err, "invalid fee")
-	}
-	return nil
+	return errs
 }
 
 func (mf *MsgFee) Copy() orm.CloneableData {

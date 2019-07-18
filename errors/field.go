@@ -11,7 +11,11 @@ import (
 // Use this function to create an error instance describing a field/attribute
 // error.
 // This function might attach a stack trace information.
-func Field(fieldName string, err error, description string) error {
+//
+// Use Go naming for the field name. For example, UserName or MaxAge. When the
+// error is for a nested field, use dot notation to constrct the path. For
+// example, User.Age or User.Name.
+func Field(fieldName string, err error, description string, args ...interface{}) error {
 	if isNilErr(err) {
 		return nil
 	}
@@ -23,6 +27,10 @@ func Field(fieldName string, err error, description string) error {
 		err = errors.WithStack(err)
 	}
 
+	if len(args) > 0 {
+		description = fmt.Sprintf(description, args...)
+	}
+
 	return &fieldError{
 		parent: err,
 		field:  fieldName,
@@ -32,6 +40,10 @@ func Field(fieldName string, err error, description string) error {
 
 // AppendField is a shortcut function to club together error(s) with a given
 // field error.
+//
+// Use Go naming for the field name. For example, UserName or MaxAge. When the
+// error is for a nested field, use dot notation to constrct the path. For
+// example, User.Age or User.Name.
 func AppendField(errorsOrNil error, fieldName string, fieldErrOrNil error) error {
 	return Append(errorsOrNil, Field(fieldName, fieldErrOrNil, ""))
 }

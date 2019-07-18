@@ -27,19 +27,18 @@ func (CreateMsg) Path() string {
 	return "multisig/create"
 }
 
-// Validate enforces sigs and threshold boundaries
+// Validate enforces sigs and threshold boundaries.
 func (c *CreateMsg) Validate() error {
-	if err := c.Metadata.Validate(); err != nil {
-		return errors.Wrap(err, "metadata")
-	}
+	var errs error
+	errs = errors.AppendField(errs, "Metadata", c.Metadata.Validate())
 	switch n := len(c.Participants); {
 	case n == 0:
-		return errors.Wrap(errors.ErrMsg, "no participants")
+		errs = errors.Append(errs, errors.Field("Participants", errors.ErrMsg, "required"))
 	case n > maxParticipantsAllowed:
-		return errors.Wrap(errors.ErrMsg, "too many participants")
+		errs = errors.Append(errs, errors.Field("Participants", errors.ErrModel, "too many participants, max %d allowed", maxParticipantsAllowed))
 	}
-	return validateWeights(errors.ErrMsg,
-		c.Participants, c.ActivationThreshold, c.AdminThreshold)
+	errs = errors.Append(errs, validateWeights(errors.ErrMsg, c.Participants, c.ActivationThreshold, c.AdminThreshold))
+	return errs
 }
 
 var _ weave.Msg = (*UpdateMsg)(nil)
@@ -49,19 +48,18 @@ func (UpdateMsg) Path() string {
 	return "multisig/update"
 }
 
-// Validate enforces sigs and threshold boundaries
+// Validate enforces sigs and threshold boundaries.
 func (c *UpdateMsg) Validate() error {
-	if err := c.Metadata.Validate(); err != nil {
-		return errors.Wrap(err, "metadata")
-	}
+	var errs error
+	errs = errors.AppendField(errs, "Metadata", c.Metadata.Validate())
 	switch n := len(c.Participants); {
 	case n == 0:
-		return errors.Wrap(errors.ErrMsg, "no participants")
+		errs = errors.Append(errs, errors.Field("Participants", errors.ErrMsg, "required"))
 	case n > maxParticipantsAllowed:
-		return errors.Wrap(errors.ErrMsg, "too many participants")
+		errs = errors.Append(errs, errors.Field("Participants", errors.ErrModel, "too many participants, max %d allowed", maxParticipantsAllowed))
 	}
-	return validateWeights(errors.ErrMsg,
-		c.Participants, c.ActivationThreshold, c.AdminThreshold)
+	errs = errors.Append(errs, validateWeights(errors.ErrMsg, c.Participants, c.ActivationThreshold, c.AdminThreshold))
+	return errs
 }
 
 // validateWeights returns an error if given participants and thresholds

@@ -16,34 +16,23 @@ var _ orm.CloneableData = (*Escrow)(nil)
 
 // Validate ensures the escrow is valid
 func (e *Escrow) Validate() error {
-	if err := e.Metadata.Validate(); err != nil {
-		return errors.Wrap(err, "metadata")
-	}
-	if err := e.Source.Validate(); err != nil {
-		return errors.Wrap(err, "source")
-	}
-	if err := e.Arbiter.Validate(); err != nil {
-		return errors.Wrap(err, "arbiter")
-	}
-	if err := e.Destination.Validate(); err != nil {
-		return errors.Wrap(err, "destination")
-	}
+	var errs error
+	errs = errors.AppendField(errs, "Metadata", e.Metadata.Validate())
+	errs = errors.AppendField(errs, "Source", e.Source.Validate())
+	errs = errors.AppendField(errs, "Arbiter", e.Arbiter.Validate())
+	errs = errors.AppendField(errs, "Destination", e.Destination.Validate())
+	errs = errors.AppendField(errs, "Address", e.Address.Validate())
 	if e.Timeout == 0 {
 		// Zero timeout is a valid value that dates to 1970-01-01. We
 		// know that this value is in the past and makes no sense. Most
 		// likely value was not provided and a zero value remained.
-		return errors.Wrap(errors.ErrInput, "timeout in required")
+		errs = errors.Append(errs, errors.Field("Timeout", errors.ErrInput, "required"))
 	}
-	if err := e.Timeout.Validate(); err != nil {
-		return errors.Wrap(err, "invalid timeout value")
-	}
+	errs = errors.AppendField(errs, "Timeout", e.Timeout.Validate())
 	if len(e.Memo) > maxMemoSize {
-		return errors.Wrapf(errors.ErrInput, "memo %s", e.Memo)
+		errs = errors.Append(errs, errors.Field("Memo", errors.ErrInput, "cannot be longer than %d", maxMemoSize))
 	}
-	if err := e.Address.Validate(); err != nil {
-		return errors.Wrap(err, "address")
-	}
-	return validateAddresses(e.Source, e.Destination)
+	return errs
 }
 
 // Copy makes a new set with the same coins

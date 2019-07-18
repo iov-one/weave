@@ -21,19 +21,15 @@ const BucketName = "sigs"
 
 var _ orm.CloneableData = (*UserData)(nil)
 
-// Validate requires that all coins are in alphabetical
 func (u *UserData) Validate() error {
-	if err := u.Metadata.Validate(); err != nil {
-		return errors.Wrap(err, "metadata")
+	var errs error
+	errs = errors.AppendField(errs, "Metadata", u.Metadata.Validate())
+	if seq := u.Sequence; seq < 0 {
+		errs = errors.AppendField(errs, "Sequence", ErrInvalidSequence)
+	} else if seq > 0 && u.Pubkey == nil {
+		errs = errors.Append(errs, errors.Field("Sequence", ErrInvalidSequence, "needs Pubkey"))
 	}
-	seq := u.Sequence
-	if seq < 0 {
-		return errors.Wrapf(ErrInvalidSequence, "Seq(%d)", seq)
-	}
-	if seq > 0 && u.Pubkey == nil {
-		return errors.Wrapf(ErrInvalidSequence, "Seq(%d) needs Pubkey", seq)
-	}
-	return nil
+	return errs
 }
 
 // Copy makes a new UserData with the same coins
@@ -103,8 +99,6 @@ func NewUser(pubkey *crypto.PublicKey) orm.Object {
 	}
 	return orm.NewSimpleObj(key, value)
 }
-
-//------------------ High-Level ------------------------
 
 // Bucket extends orm.Bucket with GetOrCreate
 type Bucket struct {

@@ -15,16 +15,13 @@ func init() {
 var _ weave.Msg = (*CreateMsg)(nil)
 
 func (msg *CreateMsg) Validate() error {
-	if err := msg.Metadata.Validate(); err != nil {
-		return errors.Wrap(err, "invalid metadata")
-	}
-	if err := msg.Admin.Validate(); err != nil {
-		return errors.Wrap(err, "invalid admin address")
-	}
-	if err := validateDestinations(msg.Destinations, errors.ErrMsg); err != nil {
-		return err
-	}
-	return nil
+	var errs error
+
+	errs = errors.AppendField(errs, "Metadata", msg.Metadata.Validate())
+	errs = errors.AppendField(errs, "Admin", msg.Admin.Validate())
+	errs = errors.AppendField(errs, "Destinatinos", validateDestinations(msg.Destinations, errors.ErrMsg))
+
+	return errs
 }
 
 func (CreateMsg) Path() string {
@@ -34,13 +31,14 @@ func (CreateMsg) Path() string {
 var _ weave.Msg = (*DistributeMsg)(nil)
 
 func (msg *DistributeMsg) Validate() error {
-	if err := msg.Metadata.Validate(); err != nil {
-		return errors.Wrap(err, "invalid metadata")
-	}
+	var errs error
+
+	errs = errors.AppendField(errs, "Metadata", msg.Metadata.Validate())
 	if len(msg.RevenueID) == 0 {
-		return errors.Wrap(errors.ErrMsg, "revenue ID missing")
+		errs = errors.Append(errs, errors.Field("RevenueID", errors.ErrMsg, "revenue ID is required"))
 	}
-	return nil
+
+	return errs
 }
 
 func (DistributeMsg) Path() string {
@@ -50,13 +48,12 @@ func (DistributeMsg) Path() string {
 var _ weave.Msg = (*ResetMsg)(nil)
 
 func (msg *ResetMsg) Validate() error {
-	if err := msg.Metadata.Validate(); err != nil {
-		return errors.Wrap(err, "invalid metadata")
-	}
-	if err := validateDestinations(msg.Destinations, errors.ErrMsg); err != nil {
-		return err
-	}
-	return nil
+	var errs error
+
+	errs = errors.AppendField(errs, "Metadata", msg.Metadata.Validate())
+	errs = errors.AppendField(errs, "Destinatinos", validateDestinations(msg.Destinations, errors.ErrMsg))
+
+	return errs
 }
 
 func (ResetMsg) Path() string {

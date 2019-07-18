@@ -28,13 +28,12 @@ func NewTokenInfo(ticker, name string) orm.Object {
 }
 
 func (t *TokenInfo) Validate() error {
-	if err := t.Metadata.Validate(); err != nil {
-		return errors.Wrap(err, "metadata")
-	}
+	var errs error
+	errs = errors.AppendField(errs, "Metadata", t.Metadata.Validate())
 	if !isTokenName(t.Name) {
-		return errors.Wrapf(errors.ErrState, "invalid token name %v", t.Name)
+		errs = errors.AppendField(errs, "Name", errors.ErrState)
 	}
-	return nil
+	return errs
 }
 
 func (t *TokenInfo) Copy() orm.CloneableData {
