@@ -107,18 +107,32 @@ func (b VersioningBucket) GetVersion(db weave.ReadOnlyKVStore, ref VersionedIDRe
 	return b.Get(db, key)
 }
 
-// Create stores a the given data. It assigns an ID and initial version number to the object instance and returns the
+// Create stores the given data. It assigns an ID and initial version number to the object instance and returns the
 // VersionedIDRef which won't be nil on success.
 func (b VersioningBucket) Create(db weave.KVStore, data versionedData) (*VersionedIDRef, error) {
-	if data.GetVersion() != 0 {
-		return nil, errors.Wrap(errors.ErrInput, "version is set on create")
-	}
-	data.SetVersion(1)
 	newID, err := b.idGen.NextVal(db, data)
 	if err != nil {
 		return nil, err
 	}
-	idRef := VersionedIDRef{ID: newID, Version: data.GetVersion()}
+	return b.create(db, newID, data)
+}
+
+// CreateWithID stores the given data. It accepts an ID and assigns an initial version number to the object instance
+// and returns the VersionedIDRef which won't be nil on success. This method is designed to be used for scenarios
+// where an ID is needed to generate data within the entity before saving it.
+func (b VersioningBucket) CreateWithID(db weave.KVStore, id []byte, data versionedData) (*VersionedIDRef, error) {
+	if len(id) == 0 {
+		return nil, errors.Wrap(errors.ErrEmpty, "id")
+	}
+	return b.create(db, id, data)
+}
+
+func (b VersioningBucket) create(db weave.KVStore, id []byte, data versionedData) (*VersionedIDRef, error) {
+	if data.GetVersion() != 0 {
+		return nil, errors.Wrap(errors.ErrInput, "version is set on create")
+	}
+	data.SetVersion(1)
+	idRef := VersionedIDRef{ID: id, Version: data.GetVersion()}
 	return b.safeUpdate(db, idRef, data)
 }
 

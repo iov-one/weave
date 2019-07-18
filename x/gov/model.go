@@ -23,6 +23,12 @@ func init() {
 	migration.MustRegister(1, &Vote{}, migration.NoModification)
 }
 
+// Condition calculates the address of an election rule given
+// the key
+func Condition(key []byte) weave.Condition {
+	return weave.NewCondition("gov", "rule", key)
+}
+
 func (m *Electorate) SetVersion(v uint32) {
 	m.Version = v
 }
@@ -134,6 +140,9 @@ func (m ElectionRule) Validate() error {
 		if err := m.Quorum.Validate(); err != nil {
 			return errors.Wrap(err, "quorum")
 		}
+	}
+	if err := m.Address.Validate(); err != nil {
+		return errors.Wrap(err, "address")
 	}
 	return nil
 }

@@ -95,6 +95,8 @@ func createElectorate(t testing.TB, db store.KVStore, electors []weave.Address) 
 func withElectionRule(t *testing.T, db store.KVStore) *ElectionRule {
 	t.Helper()
 	rulesBucket := NewElectionRulesBucket()
+	id, err := rulesBucket.NextID(db)
+	assert.Nil(t, err)
 	rule := &ElectionRule{
 		Metadata:     &weave.Metadata{Schema: 1},
 		Title:        "barr",
@@ -102,9 +104,10 @@ func withElectionRule(t *testing.T, db store.KVStore) *ElectionRule {
 		VotingPeriod: weave.AsUnixDuration(time.Hour),
 		Threshold:    Fraction{1, 2},
 		ElectorateID: weavetest.SequenceID(1),
+		Address:      Condition(id).Address(),
 	}
 
-	if _, err := rulesBucket.Create(db, rule); err != nil {
+	if _, err := rulesBucket.CreateWithID(db, id, rule); err != nil {
 		t.Fatalf("unexpected error: %+v", err)
 	}
 	return rule
