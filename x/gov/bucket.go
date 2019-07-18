@@ -56,6 +56,11 @@ func NewElectionRulesBucket() *ElectionRulesBucket {
 	}
 }
 
+func (b *ElectionRulesBucket) NextID(db weave.KVStore) ([]byte, error) {
+	rulesBucketSeq := b.Sequence(electionRuleSequence)
+	return rulesBucketSeq.NextVal(db)
+}
+
 func asElectionRule(obj orm.Object) (*ElectionRule, error) {
 	rev, ok := obj.Value().(*ElectionRule)
 	if !ok {

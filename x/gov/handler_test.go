@@ -1492,6 +1492,7 @@ func TestUpdateElectionRules(t *testing.T) {
 				Title:        "barr",
 				VotingPeriod: weave.AsUnixDuration(12 * time.Hour),
 				Threshold:    Fraction{Numerator: 2, Denominator: 3},
+				Address:      Condition(electionRulesID).Address(),
 			},
 		},
 		"Update with max voting time": {
@@ -1510,6 +1511,7 @@ func TestUpdateElectionRules(t *testing.T) {
 				Title:        "barr",
 				VotingPeriod: weave.AsUnixDuration(24 * 7 * 4 * time.Hour),
 				Threshold:    Fraction{Numerator: 2, Denominator: 3},
+				Address:      Condition(electionRulesID).Address(),
 			},
 		},
 		"Update by non owner should fail": {
@@ -1541,6 +1543,7 @@ func TestUpdateElectionRules(t *testing.T) {
 				VotingPeriod: weave.AsUnixDuration(24 * 7 * 4 * time.Hour),
 				Threshold:    Fraction{Numerator: 2, Denominator: 3},
 				Quorum:       &Fraction{Numerator: 6, Denominator: 7},
+				Address:      Condition(electionRulesID).Address(),
 			},
 		},
 		"Update can unset quorum rule": {
@@ -1561,6 +1564,7 @@ func TestUpdateElectionRules(t *testing.T) {
 				VotingPeriod: weave.AsUnixDuration(24 * 7 * 4 * time.Hour),
 				Threshold:    Fraction{Numerator: 2, Denominator: 3},
 				Quorum:       nil,
+				Address:      Condition(electionRulesID).Address(),
 			},
 		},
 		"Threshold must be valid": {
