@@ -1,7 +1,7 @@
 package gov
 
 import (
-	fmt "fmt"
+	"fmt"
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"

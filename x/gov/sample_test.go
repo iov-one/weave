@@ -4,11 +4,12 @@
 package gov
 
 import (
-	fmt "fmt"
+	"fmt"
+	"io"
+	"math"
+
 	_ "github.com/gogo/protobuf/gogoproto"
 	proto "github.com/gogo/protobuf/proto"
-	io "io"
-	math "math"
 )
 
 // Reference imports to suppress errors if they are not otherwise used.

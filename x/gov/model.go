@@ -1,7 +1,7 @@
 package gov
 
 import (
-	fmt "fmt"
+	"fmt"
 	"math/big"
 	"regexp"
 	"time"
