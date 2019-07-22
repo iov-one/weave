@@ -14,7 +14,9 @@ import (
 //
 // Use Go naming for the field name. For example, UserName or MaxAge. When the
 // error is for a nested field, use dot notation to constrct the path. For
-// example, User.Age or User.Name.
+// example, User.Age or User.Name. When the path includes an iterable, use the
+// element index starting with 0 as the name, for example Tags.0 or
+// Profiles.2.ID
 func Field(fieldName string, err error, description string, args ...interface{}) error {
 	if isNilErr(err) {
 		return nil
@@ -43,7 +45,9 @@ func Field(fieldName string, err error, description string, args ...interface{})
 //
 // Use Go naming for the field name. For example, UserName or MaxAge. When the
 // error is for a nested field, use dot notation to constrct the path. For
-// example, User.Age or User.Name.
+// example, User.Age or User.Name. When the path includes an iterable, use the
+// element index starting with 0 as the name, for example Tags.0 or
+// Profiles.2.ID
 func AppendField(errorsOrNil error, fieldName string, fieldErrOrNil error) error {
 	return Append(errorsOrNil, Field(fieldName, fieldErrOrNil, ""))
 }
