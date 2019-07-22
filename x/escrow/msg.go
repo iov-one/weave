@@ -46,31 +46,22 @@ func (CreateMsg) Path() string {
 
 // Validate makes sure that this is sensible
 func (m *CreateMsg) Validate() error {
-	if err := m.Metadata.Validate(); err != nil {
-		return errors.Wrap(err, "metadata")
-	}
-	if err := m.Arbiter.Validate(); err != nil {
-		return errors.Wrap(err, "arbiter")
-	}
-	if err := m.Destination.Validate(); err != nil {
-		return errors.Wrap(err, "recipient")
-	}
+	var errs error
+	errs = errors.AppendField(errs, "Metadata", m.Metadata.Validate())
+	errs = errors.AppendField(errs, "Arbiter", m.Arbiter.Validate())
+	errs = errors.AppendField(errs, "Destination", m.Destination.Validate())
 	if m.Timeout == 0 {
 		// Zero timeout is a valid value that dates to 1970-01-01. We
 		// know that this value is in the past and makes no sense. Most
 		// likely value was not provided and a zero value remained.
-		return errors.Wrap(errors.ErrInput, "timeout is required")
+		errs = errors.Append(errs, errors.Field("Timeout", errors.ErrInput, "required"))
 	}
-	if err := m.Timeout.Validate(); err != nil {
-		return errors.Wrap(err, "invalid timeout value")
-	}
+	errs = errors.AppendField(errs, "Timeout", m.Timeout.Validate())
 	if len(m.Memo) > maxMemoSize {
-		return errors.Wrapf(errors.ErrInput, "memo %s", m.Memo)
+		errs = errors.Append(errs, errors.Field("Memo", errors.ErrInput, "cannot be longer than %d", maxMemoSize))
 	}
-	if err := validateAmount(m.Amount); err != nil {
-		return err
-	}
-	return nil
+	errs = errors.AppendField(errs, "Amount", validateAmount(m.Amount))
+	return errs
 }
 
 var _ weave.Msg = (*ReleaseMsg)(nil)
@@ -81,17 +72,13 @@ func (ReleaseMsg) Path() string {
 
 // Validate makes sure that this is sensible
 func (m *ReleaseMsg) Validate() error {
-	if err := m.Metadata.Validate(); err != nil {
-		return errors.Wrap(err, "metadata")
+	var errs error
+	errs = errors.AppendField(errs, "Metadata", m.Metadata.Validate())
+	errs = errors.AppendField(errs, "EscrowID", validateEscrowID(m.EscrowId))
+	if m.Amount != nil {
+		errs = errors.AppendField(errs, "Amount", validateAmount(m.Amount))
 	}
-	err := validateEscrowID(m.EscrowId)
-	if err != nil {
-		return err
-	}
-	if m.Amount == nil {
-		return nil
-	}
-	return validateAmount(m.Amount)
+	return errs
 }
 
 var _ weave.Msg = (*ReturnMsg)(nil)
@@ -102,10 +89,10 @@ func (ReturnMsg) Path() string {
 
 // Validate always returns true for no data
 func (m *ReturnMsg) Validate() error {
-	if err := m.Metadata.Validate(); err != nil {
-		return errors.Wrap(err, "metadata")
-	}
-	return validateEscrowID(m.EscrowId)
+	var errs error
+	errs = errors.AppendField(errs, "Metadata", m.Metadata.Validate())
+	errs = errors.AppendField(errs, "EscrowID", validateEscrowID(m.EscrowId))
+	return errs
 }
 
 var _ weave.Msg = (*UpdatePartiesMsg)(nil)
@@ -117,46 +104,45 @@ func (UpdatePartiesMsg) Path() string {
 // Validate makes sure any included items are valid permissions
 // and there is at least one change
 func (m *UpdatePartiesMsg) Validate() error {
-	if err := m.Metadata.Validate(); err != nil {
-		return errors.Wrap(err, "metadata")
-	}
-	err := validateEscrowID(m.EscrowId)
-	if err != nil {
-		return err
-	}
+
+	var errs error
+	errs = errors.AppendField(errs, "Metadata", m.Metadata.Validate())
+	errs = errors.AppendField(errs, "EscrowID", validateEscrowID(m.EscrowId))
+
+	// We allow for nil values because if the message does not have a field
+	// set, we do not overwrite the model with a new value. At least one
+	// field must be updated though.
 	if m.Arbiter == nil && m.Source == nil && m.Destination == nil {
-		return errors.Wrap(errors.ErrEmpty, "all conditions")
+		errs = errors.Append(errs, errors.Wrap(errors.ErrEmpty, "all conditions"))
 	}
-
-	return validateAddresses(m.Source, m.Destination, m.Arbiter)
-}
-
-// validateAddresses returns an error if any address doesn't validate
-// nil is considered valid here
-func validateAddresses(addrs ...weave.Address) error {
-	for _, a := range addrs {
-		if a != nil {
-			if err := a.Validate(); err != nil {
-				return err
-			}
-		}
+	if m.Source != nil {
+		errs = errors.AppendField(errs, "Source", m.Source.Validate())
 	}
-	return nil
+	if m.Destination != nil {
+		errs = errors.AppendField(errs, "Destination", m.Destination.Validate())
+	}
+	if m.Arbiter != nil {
+		errs = errors.AppendField(errs, "Arbiter", m.Arbiter.Validate())
+	}
+	return errs
 }
 
 func validateAmount(amount coin.Coins) error {
 	// we enforce this is positive
 	positive := amount.IsPositive()
 	if !positive {
-		return errors.Wrapf(errors.ErrAmount, "non-positive SendMsg: %#v", &amount)
+		return errors.Wrapf(errors.ErrAmount, "non-positive: %#v", &amount)
 	}
 	// then make sure these are properly formatted coins
 	return amount.Validate()
 }
 
 func validateEscrowID(id []byte) error {
-	if len(id) != 8 {
-		return errors.Wrapf(errors.ErrInput, "escrow id: %X", id)
+	switch n := len(id); {
+	case n > 8:
+		return errors.Wrap(errors.ErrInput, "too long")
+	case n < 8:
+		return errors.Wrap(errors.ErrInput, "too short")
 	}
 	return nil
 }

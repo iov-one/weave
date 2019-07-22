@@ -2,6 +2,7 @@ package cron
 
 import (
 	weave "github.com/iov-one/weave"
+	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/orm"
 )
@@ -13,7 +14,10 @@ func init() {
 var _ orm.CloneableData = (*TaskResult)(nil)
 
 func (t *TaskResult) Validate() error {
-	return nil
+	var errs error
+	errs = errors.AppendField(errs, "Metadata", t.Metadata.Validate())
+	errs = errors.AppendField(errs, "ExecTime", t.ExecTime.Validate())
+	return errs
 }
 
 func (t *TaskResult) Copy() orm.CloneableData {

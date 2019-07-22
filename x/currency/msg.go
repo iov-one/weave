@@ -14,15 +14,14 @@ func (CreateMsg) Path() string {
 	return "currency/create"
 }
 
-func (t *CreateMsg) Validate() error {
-	if err := t.Metadata.Validate(); err != nil {
-		return errors.Wrap(err, "metadata")
+func (msg *CreateMsg) Validate() error {
+	var errs error
+	errs = errors.AppendField(errs, "Metadata", msg.Metadata.Validate())
+	if !coin.IsCC(msg.Ticker) {
+		errs = errors.AppendField(errs, "Ticker", errors.ErrCurrency)
 	}
-	if !coin.IsCC(t.Ticker) {
-		return errors.Wrapf(errors.ErrCurrency, "invalid ticker: %s", t.Ticker)
+	if !isTokenName(msg.Name) {
+		errs = errors.AppendField(errs, "Name", errors.ErrState)
 	}
-	if !isTokenName(t.Name) {
-		return errors.Wrapf(errors.ErrState, "invalid token name %v", t.Name)
-	}
-	return nil
+	return errs
 }

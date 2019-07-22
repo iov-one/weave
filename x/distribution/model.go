@@ -16,19 +16,14 @@ func init() {
 var _ orm.CloneableData = (*Revenue)(nil)
 
 func (rev *Revenue) Validate() error {
-	if err := rev.Metadata.Validate(); err != nil {
-		return errors.Wrap(err, "invalid metadata")
-	}
-	if err := rev.Admin.Validate(); err != nil {
-		return errors.Wrap(err, "invalid admin signature")
-	}
-	if err := validateDestinations(rev.Destinations, errors.ErrModel); err != nil {
-		return err
-	}
-	if err := rev.Address.Validate(); err != nil {
-		return errors.Wrap(err, "address")
-	}
-	return nil
+	var errs error
+
+	errs = errors.AppendField(errs, "Metadata", rev.Metadata.Validate())
+	errs = errors.AppendField(errs, "Admin", rev.Admin.Validate())
+	errs = errors.AppendField(errs, "Destinatinos", validateDestinations(rev.Destinations, errors.ErrModel))
+	errs = errors.AppendField(errs, "Address", rev.Address.Validate())
+
+	return errs
 }
 
 // validateDestinations returns an error if given list of destinations is not
@@ -37,11 +32,13 @@ func (rev *Revenue) Validate() error {
 // Model validation returns different class of error than message validation,
 // that is why require base error class to be given.
 func validateDestinations(rs []*Destination, baseErr *errors.Error) error {
+	var errs error
+
 	switch n := len(rs); {
 	case n == 0:
-		return errors.Wrap(baseErr, "no destinations")
+		errs = errors.Append(errs, errors.Wrap(baseErr, "no destinations"))
 	case n > maxDestinations:
-		return errors.Wrap(baseErr, "too many destinations")
+		errs = errors.Append(errs, errors.Wrap(baseErr, "too many destinations"))
 	}
 
 	// Destination address must not repeat. Repeating addresses would not
@@ -52,23 +49,23 @@ func validateDestinations(rs []*Destination, baseErr *errors.Error) error {
 	for i, r := range rs {
 		switch {
 		case r.Weight <= 0:
-			return errors.Wrapf(baseErr, "destination %d invalid weight", i)
+			errs = errors.Append(errs, errors.Wrapf(baseErr, "destination %d invalid weight", i))
 		case r.Weight > maxWeight:
-			return errors.Wrapf(baseErr, "weight must not be greater than %d", maxWeight)
+			errs = errors.Append(errs, errors.Wrapf(baseErr, "weight must not be greater than %d", maxWeight))
 		}
 
 		if err := r.Address.Validate(); err != nil {
-			return errors.Wrapf(err, "destination %d address", i)
+			errs = errors.Append(errs, errors.Wrapf(err, "destination %d address", i))
 		}
 		addr := r.Address.String()
 		if _, ok := addresses[addr]; ok {
-			return errors.Wrapf(baseErr, "address %q is not unique", addr)
+			errs = errors.Append(errs, errors.Wrapf(baseErr, "address %q is not unique", addr))
 		}
 		addresses[addr] = struct{}{}
 
 	}
 
-	return nil
+	return errs
 }
 
 const (

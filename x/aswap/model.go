@@ -14,35 +14,25 @@ var _ orm.CloneableData = (*Swap)(nil)
 
 // Validate ensures the Swap is valid
 func (s *Swap) Validate() error {
-	if err := s.Metadata.Validate(); err != nil {
-		return errors.Wrap(err, "metadata")
-	}
-	if err := s.Source.Validate(); err != nil {
-		return errors.Wrap(err, "source")
-	}
-	if err := s.Destination.Validate(); err != nil {
-		return errors.Wrap(err, "destination")
-	}
+	var errs error
+	errs = errors.AppendField(errs, "Metadata", s.Metadata.Validate())
+	errs = errors.AppendField(errs, "Source", s.Source.Validate())
+	errs = errors.AppendField(errs, "Destination", s.Destination.Validate())
 	if len(s.PreimageHash) != preimageHashSize {
-		return errors.Wrapf(errors.ErrInput,
-			"preimage hash has to be exactly %d bytes", preimageHashSize)
+		errs = errors.Append(errs, errors.Field("PreimageHash", errors.ErrInput, "preimage hash has to be exactly %d bytes", preimageHashSize))
 	}
 	if s.Timeout == 0 {
 		// Zero timeout is a valid value that dates to 1970-01-01. We
 		// know that this value is in the past and makes no sense. Most
 		// likely value was not provided and a zero value remained.
-		return errors.Wrap(errors.ErrInput, "timeout is required")
+		errs = errors.Append(errs, errors.Field("Timeout", errors.ErrInput, "timeout is required"))
 	}
-	if err := s.Timeout.Validate(); err != nil {
-		return errors.Wrap(err, "invalid timeout value")
-	}
+	errs = errors.AppendField(errs, "Timeout", s.Timeout.Validate())
 	if len(s.Memo) > maxMemoSize {
-		return errors.Wrapf(errors.ErrInput, "memo %s", s.Memo)
+		errs = errors.Append(errs, errors.Field("Memo", errors.ErrInput, "memo must be not longer than %d characters", maxMemoSize))
 	}
-	if err := s.Address.Validate(); err != nil {
-		return errors.Wrap(err, "address")
-	}
-	return nil
+	errs = errors.AppendField(errs, "Address", s.Address.Validate())
+	return errs
 }
 
 // Copy makes a new swap

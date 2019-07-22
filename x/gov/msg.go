@@ -1,6 +1,8 @@
 package gov
 
 import (
+	fmt "fmt"
+
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/migration"
@@ -22,36 +24,33 @@ func (CreateProposalMsg) Path() string {
 }
 
 func (m CreateProposalMsg) Validate() error {
-	if err := m.GetMetadata().Validate(); err != nil {
-		return errors.Wrap(err, "invalid metadata")
-	}
+	var errs error
+	errs = errors.AppendField(errs, "Metadata", m.Metadata.Validate())
 	if len(m.RawOption) == 0 {
-		return errors.Wrap(errors.ErrEmpty, "missing raw options")
+		errs = errors.AppendField(errs, "RawOption", errors.ErrEmpty)
 	}
-	if len(m.GetElectionRuleID()) == 0 {
-		return errors.Wrap(errors.ErrInput, "empty election rules id")
+	if len(m.ElectionRuleID) == 0 {
+		errs = errors.AppendField(errs, "ElectionRuleID", errors.ErrInput)
 	}
-	if m.GetStartTime() == 0 {
-		return errors.Wrap(errors.ErrInput, "empty start time")
+	if m.StartTime == 0 {
+		errs = errors.Append(errs, errors.Field("StartTime", errors.ErrInput, "must not be zero"))
+	} else {
+		errs = errors.AppendField(errs, "StartTime", m.StartTime.Validate())
 	}
-	if !validTitle(m.GetTitle()) {
-		return errors.Wrapf(errors.ErrInput, "title: %q", m.GetTitle())
+	if !validTitle(m.Title) {
+		errs = errors.AppendField(errs, "Title", errors.ErrInput)
 	}
-	if len(m.GetDescription()) < minDescriptionLength {
-		return errors.Wrapf(errors.ErrInput, "description length lower than minimum of: %d", minDescriptionLength)
+	if len(m.Description) < minDescriptionLength {
+		errs = errors.Append(errs,
+			errors.Field("Description", errors.ErrInput, "description length lower than minimum of %d", minDescriptionLength))
+	} else if len(m.Description) > maxDescriptionLength {
+		errs = errors.Append(errs,
+			errors.Field("Description", errors.ErrInput, "description length exceeds the limit of %d", maxDescriptionLength))
 	}
-	if len(m.GetDescription()) > maxDescriptionLength {
-		return errors.Wrapf(errors.ErrInput, "description length exceeds: %d", maxDescriptionLength)
+	if m.Author != nil {
+		errs = errors.AppendField(errs, "Author", m.Author.Validate())
 	}
-	if err := m.GetStartTime().Validate(); err != nil {
-		return errors.Wrap(err, "start time")
-	}
-	if m.GetAuthor() != nil {
-		if err := m.GetAuthor().Validate(); err != nil {
-			return errors.Wrap(err, "author")
-		}
-	}
-	return nil
+	return errs
 }
 
 var _ weave.Msg = (*DeleteProposalMsg)(nil)
@@ -61,14 +60,12 @@ func (DeleteProposalMsg) Path() string {
 }
 
 func (m DeleteProposalMsg) Validate() error {
-	if err := m.Metadata.Validate(); err != nil {
-		return errors.Wrap(err, "invalid metadata")
-	}
-
+	var errs error
+	errs = errors.AppendField(errs, "Metadata", m.Metadata.Validate())
 	if len(m.ProposalID) != 8 {
-		return errors.Wrap(errors.ErrInput, "proposal ids must be 8 bytes (sequence)")
+		errs = errors.Append(errs, errors.Field("ProposalID", errors.ErrInput, "proposal ID must be 8 bytes (sequence)"))
 	}
-	return nil
+	return errs
 }
 
 var _ weave.Msg = (*VoteMsg)(nil)
@@ -78,19 +75,18 @@ func (VoteMsg) Path() string {
 }
 
 func (m VoteMsg) Validate() error {
-	if err := m.Metadata.Validate(); err != nil {
-		return errors.Wrap(err, "invalid metadata")
-	}
+	var errs error
+	errs = errors.AppendField(errs, "Metadata", m.Metadata.Validate())
 	if m.Selected != VoteOption_Yes && m.Selected != VoteOption_No && m.Selected != VoteOption_Abstain {
-		return errors.Wrap(errors.ErrInput, "invalid option")
+		errs = errors.AppendField(errs, "Selected", errors.ErrInput)
 	}
 	if len(m.ProposalID) == 0 {
-		return errors.Wrap(errors.ErrInput, "empty proposal id")
+		errs = errors.Append(errs, errors.Field("ProposalID", errors.ErrInput, "proposal ID is required"))
 	}
-	if err := m.Voter.Validate(); m.Voter != nil && err != nil {
-		return errors.Wrap(err, "invalid voter")
+	if m.Voter != nil {
+		errs = errors.AppendField(errs, "Voter", m.Voter.Validate())
 	}
-	return nil
+	return errs
 }
 
 var _ weave.Msg = (*TallyMsg)(nil)
@@ -100,14 +96,12 @@ func (TallyMsg) Path() string {
 }
 
 func (m TallyMsg) Validate() error {
-	if err := m.Metadata.Validate(); err != nil {
-		return errors.Wrap(err, "invalid metadata")
-	}
-
+	var errs error
+	errs = errors.AppendField(errs, "Metadata", m.Metadata.Validate())
 	if len(m.ProposalID) == 0 {
-		return errors.Wrap(errors.ErrInput, "empty proposal id")
+		errs = errors.Append(errs, errors.Field("ProposalID", errors.ErrInput, "proposal ID is required"))
 	}
-	return nil
+	return errs
 }
 
 var _ weave.Msg = (*UpdateElectionRuleMsg)(nil)
@@ -118,27 +112,19 @@ func (UpdateElectionRuleMsg) Path() string {
 
 func (m UpdateElectionRuleMsg) Validate() error {
 	var errs error
-
-	if err := m.Metadata.Validate(); err != nil {
-		errs = errors.Append(errs, errors.Wrap(err, "invalid metadata"))
-	}
+	errs = errors.AppendField(errs, "Metadata", m.Metadata.Validate())
 	if len(m.ElectionRuleID) == 0 {
-		errs = errors.Append(errs, errors.Wrap(errors.ErrEmpty, "id"))
+		errs = errors.Append(errs, errors.Field("ElectionRuleID", errors.ErrEmpty, "election rule ID is required"))
 	}
 	if m.VotingPeriod.Duration() < minVotingPeriod {
-		errs = errors.Append(errs, errors.Wrapf(errors.ErrInput, "min %s", minVotingPeriod))
-	}
-	if m.VotingPeriod.Duration() > maxVotingPeriod {
-		errs = errors.Append(errs, errors.Wrapf(errors.ErrInput, "max %s", maxVotingPeriod))
+		errs = errors.Append(errs, errors.Field("VotingPeriod", errors.ErrInput, "value must not be smaller than %s", minVotingPeriod))
+	} else if m.VotingPeriod.Duration() > maxVotingPeriod {
+		errs = errors.Append(errs, errors.Field("VotingPeriod", errors.ErrInput, "value must not be greater than %s", maxVotingPeriod))
 	}
 	if m.Quorum != nil {
-		if err := m.Quorum.Validate(); err != nil {
-			errs = errors.Append(errs, errors.Wrap(err, "quorum"))
-		}
+		errs = errors.AppendField(errs, "Quorum", m.Quorum.Validate())
 	}
-	if err := m.Threshold.Validate(); err != nil {
-		errs = errors.Append(errs, errors.Wrap(err, "threshold"))
-	}
+	errs = errors.AppendField(errs, "Threshold", m.Threshold.Validate())
 	return errs
 }
 
@@ -149,13 +135,12 @@ func (CreateTextResolutionMsg) Path() string {
 }
 
 func (m CreateTextResolutionMsg) Validate() error {
-	if err := m.Metadata.Validate(); err != nil {
-		return errors.Wrap(err, "invalid metadata")
-	}
+	var errs error
+	errs = errors.AppendField(errs, "Metadata", m.Metadata.Validate())
 	if len(m.Resolution) == 0 {
-		return errors.Wrap(errors.ErrEmpty, "resolution")
+		errs = errors.AppendField(errs, "Resolution", errors.ErrEmpty)
 	}
-	return nil
+	return errs
 }
 
 var _ weave.Msg = (*UpdateElectorateMsg)(nil)
@@ -165,12 +150,19 @@ func (UpdateElectorateMsg) Path() string {
 }
 
 func (m UpdateElectorateMsg) Validate() error {
-	if err := m.Metadata.Validate(); err != nil {
-		return errors.Wrap(err, "invalid metadata")
-	}
-
+	var errs error
+	errs = errors.AppendField(errs, "Metadata", m.Metadata.Validate())
 	if len(m.ElectorateID) == 0 {
-		return errors.Wrap(errors.ErrEmpty, "electorate id")
+		errs = errors.AppendField(errs, "ElectorateID", errors.ErrEmpty)
 	}
-	return ElectorsDiff(m.DiffElectors).Validate()
+	if len(m.DiffElectors) == 0 {
+		errs = errors.AppendField(errs, "DiffElectors", errors.ErrEmpty)
+	}
+	for i, v := range m.DiffElectors {
+		if v.Weight > maxWeight {
+			errs = errors.Append(errs, errors.Field(fmt.Sprintf("DiffElectors.%d.Weight", i), errors.ErrInput, "must not be greater than max weight"))
+		}
+		errs = errors.AppendField(errs, fmt.Sprintf("DiffElectors.%d.Address", i), v.Address.Validate())
+	}
+	return errs
 }

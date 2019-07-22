@@ -18,16 +18,17 @@ const (
 var _ weave.Msg = (*BumpSequenceMsg)(nil)
 
 func (msg *BumpSequenceMsg) Validate() error {
-	if err := msg.Metadata.Validate(); err != nil {
-		return errors.Wrap(err, "metadata")
-	}
+	var errs error
+	errs = errors.AppendField(errs, "Metadata", msg.Metadata.Validate())
 	if msg.Increment < minSequenceIncrement {
-		return errors.Wrapf(errors.ErrMsg, "increment must be at least %d", minSequenceIncrement)
+		errs = errors.Append(errs,
+			errors.Field("Increment", errors.ErrMsg, "increment must be at least %d", minSequenceIncrement))
 	}
 	if msg.Increment > maxSequenceIncrement {
-		return errors.Wrapf(errors.ErrMsg, "increment must not be greater than %d", maxSequenceIncrement)
+		return errors.Append(errs,
+			errors.Field("Increment", errors.ErrMsg, "increment must not be greater than %d", maxSequenceIncrement))
 	}
-	return nil
+	return errs
 }
 
 func (BumpSequenceMsg) Path() string {

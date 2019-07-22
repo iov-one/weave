@@ -1,6 +1,8 @@
 package validators
 
 import (
+	"fmt"
+
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/migration"
@@ -24,14 +26,11 @@ type WeaveAccounts struct {
 }
 
 func (wa WeaveAccounts) Validate() error {
-	for _, v := range wa.Addresses {
-		err := v.Validate()
-		if err != nil {
-			return err
-		}
+	var errs error
+	for i, v := range wa.Addresses {
+		errs = errors.AppendField(errs, fmt.Sprintf("Addresses.%d", i), v.Validate())
 	}
-
-	return nil
+	return errs
 }
 
 func AsWeaveAccounts(a *Accounts) WeaveAccounts {
@@ -68,10 +67,10 @@ func (m *Accounts) Copy() orm.CloneableData {
 }
 
 func (m *Accounts) Validate() error {
-	if err := m.Metadata.Validate(); err != nil {
-		return errors.Wrap(err, "metadata")
-	}
-	return AsWeaveAccounts(m).Validate()
+	var errs error
+	errs = errors.AppendField(errs, "Metadata", m.Metadata.Validate())
+	errs = errors.Append(errs, AsWeaveAccounts(m).Validate())
+	return errs
 }
 
 type AccountBucket struct {

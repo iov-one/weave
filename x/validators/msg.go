@@ -1,6 +1,8 @@
 package validators
 
 import (
+	fmt "fmt"
+
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/migration"
@@ -19,18 +21,15 @@ func (*ApplyDiffMsg) Path() string {
 }
 
 func (m *ApplyDiffMsg) Validate() error {
-	if err := m.Metadata.Validate(); err != nil {
-		return errors.Wrap(err, "metadata")
-	}
+	var errs error
+	errs = errors.AppendField(errs, "Metadata", m.Metadata.Validate())
 	if len(m.ValidatorUpdates) == 0 {
-		return errors.Wrap(errors.ErrEmpty, "validator set")
+		errs = errors.AppendField(errs, "ValidatorUpdates", errors.ErrEmpty)
 	}
-	for _, v := range m.ValidatorUpdates {
-		if err := v.Validate(); err != nil {
-			return err
-		}
+	for i, v := range m.ValidatorUpdates {
+		errs = errors.AppendField(errs, fmt.Sprintf("ValidatorUpdates.%d", i), v.Validate())
 	}
-	return nil
+	return errs
 }
 
 func (m *ApplyDiffMsg) AsABCI() []abci.ValidatorUpdate {

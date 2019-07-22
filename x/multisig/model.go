@@ -1,7 +1,6 @@
 package multisig
 
 import (
-	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/orm"
@@ -36,29 +35,25 @@ func (w Weight) Validate() error {
 var _ orm.CloneableData = (*Contract)(nil)
 
 func (c *Contract) Validate() error {
-	if err := c.Metadata.Validate(); err != nil {
-		return errors.Wrap(err, "metadata")
-	}
+	var errs error
+	errs = errors.AppendField(errs, "Metadata", c.Metadata.Validate())
 	switch n := len(c.Participants); {
 	case n == 0:
-		return errors.Wrap(errors.ErrModel, "no participants")
+		errs = errors.Append(errs, errors.Field("Participants", errors.ErrModel, "no participants"))
 	case n > maxParticipantsAllowed:
-		return errors.Wrap(errors.ErrModel, "too many participants")
+		errs = errors.Append(errs, errors.Field("Participants", errors.ErrModel, "too many participants, max %d allowed", maxParticipantsAllowed))
 	}
-	if err := c.Address.Validate(); err != nil {
-		return errors.Wrap(err, "address")
-	}
-	return validateWeights(errors.ErrModel,
-		c.Participants, c.ActivationThreshold, c.AdminThreshold)
+	errs = errors.AppendField(errs, "Address", c.Address.Validate())
+	errs = errors.Append(errs, validateWeights(errors.ErrModel, c.Participants, c.ActivationThreshold, c.AdminThreshold))
+
+	return errs
 }
 
 func (c *Contract) Copy() orm.CloneableData {
 	ps := make([]*Participant, 0, len(c.Participants))
 	for _, p := range c.Participants {
-		sig := make(weave.Address, len(p.Signature))
-		copy(sig, p.Signature)
 		ps = append(ps, &Participant{
-			Signature: sig,
+			Signature: p.Signature.Clone(),
 			Weight:    p.Weight,
 		})
 	}

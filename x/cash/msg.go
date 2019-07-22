@@ -28,22 +28,23 @@ func (SendMsg) Path() string {
 
 // Validate makes sure that this is sensible.
 func (s *SendMsg) Validate() error {
-	var err error
+	var errs error
+
 	if coin.IsEmpty(s.Amount) || !s.Amount.IsPositive() {
-		err = errors.Wrapf(errors.ErrAmount, "non-positive SendMsg: %#v", s.Amount)
+		errs = errors.Append(errs, errors.Field("Amount", errors.ErrAmount, "must be positive"))
 	} else {
-		err = errors.Append(err, errors.Wrap(s.Amount.Validate(), "amount"))
+		errs = errors.AppendField(errs, "Amount", s.Amount.Validate())
 	}
-	err = errors.Append(err, errors.Wrap(s.Source.Validate(), "source"))
-	err = errors.Append(err, errors.Wrap(s.Destination.Validate(), "destination"))
+	errs = errors.AppendField(errs, "Source", s.Source.Validate())
+	errs = errors.AppendField(errs, "Destination", s.Destination.Validate())
 	if len(s.Memo) > maxMemoSize {
-		err = errors.Append(err, errors.Wrap(errors.ErrState, "memo too long"))
+		errs = errors.Append(errs, errors.Field("Memo", errors.ErrState, "too long"))
 	}
 	if len(s.Ref) > maxRefSize {
-		err = errors.Append(err, errors.Wrap(errors.ErrState, "ref too long"))
+		errs = errors.Append(errs, errors.Field("Ref", errors.ErrState, "too long"))
 	}
 
-	return err
+	return errs
 }
 
 // DefaultSource makes sure there is a payer.
@@ -84,45 +85,46 @@ func (f *FeeInfo) DefaultPayer(addr []byte) *FeeInfo {
 // Validate makes sure that this is sensible.
 // Note that fee must be present, even if 0
 func (f *FeeInfo) Validate() error {
-	var err error
+	var errs error
+
 	if f == nil {
-		err = errors.Wrap(errors.ErrInput, "nil fee info")
+		errs = errors.Append(errs, errors.Wrap(errors.ErrInput, "nil fee info"))
 	}
 	fee := f.GetFees()
 	if fee == nil {
-		err = errors.Append(err, errors.Wrap(errors.ErrAmount, "fees nil"))
+		errs = errors.Append(errs, errors.Wrap(errors.ErrAmount, "fees nil"))
 	} else {
-		err = errors.Append(err, errors.Wrap(fee.Validate(), "fee"))
+		errs = errors.AppendField(errs, "Fees", fee.Validate())
 
 		if !fee.IsNonNegative() {
-			err = errors.Append(err, errors.Wrap(errors.ErrAmount, "negative fees"))
+			errs = errors.Append(errs, errors.Field("Fees", errors.ErrAmount, "negative fees"))
 		}
 	}
+	errs = errors.AppendField(errs, "Payer", f.Payer.Validate())
 
-	return errors.Append(err, errors.Wrap(weave.Address(f.Payer).Validate(), "payer"))
+	return errs
 }
 
 var _ weave.Msg = (*UpdateConfigurationMsg)(nil)
 
-// Validate will skip any zero fields and validate the set ones
-// TODO: we should make it easier to reuse code with Configuration
+// Validate will skip any zero fields and validate the set ones.
 func (m *UpdateConfigurationMsg) Validate() error {
-	var err error
+	var errs error
 	c := m.Patch
 	if len(c.Owner) != 0 {
-		err = errors.Wrap(c.Owner.Validate(), "owner")
+		errs = errors.AppendField(errs, "Owner", c.Owner.Validate())
 	}
 	if len(c.CollectorAddress) != 0 {
-		err = errors.Append(err, errors.Wrap(c.CollectorAddress.Validate(), "collector"))
+		errs = errors.AppendField(errs, "CollectorAddress", c.CollectorAddress.Validate())
 	}
 	if !c.MinimalFee.IsZero() {
-		err = errors.Append(err, errors.Wrap(c.MinimalFee.Validate(), "minimal fee"))
+		errs = errors.AppendField(errs, "MinimalFee", c.MinimalFee.Validate())
 
 		if !c.MinimalFee.IsNonNegative() {
-			err = errors.Append(err, errors.Wrap(errors.ErrState, "minimal fee cannot be negative"))
+			errs = errors.Append(errs, errors.Field("MinimalFee", errors.ErrState, "cannot be negative"))
 		}
 	}
-	return err
+	return errs
 }
 
 func (*UpdateConfigurationMsg) Path() string {
