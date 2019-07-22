@@ -3,7 +3,7 @@ package coin
 import (
 	"bytes"
 	"encoding/json"
-	fmt "fmt"
+	"fmt"
 	"io"
 	"regexp"
 	"strconv"
