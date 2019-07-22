@@ -58,5 +58,7 @@ func (Initializer) FromGenesis(opts weave.Options, params weave.GenesisParams, k
 		}
 	}
 
+	MustInitPkg(kv, "cron")
+
 	return nil
 }
