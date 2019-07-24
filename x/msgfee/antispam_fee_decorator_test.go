@@ -1,11 +1,13 @@
 package msgfee
 
 import (
+	"context"
 	"testing"
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/store"
 	"github.com/iov-one/weave/weavetest"
 )
 
@@ -118,6 +120,66 @@ func TestNewAntispamFeeDecorator(t *testing.T) {
 				t.Fatalf("deliver returned an unexpected error: %v", err)
 			}
 
+		})
+	}
+}
+
+func BenchmarkAntispamFeeDecorator(b *testing.B) {
+	cases := map[string]struct {
+		Next    weave.Handler
+		Fee     coin.Coin
+		WantFee coin.Coin
+		WantErr *errors.Error
+	}{
+		"zero fee with nil decorator": {
+			Next: &weavetest.Handler{
+				CheckResult: weave.CheckResult{RequiredFee: coin.NewCoin(0, 0, "")},
+			},
+			WantErr: nil,
+			WantFee: coin.NewCoin(0, 0, ""),
+		},
+		"zero fee with when a fee is required": {
+			Fee: coin.NewCoin(2, 4, "IOV"),
+			Next: &weavetest.Handler{
+				CheckResult: weave.CheckResult{RequiredFee: coin.NewCoin(0, 0, "")},
+			},
+			WantErr: errors.ErrEmpty,
+		},
+		"sufficient non zero fee": {
+			Fee: coin.NewCoin(2, 4, "IOV"),
+			Next: &weavetest.Handler{
+				CheckResult: weave.CheckResult{RequiredFee: coin.NewCoin(5, 6, "IOV")},
+			},
+			WantFee: coin.NewCoin(5, 6, "IOV"),
+			WantErr: nil,
+		},
+		"coin type differs": {
+			Fee: coin.NewCoin(2, 4, "IOV"),
+			Next: &weavetest.Handler{
+				CheckResult: weave.CheckResult{RequiredFee: coin.NewCoin(1, 1, "DOGE")},
+			},
+			WantErr: errors.ErrCurrency,
+		},
+	}
+
+	for benchName, bc := range cases {
+		db := store.MemStore()
+		ctx := context.Background()
+
+		decorator := NewAntispamFeeDecorator(bc.Fee)
+
+		b.Run(benchName, func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				res, err := decorator.Check(ctx, db, &weavetest.Tx{}, bc.Next)
+				if !bc.WantErr.Is(err) {
+					b.Fatalf("unexpected error: %s", err)
+				}
+				if err == nil && !res.RequiredFee.Equals(bc.WantFee) {
+					b.Fatalf("invalid decorator fee: %s", res.RequiredFee)
+				}
+			}
+
+			// Deliver decoraror is pass through.
 		})
 	}
 }

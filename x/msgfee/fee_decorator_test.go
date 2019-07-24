@@ -1,6 +1,7 @@
 package msgfee
 
 import (
+	"context"
 	"testing"
 
 	"github.com/iov-one/weave"
@@ -136,6 +137,71 @@ func TestFeeDecorator(t *testing.T) {
 			if tc.WantDeliverErr == nil && !tc.WantDeliverFee.Equals(dres.RequiredFee) {
 				t.Fatalf("unexpected deliver fee: %v", dres.RequiredFee)
 			}
+		})
+	}
+}
+
+func BenchmarkFeeDecorator(b *testing.B) {
+	fee := MsgFee{
+		Metadata: &weave.Metadata{Schema: 1},
+		MsgPath:  "bench/fee",
+		Fee:      coin.NewCoin(2, 3, "IOV"),
+	}
+
+	cases := map[string]struct {
+		Tx      weave.Tx
+		WantFee coin.Coin
+	}{
+		"with a fee": {
+			Tx:      &weavetest.Tx{Msg: &weavetest.Msg{RoutePath: fee.MsgPath}},
+			WantFee: fee.Fee,
+		},
+		"with no fee": {
+			Tx:      &weavetest.Tx{Msg: &weavetest.Msg{RoutePath: "random/name"}},
+			WantFee: coin.NewCoin(0, 0, ""),
+		},
+	}
+
+	for benchName, bc := range cases {
+		b.Run(benchName, func(b *testing.B) {
+			db := store.MemStore()
+			migration.MustInitPkg(db, "msgfee")
+			bucket := NewMsgFeeBucket()
+			obj, err := bucket.Create(db, &fee)
+			if err != nil {
+				b.Fatalf("cannot create object: %s", err)
+			}
+			if err := bucket.Save(db, obj); err != nil {
+				b.Fatalf("cannot save object: %s", err)
+			}
+			ctx := context.Background()
+			next := &weavetest.Handler{}
+
+			decorator := NewFeeDecorator()
+
+			b.Run("check", func(b *testing.B) {
+				for i := 0; i < b.N; i++ {
+					res, err := decorator.Check(ctx, db, bc.Tx, next)
+					if err != nil {
+						b.Fatal(err)
+					}
+					if !res.RequiredFee.Equals(bc.WantFee) {
+						b.Fatalf("invalid decorator fee: %s", res.RequiredFee)
+					}
+				}
+			})
+
+			b.Run("deliver", func(b *testing.B) {
+				for i := 0; i < b.N; i++ {
+					res, err := decorator.Deliver(ctx, db, bc.Tx, next)
+					if err != nil {
+						b.Fatal(err)
+					}
+					if !res.RequiredFee.Equals(bc.WantFee) {
+						b.Fatalf("invalid decorator fee: %s", res.RequiredFee)
+					}
+				}
+			})
 		})
 	}
 }
