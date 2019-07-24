@@ -20,14 +20,14 @@ func TestUsername(t *testing.T) {
 			WantDomain: "iov",
 		},
 		"shortest valid name and domain": {
-			Raw:        strings.Repeat("x", 4) + "*" + strings.Repeat("x", 3),
+			Raw:        strings.Repeat("x", 4) + "*iov",
 			WantName:   strings.Repeat("x", 4),
-			WantDomain: strings.Repeat("x", 3),
+			WantDomain: "iov",
 		},
 		"longest valid name and domain": {
-			Raw:        strings.Repeat("x", 64) + "*" + strings.Repeat("x", 16),
+			Raw:        strings.Repeat("x", 64) + "*iov",
 			WantName:   strings.Repeat("x", 64),
-			WantDomain: strings.Repeat("x", 16),
+			WantDomain: "iov",
 		},
 		"too long name": {
 			Raw:        strings.Repeat("x", 65) + "*" + strings.Repeat("x", 6),
@@ -60,10 +60,10 @@ func TestUsername(t *testing.T) {
 			WantDomain: "",
 		},
 		"missing name": {
-			Raw:        "*foo",
+			Raw:        "*iov",
 			WantErr:    errors.ErrInput,
 			WantName:   "",
-			WantDomain: "foo",
+			WantDomain: "iov",
 		},
 		"missing separator": {
 			Raw:        "xyz",
@@ -76,6 +76,12 @@ func TestUsername(t *testing.T) {
 			WantErr:    errors.ErrInput,
 			WantName:   "😈",
 			WantDomain: "😀",
+		},
+		"invalid domain name": {
+			Raw:        "extreme*expert",
+			WantErr:    errors.ErrInput,
+			WantName:   "extreme",
+			WantDomain: "expert",
 		},
 	}
 

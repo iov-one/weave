@@ -52,6 +52,15 @@ func (u Username) Validate() error {
 	if !validUsername(string(u)) {
 		return errors.Wrap(errors.ErrInput, "invalid username")
 	}
+
+	// Currently only IOV namespace is supported. This is a public
+	// namespace that anyone can register in an IOV owns. This limitation
+	// exists because for the MVP release we do not provide a way to
+	// register and manage namespaces.
+	if u.Domain() != "iov" {
+		return errors.Field("Domain", errors.ErrInput, "invalid namespace")
+	}
+
 	return nil
 }
 
