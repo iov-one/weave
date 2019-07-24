@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"reflect"
 	"testing"
 	"time"
@@ -149,6 +150,7 @@ func TestTicker(t *testing.T) {
 		Msg             weavetest.Msg
 		WantExec        bool
 		WantExecSuccess bool
+		WantInfo        string
 	}
 
 	cases := map[string]struct {
@@ -188,6 +190,7 @@ func TestTicker(t *testing.T) {
 					Msg:             weavetest.Msg{RoutePath: "test/1"},
 					WantExec:        true,
 					WantExecSuccess: false,
+					WantInfo:        fmt.Sprintf("%q condition (%q) not found: unauthorized", conditionB, conditionB.Address()),
 				},
 			},
 			Handler: cronHandler{
@@ -238,6 +241,7 @@ func TestTicker(t *testing.T) {
 					Msg:             weavetest.Msg{RoutePath: "test/1"},
 					WantExec:        true,
 					WantExecSuccess: false,
+					WantInfo:        errors.ErrState.Error(),
 				},
 			},
 			WantTickerErr: nil,
@@ -268,6 +272,7 @@ func TestTicker(t *testing.T) {
 					Msg:             weavetest.Msg{RoutePath: "due/failure"},
 					WantExec:        true,
 					WantExecSuccess: false,
+					WantInfo:        errors.ErrHuman.Error(),
 				},
 				{
 					RunAt:    now.Add(time.Hour),
@@ -281,6 +286,24 @@ func TestTicker(t *testing.T) {
 				errs: map[string]error{
 					"due/success": nil,
 					"due/failure": errors.ErrHuman,
+				},
+			},
+		},
+		"result log is rewritten on success": {
+			Tasks: []*task{
+				{
+					RunAt:           now.Add(-time.Hour),
+					Auth:            nil,
+					Msg:             weavetest.Msg{RoutePath: "due/success"},
+					WantExec:        true,
+					WantExecSuccess: true,
+					WantInfo:        "a delivery log",
+				},
+			},
+			WantTickerErr: nil,
+			Handler: cronHandler{
+				res: weave.DeliverResult{
+					Log: "a delivery log",
 				},
 			},
 		},
@@ -336,6 +359,10 @@ func TestTicker(t *testing.T) {
 				}
 				if tr.Successful != task.WantExecSuccess {
 					t.Fatalf("exected task #%d (%q) to be success=%v: %q", i, task.Msg.Path(), task.WantExecSuccess, tr.Info)
+				}
+
+				if tr.Info != task.WantInfo {
+					t.Fatalf("want %q info, got %q", task.WantInfo, tr.Info)
 				}
 			}
 		})
