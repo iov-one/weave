@@ -15,3 +15,6 @@ Describe alternative solutions or workarounds you've considered.
 
 **Additional context**
 Add any other context or screenshots about the feature request here.
+
+**Acceptance criteria**
+Clear set of statements and conditions that must pass. 
