@@ -17,8 +17,13 @@ func (t *TaskResult) Validate() error {
 	var errs error
 	errs = errors.AppendField(errs, "Metadata", t.Metadata.Validate())
 	errs = errors.AppendField(errs, "ExecTime", t.ExecTime.Validate())
+	if len(t.Info) > maxInfoSize {
+		errs = errors.Append(errs, errors.Field("Info", errors.ErrInput, "maximum allowed length is %d", maxInfoSize))
+	}
 	return errs
 }
+
+const maxInfoSize = 10240
 
 func (t *TaskResult) Copy() orm.CloneableData {
 	return &TaskResult{
