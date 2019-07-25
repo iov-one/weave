@@ -13,6 +13,7 @@ import (
 	"strings"
 
 	"github.com/iov-one/weave"
+	bnsd "github.com/iov-one/weave/cmd/bnsd/app"
 	"github.com/iov-one/weave/cmd/bnsd/client"
 	"github.com/iov-one/weave/cmd/bnsd/x/username"
 	"github.com/iov-one/weave/orm"
@@ -104,17 +105,17 @@ var queries = map[string]struct {
 	encID func(string) ([]byte, error)
 }{
 	"/proposals": {
-		newObj: func() model { return &gov.Proposal{} },
+		newObj: func() model { return &extendedProposal{} },
 		decKey: sequenceKey,
 		encID:  numericID,
 	},
 	"/proposals/author": {
-		newObj: func() model { return &gov.Proposal{} },
+		newObj: func() model { return &extendedProposal{} },
 		decKey: sequenceKey,
 		encID:  addressID,
 	},
 	"/proposals/electorate": {
-		newObj: func() model { return &gov.Proposal{} },
+		newObj: func() model { return &extendedProposal{} },
 		decKey: sequenceKey,
 		encID:  numericID,
 	},
@@ -239,4 +240,27 @@ func sequenceKey(raw []byte) (string, error) {
 
 func rawKey(raw []byte) (string, error) {
 	return hex.EncodeToString(raw), nil
+}
+
+// extendedProposal is the gov.Proposal with an additional field to extract
+// RawOption. When serialized using JSON, this structure produce the same
+// result as the gov.Proposal with an addition of an attribute representing
+// deserialized (human readable) form of the message that is proposed.
+type extendedProposal struct {
+	gov.Proposal
+	// Option contains a deserialized value of the RawOption
+	Option interface{} `json:"executed_when_accepted"`
+}
+
+// Unmarshal implements protobuf unmarshaler interface.
+func (p *extendedProposal) Unmarshal(raw []byte) error {
+	if err := p.Proposal.Unmarshal(raw); err != nil {
+		return fmt.Errorf("cannot unmarshal proposal: %s", err)
+	}
+	var opts bnsd.ProposalOptions
+	if err := opts.Unmarshal(p.Proposal.RawOption); err != nil {
+		return fmt.Errorf("cannot unmarshal proposal option: %s", err)
+	}
+	p.Option = opts.GetOption()
+	return nil
 }

@@ -3,6 +3,7 @@
 ## HEAD
 
 - update all extensions to use multi-error for gathering validation errors.
+- add `query` command to the `bnscli` tool
 
 
 ## 0.19.0
