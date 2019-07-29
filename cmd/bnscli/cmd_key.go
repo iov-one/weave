@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"flag"
 	"fmt"
 	"io"
@@ -8,6 +9,9 @@ import (
 	"os"
 
 	"github.com/iov-one/weave/crypto"
+	"github.com/iov-one/weave/crypto/bech32"
+	"github.com/stellar/go/exp/crypto/derivation"
+	"github.com/tyler-smith/go-bip39"
 	"golang.org/x/crypto/ed25519"
 )
 
@@ -15,7 +19,7 @@ func cmdKeygen(input io.Reader, output io.Writer, args []string) error {
 	fl := flag.NewFlagSet("", flag.ExitOnError)
 	fl.Usage = func() {
 		fmt.Fprint(flag.CommandLine.Output(), `
-Generate a new private key.
+Read mnemonic and generate a new private key.
 
 When successful a new file with binary content containing private key is
 created. This command fails if the private key file already exists.
@@ -25,6 +29,7 @@ created. This command fails if the private key file already exists.
 	var (
 		keyPathFl = fl.String("key", env("BNSCLI_PRIV_KEY", os.Getenv("HOME")+"/.bnsd.priv.key"),
 			"Path to the private key file that transaction should be signed with. You can use BNSCLI_PRIV_KEY environment variable to set it.")
+		pathFl = fl.String("path", "m/44'/234'/0'", "Derivation path as described in BIP-44.")
 	)
 	fl.Parse(args)
 
@@ -35,9 +40,17 @@ created. This command fails if the private key file already exists.
 		return fmt.Errorf("private key file %q already exists, delete this file and try again", *keyPathFl)
 	}
 
-	_, priv, err := ed25519.GenerateKey(nil)
+	mnemonic, err := readInput(input)
 	if err != nil {
-		return fmt.Errorf("cannot generate ed25519 key: %s", err)
+		return fmt.Errorf("cannot read mnemonic: %s", err)
+	}
+
+	// We do not allow for passphrase.
+	seed := bip39.NewSeed(string(mnemonic), "")
+
+	key, err := derivation.DeriveForPath(*pathFl, seed)
+	if err != nil {
+		return fmt.Errorf("cannot deriviate master key from seed: %s", err)
 	}
 
 	fd, err := os.OpenFile(*keyPathFl, os.O_CREATE|os.O_WRONLY, 0400)
@@ -45,6 +58,11 @@ created. This command fails if the private key file already exists.
 		return fmt.Errorf("cannot create public key file: %s", err)
 	}
 	defer fd.Close()
+
+	_, priv, err := ed25519.GenerateKey(bytes.NewReader(key.Key))
+	if err != nil {
+		return fmt.Errorf("cannot generate ed25519 private key: %s", err)
+	}
 
 	if _, err := fd.Write(priv); err != nil {
 		return fmt.Errorf("cannot write private key: %s", err)
@@ -83,6 +101,38 @@ Print out a hex-address associated with your private key.
 			Ed25519: raw,
 		},
 	}
-	_, err = fmt.Fprintln(output, key.PublicKey().Address())
+
+	bech, err := bech32.Encode("iov", key.PublicKey().GetEd25519())
+	if err != nil {
+		return fmt.Errorf("cannot generate bech32 address format: %s", err)
+	}
+
+	fmt.Fprintf(output, "bech32\t%s\n", bech)
+	fmt.Fprintf(output, "hex\t%s\n", key.PublicKey().Address())
+	return nil
+}
+
+func cmdMnemonic(input io.Reader, output io.Writer, args []string) error {
+	fl := flag.NewFlagSet("", flag.ExitOnError)
+	fl.Usage = func() {
+		fmt.Fprint(flag.CommandLine.Output(), `
+Generate and print out a mnemonic.
+`)
+	}
+	var (
+		bitSizeFl = fl.Uint("size", 256, "Bit size of the entropy. Must be between 128 and 256.")
+	)
+	fl.Parse(args)
+
+	entropy, err := bip39.NewEntropy(int(*bitSizeFl))
+	if err != nil {
+		return fmt.Errorf("cannot create entropy instance: %s", err)
+	}
+	mnemonic, err := bip39.NewMnemonic(entropy)
+	if err != nil {
+		return fmt.Errorf("cannot create mnemonic instance: %s", err)
+	}
+
+	_, err = fmt.Fprintln(output, mnemonic)
 	return err
 }
