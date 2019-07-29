@@ -4,6 +4,11 @@
 
 - update all extensions to use multi-error for gathering validation errors.
 
+Breaking changes
+
+- `bnsd/x/username`: `iov` is the only valid and accepted domain name for a
+  username. This limitation is forced for the MVP release as we do not have
+  namespace management implemented.
 
 ## 0.19.0
 
