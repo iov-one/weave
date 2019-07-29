@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"errors"
 	"flag"
 	"fmt"
 	"io"
@@ -43,6 +44,10 @@ created. This command fails if the private key file already exists.
 	mnemonic, err := readInput(input)
 	if err != nil {
 		return fmt.Errorf("cannot read mnemonic: %s", err)
+	}
+
+	if !bip39.IsMnemonicValid(string(mnemonic)) {
+		return errors.New("invalid mnemonic")
 	}
 
 	// We do not allow for passphrase.
