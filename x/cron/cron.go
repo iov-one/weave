@@ -247,6 +247,7 @@ func (t *Ticker) tick(ctx context.Context, db store.CacheableKVStore) ([]common.
 				} else {
 					taskTags = r.Tags
 					taskDiff = r.Diff
+					res.Info = r.Log
 				}
 			}
 
