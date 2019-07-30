@@ -6,6 +6,7 @@
 ## 0.20.0
 
 - update all extensions to use multi-error for gathering validation errors.
+- add `query` command to the `bnscli` tool
 
 Breaking changes
 
