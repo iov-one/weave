@@ -6,7 +6,7 @@ import (
 	"golang.org/x/crypto/ed25519"
 )
 
-func TestKeygent(t *testing.T) {
+func TestKeygen(t *testing.T) {
 	const mnemonic = `shy else mystery outer define there front bracket dawn honey excuse virus lazy book kiss cannon oven law coconut hedgehog veteran narrow great cage`
 
 	// Result of this test can be verified using iov-core implementation
