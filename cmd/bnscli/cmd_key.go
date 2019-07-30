@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"crypto/sha256"
 	"errors"
 	"flag"
 	"fmt"
@@ -46,16 +47,9 @@ created. This command fails if the private key file already exists.
 		return fmt.Errorf("cannot read mnemonic: %s", err)
 	}
 
-	if !bip39.IsMnemonicValid(string(mnemonic)) {
-		return errors.New("invalid mnemonic")
-	}
-
-	// We do not allow for passphrase.
-	seed := bip39.NewSeed(string(mnemonic), "")
-
-	key, err := derivation.DeriveForPath(*pathFl, seed)
+	priv, err := keygen(string(mnemonic), *pathFl)
 	if err != nil {
-		return fmt.Errorf("cannot deriviate master key from seed: %s", err)
+		return fmt.Errorf("cannot generate key: %s", err)
 	}
 
 	fd, err := os.OpenFile(*keyPathFl, os.O_CREATE|os.O_WRONLY, 0400)
@@ -64,11 +58,6 @@ created. This command fails if the private key file already exists.
 	}
 	defer fd.Close()
 
-	_, priv, err := ed25519.GenerateKey(bytes.NewReader(key.Key))
-	if err != nil {
-		return fmt.Errorf("cannot generate ed25519 private key: %s", err)
-	}
-
 	if _, err := fd.Write(priv); err != nil {
 		return fmt.Errorf("cannot write private key: %s", err)
 	}
@@ -76,6 +65,28 @@ created. This command fails if the private key file already exists.
 		return fmt.Errorf("cannot close private key file: %s", err)
 	}
 	return nil
+}
+
+// keygen returns a private key generated using given mnemonic and derivation
+// path.
+func keygen(mnemonic, derivationPath string) (ed25519.PrivateKey, error) {
+	if !bip39.IsMnemonicValid(string(mnemonic)) {
+		return nil, errors.New("invalid mnemonic")
+	}
+
+	// We do not allow for passphrase.
+	seed := bip39.NewSeed(string(mnemonic), "")
+
+	key, err := derivation.DeriveForPath(derivationPath, seed)
+	if err != nil {
+		return nil, fmt.Errorf("cannot deriviate master key from seed: %s", err)
+	}
+
+	_, priv, err := ed25519.GenerateKey(bytes.NewReader(key.Key))
+	if err != nil {
+		return nil, fmt.Errorf("cannot generate ed25519 private key: %s", err)
+	}
+	return priv, nil
 }
 
 func cmdKeyaddr(input io.Reader, output io.Writer, args []string) error {
@@ -89,6 +100,7 @@ Print out a hex-address associated with your private key.
 	var (
 		keyPathFl = fl.String("key", env("BNSCLI_PRIV_KEY", os.Getenv("HOME")+"/.bnsd.priv.key"),
 			"Path to the private key file that transaction should be signed with. You can use BNSCLI_PRIV_KEY environment variable to set it.")
+		bechPrefixFl = fl.String("bp", "iov", "Bech32 prefix.")
 	)
 	fl.Parse(args)
 
@@ -107,7 +119,7 @@ Print out a hex-address associated with your private key.
 		},
 	}
 
-	bech, err := bech32.Encode("iov", key.PublicKey().GetEd25519())
+	bech, err := toBech32(*bechPrefixFl, key.PublicKey().GetEd25519())
 	if err != nil {
 		return fmt.Errorf("cannot generate bech32 address format: %s", err)
 	}
@@ -117,11 +129,23 @@ Print out a hex-address associated with your private key.
 	return nil
 }
 
+// toBech32 computes the bech32 address representation as described in
+// https://github.com/iov-one/iov-core/blob/8846fed17443766a9ad9c908c3d7fc9d205e02ef/docs/address-derivation-v1.md#deriving-addresses-from-keypairs
+func toBech32(prefix string, pubkey []byte) ([]byte, error) {
+	data := append([]byte("sigs/ed25519/"), pubkey...)
+	hash := sha256.Sum256(data)
+	bech, err := bech32.Encode(prefix, hash[:20])
+	if err != nil {
+		return nil, fmt.Errorf("cannot compute bech32: %s", err)
+	}
+	return bech, nil
+}
+
 func cmdMnemonic(input io.Reader, output io.Writer, args []string) error {
 	fl := flag.NewFlagSet("", flag.ExitOnError)
 	fl.Usage = func() {
 		fmt.Fprint(flag.CommandLine.Output(), `
-Generate and print out a mnemonic.
+Generate and print out a mnemonic. Keep the result in safe place!
 `)
 	}
 	var (

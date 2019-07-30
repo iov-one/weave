@@ -8,6 +8,8 @@ set -e
 keyfile=`mktemp`
 echo 00wZcK6QrPNAXy2Z3KyhbQx9s3n0vq/P32Z7nWnONQ0n9ftEBQnfp57Ig6BRC8mpYUw9RBiIgfDF5AKJi0vzyQ== | base64 --decode > $keyfile
 
+# The output of this command can be verified using iov-core
+# https://iov-one.github.io/token-finder/#E28AE9A6EB94FC88B73EB7CBD6B87BF93EB9BEF0
 bnscli keyaddr -key $keyfile
 
 rm $keyfile
