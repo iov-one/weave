@@ -2,6 +2,9 @@
 
 ## HEAD
 
+- Tendermint is upgraded to version 0.31.8, which fixes cleanup on application panic and
+some more minor issues
+
 
 ## 0.20.0
 

@@ -67,7 +67,7 @@ like the following to compile both `bnsd` (IOV blockchain application)
 and `bnscli` (a client side app to interact with `bnsd`).
 You will have to
 [install a compatible version of tendermint](https://github.com/tendermint/tendermint/blob/master/docs/introduction/install.md)
-separately. (Currently we use the v0.31.5 release).
+separately. (Currently we use the v0.31.8 release).
 
 ```
 # cd into to your workspace that is not in your $GOPATH

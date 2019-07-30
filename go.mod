@@ -4,6 +4,7 @@ require (
 	github.com/VividCortex/gohistogram v1.0.0 // indirect
 	github.com/btcsuite/btcd v0.0.0-20190523000118-16327141da8c // indirect
 	github.com/btcsuite/btcutil v0.0.0-20190425235716-9e5f4b9a998d
+	github.com/etcd-io/bbolt v1.3.3 // indirect
 	github.com/fortytw2/leaktest v1.3.0 // indirect
 	github.com/gogo/protobuf v1.2.1
 	github.com/google/btree v1.0.0
@@ -22,7 +23,8 @@ require (
 	github.com/syndtr/goleveldb v1.0.0 // indirect
 	github.com/tendermint/go-amino v0.15.0
 	github.com/tendermint/iavl v0.12.2
-	github.com/tendermint/tendermint v0.31.5
+	github.com/tendermint/tendermint v0.31.8
+	go.etcd.io/bbolt v1.3.3 // indirect
 	golang.org/x/crypto v0.0.0-20190513172903-22d7a77e9e5f
 	google.golang.org/grpc v1.21.0 // indirect
 )
