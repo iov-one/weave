@@ -6,6 +6,7 @@ import (
 	"io"
 
 	"github.com/iov-one/weave/cmd/bnsd/client"
+	"github.com/iov-one/weave/x/batch"
 )
 
 func cmdSubmitTransaction(input io.Reader, output io.Writer, args []string) error {
@@ -30,9 +31,24 @@ Make sure to collect enough signatures before submitting the transaction.
 	}
 	bnsClient := client.NewClient(client.NewHTTPConnection(*tmAddrFl))
 
-	if err := bnsClient.BroadcastTx(tx).IsError(); err != nil {
+	res := bnsClient.BroadcastTx(tx)
+
+	if err := res.IsError(); err != nil {
 		return fmt.Errorf("cannot broadcast transaction: %s", err)
 	}
-	return nil
 
+	out := ""
+	batchResult := &batch.ByteArrayList{}
+	data := res.Response.DeliverTx.Data
+
+	switch {
+	case batchResult.Unmarshal(data) == nil:
+		out = fmt.Sprintf("batch result ids: %s", batchResult)
+	default:
+		out = fmt.Sprintf("result id: %x", data)
+	}
+
+	_, err = fmt.Fprint(output, out)
+
+	return err
 }
