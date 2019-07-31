@@ -1,8 +1,11 @@
 package main
 
 import (
+	"bytes"
+	"strings"
 	"testing"
 
+	"github.com/tyler-smith/go-bip39"
 	"golang.org/x/crypto/ed25519"
 )
 
@@ -97,5 +100,36 @@ func TestMnemonic(t *testing.T) {
 				t.Fatalf("returned erorr value: %+v", err)
 			}
 		})
+	}
+}
+
+func TestMnemonicWhitespaceIsIgnored(t *testing.T) {
+	// The same mnemonic words formatted differently (different whitespace)
+	// produce the same key.
+
+	words := []string{
+		"super", "bulk", "plunge", "better", "rookie", "donor",
+		"reward", "obscure", "rescue", "type", "trade", "pelican",
+	}
+
+	// Standard mnemonic is created by separating words with a single space.
+	stdMnemonic := strings.Join(words, " ")
+	stdSeed := bip39.NewSeed(stdMnemonic, "")
+
+	// All other mnemonics are non standard but somehow supported by this
+	// bip39 implementation.
+	mnemonics := []string{
+		strings.Join(words, "\t"),
+		strings.Join(words, " \n"),
+		strings.Join(words, "  \t \n  "),
+	}
+
+	for i, m := range mnemonics {
+		s := bip39.NewSeed(m, "")
+		if !bytes.Equal(stdSeed, s) {
+			t.Logf("reference: %x", stdSeed)
+			t.Logf("      got: %x", s)
+			t.Fatalf("seed %d is different than standard seed", i)
+		}
 	}
 }
