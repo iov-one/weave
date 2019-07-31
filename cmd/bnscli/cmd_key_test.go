@@ -45,19 +45,19 @@ func TestMnemonic(t *testing.T) {
 	}{
 
 		"valid mnemonic 12 words": {
-			mnemonic: "usage mountain noodle inspire distance lyrics caution wait mansion never announce biology",
+			mnemonic: "super bulk plunge better rookie donor reward obscure rescue type trade pelican",
 			wantErr:  false,
 		},
 		"valid mnemonic 15 words": {
-			mnemonic: "usage mountain noodle inspire distance lyrics caution wait mansion never announce biology squirrel guess key",
+			mnemonic: "say debris entry orange grief deer train until flock scrub volume artist skill obscure immense",
 			wantErr:  false,
 		},
 		"valid mnemonic 18 words": {
-			mnemonic: "usage mountain noodle inspire distance lyrics caution wait mansion never announce biology squirrel guess key gain belt same",
+			mnemonic: "fetch height snow poverty space follow seven festival wasp pet asset tattoo cement twist exile trend bench eternal",
 			wantErr:  false,
 		},
 		"valid mnemonic 21 words": {
-			mnemonic: "usage mountain noodle inspire distance lyrics caution wait mansion never announce biology squirrel guess key gain belt same matrix chase mom",
+			mnemonic: "increase shine pumpkin curtain trash cabbage juice canal ugly naive name insane indoor assault snap taxi casual unhappy buddy defense artefact",
 			wantErr:  false,
 		},
 		"valid mnemonic 24 words": {
@@ -66,11 +66,13 @@ func TestMnemonic(t *testing.T) {
 		},
 		"additional whitespace around mnemonnic is ignored": {
 			mnemonic: `
-			usage
-				mountain
-			noodle
-			inspire distance lyrics caution wait mansion
-					never announce biology
+			forget
+				rely tiny
+			ostrich drop edit
+			assault mechanic pony extend
+			together twelve
+				  observe bullet dream
+		  short glide crack orchard exotic zero fly spice final
 			`,
 			wantErr: false,
 		},
@@ -80,6 +82,10 @@ func TestMnemonic(t *testing.T) {
 		},
 		"mnenomic that is valid in a language other than English (Japanese)": {
 			mnemonic: " あつかう あっしゅく あつまり あつめる あてな あてはまる あひる あぶら あぶる あふれる あまい あまど ",
+			wantErr:  true,
+		},
+		"initially valid mnemonic that the last word was changed": {
+			mnemonic: "super bulk plunge better rookie donor reward obscure rescue type trade trade",
 			wantErr:  true,
 		},
 	}

@@ -70,7 +70,7 @@ created. This command fails if the private key file already exists.
 // keygen returns a private key generated using given mnemonic and derivation
 // path.
 func keygen(mnemonic, derivationPath string) (ed25519.PrivateKey, error) {
-	if !bip39.IsMnemonicValid(string(mnemonic)) {
+	if !isMnemonicValid(string(mnemonic)) {
 		return nil, errors.New("invalid mnemonic")
 	}
 
@@ -87,6 +87,15 @@ func keygen(mnemonic, derivationPath string) (ed25519.PrivateKey, error) {
 		return nil, fmt.Errorf("cannot generate ed25519 private key: %s", err)
 	}
 	return priv, nil
+}
+
+// isMnemonicValid returns true if given mnemonic string is valid. Whitespaces
+// are ignored.
+// Use this instead of bip39.IsMnemonicValid because this function ensures the
+// checksum consistency. bip39.IsMnemonicValid does not test the checksum.
+func isMnemonicValid(mnemonic string) bool {
+	_, err := bip39.EntropyFromMnemonic(mnemonic)
+	return err == nil
 }
 
 func cmdKeyaddr(input io.Reader, output io.Writer, args []string) error {
@@ -147,6 +156,7 @@ func cmdMnemonic(input io.Reader, output io.Writer, args []string) error {
 		fmt.Fprint(flag.CommandLine.Output(), `
 Generate and print out a mnemonic. Keep the result in safe place!
 `)
+		fl.PrintDefaults()
 	}
 	var (
 		bitSizeFl = fl.Uint("size", 256, "Bit size of the entropy. Must be between 128 and 256.")
