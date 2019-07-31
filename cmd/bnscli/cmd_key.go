@@ -9,6 +9,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"strings"
 
 	"github.com/iov-one/weave/crypto"
 	"github.com/iov-one/weave/crypto/bech32"
@@ -70,8 +71,8 @@ created. This command fails if the private key file already exists.
 // keygen returns a private key generated using given mnemonic and derivation
 // path.
 func keygen(mnemonic, derivationPath string) (ed25519.PrivateKey, error) {
-	if !isMnemonicValid(string(mnemonic)) {
-		return nil, errors.New("invalid mnemonic")
+	if err := validateMnemonic(string(mnemonic)); err != nil {
+		return nil, fmt.Errorf("invalid mnemonic: %s", err)
 	}
 
 	// We do not allow for passphrase.
@@ -90,12 +91,28 @@ func keygen(mnemonic, derivationPath string) (ed25519.PrivateKey, error) {
 }
 
 // isMnemonicValid returns true if given mnemonic string is valid. Whitespaces
-// are ignored.
+// are relevant.
+//
 // Use this instead of bip39.IsMnemonicValid because this function ensures the
-// checksum consistency. bip39.IsMnemonicValid does not test the checksum.
-func isMnemonicValid(mnemonic string) bool {
-	_, err := bip39.EntropyFromMnemonic(mnemonic)
-	return err == nil
+// checksum consistency. bip39.IsMnemonicValid does not test the checksum. It
+// also ignores whitespaces.
+//
+// This function ensures that the mnemonic is a single space separated list of
+// words as this is important during seed creation.
+func validateMnemonic(mnemonic string) error {
+	// A lazy way to check that words are exactly single space separated.
+	expected := strings.Join(strings.Fields(mnemonic), " ")
+	if mnemonic != expected {
+		return errors.New("whitespace violation")
+	}
+
+	// Entropy generation does base validation of checking if words are
+	// valid and in the right amount. It also tests the checksum.
+	if _, err := bip39.EntropyFromMnemonic(mnemonic); err != nil {
+		return fmt.Errorf("entropy: %s", err)
+	}
+
+	return nil
 }
 
 func cmdKeyaddr(input io.Reader, output io.Writer, args []string) error {
