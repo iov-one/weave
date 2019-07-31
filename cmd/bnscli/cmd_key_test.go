@@ -37,3 +37,59 @@ func TestKeygen(t *testing.T) {
 		})
 	}
 }
+
+func TestMnemonic(t *testing.T) {
+	cases := map[string]struct {
+		mnemonic string
+		wantErr  bool
+	}{
+
+		"valid mnemonic 12 words": {
+			mnemonic: "usage mountain noodle inspire distance lyrics caution wait mansion never announce biology",
+			wantErr:  false,
+		},
+		"valid mnemonic 15 words": {
+			mnemonic: "usage mountain noodle inspire distance lyrics caution wait mansion never announce biology squirrel guess key",
+			wantErr:  false,
+		},
+		"valid mnemonic 18 words": {
+			mnemonic: "usage mountain noodle inspire distance lyrics caution wait mansion never announce biology squirrel guess key gain belt same",
+			wantErr:  false,
+		},
+		"valid mnemonic 21 words": {
+			mnemonic: "usage mountain noodle inspire distance lyrics caution wait mansion never announce biology squirrel guess key gain belt same matrix chase mom",
+			wantErr:  false,
+		},
+		"valid mnemonic 24 words": {
+			mnemonic: "usage mountain noodle inspire distance lyrics caution wait mansion never announce biology squirrel guess key gain belt same matrix chase mom beyond model toy",
+			wantErr:  false,
+		},
+		"additional whitespace around mnemonnic is ignored": {
+			mnemonic: `
+			usage
+				mountain
+			noodle
+			inspire distance lyrics caution wait mansion
+					never announce biology
+			`,
+			wantErr: false,
+		},
+		"mnenomic that is valid in a language other than English (Italian)": {
+			mnemonic: "acrobata acuto adagio addebito addome adeguato aderire adipe adottare adulare affabile affetto affisso affranto aforisma",
+			wantErr:  true,
+		},
+		"mnenomic that is valid in a language other than English (Japanese)": {
+			mnemonic: " あつかう あっしゅく あつまり あつめる あてな あてはまる あひる あぶら あぶる あふれる あまい あまど ",
+			wantErr:  true,
+		},
+	}
+
+	for testName, tc := range cases {
+		t.Run(testName, func(t *testing.T) {
+			_, err := keygen(tc.mnemonic, "m/44'/234'/0'")
+			if hasErr := err != nil; hasErr != tc.wantErr {
+				t.Fatalf("returned erorr value: %+v", err)
+			}
+		})
+	}
+}
