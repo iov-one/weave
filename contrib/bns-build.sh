@@ -169,7 +169,10 @@ shift "$((OPTIND-1))"
 
 g_platforms=$(f_demangle_platforms "${1}")
 g_workdir="$(pwd)"
-g_commit=""${TRAVIS_COMMIT}" "# "$(git rev-parse HEAD)" #fails on travis. See https://github.com/travis-ci/travis-ci/issues/6337
+echo "$(git rev-parse HEAD)"
+echo "${TRAVIS_COMMIT}"
+# a random commit on master: https://travis-ci.community/t/travis-commit-is-not-the-commit-initially-checked-out/3775
+g_commit="788afb0196b997adf374ff5d596183d33b812fe5"
 g_sigs_dir=${IOVNS_SIGS:-"${g_workdir}/${DEFAULT_IOVNS_SIGS}"}
 
 f_ensure_cache
