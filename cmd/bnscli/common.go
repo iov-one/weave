@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"os"
 	"strconv"
 	"strings"
@@ -182,3 +183,22 @@ func tendermintStore(nodeURL string) weave.ReadOnlyKVStore {
 	tm := rpcclient.NewHTTP(nodeURL, "/websocket")
 	return app.NewABCIStore(rpcQueryWrapper{tm})
 }
+
+// readInput returns all bytes waiting on given input. This function immediatly
+// returns errNoPipe error if the input is not piped to avoid forever waiting.
+func readInput(input io.Reader) ([]byte, error) {
+	// If the given reader is providing a stat information (ie os.Stdin)
+	// then check if the data is being piped. That should prevent us from
+	// waiting for a data on a reader that no one ever writes to.
+	if s, ok := input.(stater); ok {
+		if info, err := s.Stat(); err == nil {
+			isPipe := (info.Mode() & os.ModeCharDevice) == 0
+			if !isPipe {
+				return nil, errNoPipe
+			}
+		}
+	}
+	return ioutil.ReadAll(input)
+}
+
+var errNoPipe = errors.New("no data piped")

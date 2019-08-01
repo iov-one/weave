@@ -2,6 +2,14 @@
 
 ## HEAD
 
+- `cmd/bnscli`: a new command `mnemonic` was added for generating a random
+  mnemonic as described in BIP-39.
+
+Breaking changes
+
+- `cmd/bnscli`: `keygen` command was updated and requires a mnemonic to
+  generate a key.
+
 
 ## 0.20.0
 
