@@ -1,4 +1,5 @@
 #!/bin/bash
+
 # symbol prefixes:
 # g_ -> global
 # l_ - local variable
@@ -14,10 +15,10 @@ GO_TARBALL_URL="https://salsa.debian.org/go-team/compiler/golang/-/archive/debia
 # Defaults
 
 DEFAULT_SIGN_COMMAND='gpg --detach-sign'
-DEFAULT_IOVNS_SIGS=${IOVNS_SIGS:-'iovns.sigs'}
+DEFAULT_GAIA_SIGS=${GAIA_SIGS:-'gaia.sigs'}
 DEFAULT_GITIAN_REPO='https://github.com/alpe/gitian-builder'
 DEFAULT_GBUILD_FLAGS=''
-DEFAULT_SIGS_REPO='https://github.com/iov-one/iovns.sigs'
+DEFAULT_SIGS_REPO='https://github.com/cosmos/gaia.sigs'
 
 # Overrides
 
@@ -53,8 +54,8 @@ The following platforms are supported:
    -s IDENTITY      sign build as IDENTITY
 
 If a GPG identity is supplied via the -s flag, the build will be signed and verified.
-The signature will be saved in '${DEFAULT_IOVNS_SIGS}/'. An alternative output directory
-for signatures can be supplied via the environment variable \$IOVNS_SIGS.
+The signature will be saved in '${DEFAULT_GAIA_SIGS}/'. An alternative output directory
+for signatures can be supplied via the environment variable \$GAIA_SIGS.
 
 The default signing command used to sign the build is '$DEFAULT_SIGN_COMMAND'.
 An alternative signing command can be supplied via the environment
@@ -64,7 +65,7 @@ EOF
 
 
 f_builddir() {
-  printf '%s' "${g_workdir}/bns-build-$1"
+  printf '%s' "${g_workdir}/gitian-build-$1"
 }
 
 f_prep_build() {
@@ -93,7 +94,7 @@ f_build() {
 
   l_descriptor=$1
 
-  bin/gbuild --commit weave="$g_commit" ${GBUILD_FLAGS} "$l_descriptor"
+  bin/gbuild --commit gaia="$g_commit" ${GBUILD_FLAGS} "$l_descriptor"
   libexec/stop-target || f_echo_stderr "warning: couldn't stop target"
 }
 
@@ -169,8 +170,8 @@ shift "$((OPTIND-1))"
 
 g_platforms=$(f_demangle_platforms "${1}")
 g_workdir="$(pwd)"
-g_commit=""${TRAVIS_COMMIT}" "# "$(git rev-parse HEAD)" #fails on travis. See https://github.com/travis-ci/travis-ci/issues/6337
-g_sigs_dir=${IOVNS_SIGS:-"${g_workdir}/${DEFAULT_IOVNS_SIGS}"}
+g_commit="$(git rev-parse HEAD)"
+g_sigs_dir=${GAIA_SIGS:-"${g_workdir}/${DEFAULT_GAIA_SIGS}"}
 
 f_ensure_cache
 
@@ -181,7 +182,7 @@ f_prep_build "${g_platforms}"
 export USE_DOCKER=1
 for g_os in ${g_platforms}; do
   g_release="$(git describe --tags --abbrev=9 | sed 's/^v//')-${g_os}"
-  g_descriptor="${g_workdir}/contrib/gitian-descriptors/bns-${g_os}.yml"
+  g_descriptor="${g_workdir}/contrib/gitian-descriptors/gitian-${g_os}.yml"
   [ -f ${g_descriptor} ]
   g_builddir="$(f_builddir ${g_os})"
 
