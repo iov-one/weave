@@ -3,7 +3,7 @@
 set -e
 
 mnemonic=`mktemp`
-echo 'neutral abandon month park disease forum engage dutch coconut base morning icon wide stock coast fork girl fish despair kiss dilemma pass slide major' > $mnemonic
+echo -n 'neutral abandon month park disease forum engage dutch coconut base morning icon wide stock coast fork girl fish despair kiss dilemma pass slide major' > $mnemonic
 
 # Use a custom key path just in case the host is using original one.
 tempdir=`mktemp -d`
