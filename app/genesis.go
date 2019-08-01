@@ -1,10 +1,11 @@
 package app
 
 import (
-	"github.com/iov-one/weave"
-)
+	"reflect"
 
-//------ init state -----
+	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/errors"
+)
 
 // ChainInitializers lets you initialize many extensions with one function
 func ChainInitializers(inits ...weave.Initializer) weave.Initializer {
@@ -18,10 +19,17 @@ type chainInitializer struct {
 // FromGenesis will pass opts to all Initializers in the list,
 // aborting at the first error.
 func (c chainInitializer) FromGenesis(opts weave.Options, params weave.GenesisParams, kv weave.KVStore) error {
-	for _, i := range c.inits {
-		err := i.FromGenesis(opts, params, kv)
-		if err != nil {
-			return err
+	for _, ini := range c.inits {
+		if err := ini.FromGenesis(opts, params, kv); err != nil {
+			// Attach package name to the error produced by the
+			// initializer. This is extremely helpful in narrowing
+			// down where the genesis declaration is invalid.
+			tp := reflect.TypeOf(ini)
+			for tp.Kind() == reflect.Ptr {
+				tp = tp.Elem()
+			}
+			pkg := tp.PkgPath()
+			return errors.Wrapf(err, "initializer %q", pkg)
 		}
 	}
 	return nil

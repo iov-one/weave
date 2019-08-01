@@ -20,7 +20,7 @@ var (
 
 func init() {
 	defaultHome := filepath.Join(os.ExpandEnv("$HOME"), ".bns")
-	varHome = flag.String(flagHome, defaultHome, "directory to store files under")
+	varHome = flag.String(flagHome, defaultHome, "Directory to store files under.")
 
 	flag.CommandLine.Usage = helpMessage
 }
@@ -34,6 +34,7 @@ func helpMessage() {
 	fmt.Println("start     Run the abci server")
 	fmt.Println("getblock  Extract a block from blockchain.db")
 	fmt.Println("retry     Run last block again to ensure it produces same result")
+	fmt.Println("validate  Parse given genesis file and ensure that defined there state can be loaded.")
 	fmt.Println("version   Print the app version")
 	fmt.Println(`
   -home string
@@ -70,6 +71,8 @@ func main() {
 		err = commands.TestGenCmd(bnsd.Examples(), rest)
 	case "version":
 		fmt.Println(weave.Version)
+	case "validate":
+		err = server.ValidateGenesis(bnsd.Initializers(), rest)
 	default:
 		err = fmt.Errorf("unknown command: %s", cmd)
 	}

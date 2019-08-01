@@ -4,6 +4,8 @@
 
 - `cmd/bnscli`: a new command `mnemonic` was added for generating a random
   mnemonic as described in BIP-39.
+- `cmd/bnsd`: a new command `validate` for validating genesis state declaration
+  was added.
 
 Breaking changes
 

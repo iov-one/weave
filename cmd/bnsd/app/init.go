@@ -92,7 +92,13 @@ func GenerateApp(options *server.Options) (abci.Application, error) {
 
 // DecorateApp adds initializers and Logger to an Application
 func DecorateApp(application app.BaseApp, logger log.Logger) app.BaseApp {
-	application.WithInit(app.ChainInitializers(
+	application.WithInit(Initializers())
+	application.WithLogger(logger)
+	return application
+}
+
+func Initializers() weave.Initializer {
+	return app.ChainInitializers(
 		&migration.Initializer{},
 		&multisig.Initializer{},
 		&cash.Initializer{},
@@ -103,9 +109,7 @@ func DecorateApp(application app.BaseApp, logger log.Logger) app.BaseApp {
 		&escrow.Initializer{Minter: cash.NewController(cash.NewBucket())},
 		&gov.Initializer{},
 		&username.Initializer{},
-	))
-	application.WithLogger(logger)
-	return application
+	)
 }
 
 // InlineApp will take a previously prepared CommitStore and return a complete Application
