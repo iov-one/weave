@@ -1,9 +1,12 @@
 package weave
 
 import (
+	"bytes"
 	"encoding/json"
 
 	abci "github.com/tendermint/tendermint/abci/types"
+
+	"github.com/iov-one/weave/errors"
 )
 
 // Handler is a core engine that can process a few specific messages
@@ -58,6 +61,39 @@ func (o Options) ReadOptions(key string, obj interface{}) error {
 		return nil
 	}
 	return json.Unmarshal(msg, obj)
+}
+
+// Stream expects an array of json elements and allows to process them sequentially
+// this helps when we need to parse a large json without having any memory leaks.
+func (o Options) Stream(key string) (func(obj interface{}) error, error) {
+	msg := o[key]
+	if len(msg) == 0 {
+		return nil, errors.Wrap(errors.ErrEmpty, "data")
+	}
+
+	dec := json.NewDecoder(bytes.NewReader(msg))
+
+	// read opening bracket
+	if _, err := dec.Token(); err != nil {
+		return nil, errors.Wrapf(errors.ErrInput, "opening bracket %s", err)
+
+	}
+
+	return func(obj interface{}) error {
+		if dec.More() {
+			if err := dec.Decode(obj); err != nil {
+				return errors.Wrapf(errors.ErrInput, "decode %s", err)
+			}
+			return nil
+		}
+		// read closing bracket
+		if _, err := dec.Token(); err != nil {
+			return errors.Wrapf(errors.ErrInput, "closing bracket %s", err)
+		}
+
+		return errors.Wrap(errors.ErrEmpty, "end")
+	}, nil
+
 }
 
 // GenesisParams represents parameters set in genesis that could be useful
