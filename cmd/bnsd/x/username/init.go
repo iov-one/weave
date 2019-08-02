@@ -22,7 +22,7 @@ func (*Initializer) FromGenesis(opts weave.Options, params weave.GenesisParams, 
 	stream, err := opts.Stream("username")
 	switch {
 	case errors.ErrEmpty.Is(err):
-		break
+		return nil
 	case err != nil:
 		return errors.Wrap(err, "cannot load username tokens")
 	}
