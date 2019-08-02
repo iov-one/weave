@@ -31,7 +31,10 @@ func TestOptionsStream(t *testing.T) {
 		},
 
 		"wrong value": {
-			json:    `{"list": [{"key": "dasdasas"}]}`,
+			json: `{"list": [{"key": "dasdasas"}]}`,
+			exp: []struct{ Key int }{
+				{},
+			},
 			wantErr: errors.ErrInput,
 		},
 
@@ -54,6 +57,7 @@ func TestOptionsStream(t *testing.T) {
 			} else {
 				assert.Nil(t, err)
 			}
+
 			for _, e := range tc.exp {
 				err = f(&s)
 				if err != nil {
@@ -64,6 +68,7 @@ func TestOptionsStream(t *testing.T) {
 			}
 
 			assert.IsErr(t, tc.wantErr, f(&s))
+			assert.IsErr(t, errors.ErrState, f(&s))
 		})
 	}
 }

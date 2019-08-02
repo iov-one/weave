@@ -66,6 +66,7 @@ func (o Options) ReadOptions(key string, obj interface{}) error {
 // Stream expects an array of json elements and allows to process them sequentially
 // this helps when one needs to parse a large json without having any memory leaks.
 // Returns ErrEmpty on empty key or when there are no more elements.
+// Returns ErrState when the stream has finished/encountered a Decode error.
 func (o Options) Stream(key string) (func(obj interface{}) error, error) {
 	msg := o[key]
 	if len(msg) == 0 {
