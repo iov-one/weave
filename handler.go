@@ -80,13 +80,21 @@ func (o Options) Stream(key string) (func(obj interface{}) error, error) {
 
 	}
 
+	closed := false
+
 	return func(obj interface{}) error {
+		if closed {
+			return errors.Wrap(errors.ErrState, "closed")
+		}
+
 		if dec.More() {
 			if err := dec.Decode(obj); err != nil {
 				return errors.Wrapf(errors.ErrInput, "decode %s", err)
 			}
 			return nil
 		}
+
+		closed = true
 		// read closing bracket
 		if _, err := dec.Token(); err != nil {
 			return errors.Wrapf(errors.ErrInput, "closing bracket %s", err)
