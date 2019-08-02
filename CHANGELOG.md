@@ -4,6 +4,8 @@
 
 - `cmd/bnscli`: a new command `mnemonic` was added for generating a random
   mnemonic as described in BIP-39.
+- `weave.Options`: add an option to stream json for lower memory footprint
+when parsing large json objects.
 
 Breaking changes
 
