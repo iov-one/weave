@@ -4,6 +4,9 @@
 
 - `cmd/bnscli`: a new command `mnemonic` was added for generating a random
   mnemonic as described in BIP-39.
+- `cmd/bnscli`: when a transaction is submitted, for certain messages parse
+  returned response data and print it in a human readable format.
+
 
 Breaking changes
 
