@@ -19,13 +19,7 @@ func (*Initializer) FromGenesis(opts weave.Options, params weave.GenesisParams, 
 		Targets  []BlockchainAddress
 		Owner    weave.Address
 	}
-	stream, err := opts.Stream("username")
-	switch {
-	case errors.ErrEmpty.Is(err):
-		return nil
-	case err != nil:
-		return errors.Wrap(err, "cannot load username tokens")
-	}
+	stream := opts.Stream("username")
 
 	bucket := NewTokenBucket()
 	for i := 0; ; i++ {
