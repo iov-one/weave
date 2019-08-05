@@ -6,6 +6,10 @@
   mnemonic as described in BIP-39.
 - `cmd/bnsd`: a new command `validate` for validating genesis state declaration
   was added.
+- `weave.Options`: add an option to stream json for lower memory footprint
+  when parsing large json objects.
+- `cmd/bnscli`: when a transaction is submitted, for certain messages parse
+  returned response data and print it in a human readable format.
 
 Breaking changes
 

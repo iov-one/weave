@@ -19,18 +19,26 @@ func (*Initializer) FromGenesis(opts weave.Options, params weave.GenesisParams, 
 		Targets  []BlockchainAddress
 		Owner    weave.Address
 	}
-	var tokens []*TokenInput
-	if err := opts.ReadOptions("username", &tokens); err != nil {
-		return errors.Wrap(err, "cannot load username tokens")
-	}
+	stream := opts.Stream("username")
 
 	bucket := NewTokenBucket()
-	for i, t := range tokens {
+	for i := 0; ; i++ {
+		var t TokenInput
+
+		err := stream(&t)
+		switch {
+		case errors.ErrEmpty.Is(err):
+			return nil
+		case err != nil:
+			return errors.Wrap(err, "cannot load username token")
+		}
+
 		token := Token{
 			Metadata: &weave.Metadata{Schema: 1},
 			Owner:    t.Owner,
 			Targets:  t.Targets,
 		}
+
 		if err := token.Validate(); err != nil {
 			return errors.Wrapf(err, "%d token %q is invalid", i, t.Username)
 		}
@@ -38,5 +46,4 @@ func (*Initializer) FromGenesis(opts weave.Options, params weave.GenesisParams, 
 			return errors.Wrapf(err, "cannot store %d token %q", i, t.Username)
 		}
 	}
-	return nil
 }
