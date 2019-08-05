@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 
@@ -13,73 +14,72 @@ import (
 	"github.com/tendermint/tendermint/libs/log"
 )
 
-var (
-	flagHome = "home"
-	varHome  *string
-)
-
-func init() {
-	defaultHome := filepath.Join(os.ExpandEnv("$HOME"), ".bns")
-	varHome = flag.String(flagHome, defaultHome, "Directory to store files under.")
-
-	flag.CommandLine.Usage = helpMessage
-}
-
-func helpMessage() {
-	fmt.Println("bnsd")
-	fmt.Println("          Blockchain Name Service node")
-	fmt.Println("")
-	fmt.Println("help      Print this message")
-	fmt.Println("init      Initialize app options in genesis file")
-	fmt.Println("start     Run the abci server")
-	fmt.Println("getblock  Extract a block from blockchain.db")
-	fmt.Println("retry     Run last block again to ensure it produces same result")
-	fmt.Println("validate  Parse given genesis file and ensure that defined there state can be loaded.")
-	fmt.Println("version   Print the app version")
-	fmt.Println(`
-  -home string
-        directory to store files under (default "$HOME/.bns")`)
-}
-
 func main() {
 	logger := log.NewTMLogger(log.NewSyncWriter(os.Stdout)).
 		With("module", "bns")
 
+	defaultHome := filepath.Join(os.ExpandEnv("$HOME"), ".bns")
+	varHome := flag.String("home", defaultHome, "directory to store files under")
+
+	flag.CommandLine.Usage = func() { helpMessage(os.Stderr) }
+
 	flag.Parse()
 	if flag.NArg() == 0 {
-		fmt.Println("Missing command:")
-		helpMessage()
-		os.Exit(1)
+		fmt.Fprintf(os.Stderr, "missing command\n")
+		helpMessage(os.Stderr)
+		os.Exit(2)
 	}
 
 	cmd := flag.Arg(0)
 	rest := flag.Args()[1:]
 
-	var err error
 	switch cmd {
 	case "help":
-		helpMessage()
+		helpMessage(os.Stderr)
 	case "init":
-		err = server.InitCmd(bnsd.GenInitOptions, logger, *varHome, rest)
+		exitOnErr(server.InitCmd(bnsd.GenInitOptions, logger, *varHome, rest))
 	case "start":
-		err = server.StartCmd(bnsd.GenerateApp, logger, *varHome, rest)
+		exitOnErr(server.StartCmd(bnsd.GenerateApp, logger, *varHome, rest))
 	case "getblock":
-		err = server.GetBlockCmd(rest)
+		exitOnErr(server.GetBlockCmd(rest))
 	case "retry":
-		err = server.RetryCmd(bnsd.InlineApp, logger, *varHome, rest)
+		exitOnErr(server.RetryCmd(bnsd.InlineApp, logger, *varHome, rest))
 	case "testgen":
-		err = commands.TestGenCmd(bnsd.Examples(), rest)
+		exitOnErr(commands.TestGenCmd(bnsd.Examples(), rest))
 	case "version":
 		fmt.Println(weave.Version)
 	case "validate":
-		err = server.ValidateGenesis(bnsd.Initializers(), rest)
+		exitOnErr(server.ValidateGenesis(bnsd.Initializers(), rest))
 	default:
-		err = fmt.Errorf("unknown command: %s", cmd)
+		helpMessage(os.Stderr)
+		os.Exit(2)
 	}
+}
 
-	if err != nil {
-		fmt.Printf("Error: %+v\n\n", err)
-		helpMessage()
-		os.Exit(1)
+func helpMessage(out io.Writer) {
+	fmt.Fprint(out, `bnsd - Blockchain Name Service node")
+
+Available commands:
+
+	getblock    Extract a block from blockchain.db.
+	help        Print this message.
+	init        Initialize application options in genesis file.
+	retry       Run last block again to ensure it produces same result.
+	start       Run the ABCI server.
+	validate    Parse given genesis file and ensure that defined there state can be loaded.
+	version     Print this application version.
+
+Available flags:
+
+	-home string
+		Directory to store files under (default "$HOME/.bns")
+`)
+}
+
+func exitOnErr(err error) {
+	if err == nil {
+		return
 	}
+	fmt.Fprintf(os.Stderr, "%+v\n", err)
+	os.Exit(1)
 }
