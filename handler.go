@@ -66,24 +66,26 @@ func (o Options) ReadOptions(key string, obj interface{}) error {
 // Stream expects an array of json elements and allows to process them sequentially
 // this helps when one needs to parse a large json without having any memory leaks.
 // Returns ErrEmpty on empty key or when there are no more elements.
-// Returns ErrState when the stream has finished/encountered a Decode error.
-func (o Options) Stream(key string) (func(obj interface{}) error, error) {
+// Returns ErrState when the stream has finished/encountered a Decode error.mi
+func (o Options) Stream(key string) func(obj interface{}) error {
 	msg := o[key]
-	if len(msg) == 0 {
-		return nil, errors.Wrap(errors.ErrEmpty, "data")
-	}
-
 	dec := json.NewDecoder(bytes.NewReader(msg))
-
-	// read opening bracket
-	if _, err := dec.Token(); err != nil {
-		return nil, errors.Wrapf(errors.ErrInput, "opening bracket %s", err)
-
-	}
-
+	initialized := false
 	closed := false
 
 	return func(obj interface{}) error {
+		if !initialized {
+			if len(msg) == 0 {
+				return errors.Wrap(errors.ErrEmpty, "data")
+			}
+
+			// read opening bracket
+			if _, err := dec.Token(); err != nil {
+				return errors.Wrapf(errors.ErrInput, "opening bracket %s", err)
+			}
+
+			initialized = true
+		}
 		if closed {
 			return errors.Wrap(errors.ErrState, "closed")
 		}
@@ -102,8 +104,7 @@ func (o Options) Stream(key string) (func(obj interface{}) error, error) {
 		}
 
 		return errors.Wrap(errors.ErrEmpty, "end")
-	}, nil
-
+	}
 }
 
 // GenesisParams represents parameters set in genesis that could be useful

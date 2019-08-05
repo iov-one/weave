@@ -49,17 +49,15 @@ func TestOptionsStream(t *testing.T) {
 			var o Options
 			var s struct{ Key int }
 			assert.Nil(t, json.Unmarshal([]byte(tc.json), &o))
-			f, err := o.Stream("list")
+			f := o.Stream("list")
 
 			if tc.empty {
-				assert.IsErr(t, tc.wantErr, err)
+				assert.IsErr(t, tc.wantErr, f(&s))
 				return
-			} else {
-				assert.Nil(t, err)
 			}
 
 			for _, e := range tc.exp {
-				err = f(&s)
+				err := f(&s)
 				if err != nil {
 					assert.IsErr(t, tc.wantErr, err)
 					return
