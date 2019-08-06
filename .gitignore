@@ -19,4 +19,3 @@ _build
 
 # IDES
 .vscode
-.gitian-builder-cache/
