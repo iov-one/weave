@@ -246,7 +246,7 @@ func sendBatch(t *testing.T, baseApp abci.Application, chainID string, height in
 	// make sure the key tags are only present once (not once per item)
 	// action tag should be present for each message (important if different types)
 	feeDistAddr := weave.NewCondition("dist", "revenue", []byte{0, 0, 0, 0, 0, 0, 0, 1}).Address()
-	if len(dres.Tags) != 14 {
+	if len(dres.Tags) != 19 {
 		t.Fatalf("%v", len(dres.Tags))
 	}
 	// we need to sort the db keys for consistent ordering
@@ -260,6 +260,11 @@ func sendBatch(t *testing.T, baseApp abci.Application, chainID string, height in
 	sort.Strings(wantKeys)
 	// all the action tagger for batch are before the key tagger
 	wantKeys = append([]string{
+		"action",
+		"action",
+		"action",
+		"action",
+		"action",
 		"action",
 		"action",
 		"action",
