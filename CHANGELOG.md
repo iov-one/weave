@@ -1,7 +1,7 @@
 # Changelog
 
 ## HEAD
-
+- `x/batch`: increase maximum number of messages to 15
 - `cmd/bnscli`: a new command `mnemonic` was added for generating a random
   mnemonic as described in BIP-39.
 - `weave.Options`: add an option to stream json for lower memory footprint
