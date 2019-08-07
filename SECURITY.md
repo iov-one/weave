@@ -57,3 +57,12 @@ QQM22M3gnZQsefEYucpqHsnQx7s=
 =mWRd
 -----END PGP PUBLIC KEY BLOCK-----
 ```
+
+# Random number generation
+
+Depending on the system a different source of a random number generator is
+used. Full explanation can be found in [Go
+documentation](https://golang.org/pkg/crypto/rand/#pkg-variables).
+
+On Windows [CryptoGenRandom](https://en.wikipedia.org/wiki/CryptGenRandom) is
+used which is considered insecure.
