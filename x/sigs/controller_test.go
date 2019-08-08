@@ -2,6 +2,7 @@ package sigs
 
 import (
 	"bytes"
+	"io/ioutil"
 	"testing"
 
 	"github.com/iov-one/weave"
@@ -9,6 +10,7 @@ import (
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/store"
+	"github.com/iov-one/weave/store/iavl"
 	"github.com/iov-one/weave/weavetest"
 	"github.com/iov-one/weave/weavetest/assert"
 )
@@ -222,4 +224,72 @@ func (tx StdTx) GetSignBytes() ([]byte, error) {
 		return nil, err
 	}
 	return bz, nil
+}
+
+func BenchmarkVerifySignatures(b *testing.B) {
+	const chainID = "my-chain"
+	priv := crypto.GenPrivKeyEd25519()
+	payload := []byte("transaction payload")
+
+	cases := map[string]struct {
+		NewDB   func() weave.KVStore
+		Payload []byte
+	}{
+		"memory store small payload": {
+			NewDB:   func() weave.KVStore { return store.MemStore() },
+			Payload: payload,
+		},
+		"memory store big payload": {
+			NewDB:   func() weave.KVStore { return store.MemStore() },
+			Payload: bytes.Repeat(payload, 1024),
+		},
+		"hard drive backed store with small payload": {
+			NewDB: func() weave.KVStore {
+				path, err := ioutil.TempDir("/tmp", b.Name())
+				if err != nil {
+					b.Fatalf("cannot create temporary database directory: %s", err)
+				}
+				return iavl.NewCommitStore(path, b.Name()).Adapter()
+			},
+			Payload: payload,
+		},
+		"hard drive backed store with bit payload": {
+			NewDB: func() weave.KVStore {
+				path, err := ioutil.TempDir("/tmp", b.Name())
+				if err != nil {
+					b.Fatalf("cannot create temporary database directory: %s", err)
+				}
+				return iavl.NewCommitStore(path, b.Name()).Adapter()
+			},
+			Payload: bytes.Repeat(payload, 1024),
+		},
+	}
+
+	for testCase, tc := range cases {
+		b.Run(testCase, func(b *testing.B) {
+			db := tc.NewDB()
+			migration.MustInitPkg(db, "sigs")
+
+			sigs := make([]*StdSignature, b.N)
+			for n := 0; n < b.N; n++ {
+				sigs[n] = mustSign(b, priv, NewStdTx(tc.Payload), chainID, int64(n))
+			}
+
+			b.ResetTimer()
+			for i, sig := range sigs {
+				if _, err := VerifySignature(db, sig, tc.Payload, chainID); err != nil {
+					b.Fatalf("cannot verify #%d signature: %s", i, err)
+				}
+			}
+		})
+	}
+}
+
+func mustSign(t testing.TB, signer crypto.Signer, tx SignedTx, chainID string, seq int64) *StdSignature {
+	t.Helper()
+	sig, err := SignTx(signer, tx, chainID, seq)
+	if err != nil {
+		t.Fatalf("cannot sign: %s", err)
+	}
+	return sig
 }
