@@ -61,7 +61,7 @@ script:
     release_tag=$( [[ "$TRAVIS_TAG" != "" ]] && echo "yes" || echo "no" );
 
     if [[ $release_latest == "yes" || $release_tag == "yes" ]]; then
-      ./contrib/bns-build.sh linux ;
+      ./contrib/gitian-build.sh linux ;
      tar -zxf $TRAVIS_BUILD_DIR/bns-build-linux/build/out/bnsd-${VERSION}-linux-amd64.tar.gz -C ${TRAVIS_BUILD_DIR} ;
      docker build --pull  --file ${TRAVIS_BUILD_DIR}/cmd/bnsd/Dockerfile --tag ${IMAGE_NAME} . ;
     fi;
