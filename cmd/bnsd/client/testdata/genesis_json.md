@@ -119,18 +119,18 @@ The role of the arbiter requires therefore a lot of trust which can be modeled w
 * `"timeout": 9223372036854775807` = very very high block height to never expire
 
 
-# gconf settings they can tweak (eg. anti-spam fee)
-gconf is a configuration store intended to be used as a global, in-database configuration. The anti spam fee is
-defined by the `cash:collector_address`and `cash:minimal_fee` keys. Like any weave address the collector address
+# conf settings they can tweak (eg. anti-spam fee)
+conf is a configuration store intended to be used as a global, in-database configuration. The anti spam fee is
+defined by the `collector_address`and `minimal_fee` keys. Like any weave address the collector address
 can also point to a contract to distribute the amount within a group.
 
 ```json
-  "gconf": {
-    "cash:collector_address": "cond:distribution/revenue/0000000000000001",
-     "cash:minimal_fee": "0.1 IOV"
+  "conf": {
+    "collector_address": "cond:distribution/revenue/0000000000000001",
+    "minimal_fee": "0.1 IOV"
   },
 ```
-* `"cash:collector_address": "cond:distribution/revenue/0000000000000001"`= distribution contract with ID=1
+* `"collector_address": "cond:distribution/revenue/0000000000000001"`= distribution contract with ID=1
 
 ### Setting product fees
 Our internal protbuf messages are identified by a unique bath that maps to the type. This path is the reference key to assign
