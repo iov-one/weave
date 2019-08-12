@@ -25,7 +25,12 @@ replace `user@example.com` with the GPG identity you want to sign the report wit
 ```sh
 ./contrib/gitian-build.sh -c -s user@example.com linux
 ```
+## OSX
+The gitian docker image expects an [apt-cacher instance](https://www.unix-ag.uni-kl.de/~bloch/acng/) running locally
+on port `3142` as proxy for the packages to install.
 
+See `contrib/apt-cacher` for a dockerfile to build and run it inside another container.
+ 
 ## GPG
 
 #### Generate key
