@@ -11,10 +11,10 @@ import (
 func TestLoadSave(t *testing.T) {
 	db := store.MemStore()
 	c := configuration{raw: "foobar"}
-	if err := Save(db, "gconf", &c); err != nil {
+	if err := Save(db, "conf", &c); err != nil {
 		t.Fatalf("cannot save configuration: %s", err)
 	}
-	if err := Load(db, "gconf", &c); err != nil {
+	if err := Load(db, "conf", &c); err != nil {
 		t.Fatalf("cannot load configuration: %s", err)
 	}
 }
