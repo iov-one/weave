@@ -28,17 +28,17 @@ replace `user@example.com` with the GPG identity you want to sign the report wit
 
 ## GPG
 
-# Generate key
+#### Generate key
  ```sh
 gpg --gen-key
 ```
 
-# List all keys in the key ring
+#### List all keys in the key ring
 ```sh
 gpg -k
 ```
 
-## Send your key to a remote server
+#### Send your key to a remote server
 ```sh
 gpg --send-keys 0x555DB64A
 ```
