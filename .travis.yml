@@ -9,11 +9,14 @@ addons:
   apt:
     packages:
     - docker-ce
+    - apt-cacher-ng
 
 cache:
   directories:
     - $HOME/.cache/go-build
     - $HOME/gopath/pkg/mod
+    - $TRAVIS_BUILD_DIR/.gitian-builder-cache
+    - /var/cache/apt-cacher-ng
 
 os:
 - linux
@@ -31,6 +34,9 @@ env:
     - MAIN_GO_VERSION=1.12
     - GORACE="halt_on_error=1"
     - FORCE_TM_TEST=1
+    - VERSION=$(git describe --tags | sed 's/^v//')
+    - COMMIT=$(git log -1 --format='%H')
+    - IMAGE_NAME="iov1/bnsd:${BUILD_VERSION}"
 
 install:
 - go get -d github.com/tendermint/tendermint/... ;
@@ -55,8 +61,10 @@ script:
     release_tag=$( [[ "$TRAVIS_TAG" != "" ]] && echo "yes" || echo "no" );
 
     if [[ $release_latest == "yes" || $release_tag == "yes" ]]; then
-      make dist;
-    fi
+      ./contrib/bns-build.sh linux ;
+     tar -zxf $TRAVIS_BUILD_DIR/bns-build-linux/build/out/bnsd-${VERSION}-linux-amd64.tar.gz -C ${TRAVIS_BUILD_DIR} ;
+     docker build --pull  --file ${TRAVIS_BUILD_DIR}/cmd/bnsd/Dockerfile --tag ${IMAGE_NAME} . ;
+    fi;
 
     if [[ $release_latest == "yes" ]]; then
       docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD";
@@ -73,7 +81,6 @@ script:
     fi;
   fi;
 
-
 notifications:
   email: false
 
@@ -83,3 +90,17 @@ branches:
   - master
   - launch
   - /^v[0-9]+\.[0-9]+\.[0-9]+$/
+
+deploy:
+  provider: releases
+  api_key:
+    ${GITHUB_API_KEY}
+  file:
+    - ${TRAVIS_BUILD_DIR}/bns-build-linux/build/out/bnsd-${VERSION}-linux-amd64.tar.gz
+    - ${TRAVIS_BUILD_DIR}/bns-build-linux/build/out/src/bnsd-${VERSION}.tar.gz
+    - ${TRAVIS_BUILD_DIR}/bns-build-linux/result/bns-linux-res.yml
+  skip_cleanup: true
+  on:
+    tags: true
+    condition: $TRAVIS_TAG =~ ^v[0-9]+\.[0-9]+\.[0-9]+$
+
