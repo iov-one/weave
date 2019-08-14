@@ -1,22 +1,14 @@
-# Binaries for programs and plugins
 *.exe
 *.dll
 *.so
 *.dylib
-
-# Output of the go coverage tool, specifically when used with LiteIDE
 *.out
-
 vendor
 coverage
 .vagrant
 *.log
 *.db
-
-# sphinx / readthedocs
 _build
-
-
-# IDES
 .vscode
 .gitian-builder-cache/
+bns-build-linux/
