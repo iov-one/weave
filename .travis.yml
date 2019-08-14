@@ -2,6 +2,8 @@ sudo: required
 
 language: go
 
+dist: bionic
+
 services:
 - docker
 
