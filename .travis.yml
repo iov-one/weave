@@ -48,6 +48,7 @@ install:
   cd -;
 
 script:
+- set -o pipefail
 - make protolint;
 - make protodocs;
 - make install;
