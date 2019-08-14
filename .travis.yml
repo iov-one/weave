@@ -2,6 +2,8 @@ sudo: required
 
 language: go
 
+dist: bionic
+
 services:
 - docker
 
@@ -46,6 +48,7 @@ install:
   cd -;
 
 script:
+- set -o pipefail
 - make protolint;
 - make protodocs;
 - make install;
