@@ -199,7 +199,8 @@ func refID(s string) ([]byte, error) {
 	}
 
 	ref := orm.VersionedIDRef{ID: encID, Version: version}
-	return ref.Marshal()
+
+	return orm.MarshalVersionedID(ref, true), nil
 }
 
 func addressID(s string) ([]byte, error) {
@@ -210,10 +211,11 @@ func refKey(raw []byte) (string, error) {
 	// Skip the prefix, being the characters before : (including separator)
 	val := raw[bytes.Index(raw, []byte(":"))+1:]
 
-	var ref orm.VersionedIDRef
-	if err := ref.Unmarshal(val); err != nil {
+	ref, err := orm.UnmarshalVersionedID(val)
+	if err != nil {
 		return "", fmt.Errorf("cannot unmarshal versioned key: %s", err)
 	}
+
 	id := binary.BigEndian.Uint64(ref.ID)
 	return fmt.Sprintf("%d/%d", id, ref.Version), nil
 }

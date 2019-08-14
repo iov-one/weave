@@ -99,7 +99,7 @@ func (b VersioningBucket) Get(db weave.ReadOnlyKVStore, key []byte) (Object, err
 // Object won't be nil in success case
 
 func (b VersioningBucket) GetVersion(db weave.ReadOnlyKVStore, ref VersionedIDRef) (Object, error) {
-	key := MarshalVersionedID(ref)
+	key := MarshalVersionedID(ref, false)
 	return b.Get(db, key)
 }
 
@@ -170,7 +170,7 @@ func (b VersioningBucket) Update(db weave.KVStore, id []byte, data versionedData
 
 // safeUpdate expects all validations have happened before
 func (b VersioningBucket) safeUpdate(db weave.KVStore, newVersionKey VersionedIDRef, data CloneableData) (*VersionedIDRef, error) {
-	key := MarshalVersionedID(newVersionKey)
+	key := MarshalVersionedID(newVersionKey, false)
 	// store new version
 	return &newVersionKey, b.Bucket.Save(db, NewSimpleObj(key, data))
 }
@@ -227,10 +227,15 @@ func (m marker) Equal(o []byte) bool {
 	return bytes.Equal(m, o)
 }
 
-func MarshalVersionedID(key VersionedIDRef) []byte {
+func MarshalVersionedID(key VersionedIDRef, omitEmptyVersion bool) []byte {
 	res := make([]byte, 0, len(key.ID)+versionMaxBytes)
 
 	res = append(res, key.ID...)
+
+	if omitEmptyVersion && key.Version == 0 {
+		return res
+	}
+
 	buf := make([]byte, versionMaxBytes)
 	binary.BigEndian.PutUint32(buf, key.Version)
 	res = append(res, buf...)

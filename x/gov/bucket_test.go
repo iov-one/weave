@@ -171,17 +171,17 @@ func TestQueryElectorate(t *testing.T) {
 	}{
 		"By ID and first version": {
 			path: "/electorates",
-			data: orm.MarshalVersionedID(*vRefV1),
+			data: orm.MarshalVersionedID(*vRefV1, false),
 			exp:  []Electorate{electorateV1},
 		},
 		"By ID and second version": {
 			path: "/electorates",
-			data: orm.MarshalVersionedID(*vRefV2),
+			data: orm.MarshalVersionedID(*vRefV2, false),
 			exp:  []Electorate{electorateV2},
 		},
 		"By ID and unknown version": {
 			path: "/electorates",
-			data: orm.MarshalVersionedID(orm.VersionedIDRef{ID: vRefV1.ID, Version: 99}),
+			data: orm.MarshalVersionedID(orm.VersionedIDRef{ID: vRefV1.ID, Version: 99}, false),
 		},
 		"By prefix query and ID": {
 			path:      "/electorates",
@@ -191,11 +191,11 @@ func TestQueryElectorate(t *testing.T) {
 		},
 		"By unknown ID": {
 			path: "/electorates",
-			data: orm.MarshalVersionedID(orm.VersionedIDRef{ID: []byte{0x1}, Version: 1}),
+			data: orm.MarshalVersionedID(orm.VersionedIDRef{ID: []byte{0x1}, Version: 1}, false),
 		},
 		"By unknown key": {
 			path: "/electorates",
-			data: []byte{0x1},
+			data: orm.MarshalVersionedID(orm.VersionedIDRef{ID: []byte{0x1}}, true),
 		},
 	}
 
