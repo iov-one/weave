@@ -1,4 +1,4 @@
-## What is Gitian
+# What is Gitian
 
 >Gitian is a secure source-control oriented software distribution method. This means you can download trusted binaries that are verified by multiple builders.
 
@@ -33,17 +33,17 @@ See `contrib/apt-cacher` for a dockerfile to build and run it inside another con
  
 ## GPG
 
-#### Generate key
+### Generate key
  ```sh
 gpg --gen-key
 ```
 
-#### List all keys in the key ring
+### List all keys in the key ring
 ```sh
 gpg -k
 ```
 
-#### Send your key to a remote server
+### Send your key to a remote server
 ```sh
 gpg --send-keys 0x555DB64A
 ```
