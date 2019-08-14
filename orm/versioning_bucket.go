@@ -227,6 +227,10 @@ func (m marker) Equal(o []byte) bool {
 	return bytes.Equal(m, o)
 }
 
+// MarshalVersionedID is used to guarantee determinism while serializing a VersionedIDRef.
+// It comes with the option to omit empty version should you want to do a prefix query.
+// This flag should be set to false when writing to the underlying storage as we depend
+// on the fact that last 4 bytes of the IDRef are used for version in UnmarshalVersionedID.
 func MarshalVersionedID(key VersionedIDRef, omitEmptyVersion bool) []byte {
 	res := make([]byte, 0, len(key.ID)+versionMaxBytes)
 
@@ -243,6 +247,8 @@ func MarshalVersionedID(key VersionedIDRef, omitEmptyVersion bool) []byte {
 	return res
 }
 
+// UnmarshalVersionedID is used to deserialize a VersionedIDRef from a deterministic format.
+// It expects version to be stored in the last 4 bytes of the passed slice.
 func UnmarshalVersionedID(b []byte) (VersionedIDRef, error) {
 	// Sanity-check this value to be greater than just version.
 	if len(b) < 5 {
