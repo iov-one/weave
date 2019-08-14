@@ -8,6 +8,8 @@ import (
 	"github.com/iov-one/weave/errors"
 )
 
+const versionMaxBytes = 4
+
 type VersioningBucket struct {
 	IDGenBucket
 }
@@ -226,10 +228,10 @@ func (m marker) Equal(o []byte) bool {
 }
 
 func MarshalVersionedID(key VersionedIDRef) []byte {
-	res := make([]byte, 0, len(key.ID)+4)
+	res := make([]byte, 0, len(key.ID)+versionMaxBytes)
 
 	res = append(res, key.ID...)
-	buf := make([]byte, 4)
+	buf := make([]byte, versionMaxBytes)
 	binary.BigEndian.PutUint32(buf, key.Version)
 	res = append(res, buf...)
 
@@ -242,8 +244,8 @@ func UnmarshalVersionedID(b []byte) (VersionedIDRef, error) {
 		return VersionedIDRef{}, errors.Wrap(errors.ErrState, "versioned id too small")
 	}
 
-	id := b[0 : len(b)-4]
-	version := b[len(b)-4:]
+	id := b[0 : len(b)-versionMaxBytes]
+	version := b[len(b)-versionMaxBytes:]
 
 	return VersionedIDRef{
 		ID:      id,
