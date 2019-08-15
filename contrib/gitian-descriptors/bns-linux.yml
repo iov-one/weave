@@ -53,7 +53,7 @@ script: |
 
   # Make release tarball
   pushd weave
-  VERSION=$(git describe --tags | sed 's/^v//')
+  VERSION=$(git describe --tags --abbrev=9 | sed 's/^v//')
   COMMIT=$(git log -1 --format='%H')
   DISTNAME=bnsd-${VERSION}
   git archive --format tar.gz --prefix ${DISTNAME}/ -o ${DISTNAME}.tar.gz HEAD
