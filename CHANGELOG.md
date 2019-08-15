@@ -8,7 +8,8 @@
 when parsing large json objects.
 - `cmd/bnscli`: when a transaction is submitted, for certain messages parse
   returned response data and print it in a human readable format.
-
+- `clean_protos.sh` appends `option go_package = "github.com/iov-one/weave";`
+  to prevent protoc error in weave based frameworks
 Breaking changes
 
 - `cmd/bnscli`: `keygen` command was updated and requires a mnemonic to
