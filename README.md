@@ -89,6 +89,11 @@ Once it compiles, I highly suggest going through the
 
 | Weave | Tendermint |
 |--------|-----------|
+|v0.20.x | v0.31.5|
+|v0.19.x | v0.31.5|
+|v0.18.x | v0.31.5|
+|v0.17.x | v0.31.5|
+|v0.16.x | v0.31.5|
 |v0.15.x | v0.31.5|
 |v0.14.x | v0.29.1|
 |v0.13.0 | v0.29.1|
@@ -100,6 +105,11 @@ Once it compiles, I highly suggest going through the
 
 | Weave | Protobuf compatible to previous version| Comments |
 |--------|--------------------|------------------|
+|v0.20.0 | :heavy_check_mark:| See [CHANGELOG for 0.20.0](https://github.com/iov-one/weave/blob/master/CHANGELOG.md#0200) |
+|v0.19.0 | :x:| See [CHANGELOG for 0.19.0](https://github.com/iov-one/weave/blob/master/CHANGELOG.md#0190) |
+|v0.18.0 | :x:| See [CHANGELOG for 0.18.0](https://github.com/iov-one/weave/blob/master/CHANGELOG.md#0180) |
+|v0.17.0 | :x:| See [CHANGELOG for 0.17.0](https://github.com/iov-one/weave/blob/master/CHANGELOG.md#0170) |
+|v0.16.0 | :x:| See [CHANGELOG for 0.16.0](https://github.com/iov-one/weave/blob/master/CHANGELOG.md#0160) |
 |v0.15.0 | :x:| See [CHANGELOG for 0.15.0](https://github.com/iov-one/weave/blob/master/CHANGELOG.md#0150) |
 |v0.14.0 | :x:| See [CHANGELOG for 0.14.0](https://github.com/iov-one/weave/blob/master/CHANGELOG.md#0140) |
 |v0.13.0 | :x:| Changes in `x/multisig` - signer weights added. |
