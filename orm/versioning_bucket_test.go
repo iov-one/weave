@@ -10,7 +10,37 @@ import (
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/store"
 	"github.com/iov-one/weave/weavetest"
+	"github.com/iov-one/weave/weavetest/assert"
 )
+
+func TesVersionedIDSerialization(t *testing.T) {
+	specs := map[string]struct {
+		src    *VersionedIDRef
+		expErr *errors.Error
+	}{
+		"With zero version": {
+			src: &VersionedIDRef{ID: []byte("anyValue")},
+		},
+		"Version set": {
+			src: &VersionedIDRef{ID: []byte("anyValue"), Version: 2},
+		},
+		"Empty ID": {
+			src:    &VersionedIDRef{ID: nil, Version: 2},
+			expErr: errors.ErrState,
+		},
+	}
+
+	for msg, spec := range specs {
+		t.Run(msg, func(t *testing.T) {
+			res := MarshalVersionedID(*spec.src)
+			resRef, err := UnmarshalVersionedID(res)
+			assert.IsErr(t, spec.expErr, err)
+			if spec.expErr == nil {
+				assert.Equal(t, *spec.src, resRef)
+			}
+		})
+	}
+}
 
 func TestGetLatestVersion(t *testing.T) {
 	bucketImpl := NewBucket("any", NewSimpleObj(nil, &VersionedIDRef{}))

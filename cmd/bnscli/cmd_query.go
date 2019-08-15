@@ -200,7 +200,11 @@ func refID(s string) ([]byte, error) {
 
 	ref := orm.VersionedIDRef{ID: encID, Version: version}
 
-	return orm.MarshalVersionedID(ref, true), nil
+	if ref.Version == 0 {
+		return ref.ID, nil
+	}
+
+	return orm.MarshalVersionedID(ref), nil
 }
 
 func addressID(s string) ([]byte, error) {

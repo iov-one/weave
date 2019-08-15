@@ -99,7 +99,7 @@ func (b VersioningBucket) Get(db weave.ReadOnlyKVStore, key []byte) (Object, err
 // Object won't be nil in success case
 
 func (b VersioningBucket) GetVersion(db weave.ReadOnlyKVStore, ref VersionedIDRef) (Object, error) {
-	key := MarshalVersionedID(ref, false)
+	key := MarshalVersionedID(ref)
 	return b.Get(db, key)
 }
 
@@ -170,7 +170,7 @@ func (b VersioningBucket) Update(db weave.KVStore, id []byte, data versionedData
 
 // safeUpdate expects all validations have happened before
 func (b VersioningBucket) safeUpdate(db weave.KVStore, newVersionKey VersionedIDRef, data CloneableData) (*VersionedIDRef, error) {
-	key := MarshalVersionedID(newVersionKey, false)
+	key := MarshalVersionedID(newVersionKey)
 	// store new version
 	return &newVersionKey, b.Bucket.Save(db, NewSimpleObj(key, data))
 }
@@ -229,16 +229,9 @@ func (m marker) Equal(o []byte) bool {
 
 // MarshalVersionedID is used to guarantee determinism while serializing a VersionedIDRef.
 // It comes with the option to omit empty version should you want to do a prefix query.
-// This flag should be set to false when writing to the underlying storage as we depend
-// on the fact that last 4 bytes of the IDRef are used for version in UnmarshalVersionedID.
-func MarshalVersionedID(key VersionedIDRef, omitEmptyVersion bool) []byte {
+func MarshalVersionedID(key VersionedIDRef) []byte {
 	res := make([]byte, 0, len(key.ID)+versionSize)
-
 	res = append(res, key.ID...)
-
-	if omitEmptyVersion && key.Version == 0 {
-		return res
-	}
 
 	buf := make([]byte, versionSize)
 	binary.BigEndian.PutUint32(buf, key.Version)
