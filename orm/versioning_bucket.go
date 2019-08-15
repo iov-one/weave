@@ -2,10 +2,13 @@ package orm
 
 import (
 	"bytes"
+	"encoding/binary"
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
 )
+
+const versionSize = 4
 
 type VersioningBucket struct {
 	IDGenBucket
@@ -37,11 +40,7 @@ func WithVersioning(b IDGenBucket) VersioningBucket {
 //  - ErrDeleted when deleted
 // Object won't be nil in success case
 func (b VersioningBucket) GetLatestVersion(db weave.ReadOnlyKVStore, id []byte) (*VersionedIDRef, Object, error) {
-	idWithoutVersion := VersionedIDRef{ID: id}
-	prefix, err := idWithoutVersion.Marshal()
-	if err != nil {
-		return nil, nil, errors.Wrap(err, "failed to marshal versioned ID ref")
-	}
+	prefix := id
 	dbKeyLength := len(b.DBKey(prefix)) - len(prefix)
 	matches, err := b.Query(db, weave.PrefixQueryMod, prefix)
 	if err != nil {
@@ -51,9 +50,9 @@ func (b VersioningBucket) GetLatestVersion(db weave.ReadOnlyKVStore, id []byte) 
 	var highestVersion VersionedIDRef
 	var found weave.Model
 	for _, m := range matches {
-		var vID VersionedIDRef
 		idData := m.Key[dbKeyLength:]
-		if err := vID.Unmarshal(idData); err != nil {
+		vID, err := UnmarshalVersionedID(idData)
+		if err != nil {
 			return nil, nil, errors.Wrap(err, "wrong key type")
 		}
 		if vID.Version > highestVersion.Version {
@@ -100,10 +99,7 @@ func (b VersioningBucket) Get(db weave.ReadOnlyKVStore, key []byte) (Object, err
 // Object won't be nil in success case
 
 func (b VersioningBucket) GetVersion(db weave.ReadOnlyKVStore, ref VersionedIDRef) (Object, error) {
-	key, err := ref.Marshal()
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to unmarshal version id key")
-	}
+	key := MarshalVersionedID(ref)
 	return b.Get(db, key)
 }
 
@@ -174,10 +170,7 @@ func (b VersioningBucket) Update(db weave.KVStore, id []byte, data versionedData
 
 // safeUpdate expects all validations have happened before
 func (b VersioningBucket) safeUpdate(db weave.KVStore, newVersionKey VersionedIDRef, data CloneableData) (*VersionedIDRef, error) {
-	key, err := newVersionKey.Marshal()
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to marshall versioned id ref")
-	}
+	key := MarshalVersionedID(newVersionKey)
 	// store new version
 	return &newVersionKey, b.Bucket.Save(db, NewSimpleObj(key, data))
 }
@@ -232,4 +225,34 @@ func (marker) Copy() CloneableData {
 
 func (m marker) Equal(o []byte) bool {
 	return bytes.Equal(m, o)
+}
+
+// MarshalVersionedID is used to guarantee determinism while serializing a VersionedIDRef.
+// It comes with the option to omit empty version should you want to do a prefix query.
+func MarshalVersionedID(key VersionedIDRef) []byte {
+	res := make([]byte, 0, len(key.ID)+versionSize)
+	res = append(res, key.ID...)
+
+	buf := make([]byte, versionSize)
+	binary.BigEndian.PutUint32(buf, key.Version)
+	res = append(res, buf...)
+
+	return res
+}
+
+// UnmarshalVersionedID is used to deserialize a VersionedIDRef from a deterministic format.
+// It expects version to be stored in the last 4 bytes of the passed slice.
+func UnmarshalVersionedID(b []byte) (VersionedIDRef, error) {
+	// Sanity-check this value to be greater than just version.
+	if len(b) < 5 {
+		return VersionedIDRef{}, errors.Wrap(errors.ErrState, "versioned id too small")
+	}
+
+	id := b[0 : len(b)-versionSize]
+	version := b[len(b)-versionSize:]
+
+	return VersionedIDRef{
+		ID:      id,
+		Version: binary.BigEndian.Uint32(version),
+	}, nil
 }

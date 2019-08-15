@@ -13,6 +13,8 @@ Breaking changes
 
 - `cmd/bnscli`: `keygen` command was updated and requires a mnemonic to
   generate a key.
+- `orm`: `VersionedIDRef` is now de/serialized by appending BigEndian ID and BigEndian Version
+- `cmd/bnscli`: now expects VersionedIDRef to be serialised using the new format
 
 
 ## 0.20.0
