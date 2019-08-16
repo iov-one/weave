@@ -13,7 +13,7 @@ import (
 	"github.com/iov-one/weave/weavetest/assert"
 )
 
-func TesVersionedIDSerialization(t *testing.T) {
+func TestVersionedIDSerialization(t *testing.T) {
 	specs := map[string]struct {
 		src    *VersionedIDRef
 		expErr *errors.Error
