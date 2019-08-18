@@ -39,3 +39,6 @@ echo "Outputing protobuf files:"
   done < tmp
   rm tmp
 )
+
+echo $'\noption go_package = "github.com/iov-one/weave";' >> spec/gogo/codec.proto
+echo $'\noption go_package = "github.com/iov-one/weave";' >> spec/proto/codec.proto

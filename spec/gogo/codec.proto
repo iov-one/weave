@@ -29,3 +29,5 @@ message PubKey {
   string type = 1;
   bytes data = 2;
 }
+
+option go_package = "github.com/iov-one/weave";
