@@ -121,7 +121,6 @@ You can view the [documentation for all packages used in the `bns` app](http://h
 Or generate it yourself:
 
 ```shell
-make prototools
 make protodocs
 open ./docs/proto/index.html
 ```
