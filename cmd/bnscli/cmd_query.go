@@ -18,7 +18,10 @@ import (
 	"github.com/iov-one/weave/cmd/bnsd/x/username"
 	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/x/cash"
+	"github.com/iov-one/weave/x/distribution"
+	"github.com/iov-one/weave/x/escrow"
 	"github.com/iov-one/weave/x/gov"
+	"github.com/iov-one/weave/x/multisig"
 )
 
 func cmdQuery(input io.Reader, output io.Writer, args []string) error {
@@ -163,6 +166,21 @@ var queries = map[string]struct {
 		newObj: func() model { return &cash.Set{} },
 		decKey: rawKey,
 		encID:  addressID,
+	},
+	"/escrows": {
+		newObj: func() model { return &escrow.Escrow{} },
+		decKey: sequenceKey,
+		encID:  numericID,
+	},
+	"/revenues": {
+		newObj: func() model { return &distribution.Revenue{} },
+		decKey: sequenceKey,
+		encID:  numericID,
+	},
+	"/contracts": {
+		newObj: func() model { return &multisig.Contract{} },
+		decKey: sequenceKey,
+		encID:  numericID,
 	},
 }
 
