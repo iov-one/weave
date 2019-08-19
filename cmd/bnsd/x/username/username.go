@@ -67,7 +67,7 @@ func (u Username) Validate() error {
 }
 
 var (
-	validName = regexp.MustCompile(`^[a-z0-9\-\._]{0,64}$`).MatchString
+	validName = regexp.MustCompile(`^[a-z0-9\-._]{0,64}$`).MatchString
 	// Currently only IOV namespace is supported. This is a public
 	// namespace that anyone can register in an IOV owns. This limitation
 	// exists because for the MVP release we do not provide a way to
