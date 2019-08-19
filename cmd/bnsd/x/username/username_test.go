@@ -30,40 +30,37 @@ func TestUsername(t *testing.T) {
 			WantDomain: "iov",
 		},
 		"too long name": {
-			Raw:        strings.Repeat("x", 65) + "*iov",
-			WantName:   strings.Repeat("x", 65),
-			WantDomain: "iov",
-			WantErr:    errors.ErrInput,
+			Raw:     strings.Repeat("x", 65) + "*iov",
+			WantErr: errors.ErrInput,
+		},
+		"space is not an allowed character": {
+			Raw:     `foo bar*iov`,
+			WantErr: errors.ErrInput,
 		},
 		"all valid characters in name": {
-			Raw:        `abcdefghijklmnopqrstuvwxyz 0123456789.-_*iov`,
-			WantName:   `abcdefghijklmnopqrstuvwxyz 0123456789.-_`,
+			Raw:        `abcdefghijklmnopqrstuvwxyz0123456789.-_*iov`,
+			WantName:   `abcdefghijklmnopqrstuvwxyz0123456789.-_`,
 			WantDomain: "iov",
-			WantErr:    errors.ErrInput,
+		},
+		"double separator": {
+			Raw:     "foo*bar*iov",
+			WantErr: errors.ErrInput,
 		},
 		"missing domain": {
-			Raw:        "foo*",
-			WantErr:    errors.ErrInput,
-			WantName:   "foo",
-			WantDomain: "",
+			Raw:     "foo*",
+			WantErr: errors.ErrInput,
 		},
 		"missing separator": {
-			Raw:        "xyz",
-			WantErr:    errors.ErrInput,
-			WantName:   "",
-			WantDomain: "",
+			Raw:     "xyz",
+			WantErr: errors.ErrInput,
 		},
 		"invalid characters (emoji)": {
-			Raw:        "😈*iov",
-			WantErr:    errors.ErrInput,
-			WantName:   "😈",
-			WantDomain: "iov",
+			Raw:     "😈*iov",
+			WantErr: errors.ErrInput,
 		},
 		"invalid domain name (only iov is allowed)": {
-			Raw:        "extreme*expert",
-			WantErr:    errors.ErrInput,
-			WantName:   "extreme",
-			WantDomain: "expert",
+			Raw:     "extreme*expert",
+			WantErr: errors.ErrInput,
 		},
 	}
 
@@ -72,6 +69,12 @@ func TestUsername(t *testing.T) {
 			u, err := ParseUsername(tc.Raw)
 			if !tc.WantErr.Is(err) {
 				t.Fatalf("unexpected error: %v", err)
+			}
+			if tc.WantErr != nil {
+				// Cut short the test because the returned
+				// username is not valid and therefore
+				// undefined.
+				return
 			}
 
 			if n := u.Name(); n != tc.WantName {
