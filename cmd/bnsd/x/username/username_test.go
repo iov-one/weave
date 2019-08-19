@@ -20,8 +20,8 @@ func TestUsername(t *testing.T) {
 			WantDomain: "iov",
 		},
 		"shortest valid name and domain": {
-			Raw:        strings.Repeat("x", 4) + "*iov",
-			WantName:   strings.Repeat("x", 4),
+			Raw:        "*iov",
+			WantName:   "",
 			WantDomain: "iov",
 		},
 		"longest valid name and domain": {
@@ -30,27 +30,15 @@ func TestUsername(t *testing.T) {
 			WantDomain: "iov",
 		},
 		"too long name": {
-			Raw:        strings.Repeat("x", 65) + "*" + strings.Repeat("x", 6),
+			Raw:        strings.Repeat("x", 65) + "*iov",
 			WantName:   strings.Repeat("x", 65),
-			WantDomain: strings.Repeat("x", 6),
+			WantDomain: "iov",
 			WantErr:    errors.ErrInput,
 		},
-		"too long domain": {
-			Raw:        strings.Repeat("x", 8) + "*" + strings.Repeat("x", 17),
-			WantName:   strings.Repeat("x", 8),
-			WantDomain: strings.Repeat("x", 17),
-			WantErr:    errors.ErrInput,
-		},
-		"too short name": {
-			Raw:        strings.Repeat("x", 3) + "*" + strings.Repeat("x", 6),
-			WantName:   strings.Repeat("x", 3),
-			WantDomain: strings.Repeat("x", 6),
-			WantErr:    errors.ErrInput,
-		},
-		"too short domain": {
-			Raw:        strings.Repeat("x", 8) + "*" + strings.Repeat("x", 2),
-			WantName:   strings.Repeat("x", 8),
-			WantDomain: strings.Repeat("x", 2),
+		"all valid characters in name": {
+			Raw:        `abcdefghijklmnopqrstuvwxyz 0123456789.-_*iov`,
+			WantName:   `abcdefghijklmnopqrstuvwxyz 0123456789.-_`,
+			WantDomain: "iov",
 			WantErr:    errors.ErrInput,
 		},
 		"missing domain": {
@@ -59,12 +47,6 @@ func TestUsername(t *testing.T) {
 			WantName:   "foo",
 			WantDomain: "",
 		},
-		"missing name": {
-			Raw:        "*iov",
-			WantErr:    errors.ErrInput,
-			WantName:   "",
-			WantDomain: "iov",
-		},
 		"missing separator": {
 			Raw:        "xyz",
 			WantErr:    errors.ErrInput,
@@ -72,12 +54,12 @@ func TestUsername(t *testing.T) {
 			WantDomain: "",
 		},
 		"invalid characters (emoji)": {
-			Raw:        "😈*😀",
+			Raw:        "😈*iov",
 			WantErr:    errors.ErrInput,
 			WantName:   "😈",
-			WantDomain: "😀",
+			WantDomain: "iov",
 		},
-		"invalid domain name": {
+		"invalid domain name (only iov is allowed)": {
 			Raw:        "extreme*expert",
 			WantErr:    errors.ErrInput,
 			WantName:   "extreme",

@@ -3,6 +3,7 @@ package username
 import (
 	"encoding/json"
 	"regexp"
+	"strings"
 
 	"github.com/iov-one/weave/errors"
 )
@@ -49,25 +50,30 @@ func (u Username) String() string {
 }
 
 func (u Username) Validate() error {
-	if !validUsername(string(u)) {
-		return errors.Wrap(errors.ErrInput, "invalid username")
+	const usernameSeparator = `*`
+	chunks := strings.SplitN(string(u), usernameSeparator, 2)
+	if len(chunks) != 2 {
+		return errors.Wrap(errors.ErrInput, "missing separator")
 	}
 
+	var errs error
+	if !validName(chunks[0]) {
+		errs = errors.AppendField(errs, "Name", errors.ErrInput)
+	}
+	if !validNamespace(chunks[1]) {
+		errs = errors.AppendField(errs, "Namespace", errors.ErrInput)
+	}
+	return errs
+}
+
+var (
+	validName = regexp.MustCompile(`^[a-z0-9\-\._]{0,64}$`).MatchString
 	// Currently only IOV namespace is supported. This is a public
 	// namespace that anyone can register in an IOV owns. This limitation
 	// exists because for the MVP release we do not provide a way to
 	// register and manage namespaces.
-	if u.Domain() != "iov" {
-		return errors.Field("Domain", errors.ErrInput, "invalid namespace")
-	}
-
-	return nil
-}
-
-// validUsername returns true if a username (name + domain) string is valid.
-var validUsername = regexp.MustCompile(`^` + validChar + `{4,64}\*` + validChar + `{3,16}$`).MatchString
-
-const validChar = `[a-z0-9\.,\+\-_@]`
+	validNamespace = regexp.MustCompile(`^iov$`).MatchString
+)
 
 // Unmarshal JSON implementes unmarshaler interface.
 // Ensure that the decoded username is valid.

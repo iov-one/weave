@@ -16,6 +16,8 @@ Breaking changes
   generate a key.
 - `orm`: `VersionedIDRef` is now de/serialized by appending BigEndian ID and BigEndian Version
 - `cmd/bnscli`: now expects VersionedIDRef to be serialised using the new format
+- `bnsd/x/username`: username validation rules were updated to be more
+  restrictive.
 
 
 ## 0.20.0
