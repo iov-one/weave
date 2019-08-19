@@ -36,7 +36,7 @@ env:
     - MAIN_GO_VERSION=1.12
     - GORACE="halt_on_error=1"
     - FORCE_TM_TEST=1
-    - VERSION=$(git describe --tags | sed 's/^v//')
+    - VERSION=$(git describe --tags --abbrev=9 | sed 's/^v//')
     - COMMIT=$(git log -1 --format='%H')
     - IMAGE_NAME="iov1/bnsd:${BUILD_VERSION}"
 
@@ -48,7 +48,7 @@ install:
   cd -;
 
 script:
-- set -o pipefail
+- set -eo pipefail
 - make protolint;
 - make protodocs;
 - make install;
