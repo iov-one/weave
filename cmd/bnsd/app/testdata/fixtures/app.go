@@ -8,9 +8,12 @@ import (
 
 	"github.com/iov-one/weave"
 	bnsd "github.com/iov-one/weave/cmd/bnsd/app"
+	"github.com/iov-one/weave/cmd/bnsd/x/username"
 	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/commands/server"
 	"github.com/iov-one/weave/crypto"
+	"github.com/iov-one/weave/migration"
+	"github.com/iov-one/weave/x/cash"
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
 )
@@ -79,12 +82,17 @@ func appStateGenesis(keyAddress weave.Address) []byte {
 			},
 		},
 		"conf": dict{
-			"cash": dict{
-				"collector_address": "seq:dist/revenue/1",
-				"minimal_fee":       "0.01 FRNK",
+			"cash": cash.Configuration{
+				CollectorAddress: mustParseAddr("seq:dist/revenue/1"),
+				MinimalFee:       coin.NewCoin(0, 10000, "FRNK"),
 			},
-			"migration": dict{
-				"admin": "seq:multisig/usage/1",
+			"migration": migration.Configuration{
+				Admin: mustParseAddr("seq:multisig/usage/1"),
+			},
+			"username": username.Configuration{
+				Owner:              mustParseAddr("seq:uname/admin/1"),
+				ValidUsernameName:  `^[a-z0-9\-_.]{3,64}$`,
+				ValidUsernameLabel: `^iov$`,
 			},
 		},
 		"initialize_schema": []dict{
@@ -168,4 +176,13 @@ func appStateGenesis(keyAddress weave.Address) []byte {
 		panic(err)
 	}
 	return appState
+}
+
+func mustParseAddr(raw string) weave.Address {
+	a, err := weave.ParseAddress(raw)
+	if err != nil {
+		msg := fmt.Sprintf("cannot parse %q address: %s", raw, err)
+		panic(msg)
+	}
+	return a
 }

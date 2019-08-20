@@ -241,6 +241,10 @@
                 </li>
               
                 <li>
+                  <a href="#username.Configuration"><span class="badge">M</span>Configuration</a>
+                </li>
+              
+                <li>
                   <a href="#username.RegisterTokenMsg"><span class="badge">M</span>RegisterTokenMsg</a>
                 </li>
               
@@ -250,6 +254,10 @@
               
                 <li>
                   <a href="#username.TransferTokenMsg"><span class="badge">M</span>TransferTokenMsg</a>
+                </li>
+              
+                <li>
+                  <a href="#username.UpdateConfigurationMsg"><span class="badge">M</span>UpdateConfigurationMsg</a>
                 </li>
               
               
@@ -1587,6 +1595,54 @@ to after the change. Old list is overwritten with what is provided. </p></td>
 
         
       
+        <h3 id="username.Configuration">Configuration</h3>
+        <p>Configuration is a dynamic configuration used by this extension, managed by</p><p>the functionality provided by gconf package.</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>metadata</td>
+                  <td><a href="#weave.Metadata">weave.Metadata</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>owner</td>
+                  <td><a href="#bytes">bytes</a></td>
+                  <td></td>
+                  <td><p>Owner is present to implement gconf.OwnedConfig interface
+This defines the Address that is allowed to update the Configuration object and is
+needed to make use of gconf.NewUpdateConfigurationHandler </p></td>
+                </tr>
+              
+                <tr>
+                  <td>valid_username_name</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p>Valid username name defines a regular expression that every valid
+username part name must match (a username is &lt;name&gt;*&lt;label&gt;) </p></td>
+                </tr>
+              
+                <tr>
+                  <td>valid_username_label</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p>Valid username label defines a regular expression that every valid
+namespace label must match (a username is &lt;name&gt;*&lt;label&gt;) </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+        
+
+        
+      
         <h3 id="username.RegisterTokenMsg">RegisterTokenMsg</h3>
         <p>RegisterTokenMsg is creating a new username token. The owner is always set</p><p>to the main signer.</p>
 
@@ -1692,6 +1748,36 @@ modify a username token. </p></td>
                   <td><a href="#bytes">bytes</a></td>
                   <td></td>
                   <td><p>Owner is a weave address that will owns this token after the change. </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+        
+
+        
+      
+        <h3 id="username.UpdateConfigurationMsg">UpdateConfigurationMsg</h3>
+        <p>UpdateConfigurationMsg is used by the gconf extension to update the</p><p>configuration.</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>metadata</td>
+                  <td><a href="#weave.Metadata">weave.Metadata</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>patch</td>
+                  <td><a href="#username.Configuration">Configuration</a></td>
+                  <td></td>
+                  <td><p> </p></td>
                 </tr>
               
             </tbody>

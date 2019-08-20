@@ -1,128 +1,134 @@
 {
-"genesis_time": "2019-03-19T15:32:11.118591Z",
-"chain_id": "bns-zebranet",
-"validators": [],
-"consensus_params": {
-  "block": {
-    "max_bytes": "22020096",
-    "max_gas": "-1",
-    "time_iota_ms": "1000"
+  "genesis_time": "2019-03-19T15:32:11.118591Z",
+  "chain_id": "bns-zebranet",
+  "validators": [],
+  "consensus_params": {
+    "block": {
+      "max_bytes": "22020096",
+      "max_gas": "-1",
+      "time_iota_ms": "1000"
+    },
+    "evidence": {
+      "max_age": "100000"
+    },
+    "validator": {
+      "pub_key_types": [
+        "ed25519"
+      ]
+    }
   },
-  "evidence": {
-    "max_age": "100000"
-  },
-  "validator": {
-    "pub_key_types": [
-      "ed25519"
-  ]}
-},
-"app_hash": "",
- "app_state": {
-   "cash": [
-     {
-       "address": "3afcdab4cfbf066e959d139251c8f0ee91e99d5a",
-       "//name": "admin",
-       "coins": [
-         {
-           "whole": 123456789,
-           "ticker": "CASH"
-         }
-       ]
-     },
-     {
-       "address": "12affbf6012fd2df21416582dc80cbf1efdf2460",
-       "//name": "second",
-       "coins": [
-         {
-           "whole": 987654321,
-           "ticker": "CASH"
-         }
-       ]
-     }
-   ],
-   "currencies": [
-     {
-       "ticker": "CASH",
-       "name": "Main token of this chain"
-     }
-   ],
-   "multisig": [
-     {
-       "activation_threshold": 1,
-       "admin_threshold": 1,
-       "participants": [
-         {"weight": 1, "signature": "E28AE9A6EB94FC88B73EB7CBD6B87BF93EB9BEF0"}
-       ]
-     }
-   ],
-   "update_validators": {
-     "addresses": [
-       "cond:multisig/usage/0000000000000001"
-     ]
-   },
-   "distribution": [
-     {
-       "admin": "cond:multisig/usage/0000000000000001",
-       "recipients": [
-         {
-           "address": "0E95C039EF14EE329D0E09D84F909CF9EB5EF472",
-           "weight": 1
-         }
-       ]
-     }
-   ],
-   "escrow": [
-     {
-       "amount": [
-         {
-           "ticker": "CASH",
-           "whole": 1000000
-         }
-       ],
-       "arbiter": "multisig/usage/0000000000000001",
-       "destination": "cond:dist/revenue/0000000000000001",
-       "source": "0000000000000000000000000000000000000000",
-       "timeout": "2999-12-31T00:00:00Z"
-     }
-   ],
-   "gconf": {
-     "cash:collector_address": "cond:dist/revenue/0000000000000001",
-     "cash:minimal_fee": {
-       "fractional": 100000000,
-       "ticker": "CASH",
-       "//amount": "0.1CASH"
-     }
-   },
-   "msgfee": [
-     {
-       "fee": {
-         "whole": 2,
-         "ticker": "CASH"
-       },
-       "msg_path": "distribution/create"
-     },
-     {
-       "fee": {
-         "fractional": 200000000,
-         "ticker": "CASH",
-         "//amount": "0.2CASH"
-       },
-       "msg_path": "distribution/distribute"
-     },
-     {
-       "fee": {
-         "whole": 1,
-         "ticker": "CASH"
-       },
-       "msg_path": "distribution/reset"
-     },
-     {
-       "fee": {
-         "whole": 5,
-         "ticker": "CASH"
-       },
-       "msg_path": "username/transfer_token"
-     }
-   ]
-   }
- }
+  "app_hash": "",
+  "app_state": {
+    "conf": {
+      "migration": {
+        "admin": "E28AE9A6EB94FC88B73EB7CBD6B87BF93EB9BEF0"
+      },
+      "username": {
+        "owner": "cond:admin/admin/0000000000000001",
+        "valid_username_name": "^[a-z0-9\\-_.]{3,64}$",
+        "valid_username_label": "^iov$"
+      }
+    },
+    "cash": [
+      {
+        "address": "3afcdab4cfbf066e959d139251c8f0ee91e99d5a",
+        "//name": "admin",
+        "coins": [
+          {
+            "whole": 123456789,
+            "ticker": "CASH"
+          }
+        ]
+      },
+      {
+        "address": "12affbf6012fd2df21416582dc80cbf1efdf2460",
+        "//name": "second",
+        "coins": [
+          {
+            "whole": 987654321,
+            "ticker": "CASH"
+          }
+        ]
+      }
+    ],
+    "currencies": [
+      {
+        "ticker": "CASH",
+        "name": "Main token of this chain"
+      }
+    ],
+    "multisig": [
+      {
+        "activation_threshold": 1,
+        "admin_threshold": 1,
+        "participants": [
+          {
+            "weight": 1,
+            "signature": "E28AE9A6EB94FC88B73EB7CBD6B87BF93EB9BEF0"
+          }
+        ]
+      }
+    ],
+    "update_validators": {
+      "addresses": [
+        "cond:multisig/usage/0000000000000001"
+      ]
+    },
+    "distribution": [
+      {
+        "admin": "cond:multisig/usage/0000000000000001",
+        "recipients": [
+          {
+            "address": "0E95C039EF14EE329D0E09D84F909CF9EB5EF472",
+            "weight": 1
+          }
+        ]
+      }
+    ],
+    "escrow": [
+      {
+        "amount": [
+          {
+            "ticker": "CASH",
+            "whole": 1000000
+          }
+        ],
+        "arbiter": "multisig/usage/0000000000000001",
+        "destination": "cond:dist/revenue/0000000000000001",
+        "source": "0000000000000000000000000000000000000000",
+        "timeout": "2999-12-31T00:00:00Z"
+      }
+    ],
+    "msgfee": [
+      {
+        "fee": {
+          "whole": 2,
+          "ticker": "CASH"
+        },
+        "msg_path": "distribution/create"
+      },
+      {
+        "fee": {
+          "fractional": 200000000,
+          "ticker": "CASH",
+          "//amount": "0.2CASH"
+        },
+        "msg_path": "distribution/distribute"
+      },
+      {
+        "fee": {
+          "whole": 1,
+          "ticker": "CASH"
+        },
+        "msg_path": "distribution/reset"
+      },
+      {
+        "fee": {
+          "whole": 5,
+          "ticker": "CASH"
+        },
+        "msg_path": "username/transfer_token"
+      }
+    ]
+  }
+}
