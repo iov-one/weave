@@ -41,8 +41,8 @@ func SignTx(tx *bnsd.Tx, signer *PrivateKey, chainID string, nonce int64) error 
 	return nil
 }
 
-// ParseBcpTx will load a serialize tx into a format we can read
-func ParseBcpTx(data []byte) (*bnsd.Tx, error) {
+// ParseBnsdTx will load a serialize tx into a format we can read
+func ParseBnsdTx(data []byte) (*bnsd.Tx, error) {
 	var tx bnsd.Tx
 	err := tx.Unmarshal(data)
 	if err != nil {
