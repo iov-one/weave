@@ -11,6 +11,8 @@ when parsing large json objects.
 - `clean_protos.sh` appends `option go_package = "github.com/iov-one/weave";`
   to prevent protoc error in weave based frameworks
 - `cmd/bnscli` support for more query endpoints
+- `bnsd/x/username` was updated and now the username validation rules are
+  defined dynamically via gconf powered configuration.
 
 Breaking changes
 
