@@ -41,7 +41,7 @@ func TestSendTx(t *testing.T) {
 	// parse tx and verify we have the proper fields
 	data, err := tx.Marshal()
 	assert.Nil(t, err)
-	parsed, err := ParseBnsdTx(data)
+	parsed, err := ParseBnsTx(data)
 	assert.Nil(t, err)
 	msg, err := parsed.GetMsg()
 	assert.Nil(t, err)
