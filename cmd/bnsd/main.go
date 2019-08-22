@@ -34,6 +34,7 @@ func helpMessage() {
 	fmt.Println("start     Run the abci server")
 	fmt.Println("getblock  Extract a block from blockchain.db")
 	fmt.Println("retry     Run last block again to ensure it produces same result")
+	fmt.Println("testgen   Generate various protoc and json files to test against")
 	fmt.Println("version   Print the app version")
 	fmt.Println(`
   -home string
