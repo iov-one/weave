@@ -4,6 +4,7 @@ import (
 	"encoding/binary"
 
 	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/errors"
 )
 
 // Sequence maintains a counter, and generates a
@@ -62,4 +63,16 @@ func encodeSequence(val int64) []byte {
 	bz := make([]byte, 8)
 	binary.BigEndian.PutUint64(bz, uint64(val))
 	return bz
+}
+
+// ValidateSequence returns an error if this is not an 8-byte
+// as expected for orm.IDGenBucket
+func ValidateSequence(id []byte) error {
+	if len(id) == 0 {
+		return errors.Wrap(errors.ErrEmpty, "sequence missing")
+	}
+	if len(id) != 8 {
+		return errors.Wrap(errors.ErrInput, "sequence is invalid length (expect 8 bytes)")
+	}
+	return nil
 }
