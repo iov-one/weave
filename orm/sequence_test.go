@@ -76,9 +76,6 @@ func TestValidateSequence(t *testing.T) {
 			if !tc.wantErr.Is(err) {
 				t.Fatalf("unexpected error: %+v", err)
 			}
-			if tc.wantErr != nil {
-				return
-			}
 		})
 	}
 }
