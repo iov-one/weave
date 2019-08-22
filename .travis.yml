@@ -57,7 +57,9 @@ script:
      make cover;
      ./coverage/upload.sh;
    fi;
-- printenv | grep -Ev "PATH|path|GEM" > env.list
+- printenv TRAVIS_COMMIT_MESSAGE > commit.msg
+- unset TRAVIS_COMMIT_MESSAGE && printenv | grep -Ev "PATH|path|GEM" > env.list
+- export TRAVIS_COMMIT_MESSAGE=`cat commit.msg` && rm -rf commit.msg
 - docker run -it --rm --env-file env.list -v "$(pwd):/usr/src/app" iov1ops/danger:latest > danger.out; cat danger.out
 - if [[ "$TRAVIS_GO_VERSION" == "$MAIN_GO_VERSION" && "$TRAVIS_OS_NAME" == "linux" ]]; then
     release_latest=$( [[ "$TRAVIS_BRANCH" == "master" && "$TRAVIS_TAG" == "" && "$TRAVIS_PULL_REQUEST_BRANCH" == "" ]] && echo "yes" || echo "no" );
