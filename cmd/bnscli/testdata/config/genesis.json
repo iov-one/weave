@@ -12,11 +12,11 @@
         ]
       }
     ],
-		"currencies": [
-			{
-				"ticker": "IOV",
-				"name":   "Main token of this chain"
-			}
+    "currencies": [
+      {
+        "ticker": "IOV",
+        "name": "Main token of this chain"
+      }
     ],
     "multisig": [],
     "update_validators": {
@@ -24,33 +24,80 @@
         "E28AE9A6EB94FC88B73EB7CBD6B87BF93EB9BEF0"
       ]
     },
-		"conf": {
-			"cash": {
-				"collector_address": "seq:dist/revenue/1",
-				"minimal_fee": "0.1 IOV"
-			},
-			"migration": {
-				"admin": "E28AE9A6EB94FC88B73EB7CBD6B87BF93EB9BEF0"
-			}
-		},
+    "conf": {
+      "cash": {
+        "collector_address": "seq:dist/revenue/1",
+        "minimal_fee": "0.1 IOV"
+      },
+      "migration": {
+        "admin": "E28AE9A6EB94FC88B73EB7CBD6B87BF93EB9BEF0"
+      },
+      "username": {
+        "owner": "cond:admin/admin/0000000000000001",
+        "valid_username_name": "^[a-z0-9\\-_.]{3,64}$",
+        "valid_username_label": "^iov$"
+      }
+    },
     "distribution": [],
     "initialize_schema": [
-			{"ver": 1, "pkg": "batch"},
-			{"ver": 1, "pkg": "cash"},
-			{"ver": 1, "pkg": "currency"},
-			{"ver": 1, "pkg": "distribution"},
-			{"ver": 1, "pkg": "escrow"},
-			{"ver": 1, "pkg": "gov"},
-			{"ver": 1, "pkg": "msgfee"},
-			{"ver": 1, "pkg": "multisig"},
-			{"ver": 1, "pkg": "paychan"},
-			{"ver": 1, "pkg": "sigs"},
-			{"ver": 1, "pkg": "username"},
-			{"ver": 1, "pkg": "utils"},
-			{"ver": 1, "pkg": "validators"}      
+      {
+        "ver": 1,
+        "pkg": "batch"
+      },
+      {
+        "ver": 1,
+        "pkg": "cash"
+      },
+      {
+        "ver": 1,
+        "pkg": "currency"
+      },
+      {
+        "ver": 1,
+        "pkg": "distribution"
+      },
+      {
+        "ver": 1,
+        "pkg": "escrow"
+      },
+      {
+        "ver": 1,
+        "pkg": "gov"
+      },
+      {
+        "ver": 1,
+        "pkg": "msgfee"
+      },
+      {
+        "ver": 1,
+        "pkg": "multisig"
+      },
+      {
+        "ver": 1,
+        "pkg": "paychan"
+      },
+      {
+        "ver": 1,
+        "pkg": "sigs"
+      },
+      {
+        "ver": 1,
+        "pkg": "username"
+      },
+      {
+        "ver": 1,
+        "pkg": "utils"
+      },
+      {
+        "ver": 1,
+        "pkg": "validators"
+      }
     ],
     "msgfee": [
-      {"msg_path": "multisig/create", "fee": "1 IOV"}
+      {
+        "msg_path": "multisig/create",
+        "fee": "1 IOV"
+      }
     ]
   },
   "chain_id": "clitest-chain",

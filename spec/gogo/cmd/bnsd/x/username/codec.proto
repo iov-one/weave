@@ -47,7 +47,7 @@ message BlockchainAddress {
 message RegisterTokenMsg {
   weave.Metadata metadata = 1;
   // Username is the unique name of the token, for example alice*iov
-  string username = 2 [(gogoproto.casttype) = "Username"];
+  string username = 2;
   // Targets is a blockchain address list that this token should point to.
   repeated BlockchainAddress targets = 3 [(gogoproto.nullable) = false];
 }
@@ -58,7 +58,7 @@ message RegisterTokenMsg {
 message TransferTokenMsg {
   weave.Metadata metadata = 1;
   // Username is the unique name of the token, for example alice*iov
-  string username = 2 [(gogoproto.casttype) = "Username"];
+  string username = 2;
   // Owner is a weave address that will owns this token after the change.
   bytes new_owner = 3 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
 }
@@ -68,8 +68,31 @@ message TransferTokenMsg {
 message ChangeTokenTargetsMsg {
   weave.Metadata metadata = 1;
   // Username is the unique name of the token, for example alice*iov
-  string username = 2 [(gogoproto.casttype) = "Username"];
+  string username = 2;
   // New targets is a list of blockchain addresses that this token should point
   // to after the change. Old list is overwritten with what is provided.
   repeated BlockchainAddress new_targets = 3 [(gogoproto.nullable) = false];
+}
+
+// Configuration is a dynamic configuration used by this extension, managed by
+// the functionality provided by gconf package.
+message Configuration {
+  weave.Metadata metadata = 1;
+  // Owner is present to implement gconf.OwnedConfig interface
+  // This defines the Address that is allowed to update the Configuration object and is
+  // needed to make use of gconf.NewUpdateConfigurationHandler
+  bytes owner = 2 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
+  // Valid username name defines a regular expression that every valid
+  // username part name must match (a username is <name>*<label>)
+  string valid_username_name = 3;
+  // Valid username label defines a regular expression that every valid
+  // namespace label must match (a username is <name>*<label>)
+  string valid_username_label = 4;
+}
+
+// UpdateConfigurationMsg is used by the gconf extension to update the
+// configuration.
+message UpdateConfigurationMsg {
+  weave.Metadata metadata = 1;
+  Configuration patch = 2;
 }

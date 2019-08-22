@@ -21,6 +21,7 @@ import (
 	"github.com/iov-one/weave/commands/server"
 	"github.com/iov-one/weave/crypto"
 	"github.com/iov-one/weave/weavetest"
+	"github.com/iov-one/weave/x/cash"
 	"github.com/iov-one/weave/x/cron"
 	"github.com/iov-one/weave/x/distribution"
 	"github.com/iov-one/weave/x/escrow"
@@ -247,12 +248,17 @@ func initGenesis(t testing.TB, env *EnvConf, filename string) {
 			},
 		},
 		"conf": dict{
-			"cash": dict{
-				"collector_address": "seq:dist/revenue/1",
-				"minimal_fee":       env.AntiSpamFee,
+			"cash": cash.Configuration{
+				CollectorAddress: mustParseAddr(t, "seq:dist/revenue/1"),
+				MinimalFee:       env.AntiSpamFee,
 			},
 			"migration": dict{
 				"admin": "seq:multisig/usage/1",
+			},
+			"username": username.Configuration{
+				ValidUsernameName:  `^[a-z0-9\-_.]{3,64}$`,
+				ValidUsernameLabel: `^iov$`,
+				Owner:              mustParseAddr(t, "seq:uname/admin/1"),
 			},
 		},
 		"governance": dict{
@@ -406,4 +412,12 @@ func WaitCronTaskSuccess(t testing.TB, env *EnvConf, timeout time.Duration, task
 	if !res.Successful {
 		t.Fatalf("task was not successful: %s", res.Info)
 	}
+}
+
+func mustParseAddr(t testing.TB, addr string) weave.Address {
+	a, err := weave.ParseAddress(addr)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return a
 }

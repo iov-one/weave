@@ -30,10 +30,6 @@ Create a transaction for registering a username.
 	)
 	fl.Parse(args)
 
-	uname, err := username.ParseUsername(*nameFl + "*" + *namespaceFl)
-	if err != nil {
-		return fmt.Errorf("given data produce an invalid username: %s", err)
-	}
 	target := username.BlockchainAddress{
 		BlockchainID: *blockchainFl,
 		Address:      *addressFl,
@@ -44,7 +40,7 @@ Create a transaction for registering a username.
 
 	msg := username.RegisterTokenMsg{
 		Metadata: &weave.Metadata{Schema: 1},
-		Username: uname,
+		Username: *nameFl + "*" + *namespaceFl,
 		Targets:  []username.BlockchainAddress{target},
 	}
 	if err := msg.Validate(); err != nil {
@@ -56,7 +52,7 @@ Create a transaction for registering a username.
 			UsernameRegisterTokenMsg: &msg,
 		},
 	}
-	_, err = writeTx(output, tx)
+	_, err := writeTx(output, tx)
 	return err
 }
 
@@ -77,12 +73,7 @@ serialized representation of the resolved username.
 	)
 	fl.Parse(args)
 
-	uname, err := username.ParseUsername(*nameFl + "*" + *namespaceFl)
-	if err != nil {
-		return fmt.Errorf("given data produce an invalid username: %s", err)
-	}
-
-	token, err := fetchUsernameToken(*tmAddrFl, uname)
+	token, err := fetchUsernameToken(*tmAddrFl, *nameFl+"*"+*namespaceFl)
 	if err != nil {
 		return fmt.Errorf("cannot fetch token: %s", err)
 	}
@@ -95,8 +86,8 @@ serialized representation of the resolved username.
 	return err
 }
 
-func fetchUsernameToken(serverURL string, uname username.Username) (*username.Token, error) {
-	resp, err := http.Get(serverURL + "/abci_query?path=%22/usernames%22&data=%22" + uname.String() + "%22")
+func fetchUsernameToken(serverURL string, uname string) (*username.Token, error) {
+	resp, err := http.Get(serverURL + "/abci_query?path=%22/usernames%22&data=%22" + uname + "%22")
 	if err != nil {
 		return nil, fmt.Errorf("cannot fetch: %s", err)
 	}

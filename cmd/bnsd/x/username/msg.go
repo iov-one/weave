@@ -18,9 +18,9 @@ func (m *RegisterTokenMsg) Validate() error {
 	if err := m.Metadata.Validate(); err != nil {
 		return errors.Wrap(err, "metadata")
 	}
-	if err := m.Username.Validate(); err != nil {
-		return errors.Wrap(err, "username")
-	}
+
+	// Username should but cannot be validated here.
+
 	if err := validateTargets(m.Targets); err != nil {
 		return errors.Wrap(err, "targets")
 	}
@@ -37,9 +37,9 @@ func (m *TransferTokenMsg) Validate() error {
 	if err := m.Metadata.Validate(); err != nil {
 		return errors.Wrap(err, "metadata")
 	}
-	if err := m.Username.Validate(); err != nil {
-		return errors.Wrap(err, "username")
-	}
+
+	// Username should but cannot be validated here.
+
 	if err := m.NewOwner.Validate(); err != nil {
 		return errors.Wrap(err, "new owner")
 	}
@@ -56,9 +56,9 @@ func (m *ChangeTokenTargetsMsg) Validate() error {
 	if err := m.Metadata.Validate(); err != nil {
 		return errors.Wrap(err, "metadata")
 	}
-	if err := m.Username.Validate(); err != nil {
-		return errors.Wrap(err, "username")
-	}
+
+	// Username should but cannot be validated here.
+
 	if err := validateTargets(m.NewTargets); err != nil {
 		return errors.Wrap(err, "new targets")
 	}

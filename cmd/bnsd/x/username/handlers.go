@@ -3,6 +3,7 @@ package username
 import (
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/gconf"
 	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/x"
@@ -51,10 +52,10 @@ func (h *registerTokenHandler) Deliver(ctx weave.Context, db weave.KVStore, tx w
 		Targets:  msg.Targets,
 		Owner:    owner,
 	}
-	if _, err := h.bucket.Put(db, msg.Username.Bytes(), &token); err != nil {
+	if _, err := h.bucket.Put(db, []byte(msg.Username), &token); err != nil {
 		return nil, errors.Wrap(err, "cannot store token")
 	}
-	return &weave.DeliverResult{Data: msg.Username.Bytes()}, nil
+	return &weave.DeliverResult{Data: []byte(msg.Username)}, nil
 }
 
 func (h *registerTokenHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*RegisterTokenMsg, error) {
@@ -63,7 +64,15 @@ func (h *registerTokenHandler) validate(ctx weave.Context, db weave.KVStore, tx 
 		return nil, errors.Wrap(err, "load msg")
 	}
 
-	switch err := h.bucket.Has(db, msg.Username.Bytes()); {
+	conf, err := loadConf(db)
+	if err != nil {
+		return nil, errors.Wrap(err, "load configuration")
+	}
+	if err := validateUsername(msg.Username, conf); err != nil {
+		return nil, errors.Wrap(err, "username")
+	}
+
+	switch err := h.bucket.Has(db, []byte(msg.Username)); {
 	case err == nil:
 		return nil, errors.Wrapf(errors.ErrDuplicate, "username %q already registered", msg.Username)
 	case errors.ErrNotFound.Is(err):
@@ -71,6 +80,7 @@ func (h *registerTokenHandler) validate(ctx weave.Context, db weave.KVStore, tx 
 	default:
 		return nil, errors.Wrap(err, "cannot check if username is unique")
 	}
+
 	return &msg, nil
 }
 
@@ -93,10 +103,10 @@ func (h *transferTokenHandler) Deliver(ctx weave.Context, db weave.KVStore, tx w
 	}
 
 	token.Owner = msg.NewOwner
-	if _, err := h.bucket.Put(db, msg.Username.Bytes(), token); err != nil {
+	if _, err := h.bucket.Put(db, []byte(msg.Username), token); err != nil {
 		return nil, errors.Wrap(err, "cannot store token")
 	}
-	return &weave.DeliverResult{Data: msg.Username.Bytes()}, nil
+	return &weave.DeliverResult{Data: []byte(msg.Username)}, nil
 }
 
 func (h *transferTokenHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*TransferTokenMsg, *Token, error) {
@@ -106,7 +116,7 @@ func (h *transferTokenHandler) validate(ctx weave.Context, db weave.KVStore, tx 
 	}
 
 	var token Token
-	if err := h.bucket.One(db, msg.Username.Bytes(), &token); err != nil {
+	if err := h.bucket.One(db, []byte(msg.Username), &token); err != nil {
 		return nil, nil, errors.Wrap(err, "cannot get token from database")
 	}
 
@@ -136,10 +146,10 @@ func (h *changeTokenTargetsHandler) Deliver(ctx weave.Context, db weave.KVStore,
 	}
 
 	token.Targets = msg.NewTargets
-	if _, err := h.bucket.Put(db, msg.Username.Bytes(), token); err != nil {
+	if _, err := h.bucket.Put(db, []byte(msg.Username), token); err != nil {
 		return nil, errors.Wrap(err, "cannot store token")
 	}
-	return &weave.DeliverResult{Data: msg.Username.Bytes()}, nil
+	return &weave.DeliverResult{Data: []byte(msg.Username)}, nil
 }
 
 func (h *changeTokenTargetsHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*ChangeTokenTargetsMsg, *Token, error) {
@@ -148,12 +158,16 @@ func (h *changeTokenTargetsHandler) validate(ctx weave.Context, db weave.KVStore
 		return nil, nil, errors.Wrap(err, "load msg")
 	}
 
-	if err := msg.Username.Validate(); err != nil {
+	conf, err := loadConf(db)
+	if err != nil {
+		return nil, nil, errors.Wrap(err, "load configuration")
+	}
+	if err := validateUsername(msg.Username, conf); err != nil {
 		return nil, nil, errors.Wrap(err, "username")
 	}
 
 	var token Token
-	if err := h.bucket.One(db, msg.Username.Bytes(), &token); err != nil {
+	if err := h.bucket.One(db, []byte(msg.Username), &token); err != nil {
 		return nil, nil, errors.Wrap(err, "cannot get token from database")
 	}
 
@@ -162,4 +176,9 @@ func (h *changeTokenTargetsHandler) validate(ctx weave.Context, db weave.KVStore
 	}
 
 	return &msg, &token, nil
+}
+
+func NewConfigHandler(auth x.Authenticator) weave.Handler {
+	var conf Configuration
+	return gconf.NewUpdateConfigurationHandler("username", &conf, auth)
 }

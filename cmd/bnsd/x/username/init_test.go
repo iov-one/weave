@@ -14,6 +14,13 @@ import (
 func TestGenesisInitializer(t *testing.T) {
 	const genesis = `
 	{
+		"conf": {
+			"username": {
+				"valid_username_name": "^[a-z0-9\\-_.]{3,64}$",
+				"valid_username_label": "^iov$",
+				"owner": "cond:foo/bar/000000000000000001"
+			}
+		},
 		"username": [
 			{
 				"username": "alice*iov",
@@ -41,6 +48,7 @@ func TestGenesisInitializer(t *testing.T) {
 
 	db := store.MemStore()
 	migration.MustInitPkg(db, "username")
+
 	var ini Initializer
 	if err := ini.FromGenesis(opts, weave.GenesisParams{}, db); err != nil {
 		t.Fatalf("cannot load genesis: %s", err)

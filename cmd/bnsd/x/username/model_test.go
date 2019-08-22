@@ -82,7 +82,7 @@ func TestQueryByOwner(t *testing.T) {
 
 	db := store.MemStore()
 	migration.MustInitPkg(db, "username")
-	username := Username("alice*iov")
+	const username = "alice*iov"
 
 	token := Token{
 		Metadata: &weave.Metadata{Schema: 1},
@@ -94,7 +94,7 @@ func TestQueryByOwner(t *testing.T) {
 
 	b := NewTokenBucket()
 
-	_, err := b.Put(db, username.Bytes(), &token)
+	_, err := b.Put(db, []byte(username), &token)
 	assert.Nil(t, err)
 
 	_, err = b.ByIndex(db, "owner", token.Owner, &retrievedTokens)

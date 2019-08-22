@@ -9,6 +9,7 @@ import (
 	"github.com/iov-one/weave"
 	weaveClient "github.com/iov-one/weave/client"
 	bnsd "github.com/iov-one/weave/cmd/bnsd/app"
+	"github.com/iov-one/weave/cmd/bnsd/x/username"
 	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/commands/server"
 	"github.com/iov-one/weave/migration"
@@ -95,6 +96,10 @@ func initGenesis(filename string, addr weave.Address) error {
 			},
 			"migration": migration.Configuration{
 				Admin: weave.Condition("multisig/usage/0000000000000001").Address(),
+			},
+			"username": username.Configuration{
+				ValidUsernameName:  `^[a-z0-9\-_.]{3,64}`,
+				ValidUsernameLabel: `^iov$`,
 			},
 		},
 		"initialize_schema": []dict{
